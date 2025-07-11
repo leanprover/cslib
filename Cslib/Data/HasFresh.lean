@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Kenny Lau
 -/
 
+import Mathlib.Algebra.Field.Rat
+import Mathlib.Algebra.Ring.CharZero
+import Mathlib.Algebra.Ring.Int.Defs
 import Mathlib.Data.Finset.Max
 import Mathlib.Data.Finset.Preimage
 import Mathlib.Data.Fintype.EquivFin
