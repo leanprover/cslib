@@ -31,5 +31,17 @@ def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFre
   fresh_notMem s := Nat.find_spec (p := fun n ↦ e n ∉ s) _
 
 /-- `ℕ` has a computable fresh function. -/
-instance instHasFreshNat : HasFresh ℕ :=
+instance : HasFresh ℕ :=
   .ofNatEmbed (.refl _)
+
+/-- `ℤ` has a computable fresh function. -/
+instance : HasFresh ℤ :=
+  .ofNatEmbed (Nat.castEmbedding)
+
+/-- `ℚ` has a computable fresh function. -/
+instance : HasFresh ℚ :=
+  .ofNatEmbed (Nat.castEmbedding)
+
+/-- `Finset ℕ` has a computable fresh function. -/
+instance : HasFresh (Finset ℕ) :=
+  .ofNatEmbed ⟨({·}), Finset.singleton_injective⟩
