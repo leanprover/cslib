@@ -62,3 +62,7 @@ instance {α : Type u} [DecidableEq α] [HasFresh α] : HasFresh (Finset α) :=
 /-- If `α` is inhabited, then `Multiset α` has a computable fresh function. -/
 instance {α : Type u} [DecidableEq α] [Inhabited α] : HasFresh (Multiset α) :=
   .ofSucc (fun s ↦ default ::ₘ s) fun _ ↦ Multiset.lt_cons_self _ _
+
+/-- `ℕ → ℕ` has a computable fresh function. -/
+instance : HasFresh (ℕ → ℕ) :=
+  .ofSucc (fun f x ↦ f x + 1) fun _ ↦ Pi.lt_def.2 ⟨fun _ ↦ Nat.le_succ _, 0, Nat.lt_succ_self _⟩
