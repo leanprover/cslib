@@ -175,18 +175,16 @@ theorem isZero_def (a : SKI) : IsZero ⬝ a ⇒* a ⬝ (K ⬝ FF) ⬝ TT := by
   simp_rw [applyList] at this
   assumption
 theorem isZero_correct (n : Nat) (a : SKI) (h : is_church n a) :
-    is_bool (Nat.beq n 0) (IsZero ⬝ a) := by
+    is_bool (n = 0) (IsZero ⬝ a) := by
   apply is_bool_trans (a' := a ⬝ (K ⬝ FF) ⬝ TT) (h := isZero_def a)
-  by_cases Nat.beq n 0
+  by_cases n=0
   case pos h0 =>
     simp_rw [h0]
-    replace h0 := Nat.eq_of_beq_eq_true (n:=n) (m:=0) h0
     rw [h0] at h
     apply is_bool_trans (ha' := TT_correct)
     exact h _ _
   case neg h0 =>
     simp_rw [h0]
-    replace h0 := Nat.ne_of_beq_eq_false <| eq_false_of_ne_true h0
     let ⟨k,hk⟩ := Nat.exists_eq_succ_of_ne_zero h0
     rw [hk] at h
     apply is_bool_trans (ha' := FF_correct)
@@ -236,7 +234,7 @@ theorem rec_succ (n : Nat) (x g a : SKI) (ha : is_church (n+1) a) :
       exact isZero_correct (n+1) a ha
 
 
-/-! ### Root-finding (μ-Minimisation) -/
+/-! ### Root-finding (μ-recursion) -/
 
 /--
 First define an auxilliary function `RFindAbove` that looks for roots above a fixed number n, as a
@@ -253,59 +251,53 @@ lemma rfindAboveAux_def (R₀ f a : SKI) :
   assumption
 
 theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : is_church 0 (f ⬝ a)) :
-    RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* a := by
-  calc
+    RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* a := calc
   _ ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ⇒* if (Nat.beq 0 0) then a else (R₀ ⬝ (Succ ⬝ a) ⬝ f) := by
       apply cond_correct
       apply isZero_correct _ _ hfa
 theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : is_church (m+1) (f ⬝ a)) :
-    RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* R₀ ⬝ (Succ ⬝ a) ⬝ f := by
-  calc
-    _ ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
-    _ ⇒* if (Nat.beq (m+1) 0) then a else (R₀ ⬝ (Succ ⬝ a) ⬝ f) := by
-        apply cond_correct
-        apply isZero_correct _ _ hfa
+    RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* R₀ ⬝ (Succ ⬝ a) ⬝ f := calc
+  _ ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
+  _ ⇒* if (Nat.beq (m+1) 0) then a else (R₀ ⬝ (Succ ⬝ a) ⬝ f) := by
+      apply cond_correct
+      apply isZero_correct _ _ hfa
 
-/- Find the minimal root of `fNat` above a number n -/
+/-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     (hf : ∀ i : Nat, ∀ y : SKI, is_church i y →  is_church (fNat i) (f ⬝ y))
     (n m : Nat) (hx : is_church m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
     is_church (m+n) (RFindAbove ⬝ x ⬝ f) := by
-  induction n generalizing m x with
-  | zero =>
+  induction n generalizing m x
+  all_goals apply is_church_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
+  case zero.a =>
     apply is_church_trans (a' := x)
-    . have : is_church (fNat m) (f ⬝ x) := hf m x hx
+    · have : is_church (fNat m) (f ⬝ x) := hf m x hx
       rw [Nat.add_zero] at hroot
       simp_rw [hroot] at this
-      calc
-      _ ⇒* RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f := by
-          apply largeRed_head; apply largeRed_head; exact fixedPoint_correct _
-      _ ⇒* x := by apply rfindAboveAux_base; assumption
-    . assumption
-  | succ n ih =>
+      apply rfindAboveAux_base
+      assumption
+    · assumption
+  case succ.a n ih =>
     unfold RFindAbove
     apply is_church_trans (a' := RFindAbove ⬝ (Succ ⬝ x) ⬝ f)
-    . let y := (fNat m).pred
+    · let y := (fNat m).pred
       have : is_church (y+1) (f ⬝ x) := by
         subst y
-        have : fNat m ≠ 0 := hpos 0 (by simp)
-        have : (fNat m).pred + 1 = fNat m := Nat.succ_pred_eq_of_ne_zero this
-        simp_rw [this]
-        exact hf m x hx
-      calc
-      _ ⇒* RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f := by
-          apply largeRed_head; apply largeRed_head; exact fixedPoint_correct _
-      _ ⇒* RFindAbove ⬝ (Succ ⬝ x) ⬝ f := by apply rfindAboveAux_step; assumption
-    .
-      replace ih := ih (Succ ⬝ x) (m+1) (succ_correct _ x hx)
+        exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
+      apply rfindAboveAux_step
+      assumption
+    · replace ih := ih (Succ ⬝ x) (m+1) (succ_correct _ x hx)
       simp_rw [Nat.add_assoc, Nat.add_comm] at ih
       apply ih
-      . assumption
-      . intro i hi
+      · assumption
+      · intro i hi
         apply hpos (i+1)
         simp [hi]
+  -- close the `h` goals of the above `apply is_church_trans`
+  all_goals {apply largeRed_head; apply largeRed_head; exact fixedPoint_correct _}
+
 
 /-- Ordinary root finding is root finding above zero -/
 def RFind := RFindAbove ⬝ SKI.Zero
@@ -382,3 +374,18 @@ theorem sub_correct (n m : Nat) (a b : SKI) (ha : is_church n a) (hb : is_church
       | succ m ih =>
         simp_rw [←Nat.sub_sub, church]
         exact pred_correct _ _ ih
+
+/-- Comparison: (. ≤ .) := λ n m. IsZero ⬝ (Sub ⬝ n ⬝ m) -/
+def LEPoly : SKI.Polynomial 2 := IsZero ⬝' (SKI.Sub ⬝' &0 ⬝' &1)
+protected def SKI.LE : SKI := LEPoly.toSKI
+theorem le_def (a b : SKI) : SKI.LE ⬝ a ⬝ b ⇒* IsZero ⬝ (SKI.Sub ⬝ a ⬝ b) := by
+  have : _ := LEPoly.toSKI_correct [a, b] (by simp)
+  simp_rw [applyList] at this
+  assumption
+
+theorem le_correct (n m : Nat) (a b : SKI) (ha : is_church n a) (hb : is_church m b) :
+    is_bool (n ≤ m) (SKI.LE ⬝ a ⬝ b) := by
+  simp [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
+  apply is_bool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
+  apply isZero_correct
+  apply sub_correct <;> assumption
