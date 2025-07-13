@@ -25,7 +25,7 @@ class HasFresh (α : Type u) where
 attribute [simp] HasFresh.fresh_notMem
 
 /-- An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity in proofs. -/
-theorem HasFresh.fresh_exists {α : Type} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s := ⟨fresh s, fresh_notMem s⟩ 
+theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s := ⟨fresh s, fresh_notMem s⟩ 
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
