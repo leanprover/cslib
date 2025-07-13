@@ -18,12 +18,14 @@ The untyped λ-calculus, with a locally nameless representation of syntax.
 
 -/
 
-variable {Var : Type} [HasFresh Var] [DecidableEq Var]
+universe u
+
+variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
-inductive Term (Var : Type)
+inductive Term (Var : Type u)
 | bvar : ℕ → Term Var
 | fvar : Var → Term Var
 | lam  : Term Var → Term Var

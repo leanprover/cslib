@@ -6,7 +6,9 @@ Authors: Chris Henson
 
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Basic
 
-variable {Var : Type}
+universe u
+
+variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Term
 
