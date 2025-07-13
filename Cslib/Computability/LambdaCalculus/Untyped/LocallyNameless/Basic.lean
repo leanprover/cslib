@@ -6,6 +6,18 @@ Authors: Chris Henson
 
 import Cslib.Data.HasFresh
 
+/-! # λ-calculus
+
+The untyped λ-calculus, with a locally nameless representation of syntax.
+
+## References
+
+* [A. Chargueraud2012, *The Locally Nameless Representation*] [Chargueraud2012]
+* See also https://www.cis.upenn.edu/~plclub/popl08-tutorial/code/, from which
+  this is partially adapted
+
+-/
+
 variable {Fvar : Type} [HasFresh Fvar] [DecidableEq Fvar]
 
 namespace LambdaCalculus.LocallyNameless
