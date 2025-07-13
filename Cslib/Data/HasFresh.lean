@@ -22,7 +22,12 @@ class HasFresh (α : Type u) where
   /-- Proof that `fresh` returns a fresh element for its input set. -/
   fresh_notMem (s : Finset α) : fresh s ∉ s
 
-export HasFresh (fresh fresh_notMem)
+attribute [simp] HasFresh.fresh_notMem
+
+/-- An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity in proofs. -/
+theorem HasFresh.fresh_exists {α : Type} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s := ⟨fresh s, fresh_notMem s⟩ 
+
+export HasFresh (fresh fresh_notMem fresh_exists)
 
 lemma WithBot.lt_succ {α : Type u} [Preorder α] [OrderBot α] [SuccOrder α] [NoMaxOrder α]
     (x : WithBot α) : x < x.succ :=

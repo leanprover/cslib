@@ -1,0 +1,74 @@
+/-
+Copyright (c) 2025 Chris Henson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Henson
+-/
+
+import Cslib.Data.HasFresh
+
+variable {Fvar : Type} [HasFresh Fvar] [DecidableEq Fvar]
+
+namespace LambdaCalculus.LocallyNameless
+
+/-- Syntax of locally nameless lambda terms, with free variables over `Fvar`. -/
+inductive Term (Fvar : Type)
+| bvar : ℕ → Term Fvar
+| fvar : Fvar → Term Fvar
+| lam  : Term Fvar → Term Fvar
+| app  : Term Fvar → Term Fvar → Term Fvar
+
+/-- Variable opening of the ith bound variable. -/
+@[simp]
+def Term.open_rec (i : ℕ) (sub : Term Fvar) : Term Fvar → Term Fvar
+| bvar i' => if i = i' then sub else bvar i'
+| fvar x  => fvar x
+| app l r => app (open_rec i sub l) (open_rec i sub r)
+| lam M   => lam $ open_rec (i+1) sub M
+
+notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.open_rec i sub e 
+
+/-- Variable opening of the closest binding. -/
+@[simp]
+def Term.open' {X} (e u):= @Term.open_rec X 0 u e
+
+infixr:80 " ^ " => Term.open'
+
+/-- Variable closing, replacing a free `fvar x` with `bvar k` -/
+@[simp]
+def Term.close_rec (k : ℕ) (x : Fvar) : Term Fvar → Term Fvar
+| fvar x' => if x = x' then bvar k else fvar x'
+| bvar i  => bvar i
+| app l r => app (close_rec k x l) (close_rec k x r)
+| lam t   => lam $ close_rec (k+1) x t
+
+notation:68 e "⟦" k " ↜ " x "⟧"=> Term.close_rec k x e 
+
+/-- Variable closing of the closest binding. -/
+@[simp]
+def Term.close {Fvar} [DecidableEq Fvar] (e u):= @Term.close_rec Fvar _ 0 u e
+
+infixr:80 " ^* " => Term.close
+
+/- Substitution of a free variable to a term. -/
+@[simp]
+def Term.subst (x : Fvar) (sub : Term Fvar) : Term Fvar → Term Fvar
+| bvar i  => bvar i
+| fvar x' => if x = x' then sub else fvar x'
+| app l r => app (subst x sub l) (subst x sub r)
+| lam M   => lam $ subst x sub M
+
+notation:67 e "[" x ":=" sub "]" => Term.subst x sub e 
+
+/-- Free variables of a term. -/
+@[simp]
+def Term.fv : Term Fvar → Finset Fvar
+| bvar _ => {}
+| fvar x => {x}
+| lam e1 => e1.fv
+| app l r => l.fv ∪ r.fv
+
+/-- Locally closed terms. -/
+inductive Term.LC : Term Fvar → Prop
+| fvar (x)  : LC (fvar x)
+| lam (L : Finset Fvar) (e : Term Fvar) : (∀ x : Fvar, x ∉ L → LC (e ^ fvar x)) → LC (lam e)
+| app {l r} : l.LC → r.LC → LC (app l r)
