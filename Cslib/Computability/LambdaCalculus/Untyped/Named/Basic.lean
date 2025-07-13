@@ -24,7 +24,7 @@ universe u
 
 variable {Var : Type u}
 
-namespace LambdaCalculus
+namespace LambdaCalculus.Named
 
 /-- Syntax of terms. -/
 inductive Term (Var : Type u) : Type u where
@@ -177,4 +177,4 @@ inductive Term.AlphaEquiv [DecidableEq Var] : Rel (Term Var) (Term Var) where
 instance instHasAlphaEquivTerm [DecidableEq Var] : HasAlphaEquiv (Term Var) where
   AlphaEquiv := Term.AlphaEquiv
 
-end LambdaCalculus
+end LambdaCalculus.Named
