@@ -41,7 +41,9 @@ protected inductive Polynomial (n : Nat) : Type _ where
   | ap : SKI.Polynomial n → SKI.Polynomial n → SKI.Polynomial n
 
 infixl:100 " ⬝' " => SKI.Polynomial.ap
-prefix:101 "&" => SKI.Polynomial.var -- notation by analogy with pointers in C
+
+/-- Notation by analogy with pointers in C -/
+prefix:101 "&" => SKI.Polynomial.var
 
 instance CoeTermContext (n : Nat) : Coe SKI (SKI.Polynomial n) := ⟨SKI.Polynomial.term⟩
 
@@ -256,11 +258,11 @@ theorem Θ_correct (f : SKI) : Θ ⬝ f ⇒* f ⬝ (Θ ⬝ f) := ΘAux_def ΘAux
 
 /-! ### Church Booleans -/
 
-def is_bool (u : Bool) (a : SKI) : Prop :=
+def IsBool (u : Bool) (a : SKI) : Prop :=
   ∀ x y : SKI, a ⬝ x ⬝ y ⇒* (if u then x else y)
 
-theorem is_bool_trans (u : Bool) (a a' : SKI) (h : a ⇒* a') (ha' : is_bool u a') :
-    is_bool u a := by
+theorem isBool_trans (u : Bool) (a a' : SKI) (h : a ⇒* a') (ha' : IsBool u a') :
+    IsBool u a := by
   intro x y
   trans a' ⬝ x ⬝ y
   · apply largeRed_head
@@ -270,18 +272,18 @@ theorem is_bool_trans (u : Bool) (a a' : SKI) (h : a ⇒* a') (ha' : is_bool u a
 
 /-- Standard true: TT := λ x y. x -/
 def TT : SKI := K
-theorem TT_correct : is_bool true TT := fun x y ↦ largeRed_K x y
+theorem TT_correct : IsBool true TT := fun x y ↦ largeRed_K x y
 
 /-- Standard false: FF := λ x y. y -/
 def FF : SKI := K ⬝ I
-theorem FF_correct : is_bool false FF :=
+theorem FF_correct : IsBool false FF :=
   fun x y ↦ calc
     FF ⬝ x ⬝ y ⇒ I ⬝ y := by apply red_head; exact red_K I x
     _         ⇒ y := red_I y
 
 /-- Conditional: Cond x y b := if b then x else y -/
 protected def Cond : SKI := RotR
-theorem cond_correct (a x y : SKI) (u : Bool) (h : is_bool u a) :
+theorem cond_correct (a x y : SKI) (u : Bool) (h : IsBool u a) :
     SKI.Cond ⬝ x ⬝ y ⬝ a ⇒* if u then x else y := by
   trans a ⬝ x ⬝ y
   · exact rotR_def x y a
@@ -289,8 +291,8 @@ theorem cond_correct (a x y : SKI) (u : Bool) (h : is_bool u a) :
 
 /-- Neg := λ a. Cond FF TT a -/
 protected def Neg : SKI := SKI.Cond ⬝ FF ⬝ TT
-theorem neg_correct (a : SKI) (ua : Bool) (h : is_bool ua a) : is_bool (¬ ua) (SKI.Neg ⬝ a) := by
-  apply is_bool_trans (a' := if ua then FF else TT)
+theorem neg_correct (a : SKI) (ua : Bool) (h : IsBool ua a) : IsBool (¬ ua) (SKI.Neg ⬝ a) := by
+  apply isBool_trans (a' := if ua then FF else TT)
   · apply cond_correct (h := h)
   · cases ua
     · simp [TT_correct]
@@ -303,15 +305,15 @@ theorem and_def (a b : SKI) : SKI.And ⬝ a ⬝ b ⇒* SKI.Cond ⬝ (SKI.Cond �
   have : _ := AndPoly.toSKI_correct [a, b] (by simp)
   simp_rw [applyList] at this
   simpa
-theorem and_correct (a b : SKI) (ua ub : Bool) (ha : is_bool ua a) (hb : is_bool ub b) :
-    is_bool (ua && ub) (SKI.And ⬝ a ⬝ b) := by
-  apply is_bool_trans (a' := SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a) (h := and_def _ _)
+theorem and_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (ua && ub) (SKI.And ⬝ a ⬝ b) := by
+  apply isBool_trans (a' := SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a) (h := and_def _ _)
   cases ua
   · simp_rw [Bool.false_and] at ⊢
-    apply is_bool_trans (a' := FF) (ha' := FF_correct) (h := cond_correct a _ _ false ha)
+    apply isBool_trans (a' := FF) (ha' := FF_correct) (h := cond_correct a _ _ false ha)
   · simp_rw [Bool.true_and] at ⊢
-    apply is_bool_trans (a' := SKI.Cond ⬝ TT ⬝ FF ⬝ b) (h := cond_correct a _ _ true ha)
-    apply is_bool_trans (a' := if ub = true then TT else FF) (h := cond_correct b _ _ ub hb)
+    apply isBool_trans (a' := SKI.Cond ⬝ TT ⬝ FF ⬝ b) (h := cond_correct a _ _ true ha)
+    apply isBool_trans (a' := if ub = true then TT else FF) (h := cond_correct b _ _ ub hb)
     cases ub
     · simp [FF_correct]
     · simp [TT_correct]
@@ -322,17 +324,17 @@ theorem or_def (a b : SKI) : SKI.Or ⬝ a ⬝ b ⇒* SKI.Cond ⬝ TT ⬝ (SKI.Co
   have : _ := OrPoly.toSKI_correct [a, b] (by simp)
   simp_rw [applyList] at this
   simpa
-theorem or_correct (a b : SKI) (ua ub : Bool) (ha : is_bool ua a) (hb : is_bool ub b) :
-  is_bool (ua || ub) (SKI.Or ⬝ a ⬝ b) := by
-  apply is_bool_trans (a' := SKI.Cond ⬝ TT ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ a) (h := or_def _ _)
+theorem or_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+  IsBool (ua || ub) (SKI.Or ⬝ a ⬝ b) := by
+  apply isBool_trans (a' := SKI.Cond ⬝ TT ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ a) (h := or_def _ _)
   cases ua
   · simp_rw [Bool.false_or]
-    apply is_bool_trans (a' := SKI.Cond ⬝ TT ⬝ FF ⬝ b) (h := cond_correct a _ _ false ha)
-    apply is_bool_trans (a' := if ub = true then TT else FF) (h := cond_correct b _ _ ub hb)
+    apply isBool_trans (a' := SKI.Cond ⬝ TT ⬝ FF ⬝ b) (h := cond_correct a _ _ false ha)
+    apply isBool_trans (a' := if ub = true then TT else FF) (h := cond_correct b _ _ ub hb)
     cases ub
     · simp [FF_correct]
     · simp [TT_correct]
-  · apply is_bool_trans (a' := TT) (h := cond_correct a _ _ true ha)
+  · apply isBool_trans (a' := TT) (h := cond_correct a _ _ true ha)
     simp [TT_correct]
 
 

@@ -23,14 +23,14 @@ Chapter 4 of Peter Selinger's notes:
 
 ## Main definitions
 
-- `ParallelReduction` : a relation `⇒'` on terms such that `⇒ ⊆ ⇒' ⊆ ⇒*`, allowing simultaneous
+- `ParallelReduction` : a relation `⇒ₚ` on terms such that `⇒ ⊆ ⇒ₚ ⊆ ⇒*`, allowing simultaneous
 reduction on the head and tail of a term.
 
 ## Main results
 
 - `parallelReduction_diamond` : parallel reduction satisfies the diamond property, that is, it is
 confluent in a single step.
-- `commonReduct_equivalence` : by a general result, the diamond property for `⇒'` implies the same
+- `commonReduct_equivalence` : by a general result, the diamond property for `⇒ₚ` implies the same
 for its reflexive-transitive closure. This closure is exactly `⇒*`, which implies the
 **Church-Rosser** theorem as sketched above.
 -/
@@ -49,10 +49,10 @@ inductive ParallelReduction : SKI → SKI → Prop
       ParallelReduction a a' → ParallelReduction b b' → ParallelReduction (a ⬝ b) (a' ⬝ b')
 
 
-infix:90 " ⇒' " => ParallelReduction
+infix:90 " ⇒ₚ " => ParallelReduction
 
-/-- The inclusion `⇒' ⊆ ⇒*` -/
-theorem largeReduction_of_parallelReduction (a a' : SKI) (h : a ⇒' a') : a ⇒* a' := by
+/-- The inclusion `⇒ₚ ⊆ ⇒*` -/
+theorem largeReduction_of_parallelReduction (a a' : SKI) (h : a ⇒ₚ a') : a ⇒* a' := by
   cases h
   case refl => exact Relation.ReflTransGen.refl
   case par a a' b b' ha hb =>
@@ -63,8 +63,8 @@ theorem largeReduction_of_parallelReduction (a a' : SKI) (h : a ⇒' a') : a ⇒
   case red_K' b => apply Relation.ReflTransGen.single; exact red_K a' b
   case red_S' a b c => apply Relation.ReflTransGen.single; exact red_S a b c
 
-/-- The inclusion `⇒ ⊆ ⇒'` -/
-theorem parallelReduction_of_reductionStep (a a' : SKI) (h : a ⇒ a') : a ⇒' a' := by
+/-- The inclusion `⇒ ⊆ ⇒ₚ` -/
+theorem parallelReduction_of_reductionStep (a a' : SKI) (h : a ⇒ a') : a ⇒ₚ a' := by
   cases h
   case red_S => apply ParallelReduction.red_S'
   case red_K => apply ParallelReduction.red_K'
@@ -79,7 +79,7 @@ theorem parallelReduction_of_reductionStep (a a' : SKI) (h : a ⇒ a') : a ⇒' 
     exact parallelReduction_of_reductionStep b b' h
 
 /-- The inclusions of `largeReduction_of_parallelReduction` and
-`parallelReduction_of_reductionStep` imply that `⇒` and `⇒'` have the same reflexive-transitive
+`parallelReduction_of_reductionStep` imply that `⇒` and `⇒ₚ` have the same reflexive-transitive
 closure. -/
 theorem reflTransGen_parallelReduction_largeReduction :
     Relation.ReflTransGen ParallelReduction = LargeReduction := by
@@ -99,17 +99,18 @@ theorem reflTransGen_parallelReduction_largeReduction :
 /-!
 Irreducibility for the (partially applied) primitive combinators.
 
-TODO: possibly these should be proven more generally (in another file) for `⇒*`. -/
+TODO: possibly these should be proven more generally (in another file) for `⇒*`.
+-/
 
-lemma I_irreducible (a : SKI) (h : I ⇒' a) : a = I := by
+lemma I_irreducible (a : SKI) (h : I ⇒ₚ a) : a = I := by
   cases h
   rfl
 
-lemma K_irreducible (a : SKI) (h : K ⇒' a) : a = K := by
+lemma K_irreducible (a : SKI) (h : K ⇒ₚ a) : a = K := by
   cases h
   rfl
 
-lemma Ka_irreducible (a c : SKI) (h : K ⬝ a ⇒' c) : ∃ a', a ⇒' a' ∧ c = K ⬝ a' := by
+lemma Ka_irreducible (a c : SKI) (h : K ⬝ a ⇒ₚ c) : ∃ a', a ⇒ₚ a' ∧ c = K ⬝ a' := by
   cases h
   case refl =>
     use a
@@ -119,11 +120,11 @@ lemma Ka_irreducible (a c : SKI) (h : K ⬝ a ⇒' c) : ∃ a', a ⇒' a' ∧ c 
     rw [K_irreducible b h]
     exact ⟨h', rfl⟩
 
-lemma S_irreducible (a : SKI) (h : S ⇒' a) : a = S := by
+lemma S_irreducible (a : SKI) (h : S ⇒ₚ a) : a = S := by
   cases h
   rfl
 
-lemma Sa_irreducible (a c : SKI) (h : S ⬝ a ⇒' c) : ∃ a', a ⇒' a' ∧ c = S ⬝ a' := by
+lemma Sa_irreducible (a c : SKI) (h : S ⬝ a ⇒ₚ c) : ∃ a', a ⇒ₚ a' ∧ c = S ⬝ a' := by
   cases h
   case refl =>
     use a
@@ -133,7 +134,7 @@ lemma Sa_irreducible (a c : SKI) (h : S ⬝ a ⇒' c) : ∃ a', a ⇒' a' ∧ c 
     rw [S_irreducible b h]
     exact ⟨h', rfl⟩
 
-lemma Sab_irreducible (a b c : SKI) (h : S ⬝ a ⬝ b ⇒' c) : ∃ a' b', a ⇒' a' ∧ b ⇒' b' ∧ c = S ⬝ a' ⬝ b' := by
+lemma Sab_irreducible (a b c : SKI) (h : S ⬝ a ⬝ b ⇒ₚ c) : ∃ a' b', a ⇒ₚ a' ∧ b ⇒ₚ b' ∧ c = S ⬝ a' ⬝ b' := by
   cases h
   case refl =>
     use a; use b
@@ -146,10 +147,10 @@ lemma Sab_irreducible (a b c : SKI) (h : S ⬝ a ⬝ b ⇒' c) : ∃ a' b', a �
 
 
 /--
-The key result: the Church-Rosser property holds for `⇒'`. The proof is a lengthy case analysis
-on the reductions `a ⇒' a₁` and `a ⇒' a₂`, but is entirely mechanical.
+The key result: the Church-Rosser property holds for `⇒ₚ`. The proof is a lengthy case analysis
+on the reductions `a ⇒ₚ a₁` and `a ⇒ₚ a₂`, but is entirely mechanical.
 -/
-theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒' a₁) (h₂ : a ⇒' a₂) :
+theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h₂ : a ⇒ₚ a₂) :
     Relation.Join ParallelReduction a₁ a₂ := by
   cases h₁
   case refl =>

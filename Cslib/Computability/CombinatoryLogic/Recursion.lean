@@ -14,18 +14,18 @@ formalisation of `Mathlib.Computability.Partrec`. Since composition (`B`-combina
 (`MkPair`, `Fst`, `Snd`) have been implemented in `Cslib.Computability.CombinatoryLogic.Basic`,
 what remains are the following definitions and proofs of their correctness.
 
-- Church numerals : a predicate `is_church n a` expressing that the term `a` is βη-equivalent to
+- Church numerals : a predicate `IsChurch n a` expressing that the term `a` is βη-equivalent to
 the standard church numeral `n` — that is, `a ⬝ f ⬝ x ⇒* f ⬝ (f ⬝ ... ⬝ (f ⬝ x)))`.
 - SKI numerals : `Zero` and `Succ`, corresponding to `Partrec.zero` and `Partrec.succ`, and
 correctness proofs `zero_correct` and `succ_correct`.
 - Predecessor : a term `Pred` so that (`pred_correct`)
-`is_church n a → is_church n.pred (Pred ⬝ a)`.
-- Primitive recursion : a term `Rec` so that (`rec_correct_succ`) `is_church (n+1) a` implies
-`Rec ⬝ x ⬝ g ⬝ a ⇒* g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))` and (`rec_correct_zero`) `is_church 0 a` implies
+`IsChurch n a → IsChurch n.pred (Pred ⬝ a)`.
+- Primitive recursion : a term `Rec` so that (`rec_correct_succ`) `IsChurch (n+1) a` implies
+`Rec ⬝ x ⬝ g ⬝ a ⇒* g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))` and (`rec_correct_zero`) `IsChurch 0 a` implies
 `Rec ⬝ x ⬝ g ⬝ a ⇒* x`.
 - Unbounded root finding (μ-recursion) : given a term  `f` representing a function `fℕ: Nat → Nat`,
 which takes on the value 0 a term `RFind` such that (`rFind_correct`) `RFind ⬝ f ⇒* a` such that
-`is_church n a` for `n` the smallest root of `fℕ`.
+`IsChurch n a` for `n` the smallest root of `fℕ`.
 
 ## References
 
@@ -34,9 +34,14 @@ Selinger's notes <https://www.mscs.dal.ca/~selinger/papers/papers/lambdanotes.pd
 
 ## TODO
 
-- The predicate `∃ n : Nat, is_church n : SKI → Prop` is semidecidable: by confluence, it suffices
+- One could unify `is_bool`, `IsChurch` and `IsChurchPair` into a predicate
+`represents : α → SKI → Prop`, for any type `α` "built from pieces that we understand" — something
+along the lines of "pure finite types"
+(see eg <https://en.wikipedia.org/wiki/Primitive_recursive_functional>). This would also clean up
+the statement of `rfind_correct`.
+- The predicate `∃ n : Nat, IsChurch n : SKI → Prop` is semidecidable: by confluence, it suffices
 to normal-order reduce `a ⬝ f ⬝ x` for any "atomic" terms `f` and `x`. This could be implemented
-by defining reduction on Polynomials.
+by defining reduction on polynomials.
 - With such a decision procedure, every SKI-term defines a partial function `Nat →. Nat`, in the
 sense of `Mathlib.Data.Part` (as used in `Mathlib.Computability.Partrec`).
 - The results of this file should define a surjection `SKI → Nat.Partrec`.
@@ -45,38 +50,38 @@ sense of `Mathlib.Data.Part` (as used in `Mathlib.Computability.Partrec`).
 open SKI ReductionStep
 
 /-- Function form of the church numerals. -/
-def church (n : Nat) (f x : SKI) : SKI :=
+def Church (n : Nat) (f x : SKI) : SKI :=
 match n with
 | 0 => x
-| n+1 => f ⬝ (church n f x)
+| n+1 => f ⬝ (Church n f x)
 
 /-- `church` commutes with reduction. -/
 lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ⇒* f') (hx : x ⇒* x') :
-    church n f x ⇒* church n f' x' := by
+    Church n f x ⇒* Church n f' x' := by
   induction n with
-  | zero => unfold church; exact hx
+  | zero => unfold Church; exact hx
   | succ n ih =>
-    unfold church
+    unfold Church
     exact parallel_large_reduction _ _ _ _ hf ih
 
 /-- The term `a` is βη-equivalent to a standard church numeral. -/
-def is_church (n : Nat) (a : SKI) : Prop := ∀ f x : SKI, a ⬝ f ⬝ x ⇒* church n f x
+def IsChurch (n : Nat) (a : SKI) : Prop := ∀ f x : SKI, a ⬝ f ⬝ x ⇒* Church n f x
 
-/-- To show `is_church n a` it suffices to show the same for a reduct of `a`. -/
-theorem is_church_trans (n : Nat) (a a' : SKI) (h : a ⇒* a') : is_church n a' → is_church n a := by
-  simp_rw [is_church]
+/-- To show `IsChurch n a` it suffices to show the same for a reduct of `a`. -/
+theorem isChurch_trans (n : Nat) (a a' : SKI) (h : a ⇒* a') : IsChurch n a' → IsChurch n a := by
+  simp_rw [IsChurch]
   intro ha' f x
   calc
   _ ⇒* a' ⬝ f ⬝ x := by apply largeRed_head; apply largeRed_head; exact h
-  _ ⇒* church n f x := by apply ha'
+  _ ⇒* Church n f x := by apply ha'
 
 
 /-! ### Church numeral basics -/
 
 /-- Church zero := λ f x. x -/
 protected def SKI.Zero : SKI := K ⬝ I
-theorem zero_correct : is_church 0 SKI.Zero := by
-  unfold is_church SKI.Zero church
+theorem zero_correct : IsChurch 0 SKI.Zero := by
+  unfold IsChurch SKI.Zero Church
   intro f x
   calc
   _ ⇒ I ⬝ x := by apply red_head; apply red_K
@@ -84,8 +89,8 @@ theorem zero_correct : is_church 0 SKI.Zero := by
 
 /-- Church one := λ f x. f x -/
 protected def SKI.One : SKI := I
-theorem one_correct : is_church 1 SKI.One := by
-  simp_rw [is_church, SKI.One, church]
+theorem one_correct : IsChurch 1 SKI.One := by
+  simp_rw [IsChurch, SKI.One, Church]
   intro f x
   apply largeRed_head
   apply largeRed_single
@@ -93,14 +98,14 @@ theorem one_correct : is_church 1 SKI.One := by
 
 /-- Church succ := λ a f x. f (a f x) ~ λ a f. B f (a f) ~ λ a. S B a ~ S B -/
 def Succ : SKI := S ⬝ B
-theorem succ_correct (n : Nat) (a : SKI) (h : is_church n a) : is_church (n+1) (Succ ⬝ a) := by
-  unfold is_church at h ⊢
-  unfold Succ church
+theorem succ_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch (n+1) (Succ ⬝ a) := by
+  unfold IsChurch at h ⊢
+  unfold Succ Church
   intro f x
   calc
   _ ⇒ B ⬝ f ⬝ (a ⬝ f) ⬝ x := by apply red_head; apply red_S
   _ ⇒* f ⬝ (a ⬝ f ⬝ x) := by apply B_def
-  _ ⇒* f ⬝ (church n  f x) := by apply largeRed_tail; exact h f x
+  _ ⇒* f ⬝ (Church n  f x) := by apply largeRed_tail; exact h f x
 
 /--
 To define the predecessor, iterate the function `PredAux` ⟨i, j⟩ ↦ ⟨j, j+1⟩ on ⟨0,0⟩, then take
@@ -114,39 +119,39 @@ theorem predAux_def (p : SKI) :  PredAux ⬝ p ⇒* MkPair ⬝ (Snd ⬝ p) ⬝ (
   assumption
 
 /-- Useful auxilliary definition expressing that `p` represents ns ∈ Nat × Nat. -/
-def is_church_pair (ns : Nat × Nat) (x : SKI) : Prop :=
-  is_church ns.1 (Fst ⬝ x) ∧ is_church ns.2 (Snd ⬝ x)
+def IsChurchPair (ns : Nat × Nat) (x : SKI) : Prop :=
+  IsChurch ns.1 (Fst ⬝ x) ∧ IsChurch ns.2 (Snd ⬝ x)
 
-theorem is_church_pair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ⇒* a') :
-    is_church_pair ns a' → is_church_pair ns a := by
-  simp_rw [is_church_pair]
+theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ⇒* a') :
+    IsChurchPair ns a' → IsChurchPair ns a := by
+  simp_rw [IsChurchPair]
   intro ⟨ha₁,ha₂⟩
   constructor
-  . apply is_church_trans (a' := Fst ⬝ a')
+  . apply isChurch_trans (a' := Fst ⬝ a')
     apply largeRed_tail; exact h; exact ha₁
-  . apply is_church_trans (a' := Snd ⬝ a')
+  . apply isChurch_trans (a' := Snd ⬝ a')
     apply largeRed_tail; exact h; exact ha₂
 
-theorem predAux_correct (p : SKI) (ns : Nat × Nat) (h : is_church_pair ns p) :
-    is_church_pair ⟨ns.2, ns.2+1⟩ (PredAux ⬝ p) := by
-  refine is_church_pair_trans _ _ (MkPair ⬝ (Snd ⬝ p) ⬝ (Succ ⬝ (Snd ⬝ p))) (predAux_def p) ?_
+theorem predAux_correct (p : SKI) (ns : Nat × Nat) (h : IsChurchPair ns p) :
+    IsChurchPair ⟨ns.2, ns.2+1⟩ (PredAux ⬝ p) := by
+  refine isChurchPair_trans _ _ (MkPair ⬝ (Snd ⬝ p) ⬝ (Succ ⬝ (Snd ⬝ p))) (predAux_def p) ?_
   constructor
-  · exact is_church_trans ns.2 _ (Snd ⬝ p) (fst_correct _ _) h.2
-  · refine is_church_trans (ns.2+1) _ (Succ ⬝ (Snd ⬝ p)) (snd_correct _ _) ?_
+  · exact isChurch_trans ns.2 _ (Snd ⬝ p) (fst_correct _ _) h.2
+  · refine isChurch_trans (ns.2+1) _ (Succ ⬝ (Snd ⬝ p)) (snd_correct _ _) ?_
     exact succ_correct ns.2 (Snd ⬝ p) h.2
 
 /-- The stronger induction hypothesis necessary for the proof of `pred_correct`. -/
 theorem predAux_correct' (n : Nat) :
-    is_church_pair (n.pred, n) <| church n PredAux  (MkPair ⬝ SKI.Zero ⬝ SKI.Zero) := by
+    IsChurchPair (n.pred, n) <| Church n PredAux  (MkPair ⬝ SKI.Zero ⬝ SKI.Zero) := by
   induction n with
     | zero =>
-      apply is_church_pair_trans ⟨0,0⟩ _ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)
-        (by simp [church, largeRed_refl])
-      constructor <;> apply is_church_trans 0 _ SKI.Zero ?_ zero_correct
+      apply isChurchPair_trans ⟨0,0⟩ _ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)
+        (by simp [Church, largeRed_refl])
+      constructor <;> apply isChurch_trans 0 _ SKI.Zero ?_ zero_correct
       · exact fst_correct _ _
       · exact snd_correct _ _
     | succ n ih =>
-      simp_rw [church]
+      simp_rw [Church]
       apply predAux_correct (ns := ⟨n.pred, n⟩) (h := ih)
 
 /-- Predecessor := λ n. Fst ⬝ (n ⬝ PredAux ⬝ (MkPair ⬝ Zero ⬝ Zero)) -/
@@ -157,10 +162,10 @@ theorem pred_def (a : SKI) : Pred ⬝ a ⇒* Fst ⬝ (a ⬝ PredAux ⬝ (MkPair 
   simp_rw [applyList] at this
   assumption
 
-theorem pred_correct (n : Nat) (a : SKI) (h : is_church n a) : is_church n.pred (Pred ⬝ a) := by
-  refine is_church_trans n.pred _ (Fst ⬝ (a ⬝ PredAux ⬝ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)))
+theorem pred_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch n.pred (Pred ⬝ a) := by
+  refine isChurch_trans n.pred _ (Fst ⬝ (a ⬝ PredAux ⬝ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)))
     (pred_def a) ?_
-  refine is_church_trans _ _ (a' := Fst ⬝ (church n PredAux (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))) ?_ ?_
+  refine isChurch_trans _ _ (a' := Fst ⬝ (Church n PredAux (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))) ?_ ?_
   · apply largeRed_tail
     exact h _ _
   · exact predAux_correct' n |>.1
@@ -174,7 +179,7 @@ theorem isZero_def (a : SKI) : IsZero ⬝ a ⇒* a ⬝ (K ⬝ FF) ⬝ TT := by
   have : _ := IsZeroPoly.toSKI_correct [a] (by simp)
   simp_rw [applyList] at this
   assumption
-theorem isZero_correct (n : Nat) (a : SKI) (h : is_church n a) :
+theorem isZero_correct (n : Nat) (a : SKI) (h : IsChurch n a) :
     is_bool (n = 0) (IsZero ⬝ a) := by
   apply is_bool_trans (a' := a ⬝ (K ⬝ FF) ⬝ TT) (h := isZero_def a)
   by_cases n=0
@@ -189,7 +194,7 @@ theorem isZero_correct (n : Nat) (a : SKI) (h : is_church n a) :
     rw [hk] at h
     apply is_bool_trans (ha' := FF_correct)
     calc
-    _ ⇒* (K ⬝ FF) ⬝ church k (K ⬝ FF) TT := h _ _
+    _ ⇒* (K ⬝ FF) ⬝ Church k (K ⬝ FF) TT := h _ _
     _ ⇒ FF := red_K _ _
 
 
@@ -218,14 +223,14 @@ theorem rec_def (x g a : SKI) :
       apply fixedPoint_correct
   _ ⇒* SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := recAux_def Rec x g a
 
-theorem rec_zero (x g a : SKI) (ha : is_church 0 a) : Rec ⬝ x ⬝ g ⬝ a ⇒* x := by
+theorem rec_zero (x g a : SKI) (ha : IsChurch 0 a) : Rec ⬝ x ⬝ g ⬝ a ⇒* x := by
   calc
   _ ⇒* SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := rec_def _ _ _
   _ ⇒* if (Nat.beq 0 0) then x else (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) := by
       apply cond_correct
       exact isZero_correct 0 a ha
 
-theorem rec_succ (n : Nat) (x g a : SKI) (ha : is_church (n+1) a) :
+theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n+1) a) :
     Rec ⬝ x ⬝ g ⬝ a ⇒* g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a)) := by
   calc
   _ ⇒* SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := rec_def _ _ _
@@ -250,13 +255,13 @@ lemma rfindAboveAux_def (R₀ f a : SKI) :
   simp_rw [applyList] at this
   assumption
 
-theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : is_church 0 (f ⬝ a)) :
+theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : IsChurch 0 (f ⬝ a)) :
     RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* a := calc
   _ ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ⇒* if (Nat.beq 0 0) then a else (R₀ ⬝ (Succ ⬝ a) ⬝ f) := by
       apply cond_correct
       apply isZero_correct _ _ hfa
-theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : is_church (m+1) (f ⬝ a)) :
+theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m+1) (f ⬝ a)) :
     RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* R₀ ⬝ (Succ ⬝ a) ⬝ f := calc
   _ ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ⇒* if (Nat.beq (m+1) 0) then a else (R₀ ⬝ (Succ ⬝ a) ⬝ f) := by
@@ -266,14 +271,14 @@ theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : is_church (m+1) (f 
 /-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
-    (hf : ∀ i : Nat, ∀ y : SKI, is_church i y →  is_church (fNat i) (f ⬝ y))
-    (n m : Nat) (hx : is_church m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
-    is_church (m+n) (RFindAbove ⬝ x ⬝ f) := by
+    (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y →  IsChurch (fNat i) (f ⬝ y))
+    (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
+    IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
   induction n generalizing m x
-  all_goals apply is_church_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
+  all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
   case zero.a =>
-    apply is_church_trans (a' := x)
-    · have : is_church (fNat m) (f ⬝ x) := hf m x hx
+    apply isChurch_trans (a' := x)
+    · have : IsChurch (fNat m) (f ⬝ x) := hf m x hx
       rw [Nat.add_zero] at hroot
       simp_rw [hroot] at this
       apply rfindAboveAux_base
@@ -281,9 +286,9 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     · assumption
   case succ.a n ih =>
     unfold RFindAbove
-    apply is_church_trans (a' := RFindAbove ⬝ (Succ ⬝ x) ⬝ f)
+    apply isChurch_trans (a' := RFindAbove ⬝ (Succ ⬝ x) ⬝ f)
     · let y := (fNat m).pred
-      have : is_church (y+1) (f ⬝ x) := by
+      have : IsChurch (y+1) (f ⬝ x) := by
         subst y
         exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
       apply rfindAboveAux_step
@@ -295,15 +300,15 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
       · intro i hi
         apply hpos (i+1)
         simp [hi]
-  -- close the `h` goals of the above `apply is_church_trans`
+  -- close the `h` goals of the above `apply isChurch_trans`
   all_goals {apply largeRed_head; apply largeRed_head; exact fixedPoint_correct _}
 
 
 /-- Ordinary root finding is root finding above zero -/
 def RFind := RFindAbove ⬝ SKI.Zero
 theorem RFind_correct (fNat : Nat → Nat) (f : SKI)
-    (hf : ∀ (i : Nat) (y : SKI), is_church i y → is_church (fNat i) (f ⬝ y))
-    (n : Nat) (hroot : fNat n = 0) (hpos : ∀ i < n, fNat i ≠ 0) : is_church n (RFind ⬝ f) := by
+    (hf : ∀ (i : Nat) (y : SKI), IsChurch i y → IsChurch (fNat i) (f ⬝ y))
+    (n : Nat) (hroot : fNat n = 0) (hpos : ∀ i < n, fNat i ≠ 0) : IsChurch n (RFind ⬝ f) := by
   have :_ := RFindAbove_correct (n := n) (fNat := fNat) (hf := hf) (hx := zero_correct)
   simp_rw [Nat.zero_add] at this
   exact this hroot hpos
@@ -320,17 +325,17 @@ theorem add_def (a b : SKI) : SKI.Add ⬝ a ⬝ b ⇒* a ⬝ Succ ⬝ b := by
   simp_rw [applyList] at this
   assumption
 
-theorem add_correct (n m : Nat) (a b : SKI) (ha : is_church n a) (hb : is_church m b) :
-    is_church (n+m) (SKI.Add ⬝ a ⬝ b) := by
-  refine is_church_trans (n+m) _ (church n Succ b) ?_ ?_
+theorem add_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
+    IsChurch (n+m) (SKI.Add ⬝ a ⬝ b) := by
+  refine isChurch_trans (n+m) _ (Church n Succ b) ?_ ?_
   · calc
     _ ⇒* a ⬝ Succ ⬝ b := add_def a b
-    _ ⇒* church n Succ b := ha Succ b
+    _ ⇒* Church n Succ b := ha Succ b
   · clear ha
     induction n with
-      | zero => simp_rw [Nat.zero_add, church]; exact hb
+      | zero => simp_rw [Nat.zero_add, Church]; exact hb
       | succ n ih =>
-        simp_rw [Nat.add_right_comm, church]
+        simp_rw [Nat.add_right_comm, Church]
         exact succ_correct _ _ ih
 
 /-- Multiplication: λ n m. n (Add m) Zero -/
@@ -341,18 +346,18 @@ theorem mul_def (a b : SKI) : SKI.Mul ⬝ a ⬝ b ⇒* a ⬝ (SKI.Add ⬝ b) ⬝
   simp_rw [applyList] at this
   assumption
 
-theorem mul_correct (n m : Nat) (a b : SKI) (ha : is_church n a) (hb : is_church m b) :
-    is_church (n*m) (SKI.Mul ⬝ a ⬝ b) := by
-  refine is_church_trans (n*m) _ (church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
+theorem mul_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
+    IsChurch (n*m) (SKI.Mul ⬝ a ⬝ b) := by
+  refine isChurch_trans (n*m) _ (Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
   · calc
     _ ⇒* a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero := mul_def a b
-    _ ⇒* church n (SKI.Add ⬝ b) SKI.Zero := ha _ _
+    _ ⇒* Church n (SKI.Add ⬝ b) SKI.Zero := ha _ _
   · clear ha
     induction n with
-      | zero => simp_rw [Nat.zero_mul, church]; exact zero_correct
+      | zero => simp_rw [Nat.zero_mul, Church]; exact zero_correct
       | succ n ih =>
-        simp_rw [Nat.add_mul, Nat.one_mul, Nat.add_comm, church]
-        exact add_correct m (n*m) b (church n (SKI.Add ⬝ b) SKI.Zero) hb ih
+        simp_rw [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church]
+        exact add_correct m (n*m) b (Church n (SKI.Add ⬝ b) SKI.Zero) hb ih
 
 /-- Subtraction: λ n m. n Pred m -/
 def SubPoly : SKI.Polynomial 2 := &1 ⬝' Pred ⬝' &0
@@ -362,17 +367,17 @@ theorem sub_def (a b : SKI) : SKI.Sub ⬝ a ⬝ b ⇒* b ⬝ Pred ⬝ a := by
   simp_rw [applyList] at this
   assumption
 
-theorem sub_correct (n m : Nat) (a b : SKI) (ha : is_church n a) (hb : is_church m b) :
-    is_church (n-m) (SKI.Sub ⬝ a ⬝ b) := by
-  refine is_church_trans (n-m) _ (church m Pred a) ?_ ?_
+theorem sub_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
+    IsChurch (n-m) (SKI.Sub ⬝ a ⬝ b) := by
+  refine isChurch_trans (n-m) _ (Church m Pred a) ?_ ?_
   · calc
     _ ⇒* b ⬝ Pred ⬝ a := sub_def a b
-    _ ⇒* church m Pred a := hb Pred a
+    _ ⇒* Church m Pred a := hb Pred a
   · clear hb
     induction m with
-      | zero => simp_rw [Nat.sub_zero, church]; exact ha
+      | zero => simp_rw [Nat.sub_zero, Church]; exact ha
       | succ m ih =>
-        simp_rw [←Nat.sub_sub, church]
+        simp_rw [←Nat.sub_sub, Church]
         exact pred_correct _ _ ih
 
 /-- Comparison: (. ≤ .) := λ n m. IsZero ⬝ (Sub ⬝ n ⬝ m) -/
@@ -383,7 +388,7 @@ theorem le_def (a b : SKI) : SKI.LE ⬝ a ⬝ b ⇒* IsZero ⬝ (SKI.Sub ⬝ a �
   simp_rw [applyList] at this
   assumption
 
-theorem le_correct (n m : Nat) (a b : SKI) (ha : is_church n a) (hb : is_church m b) :
+theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
     is_bool (n ≤ m) (SKI.LE ⬝ a ⬝ b) := by
   simp [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
   apply is_bool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)

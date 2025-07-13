@@ -111,19 +111,22 @@ theorem largeReduction_transitive : Transitive LargeReduction := transitive_of_t
 instance LargeReduction.instIsRefl : IsRefl SKI LargeReduction := Relation.instIsReflReflTransGen
 theorem largeReduction_reflexive : Reflexive LargeReduction := IsRefl.reflexive
 
-instance reductionStep_largeReduction_trans : Trans ReductionStep LargeReduction LargeReduction := by
+instance reductionStepLargeReductionTrans :
+    Trans ReductionStep LargeReduction LargeReduction := by
   constructor
   intro a b c hab hbc
   replace hab := largeRed_single _ _ hab
   exact Relation.ReflTransGen.trans hab hbc
 
-instance largeReduction_reductionStep_trans : Trans LargeReduction ReductionStep LargeReduction := by
+instance largeReductionReductionStepTrans :
+    Trans LargeReduction ReductionStep LargeReduction := by
   constructor
   intro a b c hab hbc
   replace hbc := largeRed_single _ _ hbc
   exact Relation.ReflTransGen.trans hab hbc
 
-instance reductionStep_reductionStep_trans : Trans ReductionStep ReductionStep LargeReduction := by
+instance reductionStepTeductionStepTrans :
+    Trans ReductionStep ReductionStep LargeReduction := by
   constructor
   intro a b c hab hbc
   replace hab := largeRed_single _ _ hab
