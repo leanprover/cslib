@@ -37,7 +37,7 @@ def Term.open_rec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | app l r => app (open_rec i sub l) (open_rec i sub r)
 | lam M   => lam $ open_rec (i+1) sub M
 
-notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.open_rec i sub e 
+scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.open_rec i sub e 
 
 /-- Variable opening of the closest binding. -/
 @[simp]
@@ -53,7 +53,7 @@ def Term.close_rec (k : ℕ) (x : Var) : Term Var → Term Var
 | app l r => app (close_rec k x l) (close_rec k x r)
 | lam t   => lam $ close_rec (k+1) x t
 
-notation:68 e "⟦" k " ↜ " x "⟧"=> Term.close_rec k x e 
+scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.close_rec k x e 
 
 /-- Variable closing of the closest binding. -/
 @[simp]
@@ -69,7 +69,7 @@ def Term.subst (x : Var) (sub : Term Var) : Term Var → Term Var
 | app l r => app (subst x sub l) (subst x sub r)
 | lam M   => lam $ subst x sub M
 
-notation:67 e "[" x ":=" sub "]" => Term.subst x sub e 
+scoped notation:67 e "[" x ":=" sub "]" => Term.subst x sub e 
 
 /-- Free variables of a term. -/
 @[simp]
