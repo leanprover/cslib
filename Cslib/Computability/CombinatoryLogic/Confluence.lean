@@ -12,10 +12,14 @@ import Cslib.Utils.Relation
 This file proves the **Church-Rosser** theorem for the SKI calculus, that is, if `a ⇒* b` and
 `a ⇒* c`, `b ⇒* d` and `c ⇒* d` for some term `d`. More strongly (though equivalently), we show
 that the relation of having a common reduct is transitive — in the above situation, `a` and `b`,
-and `a` and `c` have common reducts, so the result implies the same of `b` and `c`. Our proof
+and `a` and `c` have common reducts, so the result implies the same of `b` and `c`. Note that
+`CommonReduct` is symmetric (trivially) and reflexive (since `⇒*` is), so we in fact show that
+`CommonReduct` is an equivalence.
+
+Our proof
 follows the method of Tait and Martin-Löf for the lambda calculus, as presented for instance in
 Chapter 4 of Peter Selinger's notes:
-<https://www.irif.fr/~mellies/mpri/mpri-ens/biblio/Selinger-Lambda-Calculus-Notes.pdf>.
+<https://www.mscs.dal.ca/~selinger/papers/papers/lambdanotes.pdf>.
 
 ## Main definitions
 
@@ -81,14 +85,14 @@ theorem reflTransGen_parallelReduction_largeReduction :
     Relation.ReflTransGen ParallelReduction = LargeReduction := by
   ext a b
   constructor
-  . apply Relation.reflTransGen_minimal
-    . exact largeReduction_reflexive
-    . exact largeReduction_transitive
-    . exact largeReduction_of_parallelReduction
-  . apply Relation.reflTransGen_minimal
-    . exact Relation.reflexive_reflTransGen
-    . exact Relation.transitive_reflTransGen
-    . intro a a' h
+  · apply Relation.reflTransGen_minimal
+    · exact largeReduction_reflexive
+    · exact largeReduction_transitive
+    · exact largeReduction_of_parallelReduction
+  · apply Relation.reflTransGen_minimal
+    · exact Relation.reflexive_reflTransGen
+    · exact Relation.transitive_reflTransGen
+    · intro a a' h
       apply Relation.ReflTransGen.single
       exact parallelReduction_of_reductionStep a a' h
 
@@ -160,8 +164,8 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒' a₁) (h₂
       let ⟨b₃, hb⟩ := parallelReduction_diamond b b' b'' hb' hb''
       use a₃ ⬝ b₃
       constructor
-      . exact ParallelReduction.par a' a₃ b' b₃ ha.1 hb.1
-      . exact ParallelReduction.par a'' a₃ b'' b₃ ha.2 hb.2
+      · exact ParallelReduction.par a' a₃ b' b₃ ha.1 hb.1
+      · exact ParallelReduction.par a'' a₃ b'' b₃ ha.2 hb.2
     case red_I' =>
       rw [I_irreducible a' ha']
       use b'
@@ -177,12 +181,12 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒' a₁) (h₂
       use a'' ⬝ b' ⬝ (c' ⬝ b')
       refine ⟨ParallelReduction.red_S' a'' c' b', ?_⟩
       apply ParallelReduction.par
-      . apply ParallelReduction.par
-        . exact h.1
-        . exact hb'
-      . apply ParallelReduction.par
-        . exact h.2.1
-        . exact hb'
+      · apply ParallelReduction.par
+        · exact h.1
+        · exact hb'
+      · apply ParallelReduction.par
+        · exact h.2.1
+        · exact hb'
   case red_I' =>
     cases h₂
     case refl => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.red_I' a₁⟩
@@ -211,12 +215,12 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒' a₁) (h₂
       rw [h.2.2]
       use a' ⬝ c' ⬝ (b' ⬝ c')
       constructor
-      . apply ParallelReduction.par
-        . apply ParallelReduction.par
+      · apply ParallelReduction.par
+        · apply ParallelReduction.par
           exact h.1; exact hc
-        . apply ParallelReduction.par
+        · apply ParallelReduction.par
           exact h.2.1; exact hc
-      . exact ParallelReduction.red_S' _ _ _
+      · exact ParallelReduction.red_S' _ _ _
     case red_S' =>
       use a ⬝ c ⬝ (b ⬝ c)
       exact ⟨ParallelReduction.refl _, ParallelReduction.refl _,⟩
@@ -226,15 +230,15 @@ theorem join_parallelReduction_equivalence :
   apply church_rosser_of_diamond
   exact parallelReduction_diamond
 
-/-- The **Church-Rosser theorem** in its general form. -/
+/-- The **Church-Rosser** theorem in its general form. -/
 theorem commonReduct_equivalence : Equivalence CommonReduct := by
   unfold CommonReduct
   rw [←reflTransGen_parallelReduction_largeReduction]
   exact join_parallelReduction_equivalence
 
-/-- The **Church-Rosser theorem** in the form it is usually stated. -/
+/-- The **Church-Rosser** theorem in the form it is usually stated. -/
 theorem largeReduction_diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) : CommonReduct b c := by
   apply commonReduct_equivalence.trans (y := a)
-  . refine commonReduct_equivalence.symm ?_
+  · refine commonReduct_equivalence.symm ?_
     exact commonReduct_of_single a b hab
-  . exact commonReduct_of_single a c hac
+  · exact commonReduct_of_single a c hac
