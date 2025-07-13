@@ -65,13 +65,14 @@ infixr:80 " ^* " => Term.close
 
 /- Substitution of a free variable to a term. -/
 @[simp]
-def Term.subst (x : Var) (sub : Term Var) : Term Var → Term Var
-| bvar i  => bvar i
-| fvar x' => if x = x' then sub else fvar x'
-| app l r => app (subst x sub l) (subst x sub r)
-| lam M   => lam $ subst x sub M
+def Term.subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
+  match m with
+  | bvar i  => bvar i
+  | fvar x' => if x = x' then sub else fvar x'
+  | app l r => app (l.subst x sub) (r.subst x sub)
+  | lam M   => lam $ M.subst x sub
 
-scoped notation:67 e "[" x ":=" sub "]" => Term.subst x sub e 
+scoped notation:67 e "[" x ":=" sub "]" => Term.subst e x sub
 
 /-- Free variables of a term. -/
 @[simp]
