@@ -18,20 +18,20 @@ The untyped λ-calculus, with a locally nameless representation of syntax.
 
 -/
 
-variable {Fvar : Type} [HasFresh Fvar] [DecidableEq Fvar]
+variable {Var : Type} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless
 
-/-- Syntax of locally nameless lambda terms, with free variables over `Fvar`. -/
-inductive Term (Fvar : Type)
-| bvar : ℕ → Term Fvar
-| fvar : Fvar → Term Fvar
-| lam  : Term Fvar → Term Fvar
-| app  : Term Fvar → Term Fvar → Term Fvar
+/-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
+inductive Term (Var : Type)
+| bvar : ℕ → Term Var
+| fvar : Var → Term Var
+| lam  : Term Var → Term Var
+| app  : Term Var → Term Var → Term Var
 
 /-- Variable opening of the ith bound variable. -/
 @[simp]
-def Term.open_rec (i : ℕ) (sub : Term Fvar) : Term Fvar → Term Fvar
+def Term.open_rec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | bvar i' => if i = i' then sub else bvar i'
 | fvar x  => fvar x
 | app l r => app (open_rec i sub l) (open_rec i sub r)
@@ -47,7 +47,7 @@ infixr:80 " ^ " => Term.open'
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
 @[simp]
-def Term.close_rec (k : ℕ) (x : Fvar) : Term Fvar → Term Fvar
+def Term.close_rec (k : ℕ) (x : Var) : Term Var → Term Var
 | fvar x' => if x = x' then bvar k else fvar x'
 | bvar i  => bvar i
 | app l r => app (close_rec k x l) (close_rec k x r)
@@ -57,13 +57,13 @@ notation:68 e "⟦" k " ↜ " x "⟧"=> Term.close_rec k x e
 
 /-- Variable closing of the closest binding. -/
 @[simp]
-def Term.close {Fvar} [DecidableEq Fvar] (e u):= @Term.close_rec Fvar _ 0 u e
+def Term.close {Var} [DecidableEq Var] (e u):= @Term.close_rec Var _ 0 u e
 
 infixr:80 " ^* " => Term.close
 
 /- Substitution of a free variable to a term. -/
 @[simp]
-def Term.subst (x : Fvar) (sub : Term Fvar) : Term Fvar → Term Fvar
+def Term.subst (x : Var) (sub : Term Var) : Term Var → Term Var
 | bvar i  => bvar i
 | fvar x' => if x = x' then sub else fvar x'
 | app l r => app (subst x sub l) (subst x sub r)
@@ -73,14 +73,14 @@ notation:67 e "[" x ":=" sub "]" => Term.subst x sub e
 
 /-- Free variables of a term. -/
 @[simp]
-def Term.fv : Term Fvar → Finset Fvar
+def Term.fv : Term Var → Finset Var
 | bvar _ => {}
 | fvar x => {x}
 | lam e1 => e1.fv
 | app l r => l.fv ∪ r.fv
 
 /-- Locally closed terms. -/
-inductive Term.LC : Term Fvar → Prop
+inductive Term.LC : Term Var → Prop
 | fvar (x)  : LC (fvar x)
-| lam (L : Finset Fvar) (e : Term Fvar) : (∀ x : Fvar, x ∉ L → LC (e ^ fvar x)) → LC (lam e)
+| lam (L : Finset Var) (e : Term Var) : (∀ x : Var, x ∉ L → LC (e ^ fvar x)) → LC (lam e)
 | app {l r} : l.LC → r.LC → LC (app l r)
