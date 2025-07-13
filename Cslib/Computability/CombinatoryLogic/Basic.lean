@@ -256,11 +256,11 @@ theorem Θ_correct (f : SKI) : Θ ⬝ f ⇒* f ⬝ (Θ ⬝ f) := ΘAux_def ΘAux
 
 /-! ### Church Booleans -/
 
-def is_bool (b : Bool) (a : SKI) : Prop :=
-  ∀ x y : SKI, a ⬝ x ⬝ y ⇒* (if b then x else y)
+def is_bool (u : Bool) (a : SKI) : Prop :=
+  ∀ x y : SKI, a ⬝ x ⬝ y ⇒* (if u then x else y)
 
-theorem is_bool_trans (b : Bool) (a a' : SKI) (h : a ⇒* a') (ha' : is_bool b a') :
-    is_bool b a := by
+theorem is_bool_trans (u : Bool) (a a' : SKI) (h : a ⇒* a') (ha' : is_bool u a') :
+    is_bool u a := by
   intro x y
   trans a' ⬝ x ⬝ y
   · apply largeRed_head
@@ -289,10 +289,10 @@ theorem cond_correct (a x y : SKI) (u : Bool) (h : is_bool u a) :
 
 /-- Neg := λ a. Cond FF TT a -/
 protected def Neg : SKI := SKI.Cond ⬝ FF ⬝ TT
-theorem neg_correct (a : SKI) (u : Bool) (h : is_bool u a) : is_bool (¬ u) (SKI.Neg ⬝ a) := by
-  apply is_bool_trans (a' := if u then FF else TT)
+theorem neg_correct (a : SKI) (ua : Bool) (h : is_bool ua a) : is_bool (¬ ua) (SKI.Neg ⬝ a) := by
+  apply is_bool_trans (a' := if ua then FF else TT)
   · apply cond_correct (h := h)
-  · cases u
+  · cases ua
     · simp [TT_correct]
     · simp [FF_correct]
 
@@ -303,22 +303,75 @@ theorem and_def (a b : SKI) : SKI.And ⬝ a ⬝ b ⇒* SKI.Cond ⬝ (SKI.Cond �
   have : _ := AndPoly.toSKI_correct [a, b] (by simp)
   simp_rw [applyList] at this
   simpa
-theorem and_correct (a b : SKI) (u v : Bool) (ha : is_bool u a) (hb : is_bool v b) :
-    is_bool (u && v) (SKI.And ⬝ a ⬝ b) := by
-  cases u
+theorem and_correct (a b : SKI) (ua ub : Bool) (ha : is_bool ua a) (hb : is_bool ub b) :
+    is_bool (ua && ub) (SKI.And ⬝ a ⬝ b) := by
+  apply is_bool_trans (a' := SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a) (h := and_def _ _)
+  cases ua
   · simp_rw [Bool.false_and] at ⊢
-    apply is_bool_trans (a' := FF) (ha' := FF_correct)
-    calc
-    _ ⇒* SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a := and_def a b
-    _ ⇒* FF := cond_correct a _ FF false ha
+    apply is_bool_trans (a' := FF) (ha' := FF_correct) (h := cond_correct a _ _ false ha)
   · simp_rw [Bool.true_and] at ⊢
-    apply is_bool_trans (b := v) (a' := if v = true then TT else FF)
-    calc
-      _ ⇒* SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a := and_def a b
-      _ ⇒* SKI.Cond ⬝ TT ⬝ FF ⬝ b := cond_correct a _ _ true ha
-      _ ⇒* _ := cond_correct b _ _ v hb
-    cases v
+    apply is_bool_trans (a' := SKI.Cond ⬝ TT ⬝ FF ⬝ b) (h := cond_correct a _ _ true ha)
+    apply is_bool_trans (a' := if ub = true then TT else FF) (h := cond_correct b _ _ ub hb)
+    cases ub
     · simp [FF_correct]
     · simp [TT_correct]
 
-/- TODO: the rest of the boolean connectives -/
+def OrPoly : SKI.Polynomial 2 := SKI.Cond ⬝' TT ⬝' (SKI.Cond ⬝ TT ⬝ FF ⬝' &1) ⬝' &0
+protected def Or : SKI := OrPoly.toSKI
+theorem or_def (a b : SKI) : SKI.Or ⬝ a ⬝ b ⇒* SKI.Cond ⬝ TT ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ a := by
+  have : _ := OrPoly.toSKI_correct [a, b] (by simp)
+  simp_rw [applyList] at this
+  simpa
+theorem or_correct (a b : SKI) (ua ub : Bool) (ha : is_bool ua a) (hb : is_bool ub b) :
+  is_bool (ua || ub) (SKI.Or ⬝ a ⬝ b) := by
+  apply is_bool_trans (a' := SKI.Cond ⬝ TT ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ a) (h := or_def _ _)
+  cases ua
+  · simp_rw [Bool.false_or]
+    apply is_bool_trans (a' := SKI.Cond ⬝ TT ⬝ FF ⬝ b) (h := cond_correct a _ _ false ha)
+    apply is_bool_trans (a' := if ub = true then TT else FF) (h := cond_correct b _ _ ub hb)
+    cases ub
+    · simp [FF_correct]
+    · simp [TT_correct]
+  · apply is_bool_trans (a' := TT) (h := cond_correct a _ _ true ha)
+    simp [TT_correct]
+
+
+/- TODO?: other boolean connectives -/
+
+
+/-! ### Pairs -/
+
+def MkPair : SKI := SKI.Cond
+def Fst : SKI := R ⬝ TT
+def Snd : SKI := R ⬝ FF
+
+theorem fst_correct (a b : SKI) : Fst ⬝ (MkPair ⬝ a ⬝ b) ⇒* a := by calc
+  _ ⇒* SKI.Cond ⬝ a ⬝ b ⬝ TT := R_def _ _
+  _ ⇒* a := cond_correct TT a b true TT_correct
+
+theorem snd_correct (a b : SKI) : Snd ⬝ (MkPair ⬝ a ⬝ b) ⇒* b := by calc
+  _ ⇒* SKI.Cond ⬝ a ⬝ b ⬝ FF := R_def _ _
+  _ ⇒* b := cond_correct FF a b false FF_correct
+
+/-- Unpaired f ⟨x, y⟩ := f x y, cf `Nat.unparied`. -/
+def UnpairedPoly : SKI.Polynomial 2 := &0 ⬝' (Fst ⬝' &1) ⬝' (Snd ⬝' &1)
+protected def Unpaired : SKI := UnpairedPoly.toSKI
+theorem unpaired_def (f p : SKI) : SKI.Unpaired ⬝ f ⬝ p ⇒* f ⬝ (Fst ⬝ p) ⬝ (Snd ⬝ p) := by
+  have : _ := UnpairedPoly.toSKI_correct [f, p] (by simp)
+  simp_rw [applyList] at this
+  assumption
+theorem unpaired_correct (f x y : SKI) : SKI.Unpaired ⬝ f ⬝ (MkPair ⬝ x ⬝ y) ⇒* f ⬝ x ⬝ y := by
+  trans f ⬝ (Fst ⬝ (MkPair ⬝ x ⬝ y)) ⬝ (Snd ⬝ (MkPair ⬝ x ⬝ y))
+  . exact unpaired_def f _
+  . apply parallel_large_reduction
+    . apply largeRed_tail
+      exact fst_correct _ _
+    . exact snd_correct _ _
+
+/-- Pair f g x := ⟨f x, g x⟩, cf `Primrec.Pair`. -/
+def PairPoly : SKI.Polynomial 3 := MkPair ⬝' (&0 ⬝' &2) ⬝' (&1 ⬝' &2)
+protected def Pair : SKI := PairPoly.toSKI
+theorem pair_def (f g x : SKI) : SKI.Pair ⬝ f ⬝ g ⬝ x ⇒* MkPair ⬝ (f ⬝ x) ⬝ (g ⬝ x) := by
+  have : _ := PairPoly.toSKI_correct [f, g, x] (by simp)
+  simp_rw [applyList] at this
+  assumption

@@ -27,3 +27,16 @@ def trans_of_subrelation_right {α : Type _} (s r : α → α → Prop) (hr : Tr
     intro a b c hab hbc
     replace hbc := h _ _ hbc
     exact hr hab hbc
+
+/-- This is a straightforward but useful specialisation of a more general result in
+`Mathlib.Logic.Relation`. -/
+theorem church_rosser_of_diamond {α : Type _} (r : α → α → Prop)
+    (h : ∀ a b c, r a b → r a c → Relation.Join r b c) :
+    Equivalence (Relation.Join (Relation.ReflTransGen r)) := by
+  apply Relation.equivalence_join_reflTransGen
+  intro a b c hab hac
+  let ⟨d, hd⟩ := h a b c hab hac
+  use d
+  constructor
+  . exact Relation.ReflGen.single hd.1
+  . exact Relation.ReflTransGen.single hd.2
