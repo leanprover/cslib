@@ -89,10 +89,10 @@ lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) : x ∉ m.fv → x ≠
   all_goals aesop
 
 /-- Substitution preserves free variables. -/
-lemma subst_preserve_not_fvar {x y} (m n : Term Var) : x ∉ m.fv ∪ n.fv → x ∉ (m [y := n]).fv := by
+lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) : x ∉ m.fv ∪ n.fv → x ∉ (m [y := n]).fv := by
   intros mem
   simp only [Finset.mem_union, not_or] at mem
-  induction m <;> simp only [subst]
+  induction m <;> simp only [instHasSubstitutionTerm, subst]
   case fvar y' => split <;> simp only [fv, Finset.mem_singleton, mem] <;> aesop
   case abs ih => exact ih mem
   all_goals aesop
@@ -124,7 +124,9 @@ lemma subst_open (x : Var) (t : Term Var) (k : ℕ) (u e) :
   LC t → 
   (e ⟦ k ↝ u ⟧) [ x := t ] = (e [ x := t ]) ⟦k ↝  u [ x := t ]⟧ := by
   revert k
-  induction' e <;> intros k t_lv <;> simp only [openRec, subst, app.injEq, abs.injEq]
+  induction' e 
+  <;> intros k t_lv 
+  <;> simp only [openRec, instHasSubstitutionTerm, subst, app.injEq, abs.injEq]
   case bvar k' => aesop
   case fvar x' => 
     split <;> simp_all
@@ -141,11 +143,11 @@ theorem subst_open_var (x y : Var) (u e : Term Var) : y ≠ x → LC u → (e [y
 /-- Substitution of locally closed terms is locally closed. -/
 theorem subst_lc {x : Var} {e u : Term Var} : LC e → LC u → LC (e [x := u]) := by
   intros lc_e lc_u
-  induction lc_e <;> simp only [subst]
+  induction lc_e <;> simp only [instHasSubstitutionTerm, subst]
   case fvar => split <;> [assumption; constructor] 
   case app ih_l ih_r => exact LC.app ih_l ih_r
   case abs xs e _ ih =>
-    refine LC.abs ({x} ∪ xs) _ ?_
+    refine LC.abs ({x} ∪ xs) _ (?_ : ∀ y ∉ {x} ∪ xs, (e[x := u] ^ fvar y).LC)
     intros y mem
     rw [subst_open_var y x u e ?_ lc_u]
     apply ih
@@ -156,9 +158,9 @@ lemma subst_intro (x : Var) (t e : Term Var) : x ∉ e.fv → LC t → e ^ t = (
   intros mem t_lc
   simp only [open']
   rw [subst_open x t 0 (fvar x) e t_lc]
-  simp only [subst, ↓reduceIte]
-  rw [subst_fresh]
-  exact mem
+  have s := subst_fresh _ _ t mem
+  simp only [instHasSubstitutionTerm, subst, ↓reduceIte] at *
+  rw [s]
 
 /-- Opening of locally closed terms is locally closed. -/
 theorem beta_lc {M N : Term Var} : LC (abs M) → LC N → LC (M ^ N) := by
@@ -178,14 +180,17 @@ theorem beta_lc {M N : Term Var} : LC (abs M) → LC N → LC (M ^ N) := by
 lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) : LC m → m ⟦k ↜ x⟧⟦k ↝ fvar y⟧ = m [x := fvar y] := by
   intros m_lc
   revert k
-  induction' m_lc <;> intros k <;> simp only [closeRec, openRec, subst, abs.injEq, app.injEq]
+  induction' m_lc 
+  <;> intros k 
+  <;> simp only [closeRec, openRec, instHasSubstitutionTerm, subst, abs.injEq, app.injEq]
   case fvar x' => split <;> simp
   case app ih_l ih_r => exact ⟨ih_l _, ih_r _⟩
   case abs xs t x_mem ih =>
     have ⟨x', x'_mem⟩ := fresh_exists ({x} ∪ {y} ∪ t.fv ∪ xs)
     have s := subst_open_var x' x (fvar y) t ?_ (by constructor)
     simp only [open', Finset.union_assoc, Finset.mem_union, Finset.mem_singleton, not_or] at *
-    rw [←open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, ←open_close x' (t[x := fvar y]) 0 ?f₂]
+    rw [←open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, ←open_close x' (t.subst x (fvar y)) 0 ?f₂]
+    simp [instHasSubstitutionTerm] at s
     rw [swap_open_fvars, ←swap_open_fvar_close, s, ih]
     case f₁ =>
       apply open_fresh_preserve_not_fvar

@@ -5,6 +5,7 @@ Authors: Chris Henson
 -/
 
 import Cslib.Data.HasFresh
+import Cslib.Syntax.HasSubstitution
 
 /-! # λ-calculus
 
@@ -76,7 +77,10 @@ def Term.subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
   | app l r => app (l.subst x sub) (r.subst x sub)
   | abs M   => abs $ M.subst x sub
 
-scoped notation:67 e "[" x ":=" sub "]" => Term.subst e x sub
+/-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
+@[simp]
+instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var where
+  subst := Term.subst
 
 /-- Free variables of a term. -/
 @[simp]
