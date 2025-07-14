@@ -26,9 +26,13 @@ namespace LambdaCalculus.LocallyNameless
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type u)
+/-- Bound variables that appear under a lambda abstraction, using a de-Bruijn index. -/
 | bvar : ℕ → Term Var
+/-- Free variables. -/
 | fvar : Var → Term Var
+/-- Lambda abstraction, introducing a new bound variable. -/
 | lam  : Term Var → Term Var
+/-- Function application. -/
 | app  : Term Var → Term Var → Term Var
 
 /-- Variable opening of the ith bound variable. -/
