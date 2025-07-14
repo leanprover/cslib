@@ -48,6 +48,7 @@ namespace SKI
 
 infixl:100 " ⬝ " => ap
 
+/-- Apply a term to a list of terms -/
 def applyList (f : SKI) (xs : List SKI) : SKI := List.foldl (. ⬝ .) f xs
 
 lemma applyList_concat (f : SKI) (ys : List SKI) (z : SKI) :
@@ -152,6 +153,6 @@ def CommonReduct : SKI → SKI → Prop := Relation.Join LargeReduction
 lemma commonReduct_of_single (a b : SKI) (h : a ⇒* b) : CommonReduct a b := by
   refine Relation.join_of_single largeReduction_reflexive h
 
-instance symmetric_join : Symmetric CommonReduct := Relation.symmetric_join
-instance reflexive_join : Reflexive CommonReduct :=
+theorem symmetric_join : Symmetric CommonReduct := Relation.symmetric_join
+theorem reflexive_join : Reflexive CommonReduct :=
   Relation.reflexive_join largeReduction_reflexive

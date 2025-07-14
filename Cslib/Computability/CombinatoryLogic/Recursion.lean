@@ -112,6 +112,7 @@ To define the predecessor, iterate the function `PredAux` ⟨i, j⟩ ↦ ⟨j, j
 the  first component.
 -/
 def PredAuxPoly : SKI.Polynomial 1 := MkPair ⬝' (Snd ⬝' &0) ⬝' (Succ ⬝' (Snd ⬝' &0))
+/-- A term representing PredAux-/
 def PredAux : SKI := PredAuxPoly.toSKI
 theorem predAux_def (p : SKI) :  PredAux ⬝ p ⇒* MkPair ⬝ (Snd ⬝ p) ⬝ (Succ ⬝ (Snd ⬝ p)) := by
   have : _ := PredAuxPoly.toSKI_correct [p] (by simp)
@@ -156,6 +157,7 @@ theorem predAux_correct' (n : Nat) :
 
 /-- Predecessor := λ n. Fst ⬝ (n ⬝ PredAux ⬝ (MkPair ⬝ Zero ⬝ Zero)) -/
 def PredPoly : SKI.Polynomial 1 := Fst ⬝' (&0 ⬝' PredAux ⬝' (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))
+/-- A term representing Pred -/
 def Pred : SKI := PredPoly.toSKI
 theorem pred_def (a : SKI) : Pred ⬝ a ⇒* Fst ⬝ (a ⬝ PredAux ⬝ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)) := by
   have : _ := PredPoly.toSKI_correct [a] (by simp)
@@ -173,26 +175,28 @@ theorem pred_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch n.pred (P
 
 /-! ### Primitive recursion -/
 
+/-- IsZero := λ n. n (K FF) TT -/
 def IsZeroPoly : SKI.Polynomial 1 := &0 ⬝' (K ⬝ FF) ⬝' TT
+/-- A term representing IsZero -/
 def IsZero : SKI := IsZeroPoly.toSKI
 theorem isZero_def (a : SKI) : IsZero ⬝ a ⇒* a ⬝ (K ⬝ FF) ⬝ TT := by
   have : _ := IsZeroPoly.toSKI_correct [a] (by simp)
   simp_rw [applyList] at this
   assumption
 theorem isZero_correct (n : Nat) (a : SKI) (h : IsChurch n a) :
-    is_bool (n = 0) (IsZero ⬝ a) := by
-  apply is_bool_trans (a' := a ⬝ (K ⬝ FF) ⬝ TT) (h := isZero_def a)
+    IsBool (n = 0) (IsZero ⬝ a) := by
+  apply isBool_trans (a' := a ⬝ (K ⬝ FF) ⬝ TT) (h := isZero_def a)
   by_cases n=0
   case pos h0 =>
     simp_rw [h0]
     rw [h0] at h
-    apply is_bool_trans (ha' := TT_correct)
+    apply isBool_trans (ha' := TT_correct)
     exact h _ _
   case neg h0 =>
     simp_rw [h0]
     let ⟨k,hk⟩ := Nat.exists_eq_succ_of_ne_zero h0
     rw [hk] at h
-    apply is_bool_trans (ha' := FF_correct)
+    apply isBool_trans (ha' := FF_correct)
     calc
     _ ⇒* (K ⬝ FF) ⬝ Church k (K ⬝ FF) TT := h _ _
     _ ⇒ FF := red_K _ _
@@ -204,6 +208,7 @@ R ↦ λ x g n. Cond ⬝ (IsZero ⬝ n) ⬝ x ⬝ (g ⬝ a ⬝ (R ⬝ x ⬝ g �
 -/
 def RecAuxPoly : SKI.Polynomial 4 :=
   SKI.Cond ⬝' &1 ⬝' (&2 ⬝' &3 ⬝' (&0 ⬝' &1 ⬝' &2 ⬝' (Pred ⬝' &3))) ⬝' (IsZero ⬝' &3)
+/-- A term representing RecAux -/
 def RecAux : SKI := RecAuxPoly.toSKI
 theorem recAux_def (R₀ x g a : SKI) :
     RecAux ⬝ R₀ ⬝ x ⬝ g ⬝ a ⇒* SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (R₀ ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a)  := by
@@ -248,6 +253,7 @@ fixed point of R ↦ λ n f. if f n = 0 then n else R f (n+1)
 -/
 def RFindAboveAuxPoly : SKI.Polynomial 3 :=
     SKI.Cond ⬝' &1 ⬝' (&0 ⬝' (Succ ⬝' &1) ⬝' &2) ⬝' (IsZero ⬝' (&2 ⬝' &1))
+/-- A term representing RFindAboveAux -/
 def RFindAboveAux : SKI := RFindAboveAuxPoly.toSKI
 lemma rfindAboveAux_def (R₀ f a : SKI) :
     RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := by
@@ -319,6 +325,7 @@ theorem RFind_correct (fNat : Nat → Nat) (f : SKI)
 
 /-- Addition: λ n m. n Succ m -/
 def AddPoly : SKI.Polynomial 2 := &0 ⬝' Succ ⬝' &1
+/-- A term representing addition on church numerals -/
 protected def SKI.Add : SKI := AddPoly.toSKI
 theorem add_def (a b : SKI) : SKI.Add ⬝ a ⬝ b ⇒* a ⬝ Succ ⬝ b := by
   have : _ := AddPoly.toSKI_correct [a, b] (by simp)
@@ -340,6 +347,7 @@ theorem add_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m
 
 /-- Multiplication: λ n m. n (Add m) Zero -/
 def MulPoly : SKI.Polynomial 2 := &0 ⬝' (SKI.Add ⬝' &1) ⬝' SKI.Zero
+/-- A term representing multiplication on church numerals -/
 protected def SKI.Mul : SKI := MulPoly.toSKI
 theorem mul_def (a b : SKI) : SKI.Mul ⬝ a ⬝ b ⇒* a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero := by
   have : _ := MulPoly.toSKI_correct [a, b] (by simp)
@@ -361,6 +369,7 @@ theorem mul_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m
 
 /-- Subtraction: λ n m. n Pred m -/
 def SubPoly : SKI.Polynomial 2 := &1 ⬝' Pred ⬝' &0
+/-- A term representing subtraction on church numerals -/
 protected def SKI.Sub : SKI := SubPoly.toSKI
 theorem sub_def (a b : SKI) : SKI.Sub ⬝ a ⬝ b ⇒* b ⬝ Pred ⬝ a := by
   have : _ := SubPoly.toSKI_correct [a, b] (by simp)
@@ -382,6 +391,7 @@ theorem sub_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m
 
 /-- Comparison: (. ≤ .) := λ n m. IsZero ⬝ (Sub ⬝ n ⬝ m) -/
 def LEPoly : SKI.Polynomial 2 := IsZero ⬝' (SKI.Sub ⬝' &0 ⬝' &1)
+/-- A term representing comparison on church numerals -/
 protected def SKI.LE : SKI := LEPoly.toSKI
 theorem le_def (a b : SKI) : SKI.LE ⬝ a ⬝ b ⇒* IsZero ⬝ (SKI.Sub ⬝ a ⬝ b) := by
   have : _ := LEPoly.toSKI_correct [a, b] (by simp)
@@ -389,8 +399,8 @@ theorem le_def (a b : SKI) : SKI.LE ⬝ a ⬝ b ⇒* IsZero ⬝ (SKI.Sub ⬝ a �
   assumption
 
 theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    is_bool (n ≤ m) (SKI.LE ⬝ a ⬝ b) := by
+    IsBool (n ≤ m) (SKI.LE ⬝ a ⬝ b) := by
   simp [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
-  apply is_bool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
+  apply isBool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
   apply isZero_correct
   apply sub_correct <;> assumption

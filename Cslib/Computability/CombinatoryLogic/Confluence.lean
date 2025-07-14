@@ -37,6 +37,7 @@ for its reflexive-transitive closure. This closure is exactly `⇒*`, which impl
 
 open SKI ReductionStep
 
+/-- A reduction step allowing simultaneous reduction of disjoint redexes -/
 inductive ParallelReduction : SKI → SKI → Prop
   /-- Parallel reduction is reflexive, -/
   | refl (a : SKI) : ParallelReduction a a
@@ -243,3 +244,5 @@ theorem largeReduction_diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) :
   · refine commonReduct_equivalence.symm ?_
     exact commonReduct_of_single a b hab
   · exact commonReduct_of_single a c hac
+
+#lint
