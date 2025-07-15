@@ -125,8 +125,7 @@ completely captures the syntax of terms. -/
 theorem Context.complete (m : Term Var) :
     ∃ (c : Context Var) (x : Var), m = (c.fill (Term.var x)) := by
   induction m with
-  | var x =>
-    exists hole, x
+  | var x => exists hole, x
   | abs x n ih =>
     obtain ⟨c', y, ih⟩ := ih
     exists Context.abs x c', y
