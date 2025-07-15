@@ -15,8 +15,8 @@ using the SKI basis.
 ## Main definitions
 
 - `SKI`: the type of expressions in the SKI calculus,
-- `ReductionStep`: single-step reduction of SKI expressions,
-- `LargeReduction`: multi-step reduction of SKI expressions,
+- `Red`: single-step reduction of SKI expressions,
+- `MRed`: multi-step reduction of SKI expressions,
 - `CommonReduct`: the relation between terms having a common reduct,
 
 ## Notation
@@ -41,13 +41,13 @@ inductive SKI where
   /-- `I`-combinator, with semantics $λx.x$ -/
   | I
   /-- Application $x y ↦ xy$ -/
-  | ap : SKI → SKI → SKI
+  | app : SKI → SKI → SKI
 deriving Repr, DecidableEq
 
 namespace SKI
 
 /-- Notation for application between SKI terms -/
-infixl:100 " ⬝ " => ap
+scoped infixl:100 " ⬝ " => app
 
 /-- Apply a term to a list of terms -/
 def applyList (f : SKI) (xs : List SKI) : SKI := List.foldl (. ⬝ .) f xs
@@ -60,103 +60,103 @@ lemma applyList_concat (f : SKI) (ys : List SKI) (z : SKI) :
 /-! ### Reduction relations between SKI terms -/
 
 /-- Single-step reduction of SKI terms -/
-inductive ReductionStep : SKI → SKI → Prop where
+inductive Red : SKI → SKI → Prop where
   /-- The operational semantics of the `S`, -/
-  | red_S (x y z : SKI) : ReductionStep (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z))
+  | red_S (x y z : SKI) : Red (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z))
   /-- `K`, -/
-  | red_K (x y : SKI) : ReductionStep (K ⬝ x ⬝ y) x
+  | red_K (x y : SKI) : Red (K ⬝ x ⬝ y) x
   /-- and `I` combinators. -/
-  | red_I (x : SKI) : ReductionStep (I ⬝ x) x
+  | red_I (x : SKI) : Red (I ⬝ x) x
   /-- Reduction on the head -/
-  | red_head (x x' y : SKI) (_ : ReductionStep x x') : ReductionStep (x ⬝ y) (x' ⬝ y)
+  | red_head (x x' y : SKI) (_ : Red x x') : Red (x ⬝ y) (x' ⬝ y)
   /-- and tail of an SKI term. -/
-  | red_tail (x y y' : SKI) (_ : ReductionStep y y') : ReductionStep (x ⬝ y) (x ⬝ y')
+  | red_tail (x y y' : SKI) (_ : Red y y') : Red (x ⬝ y) (x ⬝ y')
 
 /-- Notation for single-step reduction -/
-infix:90 " ⇒ " => ReductionStep
+scoped infix:90 " ⇒ " => Red
 
 /-- Multi-step reduction of SKI terms -/
-def LargeReduction : SKI → SKI → Prop := Relation.ReflTransGen ReductionStep
+def MRed : SKI → SKI → Prop := Relation.ReflTransGen Red
 
 /-- Notation for multi-step reduction (by analogy with the Kleene star) -/
-infix:90 " ⇒* " => LargeReduction
+scoped infix:90 " ⇒* " => MRed
 
-open ReductionStep
+open Red
 
-theorem largeRed_refl (a : SKI) : a ⇒* a := Relation.ReflTransGen.refl
+theorem MRed.refl (a : SKI) : a ⇒* a := Relation.ReflTransGen.refl
 
-theorem largeRed_single (a b : SKI) (h : a ⇒ b) : a ⇒* b := Relation.ReflTransGen.single h
+theorem MRed.single (a b : SKI) (h : a ⇒ b) : a ⇒* b := Relation.ReflTransGen.single h
 
-theorem largeRed_S (x y z : SKI) : LargeReduction (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z)) :=
-  largeRed_single _ _ <| red_S _ _ _
+theorem MRed.S (x y z : SKI) : MRed (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z)) :=
+  MRed.single _ _ <| red_S _ _ _
 
-theorem largeRed_K (x y : SKI) : LargeReduction (K ⬝ x ⬝ y) x :=
-  largeRed_single _ _ <| red_K _ _
+theorem MRed.K (x y : SKI) : MRed (K ⬝ x ⬝ y) x :=
+  MRed.single _ _ <| red_K _ _
 
-theorem largeRed_I (x : SKI) : LargeReduction (I ⬝ x) x :=
-  largeRed_single _ _ <| red_I _
+theorem MRed.I (x : SKI) : MRed (I ⬝ x) x :=
+  MRed.single _ _ <| red_I _
 
-theorem largeRed_head (a a' b : SKI) (h : a ⇒* a') : (a ⬝ b) ⇒* (a' ⬝ b) := by
+theorem MRed.head (a a' b : SKI) (h : a ⇒* a') : (a ⬝ b) ⇒* (a' ⬝ b) := by
   induction h with
-  | refl => apply largeRed_refl
+  | refl => apply MRed.refl
   | @tail a' a'' _ ha'' ih =>
     apply Relation.ReflTransGen.tail (b := a' ⬝ b) ih
-    exact ReductionStep.red_head a' a'' b ha''
+    exact Red.red_head a' a'' b ha''
 
-theorem largeRed_tail (a b b' : SKI) (h : b ⇒* b') : (a ⬝ b) ⇒* (a ⬝ b') := by
+theorem MRed.tail (a b b' : SKI) (h : b ⇒* b') : (a ⬝ b) ⇒* (a ⬝ b') := by
   induction h with
-  | refl => apply largeRed_refl
+  | refl => apply MRed.refl
   | @tail b' b'' _ hb'' ih =>
     apply Relation.ReflTransGen.tail (b := a ⬝ b') ih
-    exact ReductionStep.red_tail a b' b'' hb''
+    exact Red.red_tail a b' b'' hb''
 
-instance LargeReduction.instTrans : IsTrans SKI LargeReduction := Relation.instIsTransReflTransGen
-theorem largeReduction_transitive : Transitive LargeReduction := transitive_of_trans LargeReduction
+instance MRed.instTrans : IsTrans SKI MRed := Relation.instIsTransReflTransGen
+theorem MRed.transitive : Transitive MRed := transitive_of_trans MRed
 
-instance LargeReduction.instIsRefl : IsRefl SKI LargeReduction := Relation.instIsReflReflTransGen
-theorem largeReduction_reflexive : Reflexive LargeReduction := IsRefl.reflexive
+instance MRed.instIsRefl : IsRefl SKI MRed := Relation.instIsReflReflTransGen
+theorem MRed.reflexive : Reflexive MRed := IsRefl.reflexive
 
-instance reductionStepLargeReductionTrans :
-    Trans ReductionStep LargeReduction LargeReduction := by
+instance MRedTrans :
+    Trans Red MRed MRed := by
   constructor
   intro a b c hab hbc
-  replace hab := largeRed_single _ _ hab
+  replace hab := MRed.single _ _ hab
   exact Relation.ReflTransGen.trans hab hbc
 
-instance largeReductionReductionStepTrans :
-    Trans LargeReduction ReductionStep LargeReduction := by
+instance MRedRedTrans :
+    Trans MRed Red MRed := by
   constructor
   intro a b c hab hbc
-  replace hbc := largeRed_single _ _ hbc
+  replace hbc := MRed.single _ _ hbc
   exact Relation.ReflTransGen.trans hab hbc
 
-instance reductionStepTeductionStepTrans :
-    Trans ReductionStep ReductionStep LargeReduction := by
+instance RedMRedTrans :
+    Trans Red Red MRed := by
   constructor
   intro a b c hab hbc
-  replace hab := largeRed_single _ _ hab
-  replace hbc := largeRed_single _ _ hbc
+  replace hab := MRed.single _ _ hab
+  replace hbc := MRed.single _ _ hbc
   exact Relation.ReflTransGen.trans hab hbc
 
-lemma parallel_large_reduction (a a' b b' : SKI) (ha : a ⇒* a') (hb : b ⇒* b') :
+lemma parallel_mRed (a a' b b' : SKI) (ha : a ⇒* a') (hb : b ⇒* b') :
     (a ⬝ b) ⇒* (a' ⬝ b') := by
   trans a' ⬝ b
-  . exact largeRed_head a a' b ha
-  . exact largeRed_tail a' b b' hb
+  . exact MRed.head a a' b ha
+  . exact MRed.tail a' b b' hb
 
-lemma parallel_reduction (a a' b b' : SKI) (ha : a ⇒ a') (hb : b ⇒ b') : (a ⬝ b) ⇒* (a' ⬝ b') := by
+lemma parallel_red (a a' b b' : SKI) (ha : a ⇒ a') (hb : b ⇒ b') : (a ⬝ b) ⇒* (a' ⬝ b') := by
   trans a' ⬝ b
-  all_goals apply largeRed_single
-  . exact ReductionStep.red_head a a' b ha
-  . exact ReductionStep.red_tail a' b b' hb
+  all_goals apply MRed.single
+  . exact Red.red_head a a' b ha
+  . exact Red.red_tail a' b b' hb
 
 
 /-- Express that two terms have a reduce to a common term. -/
-def CommonReduct : SKI → SKI → Prop := Relation.Join LargeReduction
+def CommonReduct : SKI → SKI → Prop := Relation.Join MRed
 
 lemma commonReduct_of_single (a b : SKI) (h : a ⇒* b) : CommonReduct a b := by
-  refine Relation.join_of_single largeReduction_reflexive h
+  refine Relation.join_of_single MRed.reflexive h
 
-theorem symmetric_join : Symmetric CommonReduct := Relation.symmetric_join
-theorem reflexive_join : Reflexive CommonReduct :=
-  Relation.reflexive_join largeReduction_reflexive
+theorem symmetric_commonReduct : Symmetric CommonReduct := Relation.symmetric_join
+theorem reflexive_commonReduct : Reflexive CommonReduct :=
+  Relation.reflexive_join MRed.reflexive

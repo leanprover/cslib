@@ -31,7 +31,7 @@ For a presentation of the bracket abstraction algorithm see:
 
 namespace SKI
 
-open ReductionStep
+open Red MRed
 
 /-! ### Polynomials and the bracket astraction algorithm -/
 
@@ -39,15 +39,15 @@ open ReductionStep
 protected inductive Polynomial (n : Nat) : Type _ where
   | term : SKI → SKI.Polynomial n
   | var : Fin n → SKI.Polynomial n
-  | ap : SKI.Polynomial n → SKI.Polynomial n → SKI.Polynomial n
+  | app : SKI.Polynomial n → SKI.Polynomial n → SKI.Polynomial n
 
 /-- Application between polynomials -/
-infixl:100 " ⬝' " => SKI.Polynomial.ap
+scoped infixl:100 " ⬝' " => SKI.Polynomial.app
 
 /-- Notation by analogy with pointers in C -/
-prefix:101 "&" => SKI.Polynomial.var
+scoped prefix:101 "&" => SKI.Polynomial.var
 
-instance CoeTermContext (n : Nat) : Coe SKI (SKI.Polynomial n) := ⟨SKI.Polynomial.term⟩
+instance CoeTermPolynomial (n : Nat) : Coe SKI (SKI.Polynomial n) := ⟨SKI.Polynomial.term⟩
 
 /-- Substitute terms for the free variables of a polynomial -/
 def Polynomial.eval {n : Nat} (Γ : SKI.Polynomial n) (l : List SKI) (hl : List.length l = n) :
@@ -55,15 +55,14 @@ def Polynomial.eval {n : Nat} (Γ : SKI.Polynomial n) (l : List SKI) (hl : List.
   match Γ with
   | SKI.Polynomial.term x => x
   | SKI.Polynomial.var i => l[i]
-  | SKI.Polynomial.ap Γ Δ => (Γ.eval l hl) ⬝ (Δ.eval l hl)
+  | SKI.Polynomial.app Γ Δ => (Γ.eval l hl) ⬝ (Δ.eval l hl)
 
 /-- A polynomial with no free variables is a term -/
 def Polynomial.varFreeToSKI (Γ : SKI.Polynomial 0) : SKI := Γ.eval [] (by trivial)
 
 /-- Inductively define a polynomial `Γ'` so that (up to the fact that we haven't
 defined reduction on polynomials) `Γ' ⬝ t ⇒* Γ[xₙ ← t]`. -/
-def Polynomial.elimVar {n : Nat} (Γ : SKI.Polynomial (n+1)) : SKI.Polynomial n :=
-  match Γ with
+def Polynomial.elimVar {n : Nat} : SKI.Polynomial (n+1) → SKI.Polynomial n
   /- The K-combinator leaves plain terms unchanged by substitution `K ⬝ x ⬝ t ⇒ x` -/
   | SKI.Polynomial.term x => K ⬝' x
   /- Variables other than `xₙ` use the K-combinator as above, for `xₙ` we use `I`. -/
@@ -73,7 +72,7 @@ def Polynomial.elimVar {n : Nat} (Γ : SKI.Polynomial (n+1)) : SKI.Polynomial n 
       exact K ⬝' (SKI.Polynomial.var <| @Fin.ofNat n ⟨Nat.ne_zero_of_lt h⟩ i)
     case neg h => exact ↑I
   /- The S-combinator inductively applies the substitution to the subterms of an application. -/
-  | SKI.Polynomial.ap Γ Δ => S ⬝' Γ.elimVar ⬝' Δ.elimVar
+  | SKI.Polynomial.app Γ Δ => S ⬝' Γ.elimVar ⬝' Δ.elimVar
 
 
 /--
@@ -90,12 +89,12 @@ theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) (ys : L
   match n, Γ with
   | _, SKI.Polynomial.term x =>
     simp_rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
-    exact largeRed_K _ _
-  | _, SKI.Polynomial.ap Γ Δ =>
+    exact MRed.K _ _
+  | _, SKI.Polynomial.app Γ Δ =>
     simp_rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
     trans Γ.elimVar.eval ys hys ⬝ z ⬝ (Δ.elimVar.eval ys hys ⬝ z)
-    . exact largeRed_S _ _ _
-    . apply parallel_large_reduction
+    . exact MRed.S _ _ _
+    . apply parallel_mRed
       . exact elimVar_correct Γ ys hys z
       . exact elimVar_correct Δ ys hys z
   | n, SKI.Polynomial.var i =>
@@ -111,7 +110,7 @@ theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) (ys : L
       simp only [Fin.getElem_fin, Fin.val_ofNat]
       have : ↑i%n=↑i := by exact Nat.mod_eq_of_lt hi
       simp_rw [this]
-      exact largeRed_K _ _
+      exact MRed.K _ _
     case isFalse hi =>
       have app_len : (ys ++ [z]).length = n+1 := by simpa
       simp_rw [SKI.Polynomial.eval]
@@ -120,7 +119,7 @@ theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) (ys : L
       have : (ys ++ [z])[n]'(by rw [app_len]; exact Nat.lt_add_one n) = z := by
         rw [List.getElem_append_right] <;> simp [hys]
       rw [this]
-      exact largeRed_I _
+      exact MRed.I _
 
 /-- Bracket abstraction, by induction using `SKI.Polynomial.elimVar` -/
 def Polynomial.toSKI {n : Nat} (Γ : SKI.Polynomial n) : SKI :=
@@ -136,7 +135,7 @@ theorem Polynomial.toSKI_correct {n : Nat} (Γ : SKI.Polynomial n) (xs : List SK
     unfold toSKI varFreeToSKI applyList
     rw [List.length_eq_zero_iff] at hxs
     simp_rw [hxs, List.foldl_nil]
-    apply largeRed_refl
+    apply MRed.refl
   | n+1 =>
     -- show that xs = ys + [z]
     have : xs ≠ [] := List.ne_nil_of_length_eq_add_one hxs
@@ -152,7 +151,7 @@ theorem Polynomial.toSKI_correct {n : Nat} (Γ : SKI.Polynomial n) (xs : List SK
       exact Nat.succ_inj.mp (id (Eq.symm h))
     simp_rw [h, applyList_concat]
     trans Γ.elimVar.eval ys this ⬝ z
-    · apply largeRed_head
+    · apply MRed.head
       exact SKI.Polynomial.toSKI_correct Γ.elimVar ys this
     · exact SKI.Polynomial.elimVar_correct Γ ys this z
 
@@ -237,7 +236,7 @@ theorem Y_correct (f : SKI) : CommonReduct (Y ⬝ f) (f ⬝ (Y ⬝ f)) := by
   · calc
     _ ⇒* H ⬝ f ⬝ (H ⬝ f) := Y_def f
     _ ⇒* f ⬝ (H ⬝ f ⬝ (H ⬝ f)) := H_def f (H ⬝ f)
-  · apply largeRed_tail
+  · apply MRed.tail
     exact Y_def f
 
 /--
@@ -272,14 +271,14 @@ theorem isBool_trans (u : Bool) (a a' : SKI) (h : a ⇒* a') (ha' : IsBool u a')
     IsBool u a := by
   intro x y
   trans a' ⬝ x ⬝ y
-  · apply largeRed_head
-    apply largeRed_head
+  · apply MRed.head
+    apply MRed.head
     exact h
   · exact ha' x y
 
 /-- Standard true: TT := λ x y. x -/
 def TT : SKI := K
-theorem TT_correct : IsBool true TT := fun x y ↦ largeRed_K x y
+theorem TT_correct : IsBool true TT := fun x y ↦ MRed.K x y
 
 /-- Standard false: FF := λ x y. y -/
 def FF : SKI := K ⬝ I
@@ -375,8 +374,8 @@ theorem unpaired_def (f p : SKI) : SKI.Unpaired ⬝ f ⬝ p ⇒* f ⬝ (Fst ⬝ 
 theorem unpaired_correct (f x y : SKI) : SKI.Unpaired ⬝ f ⬝ (MkPair ⬝ x ⬝ y) ⇒* f ⬝ x ⬝ y := by
   trans f ⬝ (Fst ⬝ (MkPair ⬝ x ⬝ y)) ⬝ (Snd ⬝ (MkPair ⬝ x ⬝ y))
   . exact unpaired_def f _
-  . apply parallel_large_reduction
-    . apply largeRed_tail
+  . apply parallel_mRed
+    . apply MRed.tail
       exact fst_correct _ _
     . exact snd_correct _ _
 

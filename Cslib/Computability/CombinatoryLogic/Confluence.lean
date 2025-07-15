@@ -35,68 +35,70 @@ for its reflexive-transitive closure. This closure is exactly `⇒*`, which impl
 **Church-Rosser** theorem as sketched above.
 -/
 
-open SKI ReductionStep
+namespace SKI
+
+open Red MRed
 
 /-- A reduction step allowing simultaneous reduction of disjoint redexes -/
 inductive ParallelReduction : SKI → SKI → Prop
   /-- Parallel reduction is reflexive, -/
   | refl (a : SKI) : ParallelReduction a a
-  /-- Contains `ReductionStep`, -/
-  | red_I' (a : SKI) : ParallelReduction (I ⬝ a) a
-  | red_K' (a b : SKI) : ParallelReduction (K ⬝ a ⬝ b) a
-  | red_S' (a b c : SKI) : ParallelReduction (S ⬝ a ⬝ b ⬝ c) (a ⬝ c ⬝ (b ⬝ c))
+  /-- Contains `Red`, -/
+  | red_I (a : SKI) : ParallelReduction (I ⬝ a) a
+  | red_K (a b : SKI) : ParallelReduction (K ⬝ a ⬝ b) a
+  | red_S (a b c : SKI) : ParallelReduction (S ⬝ a ⬝ b ⬝ c) (a ⬝ c ⬝ (b ⬝ c))
   /-- and allows simultaneous reduction of disjoint redexes. -/
   | par (a a' b b' : SKI) :
       ParallelReduction a a' → ParallelReduction b b' → ParallelReduction (a ⬝ b) (a' ⬝ b')
 
 
 /-- Notation for parallel reduction -/
-infix:90 " ⇒ₚ " => ParallelReduction
+scoped infix:90 " ⇒ₚ " => ParallelReduction
 
 /-- The inclusion `⇒ₚ ⊆ ⇒*` -/
-theorem largeReduction_of_parallelReduction (a a' : SKI) (h : a ⇒ₚ a') : a ⇒* a' := by
+theorem mRed_of_parallelReduction (a a' : SKI) (h : a ⇒ₚ a') : a ⇒* a' := by
   cases h
   case refl => exact Relation.ReflTransGen.refl
   case par a a' b b' ha hb =>
-    apply parallel_large_reduction
-    exact largeReduction_of_parallelReduction a a' ha
-    exact largeReduction_of_parallelReduction b b' hb
-  case red_I' => apply Relation.ReflTransGen.single; exact red_I a'
-  case red_K' b => apply Relation.ReflTransGen.single; exact red_K a' b
-  case red_S' a b c => apply Relation.ReflTransGen.single; exact red_S a b c
+    apply parallel_mRed
+    exact mRed_of_parallelReduction a a' ha
+    exact mRed_of_parallelReduction b b' hb
+  case red_I => apply Relation.ReflTransGen.single; exact red_I a'
+  case red_K b => apply Relation.ReflTransGen.single; exact red_K a' b
+  case red_S a b c => apply Relation.ReflTransGen.single; exact red_S a b c
 
 /-- The inclusion `⇒ ⊆ ⇒ₚ` -/
-theorem parallelReduction_of_reductionStep (a a' : SKI) (h : a ⇒ a') : a ⇒ₚ a' := by
+theorem parallelReduction_of_red (a a' : SKI) (h : a ⇒ a') : a ⇒ₚ a' := by
   cases h
-  case red_S => apply ParallelReduction.red_S'
-  case red_K => apply ParallelReduction.red_K'
-  case red_I => apply ParallelReduction.red_I'
+  case red_S => apply ParallelReduction.red_S
+  case red_K => apply ParallelReduction.red_K
+  case red_I => apply ParallelReduction.red_I
   case red_head a a' b h =>
     apply ParallelReduction.par
-    exact parallelReduction_of_reductionStep a a' h
+    exact parallelReduction_of_red a a' h
     exact ParallelReduction.refl b
   case red_tail a b b' h =>
     apply ParallelReduction.par
     exact ParallelReduction.refl a
-    exact parallelReduction_of_reductionStep b b' h
+    exact parallelReduction_of_red b b' h
 
-/-- The inclusions of `largeReduction_of_parallelReduction` and
-`parallelReduction_of_reductionStep` imply that `⇒` and `⇒ₚ` have the same reflexive-transitive
+/-- The inclusions of `mRed_of_parallelReduction` and
+`parallelReduction_of_red` imply that `⇒` and `⇒ₚ` have the same reflexive-transitive
 closure. -/
-theorem reflTransGen_parallelReduction_largeReduction :
-    Relation.ReflTransGen ParallelReduction = LargeReduction := by
+theorem reflTransGen_parallelReduction_mRed :
+    Relation.ReflTransGen ParallelReduction = MRed := by
   ext a b
   constructor
   · apply Relation.reflTransGen_minimal
-    · exact largeReduction_reflexive
-    · exact largeReduction_transitive
-    · exact largeReduction_of_parallelReduction
+    · exact MRed.reflexive
+    · exact MRed.transitive
+    · exact mRed_of_parallelReduction
   · apply Relation.reflTransGen_minimal
     · exact Relation.reflexive_reflTransGen
     · exact Relation.transitive_reflTransGen
     · intro a a' h
       apply Relation.ReflTransGen.single
-      exact parallelReduction_of_reductionStep a a' h
+      exact parallelReduction_of_red a a' h
 
 /-!
 Irreducibility for the (partially applied) primitive combinators.
@@ -169,20 +171,20 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
       constructor
       · exact ParallelReduction.par a' a₃ b' b₃ ha.1 hb.1
       · exact ParallelReduction.par a'' a₃ b'' b₃ ha.2 hb.2
-    case red_I' =>
+    case red_I =>
       rw [I_irreducible a' ha']
       use b'
-      exact ⟨ParallelReduction.red_I' b', hb'⟩
-    case red_K' =>
+      exact ⟨ParallelReduction.red_I b', hb'⟩
+    case red_K =>
       let ⟨a₂', ha₂'⟩ := Ka_irreducible a₂ a' ha'
       rw [ha₂'.2]
       use a₂'
-      exact ⟨ParallelReduction.red_K' a₂' b', ha₂'.1⟩
-    case red_S' a c =>
+      exact ⟨ParallelReduction.red_K a₂' b', ha₂'.1⟩
+    case red_S a c =>
       let ⟨a'', c', h⟩ := Sab_irreducible a c a' ha'
       rw [h.2.2]
       use a'' ⬝ b' ⬝ (c' ⬝ b')
-      refine ⟨ParallelReduction.red_S' a'' c' b', ?_⟩
+      refine ⟨ParallelReduction.red_S a'' c' b', ?_⟩
       apply ParallelReduction.par
       · apply ParallelReduction.par
         · exact h.1
@@ -190,29 +192,29 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
       · apply ParallelReduction.par
         · exact h.2.1
         · exact hb'
-  case red_I' =>
+  case red_I =>
     cases h₂
-    case refl => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.red_I' a₁⟩
+    case refl => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.red_I a₁⟩
     case par c a₁' hc ha =>
       rw [I_irreducible c hc]
       use a₁'
-      exact ⟨ha, ParallelReduction.red_I' a₁'⟩
-    case red_I' => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.refl a₁⟩
-  case red_K' c =>
+      exact ⟨ha, ParallelReduction.red_I a₁'⟩
+    case red_I => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.refl a₁⟩
+  case red_K c =>
     cases h₂
-    case refl => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.red_K' a₁ c⟩
+    case refl => use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.red_K a₁ c⟩
     case par a' c' ha hc =>
       let ⟨a₁', h'⟩ := Ka_irreducible a₁ a' ha
       rw [h'.2]
       use a₁'
-      exact ⟨h'.1, ParallelReduction.red_K' a₁' c'⟩
-    case red_K' =>
+      exact ⟨h'.1, ParallelReduction.red_K a₁' c'⟩
+    case red_K =>
       use a₁; exact ⟨ParallelReduction.refl a₁, ParallelReduction.refl a₁⟩
-  case red_S' a b c =>
+  case red_S a b c =>
     cases h₂
     case refl =>
       use a ⬝ c ⬝ (b ⬝ c)
-      exact ⟨ParallelReduction.refl _, ParallelReduction.red_S' _ _ _⟩
+      exact ⟨ParallelReduction.refl _, ParallelReduction.red_S _ _ _⟩
     case par d c' hd hc =>
       let ⟨a', b', h⟩ := Sab_irreducible a b d hd
       rw [h.2.2]
@@ -223,8 +225,8 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
           exact h.1; exact hc
         · apply ParallelReduction.par
           exact h.2.1; exact hc
-      · exact ParallelReduction.red_S' _ _ _
-    case red_S' =>
+      · exact ParallelReduction.red_S _ _ _
+    case red_S =>
       use a ⬝ c ⬝ (b ⬝ c)
       exact ⟨ParallelReduction.refl _, ParallelReduction.refl _,⟩
 
@@ -236,11 +238,11 @@ theorem join_parallelReduction_equivalence :
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem commonReduct_equivalence : Equivalence CommonReduct := by
   unfold CommonReduct
-  rw [←reflTransGen_parallelReduction_largeReduction]
+  rw [←reflTransGen_parallelReduction_mRed]
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/
-theorem largeReduction_diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) : CommonReduct b c := by
+theorem MRed.diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) : CommonReduct b c := by
   apply commonReduct_equivalence.trans (y := a)
   · refine commonReduct_equivalence.symm ?_
     exact commonReduct_of_single a b hab
