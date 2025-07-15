@@ -1,6 +1,6 @@
 import Cslib.Syntax.ReductionNotation
 
-@[reduce_notation "ₙ", simp]
+@[reduction "ₙ", simp]
 def PredReduction (a b : ℕ) : Prop := a = b + 1
 
 open Relation.ReflTransGen
