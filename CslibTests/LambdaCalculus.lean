@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.LambdaCalculus.Untyped.Basic
+import Cslib.Computability.LambdaCalculus.Untyped.Named.Basic
 
-open LambdaCalculus
-open LambdaCalculus.Term
+open LambdaCalculus.Named
+open LambdaCalculus.Named.Term
 
 abbrev NatTerm := Term ℕ
 
