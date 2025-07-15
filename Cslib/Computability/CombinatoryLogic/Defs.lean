@@ -46,6 +46,7 @@ deriving Repr, DecidableEq
 
 namespace SKI
 
+/-- Notation for application between SKI terms -/
 infixl:100 " ⬝ " => ap
 
 /-- Apply a term to a list of terms -/
@@ -71,10 +72,13 @@ inductive ReductionStep : SKI → SKI → Prop where
   /-- and tail of an SKI term. -/
   | red_tail (x y y' : SKI) (_ : ReductionStep y y') : ReductionStep (x ⬝ y) (x ⬝ y')
 
+/-- Notation for single-step reduction -/
 infix:90 " ⇒ " => ReductionStep
 
+/-- Multi-step reduction of SKI terms -/
 def LargeReduction : SKI → SKI → Prop := Relation.ReflTransGen ReductionStep
 
+/-- Notation for multi-step reduction (by analogy with the Kleene star) -/
 infix:90 " ⇒* " => LargeReduction
 
 open ReductionStep

@@ -50,6 +50,7 @@ inductive ParallelReduction : SKI → SKI → Prop
       ParallelReduction a a' → ParallelReduction b b' → ParallelReduction (a ⬝ b) (a' ⬝ b')
 
 
+/-- Notation for parallel reduction -/
 infix:90 " ⇒ₚ " => ParallelReduction
 
 /-- The inclusion `⇒ₚ ⊆ ⇒*` -/
@@ -244,5 +245,3 @@ theorem largeReduction_diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) :
   · refine commonReduct_equivalence.symm ?_
     exact commonReduct_of_single a b hab
   · exact commonReduct_of_single a c hac
-
-#lint
