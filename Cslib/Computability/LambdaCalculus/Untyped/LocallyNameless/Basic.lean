@@ -82,6 +82,9 @@ def Term.subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
 instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var where
   subst := Term.subst
 
+omit [HasFresh Var] in
+lemma Term.subst_def (m : Term Var) (x : Var) (n : Term Var) : m.subst x n = m[x := n] := by rfl
+
 /-- Free variables of a term. -/
 @[simp]
 def Term.fv : Term Var → Finset Var
