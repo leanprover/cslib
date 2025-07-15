@@ -98,7 +98,7 @@ theorem parachain_iff_redex : (M ⇉* N) ↔ (M ↠β N) := by
 /-- Parallel reduction respects substitution. -/
 lemma para_subst (x : Var) : (M ⇉ M') → (N ⇉ N') → (M[x := N] ⇉ M'[x := N']) := by
   intros pm pn
-  induction pm <;> simp
+  induction pm <;> simp only [instHasSubstitutionTerm, subst, open']
   case fvar x' =>
     split
     assumption
@@ -145,14 +145,13 @@ lemma para_open_out (L : Finset Var) :
     → (M' ⇉ N') → (M ^ M') ⇉ (N ^ N') := by
     intros mem para
     let ⟨x, qx⟩ := fresh_exists (L ∪ N.fv ∪ M.fv)
-    simp at qx
+    simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
     obtain ⟨q1, q2, q3⟩ := qx
     rw [subst_intro x M' _ q3 (para_lc_l para), subst_intro x N' _ q2 (para_lc_r para)]
     exact para_subst x (mem x q1) para
 
 /-- Parallel reduction has the diamond property. -/
 theorem para_diamond : Diamond (@Parallel Var) := by
-  simp [Diamond]
   intros t t1 t2 tpt1
   revert t2
   induction tpt1 <;> intros t2 tpt2
@@ -166,19 +165,19 @@ theorem para_diamond : Diamond (@Parallel Var) := by
     cases tpt2
     case abs t2' xs' mem' =>
       have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ t2'.fv ∪ s2'.fv)
-      simp at qx
+      simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
       have ⟨q1, q2, q3, q4⟩ := qx
       have ⟨t', qt'_l, qt'_r⟩ := ih x q1 (mem' _ q2)
       exists abs (t' ^* x)
       constructor
       · apply Parallel.abs ((s2' ^ fvar x).fv ∪ t'.fv ∪ {x})
         intros y qy
-        simp
+        simp only [open', close]
         rw [←open_close x s2' 0 q4]
         exact para_open_close x y 0 qt'_l qy
       · apply Parallel.abs ((t2' ^ fvar x).fv ∪ t'.fv ∪ {x})
         intros y qy
-        simp
+        simp only [open', close]
         rw [←open_close x t2' 0 q3]
         exact para_open_close x y 0 qt'_r qy 
   case beta s1 s1' s2 s2' xs mem ps ih1 ih2 => 
@@ -187,14 +186,14 @@ theorem para_diamond : Diamond (@Parallel Var) := by
       cases s1pu2
       case abs s1'' xs' mem' =>
         have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ s1''.fv ∪ s1'.fv)
-        simp at qx
+        simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
         obtain ⟨q1, q2, q3, q4⟩ := qx
         have ⟨t', qt'_l, qt'_r⟩ := ih2 s2pu2'
         have ⟨t'', qt''_l, qt''_r⟩ := @ih1 x q1 _ (mem' _ q2)
         exists (t'' ^* x) ^ t'
         constructor
         · rw [subst_intro x s2' _ q4 (para_lc_l qt'_l), subst_intro x t' _ (close_var_not_fvar x t'') (para_lc_r qt'_l)]
-          simp
+          simp only [instHasSubstitutionTerm, open', close]
           rw [close_open _ _ _ (para_lc_r qt''_l)]
           exact para_subst x qt''_l qt'_l
         · apply Parallel.beta ((s1'' ^ fvar x).fv ∪ t''.fv ∪ {x})
@@ -204,7 +203,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
           all_goals aesop
     case beta u1' u2' xs' mem' s2pu2' => 
       have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ u1'.fv ∪ s1'.fv ∪ s2'.fv ∪ u2'.fv)
-      simp at qx
+      simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
       have ⟨q1, q2, q3, q4, q5, q6⟩ := qx
       have ⟨t', qt'_l, qt'_r⟩ := ih2 s2pu2'
       have ⟨t'', qt''_l, qt''_r⟩ := @ih1 x q1 _ (mem' _ q2)
@@ -223,7 +222,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
       cases s1ps1'
       case abs s1'' xs' mem' =>
         have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ s1''.fv ∪ u1'.fv)
-        simp at qx
+        simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
         obtain ⟨q1, q2, q3, q4⟩ := qx
         have ⟨t', qt'_l, qt'_r⟩ := ih2 s2pu2'
         have ⟨t'', qt''_l, qt''_r⟩ := @ih1 (abs u1') (Parallel.abs xs mem)
