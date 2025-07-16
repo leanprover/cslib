@@ -1,6 +1,6 @@
-import Cslib.Syntax.ReductionNotation
+import Cslib.Semantics.ReductionSystem.Basic
 
-@[reduction rs "ₙ", simp]
+@[reduction_sys rs "ₙ", simp]
 def PredReduction (a b : ℕ) : Prop := a = b + 1
 
 open Relation.ReflTransGen
