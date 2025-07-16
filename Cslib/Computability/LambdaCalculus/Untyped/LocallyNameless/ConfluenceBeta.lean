@@ -238,7 +238,9 @@ theorem para_diamond : Diamond (@Parallel Var) := by
           · exact para_open_out xs''' mem''' qt'_r
 
 /-- Parallel reduction is confluent. -/
-theorem para_confluence : Confluence (@Parallel Var) := Relation.ReflTransGen.diamond para_diamond
+theorem para_confluence : Confluence (@Parallel Var) := 
+  Relation.ReflTransGen.diamond_confluence para_diamond
 
 /-- β-reduction is confluent. -/
-theorem confluence_beta : Confluence (@Step Var) := diamond_bisim parachain_iff_redex (@para_confluence Var _ _)
+theorem confluence_beta : Confluence (@Step Var) := 
+  diamond_bisim parachain_iff_redex (@para_confluence Var _ _)

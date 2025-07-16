@@ -30,7 +30,7 @@ lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
     exact ⟨D', ⟨B_D', head CD D_D'⟩⟩
 
 /-- The dismond property implies confluence. -/
-theorem Relation.ReflTransGen.diamond (h : Diamond R) : Confluence R := by
+theorem Relation.ReflTransGen.diamond_confluence (h : Diamond R) : Confluence R := by
   intros A B C AB BC
   revert C
   induction AB using Relation.ReflTransGen.head_induction_on <;> intros C BC
