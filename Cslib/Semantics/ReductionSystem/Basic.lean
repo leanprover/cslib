@@ -27,7 +27,7 @@ section MultiStep
 /-! ## Multi-step reductions -/
 
 /-- Multi-step reduction relation. -/
-def ReductionSystem.MRed (rs : ReductionSystem Term) :=
+abbrev ReductionSystem.MRed (rs : ReductionSystem Term) :=
   Relation.ReflTransGen rs.Red
 
 /-- All multi-step reduction relations are reflexive. -/
