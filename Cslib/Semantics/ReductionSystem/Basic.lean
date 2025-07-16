@@ -40,6 +40,22 @@ theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b)
   rs.MRed a b :=
   Relation.ReflTransGen.single h
 
+open Relation.ReflTransGen
+
+-- these instance allow us to switch between single and multistep reductions in a `calc` block
+instance {α} (R : α → α → Prop) : Trans R R (Relation.ReflTransGen R) where
+  trans hab hbc := head hab (single hbc)
+
+instance {α} (R : α → α → Prop) : Trans R (Relation.ReflTransGen R) (Relation.ReflTransGen R) where
+  trans hab hbc := head hab hbc
+
+instance {α} (R : α → α → Prop) : Trans (Relation.ReflTransGen R) R (Relation.ReflTransGen R) where
+  trans hab hbc := tail hab hbc
+
+instance (rs : ReductionSystem Term) : Trans rs.Red rs.Red rs.MRed  := by infer_instance
+instance (rs : ReductionSystem Term) : Trans rs.Red rs.MRed rs.MRed := by infer_instance
+instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_instance
+
 end MultiStep
 
 open Lean Lean.Elab Lean.Meta
