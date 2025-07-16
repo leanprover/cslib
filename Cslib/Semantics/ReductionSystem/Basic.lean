@@ -61,9 +61,8 @@ end MultiStep
 open Lean Lean.Elab Lean.Meta
 
 /-- 
-  This command adds notations for a `ReductionSystem.Red` and
-  `ReductionSystem.MRed`. This should not usually be called directly, but from
-  the `reduction` attribute. 
+  This command adds notations for a `ReductionSystem.Red` and `ReductionSystem.MRed`. This should
+  not usually be called directly, but from the `reduction_sys` attribute. 
 
   As an example `reduction_notation foo "β"` will add the notations "⭢β" and "↠β".
 
