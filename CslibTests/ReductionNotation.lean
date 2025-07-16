@@ -8,11 +8,8 @@ open Relation.ReflTransGen
 lemma single_step : 5 ⇢ₙ 4 := by simp
 
 lemma multiple_step : 5 ↠ₙ 3 := by
-  have s1 : 5 ↠ₙ 4 := by
-    apply single
-    simp
-  refine Relation.ReflTransGen.trans s1 ?_
-  apply single
-  simp
+  calc
+    5 ↠ₙ 4 := by apply single; simp
+    _ ↠ₙ 3 := by apply single; simp
  
 lemma equiv_step : 5 ≈ₙ 5 := Relation.EqvGen.refl 5
