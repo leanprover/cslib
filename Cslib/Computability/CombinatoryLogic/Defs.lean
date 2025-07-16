@@ -46,7 +46,7 @@ deriving Repr, DecidableEq
 
 namespace SKI
 
-/-- Notation for application between SKI terms -/
+@[inherit_doc]
 scoped infixl:100 " ⬝ " => app
 
 /-- Apply a term to a list of terms -/
@@ -83,27 +83,23 @@ scoped infix:90 " ⇒* " => MRed
 
 open Red
 
+@[refl]
 theorem MRed.refl (a : SKI) : a ⇒* a := Relation.ReflTransGen.refl
 
-theorem MRed.single (a b : SKI) (h : a ⇒ b) : a ⇒* b := Relation.ReflTransGen.single h
+theorem MRed.single {a b : SKI} (h : a ⇒ b) : a ⇒* b := Relation.ReflTransGen.single h
 
-theorem MRed.S (x y z : SKI) : MRed (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z)) :=
-  MRed.single _ _ <| red_S _ _ _
+theorem MRed.S (x y z : SKI) : MRed (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z)) := MRed.single <| red_S ..
+theorem MRed.K (x y : SKI) : MRed (K ⬝ x ⬝ y) x := MRed.single <| red_K ..
+theorem MRed.I (x : SKI) : MRed (I ⬝ x) x := MRed.single <| red_I ..
 
-theorem MRed.K (x y : SKI) : MRed (K ⬝ x ⬝ y) x :=
-  MRed.single _ _ <| red_K _ _
-
-theorem MRed.I (x : SKI) : MRed (I ⬝ x) x :=
-  MRed.single _ _ <| red_I _
-
-theorem MRed.head (a a' b : SKI) (h : a ⇒* a') : (a ⬝ b) ⇒* (a' ⬝ b) := by
+theorem MRed.head {a a' : SKI} (b : SKI) (h : a ⇒* a') : (a ⬝ b) ⇒* (a' ⬝ b) := by
   induction h with
   | refl => apply MRed.refl
   | @tail a' a'' _ ha'' ih =>
     apply Relation.ReflTransGen.tail (b := a' ⬝ b) ih
     exact Red.red_head a' a'' b ha''
 
-theorem MRed.tail (a b b' : SKI) (h : b ⇒* b') : (a ⬝ b) ⇒* (a ⬝ b') := by
+theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ⇒* b') : (a ⬝ b) ⇒* (a ⬝ b') := by
   induction h with
   | refl => apply MRed.refl
   | @tail b' b'' _ hb'' ih =>
@@ -116,45 +112,30 @@ theorem MRed.transitive : Transitive MRed := transitive_of_trans MRed
 instance MRed.instIsRefl : IsRefl SKI MRed := Relation.instIsReflReflTransGen
 theorem MRed.reflexive : Reflexive MRed := IsRefl.reflexive
 
-instance MRedTrans :
-    Trans Red MRed MRed := by
-  constructor
-  intro a b c hab hbc
-  replace hab := MRed.single _ _ hab
-  exact Relation.ReflTransGen.trans hab hbc
+instance MRedTrans : Trans Red MRed MRed :=
+  ⟨fun hab => Relation.ReflTransGen.trans (MRed.single hab)⟩
 
-instance MRedRedTrans :
-    Trans MRed Red MRed := by
-  constructor
-  intro a b c hab hbc
-  replace hbc := MRed.single _ _ hbc
-  exact Relation.ReflTransGen.trans hab hbc
+instance MRedRedTrans : Trans MRed Red MRed :=
+  ⟨fun hab hbc => Relation.ReflTransGen.trans hab (MRed.single hbc)⟩
 
-instance RedMRedTrans :
-    Trans Red Red MRed := by
-  constructor
-  intro a b c hab hbc
-  replace hab := MRed.single _ _ hab
-  replace hbc := MRed.single _ _ hbc
-  exact Relation.ReflTransGen.trans hab hbc
+instance RedMRedTrans : Trans Red Red MRed :=
+  ⟨fun hab hbc => Relation.ReflTransGen.trans (MRed.single hab) (MRed.single hbc)⟩
 
-lemma parallel_mRed (a a' b b' : SKI) (ha : a ⇒* a') (hb : b ⇒* b') :
-    (a ⬝ b) ⇒* (a' ⬝ b') := by
-  trans a' ⬝ b
-  . exact MRed.head a a' b ha
-  . exact MRed.tail a' b b' hb
+lemma parallel_mRed {a a' b b' : SKI} (ha : a ⇒* a') (hb : b ⇒* b') :
+    (a ⬝ b) ⇒* (a' ⬝ b') :=
+  Trans.simple (MRed.head b ha) (MRed.tail a' hb)
 
-lemma parallel_red (a a' b b' : SKI) (ha : a ⇒ a') (hb : b ⇒ b') : (a ⬝ b) ⇒* (a' ⬝ b') := by
+lemma parallel_red {a a' b b' : SKI} (ha : a ⇒ a') (hb : b ⇒ b') : (a ⬝ b) ⇒* (a' ⬝ b') := by
   trans a' ⬝ b
   all_goals apply MRed.single
-  . exact Red.red_head a a' b ha
-  . exact Red.red_tail a' b b' hb
+  · exact Red.red_head a a' b ha
+  · exact Red.red_tail a' b b' hb
 
 
 /-- Express that two terms have a reduce to a common term. -/
 def CommonReduct : SKI → SKI → Prop := Relation.Join MRed
 
-lemma commonReduct_of_single (a b : SKI) (h : a ⇒* b) : CommonReduct a b := by
+lemma commonReduct_of_single {a b : SKI} (h : a ⇒* b) : CommonReduct a b := by
   refine Relation.join_of_single MRed.reflexive h
 
 theorem symmetric_commonReduct : Symmetric CommonReduct := Relation.symmetric_join

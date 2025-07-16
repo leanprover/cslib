@@ -81,41 +81,37 @@ algorithm. We induct backwards on the list, corresponding to applying the transf
 inside out. Since we haven't defined reduction for polynomials, we substitute arbitrary terms
 for the inner variables.
 -/
-theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) (ys : List SKI)
+theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) {ys : List SKI}
     (hys : ys.length = n) (z : SKI) :
     Γ.elimVar.eval ys hys ⬝ z ⇒* Γ.eval (ys ++ [z])
       (by rw [List.length_append, hys, List.length_singleton])
     := by
   match n, Γ with
   | _, SKI.Polynomial.term x =>
-    simp_rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
+    rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
     exact MRed.K _ _
   | _, SKI.Polynomial.app Γ Δ =>
-    simp_rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
+    rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
     trans Γ.elimVar.eval ys hys ⬝ z ⬝ (Δ.elimVar.eval ys hys ⬝ z)
     . exact MRed.S _ _ _
     . apply parallel_mRed
-      . exact elimVar_correct Γ ys hys z
-      . exact elimVar_correct Δ ys hys z
+      . exact elimVar_correct Γ hys z
+      . exact elimVar_correct Δ hys z
   | n, SKI.Polynomial.var i =>
     rw [SKI.Polynomial.elimVar]
-    split
+    split_ifs with hi
     /- This part is quite messy because of the list indexing: possibly it could be cleaned up. -/
-    case isTrue hi =>
-      simp_rw [SKI.Polynomial.eval]
-      have h : ys[↑i] = (ys ++ [z])[i]'(by simp [hys]) := by
+    · simp_rw [SKI.Polynomial.eval]
+      have h : (ys ++ [z])[i]'(by simp [hys]) = ys[↑i] := by
         simp only [Fin.getElem_fin]
         rw [List.getElem_append_left]
-      rw [←h]
-      simp only [Fin.getElem_fin, Fin.val_ofNat]
-      have : ↑i%n=↑i := by exact Nat.mod_eq_of_lt hi
-      simp_rw [this]
+      rw [h]
+      simp_rw [Fin.getElem_fin, Fin.val_ofNat, Nat.mod_eq_of_lt hi]
       exact MRed.K _ _
-    case isFalse hi =>
-      have app_len : (ys ++ [z]).length = n+1 := by simpa
-      simp_rw [SKI.Polynomial.eval]
+    · simp_rw [SKI.Polynomial.eval]
       replace hi := Nat.eq_of_lt_succ_of_not_lt i.isLt hi
       simp_rw [Fin.getElem_fin, hi]
+      have app_len : (ys ++ [z]).length = n+1 := by simpa
       have : (ys ++ [z])[n]'(by rw [app_len]; exact Nat.lt_add_one n) = z := by
         rw [List.getElem_append_right] <;> simp [hys]
       rw [this]
@@ -153,11 +149,11 @@ theorem Polynomial.toSKI_correct {n : Nat} (Γ : SKI.Polynomial n) (xs : List SK
     trans Γ.elimVar.eval ys this ⬝ z
     · apply MRed.head
       exact SKI.Polynomial.toSKI_correct Γ.elimVar ys this
-    · exact SKI.Polynomial.elimVar_correct Γ ys this z
+    · exact SKI.Polynomial.elimVar_correct Γ this z
 
 
 /-!
-### Basic auxilliary combinators.
+### Basic auxiliary combinators.
 
 Each combinator is defined by a polynomial, which is then proved to have the reduction property
 we want. Before each definition we provide its lambda calculus equivalent. If there is accepted
@@ -233,9 +229,7 @@ theorem Y_def (f : SKI) : Y ⬝ f ⇒* H ⬝ f ⬝ (H ⬝ f) :=
 theorem Y_correct (f : SKI) : CommonReduct (Y ⬝ f) (f ⬝ (Y ⬝ f)) := by
   use f ⬝ (H ⬝ f ⬝ (H ⬝ f))
   constructor
-  · calc
-    _ ⇒* H ⬝ f ⬝ (H ⬝ f) := Y_def f
-    _ ⇒* f ⬝ (H ⬝ f ⬝ (H ⬝ f)) := H_def f (H ⬝ f)
+  · exact Trans.trans (Y_def f) (H_def f (H ⬝ f))
   · apply MRed.tail
     exact Y_def f
 
@@ -247,7 +241,7 @@ rather than up to a common reduct. An alternative is to use Turing's fixed-point
 def fixedPoint (f : SKI) : SKI := H ⬝ f ⬝ (H ⬝ f)
 theorem fixedPoint_correct (f : SKI) : f.fixedPoint ⇒* f ⬝ f.fixedPoint := H_def f (H ⬝ f)
 
-/-- Auxilliary definition for Turing's fixed-point combinator: ΘAux := λ x y. y (x x y) -/
+/-- Auxiliary definition for Turing's fixed-point combinator: ΘAux := λ x y. y (x x y) -/
 def ΘAuxPoly : SKI.Polynomial 2 := &1 ⬝' (&0 ⬝' &0 ⬝' &1)
 /-- A term representing ΘAux -/
 def ΘAux : SKI := ΘAuxPoly.toSKI

@@ -61,16 +61,14 @@ match n with
 lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ⇒* f') (hx : x ⇒* x') :
     Church n f x ⇒* Church n f' x' := by
   induction n with
-  | zero => unfold Church; exact hx
-  | succ n ih =>
-    unfold Church
-    exact parallel_mRed _ _ _ _ hf ih
+  | zero => exact hx
+  | succ n ih => exact parallel_mRed hf ih
 
 /-- The term `a` is βη-equivalent to a standard church numeral. -/
 def IsChurch (n : Nat) (a : SKI) : Prop := ∀ f x : SKI, a ⬝ f ⬝ x ⇒* Church n f x
 
 /-- To show `IsChurch n a` it suffices to show the same for a reduct of `a`. -/
-theorem isChurch_trans (n : Nat) (a a' : SKI) (h : a ⇒* a') : IsChurch n a' → IsChurch n a := by
+theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ⇒* a') : IsChurch n a' → IsChurch n a := by
   simp_rw [IsChurch]
   intro ha' f x
   calc
@@ -92,17 +90,13 @@ theorem zero_correct : IsChurch 0 SKI.Zero := by
 /-- Church one := λ f x. f x -/
 protected def One : SKI := I
 theorem one_correct : IsChurch 1 SKI.One := by
-  simp_rw [IsChurch, SKI.One, Church]
   intro f x
-  apply MRed.head
-  apply MRed.single
-  apply red_I
+  apply head
+  exact single (red_I f)
 
 /-- Church succ := λ a f x. f (a f x) ~ λ a f. B f (a f) ~ λ a. S B a ~ S B -/
 protected def Succ : SKI := S ⬝ B
 theorem succ_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch (n+1) (SKI.Succ ⬝ a) := by
-  unfold IsChurch at h ⊢
-  unfold SKI.Succ Church
   intro f x
   calc
   _ ⇒ B ⬝ f ⬝ (a ⬝ f) ⬝ x := by apply red_head; apply red_S
@@ -119,7 +113,7 @@ def PredAux : SKI := PredAuxPoly.toSKI
 theorem predAux_def (p : SKI) :  PredAux ⬝ p ⇒* MkPair ⬝ (Snd ⬝ p) ⬝ (SKI.Succ ⬝ (Snd ⬝ p)) :=
   PredAuxPoly.toSKI_correct [p] (by simp)
 
-/-- Useful auxilliary definition expressing that `p` represents ns ∈ Nat × Nat. -/
+/-- Useful auxiliary definition expressing that `p` represents ns ∈ Nat × Nat. -/
 def IsChurchPair (ns : Nat × Nat) (x : SKI) : Prop :=
   IsChurch ns.1 (Fst ⬝ x) ∧ IsChurch ns.2 (Snd ⬝ x)
 
@@ -129,7 +123,8 @@ theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ⇒* a') :
   intro ⟨ha₁,ha₂⟩
   constructor
   . apply isChurch_trans (a' := Fst ⬝ a')
-    apply MRed.tail; exact h; exact ha₁
+    · apply MRed.tail; exact h
+    · exact ha₁
   . apply isChurch_trans (a' := Snd ⬝ a')
     apply MRed.tail; exact h; exact ha₂
 
@@ -137,8 +132,8 @@ theorem predAux_correct (p : SKI) (ns : Nat × Nat) (h : IsChurchPair ns p) :
     IsChurchPair ⟨ns.2, ns.2+1⟩ (PredAux ⬝ p) := by
   refine isChurchPair_trans _ _ (MkPair ⬝ (Snd ⬝ p) ⬝ (SKI.Succ ⬝ (Snd ⬝ p))) (predAux_def p) ?_
   constructor
-  · exact isChurch_trans ns.2 _ (Snd ⬝ p) (fst_correct _ _) h.2
-  · refine isChurch_trans (ns.2+1) _ (SKI.Succ ⬝ (Snd ⬝ p)) (snd_correct _ _) ?_
+  · exact isChurch_trans ns.2 (fst_correct _ _) h.2
+  · refine isChurch_trans (ns.2+1) (snd_correct _ _) ?_
     exact succ_correct ns.2 (Snd ⬝ p) h.2
 
 /-- The stronger induction hypothesis necessary for the proof of `pred_correct`. -/
@@ -147,8 +142,8 @@ theorem predAux_correct' (n : Nat) :
   induction n with
     | zero =>
       apply isChurchPair_trans ⟨0,0⟩ _ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)
-        (by simp [Church, MRed.refl])
-      constructor <;> apply isChurch_trans 0 _ SKI.Zero ?_ zero_correct
+        (by rfl)
+      constructor <;> apply isChurch_trans 0 ?_ zero_correct
       · exact fst_correct _ _
       · exact snd_correct _ _
     | succ n ih =>
@@ -163,9 +158,9 @@ theorem pred_def (a : SKI) : Pred ⬝ a ⇒* Fst ⬝ (a ⬝ PredAux ⬝ (MkPair 
   PredPoly.toSKI_correct [a] (by simp)
 
 theorem pred_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch n.pred (Pred ⬝ a) := by
-  refine isChurch_trans n.pred _ (Fst ⬝ (a ⬝ PredAux ⬝ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)))
+  refine isChurch_trans n.pred
     (pred_def a) ?_
-  refine isChurch_trans _ _ (a' := Fst ⬝ (Church n PredAux (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))) ?_ ?_
+  refine isChurch_trans _ (a' := Fst ⬝ (Church n PredAux (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))) ?_ ?_
   · apply MRed.tail
     exact h _ _
   · exact predAux_correct' n |>.1
@@ -241,7 +236,7 @@ theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n+1) a) :
 /-! ### Root-finding (μ-recursion) -/
 
 /--
-First define an auxilliary function `RFindAbove` that looks for roots above a fixed number n, as a
+First define an auxiliary function `RFindAbove` that looks for roots above a fixed number n, as a
 fixed point of R ↦ λ n f. if f n = 0 then n else R f (n+1)
                  ~ λ n f. Cond ⬝ n (R f (Succ n)) (IsZero (f n))
 -/
@@ -324,7 +319,7 @@ theorem add_def (a b : SKI) : SKI.Add ⬝ a ⬝ b ⇒* a ⬝ SKI.Succ ⬝ b :=
 
 theorem add_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
     IsChurch (n+m) (SKI.Add ⬝ a ⬝ b) := by
-  refine isChurch_trans (n+m) _ (Church n SKI.Succ b) ?_ ?_
+  refine isChurch_trans (n+m) (a' := Church n SKI.Succ b) ?_ ?_
   · calc
     _ ⇒* a ⬝ SKI.Succ ⬝ b := add_def a b
     _ ⇒* Church n SKI.Succ b := ha SKI.Succ b
@@ -342,12 +337,10 @@ protected def Mul : SKI := MulPoly.toSKI
 theorem mul_def (a b : SKI) : SKI.Mul ⬝ a ⬝ b ⇒* a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero :=
   MulPoly.toSKI_correct [a, b] (by simp)
 
-theorem mul_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
+theorem mul_correct {n m : Nat} {a b : SKI} (ha : IsChurch n a) (hb : IsChurch m b) :
     IsChurch (n*m) (SKI.Mul ⬝ a ⬝ b) := by
-  refine isChurch_trans (n*m) _ (Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
-  · calc
-    _ ⇒* a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero := mul_def a b
-    _ ⇒* Church n (SKI.Add ⬝ b) SKI.Zero := ha _ _
+  refine isChurch_trans (n*m) (a' := Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
+  · exact Trans.trans (mul_def a b) (ha (SKI.Add ⬝ b) SKI.Zero)
   · clear ha
     induction n with
       | zero => simp_rw [Nat.zero_mul, Church]; exact zero_correct
@@ -364,7 +357,7 @@ theorem sub_def (a b : SKI) : SKI.Sub ⬝ a ⬝ b ⇒* b ⬝ Pred ⬝ a :=
 
 theorem sub_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
     IsChurch (n-m) (SKI.Sub ⬝ a ⬝ b) := by
-  refine isChurch_trans (n-m) _ (Church m Pred a) ?_ ?_
+  refine isChurch_trans (n-m) (a' := Church m Pred a) ?_ ?_
   · calc
     _ ⇒* b ⬝ Pred ⬝ a := sub_def a b
     _ ⇒* Church m Pred a := hb Pred a

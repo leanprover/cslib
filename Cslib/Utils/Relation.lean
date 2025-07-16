@@ -30,7 +30,7 @@ def trans_of_subrelation_right {α : Type _} (s r : α → α → Prop) (hr : Tr
 
 /-- This is a straightforward but useful specialisation of a more general result in
 `Mathlib.Logic.Relation`. -/
-theorem church_rosser_of_diamond {α : Type _} (r : α → α → Prop)
+theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
     (h : ∀ a b c, r a b → r a c → Relation.Join r b c) :
     Equivalence (Relation.Join (Relation.ReflTransGen r)) := by
   apply Relation.equivalence_join_reflTransGen
