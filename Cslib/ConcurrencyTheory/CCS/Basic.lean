@@ -29,19 +29,19 @@ namespace CCS
 
 /-- Actions. -/
 inductive Act : Type u where
-| name (a : Name)
-| coname (a : Name)
-| τ
+  | name (a : Name)
+  | coname (a : Name)
+  | τ
 deriving DecidableEq
 
 /-- Processes. -/
 inductive Process : Type (max u v) where
-| nil
-| pre (μ : Act Name) (p : Process)
-| par (p q : Process)
-| choice (p q : Process)
-| res (a : Name) (p : Process)
-| const (c : Constant)
+  | nil
+  | pre (μ : Act Name) (p : Process)
+  | par (p q : Process)
+  | choice (p q : Process)
+  | res (a : Name) (p : Process)
+  | const (c : Constant)
 deriving DecidableEq
 
 /-- Co action. -/
@@ -57,13 +57,13 @@ theorem Act.co.involution (μ : Act Name) : μ.co.co = μ := by
 
 /-- Contexts. -/
 inductive Context : Type (max u v) where
-| hole
-| pre (μ : Act Name) (c : Context)
-| parL (c : Context) (q : Process Name Constant)
-| parR (p : Process Name Constant) (c : Context)
-| choiceL (c : Context) (q : Process Name Constant)
-| choiceR (p : Process Name Constant) (c : Context)
-| res (a : Name) (c : Context)
+  | hole
+  | pre (μ : Act Name) (c : Context)
+  | parL (c : Context) (q : Process Name Constant)
+  | parR (p : Process Name Constant) (c : Context)
+  | choiceL (c : Context) (q : Process Name Constant)
+  | choiceR (p : Process Name Constant) (c : Context)
+  | res (a : Name) (c : Context)
 deriving DecidableEq
 
 /-- Replaces the hole in a `Context` with a `Process`. -/

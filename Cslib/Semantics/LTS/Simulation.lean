@@ -47,7 +47,7 @@ variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 any transition originating from the first state is mimicked by a transition from the second state
 and the reached derivatives are themselves related. -/
 def Simulation (lts : LTS State Label) (r : Rel State State) : Prop :=
-  ∀ s1 s2, r s1 s2 → ∀ μ s1', lts.tr s1 μ s1' → ∃ s2', lts.tr s2 μ s2' ∧ r s1' s2'
+  ∀ s1 s2, r s1 s2 → ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ r s1' s2'
 
 /-- Two states are similar if they are related by some simulation. -/
 def Similarity (lts : LTS State Label) : Rel State State :=
