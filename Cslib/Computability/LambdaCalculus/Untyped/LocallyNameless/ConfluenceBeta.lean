@@ -32,8 +32,8 @@ inductive Parallel : Term Var → Term Var → Prop
     Parallel n n' → 
     Parallel (app (abs m) n) (m' ^ n')
 
--- TODO: API for these???
-lemma para_rs_Red_eq {α}: (@para_rs α).Red = Parallel := by rfl
+-- TODO: I think this could be generated along with `para_rs`
+lemma para_rs_Red_eq {α} : (@para_rs α).Red = Parallel := by rfl
 
 variable {M M' N N' : Term Var}
 
