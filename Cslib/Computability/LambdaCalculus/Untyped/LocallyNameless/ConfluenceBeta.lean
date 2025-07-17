@@ -71,7 +71,7 @@ private def Parallel.lc_refl' (M : Term Var) : LC M → Parallel M M := by
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢β N) : (M ⭢ₚ N) := by
-  induction step <;> simp [para_rs_Red_eq]
+  induction step <;> simp only [para_rs_Red_eq]
   case «β» _ abs_lc _ => cases abs_lc with | abs xs _ => 
     apply Parallel.beta xs <;> intros <;> apply Parallel.lc_refl <;> aesop
   all_goals aesop (config := {enableSimp := false})
