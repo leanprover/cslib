@@ -23,6 +23,7 @@ open Process
 
 /-- The transition relation for CCS. This is a direct formalisation of the one found in
 [Sangiorgi2011]. -/
+@[gen_lts CCS.lts "ᶜ"]
 inductive Tr : Process Name Constant → Act Name → Process Name Constant → Prop where
   | pre : Tr (pre μ p) μ p
   | parL : Tr p μ p' → Tr (par p q) μ (par p' q)
@@ -32,10 +33,6 @@ inductive Tr : Process Name Constant → Act Name → Process Name Constant → 
   | choiceR : Tr q μ q' → Tr (choice p q) μ q'
   | res : μ ≠ Act.name a → μ ≠ Act.coname a → Tr p μ p' → Tr (res a p) μ (res a p')
   | const : defs k p → Tr p μ p' → Tr (const k) μ p'
-
-/-- The `LTS` of CCS. -/
-def lts : LTS (Process Name Constant) (Act Name) where
-  Tr := @CCS.Tr Name Constant defs
 
 instance : HasTau (Act Name) where
   τ := Act.τ

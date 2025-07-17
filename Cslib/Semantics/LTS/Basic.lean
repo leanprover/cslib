@@ -544,3 +544,65 @@ def LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) : Prop :=
   ¬∃ s, lts.Divergent s
 
 end Divergence
+
+open Lean Elab Meta Command Term
+
+/-- A command to create an `LTS` from a labelled transition `α → β → α → Prop`, robust to use of `variable `-/
+elab "create_lts" lt:ident name:ident : command => do
+  liftTermElabM do
+    let lt ← realizeGlobalConstNoOverloadWithInfo lt
+    let ci ← getConstInfo lt
+    forallTelescope ci.type fun args ty => do
+      let throwNotLT := throwError m!"type{indentExpr ci.type}\nis not a labelled transition"
+      unless args.size ≥ 2 do
+        throwNotLT
+      unless ← isDefEq (← inferType args[args.size - 3]!) (← inferType args[args.size - 1]!) do
+        throwNotLT
+      unless (← whnf ty).isProp do
+        throwError m!"expecting Prop, not{indentExpr ty}"
+      let params := ci.levelParams.map .param
+      let lt := mkAppN (.const lt params) args[0...args.size-3]
+      let bundle ← mkAppM ``LTS.mk #[lt]
+      let value ← mkLambdaFVars args[0...args.size-3] bundle
+      let type ← inferType value
+      addAndCompile <| .defnDecl {
+        name := name.getId
+        levelParams := ci.levelParams
+        type
+        value
+        safety := .safe
+        hints := .abbrev
+      }
+      addTermInfo' name (.const name.getId params) (isBinder := true)
+      addDeclarationRangesFromSyntax name.getId name
+
+/-- 
+  This command adds notations for an `LTS.Tr`. This should not usually be called directly, but from
+  the `gen_lts` attribute. 
+
+  As an example `lts_reduction_notation foo "β"` will add the notations "[⬝]⭢β" and "[⬝]↠β"
+
+  Note that the string used will afterwards be registered as a notation. This means that if you have
+  also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
+  in the above example.
+-/
+syntax "lts_reduction_notation" ident Lean.Parser.Command.notationItem : command
+macro_rules
+  | `(lts_reduction_notation $lts $sym) => 
+    `(
+      notation:39 t "["μ"]⭢"$sym t' => (LTS.Tr $lts) t μ t'
+      notation:39 t "["μ"]↠"$sym t' => (LTS.MTr $lts) t μ t'
+     )
+
+/-- This attribute calls the `lts_reduction_notation` command for the annotated declaration. -/
+syntax (name := lts_attr) "gen_lts" ident Lean.Parser.Command.notationItem : attr
+
+initialize Lean.registerBuiltinAttribute {
+  name := `lts_attr
+  descr := "Register notation for an LTS"
+  add := fun decl stx _ => MetaM.run' do
+    let `(attr | gen_lts $lts $sym) := stx 
+     | throwError "invalid syntax for 'gen_lts' attribute"
+    liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
+    liftCommandElabM <| Command.elabCommand (← `(lts_reduction_notation $lts $sym))
+}

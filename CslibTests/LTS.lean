@@ -85,3 +85,12 @@ example : natDivLts.Divergent n := by
   · constructor
   · apply LTS.divergent_drop
     exact natInfiniteExecution.infiniteExecution
+
+-- check that notation works
+variable {Term : Type} {Label : Type}
+@[gen_lts lts "β", simp]
+def labelled_transition : Term → Label → Term → Prop := λ _ _ _ ↦ True
+
+example (a b : Term) (μ : Label) : a [μ]⭢β b := by
+  change labelled_transition a μ b
+  simp
