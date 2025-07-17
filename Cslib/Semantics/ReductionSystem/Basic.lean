@@ -58,8 +58,40 @@ instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_
 
 end MultiStep
 
-open Lean Lean.Elab Lean.Meta
+open Lean Elab Meta Command Term
 
+-- thank you to Kyle Miller for this: 
+-- https://leanprover.zulipchat.com/#narrow/channel/239415-metaprogramming-.2F-tactics/topic/Working.20with.20variables.20in.20a.20command/near/529324084
+
+/-- A command to create a `ReductionSystem` from a relation, robust to use of `variable `-/
+elab "create_reduction_sys" rel:ident name:ident : command => do
+  liftTermElabM do
+    let rel ← realizeGlobalConstNoOverloadWithInfo rel
+    let ci ← getConstInfo rel
+    forallTelescope ci.type fun args ty => do
+      let throwNotRelation := throwError m!"type{indentExpr ci.type}\nis not a relation"
+      unless args.size ≥ 2 do
+        throwNotRelation
+      unless ← isDefEq (← inferType args[args.size - 2]!) (← inferType args[args.size - 1]!) do
+        throwNotRelation
+      unless (← whnf ty).isProp do
+        throwError m!"expecting Prop, not{indentExpr ty}"
+      let params := ci.levelParams.map .param
+      let rel := mkAppN (.const rel params) args[0...args.size-2]
+      let bundle ← mkAppM ``ReductionSystem.mk #[rel]
+      let value ← mkLambdaFVars args[0...args.size-2] bundle
+      let type ← inferType value
+      addAndCompile <| .defnDecl {
+        name := name.getId
+        levelParams := ci.levelParams
+        type
+        value
+        safety := .safe
+        hints := .abbrev
+      }
+      addTermInfo' name (.const name.getId params) (isBinder := true)
+      addDeclarationRangesFromSyntax name.getId name
+ 
 /-- 
   This command adds notations for a `ReductionSystem.Red` and `ReductionSystem.MRed`. This should
   not usually be called directly, but from the `reduction_sys` attribute. 
@@ -94,7 +126,6 @@ initialize Lean.registerBuiltinAttribute {
   add := fun decl stx _ => MetaM.run' do
     let `(attr | reduction_sys $rs $sym) := stx 
      | throwError "invalid syntax for 'reduction_sys' attribute"
-    let decl ← `(def $rs := ({Red := $(mkIdent decl)} : ReductionSystem _))
-    liftCommandElabM <| Command.elabCommand decl
+    liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
     liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
 }

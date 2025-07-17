@@ -18,3 +18,14 @@ lemma multiple_step : 5 ↠ₙ 1 := by
         4 ⭢ₙ 3 := by simp [h]
         _ ⭢ₙ 2 := by simp [h]
     _ ⭢ₙ 1 := by simp [h]
+
+-- ensure that this still works when there are variables
+inductive Term (Var : Type)
+variable {Var : Type}
+
+@[reduction_sys rs' "β", simp]
+def term_rel : Term Var → Term Var → Prop := λ _ _ ↦ True
+
+example (a b : Term Var) : a ⭢β b := by
+  change (@term_rel Var) a b
+  simp
