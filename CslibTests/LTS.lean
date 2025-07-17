@@ -88,9 +88,16 @@ example : natDivLts.Divergent n := by
 
 -- check that notation works
 variable {Term : Type} {Label : Type}
-@[gen_lts lts "β", simp]
+@[lts lts "β", simp]
 def labelled_transition : Term → Label → Term → Prop := λ _ _ _ ↦ True
 
 example (a b : Term) (μ : Label) : a [μ]⭢β b := by
+  change labelled_transition a μ b
+  simp
+
+-- check that a "cannonical" notation works
+attribute [lts cannonical_lts] labelled_transition
+
+example (a b : Term) (μ : Label) : a [μ]⭢ b := by
   change labelled_transition a μ b
   simp

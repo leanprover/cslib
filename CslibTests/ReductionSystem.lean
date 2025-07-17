@@ -29,3 +29,10 @@ def term_rel : Term Var → Term Var → Prop := λ _ _ ↦ True
 example (a b : Term Var) : a ⭢β b := by
   change (@term_rel Var) a b
   simp
+
+-- check that a "cannonical" notation also works
+attribute [reduction_sys cannonical_rs] PredReduction
+
+example : 5 ⭢ 4 := by 
+  change PredReduction _ _
+  simp

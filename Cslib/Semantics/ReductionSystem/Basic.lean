@@ -102,13 +102,19 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "reduction_notation" ident Lean.Parser.Command.notationItem : command
+syntax "reduction_notation" ident (Lean.Parser.Command.notationItem)? : command
 macro_rules
   | `(reduction_notation $rs $sym) => 
     `(
       notation:39 t " ⭢"$sym t' => (ReductionSystem.Red  $rs) t t'
       notation:39 t " ↠"$sym t' => (ReductionSystem.MRed $rs) t t'
      )
+  | `(reduction_notation $rs) => 
+    `(
+      notation:39 t " ⭢" t' => (ReductionSystem.Red  $rs) t t'
+      notation:39 t " ↠" t' => (ReductionSystem.MRed $rs) t t'
+     )
+
 
 /-- 
   This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
@@ -118,14 +124,18 @@ macro_rules
   def PredReduction (a b : ℕ) : Prop := a = b + 1
   ```
 -/
-syntax (name := reduction_sys) "reduction_sys" ident Lean.Parser.Command.notationItem : attr
+syntax (name := reduction_sys) "reduction_sys" ident (Lean.Parser.Command.notationItem)? : attr
 
 initialize Lean.registerBuiltinAttribute {
   name := `reduction_sys
   descr := "Register notation for a relation and its closures."
   add := fun decl stx _ => MetaM.run' do
-    let `(attr | reduction_sys $rs $sym) := stx 
-     | throwError "invalid syntax for 'reduction_sys' attribute"
-    liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-    liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
+    match stx with
+    | `(attr | reduction_sys $rs $sym) =>
+        liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
+        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
+    | `(attr | reduction_sys $rs) =>
+        liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
+        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs))
+    | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }

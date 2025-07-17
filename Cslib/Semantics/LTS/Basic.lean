@@ -578,7 +578,7 @@ elab "create_lts" lt:ident name:ident : command => do
 
 /-- 
   This command adds notations for an `LTS.Tr`. This should not usually be called directly, but from
-  the `gen_lts` attribute. 
+  the `lts` attribute. 
 
   As an example `lts_reduction_notation foo "β"` will add the notations "[⬝]⭢β" and "[⬝]↠β"
 
@@ -586,23 +586,32 @@ elab "create_lts" lt:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "lts_reduction_notation" ident Lean.Parser.Command.notationItem : command
+syntax "lts_reduction_notation" ident (Lean.Parser.Command.notationItem)? : command
 macro_rules
   | `(lts_reduction_notation $lts $sym) => 
     `(
       notation:39 t "["μ"]⭢"$sym t' => (LTS.Tr $lts) t μ t'
       notation:39 t "["μ"]↠"$sym t' => (LTS.MTr $lts) t μ t'
      )
+  | `(lts_reduction_notation $lts) => 
+    `(
+      notation:39 t "["μ"]⭢" t' => (LTS.Tr $lts) t μ t'
+      notation:39 t "["μ"]↠" t' => (LTS.MTr $lts) t μ t'
+     )
 
 /-- This attribute calls the `lts_reduction_notation` command for the annotated declaration. -/
-syntax (name := lts_attr) "gen_lts" ident Lean.Parser.Command.notationItem : attr
+syntax (name := lts_attr) "lts" ident (Lean.Parser.Command.notationItem)? : attr
 
 initialize Lean.registerBuiltinAttribute {
   name := `lts_attr
   descr := "Register notation for an LTS"
   add := fun decl stx _ => MetaM.run' do
-    let `(attr | gen_lts $lts $sym) := stx 
-     | throwError "invalid syntax for 'gen_lts' attribute"
-    liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-    liftCommandElabM <| Command.elabCommand (← `(lts_reduction_notation $lts $sym))
+    match stx with
+    | `(attr | lts $lts $sym) =>
+        liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
+        liftCommandElabM <| Command.elabCommand (← `(lts_reduction_notation $lts $sym))
+    | `(attr | lts $lts) =>
+        liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
+        liftCommandElabM <| Command.elabCommand (← `(lts_reduction_notation $lts))
+    | _ => throwError "invalid syntax for 'lts' attribute"
 }
