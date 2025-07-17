@@ -34,7 +34,6 @@ inductive Parallel : Term Var → Term Var → Prop
 
 -- TODO: API for these???
 lemma para_rs_Red_eq {α}: (@para_rs α).Red = Parallel := by rfl
-lemma para_rs_MRed_eq {α}: (@para_rs α).MRed = Relation.ReflTransGen Parallel := by rfl
 
 variable {M M' N N' : Term Var}
 
