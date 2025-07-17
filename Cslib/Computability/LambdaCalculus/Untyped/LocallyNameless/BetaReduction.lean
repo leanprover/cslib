@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Basic
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Properties
+import Cslib.Semantics.ReductionSystem.Basic
 
 /-! # β-reduction for the λ-calculus
 
@@ -24,6 +25,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Term
 
 /-- A single β-reduction step. -/
+@[reduction_sys beta_rs "β"]
 inductive Step : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
 | β : LC (abs M)→ LC N → Step (app (abs M) N) (M ^ N)
@@ -34,18 +36,12 @@ inductive Step : Term Var → Term Var → Prop
 /-- Congruence rule for lambda terms. -/
 | ξ (xs : Finset Var) : (∀ x ∉ xs, Step (M ^ fvar x) (N ^ fvar x)) → Step (abs M) (abs N) 
 
-/-- Notation for a single reduction step. -/
-notation:39 t " ⇢β " t' => Step t t'
-
-/-- Notation for multiple reduction steps (the reflexive transitive closure). -/
-notation:39 t " ↠β " t' => Relation.ReflTransGen Step t t'
-
 open Step
 
 variable {M M' N N' : Term Var}
 
 /-- The left side of a reduction is locally closed. -/
-lemma step_lc_l (step : M ⇢β M') : LC M := by
+lemma step_lc_l (step : M ⭢β M') : LC M := by
   induction step <;> constructor
   all_goals assumption
 
@@ -66,22 +62,22 @@ theorem redex_app_r_cong : (M ↠β M') → LC N → (app N M ↠β app N M') :=
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
-lemma step_lc_r (step : M ⇢β M') : LC M' := by
+lemma step_lc_r (step : M ⭢β M') : LC M' := by
   induction step
-  case β => apply beta_lc <;> assumption
+  case «β» => apply beta_lc <;> assumption
   all_goals try constructor <;> assumption 
 
 /-- Substitution respects a single reduction step. -/
-lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⇢β s') -> (s [ x := fvar y ]) ⇢β (s' [ x := fvar y ]) := by
+lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢β s') -> (s [ x := fvar y ]) ⭢β (s' [ x := fvar y ]) := by
   intros step
   induction step
   case ξₗ ih => exact ξₗ (subst_lc (by assumption) (by constructor)) ih 
   case ξᵣ ih => exact ξᵣ (subst_lc (by assumption) (by constructor)) ih  
-  case β m n abs_lc n_lc => 
+  case «β» m n abs_lc n_lc => 
     cases abs_lc with | abs xs _ mem =>
       simp only [open']
       rw [subst_open x (fvar y) 0 n m (by constructor)]
-      refine β ?_ (subst_lc n_lc (by constructor))
+      refine «β» ?_ (subst_lc n_lc (by constructor))
       exact subst_lc (LC.abs xs m mem) (LC.fvar y)
   case ξ m' m xs mem ih => 
     apply ξ ({x} ∪ xs)
@@ -97,7 +93,7 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⇢β s') -> (s [ x :=
     all_goals aesop
 
 /-- Abstracting then closing preserves a single reduction. -/
-lemma step_abs_close {x : Var} : (M ⇢β M') → (abs (M⟦0 ↜ x⟧) ⇢β abs (M'⟦0 ↜ x⟧)) := by
+lemma step_abs_close {x : Var} : (M ⭢β M') → (abs (M⟦0 ↜ x⟧) ⭢β abs (M'⟦0 ↜ x⟧)) := by
   intros step
   apply ξ ∅
   intros y _

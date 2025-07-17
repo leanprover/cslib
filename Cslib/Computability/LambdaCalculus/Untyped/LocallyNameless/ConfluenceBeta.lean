@@ -18,7 +18,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Term
 
 /-- A parallel β-reduction step. -/
-@[aesop safe [constructors]]
+@[aesop safe [constructors], reduction_sys para_rs "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -32,13 +32,14 @@ inductive Parallel : Term Var → Term Var → Prop
     Parallel n n' → 
     Parallel (app (abs m) n) (m' ^ n')
 
-notation:39 t " ⇉ "  t' =>                       Parallel t t'
-notation:39 t " ⇉* " t' => Relation.ReflTransGen Parallel t t'
+-- TODO: API for these???
+lemma para_rs_Red_eq {α}: (@para_rs α).Red = Parallel := by rfl
+lemma para_rs_MRed_eq {α}: (@para_rs α).MRed = Relation.ReflTransGen Parallel := by rfl
 
 variable {M M' N N' : Term Var}
 
 /-- The left side of a parallel reduction is locally closed. -/
-lemma para_lc_l (step : M ⇉ N) : LC M  := by
+lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
   case beta => refine LC.app (LC.abs ?_ _ ?_) ?_ <;> assumption
@@ -47,7 +48,7 @@ lemma para_lc_l (step : M ⇉ N) : LC M  := by
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a parallel reduction is locally closed. -/
-lemma para_lc_r (step : M ⇉ N) : LC N := by
+lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
   case beta => refine beta_lc (LC.abs ?_ _ ?_) ?_ <;> assumption
@@ -55,21 +56,30 @@ lemma para_lc_r (step : M ⇉ N) : LC N := by
 
 /-- Parallel reduction is reflexive for locally closed terms. -/
 @[aesop safe]
-def Parallel.lc_refl (M : Term Var) : LC M → M ⇉ M := by
+def Parallel.lc_refl (M : Term Var) : LC M → M ⭢ₚ M := by
   intros lc
   induction lc
   all_goals constructor <;> assumption
 
+-- TODO: better ways to handle this?
+-- The problem is that sometimes when we apply a theorem we get out of our notation, so aesop can't
+-- see they are the same, including constructors.
+@[aesop safe]
+private def Parallel.lc_refl' (M : Term Var) : LC M → Parallel M M := by 
+  apply Parallel.lc_refl
+
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
-lemma step_to_para (step : M ⇢β N) : (M ⇉ N) := by
-  induction step
-  case β _ abs_lc _ => cases abs_lc with | abs xs _ => apply Parallel.beta xs <;> aesop
+lemma step_to_para (step : M ⭢β N) : (M ⭢ₚ N) := by
+  induction step <;> simp [para_rs_Red_eq]
+  case «β» _ abs_lc _ => cases abs_lc with | abs xs _ => 
+    apply Parallel.beta xs <;> intros <;> apply Parallel.lc_refl <;> aesop
   all_goals aesop (config := {enableSimp := false})
 
 /-- A single parallel reduction implies a multiple β-reduction. -/
-lemma para_to_redex (para : M ⇉ N) : (M ↠β N) := by
+lemma para_to_redex (para : M ⭢ₚ N) : (M ↠β N) := by
   induction para
+  case fvar => constructor
   case app _ _ _ _ l_para m_para redex_l redex_m =>
     trans
     exact redex_app_l_cong redex_l (para_lc_l m_para)
@@ -83,20 +93,26 @@ lemma para_to_redex (para : M ⇉ N) : (M ↠β N) := by
       apply LC.abs xs
       intros _ mem
       exact para_lc_r (para_ih _ mem)
-    calc
-      m.abs.app n ↠β m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
-      _           ↠β m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
-      _           ↠β m' ^ n'       := Relation.ReflTransGen.single (Step.β m'_abs_lc (para_lc_r para_n))
-  case fvar => constructor
+    trans
+    exact redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
+    exact Relation.ReflTransGen.tail 
+      (redex_app_r_cong redex_n m'_abs_lc) 
+      (Step.β m'_abs_lc (para_lc_r para_n))
+    -- TODO: the `Trans` instances in Cslib/Semantics/ReductionSystem/Basic.lean cause problems here
+    -- it ends up trying to take the transitive closure of the transitve closure
+    --calc
+    --  m.abs.app n ↠β m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
+    --  _           ↠β m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
+    --  _           ↠β m' ^ n'       := Relation.ReflTransGen.single (Step.β m'_abs_lc (para_lc_r para_n))
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
-theorem parachain_iff_redex : (M ⇉* N) ↔ (M ↠β N) := by
+theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠β N) := by
   refine Iff.intro ?chain_to_redex ?redex_to_chain <;> intros h <;> induction' h <;> try rfl
   case redex_to_chain.tail redex chain => exact Relation.ReflTransGen.tail chain (step_to_para redex)
   case chain_to_redex.tail para  redex => exact Relation.ReflTransGen.trans redex (para_to_redex para)
 
 /-- Parallel reduction respects substitution. -/
-lemma para_subst (x : Var) : (M ⇉ M') → (N ⇉ N') → (M[x := N] ⇉ M'[x := N']) := by
+lemma para_subst (x : Var) : (M ⭢ₚ M') → (N ⭢ₚ N') → (M[x := N] ⭢ₚ M'[x := N']) := by
   intros pm pn
   induction pm <;> simp only [instHasSubstitutionTerm, subst, open']
   case fvar x' =>
@@ -126,9 +142,9 @@ lemma para_subst (x : Var) : (M ⇉ M') → (N ⇉ N') → (M[x := N] ⇉ M'[x :
 
 /-- Parallel substitution respects closing and opening. -/
 lemma para_open_close (x y z) : 
-  (M ⇉ M') → 
+  (M ⭢ₚ M') → 
   y ∉ (M.fv ∪ M'.fv ∪ {x}) → 
-  M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⇉ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ 
+  M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⭢ₚ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ 
   := by
   intros para vars
   simp only [Finset.union_assoc, Finset.mem_union, Finset.mem_singleton, not_or] at vars
@@ -141,14 +157,17 @@ lemma para_open_close (x y z) :
 
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) :
-    (∀ x, x ∉ L → (M ^ fvar x) ⇉ (N ^ fvar x))
-    → (M' ⇉ N') → (M ^ M') ⇉ (N ^ N') := by
+    (∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ (N ^ fvar x))
+    → (M' ⭢ₚ N') → (M ^ M') ⭢ₚ (N ^ N') := by
     intros mem para
     let ⟨x, qx⟩ := fresh_exists (L ∪ N.fv ∪ M.fv)
     simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
     obtain ⟨q1, q2, q3⟩ := qx
     rw [subst_intro x M' _ q3 (para_lc_l para), subst_intro x N' _ q2 (para_lc_r para)]
     exact para_subst x (mem x q1) para
+
+-- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
+-- writing it for locally nameless terms.
 
 /-- Parallel reduction has the diamond property. -/
 theorem para_diamond : Diamond (@Parallel Var) := by
