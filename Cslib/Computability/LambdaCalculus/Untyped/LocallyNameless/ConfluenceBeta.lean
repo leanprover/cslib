@@ -187,17 +187,12 @@ theorem para_diamond : Diamond (@Parallel Var) := by
       have ⟨q1, q2, q3, q4⟩ := qx
       have ⟨t', qt'_l, qt'_r⟩ := ih x q1 (mem' _ q2)
       exists abs (t' ^* x)
-      constructor
-      · apply Parallel.abs ((s2' ^ fvar x).fv ∪ t'.fv ∪ {x})
-        intros y qy
-        simp only [open', close]
-        rw [←open_close x s2' 0 q4]
-        exact para_open_close x y 0 qt'_l qy
-      · apply Parallel.abs ((t2' ^ fvar x).fv ∪ t'.fv ∪ {x})
-        intros y qy
-        simp only [open', close]
-        rw [←open_close x t2' 0 q3]
-        exact para_open_close x y 0 qt'_r qy 
+      constructor 
+      <;> [let z := s2'; let z := t2']
+      <;> apply Parallel.abs ((z ^ fvar x).fv ∪ t'.fv ∪ {x})
+      <;> intros y qy <;> simp only [open', close]
+      <;> [rw [←open_close x _ 0 q4]; rw [←open_close x _ 0 q3]] 
+      <;> refine para_open_close x y 0 ?_ qy <;> [exact qt'_l; exact qt'_r]
   case beta s1 s1' s2 s2' xs mem ps ih1 ih2 => 
     cases tpt2
     case app u2 u2' s1pu2 s2pu2' => 
@@ -210,7 +205,8 @@ theorem para_diamond : Diamond (@Parallel Var) := by
         have ⟨t'', qt''_l, qt''_r⟩ := @ih1 x q1 _ (mem' _ q2)
         exists (t'' ^* x) ^ t'
         constructor
-        · rw [subst_intro x s2' _ q4 (para_lc_l qt'_l), subst_intro x t' _ (close_var_not_fvar x t'') (para_lc_r qt'_l)]
+        · rw [subst_intro x s2' _ q4 (para_lc_l qt'_l), 
+              subst_intro x t' _ (close_var_not_fvar x t'') (para_lc_r qt'_l)]
           simp only [instHasSubstitutionTerm, open', close]
           rw [close_open _ _ _ (para_lc_r qt''_l)]
           exact para_subst x qt''_l qt'_l
