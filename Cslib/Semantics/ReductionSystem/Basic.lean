@@ -42,17 +42,13 @@ theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b)
 
 open Relation Relation.ReflTransGen
 
--- these instance allow us to switch between single and multistep reductions in a `calc` block
-instance {α} (R : α → α → Prop) : Trans R R (ReflTransGen R) where
-  trans hab hbc := head hab (single hbc)
-
+-- these instances allow us to switch between single and multistep reductions in a `calc` block
 instance {α} (R : α → α → Prop) : Trans R (ReflTransGen R) (ReflTransGen R) where
   trans := head
 
 instance {α} (R : α → α → Prop) : Trans (ReflTransGen R) R (ReflTransGen R) where
   trans := tail
 
-instance (rs : ReductionSystem Term) : Trans rs.Red rs.Red rs.MRed  := by infer_instance
 instance (rs : ReductionSystem Term) : Trans rs.Red rs.MRed rs.MRed := by infer_instance
 instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_instance
 

@@ -92,17 +92,10 @@ lemma para_to_redex (para : M ⭢ₚ N) : (M ↠β N) := by
       apply LC.abs xs
       intros _ mem
       exact para_lc_r (para_ih _ mem)
-    trans
-    exact redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
-    exact Relation.ReflTransGen.tail 
-      (redex_app_r_cong redex_n m'_abs_lc) 
-      (Step.β m'_abs_lc (para_lc_r para_n))
-    -- TODO: the `Trans` instances in Cslib/Semantics/ReductionSystem/Basic.lean cause problems here
-    -- it ends up trying to take the transitive closure of the transitve closure
-    --calc
-    --  m.abs.app n ↠β m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
-    --  _           ↠β m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
-    --  _           ↠β m' ^ n'       := Relation.ReflTransGen.single (Step.β m'_abs_lc (para_lc_r para_n))
+    calc
+      m.abs.app n ↠β m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
+      _           ↠β m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
+      _           ↠β m' ^ n'       := Relation.ReflTransGen.single (Step.β m'_abs_lc (para_lc_r para_n))
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠β N) := by
