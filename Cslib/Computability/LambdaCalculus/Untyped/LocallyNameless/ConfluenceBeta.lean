@@ -95,7 +95,7 @@ lemma para_to_redex (para : M ⭢ₚ N) : (M ↠β N) := by
     calc
       m.abs.app n ↠β m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
       _           ↠β m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
-      _           ↠β m' ^ n'       := Relation.ReflTransGen.single (Step.β m'_abs_lc (para_lc_r para_n))
+      _           ⭢β m' ^ n'       := Step.β m'_abs_lc (para_lc_r para_n)
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠β N) := by
