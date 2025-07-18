@@ -161,6 +161,17 @@ theorem exp_top_eq_one : @Proposition.equiv Atom (bang top) one := by
     · intro _ _; contradiction
     exact Proof.top
 
+theorem exp_zero_eq_bot : @Proposition.equiv Atom (quest zero) bot := by
+  constructor
+  · apply Proof.exchange (List.Perm.swap (bang top) bot [])
+    apply Proof.bot
+    apply Proof.bang
+    · intro _ _; contradiction
+    exact Proof.top
+  · apply Proof.exchange (List.Perm.swap one (quest zero) [])
+    apply Proof.weaken
+    exact Proof.one
+
 end Proposition
 
 end CLL
