@@ -38,6 +38,7 @@ lemma para_rs_Red_eq {α} : (@para_rs α).Red = Parallel := by rfl
 variable {M M' N N' : Term Var}
 
 /-- The left side of a parallel reduction is locally closed. -/
+@[aesop unsafe]
 lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
@@ -47,6 +48,7 @@ lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a parallel reduction is locally closed. -/
+@[aesop unsafe]
 lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
@@ -64,8 +66,7 @@ def Parallel.lc_refl (M : Term Var) : LC M → M ⭢ₚ M := by
 -- The problem is that sometimes when we apply a theorem we get out of our notation, so aesop can't
 -- see they are the same, including constructors.
 @[aesop safe]
-private def Parallel.lc_refl' (M : Term Var) : LC M → Parallel M M := by 
-  apply Parallel.lc_refl
+def Parallel.lc_refl' (M : Term Var) : LC M → Parallel M M := Parallel.lc_refl M
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
@@ -167,12 +168,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
   intros t t1 t2 tpt1
   revert t2
   induction tpt1 <;> intros t2 tpt2
-  case fvar x =>
-    exists t2
-    and_intros
-    · assumption
-    · apply Parallel.lc_refl
-      exact para_lc_r tpt2
+  case fvar x => exact ⟨t2, by aesop⟩
   case abs s1 s2' xs mem ih => 
     cases tpt2
     case abs t2' xs' mem' =>
@@ -224,8 +220,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
     case app u1 u2' s1 s2 =>
       have ⟨l, _, _⟩ := ih1 s1
       have ⟨r, _, _⟩ := ih2 s2
-      exists app l r
-      and_intros <;> constructor <;> assumption
+      exact ⟨app l r, by aesop⟩
     case beta t1' u1' u2' xs mem s2pu2' => 
       cases s1ps1'
       case abs s1'' xs' mem' =>
@@ -240,9 +235,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
         case abs xs''' mem''' =>
           exists w1 ^ t'
           constructor
-          · apply Parallel.beta xs''
-            exact fun x a ↦ mem'' x a
-            exact qt'_l
+          · aesop (config := {enableSimp := false})
           · exact para_open_out xs''' mem''' qt'_r
 
 /-- Parallel reduction is confluent. -/
