@@ -161,6 +161,7 @@ lemma para_open_out (L : Finset Var) :
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
 -- writing it for locally nameless terms.
 
+-- adapted from https://github.com/ElifUskuplu/Stlc_deBruijn/blob/main/Stlc/confluence.lean
 /-- Parallel reduction has the diamond property. -/
 theorem para_diamond : Diamond (@Parallel Var) := by
   intros t t1 t2 tpt1
