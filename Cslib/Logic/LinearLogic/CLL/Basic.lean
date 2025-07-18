@@ -147,6 +147,10 @@ inductive Proof : @Sequent Atom → Prop where
 | contract : Proof (quest a :: quest a :: Γ) → Proof (quest a :: Γ)
 | bang {Γ : @Sequent Atom} {a} : Γ.allQuest → Proof (a :: Γ) → Proof (bang a :: Γ)
 
+
+def Proposition.equiv (a b : @Proposition Atom) : Prop := Proof [a.dual, b] ∧ Proof [b.dual, a]
+
+
 end CLL
 
 end CLL
