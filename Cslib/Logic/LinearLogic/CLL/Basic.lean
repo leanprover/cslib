@@ -150,6 +150,18 @@ inductive Proof : @Sequent Atom → Prop where
 
 def Proposition.equiv (a b : @Proposition Atom) : Prop := Proof [a.dual, b] ∧ Proof [b.dual, a]
 
+namespace Proposition
+
+theorem exp_top_eq_one : @Proposition.equiv Atom (bang top) one := by
+  constructor
+  · apply Proof.weaken
+    exact Proof.one
+  · apply Proof.bot
+    apply Proof.bang
+    · intro _ _; contradiction
+    exact Proof.top
+
+end Proposition
 
 end CLL
 
