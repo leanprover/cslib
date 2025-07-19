@@ -25,35 +25,35 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Term
 
 /-- A single β-reduction step. -/
-@[reduction_sys beta_rs "β"]
-inductive Step : Term Var → Term Var → Prop
+@[reduction_sys fullBetaRs "βᶠ"]
+inductive FullBeta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
-| β : LC (abs M)→ LC N → Step (app (abs M) N) (M ^ N)
+| β : LC (abs M)→ LC N → FullBeta (app (abs M) N) (M ^ N)
 /-- Left congruence rule for application. -/
-| ξₗ: LC Z → Step M N → Step (app Z M) (app Z N)
+| ξₗ: LC Z → FullBeta M N → FullBeta (app Z M) (app Z N)
 /-- Right congruence rule for application. -/
-| ξᵣ : LC Z → Step M N → Step (app M Z) (app N Z)
+| ξᵣ : LC Z → FullBeta M N → FullBeta (app M Z) (app N Z)
 /-- Congruence rule for lambda terms. -/
-| ξ (xs : Finset Var) : (∀ x ∉ xs, Step (M ^ fvar x) (N ^ fvar x)) → Step (abs M) (abs N) 
+| ξ (xs : Finset Var) : (∀ x ∉ xs, FullBeta (M ^ fvar x) (N ^ fvar x)) → FullBeta (abs M) (abs N) 
 
-open Step
+namespace FullBeta
 
 variable {M M' N N' : Term Var}
 
 /-- The left side of a reduction is locally closed. -/
-lemma step_lc_l (step : M ⭢β M') : LC M := by
+lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
   induction step <;> constructor
   all_goals assumption
 
 /-- Left congruence rule for application in multiple reduction.-/
-theorem redex_app_l_cong : (M ↠β M') → LC N → (app M N ↠β app M' N) := by
+theorem redex_app_l_cong : (M ↠βᶠ M') → LC N → (app M N ↠βᶠ app M' N) := by
   intros redex lc_N 
   induction' redex
   case refl => rfl
   case tail ih r => exact Relation.ReflTransGen.tail r (ξᵣ lc_N ih)
 
 /-- Right congruence rule for application in multiple reduction.-/
-theorem redex_app_r_cong : (M ↠β M') → LC N → (app N M ↠β app N M') := by
+theorem redex_app_r_cong : (M ↠βᶠ M') → LC N → (app N M ↠βᶠ app N M') := by
   intros redex lc_N 
   induction' redex
   case refl => rfl
@@ -62,13 +62,13 @@ theorem redex_app_r_cong : (M ↠β M') → LC N → (app N M ↠β app N M') :=
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
-lemma step_lc_r (step : M ⭢β M') : LC M' := by
+lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
   induction step
   case «β» => apply beta_lc <;> assumption
   all_goals try constructor <;> assumption 
 
 /-- Substitution respects a single reduction step. -/
-lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢β s') -> (s [ x := fvar y ]) ⭢β (s' [ x := fvar y ]) := by
+lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢βᶠ s') -> (s [ x := fvar y ]) ⭢βᶠ (s' [ x := fvar y ]) := by
   intros step
   induction step
   case ξₗ ih => exact ξₗ (subst_lc (by assumption) (by constructor)) ih 
@@ -93,7 +93,7 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢β s') -> (s [ x :=
     all_goals aesop
 
 /-- Abstracting then closing preserves a single reduction. -/
-lemma step_abs_close {x : Var} : (M ⭢β M') → (abs (M⟦0 ↜ x⟧) ⭢β abs (M'⟦0 ↜ x⟧)) := by
+lemma step_abs_close {x : Var} : (M ⭢βᶠ M') → (abs (M⟦0 ↜ x⟧) ⭢βᶠ abs (M'⟦0 ↜ x⟧)) := by
   intros step
   apply ξ ∅
   intros y _
@@ -104,7 +104,7 @@ lemma step_abs_close {x : Var} : (M ⭢β M') → (abs (M⟦0 ↜ x⟧) ⭢β ab
   exact step_lc_l step
 
 /-- Abstracting then closing preserves multiple reductions. -/
-lemma redex_abs_close {x : Var} : (M ↠β M') → (abs (M⟦0 ↜ x⟧) ↠β abs (M'⟦0 ↜ x⟧)) :=  by
+lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (abs (M⟦0 ↜ x⟧) ↠βᶠ abs (M'⟦0 ↜ x⟧)) :=  by
   intros step
   induction step using Relation.ReflTransGen.trans_induction_on
   case ih₁ => rfl
@@ -112,7 +112,7 @@ lemma redex_abs_close {x : Var} : (M ↠β M') → (abs (M⟦0 ↜ x⟧) ↠β a
   case ih₃ l r => trans; exact l; exact r
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
-theorem redex_abs_cong (xs : Finset Var) : (∀ x ∉ xs, (M ^ fvar x) ↠β (M' ^ fvar x)) → abs M ↠β abs M' := by
+theorem redex_abs_cong (xs : Finset Var) : (∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) → abs M ↠βᶠ abs M' := by
   intros mem
   have ⟨fresh, union⟩ := fresh_exists (xs ∪ M.fv ∪ M'.fv)
   simp only [Finset.union_assoc, Finset.mem_union, not_or] at union

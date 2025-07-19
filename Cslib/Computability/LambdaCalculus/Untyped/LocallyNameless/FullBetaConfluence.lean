@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Basic
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Properties
-import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.BetaReduction
+import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.FullBeta
 import Cslib.Utils.Relation
 
 /-! # β-confluence for the λ-calculus -/
@@ -18,7 +18,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Term
 
 /-- A parallel β-reduction step. -/
-@[aesop safe [constructors], reduction_sys para_rs "ₚ"]
+@[aesop safe [constructors], reduction_sys paraRs "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -33,7 +33,7 @@ inductive Parallel : Term Var → Term Var → Prop
     Parallel (app (abs m) n) (m' ^ n')
 
 -- TODO: I think this could be generated along with `para_rs`
-lemma para_rs_Red_eq {α} : (@para_rs α).Red = Parallel := by rfl
+lemma para_rs_Red_eq {α} : (@paraRs α).Red = Parallel := by rfl
 
 variable {M M' N N' : Term Var}
 
@@ -70,14 +70,15 @@ def Parallel.lc_refl' (M : Term Var) : LC M → Parallel M M := Parallel.lc_refl
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
-lemma step_to_para (step : M ⭢β N) : (M ⭢ₚ N) := by
+lemma step_to_para (step : M ⭢βᶠ N) : (M ⭢ₚ N) := by
   induction step <;> simp only [para_rs_Red_eq]
   case «β» _ abs_lc _ => cases abs_lc with | abs xs _ => 
     apply Parallel.beta xs <;> intros <;> apply Parallel.lc_refl <;> aesop
   all_goals aesop (config := {enableSimp := false})
 
+open FullBeta in
 /-- A single parallel reduction implies a multiple β-reduction. -/
-lemma para_to_redex (para : M ⭢ₚ N) : (M ↠β N) := by
+lemma para_to_redex (para : M ⭢ₚ N) : (M ↠βᶠ N) := by
   induction para
   case fvar => constructor
   case app _ _ _ _ l_para m_para redex_l redex_m =>
@@ -94,12 +95,12 @@ lemma para_to_redex (para : M ⭢ₚ N) : (M ↠β N) := by
       intros _ mem
       exact para_lc_r (para_ih _ mem)
     calc
-      m.abs.app n ↠β m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
-      _           ↠β m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
-      _           ⭢β m' ^ n'       := Step.β m'_abs_lc (para_lc_r para_n)
+      m.abs.app n ↠βᶠ m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
+      _           ↠βᶠ m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
+      _           ⭢βᶠ m' ^ n'       := β m'_abs_lc (para_lc_r para_n)
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
-theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠β N) := by
+theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠βᶠ N) := by
   refine Iff.intro ?chain_to_redex ?redex_to_chain <;> intros h <;> induction' h <;> try rfl
   case redex_to_chain.tail redex chain => exact Relation.ReflTransGen.tail chain (step_to_para redex)
   case chain_to_redex.tail para  redex => exact Relation.ReflTransGen.trans redex (para_to_redex para)
@@ -243,5 +244,5 @@ theorem para_confluence : Confluence (@Parallel Var) :=
   Relation.ReflTransGen.diamond_confluence para_diamond
 
 /-- β-reduction is confluent. -/
-theorem confluence_beta : Confluence (@Step Var) := 
+theorem confluence_beta : Confluence (@FullBeta Var) := 
   diamond_bisim parachain_iff_redex (@para_confluence Var _ _)
