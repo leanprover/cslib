@@ -28,13 +28,13 @@ namespace LambdaCalculus.LocallyNameless.Term
 @[reduction_sys fullBetaRs "βᶠ"]
 inductive FullBeta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
-| β : LC (abs M)→ LC N → FullBeta (app (abs M) N) (M ^ N)
+| beta : LC (abs M)→ LC N → FullBeta (app (abs M) N) (M ^ N)
 /-- Left congruence rule for application. -/
-| ξₗ: LC Z → FullBeta M N → FullBeta (app Z M) (app Z N)
+| appL: LC Z → FullBeta M N → FullBeta (app Z M) (app Z N)
 /-- Right congruence rule for application. -/
-| ξᵣ : LC Z → FullBeta M N → FullBeta (app M Z) (app N Z)
+| appR : LC Z → FullBeta M N → FullBeta (app M Z) (app N Z)
 /-- Congruence rule for lambda terms. -/
-| ξ (xs : Finset Var) : (∀ x ∉ xs, FullBeta (M ^ fvar x) (N ^ fvar x)) → FullBeta (abs M) (abs N) 
+| abs (xs : Finset Var) : (∀ x ∉ xs, FullBeta (M ^ fvar x) (N ^ fvar x)) → FullBeta (abs M) (abs N) 
 
 namespace FullBeta
 
@@ -50,37 +50,37 @@ theorem redex_app_l_cong : (M ↠βᶠ M') → LC N → (app M N ↠βᶠ app M'
   intros redex lc_N 
   induction' redex
   case refl => rfl
-  case tail ih r => exact Relation.ReflTransGen.tail r (ξᵣ lc_N ih)
+  case tail ih r => exact Relation.ReflTransGen.tail r (appR lc_N ih)
 
 /-- Right congruence rule for application in multiple reduction.-/
 theorem redex_app_r_cong : (M ↠βᶠ M') → LC N → (app N M ↠βᶠ app N M') := by
   intros redex lc_N 
   induction' redex
   case refl => rfl
-  case tail ih r => exact Relation.ReflTransGen.tail r (ξₗ lc_N ih)
+  case tail ih r => exact Relation.ReflTransGen.tail r (appL lc_N ih)
 
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
 lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
   induction step
-  case «β» => apply beta_lc <;> assumption
+  case beta => apply beta_lc <;> assumption
   all_goals try constructor <;> assumption 
 
 /-- Substitution respects a single reduction step. -/
 lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢βᶠ s') -> (s [ x := fvar y ]) ⭢βᶠ (s' [ x := fvar y ]) := by
   intros step
   induction step
-  case ξₗ ih => exact ξₗ (subst_lc (by assumption) (by constructor)) ih 
-  case ξᵣ ih => exact ξᵣ (subst_lc (by assumption) (by constructor)) ih  
-  case «β» m n abs_lc n_lc => 
+  case appL ih => exact appL (subst_lc (by assumption) (by constructor)) ih 
+  case appR ih => exact appR (subst_lc (by assumption) (by constructor)) ih  
+  case beta m n abs_lc n_lc => 
     cases abs_lc with | abs xs _ mem =>
       simp only [open']
       rw [subst_open x (fvar y) 0 n m (by constructor)]
-      refine «β» ?_ (subst_lc n_lc (by constructor))
+      refine beta ?_ (subst_lc n_lc (by constructor))
       exact subst_lc (LC.abs xs m mem) (LC.fvar y)
-  case ξ m' m xs mem ih => 
-    apply ξ ({x} ∪ xs)
+  case abs m' m xs mem ih => 
+    apply abs ({x} ∪ xs)
     intros z z_mem
     simp only [open']
     rw [
@@ -93,9 +93,9 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢βᶠ s') -> (s [ x
     all_goals aesop
 
 /-- Abstracting then closing preserves a single reduction. -/
-lemma step_abs_close {x : Var} : (M ⭢βᶠ M') → (abs (M⟦0 ↜ x⟧) ⭢βᶠ abs (M'⟦0 ↜ x⟧)) := by
+lemma step_abs_close {x : Var} : (M ⭢βᶠ M') → (M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs) := by
   intros step
-  apply ξ ∅
+  apply abs ∅
   intros y _
   simp only [open']
   repeat rw [open_close_to_subst]
@@ -104,7 +104,7 @@ lemma step_abs_close {x : Var} : (M ⭢βᶠ M') → (abs (M⟦0 ↜ x⟧) ⭢β
   exact step_lc_l step
 
 /-- Abstracting then closing preserves multiple reductions. -/
-lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (abs (M⟦0 ↜ x⟧) ↠βᶠ abs (M'⟦0 ↜ x⟧)) :=  by
+lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (M⟦0 ↜ x⟧.abs ↠βᶠ M'⟦0 ↜ x⟧.abs) :=  by
   intros step
   induction step using Relation.ReflTransGen.trans_induction_on
   case ih₁ => rfl
@@ -112,7 +112,7 @@ lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (abs (M⟦0 ↜ x⟧) ↠�
   case ih₃ l r => trans; exact l; exact r
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
-theorem redex_abs_cong (xs : Finset Var) : (∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) → abs M ↠βᶠ abs M' := by
+theorem redex_abs_cong (xs : Finset Var) : (∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) → M.abs ↠βᶠ M'.abs := by
   intros mem
   have ⟨fresh, union⟩ := fresh_exists (xs ∪ M.fv ∪ M'.fv)
   simp only [Finset.union_assoc, Finset.mem_union, not_or] at union

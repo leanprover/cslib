@@ -72,7 +72,7 @@ omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢βᶠ N) : (M ⭢ₚ N) := by
   induction step <;> simp only [para_rs_Red_eq]
-  case «β» _ abs_lc _ => cases abs_lc with | abs xs _ => 
+  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => 
     apply Parallel.beta xs <;> intros <;> apply Parallel.lc_refl <;> aesop
   all_goals aesop (config := {enableSimp := false})
 
@@ -97,7 +97,7 @@ lemma para_to_redex (para : M ⭢ₚ N) : (M ↠βᶠ N) := by
     calc
       m.abs.app n ↠βᶠ m'.abs.app n  := redex_app_l_cong (redex_abs_cong xs (λ _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
       _           ↠βᶠ m'.abs.app n' := redex_app_r_cong redex_n m'_abs_lc
-      _           ⭢βᶠ m' ^ n'       := β m'_abs_lc (para_lc_r para_n)
+      _           ⭢βᶠ m' ^ n'       := beta m'_abs_lc (para_lc_r para_n)
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠βᶠ N) := by
