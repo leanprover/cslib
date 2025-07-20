@@ -18,7 +18,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Term
 
 /-- A parallel β-reduction step. -/
-@[aesop safe [constructors], reduction_sys paraRs "ₚ"]
+@[aesop safe (rule_sets := [ln]) [constructors], reduction_sys paraRs "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -108,19 +108,20 @@ theorem parachain_iff_redex : (M ↠ₚ N) ↔ (M ↠βᶠ N) := by
 /-- Parallel reduction respects substitution. -/
 lemma para_subst (x : Var) : (M ⭢ₚ M') → (N ⭢ₚ N') → (M[x := N] ⭢ₚ M'[x := N']) := by
   intros pm pn
-  induction pm <;> simp only [instHasSubstitutionTerm, subst, open']
-  case fvar x' =>
-    split
-    assumption
-    constructor
+  induction pm
+  case fvar => aesop
   case beta _ _ _ _ xs _ _ ih _ => 
-    repeat rw [subst_def]
+    simp only [open']
     rw [subst_open _ _ _ _ _ (para_lc_r pn)]
     apply Parallel.beta (xs ∪ {x})
     intros y ymem
     simp only [Finset.mem_union, Finset.mem_singleton, not_or] at ymem
     push_neg at ymem
-    rw [subst_open_var _ _ _ _ _ (para_lc_r pn), subst_open_var _ _ _ _ _ (para_lc_l pn)]
+    rw [
+      subst_def, 
+      subst_open_var _ _ _ _ _ (para_lc_r pn), 
+      subst_open_var _ _ _ _ _ (para_lc_l pn)
+    ]
     apply ih
     all_goals aesop
   case app => constructor <;> assumption
@@ -198,7 +199,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
         constructor
         · rw [subst_intro x s2' _ q4 (para_lc_l qt'_l), 
               subst_intro x t' _ (close_var_not_fvar x t'') (para_lc_r qt'_l)]
-          simp only [instHasSubstitutionTerm, open', close]
+          simp only [open', close]
           rw [close_open _ _ _ (para_lc_r qt''_l)]
           exact para_subst x qt''_l qt'_l
         · apply Parallel.beta ((s1'' ^ fvar x).fv ∪ t''.fv ∪ {x})
