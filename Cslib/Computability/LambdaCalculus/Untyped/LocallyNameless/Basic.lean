@@ -137,10 +137,6 @@ def fv : Term Var → Finset Var
 | abs e1 => e1.fv
 | app l r => l.fv ∪ r.fv
 
-omit [HasFresh Var] in
-@[simp]
-lemma fv_bvar : x ∉ (bvar i).fv := by simp
-
 /-- Locally closed terms. -/
 @[aesop safe (rule_sets := [ln]) [constructors]]
 inductive LC : Term Var → Prop
