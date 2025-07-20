@@ -20,8 +20,8 @@ lemma open_abs_inj : M.abs = M⟦i + 1 ↝ s⟧.abs ↔ M = M⟦i + 1 ↝ s⟧ :
 
 /-- An opening appearing in both sides of an equality of terms can be removed. -/
 lemma open_lc_aux (e : Term Var) : ∀ (j v i u),
-  i ≠ j ->
-  e ⟦j ↝ v⟧ = (e ⟦j ↝ v⟧) ⟦i ↝ u⟧ ->
+  i ≠ j →
+  e ⟦j ↝ v⟧ = (e ⟦j ↝ v⟧) ⟦i ↝ u⟧ →
   e = e ⟦i ↝ u⟧ := by
   induction' e <;> intros j v i u neq h 
   case app l r ih_l ih_r => 

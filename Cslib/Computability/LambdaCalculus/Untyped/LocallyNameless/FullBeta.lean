@@ -68,7 +68,7 @@ lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
   all_goals try constructor <;> assumption 
 
 /-- Substitution respects a single reduction step. -/
-lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢βᶠ s') -> (s [ x := fvar y ]) ⭢βᶠ (s' [ x := fvar y ]) := by
+lemma redex_subst_cong (s s' : Term Var) (x y : Var) : (s ⭢βᶠ s') → (s [ x := fvar y ]) ⭢βᶠ (s' [ x := fvar y ]) := by
   intros step
   induction step
   case appL ih => exact appL (subst_lc (by assumption) (by constructor)) ih 
