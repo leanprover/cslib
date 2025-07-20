@@ -29,7 +29,7 @@ lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
     exact ⟨D', ⟨B_D', head CD D_D'⟩⟩
 
-/-- The dismond property implies confluence. -/
+/-- The diamond property implies confluence. -/
 theorem Relation.ReflTransGen.diamond_confluence (h : Diamond R) : Confluence R := by
   intros A B C AB BC
   revert C
@@ -39,12 +39,6 @@ theorem Relation.ReflTransGen.diamond_confluence (h : Diamond R) : Confluence R 
     obtain ⟨D, ⟨CD, C'_D⟩⟩ := diamond_extend h BC A'_C'
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
     exact ⟨D', ⟨B_D', trans CD D_D'⟩⟩
-
-/-- Equivalence of relations preserves the diamond property. -/
-theorem diamond_bisim (sim : ∀ {M N : α}, R M N ↔ R' M N) (h : Diamond R) : Diamond R' := by
-  intros L M₁ M₂ L_M₁ L_M₂
-  have ⟨N, ⟨M₁_chain_N, M₂_chain_N⟩⟩ := h (sim.mpr L_M₁) (sim.mpr L_M₂)
-  exact ⟨N, ⟨sim.mp M₁_chain_N, sim.mp M₂_chain_N⟩⟩
 
 -- not sure why this doesn't compile as an "instance" but oh well
 def trans_of_subrelation {α : Type _} (s s' r : α → α → Prop) (hr : Transitive r)

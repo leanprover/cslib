@@ -245,5 +245,10 @@ theorem para_confluence : Confluence (@Parallel Var) :=
   Relation.ReflTransGen.diamond_confluence para_diamond
 
 /-- β-reduction is confluent. -/
-theorem confluence_beta : Confluence (@FullBeta Var) := 
-  diamond_bisim parachain_iff_redex (@para_confluence Var _ _)
+theorem confluence_beta : Confluence (@FullBeta Var) := by
+  simp only [Confluence]
+  have eq : Relation.ReflTransGen (@Parallel Var) = Relation.ReflTransGen (@FullBeta Var) := by
+    ext
+    exact parachain_iff_redex
+  rw [←eq]
+  exact @para_confluence Var _ _
