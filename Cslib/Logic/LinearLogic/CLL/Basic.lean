@@ -56,6 +56,9 @@ instance : Top (@Proposition Atom) where
 instance : Bot (@Proposition Atom) where
   bot := Proposition.bot
 
+scoped infix:35 " ⊗ " => Proposition.tensor
+scoped infix:30 " ⅋ " => Proposition.parr
+
 /-- Positive propositions. -/
 def Proposition.Pos (a : @Proposition Atom) : Prop :=
   match a with
@@ -169,7 +172,7 @@ section LogicalEquiv
 /-- Two propositions are equivalent if one implies the other and vice versa. -/
 def Proposition.equiv (a b : @Proposition Atom) : Prop := ⊢[a.dual, b] ∧ ⊢[b.dual, a]
 
-scoped infix:90 " ≡ " => Proposition.equiv
+scoped infix:29 " ≡ " => Proposition.equiv
 
 namespace Proposition
 
@@ -197,7 +200,7 @@ theorem quest_zero_eqv_bot : (@quest Atom 0) ≡ ⊥ := by
 
 /-- a ⊗ 0 ≡ 0 -/
 theorem tensor_zero_eqv_zero (a : @Proposition Atom) :
-    tensor a 0 ≡ 0 := by
+    a ⊗ 0 ≡ 0 := by
   constructor
   · apply Proof.parr
     apply Proof.exchange (List.Perm.swap a.dual (top) [zero])
@@ -206,7 +209,7 @@ theorem tensor_zero_eqv_zero (a : @Proposition Atom) :
 
 /-- a ⅋ ⊤ ≡ ⊤ -/
 theorem parr_top_eqv_top (a : @Proposition Atom) :
-    parr a ⊤ ≡ ⊤ := by
+    a ⅋ ⊤ ≡ ⊤ := by
   constructor
   · apply Proof.exchange (List.Perm.swap (parr a top).dual top [])
     exact Proof.top
