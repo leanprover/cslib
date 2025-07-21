@@ -180,6 +180,15 @@ theorem quest_zero_eqv_bot : (quest zero) ≡ @bot Atom := by
     apply Proof.weaken
     exact Proof.one
 
+/-- a ⊗ 0 ≡ 0 -/
+theorem tensor_zero_eqv_zero (a : @Proposition Atom) :
+    tensor a zero ≡ zero := by
+  constructor
+  · apply Proof.parr
+    apply Proof.exchange (List.Perm.swap a.dual (top) [zero])
+    exact Proof.top
+  · exact Proof.top
+
 end Proposition
 
 end LogicalEquiv
