@@ -189,6 +189,17 @@ theorem tensor_zero_eqv_zero (a : @Proposition Atom) :
     exact Proof.top
   · exact Proof.top
 
+/-- a ⅋ ⊤ ≡ ⊤ -/
+theorem parr_top_eqv_top (a : @Proposition Atom) :
+    parr a top ≡ top := by
+  constructor
+  · apply Proof.exchange (List.Perm.swap (parr a top).dual top [])
+    exact Proof.top
+  · apply Proof.exchange (List.Perm.swap top.dual (parr a top) [])
+    apply Proof.parr
+    apply Proof.exchange (List.Perm.swap a top [top.dual])
+    exact Proof.top
+
 end Proposition
 
 end LogicalEquiv
