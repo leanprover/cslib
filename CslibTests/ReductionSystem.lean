@@ -15,7 +15,7 @@ lemma multiple_step : 5 ↠ₙ 1 := by
     5 ⭢ₙ 4 := by simp [h]
     _ ↠ₙ 2 := by
       calc
-        4 ⭢ₙ 3 := by simp [h]
+        4 ↠ₙ 3 := by apply ReductionSystem.MRed.single; simp [h]
         _ ⭢ₙ 2 := by simp [h]
     _ ⭢ₙ 1 := by simp [h]
 
