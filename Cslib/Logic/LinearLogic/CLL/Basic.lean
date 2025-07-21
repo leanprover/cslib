@@ -5,6 +5,7 @@ Authors: Fabrizio Montesi
 -/
 
 import Aesop
+import Mathlib.Order.Notation
 
 /-! # Classical Linear Logic
 
@@ -29,19 +30,31 @@ namespace CLL
 
 /-- Propositions. -/
 inductive Proposition {Atom : Type u} : Type u where
-| atom (x : Atom)
-| atomDual (x : Atom)
-| one
-| zero
-| top
-| bot
-| tensor (a b : @Proposition Atom)
-| parr (a b : @Proposition Atom)
-| oplus (a b : @Proposition Atom)
-| with (a b : @Proposition Atom)
-| bang (a : @Proposition Atom)
-| quest (a : @Proposition Atom)
+  | atom (x : Atom)
+  | atomDual (x : Atom)
+  | one
+  | zero
+  | top
+  | bot
+  | tensor (a b : @Proposition Atom)
+  | parr (a b : @Proposition Atom)
+  | oplus (a b : @Proposition Atom)
+  | with (a b : @Proposition Atom)
+  | bang (a : @Proposition Atom)
+  | quest (a : @Proposition Atom)
 deriving DecidableEq, BEq
+
+instance : One (@Proposition Atom) where
+  one := Proposition.one
+
+instance : Zero (@Proposition Atom) where
+  zero := Proposition.zero
+
+instance : Top (@Proposition Atom) where
+  top := Proposition.top
+
+instance : Bot (@Proposition Atom) where
+  bot := Proposition.bot
 
 /-- Positive propositions. -/
 def Proposition.Pos (a : @Proposition Atom) : Prop :=
@@ -131,35 +144,37 @@ def Sequent.allQuest (Γ : @Sequent Atom) :=
 open Proposition in
 /-- Sequent calculus for CLL. -/
 inductive Proof : @Sequent Atom → Prop where
-| ax : Proof [a, a.dual]
-| cut : Proof (a :: Γ) → Proof (a.dual :: Δ) → Proof (Γ ++ Δ)
-| exchange : List.Perm Γ Δ → Proof Γ → Proof Δ
-| one : Proof [one]
-| bot : Proof Γ → Proof (bot :: Γ)
-| parr : Proof (a :: b :: Γ) → Proof ((parr a b) :: Γ)
-| tensor : Proof (a :: Γ) → Proof (b :: Δ) → Proof ((tensor a b) :: (Γ ++ Δ))
-| oplus₁ : Proof (a :: Γ) → Proof ((oplus a b) :: Γ)
-| oplus₂ : Proof (b :: Γ) → Proof ((oplus a b) :: Γ)
-| with : Proof (a :: Γ) → Proof (b :: Γ) → Proof ((a.with b) :: Γ)
-| top : Proof (top :: Γ)
-| quest : Proof (a :: Γ) → Proof (quest a :: Γ)
-| weaken : Proof Γ → Proof (quest a :: Γ)
-| contract : Proof (quest a :: quest a :: Γ) → Proof (quest a :: Γ)
-| bang {Γ : @Sequent Atom} {a} : Γ.allQuest → Proof (a :: Γ) → Proof (bang a :: Γ)
+  | ax : Proof [a, a.dual]
+  | cut : Proof (a :: Γ) → Proof (a.dual :: Δ) → Proof (Γ ++ Δ)
+  | exchange : List.Perm Γ Δ → Proof Γ → Proof Δ
+  | one : Proof [one]
+  | bot : Proof Γ → Proof (bot :: Γ)
+  | parr : Proof (a :: b :: Γ) → Proof ((parr a b) :: Γ)
+  | tensor : Proof (a :: Γ) → Proof (b :: Δ) → Proof ((tensor a b) :: (Γ ++ Δ))
+  | oplus₁ : Proof (a :: Γ) → Proof ((oplus a b) :: Γ)
+  | oplus₂ : Proof (b :: Γ) → Proof ((oplus a b) :: Γ)
+  | with : Proof (a :: Γ) → Proof (b :: Γ) → Proof ((a.with b) :: Γ)
+  | top : Proof (top :: Γ)
+  | quest : Proof (a :: Γ) → Proof (quest a :: Γ)
+  | weaken : Proof Γ → Proof (quest a :: Γ)
+  | contract : Proof (quest a :: quest a :: Γ) → Proof (quest a :: Γ)
+  | bang {Γ : @Sequent Atom} {a} : Γ.allQuest → Proof (a :: Γ) → Proof (bang a :: Γ)
+
+scoped notation "⊢" Γ:90 => Proof Γ
 
 section LogicalEquiv
 
 /-! ## Logical equivalences -/
 
 /-- Two propositions are equivalent if one implies the other and vice versa. -/
-def Proposition.equiv (a b : @Proposition Atom) : Prop := Proof [a.dual, b] ∧ Proof [b.dual, a]
+def Proposition.equiv (a b : @Proposition Atom) : Prop := ⊢[a.dual, b] ∧ ⊢[b.dual, a]
 
 scoped infix:90 " ≡ " => Proposition.equiv
 
 namespace Proposition
 
 /-- !⊤ ≡ 1 -/
-theorem bang_top_eqv_one : (bang top) ≡ @one Atom := by
+theorem bang_top_eqv_one : (@bang Atom ⊤) ≡ 1 := by
   constructor
   · apply Proof.weaken
     exact Proof.one
@@ -169,7 +184,7 @@ theorem bang_top_eqv_one : (bang top) ≡ @one Atom := by
     exact Proof.top
 
 /-- ?0 ≡ ⊥ -/
-theorem quest_zero_eqv_bot : (quest zero) ≡ @bot Atom := by
+theorem quest_zero_eqv_bot : (@quest Atom 0) ≡ ⊥ := by
   constructor
   · apply Proof.exchange (List.Perm.swap (bang top) bot [])
     apply Proof.bot
