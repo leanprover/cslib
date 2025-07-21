@@ -48,16 +48,16 @@ def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 
 scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e 
 
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := by rfl
 
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
 
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_app : (app l r)⟦i ↝ s⟧ = app (l⟦i ↝ s⟧) (r⟦i ↝ s⟧) := by rfl
 
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := by rfl
 
 /-- Variable opening of the closest binding. -/
@@ -77,19 +77,19 @@ scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
 variable {x : Var}
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma closeRec_abs : t.abs⟦k ↜ x⟧ = t⟦k + 1 ↜ x⟧.abs := by rfl
 
 /-- Variable closing of the closest binding. -/
@@ -110,23 +110,23 @@ instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var where
   subst := Term.subst
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma subst_bvar {n : Term Var} : (bvar i)[x := n] = bvar i := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma subst_fvar : (fvar x')[x := n] = if x = x' then n else fvar x' := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma subst_app {l r : Term Var} : (app l r)[x := n] = app (l[x := n]) (r[x := n]) := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma subst_abs {M : Term Var} : M.abs[x := n] = M[x := n].abs := by rfl
 
 omit [HasFresh Var] in
-@[aesop norm (rule_sets := [ln])]
+@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma subst_def (m : Term Var) (x : Var) (n : Term Var) : m.subst x n = m[x := n] := by rfl
 
 /-- Free variables of a term. -/
@@ -138,7 +138,7 @@ def fv : Term Var → Finset Var
 | app l r => l.fv ∪ r.fv
 
 /-- Locally closed terms. -/
-@[aesop safe (rule_sets := [ln]) [constructors]]
+@[aesop safe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet]) [constructors]]
 inductive LC : Term Var → Prop
 | fvar (x)  : LC (fvar x)
 | abs (L : Finset Var) (e : Term Var) : (∀ x : Var, x ∉ L → LC (e ^ fvar x)) → LC (abs e)

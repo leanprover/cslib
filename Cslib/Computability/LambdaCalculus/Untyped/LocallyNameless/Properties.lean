@@ -89,7 +89,7 @@ variable [HasFresh Var]
 
 omit [DecidableEq Var] in
 /-- A locally closed term is unchanged by opening. -/
-@[aesop safe (rule_sets := [ln])]
+@[aesop safe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma open_lc (k t) (e : Term Var) : e.LC → e = e⟦k ↝ t⟧ := by
   intros e_lc
   revert k

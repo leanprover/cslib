@@ -18,7 +18,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Term
 
 /-- A parallel β-reduction step. -/
-@[aesop safe (rule_sets := [ln]) [constructors], reduction_sys paraRs "ₚ"]
+@[aesop safe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet]) [constructors], reduction_sys paraRs "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -38,7 +38,7 @@ lemma para_rs_Red_eq {α} : (@paraRs α).Red = Parallel := by rfl
 variable {M M' N N' : Term Var}
 
 /-- The left side of a parallel reduction is locally closed. -/
-@[aesop unsafe (rule_sets := [ln])]
+@[aesop unsafe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
@@ -48,7 +48,7 @@ lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a parallel reduction is locally closed. -/
-@[aesop unsafe (rule_sets := [ln])]
+@[aesop unsafe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
@@ -56,7 +56,7 @@ lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
   all_goals constructor <;> assumption
 
 /-- Parallel reduction is reflexive for locally closed terms. -/
-@[aesop safe (rule_sets := [ln])]
+@[aesop safe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 def Parallel.lc_refl (M : Term Var) : LC M → M ⭢ₚ M := by
   intros lc
   induction lc
@@ -65,7 +65,7 @@ def Parallel.lc_refl (M : Term Var) : LC M → M ⭢ₚ M := by
 -- TODO: better ways to handle this?
 -- The problem is that sometimes when we apply a theorem we get out of our notation, so aesop can't
 -- see they are the same, including constructors.
-@[aesop safe (rule_sets := [ln])]
+@[aesop safe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 def Parallel.lc_refl' (M : Term Var) : LC M → Parallel M M := Parallel.lc_refl M
 
 omit [HasFresh Var] [DecidableEq Var] in
