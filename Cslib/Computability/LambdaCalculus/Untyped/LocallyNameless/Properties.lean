@@ -96,7 +96,7 @@ lemma open_lc (k t) (e : Term Var) : e.LC → e = e⟦k ↝ t⟧ := by
   induction e_lc
   case abs xs e _ ih => 
     intros k
-    simp only [openRec, abs.injEq]
+    simp only [openRec_abs, abs.injEq]
     refine open_lc_aux e 0 (fvar (fresh xs)) (k+1) t ?_ ?_ <;> aesop
   all_goals aesop
 
