@@ -197,7 +197,7 @@ theorem quest_zero_eqv_bot : (@quest Atom 0) ≡ ⊥ := by
 
 /-- a ⊗ 0 ≡ 0 -/
 theorem tensor_zero_eqv_zero (a : @Proposition Atom) :
-    tensor a zero ≡ zero := by
+    tensor a 0 ≡ 0 := by
   constructor
   · apply Proof.parr
     apply Proof.exchange (List.Perm.swap a.dual (top) [zero])
@@ -206,7 +206,7 @@ theorem tensor_zero_eqv_zero (a : @Proposition Atom) :
 
 /-- a ⅋ ⊤ ≡ ⊤ -/
 theorem parr_top_eqv_top (a : @Proposition Atom) :
-    parr a top ≡ top := by
+    parr a ⊤ ≡ ⊤ := by
   constructor
   · apply Proof.exchange (List.Perm.swap (parr a top).dual top [])
     exact Proof.top
