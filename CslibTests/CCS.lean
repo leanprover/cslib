@@ -11,9 +11,9 @@ open CCS Process
 @[lts ltsNat "ₙ"]
 def TrNat := @CCS.Tr ℕ ℕ (fun _ _ => False)
 
-def p : Process ℕ ℕ := (pre Act.τ (pre Act.τ nil))
+def p : Process ℕ ℕ := (pre Act.τ (pre (Act.name 1) nil))
 
-example : p [Act.τ]⭢ₙ (pre Act.τ nil) := by constructor
+example : p [Act.τ]⭢ₙ (pre (Act.name 1) nil) := by constructor
 
 -- WIP below, trying to get Trans to work for LTS
 
@@ -25,7 +25,7 @@ instance (lts : LTS State Label) : Trans (fun s1 => lts.Tr s1 μ1) (fun s2 => lt
     apply LTS.MTr.comp lts htr1 htr2
 
 -- Problematic:
--- example : p [[Act.τ, Act.τ]]↠ₙ nil := by
+-- example : p [[Act.τ, Act.name 1]]↠ₙ nil := by
 --   calc
---     p [Act.τ]⭢ₙ (pre Act.τ nil) := by constructor
---     _ [Act.τ]⭢ₙ nil := by constructor
+--     (p [Act.τ]⭢ₙ (pre (Act.name 1) nil)) := by constructor
+--     _ [Act.name 1]⭢ₙ nil := by constructor
