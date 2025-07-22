@@ -41,20 +41,13 @@ theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : Var} :
     x ∈ Γ.dom ↔ x ∈ Δ.dom := by
   induction h <;> aesop
 
-/-- Context non-membership is preserved on permuting a context. -/
-theorem dom_perm_nmem (h : Γ.Perm Δ) {x : Var} : 
-    x ∉ Γ.dom → x ∉ Δ.dom := by
-  intros Γ_nmem Δ_mem
-  apply Γ_nmem
-  exact (dom_perm_mem_iff h).mpr Δ_mem
-
 /-- Context well-formedness is preserved on permuting a context. -/
 @[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 theorem perm (h : Γ.Perm Δ) : Ok Γ → Ok Δ := by
   induction h <;> intro Γ_ok
   case cons perm ih =>
     cases Γ_ok
-    case cons ok_Γ mem => exact Ok.cons (ih ok_Γ) (Ctx.dom_perm_nmem perm mem)
+    case cons ok_Γ nmem => exact Ok.cons (ih ok_Γ) $ (dom_perm_mem_iff perm).not.mp nmem
   case nil => constructor
   case trans => simp_all
   case swap =>
