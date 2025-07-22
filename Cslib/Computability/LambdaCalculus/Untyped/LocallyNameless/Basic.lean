@@ -143,3 +143,6 @@ inductive LC : Term Var → Prop
 | fvar (x)  : LC (fvar x)
 | abs (L : Finset Var) (e : Term Var) : (∀ x : Var, x ∉ L → LC (e ^ fvar x)) → LC (abs e)
 | app {l r} : l.LC → r.LC → LC (app l r)
+
+inductive Value : Term Var → Prop
+| abs (e : Term Var) : e.abs.LC → Value e.abs
