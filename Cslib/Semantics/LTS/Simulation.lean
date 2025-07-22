@@ -5,7 +5,7 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Semantics.LTS.Basic
-import Cslib.Utils.Rel
+import Cslib.Data.Relation
 
 /-! # Simulation and Similarity
 
@@ -46,13 +46,13 @@ variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 /-- A relation is a simulation if, whenever it relates two states in an lts,
 any transition originating from the first state is mimicked by a transition from the second state
 and the reached derivatives are themselves related. -/
-def Simulation (lts : LTS State Label) (r : Rel State State) : Prop :=
+def Simulation (lts : LTS State Label) (r : State → State → Prop) : Prop :=
   ∀ s1 s2, r s1 s2 → ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ r s1' s2'
 
 /-- Two states are similar if they are related by some simulation. -/
-def Similarity (lts : LTS State Label) : Rel State State :=
+def Similarity (lts : LTS State Label) : State → State → Prop :=
   fun s1 s2 =>
-    ∃ r : Rel State State, r s1 s2 ∧ Simulation lts r
+    ∃ r : State → State → Prop, r s1 s2 ∧ Simulation lts r
 
 /--
 Notation for similarity.
@@ -64,7 +64,7 @@ notation s:max " ≤[" lts "] " s':max => Similarity lts s s'
 
 /-- Similarity is reflexive. -/
 theorem Similarity.refl (s : State) : s ≤[lts] s := by
-  exists Rel.Id
+  exists Relation.Id
   apply And.intro (by constructor)
   simp only [Simulation]
   intro s1 s2 hr μ s1' htr
@@ -74,8 +74,8 @@ theorem Similarity.refl (s : State) : s ≤[lts] s := by
 
 /-- The composition of two simulations is a simulation. -/
 theorem Simulation.comp
-  (r1 r2 : Rel State State) (h1 : Simulation lts r1) (h2 : Simulation lts r2) :
-  Simulation lts (r1.comp r2) := by
+  (r1 r2 : State → State → Prop) (h1 : Simulation lts r1) (h2 : Simulation lts r2) :
+  Simulation lts (Relation.Comp r1 r2) := by
   simp_all only [Simulation]
   intro s1 s2 hrc μ s1' htr
   rcases hrc with ⟨sb, hr1, hr2⟩
@@ -88,24 +88,24 @@ theorem Simulation.comp
   exists s2''
   constructor
   · exact h2'tr
-  · simp [Rel.comp]
+  · simp only [Relation.Comp]
     exists s1''
 
 /-- Similarity is transitive. -/
 theorem Similarity.trans (h1 : s1 ≤[lts] s2) (h2 : s2 ≤[lts] s3) : s1 ≤[lts] s3 := by
   obtain ⟨r1, hr1, hr1s⟩ := h1
   obtain ⟨r2, hr2, hr2s⟩ := h2
-  exists r1.comp r2
+  exists Relation.Comp r1 r2
   constructor
   case left =>
-    simp only [Rel.comp]
+    simp only [Relation.Comp]
     exists s2
   case right =>
     apply Simulation.comp lts r1 r2 hr1s hr2s
 
 /-- Simulation equivalence relates all states `s1` and `s2` such that `s1 ≤[lts] s2` and
 `s2 ≤[lts] s1`. -/
-def SimulationEquiv (lts : LTS State Label) : Rel State State :=
+def SimulationEquiv (lts : LTS State Label) : State → State → Prop :=
   fun s1 s2 =>
     s1 ≤[lts] s2 ∧ s2 ≤[lts] s1
 
@@ -117,7 +117,7 @@ notation s:max " ≤≥[" lts "] " s':max => SimulationEquiv lts s s'
 /-- Simulation equivalence is reflexive. -/
 theorem SimulationEquiv.refl (s : State) : s ≤≥[lts] s := by
   simp [SimulationEquiv]
-  exists Rel.Id
+  exists Relation.Id
   constructor; constructor
   simp only [Simulation]
   intro s1 s2 hr μ s1' htr
@@ -142,17 +142,17 @@ theorem SimulationEquiv.trans {s1 s2 s3 : State} (h1 : s1 ≤≥[lts] s2) (h2 : 
   case left =>
     obtain ⟨r1, hr1, hr1s⟩ := h1l
     obtain ⟨r2, hr2, hr2s⟩ := h2l
-    exists r1.comp r2
+    exists Relation.Comp r1 r2
     constructor
-    · simp only [Rel.comp]
+    · simp only [Relation.Comp]
       exists s2
     · apply Simulation.comp lts r1 r2 hr1s hr2s
   case right =>
     obtain ⟨r1, hr1, hr1s⟩ := h1r
     obtain ⟨r2, hr2, hr2s⟩ := h2r
-    exists r2.comp r1
+    exists Relation.Comp r2 r1
     constructor
-    · simp only [Rel.comp]
+    · simp only [Relation.Comp]
       exists s2
     · apply Simulation.comp lts r2 r1 hr2s hr1s
 
