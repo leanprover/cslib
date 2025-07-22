@@ -26,9 +26,9 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless
 
-/-- Syntax of locally nameless absbda terms, with free variables over `Var`. -/
+/-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type u)
-/-- Bound variables that appear under a absbda abstraction, using a de-Bruijn index. -/
+/-- Bound variables that appear under a lambda abstraction, using a de-Bruijn index. -/
 | bvar : ℕ → Term Var
 /-- Free variables. -/
 | fvar : Var → Term Var
