@@ -11,7 +11,7 @@ import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.FullBetaConflu
 
 /-! # λ-calculus
 
-Typing preservation of the simply typed λ-calculus, with a locally nameless representation of syntax.
+Typing safety of the simply typed λ-calculus, with a locally nameless representation of syntax.
 
 ## References
 
