@@ -6,7 +6,10 @@ Authors: Thomas Waring
 import Mathlib.Logic.Relation
 import Cslib.Utils.Relation
 import Cslib.Semantics.ReductionSystem.Basic
+<<<<<<< HEAD
 import Cslib.Data.Relation
+=======
+>>>>>>> 9de7e5f (reduction system attribute)
 
 /-!
 # SKI Combinatory Logic
@@ -84,6 +87,7 @@ inductive Red : SKI → SKI → Prop where
 
 open Red ReductionSystem
 
+<<<<<<< HEAD
 lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
   | red_S _ _ _, h => by cases h
   | red_K _ _, h => by cases h
@@ -95,6 +99,12 @@ theorem MRed.S (x y z : SKI) : (S ⬝ x ⬝ y ⬝ z) ↠ (x ⬝ z ⬝ (y ⬝ z))
 theorem MRed.K (x y : SKI) : (K ⬝ x ⬝ y) ↠ x := MRed.single RedSKI <| red_K ..
 theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := MRed.single RedSKI <| red_I ..
 
+=======
+theorem MRed.S (x y z : SKI) : (S ⬝ x ⬝ y ⬝ z) ↠ (x ⬝ z ⬝ (y ⬝ z)) := MRed.single RedSKI <| red_S ..
+theorem MRed.K (x y : SKI) : (K ⬝ x ⬝ y) ↠ x := MRed.single RedSKI <| red_K ..
+theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := MRed.single RedSKI <| red_I ..
+
+>>>>>>> 9de7e5f (reduction system attribute)
 theorem MRed.head {a a' : SKI} (b : SKI) (h : a ↠ a') : (a ⬝ b) ↠ (a' ⬝ b) := by
   induction h with
   | refl => apply MRed.refl
