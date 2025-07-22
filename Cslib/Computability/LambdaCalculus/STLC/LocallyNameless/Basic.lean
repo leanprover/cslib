@@ -5,6 +5,7 @@ Authors: Chris Henson
 -/
 
 import Cslib.Computability.LambdaCalculus.STLC.LocallyNameless.Context
+import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Basic
 
 /-! # λ-calculus
 
