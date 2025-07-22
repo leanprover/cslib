@@ -161,6 +161,7 @@ theorem preservation_confluence :
   exact ab
   exact bd
 
+omit [HasFresh Var] in
 /-- A typed term either reduces or is a value. -/
 theorem progress : ([] : Ctx Var Ty) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
   intros der
@@ -173,4 +174,15 @@ theorem progress : ([] : Ctx Var Ty) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢�
     apply Term.LC.abs xs
     intros _ mem'
     exact (mem _ mem').lc
-  case app t _ _ t' der_l der_r ih_l ih_r => sorry
+  case app Γ M σ τ N der_l der_r ih_l ih_r => 
+    simp only [eq, forall_const] at *
+    right
+    cases ih_l
+    -- if the lhs is a value, beta reduce the application
+    next val =>
+      cases val
+      next M M_abs_lc => exact ⟨M ^ N, FullBeta.beta M_abs_lc der_r.lc⟩
+    -- otherwise, propogate the step to the lhs of the application
+    next step =>
+      obtain ⟨M', stepM⟩ := step
+      exact ⟨M'.app N, FullBeta.appR der_r.lc stepM⟩ 
