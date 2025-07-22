@@ -64,7 +64,7 @@ lemma weakening_strengthened :
   weakening_strengthened_eq rfl
 
 /-- Weakening of a typing derivation by an additional context. -/
-lemma weakening : Γ ⊢ t ∶ T → (Γ ++ Δ).Ok → Γ ++ Δ ⊢ t ∶ T := by
+lemma weakening : Γ ⊢ t ∶ τ → (Γ ++ Δ).Ok → Γ ++ Δ ⊢ t ∶ τ := by
   intros der ok
   rw [←List.append_nil (Γ ++ Δ)] at *
   exact weakening_strengthened (by simp_all) ok
@@ -146,7 +146,7 @@ theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ :
   all_goals aesop
 
 /-- Typing preservation for multiple steps of reduction. -/
-theorem preservation_redex : Γ ⊢ t ∶ T → (t ↠βᶠ t') → Γ ⊢ t' ∶ T := by
+theorem preservation_redex : Γ ⊢ t ∶ τ → (t ↠βᶠ t') → Γ ⊢ t' ∶ τ := by
   intros der redex
   induction redex using Relation.ReflTransGen.trans_induction_on <;> aesop
 
