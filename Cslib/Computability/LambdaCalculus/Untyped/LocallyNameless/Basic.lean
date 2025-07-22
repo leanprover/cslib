@@ -145,4 +145,4 @@ inductive LC : Term Var → Prop
 | app {l r} : l.LC → r.LC → LC (app l r)
 
 inductive Value : Term Var → Prop
-| abs (e : Term Var) : e.abs.LC → Value e.abs
+| abs (e : Term Var) : e.abs.LC → e.abs.Value
