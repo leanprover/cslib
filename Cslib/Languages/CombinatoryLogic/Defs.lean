@@ -6,10 +6,7 @@ Authors: Thomas Waring
 import Mathlib.Logic.Relation
 import Cslib.Utils.Relation
 import Cslib.Semantics.ReductionSystem.Basic
-<<<<<<< HEAD
 import Cslib.Data.Relation
-=======
->>>>>>> 9de7e5f (reduction system attribute)
 
 /-!
 # SKI Combinatory Logic
@@ -88,6 +85,9 @@ inductive Red : SKI → SKI → Prop where
 open Red ReductionSystem
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9625db3 (evaluation results)
 lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
   | red_S _ _ _, h => by cases h
   | red_K _ _, h => by cases h
