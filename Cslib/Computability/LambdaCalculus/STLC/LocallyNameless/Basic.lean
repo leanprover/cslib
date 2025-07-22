@@ -40,8 +40,11 @@ open Term Ty
 /-- An extrinsic typing derivation for locally nameless terms. -/
 @[aesop unsafe [constructors (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]]
 inductive Typing : Ctx Var Ty → Term Var → Ty → Prop
+/-- Free variables, from a context judgement. -/
 | var : Γ.Ok → (x,σ) ∈ Γ → Typing Γ (fvar x) σ
+/-- Lambda abstraction. -/
 | abs (L : Finset Var) : (∀ x ∉ L, Typing ((x,σ) :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ) 
+/-- Function application. -/
 | app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
 
 scoped notation:50 Γ " ⊢ " t " ∶" τ:arg => Typing Γ t τ
