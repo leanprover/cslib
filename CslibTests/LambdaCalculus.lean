@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.LambdaCalculus.Untyped.Named.Basic
+import Cslib.Computability.LambdaCalculus.Named.Untyped.Basic
 
 open LambdaCalculus.Named
 open LambdaCalculus.Named.Term

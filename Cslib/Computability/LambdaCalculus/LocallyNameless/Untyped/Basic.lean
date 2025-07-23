@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 import Cslib.Data.HasFresh
 import Cslib.Syntax.HasSubstitution
-import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.AesopRuleset
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.AesopRuleset
 
 /-! # λ-calculus
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.AesopRuleset
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.AesopRuleset
 import Mathlib.Data.Finset.Defs
 import Mathlib.Data.Finset.Dedup
 
