@@ -23,7 +23,7 @@ universe u
 
 variable {Var : Type u} [DecidableEq Var]
 
-namespace LambdaCalculus.LocallyNameless
+namespace LambdaCalculus.LocallyNameless.STLC
 
 /-- Types of the simply typed lambda calculus. -/
 inductive Ty

@@ -25,7 +25,7 @@ universe u
 
 variable {Var : Type u} [DecidableEq Var]
 
-namespace LambdaCalculus.LocallyNameless.Typing
+namespace LambdaCalculus.LocallyNameless.STLC.Typing
 
 variable {Γ Δ Φ : Ctx Var Ty}
 
@@ -127,11 +127,11 @@ theorem preservation_opening {xs : Finset Var} :
   rw [subst_intro fresh n m (by aesop) der.lc]
   refine typing_subst (mem fresh (by aesop)) der
 
-end Typing
+end STLC.Typing
 
 namespace Term.FullBeta
 
-open Typing
+open STLC Typing
 
 variable [HasFresh Var] {Γ : Ctx Var Ty}
 
