@@ -22,10 +22,6 @@ instance {α : Type u} {β : Type v} : Union (α → β → Prop) where
 /-- Inverse of a relation. -/
 def Relation.inv (r : α → β → Prop) : β → α → Prop := flip r
 
--- /-- Composition of two relations. -/
--- def Relation.comp (r : α → β → Prop) (s : β → γ → Prop) : α → γ → Prop :=
---   fun x z => ∃ y, r x y ∧ s y z
-
 /-- The relation `r` 'up to' the relation `s`. -/
 def Relation.upTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
 

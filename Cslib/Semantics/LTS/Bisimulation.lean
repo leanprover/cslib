@@ -174,8 +174,7 @@ theorem Bisimulation.comp
     exists s2''
     constructor
     · exact h2'tr
-    · simp only [Relation.Comp]
-      exists s1''
+    · exists s1''
   case right =>
     intro s2' htr
     rcases hrc with ⟨sb, hr1, hr2⟩
@@ -188,8 +187,7 @@ theorem Bisimulation.comp
     exists s1''
     constructor
     · exact h1'tr
-    · simp only [Relation.Comp]
-      exists s2''
+    · exists s2''
 
 /-- Bisimilarity is transitive. -/
 theorem Bisimilarity.trans
@@ -200,7 +198,6 @@ theorem Bisimilarity.trans
   exists Relation.Comp r1 r2
   constructor
   case left =>
-    simp only [Relation.Comp]
     exists s2
   case right =>
     apply Bisimulation.comp lts r1 r2 hr1b hr2b
@@ -296,8 +293,7 @@ theorem Bisimulation.upTo_bisimulation (r : State → State → Prop) (h : Bisim
       constructor
       · apply Bisimilarity.trans lts (Bisimilarity.largest_bisimulation lts r1 hr1b _ _ hs1b'r)
           hsmidb
-      · simp only [Relation.Comp]
-        exists smid2
+      · exists smid2
         constructor
         · exact hsmidr
         · apply Bisimilarity.trans lts hsmidrb
@@ -313,7 +309,6 @@ theorem Bisimulation.upTo_bisimulation (r : State → State → Prop) (h : Bisim
       exact hs1btr
     case right =>
       obtain ⟨smid1, hsmidb, smid2, hsmidr, hsmidrb⟩ := hs1b'r
-      simp only [Relation.upTo, Relation.Comp]
       constructor
       constructor
       · apply Bisimilarity.trans lts (Bisimilarity.largest_bisimulation lts r1 hr1b _ _ _) hsmidb
@@ -1079,8 +1074,7 @@ theorem WeakBisimulation.comp
     exists s2''
     constructor
     · exact h2'tr
-    · simp only [Relation.Comp]
-      exists s1''
+    · exists s1''
   case right =>
     intro s2' htr
     rcases hrc with ⟨sb, hr1, hr2⟩
@@ -1093,8 +1087,7 @@ theorem WeakBisimulation.comp
     exists s1''
     constructor
     · exact h1'tr
-    · simp only [Relation.Comp]
-      exists s2''
+    · exists s2''
 
 /-- The composition of two sw-bisimulations is an sw-bisimulation. -/
 theorem SWBisimulation.comp
@@ -1116,7 +1109,6 @@ theorem WeakBisimilarity.trans
   exists Relation.Comp r1 r2
   constructor
   case left =>
-    simp only [Relation.Comp]
     exists s2
   case right =>
     apply WeakBisimulation.comp lts r1 r2 hr1b hr2b

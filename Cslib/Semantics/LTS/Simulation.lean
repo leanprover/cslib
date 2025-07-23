@@ -88,8 +88,7 @@ theorem Simulation.comp
   exists s2''
   constructor
   · exact h2'tr
-  · simp only [Relation.Comp]
-    exists s1''
+  · exists s1''
 
 /-- Similarity is transitive. -/
 theorem Similarity.trans (h1 : s1 ≤[lts] s2) (h2 : s2 ≤[lts] s3) : s1 ≤[lts] s3 := by
@@ -98,7 +97,6 @@ theorem Similarity.trans (h1 : s1 ≤[lts] s2) (h2 : s2 ≤[lts] s3) : s1 ≤[lt
   exists Relation.Comp r1 r2
   constructor
   case left =>
-    simp only [Relation.Comp]
     exists s2
   case right =>
     apply Simulation.comp lts r1 r2 hr1s hr2s
@@ -144,16 +142,14 @@ theorem SimulationEquiv.trans {s1 s2 s3 : State} (h1 : s1 ≤≥[lts] s2) (h2 : 
     obtain ⟨r2, hr2, hr2s⟩ := h2l
     exists Relation.Comp r1 r2
     constructor
-    · simp only [Relation.Comp]
-      exists s2
+    · exists s2
     · apply Simulation.comp lts r1 r2 hr1s hr2s
   case right =>
     obtain ⟨r1, hr1, hr1s⟩ := h1r
     obtain ⟨r2, hr2, hr2s⟩ := h2r
     exists Relation.Comp r2 r1
     constructor
-    · simp only [Relation.Comp]
-      exists s2
+    · exists s2
     · apply Simulation.comp lts r2 r1 hr2s hr1s
 
 /-- Simulation equivalence is an equivalence relation. -/
