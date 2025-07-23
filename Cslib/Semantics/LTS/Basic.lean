@@ -57,22 +57,6 @@ structure LTS (State : Type u) (Label : Type v) where
   /-- The transition relation. -/
   Tr : State → Label → State → Prop
 
-section Relation
-
-/-- Given an `lts` and a transition label `μ`, returns the relation that relates all states `s1`
-and `s2` such that `lts.Tr s1 μ s2`.
-
-This can be useful, for example, to see a reduction relation as an LTS. -/
-def LTS.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
-  fun s1 s2 => lts.Tr s1 μ s2
-
-/-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
-def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
-  LTS State Label where
-  Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
-
-end Relation
-
 section MultiStep
 
 /-! ## Multi-step transitions -/
@@ -545,6 +529,57 @@ def LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) : Prop :=
 
 end Divergence
 
+section Relation
+
+/-- Returns the relation that relates all states `s1` and `s2` via a fixed transition label `μ`. -/
+def LTS.Tr.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
+  fun s1 s2 => lts.Tr s1 μ s2
+
+/-- Returns the relation that relates all states `s1` and `s2` via a fixed list of transition labels `μs`. -/
+def LTS.MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
+  fun s1 s2 => lts.MTr s1 μs s2
+
+/-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
+def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
+  LTS State Label where
+  Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
+
+end Relation
+
+section Trans
+
+/-! ## Support for the calc tactic -/
+
+/-- Transitions can be chained. -/
+instance (lts : LTS State Label) : Trans (LTS.Tr.toRelation lts μ1) (LTS.Tr.toRelation lts μ2) (LTS.MTr.toRelation lts [μ1, μ2]) where
+  trans := by
+    intro s1 s2 s3 htr1 htr2
+    apply LTS.MTr.single at htr1
+    apply LTS.MTr.single at htr2
+    apply LTS.MTr.comp lts htr1 htr2
+
+/-- Transitions can be chained with multi-step transitions. -/
+instance (lts : LTS State Label) : Trans (LTS.Tr.toRelation lts μ) (LTS.MTr.toRelation lts μs) (LTS.MTr.toRelation lts (μ :: μs)) where
+  trans := by
+    intro s1 s2 s3 htr1 hmtr2
+    apply LTS.MTr.single at htr1
+    apply LTS.MTr.comp lts htr1 hmtr2
+
+/-- Multi-step transitions can be chained with transitions. -/
+instance (lts : LTS State Label) : Trans (LTS.MTr.toRelation lts μs) (LTS.Tr.toRelation lts μ) (LTS.MTr.toRelation lts (μs ++ [μ])) where
+  trans := by
+    intro s1 s2 s3 hmtr1 htr2
+    apply LTS.MTr.single at htr2
+    apply LTS.MTr.comp lts hmtr1 htr2
+
+/-- Multi-step transitions can be chained. -/
+instance (lts : LTS State Label) : Trans (LTS.MTr.toRelation lts μs1) (LTS.MTr.toRelation lts μs2) (LTS.MTr.toRelation lts (μs1 ++ μs2)) where
+  trans := by
+    intro s1 s2 s3 hmtr1 hmtr2
+    apply LTS.MTr.comp lts hmtr1 hmtr2
+
+end Trans
+
 open Lean Elab Meta Command Term
 
 /-- A command to create an `LTS` from a labelled transition `α → β → α → Prop`, robust to use of `variable `-/
@@ -577,29 +612,29 @@ elab "create_lts" lt:ident name:ident : command => do
       addDeclarationRangesFromSyntax name.getId name
 
 /--
-  This command adds notations for an `LTS.Tr`. This should not usually be called directly, but from
+  This command adds transition notations for an `LTS`. This should not usually be called directly, but from
   the `lts` attribute.
 
-  As an example `lts_reduction_notation foo "β"` will add the notations "[⬝]⭢β" and "[⬝]↠β"
+  As an example `lts_transition_notation foo "β"` will add the notations "[⬝]⭢β" and "[⬝]↠β"
 
   Note that the string used will afterwards be registered as a notation. This means that if you have
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "lts_reduction_notation" ident (Lean.Parser.Command.notationItem)? : command
+syntax "lts_transition_notation" ident (Lean.Parser.Command.notationItem)? : command
 macro_rules
-  | `(lts_reduction_notation $lts $sym) =>
+  | `(lts_transition_notation $lts $sym) =>
     `(
-      notation:39 t "["μ"]⭢"$sym t' => (LTS.Tr $lts) t μ t'
-      notation:39 t "["μ"]↠"$sym t' => (LTS.MTr $lts) t μ t'
+      notation:39 t "["μ"]⭢"$sym t' => (LTS.Tr.toRelation $lts μ) t t'
+      notation:39 t "["μs"]↠"$sym t' => (LTS.MTr.toRelation $lts μs) t t'
      )
-  | `(lts_reduction_notation $lts) =>
+  | `(lts_transition_notation $lts) =>
     `(
-      notation:39 t "["μ"]⭢" t' => (LTS.Tr $lts) t μ t'
-      notation:39 t "["μ"]↠" t' => (LTS.MTr $lts) t μ t'
+      notation:39 t "["μ"]⭢" t' => (LTS.Tr.toRelation $lts μ) t t'
+      notation:39 t "["μs"]↠" t' => (LTS.MTr.toRelation $lts μs) t t'
      )
 
-/-- This attribute calls the `lts_reduction_notation` command for the annotated declaration. -/
+/-- This attribute calls the `lts_transition_notation` command for the annotated declaration. -/
 syntax (name := lts_attr) "lts" ident (Lean.Parser.Command.notationItem)? : attr
 
 initialize Lean.registerBuiltinAttribute {
@@ -609,9 +644,9 @@ initialize Lean.registerBuiltinAttribute {
     match stx with
     | `(attr | lts $lts $sym) =>
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-        liftCommandElabM <| Command.elabCommand (← `(lts_reduction_notation $lts $sym))
+        liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts $sym))
     | `(attr | lts $lts) =>
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-        liftCommandElabM <| Command.elabCommand (← `(lts_reduction_notation $lts))
+        liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts))
     | _ => throwError "invalid syntax for 'lts' attribute"
 }
