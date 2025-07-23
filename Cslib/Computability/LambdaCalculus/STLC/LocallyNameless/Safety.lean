@@ -76,18 +76,20 @@ variable [HasFresh Var]
 
 open Term
 
-private lemma subst_strengthened_eq (eq : Φ = Δ ++ (x, σ) :: Γ) :
-    Φ ⊢ t ∶ τ →
+/-- Substitution for a context weakened by a single type between appended contexts. -/
+lemma subst_strengthened :
+    (Δ ++ (x, σ) :: Γ) ⊢ t ∶ τ →
     Γ ⊢ s ∶ σ → 
     (Δ ++ Γ) ⊢ (t [x := s]) ∶ τ := by
+  generalize  eq : Δ ++ (x, σ) :: Γ = Φ
   intros h
   revert Γ Δ
   induction h <;> intros Γ Δ eq der
   case app => aesop
   case var x' τ ok mem => 
     simp only [subst_fvar]
-    rw [eq] at mem
-    rw [eq] at ok
+    rw [←eq] at mem
+    rw [←eq] at ok
     cases (Ctx.perm (by aesop) ok : @Ctx.Ok Var Ty _ ((x, σ) :: Δ ++ Γ))
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
@@ -106,12 +108,6 @@ private lemma subst_strengthened_eq (eq : Φ = Δ ++ (x, σ) :: Γ) :
       ]
     apply ih 
     all_goals aesop  
-
-/-- Substitution for a context weakened by a single type between appended contexts. -/
-lemma subst_strengthened :
-  (Δ ++ (x, σ) :: Γ) ⊢ t ∶ τ →
-  Γ ⊢ s ∶ σ → 
-  (Δ ++ Γ) ⊢ (t [x := s]) ∶ τ := subst_strengthened_eq rfl
 
 /-- Substitution for a context weakened by a single type. -/
 lemma typing_subst : 
