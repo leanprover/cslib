@@ -127,7 +127,15 @@ theorem preservation_opening {xs : Finset Var} :
   rw [subst_intro fresh n m (by aesop) der.lc]
   refine typing_subst (mem fresh (by aesop)) der
 
-/-- Typing preservation. -/
+end Typing
+
+namespace Term.FullBeta
+
+open Typing
+
+variable [HasFresh Var] {Γ : Ctx Var Ty}
+
+/-- Typing preservation for full beta reduction. -/
 @[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ := by
   intros der
@@ -137,12 +145,12 @@ theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ :
   case' app.beta der_l _ _ => cases der_l
   all_goals aesop
 
-/-- Typing preservation for multiple steps of reduction. -/
+/-- Typing preservation for multiple steps of full beta reduction. -/
 theorem preservation_redex : Γ ⊢ t ∶ τ → (t ↠βᶠ t') → Γ ⊢ t' ∶ τ := by
   intros der redex
   induction redex using Relation.ReflTransGen.trans_induction_on <;> aesop
 
-/-- Typing preservation for confluence. -/
+/-- Typing preservation for full beta confluence. -/
 theorem preservation_confluence :
     Γ ⊢ a ∶ τ → (a ↠βᶠ b) → (a ↠βᶠ c) → 
     ∃ d, (b ↠βᶠ d) ∧ (c ↠βᶠ d) ∧ Γ ⊢ d ∶ τ := by
@@ -154,7 +162,7 @@ theorem preservation_confluence :
   exact bd
 
 omit [HasFresh Var] in
-/-- A typed term either reduces or is a value. -/
+/-- A typed term either full beta reduces or is a value. -/
 theorem progress : ([] : Ctx Var Ty) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
   intros der
   generalize eq : [] = Γ at der
@@ -178,3 +186,5 @@ theorem progress : ([] : Ctx Var Ty) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢�
     next step =>
       obtain ⟨M', stepM⟩ := step
       exact ⟨M'.app N, FullBeta.appR der_r.lc stepM⟩ 
+
+end Term.FullBeta
