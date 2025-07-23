@@ -43,9 +43,10 @@ theorem perm : Γ.Perm Δ → Γ ⊢ t ∶ τ → Δ ⊢ t ∶ τ := by
     intros x mem
     exact ih x mem (by aesop)
 
-open List Finset in
-private lemma weakening_strengthened_eq (eq : Γ_Δ  = Γ ++ Δ) : 
-    Γ_Δ  ⊢ t ∶ τ → (Γ ++ Φ ++ Δ).Ok → (Γ ++ Φ ++ Δ) ⊢ t ∶ τ := by
+/-- Weakening of a typing derivation with an appended context. -/
+lemma weakening_strengthened : 
+    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Φ ++ Δ).Ok → (Γ ++ Φ ++ Δ) ⊢ t ∶ τ := by
+  generalize eq : Γ ++ Δ = Γ_Δ
   intros h
   revert Γ Δ Φ
   induction h <;> intros Γ Δ Φ eq ok_Γ_Φ_Δ
@@ -54,14 +55,9 @@ private lemma weakening_strengthened_eq (eq : Γ_Δ  = Γ ++ Δ) :
   case abs σ Γ' τ t xs ext ih =>
     apply Typing.abs (xs ∪ (Γ ++ Φ ++ Δ).dom)
     intros x _
-    have h : (x, σ) :: Γ' = (x, σ) :: Γ ++ Δ := by aesop
+    have h : (x, σ) :: Γ ++ Δ = (x, σ) :: Γ' := by aesop
     refine @ih x (by aesop) _ _ Φ h ?_
     constructor <;> aesop
-
-/-- Weakening of a typing derivation with an appended context. -/
-lemma weakening_strengthened : 
-    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Φ ++ Δ).Ok → (Γ ++ Φ ++ Δ) ⊢ t ∶ τ :=
-  weakening_strengthened_eq rfl
 
 /-- Weakening of a typing derivation by an additional context. -/
 lemma weakening : Γ ⊢ t ∶ τ → (Γ ++ Δ).Ok → Γ ++ Δ ⊢ t ∶ τ := by
