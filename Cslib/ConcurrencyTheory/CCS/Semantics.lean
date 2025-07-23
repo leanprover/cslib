@@ -15,7 +15,10 @@ import Cslib.ConcurrencyTheory.CCS.Basic
 
 -/
 
-variable {Name : Type u} {Constant : Type v} {defs : Rel Constant (CCS.Process Name Constant)}
+variable
+  {Name : Type u}
+  {Constant : Type v}
+  {defs : Constant → (CCS.Process Name Constant) → Prop}
 
 namespace CCS
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 import Mathlib.Logic.Relation
-import Cslib.Utils.Relation
+import Cslib.Data.Relation
 
 /-!
 # SKI Combinatory Logic

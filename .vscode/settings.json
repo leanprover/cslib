@@ -7,7 +7,11 @@
 		"eppr": "⟧",
 		"merge": "⊔",
 		"moreBranches": "⊒",
-		"par": "‖"
+		"par": "‖",
+		"tr": "⭢",
+		"mtr": "↠",
+		"red": "⭢",
+		"mred": "↠"
 	},
 	"editor.rulers": [
 		100

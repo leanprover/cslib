@@ -23,7 +23,7 @@ theorem NatTr.dom : NatTr n μ m → (n = 1 ∨ n = 2) ∧ (m = 1 ∨ m = 2) := 
 
 def natLts : LTS ℕ ℕ := ⟨NatTr⟩
 
-inductive NatBisim : Rel ℕ ℕ where
+inductive NatBisim : ℕ → ℕ → Prop where
 | one_one : NatBisim 1 1
 | one_two : NatBisim 1 2
 | two_one : NatBisim 2 1
