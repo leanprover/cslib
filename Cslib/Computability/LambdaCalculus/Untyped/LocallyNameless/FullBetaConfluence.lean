@@ -7,7 +7,7 @@ Authors: Chris Henson
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Basic
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.Properties
 import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.FullBeta
-import Cslib.Utils.Relation
+import Cslib.Data.Relation
 
 /-! # β-confluence for the λ-calculus -/
 

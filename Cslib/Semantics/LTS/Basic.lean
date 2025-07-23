@@ -7,7 +7,6 @@ Authors: Fabrizio Montesi
 import Mathlib.Tactic.Lemma
 import Mathlib.Data.Finite.Defs
 import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Rel
 import Mathlib.Logic.Function.Defs
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Stream.Defs
@@ -64,11 +63,12 @@ section Relation
 and `s2` such that `lts.Tr s1 μ s2`.
 
 This can be useful, for example, to see a reduction relation as an LTS. -/
-def LTS.toRel (lts : LTS State Label) (μ : Label) : Rel State State :=
+def LTS.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
   fun s1 s2 => lts.Tr s1 μ s2
 
 /-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
-def Rel.toLTS [DecidableEq Label] (r : Rel State State) (μ : Label) : LTS State Label where
+def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
+  LTS State Label where
   Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
 
 end Relation
@@ -576,9 +576,9 @@ elab "create_lts" lt:ident name:ident : command => do
       addTermInfo' name (.const name.getId params) (isBinder := true)
       addDeclarationRangesFromSyntax name.getId name
 
-/-- 
+/--
   This command adds notations for an `LTS.Tr`. This should not usually be called directly, but from
-  the `lts` attribute. 
+  the `lts` attribute.
 
   As an example `lts_reduction_notation foo "β"` will add the notations "[⬝]⭢β" and "[⬝]↠β"
 
@@ -588,12 +588,12 @@ elab "create_lts" lt:ident name:ident : command => do
 -/
 syntax "lts_reduction_notation" ident (Lean.Parser.Command.notationItem)? : command
 macro_rules
-  | `(lts_reduction_notation $lts $sym) => 
+  | `(lts_reduction_notation $lts $sym) =>
     `(
       notation:39 t "["μ"]⭢"$sym t' => (LTS.Tr $lts) t μ t'
       notation:39 t "["μ"]↠"$sym t' => (LTS.MTr $lts) t μ t'
      )
-  | `(lts_reduction_notation $lts) => 
+  | `(lts_reduction_notation $lts) =>
     `(
       notation:39 t "["μ"]⭢" t' => (LTS.Tr $lts) t μ t'
       notation:39 t "["μ"]↠" t' => (LTS.MTr $lts) t μ t'

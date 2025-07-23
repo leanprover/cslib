@@ -23,13 +23,13 @@ Additionally, some standard laws of bisimilarity for CCS, including:
 
 section CCS.BehaviouralTheory
 
-variable {Name : Type u} {Constant : Type v} {defs : Rel Constant (CCS.Process Name Constant)}
+variable {Name : Type u} {Constant : Type v} {defs : Constant → (CCS.Process Name Constant) → Prop}
 
 open CCS CCS.Process CCS.Act
 
 namespace CCS
 
-private inductive ParNil : Rel (Process Name Constant) (Process Name Constant) where
+private inductive ParNil : (Process Name Constant) → (Process Name Constant) → Prop where
 | parNil : ParNil (par p nil) p
 
 /-- P | 𝟎 ~ P -/
@@ -60,7 +60,7 @@ theorem bisimilarity_par_nil (p : Process Name Constant) : (par p nil) ~[@lts Na
     case right =>
       constructor
 
-private inductive ParComm : Rel (Process Name Constant) (Process Name Constant) where
+private inductive ParComm : (Process Name Constant) → (Process Name Constant) → Prop where
 | parComm : ParComm (par p q) (par q p)
 
 /-- P | Q ~ Q | P -/
@@ -114,7 +114,7 @@ theorem bisimilarity_par_comm (p q : Process Name Constant) : (par p q) ~[@lts N
             apply Tr.com htrq htrp
           . constructor
 
-private inductive ChoiceComm : Rel (Process Name Constant) (Process Name Constant) where
+private inductive ChoiceComm : (Process Name Constant) → (Process Name Constant) → Prop where
 | choiceComm : ChoiceComm (choice p q) (choice q p)
 | bisim : (p ~[@lts Name Constant defs] q) → ChoiceComm p q
 
@@ -166,7 +166,7 @@ theorem bisimilarity_choice_comm : (choice p q) ~[@lts Name Constant defs] (choi
       apply And.intro htr1
       constructor; assumption
 
-private inductive PreBisim : Rel (Process Name Constant) (Process Name Constant) where
+private inductive PreBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | pre : (p ~[@lts Name Constant defs] q) → PreBisim (pre μ p) (pre μ q)
 | bisim : (p ~[@lts Name Constant defs] q) → PreBisim p q
 
@@ -217,7 +217,7 @@ theorem bisimilarity_congr_pre : (p ~[@lts Name Constant defs] q) → (pre μ p)
       constructor
       apply Bisimilarity.largest_bisimulation _ r hbisim s1' s2' hr1
 
-private inductive ResBisim : Rel (Process Name Constant) (Process Name Constant) where
+private inductive ResBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | res : (p ~[@lts Name Constant defs] q) → ResBisim (res a p) (res a q)
 -- | bisim : (p ~[@lts Name Constant defs] q) → ResBisim p q
 
@@ -250,7 +250,7 @@ theorem bisimilarity_congr_res : (p ~[@lts Name Constant defs] q) → (res a p) 
     constructor; constructor; repeat assumption
     constructor; assumption
 
-private inductive ChoiceBisim : Rel (Process Name Constant) (Process Name Constant) where
+private inductive ChoiceBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | choice : (p ~[@lts Name Constant defs] q) → ChoiceBisim (choice p r) (choice q r)
 | bisim : (p ~[@lts Name Constant defs] q) → ChoiceBisim p q
 
@@ -315,7 +315,7 @@ theorem bisimilarity_congr_choice : (p ~[@lts Name Constant defs] q) → (choice
       constructor
       apply Bisimilarity.largest_bisimulation _ _ hb _ _ hr1
 
-private inductive ParBisim : Rel (Process Name Constant) (Process Name Constant) where
+private inductive ParBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | par : (p ~[@lts Name Constant defs] q) → ParBisim (par p r) (par q r)
 
 /-- P ~ Q → P | R ~ Q | R-/

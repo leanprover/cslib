@@ -1,13 +1,37 @@
 /-
-Copyright (c) 2025 Thomas Waring. All rights reserved.
+Copyright (c) 2025 Fabrizio Montesi and Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Waring, Chris Henson
+Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 -/
+
 import Mathlib.Logic.Relation
 
-universe u
+/-! # Relations -/
 
-variable {α : Type u} {R R' : α → α → Prop}
+universe u v
+
+section Relation
+
+/-- Union of two relations. -/
+def Relation.union (r s : α → β → Prop) : α → β → Prop :=
+  fun x y => r x y ∨ s x y
+
+instance {α : Type u} {β : Type v} : Union (α → β → Prop) where
+  union := Relation.union
+
+/-- Inverse of a relation. -/
+def Relation.inv (r : α → β → Prop) : β → α → Prop := flip r
+
+-- /-- Composition of two relations. -/
+-- def Relation.comp (r : α → β → Prop) (s : β → γ → Prop) : α → γ → Prop :=
+--   fun x z => ∃ y, r x y ∧ s y z
+
+/-- The relation `r` 'up to' the relation `s`. -/
+def Relation.upTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
+
+/-- The identity relation. -/
+inductive Relation.Id : α → α → Prop where
+| id {x : α} : Id x x
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C → (∃ D, R B D ∧ R C D)
@@ -16,9 +40,9 @@ abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C →
 abbrev Confluence (R : α → α → Prop) := Diamond (Relation.ReflTransGen R)
 
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
-lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) : 
-  Relation.ReflTransGen R A B → 
-  R A C → 
+lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
+  Relation.ReflTransGen R A B →
+  R A C →
   ∃ D, Relation.ReflTransGen R B D ∧ Relation.ReflTransGen R C D := by
   intros AB _
   revert C
@@ -75,3 +99,5 @@ theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
   constructor
   . exact Relation.ReflGen.single hd.1
   . exact Relation.ReflTransGen.single hd.2
+
+end Relation

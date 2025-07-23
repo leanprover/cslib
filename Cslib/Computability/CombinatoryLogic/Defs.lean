@@ -6,6 +6,7 @@ Authors: Thomas Waring
 import Mathlib.Logic.Relation
 import Cslib.Utils.Relation
 import Cslib.Semantics.ReductionSystem.Basic
+import Cslib.Data.Relation
 
 /-!
 # SKI Combinatory Logic

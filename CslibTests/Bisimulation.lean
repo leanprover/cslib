@@ -19,7 +19,7 @@ private inductive tr1 : ℕ → Char → ℕ → Prop where
 
 def lts1 := LTS.mk tr1
 
-private inductive Bisim15 : Rel ℕ ℕ where
+private inductive Bisim15 : ℕ → ℕ → Prop where
 | oneFive : Bisim15 1 5
 | twoSix : Bisim15 2 6
 | threeSeven : Bisim15 3 7
