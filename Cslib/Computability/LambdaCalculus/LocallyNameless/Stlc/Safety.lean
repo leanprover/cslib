@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Computability.LambdaCalculus.LocallyNameless.STLC.Basic
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Stlc.Basic
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.Basic
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.Properties
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
@@ -26,7 +26,7 @@ universe u v
 
 namespace LambdaCalculus.LocallyNameless
 
-open STLC Typing
+open Stlc Typing
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var] {R : Term Var → Term Var → Prop}
 

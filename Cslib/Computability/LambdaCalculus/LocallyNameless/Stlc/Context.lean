@@ -18,7 +18,7 @@ universe u v
 
 variable {Var : Type u} {Ty : Type v} [DecidableEq Var]
 
-namespace LambdaCalculus.LocallyNameless.STLC
+namespace LambdaCalculus.LocallyNameless.Stlc
 
 /-- A typing context is a list of free variables and corresponding types. -/
 abbrev Ctx (Var : Type u) (Ty : Type v) := List (Var × Ty)

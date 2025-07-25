@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Computability.LambdaCalculus.LocallyNameless.STLC.Context
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Stlc.Context
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # λ-calculus
@@ -23,7 +23,7 @@ universe u v
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var]
 
-namespace LambdaCalculus.LocallyNameless.STLC
+namespace LambdaCalculus.LocallyNameless.Stlc
 
 /-- Types of the simply typed lambda calculus. -/
 inductive Ty (Base : Type v)
