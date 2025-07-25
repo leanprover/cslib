@@ -27,7 +27,7 @@ namespace Ctx
 
 /-- The domain of a context is the finite set of free variables it uses. -/
 @[simp]
-def dom : Ctx Var Ty → Finset Var := λ Γ ↦ Γ.map Prod.fst |>.toFinset
+def dom : Ctx Var Ty → Finset Var := List.toFinset ∘ List.map Prod.fst
 
 /-- A well-formed context. -/
 inductive Ok : Ctx Var Ty → Prop
