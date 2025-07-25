@@ -148,4 +148,4 @@ theorem preservation_opening {xs : Finset Var} :
   intros mem der
   have ⟨fresh, free⟩ := fresh_exists (xs ∪ m.fv)
   rw [subst_intro fresh n m (by aesop) der.lc]
-  refine typing_subst (mem fresh (by aesop)) der
+  exact typing_subst (mem fresh (by aesop)) der
