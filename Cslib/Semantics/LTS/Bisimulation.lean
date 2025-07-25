@@ -19,7 +19,8 @@ these transitions remain related by the bisimulation.
 Bisimilarity is the largest bisimulation: given an `LTS`, it relates any two states that are related
 by a bisimulation for that LTS.
 
-Weak bisimulation (resp. bisimilarity) is the relaxed version of bisimulation (resp. bisimilarity) whereby internal actions performed by processes can be ignored.
+Weak bisimulation (resp. bisimilarity) is the relaxed version of bisimulation (resp. bisimilarity)
+whereby internal actions performed by processes can be ignored.
 
 For an introduction to theory of bisimulation, we refer to [Sangiorgi2011].
 
@@ -57,7 +58,8 @@ related by some sw-bisimulation on `lts`.
 trace equivalent (see `TraceEq`).
 - `Bisimilarity.deterministic_bisim_eq_traceEq`: in a deterministic LTS, bisimilarity and trace
 equivalence coincide.
-- `WeakBisimilarity.weakBisim_eq_swBisim`: weak bisimilarity and sw-bisimilarity coincide in all LTSs.
+- `WeakBisimilarity.weakBisim_eq_swBisim`: weak bisimilarity and sw-bisimilarity coincide in all
+LTSs.
 - `WeakBisimilarity.eqv`: weak bisimilarity is an equivalence relation.
 - `SWBisimilarity.eqv`: sw-bisimilarity is an equivalence relation.
 
@@ -251,6 +253,12 @@ theorem Bisimilarity.gfp (r : State → State → Prop) (h : Bisimulation lts r)
   simp only [max, SemilatticeSup.sup, eq_iff_iff, or_iff_left_iff_imp]
   apply Bisimilarity.largest_bisimulation lts r h
 
+/-- `calc` support for bisimilarity. -/
+instance : Trans (Bisimilarity lts) (Bisimilarity lts) (Bisimilarity lts) where
+  trans := Bisimilarity.trans lts
+
+/-! ## Bisimulation up-to -/
+
 /-- A relation `r` is a bisimulation up to bisimilarity if, whenever it relates two
 states in an lts, the transitions originating from these states mimic each other and the reached
 derivatives are themselves related by `r` up to bisimilarity. -/
@@ -346,7 +354,7 @@ theorem Bisimulation.bisim_trace
       case right =>
         exact hr'
 
-/-! ### Relation to trace equivalence -/
+/-! ## Relation to trace equivalence -/
 
 /-- Any bisimulation implies trace equivalence. -/
 theorem Bisimulation.bisim_traceEq
@@ -722,7 +730,7 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
   case mpr =>
     apply Bisimilarity.deterministic_traceEq_bisim lts hdet
 
-/-! ### Relation to simulation -/
+/-! ## Relation to simulation -/
 
 /-- Any bisimulation is also a simulation. -/
 theorem Bisimulation.is_simulation (lts : LTS State Label) (r : State → State → Prop) : Bisimulation lts r → Simulation lts r := by

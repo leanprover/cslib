@@ -73,12 +73,16 @@ theorem TraceEq.trans {s1 s2 s3 : State} (h1 : s1 ~tr[lts] s2) (h2 : s2 ~tr[lts]
   simp only [TraceEq] at h2
   rw [h1, h2]
 
-/-- Bisimilarity is an equivalence relation. -/
+/-- Trace equivalence is an equivalence relation. -/
 theorem TraceEq.eqv (lts : LTS State Label) : Equivalence (TraceEq lts) := {
     refl := TraceEq.refl lts
     symm := TraceEq.symm lts
     trans := TraceEq.trans lts
   }
+
+/-- `calc` support for simulation equivalence. -/
+instance : Trans (TraceEq lts) (TraceEq lts) (TraceEq lts) where
+  trans := TraceEq.trans lts
 
 /-- In a deterministic LTS, trace equivalence is a simulation. -/
 theorem TraceEq.deterministic_sim

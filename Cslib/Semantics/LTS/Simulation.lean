@@ -9,12 +9,12 @@ import Cslib.Data.Relation
 
 /-! # Simulation and Similarity
 
-A simulation is a binary relation on the states of an `LTS`: if two states `s1` and `s2` are related by a simulation, then
-`s2` can mimic all transitions of `s1`. Furthermore, the derivatives reaches through
-these transitions remain related by the simulation.
+A simulation is a binary relation on the states of an `LTS`: if two states `s1` and `s2` are
+related by a simulation, then `s2` can mimic all transitions of `s1`. Furthermore, the derivatives
+reaches through these transitions remain related by the simulation.
 
 Similarity is the largest simulation: given an `LTS`, it relates any two states that are related
-by a bisimulation for that LTS.
+by a simulation for that LTS.
 
 For an introduction to theory of simulation, we refer to [Sangiorgi2011].
 
@@ -115,11 +115,12 @@ notation s:max " ≤≥[" lts "] " s':max => SimulationEquiv lts s s'
 theorem SimulationEquiv.refl (s : State) : s ≤≥[lts] s := by
   simp [SimulationEquiv]
   exists Eq
-  constructor; rfl
-  simp only [Simulation]
-  intro s1 s2 hr μ s1' htr
-  cases hr
-  exists s1'
+  constructor
+  · rfl
+  · simp only [Simulation]
+    intro s1 s2 hr μ s1' htr
+    cases hr
+    exists s1'
 
 /-- Simulation equivalence is symmetric. -/
 theorem SimulationEquiv.symm {s1 s2 : State} (h : s1 ≤≥[lts] s2) : s2 ≤≥[lts] s1 := by
@@ -156,5 +157,13 @@ theorem SimulationEquiv.eqv (lts : LTS State Label) :
     symm := SimulationEquiv.symm lts
     trans := SimulationEquiv.trans lts
   }
+
+/-- `calc` support for simulation equivalence. -/
+instance :
+  Trans
+    (SimulationEquiv lts)
+    (SimulationEquiv lts)
+    (SimulationEquiv lts) where
+  trans := SimulationEquiv.trans lts
 
 end Simulation
