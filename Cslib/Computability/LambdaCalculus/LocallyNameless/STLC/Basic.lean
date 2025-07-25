@@ -33,7 +33,6 @@ inductive Ty (Base : Type v)
 | arrow : Ty Base → Ty Base → Ty Base
 
 scoped infixr:70 " ⤳ " => Ty.arrow
-scoped prefix:90 "~ " => Ty.base
 
 open Term Ty
 
