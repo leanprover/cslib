@@ -22,33 +22,34 @@ Theorems in this file are namespaced by their respective reductions.
 
 -/
 
-universe u
+universe u v
 
 namespace LambdaCalculus.LocallyNameless
 
 open STLC Typing
 
-variable {Var : Type u} [DecidableEq Var] {R : Term Var → Term Var → Prop}
+variable {Var : Type u} {Base : Type v} [DecidableEq Var] {R : Term Var → Term Var → Prop}
 
-def preserves (R : Term Var → Term Var → Prop) := ∀ {Γ t t' τ}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
+def preserves (R : Term Var → Term Var → Prop) (Base : Type v) := 
+  ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
 
 /-- If a reduction preserves types, so does its reflexive transitive closure. -/
 @[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-theorem preservation_redex : preserves R → preserves (Relation.ReflTransGen R) := by
+theorem preservation_redex : preserves R Base → preserves (Relation.ReflTransGen R) Base := by
   intros _ _ _ _ _ _ redex
   induction redex <;> aesop
 
 open Relation in
 /-- Confluence preserves type preservation. -/
-theorem preservation_confluence : 
-    Confluence R → preserves R → Γ ⊢ a ∶ τ → 
+theorem preservation_confluence {τ : Ty Base} : 
+    Confluence R → preserves R Base → Γ ⊢ a ∶ τ → 
     (ReflTransGen R) a b → (ReflTransGen R) a c →
     ∃ d, (ReflTransGen R) b d ∧ (ReflTransGen R) c d ∧ Γ ⊢ d ∶ τ := by
   intros con p der ab ac
   have ⟨d, bd, cd⟩ := con ab ac
   exact ⟨d, bd, cd, preservation_redex p der (ab.trans bd)⟩
  
-variable [HasFresh Var] {Γ : Ctx Var Ty}
+variable [HasFresh Var] {Γ : Ctx Var (Ty Base)}
 
 namespace Term.FullBeta
 
@@ -64,7 +65,7 @@ theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ :
 
 omit [HasFresh Var] in
 /-- A typed term either full beta reduces or is a value. -/
-theorem progress : ([] : Ctx Var Ty) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
+theorem progress : ([] : Ctx Var (Ty Base)) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
   intros der
   generalize eq : [] = Γ at der
   induction der

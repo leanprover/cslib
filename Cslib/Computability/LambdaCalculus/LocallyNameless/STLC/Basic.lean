@@ -19,18 +19,18 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
 
 -/
 
-universe u
+universe u v
 
-variable {Var : Type u} [DecidableEq Var]
+variable {Var : Type u} {Base : Type v} [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.STLC
 
 /-- Types of the simply typed lambda calculus. -/
-inductive Ty
+inductive Ty (Base : Type v)
 /-- A base type, from a typing context. -/
-| base : Ty
+| base : Base → Ty Base
 /-- A function type. -/
-| arrow : Ty → Ty → Ty
+| arrow : Ty Base → Ty Base → Ty Base
 
 scoped infixr:70 " ⤳ " => Ty.arrow
 scoped prefix:90 "~ " => Ty.base
@@ -39,7 +39,7 @@ open Term Ty
 
 /-- An extrinsic typing derivation for locally nameless terms. -/
 @[aesop unsafe [constructors (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]]
-inductive Typing : Ctx Var Ty → Term Var → Ty → Prop
+inductive Typing : Ctx Var (Ty Base) → Term Var → Ty Base → Prop
 /-- Free variables, from a context judgement. -/
 | var : Γ.Ok → (x,σ) ∈ Γ → Typing Γ (fvar x) σ
 /-- Lambda abstraction. -/
@@ -51,7 +51,7 @@ scoped notation:50 Γ " ⊢ " t " ∶" τ:arg => Typing Γ t τ
 
 namespace Typing
 
-variable {Γ Δ Φ : Ctx Var Ty}
+variable {Γ Δ Φ : Ctx Var (Ty Base)}
 
 /-- Typing is preserved on permuting a context. -/
 theorem perm : Γ.Perm Δ → Γ ⊢ t ∶ τ → Δ ⊢ t ∶ τ := by 
@@ -114,7 +114,7 @@ lemma subst_strengthened :
     simp only [subst_fvar]
     rw [←eq] at mem
     rw [←eq] at ok
-    cases (Ctx.perm (by aesop) ok : @Ctx.Ok Var Ty _ ((x, σ) :: Δ ++ Γ))
+    cases (Ctx.perm (by aesop) ok : @Ctx.Ok Var (Ty Base) _ ((x, σ) :: Δ ++ Γ))
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
