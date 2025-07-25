@@ -47,7 +47,7 @@ theorem perm (h : Γ.Perm Δ) : Ok Γ → Ok Δ := by
   induction h <;> intro Γ_ok
   case cons perm ih =>
     cases Γ_ok
-    case cons ok_Γ nmem => exact Ok.cons (ih ok_Γ) $ (dom_perm_mem_iff perm).not.mp nmem
+    case cons ok_Γ nmem => exact (ih ok_Γ).cons $ (dom_perm_mem_iff perm).not.mp nmem
   case nil => constructor
   case trans => simp_all
   case swap =>
