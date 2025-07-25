@@ -396,13 +396,20 @@ theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) : lts.Tr s μ s' �
   intro h
   apply LTS.STr.tr LTS.STr.refl h LTS.STr.refl
 
-/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction metric. -/
-inductive LTS.strN [HasTau Label] (lts : LTS State Label) : ℕ → State → Label → State → Prop where
-| refl : lts.strN 0 s HasTau.τ s
-| tr : lts.strN n s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.strN m s3 HasTau.τ s4 → lts.strN (n + m + 1) s1 μ s4
+/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
+metric. -/
+inductive LTS.strN [HasTau Label] (lts : LTS State Label) :
+  ℕ → State → Label → State → Prop where
+  | refl : lts.strN 0 s HasTau.τ s
+  | tr :
+    lts.strN n s1 HasTau.τ s2 →
+    lts.Tr s2 μ s3 →
+    lts.strN m s3 HasTau.τ s4 →
+    lts.strN (n + m + 1) s1 μ s4
 
 /-- `LTS.str` and `LTS.strN` are equivalent. -/
-theorem LTS.str_strN [HasTau Label] (lts : LTS State Label) : lts.STr s1 μ s2 ↔ ∃ n, lts.strN n s1 μ s2 := by
+theorem LTS.str_strN [HasTau Label] (lts : LTS State Label) :
+  lts.STr s1 μ s2 ↔ ∃ n, lts.strN n s1 μ s2 := by
   apply Iff.intro <;> intro h
   case mp =>
     induction h
@@ -512,7 +519,10 @@ def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
   ∃ stream : Stream' State, stream 0 = s ∧ lts.DivergentExecution stream
 
 /-- If a stream is a divergent execution, then any 'suffix' is also a divergent execution. -/
-theorem LTS.divergent_drop [HasTau Label] (lts : LTS State Label) (stream : Stream' State) (h : lts.DivergentExecution stream) (n : ℕ) : lts.DivergentExecution (stream.drop n) := by
+theorem LTS.divergent_drop
+  [HasTau Label] (lts : LTS State Label) (stream : Stream' State)
+  (h : lts.DivergentExecution stream) (n : ℕ) :
+  lts.DivergentExecution (stream.drop n) := by
   simp only [LTS.DivergentExecution]
   intro m
   simp only [Stream'.drop, Stream'.get]
@@ -535,7 +545,8 @@ section Relation
 def LTS.Tr.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
   fun s1 s2 => lts.Tr s1 μ s2
 
-/-- Returns the relation that relates all states `s1` and `s2` via a fixed list of transition labels `μs`. -/
+/-- Returns the relation that relates all states `s1` and `s2` via a fixed list of transition
+labels `μs`. -/
 def LTS.MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
   fun s1 s2 => lts.MTr s1 μs s2
 
@@ -551,7 +562,11 @@ section Trans
 /-! ## Support for the calc tactic -/
 
 /-- Transitions can be chained. -/
-instance (lts : LTS State Label) : Trans (LTS.Tr.toRelation lts μ1) (LTS.Tr.toRelation lts μ2) (LTS.MTr.toRelation lts [μ1, μ2]) where
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.Tr.toRelation lts μ1)
+    (LTS.Tr.toRelation lts μ2)
+    (LTS.MTr.toRelation lts [μ1, μ2]) where
   trans := by
     intro s1 s2 s3 htr1 htr2
     apply LTS.MTr.single at htr1
@@ -559,21 +574,33 @@ instance (lts : LTS State Label) : Trans (LTS.Tr.toRelation lts μ1) (LTS.Tr.toR
     apply LTS.MTr.comp lts htr1 htr2
 
 /-- Transitions can be chained with multi-step transitions. -/
-instance (lts : LTS State Label) : Trans (LTS.Tr.toRelation lts μ) (LTS.MTr.toRelation lts μs) (LTS.MTr.toRelation lts (μ :: μs)) where
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.Tr.toRelation lts μ)
+    (LTS.MTr.toRelation lts μs)
+    (LTS.MTr.toRelation lts (μ :: μs)) where
   trans := by
     intro s1 s2 s3 htr1 hmtr2
     apply LTS.MTr.single at htr1
     apply LTS.MTr.comp lts htr1 hmtr2
 
 /-- Multi-step transitions can be chained with transitions. -/
-instance (lts : LTS State Label) : Trans (LTS.MTr.toRelation lts μs) (LTS.Tr.toRelation lts μ) (LTS.MTr.toRelation lts (μs ++ [μ])) where
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.MTr.toRelation lts μs)
+    (LTS.Tr.toRelation lts μ)
+    (LTS.MTr.toRelation lts (μs ++ [μ])) where
   trans := by
     intro s1 s2 s3 hmtr1 htr2
     apply LTS.MTr.single at htr2
     apply LTS.MTr.comp lts hmtr1 htr2
 
 /-- Multi-step transitions can be chained. -/
-instance (lts : LTS State Label) : Trans (LTS.MTr.toRelation lts μs1) (LTS.MTr.toRelation lts μs2) (LTS.MTr.toRelation lts (μs1 ++ μs2)) where
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.MTr.toRelation lts μs1)
+    (LTS.MTr.toRelation lts μs2)
+    (LTS.MTr.toRelation lts (μs1 ++ μs2)) where
   trans := by
     intro s1 s2 s3 hmtr1 hmtr2
     apply LTS.MTr.comp lts hmtr1 hmtr2
@@ -582,7 +609,8 @@ end Trans
 
 open Lean Elab Meta Command Term
 
-/-- A command to create an `LTS` from a labelled transition `α → β → α → Prop`, robust to use of `variable `-/
+/-- A command to create an `LTS` from a labelled transition `α → β → α → Prop`, robust to use of
+`variable `-/
 elab "create_lts" lt:ident name:ident : command => do
   liftTermElabM do
     let lt ← realizeGlobalConstNoOverloadWithInfo lt
@@ -612,8 +640,8 @@ elab "create_lts" lt:ident name:ident : command => do
       addDeclarationRangesFromSyntax name.getId name
 
 /--
-  This command adds transition notations for an `LTS`. This should not usually be called directly, but from
-  the `lts` attribute.
+  This command adds transition notations for an `LTS`. This should not usually be called directly,
+  but from the `lts` attribute.
 
   As an example `lts_transition_notation foo "β"` will add the notations "[⬝]⭢β" and "[⬝]↠β"
 

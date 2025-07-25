@@ -3,6 +3,9 @@ version = "0.1.0"
 defaultTargets = ["Cslib"]
 testDriver = "CslibTests"
 
+[leanOptions]
+weak.linter.mathlibStandardSet = true
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
