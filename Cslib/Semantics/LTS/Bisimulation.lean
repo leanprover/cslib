@@ -102,10 +102,9 @@ notation s:max " ~[" lts "] " s':max => Bisimilarity lts s s'
 
 /-- Bisimilarity is reflexive. -/
 theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
-  exists Relation.Id
+  exists Eq
   constructor
-  case left =>
-    constructor
+  case left => rfl
   case right =>
     simp only [Bisimulation]
     intro s1 s2 hr μ
@@ -114,15 +113,9 @@ theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
     case left =>
       intro s1' htr
       exists s1'
-      constructor
-      · exact htr
-      · constructor
     case right =>
       intro s1' htr
       exists s1'
-      constructor
-      · exact htr
-      · constructor
 
 /-- The inverse of a bisimulation is a bisimulation. -/
 theorem Bisimulation.inv (r : State → State → Prop) (h : Bisimulation lts r) :
@@ -253,9 +246,9 @@ theorem Bisimilarity.largest_bisimulation
 
 /-- The union of bisimilarity with any bisimulation is bisimilarity. -/
 theorem Bisimilarity.gfp (r : State → State → Prop) (h : Bisimulation lts r) :
-  (Bisimilarity lts) ∪ r = Bisimilarity lts := by
+  (Bisimilarity lts) ⊔ r = Bisimilarity lts := by
   funext s1 s2
-  simp only [Union.union, Relation.union, eq_iff_iff, or_iff_left_iff_imp]
+  simp only [max, SemilatticeSup.sup, eq_iff_iff, or_iff_left_iff_imp]
   apply Bisimilarity.largest_bisimulation lts r h
 
 /-- A relation `r` is a bisimulation up to bisimilarity if, whenever it relates two
@@ -982,9 +975,9 @@ theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label] (lts : LTS State La
 /-- sw-bisimilarity is reflexive. -/
 theorem SWBisimilarity.refl [HasTau Label] (lts : LTS State Label) (s : State) : s ≈sw[lts] s := by
   simp [SWBisimilarity]
-  exists Relation.Id
-  constructor; constructor
-  simp [SWBisimulation]
+  exists Eq
+  constructor; rfl
+  simp only [SWBisimulation]
   intro s1 s2 hr μ
   cases hr
   constructor

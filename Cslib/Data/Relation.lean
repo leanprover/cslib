@@ -12,22 +12,11 @@ universe u v
 
 section Relation
 
-/-- Union of two relations. -/
-def Relation.union (r s : α → β → Prop) : α → β → Prop :=
-  fun x y => r x y ∨ s x y
-
-instance {α : Type u} {β : Type v} : Union (α → β → Prop) where
-  union := Relation.union
-
 /-- Inverse of a relation. -/
 def Relation.inv (r : α → β → Prop) : β → α → Prop := flip r
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def Relation.upTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
-
-/-- The identity relation. -/
-inductive Relation.Id : α → α → Prop where
-| id {x : α} : Id x x
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C → (∃ D, R B D ∧ R C D)

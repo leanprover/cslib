@@ -64,13 +64,12 @@ notation s:max " ≤[" lts "] " s':max => Similarity lts s s'
 
 /-- Similarity is reflexive. -/
 theorem Similarity.refl (s : State) : s ≤[lts] s := by
-  exists Relation.Id
+  exists Eq
   apply And.intro (by constructor)
   simp only [Simulation]
   intro s1 s2 hr μ s1' htr
   cases hr
   exists s1'
-  apply And.intro htr (by constructor)
 
 /-- The composition of two simulations is a simulation. -/
 theorem Simulation.comp
@@ -115,14 +114,12 @@ notation s:max " ≤≥[" lts "] " s':max => SimulationEquiv lts s s'
 /-- Simulation equivalence is reflexive. -/
 theorem SimulationEquiv.refl (s : State) : s ≤≥[lts] s := by
   simp [SimulationEquiv]
-  exists Relation.Id
-  constructor; constructor
+  exists Eq
+  constructor; rfl
   simp only [Simulation]
   intro s1 s2 hr μ s1' htr
   cases hr
   exists s1'
-  constructor; exact htr
-  constructor
 
 /-- Simulation equivalence is symmetric. -/
 theorem SimulationEquiv.symm {s1 s2 : State} (h : s1 ≤≥[lts] s2) : s2 ≤≥[lts] s1 := by
