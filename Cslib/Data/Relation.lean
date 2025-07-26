@@ -12,9 +12,6 @@ universe u v
 
 section Relation
 
-/-- Inverse of a relation. -/
-def Relation.inv (r : α → β → Prop) : β → α → Prop := flip r
-
 /-- The relation `r` 'up to' the relation `s`. -/
 def Relation.upTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
 

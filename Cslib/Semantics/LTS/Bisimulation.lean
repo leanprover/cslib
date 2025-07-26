@@ -121,7 +121,7 @@ theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
 
 /-- The inverse of a bisimulation is a bisimulation. -/
 theorem Bisimulation.inv (r : State → State → Prop) (h : Bisimulation lts r) :
-  Bisimulation lts (Relation.inv r) := by
+  Bisimulation lts (flip r) := by
   simp only [Bisimulation] at h
   simp only [Bisimulation]
   intro s1 s2 hrinv μ
@@ -142,7 +142,7 @@ theorem Bisimulation.inv (r : State → State → Prop) (h : Bisimulation lts r)
 /-- Bisimilarity is symmetric. -/
 theorem Bisimilarity.symm {s1 s2 : State} (h : s1 ~[lts] s2) : s2 ~[lts] s1 := by
   obtain ⟨r, hr, hb⟩ := h
-  exists (Relation.inv r)
+  exists (flip r)
   constructor
   case left =>
     exact hr
@@ -374,7 +374,7 @@ theorem Bisimulation.bisim_traceEq
     intro h
     obtain ⟨s2', h⟩ := h
     have hinv := @Bisimulation.inv State Label lts r hb
-    obtain ⟨s1', hmtr⟩ := @Bisimulation.bisim_trace State Label lts s2 s1 (Relation.inv r) hinv hr μs s2' h
+    obtain ⟨s1', hmtr⟩ := @Bisimulation.bisim_trace State Label lts s2 s1 (flip r) hinv hr μs s2' h
     exists s1'
     exact hmtr.1
 
@@ -743,7 +743,7 @@ theorem Bisimulation.is_simulation (lts : LTS State Label) (r : State → State 
   apply h1 s1' htr
 
 /-- A relation is a bisimulation iff both it and its inverse are simulations. -/
-theorem Bisimulation.simulation_iff (lts : LTS State Label) (r : State → State → Prop) : Bisimulation lts r ↔ (Simulation lts r ∧ Simulation lts (Relation.inv r)) := by
+theorem Bisimulation.simulation_iff (lts : LTS State Label) (r : State → State → Prop) : Bisimulation lts r ↔ (Simulation lts r ∧ Simulation lts (flip r)) := by
   constructor
   intro h
   simp only [Simulation]
@@ -757,7 +757,7 @@ theorem Bisimulation.simulation_iff (lts : LTS State Label) (r : State → State
       obtain ⟨s2', h1⟩ := h1
       exists s2'
     case right =>
-      simp only [Relation.inv, flip]
+      simp only [flip, flip]
       intro s2 s1 hr μ s2' htr
       simp only [Bisimulation] at h
       specialize h s1 s2 hr μ
@@ -1010,7 +1010,7 @@ theorem WeakBisimilarity.refl [HasTau Label] (lts : LTS State Label) (s : State)
 /-- The inverse of an sw-bisimulation is an sw-bisimulation. -/
 theorem SWBisimulation.inv [HasTau Label] (lts : LTS State Label)
   (r : State → State → Prop) (h : SWBisimulation lts r) :
-  SWBisimulation lts (Relation.inv r) := by
+  SWBisimulation lts (flip r) := by
   simp only [SWBisimulation] at h
   simp only [SWBisimulation]
   intro s1 s2 hrinv μ
@@ -1031,7 +1031,7 @@ theorem SWBisimulation.inv [HasTau Label] (lts : LTS State Label)
 /-- The inverse of a weak bisimulation is a weak bisimulation. -/
 theorem WeakBisimulation.inv [HasTau Label] (lts : LTS State Label)
   (r : State → State → Prop) (h : WeakBisimulation lts r) :
-  WeakBisimulation lts (Relation.inv r) := by
+  WeakBisimulation lts (flip r) := by
   apply WeakBisimulation.toSwBisimulation at h
   have h' := SWBisimulation.inv lts r h
   apply SWBisimulation.toWeakBisimulation at h'
@@ -1040,10 +1040,10 @@ theorem WeakBisimulation.inv [HasTau Label] (lts : LTS State Label)
 /-- sw-bisimilarity is symmetric. -/
 theorem SWBisimilarity.symm [HasTau Label] (lts : LTS State Label) (h : s1 ≈sw[lts] s2) : s2 ≈sw[lts] s1 := by
   obtain ⟨r, hr, hrh⟩ := h
-  exists (Relation.inv r)
+  exists (flip r)
   constructor
   case left =>
-    simp only [Relation.inv, flip]
+    simp only [flip, flip]
     exact hr
   case right =>
     apply SWBisimulation.inv lts r hrh
