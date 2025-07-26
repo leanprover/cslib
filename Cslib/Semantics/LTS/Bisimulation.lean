@@ -211,6 +211,48 @@ theorem Bisimilarity.eqv (lts : LTS State Label) :
     trans := Bisimilarity.trans lts
   }
 
+/-- The union of two bisimulations is a bisimulation. -/
+theorem Bisimulation.union (hrb : Bisimulation lts r) (hsb : Bisimulation lts s) :
+  Bisimulation lts (r ⊔ s) := by
+  intro s1 s2 hrs μ
+  cases hrs
+  case inl h =>
+    constructor
+    · intro s1' htr
+      obtain ⟨s2', htr', hr'⟩ := Bisimulation.follow_fst hrb h htr
+      exists s2'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        left
+        exact hr'
+    · intro s2' htr
+      obtain ⟨s1', htr', hr'⟩ := Bisimulation.follow_snd hrb h htr
+      exists s1'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        left
+        exact hr'
+  case inr h =>
+    constructor
+    · intro s1' htr
+      obtain ⟨s2', htr', hs'⟩ := Bisimulation.follow_fst hsb h htr
+      exists s2'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        right
+        exact hs'
+    · intro s2' htr
+      obtain ⟨s1', htr', hs'⟩ := Bisimulation.follow_snd hsb h htr
+      exists s1'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        right
+        exact hs'
+
 /-- Bisimilarity is a bisimulation. -/
 theorem Bisimilarity.is_bisimulation : Bisimulation lts (Bisimilarity lts) := by
   simp only [Bisimulation]
@@ -266,48 +308,6 @@ instance : Trans (Bisimilarity lts) (Bisimilarity lts) (Bisimilarity lts) where
 section Order
 
 /-! ## Order properties -/
-
-/-- The union of two bisimulations is a bisimulation. -/
-theorem Bisimulation.union (hrb : Bisimulation lts r) (hsb : Bisimulation lts s) :
-  Bisimulation lts (r ⊔ s) := by
-  intro s1 s2 hrs μ
-  cases hrs
-  case inl h =>
-    constructor
-    · intro s1' htr
-      obtain ⟨s2', htr', hr'⟩ := Bisimulation.follow_fst hrb h htr
-      exists s2'
-      constructor
-      · assumption
-      · simp only [max, SemilatticeSup.sup]
-        left
-        exact hr'
-    · intro s2' htr
-      obtain ⟨s1', htr', hr'⟩ := Bisimulation.follow_snd hrb h htr
-      exists s1'
-      constructor
-      · assumption
-      · simp only [max, SemilatticeSup.sup]
-        left
-        exact hr'
-  case inr h =>
-    constructor
-    · intro s1' htr
-      obtain ⟨s2', htr', hs'⟩ := Bisimulation.follow_fst hsb h htr
-      exists s2'
-      constructor
-      · assumption
-      · simp only [max, SemilatticeSup.sup]
-        right
-        exact hs'
-    · intro s2' htr
-      obtain ⟨s1', htr', hs'⟩ := Bisimulation.follow_snd hsb h htr
-      exists s1'
-      constructor
-      · assumption
-      · simp only [max, SemilatticeSup.sup]
-        right
-        exact hs'
 
 instance : Max ({r // Bisimulation lts r}) where
   max r s := ⟨r.1 ⊔ s.1, Bisimulation.union lts r.2 s.2⟩
