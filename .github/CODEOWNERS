@@ -3,4 +3,5 @@
 /CslibTests @cs-lean/reviewers
 
 /Cslib/Computability/LambdaCalculus/ @cs-lean/lambda-calculus
+/Cslib/ConcurrencyTheory/ @cs-lean/concurrency-theory
 /Cslib/Logic/ @cs-lean/logic

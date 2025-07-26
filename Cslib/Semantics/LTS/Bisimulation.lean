@@ -249,11 +249,8 @@ theorem Bisimilarity.is_bisimulation : Bisimulation lts (Bisimilarity lts) := by
 theorem Bisimilarity.largest_bisimulation
   (h : Bisimulation lts r) :
   Subrelation r (Bisimilarity lts) := by
-  -- simp only [Subrelation]
   intro s1 s2 hr
   exists r
-  -- intro hr
-  -- exists r
 
 /-- The union of bisimilarity with any bisimulation is bisimilarity. -/
 theorem Bisimilarity.gfp (r : State → State → Prop) (h : Bisimulation lts r) :
@@ -265,6 +262,106 @@ theorem Bisimilarity.gfp (r : State → State → Prop) (h : Bisimulation lts r)
 /-- `calc` support for bisimilarity. -/
 instance : Trans (Bisimilarity lts) (Bisimilarity lts) (Bisimilarity lts) where
   trans := Bisimilarity.trans lts
+
+section Lattice
+
+/-! ## Lattice properties -/
+
+/-- The union of two bisimulations is a bisimulation. -/
+theorem Bisimulation.union (hrb : Bisimulation lts r) (hsb : Bisimulation lts s) :
+  Bisimulation lts (r ⊔ s) := by
+  intro s1 s2 hrs μ
+  cases hrs
+  case inl h =>
+    constructor
+    · intro s1' htr
+      obtain ⟨s2', htr', hr'⟩ := Bisimulation.follow_fst hrb h htr
+      exists s2'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        left
+        exact hr'
+    · intro s2' htr
+      obtain ⟨s1', htr', hr'⟩ := Bisimulation.follow_snd hrb h htr
+      exists s1'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        left
+        exact hr'
+  case inr h =>
+    constructor
+    · intro s1' htr
+      obtain ⟨s2', htr', hs'⟩ := Bisimulation.follow_fst hsb h htr
+      exists s2'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        right
+        exact hs'
+    · intro s2' htr
+      obtain ⟨s1', htr', hs'⟩ := Bisimulation.follow_snd hsb h htr
+      exists s1'
+      constructor
+      · assumption
+      · simp only [max, SemilatticeSup.sup]
+        right
+        exact hs'
+
+instance : Max ({r // Bisimulation lts r}) where
+  max r s := ⟨r.1 ⊔ s.1, Bisimulation.union lts r.2 s.2⟩
+
+/-- Bisimulations equipped with union form a join-semilattice. -/
+instance : SemilatticeSup ({r // Bisimulation lts r}) where
+  sup r s := r ⊔ s
+  le_sup_left r s := by
+    simp only [LE.le]
+    intro s1 s2 hr
+    simp only [max, SemilatticeSup.sup]
+    left
+    exact hr
+  le_sup_right r s := by
+    simp only [LE.le]
+    intro s1 s2 hs
+    simp only [max, SemilatticeSup.sup]
+    right
+    exact hs
+  sup_le r s t := by
+    intro h1 h2
+    simp only [LE.le, max, SemilatticeSup.sup]
+    intro s1 s2
+    intro h
+    cases h
+    case inl h =>
+      apply h1 _ _ h
+    case inr h =>
+      apply h2 _ _ h
+
+/-- The empty relation is a bisimulation. -/
+theorem Bisimulation.emptyRelation_bisimulation : Bisimulation lts emptyRelation := by
+  intro s1 s2 hr
+  cases hr
+
+/-- In the inclusion order on bisimulations:
+
+- The empty relation is the bottom element.
+- Bisimilarity is the top element.
+-/
+instance : BoundedOrder ({r // Bisimulation lts r}) where
+  top := ⟨Bisimilarity lts, Bisimilarity.is_bisimulation lts⟩
+  bot := ⟨emptyRelation, Bisimulation.emptyRelation_bisimulation lts⟩
+  le_top r := by
+    intro s1 s2
+    simp only [LE.le]
+    apply Bisimilarity.largest_bisimulation lts r.2
+  bot_le r := by
+    intro s1 s2
+    simp only [LE.le]
+    intro hr
+    cases hr
+
+end Lattice
 
 /-! ## Bisimulation up-to -/
 
@@ -602,7 +699,8 @@ theorem Bisimulation.traceEq_not_bisim :
     apply Set.ext_iff.1 at cih
     specialize cih ['c']
     obtain ⟨cih1, cih2⟩ := cih
-    have cih1h : ['c'] ∈ @insert (List Char) (Set (List Char)) Set.instInsert [] {['b'], ['c']} := by
+    have cih1h : ['c'] ∈ @insert
+      (List Char) (Set (List Char)) Set.instInsert [] {['b'], ['c']} := by
       simp
     specialize cih1 cih1h
     simp at cih1
@@ -680,13 +778,15 @@ theorem Bisimulation.traceEq_not_bisim :
     apply Set.ext_iff.1 at cih
     specialize cih ['b']
     obtain ⟨cih1, cih2⟩ := cih
-    have cih1h : ['b'] ∈ @insert (List Char) (Set (List Char)) Set.instInsert [] {['b'], ['c']} := by
+    have cih1h : ['b'] ∈ @insert
+      (List Char) (Set (List Char)) Set.instInsert [] {['b'], ['c']} := by
       simp
     specialize cih1 cih1h
     simp at cih1
 
 /-- In general, bisimilarity and trace equivalence are distinct. -/
-theorem Bisimilarity.bisimilarity_neq_traceEq : ∃ (State : Type) (Label : Type) (lts : LTS State Label), Bisimilarity lts ≠ TraceEq lts := by
+theorem Bisimilarity.bisimilarity_neq_traceEq :
+  ∃ (State : Type) (Label : Type) (lts : LTS State Label), Bisimilarity lts ≠ TraceEq lts := by
   obtain ⟨State, Label, lts, h⟩ := Bisimulation.traceEq_not_bisim
   exists State; exists Label; exists lts
   simp
@@ -742,7 +842,8 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
 /-! ## Relation to simulation -/
 
 /-- Any bisimulation is also a simulation. -/
-theorem Bisimulation.is_simulation (lts : LTS State Label) (r : State → State → Prop) : Bisimulation lts r → Simulation lts r := by
+theorem Bisimulation.is_simulation (lts : LTS State Label) (r : State → State → Prop) :
+  Bisimulation lts r → Simulation lts r := by
   intro h
   simp only [Bisimulation] at h
   simp only [Simulation]
@@ -752,11 +853,12 @@ theorem Bisimulation.is_simulation (lts : LTS State Label) (r : State → State 
   apply h1 s1' htr
 
 /-- A relation is a bisimulation iff both it and its inverse are simulations. -/
-theorem Bisimulation.simulation_iff (lts : LTS State Label) (r : State → State → Prop) : Bisimulation lts r ↔ (Simulation lts r ∧ Simulation lts (flip r)) := by
+theorem Bisimulation.simulation_iff (lts : LTS State Label) (r : State → State → Prop) :
+  Bisimulation lts r ↔ (Simulation lts r ∧ Simulation lts (flip r)) := by
   constructor
-  intro h
-  simp only [Simulation]
   case mp =>
+    intro h
+    simp only [Simulation]
     constructor
     case left =>
       intro s1 s2 hr μ s1' htr
@@ -898,8 +1000,10 @@ theorem SWBisimulation.follow_internal_snd
   obtain ⟨n, hstrN⟩ := (LTS.str_strN lts).1 hstr
   apply SWBisimulation.follow_internal_snd_n lts r hswb hr hstrN
 
-/-- We can now prove that any relation is a `WeakBisimulation` iff it is an `SWBisimulation`. This formalises lemma 4.2.10 in [Sangiorgi2011]. -/
-theorem WeakBisimulation.iff_swBisimulation [HasTau Label] (lts : LTS State Label) (r : State → State → Prop) :
+/-- We can now prove that any relation is a `WeakBisimulation` iff it is an `SWBisimulation`.
+This formalises lemma 4.2.10 in [Sangiorgi2011]. -/
+theorem WeakBisimulation.iff_swBisimulation
+  [HasTau Label] (lts : LTS State Label) (r : State → State → Prop) :
   WeakBisimulation lts r ↔ SWBisimulation lts r := by
   apply Iff.intro
   case mp =>
