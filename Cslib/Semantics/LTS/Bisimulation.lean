@@ -464,7 +464,7 @@ theorem Bisimulation.bisim_trace
 
 /-- Any bisimulation implies trace equivalence. -/
 theorem Bisimulation.bisim_traceEq
-  (s1 s2 : State) (r : State → State → Prop) (hb : Bisimulation lts r) (hr : r s1 s2) :
+  (hb : Bisimulation lts r) (hr : r s1 s2) :
   s1 ~tr[lts] s2 := by
   simp [TraceEq, LTS.traces, setOf]
   funext μs
@@ -484,11 +484,12 @@ theorem Bisimulation.bisim_traceEq
     exists s1'
     exact hmtr.1
 
-/-- Bisimilarity implies trace equivalence. -/
-theorem Bisimilarity.bisim_traceEq (s1 s2 : State) (h : s1 ~[lts] s2) :
-  s1 ~tr[lts] s2 := by
+/-- Bisimilarity is included in trace equivalence. -/
+theorem Bisimilarity.le_traceEq : Bisimilarity lts ≤ TraceEq lts := by
+  simp [LE.le]
+  intro s1 s2 h
   obtain ⟨r, hr, hb⟩ := h
-  apply Bisimulation.bisim_traceEq lts s1 s2 r hb hr
+  apply Bisimulation.bisim_traceEq lts hb hr
 
 /- One of the standard motivating examples for bisimulation: `1` and `5` are trace equivalent, but
 not bisimilar. -/
@@ -835,7 +836,7 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
   simp [eq_iff_iff]
   constructor
   case mp =>
-    apply Bisimilarity.bisim_traceEq
+    apply Bisimilarity.le_traceEq
   case mpr =>
     apply Bisimilarity.deterministic_traceEq_bisim lts hdet
 
