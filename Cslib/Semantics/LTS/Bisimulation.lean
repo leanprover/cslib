@@ -82,11 +82,17 @@ def Bisimulation (lts : LTS State Label) (r : State → State → Prop) : Prop :
   )
 
 /-- Helper for following a transition using the first component of a `Bisimulation`. -/
-def Bisimulation.follow_fst {lts : LTS State Label} {r : State → State → Prop} (hb : Bisimulation lts r) (hr : r s1 s2) (μ : Label) (htr : lts.Tr s1 μ s1'):=
+def Bisimulation.follow_fst
+  {lts : LTS State Label} {r : State → State → Prop}
+  {s1 s2 : State} {μ : Label} {s1' : State}
+  (hb : Bisimulation lts r) (hr : r s1 s2) (htr : lts.Tr s1 μ s1') :=
   (hb _ _ hr μ).1 _ htr
 
 /-- Helper for following a transition using the second component of a `Bisimulation`. -/
-def Bisimulation.follow_snd {lts : LTS State Label} {r : State → State → Prop} (hb : Bisimulation lts r) (hr : r s1 s2) (μ : Label) (htr : lts.Tr s2 μ s2'):=
+def Bisimulation.follow_snd
+  {lts : LTS State Label} {r : State → State → Prop}
+  {s1 s2 : State} {μ : Label} {s2' : State}
+  (hb : Bisimulation lts r) (hr : r s1 s2) (htr : lts.Tr s2 μ s2') :=
   (hb _ _ hr μ).2 _ htr
 
 /-- Two states are bisimilar if they are related by some bisimulation. -/
@@ -120,7 +126,7 @@ theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
       exists s1'
 
 /-- The inverse of a bisimulation is a bisimulation. -/
-theorem Bisimulation.inv (r : State → State → Prop) (h : Bisimulation lts r) :
+theorem Bisimulation.inv (h : Bisimulation lts r) :
   Bisimulation lts (flip r) := by
   simp only [Bisimulation] at h
   simp only [Bisimulation]
