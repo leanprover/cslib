@@ -263,9 +263,9 @@ theorem Bisimilarity.gfp (r : State → State → Prop) (h : Bisimulation lts r)
 instance : Trans (Bisimilarity lts) (Bisimilarity lts) (Bisimilarity lts) where
   trans := Bisimilarity.trans lts
 
-section Lattice
+section Order
 
-/-! ## Lattice properties -/
+/-! ## Order properties -/
 
 /-- The union of two bisimulations is a bisimulation. -/
 theorem Bisimulation.union (hrb : Bisimulation lts r) (hsb : Bisimulation lts s) :
@@ -361,7 +361,7 @@ instance : BoundedOrder ({r // Bisimulation lts r}) where
     intro hr
     cases hr
 
-end Lattice
+end Order
 
 /-! ## Bisimulation up-to -/
 
