@@ -79,7 +79,7 @@ theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
   let ⟨d, hd⟩ := h a b c hab hac
   use d
   constructor
-  . exact Relation.ReflGen.single hd.1
-  . exact Relation.ReflTransGen.single hd.2
+  · exact Relation.ReflGen.single hd.1
+  · exact Relation.ReflTransGen.single hd.2
 
 end Relation

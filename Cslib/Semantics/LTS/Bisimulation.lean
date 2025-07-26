@@ -241,17 +241,20 @@ theorem Bisimilarity.is_bisimulation : Bisimulation lts (Bisimilarity lts) := by
 
 /-- Bisimilarity is the largest bisimulation. -/
 theorem Bisimilarity.largest_bisimulation
-  (r : State → State → Prop) (h : Bisimulation lts r) (s1 s2 : State) :
-  r s1 s2 → s1 ~[lts] s2 := by
-  intro hr
+  (h : Bisimulation lts r) :
+  Subrelation r (Bisimilarity lts) := by
+  -- simp only [Subrelation]
+  intro s1 s2 hr
   exists r
+  -- intro hr
+  -- exists r
 
 /-- The union of bisimilarity with any bisimulation is bisimilarity. -/
 theorem Bisimilarity.gfp (r : State → State → Prop) (h : Bisimulation lts r) :
   (Bisimilarity lts) ⊔ r = Bisimilarity lts := by
   funext s1 s2
   simp only [max, SemilatticeSup.sup, eq_iff_iff, or_iff_left_iff_imp]
-  apply Bisimilarity.largest_bisimulation lts r h
+  apply Bisimilarity.largest_bisimulation lts h
 
 /-- `calc` support for bisimilarity. -/
 instance : Trans (Bisimilarity lts) (Bisimilarity lts) (Bisimilarity lts) where
@@ -292,13 +295,13 @@ theorem Bisimulation.upTo_bisimulation (r : State → State → Prop) (h : Bisim
       obtain ⟨smid1, hsmidb, smid2, hsmidr, hsmidrb⟩ := hs2b'r
       constructor
       constructor
-      · apply Bisimilarity.trans lts (Bisimilarity.largest_bisimulation lts r1 hr1b _ _ hs1b'r)
+      · apply Bisimilarity.trans lts (Bisimilarity.largest_bisimulation lts hr1b hs1b'r)
           hsmidb
       · exists smid2
         constructor
         · exact hsmidr
         · apply Bisimilarity.trans lts hsmidrb
-          apply Bisimilarity.largest_bisimulation lts r2 hr2b s2b' s2' hs2br
+          apply Bisimilarity.largest_bisimulation lts hr2b hs2br
   case right =>
     intro s2' htr2
     obtain ⟨s2b', hs2b'tr, hs2b'r⟩ := (hr2b _ _ hr2 μ).2 s2' htr2
@@ -312,13 +315,13 @@ theorem Bisimulation.upTo_bisimulation (r : State → State → Prop) (h : Bisim
       obtain ⟨smid1, hsmidb, smid2, hsmidr, hsmidrb⟩ := hs1b'r
       constructor
       constructor
-      · apply Bisimilarity.trans lts (Bisimilarity.largest_bisimulation lts r1 hr1b _ _ _) hsmidb
+      · apply Bisimilarity.trans lts (Bisimilarity.largest_bisimulation lts hr1b _) hsmidb
         · exact hs1br
       · exists smid2
         constructor
         · exact hsmidr
         · apply Bisimilarity.trans lts hsmidrb
-          apply Bisimilarity.largest_bisimulation lts r2 hr2b s2b' s2' _
+          apply Bisimilarity.largest_bisimulation lts hr2b _
           exact hs2b'r
 
 /-- If two states are related by a bisimulation, they can mimic each other's multi-step
