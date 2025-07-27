@@ -4,23 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.LTS.Basic
+import Cslib.Semantics.Lts.Basic
 import Cslib.Data.Relation
 
 /-! # Simulation and Similarity
 
-A simulation is a binary relation on the states of an `LTS`: if two states `s1` and `s2` are
+A simulation is a binary relation on the states of an `Lts`: if two states `s1` and `s2` are
 related by a simulation, then `s2` can mimic all transitions of `s1`. Furthermore, the derivatives
 reaches through these transitions remain related by the simulation.
 
-Similarity is the largest simulation: given an `LTS`, it relates any two states that are related
-by a simulation for that LTS.
+Similarity is the largest simulation: given an `Lts`, it relates any two states that are related
+by a simulation for that Lts.
 
 For an introduction to theory of simulation, we refer to [Sangiorgi2011].
 
 ## Main definitions
 
-- `Simulation lts r`: the relation `r` on the states of the LTS `lts` is a simulation.
+- `Simulation lts r`: the relation `r` on the states of the Lts `lts` is a simulation.
 - `Similarity lts` is the binary relation on the states of `lts` that relates any two states
 related by some simulation on `lts`.
 - `SimulationEquiv lts` is the binary relation on the states of `lts` that relates any two states
@@ -28,8 +28,8 @@ similar to each other.
 
 ## Notations
 
-- `s1 ≤[lts] s2`: the states `s1` and `s2` are similar in the LTS `lts`.
-- `s1 ≤≥[lts] s2`: the states `s1` and `s2` are simulation equivalent in the LTS `lts`.
+- `s1 ≤[lts] s2`: the states `s1` and `s2` are similar in the Lts `lts`.
+- `s1 ≤≥[lts] s2`: the states `s1` and `s2` are simulation equivalent in the Lts `lts`.
 
 ## Main statements
 
@@ -41,16 +41,16 @@ universe u v
 
 section Simulation
 
-variable {State : Type u} {Label : Type v} (lts : LTS State Label)
+variable {State : Type u} {Label : Type v} (lts : Lts State Label)
 
 /-- A relation is a simulation if, whenever it relates two states in an lts,
 any transition originating from the first state is mimicked by a transition from the second state
 and the reached derivatives are themselves related. -/
-def Simulation (lts : LTS State Label) (r : State → State → Prop) : Prop :=
+def Simulation (lts : Lts State Label) (r : State → State → Prop) : Prop :=
   ∀ s1 s2, r s1 s2 → ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ r s1' s2'
 
 /-- Two states are similar if they are related by some simulation. -/
-def Similarity (lts : LTS State Label) : State → State → Prop :=
+def Similarity (lts : Lts State Label) : State → State → Prop :=
   fun s1 s2 =>
     ∃ r : State → State → Prop, r s1 s2 ∧ Simulation lts r
 
@@ -102,7 +102,7 @@ theorem Similarity.trans (h1 : s1 ≤[lts] s2) (h2 : s2 ≤[lts] s3) : s1 ≤[lt
 
 /-- Simulation equivalence relates all states `s1` and `s2` such that `s1 ≤[lts] s2` and
 `s2 ≤[lts] s1`. -/
-def SimulationEquiv (lts : LTS State Label) : State → State → Prop :=
+def SimulationEquiv (lts : Lts State Label) : State → State → Prop :=
   fun s1 s2 =>
     s1 ≤[lts] s2 ∧ s2 ≤[lts] s1
 
@@ -151,7 +151,7 @@ theorem SimulationEquiv.trans {s1 s2 s3 : State} (h1 : s1 ≤≥[lts] s2) (h2 : 
     · apply Simulation.comp lts r2 r1 hr2s hr1s
 
 /-- Simulation equivalence is an equivalence relation. -/
-theorem SimulationEquiv.eqv (lts : LTS State Label) :
+theorem SimulationEquiv.eqv (lts : Lts State Label) :
   Equivalence (SimulationEquiv lts) := {
     refl := SimulationEquiv.refl lts
     symm := SimulationEquiv.symm lts

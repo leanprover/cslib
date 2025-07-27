@@ -4,17 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.LTS.Basic
+import Cslib.Semantics.Lts.Basic
 import Mathlib.Data.Set.Finite.Basic
 
 /-!
 # Trace Equivalence
 
-Definitions and results on trace equivalence for `LTS`s.
+Definitions and results on trace equivalence for `Lts`s.
 
 ## Main definitions
 
-- `LTS.traces`: the set of traces of a state.
+- `Lts.traces`: the set of traces of a state.
 - `TraceEq s1 s2`: `s1` and `s2` are trace equivalent, i.e., they have the same sets of traces.
 
 ## Notations
@@ -24,23 +24,23 @@ Definitions and results on trace equivalence for `LTS`s.
 ## Main statements
 
 - `TraceEq.eqv`: trace equivalence is an equivalence relation (see `Equivalence`).
-- `TraceEq.deterministic_sim`: in any deterministic `LTS`, trace equivalence is a simulation.
+- `TraceEq.deterministic_sim`: in any deterministic `Lts`, trace equivalence is a simulation.
 
 -/
 
 universe u v
 
-variable {State : Type u} {Label : Type v} (lts : LTS State Label)
+variable {State : Type u} {Label : Type v} (lts : Lts State Label)
 
 /-- The traces of a state `s` is the set of all lists of labels `μs` such that there is a multi-step
 transition labelled by `μs` originating from `s`. -/
-def LTS.traces (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
+def Lts.traces (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
 
 /-- If there is a multi-step transition from `s` labelled by `μs`, then `μs` is in the traces of
 `s`. -/
-theorem LTS.traces_in (s : State) (μs : List Label) (s' : State) (h : lts.MTr s μs s') :
+theorem Lts.traces_in (s : State) (μs : List Label) (s' : State) (h : lts.MTr s μs s') :
   μs ∈ lts.traces s := by
-  simp [LTS.traces]
+  simp [Lts.traces]
   exists s'
 
 /-- Two states are trace equivalent if they have the same set of traces. -/
@@ -59,7 +59,7 @@ theorem TraceEq.refl (s : State) : s ~tr[lts] s := by
   simp only [TraceEq]
 
 /-- Trace equivalence is symmetric. -/
-theorem TraceEq.symm (lts : LTS State Label) {s1 s2 : State} (h : s1 ~tr[lts] s2) :
+theorem TraceEq.symm (lts : Lts State Label) {s1 s2 : State} (h : s1 ~tr[lts] s2) :
   s2 ~tr[lts] s1 := by
   simp only [TraceEq] at h
   simp only [TraceEq]
@@ -74,7 +74,7 @@ theorem TraceEq.trans {s1 s2 s3 : State} (h1 : s1 ~tr[lts] s2) (h2 : s2 ~tr[lts]
   rw [h1, h2]
 
 /-- Trace equivalence is an equivalence relation. -/
-theorem TraceEq.eqv (lts : LTS State Label) : Equivalence (TraceEq lts) := {
+theorem TraceEq.eqv (lts : Lts State Label) : Equivalence (TraceEq lts) := {
     refl := TraceEq.refl lts
     symm := TraceEq.symm lts
     trans := TraceEq.trans lts
@@ -84,20 +84,20 @@ theorem TraceEq.eqv (lts : LTS State Label) : Equivalence (TraceEq lts) := {
 instance : Trans (TraceEq lts) (TraceEq lts) (TraceEq lts) where
   trans := TraceEq.trans lts
 
-/-- In a deterministic LTS, trace equivalence is a simulation. -/
+/-- In a deterministic Lts, trace equivalence is a simulation. -/
 theorem TraceEq.deterministic_sim
-  (lts : LTS State Label) (hdet : lts.Deterministic) (s1 s2 : State) (h : s1 ~tr[lts] s2) :
+  (lts : Lts State Label) (hdet : lts.Deterministic) (s1 s2 : State) (h : s1 ~tr[lts] s2) :
   ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ s1' ~tr[lts] s2' := by
   intro μ s1' htr1
-  have hmtr1 := LTS.MTr.single lts htr1
+  have hmtr1 := Lts.MTr.single lts htr1
   simp [TraceEq] at h
-  have hin := LTS.traces_in lts s1 [μ] s1' hmtr1
+  have hin := Lts.traces_in lts s1 [μ] s1' hmtr1
   rw [h] at hin
   obtain ⟨s2', hmtr2⟩ := hin
   exists s2'
   constructor
-  · apply LTS.MTr.single_invert lts _ _ _ hmtr2
-  · simp only [TraceEq, LTS.traces]
+  · apply Lts.MTr.single_invert lts _ _ _ hmtr2
+  · simp only [TraceEq, Lts.traces]
     funext μs'
     simp only [eq_iff_iff]
     simp only [setOf]
@@ -105,30 +105,30 @@ theorem TraceEq.deterministic_sim
     case mp =>
       intro hmtr1'
       obtain ⟨s1'', hmtr1'⟩ := hmtr1'
-      have hmtr1comp := LTS.MTr.comp lts hmtr1 hmtr1'
-      have hin := LTS.traces_in lts s1 ([μ] ++ μs') s1'' hmtr1comp
+      have hmtr1comp := Lts.MTr.comp lts hmtr1 hmtr1'
+      have hin := Lts.traces_in lts s1 ([μ] ++ μs') s1'' hmtr1comp
       rw [h] at hin
-      simp [LTS.traces] at hin
+      simp [Lts.traces] at hin
       obtain ⟨s', hmtr2'⟩ := hin
       cases hmtr2'
       case stepL s2'' htr2 hmtr2' =>
         exists s'
-        have htr2' := LTS.MTr.single_invert lts _ _ _ hmtr2
+        have htr2' := Lts.MTr.single_invert lts _ _ _ hmtr2
         have hdets2 := hdet s2 μ s2' s2'' htr2' htr2
         rw [hdets2]
         exact hmtr2'
     case mpr =>
       intro hmtr2'
       obtain ⟨s2'', hmtr2'⟩ := hmtr2'
-      have hmtr2comp := LTS.MTr.comp lts hmtr2 hmtr2'
-      have hin := LTS.traces_in lts s2 ([μ] ++ μs') s2'' hmtr2comp
+      have hmtr2comp := Lts.MTr.comp lts hmtr2 hmtr2'
+      have hin := Lts.traces_in lts s2 ([μ] ++ μs') s2'' hmtr2comp
       rw [← h] at hin
-      simp [LTS.traces] at hin
+      simp [Lts.traces] at hin
       obtain ⟨s', hmtr1'⟩ := hin
       cases hmtr1'
       case stepL s1'' htr1 hmtr1' =>
         exists s'
-        have htr1' := LTS.MTr.single_invert lts _ _ _ hmtr1
+        have htr1' := Lts.MTr.single_invert lts _ _ _ hmtr1
         have hdets1 := hdet s1 μ s1' s1'' htr1' htr1
         rw [hdets1]
         exact hmtr1'

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.LTS.Basic
-import Cslib.Semantics.LTS.Bisimulation
+import Cslib.Semantics.Lts.Basic
+import Cslib.Semantics.Lts.Bisimulation
 import Cslib.ConcurrencyTheory.CCS.Basic
 import Cslib.ConcurrencyTheory.CCS.Semantics
 

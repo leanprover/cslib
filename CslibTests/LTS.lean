@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.LTS.Basic
-import Cslib.Semantics.LTS.Bisimulation
+import Cslib.Semantics.Lts.Basic
+import Cslib.Semantics.Lts.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
 
@@ -21,7 +21,7 @@ theorem NatTr.dom : NatTr n μ m → (n = 1 ∨ n = 2) ∧ (m = 1 ∨ m = 2) := 
   intro h
   cases h <;> simp
 
-def natLts : LTS ℕ ℕ := ⟨NatTr⟩
+def natLts : Lts ℕ ℕ := ⟨NatTr⟩
 
 inductive NatBisim : ℕ → ℕ → Prop where
 | one_one : NatBisim 1 1
@@ -51,39 +51,39 @@ instance : HasTau TLabel := {
 inductive NatDivergentTr : ℕ → TLabel → ℕ → Prop where
 | step : NatDivergentTr n τ n.succ
 
-def natDivLts : LTS ℕ TLabel := ⟨NatDivergentTr⟩
+def natDivLts : Lts ℕ TLabel := ⟨NatDivergentTr⟩
 
 def natInfiniteExecution : Stream' ℕ := fun n => n
 
 theorem natInfiniteExecution.infiniteExecution : natDivLts.DivergentExecution natInfiniteExecution := by
-  simp [LTS.DivergentExecution]
+  simp [Lts.DivergentExecution]
   intro n
   constructor
 
 example : natDivLts.Divergent 0 := by
-  simp [LTS.Divergent]
+  simp [Lts.Divergent]
   exists natInfiniteExecution
   constructor; constructor
   exact natInfiniteExecution.infiniteExecution
 
 example : natDivLts.Divergent 3 := by
-  simp [LTS.Divergent]
+  simp [Lts.Divergent]
   exists natInfiniteExecution.drop 3
   simp [Stream'.drop]
   constructor
   · constructor
-  · simp [LTS.DivergentExecution]
+  · simp [Lts.DivergentExecution]
     simp [Stream'.drop]
     intro n
     constructor
 
 example : natDivLts.Divergent n := by
-  simp [LTS.Divergent]
+  simp [Lts.Divergent]
   exists natInfiniteExecution.drop n
   simp [Stream'.drop]
   constructor
   · constructor
-  · apply LTS.divergent_drop
+  · apply Lts.divergent_drop
     exact natInfiniteExecution.infiniteExecution
 
 -- check that notation works
