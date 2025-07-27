@@ -624,9 +624,9 @@ elab "create_lts" lt:ident name:ident : command => do
       unless (← whnf ty).isProp do
         throwError m!"expecting Prop, not{indentExpr ty}"
       let params := ci.levelParams.map .param
-      let lt := mkAppN (.const lt params) args[0...args.size-3]
+      let lt := mkAppN (.const lt params) args[0:args.size-3]
       let bundle ← mkAppM ``LTS.mk #[lt]
-      let value ← mkLambdaFVars args[0...args.size-3] bundle
+      let value ← mkLambdaFVars args[0:args.size-3] bundle
       let type ← inferType value
       addAndCompile <| .defnDecl {
         name := name.getId
@@ -634,7 +634,7 @@ elab "create_lts" lt:ident name:ident : command => do
         type
         value
         safety := .safe
-        hints := .abbrev
+        hints := Lean.ReducibilityHints.abbrev
       }
       addTermInfo' name (.const name.getId params) (isBinder := true)
       addDeclarationRangesFromSyntax name.getId name

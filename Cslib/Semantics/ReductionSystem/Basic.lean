@@ -73,9 +73,9 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
       unless (← whnf ty).isProp do
         throwError m!"expecting Prop, not{indentExpr ty}"
       let params := ci.levelParams.map .param
-      let rel := mkAppN (.const rel params) args[0...args.size-2]
+      let rel := mkAppN (.const rel params) args[0:args.size-2]
       let bundle ← mkAppM ``ReductionSystem.mk #[rel]
-      let value ← mkLambdaFVars args[0...args.size-2] bundle
+      let value ← mkLambdaFVars args[0:args.size-2] bundle
       let type ← inferType value
       addAndCompile <| .defnDecl {
         name := name.getId
@@ -83,7 +83,7 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
         type
         value
         safety := .safe
-        hints := .abbrev
+        hints := Lean.ReducibilityHints.abbrev
       }
       addTermInfo' name (.const name.getId params) (isBinder := true)
       addDeclarationRangesFromSyntax name.getId name
