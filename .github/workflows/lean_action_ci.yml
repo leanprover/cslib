@@ -6,6 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
   check-toolchains:
     runs-on: ubuntu-latest
     steps:
@@ -15,7 +20,5 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
