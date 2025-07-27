@@ -8,6 +8,7 @@ import Cslib.Semantics.Lts.Basic
 import Cslib.Semantics.Lts.TraceEq
 import Cslib.Data.Relation
 import Cslib.Semantics.Lts.Simulation
+import Mathlib.Order.CompleteLattice.Defs
 
 /-! # Bisimulation and Bisimilarity
 
@@ -309,11 +310,11 @@ section Order
 
 /-! ## Order properties -/
 
-noncomputable instance : Max ({r // Bisimulation lts r}) where
+noncomputable instance : Max {r // Bisimulation lts r} where
   max r s := ⟨r.1 ⊔ s.1, Bisimulation.union lts r.2 s.2⟩
 
 /-- Bisimulations equipped with union form a join-semilattice. -/
-noncomputable instance : SemilatticeSup ({r // Bisimulation lts r}) where
+noncomputable instance : SemilatticeSup {r // Bisimulation lts r} where
   sup r s := r ⊔ s
   le_sup_left r s := by
     simp only [LE.le]
@@ -348,7 +349,7 @@ theorem Bisimulation.emptyRelation_bisimulation : Bisimulation lts emptyRelation
 - The empty relation is the bottom element.
 - Bisimilarity is the top element.
 -/
-instance : BoundedOrder ({r // Bisimulation lts r}) where
+instance : BoundedOrder {r // Bisimulation lts r} where
   top := ⟨Bisimilarity lts, Bisimilarity.is_bisimulation lts⟩
   bot := ⟨emptyRelation, Bisimulation.emptyRelation_bisimulation lts⟩
   le_top r := by
