@@ -43,8 +43,8 @@ type of labels is finite.
 
 ## References
 
-* [F. Montesi, *Introduction to Choreographies*] [Montesi2023]
-* [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*] [Sangiorgi2011]
+* [F. Montesi, *Introduction to Choreographies*][Montesi2023]
+* [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
 
 universe u v
