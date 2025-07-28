@@ -15,7 +15,7 @@ The untyped λ-calculus.
 
 ## References
 
-* [H. Barendregt, *Introduction to Lambda Calculus*] [Barendregt1984]
+* [H. Barendregt, *Introduction to Lambda Calculus*][Barendregt1984]
 
 -/
 
