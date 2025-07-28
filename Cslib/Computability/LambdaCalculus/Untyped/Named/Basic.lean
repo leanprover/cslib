@@ -8,7 +8,6 @@ import Cslib.Data.HasFresh
 import Cslib.Syntax.HasAlphaEquiv
 import Cslib.Syntax.HasSubstitution
 import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Rel
 
 /-! # λ-calculus
 
@@ -28,9 +27,9 @@ namespace LambdaCalculus.Named
 
 /-- Syntax of terms. -/
 inductive Term (Var : Type u) : Type u where
-| var (x : Var)
-| abs (x : Var) (m : Term Var)
-| app (m n : Term Var)
+  | var (x : Var)
+  | abs (x : Var) (m : Term Var)
+  | app (m n : Term Var)
 deriving DecidableEq
 
 /-- Free variables. -/
@@ -51,11 +50,11 @@ def Term.vars [DecidableEq Var] (m : Term Var) : Finset Var :=
 
 /-- Capture-avoiding substitution, as an inference system. -/
 inductive Term.Subst [DecidableEq Var] : Term Var → Var → Term Var → Term Var → Prop where
-| varHit : (var x).Subst x r r
-| varMiss : x ≠ y → (var y).Subst x r (var y)
-| absShadow : (abs x m).Subst x r (abs x m)
-| absIn : x ≠ y → y ∉ r.fv → m.Subst x r m' → (abs y m).Subst x r (abs y m')
-| app : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
+  | varHit : (var x).Subst x r r
+  | varMiss : x ≠ y → (var y).Subst x r (var y)
+  | absShadow : (abs x m).Subst x r (abs x m)
+  | absIn : x ≠ y → y ∉ r.fv → m.Subst x r m' → (abs y m).Subst x r (abs y m')
+  | app : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
 
 /-- Renaming, or variable substitution. `m.rename x y` renames `x` into `y` in `m`. -/
 def Term.rename [DecidableEq Var] (m : Term Var) (x y : Var) : Term Var :=
@@ -71,11 +70,14 @@ def Term.rename [DecidableEq Var] (m : Term Var) (x y : Var) : Term Var :=
 
 /-- Renaming preserves size. -/
 @[simp]
-theorem Term.rename.eq_sizeOf {m : Term Var} {x y : Var} [DecidableEq Var] : sizeOf (m.rename x y) = sizeOf m := by
+theorem Term.rename.eq_sizeOf {m : Term Var} {x y : Var} [DecidableEq Var] :
+  sizeOf (m.rename x y) = sizeOf m := by
   induction m <;> aesop (add simp [Term.rename])
 
-/-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x` in `m` with `r`. -/
-def Term.subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Term Var) : Term Var :=
+/-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
+in `m` with `r`. -/
+def Term.subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Term Var) :
+  Term Var :=
   match m with
   | var y => if y = x then r else var y
   | abs y m' =>
@@ -106,10 +108,10 @@ instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
 
 /-- Contexts. -/
 inductive Context (Var : Type u) : Type u where
-| hole
-| abs (x : Var) (c : Context Var)
-| appL (c : Context Var) (m : Term Var)
-| appR (m : Term Var) (c : Context Var)
+  | hole
+  | abs (x : Var) (c : Context Var)
+  | appL (c : Context Var) (m : Term Var)
+  | appR (m : Term Var) (c : Context Var)
 deriving DecidableEq
 
 /-- Replaces the hole in a `Context` with a `Term`. -/
@@ -138,7 +140,7 @@ theorem Context.complete (m : Term Var) :
 open Term
 
 /-- α-equivalence. -/
-inductive Term.AlphaEquiv [DecidableEq Var] : Rel (Term Var) (Term Var) where
+inductive Term.AlphaEquiv [DecidableEq Var] : Term Var → Term Var → Prop where
 -- The α-axiom
 | ax {m : Term Var} {x y : Var} :
   y ∉ m.fv → AlphaEquiv (abs x m) (abs y (m.rename x y))
