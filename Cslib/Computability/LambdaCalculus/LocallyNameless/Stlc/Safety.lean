@@ -28,7 +28,7 @@ namespace LambdaCalculus.LocallyNameless
 
 open Stlc Typing
 
-variable {Var : Type u} {Base : Type v} [DecidableEq Var] {R : Term Var → Term Var → Prop}
+variable {Var : Type u} {Base : Type v} {R : Term Var → Term Var → Prop}
 
 def preserves (R : Term Var → Term Var → Prop) (Base : Type v) := 
   ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
@@ -49,7 +49,7 @@ theorem preservation_confluence {τ : Ty Base} :
   have ⟨d, bd, cd⟩ := con ab ac
   exact ⟨d, bd, cd, preservation_redex p der (ab.trans bd)⟩
  
-variable [HasFresh Var] {Γ : Ctx Var (Ty Base)}
+variable [HasFresh Var] [DecidableEq Var] {Γ : Ctx Var (Ty Base)}
 
 namespace Term.FullBeta
 
@@ -63,7 +63,7 @@ theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ :
   case' app.beta der_l _ _ => cases der_l
   all_goals aesop
 
-omit [HasFresh Var] in
+omit [HasFresh Var] [DecidableEq Var] in
 /-- A typed term either full beta reduces or is a value. -/
 theorem progress : ([] : Ctx Var (Ty Base)) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
   intros der
