@@ -49,7 +49,7 @@ theorem preservation_confluence {τ : Ty Base} :
   have ⟨d, bd, cd⟩ := con ab ac
   exact ⟨d, bd, cd, preservation_redex p der (ab.trans bd)⟩
  
-variable [HasFresh Var] [DecidableEq Var] {Γ : Ctx Var (Ty Base)}
+variable [HasFresh Var] [DecidableEq Var] {Γ : Context Var (Ty Base)}
 
 namespace Term.FullBeta
 
@@ -65,7 +65,7 @@ theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ :
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A typed term either full beta reduces or is a value. -/
-theorem progress : ([] : Ctx Var (Ty Base)) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
+theorem progress : ([] : Context Var (Ty Base)) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
   intros der
   generalize eq : [] = Γ at der
   induction der

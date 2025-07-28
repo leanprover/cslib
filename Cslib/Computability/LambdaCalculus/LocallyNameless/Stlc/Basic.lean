@@ -38,7 +38,7 @@ open Term Ty
 
 /-- An extrinsic typing derivation for locally nameless terms. -/
 @[aesop unsafe [constructors (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]]
-inductive Typing : Ctx Var (Ty Base) → Term Var → Ty Base → Prop
+inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
 /-- Free variables, from a context judgement. -/
 | var : Γ ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
 /-- Lambda abstraction. -/
@@ -50,7 +50,7 @@ scoped notation:50 Γ " ⊢ " t " ∶" τ:arg => Typing Γ t τ
 
 namespace Typing
 
-variable {Γ Δ Φ : Ctx Var (Ty Base)}
+variable {Γ Δ Φ : Context Var (Ty Base)}
 
 omit [DecidableEq Var] in
 /-- Typing is preserved on permuting a context. -/
@@ -116,7 +116,7 @@ lemma subst_strengthened :
     simp only [subst_fvar]
     rw [←eq] at mem
     rw [←eq] at ok
-    cases (Ctx.perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ) ✓)
+    cases (Context.perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ) ✓)
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
@@ -134,7 +134,7 @@ lemma subst_strengthened :
         match mem with | _ => aesop
       rw [eq']
       refine Typing.perm perm (weakening der ?_)
-      exact Ctx.perm (id (List.Perm.symm perm)) ok_weak
+      exact Context.perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
     apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
     intros x _

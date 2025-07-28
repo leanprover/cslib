@@ -23,21 +23,21 @@ variable {Var : Type u} {Ty : Type v} [DecidableEq Var]
 namespace LambdaCalculus.LocallyNameless.Stlc
 
 /-- A typing context is a list of free variables and corresponding types. -/
-abbrev Ctx (Var : Type u) (Ty : Type v) := List ((_ : Var) × Ty)
+abbrev Context (Var : Type u) (Ty : Type v) := List ((_ : Var) × Ty)
 
-namespace Ctx
+namespace Context
 
 /-- The domain of a context is the finite set of free variables it uses. -/
 @[simp]
-def dom : Ctx Var Ty → Finset Var := List.toFinset ∘ List.keys
+def dom : Context Var Ty → Finset Var := List.toFinset ∘ List.keys
 
 /-- A well-formed context. -/
-abbrev Ok : Ctx Var Ty → Prop := List.NodupKeys
+abbrev Ok : Context Var Ty → Prop := List.NodupKeys
 
-instance : HasWellFormed (Ctx Var Ty) :=
+instance : HasWellFormed (Context Var Ty) :=
   ⟨Ok⟩
 
-variable {Γ Δ : Ctx Var Ty}
+variable {Γ Δ : Context Var Ty}
 
 /-- Context membership is preserved on permuting a context. -/
 theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : Var} : 
