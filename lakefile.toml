@@ -9,7 +9,7 @@ weak.linter.mathlibStandardSet = true
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.22.0-rc3"
+rev = "v4.22.0-rc4"
 
 [[lean_lib]]
 name = "Cslib"
