@@ -8,7 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          set -e
+          cmp -s lean-toolchain docs/lean-toolchain
       - uses: leanprover/lean-action@v1

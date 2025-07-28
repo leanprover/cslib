@@ -6,7 +6,7 @@ buildDir = "."
 [[require]]
 scope = "leanprover"
 name = "doc-gen4"
-rev = "v4.21.0-rc3"
+rev = "v4.22.0-rc4"
 
 [[require]]
 name = "cslib"

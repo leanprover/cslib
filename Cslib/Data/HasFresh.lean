@@ -15,7 +15,8 @@ import Mathlib.Order.SuccPred.WithBot
 
 universe u
 
-/-- A type `α` has a computable `fresh` function if it is always possible, for any finite set of `α`, to compute a fresh element not in the set. -/
+/-- A type `α` has a computable `fresh` function if it is always possible, for any finite set
+of `α`, to compute a fresh element not in the set. -/
 class HasFresh (α : Type u) where
   /-- Given a finite set, returns an element not in the set. -/
   fresh : Finset α → α
@@ -24,14 +25,12 @@ class HasFresh (α : Type u) where
 
 attribute [simp] HasFresh.fresh_notMem
 
-/-- An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity in proofs. -/
-theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s := ⟨fresh s, fresh_notMem s⟩ 
+/-- An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity
+in proofs. -/
+theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
+  ⟨fresh s, fresh_notMem s⟩
 
 export HasFresh (fresh fresh_notMem fresh_exists)
-
-lemma WithBot.lt_succ {α : Type u} [Preorder α] [OrderBot α] [SuccOrder α] [NoMaxOrder α]
-    (x : WithBot α) : x < x.succ :=
-  succ_eq_succ x ▸ Order.lt_succ x
 
 open Finset in
 /-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/

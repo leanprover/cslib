@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.LTS.Bisimulation
+import Cslib.Semantics.Lts.Bisimulation
 
 /- An LTS with two bisimilar states. -/
 private inductive tr1 : ℕ → Char → ℕ → Prop where
@@ -17,7 +17,7 @@ private inductive tr1 : ℕ → Char → ℕ → Prop where
 | six2seven : tr1 6 'b' 7
 | six2eight : tr1 6 'c' 8
 
-def lts1 := LTS.mk tr1
+def lts1 := Lts.mk tr1
 
 private inductive Bisim15 : ℕ → ℕ → Prop where
 | oneFive : Bisim15 1 5
@@ -51,8 +51,8 @@ example : 1 ~[lts1] 5 := by
   --   (add simp Bisimulation)
   --   (add safe constructors Bisim15)
   --   (add safe cases Bisim15)
-  --   (add safe cases [LTS.mtr])
-  --   (add simp LTS.tr)
+  --   (add safe cases [Lts.mtr])
+  --   (add simp Lts.tr)
   --   (add safe constructors tr1)
   --   (add unsafe apply Bisimulation.follow_fst)
   --   (add unsafe apply Bisimulation.follow_snd)
