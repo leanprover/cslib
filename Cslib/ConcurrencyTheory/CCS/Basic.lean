@@ -19,8 +19,8 @@ option of constant definitions (K = P).
 
 ## References
 
-* [R. Milner, *A Calculus of Communicating Systems*] [Milner80]
-* [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*] [Sangiorgi2011]
+* [R. Milner, *A Calculus of Communicating Systems*][Milner80]
+* [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
 
 variable (Name : Type u) (Constant : Type v)

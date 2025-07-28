@@ -14,8 +14,8 @@ The untyped λ-calculus, with a locally nameless representation of syntax.
 
 ## References
 
-* [A. Chargueraud, *The Locally Nameless Representation*] [Chargueraud2012]
-* See also https://www.cis.upenn.edu/~plclub/popl08-tutorial/code/, from which
+* [A. Chargueraud, *The Locally Nameless Representation*][Chargueraud2012]
+* See also <https://www.cis.upenn.edu/~plclub/popl08-tutorial/code/>, from which
   this is partially adapted
 
 -/
@@ -46,7 +46,7 @@ def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | app l r => app (openRec i sub l) (openRec i sub r)
 | abs M   => abs $ openRec (i+1) sub M
 
-scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e 
+scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e
 
 @[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := by rfl
@@ -72,7 +72,7 @@ def closeRec (k : ℕ) (x : Var) : Term Var → Term Var
 | app l r => app (closeRec k x l) (closeRec k x r)
 | abs t   => abs $ closeRec (k+1) x t
 
-scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e 
+scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
 
 variable {x : Var}
 

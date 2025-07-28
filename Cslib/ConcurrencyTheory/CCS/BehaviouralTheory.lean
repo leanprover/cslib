@@ -33,7 +33,8 @@ private inductive ParNil : (Process Name Constant) → (Process Name Constant) �
 | parNil : ParNil (par p nil) p
 
 /-- P | 𝟎 ~ P -/
-theorem bisimilarity_par_nil (p : Process Name Constant) : (par p nil) ~[@lts Name Constant defs] p := by
+@[simp, grind]
+theorem bisimilarity_par_nil : (par p nil) ~[@lts Name Constant defs] p := by
   exists ParNil
   constructor; constructor
   simp only [Bisimulation]
@@ -64,7 +65,8 @@ private inductive ParComm : (Process Name Constant) → (Process Name Constant) 
 | parComm : ParComm (par p q) (par q p)
 
 /-- P | Q ~ Q | P -/
-theorem bisimilarity_par_comm (p q : Process Name Constant) : (par p q) ~[@lts Name Constant defs] (par q p) := by
+@[grind]
+theorem bisimilarity_par_comm : (par p q) ~[@lts Name Constant defs] (par q p) := by
   exists ParComm
   constructor
   case left =>
@@ -93,7 +95,7 @@ theorem bisimilarity_par_comm (p q : Process Name Constant) : (par p q) ~[@lts N
           constructor
           · rw [← Act.co.involution Name μ] at htrp
             apply Tr.com htrq htrp
-          . constructor
+          · constructor
       case right =>
         intro t htr
         cases htr
@@ -112,7 +114,14 @@ theorem bisimilarity_par_comm (p q : Process Name Constant) : (par p q) ~[@lts N
           constructor
           · rw [← Act.co.involution Name μ] at htrp
             apply Tr.com htrq htrp
-          . constructor
+          · constructor
+
+/-- 𝟎 | P ~ P -/
+@[simp, grind]
+theorem bisimilarity_nil_par : (par nil p) ~[@lts Name Constant defs] p :=
+  calc
+    (par nil p) ~[@lts Name Constant defs] (par p nil) := by grind
+    _ ~[@lts Name Constant defs] p := by simp
 
 private inductive ChoiceComm : (Process Name Constant) → (Process Name Constant) → Prop where
 | choiceComm : ChoiceComm (choice p q) (choice q p)
