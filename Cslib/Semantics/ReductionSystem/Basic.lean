@@ -128,9 +128,11 @@ initialize Lean.registerBuiltinAttribute {
   add := fun decl stx _ => MetaM.run' do
     match stx with
     | `(attr | reduction_sys $rs $sym) =>
+        let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
         liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
     | `(attr | reduction_sys $rs) =>
+        let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
         liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"

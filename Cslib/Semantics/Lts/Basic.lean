@@ -671,9 +671,11 @@ initialize Lean.registerBuiltinAttribute {
   add := fun decl stx _ => MetaM.run' do
     match stx with
     | `(attr | lts $lts $sym) =>
+        let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
         liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts $sym))
     | `(attr | lts $lts) =>
+        let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
         liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts))
     | _ => throwError "invalid syntax for 'lts' attribute"
