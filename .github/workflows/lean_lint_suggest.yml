@@ -5,7 +5,6 @@ name: Lint and suggest
 
 jobs:
   lint:
-    if: github.repository == 'cs-lean/cslib' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: leanprover-community/lint-style-action
