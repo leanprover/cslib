@@ -13,8 +13,8 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
 
 ## References
 
-* [A. Chargueraud, *The Locally Nameless Representation*] [Chargueraud2012]
-* See also https://www.cis.upenn.edu/~plclub/popl08-tutorial/code/, from which
+* [A. Chargueraud, *The Locally Nameless Representation*][Chargueraud2012]
+* See also <https://www.cis.upenn.edu/~plclub/popl08-tutorial/code/>, from which
   this is partially adapted
 
 -/
