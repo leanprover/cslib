@@ -101,3 +101,17 @@ attribute [lts cannonical_lts] labelled_transition
 example (a b : Term) (μ : Label) : a [μ]⭢ b := by
   change labelled_transition a μ b
   simp
+
+--check that namespaces are respected
+namespace foo
+@[lts namespaced_lts]
+def bar (_ _ _ : ℕ) : Prop := True
+end foo
+
+/-- info: foo.bar : ℕ → ℕ → ℕ → Prop -/
+#guard_msgs in
+#check foo.bar
+
+/-- info: foo.namespaced_lts : Lts ℕ ℕ -/
+#guard_msgs in
+#check foo.namespaced_lts
