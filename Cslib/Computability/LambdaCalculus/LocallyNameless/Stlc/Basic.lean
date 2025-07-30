@@ -40,7 +40,7 @@ open Term Ty
 @[aesop unsafe [constructors (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]]
 inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
 /-- Free variables, from a context judgement. -/
-| var : Γ ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
+| var : Γ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
 /-- Lambda abstraction. -/
 | abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x,σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ) 
 /-- Function application. -/
@@ -69,7 +69,7 @@ theorem perm : Γ.Perm Δ → Γ ⊢ t ∶ τ → Δ ⊢ t ∶ τ := by
 
 /-- Weakening of a typing derivation with an appended context. -/
 lemma weakening_strengthened : 
-    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Φ ++ Δ) ✓ → (Γ ++ Φ ++ Δ) ⊢ t ∶ τ := by
+    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Φ ++ Δ)✓ → (Γ ++ Φ ++ Δ) ⊢ t ∶ τ := by
   generalize eq : Γ ++ Δ = Γ_Δ
   intros h
   revert Γ Δ Φ
@@ -85,7 +85,7 @@ lemma weakening_strengthened :
     aesop
 
 /-- Weakening of a typing derivation by an additional context. -/
-lemma weakening : Γ ⊢ t ∶ τ → (Γ ++ Δ) ✓ → Γ ++ Δ ⊢ t ∶ τ := by
+lemma weakening : Γ ⊢ t ∶ τ → (Γ ++ Δ)✓ → Γ ++ Δ ⊢ t ∶ τ := by
   intros der ok
   rw [←List.append_nil (Γ ++ Δ)] at *
   exact weakening_strengthened (by simp_all) ok
@@ -116,7 +116,7 @@ lemma subst_strengthened :
     simp only [subst_fvar]
     rw [←eq] at mem
     rw [←eq] at ok
-    cases (Context.perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ) ✓)
+    cases (Context.perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
