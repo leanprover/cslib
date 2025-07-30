@@ -27,10 +27,10 @@ namespace LambdaCalculus.LocallyNameless.Stlc
 
 /-- Types of the simply typed lambda calculus. -/
 inductive Ty (Base : Type v)
-/-- A base type, from a typing context. -/
-| base : Base → Ty Base
-/-- A function type. -/
-| arrow : Ty Base → Ty Base → Ty Base
+  /-- A base type, from a typing context. -/
+  | base : Base → Ty Base
+  /-- A function type. -/
+  | arrow : Ty Base → Ty Base → Ty Base
 
 scoped infixr:70 " ⤳ " => Ty.arrow
 
@@ -39,12 +39,12 @@ open Term Ty
 /-- An extrinsic typing derivation for locally nameless terms. -/
 @[aesop unsafe [constructors (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]]
 inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
-/-- Free variables, from a context judgement. -/
-| var : Γ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
-/-- Lambda abstraction. -/
-| abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x,σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ) 
-/-- Function application. -/
-| app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
+  /-- Free variables, from a context judgement. -/
+  | var : Γ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
+  /-- Lambda abstraction. -/
+  | abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x,σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ) 
+  /-- Function application. -/
+  | app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
 
 scoped notation:50 Γ " ⊢ " t " ∶" τ:arg => Typing Γ t τ
 
