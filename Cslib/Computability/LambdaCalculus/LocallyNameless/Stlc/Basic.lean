@@ -54,10 +54,9 @@ variable {Γ Δ Θ : Context Var (Ty Base)}
 
 omit [DecidableEq Var] in
 /-- Typing is preserved on permuting a context. -/
-theorem perm : Γ.Perm Δ → Γ ⊢ t ∶ τ → Δ ⊢ t ∶ τ := by 
-  intros _ der
+theorem perm (ht : Γ ⊢ t ∶τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by 
   revert Δ
-  induction der <;> intros Δ p
+  induction ht <;> intros Δ p
   case app => aesop
   case var => 
     have := @p.mem_iff
@@ -133,7 +132,7 @@ lemma subst_aux :
         simp only [List.mem_append, List.mem_cons, Sigma.mk.injEq, heq_eq_eq] at mem
         match mem with | _ => aesop
       rw [eq']
-      refine Typing.perm perm (weakening der ?_)
+      refine (weakening der ?_).perm perm
       exact Context.perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
     apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
