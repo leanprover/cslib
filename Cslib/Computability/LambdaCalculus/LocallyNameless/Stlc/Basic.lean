@@ -50,7 +50,7 @@ scoped notation:50 Γ " ⊢ " t " ∶" τ:arg => Typing Γ t τ
 
 namespace Typing
 
-variable {Γ Δ Φ : Context Var (Ty Base)}
+variable {Γ Δ Θ : Context Var (Ty Base)}
 
 omit [DecidableEq Var] in
 /-- Typing is preserved on permuting a context. -/
@@ -69,18 +69,18 @@ theorem perm : Γ.Perm Δ → Γ ⊢ t ∶ τ → Δ ⊢ t ∶ τ := by
 
 /-- Weakening of a typing derivation with an appended context. -/
 lemma weakening_strengthened : 
-    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Φ ++ Δ)✓ → (Γ ++ Φ ++ Δ) ⊢ t ∶ τ := by
+    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Θ ++ Δ)✓ → (Γ ++ Θ ++ Δ) ⊢ t ∶ τ := by
   generalize eq : Γ ++ Δ = Γ_Δ
   intros h
-  revert Γ Δ Φ
-  induction h <;> intros Γ Δ Φ eq ok_Γ_Φ_Δ
+  revert Γ Δ Θ
+  induction h <;> intros Γ Δ Θ eq ok_Γ_Θ_Δ
   case var => aesop
   case app => aesop
   case abs σ Γ' τ t xs ext ih =>
-    apply Typing.abs (xs ∪ (Γ ++ Φ ++ Δ).dom)
+    apply Typing.abs (xs ∪ (Γ ++ Θ ++ Δ).dom)
     intros x _
     have h : ⟨x, σ⟩ :: Γ ++ Δ = ⟨x, σ⟩ :: Γ' := by aesop
-    refine @ih x (by aesop) _ _ Φ h ?_
+    refine @ih x (by aesop) _ _ Θ h ?_
     simp only [HasWellFormed.wf]
     aesop
 
@@ -107,7 +107,7 @@ lemma subst_strengthened :
     (Δ ++ ⟨x, σ⟩ :: Γ) ⊢ t ∶ τ →
     Γ ⊢ s ∶ σ → 
     (Δ ++ Γ) ⊢ (t [x := s]) ∶ τ := by
-  generalize  eq : Δ ++ ⟨x, σ⟩ :: Γ = Φ
+  generalize  eq : Δ ++ ⟨x, σ⟩ :: Γ = Θ
   intros h
   revert Γ Δ
   induction h <;> intros Γ Δ eq der
