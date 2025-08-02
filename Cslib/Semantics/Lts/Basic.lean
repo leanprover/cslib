@@ -654,13 +654,13 @@ syntax "lts_transition_notation" ident (str)? : command
 macro_rules
   | `(lts_transition_notation $lts $sym) =>
     `(
-      notation3:39 t:39 "["μ"]⭢" $sym:str t':39 => (Lts.Tr.toRelation $lts μ) t t'
-      notation3:39 t:39 "["μs"]↠" $sym:str t':39 => (Lts.MTr.toRelation $lts μs) t t'
+      notation3 t:39 "["μ"]⭢" $sym:str t':39 => (Lts.Tr.toRelation $lts μ) t t'
+      notation3 t:39 "["μs"]↠" $sym:str t':39 => (Lts.MTr.toRelation $lts μs) t t'
      )
   | `(lts_transition_notation $lts) =>
     `(
-      notation3:39 t:39 "["μ"]⭢" t':39 => (Lts.Tr.toRelation $lts μ) t t'
-      notation3:39 t:39 "["μs"]↠" t':39 => (Lts.MTr.toRelation $lts μs) t t'
+      notation3 t:39 "["μ"]⭢" t':39 => (Lts.Tr.toRelation $lts μ) t t'
+      notation3 t:39 "["μs"]↠" t':39 => (Lts.MTr.toRelation $lts μs) t t'
      )
 
 /-- This attribute calls the `lts_transition_notation` command for the annotated declaration. -/

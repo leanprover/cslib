@@ -103,13 +103,13 @@ syntax "reduction_notation" ident (str)? : command
 macro_rules
   | `(reduction_notation $rs $sym) => 
     `(
-      notation3:39 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3:39 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
   | `(reduction_notation $rs) => 
     `(
-      notation3:39 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3:39 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 
