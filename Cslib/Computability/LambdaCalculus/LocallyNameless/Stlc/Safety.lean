@@ -30,24 +30,25 @@ open Stlc Typing
 
 variable {Var : Type u} {Base : Type v} {R : Term Var → Term Var → Prop}
 
-def preserves (R : Term Var → Term Var → Prop) (Base : Type v) := 
+def PreservesTyping (R : Term Var → Term Var → Prop) (Base : Type v) := 
   ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
 
 /-- If a reduction preserves types, so does its reflexive transitive closure. -/
 @[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-theorem preservation_redex : preserves R Base → preserves (Relation.ReflTransGen R) Base := by
+theorem redex_preservesTyping : 
+    PreservesTyping R Base → PreservesTyping (Relation.ReflTransGen R) Base := by
   intros _ _ _ _ _ _ redex
   induction redex <;> aesop
 
 open Relation in
 /-- Confluence preserves type preservation. -/
-theorem preservation_confluence {τ : Ty Base} : 
-    Confluence R → preserves R Base → Γ ⊢ a ∶ τ → 
+theorem confluence_preservesTyping {τ : Ty Base} : 
+    Confluence R → PreservesTyping R Base → Γ ⊢ a ∶ τ → 
     (ReflTransGen R) a b → (ReflTransGen R) a c →
     ∃ d, (ReflTransGen R) b d ∧ (ReflTransGen R) c d ∧ Γ ⊢ d ∶ τ := by
   intros con p der ab ac
   have ⟨d, bd, cd⟩ := con ab ac
-  exact ⟨d, bd, cd, preservation_redex p der (ab.trans bd)⟩
+  exact ⟨d, bd, cd, redex_preservesTyping p der (ab.trans bd)⟩
  
 variable [HasFresh Var] [DecidableEq Var] {Γ : Context Var (Ty Base)}
 
@@ -89,4 +90,4 @@ theorem progress : ([] : Context Var (Ty Base)) ⊢ t ∶ τ → t.Value ∨ ∃
       obtain ⟨M', stepM⟩ := step
       exact ⟨M'.app N, FullBeta.appR der_r.lc stepM⟩ 
 
-end Term.FullBeta
+end LambdaCalculus.LocallyNameless.Term.FullBeta

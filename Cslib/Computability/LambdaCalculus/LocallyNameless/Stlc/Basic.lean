@@ -67,7 +67,7 @@ theorem perm (ht : Γ ⊢ t ∶τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by
     exact ih x mem (by aesop)
 
 /-- Weakening of a typing derivation with an appended context. -/
-lemma weakening_aux : 
+lemma weaken_aux : 
     Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Θ ++ Δ)✓ → (Γ ++ Θ ++ Δ) ⊢ t ∶ τ := by
   generalize eq : Γ ++ Δ = Γ_Δ
   intros h
@@ -84,10 +84,10 @@ lemma weakening_aux :
     aesop
 
 /-- Weakening of a typing derivation by an additional context. -/
-lemma weakening : Γ ⊢ t ∶ τ → (Γ ++ Δ)✓ → Γ ++ Δ ⊢ t ∶ τ := by
+lemma weaken : Γ ⊢ t ∶ τ → (Γ ++ Δ)✓ → Γ ++ Δ ⊢ t ∶ τ := by
   intros der ok
   rw [←List.append_nil (Γ ++ Δ)] at *
-  exact weakening_aux (by simp_all) ok
+  exact weaken_aux (by simp_all) ok
 
 omit [DecidableEq Var] in
 /-- Typing derivations exist only for locally closed terms. -/
@@ -115,7 +115,7 @@ lemma subst_aux :
     simp only [subst_fvar]
     rw [←eq] at mem
     rw [←eq] at ok
-    cases (Context.perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
+    cases (Context.wf_perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
@@ -132,8 +132,8 @@ lemma subst_aux :
         simp only [List.mem_append, List.mem_cons, Sigma.mk.injEq, heq_eq_eq] at mem
         match mem with | _ => aesop
       rw [eq']
-      refine (weakening der ?_).perm perm
-      exact Context.perm (id (List.Perm.symm perm)) ok_weak
+      refine (weaken der ?_).perm perm
+      exact Context.wf_perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
     apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
     intros x _
@@ -154,7 +154,7 @@ lemma typing_subst_head :
 
 /-- Typing preservation for opening. -/
 @[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-theorem preservation_opening {xs : Finset Var} :
+theorem preservation_open {xs : Finset Var} :
   (∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) → 
   Γ ⊢ n ∶ σ → Γ ⊢ m ^ n ∶ τ
   := by
