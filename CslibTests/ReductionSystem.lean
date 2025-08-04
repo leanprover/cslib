@@ -36,3 +36,35 @@ attribute [reduction_sys cannonical_rs] PredReduction
 example : 5 ⭢ 4 := by 
   change PredReduction _ _
   simp
+
+--check that namespaces are respected
+namespace foo
+@[reduction_sys namespaced_rs]
+def bar (_ _ : ℕ) : Prop := True
+end foo
+
+/-- info: foo.bar : ℕ → ℕ → Prop -/
+#guard_msgs in
+#check foo.bar
+
+/-- info: foo.namespaced_rs : ReductionSystem ℕ -/
+#guard_msgs in
+#check foo.namespaced_rs
+
+-- check that delaborators work, including with variables
+
+/-- info: ∀ (a b : ℕ), a ⭢ₙ b : Prop -/
+#guard_msgs in
+#check ∀ (a b : ℕ), a ⭢ₙ b
+
+/-- info: ∀ (a b : ℕ), a ↠ₙ b : Prop -/
+#guard_msgs in
+#check ∀ (a b : ℕ), a ↠ₙ b
+
+/-- info: ∀ (a b : Term Var), a ⭢β b : Prop -/
+#guard_msgs in
+#check ∀ (a b : Term Var), a ⭢β b
+
+/-- info: ∀ (a b : Term Var), a ↠β b : Prop -/
+#guard_msgs in
+#check ∀ (a b : Term Var), a ↠β b
