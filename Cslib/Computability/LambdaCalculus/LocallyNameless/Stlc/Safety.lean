@@ -66,10 +66,9 @@ theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ :
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A typed term either full beta reduces or is a value. -/
-theorem progress : ([] : Context Var (Ty Base)) ⊢ t ∶ τ → t.Value ∨ ∃ t', t ⭢βᶠ t' := by
-  intros der
-  generalize eq : [] = Γ at der
-  induction der
+theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶τ) : t.Value ∨ ∃ t', t ⭢βᶠ t' := by
+  generalize eq : [] = Γ at ht
+  induction ht
   case var => aesop
   case abs xs mem ih =>
     left
