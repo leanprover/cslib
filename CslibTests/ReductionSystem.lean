@@ -50,3 +50,21 @@ end foo
 /-- info: foo.namespaced_rs : ReductionSystem ℕ -/
 #guard_msgs in
 #check foo.namespaced_rs
+
+-- check that delaborators work, including with variables
+
+/-- info: ∀ (a b : ℕ), a ⭢ₙ b : Prop -/
+#guard_msgs in
+#check ∀ (a b : ℕ), a ⭢ₙ b
+
+/-- info: ∀ (a b : ℕ), a ↠ₙ b : Prop -/
+#guard_msgs in
+#check ∀ (a b : ℕ), a ↠ₙ b
+
+/-- info: ∀ (a b : Term Var), a ⭢β b : Prop -/
+#guard_msgs in
+#check ∀ (a b : Term Var), a ⭢β b
+
+/-- info: ∀ (a b : Term Var), a ↠β b : Prop -/
+#guard_msgs in
+#check ∀ (a b : Term Var), a ↠β b

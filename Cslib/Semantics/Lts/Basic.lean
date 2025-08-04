@@ -10,6 +10,7 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Logic.Function.Defs
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Stream.Defs
+import Mathlib.Util.Notation3
 
 /-!
 # Labelled Transition System (LTS)
@@ -649,21 +650,21 @@ elab "create_lts" lt:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "lts_transition_notation" ident (Lean.Parser.Command.notationItem)? : command
+syntax "lts_transition_notation" ident (str)? : command
 macro_rules
   | `(lts_transition_notation $lts $sym) =>
     `(
-      notation:39 t "["μ"]⭢"$sym t' => (Lts.Tr.toRelation $lts μ) t t'
-      notation:39 t "["μs"]↠"$sym t' => (Lts.MTr.toRelation $lts μs) t t'
+      notation3 t:39 "["μ"]⭢" $sym:str t':39 => (Lts.Tr.toRelation $lts μ) t t'
+      notation3 t:39 "["μs"]↠" $sym:str t':39 => (Lts.MTr.toRelation $lts μs) t t'
      )
   | `(lts_transition_notation $lts) =>
     `(
-      notation:39 t "["μ"]⭢" t' => (Lts.Tr.toRelation $lts μ) t t'
-      notation:39 t "["μs"]↠" t' => (Lts.MTr.toRelation $lts μs) t t'
+      notation3 t:39 "["μ"]⭢" t':39 => (Lts.Tr.toRelation $lts μ) t t'
+      notation3 t:39 "["μs"]↠" t':39 => (Lts.MTr.toRelation $lts μs) t t'
      )
 
 /-- This attribute calls the `lts_transition_notation` command for the annotated declaration. -/
-syntax (name := lts_attr) "lts" ident (Lean.Parser.Command.notationItem)? : attr
+syntax (name := lts_attr) "lts" ident (ppSpace str)? : attr
 
 initialize Lean.registerBuiltinAttribute {
   name := `lts_attr
@@ -671,6 +672,9 @@ initialize Lean.registerBuiltinAttribute {
   add := fun decl stx _ => MetaM.run' do
     match stx with
     | `(attr | lts $lts $sym) =>
+        let mut sym := sym
+        unless sym.getString.endsWith " " do
+          sym := Syntax.mkStrLit (sym.getString ++ " ")
         let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
         liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts $sym))
