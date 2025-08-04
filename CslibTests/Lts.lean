@@ -115,3 +115,13 @@ end foo
 /-- info: foo.namespaced_lts : Lts ℕ ℕ -/
 #guard_msgs in
 #check foo.namespaced_lts
+
+-- check that delaborators work, including with variables
+
+/-- info: ∀ (a b : Term) (μ : Label), a[μ]⭢β b : Prop -/
+#guard_msgs in
+#check ∀ (a b : Term) (μ : Label), a [μ]⭢β b
+
+/-- info: ∀ (a b : Term) (μ : Label), a[[μ]]↠β b : Prop -/
+#guard_msgs in
+#check ∀ (a b : Term) (μ : Label), a [[μ]]↠β b

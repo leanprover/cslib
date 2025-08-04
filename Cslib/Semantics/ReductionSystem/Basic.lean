@@ -5,6 +5,7 @@ Authors: Fabrizio Montesi, Thomas Waring
 -/
 
 import Mathlib.Logic.Relation
+import Mathlib.Util.Notation3
 
 /-!
 # Reduction System
@@ -98,17 +99,17 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "reduction_notation" ident (Lean.Parser.Command.notationItem)? : command
+syntax "reduction_notation" ident (str)? : command
 macro_rules
   | `(reduction_notation $rs $sym) => 
     `(
-      notation:39 t " ⭢"$sym t' => (ReductionSystem.Red  $rs) t t'
-      notation:39 t " ↠"$sym t' => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
   | `(reduction_notation $rs) => 
     `(
-      notation:39 t " ⭢" t' => (ReductionSystem.Red  $rs) t t'
-      notation:39 t " ↠" t' => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 
@@ -120,7 +121,7 @@ macro_rules
   def PredReduction (a b : ℕ) : Prop := a = b + 1
   ```
 -/
-syntax (name := reduction_sys) "reduction_sys" ident (Lean.Parser.Command.notationItem)? : attr
+syntax (name := reduction_sys) "reduction_sys" ident (ppSpace str)? : attr
 
 initialize Lean.registerBuiltinAttribute {
   name := `reduction_sys
@@ -128,6 +129,9 @@ initialize Lean.registerBuiltinAttribute {
   add := fun decl stx _ => MetaM.run' do
     match stx with
     | `(attr | reduction_sys $rs $sym) =>
+        let mut sym := sym
+        unless sym.getString.endsWith " " do
+          sym := Syntax.mkStrLit (sym.getString ++ " ")
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
         liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
