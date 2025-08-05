@@ -32,13 +32,13 @@ inductive NatBisim : ℕ → ℕ → Prop where
 example : 1 ~[natLts] 2 := by
   exists NatBisim
   constructor
-  . constructor
-  . simp [Bisimulation]
+  · constructor
+  · simp [Bisimulation]
     intro s1 s2 hr μ
     constructor
-    . intro s1' htr
+    · intro s1' htr
       cases htr <;> (cases hr <;> repeat constructor)
-    . intro s2' htr
+    · intro s2' htr
       cases htr <;> (cases hr <;> repeat constructor)
 
 inductive TLabel : Type where
@@ -55,7 +55,8 @@ def natDivLts : Lts ℕ TLabel := ⟨NatDivergentTr⟩
 
 def natInfiniteExecution : Stream' ℕ := fun n => n
 
-theorem natInfiniteExecution.infiniteExecution : natDivLts.DivergentExecution natInfiniteExecution := by
+theorem natInfiniteExecution.infiniteExecution : 
+    natDivLts.DivergentExecution natInfiniteExecution := by
   simp [Lts.DivergentExecution]
   intro n
   constructor
@@ -89,7 +90,7 @@ example : natDivLts.Divergent n := by
 -- check that notation works
 variable {Term : Type} {Label : Type}
 @[lts lts "β", simp]
-def labelled_transition : Term → Label → Term → Prop := λ _ _ _ ↦ True
+def labelled_transition : Term → Label → Term → Prop := fun _ _ _ ↦ True
 
 example (a b : Term) (μ : Label) : a [μ]⭢β b := by
   change labelled_transition a μ b

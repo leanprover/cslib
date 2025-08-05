@@ -55,3 +55,5 @@ theorem wf_strengthen : (Δ ++ ⟨x, σ⟩ :: Γ)✓ → (Δ ++ Γ)✓ := by
   intros ok
   have sl : List.Sublist (Δ ++ Γ) (Δ ++ ⟨x, σ⟩ :: Γ) := by simp
   exact List.NodupKeys.sublist sl ok
+
+end LambdaCalculus.LocallyNameless.Stlc.Context

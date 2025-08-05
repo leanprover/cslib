@@ -108,7 +108,7 @@ To define the predecessor, iterate the function `PredAux` ⟨i, j⟩ ↦ ⟨j, j
 the  first component.
 -/
 def PredAuxPoly : SKI.Polynomial 1 := MkPair ⬝' (Snd ⬝' &0) ⬝' (SKI.Succ ⬝' (Snd ⬝' &0))
-/-- A term representing PredAux-/
+/-- A term representing PredAux -/
 def PredAux : SKI := PredAuxPoly.toSKI
 theorem predAux_def (p : SKI) :  PredAux ⬝ p ↠ MkPair ⬝ (Snd ⬝ p) ⬝ (SKI.Succ ⬝ (Snd ⬝ p)) :=
   PredAuxPoly.toSKI_correct [p] (by simp)
@@ -122,11 +122,12 @@ theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ↠ a') :
   simp_rw [IsChurchPair]
   intro ⟨ha₁,ha₂⟩
   constructor
-  . apply isChurch_trans (a' := Fst ⬝ a')
+  · apply isChurch_trans (a' := Fst ⬝ a')
     · apply MRed.tail; exact h
     · exact ha₁
-  . apply isChurch_trans (a' := Snd ⬝ a')
-    apply MRed.tail; exact h; exact ha₂
+  · apply isChurch_trans (a' := Snd ⬝ a')
+    · apply MRed.tail; exact h
+    · exact ha₂
 
 theorem predAux_correct (p : SKI) (ns : Nat × Nat) (h : IsChurchPair ns p) :
     IsChurchPair ⟨ns.2, ns.2+1⟩ (PredAux ⬝ p) := by
@@ -381,3 +382,5 @@ theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m 
   apply isBool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
   apply isZero_correct
   apply sub_correct <;> assumption
+
+end SKI

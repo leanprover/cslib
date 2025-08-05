@@ -51,13 +51,13 @@ lemma open_close (x : Var) (t : Term Var) (k : ℕ) : x ∉ t.fv → t⟦k ↝ f
   induction t <;> aesop
 
 /-- Opening is injective. -/
-lemma open_injective (x : Var) (M M' : Term Var) : x ∉ M.fv → x ∉ M'.fv → M ^ fvar x = M' ^ fvar x → M = M' := by
-  intros free_M free_M' eq
+lemma open_injective (x : Var) (M M') (free_M : x ∉ M.fv) (free_M' : x ∉ M'.fv)
+    (eq : M ^ fvar x = M' ^ fvar x) : M = M' := by
   rw [←open_close x M 0 free_M, ←open_close x M' 0 free_M']
   exact congrArg (closeRec 0 x) eq
 
 /-- Opening and closing are associative for nonclashing free variables. -/
-lemma swap_open_fvar_close (k n: ℕ) (x y : Var) (m : Term Var) : 
+lemma swap_open_fvar_close (k n : ℕ) (x y : Var) (m : Term Var) : 
     k ≠ n → x ≠ y → m⟦n ↝ fvar y⟧⟦k ↜ x⟧ = m⟦k ↜ x⟧⟦n ↝ fvar y⟧ := by
   revert k n
   induction' m <;> aesop
@@ -68,12 +68,14 @@ lemma close_preserve_not_fvar {k x y} (m : Term Var) : x ∉ m.fv → x ∉ (m�
   induction m <;> aesop
 
 /-- Opening to a fresh free variable preserves free variables. -/
-lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) : x ∉ m.fv → x ≠ y → x ∉ (m⟦k ↝ fvar y⟧).fv := by
+lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) : 
+    x ∉ m.fv → x ≠ y → x ∉ (m⟦k ↝ fvar y⟧).fv := by
   revert k
   induction m <;> aesop
 
 /-- Substitution preserves free variables. -/
-lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) : x ∉ m.fv ∪ n.fv → x ∉ (m [y := n]).fv := by
+lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) : 
+    x ∉ m.fv ∪ n.fv → x ∉ (m [y := n]).fv := by
   induction m
   all_goals aesop
 
@@ -108,8 +110,8 @@ lemma subst_open (x : Var) (t : Term Var) (k : ℕ) (u e) :
   induction' e <;> aesop
 
 /-- Specialize `subst_open` to the first opening. -/
-theorem subst_open_var (x y : Var) (u e : Term Var) : y ≠ x → LC u → (e [y := u]) ^ fvar x = (e ^ fvar x) [y := u] := by
-  intros neq u_lc
+theorem subst_open_var (x y : Var) (u e : Term Var) (neq : y ≠ x) (u_lc : LC u) : 
+    (e [y := u]) ^ fvar x = (e ^ fvar x) [y := u] := by
   have h : (e ^ fvar x)[y:=u] = e[y:=u] ^ (fvar x)[y:=u] := subst_open y u 0 (fvar x) e u_lc
   aesop
 
@@ -124,48 +126,39 @@ theorem subst_lc {x : Var} {e u : Term Var} : LC e → LC u → LC (e [x := u]) 
     all_goals aesop
   all_goals aesop
 
-/-- Opening to a term `t` is equivalent to opening to a free variable and substituting it for `t`. -/
-lemma subst_intro (x : Var) (t e : Term Var) : x ∉ e.fv → LC t → e ^ t = (e ^ fvar x) [ x := t ] := by
-  intros mem t_lc
+/-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
+lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) : 
+    e ^ t = (e ^ fvar x) [ x := t ] := by
   simp only [open']
   rw [subst_open x t 0 (fvar x) e t_lc, subst_fresh _ _ t mem]
   aesop
 
 /-- Opening of locally closed terms is locally closed. -/
-theorem beta_lc {M N : Term Var} : LC (abs M) → LC N → LC (M ^ N) := by
-  intros m_lc
+theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) : LC N → LC (M ^ N) := by
   cases m_lc
   case abs xs mem =>
     intros n_lc
     have ⟨y, ymem⟩ := fresh_exists (xs ∪ M.fv)
     simp only [Finset.mem_union, not_or] at ymem
     cases ymem
-    rw [subst_intro y N M]
-    apply subst_lc
-    apply mem
-    all_goals aesop
+    rw [subst_intro y N M (by aesop) (by assumption)]
+    apply subst_lc <;> aesop
 
 /-- Opening then closing is equivalent to substitution. -/
-lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) : LC m → m ⟦k ↜ x⟧⟦k ↝ fvar y⟧ = m [x := fvar y] := by
-  intros m_lc
+lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) : 
+    m ⟦k ↜ x⟧⟦k ↝ fvar y⟧ = m [x := fvar y] := by
   revert k
   induction' m_lc 
   case abs xs t x_mem ih =>
     intros k
     have ⟨x', x'_mem⟩ := fresh_exists ({x} ∪ {y} ∪ t.fv ∪ xs)
-    have s := subst_open_var x' x (fvar y) t ?_ (by constructor)
+    have s := subst_open_var x' x (fvar y) t (by aesop) (by constructor)
     simp only [closeRec_abs, openRec_abs, subst_abs]
-    rw [←open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, ←open_close x' (t[x := fvar y]) 0 ?f₂]
     simp only [open'] at *
-    rw [swap_open_fvars, ←swap_open_fvar_close, s, ih]
-    case f₁ =>
-      apply open_fresh_preserve_not_fvar
-      apply close_preserve_not_fvar
-      all_goals aesop
-    case f₂ =>
-      apply subst_preserve_not_fvar
-      aesop
-    all_goals aesop
+    rw [←open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, ←open_close x' (t[x := fvar y]) 0 ?f₂]
+    rw [swap_open_fvars, ←swap_open_fvar_close, s, ih] <;> aesop
+    case f₁ => refine open_fresh_preserve_not_fvar _ (close_preserve_not_fvar _ ?_) ?_ <;> aesop
+    case f₂ => apply subst_preserve_not_fvar; aesop
   all_goals aesop
 
 /-- Closing and opening are inverses. -/
@@ -185,3 +178,5 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) : LC t → t⟦k ↜ x⟧⟦
     rw [swap_open_fvar_close, swap_open_fvars]
     all_goals aesop
   all_goals aesop
+
+end LambdaCalculus.LocallyNameless.Term

@@ -52,7 +52,7 @@ namespace SKI
 scoped infixl:100 " ⬝ " => app
 
 /-- Apply a term to a list of terms -/
-def applyList (f : SKI) (xs : List SKI) : SKI := List.foldl (. ⬝ .) f xs
+def applyList (f : SKI) (xs : List SKI) : SKI := List.foldl (· ⬝ ·) f xs
 
 lemma applyList_concat (f : SKI) (ys : List SKI) (z : SKI) :
     f.applyList (ys ++ [z]) = f.applyList ys ⬝ z := by

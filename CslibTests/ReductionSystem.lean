@@ -24,7 +24,7 @@ inductive Term (Var : Type)
 variable {Var : Type}
 
 @[reduction_sys rs' "β", simp]
-def term_rel : Term Var → Term Var → Prop := λ _ _ ↦ True
+def term_rel : Term Var → Term Var → Prop := fun _ _ ↦ True
 
 example (a b : Term Var) : a ⭢β b := by
   change (@term_rel Var) a b

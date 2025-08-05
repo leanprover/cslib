@@ -1064,16 +1064,21 @@ theorem WeakBisimulation.iff_swBisimulation
           apply Lts.STr.comp lts hstr1b hstr1b' hstr1'
         · exact hrb2
 
-theorem WeakBisimulation.toSwBisimulation [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : WeakBisimulation lts r) : SWBisimulation lts r := (WeakBisimulation.iff_swBisimulation lts r).1 h
+theorem WeakBisimulation.toSwBisimulation
+  [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : WeakBisimulation lts r) :
+    SWBisimulation lts r := (WeakBisimulation.iff_swBisimulation lts r).1 h
 
-theorem SWBisimulation.toWeakBisimulation [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : SWBisimulation lts r) : WeakBisimulation lts r := (WeakBisimulation.iff_swBisimulation lts r).2 h
+theorem SWBisimulation.toWeakBisimulation
+  [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : SWBisimulation lts r) :
+    WeakBisimulation lts r := (WeakBisimulation.iff_swBisimulation lts r).2 h
 
 /-- If two states are related by an `SWBisimulation`, then they are weakly bisimilar. -/
 theorem WeakBisimilarity.by_swBisimulation [HasTau Label]
   (lts : Lts State Label) (r : State → State → Prop)
   (hb : SWBisimulation lts r) (hr : r s1 s2) : s1 ≈[lts] s2 := by
   exists r
-  constructor; exact hr
+  constructor
+  · exact hr
   apply (WeakBisimulation.iff_swBisimulation lts r).2 hb
 
 /-- Weak bisimilarity and sw-bisimilarity coincide for all Ltss. -/
@@ -1086,20 +1091,23 @@ theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label] (lts : Lts State La
     intro h
     obtain ⟨r, hr, hrh⟩ := h
     exists r
-    constructor; exact hr
+    constructor
+    · exact hr
     apply (WeakBisimulation.iff_swBisimulation lts r).1 hrh
   case mpr =>
     intro h
     obtain ⟨r, hr, hrh⟩ := h
     exists r
-    constructor; exact hr
+    constructor
+    · exact hr
     apply (WeakBisimulation.iff_swBisimulation lts r).2 hrh
 
 /-- sw-bisimilarity is reflexive. -/
 theorem SWBisimilarity.refl [HasTau Label] (lts : Lts State Label) (s : State) : s ≈sw[lts] s := by
   simp [SWBisimilarity]
   exists Eq
-  constructor; rfl
+  constructor
+  · rfl
   simp only [SWBisimulation]
   intro s1 s2 hr μ
   cases hr
@@ -1153,7 +1161,8 @@ theorem WeakBisimulation.inv [HasTau Label] (lts : Lts State Label)
   exact h'
 
 /-- sw-bisimilarity is symmetric. -/
-theorem SWBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈sw[lts] s2) : s2 ≈sw[lts] s1 := by
+theorem SWBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈sw[lts] s2) :
+    s2 ≈sw[lts] s1 := by
   obtain ⟨r, hr, hrh⟩ := h
   exists (flip r)
   constructor
@@ -1164,7 +1173,8 @@ theorem SWBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈sw
     apply SWBisimulation.inv lts r hrh
 
 /-- Weak bisimilarity is symmetric. -/
-theorem WeakBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈[lts] s2) : s2 ≈[lts] s1 := by
+theorem WeakBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈[lts] s2) :
+    s2 ≈[lts] s1 := by
   rw [WeakBisimilarity.weakBisim_eq_swBisim]
   rw [WeakBisimilarity.weakBisim_eq_swBisim] at h
   apply SWBisimilarity.symm lts h
@@ -1217,9 +1227,8 @@ theorem SWBisimulation.comp
   apply WeakBisimulation.comp lts r1 r2 h1 h2
 
 /-- Weak bisimilarity is transitive. -/
-theorem WeakBisimilarity.trans
-  [HasTau Label] {s1 s2 s3 : State} (lts : Lts State Label) (h1 : s1 ≈[lts] s2) (h2 : s2 ≈[lts] s3) :
-  s1 ≈[lts] s3 := by
+theorem WeakBisimilarity.trans [HasTau Label] {s1 s2 s3 : State}
+    (lts : Lts State Label) (h1 : s1 ≈[lts] s2) (h2 : s2 ≈[lts] s3) : s1 ≈[lts] s3 := by
   obtain ⟨r1, hr1, hr1b⟩ := h1
   obtain ⟨r2, hr2, hr2b⟩ := h2
   exists Relation.Comp r1 r2
@@ -1230,9 +1239,8 @@ theorem WeakBisimilarity.trans
     apply WeakBisimulation.comp lts r1 r2 hr1b hr2b
 
 /-- sw-bisimilarity is transitive. -/
-theorem SWBisimilarity.trans
-  [HasTau Label] {s1 s2 s3 : State} (lts : Lts State Label) (h1 : s1 ≈sw[lts] s2) (h2 : s2 ≈sw[lts] s3) :
-  s1 ≈sw[lts] s3 := by
+theorem SWBisimilarity.trans [HasTau Label] {s1 s2 s3 : State}
+    (lts : Lts State Label) (h1 : s1 ≈sw[lts] s2) (h2 : s2 ≈sw[lts] s3) : s1 ≈sw[lts] s3 := by
   rw [← (WeakBisimilarity.weakBisim_eq_swBisim lts)] at *
   apply WeakBisimilarity.trans lts h1 h2
 

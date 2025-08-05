@@ -44,7 +44,7 @@ def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | bvar i' => if i = i' then sub else bvar i'
 | fvar x  => fvar x
 | app l r => app (openRec i sub l) (openRec i sub r)
-| abs M   => abs $ openRec (i+1) sub M
+| abs M   => abs <| openRec (i+1) sub M
 
 scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e
 
@@ -70,7 +70,7 @@ def closeRec (k : ℕ) (x : Var) : Term Var → Term Var
 | fvar x' => if x = x' then bvar k else fvar x'
 | bvar i  => bvar i
 | app l r => app (closeRec k x l) (closeRec k x r)
-| abs t   => abs $ closeRec (k+1) x t
+| abs t   => abs <| closeRec (k+1) x t
 
 scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
 
@@ -103,7 +103,7 @@ def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
   | bvar i  => bvar i
   | fvar x' => if x = x' then sub else fvar x'
   | app l r => app (l.subst x sub) (r.subst x sub)
-  | abs M   => abs $ M.subst x sub
+  | abs M   => abs <| M.subst x sub
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
 instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var where
@@ -146,3 +146,5 @@ inductive LC : Term Var → Prop
 
 inductive Value : Term Var → Prop
 | abs (e : Term Var) : e.abs.LC → e.abs.Value
+
+end LambdaCalculus.LocallyNameless.Term
