@@ -14,3 +14,5 @@ jobs:
           set -e
           cmp -s lean-toolchain docs/lean-toolchain
       - uses: leanprover/lean-action@v1
+        with:
+          build-args: "--wfail"
