@@ -1065,11 +1065,11 @@ theorem WeakBisimulation.iff_swBisimulation
         · exact hrb2
 
 theorem WeakBisimulation.toSwBisimulation
-  [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : WeakBisimulation lts r) : 
+  [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : WeakBisimulation lts r) :
     SWBisimulation lts r := (WeakBisimulation.iff_swBisimulation lts r).1 h
 
 theorem SWBisimulation.toWeakBisimulation
-  [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : SWBisimulation lts r) : 
+  [HasTau Label] {lts : Lts State Label} {r : State → State → Prop} (h : SWBisimulation lts r) :
     WeakBisimulation lts r := (WeakBisimulation.iff_swBisimulation lts r).2 h
 
 /-- If two states are related by an `SWBisimulation`, then they are weakly bisimilar. -/
@@ -1161,7 +1161,7 @@ theorem WeakBisimulation.inv [HasTau Label] (lts : Lts State Label)
   exact h'
 
 /-- sw-bisimilarity is symmetric. -/
-theorem SWBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈sw[lts] s2) : 
+theorem SWBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈sw[lts] s2) :
     s2 ≈sw[lts] s1 := by
   obtain ⟨r, hr, hrh⟩ := h
   exists (flip r)
@@ -1173,7 +1173,7 @@ theorem SWBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈sw
     apply SWBisimulation.inv lts r hrh
 
 /-- Weak bisimilarity is symmetric. -/
-theorem WeakBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈[lts] s2) : 
+theorem WeakBisimilarity.symm [HasTau Label] (lts : Lts State Label) (h : s1 ≈[lts] s2) :
     s2 ≈[lts] s1 := by
   rw [WeakBisimilarity.weakBisim_eq_swBisim]
   rw [WeakBisimilarity.weakBisim_eq_swBisim] at h
