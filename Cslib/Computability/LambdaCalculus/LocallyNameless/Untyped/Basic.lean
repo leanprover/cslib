@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 import Cslib.Data.HasFresh
 import Cslib.Syntax.HasSubstitution
-import Cslib.Computability.LambdaCalculus.Untyped.LocallyNameless.AesopRuleset
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.AesopRuleset
 
 /-! # λ-calculus
 
@@ -26,9 +26,9 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless
 
-/-- Syntax of locally nameless absbda terms, with free variables over `Var`. -/
+/-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type u)
-/-- Bound variables that appear under a absbda abstraction, using a de-Bruijn index. -/
+/-- Bound variables that appear under a lambda abstraction, using a de-Bruijn index. -/
 | bvar : ℕ → Term Var
 /-- Free variables. -/
 | fvar : Var → Term Var
@@ -143,3 +143,6 @@ inductive LC : Term Var → Prop
 | fvar (x)  : LC (fvar x)
 | abs (L : Finset Var) (e : Term Var) : (∀ x : Var, x ∉ L → LC (e ^ fvar x)) → LC (abs e)
 | app {l r} : l.LC → r.LC → LC (app l r)
+
+inductive Value : Term Var → Prop
+| abs (e : Term Var) : e.abs.LC → e.abs.Value
