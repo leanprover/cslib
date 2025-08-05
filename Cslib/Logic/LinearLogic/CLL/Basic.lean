@@ -83,11 +83,15 @@ def Proposition.Neg (a : @Proposition Atom) : Prop :=
 
 /-- Whether a `Proposition` is positive is decidable. -/
 instance Proposition.pos_decidable (a : @Proposition Atom) : Decidable a.Pos := by
-  cases a <;> simp [Proposition.Pos] <;> first | apply Decidable.isTrue; simp | apply Decidable.isFalse; simp
+  cases a <;> 
+  simp only [Proposition.Pos] <;> 
+  first | apply Decidable.isTrue; trivial | apply Decidable.isFalse; trivial
 
 /-- Whether a `Proposition` is negative is decidable. -/
 instance Proposition.neg_decidable (a : @Proposition Atom) : Decidable a.Neg := by
-  cases a <;> simp [Proposition.Neg] <;> first | apply Decidable.isTrue; simp | apply Decidable.isFalse; simp
+  cases a <;> 
+  simp only [Proposition.Neg] <;> 
+  first | apply Decidable.isTrue; trivial | apply Decidable.isFalse; trivial
 
 /-- Propositional duality. -/
 def Proposition.dual (a : @Proposition Atom) : @Proposition Atom :=

@@ -139,11 +139,10 @@ lemma subst_aux :
     intros x _
     rw [
       subst_def, 
-      subst_open_var _ _ _ _ _ der.lc,
+      subst_open_var _ _ _ _ (by aesop) der.lc,
       show ⟨x, σ⟩ :: (Δ ++ Γ) = (⟨x, σ⟩ :: Δ) ++ Γ by aesop
       ]
-    apply ih 
-    all_goals aesop  
+    apply ih <;> aesop
 
 /-- Substitution for a context weakened by a single type. -/
 lemma typing_subst_head : 
@@ -162,3 +161,5 @@ theorem preservation_open {xs : Finset Var} :
   have ⟨fresh, free⟩ := fresh_exists (xs ∪ m.fv)
   rw [subst_intro fresh n m (by aesop) der.lc]
   exact typing_subst_head (mem fresh (by aesop)) der
+
+end LambdaCalculus.LocallyNameless.Stlc.Typing
