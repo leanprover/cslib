@@ -81,7 +81,7 @@ algorithm. We induct backwards on the list, corresponding to applying the transf
 inside out. Since we haven't defined reduction for polynomials, we substitute arbitrary terms
 for the inner variables.
 -/
-theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) {ys : List SKI}
+theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n + 1)) {ys : List SKI}
     (hys : ys.length = n) (z : SKI) :
     Γ.elimVar.eval ys hys ⬝ z ⇒* Γ.eval (ys ++ [z])
       (by rw [List.length_append, hys, List.length_singleton])
@@ -93,10 +93,10 @@ theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n+1)) {ys : L
   | _, SKI.Polynomial.app Γ Δ =>
     rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
     trans Γ.elimVar.eval ys hys ⬝ z ⬝ (Δ.elimVar.eval ys hys ⬝ z)
-    . exact MRed.S _ _ _
-    . apply parallel_mRed
-      . exact elimVar_correct Γ hys z
-      . exact elimVar_correct Δ hys z
+    · exact MRed.S _ _ _
+    · apply parallel_mRed
+      · exact elimVar_correct Γ hys z
+      · exact elimVar_correct Δ hys z
   | n, SKI.Polynomial.var i =>
     rw [SKI.Polynomial.elimVar]
     split_ifs with hi
@@ -249,7 +249,7 @@ theorem ΘAux_def (x y : SKI) : ΘAux ⬝ x ⬝ y ⇒* y ⬝ (x ⬝ x ⬝ y) :=
   ΘAuxPoly.toSKI_correct [x, y] (by simp)
 
 
-/--Turing's fixed-point combinator: Θ := (λ x y. y (x x y)) (λ x y. y (x x y)) -/
+/-- Turing's fixed-point combinator: Θ := (λ x y. y (x x y)) (λ x y. y (x x y)) -/
 def Θ : SKI := ΘAux ⬝ ΘAux
 /-- A SKI term representing Θ -/
 theorem Θ_correct (f : SKI) : Θ ⬝ f ⇒* f ⬝ (Θ ⬝ f) := ΘAux_def ΘAux f
@@ -367,11 +367,11 @@ theorem unpaired_def (f p : SKI) : SKI.Unpaired ⬝ f ⬝ p ⇒* f ⬝ (Fst ⬝ 
 
 theorem unpaired_correct (f x y : SKI) : SKI.Unpaired ⬝ f ⬝ (MkPair ⬝ x ⬝ y) ⇒* f ⬝ x ⬝ y := by
   trans f ⬝ (Fst ⬝ (MkPair ⬝ x ⬝ y)) ⬝ (Snd ⬝ (MkPair ⬝ x ⬝ y))
-  . exact unpaired_def f _
-  . apply parallel_mRed
-    . apply MRed.tail
+  · exact unpaired_def f _
+  · apply parallel_mRed
+    · apply MRed.tail
       exact fst_correct _ _
-    . exact snd_correct _ _
+    · exact snd_correct _ _
 
 /-- Pair f g x := ⟨f x, g x⟩, cf `Primrec.Pair`. -/
 def PairPoly : SKI.Polynomial 3 := MkPair ⬝' (&0 ⬝' &2) ⬝' (&1 ⬝' &2)
@@ -379,3 +379,5 @@ def PairPoly : SKI.Polynomial 3 := MkPair ⬝' (&0 ⬝' &2) ⬝' (&1 ⬝' &2)
 protected def Pair : SKI := PairPoly.toSKI
 theorem pair_def (f g x : SKI) : SKI.Pair ⬝ f ⬝ g ⬝ x ⇒* MkPair ⬝ (f ⬝ x) ⬝ (g ⬝ x) :=
   PairPoly.toSKI_correct [f, g, x] (by simp)
+
+end SKI

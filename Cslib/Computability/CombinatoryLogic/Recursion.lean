@@ -21,7 +21,8 @@ correctness proofs `zero_correct` and `succ_correct`.
 - Predecessor : a term `Pred` so that (`pred_correct`)
 `IsChurch n a → IsChurch n.pred (Pred ⬝ a)`.
 - Primitive recursion : a term `Rec` so that (`rec_correct_succ`) `IsChurch (n+1) a` implies
-`Rec ⬝ x ⬝ g ⬝ a ⇒* g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))` and (`rec_correct_zero`) `IsChurch 0 a` implies
+`Rec ⬝ x ⬝ g ⬝ a ⇒* g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))` and (`rec_correct_zero`) `IsChurch 0 a`
+implies
 `Rec ⬝ x ⬝ g ⬝ a ⇒* x`.
 - Unbounded root finding (μ-recursion) : given a term  `f` representing a function `fℕ: Nat → Nat`,
 which takes on the value 0 a term `RFind` such that (`rFind_correct`) `RFind ⬝ f ⇒* a` such that
@@ -108,7 +109,7 @@ To define the predecessor, iterate the function `PredAux` ⟨i, j⟩ ↦ ⟨j, j
 the  first component.
 -/
 def PredAuxPoly : SKI.Polynomial 1 := MkPair ⬝' (Snd ⬝' &0) ⬝' (SKI.Succ ⬝' (Snd ⬝' &0))
-/-- A term representing PredAux-/
+/-- A term representing PredAux -/
 def PredAux : SKI := PredAuxPoly.toSKI
 theorem predAux_def (p : SKI) :  PredAux ⬝ p ⇒* MkPair ⬝ (Snd ⬝ p) ⬝ (SKI.Succ ⬝ (Snd ⬝ p)) :=
   PredAuxPoly.toSKI_correct [p] (by simp)
@@ -122,11 +123,12 @@ theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ⇒* a') :
   simp_rw [IsChurchPair]
   intro ⟨ha₁,ha₂⟩
   constructor
-  . apply isChurch_trans (a' := Fst ⬝ a')
+  · apply isChurch_trans (a' := Fst ⬝ a')
     · apply MRed.tail; exact h
     · exact ha₁
-  . apply isChurch_trans (a' := Snd ⬝ a')
-    apply MRed.tail; exact h; exact ha₂
+  · apply isChurch_trans (a' := Snd ⬝ a')
+    · apply MRed.tail; exact h
+    · exact ha₂
 
 theorem predAux_correct (p : SKI) (ns : Nat × Nat) (h : IsChurchPair ns p) :
     IsChurchPair ⟨ns.2, ns.2+1⟩ (PredAux ⬝ p) := by
@@ -224,7 +226,7 @@ theorem rec_zero (x g a : SKI) (ha : IsChurch 0 a) : Rec ⬝ x ⬝ g ⬝ a ⇒* 
       apply cond_correct
       exact isZero_correct 0 a ha
 
-theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n+1) a) :
+theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n + 1) a) :
     Rec ⬝ x ⬝ g ⬝ a ⇒* g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a)) := by
   calc
   _ ⇒* SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := rec_def _ _ _
@@ -254,7 +256,7 @@ theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : IsChurch 0 (f ⬝ a)) :
   _ ⇒* if (Nat.beq 0 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
       apply cond_correct
       apply isZero_correct _ _ hfa
-theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m+1) (f ⬝ a)) :
+theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m + 1) (f ⬝ a)) :
     RFindAboveAux ⬝ R₀ ⬝ a ⬝ f ⇒* R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f := calc
   _ ⇒* SKI.Cond ⬝ a ⬝ (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ⇒* if (Nat.beq (m+1) 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
@@ -381,3 +383,5 @@ theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m 
   apply isBool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
   apply isZero_correct
   apply sub_correct <;> assumption
+
+end SKI

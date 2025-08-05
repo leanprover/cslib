@@ -61,8 +61,8 @@ theorem mRed_of_parallelReduction {a a' : SKI} (h : a ⇒ₚ a') : a ⇒* a' := 
   case refl => exact Relation.ReflTransGen.refl
   case par a a' b b' ha hb =>
     apply parallel_mRed
-    exact mRed_of_parallelReduction ha
-    exact mRed_of_parallelReduction hb
+    · exact mRed_of_parallelReduction ha
+    · exact mRed_of_parallelReduction hb
   case red_I => exact Relation.ReflTransGen.single (red_I a')
   case red_K b => exact Relation.ReflTransGen.single (red_K a' b)
   case red_S a b c => exact Relation.ReflTransGen.single (red_S a b c)
@@ -75,12 +75,12 @@ theorem parallelReduction_of_red {a a' : SKI} (h : a ⇒ a') : a ⇒ₚ a' := by
   case red_I => apply ParallelReduction.red_I
   case red_head a a' b h =>
     apply ParallelReduction.par
-    exact parallelReduction_of_red h
-    exact ParallelReduction.refl b
+    · exact parallelReduction_of_red h
+    · exact ParallelReduction.refl b
   case red_tail a b b' h =>
     apply ParallelReduction.par
-    exact ParallelReduction.refl a
-    exact parallelReduction_of_red h
+    · exact ParallelReduction.refl a
+    · exact parallelReduction_of_red h
 
 /-- The inclusions of `mRed_of_parallelReduction` and
 `parallelReduction_of_red` imply that `⇒` and `⇒ₚ` have the same reflexive-transitive
@@ -135,7 +135,8 @@ lemma Sa_irreducible (a c : SKI) (h : S ⬝ a ⇒ₚ c) : ∃ a', a ⇒ₚ a' �
     rw [S_irreducible b h]
     exact ⟨h', rfl⟩
 
-lemma Sab_irreducible (a b c : SKI) (h : S ⬝ a ⬝ b ⇒ₚ c) : ∃ a' b', a ⇒ₚ a' ∧ b ⇒ₚ b' ∧ c = S ⬝ a' ⬝ b' := by
+lemma Sab_irreducible (a b c : SKI) (h : S ⬝ a ⬝ b ⇒ₚ c) :
+    ∃ a' b', a ⇒ₚ a' ∧ b ⇒ₚ b' ∧ c = S ⬝ a' ⬝ b' := by
   cases h
   case refl =>
     use a; use b
@@ -237,3 +238,5 @@ theorem MRed.diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) : CommonRed
   apply commonReduct_equivalence.trans (y := a)
   · exact commonReduct_equivalence.symm (commonReduct_of_single hab)
   · exact commonReduct_of_single hac
+
+end SKI
