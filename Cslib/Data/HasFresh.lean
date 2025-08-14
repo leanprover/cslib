@@ -30,6 +30,39 @@ in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
+open Lean Elab Term Meta in
+elab "fresh_select" var:term : term => do
+  -- the type of our variables
+  let var ← elabType var
+
+  -- iterate through the local context, getting:
+  --    Finset Var
+  --    single variables v : Var  (TODO)
+  --    results from β → Var      (TODO)
+  let mut finsets := #[]
+
+  for ldecl in (← getLCtx) do
+    if !ldecl.isImplementationDetail then
+      let type ← inferType (mkFVar ldecl.fvarId)
+      match type.getAppFnArgs with
+      | (``Finset, #[var']) => if (← isDefEq var var') then finsets := finsets.push ldecl.toExpr
+      | _ => pure ()
+
+  -- construct ∅
+  let dl ← getDecLevel var
+  let FinsetType := mkApp (mkConst ``Finset [dl]) var
+  let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
+  let empty := 
+    mkApp2  (mkConst ``EmptyCollection.emptyCollection [dl]) FinsetType EmptyCollectionInst
+
+  -- construct a union fold
+  let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
+  let UnionFinset := mkApp2 (mkConst `Union.union [dl]) FinsetType UnionInst
+  let union := finsets.foldl (mkApp2 UnionFinset) empty
+    
+  -- TODO : simp only [Finset.empty_union, Finset.union_assoc, Finset.mem_union, not_or]
+  return union
+
 export HasFresh (fresh fresh_notMem fresh_exists)
 
 open Finset in
