@@ -49,12 +49,13 @@ elab "fresh_union" var:term : term => do
   let empty := 
     mkApp2  (mkConst ``EmptyCollection.emptyCollection [dl]) FinsetType EmptyCollectionInst
 
+  let SingletonInst ← synthInstance (mkApp2 (mkConst ``Singleton [dl, dl]) var FinsetType)
+
   for ldecl in (← getLCtx) do
     if !ldecl.isImplementationDetail then
       let type ← inferType (mkFVar ldecl.fvarId)
       -- singleton variables
       if (← isDefEq type var) then
-        let SingletonInst ← synthInstance (mkApp2 (mkConst ``Singleton [dl, dl]) var FinsetType)
         let singleton := 
           mkApp4 (mkConst ``Singleton.singleton [dl, dl]) var FinsetType SingletonInst ldecl.toExpr
         finsets := finsets.push singleton
