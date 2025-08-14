@@ -30,15 +30,18 @@ in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
-open Lean Elab Term Meta in
+open Lean Elab Term Meta Parser Tactic in
 /-- 
   Given a `HasFresh Var` instance, this elaborator automatically constructs a term that is
   fresh with respect to variables in the local context. It creates a union of any variables, finite
   sets of variables, and results of a provided function for free variables (TODO).
 -/
-elab "fresh_union" var:term : term => do
+elab "fresh_union" cfg:optConfig var:term : term => do
   -- the type of our variables
   let var ← elabType var
+
+  -- TODO: handle the optConfig
+  logWarning m!"Configuration{cfg} not yet implemented."
 
   let mut finsets := #[]
 
@@ -79,10 +82,14 @@ section example_tactic
 
 variable (Var : Type) [DecidableEq Var] [HasFresh Var]
 
+variable (Term : Type) (q : Var)
+def fv : Term → Finset Var := fun _ ↦ {q}
+
 open HasFresh
 
+set_option pp.rawOnError true in
 example (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs := by
-  let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union Var)
+  let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union (free := fv) Var)
   exists fresh
   aesop
 
