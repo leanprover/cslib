@@ -60,9 +60,9 @@ elab "fresh_union" cfg:optConfig var:term : term => do
   let FinsetType := mkApp (mkConst ``Finset [dl]) var
   let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
   let empty := 
-    mkApp2  (mkConst ``EmptyCollection.emptyCollection [dl]) FinsetType EmptyCollectionInst
+    mkAppN (mkConst ``EmptyCollection.emptyCollection [dl]) #[FinsetType, EmptyCollectionInst]
 
-  let SingletonInst ← synthInstance (mkApp2 (mkConst ``Singleton [dl, dl]) var FinsetType)
+  let SingletonInst ← synthInstance <| mkAppN (mkConst ``Singleton [dl, dl]) #[var, FinsetType]
 
   for ldecl in (← getLCtx) do
     if !ldecl.isImplementationDetail then
@@ -71,7 +71,9 @@ elab "fresh_union" cfg:optConfig var:term : term => do
       -- singleton variables
       if (← isDefEq local_type var) then
         let singleton := 
-          mkApp4 (mkConst ``Singleton.singleton [dl, dl]) var FinsetType SingletonInst ldecl.toExpr
+          mkAppN 
+          (mkConst ``Singleton.singleton [dl, dl]) 
+          #[var, FinsetType, SingletonInst, ldecl.toExpr]
         finsets := finsets.push singleton
 
       -- free variables of terms
@@ -85,7 +87,7 @@ elab "fresh_union" cfg:optConfig var:term : term => do
 
   -- construct a union fold
   let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
-  let UnionFinset := mkApp2 (mkConst `Union.union [dl]) FinsetType UnionInst
+  let UnionFinset := mkAppN (mkConst `Union.union [dl]) #[FinsetType, UnionInst]
   let union := finsets.foldl (mkApp2 UnionFinset) empty
     
   return union
