@@ -168,7 +168,7 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) : LC t → t⟦k ↜ x⟧⟦
     intros k
     simp only [closeRec_abs, openRec_abs, abs.injEq]
     let z := t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧
-    have ⟨y, hy⟩ := fresh_exists <| fresh_union (free := fv) Var
+    have ⟨y, _⟩ := fresh_exists <| fresh_union (free := fv) Var
     refine open_injective y _ _ (by aesop) (by aesop) ?_
     rw [←ih y ?_ (k+1)]
     · simp only [open']
