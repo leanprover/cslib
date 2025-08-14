@@ -31,22 +31,16 @@ theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ 
   ⟨fresh s, fresh_notMem s⟩
 
 open Lean Elab Term Meta in
+/-- 
+  Given a `HasFresh Var` instance, this elaborator automatically constructs a term that is
+  fresh with respect to variables in the local context. It creates a union of any variables, finite
+  sets of variables, and results of a provided function for free variables (TODO).
+-/
 elab "fresh_select" var:term : term => do
   -- the type of our variables
   let var ← elabType var
 
-  -- iterate through the local context, getting:
-  --    Finset Var
-  --    single variables v : Var  (TODO)
-  --    results from β → Var      (TODO)
   let mut finsets := #[]
-
-  for ldecl in (← getLCtx) do
-    if !ldecl.isImplementationDetail then
-      let type ← inferType (mkFVar ldecl.fvarId)
-      match type.getAppFnArgs with
-      | (``Finset, #[var']) => if (← isDefEq var var') then finsets := finsets.push ldecl.toExpr
-      | _ => pure ()
 
   -- construct ∅
   let dl ← getDecLevel var
@@ -54,6 +48,21 @@ elab "fresh_select" var:term : term => do
   let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
   let empty := 
     mkApp2  (mkConst ``EmptyCollection.emptyCollection [dl]) FinsetType EmptyCollectionInst
+
+  for ldecl in (← getLCtx) do
+    if !ldecl.isImplementationDetail then
+      let type ← inferType (mkFVar ldecl.fvarId)
+      -- singleton variables
+      if (← isDefEq type var) then
+        let SingletonInst ← synthInstance (mkApp2 (mkConst ``Singleton [dl, dl]) var FinsetType)
+        let singleton := 
+          mkApp4 (mkConst ``Singleton.singleton [dl, dl]) var FinsetType SingletonInst ldecl.toExpr
+        finsets := finsets.push singleton
+      else
+      -- any finite sets
+      match type.getAppFnArgs with
+      | (``Finset, #[var']) => if (← isDefEq var var') then finsets := finsets.push ldecl.toExpr
+      | _ => pure ()
 
   -- construct a union fold
   let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
