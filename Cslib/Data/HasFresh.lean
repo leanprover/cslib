@@ -47,6 +47,15 @@ def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α →
     then not_le_of_gt (hf (s.sup' hs id)) <| by rw [dif_pos hs] at h; exact s.le_sup' id h
     else hs ⟨_, h⟩
 
+lemma HasFresh.not_of_finite (α : Type u) [Fintype α] : IsEmpty (HasFresh α) :=
+  ⟨fun f ↦ (f.fresh_notMem .univ).elim (Finset.mem_univ _)⟩
+
+/-- All infinite types have an associated (at least noncomputable) fresh function.
+This, in conjunction with `HasFresh.not_of_finite`, characterizes `HasFresh`. -/
+noncomputable def HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
+  fresh s := s.finite_toSet.infinite_compl.nonempty.choose
+  fresh_notMem s := s.finite_toSet.infinite_compl.nonempty.choose_spec
+
 /-- `ℕ` has a computable fresh function. -/
 instance : HasFresh ℕ :=
   .ofSucc (· + 1) Nat.lt_add_one
