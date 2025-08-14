@@ -32,7 +32,7 @@ theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ 
 
 open Lean Elab Term Meta Parser Tactic in
 /-- 
-  Given a `HasFresh Var` instance, this elaborator automatically constructs a term that is
+  Given a `DecidableEq Var` instance, this elaborator automatically constructs a term that is
   fresh with respect to variables in the local context. It creates a union of any variables, finite
   sets of variables, and results of a provided function for free variables.
 -/
