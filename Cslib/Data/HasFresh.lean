@@ -32,6 +32,15 @@ theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ 
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
+lemma HasFresh.not_of_finite (α : Type u) [Fintype α] : IsEmpty (HasFresh α) :=
+  ⟨fun f ↦ (f.fresh_notMem .univ).elim (Finset.mem_univ _)⟩
+
+/-- All infinite types have an associated (at least noncomputable) fresh function.
+This, in conjunction with `HasFresh.not_of_finite`, characterizes `HasFresh`. -/
+noncomputable def HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
+  fresh s := s.finite_toSet.infinite_compl.nonempty.choose
+  fresh_notMem s := s.finite_toSet.infinite_compl.nonempty.choose_spec
+
 open Finset in
 /-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/
 def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFresh α where
