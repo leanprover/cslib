@@ -61,6 +61,7 @@ elab "fresh_select" var:term : term => do
   let union := finsets.foldl (mkApp2 UnionFinset) empty
     
   -- TODO : simp only [Finset.empty_union, Finset.union_assoc, Finset.mem_union, not_or]
+  --        then recursively destruct the conjunction
   return union
 
 export HasFresh (fresh fresh_notMem fresh_exists)
