@@ -36,7 +36,7 @@ open Lean Elab Term Meta in
   fresh with respect to variables in the local context. It creates a union of any variables, finite
   sets of variables, and results of a provided function for free variables (TODO).
 -/
-elab "fresh_select" var:term : term => do
+elab "fresh_union" var:term : term => do
   -- the type of our variables
   let var ← elabType var
 
@@ -70,8 +70,22 @@ elab "fresh_select" var:term : term => do
   let union := finsets.foldl (mkApp2 UnionFinset) empty
     
   -- TODO : simp only [Finset.empty_union, Finset.union_assoc, Finset.mem_union, not_or]
-  --        then recursively destruct the conjunction
+  --        then recursively destruct the conjunction?
   return union
+
+-- TODO: move this into a test once finalized
+section example_tactic
+
+variable (Var : Type) [DecidableEq Var] [HasFresh Var]
+
+open HasFresh
+
+example (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs := by
+  let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union Var)
+  exists fresh
+  aesop
+
+end example_tactic
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
