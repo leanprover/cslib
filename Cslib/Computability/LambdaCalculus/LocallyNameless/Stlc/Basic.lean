@@ -158,7 +158,7 @@ theorem preservation_open {xs : Finset Var} :
   Γ ⊢ n ∶ σ → Γ ⊢ m ^ n ∶ τ
   := by
   intros mem der
-  have ⟨fresh, free⟩ := fresh_exists (xs ∪ m.fv)
+  have ⟨fresh, free⟩ := fresh_exists <| fresh_union (free := Term.fv) Var
   rw [subst_intro fresh n m (by aesop) der.lc]
   exact typing_subst_head (mem fresh (by aesop)) der
 

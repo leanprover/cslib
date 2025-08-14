@@ -41,12 +41,10 @@ elab "fresh_union" cfg:optConfig var:term : term => do
   let var ← elabType var
 
   -- handle the optional free variable calculation
-  -- TODO: monad lifting here?
-  -- TODO: better handling of variables
-  let free : Option Expr ← 
-    match cfg with
-    | `(optConfig| (free := $free:term)) => elabTerm free none
-    | _ => return (mkConst ``Empty)
+   let free ← 
+     match cfg with
+     | `(optConfig| (free := $free:term)) => elabTerm free none
+     | _ => (mkConst ``Empty)
 
   let free_ty ← inferType free
 
@@ -91,23 +89,6 @@ elab "fresh_union" cfg:optConfig var:term : term => do
   let union := finsets.foldl (mkApp2 UnionFinset) empty
     
   return union
-
--- TODO: move this into a test once finalized
-section example_tactic
-
-variable {Var : Type} [DecidableEq Var] [HasFresh Var]
-
-variable {Term : Type}
-def fv : Term → Finset Var := fun _ ↦ {}
-
-open HasFresh
-
-example (t : Term) (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs ∧ y ∉ fv t:= by
-  let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union (free := @fv Var Term) Var)
-  exists fresh
-  aesop
-
-end example_tactic
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
