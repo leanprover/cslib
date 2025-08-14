@@ -34,15 +34,26 @@ open Lean Elab Term Meta Parser Tactic in
 /-- 
   Given a `HasFresh Var` instance, this elaborator automatically constructs a term that is
   fresh with respect to variables in the local context. It creates a union of any variables, finite
-  sets of variables, and results of a provided function for free variables (TODO).
+  sets of variables, and results of a provided function for free variables.
 -/
 elab "fresh_union" cfg:optConfig var:term : term => do
   -- the type of our variables
   let var ← elabType var
 
-  match cfg with
-  | `(optConfig| (free := $free:term)) => logWarning m!"Configuration{cfg} not yet implemented."
-  | _ => pure ()
+  -- handle the optional free variable calculation
+  -- TODO: monad lifting here?
+  -- TODO: better handling of variables
+  let free : Option Expr ← 
+    match cfg with
+    | `(optConfig| (free := $free:term)) => elabTerm free none
+    | _ => return (mkConst ``Empty)
+
+  let free_ty ← inferType free
+
+  let free_dom := 
+    match free_ty with
+    | Expr.forallE _ dom _ _ => dom
+    | _ => mkConst ``Empty
 
   let mut finsets := #[]
 
@@ -57,15 +68,20 @@ elab "fresh_union" cfg:optConfig var:term : term => do
 
   for ldecl in (← getLCtx) do
     if !ldecl.isImplementationDetail then
-      let type ← inferType (mkFVar ldecl.fvarId)
+      let local_type ← inferType (mkFVar ldecl.fvarId)
+
       -- singleton variables
-      if (← isDefEq type var) then
+      if (← isDefEq local_type var) then
         let singleton := 
           mkApp4 (mkConst ``Singleton.singleton [dl, dl]) var FinsetType SingletonInst ldecl.toExpr
         finsets := finsets.push singleton
-      else
+
+      -- free variables of terms
+      if (←isDefEq local_type free_dom) then
+        finsets := finsets.push (mkApp free ldecl.toExpr)
+
       -- any finite sets
-      match type.getAppFnArgs with
+      match local_type.getAppFnArgs with
       | (``Finset, #[var']) => if (← isDefEq var var') then finsets := finsets.push ldecl.toExpr
       | _ => pure ()
 
@@ -74,8 +90,6 @@ elab "fresh_union" cfg:optConfig var:term : term => do
   let UnionFinset := mkApp2 (mkConst `Union.union [dl]) FinsetType UnionInst
   let union := finsets.foldl (mkApp2 UnionFinset) empty
     
-  -- TODO : simp only [Finset.empty_union, Finset.union_assoc, Finset.mem_union, not_or]
-  --        then recursively destruct the conjunction?
   return union
 
 -- TODO: move this into a test once finalized
@@ -86,13 +100,10 @@ variable {Var : Type} [DecidableEq Var] [HasFresh Var]
 variable {Term : Type}
 def fv : Term → Finset Var := fun _ ↦ {}
 
-#check @fv Var Term
-
 open HasFresh
 
-set_option pp.rawOnError true in
-example (t : Term) (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs := by
-  let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union (free := fv) Var)
+example (t : Term) (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs ∧ y ∉ fv t:= by
+  let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union (free := @fv Var Term) Var)
   exists fresh
   aesop
 
