@@ -44,7 +44,7 @@ elab "fresh_union" cfg:optConfig var:term : term => do
    let free ← 
      match cfg with
      | `(optConfig| (free := $free:term)) => elabTerm free none
-     | _ => (mkConst ``Empty)
+     | _ => mkConst ``Empty
 
   let free_ty ← inferType free
 
