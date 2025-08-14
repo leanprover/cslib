@@ -40,8 +40,9 @@ elab "fresh_union" cfg:optConfig var:term : term => do
   -- the type of our variables
   let var ← elabType var
 
-  -- TODO: handle the optConfig
-  logWarning m!"Configuration{cfg} not yet implemented."
+  match cfg with
+  | `(optConfig| (free := $free:term)) => logWarning m!"Configuration{cfg} not yet implemented."
+  | _ => pure ()
 
   let mut finsets := #[]
 
@@ -80,15 +81,17 @@ elab "fresh_union" cfg:optConfig var:term : term => do
 -- TODO: move this into a test once finalized
 section example_tactic
 
-variable (Var : Type) [DecidableEq Var] [HasFresh Var]
+variable {Var : Type} [DecidableEq Var] [HasFresh Var]
 
-variable (Term : Type) (q : Var)
-def fv : Term → Finset Var := fun _ ↦ {q}
+variable {Term : Type}
+def fv : Term → Finset Var := fun _ ↦ {}
+
+#check @fv Var Term
 
 open HasFresh
 
 set_option pp.rawOnError true in
-example (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs := by
+example (t : Term) (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs := by
   let ⟨fresh, _⟩ := HasFresh.fresh_exists (fresh_union (free := fv) Var)
   exists fresh
   aesop
