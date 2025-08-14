@@ -107,9 +107,9 @@ lemma step_abs_close {x : Var} : (M ⭢βᶠ M') → (M⟦0 ↜ x⟧.abs ⭢β�
 lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (M⟦0 ↜ x⟧.abs ↠βᶠ M'⟦0 ↜ x⟧.abs) :=  by
   intros step
   induction step using Relation.ReflTransGen.trans_induction_on
-  case ih₁ => rfl
-  case ih₂ ih => exact Relation.ReflTransGen.single (step_abs_close ih)
-  case ih₃ l r => exact .trans l r
+  case refl => rfl
+  case single ih => exact Relation.ReflTransGen.single (step_abs_close ih)
+  case trans l r => exact .trans l r
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
 theorem redex_abs_cong (xs : Finset Var) : 
