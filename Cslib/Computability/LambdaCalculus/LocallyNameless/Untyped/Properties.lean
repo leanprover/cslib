@@ -138,7 +138,7 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) : LC N → LC (M ^ N) := by
   cases m_lc
   case abs xs mem =>
     intros n_lc
-    have ⟨y, _⟩ := fresh_exists <| fresh_union (free := fv) Var
+    have ⟨y, _⟩ := fresh_exists <| free_union (free := fv) Var
     rw [subst_intro y N M (by aesop) (by assumption)]
     apply subst_lc <;> aesop
 
@@ -149,7 +149,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
   induction' m_lc 
   case abs xs t x_mem ih =>
     intros k
-    have ⟨x', _⟩ := fresh_exists <| fresh_union (free := fv) Var
+    have ⟨x', _⟩ := fresh_exists <| free_union (free := fv) Var
     have s := subst_open_var x' x (fvar y) t (by aesop) (by constructor)
     simp only [closeRec_abs, openRec_abs, subst_abs]
     simp only [open'] at *
@@ -168,7 +168,7 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) : LC t → t⟦k ↜ x⟧⟦
     intros k
     simp only [closeRec_abs, openRec_abs, abs.injEq]
     let z := t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧
-    have ⟨y, _⟩ := fresh_exists <| fresh_union (free := fv) Var
+    have ⟨y, _⟩ := fresh_exists <| free_union (free := fv) Var
     refine open_injective y _ _ (by aesop) (by aesop) ?_
     rw [←ih y ?_ (k+1)]
     · simp only [open']

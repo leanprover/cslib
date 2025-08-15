@@ -36,7 +36,7 @@ open Lean Elab Term Meta Parser Tactic in
   fresh with respect to variables in the local context. It creates a union of any variables, finite
   sets of variables, and results of a provided function for free variables.
 -/
-elab "fresh_union" cfg:optConfig var:term : term => do
+elab "free_union" cfg:optConfig var:term : term => do
   -- the type of our variables
   let var ← elabType var
 
