@@ -84,6 +84,11 @@ elab "free_union" cfg:optConfig var:term : term => do
     if !ldecl.isImplementationDetail then
       let local_type ← inferType (mkFVar ldecl.fvarId)
 
+      -- any finite sets
+      if let  (``Finset, #[var']) := local_type.getAppFnArgs then
+        if (← isDefEq var var') then 
+          finsets := finsets.push ldecl.toExpr
+      else
       -- singleton variables
       if (← isDefEq local_type var) then
         let singleton := 
@@ -91,15 +96,12 @@ elab "free_union" cfg:optConfig var:term : term => do
           (mkConst ``Singleton.singleton [dl, dl]) 
           #[var, FinsetType, SingletonInst, ldecl.toExpr]
         finsets := finsets.push singleton
-
+      else
       -- free variables of terms
       if (←isDefEq local_type free_dom) then
         finsets := finsets.push (mkApp free ldecl.toExpr)
-
-      -- any finite sets
-      match local_type.getAppFnArgs with
-      | (``Finset, #[var']) => if (← isDefEq var var') then finsets := finsets.push ldecl.toExpr
-      | _ => pure ()
+      else
+        pure ()
 
   -- construct a union fold
   let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
