@@ -39,7 +39,7 @@ open Lean Elab Term Meta Parser Tactic in
   As an example, consider the following:
 
   ```
-  variable {Var Term : Type} [DecidableEq Var] [HasFresh Var]
+  variable {Var Term : Type} [DecidableEq Var]
   
   example (x : Var) (xs : Finset Var) : True := by
     -- free : Finset Var := ∅ ∪ {x} ∪ xs
