@@ -10,7 +10,7 @@ We generally follow the [mathlib style for coding and documentation](https://lea
 
 ## Variable names
 
-Feel free to use variable names that make sense in the domain that you are dealing with. For example, in the `LTS` library, `State` is used for types of states and `μ` is used as variable name for transition labels.
+Feel free to use variable names that make sense in the domain that you are dealing with. For example, in the `Lts` library, `State` is used for types of states and `μ` is used as variable name for transition labels.
 
 ## Proof style and golfing :golf:
 
