@@ -32,9 +32,25 @@ theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ 
 
 open Lean Elab Term Meta Parser Tactic in
 /-- 
-  Given a `DecidableEq Var` instance, this elaborator automatically constructs a term that is
-  fresh with respect to variables in the local context. It creates a union of any variables, finite
-  sets of variables, and results of a provided function for free variables.
+  Given a `DecidableEq Var` instance, this elaborator automatically constructs a term that is free
+  with respect to variables in the local context. It creates a union of any variables, finite sets
+  of variables, and optionally the results of a provided function for free variables.
+
+  As an example, consider the following:
+
+  ```
+  variable {Var Term : Type} [DecidableEq Var] [HasFresh Var]
+  
+  example (x : Var) (xs : Finset Var) : True := by
+    -- free : Finset Var := ∅ ∪ {x} ∪ xs
+    let free := free_union Var
+    trivial
+  
+  example (x : Var) (xs : Finset Var) (t : Term) (fv : Term → Finset Var) : True := by
+    -- free : Finset Var := ∅ ∪ {x} ∪ xs ∪ fv t
+    let free := free_union (free := fv) Var
+    trivial
+  ```
 -/
 elab "free_union" cfg:optConfig var:term : term => do
   -- the type of our variables
