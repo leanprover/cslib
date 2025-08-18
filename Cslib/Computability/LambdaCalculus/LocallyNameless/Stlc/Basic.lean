@@ -123,13 +123,8 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
       exact Context.wf_perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
     apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
-    intros x _
-    rw [
-      subst_def, 
-      ←subst_open_var _ _ _ _ (by grind) der.lc,
-      show ⟨x, σ⟩ :: (Δ ++ Γ) = (⟨x, σ⟩ :: Δ) ++ Γ by grind
-      ]
-    apply ih <;> grind
+    intros
+    rw [subst_def, ←subst_open_var _ _ _ _ ?_ der.lc] <;> grind
 
 /-- Substitution for a context weakened by a single type. -/
 lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
