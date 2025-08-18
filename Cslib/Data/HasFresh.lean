@@ -23,7 +23,7 @@ class HasFresh (α : Type u) where
   /-- Proof that `fresh` returns a fresh element for its input set. -/
   fresh_notMem (s : Finset α) : fresh s ∉ s
 
-attribute [simp] HasFresh.fresh_notMem
+attribute [grind <=] HasFresh.fresh_notMem
 
 /-- An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity
 in proofs. -/
