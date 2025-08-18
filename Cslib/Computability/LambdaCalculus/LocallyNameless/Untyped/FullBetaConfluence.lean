@@ -147,11 +147,11 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') (_ : y ∉ M.fv ∪ M'.fv ∪
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  let ⟨x, qx⟩ := fresh_exists (L ∪ N.fv ∪ M.fv)
-  simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
-  obtain ⟨q1, q2, q3⟩ := qx
-  rw [subst_intro x M' _ q3 (para_lc_l para), subst_intro x N' _ q2 (para_lc_r para)]
-  exact para_subst x (mem x q1) para
+  let ⟨x, _⟩ := fresh_exists <| free_union (map := fv) Var
+  rw [subst_intro x M' _ ?_ (para_lc_l para), subst_intro x N' _ ?_ (para_lc_r para)]
+  · refine para_subst x (mem x ?_) para
+    aesop
+  all_goals aesop
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
 -- writing it for locally nameless terms.
