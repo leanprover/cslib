@@ -138,9 +138,7 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) : LC N → LC (M ^ N) := by
   cases m_lc
   case abs xs mem =>
     intros n_lc
-    have ⟨y, ymem⟩ := fresh_exists (xs ∪ M.fv)
-    simp only [Finset.mem_union, not_or] at ymem
-    cases ymem
+    have ⟨y, _⟩ := fresh_exists <| free_union (map := fv) Var
     rw [subst_intro y N M (by aesop) (by assumption)]
     apply subst_lc <;> aesop
 
@@ -151,7 +149,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
   induction' m_lc 
   case abs xs t x_mem ih =>
     intros k
-    have ⟨x', x'_mem⟩ := fresh_exists ({x} ∪ {y} ∪ t.fv ∪ xs)
+    have ⟨x', _⟩ := fresh_exists <| free_union (map := fv) Var
     have s := subst_open_var x' x (fvar y) t (by aesop) (by constructor)
     simp only [closeRec_abs, openRec_abs, subst_abs]
     simp only [open'] at *
@@ -169,14 +167,14 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) : LC t → t⟦k ↜ x⟧⟦
   case abs xs t t_open_lc ih => 
     intros k
     simp only [closeRec_abs, openRec_abs, abs.injEq]
-    have ⟨y, hy⟩ := fresh_exists (xs ∪ t.fv ∪ (t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧).fv ∪ {x})
-    simp only [Finset.union_assoc, Finset.mem_union, Finset.mem_singleton, not_or] at hy
-    obtain ⟨q1, q2, q3, q4⟩ := hy
-    refine open_injective y _ _ q3 q2 ?_
-    rw [←ih y q1 (k+1)]
-    simp only [open']
-    rw [swap_open_fvar_close, swap_open_fvars]
-    all_goals aesop
+    let z := t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧
+    have ⟨y, _⟩ := fresh_exists <| free_union (map := fv) Var
+    refine open_injective y _ _ (by aesop) (by aesop) ?_
+    rw [←ih y ?_ (k+1)]
+    · simp only [open']
+      rw [swap_open_fvar_close, swap_open_fvars]
+      all_goals aesop
+    aesop
   all_goals aesop
 
 end LambdaCalculus.LocallyNameless.Term
