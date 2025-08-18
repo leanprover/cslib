@@ -31,13 +31,13 @@ theorem subst_fresh (x : Var) (t sub : Term Var) (nmem : x ∉ t.fv) : t [x := s
   induction t <;> grind
 
 /- Opening and closing are inverses. -/
-lemma open_close (x : Var) (t : Term Var) (k : ℕ) (nmem : x ∉ t.fv) : t⟦k ↝ fvar x⟧⟦k ↜ x⟧ = t := by
+lemma open_close (x : Var) (t : Term Var) (k : ℕ) (nmem : x ∉ t.fv) : t = t⟦k ↝ fvar x⟧⟦k ↜ x⟧ := by
   induction t generalizing k <;> grind
 
 /-- Opening is injective. -/
 lemma open_injective (x : Var) (M M') (free_M : x ∉ M.fv) (free_M' : x ∉ M'.fv)
     (eq : M ^ fvar x = M' ^ fvar x) : M = M' := by
-  rw [←open_close x M 0 free_M, ←open_close x M' 0 free_M']
+  rw [open_close x M 0 free_M, open_close x M' 0 free_M']
   exact congrArg (closeRec 0 x) eq
 
 /-- Opening and closing are associative for nonclashing free variables. -/
@@ -123,7 +123,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
     intros k
     have ⟨x', _⟩ := fresh_exists <| free_union (map := fv) Var
     simp only [closeRec_abs, openRec_abs, subst_abs]
-    rw [←open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, ←open_close x' (t[x := fvar y]) 0 ?f₂]
+    rw [open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, open_close x' (t[x := fvar y]) 0 ?f₂]
     rw [swap_open_fvars, ←swap_open_fvar_close] <;> grind
     case f₁ => grind [open_fresh_preserve_not_fvar, close_preserve_not_fvar]
     case f₂ => grind [subst_preserve_not_fvar]
