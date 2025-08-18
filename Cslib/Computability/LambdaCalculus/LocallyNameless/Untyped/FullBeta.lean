@@ -115,7 +115,7 @@ lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (M⟦0 ↜ x⟧.abs ↠β�
 theorem redex_abs_cong (xs : Finset Var) : 
     (∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) → M.abs ↠βᶠ M'.abs := by
   intros mem
-  have ⟨fresh, _⟩ := fresh_exists <| free_union (free := fv) Var
+  have ⟨fresh, _⟩ := fresh_exists <| free_union (map := fv) Var
   rw [←open_close fresh M 0 ?_, ←open_close fresh M' 0 ?_]
   · exact redex_abs_close (mem fresh (by aesop))
   all_goals aesop

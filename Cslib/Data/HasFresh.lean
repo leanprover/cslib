@@ -33,7 +33,7 @@ theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ 
 open Lean Elab Term Meta Parser Tactic in
 /-- 
   Given a `DecidableEq Var` instance, this elaborator automatically constructs the union of any
-  variables, finite sets of variables, and optionally the results of a provided function for free
+  variables, finite sets of variables, and optionally the results of a provided function mapping to
   variables.
 
   As an example, consider the following:
@@ -48,7 +48,7 @@ open Lean Elab Term Meta Parser Tactic in
   
   example (x : Var) (xs : Finset Var) (t : Term) (fv : Term → Finset Var) : True := by
     -- free : Finset Var := ∅ ∪ {x} ∪ xs ∪ fv t
-    let free := free_union (free := fv) Var
+    let free := free_union (map := fv) Var
     trivial
   ```
 -/
@@ -56,16 +56,16 @@ elab "free_union" cfg:optConfig var:term : term => do
   -- the type of our variables
   let var ← elabType var
 
-  -- handle the optional free variable calculation
-   let free ← 
+  -- handle the optional map calculation
+   let map ← 
      match cfg with
-     | `(optConfig| (free := $free:term)) => elabTerm free none
+     | `(optConfig| (map := $map:term)) => elabTerm map none
      | _ => mkConst ``Empty
 
-  let free_ty ← inferType free
+  let map_ty ← inferType map
 
-  let free_dom := 
-    match free_ty with
+  let map_dom := 
+    match map_ty with
     | Expr.forallE _ dom _ _ => dom
     | _ => mkConst ``Empty
 
@@ -97,9 +97,9 @@ elab "free_union" cfg:optConfig var:term : term => do
           #[var, FinsetType, SingletonInst, ldecl.toExpr]
         finsets := finsets.push singleton
       else
-      -- free variables of terms
-      if (←isDefEq local_type free_dom) then
-        finsets := finsets.push (mkApp free ldecl.toExpr)
+      -- map to variables
+      if (←isDefEq local_type map_dom) then
+        finsets := finsets.push (mkApp map ldecl.toExpr)
       else
         pure ()
 

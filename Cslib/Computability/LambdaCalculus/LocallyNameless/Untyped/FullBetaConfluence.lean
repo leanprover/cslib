@@ -147,7 +147,7 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') (_ : y ∉ M.fv ∪ M'.fv ∪
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  let ⟨x, _⟩ := fresh_exists <| free_union (free := fv) Var
+  let ⟨x, _⟩ := fresh_exists <| free_union (map := fv) Var
   rw [subst_intro x M' _ ?_ (para_lc_l para), subst_intro x N' _ ?_ (para_lc_r para)]
   · refine para_subst x (mem x ?_) para
     aesop
