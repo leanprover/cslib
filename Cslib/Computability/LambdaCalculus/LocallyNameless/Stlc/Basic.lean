@@ -102,7 +102,7 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
   case var x' τ ok mem => 
     simp only [subst_fvar]
     subst eq
-    cases (Context.wf_perm (by simp_all) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
+    cases (Context.wf_perm (by simp) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
