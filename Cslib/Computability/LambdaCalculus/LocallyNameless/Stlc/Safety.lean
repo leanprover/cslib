@@ -24,9 +24,9 @@ Theorems in this file are namespaced by their respective reductions.
 
 universe u v
 
-namespace LambdaCalculus.LocallyNameless
+namespace LambdaCalculus.LocallyNameless.Stlc
 
-open Stlc Typing
+open Untyped Typing
 
 variable {Var : Type u} {Base : Type v} {R : Term Var → Term Var → Prop}
 
@@ -34,42 +34,44 @@ def PreservesTyping (R : Term Var → Term Var → Prop) (Base : Type v) :=
   ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
 
 /-- If a reduction preserves types, so does its reflexive transitive closure. -/
-@[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
+@[scoped grind →]
 theorem redex_preservesTyping : 
     PreservesTyping R Base → PreservesTyping (Relation.ReflTransGen R) Base := by
   intros _ _ _ _ _ _ redex
-  induction redex <;> aesop
+  induction redex <;> [grind; aesop]
 
 open Relation in
 /-- Confluence preserves type preservation. -/
-theorem confluence_preservesTyping {τ : Ty Base} : 
-    Confluence R → PreservesTyping R Base → Γ ⊢ a ∶ τ → 
-    (ReflTransGen R) a b → (ReflTransGen R) a c →
-    ∃ d, (ReflTransGen R) b d ∧ (ReflTransGen R) c d ∧ Γ ⊢ d ∶ τ := by
-  intros con p der ab ac
+theorem confluence_preservesTyping {τ : Ty Base}
+    (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
+    (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) : 
+    ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
   have ⟨d, bd, cd⟩ := con ab ac
   exact ⟨d, bd, cd, redex_preservesTyping p der (ab.trans bd)⟩
- 
+
 variable [HasFresh Var] [DecidableEq Var] {Γ : Context Var (Ty Base)}
 
-namespace Term.FullBeta
+namespace FullBeta
+
+open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
 /-- Typing preservation for full beta reduction. -/
-@[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-theorem preservation : Γ ⊢ t ∶ τ → (t ⭢βᶠt') → Γ ⊢ t' ∶ τ := by
-  intros der
-  revert t'
-  induction der <;> intros t' step <;> cases step
-  case' abs.abs xs _ _ _ xs' _=> apply Typing.abs (xs ∪ xs')
-  case' app.beta der_l _ _ => cases der_l
-  all_goals aesop
+@[scoped grind →]
+theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by
+  induction der generalizing t' <;> cases step
+  case abs.abs xs _ _ _ xs' _ => apply Typing.abs (free_union Var); grind
+  case app.beta der _ _ _ der_l _ _ => 
+    -- TODO: this is a regression from aesop, where `preservation_open` was a forward rule
+    cases der_l with | abs _ cofin => simp [preservation_open cofin der]
+  all_goals grind
 
+open scoped Term in
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A typed term either full beta reduces or is a value. -/
-theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶τ) : t.Value ∨ ∃ t', t ⭢βᶠ t' := by
+theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ) : t.Value ∨ ∃ t', t ⭢βᶠ t' := by
   generalize eq : [] = Γ at ht
   induction ht
-  case var => aesop
+  case var => simp_all
   case abs xs mem ih =>
     left
     constructor
@@ -83,10 +85,12 @@ theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶τ) : t.Value �
     -- if the lhs is a value, beta reduce the application
     next val =>
       cases val
-      next M M_abs_lc => exact ⟨M ^ N, FullBeta.beta M_abs_lc der_r.lc⟩
+      next M M_abs_lc => exact ⟨M ^ N, Term.FullBeta.beta M_abs_lc der_r.lc⟩
     -- otherwise, propogate the step to the lhs of the application
     next step =>
       obtain ⟨M', stepM⟩ := step
-      exact ⟨M'.app N, FullBeta.appR der_r.lc stepM⟩ 
+      exact ⟨M'.app N, Term.FullBeta.appR der_r.lc stepM⟩ 
 
-end LambdaCalculus.LocallyNameless.Term.FullBeta
+end FullBeta
+
+end LambdaCalculus.LocallyNameless.Stlc
