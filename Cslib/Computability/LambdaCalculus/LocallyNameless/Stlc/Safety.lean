@@ -59,7 +59,7 @@ open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 @[scoped grind →]
 theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by
   induction der generalizing t' <;> cases step
-  case abs.abs xs _ _ _ xs' _ => apply Typing.abs (xs ∪ xs'); grind
+  case abs.abs xs _ _ _ xs' _ => apply Typing.abs (free_union Var); grind
   case app.beta der _ _ _ der_l _ _ => 
     -- TODO: this is a regression from aesop, where `preservation_open` was a forward rule
     cases der_l with | abs _ cofin => simp [preservation_open cofin der]

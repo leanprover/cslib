@@ -115,7 +115,7 @@ lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢
     refine Parallel.beta (free_union Var) ?_ ?_ <;> grind
   case app => constructor <;> assumption
   case abs u u' xs mem ih => 
-    apply Parallel.abs (xs ∪ {x})
+    apply Parallel.abs (free_union Var)
     grind
 
 /-- Parallel substitution respects closing and opening. -/
@@ -162,7 +162,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
         exists (t'' ^* x) ^ t'
         constructor
         · grind
-        · apply Parallel.beta ((s1'' ^ fvar x).fv ∪ t''.fv ∪ {x}) <;> grind
+        · apply Parallel.beta (free_union (map := fv) Var) <;> grind
     case beta u1' u2' xs' mem' s2pu2' => 
       have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union (map := fv) Var)
       simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
