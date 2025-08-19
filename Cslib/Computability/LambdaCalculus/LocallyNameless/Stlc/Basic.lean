@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Computability.LambdaCalculus.LocallyNameless.Stlc.Context
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Context
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # λ-calculus
@@ -23,6 +23,8 @@ universe u v
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var]
 
+open LambdaCalculus.LocallyNameless.Untyped Term
+
 namespace LambdaCalculus.LocallyNameless.Stlc
 
 /-- Types of the simply typed lambda calculus. -/
@@ -34,10 +36,9 @@ inductive Ty (Base : Type v)
 
 scoped infixr:70 " ⤳ " => Ty.arrow
 
-open Term Ty
+open Ty Context
 
 /-- An extrinsic typing derivation for locally nameless terms. -/
-@[aesop unsafe [constructors (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]]
 inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
   /-- Free variables, from a context judgement. -/
   | var : Γ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
@@ -46,7 +47,9 @@ inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
   /-- Function application. -/
   | app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
 
-scoped notation:50 Γ " ⊢ " t " ∶" τ:arg => Typing Γ t τ
+attribute [scoped grind] Typing.var Typing.app
+
+scoped notation:50 Γ " ⊢ " t " ∶ " τ:arg => Typing Γ t τ
 
 namespace Typing
 
@@ -54,112 +57,87 @@ variable {Γ Δ Θ : Context Var (Ty Base)}
 
 omit [DecidableEq Var] in
 /-- Typing is preserved on permuting a context. -/
-theorem perm (ht : Γ ⊢ t ∶τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by 
-  revert Δ
-  induction ht <;> intros Δ p
-  case app => aesop
-  case var => 
-    have := @p.mem_iff
-    aesop
+theorem perm (ht : Γ ⊢ t ∶ τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by 
+  induction ht generalizing Δ
   case abs ih => 
     constructor
     intros x mem
-    exact ih x mem (by aesop)
+    exact ih x mem (by simp_all)
+  all_goals grind
 
 /-- Weakening of a typing derivation with an appended context. -/
-lemma weaken_aux : 
-    Γ ++ Δ ⊢ t ∶ τ → (Γ ++ Θ ++ Δ)✓ → (Γ ++ Θ ++ Δ) ⊢ t ∶ τ := by
-  generalize eq : Γ ++ Δ = Γ_Δ
-  intros h
-  revert Γ Δ Θ
-  induction h <;> intros Γ Δ Θ eq ok_Γ_Θ_Δ
-  case var => aesop
-  case app => aesop
+lemma weaken_aux (der : Γ ++ Δ ⊢ t ∶ τ) : (Γ ++ Θ ++ Δ)✓ → (Γ ++ Θ ++ Δ) ⊢ t ∶ τ := by
+  generalize eq : Γ ++ Δ = Γ_Δ at der
+  induction der generalizing Γ Δ Θ <;> intros ok_Γ_Θ_Δ
   case abs σ Γ' τ t xs ext ih =>
     apply Typing.abs (xs ∪ (Γ ++ Θ ++ Δ).dom)
     intros x _
-    have h : ⟨x, σ⟩ :: Γ ++ Δ = ⟨x, σ⟩ :: Γ' := by aesop
-    refine @ih x (by aesop) _ _ Θ h ?_
-    simp only [HasWellFormed.wf]
-    aesop
+    have h : ⟨x, σ⟩ :: Γ ++ Δ = ⟨x, σ⟩ :: Γ' := by grind
+    refine @ih x (by grind) _ _ Θ h ?_
+    simp_all [HasWellFormed.wf]
+  all_goals grind
 
 /-- Weakening of a typing derivation by an additional context. -/
-lemma weaken : Γ ⊢ t ∶ τ → (Γ ++ Δ)✓ → Γ ++ Δ ⊢ t ∶ τ := by
-  intros der ok
+lemma weaken (der : Γ ⊢ t ∶ τ) (ok : (Γ ++ Δ)✓) : Γ ++ Δ ⊢ t ∶ τ := by
   rw [←List.append_nil (Γ ++ Δ)] at *
   exact weaken_aux (by simp_all) ok
 
 omit [DecidableEq Var] in
 /-- Typing derivations exist only for locally closed terms. -/
-lemma lc : Γ ⊢ t ∶ τ → t.LC := by
-  intros h
-  induction h <;> constructor
+lemma lc (der : Γ ⊢ t ∶ τ) : t.LC := by
+  induction der <;> constructor
   case abs ih => exact ih
-  all_goals aesop
+  all_goals grind
 
 variable [HasFresh Var]
 
 open Term
 
 /-- Substitution for a context weakened by a single type between appended contexts. -/
-lemma subst_aux :
-    (Δ ++ ⟨x, σ⟩ :: Γ) ⊢ t ∶ τ →
-    Γ ⊢ s ∶ σ → 
-    (Δ ++ Γ) ⊢ (t [x := s]) ∶ τ := by
-  generalize  eq : Δ ++ ⟨x, σ⟩ :: Γ = Θ
-  intros h
-  revert Γ Δ
-  induction h <;> intros Γ Δ eq der
-  case app => aesop
+lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
+    Δ ++ Γ ⊢ t[x := s] ∶ τ := by
+  generalize eq : Δ ++ ⟨x, σ⟩ :: Γ = Θ at h
+  induction h generalizing Γ Δ der
+  case app => grind
   case var x' τ ok mem => 
     simp only [subst_fvar]
-    rw [←eq] at mem
-    rw [←eq] at ok
-    cases (Context.wf_perm (by aesop) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
+    subst eq
+    cases (Context.wf_perm (by simp) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
-    case neg => aesop
+    case neg => grind
     case pos nmem =>
-      subst h eq
+      subst h
       have nmem_Γ : ∀ γ, ⟨x, γ⟩ ∉ Γ := by
         intros γ _
-        exact nmem x (List.mem_keys.mpr ⟨γ, by aesop⟩) rfl
+        exact nmem x (List.mem_keys.mpr ⟨γ, by simp_all⟩) rfl
       have nmem_Δ : ∀ γ, ⟨x, γ⟩ ∉ Δ := by
         intros γ _
-        exact nmem x (List.mem_keys.mpr ⟨γ, by aesop⟩) rfl
+        exact nmem x (List.mem_keys.mpr ⟨γ, by simp_all⟩) rfl
       have eq' : τ = σ := by
         simp only [List.mem_append, List.mem_cons, Sigma.mk.injEq, heq_eq_eq] at mem
-        match mem with | _ => aesop
+        match mem with | _ => simp_all
       rw [eq']
       refine (weaken der ?_).perm perm
       exact Context.wf_perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
     apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
-    intros x _
-    rw [
-      subst_def, 
-      subst_open_var _ _ _ _ (by aesop) der.lc,
-      show ⟨x, σ⟩ :: (Δ ++ Γ) = (⟨x, σ⟩ :: Δ) ++ Γ by aesop
-      ]
-    apply ih <;> aesop
+    intros
+    rw [subst_def, ←subst_open_var _ _ _ _ ?_ der.lc] <;> grind
 
 /-- Substitution for a context weakened by a single type. -/
-lemma typing_subst_head : 
-    ⟨x, σ⟩ :: Γ ⊢ t ∶ τ  → Γ ⊢ s ∶ σ → Γ ⊢ (t [x := s]) ∶ τ := by
-  intros weak der
+lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
+    Γ ⊢ (t [x := s]) ∶ τ := by
   rw [←List.nil_append Γ]
   exact subst_aux weak der
 
 /-- Typing preservation for opening. -/
-@[aesop safe forward (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-theorem preservation_open {xs : Finset Var} :
-  (∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) → 
-  Γ ⊢ n ∶ σ → Γ ⊢ m ^ n ∶ τ
-  := by
-  intros mem der
+theorem preservation_open {xs : Finset Var}
+  (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) : 
+    Γ ⊢ m ^ n ∶ τ := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union (map := Term.fv) Var
-  rw [subst_intro fresh n m (by aesop) der.lc]
-  exact typing_subst_head (mem fresh (by aesop)) der
+  rw [subst_intro fresh n m (by grind) der.lc]
+  exact typing_subst_head (by grind) der
 
 end LambdaCalculus.LocallyNameless.Stlc.Typing

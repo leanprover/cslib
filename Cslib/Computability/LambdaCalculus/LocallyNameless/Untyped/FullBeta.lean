@@ -22,7 +22,7 @@ universe u
 
 variable {Var : Type u} 
 
-namespace LambdaCalculus.LocallyNameless.Term
+namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-- A single β-reduction step. -/
 @[reduction_sys fullBetaRs "βᶠ"]
@@ -38,23 +38,32 @@ inductive FullBeta : Term Var → Term Var → Prop
 
 namespace FullBeta
 
+attribute [scoped grind] appL appR
+
 variable {M M' N N' : Term Var}
 
+--- TODO: I think this could be generated along with the ReductionSystem
+@[scoped grind _=_]
+private lemma fullBetaRs_Red_eq : M ⭢βᶠ N ↔ FullBeta M N := by
+  have : (@fullBetaRs Var).Red = FullBeta := by rfl
+  simp_all
+
 /-- The left side of a reduction is locally closed. -/
+@[scoped grind →]
 lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
   induction step <;> constructor
   all_goals assumption
 
 /-- Left congruence rule for application in multiple reduction. -/
-theorem redex_app_l_cong : (M ↠βᶠ M') → LC N → (app M N ↠βᶠ app M' N) := by
-  intros redex lc_N 
+@[scoped grind ←]
+theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠βᶠ app M' N := by
   induction' redex
   case refl => rfl
   case tail ih r => exact Relation.ReflTransGen.tail r (appR lc_N ih)
 
 /-- Right congruence rule for application in multiple reduction. -/
-theorem redex_app_r_cong : (M ↠βᶠ M') → LC N → (app N M ↠βᶠ app N M') := by
-  intros redex lc_N 
+@[scoped grind ←]
+theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
   induction' redex
   case refl => rfl
   case tail ih r => exact Relation.ReflTransGen.tail r (appL lc_N ih)
@@ -62,62 +71,43 @@ theorem redex_app_r_cong : (M ↠βᶠ M') → LC N → (app N M ↠βᶠ app N 
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
+@[scoped grind →]
 lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
   induction step
-  case beta => apply beta_lc <;> assumption
-  all_goals try constructor <;> assumption 
+  case' abs => constructor; assumption
+  all_goals grind
 
 /-- Substitution respects a single reduction step. -/
-lemma redex_subst_cong (s s' : Term Var) (x y : Var) : 
-    s ⭢βᶠ s' → s [ x := fvar y ] ⭢βᶠ s' [ x := fvar y ] := by
-  intros step
+lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') : 
+    s [ x := fvar y ] ⭢βᶠ s' [ x := fvar y ] := by
   induction step
-  case appL ih => exact appL (subst_lc (by assumption) (by constructor)) ih 
-  case appR ih => exact appR (subst_lc (by assumption) (by constructor)) ih  
   case beta m n abs_lc n_lc => 
     cases abs_lc with | abs xs _ mem =>
-      simp only [open']
-      rw [subst_open x (fvar y) 0 n m (by constructor)]
-      refine beta ?_ (subst_lc n_lc (by constructor))
+      rw [subst_open x (fvar y) n m (by grind)]
+      refine beta ?_ (by grind)
       exact subst_lc (LC.abs xs m mem) (LC.fvar y)
   case abs m' m xs mem ih => 
-    apply abs ({x} ∪ xs)
-    intros z z_mem
-    simp only [open']
-    rw [
-      subst_def, subst_def,
-      ←subst_fresh x (fvar z) (fvar y), ←subst_open x (fvar y) 0 (fvar z) m (by constructor),
-      subst_fresh x (fvar z) (fvar y), ←subst_fresh x (fvar z) (fvar y),
-      ←subst_open x (fvar y) 0 (fvar z) m' (by constructor), subst_fresh x (fvar z) (fvar y)
-    ]
-    all_goals aesop
+    apply abs (free_union Var)
+    grind
+  all_goals grind
 
 /-- Abstracting then closing preserves a single reduction. -/
-lemma step_abs_close {x : Var} : (M ⭢βᶠ M') → (M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs) := by
-  intros step
+lemma step_abs_close {x : Var} (step : M ⭢βᶠ M') : M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs := by
   apply abs ∅
-  intros y _
-  simp only [open']
-  repeat rw [open_close_to_subst]
-  · exact redex_subst_cong M M' x y step
-  · exact step_lc_r step
-  · exact step_lc_l step
+  grind [redex_subst_cong]
 
 /-- Abstracting then closing preserves multiple reductions. -/
-lemma redex_abs_close {x : Var} : (M ↠βᶠ M') → (M⟦0 ↜ x⟧.abs ↠βᶠ M'⟦0 ↜ x⟧.abs) :=  by
-  intros step
+lemma redex_abs_close {x : Var} (step : M ↠βᶠ M') : (M⟦0 ↜ x⟧.abs ↠βᶠ M'⟦0 ↜ x⟧.abs) :=  by
   induction step using Relation.ReflTransGen.trans_induction_on
   case refl => rfl
   case single ih => exact Relation.ReflTransGen.single (step_abs_close ih)
   case trans l r => exact .trans l r
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
-theorem redex_abs_cong (xs : Finset Var) : 
-    (∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) → M.abs ↠βᶠ M'.abs := by
-  intros mem
+theorem redex_abs_cong (xs : Finset Var) (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) : 
+    M.abs ↠βᶠ M'.abs := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union (map := fv) Var
-  rw [←open_close fresh M 0 ?_, ←open_close fresh M' 0 ?_]
-  · exact redex_abs_close (mem fresh (by aesop))
-  all_goals aesop
+  rw [open_close fresh M 0 ?_, open_close fresh M' 0 ?_]
+  all_goals grind [redex_abs_close]
 
-end LambdaCalculus.LocallyNameless.Term.FullBeta
+end LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta

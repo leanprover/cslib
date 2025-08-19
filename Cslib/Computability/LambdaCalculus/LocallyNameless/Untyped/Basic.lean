@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 import Cslib.Data.HasFresh
 import Cslib.Syntax.HasSubstitution
-import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.AesopRuleset
 
 /-! # λ-calculus
 
@@ -24,7 +23,7 @@ universe u
 
 variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
-namespace LambdaCalculus.LocallyNameless
+namespace LambdaCalculus.LocallyNameless.Untyped
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type u)
@@ -40,6 +39,7 @@ inductive Term (Var : Type u)
 namespace Term
 
 /-- Variable opening of the ith bound variable. -/
+@[scoped grind =]
 def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | bvar i' => if i = i' then sub else bvar i'
 | fvar x  => fvar x
@@ -48,24 +48,22 @@ def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 
 scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e
 
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := by rfl
 
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
 
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_app : (app l r)⟦i ↝ s⟧ = app (l⟦i ↝ s⟧) (r⟦i ↝ s⟧) := by rfl
 
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
 lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := by rfl
 
 /-- Variable opening of the closest binding. -/
+@[scoped grind =]
 def open' {X} (e u):= @Term.openRec X 0 u e
 
-infixr:80 " ^ " => Term.open'
+scoped infixr:80 " ^ " => Term.open'
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
+@[scoped grind =]
 def closeRec (k : ℕ) (x : Var) : Term Var → Term Var
 | fvar x' => if x = x' then bvar k else fvar x'
 | bvar i  => bvar i
@@ -76,28 +74,14 @@ scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
 
 variable {x : Var}
 
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma closeRec_abs : t.abs⟦k ↜ x⟧ = t⟦k + 1 ↜ x⟧.abs := by rfl
-
 /-- Variable closing of the closest binding. -/
+@[scoped grind =]
 def close {Var} [DecidableEq Var] (e u):= @Term.closeRec Var _ 0 u e
 
-infixr:80 " ^* " => Term.close
+scoped infixr:80 " ^* " => Term.close
 
 /- Substitution of a free variable to a term. -/
+@[scoped grind =]
 def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
   match m with
   | bvar i  => bvar i
@@ -109,28 +93,8 @@ def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
 instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var where
   subst := Term.subst
 
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_bvar {n : Term Var} : (bvar i)[x := n] = bvar i := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_fvar : (fvar x')[x := n] = if x = x' then n else fvar x' := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_app {l r : Term Var} : (app l r)[x := n] = app (l[x := n]) (r[x := n]) := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_abs {M : Term Var} : M.abs[x := n] = M[x := n].abs := by rfl
-
-omit [HasFresh Var] in
-@[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_def (m : Term Var) (x : Var) (n : Term Var) : m.subst x n = m[x := n] := by rfl
-
 /-- Free variables of a term. -/
-@[simp]
+@[simp, scoped grind =]
 def fv : Term Var → Finset Var
 | bvar _ => {}
 | fvar x => {x}
@@ -138,13 +102,40 @@ def fv : Term Var → Finset Var
 | app l r => l.fv ∪ r.fv
 
 /-- Locally closed terms. -/
-@[aesop safe (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet]) [constructors]]
 inductive LC : Term Var → Prop
 | fvar (x)  : LC (fvar x)
-| abs (L : Finset Var) (e : Term Var) : (∀ x : Var, x ∉ L → LC (e ^ fvar x)) → LC (abs e)
+| abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
 | app {l r} : l.LC → r.LC → LC (app l r)
+
+attribute [scoped grind] LC.fvar LC.app
 
 inductive Value : Term Var → Prop
 | abs (e : Term Var) : e.abs.LC → e.abs.Value
 
-end LambdaCalculus.LocallyNameless.Term
+section
+
+omit [HasFresh Var]
+
+lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
+
+lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := by rfl
+
+lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
+
+lemma closeRec_abs : t.abs⟦k ↜ x⟧ = t⟦k + 1 ↜ x⟧.abs := by rfl
+
+lemma subst_bvar {n : Term Var} : (bvar i)[x := n] = bvar i := by rfl
+
+lemma subst_fvar : (fvar x')[x := n] = if x = x' then n else fvar x' := by rfl
+
+lemma subst_app {l r : Term Var} : (app l r)[x := n] = app (l[x := n]) (r[x := n]) := by rfl
+
+lemma subst_abs {M : Term Var} : M.abs[x := n] = M[x := n].abs := by rfl
+
+lemma subst_def (m : Term Var) (x : Var) (n : Term Var) : m.subst x n = m[x := n] := by rfl
+
+attribute [scoped grind =] subst_bvar subst_fvar subst_app subst_abs subst_def
+
+end
+
+end LambdaCalculus.LocallyNameless.Untyped.Term
