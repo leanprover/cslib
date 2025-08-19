@@ -159,15 +159,7 @@ theorem FinFun.toDomFun_char (f : α ⇀ β) (h : x ∈ f.dom) : f.toDomFun ⟨ 
   simp [FinFun.toDomFun]
 
 theorem FinFun.congrFinFun [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) (a : α) : 
-    f.apply a = g.apply a := by
-  simp [FinFun.apply]
-  cases f
-  rename_i ff fdom
-  cases g
-  rename_i gf gdom
-  simp at h
-  obtain ⟨ h1, h2⟩ := h
-  exact congrFun h1 a
+    f.apply a = g.apply a := congrFun (congrArg apply h) a
 
 theorem FinFun.eq_char₁ [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) : 
     f.f = g.f ∧ f.dom = g.dom := by
