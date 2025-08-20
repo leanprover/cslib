@@ -697,15 +697,7 @@ theorem Bisimulation.traceEq_not_bisim :
           simp at h
           simp [h]
           constructor; constructor; constructor
-    rw [htraces2, htraces6] at cih
-    apply Set.ext_iff.1 at cih
-    specialize cih ['c']
-    obtain ⟨cih1, cih2⟩ := cih
-    have cih1h : ['c'] ∈ @insert
-      (List Char) (Set (List Char)) Set.instInsert [] {['b'], ['c']} := by
-      simp
-    specialize cih1 cih1h
-    simp at cih1
+    grind
   case five2eight =>
     simp [TraceEq] at cih
     have htraces2 : lts.traces 2 = {[], ['b'], ['c']} := by
@@ -846,13 +838,7 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
 /-- Any bisimulation is also a simulation. -/
 theorem Bisimulation.is_simulation (lts : Lts State Label) (r : State → State → Prop) :
   Bisimulation lts r → Simulation lts r := by
-  intro h
-  simp only [Bisimulation] at h
-  simp only [Simulation]
-  intro s1 s2 hr μ s1' htr
-  specialize h s1 s2 hr μ
-  rcases h with ⟨h1, h2⟩
-  apply h1 s1' htr
+  grind [Bisimulation, Simulation]
 
 /-- A relation is a bisimulation iff both it and its inverse are simulations. -/
 theorem Bisimulation.simulation_iff (lts : Lts State Label) (r : State → State → Prop) :
@@ -1186,34 +1172,7 @@ theorem WeakBisimulation.comp
   (r1 r2 : State → State → Prop) (h1 : WeakBisimulation lts r1) (h2 : WeakBisimulation lts r2) :
   WeakBisimulation lts (Relation.Comp r1 r2) := by
   simp_all only [WeakBisimulation]
-  intro s1 s2 hrc μ
-  constructor
-  case left =>
-    intro s1' htr
-    rcases hrc with ⟨sb, hr1, hr2⟩
-    specialize h1 s1 sb hr1 μ
-    specialize h2 sb s2 hr2 μ
-    have h1' := h1.1 s1' htr
-    obtain ⟨s1'', h1'tr, h1'⟩ := h1'
-    have h2' := h2.1 s1'' h1'tr
-    obtain ⟨s2'', h2'tr, h2'⟩ := h2'
-    exists s2''
-    constructor
-    · exact h2'tr
-    · exists s1''
-  case right =>
-    intro s2' htr
-    rcases hrc with ⟨sb, hr1, hr2⟩
-    specialize h1 s1 sb hr1 μ
-    specialize h2 sb s2 hr2 μ
-    have h2' := h2.2 s2' htr
-    obtain ⟨s2'', h2'tr, h2'⟩ := h2'
-    have h1' := h1.2 s2'' h2'tr
-    obtain ⟨s1'', h1'tr, h1'⟩ := h1'
-    exists s1''
-    constructor
-    · exact h1'tr
-    · exists s2''
+  exact Bisimulation.comp lts.saturate r1 r2 h1 h2
 
 /-- The composition of two sw-bisimulations is an sw-bisimulation. -/
 theorem SWBisimulation.comp
