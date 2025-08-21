@@ -284,13 +284,7 @@ theorem Lts.deterministic_not_lto (hDet : lts.Deterministic) :
 theorem Lts.deterministic_image_char (hDet : lts.Deterministic) :
   ∀ s μ, (∃ s', lts.Image s μ = { s' }) ∨ (lts.Image s μ = ∅) := by
   intro s μ
-  by_cases hs' : ∃ s', lts.Tr s μ s'
-  case pos =>
-    aesop
-  case neg =>
-    right
-    simp [Image]
-    simp_all
+  by_cases hs' : ∃ s', lts.Tr s μ s' <;> aesop (add simp [Image])
 
 /-- Every deterministic Lts is also image-finite. -/
 theorem Lts.deterministic_imageFinite :
