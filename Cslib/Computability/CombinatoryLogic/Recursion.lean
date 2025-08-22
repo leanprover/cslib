@@ -289,12 +289,7 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
       apply rfindAboveAux_step
       assumption
     · replace ih := ih (SKI.Succ ⬝ x) (m+1) (succ_correct _ x hx)
-      simp_rw [Nat.add_assoc, Nat.add_comm] at ih
-      apply ih
-      · assumption
-      · intro i hi
-        apply hpos (i+1)
-        simp [hi]
+      grind
   -- close the `h` goals of the above `apply isChurch_trans`
   all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
 
