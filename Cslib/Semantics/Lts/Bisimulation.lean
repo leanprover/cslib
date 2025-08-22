@@ -116,15 +116,7 @@ theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
   case left => rfl
   case right =>
     simp only [Bisimulation]
-    intro s1 s2 hr μ
-    cases hr
-    constructor
-    case left =>
-      intro s1' htr
-      exists s1'
-    case right =>
-      intro s1' htr
-      exists s1'
+    grind
 
 /-- The inverse of a bisimulation is a bisimulation. -/
 theorem Bisimulation.inv (h : Bisimulation lts r) :
@@ -867,15 +859,7 @@ theorem Bisimulation.simulation_iff (lts : Lts State Label) (r : State → State
     intro hs
     obtain ⟨hs, hsinv⟩ := hs
     simp only [Bisimulation]
-    intro s1 s2 hr μ
-    constructor
-    case left =>
-      intro s1' htr
-      simp only [Simulation] at hs
-      apply hs _ _ hr _ _ htr
-    case right =>
-      intro s2' htr
-      apply hsinv _ _ hr _ _ htr
+    aesop
 
 end Bisimulation
 
