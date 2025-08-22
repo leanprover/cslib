@@ -284,34 +284,7 @@ theorem Lts.deterministic_not_lto (hDet : lts.Deterministic) :
 theorem Lts.deterministic_image_char (hDet : lts.Deterministic) :
   ∀ s μ, (∃ s', lts.Image s μ = { s' }) ∨ (lts.Image s μ = ∅) := by
   intro s μ
-  by_cases hs' : ∃ s', lts.Tr s μ s'
-  case pos =>
-    obtain ⟨s', hs'⟩ := hs'
-    left
-    apply Exists.intro s'
-    simp [Image]
-    simp [setOf, singleton, Set.singleton]
-    funext s''
-    by_cases heq : s' = s''
-    case pos =>
-      simp [heq]
-      simp [heq] at hs'
-      exact hs'
-    case neg =>
-      have hDet' := Lts.deterministic_not_lto lts hDet s μ s' s'' heq hs'
-      simp [hDet']
-      exact Ne.symm heq
-  case neg =>
-    right
-    simp [Image]
-    simp [setOf]
-    simp [EmptyCollection.emptyCollection]
-    funext s''
-    by_contra hf
-    simp at hf
-    simp at hs'
-    specialize hs' s''
-    contradiction
+  by_cases hs' : ∃ s', lts.Tr s μ s' <;> aesop (add simp [Image])
 
 /-- Every deterministic Lts is also image-finite. -/
 theorem Lts.deterministic_imageFinite :
@@ -442,9 +415,7 @@ theorem Lts.strN.trans_τ
   case tr n1 sb sb' n2 hstr1 htr hstr2 =>
     have ih := Lts.strN.trans_τ lts hstr2 h2
     have conc := Lts.strN.tr hstr1 htr ih
-    have n_eq : n1 + (n2 + m) + 1 = n1 + n2 + 1 + m := by omega
-    rw [← n_eq]
-    exact conc
+    grind
 
 /-- Saturated transitions labelled by τ can be composed. -/
 theorem Lts.STr.trans_τ
@@ -486,9 +457,7 @@ theorem Lts.strN.comp
     have hprefix_τ := Lts.strN.trans_τ lts h1 hstr1
     have hprefix := Lts.strN.tr hprefix_τ htr hstr2
     have conc := Lts.strN.append lts hprefix h3
-    have n_eq : (n1 + n21 + n22 + 1 + n3) = (n1 + (n21 + n22 + 1) + n3) := by omega
-    rw [← n_eq]
-    apply conc
+    grind
 
 /-- Saturated transitions can be composed. -/
 theorem Lts.STr.comp
@@ -528,11 +497,7 @@ theorem Lts.divergent_drop
   intro m
   simp only [Stream'.drop, Stream'.get]
   simp [Lts.DivergentExecution] at h
-  specialize h (n + m)
-  have n_eq : m.succ + n = n + m + 1 := by omega
-  have n_comm : n + m = m + n := by apply Nat.add_comm
-  rw [n_eq, ← n_comm]
-  apply h
+  grind
 
 /-- An Lts is divergence-free if it has no divergent state. -/
 def Lts.DivergenceFree [HasTau Label] (lts : Lts State Label) : Prop :=
