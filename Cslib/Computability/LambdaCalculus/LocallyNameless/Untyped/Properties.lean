@@ -81,12 +81,12 @@ lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
 
 /-- Substitution of a locally closed term distributes with opening. -/
 @[scoped grind]
-lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e) (lc : LC t) : 
+lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e : Term Var) (lc : LC t) : 
     (e⟦ k ↝ u ⟧)[x := t] = e[x := t]⟦k ↝  u [ x := t ]⟧ := by
   induction e generalizing k <;> grind
 
 /-- Specialize `subst_openRec` to the first opening. -/
-lemma subst_open (x : Var) (t : Term Var) (u e) (lc : LC t) : 
+lemma subst_open (x : Var) (t : Term Var) (u e : Term Var) (lc : LC t) : 
     (e ^ u)[x := t] = e[x := t] ^ u [ x := t ] := by grind
 
 /-- Specialize `subst_open` to the free variables. -/

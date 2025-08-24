@@ -5,9 +5,9 @@ Authors: Fabrizio Montesi
 -/
 
 /-- Typeclass for substitution relations and access to their notation. -/
-class HasSubstitution (α : Type u) (β : Type v) where
+class HasSubstitution (α : Type u) (β : Type v) (γ : Type w) where
   /-- Substitution function. Replaces `x` in `t` with `t'`. -/
-  subst (t : α) (x : β) (t' : α) : α
+  subst (t : α) (x : β) (t' : γ) : α
 
 /-- Notation for substitution. -/
 notation t:max "[" x ":=" t' "]" => HasSubstitution.subst t x t'
