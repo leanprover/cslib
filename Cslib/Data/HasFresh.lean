@@ -32,10 +32,14 @@ theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ 
 
 open Lean Elab Term Meta Parser Tactic
 
+/-- Configuration for the `free_union` term elaborator. -/
 structure FreeUnionConfig where
+  /-- For `free_union Var`, include all `x : Var`. Defaults to true. -/
   singleton : Bool := true
+  /-- For `free_union Var`, include all `xs : Finset Var`. Defaults to true. -/
   finset : Bool := true
 
+/-- Elaborate a FreeUnionConfig. -/
 declare_config_elab elabFreeUnionConfig FreeUnionConfig
 
 /-- 
@@ -70,6 +74,7 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
+/-- Elaborator for `free_union`. -/
 @[term_elab freeUnion]
 def HasFresh.freeUnion : TermElab := fun stx _ => do
   match stx with
