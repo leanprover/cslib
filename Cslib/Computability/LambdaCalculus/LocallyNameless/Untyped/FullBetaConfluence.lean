@@ -125,7 +125,7 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') (_ : y ∉ M.fv ∪ M'.fv ∪
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  let ⟨x, _⟩ := fresh_exists <| free_union (map := fv) Var
+  let ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
   grind
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
@@ -141,20 +141,20 @@ theorem para_diamond : Diamond (@Parallel Var) := by
   case abs s1 s2' xs mem ih => 
     cases tpt2
     case abs t2' xs' mem' =>
-      have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union (map := fv) Var)
+      have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union [fv] Var)
       simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
       have ⟨q1, q2, _⟩ := qx
       have ⟨t', _⟩ := ih x q1 (mem' _ q2)
       exists abs (t' ^* x)
       constructor 
       <;> [let z := s2' ^ fvar x; let z := t2' ^ fvar x]
-      <;> apply Parallel.abs (free_union (map := fv) Var) <;> grind
+      <;> apply Parallel.abs (free_union [fv] Var) <;> grind
   case beta s1 s1' s2 s2' xs mem ps ih1 ih2 => 
     cases tpt2
     case app u2 u2' s1pu2 s2pu2' => 
       cases s1pu2
       case abs s1'' xs' mem' =>
-        have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union (map := fv) Var)
+        have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union [fv] Var)
         simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
         obtain ⟨q1, q2, _⟩ := qx
         have ⟨t', _⟩ := ih2 s2pu2'
@@ -162,9 +162,9 @@ theorem para_diamond : Diamond (@Parallel Var) := by
         exists (t'' ^* x) ^ t'
         constructor
         · grind
-        · apply Parallel.beta (free_union (map := fv) Var) <;> grind
+        · apply Parallel.beta (free_union [fv] Var) <;> grind
     case beta u1' u2' xs' mem' s2pu2' => 
-      have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union (map := fv) Var)
+      have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union [fv] Var)
       simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
       have ⟨q1, q2, _⟩ := qx
       have ⟨t', _⟩ := ih2 s2pu2'
@@ -180,7 +180,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
     case beta t1' u1' u2' xs mem s2pu2' => 
       cases s1ps1'
       case abs s1'' xs' mem' =>
-        have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union (map := fv) Var)
+        have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union [fv] Var)
         simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
         obtain ⟨q1, q2, _⟩ := qx
         have ⟨t', qt'_l, qt'_r⟩ := ih2 s2pu2'
