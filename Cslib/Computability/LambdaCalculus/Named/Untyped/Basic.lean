@@ -94,7 +94,7 @@ decreasing_by all_goals grind [rename.eq_sizeOf, abs.sizeOf_spec, app.sizeOf_spe
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
 instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
-    HasSubstitution (Term Var) Var where
+    HasSubstitution (Term Var) Var (Term Var) where
   subst := Term.subst
 
 -- TODO
