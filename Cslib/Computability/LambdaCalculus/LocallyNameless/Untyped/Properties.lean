@@ -81,12 +81,12 @@ lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
 
 /-- Substitution of a locally closed term distributes with opening. -/
 @[scoped grind]
-lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e) (lc : LC t) : 
+lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e : Term Var) (lc : LC t) : 
     (e⟦ k ↝ u ⟧)[x := t] = e[x := t]⟦k ↝  u [ x := t ]⟧ := by
   induction e generalizing k <;> grind
 
 /-- Specialize `subst_openRec` to the first opening. -/
-lemma subst_open (x : Var) (t : Term Var) (u e) (lc : LC t) : 
+lemma subst_open (x : Var) (t : Term Var) (u e : Term Var) (lc : LC t) : 
     (e ^ u)[x := t] = e[x := t] ^ u [ x := t ] := by grind
 
 /-- Specialize `subst_open` to the free variables. -/
@@ -110,7 +110,7 @@ lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) :
 theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) := by
   cases m_lc
   case abs xs mem =>
-    have ⟨y, _⟩ := fresh_exists <| free_union (map := fv) Var
+    have ⟨y, _⟩ := fresh_exists <| free_union [fv] Var
     grind
 
 /-- Opening then closing is equivalent to substitution. -/
@@ -121,7 +121,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
   induction' m_lc 
   case abs xs t x_mem ih =>
     intros k
-    have ⟨x', _⟩ := fresh_exists <| free_union (map := fv) Var
+    have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
     simp only [closeRec_abs, openRec_abs, subst_abs]
     rw [open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0 ?f₁, open_close x' (t[x := fvar y]) 0 ?f₂]
     rw [swap_open_fvars, ←swap_open_fvar_close] <;> grind
@@ -135,7 +135,7 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x�
   case abs xs t t_open_lc ih => 
     simp only [closeRec_abs, openRec_abs, abs.injEq]
     let z := t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧
-    have ⟨y, _⟩ := fresh_exists <| free_union (map := fv) Var
+    have ⟨y, _⟩ := fresh_exists <| free_union [fv] Var
     refine open_injective y _ _ ?_ ?_ ?f
     case f => rw [←ih y ?_ (k+1)] <;> grind [swap_open_fvar_close, swap_open_fvars]
     all_goals grind

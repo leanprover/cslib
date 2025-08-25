@@ -30,85 +30,100 @@ in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
-open Lean Elab Term Meta Parser Tactic in
+open Lean Elab Term Meta Parser Tactic
+
+/-- Configuration for the `free_union` term elaborator. -/
+structure FreeUnionConfig where
+  /-- For `free_union Var`, include all `x : Var`. Defaults to true. -/
+  singleton : Bool := true
+  /-- For `free_union Var`, include all `xs : Finset Var`. Defaults to true. -/
+  finset : Bool := true
+
+/-- Elaborate a FreeUnionConfig. -/
+declare_config_elab elabFreeUnionConfig FreeUnionConfig
+
 /-- 
-  Given a `DecidableEq Var` instance, this elaborator automatically constructs the union of any
-  variables, finite sets of variables, and optionally the results of a provided function mapping to
-  variables.
+  Given a `DecidableEq Var` instance, this elaborator automatically constructs
+  the union of any variables, finite sets of variables, and optionally the
+  results of provided functions mapping to variables. This is configurable with
+  optional boolean boolean arguments `singleton` and `finset`.
 
   As an example, consider the following:
 
   ```
-  variable {Var Term : Type} [DecidableEq Var]
+  variable (x : ℕ) (xs : Finset ℕ) (var : String)
   
-  example (x : Var) (xs : Finset Var) : True := by
-    -- free : Finset Var := ∅ ∪ {x} ∪ xs
-    let free := free_union Var
-    trivial
+  def f (_ : String) : Finset ℕ := {1, 2, 3}
+  def g (_ : String) : Finset ℕ := {4, 5, 6}
   
-  example (x : Var) (xs : Finset Var) (t : Term) (fv : Term → Finset Var) : True := by
-    -- free : Finset Var := ∅ ∪ {x} ∪ xs ∪ fv t
-    let free := free_union (map := fv) Var
-    trivial
+  -- info: ∅ ∪ {x} ∪ id xs : Finset ℕ
+  #check free_union ℕ
+  
+  -- info: ∅ ∪ {x} ∪ id xs ∪ f var ∪ g var : Finset ℕ
+  #check free_union [f, g] ℕ
+  
+  info: ∅ ∪ id xs : Finset ℕ
+  #check free_union (singleton := false) ℕ
+  
+  -- info: ∅ ∪ {x} : Finset ℕ
+  #check free_union (finset := false) ℕ
+  
+  -- info: ∅ : Finset ℕ
+  #check free_union (singleton := false) (finset := false) ℕ
   ```
 -/
-elab "free_union" cfg:optConfig var:term : term => do
-  -- the type of our variables
-  let var ← elabType var
+syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
-  -- handle the optional map calculation
-   let map ← 
-     match cfg with
-     | `(optConfig| (map := $map:term)) => elabTerm map none
-     | _ => mkConst ``Empty
+/-- Elaborator for `free_union`. -/
+@[term_elab freeUnion]
+def HasFresh.freeUnion : TermElab := fun stx _ => do
+  match stx with
+  | `(free_union $cfg $[[$maps,*]]? $var:term) =>
+    let cfg ← elabFreeUnionConfig cfg |>.run { elaborator := .anonymous } |>.run' { goals := [] }
 
-  let map_ty ← inferType map
+    -- the type of our variables
+    let var ← elabType var
 
-  let map_dom := 
-    match map_ty with
-    | Expr.forallE _ dom _ _ => dom
-    | _ => mkConst ``Empty
+    -- maps to variables
+    let maps := maps.map (·.getElems) |>.getD #[]
+    let mut maps ← maps.mapM (flip elabTerm none)
 
-  let mut finsets := #[]
+    -- construct ∅
+    let dl ← getDecLevel var
+    let FinsetType := mkApp (mkConst ``Finset [dl]) var
+    let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
+    let empty := 
+      mkAppN (mkConst ``EmptyCollection.emptyCollection [dl]) #[FinsetType, EmptyCollectionInst]
 
-  -- construct ∅
-  let dl ← getDecLevel var
-  let FinsetType := mkApp (mkConst ``Finset [dl]) var
-  let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
-  let empty := 
-    mkAppN (mkConst ``EmptyCollection.emptyCollection [dl]) #[FinsetType, EmptyCollectionInst]
+    -- singleton variables
+    if cfg.singleton then
+      let SingletonInst ← synthInstance <| mkAppN (mkConst ``Singleton [dl, dl]) #[var, FinsetType]
+      let singleton_map := 
+        mkAppN (mkConst ``Singleton.singleton [dl, dl]) #[var, FinsetType, SingletonInst]
+      maps := maps.push singleton_map
 
-  let SingletonInst ← synthInstance <| mkAppN (mkConst ``Singleton [dl, dl]) #[var, FinsetType]
+    -- any finite sets
+    if cfg.finset then
+      let id_map := mkApp (mkConst ``id [← getLevel var]) FinsetType
+      maps := maps.push id_map
 
-  for ldecl in (← getLCtx) do
-    if !ldecl.isImplementationDetail then
-      let local_type ← inferType (mkFVar ldecl.fvarId)
+    let mut finsets := #[]
 
-      -- any finite sets
-      if let  (``Finset, #[var']) := local_type.getAppFnArgs then
-        if (← isDefEq var var') then 
-          finsets := finsets.push ldecl.toExpr
-      else
-      -- singleton variables
-      if (← isDefEq local_type var) then
-        let singleton := 
-          mkAppN 
-          (mkConst ``Singleton.singleton [dl, dl]) 
-          #[var, FinsetType, SingletonInst, ldecl.toExpr]
-        finsets := finsets.push singleton
-      else
-      -- map to variables
-      if (←isDefEq local_type map_dom) then
-        finsets := finsets.push (mkApp map ldecl.toExpr)
-      else
-        pure ()
+    for ldecl in (← getLCtx) do
+      if !ldecl.isImplementationDetail then
+        let local_type ← ldecl.toExpr |> inferType >=> whnf
+        for map in maps do
+          if let Expr.forallE _ dom _ _ := ← inferType map then
+            if (←isDefEq local_type dom) then
+              finsets := finsets.push (mkApp map ldecl.toExpr)
 
-  -- construct a union fold
-  let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
-  let UnionFinset := mkAppN (mkConst `Union.union [dl]) #[FinsetType, UnionInst]
-  let union := finsets.foldl (mkApp2 UnionFinset) empty
-    
-  return union
+    -- construct a union fold
+    let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
+    let UnionFinset := mkAppN (mkConst ``Union.union [dl]) #[FinsetType, UnionInst]
+    let union := finsets.foldl (mkApp2 UnionFinset) empty
+      
+    return union
+  | _ => throwUnsupportedSyntax
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
