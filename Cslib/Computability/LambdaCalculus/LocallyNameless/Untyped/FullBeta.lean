@@ -106,7 +106,7 @@ lemma redex_abs_close {x : Var} (step : M ↠βᶠ M') : (M⟦0 ↜ x⟧.abs ↠
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
 theorem redex_abs_cong (xs : Finset Var) (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) : 
     M.abs ↠βᶠ M'.abs := by
-  have ⟨fresh, _⟩ := fresh_exists <| free_union (map := fv) Var
+  have ⟨fresh, _⟩ := fresh_exists <| free_union [fv] Var
   rw [open_close fresh M 0 ?_, open_close fresh M' 0 ?_]
   all_goals grind [redex_abs_close]
 

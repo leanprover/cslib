@@ -122,7 +122,7 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
       refine (weaken der ?_).perm perm
       exact Context.wf_perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
-    apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
+    apply Typing.abs (free_union Var)
     intros
     rw [subst_def, ←subst_open_var _ _ _ _ ?_ der.lc] <;> grind
 
@@ -136,7 +136,7 @@ lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s 
 theorem preservation_open {xs : Finset Var}
   (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) : 
     Γ ⊢ m ^ n ∶ τ := by
-  have ⟨fresh, _⟩ := fresh_exists <| free_union (map := Term.fv) Var
+  have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
   rw [subst_intro fresh n m (by grind) der.lc]
   exact typing_subst_head (by grind) der
 
