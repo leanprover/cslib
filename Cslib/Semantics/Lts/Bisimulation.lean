@@ -112,19 +112,7 @@ notation s:max " ~[" lts "] " s':max => Bisimilarity lts s s'
 /-- Bisimilarity is reflexive. -/
 theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
   exists Eq
-  constructor
-  case left => rfl
-  case right =>
-    simp only [Bisimulation]
-    intro s1 s2 hr μ
-    cases hr
-    constructor
-    case left =>
-      intro s1' htr
-      exists s1'
-    case right =>
-      intro s1' htr
-      exists s1'
+  grind [Bisimulation]
 
 /-- The inverse of a bisimulation is a bisimulation. -/
 theorem Bisimulation.inv (h : Bisimulation lts r) :
@@ -844,38 +832,8 @@ theorem Bisimulation.is_simulation (lts : Lts State Label) (r : State → State 
 theorem Bisimulation.simulation_iff (lts : Lts State Label) (r : State → State → Prop) :
   Bisimulation lts r ↔ (Simulation lts r ∧ Simulation lts (flip r)) := by
   constructor
-  case mp =>
-    intro h
-    simp only [Simulation]
-    constructor
-    case left =>
-      intro s1 s2 hr μ s1' htr
-      specialize h s1 s2 hr μ
-      rcases h with ⟨h1, h2⟩
-      specialize h1 _ htr
-      obtain ⟨s2', h1⟩ := h1
-      exists s2'
-    case right =>
-      simp only [flip, flip]
-      intro s2 s1 hr μ s2' htr
-      simp only [Bisimulation] at h
-      specialize h s1 s2 hr μ
-      obtain ⟨h1, h2⟩ := h
-      specialize h2 _ htr
-      apply h2
-  case mpr =>
-    intro hs
-    obtain ⟨hs, hsinv⟩ := hs
-    simp only [Bisimulation]
-    intro s1 s2 hr μ
-    constructor
-    case left =>
-      intro s1' htr
-      simp only [Simulation] at hs
-      apply hs _ _ hr _ _ htr
-    case right =>
-      intro s2' htr
-      apply hsinv _ _ hr _ _ htr
+  case mp => grind [Bisimulation, Simulation, flip]
+  case mpr => aesop (add simp [Bisimulation])
 
 end Bisimulation
 
