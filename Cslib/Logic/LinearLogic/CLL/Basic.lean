@@ -256,17 +256,21 @@ theorem tensor_distrib_oplus (a b c : Proposition Atom) :
       · apply Proof.oplus₂
         exact Proof.ax
 
-theorem subst_eqv_left {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
+/-- The proposition at the head of a proof can be substituted by an equivalent
+  proposition. -/
+theorem subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
   ⊢(a :: Γ) → ⊢(b :: Γ) :=
   fun h => Proof.exchange (List.perm_append_singleton b Γ) (Proof.cut h heqv.left)
 
+/-- Any proposition in a proof (regardless of its position) can be substituted by
+  an equivalent proposition. -/
 theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
   ⊢(Γ ++ [a] ++ Δ) → ⊢(Γ ++ [b] ++ Δ) := by
     simp
     intro h
     apply Proof.exchange (List.perm_middle.symm)
     apply Proof.exchange (List.perm_middle) at h
-    apply subst_eqv_left heqv h
+    apply subst_eqv_head heqv h
 
 theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≡ b ⊗ a := by
   constructor
@@ -296,7 +300,7 @@ theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) 
     · apply Proof.tensor (Γ := [b.dual]) <;> exact Proof.ax
 
 instance {Γ : Sequent Atom} : IsSymm (Proposition Atom) (fun a b => ⊢((a ⊗ b) :: Γ)) where
-  symm := fun _ _ => subst_eqv_left tensor_symm
+  symm := fun _ _ => subst_eqv_head tensor_symm
 
 theorem oplus_idem {a : Proposition Atom} : a ⊕ a ≡ a := by
   constructor
