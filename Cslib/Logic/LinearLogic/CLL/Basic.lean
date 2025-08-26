@@ -17,7 +17,7 @@ import Mathlib.Order.Defs.Unbundled
 
 ## References
 
-* [J.-Y. Girard, *Linear Logic: its syntax and semantics*] [Girard1995]
+* [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 
 -/
 
