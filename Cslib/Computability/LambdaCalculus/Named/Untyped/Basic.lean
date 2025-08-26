@@ -86,7 +86,7 @@ def Term.subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Te
     else if y ∉ r.fv then
       abs y (m'.subst x r)
     else
-      let z := HasFresh.fresh (abs y m').vars
+      let z := HasFresh.fresh (m'.vars ∪ r.vars ∪ {x})
       abs z ((m'.rename y z).subst x r)
   | app m1 m2 => app (m1.subst x r) (m2.subst x r)
 termination_by m
