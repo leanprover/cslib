@@ -65,11 +65,7 @@ notation s:max " ≤[" lts "] " s':max => Similarity lts s s'
 /-- Similarity is reflexive. -/
 theorem Similarity.refl (s : State) : s ≤[lts] s := by
   exists Eq
-  apply And.intro (by constructor)
-  simp only [Simulation]
-  intro s1 s2 hr μ s1' htr
-  cases hr
-  exists s1'
+  grind [Simulation]
 
 /-- The composition of two simulations is a simulation. -/
 theorem Simulation.comp
