@@ -113,42 +113,16 @@ notation s:max " ≤≥[" lts "] " s':max => SimulationEquiv lts s s'
 
 /-- Simulation equivalence is reflexive. -/
 theorem SimulationEquiv.refl (s : State) : s ≤≥[lts] s := by
-  simp [SimulationEquiv]
-  exists Eq
-  constructor
-  · rfl
-  · simp only [Simulation]
-    intro s1 s2 hr μ s1' htr
-    cases hr
-    exists s1'
+  grind [SimulationEquiv, Similarity.refl]
 
 /-- Simulation equivalence is symmetric. -/
 theorem SimulationEquiv.symm {s1 s2 : State} (h : s1 ≤≥[lts] s2) : s2 ≤≥[lts] s1 := by
-  simp only [SimulationEquiv]
-  simp only [SimulationEquiv] at h
-  simp [h]
+  grind [SimulationEquiv]
 
 /-- Simulation equivalence is transitive. -/
 theorem SimulationEquiv.trans {s1 s2 s3 : State} (h1 : s1 ≤≥[lts] s2) (h2 : s2 ≤≥[lts] s3) :
   s1 ≤≥[lts] s3 := by
-  simp only [SimulationEquiv] at *
-  obtain ⟨h1l, h1r⟩ := h1
-  obtain ⟨h2l, h2r⟩ := h2
-  constructor
-  case left =>
-    obtain ⟨r1, hr1, hr1s⟩ := h1l
-    obtain ⟨r2, hr2, hr2s⟩ := h2l
-    exists Relation.Comp r1 r2
-    constructor
-    · exists s2
-    · apply Simulation.comp lts r1 r2 hr1s hr2s
-  case right =>
-    obtain ⟨r1, hr1, hr1s⟩ := h1r
-    obtain ⟨r2, hr2, hr2s⟩ := h2r
-    exists Relation.Comp r2 r1
-    constructor
-    · exists s2
-    · apply Simulation.comp lts r2 r1 hr2s hr1s
+  grind [SimulationEquiv, Similarity.trans]
 
 /-- Simulation equivalence is an equivalence relation. -/
 theorem SimulationEquiv.eqv (lts : Lts State Label) :
