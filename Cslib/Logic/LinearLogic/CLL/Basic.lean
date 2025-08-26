@@ -15,7 +15,7 @@ import Mathlib.Order.Notation
 
 ## References
 
-* [J.-Y. Girard, *Linear Logic: its syntax and semantics*] [Girard1995]
+* [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 
 -/
 
