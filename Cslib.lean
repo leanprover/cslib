@@ -1,6 +1,6 @@
-import Cslib.Semantics.Lts.Basic
-import Cslib.Semantics.Lts.Bisimulation
-import Cslib.Semantics.Lts.TraceEq
-import Cslib.Data.Relation
-import Cslib.Computability.CombinatoryLogic.Defs
-import Cslib.Computability.CombinatoryLogic.Basic
+import Cslib.Foundations.Semantics.Lts.Basic
+import Cslib.Foundations.Semantics.Lts.Bisimulation
+import Cslib.Foundations.Semantics.Lts.TraceEq
+import Cslib.Foundations.Data.Relation
+import Cslib.Languages.CombinatoryLogic.Defs
+import Cslib.Languages.CombinatoryLogic.Basic

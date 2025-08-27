@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.Lts.Basic
-import Cslib.Semantics.Lts.Bisimulation
-import Cslib.ConcurrencyTheory.CCS.Basic
-import Cslib.ConcurrencyTheory.CCS.Semantics
+import Cslib.Foundations.Semantics.Lts.Basic
+import Cslib.Foundations.Semantics.Lts.Bisimulation
+import Cslib.Languages.CCS.Basic
+import Cslib.Languages.CCS.Semantics
 
 /-! # Behavioural theory of CCS
 
