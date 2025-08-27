@@ -5,7 +5,9 @@ Authors: Fabrizio Montesi
 -/
 
 import Aesop
+import Mathlib.Tactic.ApplyAt
 import Mathlib.Order.Notation
+import Mathlib.Order.Defs.Unbundled
 
 /-! # Classical Linear Logic
 
@@ -126,6 +128,8 @@ theorem Proposition.dual.involution (a : Proposition Atom) : a.dual.dual = a := 
 /-- Linear implication. -/
 def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a.dual ⅋ b
 
+@[inherit_doc] scoped infix:25 " ⊸ " => Proposition.linImpl
+
 /-- A sequent in CLL is a list of propositions. -/
 abbrev Sequent (Atom) := List (Proposition Atom)
 
@@ -153,6 +157,9 @@ inductive Proof : Sequent Atom → Prop where
   | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a :: Γ) → Proof ((!a) :: Γ)
 
 scoped notation "⊢" Γ:90 => Proof Γ
+
+theorem Proof.ax' {a : Proposition Atom} : Proof [a.dual, a] :=
+  Proof.exchange (List.Perm.swap _ _ _) Proof.ax
 
 section LogicalEquiv
 
@@ -220,6 +227,94 @@ theorem parr_top_eqv_top (a : Proposition Atom) :
     apply Proof.parr
     apply Proof.exchange (List.Perm.swap a top [top.dual])
     exact Proof.top
+
+theorem tensor_distrib_oplus (a b c : Proposition Atom) :
+    a ⊗ (b ⊕ c) ≡ (a ⊗ b) ⊕ (a ⊗ c) := by
+  constructor
+  · apply Proof.parr
+    apply Proof.exchange (List.Perm.swap a.dual (.with b.dual c.dual) _)
+    apply Proof.with
+    · apply Proof.exchange (List.reverse_perm _)
+      apply Proof.oplus₁
+      apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+    · apply Proof.exchange (List.reverse_perm _)
+      apply Proof.oplus₂
+      apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+  · apply Proof.with
+    · apply Proof.parr
+      apply Proof.exchange
+        (List.Perm.trans (List.Perm.swap ..) (List.Perm.cons _ (List.Perm.swap ..)))
+      apply Proof.tensor (Γ := [a.dual])
+      · exact Proof.ax
+      · apply Proof.oplus₁
+        exact Proof.ax
+    · apply Proof.parr
+      apply Proof.exchange
+        (List.Perm.trans (List.Perm.swap ..) (List.Perm.cons _ (List.Perm.swap ..)))
+      apply Proof.tensor (Γ := [a.dual])
+      · exact Proof.ax
+      · apply Proof.oplus₂
+        exact Proof.ax
+
+/-- The proposition at the head of a proof can be substituted by an equivalent
+  proposition. -/
+theorem subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
+  ⊢(a :: Γ) → ⊢(b :: Γ) :=
+  fun h => Proof.exchange (List.perm_append_singleton b Γ) (Proof.cut h heqv.left)
+
+/-- Any proposition in a proof (regardless of its position) can be substituted by
+  an equivalent proposition. -/
+theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
+  ⊢(Γ ++ [a] ++ Δ) → ⊢(Γ ++ [b] ++ Δ) := by
+    simp
+    intro h
+    apply Proof.exchange (List.perm_middle.symm)
+    apply Proof.exchange (List.perm_middle) at h
+    apply subst_eqv_head heqv h
+
+theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≡ b ⊗ a := by
+  constructor
+  · apply Proof.parr
+    apply Proof.exchange (List.reverse_perm _)
+    apply Proof.tensor (Γ := [b.dual]) <;> exact Proof.ax
+  · apply Proof.parr
+    apply Proof.exchange (List.reverse_perm _)
+    apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+
+theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) ⊗ c := by
+  constructor
+  · apply Proof.parr
+    apply Proof.exchange (List.Perm.swap ..)
+    apply Proof.parr
+    apply Proof.exchange (List.Perm.swap ..)
+    apply Proof.exchange (List.reverse_perm _)
+    apply Proof.tensor (Γ := [a.dual, b.dual])
+    · apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+    · exact Proof.ax
+  · apply Proof.parr
+    apply Proof.parr
+    apply Proof.exchange (List.reverse_perm _)
+    apply Proof.exchange (List.Perm.cons _ (List.reverse_perm _))
+    apply Proof.tensor (Γ := [a.dual])
+    · exact Proof.ax
+    · apply Proof.tensor (Γ := [b.dual]) <;> exact Proof.ax
+
+instance {Γ : Sequent Atom} : IsSymm (Proposition Atom) (fun a b => ⊢((a ⊗ b) :: Γ)) where
+  symm := fun _ _ => subst_eqv_head tensor_symm
+
+theorem oplus_idem {a : Proposition Atom} : a ⊕ a ≡ a := by
+  constructor
+  · apply Proof.with <;> exact Proof.ax'
+  · apply Proof.exchange (List.Perm.swap ..)
+    apply Proof.oplus₁
+    exact Proof.ax
+
+theorem with_idem {a : Proposition Atom} : a & a ≡ a := by
+  constructor
+  · apply Proof.oplus₁
+    exact Proof.ax'
+  · apply Proof.exchange (List.Perm.swap ..)
+    apply Proof.with <;> exact Proof.ax
 
 end Proposition
 
