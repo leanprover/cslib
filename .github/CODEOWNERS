@@ -2,6 +2,6 @@
 /docs @fmontesi @chenson2018
 /CslibTests @fmontesi @chenson2018
 
-/Cslib/Computability/LambdaCalculus/ @chenson2018
-/Cslib/ConcurrencyTheory/ @fmontesi
-/Cslib/Logic/ @fmontesi @m-ow
+/Cslib/Languages/LambdaCalculus/ @chenson2018
+/Cslib/Languages/CCS/ @fmontesi
+/Cslib/Logics/ @fmontesi @m-ow
