@@ -1,4 +1,4 @@
-import Cslib.Data.HasFresh
+import Cslib.Foundations.Data.HasFresh
 
 variable {Var Term : Type} [DecidableEq Var] [HasFresh Var]
 

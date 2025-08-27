@@ -1,4 +1,4 @@
-import Cslib.Semantics.ReductionSystem.Basic
+import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 @[reduction_sys rs "ₙ", simp]
 def PredReduction (a b : ℕ) : Prop := a = b + 1

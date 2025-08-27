@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.Lts.Basic
-import Cslib.Semantics.Lts.TraceEq
-import Cslib.Data.Relation
-import Cslib.Semantics.Lts.Simulation
+import Cslib.Foundations.Semantics.Lts.Basic
+import Cslib.Foundations.Semantics.Lts.TraceEq
+import Cslib.Foundations.Data.Relation
+import Cslib.Foundations.Semantics.Lts.Simulation
 import Mathlib.Order.CompleteLattice.Defs
 
 /-! # Bisimulation and Bisimilarity

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Computability.LambdaCalculus.LocallyNameless.Context
-import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.Properties
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # λ-calculus
 

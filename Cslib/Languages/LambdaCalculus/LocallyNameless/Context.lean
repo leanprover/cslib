@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Syntax.HasWellFormed
+import Cslib.Foundations.Syntax.HasWellFormed
 import Mathlib.Data.Finset.Defs
 import Mathlib.Data.Finset.Dedup
 import Mathlib.Data.List.Sigma

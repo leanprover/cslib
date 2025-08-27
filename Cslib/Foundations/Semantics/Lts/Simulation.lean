@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Semantics.Lts.Basic
-import Cslib.Data.Relation
+import Cslib.Foundations.Semantics.Lts.Basic
+import Cslib.Foundations.Data.Relation
 
 /-! # Simulation and Similarity
 
