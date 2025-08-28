@@ -5,6 +5,7 @@ testDriver = "CslibTests"
 
 [leanOptions]
 weak.linter.mathlibStandardSet = true
+weak.linter.flexible = true
 
 [[require]]
 name = "mathlib"
