@@ -33,8 +33,7 @@ example : 1 ~[natLts] 2 := by
   exists NatBisim
   constructor
   · constructor
-  · simp [Bisimulation]
-    intro s1 s2 hr μ
+  · intro s1 s2 hr μ
     constructor
     · intro s1' htr
       cases htr <;> (cases hr <;> repeat constructor)
@@ -57,31 +56,23 @@ def natInfiniteExecution : Stream' ℕ := fun n => n
 
 theorem natInfiniteExecution.infiniteExecution : 
     natDivLts.DivergentExecution natInfiniteExecution := by
-  simp [Lts.DivergentExecution]
   intro n
   constructor
 
 example : natDivLts.Divergent 0 := by
-  simp [Lts.Divergent]
   exists natInfiniteExecution
   constructor; constructor
   exact natInfiniteExecution.infiniteExecution
 
 example : natDivLts.Divergent 3 := by
-  simp [Lts.Divergent]
   exists natInfiniteExecution.drop 3
-  simp [Stream'.drop]
   constructor
   · constructor
-  · simp [Lts.DivergentExecution]
-    simp [Stream'.drop]
-    intro n
-    constructor
+  · intro; constructor
 
 example : natDivLts.Divergent n := by
-  simp [Lts.Divergent]
   exists natInfiniteExecution.drop n
-  simp [Stream'.drop]
+  simp only [Stream'.drop, zero_add]
   constructor
   · constructor
   · apply Lts.divergent_drop

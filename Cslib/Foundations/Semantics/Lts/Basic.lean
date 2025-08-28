@@ -90,9 +90,7 @@ theorem Lts.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} 
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
   intro h1 h2
   induction h1
-  case refl s1' =>
-    simp
-    apply Lts.MTr.single lts h2
+  case refl s1' => exact Lts.MTr.single lts h2
   case stepL s1' μ' s2' μs' s3' h1' h3 ih =>
     apply Lts.MTr.stepL
     · exact h1'
@@ -104,9 +102,7 @@ theorem Lts.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List 
   lts.MTr s1 (μs1 ++ μs2) s3 := by
   intro h1 h2
   induction h1
-  case refl =>
-    simp
-    assumption
+  case refl => assumption
   case stepL s1 μ s' μs1' s'' h1' h3 ih  =>
     apply Lts.MTr.stepL
     · exact h1'
@@ -218,31 +214,27 @@ def Lts.unionSum {State1} {State2} (lts1 : Lts State1 Label) (lts2 : Lts State2 
     Sum.isRightP
     (Function.const Label True)
     (by
-      simp [DecidablePred]
       intro s
       cases h : s
       · apply Decidable.isTrue
         trivial
-      · simp [Sum.isLeftP]
+      · simp only [Sum.isLeftP, Sum.isLeft_inr, Bool.false_eq_true]
         apply Decidable.isFalse
         trivial)
     (by
       intro μ
-      simp [Function.const]
       apply Decidable.isTrue
       trivial)
     (by
-      simp [DecidablePred]
       intro s
       cases h : s
-      · simp [Sum.isRightP]
+      · simp only [Sum.isRightP, Sum.isRight_inl, Bool.false_eq_true]
         apply Decidable.isFalse
         trivial
       · apply Decidable.isTrue
         trivial)
     (by
       intro μ
-      simp [Function.const]
       apply Decidable.isTrue
       trivial)
     lts1.inl
@@ -295,10 +287,10 @@ theorem Lts.deterministic_imageFinite :
   cases hDet
   case inl hDet =>
     obtain ⟨s', hDet'⟩ := hDet
-    simp [hDet']
+    simp only [hDet']
     apply Set.finite_singleton
   case inr hDet =>
-    simp [hDet]
+    simp only [hDet]
     apply Set.finite_empty
 
 /-- A state has an outgoing label `μ` if it has a `μ`-derivative. -/
@@ -320,8 +312,6 @@ def Lts.FiniteState (_ : Lts State Label) : Prop := Finite State
 /-- Every finite-state Lts is also image-finite. -/
 theorem Lts.finiteState_imageFinite (hFinite : lts.FiniteState) :
   lts.ImageFinite := by
-  simp [ImageFinite, Image]
-  simp [FiniteState] at hFinite
   intro s μ
   apply @Subtype.finite State hFinite
 
@@ -329,8 +319,6 @@ theorem Lts.finiteState_imageFinite (hFinite : lts.FiniteState) :
 theorem Lts.finiteState_finitelyBranching
   (hFiniteLabel : Finite Label) (hFiniteState : lts.FiniteState) :
   lts.FinitelyBranching := by
-  simp [FinitelyBranching, OutgoingLabels, HasOutLabel]
-  simp [FiniteState] at hFiniteState
   constructor
   case left =>
     apply Lts.finiteState_imageFinite lts hFiniteState
@@ -409,9 +397,7 @@ theorem Lts.strN.trans_τ
   (h1 : lts.strN n s1 HasTau.τ s2) (h2 : lts.strN m s2 HasTau.τ s3) :
   lts.strN (n + m) s1 HasTau.τ s3 := by
   cases h1
-  case refl =>
-    simp
-    exact h2
+  case refl => grind
   case tr n1 sb sb' n2 hstr1 htr hstr2 =>
     have ih := Lts.strN.trans_τ lts hstr2 h2
     have conc := Lts.strN.tr hstr1 htr ih
@@ -434,9 +420,7 @@ theorem Lts.strN.append
   (h2 : lts.strN n2 s2 HasTau.τ s3) :
   lts.strN (n1 + n2) s1 μ s3 := by
   cases h1
-  case refl =>
-    simp
-    exact h2
+  case refl => grind
   case tr n11 sb sb' n12 hstr1 htr hstr2 =>
     have hsuffix := Lts.strN.trans_τ lts hstr2 h2
     have n_eq : n11 + (n12 + n2) + 1 = (n11 + n12 + 1 + n2) := by omega

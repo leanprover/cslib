@@ -374,7 +374,7 @@ theorem le_def (a b : SKI) : SKI.LE ⬝ a ⬝ b ⇒* IsZero ⬝ (SKI.Sub ⬝ a �
 
 theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
     IsBool (n ≤ m) (SKI.LE ⬝ a ⬝ b) := by
-  simp [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
+  simp only [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
   apply isBool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
   apply isZero_correct
   apply sub_correct <;> assumption

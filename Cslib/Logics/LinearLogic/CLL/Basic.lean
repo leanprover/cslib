@@ -269,7 +269,7 @@ theorem subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a �
   an equivalent proposition. -/
 theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
   ⊢(Γ ++ [a] ++ Δ) → ⊢(Γ ++ [b] ++ Δ) := by
-    simp
+    simp only [List.append_assoc, List.cons_append, List.nil_append]
     intro h
     apply Proof.exchange (List.perm_middle.symm)
     apply Proof.exchange (List.perm_middle) at h

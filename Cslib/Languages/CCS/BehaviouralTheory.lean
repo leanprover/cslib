@@ -420,15 +420,9 @@ theorem bisimilarity_congr
   (c : Context Name Constant) (p q : Process Name Constant) (h : p ~[@lts Name Constant defs] q) :
   (c.fill p) ~[@lts Name Constant defs] (c.fill q) := by
   induction c
-  case hole =>
-    simp only [Context.fill]
-    exact h
-  case pre μ c ih =>
-    simp [Context.fill]
-    apply bisimilarity_congr_pre ih
-  case parL c r ih =>
-    simp [Context.fill]
-    apply bisimilarity_congr_par ih
+  case hole => exact h
+  case pre _ _  ih => exact bisimilarity_congr_pre ih
+  case parL _ _ ih => exact bisimilarity_congr_par ih
   case parR r c ih =>
     apply Bisimilarity.trans
     · apply bisimilarity_par_comm
@@ -436,20 +430,14 @@ theorem bisimilarity_congr
       · apply bisimilarity_congr_par
         exact ih
       · apply bisimilarity_par_comm
-  case choiceL c r ih =>
-    simp [Context.fill]
-    apply bisimilarity_congr_choice
-    exact ih
+  case choiceL _ _ ih => exact bisimilarity_congr_choice ih
   case choiceR r c ih =>
-    simp [Context.fill]
     apply Bisimilarity.trans
     · apply bisimilarity_choice_comm
     · apply Bisimilarity.trans
-      · apply bisimilarity_congr_choice
-        exact ih
-      · apply bisimilarity_choice_comm
+      · exact bisimilarity_congr_choice ih
+      · exact bisimilarity_choice_comm
   case res =>
-    simp [Context.fill]
     apply bisimilarity_congr_res
     assumption
 

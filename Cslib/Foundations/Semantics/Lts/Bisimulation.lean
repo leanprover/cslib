@@ -248,7 +248,6 @@ theorem Bisimilarity.is_bisimulation : Bisimulation lts (Bisimilarity lts) := by
   intro s1 s2 h μ
   obtain ⟨r, hr, hb⟩ := h
   have hrBisim := hb
-  simp [Bisimulation] at hb
   specialize hb s1 s2
   constructor
   case left =>
@@ -367,8 +366,6 @@ def BisimulationUpTo (lts : Lts State Label) (r : State → State → Prop) : Pr
 /-- Any bisimulation up to bisimilarity is a bisimulation. -/
 theorem Bisimulation.upTo_bisimulation (r : State → State → Prop) (h : BisimulationUpTo lts r) :
   Bisimulation lts (Relation.upTo r (Bisimilarity lts)) := by
-  simp [Bisimulation]
-  simp [BisimulationUpTo] at h
   intro s1 s2 hr μ
   rcases hr with ⟨s1b, hr1b, s2b, hrb, hr2b⟩
   obtain ⟨r1, hr1, hr1b⟩ := hr1b
@@ -434,7 +431,6 @@ theorem Bisimulation.bisim_trace
     intro s1' hmtr1
     cases hmtr1
     case stepL s1'' htr hmtr =>
-      simp [Bisimulation] at hb
       specialize hb s1 s2 hr μ
       have hf := hb.1 s1'' htr
       obtain ⟨s2'', htr2, hb2⟩ := hf
@@ -455,7 +451,6 @@ theorem Bisimulation.bisim_trace
 theorem Bisimulation.bisim_traceEq
   (hb : Bisimulation lts r) (hr : r s1 s2) :
   s1 ~tr[lts] s2 := by
-  simp [TraceEq, Lts.traces, setOf]
   funext μs
   simp only [eq_iff_iff]
   constructor
@@ -475,7 +470,6 @@ theorem Bisimulation.bisim_traceEq
 
 /-- Bisimilarity is included in trace equivalence. -/
 theorem Bisimilarity.le_traceEq : Bisimilarity lts ≤ TraceEq lts := by
-  simp [LE.le]
   intro s1 s2 h
   obtain ⟨r, hr, hb⟩ := h
   apply Bisimulation.bisim_traceEq lts hb hr
@@ -502,12 +496,10 @@ theorem Bisimulation.traceEq_not_bisim :
   let lts := Lts.mk BisimMotTr
   exists lts
   intro h
-  simp [Bisimulation] at h
   specialize h 1 5
   have htreq : (1 ~tr[lts] 5) := by
     simp [TraceEq]
     have htraces1 : lts.traces 1 = {[], ['a'], ['a', 'b'], ['a', 'c']} := by
-      simp [Lts.traces]
       apply Set.ext_iff.2
       intro μs
       apply Iff.intro
@@ -519,27 +511,31 @@ theorem Bisimulation.traceEq_not_bisim :
           simp
         case intro.stepL μ sb μs' htr hmtr =>
           cases htr
-          simp
-          cases hmtr <;> simp
+          cases hmtr
           case one2two.stepL μ sb μs' htr hmtr =>
-            cases htr <;> cases hmtr <;> simp <;> contradiction
+            cases htr <;> cases hmtr <;>
+            simp only [↓Char.isValue, Set.mem_insert_iff, reduceCtorEq, List.cons.injEq,
+              List.cons_ne_self, and_false, Set.mem_singleton_iff, Char.reduceEq, and_true,
+              or_false, or_true] <;>
+            contradiction
+          simp
       case mpr =>
         intro h1
         cases h1
         case inl h1 =>
-          simp [h1]
+          simp only [h1]
           exists 1
           constructor
         case inr h1 =>
           cases h1
           case inl h1 =>
-            simp [h1]
+            simp only [h1]
             exists 2
             apply Lts.MTr.single; constructor
           case inr h1 =>
             cases h1
             case inl h1 =>
-              simp [h1]
+              simp only [h1]
               exists 3
               constructor; apply BisimMotTr.one2two; apply Lts.MTr.single;
                 apply BisimMotTr.two2three
@@ -549,7 +545,6 @@ theorem Bisimulation.traceEq_not_bisim :
               constructor; apply BisimMotTr.one2two; apply Lts.MTr.single;
                 apply BisimMotTr.two2four
     have htraces2 : lts.traces 5 = {[], ['a'], ['a', 'b'], ['a', 'c']} := by
-      simp [Lts.traces]
       apply Set.ext_iff.2
       intro μs
       apply Iff.intro
@@ -562,18 +557,16 @@ theorem Bisimulation.traceEq_not_bisim :
         case intro.stepL μ sb μs' htr hmtr =>
           cases htr
           case five2six =>
-            simp
             cases hmtr
             case refl =>
               simp
             case stepL μ sb μs' htr hmtr =>
               cases htr
               cases hmtr
-              case refl => right; left; simp
+              case refl => simp
               case stepL μ sb μs' htr hmtr =>
                 cases htr
           case five2eight =>
-            simp
             cases hmtr
             case refl =>
               simp
@@ -587,19 +580,19 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h1
         cases h1
         case inl h1 =>
-          simp [h1]
+          simp only [h1]
           exists 5
           constructor
         case inr h1 =>
           cases h1
           case inl h1 =>
-            simp [h1]
+            simp only [h1]
             exists 6
             apply Lts.MTr.single; constructor
           case inr h1 =>
             cases h1
             case inl h1 =>
-              simp [h1]
+              simp only [h1]
               exists 7
               constructor; apply BisimMotTr.five2six; apply Lts.MTr.single;
                 apply BisimMotTr.six2seven
@@ -618,7 +611,6 @@ theorem Bisimulation.traceEq_not_bisim :
   case five2six =>
     simp [TraceEq] at cih
     have htraces2 : lts.traces 2 = {[], ['b'], ['c']} := by
-      simp [Lts.traces]
       apply Set.ext_iff.2
       intro μs
       apply Iff.intro
@@ -630,9 +622,9 @@ theorem Bisimulation.traceEq_not_bisim :
         case stepL μ sb μs' htr hmtr =>
           cases htr
           case two2three =>
-            cases hmtr <;> simp
-            case stepL μ sb μs' htr hmtr =>
-              cases htr
+            cases hmtr
+            case stepL μ sb μs' htr hmtr => cases htr
+            simp
           case two2four =>
             cases hmtr
             case refl => simp
@@ -642,12 +634,10 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h
         cases h
         case inl h =>
-          simp
           exists 2
           simp [h]
           constructor
         case inr h =>
-          simp
           cases h
           case inl h =>
             exists 3; simp [h]; constructor; constructor; constructor
@@ -657,7 +647,6 @@ theorem Bisimulation.traceEq_not_bisim :
             simp [h]
             constructor; constructor; constructor
     have htraces6 : lts.traces 6 = {[], ['b']} := by
-      simp [Lts.traces]
       apply Set.ext_iff.2
       intro μs
       apply Iff.intro
@@ -668,28 +657,25 @@ theorem Bisimulation.traceEq_not_bisim :
         case refl => simp
         case stepL μ sb μs' htr hmtr =>
           cases htr
-          cases hmtr <;> simp
-          case stepL μ sb μs' htr hmtr =>
-            cases htr
+          cases hmtr
+          case stepL μ sb μs' htr hmtr => cases htr
+          simp
       case mpr =>
         intro h
         cases h
         case inl h =>
-          simp
           exists 6
           simp [h]
           constructor
         case inr h =>
-          simp
           exists 7
           simp at h
           simp [h]
           constructor; constructor; constructor
     grind
   case five2eight =>
-    simp [TraceEq] at cih
+    simp only [TraceEq] at cih
     have htraces2 : lts.traces 2 = {[], ['b'], ['c']} := by
-      simp [Lts.traces]
       apply Set.ext_iff.2
       intro μs
       apply Iff.intro
@@ -701,9 +687,9 @@ theorem Bisimulation.traceEq_not_bisim :
         case stepL μ sb μs' htr hmtr =>
           cases htr
           case two2three =>
-            cases hmtr <;> simp
-            case stepL μ sb μs' htr hmtr =>
-              cases htr
+            cases hmtr
+            case stepL μ sb μs' htr hmtr => cases htr
+            simp
           case two2four =>
             cases hmtr
             case refl => simp
@@ -713,12 +699,10 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h
         cases h
         case inl h =>
-          simp
           exists 2
           simp [h]
           constructor
         case inr h =>
-          simp
           cases h
           case inl h =>
             exists 3; simp [h]; constructor; constructor; constructor
@@ -728,7 +712,6 @@ theorem Bisimulation.traceEq_not_bisim :
             simp [h]
             constructor; constructor; constructor
     have htraces8 : lts.traces 8 = {[], ['c']} := by
-      simp [Lts.traces]
       apply Set.ext_iff.2
       intro μs
       apply Iff.intro
@@ -739,23 +722,21 @@ theorem Bisimulation.traceEq_not_bisim :
         case refl => simp
         case stepL μ sb μs' htr hmtr =>
           cases htr
-          cases hmtr <;> simp
-          case stepL μ sb μs' htr hmtr =>
-            cases htr
+          cases hmtr
+          case stepL μ sb μs' htr hmtr => cases htr
+          simp   
       case mpr =>
         intro h
         cases h
         case inl h =>
-          simp
           exists 8
           simp [h]
           constructor
         case inr h =>
-          simp
           exists 9
           simp at h
           simp [h]
-          constructor; constructor; constructor
+          repeat constructor
     rw [htraces2, htraces8] at cih
     apply Set.ext_iff.1 at cih
     specialize cih ['b']
@@ -771,7 +752,6 @@ theorem Bisimilarity.bisimilarity_neq_traceEq :
   ∃ (State : Type) (Label : Type) (lts : Lts State Label), Bisimilarity lts ≠ TraceEq lts := by
   obtain ⟨State, Label, lts, h⟩ := Bisimulation.traceEq_not_bisim
   exists State; exists Label; exists lts
-  simp
   intro heq
   have hb := Bisimilarity.is_bisimulation lts
   rw [heq] at hb
@@ -814,7 +794,7 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
   (lts : Lts State Label) (hdet : lts.Deterministic) :
   Bisimilarity lts = TraceEq lts := by
   funext s1 s2
-  simp [eq_iff_iff]
+  simp only [eq_iff_iff]
   constructor
   case mp =>
     apply Bisimilarity.le_traceEq
@@ -888,7 +868,6 @@ theorem SWBisimulation.follow_internal_fst_n
     cases hstrN
     rename_i n1 sb sb' n2 hstrN1 htr hstrN2
     let hswb_m := hswb
-    simp [SWBisimulation] at hswb
     have ih1 := SWBisimulation.follow_internal_fst_n lts r hswb hr hstrN1
     obtain ⟨sb2, hstrs2, hrsb⟩ := ih1
     have h := (hswb sb sb2 hrsb HasTau.τ).1 sb' htr
@@ -916,7 +895,6 @@ theorem SWBisimulation.follow_internal_snd_n
     cases hstrN
     rename_i n1 sb sb' n2 hstrN1 htr hstrN2
     let hswb_m := hswb
-    simp [SWBisimulation] at hswb
     have ih1 := SWBisimulation.follow_internal_snd_n lts r hswb hr hstrN1
     obtain ⟨sb1, hstrs1, hrsb⟩ := ih1
     have h := (hswb sb1 sb hrsb HasTau.τ).2 sb' htr
@@ -954,8 +932,6 @@ theorem WeakBisimulation.iff_swBisimulation
   apply Iff.intro
   case mp =>
     intro h
-    simp [WeakBisimulation, Bisimulation] at h
-    simp [SWBisimulation]
     intro s1 s2 hr μ
     apply And.intro
     case left =>
@@ -972,7 +948,6 @@ theorem WeakBisimulation.iff_swBisimulation
       exists s1'
   case mpr =>
     intro h
-    simp [WeakBisimulation, Bisimulation]
     intro s1 s2 hr μ
     apply And.intro
     case left =>
@@ -988,8 +963,7 @@ theorem WeakBisimulation.iff_swBisimulation
         obtain ⟨s2', hstr2', hrb2⟩ := SWBisimulation.follow_internal_fst lts r h hrb' hstr2
         exists s2'
         constructor
-        · simp [Lts.saturate]
-          apply Lts.STr.comp lts hstr2b hstr2b' hstr2'
+        · exact Lts.STr.comp lts hstr2b hstr2b' hstr2'
         · exact hrb2
     case right =>
       intro s2' hstr
@@ -1004,8 +978,7 @@ theorem WeakBisimulation.iff_swBisimulation
         obtain ⟨s1', hstr1', hrb2⟩ := SWBisimulation.follow_internal_snd lts r h hrb' hstr2
         exists s1'
         constructor
-        · simp [Lts.saturate]
-          apply Lts.STr.comp lts hstr1b hstr1b' hstr1'
+        · exact Lts.STr.comp lts hstr1b hstr1b' hstr1'
         · exact hrb2
 
 theorem WeakBisimulation.toSwBisimulation
@@ -1029,7 +1002,7 @@ theorem WeakBisimilarity.by_swBisimulation [HasTau Label]
 theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label] (lts : Lts State Label) :
   WeakBisimilarity lts = SWBisimilarity lts := by
   funext s1 s2
-  simp [WeakBisimilarity, SWBisimilarity]
+  simp only [eq_iff_iff]
   constructor
   case mp =>
     intro h
@@ -1048,7 +1021,6 @@ theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label] (lts : Lts State La
 
 /-- sw-bisimilarity is reflexive. -/
 theorem SWBisimilarity.refl [HasTau Label] (lts : Lts State Label) (s : State) : s ≈sw[lts] s := by
-  simp [SWBisimilarity]
   exists Eq
   constructor
   · rfl

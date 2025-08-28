@@ -39,8 +39,7 @@ def Lts.traces (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
 /-- If there is a multi-step transition from `s` labelled by `μs`, then `μs` is in the traces of
 `s`. -/
 theorem Lts.traces_in (s : State) (μs : List Label) (s' : State) (h : lts.MTr s μs s') :
-  μs ∈ lts.traces s := by
-  simp [Lts.traces]
+    μs ∈ lts.traces s := by
   exists s'
 
 /-- Two states are trace equivalent if they have the same set of traces. -/
@@ -68,9 +67,7 @@ theorem TraceEq.symm (lts : Lts State Label) {s1 s2 : State} (h : s1 ~tr[lts] s2
 /-- Trace equivalence is transitive. -/
 theorem TraceEq.trans {s1 s2 s3 : State} (h1 : s1 ~tr[lts] s2) (h2 : s2 ~tr[lts] s3) :
   s1 ~tr[lts] s3 := by
-  simp only [TraceEq]
-  simp only [TraceEq] at h1
-  simp only [TraceEq] at h2
+  simp only [TraceEq] at *
   rw [h1, h2]
 
 /-- Trace equivalence is an equivalence relation. -/
@@ -90,7 +87,6 @@ theorem TraceEq.deterministic_sim
   ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ s1' ~tr[lts] s2' := by
   intro μ s1' htr1
   have hmtr1 := Lts.MTr.single lts htr1
-  simp [TraceEq] at h
   have hin := Lts.traces_in lts s1 [μ] s1' hmtr1
   rw [h] at hin
   obtain ⟨s2', hmtr2⟩ := hin
@@ -108,7 +104,6 @@ theorem TraceEq.deterministic_sim
       have hmtr1comp := Lts.MTr.comp lts hmtr1 hmtr1'
       have hin := Lts.traces_in lts s1 ([μ] ++ μs') s1'' hmtr1comp
       rw [h] at hin
-      simp [Lts.traces] at hin
       obtain ⟨s', hmtr2'⟩ := hin
       cases hmtr2'
       case stepL s2'' htr2 hmtr2' =>
@@ -123,7 +118,6 @@ theorem TraceEq.deterministic_sim
       have hmtr2comp := Lts.MTr.comp lts hmtr2 hmtr2'
       have hin := Lts.traces_in lts s2 ([μ] ++ μs') s2'' hmtr2comp
       rw [← h] at hin
-      simp [Lts.traces] at hin
       obtain ⟨s', hmtr1'⟩ := hin
       cases hmtr1'
       case stepL s1'' htr1 hmtr1' =>
