@@ -145,18 +145,19 @@ inductive Proof : Sequent Atom → Prop where
   | ax : Proof [a, a⫠]
   | cut : Proof (a :: Γ) → Proof (a⫠ :: Δ) → Proof (Γ ++ Δ)
   | exchange : List.Perm Γ Δ → Proof Γ → Proof Δ
-  | one : Proof [one]
+  | one : Proof [1]
   | bot : Proof Γ → Proof (⊥ :: Γ)
   | parr : Proof (a :: b :: Γ) → Proof ((a ⅋ b) :: Γ)
   | tensor : Proof (a :: Γ) → Proof (b :: Δ) → Proof ((a ⊗ b) :: (Γ ++ Δ))
   | oplus₁ : Proof (a :: Γ) → Proof ((a ⊕ b) :: Γ)
   | oplus₂ : Proof (b :: Γ) → Proof ((a ⊕ b) :: Γ)
   | with : Proof (a :: Γ) → Proof (b :: Γ) → Proof ((a & b) :: Γ)
-  | top : Proof (top :: Γ)
+  | top : Proof (⊤ :: Γ)
   | quest : Proof (a :: Γ) → Proof (ʔa :: Γ)
   | weaken : Proof Γ → Proof (ʔa :: Γ)
   | contract : Proof (ʔa :: ʔa :: Γ) → Proof (ʔa :: Γ)
   | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a :: Γ) → Proof ((!a) :: Γ)
+  -- No rule for zero.
 
 scoped notation "⊢" Γ:90 => Proof Γ
 
