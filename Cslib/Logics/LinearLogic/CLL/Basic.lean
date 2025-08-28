@@ -137,7 +137,7 @@ abbrev Sequent (Atom) := List (Proposition Atom)
 
 /-- Checks that all propositions in `Γ` are question marks. -/
 def Sequent.allQuest (Γ : Sequent Atom) :=
-  ∀ a ∈ Γ, ∃ b, a = Proposition.quest b
+  ∀ a ∈ Γ, ∃ b, a = ʔb
 
 open Proposition in
 /-- Sequent calculus for CLL. -/
