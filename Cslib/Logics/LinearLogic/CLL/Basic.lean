@@ -109,24 +109,26 @@ def Proposition.dual : Proposition Atom → Proposition Atom
   | bang a => quest a.dual
   | quest a => bang a.dual
 
+@[inherit_doc] scoped postfix:max "⫠" => Proposition.dual
+
 /-- No proposition is equal to its dual. -/
-theorem Proposition.dual.neq (a : Proposition Atom) : a ≠ a.dual := by
+theorem Proposition.dual.neq (a : Proposition Atom) : a ≠ a⫠ := by
   cases a <;> simp [Proposition.dual]
 
 /-- Two propositions are equal iff their respective duals are equal. -/
 @[simp]
-theorem Proposition.dual_inj (a b : Proposition Atom) : a.dual = b.dual ↔ a = b := by
+theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b := by
   refine ⟨fun h ↦ ?_, congrArg dual⟩
   induction a generalizing b <;> cases b
   all_goals aesop (add simp [Proposition.dual])
 
 /-- Duality is an involution. -/
 @[simp]
-theorem Proposition.dual.involution (a : Proposition Atom) : a.dual.dual = a := by
+theorem Proposition.dual.involution (a : Proposition Atom) : a⫠⫠ = a := by
   induction a <;> simp_all [dual]
 
 /-- Linear implication. -/
-def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a.dual ⅋ b
+def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ b
 
 @[inherit_doc] scoped infix:25 " ⊸ " => Proposition.linImpl
 
@@ -140,8 +142,8 @@ def Sequent.allQuest (Γ : Sequent Atom) :=
 open Proposition in
 /-- Sequent calculus for CLL. -/
 inductive Proof : Sequent Atom → Prop where
-  | ax : Proof [a, a.dual]
-  | cut : Proof (a :: Γ) → Proof (a.dual :: Δ) → Proof (Γ ++ Δ)
+  | ax : Proof [a, a⫠]
+  | cut : Proof (a :: Γ) → Proof (a⫠ :: Δ) → Proof (Γ ++ Δ)
   | exchange : List.Perm Γ Δ → Proof Γ → Proof Δ
   | one : Proof [one]
   | bot : Proof Γ → Proof (⊥ :: Γ)
@@ -158,15 +160,15 @@ inductive Proof : Sequent Atom → Prop where
 
 scoped notation "⊢" Γ:90 => Proof Γ
 
-theorem Proof.ax' {a : Proposition Atom} : Proof [a.dual, a] :=
-  Proof.exchange (List.Perm.swap _ _ _) Proof.ax
+theorem Proof.ax' {a : Proposition Atom} : Proof [a⫠, a] :=
+  Proof.exchange (List.Perm.swap ..) Proof.ax
 
 section LogicalEquiv
 
 /-! ## Logical equivalences -/
 
 /-- Two propositions are equivalent if one implies the other and vice versa. -/
-def Proposition.equiv (a b : Proposition Atom) : Prop := ⊢[a.dual, b] ∧ ⊢[b.dual, a]
+def Proposition.equiv (a b : Proposition Atom) : Prop := ⊢[a⫠, b] ∧ ⊢[b⫠, a]
 
 scoped infix:29 " ≡ " => Proposition.equiv
 
@@ -215,43 +217,43 @@ theorem quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡ ⊥ := by
 theorem tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡ 0 := by
   refine ⟨?_, .top⟩
   apply Proof.parr
-  apply Proof.exchange (List.Perm.swap a.dual ⊤ [0])
+  apply Proof.exchange (List.Perm.swap a⫠ ⊤ [0])
   exact Proof.top
 
 theorem parr_top_eqv_top (a : Proposition Atom) :
     a ⅋ ⊤ ≡ ⊤ := by
   constructor
-  · apply Proof.exchange (List.Perm.swap (parr a top).dual top [])
+  · apply Proof.exchange (List.Perm.swap (parr a top)⫠ top [])
     exact Proof.top
-  · apply Proof.exchange (List.Perm.swap top.dual (parr a top) [])
+  · apply Proof.exchange (List.Perm.swap top⫠ (parr a top) [])
     apply Proof.parr
-    apply Proof.exchange (List.Perm.swap a top [top.dual])
+    apply Proof.exchange (List.Perm.swap a top [top⫠])
     exact Proof.top
 
 theorem tensor_distrib_oplus (a b c : Proposition Atom) :
     a ⊗ (b ⊕ c) ≡ (a ⊗ b) ⊕ (a ⊗ c) := by
   constructor
   · apply Proof.parr
-    apply Proof.exchange (List.Perm.swap a.dual (.with b.dual c.dual) _)
+    apply Proof.exchange (List.Perm.swap a⫠ (.with b⫠ c⫠) _)
     apply Proof.with
     · apply Proof.exchange (List.reverse_perm _)
       apply Proof.oplus₁
-      apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+      apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
     · apply Proof.exchange (List.reverse_perm _)
       apply Proof.oplus₂
-      apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+      apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
   · apply Proof.with
     · apply Proof.parr
       apply Proof.exchange
         (List.Perm.trans (List.Perm.swap ..) (List.Perm.cons _ (List.Perm.swap ..)))
-      apply Proof.tensor (Γ := [a.dual])
+      apply Proof.tensor (Γ := [a⫠])
       · exact Proof.ax
       · apply Proof.oplus₁
         exact Proof.ax
     · apply Proof.parr
       apply Proof.exchange
         (List.Perm.trans (List.Perm.swap ..) (List.Perm.cons _ (List.Perm.swap ..)))
-      apply Proof.tensor (Γ := [a.dual])
+      apply Proof.tensor (Γ := [a⫠])
       · exact Proof.ax
       · apply Proof.oplus₂
         exact Proof.ax
@@ -276,10 +278,10 @@ theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≡ b ⊗ a := by
   constructor
   · apply Proof.parr
     apply Proof.exchange (List.reverse_perm _)
-    apply Proof.tensor (Γ := [b.dual]) <;> exact Proof.ax
+    apply Proof.tensor (Γ := [b⫠]) <;> exact Proof.ax
   · apply Proof.parr
     apply Proof.exchange (List.reverse_perm _)
-    apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+    apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
 
 theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) ⊗ c := by
   constructor
@@ -288,16 +290,16 @@ theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) 
     apply Proof.parr
     apply Proof.exchange (List.Perm.swap ..)
     apply Proof.exchange (List.reverse_perm _)
-    apply Proof.tensor (Γ := [a.dual, b.dual])
-    · apply Proof.tensor (Γ := [a.dual]) <;> exact Proof.ax
+    apply Proof.tensor (Γ := [a⫠, b⫠])
+    · apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
     · exact Proof.ax
   · apply Proof.parr
     apply Proof.parr
     apply Proof.exchange (List.reverse_perm _)
     apply Proof.exchange (List.Perm.cons _ (List.reverse_perm _))
-    apply Proof.tensor (Γ := [a.dual])
+    apply Proof.tensor (Γ := [a⫠])
     · exact Proof.ax
-    · apply Proof.tensor (Γ := [b.dual]) <;> exact Proof.ax
+    · apply Proof.tensor (Γ := [b⫠]) <;> exact Proof.ax
 
 instance {Γ : Sequent Atom} : IsSymm (Proposition Atom) (fun a b => ⊢((a ⊗ b) :: Γ)) where
   symm := fun _ _ => subst_eqv_head tensor_symm
