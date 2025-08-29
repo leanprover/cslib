@@ -131,9 +131,41 @@ proof_wanted bisimilarity_par_assoc :
 proof_wanted bisimilarity_choice_nil :
   (choice p nil) ~[@lts Name Constant defs] p
 
+private inductive ChoiceIdem : (Process Name Constant) → (Process Name Constant) → Prop where
+  | idem : ChoiceIdem (choice p p) p
+  | id : ChoiceIdem p p
+
 /-- P + P ~ P -/
-proof_wanted bisimilarity_choice_idem :
-  (choice p p) ~[@lts Name Constant defs] p
+theorem bisimilarity_choice_idem :
+  (choice p p) ~[@lts Name Constant defs] p := by
+  exists ChoiceIdem
+  apply And.intro
+  case left => grind [ChoiceIdem]
+  case right =>
+    intro s1 s2 hr μ
+    apply And.intro <;> cases hr
+    case left.idem =>
+      intro s2' htr
+      exists s2'
+      apply And.intro
+      case left =>
+        cases htr <;> unfold lts <;> grind
+      case right =>
+        grind [ChoiceIdem]
+    case left.id =>
+      grind [ChoiceIdem]
+    case right.idem =>
+      intro s1' htr
+      exists s1'
+      apply And.intro
+      case left =>
+        unfold lts
+        unfold lts at htr
+        grind [Tr]
+      case right =>
+        grind [ChoiceIdem]
+    case right.id =>
+      grind [ChoiceIdem]
 
 private inductive ChoiceComm : (Process Name Constant) → (Process Name Constant) → Prop where
   | choiceComm : ChoiceComm (choice p q) (choice q p)
