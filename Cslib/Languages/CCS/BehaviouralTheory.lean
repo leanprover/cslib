@@ -33,7 +33,7 @@ private inductive ParNil : (Process Name Constant) → (Process Name Constant) �
 | parNil : ParNil (par p nil) p
 
 /-- P | 𝟎 ~ P -/
-@[simp, grind]
+@[simp, scoped grind]
 theorem bisimilarity_par_nil : (par p nil) ~[@lts Name Constant defs] p := by
   exists ParNil
   constructor; constructor
@@ -65,7 +65,7 @@ private inductive ParComm : (Process Name Constant) → (Process Name Constant) 
 | parComm : ParComm (par p q) (par q p)
 
 /-- P | Q ~ Q | P -/
-@[grind]
+@[scoped grind]
 theorem bisimilarity_par_comm : (par p q) ~[@lts Name Constant defs] (par q p) := by
   exists ParComm
   constructor
@@ -117,7 +117,7 @@ theorem bisimilarity_par_comm : (par p q) ~[@lts Name Constant defs] (par q p) :
           · constructor
 
 /-- 𝟎 | P ~ P -/
-@[simp, grind]
+@[simp, scoped grind]
 theorem bisimilarity_nil_par : (par nil p) ~[@lts Name Constant defs] p :=
   calc
     (par nil p) ~[@lts Name Constant defs] (par p nil) := by grind
