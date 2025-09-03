@@ -2,7 +2,15 @@
 
 Great that you're interested in contributing to cslib! :tada:
 
-Please read the rest of this document before submitting a pull request. If you have any questions, a good place to ask them is the [Lean community Zulip chat](https://leanprover.zulipchat.com/).
+Please read the rest of this document before submitting a pull request.
+If you have any questions, a good place to ask them is the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
+
+# Contribution model
+
+To get your code approved, you need to submit a [pull request (PR)](https://github.com/leanprover/cslib/pulls).
+Each PR needs to be approved by at least one relevant maintainer. You can read the [list of current maintainers](/GOVERNANCE.md#maintainers).
+
+If you are adding something new to cslib and are in doubt about it, you are very welcome to contact us on the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
 
 # Style and documentation
 
