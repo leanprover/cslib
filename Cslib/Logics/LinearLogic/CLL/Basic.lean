@@ -161,8 +161,13 @@ inductive Proof : Sequent Atom → Prop where
 
 scoped notation "⊢" Γ:90 => Proof Γ
 
+/-- The axiom, but where the order of propositions is reversed. -/
 theorem Proof.ax' {a : Proposition Atom} : Proof [a⫠, a] :=
   Proof.exchange (List.Perm.swap ..) Proof.ax
+
+/-- Cut, but where the premises are reversed. -/
+theorem Proof.cut' (p : ⊢(a⫠ :: Γ)) (q : ⊢(a :: Δ)) : ⊢(Γ ++ Δ) := by
+  grind [Proof.cut, Proposition.dual.involution]
 
 section LogicalEquiv
 
