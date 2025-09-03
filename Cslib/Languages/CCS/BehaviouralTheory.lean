@@ -35,10 +35,13 @@ private inductive ParNil : (Process Name Constant) → (Process Name Constant) �
 
 attribute [grind] ParNil.parNil
 
+-- TODO: Get rid of this
+set_option allowUnsafeReducibility true
+attribute [reducible] lts
+
 /-- P | 𝟎 ~ P -/
 @[simp, scoped grind]
 theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
-  unfold lts at *
   exists ParNil
   constructor; constructor
   intro s1 s2 hr μ
@@ -141,7 +144,6 @@ theorem bisimilarity_choice_idem :
     case right.idem =>
       intro s1' htr
       exists s1'
-      unfold lts at *
       grind [Tr, ChoiceIdem]
     case right.id =>
       grind [ChoiceIdem]
@@ -164,16 +166,14 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
       intro s1' htr
       exists s1'
       constructor
-      · unfold lts
-        cases htr with grind [Tr.choiceR, Tr.choiceL]
+      · cases htr with grind [Tr.choiceR, Tr.choiceL]
       · constructor
         grind [Bisimilarity.refl]
     case right =>
       intro s1' htr
       exists s1'
       constructor
-      · unfold lts
-        cases htr with grind [Tr.choiceR, Tr.choiceL]
+      · cases htr with grind [Tr.choiceR, Tr.choiceL]
       · constructor
         grind [Bisimilarity.refl]
   case bisim h =>
