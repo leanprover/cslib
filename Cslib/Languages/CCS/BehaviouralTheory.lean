@@ -29,37 +29,26 @@ open CCS CCS.Process CCS.Act
 
 namespace CCS
 
+@[grind cases]
 private inductive ParNil : (Process Name Constant) → (Process Name Constant) → Prop where
 | parNil : ParNil (par p nil) p
+
+attribute [grind] ParNil.parNil
 
 /-- P | 𝟎 ~ P -/
 @[simp, scoped grind]
 theorem bisimilarity_par_nil : (par p nil) ~[@lts Name Constant defs] p := by
+  unfold lts at *
   exists ParNil
   constructor; constructor
-  simp only [Bisimulation]
   intro s1 s2 hr μ
   constructor
   case left =>
-    intro s1' htr
-    cases hr
-    cases htr
-    case parL p' htr =>
-      exists p'
-      apply And.intro htr ParNil.parNil
-    case parR q' htr =>
-      cases htr
-    case com μ p' q' htrp htrq =>
-      cases htrq
+    grind [cases Tr]
   case right =>
     intro s2' htr
-    cases hr
     exists (par s2' nil)
-    constructor
-    case left =>
-      apply Tr.parL htr
-    case right =>
-      constructor
+    grind [Tr.parL]
 
 private inductive ParComm : (Process Name Constant) → (Process Name Constant) → Prop where
 | parComm : ParComm (par p q) (par q p)
@@ -137,7 +126,7 @@ private inductive ChoiceIdem : (Process Name Constant) → (Process Name Constan
 
 /-- P + P ~ P -/
 theorem bisimilarity_choice_idem :
-  (choice p p) ~[@lts Name Constant defs] p := by
+  (choice p p) ~[lts (defs := defs)] p := by
   exists ChoiceIdem
   apply And.intro
   case left => grind [ChoiceIdem]
@@ -145,25 +134,15 @@ theorem bisimilarity_choice_idem :
     intro s1 s2 hr μ
     apply And.intro <;> cases hr
     case left.idem =>
-      intro s2' htr
-      exists s2'
-      apply And.intro
-      case left =>
-        cases htr <;> unfold lts <;> grind
-      case right =>
-        grind [ChoiceIdem]
+      unfold lts
+      grind [cases Tr, ChoiceIdem]
     case left.id =>
       grind [ChoiceIdem]
     case right.idem =>
       intro s1' htr
       exists s1'
-      apply And.intro
-      case left =>
-        unfold lts
-        unfold lts at htr
-        grind [Tr]
-      case right =>
-        grind [ChoiceIdem]
+      unfold lts at *
+      grind [Tr, ChoiceIdem]
     case right.id =>
       grind [ChoiceIdem]
 
@@ -179,30 +158,23 @@ theorem bisimilarity_choice_comm : (choice p q) ~[@lts Name Constant defs] (choi
   intro s1 s2 hr μ
   cases hr
   case choiceComm =>
+    unfold lts
     rename_i p q
     constructor
     case left =>
       intro s1' htr
       exists s1'
       constructor
-      · cases htr
-        · apply Tr.choiceR
-          assumption
-        · apply Tr.choiceL
-          assumption
+      · cases htr with grind [Tr.choiceR, Tr.choiceL]
       · constructor
-        apply Bisimilarity.refl (@lts _ _ defs) s1'
+        grind [Bisimilarity.refl]
     case right =>
       intro s1' htr
       exists s1'
       constructor
-      · cases htr
-        · apply Tr.choiceR
-          assumption
-        · apply Tr.choiceL
-          assumption
+      · cases htr with grind [Tr.choiceR, Tr.choiceL]
       · constructor
-        apply Bisimilarity.refl (@lts _ _ defs) s1'
+        grind [Bisimilarity.refl]
   case bisim h =>
     constructor
     case left =>
