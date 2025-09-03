@@ -724,7 +724,7 @@ theorem Bisimulation.traceEq_not_bisim :
           cases htr
           cases hmtr
           case stepL μ sb μs' htr hmtr => cases htr
-          simp   
+          simp
       case mpr =>
         intro h
         cases h

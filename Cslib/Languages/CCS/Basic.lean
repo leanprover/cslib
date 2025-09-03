@@ -44,6 +44,9 @@ inductive Process : Type (max u v) where
   | const (c : Constant)
 deriving DecidableEq
 
+instance : Zero (Process Name Constant) := ⟨.nil⟩
+instance : Add (Process Name Constant) := ⟨.choice⟩
+
 /-- Co action. -/
 def Act.co (μ : Act Name) : Act Name :=
   match μ with

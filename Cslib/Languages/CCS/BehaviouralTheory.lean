@@ -31,17 +31,26 @@ namespace CCS
 
 @[grind cases]
 private inductive ParNil : (Process Name Constant) → (Process Name Constant) → Prop where
-| parNil : ParNil (par p nil) p
+| parNil : ParNil (par p 0) p
 
 attribute [grind] ParNil.parNil
 
--- TODO: Get rid of this
+-- <grind hacks>
+-- TODO: Are these hacks? Can we get rid of them?
+
+-- Without this, we need manual unfolds of lts.
 set_option allowUnsafeReducibility true
 attribute [reducible] lts
 
+-- Without this, using the 0-notation from Zero makes grind fail. (Similar problems for +/Add, etc.)
+@[grind _=_]
+theorem foo1 : (@Process.nil Name Constant) = 0 := by aesop
+
+-- </grind hacks>
+
 /-- P | 𝟎 ~ P -/
 @[simp, scoped grind]
-theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
+theorem bisimilarity_par_nil : (par p 0) ~[lts (defs := defs)] p := by
   exists ParNil
   constructor; constructor
   intro s1 s2 hr μ
@@ -113,7 +122,7 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
 theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
   calc
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind
-    _ ~[lts (defs := defs)] p := by simp
+    _ ~[lts (defs := defs)] p := by grind
 
 /-- P | (Q | R) ~ (P | Q) | R -/
 proof_wanted bisimilarity_par_assoc :
@@ -218,8 +227,7 @@ theorem bisimilarity_congr_pre :
       intro s1' htr
       cases htr
       exists q'
-      constructor; constructor
-      apply PreBisim.bisim hbis
+      grind [Tr, PreBisim]
     case right =>
       intro s2' htr
       cases htr
