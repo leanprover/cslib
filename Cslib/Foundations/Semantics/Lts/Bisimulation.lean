@@ -50,13 +50,13 @@ related by some sw-bisimulation on `lts`.
 
 ## Main statements
 
-- `Bisimulation.inv`: the inverse of a bisimulation is a bisimulation.
+- `Lts.IsBisimulation.inv`: the inverse of a bisimulation is a bisimulation.
 - `Bisimilarity.eqv`: bisimilarity is an equivalence relation (see `Equivalence`).
-- `Bisimilarity.is_bisimulation`: bisimilarity is itself a bisimulation.
+- `Bisimilarity.isBisimulation`: bisimilarity is itself a bisimulation.
 - `Bisimilarity.largest_bisimulation`: bisimilarity is the largest bisimulation.
 - `Bisimilarity.gfp`: the union of bisimilarity and any bisimulation is equal to bisimilarity.
-- `Bisimulation.upTo_bisimulation`: any bisimulation up to bisimilarity is a bisimulation.
-- `Bisimulation.bisim_traceEq`: any bisimulation that relates two states implies that they are
+- `Lts.IsBisimulationUpTo.isBisimulation`: any bisimulation up to bisimilarity is a bisimulation.
+- `Lts.IsBisimulation.traceEq`: any bisimulation that relates two states implies that they are
 trace equivalent (see `TraceEq`).
 - `Bisimilarity.deterministic_bisim_eq_traceEq`: in a deterministic Lts, bisimilarity and trace
 equivalence coincide.
@@ -129,7 +129,7 @@ theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
 
 /-- The inverse of a bisimulation is a bisimulation. -/
 @[grind]
-theorem Bisimulation.inv (h : lts.IsBisimulation r) :
+theorem Lts.IsBisimulation.inv (h : lts.IsBisimulation r) :
   lts.IsBisimulation (flip r) := by grind [flip]
 
 /-- Bisimilarity is symmetric. -/
@@ -141,7 +141,7 @@ theorem Bisimilarity.symm {s1 s2 : State} (h : s1 ~[lts] s2) : s2 ~[lts] s1 := b
 
 /-- The composition of two bisimulations is a bisimulation. -/
 @[grind]
-theorem Bisimulation.comp
+theorem Lts.IsBisimulation.comp
   (h1 : lts.IsBisimulation r1) (h2 : lts.IsBisimulation r2) :
   lts.IsBisimulation (Relation.Comp r1 r2) := by grind [Relation.Comp]
 
@@ -304,7 +304,7 @@ def Lts.IsBisimulationUpTo (lts : Lts State Label) (r : State → State → Prop
 
 /-- Any bisimulation up to bisimilarity is a bisimulation. -/
 @[grind]
-theorem Bisimulation.upTo_bisimulation (h : lts.IsBisimulationUpTo r) :
+theorem Lts.IsBisimulationUpTo.isBisimulation (h : lts.IsBisimulationUpTo r) :
   lts.IsBisimulation (Relation.UpTo r (Bisimilarity lts)) := by
   intro s1 s2 hr μ
   rcases hr with ⟨s1b, hr1b, s2b, hrb, hr2b⟩
@@ -389,7 +389,7 @@ theorem Bisimulation.bisim_trace
 
 /-- Any bisimulation implies trace equivalence. -/
 @[grind]
-theorem Bisimulation.bisim_traceEq
+theorem Lts.IsBisimulation.traceEq
   (hb : lts.IsBisimulation r) (hr : r s1 s2) :
   s1 ~tr[lts] s2 := by
   funext μs
@@ -404,8 +404,7 @@ theorem Bisimulation.bisim_traceEq
   case mpr =>
     intro h
     obtain ⟨s2', h⟩ := h
-    have hinv := @Bisimulation.inv State Label lts r hb
-    obtain ⟨s1', hmtr⟩ := Bisimulation.bisim_trace hinv hr μs s2' h
+    obtain ⟨s1', hmtr⟩ := Bisimulation.bisim_trace hb.inv hr μs s2' h
     exists s1'
     exact hmtr.1
 
@@ -414,7 +413,7 @@ theorem Bisimulation.bisim_traceEq
 theorem Bisimilarity.le_traceEq : Bisimilarity lts ≤ TraceEq lts := by
   intro s1 s2 h
   obtain ⟨r, hr, hb⟩ := h
-  apply Bisimulation.bisim_traceEq hb hr
+  apply hb.traceEq hr
 
 /- One of the standard motivating examples for bisimulation: `1` and `5` are trace equivalent, but
 not bisimilar. -/
@@ -1045,7 +1044,7 @@ theorem WeakBisimulation.comp
   (r1 r2 : State → State → Prop) (h1 : lts.IsWeakBisimulation r1) (h2 : lts.IsWeakBisimulation r2) :
   lts.IsWeakBisimulation (Relation.Comp r1 r2) := by
   simp_all only [Lts.IsWeakBisimulation]
-  exact Bisimulation.comp h1 h2
+  exact h1.comp h2
 
 /-- The composition of two sw-bisimulations is an sw-bisimulation. -/
 theorem SWBisimulation.comp
