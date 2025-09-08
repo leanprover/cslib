@@ -14,6 +14,7 @@ In one meeting, someone shared this link as a reference to what would be Boole. 
   
 https://github.com/dafny-lang/b3
 
+If Boogie is the direction to go, how to add Strata as library dependency in this repo so we could actually code, run and validate a Boogie code?
 
 # References
 
