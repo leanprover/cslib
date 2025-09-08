@@ -13,7 +13,7 @@ universe u v
 section Relation
 
 /-- The relation `r` 'up to' the relation `s`. -/
-def Relation.upTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
+def Relation.UpTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C → (∃ D, R B D ∧ R C D)

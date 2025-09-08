@@ -61,7 +61,7 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
   case left =>
     constructor
   case right =>
-    simp only [Bisimulation]
+    simp only [Lts.IsBisimulation]
     intro s1 s2 hr μ
     cases hr
     case parComm p q =>
@@ -154,7 +154,7 @@ private inductive ChoiceComm : (Process Name Constant) → (Process Name Constan
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
   exists @ChoiceComm Name Constant defs
   repeat constructor
-  simp only [Bisimulation]
+  simp only [Lts.IsBisimulation]
   intro s1 s2 hr μ
   cases hr
   case choiceComm =>
@@ -174,24 +174,9 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
       constructor
       · unfold lts
         cases htr with grind [Tr.choiceR, Tr.choiceL]
-      · constructor
-        grind [Bisimilarity.refl]
+      · grind [ChoiceComm]
   case bisim h =>
-    constructor
-    case left =>
-      intro s1' htr
-      have hb := Bisimulation.follow_fst (Bisimilarity.is_bisimulation lts) h htr
-      obtain ⟨s2', htr2, hr2⟩ := hb
-      exists s2'
-      apply And.intro htr2
-      constructor; assumption
-    case right =>
-      intro s2' htr
-      have hb := Bisimulation.follow_snd (Bisimilarity.is_bisimulation lts) h htr
-      obtain ⟨s1', htr1, hr1⟩ := hb
-      exists s1'
-      apply And.intro htr1
-      constructor; assumption
+    grind [ChoiceComm]
 
 /-- P + (Q + R) ~ (P + Q) + R -/
 proof_wanted bisimilarity_choice_assoc :
@@ -208,7 +193,7 @@ theorem bisimilarity_congr_pre :
   exists @PreBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Bisimulation]
+  simp only [Lts.IsBisimulation]
   intro s1 s2 hr μ'
   cases hr
   case pre =>
@@ -236,19 +221,19 @@ theorem bisimilarity_congr_pre :
       exists s2'
       apply And.intro htr2
       constructor
-      apply Bisimilarity.largest_bisimulation _ hbisim hr2
+      apply Bisimilarity.largest_bisimulation hbisim hr2
     case right =>
       intro s2' htr
       obtain ⟨r, hr, hb⟩ := hbis
       let hbisim := hb
-      specialize hb _ _ hr μ'
+      specialize hb hr μ'
       obtain ⟨hb1, hb2⟩ := hb
       specialize hb2 _ htr
       obtain ⟨s1', htr1, hr1⟩ := hb2
       exists s1'
       apply And.intro htr1
       constructor
-      apply Bisimilarity.largest_bisimulation _ hbisim hr1
+      apply Bisimilarity.largest_bisimulation hbisim hr1
 
 private inductive ResBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | res : (p ~[lts (defs := defs)] q) → ResBisim (res a p) (res a q)
@@ -261,7 +246,7 @@ theorem bisimilarity_congr_res :
   exists @ResBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Bisimulation]
+  simp only [Lts.IsBisimulation]
   intro s1 s2 hr μ'
   cases hr
   rename_i p q a h
@@ -270,7 +255,7 @@ theorem bisimilarity_congr_res :
     intro s1' htr
     cases htr
     rename_i p' h1 h2 htr
-    have h := Bisimulation.follow_fst (Bisimilarity.is_bisimulation lts) h htr
+    have h := Bisimilarity.is_bisimulation.follow_fst h htr
     obtain ⟨q', htrq, h⟩ := h
     exists (res a q')
     constructor; constructor; repeat assumption
@@ -279,7 +264,7 @@ theorem bisimilarity_congr_res :
     intro s2' htr
     cases htr
     rename_i q' h1 h2 htr
-    have h := Bisimulation.follow_snd (Bisimilarity.is_bisimulation lts) h htr
+    have h := Bisimilarity.is_bisimulation.follow_snd h htr
     obtain ⟨p', htrq, h⟩ := h
     exists (res a p')
     constructor; constructor; repeat assumption
@@ -296,7 +281,7 @@ theorem bisimilarity_congr_choice :
   exists @ChoiceBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Bisimulation]
+  simp only [Lts.IsBisimulation]
   intro s1 s2 r μ
   constructor
   case left =>
@@ -311,7 +296,7 @@ theorem bisimilarity_congr_choice :
         constructor
         · apply Tr.choiceL htr2
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr2
+          apply Bisimilarity.largest_bisimulation hb hr2
       case choiceR a b c htr =>
         exists s1'
         constructor
@@ -325,7 +310,7 @@ theorem bisimilarity_congr_choice :
       constructor
       · assumption
       constructor
-      apply Bisimilarity.largest_bisimulation _ hb hr2
+      apply Bisimilarity.largest_bisimulation hb hr2
   case right =>
     intro s2' htr
     cases r
@@ -338,7 +323,7 @@ theorem bisimilarity_congr_choice :
         constructor
         · apply Tr.choiceL htr1
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr1
+          apply Bisimilarity.largest_bisimulation hb hr1
       case choiceR a b c htr =>
         exists s2'
         constructor
@@ -352,7 +337,7 @@ theorem bisimilarity_congr_choice :
       constructor
       · assumption
       · constructor
-        apply Bisimilarity.largest_bisimulation _ hb hr1
+        apply Bisimilarity.largest_bisimulation hb hr1
 
 private inductive ParBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | par : (p ~[lts (defs := defs)] q) → ParBisim (par p r) (par q r)
@@ -364,7 +349,7 @@ theorem bisimilarity_congr_par :
   exists @ParBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Bisimulation]
+  simp only [Lts.IsBisimulation]
   intro s1 s2 r μ
   constructor
   case left =>
@@ -379,20 +364,20 @@ theorem bisimilarity_congr_par :
         constructor
         · apply Tr.parL htr2
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr2
+          apply Bisimilarity.largest_bisimulation hb hr2
       case parR _ _ r' htr =>
         exists (par q r')
         constructor
         · apply Tr.parR htr
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr
+          apply Bisimilarity.largest_bisimulation hb hr
       case com μ' p' r' htrp htrr =>
         obtain ⟨q', htr2, hr2⟩ := hb.follow_fst hr htrp
         exists (par q' r')
         constructor
         · apply Tr.com htr2 htrr
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr2
+          apply Bisimilarity.largest_bisimulation hb hr2
   case right =>
     intro s2' htr
     cases r
@@ -405,20 +390,20 @@ theorem bisimilarity_congr_par :
         constructor
         · apply Tr.parL htr2
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr2
+          apply Bisimilarity.largest_bisimulation hb hr2
       case parR _ _ r' htr =>
         exists (par p r')
         constructor
         · apply Tr.parR htr
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr
+          apply Bisimilarity.largest_bisimulation hb hr
       case com μ' p' r' htrq htrr =>
         obtain ⟨q', htr2, hr2⟩ := hb.follow_snd hr htrq
         exists (par q' r')
         constructor
         · apply Tr.com htr2 htrr
         · constructor
-          apply Bisimilarity.largest_bisimulation _ hb hr2
+          apply Bisimilarity.largest_bisimulation hb hr2
 
 /-- Bisimilarity is a congruence in CCS. -/
 theorem bisimilarity_congr
