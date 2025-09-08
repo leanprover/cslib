@@ -3,10 +3,10 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
-import Cslib.Computability.CombinatoryLogic.Defs
-import Cslib.Computability.CombinatoryLogic.Basic
-import Cslib.Computability.CombinatoryLogic.Confluence
-import Cslib.Computability.CombinatoryLogic.Recursion
+import Cslib.Languages.CombinatoryLogic.Defs
+import Cslib.Languages.CombinatoryLogic.Basic
+import Cslib.Languages.CombinatoryLogic.Confluence
+import Cslib.Languages.CombinatoryLogic.Recursion
 import Mathlib.Tactic.Common
 
 /-!
@@ -278,17 +278,17 @@ theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsC
       exact commonReduct_of_single (hy K K)
 
 /-- **Rice's theorem**: no SKI term is a non-trivial predicate. -/
-theorem rice {P : SKI} (hP : ∀ x : SKI, (P ⬝ x ↠ TT) ∨ P ⬝ x ↠ FF)
-    (hxt : ∃ x : SKI, P ⬝ x ↠ TT) (hxf : ∃ x : SKI, P ⬝ x ↠ FF) : False := by
+theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF)
+    (hxt : ∃ x : SKI, (P ⬝ x) ↠ TT) (hxf : ∃ x : SKI, (P ⬝ x) ↠ FF) : False := by
   obtain ⟨a, ha⟩ := hxt
   obtain ⟨b, hb⟩ := hxf
   let Neg : SKI := P ⬝' &0 ⬝' b ⬝' a |>.toSKI (n := 1)
   let Abs : SKI := Neg.fixedPoint
-  have Neg_app : ∀ x : SKI, Neg ⬝ x ↠ P ⬝ x ⬝ b ⬝ a :=
+  have Neg_app : ∀ x : SKI, (Neg ⬝ x) ↠ P ⬝ x ⬝ b ⬝ a :=
     fun x => (P ⬝' &0 ⬝' b ⬝' a) |>.toSKI_correct (n := 1) [x] (by simp)
   cases hP Abs
   case inl h =>
-    have : P ⬝ Abs ↠ FF := calc
+    have : (P ⬝ Abs) ↠ FF := calc
       _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
       _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
       _ ↠ P ⬝ (TT ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
@@ -296,7 +296,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, (P ⬝ x ↠ TT) ∨ P ⬝ x ↠ FF)
       _ ↠ FF := hb
     exact TF_nequiv <| MRed.diamond _ _ _ h this
   case inr h =>
-    have : P ⬝ Abs ↠ TT := calc
+    have : (P ⬝ Abs) ↠ TT := calc
       _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
       _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
       _ ↠ P ⬝ (FF ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
@@ -305,8 +305,8 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, (P ⬝ x ↠ TT) ∨ P ⬝ x ↠ FF)
     exact TF_nequiv <| MRed.diamond _ _ _ this h
 
 /-- **Rice's theorem**: any SKI predicate is trivial. -/
-theorem rice' {P : SKI} (hP : ∀ x : SKI, (P ⬝ x ↠ TT) ∨ P ⬝ x ↠ FF) :
-    (∀ x : SKI, P ⬝ x ↠ TT) ∨ (∀ x : SKI, P ⬝ x ↠ FF) := by
+theorem rice' {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF) :
+    (∀ x : SKI, (P ⬝ x) ↠ TT) ∨ (∀ x : SKI, (P ⬝ x) ↠ FF) := by
   by_contra! h
   obtain ⟨⟨a, ha⟩, b, hb⟩ := h
   exact rice hP ⟨b, (hP _).resolve_right hb⟩ ⟨a, (hP _).resolve_left ha⟩

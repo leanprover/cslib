@@ -83,7 +83,7 @@ for the inner variables.
 -/
 theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n + 1)) {ys : List SKI}
     (hys : ys.length = n) (z : SKI) :
-    Γ.elimVar.eval ys hys ⬝ z ↠ Γ.eval (ys ++ [z])
+    (Γ.elimVar.eval ys hys ⬝ z) ↠ Γ.eval (ys ++ [z])
       (by rw [List.length_append, hys, List.length_singleton])
     := by
   match n, Γ with
@@ -165,7 +165,7 @@ choose a descriptive name.
 def RPoly : SKI.Polynomial 2 := &1 ⬝' &0
 /-- A SKI term representing R -/
 def R : SKI := RPoly.toSKI
-theorem R_def (x y : SKI) : R ⬝ x ⬝ y ↠ y ⬝ x :=
+theorem R_def (x y : SKI) : (R ⬝ x ⬝ y) ↠ y ⬝ x :=
   RPoly.toSKI_correct [x, y] (by simp)
 
 
@@ -173,7 +173,7 @@ theorem R_def (x y : SKI) : R ⬝ x ⬝ y ↠ y ⬝ x :=
 def BPoly : SKI.Polynomial 3 := &0 ⬝' (&1 ⬝' &2)
 /-- A SKI term representing B -/
 def B : SKI := BPoly.toSKI
-theorem B_def (f g x : SKI) : B ⬝ f ⬝ g ⬝ x ↠ f ⬝ (g ⬝ x) :=
+theorem B_def (f g x : SKI) : (B ⬝ f ⬝ g ⬝ x) ↠ f ⬝ (g ⬝ x) :=
   BPoly.toSKI_correct [f, g, x] (by simp)
 
 
@@ -181,7 +181,7 @@ theorem B_def (f g x : SKI) : B ⬝ f ⬝ g ⬝ x ↠ f ⬝ (g ⬝ x) :=
 def CPoly : SKI.Polynomial 3 := &0 ⬝' &2 ⬝' &1
 /-- A SKI term representing C -/
 def C : SKI := CPoly.toSKI
-theorem C_def (f x y : SKI) : C ⬝ f ⬝ x ⬝ y ↠ f ⬝ y ⬝ x :=
+theorem C_def (f x y : SKI) : (C ⬝ f ⬝ x ⬝ y) ↠ f ⬝ y ⬝ x :=
   CPoly.toSKI_correct [f, x, y] (by simp)
 
 
@@ -189,7 +189,7 @@ theorem C_def (f x y : SKI) : C ⬝ f ⬝ x ⬝ y ↠ f ⬝ y ⬝ x :=
 def RotRPoly : SKI.Polynomial 3 := &2 ⬝' &0 ⬝' &1
 /-- A SKI term representing RotR -/
 def RotR : SKI := RotRPoly.toSKI
-theorem rotR_def (x y z : SKI) : RotR ⬝ x ⬝ y ⬝ z ↠ z ⬝ x ⬝ y :=
+theorem rotR_def (x y z : SKI) : (RotR ⬝ x ⬝ y ⬝ z) ↠ z ⬝ x ⬝ y :=
   RotRPoly.toSKI_correct [x, y, z] (by simp)
 
 
@@ -197,7 +197,7 @@ theorem rotR_def (x y z : SKI) : RotR ⬝ x ⬝ y ⬝ z ↠ z ⬝ x ⬝ y :=
 def RotLPoly : SKI.Polynomial 3 := &1 ⬝' &2 ⬝' &0
 /-- A SKI term representing RotL -/
 def RotL : SKI := RotLPoly.toSKI
-theorem rotL_def (x y z : SKI) : RotL ⬝ x ⬝ y ⬝ z ↠ y ⬝ z ⬝ x :=
+theorem rotL_def (x y z : SKI) : (RotL ⬝ x ⬝ y ⬝ z) ↠ y ⬝ z ⬝ x :=
   RotLPoly.toSKI_correct [x, y, z] (by simp)
 
 
@@ -205,7 +205,7 @@ theorem rotL_def (x y z : SKI) : RotL ⬝ x ⬝ y ⬝ z ↠ y ⬝ z ⬝ x :=
 def δPoly : SKI.Polynomial 1 := &0 ⬝' &0
 /-- A SKI term representing δ -/
 def δ : SKI := δPoly.toSKI
-theorem δ_def (x : SKI) : δ ⬝ x ↠ x ⬝ x :=
+theorem δ_def (x : SKI) : (δ ⬝ x) ↠ x ⬝ x :=
   δPoly.toSKI_correct [x] (by simp)
 
 
@@ -213,7 +213,7 @@ theorem δ_def (x : SKI) : δ ⬝ x ↠ x ⬝ x :=
 def HPoly : SKI.Polynomial 2 := &0 ⬝' (&1 ⬝' &1)
 /-- A SKI term representing H -/
 def H : SKI := HPoly.toSKI
-theorem H_def (f x : SKI) : H ⬝ f ⬝ x ↠ f ⬝ (x ⬝ x) :=
+theorem H_def (f x : SKI) : (H ⬝ f ⬝ x) ↠ f ⬝ (x ⬝ x) :=
   HPoly.toSKI_correct [f, x] (by simp)
 
 
@@ -221,7 +221,7 @@ theorem H_def (f x : SKI) : H ⬝ f ⬝ x ↠ f ⬝ (x ⬝ x) :=
 def YPoly : SKI.Polynomial 1 := H ⬝' &0 ⬝' (H ⬝' &0)
 /-- A SKI term representing Y -/
 def Y : SKI := YPoly.toSKI
-theorem Y_def (f : SKI) : Y ⬝ f ↠ H ⬝ f ⬝ (H ⬝ f) :=
+theorem Y_def (f : SKI) : (Y ⬝ f) ↠ H ⬝ f ⬝ (H ⬝ f) :=
   YPoly.toSKI_correct [f] (by simp)
 
 
@@ -245,21 +245,21 @@ theorem fixedPoint_correct (f : SKI) : f.fixedPoint ↠ f ⬝ f.fixedPoint := H_
 def ΘAuxPoly : SKI.Polynomial 2 := &1 ⬝' (&0 ⬝' &0 ⬝' &1)
 /-- A term representing ΘAux -/
 def ΘAux : SKI := ΘAuxPoly.toSKI
-theorem ΘAux_def (x y : SKI) : ΘAux ⬝ x ⬝ y ↠ y ⬝ (x ⬝ x ⬝ y) :=
+theorem ΘAux_def (x y : SKI) : (ΘAux ⬝ x ⬝ y) ↠ y ⬝ (x ⬝ x ⬝ y) :=
   ΘAuxPoly.toSKI_correct [x, y] (by simp)
 
 
 /-- Turing's fixed-point combinator: Θ := (λ x y. y (x x y)) (λ x y. y (x x y)) -/
 def Θ : SKI := ΘAux ⬝ ΘAux
 /-- A SKI term representing Θ -/
-theorem Θ_correct (f : SKI) : Θ ⬝ f ↠ f ⬝ (Θ ⬝ f) := ΘAux_def ΘAux f
+theorem Θ_correct (f : SKI) : (Θ ⬝ f) ↠ f ⬝ (Θ ⬝ f) := ΘAux_def ΘAux f
 
 
 /-! ### Church Booleans -/
 
 /-- A term a represents the boolean value u if it is βη-equivalent to a standard Church boolean. -/
 def IsBool (u : Bool) (a : SKI) : Prop :=
-  ∀ x y : SKI, a ⬝ x ⬝ y ↠ (if u then x else y)
+  ∀ x y : SKI, (a ⬝ x ⬝ y) ↠ (if u then x else y)
 
 theorem isBool_trans (u : Bool) (a a' : SKI) (h : a ↠ a') (ha' : IsBool u a') :
     IsBool u a := by
@@ -278,13 +278,13 @@ theorem TT_correct : IsBool true TT := fun x y ↦ MRed.K x y
 def FF : SKI := K ⬝ I
 theorem FF_correct : IsBool false FF :=
   fun x y ↦ calc
-    FF ⬝ x ⬝ y ⭢ I ⬝ y := by apply red_head; exact red_K I x
+    (FF ⬝ x ⬝ y) ↠ I ⬝ y := by apply Relation.ReflTransGen.single; apply red_head; exact red_K I x
     _         ⭢ y := red_I y
 
 /-- Conditional: Cond x y b := if b then x else y -/
 protected def Cond : SKI := RotR
 theorem cond_correct (a x y : SKI) (u : Bool) (h : IsBool u a) :
-    SKI.Cond ⬝ x ⬝ y ⬝ a ↠ if u then x else y := by
+    (SKI.Cond ⬝ x ⬝ y ⬝ a) ↠ if u then x else y := by
   trans a ⬝ x ⬝ y
   · exact rotR_def x y a
   · exact h x y
@@ -302,7 +302,7 @@ theorem neg_correct (a : SKI) (ua : Bool) (h : IsBool ua a) : IsBool (¬ ua) (SK
 def AndPoly : SKI.Polynomial 2 := SKI.Cond ⬝' (SKI.Cond ⬝ TT ⬝ FF ⬝' &1) ⬝' FF ⬝' &0
 /-- A SKI term representing And -/
 protected def And : SKI := AndPoly.toSKI
-theorem and_def (a b : SKI) : SKI.And ⬝ a ⬝ b ↠ SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a :=
+theorem and_def (a b : SKI) : (SKI.And ⬝ a ⬝ b) ↠ SKI.Cond ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ FF ⬝ a :=
   AndPoly.toSKI_correct [a, b] (by simp)
 
 theorem and_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
@@ -321,7 +321,7 @@ theorem and_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool u
 def OrPoly : SKI.Polynomial 2 := SKI.Cond ⬝' TT ⬝' (SKI.Cond ⬝ TT ⬝ FF ⬝' &1) ⬝' &0
 /-- A SKI term representing Or -/
 protected def Or : SKI := OrPoly.toSKI
-theorem or_def (a b : SKI) : SKI.Or ⬝ a ⬝ b ↠ SKI.Cond ⬝ TT ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ a :=
+theorem or_def (a b : SKI) : (SKI.Or ⬝ a ⬝ b) ↠ SKI.Cond ⬝ TT ⬝ (SKI.Cond ⬝ TT ⬝ FF ⬝ b) ⬝ a :=
   OrPoly.toSKI_correct [a, b] (by simp)
 
 theorem or_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
@@ -350,11 +350,11 @@ def Fst : SKI := R ⬝ TT
 /-- Second projection -/
 def Snd : SKI := R ⬝ FF
 
-theorem fst_correct (a b : SKI) : Fst ⬝ (MkPair ⬝ a ⬝ b) ↠ a := by calc
+theorem fst_correct (a b : SKI) : (Fst ⬝ (MkPair ⬝ a ⬝ b)) ↠ a := by calc
   _ ↠ SKI.Cond ⬝ a ⬝ b ⬝ TT := R_def _ _
   _ ↠ a := cond_correct TT a b true TT_correct
 
-theorem snd_correct (a b : SKI) : Snd ⬝ (MkPair ⬝ a ⬝ b) ↠ b := by calc
+theorem snd_correct (a b : SKI) : (Snd ⬝ (MkPair ⬝ a ⬝ b)) ↠ b := by calc
   _ ↠ SKI.Cond ⬝ a ⬝ b ⬝ FF := R_def _ _
   _ ↠ b := cond_correct FF a b false FF_correct
 
@@ -362,10 +362,10 @@ theorem snd_correct (a b : SKI) : Snd ⬝ (MkPair ⬝ a ⬝ b) ↠ b := by calc
 def UnpairedPoly : SKI.Polynomial 2 := &0 ⬝' (Fst ⬝' &1) ⬝' (Snd ⬝' &1)
 /-- A term representing Unpaired -/
 protected def Unpaired : SKI := UnpairedPoly.toSKI
-theorem unpaired_def (f p : SKI) : SKI.Unpaired ⬝ f ⬝ p ↠ f ⬝ (Fst ⬝ p) ⬝ (Snd ⬝ p) :=
+theorem unpaired_def (f p : SKI) : (SKI.Unpaired ⬝ f ⬝ p) ↠ f ⬝ (Fst ⬝ p) ⬝ (Snd ⬝ p) :=
   UnpairedPoly.toSKI_correct [f, p] (by simp)
 
-theorem unpaired_correct (f x y : SKI) : SKI.Unpaired ⬝ f ⬝ (MkPair ⬝ x ⬝ y) ↠ f ⬝ x ⬝ y := by
+theorem unpaired_correct (f x y : SKI) : (SKI.Unpaired ⬝ f ⬝ (MkPair ⬝ x ⬝ y)) ↠ f ⬝ x ⬝ y := by
   trans f ⬝ (Fst ⬝ (MkPair ⬝ x ⬝ y)) ⬝ (Snd ⬝ (MkPair ⬝ x ⬝ y))
   · exact unpaired_def f _
   · apply parallel_mRed
@@ -377,7 +377,7 @@ theorem unpaired_correct (f x y : SKI) : SKI.Unpaired ⬝ f ⬝ (MkPair ⬝ x �
 def PairPoly : SKI.Polynomial 3 := MkPair ⬝' (&0 ⬝' &2) ⬝' (&1 ⬝' &2)
 /-- A SKI term representing Pair -/
 protected def Pair : SKI := PairPoly.toSKI
-theorem pair_def (f g x : SKI) : SKI.Pair ⬝ f ⬝ g ⬝ x ↠ MkPair ⬝ (f ⬝ x) ⬝ (g ⬝ x) :=
+theorem pair_def (f g x : SKI) : (SKI.Pair ⬝ f ⬝ g ⬝ x) ↠ MkPair ⬝ (f ⬝ x) ⬝ (g ⬝ x) :=
   PairPoly.toSKI_correct [f, g, x] (by simp)
 
 end SKI
