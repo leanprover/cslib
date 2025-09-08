@@ -1,0 +1,167 @@
+
+// Gale-Shapley Algorithm in Boogie
+// Stable matching between students and hospitals
+
+// Constants
+const n: int; // number of students and hospitals
+axiom n > 0;
+
+// Global variables representing the matching
+var hospital: [int]int;  // hospital[s] = h means student s matched to hospital h (0 if unmatched)
+var student: [int]int;   //  student[h] = s means hospital h matched to student s (0 if unmatched)
+
+
+// studentPref[s][i] = hospital at position i in student s's preference list
+var studentPref: [int][int]int;
+
+// hospitalInverse[h][s] = rank of student s in hospital h's preference (lower = more preferred)
+var hospitalInverse: [int][int]int;
+  
+// count[s] = number of proposals made by student s
+var count: [int]int;  
+
+
+// Helper function to check if hospital h prefers student s1 over student s2
+function prefers(h: int, s1: int, s2: int): bool
+{
+  hospitalInverse[h][s1] < hospitalInverse[h][s2]
+}
+
+
+// Helper function to check if a student is unmatched
+function isStudentUnmatched(s: int): bool
+{
+  hospital[s] == 0
+}
+
+// Helper function to check if a hospital is unmatched  
+function isHospitalUnmatched(h: int): bool
+{
+  student[h] == 0
+}
+
+// Helper function to check if student has proposed to all hospitals
+function hasProposedToAll(s: int): bool
+{
+  count[s] >= n
+}
+
+
+// Procedure to find an unmatched student who hasn't proposed to everyone
+procedure findUnmatchedStudent() returns (s: int)
+  requires n > 0;
+  ensures s == 0 ==> (forall i: int :: 1 <= i <= n ==> !isStudentUnmatched(i) || hasProposedToAll(i));
+  ensures s != 0 ==> 1 <= s <= n && isStudentUnmatched(s) && !hasProposedToAll(s);
+{
+  var i: int;
+  s := 0;
+  i := 1;
+  
+  while (i <= n)
+    invariant 1 <= i <= n + 1;
+    invariant s == 0 ==> (forall j: int :: 1 <= j < i ==> !isStudentUnmatched(j) || hasProposedToAll(j));
+    invariant s != 0 ==> 1 <= s < i && isStudentUnmatched(s) && !hasProposedToAll(s);
+  {
+    if (isStudentUnmatched(i) && !hasProposedToAll(i)) {
+      s := i;
+      return;
+    }
+    i := i + 1;
+  }
+}
+
+// Main Gale-Shapley algorithm
+procedure GaleShapley()
+  requires n > 0;
+  requires (forall s: int :: 1 <= s <= n ==> count[s] == 0);
+  requires (forall s: int :: 1 <= s <= n ==> hospital[s] == 0);
+  requires (forall h: int :: 1 <= h <= n ==> student[h] == 0);
+  
+  // Preference lists are well-formed
+  requires (forall s: int, i: int :: 1 <= s <= n && 1 <= i <= n ==> 1 <= studentPref[s][i] <= n);
+  requires (forall h: int, s: int :: 1 <= h <= n && 1 <= s <= n ==> 1 <= hospitalInverse[h][s] <= n);
+  ensures (forall s: int :: 1 <= s <= n ==> hospital[s] != 0); // all students matched
+  modifies hospital, student, count;
+{
+  var currentStudent: int;
+  var targetHospital: int;
+  var currentPartner: int;
+  
+  // Initialize matching to empty
+  havoc hospital, student, count;
+  assume (forall s: int :: 1 <= s <= n ==> hospital[s] == 0);
+  assume (forall h: int :: 1 <= h <= n ==> student[h] == 0);
+  assume (forall s: int :: 1 <= s <= n ==> count[s] == 0);
+  
+  while (true)
+    invariant (forall s: int :: 1 <= s <= n ==> 0 <= hospital[s] <= n);
+    invariant (forall h: int :: 1 <= h <= n ==> 0 <= student[h] <= n);
+    invariant (forall s: int :: 1 <= s <= n ==> 0 <= count[s] <= n);
+    // Matching consistency
+    invariant (forall s: int :: 1 <= s <= n && hospital[s] != 0 ==> student[hospital[s]] == s);
+    invariant (forall h: int :: 1 <= h <= n && student[h] != 0 ==> hospital[student[h]] == h);
+  {
+    call currentStudent := findUnmatchedStudent();
+    
+    if (currentStudent == 0) {
+      break; // No unmatched student who hasn't proposed to everyone
+    }
+    
+    // Get next hospital on current student's preference list
+    count[currentStudent] := count[currentStudent] + 1;
+    targetHospital := studentPref[currentStudent][count[currentStudent]];
+    
+    if (isHospitalUnmatched(targetHospital)) {
+      // Hospital is unmatched, create new matching
+      hospital[currentStudent] := targetHospital;
+      student[targetHospital] := currentStudent;
+    } else {
+      // Hospital is matched, check preference
+      currentPartner := student[targetHospital];
+      
+      if (prefers(targetHospital, currentStudent, currentPartner)) {
+        // Hospital prefers new student, break current match and create new one
+        hospital[currentPartner] := 0;  // make current partner free
+        hospital[currentStudent] := targetHospital;
+        student[targetHospital] := currentStudent;
+      }
+      // else: hospital rejects current student (no action needed)
+    }
+  }
+}
+
+// Verification procedure to check if matching is stable
+procedure isStableMatching() returns (stable: bool)
+  requires n > 0;
+  requires (forall s: int :: 1 <= s <= n ==> 0 <= hospital[s] <= n);
+  requires (forall h: int :: 1 <= h <= n ==> 0 <= student[h] <= n);
+  ensures stable ==> (forall s: int, h: int :: 
+    1 <= s <= n && 1 <= h <= n && hospital[s] != h ==>
+    !(prefers(h, s, student[h]) && 
+      hospitalInverse[hospital[s]][s] > hospitalInverse[hospital[s]][student[h]]));
+{
+  var s: int;
+  var h: int;
+  
+  stable := true;
+  s := 1;
+  
+  while (s <= n && stable)
+    invariant 1 <= s <= n + 1;
+  {
+    h := 1;
+    while (h <= n && stable)
+      invariant 1 <= h <= n + 1;
+    {
+      if (hospital[s] != h && student[h] != 0) {
+        // Check if (s,h) forms a blocking pair
+        if (prefers(h, s, student[h]) && 
+            hospitalInverse[hospital[s]][s] > hospitalInverse[hospital[s]][student[h]]) {
+          stable := false;
+        }
+      }
+      h := h + 1;
+    }
+    s := s + 1;
+  }
+}

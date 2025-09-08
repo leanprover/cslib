@@ -1,0 +1,46 @@
+
+GALE–SHAPLEY (preference lists for hospitals and students)
+
+ INITIALIZE M to empty matching.
+
+ WHILE (some student S is unmatched and hasn't proposed to every hospital)
+  H ← first hospital on S's list to whom S has not yet proposed.
+  IF (H is unmatched)
+   Add H-S to matching M.
+  ELSE IF (H prefers S to current partner S')
+   remove H-S' from M. Add H–S to M. That is, make S' free.
+  ELSE
+   H rejects S.
+
+ RETURN stable matching M.
+
+
+
+Representations
+
+- Assume hospitals are named 1, ..., n.
+
+- Assume students are named 1, ..., n.
+
+- Maintain a list of free students, e.g., in a queue.
+
+- Maintain two arrays hospital[s] and student[h] for representing
+  matching.
+
+  - set entry to 0 if unmatched
+  - if student s matched to hospital h then hospital[s]=h and
+    student[h]=s
+
+- For each student, maintain a list of hospitals, ordered by preference.
+
+- Maintain an array count[s] that counts the number of proposals made
+  by student s.
+
+- Does hospital h prefer student s to student s'? For each hospital,
+  create inverse of preference list of students.
+
+  Constant time access for each query after O(n) preprocessing.
+
+    for i = 1 to n
+      inverse[pref[i]] = i
+
