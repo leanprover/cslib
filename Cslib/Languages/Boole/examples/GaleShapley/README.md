@@ -1,7 +1,7 @@
 
 # Gale-Shapley 
 
-In this directory, I have a Lean implementation of the Gale-Shapley algorithm. This implementation is being developed to rank candidates in a national exam for government job openings in Brazil, scheduled for October 2025.
+In this directory, I have a Lean implementation of the Gale-Shapley algorithm [1,2]. This implementation is being developed to rank candidates in a national exam for government job openings in Brazil, scheduled for October 2025.
 
 In addition to the Lean code, I also tried to sketch a Boole version based on Dijkstra’s example in the CSLib slides [4].
 
