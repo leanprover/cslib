@@ -261,7 +261,7 @@ theorem Θ_correct (f : SKI) : (Θ ⬝ f) ↠ f ⬝ (Θ ⬝ f) := ΘAux_def ΘAu
 def IsBool (u : Bool) (a : SKI) : Prop :=
   ∀ x y : SKI, (a ⬝ x ⬝ y) ↠ (if u then x else y)
 
-theorem isBool_trans (u : Bool) (a a' : SKI) (h : a ↠ a') (ha' : IsBool u a') :
+theorem isBool_trans (u : Bool) (a a' : SKI) (h : a ↠a') (ha' : IsBool u a') :
     IsBool u a := by
   intro x y
   trans a' ⬝ x ⬝ y

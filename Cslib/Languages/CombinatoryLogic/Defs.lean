@@ -84,10 +84,6 @@ inductive Red : SKI → SKI → Prop where
 
 open Red ReductionSystem
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9625db3 (evaluation results)
 lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
   | red_S _ _ _, h => by cases h
   | red_K _ _, h => by cases h
@@ -99,12 +95,6 @@ theorem MRed.S (x y z : SKI) : (S ⬝ x ⬝ y ⬝ z) ↠ (x ⬝ z ⬝ (y ⬝ z))
 theorem MRed.K (x y : SKI) : (K ⬝ x ⬝ y) ↠ x := MRed.single RedSKI <| red_K ..
 theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := MRed.single RedSKI <| red_I ..
 
-=======
-theorem MRed.S (x y z : SKI) : (S ⬝ x ⬝ y ⬝ z) ↠ (x ⬝ z ⬝ (y ⬝ z)) := MRed.single RedSKI <| red_S ..
-theorem MRed.K (x y : SKI) : (K ⬝ x ⬝ y) ↠ x := MRed.single RedSKI <| red_K ..
-theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := MRed.single RedSKI <| red_I ..
-
->>>>>>> 9de7e5f (reduction system attribute)
 theorem MRed.head {a a' : SKI} (b : SKI) (h : a ↠ a') : (a ⬝ b) ↠ (a' ⬝ b) := by
   induction h with
   | refl => apply MRed.refl
@@ -112,7 +102,7 @@ theorem MRed.head {a a' : SKI} (b : SKI) (h : a ↠ a') : (a ⬝ b) ↠ (a' ⬝ 
     apply Relation.ReflTransGen.tail (b := a' ⬝ b) ih
     exact Red.red_head a' a'' b ha''
 
-theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠ b') : (a ⬝ b) ↠ (a ⬝ b') := by
+theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠b') : (a ⬝ b) ↠ (a ⬝ b') := by
   induction h with
   | refl => apply MRed.refl
   | @tail b' b'' _ hb'' ih =>
@@ -134,11 +124,11 @@ theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠ b') : (a ⬝ b) ↠ (a ⬝ b
 -- instance RedMRedTrans : Trans Red Red MRed :=
 --   ⟨fun hab hbc => Relation.ReflTransGen.trans (MRed.single hab) (MRed.single hbc)⟩
 
-lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
+lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠a') (hb : b ↠b') :
     (a ⬝ b) ↠ (a' ⬝ b') :=
   Trans.simple (MRed.head b ha) (MRed.tail a' hb)
 
-lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b) ↠ (a' ⬝ b') := by
+lemma parallel_red {a a' b b' : SKI} (ha : a ⭢a') (hb : b ⭢b') : (a ⬝ b) ↠ (a' ⬝ b') := by
   trans a' ⬝ b
   all_goals apply MRed.single
   · exact Red.red_head a a' b ha
@@ -148,10 +138,10 @@ lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b)
 /-- Express that two terms have a reduce to a common term. -/
 def CommonReduct : SKI → SKI → Prop := Relation.Join RedSKI.MRed
 
-lemma commonReduct_of_single {a b : SKI} (h : a ↠ b) : CommonReduct a b := ⟨b, h, by rfl⟩
+lemma commonReduct_of_single {a b : SKI} (h : a ↠b) : CommonReduct a b := ⟨b, h, by rfl⟩
 
 theorem symmetric_commonReduct : Symmetric CommonReduct := Relation.symmetric_join
-theorem reflexive_commonReduct : Reflexive CommonReduct := λ x => by
+theorem reflexive_commonReduct : Reflexive CommonReduct := fun x => by
   refine ⟨x,?_,?_⟩ <;> rfl
 
 theorem commonReduct_head {x x' : SKI} (y : SKI) : CommonReduct x x' → CommonReduct (x ⬝ y) (x' ⬝ y)
@@ -159,3 +149,5 @@ theorem commonReduct_head {x x' : SKI} (y : SKI) : CommonReduct x x' → CommonR
 
 theorem commonReduct_tail (x : SKI) {y y' : SKI} : CommonReduct y y' → CommonReduct (x ⬝ y) (x ⬝ y')
   | ⟨z, hz, hz'⟩ => ⟨x ⬝ z, MRed.tail x hz, MRed.tail x hz'⟩
+
+end SKI
