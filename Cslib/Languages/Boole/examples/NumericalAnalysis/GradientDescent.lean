@@ -43,10 +43,12 @@ def f (x : ℚ) : ℚ := x^2 - 4*x + 3
 def f' (x : ℚ) : ℚ := 2*x - 4
 
 #eval! Q_to_Float (find_poly_minima f f')
+-- ^ Returns  -1.0, the minimum value of f(x)
 
--- Example: minimize f(x) = (x - 3)^3 + 3, f'(x) = 3(x - 3)^2
+-- Example: minimize f(x) = (x - 3)^2 + 4, f'(x) = 2(x - 3)
 -- Minimum should be at x = 3
 def g (x : ℚ) : ℚ := (x - 3)^2 + 4
 def g' (x : ℚ) : ℚ := 2*(x - 3)
 
 #eval! Q_to_Float (find_poly_minima g g')
+-- ^ Returns 4.0, the minimum value of g(x)

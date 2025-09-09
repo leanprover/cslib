@@ -151,7 +151,16 @@ def sqrtN (c : ℕ) (h : 1 < c) : ℚ :=
   )
 
 #eval! Q_to_Float (bisect (fun x => x^3 - x - 2) 0.0 2.0 0.01 (by norm_num) (by norm_num) (by norm_num))
+-- ^ Returns 1.523438..., the approx root of x^3 - x - 2 = 0
 
 #eval! Q_to_Float (sqrt 2.0 0.000001 (by norm_num))
+-- ^ Returns 1.414214..., the approx sqrt(2)
 
 #eval! Q_to_Float (sqrtN 2 (by norm_num))
+-- ^ Returns 1.414214..., the approx sqrt(2)
+
+#eval! Q_to_Float (sqrtN 10 (by norm_num))
+-- ^ Returns 3.162277..., the approx sqrt(10)
+
+#eval! Q_to_Float (sqrt 1.21 0.000001 (by norm_num))
+-- ^ Returns 1.1, the sqrt(1.21)
