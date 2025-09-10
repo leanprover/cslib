@@ -56,14 +56,15 @@ inductive Proof.HasSize : {Γ : Sequent Atom} → ⊢Γ → Nat → Prop where
     p.contract.HasSize (n + 1)
   | bang (hqs: Sequent.allQuest Γ) (p : ⊢(a :: Γ)) (n : Nat) (hp : p.HasSize n) :
     (p.bang hqs).HasSize (n + 1)
-  | cut (p : ⊢(a :: Γ)) (q : ⊢(a.dual :: Δ)) (np nq : Nat)
+  | cut (p : ⊢(a :: Γ)) (q : ⊢(a⫠ :: Δ)) (np nq : Nat)
     (hp : p.HasSize np) (hq : q.HasSize nq) :
     (Proof.cut p q).HasSize (np + nq + 1)
 
 /-- Cut is admissible. -/
 proof_wanted Proof.cut_admissible
-  {a : Proposition Atom} (p : ⊢(a :: Γ)) (q : ⊢(a.dual :: Δ)) (hp : p.CutFree) (hq : q.CutFree) :
+  {a : Proposition Atom} (p : ⊢(a :: Γ)) (q : ⊢(a⫠ :: Δ)) (hp : p.CutFree) (hq : q.CutFree) :
   ∃ r : ⊢(Γ ++ Δ), r.CutFree
+
 
 /-- Cut elimination: for any sequent Γ, if there is a proof of Γ, then there exists a cut-free
 proof of Γ. -/
