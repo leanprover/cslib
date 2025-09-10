@@ -39,7 +39,7 @@ inductive Proof.HasSize : {Γ : Sequent Atom} → ⊢Γ → Nat → Prop where
   | one : Proof.one.HasSize 1
   | bot (p : ⊢Γ) (n : Nat) (hp : p.HasSize n) : p.bot.HasSize (n + 1)
   | exchange (hperm : Γ.Perm Δ) (p : ⊢Γ) (n : Nat) (hp : p.HasSize n) :
-    (Proof.exchange hperm p).HasSize n
+    (Proof.exchange hperm p).HasSize (n + 1)
   | parr (p : ⊢(a :: b :: Γ)) (n : Nat) (hp : p.HasSize n) : p.parr.HasSize (n + 1)
   | tensor (p : ⊢(a :: Γ)) (q : ⊢(b :: Δ)) (np nq : Nat)
     (hp : p.HasSize np) (hq : q.HasSize nq) :
