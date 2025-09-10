@@ -68,7 +68,7 @@ theorem mRed_of_parallelReduction {a a' : SKI} (h : a ⇒ₚ a') : a ↠ a' := b
   case red_S a b c => exact Relation.ReflTransGen.single (red_S a b c)
 
 /-- The inclusion `⇒ ⊆ ⇒ₚ` -/
-theorem parallelReduction_of_red {a a' : SKI} (h : a ⭢a') : a ⇒ₚ a' := by
+theorem parallelReduction_of_red {a a' : SKI} (h : a ⭢ a') : a ⇒ₚ a' := by
   cases h
   case red_S => apply ParallelReduction.red_S
   case red_K => apply ParallelReduction.red_K
@@ -234,7 +234,7 @@ theorem commonReduct_equivalence : Equivalence CommonReduct := by
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/
-theorem MRed.diamond (a b c : SKI) (hab : a ↠b) (hac : a ↠c) : CommonReduct b c := by
+theorem MRed.diamond (a b c : SKI) (hab : a ↠ b) (hac : a ↠ c) : CommonReduct b c := by
   apply commonReduct_equivalence.trans (y := a)
   · exact commonReduct_equivalence.symm (commonReduct_of_single hab)
   · exact commonReduct_of_single hac

@@ -105,8 +105,8 @@ macro_rules
      )
   | `(reduction_notation $rs) =>
     `(
-      notation3 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 

@@ -58,7 +58,7 @@ match n with
 | n+1 => f ⬝ (Church n f x)
 
 /-- `church` commutes with reduction. -/
-lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ↠f') (hx : x ↠x') :
+lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ↠ f') (hx : x ↠ x') :
     Church n f x ↠ Church n f' x' := by
   induction n with
   | zero => exact hx
@@ -69,7 +69,7 @@ def IsChurch (n : Nat) (a : SKI) : Prop :=
     ∀ f x :SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
 
 /-- To show `IsChurch n a` it suffices to show the same for a reduct of `a`. -/
-theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠a') : IsChurch n a' → IsChurch n a := by
+theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠ a') : IsChurch n a' → IsChurch n a := by
   simp_rw [IsChurch]
   intro ha' f x
   calc
@@ -118,7 +118,7 @@ theorem predAux_def (p : SKI) :  (PredAux ⬝ p) ↠ MkPair ⬝ (Snd ⬝ p) ⬝ 
 def IsChurchPair (ns : Nat × Nat) (x : SKI) : Prop :=
   IsChurch ns.1 (Fst ⬝ x) ∧ IsChurch ns.2 (Snd ⬝ x)
 
-theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ↠a') :
+theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ↠ a') :
     IsChurchPair ns a' → IsChurchPair ns a := by
   simp_rw [IsChurchPair]
   intro ⟨ha₁,ha₂⟩

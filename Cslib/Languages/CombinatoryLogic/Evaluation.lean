@@ -186,7 +186,7 @@ theorem commonReduct_redexFree {x y : SKI} (hy : RedexFree y) (h : CommonReduct 
   (redexFree_iff'.1 hy _ |>.1 hzw : y = w) ▸ hyw
 
 /-- If `x` reduces to both `y` and `z`, and `z` is not reducible, then `y` reduces to `z`. -/
-lemma confluent_redexFree {x y z : SKI} (hxy : x ↠y) (hxz : x ↠z) (hz : RedexFree z) : y ↠ z :=
+lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : RedexFree z) : y ↠ z :=
   let ⟨w, hyw, hzw⟩ := MRed.diamond x y z hxy hxz
   (redexFree_iff'.1 hz _ |>.1 hzw : z = w) ▸ hyw
 
@@ -194,7 +194,7 @@ lemma confluent_redexFree {x y z : SKI} (hxy : x ↠y) (hxz : x ↠z) (hz : Rede
 If `x` reduces to both `y` and `z`, and both `y` and `z` are in normal form, then they are equal.
 -/
 lemma unique_normal_form {x y z : SKI}
-    (hxy : x ↠y) (hxz : x ↠z) (hy : RedexFree y) (hz : RedexFree z) : y = z :=
+    (hxy : x ↠ y) (hxz : x ↠ z) (hy : RedexFree y) (hz : RedexFree z) : y = z :=
   (redexFree_iff'.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
