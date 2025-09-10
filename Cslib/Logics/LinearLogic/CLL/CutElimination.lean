@@ -30,7 +30,7 @@ inductive Proof.CutFree : {Γ : Sequent Atom} → ⊢Γ → Prop where
   | quest (p : ⊢(a :: Γ)) : p.CutFree → p.quest.CutFree
   | weaken (p : ⊢Γ) : p.CutFree → p.weaken.CutFree
   | contract (p : ⊢(ʔa :: ʔa :: Γ)) : p.contract.CutFree
-  | bang (hqs: Sequent.allQuest Γ) (p : ⊢(a :: Γ)) : p.CutFree → (p.bang hqs).CutFree
+  | bang (hqs: Sequent.AllQuest Γ) (p : ⊢(a :: Γ)) : p.CutFree → (p.bang hqs).CutFree
   -- No rule for cut.
 
 /-- Size of a `Proof`. -/
@@ -54,7 +54,7 @@ inductive Proof.HasSize : {Γ : Sequent Atom} → ⊢Γ → Nat → Prop where
   | weaken (p : ⊢Γ) (n : Nat) (hp : p.HasSize n) : p.weaken.HasSize (n + 1)
   | contract (p : ⊢(ʔa :: ʔa :: Γ)) (n : Nat) (hp : p.HasSize n) :
     p.contract.HasSize (n + 1)
-  | bang (hqs: Sequent.allQuest Γ) (p : ⊢(a :: Γ)) (n : Nat) (hp : p.HasSize n) :
+  | bang (hqs: Sequent.AllQuest Γ) (p : ⊢(a :: Γ)) (n : Nat) (hp : p.HasSize n) :
     (p.bang hqs).HasSize (n + 1)
   | cut (p : ⊢(a :: Γ)) (q : ⊢(a⫠ :: Δ)) (np nq : Nat)
     (hp : p.HasSize np) (hq : q.HasSize nq) :
