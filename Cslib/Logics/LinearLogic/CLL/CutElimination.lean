@@ -65,7 +65,6 @@ proof_wanted Proof.cut_admissible
   {a : Proposition Atom} (p : ⊢(a :: Γ)) (q : ⊢(a⫠ :: Δ)) (hp : p.CutFree) (hq : q.CutFree) :
   ∃ r : ⊢(Γ ++ Δ), r.CutFree
 
-
 /-- Cut elimination: for any sequent Γ, if there is a proof of Γ, then there exists a cut-free
 proof of Γ. -/
 proof_wanted Proof.cut_elim (p : ⊢Γ) : ∃ q : ⊢Γ, q.CutFree

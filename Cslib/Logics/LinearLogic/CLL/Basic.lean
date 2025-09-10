@@ -136,7 +136,7 @@ def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ 
 abbrev Sequent (Atom) := List (Proposition Atom)
 
 /-- Checks that all propositions in `Γ` are question marks. -/
-def Sequent.allQuest (Γ : Sequent Atom) :=
+def Sequent.AllQuest (Γ : Sequent Atom) :=
   ∀ a ∈ Γ, ∃ b, a = ʔb
 
 open Proposition in
@@ -156,7 +156,7 @@ inductive Proof : Sequent Atom → Prop where
   | quest : Proof (a :: Γ) → Proof (ʔa :: Γ)
   | weaken : Proof Γ → Proof (ʔa :: Γ)
   | contract : Proof (ʔa :: ʔa :: Γ) → Proof (ʔa :: Γ)
-  | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a :: Γ) → Proof ((!a) :: Γ)
+  | bang {Γ : Sequent Atom} {a} : Γ.AllQuest → Proof (a :: Γ) → Proof ((!a) :: Γ)
   -- No rule for zero.
 
 scoped notation "⊢" Γ:90 => Proof Γ
