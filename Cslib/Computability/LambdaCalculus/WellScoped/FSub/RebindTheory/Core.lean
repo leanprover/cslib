@@ -43,15 +43,15 @@ structure Rebind (Γ : Ctx s1) (f : Rename s1 s2) (Δ : Ctx s2) where
 def Rebind.liftVar (ρ : Rebind Γ f Δ) : Rebind (Γ,x:T) (f.liftVar) (Δ,x:T.rename f) where
   var := fun x P hb => by
     cases hb
-    case here => simp only [<-Ty.rename_succVar_comm]; constructor
+    case here => simp only [←Ty.rename_succVar_comm]; constructor
     case there_var hb =>
-      simp only [<-Ty.rename_succVar_comm]
+      simp only [←Ty.rename_succVar_comm]
       constructor
       apply ρ.var _ _ hb
   tvar := fun X S hb => by
     cases hb
     case there_var hb =>
-      simp only [<-Ty.rename_succVar_comm]
+      simp only [←Ty.rename_succVar_comm]
       constructor
       apply ρ.tvar _ _ hb
 
@@ -62,14 +62,14 @@ def Rebind.liftVar (ρ : Rebind Γ f Δ) : Rebind (Γ,x:T) (f.liftVar) (Δ,x:T.r
 def Rebind.liftTVar (ρ : Rebind Γ f Δ) : Rebind (Γ,X<:T) (f.liftTVar) (Δ,X<:T.rename f) where
   tvar := fun X S hb => by
     cases hb
-    case here => simp only [<-Ty.rename_succTVar_comm]; constructor
+    case here => simp only [←Ty.rename_succTVar_comm]; constructor
     case there_tvar hb =>
-      simp only [<-Ty.rename_succTVar_comm]
+      simp only [←Ty.rename_succTVar_comm]
       constructor
       apply ρ.tvar _ _ hb
   var := fun x P hb => by
     cases hb
-    case there_tvar hb => simp only [<-Ty.rename_succTVar_comm]; constructor; apply ρ.var _ _ hb
+    case there_tvar hb => simp only [←Ty.rename_succTVar_comm]; constructor; apply ρ.var _ _ hb
 
 /-- **Term variable weakening morphism**.
 
