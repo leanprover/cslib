@@ -1,17 +1,28 @@
 /-
 # Type soundness of System F<:
 
-This is a mechanized type soundness proof of System F<: in what I call _well-scoped_ style.
+This mechanizes type soundness for System F<: using intrinsically scoped de Bruijn indices
+and context morphisms.
 
-The main idea is to:
-- Use intrinsically scoped de Bruijn indices. Specifically, de Bruijn indices are indexed by a signature describing available binders in the type context. This way, syntactic constructs are well-scoped (and therefore well-formed) by construction.
-- Use context morphisms, which are mappings between type contexts that preserve types. This way, all theorems concerning context operations (weakening, narrowing, substitution) can be proven in a uniform way.
+The formalization uses intrinsically scoped de Bruijn indices.
+De Bruijn indices are indexed by signatures describing available binders in the type context.
+Syntactic constructs are well-scoped by construction.
 
-There are two kinds of context morphisms where the latter depends on the former.
-- The first is _rebinding morphisms_. A rebinding morphism `f` from `Γ` to `Δ` maps each `x:T ∈ Γ` to a corresponding binder `f(x) : f(T) ∈ Δ`. Then, we show that typing is preserved under such morphisms.
-- The second is _retypeing morphisms_. A retypeing morphism `g` from `Γ` to `Δ` maps each `x: T ∈ Γ` into a typing derivation `Δ ⊢ g(x) : g(T)`. This is of course stronger than the first kind, and its proof relies on that of the first kind. We show that typing is preserved under this kind of morphisms too.
+Context morphisms are mappings between type contexts that preserve types.
+All theorems concerning context operations (weakening, narrowing, substitution)
+are proven uniformly using these morphisms.
 
-With this context morphism infrastructure, we can prove a variety of theorems regarding context manipulation, including weakening, narrowing, substitution, and any other context operations that can be formulated as a context morphism.
+Two kinds of context morphisms exist:
+
+Rebinding morphisms map each `x:T ∈ Γ` to a corresponding binder `f(x) : f(T) ∈ Δ`.
+Typing is preserved under rebinding morphisms.
+
+Retyping morphisms map each `x: T ∈ Γ` to a typing derivation `Δ ⊢ g(x) : g(T)`.
+This is stronger than rebinding morphisms.
+The proof builds on rebinding morphism preservation.
+
+This infrastructure enables proofs for context manipulation operations including
+weakening, narrowing, substitution, and any context operations expressible as context morphisms.
 -/
 
 -- This module defines the intrinsically scoped de Bruijn indices.
@@ -21,6 +32,11 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Debruijn
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Syntax
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.TypeSystem
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Reduce
+import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Eval
+
+-- The following defines parallel substitution and proves its properties.
+import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Substitution.Core
+import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Substitution.Properties
 
 -- The following modules define context morphisms and prove their theory.
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.RebindTheory.Core

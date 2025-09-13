@@ -6,21 +6,15 @@ theorem Subtyp.rebind {f : Rename s1 s2}
   (hs : Subtyp Γ T1 T2)
   (ρ : Rebind Γ f Δ) :
   Subtyp Δ (T1.rename f) (T2.rename f) := by
-  induction hs generalizing s2
-  case top => constructor
-  case refl => constructor
-  case trans =>
-    apply Subtyp.trans <;> aesop
+  induction hs generalizing s2 <;> try (solve | constructor)
+  case trans => apply Subtyp.trans <;> aesop
   case tvar hb =>
     apply Subtyp.tvar
     apply ρ.tvar _ _ hb
   case arrow ih1 ih2 =>
-    apply Subtyp.arrow
-    { apply ih1 ρ }
-    { apply ih2 ρ }
+    apply Subtyp.arrow <;> grind
   case poly ih1 ih2 =>
-    apply Subtyp.poly
-    { apply ih1 ρ }
+    apply Subtyp.poly <;> try grind
     { apply ih2 ρ.liftTVar }
 
 theorem HasType.rebind {f : Rename s1 s2}
