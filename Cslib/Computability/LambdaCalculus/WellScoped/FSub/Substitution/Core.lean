@@ -40,48 +40,48 @@ structure Subst (s1 s2 : Sig) where
 /-- Lift a substitution to work under a term variable binder. The newly bound
     variable is mapped to itself, while existing variables are substituted and
     then weakened to account for the new binding. -/
-def Subst.liftVar (s : Subst s1 s2) : Subst (s1,x) (s2,x) :=
-  { var := fun x => match x with
-      | .here => .var .here
-      | .there_var x0 => (s.var x0).rename Rename.succVar
-    tvar := fun X => match X with
-      | .there_var X0 => (s.tvar X0).rename Rename.succVar }
+def Subst.liftVar (s : Subst s1 s2) : Subst (s1,x) (s2,x) where
+  var := fun x => match x with
+    | .here => .var .here
+    | .there_var x0 => (s.var x0).rename Rename.succVar
+  tvar := fun X => match X with
+    | .there_var X0 => (s.tvar X0).rename Rename.succVar
 
 /-- Lift a substitution to work under a type variable binder. The newly bound
     type variable is mapped to itself, while existing variables are substituted
     and then weakened to account for the new binding. -/
-def Subst.liftTVar (s : Subst s1 s2) : Subst (s1,X) (s2,X) :=
-  { tvar := fun X => match X with
-      | .here => .tvar .here
-      | .there_tvar X0 => (s.tvar X0).rename Rename.succTVar
-    var := fun x => match x with
-      | .there_tvar x0 => (s.var x0).rename Rename.succTVar }
+def Subst.liftTVar (s : Subst s1 s2) : Subst (s1,X) (s2,X) where
+  tvar := fun X => match X with
+    | .here => .tvar .here
+    | .there_tvar X0 => (s.tvar X0).rename Rename.succTVar
+  var := fun x => match x with
+    | .there_tvar x0 => (s.var x0).rename Rename.succTVar
 
 /-- Create a substitution that replaces the outermost term variable with the given
     expression, while leaving all other variables unchanged. This is used for
     function application (beta reduction). -/
-def Subst.open_var (e : Exp s) : Subst (s,x) s :=
-  { var := fun x => match x with
-      | .here => e
-      | .there_var x0 => .var x0
-    tvar := fun X => match X with
-      | .there_var X0 => .tvar X0 }
+def Subst.open_var (e : Exp s) : Subst (s,x) s where
+  var := fun x => match x with
+    | .here => e
+    | .there_var x0 => .var x0
+  tvar := fun X => match X with
+    | .there_var X0 => .tvar X0
 
 /-- Create a substitution that replaces the outermost type variable with the given
     type, while leaving all other variables unchanged. This is used for
     type application in polymorphic functions. -/
-def Subst.open_tvar (T : Ty s) : Subst (s,X) s :=
-  { var := fun x => match x with
-      | .there_tvar x0 => .var x0
-    tvar := fun X => match X with
-      | .here => T
-      | .there_tvar X0 => .tvar X0 }
+def Subst.open_tvar (T : Ty s) : Subst (s,X) s where
+  var := fun x => match x with
+    | .there_tvar x0 => .var x0
+  tvar := fun X => match X with
+    | .here => T
+    | .there_tvar X0 => .tvar X0
 
 /-- Convert a renaming into a substitution. Every variable is mapped to the
     correspondingly renamed variable. -/
-def Rename.asSubst (f : Rename s1 s2) : Subst s1 s2 :=
-  { var := fun x => .var (f.var x)
-    tvar := fun X => .tvar (f.tvar X) }
+def Rename.asSubst (f : Rename s1 s2) : Subst s1 s2 where
+  var := fun x => .var (f.var x)
+  tvar := fun X => .tvar (f.tvar X)
 
 /-- Functional extensionality for substitutions: two substitutions are equal
     if they map all variables in the same way. -/
@@ -102,6 +102,6 @@ def Subst.lift : Subst s1 s2 -> (s : Sig) -> Subst (s1 ++ s) (s2 ++ s)
 | σ, .push_tvar s => (σ.lift s).liftTVar
 
 /-- The identity substitution that maps each variable to itself. -/
-def Subst.id : Subst s s :=
-  { var := fun x => .var x
-    tvar := fun X => .tvar X }
+def Subst.id : Subst s s where
+  var := fun x => .var x
+  tvar := fun X => .tvar X

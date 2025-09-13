@@ -16,9 +16,9 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Syntax.Subst
 
 /-- Composition of substitutions. If σ₁ maps s₁ to s₂ and σ₂ maps s₂ to s₃,
     then their composition maps s₁ to s₃ by first applying σ₁ then σ₂. -/
-def Subst.comp (σ1 : Subst s1 s2) (σ2 : Subst s2 s3) : Subst s1 s3 :=
-  { var := fun x => (σ1.var x).subst σ2
-    tvar := fun X => (σ1.tvar X).subst σ2 }
+def Subst.comp (σ1 : Subst s1 s2) (σ2 : Subst s2 s3) : Subst s1 s3 where
+  var := fun x => (σ1.var x).subst σ2
+  tvar := fun X => (σ1.tvar X).subst σ2
 
 /-- Shows that lifting a substitution for term variables preserves type variable mappings
     by renaming with succVar. -/

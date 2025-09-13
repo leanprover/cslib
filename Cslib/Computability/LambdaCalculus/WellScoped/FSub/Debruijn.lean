@@ -76,40 +76,44 @@ structure Rename (s1 s2 : Sig) where
 
 /-- Lift a renaming to work under a new term variable binder. The new term variable
     is mapped to itself, while existing variables are renamed and shifted. -/
-def Rename.liftVar (f : Rename s1 s2) : Rename (s1,x) (s2,x) :=
-  { var := fun x => match x with
-      | .here => .here
-      | .there_var x0 => .there_var (f.var x0)
-    tvar := fun X => match X with
-      | .there_var X0 => .there_var (f.tvar X0) }
+def Rename.liftVar (f : Rename s1 s2) : Rename (s1,x) (s2,x) where
+  var := fun x => match x with
+    | .here => .here
+    | .there_var x0 => .there_var (f.var x0)
+  tvar := fun X => match X with
+    | .there_var X0 => .there_var (f.tvar X0)
 
 /-- Lift a renaming to work under a new type variable binder. The new type variable
     is mapped to itself, while existing variables are renamed and shifted. -/
-def Rename.liftTVar (f : Rename s1 s2) : Rename (s1,X) (s2,X) :=
-  { tvar := fun X => match X with
-      | .here => .here
-      | .there_tvar X0 => .there_tvar (f.tvar X0)
-    var := fun x => match x with
-      | .there_tvar x0 => .there_tvar (f.var x0) }
+def Rename.liftTVar (f : Rename s1 s2) : Rename (s1,X) (s2,X) where
+  tvar := fun X => match X with
+    | .here => .here
+    | .there_tvar X0 => .there_tvar (f.tvar X0)
+  var := fun x => match x with
+    | .there_tvar x0 => .there_tvar (f.var x0)
 
 /-- Weakening renaming that adds a new term variable to the context.
     All existing variables are shifted to account for the new binding. -/
-def Rename.succVar : Rename s1 (s1,x) :=
-  { var := fun x => x.there_var, tvar := fun X => X.there_var }
+def Rename.succVar : Rename s1 (s1,x) where
+  var := fun x => x.there_var
+  tvar := fun X => X.there_var
 
 /-- Weakening renaming that adds a new type variable to the context.
     All existing variables are shifted to account for the new binding. -/
-def Rename.succTVar : Rename s1 (s1,X) :=
-  { var := fun x => x.there_tvar, tvar := fun X => X.there_tvar }
+def Rename.succTVar : Rename s1 (s1,X) where
+  var := fun x => x.there_tvar
+  tvar := fun X => X.there_tvar
 
 /-- The identity renaming that maps each variable to itself. -/
-def Rename.id : Rename s s :=
-  { var := fun x => x, tvar := fun X => X }
+def Rename.id : Rename s s where
+  var := fun x => x
+  tvar := fun X => X
 
 /-- Composition of renamings. If `f1` renames from `s1` to `s2` and `f2` renames
     from `s2` to `s3`, then their composition renames from `s1` to `s3`. -/
-def Rename.comp (f1 : Rename s1 s2) (f2 : Rename s2 s3) : Rename s1 s3 :=
-  { var := fun x => f2.var (f1.var x), tvar := fun X => f2.tvar (f1.tvar X) }
+def Rename.comp (f1 : Rename s1 s2) (f2 : Rename s2 s3) : Rename s1 s3 where
+  var := fun x => f2.var (f1.var x)
+  tvar := fun X => f2.tvar (f1.tvar X)
 
 /-- Two renamings are equal if they map variables in the same way. -/
 theorem Rename.funext {f g : Rename s1 s2}
