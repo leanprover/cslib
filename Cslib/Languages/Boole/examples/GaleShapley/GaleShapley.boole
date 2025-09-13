@@ -1,39 +1,22 @@
 
-var s : Student;
-var h : Hospital;
-var hospital   : [Student] Hospital;
-var student    : [Hospital] Student;
-var count      : [Student] int;
-var preference : [Student, int] Hospital;
-var ranking    : [Hospital, Student] int;
+
+type Student := int;
+type Hospital := int;
 
 var n : int;
-const UNMATCHED : int = 0;
+const UNMATCHED : Student = 0;
 
-// Initialize matching arrays to UNMATCHED
-for (s : Student) {
-  hospital[s] := UNMATCHED;
-}
-
-for (h : Hospital) {
-  student[h] := UNMATCHED;
-}
-
-// Initialize proposal counts to 0
-for (s : Student) {
-  count[s] := 0;
-}
+var hospital   : [Student] Hospital default UNMATCHED;
+var student    : [Hospital] Student default UNMATCHED;
+var count      : [Student] int default 0;
+var preference : [Student, int] Hospital;
+var ranking    : [Hospital, Student] int;
 
 
 // Main Gale-Shapley algorithm
 
-while (∃ s : Student : hospital[s] = UNMATCHED ∧ count[s] < n) {
+while (s : Student | hospital[s] = UNMATCHED ∧ count[s] < n) {
 
-  // Pick an unmatched student that hasn't proposed to every hospital
-  havoc s;
-  assume hospital[s] = UNMATCHED;
-  assume count[s] < n;
-  
   // s proposes to the next hospital on its preference list
   count[s] := count[s] + 1;
   h := preference[s, count[s]];
