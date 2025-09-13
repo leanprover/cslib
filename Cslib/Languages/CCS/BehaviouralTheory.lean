@@ -79,7 +79,7 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
           constructor
           · apply Tr.parL htr'
           · constructor
-        case com μ p' q' htrp htrq =>
+        case com p q p' q' μ htrp htrq =>
           exists (par q' p')
           constructor
           · rw [← Act.co.involution Name μ] at htrp
@@ -98,7 +98,7 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
           constructor
           · apply Tr.parL htr'
           · constructor
-        case com μ p' q' htrp htrq =>
+        case com p q p' q' μ htrp htrq =>
           exists (par q' p')
           constructor
           · rw [← Act.co.involution Name μ] at htrp
@@ -371,7 +371,7 @@ theorem bisimilarity_congr_par :
         · apply Tr.parR htr
         · constructor
           apply Bisimilarity.largest_bisimulation hb hr
-      case com μ' p' r' htrp htrr =>
+      case com _ _ p' r' μ' htrp htrr =>
         obtain ⟨q', htr2, hr2⟩ := hb.follow_fst hr htrp
         exists (par q' r')
         constructor
@@ -397,7 +397,7 @@ theorem bisimilarity_congr_par :
         · apply Tr.parR htr
         · constructor
           apply Bisimilarity.largest_bisimulation hb hr
-      case com μ' p' r' htrq htrr =>
+      case com _ _ p' r' μ' htrq htrr =>
         obtain ⟨q', htr2, hr2⟩ := hb.follow_snd hr htrq
         exists (par q' r')
         constructor

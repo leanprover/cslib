@@ -44,16 +44,27 @@ inductive Process : Type (max u v) where
   | const (c : Constant)
 deriving DecidableEq
 
-/-- Co action. -/
-def Act.co (μ : Act Name) : Act Name :=
+/-- An action is visible if it a name or a coname. -/
+@[grind]
+def Act.IsVisible (μ : Act Name) : Prop :=
   match μ with
-  | name a => coname a
-  | coname a => name a
-  | τ => τ
+  | name _ => True
+  | coname _ => True
+  | τ => False
+
+/-- The type of visible actions. -/
+abbrev VisibleAct := { μ : Act Name // μ.IsVisible }
+
+/-- Co action. -/
+@[grind]
+def VisibleAct.co (μ : VisibleAct Name) : VisibleAct Name :=
+  match h : μ.val with
+  | Act.name a => ⟨Act.coname a, by grind⟩
+  | Act.coname a => ⟨Act.name a, by grind⟩
+  | .τ => by grind
 
 /-- `Act.co` is an involution. -/
-theorem Act.co.involution (μ : Act Name) : μ.co.co = μ := by
-  cases μ <;> simp only [Act.co]
+theorem Act.co.involution (μ : VisibleAct Name) : μ.co.co = μ := by grind
 
 /-- Contexts. -/
 inductive Context : Type (max u v) where
