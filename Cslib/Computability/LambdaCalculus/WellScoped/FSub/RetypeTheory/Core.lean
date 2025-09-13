@@ -40,17 +40,17 @@ def Retype.liftVar (ρ : Retype Γ σ Δ) : Retype (Γ,x:P) (σ.liftVar) (Δ,x:P
     cases hb
     case here =>
       apply HasType.var
-      simp [<-Ty.subst_succVar_comm_base]
+      simp only [<-Ty.subst_succVar_comm_base]
       constructor
     case there_var hb0 =>
       have h0 := ρ.var _ _ hb0
-      simp [<-Ty.subst_succVar_comm_base]
+      simp only [<-Ty.subst_succVar_comm_base]
       apply h0.rebind Rebind.succVar
   tvar := fun X S hb => by
     cases hb
     case there_var hb0 =>
       have h0 := ρ.tvar _ _ hb0
-      simp [<-Ty.subst_succVar_comm_base]
+      simp only [<-Ty.subst_succVar_comm_base]
       apply h0.rebind Rebind.succVar
 
 /-- Extends a retyping morphism to contexts with an additional type variable. -/
@@ -59,7 +59,7 @@ def Retype.liftTVar (ρ : Retype Γ σ Δ) : Retype (Γ,X<:P) (σ.liftTVar) (Δ,
     cases hb
     case there_tvar hb0 =>
       have h0 := ρ.var _ _ hb0
-      simp [<-Ty.subst_succTVar_comm_base]
+      simp only [<-Ty.subst_succTVar_comm_base]
       apply h0.rebind Rebind.succTVar
   tvar := fun X S hb => by
     cases hb
@@ -68,7 +68,7 @@ def Retype.liftTVar (ρ : Retype Γ σ Δ) : Retype (Γ,X<:P) (σ.liftTVar) (Δ,
       grind [Ty.subst_succTVar_comm_base]
     case there_tvar hb0 =>
       have h0 := ρ.tvar _ _ hb0
-      simp [<-Ty.subst_succTVar_comm_base]
+      simp only [<-Ty.subst_succTVar_comm_base]
       apply h0.rebind Rebind.succTVar
 
 /-- Creates a retyping morphism that substitutes an expression for the newest term variable. -/
@@ -93,7 +93,7 @@ def Retype.narrow_tvar
     case here =>
       apply Subtyp.trans
       { apply Subtyp.tvar; constructor }
-      { simp [Ty.subst_id]; apply hs.rebind Rebind.succTVar }
+      { simp only [Ty.subst_id]; apply hs.rebind Rebind.succTVar }
     case there_tvar hb0 => apply Subtyp.tvar; grind [Ty.subst_id]
 
 /-- Creates a retyping morphism that substitutes a type for the newest type variable. -/

@@ -74,17 +74,18 @@ def Exp.rename : Exp s1 -> Rename s1 s2 -> Exp s2
 
 /-- Renaming with the identity renaming leaves a type unchanged. -/
 theorem Ty.rename_id {T : Ty s} : T.rename Rename.id = T := by
-  induction T <;> try (solve | rfl | simp [Ty.rename]; grind)
+  induction T <;> try (solve | rfl | simp only [Ty.rename, Rename.id_liftTVar_eq_id]; grind)
 
 /-- Renaming with the identity renaming leaves an expression unchanged. -/
 theorem Exp.rename_id {e : Exp s} : e.rename Rename.id = e := by
-  induction e <;> try (solve | rfl | simp [Exp.rename, Ty.rename_id]; grind)
+  induction e <;> try (solve | rfl |
+    simp only [Exp.rename, Ty.rename_id, Rename.id_liftVar_eq_id, Rename.id_liftTVar_eq_id]; grind)
 
 /-- Composition of renamings: renaming by f₁ then f₂ equals renaming by their composition. -/
 theorem Ty.rename_comp {T : Ty s1} {f1 : Rename s1 s2} {f2 : Rename s2 s3} :
   (T.rename f1).rename f2 = T.rename (f1.comp f2) := by
   induction T generalizing s2 s3 <;>
-    try (solve | rfl | simp [Ty.rename, Rename.comp_liftTVar]; grind)
+    try (solve | rfl | simp only [Ty.rename, Rename.comp_liftTVar]; grind)
 
 /-- Composition of renamings: renaming by f₁ then f₂ equals renaming by their composition. -/
 theorem Exp.rename_comp {e : Exp s1} {f1 : Rename s1 s2} {f2 : Rename s2 s3} :
@@ -92,7 +93,7 @@ theorem Exp.rename_comp {e : Exp s1} {f1 : Rename s1 s2} {f2 : Rename s2 s3} :
   induction e generalizing s2 s3 <;>
     try (solve | rfl)
   all_goals
-    simp [Exp.rename, Ty.rename_comp, Rename.comp_liftVar, Rename.comp_liftTVar]; grind
+    simp only [Exp.rename, Ty.rename_comp, Rename.comp_liftVar, Rename.comp_liftTVar]; grind
 
 /-- Commutativity law for term variable weakening and general renamings. -/
 theorem Ty.rename_succVar_comm {T : Ty s} :

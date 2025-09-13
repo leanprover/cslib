@@ -44,7 +44,7 @@ theorem preservation
     have ⟨U0, h1, h2, h3⟩  := HasType.abs_inv ht1
     have ht2' := HasType.sub h2 ht2
     have h1' := h1.retype (Retype.open_var ht2')
-    simp [Ty.rename_succVar_open_var] at h1'
+    simp only [Ty.rename_succVar_open_var] at h1'
     apply HasType.sub _ h1'
     apply Subtyp.trans h3 hs0
   case red_tapp_fun ih =>

@@ -32,4 +32,4 @@ theorem HasType.retype {σ : Subst s1 s2}
   case abs ih => apply HasType.abs; simpa [Ty.subst_succVar_comm_base] using ih ρ.liftVar
   case tabs ih => apply HasType.tabs; apply ih ρ.liftTVar
   case app ih1 ih2 => apply HasType.app <;> aesop
-  case tapp ih => simp [Ty.open_tvar_subst_comm]; apply HasType.tapp; aesop
+  case tapp ih => simp only [Ty.open_tvar_subst_comm]; apply HasType.tapp; aesop

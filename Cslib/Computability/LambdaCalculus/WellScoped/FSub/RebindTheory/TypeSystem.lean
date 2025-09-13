@@ -37,7 +37,7 @@ theorem HasType.rebind {f : Rename s1 s2}
     { apply ih ρ }
   case abs ih =>
     apply HasType.abs
-    simp [Ty.rename_succVar_comm]
+    simp only [Ty.rename_succVar_comm]
     apply ih ρ.liftVar
   case tabs ih =>
     apply HasType.tabs
@@ -47,6 +47,6 @@ theorem HasType.rebind {f : Rename s1 s2}
     { apply ih1 ρ }
     { apply ih2 ρ }
   case tapp ih =>
-    simp [Ty.open_tvar_rename_comm]
+    simp only [Ty.open_tvar_rename_comm]
     apply tapp
     aesop
