@@ -40,10 +40,10 @@ inductive Ty : Sig → Type where
 
 /-- Rename all type variables in a type according to the given renaming. -/
 def Ty.rename : Ty s1 → Rename s1 s2 → Ty s2
-| .top, _ => .top
-| .tvar X, ρ => .tvar (ρ.tvar X)
-| .arrow A B, ρ => .arrow (A.rename ρ) (B.rename ρ)
-| .poly A B, ρ => .poly (A.rename ρ) (B.rename ρ.liftTVar)
+| top, _ => top
+| tvar X, ρ => tvar (ρ.tvar X)
+| arrow A B, ρ => arrow (A.rename ρ) (B.rename ρ)
+| poly A B, ρ => poly (A.rename ρ) (B.rename ρ.liftTVar)
 
 /-- Expressions in System F<:. The expression language includes:
     - `var`: Term variables, intrinsically scoped
@@ -66,11 +66,11 @@ inductive Exp : Sig → Type where
 /-- Rename all variables (both term and type variables) in an expression
     according to the given renaming. -/
 def Exp.rename : Exp s1 → Rename s1 s2 → Exp s2
-| .var x, ρ => .var (ρ.var x)
-| .abs A e, ρ => .abs (A.rename ρ) (e.rename ρ.liftVar)
-| .tabs A e, ρ => .tabs (A.rename ρ) (e.rename ρ.liftTVar)
-| .app e1 e2, ρ => .app (e1.rename ρ) (e2.rename ρ)
-| .tapp e A, ρ => .tapp (e.rename ρ) (A.rename ρ)
+| var x, ρ => var (ρ.var x)
+| abs A e, ρ => abs (A.rename ρ) (e.rename ρ.liftVar)
+| tabs A e, ρ => tabs (A.rename ρ) (e.rename ρ.liftTVar)
+| app e1 e2, ρ => app (e1.rename ρ) (e2.rename ρ)
+| tapp e A, ρ => tapp (e.rename ρ) (A.rename ρ)
 
 /-- Renaming with the identity renaming leaves a type unchanged. -/
 theorem Ty.rename_id {T : Ty s} : T.rename Rename.id = T := by
