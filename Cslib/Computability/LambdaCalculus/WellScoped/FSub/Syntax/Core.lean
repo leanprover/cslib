@@ -26,20 +26,20 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Debruijn
 /-- Types in System F<:. The type system includes:
     - `top`: The universal supertype that all types are subtypes of
     - `tvar`: Type variables, intrinsically scoped by signature
-    - `arrow`: Function types (A -> B)
+    - `arrow`: Function types (A → B)
     - `poly`: Polymorphic types (forall X <: A. B) where B has access to type variable X -/
-inductive Ty : Sig -> Type where
+inductive Ty : Sig → Type where
 /-- The top type, supertype of all types -/
 | top : Ty s
 /-- Type variable -/
-| tvar : TVar s -> Ty s
-/-- Function type A -> B -/
-| arrow : Ty s -> Ty s -> Ty s
+| tvar : TVar s → Ty s
+/-- Function type A → B -/
+| arrow : Ty s → Ty s → Ty s
 /-- Polymorphic type ∀X<:A.B -/
-| poly : Ty s -> Ty (s,X) -> Ty s
+| poly : Ty s → Ty (s,X) → Ty s
 
 /-- Rename all type variables in a type according to the given renaming. -/
-def Ty.rename : Ty s1 -> Rename s1 s2 -> Ty s2
+def Ty.rename : Ty s1 → Rename s1 s2 → Ty s2
 | .top, _ => .top
 | .tvar X, ρ => .tvar (ρ.tvar X)
 | .arrow A B, ρ => .arrow (A.rename ρ) (B.rename ρ)
@@ -51,21 +51,21 @@ def Ty.rename : Ty s1 -> Rename s1 s2 -> Ty s2
     - `tabs`: Type abstraction (ΛX<:T. e) for polymorphic functions
     - `app`: Function application (e₁ e₂)
     - `tapp`: Type application (e T) for instantiating polymorphic functions -/
-inductive Exp : Sig -> Type where
+inductive Exp : Sig → Type where
 /-- Term variable -/
-| var : Var s -> Exp s
+| var : Var s → Exp s
 /-- Function abstraction λx:T.e -/
-| abs : Ty s -> Exp (s,x) -> Exp s
+| abs : Ty s → Exp (s,x) → Exp s
 /-- Type abstraction ΛX<:T.e -/
-| tabs : Ty s -> Exp (s,X) -> Exp s
+| tabs : Ty s → Exp (s,X) → Exp s
 /-- Function application e₁ e₂ -/
-| app : Exp s -> Exp s -> Exp s
+| app : Exp s → Exp s → Exp s
 /-- Type application e[T] -/
-| tapp : Exp s -> Ty s -> Exp s
+| tapp : Exp s → Ty s → Exp s
 
 /-- Rename all variables (both term and type variables) in an expression
     according to the given renaming. -/
-def Exp.rename : Exp s1 -> Rename s1 s2 -> Exp s2
+def Exp.rename : Exp s1 → Rename s1 s2 → Exp s2
 | .var x, ρ => .var (ρ.var x)
 | .abs A e, ρ => .abs (A.rename ρ) (e.rename ρ.liftVar)
 | .tabs A e, ρ => .tabs (A.rename ρ) (e.rename ρ.liftTVar)
@@ -110,7 +110,7 @@ theorem Ty.rename_succTVar_comm {T : Ty s} :
     This predicate is used in the operational semantics to determine when
     evaluation has reached a final result. -/
 @[grind]
-inductive Exp.IsVal : Exp s -> Prop where
+inductive Exp.IsVal : Exp s → Prop where
 /-- Function abstractions are values -/
 | abs : IsVal (.abs T e)
 /-- Type abstractions are values -/

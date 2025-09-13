@@ -30,9 +30,9 @@ import Mathlib.Tactic
 inductive Sig : Type where
 | empty : Sig
 /-- Extend signature with a term variable -/
-| push_var : Sig -> Sig
+| push_var : Sig → Sig
 /-- Extend signature with a type variable -/
-| push_tvar : Sig -> Sig
+| push_tvar : Sig → Sig
 
 @[simp]
 instance : EmptyCollection Sig := ⟨Sig.empty⟩
@@ -47,32 +47,32 @@ postfix:50 ",X" => Sig.push_tvar
 /-- Term variables indexed by signatures. A `Var s` represents a term variable
     that is valid in signature `s`. The constructors correspond to different ways
     a variable can be accessed from the current context. -/
-inductive Var : Sig -> Type where
+inductive Var : Sig → Type where
 /-- The most recently bound term variable -/
 | here : Var (s,x)
 /-- Skip over the most recent term variable -/
-| there_var : Var s -> Var (s,x)
+| there_var : Var s → Var (s,x)
 /-- Skip over the most recent type variable -/
-| there_tvar : Var s -> Var (s,X)
+| there_tvar : Var s → Var (s,X)
 
 /-- Type variables indexed by signatures. A `TVar s` represents a type variable
     that is valid in signature `s`. -/
-inductive TVar : Sig -> Type where
+inductive TVar : Sig → Type where
 /-- The most recently bound type variable -/
 | here : TVar (s,X)
 /-- Skip over the most recent term variable -/
-| there_var : TVar s -> TVar (s,x)
+| there_var : TVar s → TVar (s,x)
 /-- Skip over the most recent type variable -/
-| there_tvar : TVar s -> TVar (s,X)
+| there_tvar : TVar s → TVar (s,X)
 
 /-- A renaming between signatures `s1` and `s2` specifies how to map variables
     from `s1` to variables in `s2`. This is the foundation for all variable
     renamings in the mechanization. -/
 structure Rename (s1 s2 : Sig) where
   /-- How to rename term variables -/
-  var : Var s1 -> Var s2
+  var : Var s1 → Var s2
   /-- How to rename type variables -/
-  tvar : TVar s1 -> TVar s2
+  tvar : TVar s1 → TVar s2
 
 /-- Lift a renaming to work under a new term variable binder. The new term variable
     is mapped to itself, while existing variables are renamed and shifted. -/
@@ -165,7 +165,7 @@ theorem Rename.rename_succTVar_comm {f : Rename s1 s2} :
   case tvar => intro X; rfl
 
 /-- Append two signatures, concatenating their binder sequences. -/
-def Sig.append : Sig -> Sig -> Sig
+def Sig.append : Sig → Sig → Sig
 | s1, .empty => s1
 | s1, .push_var s2 => .push_var (s1.append s2)
 | s1, .push_tvar s2 => .push_tvar (s1.append s2)
@@ -175,7 +175,7 @@ instance : Append Sig := ⟨Sig.append⟩
 
 /-- Lift a renaming to work under multiple binders specified by a signature.
     This is the generalization of `liftVar` and `liftTVar` to arbitrary sequences of binders. -/
-def Rename.lift : Rename s1 s2 -> (s : Sig) -> Rename (s1 ++ s) (s2 ++ s)
+def Rename.lift : Rename s1 s2 → (s : Sig) → Rename (s1 ++ s) (s2 ++ s)
 | f, .empty => f
 | f, .push_var s => (f.lift s).liftVar
 | f, .push_tvar s => (f.lift s).liftTVar

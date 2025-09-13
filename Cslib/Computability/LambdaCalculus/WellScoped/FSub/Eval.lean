@@ -14,14 +14,14 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Syntax
     fail with an error, or exhaust its fuel allocation. -/
 inductive Result (s : Sig) where
 /-- Successful evaluation to a value -/
-| ok : Exp s -> Result s
+| ok : Exp s → Result s
 /-- Runtime error (e.g., free variable, type mismatch) -/
 | err : Result s
 /-- Evaluation did not terminate within fuel limit -/
 | nonterm : Result s
 
 /-- Big-step evaluator with fuel-based termination. -/
-def eval : Nat -> Exp s -> Result s
+def eval : Nat → Exp s → Result s
 | 0, _ => .nonterm
 | _, .var _ => .err
 | _, .abs A e => .ok (.abs A e)

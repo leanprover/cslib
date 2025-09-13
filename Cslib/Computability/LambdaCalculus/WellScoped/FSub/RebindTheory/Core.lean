@@ -32,9 +32,9 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Syntax
     must preserve the variable and type bindings in the context. -/
 structure Rebind (Γ : Ctx s1) (f : Rename s1 s2) (Δ : Ctx s2) where
   /-- Term variable preservation: x:T in Γ implies f(x):f(T) in Δ -/
-  var : ∀ x T, Ctx.LookupVar Γ x T -> Ctx.LookupVar Δ (f.var x) (T.rename f)
+  var : ∀ x T, Ctx.LookupVar Γ x T → Ctx.LookupVar Δ (f.var x) (T.rename f)
   /-- Type variable preservation: X<:T in Γ implies f(X)<:f(T) in Δ -/
-  tvar : ∀ X T, Ctx.LookupTVar Γ X T -> Ctx.LookupTVar Δ (f.tvar X) (T.rename f)
+  tvar : ∀ X T, Ctx.LookupTVar Γ X T → Ctx.LookupTVar Δ (f.tvar X) (T.rename f)
 
 /-- **Lifting rebinding morphisms over term variable binders**.
 

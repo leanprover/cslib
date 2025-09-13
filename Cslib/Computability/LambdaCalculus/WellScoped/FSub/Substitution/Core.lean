@@ -33,9 +33,9 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Syntax.Core
     preserving well-scopedness. -/
 structure Subst (s1 s2 : Sig) where
   /-- How to substitute term variables -/
-  var : Var s1 -> Exp s2
+  var : Var s1 → Exp s2
   /-- How to substitute type variables -/
-  tvar : TVar s1 -> Ty s2
+  tvar : TVar s1 → Ty s2
 
 /-- Lift a substitution to work under a term variable binder. The newly bound
     variable is mapped to itself, while existing variables are substituted and
@@ -96,7 +96,7 @@ theorem Subst.funext {σ1 σ2 : Subst s1 s2}
 
 /-- Lift a substitution to work under multiple binders specified by a signature.
     This generalizes `liftVar` and `liftTVar` to arbitrary sequences of binders. -/
-def Subst.lift : Subst s1 s2 -> (s : Sig) -> Subst (s1 ++ s) (s2 ++ s)
+def Subst.lift : Subst s1 s2 → (s : Sig) → Subst (s1 ++ s) (s2 ++ s)
 | σ, .empty => σ
 | σ, .push_var s => (σ.lift s).liftVar
 | σ, .push_tvar s => (σ.lift s).liftTVar

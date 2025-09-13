@@ -12,7 +12,7 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.TypeSystem
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.RetypeTheory.TypeSystem
 
 /-- Predicate for empty contexts -/
-inductive Ctx.IsEmpty : Ctx s -> Prop where
+inductive Ctx.IsEmpty : Ctx s → Prop where
 | empty_is_empty : Ctx.IsEmpty .empty
 
 theorem HasType.app_inv
