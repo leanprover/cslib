@@ -1,4 +1,10 @@
 /-
+Copyright (c) 2025 Yichen Xu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yichen Xu.
+-/
+
+/-
 # Intrinsically scoped de Bruijn indices
 
 This module defines the foundation for intrinsically scoped de Bruijn indices used throughout

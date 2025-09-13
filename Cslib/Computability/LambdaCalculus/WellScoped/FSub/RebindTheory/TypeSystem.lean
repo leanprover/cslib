@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2025 Yichen Xu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yichen Xu.
+-/
+
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.RebindTheory.Core
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.TypeSystem
 import Cslib.Computability.LambdaCalculus.WellScoped.FSub.Substitution.Properties

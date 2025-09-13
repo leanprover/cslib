@@ -1,4 +1,10 @@
 /-
+Copyright (c) 2025 Yichen Xu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yichen Xu.
+-/
+
+/-
 # Properties of parallel substitution for System F<:
 
 This module establishes the fundamental algebraic properties of parallel substitution
