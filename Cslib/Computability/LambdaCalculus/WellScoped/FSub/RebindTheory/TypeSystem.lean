@@ -21,7 +21,7 @@ theorem Subtyp.rebind {f : Rename s1 s2}
     apply Subtyp.arrow <;> grind
   case poly ih1 ih2 =>
     apply Subtyp.poly <;> try grind
-    { apply ih2 ρ.liftTVar }
+    · apply ih2 ρ.liftTVar
 
 theorem HasType.rebind {f : Rename s1 s2}
   (ht : HasType Γ t T)
@@ -33,8 +33,8 @@ theorem HasType.rebind {f : Rename s1 s2}
     apply ρ.var _ _ hb
   case sub hsub _ ih =>
     apply sub
-    { apply hsub.rebind ρ }
-    { apply ih ρ }
+    · apply hsub.rebind ρ
+    · apply ih ρ
   case abs ih =>
     apply HasType.abs
     simp only [Ty.rename_succVar_comm]
@@ -44,8 +44,8 @@ theorem HasType.rebind {f : Rename s1 s2}
     apply ih ρ.liftTVar
   case app ih1 ih2 =>
     apply HasType.app
-    { apply ih1 ρ }
-    { apply ih2 ρ }
+    · apply ih1 ρ
+    · apply ih2 ρ
   case tapp ih =>
     simp only [Ty.open_tvar_rename_comm]
     apply tapp

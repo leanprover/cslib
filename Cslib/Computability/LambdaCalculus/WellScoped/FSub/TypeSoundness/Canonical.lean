@@ -105,9 +105,9 @@ theorem Subtyp.poly_inv
       have ⟨T3, T4, h⟩ := h; cases h
       have ⟨ih11, ih12⟩ := ih1 rfl rfl; have ⟨ih21, ih22⟩ := ih2 rfl rfl
       constructor
-      { grind }
-      { have ih12' := ih12.retype (Retype.narrow_tvar ih21)
-        grind [Ty.subst_id] }
+      · grind
+      · have ih12' := ih12.retype (Retype.narrow_tvar ih21)
+        grind [Ty.subst_id]
     case inr h => cases h; grind [Subtyp.top_inv]
 
 theorem Subtyp.non_tvar_left_inv
@@ -164,8 +164,8 @@ theorem HasType.tabs_inv
       have ⟨U0, ih1, ih2, ih3⟩ := ih rfl rfl
       have ⟨h1, h2⟩ := Subtyp.poly_inv hs
       use U0; split_ands <;> try grind
-      { have ih3' := ih3.retype (Retype.narrow_tvar h1)
-        grind [Ty.subst_id] }
+      · have ih3' := ih3.retype (Retype.narrow_tvar h1)
+        grind [Ty.subst_id]
     case inr h => grind [HasType.value_typing]
 
 theorem HasType.value_typing_arrow_inv

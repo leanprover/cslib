@@ -91,8 +91,8 @@ theorem Subst.funext {σ1 σ2 : Subst s1 s2}
   cases σ1; cases σ2
   simp
   constructor
-  { funext x; aesop }
-  { funext X; aesop }
+  · funext x; aesop
+  · funext X; aesop
 
 /-- Lift a substitution to work under multiple binders specified by a signature.
     This generalizes `liftVar` and `liftTVar` to arbitrary sequences of binders. -/

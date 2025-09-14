@@ -92,8 +92,8 @@ def Retype.narrow_tvar
     cases hb
     case here =>
       apply Subtyp.trans
-      { apply Subtyp.tvar; constructor }
-      { simp only [Ty.subst_id]; apply hs.rebind Rebind.succTVar }
+      · apply Subtyp.tvar; constructor
+      · simp only [Ty.subst_id]; apply hs.rebind Rebind.succTVar
     case there_tvar hb0 => apply Subtyp.tvar; grind [Ty.subst_id]
 
 /-- Creates a retyping morphism that substitutes a type for the newest type variable. -/

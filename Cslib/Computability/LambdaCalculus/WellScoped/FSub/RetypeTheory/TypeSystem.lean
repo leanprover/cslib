@@ -17,7 +17,7 @@ def Subtyp.retype {σ : Subst s1 s2}
   case arrow => apply arrow <;> aesop
   case poly ih1 ih2 =>
     apply poly <;> try grind
-    { apply ih2 ρ.liftTVar }
+    · apply ih2 ρ.liftTVar
 
 /-- Context retyping preserves typing judgments. -/
 theorem HasType.retype {σ : Subst s1 s2}
