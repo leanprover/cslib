@@ -31,8 +31,12 @@ import Cslib.Computability.LambdaCalculus.WellScoped.FSub.RebindTheory.TypeSyste
 
     Unlike rebinding morphisms, retyping morphisms map variables to typing derivations. -/
 structure Retype (Γ : Ctx s1) (σ : Subst s1 s2) (Δ : Ctx s2) where
-  var : ∀ x T, Γ.LookupVar x T → HasType Δ (σ.var x) (T.subst σ)
-  tvar : ∀ X S, Γ.LookupTVar X S → Subtyp Δ (σ.tvar X) (S.subst σ)
+  var : ∀ x T,
+    (hb : Γ.LookupVar x T) →
+    HasType Δ (σ.var x) (T.subst σ)
+  tvar : ∀ X S,
+    (hb : Γ.LookupTVar X S) →
+    Subtyp Δ (σ.tvar X) (S.subst σ)
 
 /-- Extends a retyping morphism to contexts with an additional term variable. -/
 def Retype.liftVar (ρ : Retype Γ σ Δ) : Retype (Γ,x:P) (σ.liftVar) (Δ,x:P.subst σ) where
