@@ -125,44 +125,32 @@ theorem Rename.funext {f g : Rename s1 s2}
 /-- Lifting the identity renaming gives the identity renaming. -/
 @[simp]
 theorem Rename.id_liftVar_eq_id : Rename.id.liftVar = (Rename.id (s:=(s,x))) := by
-  apply Rename.funext
-  case var => intro x; cases x <;> rfl
-  case tvar => intro X; cases X; rfl
+  apply Rename.funext <;> intro x <;> cases x <;> rfl
 
 /-- Lifting the identity renaming gives the identity renaming. -/
 @[simp]
 theorem Rename.id_liftTVar_eq_id : Rename.id.liftTVar = (Rename.id (s:=(s,X))) := by
-  apply Rename.funext
-  case var => intro x; cases x; rfl
-  case tvar => intro X; cases X <;> rfl
+  apply Rename.funext <;> intro X <;> cases X <;> rfl
 
 /-- Composition commutes with lifting over type variables. -/
 theorem Rename.comp_liftTVar {f1 : Rename s1 s2} {f2 : Rename s2 s3} :
   (f1.comp f2).liftTVar = f1.liftTVar.comp f2.liftTVar := by
-  apply Rename.funext
-  case var => intro x; cases x; rfl
-  case tvar => intro X; cases X <;> rfl
+  apply Rename.funext <;> intro X <;> cases X <;> rfl
 
 /-- Composition commutes with lifting over term variables. -/
 theorem Rename.comp_liftVar {f1 : Rename s1 s2} {f2 : Rename s2 s3} :
   (f1.comp f2).liftVar = f1.liftVar.comp f2.liftVar := by
-  apply Rename.funext
-  case var => intro x; cases x <;> rfl
-  case tvar => intro X; cases X; rfl
+  apply Rename.funext <;> intro x <;> cases x <;> rfl
 
 /-- Composing with variable weakening commutes with lifting. -/
 theorem Rename.rename_succVar_comm {f : Rename s1 s2} :
   (f.comp Rename.succVar) = Rename.succVar.comp f.liftVar := by
-  apply Rename.funext
-  case var => intro x; rfl
-  case tvar => intro X; rfl
+  apply Rename.funext <;> aesop
 
 /-- Composing with type variable weakening commutes with lifting. -/
 theorem Rename.rename_succTVar_comm {f : Rename s1 s2} :
   (f.comp Rename.succTVar) = Rename.succTVar.comp f.liftTVar := by
-  apply Rename.funext
-  case var => intro x; rfl
-  case tvar => intro X; rfl
+  apply Rename.funext <;> aesop
 
 /-- Append two signatures, concatenating their binder sequences. -/
 def Sig.append : Sig → Sig → Sig
