@@ -448,9 +448,9 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h1
         obtain ⟨s', htr⟩ := h1
         cases htr
-        case intro.refl =>
+        case refl =>
           simp
-        case intro.stepL μ sb μs' htr hmtr =>
+        case stepL μ sb μs' htr hmtr =>
           cases htr
           cases hmtr
           case one2two.stepL μ sb μs' htr hmtr =>
@@ -493,9 +493,9 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h1
         obtain ⟨s', htr⟩ := h1
         cases htr
-        case intro.refl =>
+        case refl =>
           simp
-        case intro.stepL μ sb μs' htr hmtr =>
+        case stepL μ sb μs' htr hmtr =>
           cases htr
           case five2six =>
             cases hmtr
