@@ -69,7 +69,7 @@ theorem Proof.toMProof {Γ : Sequent Atom} (p : ⊢Γ) : MProof (Multiset.ofList
   case bot Γ p ihp =>
     exact MProof.bot ihp
   case parr a b Γ p ihp =>
-    grind [MProof]
+    grind
   case tensor a Γ b Δ p q ihp ihq =>
     rw [← Multiset.cons_coe] at ihp
     rw [← Multiset.cons_coe] at ihq

@@ -872,8 +872,7 @@ theorem Lts.isWeakBisimulation_iff_isSWBisimulation
   lts.IsWeakBisimulation r ↔ lts.IsSWBisimulation r := by
   apply Iff.intro
   case mp =>
-    intro h
-    intro s1 s2 hr μ
+    intro h s1 s2 hr μ
     apply And.intro
     case left =>
       intro s1' htr
@@ -888,8 +887,7 @@ theorem Lts.isWeakBisimulation_iff_isSWBisimulation
       obtain ⟨s1', htr1, hr1⟩ := h'
       exists s1'
   case mpr =>
-    intro h
-    intro s1 s2 hr μ
+    intro h s1 s2 hr μ
     apply And.intro
     case left =>
       intro s1' hstr
