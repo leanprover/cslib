@@ -167,7 +167,7 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
       · unfold lts
         cases htr with grind [Tr.choiceR, Tr.choiceL]
       · constructor
-        grind [Bisimilarity.refl]
+        grind
     case right =>
       intro s1' htr
       exists s1'
