@@ -93,7 +93,7 @@ theorem Ty.subst_succVar_comm {T : Ty (s1 ++ s0)} (σ : Subst s1 s2) :
   | .poly T1 T2 =>
     have ih1 := Ty.subst_succVar_comm (T:=T1) (σ:=σ)
     have ih2 := Ty.subst_succVar_comm (s0:=s0,X) (T:=T2) (σ:=σ)
-    simp [Ty.subst, Ty.rename, ih1]; exact ih2
+    simpa [Ty.subst, Ty.rename, ih1]
 
 /-- Proves that substitution commutes with type variable weakening for types. -/
 theorem Ty.subst_succTVar_comm {T : Ty (s1 ++ s0)} (σ : Subst s1 s2) :
@@ -109,7 +109,7 @@ theorem Ty.subst_succTVar_comm {T : Ty (s1 ++ s0)} (σ : Subst s1 s2) :
   | .poly T1 T2 =>
     have ih1 := Ty.subst_succTVar_comm (T:=T1) (σ:=σ)
     have ih2 := Ty.subst_succTVar_comm (s0:=s0,X) (T:=T2) (σ:=σ)
-    simp [Ty.subst, Ty.rename, ih1]; exact ih2
+    simpa [Ty.subst, Ty.rename, ih1]
 
 /-- Base case of substitution commuting with term variable weakening. -/
 theorem Ty.subst_succVar_comm_base {T : Ty s1} (σ : Subst s1 s2) :
@@ -291,7 +291,7 @@ theorem Exp.subst_asSubst {e : Exp s1} {f : Rename s1 s2} :
   e.subst f.asSubst = e.rename f := by
   induction e generalizing s2
   case var x => rfl
-  all_goals (simp [Exp.subst, Exp.rename,
+  all_goals (simp only [Exp.subst, Exp.rename,
     Ty.subst_asSubst, Rename.asSubst_liftVar_comm, Rename.asSubst_liftTVar_comm]; grind)
 
 /-- Shows that lifting the identity substitution for term variables gives the identity. -/
@@ -330,7 +330,7 @@ theorem Subst.open_tvar_rename_comm {T : Ty s} {f : Rename s s'} :
 /-- Proves that opening a type variable commutes with renaming for types. -/
 theorem Ty.open_tvar_rename_comm {T : Ty (s,X)} {U : Ty s} {f : Rename s s'} :
   (T.open_tvar U).rename f = (T.rename f.liftTVar).open_tvar (U.rename f) := by
-  simp [Ty.open_tvar, ←Ty.subst_asSubst]
+  simp only [Ty.open_tvar, ←Ty.subst_asSubst]
   grind [Ty.subst_comp, Subst.open_tvar_rename_comm, Ty.subst_asSubst]
 
 /-- Shows that successively weakening then opening a type variable gives the identity. -/
@@ -341,14 +341,14 @@ theorem Subst.succTVar_open_tvar {T : Ty s} :
 theorem Exp.rename_succTVar_open_tvar {e : Exp s} :
   (e.rename Rename.succTVar).subst (Subst.open_tvar X) =
     e := by
-  simp [←Exp.subst_asSubst]
+  simp only [←Exp.subst_asSubst]
   grind [Exp.subst_comp, Subst.succTVar_open_tvar, Exp.subst_id]
 
 /-- Proves that renaming with succTVar then opening cancels out for types. -/
 theorem Ty.rename_succTVar_open_tvar {T : Ty s} :
   (T.rename Rename.succTVar).subst (Subst.open_tvar X) =
     T := by
-  simp [←Ty.subst_asSubst]
+  simp only [←Ty.subst_asSubst]
   grind [Ty.subst_comp, Subst.succTVar_open_tvar, Ty.subst_id]
 
 /-- Shows that successively weakening then opening a term variable gives the identity. -/
@@ -359,14 +359,14 @@ theorem Subst.succVar_open_var {e : Exp s} :
 theorem Exp.rename_succVar_open_var {e : Exp s} :
   (e.rename Rename.succVar).subst (Subst.open_var X) =
     e := by
-  simp [←Exp.subst_asSubst]
+  simp only [←Exp.subst_asSubst]
   grind [Exp.subst_comp, Subst.succVar_open_var, Exp.subst_id]
 
 /-- Proves that renaming with succVar then opening cancels out for types. -/
 theorem Ty.rename_succVar_open_var {T : Ty s} :
   (T.rename Rename.succVar).subst (Subst.open_var X) =
     T := by
-  simp [←Ty.subst_asSubst]
+  simp only [←Ty.subst_asSubst]
   grind [Ty.subst_comp, Subst.succVar_open_var, Ty.subst_id]
 
 /-- Proves that opening a type variable commutes with substitution for substitutions. -/

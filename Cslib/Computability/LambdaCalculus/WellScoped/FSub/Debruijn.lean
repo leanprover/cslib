@@ -119,8 +119,8 @@ def Rename.comp (f1 : Rename s1 s2) (f2 : Rename s2 s3) : Rename s1 s3 where
 theorem Rename.funext {f g : Rename s1 s2}
   (var : ∀ x, f.var x = g.var x)
   (tvar : ∀ X, f.tvar X = g.tvar X) : f = g := by
-  cases f; cases g; simp
-  split_ands <;> aesop
+  cases f; cases g
+  aesop
 
 /-- Lifting the identity renaming gives the identity renaming. -/
 @[simp]
