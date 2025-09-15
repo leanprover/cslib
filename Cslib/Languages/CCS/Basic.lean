@@ -53,7 +53,7 @@ def Act.IsVisible (μ : Act Name) : Prop :=
   | τ => False
 
 /-- The type of visible actions. -/
-def VisibleAct := { μ : Act Name // μ.IsVisible }
+abbrev VisibleAct := { μ : Act Name // μ.IsVisible }
 
 instance : Coe (VisibleAct Name) (Act Name) where
   coe μ := μ.val
@@ -109,8 +109,8 @@ theorem VisibleAct.neq_τ (μ : VisibleAct Name) : μ.val ≠ Act.τ := by
 @[grind]
 def VisibleAct.co {Name : Type u} (μ : VisibleAct Name) : VisibleAct Name :=
   match μ with
-  | Subtype.mk (Act.name a) _ => ⟨Act.coname a, True.intro⟩
-  | Subtype.mk (Act.coname a) _ => ⟨Act.name a, True.intro⟩
+  | ⟨Act.name a, _⟩ => ⟨Act.coname a, True.intro⟩
+  | ⟨Act.coname a, _⟩ => ⟨Act.name a, True.intro⟩
 
 /-- `Act.co` is an involution. -/
 theorem Act.co.involution (μ : VisibleAct Name) : μ.co.co = μ := by
@@ -118,6 +118,7 @@ theorem Act.co.involution (μ : VisibleAct Name) : μ.co.co = μ := by
   grind [VisibleAct.co]
 
 /-- Contexts. -/
+@[grind]
 inductive Context : Type (max u v) where
   | hole
   | pre (μ : Act Name) (c : Context)
@@ -129,6 +130,7 @@ inductive Context : Type (max u v) where
 deriving DecidableEq
 
 /-- Replaces the hole in a `Context` with a `Process`. -/
+@[grind]
 def Context.fill {Name : Type u} {Constant : Type v} (c : Context Name Constant) (p : Process Name Constant) : Process Name Constant :=
   match c with
   | hole => p
@@ -141,35 +143,31 @@ def Context.fill {Name : Type u} {Constant : Type v} (c : Context Name Constant)
 
 /-- Any `Process` can be obtained by filling a `Context` with an atom. This proves that `Context`
 is a complete formalisation of syntactic contexts for CCS. -/
-theorem Context.complete (p : Process Name Constant) : ∃ c : Context Name Constant, p = (c.fill Process.nil) ∨ ∃ k : Constant, p = c.fill (Process.const k) := by
+theorem Context.complete (p : Process Name Constant) :
+  ∃ c : Context Name Constant, p = (c.fill Process.nil) ∨
+  ∃ k : Constant, p = c.fill (Process.const k) := by
   induction p
   case nil =>
     exists hole
-    left
-    simp [fill]
+    grind
   case pre μ p ih =>
     obtain ⟨c, hc⟩ := ih
     exists pre μ c
-    simp [fill]
-    assumption
+    grind
   case par p q ihp ihq =>
     obtain ⟨cp, hcp⟩ := ihp
     exists parL cp q
-    simp [fill]
-    assumption
+    grind
   case choice p q ihp ihq =>
     obtain ⟨cp, hcp⟩ := ihp
     exists choiceL cp q
-    simp [fill]
-    assumption
+    grind
   case res a p ih =>
     obtain ⟨c, hc⟩ := ih
     exists res a c
-    simp [fill]
-    assumption
+    grind
   case const k =>
     exists hole
-    right
-    exists k
+    grind
 
 end CCS

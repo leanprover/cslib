@@ -115,20 +115,6 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
 private inductive ParAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
 | parAssoc : ParAssoc (par p (par q r)) (par (par p q) r)
 
-@[cases_eliminator, elab_as_elim]
-def Act.casesOnVisible {Name : Type u} {motive : Act Name → Sort _}
-  (μ : Act Name) (hv : μ.IsVisible)
-  (name : (a : Name) → motive (Act.name a))
-  (coname : (a : Name) → motive (Act.coname a))
-  : motive μ := by
-  cases μ
-  case name a =>
-    apply name a
-  case coname a =>
-    apply coname a
-  case τ =>
-    cases hv
-
 /-- P | (Q | R) ~ (P | Q) | R -/
 theorem bisimilarity_par_assoc :
   (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
@@ -149,19 +135,11 @@ theorem bisimilarity_par_assoc :
             exact htr'
           · constructor
         case com _ _ _ p' qr' μ htr1 htr2 =>
-          cases htr2
-          -- cases μ
-          -- case name a =>
-          --   cases htr2
-          --   case parL _ q' htr2' =>
-          --     exists (p'.par q').par r
-          --     constructor
-          --     · apply Tr.parL
-          --       apply
-
-
-
-
+          haveI : μ.co.1 ≠ τ := by
+            simp
+          cases μ -- FM: It's annoying I have to do this first!
+            <;> cases htr2
+          sorry
 
 
 /-- P + 𝟎 ~ P -/
