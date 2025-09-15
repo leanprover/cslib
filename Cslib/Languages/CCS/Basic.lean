@@ -53,18 +53,69 @@ def Act.IsVisible (μ : Act Name) : Prop :=
   | τ => False
 
 /-- The type of visible actions. -/
-abbrev VisibleAct := { μ : Act Name // μ.IsVisible }
+def VisibleAct := { μ : Act Name // μ.IsVisible }
+
+instance : Coe (VisibleAct Name) (Act Name) where
+  coe μ := μ.val
+
+@[cases_eliminator, elab_as_elim]
+def VisibleAct.casesOn {Name : Type u} {motive : VisibleAct Name → Sort _} (μ : VisibleAct Name)
+  (name : (a : Name) → motive ⟨Act.name a, by constructor⟩)
+  (coname : (a : Name) → motive ⟨Act.coname a, by constructor⟩) :
+  motive μ := by
+  rcases μ with ⟨μ, hv⟩
+  cases μ
+  case mk.name a =>
+    apply name a
+  case mk.coname a =>
+    apply coname a
+  case mk.τ =>
+    cases hv
+
+@[elab_as_elim]
+def VisibleAct.rec {Name : Type u} {motive : VisibleAct Name → Sort _}
+  (name : (a : Name) → motive ⟨Act.name a, by simp [Act.IsVisible]⟩)
+  (coname : (a : Name) → motive ⟨Act.coname a, by simp [Act.IsVisible]⟩)
+  (μ : VisibleAct Name) :
+  motive μ := by
+  rcases μ with ⟨μ, hv⟩
+  cases μ
+  case mk.name a =>
+    apply name a
+  case mk.coname a =>
+    apply coname a
+  case mk.τ =>
+    cases hv
+
+@[elab_as_elim]
+def VisibleAct.recOn {Name : Type u} {motive : VisibleAct Name → Sort _} (μ : VisibleAct Name)
+  (name : (a : Name) → motive ⟨Act.name a, by simp [Act.IsVisible]⟩)
+  (coname : (a : Name) → motive ⟨Act.coname a, by simp [Act.IsVisible]⟩) :
+  motive μ := by
+  rcases μ with ⟨μ, hv⟩
+  cases μ
+  case mk.name a =>
+    apply name a
+  case mk.coname a =>
+    apply coname a
+  case mk.τ =>
+    cases hv
+
+@[grind, simp]
+theorem VisibleAct.neq_τ (μ : VisibleAct Name) : μ.val ≠ Act.τ := by
+  cases μ <;> grind
 
 /-- Co action. -/
 @[grind]
-def VisibleAct.co (μ : VisibleAct Name) : VisibleAct Name :=
-  match h : μ.val with
-  | Act.name a => ⟨Act.coname a, by grind⟩
-  | Act.coname a => ⟨Act.name a, by grind⟩
-  | .τ => by grind
+def VisibleAct.co {Name : Type u} (μ : VisibleAct Name) : VisibleAct Name :=
+  match μ with
+  | Subtype.mk (Act.name a) _ => ⟨Act.coname a, True.intro⟩
+  | Subtype.mk (Act.coname a) _ => ⟨Act.name a, True.intro⟩
 
 /-- `Act.co` is an involution. -/
-theorem Act.co.involution (μ : VisibleAct Name) : μ.co.co = μ := by grind
+theorem Act.co.involution (μ : VisibleAct Name) : μ.co.co = μ := by
+  simp only [VisibleAct.co]
+  grind [VisibleAct.co]
 
 /-- Contexts. -/
 inductive Context : Type (max u v) where

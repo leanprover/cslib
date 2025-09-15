@@ -112,9 +112,57 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind
     _ ~[lts (defs := defs)] p := by simp
 
+private inductive ParAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
+| parAssoc : ParAssoc (par p (par q r)) (par (par p q) r)
+
+@[cases_eliminator, elab_as_elim]
+def Act.casesOnVisible {Name : Type u} {motive : Act Name → Sort _}
+  (μ : Act Name) (hv : μ.IsVisible)
+  (name : (a : Name) → motive (Act.name a))
+  (coname : (a : Name) → motive (Act.coname a))
+  : motive μ := by
+  cases μ
+  case name a =>
+    apply name a
+  case coname a =>
+    apply coname a
+  case τ =>
+    cases hv
+
 /-- P | (Q | R) ~ (P | Q) | R -/
-proof_wanted bisimilarity_par_assoc :
-  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r)
+theorem bisimilarity_par_assoc :
+  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
+  exists ParAssoc
+  constructor
+  · constructor
+  · intro s1 s2 hr μ
+    cases hr
+    case parAssoc p q r =>
+      constructor
+      · intro s1' htr
+        cases htr
+        case parL p' htr' =>
+          exists (p'.par q).par r
+          constructor
+          · apply Tr.parL
+            apply Tr.parL
+            exact htr'
+          · constructor
+        case com _ _ _ p' qr' μ htr1 htr2 =>
+          cases htr2
+          -- cases μ
+          -- case name a =>
+          --   cases htr2
+          --   case parL _ q' htr2' =>
+          --     exists (p'.par q').par r
+          --     constructor
+          --     · apply Tr.parL
+          --       apply
+
+
+
+
+
 
 /-- P + 𝟎 ~ P -/
 proof_wanted bisimilarity_choice_nil :
