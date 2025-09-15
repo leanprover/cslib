@@ -10,7 +10,7 @@ weak.linter.flexible = true
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.22.0"
+rev = "v4.23.0"
 
 [[lean_lib]]
 name = "Cslib"
