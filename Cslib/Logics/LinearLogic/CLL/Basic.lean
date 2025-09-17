@@ -169,6 +169,30 @@ theorem Proof.ax' {a : Proposition Atom} : Proof [a⫠, a] :=
 theorem Proof.cut' (p : ⊢(a⫠ :: Γ)) (q : ⊢(a :: Δ)) : ⊢(Γ ++ Δ) := by
   grind [Proof.cut, Proposition.dual.involution]
 
+/-- Inversion of the ⅋ rule. -/
+theorem Proof.parr_inversion {a b} {Γ : Sequent Atom}
+  (h : ⊢((a ⅋ b) :: Γ)) : ⊢(a :: b :: Γ) := by
+  apply Proof.cut' (a := (a ⅋ b)) (Γ := [a, b]) (Δ := Γ)
+  · apply Proof.tensor (Γ := [a]) <;> exact Proof.ax'
+  · exact h
+
+/-- Inversion of the ⊥ rule. -/
+theorem Proof.bot_inversion {Γ : Sequent Atom} (h : ⊢(⊥ :: Γ)) : ⊢Γ := by
+  apply Proof.cut' (a := ⊥) (Γ := []) (Δ := Γ)
+  · exact Proof.one
+  · exact h
+
+/-- Inversion of the & rule. -/
+theorem Proof.with_inversion {a b : Proposition Atom} {Γ : Sequent Atom}
+    (h : ⊢((a & b) :: Γ)) : ⊢(a :: Γ) ∧ ⊢(b :: Γ) := by
+  constructor
+  · apply Proof.cut' (a := a & b) (Γ := [a]) (Δ := Γ)
+    · exact Proof.oplus₁ Proof.ax'
+    · exact h
+  · apply Proof.cut' (a := a & b) (Γ := [b]) (Δ := Γ)
+    · exact Proof.oplus₂ Proof.ax'
+    · exact h
+
 section LogicalEquiv
 
 /-! ## Logical equivalences -/
