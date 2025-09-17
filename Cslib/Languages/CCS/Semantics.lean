@@ -31,8 +31,8 @@ inductive Tr : Process Name Constant → Act Name → Process Name Constant → 
   | pre : Tr (pre μ p) μ p
   | parL : Tr p μ p' → Tr (par p q) μ (par p' q)
   | parR : Tr q μ q' → Tr (par p q) μ (par p q')
-  | com {μ : VisibleAct Name} :
-    Tr p μ p' → Tr q μ.co q' → Tr (par p q) Act.τ (par p' q')
+  | com :
+    μ.Co μ' → Tr p μ p' → Tr q μ' q' → Tr (par p q) Act.τ (par p' q')
   | choiceL : Tr p μ p' → Tr (choice p q) μ p'
   | choiceR : Tr q μ q' → Tr (choice p q) μ q'
   | res : μ ≠ Act.name a → μ ≠ Act.coname a → Tr p μ p' → Tr (res a p) μ (res a p')

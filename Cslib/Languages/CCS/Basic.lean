@@ -23,110 +23,113 @@ option of constant definitions (K = P).
 * [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
 
-variable (Name : Type u) (Constant : Type v)
-
 namespace CCS
 
+universe u v
+
 /-- Actions. -/
-inductive Act : Type u where
+inductive Act (Name : Type u) : Type u where
   | name (a : Name)
   | coname (a : Name)
   | τ
 deriving DecidableEq
 
 /-- Processes. -/
-inductive Process : Type (max u v) where
+inductive Process (Name : Type u) (Constant : Type v) : Type (max u v) where
   | nil
-  | pre (μ : Act Name) (p : Process)
-  | par (p q : Process)
-  | choice (p q : Process)
-  | res (a : Name) (p : Process)
+  | pre (μ : Act Name) (p : Process Name Constant)
+  | par (p q : Process Name Constant)
+  | choice (p q : Process Name Constant)
+  | res (a : Name) (p : Process Name Constant)
   | const (c : Constant)
 deriving DecidableEq
 
 /-- An action is visible if it a name or a coname. -/
 @[grind]
-def Act.IsVisible (μ : Act Name) : Prop :=
-  match μ with
-  | name _ => True
-  | coname _ => True
-  | τ => False
+inductive Act.IsVisible : Act Name → Prop where
+  | name : IsVisible (Act.name a)
+  | coname : IsVisible (Act.coname a)
 
-/-- The type of visible actions. -/
-abbrev VisibleAct := { μ : Act Name // μ.IsVisible }
-
-instance : Coe (VisibleAct Name) (Act Name) where
-  coe μ := μ.val
-
-@[cases_eliminator, elab_as_elim]
-def VisibleAct.casesOn {Name : Type u} {motive : VisibleAct Name → Sort _} (μ : VisibleAct Name)
-  (name : (a : Name) → motive ⟨Act.name a, by constructor⟩)
-  (coname : (a : Name) → motive ⟨Act.coname a, by constructor⟩) :
-  motive μ := by
-  rcases μ with ⟨μ, hv⟩
-  cases μ
-  case mk.name a =>
-    apply name a
-  case mk.coname a =>
-    apply coname a
-  case mk.τ =>
-    cases hv
-
-@[elab_as_elim]
-def VisibleAct.rec {Name : Type u} {motive : VisibleAct Name → Sort _}
-  (name : (a : Name) → motive ⟨Act.name a, by simp [Act.IsVisible]⟩)
-  (coname : (a : Name) → motive ⟨Act.coname a, by simp [Act.IsVisible]⟩)
-  (μ : VisibleAct Name) :
-  motive μ := by
-  rcases μ with ⟨μ, hv⟩
-  cases μ
-  case mk.name a =>
-    apply name a
-  case mk.coname a =>
-    apply coname a
-  case mk.τ =>
-    cases hv
-
-@[elab_as_elim]
-def VisibleAct.recOn {Name : Type u} {motive : VisibleAct Name → Sort _} (μ : VisibleAct Name)
-  (name : (a : Name) → motive ⟨Act.name a, by simp [Act.IsVisible]⟩)
-  (coname : (a : Name) → motive ⟨Act.coname a, by simp [Act.IsVisible]⟩) :
-  motive μ := by
-  rcases μ with ⟨μ, hv⟩
-  cases μ
-  case mk.name a =>
-    apply name a
-  case mk.coname a =>
-    apply coname a
-  case mk.τ =>
-    cases hv
-
+/-- If an action is visible, it is not `τ`. -/
 @[grind, simp]
-theorem VisibleAct.neq_τ (μ : VisibleAct Name) : μ.val ≠ Act.τ := by
+theorem Act.isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by
   cases μ <;> grind
 
-/-- Co action. -/
+/-- Checks that an action is the coaction of another. -/
 @[grind]
-def VisibleAct.co {Name : Type u} (μ : VisibleAct Name) : VisibleAct Name :=
-  match μ with
-  | ⟨Act.name a, _⟩ => ⟨Act.coname a, True.intro⟩
-  | ⟨Act.coname a, _⟩ => ⟨Act.name a, True.intro⟩
+inductive Act.Co {Name : Type u} : Act Name → Act Name → Prop where
+  | nc : Act.Co (Act.name a) (Act.coname a)
+  | cn : Act.Co (Act.coname a) (Act.name a)
 
-/-- `Act.co` is an involution. -/
-theorem Act.co.involution (μ : VisibleAct Name) : μ.co.co = μ := by
-  simp only [VisibleAct.co]
-  grind [VisibleAct.co]
+/-- `Act.Co` is symmetric. -/
+@[grind, symm]
+theorem Act.Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
+
+/-- If two actions are one the coaction of the other, then they are both visible. -/
+@[grind]
+theorem Act.co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
+
+/-- `Act.Co` is decidable if `Name` equality is decidable. -/
+instance {Name : Type u} [hdec : DecidableEq Name] {μ μ' : Act Name} :
+  Decidable (Act.Co μ μ') := by
+  cases μ
+  case name a =>
+    cases μ'
+    case name b =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+    case coname b =>
+      by_cases hab : a = b
+      case pos =>
+        rw [hab]
+        apply Decidable.isTrue
+        constructor
+      case neg =>
+        apply Decidable.isFalse
+        intro h'
+        cases h'
+        contradiction
+    case τ =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+  case coname a =>
+    cases μ'
+    case name b =>
+      by_cases hab : a = b
+      case pos =>
+        rw [hab]
+        apply Decidable.isTrue
+        constructor
+      case neg =>
+        apply Decidable.isFalse
+        intro h'
+        cases h'
+        contradiction
+    case coname b =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+    case τ =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+  case τ =>
+    apply Decidable.isFalse
+    intro h'
+    cases h'
 
 /-- Contexts. -/
 @[grind]
-inductive Context : Type (max u v) where
+inductive Context (Name : Type u) (Constant : Type v): Type (max u v) where
   | hole
-  | pre (μ : Act Name) (c : Context)
-  | parL (c : Context) (q : Process Name Constant)
-  | parR (p : Process Name Constant) (c : Context)
-  | choiceL (c : Context) (q : Process Name Constant)
-  | choiceR (p : Process Name Constant) (c : Context)
-  | res (a : Name) (c : Context)
+  | pre (μ : Act Name) (c : Context Name Constant)
+  | parL (c : Context Name Constant) (q : Process Name Constant)
+  | parR (p : Process Name Constant) (c : Context Name Constant)
+  | choiceL (c : Context Name Constant) (q : Process Name Constant)
+  | choiceR (p : Process Name Constant) (c : Context Name Constant)
+  | res (a : Name) (c : Context Name Constant)
 deriving DecidableEq
 
 /-- Replaces the hole in a `Context` with a `Process`. -/

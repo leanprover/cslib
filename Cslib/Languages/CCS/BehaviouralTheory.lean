@@ -79,11 +79,10 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
           constructor
           · apply Tr.parL htr'
           · constructor
-        case com p q p' q' μ htrp htrq =>
+        case com μ p' μ' q' hco htrp htrq =>
           exists (par q' p')
           constructor
-          · rw [← Act.co.involution Name μ] at htrp
-            apply Tr.com htrq htrp
+          · apply Tr.com hco.symm htrq htrp
           · constructor
       case right =>
         intro t htr
@@ -98,11 +97,10 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
           constructor
           · apply Tr.parL htr'
           · constructor
-        case com p q p' q' μ htrp htrq =>
+        case com μ p' μ' q' hco htrp htrq =>
           exists (par q' p')
           constructor
-          · rw [← Act.co.involution Name μ] at htrp
-            apply Tr.com htrq htrp
+          · apply Tr.com hco.symm htrq htrp
           · constructor
 
 /-- 𝟎 | P ~ P -/
@@ -112,35 +110,9 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind
     _ ~[lts (defs := defs)] p := by simp
 
-private inductive ParAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
-| parAssoc : ParAssoc (par p (par q r)) (par (par p q) r)
-
 /-- P | (Q | R) ~ (P | Q) | R -/
-theorem bisimilarity_par_assoc :
-  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
-  exists ParAssoc
-  constructor
-  · constructor
-  · intro s1 s2 hr μ
-    cases hr
-    case parAssoc p q r =>
-      constructor
-      · intro s1' htr
-        cases htr
-        case parL p' htr' =>
-          exists (p'.par q).par r
-          constructor
-          · apply Tr.parL
-            apply Tr.parL
-            exact htr'
-          · constructor
-        case com _ _ _ p' qr' μ htr1 htr2 =>
-          haveI : μ.co.1 ≠ τ := by
-            simp
-          cases μ -- FM: It's annoying I have to do this first!
-            <;> cases htr2
-          sorry
-
+proof_wanted bisimilarity_par_assoc :
+  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r)
 
 /-- P + 𝟎 ~ P -/
 proof_wanted bisimilarity_choice_nil :
@@ -397,11 +369,11 @@ theorem bisimilarity_congr_par :
         · apply Tr.parR htr
         · constructor
           apply Bisimilarity.largest_bisimulation hb hr
-      case com _ _ p' r' μ' htrp htrr =>
+      case com _ p' _ r' hco htrp htrr =>
         obtain ⟨q', htr2, hr2⟩ := hb.follow_fst hr htrp
         exists (par q' r')
         constructor
-        · apply Tr.com htr2 htrr
+        · apply Tr.com hco htr2 htrr
         · constructor
           apply Bisimilarity.largest_bisimulation hb hr2
   case right =>
@@ -423,11 +395,11 @@ theorem bisimilarity_congr_par :
         · apply Tr.parR htr
         · constructor
           apply Bisimilarity.largest_bisimulation hb hr
-      case com _ _ p' r' μ' htrq htrr =>
+      case com _ p' _ r' hco htrq htrr =>
         obtain ⟨q', htr2, hr2⟩ := hb.follow_snd hr htrq
         exists (par q' r')
         constructor
-        · apply Tr.com htr2 htrr
+        · apply Tr.com hco htr2 htrr
         · constructor
           apply Bisimilarity.largest_bisimulation hb hr2
 
