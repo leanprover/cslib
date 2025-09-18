@@ -6,20 +6,44 @@ Authors: Fabrizio Montesi, Xueying Qin
 
 import Mathlib.Data.Finset.Basic
 
-/-! # Finite Functions
+/-! # Finitely-representable Functions
 
-*Note:* the API and notation of `FinFun` is still unstable.
-
-A `FinFun α β` is a function from `α` to `β` with a finite domain of definition.
+Given types `α` and `β`, and assuming that `β` has a `Zero` element,
+a `FinFun α β` is a function from `α` to `β` with finite support.
 -/
 
-/-- A finite function FinFun is a function `f` equipped with a domain of definition `dom`. -/
-structure FinFun (α : Type u) (β : Type v) where
+/-- A finite function FinFun is a function `f` with a finite `support`. -/
+structure FinFun (α : Type _) (β : Type _) [Zero β] where
   f : α → β
-  dom : Finset α
+  support : Finset α
+  support_complete : ∀ x, x ∉ support ↔ f x = 0
 
-notation:50 α " ⇀ " β => FinFun α β
-notation:50 f "↾" dom => FinFun.mk f dom
+namespace FinFun
+
+scoped notation:50 α " →₀ " β => FinFun α β
+
+def fromFun {α β : Type _} [Zero β] [hdec : ∀ x : β, Decidable (x = 0)]
+  (f : α → β) (support : Finset α) : α →₀ β := {
+  f := (fun x => if x ∈ support then f x else 0)
+  support := support.filter (self.f · ≠ 0)
+  support_complete := by
+    intro x
+    constructor
+    case mp =>
+      intro h
+
+      rw [Finset.mem_filter] at h
+      simp only [ne_eq, Finset.mem_filter, not_and, Decidable.not_not] at h
+      specialize h
+
+
+      cases hdec
+
+      case isFalse hdec' =>
+
+}
+
+scoped notation:50 f "↾" support => FinFun.mk f support
 
 abbrev CompleteDom [Zero β] (f : α ⇀ β) := ∀ x, x ∉ f.dom → f.f x = 0
 
@@ -36,7 +60,7 @@ instance [DecidableEq α] [Zero β] : Coe (α ⇀ β) (α → β) where
   coe := FinFun.toFun
 
 theorem FinFun.toFun_char [DecidableEq α] [Zero β]
-    {f g : α ⇀ β} (h : (f : α → β) = (g : α → β)) (x) : 
+    {f g : α ⇀ β} (h : (f : α → β) = (g : α → β)) (x) :
     (x ∈ (f.dom ∩ g.dom) →
     f.apply x = g.apply x) ∧ (x ∈ (f.dom \ g.dom) →
     f.apply x = Zero.zero) ∧ (x ∈ (g.dom \ f.dom) → g.apply x = Zero.zero) := by
@@ -47,7 +71,7 @@ theorem FinFun.toFun_dom [DecidableEq α] [Zero β] {f : α ⇀ β}
     (h : ∀ x, x ∉ f.dom → f.apply x = Zero.zero) : (f : α → β) = f.f := by
   grind [FinFun.toFun]
 
-def FinFun.mapBin [DecidableEq α] (f g : α ⇀ β) (op : Option β → Option β → Option β) : 
+def FinFun.mapBin [DecidableEq α] (f g : α ⇀ β) (op : Option β → Option β → Option β) :
     Option (α ⇀ β) :=
   if f.dom = g.dom ∧ ∀ x ∈ f.dom, (op (some (f.f x)) (some (g.f x))).isSome then
     some {
@@ -93,17 +117,19 @@ lemma Function.toFinFun_eq [DecidableEq α] [Zero β] (f : α → β) (dom : Fin
 theorem FinFun.toDomFun_char (f : α ⇀ β) (h : x ∈ f.dom) : f.toDomFun ⟨ x, h ⟩ = f.f x := by
   simp [FinFun.toDomFun]
 
-theorem FinFun.congrFinFun [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) (a : α) : 
+theorem FinFun.congrFinFun [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) (a : α) :
     f.apply a = g.apply a := congrFun (congrArg apply h) a
 
-theorem FinFun.eq_char₁ [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) : 
+theorem FinFun.eq_char₁ [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) :
     f.f = g.f ∧ f.dom = g.dom := ⟨congrArg FinFun.f h, congrArg dom h⟩
 
-theorem FinFun.eq_char₂ [DecidableEq α] [Zero β] {f g : α ⇀ β} (heq : f.f = g.f ∧ f.dom = g.dom) : 
+theorem FinFun.eq_char₂ [DecidableEq α] [Zero β] {f g : α ⇀ β} (heq : f.f = g.f ∧ f.dom = g.dom) :
     f = g := by
   cases f
   cases g
   grind
 
-theorem FinFun.eq_char [DecidableEq α] [Zero β] {f g : α ⇀ β} : 
+theorem FinFun.eq_char [DecidableEq α] [Zero β] {f g : α ⇀ β} :
     f = g ↔ f.f = g.f ∧ f.dom = g.dom := by grind [FinFun.eq_char₁, FinFun.eq_char₂]
+
+end FinFun
