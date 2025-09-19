@@ -134,7 +134,7 @@ def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ 
 @[inherit_doc] scoped infix:25 " ⊸ " => Proposition.linImpl
 
 /-- A sequent in CLL is a list of propositions. -/
-abbrev Sequent (Atom) := List (Proposition Atom)
+abbrev Sequent Atom := List (Proposition Atom)
 
 -- TODO: This should become a Bool.
 /-- Checks that all propositions in `Γ` are question marks. -/
@@ -228,25 +228,41 @@ section LogicalEquiv
 
 /-! ## Logical equivalences -/
 
-/-- Two propositions are equivalent if one implies the other and vice versa. -/
-def Proposition.Equiv (a b : Proposition Atom) : Prop := ⊢[a⫠, b] ∧ ⊢[b⫠, a]
+/-- Two propositions are equivalent if one implies the other and vice versa.
+Proof-relevant version. -/
+def Proposition.equiv (a b : Proposition Atom) := ⇓[a⫠, b] × ⇓[b⫠, a]
+
+/-- Propositional equivalence, proof-irrelevant version (`Prop`). -/
+def Proposition.Equiv (a b : Proposition Atom) := ⊢[a⫠, b] ∧ ⊢[b⫠, a]
+
+/-- Conversion from proof-relevant to proof-irrelevant versions of propositional
+equivalence. -/
+theorem Proposition.equiv.toProp (h : Proposition.equiv a b) : Proposition.Equiv a b := by
+  obtain ⟨p, q⟩ := h
+  apply Provable.fromProof at p
+  apply Provable.fromProof at q
+  constructor <;> assumption
+
+instance {a b : Proposition Atom} : Coe (a.equiv b) (a.Equiv b) where
+  coe := Proposition.equiv.toProp
 
 scoped infix:29 " ≡ " => Proposition.Equiv
 
 namespace Proposition
 
-@[refl]
-theorem refl (a : Proposition Atom) : a ≡ a := by
+def equiv.refl (a : Proposition Atom) : a.equiv a := by
   constructor <;> (
-    apply Provable.fromProof
     apply Proof.exchange (List.Perm.swap ..)
     exact Proof.ax
   )
 
-@[symm]
-theorem symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
+@[refl]
+theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
 
-theorem trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
+@[symm]
+theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
+
+theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   ⟨
     Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hab.1.toProof) hbc.1),
     Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hbc.2.toProof) hab.2)
@@ -254,7 +270,7 @@ theorem trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡
 
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
-  ⟨Equiv, refl, symm, trans⟩
+  ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
 
 theorem bang_top_eqv_one : (!⊤ : Proposition Atom) ≡ 1 := by
   constructor
