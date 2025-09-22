@@ -47,10 +47,9 @@ attribute [scoped grind] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
--- TODO: rename this
 /-- Subtypes have well-formed contexts and types. -/
 @[grind →]
-lemma lc (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.Wf Γ ∧ σ'.Wf Γ := by
+lemma wf (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.Wf Γ ∧ σ'.Wf Γ := by
   induction sub with
   | all => 
     refine ⟨by grind, ?_, ?_⟩ <;>
@@ -70,7 +69,7 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   case all => 
     subst eq
     apply all (free_union [Context.dom] Var) <;> grind [keys_append]
-  all_goals grind [Ty.Wf.weaken_head, Env.Wf.to_ok, Ty.Wf.weaken, sublist_dlookup]
+  all_goals grind [Env.Wf.to_ok, Ty.Wf.weaken, sublist_dlookup]
 
 lemma narrow_aux
     (trans : ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ)
@@ -85,7 +84,7 @@ lemma narrow_aux
     have := perm_dlookup (p := p δ)
     grind [Sub.weaken, Env.Wf.to_ok, sublist_append_of_sublist_right]
   case all => apply Sub.all (free_union Var) <;> grind
-  all_goals grind [Ty.Wf.weaken_head, Env.Wf.narrow, Env.Wf.to_ok, Ty.Wf.narrow]
+  all_goals grind [Env.Wf.narrow, Env.Wf.to_ok, Ty.Wf.narrow]
 
 @[grind →]
 lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
@@ -136,7 +135,7 @@ lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) :  Sub (
   generalize eq : Γ ++ ⟨X, Binding.ty δ⟩ :: Δ = Θ at sub
   induction sub generalizing Γ 
   case all => apply Sub.all (free_union Var) <;> grind
-  all_goals grind [weaken_head, to_ok, Wf.strengthen, Env.Wf.strengthen, dlookup_append]
+  all_goals grind [to_ok, Wf.strengthen, Env.Wf.strengthen, dlookup_append]
   
 end Sub
 

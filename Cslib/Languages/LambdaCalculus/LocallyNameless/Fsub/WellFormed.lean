@@ -86,7 +86,6 @@ theorem weaken (wf_ΓΘ : σ.Wf (Γ ++ Θ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : 
     · grind
   all_goals grind [NodupKeys.sublist, sublist_dlookup]
 
--- TODO: remove this?
 /-- A type remains well-formed under context weakening (at the front). -/
 theorem weaken_head (wf : σ.Wf Δ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := by
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl

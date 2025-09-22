@@ -59,9 +59,8 @@ variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
 attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
 
--- TODO: better name
 @[grind →]
-lemma lc {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
+lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
     Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
   induction der
   case tabs => 
