@@ -59,6 +59,7 @@ variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
 attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
 
+/-- Typings have well-formed contexts and types. -/
 @[grind →]
 lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
     Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
@@ -92,15 +93,19 @@ lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
       grind [Ty.Wf.strengthen]
   all_goals grind [from_bind_ty, to_ok, open_lc, cases Env.Wf, cases Ty.Wf]
 
+/-- Weakening of typings. -/
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
     Typing (Γ ++ Θ ++ Δ) t τ := sorry
 
+/-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
     Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := sorry
 
+/-- Term substitution within a typing. -/
 lemma subst_tm (der : Typing (Γ ++ ⟨X, Binding.ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
     Typing (Γ ++ Δ) (t[X := s]) τ := sorry
 
+/-- Type substitution within a typing. -/
 lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Γ δ δ') : 
     Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := sorry
 
@@ -108,6 +113,7 @@ open Term Ty
 
 omit [HasFresh Var]
 
+/-- Invert the typing of an abstraction. -/
 lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) :
      Sub Γ γ γ'
   ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var), 
@@ -130,30 +136,33 @@ lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) 
     · exists δ', L
   all_goals grind
 
+/-- Invert the typing of a left case. -/
 lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
     ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := by
   generalize eq : t.inl =t at der
   induction der generalizing γ δ <;> grind [cases Sub]
 
+/-- Invert the typing of a right case. -/
 lemma inr_inv (der : Typing Γ (.inr t) T) (sub : Sub Γ T (sum γ δ)) :
     ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
   generalize eq : t.inr =t at der
   induction der generalizing γ δ <;> grind [cases Sub]
 
+/-- A value that types as a function is an abstraction. -/
 lemma canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
     ∃ δ t', t = .abs δ t' := by
   generalize eq  : σ.arrow τ = γ at der
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ <;> grind [cases Sub, cases Value]
 
-omit [HasFresh Var] in
+/-- A value that types as a quantifier is a type abstraction. -/
 lemma canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
     ∃ δ t', t = .tabs δ t' := by
   generalize eq  : σ.all τ = γ at der
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ <;> grind [cases Sub, cases Value]
 
-omit [HasFresh Var] in
+/-- A value that types as a sum is a left or right case. -/
 lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
     ∃ t', t = .inl t' ∨ t = .inr t' := by
   generalize eq  : σ.sum τ = γ at der
