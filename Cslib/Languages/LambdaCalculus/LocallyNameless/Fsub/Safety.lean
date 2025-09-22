@@ -31,8 +31,27 @@ open Context List Env.Wf Term
 variable {t : Term Var}
 
 /-- Any reduction step preserves typing. -/
-lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing Γ t' τ := 
-  sorry
+lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing Γ t' τ := by
+  induction der generalizing t' 
+  case app => 
+    cases step with
+    | appₗ => grind
+    | appᵣ => grind
+    | abs  => sorry
+  case tapp =>
+    cases step with
+    | tapp => grind
+    | tabs => sorry
+  case let' L der _ _ ih => 
+    cases step with
+    | let_bind => sorry
+    | let_body => sorry
+  case case => 
+    cases step with
+    | «case» => sorry
+    | case_inl => sorry
+    | case_inr => sorry
+  all_goals grind [cases Red]
 
 /-- Any typable term either has a reduction step or is a value. -/
 lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t' := by
