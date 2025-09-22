@@ -27,13 +27,17 @@ correspond to specific set-theoretic operations.
 * `PhaseSpace.orthogonal`: The orthogonal `X⫠` of a set X
 * `PhaseSpace.isFact`: A fact is a set that equals its biorthogonal closure
 * `Fact`: The type of facts in a phase space
-* `PhaseSpace.interp`: Interpretation of CLL propositions in a phase space
-* `PhaseSpace.interp₁`: Interpretation of CLL propositions *as facts* in a phase space
+* `PhaseSpace.FactExpr`: Inductive type for representing operations on facts
+* `PhaseSpace.interpret`: Interpretation of the connectives on facts
+* `PhaseSpace.interpProp`: Interpretation of CLL propositions as facts in a phase space
 
 ## Main results
 
 * `PhaseSpace.biorthogonalClosure`: The biorthogonal operation forms a closure operator
-* `PhaseSpace.interp_closed`: Every interpreted proposition is a fact
+* `PhaseSpace.orth_iUnion`: Orthogonal of union equals intersection of orthogonals
+* `PhaseSpace.sInf_isFact` and `PhaseSpace.inter_isFact_of_isFact`: Facts are closed under
+  intersections
+* `PhaseSpace.biorth_least_fact`: The biorthogonal closure gives the smallest fact containing a set
 
 Several lemmas about facts and orthogonality useful in the proof of soundness are proven here.
 
@@ -336,46 +340,64 @@ The set I of idempotents that "belong to 1" in the phase semantics.
 -/
 def I [PhaseSpace M] : Set M := idempotentsIn (oneSet : Set M)
 
+-- ## Interpretation of the connectives
+
+inductive const where
+| one | zero | top | bot
+
+inductive unop where
+| bang | quest
+
+inductive binop where
+| tensor | parr | with | oplus
+
+inductive FactExpr [PhaseSpace M] where
+| const (c : const) : FactExpr
+| unop (u : unop) (X : Fact M) : FactExpr
+| binop (b : binop) (X Y : Fact M) : FactExpr
+
+def constInterpret [PhaseSpace M] (c : const) : Fact M :=
+match c with
+| .one => ⟨oneSet, oneSet_isFact⟩
+| .zero => ⟨(∅ : Set M)⫠⫠, zero_isFact⟩
+| .top => ⟨(Set.univ : Set M), top_isFact⟩
+| .bot => ⟨oneSet⫠, by rw [fact_iff_exists_orth]; use oneSet⟩
+
+def unopInterpret [PhaseSpace M] (u : unop) (X : Fact M) : Fact M := match u with
+| .bang => ⟨(X ∩ I)⫠⫠, by rw [fact_iff_exists_orth]; use (X ∩ I)⫠⟩
+| .quest => ⟨(X⫠ ∩ I)⫠, by rw [fact_iff_exists_orth]; use (X⫠ ∩ I)⟩
+
+def binopInterpret [PhaseSpace M] (b : binop) (X Y : Fact M) : Fact M := match b with
+| .tensor => ⟨(X * Y)⫠⫠, by rw [fact_iff_exists_orth]; use (X * Y)⫠⟩
+| .parr => ⟨((X⫠) * (Y⫠))⫠, by rw [fact_iff_exists_orth]; use ((X⫠) * (Y⫠))⟩
+| .with => ⟨(X ∩ Y), by apply inter_isFact_of_isFact <;> aesop⟩
+| .oplus => ⟨(X ∪ Y)⫠⫠, by rw [fact_iff_exists_orth]; use (X ∪ Y)⫠⟩
+
+def interpret [PhaseSpace M] (c : @FactExpr M _) : Fact M := match c with
+| .const c => constInterpret c
+| .unop u X => unopInterpret u X
+| .binop b X Y => binopInterpret b X Y
+
 -- ## Interpretation of propositions
 
 /--
 The interpretation of a CLL proposition in a phase space, given a valuation of atoms to facts.
 -/
-def interp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Set M
+def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact M
   | .atom a       => v a
-  | .atomDual a   => (v a)⫠
-  | .one          => oneSet
-  | .zero         => (∅ : Set M)⫠⫠
-  | .top          => (Set.univ : Set M)
-  | .bot          => oneSet⫠
-  | .tensor X Y   => ((interp v X) * (interp v Y))⫠⫠
-  | .parr    X Y   => (((interp v X)⫠) * ((interp v Y)⫠))⫠
-  | .oplus  X Y   => ((interp v X) ∪ (interp v Y))⫠⫠
-  | .with   X Y   => (interp v X) ∩ (interp v Y)
-  | .bang   X     => ((interp v X) ∩ I)⫠⫠
-  | .quest  X     => (((interp v X)⫠) ∩ I)⫠
+  | .atomDual a   => ⟨(v a)⫠, by rw [fact_iff_exists_orth]; use (v a)⟩
+  | .one          => interpret (.const .one)
+  | .zero         => interpret (.const .zero)
+  | .top          => interpret (.const .top)
+  | .bot          => interpret (.const .bot)
+  | .tensor A B   => interpret (.binop .tensor (interpProp v A) (interpProp v B))
+  | .parr   A B   => interpret (.binop .parr   (interpProp v A) (interpProp v B))
+  | .with   A B   => interpret (.binop .with   (interpProp v A) (interpProp v B))
+  | .oplus  A B   => interpret (.binop .oplus  (interpProp v A) (interpProp v B))
+  | .bang   A     => interpret (.unop  .bang   (interpProp v A))
+  | .quest  A     => interpret (.unop  .quest  (interpProp v A))
 
-@[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interp v P
-
--- ## Main theorem
-
-/--
-The interpretation of any proposition in a phase space is always a fact.
--/
-theorem interp_closed [PhaseSpace M] (v : Atom → Fact M) :
-    isFact (⟦P⟧v) := by
-  induction P <;> simp only [interp, isFact, triple_orth]
-  · case atom x =>
-    simpa [isFact] using (v x).property
-  · case one => exact oneSet_isFact
-  · case top => exact top_isFact
-  · case _ X Y ih₁ ih₂ => exact inter_isFact_of_isFact ih₁ ih₂
-
-/--
-The interpretation of a proposition as a fact.
--/
-def interp₁ [PhaseSpace M] (v : Atom → Fact M) (P : Proposition Atom) : Fact M :=
-⟨⟦P⟧v, interp_closed v⟩
+@[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interpProp v P
 
 end PhaseSpace
 
