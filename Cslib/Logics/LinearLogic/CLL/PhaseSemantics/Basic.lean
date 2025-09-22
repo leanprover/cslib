@@ -8,6 +8,7 @@ import Mathlib.Algebra.Group.Pointwise.Set.Basic
 import Mathlib.Algebra.Ring.Idempotent
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Closure
+import Mathlib.Tactic.Cases
 import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-!
@@ -120,7 +121,7 @@ lemma triple_orth [PhaseSpace M] (X : Set M) : X⫠⫠⫠ = X⫠ := by
 The biorthogonal closure operator on sets in a phase space.
 -/
 def biorthogonalClosure [PhaseSpace M] : ClosureOperator (Set M) := {
-  toFun := fun X => X⫠⫠
+  toFun X := X⫠⫠
   monotone' := by
     intro X Y hXY m hm n hnY
     have hnX : n ∈ X⫠ := by
@@ -130,9 +131,7 @@ def biorthogonalClosure [PhaseSpace M] : ClosureOperator (Set M) := {
   le_closure' := by
     intro X x hx n hn
     simpa [orthogonal, imp, Set.mem_setOf, mul_comm] using hn x hx
-  idempotent' := by
-    intro X
-    simp only [triple_orth (X := X⫠)]
+  idempotent' X := triple_orth X⫠
 }
 
 -- # Basic theory of phase spaces
