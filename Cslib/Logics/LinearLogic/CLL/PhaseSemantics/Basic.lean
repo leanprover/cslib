@@ -227,6 +227,12 @@ def oneSet [PhaseSpace M] : Set M := ({1} : Set M)⫠⫠
   simp only [oneSet, isFact, triple_orth]
 
 /--
+The dual of oneSet is a fact.
+-/
+lemma oneSet_dual_isFact [PhaseSpace M] : isFact (oneSet⫠ : Set M) := by
+  simp only [oneSet, isFact, triple_orth]
+
+/--
 If Y is a fact, then X ⊸ Y is also a fact
 -/
 lemma imp_isFact_of_fact [PhaseSpace M] (X Y : Set M) (hY : isFact Y) :
@@ -361,7 +367,7 @@ match c with
 | .one => ⟨oneSet, oneSet_isFact⟩
 | .zero => ⟨(∅ : Set M)⫠⫠, zero_isFact⟩
 | .top => ⟨(Set.univ : Set M), top_isFact⟩
-| .bot => ⟨oneSet⫠, by rw [fact_iff_exists_orth]; use oneSet⟩
+| .bot => ⟨oneSet⫠, oneSet_dual_isFact⟩
 
 def unopInterpret [PhaseSpace M] (u : unop) (X : Fact M) : Fact M := match u with
 | .bang => ⟨(X ∩ I)⫠⫠, by rw [fact_iff_exists_orth]; use (X ∩ I)⫠⟩
