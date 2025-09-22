@@ -57,7 +57,7 @@ lemma Env.Wf.to_ok {Γ : Env Var} (wf : Γ.Wf) : Γ✓ := by
 
 namespace Ty.Wf
 
-open Context List
+open Context List Binding
 
 /-- A well-formed type is locally closed. -/
 @[grind →]
@@ -107,9 +107,21 @@ lemma strengthen (wf : σ.Wf (Γ ++ ⟨X, Binding.ty τ⟩ :: Δ)) : σ.Wf (Γ +
   | all => apply all (free_union [Context.dom] Var) <;> grind
   | _ => grind [dlookup_append]
 
+variable [HasFresh Var] in
 /-- A type remains well-formed under context substitution (of a well-formed type). -/
 lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ)
-    (ok : (Γ.map_val (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.map_val (·[X:=τ']) ++ Δ := sorry
+    (ok : (Γ.map_val (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
+  have := @map_val_mem Var (Binding Var)      
+  generalize eq : Γ ++ ⟨X, Binding.sub τ⟩ :: Δ = Θ at wf_σ
+  induction wf_σ generalizing Γ τ'
+  case all γ _ _ _ _ _ _ => 
+    subst eq
+    apply all (free_union [dom] Var)
+    · grind
+    · intro X' _
+      have : (map_val (·[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) ++ Δ)✓ := by grind [keys_append]
+      grind [open_subst_var]
+  all_goals grind [weaken_head, dlookup_append, map_val_nmem]
 
 variable [HasFresh Var] in
 /-- A type remains well-formed under opening (to a well-formed type). -/
@@ -137,7 +149,7 @@ variable [HasFresh Var] in
 /-- A variable not appearing in a context does not appear in its well-formed types. -/
 lemma nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := by
   induction wf with
-  | all => have := fresh_exists <| free_union [dom] Var; grind [keys_cons, nmem_fv_open, openRec_lc]
+  | all => have := fresh_exists <| free_union [dom] Var; grind [nmem_fv_open, openRec_lc]
   | _ => grind
 
 end Ty.Wf
@@ -156,6 +168,7 @@ lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : �
 lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <| Γ ++ Δ := by
   induction Γ <;> cases wf <;> grind [Ty.Wf.strengthen, List.nmem_append_keys]
 
+variable [HasFresh Var] in
 /-- A context remains well-formed under substitution (of a well-formed type). -/
 lemma map_subst (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) :
     Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
