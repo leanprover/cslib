@@ -110,13 +110,98 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind
     _ ~[lts (defs := defs)] p := by simp
 
+
+private inductive ParAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
+  | assoc : ParAssoc (par p (par q r)) (par (par p q) r)
+  | id : ParAssoc p p
+
 /-- P | (Q | R) ~ (P | Q) | R -/
-proof_wanted bisimilarity_par_assoc :
-  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r)
+theorem bisimilarity_par_assoc :
+  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
+  refine ⟨ParAssoc, ParAssoc.assoc, ?_⟩
+  intro s1 s2 hr μ
+  apply And.intro <;> cases hr
+  case right.assoc =>
+    intro s2' htr
+    unfold lts at *
+    cases htr
+    case parL p q r p' htr =>
+      cases htr
+      case parL p q r p' _ =>
+        exists p'.par (q.par r)
+        grind [Tr.parL, ParAssoc]
+      case parR p q r q' _ =>
+        exists p.par (q'.par r)
+        grind [Tr.parL, Tr.parR, ParAssoc]
+      case com μ p' μ' q' _ htrp htrq =>
+        exists p'.par (q'.par r)
+        have htrq' : Tr (defs := defs) (q.par r) μ' (q'.par r) := by apply Tr.parL; assumption
+        grind [Tr.com, Tr.parL, ParAssoc]
+    case parR p q r r' htr =>
+      exists p.par (q.par r')
+      grind [Tr.parR, ParAssoc]
+    case com p q r μ p' μ' r' _ htr htr' =>
+      cases htr
+      case parL p' _ =>
+        refine ⟨ p'.par (q.par r'), ?_, ParAssoc.assoc⟩
+        apply Tr.com (μ := μ) (μ' := μ') <;> grind [Tr.parR]
+      case parR q' _ =>
+        use p.par (q'.par r')
+        grind [Tr.parR, Tr.com, ParAssoc.assoc]
+      case com μ p' q' _ _ =>
+        unfold Act.Co at *
+        grind
+  case left.assoc =>
+    intro s2' htr
+    unfold lts at *
+    cases htr
+    case parR htr =>
+      cases htr
+      case parL p q r q' _ =>
+        exists (p.par q').par r
+        grind [Tr.parL, Tr.parR, ParAssoc]
+      case parR p q r r' _ =>
+        exists (p.par q).par r'
+        grind [Tr.parL, Tr.parR, ParAssoc]
+      case com p q r μ q' μ' r' _ htrp htrq =>
+        refine ⟨(p.par q').par r', ?_, ParAssoc.assoc⟩
+        apply Tr.com (μ := μ) (μ' := μ') <;> grind [Tr.parR]
+    case parL p q r p' htr =>
+      exists (p'.par q).par r
+      grind [Tr.parL, ParAssoc]
+    case com p q r μ p' μ' q' _ htr htr' =>
+      cases htr'
+      case parL q' _ =>
+        use (p'.par q').par r
+        grind [Tr.parL, Tr.com, ParAssoc.assoc]
+      case parR r' _ =>
+        refine ⟨ (p'.par q).par r', ?_, ParAssoc.assoc⟩
+        apply Tr.com (μ := μ) (μ' := μ') <;> grind [Tr.parL]
+      case com =>
+        unfold Act.Co at *
+        grind
+  all_goals grind [ParAssoc]
+
+private inductive ChoiceNil : (Process Name Constant) → (Process Name Constant) → Prop where
+  | nil : ChoiceNil (choice p nil) p
+  | id : ChoiceNil p p
 
 /-- P + 𝟎 ~ P -/
-proof_wanted bisimilarity_choice_nil :
-  (choice p nil) ~[lts (defs := defs)] p
+theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
+  refine ⟨ChoiceNil, ChoiceNil.nil, ?_⟩
+  intro s1 s2 hr μ
+  apply And.intro <;> cases hr
+  case left.nil =>
+    unfold lts
+    grind [cases Tr, ChoiceNil]
+  case right.nil =>
+    intro s2' htr
+    exists s2'
+    constructor
+    · apply Tr.choiceL
+      assumption
+    · exact ChoiceNil.id
+  all_goals grind [ChoiceNil]
 
 private inductive ChoiceIdem : (Process Name Constant) → (Process Name Constant) → Prop where
   | idem : ChoiceIdem (choice p p) p
@@ -176,9 +261,35 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
   case bisim h =>
     grind [ChoiceComm]
 
+private inductive ChoiceAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
+  | assoc : ChoiceAssoc (choice p (choice q r)) (choice (choice p q) r)
+  | id : ChoiceAssoc p p
+
 /-- P + (Q + R) ~ (P + Q) + R -/
-proof_wanted bisimilarity_choice_assoc :
-  (choice p (choice q r)) ~[lts (defs := defs)] (choice (choice p q) r)
+theorem bisimilarity_choice_assoc :
+    (choice p (choice q r)) ~[lts (defs := defs)] (choice (choice p q) r) := by
+  refine ⟨ChoiceAssoc, ChoiceAssoc.assoc, ?_⟩
+  intro s1 s2 hr μ
+  apply And.intro <;> cases hr
+  case left.assoc p q r =>
+    intro s htr
+    refine ⟨s, ?_, ChoiceAssoc.id⟩
+    cases htr
+    case choiceL htr => apply Tr.choiceL; apply Tr.choiceL; assumption
+    case choiceR htr =>
+      cases htr
+      case choiceL htr => apply Tr.choiceL; apply Tr.choiceR; assumption
+      case choiceR htr => apply Tr.choiceR; assumption
+  case right.assoc p q r =>
+    intro s htr
+    refine ⟨s, ?_, ChoiceAssoc.id⟩
+    cases htr
+    case choiceL htr =>
+      cases htr
+      case choiceL htr => apply Tr.choiceL; assumption
+      case choiceR htr => apply Tr.choiceR; apply Tr.choiceL; assumption
+    case choiceR htr => apply Tr.choiceR; apply Tr.choiceR; assumption
+  all_goals grind [ChoiceAssoc.id]
 
 private inductive PreBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
