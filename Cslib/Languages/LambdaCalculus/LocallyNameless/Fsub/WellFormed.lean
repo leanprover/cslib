@@ -92,6 +92,9 @@ theorem weaken_head (wf : σ.Wf Δ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := b
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl
   grind [weaken]
 
+theorem weaken_cons (wf : σ.Wf Δ) (ok : (⟨X, b⟩ :: Δ)✓) : σ.Wf (⟨X, b⟩:: Δ) := by
+  grind [weaken_head]
+
 /-- A type remains well-formed under context narrowing. -/
 lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ)✓) :
     σ.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
@@ -99,6 +102,11 @@ lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨
   induction wf generalizing Γ with
   | all => apply all (free_union [dom] Var) <;> grind [nodupKeys_cons, nmem_append_keys]
   | _ => grind [sublist_dlookup, dlookup_append]
+
+lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) (ok : (⟨X, Binding.sub τ'⟩ :: Δ)✓) :
+    σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) := by
+  rw [←List.nil_append (⟨X, sub τ'⟩ :: Δ)]
+  grind [narrow]
 
 /-- A type remains well-formed under context strengthening. -/
 lemma strengthen (wf : σ.Wf (Γ ++ ⟨X, Binding.ty τ⟩ :: Δ)) : σ.Wf (Γ ++ Δ) := by

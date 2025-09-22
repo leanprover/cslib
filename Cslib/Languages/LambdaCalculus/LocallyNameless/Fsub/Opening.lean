@@ -54,8 +54,7 @@ inductive LC : Ty Var → Prop
   | all (L : Finset Var) : LC σ → (∀ X ∉ L, LC (τ ^ᵞ fvar X)) → LC (all σ τ)
   | sum : LC σ → LC τ → LC (sum σ τ)
 
--- TODO: correct grind?
-attribute [scoped grind <=] LC.top LC.var LC.arrow LC.sum
+attribute [scoped grind] LC.top LC.var LC.arrow LC.sum
 
 /-- Type substitution. -/
 @[scoped grind =]
@@ -194,8 +193,7 @@ inductive LC : Term Var → Prop
       (∀ x ∉ L, LC (t₃ ^ᵗᵗ fvar x)) →
       LC (case t₁ t₂ t₃)
 
--- TODO: correct grind?
-attribute [scoped grind <=] LC.var LC.app LC.inl LC.inr LC.tapp
+attribute [scoped grind] LC.var LC.app LC.inl LC.inr LC.tapp
 
 variable {t : Term Var} {δ : Ty Var}
 
