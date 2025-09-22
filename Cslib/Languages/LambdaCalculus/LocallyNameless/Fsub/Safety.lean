@@ -33,11 +33,14 @@ variable {t : Term Var}
 /-- Any reduction step preserves typing. -/
 lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing Γ t' τ := by
   induction der generalizing t' 
-  case app => 
-    cases step with
-    | appₗ => grind
-    | appᵣ => grind
-    | abs  => sorry
+  case app Γ _ σ τ _ _ _ _ _ => 
+    cases step
+    case appₗ | appᵣ => grind
+    case abs der _ _ =>
+      have sub : Sub Γ (σ.arrow τ) (σ.arrow τ) := by grind [Sub.refl]
+      have ⟨_, _, ⟨_, _⟩⟩ := der.abs_inv sub
+      have ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
+      grind [open_tm_subst_tm_intro, subst_tm, Sub.weaken]
   case tapp =>
     cases step with
     | tapp => grind

@@ -117,7 +117,7 @@ omit [HasFresh Var]
 lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) :
      Sub Γ γ γ'
   ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var), 
-    Typing ([⟨x, Binding.ty γ'⟩] ++ Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
+    Typing (⟨x, Binding.ty γ'⟩ :: Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
   generalize eq : Term.abs γ' t = e at der
   induction der generalizing t γ' γ δ
   case abs τ L _ _ => 
