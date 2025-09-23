@@ -95,7 +95,16 @@ lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
 
 /-- Weakening of typings. -/
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
-    Typing (Γ ++ Θ ++ Δ) t τ := sorry
+    Typing (Γ ++ Θ ++ Δ) t τ := by
+  generalize eq : Γ ++ Δ = ΓΔ at der
+  induction der generalizing Γ wf
+  case var => sorry
+  case abs => sorry
+  case tabs => sorry
+  case let' => sorry
+  case case => sorry
+  case sub | app | tapp | inr | inl => 
+    grind [Sub.weaken, Wf.from_env_bind_ty, Wf.from_env_bind_sub, Sub.refl]
 
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
