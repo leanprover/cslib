@@ -137,10 +137,14 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at sub₁
   induction sub₁ generalizing Γ
   case all => apply Sub.all (free_union Var) <;> grind [open_subst_var]
-  case trans_tvar σ _ τ X' mem sub ih => 
-    by_cases eq : X = X'
+  case trans_tvar σ _ _ X' _ _ _ => 
+    have := map_subst_nmem Δ X δ
+    have : Γ ++ ⟨X, .sub δ'⟩ :: Δ ~ ⟨X, .sub δ'⟩ :: (Γ ++ Δ) := perm_middle
+    have : .sub σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
+    have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
+    by_cases X = X'
     · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
-    · sorry
+    · grind
   all_goals
     grind [Env.Wf.to_ok, map_val_append_left, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
 
