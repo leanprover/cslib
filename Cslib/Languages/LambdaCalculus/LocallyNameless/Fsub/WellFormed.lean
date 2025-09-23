@@ -52,12 +52,14 @@ variable {Γ Δ Θ : Env Var} {σ τ τ' γ δ : Ty Var}
 
 open scoped Context in
 /-- A well-formed context contains no duplicate keys. -/
+@[scoped grind →]
 lemma Env.Wf.to_ok {Γ : Env Var} (wf : Γ.Wf) : Γ✓ := by
   induction wf <;> constructor <;> first | assumption | grind [List.mem_keys_of_mem]
 
 namespace Ty.Wf
 
 open Context List Binding
+open scoped Env.Wf
 
 /-- A well-formed type is locally closed. -/
 @[grind →]
@@ -140,7 +142,7 @@ lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ)
 
 /-- A type bound in a context is well formed. -/
 lemma from_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf Γ := by
-  induction wf <;> grind [Env.Wf.to_ok, weaken_head]
+  induction wf <;> grind [weaken_head]
 
 /-- A type at the head of a well-formed context is well-formed. -/
 lemma from_env_bind_ty (wf : Env.Wf (⟨X, Binding.ty σ⟩ :: Γ)) : σ.Wf Γ := by
@@ -169,7 +171,7 @@ open Context List Binding
 lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) : 
     Env.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
   induction Γ <;> cases wf_env <;> 
-  grind [to_ok, Ty.Wf.narrow, nmem_append_keys, eq_nil_of_append_eq_nil, cases Env.Wf]
+  grind [Ty.Wf.narrow, nmem_append_keys, eq_nil_of_append_eq_nil, cases Env.Wf]
       
 /-- A context remains well-formed under strengthening. -/
 lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <| Γ ++ Δ := by
@@ -181,7 +183,7 @@ lemma map_subst (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' 
     Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
   induction Γ generalizing wf_τ' Δ τ' <;> cases wf_env
   case nil => grind
-  case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.map_subst, Env.Wf.to_ok, keys_append]
+  case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.map_subst, keys_append]
     
 variable [HasFresh Var]
 

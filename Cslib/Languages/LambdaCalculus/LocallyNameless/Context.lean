@@ -71,6 +71,12 @@ theorem nmem_append_keys (l₁ l₂ : List (Sigma β)) :
       grind [keys_cons, => perm_keys]
   )
 
+@[grind →]
+theorem nodupKeys_of_nodupKeys_middle (l₁ l₂ : List (Sigma β)) (h : (l₁ ++ s :: l₂).NodupKeys) : 
+    s.fst ∉ l₁.keys ∧ s.fst ∉ l₂.keys:= by
+  have : (s :: (l₁ ++ l₂)).NodupKeys := by grind [perm_middle, perm_nodupKeys]
+  grind [→ notMem_keys_of_nodupKeys_cons, nmem_append_keys]
+
 end List
 
 namespace LambdaCalculus.LocallyNameless

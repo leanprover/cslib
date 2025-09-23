@@ -91,7 +91,7 @@ lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
     · apply LC.case (free_union Var) <;> grind
     · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
       grind [Ty.Wf.strengthen]
-  all_goals grind [from_bind_ty, to_ok, open_lc, cases Env.Wf, cases Ty.Wf]
+  all_goals grind [from_bind_ty, open_lc, cases Env.Wf, cases Ty.Wf]
 
 /-- Weakening of typings. -/
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 

@@ -41,7 +41,7 @@ inductive Sub : Env Var → Ty Var → Ty Var → Prop
 
 namespace Sub
 
-open Context List Ty.Wf Env.Wf
+open Context List Ty.Wf Env.Wf Binding
 
 attribute [scoped grind] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
 
@@ -53,7 +53,7 @@ lemma wf (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.W
   induction sub with
   | all => 
     refine ⟨by grind, ?_, ?_⟩ <;>
-    apply Wf.all (free_union Var) <;> grind [Env.Wf.to_ok, Wf.narrow_cons, cases Env.Wf, cases LC]
+    apply Wf.all (free_union Var) <;> grind [Wf.narrow_cons, cases Env.Wf, cases LC]
   | _ => grind
 
 /-- Subtypes are reflexive when well-formed. -/
@@ -69,7 +69,11 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   case all => 
     subst eq
     apply all (free_union [Context.dom] Var) <;> grind [keys_append]
-  all_goals grind [Env.Wf.to_ok, Ty.Wf.weaken, sublist_dlookup]
+  all_goals grind [Ty.Wf.weaken, sublist_dlookup]
+
+lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ σ' := by
+  have eq : Γ ++ Δ = [] ++ Γ ++ Δ := by grind
+  grind [weaken]
 
 lemma narrow_aux
     (trans : ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ)
@@ -82,9 +86,9 @@ lemma narrow_aux
       by grind [perm_middle]
     have := perm_dlookup (p := p δ')
     have := perm_dlookup (p := p δ)
-    grind [Sub.weaken, Env.Wf.to_ok, sublist_append_of_sublist_right]
+    grind [Sub.weaken, sublist_append_of_sublist_right]
   case all => apply Sub.all (free_union Var) <;> grind
-  all_goals grind [Env.Wf.narrow, Env.Wf.to_ok, Ty.Wf.narrow]
+  all_goals grind [Env.Wf.narrow, Ty.Wf.narrow]
 
 @[grind →]
 lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
@@ -132,11 +136,10 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
     Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at sub₁
   induction sub₁ generalizing Γ
-  case all => apply Sub.all (free_union Var) <;> grind [Ty.open_subst_var, Binding.subst_sub]
-  case trans_tvar X' _ _ _ => 
-    subst eq
+  case all => apply Sub.all (free_union Var) <;> grind [open_subst_var]
+  case trans_tvar σ _ τ X' mem sub ih => 
     by_cases eq : X = X'
-    · sorry
+    · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
     · sorry
   all_goals
     grind [Env.Wf.to_ok, map_val_append_left, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
