@@ -126,9 +126,20 @@ lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ ⟨X, Binding.sub
     Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ := by
   apply narrow_aux (δ := δ') <;> grind
 
+variable [HasFresh Var] in
 /-- Subtyping of substitutions. -/
 lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ δ') :
-    Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := sorry
+    Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := by
+  generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at sub₁
+  induction sub₁ generalizing Γ
+  case all => apply Sub.all (free_union Var) <;> grind [Ty.open_subst_var, Binding.subst_sub]
+  case trans_tvar X' _ _ _ => 
+    subst eq
+    by_cases eq : X = X'
+    · sorry
+    · sorry
+  all_goals
+    grind [Env.Wf.to_ok, map_val_append_left, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
 
 /-- Strengthening of subtypes. -/
 lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := by

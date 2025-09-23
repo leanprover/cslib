@@ -156,4 +156,14 @@ lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dloo
 lemma map_val_nmem (nmem : Γ.dlookup x = none) (f) : (Γ.map_val f).dlookup x = none := by
   grind [List.dlookup_eq_none]
 
+/-- A mapping of part of an appending of lists preseves non-duplicate keys. -/
+lemma map_val_append_left (f) (ok : (Γ ++ Δ)✓) : (Γ.map_val f ++ Δ)✓ := by
+  induction Δ
+  case nil => grind
+  case cons hd tl ih =>
+    have perm : hd :: (map_val f Γ ++ tl) ~ map_val f Γ ++ hd :: tl := Perm.symm perm_middle
+    have perm' : hd :: (Γ ++ tl) ~ Γ ++ hd :: tl := Perm.symm perm_middle
+    have ok' : (hd :: (Γ ++ tl))✓ := wf_perm (id (Perm.symm perm')) ok
+    grind [List.nodupKeys_cons, nmem_append_keys]
+
 end LambdaCalculus.LocallyNameless.Context
