@@ -15,7 +15,7 @@ Natural deduction for intuitionistic propositional logic.
 
 - `Proposition` : a type of propositions with atoms in a given type.
 - `Derivation` :  natural deduction derivation, done in "sequent style", ie with explicit
-hypotheses at each step. Contexts are `Finset`'s of propositions, which avoids explicit weakening
+hypotheses at each step. Contexts are `Finset`'s of propositions, which avoids explicit contraction
 and exchange, and the axiom rule derives `{A} ∪ Γ ⊢ A` for any context `Γ`, allowing weakening to
 be a derived rule.
 - `Derivable` : defined as `Nonempty (Derivation S)`.
