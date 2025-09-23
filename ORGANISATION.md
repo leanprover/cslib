@@ -14,11 +14,6 @@ This document gives an overview of how the codebase is structured, in terms of d
     - Control. General-purpose structures and types for expressing control flow.
       - Monad. Monads.
         - Free. Free monads.
-    - Computability. Automata theory, turing machines, partial recursive functions, register machines, etc.
-      - Dfa
-      - Nfa
-      - TuringMachine.
-      - …
     - Semantics. Operational semantics (reduction and transition systems), program equivalences, etc.
       - Lts.
       - ReductionSystem.
@@ -35,5 +30,10 @@ This document gives an overview of how the codebase is structured, in terms of d
     - CCS.
     - LambdaCalculus.
     - PiCalculus.
+    - …
+  - Computability. Automata theory, turing machines, partial recursive functions, register machines, etc.
+    - Dfa
+    - Nfa
+    - TuringMachine.
     - …
 - CslibTests. This directory contains tests for the library.
