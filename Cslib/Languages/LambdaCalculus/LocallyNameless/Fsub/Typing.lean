@@ -106,7 +106,7 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, Binding.ty σ⟩ :: Δ) t τ) (der_sub
     Typing (Γ ++ Δ) (t[X := s]) τ := sorry
 
 /-- Type substitution within a typing. -/
-lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Γ δ δ') : 
+lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Δ δ δ') : 
     Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := sorry
 
 open Term Ty
@@ -130,6 +130,32 @@ lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) 
   case sub Γ _ τ τ' _ _ ih => 
     subst eq
     have sub' : Sub Γ τ (γ.arrow δ) := by grind
+    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
+    split_ands
+    · assumption
+    · exists δ', L
+  all_goals grind
+
+variable [HasFresh Var] in
+/-- Invert the typing of a type abstraction. -/
+lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) :
+     Sub Γ γ γ'
+  ∧ ∃ δ' L, ∀ X ∉ (L : Finset Var),
+     Typing (⟨X, Binding.sub γ⟩ :: Γ) (t ^ᵗᵞ fvar X) (δ' ^ᵞ fvar X)
+     ∧ Sub (⟨X, Binding.sub γ⟩ :: Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := by
+  generalize eq : Term.tabs γ' t = e at der
+  induction der generalizing γ δ t γ'
+  case tabs σ Γ _ τ L der _ =>
+    cases sub with | all L' sub => 
+    split_ands
+    · grind
+    · exists τ, L ∪ L'
+      intro X _
+      have eq : ⟨X, Binding.sub γ⟩ :: Γ = [] ++ ⟨X, Binding.sub γ⟩ :: Γ := by rfl
+      grind [Typing.narrow]
+  case sub Γ _ τ τ' _ _ ih => 
+    subst eq
+    have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
     obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
     split_ands
     · assumption

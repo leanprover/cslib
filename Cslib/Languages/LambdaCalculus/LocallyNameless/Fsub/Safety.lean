@@ -26,7 +26,7 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
-open Context List Env.Wf Term
+open Context List Env.Wf Term Ty
 
 variable {t : Term Var}
 
@@ -41,19 +41,34 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
       have ⟨_, _, ⟨_, _⟩⟩ := der.abs_inv sub
       have ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
       grind [open_tm_subst_tm_intro, subst_tm, Sub.weaken]
-  case tapp =>
-    cases step with
-    | tapp => grind
-    | tabs => sorry
-  case let' L der _ _ ih => 
-    cases step with
-    | let_bind => sorry
-    | let_body => sorry
-  case case => 
-    cases step with
-    | «case» => sorry
-    | case_inl => sorry
-    | case_inr => sorry
+  case tapp Γ _ σ τ σ' _ _ _ =>
+    cases step
+    case tabs der _ _ =>
+      have sub : Sub Γ (σ.all τ) (σ.all τ) := by grind [Sub.refl]
+      have ⟨_, _, ⟨_, _⟩⟩ := der.tabs_inv sub
+      have ⟨X, _⟩ := fresh_exists <| free_union [Ty.fv, fv_ty] Var
+      have : Γ = (Context.map_val (·[X:=σ']) []) ++ Γ := by simp
+      rw [open_ty_subst_ty_intro (X := X), open_subst_intro (X := X)] <;> grind [subst_ty]
+    case tapp => grind
+  case let' Γ _ _ _ _ L der _ ih₁ _ => 
+    cases step
+    case let_bind red₁ _ => apply Typing.let' L (ih₁ red₁); grind
+    case let_body =>
+      have ⟨x, _⟩ := fresh_exists <| free_union [fv_tm] Var
+      grind [open_tm_subst_tm_intro, subst_tm]
+  case case Γ _ σ τ _ _ _ L _ _ _ ih₁ _ _ => 
+    have sub : Sub Γ (σ.sum τ) (σ.sum τ) := by grind [Sub.refl]
+    have : Γ = [] ++ Γ := by rfl
+    cases step
+    case «case» red₁ _ _ => apply Typing.case L (ih₁ red₁) <;> grind
+    case case_inl der _ _ => 
+      have ⟨_, ⟨_, _⟩⟩ := der.inl_inv sub
+      have ⟨x, _⟩ := fresh_exists <| free_union [fv_tm] Var
+      grind [open_tm_subst_tm_intro, subst_tm]
+    case case_inr der _ _ => 
+      have ⟨_, ⟨_, _⟩⟩ := der.inr_inv sub
+      have ⟨x, _⟩ := fresh_exists <| free_union [fv_tm] Var
+      grind [open_tm_subst_tm_intro, subst_tm]
   all_goals grind [cases Red]
 
 /-- Any typable term either has a reduction step or is a value. -/
@@ -68,7 +83,7 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
     | inl val_l => 
         cases ih_r r with
         | inl val_r => 
-            have ⟨σ, t₁, eq⟩ := Typing.canonical_form_abs val_l l
+            have ⟨σ, t₁, eq⟩ := l.canonical_form_abs val_l
             exists t₁ ^ᵗᵗ t₂
             grind
         | inr red_r => 
@@ -84,7 +99,7 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
     specialize ih der
     cases ih with
     | inl val => 
-        obtain ⟨_, t, _⟩ := Typing.canonical_form_tabs val der
+        obtain ⟨_, t, _⟩ := der.canonical_form_tabs val
         exists t ^ᵗᵞ σ'
         grind
     | inr red => 
@@ -121,7 +136,7 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
     right
     cases ih der with
     | inl val => 
-        have ⟨t₁, lr⟩ := Typing.canonical_form_sum val der
+        have ⟨t₁, lr⟩ := der.canonical_form_sum val
         cases lr <;> [exists t₂ ^ᵗᵗ t₁; exists t₃ ^ᵗᵗ t₁] <;> grind
     | inr red => 
         obtain ⟨t₁', _⟩ := red
