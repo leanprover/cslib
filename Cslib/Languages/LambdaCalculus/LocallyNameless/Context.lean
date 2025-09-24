@@ -48,13 +48,6 @@ theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (
       exact mem
     · simp_all
 
-/-- A lookup in appended lists must appear in one of the lists. -/
-theorem dlookup_append_mem (l₁ l₂ : List (Sigma β)) (mem : b ∈ (l₁ ++ l₂).dlookup a) : 
-    b ∈ l₁.dlookup a ∨ b ∈ l₂.dlookup a := by
-  rw [List.dlookup_append l₁ l₂ a] at mem
-  simp at mem
-  grind
-
 /-- List permutation preserves keys. -/
 theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
   induction h <;> grind [keys_cons]
