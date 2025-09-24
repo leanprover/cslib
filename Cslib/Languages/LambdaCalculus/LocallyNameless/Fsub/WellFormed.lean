@@ -141,16 +141,16 @@ lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ)
     grind [open_subst_intro, map_subst]
 
 /-- A type bound in a context is well formed. -/
-lemma from_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf Γ := by
+lemma of_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf Γ := by
   induction wf <;> grind [weaken_head]
 
 /-- A type at the head of a well-formed context is well-formed. -/
-lemma from_env_bind_ty (wf : Env.Wf (⟨X, Binding.ty σ⟩ :: Γ)) : σ.Wf Γ := by
+lemma of_env_ty (wf : Env.Wf (⟨X, Binding.ty σ⟩ :: Γ)) : σ.Wf Γ := by
   cases wf
   assumption
 
 /-- A subtype at the head of a well-formed context is well-formed. -/
-lemma from_env_bind_sub (wf : Env.Wf (⟨X, Binding.sub σ⟩ :: Γ)) : σ.Wf Γ := by
+lemma of_env_sub (wf : Env.Wf (⟨X, Binding.sub σ⟩ :: Γ)) : σ.Wf Γ := by
   cases wf
   assumption
 

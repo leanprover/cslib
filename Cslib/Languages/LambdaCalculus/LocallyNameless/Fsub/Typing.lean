@@ -91,20 +91,19 @@ lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
     · apply LC.case (free_union Var) <;> grind
     · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
       grind [Ty.Wf.strengthen]
-  all_goals grind [from_bind_ty, open_lc, cases Env.Wf, cases Ty.Wf]
+  all_goals grind [of_bind_ty, open_lc, cases Env.Wf, cases Ty.Wf]
 
 /-- Weakening of typings. -/
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
     Typing (Γ ++ Θ ++ Δ) t τ := by
   generalize eq : Γ ++ Δ = ΓΔ at der
-  induction der generalizing Γ wf
-  case var => sorry
-  case abs => sorry
-  case tabs => sorry
-  case let' => sorry
-  case case => sorry
-  case sub | app | tapp | inr | inl => 
-    grind [Sub.weaken, Wf.from_env_bind_ty, Wf.from_env_bind_sub, Sub.refl]
+  induction der generalizing Γ
+  case' abs  => apply Typing.abs  ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+  case' tabs => apply Typing.tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+  case' let' der _ => apply Typing.let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
+  case' case der _ _ => apply Typing.case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
+  all_goals 
+    grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, sublist_dlookup]
 
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
