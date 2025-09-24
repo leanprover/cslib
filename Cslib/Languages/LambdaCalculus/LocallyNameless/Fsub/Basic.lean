@@ -53,7 +53,6 @@ inductive Term (Var : Type u)
   /-- Type abstraction, introducing a new bound type variable. -/
   | tabs : Ty Var → Term Var → Term Var
   /-- Type application. -/
-  -- TODO: match this match tabs
   | tapp : Term Var → Ty Var → Term Var
   /-- Binding of a term. -/
   | let' : Term Var → Term Var → Term Var

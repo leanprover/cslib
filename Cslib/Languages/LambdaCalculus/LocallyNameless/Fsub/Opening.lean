@@ -371,21 +371,19 @@ variable [HasFresh Var]
 
 lemma subst_ty_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
   induction t_lc
-  -- TODO: find a way to incorporate this into a tactic...
-  case abs  => apply LC.abs (free_union Var) <;> grind [Ty.subst_lc, open_tm_subst_ty_var]
-  case tabs => apply LC.tabs (free_union Var) <;> grind [Ty.subst_lc, openRec_ty_subst_ty]
-  case let' => apply LC.let' (free_union Var) <;> grind [Ty.subst_lc, open_tm_subst_ty_var]
-  case case => apply LC.case (free_union Var) <;> grind [Ty.subst_lc, open_tm_subst_ty_var]
-  all_goals grind [Ty.subst_lc, open_tm_subst_ty_var]
+  case' abs  => apply LC.abs (free_union Var)
+  case' tabs => apply LC.tabs (free_union Var)
+  case' let' => apply LC.let' (free_union Var)
+  case' case => apply LC.case (free_union Var)
+  all_goals grind [Ty.subst_lc, open_tm_subst_ty_var, openRec_ty_subst_ty]
 
 lemma subst_tm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
   induction t_lc
-  -- TODO: find a way to incorporate this into a tactic...
-  case abs  => apply LC.abs (free_union Var) <;> grind [open_tm_subst_tm_var]
-  case let' => apply LC.let' (free_union Var) <;> grind [open_tm_subst_tm_var]
-  case case => apply LC.case (free_union Var) <;> grind [open_tm_subst_tm_var]
-  case tabs => apply LC.tabs (free_union Var) <;> grind [open_ty_subst_tm_var]
-  all_goals grind
+  case' abs  => apply LC.abs (free_union Var)
+  case' let' => apply LC.let' (free_union Var)
+  case' case => apply LC.case (free_union Var)
+  case' tabs => apply LC.tabs (free_union Var)
+  all_goals grind [open_tm_subst_tm_var, open_ty_subst_tm_var]
 
 end Term
 
