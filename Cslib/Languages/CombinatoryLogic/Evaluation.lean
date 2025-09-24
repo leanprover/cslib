@@ -277,7 +277,15 @@ theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsC
     · simp_rw [churchK_church]
       exact commonReduct_of_single (hy K K)
 
-/-- **Rice's theorem**: no SKI term is a non-trivial predicate. -/
+/--
+**Rice's theorem**: no SKI term is a non-trivial predicate.
+
+More specifically, say a term `P` is a *predicate* if, for every term `x`, `P · x` reduces to either
+`TT` or `FF`. A predicate `P` is *trivial* if either it always reduces to true, or always to false.
+This version of Rice's theorem derives a contradiction from the existence of a predicate `P` and the
+existence of terms `x` for which `P · x` is true (`P · x ↠ TT`) and for which `P · x` is false
+(`P · x ↠ FF`).
+-/
 theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF)
     (hxt : ∃ x : SKI, (P ⬝ x) ↠ TT) (hxf : ∃ x : SKI, (P ⬝ x) ↠ FF) : False := by
   obtain ⟨a, ha⟩ := hxt
@@ -304,7 +312,11 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ TT := ha
     exact TF_nequiv <| MRed.diamond _ _ _ this h
 
-/-- **Rice's theorem**: any SKI predicate is trivial. -/
+/-- **Rice's theorem**: any SKI predicate is trivial.
+
+This version of Rice's theorem proves (classically) that any SKI predicate `P` either is constantly
+true (ie `P · x ↠ TT` for every `x`) or is constantly false (`P · x ↠ FF` for every `x`).
+-/
 theorem rice' {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF) :
     (∀ x : SKI, (P ⬝ x) ↠ TT) ∨ (∀ x : SKI, (P ⬝ x) ↠ FF) := by
   by_contra! h
