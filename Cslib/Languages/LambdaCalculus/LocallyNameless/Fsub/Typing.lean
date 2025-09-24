@@ -98,7 +98,7 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     Typing (Γ ++ Θ ++ Δ) t τ := by
   generalize eq : Γ ++ Δ = ΓΔ at der
   induction der generalizing Γ
-  case' abs  => apply Typing.abs  ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+  case' abs => apply Typing.abs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
   case' tabs => apply Typing.tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
   case' let' der _ => apply Typing.let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
   case' case der _ _ => apply Typing.case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
@@ -107,7 +107,18 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
 
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
-    Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := sorry
+    Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := by
+  generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
+  induction der generalizing Γ 
+  case var X' _ _ =>
+    have : X ≠ X' := by grind [→ List.mem_dlookup]
+    have p (δ) : Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) := perm_middle
+    grind [Env.Wf.narrow, List.perm_nodupKeys, => List.perm_dlookup]
+  case' abs  => apply Typing.abs (free_union Var)
+  case' tabs => apply Typing.tabs (free_union Var)
+  case' let' der _ => apply Typing.let' (free_union Var) (der eq)
+  case' case der _ _ => apply Typing.case (free_union Var) (der eq)
+  all_goals grind [Ty.Wf.narrow, Env.Wf.narrow, Sub.narrow]
 
 /-- Term substitution within a typing. -/
 lemma subst_tm (der : Typing (Γ ++ ⟨X, Binding.ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
