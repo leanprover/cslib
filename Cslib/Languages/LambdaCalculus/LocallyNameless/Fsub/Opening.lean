@@ -20,9 +20,7 @@ This file defines opening, local closure, and substitution.
 
 -/
 
-universe u
-
-variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
+variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 

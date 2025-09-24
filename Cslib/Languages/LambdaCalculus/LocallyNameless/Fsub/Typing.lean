@@ -21,9 +21,7 @@ This file defines the typing relation.
 
 -/
 
-universe u
-
-variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
+variable {Var : Type*} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 

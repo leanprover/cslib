@@ -20,9 +20,7 @@ This file proves type safety.
 
 -/
 
-universe u
-
-variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
+variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 

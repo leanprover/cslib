@@ -20,12 +20,12 @@ The λ-calculus with polymorphism and subtyping, with a locally nameless represe
 
 -/
 
-variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
+variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
 /-- Types of the polymorphic lambda calculus. -/
-inductive Ty (Var : Type u)
+inductive Ty (Var : Type*)
   /-- The type ⊤, with a single inhabitant. -/
   | top : Ty Var
   /-- Bound variables that appear in a type, using a de-Bruijn index. -/
@@ -41,7 +41,7 @@ inductive Ty (Var : Type u)
   deriving Inhabited
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
-inductive Term (Var : Type u)
+inductive Term (Var : Type*)
   /-- Bound term variables that appear under a lambda abstraction, using a de-Bruijn index. -/
   | bvar : ℕ → Term Var
   /-- Free term variables. -/
@@ -64,7 +64,7 @@ inductive Term (Var : Type u)
   | case : Term Var → Term Var → Term Var → Term Var
 
 /-- A context binding. -/
-inductive Binding (Var : Type u)
+inductive Binding (Var : Type*)
   /-- Subtype binding. -/
   | sub : Ty Var → Binding Var
   /-- Type binding. -/
@@ -102,6 +102,6 @@ def Term.fv_tm : Term Var → Finset Var
 | case t₁ t₂ t₃ => t₁.fv_tm ∪ t₂.fv_tm ∪ t₃.fv_tm
 
 /-- A context of bindings. -/
-abbrev Env (Var : Type u) := Context Var (Binding Var)
+abbrev Env (Var : Type*) := Context Var (Binding Var)
 
 end LambdaCalculus.LocallyNameless.Fsub

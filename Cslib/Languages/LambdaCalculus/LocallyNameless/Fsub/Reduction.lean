@@ -20,9 +20,7 @@ This file defines a call-by-value reduction.
 
 -/
 
-universe u
-
-variable {Var : Type u}
+variable {Var : Type*}
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 

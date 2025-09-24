@@ -19,9 +19,7 @@ This file defines the subtyping relation.
 
 -/
 
-universe u
-
-variable {Var : Type u} [DecidableEq Var]
+variable {Var : Type*} [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 

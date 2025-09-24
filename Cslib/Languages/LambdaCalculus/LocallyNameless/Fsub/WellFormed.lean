@@ -20,9 +20,7 @@ This file defines the well-formedness condition for types and contexts.
 
 -/
 
-universe u
-
-variable {Var : Type u} [DecidableEq Var]
+variable {Var : Type*} [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
