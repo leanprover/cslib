@@ -24,7 +24,6 @@ universe u
 
 variable {Var : Type u}
 
-
 namespace LambdaCalculus.LocallyNameless.Fsub
 
 namespace Term

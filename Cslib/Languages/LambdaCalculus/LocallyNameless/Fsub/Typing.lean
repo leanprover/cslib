@@ -61,36 +61,12 @@ attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing
 
 /-- Typings have well-formed contexts and types. -/
 @[grind →]
-lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
-    Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
-  induction der
-  case tabs => 
-    let ⟨X,mem⟩ := fresh_exists <| free_union Var
-    split_ands
-    · grind [cases Env.Wf]
-    · apply LC.tabs (free_union Var) <;> grind [cases Env.Wf]
-    · apply Ty.Wf.all (free_union Var) <;> grind [cases Env.Wf]
-  case abs σ Γ _ _ _ _ _ => 
-    let ⟨X,_⟩ := fresh_exists <| free_union Var
-    split_ands
-    · grind [cases Env.Wf]
-    · apply LC.abs (free_union Var) <;> grind [cases Env.Wf]
-    · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
-      grind [Ty.Wf.strengthen, cases Env.Wf]
-  case let' Γ _ σ _ _ _ _ _ _ _ => 
-    let ⟨X,_⟩ := fresh_exists <| free_union Var
-    split_ands
-    · grind
-    · apply LC.let' (free_union Var) <;> grind
-    · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
-      grind [Ty.Wf.strengthen]
-  case case Γ _ σ _ _ _ _ _ _ _ _ _ _ _ => 
-    let ⟨X,_⟩ := fresh_exists <| free_union Var
-    split_ands
-    · grind
-    · apply LC.case (free_union Var) <;> grind
-    · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
-      grind [Ty.Wf.strengthen]
+lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) : Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
+  induction der <;> let L := free_union Var <;> have := fresh_exists L
+  case tabs => refine ⟨?_, LC.tabs L ?_ ?_, Ty.Wf.all L ?_ ?_⟩ <;> grind [cases Env.Wf]
+  case abs => refine ⟨?_, LC.abs L ?_ ?_, ?_⟩ <;> grind [Wf.strengthen, cases Env.Wf]
+  case let' => refine ⟨?_, LC.let' L ?_ ?_, ?_⟩ <;> grind [Ty.Wf.strengthen]
+  case case => refine ⟨?_, LC.case L ?_ ?_ ?_, ?_⟩ <;> grind [Ty.Wf.strengthen]
   all_goals grind [of_bind_ty, open_lc, cases Env.Wf, cases Ty.Wf]
 
 /-- Weakening of typings. -/
