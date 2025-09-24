@@ -71,6 +71,7 @@ theorem nmem_append_keys (l₁ l₂ : List (Sigma β)) :
       grind [keys_cons, => perm_keys]
   )
 
+/-- An element between two appended lists without duplicate keys appears in neither list. -/
 @[grind →]
 theorem nodupKeys_of_nodupKeys_middle (l₁ l₂ : List (Sigma β)) (h : (l₁ ++ s :: l₂).NodupKeys) : 
     s.fst ∉ l₁.keys ∧ s.fst ∉ l₂.keys:= by
@@ -108,6 +109,7 @@ attribute [scoped grind =] List.dlookup_cons_eq
 attribute [scoped grind =] List.dlookup_cons_ne
 attribute [scoped grind =] List.dlookup_nil
 attribute [scoped grind _=_] List.dlookup_isSome
+attribute [scoped grind →] List.perm_nodupKeys
 
 /-- The domain of a context is the finite set of free variables it uses. -/
 @[simp, grind =]
@@ -121,16 +123,6 @@ omit [DecidableEq α] in
 theorem haswellformed_def (Γ : Context α β) : Γ✓ = Γ.NodupKeys := by rfl
 
 variable {Γ Δ : Context α β}
-
-/-- Context membership is preserved on permuting a context. -/
-theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : α} : x ∈ Γ.dom ↔ x ∈ Δ.dom := by
-  induction h <;> simp_all only [dom, mem_toFinset, keys_cons, mem_cons] 
-  grind
-
-omit [DecidableEq α] in
-/-- Context well-formedness is preserved on permuting a context. -/
-@[scoped grind →]
-theorem wf_perm (h : Γ.Perm Δ) : Γ✓ → Δ✓ := (List.perm_nodupKeys h).mp
 
 omit [DecidableEq α] in
 /-- Context well-formedness is preserved on removing an element. -/
@@ -169,7 +161,7 @@ lemma map_val_append_left (f) (ok : (Γ ++ Δ)✓) : (Γ.map_val f ++ Δ)✓ := 
   case cons hd tl ih =>
     have perm : hd :: (map_val f Γ ++ tl) ~ map_val f Γ ++ hd :: tl := Perm.symm perm_middle
     have perm' : hd :: (Γ ++ tl) ~ Γ ++ hd :: tl := Perm.symm perm_middle
-    have ok' : (hd :: (Γ ++ tl))✓ := wf_perm (id (Perm.symm perm')) ok
+    have ok' : (hd :: (Γ ++ tl))✓ := by grind
     grind [List.nodupKeys_cons, nmem_append_keys]
 
 end LambdaCalculus.LocallyNameless.Context
