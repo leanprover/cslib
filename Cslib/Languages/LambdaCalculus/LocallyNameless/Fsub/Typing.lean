@@ -27,7 +27,7 @@ variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
-open Term Ty Ty.Wf Env.Wf Sub Context List
+open Term Ty Ty.Wf Env.Wf Sub Context List Binding
 
 /-- The typing relation. -/
 inductive Typing : Env Var → Term Var → Ty Var → Prop
@@ -105,6 +105,14 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
   all_goals 
     grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, sublist_dlookup]
 
+/-- Weakening of typings (at the front). -/
+lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) :
+    Typing (Γ ++ Δ) t τ := by
+  have eq : Δ = [] ++ Δ := by rfl
+  rw [eq] at der
+  have := Typing.weaken der wf
+  grind
+
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
     Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := by
@@ -112,7 +120,7 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
   induction der generalizing Γ 
   case var X' _ _ =>
     have : X ≠ X' := by grind [→ List.mem_dlookup]
-    have p (δ) : Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) := perm_middle
+    have p (δ) : Γ ++ ⟨X, .sub δ⟩ :: Δ ~ ⟨X, .sub δ⟩ :: (Γ ++ Δ) := perm_middle
     grind [Env.Wf.narrow, List.perm_nodupKeys, => List.perm_dlookup]
   case' abs  => apply abs (free_union Var)
   case' tabs => apply tabs (free_union Var)
@@ -121,12 +129,52 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
   all_goals grind [Ty.Wf.narrow, Env.Wf.narrow, Sub.narrow]
 
 /-- Term substitution within a typing. -/
-lemma subst_tm (der : Typing (Γ ++ ⟨X, Binding.ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
-    Typing (Γ ++ Δ) (t[X := s]) τ := sorry
+lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
+    Typing (Γ ++ Δ) (t[X := s]) τ := by
+  generalize eq : Γ ++ ⟨X, .ty σ⟩ :: Δ = Θ at der
+  induction der generalizing Γ X
+  case var σ' _ X' _ _ =>
+    have : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
+    by_cases eq : X = X'
+    · grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen]
+    · grind [Env.Wf.strengthen, => List.perm_dlookup]
+  case abs => 
+    apply abs (free_union Var)
+    grind [open_tm_subst_tm_var]
+  case tabs => 
+    apply tabs (free_union Var)
+    grind [open_ty_subst_tm_var]
+  case let' der _ => 
+    apply let' (free_union Var) (der eq)
+    grind [open_tm_subst_tm_var]
+  case case der _ _ => 
+    apply case (free_union Var) (der eq) <;> grind [open_tm_subst_tm_var]
+  all_goals grind [Env.Wf.strengthen, Ty.Wf.strengthen, Sub.strengthen]
 
 /-- Type substitution within a typing. -/
 lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Δ δ δ') : 
-    Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := sorry
+    Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := by
+  generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
+  induction der generalizing Γ X 
+  case var σ _ X' _ mem =>
+    have := map_subst_nmem Δ X δ
+    have : Γ ++ ⟨X, .sub δ'⟩ :: Δ ~ ⟨X, .sub δ'⟩ :: (Γ ++ Δ) := perm_middle
+    have : .ty σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
+    have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
+    grind [Env.Wf.map_subst]
+  case abs => 
+    apply abs (free_union [Ty.fv] Var)
+    grind [Ty.subst_fresh, open_tm_subst_ty_var]
+  case tabs => 
+    apply tabs (free_union Var)
+    grind [open_ty_subst_ty_var, open_subst_var]
+  case let' der _ => 
+    apply let' (free_union Var) (der eq)
+    grind [open_tm_subst_ty_var]
+  case case der _ _ =>
+    apply case (free_union Var) (der eq) <;> grind [open_tm_subst_ty_var]
+  case tapp => grind [Ty.open_subst, Env.Wf.map_subst, Ty.Wf.map_subst, Sub.map_subst]
+  all_goals grind [Env.Wf.map_subst, Ty.Wf.map_subst, Sub.map_subst]
 
 open Term Ty
 
