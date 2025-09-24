@@ -98,10 +98,10 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     Typing (Γ ++ Θ ++ Δ) t τ := by
   generalize eq : Γ ++ Δ = ΓΔ at der
   induction der generalizing Γ
-  case' abs => apply Typing.abs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
-  case' tabs => apply Typing.tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
-  case' let' der _ => apply Typing.let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
-  case' case der _ _ => apply Typing.case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
+  case' abs => apply abs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+  case' tabs => apply tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+  case' let' der _ => apply let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
+  case' case der _ _ => apply case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
   all_goals 
     grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, sublist_dlookup]
 
@@ -114,10 +114,10 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
     have : X ≠ X' := by grind [→ List.mem_dlookup]
     have p (δ) : Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) := perm_middle
     grind [Env.Wf.narrow, List.perm_nodupKeys, => List.perm_dlookup]
-  case' abs  => apply Typing.abs (free_union Var)
-  case' tabs => apply Typing.tabs (free_union Var)
-  case' let' der _ => apply Typing.let' (free_union Var) (der eq)
-  case' case der _ _ => apply Typing.case (free_union Var) (der eq)
+  case' abs  => apply abs (free_union Var)
+  case' tabs => apply tabs (free_union Var)
+  case' let' der _ => apply let' (free_union Var) (der eq)
+  case' case der _ _ => apply case (free_union Var) (der eq)
   all_goals grind [Ty.Wf.narrow, Env.Wf.narrow, Sub.narrow]
 
 /-- Term substitution within a typing. -/
@@ -171,7 +171,7 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
     · exists τ, L ∪ L'
       intro X _
       have eq : ⟨X, Binding.sub γ⟩ :: Γ = [] ++ ⟨X, Binding.sub γ⟩ :: Γ := by rfl
-      grind [Typing.narrow]
+      grind [narrow]
   case sub Γ _ τ τ' _ _ ih => 
     subst eq
     have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
