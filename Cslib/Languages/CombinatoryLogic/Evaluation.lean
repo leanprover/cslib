@@ -36,14 +36,14 @@ This file draws heavily from <https://gist.github.com/b-mehta/e412c837818223b8f1
 open SKI Red
 
 /-- The predicate that a term has no reducible sub-terms. -/
-def RedexFree : SKI → Prop
+def SKI.RedexFree : SKI → Prop
   | S => True
   | K => True
   | I => True
-  | S ⬝ x => RedexFree x
-  | K ⬝ x => RedexFree x
+  | S ⬝ x => x.RedexFree
+  | K ⬝ x => x.RedexFree
   | I ⬝ _ => False
-  | S ⬝ x ⬝ y => RedexFree x ∧ RedexFree y
+  | S ⬝ x ⬝ y => x.RedexFree ∧ y.RedexFree
   | K ⬝ _ ⬝ _ => False
   | I ⬝ _ ⬝ _ => False
   | S ⬝ _ ⬝ _ ⬝ _ => False
@@ -55,18 +55,18 @@ def RedexFree : SKI → Prop
 One-step evaluation as a function: either it returns a term that has been reduced by one step,
 or a proof that the term is redex free. Uses normal-order reduction.
 -/
-def evalStep : (x : SKI) → PLift (RedexFree x) ⊕ SKI
+def SKI.evalStep : (x : SKI) → PLift (x.RedexFree) ⊕ SKI
   | S => Sum.inl (PLift.up trivial)
   | K => Sum.inl (PLift.up trivial)
   | I => Sum.inl (PLift.up trivial)
-  | S ⬝ x => match evalStep x with
+  | S ⬝ x => match x.evalStep with
     | Sum.inl h => Sum.inl h
     | Sum.inr x' => Sum.inr (S ⬝ x')
-  | K ⬝ x => match evalStep x with
+  | K ⬝ x => match x.evalStep with
     | Sum.inl h => Sum.inl h
     | Sum.inr x' => Sum.inr (K ⬝ x')
   | I ⬝ x => Sum.inr x
-  | S ⬝ x ⬝ y => match evalStep x, evalStep y with
+  | S ⬝ x ⬝ y => match x.evalStep, y.evalStep with
     | Sum.inl h1, Sum.inl h2 => Sum.inl (.up ⟨h1.down, h2.down⟩)
     | Sum.inl _, Sum.inr y' => Sum.inr (S ⬝ x ⬝ y')
     | Sum.inr x', _ => Sum.inr (S ⬝ x' ⬝ y)
@@ -81,16 +81,16 @@ def evalStep : (x : SKI) → PLift (RedexFree x) ⊕ SKI
     | Sum.inr abcd', _ => Sum.inr (abcd' ⬝ e)
 
 /-- The normal-order reduction implemented by `evalStep` indeed computes a one-step reduction. -/
-theorem evalStep_right_correct : (x y : SKI) → (evalStep x = Sum.inr y) → x ⭢ y
+theorem evalStep_right_correct : (x y : SKI) → (x.evalStep = Sum.inr y) → x ⭢ y
   | S ⬝ x, a, h =>
-    match hx : evalStep x with
+    match hx : x.evalStep with
     | Sum.inl _ => by simp only [hx, evalStep, reduceCtorEq] at h
     | Sum.inr x' => by
         simp only [evalStep, hx, Sum.inr.injEq] at h
         rw [←h]
         exact .red_tail _ _ _ (evalStep_right_correct _ _ hx)
   | K ⬝ x, a, h =>
-    match hx : evalStep x with
+    match hx : x.evalStep with
     | Sum.inl _ => by simp only [hx, evalStep, reduceCtorEq] at h
     | Sum.inr x' => by
         simp only [evalStep, hx, Sum.inr.injEq] at h
@@ -98,7 +98,7 @@ theorem evalStep_right_correct : (x y : SKI) → (evalStep x = Sum.inr y) → x 
         exact .red_tail _ _ _ (evalStep_right_correct _ _ hx)
   | I ⬝ x, a, h => Sum.inr.inj h ▸ red_I _
   | S ⬝ x ⬝ y, a, h =>
-      match hx : evalStep x, hy : evalStep y with
+      match hx : x.evalStep, hy : y.evalStep with
       | Sum.inl _, Sum.inl _ => by simp only [hx, hy, evalStep, reduceCtorEq] at h
       | Sum.inl _, Sum.inr y' => by
           simp only [hx, hy, evalStep, Sum.inr.injEq] at h
@@ -125,12 +125,12 @@ theorem evalStep_right_correct : (x y : SKI) → (evalStep x = Sum.inr y) → x 
           rw [←h]
           exact red_head _ _ _ <| evalStep_right_correct _ _ habcd
 
-theorem redexFree_of_no_red {x : SKI} (h : ∀ y, ¬ (x ⭢ y)) : RedexFree x := by
-  match hx : evalStep x with
+theorem redexFree_of_no_red {x : SKI} (h : ∀ y, ¬ (x ⭢ y)) : x.RedexFree := by
+  match hx : x.evalStep with
   | Sum.inl h' => exact h'.down
   | Sum.inr y => cases h _ (evalStep_right_correct x y hx)
 
-theorem RedexFree.no_red : {x : SKI} → RedexFree x → ∀ y, ¬ (x ⭢ y)
+theorem SKI.RedexFree.no_red : {x : SKI} → x.RedexFree → ∀ y, ¬ (x ⭢ y)
 | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
 | K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
 | S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => hx.no_red _ h3
@@ -139,26 +139,26 @@ theorem RedexFree.no_red : {x : SKI} → RedexFree x → ∀ y, ¬ (x ⭢ y)
 | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => hy.no_red _ he
 
 /-- A term is redex free iff it has no one-step reductions. -/
-theorem redexFree_iff {x : SKI} : RedexFree x ↔ ∀ y, ¬ (x ⭢ y) :=
+theorem redexFree_iff {x : SKI} : x.RedexFree ↔ ∀ y, ¬ (x ⭢ y) :=
   ⟨RedexFree.no_red, redexFree_of_no_red⟩
 
-theorem redexFree_iff_evalStep {x : SKI} : RedexFree x ↔ (evalStep x).isLeft = true := by
+theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft = true := by
   constructor
   case mp =>
     intro h
-    match hx : evalStep x with
+    match hx : x.evalStep with
     | Sum.inl h' => exact rfl
     | Sum.inr y => cases h.no_red _ (evalStep_right_correct _ _ hx)
   case mpr =>
     intro h
-    match hx : evalStep x with
+    match hx : x.evalStep with
     | Sum.inl h' => exact h'.down
     | Sum.inr y => rw [hx] at h; cases h
 
 instance : DecidablePred RedexFree := fun _ => decidable_of_iff' _ redexFree_iff_evalStep
 
 /-- A term is redex free iff its only many-step reduction is itself. -/
-theorem redexFree_iff' {x : SKI} : RedexFree x ↔ ∀ y, (x ↠ y) ↔ x = y := by
+theorem redexFree_iff' {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x = y := by
   constructor
   case mp =>
     intro h y
@@ -181,7 +181,7 @@ theorem redexFree_iff' {x : SKI} : RedexFree x ↔ ∀ y, (x ↠ y) ↔ x = y :=
     exact Red.ne hy (h.1 (Relation.ReflTransGen.single hy))
 
 /-- If a term has a common reduct with a normal term, it in fact reduces to that term. -/
-theorem commonReduct_redexFree {x y : SKI} (hy : RedexFree y) (h : CommonReduct x y) : x ↠ y :=
+theorem commonReduct_redexFree {x y : SKI} (hy : y.RedexFree) (h : CommonReduct x y) : x ↠ y :=
   let ⟨w, hyw, hzw⟩ := h
   (redexFree_iff'.1 hy _ |>.1 hzw : y = w) ▸ hyw
 
@@ -194,12 +194,12 @@ lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : Re
 If `x` reduces to both `y` and `z`, and both `y` and `z` are in normal form, then they are equal.
 -/
 lemma unique_normal_form {x y z : SKI}
-    (hxy : x ↠ y) (hxz : x ↠ z) (hy : RedexFree y) (hz : RedexFree z) : y = z :=
+    (hxy : x ↠ y) (hxz : x ↠ z) (hy : y.RedexFree) (hz : RedexFree z) : y = z :=
   (redexFree_iff'.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
 lemma unique_normal_form' {x y : SKI} (h : CommonReduct x y)
-    (hx : RedexFree x) (hy : RedexFree y) : x = y :=
+    (hx : x.RedexFree) (hy : y.RedexFree) : x = y :=
   (redexFree_iff'.1 hx _).1 (commonReduct_redexFree hy h)
 
 /-! ### Injectivity for datatypes -/
