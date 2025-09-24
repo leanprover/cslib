@@ -74,18 +74,11 @@ theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓
   | all => apply all (free_union [dom] Var) <;> grind [Perm.cons, nodupKeys_cons]
   | _ => grind [perm_dlookup]
 
--- TODO: move the simp_all into grind?
 /-- A type remains well-formed under context weakening (in the middle). -/
 theorem weaken (wf_ΓΘ : σ.Wf (Γ ++ Θ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : σ.Wf (Γ ++ Δ ++ Θ) := by
   generalize eq : Γ ++ Θ = ΓΔ at wf_ΓΘ
   induction wf_ΓΘ generalizing Γ
-  case all σ _ _ _ _ _ ih => 
-    apply all (free_union [Context.dom] Var) (by grind)
-    intro X _
-    apply ih (Γ := ⟨X, Binding.sub σ⟩ :: Γ)
-    · grind
-    · simp_all [haswellformed_def, keys]
-    · grind
+  case all => apply all ((Γ ++ Δ ++ Θ).dom ∪ free_union Var) <;> grind
   all_goals grind [NodupKeys.sublist, sublist_dlookup]
 
 /-- A type remains well-formed under context weakening (at the front). -/
