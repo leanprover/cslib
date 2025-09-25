@@ -52,7 +52,7 @@ theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (
 theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
   induction h <;> grind [keys_cons]
 
-/-- A key not appearing in an appending of list must appear in either list. -/
+/-- A key not appearing in an appending of list must not appear in either list. -/
 theorem nmem_append_keys (l₁ l₂ : List (Sigma β)) :
     a ∉ (l₁ ++ l₂).keys ↔ a ∉ l₁.keys ∧ a ∉ l₂.keys := by
   constructor <;> (
