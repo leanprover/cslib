@@ -33,20 +33,11 @@ theorem keys_append : (Δ ++ Γ).keys = Δ.keys ++ Γ.keys := by
 /-- Sublists without duplicate keys preserve lookups. -/
 theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)
     (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : b ∈ l₂.dlookup a := by
-  induction s generalizing a b
-  case slnil => exact mem
-  case cons p' _ ih =>
-    obtain ⟨a', b'⟩ := p'
-    have := ih nd₁ (by grind [nodupKeys_cons]) mem |> of_mem_dlookup |> mem_keys_of_mem
-    have : a ≠ a' := by grind [nodupKeys_cons]
-    simp_all
-  case cons₂ p' _ ih =>
-    obtain ⟨a', b'⟩ := p'
-    by_cases h : a = a'
-    · subst h
-      rw [List.dlookup_cons_eq] at *
-      exact mem
-    · simp_all
+  induction s generalizing a b with
+  | slnil => exact mem
+  | cons p' | cons₂ p' =>
+    by_cases a = p'.fst <;>
+    grind [dlookup_cons_eq, nodupKeys_cons, dlookup_cons_ne, → of_mem_dlookup, → mem_keys_of_mem]
 
 /-- List permutation preserves keys. -/
 theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
