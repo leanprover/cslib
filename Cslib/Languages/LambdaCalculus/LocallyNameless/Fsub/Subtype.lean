@@ -67,7 +67,7 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   case all => 
     subst eq
     apply all (free_union [Context.dom] Var) <;> grind [keys_append]
-  all_goals grind [Ty.Wf.weaken, sublist_dlookup]
+  all_goals grind [Ty.Wf.weaken, <= sublist_dlookup]
 
 lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ σ' := by
   have eq : Γ ++ Δ = [] ++ Γ ++ Δ := by grind

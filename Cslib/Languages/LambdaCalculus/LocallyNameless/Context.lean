@@ -23,16 +23,16 @@ variable {α : Type u} {β : Type v} [DecidableEq α]
 -- `Mathlib.Data.List.Sigma`. We should consider upstreaming them to Mathlib.
 namespace List
 
-variable {β : α → Type v} {Γ Δ : List (Sigma β)}
+variable {β : α → Type v} {l₁ l₂ : List (Sigma β)}
 
 omit [DecidableEq α] in
 /-- Keys distribute with appending. -/
-theorem keys_append : (Δ ++ Γ).keys = Δ.keys ++ Γ.keys := by
-  induction Δ <;> simp_all
+theorem keys_append : (l₁ ++ l₂).keys = l₁.keys ++ l₂.keys := by
+  induction l₁ <;> simp_all
 
 /-- Sublists without duplicate keys preserve lookups. -/
-theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)
-    (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : b ∈ l₂.dlookup a := by
+theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : 
+    b ∈ l₂.dlookup a := by
   induction s generalizing a b with
   | slnil => exact mem
   | cons p' | cons₂ p' =>
@@ -40,7 +40,7 @@ theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (
     grind [dlookup_cons_eq, nodupKeys_cons, dlookup_cons_ne, → of_mem_dlookup, → mem_keys_of_mem]
 
 /-- List permutation preserves keys. -/
-theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
+theorem perm_keys (h : l₁.Perm l₂) : x ∈ l₁.keys ↔ x ∈ l₂.keys := by
   induction h <;> grind [keys_cons]
 
 /-- A key not appearing in an appending of list must not appear in either list. -/

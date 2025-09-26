@@ -77,7 +77,7 @@ theorem weaken (wf_ΓΘ : σ.Wf (Γ ++ Θ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : 
   generalize eq : Γ ++ Θ = ΓΔ at wf_ΓΘ
   induction wf_ΓΘ generalizing Γ
   case all => apply all ((Γ ++ Δ ++ Θ).dom ∪ free_union Var) <;> grind
-  all_goals grind [NodupKeys.sublist, sublist_dlookup]
+  all_goals grind [NodupKeys.sublist, <= sublist_dlookup]
 
 /-- A type remains well-formed under context weakening (at the front). -/
 theorem weaken_head (wf : σ.Wf Δ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := by
