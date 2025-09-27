@@ -22,8 +22,8 @@ This file formalises evaluation and normal forms of SKI terms.
 ## Main results
 
 - `evalStep_right_correct` : correctness for `evalStep`
-- `redexFree_iff` and `redexFree_iff_mred_eq` : a term is redex free if and only if it has (respectively)
-no one-step reductions, or if its only many step reduction is itself.
+- `redexFree_iff` and `redexFree_iff_mred_eq` : a term is redex free if and only if it has
+(respectively) no one-step reductions, or if its only many step reduction is itself.
 - `unique_normal_form` : if `x` reduces to both `y` and `z`, and both `y` and `z` are in normal
 form, then they are equal.
 - **Rice's theorem**: no SKI term is a non-trivial predicate.
