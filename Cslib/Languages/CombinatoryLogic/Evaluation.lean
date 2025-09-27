@@ -22,7 +22,7 @@ This file formalises evaluation and normal forms of SKI terms.
 ## Main results
 
 - `evalStep_right_correct` : correctness for `evalStep`
-- `redexFree_iff` and `redexFree_iff'` : a term is redex free if and only if it has (respectively)
+- `redexFree_iff` and `redexFree_iff_mred_eq` : a term is redex free if and only if it has (respectively)
 no one-step reductions, or if its only many step reduction is itself.
 - `unique_normal_form` : if `x` reduces to both `y` and `z`, and both `y` and `z` are in normal
 form, then they are equal.
@@ -158,7 +158,7 @@ theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft =
 instance : DecidablePred RedexFree := fun _ => decidable_of_iff' _ redexFree_iff_evalStep
 
 /-- A term is redex free iff its only many-step reduction is itself. -/
-theorem redexFree_iff' {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x = y := by
+theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x = y := by
   constructor
   case mp =>
     intro h y
@@ -183,24 +183,24 @@ theorem redexFree_iff' {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x = y :=
 /-- If a term has a common reduct with a normal term, it in fact reduces to that term. -/
 theorem commonReduct_redexFree {x y : SKI} (hy : y.RedexFree) (h : CommonReduct x y) : x ↠ y :=
   let ⟨w, hyw, hzw⟩ := h
-  (redexFree_iff'.1 hy _ |>.1 hzw : y = w) ▸ hyw
+  (redexFree_iff_mred_eq.1 hy _ |>.1 hzw : y = w) ▸ hyw
 
 /-- If `x` reduces to both `y` and `z`, and `z` is not reducible, then `y` reduces to `z`. -/
 lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : RedexFree z) : y ↠ z :=
   let ⟨w, hyw, hzw⟩ := MRed.diamond x y z hxy hxz
-  (redexFree_iff'.1 hz _ |>.1 hzw : z = w) ▸ hyw
+  (redexFree_iff_mred_eq.1 hz _ |>.1 hzw : z = w) ▸ hyw
 
 /--
 If `x` reduces to both `y` and `z`, and both `y` and `z` are in normal form, then they are equal.
 -/
 lemma unique_normal_form {x y z : SKI}
     (hxy : x ↠ y) (hxz : x ↠ z) (hy : y.RedexFree) (hz : RedexFree z) : y = z :=
-  (redexFree_iff'.1 hy _).1 (confluent_redexFree hxy hxz hz)
+  (redexFree_iff_mred_eq.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
-lemma unique_normal_form' {x y : SKI} (h : CommonReduct x y)
+lemma eq_of_commonReduct_redexFree {x y : SKI} (h : CommonReduct x y)
     (hx : x.RedexFree) (hy : y.RedexFree) : x = y :=
-  (redexFree_iff'.1 hx _).1 (commonReduct_redexFree hy h)
+  (redexFree_iff_mred_eq.1 hx _).1 (commonReduct_redexFree hy h)
 
 /-! ### Injectivity for datatypes -/
 
@@ -208,8 +208,8 @@ lemma sk_nequiv : ¬ CommonReduct S K := by
   intro ⟨z, hsz, hkz⟩
   have hS : RedexFree S := by simp [RedexFree]
   have hK : RedexFree K := by simp [RedexFree]
-  cases (redexFree_iff'.1 hS z).1 hsz
-  cases (redexFree_iff'.1 hK _).1 hkz
+  cases (redexFree_iff_mred_eq.1 hS z).1 hsz
+  cases (redexFree_iff_mred_eq.1 hK _).1 hkz
 
 /-- Injectivity for booleans. -/
 theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
@@ -268,7 +268,7 @@ theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsC
     (hxy : CommonReduct x y) : n = m := by
   suffices CommonReduct (churchK n) (churchK m) by
     apply churchK_injective
-    exact unique_normal_form' this (churchK_redexFree n) (churchK_redexFree m)
+    exact eq_of_commonReduct_redexFree this (churchK_redexFree n) (churchK_redexFree m)
   apply commonReduct_equivalence.trans (y := x ⬝ K ⬝ K)
   · simp_rw [churchK_church]
     exact commonReduct_equivalence.symm <| commonReduct_of_single (hx K K)
