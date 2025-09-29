@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.Lts.Basic
+import Cslib.Foundations.Semantics.LTS.Basic
 
 set_option linter.style.longLine false in
 /-! # Deterministic Finite-State Automata
@@ -20,7 +20,7 @@ a finite string.
 /-- A Deterministic Finite-State Automaton (DFA) consists of a labelled transition function
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
 set of accepting states `accept`. -/
-structure Dfa (State : Type _) (Symbol : Type _) where
+structure DFA (State : Type _) (Symbol : Type _) where
   /-- The transition function of the automaton. -/
   tr : State → Symbol → State
   /-- Start state. -/
@@ -32,7 +32,7 @@ structure Dfa (State : Type _) (Symbol : Type _) where
   /-- The type of symbols (also called 'alphabet') is finite. -/
   finite_symbol : Finite Symbol
 
-namespace Dfa
+namespace DFA
 
 /-- Extended transition function.
 
@@ -40,50 +40,50 @@ Implementation note: compared to [Hopcroft2006], the definition consumes the inp
 from the left (instead of the right), in order to follow the way lists are constructed.
 -/
 @[grind]
-def mtr (dfa : Dfa State Symbol) (s : State) (xs : List Symbol) :=
+def mtr (dfa : DFA State Symbol) (s : State) (xs : List Symbol) :=
   match xs with
   | [] => s
   | x :: xs => dfa.mtr (dfa.tr s x) xs
 
 @[grind]
-theorem mtr_nil_eq {dfa : Dfa State Symbol} : dfa.mtr s [] = s := by rfl
+theorem mtr_nil_eq {dfa : DFA State Symbol} : dfa.mtr s [] = s := by rfl
 
 /-- A DFA accepts a trace if there is a multi-step accepting derivative with that trace from
 the start state. -/
 @[grind]
-def Accepts (dfa : Dfa State Symbol) (μs : List Symbol) :=
+def Accepts (dfa : DFA State Symbol) (μs : List Symbol) :=
   (dfa.mtr dfa.start μs) ∈ dfa.accept
 
 /-- The language of a DFA is the set of traces that it accepts. -/
 @[grind]
-def language (dfa : Dfa State Symbol) : Set (List Symbol) :=
+def language (dfa : DFA State Symbol) : Set (List Symbol) :=
   { μs | dfa.Accepts μs }
 
 /-- A trace is accepted by a DFA iff it is in the language of the DFA. -/
 @[grind]
-theorem accepts_mem_language (dfa : Dfa State Symbol) (μs : List Symbol) :
+theorem accepts_mem_language (dfa : DFA State Symbol) (μs : List Symbol) :
   dfa.Accepts μs ↔ μs ∈ dfa.language := by rfl
 
-section Lts
+section LTS
 
-/-- `Dfa` is a special case of `Lts`. -/
+/-- `DFA` is a special case of `LTS`. -/
 @[grind]
-def toLts (dfa : Dfa State Symbol) : Lts State Symbol :=
-  Lts.mk (fun s1 μ s2 => dfa.tr s1 μ = s2)
+def toLTS (dfa : DFA State Symbol) : LTS State Symbol :=
+  LTS.mk (fun s1 μ s2 => dfa.tr s1 μ = s2)
 
-instance : Coe (Dfa State Symbol) (Lts State Symbol) where
-  coe := toLts
+instance : Coe (DFA State Symbol) (LTS State Symbol) where
+  coe := toLTS
 
-/-- `Dfa.toLts` correctly characterises transitions. -/
+/-- `DFA.toLTS` correctly characterises transitions. -/
 @[grind]
-theorem toLts_tr {dfa : Dfa State Symbol} :
-  dfa.toLts.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
+theorem toLTS_tr {dfa : DFA State Symbol} :
+  dfa.toLTS.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
   rfl
 
-/-- `Dfa.toLts` correctly characterises multistep transitions. -/
+/-- `DFA.toLTS` correctly characterises multistep transitions. -/
 @[grind]
-theorem toLts_mtr {dfa : Dfa State Symbol} :
-  dfa.toLts.MTr s1 xs s2 ↔ dfa.mtr s1 xs = s2 := by
+theorem toLTS_mtr {dfa : DFA State Symbol} :
+  dfa.toLTS.MTr s1 xs s2 ↔ dfa.mtr s1 xs = s2 := by
   constructor <;> intro h
   case mp =>
     induction h <;> grind
@@ -91,18 +91,18 @@ theorem toLts_mtr {dfa : Dfa State Symbol} :
     induction xs generalizing s1
     case nil => grind
     case cons x xs ih =>
-      apply Lts.MTr.stepL (s2 := dfa.tr s1 x) <;> grind
+      apply LTS.MTr.stepL (s2 := dfa.tr s1 x) <;> grind
 
 /-- The LTS induced by a DFA is deterministic. -/
 @[grind]
-theorem toLts_deterministic (dfa : Dfa State Symbol) : dfa.toLts.Deterministic := by
+theorem toLTS_deterministic (dfa : DFA State Symbol) : dfa.toLTS.Deterministic := by
   grind
 
 /-- The LTS induced by a DFA is finite-state. -/
 @[grind]
-theorem toLts_finiteState (dfa : Dfa State Symbol) : dfa.toLts.FiniteState :=
+theorem toLTS_finiteState (dfa : DFA State Symbol) : dfa.toLTS.FiniteState :=
   dfa.finite_state
 
-end Lts
+end LTS
 
-end Dfa
+end DFA

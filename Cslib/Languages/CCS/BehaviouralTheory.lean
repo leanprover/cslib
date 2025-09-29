@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.Lts.Basic
-import Cslib.Foundations.Semantics.Lts.Bisimulation
+import Cslib.Foundations.Semantics.LTS.Basic
+import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Cslib.Languages.CCS.Basic
 import Cslib.Languages.CCS.Semantics
 
@@ -61,7 +61,7 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
   case left =>
     constructor
   case right =>
-    simp only [Lts.IsBisimulation]
+    simp only [LTS.IsBisimulation]
     intro s1 s2 hr μ
     cases hr
     case parComm p q =>
@@ -237,7 +237,7 @@ private inductive ChoiceComm : (Process Name Constant) → (Process Name Constan
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
   exists @ChoiceComm Name Constant defs
   repeat constructor
-  simp only [Lts.IsBisimulation]
+  simp only [LTS.IsBisimulation]
   intro s1 s2 hr μ
   cases hr
   case choiceComm =>
@@ -302,7 +302,7 @@ theorem bisimilarity_congr_pre :
   exists @PreBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Lts.IsBisimulation]
+  simp only [LTS.IsBisimulation]
   intro s1 s2 hr μ'
   cases hr
   case pre =>
@@ -355,7 +355,7 @@ theorem bisimilarity_congr_res :
   exists @ResBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Lts.IsBisimulation]
+  simp only [LTS.IsBisimulation]
   intro s1 s2 hr μ'
   cases hr
   rename_i p q a h
@@ -390,7 +390,7 @@ theorem bisimilarity_congr_choice :
   exists @ChoiceBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Lts.IsBisimulation]
+  simp only [LTS.IsBisimulation]
   intro s1 s2 r μ
   constructor
   case left =>
@@ -458,7 +458,7 @@ theorem bisimilarity_congr_par :
   exists @ParBisim _ _ defs
   constructor
   · constructor; assumption
-  simp only [Lts.IsBisimulation]
+  simp only [LTS.IsBisimulation]
   intro s1 s2 r μ
   constructor
   case left =>

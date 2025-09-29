@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Dfa.Basic
+import Cslib.Computability.Automata.DFA.Basic
 
 /-! A simple elevator. -/
 
@@ -39,7 +39,7 @@ def tr (floor : Floor) (dir : Direction) : Floor :=
   | .two, .up => .two
   | .two, .down => .one
 
-def elevator : Dfa Floor Direction := {
+def elevator : DFA Floor Direction := {
   tr := tr
   start := .one
   accept := { Floor.one }
