@@ -453,6 +453,8 @@ defined as the dual of the intersection of the orthogonal with the idempotents.
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 @[inherit_doc] scoped prefix:95 " ʔ " => quest
 
+end Fact
+
 
 -- ## Interpretation of propositions
 
@@ -474,8 +476,6 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
   | .quest  A     => ʔ(interpProp v A)
 
 @[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interpProp v P
-
-end Fact
 
 end
 
