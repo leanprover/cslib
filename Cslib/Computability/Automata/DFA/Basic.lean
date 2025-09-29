@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
+import Cslib.Computability.Automata.DA
 import Cslib.Foundations.Semantics.LTS.Basic
 
 set_option linter.style.longLine false in
@@ -20,11 +21,7 @@ a finite string.
 /-- A Deterministic Finite-State Automaton (DFA) consists of a labelled transition function
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
 set of accepting states `accept`. -/
-structure DFA (State : Type _) (Symbol : Type _) where
-  /-- The transition function of the automaton. -/
-  tr : State → Symbol → State
-  /-- Start state. -/
-  start : State
+structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
   /-- Accept states. -/
   accept : Finset State
   /-- The automaton is finite-state. -/

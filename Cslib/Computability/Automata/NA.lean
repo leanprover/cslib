@@ -10,5 +10,6 @@ import Cslib.Foundations.Semantics.LTS.Basic
 
 A Nondeterministic Automaton (NA) is a labelled transition system with a set of initial states.
 -/
-structure NA State Symbol extends LTS State Symbol where
+structure NA (State : Type _) (Symbol : Type _) extends LTS State Symbol where
+  /-- The set of initial states of the automaton. -/
   start : Set State
