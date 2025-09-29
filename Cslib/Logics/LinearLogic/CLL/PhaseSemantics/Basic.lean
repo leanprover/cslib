@@ -455,6 +455,7 @@ def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 
 end Fact
 
+open Fact
 
 -- ## Interpretation of propositions
 
