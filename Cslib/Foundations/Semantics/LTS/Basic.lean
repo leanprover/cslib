@@ -265,17 +265,17 @@ def LTS.Deterministic : Prop :=
 
 /-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
 @[grind]
-def LTS.Image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
+def LTS.image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
 
 /-- An lts is image-finite if all images of its states are finite. -/
 @[grind]
 def LTS.ImageFinite : Prop :=
-  ∀ s μ, Finite (lts.Image s μ)
+  ∀ s μ, Finite (lts.image s μ)
 
 /-- The `μ`-image of a set of states `S` is the union of all `μ`-images of the states in `S`. -/
 @[grind]
 def LTS.setImage (S : Set State) (μ : Label) : Set State :=
-  ⋃ s ∈ S, lts.Image s μ
+  ⋃ s ∈ S, lts.image s μ
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
@@ -289,9 +289,9 @@ theorem LTS.deterministic_not_lto (hDet : lts.Deterministic) :
 
 /-- In a deterministic LTS, any image is either a singleton or the empty set. -/
 theorem LTS.deterministic_image_char (hDet : lts.Deterministic) :
-  ∀ s μ, (∃ s', lts.Image s μ = { s' }) ∨ (lts.Image s μ = ∅) := by
+  ∀ s μ, (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by
   intro s μ
-  by_cases hs' : ∃ s', lts.Tr s μ s' <;> aesop (add simp [Image])
+  by_cases hs' : ∃ s', lts.Tr s μ s' <;> aesop (add simp [image])
 
 /-- Every deterministic LTS is also image-finite. -/
 theorem LTS.deterministic_imageFinite :
@@ -313,12 +313,12 @@ def LTS.HasOutLabel (s : State) (μ : Label) : Prop :=
   ∃ s', lts.Tr s μ s'
 
 /-- The set of outgoing labels of a state. -/
-def LTS.OutgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
+def LTS.outgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
 
 /-- An LTS is finitely branching if it is image-finite and all states have finite sets of
 outgoing labels. -/
 def LTS.FinitelyBranching : Prop :=
-  lts.ImageFinite ∧ ∀ s, Finite (lts.OutgoingLabels s)
+  lts.ImageFinite ∧ ∀ s, Finite (lts.outgoingLabels s)
 
 /-- An LTS is finite-state if it has a finite `State` type. -/
 @[nolint unusedArguments]
