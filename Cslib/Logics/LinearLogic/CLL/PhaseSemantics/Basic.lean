@@ -183,7 +183,7 @@ structure Fact (P : Type*) [PhaseSpace P] where
 
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
-  coe_injective' := fun p q h => by cases p; cases q; congr
+  coe_injective' _ _ _ := by grind [cases Fact]
 
 instance : HasSubset (Fact P) :=
   ⟨fun A B => (A : Set P) ⊆ (B : Set P)⟩
