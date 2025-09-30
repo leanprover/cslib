@@ -345,24 +345,11 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
   ((G : Set P) ∩ (H : Set P) : Set P) =
     (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
   ext m; constructor
-  · intro hm y hy
-    rcases hy with hyG | hyH
-    · have : y * m ∈ PhaseSpace.bot := hyG m hm.left
-      simpa [mul_comm] using this
-    · have : y * m ∈ PhaseSpace.bot := hyH m hm.right
-      simpa [mul_comm] using this
-  · intro hm
-    have hmGbi : m ∈ ((G : Set P)⫠⫠) := by
-      intro y hy
-      exact hm y (Or.inl hy)
-    have hmHbi : m ∈ ((H : Set P)⫠⫠) := by
-      intro y hy
-      exact hm y (Or.inr hy)
-    have hGeq : (G : Set P) = (G : Set P)⫠⫠ := G.property
-    have hHeq : (H : Set P) = (H : Set P)⫠⫠ := H.property
-    have hmG : m ∈ (G : Set P) := by rw [hGeq]; exact hmGbi
-    have hmH : m ∈ (H : Set P) := by rw [hHeq]; exact hmHbi
-    exact ⟨hmG, hmH⟩
+  · grind
+  · intro _
+    have : m ∈ ((G : Set P)⫠⫠) := by grind
+    have : m ∈ ((H : Set P)⫠⫠) := by grind
+    grind [Fact.eq]
 
 instance : Min (Fact P) where
   min G H :=
