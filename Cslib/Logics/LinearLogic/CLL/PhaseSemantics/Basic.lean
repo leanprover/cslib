@@ -287,8 +287,7 @@ lemma biorth_least_fact (G : Set P) :
 lemma zero_least_fact :
     ∀ {F : Set P}, isFact F → (0 : Fact P).carrier ⊆ F := by
   intro F hF
-  have h := biorth_least_fact (G := (∅ : Set P)) hF
-              (by simp)
+  have h := biorth_least_fact (G := (∅ : Set P)) hF (by simp)
   simpa using h
 
 lemma isFact_iff_closed (X : Set P) :
