@@ -11,6 +11,7 @@ import Mathlib.Logic.Function.Defs
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Stream.Defs
 import Mathlib.Util.Notation3
+import Mathlib.Order.SetNotation
 
 /-!
 # Labelled Transition System (LTS)
@@ -270,6 +271,11 @@ def LTS.Image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ
 @[grind]
 def LTS.ImageFinite : Prop :=
   ∀ s μ, Finite (lts.Image s μ)
+
+/-- The `μ`-image of a set of states `S` is the union of all `μ`-images of the states in `S`. -/
+@[grind]
+def LTS.setImage (S : Set State) (μ : Label) : Set State :=
+  ⋃ s ∈ S, lts.Image s μ
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
