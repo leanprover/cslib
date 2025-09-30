@@ -278,9 +278,8 @@ lemma biorth_least_fact (G : Set P) :
   have h_min :
       ∀ {F : Set P}, isFact F → G ⊆ F → G⫠⫠ ⊆ F := by
     intro F hF hGF
-    have hF_closed : c.IsClosed F := by
-      have : F = c F := by simpa [isFact, c] using hF
-      exact (c.isClosed_iff).2 this.symm
+    have : F = c F := by grind [isFact]
+    have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
     simpa [c] using ClosureOperator.closure_min hGF hF_closed
   apply h_min
 
