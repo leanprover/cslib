@@ -48,6 +48,7 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 
 ## References
 
+* [J.-Y. Girard, *Linear logic*][Girard1987]
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
 
@@ -255,26 +256,6 @@ lemma mem_zero : p ∈ (0 : Fact P) ↔ ∀ q, p * q ∈ PhaseSpace.bot := by
 instance : Bot (Fact P) where
   bot := Fact.mk_dual (PhaseSpace.bot : Set P) {1} (orth_one_eq_bot).symm
 
-/--
-If Y is a fact, then X ⊸ Y is also a fact
--/
-lemma imp_isFact_of_fact (X Y : Set P) (hY : isFact Y) :
-    isFact (X ⊸ Y) := by
-  have hXY : (X ⊸ Y) = (X * Y⫠)⫠ := by
-    ext m
-    constructor
-    · intro hm z hz
-      rcases hz with ⟨x, hxX, y, hyYperp, rfl⟩
-      have hmx : m * x ∈ Y := hm x hxX
-      have : y * (m * x) ∈ bot := hyYperp (m * x) (by simpa using hmx)
-      simpa [mul_left_comm, mul_comm, mul_assoc] using this
-    · intro hm x hxX
-      have hxYbi : m * x ∈ Y⫠⫠ := by
-        intro y hy
-        have : m * (x * y) ∈ bot := hm (x * y) ⟨x, hxX, y, hy, rfl⟩
-        simpa [mul_assoc, mul_left_comm, mul_comm] using this
-      rw [hY]; exact hxYbi
-  simp only [isFact, hXY, triple_orth]
 
 /-- In a phase space, `G⫠⫠` is the smallest fact containing `G`. -/
 lemma biorth_least_fact (G : Set P) :
@@ -301,12 +282,6 @@ lemma zero_least_fact :
 @[grind] lemma top_eq_orth_empty :
   (Set.univ : Set P) = (∅ : Set P)⫠ := by
   ext m; simp [orthogonal, imp]
-
-/--
-Linear implication between a set and a fact, yielding a fact.
--/
-def Fact.imp (X : Set P) (Y : Fact P) : Fact P :=
-  ⟨ X ⊸ Y, imp_isFact_of_fact X Y Y.property ⟩
 
 lemma isFact_iff_closed (X : Set P) :
   isFact X ↔ biorthogonalClosure.IsClosed X := by
@@ -452,6 +427,12 @@ defined as the dual of the intersection of the orthogonal with the idempotents.
 -/
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 @[inherit_doc] scoped prefix:95 " ʔ " => quest
+/--
+Linear implication between facts,
+defined as the dual of the orthogonal of the pointwise product.
+-/
+def linImpl (X Y : Fact P) : Fact P := dualFact ((X : Set P) * (Y : Set P)⫠)
+@[inherit_doc] scoped infix:25 " ⊸ " => linImpl
 
 end Fact
 
