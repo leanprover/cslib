@@ -56,7 +56,6 @@ universe u v
 
 namespace CLL
 
-open Proposition
 open scoped Pointwise
 open Set
 
@@ -256,7 +255,6 @@ lemma mem_zero : p ∈ (0 : Fact P) ↔ ∀ q, p * q ∈ PhaseSpace.bot := by
 instance : Bot (Fact P) where
   bot := Fact.mk_dual (PhaseSpace.bot : Set P) {1} (orth_one_eq_bot).symm
 
-
 /-- In a phase space, `G⫠⫠` is the smallest fact containing `G`. -/
 lemma biorth_least_fact (G : Set P) :
       ∀ {F : Set P}, isFact F → G ⊆ F → G⫠⫠ ⊆ F := by
@@ -272,16 +270,11 @@ lemma biorth_least_fact (G : Set P) :
 
 /-- `0` is the least fact (w.r.t. inclusion). -/
 lemma zero_least_fact :
-    ∀ {F : Set P}, isFact F → ((∅ : Set P)⫠⫠) ⊆ F := by
+    ∀ {F : Set P}, isFact F → (0 : Fact P).carrier ⊆ F := by
   intro F hF
-  have h := biorth_least_fact (G := (∅ : Set P)) (F := F) hF
+  have h := biorth_least_fact (G := (∅ : Set P)) hF
               (by simp)
   simpa using h
-
-/-- `⊤ = ∅⫠`, so `⊤` is a fact. -/
-@[grind] lemma top_eq_orth_empty :
-  (Set.univ : Set P) = (∅ : Set P)⫠ := by
-  ext m; simp [orthogonal, imp]
 
 lemma isFact_iff_closed (X : Set P) :
   isFact X ↔ biorthogonalClosure.IsClosed X := by
@@ -396,43 +389,50 @@ The tensor product `X ⊗ Y` of two facts,
 defined as the dual of the orthogonal of the pointwise product.
 -/
 def tensor (X Y : Fact P) : Fact P := dualFact (X * Y)⫠
-@[inherit_doc] scoped infix:35 " ⊗ " => tensor
+@[inherit_doc] infix:65 " ⊗ " => tensor
+
 /--
 The par (multiplicative disjunction) `X ⅋ Y` of two facts,
 defined as the dual of the pointwise product of the orthogonals.
 -/
 def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
-@[inherit_doc] scoped infix:35 " ⅋ " => parr
+@[inherit_doc] infix:35 " ⅋ " => parr
+
 /--
 The with (additive conjunction) `X & Y` of two facts,
 defined as the intersection of the two facts.
 -/
 def withh (X Y : Fact P) : Fact P := X ⊓ Y
-@[inherit_doc] scoped infix:30 " & " => withh
+@[inherit_doc] infix:35 " & " => withh
+
 /--
 The oplus (additive disjunction) `X ⊕ Y` of two facts,
 defined as the dual of the orthogonal of the union.
 -/
 def oplus (X Y : Fact P) : Fact P := dualFact (X ∪ Y)⫠
-@[inherit_doc] scoped infix:35 " ⊕ " => oplus
+@[inherit_doc] infix:35 " ⊕ " => oplus
+
 /--
 The exponential `!X` (of course) of a fact,
 defined as the dual of the orthogonal of the intersection with the idempotents.
 -/
 def bang (X : Fact P) : Fact P := dualFact (X ∩ I)⫠
-@[inherit_doc] scoped prefix:95 " ! " => bang
+@[inherit_doc] prefix:100 " ! " => bang
+
 /--
 The exponential `?X` (why not) of a fact,
 defined as the dual of the intersection of the orthogonal with the idempotents.
 -/
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
-@[inherit_doc] scoped prefix:95 " ʔ " => quest
+@[inherit_doc] prefix:100 " ʔ " => quest
+
 /--
 Linear implication between facts,
 defined as the dual of the orthogonal of the pointwise product.
 -/
 def linImpl (X Y : Fact P) : Fact P := dualFact ((X : Set P) * (Y : Set P)⫠)
-@[inherit_doc] scoped infix:25 " ⊸ " => linImpl
+@[inherit_doc] infix:30 " ⊸ " => linImpl
+
 
 end Fact
 
