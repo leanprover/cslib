@@ -235,12 +235,7 @@ lemma orth_one_eq_bot :
 @[simps!] def dualFact (G : Set P) : Fact P := Fact.mk_dual (G⫠) G rfl
 
 lemma dual_dual_subset_Fact_iff {G : Set P} {H : Fact P} : G⫠⫠ ⊆ H ↔ G ⊆ H := by
-  constructor
-  · intro h
-    apply Subset.trans (orth_extensive _) h
-  · intro h
-    rw [H.eq]
-    exact orth_antitone <| orth_antitone <| h
+  constructor <;> rw [H.eq] <;> grind
 
 lemma dual_dual_subset_dual_iff {G H : Set P} :
     G⫠⫠ ⊆ H⫠ ↔ G ⊆ H⫠ := by
