@@ -574,7 +574,7 @@ The interpretation of a CLL proposition in a phase space, given a valuation of a
 -/
 def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact M
   | .atom a       => v a
-  | .atomDual a   => Fact.mk_dual (v a)⫠ (v a) rfl
+  | .atomDual a   => (v a)ᗮ
   | .one          => 1
   | .zero         => 0
   | .top          => ⊤
