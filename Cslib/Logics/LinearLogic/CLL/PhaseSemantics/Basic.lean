@@ -519,7 +519,7 @@ lemma par_le_par {G H K L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G ⅋ H) 
 @[simp] lemma bot_par {G : Fact P} : (⊥ ⅋ G) = G := by simp [par_of_tensor]
 @[simp] lemma par_bot {G : Fact P} : (G ⅋ ⊥) = G := by simp [par_of_tensor]
 @[simp] lemma par_assoc {G H K : Fact P} : ((G ⅋ H) ⅋ K) = (G ⅋ H ⅋ K) := by simp [par_of_tensor]
-lemma par_comm {G H : Fact P} : (G ⅋ H) = (H ⅋ G) := by simp [par_of_tensor, tensor_comm]
+lemma par_comm (G H : Fact P) : (G ⅋ H) = (H ⅋ G) := by simp [par_of_tensor, tensor_comm]
 
 /--
 The with (additive conjunction) `X & Y` of two facts,
