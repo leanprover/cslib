@@ -415,15 +415,7 @@ def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
   refine Set.Subset.antisymm ?_ ?_
   · simp only [dualFact, mk_dual, mk_subset, coe_mk]
     rw [dual_dual_subset_Fact_iff]
-    simp only [Set.subset_def, coe_one, SetLike.mem_coe, Set.mem_mul,
-      forall_exists_index, and_imp]
-    rintro _ q hq r hr rfl
-    apply of_Fact _
-    intros s hs
-    rw [mul_assoc]
-    refine hq _ ?_
-    rw [mul_comm]
-    exact hs _ hr
+    grind [of_Fact, SetLike.mem_coe, Set.mem_mul]
   · exact Set.Subset.trans (orth_extensive _) <| orth_antitone <| orth_antitone <|
       Set.subset_mul_right _ (by simp)
 
