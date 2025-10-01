@@ -110,9 +110,8 @@ open Derivation
 /-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
 def Proposition.top : Proposition Atom := impl bot bot
 
-def derivationTop : Derivation (Atom := Atom) ⟨∅,Proposition.top⟩ := by
-  apply implI
-  exact ax (Atom := Atom) ∅ bot
+def derivationTop : Derivation (Atom := Atom) ⟨∅, Proposition.top⟩ :=
+  implI ∅ <| ax (Atom := Atom) ∅ bot
 
 theorem top_derivable : Proposition.PDerivable (Atom := Atom) Proposition.top := ⟨derivationTop⟩
 
@@ -125,26 +124,21 @@ def Derivation.ax' {Γ : Ctx Atom} {A : Proposition Atom} (h : A ∈ Γ) : Deriv
   apply ax
 
 /-- Weakening is a derived rule. -/
-def Derivation.weak {Γ : Ctx Atom} {A : Proposition Atom} (Δ : Ctx Atom)
-    (D : Derivation ⟨Γ, A⟩) : Derivation ⟨Γ ∪ Δ, A⟩ := by
-  match D with
-  | ax Γ A =>
-    rw [Finset.insert_union A Γ Δ]
-    exact ax (Γ ∪ Δ) A
-  | botE A D => exact botE A <| D.weak Δ
-  | conjI D D' => exact conjI (D.weak Δ) (D'.weak Δ)
-  | conjE₁ D => exact conjE₁ <| D.weak Δ
-  | conjE₂ D => exact conjE₂ <| D.weak Δ
-  | disjI₁ D => exact disjI₁ <| D.weak Δ
-  | disjI₂ D => exact disjI₂ <| D.weak Δ
+def Derivation.weak {Γ : Ctx Atom} {A : Proposition Atom} (Δ : Ctx Atom) :
+    (D : Derivation ⟨Γ, A⟩) → Derivation ⟨Γ ∪ Δ, A⟩
+  | ax Γ A => (Finset.insert_union A Γ Δ) ▸ ax (Γ ∪ Δ) A
+  | botE A D => botE A <| D.weak Δ
+  | conjI D D' => conjI (D.weak Δ) (D'.weak Δ)
+  | conjE₁ D => conjE₁ <| D.weak Δ
+  | conjE₂ D => conjE₂ <| D.weak Δ
+  | disjI₁ D => disjI₁ <| D.weak Δ
+  | disjI₂ D => disjI₂ <| D.weak Δ
   | @disjE _ _ _ A B _ D D' D'' =>
-    apply disjE (D.weak Δ)
-    · rw [←Finset.insert_union A Γ Δ]; exact D'.weak Δ
-    · rw [←Finset.insert_union B Γ Δ]; exact D''.weak Δ
-  | @implI _ _ A B Γ D =>
-    apply implI
-    rw [←Finset.insert_union A Γ Δ]; exact D.weak Δ
-  | implE D D' => exact implE (D.weak Δ) (D'.weak Δ)
+    disjE (D.weak Δ)
+      ((Finset.insert_union A Γ Δ) ▸ D'.weak Δ)
+      ((Finset.insert_union B Γ Δ) ▸ D''.weak Δ)
+  | @implI _ _ A B Γ D => implI (Γ ∪ Δ) <| (Finset.insert_union A Γ Δ) ▸ D.weak Δ
+  | implE D D' => implE (D.weak Δ) (D'.weak Δ)
 
 theorem Derivable.weak {Γ : Ctx Atom} {A : Proposition Atom} (Δ : Ctx Atom)
     (h : Derivable ⟨Γ, A⟩) : Derivable ⟨Γ ∪ Δ, A⟩ := by
@@ -155,11 +149,9 @@ def Derivation.weak' {Γ Δ : Ctx Atom} {A : Proposition Atom} (h : Γ ⊆ Δ) (
     Derivation ⟨Δ, A⟩ := Finset.union_sdiff_of_subset h ▸ D.weak (Δ \ Γ)
 
 theorem Derivable.weak' {Γ Δ : Ctx Atom} {A : Proposition Atom} (h_ext : Γ ⊆ Δ)
-    (h : Derivable ⟨Γ, A⟩) : Derivable ⟨Δ, A⟩ := by
-  let ⟨D⟩ := h
-  exact ⟨D.weak' h_ext⟩
+    (h : Derivable ⟨Γ, A⟩) : Derivable ⟨Δ, A⟩ := let ⟨D⟩ := h; ⟨D.weak' h_ext⟩
 
-/-- Substitution of a derivation `E` for one of the hypotheses in the context `Gamma` of `D`. -/
+/-- Substitution of a derivation `E` for one of the hypotheses in the context `Γ` of `D`. -/
 def Derivation.subs {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : Derivation ⟨Γ, B⟩) (E : Derivation ⟨Δ, A⟩) : Derivation ⟨(Γ \ {A}) ∪ Δ, B⟩ := by
   match D with
@@ -169,8 +161,7 @@ def Derivation.subs {Γ Δ : Ctx Atom} {A B : Proposition Atom}
       rw [h, Finset.union_comm]
       exact E.weak _
     case neg h =>
-      have : B ∉ ({A} : Finset (Proposition Atom)) := Finset.notMem_singleton.mpr h
-      rw [Finset.insert_sdiff_of_notMem (h := this)]
+      rw [Finset.insert_sdiff_of_notMem (h := Finset.notMem_singleton.mpr h)]
       exact (ax _ B).weak _
   | botE _ D => exact botE B <| D.subs E
   | conjI D D' => exact conjI (D.subs E) (D'.subs E)

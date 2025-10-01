@@ -24,34 +24,33 @@ The following are valid in minimal logic, so we use `impl (-) C` over `~(-) := i
 -/
 
 /-- Double negation introduction -/
-def Derivation.dni {A B : Proposition Atom} : Derivation ⟨{A}, impl (impl A B) B⟩ := by
-  apply implI (A := A.impl B)
-  apply implE (A := A) <;> exact ax' (by grind)
+def Derivation.dni {A B : Proposition Atom} : Derivation ⟨{A}, impl (impl A B) B⟩ :=
+  implI (A := A.impl B) _ <|
+  implE (A := A) (ax' (by grind)) (ax' (by grind))
 
 theorem Derivable.dni {A B : Proposition Atom} : Derivable ⟨{A},impl (impl A B) B⟩ :=
   ⟨Derivation.dni⟩
 
 /-- The double negation of excluded-middle, or in minimal-logic-style ⊢ (A ∨ (A → B)) → B → B. -/
 def Derivation.notNotLEM {A B : Proposition Atom} :
-    Derivation ⟨∅, (A.disj <| impl A B).impl B |>.impl B⟩ := by
-  apply implI
-  rw [insert_empty_eq]
-  apply implE (A := A.disj (A.impl B)) (ax' <| by grind)
-  apply disjI₂
-  apply implI
-  apply implE (A := A.disj (A.impl B)) (ax' <| by grind)
-  apply disjI₁
-  apply ax' <| by grind
+    Derivation ⟨∅, (A.disj <| impl A B).impl B |>.impl B⟩ :=
+  implI _ <|
+  implE (A := A.disj (A.impl B)) (ax' <| by grind) <|
+  disjI₂ <|
+  implI _ <|
+  implE (A := A.disj (A.impl B)) (ax' <| by grind) <|
+  disjI₁ <|
+  ax' <| by grind
 
 theorem Derivable.not_not_lem {A B : Proposition Atom} :
     Derivable ⟨∅, (A.disj <| impl A B).impl B |>.impl B⟩ := ⟨Derivation.notNotLEM⟩
 
 /-- Triple negation elimination -/
 def Derivation.tne {A B : Proposition Atom} :
-    Derivation ⟨{((A.impl B).impl B).impl B}, A.impl B⟩ := by
-  apply implI
-  apply implE (A := (A.impl B).impl B) (ax' <| by grind)
-  exact Derivation.dni.weak' (Γ := {A}) (by grind)
+    Derivation ⟨{((A.impl B).impl B).impl B}, A.impl B⟩ :=
+  implI _ <|
+  implE (A := (A.impl B).impl B) (ax' <| by grind) <|
+  Derivation.dni.weak' (Γ := {A}) (by grind)
 
 theorem Derivable.tne {A B : Proposition Atom} :
     Derivable ⟨{((A.impl B).impl B).impl B}, A.impl B⟩ := ⟨Derivation.tne⟩
@@ -64,11 +63,11 @@ theorem tne_equivalent {A B : Proposition Atom} :
 
 /-- Modus tollens -/
 def Derivation.modusTollens {Γ : Ctx Atom} {A B : Proposition Atom} (C : Proposition Atom)
-    (D : Derivation ⟨insert A Γ, B⟩) : Derivation ⟨insert (B.impl C) Γ, A.impl C⟩ := by
-  apply implI
-  apply implE (A := B)
-  · exact ax' (by grind)
-  · exact D.weak' (h := by grind)
+    (D : Derivation ⟨insert A Γ, B⟩) : Derivation ⟨insert (B.impl C) Γ, A.impl C⟩ :=
+  implI _ <|
+  implE (A := B)
+    (ax' (by grind))
+    (D.weak' (h := by grind))
 
 theorem Derivable.modus_tollens {Γ : Ctx Atom} {A B : Proposition Atom} (C : Proposition Atom)
     (h : Derivable ⟨insert A Γ, B⟩) : Derivable ⟨insert (B.impl C) Γ, A.impl C⟩ :=
@@ -82,18 +81,16 @@ The following are valid in minimal logic, so we use `impl (-) C` over `~(-) := i
 
 /-- (A → C) ∧ (B → C) ⊢ (A ∨ B) → C -/
 def disjImpOfConjImps {A B C : Proposition Atom} :
-    Derivation ⟨{conj (impl A C) (impl B C)}, impl (disj A B) C⟩ := by
-  apply implI
-  apply disjE (A := A) (B := B)
-  · apply ax
-  · apply implE (A := A)
-    · apply conjE₁ (B := B.impl C)
-      exact ax' (by grind)
-    · apply ax
-  · apply implE (A := B)
-    · apply conjE₂ (A := A.impl C)
-      exact ax' (by grind)
-    · apply ax
+    Derivation ⟨{conj (impl A C) (impl B C)}, impl (disj A B) C⟩ :=
+  implI _ <|
+  disjE (A := A) (B := B)
+    (ax _ _)
+    (implE (A := A)
+      (conjE₁ (B := B.impl C) (ax' <| by grind))
+      (ax _ _))
+    (implE (A := B)
+      (conjE₂ (A := A.impl C) (ax' (by grind)))
+      (ax _ _))
 
 /-- (A → C) ∧ (B → C) ⊢ (A ∨ B) → C -/
 theorem disj_imp_of_conj_imps {A B C : Proposition Atom} :
@@ -101,18 +98,16 @@ theorem disj_imp_of_conj_imps {A B C : Proposition Atom} :
 
 /-- (A ∨ B) → C ⊢ (A → C) ∧ (B → C) -/
 def conjImpsOfDisjImp {A B C : Proposition Atom} :
-    Derivation ⟨{impl (disj A B) C}, conj (impl A C) (impl B C)⟩ := by
-  apply conjI
-  · apply implI
-    apply implE (A := A.disj B)
-    · exact ax' (by grind)
-    · apply disjI₁
-      apply ax
-  · apply implI
-    apply implE (A := A.disj B)
-    · exact ax' (by grind)
-    · apply disjI₂
-      apply ax
+    Derivation ⟨{impl (disj A B) C}, conj (impl A C) (impl B C)⟩ :=
+  conjI
+    (implI {impl (disj A B) C} <|
+      implE (A := A.disj B) (B := C)
+        (ax' (by grind))
+        (disjI₁ (ax _ _)))
+    (implI {impl (disj A B) C} <|
+      implE (A := A.disj B) (B := C)
+        (ax' (by grind))
+        (disjI₂ (ax _ _)))
 
 /-- (A ∨ B) → C ⊢ (A → C) ∧ (B → C) -/
 theorem conj_imps_of_disj_imp {A B C : Proposition Atom} :
