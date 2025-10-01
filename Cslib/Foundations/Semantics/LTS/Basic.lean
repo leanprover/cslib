@@ -169,6 +169,10 @@ change in the future. -/
 
 variable {State : Type u} {Label : Type v}
 
+/-- The union of two LTSs defined on the same types. -/
+def LTS.union (lts1 lts2 : LTS State Label) : LTS State Label where
+  Tr := lts1.Tr ⊔ lts2.Tr
+
 /-- The union of two LTSs that have common supertypes for states and labels. -/
 def LTS.unionSubtype
 {S1 : State → Prop} {L1 : Label → Prop} {S2 : State → Prop} {L2 : Label → Prop}
