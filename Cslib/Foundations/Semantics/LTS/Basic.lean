@@ -185,14 +185,14 @@ def LTS.unionSubtype
       False
 
 /-- TODO: move this to `Sum`? -/
-def Sum.isLeftP {α} {β} (x : α ⊕ β) : Prop := Sum.isLeft x = true
+def Sum.IsLeftP {α} {β} (x : α ⊕ β) : Prop := Sum.isLeft x = true
 
 /-- TODO: move this to `Sum`? -/
-def Sum.isRightP {α} {β} (x : α ⊕ β) : Prop := Sum.isRight x = true
+def Sum.IsRightP {α} {β} (x : α ⊕ β) : Prop := Sum.isRight x = true
 
 /-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
 def LTS.inl {State'} (lts : LTS State Label) :
-  LTS (@Subtype (State ⊕ State') Sum.isLeftP) (@Subtype Label (Function.const Label True)) where
+  LTS (@Subtype (State ⊕ State') Sum.IsLeftP) (@Subtype Label (Function.const Label True)) where
   Tr := fun s μ s' =>
     let ⟨s, _⟩ := s
     let ⟨s', _⟩ := s'
@@ -202,7 +202,7 @@ def LTS.inl {State'} (lts : LTS State Label) :
 
 /-- Lifting of an `LTS State Label` to `LTS (State' ⊕ State) Label`. -/
 def LTS.inr {State'} (lts : LTS State Label) :
-  LTS (@Subtype (State' ⊕ State) Sum.isRightP) (@Subtype Label (Function.const Label True)) where
+  LTS (@Subtype (State' ⊕ State) Sum.IsRightP) (@Subtype Label (Function.const Label True)) where
   Tr := fun s μ s' =>
     let ⟨s, _⟩ := s
     let ⟨s', _⟩ := s'
@@ -216,16 +216,16 @@ def LTS.unionSum {State1} {State2} (lts1 : LTS State1 Label) (lts2 : LTS State2 
   LTS (State1 ⊕ State2) Label :=
   @LTS.unionSubtype
     (State1 ⊕ State2) Label
-    Sum.isLeftP
+    Sum.IsLeftP
     (Function.const Label True)
-    Sum.isRightP
+    Sum.IsRightP
     (Function.const Label True)
     (by
       intro s
       cases h : s
       · apply Decidable.isTrue
         trivial
-      · simp only [Sum.isLeftP, Sum.isLeft_inr, Bool.false_eq_true]
+      · simp only [Sum.IsLeftP, Sum.isLeft_inr, Bool.false_eq_true]
         apply Decidable.isFalse
         trivial)
     (by
@@ -235,7 +235,7 @@ def LTS.unionSum {State1} {State2} (lts1 : LTS State1 Label) (lts2 : LTS State2 
     (by
       intro s
       cases h : s
-      · simp only [Sum.isRightP, Sum.isRight_inl, Bool.false_eq_true]
+      · simp only [Sum.IsRightP, Sum.isRight_inl, Bool.false_eq_true]
         apply Decidable.isFalse
         trivial
       · apply Decidable.isTrue
