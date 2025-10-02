@@ -92,18 +92,15 @@ def orthogonal (G : Set P) : Set P :=
 @[scoped grind =, simp] lemma orthogonal_def (X : Set P) : X⫠ = {m | ∀ x ∈ X, m * x ∈ bot} := rfl
 
 /-- The orthogonal operation is antitone: if X ⊆ Y then Y⫠ ⊆ X⫠. -/
-lemma orth_antitone {X Y : Set P} (hXY : X ⊆ Y) :
-    Y⫠ ⊆ X⫠ := by grind
+lemma orth_antitone {X Y : Set P} (hXY : X ⊆ Y) : Y⫠ ⊆ X⫠ := by grind
 
 /-- The biorthogonal operation is extensive: X ⊆ X⫠⫠ for any set X. -/
-lemma orth_extensive (X : Set P) : X ⊆ X⫠⫠ := by
-  grind
+lemma orth_extensive (X : Set P) : X ⊆ X⫠⫠ := by grind
 
 /-- The triple orthogonal equals the orthogonal: X⫠⫠⫠ = X⫠. -/
-lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by
-  grind
+lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by grind
 
-lemma triple_dual {G : Set P} : G⫠⫠⫠⫠ = G⫠⫠ := triple_orth G⫠
+lemma triple_dual {G : Set P} : G⫠⫠⫠⫠⫠ = G⫠⫠⫠ := by grind
 
 /-- The biorthogonal closure operator on sets in a phase space. -/
 def biorthogonalClosure : ClosureOperator (Set P) where
