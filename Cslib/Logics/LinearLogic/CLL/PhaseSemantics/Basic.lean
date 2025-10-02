@@ -59,6 +59,8 @@ namespace CLL
 open scoped Pointwise
 open Set
 
+attribute [scoped grind _=_] Set.le_iff_subset
+
 /--
 A phase space is a commutative monoid M equipped with a distinguished subset ⊥.
 This forms the algebraic foundation for interpreting linear logic propositions.
@@ -71,9 +73,7 @@ namespace PhaseSpace
 
 variable {P : Type*} [PhaseSpace P] {p q : P}
 
-section
-
--- ## Basic operations
+/-! ## Basic operations -/
 
 /--
 Implication between two setsin a phase space: the set of elements m such that
@@ -81,56 +81,38 @@ for all x ∈ X, we have m * x ∈ Y.
 -/
 def imp [PhaseSpace M] (X Y : Set M) : Set M := {m | ∀ x ∈ X, m * x ∈ Y}
 
-/--
-The orthogonal `X⫠` of a set X: the set of elements that map X into ⊥ under multiplication.
--/
+/-- The orthogonal `X⫠` of a set X: the set of elements that map X into ⊥ under multiplication. -/
 def orthogonal (G : Set P) : Set P :=
   imp G PhaseSpace.bot
 
 @[inherit_doc] scoped postfix:max "⫠" => orthogonal
 
--- ## Properties of orthogonality
+/-! ## Properties of orthogonality -/
 
-@[grind =, simp] lemma orthogonal_def (X : Set P) : X⫠ = {m | ∀ x ∈ X, m * x ∈ bot} := rfl
+@[scoped grind =, simp] lemma orthogonal_def (X : Set P) : X⫠ = {m | ∀ x ∈ X, m * x ∈ bot} := rfl
 
 /-- The orthogonal operation is antitone: if X ⊆ Y then Y⫠ ⊆ X⫠. -/
 lemma orth_antitone {X Y : Set P} (hXY : X ⊆ Y) :
-    Y⫠ ⊆ X⫠ := by
-  intro m hm x hx
-  exact hm x (hXY hx)
+    Y⫠ ⊆ X⫠ := by grind
 
 /-- The biorthogonal operation is extensive: X ⊆ X⫠⫠ for any set X. -/
 lemma orth_extensive (X : Set P) : X ⊆ X⫠⫠ := by
-  intro x hx n hn
-  simpa [orthogonal, Set.mem_setOf, mul_comm] using hn x hx
+  grind
 
 /-- The triple orthogonal equals the orthogonal: X⫠⫠⫠ = X⫠. -/
 lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by
-  apply le_antisymm
-  · intro m hm x hxX
-    have hx' : x ∈ (X⫠)⫠ := by
-      intro y hy
-      simpa [orthogonal, Set.mem_setOf, mul_comm] using hy x hxX
-    exact hm x hx'
-  · apply orth_extensive (X := X⫠)
+  grind
 
 lemma triple_dual {G : Set P} : G⫠⫠⫠⫠ = G⫠⫠ := triple_orth G⫠
-/-- The biorthogonal closure operator on sets in a phase space. -/
-def biorthogonalClosure : ClosureOperator (Set P) := {
-  toFun X := X⫠⫠
-  monotone' := by
-    intro X Y hXY m hm n hnY
-    have hnX : n ∈ X⫠ := by
-      intro x hxX
-      exact hnY x (hXY hxX)
-    exact hm n hnX
-  le_closure' := by
-    intro X x hx n hn
-    simpa [orthogonal, Set.mem_setOf, mul_comm] using hn x hx
-  idempotent' X := triple_orth X⫠
-}
 
--- # Basic theory of phase spaces
+/-- The biorthogonal closure operator on sets in a phase space. -/
+def biorthogonalClosure : ClosureOperator (Set P) where
+  toFun X := X⫠⫠
+  monotone' := by grind [Monotone]
+  le_closure' := by grind
+  idempotent' X := triple_orth X⫠
+
+/-! # Basic theory of phase spaces -/
 
 /--
 Given a phase space (P, ⊥) and a set of subsets (Gᵢ)_{i ∈ I} of P, we have that
@@ -140,14 +122,13 @@ lemma orth_iUnion {ι : Sort*} (G : ι → Set P) :
     (⋃ i, G i)⫠ = ⋂ i, (G i)⫠ := by
   ext m; constructor
   · intro hm
-    have hm' : ∀ x ∈ ⋃ j, G j, m * x ∈ PhaseSpace.bot := by
-      simpa [orthogonal, imp, mem_setOf] using hm
+    have hm' : ∀ x ∈ ⋃ j, G j, m * x ∈ PhaseSpace.bot := by grind
     refine mem_iInter.mpr (fun i => ?_)
     exact fun x hx => hm' x (mem_iUnion.mpr ⟨i, hx⟩)
   · intro hm x hx
     rcases mem_iUnion.mp hx with ⟨i, hix⟩
     have hmi : m ∈ (G i)⫠ := mem_iInter.mp hm i
-    simpa [orthogonal, mem_setOf] using hmi x hix
+    grind
 
 /--
 Given a phase space (P, ⊥) and a set of subsets (Gᵢ)_{i ∈ I} of P, we have that
@@ -157,7 +138,7 @@ lemma iInter_biorth_eq_orth_iUnion_orth {ι : Sort*} (G : ι → Set P) :
     (⋂ i, (G i)⫠⫠ : Set P) = (⋃ i, (G i)⫠)⫠ := by
   simpa using (orth_iUnion (G := fun i => (G i)⫠)).symm
 
--- ## Facts
+/-! ## Facts -/
 
 /-- A fact is a subset of a phase space that equals its biorthogonal closure. -/
 def isFact (X : Set P) : Prop := X = X⫠⫠
@@ -181,31 +162,27 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
-@[grind, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot := Iff.rfl
+@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot := 
+  Iff.rfl
 
-@[grind]
+@[scoped grind =>]
 lemma of_Fact {G : Fact P} {p : P}
     (hp : ∀ q, (∀ r ∈ G, q * r ∈ PhaseSpace.bot) → p * q ∈ PhaseSpace.bot) : p ∈ G := by
   rw [← SetLike.mem_coe, G.eq]
-  simpa only [mem_dual] using hp
+  grind
 
-@[grind =, simp] lemma mem_carrier (G : Fact P) : G.carrier = (G : Set P) := rfl
+@[scoped grind =, simp] lemma mem_carrier (G : Fact P) : G.carrier = (G : Set P) := rfl
 
-/--
-Construct a fact from a set G and a proof that its biorthogonal closure is contained in G.
--/
+/-- Construct a fact from a set G and a proof that its biorthogonal closure is contained in G. -/
 @[simps] def Fact.mk_subset (G : Set P) (h : G⫠⫠ ⊆ G) : Fact P where
   carrier := G
-  property := by simp only [isFact]; symm; apply h.antisymm (orth_extensive G)
+  property := by grind [isFact, orth_extensive]
 
-/--
-Construct a fact from a set G and a proof that G equals the orthogonal of some set H.
--/
+/-- Construct a fact from a set G and a proof that G equals the orthogonal of some set H. -/
 @[simps!] def Fact.mk_dual (G H : Set P) (h : G = H⫠) : Fact P :=
   Fact.mk_subset G <| by rw [h, triple_orth]
 
-lemma coe_mk {X : Set P} {h : isFact X} :
-    ((⟨X, h⟩ : Fact P) : Set P) = X := rfl
+lemma coe_mk {X : Set P} {h : isFact X} : ((⟨X, h⟩ : Fact P) : Set P) = X := rfl
 
 @[simp] lemma closed (F : Fact P) : isFact (F : Set P) := F.property
 
@@ -227,38 +204,38 @@ lemma dual_dual_subset_Fact_iff {G : Set P} {H : Fact P} : G⫠⫠ ⊆ H ↔ G �
 
 lemma dual_dual_subset_dual_iff {G H : Set P} :
     G⫠⫠ ⊆ H⫠ ↔ G ⊆ H⫠ := by
-  simpa using
-    (dual_dual_subset_Fact_iff (H := dualFact H))
+  simpa using (dual_dual_subset_Fact_iff (H := dualFact H))
 
 instance : One (Fact P) where one := dualFact (PhaseSpace.bot : Set P)
 
-@[grind =, simp] lemma coe_one : ((1 : Fact P) : Set P) = (PhaseSpace.bot : Set P)⫠ := rfl
-@[grind, simp] lemma mem_one :
+@[scoped grind =, simp] lemma coe_one : ((1 : Fact P) : Set P) = (PhaseSpace.bot : Set P)⫠ := rfl
+
+@[scoped grind, simp] lemma mem_one :
   p ∈ (1 : Fact P) ↔ (∀ q ∈ PhaseSpace.bot, p * q ∈ PhaseSpace.bot) := Iff.rfl
 
 lemma one_mem_one : (1 : P) ∈ (1 : Fact P) := by simp [mem_one]
 
 lemma mul_mem_one (hp : p ∈ (1 : Fact P)) (hq : q ∈ (1 : Fact P)) : p * q ∈ (1 : Fact P) := by
-  simp only [mem_one] at hp hq ⊢
-  intro r hr
-  rw [mul_assoc]
-  exact hp _ (hq _ hr)
+  grind
 
 instance : Top (Fact P) where
   top := Fact.mk_subset Set.univ <| fun _ _ => Set.mem_univ _
 
-@[grind =, simp] lemma coe_top : ((⊤ : Fact P) : Set P) = Set.univ := rfl
+@[scoped grind =, simp] lemma coe_top : ((⊤ : Fact P) : Set P) = Set.univ := rfl
+
 @[simp] lemma mem_top : x ∈ (⊤ : Fact P) := Set.mem_univ _
 
-@[grind =] lemma dual_empty : (∅ : Set P)⫠ = Set.univ := by simp
-@[grind =, simp]
+@[scoped grind =] lemma dual_empty : (∅ : Set P)⫠ = Set.univ := by simp
+
+@[scoped grind =, simp]
 lemma dualFact_empty : dualFact (∅ : Set P) = ⊤ := SetLike.coe_injective (by simp)
 
 instance : Zero (Fact P) where zero := dualFact ⊤
 
-@[grind =, simp] lemma coe_zero : ((0 : Fact P) : Set P) = (Set.univ : Set P)⫠ := rfl
+@[scoped grind =, simp] lemma coe_zero : ((0 : Fact P) : Set P) = (Set.univ : Set P)⫠ := rfl
+
 lemma mem_zero : p ∈ (0 : Fact P) ↔ ∀ q, p * q ∈ PhaseSpace.bot := by
-  rw [← SetLike.mem_coe]; simp
+  simp [← SetLike.mem_coe]
 
 instance : Bot (Fact P) where
   bot := Fact.mk_dual (PhaseSpace.bot : Set P) {1} (orth_one_eq_bot).symm
@@ -295,14 +272,11 @@ lemma sInf_isFact {S : Set (Fact P)} :
     intro X hX
     rcases hX with ⟨F, hF, rfl⟩
     exact (isFact_iff_closed (X := (F : Set P))).1 F.property
-  have hclosed :
-      biorthogonalClosure.IsClosed
-        (sInf ((fun F : Fact P => (F : Set P)) '' S)) :=
+  have hclosed :biorthogonalClosure.IsClosed (sInf ((fun F : Fact P => (F : Set P)) '' S)) :=
     ClosureOperator.sInf_isClosed
       (c := biorthogonalClosure) (S := ((fun F : Fact P => (F : Set P)) '' S)) H'
   -- translate back to `isFact`
-  exact (isFact_iff_closed
-          (X := sInf ((fun F : Fact P => (F : Set P)) '' S))).2 hclosed
+  exact (isFact_iff_closed (X := sInf ((fun F : Fact P => (F : Set P)) '' S))).2 hclosed
 
 /-- Intersection of the carriers of a set of facts. -/
 def carriersInf (S : Set (Fact P)) : Set P :=
@@ -321,15 +295,11 @@ instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩
 
 omit [PhaseSpace P] in
-omit [PhaseSpace P] in
 @[simp]
 lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
-  (⋂ x ∈ S, f x) = sInf (f '' S) := by
-  ext x; constructor
-  · intro hx; aesop
-  · intro hx; aesop
+  (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
 
-@[grind =, simp]
+@[scoped grind =, simp]
 lemma inter_eq_orth_union_orth (G H : Fact P) :
   ((G : Set P) ∩ (H : Set P) : Set P) =
     (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
@@ -341,8 +311,7 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
     grind [Fact.eq]
 
 instance : Min (Fact P) where
-  min G H :=
-    Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
+  min G H := Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
 
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
@@ -350,19 +319,24 @@ def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ 
 /-- The set I of idempotents that "belong to 1" in the phase semantics. -/
 def I : Set P := idempotentsIn (1 : Set P)
 
--- ## Interpretation of the connectives
+/-! ## Interpretation of the connectives -/
 
 namespace Fact
 
 def neg (G : Fact P) : Fact P := dualFact G
+
 postfix:max "ᗮ" => neg
 
 @[simp] lemma coe_neg {G : Fact P} : (Gᗮ : Set P) = (G : Set P)⫠ := rfl
+
 @[simp] lemma neg_neg {G : Fact P} : Gᗮᗮ = G := SetLike.coe_injective G.eq.symm
 
 @[simp] lemma neg_bot : (⊥ : Fact P)ᗮ = 1 := rfl
+
 @[simp] lemma neg_one : (1 : Fact P)ᗮ = ⊥ := by rw [← neg_bot, neg_neg]
+
 @[simp] lemma neg_top : (⊤ : Fact P)ᗮ = 0 := rfl
+
 @[simp] lemma neg_zero : (0 : Fact P)ᗮ = ⊤ := by rw [← neg_top, neg_neg]
 
 lemma neg_eq_iff {G H : Fact P} : Gᗮ = H ↔ G = Hᗮ :=
@@ -385,6 +359,7 @@ The tensor product `X ⊗ Y` of two facts,
 defined as the dual of the orthogonal of the pointwise product.
 -/
 def tensor (X Y : Fact P) : Fact P := dualFact (X * Y)⫠
+
 @[inherit_doc] infixr:78 " ⊗ " => tensor
 
 /--
@@ -392,6 +367,7 @@ The par (multiplicative disjunction) `X ⅋ Y` of two facts,
 defined as the dual of the pointwise product of the orthogonals.
 -/
 def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
+
 @[inherit_doc] infixr:78 " ⅋ " => parr
 
 @[simp] lemma one_tensor {G : Fact P} : (1 ⊗ G) = G := by
@@ -415,9 +391,7 @@ def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
   rw [mul_assoc]
   refine hp _ fun f hf => ?_
   have : v * f ∈ G⫠ := fun g hg => mul_assoc v f g ▸ hv _ (Set.mul_mem_mul hf hg)
-  rw [mul_assoc, mul_comm]
-  have hq' : q * (v * f) ∈ PhaseSpace.bot := hq _ this
-  simpa [mul_comm, mul_left_comm, mul_assoc] using hq'
+  grind
 
 lemma coe_tensor_assoc {G H K : Fact P} :
     ((G ⊗ H) ⊗ K : Set P) = ((G : Set P) * ((H : Set P) * (K : Set P)))⫠⫠ := by
@@ -428,7 +402,7 @@ lemma coe_tensor_assoc {G H K : Fact P} :
     refine tensor_assoc_aux.trans ?_
     rw [← K.eq]
     grind
-  apply orth_antitone ; apply orth_antitone
+  repeat apply orth_antitone
   intro x hx
   rcases Set.mem_mul.mp hx with ⟨g, hg, y, hy, rfl⟩
   rcases Set.mem_mul.mp hy with ⟨h, hh, k, hk, rfl⟩
@@ -437,22 +411,8 @@ lemma coe_tensor_assoc {G H K : Fact P} :
   exact Set.mem_mul.mpr ⟨g * h, gh_mem', k, hk, by simp [mul_assoc]⟩
 
 @[simp] lemma tensor_assoc {G H K : Fact P} : ((G ⊗ H) ⊗ K) = (G ⊗ H ⊗ K) :=
-  SetLike.coe_injective <| by {
-    rw [coe_tensor_assoc, tensor_comm, coe_tensor_assoc]
-    apply le_antisymm
-    · apply orth_antitone; apply orth_antitone
-      intro x hx
-      rcases Set.mem_mul.mp hx with ⟨g, hg, yz, hyz, rfl⟩
-      rcases Set.mem_mul.mp hyz with ⟨h, hh, k, hk, rfl⟩
-      exact Set.mem_mul.mpr ⟨h, hh, k * g, Set.mem_mul.mpr ⟨k, hk, g, hg, rfl⟩, by
-        simp [mul_comm, mul_left_comm]⟩
-    · apply orth_antitone; apply orth_antitone
-      intro x hx
-      rcases Set.mem_mul.mp hx with ⟨h, hh, zg, hzg, rfl⟩
-      rcases Set.mem_mul.mp hzg with ⟨k, hk, g, hg, rfl⟩
-      exact Set.mem_mul.mpr ⟨g, hg, h * k, Set.mem_mul.mpr ⟨h, hh, k, hk, rfl⟩,
-       by simp [mul_comm, mul_left_comm]⟩
-  }
+  SetLike.coe_injective <| by
+    grind [SetLike.coe_injective, coe_tensor_assoc, tensor_comm, coe_tensor_assoc]
 
 @[simp] lemma tensor_rotate {G H K : Fact P} : (G ⊗ H ⊗ K) = H ⊗ K ⊗ G := by
   rw [tensor_comm, tensor_assoc]
@@ -461,11 +421,10 @@ lemma tensor_le_tensor {G K H} {L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G
   orth_antitone <| orth_antitone <| Set.mul_subset_mul hGK hHL
 
 lemma tensor_of_par {G H : Fact P} : (G ⊗ H) = (Gᗮ ⅋ Hᗮ)ᗮ :=
-  SetLike.coe_injective <| by {
+  SetLike.coe_injective <| by
     simp only [tensor, parr, dualFact, mk_dual, mk_subset, coe_mk]
     rw [G.eq, H.eq]
     grind
-  }
 
 lemma par_of_tensor {G H : Fact P} : (G ⅋ H) = (Gᗮ ⊗ Hᗮ)ᗮ := by
   simp [tensor_of_par]
@@ -474,8 +433,11 @@ lemma par_le_par {G H K L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G ⅋ H) 
   orth_antitone <| Set.mul_subset_mul (orth_antitone hGK) (orth_antitone hHL)
 
 @[simp] lemma bot_par {G : Fact P} : (⊥ ⅋ G) = G := by simp [par_of_tensor]
+
 @[simp] lemma par_bot {G : Fact P} : (G ⅋ ⊥) = G := by simp [par_of_tensor]
+
 @[simp] lemma par_assoc {G H K : Fact P} : ((G ⅋ H) ⅋ K) = (G ⅋ H ⅋ K) := by simp [par_of_tensor]
+
 lemma par_comm (G H : Fact P) : (G ⅋ H) = (H ⅋ G) := by simp [par_of_tensor, tensor_comm]
 
 /--
@@ -486,12 +448,9 @@ def linImpl (X Y : Fact P) : Fact P := dualFact ((X : Set P) * (Y : Set P)⫠)
 @[inherit_doc] infix:73 " ⊸ " => linImpl
 
 lemma linImpl_of_tensor {G H : Fact P} : (G ⊸ H) = (G ⊗ Hᗮ)ᗮ :=
-  SetLike.coe_injective <| by {
+  SetLike.coe_injective <| by
     simp only [linImpl, tensor, coe_neg, dualFact, mk_dual, mk_subset, coe_mk]
-    refine Set.Subset.antisymm ?_ ?_
-    · grind
-    · grind
-  }
+    apply Set.Subset.antisymm <;> grind
 
 lemma par_of_linImpl {G H : Fact P} : (G ⅋ H) = (Gᗮ ⊸ H) :=
   SetLike.coe_injective <| by simp [parr, linImpl]
@@ -501,18 +460,24 @@ lemma tensor_of_linImpl {G H : Fact P} : (G ⊗ H) = (G ⊸ Hᗮ)ᗮ := by simp 
 lemma linImpl_of_par {G H : Fact P} : (G ⊸ H) = (Gᗮ ⅋ H) := by simp [par_of_linImpl]
 
 lemma neg_tensor {G H : Fact P} : (G ⊗ H)ᗮ = Gᗮ ⅋ Hᗮ := by rw [tensor_of_par, neg_neg]
+
 lemma neg_par {G H : Fact P} : (G ⅋ H)ᗮ = Gᗮ ⊗ Hᗮ := by rw [par_of_tensor, neg_neg]
 
 lemma mul_subset_tensor {G H : Fact P} : (G * H : Set P) ⊆ G ⊗ H := orth_extensive _
 
 @[simp] lemma one_linImpl {G : Fact P} : (1 ⊸ G) = G := by simp [linImpl_of_tensor]
+
 @[simp] lemma linImpl_bot {G : Fact P} : (G ⊸ ⊥) = Gᗮ := by simp [linImpl_of_tensor]
+
 @[simp] lemma tensor_linImpl {G H K : Fact P} : ((G ⊗ H) ⊸ K) = (G ⊸ (H ⊸ K)) := by
   simp [linImpl_of_tensor]
+
 lemma linImpl_par {G H K : Fact P} : (G ⊸ H ⅋ K) = ((G ⊸ H) ⅋ K) := by
   simp [linImpl_of_tensor, par_of_tensor]
+
 lemma linImpl_par' {G H K : Fact P} : (G ⊸ H ⅋ K) = (H ⅋ (G ⊸ K)) := by
   rw [par_comm, linImpl_par, par_comm]
+
 @[simp] lemma neg_linImpl_neg {G H : Fact P} : (Gᗮ ⊸ Hᗮ) = (H ⊸ G) := by
   simp [linImpl_of_tensor, tensor_comm]
 
@@ -544,7 +509,6 @@ defined as the dual of the orthogonal of the union.
 def oplus (X Y : Fact P) : Fact P := dualFact (X ∪ Y)⫠
 @[inherit_doc] infix:74 " ⊕ " => oplus
 
-
 /--
 The exponential `!X` (of course) of a fact,
 defined as the dual of the orthogonal of the intersection with the idempotents.
@@ -567,7 +531,7 @@ end Fact
 
 open Fact
 
--- ## Interpretation of propositions
+/-! ## Interpretation of propositions -/
 
 /--
 The interpretation of a CLL proposition in a phase space, given a valuation of atoms to facts.
@@ -587,8 +551,6 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
   | .quest  A     => ʔ(interpProp v A)
 
 @[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interpProp v P
-
-end
 
 end PhaseSpace
 
