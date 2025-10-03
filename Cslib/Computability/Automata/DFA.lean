@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Computability.Automata.DA
-import Cslib.Foundations.Semantics.LTS.Basic
 
 set_option linter.style.longLine false in
 /-! # Deterministic Finite-State Automata
