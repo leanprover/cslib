@@ -271,15 +271,63 @@ def LTS.Deterministic : Prop :=
 @[grind]
 def LTS.image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
 
-/-- An lts is image-finite if all images of its states are finite. -/
+/-- The `μs`-image of a state `s`, where `μs` is a list of labels, is the set of all
+`μs`-derivatives of `s`. -/
 @[grind]
-def LTS.ImageFinite : Prop :=
-  ∀ s μ, Finite (lts.image s μ)
+def LTS.imageMultistep (s : State) (μs : List Label) : Set State := { s' : State | lts.MTr s μs s' }
 
 /-- The `μ`-image of a set of states `S` is the union of all `μ`-images of the states in `S`. -/
 @[grind]
 def LTS.setImage (S : Set State) (μ : Label) : Set State :=
   ⋃ s ∈ S, lts.image s μ
+
+/-- The `μs`-image of a set of states `S`, where `μs` is a list of labels, is the union of all
+`μs`-images of the states in `S`. -/
+@[grind]
+def LTS.setImageMultistep (S : Set State) (μs : List Label) : Set State :=
+  ⋃ s ∈ S, lts.imageMultistep s μs
+
+/-- Characterisation of `setImage` wrt `Tr`. -/
+@[grind]
+theorem LTS.mem_setImage (lts : LTS State Label) :
+  s' ∈ lts.setImage S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
+  simp only [setImage, Set.mem_iUnion, exists_prop]
+  grind
+
+@[grind]
+theorem LTS.tr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.Tr s μ s') :
+  s' ∈ lts.setImage S μ := by grind
+
+/-- Characterisation of `setImageMultistep` with `MTr`. -/
+@[grind]
+theorem LTS.mem_setImageMultistep (lts : LTS State Label) :
+  s' ∈ lts.setImageMultistep S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
+  simp only [setImageMultistep, Set.mem_iUnion, exists_prop]
+  grind
+
+@[grind]
+theorem LTS.mtr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.MTr s μs s') :
+  s' ∈ lts.setImageMultistep S μs := by grind
+
+/-- The image of the empty set is always the empty set. -/
+@[grind]
+theorem LTS.setImage_empty (lts : LTS State Label) : lts.setImage ∅ μ = ∅ := by grind
+
+@[grind]
+lemma LTS.setImageMultistep_setImage_head (lts : LTS State Label) :
+  lts.setImageMultistep S (μ :: μs) = lts.setImageMultistep (lts.setImage S μ ) μs := by grind
+
+/-- Characterisation of `LTS.setImageMultistep` as `List.foldl` on `LTS.setImage`. -/
+@[grind _=_]
+theorem LTS.setImageMultistep_foldl_setImage (lts : LTS State Label) :
+  lts.setImageMultistep = List.foldl lts.setImage := by
+  ext S μs s'
+  induction μs generalizing S <;> grind
+
+/-- An lts is image-finite if all images of its states are finite. -/
+@[grind]
+def LTS.ImageFinite : Prop :=
+  ∀ s μ, Finite (lts.image s μ)
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
@@ -352,6 +400,11 @@ def LTS.Acyclic : Prop :=
 /-- An LTS is finite if it is finite-state and acyclic. -/
 def LTS.Finite : Prop :=
   lts.FiniteState ∧ lts.Acyclic
+
+/-
+/-- An LTS has a complete transition relation if every state has a `μ`-derivative for every `μ`. -/
+def LTS.CompleteTr (lts : LTS State Label) : Prop := ∀ s μ, ∃ s', lts.Tr s μ s'
+-/
 
 end Classes
 
