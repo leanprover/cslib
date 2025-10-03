@@ -28,4 +28,19 @@ def language (ena : εNA State Symbol) : Set (List Symbol) :=
 theorem accepts_mem_language (ena : εNA State Symbol) (xs : List Symbol) :
   ena.Accepts xs ↔ xs ∈ ena.language := by rfl
 
+section NA
+
+@[grind]
+def toNAWithoutEpsilon (ena : εNA State Symbol) : NA State Symbol := {
+  start := ena.setImage ena.start HasTau.τ
+  accept := ena.accept
+  Tr := fun s x s' => ena.saturate.Tr s (some x) s'
+}
+
+-- theorem toNAWithoutEpsilon_language_eq {ena : εNA State Symbol} :
+--   ena.toNAWithoutEpsilon.language = ena.language := by
+--   grind
+
+end NA
+
 end εNA
