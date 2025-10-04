@@ -121,7 +121,7 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : 
     · intro X' _
       have : (map_val (·[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) ++ Δ)✓ := by grind [keys_append]
       grind [open_subst_var]
-  all_goals grind [weaken_head, dlookup_append, map_val_nmem]
+  all_goals grind [weaken_head, dlookup_append]
 
 variable [HasFresh Var] in
 /-- A type remains well-formed under opening (to a well-formed type). -/

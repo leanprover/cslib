@@ -144,7 +144,7 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
     · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
     · grind
   all_goals
-    grind [Env.Wf.to_ok, map_val_append_left, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
+    grind [Env.Wf.to_ok, keys_append, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
 
 /-- Strengthening of subtypes. -/
 lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := by

@@ -39,10 +39,6 @@ theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈
     by_cases a = p'.fst <;>
     grind [dlookup_cons_eq, nodupKeys_cons, dlookup_cons_ne, → of_mem_dlookup, → mem_keys_of_mem]
 
-/-- List permutation preserves keys. -/
-theorem perm_keys (h : l₁.Perm l₂) : x ∈ l₁.keys ↔ x ∈ l₂.keys := by
-  induction h <;> grind [keys_cons]
-
 /-- An element between two appended lists without duplicate keys appears in neither list. -/
 @[grind →]
 theorem nodupKeys_of_nodupKeys_middle (l₁ l₂ : List (Sigma β)) (h : (l₁ ++ s :: l₂).NodupKeys) : 
@@ -115,22 +111,8 @@ omit [DecidableEq α] in
 lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
   induction Γ  <;> simp_all
 
-omit [DecidableEq α] in
-/-- A mapping of values preserves non-duplication of keys. -/
-theorem map_val_ok (f : β → β) : Γ✓ ↔ (Γ.map_val f)✓ := by
-  grind
-
 /-- A mapping of values maps lookups. -/
 lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
   induction Γ <;> grind
-
-/-- A mapping of values preserves non-lookups. -/
-lemma map_val_nmem (nmem : Γ.dlookup x = none) (f) : (Γ.map_val f).dlookup x = none := by
-  grind [List.dlookup_eq_none]
-
-omit [DecidableEq α] in
-/-- A mapping of part of an appending of lists preseves non-duplicate keys. -/
-lemma map_val_append_left (f) (ok : (Γ ++ Δ)✓) : (Γ.map_val f ++ Δ)✓ := by
-  grind [keys_append]
 
 end LambdaCalculus.LocallyNameless.Context
