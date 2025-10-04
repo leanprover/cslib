@@ -28,7 +28,7 @@ variable {β : α → Type v} {l₁ l₂ : List (Sigma β)}
 omit [DecidableEq α] in
 /-- Keys distribute with appending. -/
 theorem keys_append : (l₁ ++ l₂).keys = l₁.keys ++ l₂.keys := by
-  induction l₁ <;> simp_all
+  simp [keys]
 
 /-- Sublists without duplicate keys preserve lookups. -/
 theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : 
