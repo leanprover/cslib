@@ -9,61 +9,90 @@ import Mathlib.Data.Nat.Log
 set_option tactic.hygienic false
 
 
-structure CostM (α : Type) where
-  val : α
-  cost : ℕ
+structure TimeM (α : Type) where
+  ret : α
+  time : ℕ
 
-#check CostM
+namespace TimeM
 
-namespace CostM
-
-def pure (a : α) : CostM α :=
+def pure (a : α) : TimeM α :=
   ⟨a, 0⟩
 
-def bind (m : CostM α) (f : α → CostM β) : CostM β :=
-  let r := f m.val
-  ⟨r.val, m.cost + r.cost⟩
+def bind (m : TimeM α) (f : α → TimeM β) : TimeM β :=
+  let r := f m.ret
+  ⟨r.ret, m.time + r.time⟩
 
-instance : Monad CostM where
+instance : Monad TimeM where
   pure := pure
   bind := bind
 
+-- Increment time
 
--- Increment cost
-def tick {α : Type} (a : α) (c : ℕ := 1) : CostM α :=
+@[simp] def tick {α : Type} (a : α) (c : ℕ := 1) : TimeM α :=
   ⟨a, c⟩
 
--- We define `@[simp]` lemmas for the `.cost` field, similar to how we did for `.val`.
-@[simp] theorem cost_of_pure (a : α) : (pure a).cost = 0 := rfl
-@[simp] theorem cost_of_bind (m : CostM α) (f : α → CostM β) :
-  (CostM.bind m f).cost = m.cost + (f m.val).cost := rfl
-@[simp] theorem cost_of_tick {α} (a : α) (c : ℕ) : (tick a c).cost = c := rfl
-@[simp] theorem val_bind (m : CostM α) (f : α → CostM β) :
-  (CostM.bind m f).val = (f m.val).val := rfl
+notation "✓" a:arg ", " c:arg => tick a c
+notation "✓" a:arg => tick a  -- Default case with only one argument
 
---  Now, we prove the cost of `merge` is linear.
+def tickUnit : TimeM Unit :=
+  ✓ () -- This uses the default time increment of 1
 
-def merge (xs ys : List ℕ) : CostM (List ℕ) :=
-  let rec go : List ℕ → List ℕ → CostM (List ℕ)
-  | [], ys => tick ys ys.length
-  | xs, [] => tick xs xs.length
-  | x::xs', y::ys' =>
-    if x ≤ y then
-      do let rest ← go xs' (y::ys')
-         tick (x :: rest)
+-- Define custom notation for malloc
+--notation "⬆" a:arg ", " size:arg => malloc a size
+-- Define custom notation for free
+--notation "⬇" a:arg ", " size:arg => free a size
+
+
+-- We define `@[simp]` lemmas for the `.time` field, similar to how we did for `.ret`.
+@[grind, simp] theorem time_of_pure (a : α) : (pure a).time = 0 := rfl
+@[grind, simp] theorem time_of_bind (m : TimeM α) (f : α → TimeM β) :
+ (TimeM.bind m f).time = m.time + (f m.ret).time := rfl
+@[grind, simp] theorem time_of_tick {α} (a : α) (c : ℕ) : (tick a c).time = c := rfl
+@[grind, simp] theorem ret_bind (m : TimeM α) (f : α → TimeM β) :
+  (TimeM.bind m f).ret = (f m.ret).ret := rfl
+
+-- allow us to simplify the chain of compositions
+attribute [simp] Bind.bind Pure.pure
+
+
+-- Now, we prove the time of `merge` is linear.
+def merge (xs ys : List ℕ) : TimeM (List ℕ) :=
+  let rec go : List ℕ → List ℕ → TimeM (List ℕ)
+  | [], ys => ✓ ys, ys.length
+  | xs, [] => ✓ xs, xs.length
+  | x::xs', y::ys' => do
+    if x≤ y then
+      let rest ← go xs' (y::ys')
+      ✓ (x :: rest)
     else
-      do let rest ← go (x::xs') ys'
-         tick (y :: rest)
+      let rest ← go (x::xs') ys'
+      ✓ (y :: rest)
   go xs ys
 
-def mergeSort (xs : List ℕ) : CostM (List ℕ) :=
+-- Cosmetic change
+def merge' (xs ys : List ℕ) : TimeM (List ℕ) :=
+  let rec go : List ℕ → List ℕ → TimeM (List ℕ)
+  | [], ys => ✓ ys, ys.length
+  | xs, [] => ✓ xs, xs.length
+  | x::xs', y::ys' => do
+    let c ← ✓ (x ≤ y: Bool)
+    if c then
+      let rest ← go xs' (y::ys')
+      pure (x :: rest)
+    else
+      let rest ← go (x::xs') ys'
+      pure (y :: rest)
+  go xs ys
+
+
+def mergeSort (xs : List ℕ) : TimeM (List ℕ) :=
   if xs.length < 2 then .pure xs
   else
-  let n := xs.length
-  let half := n / 2
-  let left := xs.take half
-  let right := xs.drop half
-  do
+    do
+    let n := xs.length
+    let half := n / 2
+    let left :=  xs.take half
+    let right := xs.drop half
     let sortedLeft ← mergeSort left
     let sortedRight ← mergeSort right
     merge sortedLeft sortedRight
@@ -76,10 +105,9 @@ termination_by xs.length decreasing_by (
   · grind
 )
 
-
 #check mergeSort
 #eval merge [1,2,3,10] [4,5]
-#eval! mergeSort [4,2,3,]
+#eval mergeSort [4,2,3,]
 
 #check merge.go.induct
 #check mergeSort.induct
@@ -90,30 +118,33 @@ open List
 @[simp, grind] def MinOfList (x : ℕ) (l : List ℕ) : Prop := ∀ b ∈ l, x ≤ b
 
 theorem mem_either_merge (xs ys : List ℕ) (z : ℕ)
-  (hz : z ∈ (merge xs ys).val) : z ∈ xs ∨ z ∈ ys := by
+  (hz : z ∈ (merge xs ys).ret) : z ∈ xs ∨ z ∈ ys := by
   rw [merge] at hz
-  fun_induction merge.go <;>
+  fun_induction merge.go
   all_goals (try (simp only [not_mem_nil, false_or];assumption))
-  all_goals (simp only [Bind.bind, tick, val_bind, mem_cons] at hz;cases hz;all_goals (aesop))
+  all_goals
+  simp only [Bind.bind, tick, ret_bind, mem_cons] at hz
+  cases hz
+  all_goals (aesop)
 
 
 theorem min_all_merge (x : ℕ) (xs ys : List ℕ)
-(hxs : MinOfList x xs) (hys : MinOfList x ys) : MinOfList x (merge xs ys).val := by
+(hxs : MinOfList x xs) (hys : MinOfList x ys) : MinOfList x (merge xs ys).ret := by
   simp_all only [MinOfList]
   intro a ha
   apply mem_either_merge at ha
   grind
 
-theorem sorted_merge (l1 l2 : List ℕ) (hxs : IsSorted l1)
-  (hys : IsSorted l2) : IsSorted ((merge l1 l2).val) := by
+theorem sorted_merge {l1 l2 : List ℕ} (hxs : IsSorted l1)
+  (hys : IsSorted l2) : IsSorted ((merge l1 l2).ret) := by
   fun_induction merge.go l1 l2 <;> all_goals (first| simpa [merge,merge.go,tick]|
-    simp only [IsSorted, merge, merge.go, h, ↓reduceIte, Bind.bind, tick, val_bind, sorted_cons]
+    simp only [IsSorted, merge, merge.go, h, ↓reduceIte, Bind.bind, tick, ret_bind, sorted_cons]
     simp [merge] at ih1
     simp_all only [IsSorted, sorted_cons, implies_true, forall_const, and_true]
     apply min_all_merge <;> all_goals grind
   )
 
-theorem MSMCorrect (xs : List ℕ) : IsSorted (mergeSort xs).val := by
+theorem MSMCorrect (xs : List ℕ) : IsSorted (mergeSort xs).ret := by
   fun_induction mergeSort xs
   · obtain h | h : x = [] ∨ ∃a, x = [a] := by
       by_cases x.length = 0
@@ -127,45 +158,41 @@ theorem MSMCorrect (xs : List ℕ) : IsSorted (mergeSort xs).val := by
     · obtain ⟨a,ha⟩ := h
       rw [ha]
       exact sorted_singleton a
-  · simp only [Bind.bind, val_bind]
-    apply sorted_merge
-    · exact ih2
-    · exact ih1
+  · simp only [IsSorted, Bind.bind, ret_bind]
+    exact sorted_merge ih2 ih1
 
-@[simp] theorem merge_cost (xs ys : List ℕ) : (merge xs ys).cost = xs.length + ys.length := by
+@[simp] theorem merge_time (xs ys : List ℕ) :
+  (merge xs ys).time = xs.length + ys.length := by
   simp only [merge]
   fun_induction merge.go <;>
-  all_goals(simp_all only [length_cons, Bind.bind, tick, cost_of_bind]; all_goals (grind))
+  all_goals(simp_all only [length_cons, Bind.bind, tick, time_of_bind]; all_goals (grind))
 
-@[simp] theorem merge_val_length_eq_sum (xs ys : List ℕ) :
-  (merge xs ys).val.length = xs.length + ys.length := by
+@[simp] theorem merge_ret_length_eq_sum (xs ys : List ℕ) :
+  (merge xs ys).ret.length = xs.length + ys.length := by
   rw [merge]
-  fun_induction merge.go <;> all_goals (simp_all only
-  [length_cons, Bind.bind, tick, val_bind]; grind [Bind.bind,tick,val_bind])
+  fun_induction merge.go
+  all_goals (
+     simp_all only [length_cons, Bind.bind, tick, ret_bind]
+     grind )
 
+@[simp] theorem mergeSort_same_length (xs : List ℕ) :
+  (mergeSort xs).ret.length = xs.length:= by
+  fun_induction mergeSort
+  all_goals (simp_all only [pure,not_lt, Bind.bind, ret_bind])
+  grind [merge_ret_length_eq_sum]
 
-@[simp] theorem mergeSort_same_length (xs : List ℕ) : (mergeSort xs).val.length = xs.length:= by
-  fun_induction mergeSort <;> all_goals (try simp_all only [pure,not_lt, Bind.bind, val_bind])
-  grind [merge_val_length_eq_sum]
-
-#check Bind.bind
-#check Pure.pure
-
-theorem mergeSort_cost_recurrence (xs : List ℕ) (h : 2 ≤ xs.length) :
-  (mergeSort xs).cost = (mergeSort (xs.take (xs.length / 2))).cost +
-                        (mergeSort (xs.drop (xs.length / 2))).cost +
+theorem mergeSort_time_recurrence (xs : List ℕ) (h : 2 ≤ xs.length) :
+  (mergeSort xs).time = (mergeSort (xs.take (xs.length / 2))).time +
+                        (mergeSort (xs.drop (xs.length / 2))).time +
                         xs.length := by
   conv =>
     left
     unfold mergeSort
   split_ifs with h1
   · omega
-  · dsimp [Bind.bind,cost_of_bind]
-    ring_nf
-    simp only [merge_cost, Nat.add_left_cancel_iff]
-    repeat rw [mergeSort_same_length]
-    simp only [length_take, length_drop]
-    omega
+  · simp_all only [not_lt, Bind.bind, time_of_bind, merge_time, mergeSort_same_length, length_take,
+    length_drop]
+    grind
 
 def MS_REC : ℕ → ℕ
 | 0 => 0
@@ -176,18 +203,18 @@ def MS_REC : ℕ → ℕ
     MS_REC (n/2) + MS_REC ((n-1)/2 + 1) + n
 termination_by x => x decreasing_by all_goals omega
 
-#eval! mergeSort [4,1,3,4,5,6]
-#eval! MS_REC 6
+#eval mergeSort [4,1,3,4,5,6]
+#eval MS_REC 6
 
 
-theorem mergeSort_cost_eq_MS_REC (xs : List ℕ) :
-  (mergeSort xs).cost = MS_REC xs.length := by
+theorem mergeSort_time_eq_MS_REC (xs : List ℕ) :
+  (mergeSort xs).time = MS_REC xs.length := by
   fun_induction mergeSort
-  · simp only [cost_of_pure]
+  · simp only [time_of_pure]
     unfold MS_REC
     simp only [Nat.add_one_sub_one]
     grind
-  · simp_all only [not_lt, Bind.bind, cost_of_bind, merge_cost, mergeSort_same_length]
+  · simp_all only [not_lt, Bind.bind, time_of_bind, merge_time, mergeSort_same_length]
     conv =>
       right
       unfold MS_REC
@@ -218,12 +245,12 @@ theorem MS_REC_SIMP_EQ_CLOSED (n : ℕ) : MS_REC_SIMP (2^n) = 2^n * n := by
   · unfold MS_REC_SIMP
     grind
 
--- The cost is written assuming the length of the list is a power of two (for simplicity).
-theorem MSCostBound (xs : List ℕ) (h : ∃ k, xs.length = 2 ^ k) :
-  (mergeSort xs).cost = xs.length*(Nat.log 2 xs.length)  := by
-  rw [mergeSort_cost_eq_MS_REC]
+-- The time is written assuming the length of the list is a power of two (for simplicity).
+theorem MStimeBound (xs : List ℕ) (h : ∃ k, xs.length = 2 ^ k) :
+  (mergeSort xs).time = xs.length*(Nat.log 2 xs.length)  := by
+  rw [mergeSort_time_eq_MS_REC]
   obtain ⟨k,hk⟩ := h
   rw [hk,MS_REC_SIMP_EQ,MS_REC_SIMP_EQ_CLOSED]
   simp only [Nat.lt_add_one, Nat.log_pow]
 
-end CostM
+end TimeM
