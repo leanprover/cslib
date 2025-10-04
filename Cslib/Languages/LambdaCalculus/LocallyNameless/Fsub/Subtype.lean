@@ -141,8 +141,8 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
     have : .sub σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
     have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
     by_cases X = X'
-    · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
-    · grind
+    · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head, keys_append]
+    · grind [keys_append]
   all_goals
     grind [Env.Wf.to_ok, keys_append, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
 

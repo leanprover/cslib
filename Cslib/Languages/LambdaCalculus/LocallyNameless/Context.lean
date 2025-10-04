@@ -36,12 +36,9 @@ theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈
   grind [Option.mem_def, → perm_nodupKeys, dlookup_append, => perm_dlookup,
     → Sublist.exists_perm_append]
 
-/-- An element between two appended lists without duplicate keys appears in neither list. -/
-@[grind →]
-theorem nodupKeys_of_nodupKeys_middle (l₁ l₂ : List (Sigma β)) (h : (l₁ ++ s :: l₂).NodupKeys) : 
-    s.fst ∉ l₁.keys ∧ s.fst ∉ l₂.keys:= by
-  have : (s :: (l₁ ++ l₂)).NodupKeys := by grind [perm_middle, perm_nodupKeys]
-  grind [→ notMem_keys_of_nodupKeys_cons, keys_append]
+@[grind =]
+lemma nodupKeys_middle : (l₁ ++ s :: l₂).NodupKeys ↔ (s :: (l₁ ++ l₂)).NodupKeys := by
+  simp_all [NodupKeys, keys, nodup_middle]
 
 end List
 
