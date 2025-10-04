@@ -17,7 +17,7 @@ Contexts as pairs of free variables and types.
 
 universe u v
 
-variable {α : Type u} {β : Type v} [DecidableEq α]
+variable {α : Type u} {β : Type v}
 
 -- TODO: These are pieces of API that cannot be directly automated by adding `grind` attributes to
 -- `Mathlib.Data.List.Sigma`. We should consider upstreaming them to Mathlib.
@@ -25,11 +25,11 @@ namespace List
 
 variable {β : α → Type v} {l₁ l₂ : List (Sigma β)}
 
-omit [DecidableEq α] in
 /-- Keys distribute with appending. -/
 theorem keys_append : (l₁ ++ l₂).keys = l₁.keys ++ l₂.keys := by
   simp [keys]
 
+variable [DecidableEq α] in
 /-- Sublists without duplicate keys preserve lookups. -/
 theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : 
     b ∈ l₂.dlookup a := by
@@ -43,28 +43,18 @@ theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈
 theorem perm_keys (h : l₁.Perm l₂) : x ∈ l₁.keys ↔ x ∈ l₂.keys := by
   induction h <;> grind [keys_cons]
 
-/-- A key not appearing in an appending of list must not appear in either list. -/
-theorem nmem_append_keys (l₁ l₂ : List (Sigma β)) :
-    a ∉ (l₁ ++ l₂).keys ↔ a ∉ l₁.keys ∧ a ∉ l₂.keys := by
-  constructor <;> (
-    intro h
-    induction l₂
-    case nil => simp_all
-    case cons hd tl ih =>
-      have perm : (l₁ ++ hd :: tl).Perm (hd :: (l₁ ++ tl)) := by simp
-      grind [keys_cons, => perm_keys]
-  )
-
 /-- An element between two appended lists without duplicate keys appears in neither list. -/
 @[grind →]
 theorem nodupKeys_of_nodupKeys_middle (l₁ l₂ : List (Sigma β)) (h : (l₁ ++ s :: l₂).NodupKeys) : 
     s.fst ∉ l₁.keys ∧ s.fst ∉ l₂.keys:= by
   have : (s :: (l₁ ++ l₂)).NodupKeys := by grind [perm_middle, perm_nodupKeys]
-  grind [→ notMem_keys_of_nodupKeys_cons, nmem_append_keys]
+  grind [→ notMem_keys_of_nodupKeys_cons, keys_append]
 
 end List
 
 namespace LambdaCalculus.LocallyNameless
+
+variable [DecidableEq α]
 
 /-- A typing context is a list of free variables and corresponding types. -/
 abbrev Context (α : Type u) (β : Type v) := List ((_ : α) × β)
@@ -112,7 +102,7 @@ omit [DecidableEq α] in
 /-- Context well-formedness is preserved on removing an element. -/
 @[scoped grind →]
 theorem wf_strengthen (ok : (Δ ++ ⟨x, σ⟩ :: Γ)✓) : (Δ ++ Γ)✓ := by
-  exact List.NodupKeys.sublist (by simp) ok
+  grind [keys_append]
 
 /-- A mapping of values within a context. -/
 @[simp, scoped grind]
@@ -138,14 +128,9 @@ lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dloo
 lemma map_val_nmem (nmem : Γ.dlookup x = none) (f) : (Γ.map_val f).dlookup x = none := by
   grind [List.dlookup_eq_none]
 
+omit [DecidableEq α] in
 /-- A mapping of part of an appending of lists preseves non-duplicate keys. -/
 lemma map_val_append_left (f) (ok : (Γ ++ Δ)✓) : (Γ.map_val f ++ Δ)✓ := by
-  induction Δ
-  case nil => grind
-  case cons hd tl ih =>
-    have perm : hd :: (map_val f Γ ++ tl) ~ map_val f Γ ++ hd :: tl := Perm.symm perm_middle
-    have perm' : hd :: (Γ ++ tl) ~ Γ ++ hd :: tl := Perm.symm perm_middle
-    have ok' : (hd :: (Γ ++ tl))✓ := by grind
-    grind [List.nodupKeys_cons, nmem_append_keys]
+  grind [keys_append]
 
 end LambdaCalculus.LocallyNameless.Context
