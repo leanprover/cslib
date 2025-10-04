@@ -43,8 +43,8 @@ def Derivation.notNotLEM {A B : Proposition Atom} :
   ax' <| by grind
 
 theorem Derivable.not_not_lem {A B : Proposition Atom} :
-    SDerivable ⟨∅, (A.disj <| impl A B).impl B |>.impl B⟩ :=
-  sDerivable_iff.mpr ⟨Derivation.notNotLEM⟩
+    Derivable <| ((A.disj <| impl A B).impl B).impl B :=
+  derivable_iff.mpr ⟨Derivation.notNotLEM⟩
 
 /-- Triple negation elimination -/
 def Derivation.tne {A B : Proposition Atom} :
@@ -143,6 +143,96 @@ def conjImpOfDisjImps {A B C : Proposition Atom} :
 theorem conj_imp_of_disj_imps {A B C : Proposition Atom} :
     SDerivable ⟨{disj (impl A C) (impl B C)}, impl (conj A B) C⟩ :=
   sDerivable_iff.mpr ⟨conjImpOfDisjImps⟩
+
+/-! ### Classical theorems -/
+
+theorem dn_equiv {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
+    T.Equiv A ((A.impl bot).impl bot) := by
+  constructor
+  · refine ⟨∅, by grind, ?_⟩
+    apply implI
+    exact Derivation.dni
+  · apply Theory.Derivable.ax'
+    grind [IsClassical]
+
+theorem lem {T : Theory Atom} [IsClassical T] {A : Proposition Atom} :
+    T.Derivable (A.disj (A.impl bot)) := by
+  apply Theory.Derivable.dne
+  apply Theory.Derivable.theory_weak (T := Theory.empty Atom) (hT := by grind)
+  exact Derivable.not_not_lem
+
+private def dneFor (A : Proposition Atom) := ((A.impl bot).impl bot).impl A
+
+theorem disj_not_of_not_conj {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
+    T.SDerivable ⟨{(conj A B).impl bot}, disj (A.impl bot) (B.impl bot)⟩ := by
+  refine ⟨{(conj A B).impl bot,
+           dneFor A,
+           dneFor B,
+           dneFor (disj (A.impl bot) (B.impl bot))}, ?_, ?_⟩
+  · grind [IsClassical, dneFor, Finset.coe_insert, Finset.coe_singleton]
+  · simp only [dneFor]
+    apply implE (A := ((disj (A.impl bot) (B.impl bot)).impl bot).impl bot)
+    · exact ax' (by grind)
+    · apply implI
+      apply implE (A := A.conj B)
+      · exact ax' (by grind)
+      · apply conjI
+        · apply implE (A := (A.impl bot).impl bot)
+          · exact ax' (by grind)
+          · apply implI
+            apply implE (A := (disj (A.impl bot) (B.impl bot)))
+            · exact ax' (by grind)
+            · apply disjI₁
+              exact ax' (by grind)
+        · apply implE (A := (B.impl bot).impl bot)
+          · exact ax' (by grind)
+          · apply implI
+            apply implE (A := (disj (A.impl bot) (B.impl bot)))
+            · exact ax' (by grind)
+            · apply disjI₂
+              exact ax' (by grind)
+
+theorem impl_equiv_disj {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
+    T.Equiv (A.impl B) ((A.impl bot).disj B) := by
+  constructor
+  · let ⟨Γ, h, D⟩ := lem (T := T) (A := A)
+    refine ⟨Γ, h, ?_⟩
+    apply implI
+    apply disjE (A := A) (B := A.impl bot)
+    · exact D.weak' (by grind)
+    · apply disjI₂
+      apply implE (A := A)
+      all_goals exact ax' (by grind)
+    · apply disjI₁
+      exact ax ..
+  · refine ⟨{bot.impl B}, by grind [IsClassical], ?_⟩
+    apply implI
+    apply implI
+    apply disjE (A := A.impl bot) (B := B)
+    · exact ax' (by grind)
+    · apply implE (A := bot)
+      · exact ax' (by grind)
+      · apply implE (A := A)
+        all_goals exact ax' (by grind)
+    · exact ax' (by grind)
+
+theorem pierce {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
+    T.Derivable (((A.impl B).impl A).impl A) := by
+  let ⟨Γ, h, D⟩ := lem (T := T) (A := A)
+  refine ⟨insert (bot.impl B) Γ, by grind [IsClassical], ?_⟩
+  apply implI
+  apply disjE (A := A) (B := A.impl bot)
+  · exact D.weak' (by grind)
+  · exact ax ..
+  · apply implE (A := A.impl B)
+    · exact ax' (by grind)
+    · apply implI
+      apply implE (A := bot)
+      · apply ax' (by grind)
+      · apply implE (A := A)
+        · exact ax' (by grind)
+        · exact ax ..
+
 
 /-! ### Further equivalences and implications -/
 
