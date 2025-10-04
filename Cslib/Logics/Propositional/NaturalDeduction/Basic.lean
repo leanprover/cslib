@@ -40,7 +40,7 @@ universe u
 
 variable {Atom : Type u} [DecidableEq Atom]
 
-namespace IPL
+namespace PL
 
 /-- Propositions. We view negation as a defined connective ~A := A → ⊥ -/
 inductive Proposition (Atom : Type u) : Type u where
@@ -68,6 +68,32 @@ abbrev Theory (Atom) := Set (Proposition Atom)
 
 abbrev Theory.empty (Atom) : Theory (Atom) := ∅
 
+def IPL : Theory Atom := Set.range (impl bot)
+def CPL : Theory Atom :=
+  IPL ∪ Set.range (fun (A : Proposition Atom) ↦ (A.impl bot).impl bot |>.impl A)
+
+class IsIntuitionistic (T : Theory Atom) where
+  efq (A : Proposition Atom) : bot.impl A ∈ T
+
+class IsClassical (T : Theory Atom) where
+  efq (A : Proposition Atom) : bot.impl A ∈ T
+  dne (A : Proposition Atom) : ((A.impl bot).impl bot |>.impl A) ∈ T
+
+instance instIsIntuitionisticIPL : IsIntuitionistic (Atom := Atom) IPL where
+  efq A := Set.mem_range.mpr ⟨A, rfl⟩
+
+instance instIsClassicalCPL : IsClassical (Atom := Atom) CPL where
+  efq A := Set.mem_union_left _ <| Set.mem_range.mpr ⟨A, rfl⟩
+  dne A := Set.mem_union_right _ <| Set.mem_range.mpr ⟨A, rfl⟩
+
+omit [DecidableEq Atom] in
+theorem instIsIntuitionisticExtention {T T' : Theory Atom} [IsIntuitionistic T] (h : T ⊆ T') :
+    IsIntuitionistic T' := by grind [IsIntuitionistic]
+
+omit [DecidableEq Atom] in
+theorem instIsClassicalExtention {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
+    IsClassical T' := by grind [IsClassical]
+
 /-- Sequents {A₁, ..., Aₙ} ⊢ B. -/
 abbrev Sequent (Atom) := Ctx Atom × Proposition Atom
 
@@ -75,8 +101,8 @@ abbrev Sequent (Atom) := Ctx Atom × Proposition Atom
 inductive Derivation : Sequent Atom → Type _ where
   /-- Axiom (or assumption) -/
   | ax (Γ : Ctx Atom) (A : Proposition Atom) : Derivation ⟨insert A Γ, A⟩
-  /-- Falsum elimination (ex falso quodlibet) -/
-  | botE {Γ : Ctx Atom} (A : Proposition Atom) : Derivation ⟨Γ, bot⟩ → Derivation ⟨Γ, A⟩
+  -- /-- Falsum elimination (ex falso quodlibet) -/
+  -- | botE {Γ : Ctx Atom} (A : Proposition Atom) : Derivation ⟨Γ, bot⟩ → Derivation ⟨Γ, A⟩
   /-- Conjunction introduction -/
   | conjI {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, conj A B⟩
@@ -163,7 +189,7 @@ def Derivation.ax' {Γ : Ctx Atom} {A : Proposition Atom} (h : A ∈ Γ) : Deriv
 def Derivation.weak {Γ : Ctx Atom} {A : Proposition Atom} (Δ : Ctx Atom) :
     (D : Derivation ⟨Γ, A⟩) → Derivation ⟨Γ ∪ Δ, A⟩
   | ax Γ A => (Finset.insert_union A Γ Δ) ▸ ax (Γ ∪ Δ) A
-  | botE A D => botE A <| D.weak Δ
+  -- | botE A D => botE A <| D.weak Δ
   | conjI D D' => conjI (D.weak Δ) (D'.weak Δ)
   | conjE₁ D => conjE₁ <| D.weak Δ
   | conjE₂ D => conjE₂ <| D.weak Δ
@@ -215,7 +241,7 @@ def Derivation.subs {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     case neg h =>
       rw [Finset.insert_sdiff_of_notMem (h := Finset.notMem_singleton.mpr h)]
       exact (ax _ B).weak _
-  | botE _ D => exact botE B <| D.subs E
+  -- | botE _ D => exact botE B <| D.subs E
   | conjI D D' => exact conjI (D.subs E) (D'.subs E)
   | conjE₁ D => exact conjE₁ <| D.subs E
   | conjE₂ D => exact conjE₂ <| D.subs E
@@ -288,9 +314,21 @@ theorem SDerivable.subs' {Γ : Ctx Atom} {A B : Proposition Atom} :
 theorem Theory.Derivable.ax' {T : Theory Atom} {A : Proposition Atom} (h : A ∈ T) :
   T.Derivable A := ⟨{A}, by grind, Derivation.ax ∅ A⟩
 
-theorem Theory.Derivable.botE {T : Theory Atom} (A : Proposition Atom) :
+theorem Theory.Derivable.botE {T : Theory Atom} [IsIntuitionistic T] (A : Proposition Atom) :
     T.Derivable Proposition.bot → T.Derivable A
-  | ⟨Γ, h, D⟩ => ⟨Γ, h, Derivation.botE A D⟩
+  | ⟨Γ, h, D⟩ => by
+    refine ⟨insert (impl bot A) Γ, by grind [IsIntuitionistic], ?_⟩
+    apply implE (A := bot)
+    · exact ax ..
+    · exact D.weak' (by grind)
+
+theorem Theory.Derivable.dne {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
+    T.Derivable (impl (impl A bot) bot) → T.Derivable A
+  | ⟨Γ, h, D⟩ => by
+    refine ⟨insert ((impl (impl A bot) bot).impl A) Γ, by grind [IsClassical], ?_⟩
+    apply implE (A := impl (impl A bot) bot)
+    · exact ax ..
+    · exact D.weak' (by grind)
 
 theorem Theory.Derivable.conjI {T : Theory Atom} {A B : Proposition Atom} :
     T.Derivable A → T.Derivable B → T.Derivable (A.conj B)
@@ -466,4 +504,4 @@ protected def Theory.propositionSetoid (T : Theory Atom) : Setoid (Proposition A
 
 end NJ
 
-end IPL
+end PL

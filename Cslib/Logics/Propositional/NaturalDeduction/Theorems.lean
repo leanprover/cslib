@@ -3,13 +3,13 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
-import Cslib.Logics.IPL.NJ.Basic
+import Cslib.Logics.Propositional.NaturalDeduction.Basic
 
 /-! # Elementary derivations and equivalences in NJ -/
 
 variable {Atom : Type u} [DecidableEq Atom]
 
-namespace IPL
+namespace PL
 
 open Proposition
 
@@ -298,33 +298,37 @@ theorem absorb_disj_conj {A B : Proposition Atom} :  Equiv (A.disj <| A.conj B) 
   equiv_iff.mpr ⟨absorbDisjConj⟩
 
 /-- Falsum is absorbing for conjunction -/
-def botConjAbsorb {A : Proposition Atom} : Proposition.equiv (A.conj bot) bot := by
+theorem bot_conj_absorb (T : Theory Atom) {A : Proposition Atom} [IsIntuitionistic T] :
+  T.Equiv (A.conj bot) bot := by
   constructor
-  · apply conjE₂ (A := A)
+  · refine ⟨∅, by grind, ?_⟩
+    apply implI
+    apply conjE₂ (A := A)
     exact ax' (by grind)
-  · apply conjI
-    · apply botE
-      exact ax' (by grind)
+  · refine ⟨{bot.impl A}, by grind [IsIntuitionistic], ?_⟩
+    apply implI
+    apply conjI
+    · apply implE (A := bot)
+      · exact ax' (by grind)
+      · exact ax ..
     · exact ax' (by grind)
-
-/-- Falsum is absorbing for conjunction -/
-theorem bot_conj_absorb {A : Proposition Atom} : Equiv (A.conj bot) bot :=
-  equiv_iff.mpr ⟨botConjAbsorb⟩
 
 /-- Falsum is neutral for disjunction -/
-def botDisjNeutral {A : Proposition Atom} : Proposition.equiv (A.disj bot) A := by
+theorem bot_disj_neutral (T : Theory Atom) {A : Proposition Atom} [IsIntuitionistic T] :
+    T.Equiv (A.disj bot) A := by
   constructor
-  · apply disjE (A := A) (B := bot)
+  · refine ⟨{impl bot A}, by grind [IsIntuitionistic], ?_⟩
+    apply implI
+    apply disjE (A := A) (B := bot)
     · exact ax' (by grind)
     · exact ax' (by grind)
-    · apply botE
-      exact ax' (by grind)
-  · apply disjI₁
-    exact ax' (by grind)
-
-/-- Falsum is neutral for disjunction -/
-theorem bot_disj_neutral {A : Proposition Atom} : Equiv (A.disj bot) A :=
-  equiv_iff.mpr ⟨botDisjNeutral⟩
+    · apply implE (A := bot)
+      · exact ax' (by grind)
+      · exact ax' (by grind)
+  · refine ⟨∅, by grind, ?_⟩
+    apply implI
+    apply disjI₁
+    exact ax ..
 
 /-! ### Partial order, lattice, and Heyting algebra results
 
@@ -463,11 +467,8 @@ theorem Theory.le_top {A : Proposition Atom} : T.Derivable (A.impl Proposition.t
   apply implI
   exact derivationTop.weak' (by grind)
 
-theorem Theory.bot_le {A : Proposition Atom} : T.Derivable (bot.impl A) := by
-  refine ⟨∅, by grind, ?_⟩
-  apply implI
-  apply botE
-  exact ax ..
+theorem Theory.bot_le {A : Proposition Atom} [IsIntuitionistic T] : T.Derivable (bot.impl A) :=
+  Theory.Derivable.ax' (by grind [IsIntuitionistic])
 
 theorem Theory.himp_wd {A A' B B' : Proposition Atom} :
     T.Equiv A A' → T.Equiv B B' → T.Equiv (A.impl B) (A'.impl B')
@@ -502,4 +503,4 @@ end OrderTheory
 
 end NJ
 
-end IPL
+end PL
