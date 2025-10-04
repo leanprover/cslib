@@ -33,11 +33,8 @@ variable [DecidableEq α] in
 /-- Sublists without duplicate keys preserve lookups. -/
 theorem sublist_dlookup (nd₂ : l₂.NodupKeys) (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : 
     b ∈ l₂.dlookup a := by
-  induction s generalizing a b with
-  | slnil => exact mem
-  | cons p' | cons₂ p' =>
-    by_cases a = p'.fst <;>
-    grind [dlookup_cons_eq, nodupKeys_cons, dlookup_cons_ne, → of_mem_dlookup, → mem_keys_of_mem]
+  grind [Option.mem_def, → perm_nodupKeys, dlookup_append, => perm_dlookup,
+    → Sublist.exists_perm_append]
 
 /-- An element between two appended lists without duplicate keys appears in neither list. -/
 @[grind →]
