@@ -109,7 +109,7 @@ omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
 @[scoped grind]
 lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
-  induction Γ  <;> simp_all
+  induction Γ <;> grind
 
 /-- A mapping of values maps lookups. -/
 lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
