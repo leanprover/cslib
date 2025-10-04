@@ -130,6 +130,10 @@ def Proposition.equiv (A B : Proposition Atom) := Derivation ⟨{A},B⟩ × Deri
 def Theory.Equiv (T : Theory Atom) (A B : Proposition Atom) :=
   T.Derivable (A.impl B) ∧ T.Derivable (B.impl A)
 
+theorem Theory.Equiv.theory_weak (T T' : Theory Atom) (hT : T ⊆ T') (A B : Proposition Atom) :
+    T.Equiv A B → T'.Equiv A B
+  | ⟨hAB, hBA⟩ => ⟨hAB.theory_weak T T' hT, hBA.theory_weak T T' hT⟩
+
 /-- Two propositions A and B are equivalent if B can be derived from A and vice-versa. -/
 abbrev Equiv : Proposition Atom → Proposition Atom → Prop := Theory.empty Atom |>.Equiv
 
@@ -353,7 +357,6 @@ theorem equiv_iff {A B : Proposition Atom} : Equiv A B ↔ Nonempty (Proposition
     refine ⟨?_,?_⟩
     all_goals apply derivable_iff.mpr; constructor; apply implI; assumption
 
-
 theorem Proposition.derivable_iff_equiv_top (T : Theory Atom) (A : Proposition Atom) :
     T.Derivable A ↔ T.Equiv A top := by
   constructor <;> intro h
@@ -370,6 +373,22 @@ theorem Proposition.derivable_iff_equiv_top (T : Theory Atom) (A : Proposition A
 /-- Change the conclusion along an equivalence. -/
 def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : Proposition.equiv A B) :
     Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩ := e.1.subs'
+
+theorem Theory.equivalent_derivable {T : Theory Atom} {A B : Proposition Atom} (h : T.Equiv A B) :
+    T.Derivable A ↔ T.Derivable B := by
+  let ⟨⟨Γ₁, hΓ₁, D₁⟩, ⟨Γ₂, hΓ₂, D₂⟩⟩ := h
+  constructor
+  · intro ⟨Γ, h, D⟩
+    refine ⟨Γ ∪ Γ₁, by grind, ?_⟩
+    apply implE (A := A)
+    · exact D₁.weak' (by grind)
+    · exact D.weak' (by grind)
+  · intro ⟨Γ, h, D⟩
+    refine ⟨Γ ∪ Γ₂, by grind, ?_⟩
+    apply implE (A := B)
+    · exact D₂.weak' (by grind)
+    · exact D.weak' (by grind)
+
 
 theorem Theory.equivalent_sDerivable_conclusion {T : Theory Atom} (Γ : Ctx Atom)
     {A B : Proposition Atom} (h : T.Equiv A B) : T.SDerivable ⟨Γ, A⟩ ↔ T.SDerivable ⟨Γ, B⟩ := by

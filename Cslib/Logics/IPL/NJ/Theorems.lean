@@ -326,6 +326,180 @@ def botDisjNeutral {A : Proposition Atom} : Proposition.equiv (A.disj bot) A := 
 theorem bot_disj_neutral {A : Proposition Atom} : Equiv (A.disj bot) A :=
   equiv_iff.mpr ⟨botDisjNeutral⟩
 
+/-! ### Partial order, lattice, and Heyting algebra results
+
+The following amount to showing that "Propositions modulo equivalence" form a Heyting algebra: that
+the operations are well-defined on equivalence classes, and the validity of the axioms.
+-/
+
+section OrderTheory
+
+variable (T : Theory Atom)
+
+theorem Theory.le_wd {A A' B B' : Proposition Atom} (hA : T.Equiv A A') (hB : T.Equiv B B') :
+    T.Derivable (A.impl B) ↔ T.Derivable (A'.impl B') := by
+  constructor <;> intro h
+  · exact hA.2.trans h |>.trans hB.1
+  · exact hA.1.trans h |>.trans hB.2
+
+theorem Theory.le_refl {A : Proposition Atom} : T.Derivable (A.impl A) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  exact ax _ _
+
+theorem Theory.le_trans {A B C : Proposition Atom} (hAB : T.Derivable (A.impl B))
+    (hBC : T.Derivable (B.impl C)) : T.Derivable (A.impl C) := hAB.trans hBC
+
+theorem Theory.le_antisymm {A B : Proposition Atom} (hAB : T.Derivable (A.impl B))
+    (hBA : T.Derivable (B.impl A)) : T.Equiv A B := ⟨hAB, hBA⟩
+
+theorem Theory.inf_wd {A A' B B' : Proposition Atom} :
+    T.Equiv A A' → T.Equiv B B' → T.Equiv (A.conj B) (A'.conj B')
+  | ⟨⟨ΓA, hA, DA⟩, ⟨ΓA', hA', DA'⟩⟩, ⟨⟨ΓB, hB, DB⟩, ⟨ΓB', hB', DB'⟩⟩ => by
+    constructor
+    · refine ⟨ΓA ∪ ΓB, by grind, ?_⟩
+      apply implI
+      apply conjI
+      · apply implE (A := A)
+        · exact DA.weak' (by grind)
+        · apply conjE₁ (B := B)
+          apply ax' (by grind)
+      · apply implE (A := B)
+        · exact DB.weak' (by grind)
+        · apply conjE₂ (A := A)
+          apply ax' (by grind)
+    · refine ⟨ΓA' ∪ ΓB', by grind, ?_⟩
+      apply implI
+      apply conjI
+      · apply implE (A := A')
+        · exact DA'.weak' (by grind)
+        · apply conjE₁ (B := B')
+          apply ax' (by grind)
+      · apply implE (A := B')
+        · exact DB'.weak' (by grind)
+        · apply conjE₂ (A := A')
+          apply ax' (by grind)
+
+theorem Theory.sup_wd {A A' B B' : Proposition Atom} :
+    T.Equiv A A' → T.Equiv B B' → T.Equiv (A.disj B) (A'.disj B')
+  | ⟨⟨ΓA, hA, DA⟩, ⟨ΓA', hA', DA'⟩⟩, ⟨⟨ΓB, hB, DB⟩, ⟨ΓB', hB', DB'⟩⟩ => by
+    constructor
+    · refine ⟨ΓA ∪ ΓB, by grind, ?_⟩
+      apply implI
+      apply disjE (A := A) (B := B) (ax' <| by grind)
+      · apply disjI₁
+        apply implE (A := A)
+        · exact DA.weak' (by grind)
+        · exact ax ..
+      · apply disjI₂
+        apply implE (A := B)
+        · exact DB.weak' (by grind)
+        · exact ax ..
+    · refine ⟨ΓA' ∪ ΓB', by grind, ?_⟩
+      apply implI
+      apply disjE (A := A') (B := B') (ax' <| by grind)
+      · apply disjI₁
+        apply implE (A := A')
+        · exact DA'.weak' (by grind)
+        · exact ax ..
+      · apply disjI₂
+        apply implE (A := B')
+        · exact DB'.weak' (by grind)
+        · exact ax ..
+
+theorem Theory.inf_le_left {A B : Proposition Atom} : T.Derivable ((A.conj B).impl A) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  apply conjE₁ (B := B)
+  exact ax ..
+
+theorem Theory.inf_le_right {A B : Proposition Atom} : T.Derivable ((A.conj B).impl B) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  apply conjE₂ (A := A)
+  exact ax ..
+
+theorem Theory.le_inf {A B C : Proposition Atom} :
+    T.Derivable (A.impl B) → T.Derivable (A.impl C) → T.Derivable (A.impl (B.conj C))
+  | ⟨Γ, h, D⟩, ⟨Γ', h', D'⟩ => by
+    refine ⟨Γ ∪ Γ', by grind, ?_⟩
+    apply implI
+    apply conjI
+    · apply implE (A := A)
+      · exact D.weak' (by grind)
+      · exact ax ..
+    · apply implE (A := A)
+      · exact D'.weak' (by grind)
+      · exact ax ..
+
+theorem Theory.le_sup_left {A B : Proposition Atom} : T.Derivable (A.impl (A.disj B)) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  apply disjI₁
+  exact ax ..
+
+theorem Theory.le_sup_right {A B : Proposition Atom} : T.Derivable (B.impl (A.disj B)) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  apply disjI₂
+  exact ax ..
+
+theorem Theory.sup_le {A B C : Proposition Atom} :
+    T.Derivable (A.impl C) → T.Derivable (B.impl C) → T.Derivable (A.disj B |>.impl C)
+  | ⟨Γ, h, D⟩, ⟨Γ', h', D'⟩ => by
+    refine ⟨Γ ∪ Γ', by grind, ?_⟩
+    apply implI
+    apply disjE (A := A) (B := B)
+    · exact ax ..
+    · apply implE (A := A)
+      · exact D.weak' (by grind)
+      · exact ax ..
+    · apply implE (A := B)
+      · exact D'.weak' (by grind)
+      · exact ax ..
+
+theorem Theory.le_top {A : Proposition Atom} : T.Derivable (A.impl Proposition.top) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  exact derivationTop.weak' (by grind)
+
+theorem Theory.bot_le {A : Proposition Atom} : T.Derivable (bot.impl A) := by
+  refine ⟨∅, by grind, ?_⟩
+  apply implI
+  apply botE
+  exact ax ..
+
+theorem Theory.himp_wd {A A' B B' : Proposition Atom} :
+    T.Equiv A A' → T.Equiv B B' → T.Equiv (A.impl B) (A'.impl B')
+  | ⟨⟨ΓA, hA, DA⟩, ⟨ΓA', hA', DA'⟩⟩, ⟨⟨ΓB, hB, DB⟩, ⟨ΓB', hB', DB'⟩⟩ => by
+    constructor
+    · refine ⟨ΓA' ∪ ΓB, by grind, ?_⟩
+      apply implI; apply implI
+      apply implE (A := B)
+      · exact DB.weak' (by grind)
+      · apply implE (A := A)
+        · exact ax' (by grind)
+        · apply implE (A := A')
+          · exact DA'.weak' (by grind)
+          · exact ax ..
+    · refine ⟨ΓA ∪ ΓB', by grind, ?_⟩
+      apply implI; apply implI
+      apply implE (A := B')
+      · exact DB'.weak' (by grind)
+      · apply implE (A := A')
+        · exact ax' (by grind)
+        · apply implE (A := A)
+          · exact DA.weak' (by grind)
+          · exact ax ..
+
+theorem Theory.le_himp_iff {A B C : Proposition Atom} :
+    T.Derivable (A.impl (B.impl C)) ↔ T.Derivable ((A.conj B).impl C) := by
+  apply T.equivalent_derivable
+  apply Theory.Equiv.theory_weak (Theory.empty Atom) T (by grind)
+  exact curry_equiv
+
+end OrderTheory
+
 end NJ
 
 end IPL
