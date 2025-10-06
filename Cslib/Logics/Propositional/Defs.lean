@@ -5,7 +5,17 @@ Authors: Thomas Waring
 -/
 import Mathlib.Order.Notation
 
-/-! # Propositions -/
+/-! # Propositions
+
+We define `Proposition`, the type of propositions over a given type of atom. This type has a `Bot`
+instance whenever `Atom` does, and a `Top` whenever `Atom` is inhabited. We introduce notation for
+the logical connectives: `⊥ ⊤ ⋏ ⋎ ⟶ ~` for, respectively, falsum, verum, conjunction, disjunction,
+implication and negation.
+
+NB: starting from a base type `Atom`, a canonical bottom element can be added using `WithBot Atom`,
+from `Mathlib.Order.TypeTags` — this is defined as `Option Atom`, but conveniently adds all the
+requisite coercions, instances, etc.
+-/
 
 universe u
 

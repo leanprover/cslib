@@ -17,7 +17,6 @@ double negation elimination to minimal logic.
 
 ## Main definitions
 
-- `Proposition` : a type of propositions with atoms in a given type.
 - `Derivation` :  natural deduction derivation, done in "sequent style", ie with explicit
 hypotheses at each step. Contexts are `Finset`'s of propositions, which avoids explicit contraction
 and exchange, and the axiom rule derives `{A} ∪ Γ ⊢ A` for any context `Γ`, allowing weakening to
@@ -42,9 +41,15 @@ versions of `Derivable`, `SDerivable` and `Equiv`.
 
 ## Notation
 
-We introduce notation for logical connectives `⊥ ⊤ ⋏ ⋎ ⟶ ~` for, respectively, falsum, verum,
-conjunction, disjunction, implication and negation. For `T`-derivability, -sequent-derivability and
--equivalence we have `⊢[T] A`, `Γ ⊢[T] A` and `A ≡[T] B`, respectively.
+For `T`-derivability, -sequent-derivability and -equivalence we introduce the notations `⊢[T] A`,
+`Γ ⊢[T] A` and `A ≡[T] B`, respectively.
+
+## TODO
+
+Add translations between minimal, intuitionistic and classical theories. For example:
+- Complete `T : Theory Atom` to an intuitionistic `T' : Theory (WithBot Atom)`, ditto classical.
+- Implement the Gödel-Gentzen and Kuroda negative translations, classical → intuitionistic and
+classical → minimal, respectively.
 
 ## References
 
