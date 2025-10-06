@@ -54,7 +54,7 @@ end MultiStep
 
 open Lean Elab Meta Command Term
 
--- thank you to Kyle Miller for this: 
+-- thank you to Kyle Miller for this:
 -- https://leanprover.zulipchat.com/#narrow/channel/239415-metaprogramming-.2F-tactics/topic/Working.20with.20variables.20in.20a.20command/near/529324084
 
 /-- A command to create a `ReductionSystem` from a relation, robust to use of `variable `-/
@@ -85,10 +85,10 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
       }
       addTermInfo' name (.const name.getId params) (isBinder := true)
       addDeclarationRangesFromSyntax name.getId name
- 
-/-- 
+
+/--
   This command adds notations for a `ReductionSystem.Red` and `ReductionSystem.MRed`. This should
-  not usually be called directly, but from the `reduction_sys` attribute. 
+  not usually be called directly, but from the `reduction_sys` attribute.
 
   As an example `reduction_notation foo "β"` will add the notations "⭢β" and "↠β".
 
@@ -98,19 +98,19 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
 -/
 syntax "reduction_notation" ident (str)? : command
 macro_rules
-  | `(reduction_notation $rs $sym) => 
+  | `(reduction_notation $rs $sym) =>
     `(
       notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
       notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
-  | `(reduction_notation $rs) => 
+  | `(reduction_notation $rs) =>
     `(
-      notation3 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 
-/-- 
+/--
   This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
 
   ```
