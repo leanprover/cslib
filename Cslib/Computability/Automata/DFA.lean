@@ -34,25 +34,25 @@ namespace DFA
 Implementation note: compared to [Hopcroft2006], the definition consumes the input list of symbols
 from the left (instead of the right), in order to match the way lists are constructed.
 -/
-@[grind =]
+@[scoped grind =]
 def mtr (dfa : DFA State Symbol) (s : State) (xs : List Symbol) := xs.foldl dfa.tr s
 
-@[grind =]
+@[scoped grind =]
 theorem mtr_nil_eq {dfa : DFA State Symbol} : dfa.mtr s [] = s := by rfl
 
 /-- A DFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/
-@[grind →]
+@[scoped grind →]
 def Accepts (dfa : DFA State Symbol) (xs : List Symbol) :=
   dfa.mtr dfa.start xs ∈ dfa.accept
 
 /-- The language of a DFA is the set of strings that it accepts. -/
-@[grind =]
+@[scoped grind =]
 def language (dfa : DFA State Symbol) : Set (List Symbol) :=
   { xs | dfa.Accepts xs }
 
 /-- A string is accepted by a DFA iff it is in the language of the DFA. -/
-@[grind _=_]
+@[scoped grind _=_]
 theorem accepts_mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
   dfa.Accepts xs ↔ xs ∈ dfa.language := by rfl
 

@@ -14,7 +14,7 @@ namespace NFA
 section SubsetConstruction
 
 /-- Converts an `NFA` into a `DFA` using the subset construction. -/
-@[grind]
+@[scoped grind =]
 def toDFA (nfa : NFA State Symbol) : DFA (Set State) Symbol := {
   start := nfa.start
   accept := { S | ∃ s ∈ S, s ∈ nfa.accept }
@@ -26,7 +26,7 @@ def toDFA (nfa : NFA State Symbol) : DFA (Set State) Symbol := {
 }
 
 /-- Characterisation of transitions in `NFA.toDFA` wrt transitions in the original NA. -/
-@[grind]
+@[scoped grind =]
 theorem toDFA_mem_tr {nfa : NFA State Symbol} :
   s' ∈ nfa.toDFA.tr S x ↔ ∃ s ∈ S, nfa.Tr s x s' := by
   simp only [NFA.toDFA, LTS.setImage, Set.mem_iUnion, exists_prop]
@@ -34,8 +34,8 @@ theorem toDFA_mem_tr {nfa : NFA State Symbol} :
 
 /-- Characterisation of multistep transitions in `NFA.toDFA` wrt multistep transitions in the
 original NA. -/
-@[grind]
-theorem toDA_mem_mtr {nfa : NFA State Symbol} :
+@[scoped grind =]
+theorem toDFA_mem_mtr {nfa : NFA State Symbol} :
   s' ∈ nfa.toDFA.mtr S xs ↔ ∃ s ∈ S, nfa.MTr s xs s' := by
   simp only [NFA.toDFA, DFA.mtr]
   /- TODO: Grind does not catch a useful rewrite in the subset construction for automata
@@ -48,17 +48,17 @@ theorem toDA_mem_mtr {nfa : NFA State Symbol} :
   grind
 
 /-- Characterisation of multistep transitions in `NFA.toDFA` as image transitions in `LTS`. -/
-@[grind]
-theorem toDA_mtr_setImageMultistep {nfa : NFA State Symbol} :
+@[scoped grind =]
+theorem toDFA_mtr_setImageMultistep {nfa : NFA State Symbol} :
   nfa.toDFA.mtr = nfa.setImageMultistep := by grind
 
 /-- The `DFA` constructed from an `NFA` has the same language. -/
-@[grind]
-theorem toDA_language_eq {nfa : NFA State Symbol} :
+@[scoped grind =]
+theorem toDFA_language_eq {nfa : NFA State Symbol} :
   nfa.toDFA.language = nfa.language := by
   ext xs
   rw [← DFA.accepts_mem_language]
-  grind
+  open DFA in grind
 
 end SubsetConstruction
 end NFA

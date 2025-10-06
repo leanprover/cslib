@@ -20,7 +20,7 @@ structure εNFA (State : Type _) (Symbol : Type _) extends NA State (Option Symb
   /-- The type of symbols (also called 'alphabet') is finite. -/
   finite_symbol : Finite Symbol
 
-@[grind]
+@[local grind =]
 private instance : HasTau (Option α) := ⟨.none⟩
 
 /-- The `ε`-closure of a set of states `S` is the set of states reachable by any state in `S`
@@ -32,18 +32,18 @@ namespace εNFA
 
 /-- An εNFA accepts a string if there is a saturated multistep accepting derivative with that trace
 from the start state. -/
-@[grind]
+@[scoped grind]
 def Accepts (enfa : εNFA State Symbol) (xs : List Symbol) :=
   ∃ s ∈ enfa.εClosure enfa.start, ∃ s' ∈ enfa.accept,
   enfa.saturate.MTr s (xs.map (some ·)) s'
 
 /-- The language of an εDA is the set of strings that it accepts. -/
-@[grind]
+@[scoped grind =]
 def language (enfa : εNFA State Symbol) : Set (List Symbol) :=
   { xs | enfa.Accepts xs }
 
 /-- A string is accepted by an εNFA iff it is in the language of the NA. -/
-@[grind]
+@[scoped grind =]
 theorem accepts_mem_language (enfa : εNFA State Symbol) (xs : List Symbol) :
   enfa.Accepts xs ↔ xs ∈ enfa.language := by rfl
 

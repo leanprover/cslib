@@ -18,17 +18,17 @@ namespace NFA
 
 /-- An NFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/
-@[grind]
+@[scoped grind]
 def Accepts (nfa : NFA State Symbol) (xs : List Symbol) :=
   ∃ s ∈ nfa.start, ∃ s' ∈ nfa.accept, nfa.MTr s xs s'
 
 /-- The language of an NFA is the set of strings that it accepts. -/
-@[grind]
+@[scoped grind]
 def language (nfa : NFA State Symbol) : Set (List Symbol) :=
   { xs | nfa.Accepts xs }
 
 /-- A string is accepted by an NFA iff it is in the language of the NFA. -/
-@[grind]
+@[scoped grind]
 theorem accepts_mem_language (nfa : NFA State Symbol) (xs : List Symbol) :
   nfa.Accepts xs ↔ xs ∈ nfa.language := by rfl
 
