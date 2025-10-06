@@ -8,13 +8,14 @@ import Mathlib.Data.Nat.Notation
 /-!
 # Definition of `ωList` and functions on infinite lists
 
-An `ωList α` is an infinite sequence of elements of `α`.  It is
-basically a wrapper around the type `ℕ → α` which supports the
-dot-notation and the analogues of many familiar API functions of
-`List α`.  In this file we define `ωList` and some functions that
-take and/or return ω-lists.
+An `ωList α` is an infinite sequence of elements of `α`.  It isbasically
+a wrapper around the type `ℕ → α` which supports the dot-notation and
+the analogues of many familiar API functions of `List α`.  In particular,
+the element at postion `n : ℕ` of `s : ωList α` is obtained using the
+function application notation `s n`.
 
-Most code below is inherited from Mathlib.Data.Stream.Defs.
+In this file we define `ωList` and its API functions.
+Most code below is adapted from Mathlib.Data.Stream.Defs.
 -/
 
 universe u v w
@@ -32,38 +33,35 @@ def cons (a : α) (s : ωList α) : ωList α
 
 @[inherit_doc] scoped infixr:67 " :: " => cons
 
-/-- Get the `n`-th element of an ω-list. -/
-def get (s : ωList α) (n : ℕ) : α := s n
-
 /-- Head of an ω-list: `ωList.head s = ωList.get s 0`. -/
-abbrev head (s : ωList α) : α := s.get 0
+abbrev head (s : ωList α) : α := s 0
 
 /-- Tail of an ω-list: `ωList.tail (h :: t) = t`. -/
-def tail (s : ωList α) : ωList α := fun i => s.get (i + 1)
+def tail (s : ωList α) : ωList α := fun i => s (i + 1)
 
 /-- Drop first `n` elements of an ω-list. -/
-def drop (n : ℕ) (s : ωList α) : ωList α := fun i => s.get (i + n)
+def drop (n : ℕ) (s : ωList α) : ωList α := fun i => s (i + n)
 
 /-- Proposition saying that all elements of an ω-list satisfy a predicate. -/
-def All (p : α → Prop) (s : ωList α) := ∀ n, p (get s n)
+def All (p : α → Prop) (s : ωList α) := ∀ n, p (s n)
 
 /-- Proposition saying that at least one element of an ω-list satisfies a predicate. -/
-def Any (p : α → Prop) (s : ωList α) := ∃ n, p (get s n)
+def Any (p : α → Prop) (s : ωList α) := ∃ n, p (s n)
 
 /-- `a ∈ s` means that `a = ωList.get n s` for some `n`. -/
 instance : Membership α (ωList α) :=
   ⟨fun s a => Any (fun b => a = b) s⟩
 
 /-- Apply a function `f` to all elements of an ω-list `s`. -/
-def map (f : α → β) (s : ωList α) : ωList β := fun n => f (get s n)
+def map (f : α → β) (s : ωList α) : ωList β := fun n => f (s n)
 
 /-- Zip two ω-lists using a binary operation:
 `ωList.get n (ωList.zip f s₁ s₂) = f (ωList.get s₁) (ωList.get s₂)`. -/
 def zip (f : α → β → δ) (s₁ : ωList α) (s₂ : ωList β) : ωList δ :=
-  fun n => f (get s₁ n) (get s₂ n)
+  fun n => f (s₁ n) (s₂ n)
 
 /-- Enumerate an ω-list by tagging each element with its index. -/
-def enum (s : ωList α) : ωList (ℕ × α) := fun n => (n, s.get n)
+def enum (s : ωList α) : ωList (ℕ × α) := fun n => (n, s n)
 
 /-- The constant ω-list: `ωList.get n (ωList.const a) = a`. -/
 def const (a : α) : ωList α := fun _ => a
@@ -122,12 +120,16 @@ def appendωList : List α → ωList α → ωList α
   | [], s => s
   | List.cons a l, s => a::appendωList l s
 
-@[inherit_doc] infixl:65 " ++ₛ " => appendωList
+@[inherit_doc] infixl:65 " ++ₗ " => appendωList
 
 /-- `take n s` returns a list of the `n` first elements of ω-list `s` -/
 def take : ℕ → ωList α → List α
   | 0, _ => []
   | n + 1, s => List.cons (head s) (take n (tail s))
+
+/-- Get the list containing the elements of `xs` from position `m` to `n - 1`. -/
+def extract (xs : ωList α) (m n : ℕ) : List α :=
+  take (n - m) (xs.drop m)
 
 /-- An auxiliary definition for `ωList.cycle` corecursive def -/
 protected def cycleF : α × List α × α × List α → α
@@ -162,7 +164,7 @@ def pure (a : α) : ωList α :=
   const a
 
 /-- Given an ω-list of functions and an ω-list of values, apply `n`-th function to `n`-th value. -/
-def apply (f : ωList (α → β)) (s : ωList α) : ωList β := fun n => (get f n) (get s n)
+def apply (f : ωList (α → β)) (s : ωList α) : ωList β := fun n => (f n) (s n)
 
 @[inherit_doc] infixl:75 " ⊛ " => apply -- input as `\circledast`
 

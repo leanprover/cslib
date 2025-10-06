@@ -5,13 +5,14 @@ Authors: Ching-Tsun Chou
 -/
 import Cslib.Foundations.Data.OmegaList.Defs
 import Mathlib.Logic.Function.Basic
+import Mathlib.Data.List.OfFn
 import Mathlib.Data.Nat.Basic
-import Mathlib.Tactic.Common
+import Mathlib.Tactic
 
 /-!
 # ω-lists a.k.a. infinite lists a.k.a. infinite sequences
 
-Most code below is inherited from Mathlib.Data.Stream.Init.
+Most code below is adapted from Mathlib.Data.Stream.Init.
 -/
 
 open Nat Function Option
@@ -32,11 +33,11 @@ instance [Inhabited α] : Inhabited (ωList α) :=
 alias cons_head_tail := ωList.eta
 
 @[ext]
-protected theorem ext {s₁ s₂ : ωList α} : (∀ n, get s₁ n = get s₂ n) → s₁ = s₂ :=
+protected theorem ext {s₁ s₂ : ωList α} : (∀ n, s₁ n = s₂ n) → s₁ = s₂ :=
   fun h => funext h
 
 @[simp]
-theorem get_zero_cons (a : α) (s : ωList α) : get (a::s) 0 = a :=
+theorem get_zero_cons (a : α) (s : ωList α) : (a::s) 0 = a :=
   rfl
 
 @[simp]
@@ -48,7 +49,7 @@ theorem tail_cons (a : α) (s : ωList α) : tail (a::s) = s :=
   rfl
 
 @[simp]
-theorem get_drop (n m : ℕ) (s : ωList α) : get (drop m s) n = get s (m + n) := by
+theorem get_drop (n m : ℕ) (s : ωList α) : (drop m s) n = s (m + n) := by
   rw [Nat.add_comm]
   rfl
 
@@ -59,7 +60,7 @@ theorem tail_eq_drop (s : ωList α) : tail s = drop 1 s :=
 theorem drop_drop (n m : ℕ) (s : ωList α) : drop n (drop m s) = drop (m + n) s := by
   ext; simp [Nat.add_assoc]
 
-@[simp] theorem get_tail {n : ℕ} {s : ωList α} : s.tail.get n = s.get (n + 1) := rfl
+@[simp] theorem get_tail {n : ℕ} {s : ωList α} : s.tail n = s (n + 1) := rfl
 
 @[simp] theorem tail_drop' {i : ℕ} {s : ωList α} : tail (drop i s) = s.drop (i + 1) := by
   ext; simp [Nat.add_comm, Nat.add_left_comm]
@@ -68,28 +69,28 @@ theorem drop_drop (n m : ℕ) (s : ωList α) : drop n (drop m s) = drop (m + n)
 
 theorem tail_drop (n : ℕ) (s : ωList α) : tail (drop n s) = drop n (tail s) := by simp
 
-theorem get_succ (n : ℕ) (s : ωList α) : get s (succ n) = get (tail s) n :=
+theorem get_succ (n : ℕ) (s : ωList α) : s (succ n) = (tail s) n :=
   rfl
 
 @[simp]
-theorem get_succ_cons (n : ℕ) (s : ωList α) (x : α) : get (x :: s) n.succ = get s n :=
+theorem get_succ_cons (n : ℕ) (s : ωList α) (x : α) : (x :: s) n.succ = s n :=
   rfl
 
 @[simp] lemma get_cons_append_zero {a : α} {x : List α} {s : ωList α} :
-    (a :: x ++ₛ s).get 0 = a := rfl
+    (a :: x ++ₗ s) 0 = a := rfl
 
-@[simp] lemma append_eq_cons {a : α} {as : ωList α} : [a] ++ₛ as = a :: as := rfl
+@[simp] lemma append_eq_cons {a : α} {as : ωList α} : [a] ++ₗ as = a :: as := rfl
 
 @[simp] theorem drop_zero {s : ωList α} : s.drop 0 = s := rfl
 
 theorem drop_succ (n : ℕ) (s : ωList α) : drop (succ n) s = drop n (tail s) :=
   rfl
 
-theorem head_drop (a : ωList α) (n : ℕ) : (a.drop n).head = a.get n := by simp
+theorem head_drop (a : ωList α) (n : ℕ) : (a.drop n).head = a n := by simp
 
 theorem cons_injective2 : Function.Injective2 (cons : α → ωList α → ωList α) := fun x y s t h =>
   ⟨by rw [← get_zero_cons x s, h, get_zero_cons],
-    ωList.ext fun n => by rw [← get_succ_cons n _ x, h, get_succ_cons]⟩
+    ωList.ext fun n => by rw [← get_succ_cons n s x, h, get_succ_cons]⟩
 
 theorem cons_injective_left (s : ωList α) : Function.Injective fun x => cons x s :=
   cons_injective2.left _
@@ -97,10 +98,10 @@ theorem cons_injective_left (s : ωList α) : Function.Injective fun x => cons x
 theorem cons_injective_right (x : α) : Function.Injective (cons x) :=
   cons_injective2.right _
 
-theorem all_def (p : α → Prop) (s : ωList α) : All p s = ∀ n, p (get s n) :=
+theorem all_def (p : α → Prop) (s : ωList α) : All p s = ∀ n, p (s n) :=
   rfl
 
-theorem any_def (p : α → Prop) (s : ωList α) : Any p s = ∃ n, p (get s n) :=
+theorem any_def (p : α → Prop) (s : ωList α) : Any p s = ∃ n, p (s n) :=
   rfl
 
 @[simp]
@@ -108,7 +109,7 @@ theorem mem_cons (a : α) (s : ωList α) : a ∈ a::s :=
   Exists.intro 0 rfl
 
 theorem mem_cons_of_mem {a : α} {s : ωList α} (b : α) : a ∈ s → a ∈ b::s := fun ⟨n, h⟩ =>
-  Exists.intro (succ n) (by rw [get_succ, tail_cons, h])
+  Exists.intro (succ n) (by rw [get_succ n (b :: s), tail_cons, h])
 
 theorem eq_or_mem_of_mem_cons {a b : α} {s : ωList α} : (a ∈ b::s) → a = b ∨ a ∈ s :=
     fun ⟨n, h⟩ => by
@@ -116,13 +117,13 @@ theorem eq_or_mem_of_mem_cons {a b : α} {s : ωList α} : (a ∈ b::s) → a = 
   · left
     exact h
   · right
-    rw [get_succ, tail_cons] at h
+    rw [get_succ n' (b :: s), tail_cons] at h
     exact ⟨n', h⟩
 
-theorem mem_of_get_eq {n : ℕ} {s : ωList α} {a : α} : a = get s n → a ∈ s := fun h =>
+theorem mem_of_get_eq {n : ℕ} {s : ωList α} {a : α} : a = s n → a ∈ s := fun h =>
   Exists.intro n h
 
-theorem mem_iff_exists_get_eq {s : ωList α} {a : α} : a ∈ s ↔ ∃ n, a = s.get n where
+theorem mem_iff_exists_get_eq {s : ωList α} {a : α} : a ∈ s ↔ ∃ n, a = s n where
   mp := by simp [Membership.mem, any_def]
   mpr h := mem_of_get_eq h.choose_spec
 
@@ -134,7 +135,7 @@ theorem drop_map (n : ℕ) (s : ωList α) : drop n (map f s) = map f (drop n s)
   ωList.ext fun _ => rfl
 
 @[simp]
-theorem get_map (n : ℕ) (s : ωList α) : get (map f s) n = f (get s n) :=
+theorem get_map (n : ℕ) (s : ωList α) : (map f s) n = f (s n) :=
   rfl
 
 theorem tail_map (s : ωList α) : tail (map f s) = map f (tail s) := rfl
@@ -165,7 +166,7 @@ theorem mem_map {a : α} {s : ωList α} : a ∈ s → f a ∈ map f s := fun �
   Exists.intro n (by rw [get_map, h])
 
 theorem exists_of_mem_map {f} {b : β} {s : ωList α} : b ∈ map f s → ∃ a, a ∈ s ∧ f a = b :=
-  fun ⟨n, h⟩ => ⟨get s n, ⟨n, rfl⟩, h.symm⟩
+  fun ⟨n, h⟩ => ⟨s n, ⟨n, rfl⟩, h.symm⟩
 
 end Map
 
@@ -179,7 +180,7 @@ theorem drop_zip (n : ℕ) (s₁ : ωList α) (s₂ : ωList β) :
 
 @[simp]
 theorem get_zip (n : ℕ) (s₁ : ωList α) (s₂ : ωList β) :
-    get (zip f s₁ s₂) n = f (get s₁ n) (get s₂ n) :=
+    (zip f s₁ s₂) n = f (s₁ n) (s₂ n) :=
   rfl
 
 theorem head_zip (s₁ : ωList α) (s₂ : ωList β) : head (zip f s₁ s₂) = f (head s₁) (head s₂) :=
@@ -194,7 +195,7 @@ theorem zip_eq (s₁ : ωList α) (s₂ : ωList β) :
   rw [← ωList.eta (zip f s₁ s₂)]; rfl
 
 @[simp]
-theorem get_enum (s : ωList α) (n : ℕ) : get (enum s) n = (n, s.get n) :=
+theorem get_enum (s : ωList α) (n : ℕ) : (enum s) n = (n, s n) :=
   rfl
 
 theorem enum_eq_zip (s : ωList α) : enum s = zip Prod.mk nats s :=
@@ -220,7 +221,7 @@ theorem map_const (f : α → β) (a : α) : map f (const a) = const (f a) :=
   rfl
 
 @[simp]
-theorem get_const (n : ℕ) (a : α) : get (const a) n = a :=
+theorem get_const (n : ℕ) (a : α) : (const a) n = a :=
   rfl
 
 @[simp]
@@ -232,7 +233,7 @@ theorem head_iterate (f : α → α) (a : α) : head (iterate f a) = a :=
   rfl
 
 theorem get_succ_iterate' (n : ℕ) (f : α → α) (a : α) :
-    get (iterate f a) (succ n) = f (get (iterate f a) n) := rfl
+    (iterate f a) (succ n) = f ((iterate f a) n) := rfl
 
 theorem tail_iterate (f : α → α) (a : α) : tail (iterate f a) = iterate f (f a) := by
   ext n
@@ -246,11 +247,11 @@ theorem iterate_eq (f : α → α) (a : α) : iterate f a = a::iterate f (f a) :
   rw [tail_iterate]; rfl
 
 @[simp]
-theorem get_zero_iterate (f : α → α) (a : α) : get (iterate f a) 0 = a :=
+theorem get_zero_iterate (f : α → α) (a : α) : (iterate f a) 0 = a :=
   rfl
 
 theorem get_succ_iterate (n : ℕ) (f : α → α) (a : α) :
-    get (iterate f a) (succ n) = get (iterate f (f a)) n := by rw [get_succ, tail_iterate]
+    (iterate f a) (succ n) = (iterate f (f a)) n := by rw [get_succ n (iterate f a), tail_iterate]
 
 section Bisim
 
@@ -266,7 +267,7 @@ def IsBisimulation :=
       head s₁ = head s₂ ∧ tail s₁ ~ tail s₂
 
 theorem get_of_bisim (bisim : IsBisimulation R) {s₁ s₂} :
-    ∀ n, s₁ ~ s₂ → get s₁ n = get s₂ n ∧ drop (n + 1) s₁ ~ drop (n + 1) s₂
+    ∀ n, s₁ ~ s₂ → s₁ n = s₂ n ∧ drop (n + 1) s₁ ~ drop (n + 1) s₂
   | 0, h => bisim h
   | n + 1, h =>
     match bisim h with
@@ -281,7 +282,7 @@ end Bisim
 theorem bisim_simple (s₁ s₂ : ωList α) :
     head s₁ = head s₂ → s₁ = tail s₁ → s₂ = tail s₂ → s₁ = s₂ := fun hh ht₁ ht₂ =>
   eq_of_bisim (fun s₁ s₂ => head s₁ = head s₂ ∧ s₁ = tail s₁ ∧ s₂ = tail s₂)
-    (fun s₁ s₂ ⟨h₁, h₂, h₃⟩ => by grind)
+    (fun s₁ s₂ ⟨h₁, h₂, h₃⟩ => by rw [← h₂, ← h₃] ; grind)
     (And.intro hh (And.intro ht₁ ht₂))
 
 theorem coinduction {s₁ s₂ : ωList α} :
@@ -312,10 +313,9 @@ theorem map_iterate (f : α → α) (a : α) : iterate f (f a) = map f (iterate 
   induction n with
   | zero => rfl
   | succ n ih =>
-    unfold map iterate get
-    rw [map, get] at ih
-    rw [iterate]
-    exact congrArg f ih
+    unfold map iterate
+    rw [map] at ih
+    simp [ih]
 
 section Corec
 
@@ -343,10 +343,10 @@ end Corec'
 theorem unfolds_eq (g : α → β) (f : α → α) (a : α) : unfolds g f a = g a :: unfolds g f (f a) := by
   unfold unfolds; rw [corec_eq]
 
-theorem get_unfolds_head_tail (n : ℕ) (s : ωList α) : get (unfolds head tail s) n = get s n := by
+theorem get_unfolds_head_tail (n : ℕ) (s : ωList α) : (unfolds head tail s) n = s n := by
   induction n generalizing s with
   | zero => rfl
-  | succ n ih => rw [get_succ, get_succ, unfolds_eq, tail_cons, ih]
+  | succ n ih => rw [get_succ n (unfolds head tail s), get_succ n s, unfolds_eq, tail_cons, ih]
 
 theorem unfolds_head_eq : ∀ s : ωList α, unfolds head tail s = s := fun s =>
   ωList.ext fun n => get_unfolds_head_tail n s
@@ -363,21 +363,22 @@ theorem interleave_tail_tail (s₁ s₂ : ωList α) : tail s₁ ⋈ tail s₂ =
   rw [interleave_eq s₁ s₂]; rfl
 
 theorem get_interleave_left : ∀ (n : ℕ) (s₁ s₂ : ωList α),
-    get (s₁ ⋈ s₂) (2 * n) = get s₁ n
+    (s₁ ⋈ s₂) (2 * n) = s₁ n
   | 0, _, _ => rfl
   | n + 1, s₁, s₂ => by
-    change get (s₁ ⋈ s₂) (succ (succ (2 * n))) = get s₁ (succ n)
-    rw [get_succ, get_succ, interleave_eq, tail_cons, tail_cons]
+    change (s₁ ⋈ s₂) (succ (succ (2 * n))) = s₁ (succ n)
+    rw [get_succ (2 * n).succ (s₁ ⋈ s₂), get_succ (2 * n) (s₁ ⋈ s₂).tail,
+      interleave_eq, tail_cons, tail_cons]
     rw [get_interleave_left n (tail s₁) (tail s₂)]
     rfl
 
 theorem get_interleave_right : ∀ (n : ℕ) (s₁ s₂ : ωList α),
-    get (s₁ ⋈ s₂) (2 * n + 1) = get s₂ n
+    (s₁ ⋈ s₂) (2 * n + 1) = s₂ n
   | 0, _, _ => rfl
   | n + 1, s₁, s₂ => by
-    change get (s₁ ⋈ s₂) (succ (succ (2 * n + 1))) = get s₂ (succ n)
-    rw [get_succ, get_succ, interleave_eq, tail_cons, tail_cons,
-      get_interleave_right n (tail s₁) (tail s₂)]
+    change (s₁ ⋈ s₂) (succ (succ (2 * n + 1))) = s₂ (succ n)
+    rw [get_succ (2 * n + 1).succ (s₁ ⋈ s₂), get_succ (2 * n + 1) (s₁ ⋈ s₂).tail,
+      interleave_eq, tail_cons, tail_cons, get_interleave_right n (tail s₁) (tail s₂)]
     rfl
 
 theorem mem_interleave_left {a : α} {s₁ : ωList α} (s₂ : ωList α) : a ∈ s₁ → a ∈ s₁ ⋈ s₂ :=
@@ -422,13 +423,13 @@ theorem interleave_even_odd (s₁ : ωList α) : even s₁ ⋈ odd s₁ = s₁ :
       · simp [odd_eq, odd_eq, tail_interleave, tail_even])
     rfl
 
-theorem get_even : ∀ (n : ℕ) (s : ωList α), get (even s) n = get s (2 * n)
+theorem get_even : ∀ (n : ℕ) (s : ωList α), (even s) n = s (2 * n)
   | 0, _ => rfl
   | succ n, s => by
-    change get (even s) (succ n) = get s (succ (succ (2 * n)))
-    rw [get_succ, get_succ, tail_even, get_even n]; rfl
+    change (even s) (succ n) = s (succ (succ (2 * n)))
+    rw [get_succ n s.even, get_succ (2 * n).succ s, tail_even, get_even n]; rfl
 
-theorem get_odd : ∀ (n : ℕ) (s : ωList α), get (odd s) n = get s (2 * n + 1) := fun n s => by
+theorem get_odd : ∀ (n : ℕ) (s : ωList α), (odd s) n = s (2 * n + 1) := fun n s => by
   rw [odd_eq, get_even]; rfl
 
 theorem mem_of_mem_even (a : α) (s : ωList α) : a ∈ even s → a ∈ s := fun ⟨n, h⟩ =>
@@ -445,12 +446,12 @@ theorem cons_append_ωList (a : α) (l : List α) (s : ωList α) :
   rfl
 
 @[simp] theorem append_append_ωList : ∀ (l₁ l₂ : List α) (s : ωList α),
-    l₁ ++ l₂ ++ₛ s = l₁ ++ₛ (l₂ ++ₛ s)
+    l₁ ++ l₂ ++ₗ s = l₁ ++ₗ (l₂ ++ₗ s)
   | [], _, _ => rfl
   | List.cons a l₁, l₂, s => by
     rw [List.cons_append, cons_append_ωList, cons_append_ωList, append_append_ωList l₁]
 
-lemma get_append_left (h : n < x.length) : (x ++ₛ a).get n = x[n] := by
+lemma get_append_left (h : n < x.length) : (x ++ₗ a) n = x[n] := by
   induction x generalizing n with
   | nil => simp at h
   | cons b x ih =>
@@ -458,43 +459,48 @@ lemma get_append_left (h : n < x.length) : (x ++ₛ a).get n = x[n] := by
     · simp
     · simp [ih n (by simpa using h), cons_append_ωList]
 
-@[simp] lemma get_append_right : (x ++ₛ a).get (x.length + n) = a.get n := by
+@[simp] lemma get_append_right : (x ++ₗ a) (x.length + n) = a n := by
   induction x <;> simp [Nat.succ_add, *, cons_append_ωList]
 
-@[simp] lemma get_append_length : (x ++ₛ a).get x.length = a.get 0 := get_append_right 0 x a
+theorem get_append_right' {xl : List α} {xs : ωList α} {k : ℕ} (h : xl.length ≤ k) :
+    (xl ++ₗ xs) k = xs (k - xl.length) := by
+  obtain ⟨n, rfl⟩ := show ∃ n, k = xl.length + n by use (k - xl.length) ; omega
+  simp only [Nat.add_sub_cancel_left] ; apply get_append_right
 
-lemma append_right_injective (h : x ++ₛ a = x ++ₛ b) : a = b := by
-  ext n; replace h := congr_arg (fun a ↦ a.get (x.length + n)) h; simpa using h
+@[simp] lemma get_append_length : (x ++ₗ a) x.length = a 0 := get_append_right 0 x a
 
-@[simp] lemma append_right_inj : x ++ₛ a = x ++ₛ b ↔ a = b :=
+lemma append_right_injective (h : x ++ₗ a = x ++ₗ b) : a = b := by
+  ext n; replace h := congr_arg (fun a ↦ a (x.length + n)) h; simpa using h
+
+@[simp] lemma append_right_inj : x ++ₗ a = x ++ₗ b ↔ a = b :=
   ⟨append_right_injective x a b, by simp +contextual⟩
 
-lemma append_left_injective (h : x ++ₛ a = y ++ₛ b) (hl : x.length = y.length) : x = y := by
+lemma append_left_injective (h : x ++ₗ a = y ++ₗ b) (hl : x.length = y.length) : x = y := by
   apply List.ext_getElem hl
   intros
   rw [← get_append_left, ← get_append_left, h]
 
 theorem map_append_ωList (f : α → β) :
-    ∀ (l : List α) (s : ωList α), map f (l ++ₛ s) = List.map f l ++ₛ map f s
+    ∀ (l : List α) (s : ωList α), map f (l ++ₗ s) = List.map f l ++ₗ map f s
   | [], _ => rfl
   | List.cons a l, s => by
     rw [cons_append_ωList, List.map_cons, map_cons, cons_append_ωList, map_append_ωList f l]
 
-theorem drop_append_ωList : ∀ (l : List α) (s : ωList α), drop l.length (l ++ₛ s) = s
+theorem drop_append_ωList : ∀ (l : List α) (s : ωList α), drop l.length (l ++ₗ s) = s
   | [], s => rfl
   | List.cons a l, s => by
     rw [List.length_cons, drop_succ, cons_append_ωList, tail_cons, drop_append_ωList l s]
 
-theorem append_ωList_head_tail (s : ωList α) : [head s] ++ₛ tail s = s := by
+theorem append_ωList_head_tail (s : ωList α) : [head s] ++ₗ tail s = s := by
   simp
 
-theorem mem_append_ωList_right : ∀ {a : α} (l : List α) {s : ωList α}, a ∈ s → a ∈ l ++ₛ s
+theorem mem_append_ωList_right : ∀ {a : α} (l : List α) {s : ωList α}, a ∈ s → a ∈ l ++ₗ s
   | _, [], _, h => h
   | a, List.cons _ l, s, h =>
-    have ih : a ∈ l ++ₛ s := mem_append_ωList_right l h
+    have ih : a ∈ l ++ₗ s := mem_append_ωList_right l h
     mem_cons_of_mem _ ih
 
-theorem mem_append_ωList_left : ∀ {a : α} {l : List α} (s : ωList α), a ∈ l → a ∈ l ++ₛ s
+theorem mem_append_ωList_left : ∀ {a : α} {l : List α} (s : ωList α), a ∈ l → a ∈ l ++ₗ s
   | _, [], _, h => absurd h List.not_mem_nil
   | a, List.cons b l, s, h =>
     Or.elim (List.eq_or_mem_of_mem_cons h) (fun aeqb : a = b => Exists.intro 0 aeqb)
@@ -513,9 +519,19 @@ theorem take_succ (n : ℕ) (s : ωList α) : take (succ n) s = head s::take n (
 @[simp] theorem take_succ_cons {a : α} (n : ℕ) (s : ωList α) :
     take (n+1) (a::s) = a :: take n s := rfl
 
-theorem take_succ' {s : ωList α} : ∀ n, s.take (n+1) = s.take n ++ [s.get n]
+theorem take_succ' {s : ωList α} : ∀ n, s.take (n+1) = s.take n ++ [s n]
   | 0 => rfl
   | n+1 => by rw [take_succ, take_succ' n, ← List.cons_append, ← take_succ, get_tail]
+
+@[simp]
+theorem take_one {xs : ωList α} :
+    xs.take 1 = [xs 0] := by
+  simp only [take_succ, take_zero]
+
+@[simp]
+theorem take_one' {xs : ωList α} :
+    xs.take 1 = [xs 0] := by
+  apply take_one
 
 @[simp]
 theorem length_take (n : ℕ) (s : ωList α) : (take n s).length = n := by
@@ -527,16 +543,16 @@ theorem take_take {s : ωList α} : ∀ {m n}, (s.take n).take m = s.take (min n
   | m, 0 => by rw [Nat.zero_min, take_zero, List.take_nil]
   | m+1, n+1 => by rw [take_succ, List.take_succ_cons, Nat.succ_min_succ, take_succ, take_take]
 
-@[simp] theorem concat_take_get {n : ℕ} {s : ωList α} : s.take n ++ [s.get n] = s.take (n + 1) :=
+@[simp] theorem concat_take_get {n : ℕ} {s : ωList α} : s.take n ++ [s n] = s.take (n + 1) :=
   (take_succ' n).symm
 
-theorem getElem?_take {s : ωList α} : ∀ {k n}, k < n → (s.take n)[k]? = s.get k
+theorem getElem?_take {s : ωList α} : ∀ {k n}, k < n → (s.take n)[k]? = s k
   | 0, _+1, _ => by simp only [length_take, zero_lt_succ, List.getElem?_eq_getElem]; rfl
   | k+1, n+1, h => by
-    rw [take_succ, List.getElem?_cons_succ, getElem?_take (Nat.lt_of_succ_lt_succ h), get_succ]
+    rw [take_succ, List.getElem?_cons_succ, getElem?_take (Nat.lt_of_succ_lt_succ h), get_succ k s]
 
 theorem getElem?_take_succ (n : ℕ) (s : ωList α) :
-    (take (succ n) s)[n]? = some (get s n) :=
+    (take (succ n) s)[n]? = some (s n) :=
   getElem?_take (Nat.lt_succ_self n)
 
 @[simp] theorem dropLast_take {n : ℕ} {xs : ωList α} :
@@ -551,14 +567,14 @@ theorem append_take_drop (n : ℕ) (s : ωList α) : appendωList (take n s) (dr
   | zero => rfl
   | succ n ih =>rw [take_succ, drop_succ, cons_append_ωList, ih (tail s), ωList.eta]
 
-lemma append_take : x ++ (a.take n) = (x ++ₛ a).take (x.length + n) := by
+lemma append_take : x ++ (a.take n) = (x ++ₗ a).take (x.length + n) := by
   induction x <;> simp [take, Nat.add_comm, cons_append_ωList, *]
 
-@[simp] lemma take_get (h : m < (a.take n).length) : (a.take n)[m] = a.get m := by
+@[simp] lemma take_get (h : m < (a.take n).length) : (a.take n)[m] = a m := by
   nth_rw 2 [← append_take_drop n a]; rw [get_append_left]
 
 theorem take_append_of_le_length (h : n ≤ x.length) :
-    (x ++ₛ a).take n = x.take n := by
+    (x ++ₗ a).take n = x.take n := by
   apply List.ext_getElem (by simp [h])
   intro _ _ _; rw [List.getElem_take, take_get, get_append_left]
 
@@ -580,13 +596,18 @@ lemma take_drop : (a.drop m).take n = (a.take (m + n)).drop m := by
   apply List.ext_getElem <;> simp
 
 lemma drop_append_of_le_length (h : n ≤ x.length) :
-    (x ++ₛ a).drop n = x.drop n ++ₛ a := by
+    (x ++ₗ a).drop n = x.drop n ++ₗ a := by
   obtain ⟨m, hm⟩ := Nat.exists_eq_add_of_le h
   ext k; rcases lt_or_ge k m with _ | hk
   · rw [get_drop, get_append_left, get_append_left, List.getElem_drop]; simpa [hm]
   · obtain ⟨p, rfl⟩ := Nat.exists_eq_add_of_le hk
     have hm' : m = (x.drop n).length := by simp [hm]
     simp_rw [get_drop, ← Nat.add_assoc, ← hm, get_append_right, hm', get_append_right]
+
+theorem drop_append_of_ge_length {xl : List α} {xs : ωList α} {n : ℕ} (h : xl.length ≤ n) :
+    (xl ++ₗ xs).drop n = xs.drop (n - xl.length) := by
+  ext k ; simp (disch := omega) only [get_drop, get_append_right']
+  congr ; omega
 
 -- Take theorem reduces a proof of equality of infinite ω-lists to an
 -- induction over all their finite approximations.
@@ -595,7 +616,7 @@ theorem take_theorem (s₁ s₂ : ωList α) (h : ∀ n : ℕ, take n s₁ = tak
   induction n with
   | zero => simpa [take] using h 1
   | succ n =>
-    have h₁ : some (get s₁ (succ n)) = some (get s₂ (succ n)) := by
+    have h₁ : some (s₁ (succ n)) = some (s₂ (succ n)) := by
       rw [← getElem?_take_succ, ← getElem?_take_succ, h (succ (succ n))]
     injection h₁
 
@@ -603,11 +624,11 @@ protected theorem cycle_g_cons (a : α) (a₁ : α) (l₁ : List α) (a₀ : α)
     ωList.cycleG (a, a₁::l₁, a₀, l₀) = (a₁, l₁, a₀, l₀) :=
   rfl
 
-theorem cycle_eq : ∀ (l : List α) (h : l ≠ []), cycle l h = l ++ₛ cycle l h
+theorem cycle_eq : ∀ (l : List α) (h : l ≠ []), cycle l h = l ++ₗ cycle l h
   | [], h => absurd rfl h
   | List.cons a l, _ =>
     have gen (l' a') : corec ωList.cycleF ωList.cycleG (a', l', a, l) =
-        (a'::l') ++ₛ corec ωList.cycleF ωList.cycleG (a, l, a, l) := by
+        (a'::l') ++ₗ corec ωList.cycleF ωList.cycleG (a, l, a, l) := by
       induction l' generalizing a' with
       | nil => rw [corec_eq]; rfl
       | cons a₁ l₁ ih => rw [corec_eq, ωList.cycle_g_cons, ih a₁]; rfl
@@ -624,10 +645,10 @@ theorem tails_eq (s : ωList α) : tails s = tail s::tails (tail s) := by
   unfold tails; rw [corec_eq]; rfl
 
 @[simp]
-theorem get_tails (n : ℕ) (s : ωList α) : get (tails s) n = drop n (tail s) := by
+theorem get_tails (n : ℕ) (s : ωList α) : (tails s) n = drop n (tail s) := by
   induction n generalizing s with
   | zero => rfl
-  | succ n ih => rw [get_succ, drop_succ, tails_eq, tail_cons, ih]
+  | succ n ih => rw [get_succ n s.tails, drop_succ, tails_eq, tail_cons, ih]
 
 theorem tails_eq_iterate (s : ωList α) : tails s = iterate tail (tail s) :=
   rfl
@@ -646,25 +667,27 @@ theorem inits_tail (s : ωList α) : inits (tail s) = initsCore [head (tail s)] 
   rfl
 
 theorem cons_get_inits_core (a : α) (n : ℕ) (l : List α) (s : ωList α) :
-    (a :: get (initsCore l s) n) = get (initsCore (a :: l) s) n := by
+    (a :: (initsCore l s) n) = (initsCore (a :: l) s) n := by
   induction n generalizing l s with
   | zero => rfl
   | succ n ih =>
-    rw [get_succ, inits_core_eq, tail_cons, ih, inits_core_eq (a :: l) s]
+    rw [get_succ n (initsCore l s), inits_core_eq, tail_cons, ih, inits_core_eq (a :: l) s]
     rfl
 
 @[simp]
-theorem get_inits (n : ℕ) (s : ωList α) : get (inits s) n = take (succ n) s := by
+theorem get_inits (n : ℕ) (s : ωList α) : (inits s) n = take (succ n) s := by
   induction n generalizing s with
   | zero => rfl
-  | succ n ih => rw [get_succ, take_succ, ← ih, tail_inits, inits_tail, cons_get_inits_core]
+  | succ n ih =>
+    rw [get_succ n s.inits, take_succ, ← ih, tail_inits, inits_tail, cons_get_inits_core]
 
 theorem inits_eq (s : ωList α) :
     inits s = [head s]::map (List.cons (head s)) (inits (tail s)) := by
   apply ωList.ext; intro n
-  cases n
+  induction' n with n _
   · rfl
-  · rw [get_inits, get_succ, tail_cons, get_map, get_inits]
+  · rw [get_inits, get_succ n ([s.head] :: map (List.cons s.head) s.tail.inits),
+      tail_cons, get_map, get_inits]
     rfl
 
 theorem zip_inits_tails (s : ωList α) : zip appendωList (inits s) (tails s) = const s := by
@@ -689,13 +712,97 @@ theorem interchange (fs : ωList (α → β)) (a : α) :
 theorem map_eq_apply (f : α → β) (s : ωList α) : map f s = pure f ⊛ s :=
   rfl
 
-theorem get_nats (n : ℕ) : get nats n = n :=
+theorem get_nats (n : ℕ) : nats n = n :=
   rfl
 
 theorem nats_eq : nats = cons 0 (map succ nats) := by
   apply ωList.ext; intro n
-  cases n
+  induction' n with n _
   · rfl
-  rw [get_succ]; rfl
+  rw [get_succ n nats] ; rfl
+
+theorem extract_eq_drop_take {xs : ωList α} {m n : ℕ} :
+    xs.extract m n = take (n - m) (xs.drop m) := by
+  rfl
+
+theorem extract_eq_ofFn {xs : ωList α} {m n : ℕ} :
+    xs.extract m n = List.ofFn (fun k : Fin (n - m) ↦ xs (m + k)) := by
+  ext k x ; rcases (show k < n - m ∨ ¬ k < n - m by omega) with h_k | h_k
+    <;> simp (disch := omega) [extract_eq_drop_take, getElem?_take, get_drop]
+    <;> aesop
+
+theorem extract_eq_extract {xs xs' : ωList α} {m n m' n' : ℕ}
+    (h : xs.extract m n = xs'.extract m' n') :
+    n - m = n' - m' ∧ ∀ k < n - m, xs (m + k) = xs' (m' + k) := by
+  simp only [extract_eq_ofFn, List.ofFn_inj', Sigma.mk.injEq] at h
+  obtain ⟨h_eq, h_fun⟩ := h
+  rw [← h_eq] at h_fun ; simp only [heq_eq_eq, funext_iff, Fin.forall_iff] at h_fun
+  simp only [← h_eq, true_and] ; intro k h_k ; simp only [h_fun k h_k]
+
+theorem extract_eq_take {xs : ωList α} {n : ℕ} :
+    xs.extract 0 n = xs.take n := by
+  simp only [extract_eq_drop_take, Nat.sub_zero, drop_zero]
+
+theorem append_extract_drop {xs : ωList α} {n : ℕ} :
+    (xs.extract 0 n) ++ₗ (xs.drop n) = xs := by
+  simp only [extract_eq_take, append_take_drop]
+
+theorem extract_apppend_right_right {xl : List α} {xs : ωList α} {m n : ℕ} (h : xl.length ≤ m) :
+    (xl ++ₗ xs).extract m n = xs.extract (m - xl.length) (n - xl.length) := by
+  have h1 : n - xl.length - (m - xl.length) = n - m := by omega
+  simp (disch := omega) only [extract_eq_drop_take, drop_append_of_ge_length, h1]
+
+theorem extract_append_zero_right {xl : List α} {xs : ωList α} {n : ℕ} (h : xl.length ≤ n) :
+    (xl ++ₗ xs).extract 0 n = xl ++ (xs.extract 0 (n - xl.length)) := by
+  obtain ⟨k, rfl⟩ := show ∃ k, n = xl.length + k by use (n - xl.length) ; omega
+  simp only [extract_eq_take, ← append_take, Nat.add_sub_cancel_left]
+
+theorem extract_drop {xs : ωList α} {k m n : ℕ} :
+    (xs.drop k).extract m n = xs.extract (k + m) (k + n) := by
+  have h1 : k + n - (k + m) = n - m := by omega
+  simp only [extract_eq_drop_take, drop_drop, h1]
+
+theorem length_extract {xs : ωList α} {m n : ℕ} :
+    (xs.extract m n).length = n - m := by
+  simp only [extract_eq_drop_take, length_take]
+
+theorem extract_eq_nil {xs : ωList α} {n : ℕ} :
+    xs.extract n n = [] := by
+  simp only [extract_eq_drop_take, Nat.sub_self, take_zero]
+
+theorem extract_eq_nil_iff {xs : ωList α} {m n : ℕ} :
+    xs.extract m n = [] ↔ m ≥ n := by
+  simp only [extract_eq_drop_take, ← List.length_eq_zero_iff, length_take, ge_iff_le]
+  omega
+
+theorem get_extract {xs : ωList α} {m n k : ℕ} (h : k < n - m) :
+    (xs.extract m n)[k]'(by simp only [length_extract, h]) = xs (m + k) := by
+  simp only [extract_eq_drop_take, take_get, get_drop]
+
+theorem append_extract_extract {xs : ωList α} {k m n : ℕ} (h_km : k ≤ m) (h_mn : m ≤ n) :
+    (xs.extract k m) ++ (xs.extract m n) = xs.extract k n := by
+  have h1 : n - k = (m - k) + (n - m) := by omega
+  have h2 : k + (m - k) = m := by omega
+  simp only [extract_eq_drop_take, h1, take_add, drop_drop, h2]
+
+theorem extract_succ_right {xs : ωList α} {m n : ℕ} (h_mn : m ≤ n) :
+    xs.extract m (n + 1) = xs.extract m n ++ [xs n] := by
+  rw [← append_extract_extract h_mn (show n ≤ n + 1 by omega)] ; congr
+  simp only [extract_eq_drop_take, Nat.add_sub_cancel_left, take_one, get_drop, Nat.add_zero]
+
+theorem extract_extract2' {xs : ωList α} {m n i j : ℕ} (h : j ≤ n - m) :
+    (xs.extract m n).extract i j = xs.extract (m + i) (m + j) := by
+  ext k x ; rcases (show k < j - i ∨ ¬ k < j - i by omega) with h_k | h_k
+    <;> simp [extract_eq_ofFn, h_k]
+  · simp [(show i + k < n - m by omega), (show k < m + j - (m + i) by omega), Nat.add_assoc]
+  · simp only [(show ¬k < m + j - (m + i) by omega), IsEmpty.forall_iff]
+
+theorem extract_extract2 {xs : ωList α} {n i j : ℕ} (h : j ≤ n) :
+    (xs.extract 0 n).extract i j = xs.extract i j := by
+  simp only [extract_extract2' (show j ≤ n - 0 by omega), Nat.zero_add]
+
+theorem extract_extract1 {xs : ωList α} {n i : ℕ} :
+    (xs.extract 0 n).extract i = xs.extract i n := by
+  simp only [length_extract, extract_extract2 (show n ≤ n by omega), Nat.sub_zero]
 
 end ωList
