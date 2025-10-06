@@ -8,7 +8,7 @@ import Cslib.Computability.Automata.DFA
 import Cslib.Computability.Automata.NFA
 import Mathlib.Data.Fintype.Powerset
 
-/-! # Translation of NFA into DFA (subset construction)-/
+/-! # Translation of NFA into DFA (subset construction) -/
 
 namespace NFA
 section SubsetConstruction
