@@ -60,14 +60,7 @@ theorem toNFA_mtr {dfa : DFA State Symbol} :
 theorem toNFA_language_eq {dfa : DFA State Symbol} :
   dfa.toNFA.language = dfa.language := by
   ext xs
-  rw [← DFA.accepts_mem_language, ← NFA.accepts_mem_language]
-  simp only [NFA.Accepts, DFA.Accepts]
-  apply Iff.intro <;> intro h
-  case mp =>
-    grind
-  case mpr =>
-    exists dfa.start
-    grind
+  refine ⟨?_, fun _ => ⟨dfa.start, ?_⟩⟩ <;> grind
 
 end NFA
 end DFA
