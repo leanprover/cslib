@@ -29,8 +29,7 @@ instance : Coe (DFA State Symbol) (NFA State Symbol) where
 
 /-- `DA.toNA` correctly characterises transitions. -/
 @[grind]
-theorem toNA_tr {dfa : DFA State Symbol} :
-  dfa.toNFA.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
+theorem toNA_tr {dfa : DFA State Symbol} : dfa.toNFA.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
   rfl
 
 /-- The transition system of a DA is deterministic. -/
