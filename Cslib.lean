@@ -1,8 +1,10 @@
+import Cslib.Computability.Automata.BuchiNA
 import Cslib.Computability.Automata.DA
 import Cslib.Computability.Automata.DFA
 import Cslib.Computability.Automata.DFAToNFA
 import Cslib.Computability.Automata.EpsilonNFA
 import Cslib.Computability.Automata.EpsilonNFAToNFA
+import Cslib.Computability.Automata.MullerDA
 import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NFA
 import Cslib.Computability.Automata.NFAToDFA
