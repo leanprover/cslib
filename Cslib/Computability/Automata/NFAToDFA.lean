@@ -13,7 +13,7 @@ import Mathlib.Data.Fintype.Powerset
 namespace NFA
 section SubsetConstruction
 
-/-- Converts an `NA` into a `DA` using the subset construction. -/
+/-- Converts an `NFA` into a `DFA` using the subset construction. -/
 @[grind]
 def toDFA (nfa : NFA State Symbol) : DFA (Set State) Symbol := {
   start := nfa.start
@@ -52,7 +52,7 @@ theorem toDA_mem_mtr {nfa : NFA State Symbol} :
 theorem toDA_mtr_setImageMultistep {nfa : NFA State Symbol} :
   nfa.toDFA.mtr = nfa.setImageMultistep := by grind
 
-/-- The `DA` constructed from an `NA` has the same language. -/
+/-- The `DFA` constructed from an `NFA` has the same language. -/
 @[grind]
 theorem toDA_language_eq {nfa : NFA State Symbol} :
   nfa.toDFA.language = nfa.language := by

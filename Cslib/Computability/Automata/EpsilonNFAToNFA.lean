@@ -25,7 +25,6 @@ private lemma LTS.noε_saturate_tr
   grind
 
 namespace εNFA
-
 section NFA
 
 /-- Any εNFA can be converted into an NFA that does not use ε-transitions. -/
@@ -57,9 +56,9 @@ lemma LTS.noε_saturate_mTr
       grind
 
 
-/-- Correctness of `toNAWithoutEpsilon`. -/
+/-- Correctness of `toNFA`. -/
 @[grind]
-theorem toNAWithoutEpsilon_language_eq {enfa : εNFA State Symbol} :
+theorem toNFA_language_eq {enfa : εNFA State Symbol} :
   enfa.toNFA.language = enfa.language := by
   ext xs
   apply Iff.intro
@@ -85,5 +84,4 @@ theorem toNAWithoutEpsilon_language_eq {enfa : εNFA State Symbol} :
     assumption
 
 end NFA
-
 end εNFA
