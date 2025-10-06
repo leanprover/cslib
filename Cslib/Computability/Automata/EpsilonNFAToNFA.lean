@@ -50,27 +50,9 @@ lemma LTS.noε_saturate_mTr
 theorem toNFA_language_eq {enfa : εNFA State Symbol} :
   enfa.toNFA.language = enfa.language := by
   ext xs
-  apply Iff.intro
-  case mp =>
-    rw [← εNFA.accepts_mem_language, ← NFA.accepts_mem_language]
-    simp only [NFA.Accepts, toNFA, Accepts, forall_exists_index, and_imp]
-    intro s hs s' hs' hmtr
-    exists s
-    apply And.intro hs
-    exists s'
-    apply And.intro hs'
-    rw [LTS.noε_saturate_mTr]
-    assumption
-  case mpr =>
-    rw [← εNFA.accepts_mem_language, ← NFA.accepts_mem_language]
-    simp only [NFA.Accepts, toNFA, Accepts, forall_exists_index, and_imp]
-    intro s hs s' hs' hmtr
-    exists s
-    apply And.intro hs
-    exists s'
-    apply And.intro hs'
-    rw [← LTS.noε_saturate_mTr]
-    assumption
+  have : ∀ s s', enfa.saturate.MTr s (xs.map (some ·)) s' = enfa.saturate.noε.MTr s xs s' := by
+    simp [LTS.noε_saturate_mTr]
+  grind
 
 end NFA
 end εNFA
