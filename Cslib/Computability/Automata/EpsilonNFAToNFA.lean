@@ -27,13 +27,12 @@ section NFA
 
 /-- Any εNFA can be converted into an NFA that does not use ε-transitions. -/
 @[grind]
-def toNFA (enfa : εNFA State Symbol) : NFA State Symbol := {
+def toNFA (enfa : εNFA State Symbol) : NFA State Symbol where
   start := enfa.εClosure enfa.start
   accept := enfa.accept
   Tr := enfa.saturate.noε.Tr
   finite_state := enfa.finite_state
   finite_symbol := enfa.finite_symbol
-}
 
 @[grind]
 lemma LTS.noε_saturate_mTr
