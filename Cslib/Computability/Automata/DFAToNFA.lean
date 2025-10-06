@@ -14,13 +14,12 @@ section NFA
 
 /-- `DFA` is a special case of `NFA`. -/
 @[grind =]
-def toNFA (dfa : DFA State Symbol) : NFA State Symbol := {
+def toNFA (dfa : DFA State Symbol) : NFA State Symbol where
   start := {dfa.start}
   accept := dfa.accept
   Tr := fun s1 μ s2 => dfa.tr s1 μ = s2
   finite_state := dfa.finite_state
   finite_symbol := dfa.finite_symbol
-}
 
 @[grind =]
 lemma toNFA_start {dfa : DFA State Symbol} : dfa.toNFA.start = {dfa.start} := rfl
