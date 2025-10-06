@@ -42,18 +42,7 @@ lemma LTS.noε_saturate_mTr
   {lts : LTS State (Option Label)} :
   lts.saturate.MTr s (μs.map (some ·)) = lts.saturate.noε.MTr s μs := by
   ext s'
-  induction μs generalizing s
-  case nil => grind
-  case cons μ μs ih =>
-    apply Iff.intro <;> intro h
-    case mp =>
-      simp only [LTS.noε]
-      cases h
-      rename_i sb htr hmtr
-      apply LTS.MTr.stepL (s1 := s) (s2 := sb) (s3 := s') <;> grind
-    case mpr =>
-      simp only [LTS.noε] at h
-      grind
+  induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
 
 
 /-- Correctness of `toNFA`. -/
