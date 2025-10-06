@@ -12,10 +12,8 @@ import Cslib.Computability.Automata.NFA
 /-- Converts an `LTS` with Option labels into an `LTS` on the carried label type, by removing all
 ε-transitions. -/
 @[grind]
-private def LTS.noε (lts : LTS State (Option Label)) :
-  LTS State Label := {
+private def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
   Tr := fun s μ s' => lts.Tr s (some μ) s'
-}
 
 @[grind]
 private lemma LTS.noε_saturate_tr
