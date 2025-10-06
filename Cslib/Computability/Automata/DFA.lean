@@ -44,7 +44,7 @@ theorem mtr_nil_eq {dfa : DFA State Symbol} : dfa.mtr s [] = s := by rfl
 the start state. -/
 @[grind]
 def Accepts (dfa : DFA State Symbol) (xs : List Symbol) :=
-  (dfa.mtr dfa.start xs) ∈ dfa.accept
+  dfa.mtr dfa.start xs ∈ dfa.accept
 
 /-- The language of a DFA is the set of strings that it accepts. -/
 @[grind]
