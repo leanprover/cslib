@@ -853,7 +853,7 @@ theorem SWBisimulation.follow_internal_fst
   [HasTau Label] {lts : LTS State Label}
   (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstr : lts.STr s1 HasTau.τ s1') :
   ∃ s2', lts.STr s2 HasTau.τ s2' ∧ r s1' s2' := by
-  obtain ⟨n, hstrN⟩ := (LTS.str_strN lts).1 hstr
+  obtain ⟨n, hstrN⟩ := (LTS.sTr_sTrN lts).1 hstr
   apply SWBisimulation.follow_internal_fst_n hswb hr hstrN
 
 /-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
@@ -862,7 +862,7 @@ theorem SWBisimulation.follow_internal_snd
   [HasTau Label] {lts : LTS State Label}
   (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstr : lts.STr s2 HasTau.τ s2') :
   ∃ s1', lts.STr s1 HasTau.τ s1' ∧ r s1' s2' := by
-  obtain ⟨n, hstrN⟩ := (LTS.str_strN lts).1 hstr
+  obtain ⟨n, hstrN⟩ := (LTS.sTr_sTrN lts).1 hstr
   apply SWBisimulation.follow_internal_snd_n hswb hr hstrN
 
 /-- We can now prove that any relation is a `WeakBisimulation` iff it is an `SWBisimulation`.
