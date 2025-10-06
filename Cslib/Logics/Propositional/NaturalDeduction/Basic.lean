@@ -3,6 +3,7 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
+import Cslib.Logics.Propositional.Defs
 import Mathlib.Data.Finset.Insert
 import Mathlib.Data.Finset.SDiff
 
@@ -59,34 +60,6 @@ variable {Atom : Type u} [DecidableEq Atom]
 
 namespace PL
 
-/-- Propositions. -/
-inductive Proposition (Atom : Type u) : Type u where
-  /-- Propositional atoms -/
-  | atom (x : Atom)
-  /-- Falsum -/
-  | bot
-  /-- Conjunction -/
-  | conj (a b : Proposition Atom)
-  /-- Disjunction -/
-  | disj (a b : Proposition Atom)
-  /-- Implication -/
-  | impl (a b : Proposition Atom)
-deriving DecidableEq, BEq
-
-/-- We view negation as a defined connective ~A := A → ⊥ -/
-abbrev Proposition.neg : Proposition Atom → Proposition Atom := (Proposition.impl · bot)
-
-/-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
-def Proposition.top : Proposition Atom := impl bot bot
-
-instance : Bot (Proposition Atom) := ⟨.bot⟩
-instance : Top (Proposition Atom) := ⟨.top⟩
-
-@[inherit_doc] scoped infix:35 " ⋏ " => Proposition.conj
-@[inherit_doc] scoped infix:35 " ⋎ " => Proposition.disj
-@[inherit_doc] scoped infix:30 " ⟶ " => Proposition.impl
-@[inherit_doc] scoped prefix:40 " ~ " => Proposition.neg
-
 namespace NJ
 
 open Proposition
@@ -99,30 +72,30 @@ abbrev Theory (Atom) := Set (Proposition Atom)
 
 abbrev Theory.empty (Atom) : Theory (Atom) := ∅
 
-def IPL : Theory Atom := Set.range (⊥ ⟶ ·)
-def CPL : Theory Atom :=
+def IPL [Bot Atom] : Theory Atom := Set.range (⊥ ⟶ ·)
+def CPL [Bot Atom] : Theory Atom :=
   IPL ∪ Set.range (fun (A : Proposition Atom) ↦ ~~A ⟶ A)
 
-class IsIntuitionistic (T : Theory Atom) where
+class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
   efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
 
-class IsClassical (T : Theory Atom) where
+class IsClassical [Bot Atom] (T : Theory Atom) where
   efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
   dne (A : Proposition Atom) : (~~A ⟶ A) ∈ T
 
-instance instIsIntuitionisticIPL : IsIntuitionistic (Atom := Atom) IPL where
+instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
   efq A := Set.mem_range.mpr ⟨A, rfl⟩
 
-instance instIsClassicalCPL : IsClassical (Atom := Atom) CPL where
+instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
   efq A := Set.mem_union_left _ <| Set.mem_range.mpr ⟨A, rfl⟩
   dne A := Set.mem_union_right _ <| Set.mem_range.mpr ⟨A, rfl⟩
 
 omit [DecidableEq Atom] in
-theorem instIsIntuitionisticExtention {T T' : Theory Atom} [IsIntuitionistic T] (h : T ⊆ T') :
-    IsIntuitionistic T' := by grind [IsIntuitionistic]
+theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
+    (h : T ⊆ T') : IsIntuitionistic T' := by grind [IsIntuitionistic]
 
 omit [DecidableEq Atom] in
-theorem instIsClassicalExtention {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
+theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
     IsClassical T' := by grind [IsClassical]
 
 /-- Sequents {A₁, ..., Aₙ} ⊢ B. -/
@@ -219,13 +192,13 @@ scoped infix:29 " ≡ " => Equiv
 
 open Derivation
 
-def derivationTop : Derivation (Atom := Atom) ⟨∅, ⊤⟩ :=
-  implI ∅ <| ax (Atom := Atom) ∅ ⊥
+def derivationTop [Inhabited Atom] : Derivation (Atom := Atom) ⟨∅, ⊤⟩ :=
+  implI ∅ <| ax (Atom := Atom) ∅ (atom default)
 
-theorem Theory.top_derivable (T : Theory Atom) : ⊢[T] ⊤ := by
+theorem Theory.top_derivable [Inhabited Atom] (T : Theory Atom) : ⊢[T] ⊤ := by
   refine ⟨∅, by simp, derivationTop⟩
 
-theorem top_derivable : Derivable (Atom := Atom) ⊤ :=
+theorem top_derivable [Inhabited Atom] : Derivable (Atom := Atom) ⊤ :=
   Theory.top_derivable (Theory.empty Atom)
 
 /-! ### Common proof patterns -/
@@ -381,15 +354,15 @@ theorem Theory.impl_derivable_iff {T : Theory Atom} {A B : Proposition Atom} :
 theorem Theory.Derivable.ax' {T : Theory Atom} {A : Proposition Atom} (h : A ∈ T) :
   ⊢[T] A := ⟨{A}, by grind, Derivation.ax ∅ A⟩
 
-theorem Theory.Derivable.botE {T : Theory Atom} [IsIntuitionistic T] (A : Proposition Atom) :
-    ⊢[T] ⊥ → ⊢[T] A
+theorem Theory.Derivable.botE [Bot Atom] {T : Theory Atom} [IsIntuitionistic T]
+    (A : Proposition Atom) : ⊢[T] ⊥ → ⊢[T] A
   | ⟨Γ, h, D⟩ => by
     refine ⟨insert (⊥ ⟶ A) Γ, by grind [IsIntuitionistic], ?_⟩
-    apply implE (A := bot)
+    apply implE (A := ⊥)
     · exact ax ..
     · exact D.weak' (by grind)
 
-theorem Theory.Derivable.dne {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
+theorem Theory.Derivable.dne [Bot Atom] {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
     ⊢[T] (~~A) → ⊢[T] A
   | ⟨Γ, h, D⟩ => by
     refine ⟨insert (~~A ⟶ A) Γ, by grind [IsClassical], ?_⟩
@@ -462,8 +435,8 @@ theorem equiv_iff {A B : Proposition Atom} : A ≡ B ↔ Nonempty (Proposition.e
     refine ⟨?_,?_⟩
     all_goals apply derivable_iff.mpr; constructor; apply implI; assumption
 
-theorem Proposition.derivable_iff_equiv_top (T : Theory Atom) (A : Proposition Atom) :
-    ⊢[T] A ↔ A ≡[T] ⊤ := by
+theorem Proposition.derivable_iff_equiv_top [Inhabited Atom] (T : Theory Atom)
+    (A : Proposition Atom) : ⊢[T] A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
   · constructor
     · refine ⟨∅, by grind, ?_⟩

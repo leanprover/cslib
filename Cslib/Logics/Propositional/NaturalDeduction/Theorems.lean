@@ -146,7 +146,7 @@ theorem conj_imp_of_disj_imps {A B C : Proposition Atom} :
 
 /-! ### Classical theorems -/
 
-theorem dn_equiv {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
+theorem dn_equiv [Bot Atom] {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
     T.Equiv A (~~A) := by
   constructor
   · refine ⟨∅, by grind, ?_⟩
@@ -155,15 +155,15 @@ theorem dn_equiv {T : Theory Atom} [IsClassical T] (A : Proposition Atom) :
   · apply Theory.Derivable.ax'
     grind [IsClassical]
 
-theorem lem {T : Theory Atom} [IsClassical T] {A : Proposition Atom} :
+theorem lem [Bot Atom] {T : Theory Atom} [IsClassical T] {A : Proposition Atom} :
     T.Derivable (A ⋎ ~A) := by
   apply Theory.Derivable.dne
   apply Theory.Derivable.theory_weak (T := Theory.empty Atom) (hT := by grind)
   exact Derivable.not_not_lem
 
-private def dneFor (A : Proposition Atom) := ~~A ⟶ A
+private def dneFor [Bot Atom] (A : Proposition Atom) := ~~A ⟶ A
 
-theorem disj_not_of_not_conj {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
+theorem disj_not_of_not_conj [Bot Atom] {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
     T.SDerivable ⟨{~(A ⋏ B)}, ~A ⋎ ~B⟩ := by
   refine ⟨{~(A ⋏ B), dneFor A, dneFor B, dneFor (~A ⋎ ~B)}, ?_, ?_⟩
   · grind [IsClassical, dneFor, Finset.coe_insert, Finset.coe_singleton]
@@ -189,7 +189,7 @@ theorem disj_not_of_not_conj {T : Theory Atom} [IsClassical T] {A B : Propositio
             · apply disjI₂
               exact ax' (by grind)
 
-theorem impl_equiv_disj {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
+theorem impl_equiv_disj [Bot Atom] {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
     (A ⟶ B) ≡[T] (~A ⋎ B) := by
   constructor
   · let ⟨Γ, h, D⟩ := lem (T := T) (A := A)
@@ -215,7 +215,7 @@ theorem impl_equiv_disj {T : Theory Atom} [IsClassical T] {A B : Proposition Ato
         · grind
     · exact ax' (by grind)
 
-theorem pierce {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
+theorem pierce [Bot Atom] {T : Theory Atom} [IsClassical T] {A B : Proposition Atom} :
     T.Derivable (((A ⟶ B) ⟶ A) ⟶ A) := by
   let ⟨Γ, h, D⟩ := lem (T := T) (A := A)
   refine ⟨insert (⊥ ⟶ B) Γ, by grind [IsClassical], ?_⟩
@@ -387,7 +387,7 @@ theorem absorb_disj_conj {A B : Proposition Atom} :  (A ⋎ (A ⋏ B)) ≡ A :=
   equiv_iff.mpr ⟨absorbDisjConj⟩
 
 /-- Falsum is absorbing for conjunction -/
-theorem bot_conj_absorb (T : Theory Atom) {A : Proposition Atom} [IsIntuitionistic T] :
+theorem bot_conj_absorb [Bot Atom] (T : Theory Atom) {A : Proposition Atom} [IsIntuitionistic T] :
   (A ⋏ ⊥) ≡[T] ⊥ := by
   constructor
   · refine ⟨∅, by grind, ?_⟩
@@ -403,7 +403,7 @@ theorem bot_conj_absorb (T : Theory Atom) {A : Proposition Atom} [IsIntuitionist
     · exact ax' (by grind)
 
 /-- Falsum is neutral for disjunction -/
-theorem bot_disj_neutral (T : Theory Atom) {A : Proposition Atom} [IsIntuitionistic T] :
+theorem bot_disj_neutral [Bot Atom] (T : Theory Atom) {A : Proposition Atom} [IsIntuitionistic T] :
     (A ⋎ ⊥) ≡[T] A := by
   constructor
   · refine ⟨{⊥ ⟶ A}, by grind [IsIntuitionistic], ?_⟩
@@ -551,12 +551,13 @@ theorem Theory.sup_le {A B C : Proposition Atom} :
       · exact D'.weak' (by grind)
       · exact ax ..
 
-theorem Theory.le_top {A : Proposition Atom} : T.Derivable (A ⟶ ⊤) := by
+theorem Theory.le_top [Inhabited Atom] {A : Proposition Atom} : T.Derivable (A ⟶ ⊤) := by
   refine ⟨∅, by grind, ?_⟩
   apply implI
   exact derivationTop.weak' (by grind)
 
-theorem Theory.bot_le {A : Proposition Atom} [IsIntuitionistic T] : T.Derivable (⊥ ⟶ A) :=
+theorem Theory.bot_le [Bot Atom] {A : Proposition Atom} [IsIntuitionistic T] :
+    T.Derivable (⊥ ⟶ A) :=
   Theory.Derivable.ax' (by grind [IsIntuitionistic])
 
 theorem Theory.himp_wd {A A' B B' : Proposition Atom} :
