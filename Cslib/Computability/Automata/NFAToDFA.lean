@@ -21,7 +21,7 @@ def toDFA (nfa : NFA State Symbol) : DFA (Set State) Symbol := {
   tr := nfa.setImage
   finite_state := by
     haveI := nfa.finite_state
-    apply Set.instFinite
+    infer_instance
   finite_symbol := nfa.finite_symbol
 }
 
