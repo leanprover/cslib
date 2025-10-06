@@ -1,0 +1,65 @@
+name: Bump lean-toolchain on nightly-testing
+
+on:
+  schedule:
+    - cron: '0 10/3 * * *'
+    # Run every three hours, starting at 11AM CET/2AM PT.
+    # This should be 3 hours after lean4 starts building its nightly.
+  workflow_dispatch:
+
+jobs:
+  update-toolchain:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        ref: nightly-testing # checkout nightly-testing branch
+        token: ${{ secrets.NIGHTLY_TESTING }}
+
+    - name: Get latest release tag from leanprover/lean4-nightly
+      id: get-latest-release
+      run: |
+        RELEASE_TAG="$(curl -s "https://api.github.com/repos/leanprover/lean4-nightly/releases" | jq -r '.[0].tag_name')"
+        echo "RELEASE_TAG=$RELEASE_TAG" >> "${GITHUB_ENV}"
+
+    - name: Check if nightly-testing tag exists in mathlib4-nightly-testing
+      id: check-nightly-testing
+      run: |
+        # Extract date from RELEASE_TAG (format: nightly-YYYY-MM-DD)
+        DATE_PART=$(echo "$RELEASE_TAG" | sed 's/nightly-//')
+        NIGHTLY_TESTING_TAG="nightly-testing-${DATE_PART}"
+        echo "NIGHTLY_TESTING_TAG=$NIGHTLY_TESTING_TAG" >> "${GITHUB_ENV}"
+        
+        # Check if the tag exists in leanprover-community/mathlib4-nightly-testing
+        if curl -s -f "https://api.github.com/repos/leanprover-community/mathlib4-nightly-testing/git/ref/tags/${NIGHTLY_TESTING_TAG}" > /dev/null; then
+          echo "Tag ${NIGHTLY_TESTING_TAG} exists in mathlib4-nightly-testing"
+          echo "tag_exists=true" >> "${GITHUB_ENV}"
+        else
+          echo "Tag ${NIGHTLY_TESTING_TAG} does not exist in mathlib4-nightly-testing"
+          echo "tag_exists=false" >> "${GITHUB_ENV}"
+        fi
+
+    - name: Update toolchain and dependencies
+      if: steps.check-nightly-testing.outputs.tag_exists == 'true'
+      run: |
+        # Update lean-toolchain file
+        echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
+        
+        # Update the mathlib rev in lakefile.toml to use the nightly-testing tag
+        sed -i "s/rev = \"[^\"]*\"/rev = \"${NIGHTLY_TESTING_TAG}\"/" lakefile.toml
+        
+        # Update dependencies
+        lake update
+
+    - name: Commit and push changes
+      if: steps.check-nightly-testing.outputs.tag_exists == 'true'
+      run: |
+        # For now we reuse a bot managed by Mathlib,
+        # but it is fine to update this if Cslib wants to create its own bot accounts.
+        git config user.name "leanprover-community-mathlib4-bot"
+        git config user.email "leanprover-community-mathlib4-bot@users.noreply.github.com"
+        git add lean-toolchain lakefile.toml lake-manifest.json
+        # Don't fail if there's nothing to commit
+        git commit -m "chore: bump to ${RELEASE_TAG} with mathlib at ${NIGHTLY_TESTING_TAG}" || true
+        git push origin nightly-testing

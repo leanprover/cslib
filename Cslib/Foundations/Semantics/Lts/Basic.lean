@@ -71,6 +71,7 @@ Definition of a multi-step transition.
 rule. This makes working with lists of labels more convenient, because we follow the same
 construction. It is also similar to what is done in the `SimpleGraph` library in mathlib.)
 -/
+@[grind]
 inductive Lts.MTr (lts : Lts State Label) : State → List Label → State → Prop where
   | refl {s : State} : lts.MTr s [] s
   | stepL {s1 : State} {μ : Label} {s2 : State} {μs : List Label} {s3 : State} :
@@ -78,6 +79,7 @@ inductive Lts.MTr (lts : Lts State Label) : State → List Label → State → P
     lts.MTr s1 (μ :: μs) s3
 
 /-- Any transition is also a multi-step transition. -/
+@[grind]
 theorem Lts.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   lts.Tr s1 μ s2 → lts.MTr s1 [μ] s2 := by
   intro h
@@ -86,6 +88,7 @@ theorem Lts.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   · apply Lts.MTr.refl
 
 /-- Any multi-step transition can be extended by adding a transition. -/
+@[grind]
 theorem Lts.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
   intro h1 h2
@@ -97,6 +100,7 @@ theorem Lts.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} 
     · apply ih h2
 
 /-- Multi-step transitions can be composed. -/
+@[grind]
 theorem Lts.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List Label} {s3 : State} :
   lts.MTr s1 μs1 s2 → lts.MTr s2 μs2 s3 →
   lts.MTr s1 (μs1 ++ μs2) s3 := by
@@ -109,6 +113,7 @@ theorem Lts.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List 
     · apply ih h2
 
 /-- Any 1-sized multi-step transition implies a transition with the same states and label. -/
+@[grind]
 theorem Lts.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 → lts.Tr s1 μ s2 := by
   intro h
@@ -118,6 +123,7 @@ theorem Lts.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     exact htr
 
 /-- In any zero-steps multi-step transition, the origin and the derivative are the same. -/
+@[grind]
 theorem Lts.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
@@ -251,14 +257,17 @@ variable {State : Type u} {Label : Type v} (lts : Lts State Label)
 
 /-- An lts is deterministic if a state cannot reach different states with the same transition
 label. -/
+@[grind]
 def Lts.Deterministic : Prop :=
   ∀ (s1 : State) (μ : Label) (s2 s3 : State),
     lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
 
 /-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
+@[grind]
 def Lts.Image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
 
 /-- An lts is image-finite if all images of its states are finite. -/
+@[grind]
 def Lts.ImageFinite : Prop :=
   ∀ s μ, Finite (lts.Image s μ)
 

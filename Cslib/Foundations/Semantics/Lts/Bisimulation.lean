@@ -448,9 +448,9 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h1
         obtain ⟨s', htr⟩ := h1
         cases htr
-        case intro.refl =>
+        case refl =>
           simp
-        case intro.stepL μ sb μs' htr hmtr =>
+        case stepL μ sb μs' htr hmtr =>
           cases htr
           cases hmtr
           case one2two.stepL μ sb μs' htr hmtr =>
@@ -493,9 +493,9 @@ theorem Bisimulation.traceEq_not_bisim :
         intro h1
         obtain ⟨s', htr⟩ := h1
         cases htr
-        case intro.refl =>
+        case refl =>
           simp
-        case intro.stepL μ sb μs' htr hmtr =>
+        case stepL μ sb μs' htr hmtr =>
           cases htr
           case five2six =>
             cases hmtr
@@ -872,8 +872,7 @@ theorem Lts.isWeakBisimulation_iff_isSWBisimulation
   lts.IsWeakBisimulation r ↔ lts.IsSWBisimulation r := by
   apply Iff.intro
   case mp =>
-    intro h
-    intro s1 s2 hr μ
+    intro h s1 s2 hr μ
     apply And.intro
     case left =>
       intro s1' htr
@@ -888,8 +887,7 @@ theorem Lts.isWeakBisimulation_iff_isSWBisimulation
       obtain ⟨s1', htr1, hr1⟩ := h'
       exists s1'
   case mpr =>
-    intro h
-    intro s1 s2 hr μ
+    intro h s1 s2 hr μ
     apply And.intro
     case left =>
       intro s1' hstr

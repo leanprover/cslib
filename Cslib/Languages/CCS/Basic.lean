@@ -23,50 +23,117 @@ option of constant definitions (K = P).
 * [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
 
-variable (Name : Type u) (Constant : Type v)
-
 namespace CCS
 
+universe u v
+
 /-- Actions. -/
-inductive Act : Type u where
+inductive Act (Name : Type u) : Type u where
   | name (a : Name)
   | coname (a : Name)
   | τ
 deriving DecidableEq
 
 /-- Processes. -/
-inductive Process : Type (max u v) where
+inductive Process (Name : Type u) (Constant : Type v) : Type (max u v) where
   | nil
-  | pre (μ : Act Name) (p : Process)
-  | par (p q : Process)
-  | choice (p q : Process)
-  | res (a : Name) (p : Process)
+  | pre (μ : Act Name) (p : Process Name Constant)
+  | par (p q : Process Name Constant)
+  | choice (p q : Process Name Constant)
+  | res (a : Name) (p : Process Name Constant)
   | const (c : Constant)
 deriving DecidableEq
 
-/-- Co action. -/
-def Act.co (μ : Act Name) : Act Name :=
-  match μ with
-  | name a => coname a
-  | coname a => name a
-  | τ => τ
+/-- An action is visible if it a name or a coname. -/
+@[grind]
+inductive Act.IsVisible : Act Name → Prop where
+  | name : IsVisible (Act.name a)
+  | coname : IsVisible (Act.coname a)
 
-/-- `Act.co` is an involution. -/
-theorem Act.co.involution (μ : Act Name) : μ.co.co = μ := by
-  cases μ <;> simp only [Act.co]
+/-- If an action is visible, it is not `τ`. -/
+@[grind, simp]
+theorem Act.isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by
+  cases μ <;> grind
+
+/-- Checks that an action is the coaction of another. -/
+@[grind]
+inductive Act.Co {Name : Type u} : Act Name → Act Name → Prop where
+  | nc : Act.Co (Act.name a) (Act.coname a)
+  | cn : Act.Co (Act.coname a) (Act.name a)
+
+/-- `Act.Co` is symmetric. -/
+@[grind, symm]
+theorem Act.Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
+
+/-- If two actions are one the coaction of the other, then they are both visible. -/
+@[grind]
+theorem Act.co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
+
+/-- `Act.Co` is decidable if `Name` equality is decidable. -/
+instance {Name : Type u} [hdec : DecidableEq Name] {μ μ' : Act Name} :
+  Decidable (Act.Co μ μ') := by
+  cases μ
+  case name a =>
+    cases μ'
+    case name b =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+    case coname b =>
+      by_cases hab : a = b
+      case pos =>
+        rw [hab]
+        apply Decidable.isTrue
+        constructor
+      case neg =>
+        apply Decidable.isFalse
+        intro h'
+        cases h'
+        contradiction
+    case τ =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+  case coname a =>
+    cases μ'
+    case name b =>
+      by_cases hab : a = b
+      case pos =>
+        rw [hab]
+        apply Decidable.isTrue
+        constructor
+      case neg =>
+        apply Decidable.isFalse
+        intro h'
+        cases h'
+        contradiction
+    case coname b =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+    case τ =>
+      apply Decidable.isFalse
+      intro h'
+      cases h'
+  case τ =>
+    apply Decidable.isFalse
+    intro h'
+    cases h'
 
 /-- Contexts. -/
-inductive Context : Type (max u v) where
+@[grind]
+inductive Context (Name : Type u) (Constant : Type v): Type (max u v) where
   | hole
-  | pre (μ : Act Name) (c : Context)
-  | parL (c : Context) (q : Process Name Constant)
-  | parR (p : Process Name Constant) (c : Context)
-  | choiceL (c : Context) (q : Process Name Constant)
-  | choiceR (p : Process Name Constant) (c : Context)
-  | res (a : Name) (c : Context)
+  | pre (μ : Act Name) (c : Context Name Constant)
+  | parL (c : Context Name Constant) (q : Process Name Constant)
+  | parR (p : Process Name Constant) (c : Context Name Constant)
+  | choiceL (c : Context Name Constant) (q : Process Name Constant)
+  | choiceR (p : Process Name Constant) (c : Context Name Constant)
+  | res (a : Name) (c : Context Name Constant)
 deriving DecidableEq
 
 /-- Replaces the hole in a `Context` with a `Process`. -/
+@[grind]
 def Context.fill {Name : Type u} {Constant : Type v} (c : Context Name Constant) (p : Process Name Constant) : Process Name Constant :=
   match c with
   | hole => p
@@ -79,35 +146,31 @@ def Context.fill {Name : Type u} {Constant : Type v} (c : Context Name Constant)
 
 /-- Any `Process` can be obtained by filling a `Context` with an atom. This proves that `Context`
 is a complete formalisation of syntactic contexts for CCS. -/
-theorem Context.complete (p : Process Name Constant) : ∃ c : Context Name Constant, p = (c.fill Process.nil) ∨ ∃ k : Constant, p = c.fill (Process.const k) := by
+theorem Context.complete (p : Process Name Constant) :
+  ∃ c : Context Name Constant, p = (c.fill Process.nil) ∨
+  ∃ k : Constant, p = c.fill (Process.const k) := by
   induction p
   case nil =>
     exists hole
-    left
-    simp [fill]
+    grind
   case pre μ p ih =>
     obtain ⟨c, hc⟩ := ih
     exists pre μ c
-    simp [fill]
-    assumption
+    grind
   case par p q ihp ihq =>
     obtain ⟨cp, hcp⟩ := ihp
     exists parL cp q
-    simp [fill]
-    assumption
+    grind
   case choice p q ihp ihq =>
     obtain ⟨cp, hcp⟩ := ihp
     exists choiceL cp q
-    simp [fill]
-    assumption
+    grind
   case res a p ih =>
     obtain ⟨c, hc⟩ := ih
     exists res a c
-    simp [fill]
-    assumption
+    grind
   case const k =>
     exists hole
-    right
-    exists k
+    grind
 
 end CCS
