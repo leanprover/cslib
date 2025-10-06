@@ -28,35 +28,32 @@ instance : Coe (DFA State Symbol) (NFA State Symbol) where
   coe := toNFA
 
 /-- `DA.toNA` correctly characterises transitions. -/
-@[grind]
-theorem toNA_tr {dfa : DFA State Symbol} : dfa.toNFA.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
+@[grind =]
+theorem toNA_tr {dfa : DFA State Symbol} :
+  dfa.toNFA.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
   rfl
 
 /-- The transition system of a DA is deterministic. -/
-@[grind]
+@[grind ⇒]
 theorem toNFA_deterministic (dfa : DFA State Symbol) : dfa.toNFA.Deterministic := by
   grind
 
 /-- The transition system of a DA is image-finite. -/
-@[grind]
+@[grind ⇒]
 theorem toNFA_imageFinite (dfa : DFA State Symbol) : dfa.toNFA.ImageFinite :=
   dfa.toNFA.deterministic_imageFinite dfa.toNFA_deterministic
 
 /-- Characterisation of multistep transitions. -/
-@[grind]
+@[grind =]
 theorem toNFA_mtr {dfa : DFA State Symbol} :
   dfa.toNFA.MTr s1 xs s2 ↔ dfa.mtr s1 xs = s2 := by
+  have : ∀ x, dfa.toNFA.Tr s1 x (dfa.tr s1 x) := by grind
   constructor <;> intro h
-  case mp =>
-    induction h <;> grind
-  case mpr =>
-    induction xs generalizing s1
-    case nil => grind
-    case cons x xs ih =>
-      apply LTS.MTr.stepL (s2 := dfa.tr s1 x) <;> grind
+  case mp => induction h <;> grind
+  case mpr => induction xs generalizing s1 <;> grind
 
 /-- The `NFA` constructed from a `DFA` has the same language. -/
-@[grind]
+@[grind =]
 theorem toNFA_language_eq {dfa : DFA State Symbol} :
   dfa.toNFA.language = dfa.language := by
   ext xs
