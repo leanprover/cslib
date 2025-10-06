@@ -797,7 +797,7 @@ notation s:max " ≈sw[" lts "] " s':max => SWBisimilarity lts s s'
 (first component, weighted version). -/
 theorem SWBisimulation.follow_internal_fst_n
   [HasTau Label] {lts : LTS State Label}
-  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstrN : lts.strN n s1 HasTau.τ s1') :
+  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstrN : lts.STrN n s1 HasTau.τ s1') :
   ∃ s2', lts.STr s2 HasTau.τ s2' ∧ r s1' s2' := by
   cases n
   case zero =>
@@ -824,7 +824,7 @@ theorem SWBisimulation.follow_internal_fst_n
 (second component, weighted version). -/
 theorem SWBisimulation.follow_internal_snd_n
   [HasTau Label] {lts : LTS State Label}
-  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstrN : lts.strN n s2 HasTau.τ s2') :
+  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstrN : lts.STrN n s2 HasTau.τ s2') :
   ∃ s1', lts.STr s1 HasTau.τ s1' ∧ r s1' s2' := by
   cases n
   case zero =>

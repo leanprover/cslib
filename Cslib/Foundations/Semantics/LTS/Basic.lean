@@ -306,7 +306,7 @@ theorem LTS.mem_setImageMultistep (lts : LTS State Label) :
   grind
 
 @[grind]
-theorem LTS.mtr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.MTr s μs s') :
+theorem LTS.mTr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.MTr s μs s') :
   s' ∈ lts.setImageMultistep S μs := by grind
 
 /-- The image of the empty set is always the empty set. -/
@@ -422,39 +422,43 @@ inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → S
 | tr : lts.STr s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.STr s3 HasTau.τ s4 → lts.STr s1 μ s4
 
 /-- The `LTS` obtained by saturating the transition relation in `lts`. -/
+@[grind =]
 def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
-  Tr := LTS.STr lts
+  Tr := lts.STr
 
 /-- Any transition is also a saturated transition. -/
+@[grind]
 theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) : lts.Tr s μ s' → lts.STr s μ s' := by
   intro h
   apply LTS.STr.tr LTS.STr.refl h LTS.STr.refl
 
 /-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
 metric. -/
-inductive LTS.strN [HasTau Label] (lts : LTS State Label) :
+@[grind]
+inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
   ℕ → State → Label → State → Prop where
-  | refl : lts.strN 0 s HasTau.τ s
+  | refl : lts.STrN 0 s HasTau.τ s
   | tr :
-    lts.strN n s1 HasTau.τ s2 →
+    lts.STrN n s1 HasTau.τ s2 →
     lts.Tr s2 μ s3 →
-    lts.strN m s3 HasTau.τ s4 →
-    lts.strN (n + m + 1) s1 μ s4
+    lts.STrN m s3 HasTau.τ s4 →
+    lts.STrN (n + m + 1) s1 μ s4
 
 /-- `LTS.str` and `LTS.strN` are equivalent. -/
-theorem LTS.str_strN [HasTau Label] (lts : LTS State Label) :
-  lts.STr s1 μ s2 ↔ ∃ n, lts.strN n s1 μ s2 := by
+@[grind]
+theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
+  lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
   apply Iff.intro <;> intro h
   case mp =>
     induction h
     case refl =>
       exists 0
-      exact LTS.strN.refl
+      exact LTS.STrN.refl
     case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
       obtain ⟨n1, ih1⟩ := ih1
       obtain ⟨n2, ih2⟩ := ih2
       exists (n1 + n2 + 1)
-      apply LTS.strN.tr ih1 htr ih2
+      apply LTS.STrN.tr ih1 htr ih2
   case mpr =>
     obtain ⟨n, h⟩ := h
     induction h
@@ -464,69 +468,111 @@ theorem LTS.str_strN [HasTau Label] (lts : LTS State Label) :
       apply LTS.STr.tr ih1 htr ih2
 
 /-- Saturated transitions labelled by τ can be composed (weighted version). -/
-theorem LTS.strN.trans_τ
+@[grind]
+theorem LTS.STrN.trans_τ
   [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.strN n s1 HasTau.τ s2) (h2 : lts.strN m s2 HasTau.τ s3) :
-  lts.strN (n + m) s1 HasTau.τ s3 := by
+  (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
+  lts.STrN (n + m) s1 HasTau.τ s3 := by
   cases h1
   case refl => grind
   case tr n1 sb sb' n2 hstr1 htr hstr2 =>
-    have ih := LTS.strN.trans_τ lts hstr2 h2
-    have conc := LTS.strN.tr hstr1 htr ih
+    have ih := LTS.STrN.trans_τ lts hstr2 h2
+    have conc := LTS.STrN.tr hstr1 htr ih
     grind
 
 /-- Saturated transitions labelled by τ can be composed. -/
+@[grind]
 theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
   lts.STr s1 HasTau.τ s3 := by
-  obtain ⟨n, h1N⟩ := (LTS.str_strN lts).1 h1
-  obtain ⟨m, h2N⟩ := (LTS.str_strN lts).1 h2
-  have concN := LTS.strN.trans_τ lts h1N h2N
-  apply (LTS.str_strN lts).2 ⟨n + m, concN⟩
+  obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  have concN := LTS.STrN.trans_τ lts h1N h2N
+  apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
 
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
-theorem LTS.strN.append
+@[grind]
+theorem LTS.STrN.append
   [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.strN n1 s1 μ s2)
-  (h2 : lts.strN n2 s2 HasTau.τ s3) :
-  lts.strN (n1 + n2) s1 μ s3 := by
+  (h1 : lts.STrN n1 s1 μ s2)
+  (h2 : lts.STrN n2 s2 HasTau.τ s3) :
+  lts.STrN (n1 + n2) s1 μ s3 := by
   cases h1
   case refl => grind
   case tr n11 sb sb' n12 hstr1 htr hstr2 =>
-    have hsuffix := LTS.strN.trans_τ lts hstr2 h2
+    have hsuffix := LTS.STrN.trans_τ lts hstr2 h2
     have n_eq : n11 + (n12 + n2) + 1 = (n11 + n12 + 1 + n2) := by omega
     rw [← n_eq]
-    apply LTS.strN.tr hstr1 htr hsuffix
+    apply LTS.STrN.tr hstr1 htr hsuffix
 
 /-- Saturated transitions can be composed (weighted version). -/
-theorem LTS.strN.comp
+@[grind]
+theorem LTS.STrN.comp
   [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.strN n1 s1 HasTau.τ s2)
-  (h2 : lts.strN n2 s2 μ s3)
-  (h3 : lts.strN n3 s3 HasTau.τ s4) :
-  lts.strN (n1 + n2 + n3) s1 μ s4 := by
+  (h1 : lts.STrN n1 s1 HasTau.τ s2)
+  (h2 : lts.STrN n2 s2 μ s3)
+  (h3 : lts.STrN n3 s3 HasTau.τ s4) :
+  lts.STrN (n1 + n2 + n3) s1 μ s4 := by
   cases h2
   case refl =>
-    apply LTS.strN.trans_τ lts h1 h3
+    apply LTS.STrN.trans_τ lts h1 h3
   case tr n21 sb sb' n22 hstr1 htr hstr2 =>
-    have hprefix_τ := LTS.strN.trans_τ lts h1 hstr1
-    have hprefix := LTS.strN.tr hprefix_τ htr hstr2
-    have conc := LTS.strN.append lts hprefix h3
+    have hprefix_τ := LTS.STrN.trans_τ lts h1 hstr1
+    have hprefix := LTS.STrN.tr hprefix_τ htr hstr2
+    have conc := LTS.STrN.append lts hprefix h3
     grind
 
 /-- Saturated transitions can be composed. -/
+@[grind]
 theorem LTS.STr.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2)
   (h2 : lts.STr s2 μ s3)
   (h3 : lts.STr s3 HasTau.τ s4) :
   lts.STr s1 μ s4 := by
-  obtain ⟨n1, h1N⟩ := (LTS.str_strN lts).1 h1
-  obtain ⟨n2, h2N⟩ := (LTS.str_strN lts).1 h2
-  obtain ⟨n3, h3N⟩ := (LTS.str_strN lts).1 h3
-  have concN := LTS.strN.comp lts h1N h2N h3N
-  apply (LTS.str_strN lts).2 ⟨n1 + n2 + n3, concN⟩
+  obtain ⟨n1, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨n2, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
+  have concN := LTS.STrN.comp lts h1N h2N h3N
+  apply (LTS.sTr_sTrN lts).2 ⟨n1 + n2 + n3, concN⟩
+
+@[grind _=_]
+lemma LTS.saturate_tr_sTr [HasTau Label] (lts : LTS State Label) :
+  lts.saturate.Tr s HasTau.τ = lts.STr s HasTau.τ := by simp [LTS.saturate]
+
+/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
+@[grind _=_]
+theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
+  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+  ext s'
+  apply Iff.intro <;> intro h
+  case mp =>
+    induction h
+    case refl => constructor
+    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
+      rw [hμ] at htr
+      apply LTS.STr.single at htr
+      rw [← LTS.saturate_tr_sTr] at htr
+      grind [LTS.STr.tr]
+  case mpr =>
+    induction h
+    case refl => constructor
+    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
+      simp only [LTS.saturate] at ih1 htr ih2
+      simp only [LTS.saturate]
+      grind
+
+/-- In a saturated LTS, every state is in its τ-image. -/
+@[grind]
+theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
+  s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
+
+/-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
+by performing only `τ`-transitions. -/
+@[grind =]
+def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
+  lts.saturate.setImage S HasTau.τ
 
 end Weak
 
