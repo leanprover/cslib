@@ -57,7 +57,7 @@ theorem toDA_mtr_setImageMultistep {nfa : NFA State Symbol} :
 theorem toDA_language_eq {nfa : NFA State Symbol} :
   nfa.toDFA.language = nfa.language := by
   ext xs
-  rw [← DFA.accepts_mem_language, ← NFA.accepts_mem_language]
+  rw [← DFA.accepts_mem_language]
   grind
 
 end SubsetConstruction
