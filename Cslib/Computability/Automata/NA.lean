@@ -17,5 +17,3 @@ type `State → Symbol → Set State`; it gets automatically expanded to the for
 structure NA (State : Type _) (Symbol : Type _) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
-  /-- The set of accepting states of the automaton. -/
-  accept : Set State

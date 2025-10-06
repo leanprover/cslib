@@ -15,6 +15,8 @@ Internally, ε (`Option.none`) is treated as the `τ` label of the underlying tr
 allowing for reusing the definitions and results on saturated transitions of `LTS` to deal with
 ε-closure. -/
 structure εNFA (State : Type _) (Symbol : Type _) extends NA State (Option Symbol) where
+  /-- The set of accepting states of the automaton. -/
+  accept : Set State
   /-- The automaton is finite-state. -/
   finite_state : Finite State
   /-- The type of symbols (also called 'alphabet') is finite. -/

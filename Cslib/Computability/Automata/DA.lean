@@ -13,7 +13,5 @@ A Deterministic Automaton (DA) is an automaton defined by a transition function.
 structure DA (State : Type _) (Symbol : Type _) where
   /-- The initial state of the automaton. -/
   start : State
-  /-- The set of accepting states of the automaton. -/
-  accept : Set State
   /-- The transition function of the automaton. -/
   tr : State → Symbol → State

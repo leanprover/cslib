@@ -21,6 +21,8 @@ a finite string.
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
 set of accepting states `accept`. -/
 structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
+  /-- The set of accepting states of the automaton. -/
+  accept : Set State
   /-- The automaton is finite-state. -/
   finite_state : Finite State
   /-- The type of symbols (also called 'alphabet') is finite. -/

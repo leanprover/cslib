@@ -9,6 +9,8 @@ import Cslib.Computability.Automata.NA
 /-- A Nondeterministic Finite Automaton (NFA) is a nondeterministic automaton (NA)
 over finite sets of states and symbols. -/
 structure NFA (State : Type _) (Symbol : Type _) extends NA State Symbol where
+  /-- The set of accepting states of the automaton. -/
+  accept : Set State
   /-- The automaton is finite-state. -/
   finite_state : Finite State
   /-- The type of symbols (also called 'alphabet') is finite. -/
