@@ -52,7 +52,7 @@ def tickUnit : TimeM Unit :=
   (TimeM.bind m f).ret = (f m.ret).ret := rfl
 
 -- allow us to simplify the chain of compositions
-attribute [simp] Bind.bind Pure.pure
+attribute [simp] Bind.bind Pure.pure TimeM.pure
 
 
 -- Now, we prove the time of `merge` is linear.
@@ -85,25 +85,18 @@ def merge' (xs ys : List ℕ) : TimeM (List ℕ) :=
   go xs ys
 
 
-def mergeSort (xs : List ℕ) : TimeM (List ℕ) :=
-  if xs.length < 2 then .pure xs
+def mergeSort (xs : List ℕ) : TimeM (List ℕ) :=  do
+  if xs.length < 2 then return xs
   else
-    do
     let n := xs.length
+   -- ✓ (), n
     let half := n / 2
     let left :=  xs.take half
     let right := xs.drop half
     let sortedLeft ← mergeSort left
     let sortedRight ← mergeSort right
     merge sortedLeft sortedRight
-termination_by xs.length decreasing_by (
-  · simp only [List.length_take, inf_lt_right, not_le, gt_iff_lt]
-    subst n
-    simp_all only [not_lt]
-    rename_i h
-    exact Nat.log2_terminates xs.length h
-  · grind
-)
+termination_by xs.length decreasing_by all_goals grind
 
 #check mergeSort
 #eval merge [1,2,3,10] [4,5]
@@ -171,15 +164,16 @@ theorem MSMCorrect (xs : List ℕ) : IsSorted (mergeSort xs).ret := by
   (merge xs ys).ret.length = xs.length + ys.length := by
   rw [merge]
   fun_induction merge.go
-  all_goals (
-     simp_all only [length_cons, Bind.bind, tick, ret_bind]
-     grind )
+  all_goals
+  simp_all only [length_cons, Bind.bind, tick, ret_bind]
+  grind
 
 @[simp] theorem mergeSort_same_length (xs : List ℕ) :
   (mergeSort xs).ret.length = xs.length:= by
   fun_induction mergeSort
-  all_goals (simp_all only [pure,not_lt, Bind.bind, ret_bind])
-  grind [merge_ret_length_eq_sum]
+  · simp only [Pure.pure, pure]
+  · simp only [Bind.bind, ret_bind, merge_ret_length_eq_sum]
+    grind
 
 theorem mergeSort_time_recurrence (xs : List ℕ) (h : 2 ≤ xs.length) :
   (mergeSort xs).time = (mergeSort (xs.take (xs.length / 2))).time +
@@ -210,7 +204,8 @@ termination_by x => x decreasing_by all_goals omega
 theorem mergeSort_time_eq_MS_REC (xs : List ℕ) :
   (mergeSort xs).time = MS_REC xs.length := by
   fun_induction mergeSort
-  · simp only [time_of_pure]
+  · simp only [Pure.pure, pure]
+    --simp only [time_of_pure]
     unfold MS_REC
     simp only [Nat.add_one_sub_one]
     grind
