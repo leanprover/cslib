@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
+import Cslib.Foundations.Data.OmegaList.Init
 import Cslib.Foundations.Semantics.LTS.Basic
 
 /-! # Nondeterministic Automaton
@@ -17,3 +18,8 @@ type `State → Symbol → Set State`; it gets automatically expanded to the for
 structure NA (State : Type _) (Symbol : Type _) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
+
+variable {State : Type _} {Symbol : Type _}
+
+def NA.InfRun (na : NA State Symbol) (xs : ωList Symbol) (ss : ωList State) :=
+  ss 0 ∈ na.start ∧ ∀ k, na.Tr (ss k) (xs k) (ss (k + 1))
