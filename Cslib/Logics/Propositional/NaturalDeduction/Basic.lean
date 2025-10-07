@@ -72,7 +72,7 @@ open Proposition
 /-- Contexts are finsets of propositions. -/
 abbrev Ctx (Atom) := Finset (Proposition Atom)
 
-/-- Theories are abitrary sets of propositions. -/
+/-- Theories are arbitrary sets of propositions. -/
 abbrev Theory (Atom) := Set (Proposition Atom)
 
 abbrev Theory.empty (Atom) : Theory (Atom) := ∅
