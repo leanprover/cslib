@@ -90,12 +90,12 @@ instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory 
   coe := Theory.map
   coe_injective' f f' h := by
     ext x
-    have : Theory.map f {(Proposition.atom x)} = Theory.map f' {(Proposition.atom x)} :=
-      congrFun h {(Proposition.atom x)}
+    have : Theory.map f {Proposition.atom x} = Theory.map f' {Proposition.atom x} :=
+      congrFun h {Proposition.atom x}
     simpa [Theory.map, Proposition.map] using this
 
 /-- The base theory is minimal propositional logic. -/
-abbrev MPL (Atom) : Theory (Atom) := ∅
+abbrev MPL : Theory (Atom) := ∅
 
 /-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
 abbrev IPL [Bot Atom] : Theory Atom :=
