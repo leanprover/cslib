@@ -1,0 +1,19 @@
+name: "Run TODO to Issue"
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    permissions:
+      issues: write
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: "TODO to Issue"
+        uses: "alstr/todo-to-issue-action@v5"
+        with:
+          LANGUAGES: ".github/todo-to-issue-lean.json"
+          AUTO_P: "False"
+          ESCAPE: "False"
+          ISSUE_TEMPLATE: "{{ body }}\n\n{{ url }}"
