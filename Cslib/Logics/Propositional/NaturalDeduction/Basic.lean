@@ -6,6 +6,7 @@ Authors: Thomas Waring
 import Cslib.Logics.Propositional.Defs
 import Mathlib.Data.Finset.Insert
 import Mathlib.Data.Finset.SDiff
+import Mathlib.Data.Finset.Image
 
 /-! # Natural deduction for propositional logic -/
 
@@ -20,6 +21,9 @@ variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
 
 /-- Contexts are finsets of propositions. -/
 abbrev Ctx (Atom) := Finset (Proposition Atom)
+
+def Ctx.map {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom'] (f : Atom → Atom') :
+    Ctx Atom → Ctx Atom' := Finset.image (Proposition.map f)
 
 /-- Sequents {A₁, ..., Aₙ} ⊢ B. -/
 abbrev Sequent (Atom) := Ctx Atom × Proposition Atom
@@ -103,6 +107,8 @@ scoped infix:29 " ≡ " => Equiv
 
 open Derivation
 
+/-! ### Operations on derivations -/
+
 /-- Weakening is a derived rule. -/
 def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
     (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ) : T.Derivation ⟨Γ, A⟩ → T'.Derivation ⟨Δ, A⟩
@@ -146,11 +152,8 @@ theorem Theory.SDerivable.weak_ctx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Pro
   | ⟨D⟩ => ⟨D.weak_ctx hCtx⟩
 
 /--
-Implement the cut rule, removing a hypothesis `A` from `E` using a derivation `D`.
-
-TODO: this is *not* substitution, which would replace appeals to `A` in `E` by the whole derivation
-`D`. That would be needed for reductions on derivations with detours (such as the one constructed
-here).
+Implement the cut rule, removing a hypothesis `A` from `E` using a derivation `D`. This is *not*
+substitution, which would replace appeals to `A` in `E` by the whole derivation `D`.
 -/
 def Theory.Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : T.Derivation ⟨Γ, A⟩) (E : T.Derivation ⟨insert A Δ, B⟩) : T.Derivation ⟨Γ ∪ Δ, B⟩ := by
@@ -177,52 +180,77 @@ theorem Theory.SDerivable.cut_away {Γ Δ : Ctx Atom} {B : Proposition Atom}
       · exact hΔ A <| Finset.mem_insert_self A Δ
       · rwa [← Finset.union_insert A Γ Δ]
 
-/-! ### Operations on theories
+/-- Substitution of a derivation `D` for one of the hypotheses in the context `Δ` of `E`. -/
+def Theory.Derivation.subs {Γ Δ : Ctx Atom} {A B : Proposition Atom}
+    (D : T.Derivation ⟨Γ, A⟩) (E : T.Derivation ⟨Δ, B⟩) : T.Derivation ⟨Γ ∪ (Δ \ {A}), B⟩ := by
+  match E with
+  | ax hB => exact ax hB
+  | ass hB =>
+    by_cases A = B
+    case pos h =>
+      rw [←h]
+      apply D.weak_ctx (Δ := Γ ∪ (Δ \ {A})) <| by grind
+    case neg h =>
+      exact ass <| by grind
+  | conjI E E' => exact conjI (D.subs E) (D.subs E')
+  | conjE₁ E => exact conjE₁ <| D.subs E
+  | conjE₂ E => exact conjE₂ <| D.subs E
+  | disjI₁ E => exact disjI₁ <| D.subs E
+  | disjI₂ E => exact disjI₂ <| D.subs E
+  | @disjE _ _ _ _ C C' _ E E' E'' .. =>
+    apply disjE (D.subs E)
+    · by_cases C = A
+      case pos h =>
+        rw [h] at E' ⊢
+        exact E'.weak_ctx <| by grind
+      case neg h =>
+        have : insert C (Γ ∪ (Δ \ {A})) = Γ ∪ (insert C Δ \ {A}) := by grind
+        rw [this]
+        exact D.subs E'
+    · by_cases C' = A
+      case pos h =>
+        rw [h] at E'' ⊢
+        exact E''.weak_ctx <| by grind
+      case neg h =>
+        have : insert C' (Γ ∪ (Δ \ {A})) = Γ ∪ (insert C' Δ \ {A}) := by grind
+        rw [this]
+        exact D.subs E''
+  | @implI _ _ _ A' _ _ E .. =>
+    apply implI
+    by_cases A' = A
+    case pos h =>
+      rw [h] at E ⊢
+      have : insert A (Γ ∪ Δ \ {A}) = Γ ∪ insert A Δ := by grind
+      rw [this]
+      apply E.weak_ctx <| by grind
+    case neg h =>
+      have : insert A' (Γ ∪ Δ \ {A}) = Γ ∪ (insert A' Δ \ {A}) := by grind
+      rw [this]
+      exact D.subs E
+  | implE E E' => exact implE (D.subs E) (D.subs E')
 
-TODO: if we generalised the derivability relation to be a typeclass, these definitions and results
-ought also to generalise.
--/
+/-- Transport a derivation along a map of atoms. -/
+def Theory.Derivation.map {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
+    {T : Theory Atom} (f : Atom → Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
+    T.Derivation ⟨Γ, B⟩ → (T.map f).Derivation ⟨Γ.map f, B.map f⟩
+  | ax h => ax <| Set.mem_image_of_mem (Proposition.map f) h
+  | ass h => ass <| Finset.mem_image_of_mem (Proposition.map f) h
+  | conjI D E => conjI (D.map f) (E.map f)
+  | conjE₁ D => conjE₁ (D.map f)
+  | conjE₂ D => conjE₂ (D.map f)
+  | disjI₁ D => disjI₁ (D.map f)
+  | disjI₂ D => disjI₂ (D.map f)
+  | disjE D E E' => disjE (D.map f)
+    ((Finset.image_insert (Proposition.map f) _ _) ▸ E.map f)
+    ((Finset.image_insert (Proposition.map f) _ _) ▸ E'.map f)
+  | implI _ D => implI _ <| (Finset.image_insert (Proposition.map f) _ _) ▸ (D.map f)
+  | implE D E => implE (D.map f) (E.map f)
 
-/-- A theory `T` is weaker than `T'` if all its axioms are `T'`-derivable. -/
-def Theory.WeakerThan (T T' : Theory Atom) : Prop :=
-  ∀ A ∈ T, T'.PDerivable A
-
-instance instLETheory : LE (Theory Atom) where
-  le := Theory.WeakerThan
-
-/-- Replace appeals to axioms in `T` by `T`-derivations. -/
-noncomputable def Theory.Derivation.mapLE {T T' : Theory Atom} {S : Sequent Atom} (h : T ≤ T') :
-    T.Derivation S → T'.Derivation S
-  | ax hB => Classical.choice (h _ hB) |>.weak_ctx (by grind)
-  | ass hB => ass hB
-  | conjI D E => conjI (D.mapLE h) (E.mapLE h)
-  | conjE₁ D => conjE₁ (D.mapLE h)
-  | conjE₂ D => conjE₂ (D.mapLE h)
-  | disjI₁ D => disjI₁ (D.mapLE h)
-  | disjI₂ D => disjI₂ (D.mapLE h)
-  | disjE D E E' => disjE (D.mapLE h) (E.mapLE h) (E'.mapLE h)
-  | implI _ D => implI _ (D.mapLE h)
-  | implE D E => implE (D.mapLE h) (E.mapLE h)
-
-/-- Proof irrelevant substitution of `T`-axioms. -/
-theorem Theory.Derivable.map_LE {T T' : Theory Atom} {S : Sequent Atom} (h : T ≤ T') :
-    T.SDerivable S → T'.SDerivable S
-  | ⟨D⟩ => ⟨D.mapLE h⟩
-
-/-- `T ≤ T'` is in fact equivalent to the stronger condition in the conclusion of
-`Theory.Derivation.mapLE`. -/
-theorem Theory.LE_iff_map {T T' : Theory Atom} :
-    T ≤ T' ↔ ∀ S : Sequent Atom, T.SDerivable S → T'.SDerivable S := by
-  constructor
-  · intro h _
-    exact Theory.Derivable.map_LE h
-  · intro h A hA
-    exact h ⟨∅, A⟩ ⟨ax hA⟩
-
-instance instPreorderTheory : Preorder (Theory Atom) where
-  lt T T' := T.WeakerThan T' ∧ ¬ T'.WeakerThan T
-  le_refl _ _ h := ⟨ax h⟩
-  le_trans _ _ _ h h' A hA := Theory.Derivable.map_LE h' (h A hA)
+theorem Theory.Derivable.image {Atom' : Type u} [DecidableEq Atom'] {T : Theory Atom}
+    (f : Atom → Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
+    Γ ⊢[T] B → (Γ.map f) ⊢[T.map f] (B.map f) := by
+  intro ⟨D⟩
+  exact ⟨D.map f⟩
 
 /-! ### Properties of equivalence -/
 
@@ -310,5 +338,53 @@ theorem Theory.equiv_equivalence (T : Theory Atom) : Equivalence (T.Equiv (Atom 
 
 protected def Theory.propositionSetoid (T : Theory Atom) : Setoid (Proposition Atom) :=
   ⟨T.Equiv, T.equiv_equivalence⟩
+
+
+/-! ### Operations on theories
+
+TODO: if we generalised the derivability relation to be a typeclass, these definitions and results
+ought also to generalise.
+-/
+
+/-- A theory `T` is weaker than `T'` if all its axioms are `T'`-derivable. -/
+def Theory.WeakerThan (T T' : Theory Atom) : Prop :=
+  ∀ A ∈ T, T'.PDerivable A
+
+instance instLETheory : LE (Theory Atom) where
+  le := Theory.WeakerThan
+
+/-- Replace appeals to axioms in `T` by `T`-derivations. -/
+noncomputable def Theory.Derivation.mapLE {T T' : Theory Atom} {S : Sequent Atom} (h : T ≤ T') :
+    T.Derivation S → T'.Derivation S
+  | ax hB => Classical.choice (h _ hB) |>.weak_ctx (by grind)
+  | ass hB => ass hB
+  | conjI D E => conjI (D.mapLE h) (E.mapLE h)
+  | conjE₁ D => conjE₁ (D.mapLE h)
+  | conjE₂ D => conjE₂ (D.mapLE h)
+  | disjI₁ D => disjI₁ (D.mapLE h)
+  | disjI₂ D => disjI₂ (D.mapLE h)
+  | disjE D E E' => disjE (D.mapLE h) (E.mapLE h) (E'.mapLE h)
+  | implI _ D => implI _ (D.mapLE h)
+  | implE D E => implE (D.mapLE h) (E.mapLE h)
+
+/-- Proof irrelevant substitution of `T`-axioms. -/
+theorem Theory.Derivable.map_LE {T T' : Theory Atom} {S : Sequent Atom} (h : T ≤ T') :
+    T.SDerivable S → T'.SDerivable S
+  | ⟨D⟩ => ⟨D.mapLE h⟩
+
+/-- `T ≤ T'` is in fact equivalent to the stronger condition in the conclusion of
+`Theory.Derivation.mapLE`. -/
+theorem Theory.LE_iff_map {T T' : Theory Atom} :
+    T ≤ T' ↔ ∀ S : Sequent Atom, T.SDerivable S → T'.SDerivable S := by
+  constructor
+  · intro h _
+    exact Theory.Derivable.map_LE h
+  · intro h A hA
+    exact h ⟨∅, A⟩ ⟨ax hA⟩
+
+instance instPreorderTheory : Preorder (Theory Atom) where
+  lt T T' := T.WeakerThan T' ∧ ¬ T'.WeakerThan T
+  le_refl _ _ h := ⟨ax h⟩
+  le_trans _ _ _ h h' A hA := Theory.Derivable.map_LE h' (h A hA)
 
 end PL
