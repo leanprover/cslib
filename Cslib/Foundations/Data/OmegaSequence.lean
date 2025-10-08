@@ -12,6 +12,11 @@ import Mathlib.Data.Nat.Notation
 of function application. -/
 def ωSequence (α : Type _) := ℕ → α
 
+/-
+instance : GetElem (ωSequence α) ℕ α (fun _ _ => True) where
+  getElem s i := fun _ => s i
+-/
+
 namespace ωSequence
 
 /-- Drops the first `n` elements of an ω-sequence. -/
