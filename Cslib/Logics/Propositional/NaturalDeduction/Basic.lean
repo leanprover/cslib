@@ -8,7 +8,45 @@ import Mathlib.Data.Finset.Insert
 import Mathlib.Data.Finset.SDiff
 import Mathlib.Data.Finset.Image
 
-/-! # Natural deduction for propositional logic -/
+/-! # Natural deduction for propositional logic
+
+We define, for minimal logic, deduction trees (a `Type`) and derivability (a `Prop`) relative to a
+`Theory` (set of propositions).
+
+## Main definitions
+
+- `Theory.Derivation` :  natural deduction derivation, done in "sequent style", ie with explicit
+hypotheses at each step. Contexts are `Finset`'s of propositions, which avoids explicit contraction
+and exchange, and the axiom rule derives `{A} ∪ Γ ⊢ A` for any context `Γ`, allowing weakening to
+be a derived rule.
+- `Theory.PDerivable`, `Theory.SDerivable` : a proposition `A` (resp sequent `S`) is derivable if
+it has a derivation.
+- `Theory.equiv` : `Type`-valued equivalence of propositions.
+- `Theory.Equiv` : `Prop`-valued equivalence of propositions.
+- The unconditional versions `Derivable`, `SDerivable` and `Equiv` are abbreviations for the
+relevant concept relative to the empty theory `MPL`.
+- `Theory.WeakerThan` : a theory `T` is weaker than `T'` if every axiom in `T` is `T'`-derivable.
+
+## Main results
+
+- `Derivation.weak` : weakening as a derived rule.
+- `Derivation.cut`, `Derivation.subs` : replace a hypothesis in a derivation — the two versions
+differ in the construction of the relevant derivation.
+- `Theory.equiv_equivalence` : equivalence of propositions is an equivalence relation.
+- `instPreorderTheory` : the relation `Theory.WeakerThan` is a preorder.
+
+## Notation
+
+For `T`-derivability, -sequent-derivability and -equivalence we introduce the notations `⊢[T] A`,
+`Γ ⊢[T] A` and `A ≡[T] B`, respectively. `T.WeakerThan T'` is denoted `T ≤ T'`.
+
+## References
+
+- Dag Prawitz, *Natural Deduction: a proof-theoretical study*.
+- The sequent-style natural deduction I present here doesn't seem to be common, but it is tersely
+presented in §10.4 of Troelstra & van Dalen's *Constructivism in Mathematics: an introduction*.
+(Suggestions of better references welcome!)
+-/
 
 
 universe u
@@ -88,10 +126,10 @@ def Theory.Equiv (A B : Proposition Atom) := Nonempty (T.equiv A B)
 @[inherit_doc]
 scoped notation A " ≡[" T' "] " B:29 => Theory.Equiv (T := T') A B
 
-def Theory.Equiv.mp {A B : Proposition Atom} (h : A ≡[T] B) : {A} ⊢[T] B :=
+lemma Theory.Equiv.mp {A B : Proposition Atom} (h : A ≡[T] B) : {A} ⊢[T] B :=
   let ⟨D,_⟩ := h; ⟨D⟩
 
-def Theory.Equiv.mpr {A B : Proposition Atom} (h : A ≡[T] B) : {B} ⊢[T] A :=
+lemma Theory.Equiv.mpr {A B : Proposition Atom} (h : A ≡[T] B) : {B} ⊢[T] A :=
   let ⟨_,D⟩ := h; ⟨D⟩
 
 theorem Theory.equiv_iff {A B : Proposition Atom} : A ≡[T] B ↔ {A} ⊢[T] B ∧ {B} ⊢[T] A := by
