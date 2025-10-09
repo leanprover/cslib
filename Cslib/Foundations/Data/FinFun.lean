@@ -6,80 +6,79 @@ Authors: Fabrizio Montesi, Xueying Qin
 
 import Mathlib.Data.Finset.Basic
 
-/-! # Finitely-representable Functions
+/-! # Finitely-representable functions
 
 Given types `α` and `β`, and assuming that `β` has a `Zero` element,
 a `FinFun α β` is a function from `α` to `β` with finite support.
 -/
 
-/-- A finite function FinFun is a function `f` with a finite `support`. -/
+/-- A finite function FinFun is a function `f` with a finite `support`.
+
+This is similar to `Finsupp` in Mathlib, but definitions are computable. -/
 structure FinFun (α : Type _) (β : Type _) [Zero β] where
-  f : α → β
+  fn : α → β
   support : Finset α
-  support_complete : ∀ x, x ∉ support ↔ f x = 0
+  support_exact (a : α) : a ∈ support ↔ fn a ≠ 0
 
 namespace FinFun
 
 scoped notation:50 α " →₀ " β => FinFun α β
 
-def fromFun {α β : Type _} [Zero β] [hdec : ∀ x : β, Decidable (x = 0)]
-  (f : α → β) (support : Finset α) : α →₀ β := {
-  f := (fun x => if x ∈ support then f x else 0)
-  support := support.filter (self.f · ≠ 0)
-  support_complete := by
-    intro x
-    constructor
-    case mp =>
-      intro h
+/-- Constructs a `FinFun` from any function and a given support, filtering out all elements not
+mapped to 0 in the support. -/
+def mkRestrictFn {α β : Type _} [Zero β] [DecidableEq α] [hdec : ∀ y : β, Decidable (y = 0)]
+  (fn : α → β) (support : Finset α) : α →₀ β where
+  fn := (fun a => if a ∈ support then fn a else 0)
+  support := support.filter (fn · ≠ 0)
+  support_exact := by grind
 
-      rw [Finset.mem_filter] at h
-      simp only [ne_eq, Finset.mem_filter, not_and, Decidable.not_not] at h
-      specialize h
+scoped notation:50 f "↾" support => FinFun.mkRestrictFn f support
+
+instance [Zero β] : Membership α (α →₀ β) where
+  mem f a := a ∈ f.support
+
+instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
+  coe f := f.fn
+  coe_injective' := by
+    rintro ⟨f1, support1, support_exact1⟩ ⟨f2, support2, support_exact2⟩
+    simp only
+    intro heq
+    simp only [heq, mk.injEq, true_and]
+    ext a
+    grind
+
+@[grind =]
+theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp [DFunLike.coe]
+
+@[grind =]
+theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
+  rcases f with ⟨f, support, support_exact⟩
+  simp [DFunLike.coe]
+
+/-- Extensional equality for `FinFun`. -/
+@[grind ←=]
+theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) :
+  f = g := by
+  apply DFunLike.ext
+  exact h
 
 
-      cases hdec
 
-      case isFalse hdec' =>
-
-}
-
-scoped notation:50 f "↾" support => FinFun.mk f support
-
-abbrev CompleteDom [Zero β] (f : α ⇀ β) := ∀ x, x ∉ f.dom → f.f x = 0
-
-def FinFun.defined (f : α ⇀ β) (x : α) : Prop := x ∈ f.dom
-
-@[simp]
-abbrev FinFun.apply (f : α ⇀ β) (x : α) : β := f.f x
-
-/- Conversion from FinFun to a function. -/
-@[coe] def FinFun.toFun [DecidableEq α] [Zero β] (f : α ⇀ β) : (α → β) :=
-  fun x => if x ∈ f.dom then f.f x else Zero.zero
-
-instance [DecidableEq α] [Zero β] : Coe (α ⇀ β) (α → β) where
-  coe := FinFun.toFun
-
-theorem FinFun.toFun_char [DecidableEq α] [Zero β]
-    {f g : α ⇀ β} (h : (f : α → β) = (g : α → β)) (x) :
-    (x ∈ (f.dom ∩ g.dom) →
-    f.apply x = g.apply x) ∧ (x ∈ (f.dom \ g.dom) →
-    f.apply x = Zero.zero) ∧ (x ∈ (g.dom \ f.dom) → g.apply x = Zero.zero) := by
-  have happlyx : f.toFun x = g.toFun x := by simp [h]
-  grind [FinFun.toFun]
-
-theorem FinFun.toFun_dom [DecidableEq α] [Zero β] {f : α ⇀ β}
-    (h : ∀ x, x ∉ f.dom → f.apply x = Zero.zero) : (f : α → β) = f.f := by
-  grind [FinFun.toFun]
-
-def FinFun.mapBin [DecidableEq α] (f g : α ⇀ β) (op : Option β → Option β → Option β) :
-    Option (α ⇀ β) :=
-  if f.dom = g.dom ∧ ∀ x ∈ f.dom, (op (some (f.f x)) (some (g.f x))).isSome then
+/-
+def mapBin [Zero β] [DecidableEq α] (f g : α →₀ β) (op : Option β → Option β → Option β) :
+    Option (α →₀ β) :=
+  if h : f.support = g.support ∧ ∀ a ∈ f.support, (op (some (f.fn a)) (some (g.fn a))).isSome then
     some {
-      f := fun x =>
-        match op (some (f.f x)) (some (g.f x)) with
+      fn := fun a =>
+        match op (some (f.fn a)) (some (g.fn a)) with
           | some y => y
-          | none => f.f x
-      dom := f.dom
+          | none => f.fn a
+      support := f.support
+      support_exact := by
+        intro a
+        obtain ⟨h1, h2⟩ := h
+        specialize h2 a
+
     }
   else
     none
@@ -102,34 +101,18 @@ theorem FinFun.mapBin_char₂ [DecidableEq α] (f g : α ⇀ β)
     (hop : ∀ x ∈ f.dom, (op (some (f.f x)) (some (g.f x))).isSome)
     : (FinFun.mapBin f g op).isSome := by grind [mapBin]
 
--- Fun to FinFun
-def Function.toFinFun [DecidableEq α] (f : α → β) (dom : Finset α) : α ⇀ β := FinFun.mk f dom
+-/
 
-lemma Function.toFinFun_eq [DecidableEq α] [Zero β] (f : α → β) (dom : Finset α)
-    (h : ∀ x, x ∉ dom → f x = 0) : f = (Function.toFinFun f dom) := by
-  funext p
-  by_cases hp : p ∈ dom <;> simp only [toFinFun, FinFun.toFun, hp, reduceIte]
-  exact h p hp
-
-@[coe] def FinFun.toDomFun (f : α ⇀ β) : {x // x ∈ f.dom} → β :=
-  fun x => f.f x
-
-theorem FinFun.toDomFun_char (f : α ⇀ β) (h : x ∈ f.dom) : f.toDomFun ⟨ x, h ⟩ = f.f x := by
-  simp [FinFun.toDomFun]
-
-theorem FinFun.congrFinFun [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) (a : α) :
-    f.apply a = g.apply a := congrFun (congrArg apply h) a
-
-theorem FinFun.eq_char₁ [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) :
-    f.f = g.f ∧ f.dom = g.dom := ⟨congrArg FinFun.f h, congrArg dom h⟩
-
-theorem FinFun.eq_char₂ [DecidableEq α] [Zero β] {f g : α ⇀ β} (heq : f.f = g.f ∧ f.dom = g.dom) :
-    f = g := by
-  cases f
-  cases g
-  grind
-
-theorem FinFun.eq_char [DecidableEq α] [Zero β] {f g : α ⇀ β} :
-    f = g ↔ f.f = g.f ∧ f.dom = g.dom := by grind [FinFun.eq_char₁, FinFun.eq_char₂]
+/-- Two `FinFun`s are equal if their internal functions and supports are equal. -/
+theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
+  f = g ↔ f.fn = g.fn ∧ f.support = g.support := by
+  apply Iff.intro <;> intro h
+  · grind
+  · obtain ⟨h1, h2⟩ := h
+    apply DFunLike.ext
+    intro x
+    rw [coe_fn]
+    rw [coe_fn]
+    rw [h1]
 
 end FinFun
