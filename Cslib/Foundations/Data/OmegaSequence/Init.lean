@@ -26,7 +26,7 @@ variable (m n : ℕ) (x y : List α) (a b : ωSequence α)
 instance [Inhabited α] : Inhabited (ωSequence α) :=
   ⟨ωSequence.const default⟩
 
-@[simp] protected theorem eta (s : ωSequence α) : head s :: tail s = s :=
+@[simp] protected theorem eta (s : ωSequence α) : head s ::ω tail s = s :=
   funext fun i => by cases i <;> rfl
 
 /-- Alias for `ωSequence.eta` to match `List` API. -/
@@ -37,15 +37,15 @@ protected theorem ext {s₁ s₂ : ωSequence α} : (∀ n, s₁ n = s₂ n) →
   fun h => funext h
 
 @[simp]
-theorem get_zero_cons (a : α) (s : ωSequence α) : (a::s) 0 = a :=
+theorem get_zero_cons (a : α) (s : ωSequence α) : (a ::ω s) 0 = a :=
   rfl
 
 @[simp]
-theorem head_cons (a : α) (s : ωSequence α) : head (a::s) = a :=
+theorem head_cons (a : α) (s : ωSequence α) : head (a ::ω s) = a :=
   rfl
 
 @[simp]
-theorem tail_cons (a : α) (s : ωSequence α) : tail (a::s) = s :=
+theorem tail_cons (a : α) (s : ωSequence α) : tail (a ::ω s) = s :=
   rfl
 
 @[simp]
@@ -73,13 +73,13 @@ theorem get_succ (n : ℕ) (s : ωSequence α) : s (succ n) = (tail s) n :=
   rfl
 
 @[simp]
-theorem get_succ_cons (n : ℕ) (s : ωSequence α) (x : α) : (x :: s) n.succ = s n :=
+theorem get_succ_cons (n : ℕ) (s : ωSequence α) (x : α) : (x ::ω s) n.succ = s n :=
   rfl
 
 @[simp] lemma get_cons_append_zero {a : α} {x : List α} {s : ωSequence α} :
     (a :: x ++ω s) 0 = a := rfl
 
-@[simp] lemma append_eq_cons {a : α} {as : ωSequence α} : [a] ++ω as = a :: as := rfl
+@[simp] lemma append_eq_cons {a : α} {as : ωSequence α} : [a] ++ω as = a ::ω as := rfl
 
 @[simp] theorem drop_zero {s : ωSequence α} : s.drop 0 = s := rfl
 
@@ -99,35 +99,6 @@ theorem cons_injective_left (s : ωSequence α) : Function.Injective fun x => co
 theorem cons_injective_right (x : α) : Function.Injective (cons x) :=
   cons_injective2.right _
 
-theorem all_def (p : α → Prop) (s : ωSequence α) : All p s = ∀ n, p (s n) :=
-  rfl
-
-theorem any_def (p : α → Prop) (s : ωSequence α) : Any p s = ∃ n, p (s n) :=
-  rfl
-
-@[simp]
-theorem mem_cons (a : α) (s : ωSequence α) : a ∈ a::s :=
-  Exists.intro 0 rfl
-
-theorem mem_cons_of_mem {a : α} {s : ωSequence α} (b : α) : a ∈ s → a ∈ b::s := fun ⟨n, h⟩ =>
-  Exists.intro (succ n) (by rw [get_succ n (b :: s), tail_cons, h])
-
-theorem eq_or_mem_of_mem_cons {a b : α} {s : ωSequence α} : (a ∈ b::s) → a = b ∨ a ∈ s :=
-    fun ⟨n, h⟩ => by
-  rcases n with - | n'
-  · left
-    exact h
-  · right
-    rw [get_succ n' (b :: s), tail_cons] at h
-    exact ⟨n', h⟩
-
-theorem mem_of_get_eq {n : ℕ} {s : ωSequence α} {a : α} : a = s n → a ∈ s := fun h =>
-  Exists.intro n h
-
-theorem mem_iff_exists_get_eq {s : ωSequence α} {a : α} : a ∈ s ↔ ∃ n, a = s n where
-  mp := by simp [Membership.mem, any_def]
-  mpr h := mem_of_get_eq h.choose_spec
-
 section Map
 
 variable (f : α → β)
@@ -145,11 +116,11 @@ theorem tail_map (s : ωSequence α) : tail (map f s) = map f (tail s) := rfl
 theorem head_map (s : ωSequence α) : head (map f s) = f (head s) :=
   rfl
 
-theorem map_eq (s : ωSequence α) : map f s = f (head s)::map f (tail s) := by
+theorem map_eq (s : ωSequence α) : map f s = f (head s) ::ω map f (tail s) := by
   rw [← ωSequence.eta (map f s), tail_map, head_map]
 
-theorem map_cons (a : α) (s : ωSequence α) : map f (a::s) = f a::map f s := by
-  rw [← ωSequence.eta (map f (a::s)), map_eq]; rfl
+theorem map_cons (a : α) (s : ωSequence α) : map f (a ::ω s) = f a ::ω map f s := by
+  rw [← ωSequence.eta (map f (a ::ω s)), map_eq]; rfl
 
 @[simp]
 theorem map_id (s : ωSequence α) : map id s = s :=
@@ -162,12 +133,6 @@ theorem map_map (g : β → δ) (f : α → β) (s : ωSequence α) : map g (map
 @[simp]
 theorem map_tail (s : ωSequence α) : map f (tail s) = tail (map f s) :=
   rfl
-
-theorem mem_map {a : α} {s : ωSequence α} : a ∈ s → f a ∈ map f s := fun ⟨n, h⟩ =>
-  Exists.intro n (by rw [get_map, h])
-
-theorem exists_of_mem_map {f} {b : β} {s : ωSequence α} : b ∈ map f s → ∃ a, a ∈ s ∧ f a = b :=
-  fun ⟨n, h⟩ => ⟨s n, ⟨n, rfl⟩, h.symm⟩
 
 end Map
 
@@ -193,29 +158,18 @@ theorem tail_zip (s₁ : ωSequence α) (s₂ : ωSequence β) :
   rfl
 
 theorem zip_eq (s₁ : ωSequence α) (s₂ : ωSequence β) :
-    zip f s₁ s₂ = f (head s₁) (head s₂)::zip f (tail s₁) (tail s₂) := by
+    zip f s₁ s₂ = f (head s₁) (head s₂) ::ω zip f (tail s₁) (tail s₂) := by
   rw [← ωSequence.eta (zip f s₁ s₂)]; rfl
-
-@[simp]
-theorem get_enum (s : ωSequence α) (n : ℕ) : (enum s) n = (n, s n) :=
-  rfl
-
-theorem enum_eq_zip (s : ωSequence α) : enum s = zip Prod.mk nats s :=
-  rfl
 
 end Zip
 
-@[simp]
-theorem mem_const (a : α) : a ∈ const a :=
-  Exists.intro 0 rfl
-
-theorem const_eq (a : α) : const a = a::const a := by
+theorem const_eq (a : α) : const a = a ::ω const a := by
   apply ωSequence.ext; intro n
   cases n <;> rfl
 
 @[simp]
 theorem tail_const (a : α) : tail (const a) = const a :=
-  suffices tail (a::const a) = const a by rwa [← const_eq] at this
+  suffices tail (a ::ω const a) = const a by rwa [← const_eq] at this
   rfl
 
 @[simp]
@@ -244,7 +198,7 @@ theorem tail_iterate (f : α → α) (a : α) : tail (iterate f a) = iterate f (
   | zero => rfl
   | succ n ih => rw [get_succ_iterate', ih, get_succ_iterate']
 
-theorem iterate_eq (f : α → α) (a : α) : iterate f a = a::iterate f (f a) := by
+theorem iterate_eq (f : α → α) (a : α) : iterate f a = a ::ω iterate f (f a) := by
   rw [← ωSequence.eta (iterate f a)]
   rw [tail_iterate]; rfl
 
@@ -319,132 +273,11 @@ theorem map_iterate (f : α → α) (a : α) : iterate f (f a) = map f (iterate 
     rw [map] at ih
     simp [ih]
 
-section Corec
-
-theorem corec_def (f : α → β) (g : α → α) (a : α) : corec f g a = map f (iterate g a) :=
-  rfl
-
-theorem corec_eq (f : α → β) (g : α → α) (a : α) : corec f g a = f a :: corec f g (g a) := by
-  rw [corec_def, map_eq, head_iterate, tail_iterate]; rfl
-
-theorem corec_id_id_eq_const (a : α) : corec id id a = const a := by
-  rw [corec_def, map_id, iterate_id]
-
-theorem corec_id_f_eq_iterate (f : α → α) (a : α) : corec id f a = iterate f a :=
-  rfl
-
-end Corec
-
-section Corec'
-
-theorem corec'_eq (f : α → β × α) (a : α) : corec' f a = (f a).1 :: corec' f (f a).2 :=
-  corec_eq _ _ _
-
-end Corec'
-
-theorem unfolds_eq (g : α → β) (f : α → α) (a : α) : unfolds g f a = g a :: unfolds g f (f a) := by
-  unfold unfolds; rw [corec_eq]
-
-theorem get_unfolds_head_tail (n : ℕ) (s : ωSequence α) : (unfolds head tail s) n = s n := by
-  induction n generalizing s with
-  | zero => rfl
-  | succ n ih => rw [get_succ n (unfolds head tail s), get_succ n s, unfolds_eq, tail_cons, ih]
-
-theorem unfolds_head_eq : ∀ s : ωSequence α, unfolds head tail s = s := fun s =>
-  ωSequence.ext fun n => get_unfolds_head_tail n s
-
-theorem interleave_eq (s₁ s₂ : ωSequence α) : s₁ ⋈ s₂ = head s₁::head s₂::(tail s₁ ⋈ tail s₂) := by
-  let t := tail s₁ ⋈ tail s₂
-  change s₁ ⋈ s₂ = head s₁::head s₂::t
-  unfold interleave; unfold corecOn; rw [corec_eq]; dsimp; rw [corec_eq]; rfl
-
-theorem tail_interleave (s₁ s₂ : ωSequence α) : tail (s₁ ⋈ s₂) = s₂ ⋈ tail s₁ := by
-  unfold interleave corecOn; rw [corec_eq]; rfl
-
-theorem interleave_tail_tail (s₁ s₂ : ωSequence α) : tail s₁ ⋈ tail s₂ = tail (tail (s₁ ⋈ s₂)) := by
-  rw [interleave_eq s₁ s₂]; rfl
-
-theorem get_interleave_left : ∀ (n : ℕ) (s₁ s₂ : ωSequence α),
-    (s₁ ⋈ s₂) (2 * n) = s₁ n
-  | 0, _, _ => rfl
-  | n + 1, s₁, s₂ => by
-    change (s₁ ⋈ s₂) (succ (succ (2 * n))) = s₁ (succ n)
-    rw [get_succ (2 * n).succ (s₁ ⋈ s₂), get_succ (2 * n) (s₁ ⋈ s₂).tail,
-      interleave_eq, tail_cons, tail_cons]
-    rw [get_interleave_left n (tail s₁) (tail s₂)]
-    rfl
-
-theorem get_interleave_right : ∀ (n : ℕ) (s₁ s₂ : ωSequence α),
-    (s₁ ⋈ s₂) (2 * n + 1) = s₂ n
-  | 0, _, _ => rfl
-  | n + 1, s₁, s₂ => by
-    change (s₁ ⋈ s₂) (succ (succ (2 * n + 1))) = s₂ (succ n)
-    rw [get_succ (2 * n + 1).succ (s₁ ⋈ s₂), get_succ (2 * n + 1) (s₁ ⋈ s₂).tail,
-      interleave_eq, tail_cons, tail_cons, get_interleave_right n (tail s₁) (tail s₂)]
-    rfl
-
-theorem mem_interleave_left {a : α} {s₁ : ωSequence α} (s₂ : ωSequence α) : a ∈ s₁ → a ∈ s₁ ⋈ s₂ :=
-  fun ⟨n, h⟩ => Exists.intro (2 * n) (by rw [h, get_interleave_left])
-
-theorem mem_interleave_right {a : α} {s₁ : ωSequence α} (s₂ : ωSequence α) : a ∈ s₂ → a ∈ s₁ ⋈ s₂ :=
-  fun ⟨n, h⟩ => Exists.intro (2 * n + 1) (by rw [h, get_interleave_right])
-
-theorem odd_eq (s : ωSequence α) : odd s = even (tail s) :=
-  rfl
-
-@[simp]
-theorem head_even (s : ωSequence α) : head (even s) = head s :=
-  rfl
-
-theorem tail_even (s : ωSequence α) : tail (even s) = even (tail (tail s)) := by
-  unfold even
-  rw [corec_eq]
-  rfl
-
-theorem even_cons_cons (a₁ a₂ : α) (s : ωSequence α) : even (a₁::a₂::s) = a₁::even s := by
-  unfold even
-  rw [corec_eq]; rfl
-
-theorem even_tail (s : ωSequence α) : even (tail s) = odd s :=
-  rfl
-
-theorem even_interleave (s₁ s₂ : ωSequence α) : even (s₁ ⋈ s₂) = s₁ :=
-  eq_of_bisim (fun s₁' s₁ => ∃ s₂, s₁' = even (s₁ ⋈ s₂))
-    (fun s₁' s₁ ⟨s₂, h₁⟩ => by
-      rw [h₁]
-      constructor
-      · rfl
-      · exact ⟨tail s₂, by rw [interleave_eq, even_cons_cons, tail_cons]⟩)
-    (Exists.intro s₂ rfl)
-
-theorem interleave_even_odd (s₁ : ωSequence α) : even s₁ ⋈ odd s₁ = s₁ :=
-  eq_of_bisim (fun s' s => s' = even s ⋈ odd s)
-    (fun s' s (h : s' = even s ⋈ odd s) => by
-      rw [h]; constructor
-      · rfl
-      · simp [odd_eq, odd_eq, tail_interleave, tail_even])
-    rfl
-
-theorem get_even : ∀ (n : ℕ) (s : ωSequence α), (even s) n = s (2 * n)
-  | 0, _ => rfl
-  | succ n, s => by
-    change (even s) (succ n) = s (succ (succ (2 * n)))
-    rw [get_succ n s.even, get_succ (2 * n).succ s, tail_even, get_even n]; rfl
-
-theorem get_odd : ∀ (n : ℕ) (s : ωSequence α), (odd s) n = s (2 * n + 1) := fun n s => by
-  rw [odd_eq, get_even]; rfl
-
-theorem mem_of_mem_even (a : α) (s : ωSequence α) : a ∈ even s → a ∈ s := fun ⟨n, h⟩ =>
-  Exists.intro (2 * n) (by rw [h, get_even])
-
-theorem mem_of_mem_odd (a : α) (s : ωSequence α) : a ∈ odd s → a ∈ s := fun ⟨n, h⟩ =>
-  Exists.intro (2 * n + 1) (by rw [h, get_odd])
-
 @[simp] theorem nil_append_ωSequence (s : ωSequence α) : appendωSequence [] s = s :=
   rfl
 
 theorem cons_append_ωSequence (a : α) (l : List α) (s : ωSequence α) :
-    appendωSequence (a::l) s = a::appendωSequence l s :=
+    appendωSequence (a :: l) s = a ::ω appendωSequence l s :=
   rfl
 
 @[simp] theorem append_append_ωSequence : ∀ (l₁ l₂ : List α) (s : ωSequence α),
@@ -497,18 +330,6 @@ theorem drop_append_ωSequence : ∀ (l : List α) (s : ωSequence α), drop l.l
 theorem append_ωSequence_head_tail (s : ωSequence α) : [head s] ++ω tail s = s := by
   simp
 
-theorem mem_append_ωSequence_right : ∀ {a : α} (l : List α) {s : ωSequence α}, a ∈ s → a ∈ l ++ω s
-  | _, [], _, h => h
-  | a, List.cons _ l, s, h =>
-    have ih : a ∈ l ++ω s := mem_append_ωSequence_right l h
-    mem_cons_of_mem _ ih
-
-theorem mem_append_ωSequence_left : ∀ {a : α} {l : List α} (s : ωSequence α), a ∈ l → a ∈ l ++ω s
-  | _, [], _, h => absurd h List.not_mem_nil
-  | a, List.cons b l, s, h =>
-    Or.elim (List.eq_or_mem_of_mem_cons h) (fun aeqb : a = b => Exists.intro 0 aeqb)
-      fun ainl : a ∈ l => mem_cons_of_mem b (mem_append_ωSequence_left s ainl)
-
 @[simp]
 theorem take_zero (s : ωSequence α) : take 0 s = [] :=
   rfl
@@ -516,11 +337,11 @@ theorem take_zero (s : ωSequence α) : take 0 s = [] :=
 -- This lemma used to be simp, but we removed it from the simp set because:
 -- 1) It duplicates the (often large) `s` term, resulting in large tactic states.
 -- 2) It conflicts with the very useful `dropLast_take` lemma below (causing nonconfluence).
-theorem take_succ (n : ℕ) (s : ωSequence α) : take (succ n) s = head s::take n (tail s) :=
+theorem take_succ (n : ℕ) (s : ωSequence α) : take (succ n) s = head s :: take n (tail s) :=
   rfl
 
 @[simp] theorem take_succ_cons {a : α} (n : ℕ) (s : ωSequence α) :
-    take (n+1) (a::s) = a :: take n s := rfl
+    take (n+1) (a ::ω s) = a :: take n s := rfl
 
 theorem take_succ' {s : ωSequence α} : ∀ n, s.take (n+1) = s.take n ++ [s n]
   | 0 => rfl
@@ -622,107 +443,6 @@ theorem take_theorem (s₁ s₂ : ωSequence α) (h : ∀ n : ℕ, take n s₁ =
     have h₁ : some (s₁ (succ n)) = some (s₂ (succ n)) := by
       rw [← getElem?_take_succ, ← getElem?_take_succ, h (succ (succ n))]
     injection h₁
-
-protected theorem cycle_g_cons (a : α) (a₁ : α) (l₁ : List α) (a₀ : α) (l₀ : List α) :
-    ωSequence.cycleG (a, a₁::l₁, a₀, l₀) = (a₁, l₁, a₀, l₀) :=
-  rfl
-
-theorem cycle_eq : ∀ (l : List α) (h : l ≠ []), cycle l h = l ++ω cycle l h
-  | [], h => absurd rfl h
-  | List.cons a l, _ =>
-    have gen (l' a') : corec ωSequence.cycleF ωSequence.cycleG (a', l', a, l) =
-        (a'::l') ++ω corec ωSequence.cycleF ωSequence.cycleG (a, l, a, l) := by
-      induction l' generalizing a' with
-      | nil => rw [corec_eq]; rfl
-      | cons a₁ l₁ ih => rw [corec_eq, ωSequence.cycle_g_cons, ih a₁]; rfl
-    gen l a
-
-theorem mem_cycle {a : α} {l : List α} : ∀ h : l ≠ [], a ∈ l → a ∈ cycle l h := fun h ainl => by
-  rw [cycle_eq]; exact mem_append_ωSequence_left _ ainl
-
-@[simp]
-theorem cycle_singleton (a : α) : cycle [a] (by simp) = const a :=
-  coinduction rfl fun β fr ch => by rwa [cycle_eq, const_eq]
-
-theorem tails_eq (s : ωSequence α) : tails s = tail s::tails (tail s) := by
-  unfold tails; rw [corec_eq]; rfl
-
-@[simp]
-theorem get_tails (n : ℕ) (s : ωSequence α) : (tails s) n = drop n (tail s) := by
-  induction n generalizing s with
-  | zero => rfl
-  | succ n ih => rw [get_succ n s.tails, drop_succ, tails_eq, tail_cons, ih]
-
-theorem tails_eq_iterate (s : ωSequence α) : tails s = iterate tail (tail s) :=
-  rfl
-
-theorem inits_core_eq (l : List α) (s : ωSequence α) :
-    initsCore l s = l::initsCore (l ++ [head s]) (tail s) := by
-    unfold initsCore corecOn
-    rw [corec_eq]
-
-theorem tail_inits (s : ωSequence α) :
-    tail (inits s) = initsCore [head s, head (tail s)] (tail (tail s)) := by
-    unfold inits
-    rw [inits_core_eq]; rfl
-
-theorem inits_tail (s : ωSequence α) : inits (tail s) = initsCore [head (tail s)] (tail (tail s)) :=
-  rfl
-
-theorem cons_get_inits_core (a : α) (n : ℕ) (l : List α) (s : ωSequence α) :
-    (a :: (initsCore l s) n) = (initsCore (a :: l) s) n := by
-  induction n generalizing l s with
-  | zero => rfl
-  | succ n ih =>
-    rw [get_succ n (initsCore l s), inits_core_eq, tail_cons, ih, inits_core_eq (a :: l) s]
-    rfl
-
-@[simp]
-theorem get_inits (n : ℕ) (s : ωSequence α) : (inits s) n = take (succ n) s := by
-  induction n generalizing s with
-  | zero => rfl
-  | succ n ih =>
-    rw [get_succ n s.inits, take_succ, ← ih, tail_inits, inits_tail, cons_get_inits_core]
-
-theorem inits_eq (s : ωSequence α) :
-    inits s = [head s]::map (List.cons (head s)) (inits (tail s)) := by
-  apply ωSequence.ext; intro n
-  induction' n with n _
-  · rfl
-  · rw [get_inits, get_succ n ([s.head] :: map (List.cons s.head) s.tail.inits),
-      tail_cons, get_map, get_inits]
-    rfl
-
-theorem zip_inits_tails (s : ωSequence α) : zip appendωSequence (inits s) (tails s) = const s := by
-  apply ωSequence.ext; intro n
-  rw [get_zip, get_inits, get_tails, get_const, take_succ, cons_append_ωSequence, append_take_drop,
-    ωSequence.eta]
-
-theorem identity (s : ωSequence α) : pure id ⊛ s = s :=
-  rfl
-
-theorem composition (g : ωSequence (β → δ)) (f : ωSequence (α → β)) (s : ωSequence α) :
-    pure comp ⊛ g ⊛ f ⊛ s = g ⊛ (f ⊛ s) :=
-  rfl
-
-theorem homomorphism (f : α → β) (a : α) : pure f ⊛ pure a = pure (f a) :=
-  rfl
-
-theorem interchange (fs : ωSequence (α → β)) (a : α) :
-    fs ⊛ pure a = (pure fun f : α → β => f a) ⊛ fs :=
-  rfl
-
-theorem map_eq_apply (f : α → β) (s : ωSequence α) : map f s = pure f ⊛ s :=
-  rfl
-
-theorem get_nats (n : ℕ) : nats n = n :=
-  rfl
-
-theorem nats_eq : nats = cons 0 (map succ nats) := by
-  apply ωSequence.ext; intro n
-  induction' n with n _
-  · rfl
-  rw [get_succ n nats] ; rfl
 
 theorem extract_eq_drop_take {xs : ωSequence α} {m n : ℕ} :
     xs.extract m n = take (n - m) (xs.drop m) := by
