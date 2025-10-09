@@ -132,6 +132,7 @@ lemma Theory.Equiv.mp {A B : Proposition Atom} (h : A ≡[T] B) : {A} ⊢[T] B :
 lemma Theory.Equiv.mpr {A B : Proposition Atom} (h : A ≡[T] B) : {B} ⊢[T] A :=
   let ⟨_,D⟩ := h; ⟨D⟩
 
+@[grind]
 theorem Theory.equiv_iff {A B : Proposition Atom} : A ≡[T] B ↔ {A} ⊢[T] B ∧ {B} ⊢[T] A := by
   constructor
   · intro h
@@ -312,7 +313,7 @@ def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B
     (D : T.Derivation ⟨Γ, A⟩) : T.Derivation ⟨Γ, B⟩ :=
   Γ.union_empty ▸ Theory.Derivation.cut (Δ := ∅) D e.1
 
-theorem Theory.equiv_iff_equiv_sDerivable {A B : Proposition Atom} :
+theorem Theory.equiv_iff_equiv_conclusion {A B : Proposition Atom} :
     A ≡[T] B ↔ ∀ Γ : Ctx Atom, Γ ⊢[T] A ↔ Γ ⊢[T] B := by
   constructor
   · intro ⟨D,E⟩ Γ
