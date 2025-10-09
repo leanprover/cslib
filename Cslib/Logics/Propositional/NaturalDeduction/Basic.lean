@@ -353,7 +353,7 @@ def Theory.WeakerThan (T T' : Theory Atom) : Prop :=
 instance instLETheory : LE (Theory Atom) where
   le := Theory.WeakerThan
 
-/-- Replace appeals to axioms in `T` by `T`-derivations. -/
+/-- Replace appeals to axioms in `T` by `T'`-derivations. -/
 noncomputable def Theory.Derivation.mapLE {T T' : Theory Atom} {S : Sequent Atom} (h : T ≤ T') :
     T.Derivation S → T'.Derivation S
   | ax hB => Classical.choice (h _ hB) |>.weak_ctx (by grind)
@@ -386,5 +386,18 @@ instance instPreorderTheory : Preorder (Theory Atom) where
   lt T T' := T.WeakerThan T' ∧ ¬ T'.WeakerThan T
   le_refl _ _ h := ⟨ax h⟩
   le_trans _ _ _ h h' A hA := Theory.Derivable.map_LE h' (h A hA)
+
+/-- An extension `T'` of a theory `T` generalises `Theory.WeakerThan` to allow a change of the
+atomic language. -/
+structure Extension {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom'] (T : Theory Atom)
+    (T' : Theory Atom') where
+  f : Atom → Atom'
+  h : T.map f ≤ T'
+
+/-- An extension of theories is conservative if it doesn't add any new theorems, when restricted
+to the domain language `Atom`. -/
+def IsConservative {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom'] (T : Theory Atom)
+    (T' : Theory Atom') : Extension T T' → Prop
+  | ⟨f, _⟩ => ∀ (A : Proposition Atom), ⊢[T'] (A.map f) → ⊢[T] A
 
 end PL
