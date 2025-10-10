@@ -279,6 +279,11 @@ lemma append_left_injective (h : x ++ω a = y ++ω b) (hl : x.length = y.length)
   intros
   rw [← get_append_left, ← get_append_left, h]
 
+theorem append_left_right_injective (l1 l2 : List α) (s1 s2 : ωSequence α)
+    (h1 : l1 ++ω s1 = l2 ++ω s2) (h2 : l1.length = l2.length) : l1 = l2 ∧ s1 = s2 := by
+  have h3 := append_left_injective l1 l2 s1 s2 h1 h2
+  grind
+
 theorem map_append_ωSequence (f : α → β) :
     ∀ (l : List α) (s : ωSequence α), map f (l ++ω s) = List.map f l ++ω map f s
   | [], _ => rfl
