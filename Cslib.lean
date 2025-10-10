@@ -6,6 +6,7 @@ import Cslib.Computability.Automata.EpsilonNFAToNFA
 import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NFA
 import Cslib.Computability.Automata.NFAToDFA
+import Cslib.Computability.Languages.OmegaLanguage
 import Cslib.Foundations.Control.Monad.Free
 import Cslib.Foundations.Control.Monad.Free.Effects
 import Cslib.Foundations.Control.Monad.Free.Fold
