@@ -110,8 +110,7 @@ class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
   efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
 
 @[grind]
-class IsClassical [Bot Atom] (T : Theory Atom) where
-  efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
+class IsClassical [Bot Atom] (T : Theory Atom) extends IsIntuitionistic T where
   dne (A : Proposition Atom) : (~~A ⟶ A) ∈ T
 
 instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
@@ -122,12 +121,14 @@ instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
   dne A := Set.mem_union_right _ <| Set.mem_range.mpr ⟨A, rfl⟩
 
 omit [DecidableEq Atom] in
+@[grind]
 theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
     (h : T ⊆ T') : IsIntuitionistic T' := by grind
 
 omit [DecidableEq Atom] in
+@[grind]
 theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
-    IsClassical T' := by grind
+    IsClassical T' := by have :_ := instIsIntuitionisticExtention h; grind
 
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]

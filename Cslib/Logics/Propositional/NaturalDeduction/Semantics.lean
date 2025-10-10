@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
-import Mathlib.Order.Heyting.Basic
+import Mathlib.Order.Heyting.Regular
 import Mathlib.Data.Finset.Lattice.Fold
 
 
@@ -71,7 +71,41 @@ scoped notation v' " ⊨ " S => Valuation.SValid v' S
 @[inherit_doc]
 scoped notation v' " ⊨ " T => Valuation.TValid v' T
 
-theorem sound_of_derivation {Γ : Ctx Atom} {B : Proposition Atom} :
+omit [DecidableEq Atom] in
+theorem Valuation.MPL_valid : v ⊨ MPL := by grind
+
+omit [DecidableEq Atom] in
+theorem Valuation.IPL_valid_of_heytingAlgebra [Bot Atom] {H' : Type _} [HeytingAlgebra H']
+    {v : Valuation Atom H'} :
+    v ⊥ = ⊥ → v ⊨ IPL := by
+  intro hv A hA
+  rw [Set.mem_range] at hA
+  replace ⟨A', hA⟩ := hA
+  simp_rw [←hA, PValid, pInterpret, hv]
+  exact bot_himp _
+
+omit [DecidableEq Atom] in
+theorem Valuation.CPL_valid_of_booleanAlgebra [Bot Atom] {H' : Type _} [BooleanAlgebra H']
+    {v : Valuation Atom H'} :
+    v ⊥ = ⊥ → v ⊨ CPL := by
+  intro hv A hA
+  cases hA
+  case inl hA =>
+    rw [Set.mem_range] at hA
+    replace ⟨A', hA⟩ := hA
+    simp [←hA, PValid, pInterpret, hv]
+  case inr hA =>
+    rw [Set.mem_range] at hA
+    replace ⟨A', hA⟩ := hA
+    simp [←hA, PValid, pInterpret, hv]
+
+
+/-! ### Soundness
+
+A derivable sequent is valid in every Heyting algebra.
+-/
+
+theorem Theory.sound_of_derivation {Γ : Ctx Atom} {B : Proposition Atom} :
     T.Derivation ⟨Γ, B⟩ → ∀ {v : Valuation Atom H}, (v ⊨ T) → v ⊨ ⟨Γ, B⟩
   | Theory.Derivation.ax hB, v, _ => by have : v⟦Γ⟧ ≤ ⊤ := iH.le_top _; grind
   | Theory.Derivation.ass hB, _, _ => Finset.inf_le hB
@@ -103,9 +137,168 @@ theorem sound_of_derivation {Γ : Ctx Atom} {B : Proposition Atom} :
     · exact iH.le_inf _ _ _ (sound_of_derivation D hT) (sound_of_derivation E hT)
     · exact himp_inf_le
 
-theorem sound {Γ : Ctx Atom} {B : Proposition Atom} :
+/-- A derivable sequent is valid for every valuation. -/
+protected theorem Theory.sound {Γ : Ctx Atom} {B : Proposition Atom} :
     Γ ⊢[T] B → ∀ {v : Valuation Atom H}, (v ⊨ T) → v ⊨ ⟨Γ, B⟩
   | ⟨D⟩ => sound_of_derivation D
+
+/-! ### Completeness
+
+A sequent is derivable if it valid in every Heyting algebra. In fact, for a sequent ⟨Γ, A⟩, the
+result follows from validity in the Heyting algebra `Proposition Atom` modulo the relation
+`≡[T ∪ Γ]`.
+-/
+
+def Theory.propQuotient (T : Theory Atom) := Quotient T.propositionSetoid
+
+instance Theory.propPO : PartialOrder <| Theory.propQuotient T where
+  le := Quotient.lift₂ (f := fun A B => {A} ⊢[T] B) (by
+    simp_rw [eq_iff_iff]
+    exact Theory.le_wd
+  )
+  le_refl := by
+    apply Quotient.ind
+    intro A
+    simp_rw [Quotient.lift_mk]
+    exact Theory.le_refl
+  le_trans := by
+    apply Quotient.ind₂
+    intro A B
+    apply Quotient.ind
+    intro C
+    simp_rw [Quotient.lift_mk]
+    exact Theory.le_trans
+  le_antisymm := by
+    apply Quotient.ind₂
+    intro A B
+    simp_rw [Quotient.lift_mk, Theory.propositionSetoid, propQuotient, Quotient.eq]
+    exact Theory.le_antisymm
+
+instance Theory.propLattice : Lattice <| Theory.propQuotient T where
+  inf := Quotient.lift₂ (f := fun A B => ⟦A ⋏ B⟧) (by
+    simp only [Quotient.eq, Theory.propositionSetoid, propQuotient]
+    exact Theory.inf_wd
+  )
+  sup := Quotient.lift₂ (f := fun A B => ⟦A ⋎ B⟧) (by
+    simp only [Quotient.eq, Theory.propositionSetoid, propQuotient]
+    exact Theory.sup_wd
+  )
+  inf_le_left := by
+    apply Quotient.ind₂
+    simp only [Quotient.lift_mk, LE.le]
+    intro _ _
+    exact Theory.inf_le_left
+  inf_le_right := by
+    apply Quotient.ind₂
+    simp only [Quotient.lift_mk, LE.le]
+    intro _ _
+    exact Theory.inf_le_right
+  le_inf := by
+    apply Quotient.ind₂
+    intro _ _
+    apply Quotient.ind
+    intro _
+    simp only [Quotient.lift_mk, LE.le]
+    exact Theory.le_inf
+  le_sup_left := by
+    apply Quotient.ind₂
+    simp only [Quotient.lift_mk, LE.le]
+    intro _ _
+    exact Theory.le_sup_left
+  le_sup_right := by
+    apply Quotient.ind₂
+    simp only [Quotient.lift_mk, LE.le]
+    intro _ _
+    exact Theory.le_sup_right
+  sup_le := by
+    apply Quotient.ind₂
+    intro _ _
+    apply Quotient.ind
+    intro _
+    simp only [Quotient.lift_mk, LE.le]
+    exact Theory.sup_le
+
+instance Theory.propGeneralizedHeyting [Inhabited Atom] :
+    GeneralizedHeytingAlgebra <| Theory.propQuotient T where
+  top := ⟦⊤⟧
+  le_top := by
+    apply Quotient.ind
+    simp only [Quotient.lift_mk, LE.le]
+    intro _
+    exact Theory.le_top
+  himp := Quotient.lift₂ (f := fun A B => ⟦A ⟶ B⟧) (by
+    simp only [Theory.propositionSetoid, propQuotient, Quotient.eq]
+    exact Theory.himp_wd
+  )
+  le_himp_iff := by
+    apply Quotient.ind₂
+    intro _ _
+    apply Quotient.ind
+    intro _
+    simp only [Quotient.lift₂_mk, LE.le, min, Lattice.inf]
+    exact Theory.le_himp_iff
+
+instance Theory.propHeyting [Bot Atom] [IsIntuitionistic T] :
+    HeytingAlgebra <| Theory.propQuotient T where
+  bot := ⟦⊥⟧
+  bot_le := by
+    apply Quotient.ind
+    simp only [Quotient.lift_mk, LE.le]
+    intro _
+    exact Theory.bot_le
+  compl := Quotient.lift (f := fun A => ⟦~A⟧) (by
+    simp only [Theory.propositionSetoid, propQuotient, Quotient.eq]
+    exact Theory.compl_wd
+  )
+  himp_bot := by
+    apply Quotient.ind
+    simp [himp]
+
+instance Theory.propBoolean [Bot Atom] [IsClassical T] :
+    BooleanAlgebra <| Theory.propQuotient T := by
+  apply BooleanAlgebra.ofRegular
+  apply Quotient.ind
+  intro _
+  unfold Heyting.IsRegular
+  simp_rw [compl_sup, inf_compl_self, compl_bot, Top.top, propQuotient, max, SemilatticeSup.sup,
+    compl, Quotient.lift_mk, Quotient.eq, Theory.propositionSetoid]
+  exact equivalent_comm <| (Theory.pDerivable_iff_equiv_top _).mp lem
+
+def Theory.canonicalV (T : Theory Atom) : (Valuation Atom <| Theory.propQuotient T) :=
+  fun x => ⟦atom x⟧
+
+theorem canonicalV_spec [Inhabited Atom] (A : Proposition Atom) :
+    (canonicalV T).pInterpret A = ⟦A⟧ := by
+  induction A with
+  | atom _ => simp! [Theory.canonicalV]
+  | conj _ _ ihA ihB => simp! [min, SemilatticeInf.inf, Lattice.inf, ihA, ihB]
+  | disj _ _ ihA ihB => simp! [max, SemilatticeSup.sup, ihA, ihB]
+  | impl _ _ ihA ihB => simp! [himp, ihA, ihB]
+
+theorem Theory.prop_complete [Inhabited Atom] (A : Proposition Atom) (h : (canonicalV T) ⊨ A) :
+    ⊢[T] A := by
+  simp_rw [Valuation.PValid, canonicalV_spec, Top.top, Theory.propQuotient, Quotient.eq] at h
+  have : A ≡[T] ⊤ := by simpa
+  exact (Theory.pDerivable_iff_equiv_top A).mpr this
+
+protected theorem Theory.complete.{u} {Atom : Type u} [DecidableEq Atom] [Inhabited Atom]
+    {T : Theory Atom} (Γ : Ctx Atom) (A : Proposition Atom)
+    (h : ∀ (H : Type u) [GeneralizedHeytingAlgebra H] (v : Valuation Atom H), v ⊨ ⟨Γ, A⟩) :
+    Γ ⊢[T] A := by
+  let H := Theory.propQuotient (T ∪ Γ)
+  suffices (canonicalV (T ∪ Γ))⟦A⟧ = ⊤ by
+    simp_rw [canonicalV_spec, Top.top, Theory.propQuotient, Quotient.eq] at this
+    have : A ≡[T ∪ Γ] ⊤ := by simpa
+    rw [show Γ = ∅ ∪ Γ by grind, Theory.SDerivable.iff_sDerivable_extension]
+    exact (Theory.pDerivable_iff_equiv_top A).mpr this
+  rw [eq_top_iff]
+  trans (canonicalV (T ∪ Γ))⟦Γ⟧
+  · apply Finset.le_inf
+    intro A hA
+    simp_rw [canonicalV_spec, LE.le, Top.top, Quotient.lift_mk]
+    exact ⟨Theory.Derivation.ax <| by grind⟩
+  · exact h H (canonicalV (T ∪ Γ))
+
 
 end NJ
 

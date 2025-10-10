@@ -21,7 +21,7 @@ open Proposition Theory Derivation
 
 variable {Atom : Type _} [DecidableEq Atom] {T : Theory Atom}
 
-theorem Theory.le_wd {A A' B B' : Proposition Atom} (hA : A ≡[T] A') (hB : B ≡[T] B') :
+theorem Theory.le_wd (A B A' B' : Proposition Atom) (hA : A ≡[T] A') (hB : B ≡[T] B') :
     {A} ⊢[T] B ↔ {A'} ⊢[T] B' := by
   trans {A'} ⊢[T] B
   · exact T.equiv_iff_equiv_hypothesis.mp hA ∅ B
@@ -35,7 +35,7 @@ theorem Theory.le_trans {A B C : Proposition Atom} (hAB : {A} ⊢[T] B)
 theorem Theory.le_antisymm {A B : Proposition Atom} (hAB : {A} ⊢[T] B)
     (hBA : {B} ⊢[T] A) : A ≡[T] B := by grind
 
-theorem Theory.inf_wd {A A' B B' : Proposition Atom} :
+theorem Theory.inf_wd (A B A' B' : Proposition Atom) :
     A ≡[T] A' → B ≡[T] B' → (A ⋏ B) ≡[T] (A' ⋏ B')
   | ⟨D,D'⟩, ⟨E,E'⟩ => by
     constructor; constructor
@@ -50,7 +50,7 @@ theorem Theory.inf_wd {A A' B B' : Proposition Atom} :
       · refine Theory.Derivation.cut (Γ := {A' ⋏ B'}) (Δ := ∅) ?_ E'
         exact conjE₂ (A := A') <| ass <| by grind
 
-theorem Theory.sup_wd {A A' B B' : Proposition Atom} :
+theorem Theory.sup_wd (A B A' B' : Proposition Atom) :
     A ≡[T] A' → B ≡[T] B' → (A ⋎ B) ≡[T] (A' ⋎ B')
   | ⟨D,D'⟩, ⟨E,E'⟩ => by
     constructor; constructor
@@ -92,7 +92,7 @@ theorem Theory.le_top [Inhabited Atom] {A : Proposition Atom} : {A} ⊢[T] ⊤ :
 theorem Theory.bot_le [Bot Atom] {A : Proposition Atom} [IsIntuitionistic T] :
     {⊥} ⊢[T] A := ⟨implE (A := ⊥) (ax <| by grind) (ass <| by grind)⟩
 
-theorem Theory.himp_wd {A A' B B' : Proposition Atom} :
+theorem Theory.himp_wd (A B A' B' : Proposition Atom) :
     A ≡[T] A' → B ≡[T] B' → (A ⟶ B) ≡[T] (A' ⟶ B')
   | ⟨eA⟩, ⟨eB⟩ => by
     constructor; constructor
@@ -121,13 +121,21 @@ theorem Theory.le_himp_iff {A B C : Proposition Atom} :
     refine Theory.Derivation.cut (Γ := {B,A}) (Δ := ∅) ?_ D
     apply conjI <;> exact ass <| by grind
 
-/-- Here we refer to the terminology of `Mathlib.Order.Heyting.Regular`. -/
-theorem Theory.regular [Bot Atom] [IsClassical T] {A : Proposition Atom} : A ≡[T] ~~A := by
-  constructor; constructor
-  · apply implI; apply implE (A := A) <;> exact ass <| by grind
-  · apply implE (A := ~~A)
-    · apply ax <| by grind
-    · apply ass <| by grind
+theorem Theory.compl_wd [Bot Atom] (A A' : Proposition Atom) :
+    A ≡[T] A' → (~A) ≡[T] (~A') := (Theory.himp_wd A ⊥ A' ⊥ · (equivalent_refl ⊥))
+
+theorem lem [Bot Atom] [IsClassical T] {A : Proposition Atom} : ⊢[T] (A ⋎ (~A)) := by
+  constructor
+  apply implE (A := ~~(A ⋎ ~A)) (ax <| by grind)
+  apply implI
+  apply implE (A := A ⋎ ~A) (ass <| by grind)
+  apply disjI₂
+  apply implI
+  refine implE (A := A) ?_ (ass <| by grind)
+  apply implI
+  apply implE (A := A ⋎ ~A) (ass <| by grind)
+  apply disjI₁
+  exact ass <| by grind
 
 /-! ### Converting between assumptions and axioms -/
 
