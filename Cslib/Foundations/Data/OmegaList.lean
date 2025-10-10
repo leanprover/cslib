@@ -38,4 +38,7 @@ def get : (as : ωList α) → (i : ℕ) → α
 /-- Translates an ω-list into an ω-sequence. -/
 def toωSequence (as : ωList α) : ωSequence α := as.get
 
+instance : Coe (ωList α) (ωSequence α) where
+  coe as := as.get
+
 end ωList
