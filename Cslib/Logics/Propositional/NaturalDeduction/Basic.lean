@@ -95,9 +95,11 @@ inductive Theory.Derivation : Sequent Atom → Type _ where
       Derivation ⟨Γ, A ⟶ B⟩ → Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩
 
 /-- A sequent is derivable if it has a derivation. -/
+@[reducible]
 def Theory.SDerivable (S : Sequent Atom) := Nonempty (T.Derivation S)
 
 /-- A proposition is derivable if it has a derivation from the empty context. -/
+@[reducible]
 def Theory.PDerivable (A : Proposition Atom) := T.SDerivable ⟨∅, A⟩
 
 @[inherit_doc]
@@ -291,6 +293,101 @@ theorem Theory.Derivable.image {Atom' : Type u} [DecidableEq Atom'] {T : Theory 
   intro ⟨D⟩
   exact ⟨D.map f⟩
 
+def Theory.Derivation.collectAxs {Γ : Ctx Atom} {B : Proposition Atom} :
+    T.Derivation ⟨Γ, B⟩ → Σ Δ : {Δ : Ctx Atom // T ⊇ ↑Δ}, MPL.Derivation ⟨Γ ∪ Δ, B⟩
+  | @ax _ _ _ _ B _ => ⟨⟨{B}, by grind⟩, ass <| by grind⟩
+  | ass _ => ⟨⟨∅, by grind⟩, ass <| by grind⟩
+  | conjI D E =>
+    let ⟨Δ₁, D'⟩ := collectAxs D
+    let ⟨Δ₂, E'⟩ := collectAxs E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, conjI (D'.weak_ctx <| by grind) (E'.weak_ctx <| by grind)⟩
+  | conjE₁ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, conjE₁ D'⟩
+  | conjE₂ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, conjE₂ D'⟩
+  | disjI₁ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, disjI₁ D'⟩
+  | disjI₂ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, disjI₂ D'⟩
+  | disjE D E₁ E₂ =>
+    let ⟨Δ, D'⟩ := collectAxs D
+    let ⟨Δ₁, E₁'⟩ := collectAxs E₁
+    let ⟨Δ₂, E₂'⟩ := collectAxs E₂
+    ⟨⟨Δ ∪ Δ₁ ∪ Δ₂, by grind⟩,
+      disjE (D'.weak_ctx <| by grind) (E₁'.weak_ctx <| by grind) (E₂'.weak_ctx <| by grind)⟩
+  | implI Γ D =>
+    let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, implI (Γ ∪ Δ) (D'.weak_ctx <| by grind)⟩
+  | implE D E =>
+    let ⟨Δ₁, D'⟩ := collectAxs D
+    let ⟨Δ₂, E'⟩ := collectAxs E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, implE (D'.weak_ctx <| by grind) (E'.weak_ctx <| by grind)⟩
+
+theorem Theory.Derivable.collect_axs {Γ : Ctx Atom} {B : Proposition Atom} :
+    Γ ⊢[T] B → ∃ Δ : Ctx Atom, (Γ ∪ Δ) ⊢[MPL] B ∧ T ⊇ Δ
+  | ⟨D⟩ => let ⟨Δ, D'⟩ := Theory.Derivation.collectAxs D; ⟨Δ, ⟨⟨D'⟩, by grind⟩⟩
+
+def Theory.Derivation.axsToAss {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    (T ∪ Δ).Derivation ⟨Γ, B⟩ → T.Derivation ⟨Γ ∪ Δ, B⟩
+  | @ax _ _ _ _ B _ => by
+    by_cases B ∈ Δ
+    case pos => exact ass <| by grind
+    case neg => exact ax <| by grind
+  | ass _ => ass <| by grind
+  | conjI D E => conjI (axsToAss D) (axsToAss E)
+  | conjE₁ D => conjE₁ (axsToAss D)
+  | conjE₂ D => conjE₂ (axsToAss D)
+  | disjI₁ D => disjI₁ (axsToAss D)
+  | disjI₂ D => disjI₂ (axsToAss D)
+  | @disjE _ _ _ _ A' B C D E₁ E₂ => by
+    refine disjE (axsToAss D) ?_ ?_
+    · let E₁' : _ := axsToAss (B := C) E₁
+      rw [Finset.insert_union] at E₁'
+      assumption
+    · let E₂' : _ := axsToAss (B := C) E₂
+      rw [Finset.insert_union] at E₂'
+      assumption
+  | @implI _ _ _ A' B _ D => by
+    let D' : _ := axsToAss (B := B) D
+    rw [Finset.insert_union] at D'
+    exact implI _ D'
+  | implE D E => implE (axsToAss D) (axsToAss E)
+
+theorem Theory.SDerivable.axs_to_ass {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    Γ ⊢[T ∪ Δ] B → (Γ ∪ Δ) ⊢[T] B
+  | ⟨D⟩ => ⟨Theory.Derivation.axsToAss D⟩
+
+private lemma Finset.insert_sdiff_subset {α : Type _} [DecidableEq α] (x : α) (s t : Finset α) :
+    insert x s \ t ⊆ insert x (s \ t) := by grind
+
+private def Theory.Derivation.assToAxs' {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    T.Derivation ⟨Γ, B⟩ → (T ∪ Δ).Derivation ⟨Γ \ Δ, B⟩
+  | @ass _ _ _ _ B _ => by
+    by_cases B ∈ Δ
+    case pos =>
+      exact ax <| by grind
+    case neg =>
+      exact ass <| by grind
+  | ax _ => ax <| by grind
+  | conjI D E => conjI (assToAxs' D) (assToAxs' E)
+  | conjE₁ D => conjE₁ (assToAxs' D)
+  | conjE₂ D => conjE₂ (assToAxs' D)
+  | disjI₁ D => disjI₁ (assToAxs' D)
+  | disjI₂ D => disjI₂ (assToAxs' D)
+  | @disjE _ _ _ _ A' B C D E₁ E₂ =>
+    disjE (assToAxs' D)
+      ((assToAxs' (Δ := Δ) (B := C) E₁).weak_ctx <| Finset.insert_sdiff_subset A' Γ Δ)
+      ((assToAxs' (Δ := Δ) (B := C) E₂).weak_ctx <| Finset.insert_sdiff_subset B Γ Δ)
+  | @implI _ _ _ A' B _ D =>
+    implI _ ((assToAxs' (Δ := Δ) (B := B) D).weak_ctx <| Finset.insert_sdiff_subset A' Γ Δ)
+  | implE D E => implE (assToAxs' D) (assToAxs' E)
+
+def Theory.Derivation.assToAxs {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : T.Derivation ⟨Γ ∪ Δ, B⟩) : (T ∪ Δ).Derivation ⟨Γ, B⟩ := (assToAxs' D).weak_ctx <| by grind
+
+theorem Theory.SDerivable.ass_to_axs {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    (Γ ∪ Δ) ⊢[T] B → Γ ⊢[T ∪ Δ] B
+  | ⟨D⟩ => ⟨Theory.Derivation.assToAxs D⟩
+
+theorem Theory.SDerivable.iff_sDerivable_extension {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    (Γ ∪ Δ) ⊢[T] B ↔ Γ ⊢[T ∪ Δ] B := ⟨Theory.SDerivable.ass_to_axs, Theory.SDerivable.axs_to_ass⟩
+
+
 /-! ### Properties of equivalence -/
 
 def Theory.derivationTop [Inhabited Atom] : T.Derivation ⟨∅, ⊤⟩ :=
@@ -379,11 +476,44 @@ protected def Theory.propositionSetoid (T : Theory Atom) : Setoid (Proposition A
   ⟨T.Equiv, T.equiv_equivalence⟩
 
 
-/-! ### Operations on theories
+/-! ### Operations on and Properties of theories
 
 TODO: if we generalised the derivability relation to be a typeclass, these definitions and results
 ought also to generalise.
 -/
+
+/-- A theory is inconsistent if it proves every proposition. -/
+abbrev Inconsistent (T : Theory Atom) : Prop := ∀ A : Proposition Atom, ⊢[T] A
+
+/-- A theory is consistent if it is not inconsistent. -/
+abbrev Consistent (T : Theory Atom) : Prop := ¬ Inconsistent T
+
+/-- An intuitionistic theory is inconisistent iff it is so in the more familiar way (if it proves
+falsum). -/
+theorem inconsistent_iff [Bot Atom] [IsIntuitionistic T] : Inconsistent T ↔ ⊢[T] ⊥ := by
+  constructor
+  · exact (· ⊥)
+  · intro ⟨D⟩ A
+    exact ⟨Theory.Derivation.implE (A := ⊥) (Theory.Derivation.ax <| by grind) D⟩
+
+/-! The **compactness theorem*: a model is inconsistent iff it has a finite inconsistent
+subtheory. -/
+theorem compactness [Bot Atom] [IsIntuitionistic T] :
+    Inconsistent T ↔
+      ∃ Γ : Ctx Atom, (↑Γ : Theory Atom) ⊆ T ∧ Inconsistent (IPL ∪ ↑Γ : Theory Atom) := by
+  constructor
+  · rw [inconsistent_iff]
+    intro ⟨D⟩
+    let ⟨Γ, D⟩ := Theory.Derivation.collectAxs D
+    refine ⟨Γ, by grind, ?_⟩
+    have : IsIntuitionistic (IPL ∪ (↑Γ : Theory Atom)) := by grind
+    rw [inconsistent_iff]
+    let D' := assToAxs D
+    exact ⟨D'.weak_theory <| by grind⟩
+  · intro ⟨Γ, hT, h⟩
+    have : IsIntuitionistic (IPL ∪ (↑Γ : Theory Atom)) := by grind
+    rw [inconsistent_iff] at h ⊢
+    exact h.weak_theory <| by grind
 
 /-- A theory `T` is weaker than `T'` if all its axioms are `T'`-derivable. -/
 def Theory.WeakerThan (T T' : Theory Atom) : Prop :=

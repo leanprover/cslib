@@ -14,7 +14,7 @@ namespace PL
 
 namespace NJ
 
-open Proposition Theory Derivation
+open Proposition Theory Theory.Derivation
 
 variable {Atom : Type _} [DecidableEq Atom] {T : Theory Atom}
 
@@ -106,40 +106,40 @@ A derivable sequent is valid in every Heyting algebra.
 -/
 
 theorem Theory.sound_of_derivation {Γ : Ctx Atom} {B : Proposition Atom} :
-    T.Derivation ⟨Γ, B⟩ → ∀ {v : Valuation Atom H}, (v ⊨ T) → v ⊨ ⟨Γ, B⟩
+    T.Derivation ⟨Γ, B⟩ → ∀ (v : Valuation Atom H), (v ⊨ T) → v ⊨ ⟨Γ, B⟩
   | Theory.Derivation.ax hB, v, _ => by have : v⟦Γ⟧ ≤ ⊤ := iH.le_top _; grind
   | Theory.Derivation.ass hB, _, _ => Finset.inf_le hB
   | Theory.Derivation.conjI D E, v, hT =>
-    iH.le_inf _ _ _ (sound_of_derivation D hT) (sound_of_derivation E hT)
+    iH.le_inf _ _ _ (sound_of_derivation D v hT) (sound_of_derivation E v hT)
   | Theory.Derivation.conjE₁ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D hT) (iH.inf_le_left _ _)
+    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.inf_le_left _ _)
   | Theory.Derivation.conjE₂ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D hT) (iH.inf_le_right _ _)
+    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.inf_le_right _ _)
   | Theory.Derivation.disjI₁ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D hT) (iH.le_sup_left _ _)
+    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.le_sup_left _ _)
   | Theory.Derivation.disjI₂ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D hT) (iH.le_sup_right _ _)
+    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.le_sup_right _ _)
   | @Theory.Derivation.disjE _ _ _ Γ A B C D E E', v, hT => by
     change v⟦Γ⟧ ≤ v⟦C⟧
     trans v⟦insert A Γ⟧ ⊔ v⟦insert B Γ⟧
     · simp_rw [Valuation.ctxInterpret, Finset.inf_insert, ←inf_sup_right]
       apply iH.le_inf
-      · exact sound_of_derivation D hT
+      · exact sound_of_derivation D v hT
       · rfl
-    · exact iH.sup_le _ _ _ (sound_of_derivation E hT) (sound_of_derivation E' hT)
+    · exact iH.sup_le _ _ _ (sound_of_derivation E v hT) (sound_of_derivation E' v hT)
   | @Theory.Derivation.implI _ _ _ A B _ D, v, hT => by
     refine (iH.le_himp_iff _ _ _).mpr ?_
-    have : v⟦insert A Γ⟧ ≤ v⟦B⟧ := sound_of_derivation D hT
+    have : v⟦insert A Γ⟧ ≤ v⟦B⟧ := sound_of_derivation D v hT
     rwa [Valuation.ctxInterpret, Finset.inf_insert, inf_comm] at this
   | @Theory.Derivation.implE _ _ _ _ A B D E, v, hT => by
     change v⟦Γ⟧ ≤ v⟦B⟧
     trans (v⟦A⟧ ⇨ v⟦B⟧) ⊓ v⟦A⟧
-    · exact iH.le_inf _ _ _ (sound_of_derivation D hT) (sound_of_derivation E hT)
+    · exact iH.le_inf _ _ _ (sound_of_derivation D v hT) (sound_of_derivation E v hT)
     · exact himp_inf_le
 
 /-- A derivable sequent is valid for every valuation. -/
 protected theorem Theory.sound {Γ : Ctx Atom} {B : Proposition Atom} :
-    Γ ⊢[T] B → ∀ {v : Valuation Atom H}, (v ⊨ T) → v ⊨ ⟨Γ, B⟩
+    Γ ⊢[T] B → ∀ (v : Valuation Atom H), (v ⊨ T) → v ⊨ ⟨Γ, B⟩
   | ⟨D⟩ => sound_of_derivation D
 
 /-! ### Completeness
@@ -299,6 +299,31 @@ protected theorem Theory.complete.{u} {Atom : Type u} [DecidableEq Atom] [Inhabi
     exact ⟨Theory.Derivation.ax <| by grind⟩
   · exact h H (canonicalV (T ∪ Γ))
 
+/-! ### Consistency results -/
+
+theorem consistent_of_nontrivial_model {H : Type _} [GeneralizedHeytingAlgebra H]
+    (v : Valuation Atom H) (A : Proposition Atom) (hT : v ⊨ T) (hA : v⟦A⟧ ≠ ⊤) : Consistent T := by
+  intro hc
+  replace hc : v⟦∅⟧ ≤ v⟦A⟧ := (Theory.sound (H := H) <| hc A) v hT
+  simp_rw [Valuation.ctxInterpret, Finset.inf_empty, top_le_iff] at hc
+  exact hA hc
+
+theorem MPL_consistent [Inhabited Atom] : Consistent (Atom := Atom) MPL := by
+  let v : Valuation Atom Prop := fun _ => False
+  apply consistent_of_nontrivial_model v (atom default) v.MPL_valid
+  simp [Valuation.pInterpret, v]
+
+theorem IPL_consistent [Bot Atom] : Consistent (Atom := Atom) IPL := by
+  let v : Valuation Atom Prop := fun _ => False
+  apply consistent_of_nontrivial_model v (atom default)
+  · exact v.IPL_valid_of_heytingAlgebra rfl
+  · simp [Valuation.pInterpret, v]
+
+theorem CPL_consistent [Bot Atom] : Consistent (Atom := Atom) CPL := by
+  let v : Valuation Atom Prop := fun _ => False
+  apply consistent_of_nontrivial_model v (atom default)
+  · exact v.CPL_valid_of_booleanAlgebra rfl
+  · simp [Valuation.pInterpret, v]
 
 end NJ
 

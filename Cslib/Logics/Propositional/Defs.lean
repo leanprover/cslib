@@ -109,9 +109,23 @@ abbrev CPL [Bot Atom] : Theory Atom :=
 class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
   efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
 
+omit [DecidableEq Atom] in
+@[grind]
+theorem isIntuitionisticIff [Bot Atom] (T : Theory Atom) : IsIntuitionistic T ↔ IPL ⊆ T := by grind
+
 @[grind]
 class IsClassical [Bot Atom] (T : Theory Atom) extends IsIntuitionistic T where
   dne (A : Proposition Atom) : (~~A ⟶ A) ∈ T
+
+omit [DecidableEq Atom] in
+@[grind]
+theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by
+  constructor
+  · grind
+  · intro _
+    have : IsIntuitionistic T := by grind
+    refine ⟨?_⟩
+    grind
 
 instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
   efq A := Set.mem_range.mpr ⟨A, rfl⟩
