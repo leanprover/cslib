@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025-present Ching-Tsun Chou All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ching-Tsun Chou
+Authors: Ching-Tsun Chou, Fabrizio Montes
 -/
 import Cslib.Foundations.Data.OmegaSequence.Defs
 import Mathlib.Logic.Function.Basic
@@ -26,15 +26,16 @@ variable (m n : ℕ) (x y : List α) (a b : ωSequence α)
 instance [Inhabited α] : Inhabited (ωSequence α) :=
   ⟨ωSequence.const default⟩
 
-@[simp] protected theorem eta (s : ωSequence α) : head s ::ω tail s = s :=
-  funext fun i => by cases i <;> rfl
+@[simp] protected theorem eta (s : ωSequence α) : head s ::ω tail s = s := by
+  apply DFunLike.ext
+  intro i ; cases i <;> rfl
 
 /-- Alias for `ωSequence.eta` to match `List` API. -/
 alias cons_head_tail := ωSequence.eta
 
 @[ext]
-protected theorem ext {s₁ s₂ : ωSequence α} : (∀ n, s₁ n = s₂ n) → s₁ = s₂ :=
-  fun h => funext h
+protected theorem ext {s₁ s₂ : ωSequence α} : (∀ n, s₁ n = s₂ n) → s₁ = s₂ := by
+  apply DFunLike.ext
 
 @[simp]
 theorem get_zero_cons (a : α) (s : ωSequence α) : (a ::ω s) 0 = a :=
@@ -265,13 +266,11 @@ theorem iterate_id (a : α) : iterate id a = const a :=
   coinduction rfl fun β fr ch => by rw [tail_iterate, tail_const]; exact ch
 
 theorem map_iterate (f : α → α) (a : α) : iterate f (f a) = map f (iterate f a) := by
-  funext n
+  ext n
   induction n with
   | zero => rfl
   | succ n ih =>
-    unfold map iterate
-    rw [map] at ih
-    simp [ih]
+    rw [iterate_def] ; simp ; congr 1
 
 @[simp] theorem nil_append_ωSequence (s : ωSequence α) : appendωSequence [] s = s :=
   rfl

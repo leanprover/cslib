@@ -1,9 +1,11 @@
 /-
 Copyright (c) 2025-present Ching-Tsun Chou All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ching-Tsun Chou
+Authors: Ching-Tsun Chou, Fabrizio Montes
 -/
 import Mathlib.Data.Nat.Notation
+import Mathlib.Data.FunLike.Basic
+
 
 /-!
 # Definition of `ωSequence` and functions on infinite sequences
@@ -22,7 +24,17 @@ universe u v w
 variable {α : Type u} {β : Type v} {δ : Type w}
 
 /-- An `ωSequence α` is an infinite sequence of elements of `α`. -/
-def ωSequence (α : Type u) := ℕ → α
+structure ωSequence (α : Type u) where
+  get : ℕ → α
+
+instance : FunLike (ωSequence α) ℕ α where
+  coe s := s.get
+  coe_injective' := by
+    rintro ⟨get1⟩ ⟨get2⟩
+    grind
+
+instance : Coe (ℕ → α) (ωSequence α) where
+  coe f := ⟨f⟩
 
 namespace ωSequence
 
@@ -59,7 +71,7 @@ def appendωSequence : List α → ωSequence α → ωSequence α
 @[inherit_doc] infixl:65 " ++ω " => appendωSequence
 
 /-- The constant ω-sequence: `ωSequence n (ωSequence.const a) = a`. -/
-def const (a : α) : ωSequence α := fun _ => a
+def const (a : α) : ωSequence α := fun (_ : ℕ) => a
 
 /-- Apply a function `f` to all elements of an ω-sequence `s`. -/
 def map (f : α → β) (s : ωSequence α) : ωSequence β := fun n => f (s n)
@@ -70,8 +82,16 @@ def zip (f : α → β → δ) (s₁ : ωSequence α) (s₂ : ωSequence β) : �
   fun n => f (s₁ n) (s₂ n)
 
 /-- Iterates of a function as an ω-sequence. -/
-def iterate (f : α → α) (a : α) : ωSequence α
+def iterate (f : α → α) (a : α) : ωSequence α := iterate' f a
+where iterate' (f : α → α) (a : α) : ℕ → α
   | 0 => a
-  | n + 1 => f (iterate f a n)
+  | n + 1 => f (iterate' f a n)
+
+theorem iterate_def (f : α → α) (a : α) (n : ℕ) :
+    iterate f a n = match n with
+    | 0 => a
+    | n + 1 => f (iterate f a n) := by
+  unfold iterate
+  cases n <;> simp <;> rfl
 
 end ωSequence
