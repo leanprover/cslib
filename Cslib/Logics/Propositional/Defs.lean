@@ -105,14 +105,27 @@ abbrev IPL [Bot Atom] : Theory Atom :=
 abbrev CPL [Bot Atom] : Theory Atom :=
   IPL ∪ Set.range (fun (A : Proposition Atom) ↦ ~~A ⟶ A)
 
-@[grind]
+@[scoped grind]
 class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
   efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
 
-@[grind]
-class IsClassical [Bot Atom] (T : Theory Atom) where
-  efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
+omit [DecidableEq Atom] in
+@[scoped grind]
+theorem isIntuitionisticIff [Bot Atom] (T : Theory Atom) : IsIntuitionistic T ↔ IPL ⊆ T := by grind
+
+@[scoped grind]
+class IsClassical [Bot Atom] (T : Theory Atom) extends IsIntuitionistic T where
   dne (A : Proposition Atom) : (~~A ⟶ A) ∈ T
+
+omit [DecidableEq Atom] in
+@[scoped grind]
+theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by
+  constructor
+  · grind
+  · intro _
+    have : IsIntuitionistic T := by grind
+    refine ⟨?_⟩
+    grind
 
 instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
   efq A := Set.mem_range.mpr ⟨A, rfl⟩
@@ -122,12 +135,14 @@ instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
   dne A := Set.mem_union_right _ <| Set.mem_range.mpr ⟨A, rfl⟩
 
 omit [DecidableEq Atom] in
+@[scoped grind]
 theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
     (h : T ⊆ T') : IsIntuitionistic T' := by grind
 
 omit [DecidableEq Atom] in
+@[scoped grind]
 theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
-    IsClassical T' := by grind
+    IsClassical T' := by have :_ := instIsIntuitionisticExtention h; grind
 
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]
