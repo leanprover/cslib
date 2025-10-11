@@ -1090,3 +1090,43 @@ theorem SWBisimilarity.eqv [HasTau Label] {lts : LTS State Label} :
   }
 
 end WeakBisimulation
+
+section BranchingBisimulation
+
+/-! ## Branching bisimulation and branching bisimilarity -/
+
+/- This definition should be moved to LTS Basic eventually.-/
+/-- Left-Saturated transition relation. -/
+inductive LTS.LSTr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
+| refl : lts.LSTr s HasTau.τ s
+| tr : lts.LSTr s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.LSTr s1 μ s3
+
+/-- A branching bisimulation is similar to a `WeakBisimulation` in that it allows for a saturation
+of internal transitions, but it is a stronger equivalence in that it is able to distinguish
+when internal work constitutes a choice. -/
+def LTS.IsBranchingBisimulation [HasTau Label] (lts : LTS State Label)
+  (r : State → State → Prop) :=
+  ∀ ⦃s1 s2⦄, r s1 s2 → ∀ μ,
+    /- In case of a transition on the left -/
+    (∀ s1', lts.Tr s1 μ s1' →
+       /- A single tau transition can be mimicked by doing nothing. -/
+       (μ = HasTau.τ ∧ ∃ s2', lts.LSTr s2 HasTau.τ s2' ∧ r s1 s2' ∧ r s1' s2') ∨
+       /- Any transition (including tau's) can be mimicked by first doing a number of
+       tau's while relating to the original state (i.e. not making a choice yet), and
+       upon mimicking the label also relating to the new state. -/
+       ∃ s2' s2'', lts.LSTr s2 HasTau.τ s2' ∧ r s1 s2' ∧ lts.Tr s2' μ s2'' ∧ r s1' s2'')
+    ∧
+    /- The symmetric case of a transition on the right -/
+    (∀ s2', lts.Tr s2 μ s2' →
+       (μ = HasTau.τ ∧ ∃ s1', lts.LSTr s1 HasTau.τ s1' ∧ r s1' s2 ∧ r s1' s2') ∨
+       ∃ s1' s1'', lts.LSTr s1 HasTau.τ s1' ∧ r s1' s2 ∧ lts.Tr s1' μ s1'' ∧ r s1'' s2')
+
+/-- Two states are branching bisimilar if they are related by some branching bisimulation. -/
+def BranchingBisimilarity [HasTau Label] (lts : LTS State Label) : State → State → Prop :=
+  fun s1 s2 =>
+    ∃ r : State → State → Prop, r s1 s2 ∧ lts.IsWeakBisimulation r
+
+/-- Notation for branching bisimilarity. -/
+notation s:max " ≈br[" lts "] " s':max => BranchingBisimilarity lts s s'
+
+end BranchingBisimulation
