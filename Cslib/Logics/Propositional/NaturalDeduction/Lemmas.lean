@@ -5,17 +5,25 @@ Authors: Thomas Waring
 -/
 import Cslib.Logics.Propositional.NaturalDeduction.Basic
 
-/-! # Miscellaneous natural-deduction derivations -/
+/-! # Miscellaneous natural-deduction derivations
 
-/-! ### Partial order, lattice, and Heyting algebra results
+Rather than endeavouring to be exhaustive, we prove results as they are needed for applications.
+
+## Main results
+
+- Order theory: the fact that, modulo equivalence, the order `⊢[T]` and the logical operations give
+a well-defined generalized Heyting algebra structure on the collection of propositions. If `T` is
+intuitionistic, this is a bona-fide Heyting algebra, and if `T` is classical it is a Boolean
+algebra.
+-/
+
+/-! ### Order theoretic results
 
 The following amount to showing that "Propositions modulo equivalence" form a Heyting algebra: that
 the operations are well-defined on equivalence classes, and the validity of the axioms.
 -/
 
 namespace PL
-
-namespace NJ
 
 open Proposition Theory Derivation
 
@@ -136,7 +144,5 @@ theorem lem [Bot Atom] [IsClassical T] {A : Proposition Atom} : ⊢[T] (A ⋎ (~
   apply implE (A := A ⋎ ~A) (ass <| by grind)
   apply disjI₁
   exact ass <| by grind
-
-end NJ
 
 end PL

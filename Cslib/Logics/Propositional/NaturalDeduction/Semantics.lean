@@ -8,12 +8,31 @@ import Mathlib.Order.Heyting.Regular
 import Mathlib.Order.Heyting.Regular
 import Mathlib.Data.Finset.Lattice.Fold
 
+/-! # Heyting algebra semantics
 
-/-! # Heyting algebra semantics -/
+We provide the interpretation of propositional logic in generalized Heyting algebras, and show
+that it is sound and complete for derivability.
+
+## Main definitions
+
+- `Valuation.pInterpret` : given a `v : Valuation := Atom → H` and `[GeneralizedHeytingAlgebra H]`
+extend `v` to a map `Proposition Atom → H`. This is extended to contexts by finite meets.
+- `Valuation.pValid`, `Valuation.sValid`, `Valution.tValid` : `A : Proposition Atom` is valid for
+`v : Valuation Atom H` if `v.pInterpret A = ⊤`. A sequent `⟨Γ, A⟩` is valid if the interpretation of
+`Γ` is `≤` that of `A`. A theory is validation if all of its axioms are.
+
+## Main results
+
+- `Theory.Derivation.sound` : a derivation implies that its final sequent
+is valid, for any valuation.
+- `Theory.complete` : a sequent is derivable iff it is valid in every model.
+
+## References
+
+- Troelstra & van Dalen, *Constructivity in Mathematics*, Chapter 13 section 5.
+-/
 
 namespace PL
-
-namespace NJ
 
 open Proposition Theory Theory.Derivation
 
@@ -106,42 +125,42 @@ theorem Valuation.CPL_valid_of_booleanAlgebra [Bot Atom] {H' : Type _} [BooleanA
 A derivable sequent is valid in every Heyting algebra.
 -/
 
-theorem Theory.sound_of_derivation {Γ : Ctx Atom} {B : Proposition Atom} :
+theorem Theory.Derivation.sound {Γ : Ctx Atom} {B : Proposition Atom} :
     T.Derivation ⟨Γ, B⟩ → ∀ (v : Valuation Atom H), (v ⊨ T) → v ⊨ ⟨Γ, B⟩
-  | Theory.Derivation.ax hB, v, _ => by have : v⟦Γ⟧ ≤ ⊤ := iH.le_top _; grind
-  | Theory.Derivation.ass hB, _, _ => Finset.inf_le hB
-  | Theory.Derivation.conjI D E, v, hT =>
-    iH.le_inf _ _ _ (sound_of_derivation D v hT) (sound_of_derivation E v hT)
-  | Theory.Derivation.conjE₁ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.inf_le_left _ _)
-  | Theory.Derivation.conjE₂ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.inf_le_right _ _)
-  | Theory.Derivation.disjI₁ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.le_sup_left _ _)
-  | Theory.Derivation.disjI₂ D, v, hT =>
-    iH.le_trans _ _ _ (sound_of_derivation D v hT) (iH.le_sup_right _ _)
-  | @Theory.Derivation.disjE _ _ _ Γ A B C D E E', v, hT => by
+  | ax hB, v, _ => by have : v⟦Γ⟧ ≤ ⊤ := iH.le_top _; grind
+  | ass hB, _, _ => Finset.inf_le hB
+  | conjI D E, v, hT =>
+    iH.le_inf _ _ _ (D.sound v hT) (E.sound v hT)
+  | conjE₁ D, v, hT =>
+    iH.le_trans _ _ _ (D.sound v hT) (iH.inf_le_left _ _)
+  | conjE₂ D, v, hT =>
+    iH.le_trans _ _ _ (D.sound v hT) (iH.inf_le_right _ _)
+  | disjI₁ D, v, hT =>
+    iH.le_trans _ _ _ (D.sound v hT) (iH.le_sup_left _ _)
+  | disjI₂ D, v, hT =>
+    iH.le_trans _ _ _ (D.sound v hT) (iH.le_sup_right _ _)
+  | @disjE _ _ _ Γ A B C D E E', v, hT => by
     change v⟦Γ⟧ ≤ v⟦C⟧
     trans v⟦insert A Γ⟧ ⊔ v⟦insert B Γ⟧
     · simp_rw [Valuation.ctxInterpret, Finset.inf_insert, ←inf_sup_right]
       apply iH.le_inf
-      · exact sound_of_derivation D v hT
+      · exact D.sound v hT
       · rfl
-    · exact iH.sup_le _ _ _ (sound_of_derivation E v hT) (sound_of_derivation E' v hT)
-  | @Theory.Derivation.implI _ _ _ A B _ D, v, hT => by
+    · exact iH.sup_le _ _ _ (E.sound v hT) (E'.sound v hT)
+  | @implI _ _ _ A B _ D, v, hT => by
     refine (iH.le_himp_iff _ _ _).mpr ?_
-    have : v⟦insert A Γ⟧ ≤ v⟦B⟧ := sound_of_derivation D v hT
+    have : v⟦insert A Γ⟧ ≤ v⟦B⟧ := D.sound v hT
     rwa [Valuation.ctxInterpret, Finset.inf_insert, inf_comm] at this
-  | @Theory.Derivation.implE _ _ _ _ A B D E, v, hT => by
+  | @implE _ _ _ _ A B D E, v, hT => by
     change v⟦Γ⟧ ≤ v⟦B⟧
     trans (v⟦A⟧ ⇨ v⟦B⟧) ⊓ v⟦A⟧
-    · exact iH.le_inf _ _ _ (sound_of_derivation D v hT) (sound_of_derivation E v hT)
+    · exact iH.le_inf _ _ _ (D.sound v hT) (E.sound v hT)
     · exact himp_inf_le
 
 /-- A derivable sequent is valid for every valuation. -/
-protected theorem Theory.sound {Γ : Ctx Atom} {B : Proposition Atom} :
+protected theorem Theory.SDerivable.sound {Γ : Ctx Atom} {B : Proposition Atom} :
     Γ ⊢[T] B → ∀ (v : Valuation Atom H), (v ⊨ T) → v ⊨ ⟨Γ, B⟩
-  | ⟨D⟩ => sound_of_derivation D
+  | ⟨D⟩ => D.sound
 
 /-! ### Completeness
 
@@ -302,10 +321,10 @@ protected theorem Theory.complete.{u} {Atom : Type u} [DecidableEq Atom] [Inhabi
 
 /-! ### Consistency results -/
 
-theorem consistent_of_nontrivial_model {H : Type _} [GeneralizedHeytingAlgebra H]
+theorem Theory.consistent_of_nontrivial_model {H : Type _} [GeneralizedHeytingAlgebra H]
     (v : Valuation Atom H) (A : Proposition Atom) (hT : v ⊨ T) (hA : v⟦A⟧ ≠ ⊤) : Consistent T := by
   intro hc
-  replace hc : v⟦∅⟧ ≤ v⟦A⟧ := (Theory.sound (H := H) <| hc A) v hT
+  replace hc : v⟦∅⟧ ≤ v⟦A⟧ := (Theory.SDerivable.sound (H := H) <| hc A) v hT
   simp_rw [Valuation.ctxInterpret, Finset.inf_empty, top_le_iff] at hc
   exact hA hc
 
@@ -325,7 +344,5 @@ theorem CPL_consistent [Bot Atom] : Consistent (Atom := Atom) CPL := by
   apply consistent_of_nontrivial_model v (atom default)
   · exact v.CPL_valid_of_booleanAlgebra rfl
   · simp [Valuation.pInterpret, v]
-
-end NJ
 
 end PL
