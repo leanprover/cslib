@@ -42,11 +42,18 @@ we prove to be sound and complete.
 - `SWBisimilarity lts` is the binary relation on the states of `lts` that relates any two states
 related by some sw-bisimulation on `lts`.
 
+- `lts.IsBranchingBisimulation r`: the relation `r` on the states of the LTS `lts` is a branching
+bisimulation.
+- `BranchingBisimilarity lts` is the binary relation on the states of `lts` that relates any two
+states related by some branching bisimulation on `lts`.
+
+
 ## Notations
 
 - `s1 ~[lts] s2`: the states `s1` and `s2` are bisimilar in the LTS `lts`.
 - `s1 ≈[lts] s2`: the states `s1` and `s2` are weakly bisimilar in the LTS `lts`.
 - `s1 ≈sw[lts] s2`: the states `s1` and `s2` are sw bisimilar in the LTS `lts`.
+- `s1 ≈br[lts] s2`: the states `s1` and `s2` are branching bisimilar in the LTS `lts`.
 
 ## Main statements
 
@@ -1094,12 +1101,6 @@ end WeakBisimulation
 section BranchingBisimulation
 
 /-! ## Branching bisimulation and branching bisimilarity -/
-
-/- This definition should be moved to LTS Basic eventually.-/
-/-- Left-Saturated transition relation. -/
-inductive LTS.LSTr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
-| refl : lts.LSTr s HasTau.τ s
-| tr : lts.LSTr s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.LSTr s1 μ s3
 
 /-- A branching bisimulation is similar to a `WeakBisimulation` in that it allows for a saturation
 of internal transitions, but it is a stronger equivalence in that it is able to distinguish
