@@ -5,6 +5,7 @@ Authors: Ching-Tsun Chou, Fabrizio Montes
 -/
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.FunLike.Basic
+import Mathlib.Logic.Function.Iterate
 
 
 /-!
@@ -28,10 +29,8 @@ structure ωSequence (α : Type u) where
   get : ℕ → α
 
 instance : FunLike (ωSequence α) ℕ α where
-  coe s := s.get
-  coe_injective' := by
-    rintro ⟨get1⟩ ⟨get2⟩
-    grind
+  coe := ωSequence.get
+  coe_injective' := by grind [ωSequence, Function.Injective]
 
 instance : Coe (ℕ → α) (ωSequence α) where
   coe f := ⟨f⟩
@@ -82,16 +81,6 @@ def zip (f : α → β → δ) (s₁ : ωSequence α) (s₂ : ωSequence β) : �
   fun n => f (s₁ n) (s₂ n)
 
 /-- Iterates of a function as an ω-sequence. -/
-def iterate (f : α → α) (a : α) : ωSequence α := iterate' f a
-where iterate' (f : α → α) (a : α) : ℕ → α
-  | 0 => a
-  | n + 1 => f (iterate' f a n)
-
-theorem iterate_def (f : α → α) (a : α) (n : ℕ) :
-    iterate f a n = match n with
-    | 0 => a
-    | n + 1 => f (iterate f a n) := by
-  unfold iterate
-  cases n <;> simp <;> rfl
+def iterate (f : α → α) (a : α) : ωSequence α := fun n => f^[n] a
 
 end ωSequence

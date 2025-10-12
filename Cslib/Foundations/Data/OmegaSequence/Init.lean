@@ -189,8 +189,14 @@ theorem drop_const (n : ℕ) (a : α) : drop n (const a) = const a :=
 theorem head_iterate (f : α → α) (a : α) : head (iterate f a) = a :=
   rfl
 
+theorem get_iterate (f : α → α) (a : α) (n : ℕ) :
+    iterate f a n = f^[n] a :=
+  rfl
+
 theorem get_succ_iterate' (n : ℕ) (f : α → α) (a : α) :
-    (iterate f a) (succ n) = f ((iterate f a) n) := rfl
+    iterate f a (succ n) = f (iterate f a n) := by
+  rw [get_iterate, succ_eq_add_one, add_comm, Function.iterate_add_apply]
+  rfl
 
 theorem tail_iterate (f : α → α) (a : α) : tail (iterate f a) = iterate f (f a) := by
   ext n
@@ -208,7 +214,8 @@ theorem get_zero_iterate (f : α → α) (a : α) : (iterate f a) 0 = a :=
   rfl
 
 theorem get_succ_iterate (n : ℕ) (f : α → α) (a : α) :
-    (iterate f a) (succ n) = (iterate f (f a)) n := by rw [get_succ n (iterate f a), tail_iterate]
+    iterate f a (succ n) = iterate f (f a) n := by
+  rw [get_succ n (iterate f a), tail_iterate]
 
 section Bisim
 
@@ -266,11 +273,7 @@ theorem iterate_id (a : α) : iterate id a = const a :=
   coinduction rfl fun β fr ch => by rw [tail_iterate, tail_const]; exact ch
 
 theorem map_iterate (f : α → α) (a : α) : iterate f (f a) = map f (iterate f a) := by
-  ext n
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    rw [iterate_def] ; simp ; congr 1
+  ext n ; rw [get_map, ← get_succ_iterate, get_succ_iterate']
 
 @[simp] theorem nil_append_ωSequence (s : ωSequence α) : appendωSequence [] s = s :=
   rfl
@@ -349,7 +352,7 @@ theorem take_succ' {s : ωSequence α} : ∀ n, s.take (n+1) = s.take n ++ [s n]
 @[simp]
 theorem take_one {xs : ωSequence α} :
     xs.take 1 = [xs 0] := by
-  simp only [take_succ, take_zero]
+  simp [take_succ]
 
 @[simp]
 theorem take_one' {xs : ωSequence α} :
@@ -449,82 +452,76 @@ theorem extract_eq_drop_take {xs : ωSequence α} {m n : ℕ} :
 
 theorem extract_eq_ofFn {xs : ωSequence α} {m n : ℕ} :
     xs.extract m n = List.ofFn (fun k : Fin (n - m) ↦ xs (m + k)) := by
-  ext k x ; rcases (show k < n - m ∨ ¬ k < n - m by omega) with h_k | h_k
-    <;> simp (disch := omega) [extract_eq_drop_take, getElem?_take, get_drop]
-    <;> aesop
+  ext k ; cases Decidable.em (k < n - m) <;>
+  grind [extract_eq_drop_take, getElem?_take, get_drop, length_take]
 
 theorem extract_eq_extract {xs xs' : ωSequence α} {m n m' n' : ℕ}
     (h : xs.extract m n = xs'.extract m' n') :
     n - m = n' - m' ∧ ∀ k < n - m, xs (m + k) = xs' (m' + k) := by
   simp only [extract_eq_ofFn, List.ofFn_inj', Sigma.mk.injEq] at h
   obtain ⟨h_eq, h_fun⟩ := h
-  rw [← h_eq] at h_fun ; simp only [heq_eq_eq, funext_iff, Fin.forall_iff] at h_fun
-  simp only [← h_eq, true_and] ; intro k h_k ; simp only [h_fun k h_k]
+  rw [← h_eq] at h_fun
+  simp_all [funext_iff, Fin.forall_iff]
 
 theorem extract_eq_take {xs : ωSequence α} {n : ℕ} :
     xs.extract 0 n = xs.take n := by
-  simp only [extract_eq_drop_take, Nat.sub_zero, drop_zero]
+  simp [extract_eq_drop_take]
 
 theorem append_extract_drop {xs : ωSequence α} {n : ℕ} :
     (xs.extract 0 n) ++ω (xs.drop n) = xs := by
-  simp only [extract_eq_take, append_take_drop]
+  simp [extract_eq_take, append_take_drop]
 
 theorem extract_apppend_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
     (xl ++ω xs).extract m n = xs.extract (m - xl.length) (n - xl.length) := by
-  have h1 : n - xl.length - (m - xl.length) = n - m := by omega
-  simp (disch := omega) only [extract_eq_drop_take, drop_append_of_ge_length, h1]
+  grind [extract_eq_drop_take, drop_append_of_ge_length]
 
 theorem extract_append_zero_right {xl : List α} {xs : ωSequence α} {n : ℕ} (h : xl.length ≤ n) :
     (xl ++ω xs).extract 0 n = xl ++ (xs.extract 0 (n - xl.length)) := by
-  obtain ⟨k, rfl⟩ := show ∃ k, n = xl.length + k by use (n - xl.length) ; omega
-  simp only [extract_eq_take, ← append_take, Nat.add_sub_cancel_left]
+  obtain ⟨k, rfl⟩ : ∃ k, n = xl.length + k := ⟨n - xl.length, by omega⟩
+  simp [extract_eq_take, ← append_take]
 
 theorem extract_drop {xs : ωSequence α} {k m n : ℕ} :
     (xs.drop k).extract m n = xs.extract (k + m) (k + n) := by
-  have h1 : k + n - (k + m) = n - m := by omega
-  simp only [extract_eq_drop_take, drop_drop, h1]
+  grind [extract_eq_drop_take, drop_drop]
 
 theorem length_extract {xs : ωSequence α} {m n : ℕ} :
     (xs.extract m n).length = n - m := by
-  simp only [extract_eq_drop_take, length_take]
+  simp [extract_eq_drop_take]
 
 theorem extract_eq_nil {xs : ωSequence α} {n : ℕ} :
     xs.extract n n = [] := by
-  simp only [extract_eq_drop_take, Nat.sub_self, take_zero]
+  simp [extract_eq_drop_take]
 
 theorem extract_eq_nil_iff {xs : ωSequence α} {m n : ℕ} :
     xs.extract m n = [] ↔ m ≥ n := by
-  simp only [extract_eq_drop_take, ← List.length_eq_zero_iff, length_take, ge_iff_le]
-  omega
+  rw [← List.length_eq_zero_iff]
+  grind [extract_eq_drop_take, length_take]
 
 theorem get_extract {xs : ωSequence α} {m n k : ℕ} (h : k < n - m) :
     (xs.extract m n)[k]'(by simp only [length_extract, h]) = xs (m + k) := by
-  simp only [extract_eq_drop_take, take_get, get_drop]
+  simp [extract_eq_drop_take]
 
 theorem append_extract_extract {xs : ωSequence α} {k m n : ℕ} (h_km : k ≤ m) (h_mn : m ≤ n) :
     (xs.extract k m) ++ (xs.extract m n) = xs.extract k n := by
-  have h1 : n - k = (m - k) + (n - m) := by omega
-  have h2 : k + (m - k) = m := by omega
-  simp only [extract_eq_drop_take, h1, take_add, drop_drop, h2]
+  have : n - k = (m - k) + (n - m) := by grind
+  grind [extract_eq_drop_take, take_add, drop_drop]
 
 theorem extract_succ_right {xs : ωSequence α} {m n : ℕ} (h_mn : m ≤ n) :
     xs.extract m (n + 1) = xs.extract m n ++ [xs n] := by
-  rw [← append_extract_extract h_mn (show n ≤ n + 1 by omega)] ; congr
-  simp only [extract_eq_drop_take, Nat.add_sub_cancel_left, take_one, get_drop, Nat.add_zero]
+  rw [← append_extract_extract h_mn] <;>
+  grind [extract_eq_drop_take, take_one, get_drop, add_tsub_cancel_left]
 
-theorem extract_extract2' {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n - m) :
+theorem extract_lu_extract_lu {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n - m) :
     (xs.extract m n).extract i j = xs.extract (m + i) (m + j) := by
-  ext k x ; rcases (show k < j - i ∨ ¬ k < j - i by omega) with h_k | h_k
-    <;> simp [extract_eq_ofFn, h_k]
-  · simp [(show i + k < n - m by omega), (show k < m + j - (m + i) by omega), Nat.add_assoc]
-  · simp only [(show ¬k < m + j - (m + i) by omega), IsEmpty.forall_iff]
+  ext k
+  cases Decidable.em (k < j - i) <;> grind [extract_eq_ofFn]
 
-theorem extract_extract2 {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
+theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
     (xs.extract 0 n).extract i j = xs.extract i j := by
-  simp only [extract_extract2' (show j ≤ n - 0 by omega), Nat.zero_add]
+  grind [extract_lu_extract_lu]
 
-theorem extract_extract1 {xs : ωSequence α} {n i : ℕ} :
+theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
-  simp only [length_extract, extract_extract2 (show n ≤ n by omega), Nat.sub_zero]
+  grind [extract_0u_extract_lu, length_extract]
 
 end ωSequence
