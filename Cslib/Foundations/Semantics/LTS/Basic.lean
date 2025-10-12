@@ -576,15 +576,6 @@ def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set S
 
 end Weak
 
-section Branching
-
-/-- Left-Saturated transition relation. -/
-inductive LTS.LSTr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
-| refl : lts.LSTr s HasTau.τ s
-| tr : lts.LSTr s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.LSTr s1 μ s3
-
-end Branching
-
 /-! ## Divergence -/
 
 section Divergence
