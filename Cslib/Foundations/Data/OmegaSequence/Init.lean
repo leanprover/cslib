@@ -467,6 +467,7 @@ theorem extract_eq_take {xs : ωSequence α} {n : ℕ} :
     xs.extract 0 n = xs.take n := by
   simp [extract_eq_drop_take]
 
+@[simp]
 theorem append_extract_drop {xs : ωSequence α} {n : ℕ} :
     (xs.extract 0 n) ++ω (xs.drop n) = xs := by
   simp [extract_eq_take, append_take_drop]
@@ -484,21 +485,25 @@ theorem extract_drop {xs : ωSequence α} {k m n : ℕ} :
     (xs.drop k).extract m n = xs.extract (k + m) (k + n) := by
   grind [extract_eq_drop_take, drop_drop]
 
+@[simp]
 theorem length_extract {xs : ωSequence α} {m n : ℕ} :
     (xs.extract m n).length = n - m := by
   simp [extract_eq_drop_take]
 
+@[simp]
 theorem extract_eq_nil {xs : ωSequence α} {n : ℕ} :
     xs.extract n n = [] := by
   simp [extract_eq_drop_take]
 
+@[simp]
 theorem extract_eq_nil_iff {xs : ωSequence α} {m n : ℕ} :
     xs.extract m n = [] ↔ m ≥ n := by
   rw [← List.length_eq_zero_iff]
   grind [extract_eq_drop_take, length_take]
 
+@[simp]
 theorem get_extract {xs : ωSequence α} {m n k : ℕ} (h : k < n - m) :
-    (xs.extract m n)[k]'(by simp only [length_extract, h]) = xs (m + k) := by
+    (xs.extract m n)[k]'(by simp [h]) = xs (m + k) := by
   simp [extract_eq_drop_take]
 
 theorem append_extract_extract {xs : ωSequence α} {k m n : ℕ} (h_km : k ≤ m) (h_mn : m ≤ n) :
@@ -511,15 +516,18 @@ theorem extract_succ_right {xs : ωSequence α} {m n : ℕ} (h_mn : m ≤ n) :
   rw [← append_extract_extract h_mn] <;>
   grind [extract_eq_drop_take, take_one, get_drop, add_tsub_cancel_left]
 
+@[simp]
 theorem extract_lu_extract_lu {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n - m) :
     (xs.extract m n).extract i j = xs.extract (m + i) (m + j) := by
   ext k
   cases Decidable.em (k < j - i) <;> grind [extract_eq_ofFn]
 
+@[simp]
 theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
     (xs.extract 0 n).extract i j = xs.extract i j := by
   grind [extract_lu_extract_lu]
 
+@[simp]
 theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
   grind [extract_0u_extract_lu, length_extract]
