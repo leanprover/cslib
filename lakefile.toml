@@ -6,6 +6,10 @@ testDriver = "CslibTests"
 [leanOptions]
 weak.linter.mathlibStandardSet = true
 weak.linter.flexible = true
+# The next three linters are provided by Mathlib, but don't work here.
+weak.linter.pythonStyle = false
+weak.linter.checkInitImports = false
+weak.linter.allScriptsDocumented = false
 
 [[require]]
 name = "mathlib"
