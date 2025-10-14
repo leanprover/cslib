@@ -307,7 +307,7 @@ theorem runEff_eval_correct (e : Expr) (env : Env) (trace : Trace)
     (res : Except String (Int × Env × Trace))
     (h : EvalRel e env trace res) :
     runEff (eval e) env trace = res := by
-    induction' h
+    induction h
     · case val z env trace =>
       simp [eval, pure_eq_pure, runEff, effPure]
     · case var_found x env trace v h =>
