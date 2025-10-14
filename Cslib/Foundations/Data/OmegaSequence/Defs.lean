@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2025-present Ching-Tsun Chou All rights reserved.
+Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ching-Tsun Chou, Fabrizio Montes
+Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.FunLike.Basic
