@@ -53,46 +53,82 @@ jobs:
         # Update lean-toolchain file
         echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
 
-        # Update lakefile.toml to use git-based mathlib4-nightly-testing (avoids Reservoir)
-        # Handles both: converting name-based to git-based, or updating existing git-based
-        awk -v tag="${NIGHTLY_TESTING_TAG}" '
-          # Start of any TOML table/array - reset require block state
-          /^\[/ {
-            in_require = 0
-            in_mathlib = 0
-            in_mathlib_git = 0
-          }
+        # Update lakefile.toml using Python with proper TOML parsing
+        python3 << 'PYEOF'
+import sys
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+import os
 
-          /^\[\[require\]\]$/ { in_require = 1; print; next }
+# Read the current lakefile.toml
+with open("lakefile.toml", "rb") as f:
+    data = tomllib.load(f)
 
-          # Case 1: Old format with name = "mathlib" - convert to git format
-          in_require && /^name = "mathlib"$/ {
-            in_mathlib = 1
-            print "git = \"https://github.com/leanprover-community/mathlib4-nightly-testing\""
-            next
-          }
+# Find and update the mathlib require block
+nightly_testing_tag = os.environ["NIGHTLY_TESTING_TAG"]
+mathlib_git_url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
 
-          # Case 2: Already git-based format - mark that we found it
-          in_require && /^git = "https:\/\/github\.com\/leanprover-community\/mathlib4-nightly-testing"$/ {
-            in_mathlib_git = 1
-            print
-            next
-          }
+updated = False
+if "require" in data:
+    for req in data["require"]:
+        # Check if this is the mathlib dependency (either name-based or git-based)
+        is_mathlib = (req.get("name") == "mathlib" or
+                     req.get("git") == mathlib_git_url)
 
-          # Skip scope line in old format (only in mathlib block)
-          in_mathlib && /^scope = / { next }
+        if is_mathlib:
+            # Remove name and scope if present (converting from name-based to git-based)
+            req.pop("name", None)
+            req.pop("scope", None)
 
-          # Update rev in mathlib block (either format)
-          (in_mathlib || in_mathlib_git) && /^rev = / {
-            print "rev = \"" tag "\""
-            in_require = 0
-            in_mathlib = 0
-            in_mathlib_git = 0
-            next
-          }
+            # Set git URL and update rev
+            req["git"] = mathlib_git_url
+            req["rev"] = nightly_testing_tag
+            updated = True
+            break
 
-          { print }
-        ' lakefile.toml > lakefile.toml.tmp && mv lakefile.toml.tmp lakefile.toml
+if not updated:
+    print("Error: Could not find mathlib dependency in lakefile.toml", file=sys.stderr)
+    sys.exit(1)
+
+# Write back to lakefile.toml (manual TOML writing to preserve format)
+with open("lakefile.toml", "w") as f:
+    # Write top-level fields
+    for key in ["name", "version", "defaultTargets", "testDriver"]:
+        if key in data:
+            if isinstance(data[key], str):
+                f.write(f'{key} = "{data[key]}"\n')
+            elif isinstance(data[key], list):
+                f.write(f'{key} = {data[key]}\n')
+
+    # Write leanOptions section
+    if "leanOptions" in data:
+        f.write("\n[leanOptions]\n")
+        for key, val in data["leanOptions"].items():
+            if isinstance(val, bool):
+                f.write(f'{key} = {str(val).lower()}\n')
+            else:
+                f.write(f'{key} = "{val}"\n')
+
+    # Write require sections
+    for req in data.get("require", []):
+        f.write("\n[[require]]\n")
+        for key, val in req.items():
+            f.write(f'{key} = "{val}"\n')
+
+    # Write lean_lib sections
+    for lib in data.get("lean_lib", []):
+        f.write("\n[[lean_lib]]\n")
+        for key, val in lib.items():
+            if isinstance(val, str):
+                f.write(f'{key} = "{val}"\n')
+            elif isinstance(val, list):
+                if len(val) == 1:
+                    f.write(f'{key} = "{val[0]}"\n')
+
+print("Successfully updated lakefile.toml")
+PYEOF
 
         # Update dependencies
         lake update
