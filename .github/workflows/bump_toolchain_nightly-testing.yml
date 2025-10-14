@@ -52,10 +52,11 @@ jobs:
       run: |
         # Update lean-toolchain file
         echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
-        
-        # Update the mathlib rev in lakefile.toml to use the nightly-testing tag
+
+        # Update the mathlib name and rev in lakefile.toml to use nightly-testing
+        sed -i "s/name = \"mathlib\"/name = \"mathlib-nightly-testing\"/" lakefile.toml
         sed -i "s/rev = \"[^\"]*\"/rev = \"${NIGHTLY_TESTING_TAG}\"/" lakefile.toml
-        
+
         # Update dependencies
         lake update
 
