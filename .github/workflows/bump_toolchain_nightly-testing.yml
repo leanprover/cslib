@@ -53,6 +53,9 @@ jobs:
         # Update lean-toolchain file
         echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
 
+        # Install tomli for TOML parsing (tomllib is only in Python 3.11+)
+        pip install --quiet tomli
+
         # Update lakefile.toml using Python with proper TOML parsing
         python3 << 'PYEOF'
 import sys
