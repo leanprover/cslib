@@ -9,6 +9,8 @@ import Cslib.Computability.Automata.NFA
 
 /-! # Translation of DFA into NFA -/
 
+namespace Cslib
+
 namespace DFA
 section NFA
 
@@ -61,3 +63,5 @@ theorem toNFA_language_eq {dfa : DFA State Symbol} :
 
 end NFA
 end DFA
+
+end Cslib

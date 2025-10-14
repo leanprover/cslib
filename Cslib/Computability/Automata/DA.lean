@@ -6,6 +6,8 @@ Authors: Fabrizio Montesi
 
 import Cslib.Computability.Automata.NA
 
+
+namespace Cslib
 /-! # Deterministic Automaton
 
 A Deterministic Automaton (DA) is an automaton defined by a transition function.
@@ -15,3 +17,5 @@ structure DA (State : Type _) (Symbol : Type _) where
   start : State
   /-- The transition function of the automaton. -/
   tr : State → Symbol → State
+
+end Cslib
