@@ -159,7 +159,7 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
-@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot := 
+@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
 @[scoped grind =>]
