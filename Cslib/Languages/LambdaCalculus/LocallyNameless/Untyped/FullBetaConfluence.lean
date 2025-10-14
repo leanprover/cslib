@@ -11,6 +11,8 @@ import Cslib.Foundations.Data.Relation
 
 /-! # β-confluence for the λ-calculus -/
 
+namespace Cslib
+
 universe u
 
 variable {Var : Type u}
@@ -206,3 +208,5 @@ theorem confluence_beta : Confluence (@FullBeta Var) := by
   exact @para_confluence Var _ _
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
+
+end Cslib

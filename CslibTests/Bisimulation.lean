@@ -6,6 +6,10 @@ Authors: Fabrizio Montesi
 
 import Cslib.Foundations.Semantics.LTS.Bisimulation
 
+namespace CslibTests
+
+open Cslib
+
 /- An LTS with two bisimilar states. -/
 private inductive tr1 : ℕ → Char → ℕ → Prop where
 -- First process, `1`
@@ -55,3 +59,5 @@ example : 1 ~[lts1] 5 := by
   --   (add safe constructors tr1)
   --   (add unsafe apply Bisimulation.follow_fst)
   --   (add unsafe apply Bisimulation.follow_snd)
+
+end CslibTests

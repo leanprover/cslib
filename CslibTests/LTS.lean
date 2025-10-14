@@ -9,6 +9,11 @@ import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
 
+
+namespace CslibTests
+
+open Cslib
+
 -- A simple LTS on natural numbers
 
 inductive NatTr : ℕ → ℕ → ℕ → Prop where
@@ -54,7 +59,7 @@ def natDivLTS : LTS ℕ TLabel := ⟨NatDivergentTr⟩
 
 def natInfiniteExecution : Stream' ℕ := fun n => n
 
-theorem natInfiniteExecution.infiniteExecution : 
+theorem natInfiniteExecution.infiniteExecution :
     natDivLTS.DivergentExecution natInfiniteExecution := by
   intro n
   constructor
@@ -102,11 +107,11 @@ end foo
 
 /-- info: foo.bar : ℕ → ℕ → ℕ → Prop -/
 #guard_msgs in
-#check foo.bar
+#check CslibTests.foo.bar
 
 /-- info: foo.namespaced_lts : LTS ℕ ℕ -/
 #guard_msgs in
-#check foo.namespaced_lts
+#check CslibTests.foo.namespaced_lts
 
 -- check that delaborators work, including with variables
 
@@ -117,3 +122,5 @@ end foo
 /-- info: ∀ (a b : Term) (μ : Label), a[[μ]]↠β b : Prop -/
 #guard_msgs in
 #check ∀ (a b : Term) (μ : Label), a [[μ]]↠β b
+
+end CslibTests

@@ -35,6 +35,8 @@ for its reflexive-transitive closure. This closure is exactly `⇒*`, which impl
 **Church-Rosser** theorem as sketched above.
 -/
 
+namespace Cslib
+
 namespace SKI
 
 open Red MRed
@@ -240,3 +242,5 @@ theorem MRed.diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) : CommonRed
   · exact commonReduct_of_single hac
 
 end SKI
+
+end Cslib
