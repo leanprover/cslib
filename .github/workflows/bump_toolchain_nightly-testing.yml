@@ -30,14 +30,14 @@ jobs:
         DATE_PART=$(echo "$RELEASE_TAG" | sed 's/nightly-//')
         NIGHTLY_TESTING_TAG="nightly-testing-${DATE_PART}"
         echo "NIGHTLY_TESTING_TAG=$NIGHTLY_TESTING_TAG" >> "${GITHUB_ENV}"
-        
+
         # Check if the tag exists in leanprover-community/mathlib4-nightly-testing
         if curl -s -f "https://api.github.com/repos/leanprover-community/mathlib4-nightly-testing/git/ref/tags/${NIGHTLY_TESTING_TAG}" > /dev/null; then
           echo "Tag ${NIGHTLY_TESTING_TAG} exists in mathlib4-nightly-testing"
-          echo "tag_exists=true" >> "${GITHUB_ENV}"
+          echo "tag_exists=true" >> "${GITHUB_OUTPUT}"
         else
           echo "Tag ${NIGHTLY_TESTING_TAG} does not exist in mathlib4-nightly-testing"
-          echo "tag_exists=false" >> "${GITHUB_ENV}"
+          echo "tag_exists=false" >> "${GITHUB_OUTPUT}"
         fi
 
     - name: Update toolchain and dependencies
