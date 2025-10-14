@@ -18,6 +18,7 @@ a finite string.
 -/
 
 namespace Cslib
+
 /-- A Deterministic Finite Automaton (DFA) consists of a labelled transition function
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
 set of accepting states `accept`. -/

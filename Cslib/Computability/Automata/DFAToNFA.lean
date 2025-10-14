@@ -12,6 +12,7 @@ import Cslib.Computability.Automata.NFA
 namespace Cslib
 
 namespace DFA
+
 section NFA
 
 /-- `DFA` is a special case of `NFA`. -/
@@ -62,6 +63,7 @@ theorem toNFA_language_eq {dfa : DFA State Symbol} :
   refine ⟨?_, fun _ => ⟨dfa.start, ?_⟩⟩ <;> open NFA in grind
 
 end NFA
+
 end DFA
 
 end Cslib

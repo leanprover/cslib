@@ -8,6 +8,10 @@ import Mathlib.Logic.Relation
 
 /-! # Relations -/
 
+namespace Cslib
+
+open Relation.ReflTransGen
+
 universe u v
 
 section Relation
@@ -44,7 +48,7 @@ theorem Relation.ReflTransGen.diamond_confluence (h : Diamond R) : Confluence R 
   case head _ _ A'_C' _ ih =>
     obtain ⟨D, ⟨CD, C'_D⟩⟩ := diamond_extend h BC A'_C'
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
-    exact ⟨D', ⟨B_D', trans CD D_D'⟩⟩
+    exact ⟨D', ⟨B_D', Relation.ReflTransGen.trans CD D_D'⟩⟩
 
 -- not sure why this doesn't compile as an "instance" but oh well
 def trans_of_subrelation {α : Type _} (s s' r : α → α → Prop) (hr : Transitive r)
@@ -83,3 +87,5 @@ theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
   · exact Relation.ReflTransGen.single hd.2
 
 end Relation
+
+end Cslib
