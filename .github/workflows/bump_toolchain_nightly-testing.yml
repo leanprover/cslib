@@ -40,6 +40,13 @@ jobs:
           echo "tag_exists=false" >> "${GITHUB_OUTPUT}"
         fi
 
+    - name: Configure Lean
+      uses: leanprover/lean-action@f807b338d95de7813c5c50d018f1c23c9b93b4ec # 2025-04-24
+      with:
+        auto-config: false
+        use-github-cache: false
+        use-mathlib-cache: false
+
     - name: Update toolchain and dependencies
       if: steps.check-nightly-testing.outputs.tag_exists == 'true'
       run: |
