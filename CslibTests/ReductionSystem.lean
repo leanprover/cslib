@@ -42,18 +42,14 @@ example : 5 ⭢ 4 := by
   simp
 
 --check that namespaces are respected
-namespace foo
-@[reduction_sys namespaced_rs]
-def bar (_ _ : ℕ) : Prop := True
-end foo
 
-/-- info: foo.bar : ℕ → ℕ → Prop -/
+/-- info: CslibTests.PredReduction (a b : ℕ) : Prop -/
 #guard_msgs in
-#check foo.bar
+#check CslibTests.PredReduction
 
-/-- info: foo.namespaced_rs : ReductionSystem ℕ -/
+/-- info: CslibTests.rs : ReductionSystem ℕ -/
 #guard_msgs in
-#check foo.namespaced_rs
+#check CslibTests.rs
 
 -- check that delaborators work, including with variables
 
