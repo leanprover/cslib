@@ -54,11 +54,29 @@ jobs:
         echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
 
         # Update lakefile.toml to use git-based mathlib4-nightly-testing (avoids Reservoir)
-        # Remove the name and scope lines, replace with git field
-        sed -i '/^name = "mathlib"$/d' lakefile.toml
-        sed -i '/^scope = "leanprover-community"$/d' lakefile.toml
-        sed -i '/^\[\[require\]\]$/a git = "https://github.com/leanprover-community/mathlib4-nightly-testing"' lakefile.toml
-        sed -i "s/rev = \"[^\"]*\"/rev = \"${NIGHTLY_TESTING_TAG}\"/" lakefile.toml
+        # Use awk to specifically target the mathlib require block
+        awk -v tag="${NIGHTLY_TESTING_TAG}" '
+          /^\[\[require\]\]$/ { in_require = 1; print; next }
+
+          in_require && /^name = "mathlib"$/ {
+            in_mathlib = 1
+            print "git = \"https://github.com/leanprover-community/mathlib4-nightly-testing\""
+            next
+          }
+
+          in_mathlib && /^scope = / { next }
+
+          in_mathlib && /^rev = / {
+            print "rev = \"" tag "\""
+            in_require = 0
+            in_mathlib = 0
+            next
+          }
+
+          /^rev = / && in_require { in_require = 0 }
+
+          { print }
+        ' lakefile.toml > lakefile.toml.tmp && mv lakefile.toml.tmp lakefile.toml
 
         # Update dependencies
         lake update
