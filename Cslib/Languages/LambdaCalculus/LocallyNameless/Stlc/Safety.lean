@@ -42,7 +42,8 @@ theorem redex_preservesTyping :
   intros _ _ _ _ _ _ redex
   induction redex <;> [grind; aesop]
 
-open Relation in
+
+open _root_.Relation in
 /-- Confluence preserves type preservation. -/
 theorem confluence_preservesTyping {τ : Ty Base}
     (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
