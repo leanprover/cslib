@@ -56,6 +56,13 @@ jobs:
         # Update lakefile.toml to use git-based mathlib4-nightly-testing (avoids Reservoir)
         # Handles both: converting name-based to git-based, or updating existing git-based
         awk -v tag="${NIGHTLY_TESTING_TAG}" '
+          # Start of any TOML table/array - reset require block state
+          /^\[/ {
+            in_require = 0
+            in_mathlib = 0
+            in_mathlib_git = 0
+          }
+
           /^\[\[require\]\]$/ { in_require = 1; print; next }
 
           # Case 1: Old format with name = "mathlib" - convert to git format
@@ -72,10 +79,10 @@ jobs:
             next
           }
 
-          # Skip scope line in old format
+          # Skip scope line in old format (only in mathlib block)
           in_mathlib && /^scope = / { next }
 
-          # Update rev in either format
+          # Update rev in mathlib block (either format)
           (in_mathlib || in_mathlib_git) && /^rev = / {
             print "rev = \"" tag "\""
             in_require = 0
@@ -83,9 +90,6 @@ jobs:
             in_mathlib_git = 0
             next
           }
-
-          # Exit require block when we hit another rev line
-          /^rev = / && in_require { in_require = 0 }
 
           { print }
         ' lakefile.toml > lakefile.toml.tmp && mv lakefile.toml.tmp lakefile.toml
