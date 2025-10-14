@@ -9,6 +9,7 @@ on:
 
 jobs:
   update-toolchain:
+    if: github.repository == 'leanprover/cslib'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code

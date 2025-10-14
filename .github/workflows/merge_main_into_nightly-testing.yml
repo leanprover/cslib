@@ -10,6 +10,7 @@ on:
 
 jobs:
   merge-to-nightly-testing:
+    if: github.repository == 'leanprover/cslib'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout nightly-testing 
