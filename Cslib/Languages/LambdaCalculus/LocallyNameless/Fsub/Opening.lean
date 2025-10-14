@@ -76,7 +76,9 @@ lemma openRec_neq_eq {σ τ γ : Ty Var} (neq : X ≠ Y) (h : σ⟦Y ↝ τ⟧�
 
 /-- A locally closed type is unchanged by opening. -/
 lemma openRec_lc {σ τ : Ty Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ᵞ := by
-  induction lc generalizing X <;> (have := fresh_exists <| free_union Var; grind [openRec_neq_eq])
+  induction lc generalizing X with
+  | all => have := fresh_exists <| free_union Var; grind [openRec_neq_eq]
+  | _ => grind
 
 omit [HasFresh Var] in
 @[scoped grind _=_]

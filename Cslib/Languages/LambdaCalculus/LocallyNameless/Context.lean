@@ -34,7 +34,6 @@ open List
 attribute [scoped grind =] Option.mem_def
 attribute [scoped grind _=_] List.append_eq
 attribute [scoped grind =] List.Nodup
-attribute [scoped grind =] List.NodupKeys
 attribute [scoped grind _=_] List.singleton_append
 
 -- a few grinds on Option:
@@ -45,11 +44,7 @@ attribute [scoped grind =] Option.or_eq_none_iff
 attribute [scoped grind _=_] List.mem_toFinset
 
 -- otherwise, we mostly reuse existing API in `Mathlib.Data.List.Sigma`
-attribute [scoped grind =] List.keys_cons
-attribute [scoped grind =] List.dlookup_cons_eq
-attribute [scoped grind =] List.dlookup_cons_ne
-attribute [scoped grind =] List.dlookup_nil
-attribute [scoped grind _=_] List.dlookup_isSome
+attribute [scoped grind =] List.nodupKeys_middle
 attribute [scoped grind →] List.perm_nodupKeys
 
 /-- The domain of a context is the finite set of free variables it uses. -/
@@ -65,22 +60,16 @@ theorem haswellformed_def (Γ : Context α β) : Γ✓ = Γ.NodupKeys := by rfl
 
 variable {Γ Δ : Context α β}
 
-omit [DecidableEq α] in
-/-- Context well-formedness is preserved on removing an element. -/
-@[scoped grind →]
-theorem wf_strengthen (ok : (Δ ++ ⟨x, σ⟩ :: Γ)✓) : (Δ ++ Γ)✓ := by
-  grind
-
 /-- A mapping of values within a context. -/
 @[simp, scoped grind]
-def map_val (f : β → β) (Γ : Context α β) : Context α β :=
+def map_val (f : β → β) (Γ : Context α β) : Context α β := 
   Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
 @[scoped grind]
-lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
-  induction Γ <;> grind
+lemma map_val_keys (f) : (Γ.map_val f).keys = Γ.keys :=
+  map₂_keys (f := fun _ => f) Γ
 
 /-- A mapping of values maps lookups. -/
 lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
