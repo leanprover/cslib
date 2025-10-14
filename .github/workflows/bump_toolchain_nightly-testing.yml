@@ -53,9 +53,15 @@ jobs:
         # Update lean-toolchain file
         echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
 
-        # Update the mathlib name and rev in lakefile.toml to use nightly-testing
-        sed -i "s/name = \"mathlib\"/name = \"mathlib-nightly-testing\"/" lakefile.toml
-        sed -i "s/rev = \"[^\"]*\"/rev = \"${NIGHTLY_TESTING_TAG}\"/" lakefile.toml
+        # Verify lakefile.toml has git-based mathlib4-nightly-testing dependency
+        if ! grep -q 'git = "https://github.com/leanprover-community/mathlib4-nightly-testing"' lakefile.toml; then
+          echo "Error: lakefile.toml must already have a git-based mathlib4-nightly-testing dependency"
+          exit 1
+        fi
+
+        # Update only the rev field for the mathlib4-nightly-testing dependency
+        # Find the line after the git URL and update the rev on the next line
+        sed -i '/git = "https:\/\/github\.com\/leanprover-community\/mathlib4-nightly-testing"/,/^rev = / s/^rev = .*/rev = "'"${NIGHTLY_TESTING_TAG}"'"/' lakefile.toml
 
         # Update dependencies
         lake update
