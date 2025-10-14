@@ -66,7 +66,7 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   induction sub generalizing Γ 
   case all => 
     subst eq
-    apply all (free_union [Context.dom] Var) <;> grind [keys_append]
+    apply all (free_union [Context.dom] Var) <;> grind
   all_goals grind [Ty.Wf.weaken, <= sublist_dlookup]
 
 lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ σ' := by
@@ -80,11 +80,10 @@ lemma narrow_aux
   generalize eq : Γ ++ ⟨X, Binding.sub δ⟩ :: Δ = Θ at sub₁ 
   induction sub₁ generalizing Γ δ
   case trans_tvar σ _ σ' X' mem sub ih => 
+    subst eq
     have p : ∀ δ, Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) := 
       by grind [perm_middle]
-    have := perm_dlookup (p := p δ')
-    have := perm_dlookup (p := p δ)
-    grind [Sub.weaken, sublist_append_of_sublist_right]
+    by_cases X = X' <;> grind [Sub.weaken, sublist_append_of_sublist_right]
   case all => apply Sub.all (free_union Var) <;> grind
   all_goals grind [Env.Wf.narrow, Ty.Wf.narrow]
 
@@ -141,17 +140,17 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
     have : .sub σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
     have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
     by_cases X = X'
-    · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head, keys_append]
-    · grind [keys_append]
+    · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
+    · grind
   all_goals
-    grind [Env.Wf.to_ok, keys_append, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
+    grind [Env.Wf.to_ok, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
 
 /-- Strengthening of subtypes. -/
 lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := by
   generalize eq : Γ ++ ⟨X, Binding.ty δ⟩ :: Δ = Θ at sub
   induction sub generalizing Γ 
   case all => apply Sub.all (free_union Var) <;> grind
-  all_goals grind [to_ok, Wf.strengthen, Env.Wf.strengthen, dlookup_append]
+  all_goals grind [to_ok, Wf.strengthen, Env.Wf.strengthen]
   
 end Sub
 

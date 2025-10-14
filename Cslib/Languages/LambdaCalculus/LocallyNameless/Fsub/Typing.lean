@@ -135,7 +135,7 @@ lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub :
     have : Γ ++ ⟨X, .sub δ'⟩ :: Δ ~ ⟨X, .sub δ'⟩ :: (Γ ++ Δ) := perm_middle
     have : .ty σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
     have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
-    grind [Env.Wf.map_subst, keys_append, → notMem_keys_of_nodupKeys_cons]
+    grind [Env.Wf.map_subst, → notMem_keys_of_nodupKeys_cons]
   case abs => 
     apply abs (free_union [Ty.fv] Var)
     grind [Ty.subst_fresh, open_tm_subst_ty_var]
