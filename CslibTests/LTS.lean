@@ -100,18 +100,14 @@ example (a b : Term) (μ : Label) : a [μ]⭢ b := by
   simp
 
 --check that namespaces are respected
-namespace foo
-@[lts namespaced_lts]
-def bar (_ _ _ : ℕ) : Prop := True
-end foo
 
-/-- info: foo.bar : ℕ → ℕ → ℕ → Prop -/
+/-- info: CslibTests.labelled_transition {Term Label : Type} : Term → Label → Term → Prop -/
 #guard_msgs in
-#check CslibTests.foo.bar
+#check CslibTests.labelled_transition
 
-/-- info: foo.namespaced_lts : LTS ℕ ℕ -/
+/-- info: CslibTests.cannonical_lts {Term Label : Type} : LTS Term Label -/
 #guard_msgs in
-#check CslibTests.foo.namespaced_lts
+#check CslibTests.cannonical_lts
 
 -- check that delaborators work, including with variables
 
