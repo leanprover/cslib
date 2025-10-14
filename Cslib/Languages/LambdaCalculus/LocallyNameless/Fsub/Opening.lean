@@ -20,6 +20,8 @@ This file defines opening, local closure, and substitution.
 
 -/
 
+namespace Cslib
+
 variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
@@ -71,7 +73,7 @@ variable {σ τ δ γ : Ty Var}
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- An opening appearing in both sides of an equality of types can be removed. -/
-lemma openRec_neq_eq {σ τ γ : Ty Var} (neq : X ≠ Y) (h : σ⟦Y ↝ τ⟧ᵞ = σ⟦Y ↝ τ⟧ᵞ⟦X ↝ γ⟧ᵞ) : 
+lemma openRec_neq_eq {σ τ γ : Ty Var} (neq : X ≠ Y) (h : σ⟦Y ↝ τ⟧ᵞ = σ⟦Y ↝ τ⟧ᵞ⟦X ↝ γ⟧ᵞ) :
     σ = σ⟦X ↝ γ⟧ᵞ := by induction σ generalizing Y X <;> grind
 
 /-- A locally closed type is unchanged by opening. -/
@@ -90,7 +92,7 @@ lemma subst_fresh (nmem : X ∉ γ.fv) (δ : Ty Var) : γ = γ[X := δ] := by
   induction γ <;> grind
 
 /-- Substitution of a locally closed type distributes with opening. -/
-lemma openRec_subst (Y : ℕ) (σ τ : Ty Var) (lc : δ.LC) (X : Var) : 
+lemma openRec_subst (Y : ℕ) (σ τ : Ty Var) (lc : δ.LC) (X : Var) :
     (σ⟦Y ↝ τ⟧ᵞ)[X := δ] = σ[X := δ]⟦Y ↝ τ[X := δ]⟧ᵞ := by
   induction σ generalizing Y
   all_goals grind [openRec_lc]
@@ -111,12 +113,12 @@ lemma openRec_subst_intro (Y : ℕ) (δ : Ty Var) (nmem : X ∉ γ.fv) :
 
 omit [HasFresh Var] in
 /-- Specialize `Ty.openRec_subst_intro` to the first opening. -/
-lemma open_subst_intro (δ : Ty Var) (nmem : X ∉ γ.fv) : γ ^ᵞ δ = (γ ^ᵞ fvar X)[X := δ] := 
+lemma open_subst_intro (δ : Ty Var) (nmem : X ∉ γ.fv) : γ ^ᵞ δ = (γ ^ᵞ fvar X)[X := δ] :=
   openRec_subst_intro _ _ nmem
 
 lemma subst_lc (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
   induction σ_lc
-  case all => apply LC.all (free_union Var) <;> grind [openRec_subst] 
+  case all => apply LC.all (free_union Var) <;> grind [openRec_subst]
   all_goals grind [openRec_subst]
 
 omit [HasFresh Var] in
@@ -124,7 +126,7 @@ lemma nmem_fv_openRec (nmem : X ∉ (σ⟦k ↝ γ⟧ᵞ).fv) : X ∉ σ.fv := b
   induction σ generalizing k <;> grind
 
 omit [HasFresh Var] in
-lemma nmem_fv_open (nmem : X ∉ (σ ^ᵞ γ).fv) : X ∉ σ.fv := 
+lemma nmem_fv_open (nmem : X ∉ (σ ^ᵞ γ).fv) : X ∉ σ.fv :=
   Ty.nmem_fv_openRec (k := 0) nmem
 
 end Ty
@@ -199,7 +201,7 @@ variable {t : Term Var} {δ : Ty Var}
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- An opening (term to type) appearing in both sides of an equality of terms can be removed. -/
-lemma openRec_ty_neq_eq (neq : X ≠ Y) (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦X ↝ τ⟧ᵗᵞ) : 
+lemma openRec_ty_neq_eq (neq : X ≠ Y) (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦X ↝ τ⟧ᵗᵞ) :
     t = t⟦X ↝ τ⟧ᵗᵞ := by
   induction t generalizing X Y <;> grind [Ty.openRec_neq_eq]
 
@@ -241,11 +243,11 @@ lemma subst_ty_def : subst_ty (X : Var) (δ : Ty Var) (t : Term Var) = t[X := δ
 
 omit [HasFresh Var] in
 /-- Substitution of a free type variable not present in a term leaves it unchanged. -/
-lemma subst_ty_fresh (nmem : X ∉ t.fv_ty) (δ : Ty Var) : t = t [X := δ] := 
+lemma subst_ty_fresh (nmem : X ∉ t.fv_ty) (δ : Ty Var) : t = t [X := δ] :=
   by induction t <;> grind [Ty.subst_fresh]
 
 /-- Substitution of a locally closed type distributes with term opening to a type . -/
-lemma openRec_ty_subst_ty (Y : ℕ) (t : Term Var) (σ : Ty Var) (lc : δ.LC) (X : Var) : 
+lemma openRec_ty_subst_ty (Y : ℕ) (t : Term Var) (σ : Ty Var) (lc : δ.LC) (X : Var) :
     (t⟦Y ↝ σ⟧ᵗᵞ)[X := δ] = (t[X := δ])⟦Y ↝  σ[X := δ]⟧ᵗᵞ := by
   induction t generalizing Y <;> grind [Ty.openRec_subst]
 
@@ -260,12 +262,12 @@ lemma open_ty_subst_ty_var (t : Term Var) (neq : Y ≠ X) (lc : δ.LC) :
 omit [HasFresh Var]
 
 /-- Opening a term to a type is equivalent to opening to a free variable and substituting. -/
-lemma openRec_ty_subst_ty_intro (Y : ℕ) (t : Term Var) (nmem : X ∉ t.fv_ty) : 
+lemma openRec_ty_subst_ty_intro (Y : ℕ) (t : Term Var) (nmem : X ∉ t.fv_ty) :
   t⟦Y ↝ δ⟧ᵗᵞ = (t⟦Y ↝ Ty.fvar X⟧ᵗᵞ)[X := δ] := by
   induction t generalizing X δ Y <;> grind [Ty.openRec_subst_intro]
 
 /-- Specialize `Term.openRec_ty_subst_ty_intro` to the first opening. -/
-lemma open_ty_subst_ty_intro (t : Term Var) (δ : Ty Var) (nmem : X ∉ t.fv_ty) : 
+lemma open_ty_subst_ty_intro (t : Term Var) (δ : Ty Var) (nmem : X ∉ t.fv_ty) :
     t ^ᵗᵞ δ = (t ^ᵗᵞ Ty.fvar X)[X := δ] := openRec_ty_subst_ty_intro _ _ nmem
 
 /-- Substitution of a term within a term. -/
@@ -290,7 +292,7 @@ lemma subst_tm_def : subst_tm (x : Var) (s : Term Var) (t : Term Var) = t[x := s
 
 omit [DecidableEq Var] in
 /-- An opening (term to term) appearing in both sides of an equality of terms can be removed. -/
-lemma openRec_tm_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ᵗᵗ = t⟦y ↝ s₁⟧ᵗᵗ⟦x ↝ s₂⟧ᵗᵗ) : 
+lemma openRec_tm_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ᵗᵗ = t⟦y ↝ s₁⟧ᵗᵗ⟦x ↝ s₂⟧ᵗᵗ) :
     t = t⟦x ↝ s₂⟧ᵗᵗ := by
   induction t generalizing x y <;> grind
 
@@ -326,7 +328,7 @@ lemma openRec_tm_subst_tm (y : ℕ) (t₁ t₂ : Term Var) (lc : s.LC) (x : Var)
 lemma open_tm_subst_tm (t₁ t₂ : Term Var) (lc : s.LC) (x : Var) :
     (t₁ ^ᵗᵗ t₂)[x := s] = (t₁[x := s]) ^ᵗᵗ t₂[x := s] := openRec_tm_subst_tm 0 t₁ t₂ lc x
 
-/-- Specialize `Term.openRec_tm_subst_tm` to free term variables. -/ 
+/-- Specialize `Term.openRec_tm_subst_tm` to free term variables. -/
 lemma open_tm_subst_tm_var (t : Term Var) (neq : y ≠ x) (lc : s.LC) :
      (t ^ᵗᵗ fvar y)[x := s] = (t[x := s]) ^ᵗᵗ fvar y := by grind [open_tm_subst_tm]
 
@@ -416,3 +418,5 @@ lemma subst_fresh {γ : Binding Var} (nmem : X ∉ γ.fv) (δ : Ty Var) : γ = �
 end Binding
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib

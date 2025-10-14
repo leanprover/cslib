@@ -20,6 +20,8 @@ The λ-calculus with polymorphism and subtyping, with a locally nameless represe
 
 -/
 
+namespace Cslib
+
 variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
@@ -105,3 +107,5 @@ def Term.fv_tm : Term Var → Finset Var
 abbrev Env (Var : Type*) := Context Var (Binding Var)
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib
