@@ -19,6 +19,7 @@ abbrev MSequent (Atom) := Multiset (Proposition Atom)
 
 /-- Checks that all propositions in `Γ` are question marks. -/
 -- TODO: This and Sequent.AllQuest can probably be unified, we just need Mem.
+-- TODO: This should become a Bool.
 def MSequent.AllQuest (Γ : MSequent Atom) :=
   ∀ a ∈ Γ, ∃ b, a = Proposition.quest b
 
@@ -54,7 +55,7 @@ lemma MSequent.allQuest_from_sequent (h : Sequent.AllQuest Γ) :
   exact h
 
 /- `MProof` is complete for `Proof`. -/
-theorem Proof.toMProof {Γ : Sequent Atom} (p : ⊢Γ) : MProof (Multiset.ofList Γ) := by
+def MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofList Γ) := by
   induction p
   case ax =>
     constructor

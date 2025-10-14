@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.Lts.Basic
-import Cslib.Foundations.Semantics.Lts.Bisimulation
+import Cslib.Foundations.Semantics.LTS.Basic
+import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
 
@@ -21,7 +21,7 @@ theorem NatTr.dom : NatTr n μ m → (n = 1 ∨ n = 2) ∧ (m = 1 ∨ m = 2) := 
   intro h
   cases h <;> simp
 
-def natLts : Lts ℕ ℕ := ⟨NatTr⟩
+def natLTS : LTS ℕ ℕ := ⟨NatTr⟩
 
 inductive NatBisim : ℕ → ℕ → Prop where
 | one_one : NatBisim 1 1
@@ -29,7 +29,7 @@ inductive NatBisim : ℕ → ℕ → Prop where
 | two_one : NatBisim 2 1
 | two_two : NatBisim 2 2
 
-example : 1 ~[natLts] 2 := by
+example : 1 ~[natLTS] 2 := by
   exists NatBisim
   constructor
   · constructor
@@ -50,32 +50,32 @@ instance : HasTau TLabel := {
 inductive NatDivergentTr : ℕ → TLabel → ℕ → Prop where
 | step : NatDivergentTr n τ n.succ
 
-def natDivLts : Lts ℕ TLabel := ⟨NatDivergentTr⟩
+def natDivLTS : LTS ℕ TLabel := ⟨NatDivergentTr⟩
 
 def natInfiniteExecution : Stream' ℕ := fun n => n
 
 theorem natInfiniteExecution.infiniteExecution : 
-    natDivLts.DivergentExecution natInfiniteExecution := by
+    natDivLTS.DivergentExecution natInfiniteExecution := by
   intro n
   constructor
 
-example : natDivLts.Divergent 0 := by
+example : natDivLTS.Divergent 0 := by
   exists natInfiniteExecution
   constructor; constructor
   exact natInfiniteExecution.infiniteExecution
 
-example : natDivLts.Divergent 3 := by
+example : natDivLTS.Divergent 3 := by
   exists natInfiniteExecution.drop 3
   constructor
   · constructor
   · intro; constructor
 
-example : natDivLts.Divergent n := by
+example : natDivLTS.Divergent n := by
   exists natInfiniteExecution.drop n
   simp only [Stream'.drop, zero_add]
   constructor
   · constructor
-  · apply Lts.divergent_drop
+  · apply LTS.divergent_drop
     exact natInfiniteExecution.infiniteExecution
 
 -- check that notation works
@@ -104,7 +104,7 @@ end foo
 #guard_msgs in
 #check foo.bar
 
-/-- info: foo.namespaced_lts : Lts ℕ ℕ -/
+/-- info: foo.namespaced_lts : LTS ℕ ℕ -/
 #guard_msgs in
 #check foo.namespaced_lts
 
