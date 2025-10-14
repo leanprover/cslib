@@ -21,6 +21,8 @@ This file defines the typing relation.
 
 -/
 
+namespace Cslib
+
 variable {Var : Type*} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
@@ -68,7 +70,7 @@ lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) : Γ
   all_goals grind [of_bind_ty, open_lc, cases Env.Wf, cases Ty.Wf]
 
 /-- Weakening of typings. -/
-lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
+lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     Typing (Γ ++ Θ ++ Δ) t τ := by
   generalize eq : Γ ++ Δ = ΓΔ at der
   induction der generalizing Γ
@@ -76,7 +78,7 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
   case' tabs => apply tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
   case' let' der _ => apply let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
   case' case der _ _ => apply case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
-  all_goals 
+  all_goals
     grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, <= sublist_dlookup]
 
 /-- Weakening of typings (at the front). -/
@@ -91,7 +93,7 @@ lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) :
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
     Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
-  induction der generalizing Γ 
+  induction der generalizing Γ
   case var X' _ _ =>
     have : X ≠ X' := by grind [→ List.mem_dlookup]
     have p (δ) : Γ ++ ⟨X, .sub δ⟩ :: Δ ~ ⟨X, .sub δ⟩ :: (Γ ++ Δ) := perm_middle
@@ -112,37 +114,37 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typi
     by_cases eq : X = X'
     · grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen]
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
-  case abs => 
+  case abs =>
     apply abs (free_union Var)
     grind [open_tm_subst_tm_var]
-  case tabs => 
+  case tabs =>
     apply tabs (free_union Var)
     grind [open_ty_subst_tm_var]
-  case let' der _ => 
+  case let' der _ =>
     apply let' (free_union Var) (der eq)
     grind [open_tm_subst_tm_var]
-  case case der _ _ => 
+  case case der _ _ =>
     apply case (free_union Var) (der eq) <;> grind [open_tm_subst_tm_var]
   all_goals grind [Env.Wf.strengthen, Ty.Wf.strengthen, Sub.strengthen]
 
 /-- Type substitution within a typing. -/
-lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Δ δ δ') : 
+lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Δ δ δ') :
     Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
-  induction der generalizing Γ X 
+  induction der generalizing Γ X
   case var σ _ X' _ mem =>
     have := map_subst_nmem Δ X δ
     have : Γ ++ ⟨X, .sub δ'⟩ :: Δ ~ ⟨X, .sub δ'⟩ :: (Γ ++ Δ) := perm_middle
     have : .ty σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
     have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
     grind [Env.Wf.map_subst, → notMem_keys_of_nodupKeys_cons]
-  case abs => 
+  case abs =>
     apply abs (free_union [Ty.fv] Var)
     grind [Ty.subst_fresh, open_tm_subst_ty_var]
-  case tabs => 
+  case tabs =>
     apply tabs (free_union Var)
     grind [open_ty_subst_ty_var, open_subst_var]
-  case let' der _ => 
+  case let' der _ =>
     apply let' (free_union Var) (der eq)
     grind [open_tm_subst_ty_var]
   case case der _ _ =>
@@ -157,18 +159,18 @@ omit [HasFresh Var]
 /-- Invert the typing of an abstraction. -/
 lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) :
      Sub Γ γ γ'
-  ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var), 
+  ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var),
     Typing (⟨x, Binding.ty γ'⟩ :: Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
   generalize eq : Term.abs γ' t = e at der
   induction der generalizing t γ' γ δ
-  case abs τ L _ _ => 
+  case abs τ L _ _ =>
     cases eq
     cases sub
     split_ands
     · assumption
     · exists τ, L
       grind
-  case sub Γ _ τ τ' _ _ ih => 
+  case sub Γ _ τ τ' _ _ ih =>
     subst eq
     have sub' : Sub Γ τ (γ.arrow δ) := by grind
     obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
@@ -187,14 +189,14 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
   generalize eq : Term.tabs γ' t = e at der
   induction der generalizing γ δ t γ'
   case tabs σ Γ _ τ L der _ =>
-    cases sub with | all L' sub => 
+    cases sub with | all L' sub =>
     split_ands
     · grind
     · exists τ, L ∪ L'
       intro X _
       have eq : ⟨X, Binding.sub γ⟩ :: Γ = [] ++ ⟨X, Binding.sub γ⟩ :: Γ := by rfl
       grind [narrow]
-  case sub Γ _ τ τ' _ _ ih => 
+  case sub Γ _ τ τ' _ _ ih =>
     subst eq
     have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
     obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
@@ -239,3 +241,5 @@ lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
 end Typing
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib
