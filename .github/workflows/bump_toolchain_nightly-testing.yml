@@ -53,85 +53,15 @@ jobs:
         # Update lean-toolchain file
         echo "leanprover/lean4:${RELEASE_TAG}" > lean-toolchain
 
-        # Install tomli for TOML parsing (tomllib is only in Python 3.11+)
-        pip install --quiet tomli
+        # Verify lakefile.toml has git-based mathlib4-nightly-testing dependency
+        if ! grep -q 'git = "https://github.com/leanprover-community/mathlib4-nightly-testing"' lakefile.toml; then
+          echo "Error: lakefile.toml must already have a git-based mathlib4-nightly-testing dependency"
+          exit 1
+        fi
 
-        # Update lakefile.toml using Python with proper TOML parsing
-        python3 << 'PYEOF'
-import sys
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
-import os
-
-# Read the current lakefile.toml
-with open("lakefile.toml", "rb") as f:
-    data = tomllib.load(f)
-
-# Find and update the mathlib require block
-nightly_testing_tag = os.environ["NIGHTLY_TESTING_TAG"]
-mathlib_git_url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
-
-updated = False
-if "require" in data:
-    for req in data["require"]:
-        # Check if this is the mathlib dependency (either name-based or git-based)
-        is_mathlib = (req.get("name") == "mathlib" or
-                     req.get("git") == mathlib_git_url)
-
-        if is_mathlib:
-            # Remove name and scope if present (converting from name-based to git-based)
-            req.pop("name", None)
-            req.pop("scope", None)
-
-            # Set git URL and update rev
-            req["git"] = mathlib_git_url
-            req["rev"] = nightly_testing_tag
-            updated = True
-            break
-
-if not updated:
-    print("Error: Could not find mathlib dependency in lakefile.toml", file=sys.stderr)
-    sys.exit(1)
-
-# Write back to lakefile.toml (manual TOML writing to preserve format)
-with open("lakefile.toml", "w") as f:
-    # Write top-level fields
-    for key in ["name", "version", "defaultTargets", "testDriver"]:
-        if key in data:
-            if isinstance(data[key], str):
-                f.write(f'{key} = "{data[key]}"\n')
-            elif isinstance(data[key], list):
-                f.write(f'{key} = {data[key]}\n')
-
-    # Write leanOptions section
-    if "leanOptions" in data:
-        f.write("\n[leanOptions]\n")
-        for key, val in data["leanOptions"].items():
-            if isinstance(val, bool):
-                f.write(f'{key} = {str(val).lower()}\n')
-            else:
-                f.write(f'{key} = "{val}"\n')
-
-    # Write require sections
-    for req in data.get("require", []):
-        f.write("\n[[require]]\n")
-        for key, val in req.items():
-            f.write(f'{key} = "{val}"\n')
-
-    # Write lean_lib sections
-    for lib in data.get("lean_lib", []):
-        f.write("\n[[lean_lib]]\n")
-        for key, val in lib.items():
-            if isinstance(val, str):
-                f.write(f'{key} = "{val}"\n')
-            elif isinstance(val, list):
-                if len(val) == 1:
-                    f.write(f'{key} = "{val[0]}"\n')
-
-print("Successfully updated lakefile.toml")
-PYEOF
+        # Update only the rev field for the mathlib4-nightly-testing dependency
+        # Find the line after the git URL and update the rev on the next line
+        sed -i '/git = "https:\/\/github\.com\/leanprover-community\/mathlib4-nightly-testing"/,/^rev = / s/^rev = .*/rev = "'"${NIGHTLY_TESTING_TAG}"'"/' lakefile.toml
 
         # Update dependencies
         lake update
