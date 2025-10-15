@@ -202,11 +202,11 @@ theorem rotL_def (x y z : SKI) : (RotL ⬝ x ⬝ y ⬝ z) ↠ y ⬝ z ⬝ x :=
 
 
 /-- Self application: δ := λ x. x x -/
-def δPoly : SKI.Polynomial 1 := &0 ⬝' &0
+def DelPoly : SKI.Polynomial 1 := &0 ⬝' &0
 /-- A SKI term representing δ -/
-def δ : SKI := δPoly.toSKI
-theorem δ_def (x : SKI) : (δ ⬝ x) ↠ x ⬝ x :=
-  δPoly.toSKI_correct [x] (by simp)
+def Del : SKI := DelPoly.toSKI
+theorem del_def (x : SKI) : (Del ⬝ x) ↠ x ⬝ x :=
+  DelPoly.toSKI_correct [x] (by simp)
 
 
 /-- H := λ f x. f (x x) -/
@@ -242,17 +242,17 @@ def fixedPoint (f : SKI) : SKI := H ⬝ f ⬝ (H ⬝ f)
 theorem fixedPoint_correct (f : SKI) : f.fixedPoint ↠ f ⬝ f.fixedPoint := H_def f (H ⬝ f)
 
 /-- Auxiliary definition for Turing's fixed-point combinator: ΘAux := λ x y. y (x x y) -/
-def ΘAuxPoly : SKI.Polynomial 2 := &1 ⬝' (&0 ⬝' &0 ⬝' &1)
+def ThAuxPoly : SKI.Polynomial 2 := &1 ⬝' (&0 ⬝' &0 ⬝' &1)
 /-- A term representing ΘAux -/
-def ΘAux : SKI := ΘAuxPoly.toSKI
-theorem ΘAux_def (x y : SKI) : (ΘAux ⬝ x ⬝ y) ↠ y ⬝ (x ⬝ x ⬝ y) :=
-  ΘAuxPoly.toSKI_correct [x, y] (by simp)
+def ThAux : SKI := ThAuxPoly.toSKI
+theorem ThAux_def (x y : SKI) : (ThAux ⬝ x ⬝ y) ↠ y ⬝ (x ⬝ x ⬝ y) :=
+  ThAuxPoly.toSKI_correct [x, y] (by simp)
 
 
 /-- Turing's fixed-point combinator: Θ := (λ x y. y (x x y)) (λ x y. y (x x y)) -/
-def Θ : SKI := ΘAux ⬝ ΘAux
+def Th : SKI := ThAux ⬝ ThAux
 /-- A SKI term representing Θ -/
-theorem Θ_correct (f : SKI) : (Θ ⬝ f) ↠ f ⬝ (Θ ⬝ f) := ΘAux_def ΘAux f
+theorem Th_correct (f : SKI) : (Th ⬝ f) ↠ f ⬝ (Th ⬝ f) := ThAux_def ThAux f
 
 
 /-! ### Church Booleans -/
