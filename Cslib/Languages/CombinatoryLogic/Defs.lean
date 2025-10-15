@@ -110,21 +110,6 @@ theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠ b') : (a ⬝ b) ↠ (a ⬝ b
     apply Relation.ReflTransGen.tail (b := a ⬝ b') ih
     exact Red.red_tail a b' b'' hb''
 
--- instance MRed.instTrans : IsTrans SKI MRed := Relation.instIsTransReflTransGen
--- theorem MRed.transitive : Transitive MRed := transitive_of_trans MRed
-
--- instance MRed.instIsRefl : IsRefl SKI MRed := Relation.instIsReflReflTransGen
--- theorem MRed.reflexive : Reflexive MRed := IsRefl.reflexive
-
--- instance MRedTrans : Trans Red MRed MRed :=
---   ⟨fun hab => Relation.ReflTransGen.trans (MRed.single hab)⟩
-
--- instance MRedRedTrans : Trans MRed Red MRed :=
---   ⟨fun hab hbc => Relation.ReflTransGen.trans hab (MRed.single hbc)⟩
-
--- instance RedMRedTrans : Trans Red Red MRed :=
---   ⟨fun hab hbc => Relation.ReflTransGen.trans (MRed.single hab) (MRed.single hbc)⟩
-
 lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
     (a ⬝ b) ↠ (a' ⬝ b') :=
   Trans.simple (MRed.head b ha) (MRed.tail a' hb)
@@ -134,7 +119,6 @@ lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b)
   all_goals apply MRed.single
   · exact Red.red_head a a' b ha
   · exact Red.red_tail a' b b' hb
-
 
 /-- Express that two terms have a reduce to a common term. -/
 def CommonReduct : SKI → SKI → Prop := Relation.Join RedSKI.MRed
