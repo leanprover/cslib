@@ -13,6 +13,8 @@ import Cslib.Foundations.Control.Monad.Free.Effects
 import Cslib.Foundations.Control.Monad.Free.Fold
 import Cslib.Foundations.Data.FinFun
 import Cslib.Foundations.Data.HasFresh
+import Cslib.Foundations.Data.OmegaSequence.Defs
+import Cslib.Foundations.Data.OmegaSequence.Init
 import Cslib.Foundations.Data.Relation
 import Cslib.Foundations.Semantics.LTS.Basic
 import Cslib.Foundations.Semantics.LTS.Bisimulation
