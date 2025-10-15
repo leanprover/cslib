@@ -6,6 +6,8 @@ Authors: Fabrizio Montesi
 
 import Cslib.Computability.Automata.NA
 
+namespace Cslib
+
 /-- A Nondeterministic Finite Automaton (NFA) is a nondeterministic automaton (NA)
 over finite sets of states and symbols. -/
 structure NFA (State : Type _) (Symbol : Type _) extends NA State Symbol where
@@ -35,3 +37,5 @@ theorem accepts_mem_language (nfa : NFA State Symbol) (xs : List Symbol) :
   nfa.Accepts xs ↔ xs ∈ nfa.language := by rfl
 
 end NFA
+
+end Cslib

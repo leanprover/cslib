@@ -65,6 +65,8 @@ The file `Free/Fold.lean` provides the theory of the fold operation for free mon
 Free monad, state monad
 -/
 
+namespace Cslib
+
 /-- The Free monad over a type constructor `F`.
 
 A `FreeM F a` is a tree of operations from the type constructor `F`, with leaves of type `a`.
@@ -262,3 +264,5 @@ theorem Interprets.iff (handler : {ι : Type u} → F ι → m ι) (interp : Fre
 end liftM
 
 end FreeM
+
+end Cslib

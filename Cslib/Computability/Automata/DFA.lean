@@ -17,6 +17,8 @@ a finite string.
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman, *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
+namespace Cslib
+
 /-- A Deterministic Finite Automaton (DFA) consists of a labelled transition function
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
 set of accepting states `accept`. -/
@@ -59,3 +61,5 @@ theorem accepts_mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
   dfa.Accepts xs ↔ xs ∈ dfa.language := by rfl
 
 end DFA
+
+end Cslib

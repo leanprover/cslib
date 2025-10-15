@@ -7,6 +7,8 @@ Authors: Fabrizio Montesi
 import Batteries.Util.ProofWanted
 import Cslib.Logics.LinearLogic.CLL.Basic
 
+namespace Cslib
+
 namespace CLL
 
 universe u
@@ -47,3 +49,5 @@ cut. -/
 -- def Proof.cut_elim (p : ⇓Γ) : CutFreeProof Γ
 
 end CLL
+
+end Cslib

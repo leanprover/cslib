@@ -52,6 +52,8 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
 
+namespace Cslib
+
 universe u v
 
 namespace CLL
@@ -552,3 +554,5 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
 end PhaseSpace
 
 end CLL
+
+end Cslib

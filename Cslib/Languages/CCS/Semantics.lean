@@ -15,6 +15,8 @@ import Cslib.Languages.CCS.Basic
 
 -/
 
+namespace Cslib
+
 variable
   {Name : Type u}
   {Constant : Type v}
@@ -49,3 +51,5 @@ inductive Terminated : Process Name Constant → Prop where
   | res : Terminated p → Terminated (res a p)
 
 end CCS
+
+end Cslib

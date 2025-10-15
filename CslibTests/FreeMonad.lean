@@ -7,6 +7,7 @@ import Cslib.Foundations.Control.Monad.Free
 import Mathlib.Tactic.Cases
 import Cslib.Foundations.Control.Monad.Free.Fold
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
+
 /-!
 # Verified Interpreter using Free Monads
 
@@ -45,6 +46,10 @@ clean separation between syntax and semantics, enabling multiple interpretations
 Based on "[Tutorial: A Verified Interpreter with Side Effects](https://tannerduve.github.io/blog/freer-monad/part4/)" demonstrating practical
 applications of the mathematical theory developed in the core Free monad files.
 -/
+
+namespace CslibTests
+
+open Cslib
 
 open FreeM
 
@@ -302,7 +307,7 @@ theorem runEff_eval_correct (e : Expr) (env : Env) (trace : Trace)
     (res : Except String (Int × Env × Trace))
     (h : EvalRel e env trace res) :
     runEff (eval e) env trace = res := by
-    induction' h
+    induction h
     · case val z env trace =>
       simp [eval, pure_eq_pure, runEff, effPure]
     · case var_found x env trace v h =>
@@ -338,3 +343,5 @@ theorem runEff_eval_correct (e : Expr) (env : Env) (trace : Trace)
       simp [bind] at step₂; simp [step₂, v₂_eq_0]
       simp [fail, lift, runEff]
       rfl
+
+end CslibTests

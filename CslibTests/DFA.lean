@@ -6,6 +6,10 @@ Authors: Fabrizio Montesi
 
 import Cslib.Computability.Automata.DFA
 
+namespace CslibTests
+
+open Cslib
+
 /-! A simple elevator. -/
 
 inductive Floor where
@@ -46,3 +50,5 @@ def elevator : DFA Floor Direction := {
   finite_state := Floor.finite
   finite_symbol := Direction.finite
 }
+
+end CslibTests

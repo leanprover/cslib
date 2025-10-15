@@ -9,6 +9,9 @@ import Cslib.Computability.Automata.NFA
 
 /-! # Translation of εNFA into NFA -/
 
+namespace Cslib
+
+open Cslib
 /-- Converts an `LTS` with Option labels into an `LTS` on the carried label type, by removing all
 ε-transitions. -/
 @[grind]
@@ -53,3 +56,5 @@ theorem toNFA_language_eq {enfa : εNFA State Symbol} :
 
 end NFA
 end εNFA
+
+end Cslib

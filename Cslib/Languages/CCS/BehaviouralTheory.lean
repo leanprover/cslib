@@ -21,6 +21,8 @@ Additionally, some standard laws of bisimilarity for CCS, including:
 - `CCS.bisimilarity_choice_comm`: P + Q ~ Q + P
 -/
 
+namespace Cslib
+
 section CCS.BehaviouralTheory
 
 variable {Name : Type u} {Constant : Type v} {defs : Constant → (CCS.Process Name Constant) → Prop}
@@ -543,3 +545,5 @@ theorem bisimilarity_congr
 end CCS
 
 end CCS.BehaviouralTheory
+
+end Cslib

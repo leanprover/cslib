@@ -15,6 +15,8 @@ Contexts as pairs of free variables and types.
 
 -/
 
+namespace Cslib
+
 universe u v
 
 variable {α : Type u} {β : Type v}
@@ -62,7 +64,7 @@ variable {Γ Δ : Context α β}
 
 /-- A mapping of values within a context. -/
 @[simp, scoped grind]
-def map_val (f : β → β) (Γ : Context α β) : Context α β := 
+def map_val (f : β → β) (Γ : Context α β) : Context α β :=
   Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
 
 omit [DecidableEq α] in
@@ -76,3 +78,5 @@ lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dloo
   induction Γ <;> grind
 
 end LambdaCalculus.LocallyNameless.Context
+
+end Cslib

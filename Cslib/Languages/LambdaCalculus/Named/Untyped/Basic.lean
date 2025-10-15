@@ -19,6 +19,8 @@ The untyped λ-calculus.
 
 -/
 
+namespace Cslib
+
 universe u
 
 variable {Var : Type u}
@@ -156,3 +158,5 @@ instance instHasAlphaEquivTerm [DecidableEq Var] : HasAlphaEquiv (Term Var) wher
   AlphaEquiv := Term.AlphaEquiv
 
 end LambdaCalculus.Named
+
+end Cslib

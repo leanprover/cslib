@@ -29,6 +29,8 @@ For a presentation of the bracket abstraction algorithm see:
 <https://web.archive.org/web/19970727171324/http://www.cs.oberlin.edu/classes/cs280/labs/lab4/lab43.html#@l13>
 -/
 
+namespace Cslib
+
 namespace SKI
 
 open Red MRed
@@ -381,3 +383,5 @@ theorem pair_def (f g x : SKI) : SKI.Pair ⬝ f ⬝ g ⬝ x ⇒* MkPair ⬝ (f �
   PairPoly.toSKI_correct [f, g, x] (by simp)
 
 end SKI
+
+end Cslib

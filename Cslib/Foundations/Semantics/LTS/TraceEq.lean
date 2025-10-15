@@ -28,6 +28,8 @@ Definitions and results on trace equivalence for `LTS`s.
 
 -/
 
+namespace Cslib
+
 universe u v
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label)
@@ -126,3 +128,5 @@ theorem TraceEq.deterministic_sim
         have hdets1 := hdet s1 μ s1' s1'' htr1' htr1
         rw [hdets1]
         exact hmtr1'
+
+end Cslib

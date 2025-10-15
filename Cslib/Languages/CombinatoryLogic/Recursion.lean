@@ -48,6 +48,8 @@ sense of `Mathlib.Data.Part` (as used in `Mathlib.Computability.Partrec`).
 - The results of this file should define a surjection `SKI → Nat.Partrec`.
 -/
 
+namespace Cslib
+
 namespace SKI
 
 open Red MRed
@@ -380,3 +382,5 @@ theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m 
   apply sub_correct <;> assumption
 
 end SKI
+
+end Cslib

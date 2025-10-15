@@ -19,6 +19,8 @@ The untyped λ-calculus, with a locally nameless representation of syntax.
 
 -/
 
+namespace Cslib
+
 universe u
 
 variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
@@ -141,3 +143,5 @@ attribute [scoped grind =] subst_bvar subst_fvar subst_app subst_abs subst_def
 end
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
+
+end Cslib

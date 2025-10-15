@@ -32,6 +32,8 @@ The setup of SKI combinatory logic is standard, see for example:
 - <https://en.m.wikipedia.org/wiki/Combinatory_logic>
 -/
 
+namespace Cslib
+
 /-- An SKI expression is built from the primitive combinators `S`, `K` and `I`, and application. -/
 inductive SKI where
   /-- `S`-combinator, with semantics $λxyz.xz(yz) -/
@@ -143,3 +145,5 @@ theorem reflexive_commonReduct : Reflexive CommonReduct :=
   Relation.reflexive_join MRed.reflexive
 
 end SKI
+
+end Cslib

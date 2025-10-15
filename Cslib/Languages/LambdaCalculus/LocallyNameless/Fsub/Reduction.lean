@@ -20,6 +20,8 @@ This file defines a call-by-value reduction.
 
 -/
 
+namespace Cslib
+
 variable {Var : Type*}
 
 namespace LambdaCalculus.LocallyNameless.Fsub
@@ -110,7 +112,7 @@ variable [HasFresh Var] [DecidableEq Var] in
 /-- Terms of a reduction are locally closed. -/
 lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
   induction red
-  case abs lc _ | tabs lc _ => 
+  case abs lc _ | tabs lc _ =>
     split_ands
     · grind
     · cases lc
@@ -121,3 +123,5 @@ lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
 end Term
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib

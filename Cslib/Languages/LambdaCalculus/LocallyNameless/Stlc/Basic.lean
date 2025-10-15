@@ -19,6 +19,8 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
 
 -/
 
+namespace Cslib
+
 universe u v
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var]
@@ -43,7 +45,7 @@ inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
   /-- Free variables, from a context judgement. -/
   | var : Γ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
   /-- Lambda abstraction. -/
-  | abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x,σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ) 
+  | abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x,σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ)
   /-- Function application. -/
   | app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
 
@@ -57,9 +59,9 @@ variable {Γ Δ Θ : Context Var (Ty Base)}
 
 omit [DecidableEq Var] in
 /-- Typing is preserved on permuting a context. -/
-theorem perm (ht : Γ ⊢ t ∶ τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by 
+theorem perm (ht : Γ ⊢ t ∶ τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by
   induction ht generalizing Δ
-  case abs ih => 
+  case abs ih =>
     constructor
     intros x mem
     exact ih x mem (by simp_all)
@@ -99,7 +101,7 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
   generalize eq : Δ ++ ⟨x, σ⟩ :: Γ = Θ at h
   induction h generalizing Γ Δ der
   case app => grind
-  case var x' τ ok mem => 
+  case var x' τ ok mem =>
     simp only [subst_fvar]
     subst eq
     cases ((List.perm_nodupKeys (by simp)).mp ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
@@ -134,10 +136,12 @@ lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s 
 
 /-- Typing preservation for opening. -/
 theorem preservation_open {xs : Finset Var}
-  (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) : 
+  (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) :
     Γ ⊢ m ^ n ∶ τ := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
   rw [subst_intro fresh n m (by grind) der.lc]
   exact typing_subst_head (by grind) der
 
 end LambdaCalculus.LocallyNameless.Stlc.Typing
+
+end Cslib
