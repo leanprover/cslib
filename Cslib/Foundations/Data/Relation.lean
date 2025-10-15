@@ -8,6 +8,8 @@ import Mathlib.Logic.Relation
 
 /-! # Relations -/
 
+namespace Cslib
+
 universe u v
 
 section Relation
@@ -21,9 +23,10 @@ abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C →
 /-- A relation is confluent when its reflexive transitive closure has the diamond property. -/
 abbrev Confluence (R : α → α → Prop) := Diamond (Relation.ReflTransGen R)
 
+open _root_.Relation _root_.Relation.ReflTransGen in
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
 lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
-  Relation.ReflTransGen R A B →
+  ReflTransGen R A B →
   R A C →
   ∃ D, Relation.ReflTransGen R B D ∧ Relation.ReflTransGen R C D := by
   intros AB _
@@ -35,16 +38,17 @@ lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
     exact ⟨D', ⟨B_D', head CD D_D'⟩⟩
 
+open _root_.Relation _root_.Relation.ReflTransGen in
 /-- The diamond property implies confluence. -/
 theorem Relation.ReflTransGen.diamond_confluence (h : Diamond R) : Confluence R := by
   intros A B C AB BC
   revert C
-  induction AB using Relation.ReflTransGen.head_induction_on <;> intros C BC
+  induction AB using head_induction_on <;> intros C BC
   case refl => exists C
   case head _ _ A'_C' _ ih =>
     obtain ⟨D, ⟨CD, C'_D⟩⟩ := diamond_extend h BC A'_C'
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
-    exact ⟨D', ⟨B_D', trans CD D_D'⟩⟩
+    exact ⟨D', ⟨B_D', ReflTransGen.trans CD D_D'⟩⟩
 
 -- not sure why this doesn't compile as an "instance" but oh well
 def trans_of_subrelation {α : Type _} (s s' r : α → α → Prop) (hr : Transitive r)
@@ -83,3 +87,5 @@ theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
   · exact Relation.ReflTransGen.single hd.2
 
 end Relation
+
+end Cslib

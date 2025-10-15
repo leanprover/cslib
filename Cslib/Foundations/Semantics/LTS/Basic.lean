@@ -49,6 +49,8 @@ type of labels is finite.
 * [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
 
+namespace Cslib
+
 universe u v
 
 /--
@@ -751,3 +753,5 @@ initialize Lean.registerBuiltinAttribute {
         liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts))
     | _ => throwError "invalid syntax for 'lts' attribute"
 }
+
+end Cslib

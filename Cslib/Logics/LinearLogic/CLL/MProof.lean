@@ -8,6 +8,8 @@ import Cslib.Logics.LinearLogic.CLL.Basic
 import Mathlib.Data.Multiset.Defs
 import Mathlib.Data.Multiset.AddSub
 
+namespace Cslib
+
 universe u
 
 variable {Atom : Type u}
@@ -78,3 +80,5 @@ def MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofList �
   all_goals grind
 
 end CLL
+
+end Cslib

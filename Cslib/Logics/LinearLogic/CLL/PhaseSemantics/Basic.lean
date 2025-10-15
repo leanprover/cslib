@@ -52,6 +52,8 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
 
+namespace Cslib
+
 universe u v
 
 namespace CLL
@@ -159,7 +161,7 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
-@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot := 
+@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
 @[scoped grind =>]
@@ -552,3 +554,5 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
 end PhaseSpace
 
 end CLL
+
+end Cslib

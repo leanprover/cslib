@@ -21,6 +21,8 @@ import Mathlib.Order.Defs.Unbundled
 
 -/
 
+namespace Cslib
+
 universe u
 
 variable {Atom : Type u}
@@ -429,3 +431,5 @@ end Proposition
 end LogicalEquiv
 
 end CLL
+
+end Cslib
