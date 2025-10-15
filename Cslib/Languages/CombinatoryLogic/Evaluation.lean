@@ -33,6 +33,8 @@ form, then they are equal.
 This file draws heavily from <https://gist.github.com/b-mehta/e412c837818223b8f16ca0b4aa19b166>.
 -/
 
+namespace Cslib
+
 open SKI Red
 
 /-- The predicate that a term has no reducible sub-terms. -/
@@ -322,3 +324,5 @@ theorem rice' {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ 
   by_contra! h
   obtain ⟨⟨a, ha⟩, b, hb⟩ := h
   exact rice hP ⟨b, (hP _).resolve_right hb⟩ ⟨a, (hP _).resolve_left ha⟩
+
+end Cslib
