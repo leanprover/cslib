@@ -1,4 +1,5 @@
 # taken from https://github.com/leanprover/lean4/blob/114f7e42f1abd10885e91698cd2910b1e4d76083/.github/workflows/pr-title.yml
+# the regex is altered to allow parentheses after the type as Mathlib does, e.g. `feat(CI): add workflow to check for commit convention`
 
 name: Check PR title for commit convention
 
