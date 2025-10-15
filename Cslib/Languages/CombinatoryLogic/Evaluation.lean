@@ -35,10 +35,12 @@ This file draws heavily from <https://gist.github.com/b-mehta/e412c837818223b8f1
 
 namespace Cslib
 
-open SKI Red
+namespace SKI
+
+open Red
 
 /-- The predicate that a term has no reducible sub-terms. -/
-def SKI.RedexFree : SKI → Prop
+def RedexFree : SKI → Prop
   | S => True
   | K => True
   | I => True
@@ -57,7 +59,7 @@ def SKI.RedexFree : SKI → Prop
 One-step evaluation as a function: either it returns a term that has been reduced by one step,
 or a proof that the term is redex free. Uses normal-order reduction.
 -/
-def SKI.evalStep : (x : SKI) → PLift (x.RedexFree) ⊕ SKI
+def evalStep : (x : SKI) → PLift (x.RedexFree) ⊕ SKI
   | S => Sum.inl (PLift.up trivial)
   | K => Sum.inl (PLift.up trivial)
   | I => Sum.inl (PLift.up trivial)
@@ -132,7 +134,7 @@ theorem redexFree_of_no_red {x : SKI} (h : ∀ y, ¬ (x ⭢ y)) : x.RedexFree :=
   | Sum.inl h' => exact h'.down
   | Sum.inr y => cases h _ (evalStep_right_correct x y hx)
 
-theorem SKI.RedexFree.no_red : {x : SKI} → x.RedexFree → ∀ y, ¬ (x ⭢ y)
+theorem RedexFree.no_red : {x : SKI} → x.RedexFree → ∀ y, ¬ (x ⭢ y)
 | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
 | K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
 | S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => hx.no_red _ h3
@@ -324,5 +326,7 @@ theorem rice' {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ 
   by_contra! h
   obtain ⟨⟨a, ha⟩, b, hb⟩ := h
   exact rice hP ⟨b, (hP _).resolve_right hb⟩ ⟨a, (hP _).resolve_left ha⟩
+
+end SKI
 
 end Cslib
