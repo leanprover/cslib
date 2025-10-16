@@ -15,6 +15,8 @@ import Mathlib.Tactic
 Most code below is adapted from Mathlib.Data.Stream.Init.
 -/
 
+namespace Cslib
+
 open Nat Function Option
 
 namespace ωSequence
@@ -498,3 +500,5 @@ theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
   grind
 
 end ωSequence
+
+end Cslib
