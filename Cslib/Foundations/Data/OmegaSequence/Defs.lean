@@ -7,7 +7,6 @@ import Mathlib.Data.Nat.Notation
 import Mathlib.Data.FunLike.Basic
 import Mathlib.Logic.Function.Iterate
 
-
 /-!
 # Definition of `ωSequence` and functions on infinite sequences
 
@@ -20,6 +19,8 @@ function application notation `s n`.
 In this file we define `ωSequence` and its API functions.
 Most code below is adapted from Mathlib.Data.Stream.Defs.
 -/
+
+namespace Cslib
 
 universe u v w
 variable {α : Type u} {β : Type v} {δ : Type w}
@@ -84,3 +85,5 @@ def zip (f : α → β → δ) (s₁ : ωSequence α) (s₂ : ωSequence β) : �
 def iterate (f : α → α) (a : α) : ωSequence α := fun n => f^[n] a
 
 end ωSequence
+
+end Cslib
