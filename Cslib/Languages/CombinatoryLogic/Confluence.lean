@@ -9,11 +9,11 @@ import Cslib.Foundations.Data.Relation
 /-!
 # SKI reduction is confluent
 
-This file proves the **Church-Rosser** theorem for the SKI calculus, that is, if `a ⇒* b` and
-`a ⇒* c`, `b ⇒* d` and `c ⇒* d` for some term `d`. More strongly (though equivalently), we show
+This file proves the **Church-Rosser** theorem for the SKI calculus, that is, if `a ↠ b` and
+`a ↠ c`, `b ↠ d` and `c ↠ d` for some term `d`. More strongly (though equivalently), we show
 that the relation of having a common reduct is transitive — in the above situation, `a` and `b`,
 and `a` and `c` have common reducts, so the result implies the same of `b` and `c`. Note that
-`CommonReduct` is symmetric (trivially) and reflexive (since `⇒*` is), so we in fact show that
+`CommonReduct` is symmetric (trivially) and reflexive (since `↠` is), so we in fact show that
 `CommonReduct` is an equivalence.
 
 Our proof
@@ -23,7 +23,7 @@ Chapter 4 of Peter Selinger's notes:
 
 ## Main definitions
 
-- `ParallelReduction` : a relation `⇒ₚ` on terms such that `⇒ ⊆ ⇒ₚ ⊆ ⇒*`, allowing simultaneous
+- `ParallelReduction` : a relation `⇒ₚ` on terms such that `⇒ ⊆ ⇒ₚ ⊆ ↠`, allowing simultaneous
 reduction on the head and tail of a term.
 
 ## Main results
@@ -31,7 +31,7 @@ reduction on the head and tail of a term.
 - `parallelReduction_diamond` : parallel reduction satisfies the diamond property, that is, it is
 confluent in a single step.
 - `commonReduct_equivalence` : by a general result, the diamond property for `⇒ₚ` implies the same
-for its reflexive-transitive closure. This closure is exactly `⇒*`, which implies the
+for its reflexive-transitive closure. This closure is exactly `↠`, which implies the
 **Church-Rosser** theorem as sketched above.
 -/
 
@@ -39,7 +39,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red MRed
+open Red MRed ReductionSystem
 
 /-- A reduction step allowing simultaneous reduction of disjoint redexes -/
 inductive ParallelReduction : SKI → SKI → Prop
@@ -57,8 +57,8 @@ inductive ParallelReduction : SKI → SKI → Prop
 /-- Notation for parallel reduction -/
 scoped infix:90 " ⇒ₚ " => ParallelReduction
 
-/-- The inclusion `⇒ₚ ⊆ ⇒*` -/
-theorem mRed_of_parallelReduction {a a' : SKI} (h : a ⇒ₚ a') : a ⇒* a' := by
+/-- The inclusion `⇒ₚ ⊆ ↠` -/
+theorem mRed_of_parallelReduction {a a' : SKI} (h : a ⇒ₚ a') : a ↠ a' := by
   cases h
   case refl => exact Relation.ReflTransGen.refl
   case par a a' b b' ha hb =>
@@ -70,7 +70,7 @@ theorem mRed_of_parallelReduction {a a' : SKI} (h : a ⇒ₚ a') : a ⇒* a' := 
   case red_S a b c => exact Relation.ReflTransGen.single (red_S a b c)
 
 /-- The inclusion `⇒ ⊆ ⇒ₚ` -/
-theorem parallelReduction_of_red {a a' : SKI} (h : a ⇒ a') : a ⇒ₚ a' := by
+theorem parallelReduction_of_red {a a' : SKI} (h : a ⭢ a') : a ⇒ₚ a' := by
   cases h
   case red_S => apply ParallelReduction.red_S
   case red_K => apply ParallelReduction.red_K
@@ -88,12 +88,12 @@ theorem parallelReduction_of_red {a a' : SKI} (h : a ⇒ a') : a ⇒ₚ a' := by
 `parallelReduction_of_red` imply that `⇒` and `⇒ₚ` have the same reflexive-transitive
 closure. -/
 theorem reflTransGen_parallelReduction_mRed :
-    Relation.ReflTransGen ParallelReduction = MRed := by
+    Relation.ReflTransGen ParallelReduction = RedSKI.MRed := by
   ext a b
   constructor
   · apply Relation.reflTransGen_minimal
-    · exact MRed.reflexive
-    · exact MRed.transitive
+    · exact fun _ => by rfl
+    · exact instTransitiveMRed RedSKI
     · exact @mRed_of_parallelReduction
   · apply Relation.reflTransGen_minimal
     · exact Relation.reflexive_reflTransGen
@@ -103,7 +103,7 @@ theorem reflTransGen_parallelReduction_mRed :
 /-!
 Irreducibility for the (partially applied) primitive combinators.
 
-TODO: possibly these should be proven more generally (in another file) for `⇒*`.
+TODO: possibly these should be proven more generally (in another file) for `↠`.
 -/
 
 lemma I_irreducible (a : SKI) (h : I ⇒ₚ a) : a = I := by
@@ -236,7 +236,7 @@ theorem commonReduct_equivalence : Equivalence CommonReduct := by
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/
-theorem MRed.diamond (a b c : SKI) (hab : a ⇒* b) (hac : a ⇒* c) : CommonReduct b c := by
+theorem MRed.diamond (a b c : SKI) (hab : a ↠ b) (hac : a ↠ c) : CommonReduct b c := by
   apply commonReduct_equivalence.trans (y := a)
   · exact commonReduct_equivalence.symm (commonReduct_of_single hab)
   · exact commonReduct_of_single hac
