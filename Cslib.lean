@@ -6,12 +6,15 @@ import Cslib.Computability.Automata.EpsilonNFAToNFA
 import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NFA
 import Cslib.Computability.Automata.NFAToDFA
+import Cslib.Computability.Languages.OmegaLanguage
 import Cslib.Foundations.Control.Monad.Free
 import Cslib.Foundations.Control.Monad.Free.Effects
 import Cslib.Foundations.Control.Monad.Free.Fold
 import Cslib.Foundations.Data.FinFun
 import Cslib.Foundations.Data.HasFresh
+import Cslib.Foundations.Data.Nat.Segment
 import Cslib.Foundations.Data.OmegaSequence.Defs
+import Cslib.Foundations.Data.OmegaSequence.Flatten
 import Cslib.Foundations.Data.OmegaSequence.Init
 import Cslib.Foundations.Data.Relation
 import Cslib.Foundations.Semantics.LTS.Basic
