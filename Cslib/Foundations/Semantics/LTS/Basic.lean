@@ -623,6 +623,11 @@ theorem LTS.sTrN_imp_τTr [HasTau Label] (lts : LTS State Label) :
     have hτ3' := LTS.sTrN_imp_τTr lts hτ2
     exact Relation.ReflTransGen.trans hτ1' (Relation.ReflTransGen.head htr hτ3')
 
+@[grind]
+theorem LTS.τTr_sTrN [HasTau Label] (lts : LTS State Label) :
+  lts.τTr s1 s2 ↔ ∃ n, lts.STrN n s1 HasTau.τ s2 := by
+  grind
+
 /-- `LTS.str` and `LTS.strN` are equivalent. -/
 @[grind]
 theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
@@ -645,6 +650,32 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
       exact LTS.STr.refl
     case tr _ _ _ _ _ _ h2 _ h1 h3 =>
       exact LTS.STr.comp lts h1 (LTS.STr.single lts h2) h3
+
+/-- Saturated transitions labelled by τ can be composed (weighted version). -/
+theorem LTS.STrN.trans_τ
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
+    lts.STrN (n + m) s1 HasTau.τ s3 := by
+  sorry
+
+/-- Saturated transitions can be appended with τ-transitions (weighted version). -/
+@[grind]
+theorem LTS.STrN.append
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 μ s2)
+    (h2 : lts.STrN n2 s2 HasTau.τ s3) :
+    lts.STrN (n1 + n2) s1 μ s3 := by
+  sorry
+
+/-- Saturated transitions can be composed (weighted version). -/
+@[grind]
+theorem LTS.STrN.comp
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 HasTau.τ s2)
+    (h2 : lts.STrN n2 s2 μ s3)
+    (h3 : lts.STrN n3 s3 HasTau.τ s4) :
+    lts.STrN (n1 + n2 + n3) s1 μ s4 := by
+  sorry
 
 end Weak
 
