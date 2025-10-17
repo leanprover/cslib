@@ -108,7 +108,8 @@ theorem flatten_cons [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (
   ext n ; rw [flatten_def, head, tail_eq_drop]
   rcases (show n < (ls 0).length ∨ n ≥ (ls 0).length by omega) with h_n | h_n
   · simp (disch := omega) [get_append_left, cumLen_segment_zero, cumLen_zero]
-  · simp (disch := omega) [get_append_right', flatten_def, cumLen_segment_one_add, cumLen_one_add_drop]
+  · simp (disch := omega) [get_append_right', flatten_def, cumLen_segment_one_add,
+      cumLen_one_add_drop]
     grind
 
 /-- `ls.flatten` equals the concatenation of `(ls.take n).flatten` and `(ls.drop n).flatten`. -/
