@@ -809,6 +809,7 @@ theorem SWBisimulation.follow_internal_fst_n
     cases hstrN
     rename_i n1 sb sb' n2 hstrN1 htr hstrN2
     let hswb_m := hswb
+    rw [←LTS.STrN_τTrN] at hstrN1 hstrN2
     have ih1 := SWBisimulation.follow_internal_fst_n hswb hr hstrN1
     obtain ⟨sb2, hstrs2, hrsb⟩ := ih1
     have h := (hswb hrsb HasTau.τ).1 sb' htr
@@ -836,6 +837,7 @@ theorem SWBisimulation.follow_internal_snd_n
     cases hstrN
     rename_i n1 sb sb' n2 hstrN1 htr hstrN2
     let hswb_m := hswb
+    rw [←LTS.STrN_τTrN] at hstrN1 hstrN2
     have ih1 := SWBisimulation.follow_internal_snd_n hswb hr hstrN1
     obtain ⟨sb1, hstrs1, hrsb⟩ := ih1
     have h := (hswb hrsb HasTau.τ).2 sb' htr
@@ -897,6 +899,7 @@ theorem LTS.isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
+        rw [←LTS.STr_τTr] at hstr1 hstr2
         obtain ⟨sb2, hstr2b, hrb⟩ := SWBisimulation.follow_internal_fst h hr hstr1
         obtain ⟨sb2', hstr2b', hrb'⟩ := (h hrb μ).1 _ htr
         obtain ⟨s2', hstr2', hrb2⟩ := SWBisimulation.follow_internal_fst h hrb' hstr2
@@ -912,6 +915,7 @@ theorem LTS.isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
+        rw [←LTS.STr_τTr] at hstr1 hstr2
         obtain ⟨sb1, hstr1b, hrb⟩ := SWBisimulation.follow_internal_snd h hr hstr1
         obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).2 _ htr
         obtain ⟨s1', hstr1', hrb2⟩ := SWBisimulation.follow_internal_snd h hrb' hstr2
