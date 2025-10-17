@@ -10,7 +10,7 @@ weak.linter.flexible = true
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4-nightly-testing"
-rev = "nightly-testing-2025-09-15"
+rev = "nightly-testing"
 
 [[lean_lib]]
 name = "Cslib"
