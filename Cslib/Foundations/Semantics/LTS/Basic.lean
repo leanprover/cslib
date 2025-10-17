@@ -145,6 +145,74 @@ def LTS.generatedBy (s : State) : LTS {s' : State // lts.CanReach s s'} Label wh
 
 end MultiStep
 
+section Relation
+
+/-- Returns the relation that relates all states `s1` and `s2` via a fixed transition label `μ`. -/
+def LTS.Tr.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
+  fun s1 s2 => lts.Tr s1 μ s2
+
+/-- Returns the relation that relates all states `s1` and `s2` via a fixed list of transition
+labels `μs`. -/
+def LTS.MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
+  fun s1 s2 => lts.MTr s1 μs s2
+
+/-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
+def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
+  LTS State Label where
+  Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
+
+end Relation
+
+section Trans
+
+/-! ## Support for the calc tactic -/
+
+/-- Transitions can be chained. -/
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.Tr.toRelation lts μ1)
+    (LTS.Tr.toRelation lts μ2)
+    (LTS.MTr.toRelation lts [μ1, μ2]) where
+  trans := by
+    intro s1 s2 s3 htr1 htr2
+    apply LTS.MTr.single at htr1
+    apply LTS.MTr.single at htr2
+    apply LTS.MTr.comp lts htr1 htr2
+
+/-- Transitions can be chained with multi-step transitions. -/
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.Tr.toRelation lts μ)
+    (LTS.MTr.toRelation lts μs)
+    (LTS.MTr.toRelation lts (μ :: μs)) where
+  trans := by
+    intro s1 s2 s3 htr1 hmtr2
+    apply LTS.MTr.single at htr1
+    apply LTS.MTr.comp lts htr1 hmtr2
+
+/-- Multi-step transitions can be chained with transitions. -/
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.MTr.toRelation lts μs)
+    (LTS.Tr.toRelation lts μ)
+    (LTS.MTr.toRelation lts (μs ++ [μ])) where
+  trans := by
+    intro s1 s2 s3 hmtr1 htr2
+    apply LTS.MTr.single at htr2
+    apply LTS.MTr.comp lts hmtr1 htr2
+
+/-- Multi-step transitions can be chained. -/
+instance (lts : LTS State Label) :
+  Trans
+    (LTS.MTr.toRelation lts μs1)
+    (LTS.MTr.toRelation lts μs2)
+    (LTS.MTr.toRelation lts (μs1 ++ μs2)) where
+  trans := by
+    intro s1 s2 s3 hmtr1 hmtr2
+    apply LTS.MTr.comp lts hmtr1 hmtr2
+
+end Trans
+
 section Termination
 /-! ## Definitions about termination -/
 
@@ -418,7 +486,7 @@ class HasTau (Label : Type v) where
 
 /-- Saturated τ-transition relation. -/
 def LTS.τTr [HasTau Label] (lts : LTS State Label) : State → State → Prop :=
-  Relation.ReflTransGen (fun s1 s2 => lts.Tr s1 HasTau.τ s2)
+  Relation.ReflTransGen (Tr.toRelation lts HasTau.τ)
 
 /-- Saturated transition relation. -/
 inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
@@ -434,7 +502,7 @@ def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
 @[grind]
 theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) : lts.Tr s μ s' → lts.STr s μ s' := by
   intro h
-  apply LTS.STr.tr Relation.ReflTransGen.refl h Relation.ReflTransGen.refl
+  apply LTS.STr.tr .refl h .refl
 
 /-- STr transitions labeled by HasTau.τ are exactly the τTr transitions. -/
 @[grind]
@@ -443,113 +511,13 @@ theorem LTS.STr_τTr [HasTau Label] (lts : LTS State Label) :
   apply Iff.intro <;> intro h
   case mp =>
     cases h
-    case refl => exact Relation.ReflTransGen.refl
+    case refl => exact .refl
     case tr _ _ h1 h2 h3 =>
-      exact (Relation.ReflTransGen.trans h1 (Relation.ReflTransGen.head h2 h3))
+      exact (.trans h1 (.head h2 h3))
   case mpr =>
     cases h
     case refl => exact LTS.STr.refl
-    case tail _ h1 h2 => exact LTS.STr.tr h1 h2 Relation.ReflTransGen.refl
-
-/- Do we really need STrN?
-
-/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
-metric. -/
-inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
-  ℕ → State → Label → State → Prop where
-  | refl : lts.STrN 0 s HasTau.τ s
-  | tr :
-    lts.τTrN n s1 s2 →
-    lts.Tr s2 μ s3 →
-    lts.τTrN m s3 s4 →
-    lts.STrN (n + m + 1) s1 μ s4
-
-/-- `LTS.sTr` and `LTS.sTrN` are equivalent. -/
-@[grind]
-theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
-  lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl =>
-      exists 0
-      exact LTS.STrN.refl
-    case tr _ _ hτ1 htr hτ2 =>
-      obtain ⟨n1, ih1⟩ := lts.τTr_imp_τTrN hτ1
-      obtain ⟨n2, ih2⟩ := lts.τTr_imp_τTrN hτ2
-      exists (n1 + n2 + 1)
-      apply LTS.STrN.tr ih1 htr ih2
-  case mpr =>
-    obtain ⟨n, h⟩ := h
-    induction h
-    case refl =>
-      constructor
-    case tr m s1 s2 μ s3 k s4 hτ1 htr hτ2 =>
-      apply LTS.STr.tr (lts.τTrN_imp_τTr hτ1) htr (lts.τTrN_imp_τTr hτ2)
-
-/-- STrN transitions labeled by HasTau.τ are exactly the τTrN transitions. -/
-@[grind]
-theorem LTS.STrN_τTrN [HasTau Label] (lts : LTS State Label) :
-  lts.STrN n s HasTau.τ s' ↔ lts.τTrN n s s' := by
-  constructor <;> intro h
-  case mp =>
-    cases h
-    case refl => exact LTS.τTrN.refl
-    case tr n' _ _ m' h1 h2 h3 =>
-      have h4 := LTS.τTrN.tr h1 h2
-      have h5 := LTS.τTrN.append lts h4 h3
-      grind
-  case mpr =>
-    cases h
-    case refl => exact LTS.STrN.refl
-    case tr n' s'' h1 h2 => exact LTS.STrN.tr h1 h2 LTS.τTrN.refl
-
-@[grind]
-theorem LTS.τTr_imp_STrN_τ [HasTau Label] (lts : LTS State Label) :
-  lts.τTr s s' → ∃ n, lts.STrN n s HasTau.τ s' := by
-  intro h
-  obtain ⟨n, h⟩ := lts.τTr_imp_τTrN h
-  exists n
-  grind
-
-/-- Saturated transitions labelled by τ can be composed (weighted version). -/
-theorem LTS.STrN.trans_τ
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
-  lts.STrN (n + m) s1 HasTau.τ s3 := by grind
-
-
-/-- Saturated transitions can be appended with τ-transitions (weighted version). -/
-@[grind]
-theorem LTS.STrN.append
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 μ s2)
-  (h2 : lts.STrN n2 s2 HasTau.τ s3) :
-  lts.STrN (n1 + n2) s1 μ s3 := by
-  rw [STrN_τTrN lts] at h2
-  cases h1
-  case refl => grind
-  case tr _ _ _ _ h3 h4 h5 =>
-    have h6 := LTS.τTrN.append lts h5 h2
-    have h7 := LTS.STrN.tr h3 h4 h6
-    grind
-
-/-- Saturated transitions can be composed (weighted version). -/
-@[grind]
-theorem LTS.STrN.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 HasTau.τ s2)
-  (h2 : lts.STrN n2 s2 μ s3)
-  (h3 : lts.STrN n3 s3 HasTau.τ s4) :
-  lts.STrN (n1 + n2 + n3) s1 μ s4 := by
-  rw [STrN_τTrN lts] at h1 h3
-  cases h2
-  case refl => grind
-  case tr _ _ _ _ h4 h5 h6 =>
-    have h7 := LTS.τTrN.append lts h1 h4
-    have h8 := LTS.τTrN.append lts h6 h3
-    have h9 := LTS.STrN.tr h7 h5 h8
-    grind
+    case tail _ h1 h2 => exact LTS.STr.tr h1 h2 .refl
 
 /-- Saturated transitions can be composed. -/
 @[grind]
@@ -608,8 +576,6 @@ theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
       rw [←LTS.STr_τTr lts] at hstr1 hstr2
       exact LTS.STr.comp lts hstr1 htr hstr2
 
--/
-
 /-- In a saturated LTS, every state is in its τ-image. -/
 @[grind]
 theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
@@ -620,6 +586,65 @@ by performing only `τ`-transitions. -/
 @[grind =]
 def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
   lts.saturate.setImage S HasTau.τ
+
+/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
+metric. -/
+@[grind]
+inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
+  ℕ → State → Label → State → Prop where
+  | refl : lts.STrN 0 s HasTau.τ s
+  | tr :
+    lts.STrN n s1 HasTau.τ s2 →
+    lts.Tr s2 μ s3 →
+    lts.STrN m s3 HasTau.τ s4 →
+    lts.STrN (n + m + 1) s1 μ s4
+
+@[grind]
+theorem LTS.τTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
+  lts.τTr s1 s2 → ∃ n, lts.STrN n s1 HasTau.τ s2 := by
+  intro h
+  induction h
+  case refl =>
+    exists 0
+    apply LTS.STrN.refl
+  case tail _ _ _ htr ih =>
+    obtain ⟨n, hn⟩ := ih
+    exists (n + 1)
+    apply LTS.STrN.tr hn htr LTS.STrN.refl
+
+@[grind]
+theorem LTS.sTrN_imp_τTr [HasTau Label] (lts : LTS State Label) :
+  lts.STrN n s1 HasTau.τ s2 → lts.τTr s1 s2 := by
+  intro h
+  cases h
+  case refl => exact Relation.ReflTransGen.refl
+  case tr m _ _ k hτ1 htr hτ2 =>
+    have hτ1' := LTS.sTrN_imp_τTr lts hτ1
+    have hτ3' := LTS.sTrN_imp_τTr lts hτ2
+    exact Relation.ReflTransGen.trans hτ1' (Relation.ReflTransGen.head htr hτ3')
+
+/-- `LTS.str` and `LTS.strN` are equivalent. -/
+@[grind]
+theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
+  lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    induction h
+    case refl =>
+      exists 0
+      apply LTS.STrN.refl
+    case tr _ _ hτ1 htr hτ2 =>
+      obtain ⟨n, hn⟩ := LTS.τTr_imp_sTrN lts hτ1
+      obtain ⟨m, hm⟩ := LTS.τTr_imp_sTrN lts hτ2
+      exists (n + m + 1)
+      apply LTS.STrN.tr hn htr hm
+  case mpr =>
+    obtain ⟨n, hn⟩ := h
+    induction hn
+    case refl =>
+      exact LTS.STr.refl
+    case tr _ _ _ _ _ _ h2 _ h1 h3 =>
+      exact LTS.STr.comp lts h1 (LTS.STr.single lts h2) h3
 
 end Weak
 
@@ -654,73 +679,6 @@ def LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) : Prop :=
 
 end Divergence
 
-section Relation
-
-/-- Returns the relation that relates all states `s1` and `s2` via a fixed transition label `μ`. -/
-def LTS.Tr.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
-  fun s1 s2 => lts.Tr s1 μ s2
-
-/-- Returns the relation that relates all states `s1` and `s2` via a fixed list of transition
-labels `μs`. -/
-def LTS.MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
-  fun s1 s2 => lts.MTr s1 μs s2
-
-/-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
-def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
-  LTS State Label where
-  Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
-
-end Relation
-
-section Trans
-
-/-! ## Support for the calc tactic -/
-
-/-- Transitions can be chained. -/
-instance (lts : LTS State Label) :
-  Trans
-    (LTS.Tr.toRelation lts μ1)
-    (LTS.Tr.toRelation lts μ2)
-    (LTS.MTr.toRelation lts [μ1, μ2]) where
-  trans := by
-    intro s1 s2 s3 htr1 htr2
-    apply LTS.MTr.single at htr1
-    apply LTS.MTr.single at htr2
-    apply LTS.MTr.comp lts htr1 htr2
-
-/-- Transitions can be chained with multi-step transitions. -/
-instance (lts : LTS State Label) :
-  Trans
-    (LTS.Tr.toRelation lts μ)
-    (LTS.MTr.toRelation lts μs)
-    (LTS.MTr.toRelation lts (μ :: μs)) where
-  trans := by
-    intro s1 s2 s3 htr1 hmtr2
-    apply LTS.MTr.single at htr1
-    apply LTS.MTr.comp lts htr1 hmtr2
-
-/-- Multi-step transitions can be chained with transitions. -/
-instance (lts : LTS State Label) :
-  Trans
-    (LTS.MTr.toRelation lts μs)
-    (LTS.Tr.toRelation lts μ)
-    (LTS.MTr.toRelation lts (μs ++ [μ])) where
-  trans := by
-    intro s1 s2 s3 hmtr1 htr2
-    apply LTS.MTr.single at htr2
-    apply LTS.MTr.comp lts hmtr1 htr2
-
-/-- Multi-step transitions can be chained. -/
-instance (lts : LTS State Label) :
-  Trans
-    (LTS.MTr.toRelation lts μs1)
-    (LTS.MTr.toRelation lts μs2)
-    (LTS.MTr.toRelation lts (μs1 ++ μs2)) where
-  trans := by
-    intro s1 s2 s3 hmtr1 hmtr2
-    apply LTS.MTr.comp lts hmtr1 hmtr2
-
-end Trans
 
 open Lean Elab Meta Command Term
 

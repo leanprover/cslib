@@ -809,7 +809,6 @@ theorem SWBisimulation.follow_internal_fst_n
     cases hstrN
     rename_i n1 sb sb' n2 hstrN1 htr hstrN2
     let hswb_m := hswb
-    rw [←LTS.STrN_τTrN] at hstrN1 hstrN2
     have ih1 := SWBisimulation.follow_internal_fst_n hswb hr hstrN1
     obtain ⟨sb2, hstrs2, hrsb⟩ := ih1
     have h := (hswb hrsb HasTau.τ).1 sb' htr
@@ -817,9 +816,7 @@ theorem SWBisimulation.follow_internal_fst_n
     have ih2 := SWBisimulation.follow_internal_fst_n hswb hrsb2 hstrN2
     obtain ⟨s2', hstrs2', hrs2⟩ := ih2
     exists s2'
-    constructor
-    · apply LTS.STr.trans_τ lts (LTS.STr.trans_τ lts hstrs2 hstrsb2) hstrs2'
-    · exact hrs2
+    grind
 
 /-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
 (second component, weighted version). -/
@@ -837,7 +834,6 @@ theorem SWBisimulation.follow_internal_snd_n
     cases hstrN
     rename_i n1 sb sb' n2 hstrN1 htr hstrN2
     let hswb_m := hswb
-    rw [←LTS.STrN_τTrN] at hstrN1 hstrN2
     have ih1 := SWBisimulation.follow_internal_snd_n hswb hr hstrN1
     obtain ⟨sb1, hstrs1, hrsb⟩ := ih1
     have h := (hswb hrsb HasTau.τ).2 sb' htr
@@ -845,9 +841,7 @@ theorem SWBisimulation.follow_internal_snd_n
     have ih2 := SWBisimulation.follow_internal_snd_n  hswb hrsb2 hstrN2
     obtain ⟨s2', hstrs2', hrs2⟩ := ih2
     exists s2'
-    constructor
-    · apply LTS.STr.trans_τ lts (LTS.STr.trans_τ lts hstrs1 hstrsb2) hstrs2'
-    · exact hrs2
+    grind
 
 /-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
 (first component). -/
