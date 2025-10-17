@@ -10,6 +10,8 @@ import Mathlib.Data.Fintype.Powerset
 
 /-! # Translation of NFA into DFA (subset construction) -/
 
+namespace Cslib
+
 namespace NFA
 section SubsetConstruction
 
@@ -62,3 +64,5 @@ theorem toDFA_language_eq {nfa : NFA State Symbol} :
 
 end SubsetConstruction
 end NFA
+
+end Cslib

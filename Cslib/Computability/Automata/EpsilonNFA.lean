@@ -8,6 +8,8 @@ import Cslib.Computability.Automata.NA
 
 /-! # Nondeterministic automata with ε-transitions. -/
 
+namespace Cslib
+
 /-- A nondeterministic finite automaton with ε-transitions (`εNFA`) is an `NA` with an `Option`
 symbol type. The special symbol ε is represented by the `Option.none` case.
 
@@ -50,3 +52,5 @@ theorem accepts_mem_language (enfa : εNFA State Symbol) (xs : List Symbol) :
   enfa.Accepts xs ↔ xs ∈ enfa.language := by rfl
 
 end εNFA
+
+end Cslib

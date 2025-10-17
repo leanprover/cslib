@@ -33,7 +33,10 @@ the universal property.
 Free monad, state monad, writer monad, continuation monad
 -/
 
+namespace Cslib
+
 namespace FreeM
+
 universe u v w w' w''
 
 /-! ### State Monad via `FreeM` -/
@@ -347,3 +350,5 @@ lemma run_callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) (k :
 end FreeCont
 
 end FreeM
+
+end Cslib

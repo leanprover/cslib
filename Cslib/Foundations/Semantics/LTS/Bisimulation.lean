@@ -67,6 +67,8 @@ LTSs.
 
 -/
 
+namespace Cslib
+
 universe u v
 
 section Bisimulation
@@ -1090,3 +1092,5 @@ theorem SWBisimilarity.eqv [HasTau Label] {lts : LTS State Label} :
   }
 
 end WeakBisimulation
+
+end Cslib

@@ -23,6 +23,8 @@ option of constant definitions (K = P).
 * [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
 
+namespace Cslib
+
 namespace CCS
 
 universe u v
@@ -174,3 +176,5 @@ theorem Context.complete (p : Process Name Constant) :
     grind
 
 end CCS
+
+end Cslib

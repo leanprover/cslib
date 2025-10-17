@@ -18,6 +18,8 @@ import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 -/
 
+namespace Cslib
+
 universe u
 
 variable {Var : Type u}
@@ -111,3 +113,5 @@ theorem redex_abs_cong (xs : Finset Var) (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠
   all_goals grind [redex_abs_close]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta
+
+end Cslib
