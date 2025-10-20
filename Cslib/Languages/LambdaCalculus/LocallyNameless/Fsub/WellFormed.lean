@@ -38,7 +38,7 @@ inductive Ty.Wf : Env Var → Ty Var → Prop
       Ty.Wf Γ (all σ τ)
   | sum : Ty.Wf Γ σ → Ty.Wf Γ τ → Ty.Wf Γ (sum σ τ)
 
-attribute [scoped grind] Ty.Wf.top Ty.Wf.var Ty.Wf.arrow Ty.Wf.sum
+attribute [scoped grind!] Ty.Wf.top Ty.Wf.var Ty.Wf.arrow Ty.Wf.sum
 
 /-- An environment is well-formed if it binds each variable exactly once to a well-formed type. -/
 inductive Env.Wf : Env Var → Prop
@@ -95,7 +95,14 @@ lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨
   generalize eq : (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ) = Θ at wf
   induction wf generalizing Γ with
   | all => apply all (free_union [dom] Var) <;> grind [nodupKeys_cons]
-  | _ => grind [sublist_dlookup]
+  | _ =>
+    #adaptation_note
+    /--
+    Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
+    I've had to remove the `append_assoc` lemma grind;
+    without this `grind` is exploding. This requires further investigation.
+    -/
+    grind [sublist_dlookup, -append_assoc]
 
 lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) (ok : (⟨X, Binding.sub τ'⟩ :: Δ)✓) :
     σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) := by
