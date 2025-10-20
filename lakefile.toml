@@ -15,12 +15,12 @@ weak.linter.allScriptsDocumented = false
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4-nightly-testing"
-rev = "nightly-testing-2025-10-17"
+rev = "nightly-testing-2025-10-19"
 
 [[lean_lib]]
 name = "Cslib"
-globs = "Cslib.*"
+globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = "CslibTests.+"
+globs = ["CslibTests.+"]
