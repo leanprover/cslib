@@ -48,6 +48,10 @@ open Relation Relation.ReflTransGen
 instance (rs : ReductionSystem Term) : Trans rs.Red rs.MRed rs.MRed := by infer_instance
 instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_instance
 
+instance (rs : ReductionSystem Term) : IsTrans Term rs.MRed := by infer_instance
+instance (rs : ReductionSystem Term) : Transitive rs.MRed := transitive_of_trans rs.MRed
+instance (rs : ReductionSystem Term) : Trans rs.MRed rs.MRed rs.MRed := instTransOfIsTrans
+
 end MultiStep
 
 open Lean Elab Meta Command Term
@@ -103,8 +107,8 @@ macro_rules
      )
   | `(reduction_notation $rs) =>
     `(
-      notation3 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
+      notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 

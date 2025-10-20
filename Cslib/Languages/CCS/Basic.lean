@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
+import Mathlib.Init
+
 /-! # Calculus of Communicating Systems (CCS)
 
 CCS [Milner80], as presented in [Sangiorgi2011]. In the semantics (see `CCS.lts`), we adopt the
@@ -46,9 +48,11 @@ inductive Process (Name : Type u) (Constant : Type v) : Type (max u v) where
   | const (c : Constant)
 deriving DecidableEq
 
+namespace Act
+
 /-- An action is visible if it a name or a coname. -/
 @[grind]
-inductive Act.IsVisible : Act Name → Prop where
+inductive IsVisible : Act Name → Prop where
   | name : IsVisible (Act.name a)
   | coname : IsVisible (Act.coname a)
 
@@ -59,9 +63,9 @@ theorem Act.isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ 
 
 /-- Checks that an action is the coaction of another. -/
 @[grind]
-inductive Act.Co {Name : Type u} : Act Name → Act Name → Prop where
-  | nc : Act.Co (Act.name a) (Act.coname a)
-  | cn : Act.Co (Act.coname a) (Act.name a)
+inductive Co {Name : Type u} : Act Name → Act Name → Prop where
+  | nc : Co (name a) (coname a)
+  | cn : Co (coname a) (name a)
 
 /-- `Act.Co` is symmetric. -/
 @[grind →, symm]
@@ -72,59 +76,14 @@ theorem Act.Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
 theorem Act.co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/
-instance {Name : Type u} [hdec : DecidableEq Name] {μ μ' : Act Name} :
-  Decidable (Act.Co μ μ') := by
-  cases μ
-  case name a =>
-    cases μ'
-    case name b =>
-      apply Decidable.isFalse
-      intro h'
-      cases h'
-    case coname b =>
-      by_cases hab : a = b
-      case pos =>
-        rw [hab]
-        apply Decidable.isTrue
-        constructor
-      case neg =>
-        apply Decidable.isFalse
-        intro h'
-        cases h'
-        contradiction
-    case τ =>
-      apply Decidable.isFalse
-      intro h'
-      cases h'
-  case coname a =>
-    cases μ'
-    case name b =>
-      by_cases hab : a = b
-      case pos =>
-        rw [hab]
-        apply Decidable.isTrue
-        constructor
-      case neg =>
-        apply Decidable.isFalse
-        intro h'
-        cases h'
-        contradiction
-    case coname b =>
-      apply Decidable.isFalse
-      intro h'
-      cases h'
-    case τ =>
-      apply Decidable.isFalse
-      intro h'
-      cases h'
-  case τ =>
-    apply Decidable.isFalse
-    intro h'
-    cases h'
+instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') := 
+  decidable_of_decidable_of_iff isCo_iff
+
+end Act
 
 /-- Contexts. -/
 @[grind]
-inductive Context (Name : Type u) (Constant : Type v): Type (max u v) where
+inductive Context (Name : Type u) (Constant : Type v) : Type (max u v) where
   | hole
   | pre (μ : Act Name) (c : Context Name Constant)
   | parL (c : Context Name Constant) (q : Process Name Constant)
@@ -136,7 +95,7 @@ deriving DecidableEq
 
 /-- Replaces the hole in a `Context` with a `Process`. -/
 @[grind]
-def Context.fill {Name : Type u} {Constant : Type v} (c : Context Name Constant) (p : Process Name Constant) : Process Name Constant :=
+def Context.fill (c : Context Name Constant) (p : Process Name Constant) : Process Name Constant :=
   match c with
   | hole => p
   | pre μ c => Process.pre μ (c.fill p)
