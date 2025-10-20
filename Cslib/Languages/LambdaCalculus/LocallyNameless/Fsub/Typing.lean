@@ -95,6 +95,7 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
   induction der generalizing Γ
   case var X' _ _ =>
+    have : .sub δ' ∈ dlookup X (Γ ++ ⟨X, .sub δ'⟩ :: Δ) := by grind [List.mem_dlookup]
     have : X ≠ X' := by grind
     have p (δ) : Γ ++ ⟨X, .sub δ⟩ :: Δ ~ ⟨X, .sub δ⟩ :: (Γ ++ Δ) := perm_middle
     grind [Env.Wf.narrow, List.perm_nodupKeys, => List.perm_dlookup]
