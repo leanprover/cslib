@@ -37,7 +37,7 @@ inductive Parallel : Term Var → Term Var → Prop
 
 open Parallel
 
-attribute [scoped grind] Parallel.fvar Parallel.app
+attribute [scoped grind .] Parallel.fvar Parallel.app
 attribute [scoped grind cases] Parallel
 
 variable {M M' N N' : Term Var}
@@ -49,7 +49,7 @@ private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
   simp_all
 
 /-- The left side of a parallel reduction is locally closed. -/
-@[scoped grind]
+@[scoped grind →]
 lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
@@ -57,7 +57,7 @@ lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
   all_goals grind
 
 /-- Parallel reduction is reflexive for locally closed terms. -/
-@[scoped grind]
+@[scoped grind →]
 lemma Parallel.lc_refl (M : Term Var) (lc : LC M) : M ⭢ₚ M := by
   induction lc
   all_goals constructor <;> assumption
@@ -65,7 +65,7 @@ lemma Parallel.lc_refl (M : Term Var) (lc : LC M) : M ⭢ₚ M := by
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a parallel reduction is locally closed. -/
-@[scoped grind]
+@[scoped grind →]
 lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
   induction step
   case abs _ _ xs _ ih => exact LC.abs xs _ ih
@@ -108,7 +108,7 @@ theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
   case chain_redex.tail para  redex => exact Relation.ReflTransGen.trans redex (para_to_redex para)
 
 /-- Parallel reduction respects substitution. -/
-@[scoped grind]
+@[scoped grind .]
 lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢ₚ M'[x := N'] := by
   induction pm
   case fvar => grind

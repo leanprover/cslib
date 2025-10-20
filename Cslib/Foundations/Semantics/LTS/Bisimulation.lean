@@ -124,31 +124,31 @@ explicitly.
 notation s:max " ~[" lts "] " s':max => Bisimilarity lts s s'
 
 /-- Bisimilarity is reflexive. -/
-@[grind, refl]
+@[grind ., refl]
 theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
   exists Eq
   grind
 
 /-- The inverse of a bisimulation is a bisimulation. -/
-@[grind]
+@[grind →]
 theorem LTS.IsBisimulation.inv (h : lts.IsBisimulation r) :
   lts.IsBisimulation (flip r) := by grind [flip]
 
 /-- Bisimilarity is symmetric. -/
-@[grind, symm]
+@[grind →, symm]
 theorem Bisimilarity.symm {s1 s2 : State} (h : s1 ~[lts] s2) : s2 ~[lts] s1 := by
   obtain ⟨r, _, _⟩ := h
   exists (flip r)
   grind [flip]
 
 /-- The composition of two bisimulations is a bisimulation. -/
-@[grind]
+@[grind .]
 theorem LTS.IsBisimulation.comp
   (h1 : lts.IsBisimulation r1) (h2 : lts.IsBisimulation r2) :
   lts.IsBisimulation (Relation.Comp r1 r2) := by grind [Relation.Comp]
 
 /-- Bisimilarity is transitive. -/
-@[grind]
+@[grind →]
 theorem Bisimilarity.trans
   (h1 : s1 ~[lts] s2) (h2 : s2 ~[lts] s3) :
   s1 ~[lts] s3 := by
@@ -166,7 +166,7 @@ theorem Bisimilarity.eqv :
   }
 
 /-- The union of two bisimulations is a bisimulation. -/
-@[grind]
+@[grind .]
 theorem Bisimulation.union (hrb : lts.IsBisimulation r) (hsb : lts.IsBisimulation s) :
   lts.IsBisimulation (r ⊔ s) := by
   intro s1 s2 hrs μ
@@ -209,19 +209,18 @@ theorem Bisimulation.union (hrb : lts.IsBisimulation r) (hsb : lts.IsBisimulatio
         exact hs'
 
 /-- Bisimilarity is a bisimulation. -/
-@[grind]
+@[grind .]
 theorem Bisimilarity.is_bisimulation : lts.IsBisimulation (Bisimilarity lts) := by grind
 
 /-- Bisimilarity is the largest bisimulation. -/
-@[grind]
-theorem Bisimilarity.largest_bisimulation
-  (h : lts.IsBisimulation r) :
+@[grind →]
+theorem Bisimilarity.largest_bisimulation (h : lts.IsBisimulation r) :
   Subrelation r (Bisimilarity lts) := by
   intro s1 s2 hr
   exists r
 
 /-- The union of bisimilarity with any bisimulation is bisimilarity. -/
-@[grind, simp]
+@[grind =, simp]
 theorem Bisimilarity.gfp (r : State → State → Prop) (h : lts.IsBisimulation r) :
   (Bisimilarity lts) ⊔ r = Bisimilarity lts := by
   funext s1 s2
@@ -266,7 +265,7 @@ noncomputable instance : SemilatticeSup {r // lts.IsBisimulation r} where
       apply h2 _ _ h
 
 /-- The empty relation is a bisimulation. -/
-@[grind]
+@[grind .]
 theorem Bisimulation.emptyRelation_bisimulation : lts.IsBisimulation emptyRelation := by
   intro s1 s2 hr
   cases hr
@@ -305,7 +304,7 @@ def LTS.IsBisimulationUpTo (lts : LTS State Label) (r : State → State → Prop
   )
 
 /-- Any bisimulation up to bisimilarity is a bisimulation. -/
-@[grind]
+@[grind →]
 theorem LTS.IsBisimulationUpTo.isBisimulation (h : lts.IsBisimulationUpTo r) :
   lts.IsBisimulation (Relation.UpTo r (Bisimilarity lts)) := by
   intro s1 s2 hr μ
@@ -390,7 +389,7 @@ theorem Bisimulation.bisim_trace
 /-! ## Relation to trace equivalence -/
 
 /-- Any bisimulation implies trace equivalence. -/
-@[grind]
+@[grind =>]
 theorem LTS.IsBisimulation.traceEq
   (hb : lts.IsBisimulation r) (hr : r s1 s2) :
   s1 ~tr[lts] s2 := by
@@ -411,7 +410,7 @@ theorem LTS.IsBisimulation.traceEq
     exact hmtr.1
 
 /-- Bisimilarity is included in trace equivalence. -/
-@[grind]
+@[grind .]
 theorem Bisimilarity.le_traceEq : Bisimilarity lts ≤ TraceEq lts := by
   intro s1 s2 h
   obtain ⟨r, hr, hb⟩ := h

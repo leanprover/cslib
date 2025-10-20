@@ -38,7 +38,7 @@ inductive Ty.Wf : Env Var → Ty Var → Prop
       Ty.Wf Γ (all σ τ)
   | sum : Ty.Wf Γ σ → Ty.Wf Γ τ → Ty.Wf Γ (sum σ τ)
 
-attribute [scoped grind!] Ty.Wf.top Ty.Wf.var Ty.Wf.arrow Ty.Wf.sum
+attribute [scoped grind! .] Ty.Wf.top Ty.Wf.var Ty.Wf.arrow Ty.Wf.sum
 
 /-- An environment is well-formed if it binds each variable exactly once to a well-formed type. -/
 inductive Env.Wf : Env Var → Prop
@@ -46,7 +46,7 @@ inductive Env.Wf : Env Var → Prop
   | sub : Wf Γ → τ.Wf Γ → X ∉ Γ.dom → Wf (⟨X, Binding.sub τ⟩ :: Γ)
   | ty : Wf Γ → τ.Wf Γ → x ∉ Γ.dom → Wf (⟨x, Binding.ty τ⟩ :: Γ)
 
-attribute [scoped grind] Env.Wf.sub Env.Wf.ty
+attribute [scoped grind! .] Env.Wf.sub Env.Wf.ty
 
 variable {Γ Δ Θ : Env Var} {σ τ τ' γ δ : Ty Var}
 

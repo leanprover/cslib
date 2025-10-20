@@ -57,7 +57,7 @@ namespace Typing
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
-attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
+attribute [grind .] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
 
 /-- Typings have well-formed contexts and types. -/
 @[grind →]

@@ -118,14 +118,14 @@ theorem Proposition.dual.neq (a : Proposition Atom) : a ≠ a⫠ := by
   cases a <;> simp [Proposition.dual]
 
 /-- Two propositions are equal iff their respective duals are equal. -/
-@[grind, simp]
+@[grind =, simp]
 theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b := by
   refine ⟨fun h ↦ ?_, congrArg dual⟩
   induction a generalizing b <;> cases b
   all_goals aesop (add simp [Proposition.dual])
 
 /-- Duality is an involution. -/
-@[grind, simp]
+@[grind =, simp]
 theorem Proposition.dual.involution (a : Proposition Atom) : a⫠⫠ = a := by
   induction a <;> simp_all [dual]
 

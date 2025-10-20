@@ -43,7 +43,7 @@ namespace Sub
 
 open Context List Ty.Wf Env.Wf Binding
 
-attribute [scoped grind] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
+attribute [scoped grind .] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 

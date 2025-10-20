@@ -53,7 +53,7 @@ inductive Act.IsVisible : Act Name → Prop where
   | coname : IsVisible (Act.coname a)
 
 /-- If an action is visible, it is not `τ`. -/
-@[grind, simp]
+@[grind →, simp]
 theorem Act.isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by
   cases μ <;> grind
 
@@ -64,11 +64,11 @@ inductive Act.Co {Name : Type u} : Act Name → Act Name → Prop where
   | cn : Act.Co (Act.coname a) (Act.name a)
 
 /-- `Act.Co` is symmetric. -/
-@[grind, symm]
+@[grind →, symm]
 theorem Act.Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
 
 /-- If two actions are one the coaction of the other, then they are both visible. -/
-@[grind]
+@[grind →]
 theorem Act.co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/

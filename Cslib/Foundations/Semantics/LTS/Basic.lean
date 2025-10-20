@@ -82,7 +82,7 @@ inductive LTS.MTr (lts : LTS State Label) : State → List Label → State → P
     lts.MTr s1 (μ :: μs) s3
 
 /-- Any transition is also a multi-step transition. -/
-@[grind]
+@[grind →]
 theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   lts.Tr s1 μ s2 → lts.MTr s1 [μ] s2 := by
   intro h
@@ -91,7 +91,7 @@ theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   · apply LTS.MTr.refl
 
 /-- Any multi-step transition can be extended by adding a transition. -/
-@[grind]
+@[grind <=]
 theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
   intro h1 h2
@@ -103,7 +103,7 @@ theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} 
     · apply ih h2
 
 /-- Multi-step transitions can be composed. -/
-@[grind]
+@[grind <=]
 theorem LTS.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List Label} {s3 : State} :
   lts.MTr s1 μs1 s2 → lts.MTr s2 μs2 s3 →
   lts.MTr s1 (μs1 ++ μs2) s3 := by
@@ -116,7 +116,7 @@ theorem LTS.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List 
     · apply ih h2
 
 /-- Any 1-sized multi-step transition implies a transition with the same states and label. -/
-@[grind]
+@[grind .]
 theorem LTS.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 → lts.Tr s1 μ s2 := by
   intro h
@@ -126,7 +126,7 @@ theorem LTS.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     exact htr
 
 /-- In any zero-steps multi-step transition, the origin and the derivative are the same. -/
-@[grind]
+@[grind .]
 theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
@@ -290,32 +290,32 @@ def LTS.setImageMultistep (S : Set State) (μs : List Label) : Set State :=
   ⋃ s ∈ S, lts.imageMultistep s μs
 
 /-- Characterisation of `setImage` wrt `Tr`. -/
-@[grind]
+@[grind =]
 theorem LTS.mem_setImage (lts : LTS State Label) :
   s' ∈ lts.setImage S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
   simp only [setImage, Set.mem_iUnion, exists_prop]
   grind
 
-@[grind]
+@[grind →]
 theorem LTS.tr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.Tr s μ s') :
   s' ∈ lts.setImage S μ := by grind
 
 /-- Characterisation of `setImageMultistep` with `MTr`. -/
-@[grind]
+@[grind =]
 theorem LTS.mem_setImageMultistep (lts : LTS State Label) :
   s' ∈ lts.setImageMultistep S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
   simp only [setImageMultistep, Set.mem_iUnion, exists_prop]
   grind
 
-@[grind]
+@[grind <=]
 theorem LTS.mTr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.MTr s μs s') :
   s' ∈ lts.setImageMultistep S μs := by grind
 
 /-- The image of the empty set is always the empty set. -/
-@[grind]
+@[grind =]
 theorem LTS.setImage_empty (lts : LTS State Label) : lts.setImage ∅ μ = ∅ := by grind
 
-@[grind]
+@[grind =]
 lemma LTS.setImageMultistep_setImage_head (lts : LTS State Label) :
   lts.setImageMultistep S (μ :: μs) = lts.setImageMultistep (lts.setImage S μ ) μs := by grind
 
@@ -429,7 +429,7 @@ def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
   Tr := lts.STr
 
 /-- Any transition is also a saturated transition. -/
-@[grind]
+@[grind →]
 theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) : lts.Tr s μ s' → lts.STr s μ s' := by
   intro h
   apply LTS.STr.tr LTS.STr.refl h LTS.STr.refl
@@ -447,7 +447,7 @@ inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
     lts.STrN (n + m + 1) s1 μ s4
 
 /-- `LTS.str` and `LTS.strN` are equivalent. -/
-@[grind]
+@[grind =]
 theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
   apply Iff.intro <;> intro h
@@ -470,7 +470,7 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
       apply LTS.STr.tr ih1 htr ih2
 
 /-- Saturated transitions labelled by τ can be composed (weighted version). -/
-@[grind]
+@[grind →]
 theorem LTS.STrN.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
@@ -483,7 +483,7 @@ theorem LTS.STrN.trans_τ
     grind
 
 /-- Saturated transitions labelled by τ can be composed. -/
-@[grind]
+@[grind →]
 theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
@@ -494,7 +494,7 @@ theorem LTS.STr.trans_τ
   apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
 
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
-@[grind]
+@[grind <=]
 theorem LTS.STrN.append
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n1 s1 μ s2)
@@ -509,7 +509,7 @@ theorem LTS.STrN.append
     apply LTS.STrN.tr hstr1 htr hsuffix
 
 /-- Saturated transitions can be composed (weighted version). -/
-@[grind]
+@[grind <=]
 theorem LTS.STrN.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n1 s1 HasTau.τ s2)
@@ -526,7 +526,7 @@ theorem LTS.STrN.comp
     grind
 
 /-- Saturated transitions can be composed. -/
-@[grind]
+@[grind <=]
 theorem LTS.STr.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2)
@@ -566,7 +566,7 @@ theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
       grind
 
 /-- In a saturated LTS, every state is in its τ-image. -/
-@[grind]
+@[grind .]
 theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
   s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
 

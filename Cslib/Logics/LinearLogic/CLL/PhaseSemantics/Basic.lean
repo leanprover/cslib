@@ -210,7 +210,7 @@ instance : One (Fact P) where one := dualFact (PhaseSpace.bot : Set P)
 
 @[scoped grind =, simp] lemma coe_one : ((1 : Fact P) : Set P) = (PhaseSpace.bot : Set P)⫠ := rfl
 
-@[scoped grind, simp] lemma mem_one :
+@[scoped grind =, simp] lemma mem_one :
   p ∈ (1 : Fact P) ↔ (∀ q ∈ PhaseSpace.bot, p * q ∈ PhaseSpace.bot) := Iff.rfl
 
 lemma one_mem_one : (1 : P) ∈ (1 : Fact P) := by simp [mem_one]
