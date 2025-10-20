@@ -60,7 +60,12 @@ theorem toDFA_language_eq {nfa : NFA State Symbol} :
   nfa.toDFA.language = nfa.language := by
   ext xs
   rw [← DFA.accepts_mem_language]
-  open DFA in grind
+  #adaptation_note
+  /--
+  Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
+  increasing the number of allowed splits.
+  -/
+  open DFA in grind (splits := 11)
 
 end SubsetConstruction
 end NFA
