@@ -99,7 +99,7 @@ lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨
     #adaptation_note
     /--
     Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
-    I've had to remove the `append_assoc` lemma grind;
+    I've had to remove the `append_assoc` lemma from grind;
     without this `grind` is exploding. This requires further investigation.
     -/
     grind [sublist_dlookup, -append_assoc]
