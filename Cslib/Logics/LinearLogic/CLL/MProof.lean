@@ -48,7 +48,7 @@ attribute [local grind _=_] Multiset.cons_coe
 attribute [local grind] MProof
 
 /- TODO: This is probably a general property of Multiset (for general predicates). -/
-@[grind]
+@[grind →]
 lemma MSequent.allQuest_from_sequent (h : Sequent.AllQuest Γ) :
   MSequent.AllQuest (Multiset.ofList Γ) := by
   intro b hin

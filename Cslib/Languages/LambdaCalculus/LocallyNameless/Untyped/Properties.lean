@@ -82,10 +82,10 @@ lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
   all_goals grind
 
 /-- Substitution of a locally closed term distributes with opening. -/
-@[scoped grind]
+@[scoped grind =]
 lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e : Term Var) (lc : LC t) :
-    (e⟦ k ↝ u ⟧)[x := t] = e[x := t]⟦k ↝  u [ x := t ]⟧ := by
-  induction e generalizing k <;> grind
+    (e⟦ k ↝ u ⟧)[x := t] = e[x := t]⟦k ↝ u [ x := t ]⟧ := by
+  induction e generalizing k with grind
 
 /-- Specialize `subst_openRec` to the first opening. -/
 lemma subst_open (x : Var) (t : Term Var) (u e : Term Var) (lc : LC t) :
@@ -96,16 +96,17 @@ theorem subst_open_var (x y : Var) (u e : Term Var) (neq : y ≠ x) (u_lc : LC u
     (e ^ fvar x)[y := u] = e[y := u] ^ fvar x := by grind
 
 /-- Substitution of locally closed terms is locally closed. -/
-@[scoped grind]
+@[scoped grind ←]
 theorem subst_lc {x : Var} {e u : Term Var} (e_lc : LC e) (u_lc : LC u) : LC (e [x := u]) := by
   induction e_lc
   case' abs => apply LC.abs (free_union Var)
   all_goals grind
 
 /-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
-@[scoped grind]
 lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) :
     e ^ t = (e ^ fvar x) [ x := t ] := by grind [subst_fresh]
+
+scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
 
 /-- Opening of locally closed terms is locally closed. -/
 @[scoped grind ←]

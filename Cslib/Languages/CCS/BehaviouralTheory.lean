@@ -31,14 +31,12 @@ open CCS CCS.Process CCS.Act
 
 namespace CCS
 
-@[grind cases]
+@[grind]
 private inductive ParNil : (Process Name Constant) → (Process Name Constant) → Prop where
 | parNil : ParNil (par p nil) p
 
-attribute [grind] ParNil.parNil
-
 /-- P | 𝟎 ~ P -/
-@[simp, scoped grind]
+@[simp, scoped grind .]
 theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
   unfold lts at *
   exists ParNil
@@ -56,7 +54,7 @@ private inductive ParComm : (Process Name Constant) → (Process Name Constant) 
 | parComm : ParComm (par p q) (par q p)
 
 /-- P | Q ~ Q | P -/
-@[scoped grind]
+@[scoped grind .]
 theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
   exists ParComm
   constructor
@@ -106,7 +104,7 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
           · constructor
 
 /-- 𝟎 | P ~ P -/
-@[simp, scoped grind]
+@[simp, scoped grind .]
 theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
   calc
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind

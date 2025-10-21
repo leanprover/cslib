@@ -15,12 +15,12 @@ weak.linter.allScriptsDocumented = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.24.0"
+rev = "v4.25.0-rc1"
 
 [[lean_lib]]
 name = "Cslib"
-globs = "Cslib.*"
+globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = "CslibTests.+"
+globs = ["CslibTests.+"]

@@ -57,7 +57,7 @@ namespace Typing
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
-attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
+attribute [grind .] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
 
 /-- Typings have well-formed contexts and types. -/
 @[grind →]
@@ -95,7 +95,8 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
   induction der generalizing Γ
   case var X' _ _ =>
-    have : X ≠ X' := by grind [→ List.mem_dlookup]
+    have : .sub δ' ∈ dlookup X (Γ ++ ⟨X, .sub δ'⟩ :: Δ) := by grind [List.mem_dlookup]
+    have : X ≠ X' := by grind
     have p (δ) : Γ ++ ⟨X, .sub δ⟩ :: Δ ~ ⟨X, .sub δ⟩ :: (Γ ++ Δ) := perm_middle
     grind [Env.Wf.narrow, List.perm_nodupKeys, => List.perm_dlookup]
   case' abs  => apply abs (free_union Var)
@@ -112,7 +113,13 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typi
   case var σ' _ X' _ _ =>
     have : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
     by_cases eq : X = X'
-    · grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen]
+    · #adaptation_note
+      /--
+      Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
+      I've had to remove the `append_assoc` lemma from grind;
+      without this `grind` is exploding. This requires further investigation.
+      -/
+      grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen, -append_assoc]
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
   case abs =>
     apply abs (free_union Var)

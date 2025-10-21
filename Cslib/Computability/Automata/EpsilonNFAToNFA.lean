@@ -18,7 +18,7 @@ open Cslib
 private def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
   Tr := fun s μ s' => lts.Tr s (some μ) s'
 
-@[local grind]
+@[local grind .]
 private lemma LTS.noε_saturate_tr
   {lts : LTS State (Option Label)} {h : μ = some μ'} :
   lts.saturate.Tr s μ s' ↔ lts.saturate.noε.Tr s μ' s' := by
@@ -37,7 +37,7 @@ def toNFA (enfa : εNFA State Symbol) : NFA State Symbol where
   finite_state := enfa.finite_state
   finite_symbol := enfa.finite_symbol
 
-@[scoped grind]
+@[scoped grind =]
 lemma LTS.noε_saturate_mTr
   {lts : LTS State (Option Label)} :
   lts.saturate.MTr s (μs.map (some ·)) = lts.saturate.noε.MTr s μs := by
@@ -46,7 +46,7 @@ lemma LTS.noε_saturate_mTr
 
 
 /-- Correctness of `toNFA`. -/
-@[scoped grind]
+@[scoped grind =]
 theorem toNFA_language_eq {enfa : εNFA State Symbol} :
   enfa.toNFA.language = enfa.language := by
   ext xs

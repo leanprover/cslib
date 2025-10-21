@@ -54,7 +54,7 @@ inductive LC : Ty Var → Prop
   | all (L : Finset Var) : LC σ → (∀ X ∉ L, LC (τ ^ᵞ fvar X)) → LC (all σ τ)
   | sum : LC σ → LC τ → LC (sum σ τ)
 
-attribute [scoped grind] LC.top LC.var LC.arrow LC.sum
+attribute [scoped grind .] LC.top LC.var LC.arrow LC.sum
 
 /-- Type substitution. -/
 @[scoped grind =]
@@ -195,7 +195,7 @@ inductive LC : Term Var → Prop
       (∀ x ∉ L, LC (t₃ ^ᵗᵗ fvar x)) →
       LC (case t₁ t₂ t₃)
 
-attribute [scoped grind] LC.var LC.app LC.inl LC.inr LC.tapp
+attribute [scoped grind .] LC.var LC.app LC.inl LC.inr LC.tapp
 
 variable {t : Term Var} {δ : Ty Var}
 
@@ -207,12 +207,12 @@ lemma openRec_ty_neq_eq (neq : X ≠ Y) (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ 
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- Elimination of mixed term and type opening. -/
-@[scoped grind]
+@[scoped grind .]
 lemma openRec_tm_ty_eq (eq : t⟦x ↝ s⟧ᵗᵗ = t⟦x ↝ s⟧ᵗᵗ⟦y ↝ δ⟧ᵗᵞ) : t = t⟦y ↝ δ⟧ᵗᵞ
   := by induction t generalizing x y <;> grind
 
 /-- A locally closed term is unchanged by type opening. -/
-@[scoped grind]
+@[scoped grind =_]
 lemma openRec_ty_lc {t : Term Var} (lc : t.LC) : t = t⟦X ↝ σ⟧ᵗᵞ := by
   induction lc generalizing X
   case let' | case | tabs | abs =>
@@ -304,7 +304,7 @@ lemma openRec_ty_tm_eq (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦x �
 variable [HasFresh Var]
 
 /-- A locally closed term is unchanged by term opening. -/
-@[scoped grind]
+@[scoped grind =_]
 lemma openRec_tm_lc (lc : t.LC) : t = t⟦x ↝ s⟧ᵗᵗ := by
   induction lc generalizing x
   case let' | case | tabs | abs =>

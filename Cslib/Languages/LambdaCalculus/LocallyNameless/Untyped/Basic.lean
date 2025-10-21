@@ -109,7 +109,7 @@ inductive LC : Term Var → Prop
 | abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
 | app {l r} : l.LC → r.LC → LC (app l r)
 
-attribute [scoped grind] LC.fvar LC.app
+attribute [scoped grind .] LC.fvar LC.app
 
 inductive Value : Term Var → Prop
 | abs (e : Term Var) : e.abs.LC → e.abs.Value
