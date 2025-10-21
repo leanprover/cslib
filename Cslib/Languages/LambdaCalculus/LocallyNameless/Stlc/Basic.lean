@@ -49,7 +49,7 @@ inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
   /-- Function application. -/
   | app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
 
-attribute [scoped grind] Typing.var Typing.app
+attribute [scoped grind .] Typing.var Typing.app
 
 scoped notation:50 Γ " ⊢ " t " ∶ " τ:arg => Typing Γ t τ
 

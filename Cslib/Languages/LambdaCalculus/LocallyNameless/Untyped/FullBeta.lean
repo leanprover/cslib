@@ -40,7 +40,7 @@ inductive FullBeta : Term Var → Term Var → Prop
 
 namespace FullBeta
 
-attribute [scoped grind] appL appR
+attribute [scoped grind .] appL appR
 
 variable {M M' N N' : Term Var}
 

@@ -69,9 +69,9 @@ def map_val (f : β → β) (Γ : Context α β) : Context α β :=
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
-@[scoped grind]
-lemma map_val_keys (f) : (Γ.map_val f).keys = Γ.keys :=
-  map₂_keys (f := fun _ => f) Γ
+@[scoped grind .]
+lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
+  induction Γ <;> grind
 
 /-- A mapping of values maps lookups. -/
 lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by

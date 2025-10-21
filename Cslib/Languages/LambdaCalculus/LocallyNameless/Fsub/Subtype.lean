@@ -43,7 +43,7 @@ namespace Sub
 
 open Context List Ty.Wf Env.Wf Binding
 
-attribute [scoped grind] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
+attribute [scoped grind .] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
@@ -87,7 +87,13 @@ lemma narrow_aux
       by grind [perm_middle]
     by_cases X = X' <;> grind [Sub.weaken, sublist_append_of_sublist_right]
   case all => apply Sub.all (free_union Var) <;> grind
-  all_goals grind [Env.Wf.narrow, Ty.Wf.narrow]
+  #adaptation_note
+  /--
+  Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
+  I've had to remove the `append_assoc` lemma from grind;
+  without this `grind` is exploding. This requires further investigation.
+  -/
+  all_goals grind [Env.Wf.narrow, Ty.Wf.narrow, -append_assoc]
 
 @[grind →]
 lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
