@@ -58,7 +58,7 @@ inductive IsVisible : Act Name → Prop where
 
 /-- If an action is visible, it is not `τ`. -/
 @[grind →, simp]
-theorem Act.isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by
+theorem isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by
   cases μ <;> grind
 
 /-- Checks that an action is the coaction of another. -/
@@ -69,14 +69,23 @@ inductive Co {Name : Type u} : Act Name → Act Name → Prop where
 
 /-- `Act.Co` is symmetric. -/
 @[grind →, symm]
-theorem Act.Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
+theorem Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
 
 /-- If two actions are one the coaction of the other, then they are both visible. -/
 @[grind →]
-theorem Act.co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
+theorem co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
+
+@[grind]
+def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
+  match μ, μ' with
+  | name a, coname b | coname a, name b => a = b
+  | _, _ => false
+
+theorem isCo_iff [DecidableEq Name] {μ μ' : Act Name} : isCo μ μ' ↔ Co μ μ' := by
+  grind [cases Act]
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/
-instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') := 
+instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') :=
   decidable_of_decidable_of_iff isCo_iff
 
 end Act
