@@ -163,8 +163,10 @@ theorem para_diamond : Diamond (@Parallel Var) := by
         have ⟨t'', _⟩ := @ih1 x q1 _ (mem' _ q2)
         exists (t'' ^* x) ^ t'
         constructor
-        -- TODO: understand why the grind_pattern for this stopped working
-        · grind [subst_intro]
+        · #adaptation_note
+          /-- Moving from `nightly-2025-09-15` to `nightly-2025-10-19`, the grind_pattern for
+          subst_intro (defined in Properties.lean) stopped working here. -/
+          grind [subst_intro]
         · apply Parallel.beta (free_union [fv] Var) <;> grind
     case beta u1' u2' xs' mem' s2pu2' =>
       have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union [fv] Var)
