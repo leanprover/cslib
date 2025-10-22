@@ -6,19 +6,24 @@ Authors: Fabrizio Montesi, Xueying Qin
 
 import Mathlib.Data.Finset.Basic
 
-/-! # Finitely-representable functions
+/-! # Finite functions
 
 Given types `α` and `β`, and assuming that `β` has a `Zero` element,
-a `FinFun α β` is a function from `α` to `β` with finite support.
+a `FinFun α β` is a function from `α` to `β` where only a finite number of elements
+in `α` are mapped to non-zero elements.
 -/
 
-/-- A finite function FinFun is a function `f` with a finite `support`.
+namespace Cslib
+
+/-- A `FinFun` is a function `fn` with a finite `support`.
 
 This is similar to `Finsupp` in Mathlib, but definitions are computable. -/
 structure FinFun (α : Type _) (β : Type _) [Zero β] where
   fn : α → β
   support : Finset α
-  support_exact (a : α) : a ∈ support ↔ fn a ≠ 0
+  mem_support_fn {a : α} : a ∈ support ↔ fn a ≠ 0
+
+attribute [grind _=_] FinFun.mem_support_fn
 
 namespace FinFun
 
@@ -30,17 +35,14 @@ def mkRestrictFn {α β : Type _} [Zero β] [DecidableEq α] [hdec : ∀ y : β,
   (fn : α → β) (support : Finset α) : α →₀ β where
   fn := (fun a => if a ∈ support then fn a else 0)
   support := support.filter (fn · ≠ 0)
-  support_exact := by grind
+  mem_support_fn := by grind
 
 scoped notation:50 f "↾" support => FinFun.mkRestrictFn f support
-
-instance [Zero β] : Membership α (α →₀ β) where
-  mem f a := a ∈ f.support
 
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
   coe_injective' := by
-    rintro ⟨f1, support1, support_exact1⟩ ⟨f2, support2, support_exact2⟩
+    rintro ⟨f1, support1, mem_support_fn1⟩ ⟨f2, support2, mem_support_fn2⟩
     simp only
     intro heq
     simp only [heq, mk.injEq, true_and]
@@ -52,7 +54,7 @@ theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp 
 
 @[grind =]
 theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
-  rcases f with ⟨f, support, support_exact⟩
+  rcases f with ⟨f, support, mem_support_fn⟩
   simp [DFunLike.coe]
 
 /-- Extensional equality for `FinFun`. -/
@@ -62,50 +64,29 @@ theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) :
   apply DFunLike.ext
   exact h
 
+@[grind _=_]
+theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ f a ≠ 0 := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    simp only [coe_eq_fn]
+    rw [← FinFun.mem_support_fn]
+    simp only [Membership.mem] at h
+    simp only [Membership.mem]
+    exact h
+  case mpr =>
+    have hmem := f.mem_support_fn (a := a)
+    simp only [Membership.mem] at hmem
+    simp only [Membership.mem]
+    grind
 
-
-/-
-def mapBin [Zero β] [DecidableEq α] (f g : α →₀ β) (op : Option β → Option β → Option β) :
-    Option (α →₀ β) :=
-  if h : f.support = g.support ∧ ∀ a ∈ f.support, (op (some (f.fn a)) (some (g.fn a))).isSome then
-    some {
-      fn := fun a =>
-        match op (some (f.fn a)) (some (g.fn a)) with
-          | some y => y
-          | none => f.fn a
-      support := f.support
-      support_exact := by
-        intro a
-        obtain ⟨h1, h2⟩ := h
-        specialize h2 a
-
-    }
-  else
-    none
-
-theorem FinFun.mapBin_dom [DecidableEq α] (f g : α ⇀ β)
-    (op : Option β → Option β → Option β) (h : FinFun.mapBin f g op = some fg) :
-    fg.dom = f.dom ∧ fg.dom = g.dom := by grind [mapBin]
-
-theorem FinFun.mapBin_char₁ [DecidableEq α] (f g : α ⇀ β)
-    (op : Option β → Option β → Option β) (h : FinFun.mapBin f g op = some fg) :
-    ∀ x ∈ fg.dom, fg.apply x = y ↔ (op (some (f.f x)) (some (g.f x))) = some y := by
-  intro x hxdom
-  constructor
-  <;> simp only [mapBin, Option.ite_none_right_eq_some] at h
-  <;> rcases h with ⟨_, _, _, _⟩
-  <;> grind
-
-theorem FinFun.mapBin_char₂ [DecidableEq α] (f g : α ⇀ β)
-    (op : Option β → Option β → Option β) (hdom : f.dom = g.dom)
-    (hop : ∀ x ∈ f.dom, (op (some (f.f x)) (some (g.f x))).isSome)
-    : (FinFun.mapBin f g op).isSome := by grind [mapBin]
-
--/
+@[grind _=_]
+theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ f a = 0 := by
+  grind
 
 /-- Two `FinFun`s are equal if their internal functions and supports are equal. -/
+@[grind]
 theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
-  f = g ↔ f.fn = g.fn ∧ f.support = g.support := by
+  f = g ↔ (f.fn = g.fn ∧ f.support = g.support) := by
   apply Iff.intro <;> intro h
   · grind
   · obtain ⟨h1, h2⟩ := h
@@ -116,3 +97,5 @@ theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
     rw [h1]
 
 end FinFun
+
+end Cslib
