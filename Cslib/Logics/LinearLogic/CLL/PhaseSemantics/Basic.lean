@@ -100,9 +100,10 @@ lemma orth_antitone {X Y : Set P} (hXY : X ⊆ Y) : Y⫠ ⊆ X⫠ := by grind
 lemma orth_extensive (X : Set P) : X ⊆ X⫠⫠ := by grind
 
 /-- The triple orthogonal equals the orthogonal: X⫠⫠⫠ = X⫠. -/
-lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by grind
+lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by
+  apply le_antisymm <;> grind [orth_extensive]
 
-lemma triple_dual {G : Set P} : G⫠⫠⫠⫠⫠ = G⫠⫠⫠ := by grind
+lemma triple_dual {G : Set P} : G⫠⫠⫠⫠⫠ = G⫠⫠⫠ := by grind [triple_orth]
 
 /-- The biorthogonal closure operator on sets in a phase space. -/
 def biorthogonalClosure : ClosureOperator (Set P) where
@@ -209,7 +210,7 @@ instance : One (Fact P) where one := dualFact (PhaseSpace.bot : Set P)
 
 @[scoped grind =, simp] lemma coe_one : ((1 : Fact P) : Set P) = (PhaseSpace.bot : Set P)⫠ := rfl
 
-@[scoped grind, simp] lemma mem_one :
+@[scoped grind =, simp] lemma mem_one :
   p ∈ (1 : Fact P) ↔ (∀ q ∈ PhaseSpace.bot, p * q ∈ PhaseSpace.bot) := Iff.rfl
 
 lemma one_mem_one : (1 : P) ∈ (1 : Fact P) := by simp [mem_one]
@@ -302,8 +303,10 @@ lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
 lemma inter_eq_orth_union_orth (G H : Fact P) :
   ((G : Set P) ∩ (H : Set P) : Set P) =
     (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
-  ext m; constructor
-  · grind
+  ext m
+  constructor
+  · simp only [orthogonal_def, mem_union]
+    grind
   · intro _
     have : m ∈ ((G : Set P)⫠⫠) := by grind
     have : m ∈ ((H : Set P)⫠⫠) := by grind

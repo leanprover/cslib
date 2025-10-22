@@ -32,7 +32,7 @@ def language (nfa : NFA State Symbol) : Set (List Symbol) :=
   { xs | nfa.Accepts xs }
 
 /-- A string is accepted by an NFA iff it is in the language of the NFA. -/
-@[scoped grind]
+@[scoped grind =]
 theorem accepts_mem_language (nfa : NFA State Symbol) (xs : List Symbol) :
   nfa.Accepts xs ↔ xs ∈ nfa.language := by rfl
 
