@@ -14,6 +14,11 @@ This definition extends `LTS` and thus stores the transition system as a relatio
 `State → Symbol → State → Prop`. Note that you can also instantiate `Tr` by passing an argument of
 type `State → Symbol → Set State`; it gets automatically expanded to the former shape.
 -/
+
+namespace Cslib
+
 structure NA (State : Type _) (Symbol : Type _) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
+
+end Cslib

@@ -20,6 +20,8 @@ This file defines the well-formedness condition for types and contexts.
 
 -/
 
+namespace Cslib
+
 variable {Var : Type*} [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
@@ -30,7 +32,7 @@ inductive Ty.Wf : Env Var → Ty Var → Prop
   | top : Ty.Wf Γ top
   | var : Binding.sub σ ∈ Γ.dlookup X → Ty.Wf Γ (fvar X)
   | arrow : Ty.Wf Γ σ → Ty.Wf Γ τ → Ty.Wf Γ (arrow σ τ)
-  | all (L : Finset Var) : 
+  | all (L : Finset Var) :
       Ty.Wf Γ σ →
       (∀ X ∉ L, Ty.Wf (⟨X,Binding.sub σ⟩ :: Γ) (τ ^ᵞ fvar X)) →
       Ty.Wf Γ (all σ τ)
@@ -76,7 +78,7 @@ theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓
 theorem weaken (wf_ΓΘ : σ.Wf (Γ ++ Θ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : σ.Wf (Γ ++ Δ ++ Θ) := by
   generalize eq : Γ ++ Θ = ΓΔ at wf_ΓΘ
   induction wf_ΓΘ generalizing Γ
-  case all => apply all ((Γ ++ Δ ++ Θ).dom ∪ free_union Var) <;> grind
+  case all => apply all ((Γ ++ Δ ++ Θ).dom ∪ free_union Var) <;> grind [-keys_append]
   all_goals grind [NodupKeys.sublist, <= sublist_dlookup]
 
 /-- A type remains well-formed under context weakening (at the front). -/
@@ -92,8 +94,8 @@ lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨
     σ.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
   generalize eq : (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ) = Θ at wf
   induction wf generalizing Γ with
-  | all => apply all (free_union [dom] Var) <;> grind [nodupKeys_cons, keys_append]
-  | _ => grind [sublist_dlookup, dlookup_append]
+  | all => apply all (free_union [dom] Var) <;> grind [nodupKeys_cons]
+  | _ => grind [sublist_dlookup]
 
 lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) (ok : (⟨X, Binding.sub τ'⟩ :: Δ)✓) :
     σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) := by
@@ -105,28 +107,28 @@ lemma strengthen (wf : σ.Wf (Γ ++ ⟨X, Binding.ty τ⟩ :: Δ)) : σ.Wf (Γ +
   generalize eq : Γ ++ ⟨X, Binding.ty τ⟩ :: Δ = Θ at wf
   induction wf generalizing Γ with
   | all => apply all (free_union [Context.dom] Var) <;> grind
-  | _ => grind [dlookup_append]
+  | _ => grind
 
 variable [HasFresh Var] in
 /-- A type remains well-formed under context substitution (of a well-formed type). -/
 lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ)
     (ok : (Γ.map_val (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
-  have := @map_val_mem Var (Binding Var)      
+  have := @map_val_mem Var (Binding Var)
   generalize eq : Γ ++ ⟨X, Binding.sub τ⟩ :: Δ = Θ at wf_σ
   induction wf_σ generalizing Γ τ'
-  case all γ _ _ _ _ _ _ => 
+  case all γ _ _ _ _ _ _ =>
     subst eq
     apply all (free_union [dom] Var)
     · grind
     · intro X' _
-      have : (map_val (·[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) ++ Δ)✓ := by grind [keys_append]
+      have : (map_val (·[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) ++ Δ)✓ := by grind
       grind [open_subst_var]
-  all_goals grind [weaken_head, dlookup_append]
+  all_goals grind [weaken_head]
 
 variable [HasFresh Var] in
 /-- A type remains well-formed under opening (to a well-formed type). -/
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
-  cases wf_all with | all => 
+  cases wf_all with | all =>
     let ⟨X, _⟩ := fresh_exists <| free_union [fv, Context.dom] Var
     have : Γ = Context.map_val (·[X:=δ]) [] ++ Γ := by grind
     grind [open_subst_intro, map_subst]
@@ -150,7 +152,7 @@ variable [HasFresh Var] in
 lemma nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := by
   induction wf with
   | all => have := fresh_exists <| free_union [dom] Var; grind [nmem_fv_open, openRec_lc]
-  | _ => grind
+  | _ => grind [dlookup_isSome]
 
 end Ty.Wf
 
@@ -159,14 +161,14 @@ namespace Env.Wf
 open Context List Binding
 
 /-- A context remains well-formed under narrowing (of a well-formed subtype). -/
-lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) : 
+lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) :
     Env.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
-  induction Γ <;> cases wf_env <;> 
-  grind [Ty.Wf.narrow, keys_append, eq_nil_of_append_eq_nil, cases Env.Wf]
-      
+  induction Γ <;> cases wf_env <;>
+  grind [Ty.Wf.narrow, eq_nil_of_append_eq_nil, cases Env.Wf]
+
 /-- A context remains well-formed under strengthening. -/
 lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <| Γ ++ Δ := by
-  induction Γ <;> cases wf <;> grind [Ty.Wf.strengthen, keys_append]
+  induction Γ <;> cases wf <;> grind [Ty.Wf.strengthen]
 
 variable [HasFresh Var] in
 /-- A context remains well-formed under substitution (of a well-formed type). -/
@@ -174,8 +176,8 @@ lemma map_subst (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' 
     Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
   induction Γ generalizing wf_τ' Δ τ' <;> cases wf_env
   case nil => grind
-  case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.map_subst, keys_append]
-    
+  case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.map_subst]
+
 variable [HasFresh Var]
 
 /-- A well-formed context is unchaged by substituting for a free key. -/
@@ -184,5 +186,7 @@ lemma map_subst_nmem (Γ : Env Var) (X : Var) (σ : Ty Var) (wf : Γ.Wf) (nmem :
   induction wf <;> grind [Ty.Wf.nmem_fv, Binding.subst_fresh]
 
 end Env.Wf
-    
+
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib

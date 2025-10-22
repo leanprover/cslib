@@ -23,7 +23,7 @@ structure FinFun (α : Type _) (β : Type _) [Zero β] where
   support : Finset α
   mem_support_fn {a : α} : a ∈ support ↔ fn a ≠ 0
 
-attribute [grind _=_] FinFun.mem_support_fn
+attribute [scoped grind _=_] FinFun.mem_support_fn
 
 namespace FinFun
 
@@ -31,13 +31,14 @@ scoped notation:50 α " →₀ " β => FinFun α β
 
 /-- Constructs a `FinFun` from any function and a given support, filtering out all elements not
 mapped to 0 in the support. -/
-def mkRestrictFn {α β : Type _} [Zero β] [DecidableEq α] [hdec : ∀ y : β, Decidable (y = 0)]
-  (fn : α → β) (support : Finset α) : α →₀ β where
+@[scoped grind]
+private def mkRestrictFun {α β : Type _} [Zero β] [DecidableEq α]
+  [hdec : ∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
   fn := (fun a => if a ∈ support then fn a else 0)
   support := support.filter (fn · ≠ 0)
   mem_support_fn := by grind
 
-scoped notation:50 f "↾" support => FinFun.mkRestrictFn f support
+scoped notation:50 f "↾" support => FinFun.mkRestrictFun f support
 
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
@@ -49,22 +50,22 @@ instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
     ext a
     grind
 
-@[grind =]
+@[scoped grind =]
 theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp [DFunLike.coe]
 
-@[grind =]
+@[scoped grind =]
 theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
   rcases f with ⟨f, support, mem_support_fn⟩
   simp [DFunLike.coe]
 
 /-- Extensional equality for `FinFun`. -/
-@[grind ←=]
+@[scoped grind ←=]
 theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) :
   f = g := by
   apply DFunLike.ext
   exact h
 
-@[grind _=_]
+@[scoped grind _=_]
 theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ f a ≠ 0 := by
   apply Iff.intro <;> intro h
   case mp =>
@@ -79,12 +80,12 @@ theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ 
     simp only [Membership.mem]
     grind
 
-@[grind _=_]
+@[scoped grind _=_]
 theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ f a = 0 := by
   grind
 
 /-- Two `FinFun`s are equal if their internal functions and supports are equal. -/
-@[grind]
+@[scoped grind]
 theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
   f = g ↔ (f.fn = g.fn ∧ f.support = g.support) := by
   apply Iff.intro <;> intro h
@@ -95,6 +96,15 @@ theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
     rw [coe_fn]
     rw [coe_fn]
     rw [h1]
+
+@[scoped grind =>]
+theorem congrFinFun [DecidableEq α] [Zero β] {f g : α →₀ β} (h : f = g) (a : α) :
+    f a = g a := by grind
+
+@[scoped grind =]
+theorem mkRestrictFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)] (f : α → β)
+    (support : Finset α) (h : ∀ a, a ∉ support → f a = 0) :
+    (f ↾ support) = f := by grind
 
 end FinFun
 

@@ -35,6 +35,8 @@ For any such algebra, `foldFreeM onValue onEffect` is the unique algebra morphis
 from the initial algebra `FreeM F α` to `(β, onValue, onEffect)`.
 -/
 
+namespace Cslib
+
 universe u v w w'
 
 namespace FreeM
@@ -88,3 +90,5 @@ by
     grind
 
 end FreeM
+
+end Cslib

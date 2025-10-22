@@ -20,6 +20,8 @@ This file proves type safety.
 
 -/
 
+namespace Cslib
+
 variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
@@ -30,8 +32,8 @@ variable {t : Term Var}
 
 /-- Any reduction step preserves typing. -/
 lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing Γ t' τ := by
-  induction der generalizing t' 
-  case app Γ _ σ τ _ _ _ _ _ => 
+  induction der generalizing t'
+  case app Γ _ σ τ _ _ _ _ _ =>
     cases step
     case appₗ | appᵣ => grind
     case abs der _ _ =>
@@ -48,22 +50,22 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
       have : Γ = (Context.map_val (·[X:=σ']) []) ++ Γ := by simp
       rw [open_ty_subst_ty_intro (X := X), open_subst_intro (X := X)] <;> grind [subst_ty]
     case tapp => grind
-  case let' Γ _ _ _ _ L der _ ih₁ _ => 
+  case let' Γ _ _ _ _ L der _ ih₁ _ =>
     cases step
     case let_bind red₁ _ => apply Typing.let' L (ih₁ red₁); grind
     case let_body =>
       have ⟨x, _⟩ := fresh_exists <| free_union [fv_tm] Var
       grind [open_tm_subst_tm_intro, subst_tm]
-  case case Γ _ σ τ _ _ _ L _ _ _ ih₁ _ _ => 
+  case case Γ _ σ τ _ _ _ L _ _ _ ih₁ _ _ =>
     have sub : Sub Γ (σ.sum τ) (σ.sum τ) := by grind [Sub.refl]
     have : Γ = [] ++ Γ := by rfl
     cases step
     case «case» red₁ _ _ => apply Typing.case L (ih₁ red₁) <;> grind
-    case case_inl der _ _ => 
+    case case_inl der _ _ =>
       have ⟨_, ⟨_, _⟩⟩ := der.inl_inv sub
       have ⟨x, _⟩ := fresh_exists <| free_union [fv_tm] Var
       grind [open_tm_subst_tm_intro, subst_tm]
-    case case_inr der _ _ => 
+    case case_inr der _ _ =>
       have ⟨_, ⟨_, _⟩⟩ := der.inr_inv sub
       have ⟨x, _⟩ := fresh_exists <| free_union [fv_tm] Var
       grind [open_tm_subst_tm_intro, subst_tm]
@@ -75,49 +77,49 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
   have der' : Typing Γ t τ := by assumption
   induction der <;> subst eq <;> simp only [forall_const] at *
   case var mem => grind
-  case app t₁ _ _ t₂ l r ih_l ih_r => 
+  case app t₁ _ _ t₂ l r ih_l ih_r =>
     right
     cases ih_l l with
-    | inl val_l => 
+    | inl val_l =>
         cases ih_r r with
-        | inl val_r => 
+        | inl val_r =>
             have ⟨σ, t₁, eq⟩ := l.canonical_form_abs val_l
             exists t₁ ^ᵗᵗ t₂
             grind
-        | inr red_r => 
+        | inr red_r =>
             obtain ⟨t₂', _⟩ := red_r
             exists t₁.app t₂'
             grind
-    | inr red_l => 
+    | inr red_l =>
         obtain ⟨t₁', _⟩ := red_l
         exists t₁'.app t₂
         grind
-  case tapp σ' der _ ih => 
+  case tapp σ' der _ ih =>
     right
     specialize ih der
     cases ih with
-    | inl val => 
+    | inl val =>
         obtain ⟨_, t, _⟩ := der.canonical_form_tabs val
         exists t ^ᵗᵞ σ'
         grind
-    | inr red => 
+    | inr red =>
         obtain ⟨t', _⟩ := red
         exists .tapp t' σ'
         grind
-  case let' t₁ σ t₂ τ L der _ _ ih => 
+  case let' t₁ σ t₂ τ L der _ _ ih =>
     right
     cases ih der with
-    | inl _ => 
+    | inl _ =>
         exists t₂ ^ᵗᵗ t₁
         grind
-    | inr red => 
+    | inr red =>
         obtain ⟨t₁', _⟩ := red
         exists t₁'.let' t₂
         grind
   case inl der _ ih =>
     cases (ih der) with
     | inl val => grind
-    | inr red => 
+    | inr red =>
         right
         obtain ⟨t', _⟩ := red
         exists .inl t'
@@ -125,23 +127,23 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
   case inr der _ ih =>
     cases (ih der) with
     | inl val => grind
-    | inr red => 
+    | inr red =>
         right
         obtain ⟨t', _⟩ := red
         exists .inr t'
         grind
-  case case t₁ _ _ t₂ _ t₃ _ der _ _ _ _ ih => 
+  case case t₁ _ _ t₂ _ t₃ _ der _ _ _ _ ih =>
     right
     cases ih der with
-    | inl val => 
+    | inl val =>
         have ⟨t₁, lr⟩ := der.canonical_form_sum val
         cases lr <;> [exists t₂ ^ᵗᵗ t₁; exists t₃ ^ᵗᵗ t₁] <;> grind
-    | inr red => 
+    | inr red =>
         obtain ⟨t₁', _⟩ := red
         exists t₁'.case t₂ t₃
         grind
   case sub => grind
-  case abs σ _ τ L _ _=> 
+  case abs σ _ τ L _ _=>
     left
     constructor
     apply LC.abs L <;> grind [cases Env.Wf, cases Term.LC]
@@ -151,3 +153,5 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
     apply LC.tabs L <;> grind [cases Env.Wf, cases Term.LC]
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib

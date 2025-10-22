@@ -6,6 +6,8 @@ Authors: Chris Henson
 
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
+namespace Cslib
+
 universe u
 
 variable {Var : Type u}
@@ -142,3 +144,5 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x�
   all_goals grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
+
+end Cslib

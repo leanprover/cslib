@@ -37,6 +37,8 @@ similar to each other.
 
 -/
 
+namespace Cslib
+
 universe u v
 
 section Simulation
@@ -137,3 +139,5 @@ instance :
   trans := SimulationEquiv.trans lts
 
 end Simulation
+
+end Cslib
