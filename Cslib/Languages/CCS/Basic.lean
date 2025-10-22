@@ -72,7 +72,7 @@ inductive Co {Name : Type u} : Act Name → Act Name → Prop where
 theorem Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
 
 @[grind]
-def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool := 
+def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
   match μ, μ' with
   | name a, coname b | coname a, name b => a = b
   | _, _ => false
@@ -85,7 +85,7 @@ theorem isCo_iff [DecidableEq Name] {μ μ' : Act Name} : isCo μ μ' ↔ Co μ 
 theorem co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/
-instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') := 
+instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') :=
   decidable_of_decidable_of_iff isCo_iff
 
 end Act
