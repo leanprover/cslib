@@ -85,7 +85,7 @@ theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ 
   grind
 
 /-- Two `FinFun`s are equal if their internal functions and supports are equal. -/
-@[scoped grind]
+@[scoped grind =_]
 theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
   f = g ↔ (f.fn = g.fn ∧ f.support = g.support) := by
   apply Iff.intro <;> intro h
