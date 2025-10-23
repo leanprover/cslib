@@ -30,6 +30,7 @@ import Cslib.Languages.CCS.Semantics
 import Cslib.Languages.CombinatoryLogic.Basic
 import Cslib.Languages.CombinatoryLogic.Confluence
 import Cslib.Languages.CombinatoryLogic.Defs
+import Cslib.Languages.CombinatoryLogic.Evaluation
 import Cslib.Languages.CombinatoryLogic.Recursion
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
