@@ -31,13 +31,13 @@ attribute [scoped grind _=_] FinFun.mem_support_fn
 namespace FinFun
 
 @[inherit_doc]
-scoped infix:25 " →₀ " => FinFun
+scoped infixr:25 " →₀ " => FinFun
 
 /-- Constructs a `FinFun` from any function and a given support, filtering out all elements not
 mapped to 0 in the support. -/
 @[scoped grind .]
 private def mkRestrictFun {α β : Type _} [Zero β] [DecidableEq α]
-  [hdec : ∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
+  [∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
   fn := (fun a => if a ∈ support then fn a else 0)
   support := support.filter (fn · ≠ 0)
   mem_support_fn := by grind
