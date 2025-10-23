@@ -47,12 +47,8 @@ scoped notation:50 f "↾" support => FinFun.mkRestrictFun f support
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
   coe_injective' := by
-    rintro ⟨f1, support1, mem_support_fn1⟩ ⟨f2, support2, mem_support_fn2⟩
-    simp only
-    intro heq
-    simp only [heq, mk.injEq, true_and]
-    ext a
-    grind
+    rintro ⟨_, _⟩ ⟨_, _⟩
+    simp_all [Finset.ext_iff]
 
 @[scoped grind =]
 theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp [DFunLike.coe]
