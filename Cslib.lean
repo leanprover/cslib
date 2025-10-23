@@ -16,6 +16,7 @@ import Cslib.Foundations.Data.OmegaSequence.Defs
 import Cslib.Foundations.Data.OmegaSequence.Flatten
 import Cslib.Foundations.Data.OmegaSequence.Init
 import Cslib.Foundations.Data.Relation
+import Cslib.Foundations.Lint.Basic
 import Cslib.Foundations.Semantics.LTS.Basic
 import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Cslib.Foundations.Semantics.LTS.Simulation
