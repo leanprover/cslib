@@ -19,19 +19,23 @@ namespace Cslib
 
 This is similar to `Finsupp` in Mathlib, but definitions are computable. -/
 structure FinFun (α : Type _) (β : Type _) [Zero β] where
+  /-- The underlying function. -/
   fn : α → β
+  /-- The finite support of the function. -/
   support : Finset α
+  /-- Proof that `support` is the support of the underlying function. -/
   mem_support_fn {a : α} : a ∈ support ↔ fn a ≠ 0
 
 attribute [scoped grind _=_] FinFun.mem_support_fn
 
 namespace FinFun
 
-scoped notation:50 α " →₀ " β => FinFun α β
+@[inherit_doc]
+scoped infix:25 " →₀ " => FinFun
 
 /-- Constructs a `FinFun` from any function and a given support, filtering out all elements not
 mapped to 0 in the support. -/
-@[scoped grind]
+@[scoped grind .]
 private def mkRestrictFun {α β : Type _} [Zero β] [DecidableEq α]
   [hdec : ∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
   fn := (fun a => if a ∈ support then fn a else 0)
@@ -84,18 +88,16 @@ theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ 
 theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ f a = 0 := by
   grind
 
-/-- Two `FinFun`s are equal if their internal functions and supports are equal. -/
-@[scoped grind =_]
-theorem eq_char [DecidableEq α] [Zero β] {f g : α →₀ β} :
-  f = g ↔ (f.fn = g.fn ∧ f.support = g.support) := by
-  apply Iff.intro <;> intro h
-  · grind
-  · obtain ⟨h1, h2⟩ := h
-    apply DFunLike.ext
-    intro x
-    rw [coe_fn]
-    rw [coe_fn]
-    rw [h1]
+/-- If two `FinFun`s are equal, their underlying functions and supports are equal. -/
+@[scoped grind .]
+theorem eq_fields_eq [DecidableEq α] [Zero β] {f g : α →₀ β} :
+  f = g → (f.fn = g.fn ∧ f.support = g.support) := by grind
+
+/-- If two functions are equal, two `FinFun`s respectively using them as underlying functions
+are equal. -/
+@[scoped grind .]
+theorem fn_eq_eq [DecidableEq α] [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
+  ext (congrFun h)
 
 @[scoped grind =>]
 theorem congrFinFun [DecidableEq α] [Zero β] {f g : α →₀ β} (h : f = g) (a : α) :
