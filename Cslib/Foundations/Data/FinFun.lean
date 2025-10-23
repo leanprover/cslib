@@ -59,7 +59,6 @@ theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp 
 
 @[scoped grind =]
 theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
-  rcases f with ⟨f, support, mem_support_fn⟩
   simp [DFunLike.coe]
 
 /-- Extensional equality for `FinFun`. -/
