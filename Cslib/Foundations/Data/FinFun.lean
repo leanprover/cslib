@@ -68,18 +68,7 @@ theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) : f = g
 
 @[scoped grind _=_]
 theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ f a ≠ 0 := by
-  apply Iff.intro <;> intro h
-  case mp =>
-    simp only [coe_eq_fn]
-    rw [← FinFun.mem_support_fn]
-    simp only [Membership.mem] at h
-    simp only [Membership.mem]
-    exact h
-  case mpr =>
-    have hmem := f.mem_support_fn (a := a)
-    simp only [Membership.mem] at hmem
-    simp only [Membership.mem]
-    grind
+  grind
 
 @[scoped grind _=_]
 theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ f a = 0 := by
