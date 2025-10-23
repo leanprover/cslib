@@ -63,10 +63,8 @@ theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
 
 /-- Extensional equality for `FinFun`. -/
 @[scoped grind ←=]
-theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) :
-  f = g := by
-  apply DFunLike.ext
-  exact h
+theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) : f = g :=
+  DFunLike.ext (f := f) (g := g) h
 
 @[scoped grind _=_]
 theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ f a ≠ 0 := by
