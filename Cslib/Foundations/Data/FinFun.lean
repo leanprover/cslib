@@ -43,7 +43,7 @@ private def fromFun {α β : Type _} [Zero β] [DecidableEq α]
   mem_support_fn := by grind
 
 @[inherit_doc]
-scoped notation f:25 "↾" support:51 => FinFun.fromFun f support
+scoped notation f:25 "↾₀" support:51 => FinFun.fromFun f support
 
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
@@ -89,42 +89,42 @@ theorem congrFinFun [DecidableEq α] [Zero β] {f g : α →₀ β} (h : f = g) 
 @[scoped grind =]
 theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
     (f : α → β) (support : Finset α) (h : ∀ a, a ∉ support → f a = 0) :
-    (f ↾ support) = f := by grind
+    (f ↾₀ support) = f := by grind
 
 @[scoped grind =]
 theorem fromFun_fn [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
     (f : α → β) (support : Finset α) :
-    (f ↾ support).fn = (fun a => if a ∈ support then f a else 0) := by
+    (f ↾₀ support).fn = (fun a => if a ∈ support then f a else 0) := by
   grind
 
 @[scoped grind =]
 theorem fromFun_support [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
     (f : α → β) (support : Finset α) :
-    (f ↾ support).support = support.filter (f · ≠ 0) := by
+    (f ↾₀ support).support = support.filter (f · ≠ 0) := by
   grind
 
 /-- Restricting a function twice to the same support is idempotent. -/
 @[scoped grind =]
 theorem fromFun_idem [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support : Finset α} :
-    (f ↾ support) ↾ support = f ↾ support := by grind
+    (f ↾₀ support) ↾₀ support = f ↾₀ support := by grind
 
 /-- Restricting a `FinFun` to its own support is the identity. -/
 @[scoped grind =]
 theorem coe_fromFun_id [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)] {f : α →₀ β} :
-    (f ↾ f.support) = f := by grind
+    (f ↾₀ f.support) = f := by grind
 
 /-- Restricting a function twice to two supports is equal to restricting to their intersection. -/
 @[scoped grind =]
 theorem fromFun_inter [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
-    (f ↾ support1) ↾ support2 = f ↾ (support1 ∩ support2) := by grind
+    (f ↾₀ support1) ↾₀ support2 = f ↾₀ (support1 ∩ support2) := by grind
 
 /-- Restricting a function is commutative. -/
 @[scoped grind =]
 theorem fromFun_comm [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
-    (f ↾ support1) ↾ support2 = (f ↾ support2) ↾ support1 := by grind
+    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by grind
 
 end FinFun
 
