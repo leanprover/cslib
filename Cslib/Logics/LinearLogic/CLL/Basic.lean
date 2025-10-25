@@ -174,7 +174,7 @@ scoped notation "⇓" Γ:90 => Proof Γ
 scoped notation "⊢" Γ:90 => Provable Γ
 
 /-- Having a proof of Γ shows that it is provable. -/
-def Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : ⊢Γ := ⟨p⟩
+theorem Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : ⊢Γ := ⟨p⟩
 
 /-- Having a proof of Γ shows that it is provable. -/
 @[grind]
