@@ -32,12 +32,10 @@ theorem zero_trivial : (0 : Language α).Trivial :=
 theorem one_trivial : (1 : Language α).Trivial :=
   diff_self
 
-theorem trivial_eq_zero_or_one
-    (h : l.Trivial) : l = 0 ∨ l = 1 :=
+theorem trivial_eq_zero_or_one (h : l.Trivial) : l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq.mp <| diff_eq_empty.mp h
 
-theorem trivial_iff :
-    l.Trivial ↔ l = 0 ∨ l = 1 := by
+theorem trivial_iff : l.Trivial ↔ l = 0 ∨ l = 1 := by
   constructor
   · intro h
     exact trivial_eq_zero_or_one h
@@ -46,37 +44,29 @@ theorem trivial_iff :
     · exact one_trivial
 
 @[simp, scoped grind =]
-theorem mem_sdiff_one (x : List α) :
-    x ∈ (l \ 1) ↔ x ∈ l ∧ x ≠ [] :=
+theorem mem_sdiff_one (x : List α) : x ∈ (l \ 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
 @[simp]
-theorem one_sdiff_one :
-    1 \ 1 = (0 : Language α) := by
+theorem one_sdiff_one : 1 \ 1 = (0 : Language α) := by
   ext x
   simp only [sdiff_self, notMem_zero, iff_false]
   exact id
 
 @[simp, scoped grind =]
-theorem sdiff_one_mul :
-    (l \ 1) * l = l * (l \ 1) := by
+theorem sdiff_one_mul : (l \ 1) * l = l * (l \ 1) := by
   ext x ; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     rcases Classical.em (v = []) with rfl | h
-    · refine ⟨[], h_v, u, h_u, by simp⟩
-    · refine ⟨u, by grind, v, ?_, by simp⟩
-      rw [mem_sdiff_one]
-      simp_all
+    · use [] ; grind
+    · use u ; grind
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     rcases Classical.em (u = []) with rfl | h
-    · refine ⟨v, h_v, [], h_u, by simp⟩
-    · refine ⟨u, ?_, v, by grind, by simp⟩
-      rw [mem_sdiff_one]
-      simp_all
+    · use v ; grind
+    · use u ; grind
 
 @[simp, scoped grind =]
-theorem kstar_sdiff_one :
-    l∗ \ 1 = (l \ 1) * l∗ := by
+theorem kstar_sdiff_one : l∗ \ 1 = (l \ 1) * l∗ := by
   ext x ; constructor
   · rintro ⟨h1, h2⟩
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
