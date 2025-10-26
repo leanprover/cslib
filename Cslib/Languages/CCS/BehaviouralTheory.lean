@@ -34,7 +34,7 @@ namespace CCS
 attribute [local grind] Tr
 
 @[scoped grind]
-private inductive ParNil : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ParNil : Process Name Constant → Process Name Constant → Prop where
 | parNil : ParNil (par p nil) p
 
 /-- P | 𝟎 ~ P -/
@@ -52,7 +52,7 @@ theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
     grind
 
 @[scoped grind]
-private inductive ParComm : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ParComm : Process Name Constant → Process Name Constant → Prop where
 | parComm : ParComm (par p q) (par q p)
 
 /-- P | Q ~ Q | P -/
@@ -100,7 +100,7 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
     _ ~[lts (defs := defs)] p := by simp
 
 @[scoped grind]
-private inductive ParAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ParAssoc : Process Name Constant → Process Name Constant → Prop where
   | assoc : ParAssoc (par p (par q r)) (par (par p q) r)
   | id : ParAssoc p p
 
@@ -166,7 +166,7 @@ theorem bisimilarity_par_assoc :
       case com => grind
   all_goals grind
 
-private inductive ChoiceNil : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ChoiceNil : Process Name Constant → Process Name Constant → Prop where
   | nil : ChoiceNil (choice p nil) p
   | id : ChoiceNil p p
 
@@ -188,7 +188,7 @@ theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
   all_goals grind [ChoiceNil]
 
 @[scoped grind]
-private inductive ChoiceIdem : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ChoiceIdem : Process Name Constant → Process Name Constant → Prop where
   | idem : ChoiceIdem (choice p p) p
   | id : ChoiceIdem p p
 
@@ -207,7 +207,7 @@ theorem bisimilarity_choice_idem :
       grind
     all_goals grind
 
-private inductive ChoiceComm : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ChoiceComm : Process Name Constant → Process Name Constant → Prop where
   | choiceComm : ChoiceComm (choice p q) (choice q p)
   | bisim : (p ~[lts (defs := defs)] q) → ChoiceComm p q
 
@@ -236,7 +236,7 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
   case bisim h =>
     grind [ChoiceComm]
 
-private inductive ChoiceAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ChoiceAssoc : Process Name Constant → Process Name Constant → Prop where
   | assoc : ChoiceAssoc (choice p (choice q r)) (choice (choice p q) r)
   | id : ChoiceAssoc p p
 
@@ -267,7 +267,7 @@ theorem bisimilarity_choice_assoc :
   all_goals grind [ChoiceAssoc.id]
 
 @[scoped grind]
-private inductive PreBisim : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive PreBisim : Process Name Constant → Process Name Constant → Prop where
 | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
 | bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
 
@@ -300,7 +300,7 @@ theorem bisimilarity_congr_pre :
       grind [Bisimilarity.largest_bisimulation]
 
 @[scoped grind]
-private inductive ResBisim : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ResBisim : Process Name Constant → Process Name Constant → Prop where
 | res : (p ~[lts (defs := defs)] q) → ResBisim (res a p) (res a q)
 -- | bisim : (p ~[lts (defs := defs)] q) → ResBisim p q
 
@@ -330,7 +330,7 @@ theorem bisimilarity_congr_res :
     unfold lts at *
     grind
 
-private inductive ChoiceBisim : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ChoiceBisim : Process Name Constant → Process Name Constant → Prop where
 | choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
 | bisim : (p ~[lts (defs := defs)] q) → ChoiceBisim p q
 
@@ -399,7 +399,7 @@ theorem bisimilarity_congr_choice :
         apply Bisimilarity.largest_bisimulation hb hr1
 
 @[scoped grind]
-private inductive ParBisim : (Process Name Constant) → (Process Name Constant) → Prop where
+private inductive ParBisim : Process Name Constant → Process Name Constant → Prop where
 | par : (p ~[lts (defs := defs)] q) → ParBisim (par p r) (par q r)
 
 /-- P ~ Q → P | R ~ Q | R -/
