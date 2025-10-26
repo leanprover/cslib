@@ -55,10 +55,6 @@ theorem le_one_iff : l ≤ 1 ↔ l = 0 ∨ l = 1 := by
 theorem mem_sdiff_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
-@[simp]
-theorem one_sdiff_one : 1 - 1 = (0 : Language α) :=
-  tsub_self 1
-
 @[simp, scoped grind =]
 theorem sdiff_one_mul : (l - 1) * l = l * (l - 1) := by
   ext x ; constructor

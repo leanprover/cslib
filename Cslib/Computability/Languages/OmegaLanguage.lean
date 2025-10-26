@@ -262,7 +262,7 @@ theorem zero_omegaPow [Inhabited α] : (0 : Language α)^ω = ⊥ := by
 
 @[simp]
 theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
-  rw [← omegaPow_of_sdiff_one, Language.one_sdiff_one, zero_omegaPow]
+  rw [← omegaPow_of_sdiff_one, tsub_self, zero_omegaPow]
 
 @[simp, scoped grind =]
 theorem omegaPow_of_le_one [Inhabited α] (h : l ≤ 1) : l^ω = ⊥ := by
