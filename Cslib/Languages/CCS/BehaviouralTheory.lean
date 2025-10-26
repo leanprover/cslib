@@ -41,9 +41,8 @@ private inductive ParNil : Process Name Constant → Process Name Constant → P
 @[simp, scoped grind .]
 theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
   unfold lts at *
-  exists ParNil
-  constructor; constructor
-  intro s1 s2 hr μ
+  exists ParNil, .parNil
+  intro _ _ _ _
   constructor
   case left => grind
   case right =>
