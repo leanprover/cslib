@@ -31,6 +31,8 @@ open CCS CCS.Process CCS.Act
 
 namespace CCS
 
+attribute [local grind] Tr
+
 @[scoped grind]
 private inductive ParNil : (Process Name Constant) → (Process Name Constant) → Prop where
 | parNil : ParNil (par p nil) p
@@ -48,8 +50,9 @@ theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
   case right =>
     intro s2' htr
     exists par s2' nil
-    grind [Tr.parL]
+    grind
 
+@[scoped grind]
 private inductive ParComm : (Process Name Constant) → (Process Name Constant) → Prop where
 | parComm : ParComm (par p q) (par q p)
 
@@ -70,25 +73,25 @@ theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
         cases htr
         case parL p' htr' =>
           exists par q p'
-          grind [Tr.parR, ParComm]
+          grind
         case parR q' htr' =>
           exists par q' p
-          grind [Tr.parL, ParComm]
+          grind
         case com μ p' μ' q' hco htrp htrq =>
           exists par q' p'
-          grind [Tr.com, ParComm]
+          grind
       case right =>
         intro t htr
         cases htr
         case parL q' htr' =>
           exists par p q'
-          grind [Tr.parR, ParComm]
+          grind
         case parR p' htr' =>
           exists par p' q
-          grind [Tr.parL, ParComm]
+          grind
         case com μ p' μ' q' hco htrp htrq =>
           exists par q' p'
-          grind [Tr.com, ParComm]
+          grind
 
 /-- 𝟎 | P ~ P -/
 @[simp, scoped grind .]
@@ -97,6 +100,7 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind
     _ ~[lts (defs := defs)] p := by simp
 
+@[scoped grind]
 private inductive ParAssoc : (Process Name Constant) → (Process Name Constant) → Prop where
   | assoc : ParAssoc (par p (par q r)) (par (par p q) r)
   | id : ParAssoc p p
@@ -115,25 +119,24 @@ theorem bisimilarity_par_assoc :
       cases htr
       case parL p q r p' _ =>
         exists p'.par (q.par r)
-        grind [Tr.parL, ParAssoc]
+        grind
       case parR p q r q' _ =>
         exists p.par (q'.par r)
-        grind [Tr.parL, Tr.parR, ParAssoc]
+        grind
       case com μ p' μ' q' _ htrp htrq =>
         exists p'.par (q'.par r)
-        have htrq' : Tr (defs := defs) (q.par r) μ' (q'.par r) := by grind [Tr.parL]
-        grind [Tr.com, Tr.parL, ParAssoc]
+        grind
     case parR p q r r' htr =>
       exists p.par (q.par r')
-      grind [Tr.parR, ParAssoc]
+      grind
     case com p q r μ p' μ' r' _ htr htr' =>
       cases htr
       case parL p' _ =>
         use p'.par (q.par r')
-        grind [Tr.parR, Tr.com, ParAssoc.assoc]
+        grind
       case parR q' _ =>
         use p.par (q'.par r')
-        grind [Tr.parR, Tr.com, ParAssoc.assoc]
+        grind
       case com => grind
   case left.assoc =>
     intro s2' htr
@@ -143,26 +146,26 @@ theorem bisimilarity_par_assoc :
       cases htr
       case parL p q r q' _ =>
         exists (p.par q').par r
-        grind [Tr.parL, Tr.parR, ParAssoc]
+        grind
       case parR p q r r' _ =>
         exists (p.par q).par r'
-        grind [Tr.parL, Tr.parR, ParAssoc]
+        grind
       case com p q r μ q' μ' r' _ htrp htrq =>
         use (p.par q').par r'
-        grind [Tr.parR, Tr.com, ParAssoc.assoc]
+        grind
     case parL p q r p' htr =>
       exists (p'.par q).par r
-      grind [Tr.parL, ParAssoc]
+      grind
     case com p q r μ p' μ' q' _ htr htr' =>
       cases htr'
       case parL q' _ =>
         use (p'.par q').par r
-        grind [Tr.parL, Tr.com, ParAssoc.assoc]
+        grind
       case parR r' _ =>
         use (p'.par q).par r'
-        grind [Tr.parL, Tr.com, ParAssoc.assoc]
+        grind
       case com => grind
-  all_goals grind [ParAssoc]
+  all_goals grind
 
 private inductive ChoiceNil : (Process Name Constant) → (Process Name Constant) → Prop where
   | nil : ChoiceNil (choice p nil) p
@@ -185,6 +188,7 @@ theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
     · exact ChoiceNil.id
   all_goals grind [ChoiceNil]
 
+@[scoped grind]
 private inductive ChoiceIdem : (Process Name Constant) → (Process Name Constant) → Prop where
   | idem : ChoiceIdem (choice p p) p
   | id : ChoiceIdem p p
@@ -194,20 +198,15 @@ theorem bisimilarity_choice_idem :
   (choice p p) ~[lts (defs := defs)] p := by
   exists ChoiceIdem
   apply And.intro
-  case left => grind [ChoiceIdem]
+  case left => grind
   case right =>
     intro s1 s2 hr μ
     apply And.intro <;> cases hr <;> unfold lts
-    case left.idem =>
-      grind [cases Tr, ChoiceIdem]
-    case left.id =>
-      grind [ChoiceIdem]
     case right.idem =>
       intro s1' htr
       exists s1'
-      grind [Tr, ChoiceIdem]
-    case right.id =>
-      grind [ChoiceIdem]
+      grind
+    all_goals grind
 
 private inductive ChoiceComm : (Process Name Constant) → (Process Name Constant) → Prop where
   | choiceComm : ChoiceComm (choice p q) (choice q p)
@@ -226,14 +225,14 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
       exists s1'
       constructor
       · unfold lts
-        cases htr with grind [Tr.choiceR, Tr.choiceL]
+        cases htr with grind
       · grind [ChoiceComm]
     case right =>
       intro s1' htr
       exists s1'
       constructor
       · unfold lts
-        cases htr with grind [Tr.choiceR, Tr.choiceL]
+        cases htr with grind
       · grind [ChoiceComm]
   case bisim h =>
     grind [ChoiceComm]
@@ -268,6 +267,7 @@ theorem bisimilarity_choice_assoc :
     case choiceR htr => apply Tr.choiceR; apply Tr.choiceR; assumption
   all_goals grind [ChoiceAssoc.id]
 
+@[scoped grind]
 private inductive PreBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
 | bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
@@ -278,12 +278,12 @@ theorem bisimilarity_congr_pre :
   intro hpq
   exists @PreBisim _ _ defs
   constructor
-  · grind [PreBisim]
+  · grind
   intro s1 s2 hr μ'
   cases hr
   case pre p' q' μ hbis =>
     unfold lts
-    constructor <;> intro _ _ <;> [exists q'; exists p'] <;> grind [cases Tr, Tr.pre, PreBisim]
+    constructor <;> intro _ _ <;> [exists q'; exists p'] <;> grind [cases Tr]
   case bisim hbis =>
     constructor
     case left =>
@@ -291,14 +291,14 @@ theorem bisimilarity_congr_pre :
       obtain ⟨_, hr, hb⟩ := hbis
       obtain ⟨s2', _⟩ := hb.follow_fst hr htr
       exists s2'
-      grind [PreBisim, Bisimilarity.largest_bisimulation]
+      grind [Bisimilarity.largest_bisimulation]
     case right =>
       intro s2' htr
       obtain ⟨_, hr, hb⟩ := hbis
       have ⟨_, hb2⟩ := hb hr μ'
       obtain ⟨s1', _⟩ := hb2 _ htr
       exists s1'
-      grind [PreBisim, Bisimilarity.largest_bisimulation]
+      grind [Bisimilarity.largest_bisimulation]
 
 @[scoped grind]
 private inductive ResBisim : (Process Name Constant) → (Process Name Constant) → Prop where
@@ -322,14 +322,14 @@ theorem bisimilarity_congr_res :
     obtain ⟨q', _⟩ := Bisimilarity.is_bisimulation.follow_fst h htr
     exists res a q'
     unfold lts at *
-    grind [Tr]
+    grind
   case right =>
     intro s2' htr
     cases htr with | res _ _ htr =>
     obtain ⟨p', _⟩ := Bisimilarity.is_bisimulation.follow_snd h htr
     exists res a p'
     unfold lts at *
-    grind [Tr]
+    grind
 
 private inductive ChoiceBisim : (Process Name Constant) → (Process Name Constant) → Prop where
 | choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
@@ -423,14 +423,14 @@ theorem bisimilarity_congr_par :
       case parL p' htr =>
         obtain ⟨q', _⟩ := hb.follow_fst hr htr
         exists par q' r
-        grind [Tr.parL]
+        grind
       case parR r' htr =>
         exists par q r'
-        grind [Tr.parR]
+        grind
       case com r' _ htrp _ =>
         obtain ⟨q', _⟩ := hb.follow_fst hr htrp
         exists par q' r'
-        grind [Tr.com]
+        grind
   case right =>
     intro s2' htr
     cases r
@@ -442,14 +442,14 @@ theorem bisimilarity_congr_par :
       case parL htr =>
         obtain ⟨p', _⟩ := hb.follow_snd hr htr
         exists par p' r
-        grind [Tr.parL]
+        grind
       case parR _ _ r' htr =>
         exists par p r'
-        grind [Tr.parR]
+        grind
       case com r' hco htrq htrr =>
         obtain ⟨q', _⟩ := hb.follow_snd hr htrq
         exists par q' r'
-        grind [Tr.com]
+        grind
 
 /-- Bisimilarity is a congruence in CCS. -/
 theorem bisimilarity_congr
