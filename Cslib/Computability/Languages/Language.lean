@@ -40,23 +40,15 @@ instance : OrderedSub (Language α) where
 
 -- ********** END temporary block **********
 
-theorem le_one_eq_zero_or_one (h : l ≤ 1) : l = 0 ∨ l = 1 :=
-  subset_singleton_iff_eq.mp h
-
-theorem le_one_iff : l ≤ 1 ↔ l = 0 ∨ l = 1 := by
-  constructor
-  · intro h
-    exact le_one_eq_zero_or_one h
-  · rintro (rfl | rfl)
-    · exact zero_le_one
-    · exact le_refl 1
+theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
+  subset_singleton_iff_eq
 
 @[simp, scoped grind =]
-theorem mem_sdiff_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
+theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
 @[simp, scoped grind =]
-theorem sdiff_one_mul : (l - 1) * l = l * (l - 1) := by
+theorem sub_one_mul : (l - 1) * l = l * (l - 1) := by
   ext x ; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     rcases Classical.em (v = []) with rfl | h
@@ -68,7 +60,7 @@ theorem sdiff_one_mul : (l - 1) * l = l * (l - 1) := by
     · use u ; grind
 
 @[simp, scoped grind =]
-theorem kstar_sdiff_one : l∗ - 1 = (l - 1) * l∗ := by
+theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
   ext x ; constructor
   · rintro ⟨h1, h2⟩
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
