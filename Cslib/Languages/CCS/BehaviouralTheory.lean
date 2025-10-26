@@ -455,7 +455,7 @@ theorem bisimilarity_congr
   (c : Context Name Constant) (p q : Process Name Constant) (h : p ~[lts (defs := defs)] q) :
   (c.fill p) ~[lts (defs := defs)] (c.fill q) := by
   induction c with
-  | parR r c ih =>
+  | parR r c _ =>
     calc
       _ ~[lts (defs := defs)] (c.fill p |>.par r)  := by grind
       _ ~[lts (defs := defs)] (c.fill q |>.par r)  := by grind [bisimilarity_congr_par]
