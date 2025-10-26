@@ -75,25 +75,18 @@ theorem sdiff_one_mul :
       simp_all
 
 @[simp, scoped grind =]
-theorem kstar_sdiff_one :
-    l∗ \ 1 = (l \ 1) * l∗ := by
+theorem kstar_sdiff_one : l∗ \ 1 = (l \ 1) * l∗ := by
   ext x ; constructor
   · rintro ⟨h1, h2⟩
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
-    have h3 : ¬ xl = [] := by intro h ; simp [h, one_def] at h2
+    have h3 : ¬ xl = [] := by grind [one_def]
     obtain ⟨x, xl', h_xl'⟩ := exists_cons_of_ne_nil h3
-    refine ⟨x, ?_, xl'.flatten, ?_, by grind⟩
-    · specialize h_xl x (by grind)
-      exact h_xl
-    · apply join_mem_kstar
-      intro y h_y
-      specialize h_xl y (by grind)
-      grind
+    have := h_xl x
+    refine ⟨x, ?_, xl'.flatten, ?_, ?_⟩ <;> grind [join_mem_kstar]
   · rintro ⟨y, ⟨h_y, h_1⟩, z, h_z, rfl⟩
     refine ⟨?_, ?_⟩
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
-      refine ⟨y, h_y, z, h_z, rfl⟩
-    · simp only [one_def, mem_singleton_iff, append_eq_nil_iff] at h_1 ⊢
-      tauto
+      exact ⟨y, h_y, z, h_z, rfl⟩
+    · grind [one_def, append_eq_nil_iff]
 
 end Language
