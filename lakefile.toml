@@ -6,8 +6,10 @@ testDriver = "CslibTests"
 [leanOptions]
 weak.linter.mathlibStandardSet = true
 weak.linter.flexible = true
-# The next three linters are provided by Mathlib, but don't work here.
-# This should be fixed, see discussion at https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/weak.2Elinter.2EmathlibStandardSet.20and.20lint-style-action/with/544726745
+# The next three linters are provided by Mathlib, but don't work with CSLib.
+# pythonStyle and allScriptsDocumented are Mathlib-specific, so we keep them disabled.
+# checkInitImports: we now have our own CSLib-specific implementation in
+# Cslib.Foundations.Lint.Basic (marked with @[env_linter], so it runs automatically).
 weak.linter.pythonStyle = false
 weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false

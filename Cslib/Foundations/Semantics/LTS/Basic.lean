@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
+-- import Cslib.Init  -- TODO: Causes type elaboration ambiguities in downstream files (Automata)
 import Mathlib.Tactic.Lemma
 import Mathlib.Data.Finite.Defs
 import Mathlib.Data.Fintype.Basic
