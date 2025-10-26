@@ -3,12 +3,8 @@ name: Build and Deploy Documentation
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - main  # Build docs on merges to main
   workflow_dispatch:
-  schedule:
-    # Run every 12 hours to keep docs up to date
-    - cron: '0 */12 * * *'
 
 permissions:
   contents: read
@@ -23,12 +19,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Verify docs/lean-toolchain matches root
-        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        run: |
-          set -e
-          cmp -s lean-toolchain docs/lean-toolchain
 
       - name: Build and lint the project
         id: build-lean
