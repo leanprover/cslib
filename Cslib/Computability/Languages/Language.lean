@@ -21,27 +21,27 @@ open scoped Computability
 
 variable {α : Type _} {l : Language α}
 
-/-- A language is trivial iff it contains at most the empty list `[]`. -/
-def Trivial (l : Language α) := l \ 1 = 0
+/-- A language is le_one iff it contains at most the empty list `[]`. -/
+def le_one (l : Language α) := l \ 1 = 0
 
 @[simp]
-theorem zero_trivial : (0 : Language α).Trivial :=
+theorem zero_le_one : (0 : Language α).le_one :=
   empty_diff _
 
 @[simp]
-theorem one_trivial : (1 : Language α).Trivial :=
+theorem one_le_one : (1 : Language α).le_one :=
   diff_self
 
-theorem trivial_eq_zero_or_one (h : l.Trivial) : l = 0 ∨ l = 1 :=
+theorem le_one_eq_zero_or_one (h : l.le_one) : l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq.mp <| diff_eq_empty.mp h
 
-theorem trivial_iff : l.Trivial ↔ l = 0 ∨ l = 1 := by
+theorem le_one_iff : l.le_one ↔ l = 0 ∨ l = 1 := by
   constructor
   · intro h
-    exact trivial_eq_zero_or_one h
+    exact le_one_eq_zero_or_one h
   · rintro (rfl | rfl)
-    · exact zero_trivial
-    · exact one_trivial
+    · exact zero_le_one
+    · exact one_le_one
 
 @[simp, scoped grind =]
 theorem mem_sdiff_one (x : List α) : x ∈ (l \ 1) ↔ x ∈ l ∧ x ≠ [] :=

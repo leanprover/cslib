@@ -265,10 +265,10 @@ theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
   rw [← omegaPow_of_sdiff_one, Language.one_sdiff_one, zero_omegaPow]
 
 @[simp, scoped grind =]
-theorem omegaPow_of_trivial [Inhabited α] (h : l.Trivial) : l^ω = ⊥ := by
-  cases (Language.trivial_eq_zero_or_one h) <;> simp_all
+theorem omegaPow_of_le_one [Inhabited α] (h : l.le_one) : l^ω = ⊥ := by
+  cases (Language.le_one_eq_zero_or_one h) <;> simp_all
 
-theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l.Trivial := by
+theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l.le_one := by
   by_contra h_contra
   obtain ⟨x, h_x⟩ := nonempty_iff_ne_empty.mpr h_contra
   suffices h' : (const x).flatten ∈ l^ω by simp [h] at h'
