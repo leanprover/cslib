@@ -45,8 +45,7 @@ theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
   constructor; constructor
   intro s1 s2 hr μ
   constructor
-  case left =>
-    grind [cases Tr]
+  case left => grind
   case right =>
     intro s2' htr
     exists par s2' nil
@@ -178,7 +177,7 @@ theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
   apply And.intro <;> cases hr
   case left.nil =>
     unfold lts
-    grind [cases Tr, ChoiceNil]
+    grind [ChoiceNil]
   case right.nil =>
     intro s2' htr
     exists s2'
@@ -283,7 +282,7 @@ theorem bisimilarity_congr_pre :
   cases hr
   case pre p' q' μ hbis =>
     unfold lts
-    constructor <;> intro _ _ <;> [exists q'; exists p'] <;> grind [cases Tr]
+    constructor <;> intro _ _ <;> [exists q'; exists p'] <;> grind
   case bisim hbis =>
     constructor
     case left =>
