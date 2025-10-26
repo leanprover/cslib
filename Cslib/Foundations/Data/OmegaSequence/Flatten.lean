@@ -11,8 +11,10 @@ import Mathlib.Tactic
 /-!
 # Flattening an infinite sequence of lists
 
-Given an ω-sequence `ls` of (nonempty) lists, `ls.flatten` is the infinite sequence
-formed by the concatenation of all of them.
+Given `ls : ωSequence (List α)`, `ls.flatten` is the infinite sequence formed by
+concatenating all members of `ls`.  For this definition to make proper sense,
+we will consistently assume that all lists in `ls` are nonempty.  Furthermore,
+in order to simplify the definition, we will also assume [Inhabited α].
 -/
 
 namespace Cslib
@@ -122,9 +124,7 @@ theorem append_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k,
 @[simp, scoped grind =]
 theorem length_flatten_take [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (n : ℕ) : (ls.take n).flatten.length = ls.cumLen n := by
-  induction n
-  case zero => grind
-  case succ n h_ind => grind [take_succ']
+  induction n <;> grind [take_succ']
 
 /-- `In fact, (ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
 and (ls.drop n).flatten` is `ls.flatten.drop (ls.cumLen n)`. -/
@@ -168,15 +168,13 @@ theorem toSegs_def (s : ωSequence α) (f : ℕ → ℕ) (n : ℕ) :
   rfl
 
 /-- `(s.toSegs f).cumLen` is `f` itself. -/
-@[simp, scoped grind =]
+@[simp]
 theorem segment_toSegs_cumLen [Inhabited α] {f : ℕ → ℕ}
     (hm : StrictMono f) (h0 : f 0 = 0) (s : ωSequence α) :
     (s.toSegs f).cumLen = f := by
-  ext n ; induction n
-  case zero => grind
-  case succ n h_ind =>
-    have := hm (show n < n + 1 by omega)
-    grind [toSegs_def]
+  ext n
+  have (n' : ℕ) := hm (show n' < n' + 1 by omega)
+  induction n <;> grind [toSegs_def]
 
 /-- `(s.toSegs f).flatten` is `s` itself. -/
 @[simp, scoped grind =]
