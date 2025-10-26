@@ -63,13 +63,10 @@ def defParComm : Process Name Constant → Process Name Constant
 /-- P | Q ~ Q | P -/
 @[scoped grind .]
 theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
-  exists ParComm
-  constructor
-  case left => constructor
-  case right =>
-    intro _ _ _ _
-    unfold lts at *
-    split_ands <;> intro p _ <;> exists defParComm p <;> grind
+  use ParComm, ParComm.parComm
+  intro _ _ _ _
+  unfold lts at *
+  split_ands <;> intro p _ <;> exists defParComm p <;> grind
 
 /-- 𝟎 | P ~ P -/
 @[simp, scoped grind .]
