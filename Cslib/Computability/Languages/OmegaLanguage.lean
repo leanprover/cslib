@@ -116,7 +116,7 @@ theorem hmul_def (l : Language α) (p : ωLanguage α) : l * p = image2 (· ++ω
 A.k.a. ω-power.
 -/
 def omegaPow [Inhabited α] (l : Language α) : ωLanguage α :=
-  { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l \ 1 }
+  { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 }
 
 /-- Use the postfix notation ^ω` for `omegaPow`. -/
 @[notation_class]
@@ -129,7 +129,7 @@ instance [Inhabited α] : OmegaPow (Language α) (ωLanguage α) :=
   ⟨omegaPow⟩
 
 theorem omegaPow_def [Inhabited α] (l : Language α) :
-    l^ω = { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l \ 1 }
+    l^ω = { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 }
   := rfl
 
 /- The ω-limit of a language `l` is the ω-language of infinite sequences each of which
@@ -203,11 +203,11 @@ theorem append_mem_hmul : x ∈ l → s ∈ p → x ++ω s ∈ l * p :=
 
 @[simp, scoped grind =]
 theorem mem_omegaPow [Inhabited α] :
-    s ∈ l^ω ↔ ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l \ 1 :=
+    s ∈ l^ω ↔ ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 :=
   Iff.rfl
 
 theorem flatten_mem_omegaPow [Inhabited α] {xs : ωSequence (List α)}
-    (h_xs : ∀ k, xs k ∈ l \ 1) : xs.flatten ∈ l^ω :=
+    (h_xs : ∀ k, xs k ∈ l - 1) : xs.flatten ∈ l^ω :=
   ⟨xs, rfl, h_xs⟩
 
 theorem mul_hmul : (l * m) * p = l * (m * p) :=
@@ -253,7 +253,7 @@ theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) :
   tauto
 
 @[simp, scoped grind =]
-theorem omegaPow_of_sdiff_one [Inhabited α] : (l \ 1)^ω = l^ω := by
+theorem omegaPow_of_sdiff_one [Inhabited α] : (l - 1)^ω = l^ω := by
   ext s ; simp
 
 @[simp]
@@ -265,14 +265,14 @@ theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
   rw [← omegaPow_of_sdiff_one, Language.one_sdiff_one, zero_omegaPow]
 
 @[simp, scoped grind =]
-theorem omegaPow_of_le_one [Inhabited α] (h : l.le_one) : l^ω = ⊥ := by
+theorem omegaPow_of_le_one [Inhabited α] (h : l ≤ 1) : l^ω = ⊥ := by
   cases (Language.le_one_eq_zero_or_one h) <;> simp_all
 
-theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l.le_one := by
+theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l ≤ 1 := by
+  intro x h_x
   by_contra h_contra
-  obtain ⟨x, h_x⟩ := nonempty_iff_ne_empty.mpr h_contra
   suffices h' : (const x).flatten ∈ l^ω by simp [h] at h'
-  exact ⟨const x, rfl, by simpa⟩
+  exact ⟨const x, rfl, by grind [Language.mem_sub]⟩
 
 /-- An alternative characterization of `l * p`. -/
 theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p } := by
@@ -296,7 +296,7 @@ theorem omegaPow_seq_prop [Inhabited α] :
     refine ⟨(fun m ↦ s.extract (f m) (f (m + 1))), ?_, ?_⟩
     · apply strictMono_flatten hm h0
     · intro m
-      change s.extract (f m) (f (m + 1)) ∈ l \ 1
+      change s.extract (f m) (f (m + 1)) ∈ l - 1
       simp only [he, Language.mem_sdiff_one, ne_eq, extract_eq_nil_iff, ge_iff_le, not_le, true_and]
       apply hm ; omega
 
@@ -322,13 +322,13 @@ theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : 
   grind [strictMono_nat_of_lt_succ, iter_helper]
 
 /-- A "coinductive" rule for proving `p` is a subset of `l^ω`. -/
-theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l \ 1) * p) : p ≤ l^ω := by
+theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l - 1) * p) : p ≤ l^ω := by
   rw [← omegaPow_of_sdiff_one]
   refine omegaPow_coind' ?_ h_le
   simp
 
 theorem omegaPow_le_hmul_omegaPow' [Inhabited α] (l : Language α) :
-    l^ω ≤ (l \ 1) * l^ω := by
+    l^ω ≤ (l - 1) * l^ω := by
   rintro s ⟨xs, rfl, h_xs⟩
   refine ⟨xs.head, ?_, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩ <;>
   grind [Language.mem_sdiff_one, Language.mem_sdiff_one, List.ne_nil_iff_length_pos]
@@ -341,7 +341,7 @@ theorem omegaPow_le_hmul_omegaPow [Inhabited α] (l : Language α) : l^ω ≤ l 
   · apply le_refl
 
 theorem hmul_omegaPow_le_omegaPow [Inhabited α] (l : Language α) : l * l^ω ≤ l^ω := by
-  suffices h : l * l^ω ≤ (l \ 1) * (l * l^ω) by exact omegaPow_coind h
+  suffices h : l * l^ω ≤ (l - 1) * (l * l^ω) by exact omegaPow_coind h
   rw [← mul_hmul, Language.sdiff_one_mul, mul_hmul]
   refine le_hmul_congr ?_ ?_
   · apply le_refl
@@ -357,11 +357,11 @@ theorem omegaPow_le_kstar_omegaPow [Inhabited α] (l : Language α) : l^ω ≤ (
   simp [le_omegaPow_congr]
 
 theorem kstar_omegaPow_le_omegaPow [Inhabited α] (l : Language α) : (l∗)^ω ≤ l^ω := by
-  suffices h : (l∗)^ω ≤ (l \ 1) * (l∗)^ω by exact omegaPow_coind h
+  suffices h : (l∗)^ω ≤ (l - 1) * (l∗)^ω by exact omegaPow_coind h
   calc
-    _ ≤ (l∗ \ 1) * (l∗)^ω := omegaPow_le_hmul_omegaPow' _
-    _ = (l \ 1) * l∗ * (l∗)^ω := by simp
-    _ = (l \ 1) * (l∗ * (l∗)^ω) := mul_hmul
+    _ ≤ (l∗ - 1) * (l∗)^ω := omegaPow_le_hmul_omegaPow' _
+    _ = (l - 1) * l∗ * (l∗)^ω := by simp
+    _ = (l - 1) * (l∗ * (l∗)^ω) := mul_hmul
     _ = _ := by simp
 
 @[simp, scoped grind =]

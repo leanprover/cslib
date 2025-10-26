@@ -21,40 +21,46 @@ open scoped Computability
 
 variable {α : Type _} {l : Language α}
 
-/-- A language is le_one iff it contains at most the empty list `[]`. -/
-def le_one (l : Language α) := l \ 1 = 0
+-- ********** BEGIN temporary block **********
+-- This block of code will be removed once the following PR gets into mathlib:
+-- https://github.com/leanprover-community/mathlib4/pull/30913
 
-@[simp]
-theorem zero_le_one : (0 : Language α).le_one :=
-  empty_diff _
+/-- The subtraction of two languages is their difference. -/
+instance : Sub (Language α) where
+  sub := SDiff.sdiff
 
-@[simp]
-theorem one_le_one : (1 : Language α).le_one :=
-  diff_self
+theorem sub_def (l m : Language α) : l - m = (l \ m : Set (List α)) :=
+  rfl
 
-theorem le_one_eq_zero_or_one (h : l.le_one) : l = 0 ∨ l = 1 :=
-  subset_singleton_iff_eq.mp <| diff_eq_empty.mp h
+theorem mem_sub (l m : Language α) (x : List α) : x ∈ l - m ↔ x ∈ l ∧ x ∉ m :=
+  Iff.rfl
 
-theorem le_one_iff : l.le_one ↔ l = 0 ∨ l = 1 := by
+instance : OrderedSub (Language α) where
+  tsub_le_iff_right _ _ _ := sdiff_le_iff'
+
+-- ********** END temporary block **********
+
+theorem le_one_eq_zero_or_one (h : l ≤ 1) : l = 0 ∨ l = 1 :=
+  subset_singleton_iff_eq.mp h
+
+theorem le_one_iff : l ≤ 1 ↔ l = 0 ∨ l = 1 := by
   constructor
   · intro h
     exact le_one_eq_zero_or_one h
   · rintro (rfl | rfl)
     · exact zero_le_one
-    · exact one_le_one
+    · exact le_refl 1
 
 @[simp, scoped grind =]
-theorem mem_sdiff_one (x : List α) : x ∈ (l \ 1) ↔ x ∈ l ∧ x ≠ [] :=
+theorem mem_sdiff_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
 @[simp]
-theorem one_sdiff_one : 1 \ 1 = (0 : Language α) := by
-  ext x
-  simp only [sdiff_self, notMem_zero, iff_false]
-  exact id
+theorem one_sdiff_one : 1 - 1 = (0 : Language α) :=
+  tsub_self 1
 
 @[simp, scoped grind =]
-theorem sdiff_one_mul : (l \ 1) * l = l * (l \ 1) := by
+theorem sdiff_one_mul : (l - 1) * l = l * (l - 1) := by
   ext x ; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     rcases Classical.em (v = []) with rfl | h
@@ -66,7 +72,7 @@ theorem sdiff_one_mul : (l \ 1) * l = l * (l \ 1) := by
     · use u ; grind
 
 @[simp, scoped grind =]
-theorem kstar_sdiff_one : l∗ \ 1 = (l \ 1) * l∗ := by
+theorem kstar_sdiff_one : l∗ - 1 = (l - 1) * l∗ := by
   ext x ; constructor
   · rintro ⟨h1, h2⟩
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
