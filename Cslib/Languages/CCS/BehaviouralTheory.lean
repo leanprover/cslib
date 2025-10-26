@@ -25,7 +25,7 @@ namespace Cslib
 
 section CCS.BehaviouralTheory
 
-variable {Name : Type u} {Constant : Type v} {defs : Constant → (CCS.Process Name Constant) → Prop}
+variable {Name : Type u} {Constant : Type v} {defs : Constant → CCS.Process Name Constant → Prop}
 
 open CCS CCS.Process CCS.Act
 
