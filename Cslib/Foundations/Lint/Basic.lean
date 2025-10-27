@@ -27,12 +27,6 @@ def topNamespace : Batteries.Tactic.Lint.Linter where
     if top.contains declName.components[0]! then
       return none
     else
-      let ty := env.find? declName |>.get! |>.type
-      /- TODO: this is a temporary allowance for unscoped notations generated
-         for `LTS` and `ReductionSystem`. -/
-      if ty == .const ``Lean.TrailingParserDescr [] then
-        return none
-      else
-        return m!"{declName} is not namespaced."
+      return m!"{declName} is not namespaced."
 
 end Cslib.Lint

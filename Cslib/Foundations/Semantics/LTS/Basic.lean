@@ -719,17 +719,17 @@ elab "create_lts" lt:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "lts_transition_notation" ident (str)? : command
+syntax attrKind "lts_transition_notation" ident (str)? : command
 macro_rules
-  | `(lts_transition_notation $lts $sym) =>
+  | `($kind:attrKind lts_transition_notation $lts $sym) =>
     `(
-      notation3 t:39 "["μ"]⭢" $sym:str t':39 => (LTS.Tr.toRelation $lts μ) t t'
-      notation3 t:39 "["μs"]↠" $sym:str t':39 => (LTS.MTr.toRelation $lts μs) t t'
+      $kind:attrKind notation3 t:39 "["μ"]⭢" $sym:str t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      $kind:attrKind notation3 t:39 "["μs"]↠" $sym:str t':39 => (LTS.MTr.toRelation $lts μs) t t'
      )
-  | `(lts_transition_notation $lts) =>
+  | `($kind:attrKind lts_transition_notation $lts) =>
     `(
-      notation3 t:39 "["μ"]⭢" t':39 => (LTS.Tr.toRelation $lts μ) t t'
-      notation3 t:39 "["μs"]↠" t':39 => (LTS.MTr.toRelation $lts μs) t t'
+      $kind:attrKind notation3 t:39 "["μ"]⭢" t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      $kind:attrKind notation3 t:39 "["μs"]↠" t':39 => (LTS.MTr.toRelation $lts μs) t t'
      )
 
 /-- This attribute calls the `lts_transition_notation` command for the annotated declaration. -/
@@ -746,11 +746,15 @@ initialize Lean.registerBuiltinAttribute {
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-        liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts $sym))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped lts_transition_notation $lts $sym)))
     | `(attr | lts $lts) =>
         let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-        liftCommandElabM <| Command.elabCommand (← `(lts_transition_notation $lts))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped lts_transition_notation $lts)))
     | _ => throwError "invalid syntax for 'lts' attribute"
 }
 
