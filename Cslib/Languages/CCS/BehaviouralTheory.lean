@@ -33,7 +33,7 @@ namespace CCS
 
 attribute [local grind] Tr
 
-@[scoped grind]
+@[local grind]
 private inductive ParNil : Process Name Constant → Process Name Constant → Prop where
 | parNil : ParNil (par p nil) p
 
@@ -50,7 +50,7 @@ theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
     exists par s2' nil
     grind
 
-@[scoped grind]
+@[local grind]
 private inductive ParComm : Process Name Constant → Process Name Constant → Prop where
 | parComm : ParComm (par p q) (par q p)
 
@@ -72,7 +72,7 @@ theorem bisimilarity_nil_par : (par nil p) ~[lts (defs := defs)] p :=
     (par nil p) ~[lts (defs := defs)] (par p nil) := by grind
     _ ~[lts (defs := defs)] p := by simp
 
-@[scoped grind]
+@[local grind]
 private inductive ParAssoc : Process Name Constant → Process Name Constant → Prop where
   | assoc : ParAssoc (par p (par q r)) (par (par p q) r)
   | id : ParAssoc p p
@@ -160,7 +160,7 @@ theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
     · exact ChoiceNil.id
   all_goals grind [ChoiceNil]
 
-@[scoped grind]
+@[local grind]
 private inductive ChoiceIdem : Process Name Constant → Process Name Constant → Prop where
   | idem : ChoiceIdem (choice p p) p
   | id : ChoiceIdem p p
@@ -239,7 +239,7 @@ theorem bisimilarity_choice_assoc :
     case choiceR htr => apply Tr.choiceR; apply Tr.choiceR; assumption
   all_goals grind [ChoiceAssoc.id]
 
-@[scoped grind]
+@[local grind]
 private inductive PreBisim : Process Name Constant → Process Name Constant → Prop where
 | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
 | bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
@@ -272,7 +272,7 @@ theorem bisimilarity_congr_pre :
       exists s1'
       grind [Bisimilarity.largest_bisimulation]
 
-@[scoped grind]
+@[local grind]
 private inductive ResBisim : Process Name Constant → Process Name Constant → Prop where
 | res : (p ~[lts (defs := defs)] q) → ResBisim (res a p) (res a q)
 -- | bisim : (p ~[lts (defs := defs)] q) → ResBisim p q
@@ -371,7 +371,7 @@ theorem bisimilarity_congr_choice :
       · constructor
         apply Bisimilarity.largest_bisimulation hb hr1
 
-@[scoped grind]
+@[local grind]
 private inductive ParBisim : Process Name Constant → Process Name Constant → Prop where
 | par : (p ~[lts (defs := defs)] q) → ParBisim (par p r) (par q r)
 
