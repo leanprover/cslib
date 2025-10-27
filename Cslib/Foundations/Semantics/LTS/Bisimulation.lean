@@ -235,11 +235,11 @@ section Order
 
 /-! ## Order properties -/
 
-noncomputable instance : Max {r // lts.IsBisimulation r} where
+instance : Max {r // lts.IsBisimulation r} where
   max r s := ⟨r.1 ⊔ s.1, Bisimulation.union r.2 s.2⟩
 
 /-- Bisimulations equipped with union form a join-semilattice. -/
-noncomputable instance : SemilatticeSup {r // lts.IsBisimulation r} where
+instance : SemilatticeSup {r // lts.IsBisimulation r} where
   sup r s := r ⊔ s
   le_sup_left r s := by
     simp only [LE.le]
