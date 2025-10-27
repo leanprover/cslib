@@ -484,12 +484,12 @@ theorem extract_lu_extract_lu {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n 
   ext k
   cases Decidable.em (k < j - i) <;> grind [extract_eq_ofFn]
 
-@[nolint simpNF, simp, scoped grind =]
+@[scoped grind =]
 theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
     (xs.extract 0 n).extract i j = xs.extract i j := by
   grind
 
-@[nolint simpNF, simp, scoped grind =]
+@[scoped grind =]
 theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
   grind
