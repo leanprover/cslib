@@ -8,7 +8,7 @@ import Mathlib
 
 namespace Cslib.Lint
 
-open Lean Meta Std Batteries.Tactic.Lint Elab Command
+open Lean Meta Std Batteries.Tactic.Lint
 
 /-- A linter for checking that new declarations fall under some preexisting namespace. -/
 @[env_linter]
