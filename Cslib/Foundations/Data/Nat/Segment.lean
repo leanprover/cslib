@@ -30,7 +30,7 @@ theorem strictMono_infinite (hm : StrictMono f) :
     (range f).Infinite :=
   infinite_range_of_injective hm.injective
 
-/-- Any infinite suset of `ℕ` is the range of a strictly monotonic function. -/
+/-- Any infinite subset of `ℕ` is the range of a strictly monotonic function. -/
 theorem infinite_strictMono {ns : Set ℕ} (h : ns.Infinite) :
     ∃ f : ℕ → ℕ, StrictMono f ∧ range f = ns :=
   ⟨nth (· ∈ ns), nth_strictMono h, range_nth_of_infinite h⟩
