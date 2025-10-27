@@ -17,15 +17,6 @@ Based on Mathlib's lint-style.lean script.
 
 open System
 
-/-- Modules that are allowed to not import Cslib due to technical constraints.
-These are documented in the PR that introduced Cslib.Init. -/
-def allowedExclusions : Array Lean.Name := #[
-  `Cslib.Foundations.Lint.Basic,          -- Circular dependency (imported by Cslib.Init)
-  `Cslib.Foundations.Data.FinFun,         -- Notation conflict with Mathlib.Finsupp (→₀)
-  `Cslib.Foundations.Semantics.LTS.Basic, -- Type elaboration issues in downstream files
-  `Cslib.Logics.LinearLogic.CLL.Basic     -- Syntax elaboration conflicts
-]
-
 /-- Check that all Cslib modules import at least one Cslib module -/
 def checkInitImports : IO UInt32 := do
   -- Get all module names from Cslib.lean
@@ -34,10 +25,6 @@ def checkInitImports : IO UInt32 := do
   let mut modulesWithoutCslibImports := #[]
 
   for module in allModuleNames do
-    -- Skip known exclusions
-    if allowedExclusions.contains module then
-      continue
-
     -- Convert module name to file path (replace . with /)
     let pathParts := module.components.map toString
     let path := mkFilePath pathParts |>.addExtension "lean"
@@ -53,6 +40,13 @@ def checkInitImports : IO UInt32 := do
 
     if !hasCslibImport then
       modulesWithoutCslibImports := modulesWithoutCslibImports.push module
+
+  -- Erase known exceptions with technical constraints
+  modulesWithoutCslibImports := modulesWithoutCslibImports
+    |>.erase `Cslib.Foundations.Lint.Basic          -- Circular dependency (imported by Cslib.Init)
+    |>.erase `Cslib.Foundations.Data.FinFun         -- Notation conflict with Mathlib.Finsupp (→₀)
+    |>.erase `Cslib.Foundations.Semantics.LTS.Basic -- Type elaboration issues in downstream files
+    |>.erase `Cslib.Logics.LinearLogic.CLL.Basic    -- Syntax elaboration conflicts
 
   -- Report errors
   if modulesWithoutCslibImports.isEmpty then
