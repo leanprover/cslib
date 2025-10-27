@@ -342,7 +342,7 @@ theorem omegaPow_le_hmul_omegaPow [Inhabited α] (l : Language α) : l^ω ≤ l 
 
 theorem hmul_omegaPow_le_omegaPow [Inhabited α] (l : Language α) : l * l^ω ≤ l^ω := by
   suffices h : l * l^ω ≤ (l - 1) * (l * l^ω) by exact omegaPow_coind h
-  rw [← mul_hmul, Language.sub_one_mul, mul_hmul]
+  rw [← mul_hmul, Language.sub_one_mul_comm, mul_hmul]
   refine le_hmul_congr ?_ ?_
   · apply le_refl
   · apply omegaPow_le_hmul_omegaPow'

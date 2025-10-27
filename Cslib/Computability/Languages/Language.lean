@@ -21,9 +21,9 @@ open scoped Computability
 
 variable {α : Type _} {l : Language α}
 
--- ********** BEGIN temporary block **********
--- This block of code will be removed once the following PR gets into mathlib:
+-- This section will be removed once the following PR gets into mathlib:
 -- https://github.com/leanprover-community/mathlib4/pull/30913
+section from_mathlib4_30913
 
 /-- The subtraction of two languages is their difference. -/
 instance : Sub (Language α) where
@@ -38,7 +38,7 @@ theorem mem_sub (l m : Language α) (x : List α) : x ∈ l - m ↔ x ∈ l ∧ 
 instance : OrderedSub (Language α) where
   tsub_le_iff_right _ _ _ := sdiff_le_iff'
 
--- ********** END temporary block **********
+end from_mathlib4_30913
 
 theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq
@@ -48,16 +48,12 @@ theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
 @[simp, scoped grind =]
-theorem sub_one_mul : (l - 1) * l = l * (l - 1) := by
+theorem sub_one_mul_comm : (l - 1) * l = l * (l - 1) := by
   ext x ; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
-    rcases Classical.em (v = []) with rfl | h
-    · use [] ; grind
-    · use u ; grind
+    rcases Classical.em (v = []) <;> [use v ; use u] <;> grind
   · rintro ⟨u, h_u, v, h_v, rfl⟩
-    rcases Classical.em (u = []) with rfl | h
-    · use v ; grind
-    · use u ; grind
+    rcases Classical.em (u = []) <;> [use v ; use u] <;> grind
 
 @[simp, scoped grind =]
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
