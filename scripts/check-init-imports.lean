@@ -1,3 +1,5 @@
+import Mathlib.Tactic.Linter.DirectoryDependency
+
 /-
 Copyright (c) 2025 Jesse Alama. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -15,18 +17,6 @@ Based on Mathlib's lint-style.lean script.
 
 open System
 
-/-- Parse import statements from a file using simple text parsing -/
-def findImports (path : FilePath) : IO (Array String) := do
-  let contents ← IO.FS.readFile path
-  let lines := contents.splitOn "\n"
-  let imports := lines.filterMap fun line =>
-    let trimmed := line.trim
-    if trimmed.startsWith "import " then
-      some (trimmed.drop 7 |>.trim)
-    else
-      none
-  return imports.toArray
-
 /-- Check that all Cslib modules import at least one Cslib module -/
 def checkInitImports : IO UInt32 := do
   -- Get all module names from Cslib.lean
@@ -36,16 +26,19 @@ def checkInitImports : IO UInt32 := do
 
   for module in allModuleNames do
     -- Convert module name to file path (replace . with /)
-    let pathParts := module.splitOn "."
+    let pathParts := module.components.map toString
     let path := mkFilePath pathParts |>.addExtension "lean"
 
-    -- Get imports for this module
+    -- Get imports for this module using Mathlib's robust parser
     let imports ← findImports path
 
-    -- Check if ALL imports lack Cslib prefix (meaning no Cslib import)
-    let hasNoCslibImport := imports.all fun imp ↦ !imp.startsWith "Cslib"
+    -- Check if any import starts with Cslib
+    let hasCslibImport := imports.any fun imp =>
+      match imp.components with
+      | `Cslib :: _ => true
+      | _ => false
 
-    if hasNoCslibImport then
+    if !hasCslibImport then
       modulesWithoutCslibImports := modulesWithoutCslibImports.push module
 
   -- Report errors

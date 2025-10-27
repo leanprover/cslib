@@ -8,8 +8,8 @@ weak.linter.mathlibStandardSet = true
 weak.linter.flexible = true
 # The next three linters are provided by Mathlib, but don't work with CSLib.
 # pythonStyle and allScriptsDocumented are Mathlib-specific, so we keep them disabled.
-# checkInitImports: we now have our own CSLib-specific implementation in
-# Cslib.Foundations.Lint.Basic (marked with @[env_linter], so it runs automatically).
+# checkInitImports: we have our own CSlib-specific script-based implementation at
+# scripts/check-init-imports.lean (run via CI in the linters workflow).
 weak.linter.pythonStyle = false
 weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false
