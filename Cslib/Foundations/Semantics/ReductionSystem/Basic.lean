@@ -98,17 +98,17 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "reduction_notation" ident (str)? : command
+syntax attrKind "reduction_notation" ident (str)? : command
 macro_rules
-  | `(reduction_notation $rs $sym) =>
+  | `($kind:attrKind reduction_notation $rs $sym) =>
     `(
-      notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
+      $kind:attrKind notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
+      $kind:attrKind notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
-  | `(reduction_notation $rs) =>
+  | `($kind:attrKind reduction_notation $rs) =>
     `(
-      notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
+      $kind:attrKind notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      $kind:attrKind notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 
@@ -133,11 +133,15 @@ initialize Lean.registerBuiltinAttribute {
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped reduction_notation $rs $sym)))
     | `(attr | reduction_sys $rs) =>
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped reduction_notation $rs)))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
 
