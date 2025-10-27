@@ -126,8 +126,10 @@ def CommonReduct : SKI → SKI → Prop := Relation.Join RedSKI.MRed
 lemma commonReduct_of_single {a b : SKI} (h : a ↠ b) : CommonReduct a b := ⟨b, h, by rfl⟩
 
 theorem symmetric_commonReduct : Symmetric CommonReduct := Relation.symmetric_join
-theorem reflexive_commonReduct : Reflexive CommonReduct := fun x => by
-  refine ⟨x,?_,?_⟩ <;> rfl
+
+theorem reflexive_commonReduct : Reflexive CommonReduct := by
+  intro x
+  use x
 
 theorem commonReduct_head {x x' : SKI} (y : SKI) : CommonReduct x x' → CommonReduct (x ⬝ y) (x' ⬝ y)
   | ⟨z, hz, hz'⟩ => ⟨z ⬝ y, MRed.head y hz, MRed.head y hz'⟩

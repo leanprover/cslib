@@ -213,7 +213,8 @@ theorem segment'_eq_segment (hm : StrictMono f) :
   · intro n ; simp only [mem_range, Finset.coe_filter, Finset.mem_range, mem_setOf_eq, mem_image]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
-    refine ⟨f i - f 0, ⟨by omega, i, rfl⟩, by omega⟩
+    use f i - f 0
+    grind
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `segment f k = 0` for all `k ≤ f 0`. -/
 theorem segment_zero' (hm : StrictMono f) {k : ℕ} (h : k ≤ f 0) :
