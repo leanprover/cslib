@@ -54,14 +54,12 @@ theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
 private inductive ParComm : Process Name Constant → Process Name Constant → Prop where
 | parComm : ParComm (par p q) (par q p)
 
-@[scoped grind]
-def defParComm : Process Name Constant → Process Name Constant
-| par p q => par q p
-| _ => nil
-
 /-- P | Q ~ Q | P -/
 @[scoped grind .]
 theorem bisimilarity_par_comm : (par p q) ~[lts (defs := defs)] (par q p) := by
+  let defParComm : Process Name Constant → Process Name Constant
+    | par p q => par q p
+    | _ => nil
   use ParComm, ParComm.parComm
   intro _ _ _ _
   unfold lts at *
