@@ -48,14 +48,31 @@ theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
 @[simp, scoped grind =]
-theorem sub_one_mul_comm : (l - 1) * l = l * (l - 1) := by
+theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.reverse := by
+  ext x ; simp [mem_sub]
+
+@[scoped grind =]
+theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
   ext x ; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
-    rcases Classical.em (v = []) <;> [use v ; use u] <;> grind
-  · rintro ⟨u, h_u, v, h_v, rfl⟩
-    rcases Classical.em (u = []) <;> [use v ; use u] <;> grind
+    rw [mem_sub, mem_one] at h_u ⊢
+    constructor
+    · refine ⟨u, ?_, v, ?_⟩ <;> grind
+    · grind [append_eq_nil_iff]
+  · rintro ⟨⟨u, h_u, v, h_v, rfl⟩, h_x⟩
+    rcases eq_or_ne u [] with (rfl | h_u')
+    · refine ⟨v, ?_, [], ?_⟩ <;> grind [mem_sub, mem_one]
+    · refine ⟨u, ?_, v, ?_⟩ <;> grind
 
-@[simp, scoped grind =]
+@[scoped grind =]
+theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
+  calc
+    _ = (l * (l - 1)).reverse.reverse := by rw [reverse_reverse]
+    _ = ((l.reverse - 1) * l.reverse).reverse := by rw [reverse_mul, reverse_sub, reverse_one]
+    _ = (l.reverse * l.reverse - 1).reverse := by rw [sub_one_mul]
+    _ = _ := by rw [reverse_sub, reverse_one, reverse_mul, reverse_reverse]
+
+@[scoped grind =]
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
   ext x ; constructor
   · rintro ⟨h1, h2⟩
