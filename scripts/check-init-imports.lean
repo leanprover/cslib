@@ -1,10 +1,10 @@
-import Mathlib.Tactic.Linter.DirectoryDependency
-
 /-
 Copyright (c) 2025 Jesse Alama. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jesse Alama
 -/
+
+import Mathlib.Tactic.Linter.DirectoryDependency
 
 /-!
 # Check Init Imports
