@@ -11,8 +11,6 @@ import Mathlib.Tactic.Linter.DirectoryDependency
 
 This script checks that all CSLib modules in the source tree are imported in `Cslib.lean`,
 ensuring no modules are orphaned from the main import graph.
-
-Addresses issue #125.
 -/
 
 open System
@@ -43,30 +41,23 @@ def filePathToModuleName (filePath : FilePath) : Lean.Name :=
 
 /-- Modules that don't need to be imported in Cslib.lean -/
 def exceptions : Array Lean.Name := #[
-  `Cslib.Init  -- This is imported by other modules, not by Cslib.lean itself
+  `Cslib,       -- Cslib.lean itself
+  `Cslib.Init   -- This is imported by other modules, not by Cslib.lean itself
 ]
 
-/-- Check that all Cslib modules are imported in Cslib.lean -/
-def checkCslibComplete : IO UInt32 := do
+def main : IO UInt32 := do
   -- Get all modules currently in Cslib.lean
   let importedModules ← findImports "Cslib.lean"
 
   -- Find all .lean files in Cslib directory
   let allFiles ← findAllLeanFiles "Cslib"
 
-  -- Convert to module names and filter to only Cslib modules
-  let mut allModules : Array Lean.Name := #[]
-  for file in allFiles do
-    let modName := filePathToModuleName file
-    -- Skip Cslib.lean itself
-    if modName != `Cslib then
-      allModules := allModules.push modName
+  -- Convert to module names
+  let allModules := allFiles.map filePathToModuleName
 
   -- Find modules not imported in Cslib.lean (excluding exceptions)
-  let mut missingModules := #[]
-  for modName in allModules do
-    if !importedModules.contains modName && !exceptions.contains modName then
-      missingModules := missingModules.push modName
+  let missingModules := allModules.filter fun modName =>
+    !importedModules.contains modName && !exceptions.contains modName
 
   -- Report results
   if missingModules.isEmpty then
@@ -78,5 +69,3 @@ def checkCslibComplete : IO UInt32 := do
       IO.eprintln s!"  {modName}"
     IO.eprintln "\nThese modules should be added to Cslib.lean to be part of the library."
     return missingModules.size.toUInt32
-
-def main : IO UInt32 := checkCslibComplete
