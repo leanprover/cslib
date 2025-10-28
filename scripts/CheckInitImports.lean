@@ -17,7 +17,20 @@ Based on Mathlib's lint-style.lean script.
 
 open System
 
-/-- Check that all Cslib modules import at least one Cslib module -/
+/-- Modules with technical constraints preventing Cslib.Init import -/
+def exceptions : Array Lean.Name := #[
+  `Cslib.Foundations.Lint.Basic,          -- Circular dependency (imported by Cslib.Init)
+  `Cslib.Foundations.Data.FinFun,         -- Notation conflict with Mathlib.Finsupp (→₀)
+  `Cslib.Foundations.Semantics.LTS.Basic, -- Type elaboration issues in downstream files
+  `Cslib.Logics.LinearLogic.CLL.Basic     -- Syntax elaboration conflicts
+]
+
+/-- Check that all Cslib modules import at least one Cslib module.
+
+    This ensures all modules are connected to the library's import graph and receive Cslib.Init.
+    Modules listed in `Cslib.lean` should import something from the Cslib namespace (typically
+    Cslib.Init), except for a small set of modules with technical constraints.
+-/
 def checkInitImports : IO UInt32 := do
   -- Get all module names from Cslib.lean
   let allModuleNames ← findImports "Cslib.lean"
@@ -25,27 +38,24 @@ def checkInitImports : IO UInt32 := do
   let mut modulesWithoutCslibImports := #[]
 
   for module in allModuleNames do
-    -- Convert module name to file path (replace . with /)
+    -- Skip known exceptions upfront
+    if exceptions.contains module then
+      continue
+
+    -- Convert module name to file path
     let pathParts := module.components.map toString
     let path := mkFilePath pathParts |>.addExtension "lean"
 
     -- Get imports for this module using Mathlib's robust parser
     let imports ← findImports path
 
-    -- Check if any import starts with Cslib
+    -- Check if any import starts with Cslib (has Cslib as its root namespace)
     let hasCslibImport := imports.any fun imp => imp.getRoot == `Cslib
 
     if !hasCslibImport then
       modulesWithoutCslibImports := modulesWithoutCslibImports.push module
 
-  -- Erase known exceptions with technical constraints
-  modulesWithoutCslibImports := modulesWithoutCslibImports
-    |>.erase `Cslib.Foundations.Lint.Basic          -- Circular dependency (imported by Cslib.Init)
-    |>.erase `Cslib.Foundations.Data.FinFun         -- Notation conflict with Mathlib.Finsupp (→₀)
-    |>.erase `Cslib.Foundations.Semantics.LTS.Basic -- Type elaboration issues in downstream files
-    |>.erase `Cslib.Logics.LinearLogic.CLL.Basic    -- Syntax elaboration conflicts
-
-  -- Report errors
+  -- Report results
   if modulesWithoutCslibImports.isEmpty then
     IO.println "✓ All modules import at least one Cslib module"
     return 0
