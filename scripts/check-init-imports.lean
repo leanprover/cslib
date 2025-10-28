@@ -33,10 +33,7 @@ def checkInitImports : IO UInt32 := do
     let imports ← findImports path
 
     -- Check if any import starts with Cslib
-    let hasCslibImport := imports.any fun imp =>
-      match imp.components with
-      | `Cslib :: _ => true
-      | _ => false
+    let hasCslibImport := imports.any fun imp => imp.getRoot == `Cslib
 
     if !hasCslibImport then
       modulesWithoutCslibImports := modulesWithoutCslibImports.push module
