@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi
+Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
 import Cslib.Computability.Automata.DA
@@ -11,14 +11,12 @@ import Cslib.Computability.Languages.Language
 
 A Deterministic Finite Automaton (DFA) is a finite-state machine that accepts or rejects
 a finite string.
-
-## References
-
-* [J. E. Hopcroft, R. Motwani, J. D. Ullman,
-  *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
 namespace Cslib
+
+open List Prod
+open scoped DA Language
 
 /-- A Deterministic Finite Automaton (DFA) consists of a labelled transition function
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
@@ -33,18 +31,7 @@ structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
 
 namespace DFA
 
-variable {State : Type _} {Symbol : Type _}
-
-/-- Extended transition function.
-
-Implementation note: compared to [Hopcroft2006], the definition consumes the input list of symbols
-from the left (instead of the right), in order to match the way lists are constructed.
--/
-@[scoped grind =]
-def mtr (dfa : DFA State Symbol) (s : State) (xs : List Symbol) := xs.foldl dfa.tr s
-
-@[scoped grind =]
-theorem mtr_nil_eq {dfa : DFA State Symbol} {s : State} : dfa.mtr s [] = s := rfl
+variable {State State1 State2 : Type _} {Symbol : Type _}
 
 /-- A DFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/
@@ -61,6 +48,72 @@ def language (dfa : DFA State Symbol) : Language Symbol :=
 @[scoped grind =]
 theorem mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
   xs ∈ dfa.language ↔ dfa.Accepts xs := Iff.rfl
+
+@[scoped grind =]
+def zero [Finite Symbol] : DFA Unit Symbol where
+  start := ()
+  tr := fun _ _ ↦ ()
+  accept := ∅
+  finite_state := by infer_instance
+  finite_symbol := by infer_instance
+
+@[simp, scoped grind =]
+theorem zero_lang [Finite Symbol] : zero.language = (0 : Language Symbol) := by
+  grind
+
+@[scoped grind =]
+def one [Finite Symbol] : DFA (Fin 2) Symbol where
+  start := 0
+  tr := fun _ _ ↦ 1
+  accept := {0}
+  finite_state := by infer_instance
+  finite_symbol := by infer_instance
+
+@[simp, scoped grind =]
+theorem one_lang [Finite Symbol] : one.language = (1 : Language Symbol) := by
+  ext xs ; constructor
+  · intro h ; by_contra h'
+    have := dropLast_append_getLast h'
+    grind
+  · rw [Language.mem_one]
+    grind
+
+@[scoped grind =]
+def compl (dfa : DFA State Symbol) : DFA State Symbol :=
+  { dfa with accept := (dfa.accept)ᶜ }
+
+@[simp, scoped grind =]
+theorem compl_lang (dfa : DFA State Symbol) : dfa.compl.language = (dfa.language)ᶜ := by
+  grind
+
+@[scoped grind =]
+def prod (dfa1 : DFA State1 Symbol) (dfa2 : DFA State2 Symbol) (acc : Set (State1 × State2))
+  : DFA (State1 × State2) Symbol where
+  toDA := DA.prod dfa1.toDA dfa2.toDA
+  accept := acc
+  finite_state := by
+    have := dfa1.finite_state
+    have := dfa2.finite_state
+    infer_instance
+  finite_symbol := dfa1.finite_symbol
+
+@[scoped grind =]
+def inf (dfa1 : DFA State1 Symbol) (dfa2 : DFA State2 Symbol) :=
+    dfa1.prod dfa2 (fst ⁻¹' dfa1.accept ∩ snd ⁻¹' dfa2.accept)
+
+@[scoped grind =]
+def add (dfa1 : DFA State1 Symbol) (dfa2 : DFA State2 Symbol) :=
+    dfa1.prod dfa2 (fst ⁻¹' dfa1.accept ∪ snd ⁻¹' dfa2.accept)
+
+@[simp, scoped grind =]
+theorem inf_lang (dfa1 : DFA State1 Symbol) (dfa2 : DFA State2 Symbol) :
+    (dfa1.inf dfa2).language = dfa1.language ⊓ dfa2.language := by
+  ext xs ; grind
+
+@[simp, scoped grind =]
+theorem add_lang (dfa1 : DFA State1 Symbol) (dfa2 : DFA State2 Symbol) :
+    (dfa1.add dfa2).language = dfa1.language + dfa2.language := by
+  ext xs ; grind [Language.mem_add]
 
 end DFA
 

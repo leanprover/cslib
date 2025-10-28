@@ -41,7 +41,7 @@ original NA. -/
 @[scoped grind =]
 theorem toDFA_mem_mtr {nfa : NFA State Symbol} {S : Set State} {s' : State} {xs : List Symbol} :
   s' ∈ nfa.toDFA.mtr S xs ↔ ∃ s ∈ S, nfa.MTr s xs s' := by
-  simp only [NFA.toDFA, DFA.mtr]
+  simp only [NFA.toDFA, DA.mtr]
   /- TODO: Grind does not catch a useful rewrite in the subset construction for automata
 
     A very similar issue seems to occur in the proof of `NFA.toDFA_language_eq`.

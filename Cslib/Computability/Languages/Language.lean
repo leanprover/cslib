@@ -20,7 +20,37 @@ namespace Language
 open Set List
 open scoped Computability
 
-variable {α : Type _} {l : Language α}
+variable {α : Type _} {l m : Language α}
+
+@[simp, scoped grind =]
+theorem mem_inf (x : List α) : x ∈ l ⊓ m ↔ x ∈ l ∧ x ∈ m :=
+  Iff.rfl
+
+@[simp]
+theorem mem_biInf {I : Type _} (s : Set I) (l : I → Language α) (x : List α) :
+    (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
+  mem_iInter₂
+
+@[simp]
+theorem mem_biSup {I : Type _} (s : Set I) (l : I → Language α) (x : List α) :
+    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i := by
+  constructor
+  · intro h
+    obtain ⟨i, h_i, h_x⟩ := mem_iUnion₂.mp h
+    use i
+  · rintro ⟨i, h_i, h_x⟩
+    apply mem_iUnion₂.mpr
+    use i
+
+@[simp]
+theorem biInf_insert {I : Type _} (a : I) (s : Set I) (l : I → Language α) :
+    (⨅ i ∈ insert a s, l i) = l a ⊓ ⨅ i ∈ s, l i := by
+  apply biInter_insert
+
+@[simp]
+theorem biSup_insert {I : Type _} (a : I) (s : Set I) (l : I → Language α) :
+    (⨆ i ∈ insert a s, l i) = l a ⊔ ⨆ i ∈ s, l i := by
+  apply biUnion_insert
 
 -- This section will be removed once the following PR gets into mathlib:
 -- https://github.com/leanprover-community/mathlib4/pull/30913

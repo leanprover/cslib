@@ -11,6 +11,8 @@ import Cslib.Computability.Automata.NFA
 
 namespace Cslib
 
+open scoped DA
+
 namespace DFA
 
 variable {State : Type _} {Symbol : Type _}
