@@ -6,13 +6,15 @@ Authors: Fabrizio Montesi
 
 import Cslib.Computability.Automata.DFA
 import Cslib.Computability.Automata.NFA
-import Mathlib.Data.Fintype.Powerset
 
 /-! # Translation of NFA into DFA (subset construction) -/
 
 namespace Cslib
 
 namespace NFA
+
+variable {State : Type _} {Symbol : Type _}
+
 section SubsetConstruction
 
 /-- Converts an `NFA` into a `DFA` using the subset construction. -/
@@ -29,7 +31,7 @@ def toDFA (nfa : NFA State Symbol) : DFA (Set State) Symbol := {
 
 /-- Characterisation of transitions in `NFA.toDFA` wrt transitions in the original NA. -/
 @[scoped grind =]
-theorem toDFA_mem_tr {nfa : NFA State Symbol} :
+theorem toDFA_mem_tr {nfa : NFA State Symbol} {S : Set State} {s' : State} {x : Symbol} :
   s' ∈ nfa.toDFA.tr S x ↔ ∃ s ∈ S, nfa.Tr s x s' := by
   simp only [NFA.toDFA, LTS.setImage, Set.mem_iUnion, exists_prop]
   grind
@@ -37,7 +39,7 @@ theorem toDFA_mem_tr {nfa : NFA State Symbol} :
 /-- Characterisation of multistep transitions in `NFA.toDFA` wrt multistep transitions in the
 original NA. -/
 @[scoped grind =]
-theorem toDFA_mem_mtr {nfa : NFA State Symbol} :
+theorem toDFA_mem_mtr {nfa : NFA State Symbol} {S : Set State} {s' : State} {xs : List Symbol} :
   s' ∈ nfa.toDFA.mtr S xs ↔ ∃ s ∈ S, nfa.MTr s xs s' := by
   simp only [NFA.toDFA, DFA.mtr]
   /- TODO: Grind does not catch a useful rewrite in the subset construction for automata
@@ -59,7 +61,7 @@ theorem toDFA_mtr_setImageMultistep {nfa : NFA State Symbol} :
 theorem toDFA_language_eq {nfa : NFA State Symbol} :
   nfa.toDFA.language = nfa.language := by
   ext xs
-  rw [← DFA.accepts_mem_language]
+  rw [DFA.mem_language]
   #adaptation_note
   /--
   Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
