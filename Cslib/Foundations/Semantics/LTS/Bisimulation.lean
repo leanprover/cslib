@@ -479,12 +479,16 @@ theorem Bisimulation.traceEq_not_bisim :
             case inl h1 =>
               simp only [h1]
               exists 3
-              constructor; apply BisimMotTr.one2two; apply LTS.MTr.single;
+              constructor
+              · apply BisimMotTr.one2two
+              · apply LTS.MTr.single
                 apply BisimMotTr.two2three
             case inr h1 =>
               cases h1
               exists 4
-              constructor; apply BisimMotTr.one2two; apply LTS.MTr.single;
+              constructor
+              · apply BisimMotTr.one2two
+              · apply LTS.MTr.single
                 apply BisimMotTr.two2four
     have htraces2 : lts.traces 5 = {[], ['a'], ['a', 'b'], ['a', 'c']} := by
       apply Set.ext_iff.2
@@ -536,12 +540,16 @@ theorem Bisimulation.traceEq_not_bisim :
             case inl h1 =>
               simp only [h1]
               exists 7
-              constructor; apply BisimMotTr.five2six; apply LTS.MTr.single;
+              constructor
+              · apply BisimMotTr.five2six
+              · apply LTS.MTr.single
                 apply BisimMotTr.six2seven
             case inr h1 =>
               cases h1
               exists 9
-              constructor; apply BisimMotTr.five2eight; apply LTS.MTr.single;
+              constructor
+              · apply BisimMotTr.five2eight
+              · apply LTS.MTr.single;
                 apply BisimMotTr.eight2nine
     simp [htraces1, htraces2]
   specialize h htreq
