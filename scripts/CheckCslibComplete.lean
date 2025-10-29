@@ -30,9 +30,7 @@ partial def forEachModuleInDir' [Monad m] [MonadLiftT IO m]
   return ret
 
 /-- Modules that don't need to be imported in Cslib.lean -/
-def exceptions : List Name := [
-  `Cslib.Init   -- This is imported by other modules, not by Cslib.lean itself
-]
+def exceptions : List Name := []
 
 def main : IO UInt32 := do
   let importedModules ← findImports "Cslib.lean"
