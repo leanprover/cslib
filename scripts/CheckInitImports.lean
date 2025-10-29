@@ -1,69 +1,59 @@
 /-
 Copyright (c) 2025 Jesse Alama. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jesse Alama
+Authors: Jesse Alama, Chris Henson
 -/
 
-import Mathlib.Tactic.Linter.DirectoryDependency
+import Lean
+import Mathlib.Lean.CoreM
+import Batteries.Data.List.Basic
+import ImportGraph.Imports
+
+open Lean Core Elab Command
+
 
 /-!
 # Check Init Imports
 
-This script checks that all CSLib modules import at least one module from the Cslib namespace,
-ensuring they are connected to the library's import graph and receive Cslib.Init.
-
-Based on Mathlib's lint-style.lean script.
+This script checks that all CSLib modules (transitively) import Cslib.Init.
 -/
-
-open System
 
 /-- Modules with technical constraints preventing Cslib.Init import -/
-def exceptions : Array Lean.Name := #[
-  `Cslib.Foundations.Lint.Basic,          -- Circular dependency (imported by Cslib.Init)
-  `Cslib.Foundations.Data.FinFun,         -- Notation conflict with Mathlib.Finsupp (→₀)
-  `Cslib.Foundations.Semantics.LTS.Basic, -- Type elaboration issues in downstream files
-  `Cslib.Logics.LinearLogic.CLL.Basic     -- Syntax elaboration conflicts
+def exceptions : List Name := [
+  -- Circular dependency (imported by Cslib.Init)
+  `Cslib.Foundations.Lint.Basic,
+  `Cslib.Init,
+
+  -- Type elaboration issues in downstream files
+  `Cslib.Foundations.Semantics.LTS.Basic,
+  `Cslib.Foundations.Semantics.LTS.TraceEq,
+  `Cslib.Computability.Automata.DA,
+  `Cslib.Computability.Automata.DFA,
+  `Cslib.Computability.Automata.DFAToNFA,
+  `Cslib.Computability.Automata.EpsilonNFA,
+  `Cslib.Computability.Automata.EpsilonNFAToNFA,
+  `Cslib.Computability.Automata.NA,
+  `Cslib.Computability.Automata.NFA,
+  `Cslib.Computability.Automata.NFAToDFA,
+
+  -- Notation conflict with Mathlib.Finsupp (→₀)
+  `Cslib.Foundations.Data.FinFun,
+
+  -- Syntax elaboration conflicts 
+  `Cslib.Logics.LinearLogic.CLL.Basic,
+  `Cslib.Logics.LinearLogic.CLL.CutElimination,
+  `Cslib.Logics.LinearLogic.CLL.MProof,
+  `Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic,
 ]
 
-/-- Check that all Cslib modules import at least one Cslib module.
-
-    This ensures all modules are connected to the library's import graph and receive Cslib.Init.
-    Modules listed in `Cslib.lean` should import something from the Cslib namespace (typically
-    Cslib.Init), except for a small set of modules with technical constraints.
--/
-def checkInitImports : IO UInt32 := do
-  -- Get all module names from Cslib.lean
-  let allModuleNames ← findImports "Cslib.lean"
-
-  let mut modulesWithoutCslibImports := #[]
-
-  for module in allModuleNames do
-    -- Skip known exceptions upfront
-    if exceptions.contains module then
-      continue
-
-    -- Convert module name to file path
-    let pathParts := module.components.map toString
-    let path := mkFilePath pathParts |>.addExtension "lean"
-
-    -- Get imports for this module using Mathlib's robust parser
-    let imports ← findImports path
-
-    -- Check if any import starts with Cslib (has Cslib as its root namespace)
-    let hasCslibImport := imports.any fun imp => imp.getRoot == `Cslib
-
-    if !hasCslibImport then
-      modulesWithoutCslibImports := modulesWithoutCslibImports.push module
-
-  -- Report results
-  if modulesWithoutCslibImports.isEmpty then
-    IO.println "✓ All modules import at least one Cslib module"
-    return 0
-  else
-    IO.eprintln s!"error: the following {modulesWithoutCslibImports.size} module(s) do not import any Cslib module:"
-    for module in modulesWithoutCslibImports do
-      IO.eprintln s!"  {module}"
-    IO.eprintln "\nThese modules should import Cslib.Init or another Cslib module."
-    return modulesWithoutCslibImports.size.toUInt32
-
-def main : IO UInt32 := checkInitImports
+def main : IO UInt32 := do
+  let searchPath ← addSearchPathFromEnv (← getBuiltinSearchPath (← findSysroot))
+  CoreM.withImportModules #[`Cslib] (searchPath := searchPath) (trustLevel := 1024) do
+    let env ← getEnv
+    let graph := env.importGraph.transitiveClosure
+    let noInitGraph := 
+      graph.filter (fun name imports => name.getRoot = `Cslib ∧ !imports.contains `Cslib.Init)
+    let diff := noInitGraph.keys.diff exceptions
+    if diff.length > 0 then
+      println! s!"The following modules do not import `Cslib.Init` : {diff}"
+    return diff.length.toUInt32
