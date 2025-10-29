@@ -58,7 +58,7 @@ def language (dfa : DFA State Symbol) : Language Symbol :=
   { xs | dfa.Accepts xs }
 
 /-- A string is in the language of a DFA iff it is accepted by the DFA. -/
-@[scoped grind _=_]
+@[scoped grind =]
 theorem mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
   xs ∈ dfa.language ↔ dfa.Accepts xs := Iff.rfl
 
