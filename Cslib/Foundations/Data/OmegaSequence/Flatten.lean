@@ -121,8 +121,8 @@ theorem append_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k,
   induction n generalizing ls <;> grind [tail_eq_drop, take_succ]
 
 /-- The length of `(ls.take n).flatten` is `ls.cumLen n`. -/
-@[simp, scoped grind =]
-theorem length_flatten_take [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
+@[simp, nolint simpNF, scoped grind =]
+theorem length_flatten_take {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (n : ℕ) : (ls.take n).flatten.length = ls.cumLen n := by
   induction n <;> grind [take_succ']
 
@@ -169,7 +169,7 @@ theorem toSegs_def (s : ωSequence α) (f : ℕ → ℕ) (n : ℕ) :
 
 /-- `(s.toSegs f).cumLen` is `f` itself. -/
 @[simp]
-theorem segment_toSegs_cumLen [Inhabited α] {f : ℕ → ℕ}
+theorem segment_toSegs_cumLen {f : ℕ → ℕ}
     (hm : StrictMono f) (h0 : f 0 = 0) (s : ωSequence α) :
     (s.toSegs f).cumLen = f := by
   ext n
