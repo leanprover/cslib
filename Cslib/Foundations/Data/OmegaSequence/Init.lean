@@ -323,11 +323,6 @@ theorem take_one {xs : ωSequence α} :
   simp [take_succ]
 
 @[simp, scoped grind =]
-theorem take_one' {xs : ωSequence α} :
-    xs.take 1 = [xs 0] := by
-  apply take_one
-
-@[simp, scoped grind =]
 theorem length_take (n : ℕ) (s : ωSequence α) : (take n s).length = n := by
   induction n generalizing s <;> simp [*, take_succ]
 
@@ -494,12 +489,12 @@ theorem extract_lu_extract_lu {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n 
   ext k
   cases Decidable.em (k < j - i) <;> grind [extract_eq_ofFn]
 
-@[simp, scoped grind =]
+@[scoped grind =]
 theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
     (xs.extract 0 n).extract i j = xs.extract i j := by
   grind
 
-@[simp, scoped grind =]
+@[scoped grind =]
 theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
   grind
