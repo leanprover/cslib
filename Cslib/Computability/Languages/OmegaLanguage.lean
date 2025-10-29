@@ -256,11 +256,11 @@ theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) :
 theorem omegaPow_of_sub_one [Inhabited α] : (l - 1)^ω = l^ω := by
   ext s ; simp
 
-@[simp]
+@[simp, nolint simpNF]
 theorem zero_omegaPow [Inhabited α] : (0 : Language α)^ω = ⊥ := by
   ext s ; simp
 
-@[simp]
+@[simp, nolint simpNF]
 theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
   rw [← omegaPow_of_sub_one, tsub_self, zero_omegaPow]
 

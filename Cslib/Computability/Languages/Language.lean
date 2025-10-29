@@ -6,6 +6,7 @@ Authors: Ching-Tsun Chou
 
 import Mathlib.Computability.Language
 import Mathlib.Tactic
+import Cslib.Init
 
 /-!
 # Language (additional definitions and theorems)

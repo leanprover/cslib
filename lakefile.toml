@@ -1,7 +1,7 @@
 name = "cslib"
 version = "0.1.0"
 defaultTargets = ["Cslib"]
-testDriver = "CslibTests"
+testDriver = "runTests"
 
 [leanOptions]
 weak.linter.mathlibStandardSet = true
@@ -25,3 +25,13 @@ globs = ["Cslib.*"]
 [[lean_lib]]
 name = "CslibTests"
 globs = ["CslibTests.+"]
+
+[[lean_exe]]
+name = "checkInitImports"
+srcDir = "scripts"
+root = "CheckInitImports"
+
+[[lean_exe]]
+name = "runTests"
+srcDir = "scripts"
+root = "RunTests"

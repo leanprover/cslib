@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
+import Cslib.Init
+
 namespace Cslib
 
 /-- Typeclass for the α-equivalence notation `x =α y`. -/

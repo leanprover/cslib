@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Kenny Lau
 -/
 
+import Cslib.Init
 import Mathlib.Algebra.Field.Rat
 import Mathlib.Algebra.Ring.CharZero
 import Mathlib.Algebra.Ring.Int.Defs
