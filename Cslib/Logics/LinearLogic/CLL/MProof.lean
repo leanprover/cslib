@@ -57,7 +57,7 @@ lemma MSequent.allQuest_from_sequent (h : Sequent.AllQuest Γ) :
   exact h
 
 /- `MProof` is complete for `Proof`. -/
-def MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofList Γ) := by
+theorem MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofList Γ) := by
   induction p
   case ax =>
     constructor
