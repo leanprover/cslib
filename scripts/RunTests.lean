@@ -13,6 +13,19 @@ This script runs all CSLib tests including:
 -/
 
 def main (_ : List String) : IO UInt32 := do
+  -- build CslibTests
+  IO.println "building CslibTests..."
+  let CslibTestsResult ← IO.Process.spawn {
+    cmd := "lake"
+    args := #["build", "CslibTests"]
+  } >>= (·.wait)
+
+  if CslibTestsResult != 0 then
+    IO.eprintln "\n✗ CslibTests build failed"
+    return CslibTestsResult
+  else
+    println! ""
+
   -- Run Cslib.lean completeness check
   IO.println "Checking Cslib.lean completeness..."
   let completeResult ← IO.Process.spawn {
