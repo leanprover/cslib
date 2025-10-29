@@ -162,7 +162,7 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
-@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
+@[scoped grind =] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
 @[scoped grind =>]
@@ -295,7 +295,6 @@ instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩
 
 omit [PhaseSpace P] in
-@[simp]
 lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
   (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
 
@@ -382,11 +381,11 @@ def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
   · exact Set.Subset.trans (orth_extensive _) <| orth_antitone <| orth_antitone <|
       Set.subset_mul_right _ (by simp)
 
-@[simp] lemma tensor_comm {X Y : Fact P} : (X ⊗ Y) = (Y ⊗ X) := by rw [tensor, tensor, mul_comm]
+lemma tensor_comm {X Y : Fact P} : (X ⊗ Y) = (Y ⊗ X) := by rw [tensor, tensor, mul_comm]
 
 @[simp] lemma tensor_one {G : Fact P} : (G ⊗ 1) = G := by rw [tensor_comm, one_tensor]
 
-@[simp] lemma tensor_assoc_aux {F G : Set P} :
+lemma tensor_assoc_aux {F G : Set P} :
     (F⫠⫠) * (G⫠⫠) ⊆ (F * G)⫠⫠ := by
   simp only [Set.subset_def, Set.mem_mul, forall_exists_index, and_imp]
   rintro _ p hp q hq rfl v hv
@@ -416,7 +415,7 @@ lemma coe_tensor_assoc {G H K : Fact P} :
   SetLike.coe_injective <| by
     grind [SetLike.coe_injective, coe_tensor_assoc, tensor_comm, coe_tensor_assoc]
 
-@[simp] lemma tensor_rotate {G H K : Fact P} : (G ⊗ H ⊗ K) = H ⊗ K ⊗ G := by
+lemma tensor_rotate {G H K : Fact P} : (G ⊗ H ⊗ K) = H ⊗ K ⊗ G := by
   rw [tensor_comm, tensor_assoc]
 
 lemma tensor_le_tensor {G K H} {L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G ⊗ H) ≤ (K ⊗ L) :=

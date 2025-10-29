@@ -73,18 +73,18 @@ theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ 
 
 /-- If two `FinFun`s are equal, their underlying functions and supports are equal. -/
 @[scoped grind .]
-theorem eq_fields_eq [DecidableEq α] [Zero β] {f g : α →₀ β} :
-  f = g → (f.fn = g.fn ∧ f.support = g.support) := by grind
+theorem eq_fields_eq [Zero β] {f g : α →₀ β} : f = g → f.fn = g.fn ∧ f.support = g.support :=
+  by grind
 
 /-- If two functions are equal, two `FinFun`s respectively using them as underlying functions
 are equal. -/
 @[scoped grind .]
-theorem fn_eq_eq [DecidableEq α] [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
+theorem fn_eq_eq [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
   ext (congrFun h)
 
 @[scoped grind =>]
-theorem congrFinFun [DecidableEq α] [Zero β] {f g : α →₀ β} (h : f = g) (a : α) :
-    f a = g a := by grind
+theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a := 
+  by grind
 
 @[scoped grind =]
 theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]

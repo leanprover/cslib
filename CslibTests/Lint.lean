@@ -12,18 +12,18 @@ namespace CslibTests
 
 /-! Failing linters. Some (but not all!) may be too strict for practical use. -/
 
--- #lint- only simpNF in Cslib
 -- #lint- only explicitVarsOfIff in Cslib
--- #lint- only impossibleInstance in Cslib
--- #lint- only unusedArguments in Cslib
--- #lint- only defLemma in Cslib
 -- #lint- only docBlame in Cslib
 -- #lint- only docBlameThm in Cslib
--- #lint- only simpComm in Cslib
--- #lint- only nonClassInstance in Cslib
 
 /-! Passing linters. -/
 
+#lint- only simpNF in Cslib
+#lint- only simpComm in Cslib
+#lint- only defLemma in Cslib
+#lint- only nonClassInstance in Cslib
+#lint- only impossibleInstance in Cslib
+#lint- only unusedArguments in Cslib
 #lint- only topNamespace in Cslib
 #lint- only synTaut in Cslib
 #lint- only checkType in Cslib

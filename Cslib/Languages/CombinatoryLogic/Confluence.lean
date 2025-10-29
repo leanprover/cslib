@@ -93,7 +93,7 @@ theorem reflTransGen_parallelReduction_mRed :
   constructor
   · apply Relation.reflTransGen_minimal
     · exact fun _ => by rfl
-    · exact instTransitiveMRed RedSKI
+    · exact Relation.transitive_reflTransGen
     · exact @mRed_of_parallelReduction
   · apply Relation.reflTransGen_minimal
     · exact Relation.reflexive_reflTransGen
