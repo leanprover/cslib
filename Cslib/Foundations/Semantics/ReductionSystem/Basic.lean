@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring
 -/
 
+import Cslib.Init
 import Mathlib.Logic.Relation
 import Mathlib.Util.Notation3
 
@@ -42,15 +43,6 @@ theorem ReductionSystem.MRed.refl (rs : ReductionSystem Term) (t : Term) : rs.MR
 theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b) :
   rs.MRed a b :=
   Relation.ReflTransGen.single h
-
-open Relation Relation.ReflTransGen
-
-instance (rs : ReductionSystem Term) : Trans rs.Red rs.MRed rs.MRed := by infer_instance
-instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_instance
-
-instance (rs : ReductionSystem Term) : IsTrans Term rs.MRed := by infer_instance
-instance (rs : ReductionSystem Term) : Transitive rs.MRed := transitive_of_trans rs.MRed
-instance (rs : ReductionSystem Term) : Trans rs.MRed rs.MRed rs.MRed := instTransOfIsTrans
 
 end MultiStep
 
