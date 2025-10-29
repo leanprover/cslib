@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2025 Jesse Alama. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jesse Alama
+Authors: Jesse Alama, Chris Henson
 -/
 
 import Mathlib.Tactic.Linter.DirectoryDependency
+import Batteries.Data.List.Basic
 
 /-!
 # Check Cslib.lean Completeness
@@ -13,59 +14,32 @@ This script checks that all CSLib modules in the source tree are imported in `Cs
 ensuring no modules are orphaned from the main import graph.
 -/
 
-open System
+open Lean System
 
-/-- Get all .lean files recursively from a directory -/
-partial def findAllLeanFiles (dir : FilePath) : IO (Array FilePath) := do
-  let mut files := #[]
-  let entries ← dir.readDir
-  for entry in entries do
-    let path := entry.path
-    if ← path.isDir then
-      -- Recursively search subdirectories
-      files := files ++ (← findAllLeanFiles path)
-    else if path.extension == some "lean" then
-      files := files.push path
-  return files
-
-/-- Convert a file path to a module name (e.g., "Cslib/Foo/Bar.lean" -> `Cslib.Foo.Bar`) -/
-def filePathToModuleName (filePath : FilePath) : Lean.Name :=
-  let pathStr := filePath.toString
-  -- Remove .lean extension
-  let withoutExt := pathStr.dropRight 5
-  -- Convert path separators to dots
-  let parts := withoutExt.splitOn "/"
-  -- Build the module name
-  parts.foldl (init := Lean.Name.anonymous) fun name part =>
-    name.mkStr part
+/-- The same as `Lean.forEachModuleInDir`, but return the names. -/
+partial def forEachModuleInDir' [Monad m] [MonadLiftT IO m]
+    (dir : FilePath) (f : Lean.Name → Lean.Name) : m (List Name) := do
+  let mut ret := []
+  for entry in (← dir.readDir) do
+    if (← liftM (m := IO) <| entry.path.isDir) then
+      let n := Lean.Name.mkSimple entry.fileName
+      let ret' ← forEachModuleInDir' entry.path (f <| n ++ ·)
+      ret := ret ++ ret'
+    else if entry.path.extension == some "lean" then
+      ret := (f <| Lean.Name.mkSimple <| FilePath.withExtension entry.fileName "" |>.toString) :: ret
+  return ret
 
 /-- Modules that don't need to be imported in Cslib.lean -/
-def exceptions : Array Lean.Name := #[
-  `Cslib,       -- Cslib.lean itself
+def exceptions : List Name := [
   `Cslib.Init   -- This is imported by other modules, not by Cslib.lean itself
 ]
 
 def main : IO UInt32 := do
-  -- Get all modules currently in Cslib.lean
   let importedModules ← findImports "Cslib.lean"
-
-  -- Find all .lean files in Cslib directory
-  let allFiles ← findAllLeanFiles "Cslib"
-
-  -- Convert to module names
-  let allModules := allFiles.map filePathToModuleName
-
-  -- Find modules not imported in Cslib.lean (excluding exceptions)
-  let missingModules := allModules.filter fun modName =>
-    !importedModules.contains modName && !exceptions.contains modName
-
-  -- Report results
-  if missingModules.isEmpty then
-    IO.println "✓ All Cslib modules are imported in Cslib.lean"
-    return 0
-  else
-    IO.eprintln s!"error: the following {missingModules.size} module(s) are not imported in Cslib.lean:"
-    for modName in missingModules do
-      IO.eprintln s!"  {modName}"
-    IO.eprintln "\nThese modules should be added to Cslib.lean to be part of the library."
-    return missingModules.size.toUInt32
+  let allModules ← forEachModuleInDir' "Cslib" (`Cslib ++ ·)
+  let missing := allModules.diff importedModules.toList
+  let withoutExceptions := missing.diff exceptions
+  let ret := withoutExceptions.length.toUInt32
+  if ret ≠ 0 then
+    .eprintln s!"error: the following module(s) are not imported in Cslib.lean: {withoutExceptions}"
+  return ret

@@ -11,7 +11,6 @@ import ImportGraph.Imports
 
 open Lean Core Elab Command
 
-
 /-!
 # Check Init Imports
 
@@ -55,5 +54,5 @@ def main : IO UInt32 := do
       graph.filter (fun name imports => name.getRoot = `Cslib ∧ !imports.contains `Cslib.Init)
     let diff := noInitGraph.keys.diff exceptions
     if diff.length > 0 then
-      println! s!"The following modules do not import `Cslib.Init` : {diff}"
+      IO.eprintln s!"error: the following modules do not import `Cslib.Init`: {diff}"
     return diff.length.toUInt32
