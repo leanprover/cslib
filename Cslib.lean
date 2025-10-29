@@ -27,6 +27,7 @@ import Cslib.Foundations.Semantics.ReductionSystem.Basic
 import Cslib.Foundations.Syntax.HasAlphaEquiv
 import Cslib.Foundations.Syntax.HasSubstitution
 import Cslib.Foundations.Syntax.HasWellFormed
+import Cslib.Init
 import Cslib.Languages.CCS.Basic
 import Cslib.Languages.CCS.BehaviouralTheory
 import Cslib.Languages.CCS.Semantics
