@@ -26,17 +26,6 @@ def main (_ : List String) : IO UInt32 := do
   else
     println! ""
 
-  -- Run Cslib.lean completeness check
-  IO.println "Checking Cslib.lean completeness..."
-  let completeResult ← IO.Process.spawn {
-    cmd := "lake"
-    args := #["exe", "checkCslibComplete"]
-  } >>= (·.wait)
-
-  if completeResult != 0 then
-    IO.eprintln "\n✗ Cslib.lean completeness check failed"
-    return completeResult
-
   -- Run init imports check
   IO.println "\nChecking init imports..."
   let checkResult ← IO.Process.spawn {

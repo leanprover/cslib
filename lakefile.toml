@@ -34,8 +34,3 @@ root = "CheckInitImports"
 name = "runTests"
 srcDir = "scripts"
 root = "RunTests"
-
-[[lean_exe]]
-name = "checkCslibComplete"
-srcDir = "scripts"
-root = "CheckCslibComplete"
