@@ -42,12 +42,10 @@ theorem mem_biSup {I : Type _} (s : Set I) (l : I → Language α) (x : List α)
     apply mem_iUnion₂.mpr
     use i
 
-@[simp]
 theorem biInf_insert {I : Type _} (a : I) (s : Set I) (l : I → Language α) :
     (⨅ i ∈ insert a s, l i) = l a ⊓ ⨅ i ∈ s, l i := by
   apply biInter_insert
 
-@[simp]
 theorem biSup_insert {I : Type _} (a : I) (s : Set I) (l : I → Language α) :
     (⨆ i ∈ insert a s, l i) = l a ⊔ ⨆ i ∈ s, l i := by
   apply biUnion_insert
