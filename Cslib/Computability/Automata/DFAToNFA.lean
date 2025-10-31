@@ -15,7 +15,7 @@ open scoped DA
 
 namespace DFA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State : Type*} {Symbol : Type*}
 
 section NFA
 

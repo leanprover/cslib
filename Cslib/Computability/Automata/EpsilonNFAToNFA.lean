@@ -27,7 +27,7 @@ private lemma LTS.noε_saturate_tr
 
 namespace εNFA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State : Type*} {Symbol : Type*}
 
 section NFA
 
@@ -41,7 +41,7 @@ def toNFA (enfa : εNFA State Symbol) : NFA State Symbol where
   finite_symbol := enfa.finite_symbol
 
 @[scoped grind =]
-lemma LTS.noε_saturate_mTr {s : State} {Label : Type _} {μs : List Label}
+lemma LTS.noε_saturate_mTr {s : State} {Label : Type*} {μs : List Label}
   {lts : LTS State (Option Label)} :
   lts.saturate.MTr s (μs.map (some ·)) = lts.saturate.noε.MTr s μs := by
   ext s'

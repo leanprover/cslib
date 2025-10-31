@@ -17,7 +17,7 @@ symbol type. The special symbol ε is represented by the `Option.none` case.
 Internally, ε (`Option.none`) is treated as the `τ` label of the underlying transition system,
 allowing for reusing the definitions and results on saturated transitions of `LTS` to deal with
 ε-closure. -/
-structure εNFA (State : Type _) (Symbol : Type _) extends NA State (Option Symbol) where
+structure εNFA (State : Type*) (Symbol : Type*) extends NA State (Option Symbol) where
   /-- The set of accepting states of the automaton. -/
   accept : Set State
   /-- The automaton is finite-state. -/
@@ -25,7 +25,7 @@ structure εNFA (State : Type _) (Symbol : Type _) extends NA State (Option Symb
   /-- The type of symbols (also called 'alphabet') is finite. -/
   finite_symbol : Finite Symbol
 
-variable {State : Type _} {Symbol : Type _}
+variable {State : Type*} {Symbol : Type*}
 
 @[local grind =]
 private instance : HasTau (Option α) := ⟨.none⟩

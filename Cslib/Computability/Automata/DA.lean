@@ -20,7 +20,7 @@ namespace Cslib
 
 open List
 
-structure DA (State : Type _) (Symbol : Type _) where
+structure DA (State : Type*) (Symbol : Type*) where
   /-- The initial state of the automaton. -/
   start : State
   /-- The transition function of the automaton. -/
@@ -28,13 +28,9 @@ structure DA (State : Type _) (Symbol : Type _) where
 
 namespace DA
 
-variable {State State1 State2 : Type _} {Symbol : Type _}
+variable {State State1 State2 : Type*} {Symbol : Type*}
 
-/-- Extended transition function.
-
-Implementation note: compared to [Hopcroft2006], the definition consumes the input list of symbols
-from the left (instead of the right), in order to match the way lists are constructed.
--/
+/-- Extended transition function. -/
 @[scoped grind =]
 def mtr (DA : DA State Symbol) (s : State) (xs : List Symbol) := xs.foldl DA.tr s
 

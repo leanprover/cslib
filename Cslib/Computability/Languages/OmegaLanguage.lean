@@ -59,7 +59,7 @@ open scoped Computability
 
 universe v
 
-variable {α β γ : Type _}
+variable {α β γ : Type*}
 
 /-- An ω-language is a set of strings over an alphabet. -/
 def ωLanguage (α) :=

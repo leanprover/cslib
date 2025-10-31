@@ -11,7 +11,7 @@ namespace Cslib
 
 /-- A Nondeterministic Finite Automaton (NFA) is a nondeterministic automaton (NA)
 over finite sets of states and symbols. -/
-structure NFA (State : Type _) (Symbol : Type _) extends NA State Symbol where
+structure NFA (State : Type*) (Symbol : Type*) extends NA State Symbol where
   /-- The set of accepting states of the automaton. -/
   accept : Set State
   /-- The automaton is finite-state. -/
@@ -21,7 +21,7 @@ structure NFA (State : Type _) (Symbol : Type _) extends NA State Symbol where
 
 namespace NFA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State : Type*} {Symbol : Type*}
 
 /-- An NFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/

@@ -21,7 +21,7 @@ open scoped DA Language
 /-- A Deterministic Finite Automaton (DFA) consists of a labelled transition function
 `tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
 set of accepting states `accept`. -/
-structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
+structure DFA (State : Type*) (Symbol : Type*) extends DA State Symbol where
   /-- The set of accepting states of the automaton. -/
   accept : Set State
   /-- The automaton is finite-state. -/
@@ -31,7 +31,7 @@ structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
 
 namespace DFA
 
-variable {State State1 State2 : Type _} {Symbol : Type _}
+variable {State State1 State2 : Type*} {Symbol : Type*}
 
 /-- A DFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/
@@ -75,12 +75,11 @@ theorem one_lang [Finite Symbol] : one.language = (1 : Language Symbol) := by
   · intro h ; by_contra h'
     have := dropLast_append_getLast h'
     grind
-  · rw [Language.mem_one]
-    grind
+  · grind [Language.mem_one]
 
 @[scoped grind =]
 def compl (dfa : DFA State Symbol) : DFA State Symbol :=
-  { dfa with accept := (dfa.accept)ᶜ }
+  { dfa with accept := dfa.acceptᶜ }
 
 @[simp, scoped grind =]
 theorem compl_lang (dfa : DFA State Symbol) : dfa.compl.language = (dfa.language)ᶜ := by
