@@ -26,6 +26,9 @@ private lemma LTS.noε_saturate_tr
   grind
 
 namespace εNFA
+
+variable {State : Type _} {Symbol : Type _}
+
 section NFA
 
 /-- Any εNFA can be converted into an NFA that does not use ε-transitions. -/
@@ -38,7 +41,7 @@ def toNFA (enfa : εNFA State Symbol) : NFA State Symbol where
   finite_symbol := enfa.finite_symbol
 
 @[scoped grind =]
-lemma LTS.noε_saturate_mTr
+lemma LTS.noε_saturate_mTr {s : State} {Label : Type _} {μs : List Label}
   {lts : LTS State (Option Label)} :
   lts.saturate.MTr s (μs.map (some ·)) = lts.saturate.noε.MTr s μs := by
   ext s'
