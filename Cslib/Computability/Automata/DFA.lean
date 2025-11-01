@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Automata.DA
+import Cslib.Computability.Automata.Deterministic.DA
+import Cslib.Computability.Automata.Deterministic.ExactAcceptor
+import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Languages.Language
 
 /-! # Deterministic Finite-State Automata
@@ -23,12 +25,13 @@ and be precise with the required assumptions.
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
-namespace Cslib
+namespace Cslib.Automata
 
-/-- A Deterministic Finite Automaton (DFA) consists of a labelled transition function
-`tr` over finite sets of states and labels (called symbols), a starting state `start` and a finite
-set of accepting states `accept`. -/
-structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
+/-- A Deterministic Finite Automaton (DFA) consists of a `DA` with finite sets of states and symbols
+equipped with a finite set of accepting states `accept`. -/
+structure DFA (State : Type _) (Symbol : Type _) where
+  /-- The underlying `DA`. -/
+  da : DA State Symbol
   /-- The set of accepting states of the automaton. -/
   accept : Set State
   /-- The automaton is finite-state. -/
@@ -36,26 +39,8 @@ structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
   /-- The type of symbols (also called 'alphabet') is finite. -/
   finite_symbol : Finite Symbol
 
-namespace DFA
+/-- Returns the `Acceptor` based on a `DFA`. -/
+def DFA.acceptor {State : Type _} {Symbol : Type _} (dfa : DFA State Symbol) : Acceptor Symbol :=
+  dfa.da.exactAcceptor dfa.accept
 
-variable {State : Type _} {Symbol : Type _}
-
-/-- A DFA accepts a string if there is a multi-step accepting derivative with that trace from
-the start state. -/
-@[scoped grind →]
-def Accepts (dfa : DFA State Symbol) (xs : List Symbol) :=
-  dfa.mtr dfa.start xs ∈ dfa.accept
-
-/-- The language of a DFA is the set of strings that it accepts. -/
-@[scoped grind =]
-def language (dfa : DFA State Symbol) : Language Symbol :=
-  { xs | dfa.Accepts xs }
-
-/-- A string is in the language of a DFA iff it is accepted by the DFA. -/
-@[scoped grind =]
-theorem mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
-  xs ∈ dfa.language ↔ dfa.Accepts xs := Iff.rfl
-
-end DFA
-
-end Cslib
+end Cslib.Automata
