@@ -100,7 +100,7 @@ lemma orth_antitone {X Y : Set P} (hXY : X ⊆ Y) : Y⫠ ⊆ X⫠ := by grind
 lemma orth_extensive (X : Set P) : X ⊆ X⫠⫠ := by grind
 
 /-- The triple orthogonal equals the orthogonal: X⫠⫠⫠ = X⫠. -/
-lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by 
+lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by
   apply le_antisymm <;> grind [orth_extensive]
 
 lemma triple_dual {G : Set P} : G⫠⫠⫠⫠⫠ = G⫠⫠⫠ := by grind [triple_orth]

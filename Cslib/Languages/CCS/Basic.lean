@@ -72,6 +72,10 @@ inductive Co {Name : Type u} : Act Name → Act Name → Prop where
 @[grind →, symm]
 theorem Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
 
+/-- If two actions are one the coaction of the other, then they are both visible. -/
+@[grind →]
+theorem co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
+
 @[grind]
 def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
   match μ, μ' with
@@ -80,10 +84,6 @@ def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
 
 theorem isCo_iff [DecidableEq Name] {μ μ' : Act Name} : isCo μ μ' ↔ Co μ μ' := by
   grind [cases Act]
-
-/-- If two actions are one the coaction of the other, then they are both visible. -/
-@[grind →]
-theorem co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/
 instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') :=
