@@ -43,7 +43,7 @@ def tr (floor : Floor) (dir : Direction) : Floor :=
   | .two, .up => .two
   | .two, .down => .one
 
-def elevator : DFA Floor Direction := {
+def elevator : Cslib.DFA Floor Direction := {
   tr := tr
   start := .one
   accept := { Floor.one }

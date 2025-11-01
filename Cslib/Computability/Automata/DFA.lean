@@ -5,8 +5,8 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Computability.Automata.DA
+import Cslib.Computability.Languages.Language
 
-set_option linter.style.longLine false in
 /-! # Deterministic Finite-State Automata
 
 A Deterministic Finite Automaton (DFA) is a finite-state machine that accepts or rejects
@@ -14,7 +14,8 @@ a finite string.
 
 ## References
 
-* [J. E. Hopcroft, R. Motwani, J. D. Ullman, *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
+* [J. E. Hopcroft, R. Motwani, J. D. Ullman,
+  *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
 namespace Cslib
@@ -30,8 +31,9 @@ structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
   /-- The type of symbols (also called 'alphabet') is finite. -/
   finite_symbol : Finite Symbol
 
-
 namespace DFA
+
+variable {State : Type _} {Symbol : Type _}
 
 /-- Extended transition function.
 
@@ -42,7 +44,7 @@ from the left (instead of the right), in order to match the way lists are constr
 def mtr (dfa : DFA State Symbol) (s : State) (xs : List Symbol) := xs.foldl dfa.tr s
 
 @[scoped grind =]
-theorem mtr_nil_eq {dfa : DFA State Symbol} : dfa.mtr s [] = s := by rfl
+theorem mtr_nil_eq {dfa : DFA State Symbol} {s : State} : dfa.mtr s [] = s := rfl
 
 /-- A DFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/
@@ -52,13 +54,13 @@ def Accepts (dfa : DFA State Symbol) (xs : List Symbol) :=
 
 /-- The language of a DFA is the set of strings that it accepts. -/
 @[scoped grind =]
-def language (dfa : DFA State Symbol) : Set (List Symbol) :=
+def language (dfa : DFA State Symbol) : Language Symbol :=
   { xs | dfa.Accepts xs }
 
-/-- A string is accepted by a DFA iff it is in the language of the DFA. -/
-@[scoped grind _=_]
-theorem accepts_mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
-  dfa.Accepts xs ↔ xs ∈ dfa.language := by rfl
+/-- A string is in the language of a DFA iff it is accepted by the DFA. -/
+@[scoped grind =]
+theorem mem_language (dfa : DFA State Symbol) (xs : List Symbol) :
+  xs ∈ dfa.language ↔ dfa.Accepts xs := Iff.rfl
 
 end DFA
 

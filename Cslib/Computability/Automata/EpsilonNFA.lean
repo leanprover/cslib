@@ -5,6 +5,7 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Computability.Automata.NA
+import Cslib.Computability.Languages.Language
 
 /-! # Nondeterministic automata with ε-transitions. -/
 
@@ -23,6 +24,8 @@ structure εNFA (State : Type _) (Symbol : Type _) extends NA State (Option Symb
   finite_state : Finite State
   /-- The type of symbols (also called 'alphabet') is finite. -/
   finite_symbol : Finite Symbol
+
+variable {State : Type _} {Symbol : Type _}
 
 @[local grind =]
 private instance : HasTau (Option α) := ⟨.none⟩
@@ -43,13 +46,13 @@ def Accepts (enfa : εNFA State Symbol) (xs : List Symbol) :=
 
 /-- The language of an εDA is the set of strings that it accepts. -/
 @[scoped grind =]
-def language (enfa : εNFA State Symbol) : Set (List Symbol) :=
+def language (enfa : εNFA State Symbol) : Language Symbol :=
   { xs | enfa.Accepts xs }
 
-/-- A string is accepted by an εNFA iff it is in the language of the NA. -/
+/-- A string is in the language of an εNFA iff it is accepted by the εNFA. -/
 @[scoped grind =]
-theorem accepts_mem_language (enfa : εNFA State Symbol) (xs : List Symbol) :
-  enfa.Accepts xs ↔ xs ∈ enfa.language := by rfl
+theorem mem_language (enfa : εNFA State Symbol) (xs : List Symbol) :
+  xs ∈ enfa.language ↔ enfa.Accepts xs := by rfl
 
 end εNFA
 
