@@ -15,10 +15,10 @@ This definition extends `LTS` and thus stores the transition system as a relatio
 type `State → Symbol → Set State`; it gets automatically expanded to the former shape.
 -/
 
-namespace Cslib
+namespace Cslib.Automata
 
 structure NA (State : Type _) (Symbol : Type _) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
 
-end Cslib
+end Cslib.Automata

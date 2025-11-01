@@ -12,6 +12,11 @@ import Cslib.Computability.Languages.Language
 A Deterministic Finite Automaton (DFA) is a finite-state machine that accepts or rejects
 a finite string.
 
+This is the bundled version of `DA` with an exact acceptor and finiteness assumptions.
+It is provided as a utility for applications and as a reference to the established terminology in
+the literature. To prove results about this kind of machines, please use the unbundled version `DA`
+and be precise with the required assumptions.
+
 ## References
 
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman,
@@ -34,17 +39,6 @@ structure DFA (State : Type _) (Symbol : Type _) extends DA State Symbol where
 namespace DFA
 
 variable {State : Type _} {Symbol : Type _}
-
-/-- Extended transition function.
-
-Implementation note: compared to [Hopcroft2006], the definition consumes the input list of symbols
-from the left (instead of the right), in order to match the way lists are constructed.
--/
-@[scoped grind =]
-def mtr (dfa : DFA State Symbol) (s : State) (xs : List Symbol) := xs.foldl dfa.tr s
-
-@[scoped grind =]
-theorem mtr_nil_eq {dfa : DFA State Symbol} {s : State} : dfa.mtr s [] = s := rfl
 
 /-- A DFA accepts a string if there is a multi-step accepting derivative with that trace from
 the start state. -/
