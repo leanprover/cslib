@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DFAToNFA
-import Cslib.Computability.Automata.NFAToDFA
+import Cslib.Computability.Automata.DAtoNA
+import Cslib.Computability.Automata.NAtoDA
+import Cslib.Computability.Automata.Prod
 import Mathlib.Computability.DFA
 import Mathlib.Tactic
 
@@ -13,90 +14,92 @@ import Mathlib.Tactic
 # Regular languages
 -/
 
-open Set Function
-open scoped Computability
+open Set Function List Prod
+open scoped Computability Cslib.DA Cslib.NA
 
 namespace Language
 
-variable {Symbol : Type*} [Finite Symbol]
+variable {Symbol : Type*}
 
-/-- A characterization of Language.IsRegular using Cslib.DFA -/
-theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ dfa : Cslib.DFA State Symbol, dfa.language = l := by
+/-- A characterization of Language.IsRegular using Cslib.DA -/
+theorem IsRegular.iff_cslib_da {l : Language Symbol} :
+    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
+      ∃ da : Cslib.DA State Symbol, ∃ acc : Set State, da.language acc = l := by
   constructor
-  · rintro ⟨State, h_State, dfa, rfl⟩
-    let dfa' : Cslib.DFA State Symbol := {
+  · rintro ⟨State, h_fin, dfa, rfl⟩
+    let da : Cslib.DA State Symbol := {
       start := dfa.start
-      tr := dfa.step
-      accept := dfa.accept
-      finite_state := Fintype.finite h_State
-      finite_symbol := by infer_instance }
-    use State, dfa'
-    rfl
-  · rintro ⟨State, dfa, rfl⟩
-    let dfa' : DFA Symbol State := {
-      start := dfa.start
-      step := dfa.tr
-      accept := dfa.accept }
-    have := dfa.finite_state
-    use State, (Fintype.ofFinite State), dfa'
-    rfl
+      tr := dfa.step }
+    use State, Fintype.finite h_fin, da, dfa.accept
+    ext xl ; rw [Cslib.DA.mem_language] ; rfl
+  · rintro ⟨State, h_fin, da, acc, rfl⟩
+    let dfa : DFA Symbol State := {
+      start := da.start
+      step := da.tr
+      accept := acc }
+    use State, Fintype.ofFinite State, dfa
+    ext xl ; rw [Cslib.DA.mem_language] ; rfl
 
-/-- A characterization of Language.IsRegular using Cslib.NFA -/
-theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ nfa : Cslib.NFA State Symbol, nfa.language = l := by
-  rw [IsRegular.iff_cslib_dfa] ; constructor
-  · rintro ⟨State, dfa, rfl⟩
-    use State, dfa.toNFA
-    exact Cslib.DFA.toNFA_language_eq
-  · rintro ⟨State, nfa, rfl⟩
-    use (Set State), nfa.toDFA
-    exact Cslib.NFA.toDFA_language_eq
+/-- A characterization of Language.IsRegular using Cslib.NA -/
+theorem IsRegular.iff_cslib_na {l : Language Symbol} :
+    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
+      ∃ na : Cslib.NA State Symbol, ∃ acc : Set State, na.language acc = l := by
+  rw [IsRegular.iff_cslib_da] ; constructor
+  · rintro ⟨State, h_fin, da, acc, rfl⟩
+    use State, h_fin, da.toNA, acc
+    grind
+  · rintro ⟨State, _, na, acc, rfl⟩
+    use Set State, by infer_instance, na.toDA, { S | ∃ s ∈ S, s ∈ acc }
+    exact Cslib.NA.toDA_language_eq
 
 -- From this point onward we will use only automata from Cslib in the proofs.
 open Cslib
 
 @[simp]
 theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa] at h ⊢
-  obtain ⟨State, dfa, rfl⟩ := h
-  use State, dfa.compl
-  simp
+  rw [IsRegular.iff_cslib_da] at h ⊢
+  obtain ⟨State, _, da, acc, rfl⟩ := h
+  use State, by infer_instance, da, accᶜ
+  ext xl ; grind
 
 @[simp]
 theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa]
-  use Unit, DFA.zero
-  simp
+  rw [IsRegular.iff_cslib_da]
+  use Unit, by infer_instance, DA.mk () (fun _ _ ↦ ()), ∅
+  ext xl ; simp [DA.mem_language]
 
 @[simp]
 theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa]
-  use Fin 2, DFA.one
-  simp
+  rw [IsRegular.iff_cslib_da]
+  use Fin 2, by infer_instance, DA.mk 0 (fun _ _ ↦ 1), {0}
+  ext xl ; constructor
+  · intro h ; by_contra h'
+    have := dropLast_append_getLast h'
+    grind
+  · grind [Language.mem_one]
 
 @[simp]
 theorem IsRegular.top : (⊤ : Language Symbol).IsRegular := by
-  have : (⊥ᶜ : Language Symbol).IsRegular := IsRegular.compl <| IsRegular.zero (Symbol := Symbol)
+  have : (⊥ᶜ : Language Symbol).IsRegular := IsRegular.compl <| IsRegular.zero
   rwa [← compl_bot]
 
 @[simp]
 theorem IsRegular.inf {l1 l2 : Language Symbol}
     (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 ⊓ l2).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa] at h1 h2 ⊢
-  obtain ⟨State1, dfa1, rfl⟩ := h1
-  obtain ⟨State2, dfa2, rfl⟩ := h2
-  use (State1 × State2), (dfa1.inf dfa2)
-  simp
+  rw [IsRegular.iff_cslib_da] at h1 h2 ⊢
+  obtain ⟨State1, h_fin1, da1, acc1, rfl⟩ := h1
+  obtain ⟨State2, h_fin1, da2, acc2, rfl⟩ := h2
+  use State1 × State2, by infer_instance, da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2
+  ext xl ; grind
 
 @[simp]
 theorem IsRegular.add {l1 l2 : Language Symbol}
     (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 + l2).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa] at h1 h2 ⊢
-  obtain ⟨State1, dfa1, rfl⟩ := h1
-  obtain ⟨State2, dfa2, rfl⟩ := h2
-  use (State1 × State2), (dfa1.add dfa2)
-  simp
+  rw [IsRegular.iff_cslib_da] at h1 h2 ⊢
+  obtain ⟨State1, h_fin1, da1, acc1, rfl⟩ := h1
+  obtain ⟨State2, h_fin1, da2, acc2, rfl⟩ := h2
+  use State1 × State2, by infer_instance, da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2
+  ext xl ; grind [Language.mem_add]
 
 @[simp]
 theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}

@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi
+Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.EpsilonNFA
-import Cslib.Computability.Automata.NFA
+import Cslib.Computability.Automata.EpsilonNA
+import Cslib.Computability.Automata.NA
 
-/-! # Translation of εNFA into NFA -/
+/-! # Translation of εNA into NA -/
 
 namespace Cslib
 
@@ -25,20 +25,17 @@ private lemma LTS.noε_saturate_tr
   simp only [LTS.noε]
   grind
 
-namespace εNFA
+namespace εNA
 
 variable {State : Type*} {Symbol : Type*}
 
-section NFA
+section NA
 
-/-- Any εNFA can be converted into an NFA that does not use ε-transitions. -/
+/-- Any εNA can be converted into an NA that does not use ε-transitions. -/
 @[scoped grind]
-def toNFA (enfa : εNFA State Symbol) : NFA State Symbol where
-  start := enfa.εClosure enfa.start
-  accept := enfa.accept
-  Tr := enfa.saturate.noε.Tr
-  finite_state := enfa.finite_state
-  finite_symbol := enfa.finite_symbol
+def toNA (ena : εNA State Symbol) : NA State Symbol where
+  start := ena.εClosure ena.start
+  Tr := ena.saturate.noε.Tr
 
 @[scoped grind =]
 lemma LTS.noε_saturate_mTr {s : State} {Label : Type*} {μs : List Label}
@@ -47,17 +44,16 @@ lemma LTS.noε_saturate_mTr {s : State} {Label : Type*} {μs : List Label}
   ext s'
   induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
 
-
-/-- Correctness of `toNFA`. -/
+/-- Correctness of `toNA`. -/
 @[scoped grind =]
-theorem toNFA_language_eq {enfa : εNFA State Symbol} :
-  enfa.toNFA.language = enfa.language := by
+theorem toNA_language_eq {ena : εNA State Symbol} {acc : Set State} :
+  ena.toNA.language acc = ena.language acc := by
   ext xs
-  have : ∀ s s', enfa.saturate.MTr s (xs.map (some ·)) s' = enfa.saturate.noε.MTr s xs s' := by
+  have : ∀ s s', ena.saturate.MTr s (xs.map (some ·)) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
-  open NFA in grind
+  open NA in grind
 
-end NFA
-end εNFA
+end NA
+end εNA
 
 end Cslib
