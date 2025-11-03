@@ -5,6 +5,8 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Semantics.LTS.Basic
+import Cslib.Foundations.Semantics.LTS.FLTS
+import Cslib.Computability.Automata.Acceptor
 
 /-! # Nondeterministic Automaton
 
@@ -20,5 +22,20 @@ namespace Cslib.Automata
 structure NA (State : Type _) (Symbol : Type _) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
+  /-- The set of accept states of the automaton. -/
+  accept : Set State
+
+
+namespace NA
+
+variable {State : Type _} {Symbol : Type _}
+
+/-- An `NA` accepts a string if there is a multistep transition from a start state to an accept
+state. -/
+@[scoped grind =]
+def acceptor (na : NA State Symbol) : Acceptor Symbol where
+  Accepts (xs : List Symbol) := ∃ s ∈ na.start, ∃ s' ∈ na.accept, na.MTr s xs s'
+
+end NA
 
 end Cslib.Automata
