@@ -13,7 +13,7 @@ namespace Cslib
 
 open List
 
-variable {State State1 State2 : Type*} {Symbol : Type*}
+variable {State1 State2 Symbol : Type*}
 
 namespace DA
 

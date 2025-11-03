@@ -17,17 +17,9 @@ symbol type. The special symbol ε is represented by the `Option.none` case.
 Internally, ε (`Option.none`) is treated as the `τ` label of the underlying transition system,
 allowing for reusing the definitions and results on saturated transitions of `LTS` to deal with
 ε-closure. -/
-def εNA (State : Type*) (Symbol : Type*) := NA State (Option Symbol)
+def εNA (State Symbol : Type*) := NA State (Option Symbol)
 
--- structure εNA (State : Type*) (Symbol : Type*) extends NA State (Option Symbol) where
---   /-- The set of accepting states of the automaton. -/
---   accept : Set State
---   /-- The automaton is finite-state. -/
---   finite_state : Finite State
---   /-- The type of symbols (also called 'alphabet') is finite. -/
---   finite_symbol : Finite Symbol
-
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 @[local grind =]
 private instance : HasTau (Option α) := ⟨.none⟩
@@ -46,16 +38,10 @@ def accept (ena : εNA State Symbol) (acc : Set State) : Accept State Symbol whe
   Run xl s := ∃ s0 ∈ ena.εClosure ena.start, ena.saturate.MTr s0 (xl.map (some ·)) s
   acc := acc
 
--- def Accepts (ena : εNA State Symbol) (xs : List Symbol) :=
---   ∃ s ∈ ena.εClosure ena.start, ∃ s' ∈ ena.accept,
---   ena.saturate.MTr s (xs.map (some ·)) s'
-
 /-- The language of an εDA is the set of strings that it accepts. -/
 @[scoped grind =]
 def language (ena : εNA State Symbol) (acc : Set State) : Language Symbol :=
   (ena.accept acc).language
-
---   { xs | ena.Accepts xs }
 
 /-- A string is in the language of an εNA iff it is accepted by the εNA. -/
 @[scoped grind =]

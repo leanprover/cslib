@@ -18,11 +18,11 @@ type `State → Symbol → Set State`; it gets automatically expanded to the for
 
 namespace Cslib
 
-structure NA (State : Type*) (Symbol : Type*) extends LTS State Symbol where
+structure NA (State Symbol : Type*) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
 
-variable {State State1 State2 : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 namespace NA
 

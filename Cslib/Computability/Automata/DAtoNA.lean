@@ -15,7 +15,7 @@ open scoped DA NA
 
 namespace DA
 
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 section NA
 

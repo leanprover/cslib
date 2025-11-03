@@ -13,7 +13,7 @@ namespace Cslib
 
 namespace NA
 
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 section SubsetConstruction
 

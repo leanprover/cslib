@@ -7,6 +7,13 @@ Authors: Ching-Tsun Chou
 import Cslib.Computability.Languages.OmegaLanguage
 
 /-! # Acceptance conditions
+
+This file defines the various types of acceptance conditions of automata theory.
+Each acceptance condition `Accept` consists of a predicate `Accept.Run` defining
+the notion of an (finite or infinite) run of an automaton and a data field determining
+the acceptance condition (such as a set of accepting states).  Then `Accept.language`
+connects these two items together and defines the language (over finite or infinite words)
+determined by the acceptance condition `Accept`.
 -/
 
 namespace Cslib
@@ -14,13 +21,13 @@ namespace Cslib
 open Set Filter ωSequence
 
 /-- Acceptance condition for finite words. -/
-structure Accept (State : Type*) (Symbol : Type*) where
+structure Accept (State Symbol : Type*) where
   Run : List Symbol → State → Prop
   acc : Set State
 
 namespace Accept
 
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 @[scoped grind =]
 def language (accept : Accept State Symbol) : Language Symbol :=
@@ -34,13 +41,13 @@ theorem mem_language (accept : Accept State Symbol) (xl : List Symbol) :
 end Accept
 
 /-- Buchi acceptance condition for infinite words. -/
-structure BuchiAccept (State : Type*) (Symbol : Type*) where
+structure BuchiAccept (State Symbol : Type*) where
   Run : ωSequence Symbol → ωSequence State → Prop
   acc : Set State
 
 namespace BuchiAccept
 
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 @[scoped grind =]
 def language (accept : BuchiAccept State Symbol) : ωLanguage Symbol :=
@@ -56,13 +63,13 @@ theorem mem_language (accept : BuchiAccept State Symbol) (xs : ωSequence Symbol
 end BuchiAccept
 
 /-- Muller acceptance condition for infinite words. -/
-structure MullerAccept (State : Type*) (Symbol : Type*) where
+structure MullerAccept (State Symbol : Type*) where
   Run : ωSequence Symbol → ωSequence State → Prop
   accSet : Set (Set State)
 
 namespace MullerAccept
 
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 @[scoped grind =]
 def language (accept : MullerAccept State Symbol) : ωLanguage Symbol :=

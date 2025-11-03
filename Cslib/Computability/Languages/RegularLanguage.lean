@@ -26,19 +26,12 @@ theorem IsRegular.iff_cslib_da {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
       ∃ da : Cslib.DA State Symbol, ∃ acc : Set State, da.language acc = l := by
   constructor
-  · rintro ⟨State, h_fin, dfa, rfl⟩
-    let da : Cslib.DA State Symbol := {
-      start := dfa.start
-      tr := dfa.step }
-    use State, Fintype.finite h_fin, da, dfa.accept
-    ext xl ; rw [Cslib.DA.mem_language] ; rfl
-  · rintro ⟨State, h_fin, da, acc, rfl⟩
-    let dfa : DFA Symbol State := {
-      start := da.start
-      step := da.tr
-      accept := acc }
-    use State, Fintype.ofFinite State, dfa
-    ext xl ; rw [Cslib.DA.mem_language] ; rfl
+  · rintro ⟨State, h_fin, ⟨tr, start, accept⟩, rfl⟩
+    use State, Fintype.finite h_fin, {start, tr}, accept
+    ext ; rw [Cslib.DA.mem_language] ; rfl
+  · rintro ⟨State, h_fin, ⟨start, step⟩, accept, rfl⟩
+    use State, Fintype.ofFinite State, {start, step, accept}
+    ext ; rw [Cslib.DA.mem_language]; rfl
 
 /-- A characterization of Language.IsRegular using Cslib.NA -/
 theorem IsRegular.iff_cslib_na {l : Language Symbol} :
@@ -49,7 +42,7 @@ theorem IsRegular.iff_cslib_na {l : Language Symbol} :
     use State, h_fin, da.toNA, acc
     grind
   · rintro ⟨State, _, na, acc, rfl⟩
-    use Set State, by infer_instance, na.toDA, { S | ∃ s ∈ S, s ∈ acc }
+    use Set State, inferInstance, na.toDA, { S | ∃ s ∈ S, s ∈ acc }
     exact Cslib.NA.toDA_language_eq
 
 -- From this point onward we will use only automata from Cslib in the proofs.
@@ -59,20 +52,20 @@ open Cslib
 theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
   rw [IsRegular.iff_cslib_da] at h ⊢
   obtain ⟨State, _, da, acc, rfl⟩ := h
-  use State, by infer_instance, da, accᶜ
-  ext xl ; grind
+  use State, inferInstance, da, accᶜ
+  ext ; grind
 
 @[simp]
 theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_cslib_da]
-  use Unit, by infer_instance, DA.mk () (fun _ _ ↦ ()), ∅
-  ext xl ; simp [DA.mem_language]
+  use Unit, inferInstance, DA.mk () (fun _ _ ↦ ()), ∅
+  ext ; simp [DA.mem_language]
 
 @[simp]
 theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_cslib_da]
-  use Fin 2, by infer_instance, DA.mk 0 (fun _ _ ↦ 1), {0}
-  ext xl ; constructor
+  use Fin 2, inferInstance, DA.mk 0 (fun _ _ ↦ 1), {0}
+  ext ; constructor
   · intro h ; by_contra h'
     have := dropLast_append_getLast h'
     grind
@@ -89,8 +82,8 @@ theorem IsRegular.inf {l1 l2 : Language Symbol}
   rw [IsRegular.iff_cslib_da] at h1 h2 ⊢
   obtain ⟨State1, h_fin1, da1, acc1, rfl⟩ := h1
   obtain ⟨State2, h_fin1, da2, acc2, rfl⟩ := h2
-  use State1 × State2, by infer_instance, da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2
-  ext xl ; grind
+  use State1 × State2, inferInstance, da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2
+  ext ; grind
 
 @[simp]
 theorem IsRegular.add {l1 l2 : Language Symbol}
@@ -98,17 +91,15 @@ theorem IsRegular.add {l1 l2 : Language Symbol}
   rw [IsRegular.iff_cslib_da] at h1 h2 ⊢
   obtain ⟨State1, h_fin1, da1, acc1, rfl⟩ := h1
   obtain ⟨State2, h_fin1, da2, acc2, rfl⟩ := h2
-  use State1 × State2, by infer_instance, da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2
-  ext xl ; grind [Language.mem_add]
+  use State1 × State2, inferInstance, da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2
+  ext ; grind [Language.mem_add]
 
 @[simp]
 theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}
     (h : ∀ i ∈ s, (l i).IsRegular) : (⨅ i ∈ s, l i).IsRegular := by
   generalize h_n : s.ncard = n
   induction n generalizing s
-  case zero =>
-    obtain ⟨rfl⟩ := (ncard_eq_zero (s := s)).mp h_n
-    simp
+  case zero => simp_all [ncard_eq_zero (s := s)]
   case succ n h_ind =>
     obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
     rw [iInf_insert]

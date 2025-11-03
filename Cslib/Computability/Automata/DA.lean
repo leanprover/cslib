@@ -13,13 +13,13 @@ namespace Cslib
 
 open List
 
-structure DA (State : Type*) (Symbol : Type*) where
+structure DA (State Symbol : Type*) where
   /-- The initial state of the automaton. -/
   start : State
   /-- The transition function of the automaton. -/
   tr : State → Symbol → State
 
-variable {State State1 State2 : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 namespace DA
 

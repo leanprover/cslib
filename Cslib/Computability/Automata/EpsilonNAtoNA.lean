@@ -27,7 +27,7 @@ private lemma LTS.noε_saturate_tr
 
 namespace εNA
 
-variable {State : Type*} {Symbol : Type*}
+variable {State Symbol : Type*}
 
 section NA
 
