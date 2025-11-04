@@ -5,4 +5,5 @@ import CslibTests.FreeMonad
 import CslibTests.HasFresh
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
+import CslibTests.Lint
 import CslibTests.ReductionSystem

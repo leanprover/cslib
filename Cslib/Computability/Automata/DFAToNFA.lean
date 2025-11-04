@@ -13,6 +13,8 @@ namespace Cslib
 
 namespace DFA
 
+variable {State : Type _} {Symbol : Type _}
+
 section NFA
 
 /-- `DFA` is a special case of `NFA`. -/
@@ -32,7 +34,7 @@ instance : Coe (DFA State Symbol) (NFA State Symbol) where
 
 /-- `DA.toNA` correctly characterises transitions. -/
 @[scoped grind =]
-theorem toNA_tr {dfa : DFA State Symbol} :
+theorem toNA_tr {dfa : DFA State Symbol} {s1 s2 : State} {μ : Symbol} :
   dfa.toNFA.Tr s1 μ s2 ↔ dfa.tr s1 μ = s2 := by
   rfl
 
@@ -48,7 +50,7 @@ theorem toNFA_imageFinite (dfa : DFA State Symbol) : dfa.toNFA.ImageFinite :=
 
 /-- Characterisation of multistep transitions. -/
 @[scoped grind =]
-theorem toNFA_mtr {dfa : DFA State Symbol} :
+theorem toNFA_mtr {dfa : DFA State Symbol} {s1 s2 : State} {xs : List Symbol} :
   dfa.toNFA.MTr s1 xs s2 ↔ dfa.mtr s1 xs = s2 := by
   have : ∀ x, dfa.toNFA.Tr s1 x (dfa.tr s1 x) := by grind
   constructor <;> intro h

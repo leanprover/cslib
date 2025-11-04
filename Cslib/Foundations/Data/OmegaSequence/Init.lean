@@ -279,6 +279,11 @@ lemma append_left_injective (h : x ++ω a = y ++ω b) (hl : x.length = y.length)
   intros
   rw [← get_append_left, ← get_append_left, h]
 
+theorem append_left_right_injective (l1 l2 : List α) (s1 s2 : ωSequence α)
+    (h1 : l1 ++ω s1 = l2 ++ω s2) (h2 : l1.length = l2.length) : l1 = l2 ∧ s1 = s2 := by
+  have h3 := append_left_injective l1 l2 s1 s2 h1 h2
+  grind
+
 theorem map_append_ωSequence (f : α → β) :
     ∀ (l : List α) (s : ωSequence α), map f (l ++ω s) = List.map f l ++ω map f s
   | [], _ => rfl
@@ -316,11 +321,6 @@ theorem take_succ' {s : ωSequence α} : ∀ n, s.take (n+1) = s.take n ++ [s n]
 theorem take_one {xs : ωSequence α} :
     xs.take 1 = [xs 0] := by
   simp [take_succ]
-
-@[simp, scoped grind =]
-theorem take_one' {xs : ωSequence α} :
-    xs.take 1 = [xs 0] := by
-  apply take_one
 
 @[simp, scoped grind =]
 theorem length_take (n : ℕ) (s : ωSequence α) : (take n s).length = n := by
@@ -489,12 +489,12 @@ theorem extract_lu_extract_lu {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n 
   ext k
   cases Decidable.em (k < j - i) <;> grind [extract_eq_ofFn]
 
-@[simp, scoped grind =]
+@[scoped grind =]
 theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
     (xs.extract 0 n).extract i j = xs.extract i j := by
   grind
 
-@[simp, scoped grind =]
+@[scoped grind =]
 theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
   grind

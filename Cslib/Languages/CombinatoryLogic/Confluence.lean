@@ -93,7 +93,7 @@ theorem reflTransGen_parallelReduction_mRed :
   constructor
   · apply Relation.reflTransGen_minimal
     · exact fun _ => by rfl
-    · exact instTransitiveMRed RedSKI
+    · exact Relation.transitive_reflTransGen
     · exact @mRed_of_parallelReduction
   · apply Relation.reflTransGen_minimal
     · exact Relation.reflexive_reflTransGen
@@ -182,8 +182,7 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
     case red_S a c =>
       let ⟨a'', c', h⟩ := Sab_irreducible a c a' ha'
       rw [h.2.2]
-      use a'' ⬝ b' ⬝ (c' ⬝ b')
-      refine ⟨ParallelReduction.red_S a'' c' b', ?_⟩
+      use a'' ⬝ b' ⬝ (c' ⬝ b'), ParallelReduction.red_S a'' c' b'
       apply ParallelReduction.par
       · apply ParallelReduction.par
         · exact h.1
