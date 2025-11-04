@@ -315,6 +315,8 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
 instance : Min (Fact P) where
   min G H := Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
 
+@[simp] lemma coe_min {G H : Fact P} : ((G ⊓ H : Fact P) : Set P) = (G : Set P) ∩ H := rfl
+
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
 
@@ -524,6 +526,36 @@ defined as the dual of the intersection of the orthogonal with the idempotents.
 -/
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 @[inherit_doc] prefix:100 " ʔ " => quest
+
+/-! ### Properties of Additives -/
+
+lemma plus_of_with {G H : Fact P} : oplus G H = (Gᗮ & Hᗮ)ᗮ := by
+  refine SetLike.coe_injective ?_
+  rw [oplus, withh]
+  ext m; constructor
+  · simp; grind
+  · simp; grind
+lemma with_of_plus {G H : Fact P} : withh G H = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_of_with]
+
+lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_of_with, neg_neg]
+lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_of_plus, neg_neg]
+
+lemma with_comm {G H : Fact P} : withh G H = H & G :=
+  SetLike.coe_injective <| by simp [withh, Set.inter_comm]
+@[simp] lemma with_assoc {G H K : Fact P} : withh (G & H) K = G & (H & K) :=
+  SetLike.coe_injective <| by simp only [withh, coe_min, Set.inter_assoc]
+
+@[simp] lemma top_with {G : Fact P} : withh ⊤ G = G := SetLike.coe_injective <| by simp [withh]
+@[simp] lemma with_top {G : Fact P} : withh G ⊤ = G := SetLike.coe_injective <| by simp [withh]
+
+lemma plus_comm {G H : Fact P} : oplus G H = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
+@[simp] lemma plus_assoc {G H K : Fact P} : oplus (G ⊕ H) K = G ⊕ (H ⊕ K) := by
+  simp [plus_of_with]
+
+@[simp] lemma zero_plus {G : Fact P} : oplus 0 G = G := by simp [plus_of_with]
+@[simp] lemma plus_zero {G : Fact P} : oplus G 0 = G := by simp [plus_of_with]
+
+-- TODO: Add distributivity lemmas
 
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
