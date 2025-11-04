@@ -542,8 +542,10 @@ lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_of_plu
 lemma with_comm {G H : Fact P} : withh G H = H & G :=
   SetLike.coe_injective <| by simp [withh, Set.inter_comm]
 
-@[simp] lemma with_assoc {G H K : Fact P} : withh (G & H) K = G & (H & K) :=
-  SetLike.coe_injective <| by simp [withh, coe_min, Set.inter_assoc]
+@[simp] lemma with_assoc {G H K : Fact P} : withh (G & H) K = G & (H & K) := by
+  apply SetLike.coe_injective
+  rw [withh, coe_min]
+  exact Set.inter_assoc ..
 
 @[simp] lemma top_with {G : Fact P} : withh ⊤ G = G := SetLike.coe_injective <| by simp [withh]
 
