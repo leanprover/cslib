@@ -529,9 +529,9 @@ def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 /-! ### Properties of Additives -/
 
 lemma plus_of_with {G H : Fact P} : oplus G H = (Gᗮ & Hᗮ)ᗮ := by
-  refine SetLike.coe_injective ?_
+  apply SetLike.coe_injective
   rw [oplus, withh]
-  ext m; constructor <;> aesop
+  aesop
 lemma with_of_plus {G H : Fact P} : withh G H = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_of_with]
 
 lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_of_with, neg_neg]
