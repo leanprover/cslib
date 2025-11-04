@@ -532,24 +532,30 @@ lemma plus_of_with {G H : Fact P} : oplus G H = (Gᗮ & Hᗮ)ᗮ := by
   apply SetLike.coe_injective
   rw [oplus, withh]
   aesop
+
 lemma with_of_plus {G H : Fact P} : withh G H = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_of_with]
 
 lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_of_with, neg_neg]
+
 lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_of_plus, neg_neg]
 
 lemma with_comm {G H : Fact P} : withh G H = H & G :=
   SetLike.coe_injective <| by simp [withh, Set.inter_comm]
+
 @[simp] lemma with_assoc {G H K : Fact P} : withh (G & H) K = G & (H & K) :=
-  SetLike.coe_injective <| by simp only [withh, coe_min, Set.inter_assoc]
+  SetLike.coe_injective <| by simp [withh, coe_min, Set.inter_assoc]
 
 @[simp] lemma top_with {G : Fact P} : withh ⊤ G = G := SetLike.coe_injective <| by simp [withh]
+
 @[simp] lemma with_top {G : Fact P} : withh G ⊤ = G := SetLike.coe_injective <| by simp [withh]
 
 lemma plus_comm {G H : Fact P} : oplus G H = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
+
 @[simp] lemma plus_assoc {G H K : Fact P} : oplus (G ⊕ H) K = G ⊕ (H ⊕ K) := by
   simp [plus_of_with]
 
 @[simp] lemma zero_plus {G : Fact P} : oplus 0 G = G := by simp [plus_of_with]
+
 @[simp] lemma plus_zero {G : Fact P} : oplus G 0 = G := by simp [plus_of_with]
 
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
