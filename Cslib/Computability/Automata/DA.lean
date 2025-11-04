@@ -9,7 +9,15 @@ import Cslib.Foundations.Semantics.LTS.FLTS
 
 /-! # Deterministic Automaton
 
-A Deterministic Automaton (DA) is an automaton defined by a transition function.
+A Deterministic Automaton (DA) is an automaton defined by a transition function equipped with an
+initial state and a set of accept states.
+
+This is the generalisation of DFAs found in the literature, without finiteness assumptions.
+
+## References
+
+* [J. E. Hopcroft, R. Motwani, J. D. Ullman,
+  *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
 namespace Cslib.Automata
@@ -24,14 +32,13 @@ namespace DA
 
 variable {State : Type _} {Symbol : Type _}
 
-/-- Returns the acceptor that matches exactly the sequence of symbols in a string.
-That is, a string is accepted if the multistep transition function of the `DA` maps the start state
+/-- A `DA` accepts a string if the multistep transition function of the `DA` maps the start state
 and the string to an accept state.
 
 This is the standard string recognition performed by DFAs in the literature. -/
 @[scoped grind =]
-def acceptor (da : DA State Symbol) : Acceptor Symbol where
-  Accepts (xs : List Symbol) := da.mtr da.start xs ∈ da.accept
+instance : Acceptor (DA State Symbol) Symbol where
+  Accepts (da : DA State Symbol) (xs : List Symbol) := da.mtr da.start xs ∈ da.accept
 
 end DA
 
