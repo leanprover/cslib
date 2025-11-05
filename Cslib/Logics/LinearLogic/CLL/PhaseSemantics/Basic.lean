@@ -553,12 +553,12 @@ lemma with_comm : (G & H : Fact P) = H & G :=
 
 lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
 
-@[simp] lemma plus_assoc {G H K : Fact P} : ((G ⊕ H) ⊕ K : Fact P) = G ⊕ (H ⊕ K) := by
+@[simp] lemma plus_assoc : ((G ⊕ H) ⊕ K : Fact P) = G ⊕ (H ⊕ K) := by
   simp [plus_of_with]
 
-@[simp] lemma zero_plus {G : Fact P} : (0 ⊕ G : Fact P) = G := by simp [plus_of_with]
+@[simp] lemma zero_plus : (0 ⊕ G : Fact P) = G := by simp [plus_of_with]
 
-@[simp] lemma plus_zero {G : Fact P} : (G ⊕ 0 : Fact P) = G := by simp [plus_of_with]
+@[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_of_with]
 
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
