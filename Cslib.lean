@@ -1,4 +1,3 @@
-import Cslib.Computability.Automata.Accept
 import Cslib.Computability.Automata.DA
 import Cslib.Computability.Automata.DAtoNA
 import Cslib.Computability.Automata.EpsilonNA

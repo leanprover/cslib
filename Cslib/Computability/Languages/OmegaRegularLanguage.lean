@@ -25,13 +25,17 @@ variable {Symbol : Type*}
 
 /-- An ω-regular language is one that is accepted by a finite-state Buchi automaton. -/
 def IsRegular (p : ωLanguage Symbol) :=
-  ∃ State : Type, ∃ _ : Finite State, ∃ na : NA State Symbol, ∃ acc : Set State,
-  na.buchiLanguage acc = p
+  ∃ State : Type, ∃ _ : Finite State, ∃ na : NA.Buchi State Symbol, na.language = p
+
+/-- There is an ω-regular language which is not accepted by any deterministic Buchi automaton. -/
+proof_wanted IsRegular.not_det_buchi :
+  ∃ p : ωLanguage Symbol, p.IsRegular ∧
+    ¬ ∃ State : Type, ∃ _ : Finite State, ∃ da : DA.Buchi State Symbol, da.language = p
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_muller_lang {p : ωLanguage Symbol} :
-    p.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ da : DA State Symbol, ∃ accSet : Set (Set State), da.mullerLanguage accSet = p
+    p.IsRegular ↔
+    ∃ State : Type, ∃ _ : Finite State, ∃ da : DA.Muller State Symbol, da.language = p
 
 end ωLanguage
 

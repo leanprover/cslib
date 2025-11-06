@@ -5,13 +5,15 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
 import Cslib.Computability.Automata.EpsilonNA
-import Cslib.Computability.Automata.NA
 
 /-! # Translation of εNA into NA -/
 
 namespace Cslib
 
 open Cslib
+
+open scoped NA εNA
+
 /-- Converts an `LTS` with Option labels into an `LTS` on the carried label type, by removing all
 ε-transitions. -/
 @[grind]
@@ -29,11 +31,9 @@ namespace εNA
 
 variable {State Symbol : Type*}
 
-section NA
-
 /-- Any εNA can be converted into an NA that does not use ε-transitions. -/
 @[scoped grind]
-def toNA (ena : εNA State Symbol) : NA State Symbol where
+def toClosedNA (ena : εNA State Symbol) : NA State Symbol where
   start := ena.εClosure ena.start
   Tr := ena.saturate.noε.Tr
 
@@ -44,16 +44,16 @@ lemma LTS.noε_saturate_mTr {s : State} {Label : Type*} {μs : List Label}
   ext s'
   induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
 
-/-- Correctness of `toNA`. -/
+/-- Correctness of `toClosedNA`. -/
 @[scoped grind =]
-theorem toNA_language_eq {ena : εNA State Symbol} {acc : Set State} :
-  ena.toNA.language acc = ena.language acc := by
+theorem toClosedNA_language_eq {ena : εNA State Symbol} {acc : Set State} :
+    (NA.FinAcc.mk ena.toClosedNA acc).language = (εNA.FinAcc.mk ena acc).language := by
   ext xs
+  rw [NA.FinAcc.mem_language, εNA.FinAcc.mem_language]
   have : ∀ s s', ena.saturate.MTr s (xs.map (some ·)) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
-  open NA in grind
+  grind
 
-end NA
 end εNA
 
 end Cslib

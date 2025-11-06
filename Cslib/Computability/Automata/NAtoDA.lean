@@ -11,6 +11,8 @@ import Cslib.Computability.Automata.NA
 
 namespace Cslib
 
+open scoped DA NA FLTS
+
 namespace NA
 
 variable {State Symbol : Type*}
@@ -35,7 +37,7 @@ original NA. -/
 @[simp, scoped grind =]
 theorem toDA_mem_mtr {na : NA State Symbol} {S : Set State} {s' : State} {xs : List Symbol} :
   s' ∈ na.toDA.mtr S xs ↔ ∃ s ∈ S, na.MTr s xs s' := by
-  simp only [NA.toDA, DA.mtr]
+  simp only [NA.toDA, FLTS.mtr]
   /- TODO: Grind does not catch a useful rewrite in the subset construction for automata
 
     A very similar issue seems to occur in the proof of `NA.toDA_language_eq`.
@@ -53,9 +55,9 @@ theorem toDA_mtr_setImageMultistep {na : NA State Symbol} :
 /-- The `DA` constructed from an `NA` has the same language. -/
 @[simp]
 theorem toDA_language_eq {na : NA State Symbol} {acc : Set State} :
-  na.toDA.language { S | ∃ s ∈ S, s ∈ acc } = na.language acc := by
+  (DA.FinAcc.mk na.toDA { S | ∃ s ∈ S, s ∈ acc }).language = (NA.FinAcc.mk na acc).language := by
   ext xs
-  rw [DA.mem_language]
+  rw [DA.FinAcc.mem_language, NA.FinAcc.mem_language]
   grind
 
 end SubsetConstruction

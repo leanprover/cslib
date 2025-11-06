@@ -12,6 +12,7 @@ import Cslib.Computability.Automata.DA
 namespace Cslib
 
 open List
+open scoped FLTS
 
 variable {State1 State2 Symbol : Type*}
 

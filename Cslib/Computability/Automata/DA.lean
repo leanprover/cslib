@@ -4,67 +4,111 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.Accept
+import Cslib.Computability.Languages.OmegaLanguage
 
 /-! # Deterministic Automaton
 -/
 
+open List Filter
+
 namespace Cslib
 
-open List
+-- TODO: FLTS related code should be moved to their own files.
 
-structure DA (State Symbol : Type*) where
+/-- Functional LTS -/
+structure FLTS (State Symbol : Type*) where
+  tr : State → Symbol → State
+
+namespace FLTS
+
+variable {State Symbol : Type*}
+
+/-- Extended transition function. -/
+@[scoped grind =]
+def mtr (da : FLTS State Symbol) (s : State) (xs : List Symbol) := xs.foldl da.tr s
+
+@[simp, scoped grind =]
+theorem mtr_nil_eq {da : FLTS State Symbol} {s : State} : da.mtr s [] = s := rfl
+
+end FLTS
+
+structure DA (State Symbol : Type*) extends FLTS State Symbol where
   /-- The initial state of the automaton. -/
   start : State
-  /-- The transition function of the automaton. -/
-  tr : State → Symbol → State
+
+structure DA.FinAcc (State Symbol : Type*) extends DA State Symbol where
+  acc : Set State
+
+structure DA.Buchi (State Symbol : Type*) extends DA State Symbol where
+  acc : Set State
+
+structure DA.Muller (State Symbol : Type*) extends DA State Symbol where
+  accSet : Set (Set State)
 
 variable {State Symbol : Type*}
 
 namespace DA
 
-/-- Extended transition function. -/
-@[scoped grind =]
-def mtr (da : DA State Symbol) (s : State) (xs : List Symbol) := xs.foldl da.tr s
-
-@[simp, scoped grind =]
-theorem mtr_nil_eq {da : DA State Symbol} {s : State} : da.mtr s [] = s := rfl
-
-/-- Infinite run. -/
+/-- Helper function for defining `run` below. -/
 @[simp, scoped grind =]
 def run' (da : DA State Symbol) (xs : ωSequence Symbol) : ℕ → State
   | 0 => da.start
   | n + 1 => da.tr (run' da xs n) (xs n)
 
+/-- Infinite run. -/
 @[scoped grind =]
 def run (da : DA State Symbol) (xs : ωSequence Symbol) : ωSequence State := da.run' xs
 
-@[scoped grind =]
-def accept (da : DA State Symbol) (acc : Set State) : Accept State Symbol where
-  Run xl s := da.mtr da.start xl = s
-  acc := acc
+namespace FinAcc
 
 @[scoped grind =]
-def language (da : DA State Symbol) (acc : Set State) : Language Symbol :=
-  (da.accept acc).language
+def Accept (dfa : FinAcc State Symbol) (xl : List Symbol) :=
+  dfa.mtr dfa.start xl ∈ dfa.acc
 
 @[scoped grind =]
-theorem mem_language (da : DA State Symbol) (acc : Set State) (xl : List Symbol) :
-    xl ∈ da.language acc ↔ da.mtr da.start xl ∈ acc := by
-  constructor
-  · rintro ⟨_, _, rfl⟩
-    assumption
-  · intro h
-    refine ⟨da.mtr da.start xl, h, rfl⟩
+def language (dfa : FinAcc State Symbol) : Language Symbol :=
+  { xl : List Symbol | dfa.Accept xl }
 
 @[scoped grind =]
-def mullerAccept (da : DA State Symbol) (accSet : Set (Set State)) : MullerAccept State Symbol where
-  Run xs ss := da.run xs = ss
-  accSet := accSet
+theorem mem_language (dfa : FinAcc State Symbol) (xl : List Symbol) :
+    xl ∈ dfa.language ↔ dfa.mtr dfa.start xl ∈ dfa.acc :=
+  Iff.rfl
+
+end FinAcc
+
+namespace Buchi
 
 @[scoped grind =]
-def mullerLanguage (da : DA State Symbol) (accSet : Set (Set State)) : ωLanguage Symbol :=
-  (da.mullerAccept accSet).language
+def Accept (dba : Buchi State Symbol) (xs : ωSequence Symbol) :=
+  ∃ᶠ k in atTop, dba.run xs k ∈ dba.acc
+
+@[scoped grind =]
+def language (dba : Buchi State Symbol) : ωLanguage Symbol :=
+  { xs : ωSequence Symbol | dba.Accept xs }
+
+@[scoped grind =]
+theorem mem_language (dba : Buchi State Symbol) (xs : ωSequence Symbol) :
+    xs ∈ dba.language ↔ dba.Accept xs :=
+  Iff.rfl
+
+end Buchi
+
+namespace Muller
+
+@[scoped grind =]
+def Accept (dma : Muller State Symbol) (xs : ωSequence Symbol) :=
+  (dma.run xs).infOcc ∈ dma.accSet
+
+@[scoped grind =]
+def language (dma : Muller State Symbol) : ωLanguage Symbol :=
+  { xs : ωSequence Symbol | dma.Accept xs }
+
+@[scoped grind =]
+theorem mem_language (dma : Muller State Symbol) (xs : ωSequence Symbol) :
+    xs ∈ dma.language ↔ dma.Accept xs :=
+  Iff.rfl
+
+end Muller
 
 end DA
 

@@ -11,13 +11,11 @@ import Cslib.Computability.Automata.NA
 
 namespace Cslib
 
-open scoped DA NA
+open scoped DA NA FLTS
 
 namespace DA
 
 variable {State Symbol : Type*}
-
-section NA
 
 /-- `DA` can be viewed as a special case of `NA`. -/
 @[scoped grind =]
@@ -59,15 +57,14 @@ theorem toNA_mtr {da : DA State Symbol} {s1 s2 : State} {xs : List Symbol} :
 /-- The `NA` constructed from a `DA` has the same language. -/
 @[simp, scoped grind =]
 theorem toNA_language_eq {da : DA State Symbol} {acc : Set State} :
-  da.toNA.language acc = da.language acc := by
+  (NA.FinAcc.mk da.toNA acc).language = (DA.FinAcc.mk da acc).language := by
   ext xs
+  rw [DA.FinAcc.mem_language, NA.FinAcc.mem_language]
   constructor
   · grind
-  · rintro ⟨s, h1, h2⟩
-    have := toNA_mtr.mpr h2
-    refine ⟨s, ?_, da.start, ?_⟩ <;> grind
-
-end NA
+  · intro h
+    refine ⟨_, h, da.start, ?_⟩
+    grind
 
 end DA
 
