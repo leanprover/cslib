@@ -98,7 +98,7 @@ theorem IsRegular.add {l1 l2 : Language Symbol}
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
-  ext ; grind [Language.mem_add]
+  ext; grind [Language.mem_add]
 
 @[simp]
 theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}
