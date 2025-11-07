@@ -40,14 +40,15 @@ def toNAFinite (a : εNA.Finite State Symbol) : NA.Finite State Symbol where
   accept := a.accept
   Tr := a.saturate.noε.Tr
 
+open scoped NA.Finite Acceptor in
 /-- Correctness of `toNAFinite`. -/
 @[scoped grind =]
 theorem toNAFinite_language_eq {ena : εNA.Finite State Symbol} :
     Acceptor.language ena.toNAFinite = Acceptor.language ena := by
   ext xs
-  have : ∀ s s', ena.saturate.MTr s (xs.map (some ·)) s' = ena.saturate.noε.MTr s xs s' := by
+  have : ∀ s s', ena.saturate.MTr s (xs.map some) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
-  open NA.Finite Acceptor in grind
+  grind
 
 end Automata.εNA.Finite
 
