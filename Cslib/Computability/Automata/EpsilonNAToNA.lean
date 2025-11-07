@@ -29,27 +29,27 @@ lemma LTS.noε_saturate_mTr {lts : LTS State (Option Label)} :
   ext s'
   induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
 
-namespace Automata.εNA.Finite
+namespace Automata.εNA.FinAcc
 
 variable {State Symbol : Type*}
 
-/-- Any `εNA.Finite` can be converted into an `NA.Finite` that does not use ε-transitions. -/
+/-- Any `εNA.FinAcc` can be converted into an `NA.FinAcc` that does not use ε-transitions. -/
 @[scoped grind]
-def toNAFinite (a : εNA.Finite State Symbol) : NA.Finite State Symbol where
+def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
   start := a.εClosure a.start
   accept := a.accept
   Tr := a.saturate.noε.Tr
 
-open scoped NA.Finite Acceptor in
-/-- Correctness of `toNAFinite`. -/
+open scoped NA.FinAcc Acceptor in
+/-- Correctness of `toNAFinAcc`. -/
 @[scoped grind =]
-theorem toNAFinite_language_eq {ena : εNA.Finite State Symbol} :
-    Acceptor.language ena.toNAFinite = Acceptor.language ena := by
+theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
+    Acceptor.language ena.toNAFinAcc = Acceptor.language ena := by
   ext xs
   have : ∀ s s', ena.saturate.MTr s (xs.map some) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
   grind
 
-end Automata.εNA.Finite
+end Automata.εNA.FinAcc
 
 end Cslib

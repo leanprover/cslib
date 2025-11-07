@@ -17,7 +17,7 @@ import Mathlib.Tactic
 
 open Set Function List Prod
 open scoped Computability Cslib.FLTS Cslib.Automata.DA Cslib.Automata.NA Cslib.Automata.Acceptor
-  Cslib.Automata.DA.Finite Cslib.Automata.NA.Finite
+  Cslib.Automata.DA.FinAcc Cslib.Automata.NA.FinAcc
 
 namespace Language
 
@@ -26,10 +26,10 @@ variable {Symbol : Type*}
 /-- A characterization of Language.IsRegular using Cslib.DA -/
 theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ dfa : Cslib.Automata.DA.Finite State Symbol, Cslib.Automata.Acceptor.language dfa = l := by
+      ∃ dfa : Cslib.Automata.DA.FinAcc State Symbol, Cslib.Automata.Acceptor.language dfa = l := by
   constructor
   · rintro ⟨State, h_fin, ⟨tr, start, acc⟩, rfl⟩
-    let dfa := Cslib.Automata.DA.Finite.mk {tr, start} acc
+    let dfa := Cslib.Automata.DA.FinAcc.mk {tr, start} acc
     use State, Fintype.finite h_fin, dfa
     rfl
   · rintro ⟨State, h_fin, ⟨⟨flts, start⟩, acc⟩, rfl⟩
@@ -40,13 +40,13 @@ theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
 /-- A characterization of Language.IsRegular using Cslib.NA -/
 theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ nfa : Cslib.Automata.NA.Finite State Symbol, Cslib.Automata.Acceptor.language nfa = l := by
+      ∃ nfa : Cslib.Automata.NA.FinAcc State Symbol, Cslib.Automata.Acceptor.language nfa = l := by
   rw [IsRegular.iff_cslib_dfa]; constructor
   · rintro ⟨State, h_fin, ⟨da, acc⟩, rfl⟩
     use State, h_fin, ⟨da.toNA, acc⟩
     grind
   · rintro ⟨State, _, na, rfl⟩
-    use Set State, inferInstance, na.toDAFinite
+    use Set State, inferInstance, na.toDAFinAcc
     grind
 
 -- From this point onward we will use only automata from Cslib in the proofs.

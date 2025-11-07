@@ -41,22 +41,22 @@ namespace NA
 variable {State : Type _} {Symbol : Type _}
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
-structure Finite (State Symbol : Type*) extends NA State Symbol where
+structure FinAcc (State Symbol : Type*) extends NA State Symbol where
   /-- The accept states. -/
   accept : Set State
 
-namespace Finite
+namespace FinAcc
 
-/-- An `NA.Finite` accepts a string if there is a multistep transition from a start state to an
+/-- An `NA.FinAcc` accepts a string if there is a multistep transition from a start state to an
 accept state.
 
 This is the standard string recognition performed by NFAs in the literature. -/
 @[scoped grind =]
-instance : Acceptor (Finite State Symbol) Symbol where
-  Accepts (a : Finite State Symbol) (xs : List Symbol) :=
+instance : Acceptor (FinAcc State Symbol) Symbol where
+  Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s'
 
-end Finite
+end FinAcc
 
 /-- Infinite run. -/
 @[scoped grind =]

@@ -31,14 +31,14 @@ abbrev εNA.εClosure (a : εNA State Symbol) (S : Set State) := a.τClosure S
 
 namespace εNA
 
-structure Finite (State Symbol : Type*) extends εNA State Symbol where
+structure FinAcc (State Symbol : Type*) extends εNA State Symbol where
   accept : Set State
 
-/-- An `εNA.Finite` accepts a string if there is a saturated multistep accepting derivative with
+/-- An `εNA.FinAcc` accepts a string if there is a saturated multistep accepting derivative with
 that trace from the start state. -/
 @[scoped grind =]
-instance : Acceptor (Finite State Symbol) Symbol where
-  Accepts (a : Finite State Symbol) (xs : List Symbol) :=
+instance : Acceptor (FinAcc State Symbol) Symbol where
+  Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.εClosure a.start, ∃ s' ∈ a.accept,
     a.saturate.MTr s (xs.map (some ·)) s'
 

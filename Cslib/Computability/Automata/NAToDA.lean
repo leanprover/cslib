@@ -24,26 +24,26 @@ section SubsetConstruction
 def toDA (a : NA State Symbol) : DA (Set State) Symbol :=
   { a.toFLTS with start := a.start }
 
-namespace Finite
+namespace FinAcc
 
-/-- Converts an `NA.Finite` into a `DA.Finite` using the subset construction. -/
+/-- Converts an `NA.FinAcc` into a `DA.FinAcc` using the subset construction. -/
 @[scoped grind =]
-def toDAFinite (a : NA.Finite State Symbol) : DA.Finite (Set State) Symbol :=
+def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol :=
   { a.toDA with accept := { S | ∃ s ∈ S, s ∈ a.accept } }
 
 /-- The `DA` constructed from an `NA` has the same language. -/
 @[scoped grind =]
-theorem toDAFinite_language_eq {na : NA.Finite State Symbol} :
-  Acceptor.language na.toDAFinite = Acceptor.language na := by
+theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
+  Acceptor.language na.toDAFinAcc = Acceptor.language na := by
   ext xs
   #adaptation_note
   /--
   Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
   increasing the number of allowed splits.
   -/
-  open DA.Finite Acceptor LTS in grind (splits := 11)
+  open DA.FinAcc Acceptor LTS in grind (splits := 11)
 
-end Finite
+end FinAcc
 
 end SubsetConstruction
 
