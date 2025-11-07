@@ -14,7 +14,7 @@ namespace Cslib.FLTS
 /-- `FLTS` is a special case of `LTS`. -/
 @[scoped grind =]
 def toLTS (flts : FLTS State Label) : LTS State Label where
-  Tr := fun s1 μ s2 => flts.tr s1 μ = s2
+  Tr s1 μ s2 := flts.tr s1 μ = s2
 
 instance : Coe (FLTS State Label) (LTS State Label) where
   coe := toLTS
