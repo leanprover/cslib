@@ -1,18 +1,22 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi
+Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.Acceptor
 import Cslib.Foundations.Semantics.LTS.FLTS
+import Cslib.Computability.Automata.Acceptor
+import Cslib.Computability.Automata.OmegaAcceptor
+import Cslib.Computability.Languages.OmegaLanguage
 
-/-! # Deterministic Automaton
+/-! # Deterministic Automata
 
-A Deterministic Automaton (DA) is an automaton defined by a transition function equipped with an
-initial state and a set of accept states.
+A Deterministic Automaton (`DA`) is an automaton defined by a transition function equipped with an
+initial state.
 
-This is the generalisation of DFAs found in the literature, without finiteness assumptions.
+Automata with different accepting conditions are then defined as extensions of `DA`.
+These include, for example, a generalised version of DFA as found in the literature (without
+finiteness assumptions), deterministic Buchi automata, and deterministic Muller automata.
 
 ## References
 
@@ -22,23 +26,68 @@ This is the generalisation of DFAs found in the literature, without finiteness a
 
 namespace Cslib.Automata
 
-structure DA (State : Type _) (Symbol : Type _) extends FLTS State Symbol where
+structure DA (State Symbol : Type*) extends FLTS State Symbol where
   /-- The initial state of the automaton. -/
   start : State
-  /-- The accept states of the automaton. -/
-  accept : Set State
 
 namespace DA
 
 variable {State : Type _} {Symbol : Type _}
 
-/-- A `DA` accepts a string if the multistep transition function of the `DA` maps the start state
-and the string to an accept state.
+/-- A deterministic automaton that accepts finite strings (lists of symbols). -/
+structure Finite (State Symbol : Type*) extends DA State Symbol where
+  /-- The accept states. -/
+  accept : Set State
+
+namespace Finite
+
+/-- A `DA.Finite` accepts a string if its multistep transition function maps the start state and
+the string to an accept state.
 
 This is the standard string recognition performed by DFAs in the literature. -/
 @[scoped grind =]
-instance : Acceptor (DA State Symbol) Symbol where
-  Accepts (da : DA State Symbol) (xs : List Symbol) := da.mtr da.start xs ∈ da.accept
+instance : Acceptor (DA.Finite State Symbol) Symbol where
+  Accepts (a : DA.Finite State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
+
+end Finite
+
+/-- Helper function for defining `run` below. -/
+@[simp, scoped grind =]
+def run' (da : DA State Symbol) (xs : ωSequence Symbol) : ℕ → State
+  | 0 => da.start
+  | n + 1 => da.tr (run' da xs n) (xs n)
+
+/-- Infinite run. -/
+@[scoped grind =]
+def run (da : DA State Symbol) (xs : ωSequence Symbol) : ωSequence State := da.run' xs
+
+open List Filter
+
+/-- Deterministic Buchi automaton. -/
+structure Buchi (State Symbol : Type*) extends DA State Symbol where
+  /-- The accept states -/
+  accept : Set State
+
+namespace Buchi
+
+@[scoped grind =]
+instance : ωAcceptor (Buchi State Symbol) Symbol where
+  Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) := ∃ᶠ k in atTop, a.run xs k ∈ a.accept
+
+end Buchi
+
+/-- Deterministic Muller automaton. -/
+structure Muller (State Symbol : Type*) extends DA State Symbol where
+  /-- The accepting set of sets of states. -/
+  accept : Set (Set State)
+
+namespace Muller
+
+@[scoped grind =]
+instance : ωAcceptor (Muller State Symbol) Symbol where
+  Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) := (a.run xs).infOcc ∈ a.accept
+
+end Muller
 
 end DA
 

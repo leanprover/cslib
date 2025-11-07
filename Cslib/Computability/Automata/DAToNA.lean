@@ -20,23 +20,30 @@ section NA
 
 /-- `DA` is a special case of `NA`. -/
 @[scoped grind =]
-def toNA (da : DA State Symbol) : NA State Symbol where
-  start := {da.start}
-  accept := da.accept
-  Tr := da.toLTS.Tr
+def toNA (a : DA State Symbol) : NA State Symbol :=
+  { a.toLTS with start := {a.start} }
 
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
+namespace Finite
+
+/-- `DA.Finite` is a special case of `NA.Finite`. -/
+@[scoped grind =]
+def toNAFinite (a : DA.Finite State Symbol) : NA.Finite State Symbol :=
+  { a.toNA with accept := a.accept }
+
 /-- The `NA` constructed from a `DA` has the same language. -/
 @[scoped grind =]
-theorem toNA_language_eq {da : DA State Symbol} :
-    Acceptor.language da = Acceptor.language da.toNA := by
+theorem toNAFinite_language_eq {a : DA.Finite State Symbol} :
+    Acceptor.language a = Acceptor.language a.toNAFinite := by
   ext xs
   refine ⟨?_, ?_⟩
-  · refine fun h => ⟨da.start, ?_⟩
-    open NA Acceptor FLTS in grind
-  · open NA Acceptor FLTS in grind
+  · refine fun h => ⟨a.start, ?_⟩
+    open Acceptor FLTS in grind
+  · open NA.Finite Acceptor FLTS in grind
+
+end Finite
 
 end NA
 

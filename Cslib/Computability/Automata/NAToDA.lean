@@ -8,7 +8,10 @@ import Cslib.Computability.Automata.DA
 import Cslib.Computability.Automata.NA
 import Cslib.Foundations.Semantics.LTS.LTSToFLTS
 
-/-! # Translation of Nondeterministic Automata into Deterministic Automata (subset construction) -/
+/-! # Translation of Nondeterministic Automata for finite strings into Deterministic Automata
+
+This file implements the standard subset construction.
+-/
 
 namespace Cslib.Automata.NA
 
@@ -18,23 +21,29 @@ section SubsetConstruction
 
 /-- Converts an `NA` into a `DA` using the subset construction. -/
 @[scoped grind =]
-def toDA (na : NA State Symbol) : DA (Set State) Symbol := {
-  start := na.start
-  accept := { S | ∃ s ∈ S, s ∈ na.accept }
-  tr := na.toFLTS.tr
-}
+def toDA (a : NA State Symbol) : DA (Set State) Symbol :=
+  { a.toFLTS with start := a.start }
+
+namespace Finite
+
+/-- Converts an `NA.Finite` into a `DA.Finite` using the subset construction. -/
+@[scoped grind =]
+def toDAFinite (a : NA.Finite State Symbol) : DA.Finite (Set State) Symbol :=
+  { a.toDA with accept := { S | ∃ s ∈ S, s ∈ a.accept } }
 
 /-- The `DA` constructed from an `NA` has the same language. -/
 @[scoped grind =]
-theorem toDA_language_eq {na : NA State Symbol} :
-  Acceptor.language na.toDA = Acceptor.language na := by
+theorem toDAFinite_language_eq {na : NA.Finite State Symbol} :
+  Acceptor.language na.toDAFinite = Acceptor.language na := by
   ext xs
   #adaptation_note
   /--
   Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
   increasing the number of allowed splits.
   -/
-  open DA Acceptor LTS in grind (splits := 11)
+  open DA.Finite Acceptor LTS in grind (splits := 11)
+
+end Finite
 
 end SubsetConstruction
 
