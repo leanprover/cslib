@@ -35,21 +35,21 @@ namespace DA
 variable {State : Type _} {Symbol : Type _}
 
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
-structure Finite (State Symbol : Type*) extends DA State Symbol where
+structure FinAcc (State Symbol : Type*) extends DA State Symbol where
   /-- The accept states. -/
   accept : Set State
 
-namespace Finite
+namespace FinAcc
 
-/-- A `DA.Finite` accepts a string if its multistep transition function maps the start state and
+/-- A `DA.FinAcc` accepts a string if its multistep transition function maps the start state and
 the string to an accept state.
 
 This is the standard string recognition performed by DFAs in the literature. -/
 @[scoped grind =]
-instance : Acceptor (DA.Finite State Symbol) Symbol where
-  Accepts (a : DA.Finite State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
+instance : Acceptor (DA.FinAcc State Symbol) Symbol where
+  Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
 
-end Finite
+end FinAcc
 
 /-- Helper function for defining `run` below. -/
 @[simp, scoped grind =]

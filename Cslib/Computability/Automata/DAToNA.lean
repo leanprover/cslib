@@ -26,24 +26,24 @@ def toNA (a : DA State Symbol) : NA State Symbol :=
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
-namespace Finite
+namespace FinAcc
 
-/-- `DA.Finite` is a special case of `NA.Finite`. -/
+/-- `DA.FinAcc` is a special case of `NA.FinAcc`. -/
 @[scoped grind =]
-def toNAFinite (a : DA.Finite State Symbol) : NA.Finite State Symbol :=
+def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol :=
   { a.toNA with accept := a.accept }
 
 /-- The `NA` constructed from a `DA` has the same language. -/
 @[scoped grind =]
-theorem toNAFinite_language_eq {a : DA.Finite State Symbol} :
-    Acceptor.language a = Acceptor.language a.toNAFinite := by
+theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
+    Acceptor.language a = Acceptor.language a.toNAFinAcc := by
   ext xs
   refine ⟨?_, ?_⟩
   · refine fun h => ⟨a.start, ?_⟩
     open Acceptor FLTS in grind
-  · open NA.Finite Acceptor FLTS in grind
+  · open NA.FinAcc Acceptor FLTS in grind
 
-end Finite
+end FinAcc
 
 end NA
 
