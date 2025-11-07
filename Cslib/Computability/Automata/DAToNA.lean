@@ -33,15 +33,17 @@ namespace Finite
 def toNAFinite (a : DA.Finite State Symbol) : NA.Finite State Symbol :=
   { a.toNA with accept := a.accept }
 
+open scoped Acceptor FLTS NA.Finite in
 /-- The `NA` constructed from a `DA` has the same language. -/
 @[scoped grind =]
 theorem toNAFinite_language_eq {a : DA.Finite State Symbol} :
     Acceptor.language a = Acceptor.language a.toNAFinite := by
   ext xs
-  refine ⟨?_, ?_⟩
-  · refine fun h => ⟨a.start, ?_⟩
-    open Acceptor FLTS in grind
-  · open NA.Finite Acceptor FLTS in grind
+  constructor
+  · intro _
+    use a.start
+    grind
+  · grind
 
 end Finite
 
