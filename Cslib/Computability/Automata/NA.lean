@@ -56,6 +56,15 @@ instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s'
 
+@[scoped grind =]
+def language (a : NA.FinAcc State Symbol) : Language Symbol :=
+  Acceptor.language a
+
+@[scoped grind =]
+theorem mem_language (a : NA.FinAcc State Symbol) (xs : List Symbol) :
+    xs ∈ a.language ↔ ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s' :=
+  Iff.rfl
+
 end FinAcc
 
 /-- Infinite run. -/

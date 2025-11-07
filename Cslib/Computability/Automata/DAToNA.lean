@@ -36,7 +36,7 @@ def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol :=
 /-- The `NA` constructed from a `DA` has the same language. -/
 @[scoped grind =]
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
-    Acceptor.language a = Acceptor.language a.toNAFinAcc := by
+    a.language = a.toNAFinAcc.language := by
   ext xs
   refine ⟨?_, ?_⟩
   · refine fun h => ⟨a.start, ?_⟩

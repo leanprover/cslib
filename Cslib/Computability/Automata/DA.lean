@@ -49,6 +49,15 @@ This is the standard string recognition performed by DFAs in the literature. -/
 instance : Acceptor (DA.FinAcc State Symbol) Symbol where
   Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
 
+@[scoped grind =]
+def language (a : DA.FinAcc State Symbol) : Language Symbol :=
+  Acceptor.language a
+
+@[scoped grind =]
+theorem mem_language (a : DA.FinAcc State Symbol) (xs : List Symbol) :
+    xs ∈ a.language ↔ a.mtr a.start xs ∈ a.accept :=
+  Iff.rfl
+
 end FinAcc
 
 /-- Helper function for defining `run` below. -/

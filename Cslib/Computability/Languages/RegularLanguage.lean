@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.Prod
-import Cslib.Computability.Automata.Acceptor
 import Mathlib.Computability.DFA
 import Mathlib.Tactic
 
@@ -26,7 +25,7 @@ variable {Symbol : Type*}
 /-- A characterization of Language.IsRegular using Cslib.DA -/
 theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ dfa : Cslib.Automata.DA.FinAcc State Symbol, Cslib.Automata.Acceptor.language dfa = l := by
+      ∃ dfa : Cslib.Automata.DA.FinAcc State Symbol, dfa.language = l := by
   constructor
   · rintro ⟨State, h_fin, ⟨tr, start, acc⟩, rfl⟩
     let dfa := Cslib.Automata.DA.FinAcc.mk {tr, start} acc
@@ -40,7 +39,7 @@ theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
 /-- A characterization of Language.IsRegular using Cslib.NA -/
 theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ nfa : Cslib.Automata.NA.FinAcc State Symbol, Cslib.Automata.Acceptor.language nfa = l := by
+      ∃ nfa : Cslib.Automata.NA.FinAcc State Symbol, nfa.language = l := by
   rw [IsRegular.iff_cslib_dfa]; constructor
   · rintro ⟨State, h_fin, ⟨da, acc⟩, rfl⟩
     use State, h_fin, ⟨da.toNA, acc⟩

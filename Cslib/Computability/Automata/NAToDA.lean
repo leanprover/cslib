@@ -34,7 +34,7 @@ def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol :=
 /-- The `DA` constructed from an `NA` has the same language. -/
 @[scoped grind =]
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
-  Acceptor.language na.toDAFinAcc = Acceptor.language na := by
+  na.toDAFinAcc.language = na.language := by
   ext xs
   #adaptation_note
   /--
