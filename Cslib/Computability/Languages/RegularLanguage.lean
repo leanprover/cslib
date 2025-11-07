@@ -47,7 +47,7 @@ theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
     grind
   · rintro ⟨State, _, na, rfl⟩
     use Set State, inferInstance, na.toDAFinite
-    exact Cslib.Automata.NA.Finite.toDAFinite_language_eq
+    grind
 
 -- From this point onward we will use only automata from Cslib in the proofs.
 open Cslib
