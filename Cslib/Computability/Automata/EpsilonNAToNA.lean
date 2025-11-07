@@ -14,7 +14,7 @@ namespace Cslib
 ε-transitions. -/
 @[local grind =]
 private def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
-  Tr := fun s μ s' => lts.Tr s (some μ) s'
+  Tr s μ s' := lts.Tr s (some μ) s'
 
 @[local grind .]
 private lemma LTS.noε_saturate_tr
