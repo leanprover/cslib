@@ -41,7 +41,7 @@ theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
 theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
       ∃ nfa : Cslib.Automata.NA.Finite State Symbol, Cslib.Automata.Acceptor.language nfa = l := by
-  rw [IsRegular.iff_cslib_dfa] ; constructor
+  rw [IsRegular.iff_cslib_dfa]; constructor
   · rintro ⟨State, h_fin, ⟨da, acc⟩, rfl⟩
     use State, h_fin, ⟨da.toNA, acc⟩
     grind
