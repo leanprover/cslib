@@ -1,9 +1,11 @@
+import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Automata.DA
 import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.EpsilonNA
 import Cslib.Computability.Automata.EpsilonNAToNA
 import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NAToDA
+import Cslib.Computability.Automata.OmegaAcceptor
 import Cslib.Computability.Automata.Prod
 import Cslib.Computability.Languages.Language
 import Cslib.Computability.Languages.OmegaLanguage
@@ -22,6 +24,9 @@ import Cslib.Foundations.Data.Relation
 import Cslib.Foundations.Lint.Basic
 import Cslib.Foundations.Semantics.LTS.Basic
 import Cslib.Foundations.Semantics.LTS.Bisimulation
+import Cslib.Foundations.Semantics.LTS.FLTS
+import Cslib.Foundations.Semantics.LTS.FLTSToLTS
+import Cslib.Foundations.Semantics.LTS.LTSToFLTS
 import Cslib.Foundations.Semantics.LTS.Simulation
 import Cslib.Foundations.Semantics.LTS.TraceEq
 import Cslib.Foundations.Semantics.ReductionSystem.Basic
