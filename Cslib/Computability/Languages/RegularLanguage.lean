@@ -71,8 +71,8 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_cslib_dfa]
   let flts := FLTS.mk (fun (_ : Fin 2) (_ : Symbol) ↦ 1)
   use Fin 2, inferInstance, ⟨Cslib.Automata.DA.mk flts 0, {0}⟩
-  ext ; constructor
-  · intro h ; by_contra h'
+  ext; constructor
+  · intro h; by_contra h'
     have := dropLast_append_getLast h'
     grind
   · grind [Language.mem_one]
