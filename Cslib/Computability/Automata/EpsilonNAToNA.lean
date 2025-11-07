@@ -25,7 +25,7 @@ private lemma LTS.noε_saturate_tr
 
 @[scoped grind =]
 lemma LTS.noε_saturate_mTr {lts : LTS State (Option Label)} :
-  lts.saturate.MTr s (μs.map (some ·)) = lts.saturate.noε.MTr s μs := by
+  lts.saturate.MTr s (μs.map some) = lts.saturate.noε.MTr s μs := by
   ext s'
   induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
 
