@@ -23,13 +23,14 @@ namespace Language
 
 variable {Symbol : Type*}
 
+open Cslib.Automata Acceptor in
 /-- A characterization of Language.IsRegular using Cslib.DA -/
 theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ dfa : Cslib.Automata.DA.FinAcc State Symbol, Cslib.Automata.Acceptor.language dfa = l := by
+      ∃ dfa : DA.FinAcc State Symbol, language dfa = l := by
   constructor
   · rintro ⟨State, h_fin, ⟨tr, start, acc⟩, rfl⟩
-    let dfa := Cslib.Automata.DA.FinAcc.mk {tr, start} acc
+    let dfa := DA.FinAcc.mk {tr, start} acc
     use State, Fintype.finite h_fin, dfa
     rfl
   · rintro ⟨State, h_fin, ⟨⟨flts, start⟩, acc⟩, rfl⟩
@@ -37,10 +38,11 @@ theorem IsRegular.iff_cslib_dfa {l : Language Symbol} :
     use State, Fintype.ofFinite State, dfa
     rfl
 
+open Cslib.Automata Acceptor in
 /-- A characterization of Language.IsRegular using Cslib.NA -/
 theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ nfa : Cslib.Automata.NA.FinAcc State Symbol, Cslib.Automata.Acceptor.language nfa = l := by
+      ∃ nfa : NA.FinAcc State Symbol, language nfa = l := by
   rw [IsRegular.iff_cslib_dfa]; constructor
   · rintro ⟨State, h_fin, ⟨da, acc⟩, rfl⟩
     use State, h_fin, ⟨da.toNA, acc⟩

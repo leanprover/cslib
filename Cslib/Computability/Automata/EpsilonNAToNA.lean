@@ -40,11 +40,12 @@ def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
   accept := a.accept
   Tr := a.saturate.noε.Tr
 
-open scoped NA.FinAcc Acceptor in
+open Acceptor in
+open scoped NA.FinAcc in
 /-- Correctness of `toNAFinAcc`. -/
 @[scoped grind =]
 theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
-    Acceptor.language ena.toNAFinAcc = Acceptor.language ena := by
+    language ena.toNAFinAcc = language ena := by
   ext xs
   have : ∀ s s', ena.saturate.MTr s (xs.map some) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
