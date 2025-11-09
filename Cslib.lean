@@ -1,5 +1,6 @@
 import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Automata.DA
+import Cslib.Computability.Automata.DABuchi
 import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.EpsilonNA
 import Cslib.Computability.Automata.EpsilonNAToNA
