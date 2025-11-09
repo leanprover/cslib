@@ -56,8 +56,8 @@ namespace Cslib
 universe u v
 
 /--
-A Labelled Transition System (LTS) consists of a type of states (`State`), a type of transition
-labels (`Label`), and a labelled transition relation (`Tr`).
+A Labelled Transition System (LTS) for a type of states (`State`) and a type of transition
+labels (`Label`) consists of a labelled transition relation (`Tr`).
 -/
 structure LTS (State : Type u) (Label : Type v) where
   /-- The transition relation. -/
@@ -405,10 +405,8 @@ def LTS.Acyclic : Prop :=
 def LTS.Finite : Prop :=
   lts.FiniteState ∧ lts.Acyclic
 
-/-
-/-- An LTS has a complete transition relation if every state has a `μ`-derivative for every `μ`. -/
-def LTS.CompleteTr (lts : LTS State Label) : Prop := ∀ s μ, ∃ s', lts.Tr s μ s'
--/
+/-- An LTS is left-total if every state has a `μ`-derivative for every label `μ`. -/
+def LTS.LeftTotal (lts : LTS State Label) : Prop := ∀ s μ, ∃ s', lts.Tr s μ s'
 
 end Classes
 

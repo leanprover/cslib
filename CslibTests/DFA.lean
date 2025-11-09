@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Automata.DFA
+import Cslib.Computability.Automata.DA
 
 namespace CslibTests
 
-open Cslib
+open Cslib.Automata
 
 /-! A simple elevator. -/
 
@@ -43,12 +43,9 @@ def tr (floor : Floor) (dir : Direction) : Floor :=
   | .two, .up => .two
   | .two, .down => .one
 
-def elevator : Cslib.DFA Floor Direction := {
+def elevator : DA Floor Direction := {
   tr := tr
   start := .one
-  accept := { Floor.one }
-  finite_state := Floor.finite
-  finite_symbol := Direction.finite
 }
 
 end CslibTests
