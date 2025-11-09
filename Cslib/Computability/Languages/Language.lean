@@ -20,7 +20,25 @@ namespace Language
 open Set List
 open scoped Computability
 
-variable {α : Type _} {l : Language α}
+variable {α : Type*} {l m : Language α}
+
+@[simp, scoped grind =]
+theorem mem_inf (x : List α) : x ∈ l ⊓ m ↔ x ∈ l ∧ x ∈ m :=
+  Iff.rfl
+
+@[simp]
+theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
+    (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
+  mem_iInter₂
+
+@[simp]
+theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
+    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i := by
+  constructor <;> intro h
+  · have := mem_iUnion₂.mp h
+    grind
+  · apply mem_iUnion₂.mpr
+    grind
 
 -- This section will be removed once the following PR gets into mathlib:
 -- https://github.com/leanprover-community/mathlib4/pull/30913
