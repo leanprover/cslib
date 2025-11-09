@@ -43,7 +43,7 @@ def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
 open Acceptor in
 open scoped NA.FinAcc in
 /-- Correctness of `toNAFinAcc`. -/
-@[scoped grind =]
+@[scoped grind _=_]
 theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
     language ena.toNAFinAcc = language ena := by
   ext xs

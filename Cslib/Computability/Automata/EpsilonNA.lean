@@ -34,6 +34,8 @@ namespace εNA
 structure FinAcc (State Symbol : Type*) extends εNA State Symbol where
   accept : Set State
 
+namespace FinAcc
+
 /-- An `εNA.FinAcc` accepts a string if there is a saturated multistep accepting derivative with
 that trace from the start state. -/
 @[scoped grind =]
@@ -41,6 +43,8 @@ instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.εClosure a.start, ∃ s' ∈ a.accept,
     a.saturate.MTr s (xs.map (some ·)) s'
+
+end FinAcc
 
 end εNA
 

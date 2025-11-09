@@ -32,8 +32,9 @@ def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol :=
   { a.toDA with accept := { S | ∃ s ∈ S, s ∈ a.accept } }
 
 open Acceptor in
+open scoped DA.FinAcc LTS in
 /-- The `DA` constructed from an `NA` has the same language. -/
-@[scoped grind =]
+@[scoped grind _=_]
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
   language na.toDAFinAcc = language na := by
   ext xs
@@ -42,7 +43,7 @@ theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
   Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
   increasing the number of allowed splits.
   -/
-  open DA.FinAcc LTS in grind (splits := 11)
+  grind (splits := 11)
 
 end FinAcc
 

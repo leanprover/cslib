@@ -33,17 +33,18 @@ namespace FinAcc
 def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol :=
   { a.toNA with accept := a.accept }
 
-open scoped Acceptor FLTS NA.FinAcc in
+open Acceptor in
+open scoped FLTS NA.FinAcc in
 /-- The `NA` constructed from a `DA` has the same language. -/
-@[scoped grind =]
+@[scoped grind _=_]
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
-    Acceptor.language a = Acceptor.language a.toNAFinAcc := by
+    language a.toNAFinAcc = language a := by
   ext xs
   constructor
+  · grind
   · intro _
     use a.start
     grind
-  · grind
 
 end FinAcc
 
