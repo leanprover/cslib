@@ -528,16 +528,16 @@ def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 
 /-! ### Properties of Additives -/
 
-lemma plus_of_with : (G ⊕ H : Fact P) = (Gᗮ & Hᗮ)ᗮ := by
+lemma plus_eq_with_dual : (G ⊕ H : Fact P) = (Gᗮ & Hᗮ)ᗮ := by
   apply SetLike.coe_injective
   rw [oplus, withh]
   aesop
 
-lemma with_of_plus : (G & H : Fact P) = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_of_with]
+lemma with_eq_plus_dual : (G & H : Fact P) = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_eq_with_dual]
 
-lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_of_with, neg_neg]
+lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_eq_with_dual, neg_neg]
 
-lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_of_plus, neg_neg]
+lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_eq_plus_dual, neg_neg]
 
 lemma with_comm : (G & H : Fact P) = H & G :=
   SetLike.coe_injective <| by simp [withh, Set.inter_comm]
@@ -554,11 +554,11 @@ lemma with_comm : (G & H : Fact P) = H & G :=
 lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
 
 @[simp] lemma plus_assoc : ((G ⊕ H) ⊕ K : Fact P) = G ⊕ (H ⊕ K) := by
-  simp [plus_of_with]
+  simp [plus_eq_with_dual]
 
-@[simp] lemma zero_plus : (0 ⊕ G : Fact P) = G := by simp [plus_of_with]
+@[simp] lemma zero_plus : (0 ⊕ G : Fact P) = G := by simp [plus_eq_with_dual]
 
-@[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_of_with]
+@[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
 
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
