@@ -196,8 +196,7 @@ theorem segment'_eq_segment (hm : StrictMono f) :
   classical
   ext k ; unfold segment'
   rcases (show k < f 0 ∨ k ≥ f 0 by omega) with h_k | h_k
-  · have : k - f 0 = 0 := by grind
-    grind
+  · grind
   unfold segment ; congr 1
   simp only [count_eq_card_filter_range]
   suffices h : ∃ g, BijOn g
@@ -213,7 +212,6 @@ theorem segment'_eq_segment (hm : StrictMono f) :
   · intro n ; simp only [mem_range, Finset.mem_range, mem_setOf_eq, mem_image]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
-    use f i - f 0
     grind
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `segment f k = 0` for all `k ≤ f 0`. -/

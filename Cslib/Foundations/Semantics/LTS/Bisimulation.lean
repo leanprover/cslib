@@ -137,8 +137,6 @@ theorem LTS.IsBisimulation.inv (h : lts.IsBisimulation r) :
 /-- Bisimilarity is symmetric. -/
 @[grind →, symm]
 theorem Bisimilarity.symm {s1 s2 : State} (h : s1 ~[lts] s2) : s2 ~[lts] s1 := by
-  obtain ⟨r, _, _⟩ := h
-  exists (flip r)
   grind [flip]
 
 /-- The composition of two bisimulations is a bisimulation. -/
@@ -256,8 +254,7 @@ instance : SemilatticeSup {r // lts.IsBisimulation r} where
   sup_le r s t := by
     intro h1 h2
     simp only [LE.le, max, SemilatticeSup.sup]
-    intro s1 s2
-    intro h
+    intro s1 s2 h
     cases h
     case inl h =>
       apply h1 _ _ h

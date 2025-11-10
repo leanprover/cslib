@@ -256,21 +256,7 @@ theorem bisimilarity_congr_pre :
   case pre p' q' μ hbis =>
     unfold lts
     constructor <;> intro _ _ <;> [exists q'; exists p'] <;> grind
-  case bisim hbis =>
-    constructor
-    case left =>
-      intro s1' htr
-      obtain ⟨_, hr, hb⟩ := hbis
-      obtain ⟨s2', _⟩ := hb.follow_fst hr htr
-      exists s2'
-      grind [Bisimilarity.largest_bisimulation]
-    case right =>
-      intro s2' htr
-      obtain ⟨_, hr, hb⟩ := hbis
-      have ⟨_, hb2⟩ := hb hr μ'
-      obtain ⟨s1', _⟩ := hb2 _ htr
-      exists s1'
-      grind [Bisimilarity.largest_bisimulation]
+  case bisim => grind [Bisimilarity.largest_bisimulation]
 
 @[local grind]
 private inductive ResBisim : Process Name Constant → Process Name Constant → Prop where
