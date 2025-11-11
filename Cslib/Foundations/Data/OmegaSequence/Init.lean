@@ -41,6 +41,10 @@ protected theorem ext {s₁ s₂ : ωSequence α} : (∀ n, s₁ n = s₂ n) →
   apply DFunLike.ext
 
 @[simp, scoped grind =]
+theorem get_fun (f : ℕ → α) (n : ℕ) : ωSequence.mk f n = f n :=
+  rfl
+
+@[simp, scoped grind =]
 theorem get_zero_cons (a : α) (s : ωSequence α) : (a ::ω s) 0 = a :=
   rfl
 

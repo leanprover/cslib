@@ -10,6 +10,7 @@ import Cslib.Computability.Automata.OmegaAcceptor
 import Cslib.Computability.Automata.Prod
 import Cslib.Computability.Languages.Language
 import Cslib.Computability.Languages.OmegaLanguage
+import Cslib.Computability.Languages.OmegaLanguageExamples
 import Cslib.Computability.Languages.OmegaRegularLanguage
 import Cslib.Computability.Languages.RegularLanguage
 import Cslib.Foundations.Control.Monad.Free
@@ -20,6 +21,7 @@ import Cslib.Foundations.Data.HasFresh
 import Cslib.Foundations.Data.Nat.Segment
 import Cslib.Foundations.Data.OmegaSequence.Defs
 import Cslib.Foundations.Data.OmegaSequence.Flatten
+import Cslib.Foundations.Data.OmegaSequence.InfOcc
 import Cslib.Foundations.Data.OmegaSequence.Init
 import Cslib.Foundations.Data.Relation
 import Cslib.Foundations.Lint.Basic

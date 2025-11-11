@@ -5,7 +5,6 @@ Authors: Ching-Tsun Chou
 -/
 
 import Cslib.Computability.Automata.DA
-import Cslib.Computability.Automata.NA
 
 /-! # Deterministic Buchi automata.
 -/
