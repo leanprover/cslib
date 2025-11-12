@@ -1,7 +1,7 @@
 name = "docs"
 reservoir = false
+version = "0.1.0"
 packagesDir = "../.lake/packages"
-buildDir = "."
 
 [[require]]
 scope = "leanprover"
@@ -10,4 +10,4 @@ rev = "v4.25.0-rc2"
 
 [[require]]
 name = "cslib"
-path = ".."
+path = "../"
