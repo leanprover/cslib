@@ -1,4 +1,4 @@
-name = "docbuild"
+name = "docs"
 reservoir = false
 version = "0.1.0"
 packagesDir = "../.lake/packages"
