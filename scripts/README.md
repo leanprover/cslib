@@ -42,3 +42,6 @@ to learn about it as well!
   **Requirements:**
   - `gh` (GitHub CLI) must be installed and authenticated
   - Optional: `zulip-send` CLI for automatic Zulip notifications
+
+**Init Imports**
+- `CheckInitImports.lean` (usually run from `lake test`) checks that all files transitively import `Cslib.Init`.

@@ -23,18 +23,6 @@ def exceptions : List Name := [
   `Cslib.Foundations.Lint.Basic,
   `Cslib.Init,
 
-  -- Type elaboration issues in downstream files
-  `Cslib.Foundations.Semantics.LTS.Basic,
-  `Cslib.Foundations.Semantics.LTS.TraceEq,
-  `Cslib.Computability.Automata.DA,
-  `Cslib.Computability.Automata.DFA,
-  `Cslib.Computability.Automata.DFAToNFA,
-  `Cslib.Computability.Automata.EpsilonNFA,
-  `Cslib.Computability.Automata.EpsilonNFAToNFA,
-  `Cslib.Computability.Automata.NA,
-  `Cslib.Computability.Automata.NFA,
-  `Cslib.Computability.Automata.NFAToDFA,
-
   -- Notation conflict with Mathlib.Finsupp (→₀)
   `Cslib.Foundations.Data.FinFun,
 
