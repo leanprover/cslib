@@ -59,7 +59,7 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   rw [IsRegular.iff_cslib_dfa] at h ⊢
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
   use State, inferInstance, ⟨da, accᶜ⟩
-  ext; grind
+  grind
 
 @[simp]
 theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by

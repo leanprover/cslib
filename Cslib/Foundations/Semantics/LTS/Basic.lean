@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
--- TODO: Causes type elaboration ambiguities in downstream files (Automata)
--- import Cslib.Init
+import Cslib.Init
 import Mathlib.Tactic.Lemma
 import Mathlib.Data.Finite.Defs
 import Mathlib.Data.Fintype.Basic
@@ -329,6 +328,13 @@ theorem LTS.setImageMultistep_foldl_setImage (lts : LTS State Label) :
   lts.setImageMultistep = List.foldl lts.setImage := by
   ext S μs s'
   induction μs generalizing S <;> grind
+
+/-- Characterisation of membership in `List.foldl lts.setImage` with `MTr`. -/
+@[grind =]
+theorem LTS.mem_foldl_setImage (lts : LTS State Label) :
+  s' ∈ List.foldl lts.setImage S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
+  rw [← LTS.setImageMultistep_foldl_setImage]
+  exact LTS.mem_setImageMultistep lts
 
 /-- An lts is image-finite if all images of its states are finite. -/
 @[scoped grind]
