@@ -135,7 +135,7 @@ theorem Bisimilarity.refl (s : State) : s ~[lts] s := by
 theorem LTS.IsBisimulation.inv (h : lts.IsBisimulation r) :
   lts.IsBisimulation (flip r) := by grind [flip]
 
-open LTS in
+open scoped LTS.IsBisimulation in
 /-- Bisimilarity is symmetric. -/
 @[scoped grind →, symm]
 theorem Bisimilarity.symm {s1 s2 : State} (h : s1 ~[lts] s2) : s2 ~[lts] s1 := by
