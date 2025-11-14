@@ -327,6 +327,13 @@ theorem LTS.setImageMultistep_foldl_setImage (lts : LTS State Label) :
   ext S μs s'
   induction μs generalizing S <;> grind
 
+/-- Characterisation of membership in `List.foldl lts.setImage` with `MTr`. -/
+@[grind =]
+theorem LTS.mem_foldl_setImage (lts : LTS State Label) :
+  s' ∈ List.foldl lts.setImage S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
+  rw [← LTS.setImageMultistep_foldl_setImage]
+  exact LTS.mem_setImageMultistep lts
+
 /-- An lts is image-finite if all images of its states are finite. -/
 @[grind]
 def LTS.ImageFinite : Prop :=
