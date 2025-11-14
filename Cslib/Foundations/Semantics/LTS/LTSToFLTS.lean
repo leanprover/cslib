@@ -28,15 +28,7 @@ original `LTS`. -/
 @[scoped grind =]
 theorem toFLTS_mem_mtr {lts : LTS State Label} {S : Set State} {s' : State} {μs : List Label} :
   s' ∈ lts.toFLTS.mtr S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
-  simp only [LTS.toFLTS, FLTS.mtr]
-  /- TODO: Grind does not catch a useful rewrite in the subset construction for automata
-
-    A very similar issue seems to occur in the proof of `LTS.toFLTS_language_eq`.
-
-    labels: grind, lts, automata
-  -/
-  rw [← LTS.setImageMultistep_foldl_setImage]
-  grind
+  grind [LTS.toFLTS, FLTS.mtr]
 
 /-- Characterisation of multistep transitions in `LTS.toFLTS` as image transitions in `LTS`. -/
 @[scoped grind =]
