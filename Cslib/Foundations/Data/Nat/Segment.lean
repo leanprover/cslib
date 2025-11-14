@@ -198,23 +198,21 @@ theorem segment'_eq_segment (hm : StrictMono f) :
   rcases (show k < f 0 ∨ k ≥ f 0 by omega) with h_k | h_k
   · have : k - f 0 = 0 := by grind
     grind
-  unfold segment ; congr 1
+  unfold segment; congr 1
   simp only [count_eq_card_filter_range]
   suffices h : ∃ g, BijOn g
-      ({x ∈ Finset.range (k - f 0 + 1) | x ∈ range fun x => f x - f 0}).toSet
-      ({x ∈ Finset.range (k + 1) | x ∈ range f}).toSet by
-    obtain ⟨g, h_bij⟩ := h
-    exact BijOn.finsetCard_eq g h_bij
+      ({x ∈ Finset.range (k - f 0 + 1) | x ∈ range fun x => f x - f 0})
+      ({x ∈ Finset.range (k + 1) | x ∈ range f}) by
+    grind [BijOn.finsetCard_eq, Finset.coe_filter]
   refine ⟨fun n ↦ n + f 0, ?_, ?_, ?_⟩
-  · intro n ; simp only [mem_range, Finset.coe_filter, Finset.mem_range, mem_setOf_eq]
+  · intro n; simp only [mem_range, Finset.mem_range, mem_setOf_eq]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
     refine ⟨?_, i, ?_⟩ <;> omega
   · grind [injOn_of_injective, Injective]
-  · intro n ; simp only [mem_range, Finset.coe_filter, Finset.mem_range, mem_setOf_eq, mem_image]
+  · intro n; simp only [mem_range, Finset.mem_range, mem_setOf_eq, mem_image]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
-    use f i - f 0
     grind
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `segment f k = 0` for all `k ≤ f 0`. -/

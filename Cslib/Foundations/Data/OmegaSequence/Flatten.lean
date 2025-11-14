@@ -154,7 +154,6 @@ theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k
   have h_ls' : ∀ k, (ls.drop n k).length > 0 := by grind
   have h_drop := flatten_drop h_ls n
   have h_take := flatten_take h_ls' 1
-  have : (ls.drop n).cumLen 1 = ls.cumLen (n + 1) - ls.cumLen n := by grind
   grind [extract_eq_drop_take]
 
 /-- Given an ω-sequence `s` and a function `f : ℕ → ℕ`, `s.toSegs f` is the ω-sequence
