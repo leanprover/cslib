@@ -86,18 +86,6 @@ def LTS.IsBisimulation (lts : LTS State Label) (r : State → State → Prop) : 
     (∀ s2', lts.Tr s2 μ s2' → ∃ s1', lts.Tr s1 μ s1' ∧ r s1' s2')
   )
 
-/- Semi-bundled version of `LTS.IsBisimulation`. -/
--- @[scoped grind ext]
--- structure Bisimulation (lts : LTS State Label) where
---   /-- The relation on the states of the lts. -/
---   rel : State → State → Prop
---   /-- Proof that the relation is a bisimulation. -/
---   is_bisimulation : lts.IsBisimulation rel
-
-/- Any `Bisimulation` can be coerced into a relation. -/
--- instance : CoeFun (lts.IsBisimulation) (fun _ => State → State → Prop) where
---   coe := fun bisim => bisim.rel
-
 /-- Helper for following a transition by the first state in a pair of a `Bisimulation`. -/
 theorem LTS.IsBisimulation.follow_fst
   (hb : lts.IsBisimulation r) (hr : r s1 s2) (htr : lts.Tr s1 μ s1') :

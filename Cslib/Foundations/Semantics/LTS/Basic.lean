@@ -338,8 +338,7 @@ theorem LTS.mem_foldl_setImage (lts : LTS State Label) :
 
 /-- An lts is image-finite if all images of its states are finite. -/
 @[scoped grind]
-class LTS.ImageFinite where
-  image_finite (s : State) (μ : Label) : Finite (lts.image s μ)
+class LTS.ImageFinite [image_finite : ∀ s μ, Finite (lts.image s μ)]
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
@@ -355,14 +354,11 @@ theorem LTS.deterministic_tr_image_singleton [lts.Deterministic] :
 
 /-- In a deterministic LTS, any image is either a singleton or the empty set. -/
 @[scoped grind .]
-theorem LTS.deterministic_image_char [hDet : lts.Deterministic] :
-    ∀ s μ, (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
+theorem LTS.deterministic_image_char [lts.Deterministic] (s : State) (μ : Label) :
+  (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
 
-/-- Every deterministic LTS is also image-finite. -/
-@[scoped grind .]
-instance LTS.deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := by
-  constructor
-  intro s μ
+/-- In a deterministic LTS, the image of any state-label combination is finite. -/
+instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) := by
   have hDet := LTS.deterministic_image_char lts s μ
   cases hDet
   case inl hDet =>
@@ -373,6 +369,13 @@ instance LTS.deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := 
     simp only [hDet]
     apply Set.finite_empty
 
+/-- Every deterministic LTS is also image-finite. -/
+instance LTS.deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := {}
+
+/-- Every finite-state LTS is also image-finite. -/
+@[scoped grind .]
+instance LTS.finiteState_imageFinite [Finite State] : lts.ImageFinite := {}
+
 /-- A state has an outgoing label `μ` if it has a `μ`-derivative. -/
 def LTS.HasOutLabel (s : State) (μ : Label) : Prop :=
   ∃ s', lts.Tr s μ s'
@@ -382,29 +385,14 @@ def LTS.outgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
 
 /-- An LTS is finitely branching if it is image-finite and all states have finite sets of
 outgoing labels. -/
-class LTS.FinitelyBranching (lts : LTS State Label) extends lts.ImageFinite where
-  finite_outgoing_labels (s : State) : Finite (lts.outgoingLabels s)
-
-/- An LTS is finite-state if it has a finite `State` type. -/
--- @[nolint unusedArguments]
--- def LTS.FiniteState (_ : LTS State Label) : Prop := Finite State
-
-/-- Every finite-state LTS is also image-finite. -/
-@[scoped grind .]
-instance LTS.finiteState_imageFinite [Finite State] :
-    lts.ImageFinite := by
-  constructor
-  intros
-  apply Subtype.finite
+class LTS.FinitelyBranching
+  [image_finite : ∀ s μ, Finite (lts.image s μ)]
+  [finite_state : ∀ s, Finite (lts.outgoingLabels s)]
 
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
 @[scoped grind .]
-instance LTS.finiteState_finitelyBranching
-    [Finite State] [Finite Label] :
-    lts.FinitelyBranching := by
-  constructor
-  intro
-  apply Subtype.finite
+instance LTS.finiteState_finitelyBranching [Finite State] [Finite Label] : lts.FinitelyBranching :=
+  {}
 
 /-- An LTS is acyclic if there are no infinite multi-step transitions. -/
 class LTS.Acyclic (lts : LTS State Label) where
@@ -555,10 +543,6 @@ theorem LTS.STr.comp
   obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
   have concN := LTS.STrN.comp lts h1N h2N h3N
   apply (LTS.sTr_sTrN lts).2 ⟨n1 + n2 + n3, concN⟩
-
--- @[scoped grind _=_]
--- lemma LTS.saturate_tr_tau_sTr [HasTau Label] (lts : LTS State Label) :
---   lts.saturate.Tr s HasTau.τ = lts.STr s HasTau.τ := by simp [LTS.saturate]
 
 open scoped LTS.STr in
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
