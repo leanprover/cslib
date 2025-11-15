@@ -350,12 +350,8 @@ theorem LTS.deterministic_not_lto [h : lts.Deterministic] :
 @[scoped grind _=_]
 theorem LTS.deterministic_tr_image_singleton [lts.Deterministic] :
     lts.image s μ = {s'} ↔ lts.Tr s μ s' := by
-  apply Iff.intro
-  case mp =>
-    intro h
-    apply Set.eq_singleton_iff_unique_mem.1 at h
-    grind
-  case mpr => grind
+  have := (lts.image s μ).eq_singleton_iff_unique_mem (a := s')
+  grind
 
 /-- In a deterministic LTS, any image is either a singleton or the empty set. -/
 @[scoped grind .]
