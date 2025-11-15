@@ -26,6 +26,16 @@ def toNA (a : DA State Symbol) : NA State Symbol :=
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
+open scoped FLTS NA in
+@[simp, scoped grind =]
+theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State} :
+    a.toNA.Run xs ss ↔ a.run xs = ss := by
+  constructor
+  · rintro _
+    ext n
+    induction n <;> grind
+  · grind
+
 namespace FinAcc
 
 /-- `DA.FinAcc` is a special case of `NA.FinAcc`. -/
@@ -35,8 +45,8 @@ def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol :=
 
 open Acceptor in
 open scoped FLTS NA.FinAcc in
-/-- The `NA` constructed from a `DA` has the same language. -/
-@[scoped grind _=_]
+/-- The `NA.FinAcc` constructed from a `DA.FinAcc` has the same language. -/
+@[simp, scoped grind _=_]
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
     language a.toNAFinAcc = language a := by
   ext xs
@@ -47,6 +57,27 @@ theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
     grind
 
 end FinAcc
+
+namespace Buchi
+
+/-- `DA.Buchi` is a special case of `NA.Buchi`. -/
+@[scoped grind =]
+def toNABuchi (a : DA.Buchi State Symbol) : NA.Buchi State Symbol :=
+  { a.toNA with accept := a.accept }
+
+open ωAcceptor in
+open scoped NA.Buchi in
+/-- The `NA.Buchi` constructed from a `DA.Buchi` has the same ω-language. -/
+@[simp, scoped grind _=_]
+theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
+    language a.toNABuchi = language a := by
+  ext xs ; constructor
+  · grind
+  · intro _
+    use (a.run xs)
+    grind
+
+end Buchi
 
 end NA
 

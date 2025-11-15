@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 import Cslib.Init
-import Mathlib.Data.Nat.Notation
 import Mathlib.Data.FunLike.Basic
 import Mathlib.Logic.Function.Iterate
-import Mathlib.Order.Filter.AtTopBot.Defs
 
 /-!
 # Definition of `ωSequence` and functions on infinite sequences
@@ -23,8 +21,6 @@ Most code below is adapted from Mathlib.Data.Stream.Defs.
 -/
 
 namespace Cslib
-
-open Filter
 
 universe u v w
 variable {α : Type u} {β : Type v} {δ : Type w}
@@ -87,10 +83,6 @@ def zip (f : α → β → δ) (s₁ : ωSequence α) (s₂ : ωSequence β) : �
 
 /-- Iterates of a function as an ω-sequence. -/
 def iterate (f : α → α) (a : α) : ωSequence α := fun n => f^[n] a
-
-/-- The set of elements that appear infinitely often in an ω-sequence. -/
-def infOcc (xs : ωSequence α) : Set α :=
-  { x | ∃ᶠ k in atTop, xs k = x }
 
 end ωSequence
 
