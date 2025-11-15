@@ -184,6 +184,7 @@ private inductive ChoiceComm : Process Name Constant → Process Name Constant �
   | choiceComm : ChoiceComm (choice p q) (choice q p)
   | bisim : (p ~[lts (defs := defs)] q) → ChoiceComm p q
 
+open Bisimilarity LTS in
 /-- P + Q ~ Q + P -/
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
   exists @ChoiceComm Name Constant defs
@@ -244,6 +245,7 @@ private inductive PreBisim : Process Name Constant → Process Name Constant →
 | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
 | bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
 
+open scoped LTS in
 /-- P ~ Q → μ.P ~ μ.Q -/
 theorem bisimilarity_congr_pre :
   (p ~[lts (defs := defs)] q) → (pre μ p) ~[lts (defs := defs)] (pre μ q) := by
@@ -424,7 +426,7 @@ theorem bisimilarity_congr
       _ ~[lts (defs := defs)] (c.fill p |>.choice r)  := by grind [bisimilarity_choice_comm]
       _ ~[lts (defs := defs)] (c.fill q |>.choice r)  := by grind [bisimilarity_congr_choice]
       _ ~[lts (defs := defs)] (c.choiceR r |>.fill q) := by grind [bisimilarity_choice_comm]
-  | _ => grind [bisimilarity_congr_pre, bisimilarity_congr_par, 
+  | _ => grind [bisimilarity_congr_pre, bisimilarity_congr_par,
                 bisimilarity_congr_choice, bisimilarity_congr_res]
 
 end CCS

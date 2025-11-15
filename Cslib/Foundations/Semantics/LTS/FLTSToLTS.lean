@@ -26,14 +26,15 @@ theorem toLTS_tr {flts : FLTS State Label} {s1 : State} {μ : Label} {s2 : State
 
 /-- The transition system of a FLTS is deterministic. -/
 @[scoped grind ⇒]
-theorem toLTS_deterministic (flts : FLTS State Label) : flts.toLTS.Deterministic := by
-  grind
+instance toLTS_deterministic (flts : FLTS State Label) : flts.toLTS.Deterministic := by
+  open LTS in grind
 
 /-- The transition system of a FLTS is image-finite. -/
 @[scoped grind ⇒]
-theorem toLTS_imageFinite (flts : FLTS State Label) : flts.toLTS.ImageFinite :=
-  flts.toLTS.deterministic_imageFinite flts.toLTS_deterministic
+instance toLTS_imageFinite (flts : FLTS State Label) : flts.toLTS.ImageFinite :=
+  flts.toLTS.deterministic_imageFinite
 
+open LTS LTS.MTr in
 /-- Characterisation of multistep transitions. -/
 @[scoped grind =]
 theorem toLTS_mtr {flts : FLTS State Label} {s1 : State} {μs : List Label} {s2 : State} :

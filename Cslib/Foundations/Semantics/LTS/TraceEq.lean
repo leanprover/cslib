@@ -85,7 +85,7 @@ instance : Trans (TraceEq lts) (TraceEq lts) (TraceEq lts) where
 
 /-- In a deterministic LTS, trace equivalence is a simulation. -/
 theorem TraceEq.deterministic_sim
-  (lts : LTS State Label) (hdet : lts.Deterministic) (s1 s2 : State) (h : s1 ~tr[lts] s2) :
+  (lts : LTS State Label) [hdet : lts.Deterministic] (s1 s2 : State) (h : s1 ~tr[lts] s2) :
   ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ s1' ~tr[lts] s2' := by
   intro μ s1' htr1
   have hmtr1 := LTS.MTr.single lts htr1
@@ -111,7 +111,7 @@ theorem TraceEq.deterministic_sim
       case stepL s2'' htr2 hmtr2' =>
         exists s'
         have htr2' := LTS.MTr.single_invert lts _ _ _ hmtr2
-        have hdets2 := hdet s2 μ s2' s2'' htr2' htr2
+        have hdets2 := hdet.deterministic s2 μ s2' s2'' htr2' htr2
         rw [hdets2]
         exact hmtr2'
     case mpr =>
@@ -125,7 +125,7 @@ theorem TraceEq.deterministic_sim
       case stepL s1'' htr1 hmtr1' =>
         exists s'
         have htr1' := LTS.MTr.single_invert lts _ _ _ hmtr1
-        have hdets1 := hdet s1 μ s1' s1'' htr1' htr1
+        have hdets1 := hdet.deterministic s1 μ s1' s1'' htr1' htr1
         rw [hdets1]
         exact hmtr1'
 
