@@ -763,9 +763,8 @@ open LTS in
 /-- A relation is a bisimulation iff both it and its inverse are simulations. -/
 theorem Bisimulation.simulation_iff {lts : LTS State Label} {r : State → State → Prop} :
     lts.IsBisimulation r ↔ (Simulation lts r ∧ Simulation lts (flip r)) := by
-  constructor
-  case mp => grind [Simulation, flip]
-  case mpr => aesop (add simp [LTS.IsBisimulation])
+  have _ (s1 s2) : r s1 s2 → flip r s2 s1 := id
+  grind [Simulation, flip]
 
 end Bisimulation
 
