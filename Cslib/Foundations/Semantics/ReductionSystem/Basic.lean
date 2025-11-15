@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring
 -/
 
+import Cslib.Init
 import Mathlib.Logic.Relation
 import Mathlib.Util.Notation3
 
@@ -42,15 +43,6 @@ theorem ReductionSystem.MRed.refl (rs : ReductionSystem Term) (t : Term) : rs.MR
 theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b) :
   rs.MRed a b :=
   Relation.ReflTransGen.single h
-
-open Relation Relation.ReflTransGen
-
-instance (rs : ReductionSystem Term) : Trans rs.Red rs.MRed rs.MRed := by infer_instance
-instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_instance
-
-instance (rs : ReductionSystem Term) : IsTrans Term rs.MRed := by infer_instance
-instance (rs : ReductionSystem Term) : Transitive rs.MRed := transitive_of_trans rs.MRed
-instance (rs : ReductionSystem Term) : Trans rs.MRed rs.MRed rs.MRed := instTransOfIsTrans
 
 end MultiStep
 
@@ -98,17 +90,17 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "reduction_notation" ident (str)? : command
+syntax attrKind "reduction_notation" ident (str)? : command
 macro_rules
-  | `(reduction_notation $rs $sym) =>
+  | `($kind:attrKind reduction_notation $rs $sym) =>
     `(
-      notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
+      $kind:attrKind notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
+      $kind:attrKind notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
-  | `(reduction_notation $rs) =>
+  | `($kind:attrKind reduction_notation $rs) =>
     `(
-      notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
+      $kind:attrKind notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      $kind:attrKind notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 
@@ -133,11 +125,15 @@ initialize Lean.registerBuiltinAttribute {
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped reduction_notation $rs $sym)))
     | `(attr | reduction_sys $rs) =>
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped reduction_notation $rs)))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
 

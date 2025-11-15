@@ -13,3 +13,4 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail"
+          mk_all-check: "true"
