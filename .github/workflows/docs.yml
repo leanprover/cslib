@@ -29,3 +29,5 @@ jobs:
       - name: Build project documentation
         id: build-docgen
         uses: leanprover-community/docgen-action@main
+        with:
+          build-page: false
