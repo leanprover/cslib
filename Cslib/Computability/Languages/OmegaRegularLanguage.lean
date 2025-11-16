@@ -5,7 +5,7 @@ Authors: Ching-Tsun Chou
 -/
 
 import Cslib.Computability.Automata.DABuchi
-import Cslib.Computability.Languages.OmegaLanguageExamples
+import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
 
 /-!

@@ -8,9 +8,9 @@ import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.OmegaAcceptor
 import Cslib.Computability.Automata.Prod
+import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.Language
 import Cslib.Computability.Languages.OmegaLanguage
-import Cslib.Computability.Languages.OmegaLanguageExamples
 import Cslib.Computability.Languages.OmegaRegularLanguage
 import Cslib.Computability.Languages.RegularLanguage
 import Cslib.Foundations.Control.Monad.Free

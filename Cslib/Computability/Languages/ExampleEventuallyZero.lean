@@ -17,8 +17,6 @@ open scoped Computability
 
 namespace Cslib.ωLanguage.Example
 
-section EventuallyZero
-
 /-- A sequence `xs` is in `eventually_zero` iff `xs k = 0` for all large `k`. -/
 @[scoped grind =]
 def eventually_zero : ωLanguage (Fin 2) :=
@@ -110,7 +108,5 @@ theorem eventually_zero_not_omegaLim :
   obtain ⟨n, h_n, k, rfl⟩ := frequently_atTop.mp h_inf m
   have h_k : 1 ∈ ls k := by grind
   grind [List.mem_iff_getElem, = _ extract_flatten]
-
-end EventuallyZero
 
 end Cslib.ωLanguage.Example
