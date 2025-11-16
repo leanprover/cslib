@@ -162,7 +162,8 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
-@[scoped grind =] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
+@[scoped grind =] lemma mem_dual {G : Fact P} : 
+    p ∈ (G⫠ : Set P) ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
 @[scoped grind =>]
@@ -367,7 +368,7 @@ def tensor (X Y : Fact P) : Fact P := dualFact (X * Y)⫠
 The par (multiplicative disjunction) `X ⅋ Y` of two facts,
 defined as the dual of the pointwise product of the orthogonals.
 -/
-def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
+def parr (X Y : Fact P) : Fact P := dualFact ((X⫠ : Set  P) * (Y⫠ : Set P))
 
 @[inherit_doc] infixr:78 " ⅋ " => parr
 

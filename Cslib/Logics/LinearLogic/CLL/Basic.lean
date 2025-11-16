@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
--- TODO: Syntax elaboration conflicts 
--- import Cslib.Init
+import Cslib.Init
 import Aesop
 import Mathlib.Tactic.ApplyAt
 import Mathlib.Order.Notation
@@ -250,7 +249,7 @@ theorem Proposition.equiv.toProp (h : Proposition.equiv a b) : Proposition.Equiv
 instance {a b : Proposition Atom} : Coe (a.equiv b) (a.Equiv b) where
   coe := Proposition.equiv.toProp
 
-scoped infix:29 " ≡ " => Proposition.Equiv
+scoped infix:29 " ≅ " => Proposition.Equiv
 
 namespace Proposition
 
@@ -261,12 +260,12 @@ def equiv.refl (a : Proposition Atom) : a.equiv a := by
   )
 
 @[refl]
-theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
+theorem Equiv.refl (a : Proposition Atom) : a ≅ a := equiv.refl a
 
 @[symm]
-theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
+theorem Equiv.symm {a b : Proposition Atom} (h : a ≅ b) : b ≅ a := ⟨h.2, h.1⟩
 
-theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
+theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≅ b) (hbc : b ≅ c) : a ≅ c :=
   ⟨
     Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hab.1.toProof) hbc.1),
     Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hbc.2.toProof) hab.2)
@@ -283,7 +282,7 @@ have accompanying theorems derived through `Proposition.equiv.toProp`.
 labels: logic
 -/
 
-theorem bang_top_eqv_one : (!⊤ : Proposition Atom) ≡ 1 := by
+theorem bang_top_eqv_one : (!⊤ : Proposition Atom) ≅ 1 := by
   constructor
   · apply Provable.fromProof
     apply Proof.weaken
@@ -294,7 +293,7 @@ theorem bang_top_eqv_one : (!⊤ : Proposition Atom) ≡ 1 := by
     · intro _ _; contradiction
     exact Proof.top
 
-theorem quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡ ⊥ := by
+theorem quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≅ ⊥ := by
   constructor
   · apply Provable.fromProof
     apply Proof.exchange (List.Perm.swap (bang top) bot [])
@@ -307,14 +306,14 @@ theorem quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡ ⊥ := by
     apply Proof.weaken
     exact Proof.one
 
-theorem tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡ 0 := by
+theorem tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≅ 0 := by
   refine ⟨Provable.fromProof ?_, Provable.fromProof .top⟩
   apply Proof.parr
   apply Proof.exchange (List.Perm.swap a⫠ ⊤ [0])
   exact Proof.top
 
 theorem parr_top_eqv_top (a : Proposition Atom) :
-    a ⅋ ⊤ ≡ ⊤ := by
+    a ⅋ ⊤ ≅ ⊤ := by
   constructor
   · apply Provable.fromProof
     apply Proof.exchange (List.Perm.swap (parr a top)⫠ top [])
@@ -326,7 +325,7 @@ theorem parr_top_eqv_top (a : Proposition Atom) :
     exact Proof.top
 
 theorem tensor_distrib_oplus (a b c : Proposition Atom) :
-    a ⊗ (b ⊕ c) ≡ (a ⊗ b) ⊕ (a ⊗ c) := by
+    a ⊗ (b ⊕ c) ≅ (a ⊗ b) ⊕ (a ⊗ c) := by
   constructor
   · apply Provable.fromProof
     apply Proof.parr
@@ -363,13 +362,13 @@ labels: logic
 -/
 /-- The proposition at the head of a proof can be substituted by an equivalent
   proposition. -/
-theorem subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
+theorem subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≅ b) :
   ⊢(a :: Γ) → ⊢(b :: Γ) :=
   fun h => Proof.exchange (List.perm_append_singleton b Γ) (Proof.cut h heqv.left.toProof)
 
 /-- Any proposition in a proof (regardless of its position) can be substituted by
   an equivalent proposition. -/
-theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
+theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≅ b) :
   ⊢(Γ ++ [a] ++ Δ) → ⊢(Γ ++ [b] ++ Δ) := by
     simp only [List.append_assoc, List.cons_append, List.nil_append]
     intro h
@@ -380,7 +379,7 @@ theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ 
     apply Provable.toProof
     apply subst_eqv_head heqv h
 
-theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≡ b ⊗ a := by
+theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≅ b ⊗ a := by
   constructor
   · apply Provable.fromProof
     apply Proof.parr
@@ -391,7 +390,7 @@ theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≡ b ⊗ a := by
     apply Proof.exchange (List.reverse_perm _)
     apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
 
-theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) ⊗ c := by
+theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≅ (a ⊗ b) ⊗ c := by
   constructor
   · apply Provable.fromProof
     apply Proof.parr
@@ -414,14 +413,14 @@ theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) 
 instance {Γ : Sequent Atom} : IsSymm (Proposition Atom) (fun a b => ⊢((a ⊗ b) :: Γ)) where
   symm := fun _ _ => subst_eqv_head tensor_symm
 
-theorem oplus_idem {a : Proposition Atom} : a ⊕ a ≡ a := by
+theorem oplus_idem {a : Proposition Atom} : a ⊕ a ≅ a := by
   constructor <;> apply Provable.fromProof
   · apply Proof.with <;> exact Proof.ax'
   · apply Proof.exchange (List.Perm.swap ..)
     apply Proof.oplus₁
     exact Proof.ax
 
-theorem with_idem {a : Proposition Atom} : a & a ≡ a := by
+theorem with_idem {a : Proposition Atom} : a & a ≅ a := by
   constructor <;> apply Provable.fromProof
   · apply Proof.oplus₁
     exact Proof.ax'
