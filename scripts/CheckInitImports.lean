@@ -23,9 +23,6 @@ def exceptions : List Name := [
   `Cslib.Foundations.Lint.Basic,
   `Cslib.Init,
 
-  -- Notation conflict with Mathlib.Finsupp (→₀)
-  `Cslib.Foundations.Data.FinFun,
-
   -- Syntax elaboration conflicts 
   `Cslib.Logics.LinearLogic.CLL.Basic,
   `Cslib.Logics.LinearLogic.CLL.CutElimination,
