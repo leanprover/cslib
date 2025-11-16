@@ -5,8 +5,6 @@ Authors: Ching-Tsun Chou
 -/
 
 import Cslib.Foundations.Data.OmegaSequence.Defs
-import Mathlib.Order.Filter.AtTopBot.Defs
-import Mathlib.Tactic
 
 /-!
 # Infinite occurrences
@@ -33,11 +31,8 @@ theorem frequently_iff_strictMono {p : ℕ → Prop} :
     exact extraction_of_frequently_atTop h
   · rintro ⟨f, h_mono, h_p⟩
     rw [Nat.frequently_atTop_iff_infinite]
-    have h_range : range f ⊆ {n | p n} := by
-      rintro k ⟨m, rfl⟩
-      simp_all only [mem_setOf_eq]
-    apply Infinite.mono h_range
-    exact infinite_range_of_injective h_mono.injective
+    have h_range : range f ⊆ {n | p n} := by grind
+    grind [Infinite.mono, infinite_range_of_injective, StrictMono.injective]
 
 end ωSequence
 

@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA
-import Cslib.Computability.Automata.NA
-import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.DABuchi
-import Cslib.Computability.Languages.RegularLanguage
 import Cslib.Computability.Languages.OmegaLanguageExamples
-import Mathlib.Tactic
+import Cslib.Computability.Languages.RegularLanguage
 
 /-!
 # ω-Regular languages
@@ -32,9 +28,8 @@ def IsRegular (p : ωLanguage Symbol) :=
 
 /-- The ω-language accepted by a finite-state deterministic Buchi automaton is ω-regular. -/
 theorem IsRegular.of_da_buchi {State : Type} [Finite State] (da : DA.Buchi State Symbol) :
-    (language da).IsRegular := by
-  use State, inferInstance, da.toNABuchi
-  simp
+    (language da).IsRegular :=
+  ⟨State, inferInstance, da.toNABuchi, DA.Buchi.toNABuchi_language_eq⟩
 
 /-- There is an ω-regular language that is not accepted by any deterministic Buchi automaton,
 where the automaton is not even required to be finite-state. -/
@@ -42,19 +37,17 @@ theorem IsRegular.not_da_buchi :
   ∃ Symbol : Type, ∃ p : ωLanguage Symbol, p.IsRegular ∧
     ¬ ∃ State : Type, ∃ da : DA.Buchi State Symbol, language da = p := by
   refine ⟨Fin 2, Example.eventually_zero, ?_, ?_⟩
-  · obtain ⟨a, _⟩ := Example.eventually_zero_accepted_by_na_buchi
-    use Fin 2, inferInstance, a
-  · rintro ⟨State, ⟨da, acc⟩, h⟩
-    simp [DA.buchi_eq_finAcc_omegaLim] at h
+  · use Fin 2, inferInstance, Example.eventually_zero_na,
+      Example.eventually_zero_accepted_by_na_buchi
+  · rintro ⟨State, ⟨da, acc⟩, _⟩
     have := Example.eventually_zero_not_omegaLim
-    grind
+    grind [DA.buchi_eq_finAcc_omegaLim]
 
 /-- The ω-limit of a regular language is ω-regular. -/
 theorem IsRegular.regular_omegaLim {l : Language Symbol}
     (h : l.IsRegular) : (l↗ω).IsRegular := by
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_cslib_dfa.mp h
-  rw [← DA.buchi_eq_finAcc_omegaLim]
-  apply IsRegular.of_da_buchi
+  grind [IsRegular.of_da_buchi, =_ DA.buchi_eq_finAcc_omegaLim]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :

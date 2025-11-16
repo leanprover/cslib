@@ -384,7 +384,7 @@ theorem kstar_hmul_omegaPow_eq_omegaPow [Inhabited α] (l : Language α) : l∗ 
 
 @[simp]
 theorem omegaLim_zero : (0 : Language α)↗ω = ⊥ := by
-  ext xs ; simp
+  ext; simp
 
 @[simp, scoped grind =]
 theorem map_id (p : ωLanguage α) : map id p = p :=
