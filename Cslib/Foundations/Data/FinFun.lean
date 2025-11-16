@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi, Xueying Qin
 -/
 
 import Cslib.Init
-import Mathlib.Data.Finset.Basic
 
 /-! # Finite functions
 
