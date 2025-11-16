@@ -5,8 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Logics.LinearLogic.CLL.Basic
-import Mathlib.Data.Multiset.Defs
-import Mathlib.Data.Multiset.AddSub
 
 namespace Cslib
 
