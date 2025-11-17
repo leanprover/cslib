@@ -194,68 +194,27 @@ def LTS.unionSubtype
     else
       False
 
-/-- TODO: move this to `Sum`? -/
-def Sum.IsLeftP {α} {β} (x : α ⊕ β) : Prop := Sum.isLeft x = true
-
-/-- TODO: move this to `Sum`? -/
-def Sum.IsRightP {α} {β} (x : α ⊕ β) : Prop := Sum.isRight x = true
-
 /-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
-def LTS.inl {State'} (lts : LTS State Label) :
-  LTS (@Subtype (State ⊕ State') Sum.IsLeftP) (@Subtype Label (Function.const Label True)) where
-  Tr := fun s μ s' =>
-    let ⟨s, _⟩ := s
-    let ⟨s', _⟩ := s'
-    match s, μ, s' with
-    | Sum.inl s1, μ, Sum.inl s2 => lts.Tr s1 μ s2
-    | _, _, _ => False
+def LTS.inl (lts : LTS State Label) :
+    LTS { x : State ⊕ State' // x.isLeft } { _label : Label // True } where
+  Tr s μ s' := 
+    match s, s' with
+    | ⟨.inl s1, _⟩, ⟨.inl s2, _⟩ => lts.Tr s1 μ s2
+    | _, _ => False
 
 /-- Lifting of an `LTS State Label` to `LTS (State' ⊕ State) Label`. -/
-def LTS.inr {State'} (lts : LTS State Label) :
-  LTS (@Subtype (State' ⊕ State) Sum.IsRightP) (@Subtype Label (Function.const Label True)) where
-  Tr := fun s μ s' =>
-    let ⟨s, _⟩ := s
-    let ⟨s', _⟩ := s'
-    match s, μ, s' with
-    | Sum.inr s1, μ, Sum.inr s2 => lts.Tr s1 μ s2
-    | _, _, _ => False
+def LTS.inr (lts : LTS State Label) : 
+    LTS { x : State' ⊕ State // x.isRight } { _label : Label // True } where
+  Tr s μ s' :=
+    match s, s' with
+    | ⟨.inr s1, _⟩, ⟨.inr s2, _⟩ => lts.Tr s1 μ s2
+    | _, _ => False
 
 /-- Union of two LTSs with the same `Label` type. The result combines the original respective state
 types `State1` and `State2` into `(State1 ⊕ State2)`. -/
-def LTS.unionSum {State1} {State2} (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
-  LTS (State1 ⊕ State2) Label :=
-  @LTS.unionSubtype
-    (State1 ⊕ State2) Label
-    Sum.IsLeftP
-    (Function.const Label True)
-    Sum.IsRightP
-    (Function.const Label True)
-    (by
-      intro s
-      cases h : s
-      · apply Decidable.isTrue
-        trivial
-      · simp only [Sum.IsLeftP, Sum.isLeft_inr, Bool.false_eq_true]
-        apply Decidable.isFalse
-        trivial)
-    (by
-      intro μ
-      apply Decidable.isTrue
-      trivial)
-    (by
-      intro s
-      cases h : s
-      · simp only [Sum.IsRightP, Sum.isRight_inl, Bool.false_eq_true]
-        apply Decidable.isFalse
-        trivial
-      · apply Decidable.isTrue
-        trivial)
-    (by
-      intro μ
-      apply Decidable.isTrue
-      trivial)
-    lts1.inl
-    lts2.inr
+def LTS.unionSum (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
+    LTS (State1 ⊕ State2) Label := 
+  LTS.unionSubtype lts1.inl lts2.inr
 
 end Union
 
