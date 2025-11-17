@@ -7,9 +7,12 @@ Authors: Ching-Tsun Chou
 import Cslib.Computability.Automata.NA
 
 /-!
-# ω-Regular languages
+# An ω-regular language that is not accepted by any deterministic Buchi automaton
 
-This file defines ω-regular languages and proves some properties of them.
+This example is adapted from Example 4.2 of [Thomas1990].
+
+## References
+* [W. Thomas, "Automata on infinite objects"][Thomas1990]
 -/
 
 open Set Function Filter Cslib.ωSequence Cslib.Automata ωAcceptor
