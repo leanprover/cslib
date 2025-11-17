@@ -6,7 +6,6 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Computability.Automata.DA
 import Cslib.Computability.Automata.NA
-import Mathlib.Tactic
 
 /-!
 # ω-Regular languages

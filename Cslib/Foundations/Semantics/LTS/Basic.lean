@@ -5,14 +5,9 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Init
-import Mathlib.Tactic.Lemma
-import Mathlib.Data.Finite.Defs
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Logic.Function.Defs
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Stream.Defs
-import Mathlib.Util.Notation3
-import Mathlib.Order.SetNotation
+import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 /-!
 # Labelled Transition System (LTS)

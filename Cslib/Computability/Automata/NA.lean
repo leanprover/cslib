@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Languages.OmegaLanguage
-import Cslib.Foundations.Semantics.LTS.Basic
-import Cslib.Foundations.Semantics.LTS.FLTS
 import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Automata.OmegaAcceptor
+import Cslib.Foundations.Semantics.LTS.Basic
 
 /-! # Nondeterministic Automaton
 
