@@ -210,6 +210,11 @@ theorem flatten_mem_omegaPow [Inhabited α] {xs : ωSequence (List α)}
     (h_xs : ∀ k, xs k ∈ l - 1) : xs.flatten ∈ l^ω :=
   ⟨xs, rfl, h_xs⟩
 
+@[simp, scoped grind =]
+theorem mem_omegaLim :
+    s ∈ l↗ω ↔ ∃ᶠ m in atTop, s.extract 0 m ∈ l :=
+  Iff.rfl
+
 theorem mul_hmul : (l * m) * p = l * (m * p) :=
   image2_assoc append_append_ωSequence
 
@@ -376,6 +381,10 @@ theorem kstar_hmul_omegaPow_eq_omegaPow [Inhabited α] (l : Language α) : l∗ 
     _ = l∗ * (l∗)^ω := by simp
     _ = (l∗)^ω := by rw [hmul_omegaPow_eq_omegaPow]
     _ = _ := by simp
+
+@[simp]
+theorem omegaLim_zero : (0 : Language α)↗ω = ⊥ := by
+  ext; simp
 
 @[simp, scoped grind =]
 theorem map_id (p : ωLanguage α) : map id p = p :=
