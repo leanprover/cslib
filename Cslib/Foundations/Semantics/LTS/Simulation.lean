@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Semantics.LTS.Basic
-import Cslib.Foundations.Data.Relation
 
 /-! # Simulation and Similarity
 

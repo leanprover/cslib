@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 import Cslib.Init
-import Mathlib.Data.FunLike.Basic
-import Mathlib.Logic.Function.Iterate
+import Mathlib.Order.Filter.AtTopBot.Defs
 
 /-!
 # Definition of `ωSequence` and functions on infinite sequences

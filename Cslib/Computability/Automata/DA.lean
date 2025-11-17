@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 
 import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Automata.OmegaAcceptor
-import Cslib.Foundations.Data.OmegaSequence.InfOcc
 import Cslib.Foundations.Semantics.LTS.FLTS
 
 /-! # Deterministic Automata

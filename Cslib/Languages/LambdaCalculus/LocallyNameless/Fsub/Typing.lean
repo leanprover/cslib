@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.WellFormed
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Subtype
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Reduction
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Subtype
 
 /-! # λ-calculus
 

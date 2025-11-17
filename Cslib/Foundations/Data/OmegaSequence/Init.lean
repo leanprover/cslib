@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 import Cslib.Foundations.Data.OmegaSequence.Defs
-import Mathlib.Logic.Function.Basic
-import Mathlib.Data.List.OfFn
-import Mathlib.Data.Nat.Basic
-import Mathlib.Tactic
 
 /-!
 # ω-sequences a.k.a. infinite sequences

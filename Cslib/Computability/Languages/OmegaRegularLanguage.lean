@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DABuchi
-import Cslib.Computability.Languages.ExampleEventuallyZero
-import Cslib.Computability.Languages.RegularLanguage
+import Cslib.Computability.Automata.DA
+import Cslib.Computability.Automata.NA
 
 /-!
 # ω-Regular languages
