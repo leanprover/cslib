@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Foundations.Semantics.LTS.FLTS
 import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Automata.OmegaAcceptor
-import Cslib.Computability.Languages.OmegaLanguage
+import Cslib.Foundations.Data.OmegaSequence.InfOcc
+import Cslib.Foundations.Semantics.LTS.FLTS
 
 /-! # Deterministic Automata
 
@@ -24,6 +24,9 @@ finiteness assumptions), deterministic Buchi automata, and deterministic Muller 
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
+open List Filter Cslib.ωSequence
+open scoped Cslib.FLTS
+
 namespace Cslib.Automata
 
 structure DA (State Symbol : Type*) extends FLTS State Symbol where
@@ -33,6 +36,33 @@ structure DA (State Symbol : Type*) extends FLTS State Symbol where
 namespace DA
 
 variable {State : Type _} {Symbol : Type _}
+
+/-- Helper function for defining `run` below. -/
+@[scoped grind =]
+def run' (da : DA State Symbol) (xs : ωSequence Symbol) : ℕ → State
+  | 0 => da.start
+  | n + 1 => da.tr (run' da xs n) (xs n)
+
+/-- Infinite run. -/
+@[scoped grind =]
+def run (da : DA State Symbol) (xs : ωSequence Symbol) : ωSequence State := da.run' xs
+
+@[simp, scoped grind =]
+theorem run_zero {da : DA State Symbol} {xs : ωSequence Symbol} :
+    da.run xs 0 = da.start :=
+  rfl
+
+@[simp, scoped grind =]
+theorem run_succ {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ} :
+    da.run xs (n + 1) = da.tr (da.run xs n) (xs n) := by
+  rfl
+
+@[simp, scoped grind =]
+theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ} :
+    da.mtr da.start (xs.extract 0 n) = da.run xs n := by
+  induction n
+  case zero => rfl
+  case succ n h_ind => grind [extract_succ_right]
 
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends DA State Symbol where
@@ -49,19 +79,13 @@ This is the standard string recognition performed by DFAs in the literature. -/
 instance : Acceptor (DA.FinAcc State Symbol) Symbol where
   Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
 
-end FinAcc
-
-/-- Helper function for defining `run` below. -/
+open Acceptor in
 @[simp, scoped grind =]
-def run' (da : DA State Symbol) (xs : ωSequence Symbol) : ℕ → State
-  | 0 => da.start
-  | n + 1 => da.tr (run' da xs n) (xs n)
+theorem mem_language {a : FinAcc State Symbol} {xs : List Symbol} :
+    xs ∈ language a ↔ a.mtr a.start xs ∈ a.accept :=
+  Iff.rfl
 
-/-- Infinite run. -/
-@[scoped grind =]
-def run (da : DA State Symbol) (xs : ωSequence Symbol) : ωSequence State := da.run' xs
-
-open List Filter
+end FinAcc
 
 /-- Deterministic Buchi automaton. -/
 structure Buchi (State Symbol : Type*) extends DA State Symbol where
@@ -73,6 +97,12 @@ namespace Buchi
 @[scoped grind =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
   Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) := ∃ᶠ k in atTop, a.run xs k ∈ a.accept
+
+open ωAcceptor in
+@[simp, scoped grind =]
+theorem mem_language {a : Buchi State Symbol} {xs : ωSequence Symbol} :
+    xs ∈ language a ↔ ∃ᶠ k in atTop, a.run xs k ∈ a.accept :=
+  Iff.rfl
 
 end Buchi
 
@@ -86,6 +116,12 @@ namespace Muller
 @[scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
   Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) := (a.run xs).infOcc ∈ a.accept
+
+open ωAcceptor in
+@[simp, scoped grind =]
+theorem mem_language {a : Muller State Symbol} {xs : ωSequence Symbol} :
+    xs ∈ language a ↔ (a.run xs).infOcc ∈ a.accept :=
+  Iff.rfl
 
 end Muller
 
