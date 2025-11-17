@@ -5,10 +5,9 @@ Authors: Tanner Duve, Bhavik Mehta
 -/
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Algebra.Ring.Idempotent
+import Mathlib.Algebra.Group.Idempotent
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Closure
-import Mathlib.Tactic.Cases
 import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-!
