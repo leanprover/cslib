@@ -8,7 +8,9 @@ import Mathlib.Logic.Function.Basic
 import Mathlib.Data.List.OfFn
 import Mathlib.Data.Nat.Basic
 import Mathlib.Tactic.Common
-import Mathlib
+import Mathlib.Algebra.Order.Ring.Nat
+import Mathlib.Algebra.Order.Sub.Basic
+import Mathlib.Data.Nat.Lattice
 
 /-!
 # ω-sequences a.k.a. infinite sequences
