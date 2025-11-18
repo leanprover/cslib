@@ -75,15 +75,9 @@ namespace FinAcc
 the string to an accept state.
 
 This is the standard string recognition performed by DFAs in the literature. -/
-@[scoped grind =]
+@[simp, scoped grind =]
 instance : Acceptor (DA.FinAcc State Symbol) Symbol where
   Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
-
-open Acceptor in
-@[simp, scoped grind =]
-theorem mem_language {a : FinAcc State Symbol} {xs : List Symbol} :
-    xs ∈ language a ↔ a.mtr a.start xs ∈ a.accept :=
-  Iff.rfl
 
 end FinAcc
 
@@ -94,15 +88,9 @@ structure Buchi (State Symbol : Type*) extends DA State Symbol where
 
 namespace Buchi
 
-@[scoped grind =]
+@[simp, scoped grind =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
   Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) := ∃ᶠ k in atTop, a.run xs k ∈ a.accept
-
-open ωAcceptor in
-@[simp, scoped grind =]
-theorem mem_language {a : Buchi State Symbol} {xs : ωSequence Symbol} :
-    xs ∈ language a ↔ ∃ᶠ k in atTop, a.run xs k ∈ a.accept :=
-  Iff.rfl
 
 end Buchi
 
@@ -113,15 +101,9 @@ structure Muller (State Symbol : Type*) extends DA State Symbol where
 
 namespace Muller
 
-@[scoped grind =]
+@[simp, scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
   Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) := (a.run xs).infOcc ∈ a.accept
-
-open ωAcceptor in
-@[simp, scoped grind =]
-theorem mem_language {a : Muller State Symbol} {xs : ωSequence Symbol} :
-    xs ∈ language a ↔ (a.run xs).infOcc ∈ a.accept :=
-  Iff.rfl
 
 end Muller
 
