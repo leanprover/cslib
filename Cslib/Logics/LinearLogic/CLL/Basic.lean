@@ -5,8 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Init
-import Aesop
-import Mathlib.Tactic.ApplyAt
 import Mathlib.Order.Notation
 import Mathlib.Order.Defs.Unbundled
 
