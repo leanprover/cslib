@@ -23,7 +23,7 @@ def language [Acceptor A Symbol] (a : A) : Language Symbol :=
   { xs | Accepts a xs }
 
 /-- A string is in the language of an acceptor iff the acceptor accepts it. -/
-@[scoped grind =]
+@[simp, scoped grind =]
 theorem mem_language [Acceptor A Symbol] (a : A) (xs : List Symbol) :
   xs ∈ language a ↔ Accepts a xs := Iff.rfl
 

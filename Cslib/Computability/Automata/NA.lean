@@ -55,16 +55,10 @@ namespace FinAcc
 accept state.
 
 This is the standard string recognition performed by NFAs in the literature. -/
-@[scoped grind =]
+@[simp, scoped grind =]
 instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s'
-
-open Acceptor in
-@[simp, scoped grind =]
-theorem mem_language {a : FinAcc State Symbol} {xs : List Symbol} :
-    xs ∈ language a ↔ ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s' :=
-  Iff.rfl
 
 end FinAcc
 
@@ -74,16 +68,10 @@ structure Buchi (State Symbol : Type*) extends NA State Symbol where
 
 namespace Buchi
 
-@[scoped grind =]
+@[simp, scoped grind =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
   Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) :=
     ∃ ss, a.Run xs ss ∧ ∃ᶠ k in atTop, ss k ∈ a.accept
-
-open ωAcceptor in
-@[simp, scoped grind =]
-theorem mem_language {a : Buchi State Symbol} {xs : ωSequence Symbol} :
-    xs ∈ language a ↔ ∃ ss, a.Run xs ss ∧ ∃ᶠ k in atTop, ss k ∈ a.accept :=
-  Iff.rfl
 
 end Buchi
 
@@ -93,16 +81,10 @@ structure Muller (State Symbol : Type*) extends NA State Symbol where
 
 namespace Muller
 
-@[scoped grind =]
+@[simp, scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
   Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) :=
     ∃ ss, a.Run xs ss ∧ ss.infOcc ∈ a.accept
-
-open ωAcceptor in
-@[simp, scoped grind =]
-theorem mem_language {a : Muller State Symbol} {xs : ωSequence Symbol} :
-    xs ∈ language a ↔ ∃ ss, a.Run xs ss ∧ ss.infOcc ∈ a.accept :=
-  Iff.rfl
 
 end Muller
 
