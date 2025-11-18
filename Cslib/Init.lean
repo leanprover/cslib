@@ -6,7 +6,7 @@ Authors: Jesse Alama
 
 import Cslib.Foundations.Lint.Basic
 import Mathlib.Init
-import Mathlib.Tactic
+import Mathlib.Tactic.Common
 
 /-!
 # CSLib Initialization
