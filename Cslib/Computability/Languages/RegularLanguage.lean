@@ -9,7 +9,7 @@ import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.Prod
 import Cslib.Computability.Automata.Acceptor
 import Mathlib.Computability.DFA
-import Mathlib.Tactic
+import Mathlib.Tactic.Common
 
 /-!
 # Regular languages

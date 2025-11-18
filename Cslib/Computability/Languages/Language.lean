@@ -5,7 +5,7 @@ Authors: Ching-Tsun Chou
 -/
 
 import Mathlib.Computability.Language
-import Mathlib.Tactic
+import Mathlib.Tactic.Common
 import Cslib.Init
 
 /-!

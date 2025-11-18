@@ -3,7 +3,8 @@ Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
-
+import Mathlib.Order.Filter.AtTopBot.Basic
+import Mathlib.Order.Filter.Cofinite
 import Cslib.Foundations.Data.OmegaSequence.Defs
 
 /-!

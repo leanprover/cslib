@@ -7,7 +7,8 @@ import Cslib.Foundations.Data.OmegaSequence.Defs
 import Mathlib.Logic.Function.Basic
 import Mathlib.Data.List.OfFn
 import Mathlib.Data.Nat.Basic
-import Mathlib.Tactic
+import Mathlib.Tactic.Common
+import Mathlib
 
 /-!
 # ω-sequences a.k.a. infinite sequences
