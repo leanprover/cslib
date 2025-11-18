@@ -5,6 +5,7 @@ Authors: Chris Henson
 -/
 
 import Cslib.Foundations.Syntax.HasWellFormed
+import Mathlib.Data.Finset.Dedup
 import Mathlib.Data.List.Sigma
 
 /-! # λ-calculus

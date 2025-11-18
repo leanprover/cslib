@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi, Thomas Waring
 
 import Cslib.Init
 import Mathlib.Logic.Relation
+import Mathlib.Util.Notation3
 
 /-!
 # Reduction System

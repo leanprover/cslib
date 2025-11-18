@@ -6,6 +6,8 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Computability.Languages.Language
 import Cslib.Foundations.Data.OmegaSequence.Flatten
+import Mathlib.Computability.Language
+import Mathlib.Order.Filter.AtTopBot.Defs
 
 /-!
 # ωLanguage
