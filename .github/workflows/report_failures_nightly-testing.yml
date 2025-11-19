@@ -2,7 +2,7 @@ name: Post to zulip if the nightly-testing branch is failing.
 
 on:
   workflow_run:
-    workflows: ["continuous integration"]
+    workflows: ["Lean Action CI"]
     types:
       - completed
 
