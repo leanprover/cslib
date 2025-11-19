@@ -6,7 +6,7 @@ packagesDir = "../.lake/packages"
 [[require]]
 scope = "leanprover"
 name = "doc-gen4"
-rev = "v4.25.1"
+rev = "v4.26.0-rc1"
 
 [[require]]
 name = "cslib"
