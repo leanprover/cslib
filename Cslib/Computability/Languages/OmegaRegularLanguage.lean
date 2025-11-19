@@ -9,6 +9,7 @@ import Cslib.Computability.Automata.NABuchiEquiv
 import Cslib.Computability.Automata.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
+import Mathlib.Data.Finite.Sigma
 
 /-!
 # ω-Regular languages
