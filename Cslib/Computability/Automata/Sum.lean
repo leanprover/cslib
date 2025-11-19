@@ -18,7 +18,7 @@ variable {Symbol I : Type*} {State : I → Type*}
 @[scoped grind =]
 def iSum (na : (i : I) → NA (State i) Symbol) : NA (Σ i, State i) Symbol where
   start := ⋃ i, Sigma.mk i '' (na i).start
-  Tr s x t := ∃ i s_i t_i, (na i).Tr s_i x t_i ∧ Sigma.mk i s_i = s ∧ Sigma.mk i t_i = t
+  Tr s x t := ∃ i s_i t_i, (na i).Tr s_i x t_i ∧ ⟨i, s_i⟩ = s ∧ ⟨i, t_i⟩ = t
 
 @[simp, scoped grind =]
 theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
@@ -27,7 +27,7 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
   constructor
   · rintro ⟨h_init, h_next⟩
     obtain ⟨i, s0, h_s0, h_ss0⟩ := mem_iUnion.mp h_init
-    have h_exists n : ∃ s_i, Sigma.mk i s_i = ss n := by
+    have h_exists n : ∃ s_i, ⟨i, s_i⟩ = ss n := by
       induction n
       case zero => use s0
       case succ n h_ind =>

@@ -29,12 +29,12 @@ variable {Symbol : Type u}
 /-- An ω-language is ω-regular iff it is accepted by a
 finite-state nondeterministic Buchi automaton. -/
 def IsRegular (p : ωLanguage Symbol) :=
-  ∃ State : Type, ∃ _ : Finite State, ∃ na : NA.Buchi State Symbol, language na = p
+  ∃ (State : Type) (_ : Finite State) (na : NA.Buchi State Symbol), language na = p
 
 /-- Helper lemma for `isRegular_iff` below. -/
 private lemma isRegular_iff.helper.{v'} {Symbol : Type u} {p : ωLanguage Symbol}
-    (h : ∃ σ : Type v, ∃ _ : Finite σ, ∃ na : NA.Buchi σ Symbol, language na = p) :
-    ∃ σ' : Type v', ∃ _ : Finite σ', ∃ na : NA.Buchi σ' Symbol, language na = p := by
+    (h : ∃ (σ : Type v) (_ : Finite σ) (na : NA.Buchi σ Symbol), language na = p) :
+    ∃ (σ' : Type v') (_ : Finite σ') (na : NA.Buchi σ' Symbol), language na = p := by
   have ⟨σ, _, na, h_na⟩ := h
   have ⟨σ', ⟨f⟩⟩ := Small.equiv_small.{v', v} (α := σ)
   use σ', Finite.of_equiv σ f, na.reindex f
@@ -43,7 +43,7 @@ private lemma isRegular_iff.helper.{v'} {Symbol : Type u} {p : ωLanguage Symbol
 /-- The state space of the accepting finite-state nondeterministic Buchi automaton
 can in fact be universe-polymorphic. -/
 theorem isRegular_iff {p : ωLanguage Symbol} :
-    p.IsRegular ↔ ∃ σ : Type v, ∃ _ : Finite σ, ∃ na : NA.Buchi σ Symbol, language na = p :=
+    p.IsRegular ↔ ∃ (σ : Type v) (_ : Finite σ) (na : NA.Buchi σ Symbol), language na = p :=
   ⟨isRegular_iff.helper, isRegular_iff.helper⟩
 
 /-- The ω-language accepted by a finite-state deterministic Buchi automaton is ω-regular. -/
@@ -54,8 +54,8 @@ theorem IsRegular.of_da_buchi {State : Type} [Finite State] (da : DA.Buchi State
 /-- There is an ω-regular language that is not accepted by any deterministic Buchi automaton,
 where the automaton is not even required to be finite-state. -/
 theorem IsRegular.not_da_buchi :
-  ∃ Symbol : Type, ∃ p : ωLanguage Symbol, p.IsRegular ∧
-    ¬ ∃ State : Type, ∃ da : DA.Buchi State Symbol, language da = p := by
+  ∃ (Symbol : Type) (p : ωLanguage Symbol), p.IsRegular ∧
+    ¬ ∃ (State : Type) (da : DA.Buchi State Symbol), language da = p := by
   refine ⟨Fin 2, Example.eventually_zero, ?_, ?_⟩
   · use Fin 2, inferInstance, Example.eventually_zero_na,
       Example.eventually_zero_accepted_by_na_buchi
@@ -107,17 +107,16 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage 
   generalize h_n : s.ncard = n
   induction n generalizing s
   case zero =>
-    obtain ⟨rfl⟩ := (ncard_eq_zero (s := s)).mp h_n
-    simp only [mem_empty_iff_false, not_false_eq_true, iSup_neg, iSup_bot]
-    exact IsRegular.bot
+    have := ncard_eq_zero (s := s)
+    grind [IsRegular.bot, iSup_bot]
   case succ n h_ind =>
     obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
     rw [iSup_insert]
-    apply IsRegular.sup <;> grind
+    grind [IsRegular.sup]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :
     p.IsRegular ↔
-    ∃ State : Type, ∃ _ : Finite State, ∃ da : DA.Muller State Symbol, language da = p
+    ∃ (State : Type) (_ : Finite State) (da : DA.Muller State Symbol), language da = p
 
 end Cslib.ωLanguage

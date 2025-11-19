@@ -42,9 +42,7 @@ theorem reindex_run_iff {f : State ≃ State'} {nba : Buchi State Symbol}
   { rintro ⟨h_init, h_next⟩
     constructor
     · grind
-    · intro n
-      specialize h_next n
-      simp_all [reindex] }
+    · exact fun n ↦ h_next n }
 
 @[simp]
 theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}
