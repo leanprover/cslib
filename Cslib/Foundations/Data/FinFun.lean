@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Xueying Qin
 -/
 
--- TODO: Notation conflict with Mathlib.Finsupp (both use →₀)
--- import Cslib.Init
-import Mathlib.Data.Finset.Basic
+import Cslib.Init
+import Mathlib.Data.Finset.Filter
+import Mathlib.Data.Finset.Lattice.Basic
 
 /-! # Finite functions
 
@@ -126,7 +126,8 @@ theorem fromFun_inter [Zero β] [DecidableEq α]
 @[scoped grind =]
 theorem fromFun_comm [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
-    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by grind
+    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by
+  grind only [= coe_eq_fn, = fromFun_fn, ←= ext]
 
 end FinFun
 

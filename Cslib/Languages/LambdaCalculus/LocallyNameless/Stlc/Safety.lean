@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
+import Cslib.Foundations.Data.Relation
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
 /-! # λ-calculus
 
