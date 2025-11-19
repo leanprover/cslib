@@ -57,7 +57,12 @@ spec
     key := A[i];
     j := i - 1;
 
-    while (j >= 0 && A[j] > key) {
+    while (j >= 0 && A[j] > key)
+     invariant (
+      forall p:int, q:int ::
+        0 <= p && p <= q && q < i ==> A[p] <= A[q]
+     );
+    {
       // map update: A[j+1] := A[j]
       A := A[j + 1 := A[j]];
       // [FEATURE REQUEST] Support for array updates

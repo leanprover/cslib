@@ -41,9 +41,10 @@ spec {
   while (epsilon <= (b - a) div 2.0)
     invariant (a <= b && fa * fb <= 0.0);
     // Root exists in [a,b]
+    // [NOTE] specifying decreases clause for reals
   {
     // Compute midpoint
-    p := (a + b) div 2.0; // Why not use (a + b) / 2?
+    p := (a + b) div 2.0; //[NOTE] Why not use (a + b) / 2?
     fp := Square(p) - c;
     
     // Check if we found exact root
@@ -78,7 +79,7 @@ spec {
   ensures (result > 0.0);
   // Result should be approximately sqrt(c)
   ensures (Square(result * 1.0) <= c + 0.000001);
-  //Type casting unsupported
+  //[NOTE] Type casting unsupported
   ensures (Square(result * 1.0) >= c - 0.000001);
 }
 {

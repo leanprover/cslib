@@ -29,7 +29,8 @@ spec {
   var grad: real;
   var x1: real;
   
-  grad := F_prime(x0);
+  grad := F_prime(x0); //[NOTE] Would want a random initialization of x0 here.
+  //[NOTE] We would want F_prime to be passed as an argument.
   
   if (iter == 0) {
     result := x0;
