@@ -193,7 +193,7 @@ private lemma base_zero_strictMono (hm : StrictMono f) :
 theorem segment'_eq_segment (hm : StrictMono f) :
     segment' f = segment f := by
   classical
-  ext k ; unfold segment'
+  ext k; unfold segment'
   rcases (show k < f 0 ∨ k ≥ f 0 by omega) with h_k | h_k
   · grind
   unfold segment ; congr 1
