@@ -126,7 +126,8 @@ theorem fromFun_inter [Zero β] [DecidableEq α]
 @[scoped grind =]
 theorem fromFun_comm [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
-    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by grind
+    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by
+  grind only [= coe_eq_fn, = fromFun_fn, ←= ext]
 
 end FinFun
 
