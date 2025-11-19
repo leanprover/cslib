@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
 import Cslib.Computability.Automata.NA
-import Cslib.Computability.Automata.Acceptor
 
 /-! # Nondeterministic automata with ε-transitions. -/
 

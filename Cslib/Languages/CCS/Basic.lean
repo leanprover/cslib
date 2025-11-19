@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Init
-import Mathlib.Init
 
 /-! # Calculus of Communicating Systems (CCS)
 

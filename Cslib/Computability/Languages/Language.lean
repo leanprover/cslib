@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Mathlib.Computability.Language
-import Mathlib.Tactic
 import Cslib.Init
+import Mathlib.Computability.Language
 
 /-!
 # Language (additional definitions and theorems)
@@ -39,25 +38,6 @@ theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) 
     grind
   · apply mem_iUnion₂.mpr
     grind
-
--- This section will be removed once the following PR gets into mathlib:
--- https://github.com/leanprover-community/mathlib4/pull/30913
-section from_mathlib4_30913
-
-/-- The subtraction of two languages is their difference. -/
-instance : Sub (Language α) where
-  sub := SDiff.sdiff
-
-theorem sub_def (l m : Language α) : l - m = (l \ m : Set (List α)) :=
-  rfl
-
-theorem mem_sub (l m : Language α) (x : List α) : x ∈ l - m ↔ x ∈ l ∧ x ∉ m :=
-  Iff.rfl
-
-instance : OrderedSub (Language α) where
-  tsub_le_iff_right _ _ _ := sdiff_le_iff'
-
-end from_mathlib4_30913
 
 theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq
