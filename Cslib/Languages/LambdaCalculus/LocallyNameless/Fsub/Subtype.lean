@@ -85,7 +85,11 @@ lemma narrow_aux
     subst eq
     have p : ∀ δ, Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) :=
       by grind [perm_middle]
-    by_cases X = X' <;> grind [Sub.weaken, sublist_append_of_sublist_right]
+    by_cases X = X'
+    · grind only [= append_assoc, = Option.or_some, = dlookup_append, weaken, = dlookup_cons_eq,
+        → wf, =_ singleton_append, =_ cons_append, = mem_append, = Option.or_eq_some_iff,
+        = Option.mem_some, =_ append_assoc, trans_tvar, cases Or]
+    · grind [Sub.weaken, sublist_append_of_sublist_right]
   case all => apply Sub.all (free_union Var) <;> grind
   #adaptation_note
   /--

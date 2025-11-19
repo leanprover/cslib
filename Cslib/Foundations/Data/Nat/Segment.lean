@@ -193,10 +193,9 @@ private lemma base_zero_strictMono (hm : StrictMono f) :
 theorem segment'_eq_segment (hm : StrictMono f) :
     segment' f = segment f := by
   classical
-  ext k ; unfold segment'
+  ext k; unfold segment'
   rcases (show k < f 0 ∨ k ≥ f 0 by omega) with h_k | h_k
-  · have : k - f 0 = 0 := by grind
-    grind
+  · grind
   unfold segment; congr 1
   simp only [count_eq_card_filter_range]
   suffices h : ∃ g, BijOn g
