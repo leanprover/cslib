@@ -47,12 +47,6 @@ section from_mathlib4_30913
 instance : Sub (Language α) where
   sub := SDiff.sdiff
 
-theorem sub_def (l m : Language α) : l - m = (l \ m : Set (List α)) :=
-  rfl
-
-theorem mem_sub (l m : Language α) (x : List α) : x ∈ l - m ↔ x ∈ l ∧ x ∉ m :=
-  Iff.rfl
-
 instance : OrderedSub (Language α) where
   tsub_le_iff_right _ _ _ := sdiff_le_iff'
 
