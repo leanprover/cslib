@@ -35,7 +35,6 @@ def reindex (f : State ≃ State') : Buchi State Symbol ≃ Buchi State' Symbol 
   left_inv nba := by simp
   right_inv nba' := by simp
 
-@[simp]
 theorem reindex_run_iff {f : State ≃ State'} {nba : Buchi State Symbol}
     {xs : ωSequence Symbol} {ss' : ωSequence State'} :
     (nba.reindex f).Run xs ss' ↔ nba.Run xs (ss'.map f.symm) := by
@@ -51,7 +50,7 @@ theorem reindex_run_iff {f : State ≃ State'} {nba : Buchi State Symbol}
 theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}
     {xs : ωSequence Symbol} {ss : ωSequence State} :
     (nba.reindex f).Run xs (ss.map f) ↔ nba.Run xs ss := by
-  simp
+  simp [reindex_run_iff]
 
 @[simp, scoped grind =]
 theorem reindex_language_eq {f : State ≃ State'} {nba : Buchi State Symbol} :
