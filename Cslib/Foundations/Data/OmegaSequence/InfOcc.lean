@@ -5,6 +5,8 @@ Authors: Ching-Tsun Chou
 -/
 
 import Cslib.Foundations.Data.OmegaSequence.Defs
+import Mathlib.Order.Filter.AtTopBot.Basic
+import Mathlib.Order.Filter.Cofinite
 
 /-!
 # Infinite occurrences

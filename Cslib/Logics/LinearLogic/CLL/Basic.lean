@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
--- TODO: Syntax elaboration conflicts 
--- import Cslib.Init
-import Aesop
-import Mathlib.Tactic.ApplyAt
+import Cslib.Init
 import Mathlib.Order.Notation
 import Mathlib.Order.Defs.Unbundled
 

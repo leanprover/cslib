@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Mathlib.Computability.Language
-import Mathlib.Tactic
 import Cslib.Init
+import Mathlib.Computability.Language
 
 /-!
 # Language (additional definitions and theorems)

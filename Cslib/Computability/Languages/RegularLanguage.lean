@@ -7,9 +7,9 @@ Authors: Ching-Tsun Chou
 import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.Prod
-import Cslib.Computability.Automata.Acceptor
 import Mathlib.Computability.DFA
-import Mathlib.Tactic
+import Mathlib.Data.Set.Card
+import Mathlib.Tactic.Common
 
 /-!
 # Regular languages

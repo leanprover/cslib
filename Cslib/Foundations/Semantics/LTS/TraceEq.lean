@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Semantics.LTS.Basic
-import Mathlib.Data.Set.Finite.Basic
 
 /-!
 # Trace Equivalence
