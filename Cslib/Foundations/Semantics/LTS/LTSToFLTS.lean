@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.FLTS
 import Cslib.Foundations.Semantics.LTS.Basic
+import Cslib.Foundations.Semantics.LTS.FLTS
 
 variable {State : Type _} {Label : Type _}
 

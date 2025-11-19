@@ -3,6 +3,7 @@ import CslibTests.CCS
 import CslibTests.DFA
 import CslibTests.FreeMonad
 import CslibTests.HasFresh
+import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.Lint

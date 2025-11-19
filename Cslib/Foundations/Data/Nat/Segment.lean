@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 import Cslib.Init
 import Mathlib.Algebra.Order.Sub.Basic
 import Mathlib.Data.Nat.Nth
-import Mathlib.Tactic
 
 open Function Set
 

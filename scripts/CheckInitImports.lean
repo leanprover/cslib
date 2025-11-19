@@ -22,15 +22,6 @@ def exceptions : List Name := [
   -- Circular dependency (imported by Cslib.Init)
   `Cslib.Foundations.Lint.Basic,
   `Cslib.Init,
-
-  -- Notation conflict with Mathlib.Finsupp (→₀)
-  `Cslib.Foundations.Data.FinFun,
-
-  -- Syntax elaboration conflicts 
-  `Cslib.Logics.LinearLogic.CLL.Basic,
-  `Cslib.Logics.LinearLogic.CLL.CutElimination,
-  `Cslib.Logics.LinearLogic.CLL.MProof,
-  `Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic,
 ]
 
 def main : IO UInt32 := do

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Mathlib
+import Batteries.Tactic.Lint.Basic
+import Lean.Meta.GlobalInstances
 
 namespace Cslib.Lint
 

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Xueying Qin
 -/
 
--- TODO: Notation conflict with Mathlib.Finsupp (both use →₀)
--- import Cslib.Init
-import Mathlib.Data.Finset.Basic
+import Cslib.Init
+import Mathlib.Data.Finset.Filter
+import Mathlib.Data.Finset.Lattice.Basic
 
 /-! # Finite functions
 

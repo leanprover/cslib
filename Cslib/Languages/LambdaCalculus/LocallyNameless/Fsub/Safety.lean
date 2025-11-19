@@ -5,7 +5,6 @@ Authors: Chris Henson
 -/
 
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Typing
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Reduction
 
 /-! # λ-calculus
 

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Basic
 import Cslib.Foundations.Semantics.LTS.Bisimulation
-import Cslib.Languages.CCS.Basic
 import Cslib.Languages.CCS.Semantics
 
 /-! # Behavioural theory of CCS

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 import Cslib.Foundations.Semantics.ReductionSystem.Basic
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # β-reduction for the λ-calculus
 

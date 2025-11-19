@@ -5,7 +5,6 @@ Authors: Chris Henson
 -/
 
 import Cslib.Foundations.Data.HasFresh
-import Cslib.Foundations.Syntax.HasSubstitution
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 
 /-! # λ-calculus

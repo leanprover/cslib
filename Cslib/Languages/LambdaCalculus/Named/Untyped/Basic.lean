@@ -7,7 +7,6 @@ Authors: Fabrizio Montesi
 import Cslib.Foundations.Data.HasFresh
 import Cslib.Foundations.Syntax.HasAlphaEquiv
 import Cslib.Foundations.Syntax.HasSubstitution
-import Mathlib.Data.Finset.Basic
 
 /-! # λ-calculus
 

@@ -3,9 +3,8 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
-import Mathlib.Control.Monad.Cont
 import Cslib.Foundations.Control.Monad.Free
-import Mathlib.Control.Monad.Writer
+import Mathlib.Control.Monad.Cont
 
 /-!
 # Free Monad

@@ -6,7 +6,6 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Foundations.Data.Nat.Segment
 import Cslib.Foundations.Data.OmegaSequence.Init
-import Mathlib.Tactic
 
 /-!
 # Flattening an infinite sequence of lists
