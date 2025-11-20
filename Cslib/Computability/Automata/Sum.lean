@@ -61,20 +61,12 @@ theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) �
   rw [mem_iUnion]
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
-    obtain ⟨i, ss_i, h_run_i, rfl⟩ := iSum_run_iff.mp h_run
-    use i, ss_i
-    constructor
-    · grind
-    · simp only [get_map, mem_iUnion, mem_image, Sigma.mk.injEq] at h_acc ⊢
-      apply Frequently.mono h_acc
-      grind
-  · rintro ⟨i, ss_i, h_run_i, h_acc_i⟩
+    simp only [mem_iUnion] at h_acc
+    grind [-NA.Run]
+  · rintro ⟨i, ss_i, _⟩
     use ss_i.map (Sigma.mk i)
-    constructor
-    · grind
-    · simp only [get_map, mem_iUnion, mem_image, Sigma.mk.injEq] at h_acc_i ⊢
-      apply Frequently.mono h_acc_i
-      grind
+    simp only [mem_iUnion]
+    grind [-NA.Run]
 
 end Buchi
 
