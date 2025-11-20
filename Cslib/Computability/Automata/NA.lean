@@ -40,7 +40,6 @@ namespace NA
 variable {State : Type _} {Symbol : Type _}
 
 /-- Infinite run. -/
---@[scoped grind =]
 def Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) :=
   ss 0 ∈ na.start ∧ ∀ n, na.Tr (ss n) (xs n) (ss (n + 1))
 
