@@ -48,11 +48,11 @@ theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
 
 @[simp, scoped grind =]
 theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.reverse := by
-  ext x ; simp [mem_sub]
+  ext x; simp [mem_sub]
 
 @[scoped grind =]
 theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
-  ext x ; constructor
+  ext x; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     rw [mem_sub, mem_one] at h_u ⊢
     constructor
@@ -73,7 +73,7 @@ theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
 
 @[scoped grind =]
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
-  ext x ; constructor
+  ext x; constructor
   · rintro ⟨h1, h2⟩
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
     have h3 : ¬ xl = [] := by grind [one_def]

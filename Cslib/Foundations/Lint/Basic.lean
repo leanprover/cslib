@@ -24,7 +24,7 @@ def topNamespace : Batteries.Tactic.Lint.Linter where
     let top := nss.fold (init := (∅ : NameSet)) fun tot n =>
       match n.components with
       | r::_::_ => tot.insert r
-      | _ => tot    
+      | _ => tot
     if top.contains declName.components[0]! then
       return none
     else
