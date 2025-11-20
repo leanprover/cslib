@@ -6,6 +6,7 @@ import Cslib.Computability.Automata.EpsilonNA
 import Cslib.Computability.Automata.EpsilonNAToNA
 import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NABuchiEquiv
+import Cslib.Computability.Automata.NAHist
 import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.OmegaAcceptor
 import Cslib.Computability.Automata.Prod
