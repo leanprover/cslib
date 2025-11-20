@@ -12,6 +12,7 @@ open Set Function Filter Cslib.ωSequence
 open scoped Cslib.LTS
 
 namespace Cslib.Automata.NA
+open scoped Run
 
 variable {Symbol I : Type*} {State : I → Type*}
 
@@ -47,7 +48,7 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
       grind
     · intro n
       use i
-      grind
+      grind [Run]
 
 namespace Buchi
 
@@ -62,11 +63,11 @@ theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) �
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
     simp only [mem_iUnion] at h_acc
-    grind [-NA.Run]
+    grind
   · rintro ⟨i, ss_i, _⟩
     use ss_i.map (Sigma.mk i)
     simp only [mem_iUnion]
-    grind [-NA.Run]
+    grind
 
 end Buchi
 
