@@ -17,3 +17,6 @@ jobs:
       - run: |
           set -e
           lake exe shake Cslib
+      - uses: leanprover-community/lint-style-action@main
+        with:
+          mode: check
