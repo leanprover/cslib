@@ -5,9 +5,11 @@ import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.EpsilonNA
 import Cslib.Computability.Automata.EpsilonNAToNA
 import Cslib.Computability.Automata.NA
+import Cslib.Computability.Automata.NABuchiEquiv
 import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.OmegaAcceptor
 import Cslib.Computability.Automata.Prod
+import Cslib.Computability.Automata.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.Language
 import Cslib.Computability.Languages.OmegaLanguage
