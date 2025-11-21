@@ -31,7 +31,7 @@ instance [Inhabited α] : Inhabited (ωSequence α) :=
 @[simp, scoped grind =]
 protected theorem eta (s : ωSequence α) : head s ::ω tail s = s := by
   apply DFunLike.ext
-  intro i ; cases i <;> rfl
+  intro i; cases i <;> rfl
 
 /-- Alias for `ωSequence.eta` to match `List` API. -/
 alias cons_head_tail := ωSequence.eta
@@ -231,10 +231,10 @@ theorem get_succ_iterate (n : ℕ) (f : α → α) (a : α) :
 
 @[simp, scoped grind =]
 theorem iterate_id (a : α) : iterate id a = const a := by
-  ext n ; simp [get_iterate]
+  ext n; simp [get_iterate]
 
 theorem map_iterate (f : α → α) (a : α) : iterate f (f a) = map f (iterate f a) := by
-  ext n ; rw [get_map, ← get_succ_iterate, get_succ_iterate']
+  ext n; rw [get_map, ← get_succ_iterate, get_succ_iterate']
 
 @[simp, scoped grind =]
 theorem nil_append_ωSequence (s : ωSequence α) : appendωSequence [] s = s :=
@@ -265,8 +265,8 @@ lemma get_append_right : (x ++ω a) (x.length + n) = a n := by
 
 theorem get_append_right' {xl : List α} {xs : ωSequence α} {k : ℕ} (h : xl.length ≤ k) :
     (xl ++ω xs) k = xs (k - xl.length) := by
-  obtain ⟨n, rfl⟩ := show ∃ n, k = xl.length + n by use (k - xl.length) ; omega
-  simp only [Nat.add_sub_cancel_left] ; apply get_append_right
+  obtain ⟨n, rfl⟩ := show ∃ n, k = xl.length + n by use (k - xl.length); omega
+  simp only [Nat.add_sub_cancel_left]; apply get_append_right
 
 @[simp, scoped grind =]
 lemma get_append_length : (x ++ω a) x.length = a 0 := get_append_right 0 x a
@@ -403,8 +403,8 @@ lemma drop_append_of_le_length (h : n ≤ x.length) :
 
 theorem drop_append_of_ge_length {xl : List α} {xs : ωSequence α} {n : ℕ} (h : xl.length ≤ n) :
     (xl ++ω xs).drop n = xs.drop (n - xl.length) := by
-  ext k ; simp (disch := omega) only [get_drop, get_append_right']
-  congr ; omega
+  ext k; simp (disch := omega) only [get_drop, get_append_right']
+  congr; omega
 
 -- Take theorem reduces a proof of equality of infinite ω-sequences to an
 -- induction over all their finite approximations.
@@ -423,7 +423,7 @@ theorem extract_eq_drop_take {xs : ωSequence α} {m n : ℕ} :
 
 theorem extract_eq_ofFn {xs : ωSequence α} {m n : ℕ} :
     xs.extract m n = List.ofFn (fun k : Fin (n - m) ↦ xs (m + k)) := by
-  ext k ; cases Decidable.em (k < n - m) <;>
+  ext k; cases Decidable.em (k < n - m) <;>
   grind [extract_eq_drop_take, getElem?_take]
 
 theorem extract_eq_extract {xs xs' : ωSequence α} {m n m' n' : ℕ}

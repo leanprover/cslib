@@ -71,7 +71,7 @@ open scoped NA.Buchi in
 @[simp, scoped grind _=_]
 theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
     language a.toNABuchi = language a := by
-  ext xs ; constructor
+  ext xs; constructor
   · grind
   · intro _
     use (a.run xs)
