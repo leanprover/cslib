@@ -6,7 +6,7 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Computability.Automata.DABuchi
 import Cslib.Computability.Automata.NABuchiEquiv
-import Cslib.Computability.Automata.Sum
+import Cslib.Computability.Automata.NASum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
 import Mathlib.Data.Finite.Sigma
