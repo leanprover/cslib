@@ -15,8 +15,8 @@ weak.linter.allScriptsDocumented = false
 
 [[require]]
 name = "mathlib"
-scope = "leanprover-community"
-rev = "v4.26.0-rc2"
+git = "https://github.com/leanprover-community/mathlib4-nightly-testing"
+rev = "nightly-testing-2025-11-21"
 
 [[lean_lib]]
 name = "Cslib"
