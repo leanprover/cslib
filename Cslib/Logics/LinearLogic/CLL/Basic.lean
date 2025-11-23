@@ -7,6 +7,9 @@ Authors: Fabrizio Montesi
 import Cslib.Init
 import Mathlib.Order.Notation
 import Mathlib.Order.Defs.Unbundled
+import Mathlib.Data.Multiset.Defs
+import Mathlib.Data.Multiset.Fold
+import Mathlib.Data.Multiset.AddSub
 
 /-! # Classical Linear Logic
 
@@ -66,36 +69,37 @@ instance : Bot (Proposition Atom) := ⟨.bot⟩
 @[inherit_doc] scoped prefix:95 "ʔ" => Proposition.quest
 
 /-- Positive propositions. -/
-def Proposition.Pos : Proposition Atom → Prop
-  | atom _ => True
-  | one => True
-  | zero => True
-  | tensor _ _ => True
-  | oplus _ _ => True
-  | bang _ => True
-  | _ => False
+def Proposition.positive : Proposition Atom → Bool
+  | atom _ => true
+  | one => true
+  | zero => true
+  | tensor _ _ => true
+  | oplus _ _ => true
+  | bang _ => true
+  | _ => false
 
 /-- Negative propositions. -/
-def Proposition.Neg : Proposition Atom → Prop
-  | atomDual _ => True
-  | bot => True
-  | top => True
-  | parr _ _ => True
-  | .with _ _ => True
-  | quest _ => True
-  | _ => False
+def Proposition.negative : Proposition Atom → Bool
+  | atomDual _ => true
+  | bot => true
+  | top => true
+  | parr _ _ => true
+  | .with _ _ => true
+  | quest _ => true
+  | _ => false
 
 /-- Whether a `Proposition` is positive is decidable. -/
-instance Proposition.pos_decidable (a : Proposition Atom) : Decidable a.Pos := by
-  unfold Proposition.Pos
+instance Proposition.positive_decidable (a : Proposition Atom) : Decidable a.positive := by
+  unfold Proposition.positive
   split <;> infer_instance
 
 /-- Whether a `Proposition` is negative is decidable. -/
-instance Proposition.neg_decidable (a : Proposition Atom) : Decidable a.Neg := by
-  unfold Proposition.Neg
+instance Proposition.negative_decidable (a : Proposition Atom) : Decidable a.negative := by
+  unfold Proposition.negative
   split <;> infer_instance
 
 /-- Propositional duality. -/
+@[scoped grind =]
 def Proposition.dual : Proposition Atom → Proposition Atom
   | atom x => atomDual x
   | atomDual x => atom x
@@ -113,114 +117,124 @@ def Proposition.dual : Proposition Atom → Proposition Atom
 @[inherit_doc] scoped postfix:max "⫠" => Proposition.dual
 
 /-- No proposition is equal to its dual. -/
-theorem Proposition.dual.neq (a : Proposition Atom) : a ≠ a⫠ := by
+@[scoped grind .]
+theorem Proposition.dual_neq (a : Proposition Atom) : a ≠ a⫠ := by
   cases a <;> simp [Proposition.dual]
 
 /-- Two propositions are equal iff their respective duals are equal. -/
-@[grind =, simp]
+@[scoped grind =, simp]
 theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b := by
   refine ⟨fun h ↦ ?_, congrArg dual⟩
   induction a generalizing b <;> cases b
-  all_goals aesop (add simp [Proposition.dual])
+  all_goals grind
 
 /-- Duality is an involution. -/
-@[grind =, simp]
+@[scoped grind =, simp]
 theorem Proposition.dual.involution (a : Proposition Atom) : a⫠⫠ = a := by
   induction a <;> simp_all [dual]
 
 /-- Linear implication. -/
-@[grind]
+@[scoped grind .]
 def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ b
 
 @[inherit_doc] scoped infix:25 " ⊸ " => Proposition.linImpl
 
-/-- A sequent in CLL is a list of propositions. -/
-abbrev Sequent Atom := List (Proposition Atom)
+/-- A sequent in CLL is a multiset of propositions. -/
+abbrev Sequent Atom := Multiset (Proposition Atom)
 
--- TODO: This should become a Bool.
-/-- Checks that all propositions in `Γ` are question marks. -/
-def Sequent.AllQuest (Γ : Sequent Atom) :=
-  ∀ a ∈ Γ, ∃ b, a = ʔb
+/-- Checks that all propositions in a sequent `Γ` are question marks. -/
+def Sequent.allQuest (Γ : Sequent Atom) :=
+  Γ.map (· matches ʔ_)
+  |> Multiset.fold Bool.and true
 
 open Proposition in
 /-- A proof in the sequent calculus for classical linear logic. -/
 inductive Proof : Sequent Atom → Type u where
-  | ax : Proof [a, a⫠]
-  | cut : Proof (a :: Γ) → Proof (a⫠ :: Δ) → Proof (Γ ++ Δ)
-  | exchange : List.Perm Γ Δ → Proof Γ → Proof Δ
-  | one : Proof [1]
-  | bot : Proof Γ → Proof (⊥ :: Γ)
-  | parr : Proof (a :: b :: Γ) → Proof ((a ⅋ b) :: Γ)
-  | tensor : Proof (a :: Γ) → Proof (b :: Δ) → Proof ((a ⊗ b) :: (Γ ++ Δ))
-  | oplus₁ : Proof (a :: Γ) → Proof ((a ⊕ b) :: Γ)
-  | oplus₂ : Proof (b :: Γ) → Proof ((a ⊕ b) :: Γ)
-  | with : Proof (a :: Γ) → Proof (b :: Γ) → Proof ((a & b) :: Γ)
-  | top : Proof (⊤ :: Γ)
-  | quest : Proof (a :: Γ) → Proof (ʔa :: Γ)
-  | weaken : Proof Γ → Proof (ʔa :: Γ)
-  | contract : Proof (ʔa :: ʔa :: Γ) → Proof (ʔa :: Γ)
-  | bang {Γ : Sequent Atom} {a} : Γ.AllQuest → Proof (a :: Γ) → Proof ((!a) :: Γ)
+  | ax : Proof {a, a⫠}
+  | cut : Proof (a ::ₘ Γ) → Proof (a⫠ ::ₘ Δ) → Proof (Γ + Δ)
+  | one : Proof {1}
+  | bot : Proof Γ → Proof (⊥ ::ₘ Γ)
+  | parr : Proof (a ::ₘ b ::ₘ Γ) → Proof ((a ⅋ b) ::ₘ Γ)
+  | tensor : Proof (a ::ₘ Γ) → Proof (b ::ₘ Δ) → Proof ((a ⊗ b) ::ₘ (Γ + Δ))
+  | oplus₁ : Proof (a ::ₘ Γ) → Proof ((a ⊕ b) ::ₘ Γ)
+  | oplus₂ : Proof (b ::ₘ Γ) → Proof ((a ⊕ b) ::ₘ Γ)
+  | with : Proof (a ::ₘ Γ) → Proof (b ::ₘ Γ) → Proof ((a & b) ::ₘ Γ)
+  | top : Proof (⊤ ::ₘ Γ)
+  | quest : Proof (a ::ₘ Γ) → Proof (ʔa ::ₘ Γ)
+  | weaken : Proof Γ → Proof (ʔa ::ₘ Γ)
+  | contract : Proof (ʔa ::ₘ ʔa ::ₘ Γ) → Proof (ʔa ::ₘ Γ)
+  | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a ::ₘ Γ) → Proof ((!a) ::ₘ Γ)
   -- No rule for zero.
-
-/-- A sequent is provable if there exists a proof that concludes it. -/
-@[grind]
-def Provable (Γ : Sequent Atom) := Nonempty (Proof Γ)
 
 @[inherit_doc]
 scoped notation "⇓" Γ:90 => Proof Γ
 
-@[inherit_doc]
-scoped notation "⊢" Γ:90 => Provable Γ
+@[scoped grind .]
+def Proof.sequent_rw (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := by rw [h] at p; exact p
+
+/-- A sequent is provable if there exists a proof that concludes it. -/
+@[scoped grind =]
+def Sequent.Provable (Γ : Sequent Atom) := Nonempty (⇓Γ)
 
 /-- Having a proof of Γ shows that it is provable. -/
-theorem Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : ⊢Γ := ⟨p⟩
+theorem Sequent.Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : Γ.Provable := ⟨p⟩
 
 /-- Having a proof of Γ shows that it is provable. -/
-@[grind]
-noncomputable def Provable.toProof {Γ : Sequent Atom} (p : ⊢Γ) : ⇓Γ := Classical.choice p
+@[scoped grind .]
+noncomputable def Sequent.Provable.toProof {Γ : Sequent Atom} (p : Γ.Provable) : ⇓Γ :=
+  Classical.choice p
 
-@[grind]
-instance : Coe (Proof Γ) (Provable Γ) where
-  coe p := Provable.fromProof p
+instance : Coe (Proof Γ) (Γ.Provable) where
+  coe p := Sequent.Provable.fromProof p
 
-@[grind]
-noncomputable instance : Coe (Provable Γ) (Proof Γ) where
+noncomputable instance : Coe (Γ.Provable) (Proof Γ) where
   coe p := p.toProof
 
 /-- The axiom, but where the order of propositions is reversed. -/
-def Proof.ax' {a : Proposition Atom} : ⇓[a⫠, a] :=
-  Proof.exchange (List.Perm.swap ..) Proof.ax
+@[scoped grind <=]
+def Proof.ax' {a : Proposition Atom} : ⇓{a⫠, a} := by
+  rw [Multiset.pair_comm]
+  exact Proof.ax
 
 /-- Cut, but where the premises are reversed. -/
-def Proof.cut' (p : ⇓(a⫠ :: Γ)) (q : ⇓(a :: Δ)) : ⇓(Γ ++ Δ) :=
-  let r : ⇓(a⫠⫠ :: Δ) := by
+@[scoped grind .]
+def Proof.cut' (p : ⇓(a⫠ ::ₘ Γ)) (q : ⇓(a ::ₘ Δ)) : ⇓(Γ + Δ) :=
+  let r : ⇓(a⫠⫠ ::ₘ Δ) := by
     rw [← Proposition.dual.involution a] at q
     exact q
   p.cut r
 
 /-- Inversion of the ⅋ rule. -/
+@[scoped grind .]
 def Proof.parr_inversion {a b} {Γ : Sequent Atom}
-  (h : ⇓((a ⅋ b) :: Γ)) : ⇓(a :: b :: Γ) := by
-  apply Proof.cut' (a := (a ⅋ b)) (Γ := [a, b]) (Δ := Γ)
-  · apply Proof.tensor (Γ := [a]) <;> exact Proof.ax'
+  (h : ⇓((a ⅋ b) ::ₘ Γ)) : ⇓(a ::ₘ b ::ₘ Γ) := by
+  have : (a ::ₘ b ::ₘ Γ) = ({a, b} + Γ) := by simp
+  rw [this]
+  apply Proof.cut' (a := (a ⅋ b)) (Γ := {a, b}) (Δ := Γ)
+  · simp only [Proposition.dual]
+    have : ({a, b} : Sequent Atom) = ({a} + {b}) := by simp
+    rw [this]
+    apply Proof.tensor (Γ := {a}) <;> exact Proof.ax'
   · exact h
 
 /-- Inversion of the ⊥ rule. -/
-def Proof.bot_inversion {Γ : Sequent Atom} (h : ⇓(⊥ :: Γ)) : ⇓Γ := by
-  apply Proof.cut' (a := ⊥) (Γ := []) (Δ := Γ)
-  · exact Proof.one
-  · exact h
+@[scoped grind .]
+def Proof.bot_inversion {Γ : Sequent Atom} (h : ⇓(⊥ ::ₘ Γ)) : ⇓Γ := by
+  convert Proof.cut' (a := ⊥) (Γ := {}) (Δ := Γ) Proof.one h
+  simp
 
 /-- Inversion of the & rule, first component. -/
+@[scoped grind .]
 def Proof.with_inversion₁ {a b : Proposition Atom} {Γ : Sequent Atom}
-    (h : ⇓((a & b) :: Γ)) : ⇓(a :: Γ) := by
+    (h : ⇓((a & b) ::ₘ Γ)) : ⇓(a ::ₘ Γ) := by
   apply Proof.cut' (a := a & b) (Γ := [a]) (Δ := Γ)
   · exact Proof.oplus₁ Proof.ax'
   · exact h
 
 /-- Inversion of the & rule, second component. -/
+@[scoped grind .]
 def Proof.with_inversion₂ {a b : Proposition Atom} {Γ : Sequent Atom}
-    (h : ⇓((a & b) :: Γ)) : ⇓(b :: Γ) := by
+    (h : ⇓((a & b) ::ₘ Γ)) : ⇓(b ::ₘ Γ) := by
   apply Proof.cut' (a := a & b) (Γ := [b]) (Δ := Γ)
   · exact Proof.oplus₂ Proof.ax'
   · exact h
@@ -231,198 +245,224 @@ section LogicalEquiv
 
 /-- Two propositions are equivalent if one implies the other and vice versa.
 Proof-relevant version. -/
-def Proposition.equiv (a b : Proposition Atom) := ⇓[a⫠, b] × ⇓[b⫠, a]
+def Proposition.equiv (a b : Proposition Atom) := ⇓{a⫠, b} × ⇓{b⫠, a}
 
+open Sequent in
 /-- Propositional equivalence, proof-irrelevant version (`Prop`). -/
-def Proposition.Equiv (a b : Proposition Atom) := ⊢[a⫠, b] ∧ ⊢[b⫠, a]
+def Proposition.Equiv (a b : Proposition Atom) := Provable {a⫠, b} ∧ Provable {b⫠, a}
 
 /-- Conversion from proof-relevant to proof-irrelevant versions of propositional
 equivalence. -/
 theorem Proposition.equiv.toProp (h : Proposition.equiv a b) : Proposition.Equiv a b := by
   obtain ⟨p, q⟩ := h
-  apply Provable.fromProof at p
-  apply Provable.fromProof at q
+  apply Sequent.Provable.fromProof at p
+  apply Sequent.Provable.fromProof at q
   constructor <;> assumption
 
-instance {a b : Proposition Atom} : Coe (a.equiv b) (a.Equiv b) where
+scoped infix:29 " ≡⇓ " => Proposition.equiv
+scoped infix:29 " ≡ " => Proposition.Equiv
+
+/-- Proof-relevant equivalence is coerciable into proof-irrelevant equivalence. -/
+instance {a b : Proposition Atom} : Coe (a ≡⇓ b) (a ≡ b) where
   coe := Proposition.equiv.toProp
 
-scoped infix:29 " ≡ " => Proposition.Equiv
+noncomputable def Proposition.chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
+  ⟨h.1.toProof, h.2.toProof⟩
 
 namespace Proposition
 
-def equiv.refl (a : Proposition Atom) : a.equiv a := by
-  constructor <;> (
-    apply Proof.exchange (List.Perm.swap ..)
-    exact Proof.ax
-  )
+open Sequent
 
-@[refl]
+@[scoped grind .]
+def equiv.refl (a : Proposition Atom) : a ≡⇓ a := by
+  constructor <;> exact Proof.ax'
+
+@[scoped grind .]
+def equiv.symm (a : Proposition Atom) (h : a ≡⇓ b) : b ≡⇓ a := ⟨h.2, h.1⟩
+
+@[scoped grind .]
+def equiv.trans {a b c : Proposition Atom} (hab : a ≡⇓ b) (hbc : b ≡⇓ c) : a ≡⇓ c := by
+  constructor
+  · obtain ⟨hab1, _⟩ := hab
+    rw [Multiset.pair_comm] at hab1
+    apply hab1.cut hbc.1
+  · obtain ⟨_, hbc2⟩ := hbc
+    rw [Multiset.pair_comm] at hbc2
+    apply hbc2.cut hab.2
+
+@[refl, scoped grind .]
 theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
 
-@[symm]
+@[symm, scoped grind .]
 theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
 
+@[scoped grind .]
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   ⟨
-    Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hab.1.toProof) hbc.1),
-    Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hbc.2.toProof) hab.2)
+    Provable.fromProof
+      (Proof.cut (hab.1.toProof.sequent_rw (Multiset.pair_comm _ _)) hbc.1.toProof),
+    Provable.fromProof
+      (Proof.cut (hbc.2.toProof.sequent_rw (Multiset.pair_comm _ _)) hab.2.toProof)
   ⟩
 
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
   ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
 
-/- TODO: Proof-relevant logical equivalences.
-
-Logical equivalences should have definitions of concrete proofs first, and then
-have accompanying theorems derived through `Proposition.equiv.toProp`.
-labels: logic
--/
-
-theorem bang_top_eqv_one : (!⊤ : Proposition Atom) ≡ 1 := by
+@[scoped grind .]
+def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 := by
   constructor
-  · apply Provable.fromProof
-    apply Proof.weaken
+  · apply Proof.weaken
     exact Proof.one
-  · apply Provable.fromProof
-    apply Proof.bot
+  · apply Proof.bot
     apply Proof.bang
-    · intro _ _; contradiction
-    exact Proof.top
+    · rfl
+    · exact Proof.top
 
-theorem quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡ ⊥ := by
+@[scoped grind .]
+def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ := by
   constructor
-  · apply Provable.fromProof
-    apply Proof.exchange (List.Perm.swap (bang top) bot [])
+  · simp only [Proposition.dual]
+    apply Proof.sequent_rw (Multiset.pair_comm ..)
     apply Proof.bot
     apply Proof.bang
-    · intro _ _; contradiction
-    exact Proof.top
-  · apply Provable.fromProof
-    apply Proof.exchange (List.Perm.swap one (quest zero) [])
+    · rfl
+    · exact Proof.top
+  · apply Proof.sequent_rw (Multiset.pair_comm ..)
     apply Proof.weaken
     exact Proof.one
 
-theorem tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡ 0 := by
-  refine ⟨Provable.fromProof ?_, Provable.fromProof .top⟩
+@[scoped grind .]
+def tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡⇓ 0 := by
+  refine ⟨?_, .top⟩
   apply Proof.parr
-  apply Proof.exchange (List.Perm.swap a⫠ ⊤ [0])
+  simp only [Proposition.dual]
+  apply Proof.sequent_rw (Multiset.cons_swap ..)
   exact Proof.top
 
-theorem parr_top_eqv_top (a : Proposition Atom) :
-    a ⅋ ⊤ ≡ ⊤ := by
+@[scoped grind .]
+def parr_top_eqv_top (a : Proposition Atom) :
+    a ⅋ ⊤ ≡⇓ ⊤ := by
   constructor
-  · apply Provable.fromProof
-    apply Proof.exchange (List.Perm.swap (parr a top)⫠ top [])
+  · apply Proof.sequent_rw (Multiset.cons_swap ..)
     exact Proof.top
-  · apply Provable.fromProof
-    apply Proof.exchange (List.Perm.swap top⫠ (parr a top) [])
+  · apply Proof.sequent_rw (Multiset.cons_swap ..)
     apply Proof.parr
-    apply Proof.exchange (List.Perm.swap a top [top⫠])
+    apply Proof.sequent_rw (Multiset.cons_swap ..)
     exact Proof.top
 
-theorem tensor_distrib_oplus (a b c : Proposition Atom) :
-    a ⊗ (b ⊕ c) ≡ (a ⊗ b) ⊕ (a ⊗ c) := by
+attribute [scoped grind _=_] Multiset.singleton_add
+attribute [scoped grind =] Multiset.add_comm
+attribute [scoped grind =] Multiset.add_assoc
+
+open scoped Multiset in
+@[scoped grind .]
+def tensor_distrib_oplus (a b c : Proposition Atom) :
+    a ⊗ (b ⊕ c) ≡⇓ (a ⊗ b) ⊕ (a ⊗ c) := by
   constructor
-  · apply Provable.fromProof
-    apply Proof.parr
-    apply Proof.exchange (List.Perm.swap a⫠ (.with b⫠ c⫠) _)
+  · apply Proof.parr
+    apply Proof.sequent_rw (Multiset.cons_swap ..)
     apply Proof.with
-    · apply Proof.exchange (List.reverse_perm _)
+    · have : (b⫠ ::ₘ a⫠ ::ₘ {(a ⊗ b) ⊕ (a ⊗ c)}) = (((a ⊗ b) ⊕ (a ⊗ c)) ::ₘ ({a⫠} + {b⫠})) :=
+        by grind
+      rw [this]
       apply Proof.oplus₁
-      apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
-    · apply Proof.exchange (List.reverse_perm _)
+      apply Proof.tensor <;> exact Proof.ax
+    · have : (c⫠ ::ₘ a⫠ ::ₘ {(a ⊗ b) ⊕ (a ⊗ c)}) = (((a ⊗ b) ⊕ (a ⊗ c)) ::ₘ ({a⫠} + {c⫠})) :=
+        by grind
+      rw [this]
       apply Proof.oplus₂
-      apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
-  · apply Provable.fromProof
-    apply Proof.with
+      apply Proof.tensor <;> exact Proof.ax
+  · apply Proof.with
     · apply Proof.parr
-      apply Proof.exchange
-        (List.Perm.trans (List.Perm.swap ..) (List.Perm.cons _ (List.Perm.swap ..)))
-      apply Proof.tensor (Γ := [a⫠])
+      have : (a⫠ ::ₘ b⫠ ::ₘ {a ⊗ (b ⊕ c)}) = ((a ⊗ (b ⊕ c)) ::ₘ ({a⫠} + {b⫠})) := by grind
+      rw [this]
+      apply Proof.tensor
       · exact Proof.ax
       · apply Proof.oplus₁
         exact Proof.ax
     · apply Proof.parr
-      apply Proof.exchange
-        (List.Perm.trans (List.Perm.swap ..) (List.Perm.cons _ (List.Perm.swap ..)))
-      apply Proof.tensor (Γ := [a⫠])
+      have : (a⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊕ c)}) = ((a ⊗ (b ⊕ c)) ::ₘ ({a⫠} + {c⫠})) := by grind
+      rw [this]
+      apply Proof.tensor
       · exact Proof.ax
       · apply Proof.oplus₂
         exact Proof.ax
 
-/- TODO: Proof-relevant substitution principles for logical equivalence in CLL.
-
-`subst_eqv_head` and `subst_eqv` should be defined using `Proposition.equiv` first, and then
-have accompanying theorems for `Proposition.Equiv`.
-labels: logic
--/
 /-- The proposition at the head of a proof can be substituted by an equivalent
   proposition. -/
-theorem subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
-  ⊢(a :: Γ) → ⊢(b :: Γ) :=
-  fun h => Proof.exchange (List.perm_append_singleton b Γ) (Proof.cut h heqv.left.toProof)
+@[scoped grind .]
+def subst_eqv_head {Γ : Sequent Atom} {a b : Proposition Atom}
+    (heqv : a ≡⇓ b) (p : ⇓(a ::ₘ Γ)) : ⇓(b ::ₘ Γ) := by
+  have : (b ::ₘ Γ) = Γ + {b} := by grind
+  rw [this]
+  apply p.cut heqv.1
 
+open scoped Multiset in
 /-- Any proposition in a proof (regardless of its position) can be substituted by
   an equivalent proposition. -/
-theorem subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom} (heqv : a ≡ b) :
-  ⊢(Γ ++ [a] ++ Δ) → ⊢(Γ ++ [b] ++ Δ) := by
-    simp only [List.append_assoc, List.cons_append, List.nil_append]
-    intro h
-    apply Provable.fromProof
-    apply Proof.exchange (List.perm_middle.symm)
-    apply Provable.toProof at h
-    apply Proof.exchange (List.perm_middle) at h
-    apply Provable.toProof
-    apply subst_eqv_head heqv h
+@[scoped grind .]
+def subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom}
+    (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) := by
+  -- simp only [List.append_assoc, List.cons_append, List.nil_append]
+  have hr : ∀ a, (Γ + {a} + Δ) = a ::ₘ (Γ + Δ) := by grind
+  rw [hr] at ⊢ p
+  apply subst_eqv_head heqv p
 
-theorem tensor_symm {a b : Proposition Atom} : a ⊗ b ≡ b ⊗ a := by
+@[scoped grind .]
+def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a := by
   constructor
-  · apply Provable.fromProof
-    apply Proof.parr
-    apply Proof.exchange (List.reverse_perm _)
-    apply Proof.tensor (Γ := [b⫠]) <;> exact Proof.ax
-  · apply Provable.fromProof
-    apply Proof.parr
-    apply Proof.exchange (List.reverse_perm _)
-    apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
+  · apply Proof.parr
+    have : (a⫠ ::ₘ b⫠ ::ₘ {b ⊗ a}) = ((b ⊗ a) ::ₘ ({b⫠} + {a⫠})) := by grind
+    rw [this]
+    apply Proof.tensor <;> exact Proof.ax
+  · apply Proof.parr
+    have : (b⫠ ::ₘ a⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a⫠} + {b⫠})) := by grind
+    rw [this]
+    apply Proof.tensor <;> exact Proof.ax
 
-theorem tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡ (a ⊗ b) ⊗ c := by
+open scoped Multiset in
+@[scoped grind .]
+def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) ⊗ c := by
   constructor
-  · apply Provable.fromProof
+  · apply Proof.parr
+    rw [Multiset.cons_swap]
     apply Proof.parr
-    apply Proof.exchange (List.Perm.swap ..)
-    apply Proof.parr
-    apply Proof.exchange (List.Perm.swap ..)
-    apply Proof.exchange (List.reverse_perm _)
-    apply Proof.tensor (Γ := [a⫠, b⫠])
-    · apply Proof.tensor (Γ := [a⫠]) <;> exact Proof.ax
+    have : (b⫠ ::ₘ c⫠ ::ₘ a⫠ ::ₘ {(a ⊗ b) ⊗ c}) =
+        (((a ⊗ b) ⊗ c) ::ₘ (({a⫠} + {b⫠}) + {c⫠})) := by grind
+    rw [this]
+    apply Proof.tensor
+    · apply Proof.tensor <;> exact Proof.ax
     · exact Proof.ax
-  · apply Provable.fromProof
+  · apply Proof.parr
     apply Proof.parr
-    apply Proof.parr
-    apply Proof.exchange (List.reverse_perm _)
-    apply Proof.exchange (List.Perm.cons _ (List.reverse_perm _))
-    apply Proof.tensor (Γ := [a⫠])
+    have : (a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)}) = ((a ⊗ (b ⊗ c)) ::ₘ ({a⫠} + ({b⫠} + {c⫠}))) :=
+      by grind
+    rw [this]
+    apply Proof.tensor
     · exact Proof.ax
-    · apply Proof.tensor (Γ := [b⫠]) <;> exact Proof.ax
+    · apply Proof.tensor <;> exact Proof.ax
 
-instance {Γ : Sequent Atom} : IsSymm (Proposition Atom) (fun a b => ⊢((a ⊗ b) :: Γ)) where
-  symm := fun _ _ => subst_eqv_head tensor_symm
+instance {Γ : Sequent Atom} :
+    IsSymm (Proposition Atom) (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
+  symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
 
-theorem oplus_idem {a : Proposition Atom} : a ⊕ a ≡ a := by
-  constructor <;> apply Provable.fromProof
+@[scoped grind .]
+def oplus_idem {a : Proposition Atom} : a ⊕ a ≡⇓ a := by
+  constructor
   · apply Proof.with <;> exact Proof.ax'
-  · apply Proof.exchange (List.Perm.swap ..)
+  · have : ({a⫠, a ⊕ a} : Sequent Atom) = {a ⊕ a, a⫠} := by sorry
+    rw [this]
     apply Proof.oplus₁
     exact Proof.ax
 
-theorem with_idem {a : Proposition Atom} : a & a ≡ a := by
-  constructor <;> apply Provable.fromProof
+@[scoped grind .]
+def with_idem {a : Proposition Atom} : a & a ≡⇓ a := by
+  constructor
   · apply Proof.oplus₁
     exact Proof.ax'
-  · apply Proof.exchange (List.Perm.swap ..)
+  · have : ({a⫠, a & a} : Sequent Atom) = {a & a, a⫠} := by sorry
+    rw [this]
     apply Proof.with <;> exact Proof.ax
 
 end Proposition

@@ -17,7 +17,7 @@ variable {Atom : Type u}
 namespace CLL
 
 /-- A sequent in CLL, as a multiset. -/
-abbrev MSequent (Atom) := Multiset (Proposition Atom)
+abbrev MSequent Atom := Multiset (Proposition Atom)
 
 /-- Checks that all propositions in `Γ` are question marks. -/
 -- TODO: This and Sequent.AllQuest can probably be unified, we just need Mem.
@@ -27,7 +27,7 @@ def MSequent.AllQuest (Γ : MSequent Atom) :=
 
 open Proposition in
 /-- CLL sequent calculus based on `Multiset`. -/
-inductive MProof : MSequent Atom → Prop where
+inductive MProof : MSequent Atom → Type u where
   | ax : MProof {a, a⫠}
   | cut : MProof (a ::ₘ Γ) → MProof (a⫠ ::ₘ Δ) → MProof (Γ + Δ)
   | one : MProof {1}
@@ -57,7 +57,7 @@ lemma MSequent.allQuest_from_sequent (h : Sequent.AllQuest Γ) :
   exact h
 
 /- `MProof` is complete for `Proof`. -/
-theorem MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofList Γ) := by
+def MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofList Γ) := by
   induction p
   case ax =>
     constructor
@@ -66,18 +66,24 @@ theorem MProof.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : MProof (Multiset.ofLi
     have icut := MProof.cut ihp ihq
     exact icut
   case exchange Γ Δ hperm p ihp =>
-    grind
+    rw [← Multiset.coe_eq_coe.2 hperm]
+    exact ihp
   case one =>
     constructor
   case bot Γ p ihp =>
     exact MProof.bot ihp
   case parr a b Γ p ihp =>
+
     grind
   case tensor a Γ b Δ p q ihp ihq =>
     rw [← Multiset.cons_coe] at ihp
     rw [← Multiset.cons_coe] at ihq
     apply MProof.tensor ihp ihq
   all_goals grind
+
+def MProof.toProof {Γ : Sequent Atom} (p : MProof (Multiset.ofList Γ)) : ⇓Γ := by
+
+  grind
 
 end CLL
 
