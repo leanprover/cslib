@@ -147,9 +147,9 @@ git merge --no-edit $NIGHTLYSHA || true # ignore error if there are conflicts
 if git diff --name-only --diff-filter=U | grep -q .; then
   echo
   echo "### [auto] Conflict resolution"
-  echo "### Automatically choosing 'lean-toolchain' and 'lake-manifest.json' from 'nightly-testing'"
-  git checkout $NIGHTLYSHA -- lean-toolchain lake-manifest.json
-  git add lean-toolchain lake-manifest.json
+  echo "### Automatically choosing 'lean-toolchain', 'lake-manifest.json', and 'lakefile.toml' from 'nightly-testing'"
+  git checkout $NIGHTLYSHA -- lean-toolchain lake-manifest.json lakefile.toml
+  git add lean-toolchain lake-manifest.json lakefile.toml
 fi
 
 if git diff --name-only --diff-filter=U | grep -q .; then
@@ -243,15 +243,15 @@ git merge --no-edit "bump/nightly-$NIGHTLYDATE" || true # ignore error if there 
 if git diff --name-only --diff-filter=U | grep -q .; then
   echo
   echo "### [auto] Conflict resolution"
-  echo "### Automatically choosing lean-toolchain and lake-manifest.json from the newer branch"
+  echo "### Automatically choosing lean-toolchain, lake-manifest.json, and lakefile.toml from the newer branch"
   echo "### In this case, the newer branch is 'bump/nightly-$NIGHTLYDATE'"
-  git checkout bump/nightly-$NIGHTLYDATE -- lean-toolchain lake-manifest.json
-  git add lean-toolchain lake-manifest.json
+  git checkout bump/nightly-$NIGHTLYDATE -- lean-toolchain lake-manifest.json lakefile.toml
+  git add lean-toolchain lake-manifest.json lakefile.toml
 
   # Check if there are more merge conflicts after auto-resolution
   if ! git diff --name-only --diff-filter=U | grep -q .; then
     # Auto-commit the resolved conflicts if no other conflicts remain
-    git commit -m "Auto-resolved conflicts in lean-toolchain and lake-manifest.json"
+    git commit -m "Auto-resolved conflicts in lean-toolchain, lake-manifest.json, and lakefile.toml"
   fi
 fi
 
