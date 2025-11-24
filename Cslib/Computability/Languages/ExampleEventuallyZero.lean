@@ -39,7 +39,7 @@ theorem eventually_zero_accepted_by_na_buchi :
   · rintro ⟨ss, h_run, h_acc⟩
     obtain ⟨m, h_m⟩ := Frequently.exists h_acc
     apply eventually_atTop.mpr
-    use m ; intro n h_n
+    use m; intro n h_n
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h_n
     suffices h1 : xs (m + k) = 0 ∧ ss (m + k) = 1 by grind
     have := h_run.2 m
