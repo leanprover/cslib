@@ -15,7 +15,7 @@ namespace Cslib.Automata.DA
 
 open scoped FinAcc Buchi
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 open Acceptor ωAcceptor in
 /-- The ω-language accepted by a deterministic Buchi automaton is the ω-limit

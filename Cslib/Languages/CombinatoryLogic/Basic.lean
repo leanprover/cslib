@@ -38,7 +38,7 @@ open Red MRed
 /-! ### Polynomials and the bracket astraction algorithm -/
 
 /-- A polynomial is an SKI terms with free variables. -/
-protected inductive Polynomial (n : Nat) : Type _ where
+protected inductive Polynomial (n : Nat) : Type where
   | term : SKI → SKI.Polynomial n
   | var : Fin n → SKI.Polynomial n
   | app : SKI.Polynomial n → SKI.Polynomial n → SKI.Polynomial n
