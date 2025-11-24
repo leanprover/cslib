@@ -351,9 +351,12 @@ def parr_top_eqv_top (a : Proposition Atom) :
     apply Proof.sequent_rw (Multiset.cons_swap ..)
     exact Proof.top
 
-attribute [scoped grind _=_] Multiset.singleton_add
-attribute [scoped grind =] Multiset.add_comm
-attribute [scoped grind =] Multiset.add_assoc
+attribute [local grind _=_] Multiset.coe_eq_coe
+attribute [local grind _=_] Multiset.cons_coe
+attribute [local grind _=_] Multiset.singleton_add
+attribute [local grind =] Multiset.add_comm
+attribute [local grind =] Multiset.add_assoc
+attribute [local grind =] Multiset.insert_eq_cons
 
 open scoped Multiset in
 @[scoped grind .]
@@ -404,7 +407,6 @@ open scoped Multiset in
 @[scoped grind .]
 def subst_eqv {Γ Δ : Sequent Atom} {a b : Proposition Atom}
     (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) := by
-  -- simp only [List.append_assoc, List.cons_append, List.nil_append]
   have hr : ∀ a, (Γ + {a} + Δ) = a ::ₘ (Γ + Δ) := by grind
   rw [hr] at ⊢ p
   apply subst_eqv_head heqv p
@@ -428,17 +430,15 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
   · apply Proof.parr
     rw [Multiset.cons_swap]
     apply Proof.parr
-    have : (b⫠ ::ₘ c⫠ ::ₘ a⫠ ::ₘ {(a ⊗ b) ⊗ c}) =
-        (((a ⊗ b) ⊗ c) ::ₘ (({a⫠} + {b⫠}) + {c⫠})) := by grind
-    rw [this]
+    rw [show (b⫠ ::ₘ c⫠ ::ₘ a⫠ ::ₘ {(a ⊗ b) ⊗ c}) =
+        (((a ⊗ b) ⊗ c) ::ₘ (({a⫠} + {b⫠}) + {c⫠})) by grind]
     apply Proof.tensor
     · apply Proof.tensor <;> exact Proof.ax
     · exact Proof.ax
   · apply Proof.parr
     apply Proof.parr
-    have : (a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)}) = ((a ⊗ (b ⊗ c)) ::ₘ ({a⫠} + ({b⫠} + {c⫠}))) :=
-      by grind
-    rw [this]
+    rw[show (a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)}) = ((a ⊗ (b ⊗ c)) ::ₘ ({a⫠} + ({b⫠} + {c⫠})))
+      by grind]
     apply Proof.tensor
     · exact Proof.ax
     · apply Proof.tensor <;> exact Proof.ax
@@ -451,8 +451,7 @@ instance {Γ : Sequent Atom} :
 def oplus_idem {a : Proposition Atom} : a ⊕ a ≡⇓ a := by
   constructor
   · apply Proof.with <;> exact Proof.ax'
-  · have : ({a⫠, a ⊕ a} : Sequent Atom) = {a ⊕ a, a⫠} := by sorry
-    rw [this]
+  · rw [show ({a⫠, a ⊕ a} : Sequent Atom) = {a ⊕ a, a⫠} by grind]
     apply Proof.oplus₁
     exact Proof.ax
 
@@ -461,8 +460,7 @@ def with_idem {a : Proposition Atom} : a & a ≡⇓ a := by
   constructor
   · apply Proof.oplus₁
     exact Proof.ax'
-  · have : ({a⫠, a & a} : Sequent Atom) = {a & a, a⫠} := by sorry
-    rw [this]
+  · rw [show ({a⫠, a & a} : Sequent Atom) = {a & a, a⫠} by grind]
     apply Proof.with <;> exact Proof.ax
 
 end Proposition
