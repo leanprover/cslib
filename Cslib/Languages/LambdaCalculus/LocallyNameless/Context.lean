@@ -74,13 +74,7 @@ lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
 
 /-- A mapping of values maps lookups. -/
 lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
-  induction Γ with
-  | nil => grind
-  | cons hd =>
-      #adaptation_note
-      /-- Moving to `nightly-2025-11-20` required this destructuring -/
-      let ⟨x', _⟩ := hd
-      grind
+  induction Γ <;> grind
 
 end LambdaCalculus.LocallyNameless.Context
 
