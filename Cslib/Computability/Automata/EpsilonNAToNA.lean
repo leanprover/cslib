@@ -20,7 +20,6 @@ private def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
 private lemma LTS.noε_saturate_tr
   {lts : LTS State (Option Label)} {h : μ = some μ'} :
   lts.saturate.Tr s μ s' ↔ lts.saturate.noε.Tr s μ' s' := by
-  simp only [LTS.noε]
   grind
 
 @[scoped grind =]
