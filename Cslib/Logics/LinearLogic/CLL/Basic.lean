@@ -131,7 +131,7 @@ theorem Proposition.dual.involution (a : Proposition Atom) : a⫠⫠ = a := by
   induction a <;> grind [dual]
 
 /-- Linear implication. -/
-@[scoped grind .]
+@[scoped grind =]
 def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ b
 
 @[inherit_doc] scoped infix:25 " ⊸ " => Proposition.linImpl
@@ -166,7 +166,7 @@ inductive Proof : Sequent Atom → Type u where
 @[inherit_doc]
 scoped notation "⇓" Γ:90 => Proof Γ
 
-@[scoped grind .]
+@[scoped grind =]
 def Proof.sequent_rw (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
 
 /-- A sequent is provable if there exists a proof that concludes it. -/
@@ -177,7 +177,7 @@ def Sequent.Provable (Γ : Sequent Atom) := Nonempty (⇓Γ)
 theorem Sequent.Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : Γ.Provable := ⟨p⟩
 
 /-- Having a proof of Γ shows that it is provable. -/
-@[scoped grind .]
+@[scoped grind =]
 noncomputable def Sequent.Provable.toProof {Γ : Sequent Atom} (p : Γ.Provable) : ⇓Γ :=
   Classical.choice p
 
@@ -193,30 +193,30 @@ def Proof.ax' {a : Proposition Atom} : ⇓{a⫠, a} :=
   Multiset.pair_comm a (a⫠) ▸ Proof.ax
 
 /-- Cut, but where the premises are reversed. -/
-@[scoped grind .]
+@[scoped grind =]
 def Proof.cut' (p : ⇓(a⫠ ::ₘ Γ)) (q : ⇓(a ::ₘ Δ)) : ⇓(Γ + Δ) :=
   let r : ⇓(a⫠⫠ ::ₘ Δ) := (Proposition.dual.involution a).symm ▸ q
   p.cut r
 
 /-- Inversion of the ⅋ rule. -/
-@[scoped grind .]
+@[scoped grind =]
 def Proof.parr_inversion {Γ : Sequent Atom} (h : ⇓((a ⅋ b) ::ₘ Γ)) : ⇓(a ::ₘ b ::ₘ Γ) :=
   show a ::ₘ b ::ₘ Γ = {a, b} + Γ by simp ▸
     cut' (show ({a, b} : Sequent Atom) = {a} + {b} by simp ▸ tensor ax' ax') h
 
 /-- Inversion of the ⊥ rule. -/
-@[scoped grind .]
+@[scoped grind =]
 def Proof.bot_inversion {Γ : Sequent Atom} (h : ⇓(⊥ ::ₘ Γ)) : ⇓Γ := by
   convert Proof.cut' (a := ⊥) (Γ := {}) (Δ := Γ) Proof.one h
   simp
 
 /-- Inversion of the & rule, first component. -/
-@[scoped grind .]
+@[scoped grind =]
 def Proof.with_inversion₁ {Γ : Sequent Atom} (h : ⇓((a & b) ::ₘ Γ)) : ⇓(a ::ₘ Γ) :=
   cut' (a := a & b) (oplus₁ ax') h
 
 /-- Inversion of the & rule, second component. -/
-@[scoped grind .]
+@[scoped grind =]
 def Proof.with_inversion₂ {Γ : Sequent Atom} (h : ⇓((a & b) ::ₘ Γ)) : ⇓(b ::ₘ Γ) :=
   cut' (a := a & b) (oplus₂ ax') h
 
@@ -252,14 +252,14 @@ namespace Proposition
 
 open Sequent
 
-@[scoped grind .]
+@[scoped grind =]
 def equiv.refl (a : Proposition Atom) : a ≡⇓ a :=
   ⟨Proof.ax', Proof.ax'⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def equiv.symm (a : Proposition Atom) (h : a ≡⇓ b) : b ≡⇓ a := ⟨h.2, h.1⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def equiv.trans {a b c : Proposition Atom} (hab : a ≡⇓ b) (hbc : b ≡⇓ c) : a ≡⇓ c :=
   ⟨(Multiset.pair_comm b (a⫠) ▸ hab.fst).cut hbc.fst,
    (Multiset.pair_comm b (c⫠) ▸ hbc.snd).cut hab.snd⟩
@@ -267,10 +267,10 @@ def equiv.trans {a b c : Proposition Atom} (hab : a ≡⇓ b) (hbc : b ≡⇓ c)
 @[refl, scoped grind .]
 theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
 
-@[symm, scoped grind .]
+@[symm, scoped grind →]
 theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
 
-@[scoped grind .]
+@[scoped grind →]
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   ⟨
     Provable.fromProof
@@ -283,20 +283,20 @@ theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) :
 def propositionSetoid : Setoid (Proposition Atom) :=
   ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 :=
   ⟨.weaken .one, .bot (.bang rfl .top)⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
   ⟨.sequent_rw (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
    .sequent_rw (Multiset.pair_comm ..) <| .weaken .one⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡⇓ 0 :=
   ⟨.parr <| .sequent_rw (Multiset.cons_swap ..) .top, .top⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def parr_top_eqv_top (a : Proposition Atom) : a ⅋ ⊤ ≡⇓ ⊤ :=
   ⟨.sequent_rw (Multiset.cons_swap ..) .top,
    .sequent_rw (Multiset.cons_swap ..) <| .parr <| .sequent_rw (Multiset.cons_swap ..) .top⟩
@@ -309,7 +309,7 @@ attribute [local grind =] Multiset.add_assoc
 attribute [local grind =] Multiset.insert_eq_cons
 
 open scoped Multiset in
-@[scoped grind .]
+@[scoped grind =]
 def tensor_distrib_oplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a ⊗ b) ⊕ (a ⊗ c) :=
   ⟨.parr <|
     .sequent_rw (Multiset.cons_swap ..) <|
@@ -328,7 +328,7 @@ def tensor_distrib_oplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a 
 
 /-- The proposition at the head of a proof can be substituted by an equivalent
   proposition. -/
-@[scoped grind .]
+@[scoped grind =]
 def subst_eqv_head {Γ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(a ::ₘ Γ)) : ⇓(b ::ₘ Γ) :=
   show b ::ₘ Γ = Γ + {b} by grind ▸ p.cut heqv.1
 
@@ -338,18 +338,18 @@ theorem add_middle_eq_cons {a : Proposition Atom} : Γ + {a} + Δ = a ::ₘ (Γ 
 open scoped Multiset in
 /-- Any proposition in a proof (regardless of its position) can be substituted by
   an equivalent proposition. -/
-@[scoped grind .]
+@[scoped grind =]
 def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
   add_middle_eq_cons ▸ subst_eqv_head heqv (add_middle_eq_cons ▸ p)
 
-@[scoped grind .]
+@[scoped grind =]
 def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
   ⟨.parr <| show a⫠ ::ₘ b⫠ ::ₘ {b ⊗ a} = (b ⊗ a) ::ₘ {b⫠} + {a⫠} by grind ▸ .tensor .ax .ax,
    .parr <| show b⫠ ::ₘ a⫠ ::ₘ {a ⊗ b} = (a ⊗ b) ::ₘ {a⫠} + {b⫠} by grind ▸ .tensor .ax .ax⟩
 
 -- TODO: the precedence on ⊗ notation is wrong
 open scoped Multiset in
-@[scoped grind .]
+@[scoped grind =]
 def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) ⊗ c :=
   ⟨.parr <|
      Multiset.cons_swap .. ▸
@@ -365,12 +365,12 @@ instance {Γ : Sequent Atom} :
     IsSymm (Proposition Atom) (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
   symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
 
-@[scoped grind .]
+@[scoped grind =]
 def oplus_idem {a : Proposition Atom} : a ⊕ a ≡⇓ a :=
   ⟨.with .ax' .ax',
    show ({a⫠, a ⊕ a} : Sequent Atom) = {a ⊕ a, a⫠} by grind ▸ .oplus₁ .ax⟩
 
-@[scoped grind .]
+@[scoped grind =]
 def with_idem {a : Proposition Atom} : a & a ≡⇓ a :=
   ⟨.oplus₁ .ax',
    show ({a⫠, a & a} : Sequent Atom) = {a & a, a⫠} by grind ▸ .with .ax .ax⟩
