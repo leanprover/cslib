@@ -370,6 +370,7 @@ section Weak
 
 /-- A type of transition labels that includes a special 'internal' transition `τ`. -/
 class HasTau (Label : Type v) where
+  /-- The internal transition label, also known as τ. -/
   τ : Label
 
 /-- Saturated transition relation. -/

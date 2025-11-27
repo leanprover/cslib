@@ -252,18 +252,22 @@ scoped infix:29 " ≡ " => Proposition.Equiv
 
 namespace Proposition
 
+/-- Proof-relevant equivalence is reflexive. -/
 def equiv.refl (a : Proposition Atom) : a.equiv a := by
   constructor <;> (
     apply Proof.exchange (List.Perm.swap ..)
     exact Proof.ax
   )
 
+/-- Proof-irrelevant equivalence is reflexive. -/
 @[refl]
 theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
 
+/-- Proof-irrelevant equivalence is symmetric. -/
 @[symm]
 theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
 
+/-- Proof-irrelevant equivalence is transitive. -/
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   ⟨
     Provable.fromProof (Proof.cut (Proof.exchange (List.Perm.swap ..) hab.1.toProof) hbc.1),
