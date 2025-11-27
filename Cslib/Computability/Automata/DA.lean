@@ -29,6 +29,7 @@ open scoped Cslib.FLTS
 
 namespace Cslib.Automata
 
+/-- A deterministic automaton extends a `FLTS` with a unique initial state. -/
 structure DA (State Symbol : Type*) extends FLTS State Symbol where
   /-- The initial state of the automaton. -/
   start : State
@@ -66,7 +67,7 @@ theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : 
 
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends DA State Symbol where
-  /-- The accept states. -/
+  /-- The set of accepting states. -/
   accept : Set State
 
 namespace FinAcc
@@ -77,33 +78,39 @@ the string to an accept state.
 This is the standard string recognition performed by DFAs in the literature. -/
 @[simp, scoped grind =]
 instance : Acceptor (DA.FinAcc State Symbol) Symbol where
-  Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
+  Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) :=
+    a.mtr a.start xs ∈ a.accept
 
 end FinAcc
 
 /-- Deterministic Buchi automaton. -/
 structure Buchi (State Symbol : Type*) extends DA State Symbol where
-  /-- The accept states -/
+  /-- The set of accepting states. -/
   accept : Set State
 
 namespace Buchi
 
+/-- An infinite run is accepting iff accepting states occur infinitely many times. -/
 @[simp, scoped grind =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
-  Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) := ∃ᶠ k in atTop, a.run xs k ∈ a.accept
+  Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) :=
+    ∃ᶠ k in atTop, a.run xs k ∈ a.accept
 
 end Buchi
 
 /-- Deterministic Muller automaton. -/
 structure Muller (State Symbol : Type*) extends DA State Symbol where
-  /-- The accepting set of sets of states. -/
+  /-- The set of sets of accepting states. -/
   accept : Set (Set State)
 
 namespace Muller
 
+/-- An infinite run is accepting iff the set of states that occur infinitely many times
+is one of the sets in `accept`. -/
 @[simp, scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
-  Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) := (a.run xs).infOcc ∈ a.accept
+  Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) :=
+    (a.run xs).infOcc ∈ a.accept
 
 end Muller
 
