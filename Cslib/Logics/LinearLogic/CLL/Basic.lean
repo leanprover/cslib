@@ -166,6 +166,7 @@ inductive Proof : Sequent Atom → Type u where
 @[inherit_doc]
 scoped notation "⇓" Γ:90 => Proof Γ
 
+/-- Rewrites the conclusion of a proof into an equal one. -/
 @[scoped grind =]
 def Proof.sequent_rw (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
 
@@ -285,6 +286,7 @@ theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) :
       (Proof.cut (hbc.2.toProof.sequent_rw (Multiset.pair_comm _ _)) hab.2.toProof)
   ⟩
 
+/-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
 noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
   ⟨h.1.toProof, h.2.toProof⟩
 
