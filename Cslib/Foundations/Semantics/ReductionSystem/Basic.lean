@@ -94,12 +94,16 @@ syntax attrKind "reduction_notation" ident (str)? : command
 macro_rules
   | `($kind:attrKind reduction_notation $rs $sym) =>
     `(
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
   | `($kind:attrKind reduction_notation $rs) =>
     `(
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 

@@ -325,9 +325,12 @@ def I : Set P := idempotentsIn (1 : Set P)
 
 namespace Fact
 
+/--
+Linear negation of a fact, given by taking its orthogonal.
+-/
 def neg (G : Fact P) : Fact P := dualFact G
 
-postfix:max "ᗮ" => neg
+@[inherit_doc] postfix:max "ᗮ" => neg
 
 @[simp] lemma coe_neg {G : Fact P} : (Gᗮ : Set P) = (G : Set P)⫠ := rfl
 
@@ -559,6 +562,9 @@ lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, 
 
 @[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
 
+/--
+A fact `G` is valid if the unit `1` belongs to `G`.
+-/
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
 lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid := Iff.rfl
