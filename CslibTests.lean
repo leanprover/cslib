@@ -7,5 +7,4 @@ import CslibTests.HasFresh
 import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
-import CslibTests.Lint
 import CslibTests.ReductionSystem
