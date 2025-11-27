@@ -254,7 +254,7 @@ open Sequent
 
 /-- Proof-relevant equivalence is reflexive. -/
 @[scoped grind =]
-def equiv.refl (a : Proposition Atom) : a.equiv a := by
+def equiv.refl (a : Proposition Atom) : a.equiv a :=
   ⟨Proof.ax', Proof.ax'⟩
 
 /-- Proof-relevant equivalence is symmetric. -/
@@ -285,7 +285,7 @@ theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) :
       (Proof.cut (hbc.2.toProof.sequent_rw (Multiset.pair_comm _ _)) hab.2.toProof)
   ⟩
 
-noncomputable def Proposition.chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
+noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
   ⟨h.1.toProof, h.2.toProof⟩
 
 /-- The canonical equivalence relation for propositions. -/
