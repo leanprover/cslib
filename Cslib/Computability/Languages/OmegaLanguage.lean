@@ -117,11 +117,13 @@ A.k.a. ω-power.
 def omegaPow [Inhabited α] (l : Language α) : ωLanguage α :=
   { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 }
 
-/-- Use the postfix notation ^ω` for `omegaPow`. -/
+/-- Notation class for `omegaPow`. -/
 @[notation_class]
 class OmegaPow (α : Type*) (β : outParam (Type*)) where
+  /-- The `omegaPow` operation. -/
   omegaPow : α → β
 
+/-- Use the postfix notation ^ω` for `omegaPow`. -/
 postfix:1024 "^ω" => OmegaPow.omegaPow
 
 instance [Inhabited α] : OmegaPow (Language α) (ωLanguage α) :=
@@ -131,17 +133,18 @@ theorem omegaPow_def [Inhabited α] (l : Language α) :
     l^ω = { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 }
   := rfl
 
-/- The ω-limit of a language `l` is the ω-language of infinite sequences each of which
-contains infinitely many distinct prefixes in `l`.
--/
+/-- The ω-limit of a language `l` is the ω-language of infinite sequences each of which
+contains infinitely many distinct prefixes in `l`. -/
 def omegaLim (l : Language α) : ωLanguage α :=
   { s | ∃ᶠ m in atTop, s.extract 0 m ∈ l }
 
-/-- Use the postfix notation ↗ω` for `omegaLim`. -/
+/-- Notation class for `omegaLim`. -/
 @[notation_class]
 class OmegaLim (α : Type*) (β : outParam (Type*)) where
+  /-- The `omegaLim` operation. -/
   omegaLim : α → β
 
+/-- Use the postfix notation ↗ω` for `omegaLim`. -/
 postfix:1024 "↗ω" => OmegaLim.omegaLim
 
 instance instOmegaLim : OmegaLim (Language α) (ωLanguage α) :=

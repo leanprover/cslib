@@ -28,6 +28,7 @@ variable {α : Type u} {β : Type v} {δ : Type w}
 
 /-- An `ωSequence α` is an infinite sequence of elements of `α`. -/
 structure ωSequence (α : Type u) where
+  /-- The function that defines this infinite sequence. -/
   get : ℕ → α
 
 instance : FunLike (ωSequence α) ℕ α where

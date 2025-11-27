@@ -32,6 +32,7 @@ def Proof.cutFree (p : ⇓Γ) : Bool :=
   | bang _ p => p.cutFree
   | cut _ _ => false
 
+/-- A `CutFreeProof` is a `Proof` without cuts (applications of `Proof.cut`). -/
 abbrev CutFreeProof (Γ : Sequent Atom) := { q : ⇓Γ // q.cutFree }
 
 -- TODO

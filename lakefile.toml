@@ -2,6 +2,7 @@ name = "cslib"
 version = "0.1.0"
 defaultTargets = ["Cslib"]
 testDriver = "runTests"
+lintDriver = "batteries/runLinter"
 
 [leanOptions]
 weak.linter.mathlibStandardSet = true

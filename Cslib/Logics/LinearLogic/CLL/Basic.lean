@@ -166,6 +166,7 @@ inductive Proof : Sequent Atom → Type u where
 @[inherit_doc]
 scoped notation "⇓" Γ:90 => Proof Γ
 
+/-- Rewrites the conclusion of a proof into an equal one. -/
 @[scoped grind =]
 def Proof.sequent_rw (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
 
@@ -238,38 +239,44 @@ theorem Proposition.equiv.toProp (h : Proposition.equiv a b) : Proposition.Equiv
   obtain ⟨p, q⟩ := h
   exact ⟨p, q⟩
 
+@[inherit_doc]
 scoped infix:29 " ≡⇓ " => Proposition.equiv
+
+@[inherit_doc]
 scoped infix:29 " ≡ " => Proposition.Equiv
 
 /-- Proof-relevant equivalence is coerciable into proof-irrelevant equivalence. -/
 instance {a b : Proposition Atom} : Coe (a ≡⇓ b) (a ≡ b) where
   coe := Proposition.equiv.toProp
 
-noncomputable def Proposition.chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
-  ⟨h.1.toProof, h.2.toProof⟩
-
 namespace Proposition
 
 open Sequent
 
+/-- Proof-relevant equivalence is reflexive. -/
 @[scoped grind =]
-def equiv.refl (a : Proposition Atom) : a ≡⇓ a :=
+def equiv.refl (a : Proposition Atom) : a.equiv a :=
   ⟨Proof.ax', Proof.ax'⟩
 
+/-- Proof-relevant equivalence is symmetric. -/
 @[scoped grind =]
 def equiv.symm (a : Proposition Atom) (h : a ≡⇓ b) : b ≡⇓ a := ⟨h.2, h.1⟩
 
+/-- Proof-relevant equivalence is transitive. -/
 @[scoped grind =]
 def equiv.trans {a b c : Proposition Atom} (hab : a ≡⇓ b) (hbc : b ≡⇓ c) : a ≡⇓ c :=
   ⟨(Multiset.pair_comm b (a⫠) ▸ hab.fst).cut hbc.fst,
    (Multiset.pair_comm b (c⫠) ▸ hbc.snd).cut hab.snd⟩
 
+/-- Proof-irrelevant equivalence is reflexive. -/
 @[refl, scoped grind .]
 theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
 
+/-- Proof-irrelevant equivalence is symmetric. -/
 @[symm, scoped grind →]
 theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
 
+/-- Proof-irrelevant equivalence is transitive. -/
 @[scoped grind →]
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   ⟨
@@ -279,23 +286,31 @@ theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) :
       (Proof.cut (hbc.2.toProof.sequent_rw (Multiset.pair_comm _ _)) hab.2.toProof)
   ⟩
 
+/-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
+noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
+  ⟨h.1.toProof, h.2.toProof⟩
+
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
   ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
 
+/-- !⊤ ≡⇓ 1 -/
 @[scoped grind =]
 def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 :=
   ⟨.weaken .one, .bot (.bang rfl .top)⟩
 
+/-- ʔ0 ≡⇓ ⊥ -/
 @[scoped grind =]
 def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
   ⟨.sequent_rw (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
    .sequent_rw (Multiset.pair_comm ..) <| .weaken .one⟩
 
+/-- a ⊗ 0 ≡⇓ 0 -/
 @[scoped grind =]
 def tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡⇓ 0 :=
   ⟨.parr <| .sequent_rw (Multiset.cons_swap ..) .top, .top⟩
 
+/-- a ⅋ ⊤ ≡⇓ ⊤ -/
 @[scoped grind =]
 def parr_top_eqv_top (a : Proposition Atom) : a ⅋ ⊤ ≡⇓ ⊤ :=
   ⟨.sequent_rw (Multiset.cons_swap ..) .top,
@@ -309,6 +324,7 @@ attribute [local grind =] Multiset.add_assoc
 attribute [local grind =] Multiset.insert_eq_cons
 
 open scoped Multiset in
+/-- ⊗ distributed over ⊕. -/
 @[scoped grind =]
 def tensor_distrib_oplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a ⊗ b) ⊕ (a ⊗ c) :=
   ⟨.parr <|
@@ -342,6 +358,7 @@ open scoped Multiset in
 def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
   add_middle_eq_cons ▸ subst_eqv_head heqv (add_middle_eq_cons ▸ p)
 
+/-- Tensor is commutative. -/
 @[scoped grind =]
 def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
   ⟨.parr <| show a⫠ ::ₘ b⫠ ::ₘ {b ⊗ a} = (b ⊗ a) ::ₘ {b⫠} + {a⫠} by grind ▸ .tensor .ax .ax,
@@ -349,6 +366,7 @@ def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
 
 -- TODO: the precedence on ⊗ notation is wrong
 open scoped Multiset in
+/-- ⊗ is associative. -/
 @[scoped grind =]
 def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) ⊗ c :=
   ⟨.parr <|
@@ -365,11 +383,13 @@ instance {Γ : Sequent Atom} :
     IsSymm (Proposition Atom) (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
   symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
 
+/-- ⊕ is idempotent. -/
 @[scoped grind =]
 def oplus_idem {a : Proposition Atom} : a ⊕ a ≡⇓ a :=
   ⟨.with .ax' .ax',
    show ({a⫠, a ⊕ a} : Sequent Atom) = {a ⊕ a, a⫠} by grind ▸ .oplus₁ .ax⟩
 
+/-- & is idempotent. -/
 @[scoped grind =]
 def with_idem {a : Proposition Atom} : a & a ≡⇓ a :=
   ⟨.oplus₁ .ax',

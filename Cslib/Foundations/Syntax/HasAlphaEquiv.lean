@@ -13,6 +13,7 @@ class HasAlphaEquiv (β : Type u) where
   /-- α-equivalence relation for type β. -/
   AlphaEquiv : β → β → Prop
 
+@[inherit_doc]
 notation m:max " =α " n:max => HasAlphaEquiv.AlphaEquiv m n
 
 end Cslib

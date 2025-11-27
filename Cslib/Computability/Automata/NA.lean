@@ -31,6 +31,7 @@ open Filter
 
 namespace Cslib.Automata
 
+/-- A nondeterministic automaton extends a `LTS` with a set of initial states. -/
 structure NA (State Symbol : Type*) extends LTS State Symbol where
   /-- The set of initial states of the automaton. -/
   start : Set State
@@ -64,7 +65,7 @@ end NARunGrind
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where
-  /-- The accept states. -/
+  /-- The set of accepting states. -/
   accept : Set State
 
 namespace FinAcc
@@ -82,10 +83,12 @@ end FinAcc
 
 /-- Nondeterministic Buchi automaton. -/
 structure Buchi (State Symbol : Type*) extends NA State Symbol where
+  /-- The set of accepting states. -/
   accept : Set State
 
 namespace Buchi
 
+/-- An infinite run is accepting iff accepting states occur infinitely many times. -/
 @[simp, scoped grind =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
   Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) :=
@@ -95,10 +98,13 @@ end Buchi
 
 /-- Nondeterministic Muller automaton. -/
 structure Muller (State Symbol : Type*) extends NA State Symbol where
+  /-- The set of sets of accepting states. -/
   accept : Set (Set State)
 
 namespace Muller
 
+/-- An infinite run is accepting iff the set of states that occur infinitely many times
+is one of the sets in `accept`. -/
 @[simp, scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
   Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) :=

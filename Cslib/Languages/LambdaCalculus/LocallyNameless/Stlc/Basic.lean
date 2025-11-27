@@ -36,6 +36,7 @@ inductive Ty (Base : Type v)
   /-- A function type. -/
   | arrow : Ty Base → Ty Base → Ty Base
 
+@[inherit_doc]
 scoped infixr:70 " ⤳ " => Ty.arrow
 
 open Ty Context
@@ -51,6 +52,7 @@ inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
 
 attribute [scoped grind .] Typing.var Typing.app
 
+@[inherit_doc]
 scoped notation:50 Γ " ⊢ " t " ∶ " τ:arg => Typing Γ t τ
 
 namespace Typing

@@ -28,6 +28,6 @@ def topNamespace : Batteries.Tactic.Lint.Linter where
     if top.contains declName.components[0]! then
       return none
     else
-      return m!"{declName} is not namespaced."
+      return m!"is not namespaced."
 
 end Cslib.Lint
