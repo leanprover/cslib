@@ -16,11 +16,13 @@ open scoped Run
 
 variable {Symbol I : Type*} {State : I → Type*}
 
+/-- The sum of an indexed family of nondeterministic automata. -/
 @[scoped grind =]
 def iSum (na : (i : I) → NA (State i) Symbol) : NA (Σ i, State i) Symbol where
   start := ⋃ i, Sigma.mk i '' (na i).start
   Tr s x t := ∃ i s_i t_i, (na i).Tr s_i x t_i ∧ ⟨i, s_i⟩ = s ∧ ⟨i, t_i⟩ = t
 
+/-- An infinite run of the sum automaton is an infinite run of one of its component automata. -/
 @[simp, scoped grind =]
 theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
     {xs : ωSequence Symbol} {ss : ωSequence (Σ i, State i)} :
@@ -54,6 +56,8 @@ namespace Buchi
 
 open ωAcceptor
 
+/-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
+by its component automata. -/
 @[simp]
 theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) → Set (State i)} :
     language (Buchi.mk (iSum na) (⋃ i, Sigma.mk i '' (acc i))) =
