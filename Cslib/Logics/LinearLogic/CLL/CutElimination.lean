@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Batteries.Util.ProofWanted
 import Cslib.Logics.LinearLogic.CLL.Basic
 
 namespace Cslib
@@ -21,7 +20,6 @@ def Proof.cutFree (p : ⇓Γ) : Bool :=
   | ax => true
   | one => true
   | bot p => p.cutFree
-  | exchange _ p => p.cutFree
   | parr p => p.cutFree
   | tensor p q => p.cutFree && q.cutFree
   | oplus₁ p => p.cutFree
@@ -34,14 +32,15 @@ def Proof.cutFree (p : ⇓Γ) : Bool :=
   | bang _ p => p.cutFree
   | cut _ _ => false
 
+/-- A `CutFreeProof` is a `Proof` without cuts (applications of `Proof.cut`). -/
 abbrev CutFreeProof (Γ : Sequent Atom) := { q : ⇓Γ // q.cutFree }
 
 -- TODO
 /- Cut admissibility: given two proofs with dual propositions, returns a cut-free proof of their
 cut. -/
 -- def Proof.cutAdm
---   {a : Proposition Atom} (p : ⇓(a :: Γ)) (q : ⇓(a⫠ :: Δ)) (hp : p.cutFree) (hq : q.cutFree) :
---   CutFreeProof (Γ ++ Δ)
+--     {a : Proposition Atom} (p : CutFreeProof (a ::ₘ Γ)) (q : CutFreeProof (a⫠ ::ₘ Δ)) :
+--     CutFreeProof (Γ + Δ)
 
 -- TODO
 /- Cut elimination: given a proof of a sequent `Γ`, returns a cut-free proof of the same sequent.
