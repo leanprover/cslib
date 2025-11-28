@@ -11,14 +11,14 @@ import Cslib.Algorithms.Lean.TimeM
 /-!
 # MergeSort on a list
 
-In this file we introduce `merge` and `mergeSort` algorithms that returns a time
-monad over the list `TimeM (List α)`.
+In this file we introduce `merge` and `mergeSort` algorithms that returns a time monad
+over the list `TimeM (List α)`. The time complexity of `mergeSort` is the number of comparisons.
 
 --
 ## Main results
 
 - `mergeSort_correct`: `mergeSort` returns a sorted list which is a permutation of the input list.
-- `mergeSort_time`:  `mergeSort` time is `n *(Nat.log 2 n)` where `n` is the list size.
+- `mergeSort_time`:  `mergeSort` time is at most `n*⌈log₂ n⌉` where `n` is the list size.
 
 -/
 
@@ -31,8 +31,8 @@ section MergeSort
 variable {α : Type} [LinearOrder α]
 
 def merge :  List α → List α  → TimeM (List α)
-  | [], ys => ✓ ys, ys.length
-  | xs, [] => ✓ xs, xs.length
+  | [], ys => return ys
+  | xs, [] => return xs
   | x::xs', y::ys' => do
     if x ≤ y then
       let rest ← merge xs' (y::ys')
@@ -60,11 +60,12 @@ open List
 theorem mem_either_merge (xs ys : List α) (z : α)
   (hz : z ∈ (merge xs ys).ret) : z ∈ xs ∨ z ∈ ys := by
   fun_induction merge
-  all_goals (try (simp only [not_mem_nil, false_or];assumption))
+  · simp_all only [Pure.pure, pure, not_mem_nil, or_true]
+  · simp_all only [imp_false, Pure.pure, pure, not_mem_nil, or_false]
   all_goals
-  simp only [Bind.bind, tick, ret_bind, mem_cons] at hz
+  simp_all only [mem_cons, Bind.bind, tick, Nat.cast_one, ret_bind]
   cases hz
-  all_goals (aesop)
+  all_goals (grind)
 
 theorem min_all_merge (x : α) (xs ys : List α)
 (hxs : MinOfList x xs) (hys : MinOfList x ys) : MinOfList x (merge xs ys).ret := by
@@ -76,8 +77,10 @@ theorem min_all_merge (x : α) (xs ys : List α)
 theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1)
   (hys : IsSorted l2) : IsSorted ((merge l1 l2).ret) := by
   fun_induction merge l1 l2 <;> try simpa
-  all_goals (simp_all only [IsSorted, sorted_cons, and_imp, Bind.bind, tick, Nat.cast_one, ret_bind,
-      implies_true, and_true, forall_const]; apply min_all_merge <;> grind)
+  all_goals
+  simp_all only [not_le, IsSorted, sorted_cons, and_imp, Bind.bind, tick, Nat.cast_one,
+   ret_bind, implies_true, and_true, forall_const]
+  apply min_all_merge <;> grind
 
 theorem mergeSort_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
   fun_induction mergeSort xs
@@ -87,7 +90,8 @@ theorem mergeSort_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
     exact sorted_merge ih2 ih1
 
 lemma merge_perm (l₁ l₂ : List α) : (merge l₁ l₂).ret ~ l₁ ++ l₂ := by
-  fun_induction merge <;> simp only [Bind.bind, tick, ret_bind, cons_append, perm_cons] <;> grind
+  fun_induction merge <;> simp_all only [not_le, cons_append, Bind.bind, tick, Nat.cast_one,
+    Pure.pure, pure, ret_bind] <;> grind
 
 theorem mergeSort_perm (xs : List α) : (mergeSort xs).ret ~ xs := by
   fun_induction mergeSort xs
@@ -111,11 +115,73 @@ theorem mergeSort_correct (xs : List α) :
 | 1 => 0
 | n@(_+2) => timeMergeSortRec (n/2) + timeMergeSortRec ((n-1)/2 + 1) + n
 
+def clog2 (n : ℕ) : ℕ :=
+  if n ≤ 1 then 0 else Nat.log 2 (n - 1) + 1
+
+@[grind =, simp] private abbrev T (n : ℕ) : ℤ :=
+  n * clog2 n
+
+/-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
+lemma clog2_half_le (n : ℕ) (h : n > 1) : clog2 ((n + 1) / 2) ≤ clog2 n - 1 := by
+  unfold clog2
+  split_ifs with h_small
+  · omega
+  · simp only [add_tsub_cancel_right, zero_le]
+  · omega
+  · simp only [add_tsub_cancel_right]
+    rw [← Nat.sub_mul_div (n + 1) 2 1]
+    simp only [mul_one, Nat.reduceSubDiff, Nat.log_div_base]
+    rw [Nat.sub_one_add_one ?_]
+    simp only [ne_eq, Nat.log_eq_zero_iff, Nat.not_ofNat_le_one, or_false, not_lt]
+    omega
+
+/-- Same logic for the floor half: ⌈log2 ⌊n/2⌋⌉ ≤ ⌈log2 n⌉ - 1 -/
+lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog2 (n / 2) ≤ clog2 n - 1 := by
+  apply Nat.le_trans _ (clog2_half_le n h)
+  simp only [clog2]
+  split_ifs with h_small
+  · rfl
+  · omega
+  · omega
+  · expose_names
+    grw [Nat.log_mono_right]
+    grind
+
+private lemma some_algebra (n : ℕ) :
+  (n / 2 + 1) * clog2 (n / 2 + 1) + ((n + 1) / 2 + 1) * clog2 ((n + 1) / 2 + 1) + (n + 2) ≤
+  (n + 2) * clog2 (n + 2) := by
+  -- 1. Substitution: Let N = n_1 + 2 to clean up the expression
+  let N := n + 2
+  have hN : N ≥ 2 := by omega
+  -- 2. Rewrite the terms using N
+  have t1 : n / 2 + 1 = N / 2 := by omega
+  have t2 : (n + 1) / 2 + 1 = (N + 1) / 2 := by omega
+  have t3 : n + 1 + 1 = N := by omega
+  rw [t1, t2, t3]
+  let k := clog2 N
+  have h_bound_l : clog2 (N / 2) ≤ k - 1 := clog2_floor_half_le N hN
+  have h_bound_r : clog2 ((N + 1) / 2) ≤ k - 1 := clog2_half_le N hN
+  grw [h_bound_l,h_bound_r]
+  rw [←Nat.add_mul]
+  have h_split : N / 2 + (N + 1) / 2 = N := by omega
+  rw [h_split]
+  bound
+
+/-- Solve the recurrence -/
+theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ n * clog2 n := by
+  fun_induction timeMergeSortRec
+  · simp
+  · simp
+  · grw [ih1,ih2]
+    norm_cast
+    simp only [Nat.ofNat_pos, Nat.add_div_right, Nat.add_one_sub_one, Nat.succ_eq_add_one]
+    exact some_algebra n_1
+
+
 @[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
   (merge xs ys).ret.length = xs.length + ys.length := by
-  fun_induction merge <;> all_goals
-  simp_all only [length_cons, Bind.bind, tick, ret_bind]
-  grind
+  fun_induction merge <;> simp [Pure.pure, pure, length_nil, add_zero,zero_add]
+  all_goals grind
 
 @[simp] theorem mergeSort_same_length (xs : List α) :
   (mergeSort xs).ret.length = xs.length:= by
@@ -125,49 +191,34 @@ theorem mergeSort_correct (xs : List α) :
     grind
 
 @[simp] theorem merge_time (xs ys : List α) :
-  (merge xs ys).time = xs.length + ys.length := by
-  fun_induction merge <;> simp_all only [tick, length_nil, CharP.cast_eq_zero, zero_add,add_zero]
-  all_goals (simp_all;grind)
+  (merge xs ys).time ≤ xs.length + ys.length := by
+  fun_induction merge <;> simp
+  all_goals
+  simp_all
+  grind
 
-private theorem mergeSort_time_eq (xs : List α) :
-  (mergeSort xs).time = timeMergeSortRec xs.length := by
+private theorem mergeSort_time_le (xs : List α) :
+  (mergeSort xs).time ≤ timeMergeSortRec xs.length := by
   fun_induction mergeSort
   · simp only [Pure.pure, pure]
     unfold timeMergeSortRec
     norm_cast
     grind
-  · simp only [Bind.bind, time_of_bind, merge_time, mergeSort_same_length]
+  · simp only [Bind.bind, time_of_bind]
+    grw [merge_time]
+    simp only [mergeSort_same_length]
     unfold timeMergeSortRec
+    grw [ih1,ih2]
     split <;> all_goals (simp_all)
     norm_cast
     grind
 
-@[grind =] private def timeMergeSortRecSimp : ℕ → ℤ
-| 0 => 0
-| 1 => 0
-| n@(_+2) => 2*timeMergeSortRecSimp (n/2) + n
-
-private theorem timeMergeSortRecSimp_EQ (n : ℕ) :
-(timeMergeSortRec (2^n))= (timeMergeSortRecSimp (2^n))  := by
-  induction n
-  · grind
-  · unfold timeMergeSortRecSimp timeMergeSortRec
-    split <;> grind
-
-private theorem timeMergeSortRecSimp_EQ_CLOSED (n : ℕ) :
-  timeMergeSortRecSimp (2^n) = 2^n * n := by
-  induction n
-  · grind
-  · unfold timeMergeSortRecSimp
-    split <;> grind
-
 /-- Time complexity of mergeSort -/
-theorem mergeSort_time (xs : List α) (h : ∃ k, xs.length = 2 ^ k) :
-  (mergeSort xs).time = xs.length*(Nat.log 2 xs.length)  := by
-  rw [mergeSort_time_eq]
-  obtain ⟨k,hk⟩ := h
-  rw [hk,timeMergeSortRecSimp_EQ,timeMergeSortRecSimp_EQ_CLOSED]
-  simp only [Nat.lt_add_one, Nat.log_pow]
+theorem mergeSort_time (xs : List α) :
+  let n := xs.length
+  (mergeSort xs).time ≤ n * clog2 n := by
+  simp only
+  grw [mergeSort_time_le,timeMergeSortRec_le]
   norm_cast
 
 end MergeSort
