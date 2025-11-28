@@ -7,7 +7,7 @@ Authors: Sorrachai Yingchareonthawornhcai
 import Mathlib.Tactic
 
 /-!
-# TimeMonad
+# Time Monad
 
 `TimeM` is a monad that tracks execution time alongside computations.
 Time is represented as rational numbers (`ℚ`) to facilitate

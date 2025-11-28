@@ -5,7 +5,7 @@ Authors: Sorrachai Yingchareonthawornhcai
 -/
 
 import Mathlib.Tactic
-import Cslib.Algorithms.Lean.TimeMonad
+import Cslib.Algorithms.Lean.TimeM
 
 
 /-!
@@ -17,8 +17,8 @@ monad over the list `TimeM (List α)`.
 --
 ## Main results
 
-- `MSCorrect`: `mergeSort` returns a sorted list which is a permutation of the input list.
-- `MSTime`:  `mergeSort` time is `n *(Nat.log 2 n)` when `n`, the list's size, is a power of two.
+- `mergeSort_correct`: `mergeSort` returns a sorted list which is a permutation of the input list.
+- `mergeSort_time`:  `mergeSort` time is `n *(Nat.log 2 n)` where `n` is the list size.
 
 -/
 
@@ -54,7 +54,7 @@ def mergeSort (xs : List α) : TimeM (List α) :=  do
 
 open List
 
-@[simp, grind] def IsSorted (l : List α) : Prop := Sorted (· ≤ ·) l
+@[simp] def IsSorted (l : List α) : Prop := Sorted (· ≤ ·) l
 @[simp, grind] def MinOfList (x : α) (l : List α) : Prop := ∀ b ∈ l, x ≤ b
 
 theorem mem_either_merge (xs ys : List α) (z : α)
@@ -79,7 +79,7 @@ theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1)
   all_goals (simp_all only [IsSorted, sorted_cons, and_imp, Bind.bind, tick, Nat.cast_one, ret_bind,
       implies_true, and_true, forall_const]; apply min_all_merge <;> grind)
 
-theorem MSCorrect_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
+theorem mergeSort_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
   fun_induction mergeSort xs
   · simp only [IsSorted, Pure.pure, pure]
     rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> simp [sorted_nil,sorted_singleton]; grind
@@ -89,7 +89,7 @@ theorem MSCorrect_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
 lemma merge_perm (l₁ l₂ : List α) : (merge l₁ l₂).ret ~ l₁ ++ l₂ := by
   fun_induction merge <;> simp only [Bind.bind, tick, ret_bind, cons_append, perm_cons] <;> grind
 
-theorem MSCorrect_perm (xs : List α) : (mergeSort xs).ret ~ xs := by
+theorem mergeSort_perm (xs : List α) : (mergeSort xs).ret ~ xs := by
   fun_induction mergeSort xs
   · simp only [Pure.pure, pure, Perm.refl]
   · simp only [Bind.bind, ret_bind]
@@ -99,15 +99,17 @@ theorem MSCorrect_perm (xs : List α) : (mergeSort xs).ret ~ xs := by
       _ ~ left++right := Perm.append ih2 ih1
       _ ~ x := by simp only [take_append_drop, Perm.refl, left, right]
 
-theorem MSCorrect (xs : List α) : IsSorted (mergeSort xs).ret ∧ (mergeSort xs).ret ~ xs  := by
+/-- MergeSort is functionally correct. -/
+theorem mergeSort_correct (xs : List α) :
+  IsSorted (mergeSort xs).ret ∧ (mergeSort xs).ret ~ xs  := by
   constructor
-  · apply MSCorrect_sorted
-  · apply MSCorrect_perm
+  · apply mergeSort_sorted
+  · apply mergeSort_perm
 
-@[grind =] def MS_REC : ℕ → ℤ
+@[grind =] private def timeMergeSortRec : ℕ → ℤ
 | 0 => 0
 | 1 => 0
-| n@(_+2) => MS_REC (n/2) + MS_REC ((n-1)/2 + 1) + n
+| n@(_+2) => timeMergeSortRec (n/2) + timeMergeSortRec ((n-1)/2 + 1) + n
 
 @[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
   (merge xs ys).ret.length = xs.length + ys.length := by
@@ -127,42 +129,44 @@ theorem MSCorrect (xs : List α) : IsSorted (mergeSort xs).ret ∧ (mergeSort xs
   fun_induction merge <;> simp_all only [tick, length_nil, CharP.cast_eq_zero, zero_add,add_zero]
   all_goals (simp_all;grind)
 
-theorem mergeSort_time_eq_MS_REC (xs : List α) :
-  (mergeSort xs).time = MS_REC xs.length := by
+private theorem mergeSort_time_eq (xs : List α) :
+  (mergeSort xs).time = timeMergeSortRec xs.length := by
   fun_induction mergeSort
   · simp only [Pure.pure, pure]
-    unfold MS_REC
+    unfold timeMergeSortRec
     norm_cast
     grind
   · simp only [Bind.bind, time_of_bind, merge_time, mergeSort_same_length]
-    unfold MS_REC
+    unfold timeMergeSortRec
     split <;> all_goals (simp_all)
     norm_cast
     grind
 
-@[grind =] def MS_REC_SIMP : ℕ → ℤ
+@[grind =] private def timeMergeSortRecSimp : ℕ → ℤ
 | 0 => 0
 | 1 => 0
-| n@(_+2) => 2*MS_REC_SIMP (n/2) + n
+| n@(_+2) => 2*timeMergeSortRecSimp (n/2) + n
 
-theorem MS_REC_SIMP_EQ (n : ℕ) :   (MS_REC (2^n))= (MS_REC_SIMP (2^n))  := by
+private theorem timeMergeSortRecSimp_EQ (n : ℕ) :
+(timeMergeSortRec (2^n))= (timeMergeSortRecSimp (2^n))  := by
   induction n
   · grind
-  · unfold MS_REC_SIMP MS_REC
+  · unfold timeMergeSortRecSimp timeMergeSortRec
     split <;> grind
 
-theorem MS_REC_SIMP_EQ_CLOSED (n : ℕ) : MS_REC_SIMP (2^n) = 2^n * n := by
+private theorem timeMergeSortRecSimp_EQ_CLOSED (n : ℕ) :
+  timeMergeSortRecSimp (2^n) = 2^n * n := by
   induction n
   · grind
-  · unfold MS_REC_SIMP
+  · unfold timeMergeSortRecSimp
     split <;> grind
 
--- The time is written assuming the length of the list is a power of two (for simplicity).
-theorem MSTime (xs : List α) (h : ∃ k, xs.length = 2 ^ k) :
+/-- Time complexity of mergeSort -/
+theorem mergeSort_time (xs : List α) (h : ∃ k, xs.length = 2 ^ k) :
   (mergeSort xs).time = xs.length*(Nat.log 2 xs.length)  := by
-  rw [mergeSort_time_eq_MS_REC]
+  rw [mergeSort_time_eq]
   obtain ⟨k,hk⟩ := h
-  rw [hk,MS_REC_SIMP_EQ,MS_REC_SIMP_EQ_CLOSED]
+  rw [hk,timeMergeSortRecSimp_EQ,timeMergeSortRecSimp_EQ_CLOSED]
   simp only [Nat.lt_add_one, Nat.log_pow]
   norm_cast
 
