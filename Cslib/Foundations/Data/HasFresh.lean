@@ -70,6 +70,7 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
+set_option linter.style.emptyLine false in
 /-- Elaborator for `free_union`. -/
 @[term_elab freeUnion]
 def HasFresh.freeUnion : TermElab := fun stx _ => do
