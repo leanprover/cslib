@@ -31,6 +31,7 @@ open Untyped Typing
 
 variable {Var : Type u} {Base : Type v} {R : Term Var → Term Var → Prop}
 
+/-- A relation on terms preserves typing if all related terms have the same type. -/
 def PreservesTyping (R : Term Var → Term Var → Prop) (Base : Type v) :=
   ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
 

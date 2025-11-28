@@ -64,5 +64,4 @@ import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 import Cslib.Logics.LinearLogic.CLL.Basic
 import Cslib.Logics.LinearLogic.CLL.CutElimination
-import Cslib.Logics.LinearLogic.CLL.MProof
 import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
