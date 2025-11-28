@@ -30,17 +30,13 @@ theorem iProd_run_iff {na : (i : I) → NA (State i) Symbol}
   rw [iProd]
   constructor
   · rintro ⟨h_start, h_trans⟩
-    intro i
-    constructor
-    · simp only [mem_iInter] at h_start
-      grind
-    · grind
+    simp only [mem_iInter] at h_start
+    grind
   · intro h
     constructor
     · simp only [mem_iInter]
       grind
     · intro n i
-      have := (h i).2 n
-      grind
+      exact (h i).right n
 
 end Cslib.Automata.NA

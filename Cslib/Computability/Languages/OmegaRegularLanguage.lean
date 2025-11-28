@@ -19,7 +19,7 @@ This file defines ω-regular languages and proves some properties of them.
 -/
 
 open Set Function Filter Cslib.ωSequence Cslib.Automata ωAcceptor
-open scoped Computability
+open scoped Computability Cslib.Automata.NA.Run
 
 universe u v
 
@@ -94,7 +94,7 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
   simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
     atTop_neBot, and_true, mem_top, iff_true]
   use const ()
-  constructor <;> grind
+  grind
 
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]
@@ -145,7 +145,7 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage 
     have := ncard_eq_zero (s := s)
     grind [IsRegular.bot, iSup_bot]
   case succ n h_ind =>
-    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
+    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ).mp h_n
     rw [iSup_insert]
     grind [IsRegular.sup]
 
@@ -159,7 +159,7 @@ theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage 
     have := ncard_eq_zero (s := s)
     grind [IsRegular.top, iInf_top]
   case succ n h_ind =>
-    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
+    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ).mp h_n
     rw [iInf_insert]
     grind [IsRegular.inf]
 

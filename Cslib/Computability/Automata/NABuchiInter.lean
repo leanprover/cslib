@@ -34,13 +34,13 @@ def histStart (_ : Π i, State i) : Bool := false
 /-- The two accepting conditions of the intersection automaton. -/
 @[scoped grind =]
 def interAcc (j : Bool) (acc : (i : Bool) → Set (State i)) : Set ((Π i, State i) × Bool) :=
-  { s | s.fst j ∈ acc j ∧ s.snd = j }
+  { (s, h) | s j ∈ acc j ∧ h = j }
 
+open scoped Classical in
 /-- The transition function of the history state. -/
 @[scoped grind =, nolint unusedArguments]
 noncomputable def histTrans (acc : (i : Bool) → Set (State i))
     (s : (Π i, State i) × Bool) (_ : Symbol) (_ : Π i, State i) : Bool :=
-  open scoped Classical in
   if s ∈ interAcc false acc then true else
   if s ∈ interAcc true acc then false else s.snd
 
@@ -59,29 +59,28 @@ variable {na : (i : Bool) → NA (State i) Symbol} {acc : (i : Bool) → Set (St
 
 /-- If the intersection automaton sees one accepting condtion infinitely many times,
 then it sees the other accepting condition infinitely many times as well. -/
-lemma inter_lemma1 {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)} {i : Bool}
-    (h_run : (interNA na acc).Run xs ss) (h_inf : ∃ᶠ k in atTop, ss k ∈ interAcc i acc) :
+lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
+    {i : Bool} (h_run : (interNA na acc).Run xs ss) (h_inf : ∃ᶠ k in atTop, ss k ∈ interAcc i acc) :
     ∃ᶠ k in atTop, ss k ∈ interAcc (!i) acc := by
+  have (k : ℕ) := (h_run.trans k).right
   apply frequently_leadsTo_frequently h_inf
   apply leadsTo_trans (q := {s | s.snd = !i})
   · apply step_leadsTo
     intro k
-    have := (h_run.2 k).2
     grind
   · apply until_frequently_not_leadsTo
-    · intro k
-      have := (h_run.2 k).2
-      grind
+    · grind
     · apply Frequently.mono h_inf
       grind
 
 /-- If the intersection automaton sees the accepting condtions of both component automata
 infinitely many times, then its own accepting condition also happens infinitely many times. -/
-lemma inter_lemma2 {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
+lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
     (h_run : (interNA na acc).Run xs ss)
     (h_inf_f : ∃ᶠ k in atTop, ss k ∈ {s | s.fst false ∈ acc false})
     (h_inf_t : ∃ᶠ k in atTop, ss k ∈ {s | s.fst true ∈ acc true}) :
     ∃ᶠ k in atTop, ss k ∈ interAccept acc := by
+  have (k : ℕ) := (h_run.trans k).right
   have h_univ : ∃ᶠ k in atTop, ss k ∈ univ := by simp [atTop_neBot]
   apply frequently_leadsTo_frequently h_univ
   apply leadsTo_cases_or (q := {s | s.snd = false}) <;> simp only [univ_inter]
@@ -89,8 +88,6 @@ lemma inter_lemma2 {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) ×
       ext; grind
     rw [h1]
     apply until_frequently_leadsTo_and (h2 := h_inf_f)
-    intro k
-    have := (h_run.2 k).2
     grind
   · have h1 : interAcc true acc = {s | s.snd = true} ∩ {s | s.fst true ∈ acc true} := by
       ext; grind
@@ -98,8 +95,6 @@ lemma inter_lemma2 {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) ×
       ext; grind
     rw [h1, h2]
     apply until_frequently_leadsTo_and (h2 := h_inf_t)
-    intro k
-    have := (h_run.2 k).2
     grind
 
 /-- The language accepted by the intersection automaton is the intersection of
@@ -120,10 +115,10 @@ theorem inter_language_eq :
       · rcases h_inf with h_inf_f | h_inf_t
         · apply Frequently.mono h_inf_f
           grind
-        · apply Frequently.mono <| inter_lemma1 h_run h_inf_t
+        · apply Frequently.mono <| inter_freq_acc_freq_acc h_run h_inf_t
           grind
       · rcases h_inf with h_inf_f | h_inf_t
-        · apply Frequently.mono <| inter_lemma1 h_run h_inf_f
+        · apply Frequently.mono <| inter_freq_acc_freq_acc h_run h_inf_f
           grind
         · apply Frequently.mono h_inf_t
           grind
@@ -137,7 +132,7 @@ theorem inter_language_eq :
     have (k : ℕ) (i : Bool) : (ss k).fst i = ss_p k i := by simp [← h_ss_p']
     have (k : ℕ) (i : Bool) : ss_p k i = ss_i i k := by simp [ss_p]
     refine ⟨ss, h_run, ?_⟩
-    apply inter_lemma2 h_run
+    apply inter_freq_comp_acc_freq_acc h_run
     · apply Frequently.mono (h_ss_i false).2
       grind
     · apply Frequently.mono (h_ss_i true).2
