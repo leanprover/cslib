@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 import Cslib.Foundations.Semantics.LTS.Basic
 import Cslib.Foundations.Semantics.LTS.FLTS
 
-variable {State : Type _} {Label : Type _}
+variable {State Label : Type*}
 
 namespace Cslib.FLTS
 

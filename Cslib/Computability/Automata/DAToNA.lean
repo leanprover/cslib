@@ -14,7 +14,7 @@ This is the general version of the standard translation of DFAs into NFAs. -/
 
 namespace Cslib.Automata.DA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 section NA
 

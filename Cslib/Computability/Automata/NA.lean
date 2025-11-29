@@ -38,7 +38,7 @@ structure NA (State Symbol : Type*) extends LTS State Symbol where
 
 namespace NA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 /-- Infinite run. -/
 def Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) :=
