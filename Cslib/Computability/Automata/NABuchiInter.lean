@@ -98,12 +98,12 @@ theorem inter_language_eq :
   ext xs
   rw [mem_iInter]
   constructor
-  · rintro ⟨ss, h_run, h_inf⟩ i
+  · intro ⟨ss, h_run, h_inf⟩ i
     use ss.map (fun s ↦ s.fst i)
     constructor
     · apply iProd_run_iff.mp <| hist_run_proj h_run
     · simp only [interAccept, mem_union, frequently_or_distrib] at h_inf
-      rcases i
+      cases i
       · rcases h_inf with h_inf_f | h_inf_t
         · apply Frequently.mono h_inf_f
           grind
@@ -118,12 +118,9 @@ theorem inter_language_eq :
     choose ss_i h_ss_i using h
     let ss_p : ωSequence (Π i, State i) := fun k i ↦ ss_i i k
     have h_ss_p : (iProd na).Run xs ss_p := by grind
-    have h_ss : ∃ ss, (interNA na acc).Run xs ss ∧ ss.map fst = ss_p := by
-      exact hist_run_exists h_ss_p (start' := histStart) (tr' := histTrans acc)
-    obtain ⟨ss, h_run, h_ss_p'⟩ := h_ss
-    have (k : ℕ) (i : Bool) : (ss k).fst i = ss_p k i := by simp [← h_ss_p']
-    have (k : ℕ) (i : Bool) : ss_p k i = ss_i i k := by simp [ss_p]
-    refine ⟨ss, h_run, ?_⟩
+    have (k : ℕ) (i : Bool) : ss_p k i = ss_i i k := rfl
+    obtain ⟨ss, h_run, _⟩ := hist_run_exists h_ss_p
+    use ss, h_run
     apply inter_freq_comp_acc_freq_acc h_run
     · apply Frequently.mono (h_ss_i false).2
       grind
