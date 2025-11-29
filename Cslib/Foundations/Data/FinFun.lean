@@ -20,7 +20,7 @@ namespace Cslib
 /-- A `FinFun` is a function `fn` with a finite `support`.
 
 This is similar to `Finsupp` in Mathlib, but definitions are computable. -/
-structure FinFun (α : Type _) (β : Type _) [Zero β] where
+structure FinFun (α β : Type*) [Zero β] where
   /-- The underlying function. -/
   fn : α → β
   /-- The finite support of the function. -/
@@ -38,7 +38,7 @@ scoped infixr:25 " →₀ " => FinFun
 /-- Constructs a `FinFun` by restricting a function to a given support, filtering out all elements
 not mapped to 0 in the support. -/
 @[scoped grind .]
-private def fromFun {α β : Type _} [Zero β] [DecidableEq α]
+private def fromFun {α β : Type*} [Zero β] [DecidableEq α]
   [∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
   fn := (fun a => if a ∈ support then fn a else 0)
   support := support.filter (fn · ≠ 0)
