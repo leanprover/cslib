@@ -53,6 +53,6 @@ theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
   constructor
   · simp only [addHist]
     grind
-  · ext; simp
+  · grind
 
 end Cslib.Automata.NA
