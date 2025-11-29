@@ -27,7 +27,7 @@ set_option autoImplicit false
 
 structure TimeM (α : Type) where
   ret : α
-  time : ℚ
+  time : ℕ
 
 namespace TimeM
 
