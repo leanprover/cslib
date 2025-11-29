@@ -66,7 +66,6 @@ lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, 
   apply frequently_leadsTo_frequently h_inf
   apply leadsTo_trans (q := {s | s.snd = !i})
   · apply step_leadsTo
-    intro k
     grind
   · apply until_frequently_not_leadsTo
     · grind

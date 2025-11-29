@@ -23,11 +23,21 @@ in `xs`. -/
 def Step (xs : ωSequence α) (p q : Set α) : Prop :=
   ∀ k, xs k ∈ p → xs (k + 1) ∈ q
 
+theorem Step.mk {xs : ωSequence α} (h : ∀ k, xs k ∈ p → xs (k + 1) ∈ q) : Step xs p q :=
+  h
+
+attribute [scoped grind <=] Step.mk
+
 /-- "`p` leads to `q`" means that whenever `p` holds at a position in `xs`, `q` holds at the same
 or a later position in `xs`. -/
 @[scoped grind =]
 def LeadsTo (xs : ωSequence α) (p q : Set α) : Prop :=
   ∀ k, xs k ∈ p → ∃ k', k ≤ k' ∧ xs k' ∈ q
+
+theorem LeadsTo.mk {xs : ωSequence α} (h : ∀ k, xs k ∈ p → ∃ k', k ≤ k' ∧ xs k' ∈ q) :
+    LeadsTo xs p q := h
+
+attribute [scoped grind <=] LeadsTo.mk
 
 variable {xs : ωSequence α}
 
