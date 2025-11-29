@@ -82,20 +82,13 @@ lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((�
     ∃ᶠ k in atTop, ss k ∈ interAccept acc := by
   have (k : ℕ) := (h_run.trans k).right
   have h_univ : ∃ᶠ k in atTop, ss k ∈ univ := by simp [atTop_neBot]
+  have (b : Bool) : interAcc b acc = {⟨_, b'⟩ | b' = b} ∩ {⟨p,_⟩ | p b ∈ acc b} := by
+    ext; grind
+  have : {⟨_, b⟩ : (Π i, State i) × Bool | b = false}ᶜ = {⟨_, b⟩ | b = true} := by
+    ext; grind
   apply frequently_leadsTo_frequently h_univ
-  apply leadsTo_cases_or (q := {s | s.snd = false}) <;> simp only [univ_inter]
-  · have h1 : interAcc false acc = {s | s.snd = false} ∩ {s | s.fst false ∈ acc false} := by
-      ext; grind
-    rw [h1]
-    apply until_frequently_leadsTo_and (h2 := h_inf_f)
-    grind
-  · have h1 : interAcc true acc = {s | s.snd = true} ∩ {s | s.fst true ∈ acc true} := by
-      ext; grind
-    have h2 : {s : (Π i, State i) × Bool | s.snd = false}ᶜ = {s | s.snd = true} := by
-      ext; grind
-    rw [h1, h2]
-    apply until_frequently_leadsTo_and (h2 := h_inf_t)
-    grind
+  apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false}) <;>
+  grind [until_frequently_leadsTo_and, univ_inter]
 
 /-- The language accepted by the intersection automaton is the intersection of
 the languages accepted by the two component automata. -/
