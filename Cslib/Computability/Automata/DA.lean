@@ -36,7 +36,7 @@ structure DA (State Symbol : Type*) extends FLTS State Symbol where
 
 namespace DA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 /-- Helper function for defining `run` below. -/
 @[scoped grind =]
