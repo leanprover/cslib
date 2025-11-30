@@ -10,8 +10,6 @@ import Mathlib.Tactic
 # Time Monad
 
 `TimeM` is a monad that tracks execution time alongside computations.
-Time is represented as rational numbers (`ℚ`) to facilitate
-manipulation of recurrence relations.
 
 ## Notation
 
