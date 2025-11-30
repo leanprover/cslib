@@ -33,12 +33,14 @@ def merge :  List α → List α  → TimeM (List α)
   | [], ys => return ys
   | xs, [] => return xs
   | x::xs', y::ys' => do
-    if x ≤ y then
-      let rest ← merge xs' (y::ys')
-      ✓ (x :: rest)
+    let c ← ✓ (x ≤ y : Bool)
+    if c then
+     let rest ← merge xs' (y::ys')
+      return (x :: rest)
     else
       let rest ← merge (x::xs') ys'
-      ✓ (y :: rest)
+      return (y :: rest)
+
 
 def mergeSort (xs : List α) : TimeM (List α) :=  do
   if xs.length < 2 then return xs
@@ -63,10 +65,8 @@ theorem mem_either_merge (xs ys : List α) (z : α)
   fun_induction merge
   · simp_all only [Pure.pure, pure, not_mem_nil, or_true]
   · simp_all only [imp_false, Pure.pure, pure, not_mem_nil, or_false]
-  all_goals
-  simp_all only [mem_cons, Bind.bind, tick, ret_bind]
-  cases hz
-  all_goals (grind)
+  simp_all only [mem_cons, Bind.bind, tick, Pure.pure, pure, ret_bind, decide_eq_true_eq]
+  split_ifs at hz <;> (simp_all; grind)
 
 theorem min_all_merge (x : α) (xs ys : List α)
 (hxs : MinOfList x xs) (hys : MinOfList x ys) : MinOfList x (merge xs ys).ret := by
@@ -78,9 +78,10 @@ theorem min_all_merge (x : α) (xs ys : List α)
 theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1)
   (hys : IsSorted l2) : IsSorted ((merge l1 l2).ret) := by
   fun_induction merge l1 l2 <;> try simpa
+  simp only [Bind.bind, tick, ret_bind, decide_eq_true_eq,IsSorted]
+  split_ifs
   all_goals
-  simp_all only [not_le, IsSorted, sorted_cons, Bind.bind, tick,
-   ret_bind, and_true, forall_const]
+  simp_all only [forall_const, sorted_cons, Pure.pure, pure, ret_bind, and_true]
   apply min_all_merge <;> grind
 
 theorem mergeSort_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
@@ -91,8 +92,11 @@ theorem mergeSort_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
     exact sorted_merge ih2 ih1
 
 lemma merge_perm (l₁ l₂ : List α) : (merge l₁ l₂).ret ~ l₁ ++ l₂ := by
-  fun_induction merge <;> simp_all only [not_le, cons_append, Bind.bind, tick,
-    Pure.pure, pure, ret_bind] <;> grind
+  fun_induction merge <;> try simp
+  split_ifs with h
+  · simp_all only [cons_append, ret_bind, perm_cons]
+  · simp_all only [cons_append, not_le, ret_bind]
+    grind
 
 theorem mergeSort_perm (xs : List α) : (mergeSort xs).ret ~ xs := by
   fun_induction mergeSort xs
@@ -123,7 +127,6 @@ def timeMergeSortRec : ℕ → ℕ
 /-- The ceiling of Nat.log 2 -/
 def clog2 (n : ℕ) : ℕ :=
   if n ≤ 1 then 0 else Nat.log 2 (n - 1) + 1
-
 
 /-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
 lemma clog2_half_le (n : ℕ) (h : n > 1) : clog2 ((n + 1) / 2) ≤ clog2 n - 1 := by
@@ -185,8 +188,10 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
 
 @[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
   (merge xs ys).ret.length = xs.length + ys.length := by
-  fun_induction merge <;> simp [Pure.pure, pure, List.length_nil, add_zero,zero_add]
-  all_goals grind
+  fun_induction merge <;> simp only [Pure.pure, pure, List.length_nil, add_zero,zero_add]
+  simp only [Bind.bind, tick, ret_bind, decide_eq_true_eq, List.length_cons]
+  split_ifs <;> (simp only [ret_bind, List.length_cons];grind)
+
 
 @[simp] theorem mergeSort_same_length (xs : List α) :
   (mergeSort xs).ret.length = xs.length:= by
@@ -197,8 +202,9 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
 
 @[simp] theorem merge_time (xs ys : List α) :
   (merge xs ys).time ≤ xs.length + ys.length := by
-  fun_induction merge <;> simp
-  all_goals grind
+  fun_induction merge <;> simp only [Pure.pure, pure, List.length_nil, add_zero, zero_le,zero_add]
+  simp only [Bind.bind, tick, time_of_bind, decide_eq_true_eq, List.length_cons]
+  split_ifs <;> all_goals (simp_all only [List.length_cons, not_le, time_of_bind, add_zero]; grind)
 
 private theorem mergeSort_time_le (xs : List α) :
   (mergeSort xs).time ≤ timeMergeSortRec xs.length := by

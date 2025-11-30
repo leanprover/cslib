@@ -25,7 +25,7 @@ See [Danielsson'08] for the discussion.
 set_option tactic.hygienic false
 set_option autoImplicit false
 
-structure TimeM (α : Type) where
+structure TimeM (α : Type*) where
   ret : α
   time : ℕ
 
@@ -42,7 +42,7 @@ instance : Monad TimeM where
   pure := pure
   bind := bind
 
-@[simp] def tick {α : Type} (a : α) (c : ℕ := 1) : TimeM α :=
+@[simp] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α :=
   ⟨a, c⟩
 
 scoped notation "✓" a:arg ", " c:arg => tick a c
