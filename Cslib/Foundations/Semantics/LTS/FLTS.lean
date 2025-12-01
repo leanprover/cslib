@@ -25,13 +25,13 @@ namespace Cslib
 A Functional Labelled Transition System (`FLTS`) for a type of states (`State`) and a type of
 transition labels (`Label`) consists of a labelled transition function (`tr`).
 -/
-structure FLTS (State : Type _) (Label : Type _) where
+structure FLTS (State Label : Type*) where
   /-- The transition function. -/
   tr : State → Label → State
 
 namespace FLTS
 
-variable {State : Type _} {Label : Type _}
+variable {State Label : Type*}
 
 /-- Extended transition function.
 

@@ -9,7 +9,7 @@ import Cslib.Init
 namespace Cslib
 
 /-- Typeclass for types equipped with a well-formedness predicate. -/
-class HasWellFormed (α : Type _) where
+class HasWellFormed (α : Type u) where
   /-- Establishes whether `x` is well-formed. -/
   wf (x : α) : Prop
 

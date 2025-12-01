@@ -9,13 +9,13 @@ import Cslib.Computability.Languages.OmegaLanguage
 namespace Cslib.Automata
 
 /-- An `ωAcceptor` is a machine that recognises infinite sequences of symbols. -/
-class ωAcceptor (A : Type _) (Symbol : outParam (Type _)) where
+class ωAcceptor (A : Type u) (Symbol : outParam (Type v)) where
   /-- Predicate that establishes whether a string `xs` is accepted. -/
   Accepts (a : A) (xs : ωSequence Symbol) : Prop
 
 namespace ωAcceptor
 
-variable {Symbol : Type _}
+variable {Symbol : Type v}
 
 /-- The language of an `ωAcceptor` is the set of sequences it `Accepts`. -/
 @[scoped grind .]

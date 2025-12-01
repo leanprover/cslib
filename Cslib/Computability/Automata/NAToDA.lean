@@ -15,7 +15,7 @@ This file implements the standard subset construction.
 
 namespace Cslib.Automata.NA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 section SubsetConstruction
 
