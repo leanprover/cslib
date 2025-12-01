@@ -58,6 +58,7 @@ namespace FullBeta
 
 open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
+set_option linter.unusedDecidableInType false in
 /-- Typing preservation for full beta reduction. -/
 @[scoped grind →]
 theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by
