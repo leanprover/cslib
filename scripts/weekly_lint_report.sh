@@ -15,14 +15,8 @@ error_count=$(grep -c '^error: ' <<<"${filtered_out}" 2>/dev/null) || error_coun
 warning_count=$(grep -c '^warning: ' <<<"${filtered_out}" 2>/dev/null) || warning_count=0
 info_count=$(grep -c '^info: ' <<<"${filtered_out}" 2>/dev/null) || info_count=0
 
-# Generate output (use uuidgen for cross-platform compatibility)
-if command -v uuidgen >/dev/null 2>&1; then
-  delimiter=$(uuidgen)
-elif [ -f /proc/sys/kernel/random/uuid ]; then
-  delimiter=$(cat /proc/sys/kernel/random/uuid)
-else
-  delimiter="EOF_$(date +%s)"
-fi
+# Generate output
+delimiter=$(cat /proc/sys/kernel/random/uuid)
 
 echo "zulip-message<<${delimiter}"
 echo "CSLib weekly lint run [completed](https://github.com/${REPO}/actions/runs/${RUN_ID}) ([${SHA:0:7}](https://github.com/${REPO}/commit/${SHA}))."
