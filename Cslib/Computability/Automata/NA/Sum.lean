@@ -4,9 +4,9 @@ Relexsed under Apache 2.0 license xs described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA
+import Cslib.Computability.Automata.NA.Basic
 
-/-! # Sum of automata. -/
+/-! # Sum of nondeterministic automata. -/
 
 open Set Function Filter Cslib.ωSequence
 open scoped Cslib.LTS
