@@ -6,7 +6,7 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Computability.Automata.DA
 
-/-! # Product of automata. -/
+/-! # Product of deterministic automata. -/
 
 namespace Cslib.Automata
 

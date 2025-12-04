@@ -2,15 +2,18 @@ module
 
 import Cslib.Computability.Automata.DA
 import Cslib.Computability.Automata.DABuchi
+import Cslib.Computability.Automata.DAProd
 import Cslib.Computability.Automata.DAToNA
 import Cslib.Computability.Automata.EpsilonNA
 import Cslib.Computability.Automata.EpsilonNAToNA
 import Cslib.Computability.Automata.NA
 import Cslib.Computability.Automata.NABuchiEquiv
+import Cslib.Computability.Automata.NABuchiInter
+import Cslib.Computability.Automata.NAHist
+import Cslib.Computability.Automata.NAProd
+import Cslib.Computability.Automata.NASum
 import Cslib.Computability.Automata.NAToDA
 import Cslib.Computability.Automata.OmegaAcceptor
-import Cslib.Computability.Automata.Prod
-import Cslib.Computability.Automata.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.Language
 import Cslib.Computability.Languages.OmegaLanguage
@@ -26,6 +29,7 @@ import Cslib.Foundations.Data.OmegaSequence.Defs
 import Cslib.Foundations.Data.OmegaSequence.Flatten
 import Cslib.Foundations.Data.OmegaSequence.InfOcc
 import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Data.OmegaSequence.Temporal
 import Cslib.Foundations.Data.Relation
 import Cslib.Foundations.Lint.Basic
 import Cslib.Foundations.Semantics.LTS.Basic

@@ -6,7 +6,7 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Computability.Automata.NA
 
-/-! # Sum of automata. -/
+/-! # Sum of nondeterministic automata. -/
 
 open Set Function Filter Cslib.ωSequence
 open scoped Cslib.LTS
