@@ -2,6 +2,9 @@ name: Lean Action CI
 
 on:
   push:
+    branches:
+      - main
+      - nightly-testing
   pull_request:
   workflow_dispatch:
 
