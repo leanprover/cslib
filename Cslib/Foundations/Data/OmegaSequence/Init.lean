@@ -36,7 +36,7 @@ protected theorem eta (s : ωSequence α) : head s ::ω tail s = s := by
 /-- Alias for `ωSequence.eta` to match `List` API. -/
 alias cons_head_tail := ωSequence.eta
 
-@[ext]
+@[ext, grind ext]
 protected theorem ext {s₁ s₂ : ωSequence α} : (∀ n, s₁ n = s₂ n) → s₁ = s₂ := by
   apply DFunLike.ext
 
