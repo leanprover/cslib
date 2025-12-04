@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DABuchi
-import Cslib.Computability.Automata.NABuchiEquiv
-import Cslib.Computability.Automata.NABuchiInter
-import Cslib.Computability.Automata.NASum
+import Cslib.Computability.Automata.DA.Buchi
+import Cslib.Computability.Automata.NA.BuchiEquiv
+import Cslib.Computability.Automata.NA.BuchiInter
+import Cslib.Computability.Automata.NA.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
 import Mathlib.Data.Finite.Sigma

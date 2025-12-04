@@ -4,7 +4,7 @@ Relexsed under Apache 2.0 license xs described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA
+import Cslib.Computability.Automata.NA.Basic
 
 /-! # Sum of nondeterministic automata. -/
 

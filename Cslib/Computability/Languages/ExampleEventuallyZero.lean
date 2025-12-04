@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA
+import Cslib.Computability.Automata.NA.Basic
 
 /-!
 # An ω-regular language that is not accepted by any deterministic Buchi automaton
