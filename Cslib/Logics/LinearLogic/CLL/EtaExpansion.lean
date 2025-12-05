@@ -73,7 +73,7 @@ def Proposition.expand (a : Proposition Atom) : ⇓{a, a⫠} :=
     |> Proof.rwConclusion (by grind : {ʔa⫠, (ʔa⫠)⫠} = {ʔa⫠, !(a⫠⫠)})
     |> Proof.rwConclusion (by rw [Proposition.dual_involution] : {ʔa⫠, !(a⫠⫠)} = {ʔa⫠, !a})
     |> Proof.rwConclusion (by grind : {ʔa⫠, !a} = {!a, ʔa⫠})
-termination_by sizeOf a
+termination_by a
 decreasing_by
   all_goals simp <;> grind
 
