@@ -31,48 +31,40 @@ def Proposition.expand (a : Proposition Atom) : ⇓{a, a⫠} :=
     | ⊥
     | ⊤ => Proof.ax
   | 0 =>
-    Proof.top (Γ := {0})
-    |> .rwConclusion (by simp only [Proposition.dual]; rfl : ⊤ ::ₘ {0} = 0⫠ ::ₘ {0})
-    |> .rwConclusion (by grind : 0⫠ ::ₘ {0} = {0, 0⫠})
+    Proof.top (Γ := {0}).rwConclusion (by grind)
   | tensor a b =>
-    Proof.parr (
-      Proof.tensor a.expand b.expand
-      |> .rwConclusion (by grind :
-        ((a ⊗ b) ::ₘ ({a⫠} + {b⫠})) = (a⫠ ::ₘ b⫠ ::ₘ {a.tensor b}))
-    ) |> .rwConclusion (by grind :
+    Proof.tensor a.expand b.expand
+    |> .rwConclusion (by grind)
+    |> Proof.parr
+    |> .rwConclusion (by grind :
       ((a⫠ ⅋ b⫠) ::ₘ {a ⊗ b}) = {a ⊗ b, (a ⊗ b)⫠})
   | parr a b =>
     Proof.tensor (a := a⫠) (b := b⫠)
       (a.expand.rwConclusion (by grind : {a, a⫠} = {a⫠, a}))
       (b.expand.rwConclusion (by grind : {b, b⫠} = {b⫠, b}))
-    |> .rwConclusion (by grind : (a⫠ ⊗ b⫠) ::ₘ ({a} + {b}) = a ::ₘ b ::ₘ {(a⫠.tensor b⫠)})
+    |> .rwConclusion (by grind)
     |> Proof.parr
   | oplus a b =>
     Proof.with
-      (a.expand.oplus₁ (b := b) |> .rwConclusion (by grind : (a ⊕ b) ::ₘ {a⫠} = a⫠ ::ₘ {a ⊕ b}))
-      (b.expand.oplus₂ (a := a) |> .rwConclusion (by grind : (a ⊕ b) ::ₘ {b⫠} = b⫠ ::ₘ {a ⊕ b}))
+      (a.expand.oplus₁ (b := b) |> .rwConclusion (by grind))
+      (b.expand.oplus₂ (a := a) |> .rwConclusion (by grind))
     |> .rwConclusion (by grind : (a⫠ & b⫠) ::ₘ {a ⊕ b} = {(a ⊕ b), (a⫠ & b⫠)})
   | .with a b =>
     Proof.with
-      (a⫠.expand.oplus₁ (b := b⫠) |> .rwConclusion (by grind [Proposition.dual_involution] :
-        (a⫠ ⊕ b⫠) ::ₘ {a⫠⫠} = a ::ₘ {a⫠ ⊕ b⫠}))
-      (b⫠.expand.oplus₂ (a := a⫠) |> .rwConclusion (by grind [Proposition.dual_involution] :
-        (a⫠ ⊕ b⫠) ::ₘ {b⫠⫠} = b ::ₘ {a⫠ ⊕ b⫠}))
+      (a⫠.expand.oplus₁ (b := b⫠) |> .rwConclusion (by grind))
+      (b⫠.expand.oplus₂ (a := a⫠) |> .rwConclusion (by grind))
   | ʔa =>
     Proof.bang
       (Γ := {ʔa})
       rfl
       (a.expand.quest.rwConclusion (by grind : ʔa ::ₘ {a⫠} = a⫠ ::ₘ {ʔa}))
-    |> Proof.rwConclusion (by grind : ((a⫠).bang ::ₘ {ʔa}) = {ʔa, (ʔa)⫠})
+    |> Proof.rwConclusion (by grind)
   | bang a =>
     Proof.bang
       (Γ := {ʔ(a⫠)})
       rfl
       (a⫠.expand.quest.rwConclusion (by grind : ʔa⫠ ::ₘ {a⫠⫠} = a⫠⫠ ::ₘ {ʔa⫠}))
-    |> Proof.rwConclusion (by grind : ((a⫠⫠).bang ::ₘ {ʔa⫠}) = {ʔa⫠, (ʔa⫠)⫠})
-    |> Proof.rwConclusion (by grind : {ʔa⫠, (ʔa⫠)⫠} = {ʔa⫠, !(a⫠⫠)})
-    |> Proof.rwConclusion (by rw [Proposition.dual_involution] : {ʔa⫠, !(a⫠⫠)} = {ʔa⫠, !a})
-    |> Proof.rwConclusion (by grind : {ʔa⫠, !a} = {!a, ʔa⫠})
+    |> Proof.rwConclusion (by grind)
 termination_by a
 decreasing_by
   all_goals simp <;> grind

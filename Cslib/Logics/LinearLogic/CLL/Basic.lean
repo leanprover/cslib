@@ -114,8 +114,11 @@ def Proposition.dual : Proposition Atom → Proposition Atom
 
 @[inherit_doc] scoped postfix:max "⫠" => Proposition.dual
 
+@[scoped grind =]
+theorem Proposition.top_eq_zero_dual : ⊤ = (0⫠ : Proposition Atom) := rfl
+
 /-- Duality preserves size. -/
-@[scoped grind .]
+@[scoped grind _=_]
 theorem Proposition.dual_sizeOf (a : Proposition Atom) : sizeOf a = sizeOf a⫠ := by
   induction a <;> simp [dual] <;> grind
 
