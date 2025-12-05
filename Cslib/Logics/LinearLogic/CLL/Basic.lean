@@ -117,9 +117,7 @@ def Proposition.dual : Proposition Atom → Proposition Atom
 /-- Duality preserves size. -/
 @[scoped grind .]
 theorem Proposition.dual_sizeOf (a : Proposition Atom) : sizeOf a = sizeOf a⫠ := by
-  induction a
-  any_goals simp [Proposition.dual]
-  all_goals grind
+  induction a <;> simp [dual] <;> grind
 
 /-- No proposition is equal to its dual. -/
 @[scoped grind .]
