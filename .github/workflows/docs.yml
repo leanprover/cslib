@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   build:
+    if: github.repository == 'leanprover/cslib'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
