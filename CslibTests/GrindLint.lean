@@ -51,6 +51,8 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.CLL.Proof.with_inversion₁.eq_1
 #grind_lint skip Cslib.CLL.Proof.with_inversion₂.eq_1
 #grind_lint skip Cslib.CLL.Proposition.Equiv.trans
+#grind_lint skip Cslib.CLL.Proposition.bang_top_eqv_one.eq_1
+#grind_lint skip Cslib.CLL.Proposition.parr_top_eqv_top.eq_1
 #grind_lint skip Cslib.CLL.Proposition.tensor_assoc.eq_1
 #grind_lint skip Cslib.CLL.Proposition.tensor_distrib_oplus.eq_1
 #grind_lint skip Cslib.CLL.Proposition.tensor_symm.eq_1
