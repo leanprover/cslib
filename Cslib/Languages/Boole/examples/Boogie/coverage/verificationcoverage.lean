@@ -1,6 +1,12 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def VerificationCov :=
+#strata
 program Boogie;
 
-// This test provides concrete Boogie programs with loops, invariants, 
+// This test provides concrete Boogie programs with loops, invariants,
 // and contradictory or unreachable code
 
 procedure testRequiresAssign(n: int) returns ()
@@ -68,7 +74,7 @@ spec
     assert n > 10; // {:id "n_lt_10"} not covered
 };
 
-procedure assumeFalse() returns () 
+procedure assumeFalse() returns ()
 {
   assume false; // {:id "assumeFalse"} covered
   assert 1 + 1 == 2; // {:id "assertSimple"} not covered
@@ -150,3 +156,7 @@ spec
 {
   r := someInteger(7) == 3;
 };
+
+#end
+
+#eval verify "cvc5" VerificationCov

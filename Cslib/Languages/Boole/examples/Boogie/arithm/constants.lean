@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def constants :=
+#strata
 program Boogie;
 
 // verifies simple control flow, arithmetic, and loop reasoning
@@ -13,7 +19,7 @@ spec
 {
   modifies GlobalFlag;
 }
-{  
+{
   var x: int;
   var y: int;
   var z: int;
@@ -33,7 +39,7 @@ spec
   assert z == 7;
   assert GlobalFlag == true;
 
-};    
+};
 
 
 procedure Loop () returns ()
@@ -62,3 +68,7 @@ procedure Evaluate () returns ()
   i := 1 + 3 * i;
   i := (i + 1) * 3;
 };
+
+#end
+
+#eval verify "cvc5" constants

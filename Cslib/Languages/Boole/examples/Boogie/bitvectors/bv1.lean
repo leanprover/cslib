@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def bitVec :=
+#strata
 program Boogie;
 type StrataHeap;
 type StrataRef;
@@ -20,3 +26,7 @@ spec {
   }
   end : {}
 };
+
+#end
+
+#eval verify "cvc5" bitVec

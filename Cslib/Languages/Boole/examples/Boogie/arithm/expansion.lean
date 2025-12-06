@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def expansion :=
+#strata
 program Boogie;
 
 function xxgz(x:int) : bool
@@ -18,3 +24,7 @@ procedure foo() returns ()
   assert xxgz(12);
   assert xxf1(3,true) == 4;
 };
+
+#end
+
+#eval verify "cvc5" expansion

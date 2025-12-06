@@ -1,5 +1,4 @@
 import Strata.Languages.Boogie.Verifier
-
 namespace Strata
 
 -- Exercise 2.3-5 solution

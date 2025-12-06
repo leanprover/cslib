@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def deterministic :=
+#strata
 program Boogie;
 
 function f(a:int) : int;
@@ -29,3 +35,7 @@ procedure Check(x1:int, x2:int) returns ()
     assert r1 == r2;
   }
 };
+
+#end
+
+#eval verify "cvc5" deterministic

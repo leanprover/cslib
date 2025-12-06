@@ -1,7 +1,13 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def ineq :=
+#strata
 program Boogie;
 
 procedure SimpleLoop () returns ()
-{  
+{
   var i: int;
 
   i := 0;
@@ -13,11 +19,11 @@ procedure SimpleLoop () returns ()
   }
   // when loop exits, !(i < 10) holds
   assume !(i < 10);
-}; 
+};
 
 
 procedure VariableBoundLoop (n : int) returns ()
-{  
+{
   var i: int;
 
   i := 0;
@@ -29,7 +35,7 @@ procedure VariableBoundLoop (n : int) returns ()
   }
   // when loop exits, !(i < n) holds
   assume !(i < n);
-}  ;  
+}  ;
 
 procedure Foo () returns ()
 {
@@ -64,3 +70,7 @@ procedure FooTooStepByStep () returns ()
   i := 1 + 3 * i;
   i := (i + 1) * 3;
 };
+
+#end
+
+#eval verify "cvc5" ineq

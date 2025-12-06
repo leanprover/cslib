@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def funDef :=
+#strata
 program Boogie;
 
 function foo2(x:int) : int
@@ -16,3 +22,7 @@ spec {
     r := 1;
   }
 };
+
+#end
+
+#eval verify "cvc5" funDef

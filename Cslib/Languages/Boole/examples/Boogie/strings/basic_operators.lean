@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def BasicOp :=
+#strata
 program Boogie;
 
 function concat(x: string, y: string): string;
@@ -95,3 +101,7 @@ procedure main() returns () {
     // TODO: This used to verify with Z3 4.8.4
     // assert intToString(stringToInt(s1)) == s1;
 };
+
+#end
+
+#eval verify "cvc5" BasicOp

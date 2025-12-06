@@ -1,25 +1,31 @@
+
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+-- CLRS Chapter 7: QUICKSORT
+-- Pseudo-code adapted from CLRS book (2nd edition), page 146
+-- Pseudo-code:
+-- QUICKSORT(A, p, r)
+-- 1  if p < r
+-- 2    then q <-- PARTITION(A, p, r)
+-- 3    QUICKSORT(A, p, q - 1)
+-- 4    QUICKSORT(A, q + 1, r)
+-- To sort an entire array A, the initial call is QUICKSORT(A, 1 , lenght[A])
+
+-- PARTITION(A, p, r)
+-- 1  x <-- A[r]
+-- 2  i <-- p - 1
+-- 3  for j <-- p to r - 1
+-- 4    do if A[j] <= x
+-- 5        then i <-- i + 1
+-- 6            exchange A[i] <-> A[j]
+-- 7  exchange A[i + 1] <-> A[r]
+-- 8  return i + 1
+
+private def quickSort :=
+#strata
 program Boogie;
-
-// CLRS Chapter 7: QUICKSORT
-// Pseudo-code adapted from CLRS book (2nd edition), page 146
-// Pseudo-code:
-// QUICKSORT(A, p, r)
-// 1  if p < r
-// 2    then q <-- PARTITION(A, p, r)
-// 3    QUICKSORT(A, p, q - 1)
-// 4    QUICKSORT(A, q + 1, r)
-// To sort an entire array A, the initial call is QUICKSORT(A, 1 , lenght[A])
-
-// PARTITION(A, p, r)
-// 1  x <-- A[r]
-// 2  i <-- p - 1
-// 3  for j <-- p to r - 1 
-// 4    do if A[j] <= x
-// 5        then i <-- i + 1
-// 6            exchange A[i] <-> A[j]
-// 7  exchange A[i + 1] <-> A[r]
-// 8  return i + 1 
-
 
 var A: Map int int;
 
@@ -81,3 +87,7 @@ spec
 
   q := i + 1;
 };
+
+#end
+
+#eval verify "cvc5" quickSort

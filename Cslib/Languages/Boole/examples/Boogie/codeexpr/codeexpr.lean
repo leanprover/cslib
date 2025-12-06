@@ -1,3 +1,9 @@
+import Strata.Languages.Boogie.Verifier
+
+namespace Strata
+
+private def CodeExpr :=
+#strata
 program Boogie;
 type StrataHeap;
 type StrataRef;
@@ -51,3 +57,7 @@ procedure D(a : (Map int T), n : int) returns ()
   assume (forall i: int :: (IsProperIndex(i, n) ==> (a[i] == zero)));
   assert (forall i: int :: (IsProperIndex(i, n) ==> (a[i] == zero)));
 };
+
+#end
+
+#eval verify "cvc5" CodeExpr
