@@ -20,7 +20,7 @@ To add cslib as a dependency to your Lean project, add the following to your `la
 ```toml
 [[require]]
 name = "cslib"
-git = "https://github.com/leanprover/cslib"
+scope = "leanprover"
 rev = "main"
 ```
 
