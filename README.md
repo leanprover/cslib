@@ -30,7 +30,7 @@ Or if you're using `lakefile.lean`:
 require cslib from git "https://github.com/leanprover/cslib" @ "main"
 ```
 
-Then run `lake update cslib` to fetch the dependency.
+Then run `lake update cslib` to fetch the dependency. You can also use a release tag instead of `main` for the `rev` value.
 
 # Contributing and discussion
 
