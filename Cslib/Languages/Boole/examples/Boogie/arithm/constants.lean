@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
@@ -71,4 +71,10 @@ procedure Evaluate () returns ()
 
 #end
 
-#eval verify "cvc5" constants
+#eval Strata.Boole.verify "cvc5" constants
+
+example : Strata.smtVCsCorrect constants := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

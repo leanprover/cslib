@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
@@ -29,4 +29,10 @@ spec {
 
 #end
 
-#eval verify "cvc5" bitVec
+#eval Strata.Boole.verify "cvc5" bitVec
+
+example : Strata.smtVCsCorrect bitVec := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

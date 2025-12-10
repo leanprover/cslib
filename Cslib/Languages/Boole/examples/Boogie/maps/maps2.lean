@@ -1,3 +1,9 @@
+import Strata.MetaVerifier
+
+namespace Strata
+
+private def maps2 :=
+#strata
 program Boogie;
 
 type X;
@@ -30,10 +36,20 @@ procedure bar() returns () {
   var a: Map X (Map Y int);
   var b: Map X (Map Y int);
   var c: Map X bool;
-  
+
   //assert mapiteint(c, a, b) == mapiteint(mapnot(c), b, a);
   // assert mapeq(a, b) == mapeq(b, a);
 
   assert (forall x: X :: mapiteint(c, a, b)[x] == mapiteint(mapnot(c), b, a)[x]);
   assert (forall x: X :: mapeq(a, b)[x] == mapeq(b, a)[x]);
 };
+
+#end
+
+#eval Strata.Boole.verify "cvc5" maps2
+
+example : Strata.smtVCsCorrect maps2 := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

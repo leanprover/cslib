@@ -1,7 +1,11 @@
+import Strata.MetaVerifier
+
+namespace Strata
+
+private def maps1 :=
+#strata
 program Boogie;
 
-// RUN: %parallel-boogie "%s" > "%t"
-// RUN: %diff "%s.expect" "%t"
 type X;
 
 function mapadd(f: Map X int, g: Map X int) : Map X int;
@@ -33,7 +37,7 @@ axiom TT == mapconstbool(true);
 const MultisetEmpty: Map X int;
 axiom MultisetEmpty == mapconstint(0);
 
-// axioms for basic behavior 
+// axioms for basic behavior
 
 // integer map operations
 axiom (forall f: Map X int, g: Map X int, x: X ::
@@ -130,3 +134,13 @@ procedure foo() returns () {
   assert (forall y: X :: MultisetMinus(MultisetPlus(MultisetEmpty, MultisetSingleton(x)), MultisetSingleton(x))[y] == MultisetEmpty[y]);
   assert (forall y: X :: MultisetMinus(MultisetEmpty, MultisetSingleton(x))[y] == MultisetEmpty[y]);
 };
+
+#end
+
+#eval Strata.Boole.verify "cvc5" maps1
+
+example : Strata.smtVCsCorrect maps1 := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

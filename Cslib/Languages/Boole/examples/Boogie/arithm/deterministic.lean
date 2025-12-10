@@ -1,5 +1,4 @@
-import Strata.Languages.Boogie.Verifier
-
+import Strata.MetaVerifier
 namespace Strata
 
 private def deterministic :=
@@ -38,4 +37,10 @@ procedure Check(x1:int, x2:int) returns ()
 
 #end
 
-#eval verify "cvc5" deterministic
+#eval Strata.Boole.verify "cvc5" deterministic
+
+example : Strata.smtVCsCorrect deterministic := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

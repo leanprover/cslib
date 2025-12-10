@@ -1,8 +1,8 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
-private def CodeExpr :=
+private def codeExpr :=
 #strata
 program Boogie;
 type StrataHeap;
@@ -60,4 +60,10 @@ procedure D(a : (Map int T), n : int) returns ()
 
 #end
 
-#eval verify "cvc5" CodeExpr
+#eval Strata.Boole.verify "cvc5" codeExpr
+
+example : Strata.smtVCsCorrect codeExpr := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

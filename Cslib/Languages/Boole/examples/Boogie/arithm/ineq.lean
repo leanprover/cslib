@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
@@ -73,4 +73,10 @@ procedure FooTooStepByStep () returns ()
 
 #end
 
-#eval verify "cvc5" ineq
+#eval Strata.Boole.verify "cvc5" ineq
+
+example : Strata.smtVCsCorrect ineq := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

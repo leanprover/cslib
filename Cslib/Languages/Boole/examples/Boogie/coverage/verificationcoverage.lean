@@ -1,8 +1,8 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
-private def VerificationCov :=
+private def verificationCov :=
 #strata
 program Boogie;
 
@@ -159,4 +159,10 @@ spec
 
 #end
 
-#eval verify "cvc5" VerificationCov
+#eval Strata.Boole.verify "cvc5" verificationCov
+
+example : Strata.smtVCsCorrect verificationCov := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata
