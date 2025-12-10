@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 ------------------------------------------------------------
 namespace Strata
@@ -20,7 +20,7 @@ namespace Strata
 
 private def inversionCountPgm :=
 #strata
-program Boogie;
+program Boole;
 
 // Represent an "array of ints" as a map int -> int
 type Array := Map int int;
@@ -47,15 +47,12 @@ spec
   //         A[i] > A[j] && k == 1));
 }
 {
-  var i : int;
   var j : int;
 
   inv := 0;
 
   // Convert CLRS 1-based loops to 0-based:
-  // for i = 0 to n-1:
-  i := 0;
-  while (i < n)
+  for (var i : int := 0; i < n; i + 1)
     invariant (0 <= i && i <= n && inv >= 0);
   {
     // for j = i+1 to n-1:
@@ -72,10 +69,14 @@ spec
 
       j := j + 1;
     }
-
-    i := i + 1;
   }
 };
 #end
 
-#eval verify "cvc5" inversionCountPgm
+#eval Strata.Boole.verify "cvc5" inversionCountPgm
+
+example : Strata.smtVCsCorrect inversionCountPgm := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

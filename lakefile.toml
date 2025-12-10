@@ -10,11 +10,12 @@ weak.linter.flexible = true
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.23.0-rc2"
+rev = "v4.24.0"
 
 [[require]]
 name = "Strata"
-scope = "strata-org"
+git = "https://github.com/abdoo8080/Strata"
+rev = "boole"
 
 [[lean_lib]]
 name = "Cslib"
