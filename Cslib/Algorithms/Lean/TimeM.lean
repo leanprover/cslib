@@ -7,21 +7,29 @@ Authors: Sorrachai Yingchareonthawornhcai
 import Mathlib.Tactic
 
 /-!
-# Time Monad
+# TimeM: Time Complexity Monad
+`TimeM α` represents a computation that produces a value of type `α` and tracks its time cost.
 
-`TimeM` is a monad that tracks execution time alongside computations.
+## Design Principles
+1. **Pure inputs, timed outputs**: Functions take plain values and return `TimeM` results
+2. **Time annotations are trusted**: The `time` field is NOT verified against actual cost.
+   You must manually ensure annotations match the algorithm's complexity in your cost model.
+3. **Separation of concerns**: Prove correctness properties on `.ret`, prove complexity on `.time`
+
+## Cost Model
+**Document your cost model explicitly** Decide and be consistent about:
+- **What costs 1 unit?** (comparison, arithmetic operation, etc.)
+- **What is free?** (variable lookup, pattern matching, etc.)
+- **Recursive calls:** Do you charge for the call itself?
 
 ## Notation
-
- - `✓` : a tick of time, see `tick`.
+- **`✓`** : a tick of time, see `tick`.
+- **`⟪tm⟫`** : Extract the pure value from a `TimeM` computation (notation for `tm.ret`)
 
 ## References
 
 See [Danielsson'08] for the discussion.
 -/
-
-set_option tactic.hygienic false
-set_option autoImplicit false
 
 structure TimeM (α : Type*) where
   ret : α
@@ -40,11 +48,12 @@ instance : Monad TimeM where
   pure := pure
   bind := bind
 
-@[simp] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α :=
-  ⟨a, c⟩
+@[simp] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α := ⟨a, c⟩
 
 scoped notation "✓" a:arg ", " c:arg => tick a c
 scoped notation "✓" a:arg => tick a  -- Default case with only one argument
+
+scoped notation:max "⟪" tm "⟫" => (TimeM.ret tm)
 
 def tickUnit : TimeM Unit :=
   ✓ () -- This uses the default time increment of 1

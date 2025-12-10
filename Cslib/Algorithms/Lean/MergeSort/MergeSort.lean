@@ -29,27 +29,25 @@ namespace TimeM
 
 variable {α : Type} [LinearOrder α]
 
-def merge :  List α → List α  → TimeM (List α)
+def merge :  List α → List α → TimeM (List α)
   | [], ys => return ys
   | xs, [] => return xs
   | x::xs', y::ys' => do
     let c ← ✓ (x ≤ y : Bool)
     if c then
-     let rest ← merge xs' (y::ys')
+      let rest ← merge xs' (y::ys')
       return (x :: rest)
     else
       let rest ← merge (x::xs') ys'
       return (y :: rest)
 
-
 def mergeSort (xs : List α) : TimeM (List α) :=  do
   if xs.length < 2 then return xs
   else
-    let n := xs.length
-    let half := n / 2
-    let left :=  xs.take half
+    let half  := xs.length / 2
+    let left  := xs.take half
     let right := xs.drop half
-    let sortedLeft ← mergeSort left
+    let sortedLeft  ← mergeSort left
     let sortedRight ← mergeSort right
     merge sortedLeft sortedRight
 
@@ -61,22 +59,23 @@ abbrev IsSorted (l : List α) : Prop := Sorted (· ≤ ·) l
 abbrev MinOfList (x : α) (l : List α) : Prop := ∀ b ∈ l, x ≤ b
 
 theorem mem_either_merge (xs ys : List α) (z : α)
-  (hz : z ∈ (merge xs ys).ret) : z ∈ xs ∨ z ∈ ys := by
+  (hz : z ∈ ⟪merge xs ys⟫) : z ∈ xs ∨ z ∈ ys := by
   fun_induction merge
   · simp_all only [Pure.pure, pure, not_mem_nil, or_true]
   · simp_all only [imp_false, Pure.pure, pure, not_mem_nil, or_false]
-  simp_all only [mem_cons, Bind.bind, tick, Pure.pure, pure, ret_bind, decide_eq_true_eq]
-  split_ifs at hz <;> (simp_all; grind)
+  simp_all only [mem_cons, Bind.bind, tick, Pure.pure, pure, ret_bind,
+    decide_eq_true_eq]
+  split_ifs at hz <;> (simp_all ; grind)
 
 theorem min_all_merge (x : α) (xs ys : List α)
-(hxs : MinOfList x xs) (hys : MinOfList x ys) : MinOfList x (merge xs ys).ret := by
+(hxs : MinOfList x xs) (hys : MinOfList x ys) : MinOfList x ⟪merge xs ys⟫ := by
   simp_all only [MinOfList]
   intro a ha
   apply mem_either_merge at ha
   grind
 
 theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1)
-  (hys : IsSorted l2) : IsSorted ((merge l1 l2).ret) := by
+  (hys : IsSorted l2) : IsSorted ⟪merge l1 l2⟫ := by
   fun_induction merge l1 l2 <;> try simpa
   simp only [Bind.bind, tick, ret_bind, decide_eq_true_eq,IsSorted]
   split_ifs
@@ -84,33 +83,33 @@ theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1)
   simp_all only [forall_const, sorted_cons, Pure.pure, pure, ret_bind, and_true]
   apply min_all_merge <;> grind
 
-theorem mergeSort_sorted (xs : List α) : IsSorted (mergeSort xs).ret := by
+theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
   fun_induction mergeSort xs
   · simp only [IsSorted, Pure.pure, pure]
     rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> simp [sorted_nil,sorted_singleton]; grind
   · simp only [IsSorted, Bind.bind, ret_bind]
     exact sorted_merge ih2 ih1
 
-lemma merge_perm (l₁ l₂ : List α) : (merge l₁ l₂).ret ~ l₁ ++ l₂ := by
+lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
   fun_induction merge <;> try simp
   split_ifs with h
   · simp_all only [cons_append, ret_bind, perm_cons]
   · simp_all only [cons_append, not_le, ret_bind]
     grind
 
-theorem mergeSort_perm (xs : List α) : (mergeSort xs).ret ~ xs := by
+theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
   fun_induction mergeSort xs
   · simp only [Pure.pure, pure, Perm.refl]
   · simp only [Bind.bind, ret_bind]
     calc
-      (merge (mergeSort left).ret (mergeSort right).ret).ret ~
-      (mergeSort left).ret ++ (mergeSort right).ret  := by apply merge_perm
+      ⟪merge ⟪mergeSort left⟫ ⟪mergeSort right⟫⟫  ~
+      ⟪mergeSort left⟫ ++ ⟪mergeSort right⟫  := by apply merge_perm
       _ ~ left++right := Perm.append ih2 ih1
       _ ~ x := by simp only [take_append_drop, Perm.refl, left, right]
 
 /-- MergeSort is functionally correct. -/
 theorem mergeSort_correct (xs : List α) :
-  IsSorted (mergeSort xs).ret ∧ (mergeSort xs).ret ~ xs  := by
+  IsSorted ⟪mergeSort xs⟫ ∧ ⟪mergeSort xs⟫ ~ xs  := by
   constructor
   · apply mergeSort_sorted
   · apply mergeSort_perm
@@ -187,14 +186,14 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
 
 
 @[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
-  (merge xs ys).ret.length = xs.length + ys.length := by
+  ⟪merge xs ys⟫.length = xs.length + ys.length := by
   fun_induction merge <;> simp only [Pure.pure, pure, List.length_nil, add_zero,zero_add]
   simp only [Bind.bind, tick, ret_bind, decide_eq_true_eq, List.length_cons]
   split_ifs <;> (simp only [ret_bind, List.length_cons];grind)
 
 
 @[simp] theorem mergeSort_same_length (xs : List α) :
-  (mergeSort xs).ret.length = xs.length:= by
+  ⟪mergeSort xs⟫.length = xs.length := by
   fun_induction mergeSort
   · simp only [Pure.pure, pure]
   · simp only [Bind.bind, ret_bind, merge_ret_length_eq_sum]
