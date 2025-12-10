@@ -1,4 +1,4 @@
-import Strata.MetaVerifier
+import Strata.Languages.Boogie.Verifier
 
 namespace Strata
 
@@ -104,10 +104,4 @@ procedure main() returns () {
 
 #end
 
-#eval Strata.Boole.verify "cvc5" basicOp
-
-example : Strata.smtVCsCorrect basicOp := by
-  gen_smt_vcs
-  all_goals grind
-
-end Strata
+#eval verify "cvc5" basicOp

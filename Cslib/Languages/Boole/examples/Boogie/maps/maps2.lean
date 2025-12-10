@@ -1,4 +1,4 @@
-import Strata.MetaVerifier
+import Strata.Languages.Boogie.Verifier
 
 namespace Strata
 
@@ -46,10 +46,4 @@ procedure bar() returns () {
 
 #end
 
-#eval Strata.Boole.verify "cvc5" maps2
-
-example : Strata.smtVCsCorrect maps2 := by
-  gen_smt_vcs
-  all_goals grind
-
-end Strata
+#eval verify "cvc5" maps2
