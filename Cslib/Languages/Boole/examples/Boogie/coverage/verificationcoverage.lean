@@ -4,10 +4,7 @@ namespace Strata
 
 private def verificationCov :=
 #strata
-program Boogie;
-
-// This test provides concrete Boogie programs with loops, invariants,
-// and contradictory or unreachable code
+program Boole;
 
 procedure testRequiresAssign(n: int) returns ()
 spec

@@ -4,7 +4,7 @@ namespace Strata
 
 private def ineq :=
 #strata
-program Boogie;
+program Boole;
 
 procedure SimpleLoop () returns ()
 {

@@ -4,7 +4,7 @@ namespace Strata
 
 private def constants :=
 #strata
-program Boogie;
+program Boole;
 
 // verifies simple control flow, arithmetic, and loop reasoning
 

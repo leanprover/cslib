@@ -3,7 +3,7 @@ namespace Strata
 
 private def deterministic :=
 #strata
-program Boogie;
+program Boole;
 
 function f(a:int) : int;
 

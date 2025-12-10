@@ -1,10 +1,10 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
 private def maps2 :=
 #strata
-program Boogie;
+program Boole;
 
 type X;
 type Y;
@@ -46,4 +46,10 @@ procedure bar() returns () {
 
 #end
 
-#eval verify "cvc5" maps2
+#eval Strata.Boole.verify "cvc5" maps2
+
+example : Strata.smtVCsCorrect maps2 := by
+  gen_smt_vcs
+  all_goals grind
+
+end Strata

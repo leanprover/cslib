@@ -4,7 +4,8 @@ namespace Strata
 
 private def bitVec :=
 #strata
-program Boogie;
+program Boole;
+
 type StrataHeap;
 type StrataRef;
 type StrataField (t: Type);

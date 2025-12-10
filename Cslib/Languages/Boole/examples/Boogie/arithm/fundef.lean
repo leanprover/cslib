@@ -4,7 +4,7 @@ namespace Strata
 
 private def funDef :=
 #strata
-program Boogie;
+program Boole;
 
 function foo2(x:int) : int
   { x + 1 }
