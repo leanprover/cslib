@@ -1,10 +1,10 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
 private def expansion :=
 #strata
-program Boogie;
+program Boole;
 
 function xxgz(x:int) : bool
 {
@@ -27,4 +27,8 @@ procedure foo() returns ()
 
 #end
 
-#eval verify "cvc5" expansion
+#eval Strata.Boole.verify "cvc5" expansion
+
+example : Strata.smtVCsCorrect expansion := by
+  gen_boogie_vcs
+  all_goals grind

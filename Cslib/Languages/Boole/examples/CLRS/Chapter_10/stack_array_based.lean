@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 ------------------------------------------------------------
 namespace Strata
@@ -24,7 +24,7 @@ namespace Strata
 
 private def stackArrayPgm :=
 #strata
-program Boogie;
+program Boole;
 
 // Represent the stack array as a map from int to int.
 // We follow CLRS and treat indices as 1..n, with `top` in [0..n].
@@ -107,6 +107,10 @@ spec
 #end
 
 #eval verify "cvc5" stackArrayPgm
+
+example : Strata.smtVCsCorrect stackArrayPgm := by
+  gen_boogie_vcs
+  all_goals grind
 
 -- [FEATURE REQUEST]
 -- Support for structures/records and encapsulating methods.
