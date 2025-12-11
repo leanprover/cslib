@@ -1,8 +1,19 @@
 
-import Cslib.Complexity.Encoding
+import Cslib.Foundations.Data.Encoding
 import Cslib.Computability.Automata.Acceptor
 import Mathlib.Computability.TMComputable
 
+/-!
+# Complexity Classes
+
+This file contains the definition of `ComplexityClass`es over bitstring decision problems,
+as well as several standard complexity classes such as P, NP, and the polynomial time hierarchy.
+
+## TODO
+
+- Define other complexity classes such as BPP, RP, coRP, ZPP, PSPACE.
+- Prove basic inclusions between these classes.
+-/
 
 open Computability Turing
 
@@ -115,6 +126,7 @@ mutual
     | n + 1 => (SigmaPolyTimeHierarchy n).polyUniversallyQuantify
 end
 
+-- TODO bind more tightly
 notation "Σᴾ " n => SigmaPolyTimeHierarchy n
 notation "Πᴾ " n => PiPolyTimeHierarchy n
 
@@ -132,10 +144,10 @@ lemma PiPolyTimeHierarchy_subset_SigmaPolyTimeHierarchy_succ
     (n : ℕ) : (Πᴾ n) ⊆ Σᴾ (n + 1) := by
   rw [SigmaPolyTimeHierarchy_succ]
   rw [Set.subset_def]
-  intro x hx_mem
-  simp [ComplexityClass.polyExistentiallyQuantify]
+  intro L hL_mem
+  simp? [ComplexityClass.polyExistentiallyQuantify]
   -- TODO if x ∈ Πᴾ n, then the language of pairs (x, ∅) is in Πᴾ n
-
+  use 0
   sorry
 
 /--
@@ -183,16 +195,5 @@ The class coNP is the set of decision problems
 whose complements are in NP.
 -/
 def coNP : ComplexityClass := Πᴾ 1
-
-def BPP : ComplexityClass := sorry
-
-def RP : ComplexityClass := sorry
-
-def coRP : ComplexityClass := sorry
-
-def ZPP : ComplexityClass := RP ∩ coRP
-
--- Might be more difficult.
-def PSPACE : ComplexityClass := sorry
 
 end ComplexityTheory
