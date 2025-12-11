@@ -4,18 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Languages.Language
+import Cslib.Init
+import Mathlib.Computability.Language
 
 namespace Cslib.Automata
 
 /-- An `Acceptor` is a machine that recognises strings (lists of symbols in an alphabet). -/
-class Acceptor (A : Type _) (Symbol : outParam (Type _)) where
+class Acceptor (A : Type u) (Symbol : outParam (Type v)) where
   /-- Predicate that establishes whether a string `xs` is accepted. -/
   Accepts (a : A) (xs : List Symbol) : Prop
 
 namespace Acceptor
 
-variable {Symbol : Type _}
+variable {Symbol : Type v}
 
 /-- The language of an `Acceptor` is the set of strings it `Accepts`. -/
 @[scoped grind .]

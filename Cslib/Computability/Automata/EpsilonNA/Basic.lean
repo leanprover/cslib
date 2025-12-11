@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA
-import Cslib.Computability.Automata.Acceptor
+import Cslib.Computability.Automata.NA.Basic
 
 /-! # Nondeterministic automata with ε-transitions. -/
 
@@ -31,7 +30,9 @@ abbrev εNA.εClosure (a : εNA State Symbol) (S : Set State) := a.τClosure S
 
 namespace εNA
 
+/-- The finite-word acceptance condition of an `εNA` is a set of accepting states. -/
 structure FinAcc (State Symbol : Type*) extends εNA State Symbol where
+  /-- The set of accepting states. -/
   accept : Set State
 
 namespace FinAcc

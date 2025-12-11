@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DAToNA
-import Cslib.Computability.Automata.NAToDA
-import Cslib.Computability.Automata.Prod
-import Cslib.Computability.Automata.Acceptor
+import Cslib.Computability.Automata.DA.Prod
+import Cslib.Computability.Automata.DA.ToNA
+import Cslib.Computability.Automata.NA.ToDA
 import Mathlib.Computability.DFA
-import Mathlib.Tactic
+import Mathlib.Data.Set.Card
+import Mathlib.Tactic.Common
 
 /-!
 # Regular languages

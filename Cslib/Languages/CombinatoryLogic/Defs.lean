@@ -3,9 +3,8 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
-import Mathlib.Logic.Relation
+
 import Cslib.Foundations.Semantics.ReductionSystem.Basic
-import Cslib.Foundations.Data.Relation
 
 /-!
 # SKI Combinatory Logic

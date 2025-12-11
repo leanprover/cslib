@@ -5,10 +5,9 @@ Authors: Tanner Duve, Bhavik Mehta
 -/
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Algebra.Ring.Idempotent
+import Mathlib.Algebra.Group.Idempotent
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Closure
-import Mathlib.Tactic.Cases
 import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-!
@@ -314,6 +313,8 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
 instance : Min (Fact P) where
   min G H := Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
 
+@[simp] lemma coe_min {G H : Fact P} : ((G ⊓ H : Fact P) : Set P) = (G : Set P) ∩ H := rfl
+
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
 
@@ -324,9 +325,12 @@ def I : Set P := idempotentsIn (1 : Set P)
 
 namespace Fact
 
+/--
+Linear negation of a fact, given by taking its orthogonal.
+-/
 def neg (G : Fact P) : Fact P := dualFact G
 
-postfix:max "ᗮ" => neg
+@[inherit_doc] postfix:max "ᗮ" => neg
 
 @[simp] lemma coe_neg {G : Fact P} : (Gᗮ : Set P) = (G : Set P)⫠ := rfl
 
@@ -524,6 +528,43 @@ defined as the dual of the intersection of the orthogonal with the idempotents.
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 @[inherit_doc] prefix:100 " ʔ " => quest
 
+/-! ### Properties of Additives -/
+
+lemma plus_eq_with_dual : (G ⊕ H : Fact P) = (Gᗮ & Hᗮ)ᗮ := by
+  apply SetLike.coe_injective
+  rw [oplus, withh]
+  aesop
+
+lemma with_eq_plus_dual : (G & H : Fact P) = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_eq_with_dual]
+
+lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_eq_with_dual, neg_neg]
+
+lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_eq_plus_dual, neg_neg]
+
+lemma with_comm : (G & H : Fact P) = H & G :=
+  SetLike.coe_injective <| by simp [withh, Set.inter_comm]
+
+@[simp] lemma with_assoc : ((G & H) & K : Fact P) = G & (H & K) := by
+  apply SetLike.coe_injective
+  rw [withh, coe_min]
+  exact Set.inter_assoc ..
+
+@[simp] lemma top_with : (⊤ & G : Fact P) = G := SetLike.coe_injective <| by simp [withh]
+
+@[simp] lemma with_top : (G & ⊤ : Fact P) = G := SetLike.coe_injective <| by simp [withh]
+
+lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
+
+@[simp] lemma plus_assoc : ((G ⊕ H) ⊕ K : Fact P) = G ⊕ (H ⊕ K) := by
+  simp [plus_eq_with_dual]
+
+@[simp] lemma zero_plus : (0 ⊕ G : Fact P) = G := by simp [plus_eq_with_dual]
+
+@[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
+
+/--
+A fact `G` is valid if the unit `1` belongs to `G`.
+-/
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
 lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid := Iff.rfl

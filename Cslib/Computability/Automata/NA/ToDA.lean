@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Automata.DA
-import Cslib.Computability.Automata.NA
+import Cslib.Computability.Automata.DA.Basic
+import Cslib.Computability.Automata.NA.Basic
 import Cslib.Foundations.Semantics.LTS.LTSToFLTS
 
 /-! # Translation of Nondeterministic Automata for finite strings into Deterministic Automata
@@ -15,7 +15,7 @@ This file implements the standard subset construction.
 
 namespace Cslib.Automata.NA
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 section SubsetConstruction
 

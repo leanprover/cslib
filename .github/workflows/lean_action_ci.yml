@@ -2,6 +2,9 @@ name: Lean Action CI
 
 on:
   push:
+    branches:
+      - main
+      - nightly-testing
   pull_request:
   workflow_dispatch:
 
@@ -10,11 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        run: |
-          set -e
-          cmp -s lean-toolchain docs/lean-toolchain
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail"
           mk_all-check: "true"
+      - name: "lake exe shake"
+        run: |
+          set -e
+          lake exe shake Cslib
+      - uses: leanprover-community/lint-style-action@main
+        with:
+          mode: check

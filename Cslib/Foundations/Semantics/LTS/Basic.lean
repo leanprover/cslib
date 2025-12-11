@@ -5,14 +5,9 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Init
-import Mathlib.Tactic.Lemma
-import Mathlib.Data.Finite.Defs
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Logic.Function.Defs
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Stream.Defs
-import Mathlib.Util.Notation3
-import Mathlib.Order.SetNotation
+import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 /-!
 # Labelled Transition System (LTS)
@@ -197,13 +192,13 @@ def LTS.unionSubtype
 /-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
 def LTS.inl (lts : LTS State Label) :
     LTS { x : State ⊕ State' // x.isLeft } { _label : Label // True } where
-  Tr s μ s' := 
+  Tr s μ s' :=
     match s, s' with
     | ⟨.inl s1, _⟩, ⟨.inl s2, _⟩ => lts.Tr s1 μ s2
     | _, _ => False
 
 /-- Lifting of an `LTS State Label` to `LTS (State' ⊕ State) Label`. -/
-def LTS.inr (lts : LTS State Label) : 
+def LTS.inr (lts : LTS State Label) :
     LTS { x : State' ⊕ State // x.isRight } { _label : Label // True } where
   Tr s μ s' :=
     match s, s' with
@@ -213,7 +208,7 @@ def LTS.inr (lts : LTS State Label) :
 /-- Union of two LTSs with the same `Label` type. The result combines the original respective state
 types `State1` and `State2` into `(State1 ⊕ State2)`. -/
 def LTS.unionSum (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
-    LTS (State1 ⊕ State2) Label := 
+    LTS (State1 ⊕ State2) Label :=
   LTS.unionSubtype lts1.inl lts2.inr
 
 end Union
@@ -375,6 +370,7 @@ section Weak
 
 /-- A type of transition labels that includes a special 'internal' transition `τ`. -/
 class HasTau (Label : Type v) where
+  /-- The internal transition label, also known as τ. -/
   τ : Label
 
 /-- Saturated transition relation. -/
@@ -684,12 +680,16 @@ syntax attrKind "lts_transition_notation" ident (str)? : command
 macro_rules
   | `($kind:attrKind lts_transition_notation $lts $sym) =>
     `(
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μ"]⭢" $sym:str t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μs"]↠" $sym:str t':39 => (LTS.MTr.toRelation $lts μs) t t'
      )
   | `($kind:attrKind lts_transition_notation $lts) =>
     `(
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μ"]⭢" t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μs"]↠" t':39 => (LTS.MTr.toRelation $lts μs) t t'
      )
 

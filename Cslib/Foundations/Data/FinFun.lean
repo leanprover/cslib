@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Xueying Qin
 -/
 
--- TODO: Notation conflict with Mathlib.Finsupp (both use →₀)
--- import Cslib.Init
-import Mathlib.Data.Finset.Basic
+import Cslib.Init
+import Mathlib.Data.Finset.Filter
+import Mathlib.Data.Finset.Lattice.Basic
 
 /-! # Finite functions
 
@@ -20,7 +20,7 @@ namespace Cslib
 /-- A `FinFun` is a function `fn` with a finite `support`.
 
 This is similar to `Finsupp` in Mathlib, but definitions are computable. -/
-structure FinFun (α : Type _) (β : Type _) [Zero β] where
+structure FinFun (α β : Type*) [Zero β] where
   /-- The underlying function. -/
   fn : α → β
   /-- The finite support of the function. -/
@@ -38,7 +38,7 @@ scoped infixr:25 " →₀ " => FinFun
 /-- Constructs a `FinFun` by restricting a function to a given support, filtering out all elements
 not mapped to 0 in the support. -/
 @[scoped grind .]
-private def fromFun {α β : Type _} [Zero β] [DecidableEq α]
+private def fromFun {α β : Type*} [Zero β] [DecidableEq α]
   [∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
   fn := (fun a => if a ∈ support then fn a else 0)
   support := support.filter (fn · ≠ 0)
@@ -85,7 +85,7 @@ theorem fn_eq_eq [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
   ext (congrFun h)
 
 @[scoped grind =>]
-theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a := 
+theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a :=
   by grind
 
 @[scoped grind =]
@@ -126,7 +126,8 @@ theorem fromFun_inter [Zero β] [DecidableEq α]
 @[scoped grind =]
 theorem fromFun_comm [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
-    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by grind
+    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by
+  grind only [= coe_eq_fn, = fromFun_fn, ←= ext]
 
 end FinFun
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
+import Cslib.Foundations.Syntax.HasSubstitution
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
-
 
 /-! # λ-calculus
 
@@ -38,12 +38,14 @@ def openRec (X : ℕ) (δ : Ty Var) : Ty Var → Ty Var
 | all σ τ => all (openRec X δ σ) (openRec (X + 1) δ τ)
 | sum σ τ => sum (openRec X δ σ) (openRec X δ τ)
 
+@[inherit_doc]
 scoped notation:68 γ "⟦" X " ↝ " δ "⟧ᵞ"=> openRec X δ γ
 
 /-- Variable opening (type opening to type) of the closest binding. -/
 @[scoped grind =]
 def open' (γ δ : Ty Var) := openRec 0 δ γ
 
+@[inherit_doc]
 scoped infixr:80 " ^ᵞ " => open'
 
 /-- Locally closed types. -/
@@ -149,12 +151,14 @@ def openRec_ty (X : ℕ) (δ : Ty Var) : Term Var → Term Var
 | inr t₂ => inr (openRec_ty X δ t₂)
 | case t₁ t₂ t₃ => case (openRec_ty X δ t₁) (openRec_ty X δ t₂) (openRec_ty X δ t₃)
 
+@[inherit_doc]
 scoped notation:68 t "⟦" X " ↝ " δ "⟧ᵗᵞ"=> openRec_ty X δ t
 
 /-- Variable opening (term opening to type) of the closest binding. -/
 @[scoped grind =]
 def open_ty (t : Term Var) (δ : Ty Var) := openRec_ty 0 δ t
 
+@[inherit_doc]
 scoped infixr:80 " ^ᵗᵞ " => open_ty
 
 /-- Variable opening (term opening to term) of the ith bound variable. -/
@@ -171,12 +175,14 @@ def openRec_tm (x : ℕ) (s : Term Var) : Term Var → Term Var
 | inr t₂ => inr (openRec_tm x s t₂)
 | case t₁ t₂ t₃ => case (openRec_tm x s t₁) (openRec_tm (x + 1) s t₂) (openRec_tm (x + 1) s t₃)
 
+@[inherit_doc]
 scoped notation:68 t "⟦" x " ↝ " s "⟧ᵗᵗ"=> openRec_tm x s t
 
 /-- Variable opening (term opening to term) of the closest binding. -/
 @[scoped grind =]
 def open_tm (t₁ t₂ : Term Var) := openRec_tm 0 t₂ t₁
 
+@[inherit_doc]
 scoped infixr:80 " ^ᵗᵗ " => open_tm
 
 /-- Locally closed terms. -/

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA
+import Cslib.Computability.Automata.DA.Basic
 
 /-! # Deterministic Buchi automata.
 -/
@@ -15,7 +15,7 @@ namespace Cslib.Automata.DA
 
 open scoped FinAcc Buchi
 
-variable {State : Type _} {Symbol : Type _}
+variable {State Symbol : Type*}
 
 open Acceptor ωAcceptor in
 /-- The ω-language accepted by a deterministic Buchi automaton is the ω-limit
