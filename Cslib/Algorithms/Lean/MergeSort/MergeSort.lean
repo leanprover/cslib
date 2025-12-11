@@ -168,7 +168,7 @@ lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog2 (n / 2) ≤ clog2 n - 1 
     grw [Nat.log_mono_right]
     grind
 
-private lemma some_algebra (n : ℕ) :
+lemma some_algebra (n : ℕ) :
   (n / 2 + 1) * clog2 (n / 2 + 1) + ((n + 1) / 2 + 1) * clog2 ((n + 1) / 2 + 1) + (n + 2) ≤
   (n + 2) * clog2 (n + 2) := by
   -- 1. Substitution: Let N = n_1 + 2 to clean up the expression
@@ -222,7 +222,7 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
   simp only [Bind.bind, tick, time_of_bind, decide_eq_true_eq, List.length_cons]
   split_ifs <;> all_goals (simp_all only [List.length_cons, not_le, time_of_bind, add_zero]; grind)
 
-private theorem mergeSort_time_le (xs : List α) :
+theorem mergeSort_time_le (xs : List α) :
   (mergeSort xs).time ≤ timeMergeSortRec xs.length := by
   fun_induction mergeSort
   · simp only [Pure.pure, pure]
