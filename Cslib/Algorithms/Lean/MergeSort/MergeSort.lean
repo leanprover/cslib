@@ -168,7 +168,7 @@ lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog2 (n / 2) ≤ clog2 n - 1 
     grw [Nat.log_mono_right]
     grind
 
-lemma some_algebra (n : ℕ) :
+private lemma some_algebra (n : ℕ) :
   (n / 2 + 1) * clog2 (n / 2 + 1) + ((n + 1) / 2 + 1) * clog2 ((n + 1) / 2 + 1) + (n + 2) ≤
   (n + 2) * clog2 (n + 2) := by
   -- 1. Substitution: Let N = n_1 + 2 to clean up the expression
