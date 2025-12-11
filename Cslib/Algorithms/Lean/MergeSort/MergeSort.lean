@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sorrachai Yingchareonthawornhcai
 -/
 
-import Mathlib.Tactic
 import Cslib.Algorithms.Lean.TimeM
+import Mathlib.Data.Nat.Cast.Order.Ring
+import Mathlib.Data.Nat.Lattice
+import Mathlib.Data.Nat.Log
 
 
 /-!
