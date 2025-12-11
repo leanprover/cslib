@@ -48,7 +48,7 @@ theorem ReductionSystem.MRed.single {a b : Term} (h : rs.Red a b) :
   rs.MRed a b :=
   Relation.ReflTransGen.single h
 
-theorem ReductionSystem.MRed.tail {a b c : Term} (hab : rs.MRed a b) (hbc : rs.Red b c) :
+theorem ReductionSystem.MRed.step {a b c : Term} (hab : rs.MRed a b) (hbc : rs.Red b c) :
     rs.MRed a c :=
   Relation.ReflTransGen.tail hab hbc
 
@@ -64,7 +64,7 @@ theorem ReductionSystem.MRed.cases_iff {a b : Term} :
 private theorem ReductionSystem.MRed.induction_on {motive : ∀ {x y}, rs.MRed x y → Prop}
     (refl : ∀ t : Term, motive (MRed.refl rs t))
     (step : ∀ (a b c : Term) (hab : rs.MRed a b) (hbc : rs.Red b c), motive hab →
-      motive (MRed.tail rs hab hbc))
+      motive (MRed.step rs hab hbc))
     {a b : Term} (h : rs.MRed a b) : motive h := by
   induction h with
   | refl => exact refl a
