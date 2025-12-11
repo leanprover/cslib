@@ -7,6 +7,7 @@ Authors: Sorrachai Yingchareonthawornhcai
 import Mathlib.Tactic
 
 /-!
+
 # TimeM: Time Complexity Monad
 `TimeM α` represents a computation that produces a value of type `α` and tracks its time cost.
 
@@ -23,13 +24,14 @@ import Mathlib.Tactic
 - **Recursive calls:** Do you charge for the call itself?
 
 ## Notation
-- **`✓`** : a tick of time, see `tick`.
+- **`✓`** : A tick of time, see `tick`.
 - **`⟪tm⟫`** : Extract the pure value from a `TimeM` computation (notation for `tm.ret`)
 
 ## References
 
-See [Danielsson'08] for the discussion.
+See [Danielsson2008] for the discussion.
 -/
+namespace Cslib.Algorithms.Lean
 
 structure TimeM (α : Type*) where
   ret : α
@@ -65,7 +67,8 @@ def tickUnit : TimeM Unit :=
 @[simp] theorem ret_bind {α β} (m : TimeM α) (f : α → TimeM β) :
   (TimeM.bind m f).ret = (f m.ret).ret := rfl
 
--- this allow us to simplify the chain of compositions
-attribute [simp] Bind.bind Pure.pure TimeM.pure
+-- this allow us to simplify the chain of monadic compositions
+attribute [simp] Bind.bind Pure.pure TimeM.pure TimeM.bind
 
 end TimeM
+end Cslib.Algorithms.Lean

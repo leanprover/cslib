@@ -17,15 +17,15 @@ over the list `TimeM (List α)`. The time complexity of `mergeSort` is the numbe
 --
 ## Main results
 
-- `mergeSort_correct`: `mergeSort` returns a sorted list which is a permutation of the input list.
-- `mergeSort_time`:  `mergeSort` time is at most `n*⌈log₂ n⌉` where `n` is the list size.
+- `mergeSort_correct`: `mergeSort` permutes the list into a sorted one.
+- `mergeSort_time`:  The number of comparisons of `mergeSort` is at most `n*⌈log₂ n⌉`.
 
 -/
 
 set_option tactic.hygienic false
 set_option autoImplicit false
 
-namespace TimeM
+namespace Cslib.Algorithms.Lean.TimeM
 
 variable {α : Type} [LinearOrder α]
 
@@ -93,9 +93,8 @@ theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
 lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
   fun_induction merge <;> try simp
   split_ifs with h
-  · simp_all only [cons_append, ret_bind, perm_cons]
-  · simp_all only [cons_append, not_le, ret_bind]
-    grind
+  · simp_all only [cons_append, perm_cons]
+  · grind
 
 theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
   fun_induction mergeSort xs
@@ -227,4 +226,4 @@ theorem mergeSort_time (xs : List α) :
 
 end TimeComplexity
 
-end TimeM
+end Cslib.Algorithms.Lean.TimeM
