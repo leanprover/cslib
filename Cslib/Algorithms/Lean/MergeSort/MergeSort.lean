@@ -8,7 +8,7 @@ import Cslib.Algorithms.Lean.TimeM
 import Mathlib.Data.Nat.Cast.Order.Ring
 import Mathlib.Data.Nat.Lattice
 import Mathlib.Data.Nat.Log
-import Mathlib.Tactic
+import Mathlib.Tactic.Bound
 
 
 /-!
