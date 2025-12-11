@@ -141,6 +141,8 @@ lemma complement_complement (C : ComplexityClass) :
 @[simp]
 lemma P_complement : P.complement = P := by
   ext L
+  -- TODO requires showing that Bool.not is poly time,
+  -- and composition of poly-time functions is poly-time
   sorry
 
 def polyUniversallyQuantify (C : ComplexityClass) :
@@ -263,6 +265,11 @@ lemma polyExistentiallyQuantify_mono
 
 lemma P_subset_NP : P ⊆ NP := by
   unfold NP
+  unfold polyExistentiallyQuantify
+  intro L hL
+  simp only [Set.mem_setOf_eq]
+  use 0
+  -- TODO requires proving that pairing operations are poly-time
   sorry
 
 lemma P_subset_coNP : P ⊆ coNP := by
