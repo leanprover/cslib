@@ -29,6 +29,8 @@ namespace Cslib.Algorithms.Lean.TimeM
 
 variable {α : Type} [LinearOrder α]
 
+/-- Merges two lists into a single list, counting comparisons as time cost.
+Returns a `TimeM (List α)` where the time represents the number of comparisons performed. -/
 def merge :  List α → List α → TimeM (List α)
   | [], ys => return ys
   | xs, [] => return xs
@@ -41,6 +43,8 @@ def merge :  List α → List α → TimeM (List α)
       let rest ← merge (x::xs') ys'
       return (y :: rest)
 
+/-- Sorts a list using the merge sort algorithm, counting comparisons as time cost.
+Returns a `TimeM (List α)` where the time represents the total number of comparisons. -/
 def mergeSort (xs : List α) : TimeM (List α) :=  do
   if xs.length < 2 then return xs
   else
@@ -55,7 +59,10 @@ section Correctness
 
 open List
 
+/-- A list is sorted if it satisfies the `Sorted (· ≤ ·)` predicate. -/
 abbrev IsSorted (l : List α) : Prop := Sorted (· ≤ ·) l
+
+/-- `x` is a minimum element of list `l` if `x ≤ b` for all `b ∈ l`. -/
 abbrev MinOfList (x : α) (l : List α) : Prop := ∀ b ∈ l, x ≤ b
 
 theorem mem_either_merge (xs ys : List α) (z : α)
@@ -117,6 +124,12 @@ end Correctness
 
 section TimeComplexity
 
+/-- Recurrence relation for the time complexity of merge sort.
+For a list of length `n`, this counts the total number of comparisons:
+- Base cases: 0 comparisons for lists of length 0 or 1
+- Recursive case: split the list, sort both halves,
+  then merge (which takes at most `n` comparisons) -/
+
 def timeMergeSortRec : ℕ → ℕ
 | 0 => 0
 | 1 => 0
@@ -172,6 +185,8 @@ private lemma some_algebra (n : ℕ) :
   rw [h_split]
   bound
 
+
+/-- Upper bound function for merge sort time complexity: `T(n) = n * ⌈log₂ n⌉` -/
 abbrev T (n : ℕ) : ℕ := n * clog2 n
 
 /-- Solve the recurrence -/

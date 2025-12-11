@@ -34,15 +34,23 @@ See [Danielsson2008] for the discussion.
 -/
 namespace Cslib.Algorithms.Lean
 
+/-- A monad for tracking time complexity of computations.
+`TimeM α` represents a computation that returns a value of type `α`
+and accumulates a time cost (represented as a natural number). -/
+
 structure TimeM (α : Type*) where
+  /-- The return value of the computation -/
   ret : α
+  /-- The accumulated time cost of the computation -/
   time : ℕ
 
 namespace TimeM
 
+/-- Lifts a pure value into a `TimeM` computation with zero time cost. -/
 def pure {α} (a : α) : TimeM α :=
   ⟨a, 0⟩
 
+/-- Sequentially composes two `TimeM` computations, summing their time costs. -/
 def bind {α β} (m : TimeM α) (f : α → TimeM β) : TimeM β :=
   let r := f m.ret
   ⟨r.ret, m.time + r.time⟩
@@ -51,15 +59,22 @@ instance : Monad TimeM where
   pure := pure
   bind := bind
 
+/-- Creates a `TimeM` computation with a specified value and time cost.
+The time cost defaults to 1 if not provided. -/
 @[simp] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α := ⟨a, c⟩
 
+/-- Notation for `tick` with explicit time cost: `✓ a, c` -/
 scoped notation "✓" a:arg ", " c:arg => tick a c
-scoped notation "✓" a:arg => tick a  -- Default case with only one argument
 
+/-- Notation for `tick` with default time cost of 1: `✓ a` -/
+scoped notation "✓" a:arg => tick a
+
+/-- Notation for extracting the return value from a `TimeM` computation: `⟪tm⟫` -/
 scoped notation:max "⟪" tm "⟫" => (TimeM.ret tm)
 
+/-- A unit computation with time cost 1. -/
 def tickUnit : TimeM Unit :=
-  ✓ () -- This uses the default time increment of 1
+  ✓ ()
 
 @[simp] theorem time_of_pure {α} (a : α) : (pure a).time = 0 := rfl
 @[simp] theorem time_of_bind {α β} (m : TimeM α) (f : α → TimeM β) :
