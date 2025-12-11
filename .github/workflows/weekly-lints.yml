@@ -1,0 +1,52 @@
+name: Weekly linting report
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'  # Run at 05:00 UTC every Monday
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  weekly-lints:
+    name: Weekly Linting
+    runs-on: ubuntu-latest
+    if: github.repository == 'leanprover/cslib'
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+
+    - name: Enable weekly linters
+      run: |
+        # Add the mergeWithGrind linter back for this run
+        sed -i '/^\[leanOptions\]/a weak.linter.tacticAnalysis.mergeWithGrind = true' lakefile.toml
+
+        # Show what changed
+        git diff lakefile.toml
+
+    - name: Configure Lean
+      uses: leanprover/lean-action@v1
+      with:
+        auto-config: false
+        use-github-cache: true
+        use-mathlib-cache: true
+
+    - name: Build with weekly linters
+      id: build
+      continue-on-error: true
+      run: |
+        lean_outfile=$(mktemp)
+        (lake build || true) 2>&1 | tee "${lean_outfile}"
+
+        # Generate simplified report for Zulip
+        ./scripts/weekly_lint_report.sh "${lean_outfile}" "${{ github.sha }}" "${{ github.repository }}" "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"
+
+    - name: Post output to Zulip
+      uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY }}
+        email: 'github-mathlib4-bot@leanprover.zulipchat.com'
+        organization-url: 'https://leanprover.zulipchat.com'
+        to: 'CSLib'
+        type: 'stream'
+        topic: 'Weekly linting log'
+        content: ${{ steps.build.outputs.zulip-message }}
