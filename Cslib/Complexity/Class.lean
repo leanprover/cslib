@@ -14,34 +14,21 @@ The type of decision problems on bitstrings.
 
 We define these as functions from lists of booleans to booleans,
 implictly assuming the usual encodings.
-We define this as an auxiliary definition to decision problems on arbitrary types to avoid
-confusion with encodings.
 
-TODO: Replace with Typedef or abbrev?
-TODO: Bool or Prop?
+TODO: An Decision Problem type over arbitrary types.
 -/
-structure BitstringDecisionProblem where
-  toFun : List Bool → Bool
-
-instance : CoeFun BitstringDecisionProblem (fun _ ↦ List Bool → Bool) :=
-  ⟨BitstringDecisionProblem.toFun⟩
-
-instance : Membership (List Bool) BitstringDecisionProblem :=
-  ⟨fun X x ↦ X x⟩
-
-instance : HasCompl BitstringDecisionProblem :=
-  ⟨fun X ↦ ⟨fun x ↦ not (X x)⟩⟩
+abbrev BitstringDecisionProblem := List Bool → Bool
 
 /--
-The type of complexity classes over an alphabet `α` (which we require to be nontrivial and finite).
-We define these as sets of languages.
+The type of complexity classes over bitstrings.
+We define these as sets of `BitstringDecisionProblem`s.
 -/
 abbrev ComplexityClass := Set BitstringDecisionProblem
 
 /--
 A simple definition to abstract the notion of a poly-time Turing machine into a predicate.
 -/
-def isComputableInPolyTime {α β : Type} (ea : FinEncoding α) (eb : FinEncoding β) (f : α → β) :=
+def IsComputableInPolyTime {α β : Type} (ea : FinEncoding α) (eb : FinEncoding β) (f : α → β) :=
   Nonempty (TM2ComputableInPolyTime ea eb f)
 
 /--
@@ -49,16 +36,22 @@ The class P is the set of decision problems
 decidable in polynomial time by a deterministic Turing machine.
 -/
 def P : ComplexityClass :=
-  { L | isComputableInPolyTime finEncodingListBool finEncodingBoolBool L.toFun }
+  { L | IsComputableInPolyTime finEncodingListBool finEncodingBoolBool L }
+
+/--
+The list of all bitstrings of exactly length `n`, in lexicographic order.
+-/
+def bitstringsOfLength : ℕ → List (List Bool)
+  | 0     => [[]]
+  | n + 1 => (bitstringsOfLength n) >>= fun bs ↦ [bs ++ [false], bs ++ [true]]
 
 /--
 The list of all bitstrings of length `n` or less.
--/
-def bitstringsUpToLength : ℕ → List (List Bool)
-  | 0     => [[]]
-  | n + 1 => (bitstringsUpToLength n)
-             ++ ((bitstringsUpToLength n) >>= fun bs ↦ [bs ++ [false], bs ++ [true]])
 
+Ordered first by length, then lexicographically.
+-/
+def bitstringsUpToLength (n : ℕ) : List (List Bool) :=
+  (List.range (n + 1)) >>= bitstringsOfLength
 
 /--
 Given a polynomial `p` and a bitstring decision problem `L` that operates on pairs of bitstrings,
@@ -71,7 +64,9 @@ Reference:
 def BitstringDecisionProblem.universallyQuantifyOverPolynomial
     (p : Polynomial ℕ) (L : BitstringDecisionProblem) :
     BitstringDecisionProblem :=
-  ⟨fun x ↦ List.all (bitstringsUpToLength (p.eval x.length)) fun w ↦ L (encode_list_bool_prod_list_bool (x, w))⟩
+  fun x ↦
+    List.all (bitstringsUpToLength (p.eval x.length)) fun w ↦
+      L (encode_list_bool_prod_list_bool (x, w))
 
 /--
 Given a polynomial `p` and a bitstring decision problem `L` that operates on pairs of bitstrings,
@@ -84,7 +79,8 @@ Reference:
 def BitstringDecisionProblem.existentiallyQuantifyOverPolynomial
     (p : Polynomial ℕ) (L : BitstringDecisionProblem) :
     BitstringDecisionProblem :=
-  ⟨fun x ↦ List.any (bitstringsUpToLength (p.eval x.length)) fun w ↦ L (encode_list_bool_prod_list_bool (x, w))⟩
+  fun x ↦ List.any (bitstringsUpToLength (p.eval x.length)) fun w ↦
+    L (encode_list_bool_prod_list_bool (x, w))
 
 
 def ComplexityClass.polyUniversallyQuantify (C : ComplexityClass) :
@@ -92,44 +88,54 @@ def ComplexityClass.polyUniversallyQuantify (C : ComplexityClass) :
   { L | ∃ p : Polynomial ℕ, ∃ L' ∈ C,
       L = BitstringDecisionProblem.universallyQuantifyOverPolynomial p L' }
 
-notation "∀ᴾ" C => ComplexityClass.polyUniversallyQuantify C
+notation "∀ᴾ " C => ComplexityClass.polyUniversallyQuantify C
 
 def ComplexityClass.polyExistentiallyQuantify (C : ComplexityClass) :
     ComplexityClass :=
   { L | ∃ p : Polynomial ℕ, ∃ L' ∈ C,
       L = BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L' }
 
-notation "∃ᴾ" C => ComplexityClass.polyExistentiallyQuantify C
+notation "∃ᴾ " C => ComplexityClass.polyExistentiallyQuantify C
 
 
 -- /--
 -- The polynomial time hierarchy is defined by mutual induction as follows:
 
 -- Σᴾ 0 = Πᴾ 0 = P
--- Σᴾ n+1 = ∃ᵖ Σᴾ n
+-- Σᴾ n+1 = ∃ᵖ Πᴾ n
 -- Πᴾ n+1 = ∀ᵖ Σᴾ n
 -- -/
 mutual
   def SigmaPolyTimeHierarchy : ℕ → ComplexityClass
     | 0     => P
-    | n + 1 => (SigmaPolyTimeHierarchy n).polyExistentiallyQuantify
+    | n + 1 => (PiPolyTimeHierarchy n).polyExistentiallyQuantify
 
   def PiPolyTimeHierarchy : ℕ → ComplexityClass
     | 0     => P
     | n + 1 => (SigmaPolyTimeHierarchy n).polyUniversallyQuantify
 end
 
-notation "Σᴾ" n => SigmaPolyTimeHierarchy n
-notation "Πᴾ" n => PiPolyTimeHierarchy n
+notation "Σᴾ " n => SigmaPolyTimeHierarchy n
+notation "Πᴾ " n => PiPolyTimeHierarchy n
 
 def PolyTimeHierarchy : ComplexityClass :=
   { L | ∃ n : ℕ, L ∈ Σᴾ n }
+
+lemma SigmaPolyTimeHierarchy_succ
+    (n : ℕ) : (Σᴾ (n + 1)) = (Πᴾ n).polyExistentiallyQuantify :=
+  rfl
 
 /--
 Pi n contained in Sigma n+1
 -/
 lemma PiPolyTimeHierarchy_subset_SigmaPolyTimeHierarchy_succ
     (n : ℕ) : (Πᴾ n) ⊆ Σᴾ (n + 1) := by
+  rw [SigmaPolyTimeHierarchy_succ]
+  rw [Set.subset_def]
+  intro x hx_mem
+  simp [ComplexityClass.polyExistentiallyQuantify]
+  -- TODO if x ∈ Πᴾ n, then the language of pairs (x, ∅) is in Πᴾ n
+
   sorry
 
 /--
