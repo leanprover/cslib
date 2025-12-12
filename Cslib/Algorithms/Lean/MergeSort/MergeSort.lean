@@ -25,7 +25,6 @@ over the list `TimeM (List α)`. The time complexity of `mergeSort` is the numbe
 
 -/
 
-set_option tactic.hygienic false
 set_option autoImplicit false
 
 namespace Cslib.Algorithms.Lean.TimeM
@@ -94,10 +93,12 @@ theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1)
   apply min_all_merge <;> grind
 
 theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
-  fun_induction mergeSort xs
-  · simp only [IsSorted, Pure.pure, pure]
+  fun_induction mergeSort xs with
+  | case1 x =>
+    simp only [IsSorted, Pure.pure, pure]
     rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> simp [sorted_nil,sorted_singleton]; grind
-  · simp only [IsSorted, Bind.bind, ret_bind]
+  | case2 _ _ _ _ _ ih2 ih1 => 
+    simp only [IsSorted, Bind.bind, ret_bind]
     exact sorted_merge ih2 ih1
 
 lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
@@ -107,9 +108,10 @@ lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ :=
   · grind
 
 theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
-  fun_induction mergeSort xs
-  · simp only [Pure.pure, pure, Perm.refl]
-  · simp only [Bind.bind, ret_bind]
+  fun_induction mergeSort xs with
+  | case1 => simp only [Pure.pure, pure, Perm.refl]
+  | case2 x _ _ left right ih2 ih1 =>
+    simp only [Bind.bind, ret_bind]
     calc
       ⟪merge ⟪mergeSort left⟫ ⟪mergeSort right⟫⟫  ~
       ⟪mergeSort left⟫ ++ ⟪mergeSort right⟫  := by apply merge_perm
@@ -194,12 +196,13 @@ abbrev T (n : ℕ) : ℕ := n * clog2 n
 
 /-- Solve the recurrence -/
 theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
-  fun_induction timeMergeSortRec
-  · simp [T]
-  · simp
-  · grw [ih1,ih2]
+  fun_induction timeMergeSortRec with
+  | case1 => simp [T]
+  | case2 => simp
+  | case3 n ih2 ih1 => 
+    grw [ih1,ih2]
     simp only [Nat.ofNat_pos, Nat.add_div_right, Nat.add_one_sub_one, Nat.succ_eq_add_one]
-    exact some_algebra n_1
+    exact some_algebra n
 
 
 @[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
@@ -224,10 +227,12 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
 
 theorem mergeSort_time_le (xs : List α) :
   (mergeSort xs).time ≤ timeMergeSortRec xs.length := by
-  fun_induction mergeSort
-  · simp only [Pure.pure, pure]
+  fun_induction mergeSort with
+  | case1 => 
+    simp only [Pure.pure, pure]
     grind
-  · simp only [Bind.bind, time_of_bind]
+  | case2 _ _ _ _ _ ih2 ih1 =>
+    simp only [Bind.bind, time_of_bind]
     grw [merge_time]
     simp only [mergeSort_same_length]
     unfold timeMergeSortRec
