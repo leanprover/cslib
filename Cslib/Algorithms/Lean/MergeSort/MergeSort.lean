@@ -97,7 +97,7 @@ theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
   | case1 x =>
     simp only [IsSorted, Pure.pure, pure]
     rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> simp [sorted_nil,sorted_singleton]; grind
-  | case2 _ _ _ _ _ ih2 ih1 => 
+  | case2 _ _ _ _ _ ih2 ih1 =>
     simp only [IsSorted, Bind.bind, ret_bind]
     exact sorted_merge ih2 ih1
 
@@ -199,7 +199,7 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
   fun_induction timeMergeSortRec with
   | case1 => simp [T]
   | case2 => simp
-  | case3 n ih2 ih1 => 
+  | case3 n ih2 ih1 =>
     grw [ih1,ih2]
     simp only [Nat.ofNat_pos, Nat.add_div_right, Nat.add_one_sub_one, Nat.succ_eq_add_one]
     exact some_algebra n
@@ -228,7 +228,7 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
 theorem mergeSort_time_le (xs : List α) :
   (mergeSort xs).time ≤ timeMergeSortRec xs.length := by
   fun_induction mergeSort with
-  | case1 => 
+  | case1 =>
     simp only [Pure.pure, pure]
     grind
   | case2 _ _ _ _ _ ih2 ih1 =>
