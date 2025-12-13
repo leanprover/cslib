@@ -7,6 +7,8 @@ Authors: Chris Henson
 import Cslib.Foundations.Semantics.ReductionSystem.Basic
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
+set_option linter.unusedDecidableInType false
+
 /-! # β-reduction for the λ-calculus
 
 ## References

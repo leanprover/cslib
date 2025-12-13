@@ -121,8 +121,8 @@ theorem append_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k,
 
 /-- The length of `(ls.take n).flatten` is `ls.cumLen n`. -/
 @[simp, nolint simpNF, scoped grind =]
-theorem length_flatten_take {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
-    (n : ℕ) : (ls.take n).flatten.length = ls.cumLen n := by
+theorem length_flatten_take {ls : ωSequence (List α)} (n : ℕ) :
+    (ls.take n).flatten.length = ls.cumLen n := by
   induction n <;> grind [take_succ']
 
 /-- `In fact, (ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
@@ -133,7 +133,7 @@ theorem flatten_take_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) := by
   apply append_left_right_injective
   · rw [append_flatten h_ls n, append_take_drop (ls.cumLen n) ls.flatten]
-  · rw [length_flatten_take h_ls, length_take]
+  · rw [length_flatten_take, length_take]
 
 theorem flatten_take [Inhabited α]
     {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0) (n : ℕ) :

@@ -38,11 +38,11 @@ def reindex (f : State ≃ State') : Buchi State Symbol ≃ Buchi State' Symbol 
 theorem reindex_run_iff {f : State ≃ State'} {nba : Buchi State Symbol}
     {xs : ωSequence Symbol} {ss' : ωSequence State'} :
     (nba.reindex f).Run xs ss' ↔ nba.Run xs (ss'.map f.symm) := by
-  constructor <;>
-  { rintro ⟨h_init, h_next⟩
-    constructor
-    · grind
-    · exact fun n ↦ h_next n }
+  constructor
+  · rintro ⟨h_init, h_next⟩
+    exact ⟨mem_image_equiv.mp  h_init, fun n ↦ h_next n⟩
+  · rintro ⟨h_init, h_next⟩
+    exact ⟨mem_image_equiv.mpr h_init, fun n ↦ h_next n⟩
 
 @[simp]
 theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}

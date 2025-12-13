@@ -108,6 +108,7 @@ lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) :
 
 scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
 
+set_option linter.unusedDecidableInType false in
 /-- Opening of locally closed terms is locally closed. -/
 @[scoped grind ←]
 theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) := by
