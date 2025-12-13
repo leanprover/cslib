@@ -46,10 +46,12 @@ structure TimeM (α : Type*) where
 namespace TimeM
 
 /-- Lifts a pure value into a `TimeM` computation with zero time cost. -/
+@[scoped grind =]
 def pure {α} (a : α) : TimeM α :=
   ⟨a, 0⟩
 
 /-- Sequentially composes two `TimeM` computations, summing their time costs. -/
+@[scoped grind =]
 def bind {α β} (m : TimeM α) (f : α → TimeM β) : TimeM β :=
   let r := f m.ret
   ⟨r.ret, m.time + r.time⟩
@@ -60,7 +62,7 @@ instance : Monad TimeM where
 
 /-- Creates a `TimeM` computation with a specified value and time cost.
 The time cost defaults to 1 if not provided. -/
-@[simp] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α := ⟨a, c⟩
+@[simp, grind =] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α := ⟨a, c⟩
 
 /-- Notation for `tick` with explicit time cost: `✓ a, c` -/
 scoped notation "✓" a:arg ", " c:arg => tick a c
@@ -76,9 +78,12 @@ def tickUnit : TimeM Unit :=
   ✓ ()
 
 @[simp] theorem time_of_pure {α} (a : α) : (pure a).time = 0 := rfl
+
 @[simp] theorem time_of_bind {α β} (m : TimeM α) (f : α → TimeM β) :
  (TimeM.bind m f).time = m.time + (f m.ret).time := rfl
+
 @[simp] theorem time_of_tick {α} (a : α) (c : ℕ) : (tick a c).time = c := rfl
+
 @[simp] theorem ret_bind {α β} (m : TimeM α) (f : α → TimeM β) :
   (TimeM.bind m f).ret = (f m.ret).ret := rfl
 
