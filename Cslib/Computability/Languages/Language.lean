@@ -21,10 +21,6 @@ open scoped Computability
 
 variable {α : Type*} {l m : Language α}
 
-@[simp, scoped grind =]
-theorem mem_inf (x : List α) : x ∈ l ⊓ m ↔ x ∈ l ∧ x ∈ m :=
-  Iff.rfl
-
 @[simp]
 theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
     (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=

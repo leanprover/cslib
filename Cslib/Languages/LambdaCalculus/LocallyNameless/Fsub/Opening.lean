@@ -7,6 +7,8 @@ Authors: Chris Henson
 import Cslib.Foundations.Syntax.HasSubstitution
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
 
+set_option linter.unusedDecidableInType false
+
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.

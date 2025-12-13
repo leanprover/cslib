@@ -46,7 +46,7 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
     · ext <;> grind
   · rintro ⟨i, ss, h_run, rfl⟩
     constructor
-    · simp only [iSum, get_map, mem_iUnion, mem_image, Sigma.mk.injEq]
+    · simp only [iSum, get_map, mem_iUnion]
       grind
     · intro n
       use i
