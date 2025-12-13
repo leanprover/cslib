@@ -1,3 +1,5 @@
+import Cslib.Algorithms.Lean.MergeSort.MergeSort
+import Cslib.Algorithms.Lean.TimeM
 import Cslib.Computability.Automata.Acceptors.Acceptor
 import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 import Cslib.Computability.Automata.DA.Basic
