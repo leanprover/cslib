@@ -48,7 +48,9 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
     constructor
     · simp only [iSum, get_map, mem_iUnion]
       grind
-    · grind [Run]
+    · intro n
+      use i
+      grind [Run]
 
 namespace Buchi
 

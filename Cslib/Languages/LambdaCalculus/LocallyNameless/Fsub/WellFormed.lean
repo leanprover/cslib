@@ -126,7 +126,9 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : 
     subst eq
     apply all (free_union [dom] Var)
     · grind
-    · grind [open_subst_var]
+    · intro X' _
+      have : (map_val (·[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) ++ Δ)✓ := by grind
+      grind [open_subst_var]
   all_goals grind [weaken_head]
 
 variable [HasFresh Var] in
