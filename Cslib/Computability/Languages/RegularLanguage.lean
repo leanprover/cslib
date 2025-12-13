@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Prod
 import Cslib.Computability.Automata.DA.ToNA
 import Cslib.Computability.Automata.NA.ToDA
 import Mathlib.Computability.DFA
@@ -55,13 +54,6 @@ theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
 open Cslib
 
 @[simp]
-theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa] at h ⊢
-  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
-  use State, inferInstance, ⟨da, accᶜ⟩
-  grind
-
-@[simp]
 theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_cslib_dfa]
   let flts := FLTS.mk (fun () (_ : Symbol) ↦ ())
@@ -83,24 +75,6 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
 theorem IsRegular.top : (⊤ : Language Symbol).IsRegular := by
   have : (⊥ᶜ : Language Symbol).IsRegular := IsRegular.compl <| IsRegular.zero
   rwa [← compl_bot]
-
-@[simp]
-theorem IsRegular.inf {l1 l2 : Language Symbol}
-    (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 ⊓ l2).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa] at h1 h2 ⊢
-  obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
-  obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
-  use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2⟩
-  ext; grind
-
-@[simp]
-theorem IsRegular.add {l1 l2 : Language Symbol}
-    (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 + l2).IsRegular := by
-  rw [IsRegular.iff_cslib_dfa] at h1 h2 ⊢
-  obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
-  obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
-  use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
-  ext; grind [Language.mem_add]
 
 @[simp]
 theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}

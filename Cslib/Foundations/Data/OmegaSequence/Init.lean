@@ -5,7 +5,7 @@ Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Data.OmegaSequence.Defs
-import Mathlib.Algebra.Order.Ring.Nat
+import Mathlib.Algebra.Order.Group.Nat
 import Mathlib.Algebra.Order.Sub.Basic
 import Mathlib.Data.Nat.Lattice
 
