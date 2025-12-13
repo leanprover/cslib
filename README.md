@@ -1,21 +1,21 @@
-# cslib
+# CSLib
 
 The Lean library for Computer Science.
 
-Documentation at <https://cs-lean.github.io/>.
+Official website at <https://www.cslib.io/>.
 
-# What's cslib?
+# What's CSLib?
 
-Cslib aims at formalising Computer Science theories and tools, broadly construed, in the Lean programming language.
+CSLib aims at formalising Computer Science theories and tools, broadly construed, in the Lean programming language.
 
 ## Aims
 
 - Offer APIs and languages for formalisation projects, software verification, and certified software (among others).
 - Establish a common ground for connecting different developments in Computer Science, in order to foster synergies and reuse.
 
-# Using cslib in your project
+# Using CSLib in your project
 
-To add cslib as a dependency to your Lean project, add the following to your `lakefile.toml`:
+To add CSLib as a dependency to your Lean project, add the following to your `lakefile.toml`:
 
 ```toml
 [[require]]
