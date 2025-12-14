@@ -39,12 +39,12 @@ There are a number of checks that run in continuous integration. Here is a brief
 ## Pull Request Titles
 
 It is required that pull request titles begun with one of the following descriptions (followed by a
-colon): feat, fix, doc, style, refactor, test, chore, perf. This may optionally be followed by a 
+colon): `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. This may optionally be followed by a 
 parenthetical containing what area of the library the PR is working on.
 
 ## Testing
 
-There are a [series of tests](/scripts/RunTests.lean) that run for each PR. The components of this
+There is a [series of tests](/scripts/RunTests.lean) that run for each PR. The components of this
 are
 
 - running the tests found in [CslibTests](/CslibTests)
