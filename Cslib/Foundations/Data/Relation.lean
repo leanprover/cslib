@@ -114,34 +114,34 @@ theorem Normal.reflTransGen_eq (h : Normal r x) (xy : ReflTransGen r x y) : x = 
   induction xy <;> grind
 
 /-- For a Church-Rosser relation, elements in an equivalence class must be multi-step related. -/
-theorem ChurchRosser_Normal₁ (cr : ChurchRosser r) (norm : Normal r y) (xy : EqvGen r x y) : 
-    ReflTransGen r x y := by
+theorem ChurchRosser.normal_eqvGen_reflTransGen (cr : ChurchRosser r) (norm : Normal r x)
+    (xy : EqvGen r y x) : ReflTransGen r y x := by
   have ⟨_, _, _⟩ := cr xy
   grind
 
 /-- For a Church-Rosser relation there is one normal form in each equivalence class. -/
-theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (ny : Normal r y) (nx : Normal r x)
+theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Normal r y)
     (xy : EqvGen r x y) : x = y := by
   have ⟨_, _, _⟩ := cr xy
   grind
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
-def trans_of_subrelation {α : Type*} (s s' r : α → α → Prop) (hr : Transitive r)
+def trans_of_subrelation (s s' r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) (h' : Subrelation s' r) : Trans s s' r where
   trans hab hbc := hr (h hab) (h' hbc)
 
 /-- A subrelation lifts to transitivity on the left of the relation. -/
-def trans_of_subrelation_left {α : Type*} (s r : α → α → Prop) (hr : Transitive r)
+def trans_of_subrelation_left (s r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) : Trans s r r where
   trans hab hbc := hr (h hab) hbc
 
 /-- A subrelation lifts to transitivity on the right of the relation. -/
-def trans_of_subrelation_right {α : Type*} (s r : α → α → Prop) (hr : Transitive r)
+def trans_of_subrelation_right (s r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) : Trans r s r where
   trans hab hbc := hr hab (h hbc)
 
 /-- The diamond property implies that multi-step joinability is an equivalence. -/
-theorem Diamond.equivalence_join_reflTransGen {α : Type*} {r : α → α → Prop} (h : Diamond r) :
+theorem Diamond.equivalence_join_reflTransGen (h : Diamond r) :
     Equivalence (Join (ReflTransGen r)) := by
   apply Relation.equivalence_join reflexive_reflTransGen transitive_reflTransGen
   intro a b c hab hac
