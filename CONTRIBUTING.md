@@ -44,7 +44,7 @@ parenthetical containing what area of the library the PR is working on.
 
 ## Testing
 
-There is a [series of tests](/scripts/RunTests.lean) that run for each PR. The components of this
+There is a [series of tests](/scripts/RunTests.lean) that runs for each PR. The components of this
 are
 
 - running the tests found in [CslibTests](/CslibTests)
