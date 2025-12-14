@@ -39,8 +39,8 @@ instructions on how to run these locally.
 
 ## Pull Request Titles
 
-It is required that pull request titles begun with one of the following descriptions (followed by a
-colon): `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. This may optionally be followed by a 
+It is required that pull request titles begun with one of the following categories followed by a
+colon: `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. These may optionally be followed by a 
 parenthetical containing what area of the library the PR is working on.
 
 ## Testing
