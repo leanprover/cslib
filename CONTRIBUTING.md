@@ -53,7 +53,7 @@ are
 
 You can run these locally with `lake test`.
 
-# Linting
+## Linting
 
 CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. These come in three varieties:
 
@@ -61,7 +61,7 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 - *environment linters*, which can be run using `lake lint`
 - *text linters*, which can be run with `lake exe lint-style` and fixed automatically with the `--fix` option
 
-# Imports
+## Imports
 
 CSLib tests for minimized imports using `lake exe shake`, which also comes with a `--fix` option.
 Note that this tooling is not aware of imports required for tactics or typeclasses. Such imports may
