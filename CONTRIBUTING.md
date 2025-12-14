@@ -34,7 +34,8 @@ The library hosts a number of languages with their own syntax and semantics, so 
 
 # Continuous Integration
 
-There are a number of checks that run in continuous integration. Here is a brief guide to understanding how to fix these errors.
+There are a number of checks that run in continuous integration. Here is a brief guide that includes
+instructions on how to run these locally.
 
 ## Pull Request Titles
 
