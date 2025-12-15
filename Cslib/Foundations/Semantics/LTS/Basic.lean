@@ -640,7 +640,11 @@ theorem LTS.STrN.append
     (h1 : lts.STrN n1 s1 μ s2)
     (h2 : lts.STrN n2 s2 HasTau.τ s3) :
     lts.STrN (n1 + n2) s1 μ s3 := by
-  sorry
+  induction h1
+  case refl => grind
+  case tr hstr1 htr hstr2 ih1 ih2  =>
+    have conc := LTS.STrN.tr hstr1 htr (ih2 h2)
+    grind
 
 /-- Saturated transitions can be composed (weighted version). -/
 @[scoped grind <=]
