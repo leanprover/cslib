@@ -21,9 +21,7 @@ open scoped Classical in
 by identifying an accepting state of `na1` with an initial state of `na2`. If `na1` accepts the
 empty word, it may also start running `na2` from the beginning. Once it starts running `na2`,
 it cannot go back to `na1`. -/
-@[scoped grind =]
-def concat (na1 : NA.FinAcc State1 Symbol) (na2 : NA State2 Symbol) :
-    NA (State1 ⊕ State2) Symbol where
+def concat (na1 : FinAcc State1 Symbol) (na2 : NA State2 Symbol) : NA (State1 ⊕ State2) Symbol where
     Tr s x t := match s with
       | inl s1 =>
         ∃ t1, na1.Tr s1 x t1 ∧
@@ -32,7 +30,7 @@ def concat (na1 : NA.FinAcc State1 Symbol) (na2 : NA State2 Symbol) :
         ∃ t2, na2.Tr s2 x t2 ∧ inr t2 = t
     start := inl '' na1.start ∪ if [] ∈ language na1 then inr '' na2.start else ∅
 
-variable {na1 : NA.FinAcc State1 Symbol} {na2 : NA State2 Symbol}
+variable {na1 : FinAcc State1 Symbol} {na2 : NA State2 Symbol}
 
 /-- A run of `concat na1 na2` containing at least one `na2` state is the concatenation of
 an accepting finite run of `na1` followed by a run of `na2`. -/
@@ -51,10 +49,10 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
       grind
   refine ⟨n, ?_, ?_⟩
   · by_cases h_n : n = 0
-    · grind
+    · grind [concat]
     · choose ss1 h_ss1 using h1
       have h_0 : 0 < n := by grind
-      have h_init : ss1 0 h_0 ∈ na1.start := by grind
+      have h_init : ss1 0 h_0 ∈ na1.start := by grind [concat]
       have h_mtr (k) (h_k : k < n) : na1.MTr (ss1 0 h_0) (xs.take k) (ss1 k h_k) := by
         induction k
         case zero => grind
@@ -76,7 +74,7 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
   · choose ss2 h_ss2 using h2
     refine ⟨ss2, ⟨?_, ?_⟩, by grind⟩
     · by_cases h_n : n = 0
-      · grind
+      · grind [concat]
       · obtain ⟨s1, _⟩ := h1 (n - 1) (by grind)
         have := concat.eq_1 na1 na2 ▸ hc.right (n - 1)
         grind
@@ -92,7 +90,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   by_cases h_xs1 : xs1.length = 0
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
     refine ⟨ss2.map inr, ⟨?_, ?_⟩, by simp⟩
-    · grind
+    · grind [concat]
     · intro k
       simp only [concat]
       grind
@@ -100,7 +98,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_GMTr h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     use ss, ⟨?_, ?_⟩, by simp (disch := grind) [ss, drop_append_of_le_length]
-    · suffices ss 0 = inl ss1[0] by grind
+    · suffices ss 0 = inl ss1[0] by grind [concat]
       simp (disch := grind) [ss, get_append_left]
     · intro k
       by_cases h_k : k < xs1.length
@@ -121,7 +119,7 @@ open ωAcceptor Filter
 
 /-- The Buchi automaton formed from `concat na1 na2` accepts the ω-language that is
 the concatenation of the language of `na1` and the ω-language of `na2`. -/
-@[simp, scoped grind =]
+@[simp]
 theorem concat_language_eq {acc2 : Set State2} :
     language (Buchi.mk (concat na1 na2) (inr '' acc2)) =
     language na1 * language (Buchi.mk na2 acc2) := by
