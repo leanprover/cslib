@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
 import Cslib.Foundations.Control.Monad.Free
+import Mathlib.Control.Monad.Writer
+import Cslib.Foundations.Control.Monad.Time
 import Mathlib.Control.Monad.Cont
+import Mathlib.Data.Nat.Basic
 
 /-!
 # Free Monad
@@ -13,7 +16,7 @@ This file defines several canonical instances on the free monad.
 
 ## Main definitions
 
-- `FreeState`, `FreeWriter`, `FreeCont`: Specific effect monads
+- `FreeState`, `FreeWriter`, `FreeTime`, `FreeCont`: Specific effect monads
 
 ## Implementation
 
@@ -29,7 +32,7 @@ the universal property.
 
 ## Tags
 
-Free monad, state monad, writer monad, continuation monad
+Free monad, state monad, writer monad, time monad, continuation monad
 -/
 
 namespace Cslib
@@ -261,6 +264,44 @@ instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
   pass := pass
 
 end FreeWriter
+
+/-! ### Time Monad via `FreeM` -/
+
+/-- Time monad implemented as the free writer monad over `Nat`. This models computations that
+emit natural-number costs while producing a result. -/
+abbrev FreeTime := FreeWriter Nat
+
+namespace FreeTime
+
+variable {α : Type}
+
+/-- Emit a time cost of `c` units (default `1`). -/
+def tick (c : Nat := 1) : FreeTime PUnit :=
+  FreeWriter.tell c
+
+/-- Run a `FreeTime` computation, returning the result and total time cost.
+
+The cost is accumulated additively starting from `0`. -/
+def run : FreeTime α → α × Nat
+  | .pure a => (a, 0)
+  | .liftBind (.tell c) k =>
+      let (a, t) := run (k .unit)
+      (a, c + t)
+
+/-- Interpret a `FreeTime` computation into the concrete time monad `TimeM`. -/
+def toTimeM (comp : FreeTime α) : TimeM α :=
+  let (a, t) := run comp
+  ⟨a, t⟩
+
+@[simp]
+lemma run_pure (a : α) :
+    run (.pure a : FreeTime α) = (a, 0) := rfl
+
+@[simp]
+lemma tick_def (c : Nat) :
+    tick c = (FreeWriter.tell c : FreeTime PUnit) := rfl
+
+end FreeTime
 
 /-! ### Continuation Monad via `FreeM` -/
 

@@ -1,3 +1,5 @@
+import Cslib.Algorithms.MergeSort.MergeSort
+import Cslib.Algorithms.QueryModel
 import Cslib.Computability.Automata.Acceptors.Acceptor
 import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 import Cslib.Computability.Automata.DA.Basic
@@ -21,6 +23,7 @@ import Cslib.Computability.Languages.RegularLanguage
 import Cslib.Foundations.Control.Monad.Free
 import Cslib.Foundations.Control.Monad.Free.Effects
 import Cslib.Foundations.Control.Monad.Free.Fold
+import Cslib.Foundations.Control.Monad.Time
 import Cslib.Foundations.Data.FinFun
 import Cslib.Foundations.Data.HasFresh
 import Cslib.Foundations.Data.Nat.Segment
