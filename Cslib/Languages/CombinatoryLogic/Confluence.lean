@@ -40,7 +40,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red MRed ReductionSystem
+open Red MRed ReductionSystem Relation
 
 /-- A reduction step allowing simultaneous reduction of disjoint redexes -/
 inductive ParallelReduction : SKI → SKI → Prop
@@ -227,7 +227,7 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
 
 theorem join_parallelReduction_equivalence :
     Equivalence (Relation.Join (Relation.ReflTransGen ParallelReduction)) :=
-  church_rosser_of_diamond parallelReduction_diamond
+  Diamond.equivalence_join_reflTransGen (parallelReduction_diamond _ _ _)
 
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem commonReduct_equivalence : Equivalence CommonReduct := by
