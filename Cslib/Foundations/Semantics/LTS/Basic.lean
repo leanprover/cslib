@@ -497,10 +497,6 @@ theorem LTS.STr.comp
   case tr _ _ hτ1 htr hτ2 =>
     exact LTS.STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
-@[grind _=_]
-lemma LTS.saturate_tr_sTr [HasTau Label] (lts : LTS State Label) :
-  lts.saturate.Tr s HasTau.τ = lts.STr s HasTau.τ := by simp [LTS.saturate]
-
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
 @[grind _=_]
 theorem LTS.saturate_τTr_τTr [hHasTau : HasTau Label] (lts : LTS State Label)
@@ -662,54 +658,6 @@ theorem LTS.STrN.comp
     have hprefix := LTS.STrN.tr hprefix_τ htr hstr2
     have conc := LTS.STrN.append lts hprefix h3
     grind
-
-/-- Saturated transitions can be composed. -/
-@[scoped grind <=]
-theorem LTS.STr.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2)
-  (h2 : lts.STr s2 μ s3)
-  (h3 : lts.STr s3 HasTau.τ s4) :
-  lts.STr s1 μ s4 := by
-  obtain ⟨n1, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
-  obtain ⟨n2, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
-  obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
-  have concN := LTS.STrN.comp lts h1N h2N h3N
-  apply (LTS.sTr_sTrN lts).2 ⟨n1 + n2 + n3, concN⟩
-
-open scoped LTS.STr in
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-@[scoped grind _=_]
-theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
-  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
-  ext s'
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl => constructor
-    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
-      rw [hμ] at htr
-      apply LTS.STr.single at htr
-      rw [← LTS.saturate_tr_sTr] at htr
-      grind [LTS.STr.tr]
-  case mpr =>
-    induction h
-    case refl => constructor
-    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
-      simp only [LTS.saturate] at ih1 htr ih2
-      simp only [LTS.saturate]
-      grind
-
-/-- In a saturated LTS, every state is in its τ-image. -/
-@[scoped grind .]
-theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
-  s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
-
-/-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
-by performing only `τ`-transitions. -/
-@[scoped grind =]
-def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
-  lts.saturate.setImage S HasTau.τ
 
 end Weak
 
