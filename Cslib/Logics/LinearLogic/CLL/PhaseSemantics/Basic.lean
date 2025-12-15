@@ -161,6 +161,9 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
+lemma subset_dual_dual {G : Set P} :
+  G ⊆ G⫠⫠ := fun p hp q hq => mul_comm p q ▸ hq _ hp
+
 @[scoped grind =] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
@@ -176,6 +179,9 @@ lemma of_Fact {G : Fact P} {p : P}
 @[simps] def Fact.mk_subset (G : Set P) (h : G⫠⫠ ⊆ G) : Fact P where
   carrier := G
   property := by grind [isFact, orth_extensive]
+
+lemma dual_subset_dual {G H : Set P} (h : G ⊆ H) :
+    H⫠ ⊆ G⫠ := fun _ hp _ hq => hp _ (h hq)
 
 /-- Construct a fact from a set G and a proof that G equals the orthogonal of some set H. -/
 @[simps!] def Fact.mk_dual (G H : Set P) (h : G = H⫠) : Fact P :=
@@ -563,12 +569,6 @@ lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, 
 @[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
 
 /-! ### Distributivity Properties -/
-
-lemma dual_subset_dual {G H : Set P} (h : G ⊆ H) :
-    H⫠ ⊆ G⫠ := fun _ hp _ hq => hp _ (h hq)
-
-lemma subset_dual_dual {G : Set P} :
-  G ⊆ G⫠⫠ := fun p hp q hq => mul_comm p q ▸ hq _ hp
 
 lemma le_plus_left {G H : Fact P} : G ≤ G ⊕ H := by
   intro x hx
