@@ -37,8 +37,11 @@ jobs:
         lean_outfile=$(mktemp)
         (lake build || true) 2>&1 | tee "${lean_outfile}"
 
-        # Generate simplified report for Zulip
-        ./scripts/weekly_lint_report.sh "${lean_outfile}" "${{ github.sha }}" "${{ github.repository }}" "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"
+        # Generate report for Zulip
+        python3 scripts/weekly_lint_report.py "${lean_outfile}" \
+          --sha "${{ github.sha }}" \
+          --repo "${{ github.repository }}" \
+          --run-id "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"
 
     - name: Post output to Zulip
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
