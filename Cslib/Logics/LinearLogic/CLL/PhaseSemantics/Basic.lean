@@ -613,7 +613,7 @@ lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K)
       exact mul_subset_tensor
 
 lemma par_distrib_with : (G ⅋ (H & K) : Fact P) = (G ⅋ H) & (G ⅋ K) := by
-  sorry
+  simp [par_of_tensor, with_eq_plus_dual, tensor_distrib_plus]
 
 lemma tensor_semi_distrib_with : (G ⊗ (H & K) : Fact P) ≤ (G ⊗ H) & (G ⊗ K) := by
   sorry
