@@ -11,6 +11,22 @@ import re
 import sys
 import uuid
 from collections import Counter
+from dataclasses import dataclass
+
+from tabulate import tabulate
+
+
+@dataclass
+class LintResults:
+    """Parsed lint results from a Lean build."""
+
+    errors: list[str]
+    warnings: list[str]
+    info_messages: list[str]
+
+    @property
+    def has_messages(self) -> bool:
+        return bool(self.errors or self.warnings or self.info_messages)
 
 
 def parse_args():
@@ -28,29 +44,25 @@ def filter_output(lines: list[str]) -> list[str]:
     """Filter out build progress and trace lines."""
     filtered = []
     for line in lines:
-        # Skip build progress markers
         if line.startswith("✔"):
             continue
-        # Skip trace output
         if line.startswith("trace:"):
             continue
-        # Skip dependency checkout messages
         if line.startswith("info:") and "checking out revision" in line:
             continue
         filtered.append(line)
     return filtered
 
 
-def extract_messages(lines: list[str], prefix: str) -> tuple[list[str], list[str]]:
+def extract_descriptions(lines: list[str], prefix: str) -> list[str]:
     """
-    Extract lines starting with the given prefix and their descriptions.
+    Extract message descriptions from lines starting with the given prefix.
 
-    Returns (matching_lines, descriptions) where descriptions have the
-    "prefix: file:line:col: " or "prefix: " removed.
+    Strips the "prefix: file:line:col: " or "prefix: " to get just the description.
     """
     matching = [line for line in lines if line.startswith(f"{prefix}: ")]
     if not matching:
-        return [], []
+        return []
 
     # Pattern to match "prefix: file:line:col: description"
     pattern = re.compile(rf"^{prefix}: [^:]+:\d+:\d+: (.+)$")
@@ -67,26 +79,61 @@ def extract_messages(lines: list[str], prefix: str) -> tuple[list[str], list[str
             if fallback:
                 descriptions.append(fallback.group(1))
             else:
-                descriptions.append(line)  # Keep original if no pattern matches
+                descriptions.append(line)
 
-    return matching, descriptions
+    return descriptions
 
 
-def format_table(descriptions: list[str], header: str) -> str:
+def parse_build_output(lines: list[str]) -> LintResults:
+    """Parse filtered build output into structured lint results."""
+    return LintResults(
+        errors=extract_descriptions(lines, "error"),
+        warnings=extract_descriptions(lines, "warning"),
+        info_messages=extract_descriptions(lines, "info"),
+    )
+
+
+def format_table(descriptions: list[str], title: str, description_header: str) -> str:
     """Format descriptions as a Zulip spoiler block with a markdown table."""
     counts = Counter(descriptions)
     # Sort by count (descending), then alphabetically
     sorted_items = sorted(counts.items(), key=lambda x: (-x[1], x[0]))
 
+    table_data = [[count, desc] for desc, count in sorted_items]
+    table = tabulate(table_data, headers=["", description_header], tablefmt="github")
+
+    return f"```spoiler {title}\n{table}\n```\n"
+
+
+def format_report(results: LintResults, sha: str, repo: str, run_id: str) -> str:
+    """Format lint results as a complete Zulip message."""
+    short_sha = sha[:7]
     lines = [
-        f"```spoiler {header}",
-        f"| | {header.replace(' counts', ' description')} |",
-        "| ---: | --- |",
+        f"CSLib weekly lint run "
+        f"[completed](https://github.com/{repo}/actions/runs/{run_id}) "
+        f"([{short_sha}](https://github.com/{repo}/commit/{sha}))."
     ]
-    for desc, count in sorted_items:
-        lines.append(f"| {count} | {desc} |")
-    lines.append("```")
+
+    if not results.has_messages:
+        lines.append("Build completed without lint messages.")
+        return "\n".join(lines)
+
+    # Summary counts
+    if results.errors:
+        lines.append(f" Errors: {len(results.errors)}")
+    if results.warnings:
+        lines.append(f" Warnings: {len(results.warnings)}")
+    if results.info_messages:
+        lines.append(f" Info messages: {len(results.info_messages)}")
     lines.append("")
+
+    # Detail tables
+    if results.errors:
+        lines.append(format_table(results.errors, "Error counts", "Error description"))
+    if results.warnings:
+        lines.append(format_table(results.warnings, "Warning counts", "Warning description"))
+    if results.info_messages:
+        lines.append(format_table(results.info_messages, "Info message counts", "Info message"))
 
     return "\n".join(lines)
 
@@ -101,53 +148,23 @@ def main():
     filtered = filter_output(lines)
     print(f"{len(filtered)} lines of output", file=sys.stderr)
 
-    # Extract categorized messages
-    error_lines, error_descs = extract_messages(filtered, "error")
-    warning_lines, warning_descs = extract_messages(filtered, "warning")
-    info_lines, info_descs = extract_messages(filtered, "info")
+    # Parse into structured results
+    results = parse_build_output(filtered)
 
-    if error_lines:
-        print(f"{len(error_lines)} lines of errors", file=sys.stderr)
-    if warning_lines:
-        print(f"{len(warning_lines)} lines of warnings", file=sys.stderr)
-    if info_lines:
-        print(f"{len(info_lines)} lines of info", file=sys.stderr)
+    if results.errors:
+        print(f"{len(results.errors)} errors", file=sys.stderr)
+    if results.warnings:
+        print(f"{len(results.warnings)} warnings", file=sys.stderr)
+    if results.info_messages:
+        print(f"{len(results.info_messages)} info messages", file=sys.stderr)
 
-    # Generate output in GitHub Actions multiline format
+    # Generate report
+    report = format_report(results, args.sha, args.repo, args.run_id)
+
+    # Output in GitHub Actions multiline format
     delimiter = str(uuid.uuid4())
-    short_sha = args.sha[:7]
-
     print(f"zulip-message<<{delimiter}")
-    print(
-        f"CSLib weekly lint run "
-        f"[completed](https://github.com/{args.repo}/actions/runs/{args.run_id}) "
-        f"([{short_sha}](https://github.com/{args.repo}/commit/{args.sha}))."
-    )
-
-    # Summary counts
-    counts = []
-    if error_lines:
-        counts.append(f"Errors: {len(error_lines)}")
-    if warning_lines:
-        counts.append(f"Warnings: {len(warning_lines)}")
-    if info_lines:
-        counts.append(f"Info messages: {len(info_lines)}")
-
-    if not counts:
-        print("Build completed without lint messages.")
-    else:
-        for count in counts:
-            print(f" {count}")
-        print()
-
-        # Generate tables
-        if error_lines:
-            print(format_table(error_descs, "Error counts"))
-        if warning_lines:
-            print(format_table(warning_descs, "Warning counts"))
-        if info_lines:
-            print(format_table(info_descs, "Info message counts"))
-
+    print(report)
     print(delimiter)
 
 
