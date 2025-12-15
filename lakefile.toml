@@ -1,21 +1,37 @@
 name = "cslib"
 version = "0.1.0"
 defaultTargets = ["Cslib"]
-testDriver = "CslibTests"
+testDriver = "runTests"
+lintDriver = "batteries/runLinter"
 
 [leanOptions]
 weak.linter.mathlibStandardSet = true
 weak.linter.flexible = true
+# The next three linters are provided by Mathlib, but don't work here.
+# This should be fixed, see discussion at https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/weak.2Elinter.2EmathlibStandardSet.20and.20lint-style-action/with/544726745
+weak.linter.pythonStyle = false
+weak.linter.checkInitImports = false
+weak.linter.allScriptsDocumented = false
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.24.0-rc1"
+rev = "v4.27.0-rc1"
 
 [[lean_lib]]
 name = "Cslib"
-globs = "Cslib.*"
+globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = "CslibTests.+"
+globs = ["CslibTests.+"]
+
+[[lean_exe]]
+name = "checkInitImports"
+srcDir = "scripts"
+root = "CheckInitImports"
+
+[[lean_exe]]
+name = "runTests"
+srcDir = "scripts"
+root = "RunTests"

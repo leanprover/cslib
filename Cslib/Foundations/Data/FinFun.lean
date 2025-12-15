@@ -4,106 +4,131 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Xueying Qin
 -/
 
-import Mathlib.Data.Finset.Basic
+import Cslib.Init
+import Mathlib.Data.Finset.Filter
+import Mathlib.Data.Finset.Lattice.Basic
 
-/-! # Finite Functions
+/-! # Finite functions
 
-*Note:* the API and notation of `FinFun` is still unstable.
-
-A `FinFun α β` is a function from `α` to `β` with a finite domain of definition.
+Given types `α` and `β`, and assuming that `β` has a `Zero` element,
+a `FinFun α β` is a function from `α` to `β` where only a finite number of elements
+in `α` are mapped to non-zero elements.
 -/
 
-/-- A finite function FinFun is a function `f` equipped with a domain of definition `dom`. -/
-structure FinFun (α : Type u) (β : Type v) where
-  f : α → β
-  dom : Finset α
+namespace Cslib
 
-notation:50 α " ⇀ " β => FinFun α β
-notation:50 f "↾" dom => FinFun.mk f dom
+/-- A `FinFun` is a function `fn` with a finite `support`.
 
-abbrev CompleteDom [Zero β] (f : α ⇀ β) := ∀ x, x ∉ f.dom → f.f x = 0
+This is similar to `Finsupp` in Mathlib, but definitions are computable. -/
+structure FinFun (α β : Type*) [Zero β] where
+  /-- The underlying function. -/
+  fn : α → β
+  /-- The finite support of the function. -/
+  support : Finset α
+  /-- Proof that `support` is the support of the underlying function. -/
+  mem_support_fn {a : α} : a ∈ support ↔ fn a ≠ 0
 
-def FinFun.defined (f : α ⇀ β) (x : α) : Prop := x ∈ f.dom
+attribute [scoped grind _=_] FinFun.mem_support_fn
 
-@[simp]
-abbrev FinFun.apply (f : α ⇀ β) (x : α) : β := f.f x
+namespace FinFun
 
-/- Conversion from FinFun to a function. -/
-@[coe] def FinFun.toFun [DecidableEq α] [Zero β] (f : α ⇀ β) : (α → β) :=
-  fun x => if x ∈ f.dom then f.f x else Zero.zero
+@[inherit_doc]
+scoped infixr:25 " →₀ " => FinFun
 
-instance [DecidableEq α] [Zero β] : Coe (α ⇀ β) (α → β) where
-  coe := FinFun.toFun
+/-- Constructs a `FinFun` by restricting a function to a given support, filtering out all elements
+not mapped to 0 in the support. -/
+@[scoped grind .]
+private def fromFun {α β : Type*} [Zero β] [DecidableEq α]
+  [∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where
+  fn := (fun a => if a ∈ support then fn a else 0)
+  support := support.filter (fn · ≠ 0)
+  mem_support_fn := by grind
 
-theorem FinFun.toFun_char [DecidableEq α] [Zero β]
-    {f g : α ⇀ β} (h : (f : α → β) = (g : α → β)) (x) : 
-    (x ∈ (f.dom ∩ g.dom) →
-    f.apply x = g.apply x) ∧ (x ∈ (f.dom \ g.dom) →
-    f.apply x = Zero.zero) ∧ (x ∈ (g.dom \ f.dom) → g.apply x = Zero.zero) := by
-  have happlyx : f.toFun x = g.toFun x := by simp [h]
-  grind [FinFun.toFun]
+@[inherit_doc]
+scoped notation f:25 "↾₀" support:51 => FinFun.fromFun f support
 
-theorem FinFun.toFun_dom [DecidableEq α] [Zero β] {f : α ⇀ β}
-    (h : ∀ x, x ∉ f.dom → f.apply x = Zero.zero) : (f : α → β) = f.f := by
-  grind [FinFun.toFun]
+instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
+  coe f := f.fn
+  coe_injective' := by
+    rintro ⟨_, _⟩ ⟨_, _⟩
+    simp_all [Finset.ext_iff]
 
-def FinFun.mapBin [DecidableEq α] (f g : α ⇀ β) (op : Option β → Option β → Option β) : 
-    Option (α ⇀ β) :=
-  if f.dom = g.dom ∧ ∀ x ∈ f.dom, (op (some (f.f x)) (some (g.f x))).isSome then
-    some {
-      f := fun x =>
-        match op (some (f.f x)) (some (g.f x)) with
-          | some y => y
-          | none => f.f x
-      dom := f.dom
-    }
-  else
-    none
+@[scoped grind =]
+theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp [DFunLike.coe]
 
-theorem FinFun.mapBin_dom [DecidableEq α] (f g : α ⇀ β)
-    (op : Option β → Option β → Option β) (h : FinFun.mapBin f g op = some fg) :
-    fg.dom = f.dom ∧ fg.dom = g.dom := by grind [mapBin]
+@[scoped grind =]
+theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
+  simp [DFunLike.coe]
 
-theorem FinFun.mapBin_char₁ [DecidableEq α] (f g : α ⇀ β)
-    (op : Option β → Option β → Option β) (h : FinFun.mapBin f g op = some fg) :
-    ∀ x ∈ fg.dom, fg.apply x = y ↔ (op (some (f.f x)) (some (g.f x))) = some y := by
-  intro x hxdom
-  constructor
-  <;> simp only [mapBin, Option.ite_none_right_eq_some] at h
-  <;> rcases h with ⟨_, _, _, _⟩
-  <;> grind
+/-- Extensional equality for `FinFun`. -/
+@[scoped grind ←=]
+theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) : f = g :=
+  DFunLike.ext (f := f) (g := g) h
 
-theorem FinFun.mapBin_char₂ [DecidableEq α] (f g : α ⇀ β)
-    (op : Option β → Option β → Option β) (hdom : f.dom = g.dom)
-    (hop : ∀ x ∈ f.dom, (op (some (f.f x)) (some (g.f x))).isSome)
-    : (FinFun.mapBin f g op).isSome := by grind [mapBin]
-
--- Fun to FinFun
-def Function.toFinFun [DecidableEq α] (f : α → β) (dom : Finset α) : α ⇀ β := FinFun.mk f dom
-
-lemma Function.toFinFun_eq [DecidableEq α] [Zero β] (f : α → β) (dom : Finset α)
-    (h : ∀ x, x ∉ dom → f x = 0) : f = (Function.toFinFun f dom) := by
-  funext p
-  by_cases hp : p ∈ dom <;> simp only [toFinFun, FinFun.toFun, hp, reduceIte]
-  exact h p hp
-
-@[coe] def FinFun.toDomFun (f : α ⇀ β) : {x // x ∈ f.dom} → β :=
-  fun x => f.f x
-
-theorem FinFun.toDomFun_char (f : α ⇀ β) (h : x ∈ f.dom) : f.toDomFun ⟨ x, h ⟩ = f.f x := by
-  simp [FinFun.toDomFun]
-
-theorem FinFun.congrFinFun [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) (a : α) : 
-    f.apply a = g.apply a := congrFun (congrArg apply h) a
-
-theorem FinFun.eq_char₁ [DecidableEq α] [Zero β] {f g : α ⇀ β} (h : f = g) : 
-    f.f = g.f ∧ f.dom = g.dom := ⟨congrArg FinFun.f h, congrArg dom h⟩
-
-theorem FinFun.eq_char₂ [DecidableEq α] [Zero β] {f g : α ⇀ β} (heq : f.f = g.f ∧ f.dom = g.dom) : 
-    f = g := by
-  cases f
-  cases g
+@[scoped grind _=_]
+theorem mem_support_not_zero [Zero β] {f : α →₀ β} : a ∈ f.support ↔ f a ≠ 0 := by
   grind
 
-theorem FinFun.eq_char [DecidableEq α] [Zero β] {f g : α ⇀ β} : 
-    f = g ↔ f.f = g.f ∧ f.dom = g.dom := by grind [FinFun.eq_char₁, FinFun.eq_char₂]
+@[scoped grind _=_]
+theorem not_mem_support_zero [Zero β] {f : α →₀ β} : a ∉ f.support ↔ f a = 0 := by
+  grind
+
+/-- If two `FinFun`s are equal, their underlying functions and supports are equal. -/
+@[scoped grind .]
+theorem eq_fields_eq [Zero β] {f g : α →₀ β} : f = g → f.fn = g.fn ∧ f.support = g.support :=
+  by grind
+
+/-- If two functions are equal, two `FinFun`s respectively using them as underlying functions
+are equal. -/
+@[scoped grind .]
+theorem fn_eq_eq [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
+  ext (congrFun h)
+
+@[scoped grind =>]
+theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a :=
+  by grind
+
+@[scoped grind =]
+theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
+    (f : α → β) (support : Finset α) (h : ∀ a, a ∉ support → f a = 0) :
+    (f ↾₀ support) = f := by grind
+
+@[scoped grind =]
+theorem fromFun_fn [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
+    (f : α → β) (support : Finset α) :
+    (f ↾₀ support).fn = (fun a => if a ∈ support then f a else 0) := by
+  grind
+
+@[scoped grind =]
+theorem fromFun_support [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
+    (f : α → β) (support : Finset α) :
+    (f ↾₀ support).support = support.filter (f · ≠ 0) := by
+  grind
+
+/-- Restricting a function twice to the same support is idempotent. -/
+@[scoped grind =]
+theorem fromFun_idem [Zero β] [DecidableEq α]
+    [∀ y : β, Decidable (y = 0)] {f : α → β} {support : Finset α} :
+    (f ↾₀ support) ↾₀ support = f ↾₀ support := by grind
+
+/-- Restricting a `FinFun` to its own support is the identity. -/
+@[scoped grind =]
+theorem coe_fromFun_id [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)] {f : α →₀ β} :
+    (f ↾₀ f.support) = f := by grind
+
+/-- Restricting a function twice to two supports is equal to restricting to their intersection. -/
+@[scoped grind =]
+theorem fromFun_inter [Zero β] [DecidableEq α]
+    [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
+    (f ↾₀ support1) ↾₀ support2 = f ↾₀ (support1 ∩ support2) := by grind
+
+/-- Restricting a function is commutative. -/
+@[scoped grind =]
+theorem fromFun_comm [Zero β] [DecidableEq α]
+    [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
+    (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by
+  grind only [= coe_eq_fn, = fromFun_fn, ←= ext]
+
+end FinFun
+
+end Cslib

@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 import Cslib.Foundations.Semantics.ReductionSystem.Basic
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+
+set_option linter.unusedDecidableInType false
 
 /-! # β-reduction for the λ-calculus
 
@@ -17,6 +18,8 @@ import Cslib.Foundations.Semantics.ReductionSystem.Basic
   this is partially adapted
 
 -/
+
+namespace Cslib
 
 universe u
 
@@ -38,7 +41,7 @@ inductive FullBeta : Term Var → Term Var → Prop
 
 namespace FullBeta
 
-attribute [scoped grind] appL appR
+attribute [scoped grind .] appL appR
 
 variable {M M' N N' : Term Var}
 
@@ -111,3 +114,5 @@ theorem redex_abs_cong (xs : Finset Var) (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠
   all_goals grind [redex_abs_close]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta
+
+end Cslib

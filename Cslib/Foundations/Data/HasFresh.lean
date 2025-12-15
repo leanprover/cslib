@@ -4,16 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Kenny Lau
 -/
 
-import Mathlib.Algebra.Field.Rat
-import Mathlib.Algebra.Ring.CharZero
-import Mathlib.Algebra.Ring.Int.Defs
-import Mathlib.Data.Finset.Max
-import Mathlib.Data.Finset.Preimage
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Nat.SuccPred
-import Mathlib.Order.SuccPred.WithBot
+import Cslib.Init
+import Mathlib.Analysis.Normed.Field.Lemmas
 
 universe u
+
+namespace Cslib
 
 /-- A type `α` has a computable `fresh` function if it is always possible, for any finite set
 of `α`, to compute a fresh element not in the set. -/
@@ -42,7 +38,7 @@ structure FreeUnionConfig where
 /-- Elaborate a FreeUnionConfig. -/
 declare_config_elab elabFreeUnionConfig FreeUnionConfig
 
-/-- 
+/--
   Given a `DecidableEq Var` instance, this elaborator automatically constructs
   the union of any variables, finite sets of variables, and optionally the
   results of provided functions mapping to variables. This is configurable with
@@ -52,28 +48,29 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
 
   ```
   variable (x : ℕ) (xs : Finset ℕ) (var : String)
-  
+
   def f (_ : String) : Finset ℕ := {1, 2, 3}
   def g (_ : String) : Finset ℕ := {4, 5, 6}
-  
+
   -- info: ∅ ∪ {x} ∪ id xs : Finset ℕ
   #check free_union ℕ
-  
+
   -- info: ∅ ∪ {x} ∪ id xs ∪ f var ∪ g var : Finset ℕ
   #check free_union [f, g] ℕ
-  
+
   info: ∅ ∪ id xs : Finset ℕ
   #check free_union (singleton := false) ℕ
-  
+
   -- info: ∅ ∪ {x} : Finset ℕ
   #check free_union (finset := false) ℕ
-  
+
   -- info: ∅ : Finset ℕ
   #check free_union (singleton := false) (finset := false) ℕ
   ```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
+set_option linter.style.emptyLine false in
 /-- Elaborator for `free_union`. -/
 @[term_elab freeUnion]
 def HasFresh.freeUnion : TermElab := fun stx _ => do
@@ -92,13 +89,13 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
     let dl ← getDecLevel var
     let FinsetType := mkApp (mkConst ``Finset [dl]) var
     let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
-    let empty := 
+    let empty :=
       mkAppN (mkConst ``EmptyCollection.emptyCollection [dl]) #[FinsetType, EmptyCollectionInst]
 
     -- singleton variables
     if cfg.singleton then
       let SingletonInst ← synthInstance <| mkAppN (mkConst ``Singleton [dl, dl]) #[var, FinsetType]
-      let singleton_map := 
+      let singleton_map :=
         mkAppN (mkConst ``Singleton.singleton [dl, dl]) #[var, FinsetType, SingletonInst]
       maps := maps.push singleton_map
 
@@ -121,7 +118,7 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
     let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
     let UnionFinset := mkAppN (mkConst ``Union.union [dl]) #[FinsetType, UnionInst]
     let union := finsets.foldl (mkApp2 UnionFinset) empty
-      
+
     return union
   | _ => throwUnsupportedSyntax
 
@@ -174,3 +171,5 @@ instance {α : Type u} [DecidableEq α] [Inhabited α] : HasFresh (Multiset α) 
 /-- `ℕ → ℕ` has a computable fresh function. -/
 instance : HasFresh (ℕ → ℕ) :=
   .ofSucc (fun f x ↦ f x + 1) fun _ ↦ Pi.lt_def.2 ⟨fun _ ↦ Nat.le_succ _, 0, Nat.lt_succ_self _⟩
+
+end Cslib

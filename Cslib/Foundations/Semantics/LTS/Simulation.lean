@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Semantics.LTS.Basic
-import Cslib.Foundations.Data.Relation
 
 /-! # Simulation and Similarity
 
@@ -36,6 +35,8 @@ similar to each other.
 - `SimulationEquiv.eqv`: simulation equivalence is an equivalence relation.
 
 -/
+
+namespace Cslib
 
 universe u v
 
@@ -137,3 +138,5 @@ instance :
   trans := SimulationEquiv.trans lts
 
 end Simulation
+
+end Cslib
