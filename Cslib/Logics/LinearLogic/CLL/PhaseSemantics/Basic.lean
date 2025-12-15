@@ -562,6 +562,65 @@ lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, 
 
 @[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
 
+/-! ### Distributivity Properties -/
+
+lemma dual_subset_dual {G H : Set P} (h : G ⊆ H) :
+    H⫠ ⊆ G⫠ := fun _ hp _ hq => hp _ (h hq)
+
+lemma subset_dual_dual {G : Set P} :
+  G ⊆ G⫠⫠ := fun p hp q hq => mul_comm p q ▸ hq _ hp
+
+lemma le_plus_left {G H : Fact P} : G ≤ G ⊕ H := by
+  intro x hx
+  rw [oplus, dualFact]
+  apply subset_dual_dual
+  left
+  exact hx
+
+lemma le_plus_right {G H : Fact P} : H ≤ G ⊕ H := by
+  intro x hx
+  rw [oplus, dualFact]
+  apply subset_dual_dual
+  right
+  exact hx
+
+lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K) := by
+  apply SetLike.coe_injective
+  apply Set.Subset.antisymm
+  · rw [tensor, dualFact, mk_dual_coe]
+    rw [oplus, dualFact, mk_dual_coe]
+    rw [dual_dual_subset_Fact_iff]
+    rw [G.eq]
+    refine tensor_assoc_aux.trans ?_
+    rw [Set.mul_union]
+    rw [oplus, dualFact, mk_dual_coe]
+    rw [tensor, dualFact, mk_dual_coe]
+    apply dual_subset_dual
+    apply dual_subset_dual
+    apply Set.union_subset_union
+    · exact subset_dual_dual
+    · exact subset_dual_dual
+  · rw [oplus, dualFact, mk_dual_coe]
+    rw [tensor, dualFact, mk_dual_coe]
+    rw [tensor, dualFact, mk_dual_coe]
+    rw [dual_dual_subset_Fact_iff]
+    rw [Set.union_subset_iff]
+    rw [dual_dual_subset_Fact_iff, dual_dual_subset_Fact_iff]
+    constructor
+    · apply Set.Subset.trans (Set.mul_subset_mul_left le_plus_left)
+      exact mul_subset_tensor
+    · apply Set.Subset.trans (Set.mul_subset_mul_left le_plus_right)
+      exact mul_subset_tensor
+
+lemma par_distrib_with : (G ⅋ (H & K) : Fact P) = (G ⅋ H) & (G ⅋ K) := by
+  sorry
+
+lemma tensor_semi_distrib_with : (G ⊗ (H & K) : Fact P) ≤ (G ⊗ H) & (G ⊗ K) := by
+  sorry
+
+lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H ⊕ K) := by
+  sorry
+
 /--
 A fact `G` is valid if the unit `1` belongs to `G`.
 -/
