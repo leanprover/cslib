@@ -26,9 +26,6 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v4
 
-    - name: Install Python dependencies
-      run: uv pip install --system tabulate
-
     - name: Configure Lean
       uses: leanprover/lean-action@v1
       with:
@@ -44,7 +41,7 @@ jobs:
         (lake build || true) 2>&1 | tee "${lean_outfile}"
 
         # Generate report for Zulip
-        python3 scripts/weekly_lint_report.py "${lean_outfile}" \
+        uv run --with tabulate python3 scripts/weekly_lint_report.py "${lean_outfile}" \
           --sha "${{ github.sha }}" \
           --repo "${{ github.repository }}" \
           --run-id "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"

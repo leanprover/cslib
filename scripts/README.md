@@ -53,7 +53,7 @@ to learn about it as well!
 
   **Usage:**
   ```bash
-  python3 scripts/weekly_lint_report.py <output_file> --sha <sha> --repo <repo> --run-id <run_id>
+  uv run --with tabulate python3 scripts/weekly_lint_report.py <output_file> --sha <sha> --repo <repo> --run-id <run_id>
   ```
 
   Run with `--help` to see all options.
