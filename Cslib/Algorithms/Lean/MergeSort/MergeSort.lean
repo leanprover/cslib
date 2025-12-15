@@ -8,6 +8,7 @@ import Cslib.Algorithms.Lean.TimeM
 import Mathlib.Data.Nat.Cast.Order.Ring
 import Mathlib.Data.Nat.Lattice
 import Mathlib.Data.Nat.Log
+import Mathlib.Deprecated.Sort
 
 
 /-!
@@ -126,7 +127,6 @@ For a list of length `n`, this counts the total number of comparisons:
 - Base cases: 0 comparisons for lists of length 0 or 1
 - Recursive case: split the list, sort both halves,
   then merge (which takes at most `n` comparisons) -/
-
 def timeMergeSortRec : ℕ → ℕ
 | 0 => 0
 | 1 => 0
