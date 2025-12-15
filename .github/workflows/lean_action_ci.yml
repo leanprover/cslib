@@ -17,6 +17,7 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
+          test-args: "--wfail --iofail"
           mk_all-check: "true"
       - name: "lake exe shake"
         run: |
