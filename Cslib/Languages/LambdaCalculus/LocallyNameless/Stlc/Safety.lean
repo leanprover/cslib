@@ -46,7 +46,7 @@ theorem redex_preservesTyping :
 open _root_.Relation in
 /-- Confluence preserves type preservation. -/
 theorem confluence_preservesTyping {τ : Ty Base}
-    (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
+    (con : Confluent R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
     (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) :
     ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
   have ⟨d, bd, cd⟩ := con ab ac
