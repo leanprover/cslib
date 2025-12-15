@@ -442,13 +442,13 @@ class HasTau (Label : Type v) where
   τ : Label
 
 /-- Saturated τ-transition relation. -/
-def LTS.τTr [HasTau Label] (lts : LTS State Label) : State → State → Prop :=
+def LTS.τSTr [HasTau Label] (lts : LTS State Label) : State → State → Prop :=
   Relation.ReflTransGen (Tr.toRelation lts HasTau.τ)
 
 /-- Saturated transition relation. -/
 inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
 | refl : lts.STr s HasTau.τ s
-| tr : lts.τTr s1 s2 → lts.Tr s2 μ s3 → lts.τTr s3 s4 → lts.STr s1 μ s4
+| tr : lts.τSTr s1 s2 → lts.Tr s2 μ s3 → lts.τSTr s3 s4 → lts.STr s1 μ s4
 
 /-- The `LTS` obtained by saturating the transition relation in `lts`. -/
 @[scoped grind =]
@@ -469,7 +469,7 @@ theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
 /-- STr transitions labeled by HasTau.τ are exactly the τTr transitions. -/
 @[grind]
 theorem LTS.STr_τTr [HasTau Label] (lts : LTS State Label) :
-  lts.STr s HasTau.τ s' ↔ lts.τTr s s' := by
+  lts.STr s HasTau.τ s' ↔ lts.τSTr s s' := by
   apply Iff.intro <;> intro h
   case mp =>
     cases h
@@ -500,7 +500,7 @@ theorem LTS.STr.comp
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
 @[grind _=_]
 theorem LTS.saturate_τTr_τTr [hHasTau : HasTau Label] (lts : LTS State Label)
-  : lts.saturate.τTr s = lts.τTr s := by
+  : lts.saturate.τSTr s = lts.τSTr s := by
   ext s''
   apply Iff.intro <;> intro h
   case mp =>
@@ -559,7 +559,7 @@ inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
 
 @[grind]
 theorem LTS.τTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
-  lts.τTr s1 s2 → ∃ n, lts.STrN n s1 HasTau.τ s2 := by
+  lts.τSTr s1 s2 → ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   intro h
   induction h
   case refl =>
@@ -572,7 +572,7 @@ theorem LTS.τTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
 
 @[grind]
 theorem LTS.sTrN_imp_τTr [HasTau Label] (lts : LTS State Label) :
-  lts.STrN n s1 HasTau.τ s2 → lts.τTr s1 s2 := by
+  lts.STrN n s1 HasTau.τ s2 → lts.τSTr s1 s2 := by
   intro h
   cases h
   case refl => exact Relation.ReflTransGen.refl
@@ -582,11 +582,11 @@ theorem LTS.sTrN_imp_τTr [HasTau Label] (lts : LTS State Label) :
     exact Relation.ReflTransGen.trans hτ1' (Relation.ReflTransGen.head htr hτ3')
 
 @[grind]
-theorem LTS.τTr_sTrN [HasTau Label] (lts : LTS State Label) :
-  lts.τTr s1 s2 ↔ ∃ n, lts.STrN n s1 HasTau.τ s2 := by
+theorem LTS.τSTr_sTrN [HasTau Label] (lts : LTS State Label) :
+  lts.τSTr s1 s2 ↔ ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   grind
 
-/-- `LTS.str` and `LTS.strN` are equivalent. -/
+/-- `LTS.sTr` and `LTS.sTrN` are equivalent. -/
 @[scoped grind =]
 theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
