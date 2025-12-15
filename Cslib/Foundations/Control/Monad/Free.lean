@@ -3,8 +3,7 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve, Eric Wieser
 -/
-import Mathlib.Tactic.Lemma
-import Mathlib.Tactic.SimpRw
+import Cslib.Init
 
 /-!
 # Free Monad
@@ -64,6 +63,8 @@ The file `Free/Fold.lean` provides the theory of the fold operation for free mon
 
 Free monad, state monad
 -/
+
+namespace Cslib
 
 /-- The Free monad over a type constructor `F`.
 
@@ -262,3 +263,5 @@ theorem Interprets.iff (handler : {ι : Type u} → F ι → m ι) (interp : Fre
 end liftM
 
 end FreeM
+
+end Cslib

@@ -5,10 +5,9 @@ Authors: Tanner Duve, Bhavik Mehta
 -/
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Algebra.Ring.Idempotent
+import Mathlib.Algebra.Group.Idempotent
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Closure
-import Mathlib.Tactic.Cases
 import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-!
@@ -51,6 +50,8 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 * [J.-Y. Girard, *Linear logic*][Girard1987]
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
+
+namespace Cslib
 
 universe u v
 
@@ -98,9 +99,10 @@ lemma orth_antitone {X Y : Set P} (hXY : X ⊆ Y) : Y⫠ ⊆ X⫠ := by grind
 lemma orth_extensive (X : Set P) : X ⊆ X⫠⫠ := by grind
 
 /-- The triple orthogonal equals the orthogonal: X⫠⫠⫠ = X⫠. -/
-lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by grind
+lemma triple_orth (X : Set P) : X⫠⫠⫠ = X⫠ := by
+  apply le_antisymm <;> grind [orth_extensive]
 
-lemma triple_dual {G : Set P} : G⫠⫠⫠⫠⫠ = G⫠⫠⫠ := by grind
+lemma triple_dual {G : Set P} : G⫠⫠⫠⫠⫠ = G⫠⫠⫠ := by grind [triple_orth]
 
 /-- The biorthogonal closure operator on sets in a phase space. -/
 def biorthogonalClosure : ClosureOperator (Set P) where
@@ -159,7 +161,7 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
-@[scoped grind =, simp] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot := 
+@[scoped grind =] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
 @[scoped grind =>]
@@ -207,7 +209,7 @@ instance : One (Fact P) where one := dualFact (PhaseSpace.bot : Set P)
 
 @[scoped grind =, simp] lemma coe_one : ((1 : Fact P) : Set P) = (PhaseSpace.bot : Set P)⫠ := rfl
 
-@[scoped grind, simp] lemma mem_one :
+@[scoped grind =, simp] lemma mem_one :
   p ∈ (1 : Fact P) ↔ (∀ q ∈ PhaseSpace.bot, p * q ∈ PhaseSpace.bot) := Iff.rfl
 
 lemma one_mem_one : (1 : P) ∈ (1 : Fact P) := by simp [mem_one]
@@ -292,7 +294,6 @@ instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩
 
 omit [PhaseSpace P] in
-@[simp]
 lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
   (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
 
@@ -300,8 +301,10 @@ lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
 lemma inter_eq_orth_union_orth (G H : Fact P) :
   ((G : Set P) ∩ (H : Set P) : Set P) =
     (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
-  ext m; constructor
-  · grind
+  ext m
+  constructor
+  · simp only [orthogonal_def, mem_union]
+    grind
   · intro _
     have : m ∈ ((G : Set P)⫠⫠) := by grind
     have : m ∈ ((H : Set P)⫠⫠) := by grind
@@ -309,6 +312,8 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
 
 instance : Min (Fact P) where
   min G H := Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
+
+@[simp] lemma coe_min {G H : Fact P} : ((G ⊓ H : Fact P) : Set P) = (G : Set P) ∩ H := rfl
 
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
@@ -320,9 +325,12 @@ def I : Set P := idempotentsIn (1 : Set P)
 
 namespace Fact
 
+/--
+Linear negation of a fact, given by taking its orthogonal.
+-/
 def neg (G : Fact P) : Fact P := dualFact G
 
-postfix:max "ᗮ" => neg
+@[inherit_doc] postfix:max "ᗮ" => neg
 
 @[simp] lemma coe_neg {G : Fact P} : (Gᗮ : Set P) = (G : Set P)⫠ := rfl
 
@@ -377,11 +385,11 @@ def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
   · exact Set.Subset.trans (orth_extensive _) <| orth_antitone <| orth_antitone <|
       Set.subset_mul_right _ (by simp)
 
-@[simp] lemma tensor_comm {X Y : Fact P} : (X ⊗ Y) = (Y ⊗ X) := by rw [tensor, tensor, mul_comm]
+lemma tensor_comm {X Y : Fact P} : (X ⊗ Y) = (Y ⊗ X) := by rw [tensor, tensor, mul_comm]
 
 @[simp] lemma tensor_one {G : Fact P} : (G ⊗ 1) = G := by rw [tensor_comm, one_tensor]
 
-@[simp] lemma tensor_assoc_aux {F G : Set P} :
+lemma tensor_assoc_aux {F G : Set P} :
     (F⫠⫠) * (G⫠⫠) ⊆ (F * G)⫠⫠ := by
   simp only [Set.subset_def, Set.mem_mul, forall_exists_index, and_imp]
   rintro _ p hp q hq rfl v hv
@@ -411,7 +419,7 @@ lemma coe_tensor_assoc {G H K : Fact P} :
   SetLike.coe_injective <| by
     grind [SetLike.coe_injective, coe_tensor_assoc, tensor_comm, coe_tensor_assoc]
 
-@[simp] lemma tensor_rotate {G H K : Fact P} : (G ⊗ H ⊗ K) = H ⊗ K ⊗ G := by
+lemma tensor_rotate {G H K : Fact P} : (G ⊗ H ⊗ K) = H ⊗ K ⊗ G := by
   rw [tensor_comm, tensor_assoc]
 
 lemma tensor_le_tensor {G K H} {L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G ⊗ H) ≤ (K ⊗ L) :=
@@ -520,6 +528,43 @@ defined as the dual of the intersection of the orthogonal with the idempotents.
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 @[inherit_doc] prefix:100 " ʔ " => quest
 
+/-! ### Properties of Additives -/
+
+lemma plus_eq_with_dual : (G ⊕ H : Fact P) = (Gᗮ & Hᗮ)ᗮ := by
+  apply SetLike.coe_injective
+  rw [oplus, withh]
+  aesop
+
+lemma with_eq_plus_dual : (G & H : Fact P) = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_eq_with_dual]
+
+lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_eq_with_dual, neg_neg]
+
+lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_eq_plus_dual, neg_neg]
+
+lemma with_comm : (G & H : Fact P) = H & G :=
+  SetLike.coe_injective <| by simp [withh, Set.inter_comm]
+
+@[simp] lemma with_assoc : ((G & H) & K : Fact P) = G & (H & K) := by
+  apply SetLike.coe_injective
+  rw [withh, coe_min]
+  exact Set.inter_assoc ..
+
+@[simp] lemma top_with : (⊤ & G : Fact P) = G := SetLike.coe_injective <| by simp [withh]
+
+@[simp] lemma with_top : (G & ⊤ : Fact P) = G := SetLike.coe_injective <| by simp [withh]
+
+lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
+
+@[simp] lemma plus_assoc : ((G ⊕ H) ⊕ K : Fact P) = G ⊕ (H ⊕ K) := by
+  simp [plus_eq_with_dual]
+
+@[simp] lemma zero_plus : (0 ⊕ G : Fact P) = G := by simp [plus_eq_with_dual]
+
+@[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
+
+/--
+A fact `G` is valid if the unit `1` belongs to `G`.
+-/
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
 lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid := Iff.rfl
@@ -552,3 +597,5 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
 end PhaseSpace
 
 end CLL
+
+end Cslib

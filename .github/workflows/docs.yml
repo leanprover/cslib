@@ -1,0 +1,34 @@
+name: Build and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main  # Build docs on merges to main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+jobs:
+  build:
+    if: github.repository == 'leanprover/cslib'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and lint the project
+        id: build-lean
+        uses: leanprover/lean-action@v1
+        with:
+          build-args: "--wfail"
+
+      - name: Build project documentation
+        id: build-docgen
+        uses: leanprover-community/docgen-action@main
+        with:
+          build-page: false

@@ -5,7 +5,6 @@ Authors: Chris Henson
 -/
 
 import Cslib.Foundations.Data.HasFresh
-import Cslib.Foundations.Syntax.HasSubstitution
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 
 /-! # λ-calculus
@@ -19,6 +18,8 @@ The λ-calculus with polymorphism and subtyping, with a locally nameless represe
   this is adapted
 
 -/
+
+namespace Cslib
 
 variable {Var : Type*} [HasFresh Var] [DecidableEq Var]
 
@@ -105,3 +106,5 @@ def Term.fv_tm : Term Var → Finset Var
 abbrev Env (Var : Type*) := Context Var (Binding Var)
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib

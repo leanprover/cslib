@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring
 -/
 
+import Cslib.Init
 import Mathlib.Logic.Relation
 import Mathlib.Util.Notation3
 
@@ -12,6 +13,8 @@ import Mathlib.Util.Notation3
 
 A reduction system is an operational semantics expressed as a relation between terms.
 -/
+
+namespace Cslib
 
 universe u
 
@@ -41,16 +44,11 @@ theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b)
   rs.MRed a b :=
   Relation.ReflTransGen.single h
 
-open Relation Relation.ReflTransGen
-
-instance (rs : ReductionSystem Term) : Trans rs.Red rs.MRed rs.MRed := by infer_instance
-instance (rs : ReductionSystem Term) : Trans rs.MRed rs.Red rs.MRed := by infer_instance
-
 end MultiStep
 
 open Lean Elab Meta Command Term
 
--- thank you to Kyle Miller for this: 
+-- thank you to Kyle Miller for this:
 -- https://leanprover.zulipchat.com/#narrow/channel/239415-metaprogramming-.2F-tactics/topic/Working.20with.20variables.20in.20a.20command/near/529324084
 
 /-- A command to create a `ReductionSystem` from a relation, robust to use of `variable `-/
@@ -81,10 +79,10 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
       }
       addTermInfo' name (.const name.getId params) (isBinder := true)
       addDeclarationRangesFromSyntax name.getId name
- 
-/-- 
+
+/--
   This command adds notations for a `ReductionSystem.Red` and `ReductionSystem.MRed`. This should
-  not usually be called directly, but from the `reduction_sys` attribute. 
+  not usually be called directly, but from the `reduction_sys` attribute.
 
   As an example `reduction_notation foo "β"` will add the notations "⭢β" and "↠β".
 
@@ -92,21 +90,25 @@ elab "create_reduction_sys" rel:ident name:ident : command => do
   also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
   in the above example.
 -/
-syntax "reduction_notation" ident (str)? : command
+syntax attrKind "reduction_notation" ident (str)? : command
 macro_rules
-  | `(reduction_notation $rs $sym) => 
+  | `($kind:attrKind reduction_notation $rs $sym) =>
     `(
-      notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ⭢" $sym:str t':39 => (ReductionSystem.Red  $rs) t t'
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ↠" $sym:str t':39 => (ReductionSystem.MRed $rs) t t'
      )
-  | `(reduction_notation $rs) => 
+  | `($kind:attrKind reduction_notation $rs) =>
     `(
-      notation3 t:39 " ⭢" t':39 => (ReductionSystem.Red  $rs) t t'
-      notation3 t:39 " ↠" t':39 => (ReductionSystem.MRed $rs) t t'
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ⭢ " t':39 => (ReductionSystem.Red  $rs) t t'
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ↠ " t':39 => (ReductionSystem.MRed $rs) t t'
      )
 
 
-/-- 
+/--
   This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
 
   ```
@@ -127,10 +129,16 @@ initialize Lean.registerBuiltinAttribute {
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs $sym))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped reduction_notation $rs $sym)))
     | `(attr | reduction_sys $rs) =>
         let rs := rs.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
         liftCommandElabM <| Command.elabCommand (← `(create_reduction_sys $(mkIdent decl) $rs))
-        liftCommandElabM <| Command.elabCommand (← `(reduction_notation $rs))
+        liftCommandElabM <| (do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          Command.elabCommand (← `(scoped reduction_notation $rs)))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
+
+end Cslib

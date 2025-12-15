@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
 import Cslib.Foundations.Semantics.ReductionSystem.Basic
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
+
+set_option linter.unusedDecidableInType false
 
 /-! # λ-calculus
 
@@ -19,6 +21,8 @@ This file defines a call-by-value reduction.
   this is adapted
 
 -/
+
+namespace Cslib
 
 variable {Var : Type*}
 
@@ -110,7 +114,7 @@ variable [HasFresh Var] [DecidableEq Var] in
 /-- Terms of a reduction are locally closed. -/
 lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
   induction red
-  case abs lc _ | tabs lc _ => 
+  case abs lc _ | tabs lc _ =>
     split_ands
     · grind
     · cases lc
@@ -121,3 +125,5 @@ lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
 end Term
 
 end LambdaCalculus.LocallyNameless.Fsub
+
+end Cslib

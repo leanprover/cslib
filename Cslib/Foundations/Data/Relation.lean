@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 -/
 
+import Cslib.Init
 import Mathlib.Logic.Relation
 
 /-! # Relations -/
+
+namespace Cslib
 
 universe u v
 
@@ -21,9 +24,10 @@ abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C →
 /-- A relation is confluent when its reflexive transitive closure has the diamond property. -/
 abbrev Confluence (R : α → α → Prop) := Diamond (Relation.ReflTransGen R)
 
+open _root_.Relation _root_.Relation.ReflTransGen in
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
 lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
-  Relation.ReflTransGen R A B →
+  ReflTransGen R A B →
   R A C →
   ∃ D, Relation.ReflTransGen R B D ∧ Relation.ReflTransGen R C D := by
   intros AB _
@@ -35,43 +39,37 @@ lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
     exact ⟨D', ⟨B_D', head CD D_D'⟩⟩
 
+open _root_.Relation _root_.Relation.ReflTransGen in
 /-- The diamond property implies confluence. -/
 theorem Relation.ReflTransGen.diamond_confluence (h : Diamond R) : Confluence R := by
   intros A B C AB BC
   revert C
-  induction AB using Relation.ReflTransGen.head_induction_on <;> intros C BC
+  induction AB using head_induction_on <;> intros C BC
   case refl => exists C
   case head _ _ A'_C' _ ih =>
     obtain ⟨D, ⟨CD, C'_D⟩⟩ := diamond_extend h BC A'_C'
     obtain ⟨D', ⟨B_D', D_D'⟩⟩ := ih C'_D
-    exact ⟨D', ⟨B_D', trans CD D_D'⟩⟩
+    exact ⟨D', ⟨B_D', ReflTransGen.trans CD D_D'⟩⟩
 
 -- not sure why this doesn't compile as an "instance" but oh well
-def trans_of_subrelation {α : Type _} (s s' r : α → α → Prop) (hr : Transitive r)
+/-- A pair of subrelations lifts to transitivity on the relation. -/
+def trans_of_subrelation {α : Type*} (s s' r : α → α → Prop) (hr : Transitive r)
     (h : ∀ a b : α, s a b → r a b) (h' : ∀ a b : α, s' a b → r a b) : Trans s s' r where
-  trans := by
-    intro a b c hab hbc
-    replace hab := h _ _ hab
-    replace hbc := h' _ _ hbc
-    exact hr hab hbc
+  trans hab hbc := hr (h _ _ hab) (h' _ _ hbc)
 
-def trans_of_subrelation_left {α : Type _} (s r : α → α → Prop) (hr : Transitive r)
+/-- A subrelation lifts to transitivity on the left of the relation. -/
+def trans_of_subrelation_left {α : Type*} (s r : α → α → Prop) (hr : Transitive r)
     (h : ∀ a b : α, s a b → r a b) : Trans s r r where
-  trans := by
-    intro a b c hab hbc
-    replace hab := h _ _ hab
-    exact hr hab hbc
+  trans hab hbc := hr (h _ _ hab) hbc
 
-def trans_of_subrelation_right {α : Type _} (s r : α → α → Prop) (hr : Transitive r)
+/-- A subrelation lifts to transitivity on the right of the relation. -/
+def trans_of_subrelation_right {α : Type*} (s r : α → α → Prop) (hr : Transitive r)
     (h : ∀ a b : α, s a b → r a b) : Trans r s r where
-  trans := by
-    intro a b c hab hbc
-    replace hbc := h _ _ hbc
-    exact hr hab hbc
+  trans hab hbc := hr hab (h _ _ hbc)
 
 /-- This is a straightforward but useful specialisation of a more general result in
 `Mathlib.Logic.Relation`. -/
-theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
+theorem church_rosser_of_diamond {α : Type*} {r : α → α → Prop}
     (h : ∀ a b c, r a b → r a c → Relation.Join r b c) :
     Equivalence (Relation.Join (Relation.ReflTransGen r)) := by
   apply Relation.equivalence_join_reflTransGen
@@ -83,3 +81,5 @@ theorem church_rosser_of_diamond {α : Type _} {r : α → α → Prop}
   · exact Relation.ReflTransGen.single hd.2
 
 end Relation
+
+end Cslib
