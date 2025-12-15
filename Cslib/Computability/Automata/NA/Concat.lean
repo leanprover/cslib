@@ -97,21 +97,35 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   · obtain ⟨s0, h_s0, t1, h_t1, h_mtr⟩ := h1
     obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_GMTr h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
+    have h_ss1 (k) (_ : k < xs1.length) : ss k = inl (ss1[k]) := by
+      simp (disch := grind) [ss, get_append_left]
+    have h_ss2 (k) (_ : xs1.length ≤ k) : ss k = inr (ss2 (k - xs1.length)) := by
+      simp (disch := grind) [ss, get_append_right']
+    have h_ss2' (k) (_ : k = xs1.length) : ss k = inr (ss2 0) := by
+      simp (disch := grind) [ss, get_append_right']
+    have h_xs1 (k) (_ : k < xs1.length) : (xs1 ++ω xs2) k = xs1[k] := by
+      simp (disch := grind) [get_append_left]
+    have h_xs2 (k) (_ : xs1.length ≤ k) : (xs1 ++ω xs2) k = xs2 (k - xs1.length) := by
+      simp (disch := grind) [get_append_right']
     use ss, ⟨?_, ?_⟩, by simp (disch := grind) [ss, drop_append_of_le_length]
     · suffices ss 0 = inl ss1[0] by grind [concat]
       simp (disch := grind) [ss, get_append_left]
     · intro k
       by_cases h_k : k < xs1.length
       · by_cases h_k' : k = xs1.length - 1
-        · simp (disch := grind) [ss, h_k', get_append_left, get_append_right']
-          simp only [concat]
-          grind
-        · simp (disch := grind) [ss, get_append_left]
-          simp only [concat]
-          grind
-      · simp (disch := grind) [ss, get_append_right', concat,
-          (show k + 1 - xs1.length = k - xs1.length + 1 by grind)]
-        grind
+        · have := h_xs1 k (by grind)
+          have := h_ss1 k (by grind)
+          have := h_ss2' (k + 1) (by grind)
+          grind [concat]
+        · have := h_xs1 k (by grind)
+          have := h_ss1 k (by grind)
+          have := h_ss1 (k + 1) (by grind)
+          grind [concat]
+      · have := h_xs2 k (by grind)
+        have := h_ss2 k (by grind)
+        have := h_ss2 (k + 1) (by grind)
+        have := show k + 1 - xs1.length = k - xs1.length + 1 by grind
+        grind [concat]
 
 namespace Buchi
 
