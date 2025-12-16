@@ -570,19 +570,11 @@ lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, 
 
 /-! ### Distributivity Properties -/
 
-lemma le_plus_left {G H : Fact P} : G ≤ G ⊕ H := by
-  intro x hx
-  rw [oplus, dualFact]
-  apply subset_dual_dual
-  left
-  exact hx
+lemma le_plus_left {G H : Fact P} : G ≤ G ⊕ H := fun _ hx ↦
+  subset_dual_dual <| Or.inl hx
 
-lemma le_plus_right {G H : Fact P} : H ≤ G ⊕ H := by
-  intro x hx
-  rw [oplus, dualFact]
-  apply subset_dual_dual
-  right
-  exact hx
+lemma le_plus_right {G H : Fact P} : H ≤ G ⊕ H := fun _ hx ↦
+  subset_dual_dual <| Or.inr hx
 
 lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K) := by
   apply SetLike.coe_injective
@@ -613,15 +605,13 @@ lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K)
       exact mul_subset_tensor
 
 lemma plus_tensor_distrib : ((H ⊕ K) ⊗ G  : Fact P) = (H ⊗ G) ⊕ (K ⊗ G) := by
-  rw [tensor_comm, tensor_distrib_plus]
-  simp [tensor_comm]
+  rw [tensor_comm, tensor_distrib_plus]; simp [tensor_comm]
 
 lemma par_distrib_with : (G ⅋ (H & K) : Fact P) = (G ⅋ H) & (G ⅋ K) := by
   simp [par_of_tensor, with_eq_plus_dual, tensor_distrib_plus]
 
 lemma with_par_distrib : ((H & K) ⅋ G : Fact P) = (H ⅋ G) & (K ⅋ G) := by
-  rw [par_comm, par_distrib_with]
-  simp [par_comm]
+  rw [par_comm, par_distrib_with]; simp [par_comm]
 
 lemma tensor_semi_distrib_with : (G ⊗ (H & K) : Fact P) ≤ (G ⊗ H) & (G ⊗ K) := by
   rw [← SetLike.coe_subset_coe]
