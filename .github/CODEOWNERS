@@ -7,11 +7,11 @@
 #   editing files in different areas of the codebase.
 
 * @fmontesi @chenson2018
+/.github/CODEOWNERS @fmontesi
 
 ### Area access
 # Each area maintainer has access to parts that pertain them. They get automatically asked for
 # reviewing new PRs that touch those areas.
-
 /Cslib/Languages/LambdaCalculus/ @chenson2018
-/.github/workflows @kim-em
-/scripts @kim-em
+/.github/workflows @kim-em @fmontesi @chenson2018
+/scripts @kim-em @fmontesi @chenson2018
