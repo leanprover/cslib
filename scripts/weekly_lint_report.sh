@@ -44,6 +44,20 @@ format_table_rows() {
     sort | uniq -c | sort -bgr | sed 's/^ *\([0-9][0-9]*\) \(.*\)$/| \1 | \2 |/'
 }
 
+# Print a collapsible spoiler block with a markdown table
+# Usage: print_spoiler_table <spoiler_title> <column_header> <descriptions>
+print_spoiler_table() {
+    local title="$1"
+    local header="$2"
+    local descriptions="$3"
+    echo "\`\`\`spoiler ${title}"
+    echo "|   | ${header} |"
+    echo "| ---: | --- |"
+    echo "${descriptions}" | format_table_rows
+    echo "\`\`\`"
+    echo
+}
+
 error_count=$(count_lines "${error_lines}")
 warning_count=$(count_lines "${warning_lines}")
 info_count=$(count_lines "${info_lines}")
@@ -75,30 +89,15 @@ else
 
     # Detail tables
     if [ "${error_count}" -gt 0 ]; then
-        echo "\`\`\`spoiler Error counts"
-        echo "|   | Error description |"
-        echo "| ---: | --- |"
-        echo "${error_descriptions}" | format_table_rows
-        echo "\`\`\`"
-        echo
+        print_spoiler_table "Error counts" "Error description" "${error_descriptions}"
     fi
 
     if [ "${warning_count}" -gt 0 ]; then
-        echo "\`\`\`spoiler Warning counts"
-        echo "|   | Warning description |"
-        echo "| ---: | --- |"
-        echo "${warning_descriptions}" | format_table_rows
-        echo "\`\`\`"
-        echo
+        print_spoiler_table "Warning counts" "Warning description" "${warning_descriptions}"
     fi
 
     if [ "${info_count}" -gt 0 ]; then
-        echo "\`\`\`spoiler Info message counts"
-        echo "|   | Info message |"
-        echo "| ---: | --- |"
-        echo "${info_descriptions}" | format_table_rows
-        echo "\`\`\`"
-        echo
+        print_spoiler_table "Info message counts" "Info message" "${info_descriptions}"
     fi
 fi
 
