@@ -646,6 +646,20 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
   simp only [neg_par, neg_plus]
   exact tensor_semi_distrib_with
 
+/-! ### Absorption Properties -/
+
+@[simp] lemma top_par : (⊤ ⅋ G : Fact P) = ⊤ := by
+  sorry
+
+@[simp] lemma par_top : (G ⅋ ⊤ : Fact P) = ⊤ := by
+  rw [par_comm, top_par]
+
+@[simp] lemma zero_tensor : (0 ⊗ G : Fact P) = 0 := by
+  simp [tensor_of_par]
+
+@[simp] lemma tensor_zero : (G ⊗ 0 : Fact P) = 0 := by
+  rw [tensor_comm, zero_tensor]
+
 /--
 A fact `G` is valid if the unit `1` belongs to `G`.
 -/
