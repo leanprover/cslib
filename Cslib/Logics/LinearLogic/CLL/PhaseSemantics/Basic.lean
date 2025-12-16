@@ -663,7 +663,7 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
 /-! ### Entailment Distributivity -/
 
 @[simp] lemma plus_entails : ((G ⊕ H) ⊸ K : Fact P) = (G ⊸ K) & (H ⊸ K) := by
-  sorry
+  simp only [linImpl_of_tensor, with_eq_plus_dual, plus_tensor_distrib, neg_neg]
 
 @[simp] lemma entails_with : (G ⊸ (H & K) : Fact P) = (G ⊸ H) & (G ⊸ K) := by
   simp only [linImpl_of_par, par_distrib_with]
