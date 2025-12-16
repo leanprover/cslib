@@ -23,9 +23,6 @@ jobs:
         # Show what changed
         git diff lakefile.toml
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-
     - name: Configure Lean
       uses: leanprover/lean-action@v1
       with:
@@ -41,10 +38,8 @@ jobs:
         (lake build || true) 2>&1 | tee "${lean_outfile}"
 
         # Generate report for Zulip
-        uv run --with tabulate python3 scripts/weekly_lint_report.py "${lean_outfile}" \
-          --sha "${{ github.sha }}" \
-          --repo "${{ github.repository }}" \
-          --run-id "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"
+        bash scripts/weekly_lint_report.sh "${lean_outfile}" \
+          "${{ github.sha }}" "${{ github.repository }}" "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"
 
     - name: Post output to Zulip
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
