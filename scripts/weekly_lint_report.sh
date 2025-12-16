@@ -44,23 +44,8 @@ format_table_rows() {
     sort | uniq -c | sort -bgr | sed 's/^ *\([0-9][0-9]*\) \(.*\)$/| \1 | \2 |/'
 }
 
-# Print a collapsible spoiler block with a markdown table
-# Usage: print_spoiler_table <spoiler_title> <column_header> <descriptions>
-# Does nothing if descriptions is empty
-print_spoiler_table() {
-    local title="$1"
-    local header="$2"
-    local descriptions="$3"
-    if [ -z "${descriptions}" ]; then
-        return
-    fi
-    echo "\`\`\`spoiler ${title}"
-    echo "|   | ${header} |"
-    echo "| ---: | --- |"
-    echo "${descriptions}" | format_table_rows
-    echo "\`\`\`"
-    echo
-}
+# Combine all descriptions
+all_descriptions=$(printf '%s\n%s\n%s' "${error_descriptions}" "${warning_descriptions}" "${info_descriptions}" | grep -v '^$' || true)
 
 error_count=$(count_lines "${error_lines}")
 warning_count=$(count_lines "${warning_lines}")
@@ -91,17 +76,14 @@ else
     fi
     echo
 
-    # Detail tables
-    if [ "${error_count}" -gt 0 ]; then
-        print_spoiler_table "Error counts" "Error description" "${error_descriptions}"
-    fi
-
-    if [ "${warning_count}" -gt 0 ]; then
-        print_spoiler_table "Warning counts" "Warning description" "${warning_descriptions}"
-    fi
-
-    if [ "${info_count}" -gt 0 ]; then
-        print_spoiler_table "Info message counts" "Info message" "${info_descriptions}"
+    # Detail table
+    if [ -n "${all_descriptions}" ]; then
+        echo "\`\`\`spoiler Lint message counts"
+        echo "|   | Message |"
+        echo "| ---: | --- |"
+        echo "${all_descriptions}" | format_table_rows
+        echo "\`\`\`"
+        echo
     fi
 fi
 
