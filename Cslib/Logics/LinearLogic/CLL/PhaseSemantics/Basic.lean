@@ -649,7 +649,17 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
 /-! ### Absorption Properties -/
 
 @[simp] lemma top_par : (⊤ ⅋ G : Fact P) = ⊤ := by
-  sorry
+  refine SetLike.coe_injective ?_
+  rw [coe_top]
+  rw [Set.eq_univ_iff_forall]
+  intro x
+  simp only [parr, dualFact, mk_dual, mk_subset, coe_mk, coe_top]
+  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq]
+  intro w hw
+  rcases Set.mem_mul.mp hw with ⟨y, hy, z, hz, rfl⟩
+  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq] at hy
+  rw [mul_left_comm]
+  exact hy (x * z) (Set.mem_univ _)
 
 @[simp] lemma par_top : (G ⅋ ⊤ : Fact P) = ⊤ := by
   rw [par_comm, top_par]
