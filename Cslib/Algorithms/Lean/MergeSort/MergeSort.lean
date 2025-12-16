@@ -8,7 +8,6 @@ import Cslib.Algorithms.Lean.TimeM
 import Mathlib.Data.Nat.Cast.Order.Ring
 import Mathlib.Data.Nat.Lattice
 import Mathlib.Data.Nat.Log
-import Mathlib.Deprecated.Sort
 
 
 /-!
@@ -61,8 +60,8 @@ section Correctness
 
 open List
 
-/-- A list is sorted if it satisfies the `Sorted (· ≤ ·)` predicate. -/
-abbrev IsSorted (l : List α) : Prop := Sorted (· ≤ ·) l
+/-- A list is sorted if it satisfies the `Pairwise (· ≤ ·)` predicate. -/
+abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
 
 /-- `x` is a minimum element of list `l` if `x ≤ b` for all `b ∈ l`. -/
 abbrev MinOfList (x : α) (l : List α) : Prop := ∀ b ∈ l, x ≤ b
@@ -85,14 +84,14 @@ theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1) (hys : IsSorted l2) :
   fun_induction merge l1 l2 with
   | case3 =>
     simp only [Bind.bind, Pure.pure]
-    grind [sorted_cons]
+    grind [pairwise_cons]
   | _ => simpa
 
 theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
   fun_induction mergeSort xs with
   | case1 x =>
     simp only [Pure.pure]
-    rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> grind [sorted_nil, sorted_singleton]
+    rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> grind
   | case2 _ _ _ _ _ ih2 ih1 => exact sorted_merge ih2 ih1
 
 lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
