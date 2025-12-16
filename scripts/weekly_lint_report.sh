@@ -46,10 +46,14 @@ format_table_rows() {
 
 # Print a collapsible spoiler block with a markdown table
 # Usage: print_spoiler_table <spoiler_title> <column_header> <descriptions>
+# Does nothing if descriptions is empty
 print_spoiler_table() {
     local title="$1"
     local header="$2"
     local descriptions="$3"
+    if [ -z "${descriptions}" ]; then
+        return
+    fi
     echo "\`\`\`spoiler ${title}"
     echo "|   | ${header} |"
     echo "| ---: | --- |"
