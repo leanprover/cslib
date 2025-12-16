@@ -227,7 +227,7 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
 
 theorem join_parallelReduction_equivalence :
     Equivalence (Relation.Join (Relation.ReflTransGen ParallelReduction)) :=
-  Diamond.equivalence_join_reflTransGen (parallelReduction_diamond _ _ _)
+  Confluent.equivalence_join_reflTransGen <| Diamond.toConfluent (parallelReduction_diamond _ _ _)
 
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem commonReduct_equivalence : Equivalence CommonReduct := by

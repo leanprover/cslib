@@ -140,11 +140,9 @@ def trans_of_subrelation_right (s r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) : Trans r s r where
   trans hab hbc := hr hab (h hbc)
 
-/-- The diamond property implies that multi-step joinability is an equivalence. -/
-theorem Diamond.equivalence_join_reflTransGen (h : Diamond r) :
+/-- Confluence implies that multi-step joinability is an equivalence. -/
+theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
-  apply Relation.equivalence_join reflexive_reflTransGen transitive_reflTransGen
-  intro a b c hab hac
-  exact h.toConfluent hab hac
+  grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
 
 end Relation
