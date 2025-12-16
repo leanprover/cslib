@@ -54,7 +54,6 @@ theorem IsRegular.iff_cslib_nfa {l : Language Symbol} :
 -- From this point onward we will use only automata from Cslib in the proofs.
 open Cslib
 
-@[simp]
 theorem IsRegular.compl_cslib {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
   rw [IsRegular.iff_cslib_dfa] at h ⊢
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
