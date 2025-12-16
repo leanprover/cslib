@@ -6,6 +6,7 @@ on:
       - main
       - nightly-testing
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 jobs:
@@ -15,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
         with:
-          build-args: "--wfail"
+          build-args: "--wfail --iofail"
           mk_all-check: "true"
       - name: "lake exe shake"
         run: |

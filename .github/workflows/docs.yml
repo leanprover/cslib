@@ -25,7 +25,7 @@ jobs:
         id: build-lean
         uses: leanprover/lean-action@v1
         with:
-          build-args: "--wfail"
+          build-args: "--wfail --iofail"
 
       - name: Build project documentation
         id: build-docgen
