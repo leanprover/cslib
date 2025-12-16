@@ -612,14 +612,27 @@ lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K)
     · apply Set.Subset.trans (Set.mul_subset_mul_left le_plus_right)
       exact mul_subset_tensor
 
+lemma plus_tensor_distrib : ((H ⊕ K) ⊗ G  : Fact P) = (H ⊗ G) ⊕ (K ⊗ G) := by
+  rw [tensor_comm, tensor_distrib_plus]
+  simp [tensor_comm]
+
 lemma par_distrib_with : (G ⅋ (H & K) : Fact P) = (G ⅋ H) & (G ⅋ K) := by
   simp [par_of_tensor, with_eq_plus_dual, tensor_distrib_plus]
+
+lemma with_par_distrib : ((H & K) ⅋ G : Fact P) = (H ⅋ G) & (K ⅋ G) := by
+  rw [par_comm, par_distrib_with]
+  simp [par_comm]
 
 lemma tensor_semi_distrib_with : (G ⊗ (H & K) : Fact P) ≤ (G ⊗ H) & (G ⊗ K) := by
   rw [← SetLike.coe_subset_coe]
   simp only [tensor, withh, coe_min, dualFact_coe, Set.subset_inter_iff]
   exact ⟨dual_subset_dual (dual_subset_dual (Set.mul_subset_mul_left Set.inter_subset_left)),
          dual_subset_dual (dual_subset_dual (Set.mul_subset_mul_left Set.inter_subset_right))⟩
+
+lemma with_tensor_semi_distrib : ((G & H) ⊗ K : Fact P) ≤ (G ⊗ K) & (H ⊗ K) :=
+  calc ((G & H) ⊗ K : Fact P) = K ⊗ (G & H) := by rw [tensor_comm]
+    _ ≤ K ⊗ G & K ⊗ H := tensor_semi_distrib_with
+    _ = _ := by simp only [tensor_comm]
 
 lemma neg_le_neg_iff {G H : Fact P} : Gᗮ ≤ Hᗮ ↔ H ≤ G := by
   constructor
