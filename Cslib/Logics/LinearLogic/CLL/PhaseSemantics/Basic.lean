@@ -616,10 +616,22 @@ lemma par_distrib_with : (G ⅋ (H & K) : Fact P) = (G ⅋ H) & (G ⅋ K) := by
   simp [par_of_tensor, with_eq_plus_dual, tensor_distrib_plus]
 
 lemma tensor_semi_distrib_with : (G ⊗ (H & K) : Fact P) ≤ (G ⊗ H) & (G ⊗ K) := by
-  sorry
+  rw [← SetLike.coe_subset_coe]
+  simp only [tensor, withh, coe_min, dualFact_coe, Set.subset_inter_iff]
+  exact ⟨dual_subset_dual (dual_subset_dual (Set.mul_subset_mul_left Set.inter_subset_left)),
+         dual_subset_dual (dual_subset_dual (Set.mul_subset_mul_left Set.inter_subset_right))⟩
+
+lemma neg_le_neg_iff {G H : Fact P} : Gᗮ ≤ Hᗮ ↔ H ≤ G := by
+  constructor
+  · intro h
+    rw [← neg_neg (G := H), ← neg_neg (G := G)]
+    exact PhaseSpace.orth_antitone h
+  · exact PhaseSpace.orth_antitone
 
 lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H ⊕ K) := by
-  sorry
+  rw [← neg_le_neg_iff]
+  simp only [neg_par, neg_plus]
+  exact tensor_semi_distrib_with
 
 /--
 A fact `G` is valid if the unit `1` belongs to `G`.
