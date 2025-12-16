@@ -95,7 +95,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
       simp only [concat]
       grind
   · obtain ⟨s0, h_s0, t1, h_t1, h_mtr⟩ := h1
-    obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_GMTr h_mtr
+    obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     have h_ss1 (k) (_ : k < xs1.length) : ss k = inl (ss1[k]) := by
       simp (disch := grind) [ss, get_append_left]

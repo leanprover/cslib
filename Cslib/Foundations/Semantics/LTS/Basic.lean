@@ -127,28 +127,11 @@ theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
 
-/-- A generalized `MTr` is a `MTr` augmented with intermediate states. -/
-@[scoped grind =]
-def LTS.GMTr (lts : LTS State Label)
-    (s1 : State) (μs : List Label) (ss : List State) (s2 : State) : Prop :=
-  ∃ _ : ss.length = μs.length + 1, ss[0] = s1 ∧ ss[μs.length] = s2 ∧
-    ∀ k, ∀ _ : k < μs.length, lts.Tr ss[k] μs[k] ss[k + 1]
-
-/-- Every `GMTr` can be projected onto a `MTr`. -/
-theorem LTS.GMTr.proj_MTr {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
-    {ss : List State} (h : lts.GMTr s1 μs ss s2) : lts.MTr s1 μs s2 := by
-  obtain ⟨_, _, _, h_tr⟩ := h
-  have h_mtr (k) (h_k : k ≤ μs.length) : lts.MTr s1 (μs.take k) ss[k] := by
-    induction k
-    case zero => grind
-    case succ k h_ind =>
-      have := LTS.MTr.stepR lts (h_ind (by grind)) (h_tr k (by grind))
-      grind [List.take_append_getElem]
-  grind
-
-/-- Every `MTr` has a corresponding `GMTr` projecting onto it. -/
-theorem LTS.MTr.exists_GMTr {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
-    (h : lts.MTr s1 μs s2) : ∃ ss, lts.GMTr s1 μs ss s2 := by
+/-- For every multi-step transition, there exists a sequence of intermediate states
+which satisfies the single-step transition at every step. -/
+theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
+    (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
+    ss[0] = s1 ∧ ss[μs.length] = s2 ∧ ∀ k, ∀ _ : k < μs.length, lts.Tr ss[k] μs[k] ss[k + 1] := by
   induction h
   case refl t =>
     use [t]
