@@ -577,32 +577,18 @@ lemma le_plus_right {G H : Fact P} : H ≤ G ⊕ H := fun _ hx ↦
   subset_dual_dual <| Or.inr hx
 
 lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K) := by
-  apply SetLike.coe_injective
-  apply Set.Subset.antisymm
-  · rw [tensor, dualFact, mk_dual_coe]
-    rw [oplus, dualFact, mk_dual_coe]
-    rw [dual_dual_subset_Fact_iff]
-    rw [G.eq]
+  refine SetLike.coe_injective <| Set.Subset.antisymm ?_ ?_
+  · rw [tensor, dualFact, mk_dual_coe, oplus, dualFact, mk_dual_coe]
+    rw [dual_dual_subset_Fact_iff, G.eq]
     refine tensor_assoc_aux.trans ?_
-    rw [Set.mul_union]
-    rw [oplus, dualFact, mk_dual_coe]
-    rw [tensor, dualFact, mk_dual_coe]
-    apply dual_subset_dual
-    apply dual_subset_dual
-    apply Set.union_subset_union
-    · exact subset_dual_dual
-    · exact subset_dual_dual
-  · rw [oplus, dualFact, mk_dual_coe]
-    rw [tensor, dualFact, mk_dual_coe]
-    rw [tensor, dualFact, mk_dual_coe]
-    rw [dual_dual_subset_Fact_iff]
-    rw [Set.union_subset_iff]
-    rw [dual_dual_subset_Fact_iff, dual_dual_subset_Fact_iff]
-    constructor
-    · apply Set.Subset.trans (Set.mul_subset_mul_left le_plus_left)
-      exact mul_subset_tensor
-    · apply Set.Subset.trans (Set.mul_subset_mul_left le_plus_right)
-      exact mul_subset_tensor
+    rw [Set.mul_union, oplus, dualFact, mk_dual_coe, tensor, dualFact, mk_dual_coe]
+    exact dual_subset_dual <| dual_subset_dual <|
+      Set.union_subset_union subset_dual_dual subset_dual_dual
+  · rw [oplus, dualFact, mk_dual_coe, dual_dual_subset_Fact_iff, tensor, dualFact, mk_dual_coe,
+      tensor, dualFact, mk_dual_coe, Set.union_subset_iff]
+    simp only [dual_dual_subset_Fact_iff]
+    exact ⟨(Set.mul_subset_mul_left le_plus_left).trans mul_subset_tensor,
+           (Set.mul_subset_mul_left le_plus_right).trans mul_subset_tensor⟩
 
 lemma plus_tensor_distrib : ((H ⊕ K) ⊗ G  : Fact P) = (H ⊗ G) ⊕ (K ⊗ G) := by
   rw [tensor_comm, tensor_distrib_plus]; simp [tensor_comm]
