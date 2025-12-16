@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 import Cslib.Computability.Automata.Acceptors.Acceptor
 import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 import Cslib.Foundations.Data.OmegaSequence.InfOcc
-import Cslib.Foundations.Semantics.LTS.FLTS
+import Cslib.Foundations.Semantics.FLTS.Basic
 
 /-! # Deterministic Automata
 

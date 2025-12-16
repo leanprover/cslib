@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 import Cslib.Computability.Automata.DA.Basic
 import Cslib.Computability.Automata.NA.Basic
-import Cslib.Foundations.Semantics.LTS.FLTSToLTS
+import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 
 /-! # Translation of Deterministic Automata into Nonodeterministic Automata.
 
