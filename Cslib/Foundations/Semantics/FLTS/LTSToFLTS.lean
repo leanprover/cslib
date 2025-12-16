@@ -5,7 +5,7 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Semantics.LTS.Basic
-import Cslib.Foundations.Semantics.LTS.FLTS
+import Cslib.Foundations.Semantics.FLTS.Basic
 
 variable {State Label : Type*}
 
