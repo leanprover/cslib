@@ -39,6 +39,11 @@ count_lines() {
     fi
 }
 
+# Format descriptions as markdown table rows, grouped and sorted by count
+format_table_rows() {
+    sort | uniq -c | sort -bgr | sed 's/^ *\([0-9][0-9]*\) \(.*\)$/| \1 | \2 |/'
+}
+
 error_count=$(count_lines "${error_lines}")
 warning_count=$(count_lines "${warning_lines}")
 info_count=$(count_lines "${info_lines}")
@@ -73,7 +78,7 @@ else
         echo "\`\`\`spoiler Error counts"
         echo "|   | Error description |"
         echo "| ---: | --- |"
-        echo "${error_descriptions}" | sort | uniq -c | sort -bgr | sed 's/^ *\([0-9][0-9]*\) \(.*\)$/| \1 | \2 |/'
+        echo "${error_descriptions}" | format_table_rows
         echo "\`\`\`"
         echo
     fi
@@ -82,7 +87,7 @@ else
         echo "\`\`\`spoiler Warning counts"
         echo "|   | Warning description |"
         echo "| ---: | --- |"
-        echo "${warning_descriptions}" | sort | uniq -c | sort -bgr | sed 's/^ *\([0-9][0-9]*\) \(.*\)$/| \1 | \2 |/'
+        echo "${warning_descriptions}" | format_table_rows
         echo "\`\`\`"
         echo
     fi
@@ -91,7 +96,7 @@ else
         echo "\`\`\`spoiler Info message counts"
         echo "|   | Info message |"
         echo "| ---: | --- |"
-        echo "${info_descriptions}" | sort | uniq -c | sort -bgr | sed 's/^ *\([0-9][0-9]*\) \(.*\)$/| \1 | \2 |/'
+        echo "${info_descriptions}" | format_table_rows
         echo "\`\`\`"
         echo
     fi
