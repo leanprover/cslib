@@ -16,10 +16,10 @@ variable {State Label : Type*}
 @[scoped grind =]
 def prod (flts1 : FLTS State1 Label) (flts2 : FLTS State2 Label) :
     FLTS (State1 × State2) Label where
-  tr := fun (s1, s2) μ => (flts1.tr s1 μ, flts2.tr s2 μ)
+  tr := fun (s1, s2) μ ↦ (flts1.tr s1 μ, flts2.tr s2 μ)
 
 /-- A state is reachable by the product FLTS iff its components are reachable by
-the respective component FLTSs. -/
+the respective FLTS components. -/
 @[simp, scoped grind =]
 theorem prod_mtr_eq (flts1 : FLTS State1 Label) (flts2 : FLTS State2 Label)
     (s : State1 × State2) (μs : List Label) :
