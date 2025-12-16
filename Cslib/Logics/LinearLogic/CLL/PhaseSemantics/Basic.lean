@@ -660,6 +660,18 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
 @[simp] lemma tensor_zero : (G ⊗ 0 : Fact P) = 0 := by
   rw [tensor_comm, zero_tensor]
 
+/-! ### Entailment Distributivity -/
+
+@[simp] lemma plus_entails : ((G ⊕ H) ⊸ K : Fact P) = (G ⊸ K) & (H ⊸ K) := by
+  sorry
+
+@[simp] lemma entails_with : (G ⊸ (H & K) : Fact P) = (G ⊸ H) & (G ⊸ K) := by
+  simp only [linImpl_of_par, par_distrib_with]
+
+@[simp] lemma zero_entails : (0 ⊸ G : Fact P) = ⊤ := by simp [linImpl_of_par]
+
+@[simp] lemma entails_top : (G ⊸ ⊤ : Fact P) = ⊤ := by simp [linImpl_of_par]
+
 /--
 A fact `G` is valid if the unit `1` belongs to `G`.
 -/
