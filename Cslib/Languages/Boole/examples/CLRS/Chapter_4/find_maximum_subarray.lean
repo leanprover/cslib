@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
@@ -24,7 +24,7 @@ namespace Strata
 
 private def findMaxSubArray :=
 #strata
-program Boogie;
+program Boole;
 
 type Array := Map int int;
 

@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 ------------------------------------------------------------
 namespace Strata
@@ -13,7 +13,7 @@ namespace Strata
 
 private def bubbleSortPgm :=
 #strata
-program Boogie;
+program Boole;
 
 type Array := Map int int;
 

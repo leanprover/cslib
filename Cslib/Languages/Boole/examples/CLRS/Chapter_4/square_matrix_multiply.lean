@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
@@ -17,7 +17,7 @@ namespace Strata
 
 private def squareMatrixMult :=
 #strata
-program Boogie;
+program Boole;
 
 // [FEATURE_REQUEST] the definitions below
 // could have a better representation

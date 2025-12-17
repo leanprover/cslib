@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 ---------------------------------------------------------------------
 namespace Strata
@@ -19,7 +19,7 @@ namespace Strata
 
 private def insertionSortPgm :=
 #strata
-program Boogie;
+program Boole;
 
 // An "array of ints" is a map from int to int
 type Array := Map int int;

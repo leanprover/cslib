@@ -1,5 +1,4 @@
-
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
@@ -25,7 +24,7 @@ namespace Strata
 
 private def quickSort :=
 #strata
-program Boogie;
+program Boole;
 
 var A: Map int int;
 

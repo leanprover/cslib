@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 namespace Strata
 
 -- Exercise 2.3-5 solution
@@ -20,7 +20,7 @@ namespace Strata
 
 private def binarySearch :=
 #strata
-program Boogie;
+program Boole;
 
 type Array := Map int int;
 var A : Array;

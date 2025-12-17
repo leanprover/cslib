@@ -1,4 +1,4 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 ------------------------------------------------------------
 namespace Strata
@@ -20,7 +20,7 @@ namespace Strata
 
 private def inversionCountMergeSortPgm :=
 #strata
-program Boogie;
+program Boole;
 
 // Arrays as maps from int to int
 type Array := Map int int;
