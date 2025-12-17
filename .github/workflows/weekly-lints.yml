@@ -39,7 +39,7 @@ jobs:
 
         # Generate report for Zulip
         bash scripts/weekly_lint_report.sh "${lean_outfile}" \
-          "${{ github.sha }}" "${{ github.repository }}" "${{ github.run_id }}" >> "${GITHUB_OUTPUT}"
+          "${{ github.sha }}" "${{ github.repository }}" "${{ github.run_id }}" > "${GITHUB_OUTPUT}"
 
     - name: Post output to Zulip
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5

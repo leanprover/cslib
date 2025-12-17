@@ -87,4 +87,4 @@ else
     fi
 fi
 
-echo "${delimiter}"
+echo "${delimiter}" >> "$GITHUB_OUTPUT"
