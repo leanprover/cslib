@@ -8,6 +8,7 @@ import Cslib.Computability.Automata.DA.Buchi
 import Cslib.Computability.Automata.NA.BuchiEquiv
 import Cslib.Computability.Automata.NA.BuchiInter
 import Cslib.Computability.Automata.NA.Concat
+import Cslib.Computability.Automata.NA.Loop
 import Cslib.Computability.Automata.NA.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
@@ -176,6 +177,17 @@ theorem IsRegular.hmul {l : Language Symbol} {p : ωLanguage Symbol}
   let acc : Set State := inr '' acc2
   use State, inferInstance, ⟨na, acc⟩
   rw [NA.Buchi.concat_language_eq]
+
+/-- The ω-power of a regular language is an ω-regular language. -/
+@[simp]
+theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
+    (h : l.IsRegular) : (l^ω).IsRegular := by
+  obtain ⟨State, h_fin, na, rfl⟩ := Language.IsRegular.iff_nfa.mp h
+  let State' := Unit ⊕ State
+  let na' := NA.loop na
+  let acc' : Set State' := {inl ()}
+  use State', inferInstance, ⟨na', acc'⟩
+  rw [NA.Buchi.loop_language_eq]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :
