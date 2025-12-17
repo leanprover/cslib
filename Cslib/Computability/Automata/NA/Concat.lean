@@ -22,12 +22,11 @@ by identifying an accepting state of `na1` with an initial state of `na2`. If `n
 empty word, it may also start running `na2` from the beginning. Once it starts running `na2`,
 it cannot go back to `na1`. -/
 def concat (na1 : FinAcc State1 Symbol) (na2 : NA State2 Symbol) : NA (State1 ⊕ State2) Symbol where
-    Tr s x t := match s with
-      | inl s1 =>
-        ∃ t1, na1.Tr s1 x t1 ∧
-          ( inl t1 = t ∨ (t1 ∈ na1.accept ∧ ∃ t2 ∈ na2.start, inr t2 = t) )
-      | inr s2 =>
-        ∃ t2, na2.Tr s2 x t2 ∧ inr t2 = t
+    Tr s x t := match s, t with
+      | inl s1, inl t1 => na1.Tr s1 x t1
+      | inl s1, inr t2 => ∃ t1, na1.Tr s1 x t1 ∧ t1 ∈ na1.accept ∧ t2 ∈ na2.start
+      | inr s2, inr t2 => na2.Tr s2 x t2
+      | inr _, inl _ => False
     start := inl '' na1.start ∪ if [] ∈ language na1 then inr '' na2.start else ∅
 
 variable {na1 : FinAcc State1 Symbol} {na2 : NA State2 Symbol}
