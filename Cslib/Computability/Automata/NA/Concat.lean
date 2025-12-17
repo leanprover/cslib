@@ -37,49 +37,38 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
     (hc : (concat na1 na2).Run xs ss) (hr : ∃ k, (ss k).isRight) :
     ∃ n, xs.take n ∈ language na1 ∧ ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
   let n := Nat.find hr
-  have h1 (k) (h_k : k < n) : ∃ s1, ss (k) = inl s1 :=
+  have h1 k (h_k : k < n) : ∃ s1, ss k = inl s1 :=
     isLeft_iff.mp <| not_isRight.mp <| Nat.find_min hr h_k
-  have h2 (k) : ∃ s2, ss (n + k) = inr s2 := by
-    induction k
-    case zero => exact isRight_iff.mp <| Nat.find_spec hr
-    case succ k h_ind =>
-      obtain ⟨s2, _⟩ := h_ind
-      have := concat.eq_1 na1 na2 ▸ hc.right (n + k)
-      grind
   refine ⟨n, ?_, ?_⟩
   · by_cases h_n : n = 0
     · grind [concat]
     · choose ss1 h_ss1 using h1
       have h_0 : 0 < n := by grind
       have h_init : ss1 0 h_0 ∈ na1.start := by grind [concat]
-      have h_mtr (k) (h_k : k < n) : na1.MTr (ss1 0 h_0) (xs.take k) (ss1 k h_k) := by
+      have h_mtr k (h_k : k < n := by grind) : na1.MTr (ss1 0 h_0) (xs.take k) (ss1 k h_k) := by
         induction k
         case zero => grind
         case succ k h_ind =>
-          have h_tr : na1.Tr (ss1 k (by grind)) (xs k) (ss1 (k + 1) (by grind)) := by
-            have := concat.eq_1 na1 na2 ▸ hc.right k
-            grind
-          have := LTS.MTr.stepR na1.toLTS (h_ind (by grind)) h_tr
-          grind
-      obtain ⟨t1, _⟩ : ∃ t1, t1 ∈ na1.accept ∧ na1.MTr (ss1 0 h_0) (xs.take n) t1 := by
-        obtain ⟨t1, h_tr, _⟩ :
-            ∃ t1, na1.Tr (ss1 (n - 1) (by grind)) (xs (n - 1)) t1 ∧ t1 ∈ na1.accept := by
-          have := concat.eq_1 na1 na2 ▸ hc.right (n - 1)
-          grind
-        use t1, by grind
-        have := LTS.MTr.stepR na1.toLTS (h_mtr (n - 1) (by grind)) h_tr
-        grind
+          have h_tr : na1.Tr (ss1 k (by grind)) (xs k) (ss1 (k + 1) (by grind)) :=
+            by grind [concat, hc.trans k]
+          grind [LTS.MTr.stepR na1.toLTS (h_ind (by grind)) h_tr]
+      obtain ⟨t1, h_tr, _⟩ :
+          ∃ t1, na1.Tr (ss1 (n - 1) (by grind)) (xs (n - 1)) t1 ∧ t1 ∈ na1.accept := by
+        grind only [concat, hc.trans (n - 1), Nat.find_spec, take_zero, isRight_inl]
       use ss1 0 h_0, h_init, t1
-  · choose ss2 h_ss2 using h2
-    refine ⟨ss2, ⟨?_, ?_⟩, by grind⟩
+      grind [LTS.MTr.stepR na1.toLTS (h_mtr (n - 1)) h_tr]
+  · have h2 k : ∃ s2, ss (n + k) = inr s2 := by
+      induction k
+      case zero => grind [isRight_iff]
+      case succ k h_ind => grind [concat, hc.trans (n + k)]
+    choose ss2 h_ss2 using h2
+    refine ⟨ss2, Run.mk ?_ ?_, by grind⟩
     · by_cases h_n : n = 0
       · grind [concat]
       · obtain ⟨s1, _⟩ := h1 (n - 1) (by grind)
-        have := concat.eq_1 na1 na2 ▸ hc.right (n - 1)
-        grind
+        grind [concat, hc.trans (n - 1)]
     · intro k
-      have := concat.eq_1 na1 na2 ▸ hc.right (n + k)
-      grind
+      grind [concat, hc.trans (n + k)]
 
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
