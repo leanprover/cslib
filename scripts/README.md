@@ -49,3 +49,9 @@ to learn about it as well!
 **Linting**
 - `weekly_lint_report.sh`
   Generates a summary of the weekly lint run for posting to Zulip. Called by the `weekly-lints.yml` workflow.
+  The output format matches Mathlib's weekly linting reports, with tables showing grouped message counts.
+
+  **Usage:**
+  ```bash
+  bash scripts/weekly_lint_report.sh <output_file> <sha> <repo> <run_id>
+  ```
