@@ -139,9 +139,7 @@ theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : Lis
   case stepL t1 μ t2 μs t3 h_tr h_mtr h_ind =>
     obtain ⟨ss', _, _, _, _⟩ := h_ind
     use [t1] ++ ss'
-    refine ⟨by grind, by grind, by grind, ?_⟩
-    intro k
-    by_cases k = 0 <;> grind
+    grind
 
 /-- A state `s1` can reach a state `s2` if there exists a multi-step transition from
 `s1` to `s2`. -/

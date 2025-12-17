@@ -79,25 +79,11 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
     obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
-    have h_ss1 (k) (_ : k < xs1.length) : ss k = inl (ss1[k]) := by
-      simp (disch := grind) [ss, get_append_left]
-    have h_ss2 (k) (_ : xs1.length ≤ k) : ss k = inr (ss2 (k - xs1.length)) := by
-      simp (disch := grind) [ss, get_append_right']
-    have h_ss2' (k) (_ : k = xs1.length) : ss k = inr (ss2 0) := by
-      simp (disch := grind) [ss, get_append_right']
-    have h_xs1 (k) (_ : k < xs1.length) : (xs1 ++ω xs2) k = xs1[k] := by
-      simp (disch := grind) [get_append_left]
-    have h_xs2 (k) (_ : xs1.length ≤ k) : (xs1 ++ω xs2) k = xs2 (k - xs1.length) := by
-      simp (disch := grind) [get_append_right']
-    refine ⟨ss, Run.mk ?_ ?_, by simp (disch := grind) [ss, drop_append_of_le_length]⟩
-    · suffices ss 0 = inl ss1[0] by grind [concat]
-      simp (disch := grind) [ss, get_append_left]
-    · intro k
-      by_cases h_k : k < xs1.length
-      · by_cases h_k' : k = xs1.length - 1
-        · grind [concat]
-        · grind [concat]
-      · grind [concat, show k + 1 - xs1.length = k - xs1.length + 1 by grind]
+    refine ⟨ss, Run.mk ?_ ?_, ?_⟩
+    · grind [concat, get_append_left]
+    · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
+      grind [concat, get_append_right', get_append_left]
+    · grind [drop_append_of_le_length]
 
 namespace Buchi
 
@@ -112,14 +98,11 @@ theorem concat_language_eq {acc2 : Set State2} :
   ext xs
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
-    have h_ex2 : ∃ k, (ss k).isRight := by
-      obtain ⟨k, h_k⟩ := Frequently.exists h_acc
-      grind
+    have h_ex2 : ∃ k, (ss k).isRight := by grind [Frequently.exists h_acc]
     obtain ⟨n, h_acc1, ss2, h_run2, h_map2⟩ := concat_run_proj h_run h_ex2
     use xs.take n, h_acc1, xs.drop n, ?_, by simp
     use ss2, h_run2
-    have := (drop_frequently_iff_frequently n).mpr h_acc
-    grind
+    grind [(drop_frequently_iff_frequently n).mpr h_acc]
   · rintro ⟨xs1, h_xs1, xs2, ⟨ss2, h_run2, h_acc2⟩, rfl⟩
     obtain ⟨ss, h_run, h_map⟩ := concat_run_exists h_xs1 h_run2
     use ss, h_run

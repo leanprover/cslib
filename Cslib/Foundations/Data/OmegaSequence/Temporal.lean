@@ -92,8 +92,7 @@ theorem drop_frequently_iff_frequently {p : Set α} (n : ℕ) :
   simp only [frequently_atTop, get_drop]
   constructor
   · intro h m
-    have := h m
-    grind
+    grind [h m]
   · intro h m
     obtain ⟨k, _⟩ := h (m + n)
     use k - n
