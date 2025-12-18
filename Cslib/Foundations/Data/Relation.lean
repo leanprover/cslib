@@ -182,6 +182,11 @@ abbrev StronglyConfluent (r : α → α → Prop) :=
 def Commute (r₁ r₂ : α → α → Prop) := ∀ {X Y₁ Y₂},
   ReflTransGen r₁ X Y₁ → ReflTransGen r₂ X Y₂ → ∃ Z, ReflTransGen r₂ Y₁ Z ∧ ReflTransGen r₁ Y₂ Z
 
+theorem Commute.symmetric : Symmetric (@Commute α) := by
+  intro r₁ r₂ h X Y₁ Y₂ X_Y₁ X_Y₂
+  obtain ⟨_, _, _⟩ := h X_Y₂ X_Y₁
+  grind
+
 theorem Commute.toConfluent : Commute r r = Confluent r := rfl
 
 /-- Generalization of `StronglyConfluent` to two relations. -/
@@ -218,10 +223,33 @@ theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁
 theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
   StronglyCommute.toCommute h
 
+variable {r₁ r₂ : α → α → Prop}
+
 abbrev Union (r₁ r₂ : α → α → Prop) (a₁ a₂) := r₁ a₁ a₂ ∨ r₂ a₁ a₂
 
+instance : _root_.Union (α → α → Prop) :=
+  ⟨Relation.Union⟩
+
+namespace Union
+
+@[grind =>]
+theorem extend_inl (r₁_ab : r₁ a b) : (r₁ ∪ r₂) a b :=
+  Or.inl r₁_ab
+
+@[grind =>]
+theorem extend_inr (r₂_ab : r₂ a b) : (r₁ ∪ r₂) a b :=
+  Or.inr r₂_ab
+
+theorem extend_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
+  induction r₁_ab <;> grind
+
+theorem extend_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
+  induction r₂_ab <;> grind
+
+end Union
+
 proof_wanted union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
-    Confluent (Union r₁ r₂)
+    Confluent (r₁ ∪ r₂)
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
