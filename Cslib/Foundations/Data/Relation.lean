@@ -156,7 +156,7 @@ theorem Confluent.toLocallyConfluent (h : Confluent r) : LocallyConfluent r := b
   exact h (.single AB) (.single AC)
 
 /-- Newman's lemma: a terminating, locally confluent relation is confluent. -/
-theorem LocallyConfluent.Terminating_toConfluent (wf : Terminating r) (h : LocallyConfluent r) :
+theorem LocallyConfluent.Terminating_toConfluent (h : LocallyConfluent r) (wf : Terminating r) :
     Confluent r := by
   intro X
   induction X using wf.induction with
