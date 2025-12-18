@@ -169,7 +169,7 @@ theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage 
 @[simp]
 theorem IsRegular.hmul {l : Language Symbol} {p : ωLanguage Symbol}
     (h1 : l.IsRegular) (h2 : p.IsRegular) : (l * p).IsRegular := by
-  obtain ⟨State1, h_fin1, ⟨na1, acc1⟩, rfl⟩ := Language.IsRegular.iff_cslib_nfa.mp h1
+  obtain ⟨State1, h_fin1, ⟨na1, acc1⟩, rfl⟩ := Language.IsRegular.iff_nfa.mp h1
   obtain ⟨State2, h_fin1, ⟨na2, acc2⟩, rfl⟩ := h2
   let State := State1 ⊕ State2
   let na := NA.concat ⟨na1, acc1⟩ na2
