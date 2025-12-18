@@ -196,14 +196,32 @@ def DiamondCommute (r₁ r₂ : α → α → Prop) :=
 
 theorem DiamondCommute.toDiamond : DiamondCommute r r = Diamond r := by rfl
 
-proof_wanted StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂
+theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGen r₁ x y)
+    (xz : r₂ x z) : ∃ w, ReflGen r₂ y w ∧ ReflTransGen r₁ z w := by
+  induction xy with
+  | refl => exact ⟨z, .single xz, .refl⟩
+  | @tail b c _ bc ih =>
+    obtain ⟨w, bw, zw⟩ := ih
+    cases bw with
+    | refl => exact ⟨c, .refl, zw.trans (.single bc)⟩
+    | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
-proof_wanted StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r
+theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
+  intro X Y₁ Y₂ X_Y₁ X_Y₂
+  induction X_Y₂ with
+  | refl => exists Y₁
+  | @tail A B XA AB ih =>
+    obtain ⟨Z, Y₁_Z, Y₂_Z⟩ := ih
+    obtain ⟨W, ZW, BW⟩ := h.extend Y₂_Z AB
+    exact ⟨W, Y₁_Z.trans ZW.to_reflTransGen, BW⟩
+
+theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
+  StronglyCommute.toCommute h
 
 abbrev Union (r₁ r₂ : α → α → Prop) (a₁ a₂) := r₁ a₁ a₂ ∨ r₂ a₁ a₂
 
-proof_wanted union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
-    Confluent (Union r₁ r₂)
+theorem union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
+    Confluent (Union r₁ r₂) := sorry
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
