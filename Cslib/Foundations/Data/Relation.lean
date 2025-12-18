@@ -145,6 +145,7 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
   grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
 
+/-- A relation is terminating when the inverse of its transitive closure is well-founded. -/
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => TransGen r b a)
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
@@ -175,6 +176,7 @@ theorem LocallyConfluent.Terminating_toConfluent (h : LocallyConfluent r) (wf : 
         have ⟨W, VW, ZW⟩ : Join (ReflTransGen r) V Z := by grind [ReflTransGen.trans]
         exact ⟨W, .trans YV VW, ZW⟩
 
+/-- A relation is strongly confluent when single steps are reflexive- and multi-joinable. -/
 abbrev StronglyConfluent (r : α → α → Prop) :=
   ∀ {X Y₁ Y₂}, r X Y₁ → r X Y₂ → ∃ Z, ReflGen r Y₁ Z ∧ ReflTransGen r Y₂ Z
 
@@ -225,6 +227,7 @@ theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
 
 variable {r₁ r₂ : α → α → Prop}
 
+/-- A union of relations is their disjunction. -/
 abbrev Union (r₁ r₂ : α → α → Prop) (a₁ a₂) := r₁ a₁ a₂ ∨ r₂ a₁ a₂
 
 instance : _root_.Union (α → α → Prop) :=
