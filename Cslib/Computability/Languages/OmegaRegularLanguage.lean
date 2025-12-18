@@ -68,7 +68,7 @@ theorem IsRegular.not_da_buchi :
 @[simp]
 theorem IsRegular.regular_omegaLim {l : Language Symbol}
     (h : l.IsRegular) : (l↗ω).IsRegular := by
-  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_cslib_dfa.mp h
+  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_dfa.mp h
   grind [IsRegular.of_da_buchi, =_ DA.buchi_eq_finAcc_omegaLim]
 
 /-- The empty language is ω-regular. -/
