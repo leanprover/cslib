@@ -232,24 +232,25 @@ instance : _root_.Union (α → α → Prop) :=
 
 namespace Union
 
-@[grind =>]
+@[scoped grind =>]
 theorem extend_inl (r₁_ab : r₁ a b) : (r₁ ∪ r₂) a b :=
   Or.inl r₁_ab
 
-@[grind =>]
+@[scoped grind =>]
 theorem extend_inr (r₂_ab : r₂ a b) : (r₁ ∪ r₂) a b :=
   Or.inr r₂_ab
 
-@[grind =>]
+@[scoped grind =>]
 theorem extend_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
   induction r₁_ab <;> grind
 
-@[grind =>]
+@[scoped grind =>]
 theorem extend_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
   induction r₂_ab <;> grind
 
 end Union
 
+open scoped Union in
 lemma Commute.union_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ∪ r₂) r₃ := by
   intro x y z xy xz
   induction xy with
