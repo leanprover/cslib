@@ -240,16 +240,40 @@ theorem extend_inl (r₁_ab : r₁ a b) : (r₁ ∪ r₂) a b :=
 theorem extend_inr (r₂_ab : r₂ a b) : (r₁ ∪ r₂) a b :=
   Or.inr r₂_ab
 
+@[grind =>]
 theorem extend_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
   induction r₁_ab <;> grind
 
+@[grind =>]
 theorem extend_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
   induction r₂_ab <;> grind
 
 end Union
 
-proof_wanted union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
-    Confluent (r₁ ∪ r₂)
+lemma Commute.union_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ∪ r₂) r₃ := by
+  intro x y z xy xz
+  induction xy with
+  | refl => grind
+  | @tail b c _ bc ih =>
+    have ⟨w, bw, _⟩ := ih
+    cases bc with
+    | inl bc =>
+      obtain ⟨_, _, _⟩ := c₁ (.single bc) bw
+      grind [ReflTransGen.trans]
+    | inr bc =>
+      obtain ⟨_, _, _⟩ := c₂ (.single bc) bw
+      grind [ReflTransGen.trans]
+
+theorem Commute.union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
+    Confluent (r₁ ∪ r₂) := by
+  intro a b c ab ac
+  induction ab generalizing c with
+  | refl => exists c
+  | @tail x y ax xy ih =>
+    have h_comm : Commute (r₁ ∪ r₂) (r₁ ∪ r₂) := by apply_rules [union_left, symmetric]
+    obtain ⟨z, xz, cz⟩ := ih ac
+    obtain ⟨w, yw, zw⟩ := h_comm (.single xy) xz
+    exact ⟨w, yw, cz.trans zw⟩
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
