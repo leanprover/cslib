@@ -194,7 +194,7 @@ def StronglyCommute (r₁ r₂ : α → α → Prop) :=
 
 proof_wanted StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂
 
-def CommuteDiamond (r₁ r₂ : α → α → Prop) :=
+def DiamondCommute (r₁ r₂ : α → α → Prop) :=
   ∀ {X Y₁ Y₂}, r₁ X Y₁ → r₂ X Y₂ → ∃ Z, r₂ Y₁ Z ∧ r₁ Y₂ Z
 
 abbrev Union (r₁ r₂ : α → α → Prop) := fun a₁ a₂ ↦ r₁ a₁ a₂ ∨ r₂ a₁ a₂
