@@ -145,4 +145,34 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
   grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
 
+abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => TransGen r b a)
+
+/-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
+abbrev LocallyConfluent (r : α → α → Prop) :=
+  ∀ {A B C : α}, r A B → r A C → Join (ReflTransGen r) B C
+
+theorem Confluent.toLocallyConfluent (h : Confluent r) : LocallyConfluent r := by
+  intro _ _ _ AB AC
+  exact h (.single AB) (.single AC)
+
+/-- Newman's lemma: a terminating, locally confluent relation is confluent. -/
+theorem LocallyConfluent.Terminating_toConfluent (wf : Terminating r) (h : LocallyConfluent r) :
+    Confluent r := by
+  intro X
+  induction X using wf.induction with
+  | h X ih =>
+    intro Y Z XY XZ
+    cases XY.cases_head with
+    | inl => exists Z; grind
+    | inr h =>
+      obtain ⟨Y₁, X_Y₁, Y₁_Y⟩ := h
+      cases XZ.cases_head with
+      | inl => exists Y; grind
+      | inr h =>
+        obtain ⟨Z₁, X_Z₁, Z₁_Z⟩ := h
+        have ⟨U, Z₁_U, Y₁_U⟩ := h X_Z₁ X_Y₁
+        have ⟨V, UV, YV⟩ : Join (ReflTransGen r) U Y := by grind
+        have ⟨W, VW, ZW⟩ : Join (ReflTransGen r) V Z := by grind [ReflTransGen.trans]
+        exact ⟨W, .trans YV VW, ZW⟩
+
 end Relation
