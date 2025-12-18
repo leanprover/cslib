@@ -175,4 +175,15 @@ theorem LocallyConfluent.Terminating_toConfluent (h : LocallyConfluent r) (wf : 
         have ⟨W, VW, ZW⟩ : Join (ReflTransGen r) V Z := by grind [ReflTransGen.trans]
         exact ⟨W, .trans YV VW, ZW⟩
 
+abbrev StronglyConfluent (r : α → α → Prop) :=
+  ∀ {X Y₁ Y₂}, r X Y₁ → r X Y₂ → ∃ Z, ReflTransGen r Y₁ Z ∧ ReflGen r Y₂ Z
+
+proof_wanted StronglyConfluent.toSemiConfluent (h : StronglyConfluent r) : SemiConfluent r
+
+/-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
+theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
+    ReflTransGen r₁ = ReflTransGen r₂ := by
+  ext
+  exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
+
 end Relation
