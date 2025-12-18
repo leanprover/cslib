@@ -176,7 +176,7 @@ theorem LocallyConfluent.Terminating_toConfluent (h : LocallyConfluent r) (wf : 
         exact ⟨W, .trans YV VW, ZW⟩
 
 abbrev StronglyConfluent (r : α → α → Prop) :=
-  ∀ {X Y₁ Y₂}, r X Y₁ → r X Y₂ → ∃ Z, ReflTransGen r Y₁ Z ∧ ReflGen r Y₂ Z
+  ∀ {X Y₁ Y₂}, r X Y₁ → r X Y₂ → ∃ Z, ReflGen r Y₂ Z ∧ ReflTransGen r Y₁ Z
 
 proof_wanted StronglyConfluent.toSemiConfluent (h : StronglyConfluent r) : SemiConfluent r
 
@@ -185,5 +185,21 @@ theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelat
     ReflTransGen r₁ = ReflTransGen r₂ := by
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
+
+def Commute (r₁ r₂ : α → α → Prop) := ∀ {X Y₁ Y₂},
+  ReflTransGen r₁ X Y₁ → ReflTransGen r₂ X Y₂ → ∃ Z, ReflTransGen r₂ Y₁ Z ∧ ReflTransGen r₁ Y₂ Z
+
+def StronglyCommute (r₁ r₂ : α → α → Prop) :=
+  ∀ {X Y₁ Y₂}, r₁ X Y₁ → r₂ X Y₂ → ∃ Z, ReflGen r₂ Y₁ Z ∧ ReflTransGen r₁ Y₂ Z
+
+proof_wanted StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂
+
+def CommuteDiamond (r₁ r₂ : α → α → Prop) :=
+  ∀ {X Y₁ Y₂}, r₁ X Y₁ → r₂ X Y₂ → ∃ Z, r₂ Y₁ Z ∧ r₁ Y₂ Z
+
+abbrev Union (r₁ r₂ : α → α → Prop) := fun a₁ a₂ ↦ r₁ a₁ a₂ ∨ r₂ a₁ a₂
+
+proof_wanted union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
+    Confluent (Union r₁ r₂)
 
 end Relation
