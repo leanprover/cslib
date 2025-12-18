@@ -220,8 +220,8 @@ theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
 
 abbrev Union (r₁ r₂ : α → α → Prop) (a₁ a₂) := r₁ a₁ a₂ ∨ r₂ a₁ a₂
 
-theorem union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
-    Confluent (Union r₁ r₂) := sorry
+proof_wanted union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
+    Confluent (Union r₁ r₂)
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
