@@ -7,13 +7,17 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 import Cslib.Init
 import Mathlib.Logic.Relation
 import Mathlib.Data.List.TFAE
+import Mathlib.Order.WellFounded
 import Mathlib.Order.BooleanAlgebra.Basic
+
+variable {α : Type*} {r : α → α → Prop}
+
+theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
+  grind [WellFounded.wellFounded_iff_has_min, Relation.TransGen]
 
 /-! # Relations -/
 
 namespace Relation
-
-variable {α : Type*} {r : α → α → Prop}
 
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 
@@ -147,7 +151,20 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
 
 /-- A relation is terminating when the inverse of its transitive closure is well-founded. -/
-abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => TransGen r b a)
+abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
+
+theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
+  simp only [Terminating]
+  convert WellFounded.transGen ht using 1
+  grind [transGen_swap, WellFounded.transGen]
+
+theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
+  simp only [Terminating]
+  convert @WellFounded.ofTransGen α (Function.swap r) using 2
+  grind [transGen_swap]
+
+theorem Terminating.iff_transGen : Terminating r ↔ Terminating (TransGen r) :=
+  ⟨toTransGen, ofTransGen⟩
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=
