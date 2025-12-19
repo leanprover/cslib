@@ -163,8 +163,8 @@ theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := b
   convert @WellFounded.ofTransGen α (Function.swap r) using 2
   grind [transGen_swap]
 
-theorem Terminating.iff_transGen : Terminating r ↔ Terminating (TransGen r) :=
-  ⟨toTransGen, ofTransGen⟩
+theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r :=
+  ⟨ofTransGen, toTransGen⟩
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=
