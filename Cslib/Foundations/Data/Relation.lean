@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 import Cslib.Init
 import Mathlib.Logic.Relation
 import Mathlib.Data.List.TFAE
+import Mathlib.Order.BooleanAlgebra.Basic
 
 /-! # Relations -/
 
@@ -227,34 +228,23 @@ theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
 
 variable {r₁ r₂ : α → α → Prop}
 
-/-- A union of relations is their disjunction. -/
-abbrev Union (r₁ r₂ : α → α → Prop) (a₁ a₂) := r₁ a₁ a₂ ∨ r₂ a₁ a₂
-
-instance : _root_.Union (α → α → Prop) :=
-  ⟨Relation.Union⟩
-
-namespace Union
-
 @[scoped grind =>]
-theorem extend_inl (r₁_ab : r₁ a b) : (r₁ ∪ r₂) a b :=
+theorem extend_inl (r₁_ab : r₁ a b) : (r₁ ⊔ r₂) a b :=
   Or.inl r₁_ab
 
 @[scoped grind =>]
-theorem extend_inr (r₂_ab : r₂ a b) : (r₁ ∪ r₂) a b :=
+theorem extend_inr (r₂_ab : r₂ a b) : (r₁ ⊔ r₂) a b :=
   Or.inr r₂_ab
 
 @[scoped grind =>]
-theorem extend_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
+theorem extend_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
   induction r₁_ab <;> grind
 
 @[scoped grind =>]
-theorem extend_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ∪ r₂) a b := by
+theorem extend_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
   induction r₂_ab <;> grind
 
-end Union
-
-open scoped Union in
-lemma Commute.union_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ∪ r₂) r₃ := by
+lemma Commute.union_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ⊔ r₂) r₃ := by
   intro x y z xy xz
   induction xy with
   | refl => grind
@@ -269,12 +259,12 @@ lemma Commute.union_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) :
       grind [ReflTransGen.trans]
 
 theorem Commute.union_Confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
-    Confluent (r₁ ∪ r₂) := by
+    Confluent (r₁ ⊔ r₂) := by
   intro a b c ab ac
   induction ab generalizing c with
   | refl => exists c
   | @tail x y ax xy ih =>
-    have h_comm : Commute (r₁ ∪ r₂) (r₁ ∪ r₂) := by apply_rules [union_left, symmetric]
+    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [union_left, symmetric]
     obtain ⟨z, xz, cz⟩ := ih ac
     obtain ⟨w, yw, zw⟩ := h_comm (.single xy) xz
     exact ⟨w, yw, cz.trans zw⟩
