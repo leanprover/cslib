@@ -127,6 +127,20 @@ theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
 
+/-- For every multi-step transition, there exists a sequence of intermediate states
+which satisfies the single-step transition at every step. -/
+theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
+    (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
+    ss[0] = s1 ∧ ss[μs.length] = s2 ∧ ∀ k, ∀ _ : k < μs.length, lts.Tr ss[k] μs[k] ss[k + 1] := by
+  induction h
+  case refl t =>
+    use [t]
+    grind
+  case stepL t1 μ t2 μs t3 h_tr h_mtr h_ind =>
+    obtain ⟨ss', _, _, _, _⟩ := h_ind
+    use [t1] ++ ss'
+    grind
+
 /-- A state `s1` can reach a state `s2` if there exists a multi-step transition from
 `s1` to `s2`. -/
 @[scoped grind =]
