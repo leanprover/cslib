@@ -32,7 +32,7 @@ attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.t
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
-abbrev Diamond (r : α → α → Prop) := ∀ {A B C : α}, r A B → r A C → Join r B C
+abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
 
 /-- A relation is confluent when its reflexive transitive closure has the diamond property. -/
 abbrev Confluent (r : α → α → Prop) := Diamond (ReflTransGen r)
@@ -47,24 +47,24 @@ abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join
 
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
 lemma Diamond.extend (h : Diamond r) :
-    ReflTransGen r A B → r A C → Join (ReflTransGen r) B C := by
-  intros AB AC
-  induction AB using ReflTransGen.head_induction_on generalizing C
-  case refl => exists C, .single AC
-  case head A'_C' _ ih =>
-    obtain ⟨D, CD, C'_D⟩ := h AC A'_C'
-    obtain ⟨D', B_D', D_D'⟩ := ih C'_D
-    exact ⟨D', B_D', .head CD D_D'⟩
+    ReflTransGen r a b → r a c → Join (ReflTransGen r) b c := by
+  intros ab ac
+  induction ab using ReflTransGen.head_induction_on generalizing c
+  case refl => exists c, .single ac
+  case head a'_c' _ ih =>
+    obtain ⟨d, cd, c'_d⟩ := h ac a'_c'
+    obtain ⟨d', b_d', d_d'⟩ := ih c'_d
+    exact ⟨d', b_d', .head cd d_d'⟩
 
 /-- The diamond property implies confluence. -/
 theorem Diamond.toConfluent (h : Diamond r) : Confluent r := by
-  intros A B C AB BC
-  induction AB using ReflTransGen.head_induction_on generalizing C
-  case refl => exists C
-  case head _ _ A'_C' _ ih =>
-    obtain ⟨D, CD, C'_D⟩ := h.extend BC A'_C'
-    obtain ⟨D', B_D', D_D'⟩ := ih C'_D
-    exact ⟨D', B_D', .trans CD D_D'⟩
+  intros a b c ab bc
+  induction ab using ReflTransGen.head_induction_on generalizing c
+  case refl => exists c
+  case head _ _ a'_c' _ ih =>
+    obtain ⟨d, cd, c'_d⟩ := h.extend bc a'_c'
+    obtain ⟨d', b_d', d_d'⟩ := ih c'_d
+    exact ⟨d', b_d', .trans cd d_d'⟩
 
 theorem Confluent.toChurchRosser (h : Confluent r) : ChurchRosser r := by
   intro x y h_eqv
@@ -151,56 +151,56 @@ abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => TransGen 
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=
-  ∀ {A B C : α}, r A B → r A C → Join (ReflTransGen r) B C
+  ∀ {a b c : α}, r a b → r a c → Join (ReflTransGen r) b c
 
 theorem Confluent.toLocallyConfluent (h : Confluent r) : LocallyConfluent r := by
-  intro _ _ _ AB AC
-  exact h (.single AB) (.single AC)
+  intro _ _ _ ab ac
+  exact h (.single ab) (.single ac)
 
 /-- Newman's lemma: a terminating, locally confluent relation is confluent. -/
 theorem LocallyConfluent.Terminating_toConfluent (hlc : LocallyConfluent r) (ht : Terminating r) :
     Confluent r := by
-  intro X
-  induction X using ht.induction with
-  | h X ih =>
-    intro Y Z XY XZ
-    cases XY.cases_head with
-    | inl => exists Z; grind
+  intro x
+  induction x using ht.induction with
+  | h x ih =>
+    intro y z xy xz
+    cases xy.cases_head with
+    | inl => exists z; grind
     | inr h =>
-      obtain ⟨Y₁, X_Y₁, Y₁_Y⟩ := h
-      cases XZ.cases_head with
-      | inl => exists Y; grind
+      obtain ⟨y₁, x_y₁, y₁_y⟩ := h
+      cases xz.cases_head with
+      | inl => exists y; grind
       | inr h =>
-        obtain ⟨Z₁, X_Z₁, Z₁_Z⟩ := h
-        have ⟨U, Z₁_U, Y₁_U⟩ := hlc X_Z₁ X_Y₁
-        have ⟨V, UV, YV⟩ : Join (ReflTransGen r) U Y := by grind
-        have ⟨W, VW, ZW⟩ : Join (ReflTransGen r) V Z := by grind [ReflTransGen.trans]
-        exact ⟨W, .trans YV VW, ZW⟩
+        obtain ⟨z₁, x_z₁, z₁_z⟩ := h
+        have ⟨u, z₁_u, y₁_u⟩ := hlc x_z₁ x_y₁
+        have ⟨v, uv, yv⟩ : Join (ReflTransGen r) u y := by grind
+        have ⟨w, vw, zw⟩ : Join (ReflTransGen r) v z := by grind [ReflTransGen.trans]
+        exact ⟨w, .trans yv vw, zw⟩
 
 /-- A relation is strongly confluent when single steps are reflexive- and multi-joinable. -/
 abbrev StronglyConfluent (r : α → α → Prop) :=
-  ∀ {X Y₁ Y₂}, r X Y₁ → r X Y₂ → ∃ Z, ReflGen r Y₁ Z ∧ ReflTransGen r Y₂ Z
+  ∀ {x y₁ y₂}, r x y₁ → r x y₂ → ∃ z, ReflGen r y₁ z ∧ ReflTransGen r y₂ z
 
 /-- Generalization of `Confluent` to two relations. -/
-def Commute (r₁ r₂ : α → α → Prop) := ∀ {X Y₁ Y₂},
-  ReflTransGen r₁ X Y₁ → ReflTransGen r₂ X Y₂ → ∃ Z, ReflTransGen r₂ Y₁ Z ∧ ReflTransGen r₁ Y₂ Z
+def Commute (r₁ r₂ : α → α → Prop) := ∀ {x y₁ y₂},
+  ReflTransGen r₁ x y₁ → ReflTransGen r₂ x y₂ → ∃ z, ReflTransGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
 
 theorem Commute.symmetric : Symmetric (@Commute α) := by
-  intro r₁ r₂ h X Y₁ Y₂ X_Y₁ X_Y₂
-  obtain ⟨_, _, _⟩ := h X_Y₂ X_Y₁
+  intro r₁ r₂ h x y₁ y₂ x_y₁ x_y₂
+  obtain ⟨_, _, _⟩ := h x_y₂ x_y₁
   grind
 
 theorem Commute.toConfluent : Commute r r = Confluent r := rfl
 
 /-- Generalization of `StronglyConfluent` to two relations. -/
 def StronglyCommute (r₁ r₂ : α → α → Prop) :=
-  ∀ {X Y₁ Y₂}, r₁ X Y₁ → r₂ X Y₂ → ∃ Z, ReflGen r₂ Y₁ Z ∧ ReflTransGen r₁ Y₂ Z
+  ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, ReflGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
 
 theorem StronglyCommute.toStronglyConfluent : StronglyCommute r r = StronglyConfluent r := rfl
 
 /-- Generalization of `Diamond` to two relations. -/
 def DiamondCommute (r₁ r₂ : α → α → Prop) :=
-  ∀ {X Y₁ Y₂}, r₁ X Y₁ → r₂ X Y₂ → ∃ Z, r₂ Y₁ Z ∧ r₁ Y₂ Z
+  ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, r₂ y₁ z ∧ r₁ y₂ z
 
 theorem DiamondCommute.toDiamond : DiamondCommute r r = Diamond r := by rfl
 
@@ -215,13 +215,13 @@ theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGe
     | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
 theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
-  intro X Y₁ Y₂ X_Y₁ X_Y₂
-  induction X_Y₂ with
-  | refl => exists Y₁
-  | @tail A B XA AB ih =>
-    obtain ⟨Z, Y₁_Z, Y₂_Z⟩ := ih
-    obtain ⟨W, ZW, BW⟩ := h.extend Y₂_Z AB
-    exact ⟨W, Y₁_Z.trans ZW.to_reflTransGen, BW⟩
+  intro x y₁ y₂ x_y₁ x_y₂
+  induction x_y₂ with
+  | refl => exists y₁
+  | @tail a b xa ab ih =>
+    obtain ⟨z, y₁_z, y₂_z⟩ := ih
+    obtain ⟨w, zw, bw⟩ := h.extend y₂_z ab
+    exact ⟨w, y₁_z.trans zw.to_reflTransGen, bw⟩
 
 theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
   StronglyCommute.toCommute h
