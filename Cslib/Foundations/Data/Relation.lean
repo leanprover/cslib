@@ -158,10 +158,10 @@ theorem Confluent.toLocallyConfluent (h : Confluent r) : LocallyConfluent r := b
   exact h (.single AB) (.single AC)
 
 /-- Newman's lemma: a terminating, locally confluent relation is confluent. -/
-theorem LocallyConfluent.Terminating_toConfluent (h : LocallyConfluent r) (wf : Terminating r) :
+theorem LocallyConfluent.Terminating_toConfluent (hlc : LocallyConfluent r) (ht : Terminating r) :
     Confluent r := by
   intro X
-  induction X using wf.induction with
+  induction X using ht.induction with
   | h X ih =>
     intro Y Z XY XZ
     cases XY.cases_head with
@@ -172,7 +172,7 @@ theorem LocallyConfluent.Terminating_toConfluent (h : LocallyConfluent r) (wf : 
       | inl => exists Y; grind
       | inr h =>
         obtain ⟨Z₁, X_Z₁, Z₁_Z⟩ := h
-        have ⟨U, Z₁_U, Y₁_U⟩ := h X_Z₁ X_Y₁
+        have ⟨U, Z₁_U, Y₁_U⟩ := hlc X_Z₁ X_Y₁
         have ⟨V, UV, YV⟩ : Join (ReflTransGen r) U Y := by grind
         have ⟨W, VW, ZW⟩ : Join (ReflTransGen r) V Z := by grind [ReflTransGen.trans]
         exact ⟨W, .trans YV VW, ZW⟩
