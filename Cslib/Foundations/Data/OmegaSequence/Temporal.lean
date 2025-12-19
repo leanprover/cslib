@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Foundations.Data.OmegaSequence.Defs
+import Cslib.Foundations.Data.OmegaSequence.Init
 import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-!
@@ -86,5 +86,16 @@ theorem frequently_leadsTo_frequently {p q : Set α}
   intro k0
   have := h1 k0
   grind
+
+theorem drop_frequently_iff_frequently {p : Set α} (n : ℕ) :
+    (∃ᶠ k in atTop, (xs.drop n) k ∈ p) ↔ (∃ᶠ k in atTop, xs k ∈ p) := by
+  simp only [frequently_atTop, get_drop]
+  constructor
+  · intro h m
+    grind [h m]
+  · intro h m
+    obtain ⟨k, _⟩ := h (m + n)
+    use k - n
+    grind
 
 end Cslib.ωSequence
