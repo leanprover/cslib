@@ -228,19 +228,19 @@ theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
 
 variable {r₁ r₂ : α → α → Prop}
 
-@[scoped grind =>]
+@[scoped grind <=]
 theorem extend_inl (r₁_ab : r₁ a b) : (r₁ ⊔ r₂) a b :=
   Or.inl r₁_ab
 
-@[scoped grind =>]
+@[scoped grind <=]
 theorem extend_inr (r₂_ab : r₂ a b) : (r₁ ⊔ r₂) a b :=
   Or.inr r₂_ab
 
-@[scoped grind =>]
+@[scoped grind <=]
 theorem extend_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
   induction r₁_ab <;> grind
 
-@[scoped grind =>]
+@[scoped grind <=]
 theorem extend_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
   induction r₂_ab <;> grind
 
