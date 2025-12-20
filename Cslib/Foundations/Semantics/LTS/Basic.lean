@@ -172,9 +172,13 @@ This section treats infinite executions as ω-sequences of transitions.
 -/
 
 /-- Definition of an infinite execution, or ω-sequence of transitions. -/
-@[scoped grind =]
-def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence Label) : Prop :=
-  ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))
+@[scoped grind]
+def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence Label) :
+    Prop := ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))
+
+@[scoped grind ⇒]
+theorem LTS.ωTr.mk {lts : LTS State Label}
+    (h : ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))) : lts.ωTr ss μs := h
 
 open scoped ωSequence in
 /-- Any finite execution extracted from an infinite execution is valid. -/

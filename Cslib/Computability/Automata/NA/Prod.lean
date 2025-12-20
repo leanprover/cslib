@@ -11,7 +11,6 @@ import Cslib.Computability.Automata.NA.Basic
 namespace Cslib.Automata.NA
 
 open Set List Cslib.ωSequence
-open scoped Run
 
 variable {Symbol I : Type*} {State : I → Type*}
 
@@ -31,12 +30,12 @@ theorem iProd_run_iff {na : (i : I) → NA (State i) Symbol}
   constructor
   · rintro ⟨h_start, h_trans⟩
     simp only [mem_iInter] at h_start
-    grind
+    grind [NA.Run, LTS.ωTr]
   · intro h
     constructor
     · simp only [mem_iInter]
-      grind
+      grind [NA.Run, LTS.ωTr]
     · intro n i
-      exact (h i).right n
+      exact (h i).trans n
 
 end Cslib.Automata.NA

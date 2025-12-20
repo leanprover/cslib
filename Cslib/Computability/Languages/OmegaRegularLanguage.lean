@@ -96,7 +96,7 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
   simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
     atTop_neBot, and_true, mem_top, iff_true]
   use const ()
-  grind
+  grind [NA.Run, LTS.ωTr]
 
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]

@@ -12,7 +12,6 @@ import Cslib.Foundations.Data.OmegaSequence.Temporal
 namespace Cslib.Automata.NA
 
 open Sum ωSequence Acceptor
-open scoped Run LTS
 
 variable {Symbol State1 State2 : Type*}
 
@@ -41,12 +40,12 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
     isLeft_iff.mp <| not_isRight.mp <| Nat.find_min hr h_k
   refine ⟨n, ?_, ?_⟩
   · by_cases h_n : n = 0
-    · grind [concat]
+    · grind [concat, Run]
     · choose ss1 h_ss1 using @h1
-      have h_init : ss1 0 ∈ na1.start := by grind [concat]
+      have h_init : ss1 0 ∈ na1.start := by grind [concat, Run]
       have h_mtr k (h_k : k < n := by grind) : na1.MTr (ss1 0) (xs.take k) (ss1 k h_k) := by
         induction k
-        case zero => grind
+        case zero => grind [LTS.ωTr, LTS.MTr]
         case succ k h_ind =>
           have h_tr : na1.Tr (ss1 k) (xs k) (ss1 (k + 1)) := by grind [concat, hc.trans k]
           grind [LTS.MTr.stepR na1.toLTS (h_ind ?_) h_tr]
@@ -62,7 +61,7 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
     choose ss2 h_ss2 using h2
     refine ⟨ss2, Run.mk ?_ ?_, by grind⟩
     · by_cases h_n : n = 0
-      · grind [concat]
+      · grind [concat, Run]
       · obtain ⟨s1, _⟩ := h1 (n - 1)
         grind [concat, hc.trans (n - 1)]
     · intro k
@@ -75,14 +74,15 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
   by_cases h_xs1 : xs1.length = 0
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
-    refine ⟨ss2.map inr, by grind [concat], by simp⟩
+    refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.ωTr], by simp⟩
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
     obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
     · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
-      grind [concat, get_append_right', get_append_left]
+      simp only [concat]
+      grind [LTS.ωTr, Run, concat, get_append_right', get_append_left]
     · grind [drop_append_of_le_length]
 
 namespace Buchi
