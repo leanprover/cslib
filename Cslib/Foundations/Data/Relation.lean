@@ -15,7 +15,13 @@ variable {α : Type*} {r : α → α → Prop}
 theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
   grind [WellFounded.wellFounded_iff_has_min, Relation.TransGen]
 
-/-! # Relations -/
+/-! # Relations 
+
+## References
+
+* [*Term Rewriting and All That*][Baader1998]
+
+-/
 
 namespace Relation
 
@@ -150,7 +156,8 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
   grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
 
-/-- A relation is terminating when the inverse of its transitive closure is well-founded. -/
+/-- A relation is terminating when the inverse of its transitive closure is well-founded.
+  Note that this is also called Noetherian or strongly normalizing in the literature. -/
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
 theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
