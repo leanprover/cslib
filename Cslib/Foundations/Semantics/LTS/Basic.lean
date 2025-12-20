@@ -8,6 +8,7 @@ import Cslib.Init
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Stream.Defs
 import Mathlib.Order.ConditionallyCompleteLattice.Basic
+import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Labelled Transition System (LTS)
@@ -21,7 +22,7 @@ languages.
 - `LTS` is a structure for labelled transition systems, consisting of a labelled transition
 relation `Tr` between states. We follow the style and conventions in [Sangiorgi2011].
 
-- `LTS.MTr` extends the transition relation of any LTS to a multi-step transition relation,
+- `LTS.MTr` extends the transition relation of any LTS to a multistep transition relation,
 formalising the inference system and admissible rules for such relations in [Montesi2023].
 
 - Definitions for all the common classes of LTSs: image-finite, finitely branching, finite-state,
@@ -29,7 +30,7 @@ finite, and deterministic.
 
 ## Main statements
 
-- A series of results on `LTS.MTr` that allow for obtaining and composing multi-step transitions in
+- A series of results on `LTS.MTr` that allow for obtaining and composing multistep transitions in
 different ways.
 
 - `LTS.deterministic_imageFinite`: every deterministic LTS is also image-finite.
@@ -59,12 +60,15 @@ structure LTS (State : Type u) (Label : Type v) where
 
 section MultiStep
 
-/-! ## Multi-step transitions -/
+/-! ## Multistep transitions with finite traces
+
+This section treats executions with a finite number of steps.
+-/
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 
 /--
-Definition of a multi-step transition.
+Definition of a multistep transition.
 
 (Implementation note: compared to [Montesi2023], we choose stepL instead of stepR as fundamental
 rule. This makes working with lists of labels more convenient, because we follow the same
@@ -77,7 +81,7 @@ inductive LTS.MTr (lts : LTS State Label) : State → List Label → State → P
     lts.Tr s1 μ s2 → lts.MTr s2 μs s3 →
     lts.MTr s1 (μ :: μs) s3
 
-/-- Any transition is also a multi-step transition. -/
+/-- Any transition is also a multistep transition. -/
 @[scoped grind →]
 theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   lts.Tr s1 μ s2 → lts.MTr s1 [μ] s2 := by
@@ -86,7 +90,7 @@ theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   · exact h
   · apply LTS.MTr.refl
 
-/-- Any multi-step transition can be extended by adding a transition. -/
+/-- Any multistep transition can be extended by adding a transition. -/
 @[scoped grind <=]
 theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
@@ -98,7 +102,7 @@ theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} 
     · exact h1'
     · apply ih h2
 
-/-- Multi-step transitions can be composed. -/
+/-- Multistep transitions can be composed. -/
 @[scoped grind <=]
 theorem LTS.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List Label} {s3 : State} :
   lts.MTr s1 μs1 s2 → lts.MTr s2 μs2 s3 →
@@ -111,7 +115,7 @@ theorem LTS.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List 
     · exact h1'
     · apply ih h2
 
-/-- Any 1-sized multi-step transition implies a transition with the same states and label. -/
+/-- Any 1-sized multistep transition implies a transition with the same states and label. -/
 @[scoped grind .]
 theorem LTS.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 → lts.Tr s1 μ s2 := by
@@ -121,13 +125,13 @@ theorem LTS.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- In any zero-steps multi-step transition, the origin and the derivative are the same. -/
+/-- In any zero-steps multistep transition, the origin and the derivative are the same. -/
 @[scoped grind .]
 theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
 
-/-- For every multi-step transition, there exists a sequence of intermediate states
+/-- For every multistep transition, there exists a sequence of intermediate states
 which satisfies the single-step transition at every step. -/
 theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
     (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
@@ -141,7 +145,7 @@ theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : Lis
     use [t1] ++ ss'
     grind
 
-/-- A state `s1` can reach a state `s2` if there exists a multi-step transition from
+/-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
 @[scoped grind =]
 def LTS.CanReach (s1 s2 : State) : Prop :=
@@ -159,6 +163,36 @@ def LTS.generatedBy (s : State) : LTS {s' : State // lts.CanReach s s'} Label wh
   Tr := fun s1 μ s2 => lts.CanReach s s1 ∧ lts.CanReach s s2 ∧ lts.Tr s1 μ s2
 
 end MultiStep
+
+section ωMultiStep
+
+/-! ## Infinite sequences of transitions
+
+This section treats infinite executions as ω-sequences of transitions.
+-/
+
+/-- Definition of an infinite execution, or ω-sequence of transitions. -/
+@[scoped grind =]
+def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence Label) : Prop :=
+  ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))
+
+open scoped ωSequence in
+/-- Any finite execution extracted from an infinite execution is valid. -/
+theorem LTS.ωTr_mTr {lts : LTS State Label} {n m : ℕ} {hnm : n ≤ m}
+    (h : lts.ωTr ss μs) : lts.MTr (ss n) (μs.extract n m) (ss m) := by
+  by_cases heq : n = m
+  case pos => grind
+  case neg =>
+    cases m
+    case zero => grind
+    case succ m =>
+      rw [show μs.extract n (m + 1) = (μs.extract n m) ++ [μs m] by grind]
+      apply LTS.MTr.comp (s2 := ss m)
+      · apply LTS.ωTr_mTr h
+        grind
+      · grind
+
+end ωMultiStep
 
 section Termination
 /-! ## Definitions about termination -/
@@ -362,7 +396,7 @@ class LTS.FinitelyBranching
 instance LTS.finiteState_finitelyBranching [Finite State] [Finite Label] : lts.FinitelyBranching :=
   {}
 
-/-- An LTS is acyclic if there are no infinite multi-step transitions. -/
+/-- An LTS is acyclic if there are no infinite multistep transitions. -/
 class LTS.Acyclic (lts : LTS State Label) where
   acyclic : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
 
@@ -378,7 +412,7 @@ class LTS.LeftTotal (lts : LTS State Label) where
 
 end Classes
 
-/-! ## Weak transitions (single- and multi-step) -/
+/-! ## Weak transitions (single- and multistep) -/
 
 section Weak
 
@@ -614,7 +648,7 @@ instance (lts : LTS State Label) :
     apply LTS.MTr.single at htr2
     apply LTS.MTr.comp lts htr1 htr2
 
-/-- Transitions can be chained with multi-step transitions. -/
+/-- Transitions can be chained with multistep transitions. -/
 instance (lts : LTS State Label) :
   Trans
     (LTS.Tr.toRelation lts μ)
@@ -625,7 +659,7 @@ instance (lts : LTS State Label) :
     apply LTS.MTr.single at htr1
     apply LTS.MTr.comp lts htr1 hmtr2
 
-/-- Multi-step transitions can be chained with transitions. -/
+/-- Multistep transitions can be chained with transitions. -/
 instance (lts : LTS State Label) :
   Trans
     (LTS.MTr.toRelation lts μs)
@@ -636,7 +670,7 @@ instance (lts : LTS State Label) :
     apply LTS.MTr.single at htr2
     apply LTS.MTr.comp lts hmtr1 htr2
 
-/-- Multi-step transitions can be chained. -/
+/-- Multistep transitions can be chained. -/
 instance (lts : LTS State Label) :
   Trans
     (LTS.MTr.toRelation lts μs1)

@@ -49,7 +49,7 @@ section NARunGrind
 
 variable {na : NA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State}
 
-@[scoped grind <=]
+@[scoped grind ⇐]
 lemma Run.mk (h₁ : ss 0 ∈ na.start) (h₂ : ∀ n, na.Tr (ss n) (xs n) (ss (n + 1))) : Run na xs ss
   := ⟨h₁, h₂⟩
 
@@ -57,7 +57,7 @@ lemma Run.mk (h₁ : ss 0 ∈ na.start) (h₂ : ∀ n, na.Tr (ss n) (xs n) (ss (
 lemma Run.start (run : Run na xs ss) : ss 0 ∈ na.start :=
   run.left
 
-@[scoped grind =>]
+@[scoped grind ⇒]
 lemma Run.trans (run : Run na xs ss) : ∀ n, na.Tr (ss n) (xs n) (ss (n + 1)) :=
   run.right
 

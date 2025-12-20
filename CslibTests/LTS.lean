@@ -83,6 +83,22 @@ example : natDivLTS.Divergent n := by
   · apply LTS.divergent_drop
     exact natInfiniteExecution.infiniteExecution
 
+-- Examples on decidable LTSs
+def natTrF (n : ℕ) (μ : ℕ) (m : ℕ) : Bool :=
+  match n, μ, m with
+  | 1, 2, 2 => true
+  | 1, 1, 1 => true
+  | 2, 1, 1 => true
+  | 2, 2, 2 => true
+  | _, _, _ => false
+
+def natLTSF : LTS ℕ ℕ := ⟨fun n μ m => natTrF n μ m⟩
+
+example : natLTSF.MTr 1 [1, 2] 2 := by
+  calc
+    LTS.Tr.toRelation natLTSF 1 1 1 := by constructor
+    LTS.Tr.toRelation natLTSF 2 1 2 := by constructor
+
 -- check that notation works
 variable {Term : Type} {Label : Type}
 @[lts lts "β", simp]
