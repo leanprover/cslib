@@ -15,7 +15,7 @@ variable {α : Type*} {r : α → α → Prop}
 theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
   grind [WellFounded.wellFounded_iff_has_min, Relation.TransGen]
 
-/-! # Relations 
+/-! # Relations
 
 ## References
 
