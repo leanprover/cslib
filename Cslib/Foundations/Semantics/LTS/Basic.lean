@@ -176,10 +176,6 @@ This section treats infinite executions as ω-sequences of transitions.
 def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence Label) :
     Prop := ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))
 
-@[scoped grind ⇒]
-theorem LTS.ωTr.mk {lts : LTS State Label}
-    (h : ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))) : lts.ωTr ss μs := h
-
 open scoped ωSequence in
 /-- Any finite execution extracted from an infinite execution is valid. -/
 theorem LTS.ωTr_mTr {lts : LTS State Label} {n m : ℕ} {hnm : n ≤ m}
@@ -591,25 +587,22 @@ end Weak
 
 section Divergence
 
-/-- A divergent execution is a stream of states where each state is the anti-τ-derivative of the
-next. -/
-def LTS.DivergentExecution [HasTau Label] (lts : LTS State Label)
-  (stream : Stream' State) : Prop :=
-  ∀ n, lts.Tr (stream n) HasTau.τ (stream n.succ)
+/-- An infinite trace is divergent if every label within it is τ. -/
+abbrev LTS.DivergentTrace [HasTau Label] (μs : ωSequence Label) := ∀ i, μs i = HasTau.τ
 
 /-- A state is divergent if there is a divergent execution from it. -/
 def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
-  ∃ stream : Stream' State, stream 0 = s ∧ lts.DivergentExecution stream
+  ∃ ss μs, lts.ωTr ss μs ∧ ss 0 = s ∧ DivergentTrace μs
 
-/-- If a stream is a divergent execution, then any 'suffix' is also a divergent execution. -/
-theorem LTS.divergent_drop
-  [HasTau Label] (lts : LTS State Label) (stream : Stream' State)
-  (h : lts.DivergentExecution stream) (n : ℕ) :
-  lts.DivergentExecution (stream.drop n) := by
-  simp only [LTS.DivergentExecution]
+/-- If a trace is divergent, then any 'suffix' is also divergent. -/
+@[scoped grind ⇒]
+theorem LTS.divergentTrace_drop
+  [HasTau Label] {μs : ωSequence Label}
+  (h : DivergentTrace μs) (n : ℕ) :
+  DivergentTrace (μs.drop n) := by
   intro m
-  simp only [Stream'.drop, Stream'.get]
-  simp [LTS.DivergentExecution] at h
+  simp only [DivergentTrace] at h
+  simp only [ωSequence.get_fun, ωSequence.drop]
   grind
 
 /-- An LTS is divergence-free if it has no divergent state. -/
