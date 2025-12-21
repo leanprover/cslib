@@ -36,7 +36,7 @@ theorem hist_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State × Hist)}
     (h_run : (na.addHist start' tr').Run xs ss) : na.Run xs (ss.map fst) := by
   obtain ⟨h_start, h_trans⟩ := h_run
   simp only [addHist] at h_trans
-  grind [NA.Run, LTS.ωTr]
+  grind [Run]
 
 /-- Given a run of the original automaton, `makeHist` builds a run of the history state. -/
 @[scoped grind =]
@@ -52,7 +52,7 @@ theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
   use ⟨fun n ↦ (ss n, makeHist start' tr' xs ss n)⟩
   constructor
   · simp only [addHist]
-    grind [NA.Run, LTS.ωTr]
-  · grind [NA.Run, LTS.ωTr]
+    grind [Run]
+  · grind [Run]
 
 end Cslib.Automata.NA
