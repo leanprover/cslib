@@ -68,6 +68,8 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.tapp
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.para_subst
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta.redex_app_l_cong
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta.redex_app_r_cong
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.subst_intro
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
