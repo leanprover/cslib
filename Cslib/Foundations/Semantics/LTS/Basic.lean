@@ -186,11 +186,8 @@ theorem LTS.ωTr_mTr {lts : LTS State Label} {n m : ℕ} {hnm : n ≤ m}
     cases m
     case zero => grind
     case succ m =>
-      rw [show μs.extract n (m + 1) = (μs.extract n m) ++ [μs m] by grind]
-      apply LTS.MTr.comp (s2 := ss m)
-      · apply LTS.ωTr_mTr h
-        grind
-      · grind
+      have : lts.MTr (ss n) (μs.extract n m) (ss m) := ωTr_mTr (hnm := by grind) h
+      grind [MTr.comp]
 
 end ωMultiStep
 
