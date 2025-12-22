@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi
 
 import Cslib.Init
 import Mathlib.Data.Set.Finite.Basic
-import Mathlib.Data.Stream.Defs
 import Mathlib.Order.ConditionallyCompleteLattice.Basic
 import Cslib.Foundations.Data.OmegaSequence.Init
 
