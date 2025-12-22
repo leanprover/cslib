@@ -57,31 +57,31 @@ inductive NatDivergentTr : ℕ → TLabel → ℕ → Prop where
 
 def natDivLTS : LTS ℕ TLabel := ⟨NatDivergentTr⟩
 
-def natInfiniteExecution : Stream' ℕ := fun n => n
+def natInfiniteExecution : ωSequence ℕ := ⟨fun n => n⟩
+def τSequence : ωSequence TLabel := ⟨fun _ => .τ⟩
 
-theorem natInfiniteExecution.infiniteExecution :
-    natDivLTS.DivergentExecution natInfiniteExecution := by
-  intro n
-  constructor
+theorem τSequence_divergentTrace : LTS.DivergentTrace τSequence := by
+  simp [LTS.DivergentTrace]
 
 example : natDivLTS.Divergent 0 := by
-  exists natInfiniteExecution
-  constructor; constructor
-  exact natInfiniteExecution.infiniteExecution
+  use natInfiniteExecution, τSequence
+  refine ⟨?_, rfl, τSequence_divergentTrace⟩
+  intro i
+  constructor
 
 example : natDivLTS.Divergent 3 := by
-  exists natInfiniteExecution.drop 3
+  use natInfiniteExecution.drop 3, τSequence
+  refine ⟨?_, rfl, τSequence_divergentTrace⟩
+  intro i
   constructor
-  · constructor
-  · intro; constructor
 
 example : natDivLTS.Divergent n := by
-  exists natInfiniteExecution.drop n
-  simp only [Stream'.drop, zero_add]
-  constructor
-  · constructor
-  · apply LTS.divergent_drop
-    exact natInfiniteExecution.infiniteExecution
+  use natInfiniteExecution.drop n, τSequence.drop n
+  refine ⟨?_, ?_, τSequence_divergentTrace⟩
+  · intro i
+    simp only [ωSequence.get_drop]
+    constructor
+  · simp [natInfiniteExecution]
 
 -- Examples on decidable LTSs
 def natTrF (n : ℕ) (μ : ℕ) (m : ℕ) : Bool :=

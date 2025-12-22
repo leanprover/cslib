@@ -254,7 +254,6 @@ theorem LTS.ωTr_mTr {n m : ℕ} {hnm : n ≤ m} (h : lts.ωTr ss μs) :
 open scoped ωSequence
 
 /-- Prepends an infinite execution with a transition. -/
-@[scoped grind ⇒]
 theorem LTS.ωTr.cons (hmtr : lts.Tr s1 μ s2) (hωtr : lts.ωTr ss μs) (hm : ss 0 = s2) :
     lts.ωTr (s1 ::ω ss) (μ ::ω μs) := by
   intro i
