@@ -174,12 +174,14 @@ This section treats infinite executions as ω-sequences of transitions.
 /-- Definition of an infinite execution, or ω-sequence of transitions. -/
 @[scoped grind]
 def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence Label) :
-    Prop := ∀ n, lts.Tr (ss n) (μs n) (ss (n + 1))
+    Prop := ∀ i, lts.Tr (ss i) (μs i) (ss (i + 1))
+
+variable {lts : LTS State Label}
 
 open scoped ωSequence in
 /-- Any finite execution extracted from an infinite execution is valid. -/
-theorem LTS.ωTr_mTr {lts : LTS State Label} {n m : ℕ} {hnm : n ≤ m}
-    (h : lts.ωTr ss μs) : lts.MTr (ss n) (μs.extract n m) (ss m) := by
+theorem LTS.ωTr_mTr {n m : ℕ} {hnm : n ≤ m} (h : lts.ωTr ss μs) :
+    lts.MTr (ss n) (μs.extract n m) (ss m) := by
   by_cases heq : n = m
   case pos => grind
   case neg =>
@@ -188,6 +190,15 @@ theorem LTS.ωTr_mTr {lts : LTS State Label} {n m : ℕ} {hnm : n ≤ m}
     case succ m =>
       have : lts.MTr (ss n) (μs.extract n m) (ss m) := ωTr_mTr (hnm := by grind) h
       grind [MTr.comp]
+
+open scoped ωSequence
+
+/-- Prepends an infinite execution with a transition. -/
+@[scoped grind ⇒]
+theorem LTS.ωTr.cons (hmtr : lts.Tr s1 μ s2) (hωtr : lts.ωTr ss μs) (hm : ss 0 = s2) :
+    lts.ωTr (s1 ::ω ss) (μ ::ω μs) := by
+  intro i
+  induction i <;> grind
 
 end ωMultiStep
 
@@ -585,7 +596,7 @@ end Weak
 section Divergence
 
 /-- An infinite trace is divergent if every label within it is τ. -/
-abbrev LTS.DivergentTrace [HasTau Label] (μs : ωSequence Label) := ∀ i, μs i = HasTau.τ
+def LTS.DivergentTrace [HasTau Label] (μs : ωSequence Label) := ∀ i, μs i = HasTau.τ
 
 /-- A state is divergent if there is a divergent execution from it. -/
 def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
