@@ -217,7 +217,6 @@ theorem mergeSort_time_le (xs : List α) :
     grw [merge_time]
     simp only [mergeSort_same_length]
     unfold timeMergeSortRec
-    grw [ih1,ih2]
     grind
 
 /-- Time complexity of mergeSort -/
