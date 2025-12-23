@@ -104,7 +104,7 @@ if git diff --name-only --diff-filter=U | grep -q .; then
   echo "### [auto] Conflict resolution"
   echo "### Automatically choosing 'lean-toolchain' and 'lake-manifest.json' from the newer branch"
   echo "### In this case, the newer branch is 'bump/$BUMPVERSION'"
-  git checkout bump/$BUMPVERSION -- lean-toolchain lake-manifest.json
+  git checkout bump/"$BUMPVERSION" -- lean-toolchain lake-manifest.json
   git add lean-toolchain lake-manifest.json
 
   # Check if there are more merge conflicts after auto-resolution
@@ -128,9 +128,9 @@ while git diff --name-only --diff-filter=U | grep -q . || ! git diff-index --qui
   echo "We are merging the latest changes from 'origin/main' into 'bump/$BUMPVERSION'"
   echo "There seem to be conflicts or uncommitted files"
   echo ""
-  echo "  1) Open `pwd` in a new terminal and run 'git status'"
+  echo "  1) Open $(pwd) in a new terminal and run 'git status'"
   echo "  2) Make sure to commit the resolved conflicts, but do not push them"
-  read -p "  3) Press enter to continue, when you are done"
+  read -rp "  3) Press enter to continue, when you are done"
 done
 
 echo "All conflicts resolved and committed."
@@ -141,14 +141,14 @@ echo
 echo "### [auto] create a new branch 'bump/nightly-$NIGHTLYDATE' and merge the latest changes from 'origin/nightly-testing'"
 
 git checkout -b "bump/nightly-$NIGHTLYDATE" || git checkout "bump/nightly-$NIGHTLYDATE"
-git merge --no-edit $NIGHTLYSHA || true # ignore error if there are conflicts
+git merge --no-edit "$NIGHTLYSHA" || true # ignore error if there are conflicts
 
 # Check if there are merge conflicts
 if git diff --name-only --diff-filter=U | grep -q .; then
   echo
   echo "### [auto] Conflict resolution"
   echo "### Automatically choosing 'lean-toolchain', 'lake-manifest.json', and 'lakefile.toml' from 'nightly-testing'"
-  git checkout $NIGHTLYSHA -- lean-toolchain lake-manifest.json lakefile.toml
+  git checkout "$NIGHTLYSHA" -- lean-toolchain lake-manifest.json lakefile.toml
   git add lean-toolchain lake-manifest.json lakefile.toml
 fi
 
@@ -168,9 +168,9 @@ if git diff --name-only --diff-filter=U | grep -q .; then
   echo "$NIGHTLYSHA"
   echo "There seem to be conflicts: please resolve them"
   echo ""
-  echo "  1) Open `pwd` in a new terminal and run 'git status'"
+  echo "  1) Open $(pwd) in a new terminal and run 'git status'"
   echo "  2) Run 'git add' on the resolved files, but do not commit"
-  read -p "  3) Press enter to continue, when you are done"
+  read -rp "  3) Press enter to continue, when you are done"
 fi
 
 echo
@@ -185,7 +185,7 @@ git commit --allow-empty -m "$pr_title"
 git push --set-upstream origin "bump/nightly-$NIGHTLYDATE"
 
 # Check if there is a diff between bump/nightly-$NIGHTLYDATE and bump/$BUMPVERSION
-if git diff --name-only bump/$BUMPVERSION bump/nightly-$NIGHTLYDATE | grep -q .; then
+if git diff --name-only bump/"$BUMPVERSION" bump/nightly-"$NIGHTLYDATE" | grep -q .; then
 
   echo
   echo "### [auto] create a PR for the new branch"
@@ -193,9 +193,9 @@ if git diff --name-only bump/$BUMPVERSION bump/nightly-$NIGHTLYDATE | grep -q .;
   echo "Running the following 'gh' command to do this:"
   gh_command="gh pr create -t \"$pr_title\" -b '' -B bump/$BUMPVERSION"
   echo "> $gh_command"
-  gh_output=$(eval $gh_command)
+  gh_output=$(eval "$gh_command")
   # Extract the PR number from the output
-  pr_number=$(echo $gh_output | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
+  pr_number=$(echo "$gh_output" | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
 
   echo
   echo "### [auto] post a link to the PR on Zulip"
@@ -212,14 +212,14 @@ if git diff --name-only bump/$BUMPVERSION bump/nightly-$NIGHTLYDATE | grep -q .;
     zulip_command="zulip-send --stream nightly-testing --subject \"$zulip_title\" --message \"$zulip_body\""
     echo "Running the following 'zulip-send' command to do this:"
     echo "> $zulip_command"
-    eval $zulip_command
+    eval "$zulip_command"
   else
     echo "Zulip CLI is not installed. Install it to send messages automatically."
     if [ "$AUTO" = "yes" ]; then
       exit 1
     else
       echo "Please send the message manually."
-      read -p "Press enter to continue"
+      read -rp "Press enter to continue"
     fi
   fi
 
@@ -245,7 +245,7 @@ if git diff --name-only --diff-filter=U | grep -q .; then
   echo "### [auto] Conflict resolution"
   echo "### Automatically choosing lean-toolchain, lake-manifest.json, and lakefile.toml from the newer branch"
   echo "### In this case, the newer branch is 'bump/nightly-$NIGHTLYDATE'"
-  git checkout bump/nightly-$NIGHTLYDATE -- lean-toolchain lake-manifest.json lakefile.toml
+  git checkout bump/nightly-"$NIGHTLYDATE" -- lean-toolchain lake-manifest.json lakefile.toml
   git add lean-toolchain lake-manifest.json lakefile.toml
 
   # Check if there are more merge conflicts after auto-resolution
@@ -268,12 +268,12 @@ fi
 while git diff --name-only --diff-filter=U | grep -q . || ! git diff-index --quiet HEAD --; do
   echo
   echo "### [user] Conflict resolution"
-  echo "We are merging the new PR "bump/nightly-$NIGHTLYDATE" into 'nightly-testing'"
+  echo "We are merging the new PR bump/nightly-$NIGHTLYDATE into 'nightly-testing'"
   echo "There seem to be conflicts or uncommitted files"
   echo ""
-  echo "  1) Open `pwd` in a new terminal and run 'git status'"
+  echo "  1) Open $(pwd) in a new terminal and run 'git status'"
   echo "  2) Make sure to commit the resolved conflicts, but do not push them"
-  read -p "  3) Press enter to continue, when you are done"
+  read -rp "  3) Press enter to continue, when you are done"
 done
 
 echo "All conflicts resolved and committed."
@@ -283,7 +283,7 @@ git push
 echo
 echo "### [auto] finished: checkout the original branch"
 
-git checkout $usr_branch
+git checkout "$usr_branch"
 
 # These last two lines are needed to make the script robust against changes on disk
 # that might have happened during the script execution, e.g. from switching branches
