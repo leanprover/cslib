@@ -12,7 +12,6 @@ import Cslib.Foundations.Data.OmegaSequence.Temporal
 namespace Cslib.Automata.NA
 
 open Sum ωSequence Acceptor
-open scoped Run LTS
 
 variable {Symbol State1 State2 : Type*}
 
@@ -31,42 +30,61 @@ def concat (na1 : FinAcc State1 Symbol) (na2 : NA State2 Symbol) : NA (State1 �
 
 variable {na1 : FinAcc State1 Symbol} {na2 : NA State2 Symbol}
 
+lemma concat_start_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
+    (hc : (concat na1 na2).Run xs ss) (hr : (ss 0).isRight) : [] ∈ language na1 := by
+  grind [concat, hc.start]
+
+lemma concat_run_left {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
+    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hl : ∀ k ≤ n, (ss k).isLeft) :
+    ∃ s1 t1, na1.MTr s1 (xs.take n) t1 ∧ s1 ∈ na1.start ∧ ss 0 = inl s1 ∧ ss n = inl t1 := by
+  obtain ⟨s1, _⟩ : ∃ s1, s1 ∈ na1.start ∧ ss 0 = inl s1 := by grind [concat, hc.start]
+  use s1
+  induction n
+  case zero => grind [LTS.MTr]
+  case succ n h_ind =>
+    obtain ⟨t1, h_mtr, _⟩ := h_ind (by grind)
+    obtain ⟨t1', h_tr, _⟩ : ∃ t1', na1.Tr t1 (xs n) t1' ∧ ss (n + 1) = inl t1' := by
+      grind [concat, hc.trans n]
+    use t1'
+    grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
+
+lemma concat_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
+    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hn : 0 < n)
+    (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight) : (xs.take n) ∈ language na1 := by
+  obtain ⟨s1, t1, h_mtr, _⟩ := concat_run_left hc (n - 1) (by grind)
+  obtain ⟨t1', h_tr, _⟩ : ∃ t1', na1.Tr t1 (xs (n - 1)) t1' ∧ t1' ∈ na1.accept := by
+    grind [concat, hc.trans (n - 1)]
+  use s1, by grind, t1', by grind
+  grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
+
+lemma concat_run_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
+    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight) :
+    ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
+  have h2 k : ∃ s2, ss (n + k) = inr s2 := by
+     induction k
+     case zero => grind [isRight_iff]
+     case succ k h_ind => grind [concat, hc.trans (n + k)]
+  choose ss2 h_ss2 using h2
+  refine ⟨ss2, Run.mk ?_ ?_, by grind⟩
+  · by_cases h_n : n = 0
+    · grind [concat, hc.start]
+    · grind [concat, hc.trans (n - 1)]
+  · intro k
+    grind [concat, hc.trans (n + k)]
+
 /-- A run of `concat na1 na2` containing at least one `na2` state is the concatenation of
 an accepting finite run of `na1` followed by a run of `na2`. -/
 theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
     (hc : (concat na1 na2).Run xs ss) (hr : ∃ k, (ss k).isRight) :
     ∃ n, xs.take n ∈ language na1 ∧ ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
   let n := Nat.find hr
-  have h1 k (h_k : k < n := by grind) : ∃ s1, ss k = inl s1 :=
-    isLeft_iff.mp <| not_isRight.mp <| Nat.find_min hr h_k
+  have hl (k) (h_k : k < n) := not_isRight.mp <| Nat.find_min hr h_k
   refine ⟨n, ?_, ?_⟩
   · by_cases h_n : n = 0
-    · grind [concat]
-    · choose ss1 h_ss1 using @h1
-      have h_init : ss1 0 ∈ na1.start := by grind [concat]
-      have h_mtr k (h_k : k < n := by grind) : na1.MTr (ss1 0) (xs.take k) (ss1 k h_k) := by
-        induction k
-        case zero => grind
-        case succ k h_ind =>
-          have h_tr : na1.Tr (ss1 k) (xs k) (ss1 (k + 1)) := by grind [concat, hc.trans k]
-          grind [LTS.MTr.stepR na1.toLTS (h_ind ?_) h_tr]
-      obtain ⟨t1, h_tr, _⟩ :
-          ∃ t1, na1.Tr (ss1 (n - 1)) (xs (n - 1)) t1 ∧ t1 ∈ na1.accept := by
-        grind only [concat, hc.trans (n - 1), Nat.find_spec, take_zero, isRight_inl]
-      use ss1 0, h_init, t1
-      grind [LTS.MTr.stepR na1.toLTS (h_mtr (n - 1)) h_tr]
-  · have h2 k : ∃ s2, ss (n + k) = inr s2 := by
-      induction k
-      case zero => grind [isRight_iff]
-      case succ k h_ind => grind [concat, hc.trans (n + k)]
-    choose ss2 h_ss2 using h2
-    refine ⟨ss2, Run.mk ?_ ?_, by grind⟩
-    · by_cases h_n : n = 0
-      · grind [concat]
-      · obtain ⟨s1, _⟩ := h1 (n - 1)
-        grind [concat, hc.trans (n - 1)]
-    · intro k
-      grind [concat, hc.trans (n + k)]
+    · grind [concat_start_right]
+    · grind [concat_run_left_right]
+  · have hr : (ss n).isRight := Nat.find_spec hr
+    grind [concat_run_right hc n hl hr]
 
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
@@ -75,14 +93,15 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
   by_cases h_xs1 : xs1.length = 0
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
-    refine ⟨ss2.map inr, by grind [concat], by simp⟩
+    refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.ωTr], by simp⟩
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
     obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
     · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
-      grind [concat, get_append_right', get_append_left]
+      simp only [concat]
+      grind [Run, LTS.ωTr, get_append_right', get_append_left]
     · grind [drop_append_of_le_length]
 
 namespace Buchi
