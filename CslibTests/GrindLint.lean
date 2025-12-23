@@ -45,7 +45,6 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Automata.DA.FinAcc.toNAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
-#grind_lint skip Cslib.Automata.NA.Run.mk
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
 #grind_lint skip Cslib.CLL.Proof.parr_inversion.eq_1
 #grind_lint skip Cslib.CLL.Proof.with_inversion₁.eq_1

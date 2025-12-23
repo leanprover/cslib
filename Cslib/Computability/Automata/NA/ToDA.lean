@@ -38,12 +38,7 @@ open scoped DA.FinAcc LTS in
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
   language na.toDAFinAcc = language na := by
   ext xs
-  #adaptation_note
-  /--
-  Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
-  increasing the number of allowed splits.
-  -/
-  grind (splits := 11)
+  grind
 
 end FinAcc
 

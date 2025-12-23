@@ -21,7 +21,7 @@ This file defines ω-regular languages and proves some properties of them.
 -/
 
 open Set Sum Filter Cslib.ωSequence Cslib.Automata ωAcceptor
-open scoped Computability Cslib.Automata.NA.Run
+open scoped Computability Cslib.LTS
 
 universe u v
 
@@ -96,7 +96,7 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
   simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
     atTop_neBot, and_true, mem_top, iff_true]
   use const ()
-  grind
+  grind [NA.Run]
 
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]
