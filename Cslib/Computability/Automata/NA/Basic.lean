@@ -41,27 +41,9 @@ namespace NA
 variable {State Symbol : Type*}
 
 /-- Infinite run. -/
-def Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) :=
-  ss 0 ∈ na.start ∧ ∀ n, na.Tr (ss n) (xs n) (ss (n + 1))
-
--- The following lemmas help `grind` deal with the definition of `NA.Run` better.
-section NARunGrind
-
-variable {na : NA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State}
-
-@[scoped grind <=]
-lemma Run.mk (h₁ : ss 0 ∈ na.start) (h₂ : ∀ n, na.Tr (ss n) (xs n) (ss (n + 1))) : Run na xs ss
-  := ⟨h₁, h₂⟩
-
-@[scoped grind →]
-lemma Run.start (run : Run na xs ss) : ss 0 ∈ na.start :=
-  run.left
-
-@[scoped grind =>]
-lemma Run.trans (run : Run na xs ss) : ∀ n, na.Tr (ss n) (xs n) (ss (n + 1)) :=
-  run.right
-
-end NARunGrind
+structure Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) where
+  start : ss 0 ∈ na.start
+  trans : na.ωTr ss xs
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where
