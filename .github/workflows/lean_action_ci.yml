@@ -6,16 +6,17 @@ on:
       - main
       - nightly-testing
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 jobs:
-  build:
+  ci-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
         with:
-          build-args: "--wfail"
+          build-args: "--wfail --iofail"
           mk_all-check: "true"
       - name: "lake exe shake"
         run: |
