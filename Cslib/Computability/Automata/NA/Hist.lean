@@ -50,6 +50,9 @@ which projects back onto `ss`. -/
 theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
     (h_run : na.Run xs ss) : ∃ ss', (na.addHist start' tr').Run xs ss' ∧ ss'.map fst = ss := by
   use ⟨fun n ↦ (ss n, makeHist start' tr' xs ss n)⟩
-  grind
+  constructor
+  · simp only [addHist]
+    grind [Run]
+  · grind
 
 end Cslib.Automata.NA
