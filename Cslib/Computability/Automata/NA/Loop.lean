@@ -38,7 +38,7 @@ lemma loop_run_left_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ Sta
   obtain ⟨t, h_t⟩ := isLeft_iff.mp h1
   simp only [loop, h_init, h_t] at h_step
   obtain ⟨s, t, _⟩ := h_step
-  use s, by grind, t, by grind, by grind
+  refine ⟨s, ?_, t, ?_⟩ <;> grind
 
 lemma loop_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
     (h : (loop na).Run xs ss) (n : ℕ) (h1 : 0 < n) (h2 : ∀ k, 0 < k → k ≤ n → (ss k).isRight) :
@@ -65,8 +65,7 @@ lemma loop_run_left_right_left {xs : ωSequence Symbol} {ss : ωSequence (Unit �
   · obtain ⟨s, t, h_mtr, _⟩ := loop_run_left_right h (n - 1) (by grind) (by grind)
     obtain ⟨t', h_tr, _⟩ : ∃ t', na.Tr t (xs (n - 1)) t' ∧ t' ∈ na.accept := by
       grind [loop, h.trans (n - 1)]
-    use s, by grind, t', by grind
-    grind [LTS.MTr.stepR na.toLTS h_mtr h_tr]
+    refine ⟨s, ?_, t', ?_⟩ <;> grind [LTS.MTr.stepR na.toLTS h_mtr h_tr]
 
 lemma loop_run_from_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
     (h : (loop na).Run xs ss) (n : ℕ) (h1 : (ss n).isLeft) :
@@ -85,8 +84,8 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
   have : ∀ k, 0 < k → k < n → (ss k).isRight := by grind [Nat.find_min h1]
   refine ⟨n, ⟨?_, ?_⟩, ?_⟩
   · grind [loop_run_left_right_left]
-  · rw [mem_one, eq_nil_iff_length_eq_zero]
-    grind [Nat.find_spec h1]
+  · have neq : (ωSequence.take n xs).length ≠ 0 := by grind
+    exact neq.imp (congrArg length)
   · grind [loop_run_from_left]
 
 /-- For any finite word in `language na`, there is a corresponding finite run of `loop na`. -/
