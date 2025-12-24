@@ -178,7 +178,7 @@ theorem IsRegular.hmul {l : Language Symbol} {p : ωLanguage Symbol}
 theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
     (h : l.IsRegular) : (l^ω).IsRegular := by
   obtain ⟨State, h_fin, na, rfl⟩ := Language.IsRegular.iff_nfa.mp h
-  use Unit ⊕ State, inferInstance, ⟨NA.loop na, {inl ()}⟩
+  use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
   exact NA.Buchi.loop_language_eq
 
 /-- McNaughton's Theorem. -/

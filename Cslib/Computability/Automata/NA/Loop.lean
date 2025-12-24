@@ -16,11 +16,11 @@ open scoped Run LTS
 
 variable {Symbol State : Type*}
 
-/-- `loop na` mimics `na`, but can nondeterministically decide to "loop back" by identifing
+/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifing
 an accepting state of `na` with a starting state of `na`.  This identification is achieved
 via a new dummy state `()`, which is the sole starting state and the sole accepting state
-of `loop na`. -/
-def loop (na : FinAcc State Symbol) : NA (Unit ⊕ State) Symbol where
+of `na.loop`. -/
+def FinAcc.loop (na : FinAcc State Symbol) : NA (Unit ⊕ State) Symbol where
     Tr s' x t' := match s', t' with
       | inl (), inl () => ∃ s t, na.Tr s x t ∧ s ∈ na.start ∧ t ∈ na.accept
       | inl (), inr t => ∃ s, na.Tr s x t ∧ s ∈ na.start
@@ -31,54 +31,55 @@ def loop (na : FinAcc State Symbol) : NA (Unit ⊕ State) Symbol where
 variable {na : FinAcc State Symbol}
 
 lemma loop_run_left_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
-    (h : (loop na).Run xs ss) (h1 : (ss 1).isLeft) : [xs 0] ∈ language na := by
+    (h : na.loop.Run xs ss) (h1 : (ss 1).isLeft) : [xs 0] ∈ language na := by
   have h_init := h.start
-  simp only [loop, Set.mem_singleton_iff] at h_init
+  simp only [FinAcc.loop, Set.mem_singleton_iff] at h_init
   have h_step := h.trans 0
   obtain ⟨t, h_t⟩ := isLeft_iff.mp h1
-  simp only [loop, h_init, h_t] at h_step
+  simp only [FinAcc.loop, h_init, h_t] at h_step
   obtain ⟨s, t, _⟩ := h_step
   refine ⟨s, ?_, t, ?_⟩ <;> grind
 
 lemma loop_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
-    (h : (loop na).Run xs ss) (n : ℕ) (h1 : 0 < n) (h2 : ∀ k, 0 < k → k ≤ n → (ss k).isRight) :
+    (h : na.loop.Run xs ss) (n : ℕ) (h1 : 0 < n) (h2 : ∀ k, 0 < k → k ≤ n → (ss k).isRight) :
     ∃ s t, na.MTr s (xs.take n) t ∧ s ∈ na.start ∧ ss n = inr t := by
   obtain ⟨m, rfl⟩ := Nat.exists_eq_add_one.mpr h1
   induction m
   case zero =>
     obtain ⟨t, _⟩ := isRight_iff.mp <| h2 1 (by grind) (by grind)
-    obtain ⟨s, _⟩ : ∃ s, na.Tr s (xs 0) t ∧ s ∈ na.start := by grind [loop, h.start, h.trans 0]
+    obtain ⟨s, _⟩ : ∃ s, na.Tr s (xs 0) t ∧ s ∈ na.start := by
+      grind [FinAcc.loop, h.start, h.trans 0]
     use s, t
     grind
   case succ m h_ind =>
     obtain ⟨s, t, h_mtr, _⟩ := h_ind (by grind) (by grind)
     obtain ⟨t', _⟩ := isRight_iff.mp <|h2 (m + 1 + 1) (by grind) (by grind)
-    have h_tr : na.Tr t (xs (m + 1)) t' := by grind [loop, h.trans (m + 1)]
+    have h_tr : na.Tr t (xs (m + 1)) t' := by grind [FinAcc.loop, h.trans (m + 1)]
     use s, t'
     grind [LTS.MTr.stepR na.toLTS h_mtr h_tr]
 
 lemma loop_run_left_right_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
-    (h : (loop na).Run xs ss) (n : ℕ) (h1 : 0 < n ∧ (ss n).isLeft)
+    (h : na.loop.Run xs ss) (n : ℕ) (h1 : 0 < n ∧ (ss n).isLeft)
     (h2 : ∀ k, 0 < k → k < n → (ss k).isRight) : xs.take n ∈ language na := by
   by_cases n = 1
   · grind [loop_run_left_left]
   · obtain ⟨s, t, h_mtr, _⟩ := loop_run_left_right h (n - 1) (by grind) (by grind)
     obtain ⟨t', h_tr, _⟩ : ∃ t', na.Tr t (xs (n - 1)) t' ∧ t' ∈ na.accept := by
-      grind [loop, h.trans (n - 1)]
+      grind [FinAcc.loop, h.trans (n - 1)]
     refine ⟨s, ?_, t', ?_⟩ <;> grind [LTS.MTr.stepR na.toLTS h_mtr h_tr]
 
 lemma loop_run_from_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
-    (h : (loop na).Run xs ss) (n : ℕ) (h1 : (ss n).isLeft) :
-    (loop na).Run (xs.drop n) (ss.drop n) := by
+    (h : na.loop.Run xs ss) (n : ℕ) (h1 : (ss n).isLeft) :
+    na.loop.Run (xs.drop n) (ss.drop n) := by
   apply Run.mk
-  · grind [loop, isLeft_iff.mp h1]
-  · grind [loop, h.trans]
+  · grind [FinAcc.loop, isLeft_iff.mp h1]
+  · grind [FinAcc.loop, h.trans]
 
-/-- A run of `loop na` containing at least one non-initial `()` state is the concatenation
-of a nonempty finite run of `na` followed by a run of `loop na`. -/
+/-- A run of `na.loop` containing at least one non-initial `()` state is the concatenation
+of a nonempty finite run of `na` followed by a run of `na.loop`. -/
 theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
-    (h : (loop na).Run xs ss) (h1 : ∃ k, 0 < k ∧ (ss k).isLeft) :
-    ∃ n, xs.take n ∈ language na - 1 ∧ (loop na).Run (xs.drop n) (ss.drop n) := by
+    (h : na.loop.Run xs ss) (h1 : ∃ k, 0 < k ∧ (ss k).isLeft) :
+    ∃ n, xs.take n ∈ language na - 1 ∧ na.loop.Run (xs.drop n) (ss.drop n) := by
   let n := Nat.find h1
   have : 0 < n ∧ (ss n).isLeft := Nat.find_spec h1
   have : ∀ k, 0 < k → k < n → (ss k).isRight := by grind [Nat.find_min h1]
@@ -88,25 +89,25 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
     exact neq.imp (congrArg length)
   · grind [loop_run_from_left]
 
-/-- For any finite word in `language na`, there is a corresponding finite run of `loop na`. -/
+/-- For any finite word in `language na`, there is a corresponding finite run of `na.loop`. -/
 theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     ∃ sl : List (Unit ⊕ State), ∃ _ : sl.length = xl.length + 1,
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
-    ∀ k, ∀ _ : k < xl.length, (loop na).Tr sl[k] xl[k] sl[k + 1] := by
+    ∀ k, ∀ _ : k < xl.length, na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
   obtain ⟨sl, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
   by_cases xl.length = 0
   · use [inl ()]
     grind
   · use [inl ()] ++ (sl.extract 1 xl.length).map inr ++ [inl ()]
-    grind [loop]
+    grind [FinAcc.loop]
 
 /-- For any infinite sequence `xls` of nonempty finite words from `language na`,
-there is an infinite run of `loop na` corresponding to `xls.flatten` in which
+there is an infinite run of `na.loop` corresponding to `xls.flatten` in which
 the state `()` marks the boundaries between the finite words in `xls`. -/
 theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
     (h : ∀ k, (xls k) ∈ language na - 1) :
-    ∃ ss, (loop na).Run xls.flatten ss ∧ ∀ k, ss (xls.cumLen k) = inl () := by
+    ∃ ss, na.loop.Run xls.flatten ss ∧ ∀ k, ss (xls.cumLen k) = inl () := by
   have : Inhabited State := by
     choose s0 _ using (h 0).left
     exact { default := s0 }
@@ -118,7 +119,7 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
   have h_zero := cumLen_zero (ls := segs)
   have h_seg0 (k : ℕ) : (segs k)[0]! = inl () := by grind
   refine ⟨segs.flatten, Run.mk ?_ ?_, ?_⟩
-  · simp [h_seg0, flatten_def, loop]
+  · simp [h_seg0, flatten_def, FinAcc.loop]
   · intro n
     simp only [h_len, flatten_def]
     have := segment_lower_bound h_mono h_zero n
@@ -136,14 +137,14 @@ namespace Buchi
 
 open Filter ωAcceptor ωLanguage
 
-/-- The Buchi ω-language accepted by `loop na` is the ω-power of the language accepted by `na`. -/
+/-- The Buchi ω-language accepted by `na.loop` is the ω-power of the language accepted by `na`. -/
 @[simp]
 theorem loop_language_eq [Inhabited Symbol] :
-    language (Buchi.mk (loop na) {inl ()}) = (language na)^ω := by
+    language (Buchi.mk na.loop {inl ()}) = (language na)^ω := by
   apply le_antisymm
   · apply omegaPow_coind
     rintro xs ⟨ss, h_run, h_acc⟩
-    have h1 : ∃ k > 0, (ss k).isLeft := by grind [loop, frequently_atTop'.mp h_acc 0]
+    have h1 : ∃ k > 0, (ss k).isLeft := by grind [FinAcc.loop, frequently_atTop'.mp h_acc 0]
     obtain ⟨n, _⟩ := loop_run_one_iter h_run h1
     refine ⟨xs.take n, by grind, xs.drop n, ?_, by simp⟩
     refine ⟨ss.drop n, by grind, ?_⟩
