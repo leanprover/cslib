@@ -52,7 +52,9 @@ Returns a `TimeM (Option ℕ)` where the time represents the number of array acc
 and the result is `some i` if `arr[i] = q`, or `none` if `q` is not in the array. -/
 def binarySearch {n : ℕ} (arr : SortedArray α n) (q : α) : TimeM (Option ℕ) :=
   bs_aux 0 (n-1)
-  where bs_aux (a b : ℕ) (h: a ≤ b := by omega): TimeM (Option ℕ) := do
+  where
+  /-- A helper function of binary search to run in range [a,b] -/
+  bs_aux (a b : ℕ) (h: a ≤ b := by omega): TimeM (Option ℕ) := do
   if h: a = b then
     let arr_a ← ✓ (arr[a])
     if q = arr_a then return (some a)
@@ -109,7 +111,6 @@ private theorem subinterval_right {n : ℕ} (arr : SortedArray α n) (q : α) (a
   · grind
 
 /-- Binary search returns `some` if and only if the key exists in the array. -/
-private
 theorem binarySearch_some_iff (n : ℕ) (q : α) (h : 0 < n) (arr : SortedArray α n) :
   (∃ i, i < n ∧ arr[i] = q) ↔ ((binarySearch arr q).ret ≠ none) := by
   unfold binarySearch
