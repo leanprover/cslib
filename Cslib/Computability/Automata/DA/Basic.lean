@@ -63,7 +63,7 @@ theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : 
     da.mtr da.start (xs.extract 0 n) = da.run xs n := by
   induction n
   case zero => rfl
-  case succ n h_ind => grind [extract_succ_right]
+  case succ n h_ind => grind
 
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends DA State Symbol where
