@@ -18,8 +18,13 @@ represents the number of array accesses.
 
 ## Main definitions
 
-* `SortedArray`: A structure representing a sorted array with monotone access function
+* `SortedArray`: A structure representing a sorted array with monotone access function.
+  We model a sorted array as a function from Nat to a type equipped with a size
+  and a sortedness property. This representation eliminates concerns about out-of-bounds indexing.
+  With fewer proof obligations related to array indices, the analysis becomes significantly cleaner
+  and more modular.
 * `binarySearch`: Binary search algorithm that searches for a key in a sorted array
+  and returns an index if the search is successful or none otherwise.
 
 ## Main results
 
@@ -36,12 +41,24 @@ set_option tactic.hygienic false
 
 variable {α : Type} [LinearOrder α]
 
-/-- A sorted array with size `n` and monotone access function. -/
+/-- `SortedArray` represents a sorted array via a total access function.
+    We model a sorted array as a function `ℕ → α` equipped with a logical size
+    and a sortedness property. Indices outside the first `n` positions are
+    intentionally left unconstrained, eliminating out-of-bounds concerns.
+    This design substantially reduces index-related proof obligations,
+    leading to cleaner and more modular algorithmic analysis. -/
 structure SortedArray (α : Type) [LinearOrder α] (n : ℕ) where
+  /-- Total access function for the array.
+      The value at indices `i ≥ n` is arbitrary and irrelevant to correctness. -/
   get : ℕ → α
+  /-- Logical size of the array, fixed to `n` for algorithmic analysis. -/
   size : ℕ := n
+  /-- Monotonicity of the access function, expressing that the array is sorted. -/
   sorted : Monotone get
 
+/-- Scoped notation for accessing elements of a `SortedArray`.
+    Writing `a[i]` abbreviates `SortedArray.get a i`, avoiding explicit projections
+    and improving readability in algorithm definitions such as `binarySearch`. -/
 scoped notation a "[" i "]"  => SortedArray.get a i
 
 
