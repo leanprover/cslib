@@ -85,8 +85,7 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
   · by_cases h_n : n = 0
     · grind [concat_start_right]
     · grind [concat_run_left_right]
-  · have hr'' : (ss n).isRight := Nat.find_spec hr'
-    grind [concat_run_right hc n hl hr'']
+  · exact concat_run_right hc n hl (Nat.find_spec hr')
 
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
@@ -146,8 +145,7 @@ def finConcat_total : (finConcat na1 na2).Total where
   next s x := match s with
     | inl s1 => inl (inr ())
     | inr s2 => inr (inr ())
-  total s x := by
-    cases s <;> simp [finConcat, concat, NA.totalize, LTS.totalize]
+  total s x := by grind [finConcat, concat, NA.totalize, LTS.totalize]
 
 /-- `finConcat na1 na2` accepts the concatenation of the languages of `na1` and `na2`. -/
 theorem finConcat_language_eq [Inhabited Symbol] :
@@ -157,28 +155,24 @@ theorem finConcat_language_eq [Inhabited Symbol] :
   constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
     obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr finConcat_total h_mtr
-    have hc : (finConcat na1 na2).Run (xl ++ω xs) ss := by grind [Run.mk]
+    have hc : (finConcat na1 na2).Run (xl ++ω xs) ss := by grind [Run]
     have hr : (ss xl.length).isRight := by grind
-    obtain ⟨n, _, _, ss2, h_run2, _⟩ := concat_run_proj hc hr
-    refine ⟨xl.take n, ?_, xl.drop n, ?_, by simp⟩
+    obtain ⟨n, _⟩ := concat_run_proj hc hr
+    refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
     · grind [totalize_language_eq, take_append_of_le_length]
     · have : ss xl.length = (ss.drop n) (xl.length - n) := by grind
-      have : ss xl.length = inr (ss2 (xl.length - n)) := by grind
-      have hl : (ss2 (xl.length - n)).isLeft := by grind
-      obtain ⟨s2, t2, h_mtr2, _, _, _⟩ := totalize_run_mtr h_run2 hl
-      refine ⟨s2, ?_, t2, ?_, ?_⟩ <;> grind [drop_append_of_le_length, take_append_of_le_length]
+      grind [drop_append_of_le_length, take_append_of_le_length, totalize_run_mtr]
+    · exact xl.take_append_drop n
   · rintro ⟨xl1, h_xl1, xl2, h_xl2, rfl⟩
     rw [← totalize_language_eq] at h_xl1
-    obtain ⟨s2, h_s2, t2, h_t2, h_mtr2⟩ := h_xl2
-    obtain ⟨xs2, ss2, h_run2, _, _⟩ := totalize_mtr_run h_s2 h_mtr2
-    obtain ⟨ss, ⟨h_start, h_ωtr⟩, _⟩ := concat_run_exists h_xl1 h_run2
-    have h_mtr := LTS.ωTr_mTr h_ωtr (zero_le (xl1.length + xl2.length))
-    simp [← append_append_ωSequence, extract_eq_drop_take,
-      take_append_of_le_length, ← List.length_append] at h_mtr
-    have : ss (xl1.length + xl2.length) = (ss.drop xl1.length) xl2.length := by grind
-    have : ss (xl1.length + xl2.length) = inr (ss2 xl2.length) := by grind
-    refine ⟨ss 0, ?_, ss (xl1.length + xl2.length), ?_, ?_⟩ <;>
-      grind [finConcat, List.length_append]
+    obtain ⟨_, h_s2, _, _, h_mtr2⟩ := h_xl2
+    obtain ⟨_, _, h_run2, _, _⟩ := totalize_mtr_run h_s2 h_mtr2
+    obtain ⟨ss, ⟨_, h_ωtr⟩, _⟩ := concat_run_exists h_xl1 h_run2
+    grind [
+      finConcat, List.length_append, take_append_of_le_length,
+      extract_eq_drop_take, =_ append_append_ωSequence, get_drop xl2.length xl1.length ss,
+      LTS.ωTr_mTr h_ωtr (zero_le (xl1.length + xl2.length))
+    ]
 
 end FinAcc
 

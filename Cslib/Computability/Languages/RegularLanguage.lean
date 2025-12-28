@@ -141,6 +141,6 @@ theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
   obtain ⟨State2, h_fin1, nfa2, rfl⟩ := h2
   use (State1 ⊕ Unit) ⊕ (State2 ⊕ Unit), inferInstance,
     ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
-  rw [finConcat_language_eq]
+  exact finConcat_language_eq
 
 end Cslib.Language

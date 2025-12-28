@@ -28,24 +28,20 @@ the execution so far corresponds to a finite execution of the original NA. -/
 theorem totalize_run_mtr {xs : ωSequence Symbol} {ss : ωSequence (State ⊕ Unit)} {n : ℕ}
     (h : na.totalize.Run xs ss) (hl : (ss n).isLeft) :
     ∃ s t, na.MTr s (xs.take n) t ∧ s ∈ na.start ∧ ss 0 = inl s ∧ ss n = inl t := by
-  obtain ⟨s, _, _⟩ := h.start
-  obtain ⟨t, _⟩ := isLeft_iff.mp hl
+  obtain ⟨s, _, eq₁⟩ := h.start
+  obtain ⟨t, eq₂⟩ := isLeft_iff.mp hl
   use s, t
   refine ⟨?_, by grind⟩
-  rw [← LTS.totalize.mtr_left_iff, ← extract_eq_take]
-  have := LTS.ωTr_mTr h.trans (show 0 ≤ n by grind)
-  simp_all only
-  assumption
+  -- TODO: `grind` does not use congruence relations with `na.totalize.MTr`
+  rw [← LTS.totalize.mtr_left_iff, ← extract_eq_take, eq₁, ← eq₂]
+  exact LTS.ωTr_mTr h.trans (by grind)
 
 /-- Any finite execution of the original NA can be extended to an infinite execution of
 `NA.totalize`, provided that the alphabet is inbabited. -/
 theorem totalize_mtr_run [Inhabited Symbol] {xl : List Symbol} {s t : State}
     (hs : s ∈ na.start) (hm : na.MTr s xl t) :
     ∃ xs ss, na.totalize.Run (xl ++ω xs) ss ∧ ss 0 = inl s ∧ ss xl.length = inl t := by
-  obtain ⟨xs, ss, _⟩ := LTS.Total.mTr_ωTr
-    (LTS.totalize.total na.toLTS) (LTS.totalize.mtr_left_iff.mpr hm)
-  use xs, ss
-  grind [totalize, Run.mk]
+  grind [totalize, Run, (LTS.totalize.total na.toLTS).mTr_ωTr, =_ LTS.totalize.mtr_left_iff]
 
 namespace FinAcc
 
