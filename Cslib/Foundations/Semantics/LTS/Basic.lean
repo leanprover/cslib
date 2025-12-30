@@ -239,7 +239,7 @@ variable {lts : LTS State Label}
 
 open scoped ωSequence in
 /-- Any finite execution extracted from an infinite execution is valid. -/
-theorem LTS.ωTr_mTr {n m : ℕ} {hnm : n ≤ m} (h : lts.ωTr ss μs) :
+theorem LTS.ωTr_mTr (h : lts.ωTr ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.MTr (ss n) (μs.extract n m) (ss m) := by
   by_cases heq : n = m
   case pos => grind
@@ -250,15 +250,118 @@ theorem LTS.ωTr_mTr {n m : ℕ} {hnm : n ≤ m} (h : lts.ωTr ss μs) :
       have : lts.MTr (ss n) (μs.extract n m) (ss m) := ωTr_mTr (hnm := by grind) h
       grind [MTr.comp]
 
-open scoped ωSequence
+open ωSequence
 
 /-- Prepends an infinite execution with a transition. -/
-theorem LTS.ωTr.cons (hmtr : lts.Tr s1 μ s2) (hωtr : lts.ωTr ss μs) (hm : ss 0 = s2) :
-    lts.ωTr (s1 ::ω ss) (μ ::ω μs) := by
+theorem LTS.ωTr.cons (htr : lts.Tr s μ t) (hωtr : lts.ωTr ss μs) (hm : ss 0 = t) :
+    lts.ωTr (s ::ω ss) (μ ::ω μs) := by
   intro i
   induction i <;> grind
 
+/-- Prepends an infinite execution with a finite execution. -/
+theorem LTS.ωTr.append (hmtr : lts.MTr s μl t) (hωtr : lts.ωTr ss μs)
+    (hm : ss 0 = t) : ∃ ss', lts.ωTr ss' (μl ++ω μs) ∧ ss' 0 = s ∧ ss' μl.length = t := by
+  obtain ⟨sl, _, _, _, _⟩ := LTS.MTr.exists_states hmtr
+  refine ⟨sl ++ω ss.drop 1, ?_, by grind [get_append_left], by grind [get_append_left]⟩
+  intro n
+  by_cases n < μl.length
+  · grind [get_append_left]
+  · by_cases n = μl.length
+    · grind [get_append_left]
+    · grind [get_append_right', hωtr (n - μl.length - 1)]
+
 end ωMultiStep
+
+section Total
+
+/-! ## Total LTS
+
+A LTS is total iff every state has a transition for every label.
+-/
+
+open Sum ωSequence
+
+variable {State Label : Type*} {lts : LTS State Label}
+
+/-- `LTS.Total` provides a witness that the LTS is total. -/
+structure LTS.Total (lts : LTS State Label) where
+  /-- `next` rovides a next state for any given starting state and label. -/
+  next : State → Label → State
+  /-- A proof that the state provided by `next` indeed forms a legal transition. -/
+  total s μ : lts.Tr s μ (next s μ)
+
+/-- `LTS.makeωTr` builds an infinite execution of a total LTS from any starting state and
+any infinite sequence of labels. -/
+def LTS.makeωTr (lts : LTS State Label) (h : lts.Total)
+    (s : State) (μs : ωSequence Label) : ℕ → State
+  | 0 => s
+  | n + 1 => h.next (lts.makeωTr h s μs n) (μs n)
+
+/-- If a LTS is total, then there exists an infinite execution from any starting state and
+over any infinite sequence of labels. -/
+theorem LTS.Total.ωTr_exists (h : lts.Total) (s : State) (μs : ωSequence Label) :
+    ∃ ss, lts.ωTr ss μs ∧ ss 0 = s := by
+  use lts.makeωTr h s μs
+  grind [LTS.makeωTr, h.total]
+
+/-- If a LTS is total, then any finite execution can be extended to an infinite execution,
+provided that the label type is inbabited. -/
+theorem LTS.Total.mTr_ωTr [Inhabited Label] (ht : lts.Total) {μl : List Label} {s t : State}
+    (hm : lts.MTr s μl t) : ∃ μs ss, lts.ωTr ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
+  let μs : ωSequence Label := .const default
+  obtain ⟨ss', ho, h0⟩ := LTS.Total.ωTr_exists ht t μs
+  refine ⟨μs, LTS.ωTr.append hm ho h0⟩
+
+/-- `LTS.totalize` constructs a total LTS from any given LTS by adding a sink state. -/
+def LTS.totalize (lts : LTS State Label) : LTS (State ⊕ Unit) Label where
+  Tr s' μ t' := match s', t' with
+    | inl s, inl t => lts.Tr s μ t
+    | _, inr () => True
+    | inr (), inl _ => False
+
+/-- The LTS constructed by `LTS.totalize` is indeed total. -/
+def LTS.totalize.total (lts : LTS State Label) : lts.totalize.Total where
+  next _ _ := inr ()
+  total _ _ := by simp [LTS.totalize]
+
+/-- In `LTS.totalize`, there is no finite execution from the sink state to any non-sink state. -/
+theorem LTS.totalize.not_right_left {μs : List Label} {t : State} :
+    ¬ lts.totalize.MTr (inr ()) μs (inl t) := by
+  intro h
+  generalize h_s : (inr () : State ⊕ Unit) = s'
+  generalize h_t : (inl t : State ⊕ Unit) = t'
+  rw [h_s, h_t] at h
+  induction h <;> grind [LTS.totalize]
+
+/-- In `LTS.totalize`, the transitions between non-sink states correspond exactly to
+the transitions in the original LTS. -/
+@[simp]
+theorem LTS.totalize.tr_left_iff {μ : Label} {s t : State} :
+    lts.totalize.Tr (inl s) μ (inl t) ↔ lts.Tr s μ t := by
+  simp [LTS.totalize]
+
+/-- In `LTS.totalize`, the multistep transitions between non-sink states correspond exactly to
+the multistep transitions in the original LTS. -/
+@[simp]
+theorem LTS.totalize.mtr_left_iff {μs : List Label} {s t : State} :
+    lts.totalize.MTr (inl s) μs (inl t) ↔ lts.MTr s μs t := by
+  constructor <;> intro h
+  · generalize h_s : (inl s : State ⊕ Unit) = s'
+    generalize h_t : (inl t : State ⊕ Unit) = t'
+    rw [h_s, h_t] at h
+    induction h generalizing s
+    case refl _ => grind [LTS.MTr]
+    case stepL t1' μ t2' μs t3' h_tr h_mtr h_ind =>
+      obtain ⟨rfl⟩ := h_s
+      cases t2'
+      case inl t2 => grind [LTS.MTr, totalize.tr_left_iff.mp h_tr]
+      case inr t2 => grind [totalize.not_right_left]
+  · induction h
+    case refl _ => grind [LTS.MTr]
+    case stepL t1 μ t2 μs t3 h_tr h_mtr h_ind =>
+      grind [LTS.MTr, totalize.tr_left_iff.mpr h_tr]
+
+end Total
 
 section Termination
 /-! ## Definitions about termination -/
