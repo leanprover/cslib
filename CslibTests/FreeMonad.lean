@@ -43,7 +43,7 @@ clean separation between syntax and semantics, enabling multiple interpretations
 
 ## References
 
-Based on "[Tutorial: A Verified Interpreter with Side Effects](https://tannerduve.github.io/blog/freer-monad/part4/)" demonstrating practical
+Based on "[Tutorial: A Verified Interpreter with Side Effects](https://tannerduve.github.io/blog/2025/freer-monad-part4/)" demonstrating practical
 applications of the mathematical theory developed in the core Free monad files.
 -/
 
