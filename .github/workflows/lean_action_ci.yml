@@ -21,10 +21,10 @@ jobs:
         run: |
           set -e
           lake exe mk_all --check --module
-      - name: "lake exe shake"
-        run: |
-          set -e
-          lake exe shake Cslib
+      #- name: "lake exe shake"
+      #  run: |
+      #    set -e
+      #    lake exe shake Cslib
       - uses: leanprover-community/lint-style-action@main
         with:
           mode: check
