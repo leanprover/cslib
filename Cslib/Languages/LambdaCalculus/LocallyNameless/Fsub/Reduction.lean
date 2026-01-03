@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Semantics.ReductionSystem.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
+module
+
+public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
+
+@[expose] public section
 
 set_option linter.unusedDecidableInType false
 
@@ -106,7 +110,7 @@ inductive Red : Term Var → Term Var → Prop
   | case_inr : Value t₁ → t₂.body → t₃.body → Red (case (inr t₁) t₂ t₃) (t₃ ^ᵗᵗ t₁)
 
 @[grind _=_]
-private lemma rs_eq {t t' : Term Var} : t ⭢βᵛ t' ↔ Red t t' := by
+lemma rs_eq {t t' : Term Var} : t ⭢βᵛ t' ↔ Red t t' := by
   have : (@rs Var).Red = Red := by rfl
   simp_all
 

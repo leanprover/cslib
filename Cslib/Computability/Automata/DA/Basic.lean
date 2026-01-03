@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.Acceptors.Acceptor
-import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
-import Cslib.Foundations.Data.OmegaSequence.InfOcc
-import Cslib.Foundations.Semantics.FLTS.Basic
+module
+
+public import Cslib.Computability.Automata.Acceptors.Acceptor
+public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
+public import Cslib.Foundations.Data.OmegaSequence.InfOcc
+public import Cslib.Foundations.Semantics.FLTS.Basic
+
+@[expose] public section
 
 /-! # Deterministic Automata
 

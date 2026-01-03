@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Basic
+module
+
+public import Cslib.Foundations.Semantics.LTS.Basic
+
+@[expose] public section
 
 /-!
 # Trace Equivalence
