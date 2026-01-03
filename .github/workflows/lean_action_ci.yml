@@ -18,6 +18,10 @@ jobs:
         with:
           build-args: "--wfail --iofail"
           mk_all-check: "true"
+      - name: "lake exe mk_all --check --module"
+        run: |
+          set -e
+          lake exe mk_all --check --module
       - name: "lake exe shake"
         run: |
           set -e
