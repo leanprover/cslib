@@ -13,7 +13,7 @@ open Lean Meta Std Batteries.Tactic.Lint
 
 /-- A linter for checking that new declarations fall under some preexisting namespace. -/
 @[env_linter]
-def topNamespace : Batteries.Tactic.Lint.Linter where
+meta def topNamespace : Batteries.Tactic.Lint.Linter where
   noErrorsFound := "No declarations are outside a namespace."
   errorsFound := "TOP LEVEL DECLARATIONS:"
   test declName := do
