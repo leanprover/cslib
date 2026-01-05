@@ -496,18 +496,6 @@ inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → S
 | refl : lts.STr s HasTau.τ s
 | tr : lts.τSTr s1 s2 → lts.Tr s2 μ s3 → lts.τSTr s3 s4 → lts.STr s1 μ s4
 
-/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
-metric. -/
-@[scoped grind]
-inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
-  ℕ → State → Label → State → Prop where
-  | refl : lts.STrN 0 s HasTau.τ s
-  | tr :
-    lts.STrN n s1 HasTau.τ s2 →
-    lts.Tr s2 μ s3 →
-    lts.STrN m s3 HasTau.τ s4 →
-    lts.STrN (n + m + 1) s1 μ s4
-
 /-- The `LTS` obtained by saturating the transition relation in `lts`. -/
 @[scoped grind =]
 def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
@@ -524,6 +512,17 @@ theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
   intro h
   apply LTS.STr.tr .refl h .refl
 
+/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
+metric. -/
+@[scoped grind]
+inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
+  ℕ → State → Label → State → Prop where
+  | refl : lts.STrN 0 s HasTau.τ s
+  | tr :
+    lts.STrN n s1 HasTau.τ s2 →
+    lts.Tr s2 μ s3 →
+    lts.STrN m s3 HasTau.τ s4 →
+    lts.STrN (n + m + 1) s1 μ s4
 
 /-- STr transitions labeled by HasTau.τ are exactly the τSTr transitions. -/
 @[grind _=_]
