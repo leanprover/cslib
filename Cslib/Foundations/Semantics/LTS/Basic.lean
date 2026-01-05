@@ -597,7 +597,7 @@ theorem LTS.τSTr_sTrN [HasTau Label] (lts : LTS State Label) :
   grind
 
 /-- Saturated transitions labelled by τ can be composed (weighted version). -/
-@[scoped grind .]
+@[scoped grind →]
 theorem LTS.STrN.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
@@ -679,7 +679,7 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
       exact LTS.STr.comp lts h1 (LTS.STr.single lts h2) h3
 
 /-- Saturated transitions labelled by τ can be composed. -/
-@[scoped grind <=]
+@[scoped grind →]
 theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
