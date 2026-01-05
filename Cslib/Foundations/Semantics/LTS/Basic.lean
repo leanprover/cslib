@@ -628,13 +628,13 @@ theorem LTS.sTrN_imp_τSTr [HasTau Label] (lts : LTS State Label) :
     exact Relation.ReflTransGen.trans hτ1' (Relation.ReflTransGen.head htr hτ3')
 
 @[grind .]
-theorem LTS.τSTr_eq_sTrN [HasTau Label] (lts : LTS State Label) :
+theorem LTS.τSTr_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.τSTr s1 s2 ↔ ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   grind
 
-/-- `LTS.sTr` and `LTS.sTrN` are equivalent. -/
+/-- `LTS.str` and `LTS.strN` are equivalent. -/
 @[scoped grind =]
-theorem LTS.sTr_eq_sTrN [HasTau Label] (lts : LTS State Label) :
+theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
   apply Iff.intro <;> intro h
   case mp =>
@@ -674,10 +674,10 @@ theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
   lts.STr s1 HasTau.τ s3 := by
-  obtain ⟨n, h1N⟩ := (LTS.sTr_eq_sTrN lts).1 h1
-  obtain ⟨m, h2N⟩ := (LTS.sTr_eq_sTrN lts).1 h2
+  obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
   have concN := LTS.STrN.trans_τ lts h1N h2N
-  apply (LTS.sTr_eq_sTrN lts).2 ⟨n + m, concN⟩
+  apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
 
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
 @[scoped grind <=]
