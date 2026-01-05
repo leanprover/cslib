@@ -8,7 +8,7 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
-@[expose] public section
+public section
 
 namespace Cslib
 

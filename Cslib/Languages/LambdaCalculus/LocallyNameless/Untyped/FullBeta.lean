@@ -9,7 +9,7 @@ module
 public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
-@[expose] public section
+public section
 
 set_option linter.unusedDecidableInType false
 

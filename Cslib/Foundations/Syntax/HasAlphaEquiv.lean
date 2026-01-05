@@ -8,7 +8,7 @@ module
 
 public import Cslib.Init
 
-@[expose] public section
+public section
 
 namespace Cslib
 

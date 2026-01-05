@@ -8,7 +8,7 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Typing
 
-@[expose] public section
+public section
 
 /-! # λ-calculus
 

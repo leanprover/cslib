@@ -8,7 +8,7 @@ module
 
 public import Cslib.Computability.Automata.DA.Basic
 
-@[expose] public section
+public section
 
 /-! # Deterministic Buchi automata.
 -/
