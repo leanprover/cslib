@@ -756,6 +756,8 @@ end Bisimulation
 
 section WeakBisimulation
 
+open LTS.STr
+
 /-! ## Weak bisimulation and weak bisimilarity -/
 
 /-- A weak bisimulation is similar to a `Bisimulation`, but allows for the related processes to do
@@ -890,7 +892,7 @@ theorem LTS.isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
-        rw [←LTS.STr_τTr] at hstr1 hstr2
+        rw [←LTS.sTr_τSTr] at hstr1 hstr2
         obtain ⟨sb2, hstr2b, hrb⟩ := SWBisimulation.follow_internal_fst h hr hstr1
         obtain ⟨sb2', hstr2b', hrb'⟩ := (h hrb μ).1 _ htr
         obtain ⟨s2', hstr2', hrb2⟩ := SWBisimulation.follow_internal_fst h hrb' hstr2
@@ -906,7 +908,7 @@ theorem LTS.isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
-        rw [←LTS.STr_τTr] at hstr1 hstr2
+        rw [←LTS.sTr_τSTr] at hstr1 hstr2
         obtain ⟨sb1, hstr1b, hrb⟩ := SWBisimulation.follow_internal_snd h hr hstr1
         obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).2 _ htr
         obtain ⟨s1', hstr1', hrb2⟩ := SWBisimulation.follow_internal_snd h hrb' hstr2

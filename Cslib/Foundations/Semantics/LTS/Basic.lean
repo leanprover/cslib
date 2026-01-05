@@ -501,12 +501,12 @@ inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → S
 def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
   Tr := lts.STr
 
-@[scoped grind _=_]
+@[scoped grind]
 theorem LTS.saturate_tr_sTr [HasTau Label] {lts : LTS State Label} :
   lts.saturate.Tr = lts.STr := by rfl
 
 /-- Any transition is also a saturated transition. -/
-@[scoped grind →]
+@[scoped grind]
 theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
     lts.Tr s μ s' → lts.STr s μ s' := by
   intro h
@@ -525,7 +525,7 @@ inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
     lts.STrN (n + m + 1) s1 μ s4
 
 /-- STr transitions labeled by HasTau.τ are exactly the τSTr transitions. -/
-@[scoped grind _=_]
+@[scoped grind]
 theorem LTS.sTr_τSTr [HasTau Label] (lts : LTS State Label) :
   lts.STr s HasTau.τ s' ↔ lts.τSTr s s' := by
   apply Iff.intro <;> intro h
@@ -540,7 +540,7 @@ theorem LTS.sTr_τSTr [HasTau Label] (lts : LTS State Label) :
     case tail _ h1 h2 => exact LTS.STr.tr h1 h2 .refl
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-@[scoped grind _=_]
+@[scoped grind]
 theorem LTS.saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label)
   : lts.saturate.τSTr s = lts.τSTr s := by
   ext s''
@@ -557,7 +557,7 @@ theorem LTS.saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label
       exact Relation.ReflTransGen.single h4
 
 /-- In a saturated LTS, every state is in its τ-image. -/
-@[scoped grind .]
+@[scoped grind]
 theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
   s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
 
@@ -567,7 +567,7 @@ by performing only `τ`-transitions. -/
 def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
   lts.saturate.setImage S HasTau.τ
 
-@[scoped grind .]
+@[scoped grind]
 theorem LTS.τSTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.τSTr s1 s2 → ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   intro h
@@ -580,7 +580,7 @@ theorem LTS.τSTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
     exists (n + 1)
     apply LTS.STrN.tr hn htr LTS.STrN.refl
 
-@[scoped grind .]
+@[scoped grind]
 theorem LTS.sTrN_imp_τSTr [HasTau Label] (lts : LTS State Label) :
   lts.STrN n s1 HasTau.τ s2 → lts.τSTr s1 s2 := by
   intro h
@@ -591,14 +591,14 @@ theorem LTS.sTrN_imp_τSTr [HasTau Label] (lts : LTS State Label) :
     have hτ3' := LTS.sTrN_imp_τSTr lts hτ2
     exact Relation.ReflTransGen.trans hτ1' (Relation.ReflTransGen.head htr hτ3')
 
-@[scoped grind .]
+@[scoped grind]
 theorem LTS.τSTr_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.τSTr s1 s2 ↔ ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   grind
 
 
 /-- Saturated transitions labelled by τ can be composed (weighted version). -/
-@[scoped grind <=]
+@[scoped grind]
 theorem LTS.STrN.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
@@ -611,7 +611,7 @@ theorem LTS.STrN.trans_τ
     grind
 
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
-@[scoped grind <=]
+@[scoped grind]
 theorem LTS.STrN.append
     [HasTau Label] (lts : LTS State Label)
     (h1 : lts.STrN n1 s1 μ s2)
@@ -624,7 +624,7 @@ theorem LTS.STrN.append
     grind
 
 /-- Saturated transitions can be composed (weighted version). -/
-@[scoped grind <=]
+@[scoped grind]
 theorem LTS.STrN.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n1 s1 HasTau.τ s2)
@@ -641,7 +641,7 @@ theorem LTS.STrN.comp
     grind
 
 /-- Saturated transitions can be composed. -/
-@[scoped grind <=]
+@[scoped grind]
 theorem LTS.STr.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2)
@@ -657,7 +657,7 @@ theorem LTS.STr.comp
     exact LTS.STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
 /-- `LTS.str` and `LTS.strN` are equivalent. -/
-@[scoped grind =]
+@[scoped grind]
 theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
   lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
   apply Iff.intro <;> intro h
@@ -680,7 +680,7 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
       exact LTS.STr.comp lts h1 (LTS.STr.single lts h2) h3
 
 /-- Saturated transitions labelled by τ can be composed. -/
-@[scoped grind <=]
+@[scoped grind]
 theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
@@ -691,7 +691,7 @@ theorem LTS.STr.trans_τ
   apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-@[grind _=_]
+@[grind]
 theorem LTS.saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label)
   (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
