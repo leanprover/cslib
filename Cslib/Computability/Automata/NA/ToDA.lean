@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 import Cslib.Computability.Automata.DA.Basic
 import Cslib.Computability.Automata.NA.Basic
-import Cslib.Foundations.Semantics.LTS.LTSToFLTS
+import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 
 /-! # Translation of Nondeterministic Automata for finite strings into Deterministic Automata
 
@@ -38,12 +38,7 @@ open scoped DA.FinAcc LTS in
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
   language na.toDAFinAcc = language na := by
   ext xs
-  #adaptation_note
-  /--
-  Moving from `nightly-2025-09-15` to `nightly-2025-10-19` required
-  increasing the number of allowed splits.
-  -/
-  grind (splits := 11)
+  grind
 
 end FinAcc
 

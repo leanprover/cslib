@@ -7,10 +7,12 @@ Authors: Ching-Tsun Chou
 import Cslib.Computability.Automata.DA.Buchi
 import Cslib.Computability.Automata.NA.BuchiEquiv
 import Cslib.Computability.Automata.NA.BuchiInter
+import Cslib.Computability.Automata.NA.Concat
 import Cslib.Computability.Automata.NA.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
 import Mathlib.Data.Finite.Sigma
+import Mathlib.Data.Finite.Sum
 
 /-!
 # ω-Regular languages
@@ -18,8 +20,8 @@ import Mathlib.Data.Finite.Sigma
 This file defines ω-regular languages and proves some properties of them.
 -/
 
-open Set Function Filter Cslib.ωSequence Cslib.Automata ωAcceptor
-open scoped Computability Cslib.Automata.NA.Run
+open Set Sum Filter Cslib.ωSequence Cslib.Automata ωAcceptor
+open scoped Computability Cslib.LTS
 
 universe u v
 
@@ -68,7 +70,7 @@ theorem IsRegular.not_da_buchi :
 @[simp]
 theorem IsRegular.regular_omegaLim {l : Language Symbol}
     (h : l.IsRegular) : (l↗ω).IsRegular := by
-  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_cslib_dfa.mp h
+  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_dfa.mp h
   grind [IsRegular.of_da_buchi, =_ DA.buchi_eq_finAcc_omegaLim]
 
 /-- The empty language is ω-regular. -/
@@ -94,7 +96,7 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
   simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
     atTop_neBot, and_true, mem_top, iff_true]
   use const ()
-  grind
+  grind [NA.Run]
 
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]
@@ -162,6 +164,18 @@ theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage 
     obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ).mp h_n
     rw [iInf_insert]
     grind [IsRegular.inf]
+
+/-- The concatenation of a regular language and an ω-regular language is ω-regular. -/
+@[simp]
+theorem IsRegular.hmul {l : Language Symbol} {p : ωLanguage Symbol}
+    (h1 : l.IsRegular) (h2 : p.IsRegular) : (l * p).IsRegular := by
+  obtain ⟨State1, h_fin1, ⟨na1, acc1⟩, rfl⟩ := Language.IsRegular.iff_nfa.mp h1
+  obtain ⟨State2, h_fin1, ⟨na2, acc2⟩, rfl⟩ := h2
+  let State := State1 ⊕ State2
+  let na := NA.concat ⟨na1, acc1⟩ na2
+  let acc : Set State := inr '' acc2
+  use State, inferInstance, ⟨na, acc⟩
+  rw [NA.Buchi.concat_language_eq]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :

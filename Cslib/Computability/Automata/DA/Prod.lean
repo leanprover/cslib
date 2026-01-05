@@ -5,6 +5,7 @@ Authors: Ching-Tsun Chou
 -/
 
 import Cslib.Computability.Automata.DA.Basic
+import Cslib.Foundations.Semantics.FLTS.Prod
 
 /-! # Product of deterministic automata. -/
 
@@ -17,20 +18,19 @@ variable {State1 State2 Symbol : Type*}
 
 namespace DA
 
-/-- The product of two deterministic automata.
-TODO: This operation could be generalised to FLTS and lifted here. -/
+/-- The product of two deterministic automata. -/
 @[scoped grind =]
 def prod (da1 : DA State1 Symbol) (da2 : DA State2 Symbol) : DA (State1 × State2) Symbol where
+  toFLTS := da1.toFLTS.prod da2.toFLTS
   start := (da1.start, da2.start)
-  tr := fun (s1, s2) x ↦ (da1.tr s1 x, da2.tr s2 x)
 
 /-- A state is reachable by the product automaton iff its components are reachable by
-the respective component automata. -/
+the respective automaton components. -/
 @[simp, scoped grind =]
 theorem prod_mtr_eq (da1 : DA State1 Symbol) (da2 : DA State2 Symbol)
     (s : State1 × State2) (xs : List Symbol) :
-    (da1.prod da2).mtr s xs = (da1.mtr s.fst xs, da2.mtr s.snd xs) := by
-  induction xs generalizing s <;> grind
+    (da1.prod da2).mtr s xs = (da1.mtr s.fst xs, da2.mtr s.snd xs) :=
+  FLTS.prod_mtr_eq da1.toFLTS da2.toFLTS s xs
 
 end DA
 
