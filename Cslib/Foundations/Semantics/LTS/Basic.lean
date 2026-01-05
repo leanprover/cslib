@@ -614,10 +614,10 @@ theorem LTS.STrN.trans_τ
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
 @[scoped grind <=]
 theorem LTS.STrN.append
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 μ s2)
-  (h2 : lts.STrN n2 s2 HasTau.τ s3) :
-  lts.STrN (n1 + n2) s1 μ s3 := by
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 μ s2)
+    (h2 : lts.STrN n2 s2 HasTau.τ s3) :
+    lts.STrN (n1 + n2) s1 μ s3 := by
   induction h1
   case refl => grind
   case tr hstr1 htr hstr2 ih1 ih2  =>
@@ -741,6 +741,7 @@ class LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) where
   divergence_free : ¬∃ s, lts.Divergent s
 
 end Divergence
+
 
 open Lean Elab Meta Command Term
 
