@@ -502,7 +502,7 @@ def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
   Tr := lts.STr
 
 @[scoped grind _=_]
-theorem LTS.saturate_tr_sTr [HasTau Label] {lts : LTS State Label} :
+theorem LTS.saturate_tr_STr [HasTau Label] {lts : LTS State Label} :
   lts.saturate.Tr = lts.STr := by rfl
 
 /-- Any transition is also a saturated transition. -/
@@ -512,9 +512,9 @@ theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
   intro h
   apply LTS.STr.tr .refl h .refl
 
-/-- STr transitions labeled by HasTau.τ are exactly the τTr transitions. -/
-@[grind]
-theorem LTS.STr_τTr [HasTau Label] (lts : LTS State Label) :
+/-- STr transitions labeled by HasTau.τ are exactly the τSTr transitions. -/
+@[grind _=_]
+theorem LTS.STr_τSTr [HasTau Label] (lts : LTS State Label) :
   lts.STr s HasTau.τ s' ↔ lts.τSTr s s' := by
   apply Iff.intro <;> intro h
   case mp =>
@@ -528,31 +528,31 @@ theorem LTS.STr_τTr [HasTau Label] (lts : LTS State Label) :
     case tail _ h1 h2 => exact LTS.STr.tr h1 h2 .refl
 
 /-- Saturated transitions can be composed. -/
-@[grind]
+@[grind →]
 theorem LTS.STr.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2)
   (h2 : lts.STr s2 μ s3)
   (h3 : lts.STr s3 HasTau.τ s4) :
   lts.STr s1 μ s4 := by
-  rw [LTS.STr_τTr _] at h1 h3
+  rw [LTS.STr_τSTr _] at h1 h3
   cases h2
   case refl =>
-    rw [LTS.STr_τTr _]
+    rw [LTS.STr_τSTr _]
     apply Relation.ReflTransGen.trans h1 h3
   case tr _ _ hτ1 htr hτ2 =>
     exact LTS.STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
 @[grind _=_]
-theorem LTS.saturate_τTr_τTr [hHasTau : HasTau Label] (lts : LTS State Label)
+theorem LTS.saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label)
   : lts.saturate.τSTr s = lts.τSTr s := by
   ext s''
   apply Iff.intro <;> intro h
   case mp =>
     induction h
     case refl => constructor
-    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((LTS.STr_τTr _).mp h2)
+    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((LTS.STr_τSTr _).mp h2)
   case mpr =>
     cases h
     case refl => constructor
@@ -562,7 +562,7 @@ theorem LTS.saturate_τTr_τTr [hHasTau : HasTau Label] (lts : LTS State Label)
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
 @[grind _=_]
-theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
+theorem LTS.saturate_Tr_saturate_STr [hHasTau : HasTau Label] (lts : LTS State Label)
   (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
   apply Iff.intro <;> intro h
@@ -576,12 +576,12 @@ theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
     cases h
     case refl => constructor
     case tr hstr1 htr hstr2 =>
-      rw [LTS.saturate_τTr_τTr lts] at hstr1 hstr2
-      rw [←LTS.STr_τTr lts] at hstr1 hstr2
+      rw [LTS.saturate_τSTr_τSTr lts] at hstr1 hstr2
+      rw [←LTS.STr_τSTr lts] at hstr1 hstr2
       exact LTS.STr.comp lts hstr1 htr hstr2
 
 /-- In a saturated LTS, every state is in its τ-image. -/
-@[grind]
+@[grind .]
 theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
   s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
 
@@ -603,8 +603,8 @@ inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
     lts.STrN m s3 HasTau.τ s4 →
     lts.STrN (n + m + 1) s1 μ s4
 
-@[grind]
-theorem LTS.τTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
+@[grind .]
+theorem LTS.τSTr_imp_STrN [HasTau Label] (lts : LTS State Label) :
   lts.τSTr s1 s2 → ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   intro h
   induction h
@@ -616,25 +616,25 @@ theorem LTS.τTr_imp_sTrN [HasTau Label] (lts : LTS State Label) :
     exists (n + 1)
     apply LTS.STrN.tr hn htr LTS.STrN.refl
 
-@[grind]
-theorem LTS.sTrN_imp_τTr [HasTau Label] (lts : LTS State Label) :
+@[grind .]
+theorem LTS.sTrN_imp_τSTr [HasTau Label] (lts : LTS State Label) :
   lts.STrN n s1 HasTau.τ s2 → lts.τSTr s1 s2 := by
   intro h
   cases h
   case refl => exact Relation.ReflTransGen.refl
   case tr m _ _ k hτ1 htr hτ2 =>
-    have hτ1' := LTS.sTrN_imp_τTr lts hτ1
-    have hτ3' := LTS.sTrN_imp_τTr lts hτ2
+    have hτ1' := LTS.sTrN_imp_τSTr lts hτ1
+    have hτ3' := LTS.sTrN_imp_τSTr lts hτ2
     exact Relation.ReflTransGen.trans hτ1' (Relation.ReflTransGen.head htr hτ3')
 
-@[grind]
-theorem LTS.τSTr_sTrN [HasTau Label] (lts : LTS State Label) :
+@[grind .]
+theorem LTS.τSTr_STrN [HasTau Label] (lts : LTS State Label) :
   lts.τSTr s1 s2 ↔ ∃ n, lts.STrN n s1 HasTau.τ s2 := by
   grind
 
 /-- `LTS.sTr` and `LTS.sTrN` are equivalent. -/
 @[scoped grind =]
-theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
+theorem LTS.STr_STrN [HasTau Label] (lts : LTS State Label) :
   lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
   apply Iff.intro <;> intro h
   case mp =>
@@ -643,8 +643,8 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
       exists 0
       apply LTS.STrN.refl
     case tr _ _ hτ1 htr hτ2 =>
-      obtain ⟨n, hn⟩ := LTS.τTr_imp_sTrN lts hτ1
-      obtain ⟨m, hm⟩ := LTS.τTr_imp_sTrN lts hτ2
+      obtain ⟨n, hn⟩ := LTS.τSTr_imp_STrN lts hτ1
+      obtain ⟨m, hm⟩ := LTS.τSTr_imp_STrN lts hτ2
       exists (n + m + 1)
       apply LTS.STrN.tr hn htr hm
   case mpr =>
@@ -674,10 +674,10 @@ theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
   lts.STr s1 HasTau.τ s3 := by
-  obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
-  obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  obtain ⟨n, h1N⟩ := (LTS.STr_STrN lts).1 h1
+  obtain ⟨m, h2N⟩ := (LTS.STr_STrN lts).1 h2
   have concN := LTS.STrN.trans_τ lts h1N h2N
-  apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
+  apply (LTS.STr_STrN lts).2 ⟨n + m, concN⟩
 
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
 @[scoped grind <=]
