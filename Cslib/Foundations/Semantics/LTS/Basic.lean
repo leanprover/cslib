@@ -497,7 +497,7 @@ inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → S
 | tr : lts.τSTr s1 s2 → lts.Tr s2 μ s3 → lts.τSTr s3 s4 → lts.STr s1 μ s4
 
 /-- The `LTS` obtained by saturating the transition relation in `lts`. -/
-@[scoped grind =]
+@[scoped grind]
 def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
   Tr := lts.STr
 
@@ -556,7 +556,6 @@ theorem LTS.saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label
       have h4 := LTS.STr.tr h2 h3 Relation.ReflTransGen.refl
       exact Relation.ReflTransGen.single h4
 
-
 /-- In a saturated LTS, every state is in its τ-image. -/
 @[scoped grind .]
 theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
@@ -564,7 +563,7 @@ theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
 
 /-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
 by performing only `τ`-transitions. -/
-@[scoped grind =]
+@[scoped grind]
 def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
   lts.saturate.setImage S HasTau.τ
 
@@ -599,7 +598,7 @@ theorem LTS.τSTr_sTrN [HasTau Label] (lts : LTS State Label) :
 
 
 /-- Saturated transitions labelled by τ can be composed (weighted version). -/
-@[scoped grind →]
+@[scoped grind <=]
 theorem LTS.STrN.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
@@ -642,7 +641,7 @@ theorem LTS.STrN.comp
     grind
 
 /-- Saturated transitions can be composed. -/
-@[grind →]
+@[scoped grind <=]
 theorem LTS.STr.comp
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2)
@@ -681,7 +680,7 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
       exact LTS.STr.comp lts h1 (LTS.STr.single lts h2) h3
 
 /-- Saturated transitions labelled by τ can be composed. -/
-@[scoped grind →]
+@[scoped grind <=]
 theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
@@ -710,7 +709,6 @@ theorem LTS.saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State L
       rw [LTS.saturate_τSTr_τSTr lts] at hstr1 hstr2
       rw [←LTS.sTr_τSTr lts] at hstr1 hstr2
       exact LTS.STr.comp lts hstr1 htr hstr2
-
 
 end Weak
 
