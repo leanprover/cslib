@@ -15,6 +15,7 @@ public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
 public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Hist
+public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
