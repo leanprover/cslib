@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Basic
-import Cslib.Foundations.Semantics.FLTS.Prod
+module
+
+public import Cslib.Computability.Automata.DA.Basic
+public import Cslib.Foundations.Semantics.FLTS.Prod
+
+@[expose] public section
 
 /-! # Product of deterministic automata. -/
 

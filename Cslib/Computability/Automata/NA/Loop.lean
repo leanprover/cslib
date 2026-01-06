@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Basic
-import Cslib.Foundations.Data.OmegaSequence.Temporal
+module
+
+public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+@[expose] public section
 
 /-! # Loop construction on nondeterministic automata. -/
 

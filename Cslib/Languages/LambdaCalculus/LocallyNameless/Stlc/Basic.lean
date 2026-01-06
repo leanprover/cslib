@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+module
+
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+
+@[expose] public section
 
 set_option linter.unusedDecidableInType false
 

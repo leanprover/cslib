@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sorrachai Yingchareonthawornhcai
 -/
 
-import Cslib.Algorithms.Lean.TimeM
-import Mathlib.Data.Nat.Cast.Order.Ring
-import Mathlib.Data.Nat.Lattice
-import Mathlib.Data.Nat.Log
+module
 
+public import Cslib.Algorithms.Lean.TimeM
+public import Mathlib.Data.Nat.Cast.Order.Ring
+public import Mathlib.Data.Nat.Lattice
+public import Mathlib.Data.Nat.Log
+
+@[expose] public section
 
 /-!
 # MergeSort on a list

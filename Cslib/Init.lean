@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jesse Alama
 -/
 
-import Cslib.Foundations.Lint.Basic
-import Mathlib.Init
-import Mathlib.Tactic.Common
+module
+
+public import Cslib.Foundations.Lint.Basic
+public import Mathlib.Init
+public import Mathlib.Tactic.Common
 
 /-!
 # CSLib Initialization
