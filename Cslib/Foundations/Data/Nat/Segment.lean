@@ -188,7 +188,7 @@ private lemma base_zero_shift (f : ℕ → ℕ) :
     (f · - f 0) 0 = 0 := by
   simp
 
-private lemma base_zero_strictMono (hm : StrictMono f) :
+theorem base_zero_strictMono (hm : StrictMono f) :
     StrictMono (f · - f 0) := by
   intro m n h_m_n; simp
   have := hm h_m_n
