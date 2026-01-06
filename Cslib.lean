@@ -14,6 +14,7 @@ import Cslib.Computability.Automata.NA.BuchiInter
 import Cslib.Computability.Automata.NA.Concat
 import Cslib.Computability.Automata.NA.Hist
 import Cslib.Computability.Automata.NA.Loop
+import Cslib.Computability.Automata.NA.Pair
 import Cslib.Computability.Automata.NA.Prod
 import Cslib.Computability.Automata.NA.Sum
 import Cslib.Computability.Automata.NA.ToDA
