@@ -285,7 +285,7 @@ variable {State Label : Type*} {lts : LTS State Label}
 
 /-- `LTS.Total` provides a witness that the LTS is total. -/
 structure LTS.Total (lts : LTS State Label) where
-  /-- `next` rovides a next state for any given starting state and label. -/
+  /-- `next` provides a next state for any given starting state and label. -/
   next : State → Label → State
   /-- A proof that the state provided by `next` indeed forms a legal transition. -/
   total s μ : lts.Tr s μ (next s μ)
