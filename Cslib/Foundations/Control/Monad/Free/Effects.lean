@@ -6,6 +6,7 @@ Authors: Tanner Duve
 import Mathlib.Control.Monad.Cont
 import Cslib.Foundations.Control.Monad.Free
 import Mathlib.Control.Monad.Writer
+import Mathlib.Algebra.Group.Hom.Defs
 
 /-!
 # Free Monad
@@ -14,14 +15,16 @@ This file defines several canonical instances on the free monad.
 
 ## Main definitions
 
-- `FreeState`, `FreeWriter`, `FreeCont`: Specific effect monads
+- `FreeState`, `FreeWriter`, `FreeCont`, `FreeReader`: Specific effect monads
 
 ## Implementation
 
 To execute or interpret these computations, we provide two approaches:
-1. **Hand-written interpreters** (`FreeState.run`, `FreeWriter.run`, `FreeCont.run`) that directly
+1. **Hand-written interpreters** (`FreeState.run`, `FreeWriter.run`, `FreeCont.run`,
+  `FreeReader.run`) that directly
   pattern-match on the tree structure
-2. **Canonical interpreters** (`FreeState.toStateM`, `FreeWriter.toWriterT`, `FreeCont.toContT`)
+2. **Canonical interpreters** (`FreeState.toStateM`, `FreeWriter.toWriterT`, `FreeCont.toContT`,
+  `FreeReader.toReaderM`)
   derived from the universal property via `liftM`
 
 We prove that these approaches are equivalent, demonstrating that the implementation aligns with
