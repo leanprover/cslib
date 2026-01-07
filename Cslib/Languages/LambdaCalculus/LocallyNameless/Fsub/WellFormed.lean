@@ -64,13 +64,13 @@ open scoped Env.Wf
 @[grind →]
 theorem lc (wf : σ.Wf Γ) : σ.LC := by
   induction wf with
-  | all => apply LC.all (free_union Var) <;> grind
+  | all => grind [LC.all (free_union Var)]
   | _ => grind
 
 /-- A type remains well-formed under context permutation. -/
 theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓) : σ.Wf Δ := by
   induction wf generalizing Δ with
-  | all => apply all (free_union [dom] Var) <;> grind [Perm.cons, nodupKeys_cons]
+  | all => grind [all <| free_union [dom] Var, Perm.cons, nodupKeys_cons]
   | _ => grind [perm_dlookup]
 
 /-- A type remains well-formed under context weakening (in the middle). -/
@@ -105,14 +105,13 @@ lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨
 
 lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) (ok : (⟨X, Binding.sub τ'⟩ :: Δ)✓) :
     σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) := by
-  rw [←List.nil_append (⟨X, sub τ'⟩ :: Δ)]
-  grind [narrow]
+  grind [List.nil_append (⟨X, sub τ'⟩ :: Δ), narrow]
 
 /-- A type remains well-formed under context strengthening. -/
 lemma strengthen (wf : σ.Wf (Γ ++ ⟨X, Binding.ty τ⟩ :: Δ)) : σ.Wf (Γ ++ Δ) := by
   generalize eq : Γ ++ ⟨X, Binding.ty τ⟩ :: Δ = Θ at wf
   induction wf generalizing Γ with
-  | all => apply all (free_union [Context.dom] Var) <;> grind
+  | all => grind [all <| free_union [Context.dom] Var]
   | _ => grind
 
 variable [HasFresh Var] in
@@ -155,7 +154,7 @@ variable [HasFresh Var] in
 /-- A variable not appearing in a context does not appear in its well-formed types. -/
 lemma nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := by
   induction wf with
-  | all => have := fresh_exists <| free_union [dom] Var; grind [nmem_fv_open, openRec_lc]
+  | all => grind [fresh_exists <| free_union [dom] Var, nmem_fv_open, openRec_lc]
   | _ => grind [dlookup_isSome]
 
 end Ty.Wf
