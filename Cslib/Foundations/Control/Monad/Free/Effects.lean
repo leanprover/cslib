@@ -279,7 +279,7 @@ def censorHom [Monoid ω] (φ : ω →* ω) : FreeWriter ω α → FreeWriter ω
   induction m with
   | pure a => simp [censorHom, run]
   | liftBind op k ih =>
-    cases op ; simp [censorHom, run, ih, map_mul]
+    cases op; simp [censorHom, run, ih, map_mul]
 
 end FreeWriter
 
@@ -419,7 +419,7 @@ theorem run_toReaderM {α : Type u} (comp : FreeReader σ α) (s : σ) :
   induction comp generalizing s with
   | pure a => rfl
   | liftBind op cont ih =>
-    cases op ; apply ih
+    cases op; apply ih
 
 @[simp]
 lemma run_pure (a : α) (s₀ : σ) :
@@ -441,7 +441,7 @@ def withReaderFree (f : σ → σ) : FreeReader σ α → FreeReader σ α
     induction m generalizing s with
     | pure a => rfl
     | liftBind op cont ih =>
-      cases op ; apply ih
+      cases op; apply ih
 
 /-- Read the environment and return `g` applied to it. -/
 def asks (g : σ → α) : FreeReader σ α :=
