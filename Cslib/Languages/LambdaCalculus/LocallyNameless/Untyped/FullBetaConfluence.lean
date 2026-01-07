@@ -77,8 +77,7 @@ omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
   induction step
-  case beta _ abs_lc _ => 
-    cases abs_lc with | abs xs _ => grind [Parallel.beta xs]
+  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => grind [Parallel.beta xs]
   case abs xs _ _ => grind [Parallel.abs xs]
   all_goals grind
 
