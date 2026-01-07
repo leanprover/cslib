@@ -7,16 +7,19 @@ Authors: Ching-Tsun Chou
 import Cslib.Init
 import Mathlib.Algebra.Order.Sub.Basic
 import Mathlib.Data.Nat.Nth
-import Mathlib.Tactic
 
 open Function Set
 
 /-!
+# Segments defined by a strictly monotonic function on Nat
+
 Given a strictly monotonic function `f : ℕ → ℕ` and `k : ℕ` with `k ≥ f 0`,
 `Nat.segment f k` is the unique `m : ℕ` such that `f m ≤ k < f (k + 1)`.
 `Nat.segment f k` is defined to be 0 for `k < f 0`.
 This file defines `Nat.segment` and proves various properties aboout it.
 -/
+
+/-- The `f`-segment of `k`, where `f : ℕ → ℕ` will be assumed to be at least StrictMono. -/
 @[scoped grind]
 noncomputable def Nat.segment (f : ℕ → ℕ) (k : ℕ) : ℕ :=
   open scoped Classical in
@@ -44,8 +47,8 @@ theorem nth_succ_gap {p : ℕ → Prop} (hf : (setOf p).Infinite) (n : ℕ) :
   intro k h_k1 h_k0 h_p_k
   let m := count p (k + nth p n)
   have h_k_ex : nth p m = k + nth p n := by simp [m, nth_count h_p_k]
-  have h_n_m : n < m := by apply (nth_lt_nth hf).mp ; omega
-  have h_m_n : m < n + 1 := by apply (nth_lt_nth hf).mp ; omega
+  have h_n_m : n < m := by apply (nth_lt_nth hf).mp; omega
+  have h_m_n : m < n + 1 := by apply (nth_lt_nth hf).mp; omega
   omega
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `f n` is exactly the n-th
@@ -106,8 +109,8 @@ open scoped Classical in
 /-- A slight restatement of the definition of `segment` which has proven useful. -/
 theorem segment_plus_one (h0 : f 0 = 0) (k : ℕ) :
     segment f k + 1 = count (· ∈ range f) (k + 1) := by
-  suffices _ : count (· ∈ range f) (k + 1) ≠ 0 by unfold segment ; omega
-  apply count_ne_iff_exists.mpr ; use 0 ; grind
+  suffices _ : count (· ∈ range f) (k + 1) ≠ 0 by unfold segment; omega
+  apply count_ne_iff_exists.mpr; use 0; grind
 
 /-- For a strictly monotonic function `f : ℕ → ℕ` with `f 0 = 0`,
 `k < f (segment f k + 1)` for all `k : ℕ`. -/
@@ -159,7 +162,7 @@ theorem segment_range_val (hm : StrictMono f) {m k : ℕ}
 `f` and `segment f` form a Galois connection. -/
 theorem segment_galois_connection (hm : StrictMono f) (h0 : f 0 = 0) :
     GaloisConnection f (segment f) := by
-  intro m k ; constructor
+  intro m k; constructor
   · intro h
     by_contra! h_con
     have h1 : segment f k + 1 ≤ m := by omega
@@ -183,7 +186,7 @@ private lemma base_zero_shift (f : ℕ → ℕ) :
 
 private lemma base_zero_strictMono (hm : StrictMono f) :
     StrictMono (f · - f 0) := by
-  intro m n h_m_n ; simp
+  intro m n h_m_n; simp
   have := hm h_m_n
   have : f 0 ≤ f m := by simp [StrictMono.le_iff_le hm]
   have : f 0 ≤ f n := by simp [StrictMono.le_iff_le hm]
@@ -194,27 +197,24 @@ private lemma base_zero_strictMono (hm : StrictMono f) :
 theorem segment'_eq_segment (hm : StrictMono f) :
     segment' f = segment f := by
   classical
-  ext k ; unfold segment'
+  ext k; unfold segment'
   rcases (show k < f 0 ∨ k ≥ f 0 by omega) with h_k | h_k
-  · have : k - f 0 = 0 := by grind
-    grind
-  unfold segment ; congr 1
+  · grind
+  unfold segment; congr 1
   simp only [count_eq_card_filter_range]
   suffices h : ∃ g, BijOn g
-      ({x ∈ Finset.range (k - f 0 + 1) | x ∈ range fun x => f x - f 0}).toSet
-      ({x ∈ Finset.range (k + 1) | x ∈ range f}).toSet by
-    obtain ⟨g, h_bij⟩ := h
-    exact BijOn.finsetCard_eq g h_bij
+      ({x ∈ Finset.range (k - f 0 + 1) | x ∈ range fun x => f x - f 0})
+      ({x ∈ Finset.range (k + 1) | x ∈ range f}) by
+    grind [BijOn.finsetCard_eq, Finset.coe_filter]
   refine ⟨fun n ↦ n + f 0, ?_, ?_, ?_⟩
-  · intro n ; simp only [mem_range, Finset.coe_filter, Finset.mem_range, mem_setOf_eq]
+  · intro n; simp only [mem_range, Finset.mem_range, mem_setOf_eq]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
     refine ⟨?_, i, ?_⟩ <;> omega
   · grind [injOn_of_injective, Injective]
-  · intro n ; simp only [mem_range, Finset.coe_filter, Finset.mem_range, mem_setOf_eq, mem_image]
+  · intro n; simp only [mem_range, Finset.mem_range, mem_setOf_eq, mem_image]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
-    use f i - f 0
     grind
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `segment f k = 0` for all `k ≤ f 0`. -/

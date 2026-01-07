@@ -5,14 +5,7 @@ Authors: Fabrizio Montesi, Kenny Lau
 -/
 
 import Cslib.Init
-import Mathlib.Algebra.Field.Rat
-import Mathlib.Algebra.Ring.CharZero
-import Mathlib.Algebra.Ring.Int.Defs
-import Mathlib.Data.Finset.Max
-import Mathlib.Data.Finset.Preimage
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Nat.SuccPred
-import Mathlib.Order.SuccPred.WithBot
+import Mathlib.Analysis.Normed.Field.Lemmas
 
 universe u
 
@@ -77,6 +70,7 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
+set_option linter.style.emptyLine false in
 /-- Elaborator for `free_union`. -/
 @[term_elab freeUnion]
 def HasFresh.freeUnion : TermElab := fun stx _ => do

@@ -5,10 +5,9 @@ Authors: Tanner Duve, Bhavik Mehta
 -/
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Algebra.Ring.Idempotent
+import Mathlib.Algebra.Group.Idempotent
 import Mathlib.Data.Set.Basic
 import Mathlib.Order.Closure
-import Mathlib.Tactic.Cases
 import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-!
@@ -162,6 +161,9 @@ initialize_simps_projections Fact (carrier → coe)
 
 lemma Fact.eq (G : Fact P) : G = (G : Set P)⫠⫠ := G.property
 
+lemma subset_dual_dual {G : Set P} :
+  G ⊆ G⫠⫠ := fun p hp q hq => mul_comm p q ▸ hq _ hp
+
 @[scoped grind =] lemma mem_dual {G : Fact P} : p ∈ G⫠ ↔ ∀ q ∈ G, p * q ∈ PhaseSpace.bot :=
   Iff.rfl
 
@@ -177,6 +179,9 @@ lemma of_Fact {G : Fact P} {p : P}
 @[simps] def Fact.mk_subset (G : Set P) (h : G⫠⫠ ⊆ G) : Fact P where
   carrier := G
   property := by grind [isFact, orth_extensive]
+
+lemma dual_subset_dual {G H : Set P} (h : G ⊆ H) :
+    H⫠ ⊆ G⫠ := fun _ hp _ hq => hp _ (h hq)
 
 /-- Construct a fact from a set G and a proof that G equals the orthogonal of some set H. -/
 @[simps!] def Fact.mk_dual (G H : Set P) (h : G = H⫠) : Fact P :=
@@ -314,6 +319,8 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
 instance : Min (Fact P) where
   min G H := Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
 
+@[simp] lemma coe_min {G H : Fact P} : ((G ⊓ H : Fact P) : Set P) = (G : Set P) ∩ H := rfl
+
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
 
@@ -324,9 +331,12 @@ def I : Set P := idempotentsIn (1 : Set P)
 
 namespace Fact
 
+/--
+Linear negation of a fact, given by taking its orthogonal.
+-/
 def neg (G : Fact P) : Fact P := dualFact G
 
-postfix:max "ᗮ" => neg
+@[inherit_doc] postfix:max "ᗮ" => neg
 
 @[simp] lemma coe_neg {G : Fact P} : (Gᗮ : Set P) = (G : Set P)⫠ := rfl
 
@@ -524,6 +534,133 @@ defined as the dual of the intersection of the orthogonal with the idempotents.
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
 @[inherit_doc] prefix:100 " ʔ " => quest
 
+/-! ### Properties of Additives -/
+
+lemma plus_eq_with_dual : (G ⊕ H : Fact P) = (Gᗮ & Hᗮ)ᗮ := by
+  apply SetLike.coe_injective
+  rw [oplus, withh]
+  aesop
+
+lemma with_eq_plus_dual : (G & H : Fact P) = (Gᗮ ⊕ Hᗮ)ᗮ := by simp [plus_eq_with_dual]
+
+lemma neg_plus {G H : Fact P} : (G ⊕ H)ᗮ = Gᗮ & Hᗮ := by rw [plus_eq_with_dual, neg_neg]
+
+lemma neg_with {G H : Fact P} : (G & H)ᗮ = Gᗮ ⊕ Hᗮ := by rw [with_eq_plus_dual, neg_neg]
+
+lemma with_comm : (G & H : Fact P) = H & G :=
+  SetLike.coe_injective <| by simp [withh, Set.inter_comm]
+
+@[simp] lemma with_assoc : ((G & H) & K : Fact P) = G & (H & K) := by
+  apply SetLike.coe_injective
+  rw [withh, coe_min]
+  exact Set.inter_assoc ..
+
+@[simp] lemma top_with : (⊤ & G : Fact P) = G := SetLike.coe_injective <| by simp [withh]
+
+@[simp] lemma with_top : (G & ⊤ : Fact P) = G := SetLike.coe_injective <| by simp [withh]
+
+lemma plus_comm : (G ⊕ H : Fact P) = H ⊕ G := by rw [oplus, Set.union_comm, ← oplus]
+
+@[simp] lemma plus_assoc : ((G ⊕ H) ⊕ K : Fact P) = G ⊕ (H ⊕ K) := by
+  simp [plus_eq_with_dual]
+
+@[simp] lemma zero_plus : (0 ⊕ G : Fact P) = G := by simp [plus_eq_with_dual]
+
+@[simp] lemma plus_zero : (G ⊕ 0 : Fact P) = G := by simp [plus_eq_with_dual]
+
+/-! ### Distributivity Properties -/
+
+lemma le_plus_left {G H : Fact P} : G ≤ G ⊕ H := fun _ hx ↦
+  subset_dual_dual <| Or.inl hx
+
+lemma le_plus_right {G H : Fact P} : H ≤ G ⊕ H := fun _ hx ↦
+  subset_dual_dual <| Or.inr hx
+
+lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K) := by
+  refine SetLike.coe_injective <| Set.Subset.antisymm ?_ ?_
+  · rw [tensor, dualFact, mk_dual_coe, oplus, dualFact, mk_dual_coe]
+    rw [dual_dual_subset_Fact_iff, G.eq]
+    refine tensor_assoc_aux.trans ?_
+    rw [Set.mul_union, oplus, dualFact, mk_dual_coe, tensor, dualFact, mk_dual_coe]
+    exact dual_subset_dual <| dual_subset_dual <|
+      Set.union_subset_union subset_dual_dual subset_dual_dual
+  · rw [oplus, dualFact, mk_dual_coe, dual_dual_subset_Fact_iff, tensor, dualFact, mk_dual_coe,
+      tensor, dualFact, mk_dual_coe, Set.union_subset_iff]
+    simp only [dual_dual_subset_Fact_iff]
+    exact ⟨(Set.mul_subset_mul_left le_plus_left).trans mul_subset_tensor,
+           (Set.mul_subset_mul_left le_plus_right).trans mul_subset_tensor⟩
+
+lemma plus_tensor_distrib : ((H ⊕ K) ⊗ G  : Fact P) = (H ⊗ G) ⊕ (K ⊗ G) := by
+  rw [tensor_comm, tensor_distrib_plus]; simp [tensor_comm]
+
+lemma par_distrib_with : (G ⅋ (H & K) : Fact P) = (G ⅋ H) & (G ⅋ K) := by
+  simp [par_of_tensor, with_eq_plus_dual, tensor_distrib_plus]
+
+lemma with_par_distrib : ((H & K) ⅋ G : Fact P) = (H ⅋ G) & (K ⅋ G) := by
+  rw [par_comm, par_distrib_with]; simp [par_comm]
+
+lemma tensor_semi_distrib_with : (G ⊗ (H & K) : Fact P) ≤ (G ⊗ H) & (G ⊗ K) := by
+  rw [← SetLike.coe_subset_coe]
+  simp only [tensor, withh, coe_min, dualFact_coe, Set.subset_inter_iff]
+  exact ⟨dual_subset_dual (dual_subset_dual (Set.mul_subset_mul_left Set.inter_subset_left)),
+         dual_subset_dual (dual_subset_dual (Set.mul_subset_mul_left Set.inter_subset_right))⟩
+
+lemma with_tensor_semi_distrib : ((G & H) ⊗ K : Fact P) ≤ (G ⊗ K) & (H ⊗ K) :=
+  calc ((G & H) ⊗ K : Fact P) = K ⊗ (G & H) := by rw [tensor_comm]
+    _ ≤ K ⊗ G & K ⊗ H := tensor_semi_distrib_with
+    _ = _ := by simp only [tensor_comm]
+
+lemma neg_le_neg_iff {G H : Fact P} : Gᗮ ≤ Hᗮ ↔ H ≤ G := by
+  constructor
+  · intro h
+    rw [← neg_neg (G := H), ← neg_neg (G := G)]
+    exact PhaseSpace.orth_antitone h
+  · exact PhaseSpace.orth_antitone
+
+lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H ⊕ K) := by
+  rw [← neg_le_neg_iff]
+  simp only [neg_par, neg_plus]
+  exact tensor_semi_distrib_with
+
+/-! ### Absorption Properties -/
+
+@[simp] lemma top_par : (⊤ ⅋ G : Fact P) = ⊤ := by
+  refine SetLike.coe_injective ?_
+  rw [coe_top]
+  rw [Set.eq_univ_iff_forall]
+  intro x
+  simp only [parr, dualFact, mk_dual, mk_subset, coe_mk, coe_top]
+  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq]
+  intro w hw
+  rcases Set.mem_mul.mp hw with ⟨y, hy, z, hz, rfl⟩
+  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq] at hy
+  rw [mul_left_comm]
+  exact hy (x * z) (Set.mem_univ _)
+
+@[simp] lemma par_top : (G ⅋ ⊤ : Fact P) = ⊤ := by
+  rw [par_comm, top_par]
+
+@[simp] lemma zero_tensor : (0 ⊗ G : Fact P) = 0 := by
+  simp [tensor_of_par]
+
+@[simp] lemma tensor_zero : (G ⊗ 0 : Fact P) = 0 := by
+  rw [tensor_comm, zero_tensor]
+
+/-! ### Entailment Distributivity -/
+
+@[simp] lemma plus_entails : ((G ⊕ H) ⊸ K : Fact P) = (G ⊸ K) & (H ⊸ K) := by
+  simp only [linImpl_of_tensor, with_eq_plus_dual, plus_tensor_distrib, neg_neg]
+
+@[simp] lemma entails_with : (G ⊸ (H & K) : Fact P) = (G ⊸ H) & (G ⊸ K) := by
+  simp only [linImpl_of_par, par_distrib_with]
+
+@[simp] lemma zero_entails : (0 ⊸ G : Fact P) = ⊤ := by simp [linImpl_of_par]
+
+@[simp] lemma entails_top : (G ⊸ ⊤ : Fact P) = ⊤ := by simp [linImpl_of_par]
+
+/--
+A fact `G` is valid if the unit `1` belongs to `G`.
+-/
 abbrev IsValid (G : Fact P) : Prop := 1 ∈ G
 
 lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid := Iff.rfl

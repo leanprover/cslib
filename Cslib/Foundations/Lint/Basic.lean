@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Mathlib
+import Batteries.Tactic.Lint.Basic
+import Lean.Meta.GlobalInstances
 
 namespace Cslib.Lint
 
@@ -23,10 +24,10 @@ def topNamespace : Batteries.Tactic.Lint.Linter where
     let top := nss.fold (init := (∅ : NameSet)) fun tot n =>
       match n.components with
       | r::_::_ => tot.insert r
-      | _ => tot    
+      | _ => tot
     if top.contains declName.components[0]! then
       return none
     else
-      return m!"{declName} is not namespaced."
+      return m!"is not namespaced."
 
 end Cslib.Lint

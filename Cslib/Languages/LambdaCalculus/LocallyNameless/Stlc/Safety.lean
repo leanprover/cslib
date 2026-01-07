@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
+import Cslib.Foundations.Data.Relation
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
 /-! # λ-calculus
 
@@ -32,6 +31,7 @@ open Untyped Typing
 
 variable {Var : Type u} {Base : Type v} {R : Term Var → Term Var → Prop}
 
+/-- A relation on terms preserves typing if all related terms have the same type. -/
 def PreservesTyping (R : Term Var → Term Var → Prop) (Base : Type v) :=
   ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
 
@@ -46,7 +46,7 @@ theorem redex_preservesTyping :
 open _root_.Relation in
 /-- Confluence preserves type preservation. -/
 theorem confluence_preservesTyping {τ : Ty Base}
-    (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
+    (con : Confluent R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
     (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) :
     ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
   have ⟨d, bd, cd⟩ := con ab ac
@@ -58,6 +58,7 @@ namespace FullBeta
 
 open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
+set_option linter.unusedDecidableInType false in
 /-- Typing preservation for full beta reduction. -/
 @[scoped grind →]
 theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by

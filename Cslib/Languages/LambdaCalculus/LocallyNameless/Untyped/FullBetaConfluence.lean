@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 import Cslib.Foundations.Data.Relation
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+
+set_option linter.unusedDecidableInType false
 
 /-! # β-confluence for the λ-calculus -/
 
@@ -18,6 +18,8 @@ universe u
 variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
+
+open Relation
 
 /-- A parallel β-reduction step. -/
 @[reduction_sys paraRs "ₚ"]
@@ -104,8 +106,8 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
   refine Iff.intro ?chain_redex ?redex_chain <;> intros h <;> induction h <;> try rfl
-  case redex_chain.tail redex chain => exact Relation.ReflTransGen.tail chain (step_to_para redex)
-  case chain_redex.tail para  redex => exact Relation.ReflTransGen.trans redex (para_to_redex para)
+  case redex_chain.tail redex chain => exact ReflTransGen.tail chain (step_to_para redex)
+  case chain_redex.tail para  redex => exact ReflTransGen.trans redex (para_to_redex para)
 
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
@@ -198,16 +200,15 @@ theorem para_diamond : Diamond (@Parallel Var) := by
           apply Parallel.beta (free_union Var) <;> grind
 
 /-- Parallel reduction is confluent. -/
-theorem para_confluence : Confluence (@Parallel Var) :=
-  Relation.ReflTransGen.diamond_confluence para_diamond
+theorem para_confluence : Confluent (@Parallel Var) :=
+  para_diamond.toConfluent
 
 /-- β-reduction is confluent. -/
-theorem confluence_beta : Confluence (@FullBeta Var) := by
-  simp only [Confluence]
-  have eq : Relation.ReflTransGen (@Parallel Var) = Relation.ReflTransGen (@FullBeta Var) := by
+theorem confluence_beta : Confluent (@FullBeta Var) := by
+  have eq : ReflTransGen (@Parallel Var) = ReflTransGen (@FullBeta Var) := by
     ext
     exact parachain_iff_redex
-  rw [←eq]
+  rw [Confluent, ←eq]
   exact @para_confluence Var _ _
 
 end LambdaCalculus.LocallyNameless.Untyped.Term

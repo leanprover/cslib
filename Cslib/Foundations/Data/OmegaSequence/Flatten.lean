@@ -6,7 +6,6 @@ Authors: Ching-Tsun Chou
 
 import Cslib.Foundations.Data.Nat.Segment
 import Cslib.Foundations.Data.OmegaSequence.Init
-import Mathlib.Tactic
 
 /-!
 # Flattening an infinite sequence of lists
@@ -65,11 +64,11 @@ theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k)
     segment ls.cumLen n = 1 + segment (ls.drop 1).cumLen (n - (ls 0).length) := by
   classical
   have h0 : (ls.drop 1).cumLen 0 = 0 := by simp [cumLen_zero]
-  rw [add_comm, segment_plus_one h0] ; unfold Nat.segment
+  rw [add_comm, segment_plus_one h0]; unfold Nat.segment
   simp only [Nat.count_eq_card_filter_range]
   have h1 : {x ∈ Finset.range (n + 1) | x ∈ Set.range ls.cumLen} = insert 0
       {x ∈ Finset.range (n + 1) | x ∈ Set.range ls.cumLen ∧ (ls 0).length ≤ x} := by
-    ext k ; simp only [Set.mem_range, Finset.mem_filter, Finset.mem_range, Finset.mem_insert]
+    ext k; simp only [Set.mem_range, Finset.mem_filter, Finset.mem_range, Finset.mem_insert]
     constructor
     · rintro ⟨h_k, i, rfl⟩
       simp only [h_k, exists_apply_eq_apply, true_and, or_iff_not_imp_left]
@@ -85,7 +84,7 @@ theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k)
   symm
   apply Set.BijOn.finsetCard_eq (fun n ↦ n + (ls 0).length)
   refine ⟨?_, by grind [injOn_of_injective, Injective], ?_⟩ <;>
-  ( intro k ; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_setOf_eq,
+  ( intro k; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_setOf_eq,
       le_add_iff_nonneg_left, _root_.zero_le, and_true] )
   · rintro ⟨h_k, i, rfl⟩
     refine ⟨?_, 1 + i, ?_⟩ <;> grind [cumLen_one_add_drop]
@@ -107,7 +106,7 @@ theorem flatten_def [Inhabited α] (ls : ωSequence (List α)) (n : ℕ) :
 @[simp, scoped grind =]
 theorem cons_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0) :
     ls.head ++ω ls.tail.flatten = ls.flatten := by
-  ext n ; rw [flatten_def, head, tail_eq_drop]
+  ext n; rw [flatten_def, head, tail_eq_drop]
   rcases (show n < (ls 0).length ∨ n ≥ (ls 0).length by omega) with h_n | h_n
   · simp (disch := omega) [get_append_left, cumLen_segment_zero, cumLen_zero]
   · simp (disch := omega) [get_append_right', flatten_def, cumLen_segment_one_add,
@@ -122,8 +121,8 @@ theorem append_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k,
 
 /-- The length of `(ls.take n).flatten` is `ls.cumLen n`. -/
 @[simp, nolint simpNF, scoped grind =]
-theorem length_flatten_take {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
-    (n : ℕ) : (ls.take n).flatten.length = ls.cumLen n := by
+theorem length_flatten_take {ls : ωSequence (List α)} (n : ℕ) :
+    (ls.take n).flatten.length = ls.cumLen n := by
   induction n <;> grind [take_succ']
 
 /-- `In fact, (ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
@@ -134,7 +133,7 @@ theorem flatten_take_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) := by
   apply append_left_right_injective
   · rw [append_flatten h_ls n, append_take_drop (ls.cumLen n) ls.flatten]
-  · rw [length_flatten_take h_ls, length_take]
+  · rw [length_flatten_take, length_take]
 
 theorem flatten_take [Inhabited α]
     {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0) (n : ℕ) :
@@ -154,7 +153,6 @@ theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k
   have h_ls' : ∀ k, (ls.drop n k).length > 0 := by grind
   have h_drop := flatten_drop h_ls n
   have h_take := flatten_take h_ls' 1
-  have : (ls.drop n).cumLen 1 = ls.cumLen (n + 1) - ls.cumLen n := by grind
   grind [extract_eq_drop_take]
 
 /-- Given an ω-sequence `s` and a function `f : ℕ → ℕ`, `s.toSegs f` is the ω-sequence
@@ -181,7 +179,7 @@ theorem segment_toSegs_cumLen {f : ℕ → ℕ}
 theorem strictMono_flatten [Inhabited α] {f : ℕ → ℕ}
     (hm : StrictMono f) (h0 : f 0 = 0) (s : ωSequence α) :
     (s.toSegs f).flatten = s := by
-  ext k ; rw [flatten_def, segment_toSegs_cumLen hm h0, toSegs_def]
+  ext k; rw [flatten_def, segment_toSegs_cumLen hm h0, toSegs_def]
   have := segment_lower_bound hm h0 k
   have := segment_upper_bound hm h0 k
   grind

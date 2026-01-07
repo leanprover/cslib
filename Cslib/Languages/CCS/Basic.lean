@@ -5,7 +5,6 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Init
-import Mathlib.Init
 
 /-! # Calculus of Communicating Systems (CCS)
 
@@ -76,7 +75,8 @@ theorem Co.symm (h : Act.Co μ μ') : Act.Co μ' μ := by grind
 @[grind →]
 theorem co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by grind
 
-@[grind]
+/-- Checks that an action is the coaction of another. This is the Boolean version of `Act.Co`. -/
+@[grind =]
 def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
   match μ, μ' with
   | name a, coname b | coname a, name b => a = b

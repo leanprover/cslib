@@ -8,7 +8,6 @@ import Cslib.Computability.Languages.Language
 import Cslib.Foundations.Data.OmegaSequence.Flatten
 import Mathlib.Computability.Language
 import Mathlib.Order.Filter.AtTopBot.Defs
-import Mathlib.Tactic
 
 /-!
 # ωLanguage
@@ -59,7 +58,7 @@ open scoped Computability
 
 universe v
 
-variable {α β γ : Type _}
+variable {α β γ : Type*}
 
 /-- An ω-language is a set of strings over an alphabet. -/
 def ωLanguage (α) :=
@@ -118,11 +117,13 @@ A.k.a. ω-power.
 def omegaPow [Inhabited α] (l : Language α) : ωLanguage α :=
   { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 }
 
-/-- Use the postfix notation ^ω` for `omegaPow`. -/
+/-- Notation class for `omegaPow`. -/
 @[notation_class]
 class OmegaPow (α : Type*) (β : outParam (Type*)) where
+  /-- The `omegaPow` operation. -/
   omegaPow : α → β
 
+/-- Use the postfix notation ^ω` for `omegaPow`. -/
 postfix:1024 "^ω" => OmegaPow.omegaPow
 
 instance [Inhabited α] : OmegaPow (Language α) (ωLanguage α) :=
@@ -132,17 +133,18 @@ theorem omegaPow_def [Inhabited α] (l : Language α) :
     l^ω = { s | ∃ xs : ωSequence (List α), xs.flatten = s ∧ ∀ k, xs k ∈ l - 1 }
   := rfl
 
-/- The ω-limit of a language `l` is the ω-language of infinite sequences each of which
-contains infinitely many distinct prefixes in `l`.
--/
+/-- The ω-limit of a language `l` is the ω-language of infinite sequences each of which
+contains infinitely many distinct prefixes in `l`. -/
 def omegaLim (l : Language α) : ωLanguage α :=
   { s | ∃ᶠ m in atTop, s.extract 0 m ∈ l }
 
-/-- Use the postfix notation ↗ω` for `omegaLim`. -/
+/-- Notation class for `omegaLim`. -/
 @[notation_class]
 class OmegaLim (α : Type*) (β : outParam (Type*)) where
+  /-- The `omegaLim` operation. -/
   omegaLim : α → β
 
+/-- Use the postfix notation ↗ω` for `omegaLim`. -/
 postfix:1024 "↗ω" => OmegaLim.omegaLim
 
 instance instOmegaLim : OmegaLim (Language α) (ωLanguage α) :=
@@ -210,6 +212,11 @@ theorem flatten_mem_omegaPow [Inhabited α] {xs : ωSequence (List α)}
     (h_xs : ∀ k, xs k ∈ l - 1) : xs.flatten ∈ l^ω :=
   ⟨xs, rfl, h_xs⟩
 
+@[simp, scoped grind =]
+theorem mem_omegaLim :
+    s ∈ l↗ω ↔ ∃ᶠ m in atTop, s.extract 0 m ∈ l :=
+  Iff.rfl
+
 theorem mul_hmul : (l * m) * p = l * (m * p) :=
   image2_assoc append_append_ωSequence
 
@@ -248,17 +255,17 @@ theorem le_hmul_congr {l1 l2 : Language α} {p1 p2 : ωLanguage α} (hl : l1 ≤
 theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) : l1^ω ≤ l2^ω := by
   rintro s ⟨xs, rfl, h_xs⟩
   refine ⟨xs, rfl, ?_⟩
-  intro k ; specialize h_xs k
+  intro k; specialize h_xs k
   simp only [Language.mem_sub_one, ne_eq] at h_xs ⊢
   tauto
 
 @[simp, scoped grind =]
 theorem omegaPow_of_sub_one [Inhabited α] : (l - 1)^ω = l^ω := by
-  ext s ; simp
+  ext s; simp
 
 @[simp, nolint simpNF]
 theorem zero_omegaPow [Inhabited α] : (0 : Language α)^ω = ⊥ := by
-  ext s ; simp
+  ext s; simp
 
 @[simp, nolint simpNF]
 theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
@@ -276,7 +283,7 @@ theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l ≤ 1 := by
 
 /-- An alternative characterization of `l * p`. -/
 theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p } := by
-  ext s ; constructor
+  ext s; constructor
   · rintro ⟨x, h_x, t, h_t, rfl⟩
     refine ⟨x.length, ?_, ?_⟩
     · simpa [take_append_of_le_length]
@@ -287,7 +294,7 @@ theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p }
 /-- An alternative characterization of `l^ω`. -/
 theorem omegaPow_seq_prop [Inhabited α] :
     l^ω = { s | ∃ f : ℕ → ℕ, StrictMono f ∧ f 0 = 0 ∧ ∀ m, s.extract (f m) (f (m + 1)) ∈ l } := by
-  ext s ; constructor
+  ext s; constructor
   · rintro ⟨xs, rfl, h_xs⟩
     simp [forall_and, List.ne_nil_iff_length_pos] at h_xs
     refine ⟨xs.cumLen, by grind [cumLen_strictMono], by simp [cumLen_zero], ?_⟩
@@ -298,7 +305,7 @@ theorem omegaPow_seq_prop [Inhabited α] :
     · intro m
       change s.extract (f m) (f (m + 1)) ∈ l - 1
       simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, ge_iff_le, not_le, true_and]
-      apply hm ; omega
+      apply hm; omega
 
 open scoped Classical in
 private noncomputable def iter_helper (p : ℕ → Prop) (f : (n : ℕ) → p n → ℕ) : ℕ → ℕ
@@ -376,6 +383,10 @@ theorem kstar_hmul_omegaPow_eq_omegaPow [Inhabited α] (l : Language α) : l∗ 
     _ = l∗ * (l∗)^ω := by simp
     _ = (l∗)^ω := by rw [hmul_omegaPow_eq_omegaPow]
     _ = _ := by simp
+
+@[simp]
+theorem omegaLim_zero : (0 : Language α)↗ω = ⊥ := by
+  ext; simp
 
 @[simp, scoped grind =]
 theorem map_id (p : ωLanguage α) : map id p = p :=

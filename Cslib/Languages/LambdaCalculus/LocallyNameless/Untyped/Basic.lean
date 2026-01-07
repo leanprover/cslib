@@ -48,6 +48,7 @@ def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | app l r => app (openRec i sub l) (openRec i sub r)
 | abs M   => abs <| openRec (i+1) sub M
 
+@[inherit_doc]
 scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e
 
 lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := by rfl
@@ -62,6 +63,7 @@ lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := by rfl
 @[scoped grind =]
 def open' {X} (e u):= @Term.openRec X 0 u e
 
+@[inherit_doc]
 scoped infixr:80 " ^ " => Term.open'
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
@@ -72,6 +74,7 @@ def closeRec (k : ℕ) (x : Var) : Term Var → Term Var
 | app l r => app (closeRec k x l) (closeRec k x r)
 | abs t   => abs <| closeRec (k+1) x t
 
+@[inherit_doc]
 scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
 
 variable {x : Var}
@@ -80,9 +83,10 @@ variable {x : Var}
 @[scoped grind =]
 def close {Var} [DecidableEq Var] (e u):= @Term.closeRec Var _ 0 u e
 
+@[inherit_doc]
 scoped infixr:80 " ^* " => Term.close
 
-/- Substitution of a free variable to a term. -/
+/-- Substitution of a free variable to a term. -/
 @[scoped grind =]
 def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
   match m with
@@ -111,6 +115,7 @@ inductive LC : Term Var → Prop
 
 attribute [scoped grind .] LC.fvar LC.app
 
+/-- Values are irreducible terms. -/
 inductive Value : Term Var → Prop
 | abs (e : Term Var) : e.abs.LC → e.abs.Value
 

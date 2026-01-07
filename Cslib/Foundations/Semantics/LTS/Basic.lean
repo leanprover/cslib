@@ -4,16 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
--- TODO: Causes type elaboration ambiguities in downstream files (Automata)
--- import Cslib.Init
-import Mathlib.Tactic.Lemma
-import Mathlib.Data.Finite.Defs
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Logic.Function.Defs
+import Cslib.Init
 import Mathlib.Data.Set.Finite.Basic
-import Mathlib.Data.Stream.Defs
-import Mathlib.Util.Notation3
-import Mathlib.Order.SetNotation
+import Mathlib.Order.ConditionallyCompleteLattice.Basic
+import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Labelled Transition System (LTS)
@@ -27,7 +21,7 @@ languages.
 - `LTS` is a structure for labelled transition systems, consisting of a labelled transition
 relation `Tr` between states. We follow the style and conventions in [Sangiorgi2011].
 
-- `LTS.MTr` extends the transition relation of any LTS to a multi-step transition relation,
+- `LTS.MTr` extends the transition relation of any LTS to a multistep transition relation,
 formalising the inference system and admissible rules for such relations in [Montesi2023].
 
 - Definitions for all the common classes of LTSs: image-finite, finitely branching, finite-state,
@@ -35,7 +29,7 @@ finite, and deterministic.
 
 ## Main statements
 
-- A series of results on `LTS.MTr` that allow for obtaining and composing multi-step transitions in
+- A series of results on `LTS.MTr` that allow for obtaining and composing multistep transitions in
 different ways.
 
 - `LTS.deterministic_imageFinite`: every deterministic LTS is also image-finite.
@@ -56,35 +50,47 @@ namespace Cslib
 universe u v
 
 /--
-A Labelled Transition System (LTS) consists of a type of states (`State`), a type of transition
-labels (`Label`), and a labelled transition relation (`Tr`).
+A Labelled Transition System (LTS) for a type of states (`State`) and a type of transition
+labels (`Label`) consists of a labelled transition relation (`Tr`).
 -/
 structure LTS (State : Type u) (Label : Type v) where
   /-- The transition relation. -/
   Tr : State → Label → State → Prop
 
+/-- Returns the relation that relates all states `s1` and `s2` via a fixed transition label `μ`. -/
+def LTS.Tr.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
+  fun s1 s2 => lts.Tr s1 μ s2
+
+/-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
+def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
+  LTS State Label where
+  Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
+
 section MultiStep
 
-/-! ## Multi-step transitions -/
+/-! ## Multistep transitions with finite traces
+
+This section treats executions with a finite number of steps.
+-/
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 
 /--
-Definition of a multi-step transition.
+Definition of a multistep transition.
 
 (Implementation note: compared to [Montesi2023], we choose stepL instead of stepR as fundamental
 rule. This makes working with lists of labels more convenient, because we follow the same
 construction. It is also similar to what is done in the `SimpleGraph` library in mathlib.)
 -/
-@[grind]
+@[scoped grind]
 inductive LTS.MTr (lts : LTS State Label) : State → List Label → State → Prop where
   | refl {s : State} : lts.MTr s [] s
   | stepL {s1 : State} {μ : Label} {s2 : State} {μs : List Label} {s3 : State} :
     lts.Tr s1 μ s2 → lts.MTr s2 μs s3 →
     lts.MTr s1 (μ :: μs) s3
 
-/-- Any transition is also a multi-step transition. -/
-@[grind →]
+/-- Any transition is also a multistep transition. -/
+@[scoped grind →]
 theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   lts.Tr s1 μ s2 → lts.MTr s1 [μ] s2 := by
   intro h
@@ -92,8 +98,8 @@ theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   · exact h
   · apply LTS.MTr.refl
 
-/-- Any multi-step transition can be extended by adding a transition. -/
-@[grind <=]
+/-- Any multistep transition can be extended by adding a transition. -/
+@[scoped grind <=]
 theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
   intro h1 h2
@@ -104,8 +110,8 @@ theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} 
     · exact h1'
     · apply ih h2
 
-/-- Multi-step transitions can be composed. -/
-@[grind <=]
+/-- Multistep transitions can be composed. -/
+@[scoped grind <=]
 theorem LTS.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List Label} {s3 : State} :
   lts.MTr s1 μs1 s2 → lts.MTr s2 μs2 s3 →
   lts.MTr s1 (μs1 ++ μs2) s3 := by
@@ -117,8 +123,8 @@ theorem LTS.MTr.comp {s1 : State} {μs1 : List Label} {s2 : State} {μs2 : List 
     · exact h1'
     · apply ih h2
 
-/-- Any 1-sized multi-step transition implies a transition with the same states and label. -/
-@[grind .]
+/-- Any 1-sized multistep transition implies a transition with the same states and label. -/
+@[scoped grind .]
 theorem LTS.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 → lts.Tr s1 μ s2 := by
   intro h
@@ -127,511 +133,49 @@ theorem LTS.MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- In any zero-steps multi-step transition, the origin and the derivative are the same. -/
-@[grind .]
+/-- In any zero-steps multistep transition, the origin and the derivative are the same. -/
+@[scoped grind .]
 theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
 
-/-- A state `s1` can reach a state `s2` if there exists a multi-step transition from
+/-- For every multistep transition, there exists a sequence of intermediate states
+which satisfies the single-step transition at every step. -/
+theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
+    (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
+    ss[0] = s1 ∧ ss[μs.length] = s2 ∧ ∀ k, ∀ _ : k < μs.length, lts.Tr ss[k] μs[k] ss[k + 1] := by
+  induction h
+  case refl t =>
+    use [t]
+    grind
+  case stepL t1 μ t2 μs t3 h_tr h_mtr h_ind =>
+    obtain ⟨ss', _, _, _, _⟩ := h_ind
+    use [t1] ++ ss'
+    grind
+
+/-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
+@[scoped grind =]
 def LTS.CanReach (s1 s2 : State) : Prop :=
   ∃ μs, lts.MTr s1 μs s2
 
 /-- Any state can reach itself. -/
+@[scoped grind .]
 theorem LTS.CanReach.refl (s : State) : lts.CanReach s s := by
   exists []
   apply LTS.MTr.refl
 
 /-- The LTS generated by a state `s` is the LTS given by all the states reachable from `s`. -/
+@[scoped grind =]
 def LTS.generatedBy (s : State) : LTS {s' : State // lts.CanReach s s'} Label where
   Tr := fun s1 μ s2 => lts.CanReach s s1 ∧ lts.CanReach s s2 ∧ lts.Tr s1 μ s2
-
-end MultiStep
-
-section Termination
-/-! ## Definitions about termination -/
-
-variable {State} {Label} (lts : LTS State Label) {Terminated : State → Prop}
-
-/-- A state 'may terminate' if it can reach a terminated state. The definition of `Terminated`
-is a parameter. -/
-def LTS.MayTerminate (s : State) : Prop := ∃ s', Terminated s' ∧ lts.CanReach s s'
-
-/-- A state 'is stuck' if it is not terminated and cannot go forward. The definition of `Terminated`
-is a parameter. -/
-def LTS.Stuck (s : State) : Prop :=
-  ¬Terminated s ∧ ¬∃ μ s', lts.Tr s μ s'
-
-end Termination
-
-section Union
-/-! ## Definitions for the unions of LTSs
-
-Note: there is a nontrivial balance between ergonomics and generality here. These definitions might
-change in the future. -/
-
-variable {State : Type u} {Label : Type v}
-
-/-- The union of two LTSs defined on the same types. -/
-def LTS.union (lts1 lts2 : LTS State Label) : LTS State Label where
-  Tr := lts1.Tr ⊔ lts2.Tr
-
-/-- The union of two LTSs that have common supertypes for states and labels. -/
-def LTS.unionSubtype
-{S1 : State → Prop} {L1 : Label → Prop} {S2 : State → Prop} {L2 : Label → Prop}
-[DecidablePred S1] [DecidablePred L1] [DecidablePred S2] [DecidablePred L2]
-(lts1 : LTS (@Subtype State S1) (@Subtype Label L1))
-(lts2 : LTS (@Subtype State S2) (@Subtype Label L2)) :
-  LTS State Label where
-  Tr := fun s μ s' =>
-    if h : S1 s ∧ L1 μ ∧ S1 s' then
-      lts1.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩
-    else if h : S2 s ∧ L2 μ ∧ S2 s' then
-      lts2.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩
-    else
-      False
-
-/-- TODO: move this to `Sum`? -/
-def Sum.IsLeftP {α} {β} (x : α ⊕ β) : Prop := Sum.isLeft x = true
-
-/-- TODO: move this to `Sum`? -/
-def Sum.IsRightP {α} {β} (x : α ⊕ β) : Prop := Sum.isRight x = true
-
-/-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
-def LTS.inl {State'} (lts : LTS State Label) :
-  LTS (@Subtype (State ⊕ State') Sum.IsLeftP) (@Subtype Label (Function.const Label True)) where
-  Tr := fun s μ s' =>
-    let ⟨s, _⟩ := s
-    let ⟨s', _⟩ := s'
-    match s, μ, s' with
-    | Sum.inl s1, μ, Sum.inl s2 => lts.Tr s1 μ s2
-    | _, _, _ => False
-
-/-- Lifting of an `LTS State Label` to `LTS (State' ⊕ State) Label`. -/
-def LTS.inr {State'} (lts : LTS State Label) :
-  LTS (@Subtype (State' ⊕ State) Sum.IsRightP) (@Subtype Label (Function.const Label True)) where
-  Tr := fun s μ s' =>
-    let ⟨s, _⟩ := s
-    let ⟨s', _⟩ := s'
-    match s, μ, s' with
-    | Sum.inr s1, μ, Sum.inr s2 => lts.Tr s1 μ s2
-    | _, _, _ => False
-
-/-- Union of two LTSs with the same `Label` type. The result combines the original respective state
-types `State1` and `State2` into `(State1 ⊕ State2)`. -/
-def LTS.unionSum {State1} {State2} (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
-  LTS (State1 ⊕ State2) Label :=
-  @LTS.unionSubtype
-    (State1 ⊕ State2) Label
-    Sum.IsLeftP
-    (Function.const Label True)
-    Sum.IsRightP
-    (Function.const Label True)
-    (by
-      intro s
-      cases h : s
-      · apply Decidable.isTrue
-        trivial
-      · simp only [Sum.IsLeftP, Sum.isLeft_inr, Bool.false_eq_true]
-        apply Decidable.isFalse
-        trivial)
-    (by
-      intro μ
-      apply Decidable.isTrue
-      trivial)
-    (by
-      intro s
-      cases h : s
-      · simp only [Sum.IsRightP, Sum.isRight_inl, Bool.false_eq_true]
-        apply Decidable.isFalse
-        trivial
-      · apply Decidable.isTrue
-        trivial)
-    (by
-      intro μ
-      apply Decidable.isTrue
-      trivial)
-    lts1.inl
-    lts2.inr
-
-end Union
-
-section Classes
-/-!
-### Classes of LTSs
--/
-
-variable {State : Type u} {Label : Type v} (lts : LTS State Label)
-
-/-- An lts is deterministic if a state cannot reach different states with the same transition
-label. -/
-@[grind]
-def LTS.Deterministic : Prop :=
-  ∀ (s1 : State) (μ : Label) (s2 s3 : State),
-    lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
-
-/-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
-@[grind]
-def LTS.image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
-
-/-- The `μs`-image of a state `s`, where `μs` is a list of labels, is the set of all
-`μs`-derivatives of `s`. -/
-@[grind]
-def LTS.imageMultistep (s : State) (μs : List Label) : Set State := { s' : State | lts.MTr s μs s' }
-
-/-- The `μ`-image of a set of states `S` is the union of all `μ`-images of the states in `S`. -/
-@[grind]
-def LTS.setImage (S : Set State) (μ : Label) : Set State :=
-  ⋃ s ∈ S, lts.image s μ
-
-/-- The `μs`-image of a set of states `S`, where `μs` is a list of labels, is the union of all
-`μs`-images of the states in `S`. -/
-@[grind]
-def LTS.setImageMultistep (S : Set State) (μs : List Label) : Set State :=
-  ⋃ s ∈ S, lts.imageMultistep s μs
-
-/-- Characterisation of `setImage` wrt `Tr`. -/
-@[grind =]
-theorem LTS.mem_setImage (lts : LTS State Label) :
-  s' ∈ lts.setImage S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
-  simp only [setImage, Set.mem_iUnion, exists_prop]
-  grind
-
-@[grind →]
-theorem LTS.tr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.Tr s μ s') :
-  s' ∈ lts.setImage S μ := by grind
-
-/-- Characterisation of `setImageMultistep` with `MTr`. -/
-@[grind =]
-theorem LTS.mem_setImageMultistep (lts : LTS State Label) :
-  s' ∈ lts.setImageMultistep S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
-  simp only [setImageMultistep, Set.mem_iUnion, exists_prop]
-  grind
-
-@[grind <=]
-theorem LTS.mTr_setImage (lts : LTS State Label) (hs : s ∈ S) (htr : lts.MTr s μs s') :
-  s' ∈ lts.setImageMultistep S μs := by grind
-
-/-- The image of the empty set is always the empty set. -/
-@[grind =]
-theorem LTS.setImage_empty (lts : LTS State Label) : lts.setImage ∅ μ = ∅ := by grind
-
-@[grind =]
-lemma LTS.setImageMultistep_setImage_head (lts : LTS State Label) :
-  lts.setImageMultistep S (μ :: μs) = lts.setImageMultistep (lts.setImage S μ ) μs := by grind
-
-/-- Characterisation of `LTS.setImageMultistep` as `List.foldl` on `LTS.setImage`. -/
-@[grind _=_]
-theorem LTS.setImageMultistep_foldl_setImage (lts : LTS State Label) :
-  lts.setImageMultistep = List.foldl lts.setImage := by
-  ext S μs s'
-  induction μs generalizing S <;> grind
-
-/-- An lts is image-finite if all images of its states are finite. -/
-@[grind]
-def LTS.ImageFinite : Prop :=
-  ∀ s μ, Finite (lts.image s μ)
-
-/-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
-`μ`-derivative. -/
-theorem LTS.deterministic_not_lto (hDet : lts.Deterministic) :
-  ∀ s μ s' s'', s' ≠ s'' → lts.Tr s μ s' → ¬lts.Tr s μ s'' := by
-  intro s μ s' s'' hneq hltos'
-  by_contra hltos''
-  have hDet' := hDet s μ s' s'' hltos' hltos''
-  simp only [← hDet'] at hneq
-  contradiction
-
-/-- In a deterministic LTS, any image is either a singleton or the empty set. -/
-theorem LTS.deterministic_image_char (hDet : lts.Deterministic) :
-  ∀ s μ, (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by
-  intro s μ
-  by_cases hs' : ∃ s', lts.Tr s μ s' <;> aesop (add simp [image])
-
-/-- Every deterministic LTS is also image-finite. -/
-theorem LTS.deterministic_imageFinite :
-  lts.Deterministic → lts.ImageFinite := by
-  simp only [ImageFinite]
-  intro h s μ
-  have hDet := LTS.deterministic_image_char lts h s μ
-  cases hDet
-  case inl hDet =>
-    obtain ⟨s', hDet'⟩ := hDet
-    simp only [hDet']
-    apply Set.finite_singleton
-  case inr hDet =>
-    simp only [hDet]
-    apply Set.finite_empty
-
-/-- A state has an outgoing label `μ` if it has a `μ`-derivative. -/
-def LTS.HasOutLabel (s : State) (μ : Label) : Prop :=
-  ∃ s', lts.Tr s μ s'
-
-/-- The set of outgoing labels of a state. -/
-def LTS.outgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
-
-/-- An LTS is finitely branching if it is image-finite and all states have finite sets of
-outgoing labels. -/
-def LTS.FinitelyBranching : Prop :=
-  lts.ImageFinite ∧ ∀ s, Finite (lts.outgoingLabels s)
-
-/-- An LTS is finite-state if it has a finite `State` type. -/
-@[nolint unusedArguments]
-def LTS.FiniteState (_ : LTS State Label) : Prop := Finite State
-
-/-- Every finite-state LTS is also image-finite. -/
-theorem LTS.finiteState_imageFinite (hFinite : lts.FiniteState) :
-  lts.ImageFinite := by
-  intro s μ
-  apply @Subtype.finite State hFinite
-
-/-- Every LTS with finite types for states and labels is also finitely branching. -/
-theorem LTS.finiteState_finitelyBranching
-  (hFiniteLabel : Finite Label) (hFiniteState : lts.FiniteState) :
-  lts.FinitelyBranching := by
-  constructor
-  case left =>
-    apply LTS.finiteState_imageFinite lts hFiniteState
-  case right =>
-    intro s
-    apply @Subtype.finite Label hFiniteLabel
-
-/-- An LTS is acyclic if there are no infinite multi-step transitions. -/
-def LTS.Acyclic : Prop :=
-  ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
-
-/-- An LTS is finite if it is finite-state and acyclic. -/
-def LTS.Finite : Prop :=
-  lts.FiniteState ∧ lts.Acyclic
-
-/-
-/-- An LTS has a complete transition relation if every state has a `μ`-derivative for every `μ`. -/
-def LTS.CompleteTr (lts : LTS State Label) : Prop := ∀ s μ, ∃ s', lts.Tr s μ s'
--/
-
-end Classes
-
-/-! ## Weak transitions (single- and multi-step) -/
-
-section Weak
-
-/-- A type of transition labels that includes a special 'internal' transition `τ`. -/
-class HasTau (Label : Type v) where
-  τ : Label
-
-/-- Saturated transition relation. -/
-inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
-| refl : lts.STr s HasTau.τ s
-| tr : lts.STr s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.STr s3 HasTau.τ s4 → lts.STr s1 μ s4
-
-/-- The `LTS` obtained by saturating the transition relation in `lts`. -/
-@[grind =]
-def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
-  Tr := lts.STr
-
-/-- Any transition is also a saturated transition. -/
-@[grind →]
-theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) : lts.Tr s μ s' → lts.STr s μ s' := by
-  intro h
-  apply LTS.STr.tr LTS.STr.refl h LTS.STr.refl
-
-/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
-metric. -/
-@[grind]
-inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
-  ℕ → State → Label → State → Prop where
-  | refl : lts.STrN 0 s HasTau.τ s
-  | tr :
-    lts.STrN n s1 HasTau.τ s2 →
-    lts.Tr s2 μ s3 →
-    lts.STrN m s3 HasTau.τ s4 →
-    lts.STrN (n + m + 1) s1 μ s4
-
-/-- `LTS.str` and `LTS.strN` are equivalent. -/
-@[grind =]
-theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
-  lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl =>
-      exists 0
-      exact LTS.STrN.refl
-    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
-      obtain ⟨n1, ih1⟩ := ih1
-      obtain ⟨n2, ih2⟩ := ih2
-      exists (n1 + n2 + 1)
-      apply LTS.STrN.tr ih1 htr ih2
-  case mpr =>
-    obtain ⟨n, h⟩ := h
-    induction h
-    case refl =>
-      constructor
-    case tr n s1 sb μ sb' m s2 hstr1 htr hstr2 ih1 ih2 =>
-      apply LTS.STr.tr ih1 htr ih2
-
-/-- Saturated transitions labelled by τ can be composed (weighted version). -/
-@[grind →]
-theorem LTS.STrN.trans_τ
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
-  lts.STrN (n + m) s1 HasTau.τ s3 := by
-  cases h1
-  case refl => grind
-  case tr n1 sb sb' n2 hstr1 htr hstr2 =>
-    have ih := LTS.STrN.trans_τ lts hstr2 h2
-    have conc := LTS.STrN.tr hstr1 htr ih
-    grind
-
-/-- Saturated transitions labelled by τ can be composed. -/
-@[grind →]
-theorem LTS.STr.trans_τ
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
-  lts.STr s1 HasTau.τ s3 := by
-  obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
-  obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
-  have concN := LTS.STrN.trans_τ lts h1N h2N
-  apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
-
-/-- Saturated transitions can be appended with τ-transitions (weighted version). -/
-@[grind <=]
-theorem LTS.STrN.append
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 μ s2)
-  (h2 : lts.STrN n2 s2 HasTau.τ s3) :
-  lts.STrN (n1 + n2) s1 μ s3 := by
-  cases h1
-  case refl => grind
-  case tr n11 sb sb' n12 hstr1 htr hstr2 =>
-    have hsuffix := LTS.STrN.trans_τ lts hstr2 h2
-    have n_eq : n11 + (n12 + n2) + 1 = (n11 + n12 + 1 + n2) := by omega
-    rw [← n_eq]
-    apply LTS.STrN.tr hstr1 htr hsuffix
-
-/-- Saturated transitions can be composed (weighted version). -/
-@[grind <=]
-theorem LTS.STrN.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 HasTau.τ s2)
-  (h2 : lts.STrN n2 s2 μ s3)
-  (h3 : lts.STrN n3 s3 HasTau.τ s4) :
-  lts.STrN (n1 + n2 + n3) s1 μ s4 := by
-  cases h2
-  case refl =>
-    apply LTS.STrN.trans_τ lts h1 h3
-  case tr n21 sb sb' n22 hstr1 htr hstr2 =>
-    have hprefix_τ := LTS.STrN.trans_τ lts h1 hstr1
-    have hprefix := LTS.STrN.tr hprefix_τ htr hstr2
-    have conc := LTS.STrN.append lts hprefix h3
-    grind
-
-/-- Saturated transitions can be composed. -/
-@[grind <=]
-theorem LTS.STr.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2)
-  (h2 : lts.STr s2 μ s3)
-  (h3 : lts.STr s3 HasTau.τ s4) :
-  lts.STr s1 μ s4 := by
-  obtain ⟨n1, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
-  obtain ⟨n2, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
-  obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
-  have concN := LTS.STrN.comp lts h1N h2N h3N
-  apply (LTS.sTr_sTrN lts).2 ⟨n1 + n2 + n3, concN⟩
-
-@[grind _=_]
-lemma LTS.saturate_tr_sTr [HasTau Label] (lts : LTS State Label) :
-  lts.saturate.Tr s HasTau.τ = lts.STr s HasTau.τ := by simp [LTS.saturate]
-
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-@[grind _=_]
-theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
-  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
-  ext s'
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl => constructor
-    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
-      rw [hμ] at htr
-      apply LTS.STr.single at htr
-      rw [← LTS.saturate_tr_sTr] at htr
-      grind [LTS.STr.tr]
-  case mpr =>
-    induction h
-    case refl => constructor
-    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
-      simp only [LTS.saturate] at ih1 htr ih2
-      simp only [LTS.saturate]
-      grind
-
-/-- In a saturated LTS, every state is in its τ-image. -/
-@[grind .]
-theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
-  s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
-
-/-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
-by performing only `τ`-transitions. -/
-@[grind =]
-def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
-  lts.saturate.setImage S HasTau.τ
-
-end Weak
-
-/-! ## Divergence -/
-
-section Divergence
-
-/-- A divergent execution is a stream of states where each state is the anti-τ-derivative of the
-next. -/
-def LTS.DivergentExecution [HasTau Label] (lts : LTS State Label)
-  (stream : Stream' State) : Prop :=
-  ∀ n, lts.Tr (stream n) HasTau.τ (stream n.succ)
-
-/-- A state is divergent if there is a divergent execution from it. -/
-def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
-  ∃ stream : Stream' State, stream 0 = s ∧ lts.DivergentExecution stream
-
-/-- If a stream is a divergent execution, then any 'suffix' is also a divergent execution. -/
-theorem LTS.divergent_drop
-  [HasTau Label] (lts : LTS State Label) (stream : Stream' State)
-  (h : lts.DivergentExecution stream) (n : ℕ) :
-  lts.DivergentExecution (stream.drop n) := by
-  simp only [LTS.DivergentExecution]
-  intro m
-  simp only [Stream'.drop, Stream'.get]
-  simp [LTS.DivergentExecution] at h
-  grind
-
-/-- An LTS is divergence-free if it has no divergent state. -/
-def LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) : Prop :=
-  ¬∃ s, lts.Divergent s
-
-end Divergence
-
-section Relation
-
-/-- Returns the relation that relates all states `s1` and `s2` via a fixed transition label `μ`. -/
-def LTS.Tr.toRelation (lts : LTS State Label) (μ : Label) : State → State → Prop :=
-  fun s1 s2 => lts.Tr s1 μ s2
 
 /-- Returns the relation that relates all states `s1` and `s2` via a fixed list of transition
 labels `μs`. -/
 def LTS.MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
   fun s1 s2 => lts.MTr s1 μs s2
 
-/-- Any homogeneous relation can be seen as an LTS where all transitions have the same label. -/
-def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Label) :
-  LTS State Label where
-  Tr := fun s1 μ' s2 => if μ' = μ then r s1 s2 else False
-
-end Relation
-
-section Trans
-
-/-! ## Support for the calc tactic -/
+/-! ### Calc tactic support for MTr -/
 
 /-- Transitions can be chained. -/
 instance (lts : LTS State Label) :
@@ -677,7 +221,461 @@ instance (lts : LTS State Label) :
     intro s1 s2 s3 hmtr1 hmtr2
     apply LTS.MTr.comp lts hmtr1 hmtr2
 
-end Trans
+end MultiStep
+
+section ωMultiStep
+
+/-! ## Infinite sequences of transitions
+
+This section treats infinite executions as ω-sequences of transitions.
+-/
+
+/-- Definition of an infinite execution, or ω-sequence of transitions. -/
+@[scoped grind]
+def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence Label) :
+    Prop := ∀ i, lts.Tr (ss i) (μs i) (ss (i + 1))
+
+variable {lts : LTS State Label}
+
+open scoped ωSequence in
+/-- Any finite execution extracted from an infinite execution is valid. -/
+theorem LTS.ωTr_mTr {n m : ℕ} {hnm : n ≤ m} (h : lts.ωTr ss μs) :
+    lts.MTr (ss n) (μs.extract n m) (ss m) := by
+  by_cases heq : n = m
+  case pos => grind
+  case neg =>
+    cases m
+    case zero => grind
+    case succ m =>
+      have : lts.MTr (ss n) (μs.extract n m) (ss m) := ωTr_mTr (hnm := by grind) h
+      grind [MTr.comp]
+
+open scoped ωSequence
+
+/-- Prepends an infinite execution with a transition. -/
+theorem LTS.ωTr.cons (hmtr : lts.Tr s1 μ s2) (hωtr : lts.ωTr ss μs) (hm : ss 0 = s2) :
+    lts.ωTr (s1 ::ω ss) (μ ::ω μs) := by
+  intro i
+  induction i <;> grind
+
+end ωMultiStep
+
+section Termination
+/-! ## Definitions about termination -/
+
+variable {State} {Label} (lts : LTS State Label) {Terminated : State → Prop}
+
+/-- A state 'may terminate' if it can reach a terminated state. The definition of `Terminated`
+is a parameter. -/
+def LTS.MayTerminate (s : State) : Prop := ∃ s', Terminated s' ∧ lts.CanReach s s'
+
+/-- A state 'is stuck' if it is not terminated and cannot go forward. The definition of `Terminated`
+is a parameter. -/
+def LTS.Stuck (s : State) : Prop :=
+  ¬Terminated s ∧ ¬∃ μ s', lts.Tr s μ s'
+
+end Termination
+
+section Union
+/-! ## Definitions for the unions of LTSs
+
+Note: there is a nontrivial balance between ergonomics and generality here. These definitions might
+change in the future. -/
+
+variable {State : Type u} {Label : Type v}
+
+/-- The union of two LTSs defined on the same types. -/
+def LTS.union (lts1 lts2 : LTS State Label) : LTS State Label where
+  Tr := lts1.Tr ⊔ lts2.Tr
+
+/-- The union of two LTSs that have common supertypes for states and labels. -/
+def LTS.unionSubtype
+{S1 : State → Prop} {L1 : Label → Prop} {S2 : State → Prop} {L2 : Label → Prop}
+[DecidablePred S1] [DecidablePred L1] [DecidablePred S2] [DecidablePred L2]
+(lts1 : LTS (@Subtype State S1) (@Subtype Label L1))
+(lts2 : LTS (@Subtype State S2) (@Subtype Label L2)) :
+  LTS State Label where
+  Tr := fun s μ s' =>
+    if h : S1 s ∧ L1 μ ∧ S1 s' then
+      lts1.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩
+    else if h : S2 s ∧ L2 μ ∧ S2 s' then
+      lts2.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩
+    else
+      False
+
+/-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
+def LTS.inl (lts : LTS State Label) :
+    LTS { x : State ⊕ State' // x.isLeft } { _label : Label // True } where
+  Tr s μ s' :=
+    match s, s' with
+    | ⟨.inl s1, _⟩, ⟨.inl s2, _⟩ => lts.Tr s1 μ s2
+    | _, _ => False
+
+/-- Lifting of an `LTS State Label` to `LTS (State' ⊕ State) Label`. -/
+def LTS.inr (lts : LTS State Label) :
+    LTS { x : State' ⊕ State // x.isRight } { _label : Label // True } where
+  Tr s μ s' :=
+    match s, s' with
+    | ⟨.inr s1, _⟩, ⟨.inr s2, _⟩ => lts.Tr s1 μ s2
+    | _, _ => False
+
+/-- Union of two LTSs with the same `Label` type. The result combines the original respective state
+types `State1` and `State2` into `(State1 ⊕ State2)`. -/
+def LTS.unionSum (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
+    LTS (State1 ⊕ State2) Label :=
+  LTS.unionSubtype lts1.inl lts2.inr
+
+end Union
+
+section Classes
+/-!
+### Classes of LTSs
+-/
+
+variable {State : Type u} {Label : Type v} (lts : LTS State Label)
+
+/-- An lts is deterministic if a state cannot reach different states with the same transition
+label. -/
+@[scoped grind]
+class LTS.Deterministic (lts : LTS State Label) where
+  deterministic (s1 : State) (μ : Label) (s2 s3 : State) : lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
+
+/-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
+@[scoped grind =]
+def LTS.image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
+
+/-- The `μs`-image of a state `s`, where `μs` is a list of labels, is the set of all
+`μs`-derivatives of `s`. -/
+@[scoped grind =]
+def LTS.imageMultistep (s : State) (μs : List Label) : Set State := { s' : State | lts.MTr s μs s' }
+
+/-- The `μ`-image of a set of states `S` is the union of all `μ`-images of the states in `S`. -/
+@[scoped grind =]
+def LTS.setImage (S : Set State) (μ : Label) : Set State :=
+  ⋃ s ∈ S, lts.image s μ
+
+/-- The `μs`-image of a set of states `S`, where `μs` is a list of labels, is the union of all
+`μs`-images of the states in `S`. -/
+@[scoped grind =]
+def LTS.setImageMultistep (S : Set State) (μs : List Label) : Set State :=
+  ⋃ s ∈ S, lts.imageMultistep s μs
+
+/-- Characterisation of `setImage` wrt `Tr`. -/
+@[scoped grind =]
+theorem LTS.mem_setImage {lts : LTS State Label} :
+  s' ∈ lts.setImage S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
+  simp only [setImage, Set.mem_iUnion, exists_prop]
+  grind
+
+@[scoped grind →]
+theorem LTS.tr_setImage {lts : LTS State Label} (hs : s ∈ S) (htr : lts.Tr s μ s') :
+  s' ∈ lts.setImage S μ := by grind
+
+/-- Characterisation of `setImageMultistep` with `MTr`. -/
+@[scoped grind =]
+theorem LTS.mem_setImageMultistep {lts : LTS State Label} :
+  s' ∈ lts.setImageMultistep S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
+  simp only [setImageMultistep, Set.mem_iUnion, exists_prop]
+  grind
+
+@[scoped grind <=]
+theorem LTS.mTr_setImage {lts : LTS State Label} (hs : s ∈ S) (htr : lts.MTr s μs s') :
+  s' ∈ lts.setImageMultistep S μs := by grind
+
+/-- The image of the empty set is always the empty set. -/
+@[scoped grind =]
+theorem LTS.setImage_empty (lts : LTS State Label) : lts.setImage ∅ μ = ∅ := by grind
+
+@[scoped grind =]
+lemma LTS.setImageMultistep_setImage_head (lts : LTS State Label) :
+  lts.setImageMultistep S (μ :: μs) = lts.setImageMultistep (lts.setImage S μ ) μs := by grind
+
+/-- Characterisation of `LTS.setImageMultistep` as `List.foldl` on `LTS.setImage`. -/
+@[scoped grind _=_]
+theorem LTS.setImageMultistep_foldl_setImage (lts : LTS State Label) :
+  lts.setImageMultistep = List.foldl lts.setImage := by
+  ext S μs s'
+  induction μs generalizing S <;> grind
+
+/-- Characterisation of membership in `List.foldl lts.setImage` with `MTr`. -/
+@[scoped grind =]
+theorem LTS.mem_foldl_setImage (lts : LTS State Label) :
+  s' ∈ List.foldl lts.setImage S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
+  rw [← LTS.setImageMultistep_foldl_setImage]
+  exact LTS.mem_setImageMultistep
+
+/-- An lts is image-finite if all images of its states are finite. -/
+@[scoped grind]
+class LTS.ImageFinite [image_finite : ∀ s μ, Finite (lts.image s μ)]
+
+/-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
+`μ`-derivative. -/
+@[scoped grind .]
+theorem LTS.deterministic_not_lto [h : lts.Deterministic] :
+  ∀ s μ s' s'', s' ≠ s'' → lts.Tr s μ s' → ¬lts.Tr s μ s'' := by grind
+
+@[scoped grind _=_]
+theorem LTS.deterministic_tr_image_singleton [lts.Deterministic] :
+    lts.image s μ = {s'} ↔ lts.Tr s μ s' := by
+  have := (lts.image s μ).eq_singleton_iff_unique_mem (a := s')
+  grind
+
+/-- In a deterministic LTS, any image is either a singleton or the empty set. -/
+@[scoped grind .]
+theorem LTS.deterministic_image_char [lts.Deterministic] (s : State) (μ : Label) :
+  (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
+
+/-- In a deterministic LTS, the image of any state-label combination is finite. -/
+instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) := by
+  have hDet := LTS.deterministic_image_char lts s μ
+  cases hDet
+  case inl hDet =>
+    obtain ⟨s', hDet'⟩ := hDet
+    simp only [hDet']
+    apply Set.finite_singleton
+  case inr hDet =>
+    simp only [hDet]
+    apply Set.finite_empty
+
+/-- Every deterministic LTS is also image-finite. -/
+instance LTS.deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := {}
+
+/-- Every finite-state LTS is also image-finite. -/
+@[scoped grind .]
+instance LTS.finiteState_imageFinite [Finite State] : lts.ImageFinite := {}
+
+/-- A state has an outgoing label `μ` if it has a `μ`-derivative. -/
+def LTS.HasOutLabel (s : State) (μ : Label) : Prop :=
+  ∃ s', lts.Tr s μ s'
+
+/-- The set of outgoing labels of a state. -/
+def LTS.outgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
+
+/-- An LTS is finitely branching if it is image-finite and all states have finite sets of
+outgoing labels. -/
+class LTS.FinitelyBranching
+  [image_finite : ∀ s μ, Finite (lts.image s μ)]
+  [finite_state : ∀ s, Finite (lts.outgoingLabels s)]
+
+/-- Every LTS with finite types for states and labels is also finitely branching. -/
+@[scoped grind .]
+instance LTS.finiteState_finitelyBranching [Finite State] [Finite Label] : lts.FinitelyBranching :=
+  {}
+
+/-- An LTS is acyclic if there are no infinite multistep transitions. -/
+class LTS.Acyclic (lts : LTS State Label) where
+  acyclic : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+
+/-- An LTS is finite if it is finite-state and acyclic.
+
+We call this `FiniteLTS` instead of just `Finite` to avoid confusion with the standard `Finite`
+class. -/
+class LTS.FiniteLTS [Finite State] (lts : LTS State Label) extends lts.Acyclic
+
+/-- An LTS is left-total if every state has a `μ`-derivative for every label `μ`. -/
+class LTS.LeftTotal (lts : LTS State Label) where
+  left_total : ∀ s μ, ∃ s', lts.Tr s μ s'
+
+end Classes
+
+/-! ## Weak transitions (single- and multistep) -/
+
+section Weak
+
+/-- A type of transition labels that includes a special 'internal' transition `τ`. -/
+class HasTau (Label : Type v) where
+  /-- The internal transition label, also known as τ. -/
+  τ : Label
+
+/-- Saturated transition relation. -/
+inductive LTS.STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
+| refl : lts.STr s HasTau.τ s
+| tr : lts.STr s1 HasTau.τ s2 → lts.Tr s2 μ s3 → lts.STr s3 HasTau.τ s4 → lts.STr s1 μ s4
+
+/-- The `LTS` obtained by saturating the transition relation in `lts`. -/
+@[scoped grind =]
+def LTS.saturate [HasTau Label] (lts : LTS State Label) : LTS State Label where
+  Tr := lts.STr
+
+@[scoped grind _=_]
+theorem LTS.saturate_tr_sTr [HasTau Label] {lts : LTS State Label} :
+  lts.saturate.Tr = lts.STr := by rfl
+
+/-- Any transition is also a saturated transition. -/
+@[scoped grind →]
+theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
+    lts.Tr s μ s' → lts.STr s μ s' := by
+  intro h
+  apply LTS.STr.tr LTS.STr.refl h LTS.STr.refl
+
+/-- As `LTS.str`, but counts the number of `τ`-transitions. This is convenient as induction
+metric. -/
+@[scoped grind]
+inductive LTS.STrN [HasTau Label] (lts : LTS State Label) :
+  ℕ → State → Label → State → Prop where
+  | refl : lts.STrN 0 s HasTau.τ s
+  | tr :
+    lts.STrN n s1 HasTau.τ s2 →
+    lts.Tr s2 μ s3 →
+    lts.STrN m s3 HasTau.τ s4 →
+    lts.STrN (n + m + 1) s1 μ s4
+
+/-- `LTS.str` and `LTS.strN` are equivalent. -/
+@[scoped grind =]
+theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
+  lts.STr s1 μ s2 ↔ ∃ n, lts.STrN n s1 μ s2 := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    induction h
+    case refl =>
+      exists 0
+      exact LTS.STrN.refl
+    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
+      obtain ⟨n1, ih1⟩ := ih1
+      obtain ⟨n2, ih2⟩ := ih2
+      exists (n1 + n2 + 1)
+      apply LTS.STrN.tr ih1 htr ih2
+  case mpr =>
+    obtain ⟨n, h⟩ := h
+    induction h
+    case refl =>
+      constructor
+    case tr n s1 sb μ sb' m s2 hstr1 htr hstr2 ih1 ih2 =>
+      apply LTS.STr.tr ih1 htr ih2
+
+/-- Saturated transitions labelled by τ can be composed (weighted version). -/
+@[scoped grind →]
+theorem LTS.STrN.trans_τ
+  [HasTau Label] (lts : LTS State Label)
+  (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
+  lts.STrN (n + m) s1 HasTau.τ s3 := by
+  cases h1
+  case refl => grind
+  case tr n1 sb sb' n2 hstr1 htr hstr2 =>
+    have ih := LTS.STrN.trans_τ lts hstr2 h2
+    have conc := LTS.STrN.tr hstr1 htr ih
+    grind
+
+/-- Saturated transitions labelled by τ can be composed. -/
+@[scoped grind →]
+theorem LTS.STr.trans_τ
+  [HasTau Label] (lts : LTS State Label)
+  (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
+  lts.STr s1 HasTau.τ s3 := by
+  obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  have concN := LTS.STrN.trans_τ lts h1N h2N
+  apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
+
+/-- Saturated transitions can be appended with τ-transitions (weighted version). -/
+@[scoped grind <=]
+theorem LTS.STrN.append
+  [HasTau Label] (lts : LTS State Label)
+  (h1 : lts.STrN n1 s1 μ s2)
+  (h2 : lts.STrN n2 s2 HasTau.τ s3) :
+  lts.STrN (n1 + n2) s1 μ s3 := by
+  cases h1
+  case refl => grind
+  case tr n11 sb sb' n12 hstr1 htr hstr2 =>
+    have hsuffix := LTS.STrN.trans_τ lts hstr2 h2
+    have n_eq : n11 + (n12 + n2) + 1 = (n11 + n12 + 1 + n2) := by omega
+    rw [← n_eq]
+    apply LTS.STrN.tr hstr1 htr hsuffix
+
+/-- Saturated transitions can be composed (weighted version). -/
+@[scoped grind <=]
+theorem LTS.STrN.comp
+  [HasTau Label] (lts : LTS State Label)
+  (h1 : lts.STrN n1 s1 HasTau.τ s2)
+  (h2 : lts.STrN n2 s2 μ s3)
+  (h3 : lts.STrN n3 s3 HasTau.τ s4) :
+  lts.STrN (n1 + n2 + n3) s1 μ s4 := by
+  cases h2
+  case refl =>
+    apply LTS.STrN.trans_τ lts h1 h3
+  case tr n21 sb sb' n22 hstr1 htr hstr2 =>
+    have hprefix_τ := LTS.STrN.trans_τ lts h1 hstr1
+    have hprefix := LTS.STrN.tr hprefix_τ htr hstr2
+    have conc := LTS.STrN.append lts hprefix h3
+    grind
+
+/-- Saturated transitions can be composed. -/
+@[scoped grind <=]
+theorem LTS.STr.comp
+  [HasTau Label] (lts : LTS State Label)
+  (h1 : lts.STr s1 HasTau.τ s2)
+  (h2 : lts.STr s2 μ s3)
+  (h3 : lts.STr s3 HasTau.τ s4) :
+  lts.STr s1 μ s4 := by
+  obtain ⟨n1, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨n2, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
+  have concN := LTS.STrN.comp lts h1N h2N h3N
+  apply (LTS.sTr_sTrN lts).2 ⟨n1 + n2 + n3, concN⟩
+
+open scoped LTS.STr in
+/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
+@[scoped grind _=_]
+theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
+  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+  ext s'
+  apply Iff.intro <;> intro h
+  case mp =>
+    induction h
+    case refl => constructor
+    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
+      rw [hμ] at htr
+      apply LTS.STr.single at htr
+      rw [← LTS.saturate_tr_sTr] at htr
+      grind [LTS.STr.tr]
+  case mpr =>
+    induction h
+    case refl => constructor
+    case tr s1 sb μ sb' s2 hstr1 htr hstr2 ih1 ih2 =>
+      simp only [LTS.saturate] at ih1 htr ih2
+      simp only [LTS.saturate]
+      grind
+
+/-- In a saturated LTS, every state is in its τ-image. -/
+@[scoped grind .]
+theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
+  s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
+
+/-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
+by performing only `τ`-transitions. -/
+@[scoped grind =]
+def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
+  lts.saturate.setImage S HasTau.τ
+
+end Weak
+
+/-! ## Divergence -/
+
+section Divergence
+
+/-- An infinite trace is divergent if every label within it is τ. -/
+def LTS.DivergentTrace [HasTau Label] (μs : ωSequence Label) := ∀ i, μs i = HasTau.τ
+
+/-- A state is divergent if there is a divergent execution from it. -/
+def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
+  ∃ ss μs, lts.ωTr ss μs ∧ ss 0 = s ∧ DivergentTrace μs
+
+/-- If a trace is divergent, then any 'suffix' is also divergent. -/
+@[scoped grind ⇒]
+theorem LTS.divergentTrace_drop
+  [HasTau Label] {μs : ωSequence Label}
+  (h : DivergentTrace μs) (n : ℕ) :
+  DivergentTrace (μs.drop n) := by
+  intro m
+  simp only [DivergentTrace] at h
+  simp only [ωSequence.get_fun, ωSequence.drop]
+  grind
+
+/-- An LTS is divergence-free if it has no divergent state. -/
+class LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) where
+  divergence_free : ¬∃ s, lts.Divergent s
+
+end Divergence
 
 open Lean Elab Meta Command Term
 
@@ -725,12 +723,16 @@ syntax attrKind "lts_transition_notation" ident (str)? : command
 macro_rules
   | `($kind:attrKind lts_transition_notation $lts $sym) =>
     `(
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μ"]⭢" $sym:str t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μs"]↠" $sym:str t':39 => (LTS.MTr.toRelation $lts μs) t t'
      )
   | `($kind:attrKind lts_transition_notation $lts) =>
     `(
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μ"]⭢" t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      @[nolint docBlame]
       $kind:attrKind notation3 t:39 "["μs"]↠" t':39 => (LTS.MTr.toRelation $lts μs) t t'
      )
 

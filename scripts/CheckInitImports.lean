@@ -22,27 +22,6 @@ def exceptions : List Name := [
   -- Circular dependency (imported by Cslib.Init)
   `Cslib.Foundations.Lint.Basic,
   `Cslib.Init,
-
-  -- Type elaboration issues in downstream files
-  `Cslib.Foundations.Semantics.LTS.Basic,
-  `Cslib.Foundations.Semantics.LTS.TraceEq,
-  `Cslib.Computability.Automata.DA,
-  `Cslib.Computability.Automata.DFA,
-  `Cslib.Computability.Automata.DFAToNFA,
-  `Cslib.Computability.Automata.EpsilonNFA,
-  `Cslib.Computability.Automata.EpsilonNFAToNFA,
-  `Cslib.Computability.Automata.NA,
-  `Cslib.Computability.Automata.NFA,
-  `Cslib.Computability.Automata.NFAToDFA,
-
-  -- Notation conflict with Mathlib.Finsupp (→₀)
-  `Cslib.Foundations.Data.FinFun,
-
-  -- Syntax elaboration conflicts 
-  `Cslib.Logics.LinearLogic.CLL.Basic,
-  `Cslib.Logics.LinearLogic.CLL.CutElimination,
-  `Cslib.Logics.LinearLogic.CLL.MProof,
-  `Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic,
 ]
 
 def main : IO UInt32 := do
