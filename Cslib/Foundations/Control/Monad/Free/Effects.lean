@@ -160,7 +160,7 @@ abbrev FreeWriter (ω : Type u) := FreeM (WriterF ω)
 namespace FreeWriter
 
 open WriterF
-variable {ω : Type u} {α : Type v}
+variable {ω : Type u} {α : Type u}
 
 instance : Monad (FreeWriter ω) := inferInstance
 instance : LawfulMonad (FreeWriter ω) := inferInstance
@@ -261,6 +261,23 @@ instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
   listen := listen
   pass := pass
 
+/-- Rewrite the log produced by `m` using `f`. -/
+def censor [Monoid ω] (f : ω → ω) (m : FreeWriter ω α) : FreeWriter ω α :=
+  pass (m >>= fun a => pure (a, f))
+
+/-- Map each `tell w` to `tell (φ w)`, where `φ` is a monoid homomorphism. -/
+def censorHom [Monoid ω] (φ : ω →* ω) : FreeWriter ω α → FreeWriter ω α
+  | .pure a => .pure a
+  | .liftBind (.tell w) k =>
+      .liftBind (.tell (φ w)) (fun _ => censorHom φ (k .unit))
+
+@[simp] theorem run_censorHom [Monoid ω] (φ : ω →* ω) (m : FreeWriter ω α) :
+    run (censorHom (α := α) φ m) = (let (a, w) := run m; (a, φ w)) := by
+  induction m with
+  | pure a => simp [censorHom, run]
+  | liftBind op k ih =>
+    cases op ; simp [censorHom, run, ih, map_mul]
+
 end FreeWriter
 
 /-! ### Continuation Monad via `FreeM` -/
@@ -285,7 +302,7 @@ instance : LawfulMonad (FreeCont r) := inferInstance
 
 /-- Interpret `ContF r` operations into `ContT r Id`. -/
 def contInterp : ContF r α → ContT r Id α
-  | .callCC g, k => pure (g fun a => (k a).run)
+  | .callCC g => g
 
 /-- Convert a `FreeCont` computation into a `ContT` computation. This is the canonical
 interpreter derived from `liftM`. -/
@@ -348,6 +365,93 @@ lemma run_callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) (k :
   simp [callCC, run_liftBind_callCC]
 
 end FreeCont
+
+/-- Type constructor for reader opertations. -/
+inductive ReaderF (σ : Type u) : Type u → Type u where
+  | read : ReaderF σ σ
+
+/-- Reader monad via the `FreeM` monad -/
+abbrev FreeReader (σ) := FreeM (ReaderF σ)
+
+namespace FreeReader
+
+variable {σ : Type u} {α : Type u}
+
+instance : Monad (FreeReader σ) := inferInstance
+instance : LawfulMonad (FreeReader σ) := inferInstance
+
+instance : MonadReaderOf σ (FreeReader σ) where
+  read := .lift .read
+
+@[simp]
+lemma read_def : (read : FreeReader σ σ) = .lift .read := rfl
+
+instance : MonadReader σ (FreeReader σ) := inferInstance
+
+/-- Interpret `ReaderF` operations into `ReaderM`. -/
+def readInterp {α : Type u} : ReaderF σ α → ReaderM σ α
+  | .read => MonadReaderOf.read
+
+/-- Convert a `FreeReader` computation into a `ReaderM` computation. This is the canonical
+interpreter derived from `liftM`. -/
+def toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
+  comp.liftM readInterp
+
+/-- `toReaderM` is the unique interpreter extending `readInterp`. -/
+theorem toReaderM_unique {α : Type u} (g : FreeReader σ α → ReaderM σ α)
+    (h : Interprets readInterp g) : g = toReaderM := h.eq
+
+/-- Run a reader computation -/
+def run (comp : FreeReader σ α) (s₀ : σ) : α :=
+  match comp with
+  | .pure a => a
+  | .liftBind ReaderF.read a => run (a s₀) s₀
+
+/--
+The canonical interpreter `toReaderM` derived from `liftM` agrees with the hand-written
+recursive interpreter `run` for `FreeReader` -/
+@[simp]
+theorem run_toReaderM {α : Type u} (comp : FreeReader σ α) (s : σ) :
+  (toReaderM comp).run s = run comp s := by
+  induction comp generalizing s with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    cases op ; apply ih
+
+@[simp]
+lemma run_pure (a : α) (s₀ : σ) :
+    run (.pure a : FreeReader σ α) s₀ = a := rfl
+
+@[simp]
+lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
+    run (liftBind .read k) s₀ = run (k s₀) s₀ := rfl
+
+/-- Transform the environment seen by all `read`s in a computation -/
+def withReaderFree (f : σ → σ) : FreeReader σ α → FreeReader σ α
+  | .pure a => .pure a
+  | .liftBind .read cont =>
+      let step : σ → FreeReader σ α := fun s => withReaderFree f (cont (f s))
+      .liftBind .read step
+
+@[simp] theorem run_withReader (f : σ → σ) (m : FreeReader σ α) (s : σ) :
+    run (withReaderFree f m) s = run m (f s) := by
+    induction m generalizing s with
+    | pure a => rfl
+    | liftBind op cont ih =>
+      cases op ; apply ih
+
+/-- Read the environment and return `g` applied to it. -/
+def asks (g : σ → α) : FreeReader σ α :=
+  (read : FreeReader σ σ) >>= fun s => pure (g s)
+
+@[simp] lemma asks_run (g : σ → α) (s : σ) :
+    run (asks (σ := σ) (α := α) g) s = g s := by
+  simp [asks, run]
+
+instance : MonadWithReaderOf σ (FreeReader σ) where
+  withReader := withReaderFree
+
+end FreeReader
 
 end FreeM
 
