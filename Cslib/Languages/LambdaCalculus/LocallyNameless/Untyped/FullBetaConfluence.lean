@@ -47,8 +47,7 @@ variable {M M' N N' : Term Var}
 --- TODO: I think this could be generated along with the ReductionSystem
 @[scoped grind _=_]
 private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
-  have : (@paraRs Var).Red = Parallel := by rfl
-  simp_all
+  rfl
 
 /-- The left side of a parallel reduction is locally closed. -/
 @[scoped grind →]
@@ -209,7 +208,7 @@ theorem confluence_beta : Confluent (@FullBeta Var) := by
     ext
     exact parachain_iff_redex
   rw [Confluent, ←eq]
-  exact @para_confluence Var _ _
+  exact para_confluence
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
