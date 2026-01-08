@@ -5,9 +5,10 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Init
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Semantics.FLTS.Basic
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Order.ConditionallyCompleteLattice.Basic
-import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Labelled Transition System (LTS)
@@ -274,42 +275,46 @@ end ωMultiStep
 
 section Total
 
-/-! ## Total LTS
-
-A LTS is total iff every state has a transition for every label.
--/
+/-! ## Total LTS -/
 
 open Sum ωSequence
 
 variable {State Label : Type*} {lts : LTS State Label}
 
-/-- `LTS.Total` provides a witness that the LTS is total. -/
-structure LTS.Total (lts : LTS State Label) where
-  /-- `next` provides a next state for any given starting state and label. -/
-  next : State → Label → State
-  /-- A proof that the state provided by `next` indeed forms a legal transition. -/
-  total s μ : lts.Tr s μ (next s μ)
+/-- An LTS is total iff every state has a `μ`-derivative for every label `μ`. -/
+class LTS.Total (lts : LTS State Label) where
+  /-- The condition of being total. -/
+  total s μ : ∃ s', lts.Tr s μ s'
 
-/-- `LTS.makeωTr` builds an infinite execution of a total LTS from any starting state and
-any infinite sequence of labels. -/
-def LTS.makeωTr (lts : LTS State Label) (h : lts.Total)
+/-- Choose an FLTS that is a "sub-LTS" of a total LTS. -/
+noncomputable def LTS.chooseFLTS (lts : LTS State Label) [h : lts.Total] : FLTS State Label where
+  tr s μ := Classical.choose <| h.total s μ
+
+/-- The FLTS chosen by `LTS.chooseFLTS` always provides legal transitions. -/
+theorem LTS.chooseFLTS.total (lts : LTS State Label) [h : lts.Total] (s : State) (μ : Label) :
+    lts.Tr s μ (lts.chooseFLTS.tr s μ) :=
+  Classical.choose_spec <| h.total s μ
+
+/-- `LTS.chooseωTr` builds an infinite execution of a total LTS from any starting state and
+over any infinite sequence of labels. -/
+noncomputable def LTS.chooseωTr (lts : LTS State Label) [lts.Total]
     (s : State) (μs : ωSequence Label) : ℕ → State
   | 0 => s
-  | n + 1 => h.next (lts.makeωTr h s μs n) (μs n)
+  | n + 1 => lts.chooseFLTS.tr (lts.chooseωTr s μs n) (μs n)
 
 /-- If a LTS is total, then there exists an infinite execution from any starting state and
 over any infinite sequence of labels. -/
-theorem LTS.Total.ωTr_exists (h : lts.Total) (s : State) (μs : ωSequence Label) :
+theorem LTS.Total.ωTr_exists [h : lts.Total] (s : State) (μs : ωSequence Label) :
     ∃ ss, lts.ωTr ss μs ∧ ss 0 = s := by
-  use lts.makeωTr h s μs
-  grind [LTS.makeωTr, h.total]
+  use lts.chooseωTr s μs
+  grind [LTS.chooseωTr, LTS.chooseFLTS.total]
 
 /-- If a LTS is total, then any finite execution can be extended to an infinite execution,
 provided that the label type is inbabited. -/
-theorem LTS.Total.mTr_ωTr [Inhabited Label] (ht : lts.Total) {μl : List Label} {s t : State}
+theorem LTS.Total.mTr_ωTr [Inhabited Label] [ht : lts.Total] {μl : List Label} {s t : State}
     (hm : lts.MTr s μl t) : ∃ μs ss, lts.ωTr ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
   let μs : ωSequence Label := .const default
-  obtain ⟨ss', ho, h0⟩ := LTS.Total.ωTr_exists ht t μs
+  obtain ⟨ss', ho, h0⟩ := LTS.Total.ωTr_exists (h := ht) t μs
   refine ⟨μs, LTS.ωTr.append hm ho h0⟩
 
 /-- `LTS.totalize` constructs a total LTS from any given LTS by adding a sink state. -/
@@ -320,8 +325,7 @@ def LTS.totalize (lts : LTS State Label) : LTS (State ⊕ Unit) Label where
     | inr (), inl _ => False
 
 /-- The LTS constructed by `LTS.totalize` is indeed total. -/
-def LTS.totalize.total (lts : LTS State Label) : lts.totalize.Total where
-  next _ _ := inr ()
+theorem LTS.totalize.total (lts : LTS State Label) : lts.totalize.Total where
   total _ _ := by simp [LTS.totalize]
 
 /-- In `LTS.totalize`, there is no finite execution from the sink state to any non-sink state. -/
@@ -574,10 +578,6 @@ class LTS.Acyclic (lts : LTS State Label) where
 We call this `FiniteLTS` instead of just `Finite` to avoid confusion with the standard `Finite`
 class. -/
 class LTS.FiniteLTS [Finite State] (lts : LTS State Label) extends lts.Acyclic
-
-/-- An LTS is left-total if every state has a `μ`-derivative for every label `μ`. -/
-class LTS.LeftTotal (lts : LTS State Label) where
-  left_total : ∀ s μ, ∃ s', lts.Tr s μ s'
 
 end Classes
 
