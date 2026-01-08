@@ -141,7 +141,7 @@ def finConcat (na1 : FinAcc State1 Symbol) (na2 : FinAcc State2 Symbol)
 variable {na1 : FinAcc State1 Symbol} {na2 : FinAcc State2 Symbol}
 
 /-- `finConcat na1 na2` is total. -/
-theorem finConcat_total : (finConcat na1 na2).Total where
+instance : (finConcat na1 na2).Total where
   total s x := match s with
     | inl _ => ⟨inl (inr ()), by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
     | inr _ => ⟨inr (inr ()), by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
@@ -153,7 +153,7 @@ theorem finConcat_language_eq [Inhabited Symbol] :
   ext xl
   constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
-    obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr (ht := finConcat_total) h_mtr
+    obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr h_mtr
     have hc : (finConcat na1 na2).Run (xl ++ω xs) ss := by grind [Run]
     have hr : (ss xl.length).isRight := by grind
     obtain ⟨n, _⟩ := concat_run_proj hc hr

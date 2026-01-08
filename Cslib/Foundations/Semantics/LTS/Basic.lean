@@ -325,7 +325,7 @@ def LTS.totalize (lts : LTS State Label) : LTS (State ⊕ Unit) Label where
     | inr (), inl _ => False
 
 /-- The LTS constructed by `LTS.totalize` is indeed total. -/
-theorem LTS.totalize.total (lts : LTS State Label) : lts.totalize.Total where
+instance (lts : LTS State Label) : lts.totalize.Total where
   total _ _ := by simp [LTS.totalize]
 
 /-- In `LTS.totalize`, there is no finite execution from the sink state to any non-sink state. -/

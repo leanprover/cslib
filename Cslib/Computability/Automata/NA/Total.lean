@@ -41,7 +41,7 @@ theorem totalize_run_mtr {xs : ωSequence Symbol} {ss : ωSequence (State ⊕ Un
 theorem totalize_mtr_run [Inhabited Symbol] {xl : List Symbol} {s t : State}
     (hs : s ∈ na.start) (hm : na.MTr s xl t) :
     ∃ xs ss, na.totalize.Run (xl ++ω xs) ss ∧ ss 0 = inl s ∧ ss xl.length = inl t := by
-  grind [totalize, Run, (LTS.totalize.total na.toLTS).mTr_ωTr, =_ LTS.totalize.mtr_left_iff]
+  grind [totalize, Run, LTS.Total.mTr_ωTr <| LTS.totalize.mtr_left_iff.mpr hm]
 
 namespace FinAcc
 
