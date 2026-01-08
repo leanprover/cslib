@@ -111,15 +111,13 @@ theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
 lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢ₚ M'[x := N'] := by
-  induction pm
-  case fvar => grind
-  case beta =>
+  induction pm with
+  | beta =>
     rw [subst_open _ _ _ _ (by grind)]
     refine Parallel.beta (free_union Var) ?_ ?_ <;> grind
-  case app => constructor <;> assumption
-  case abs u u' xs mem ih =>
-    apply Parallel.abs (free_union Var)
-    grind
+  | app => constructor <;> assumption
+  | abs => grind [Parallel.abs (free_union Var)]
+  | _ => grind
 
 /-- Parallel substitution respects closing and opening. -/
 lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⭢ₚ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ :=
@@ -128,8 +126,7 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  let ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
-  grind
+  grind [fresh_exists <| free_union [fv] Var]
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
 -- writing it for locally nameless terms.
