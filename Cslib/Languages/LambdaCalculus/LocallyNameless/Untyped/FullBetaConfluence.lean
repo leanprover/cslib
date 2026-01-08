@@ -197,7 +197,7 @@ theorem confluence_beta : Confluent (@FullBeta Var) := by
     ext
     exact parachain_iff_redex
   rw [Confluent, ←eq]
-  exact para_confluence
+  exact @para_confluence Var _ _
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
