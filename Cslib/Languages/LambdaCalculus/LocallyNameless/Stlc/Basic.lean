@@ -7,6 +7,8 @@ Authors: Chris Henson
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
+set_option linter.unusedDecidableInType false
+
 /-! # λ-calculus
 
 The simply typed λ-calculus, with a locally nameless representation of syntax.

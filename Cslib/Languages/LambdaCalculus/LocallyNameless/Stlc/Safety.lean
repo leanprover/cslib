@@ -46,7 +46,7 @@ theorem redex_preservesTyping :
 open _root_.Relation in
 /-- Confluence preserves type preservation. -/
 theorem confluence_preservesTyping {τ : Ty Base}
-    (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
+    (con : Confluent R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
     (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) :
     ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
   have ⟨d, bd, cd⟩ := con ab ac
@@ -58,6 +58,7 @@ namespace FullBeta
 
 open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
+set_option linter.unusedDecidableInType false in
 /-- Typing preservation for full beta reduction. -/
 @[scoped grind →]
 theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by

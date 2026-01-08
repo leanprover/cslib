@@ -5,7 +5,7 @@ Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 
 import Cslib.Foundations.Data.OmegaSequence.Defs
-import Mathlib.Algebra.Order.Ring.Nat
+import Mathlib.Algebra.Order.Group.Nat
 import Mathlib.Algebra.Order.Sub.Basic
 import Mathlib.Data.Nat.Lattice
 
@@ -482,6 +482,7 @@ theorem append_extract_extract {xs : ωSequence α} {k m n : ℕ} (h_km : k ≤ 
   have : n - k = (m - k) + (n - m) := by grind
   grind [extract_eq_drop_take, take_add]
 
+@[scoped grind =]
 theorem extract_succ_right {xs : ωSequence α} {m n : ℕ} (h_mn : m ≤ n) :
     xs.extract m (n + 1) = xs.extract m n ++ [xs n] := by
   rw [← append_extract_extract h_mn] <;>
