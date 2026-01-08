@@ -47,7 +47,8 @@ variable {M M' N N' : Term Var}
 --- TODO: I think this could be generated along with the ReductionSystem
 @[scoped grind _=_]
 private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
-  rfl
+  have : (@paraRs Var).Red = Parallel := by rfl
+  simp_all
 
 /-- The left side of a parallel reduction is locally closed. -/
 @[scoped grind →]
@@ -77,8 +78,8 @@ omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
   induction step
-  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => grind [Parallel.beta xs]
-  case abs xs _ _ => grind [Parallel.abs xs]
+  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => apply Parallel.beta xs <;> grind
+  case abs xs _ _ => apply Parallel.abs xs; grind
   all_goals grind
 
 open FullBeta in
@@ -88,9 +89,13 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
     refine .trans (?_ : L.app R ↠βᶠ L'.app R) (?_ : L'.app R ↠βᶠ L'.app R') <;> grind
-  case abs t t' xs _ ih => grind [redex_abs_cong xs]
+  case abs t t' xs _ ih =>
+    apply redex_abs_cong xs
+    grind
   case beta m m' n n' xs para_ih para_n redex_ih redex_n =>
-    have m'_abs_lc : LC m'.abs := by grind [LC.abs xs]
+    have m'_abs_lc : LC m'.abs := by
+      apply LC.abs xs
+      grind
     calc
       m.abs.app n ↠βᶠ
       m'.abs.app n :=
@@ -107,10 +112,15 @@ theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
 lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢ₚ M'[x := N'] := by
-  induction pm with
-  | beta => grind [subst_open, Parallel.beta (free_union Var)]
-  | abs  => grind [Parallel.abs (free_union Var)]
-  | _    => grind
+  induction pm
+  case fvar => grind
+  case beta =>
+    rw [subst_open _ _ _ _ (by grind)]
+    refine Parallel.beta (free_union Var) ?_ ?_ <;> grind
+  case app => constructor <;> assumption
+  case abs u u' xs mem ih =>
+    apply Parallel.abs (free_union Var)
+    grind
 
 /-- Parallel substitution respects closing and opening. -/
 lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⭢ₚ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ :=
@@ -119,7 +129,8 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  grind [fresh_exists <| free_union [fv] Var]
+  let ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+  grind
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
 -- writing it for locally nameless terms.
@@ -165,7 +176,8 @@ theorem para_diamond : Diamond (@Parallel Var) := by
       have ⟨q1, q2, _⟩ := qx
       have ⟨t', _⟩ := ih2 s2pu2'
       have ⟨t'', _⟩ := @ih1 x q1 _ (mem' _ q2)
-      exact ⟨t'' [x := t'], by grind⟩
+      refine ⟨t'' [x := t'], ?_⟩
+      grind
   case app s1 s1' s2 s2' s1ps1' _ ih1 ih2  =>
     cases tpt2
     case app u1 u2' s1 s2 =>
