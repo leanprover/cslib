@@ -107,7 +107,10 @@ theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
 lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢ₚ M'[x := N'] := by
-  induction pm <;> grind [subst_open, Parallel.beta (free_union Var), Parallel.abs (free_union Var)]
+  induction pm with
+  | beta => grind [subst_open, Parallel.beta (free_union Var)]
+  | abs  => grind [Parallel.abs (free_union Var)]
+  | _    => grind
 
 /-- Parallel substitution respects closing and opening. -/
 lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⭢ₚ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ :=
