@@ -62,7 +62,7 @@ attribute [grind .] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typi
 @[grind →]
 lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) : Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
   induction der <;> let L := free_union Var <;> have ⟨x, nmem⟩ := fresh_exists L
-  case tabs ih => 
+  case tabs ih =>
     cases (ih x (by grind)).left
     grind [LC.tabs L, Ty.Wf.all L]
   case abs ih =>
