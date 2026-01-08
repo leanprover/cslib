@@ -23,13 +23,18 @@ attribute [local grind =] Multiset.insert_eq_cons
 
 /-- The η-expansion of a proposition `a` is a `Proof` of `{a, a⫠}` that applies the axiom
 only to atomic propositions. -/
+@[scoped grind =]
 def Proposition.expand (a : Proposition Atom) : ⇓{a, a⫠} :=
   match a with
   | atom x
-    | atomDual x
-    | 1
-    | ⊥
-    | ⊤ => Proof.ax
+    | atomDual x => Proof.ax
+  | 1 =>
+    Proof.one |> Proof.bot
+    |> .rwConclusion (by rw [show ⊥ = 1⫠ by rfl])
+    |> .rwConclusion (by grind : 1⫠ ::ₘ {1} = {1, 1⫠})
+  | ⊥ =>
+    Proof.one |> Proof.bot
+  | ⊤ => Proof.top
   | 0 =>
     Proof.top (Γ := {0}).rwConclusion (by grind)
   | tensor a b =>
@@ -69,5 +74,38 @@ termination_by a
 decreasing_by
   all_goals simp <;> grind
 
+/-- A `Proof` has only atomic axioms if all its instances of the axiom treat atomic propositions. -/
+@[scoped grind =]
+def Proof.onlyAtomicAxioms (p : ⇓Γ) : Bool :=
+  match p with
+  | @ax _ a => (a matches Proposition.atom _) || (a matches Proposition.atomDual _)
+  | cut p q => p.onlyAtomicAxioms && q.onlyAtomicAxioms
+  | one => true
+  | bot p => p.onlyAtomicAxioms
+  | parr p => p.onlyAtomicAxioms
+  | tensor p q => p.onlyAtomicAxioms && p.onlyAtomicAxioms
+  | oplus₁ p => p.onlyAtomicAxioms
+  | oplus₂ p => p.onlyAtomicAxioms
+  | .with p q => p.onlyAtomicAxioms && q.onlyAtomicAxioms
+  | top => true
+  | quest p => p.onlyAtomicAxioms
+  | weaken p => p.onlyAtomicAxioms
+  | contract p => p.onlyAtomicAxioms
+  | bang _ p => p.onlyAtomicAxioms
+
+/-- `Proof.onlyAtomicAxioms` is preserved by `Proof.rwConclusion`. -/
+theorem Proof.onlyAtomicAxioms_rwConclusion {heq : Γ = Δ} {p : ⇓Γ} (h : p.onlyAtomicAxioms) :
+  (p.rwConclusion heq).onlyAtomicAxioms := by grind
+
+open Proposition Proof in
+@[local grind →]
+private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
+    a.expand.onlyAtomicAxioms → a⫠.expand.onlyAtomicAxioms := by
+  induction a <;> grind
+
+open Proposition Proof in
+/-- η-expansion is correct: the proof returned by η-expansion contains only atomic axioms. -/
+theorem Proof.expand_onlyAtomicAxioms (a : Proposition Atom) : a.expand.onlyAtomicAxioms := by
+  induction a <;> grind [onlyAtomicAxioms_rwConclusion]
 
 end Cslib.CLL
