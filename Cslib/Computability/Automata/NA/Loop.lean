@@ -179,9 +179,9 @@ def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ (State ⊕ Unit)) Symbol :
   FinAcc.loop ⟨na.totalize, inl '' na.accept⟩
 
 /-- `finLoop na` is total, assuming that `na` has at least one start state. -/
-instance [h : Fact na.start.Nonempty] : na.finLoop.Total where
+instance [h : Nonempty na.start] : na.finLoop.Total where
   total s x := match s with
-    | inl _ => ⟨inr (inr ()), by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h.out⟩
+    | inl _ => ⟨inr (inr ()), by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
     | inr _ => ⟨inr (inr ()), by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
 
 /-- `finLoop na` accepts the Kleene star of the language of `na`, assuming that
@@ -193,7 +193,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
     by_cases h_xl : xl = []
     · grind [mem_add, mem_one]
-    · have : Fact na.start.Nonempty := by
+    · have : Nonempty na.start := by
         obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
         use s0
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr h_mtr
