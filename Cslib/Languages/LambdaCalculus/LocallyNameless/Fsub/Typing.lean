@@ -61,12 +61,16 @@ attribute [grind .] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typi
 /-- Typings have well-formed contexts and types. -/
 @[grind →]
 lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) : Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
-  induction der <;> let L := free_union Var <;> have := fresh_exists L
-  case tabs => grind [LC.tabs L, Ty.Wf.all L, cases Env.Wf]
-  case abs => grind [LC.abs L, Wf.strengthen, cases Env.Wf]
+  induction der <;> let L := free_union Var <;> have ⟨x, nmem⟩ := fresh_exists L
+  case tabs ih => 
+    cases (ih x (by grind)).left
+    grind [LC.tabs L, Ty.Wf.all L]
+  case abs ih =>
+    cases (ih x (by grind)).left
+    grind [LC.abs L, Wf.strengthen]
   case let' => grind [LC.let' L, Ty.Wf.strengthen]
   case case => refine ⟨?_, LC.case L ?_ ?_ ?_, ?_⟩ <;> grind [Ty.Wf.strengthen]
-  all_goals grind [of_bind_ty, open_lc, cases Env.Wf, cases Ty.Wf]
+  all_goals grind [of_bind_ty, open_lc, cases Ty.Wf]
 
 /-- Weakening of typings. -/
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
