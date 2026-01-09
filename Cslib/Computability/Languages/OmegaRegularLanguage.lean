@@ -7,13 +7,13 @@ Authors: Ching-Tsun Chou
 import Cslib.Computability.Automata.DA.Buchi
 import Cslib.Computability.Automata.NA.BuchiEquiv
 import Cslib.Computability.Automata.NA.BuchiInter
-import Cslib.Computability.Automata.NA.Concat
-import Cslib.Computability.Automata.NA.Loop
+import Cslib.Computability.Automata.NA.Pair
 import Cslib.Computability.Automata.NA.Sum
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.RegularLanguage
+import Mathlib.Data.Finite.Card
 import Mathlib.Data.Finite.Sigma
-import Mathlib.Data.Finite.Sum
+import Mathlib.Logic.Equiv.Fin.Basic
 
 /-!
 # ω-Regular languages
@@ -180,6 +180,33 @@ theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
   obtain ⟨State, h_fin, na, rfl⟩ := Language.IsRegular.iff_nfa.mp h
   use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
   exact NA.Buchi.loop_language_eq
+
+/-- An ω-language is regular iff it is the finite union of ω-languages of the form `L * M^ω`,
+where all `L`s and `M`s are regular languages. -/
+theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage Symbol) :
+    p.IsRegular ↔ ∃ n : ℕ, ∃ l m : Fin n → Language Symbol,
+      (∀ i, (l i).IsRegular ∧ (m i).IsRegular) ∧ p = ⨆ i, (l i) * (m i)^ω := by
+  constructor
+  · rintro ⟨State, _, na, rfl⟩
+    rw [NA.Buchi.language_eq_fin_iSup_hmul_omegaPow na]
+    have eq_start := Finite.equivFin ↑na.start
+    have eq_accept := Finite.equivFin ↑na.accept
+    have eq_prod := eq_start.prodCongr eq_accept
+    have eq := (eq_prod.trans finProdFinEquiv).symm
+    refine ⟨Nat.card ↑na.start * Nat.card ↑na.accept,
+      fun i ↦ na.pairLang (eq i).1 (eq i).2,
+      fun i ↦ na.pairLang (eq i).2 (eq i).2,
+      by grind [LTS.pairLang_regular], ?_⟩
+    ext xs
+    simp only [mem_iSup]
+    refine ⟨?_, by grind⟩
+    rintro ⟨s, h_s, t, h_t, h_mem⟩
+    use eq.invFun (⟨s, h_s⟩, ⟨t, h_t⟩)
+    simp [h_mem]
+  · rintro ⟨n, l, m, _, rfl⟩
+    rw [← iSup_univ]
+    apply IsRegular.iSup
+    grind [IsRegular.hmul, IsRegular.omegaPow]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :
