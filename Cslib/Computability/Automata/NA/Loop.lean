@@ -78,7 +78,7 @@ lemma loop_run_from_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ Sta
 /-- A run of `na.loop` containing at least one non-initial `()` state is the concatenation
 of a nonempty finite run of `na` followed by a run of `na.loop`. -/
 theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)} {k : ℕ}
-    (h : na.loop.Run xs ss) (h1 : 0 < k ∧ (ss k).isLeft) :
+    (h : na.loop.Run xs ss) (h1 : 0 < k) (h2 : (ss k).isLeft) :
     ∃ n, n ≤ k ∧ xs.take n ∈ language na - 1 ∧ na.loop.Run (xs.drop n) (ss.drop n) := by
   have h1' : ∃ k, 0 < k ∧ (ss k).isLeft := by grind
   let n := Nat.find h1'
@@ -94,7 +94,7 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
 theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     ∃ sl : List (Unit ⊕ State), ∃ _ : sl.length = xl.length + 1,
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
-    ∀ k, ∀ _ : k < xl.length, na.loop.Tr sl[k] xl[k] sl[k + 1] := by
+    ∀ k, (_ : k < xl.length) → na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
   obtain ⟨sl, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
   by_cases xl.length = 0
@@ -108,7 +108,7 @@ of `na.loop`. -/
 theorem loop_fin_run_mtr {xl : List Symbol} (h : xl ∈ language na) :
     na.loop.MTr (inl ()) xl (inl ()) := by
   obtain ⟨sl, _, _, _, h_run⟩ := loop_fin_run_exists h
-  suffices ∀ k, ∀ _ : k ≤ xl.length, na.loop.MTr (inl ()) (xl.take k) sl[k] by grind
+  suffices ∀ k, (_ : k ≤ xl.length) → na.loop.MTr (inl ()) (xl.take k) sl[k] by grind
   intro k
   induction k <;> grind [LTS.MTr.stepR, List.take_add_one]
 
@@ -154,8 +154,9 @@ theorem loop_language_eq [Inhabited Symbol] :
   apply le_antisymm
   · apply omegaPow_coind
     rintro xs ⟨ss, h_run, h_acc⟩
-    obtain ⟨k, h1⟩ : ∃ k > 0, (ss k).isLeft := by grind [FinAcc.loop, frequently_atTop'.mp h_acc 0]
-    obtain ⟨n, _⟩ := loop_run_one_iter h_run h1
+    obtain ⟨k, h1, h2⟩ : ∃ k > 0, (ss k).isLeft :=
+      by grind [FinAcc.loop, frequently_atTop'.mp h_acc 0]
+    obtain ⟨n, _⟩ := loop_run_one_iter h_run h1 h2
     refine ⟨xs.take n, by grind, xs.drop n, ?_, by simp⟩
     refine ⟨ss.drop n, by grind, ?_⟩
     apply (drop_frequently_iff_frequently n).mpr
@@ -198,18 +199,17 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
         use s0
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
-      have h1 : 0 < xl.length ∧ (ss xl.length).isLeft := by
+      obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
         simp only [mem_singleton_iff] at h_acc
-        grind  [List.eq_nil_iff_length_eq_zero]
-      obtain ⟨n, h_n, _, _, h_ωtr'⟩ := loop_run_one_iter h_run h1
+        grind
+      obtain ⟨n, h_n, _, _, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
       · grind [totalize_language_eq, take_append_of_le_length]
       · refine ⟨ss n, by grind, ss xl.length, by grind, ?_⟩
         have := LTS.ωTr_mTr h_ωtr' (show 0 ≤ xl.length - n by grind)
         have : n + (xl.length - n) = xl.length := by grind
         have : ((xl ++ω xs).drop n).extract 0 (xl.length - n) = xl.drop n := by
-          grind [extract_eq_take, drop_append_of_le_length, take_append_of_le_length,
-            List.take_drop, List.take_length, List.length_drop]
+          grind [extract_eq_take, drop_append_of_le_length, take_append_of_le_length]
         grind [finLoop]
       · exact xl.take_append_drop n
   · rintro (h | h)
@@ -219,8 +219,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
       obtain ⟨s1, _, s2, _, _⟩ := h_xl2
       obtain ⟨rfl⟩ : s1 = inl () := by grind [finLoop, loop]
       obtain ⟨rfl⟩ : s2 = inl () := by grind [finLoop, loop]
-      refine ⟨inl (), by assumption, inl (), by assumption, ?_⟩
-      apply LTS.MTr.comp <;> assumption
+      refine ⟨inl (), ?_, inl (), ?_, LTS.MTr.comp _ this ?_⟩ <;> assumption
     · obtain ⟨rfl⟩ := (Language.mem_one xl).mp h
       refine ⟨inl (), ?_, inl (), ?_, ?_⟩ <;> grind [finLoop, loop]
 

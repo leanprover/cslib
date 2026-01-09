@@ -153,7 +153,6 @@ theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
   · simp [h_l]
   · rw [IsRegular.iff_nfa] at h ⊢
     obtain ⟨State, h_fin, nfa, rfl⟩ := h
-    use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩
-    grind [loop_language_eq]
+    use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
 end Cslib.Language
