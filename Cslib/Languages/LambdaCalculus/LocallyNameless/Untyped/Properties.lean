@@ -118,10 +118,8 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) :=
 @[scoped grind =]
 lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
     m ⟦k ↜ x⟧⟦k ↝ fvar y⟧ = m [x := fvar y] := by
-  revert k
-  induction m_lc with
+  induction m_lc generalizing k with
   | abs xs t =>
-    intros k
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
     grind [
       swap_open_fvars, =_ swap_open_fvar_close,
