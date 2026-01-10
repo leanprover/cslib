@@ -43,7 +43,8 @@ def nullable : SymbolicRegex α → Bool
 
 /-- The Symbolic Derivative (Brzozowski)
     Given a concrete character 'c' and a satisfaction relation, what is the residual Regex? -/
-def derivative {Char : Type} (satisfies : Char → α → Bool) (c : Char) : SymbolicRegex α → SymbolicRegex α
+def derivative {Char : Type} (satisfies : Char → α → Bool) (c : Char) :
+    SymbolicRegex α → SymbolicRegex α
 | .empty => .empty
 | .epsilon => .empty
 | .atom p => if satisfies c p then .epsilon else .empty

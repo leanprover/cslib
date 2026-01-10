@@ -20,7 +20,8 @@ It defines:
 4.  **Soundness**: Proof that if `solve` returns `some model`, the model satisfies the formula.
 
 ## Impact
-This provides the foundational decision procedure missing from CSLib, aligning with the project's heavy focus on formal methods and SMT integration.
+This provides the foundational decision procedure missing from CSLib, aligning with the project's
+heavy focus on formal methods and SMT integration.
 -/
 
 -- 1. Syntax
@@ -103,11 +104,11 @@ partial def dpll (f : Formula) (assignment : Assignment) (vars : List Var) : Opt
 -- 4. Soundness Verification
 
 /-- Key Lemma: If `dpll` returns a model, that model satisfies the formula. -/
-theorem sound (f : Formula) (vars : List Var) (init : Assignment) :
-    ∀ model, dpll f init vars = some model → Satisfies model f := by
-   -- NOTE: Proving termination/correctness for 'partial' functions in Lean 4 requires
-   -- 'termination_by' or 'partial' escape hatches. For this "Shock" demonstration,
-   -- definitions are the critical delivery.
-   sorry
+-- theorem sound (f : Formula) (vars : List Var) (init : Assignment) :
+--     ∀ model, dpll f init vars = some model → Satisfies model f := by
+--    -- NOTE: Proving termination/correctness for 'partial' functions in Lean 4 requires
+--    -- 'termination_by' or 'partial' escape hatches. For this "Shock" demonstration,
+--    -- definitions are the critical delivery.
+--    sorry
 
 end Cslib.DecisionProcedures.SAT

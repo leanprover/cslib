@@ -7,6 +7,7 @@ Authors: Mohamad Al-Zawahreh
 import Cslib.Algorithms.Lean.TimeM
 import Mathlib.Data.Nat.Cast.Order.Ring
 import Mathlib.Tactic.Linarith
+import Mathlib.Data.List.Perm.Basic
 
 
 /-!
@@ -23,6 +24,7 @@ over the list `TimeM (List α)`. The time complexity of `quickSort` is modeled b
 -/
 
 set_option autoImplicit false
+set_option linter.unusedSimpArgs false
 
 namespace Cslib.Algorithms.Lean.TimeM
 
@@ -60,10 +62,10 @@ def quickSort : List α → TimeM (List α)
     let (l, r) ← partition (· ≤ x) xs
     have h1 : l.length < (x :: xs).length := by
       have := partition_length_le (· ≤ x) xs
-      simp; linarith
+      simp; apply Nat.lt_succ_of_le this.1
     have h2 : r.length < (x :: xs).length := by
       have := partition_length_le (· ≤ x) xs
-      simp; linarith
+      simp; apply Nat.lt_succ_of_le this.2
     let l_sorted ← quickSort l
     let r_sorted ← quickSort r
     return l_sorted ++ (x :: r_sorted)
@@ -91,8 +93,15 @@ theorem partition_perm (p : α → Bool) (xs : List α) :
       have : x :: (⟪partition p xs⟫.fst ++ ⟪partition p xs⟫.snd) ~ x :: xs := Perm.cons x ih
       simpa using this
     · case isFalse =>
-      have : ⟪partition p xs⟫.fst ++ x :: ⟪partition p xs⟫.snd ~ x :: (⟪partition p xs⟫.fst ++ ⟪partition p xs⟫.snd) := by exact Perm.middle x (⟪partition p xs⟫.1) (⟪partition p xs⟫.2)
-      have : ⟪partition p xs⟫.fst ++ x :: ⟪partition p xs⟫.snd ~ x :: xs := Perm.trans this (Perm.cons x ih)
+      -- l ++ x :: r ~ x :: (l ++ r)
+      have middle : ⟪partition p xs⟫.fst ++ x :: ⟪partition p xs⟫.snd ~ x :: (⟪partition p xs⟫.fst ++ ⟪partition p xs⟫.snd) := by
+        calc
+          ⟪partition p xs⟫.fst ++ x :: ⟪partition p xs⟫.snd
+            = ⟪partition p xs⟫.fst ++ ([x] ++ ⟪partition p xs⟫.snd) := by simp
+          _ ~ (⟪partition p xs⟫.fst ++ [x]) ++ ⟪partition p xs⟫.snd := by simp
+          _ ~ ([x] ++ ⟪partition p xs⟫.fst) ++ ⟪partition p xs⟫.snd := List.Perm.append_right _ (List.perm_append_comm)
+          _ = x :: (⟪partition p xs⟫.fst ++ ⟪partition p xs⟫.snd) := by simp
+      have : ⟪partition p xs⟫.fst ++ x :: ⟪partition p xs⟫.snd ~ x :: xs := Perm.trans middle (Perm.cons x ih)
       simpa using this
 
 theorem partition_mem_left (p : α → Bool) (xs : List α) (y : α) :
@@ -123,15 +132,23 @@ theorem quickSort_perm (xs : List α) : ⟪quickSort xs⟫ ~ xs := by
     let l := ⟪partition (· ≤ x) xs⟫.1
     let r := ⟪partition (· ≤ x) xs⟫.2
     have h_len := partition_length_le (· ≤ x) xs
-    have h1 : l.length < (x :: xs).length := by simp [l]; omega
-    have h2 : r.length < (x :: xs).length := by simp [r]; omega
+    have h1 : l.length < (x :: xs).length := by
+      simp [l]; apply Nat.lt_succ_of_le h_len.1
+    have h2 : r.length < (x :: xs).length := by
+      simp [r]; apply Nat.lt_succ_of_le h_len.2
     have ih1 : ⟪quickSort l⟫ ~ l := ih l h1
     have ih2 : ⟪quickSort r⟫ ~ r := ih r h2
     calc
-      ⟪quickSort (⟪partition (fun x_1 => x_1 ≤ x) xs⟫.1)⟫ ++ x :: ⟪quickSort (⟪partition (fun x_1 => x_1 ≤ x) xs⟫.2)⟫
-        ~ ⟪partition (fun x_1 => x_1 ≤ x) xs⟫.1 ++ x :: ⟪partition (fun x_1 => x_1 ≤ x) xs⟫.2 := Perm.append p1 (Perm.cons x p2)
-      _ ~ x :: (⟪partition (fun x_1 => x_1 ≤ x) xs⟫.1 ++ ⟪partition (fun x_1 => x_1 ≤ x) xs⟫.2) := Perm.symm (Perm.middle x (⟪partition (fun x_1 => x_1 ≤ x) xs⟫.1) (⟪partition (fun x_1 => x_1 ≤ x) xs⟫.2))
-      _ ~ x :: xs := Perm.cons x perm_part
+      ⟪quickSort l⟫ ++ x :: ⟪quickSort r⟫
+        ~ l ++ x :: r := Perm.append ih1 (Perm.cons x ih2)
+      _ ~ x :: (l ++ r) := by
+          calc
+            l ++ x :: r
+              = l ++ ([x] ++ r) := by simp
+            _ ~ (l ++ [x]) ++ r := by simp
+            _ ~ ([x] ++ l) ++ r := List.Perm.append_right _ (List.perm_append_comm)
+            _ = x :: (l ++ r) := by simp
+      _ ~ x :: xs := Perm.cons x (partition_perm (· ≤ x) xs)
 
 abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
 
@@ -152,8 +169,10 @@ theorem quickSort_sorted (xs : List α) : IsSorted ⟪quickSort xs⟫ := by
     let l := ⟪partition (· ≤ x) xs⟫.1
     let r := ⟪partition (· ≤ x) xs⟫.2
     have h_len := partition_length_le (· ≤ x) xs
-    have h1 : l.length < (x :: xs).length := by simp [l]; omega
-    have h2 : r.length < (x :: xs).length := by simp [r]; omega
+    have h1 : l.length < (x :: xs).length := by
+      simp [l]; apply Nat.lt_succ_of_le h_len.1
+    have h2 : r.length < (x :: xs).length := by
+      simp [r]; apply Nat.lt_succ_of_le h_len.2
     have ih1 : IsSorted ⟪quickSort l⟫ := ih l h1
     have ih2 : IsSorted ⟪quickSort r⟫ := ih r h2
     apply pairwise_append_of_sorted ih1
@@ -164,7 +183,7 @@ theorem quickSort_sorted (xs : List α) : IsSorted ⟪quickSort xs⟫ := by
         have y_in_part : y ∈ ⟪partition (· ≤ x) xs⟫.2 := (perm_r.mem_iff).mp hy
         have not_le := partition_mem_right (· ≤ x) xs y y_in_part
         simp at not_le
-        exact le_of_not_le not_le
+        exact le_of_lt (lt_of_not_ge not_le)
       · exact ih2
     · intro y hy z hz
       -- y in left sorted, z in right (x::right_sorted)
@@ -180,7 +199,7 @@ theorem quickSort_sorted (xs : List α) : IsSorted ⟪quickSort xs⟫ := by
         have z_in_part : z ∈ ⟪partition (· ≤ x) xs⟫.2 := (perm_r.mem_iff).mp z_in_r
         have z_gt_x := partition_mem_right (· ≤ x) xs z z_in_part
         simp at z_gt_x
-        apply le_trans y_le_x (le_of_not_le z_gt_x)
+        apply le_trans y_le_x (le_of_lt (lt_of_not_ge z_gt_x))
 
 theorem quickSort_correct (xs : List α) : IsSorted ⟪quickSort xs⟫ ∧ ⟪quickSort xs⟫ ~ xs :=
   ⟨quickSort_sorted xs, quickSort_perm xs⟩
@@ -205,8 +224,10 @@ theorem quickSort_time_le (xs : List α) :
     let l := ⟪partition (· ≤ x) xs⟫.1
     let r := ⟪partition (· ≤ x) xs⟫.2
     have h_len := partition_length_le (· ≤ x) xs
-    have h1 : l.length < (x :: xs).length := by simp [l]; linarith
-    have h2 : r.length < (x :: xs).length := by simp [r]; linarith
+    have h1 : l.length < (x :: xs).length := by
+      simp [l]; apply Nat.lt_succ_of_le h_len.1
+    have h2 : r.length < (x :: xs).length := by
+      simp [r]; apply Nat.lt_succ_of_le h_len.2
     have len_sum : l.length + r.length = n := by using_elims [partition_ret_length]
     -- Instantiate IH with explicit terms, then fold to local vars if needed
     have ih1' : (quickSort l).time ≤ l.length * l.length := ih l h1
@@ -215,15 +236,24 @@ theorem quickSort_time_le (xs : List α) :
     rw [ih1', ih2']
     -- Goal: n + l^2 + r^2 <= (n+1)^2
     have : (n + 1) * (n + 1) = n * n + 2 * n + 1 := by ring
+    rw [this]
+    
+    have sq_sum : (l.length + r.length) * (l.length + r.length) = l.length^2 + r.length^2 + 2 * l.length * r.length := by ring
+    rw [len_sum] at sq_sum
+    -- n^2 = l^2 + r^2 + 2lr
+    -- So l^2 + r^2 <= n^2
     have : l.length * l.length + r.length * r.length ≤ n * n := by
-      -- l^2 + r^2 <= (l+r)^2 = n^2
-      have sq_sum : (l.length + r.length) * (l.length + r.length) = l.length^2 + r.length^2 + 2 * l.length * r.length := by ring
-      rw [len_sum] at sq_sum
-      linarith
-    -- So n + l^2 + r^2 <= n + n^2
-    -- We need n + n^2 <= n^2 + 2n + 1
-    -- n <= 2n + 1 which is true
-    linarith
+      rw [← sq_sum]
+      apply Nat.le_add_right
+    
+    -- Goal: n + l^2 + r^2 <= n^2 + 2n + 1
+    -- Reduces to: n + (l^2 + r^2) <= n^2 + 2n + 1
+    apply Nat.le_trans (Nat.add_le_add_left this n)
+    -- n + n^2 <= n^2 + 2n + 1
+    -- n + n^2 <= n^2 + n + (n + 1)
+    rw [Nat.add_assoc (n*n) n (n+1), Nat.add_comm (n*n) n, ← Nat.add_assoc]
+    apply Nat.add_le_add_left
+    apply Nat.le_add_right
 
 /-- Worst-case time complexity of QuickSort is bounded by n^2. -/
 theorem quickSort_time (xs : List α) :
