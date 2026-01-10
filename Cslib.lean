@@ -1,7 +1,6 @@
 import Cslib.Algorithms.Lean.MergeSort.MergeSort
 import Cslib.Algorithms.Lean.QuickSort.QuickSort
 import Cslib.Algorithms.Lean.TimeM
-import Cslib.DecisionProcedures.SAT.Basic
 import Cslib.Computability.Automata.Acceptors.Acceptor
 import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 import Cslib.Computability.Automata.DA.Basic
@@ -26,6 +25,7 @@ import Cslib.Computability.Languages.OmegaLanguage
 import Cslib.Computability.Languages.OmegaRegularLanguage
 import Cslib.Computability.Languages.RegularLanguage
 import Cslib.Computability.Languages.SymbolicRegex
+import Cslib.DecisionProcedures.SAT.Basic
 import Cslib.Foundations.Control.Monad.Free
 import Cslib.Foundations.Control.Monad.Free.Effects
 import Cslib.Foundations.Control.Monad.Free.Fold
