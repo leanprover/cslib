@@ -7,4 +7,7 @@ import CslibTests.HasFresh
 import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
+import CslibTests.QuickSort
 import CslibTests.ReductionSystem
+import CslibTests.SymbolicRegex
+import CslibTests.TraceExecution
