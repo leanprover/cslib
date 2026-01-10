@@ -26,16 +26,16 @@ inductive IsExecution : State → List Label → List State → State → Prop
     'ss' contains the *targets* of transitions.
     Thus ss.length = μs.length. The full path is (s_start :: ss). -/
 def IsExecution_Indexed (s_start : State) (μs : List Label) (ss : List State) (s_end : State) : Prop :=
-  ss.length = μs.length ∧
-  (ss.getLast? = some s_end ∨ (ss = [] ∧ s_start = s_end)) ∧
-  ∀ (i : Fin μs.length),
-    -- Logic: Step 'i' goes from State[i] to State[i+1]
-    -- Since 'ss' starts at index 1 relative to s_start:
-    let current := if h : i.val = 0 then s_start
-                   else ss.get ⟨i.val - 1, by rw [ss.length_eq]; apply Nat.lt_of_le_of_lt (Nat.pred_le _) i.isLt⟩
-    let next    := ss.get ⟨i.val, by rw [ss.length_eq]; exact i.isLt⟩
-    lts.Tr current (μs.get i) next
-  where
-    ss.length_eq : ss.length = μs.length := by assumption
+  if h : ss.length = μs.length then
+    (ss.getLast? = some s_end ∨ (ss = [] ∧ s_start = s_end)) ∧
+    ∀ (i : Fin μs.length),
+      -- Logic: Step 'i' goes from State[i] to State[i+1]
+      -- Since 'ss' starts at index 1 relative to s_start:
+      let current := if h0 : i.val = 0 then s_start
+                     else ss.get ⟨i.val - 1, by rw [h]; apply Nat.lt_of_le_of_lt (Nat.pred_le _) i.isLt⟩
+      let next    := ss.get ⟨i.val, by rw [h]; exact i.isLt⟩
+      lts.Tr current (μs.get i) next
+  else
+    False
 
 end Cslib.Foundations.Semantics.LTS
