@@ -120,7 +120,9 @@ lemma open_subst_intro (δ : Ty Var) (nmem : X ∉ γ.fv) : γ ^ᵞ δ = (γ ^�
   openRec_subst_intro _ _ nmem
 
 lemma subst_lc (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
-  induction σ_lc <;> grind [LC.all (free_union Var), openRec_subst]
+  induction σ_lc with
+  | all => grind [LC.all (free_union Var), openRec_subst]
+  | _ => grind [openRec_subst]
 
 omit [HasFresh Var] in
 lemma nmem_fv_openRec (nmem : X ∉ (σ⟦k ↝ γ⟧ᵞ).fv) : X ∉ σ.fv := by
