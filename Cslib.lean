@@ -13,9 +13,11 @@ import Cslib.Computability.Automata.NA.BuchiEquiv
 import Cslib.Computability.Automata.NA.BuchiInter
 import Cslib.Computability.Automata.NA.Concat
 import Cslib.Computability.Automata.NA.Hist
+import Cslib.Computability.Automata.NA.Loop
 import Cslib.Computability.Automata.NA.Prod
 import Cslib.Computability.Automata.NA.Sum
 import Cslib.Computability.Automata.NA.ToDA
+import Cslib.Computability.Automata.NA.Total
 import Cslib.Computability.Languages.ExampleEventuallyZero
 import Cslib.Computability.Languages.Language
 import Cslib.Computability.Languages.OmegaLanguage
