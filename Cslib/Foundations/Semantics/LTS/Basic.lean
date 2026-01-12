@@ -154,16 +154,13 @@ theorem LTS.isExecution_nonEmpty_states (h : lts.IsExecution ss μs) : ss ≠ []
 @[scoped grind ⇒]
 theorem LTS.IsExecution.refl (lts : LTS State Label) (s : State) :
     lts.IsExecution [s] [] := by
-  exists (by grind)
-  intro k valid
-  cases valid
+  grind
 
 /-- Equivalent of `MTr.stepL` for executions. -/
 @[scoped grind →]
 theorem LTS.IsExecution.stepL {lts : LTS State Label} (htr : lts.Tr s1 μ s2)
     (hexec : lts.IsExecution ss μs) (hjoin : ss[0]'(by grind) = s2) :
-    lts.IsExecution (s1 :: ss) (μ :: μs) := by
-  grind
+    lts.IsExecution (s1 :: ss) (μ :: μs) := by grind
 
 /-- Deconstruction of executions with `List.cons`. -/
 @[scoped grind →]
