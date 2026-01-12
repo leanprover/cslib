@@ -17,11 +17,14 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
-          mk_all-check: "true"
-      - name: "lake exe shake"
+      - name: "lake exe mk_all --check --module"
         run: |
           set -e
-          lake exe shake Cslib
+          lake exe mk_all --check --module
+      #- name: "lake exe shake"
+      #  run: |
+      #    set -e
+      #    lake exe shake Cslib
       - uses: leanprover-community/lint-style-action@main
         with:
           mode: check

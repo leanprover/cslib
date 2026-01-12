@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Typing
+module
+
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Typing
+
+public section
 
 /-! # λ-calculus
 

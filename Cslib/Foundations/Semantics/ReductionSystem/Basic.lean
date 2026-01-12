@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring
 -/
 
-import Cslib.Init
-import Mathlib.Logic.Relation
-import Mathlib.Util.Notation3
+module
+
+public import Cslib.Init
+public import Mathlib.Logic.Relation
+public import Mathlib.Util.Notation3
+
+@[expose] public section
 
 /-!
 # Reduction System
