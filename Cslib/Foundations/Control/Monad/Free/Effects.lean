@@ -3,10 +3,15 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
-import Cslib.Foundations.Control.Monad.Free
-import Mathlib.Control.Monad.Cont
-import Mathlib.Control.Monad.Writer
-import Mathlib.Algebra.Group.Hom.Defs
+
+module
+
+public import Cslib.Foundations.Control.Monad.Free
+public import Mathlib.Algebra.Group.Hom.Defs
+public import Mathlib.Control.Monad.Cont
+public import Mathlib.Control.Monad.Writer
+
+@[expose] public section
 
 /-!
 # Free Monad

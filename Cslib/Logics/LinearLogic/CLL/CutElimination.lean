@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Logics.LinearLogic.CLL.Basic
+module
+
+public import Cslib.Logics.LinearLogic.CLL.Basic
+
+@[expose] public section
 
 namespace Cslib
 

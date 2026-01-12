@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 
-import Cslib.Languages.CombinatoryLogic.Confluence
-import Cslib.Languages.CombinatoryLogic.Recursion
+module
+
+public import Cslib.Languages.CombinatoryLogic.Confluence
+public import Cslib.Languages.CombinatoryLogic.Recursion
+
+@[expose] public section
 
 /-!
 # Evaluation results
