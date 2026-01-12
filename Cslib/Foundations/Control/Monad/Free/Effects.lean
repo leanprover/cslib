@@ -374,7 +374,7 @@ lemma run_callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) (k :
 
 end FreeCont
 
-/-- Type constructor for reader opertations. -/
+/-- Type constructor for reader operations. -/
 inductive ReaderF (σ : Type u) : Type u → Type u where
   | read : ReaderF σ σ
 
