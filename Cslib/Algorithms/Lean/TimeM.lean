@@ -76,6 +76,12 @@ scoped notation:max "⟪" tm "⟫" => (TimeM.ret tm)
 def tickUnit : TimeM Unit :=
   ✓ ()
 
+/-- Run a `TimeM` computation and return the result and the accumulated time. -/
+def run (m : TimeM α) : α × ℕ := ⟨m.ret, m.time⟩
+
+/-- Modify the time cost of a `TimeM` computation using a function `f`. -/
+def mapTime (f : ℕ → ℕ) (m : TimeM α) : TimeM α := ⟨m.ret, f m.time⟩
+
 @[simp] theorem time_of_pure {α} (a : α) : (pure a).time = 0 := rfl
 
 @[simp] theorem time_of_bind {α β} (m : TimeM α) (f : α → TimeM β) :

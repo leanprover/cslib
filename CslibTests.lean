@@ -8,3 +8,4 @@ import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.ReductionSystem
+import CslibTests.TimeM

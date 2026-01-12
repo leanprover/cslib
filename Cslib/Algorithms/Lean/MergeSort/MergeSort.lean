@@ -154,6 +154,33 @@ lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog2 (n / 2) ≤ clog2 n - 1 
   · grw [Nat.log_mono_right]
     grind
 
+/--
+Proof of the key algebraic inequality for the merge sort time complexity recurrence.
+
+The goal is to prove:
+  `(n/2 + 1) * clog2 (n/2 + 1) + ((n+1)/2 + 1) * clog2 ((n+1)/2 + 1) + (n+2) ≤ (n+2) * clog2 (n+2)`
+
+This inequality arises from the substitution of the inductive hypothesis into the recurrence:
+  `T(n) = T(n/2) + T((n+1)/2) + n`
+  where `T(n) ≈ n * log n`.
+
+The proof strategy is:
+1. **Substitution**: Let `N = n + 2`. This simplifies the terms significantly.
+   - `n/2 + 1` becomes `N/2` (integer division).
+   - `(n+1)/2 + 1` becomes `(N+1)/2`.
+   - `n + 2` becomes `N`.
+2. **Bounds**: We use the properties of `clog2` (ceiling log2).
+   - `clog2 (N/2) ≤ clog2 N - 1`
+   - `clog2 ((N+1)/2) ≤ clog2 N - 1`
+3. **Algebra**:
+   - LHS becomes `(N/2) * (k-1) + ((N+1)/2) * (k-1) + N` where `k = clog2 N`.
+   - LHS = `(N/2 + (N+1)/2) * (k-1) + N`
+   - LHS = `N * (k-1) + N`
+   - LHS = `N*k - N + N`
+   - LHS = `N*k`
+   - RHS is `N * clog2 N` which is `N*k`.
+   - Thus LHS ≤ RHS.
+-/
 private lemma some_algebra (n : ℕ) :
   (n / 2 + 1) * clog2 (n / 2 + 1) + ((n + 1) / 2 + 1) * clog2 ((n + 1) / 2 + 1) + (n + 2) ≤
   (n + 2) * clog2 (n + 2) := by
