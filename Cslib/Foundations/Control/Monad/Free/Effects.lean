@@ -62,9 +62,6 @@ abbrev FreeState (σ : Type u) := FreeM (StateF σ)
 namespace FreeState
 variable {σ : Type u} {α : Type v}
 
-instance : Monad (FreeState σ) := inferInstance
-instance : LawfulMonad (FreeState σ) := inferInstance
-
 instance : MonadStateOf σ (FreeState σ) where
   get := .lift .get
   set newState := .liftBind (.set newState) (fun _ => .pure PUnit.unit)
@@ -78,8 +75,6 @@ lemma get_def : (get : FreeState σ σ) = .lift .get := rfl
 
 @[simp]
 lemma set_def (s : σ) : (set s : FreeState σ PUnit) = .lift (.set s) := rfl
-
-instance : MonadState σ (FreeState σ) := inferInstance
 
 /-- Interpret `StateF` operations into `StateM`. -/
 def stateInterp {α : Type u} : StateF σ α → StateM σ α
@@ -169,9 +164,6 @@ namespace FreeWriter
 
 open WriterF
 variable {ω : Type u} {α : Type u}
-
-instance : Monad (FreeWriter ω) := inferInstance
-instance : LawfulMonad (FreeWriter ω) := inferInstance
 
 /-- Interpret `WriterF` operations into `WriterT`. -/
 def writerInterp {α : Type u} : WriterF ω α → WriterT ω Id α
@@ -269,15 +261,29 @@ instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
   listen := listen
   pass := pass
 
-/-- Rewrite the log produced by `m` using `f`. -/
-def censor [Monoid ω] (f : ω → ω) (m : FreeWriter ω α) : FreeWriter ω α :=
-  pass (m >>= fun a => pure (a, f))
+/--
+Rewrite the log produced by `m` using `f`.
 
-/-- Map each `tell w` to `tell (φ w)`, where `φ` is a monoid homomorphism. -/
+This evaluates `m` via `run` and then re-emits a single `tell` containing the rewritten log.
+-/
+def censor [Monoid ω] (f : ω → ω) (m : FreeWriter ω α) : FreeWriter ω α :=
+  let (a, w) := run m
+  liftBind (.tell (f w)) (fun _ => .pure a)
+
+/--
+Map each `tell w` to `tell (φ w)`, where `φ` is a monoid homomorphism.
+
+This is a syntactic transformation on the computation tree: it preserves the original sequencing
+of `tell`s, rewriting each one in place (rather than aggregating the log before rewriting).
+-/
 def censorHom [Monoid ω] (φ : ω →* ω) : FreeWriter ω α → FreeWriter ω α
   | .pure a => .pure a
   | .liftBind (.tell w) k =>
       .liftBind (.tell (φ w)) (fun _ => censorHom φ (k .unit))
+
+@[simp] theorem run_censor [Monoid ω] (f : ω → ω) (m : FreeWriter ω α) :
+    run (censor (α := α) f m) = (let (a, w) := run m; (a, f w)) := by
+  simp [censor, run, run_liftBind_tell, mul_one]
 
 @[simp] theorem run_censorHom [Monoid ω] (φ : ω →* ω) (m : FreeWriter ω α) :
     run (censorHom (α := α) φ m) = (let (a, w) := run m; (a, φ w)) := by
@@ -285,6 +291,10 @@ def censorHom [Monoid ω] (φ : ω →* ω) : FreeWriter ω α → FreeWriter ω
   | pure a => simp [censorHom, run]
   | liftBind op k ih =>
     cases op; simp [censorHom, run, ih, map_mul]
+
+theorem run_censorHom_eq_run_censor [Monoid ω] (φ : ω →* ω) (m : FreeWriter ω α) :
+    run (censorHom (α := α) φ m) = run (censor (α := α) (fun w => φ w) m) := by
+  simp [run_censor, run_censorHom]
 
 end FreeWriter
 
@@ -304,9 +314,6 @@ abbrev FreeCont (r : Type u) := FreeM (ContF r)
 
 namespace FreeCont
 variable {r : Type u} {α : Type v} {β : Type w}
-
-instance : Monad (FreeCont r) := inferInstance
-instance : LawfulMonad (FreeCont r) := inferInstance
 
 /-- Interpret `ContF r` operations into `ContT r Id`. -/
 def contInterp : ContF r α → ContT r Id α
@@ -385,9 +392,6 @@ namespace FreeReader
 
 variable {σ : Type u} {α : Type u}
 
-instance : Monad (FreeReader σ) := inferInstance
-instance : LawfulMonad (FreeReader σ) := inferInstance
-
 instance : MonadReaderOf σ (FreeReader σ) where
   read := .lift .read
 
@@ -420,7 +424,7 @@ The canonical interpreter `toReaderM` derived from `liftM` agrees with the hand-
 recursive interpreter `run` for `FreeReader` -/
 @[simp]
 theorem run_toReaderM {α : Type u} (comp : FreeReader σ α) (s : σ) :
-  (toReaderM comp).run s = run comp s := by
+    (toReaderM comp).run s = run comp s := by
   induction comp generalizing s with
   | pure a => rfl
   | liftBind op cont ih =>
@@ -434,30 +438,29 @@ lemma run_pure (a : α) (s₀ : σ) :
 lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
     run (liftBind .read k) s₀ = run (k s₀) s₀ := rfl
 
-/-- Transform the environment seen by all `read`s in a computation -/
-def withReaderFree (f : σ → σ) : FreeReader σ α → FreeReader σ α
-  | .pure a => .pure a
-  | .liftBind .read cont =>
-      let step : σ → FreeReader σ α := fun s => withReaderFree f (cont (f s))
-      .liftBind .read step
+instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
+  withReader := fun {α} f m =>
+    let rec go : FreeReader σ α → FreeReader σ α
+      | .pure a => .pure a
+      | .liftBind .read cont =>
+          .liftBind .read fun s => go (cont (f s))
+    go m
 
 @[simp] theorem run_withReader (f : σ → σ) (m : FreeReader σ α) (s : σ) :
-    run (withReaderFree f m) s = run m (f s) := by
-    induction m generalizing s with
-    | pure a => rfl
-    | liftBind op cont ih =>
-      cases op; apply ih
+    run (withTheReader σ f m) s = run m (f s) := by
+  induction m generalizing s with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    cases op
+    simpa [withTheReader, instMonadWithReaderOf, run] using (ih (f s) s)
 
 /-- Read the environment and return `g` applied to it. -/
 def asks (g : σ → α) : FreeReader σ α :=
-  (read : FreeReader σ σ) >>= fun s => pure (g s)
+  g <$> (read : FreeReader σ σ)
 
 @[simp] lemma asks_run (g : σ → α) (s : σ) :
     run (asks (σ := σ) (α := α) g) s = g s := by
   simp [asks, run]
-
-instance : MonadWithReaderOf σ (FreeReader σ) where
-  withReader := withReaderFree
 
 end FreeReader
 
