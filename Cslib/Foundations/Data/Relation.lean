@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 -/
 
-import Cslib.Init
-import Mathlib.Logic.Relation
-import Mathlib.Data.List.TFAE
-import Mathlib.Order.WellFounded
-import Mathlib.Order.BooleanAlgebra.Basic
+module
+
+public import Cslib.Init
+public import Mathlib.Logic.Relation
+public import Mathlib.Data.List.TFAE
+public import Mathlib.Order.WellFounded
+public import Mathlib.Order.BooleanAlgebra.Basic
+
+@[expose] public section
 
 variable {α : Type*} {r : α → α → Prop}
 

@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Foundations.Data.Nat.Segment
-import Cslib.Foundations.Data.OmegaSequence.Init
+module
+
+public import Cslib.Foundations.Data.Nat.Segment
+public import Cslib.Foundations.Data.OmegaSequence.Init
+
+@[expose] public section
 
 /-!
 # Flattening an infinite sequence of lists

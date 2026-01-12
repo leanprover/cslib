@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+module
+
+public import Cslib.Foundations.Data.Relation
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+
+@[expose] public section
 
 set_option linter.unusedDecidableInType false
 

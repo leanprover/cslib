@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Languages.Language
-import Cslib.Foundations.Data.OmegaSequence.Flatten
-import Mathlib.Computability.Language
-import Mathlib.Order.Filter.AtTopBot.Defs
+module
+
+public import Cslib.Computability.Languages.Language
+public import Cslib.Foundations.Data.OmegaSequence.Flatten
+public import Mathlib.Computability.Language
+public import Mathlib.Order.Filter.AtTopBot.Defs
+
+@[expose] public section
 
 /-!
 # ωLanguage

@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Syntax.HasSubstitution
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
+module
+
+public import Cslib.Foundations.Syntax.HasSubstitution
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
+
+@[expose] public section
 
 set_option linter.unusedDecidableInType false
 

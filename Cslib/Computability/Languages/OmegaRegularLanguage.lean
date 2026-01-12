@@ -4,16 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Buchi
-import Cslib.Computability.Automata.NA.BuchiEquiv
-import Cslib.Computability.Automata.NA.BuchiInter
-import Cslib.Computability.Automata.NA.Concat
-import Cslib.Computability.Automata.NA.Loop
-import Cslib.Computability.Automata.NA.Sum
-import Cslib.Computability.Languages.ExampleEventuallyZero
-import Cslib.Computability.Languages.RegularLanguage
-import Mathlib.Data.Finite.Sigma
-import Mathlib.Data.Finite.Sum
+module
+
+public import Cslib.Computability.Automata.DA.Buchi
+public import Cslib.Computability.Automata.NA.BuchiEquiv
+public import Cslib.Computability.Automata.NA.BuchiInter
+public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Sum
+public import Cslib.Computability.Languages.ExampleEventuallyZero
+public import Cslib.Computability.Languages.RegularLanguage
+public import Mathlib.Data.Finite.Sigma
+public import Mathlib.Data.Finite.Sum
+
+@[expose] public section
 
 /-!
 # ω-Regular languages
