@@ -8,8 +8,10 @@ module
 
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
+public import Mathlib.Data.Finite.Sum
 public import Mathlib.Data.Set.Card
 public import Mathlib.Tactic.Common
 
@@ -53,12 +55,14 @@ theorem IsRegular.iff_nfa {l : Language Symbol} :
     use Set State, inferInstance, na.toDAFinAcc
     grind
 
+/-- The complementation of a regular language is regular. -/
 theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
   rw [IsRegular.iff_dfa] at h ⊢
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
   use State, inferInstance, ⟨da, accᶜ⟩
   grind
 
+/-- The empty language is regular. -/
 @[simp]
 theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
@@ -66,6 +70,7 @@ theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   use Unit, inferInstance, ⟨DA.mk flts (), ∅⟩
   grind
 
+/-- The language containing only the empty word is regular. -/
 @[simp]
 theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
@@ -77,11 +82,13 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
     grind
   · grind [Language.mem_one]
 
+/-- The language of all finite words is regular. -/
 @[simp]
 theorem IsRegular.top : (⊤ : Language Symbol).IsRegular := by
   have : (⊥ᶜ : Language Symbol).IsRegular := IsRegular.compl <| IsRegular.zero
   rwa [← compl_bot]
 
+/-- The intersection of two regular languages is regular. -/
 @[simp]
 theorem IsRegular.inf {l1 l2 : Language Symbol}
     (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 ⊓ l2).IsRegular := by
@@ -91,6 +98,7 @@ theorem IsRegular.inf {l1 l2 : Language Symbol}
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2⟩
   ext; grind [Language.mem_inf]
 
+/-- The union of two regular languages is regular. -/
 @[simp]
 theorem IsRegular.add {l1 l2 : Language Symbol}
     (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 + l2).IsRegular := by
@@ -100,6 +108,7 @@ theorem IsRegular.add {l1 l2 : Language Symbol}
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
   ext; grind [Language.mem_add]
 
+/-- The intersection of any finite number of regular languages is regular. -/
 @[simp]
 theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}
     (h : ∀ i ∈ s, (l i).IsRegular) : (⨅ i ∈ s, l i).IsRegular := by
@@ -111,6 +120,7 @@ theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
     rw [iInf_insert]
     grind [IsRegular.inf]
 
+/-- The union of any finite number of regular languages is regular. -/
 @[simp]
 theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}
     (h : ∀ i ∈ s, (l i).IsRegular) : (⨆ i ∈ s, l i).IsRegular := by
@@ -124,5 +134,17 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
     obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
     rw [iSup_insert]
     apply IsRegular.add <;> grind
+
+open NA.FinAcc Sum in
+/-- The concatenation of two regular languages is regular. -/
+@[simp]
+theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
+    (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 * l2).IsRegular := by
+  rw [IsRegular.iff_nfa] at h1 h2 ⊢
+  obtain ⟨State1, h_fin1, nfa1, rfl⟩ := h1
+  obtain ⟨State2, h_fin1, nfa2, rfl⟩ := h2
+  use (State1 ⊕ Unit) ⊕ (State2 ⊕ Unit), inferInstance,
+    ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
+  exact finConcat_language_eq
 
 end Cslib.Language
