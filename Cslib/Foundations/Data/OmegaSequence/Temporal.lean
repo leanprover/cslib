@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Foundations.Data.OmegaSequence.Init
-import Mathlib.Order.Filter.AtTopBot.Basic
+module
+
+public import Cslib.Foundations.Data.OmegaSequence.Init
+public import Mathlib.Order.Filter.AtTopBot.Basic
+
+@[expose] public section
 
 /-!
 # Temporal reasoning over infinite sequences.

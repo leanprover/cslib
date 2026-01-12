@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Hist
-import Cslib.Computability.Automata.NA.Prod
-import Cslib.Foundations.Data.OmegaSequence.Temporal
+module
+
+public import Cslib.Computability.Automata.NA.Hist
+public import Cslib.Computability.Automata.NA.Prod
+public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+@[expose] public section
 
 /-! # Intersection of nondeterministic Buchi automata.
 

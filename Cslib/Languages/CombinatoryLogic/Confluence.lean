@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.CombinatoryLogic.Defs
+module
+
+public import Cslib.Foundations.Data.Relation
+public import Cslib.Languages.CombinatoryLogic.Defs
+
+@[expose] public section
 
 /-!
 # SKI reduction is confluent
