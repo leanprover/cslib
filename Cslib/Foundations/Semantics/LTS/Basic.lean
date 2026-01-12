@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Init
-import Cslib.Foundations.Data.OmegaSequence.Init
-import Cslib.Foundations.Semantics.FLTS.Basic
-import Mathlib.Data.Set.Finite.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
+module
+
+public import Cslib.Init
+public import Cslib.Foundations.Data.OmegaSequence.Init
+public import Cslib.Foundations.Semantics.FLTS.Basic
+public import Mathlib.Data.Set.Finite.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+
+@[expose] public section
 
 /-!
 # Labelled Transition System (LTS)
@@ -780,6 +784,8 @@ class LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) where
 
 end Divergence
 
+meta section
+
 open Lean Elab Meta Command Term
 
 /-- A command to create an `LTS` from a labelled transition `α → β → α → Prop`, robust to use of
@@ -864,5 +870,7 @@ initialize Lean.registerBuiltinAttribute {
           Command.elabCommand (← `(scoped lts_transition_notation $lts)))
     | _ => throwError "invalid syntax for 'lts' attribute"
 }
+
+end
 
 end Cslib

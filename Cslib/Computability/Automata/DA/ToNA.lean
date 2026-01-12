@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Automata.DA.Basic
-import Cslib.Computability.Automata.NA.Basic
-import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
+module
+
+public import Cslib.Computability.Automata.DA.Basic
+public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
+
+@[expose] public section
 
 /-! # Translation of Deterministic Automata into Nonodeterministic Automata.
 

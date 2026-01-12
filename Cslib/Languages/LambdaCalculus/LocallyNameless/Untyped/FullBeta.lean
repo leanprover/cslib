@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Semantics.ReductionSystem.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+module
+
+public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+
+public section
 
 set_option linter.unusedDecidableInType false
 
@@ -47,7 +51,7 @@ variable {M M' N N' : Term Var}
 
 --- TODO: I think this could be generated along with the ReductionSystem
 @[scoped grind _=_]
-private lemma fullBetaRs_Red_eq : M ⭢βᶠ N ↔ FullBeta M N := by
+lemma fullBetaRs_Red_eq : M ⭢βᶠ N ↔ FullBeta M N := by
   have : (@fullBetaRs Var).Red = FullBeta := by rfl
   simp_all
 
