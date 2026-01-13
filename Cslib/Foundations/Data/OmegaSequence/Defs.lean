@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 
-import Cslib.Init
-import Mathlib.Data.FunLike.Basic
-import Mathlib.Logic.Function.Iterate
+module
+
+public import Cslib.Init
+public import Mathlib.Data.FunLike.Basic
+public import Mathlib.Logic.Function.Iterate
+
+@[expose] public section
 
 /-!
 # Definition of `ωSequence` and functions on infinite sequences

@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Kenny Lau
 -/
 
-import Cslib.Init
-import Mathlib.Analysis.Normed.Field.Lemmas
+module
+
+public import Cslib.Init
+public import Mathlib.Analysis.Normed.Field.Lemmas
+
+@[expose] public section
 
 universe u
 
@@ -25,6 +29,8 @@ attribute [grind <=] HasFresh.fresh_notMem
 in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
+
+public meta section
 
 open Lean Elab Term Meta Parser Tactic
 
@@ -121,6 +127,8 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     return union
   | _ => throwUnsupportedSyntax
+
+end
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 

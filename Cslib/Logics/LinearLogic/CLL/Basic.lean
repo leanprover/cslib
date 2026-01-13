@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Init
-import Mathlib.Order.Notation
-import Mathlib.Order.Defs.Unbundled
-import Mathlib.Data.Multiset.Defs
-import Mathlib.Data.Multiset.Fold
-import Mathlib.Data.Multiset.AddSub
+module
+
+public import Cslib.Init
+public import Mathlib.Order.Notation
+public import Mathlib.Order.Defs.Unbundled
+public import Mathlib.Data.Multiset.Defs
+public import Mathlib.Data.Multiset.Fold
+public import Mathlib.Data.Multiset.AddSub
+
+@[expose] public section
 
 /-! # Classical Linear Logic
 

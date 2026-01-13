@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Basic
+module
+
+public import Cslib.Computability.Automata.NA.Basic
+
+@[expose] public section
 
 /-! # Nondeterministic automata with ε-transitions. -/
 
@@ -21,7 +25,7 @@ structure εNA (State Symbol : Type*) extends NA State (Option Symbol)
 variable {State Symbol : Type*}
 
 @[local grind =]
-private instance : HasTau (Option α) := ⟨.none⟩
+instance : HasTau (Option α) := ⟨.none⟩
 
 /-- The `ε`-closure of a set of states `S` is the set of states reachable by any state in `S`
 by performing only `ε`-transitions. We use `LTS.τClosure` since `ε` (`Option.none`) is an instance
