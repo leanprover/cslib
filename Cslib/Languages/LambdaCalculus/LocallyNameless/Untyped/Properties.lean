@@ -114,7 +114,7 @@ set_option linter.unusedDecidableInType false in
 @[scoped grind ←]
 theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) := by
   cases m_lc with
-  | abs xs => grind [fresh_exists <| free_union [fv] Var]
+  | abs => grind [fresh_exists <| free_union [fv] Var]
 
 /-- Opening then closing is equivalent to substitution. -/
 @[scoped grind =]
