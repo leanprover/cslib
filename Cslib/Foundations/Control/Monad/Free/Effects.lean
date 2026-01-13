@@ -261,41 +261,6 @@ instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
   listen := listen
   pass := pass
 
-/--
-Rewrite the log produced by `m` using `f`.
-
-This evaluates `m` via `run` and then re-emits a single `tell` containing the rewritten log.
--/
-def censor [Monoid ω] (f : ω → ω) (m : FreeWriter ω α) : FreeWriter ω α :=
-  let (a, w) := run m
-  liftBind (.tell (f w)) (fun _ => .pure a)
-
-/--
-Map each `tell w` to `tell (φ w)`, where `φ` is a monoid homomorphism.
-
-This is a syntactic transformation on the computation tree: it preserves the original sequencing
-of `tell`s, rewriting each one in place (rather than aggregating the log before rewriting).
--/
-def censorHom [Monoid ω] (φ : ω →* ω) : FreeWriter ω α → FreeWriter ω α
-  | .pure a => .pure a
-  | .liftBind (.tell w) k =>
-      .liftBind (.tell (φ w)) (fun _ => censorHom φ (k .unit))
-
-@[simp] theorem run_censor [Monoid ω] (f : ω → ω) (m : FreeWriter ω α) :
-    run (censor (α := α) f m) = (let (a, w) := run m; (a, f w)) := by
-  simp [censor, run, run_liftBind_tell, mul_one]
-
-@[simp] theorem run_censorHom [Monoid ω] (φ : ω →* ω) (m : FreeWriter ω α) :
-    run (censorHom (α := α) φ m) = (let (a, w) := run m; (a, φ w)) := by
-  induction m with
-  | pure a => simp [censorHom, run]
-  | liftBind op k ih =>
-    cases op; simp [censorHom, run, ih, map_mul]
-
-theorem run_censorHom_eq_run_censor [Monoid ω] (φ : ω →* ω) (m : FreeWriter ω α) :
-    run (censorHom (α := α) φ m) = run (censor (α := α) (fun w => φ w) m) := by
-  simp [run_censor, run_censorHom]
-
 end FreeWriter
 
 /-! ### Continuation Monad via `FreeM` -/
@@ -439,7 +404,7 @@ lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
     run (liftBind .read k) s₀ = run (k s₀) s₀ := rfl
 
 instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
-  withReader := fun {α} f m =>
+  withReader {α} f m :=
     let rec go : FreeReader σ α → FreeReader σ α
       | .pure a => .pure a
       | .liftBind .read cont =>
@@ -453,14 +418,6 @@ instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
   | liftBind op cont ih =>
     cases op
     simpa [withTheReader, instMonadWithReaderOf, run] using (ih (f s) s)
-
-/-- Read the environment and return `g` applied to it. -/
-def asks (g : σ → α) : FreeReader σ α :=
-  g <$> (read : FreeReader σ σ)
-
-@[simp] lemma asks_run (g : σ → α) (s : σ) :
-    run (asks (σ := σ) (α := α) g) s = g s := by
-  simp [asks, run]
 
 end FreeReader
 
