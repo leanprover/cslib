@@ -6,203 +6,20 @@ Authors: Bolton Bailey
 
 module
 
+-- TODO golf imports
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
+public import Cslib.Foundations.Data.OTape
 public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 public import Mathlib.Algebra.Polynomial.Eval.Defs
 public import Mathlib.Computability.PostTuringMachine
 public import Mathlib.Computability.TuringMachine
 
+@[expose] public section
+
 
 namespace Turing
-
-/--
-List of option values that don't end with none
--/
-structure OList (α : Type) where
-  (asList : List (Option α))
-  -- The list can be empty (i.e. none), but if it is not empty, the last element is not (some) none
-  (h : asList.getLast? ≠ some none)
-
-def OList.empty {α} : OList α := { asList := [], h := by simp }
-
-def OList.map_some {α} (l : List α) : OList α := { asList := l.map some, h := by simp }
-
-instance {α : Type} : Inhabited (OList α) where
-  default := OList.empty
-
-
-def OList.length {α} (l : OList α) : ℕ := l.asList.length
-
-def OList.cons {α} : Option α -> OList α -> OList α
-| none, l => { asList := [], h := by simp }
-| some a, l => {
-    asList := some a :: l.asList,
-    h := by
-      cases hl : l.asList with
-      | nil => simp
-      | cons hd tl =>
-        simp only [List.getLast?_cons_cons]
-        rw [← hl]
-        exact l.h
-       }
-
-def OList.tail {α} (l : OList α) : OList α :=
-  match hl : l.asList with
-  | [] => OList.empty
-  | hd :: t => { asList := t, h := by
-                  match t with
-                  | [] => simp
-                  | hd' :: t' =>
-                    have lh := l.h
-                    rw [hl] at lh
-                    simp only [List.getLast?_cons_cons] at lh
-                    have := l.h
-                    rw [hl, List.getLast?_cons_cons] at this
-                    exact this
-  }
-
-def OList.head {α} (l : OList α) : Option α :=
-  match l.asList with
-  | [] => none
-  | h :: _ => h
-
-lemma OList.length_tail_le {α} (l : OList α) : l.tail.length ≤ l.length := by
-  unfold tail length
-  split
-  · simp [empty]
-  · next heq => simp [heq]
-
-lemma OList.length_cons_none {α} (l : OList α) : (OList.cons none l).length = 0 := by
-  simp [cons, length, empty]
-
-lemma OList.length_cons_some {α} (a : α) (l : OList α) :
-    (OList.cons (some a) l).length = l.length + 1 := by
-  simp [cons, length]
-
-lemma OList.length_cons_le {α} (o : Option α) (l : OList α) :
-    (OList.cons o l).length ≤ l.length + 1 := by
-  cases o with
-  | none => simp [length_cons_none]
-  | some a => simp [length_cons_some]
-
-lemma OList.length_map_some {α} (l : List α) : (OList.map_some l).length = l.length := by
-  simp [map_some, length]
-
-lemma OList.length_empty {α} : (OList.empty : OList α).length = 0 := by
-  simp [empty, length]
-
-/--
-I find this more convenient than mathlib's Tape type,
-because that requires the type tobe inhabited,
-and it is easy to confuse a list representing one thing with a list representing another,
-if the representations are the same except for a sequence of default values at the end.
-
-The head of the machine is the current symbol under the tape head.
-We do not assume here, but could add, that the ends of the tape are never none.
-The move function should guarantee this, so that two tapes are equal
-even if one has written none to the side
--/
-structure OTape (α : Type) where
-  (head : Option α)
-  (left : OList α)
-  (right : OList α)
-deriving Inhabited
-
-def OTape.mk₁ (l : List Bool) : OTape Bool :=
-  match l with
-  | [] => { head := none, left := OList.empty, right := OList.empty }
-  | h :: t => { head := some h, left := OList.empty, right := OList.map_some t }
-
--- TODO incorrect, we must delete blanks from the ends, refactor out OList
-def OTape.move {α} : Turing.OTape α → Dir → Turing.OTape α
-  | t, .left =>
-    match t.left, t.head, t.right with
-    | l, h, r => { head := l.head, left := l.tail, right := OList.cons h r }
-  | t, .right =>
-    match t.left, t.head, t.right with
-    | l, h, r => { head := r.head, left := OList.cons h l, right := r.tail }
-
-
-def OTape.move? {α} : Turing.OTape α → Option Dir → Turing.OTape α
-  | t, none => t
-  | t, some d => t.move d
-
-def OTape.write {α} : Turing.OTape α → Option α → Turing.OTape α
-  | t, a => { t with head := a }
-
-open Classical in
-noncomputable def ListBlank.space_used {α} [Inhabited α] (l : ListBlank α) : ℕ :=
-  Nat.find (p := fun n => ∀ i > n, l.nth i = default)
-    (l.inductionOn (fun xs => ⟨xs.length, fun i hi => by
-      change (ListBlank.mk xs).nth i = default
-      rw [ListBlank.nth_mk]
-      exact List.getI_eq_default xs (Nat.le_of_lt hi)⟩))
-
-/--
-The space used by a OTape is the number of symbols
-between and including the head, and leftmost and rightmost non-blank symbols on the OTape
--/
-noncomputable def OTape.space_used {α} [Inhabited α] (t : Turing.OTape α) : ℕ :=
-  1 + t.left.length + t.right.length
-
-lemma OTape.space_used_write {α} [Inhabited α] (t : Turing.OTape α) (a : Option α) :
-    (t.write a).space_used = t.space_used := by
-  rfl
-
-lemma OTape.space_used_mk₁ (l : List Bool) :
-    (OTape.mk₁ l).space_used = max 1 l.length := by
-  cases l with
-  | nil =>
-    simp [mk₁, space_used, OList.length_empty]
-  | cons h t =>
-    simp [mk₁, space_used, OList.length_empty, OList.length_map_some]
-    omega
-
-open Classical in
-lemma ListBlank.nth_ge_space_used {α} [Inhabited α] (l : ListBlank α) (i : ℕ)
-    (hi : i > l.space_used) : l.nth i = default := by
-  unfold space_used at hi
-  have H : ∃ n, ∀ i > n, l.nth i = default := l.inductionOn (fun xs => ⟨xs.length, fun i hi =>
-    (ListBlank.nth_mk xs i).symm ▸ List.getI_eq_default xs (Nat.le_of_lt hi)⟩)
-  have h := Nat.find_spec H
-  exact h i hi
-
-open Classical in
-lemma ListBlank.space_used_cons_le {α} [Inhabited α] (a : α) (l : ListBlank α) :
-    (l.cons a).space_used ≤ l.space_used + 1 := by
-  unfold space_used
-  apply Nat.find_le
-  intro i hi
-  cases i with
-  | zero => omega
-  | succ i =>
-    rw [ListBlank.nth_succ, ListBlank.tail_cons]
-    exact ListBlank.nth_ge_space_used l i (by unfold space_used; omega)
-
-open Classical in
-lemma ListBlank.space_used_tail_le {α} [Inhabited α] (l : ListBlank α) :
-    l.tail.space_used ≤ l.space_used := by
-  unfold space_used
-  apply Nat.find_le
-  intro i hi
-  rw [← ListBlank.nth_succ]
-  exact ListBlank.nth_ge_space_used l (i + 1) (by unfold space_used; omega)
-
-lemma OTape.space_used_move {α} [Inhabited α] (t : Turing.OTape α) (d : Dir) :
-    (t.move d).space_used ≤ t.space_used + 1 := by
-  cases d with
-  | left =>
-    simp only [move, space_used]
-    have h1 := OList.length_tail_le t.left
-    have h2 := OList.length_cons_le t.head t.right
-    omega
-  | right =>
-    simp only [move, space_used]
-    have h1 := OList.length_cons_le t.head t.left
-    have h2 := OList.length_tail_le t.right
-    omega
 
 namespace BinTM0
 
@@ -317,7 +134,8 @@ lemma ListBlank.space_used_mk {α} [Inhabited α] (l : List α) :
 --   | nil =>
 --     simp [ListBlank.space_used_mk_nil]
 --   | cons h t =>
---     simp only [List.tail_cons, List.length_cons, le_add_iff_nonneg_left, zero_le, sup_of_le_right]
+--     simp only [List.tail_cons, List.length_cons, le_add_iff_nonneg_left, zero_le,
+--       sup_of_le_right]
 --     rw [add_comm]
 --     simp only [Nat.add_right_cancel_iff]
 --     sorry
@@ -551,8 +369,8 @@ structure Computable (f : List Bool → List Bool) where
   /-- a proof this machine outputsInTime `f` -/
   outputsFun :
     ∀ a,
-      OutputsInTime tm ((a))
-        (Option.some (((f a))))
+      OutputsInTime tm a
+        (Option.some (f a))
         steps
 
 /-- A Turing machine + a time function +
@@ -566,9 +384,9 @@ structure ComputableInTime (f : List Bool → List Bool) where
   outputsFun :
     ∀ a,
       tm.OutputsWithinTime
-        ((a))
-        (Option.some (((f a))))
-        (time ( a).length)
+        a
+        (Option.some (f a))
+        (time a.length)
 
 /-- A Turing machine + a polynomial time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
@@ -580,9 +398,9 @@ structure ComputableInPolyTime (f : List Bool → List Bool) where
   /-- proof that this machine outputsInTime `f` in at most `time(input.length)` steps -/
   outputsFun :
     ∀ a,
-      OutputsWithinTime tm (( a))
-        (Option.some (((f a))))
-        (time.eval ( a).length)
+      OutputsWithinTime tm a
+        (Option.some (f a))
+        (time.eval a.length)
 
 -- /-- A forgetful map, forgetting the time bound on the number of steps. -/
 -- def ComputableInTime.toComputable {α β : Type} {ea : BinEncoding α} {eb : BinEncoding β}
@@ -590,7 +408,8 @@ structure ComputableInPolyTime (f : List Bool → List Bool) where
 --   ⟨h.tm, fun a => OutputsWithinTime.toOutputsInTime (h.outputsFun a)⟩
 
 /-- A forgetful map, forgetting that the time function is polynomial. -/
-def ComputableInPolyTime.toComputableInTime {f : List Bool → List Bool}  (h : ComputableInPolyTime f) :
+def ComputableInPolyTime.toComputableInTime {f : List Bool → List Bool}
+    (h : ComputableInPolyTime f) :
     ComputableInTime f :=
   ⟨h.tm, fun n => h.time.eval n, h.outputsFun⟩
 
@@ -647,7 +466,7 @@ def ComputableInPolyTime.id :
 --   ⟨EvalsTo.refl _ _⟩
 
 /-- A proof that the identity map on α is computable in time. -/
-def ComputableInTime.id  :
+def ComputableInTime.id :
     @ComputableInTime id :=
   ComputableInPolyTime.toComputableInTime <| ComputableInPolyTime.id
 
@@ -706,7 +525,7 @@ lemma compComputer_q₀_eq (f : List Bool → List Bool) (g : List Bool → List
 
 /-- Lift a config over a tm to a config over the comp -/
 def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime  f)
+    (hf : ComputableInTime f)
     (hg : ComputableInTime g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
@@ -715,9 +534,9 @@ def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
     OTape := cfg.OTape
   }
 
-def liftCompCfg_right{f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime  f)
-    (hg : ComputableInTime  g)
+def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool}
+    (hf : ComputableInTime f)
+    (hg : ComputableInTime g)
     (cfg : hg.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   {
@@ -802,7 +621,7 @@ def liftCompCfg_left_or_right {f : List Bool → List Bool} {g : List Bool → L
 /-- The lifting function commutes with step, converting halt to transition -/
 theorem map_liftCompCfg_left_or_right_step
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime  f) (hg : ComputableInTime  g)
+    (hf : ComputableInTime f) (hg : ComputableInTime g)
     (x : hf.tm.Cfg)
     (hx : x.state.isSome) :
     Option.map (liftCompCfg_left_or_right hf hg) (hf.tm.step x) =
@@ -822,7 +641,7 @@ theorem map_liftCompCfg_left_or_right_step
 /-- General simulation: if the first machine goes from cfg to halt, the composed machine
     goes from lifted cfg to Sum.inr hg.tm.q₀ -/
 theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime  g)
+    (hf : ComputableInTime f) (hg : ComputableInTime g)
     (cfg : hf.tm.Cfg)
     (hcfg : cfg.state.isSome)
     (haltCfg : hf.tm.Cfg)
@@ -873,25 +692,25 @@ This takes the same number of steps because the halt transition becomes a transi
 second machine.
 -/
 theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime  f) (hg : ComputableInTime  g)
+    (hf : ComputableInTime f) (hg : ComputableInTime g)
     (a : List Bool)
     (hf_outputsFun :
       EvalsToWithinTime hf.tm.step
-        { state := some hf.tm.q₀, OTape := OTape.mk₁ ( a) }
-        (some { state := none, OTape := OTape.mk₁ ( (f a)) })
-        (hf.time ( a).length)) :
+        { state := some hf.tm.q₀, OTape := OTape.mk₁ a }
+        (some { state := none, OTape := OTape.mk₁ (f a) })
+        (hf.time a.length)) :
     EvalsToWithinTime (compComputer hf hg).step
-      { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ ( a) }
-      (some { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ ( (f a)) })
-      (hf.time ( a).length) := by
+      { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ a }
+      (some { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) })
+      (hf.time a.length) := by
   obtain ⟨steps, hsteps_le, hsteps_eval⟩ := hf_outputsFun
   use steps
   constructor
   · exact hsteps_le
   · have := comp_left_simulation_general hf hg
-      { state := some hf.tm.q₀, OTape := OTape.mk₁ ( a) }
+      { state := some hf.tm.q₀, OTape := OTape.mk₁ a }
       (by simp)
-      { state := none, OTape := OTape.mk₁ ( (f a)) }
+      { state := none, OTape := OTape.mk₁ (f a) }
       steps
       hsteps_eval
     simp only [liftCompCfg_left_or_right] at this
@@ -900,7 +719,7 @@ theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → Li
 /-- Simulation lemma for the second machine in the composed computer -/
 theorem comp_right_simulation
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime  f) (hg : ComputableInTime g)
+    (hf : ComputableInTime f) (hg : ComputableInTime g)
     (x : hg.tm.Cfg) (y : Option hg.tm.Cfg) (m : ℕ)
     (h : EvalsToWithinTime hg.tm.step x y m) :
     EvalsToWithinTime (compComputer hf hg).step
@@ -949,7 +768,7 @@ then from the intermediate state to the final state.
 -/
 def ComputableInTime.comp
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime  f)
+    (hf : ComputableInTime f)
     (hg : ComputableInTime g)
     (h_mono : Monotone hg.time) :
     (ComputableInTime (g ∘ f)) where
@@ -960,23 +779,23 @@ def ComputableInTime.comp
     have hg_outputsFun := hg.outputsFun (f a)
     simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
       Option.map_some, haltCfg] at hg_outputsFun hf_outputsFun ⊢
-    -- The computer evals a to f a in time hf.time ( a)
+    -- The computer evals a to f a in time hf.time a
     have h_a_evalsTo_f_a :
         EvalsToWithinTime (compComputer hf hg).step
-          { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ ( a) }
-          (some { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ ( ((f a))) })
-          (hf.time ( a).length) :=
+          { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ a }
+          (some { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) })
+          (hf.time a.length) :=
       comp_left_simulation hf hg a hf_outputsFun
     have h_f_a_evalsTo_g_f_a :
         EvalsToWithinTime (compComputer hf hg).step
-          { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ ( ((f a))) }
-          (some { state := none, OTape := OTape.mk₁ ( ((g (f a)))) })
-          (hg.time ( ((f a))).length) := by
+          { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) }
+          (some { state := none, OTape := OTape.mk₁ (g (f a)) })
+          (hg.time (f a).length) := by
       -- Use the simulation lemma for the second machine
       have := comp_right_simulation hf hg
-        { state := some hg.tm.q₀, OTape := OTape.mk₁ ( (f a)) }
-        (some { state := none, OTape := OTape.mk₁ ( (g (f a))) })
-        (hg.time ( (f a)).length)
+        { state := some hg.tm.q₀, OTape := OTape.mk₁ (f a) }
+        (some { state := none, OTape := OTape.mk₁ (g (f a)) })
+        (hg.time (f a).length)
         hg_outputsFun
       simp only [liftCompCfg_right, Option.map_some] at this
       exact this
