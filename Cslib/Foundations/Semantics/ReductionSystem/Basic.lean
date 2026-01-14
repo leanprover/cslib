@@ -50,6 +50,18 @@ theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b)
 
 end MultiStep
 
+section Timed
+
+/-! ## Timed reductions -/
+
+/-- Given a reduction system `rs` on `Term`, returns a reduction system on `Term × ℕ`
+where the second component of the pair represents the number of steps taken. -/
+def Timed (rs : ReductionSystem Term) : ReductionSystem (Term × ℕ) :=
+  { Red := fun ⟨t, n⟩ ⟨t', n'⟩ => rs.Red t t' ∧ n' = n + 1 }
+
+end Timed
+
+
 open Lean Elab Meta Command Term
 
 -- thank you to Kyle Miller for this:
