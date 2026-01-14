@@ -4,14 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Prod
-import Cslib.Computability.Automata.DA.ToNA
-import Cslib.Computability.Automata.NA.Concat
-import Cslib.Computability.Automata.NA.ToDA
-import Mathlib.Computability.DFA
-import Mathlib.Data.Finite.Sum
-import Mathlib.Data.Set.Card
-import Mathlib.Tactic.Common
+module
+
+public import Cslib.Computability.Automata.DA.Prod
+public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.ToDA
+public import Mathlib.Computability.DFA
+public import Mathlib.Data.Finite.Sum
+public import Mathlib.Data.Set.Card
+public import Mathlib.Tactic.Common
+
+@[expose] public section
 
 /-!
 # Regular languages

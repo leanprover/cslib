@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Foundations.Data.OmegaSequence.Defs
-import Mathlib.Order.Filter.AtTopBot.Basic
-import Mathlib.Order.Filter.Cofinite
+module
+
+public import Cslib.Foundations.Data.OmegaSequence.Defs
+public import Mathlib.Order.Filter.AtTopBot.Basic
+public import Mathlib.Order.Filter.Cofinite
+
+@[expose] public section
 
 /-!
 # Infinite occurrences
