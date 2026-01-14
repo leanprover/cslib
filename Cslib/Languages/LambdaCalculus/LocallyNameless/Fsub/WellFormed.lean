@@ -124,13 +124,9 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : 
     (ok : (Γ.map_val (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
   have := @map_val_mem Var (Binding Var)
   generalize eq : Γ ++ ⟨X, Binding.sub τ⟩ :: Δ = Θ at wf_σ
-  induction wf_σ generalizing Γ τ'
-  case all γ _ _ _ _ _ _ =>
-    subst eq
-    apply all (free_union [dom] Var)
-    · grind
-    · grind [open_subst_var]
-  all_goals grind [weaken_head]
+  induction wf_σ generalizing Γ τ' with
+  | all => apply all (free_union [dom] Var) <;> grind [open_subst_var]
+  | _ => grind [weaken_head]
 
 variable [HasFresh Var] in
 /-- A type remains well-formed under opening (to a well-formed type). -/
