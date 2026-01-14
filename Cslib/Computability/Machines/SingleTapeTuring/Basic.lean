@@ -105,41 +105,6 @@ def ReductionSystem (tm : BinTM0) : Cslib.ReductionSystem (tm.Cfg) :=
 noncomputable def Cfg.space_used (tm : BinTM0) (cfg : tm.Cfg) : ℕ :=
   cfg.OTape.space_used
 
-open Classical in
-lemma ListBlank.space_used_mk_nil {α} [Inhabited α] :
-    (ListBlank.mk ([] : List α)).space_used = 0 := by
-  unfold ListBlank.space_used
-  rw [Nat.find_eq_zero]
-  intro i hi
-  rw [ListBlank.nth_mk]
-  exact List.getI_nil i
-
--- Helper lemma for space_used of a ListBlank created from a list
-open Classical in
-lemma ListBlank.space_used_mk {α} [Inhabited α] (l : List α) :
-    (ListBlank.mk l).space_used ≤ l.length := by
-  unfold ListBlank.space_used
-  apply Nat.find_le
-  intro i hi
-  rw [ListBlank.nth_mk]
-  exact List.getI_eq_default l (Nat.le_of_lt hi)
-
--- /-- The space_used of a OTape created from a list
--- equals the maximum of 1 and the list length -/
--- lemma OTape.space_used_mk₁ {α} [Inhabited α] (l : List α) :
---     (OTape.mk₁ l).space_used = max 1 l.length := by
---   unfold OTape.mk₁ OTape.mk₂ OTape.mk' OTape.space_used
---   simp only [ListBlank.space_used_mk_nil, add_zero, ListBlank.tail_mk]
---   cases l with
---   | nil =>
---     simp [ListBlank.space_used_mk_nil]
---   | cons h t =>
---     simp only [List.tail_cons, List.length_cons, le_add_iff_nonneg_left, zero_le,
---       sup_of_le_right]
---     rw [add_comm]
---     simp only [Nat.add_right_cancel_iff]
---     sorry
-
 lemma Cfg.space_used_initCfg (tm : BinTM0) (s : List Bool) :
     (tm.initCfg s).space_used = max 1 s.length := by
   simp [initCfg, Cfg.space_used, OTape.space_used_mk₁]
@@ -149,28 +114,17 @@ lemma Cfg.space_used_haltCfg (tm : BinTM0) (s : List Bool) :
   simp [haltCfg, Cfg.space_used, OTape.space_used_mk₁]
 
 lemma Cfg.space_used_step {tm : BinTM0} (cfg cfg' : tm.Cfg)
-    (hstep : tm.step cfg = some cfg') :
-    cfg'.space_used ≤ cfg.space_used + 1 := by
-  unfold Cfg.space_used
-  cases cfg with | mk state tape =>
-  cases state with
-  | none => simp [step] at hstep
-  | some q =>
-    simp only [step] at hstep
+    (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
+  obtain ⟨_ | q, tape⟩ := cfg
+  · simp [step] at hstep
+  · simp only [step] at hstep
     generalize hM : tm.M q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
-    simp only at hstep
-    cases hstep
-    cases dir with
-    | none =>
-      simp only [OTape.move?]
-      rw [OTape.space_used_write]
-      omega
+    cases hstep; cases dir with
+    | none => simp [Cfg.space_used, OTape.move?, OTape.space_used_write]
     | some d =>
-      simp only [OTape.move?]
-      have h1 := OTape.space_used_move (tape.write wr) d
-      rw [OTape.space_used_write] at h1
-      exact h1
+      have := OTape.space_used_move (tape.write wr) d
+      simp only [Cfg.space_used, OTape.move?, OTape.space_used_write] at this ⊢; exact this
 
 /-- `f` eventually reaches `b` when repeatedly evaluated on `a`, in exactly `steps` steps. -/
 def EvalsToInTime {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ) (steps : ℕ) : Prop :=
@@ -183,43 +137,25 @@ lemma EvalsToInTime.refl {σ : Type*} (f : σ → Option σ) (a : σ) : EvalsToI
 /-- Transitivity of `EvalsTo` in the sum of the numbers of steps. -/
 @[trans]
 lemma EvalsToInTime.trans {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ) (c : Option σ)
-    (steps₁ steps₂ : ℕ)
-    (h₁ : EvalsToInTime f a b steps₁)
-    (h₂ : EvalsToInTime f b c steps₂) :
+    (steps₁ steps₂ : ℕ) (h₁ : EvalsToInTime f a b steps₁) (h₂ : EvalsToInTime f b c steps₂) :
     EvalsToInTime f a c (steps₂ + steps₁) := by
-  simp_all only [EvalsToInTime, Option.bind_eq_bind]
-  rw [Function.iterate_add_apply, h₁, h₂]
+  simp only [EvalsToInTime] at *; rw [Function.iterate_add_apply, h₁, h₂]
 
 /-- If we evaluate to some state in n+1 steps, there is an intermediate state
     that we reach in n steps, and then one more step reaches the final state. -/
 lemma EvalsToInTime.succ_decompose {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ)
     (n : ℕ) (h : EvalsToInTime f a (some b) (n + 1)) :
     ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b := by
-  set c' := (· >>= f)^[n] (some a) with hc'
-  simp only [EvalsToInTime, Option.bind_eq_bind] at h hc' ⊢
-  rw [Function.iterate_succ_apply'] at h
-  -- h : (· >>= f) ((· >>= f)^[n] (some a)) = some b
-  -- This means (· >>= f)^[n] (some a) >>= f = some b
-  -- So (· >>= f)^[n] (some a) = some c for some c with f c = some b
-  rw [<-hc'] at h
-  revert h hc'
-  cases c' with
-  | none =>
-    grind
-  | some c =>
-    intros h hc'
-    use c
-    grind
+  simp only [EvalsToInTime, Function.iterate_succ_apply'] at h
+  match hc' : (· >>= f)^[n] (some a) with
+  | none => simp_all
+  | some c => exact ⟨c, hc', by simp_all⟩
 
-lemma EvalsToInTime.succ_iff {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ)
-    (n : ℕ) :
-    EvalsToInTime f a (some b) (n + 1) ↔
-      ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b := by
-  constructor
-  · exact EvalsToInTime.succ_decompose f a b n
-  · intro ⟨c, hc_eval, hc_step⟩
-    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_succ_apply'] at hc_eval ⊢
-    simp only [hc_eval, Option.bind_some, hc_step]
+lemma EvalsToInTime.succ_iff {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ) (n : ℕ) :
+    EvalsToInTime f a (some b) (n + 1) ↔ ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b :=
+  ⟨succ_decompose f a b n, fun ⟨_, hc_eval, hc_step⟩ => by
+    simp only [EvalsToInTime, Function.iterate_succ_apply'] at hc_eval ⊢;
+    rw [hc_eval]; exact hc_step⟩
 
 theorem Turing.BinTM0.EvalsToInTime.congr.extracted_1_2.{u_2, u_1}
     {σ : Type u_1} {σ' : Type u_2} (f : σ → Option σ)

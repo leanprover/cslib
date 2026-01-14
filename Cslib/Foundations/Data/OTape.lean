@@ -75,14 +75,6 @@ def OTape.move? {α} : Turing.OTape α → Option Dir → Turing.OTape α
 def OTape.write {α} : Turing.OTape α → Option α → Turing.OTape α
   | t, a => { t with head := a }
 
-open Classical in
-noncomputable def ListBlank.space_used {α} [Inhabited α] (l : ListBlank α) : ℕ :=
-  Nat.find (p := fun n => ∀ i > n, l.nth i = default)
-    (l.inductionOn (fun xs => ⟨xs.length, fun i hi => by
-      change (ListBlank.mk xs).nth i = default
-      rw [ListBlank.nth_mk]
-      exact List.getI_eq_default xs (Nat.le_of_lt hi)⟩))
-
 /--
 The space used by a OTape is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the OTape
