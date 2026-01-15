@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
 public import Mathlib.Data.Finite.Sum
@@ -146,5 +147,16 @@ theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
   use (State1 ⊕ Unit) ⊕ (State2 ⊕ Unit), inferInstance,
     ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
   exact finConcat_language_eq
+
+open NA.FinAcc Sum in
+/-- The Kleene star of a regular language is regular. -/
+@[simp]
+theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
+    (h : l.IsRegular) : (l∗).IsRegular := by
+  by_cases h_l : l = 0
+  · simp [h_l]
+  · rw [IsRegular.iff_nfa] at h ⊢
+    obtain ⟨State, h_fin, nfa, rfl⟩ := h
+    use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
 end Cslib.Language

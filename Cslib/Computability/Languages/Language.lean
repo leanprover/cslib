@@ -86,4 +86,14 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
       exact ⟨y, h_y, z, h_z, rfl⟩
     · grind [one_def, append_eq_nil_iff]
 
+@[scoped grind =]
+theorem sub_one_kstar : (l - 1)∗ = l∗ := by
+  ext x
+  grind [mem_kstar, mem_kstar_iff_exists_nonempty]
+
+@[scoped grind .]
+theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
+  rw [self_eq_mul_add_iff, mul_one, sub_one_kstar]
+  grind
+
 end Language
