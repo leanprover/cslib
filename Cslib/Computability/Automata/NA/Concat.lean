@@ -100,13 +100,13 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
     refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.ωTr], by simp⟩
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
-    obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
+    obtain ⟨ss1, _, _, _, _⟩ := LTS.mTr_isExecution h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
     · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
       simp only [concat]
-      grind [Run, LTS.ωTr, get_append_right', get_append_left]
+      grind [Run, LTS.ωTr, get_append_right', get_append_left, LTS.IsExecution]
     · grind [drop_append_of_le_length]
 
 namespace Buchi
