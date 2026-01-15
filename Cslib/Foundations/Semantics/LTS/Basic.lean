@@ -142,64 +142,76 @@ theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
 
 /-- A finite execution, or sequence of transitions. -/
 @[scoped grind =]
-def LTS.IsExecution (lts : LTS State Label)
-    (ss : List State) (μs : List Label) : Prop :=
-  ∃ hlen : ss.length = μs.length + 1, ∀ k, {valid : k < μs.length} → lts.Tr ss[k] μs[k] ss[k + 1]
+def LTS.IsExecution (lts : LTS State Label) (s1 : State) (μs : List Label) (s2 : State)
+    (ss : List State) : Prop :=
+  ∃ _ : ss.length = μs.length + 1, ss[0] = s1 ∧ ss[ss.length - 1] = s2 ∧
+  ∀ k, {_ : k < μs.length} → lts.Tr ss[k] μs[k] ss[k + 1]
 
 /-- Every execution has a start state. -/
 @[scoped grind →]
-theorem LTS.isExecution_nonEmpty_states (h : lts.IsExecution ss μs) : ss ≠ [] := by grind
+theorem LTS.isExecution_nonEmpty_states (h : lts.IsExecution s1 μs s2 ss) :
+    ss ≠ [] := by grind
 
 /-- Every state has an execution of zero steps terminating in itself. -/
 @[scoped grind ⇒]
-theorem LTS.IsExecution.refl (lts : LTS State Label) (s : State) :
-    lts.IsExecution [s] [] := by
+theorem LTS.IsExecution.refl (lts : LTS State Label) (s : State) : lts.IsExecution s [] s [s] := by
   grind
 
 /-- Equivalent of `MTr.stepL` for executions. -/
 @[scoped grind →]
 theorem LTS.IsExecution.stepL {lts : LTS State Label} (htr : lts.Tr s1 μ s2)
-    (hexec : lts.IsExecution ss μs) (hjoin : ss[0]'(by grind) = s2) :
-    lts.IsExecution (s1 :: ss) (μ :: μs) := by grind
+    (hexec : lts.IsExecution s2 μs s3 ss) : lts.IsExecution s1 (μ :: μs) s3 (s1 :: ss) := by grind
 
 /-- Deconstruction of executions with `List.cons`. -/
 @[scoped grind →]
-theorem LTS.isExecution_cons_invert (h : lts.IsExecution (s :: ss) (μ :: μs)) :
-    lts.IsExecution ss μs := by
-  obtain ⟨h1, h2⟩ := h
+theorem LTS.isExecution_cons_invert (h : lts.IsExecution s1 (μ :: μs) s2 (s1 :: ss)) :
+    lts.IsExecution (ss[0]'(by grind)) μs s2 ss := by
+  obtain ⟨_, _, _, h4⟩ := h
   exists (by grind)
-  intro k valid
-  specialize h2 k <;> grind
+  constructorm* _∧_
+  · rfl
+  · grind
+  · intro k valid
+    specialize h4 k <;> grind
 
 open scoped LTS.IsExecution in
 /-- A multistep transition implies the existence of an execution. -/
 @[scoped grind →]
-theorem LTS.mTr_isExecution {lts : LTS State Label} {s1 : State} {μs : List Label}
-    {s2 : State} (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
-    ss[0] = s1 ∧ ss[ss.length - 1] = s2 ∧ lts.IsExecution ss μs := by
+theorem LTS.mTr_isExecution {lts : LTS State Label} {s1 : State} {μs : List Label} {s2 : State}
+    (h : lts.MTr s1 μs s2) : ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   induction h
   case refl t =>
     use [t]
     grind
   case stepL t1 μ t2 μs t3 htr hmtr ih =>
-    obtain ⟨ss', hlen, ih⟩ := ih
+    obtain ⟨ss', _⟩ := ih
     use t1 :: ss'
     grind
 
 /-- Converts an execution into a multistep transition. -/
 @[scoped grind →]
-theorem LTS.isExecution_mTr (hexec : lts.IsExecution ss μs) :
-    lts.MTr (ss[0]'(by grind)) μs (ss[ss.length - 1]'(by grind)) := by
-  induction ss generalizing μs
+theorem LTS.isExecution_mTr (hexec : lts.IsExecution s1 μs s2 ss) :
+    lts.MTr s1 μs s2 := by
+  induction ss generalizing s1 μs
   case nil => grind
-  case cons s1 ss ih =>
-    cases μs <;> grind
+  case cons s1' ss ih =>
+    let ⟨hlen, hstart, hfinal, hexec'⟩ := hexec
+    have : s1' = s1 := by grind
+    rw [this] at hexec' hexec
+    cases μs
+    · grind
+    case cons μ μs =>
+      specialize ih (s1 := ss[0]'(by grind)) (μs := μs)
+      apply LTS.isExecution_cons_invert at hexec
+      apply LTS.MTr.stepL
+      · have : lts.Tr s1 μ (ss[0]'(by grind)) := by grind
+        apply this
+      · grind
 
 /-- Correspondence of multistep transitions and executions. -/
 @[scoped grind =]
 theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
-    ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
-    ss[0] = s1 ∧ ss[ss.length - 1] = s2 ∧ lts.IsExecution ss μs := by
+    ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
 
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
