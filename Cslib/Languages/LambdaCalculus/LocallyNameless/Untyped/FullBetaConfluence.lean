@@ -51,8 +51,7 @@ variable {M M' N N' : Term Var}
 --- TODO: I think this could be generated along with the ReductionSystem
 @[scoped grind _=_]
 private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
-  have : (@paraRs Var).Red = Parallel := by rfl
-  simp_all
+  rfl
 
 /-- The left side of a parallel reduction is locally closed. -/
 @[scoped grind →]
@@ -116,15 +115,13 @@ theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
 lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢ₚ M'[x := N'] := by
-  induction pm
-  case fvar => grind
-  case beta =>
+  induction pm with
+  | beta =>
     rw [subst_open _ _ _ _ (by grind)]
     refine Parallel.beta (free_union Var) ?_ ?_ <;> grind
-  case app => constructor <;> assumption
-  case abs u u' xs mem ih =>
-    apply Parallel.abs (free_union Var)
-    grind
+  | app => constructor <;> assumption
+  | abs => grind [Parallel.abs (free_union Var)]
+  | _ => grind
 
 /-- Parallel substitution respects closing and opening. -/
 lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⭢ₚ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ :=
@@ -133,8 +130,7 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  let ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
-  grind
+  grind [fresh_exists <| free_union [fv] Var]
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
 -- writing it for locally nameless terms.
@@ -213,7 +209,7 @@ theorem confluence_beta : Confluent (@FullBeta Var) := by
     ext
     exact parachain_iff_redex
   rw [Confluent, ←eq]
-  exact @para_confluence Var _ _
+  exact para_confluence
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

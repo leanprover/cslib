@@ -52,8 +52,7 @@ variable {M M' N N' : Term Var}
 --- TODO: I think this could be generated along with the ReductionSystem
 @[scoped grind _=_]
 lemma fullBetaRs_Red_eq : M ⭢βᶠ N ↔ FullBeta M N := by
-  have : (@fullBetaRs Var).Red = FullBeta := by rfl
-  simp_all
+  rfl
 
 /-- The left side of a reduction is locally closed. -/
 @[scoped grind →]
@@ -93,15 +92,12 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
       rw [subst_open x (fvar y) n m (by grind)]
       refine beta ?_ (by grind)
       exact subst_lc (LC.abs xs m mem) (LC.fvar y)
-  case abs m' m xs mem ih =>
-    apply abs (free_union Var)
-    grind
+  case abs => grind [abs <| free_union Var]
   all_goals grind
 
 /-- Abstracting then closing preserves a single reduction. -/
 lemma step_abs_close {x : Var} (step : M ⭢βᶠ M') : M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs := by
-  apply abs ∅
-  grind [redex_subst_cong]
+  grind [abs ∅, redex_subst_cong]
 
 /-- Abstracting then closing preserves multiple reductions. -/
 lemma redex_abs_close {x : Var} (step : M ↠βᶠ M') : (M⟦0 ↜ x⟧.abs ↠βᶠ M'⟦0 ↜ x⟧.abs) :=  by

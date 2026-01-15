@@ -55,15 +55,13 @@ variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 @[grind →]
 lemma wf (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.Wf Γ ∧ σ'.Wf Γ := by
   induction sub with
-  | all =>
-    refine ⟨by grind, ?_, ?_⟩ <;>
-    apply Wf.all (free_union Var) <;> grind [Wf.narrow_cons, cases Env.Wf, cases LC]
+  | all => grind [Wf.all (free_union Var), Wf.narrow_cons, cases Env.Wf, cases LC]
   | _ => grind
 
 /-- Subtypes are reflexive when well-formed. -/
 lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
   induction wf_σ with
-  | all => apply all (free_union [Context.dom] Var) <;> grind
+  | all => grind [all (free_union [Context.dom] Var)]
   | _ => grind
 
 /-- Weakening of subtypes. -/
@@ -125,7 +123,7 @@ lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
       cases eq
       cases sub₂
       case refl.top Γ σ'' τ'' _ _ _ _ _ _ _ =>
-        have : Sub Γ (σ''.all τ'') (σ'.all τ') := by apply all (free_union Var) <;> grind
+        have : Sub Γ (σ''.all τ'') (σ'.all τ') := by grind [all <| free_union Var]
         grind
       case refl.all Γ _ _ _ _ _ σ _ _ _ _ _ _ =>
         apply all (free_union Var)
@@ -141,7 +139,7 @@ instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) :=
 /-- Narrowing of subtypes. -/
 lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) :
     Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ := by
-  apply narrow_aux (δ := δ') <;> grind
+  grind [narrow_aux (δ := δ')]
 
 variable [HasFresh Var] in
 /-- Subtyping of substitutions. -/
@@ -164,9 +162,9 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
 /-- Strengthening of subtypes. -/
 lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := by
   generalize eq : Γ ++ ⟨X, Binding.ty δ⟩ :: Δ = Θ at sub
-  induction sub generalizing Γ
-  case all => apply Sub.all (free_union Var) <;> grind
-  all_goals grind [to_ok, Wf.strengthen, Env.Wf.strengthen]
+  induction sub generalizing Γ with
+  | all => grind [Sub.all (free_union Var)]
+  | _ => grind [to_ok, Wf.strengthen, Env.Wf.strengthen]
 
 end Sub
 

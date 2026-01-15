@@ -48,27 +48,19 @@ variable [DecidableEq Var]
 @[scoped grind _=_]
 lemma body_let : (let' t₁ t₂).LC ↔ t₁.LC ∧ t₂.body := by
   constructor <;> intro h <;> cases h
-  case mp.let' L _ _ =>
-    split_ands
-    · grind
-    · exists L
+  case mp.let' L t₁_lc h => exact ⟨t₁_lc, L, h⟩
   case mpr.intro body =>
     obtain ⟨_, _⟩ := body
-    apply LC.let' (free_union Var) <;> grind
+    grind [LC.let' <| free_union Var]
 
 /-- Locally closed case bindings have a locally closed bodies. -/
 @[scoped grind _=_]
 lemma body_case : (case t₁ t₂ t₃).LC ↔ t₁.LC ∧ t₂.body ∧ t₃.body := by
   constructor <;> intro h
-  case mp =>
-    cases h with | case L =>
-    split_ands
-    · grind
-    · exists L
-    · exists L
+  case mp => cases h with | case L t₁_lc h₂ h₃ => exact ⟨t₁_lc, ⟨L, h₂⟩, ⟨L, h₃⟩⟩
   case mpr =>
     obtain ⟨_, ⟨_, _⟩, ⟨_, _⟩⟩ := h
-    apply LC.case (free_union Var) <;> grind
+    grind [LC.case <| free_union Var]
 
 variable [HasFresh Var]
 
@@ -76,8 +68,7 @@ variable [HasFresh Var]
 @[scoped grind <=]
 lemma open_tm_body (body : t₁.body) (lc : t₂.LC) : (t₁ ^ᵗᵗ t₂).LC := by
   cases body
-  have := fresh_exists <| free_union [fv_tm] Var
-  grind [subst_tm_lc, open_tm_subst_tm_intro]
+  grind [fresh_exists <| free_union [fv_tm] Var, subst_tm_lc, open_tm_subst_tm_intro]
 
 end
 
@@ -111,8 +102,7 @@ inductive Red : Term Var → Term Var → Prop
 
 @[grind _=_]
 lemma rs_eq {t t' : Term Var} : t ⭢βᵛ t' ↔ Red t t' := by
-  have : (@rs Var).Red = Red := by rfl
-  simp_all
+  rfl
 
 variable [HasFresh Var] [DecidableEq Var] in
 /-- Terms of a reduction are locally closed. -/
@@ -122,8 +112,9 @@ lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
     split_ands
     · grind
     · cases lc
-      have := fresh_exists <| free_union [fv_tm, fv_ty] Var
-      grind [subst_tm_lc, subst_ty_lc, open_tm_subst_tm_intro, open_ty_subst_ty_intro]
+      grind [
+        fresh_exists <| free_union [fv_tm, fv_ty] Var, subst_tm_lc,
+        subst_ty_lc, open_tm_subst_tm_intro, open_ty_subst_ty_intro]
   all_goals grind
 
 end Term
