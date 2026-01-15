@@ -7,7 +7,9 @@ Authors: Tanner Duve
 module
 
 public import Cslib.Foundations.Control.Monad.Free
+public import Mathlib.Algebra.Group.Hom.Defs
 public import Mathlib.Control.Monad.Cont
+public import Mathlib.Control.Monad.Writer
 
 @[expose] public section
 
@@ -18,14 +20,16 @@ This file defines several canonical instances on the free monad.
 
 ## Main definitions
 
-- `FreeState`, `FreeWriter`, `FreeCont`: Specific effect monads
+- `FreeState`, `FreeWriter`, `FreeCont`, `FreeReader`: Specific effect monads
 
 ## Implementation
 
 To execute or interpret these computations, we provide two approaches:
-1. **Hand-written interpreters** (`FreeState.run`, `FreeWriter.run`, `FreeCont.run`) that directly
+1. **Hand-written interpreters** (`FreeState.run`, `FreeWriter.run`, `FreeCont.run`,
+  `FreeReader.run`) that directly
   pattern-match on the tree structure
-2. **Canonical interpreters** (`FreeState.toStateM`, `FreeWriter.toWriterT`, `FreeCont.toContT`)
+2. **Canonical interpreters** (`FreeState.toStateM`, `FreeWriter.toWriterT`, `FreeCont.toContT`,
+  `FreeReader.toReaderM`)
   derived from the universal property via `liftM`
 
 We prove that these approaches are equivalent, demonstrating that the implementation aligns with
@@ -58,9 +62,6 @@ abbrev FreeState (σ : Type u) := FreeM (StateF σ)
 namespace FreeState
 variable {σ : Type u} {α : Type v}
 
-instance : Monad (FreeState σ) := inferInstance
-instance : LawfulMonad (FreeState σ) := inferInstance
-
 instance : MonadStateOf σ (FreeState σ) where
   get := .lift .get
   set newState := .liftBind (.set newState) (fun _ => .pure PUnit.unit)
@@ -74,8 +75,6 @@ lemma get_def : (get : FreeState σ σ) = .lift .get := rfl
 
 @[simp]
 lemma set_def (s : σ) : (set s : FreeState σ PUnit) = .lift (.set s) := rfl
-
-instance : MonadState σ (FreeState σ) := inferInstance
 
 /-- Interpret `StateF` operations into `StateM`. -/
 def stateInterp {α : Type u} : StateF σ α → StateM σ α
@@ -164,10 +163,7 @@ abbrev FreeWriter (ω : Type u) := FreeM (WriterF ω)
 namespace FreeWriter
 
 open WriterF
-variable {ω : Type u} {α : Type v}
-
-instance : Monad (FreeWriter ω) := inferInstance
-instance : LawfulMonad (FreeWriter ω) := inferInstance
+variable {ω : Type u} {α : Type u}
 
 /-- Interpret `WriterF` operations into `WriterT`. -/
 def writerInterp {α : Type u} : WriterF ω α → WriterT ω Id α
@@ -284,12 +280,9 @@ abbrev FreeCont (r : Type u) := FreeM (ContF r)
 namespace FreeCont
 variable {r : Type u} {α : Type v} {β : Type w}
 
-instance : Monad (FreeCont r) := inferInstance
-instance : LawfulMonad (FreeCont r) := inferInstance
-
 /-- Interpret `ContF r` operations into `ContT r Id`. -/
 def contInterp : ContF r α → ContT r Id α
-  | .callCC g, k => pure (g fun a => (k a).run)
+  | .callCC g => g
 
 /-- Convert a `FreeCont` computation into a `ContT` computation. This is the canonical
 interpreter derived from `liftM`. -/
@@ -352,6 +345,81 @@ lemma run_callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) (k :
   simp [callCC, run_liftBind_callCC]
 
 end FreeCont
+
+/-- Type constructor for reader operations. -/
+inductive ReaderF (σ : Type u) : Type u → Type u where
+  | read : ReaderF σ σ
+
+/-- Reader monad via the `FreeM` monad -/
+abbrev FreeReader (σ) := FreeM (ReaderF σ)
+
+namespace FreeReader
+
+variable {σ : Type u} {α : Type u}
+
+instance : MonadReaderOf σ (FreeReader σ) where
+  read := .lift .read
+
+@[simp]
+lemma read_def : (read : FreeReader σ σ) = .lift .read := rfl
+
+instance : MonadReader σ (FreeReader σ) := inferInstance
+
+/-- Interpret `ReaderF` operations into `ReaderM`. -/
+def readInterp {α : Type u} : ReaderF σ α → ReaderM σ α
+  | .read => MonadReaderOf.read
+
+/-- Convert a `FreeReader` computation into a `ReaderM` computation. This is the canonical
+interpreter derived from `liftM`. -/
+def toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
+  comp.liftM readInterp
+
+/-- `toReaderM` is the unique interpreter extending `readInterp`. -/
+theorem toReaderM_unique {α : Type u} (g : FreeReader σ α → ReaderM σ α)
+    (h : Interprets readInterp g) : g = toReaderM := h.eq
+
+/-- Run a reader computation -/
+def run (comp : FreeReader σ α) (s₀ : σ) : α :=
+  match comp with
+  | .pure a => a
+  | .liftBind ReaderF.read a => run (a s₀) s₀
+
+/--
+The canonical interpreter `toReaderM` derived from `liftM` agrees with the hand-written
+recursive interpreter `run` for `FreeReader` -/
+@[simp]
+theorem run_toReaderM {α : Type u} (comp : FreeReader σ α) (s : σ) :
+    (toReaderM comp).run s = run comp s := by
+  induction comp generalizing s with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    cases op; apply ih
+
+@[simp]
+lemma run_pure (a : α) (s₀ : σ) :
+    run (.pure a : FreeReader σ α) s₀ = a := rfl
+
+@[simp]
+lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
+    run (liftBind .read k) s₀ = run (k s₀) s₀ := rfl
+
+instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
+  withReader {α} f m :=
+    let rec go : FreeReader σ α → FreeReader σ α
+      | .pure a => .pure a
+      | .liftBind .read cont =>
+          .liftBind .read fun s => go (cont (f s))
+    go m
+
+@[simp] theorem run_withReader (f : σ → σ) (m : FreeReader σ α) (s : σ) :
+    run (withTheReader σ f m) s = run m (f s) := by
+  induction m generalizing s with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    cases op
+    simpa [withTheReader, instMonadWithReaderOf, run] using (ih (f s) s)
+
+end FreeReader
 
 end FreeM
 
