@@ -14,6 +14,7 @@ public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Foundations.Data.Set.Saturation
 public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Data.Finite.Sum
 
@@ -184,6 +185,23 @@ theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
   obtain ⟨State, h_fin, na, rfl⟩ := Language.IsRegular.iff_nfa.mp h
   use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
   exact NA.Buchi.loop_language_eq
+
+/-- If an ω-language has a finite saturating cover made of ω-regular languages,
+then it is an ω-regular language. -/
+theorem IsRegular.fin_cover_saturates {I : Type*} [Finite I]
+    {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
+    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : q.IsRegular := by
+  have hq : q = ⨆ i ∈ {i | (p i ⊓ q).Nonempty}, p i := saturates_eq_biUnion hs hc
+  rw [hq]
+  apply IsRegular.iSup
+  grind
+
+/-- If an ω-language has a finite saturating cover made of ω-regular languages,
+then its complement is an ω-regular language. -/
+theorem IsRegular.fin_cover_saturates_compl {I : Type*} [Finite I]
+    {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
+    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular := by
+  exact IsRegular.fin_cover_saturates (saturates_compl hs) hc hr
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :
