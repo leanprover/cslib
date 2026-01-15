@@ -53,13 +53,11 @@ lemma loop_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
     obtain ⟨t, _⟩ := isRight_iff.mp <| h2 1 (by grind) (by grind)
     obtain ⟨s, _⟩ : ∃ s, na.Tr s (xs 0) t ∧ s ∈ na.start := by
       grind [FinAcc.loop, h.start, h.trans 0]
-    use s, t
     grind
   case succ m h_ind =>
     obtain ⟨s, t, h_mtr, _⟩ := h_ind (by grind) (by grind)
     obtain ⟨t', _⟩ := isRight_iff.mp <|h2 (m + 1 + 1) (by grind) (by grind)
     have h_tr : na.Tr t (xs (m + 1)) t' := by grind [FinAcc.loop, h.trans (m + 1)]
-    use s, t'
     grind [LTS.MTr.stepR na.toLTS h_mtr h_tr]
 
 lemma loop_run_left_right_left {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ State)}
