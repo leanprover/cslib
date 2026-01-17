@@ -16,7 +16,7 @@ public import Mathlib.Algebra.Polynomial.Eval.Defs
 # Single-Tape Turing Machine
 
 Defines a single-tape Turing machine over the alphabet of `Option α`,
-where `none` represents a blank OTape symbol.
+where `none` represents a blank `OTape` symbol.
 
 ## TODOs
 
@@ -33,7 +33,7 @@ variable {α : Type}
 namespace SingleTapeTM
 
 /-- A Turing machine "statement" is just a command to move
-  left or right, and write a symbol on the OTape. -/
+  left or right, and write a symbol on the `OTape`. -/
 def Stmt (α : Type) := (Option α) × Option Dir
 deriving Inhabited
 
@@ -158,6 +158,26 @@ def Outputs (tm : SingleTapeTM α) (l : List (α)) (l' : List (α)) : Prop :=
 def OutputsWithinTime (tm : SingleTapeTM α) (l : List (α)) (l' : (List (α)))
     (m : ℕ) :=
   tm.TerminalReductionSystem.reducesToWithinSteps (initCfg tm l) (haltCfg tm l') m
+
+/--
+This lemma bounds the size blow-up of the output of a Turing machine.
+It states that the increase in length of the output over the input is bounded by the runtime.
+This is important for guaranteeing that composition of polynomial time Turing machines
+remains polynomial time, as the input to the second machine
+is bounded by the output length of the first machine.
+-/
+lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List α) (t : ℕ)
+    (h : tm.OutputsWithinTime l l' t) :
+    l'.length ≤ max 1 l.length + t := by
+  simp only [OutputsWithinTime] at h
+  obtain ⟨steps, hsteps_le, hevals⟩ := h
+  replace hevals := hevals.small_change
+  specialize hevals (Cfg.space_used tm)
+  simp only [Cfg.space_used_initCfg, Cfg.space_used_haltCfg] at hevals
+  suffices l'.length ≤ max 1 l.length + steps
+    by omega
+  specialize hevals fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)
+  omega
 
 /-- A Turing machine + a proof it outputsInTime `f`. -/
 structure Computable (f : List α → List α) where
@@ -442,28 +462,6 @@ theorem comp_right_simulation
   have h1 := map_liftCompCfg_right_step hf hg a
   rw [hab, Option.map_some] at h1
   exact h1.symm
-
-/--
-Lemma about the size blow-up of the output of a Turing machine
-relative to its input length and time bound.
-This lemma states that the length of the output list is bounded by the time the TM runs
-(and the input length).
-This is important for guaranteeing that composition of polynomial time Turing machines
-remains polynomial time, as the input to the second machine
-is bounded by the output length of the first machine.
--/
-lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List α) (t : ℕ)
-    (h : tm.OutputsWithinTime l l' t) :
-    l'.length ≤ max 1 l.length + t := by
-  simp only [OutputsWithinTime] at h
-  obtain ⟨steps, hsteps_le, hevals⟩ := h
-  replace hevals := hevals.small_change
-  specialize hevals (Cfg.space_used tm)
-  simp only [Cfg.space_used_initCfg, Cfg.space_used_haltCfg] at hevals
-  suffices l'.length ≤ max 1 l.length + steps
-    by omega
-  specialize hevals fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)
-  omega
 
 /--
 A composition for TimeComputable.

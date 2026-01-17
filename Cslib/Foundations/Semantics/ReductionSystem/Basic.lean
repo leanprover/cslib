@@ -249,9 +249,9 @@ lemma ReductionSystem.reducesToWithinSteps.zero_iff {rs : ReductionSystem Term} 
 end Steps
 
 /--
-Given a map σ → Option σ, we can construct a terminal reduction system on `σ`
-where a term is terminal if it maps to `none` under the given function.
-and otherwise is reducible to its `some` value under the given function.
+Given a map σ → Option σ, we can construct a terminal reduction system on `σ` where:
+* a term is terminal if it maps to `none` under the given function,
+* and otherwise is reducible to its `some` value under the given function.
 -/
 def TerminalReductionSystem.Option {σ : Type*} (f : σ → Option σ) : TerminalReductionSystem σ where
   Red := fun a b => f a = some b
