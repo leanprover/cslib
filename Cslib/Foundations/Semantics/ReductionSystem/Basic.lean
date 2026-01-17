@@ -10,9 +10,6 @@ public import Cslib.Init
 public import Mathlib.Logic.Relation
 public import Mathlib.Util.Notation3
 
--- TODO remove this import
-public import Mathlib.Algebra.Polynomial.Eval.Defs
-
 @[expose] public section
 
 /-!
@@ -127,7 +124,7 @@ lemma ReductionSystem.reducesToInSteps.succ'_iff
     simp only [Nat.add_one] at this
     exact this
 
-lemma ReductionSystem.reducesToInSteps.small_change
+lemma ReductionSystem.reducesToInSteps.bounded_increase
     {rs : ReductionSystem Term} {a b : Term} (h : Term → ℕ)
     (h_step : ∀ a b, rs.Red a b → h b ≤ h a + 1)
     (m : ℕ)
@@ -154,7 +151,12 @@ lemma ReductionSystem.reducesToInSteps.map {Term Term' : Type*}
   | cons t t' t'' m h_red h_steps ih =>
     exact reducesToInSteps.cons (g t) (g t') (g t'') m (hg t t' h_red) ih
 
-def ReductionSystem.reducesToWithinSteps (rs : ReductionSystem Term) (a b : Term) (n : ℕ) : Prop :=
+/--
+`reducesToWithinSteps` is a variant of `reducesToInSteps` that allows for a loose bound.
+It states that a term `a` reduces to a term `b` in *at most* `n` steps.
+-/
+def ReductionSystem.reducesToWithinSteps (rs : ReductionSystem Term)
+    (a b : Term) (n : ℕ) : Prop :=
   ∃ m ≤ n, reducesToInSteps rs a b m
 
 /-- Reflexivity of `reducesToWithinSteps` in 0 steps. -/
@@ -189,14 +191,14 @@ lemma ReductionSystem.reducesToWithinSteps.mono_steps {rs : ReductionSystem Term
 
 /-- If `h : Term → ℕ` increases by at most 1 on each step of `rs`,
 then the value of `h` at the output is at most `h` at the input plus the step bound. -/
-lemma ReductionSystem.reducesToWithinSteps.small_change {rs : ReductionSystem Term}
+lemma ReductionSystem.reducesToWithinSteps.bounded_increase {rs : ReductionSystem Term}
     {a b : Term} (h : Term → ℕ)
     (h_step : ∀ a b, rs.Red a b → h b ≤ h a + 1)
     (n : ℕ)
     (hevals : reducesToWithinSteps rs a b n) :
     h b ≤ h a + n := by
   obtain ⟨m, hm, hevals_m⟩ := hevals
-  have := reducesToInSteps.small_change h h_step m hevals_m
+  have := reducesToInSteps.bounded_increase h h_step m hevals_m
   omega
 
 /--

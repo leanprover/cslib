@@ -181,7 +181,7 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List
     l'.length ≤ max 1 l.length + t := by
   simp only [OutputsWithinTime] at h
   obtain ⟨steps, hsteps_le, hevals⟩ := h
-  replace hevals := hevals.small_change
+  replace hevals := hevals.bounded_increase
   specialize hevals (Cfg.space_used tm)
   simp only [Cfg.space_used_initCfg, Cfg.space_used_haltCfg] at hevals
   suffices l'.length ≤ max 1 l.length + steps
