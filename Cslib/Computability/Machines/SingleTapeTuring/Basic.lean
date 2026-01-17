@@ -20,6 +20,7 @@ where `none` represents a blank `OTape` symbol.
 
 ## TODOs
 
+- encoding?
 - refactor polynomial time to another file?
 
 -/
@@ -32,15 +33,24 @@ variable {α : Type}
 
 namespace SingleTapeTM
 
-/-- A Turing machine "statement" is just a command to move
-  left or right, and write a symbol on the `OTape`. -/
-def Stmt (α : Type) := (Option α) × Option Dir
+-- TODO make into a structure?
+/--
+A Turing machine "statement" is just a `Option`al command to move left or right,
+and write a symbol on the `OTape`.
+-/
+def Stmt (α : Type) := Option α × Option Dir
 deriving Inhabited
+
+def Stmt.symbol : Stmt α → Option α
+  | (symbol, _) => symbol
+
+def Stmt.movement : Stmt α → Option Dir
+  | (_, movement) => movement
 
 end SingleTapeTM
 
 /-- A SingleTapeTM over the alphabet of Option α (none is blank OTape symbol). -/
-structure SingleTapeTM (α) where
+structure SingleTapeTM α where
   /-- Inhabited instance for the alphabet -/
   [Inhabitedα : Inhabited α]
   /-- Finiteness of the alphabet -/
@@ -86,7 +96,7 @@ structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.Λ
   /-- the OTape contents -/
-  OTape : OTape (α)
+  OTape : OTape α
 deriving Inhabited
 
 /-- The step function corresponding to this TM. -/
@@ -114,7 +124,7 @@ def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, OT
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
-def haltCfg (tm : SingleTapeTM α) (s : List (α)) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
+def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
 
 def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ :=
   cfg.OTape.space_used
@@ -151,11 +161,11 @@ def TerminalReductionSystem (tm : SingleTapeTM α) : Cslib.TerminalReductionSyst
   TerminalReductionSystem.Option tm.step
 
 /-- A proof of tm outputting l' when given l. -/
-def Outputs (tm : SingleTapeTM α) (l : List (α)) (l' : List (α)) : Prop :=
+def Outputs (tm : SingleTapeTM α) (l : List α) (l' : List α) : Prop :=
   tm.TerminalReductionSystem.MRed (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of tm outputting l' when given l in at most m steps. -/
-def OutputsWithinTime (tm : SingleTapeTM α) (l : List (α)) (l' : (List (α)))
+def OutputsWithinTime (tm : SingleTapeTM α) (l : List α) (l' : List α)
     (m : ℕ) :=
   tm.TerminalReductionSystem.reducesToWithinSteps (initCfg tm l) (haltCfg tm l') m
 
@@ -326,13 +336,14 @@ theorem map_liftCompCfg_right_step
 
 theorem comp_transition_to_right {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (tp : OTape (α))
+    (tp : OTape α)
     (q : hf.tm.Λ)
     (hM : (hf.tm.M q tp.head).2 = none) :
     (compComputer hf hg).step { state := some (Sum.inl q), OTape := tp } =
       some { state := some (Sum.inr hg.tm.q₀),
-             OTape := (tp.write (hf.tm.M q tp.head).1.1).move? (hf.tm.M q tp.head).1.2 } := by
-  simp only [step, compComputer, hM]
+             OTape := (tp.write (hf.tm.M q tp.head).1.symbol).move?
+                        (hf.tm.M q tp.head).1.movement } := by
+  simp only [step, compComputer, hM, Stmt.symbol, Stmt.movement]
   generalize hfM_eq : hf.tm.M q tp.head = result
   obtain ⟨⟨wr, dir⟩, nextState⟩ := result
   simp only [hfM_eq]
