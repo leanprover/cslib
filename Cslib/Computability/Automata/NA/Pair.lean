@@ -34,7 +34,8 @@ theorem LTS.pairLang_regular [Finite State] (lts : LTS State Symbol) (s t : Stat
     (lts.pairLang s t).IsRegular := by
   rw [IsRegular.iff_nfa]
   use State, inferInstance, (NA.FinAcc.mk ⟨lts, {s}⟩ {t})
-  ext xl; simp [LTS.mem_pairLang]
+  ext
+  simp
 
 namespace NA.Buchi
 
@@ -50,16 +51,20 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
   constructor
   · rintro ⟨ss, h_run, h_inf⟩
-    obtain ⟨t, _, h_t⟩ := frequently_in_finite_type.mp h_inf
-    refine ⟨ss 0, by grind [h_run.start], t, by assumption, ?_⟩
+    obtain ⟨t, h_acc, h_t⟩ := frequently_in_finite_type.mp h_inf
+    use ss 0, by grind [NA.Run], t, h_acc
     obtain ⟨f, h_mono, h_f⟩ := frequently_iff_strictMono.mp h_t
     refine ⟨xs.take (f 0), ?_, xs.drop (f 0), ?_, by grind⟩
-    · grind [extract_eq_drop_take, LTS.ωTr_mTr h_run.trans (Nat.zero_le (f 0))]
+    · have : na.MTr (ss 0) (xs.extract 0 (f 0)) (ss (f 0)) := by grind [LTS.ωTr_mTr, NA.Run]
+      grind [extract_eq_drop_take]
     · simp only [omegaPow_seq_prop, LTS.mem_pairLang]
-      refine ⟨(f · - f 0), by grind [Nat.base_zero_strictMono], by simp, ?_⟩
-      intro n
-      grind [extract_drop, h_mono.monotone (Nat.zero_le n), h_mono.monotone (Nat.zero_le (n + 1)),
-        LTS.ωTr_mTr h_run.trans <| h_mono.monotone (show n ≤ n + 1 by grind)]
+      use (f · - f 0)
+      split_ands
+      · grind [Nat.base_zero_strictMono]
+      · simp
+      · intro n
+        have mono_f (k : ℕ) : f 0 ≤ f (n + k) := h_mono.monotone (by grind)
+        grind [extract_drop, mono_f 0, LTS.ωTr_mTr h_run.trans <| h_mono.monotone (?_ : n ≤ n + 1)]
   · rintro ⟨s, _, t, _, yl, h_yl, zs, h_zs, rfl⟩
     obtain ⟨zls, rfl, h_zls⟩ := mem_omegaPow.mp h_zs
     let ts := ωSequence.const t
@@ -70,7 +75,7 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     obtain ⟨zss, h_zss, _⟩ := LTS.ωTr.flatten h_mtr h_pos
     have (n : ℕ) : zss (zls.cumLen n) = t := by grind
     obtain ⟨xss, _, _, _, _⟩ := LTS.ωTr.append h_yl h_zss (by grind [cumLen_zero (ls := zls)])
-    refine ⟨xss, by grind [NA.Run.mk], ?_⟩
+    use xss, by grind [NA.Run]
     apply (drop_frequently_iff_frequently yl.length).mp
     apply frequently_iff_strictMono.mpr
     use zls.cumLen

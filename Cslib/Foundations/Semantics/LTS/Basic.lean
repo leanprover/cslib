@@ -268,14 +268,17 @@ theorem LTS.ωTr.append
     (hmtr : lts.MTr s μl t) (hωtr : lts.ωTr ss μs) (hm : ss 0 = t) :
     ∃ ss', lts.ωTr ss' (μl ++ω μs) ∧ ss' 0 = s ∧ ss' μl.length = t ∧ ss'.drop μl.length = ss := by
   obtain ⟨sl, _, _, _, _⟩ := LTS.MTr.exists_states hmtr
-  refine ⟨sl.take μl.length ++ω ss, ?_,
-    by grind [get_append_left], by grind [get_append_left], by grind [drop_append_of_ge_length]⟩
-  intro n
-  by_cases n < μl.length
+  use sl.take μl.length ++ω ss
+  split_ands
+  · intro n
+    by_cases n < μl.length
+    · grind [get_append_left]
+    · by_cases n = μl.length
+      · grind [get_append_left, get_append_right']
+      · grind [get_append_right', hωtr (n - μl.length - 1)]
   · grind [get_append_left]
-  · by_cases n = μl.length
-    · grind [get_append_left, get_append_right']
-    · grind [get_append_right', hωtr (n - μl.length - 1)]
+  · grind [get_append_left]
+  · grind [drop_append_of_ge_length]
 
 open Nat in
 /-- Concatenating an infinite sequence of finite executions that connect an infinite sequence
