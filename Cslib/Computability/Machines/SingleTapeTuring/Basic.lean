@@ -1,23 +1,33 @@
 /-
 Copyright (c) 2025 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bolton Bailey
+Authors: Bolton Bailey TODO add the authors of the mathlib file this is based on
 -/
 
 module
 
--- TODO golf imports
-public import Cslib.Computability.Automata.Acceptors.Acceptor
-public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
-public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Data.OTape
 public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 public import Mathlib.Algebra.Polynomial.Eval.Defs
-public import Mathlib.Computability.PostTuringMachine
-public import Mathlib.Computability.TuringMachine
 
 @[expose] public section
 
+/-!
+# Single-Tape Turing Machine
+
+Defines a single-tape Turing machine over the alphabet of `Option Bool`,
+where `none` represents a blank OTape symbol.
+
+## TODOs
+
+- Generalize Bool to an arbitrary (finite?) alphabet
+- switch transition system to use the `ReductionSystem` framework
+- refactor polynomial time to another file
+- remove unfold
+
+-/
+
+open Cslib
 
 namespace Turing
 
@@ -99,7 +109,7 @@ which maps a configuration to its next configuration if it exists.
 -/
 def ReductionSystem (tm : BinTM0) : Cslib.ReductionSystem (tm.Cfg) :=
   { Red := fun cfg cfg' => tm.step cfg = some cfg' }
--- TODO use this, rather than the current setup
+-- TODO use this, rather than the current setup, or better yet an LTS? 
 
 
 noncomputable def Cfg.space_used (tm : BinTM0) (cfg : tm.Cfg) : ℕ :=
@@ -126,155 +136,6 @@ lemma Cfg.space_used_step {tm : BinTM0} (cfg cfg' : tm.Cfg)
       have := OTape.space_used_move (tape.write wr) d
       simp only [Cfg.space_used, OTape.move?, OTape.space_used_write] at this ⊢; exact this
 
-/-- `f` eventually reaches `b` when repeatedly evaluated on `a`, in exactly `steps` steps. -/
-def EvalsToInTime {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ) (steps : ℕ) : Prop :=
-  (· >>= f)^[steps] a = b
-
-/-- Reflexivity of `EvalsTo` in 0 steps. -/
-lemma EvalsToInTime.refl {σ : Type*} (f : σ → Option σ) (a : σ) : EvalsToInTime f a (some a) 0 :=
-  rfl
-
-/-- Transitivity of `EvalsTo` in the sum of the numbers of steps. -/
-@[trans]
-lemma EvalsToInTime.trans {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ) (c : Option σ)
-    (steps₁ steps₂ : ℕ) (h₁ : EvalsToInTime f a b steps₁) (h₂ : EvalsToInTime f b c steps₂) :
-    EvalsToInTime f a c (steps₂ + steps₁) := by
-  simp only [EvalsToInTime] at *; rw [Function.iterate_add_apply, h₁, h₂]
-
-/-- If we evaluate to some state in n+1 steps, there is an intermediate state
-    that we reach in n steps, and then one more step reaches the final state. -/
-lemma EvalsToInTime.succ_decompose {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ)
-    (n : ℕ) (h : EvalsToInTime f a (some b) (n + 1)) :
-    ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b := by
-  simp only [EvalsToInTime, Function.iterate_succ_apply'] at h
-  match hc' : (· >>= f)^[n] (some a) with
-  | none => simp_all
-  | some c => exact ⟨c, hc', by simp_all⟩
-
-lemma EvalsToInTime.succ_iff {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ) (n : ℕ) :
-    EvalsToInTime f a (some b) (n + 1) ↔ ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b :=
-  ⟨succ_decompose f a b n, fun ⟨_, hc_eval, hc_step⟩ => by
-    simp only [EvalsToInTime, Function.iterate_succ_apply'] at hc_eval ⊢;
-    rw [hc_eval]; exact hc_step⟩
-
-theorem Turing.BinTM0.EvalsToInTime.congr.extracted_1_2.{u_2, u_1}
-    {σ : Type u_1} {σ' : Type u_2} (f : σ → Option σ)
-    (f' : σ' → Option σ') (g : σ → σ')
-    (hg : ∀ (x : σ), Option.map g (f x) = f' (g x)) (n : ℕ) (a : σ) :
-    (Option.map g ((flip Option.bind f)^[n] (some a))).bind f' =
-      ((flip Option.bind f)^[n] (some a)).bind fun a ↦ f' (g a) := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    simp only [Function.iterate_succ_apply, flip, Option.bind_some, <- hg] at ih ⊢
-    grind
-
-
-
-
-
-/--
-If `f` is homomorphic to `f'` via `g`, then if `f` evals to `b` from `a` in `steps` steps,
-then `f'` evals to `g b` from `g a` in `steps` steps.
--/
-lemma EvalsToInTime.map {σ σ' : Type*} (f : σ → Option σ) (f' : σ' → Option σ')
-    (g : σ → σ') (hg : ∀ x, Option.map g (f x) = f' (g x))
-    (a : σ) (b : Option σ)
-    (steps : ℕ)
-    (h : EvalsToInTime f a b steps) : EvalsToInTime f' (g a) (Option.map g b) steps := by
-  induction steps generalizing a b with
-  | zero =>
-    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_zero, id_eq] at h ⊢
-    subst h
-    rfl
-  | succ n ih =>
-    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_succ_apply',
-      forall_eq'] at h ih ⊢
-    subst h
-    rw [ih]
-    clear ih
-    simp only [Option.map_bind, Function.comp_apply, hg]
-    exact Turing.BinTM0.EvalsToInTime.congr.extracted_1_2 f f' g hg n a
-
-/--
-If `h : σ → ℕ` increases by at most 1 on each step of `f`,
-then the value of `h` at the output after `steps` steps is at most `h` at the input plus `steps`.
--/
-lemma EvalsToInTime.small_change {σ : Type*} (f : σ → Option σ) (h : σ → ℕ)
-    (h_step : ∀ a b, f a = some b → h b ≤ h a + 1)
-    (a : σ) (b : σ)
-    (steps : ℕ)
-    (hevals : EvalsToInTime f a b steps) :
-    h b ≤ h a + steps := by
-  induction steps generalizing a b with
-  | zero =>
-    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_zero, id_eq, Option.some.injEq,
-      add_zero] at hevals ⊢
-    subst hevals
-    exact Nat.le_refl (h a)
-  | succ n ih =>
-    rw [EvalsToInTime.succ_iff] at hevals
-    obtain ⟨c, hevals_n, h_step_eq⟩ := hevals
-    specialize ih a c hevals_n
-    specialize h_step c b h_step_eq
-    omega
-
-
--- m -> step_bound
-/-- `f` eventually reaches `b` in at most `m` steps when repeatedly
-evaluated on `a`. -/
-def EvalsToWithinTime {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ) (m : ℕ) : Prop :=
-  ∃ steps ≤ m, EvalsToInTime f a b steps
-
-/-- Reflexivity of `EvalsToWithinTime` in 0 steps. -/
-def EvalsToWithinTime.refl {σ : Type*} (f : σ → Option σ) (a : σ) :
-    EvalsToWithinTime f a (some a) 0 := by
-  use 0
-  exact if_false_right.mp rfl
-
-/-- Transitivity of `EvalsToWithinTime` in the sum of the numbers of steps. -/
-@[trans]
-def EvalsToWithinTime.trans {σ : Type*} (f : σ → Option σ) (m₁ : ℕ) (m₂ : ℕ) (a : σ) (b : σ)
-    (c : Option σ) (h₁ : EvalsToWithinTime f a b m₁) (h₂ : EvalsToWithinTime f b c m₂) :
-    EvalsToWithinTime f a c (m₂ + m₁) := by
-  obtain ⟨steps₁, hsteps₁, hevals₁⟩ := h₁
-  obtain ⟨steps₂, hsteps₂, hevals₂⟩ := h₂
-  use steps₂ + steps₁
-  constructor
-  · omega
-  · exact EvalsToInTime.trans f a b c steps₁ steps₂ hevals₁ hevals₂
-
-def EvalsToWithinTime.map {σ σ' : Type*} (f : σ → Option σ) (f' : σ' → Option σ')
-    (g : σ → σ') (hg : ∀ x, Option.map g (f x) = f' (g x))
-    (a : σ) (b : Option σ)
-    (m : ℕ)
-    (h : EvalsToWithinTime f a b m) : EvalsToWithinTime f' (g a) (Option.map g b) m := by
-  obtain ⟨steps, hsteps, hevals⟩ := h
-  use steps
-  constructor
-  · exact hsteps
-  · exact EvalsToInTime.map f f' g hg a b steps hevals
-
-/--
-Monotonicity of `EvalsToWithinTime` in the time bound.
--/
-def EvalsToWithinTime.mono_time {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ)
-    {m₁ m₂ : ℕ} (h : EvalsToWithinTime f a b m₁) (hm : m₁ ≤ m₂) : EvalsToWithinTime f a b m₂ := by
-  obtain ⟨steps, hsteps, hevals⟩ := h
-  use steps
-  simp_all only
-  simp
-  omega
-
-lemma EvalsToWithinTime.small_change {σ : Type*} (f : σ → Option σ) (h : σ → ℕ)
-    (h_step : ∀ a b, f a = some b → h b ≤ h a + 1)
-    (a : σ) (b : σ)
-    (m : ℕ)
-    (hevals : EvalsToWithinTime f a (some b) m) :
-    h b ≤ h a + m := by
-  obtain ⟨steps, hsteps, hevals_steps⟩ := hevals
-  have := EvalsToInTime.small_change f h h_step a b steps hevals_steps
-  omega
 
 /-- A proof of tm outputting l' when given l. -/
 def OutputsInTime (tm : BinTM0) (l : List (Bool)) (l' : Option (List (Bool))) :=
@@ -284,18 +145,6 @@ def OutputsInTime (tm : BinTM0) (l : List (Bool)) (l' : Option (List (Bool))) :=
 def OutputsWithinTime (tm : BinTM0) (l : List (Bool)) (l' : Option (List (Bool)))
     (m : ℕ) :=
   EvalsToWithinTime tm.step (initCfg tm l) ((Option.map (haltCfg tm)) l') m
-
--- /-- A (bundled TM0) Turing machine
--- with input alphabet equivalent to `Γ₀` and output alphabet equivalent to `Γ₁`.
--- TODO this is something of a holdover, might get rid
--- -/
--- structure ComputableAux (Γ₀ Γ₁ : Type) where
---   /-- the underlying bundled TM0 -/
---   tm : BinTM0
---   /-- the input alphabet is equivalent to `Γ₀` -/
---   inputAlphabet : Bool ≃ Γ₀
---   /-- the output alphabet is equivalent to `Γ₁` -/
---   outputAlphabet : Bool ≃ Γ₁
 
 /-- A Turing machine + a proof it outputsInTime `f`. -/
 structure Computable (f : List Bool → List Bool) where
@@ -311,7 +160,7 @@ structure Computable (f : List Bool → List Bool) where
 
 /-- A Turing machine + a time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
-structure ComputableInTime (f : List Bool → List Bool) where
+structure TimeComputable (f : List Bool → List Bool) where
   /-- the underlying bundled TM0 -/
   tm : BinTM0
   /-- a time function -/
@@ -324,33 +173,6 @@ structure ComputableInTime (f : List Bool → List Bool) where
         (Option.some (f a))
         (time a.length)
 
-/-- A Turing machine + a polynomial time function +
-a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
-structure ComputableInPolyTime (f : List Bool → List Bool) where
-  /-- the underlying bundled TM0 -/
-  tm : BinTM0
-  /-- a polynomial time function -/
-  time : Polynomial ℕ
-  /-- proof that this machine outputsInTime `f` in at most `time(input.length)` steps -/
-  outputsFun :
-    ∀ a,
-      OutputsWithinTime tm a
-        (Option.some (f a))
-        (time.eval a.length)
-
--- /-- A forgetful map, forgetting the time bound on the number of steps. -/
--- def ComputableInTime.toComputable {α β : Type} {ea : BinEncoding α} {eb : BinEncoding β}
---     {f : α → β} (h : ComputableInTime ea eb f) : Computable ea eb f :=
---   ⟨h.tm, fun a => OutputsWithinTime.toOutputsInTime (h.outputsFun a)⟩
-
-/-- A forgetful map, forgetting that the time function is polynomial. -/
-def ComputableInPolyTime.toComputableInTime {f : List Bool → List Bool}
-    (h : ComputableInPolyTime f) :
-    ComputableInTime f :=
-  ⟨h.tm, fun n => h.time.eval n, h.outputsFun⟩
-
-open Turing.TM0.Stmt
-
 /-- A Turing machine computing the identity. -/
 def idComputer : BinTM0 where
   Λ := PUnit
@@ -359,71 +181,19 @@ def idComputer : BinTM0 where
 
 noncomputable section
 
-/-- A proof that the identity map on α is computable in polytime. -/
-def ComputableInPolyTime.id :
-    @ComputableInPolyTime id where
-  tm := idComputer
-  time := 1
-  outputsFun x := by
+/-- A proof that the identity map on α is computable in time. -/
+def TimeComputable.id :
+    @TimeComputable id :=
+  ⟨idComputer, fun _ => 1, fun x => by
     use 1
-    simp only [Polynomial.eval_one, le_refl, id_eq, Option.map_some, true_and]
+    simp only [le_refl, id_eq, Option.map_some, true_and]
     simp only [EvalsToInTime, initCfg, haltCfg, idComputer,
       Function.iterate_succ, Function.iterate_zero, Function.comp_apply, id_eq]
-    congr 1
-
-
-    -- { steps := 1
-    --   evals_in_steps := rfl
-    --   steps_le_m := by simp only [Polynomial.eval_one, le_refl] }
-
--- instance inhabitedComputableInPolyTime :
---     Inhabited (ComputableInPolyTime (default : BinEncoding Bool) default id) :=
---   ⟨idComputableInPolyTime Computability.inhabitedBinEncoding.default⟩
-
--- instance inhabitedOutputsWithinTime :
---     Inhabited
---       (OutputsWithinTime (idComputer finEncodingBoolBool)
---         (List.map (Equiv.cast rfl).invFun [false])
---         (some (List.map (Equiv.cast rfl).invFun [false])) (Polynomial.eval 1 1)) :=
---   ⟨(idComputableInPolyTime finEncodingBoolBool).outputsFun false⟩
-
--- instance inhabitedOutputsInTime :
---     Inhabited
---       (OutputsInTime (idComputer finEncodingBoolBool) (List.map (Equiv.cast rfl).invFun [false])
---         (some (List.map (Equiv.cast rfl).invFun [false]))) :=
---   ⟨OutputsWithinTime.toOutputsInTime Turing.inhabitedOutputsWithinTime.default⟩
-
--- instance inhabitedEvalsToWithinTime :
---     Inhabited (EvalsToWithinTime (fun _ : Unit => some ⟨⟩) ⟨⟩ (some ⟨⟩) 0) :=
---   ⟨EvalsToWithinTime.refl _ _⟩
-
--- instance inhabitedTM0EvalsToInTime :
---     Inhabited (EvalsToInTime (fun _ : Unit => some ⟨⟩) ⟨⟩ (some ⟨⟩)) :=
---   ⟨EvalsTo.refl _ _⟩
-
-/-- A proof that the identity map on α is computable in time. -/
-def ComputableInTime.id :
-    @ComputableInTime id :=
-  ComputableInPolyTime.toComputableInTime <| ComputableInPolyTime.id
-
--- instance inhabitedComputableInTime :
---     Inhabited (ComputableInTime finEncodingBoolBool finEncodingBoolBool id) :=
---   ⟨idComputableInTime Computability.inhabitedBinEncoding.default⟩
-
--- /-- A proof that the identity map on α is computable. -/
--- def idComputable {α : Type} (ea : BinEncoding α) : @Computable α α ea ea id :=
---   ComputableInTime.toComputable <| ComputableInTime.id ea
-
--- instance inhabitedComputable :
---     Inhabited (Computable finEncodingBoolBool finEncodingBoolBool id) :=
---   ⟨idComputable Computability.inhabitedBinEncoding.default⟩
-
--- instance inhabitedComputableAux : Inhabited (ComputableAux Bool Bool) :=
---   ⟨(default : Computable finEncodingBoolBool finEncodingBoolBool id).toComputableAux⟩
+    congr 1⟩
 
 def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f)
-    (hg : ComputableInTime g) :
+    (hf : TimeComputable f)
+    (hg : TimeComputable g) :
     BinTM0 :=
   {
     Λ := hf.tm.Λ ⊕ hg.tm.Λ
@@ -454,15 +224,15 @@ def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
   }
 
 lemma compComputer_q₀_eq (f : List Bool → List Bool) (g : List Bool → List Bool)
-  (hf : ComputableInTime f)
-  (hg : ComputableInTime g) :
+  (hf : TimeComputable f)
+  (hg : TimeComputable g) :
     (compComputer hf hg).q₀ = Sum.inl hf.tm.q₀ :=
   rfl
 
 /-- Lift a config over a tm to a config over the comp -/
 def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f)
-    (hg : ComputableInTime g)
+    (hf : TimeComputable f)
+    (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   {
@@ -471,8 +241,8 @@ def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
   }
 
 def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f)
-    (hg : ComputableInTime g)
+    (hf : TimeComputable f)
+    (hg : TimeComputable g)
     (cfg : hg.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   {
@@ -482,7 +252,7 @@ def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool
 
 theorem map_liftCompCfg_left_step
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hf.tm.Cfg)
     (hx : ∀ cfg, hf.tm.step x = some cfg → cfg.state.isSome) :
     Option.map (liftCompCfg_left hf hg) (hf.tm.step x) =
@@ -513,7 +283,7 @@ theorem map_liftCompCfg_left_step
 /-- Helper lemma: liftCompCfg_right commutes with step for the second machine -/
 theorem map_liftCompCfg_right_step
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) :
     Option.map (liftCompCfg_right hf hg) (hg.tm.step x) =
       (compComputer hf hg).step (liftCompCfg_right hf hg x) := by
@@ -532,7 +302,7 @@ theorem map_liftCompCfg_right_step
 
 /-- When the first machine would halt, the composed machine transitions to the second machine -/
 theorem comp_transition_to_right {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (tp : OTape (Bool))
     (q : hf.tm.Λ)
     (hM : (hf.tm.M q tp.head).2 = none) :
@@ -546,8 +316,8 @@ theorem comp_transition_to_right {f : List Bool → List Bool} {g : List Bool �
 
 /-- Helper: lifting to Sum.inl and transitioning to Sum.inr on halt -/
 def liftCompCfg_left_or_right {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f)
-    (hg : ComputableInTime g)
+    (hf : TimeComputable f)
+    (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   match cfg.state with
@@ -557,7 +327,7 @@ def liftCompCfg_left_or_right {f : List Bool → List Bool} {g : List Bool → L
 /-- The lifting function commutes with step, converting halt to transition -/
 theorem map_liftCompCfg_left_or_right_step
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hf.tm.Cfg)
     (hx : x.state.isSome) :
     Option.map (liftCompCfg_left_or_right hf hg) (hf.tm.step x) =
@@ -577,7 +347,7 @@ theorem map_liftCompCfg_left_or_right_step
 /-- General simulation: if the first machine goes from cfg to halt, the composed machine
     goes from lifted cfg to Sum.inr hg.tm.q₀ -/
 theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg)
     (hcfg : cfg.state.isSome)
     (haltCfg : hf.tm.Cfg)
@@ -628,7 +398,7 @@ This takes the same number of steps because the halt transition becomes a transi
 second machine.
 -/
 theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (a : List Bool)
     (hf_outputsFun :
       EvalsToWithinTime hf.tm.step
@@ -655,7 +425,7 @@ theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → Li
 /-- Simulation lemma for the second machine in the composed computer -/
 theorem comp_right_simulation
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f) (hg : ComputableInTime g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) (y : Option hg.tm.Cfg) (m : ℕ)
     (h : EvalsToWithinTime hg.tm.step x y m) :
     EvalsToWithinTime (compComputer hf hg).step
@@ -682,7 +452,7 @@ lemma output_length_le_input_length_add_time (tm : BinTM0) (l l' : List Bool) (t
   omega
 
 /--
-A composition for ComputableInTime.
+A composition for TimeComputable.
 
 If f and g are computed by turing machines M₁ and M₂
 then we can construct a turing machine M which computes g ∘ f by first running M₁
@@ -702,12 +472,12 @@ Prove separately that it
 evals to the intermediate state from the start state and
 then from the intermediate state to the final state.
 -/
-def ComputableInTime.comp
+def TimeComputable.comp
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : ComputableInTime f)
-    (hg : ComputableInTime g)
+    (hf : TimeComputable f)
+    (hg : TimeComputable g)
     (h_mono : Monotone hg.time) :
-    (ComputableInTime (g ∘ f)) where
+    (TimeComputable (g ∘ f)) where
   tm := compComputer hf hg
   time l := (hf.time l) + hg.time (max 1 l + hf.time l)
   outputsFun a := by
@@ -747,6 +517,56 @@ def ComputableInTime.comp
       exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFun a)
 
 end
+
+/-!
+## Polynomial Time Computability
+
+This section defines polynomial time computable functions on Turing machines.
+-/
+
+section PolyTime
+
+/-- A Turing machine + a polynomial time function +
+a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
+structure PolyTimeComputable (f : List Bool → List Bool) extends TimeComputable f where
+  /-- a polynomial time bound -/
+  poly : Polynomial ℕ
+  /-- proof that this machine outputsInTime `f` in at most `time(input.length)` steps -/
+  bounds : ∀ n, time n ≤ poly.eval n
+
+/-- A proof that the identity map on α is computable in polytime. -/
+noncomputable def PolyTimeComputable.id : @PolyTimeComputable id where
+  toTimeComputable := TimeComputable.id
+  poly := 1
+  bounds n := by simp only [TimeComputable.id, Polynomial.eval_one, le_refl]
+
+/--
+A proof that the composition of two polytime computable functions is polytime computable.
+-/
+noncomputable def PolyTimeComputable.comp
+    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    (hf : PolyTimeComputable f)
+    (hg : PolyTimeComputable g)
+    -- all Nat polynomials are monotone, but the tighter internal bound maybe is not
+    (h_mono : Monotone hg.time) :
+    PolyTimeComputable (g ∘ f) where
+  toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
+
+  poly := hf.poly + hg.poly.comp (1 + Polynomial.X + hf.poly)
+  bounds n := by
+    simp only [TimeComputable.comp, Polynomial.eval_add, Polynomial.eval_comp, Polynomial.eval_X,
+      Polynomial.eval_one]
+    apply add_le_add
+    · exact hf.bounds n
+    · have : hg.time (max 1 n + hf.time n) ≤ hg.time (1 + n + hf.poly.eval n) := by
+        apply h_mono
+        apply add_le_add
+        · omega
+        · exact hf.bounds n
+      apply le_trans this _
+      exact hg.bounds (1 + n + hf.poly.eval n)
+
+end PolyTime
 
 end BinTM0
 

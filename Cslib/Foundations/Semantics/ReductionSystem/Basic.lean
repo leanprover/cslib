@@ -10,6 +10,9 @@ public import Cslib.Init
 public import Mathlib.Logic.Relation
 public import Mathlib.Util.Notation3
 
+-- TODO remove this import
+public import Mathlib.Algebra.Polynomial.Eval.Defs
+
 @[expose] public section
 
 /-!
@@ -29,6 +32,11 @@ structure ReductionSystem (Term : Type u) where
   /-- The reduction relation. -/
   Red : Term → Term → Prop
 
+structure TerminalReductionSystem (Term : Type u) extends ReductionSystem Term where
+  /-- The terminal terms. -/
+  Terminal : Term → Prop
+  /-- A terminal term cannot be further reduced. -/
+  terminal_not_reducible : ∀ t t', Terminal t → ¬ Red t t'
 
 section MultiStep
 
@@ -50,17 +58,206 @@ theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b)
 
 end MultiStep
 
-section Timed
+section Steps
 
-/-! ## Timed reductions -/
+inductive ReductionSystem.reducesToInSteps
+    (rs : ReductionSystem Term) : Term → Term → ℕ → Prop
+  | refl (t : Term) : reducesToInSteps rs t t 0
+  | cons (t t' t'' : Term) (n : ℕ) (h₁ : rs.Red t t') (h₂ : reducesToInSteps rs t' t'' n) :
+      reducesToInSteps rs t t'' (n + 1)
 
-/-- Given a reduction system `rs` on `Term`, returns a reduction system on `Term × ℕ`
-where the second component of the pair represents the number of steps taken. -/
-def Timed (rs : ReductionSystem Term) : ReductionSystem (Term × ℕ) :=
-  { Red := fun ⟨t, n⟩ ⟨t', n'⟩ => rs.Red t t' ∧ n' = n + 1 }
+lemma ReductionSystem.reducesToInSteps.trans {rs : ReductionSystem Term} {a b c : Term} {n m : ℕ}
+    (h₁ : reducesToInSteps rs a b n) (h₂ : reducesToInSteps rs b c m) :
+    reducesToInSteps rs a c (n + m) := by
+  sorry
 
-end Timed
+lemma ReductionSystem.reducesToInSteps.succ {rs : ReductionSystem Term} {a b : Term} {n : ℕ}
+    (h : reducesToInSteps rs a b (n + 1)) :
+    ∃ t', rs.Red a t' ∧ reducesToInSteps rs t' b n := by
+  sorry
 
+-- TODO iff
+
+lemma ReductionSystem.reducesToInSteps.succ' {rs : ReductionSystem Term} {a b : Term} {n : ℕ}
+    (h : reducesToInSteps rs a b (n + 1)) :
+    ∃ t', reducesToInSteps rs a t' n ∧ rs.Red t' b := by
+  sorry
+
+-- TODO iff
+
+end Steps
+
+/--
+Given a map σ → Option σ, we can construct a terminal reduction system on `σ`
+where a term is terminal if it maps to `none` under the given function.
+and otherwise is reducible to its `some` value under the given function.
+-/
+def TerminalReductionSystem.Option {σ : Type*} (f : σ → Option σ) : TerminalReductionSystem σ where
+  Red := fun a b => f a = some b
+  Terminal := fun a => f a = none
+  terminal_not_reducible := by
+    intros t t' h_terminal h_red
+    simp [h_terminal] at h_red
+
+
+-- TODO refactor the contents of this section into ReductionSystem
+-- then delete them
+section EvalsToJunk
+
+
+
+/-- `f` eventually reaches `b` when repeatedly evaluated on `a`, in exactly `steps` steps. -/
+def EvalsToInTime {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ) (steps : ℕ) : Prop :=
+  (· >>= f)^[steps] a = b
+
+/-- Reflexivity of `EvalsTo` in 0 steps. -/
+lemma EvalsToInTime.refl {σ : Type*} (f : σ → Option σ) (a : σ) : EvalsToInTime f a (some a) 0 :=
+  rfl
+
+/-- Transitivity of `EvalsTo` in the sum of the numbers of steps. -/
+@[trans]
+lemma EvalsToInTime.trans {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ) (c : Option σ)
+    (steps₁ steps₂ : ℕ) (h₁ : EvalsToInTime f a b steps₁) (h₂ : EvalsToInTime f b c steps₂) :
+    EvalsToInTime f a c (steps₂ + steps₁) := by
+  simp only [EvalsToInTime] at *; rw [Function.iterate_add_apply, h₁, h₂]
+
+/-- If we evaluate to some state in n+1 steps, there is an intermediate state
+    that we reach in n steps, and then one more step reaches the final state. -/
+lemma EvalsToInTime.succ_decompose {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ)
+    (n : ℕ) (h : EvalsToInTime f a (some b) (n + 1)) :
+    ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b := by
+  simp only [EvalsToInTime, Function.iterate_succ_apply'] at h
+  match hc' : (· >>= f)^[n] (some a) with
+  | none => simp_all
+  | some c => exact ⟨c, hc', by simp_all⟩
+
+lemma EvalsToInTime.succ_iff {σ : Type*} (f : σ → Option σ) (a : σ) (b : σ) (n : ℕ) :
+    EvalsToInTime f a (some b) (n + 1) ↔ ∃ c : σ, EvalsToInTime f a (some c) n ∧ f c = some b :=
+  ⟨succ_decompose f a b n, fun ⟨_, hc_eval, hc_step⟩ => by
+    simp only [EvalsToInTime, Function.iterate_succ_apply'] at hc_eval ⊢;
+    rw [hc_eval]; exact hc_step⟩
+
+theorem Turing.BinTM0.EvalsToInTime.congr.extracted_1_2.{u_2, u_1}
+    {σ : Type u_1} {σ' : Type u_2} (f : σ → Option σ)
+    (f' : σ' → Option σ') (g : σ → σ')
+    (hg : ∀ (x : σ), Option.map g (f x) = f' (g x)) (n : ℕ) (a : σ) :
+    (Option.map g ((flip Option.bind f)^[n] (some a))).bind f' =
+      ((flip Option.bind f)^[n] (some a)).bind fun a ↦ f' (g a) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    simp only [Function.iterate_succ_apply, flip, Option.bind_some, <- hg] at ih ⊢
+    grind
+
+
+
+
+
+/--
+If `f` is homomorphic to `f'` via `g`, then if `f` evals to `b` from `a` in `steps` steps,
+then `f'` evals to `g b` from `g a` in `steps` steps.
+-/
+lemma EvalsToInTime.map {σ σ' : Type*} (f : σ → Option σ) (f' : σ' → Option σ')
+    (g : σ → σ') (hg : ∀ x, Option.map g (f x) = f' (g x))
+    (a : σ) (b : Option σ)
+    (steps : ℕ)
+    (h : EvalsToInTime f a b steps) : EvalsToInTime f' (g a) (Option.map g b) steps := by
+  induction steps generalizing a b with
+  | zero =>
+    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_zero, id_eq] at h ⊢
+    subst h
+    rfl
+  | succ n ih =>
+    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_succ_apply',
+      forall_eq'] at h ih ⊢
+    subst h
+    rw [ih]
+    clear ih
+    simp only [Option.map_bind, Function.comp_apply, hg]
+    exact Turing.BinTM0.EvalsToInTime.congr.extracted_1_2 f f' g hg n a
+
+/--
+If `h : σ → ℕ` increases by at most 1 on each step of `f`,
+then the value of `h` at the output after `steps` steps is at most `h` at the input plus `steps`.
+-/
+lemma EvalsToInTime.small_change {σ : Type*} (f : σ → Option σ) (h : σ → ℕ)
+    (h_step : ∀ a b, f a = some b → h b ≤ h a + 1)
+    (a : σ) (b : σ)
+    (steps : ℕ)
+    (hevals : EvalsToInTime f a b steps) :
+    h b ≤ h a + steps := by
+  induction steps generalizing a b with
+  | zero =>
+    simp only [EvalsToInTime, Option.bind_eq_bind, Function.iterate_zero, id_eq, Option.some.injEq,
+      add_zero] at hevals ⊢
+    subst hevals
+    exact Nat.le_refl (h a)
+  | succ n ih =>
+    rw [EvalsToInTime.succ_iff] at hevals
+    obtain ⟨c, hevals_n, h_step_eq⟩ := hevals
+    specialize ih a c hevals_n
+    specialize h_step c b h_step_eq
+    omega
+
+
+-- m -> step_bound
+/-- `f` eventually reaches `b` in at most `m` steps when repeatedly
+evaluated on `a`. -/
+def EvalsToWithinTime {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ) (m : ℕ) : Prop :=
+  ∃ steps ≤ m, EvalsToInTime f a b steps
+
+/-- Reflexivity of `EvalsToWithinTime` in 0 steps. -/
+def EvalsToWithinTime.refl {σ : Type*} (f : σ → Option σ) (a : σ) :
+    EvalsToWithinTime f a (some a) 0 := by
+  use 0
+  exact if_false_right.mp rfl
+
+/-- Transitivity of `EvalsToWithinTime` in the sum of the numbers of steps. -/
+@[trans]
+def EvalsToWithinTime.trans {σ : Type*} (f : σ → Option σ) (m₁ : ℕ) (m₂ : ℕ) (a : σ) (b : σ)
+    (c : Option σ) (h₁ : EvalsToWithinTime f a b m₁) (h₂ : EvalsToWithinTime f b c m₂) :
+    EvalsToWithinTime f a c (m₂ + m₁) := by
+  obtain ⟨steps₁, hsteps₁, hevals₁⟩ := h₁
+  obtain ⟨steps₂, hsteps₂, hevals₂⟩ := h₂
+  use steps₂ + steps₁
+  constructor
+  · omega
+  · exact EvalsToInTime.trans f a b c steps₁ steps₂ hevals₁ hevals₂
+
+def EvalsToWithinTime.map {σ σ' : Type*} (f : σ → Option σ) (f' : σ' → Option σ')
+    (g : σ → σ') (hg : ∀ x, Option.map g (f x) = f' (g x))
+    (a : σ) (b : Option σ)
+    (m : ℕ)
+    (h : EvalsToWithinTime f a b m) : EvalsToWithinTime f' (g a) (Option.map g b) m := by
+  obtain ⟨steps, hsteps, hevals⟩ := h
+  use steps
+  constructor
+  · exact hsteps
+  · exact EvalsToInTime.map f f' g hg a b steps hevals
+
+/--
+Monotonicity of `EvalsToWithinTime` in the time bound.
+-/
+def EvalsToWithinTime.mono_time {σ : Type*} (f : σ → Option σ) (a : σ) (b : Option σ)
+    {m₁ m₂ : ℕ} (h : EvalsToWithinTime f a b m₁) (hm : m₁ ≤ m₂) : EvalsToWithinTime f a b m₂ := by
+  obtain ⟨steps, hsteps, hevals⟩ := h
+  use steps
+  simp_all only
+  simp
+  omega
+
+lemma EvalsToWithinTime.small_change {σ : Type*} (f : σ → Option σ) (h : σ → ℕ)
+    (h_step : ∀ a b, f a = some b → h b ≤ h a + 1)
+    (a : σ) (b : σ)
+    (m : ℕ)
+    (hevals : EvalsToWithinTime f a (some b) m) :
+    h b ≤ h a + m := by
+  obtain ⟨steps, hsteps, hevals_steps⟩ := hevals
+  have := EvalsToInTime.small_change f h h_step a b steps hevals_steps
+  omega
+
+
+end EvalsToJunk
 
 open Lean Elab Meta Command Term
 
