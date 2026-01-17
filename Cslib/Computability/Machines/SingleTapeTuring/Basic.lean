@@ -15,15 +15,12 @@ public import Mathlib.Algebra.Polynomial.Eval.Defs
 /-!
 # Single-Tape Turing Machine
 
-Defines a single-tape Turing machine over the alphabet of `Option Bool`,
+Defines a single-tape Turing machine over the alphabet of `Option α`,
 where `none` represents a blank OTape symbol.
 
 ## TODOs
 
-- Generalize Bool to an arbitrary (finite?) alphabet
-- switch transition system to use the `ReductionSystem` framework
-- refactor polynomial time to another file
-- remove unfold
+- refactor polynomial time to another file?
 
 -/
 
@@ -31,17 +28,23 @@ open Cslib
 
 namespace Turing
 
-namespace BinSingleTapeTM
+variable {α : Type}
+
+namespace SingleTapeTM
 
 /-- A Turing machine "statement" is just a command to move
   left or right, and write a symbol on the OTape. -/
-def Stmt := (Option Bool) × Option (Dir)
+def Stmt (α : Type) := (Option α) × Option Dir
 deriving Inhabited
 
-end BinSingleTapeTM
+end SingleTapeTM
 
-/-- A SingleTapeTM over the alphabet of Option Bool (none is blank OTape symbol). -/
-structure BinSingleTapeTM where
+/-- A SingleTapeTM over the alphabet of Option α (none is blank OTape symbol). -/
+structure SingleTapeTM (α) where
+  /-- Inhabited instance for the alphabet -/
+  [Inhabitedα : Inhabited α]
+  /-- Finiteness of the alphabet -/
+  [Fintypeα : Fintype α]
   /-- type of state labels -/
   (Λ : Type)
   /-- finiteness of the state type -/
@@ -50,13 +53,21 @@ structure BinSingleTapeTM where
   (q₀ : Λ)
   /-- Transition function, mapping a state and a head symbol
   to a Stmt to invoke, and optionally a new state (none for halt) -/
-  (M : Λ → (Option Bool) → (Turing.BinSingleTapeTM.Stmt × Option Λ))
+  (M : Λ → (Option α) → (Turing.SingleTapeTM.Stmt α × Option Λ))
 
-namespace BinSingleTapeTM
+namespace SingleTapeTM
 
-section
+section Cfg
 
-variable (tm : BinSingleTapeTM)
+/-!
+## Configurations of a Turing Machine
+
+This section defines the configurations of a Turing machine,
+the step function that lets the machine transition from one configuration to the next,
+and the intended initial and final configurations.
+-/
+
+variable (tm : SingleTapeTM α)
 
 instance : Inhabited tm.Λ :=
   ⟨tm.q₀⟩
@@ -64,14 +75,18 @@ instance : Inhabited tm.Λ :=
 instance : Fintype tm.Λ :=
   tm.FintypeΛ
 
-instance inhabitedStmt : Inhabited (Stmt) := inferInstance
+instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
 
-/-- The type of configurations (functions) corresponding to this TM. -/
+/--
+The configurations of a Turing machine consist of an `Option`al state
+(or none for the halting state)
+and an OTape representing the tape contents.
+-/
 structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.Λ
-  /-- the OTape contents, which -/
-  OTape : OTape (Bool)
+  /-- the OTape contents -/
+  OTape : OTape (α)
 deriving Inhabited
 
 /-- The step function corresponding to this TM. -/
@@ -92,36 +107,27 @@ def step : tm.Cfg → Option tm.Cfg :=
             q'',
             -- And OTape updated according to the Stmt
             (t.write wr).move? dir⟩
-end
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
-def initCfg (tm : BinSingleTapeTM) (s : List Bool) : tm.Cfg := ⟨some tm.q₀, OTape.mk₁ s⟩
+def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, OTape.mk₁ s⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
-def haltCfg (tm : BinSingleTapeTM) (s : List (Bool)) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
+def haltCfg (tm : SingleTapeTM α) (s : List (α)) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
 
-/--
-The `TerminalReductionSystem` corresponding to a `BinSingleTapeTM`
-is defined by the `step` function,
-which maps a configuration to its next configuration if it exists.
--/
-def TerminalReductionSystem (tm : BinSingleTapeTM) : Cslib.TerminalReductionSystem (tm.Cfg) :=
-  TerminalReductionSystem.Option tm.step
-
-def Cfg.space_used (tm : BinSingleTapeTM) (cfg : tm.Cfg) : ℕ :=
+def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ :=
   cfg.OTape.space_used
 
-lemma Cfg.space_used_initCfg (tm : BinSingleTapeTM) (s : List Bool) :
+lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.initCfg s).space_used = max 1 s.length := by
-  simp [initCfg, Cfg.space_used, OTape.space_used_mk₁]
+  simp only [space_used, initCfg, OTape.space_used_mk₁]
 
-lemma Cfg.space_used_haltCfg (tm : BinSingleTapeTM) (s : List Bool) :
+lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.haltCfg s).space_used = max 1 s.length := by
   simp [haltCfg, Cfg.space_used, OTape.space_used_mk₁]
 
-lemma Cfg.space_used_step {tm : BinSingleTapeTM} (cfg cfg' : tm.Cfg)
+lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
   obtain ⟨_ | q, tape⟩ := cfg
   · simp [step] at hstep
@@ -134,44 +140,55 @@ lemma Cfg.space_used_step {tm : BinSingleTapeTM} (cfg cfg' : tm.Cfg)
       have := OTape.space_used_move (tape.write wr) d
       simp only [Cfg.space_used, OTape.move?, OTape.space_used_write] at this ⊢; exact this
 
+end Cfg
+
+/--
+The `TerminalReductionSystem` corresponding to a `SingleTapeTM α`
+is defined by the `step` function,
+which maps a configuration to its next configuration if it exists.
+-/
+def TerminalReductionSystem (tm : SingleTapeTM α) : Cslib.TerminalReductionSystem (tm.Cfg) :=
+  TerminalReductionSystem.Option tm.step
 
 /-- A proof of tm outputting l' when given l. -/
-def Outputs (tm : BinSingleTapeTM) (l : List (Bool)) (l' : List (Bool)) : Prop :=
+def Outputs (tm : SingleTapeTM α) (l : List (α)) (l' : List (α)) : Prop :=
   tm.TerminalReductionSystem.MRed (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of tm outputting l' when given l in at most m steps. -/
-def OutputsWithinTime (tm : BinSingleTapeTM) (l : List (Bool)) (l' : (List (Bool)))
+def OutputsWithinTime (tm : SingleTapeTM α) (l : List (α)) (l' : (List (α)))
     (m : ℕ) :=
   tm.TerminalReductionSystem.reducesToWithinSteps (initCfg tm l) (haltCfg tm l') m
 
 /-- A Turing machine + a proof it outputsInTime `f`. -/
-structure Computable (f : List Bool → List Bool) where
+structure Computable (f : List α → List α) where
   /-- the underlying bundled SingleTapeTM -/
-  tm : BinSingleTapeTM
+  tm : SingleTapeTM α
   /-- a proof this machine outputsInTime `f` -/
   outputsFun : ∀ a, tm.Outputs a (f a)
 
 /-- A Turing machine + a time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
-structure TimeComputable (f : List Bool → List Bool) where
+structure TimeComputable (f : List α → List α) where
   /-- the underlying bundled SingleTapeTM -/
-  tm : BinSingleTapeTM
+  tm : SingleTapeTM α
   /-- a time function -/
   time : ℕ → ℕ
   /-- proof this machine outputsInTime `f` in at most `time(input.length)` steps -/
   outputsFun : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
 
+section
+
+variable [Inhabited α] [Fintype α]
+
 /-- A Turing machine computing the identity. -/
-def idComputer : BinSingleTapeTM where
+def idComputer : SingleTapeTM α where
   Λ := PUnit
   q₀ := PUnit.unit
   M := fun _ b => ⟨(b, none), none⟩
 
-section
-
 -- TODO switch to where syntax
 /-- A proof that the identity map on α is computable in time. -/
-def TimeComputable.id : TimeComputable id :=
+def TimeComputable.id : TimeComputable (α := α) id :=
   ⟨idComputer, fun _ => 1, fun x => by
     refine ⟨1, le_refl 1, ?_⟩
     -- Need to show reducesToInSteps for 1 step
@@ -182,10 +199,10 @@ def TimeComputable.id : TimeComputable id :=
       idComputer, step, OTape.move?]
     congr 1⟩
 
-def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
+def compComputer {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f)
     (hg : TimeComputable g) :
-    BinSingleTapeTM :=
+    SingleTapeTM α :=
   {
     Λ := hf.tm.Λ ⊕ hg.tm.Λ
     q₀ := Sum.inl hf.tm.q₀
@@ -214,13 +231,13 @@ def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
             | _ => Option.map Sum.inr stmt)
   }
 
-lemma compComputer_q₀_eq (f : List Bool → List Bool) (g : List Bool → List Bool)
+lemma compComputer_q₀_eq (f : List α → List α) (g : List α → List α)
   (hf : TimeComputable f) (hg : TimeComputable g) :
     (compComputer hf hg).q₀ = Sum.inl hf.tm.q₀ :=
   rfl
 
 /-- Lift a config over a tm to a config over the comp -/
-def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
+def liftCompCfg_left {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
@@ -229,7 +246,7 @@ def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
     OTape := cfg.OTape
   }
 
-def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool}
+def liftCompCfg_right {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hg.tm.Cfg) :
     (compComputer hf hg).Cfg :=
@@ -239,7 +256,7 @@ def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool
   }
 
 theorem map_liftCompCfg_left_step
-    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hf.tm.Cfg) (hx : ∀ cfg, hf.tm.step x = some cfg → cfg.state.isSome) :
     Option.map (liftCompCfg_left hf hg) (hf.tm.step x) =
@@ -269,7 +286,7 @@ theorem map_liftCompCfg_left_step
 
 /-- Helper lemma: liftCompCfg_right commutes with step for the second machine -/
 theorem map_liftCompCfg_right_step
-    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) :
     Option.map (liftCompCfg_right hf hg) (hg.tm.step x) =
@@ -287,10 +304,9 @@ theorem map_liftCompCfg_right_step
       | none => simp only [hM, Option.map_some, liftCompCfg_right, Option.map_none]
       | some q' => simp only [hM, Option.map_some, liftCompCfg_right]
 
-/-- When the first machine would halt, the composed machine transitions to the second machine -/
-theorem comp_transition_to_right {f : List Bool → List Bool} {g : List Bool → List Bool}
+theorem comp_transition_to_right {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (tp : OTape (Bool))
+    (tp : OTape (α))
     (q : hf.tm.Λ)
     (hM : (hf.tm.M q tp.head).2 = none) :
     (compComputer hf hg).step { state := some (Sum.inl q), OTape := tp } =
@@ -302,7 +318,7 @@ theorem comp_transition_to_right {f : List Bool → List Bool} {g : List Bool �
   simp only [hfM_eq]
 
 /-- Helper: lifting to Sum.inl and transitioning to Sum.inr on halt -/
-def liftCompCfg_left_or_right {f : List Bool → List Bool} {g : List Bool → List Bool}
+def liftCompCfg_left_or_right {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
@@ -312,7 +328,7 @@ def liftCompCfg_left_or_right {f : List Bool → List Bool} {g : List Bool → L
 
 /-- The lifting function commutes with step, converting halt to transition -/
 theorem map_liftCompCfg_left_or_right_step
-    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hf.tm.Cfg)
     (hx : x.state.isSome) :
@@ -332,7 +348,7 @@ theorem map_liftCompCfg_left_or_right_step
 
 /-- General simulation: if the first machine goes from cfg to halt, the composed machine
     goes from lifted cfg to Sum.inr hg.tm.q₀ -/
-theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Bool → List Bool}
+theorem comp_left_simulation_general {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg)
     (hcfg : cfg.state.isSome)
@@ -351,9 +367,6 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
   -- When the first machine halts, the composed machine transitions to Sum.inr hg.tm.q₀.
   induction steps generalizing cfg haltCfg with
   | zero =>
-    -- rw [ReductionSystem.reducesToInSteps.zero_iff] at h
-    -- rw [ReductionSystem.reducesToInSteps.zero_iff]
-    -- rw [h]
     simp only [ReductionSystem.reducesToInSteps.zero_iff] at h ⊢
     rw [h]
   | succ n ih =>
@@ -389,9 +402,9 @@ runs from start (with Sum.inl state) to Sum.inr hg.tm.q₀ (the start of the sec
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → List Bool}
+theorem comp_left_simulation {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (a : List Bool)
+    (a : List α)
     (hf_outputsFun :
       hf.tm.TerminalReductionSystem.reducesToWithinSteps
         { state := some hf.tm.q₀, OTape := OTape.mk₁ a }
@@ -416,7 +429,7 @@ theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → Li
 
 /-- Simulation lemma for the second machine in the composed computer -/
 theorem comp_right_simulation
-    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) (y : hg.tm.Cfg) (m : ℕ)
     (h : hg.tm.TerminalReductionSystem.reducesToWithinSteps x y m) :
@@ -426,19 +439,23 @@ theorem comp_right_simulation
       m := by
   refine Cslib.ReductionSystem.reducesToWithinSteps.map (liftCompCfg_right hf hg) ?_ h
   intro a b hab
-  -- hab : hg.tm.step a = some b (this is Red for TerminalReductionSystem.Option)
-  -- Need: (compComputer hf hg).step (liftCompCfg_right hf hg a) = some (liftCompCfg_right hf hg b)
   have h1 := map_liftCompCfg_right_step hf hg a
   rw [hab, Option.map_some] at h1
   exact h1.symm
 
-
-
-
-lemma output_length_le_input_length_add_time (tm : BinSingleTapeTM) (l l' : List Bool) (t : ℕ)
+/--
+Lemma about the size blow-up of the output of a Turing machine
+relative to its input length and time bound.
+This lemma states that the length of the output list is bounded by the time the TM runs
+(and the input length).
+This is important for guaranteeing that composition of polynomial time Turing machines
+remains polynomial time, as the input to the second machine
+is bounded by the output length of the first machine.
+-/
+lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List α) (t : ℕ)
     (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
-  unfold OutputsWithinTime at h
+  simp only [OutputsWithinTime] at h
   obtain ⟨steps, hsteps_le, hevals⟩ := h
   replace hevals := hevals.small_change
   specialize hevals (Cfg.space_used tm)
@@ -470,7 +487,7 @@ evals to the intermediate state from the start state and
 then from the intermediate state to the final state.
 -/
 def TimeComputable.comp
-    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (h_mono : Monotone hg.time) :
     (TimeComputable (g ∘ f)) where
@@ -521,23 +538,27 @@ and proves that
 * The identity function is polynomial time computable
 * The composition of two polynomial time computable functions is polynomial time computable
 
+### TODO
 
+Use of mathlib's `Polynomial` type leads to noncomputable definitions here.
+Perhaps we could switch to a computable polynomial representation?
 -/
 
 section PolyTime
 
--- TODO noncomputable due to use of Polynomial
--- perhaps could we switch to one of those computable polynomial representations?
+variable [Inhabited α] [Fintype α]
+
+
 /-- A Turing machine + a polynomial time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
-structure PolyTimeComputable (f : List Bool → List Bool) extends TimeComputable f where
+structure PolyTimeComputable (f : List α → List α) extends TimeComputable f where
   /-- a polynomial time bound -/
   poly : Polynomial ℕ
   /-- proof that this machine outputsInTime `f` in at most `time(input.length)` steps -/
   bounds : ∀ n, time n ≤ poly.eval n
 
 /-- A proof that the identity map on α is computable in polytime. -/
-noncomputable def PolyTimeComputable.id : @PolyTimeComputable id where
+noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id where
   toTimeComputable := TimeComputable.id
   poly := 1
   bounds n := by simp only [TimeComputable.id, Polynomial.eval_one, le_refl]
@@ -546,7 +567,7 @@ noncomputable def PolyTimeComputable.id : @PolyTimeComputable id where
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
 noncomputable def PolyTimeComputable.comp
-    {f : List Bool → List Bool} {g : List Bool → List Bool}
+    {f : List α → List α} {g : List α → List α}
     (hf : PolyTimeComputable f)
     (hg : PolyTimeComputable g)
     -- all Nat polynomials are monotone, but the tighter internal bound maybe is not, awkwardly
@@ -570,6 +591,6 @@ noncomputable def PolyTimeComputable.comp
 
 end PolyTime
 
-end BinSingleTapeTM
+end SingleTapeTM
 
 end Turing

@@ -54,7 +54,7 @@ structure OTape (α : Type) where
   (right : OList α)
 deriving Inhabited
 
-def OTape.mk₁ (l : List Bool) : OTape Bool :=
+def OTape.mk₁ {α} (l : List α) : OTape α :=
   match l with
   | [] => { head := none, left := OList.empty, right := OList.empty }
   | h :: t => { head := some h, left := OList.empty, right := OList.map_some t }
@@ -79,14 +79,14 @@ def OTape.write {α} : Turing.OTape α → Option α → Turing.OTape α
 The space used by a OTape is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the OTape
 -/
-def OTape.space_used {α} [Inhabited α] (t : Turing.OTape α) : ℕ :=
+def OTape.space_used {α} (t : Turing.OTape α) : ℕ :=
   1 + t.left.length + t.right.length
 
-lemma OTape.space_used_write {α} [Inhabited α] (t : Turing.OTape α) (a : Option α) :
+lemma OTape.space_used_write {α} (t : Turing.OTape α) (a : Option α) :
     (t.write a).space_used = t.space_used := by
   rfl
 
-lemma OTape.space_used_mk₁ (l : List Bool) :
+lemma OTape.space_used_mk₁ (l : List α) :
     (OTape.mk₁ l).space_used = max 1 l.length := by
   cases l with
   | nil =>
@@ -95,7 +95,7 @@ lemma OTape.space_used_mk₁ (l : List Bool) :
     simp [mk₁, space_used, OList.length_empty, OList.length_map_some]
     omega
 
-lemma OTape.space_used_move {α} [Inhabited α] (t : Turing.OTape α) (d : Dir) :
+lemma OTape.space_used_move {α} (t : Turing.OTape α) (d : Dir) :
     (t.move d).space_used ≤ t.space_used + 1 := by
   cases d with
   | left =>
