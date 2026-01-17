@@ -79,7 +79,7 @@ def OTape.write {α} : Turing.OTape α → Option α → Turing.OTape α
 The space used by a OTape is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the OTape
 -/
-noncomputable def OTape.space_used {α} [Inhabited α] (t : Turing.OTape α) : ℕ :=
+def OTape.space_used {α} [Inhabited α] (t : Turing.OTape α) : ℕ :=
   1 + t.left.length + t.right.length
 
 lemma OTape.space_used_write {α} [Inhabited α] (t : Turing.OTape α) (a : Option α) :

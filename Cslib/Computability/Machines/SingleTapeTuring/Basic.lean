@@ -52,7 +52,6 @@ structure BinTM0 where
   to a Stmt to invoke, and optionally a new state (none for halt) -/
   (M : Λ → (Option Bool) → (Turing.BinTM0.Stmt × Option Λ))
 
-
 namespace BinTM0
 
 section
@@ -110,7 +109,7 @@ which maps a configuration to its next configuration if it exists.
 def TerminalReductionSystem (tm : BinTM0) : Cslib.TerminalReductionSystem (tm.Cfg) :=
   TerminalReductionSystem.Option tm.step
 
-noncomputable def Cfg.space_used (tm : BinTM0) (cfg : tm.Cfg) : ℕ :=
+def Cfg.space_used (tm : BinTM0) (cfg : tm.Cfg) : ℕ :=
   cfg.OTape.space_used
 
 lemma Cfg.space_used_initCfg (tm : BinTM0) (s : List Bool) :
@@ -149,8 +148,7 @@ structure Computable (f : List Bool → List Bool) where
   /-- the underlying bundled TM0 -/
   tm : BinTM0
   /-- a proof this machine outputsInTime `f` -/
-  outputsFun :
-    ∀ a, tm.Outputs a (f a)
+  outputsFun : ∀ a, tm.Outputs a (f a)
 
 /-- A Turing machine + a time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
@@ -160,12 +158,7 @@ structure TimeComputable (f : List Bool → List Bool) where
   /-- a time function -/
   time : ℕ → ℕ
   /-- proof this machine outputsInTime `f` in at most `time(input.length)` steps -/
-  outputsFun :
-    ∀ a,
-      tm.OutputsWithinTime
-        a
-        ((f a))
-        (time a.length)
+  outputsFun : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
 
 /-- A Turing machine computing the identity. -/
 def idComputer : BinTM0 where
@@ -173,7 +166,7 @@ def idComputer : BinTM0 where
   q₀ := PUnit.unit
   M := fun _ b => ⟨(b, none), none⟩
 
-noncomputable section
+section
 
 -- TODO switch to where syntax
 /-- A proof that the identity map on α is computable in time. -/
@@ -181,7 +174,8 @@ def TimeComputable.id : TimeComputable id :=
   ⟨idComputer, fun _ => 1, fun x => by
     refine ⟨1, le_refl 1, ?_⟩
     -- Need to show reducesToInSteps for 1 step
-    refine Cslib.ReductionSystem.reducesToInSteps.cons _ _ _ 0 ?_ (Cslib.ReductionSystem.reducesToInSteps.refl _)
+    refine Cslib.ReductionSystem.reducesToInSteps.cons _ _ _ 0 ?_
+      (Cslib.ReductionSystem.reducesToInSteps.refl _)
     -- Show the single step reduction: step (init x) = some (halt x)
     simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, initCfg, haltCfg,
       idComputer, step, OTape.move?]
@@ -220,15 +214,13 @@ def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
   }
 
 lemma compComputer_q₀_eq (f : List Bool → List Bool) (g : List Bool → List Bool)
-  (hf : TimeComputable f)
-  (hg : TimeComputable g) :
+  (hf : TimeComputable f) (hg : TimeComputable g) :
     (compComputer hf hg).q₀ = Sum.inl hf.tm.q₀ :=
   rfl
 
 /-- Lift a config over a tm to a config over the comp -/
 def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : TimeComputable f)
-    (hg : TimeComputable g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   {
@@ -237,8 +229,7 @@ def liftCompCfg_left {f : List Bool → List Bool} {g : List Bool → List Bool}
   }
 
 def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : TimeComputable f)
-    (hg : TimeComputable g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hg.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   {
@@ -249,8 +240,7 @@ def liftCompCfg_right {f : List Bool → List Bool} {g : List Bool → List Bool
 theorem map_liftCompCfg_left_step
     {f : List Bool → List Bool} {g : List Bool → List Bool}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (x : hf.tm.Cfg)
-    (hx : ∀ cfg, hf.tm.step x = some cfg → cfg.state.isSome) :
+    (x : hf.tm.Cfg) (hx : ∀ cfg, hf.tm.step x = some cfg → cfg.state.isSome) :
     Option.map (liftCompCfg_left hf hg) (hf.tm.step x) =
       (compComputer hf hg).step (liftCompCfg_left hf hg x) := by
   cases x with
@@ -312,8 +302,7 @@ theorem comp_transition_to_right {f : List Bool → List Bool} {g : List Bool �
 
 /-- Helper: lifting to Sum.inl and transitioning to Sum.inr on halt -/
 def liftCompCfg_left_or_right {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : TimeComputable f)
-    (hg : TimeComputable g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   match cfg.state with
@@ -347,12 +336,11 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
     (cfg : hf.tm.Cfg)
     (hcfg : cfg.state.isSome)
     (haltCfg : hf.tm.Cfg)
-    -- (haltCfg_state : haltCfg.state = none)
     (steps : ℕ)
-    (h : hf.tm.TerminalReductionSystem.reducesToInSteps  cfg ( haltCfg) steps) :
+    (h : hf.tm.TerminalReductionSystem.reducesToInSteps cfg haltCfg steps) :
     (compComputer hf hg).TerminalReductionSystem.reducesToInSteps
       (liftCompCfg_left_or_right hf hg cfg)
-      ( (liftCompCfg_left_or_right hf hg haltCfg))
+      (liftCompCfg_left_or_right hf hg haltCfg)
       steps := by
   -- Proof by induction on steps.
   -- Key insight: liftCompCfg_left_or_right maps:
@@ -365,8 +353,7 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
     -- rw [ReductionSystem.reducesToInSteps.zero_iff] at h
     -- rw [ReductionSystem.reducesToInSteps.zero_iff]
     -- rw [h]
-    simp [Option.bind_eq_bind, step, Function.iterate_zero, id_eq,
-      Option.some.injEq] at h ⊢
+    simp only [ReductionSystem.reducesToInSteps.zero_iff] at h ⊢
     rw [h]
   | succ n ih =>
     -- Use the decomposition lemma: cfg evals to some intermediate c in n steps,
@@ -483,8 +470,7 @@ then from the intermediate state to the final state.
 -/
 def TimeComputable.comp
     {f : List Bool → List Bool} {g : List Bool → List Bool}
-    (hf : TimeComputable f)
-    (hg : TimeComputable g)
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (h_mono : Monotone hg.time) :
     (TimeComputable (g ∘ f)) where
   tm := compComputer hf hg
@@ -493,7 +479,7 @@ def TimeComputable.comp
     have hf_outputsFun := hf.outputsFun a
     have hg_outputsFun := hg.outputsFun (f a)
     simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
-      Option.map_some, haltCfg] at hg_outputsFun hf_outputsFun ⊢
+      haltCfg] at hg_outputsFun hf_outputsFun ⊢
     -- The computer reduces a to f a in time hf.time a
     have h_a_reducesTo_f_a :
         (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
@@ -529,11 +515,18 @@ end
 /-!
 ## Polynomial Time Computability
 
-This section defines polynomial time computable functions on Turing machines.
+This section defines polynomial time computable functions on Turing machines,
+and proves that
+* The identity function is polynomial time computable
+* The composition of two polynomial time computable functions is polynomial time computable
+
+
 -/
 
 section PolyTime
 
+-- TODO noncomputable due to use of Polynomial
+-- perhaps could we switch to one of those computable polynomial representations?
 /-- A Turing machine + a polynomial time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
 structure PolyTimeComputable (f : List Bool → List Bool) extends TimeComputable f where
@@ -555,7 +548,7 @@ noncomputable def PolyTimeComputable.comp
     {f : List Bool → List Bool} {g : List Bool → List Bool}
     (hf : PolyTimeComputable f)
     (hg : PolyTimeComputable g)
-    -- all Nat polynomials are monotone, but the tighter internal bound maybe is not
+    -- all Nat polynomials are monotone, but the tighter internal bound maybe is not, awkwardly
     (h_mono : Monotone hg.time) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
