@@ -67,9 +67,11 @@ lemma ReductionSystem.reducesToInSteps.trans {rs : ReductionSystem Term} {a b c 
     (h₁ : reducesToInSteps rs a b n) (h₂ : reducesToInSteps rs b c m) :
     reducesToInSteps rs a c (n + m) := by
   induction h₁ with
-  | refl _ => simp only [Nat.zero_add]; exact h₂
+  | refl _ =>
+    rw [Nat.zero_add]
+    exact h₂
   | cons t t' t'' k h_red _ ih =>
-    simp only [Nat.add_right_comm]
+    rw [Nat.add_right_comm]
     exact reducesToInSteps.cons t t' c (k + m) h_red (ih h₂)
 
 lemma ReductionSystem.reducesToInSteps.zero {rs : ReductionSystem Term} {a b : Term}
@@ -83,8 +85,8 @@ lemma ReductionSystem.reducesToInSteps.zero_iff {rs : ReductionSystem Term} {a b
     reducesToInSteps rs a b 0 ↔ a = b := by
   constructor
   · exact reducesToInSteps.zero
-  · intro h; subst h; exact reducesToInSteps.refl a
-
+  · intro rfl
+    exact reducesToInSteps.refl a
 
 lemma ReductionSystem.reducesToInSteps.succ {rs : ReductionSystem Term} {a b : Term} {n : ℕ}
     (h : reducesToInSteps rs a b (n + 1)) :
@@ -92,14 +94,16 @@ lemma ReductionSystem.reducesToInSteps.succ {rs : ReductionSystem Term} {a b : T
   cases h with
   | cons _ t' _ _ h_red h_steps => exact ⟨t', h_red, h_steps⟩
 
-lemma ReductionSystem.reducesToInSteps.succ_iff {rs : ReductionSystem Term} {a b : Term} {n : ℕ} :
+lemma ReductionSystem.reducesToInSteps.succ_iff {rs : ReductionSystem Term}
+    {a b : Term} {n : ℕ} :
     reducesToInSteps rs a b (n + 1) ↔ ∃ t', rs.Red a t' ∧ reducesToInSteps rs t' b n := by
   constructor
   · exact ReductionSystem.reducesToInSteps.succ
   · rintro ⟨t', h_red, h_steps⟩
     exact ReductionSystem.reducesToInSteps.cons a t' b n h_red h_steps
 
-lemma ReductionSystem.reducesToInSteps.succ' {rs : ReductionSystem Term} {a b : Term} {n : ℕ}
+lemma ReductionSystem.reducesToInSteps.succ' {rs : ReductionSystem Term}
+    {a b : Term} {n : ℕ}
     (h : reducesToInSteps rs a b (n + 1)) :
     ∃ t', reducesToInSteps rs a t' n ∧ rs.Red t' b := by
   induction n generalizing a b with
@@ -113,19 +117,17 @@ lemma ReductionSystem.reducesToInSteps.succ' {rs : ReductionSystem Term} {a b : 
     obtain ⟨t'', h_steps', h_red'⟩ := ih h_steps
     exact ⟨t'', reducesToInSteps.cons a t' t'' k h_red h_steps', h_red'⟩
 
-lemma ReductionSystem.reducesToInSteps.succ'_iff
-    {rs : ReductionSystem Term} {a b : Term} {n : ℕ} :
+lemma ReductionSystem.reducesToInSteps.succ'_iff {rs : ReductionSystem Term}
+    {a b : Term} {n : ℕ} :
     reducesToInSteps rs a b (n + 1) ↔ ∃ t', reducesToInSteps rs a t' n ∧ rs.Red t' b := by
   constructor
   · exact succ'
   · rintro ⟨t', h_steps, h_red⟩
-    have h_one : reducesToInSteps rs t' b 1 := cons t' b b 0 h_red (refl b)
-    have := trans h_steps h_one
-    simp only [Nat.add_one] at this
-    exact this
+    have h_succ := trans h_steps (cons t' b b 0 h_red (refl b))
+    exact h_succ
 
-lemma ReductionSystem.reducesToInSteps.bounded_increase
-    {rs : ReductionSystem Term} {a b : Term} (h : Term → ℕ)
+lemma ReductionSystem.reducesToInSteps.bounded_increase {rs : ReductionSystem Term}
+    {a b : Term} (h : Term → ℕ)
     (h_step : ∀ a b, rs.Red a b → h b ≤ h a + 1)
     (m : ℕ)
     (hevals : rs.reducesToInSteps a b m) :
