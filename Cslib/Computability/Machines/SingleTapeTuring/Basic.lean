@@ -383,11 +383,15 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
       | mk state OTape =>
         cases state with
         | none =>
-          sorry
+          -- c is in halting state, but step of halting state is none, contradiction
+          simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, step] at hc_step
+          cases hc_step
         | some q =>
-          sorry
-          -- rw [← map_liftCompCfg_left_or_right_step hf hg ⟨some q, OTape⟩ (by simp)]
-          -- simp only [hc_step, Option.map_some]
+          -- Use the lifting lemma
+          have h1 := map_liftCompCfg_left_or_right_step hf hg ⟨some q, OTape⟩ (by simp)
+          simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option] at hc_step ⊢
+          rw [hc_step, Option.map_some] at h1
+          exact h1.symm
 
 
 /--
