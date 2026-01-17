@@ -31,17 +31,17 @@ open Cslib
 
 namespace Turing
 
-namespace BinTM0
+namespace BinSingleTapeTM
 
 /-- A Turing machine "statement" is just a command to move
   left or right, and write a symbol on the OTape. -/
 def Stmt := (Option Bool) × Option (Dir)
 deriving Inhabited
 
-end BinTM0
+end BinSingleTapeTM
 
-/-- A TM0 over the alphabet of Option Bool (none is blank OTape symbol). -/
-structure BinTM0 where
+/-- A SingleTapeTM over the alphabet of Option Bool (none is blank OTape symbol). -/
+structure BinSingleTapeTM where
   /-- type of state labels -/
   (Λ : Type)
   /-- finiteness of the state type -/
@@ -50,13 +50,13 @@ structure BinTM0 where
   (q₀ : Λ)
   /-- Transition function, mapping a state and a head symbol
   to a Stmt to invoke, and optionally a new state (none for halt) -/
-  (M : Λ → (Option Bool) → (Turing.BinTM0.Stmt × Option Λ))
+  (M : Λ → (Option Bool) → (Turing.BinSingleTapeTM.Stmt × Option Λ))
 
-namespace BinTM0
+namespace BinSingleTapeTM
 
 section
 
-variable (tm : BinTM0)
+variable (tm : BinSingleTapeTM)
 
 instance : Inhabited tm.Λ :=
   ⟨tm.q₀⟩
@@ -95,32 +95,33 @@ def step : tm.Cfg → Option tm.Cfg :=
 end
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
-def initCfg (tm : BinTM0) (s : List Bool) : tm.Cfg := ⟨some tm.q₀, OTape.mk₁ s⟩
+def initCfg (tm : BinSingleTapeTM) (s : List Bool) : tm.Cfg := ⟨some tm.q₀, OTape.mk₁ s⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
-def haltCfg (tm : BinTM0) (s : List (Bool)) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
+def haltCfg (tm : BinSingleTapeTM) (s : List (Bool)) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
 
 /--
-The `TerminalReductionSystem` corresponding to a `BinTM0` is defined by the `step` function,
+The `TerminalReductionSystem` corresponding to a `BinSingleTapeTM`
+is defined by the `step` function,
 which maps a configuration to its next configuration if it exists.
 -/
-def TerminalReductionSystem (tm : BinTM0) : Cslib.TerminalReductionSystem (tm.Cfg) :=
+def TerminalReductionSystem (tm : BinSingleTapeTM) : Cslib.TerminalReductionSystem (tm.Cfg) :=
   TerminalReductionSystem.Option tm.step
 
-def Cfg.space_used (tm : BinTM0) (cfg : tm.Cfg) : ℕ :=
+def Cfg.space_used (tm : BinSingleTapeTM) (cfg : tm.Cfg) : ℕ :=
   cfg.OTape.space_used
 
-lemma Cfg.space_used_initCfg (tm : BinTM0) (s : List Bool) :
+lemma Cfg.space_used_initCfg (tm : BinSingleTapeTM) (s : List Bool) :
     (tm.initCfg s).space_used = max 1 s.length := by
   simp [initCfg, Cfg.space_used, OTape.space_used_mk₁]
 
-lemma Cfg.space_used_haltCfg (tm : BinTM0) (s : List Bool) :
+lemma Cfg.space_used_haltCfg (tm : BinSingleTapeTM) (s : List Bool) :
     (tm.haltCfg s).space_used = max 1 s.length := by
   simp [haltCfg, Cfg.space_used, OTape.space_used_mk₁]
 
-lemma Cfg.space_used_step {tm : BinTM0} (cfg cfg' : tm.Cfg)
+lemma Cfg.space_used_step {tm : BinSingleTapeTM} (cfg cfg' : tm.Cfg)
     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
   obtain ⟨_ | q, tape⟩ := cfg
   · simp [step] at hstep
@@ -135,33 +136,33 @@ lemma Cfg.space_used_step {tm : BinTM0} (cfg cfg' : tm.Cfg)
 
 
 /-- A proof of tm outputting l' when given l. -/
-def Outputs (tm : BinTM0) (l : List (Bool)) (l' : List (Bool)) : Prop :=
+def Outputs (tm : BinSingleTapeTM) (l : List (Bool)) (l' : List (Bool)) : Prop :=
   tm.TerminalReductionSystem.MRed (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of tm outputting l' when given l in at most m steps. -/
-def OutputsWithinTime (tm : BinTM0) (l : List (Bool)) (l' : (List (Bool)))
+def OutputsWithinTime (tm : BinSingleTapeTM) (l : List (Bool)) (l' : (List (Bool)))
     (m : ℕ) :=
   tm.TerminalReductionSystem.reducesToWithinSteps (initCfg tm l) (haltCfg tm l') m
 
 /-- A Turing machine + a proof it outputsInTime `f`. -/
 structure Computable (f : List Bool → List Bool) where
-  /-- the underlying bundled TM0 -/
-  tm : BinTM0
+  /-- the underlying bundled SingleTapeTM -/
+  tm : BinSingleTapeTM
   /-- a proof this machine outputsInTime `f` -/
   outputsFun : ∀ a, tm.Outputs a (f a)
 
 /-- A Turing machine + a time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
 structure TimeComputable (f : List Bool → List Bool) where
-  /-- the underlying bundled TM0 -/
-  tm : BinTM0
+  /-- the underlying bundled SingleTapeTM -/
+  tm : BinSingleTapeTM
   /-- a time function -/
   time : ℕ → ℕ
   /-- proof this machine outputsInTime `f` in at most `time(input.length)` steps -/
   outputsFun : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
 
 /-- A Turing machine computing the identity. -/
-def idComputer : BinTM0 where
+def idComputer : BinSingleTapeTM where
   Λ := PUnit
   q₀ := PUnit.unit
   M := fun _ b => ⟨(b, none), none⟩
@@ -184,7 +185,7 @@ def TimeComputable.id : TimeComputable id :=
 def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
     (hf : TimeComputable f)
     (hg : TimeComputable g) :
-    BinTM0 :=
+    BinSingleTapeTM :=
   {
     Λ := hf.tm.Λ ⊕ hg.tm.Λ
     q₀ := Sum.inl hf.tm.q₀
@@ -434,7 +435,7 @@ theorem comp_right_simulation
 
 
 
-lemma output_length_le_input_length_add_time (tm : BinTM0) (l l' : List Bool) (t : ℕ)
+lemma output_length_le_input_length_add_time (tm : BinSingleTapeTM) (l l' : List Bool) (t : ℕ)
     (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
   unfold OutputsWithinTime at h
@@ -569,6 +570,6 @@ noncomputable def PolyTimeComputable.comp
 
 end PolyTime
 
-end BinTM0
+end BinSingleTapeTM
 
 end Turing
