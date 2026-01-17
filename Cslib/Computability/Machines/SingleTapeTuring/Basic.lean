@@ -104,13 +104,11 @@ def initCfg (tm : BinTM0) (s : List Bool) : tm.Cfg := ⟨some tm.q₀, OTape.mk�
 def haltCfg (tm : BinTM0) (s : List (Bool)) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
 
 /--
-The `ReductionSystem` corresponding to a `BinTM0` is defined by the `step` function,
+The `TerminalReductionSystem` corresponding to a `BinTM0` is defined by the `step` function,
 which maps a configuration to its next configuration if it exists.
 -/
-def ReductionSystem (tm : BinTM0) : Cslib.ReductionSystem (tm.Cfg) :=
-  { Red := fun cfg cfg' => tm.step cfg = some cfg' }
--- TODO use this, rather than the current setup, or better yet an LTS? 
-
+def TerminalReductionSystem (tm : BinTM0) : Cslib.TerminalReductionSystem (tm.Cfg) :=
+  TerminalReductionSystem.Option tm.step
 
 noncomputable def Cfg.space_used (tm : BinTM0) (cfg : tm.Cfg) : ℕ :=
   cfg.OTape.space_used
@@ -138,25 +136,21 @@ lemma Cfg.space_used_step {tm : BinTM0} (cfg cfg' : tm.Cfg)
 
 
 /-- A proof of tm outputting l' when given l. -/
-def OutputsInTime (tm : BinTM0) (l : List (Bool)) (l' : Option (List (Bool))) :=
-  EvalsToInTime tm.step (initCfg tm l) ((Option.map (haltCfg tm)) l')
+def Outputs (tm : BinTM0) (l : List (Bool)) (l' : List (Bool)) : Prop :=
+  tm.TerminalReductionSystem.MRed (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of tm outputting l' when given l in at most m steps. -/
-def OutputsWithinTime (tm : BinTM0) (l : List (Bool)) (l' : Option (List (Bool)))
+def OutputsWithinTime (tm : BinTM0) (l : List (Bool)) (l' : (List (Bool)))
     (m : ℕ) :=
-  EvalsToWithinTime tm.step (initCfg tm l) ((Option.map (haltCfg tm)) l') m
+  tm.TerminalReductionSystem.reducesToWithinSteps (initCfg tm l) (haltCfg tm l') m
 
 /-- A Turing machine + a proof it outputsInTime `f`. -/
 structure Computable (f : List Bool → List Bool) where
   /-- the underlying bundled TM0 -/
   tm : BinTM0
-  steps : ℕ
   /-- a proof this machine outputsInTime `f` -/
   outputsFun :
-    ∀ a,
-      OutputsInTime tm a
-        (Option.some (f a))
-        steps
+    ∀ a, tm.Outputs a (f a)
 
 /-- A Turing machine + a time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
@@ -170,7 +164,7 @@ structure TimeComputable (f : List Bool → List Bool) where
     ∀ a,
       tm.OutputsWithinTime
         a
-        (Option.some (f a))
+        ((f a))
         (time a.length)
 
 /-- A Turing machine computing the identity. -/
@@ -181,14 +175,16 @@ def idComputer : BinTM0 where
 
 noncomputable section
 
+-- TODO switch to where syntax
 /-- A proof that the identity map on α is computable in time. -/
-def TimeComputable.id :
-    @TimeComputable id :=
+def TimeComputable.id : TimeComputable id :=
   ⟨idComputer, fun _ => 1, fun x => by
-    use 1
-    simp only [le_refl, id_eq, Option.map_some, true_and]
-    simp only [EvalsToInTime, initCfg, haltCfg, idComputer,
-      Function.iterate_succ, Function.iterate_zero, Function.comp_apply, id_eq]
+    refine ⟨1, le_refl 1, ?_⟩
+    -- Need to show reducesToInSteps for 1 step
+    refine Cslib.ReductionSystem.reducesToInSteps.cons _ _ _ 0 ?_ (Cslib.ReductionSystem.reducesToInSteps.refl _)
+    -- Show the single step reduction: step (init x) = some (halt x)
+    simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, initCfg, haltCfg,
+      idComputer, step, OTape.move?]
     congr 1⟩
 
 def compComputer {f : List Bool → List Bool} {g : List Bool → List Bool}
@@ -353,10 +349,10 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
     (haltCfg : hf.tm.Cfg)
     -- (haltCfg_state : haltCfg.state = none)
     (steps : ℕ)
-    (h : EvalsToInTime hf.tm.step cfg (some haltCfg) steps) :
-    EvalsToInTime (compComputer hf hg).step
+    (h : hf.tm.TerminalReductionSystem.reducesToInSteps  cfg ( haltCfg) steps) :
+    (compComputer hf hg).TerminalReductionSystem.reducesToInSteps
       (liftCompCfg_left_or_right hf hg cfg)
-      (some (liftCompCfg_left_or_right hf hg haltCfg))
+      ( (liftCompCfg_left_or_right hf hg haltCfg))
       steps := by
   -- Proof by induction on steps.
   -- Key insight: liftCompCfg_left_or_right maps:
@@ -366,14 +362,17 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
   -- When the first machine halts, the composed machine transitions to Sum.inr hg.tm.q₀.
   induction steps generalizing cfg haltCfg with
   | zero =>
-    simp only [EvalsToInTime, Option.bind_eq_bind, step, Function.iterate_zero, id_eq,
+    -- rw [ReductionSystem.reducesToInSteps.zero_iff] at h
+    -- rw [ReductionSystem.reducesToInSteps.zero_iff]
+    -- rw [h]
+    simp [Option.bind_eq_bind, step, Function.iterate_zero, id_eq,
       Option.some.injEq] at h ⊢
     rw [h]
   | succ n ih =>
     -- Use the decomposition lemma: cfg evals to some intermediate c in n steps,
     -- and then c steps to haltCfg
     -- obtain ⟨c, hc_n, hc_step⟩ := EvalsToInTime.succ_decompose hf.tm.step cfg haltCfg n h
-    rw [EvalsToInTime.succ_iff] at h ⊢
+    rw [ReductionSystem.reducesToInSteps.succ'_iff] at h ⊢
     obtain ⟨c, hc_n, hc_step⟩ := h
     use liftCompCfg_left_or_right hf hg c
     constructor
@@ -384,10 +383,11 @@ theorem comp_left_simulation_general {f : List Bool → List Bool} {g : List Boo
       | mk state OTape =>
         cases state with
         | none =>
-          simp_all
+          sorry
         | some q =>
-          rw [← map_liftCompCfg_left_or_right_step hf hg ⟨some q, OTape⟩ (by simp)]
-          simp only [hc_step, Option.map_some]
+          sorry
+          -- rw [← map_liftCompCfg_left_or_right_step hf hg ⟨some q, OTape⟩ (by simp)]
+          -- simp only [hc_step, Option.map_some]
 
 
 /--
@@ -401,13 +401,13 @@ theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → Li
     (hf : TimeComputable f) (hg : TimeComputable g)
     (a : List Bool)
     (hf_outputsFun :
-      EvalsToWithinTime hf.tm.step
+      hf.tm.TerminalReductionSystem.reducesToWithinSteps
         { state := some hf.tm.q₀, OTape := OTape.mk₁ a }
-        (some { state := none, OTape := OTape.mk₁ (f a) })
+        ({ state := none, OTape := OTape.mk₁ (f a) })
         (hf.time a.length)) :
-    EvalsToWithinTime (compComputer hf hg).step
+    (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
       { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ a }
-      (some { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) })
+      ({ state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) })
       (hf.time a.length) := by
   obtain ⟨steps, hsteps_le, hsteps_eval⟩ := hf_outputsFun
   use steps
@@ -426,20 +426,25 @@ theorem comp_left_simulation {f : List Bool → List Bool} {g : List Bool → Li
 theorem comp_right_simulation
     {f : List Bool → List Bool} {g : List Bool → List Bool}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (x : hg.tm.Cfg) (y : Option hg.tm.Cfg) (m : ℕ)
-    (h : EvalsToWithinTime hg.tm.step x y m) :
-    EvalsToWithinTime (compComputer hf hg).step
+    (x : hg.tm.Cfg) (y : hg.tm.Cfg) (m : ℕ)
+    (h : hg.tm.TerminalReductionSystem.reducesToWithinSteps x y m) :
+    (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
       (liftCompCfg_right hf hg x)
-      (Option.map (liftCompCfg_right hf hg) y)
+      ((liftCompCfg_right hf hg) y)
       m := by
-  exact EvalsToWithinTime.map hg.tm.step (compComputer hf hg).step
-    (liftCompCfg_right hf hg) (map_liftCompCfg_right_step hf hg) x y m h
+  refine Cslib.ReductionSystem.reducesToWithinSteps.map (liftCompCfg_right hf hg) ?_ h
+  intro a b hab
+  -- hab : hg.tm.step a = some b (this is Red for TerminalReductionSystem.Option)
+  -- Need: (compComputer hf hg).step (liftCompCfg_right hf hg a) = some (liftCompCfg_right hf hg b)
+  have h1 := map_liftCompCfg_right_step hf hg a
+  rw [hab, Option.map_some] at h1
+  exact h1.symm
 
 
 
 
 lemma output_length_le_input_length_add_time (tm : BinTM0) (l l' : List Bool) (t : ℕ)
-    (h : tm.OutputsWithinTime l (some l') t) :
+    (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
   unfold OutputsWithinTime at h
   obtain ⟨steps, hsteps_le, hevals⟩ := h
@@ -485,31 +490,30 @@ def TimeComputable.comp
     have hg_outputsFun := hg.outputsFun (f a)
     simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
       Option.map_some, haltCfg] at hg_outputsFun hf_outputsFun ⊢
-    -- The computer evals a to f a in time hf.time a
-    have h_a_evalsTo_f_a :
-        EvalsToWithinTime (compComputer hf hg).step
+    -- The computer reduces a to f a in time hf.time a
+    have h_a_reducesTo_f_a :
+        (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
           { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ a }
-          (some { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) })
+          { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) }
           (hf.time a.length) :=
       comp_left_simulation hf hg a hf_outputsFun
-    have h_f_a_evalsTo_g_f_a :
-        EvalsToWithinTime (compComputer hf hg).step
+    have h_f_a_reducesTo_g_f_a :
+        (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
           { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) }
-          (some { state := none, OTape := OTape.mk₁ (g (f a)) })
+          { state := none, OTape := OTape.mk₁ (g (f a)) }
           (hg.time (f a).length) := by
       -- Use the simulation lemma for the second machine
       have := comp_right_simulation hf hg
         { state := some hg.tm.q₀, OTape := OTape.mk₁ (f a) }
-        (some { state := none, OTape := OTape.mk₁ (g (f a)) })
+        { state := none, OTape := OTape.mk₁ (g (f a)) }
         (hg.time (f a).length)
         hg_outputsFun
-      simp only [liftCompCfg_right, Option.map_some] at this
+      simp only [liftCompCfg_right] at this
       exact this
-    have h_a_evalsTo_g_f_a :=
-      EvalsToWithinTime.trans
-        (compComputer hf hg).step _ _ _ _ _ h_a_evalsTo_f_a h_f_a_evalsTo_g_f_a
-    apply EvalsToWithinTime.mono_time _ _ _ h_a_evalsTo_g_f_a
-    nth_rw 1 [← add_comm]
+    have h_a_reducesTo_g_f_a :=
+      Cslib.ReductionSystem.reducesToWithinSteps.trans
+        h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
+    apply Cslib.ReductionSystem.reducesToWithinSteps.mono_steps h_a_reducesTo_g_f_a
     apply add_le_add
     · omega
     · apply h_mono
