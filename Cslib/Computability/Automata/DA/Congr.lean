@@ -28,7 +28,7 @@ def RightCongruence.toDA (c : RightCongruence Symbol) : Automata.DA c.QuotType S
   tr s x := Quotient.lift (fun u ↦ ⟦ u ++ [x] ⟧) (by
     intro u v h_eq
     apply Quotient.sound
-    exact RightCongruence.right_congr u v h_eq [x]
+    exact right_congr h_eq [x]
   ) s
   start := ⟦ [] ⟧
 

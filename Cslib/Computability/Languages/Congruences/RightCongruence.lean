@@ -27,7 +27,7 @@ that is preserved by concatenation on the right.  The equivalence relation is re
 by a setoid to to enable ready access to the quotient construction. -/
 class RightCongruence (α : Type*) extends eq : Setoid (List α) where
   /-- If `u` an `v` are congruent, then `u ++ w` and `v ++ w` are also congruent for any `w`. -/
-  right_congr : ∀ u v, eq u v → ∀ w, eq (u ++ w) (v ++ w)
+  right_congr {u v} (huv : u ≈ v) (w : List α) : u ++ w ≈ v ++ w
 
 /-- The `≃` notation is supported for right congruences. -/
 instance {α : Type*} [RightCongruence α] : HasEquiv (List α) :=
