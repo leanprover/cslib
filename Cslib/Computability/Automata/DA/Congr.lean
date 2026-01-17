@@ -19,7 +19,7 @@ open scoped FLTS RightCongruence
 
 variable {Symbol : Type*}
 
-/-- Every right congruence gives rise to a DA whose states are the euqivalence classes of
+/-- Every right congruence gives rise to a DA whose states are the equivalence classes of
 the right congruence, whose start state is the empty word, and whose transition functiuon
 is concatenation on the right of the input symbol. Note that the transition function is
 well-defined only because `c` is a right congruence. -/
