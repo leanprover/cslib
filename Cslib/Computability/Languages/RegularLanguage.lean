@@ -6,6 +6,7 @@ Authors: Ching-Tsun Chou
 
 module
 
+public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
@@ -158,5 +159,13 @@ theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
   · rw [IsRegular.iff_nfa] at h ⊢
     obtain ⟨State, h_fin, nfa, rfl⟩ := h
     use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
+
+/-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
+@[simp]
+theorem IsRegular.congr_fin_index {Symbol : Type} [c : RightCongruence Symbol] [Finite c.QuotType]
+    (s : c.QuotType) : (c.eqvCls s).IsRegular := by
+  rw [IsRegular.iff_dfa]
+  use c.QuotType, inferInstance, ⟨c.toDA, {s}⟩
+  exact DA.FinAcc.congr_language_eq
 
 end Cslib.Language
