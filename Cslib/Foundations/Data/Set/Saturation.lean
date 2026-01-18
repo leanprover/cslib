@@ -30,8 +30,8 @@ variable {f : ι → Set α} {s : Set α}
 @[simp, scoped grind .]
 theorem saturates_compl (hs : Saturates f s) : Saturates f sᶜ := by
   rintro i ⟨_, _⟩ y _ _
-  have h_y : (f i ∩ s).Nonempty := by use y; grind
-  grind [hs i h_y]
+  have : (f i ∩ s).Nonempty := ⟨y, by grind⟩
+  grind [Saturates]
 
 /-- If `f` is a cover and saturates `s`, then `s` is the union of all `f i` that intersects `s`. -/
 theorem saturates_eq_biUnion (hs : Saturates f s) (hc : ⋃ i, f i = univ) :

@@ -191,8 +191,7 @@ then it is an ω-regular language. -/
 theorem IsRegular.fin_cover_saturates {I : Type*} [Finite I]
     {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
     (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : q.IsRegular := by
-  have hq : q = ⨆ i ∈ {i | (p i ⊓ q).Nonempty}, p i := saturates_eq_biUnion hs hc
-  rw [hq]
+  rw [saturates_eq_biUnion hs hc]
   apply IsRegular.iSup
   grind
 
@@ -200,8 +199,8 @@ theorem IsRegular.fin_cover_saturates {I : Type*} [Finite I]
 then its complement is an ω-regular language. -/
 theorem IsRegular.fin_cover_saturates_compl {I : Type*} [Finite I]
     {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
-    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular := by
-  exact IsRegular.fin_cover_saturates (saturates_compl hs) hc hr
+    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular :=
+  IsRegular.fin_cover_saturates (saturates_compl hs) hc hr
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :
