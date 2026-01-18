@@ -1,0 +1,86 @@
+/-
+Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ching-Tsun Chou
+-/
+
+module
+
+public import Cslib.Computability.Languages.RegularLanguage
+
+@[expose] public section
+
+/-! # Languages determined by pairs of states
+-/
+
+namespace Cslib
+
+open Language Automata Acceptor
+
+variable {Symbol : Type*} {State : Type}
+
+/-- `LTS.pairLang s t` is the language of finite words that can take the LTS
+from state `s` to state `t`. -/
+def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol :=
+  { xl | lts.MTr s xl t }
+
+@[simp, scoped grind =]
+theorem LTS.mem_pairLang (lts : LTS State Symbol) (s t : State) (xl : List Symbol) :
+    xl ∈ (lts.pairLang s t) ↔ lts.MTr s xl t := Iff.rfl
+
+/-- `LTS.pairLang s t` is a regular language if there are only finitely many states. -/
+@[simp]
+theorem LTS.pairLang_regular [Finite State] (lts : LTS State Symbol) (s t : State) :
+    (lts.pairLang s t).IsRegular := by
+  rw [IsRegular.iff_nfa]
+  use State, inferInstance, (NA.FinAcc.mk ⟨lts, {s}⟩ {t})
+  ext
+  simp
+
+namespace Automata.NA.Buchi
+
+open Set Filter ωSequence ωLanguage ωAcceptor
+
+/-- The ω-language accepted by a finite-state Büchi automaton is the finite union of ω-languages
+of the form `L * M^ω`, where all `L`s and `M`s are regular languages. -/
+theorem language_eq_fin_iSup_hmul_omegaPow
+    [Inhabited Symbol] [Finite State] (na : Buchi State Symbol) :
+    language na = ⨆ s ∈ na.start, ⨆ t ∈ na.accept, (na.pairLang s t) * (na.pairLang t t)^ω := by
+  ext xs
+  simp only [Buchi.instωAcceptor, ωAcceptor.mem_language,
+    ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
+  constructor
+  · rintro ⟨ss, h_run, h_inf⟩
+    obtain ⟨t, h_acc, h_t⟩ := frequently_in_finite_type.mp h_inf
+    use ss 0, by grind [NA.Run], t, h_acc
+    obtain ⟨f, h_mono, h_f⟩ := frequently_iff_strictMono.mp h_t
+    refine ⟨xs.take (f 0), ?_, xs.drop (f 0), ?_, by grind⟩
+    · have : na.MTr (ss 0) (xs.extract 0 (f 0)) (ss (f 0)) := by grind [LTS.ωTr_mTr, NA.Run]
+      grind [extract_eq_drop_take]
+    · simp only [omegaPow_seq_prop, LTS.mem_pairLang]
+      use (f · - f 0)
+      split_ands
+      · grind [Nat.base_zero_strictMono]
+      · simp
+      · intro n
+        have mono_f (k : ℕ) : f 0 ≤ f (n + k) := h_mono.monotone (by grind)
+        grind [extract_drop, mono_f 0, LTS.ωTr_mTr h_run.trans <| h_mono.monotone (?_ : n ≤ n + 1)]
+  · rintro ⟨s, _, t, _, yl, h_yl, zs, h_zs, rfl⟩
+    obtain ⟨zls, rfl, h_zls⟩ := mem_omegaPow.mp h_zs
+    let ts := ωSequence.const t
+    have h_mtr (n : ℕ) : na.MTr (ts n) (zls n) (ts (n + 1)) := by
+      grind [Language.mem_sub_one, LTS.mem_pairLang]
+    have h_pos (n : ℕ) : (zls n).length > 0 := by
+      grind [Language.mem_sub_one, List.eq_nil_iff_length_eq_zero]
+    obtain ⟨zss, h_zss, _⟩ := LTS.ωTr.flatten h_mtr h_pos
+    have (n : ℕ) : zss (zls.cumLen n) = t := by grind
+    obtain ⟨xss, _, _, _, _⟩ := LTS.ωTr.append h_yl h_zss (by grind [cumLen_zero (ls := zls)])
+    use xss, by grind [NA.Run]
+    apply (drop_frequently_iff_frequently yl.length).mp
+    apply frequently_iff_strictMono.mpr
+    use zls.cumLen
+    grind [cumLen_strictMono]
+
+end Automata.NA.Buchi
+
+end Cslib
