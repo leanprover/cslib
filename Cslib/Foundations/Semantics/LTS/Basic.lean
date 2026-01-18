@@ -215,6 +215,26 @@ theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
     ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
 
+/-- An execution can be split at any intermediate state into two executions. -/
+theorem LTS.IsExecution.split
+    {lts : LTS State Label} {s t : State} {μs : List Label} {ss : List State}
+    (he : lts.IsExecution s μs t ss) (n : ℕ) (hn : n ≤ μs.length) :
+    lts.IsExecution s (μs.take n) (ss[n]'(by grind)) (ss.take (n + 1)) ∧
+    lts.IsExecution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
+  split_ands
+  · grind
+  · use by grind, by grind, ?_, by grind
+    simp [List.getElem_drop, show n + (ss.length - n - 1) = ss.length - 1 by grind]
+    grind
+
+/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
+theorem LTS.MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
+    (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
+  obtain ⟨ss, h_ss⟩ := LTS.mTr_isExecution h
+  obtain ⟨_, _⟩ := LTS.IsExecution.split h_ss μs1.length (by grind)
+  use ss[μs1.length]'(by grind)
+  grind [List.take_append]
+
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
 @[scoped grind =]
