@@ -1,9 +1,10 @@
 /-
-Copyright (c) 2026 Martina Maggio, Bashar Hamade. All rights reserved.
+Copyright (c) 2026 Bashar Hamade. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Martina Maggio, Bashar Hamade
+Authors: Bashar Hamade
 -/
 
+import Cslib.Init
 import Mathlib.Analysis.Normed.Module.Basic
 import Mathlib.Analysis.Normed.Operator.ContinuousLinearMap
 import Mathlib.LinearAlgebra.Span.Basic

@@ -95,6 +95,98 @@ theorem satisfies_double_neg (lts : LTS State Label) (s : State) (φ : Formula L
   simp only [satisfies, not_not]
 
 
+/-- Size of a formula (for well-founded recursion) -/
+def Formula.size : Formula Label → Nat
+  | .true => 1
+  | .false => 1
+  | .modal _ φ => 1 + φ.size
+  | .conj φs => 1 + φs.foldr (fun φ acc => φ.size + acc) 0
+  | .neg φ => 1 + φ.size
+
+
+#print Formula.rec
+
+
+/-- induction on formula structure -/
+theorem Formula.ind_on {Label : Type v} {P : Formula Label → Prop}
+  (φ : Formula Label)
+  (h_true : P .true)
+  (h_false : P .false)
+  (h_modal : ∀ a ψ, P ψ → P (.modal a ψ))
+  (h_conj : ∀ φs, (∀ φ ∈ φs, P φ) → P (.conj φs))
+  (h_neg : ∀ ψ, P ψ → P (.neg ψ))
+  : P φ := by
+  apply Formula.rec
+    (motive_1 := P)
+    (motive_2 := fun φs => ∀ φ ∈ φs, P φ)
+  · -- true case
+    exact h_true
+  · -- false case
+    exact h_false
+  · -- modal case
+    exact h_modal
+  · -- conj case
+    intro φs h_all
+    exact h_conj φs h_all
+  · -- neg case
+    exact h_neg
+  · -- nil case (empty list)
+    intros φ h_mem
+    cases h_mem
+  · -- cons case
+    intros head tail h_head h_tail φ h_mem
+    cases h_mem with
+    | head h_eq => exact h_head
+    | tail h_in =>
+      apply h_tail
+      trivial
+
+/-- If two LTS have the same transition relation, then they satisfy the same formulas -/
+theorem satisfies_independent_of_lts_structure
+  {State : Type u} {Label : Type v}
+  (lts1 lts2 : LTS State Label)
+  (h_same_tr : ∀ s a s', lts1.Tr s a s' ↔ lts2.Tr s a s')
+  (s : State) (φ : Formula Label) :
+  satisfies lts1 s φ ↔ satisfies lts2 s φ := by
+  induction φ using Formula.ind_on generalizing s with
+  | h_true =>
+    -- True case: both are True
+    simp [satisfies]
+  | h_false =>
+    -- False case: both are False
+    simp [satisfies]
+  | h_modal a ψ ih =>
+    -- Modal case: ⟨a⟩ψ
+    simp only [satisfies]
+    constructor
+    · intro ⟨s', ⟨h_tr1, h_sat1⟩⟩
+      use s'
+      constructor
+      · rw [← h_same_tr]
+        exact h_tr1
+      · rw [← ih s']
+        exact h_sat1
+    · intro ⟨s', ⟨h_tr2, h_sat2⟩⟩
+      use s'
+      constructor
+      · rw [h_same_tr]
+        exact h_tr2
+      · rw [ih s']
+        exact h_sat2
+  | h_conj φs ih_list =>
+    -- Conjunction case: ⋀ᵢ φᵢ
+    simp only [satisfies]
+    constructor
+    · intro h_all φ h_mem
+      rw [← ih_list φ h_mem s]
+      exact h_all φ h_mem
+    · intro h_all φ h_mem
+      rw [ih_list φ h_mem s]
+      exact h_all φ h_mem
+  | h_neg ψ ih =>
+    -- Negation case: ¬ψ
+    simp only [satisfies]
+    rw [ih s]
 
 end HennessyMilner
 

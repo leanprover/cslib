@@ -79,7 +79,7 @@ A ReachabilityGame consists of:
 The game is played between a Defender (who tries to reach `G_d`) and an Attacker
 (who tries to avoid `G_d` forever).
 -/
-structure ReachabilityGame where
+structure Game where
   /-- The type of transition labels. -/
   Label : Type v
   /-- The type of positions in the game graph. -/
@@ -91,9 +91,9 @@ structure ReachabilityGame where
   /-- The initial position of the game. -/
   g_0 : Pos
 
-namespace ReachabilityGame
+namespace Game
 
-variable {G : ReachabilityGame}
+variable {G : Game}
 
 /--
 The set of positions belonging to the Attacker.
@@ -241,7 +241,7 @@ The Defender wins a play if either:
 -/
 def DefenderWins (play : @Play G) : Prop :=
   play.isInfinite ∨ (∃ h : play.isFinite,
-    ∃ p, play.π (final_pos_index play h - 1) = some p ∧ p ∈ G.G_d)
+    ∃ p, play.π (final_pos_index play h - 1) = some p ∧ p ∈ Attacker)
 
 
 /-- The Attacker wins a play if the Defender does not win. -/
@@ -254,7 +254,7 @@ theorem Defender_or_Attacker_win (play : @Play G) : DefenderWins play ∨ Attack
   cases fin_or_infin with
   | inl hfin =>
     -- Finite case
-    by_cases h : ∃ p, play.π (final_pos_index play hfin - 1) = some p ∧ p ∈ G.G_d
+    by_cases h : ∃ p, play.π (final_pos_index play hfin - 1) = some p ∧ p ∈ Attacker
     · -- Defender wins
       left
       right
@@ -353,10 +353,41 @@ The AttackerWinRegion is the set of Attacker positions from which the Attacker
 can force a win (i.e., positions in the winning region for the Attacker).
 -/
 def AttackerWinRegion : Set G.Pos :=
-  { g : G.Pos | g ∈ Attacker ∧ AttackerWinsFromPos g }
+  { g : G.Pos | AttackerWinsFromPos g }
+
+
+/--
+A play follows a DefenderStrategy if, whenever the play is at a Defender position,
+the next position is the one prescribed by the strategy.
+-/
+def followsDefenderStrategy (play : @Play G) (σ : @DefenderStrategy G) : Prop :=
+  ∀ n p, play.π n = some p →
+    (hg : p ∈ G.G_d) →
+    play.π (n + 1) = some (σ p hg).val
+
+/--
+DefenderWinsFromPos pos means the Defender has a strategy that guarantees winning
+from position pos, no matter how the Attacker responds.
+-/
+def DefenderWinsFromPos (pos : G.Pos) : Prop :=
+  ∃ (strategy : @DefenderStrategy G),
+  ∀ (play : @Play G),
+    play.π 0 = some pos →
+    play.followsDefenderStrategy strategy →
+    play.DefenderWins
+
+/--
+The DefenderWinRegion is the set of positions from which the Defender
+can force a win.
+-/
+def DefenderWinRegion : Set G.Pos :=
+  { g : G.Pos | DefenderWinsFromPos g }
+
+
+
 
 end Play
 
-end ReachabilityGame
+end Game
 
 end Cslib
