@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 import Cslib.Init
 import Mathlib.Logic.Relation
 import Mathlib.Data.List.TFAE
+import Mathlib.Order.Comparable
 import Mathlib.Order.WellFounded
 import Mathlib.Order.BooleanAlgebra.Basic
 
@@ -40,7 +41,11 @@ theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
 theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
   induction h <;> grind
 
-attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
+theorem CompRel.to_eqvGen (h : CompRel r a b) : EqvGen r a b := by
+  induction h <;> grind
+
+attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen 
+  CompRel.to_eqvGen
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
@@ -302,5 +307,75 @@ theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelat
     ReflTransGen r₁ = ReflTransGen r₂ := by
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
+
+
+-- TODO: Below
+/- So something like showing that EqvGen r is eq to ReflTransGen (CompRel r) by creating an inductive principle like EqvGen.chain_induction_on (?) which can then be used in the (3->1) step of Theorem 2.1.5 -/
+
+-- If reflexive transitive symmetric closure <-*-> is in that order,
+-- are we unravelling the first two to get to the symmetric closure?
+-- Is that how the induction works?
+
+/- 
+A relation has the Church Rosser property when equivalence implies multi-joinability.
+As such, we can use EqvGen as a hypothesis (?)
+Recall: EqvGen IS reflexive transitive symmetric closure
+
+abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join (ReflTransGen r) x y
+
+a joins b when a and b can both reach some common c in one step
+(aka Join r a b)
+multi-joinability a ↓ b is when a and b can both reach some c in 0 or more steps
+(aka Join (ReflTransGen r) a b)
+-/
+
+/-
+(3 => 1) If -> is semi-confluent and x <-*-> y then we show x ↓ y, i.e. the
+Church-Rosser property, by induction on the length of the chain x <-*-> y.
+
+We want an inductive proof where we induct on the length of the chain x <-*-> y,
+which is a reflexive transitive SYMMETRIC closure. The key part here is that we
+care about the symmetry of the closure, that ↔ := ← ⋃ →, and we want to show at
+each step that x ↓ y
+
+If reflexive (x = y), then we know they are multi-joinable trivially (x ↓ x)
+If x <-*-> y ↔ y' (i.e. non-zero chain length), then x <-*-> y => x ↓ y by IH
+so we need to show that x ↓ y' in total with the prev's help.
+x ↓ y' by cases:
+1. y <- y': x ↓ y' follows from x ↓ y, there is a join point since y' follows y's path
+2. y -> y': by x ↓ y, ∃ z join point for x, y (from x <-*-> y). Then, by semi-confluence
+            we have that z ↓ y' (∃ a, join point for z, y'), so we can extend x-z path 
+            with the z-a path to get that x ↓ y' at point a
+
+^ is the whole proof, but we need to care specifically about creating an inductive structure
+from which we can apply semiconfluence, etc. (aka the case work in the "tail" case)
+-/
+
+-- a <-*-> c ↔ b (fixed endpoint)
+theorem EqvGen.chain_induction_on {b : α} {motive : ∀ a, EqvGen r a b → Prop} {a : α} [IsRefl α r]
+    (h : EqvGen r a b) (refl : motive b (EqvGen.refl (r := r) (x := b)))
+    (tail : ∀ {a c} (hac : EqvGen r a c) (cb : CompRel r c b), motive c (CompRel.to_eqvGen cb)
+    → motive a (EqvGen.trans (x := a) (y := c) (z := b) hac (CompRel.to_eqvGen cb))) :
+    motive a h := by
+  induction h with
+  | rel x y hxy =>
+    -- refl is motive y, so use chain x -> y and y -> y to get tail chain x -> y
+    -- applying motive y -> motive x to the goal motive x will give us motive y
+    -- which then admits refl
+    apply tail (hac := (EqvGen.rel (x := x) (y := y) hxy)) (cb := .refl (r := r) (a := y))
+    exact refl
+  | refl => exact refl
+  | symm x y hxy ih =>
+    sorry
+  | trans =>
+    sorry
+
+-- theorem 2.1.5, try proving with chain_induction_on, see if it works bruv
+private theorem confluent_equivalents2 : [ChurchRosser r, SemiConfluent r, Confluent r].TFAE := by
+  sorry
+
+
+-- theorem EqvGen_eq_reflTransGen_compRel : EqvGen r = ReflTransGen (CompRel r) := by
+--   sorry
 
 end Relation
