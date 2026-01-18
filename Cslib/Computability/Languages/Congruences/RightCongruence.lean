@@ -12,7 +12,7 @@ public import Mathlib.Computability.Language
 @[expose] public section
 
 /-!
-# Right RightCongruence
+# Right Congruence
 
 This file contains basic definitions about right congruences on finite sequences.
 
