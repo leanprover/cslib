@@ -37,17 +37,17 @@ theorem LTS.pairLang_regular [Finite State] (lts : LTS State Symbol) (s t : Stat
   ext
   simp
 
-namespace NA.Buchi
+namespace Automata.NA.Buchi
 
 open Set Filter ωSequence ωLanguage ωAcceptor
 
 /-- The ω-language accepted by a finite-state Büchi automaton is the finite union of ω-languages
 of the form `L * M^ω`, where all `L`s and `M`s are regular languages. -/
 theorem language_eq_fin_iSup_hmul_omegaPow
-    [Inhabited Symbol] [Finite State] (na : NA.Buchi State Symbol) :
+    [Inhabited Symbol] [Finite State] (na : Buchi State Symbol) :
     language na = ⨆ s ∈ na.start, ⨆ t ∈ na.accept, (na.pairLang s t) * (na.pairLang t t)^ω := by
   ext xs
-  simp only [NA.Buchi.instωAcceptor, ωAcceptor.mem_language,
+  simp only [Buchi.instωAcceptor, ωAcceptor.mem_language,
     ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
   constructor
   · rintro ⟨ss, h_run, h_inf⟩
@@ -81,6 +81,6 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     use zls.cumLen
     grind [cumLen_strictMono]
 
-end NA.Buchi
+end Automata.NA.Buchi
 
 end Cslib
