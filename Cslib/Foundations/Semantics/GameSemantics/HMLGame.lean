@@ -15,6 +15,8 @@ open HennessyMilner
 
 universe u v
 
+variable {State : Type u} {Label : Type v}
+
 /--
 Definition 2.7 (HML game):
 For a transition system S = (P, Σ, →), the HML game G^S_HML[g₀] = (G, G_d, ↝, g₀)
@@ -103,18 +105,76 @@ def toGame (HG : HMLGame) : Game where
   g_0 := HG.g0
 
 
-/--
-Definition 2.8: p ⊨ φ iff Attacker wins G_HML^S[(p,φ)].
-The Attacker winning means the formula is satisfied.
--/
-def attackerWinsHML (G : HMLGame) : Prop :=
-  @Game.Play.AttackerWinsFromPos G.toGame G.g0
+def defenderWinsHML (lts : LTS State Label) : State → Formula Label → Prop
+  | _, .true => True
+  | _, .false => False
+  | p, .modal a φ => ∃ p', lts.Tr p a p' ∧ defenderWinsHML lts p' φ
+  | p, .conj φs => ∀ φ ∈ φs, defenderWinsHML lts p φ
+  | p, .neg φ => ¬defenderWinsHML lts p φ
 
-/--
-The Defender wins G_HML^S[(p,φ)] iff p ⊭ φ.
--/
-def defenderWinsHML (G : HMLGame) : Prop :=
-  @Game.Play.DefenderWinsFromPos G.toGame G.g0
+
+theorem game_semantics_correct (lts : LTS State Label) (p : State) (φ : Formula Label) :
+    defenderWinsHML lts p φ ↔ satisfies lts p φ := by
+  induction φ using Formula.ind_on generalizing p with
+  | h_true =>
+    -- Base Case 1: φ = ⊤
+    simp [defenderWinsHML, satisfies]
+  | h_false =>
+    -- Base Case 2: φ = ⊥
+    simp [defenderWinsHML, satisfies]
+  | h_modal a ψ ih =>
+      constructor
+      · intro h_def_win
+        simp only [defenderWinsHML] at h_def_win
+        obtain ⟨p', h_tr, h_def_win_ψ⟩ := h_def_win
+        simp only [satisfies]
+        use p'
+        constructor
+        exact h_tr
+        specialize ih p'
+        exact ih.mp h_def_win_ψ
+      · simp only [satisfies]
+        intro ⟨p', h_tr, h_sat_ψ⟩
+        simp only [defenderWinsHML]
+        use p'
+        constructor
+        exact h_tr
+        specialize ih p'
+        exact ih.mpr h_sat_ψ
+  | h_conj φs ih_list =>
+      constructor
+      · intro h_def_win
+        simp only [defenderWinsHML] at h_def_win
+        simp only [satisfies]
+        intro φ h_mem
+        specialize ih_list φ h_mem p
+        exact ih_list.mp (h_def_win φ h_mem)
+      · simp only [satisfies]
+        intro h_sat_all
+        simp only [defenderWinsHML]
+        intro φ h_mem
+        specialize ih_list φ h_mem p
+        exact ih_list.mpr (h_sat_all φ h_mem)
+  | h_neg ψ ih =>
+      constructor
+      · intro h_def_win
+        simp only [defenderWinsHML] at h_def_win
+        simp only [satisfies]
+        intro h_sat_ψ
+        specialize ih p
+        have h_def_ψ := ih.mpr h_sat_ψ
+        contradiction
+      · simp only [satisfies]
+        intro h_not_sat_ψ
+        simp only [defenderWinsHML]
+        intro h_def_ψ
+        specialize ih p
+        have h_sat_ψ := ih.mp h_def_ψ
+        contradiction
+
+
+
+
 
 
 

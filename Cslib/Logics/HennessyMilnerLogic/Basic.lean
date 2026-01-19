@@ -104,8 +104,6 @@ def Formula.size : Formula Label → Nat
   | .neg φ => 1 + φ.size
 
 
-#print Formula.rec
-
 
 /-- induction on formula structure -/
 theorem Formula.ind_on {Label : Type v} {P : Formula Label → Prop}
