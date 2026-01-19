@@ -103,7 +103,7 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
   · use [inl ()]
     grind
   · use [inl ()] ++ (sl.extract 1 xl.length).map inr ++ [inl ()]
-    grind [FinAcc.loop]
+    grind [FinAcc.loop, → LTS.tr_setImage]
 
 /-- For any finite word in `language na`, there is a corresponding multistep transition
 of `na.loop`. -/

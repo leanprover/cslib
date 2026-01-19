@@ -104,7 +104,6 @@ theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   · apply LTS.MTr.refl
 
 /-- Any multistep transition can be extended by adding a transition. -/
-@[scoped grind <=]
 theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
   intro h1 h2
@@ -162,12 +161,10 @@ theorem LTS.IsExecution.refl (lts : LTS State Label) (s : State) : lts.IsExecuti
   grind
 
 /-- Equivalent of `MTr.stepL` for executions. -/
-@[scoped grind →]
 theorem LTS.IsExecution.stepL {lts : LTS State Label} (htr : lts.Tr s1 μ s2)
     (hexec : lts.IsExecution s2 μs s3 ss) : lts.IsExecution s1 (μ :: μs) s3 (s1 :: ss) := by grind
 
 /-- Deconstruction of executions with `List.cons`. -/
-@[scoped grind →]
 theorem LTS.isExecution_cons_invert (h : lts.IsExecution s1 (μ :: μs) s2 (s1 :: ss)) :
     lts.IsExecution (ss[0]'(by grind)) μs s2 ss := by
   obtain ⟨_, _, _, h4⟩ := h
@@ -538,7 +535,6 @@ theorem LTS.mem_setImage {lts : LTS State Label} :
   simp only [setImage, Set.mem_iUnion, exists_prop]
   grind
 
-@[scoped grind →]
 theorem LTS.tr_setImage {lts : LTS State Label} (hs : s ∈ S) (htr : lts.Tr s μ s') :
   s' ∈ lts.setImage S μ := by grind
 
@@ -669,7 +665,6 @@ theorem LTS.saturate_tr_sTr [HasTau Label] {lts : LTS State Label} :
   lts.saturate.Tr = lts.STr := by rfl
 
 /-- Any transition is also a saturated transition. -/
-@[scoped grind →]
 theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
     lts.Tr s μ s' → lts.STr s μ s' := by
   intro h
