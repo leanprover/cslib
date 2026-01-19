@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Prod
-import Cslib.Computability.Automata.DA.ToNA
-import Cslib.Computability.Automata.NA.Concat
-import Cslib.Computability.Automata.NA.ToDA
-import Mathlib.Computability.DFA
-import Mathlib.Data.Finite.Sum
-import Mathlib.Data.Set.Card
-import Mathlib.Tactic.Common
+module
+
+public import Cslib.Computability.Automata.DA.Prod
+public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.ToDA
+public import Mathlib.Computability.DFA
+public import Mathlib.Data.Finite.Sum
+public import Mathlib.Data.Set.Card
+public import Mathlib.Tactic.Common
+
+@[expose] public section
 
 /-!
 # Regular languages
@@ -142,5 +147,16 @@ theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
   use (State1 ⊕ Unit) ⊕ (State2 ⊕ Unit), inferInstance,
     ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
   exact finConcat_language_eq
+
+open NA.FinAcc Sum in
+/-- The Kleene star of a regular language is regular. -/
+@[simp]
+theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
+    (h : l.IsRegular) : (l∗).IsRegular := by
+  by_cases h_l : l = 0
+  · simp [h_l]
+  · rw [IsRegular.iff_nfa] at h ⊢
+    obtain ⟨State, h_fin, nfa, rfl⟩ := h
+    use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
 end Cslib.Language

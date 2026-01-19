@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Total
-import Cslib.Foundations.Data.OmegaSequence.Temporal
+module
+
+public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+@[expose] public section
 
 /-! # Concatenation of nondeterministic automata. -/
 
@@ -45,7 +49,6 @@ lemma concat_run_left {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ Stat
     obtain ⟨t1, h_mtr, _⟩ := h_ind (by grind)
     obtain ⟨t1', h_tr, _⟩ : ∃ t1', na1.Tr t1 (xs n) t1' ∧ ss (n + 1) = inl t1' := by
       grind [concat, hc.trans n]
-    use t1'
     grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
 
 lemma concat_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}

@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 
-import Cslib.Foundations.Semantics.ReductionSystem.Basic
+module
+
+public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
+
+@[expose] public section
 
 /-!
 # SKI Combinatory Logic
