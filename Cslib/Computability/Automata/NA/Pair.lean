@@ -22,15 +22,15 @@ variable {Symbol : Type*} {State : Type}
 /-- `LTS.pairLang s t` is the language of finite words that can take the LTS
 from state `s` to state `t`. -/
 def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol :=
-  { xl | lts.MTr s xl t }
+  { xs | lts.MTr s xs t }
 
 @[simp, scoped grind =]
-theorem LTS.mem_pairLang (lts : LTS State Symbol) (s t : State) (xl : List Symbol) :
-    xl ∈ (lts.pairLang s t) ↔ lts.MTr s xl t := Iff.rfl
+theorem LTS.mem_pairLang {lts : LTS State Symbol} {s t : State} {xs : List Symbol} :
+    xs ∈ (lts.pairLang s t) ↔ lts.MTr s xs t := Iff.rfl
 
 /-- `LTS.pairLang s t` is a regular language if there are only finitely many states. -/
 @[simp]
-theorem LTS.pairLang_regular [Finite State] (lts : LTS State Symbol) (s t : State) :
+theorem LTS.pairLang_regular [Finite State] {lts : LTS State Symbol} {s t : State} :
     (lts.pairLang s t).IsRegular := by
   rw [IsRegular.iff_nfa]
   use State, inferInstance, (NA.FinAcc.mk ⟨lts, {s}⟩ {t})
