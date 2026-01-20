@@ -370,7 +370,6 @@ theorem EqvGen.chain_induction_on {b : α} {motive : ∀ a, EqvGen r a b → Pro
   | trans =>
     sorry
 
-
 lemma ReflGen.compRel_symm :
   ReflGen (CompRel r) a b → ReflGen (CompRel r) b a
 | .refl => .refl
@@ -378,13 +377,6 @@ lemma ReflGen.compRel_symm :
     match h with
     | Or.inl h' => .single (Or.inr h')
     | Or.inr h' => .single (Or.inl h')
-
-lemma TransGen.reflGen_compRel_symm {r : α → α → Prop} {a b : α}
-    (h : TransGen (ReflGen (CompRel r)) a b) : 
-    TransGen (ReflGen (CompRel r)) b a := by
-      induction h with
-      | single hab => exact .single (ReflGen.compRel_symm hab)
-      | tail _ hbc ih => exact .head hbc.compRel_symm ih
 
 lemma ReflTransGen.compRel_swap (h : ReflTransGen (CompRel r) a b) : 
     ReflTransGen (CompRel (Function.swap r)) b a := by
@@ -398,30 +390,21 @@ lemma ReflTransGen.compRel_swap (h : ReflTransGen (CompRel r) a b) :
 theorem EqvGen_eq_reflTransGen_compRel : EqvGen r = ReflTransGen (CompRel r) := by
   ext a b
   constructor
-  · rw [← Relation.transGen_reflGen]
-    intro h
+  · intro h
     induction h with
-    | rel _ _ ih => exact .single (.single (.inl ih))
-    | refl _ => exact TransGen.single (ReflGen.refl)
-    | symm x y eq ih => exact ih.reflGen_compRel_symm
+    | rel _ _ ih => exact .single (.inl ih)
+    | refl x => exact .refl
+    | symm x y eq ih =>
+      rw [← compRel_swap]
+      exact ih.compRel_swap      
     | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
-  · rw [← Relation.transGen_reflGen]
-    intro h
+  · intro h
     induction h with
-    | single hab =>
-      cases hab with
-      | refl => exact .refl a
-      | single hab =>
-        cases hab with
-        | inl h => exact (EqvGen.rel _ _ h)
-        | inr h => exact EqvGen.symm _ _ (EqvGen.rel _ _ h)
+    | refl => exact .refl _
     | tail hab hbc ih =>
       cases hbc with
-      | refl => exact ih
-      | single hbc =>
-        cases hbc with
-        | inl h => exact ih.trans _ _ _ (EqvGen.rel _ _ h)
-        | inr h => exact ih.trans _ _ _ (EqvGen.symm _ _ (EqvGen.rel _ _ h))
+      | inl h => exact ih.trans _ _ _ (.rel _ _ h)
+      | inr h => exact ih.trans _ _ _ (.symm _ _ (EqvGen.rel _ _ h))
 
 -- theorem 2.1.5, try proving with chain_induction_on, see if it works bruv
 private theorem confluent_equivalents2 : [ChurchRosser r, SemiConfluent r, Confluent r].TFAE := by
