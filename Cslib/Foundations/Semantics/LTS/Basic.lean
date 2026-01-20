@@ -148,7 +148,7 @@ theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
 which satisfies the single-step transition at every step. -/
 theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
     (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
-    ss[0] = s1 ∧ ss[μs.length] = s2 ∧ ∀ k, ∀ _ : k < μs.length, lts.Tr ss[k] μs[k] ss[k + 1] := by
+    ss[0] = s1 ∧ ss[μs.length] = s2 ∧ ∀ k, (_ : k < μs.length) → lts.Tr ss[k] μs[k] ss[k + 1] := by
   induction h
   case refl t =>
     use [t]
