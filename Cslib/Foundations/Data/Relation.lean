@@ -310,7 +310,9 @@ theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelat
 
 
 -- TODO: Below
-/- So something like showing that EqvGen r is eq to ReflTransGen (CompRel r) by creating an inductive principle like EqvGen.chain_induction_on (?) which can then be used in the (3->1) step of Theorem 2.1.5 -/
+/- So something like showing that EqvGen r is eq to ReflTransGen (CompRel r)
+by creating an inductive principle like EqvGen.chain_induction_on (?) which can
+then be used in the (3->1) step of Theorem 2.1.5 -/
 
 -- If reflexive transitive symmetric closure <-*-> is in that order,
 -- are we unravelling the first two to get to the symmetric closure?
@@ -365,6 +367,7 @@ theorem EqvGen.chain_induction_on {b : α} {motive : ∀ a, EqvGen r a b → Pro
     apply tail (hac := (EqvGen.rel _ _ hxy)) (cb := .refl _ _)
     exact refl
   | refl => exact refl
+  -- TODO: This
   | symm x y hxy ih =>
     sorry
   | trans =>
