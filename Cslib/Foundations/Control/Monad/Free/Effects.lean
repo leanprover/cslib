@@ -7,10 +7,10 @@ Authors: Tanner Duve
 module
 
 public import Cslib.Foundations.Control.Monad.Free
-import Mathlib.Control.Monad.Writer
-import Cslib.Foundations.Control.Monad.Time
+public import Mathlib.Control.Monad.Writer
+public import Cslib.Foundations.Control.Monad.Time
 public import Mathlib.Control.Monad.Cont
-import Mathlib.Data.Nat.Basic
+public import Mathlib.Data.Nat.Basic
 
 @[expose] public section
 

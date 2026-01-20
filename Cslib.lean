@@ -1,8 +1,8 @@
 module
 
 public import Cslib.Algorithms.MergeSort.MergeSort
-import Cslib.Algorithms.QueryModel
-import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.QueryModel
+public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor

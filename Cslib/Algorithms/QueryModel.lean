@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
 
-import Cslib.Foundations.Control.Monad.Free.Effects
-import Cslib.Foundations.Control.Monad.Free.Fold
-import Cslib.Foundations.Control.Monad.Time
+module
+
+public import Mathlib
+public import Cslib.Foundations.Control.Monad.Free.Effects
+public import Cslib.Foundations.Control.Monad.Free.Fold
+public import Cslib.Foundations.Control.Monad.Time
 
 /-
 # Query model
@@ -33,77 +36,81 @@ namespace Cslib
 
 namespace Algorithms
 
+structure Model (QType : Type u → Type u) (ι o : Type u) where
+  evalQuery : QType ι → ι → o
+  cost : QType ι → ι → ℕ
+
+namespace Model
+
+def interpretTimeM
+  (M : Model Q α β) (q : Q α) (inp : α) : TimeM β where
+  ret := M.evalQuery q inp
+  time := M.cost q inp
 
 
-/-- Programs built as the free monad over `QueryF`. -/
-abbrev Prog (QType : Type u → Type u) (α : Type v) := FreeM QType α
+section Examples
+
+inductive Search (α : Type*)  where
+  | find (elem : α) (list : List α)
+
+def LinSearch_WorstCase [DecidableEq α] : Model Search α ℕ  where
+  evalQuery q :=
+    match q with
+    | .find elem list => List.findIdx (· = elem) list -- sorry we need a more general type
+  cost q :=
+    match q with
+    | .find _ list => list.length
 
 
-instance {QType : Type u → Type u} : Monad (Prog QType) := inferInstance
 
+def BinSearch_WorstCase [BEq α] : Model Search α ℕ where
+  evalQuery q :=
+    match q with
+    | .find elem list => List.findIdx (· == elem) list
+  cost q :=
+    match q with
+    | .find _ l => 1 + Nat.log 2 l.length
 
+inductive Arith α where
+  | add (x y : α)
+  | mul (x y : α)
+  | neg (x : α)
+  | zero
+  | one
 
+noncomputable def RealArithQuery : Model Arith ℝ ℝ where
+  evalQuery q _ :=
+    match q with
+    | .add x y => x + y
+    | .mul x y => x * y
+    | .neg x =>  -x
+    | .zero => (0 : ℝ)
+    | .one => (1 : ℝ)
+  cost _ := 1
+
+end Examples
+
+/-- Programs built as the free ~~monad~~ arrow? over `QueryF`. -/
+inductive Prog (Q : Type u → Type v) : Type u → Type (max u v + 1) where
+  | pure (q : Q α) : Prog Q α
+  | seq (p₁ : Prog Q α) (cont : α → Prog Q β) : Prog Q β
 
 namespace Prog
 
+-- This is a problem. Only works for a uniform family of models
+def eval (P : Prog Q α β) (modelFamily : ∀ i o, Model Q i o) : α :=
+  match P with
+  | .pure x => x
+  | @FreeM.liftBind Q α ι q continuation =>
+      let qval := evalQuery (modelFamily ι) q
+      eval (continuation qval) modelFamily
 
 
-/-- Conditional branching on a boolean program. -/
-def cond {QType} {α} (b : Prog QType Bool) (t e : Prog QType α) : Prog QType α :=
-  b.bind (fun b' => if b' then t else e)
 
-/-- A counting loop from `0` to `n - 1`, sequencing the body. -/
-def forLoop {QType} (n : Nat) (body : Nat → Prog QType PUnit) : Prog QType PUnit :=
-  go n
-where
-  /-- Auxiliary recursive worker for `forLoop`. -/
-  go : Nat → Prog QType PUnit
-    | 0       => pure ()
-    | i + 1   =>
-      body i >>= fun _ => go i
 
 end Prog
 
-class Query (Q : Type u → Type u) where
-  timeOfQuery : {ι : Type u} → Q ι → Nat
-  evalQuery : {ι : Type u} → Q ι → ι
-
-open Query
--- /-- Constant time cost assigned to each primitive query. -/
--- def timeOfQuery : {ι : Type} → QueryF ι → Nat
---   | _, .read _       => 1
---   | _, .write _ _    => 1
---   | _, .cmp _ _      => 1
-
-/--
-Interpret primitive queries into the time-counting monad `TimeM`.
--/
-def timeInterp [Query QF] [Inhabited ι] (q : QF ι) : TimeM ι :=
-  TimeM.tick default (timeOfQuery q)
-
--- /-- Interpret primitive queries into the time-counting monad `TimeM`. -/
--- def timeInterp : {ι : Type} → QueryF ι → TimeM ι
---   | _, .read i      => TimeM.tick 0 (timeOfQuery (.read i))
---   | _, .write i v   => TimeM.tick PUnit.unit (timeOfQuery (.write i v))
---   | _, .cmp i j     => TimeM.tick false (timeOfQuery (.cmp i j))
-
-
-instance {α : Type u} {Q : Type u → Type u} [Query Q] : MonadLiftT (Prog Q) TimeM where
-  monadLift (p : Prog Q α) : TimeM α :=
-    timeInterp
-
-/-- Total time cost of running a program under the interpreter `timeInterp`. -/
-def timeProg [Query QF] {α : Type u}  (p : Prog QF α) : Nat :=
-  (p.liftM timeInterp).time
-
-
-
-/-- Evaluate a query program to a pure value using `evalQuery`. -/
-def evalProg [Query QF] {α : Type} (p : Prog QF α) : α :=
-  FreeM.foldFreeM id
-    (fun {ι} (op : QF ι) (k : ι → α) =>
-      k (evalQuery op))
-    p
+end Model
 
 end Algorithms
 

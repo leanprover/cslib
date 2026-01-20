@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sorrachai Yingchareonthawornhcai, Tanner Duve
 -/
 
-import Mathlib.Control.Monad.Writer
+module
 
+public import Mathlib.Control.Monad.Writer
+
+@[expose] public section
 /-!
 # Time Monad
 
@@ -28,7 +31,7 @@ def bind {α β} (m : TimeM α) (f : α → TimeM β) : TimeM β :=
   let r := f m.ret
   ⟨r.ret, m.time + r.time⟩
 
-instance : Monad TimeM where
+instance instMonadTimeM : Monad TimeM where
   pure := pure
   bind := bind
 
