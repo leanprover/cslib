@@ -41,14 +41,11 @@ bisimulation.
 related by some weak bisimulation on `lts`.
 - `lts.IsSWBisimulation` is a more convenient definition for establishing weak bisimulations, which
 we prove to be sound and complete.
-- `SWBisimilarity lts` is the binary relation on the states of `lts` that relates any two states
-related by some sw-bisimulation on `lts`.
 
 ## Notations
 
 - `s1 ~[lts] s2`: the states `s1` and `s2` are bisimilar in the LTS `lts`.
 - `s1 ≈[lts] s2`: the states `s1` and `s2` are weakly bisimilar in the LTS `lts`.
-- `s1 ≈sw[lts] s2`: the states `s1` and `s2` are sw bisimilar in the LTS `lts`.
 
 ## Main statements
 
@@ -62,10 +59,8 @@ related by some sw-bisimulation on `lts`.
 trace equivalent (see `TraceEq`).
 - `Bisimilarity.deterministic_bisim_eq_traceEq`: in a deterministic LTS, bisimilarity and trace
 equivalence coincide.
-- `WeakBisimilarity.weakBisim_eq_swBisim`: weak bisimilarity and sw-bisimilarity coincide in all
-LTSs.
+- `WeakBisimilarity.weakBisim_eq_swBisim`: weak bisimulation and sw-bisimulation coincide.
 - `WeakBisimilarity.eqv`: weak bisimilarity is an equivalence relation.
-- `SWBisimilarity.eqv`: sw-bisimilarity is an equivalence relation.
 
 -/
 
