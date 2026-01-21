@@ -64,7 +64,7 @@ inductive ListOps (α : Type) : Type → Type  where
   | write : (l : List α) → (i : Fin l.length) →  (x : α) → ListOps α (List α)
 
 
-instance List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) where
+def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) where
   evalQuery q :=
     match q with
     | .write l i x => l.set i x

@@ -28,40 +28,56 @@ namespace Cslib.Algorithms.MergeSort.QueryBased
 open Cslib.Algorithms
 
 
-/-- The Model for comparison sorting natural-number registers.-/
-inductive QueryF : Type → Type where
-  /-- Read the value stored at index `i`. -/
-  | read  : Nat → QueryF Nat
-  /-- Write value `v` at index `i`. -/
-  | write : Nat → Nat → QueryF PUnit
-  /-- Compare the values at indices `i` and `j`. -/
-  | cmp   : Nat → Nat → QueryF Bool
-
-/-- Lift a comparison into the query language at the top level. -/
-def cmpVal (x y : Nat) : Prog Bool :=
-  FreeM.lift (QueryF.cmp x y)
-
-/-- Concrete semantics for primitive queries, used to run programs. -/
-def evalQuery : {ι : Type} → QueryF ι → ι
-  | _, .read _      => 0
-  | _, .write _ _   => PUnit.unit
-  | _, .cmp x y     => x ≤ y
+/-- The Model for comparison sorting natural-number registers.
+-/
+inductive ListSortOps (α : Type) : Type → Type  where
+  | cmp :  (l : List α) → (i j : Fin l.length) → ListSortOps α Bool
+  | write : (l : List α) → (i : Fin l.length) → (x : α) → ListSortOps α (List α)
+  | read : (l : List α) → (i : Fin l.length) → ListSortOps α α
 
 
+def ListSort_WorstCase [DecidableEq α] : Model (ListSortOps α) where
+  evalQuery q :=
+    match q with
+    | .write l i x => l.set i x
+    | .cmp l i j =>  l[i] == l[j]
+    | .read l i => l.get i
+  cost q :=
+    match q with
+    | .write l i x => l.length
+    | .read l i =>  l.length
+    | .cmp l i j => l.length
 
+/--
+The array version of the sort operations
+-/
+inductive ArraySortOps (α : Type) : Type → Type  where
+  | swap : (a : Array α) → (i j : Fin a.size) → ArraySortOps α (Array α)
+  | cmp :  (a : Array α) → (i j : Fin a.size) → ArraySortOps α Bool
+  | write : (a : Array α) → (i : Fin a.size) → (x : α) → ArraySortOps α (Array α)
+  | read : (a : Array α) → (i : Fin a.size) → ArraySortOps α α
 
-abbrev SortProg := Prog QueryF
+def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
+  evalQuery q :=
+    match q with
+    | .write a i x => a.set i x
+    | .cmp l i j =>  l[i] == l[j]
+    | .read l i => l[i]
+    | .swap l i j => l.swap i j
+  cost q :=
+    match q with
+    | .write l i x => 1
+    | .read l i =>  1
+    | .cmp l i j => 1
+    | .swap l i j => 1
 
-/-- Lift a comparison on values into the free monad. -/
-def cmpVal (x y : Nat) : SortProg Bool :=
-  FreeM.lift (QueryF.cmp x y)
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
-def merge : List Nat → List Nat → SortProg (List Nat)
+def merge [DecidableEq α] (x y : List Nat) : Prog ListSortOps Nat
   | [], ys => pure ys
   | xs, [] => pure xs
   | x :: xs', y :: ys' => do
-      let b ← cmpVal x y
+      let b ← x ≤ y
       if b then
         let rest ← merge xs' (y :: ys')
         pure (x :: rest)
@@ -79,7 +95,7 @@ def split (xs : List Nat) : List Nat × List Nat :=
 
 /-- Merge sort expressed as a program in the query model.
 TODO: Working version without partial -/
-partial def mergeSort : List Nat → SortProg (List Nat)
+partial def mergeSort : List Nat → Prog (List Nat)
   | []      => pure []
   | [x]     => pure [x]
   | xs      =>
