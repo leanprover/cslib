@@ -9,7 +9,9 @@ module
 public import Mathlib
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
-public import Cslib.Foundations.Control.Monad.Time
+
+
+@[expose] public section
 
 /-
 # Query model
@@ -24,7 +26,6 @@ are performed. An example algorithm (merge sort) is implemented in
 ## Main definitions
 
 - `QueryF`, `Prog` : query language and programs
-- `timeOfQuery`, `timeInterp`, `timeProg` : cost model for programs
 - `evalQuery`, `evalProg` : concrete execution semantics
 
 ## Tags
@@ -36,50 +37,87 @@ namespace Cslib
 
 namespace Algorithms
 
-structure Model (QType : Type u → Type u) (ι o : Type u) where
-  evalQuery : QType ι → ι → o
-  cost : QType ι → ι → ℕ
+class Model (QType : Type u → Type u) where
+  evalQuery : QType ι → ι
+  cost : QType ι → ℕ
 
 namespace Model
 
 def interpretTimeM
-  (M : Model Q α β) (q : Q α) (inp : α) : TimeM β where
-  ret := M.evalQuery q inp
-  time := M.cost q inp
+  [M : Model Q] (q : Q ι) : TimeM ι where
+  ret := M.evalQuery q
+  time := M.cost q
 
+-- inductive QueryF : Type → Type where
+--   /-- Read the value stored at index `i`. -/
+--   | read  : Nat → QueryF Nat
+--   /-- Write value `v` at index `i`. -/
+--   | write : Nat → Nat → QueryF PUnit
+--   /-- Compare the values at indices `i` and `j`. -/
+--   | cmp   : Nat → Nat → QueryF Bool
 
 section Examples
 
-inductive Search (α : Type*)  where
-  | find (elem : α) (list : List α)
+inductive ListOps (α : Type) : Type → Type  where
+  | get : (l : List α) → (i : Fin l.length) → ListOps α α
+  | find :  (l : List α) → α → ListOps α ℕ
+  | write : (l : List α) → (i : Fin l.length) →  (x : α) → ListOps α (List α)
 
-def LinSearch_WorstCase [DecidableEq α] : Model Search α ℕ  where
+
+instance List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) where
   evalQuery q :=
     match q with
-    | .find elem list => List.findIdx (· = elem) list -- sorry we need a more general type
+    | .write l i x => l.set i x
+    | .find l elem =>  l.findIdx (· = elem)
+    | .get l i => l[i]
   cost q :=
     match q with
-    | .find _ list => list.length
+    | .write l i x => l.length
+    | .find l elem =>  l.length
+    | .get l i => l.length
 
 
 
-def BinSearch_WorstCase [BEq α] : Model Search α ℕ where
+def List_BinSearch_WorstCase [BEq α] : Model (ListOps α) where
   evalQuery q :=
     match q with
-    | .find elem list => List.findIdx (· == elem) list
+    | .write l i x => l.set i x
+    | .get l i => l[i]
+    | .find l elem => l.findIdx (· == elem)
+
   cost q :=
     match q with
-    | .find _ l => 1 + Nat.log 2 l.length
+    | .find l _ => 1 + Nat.log 2 (l.length)
+    | .write l i x => l.length
+    | .get l x => l.length
 
-inductive Arith α where
-  | add (x y : α)
-  | mul (x y : α)
-  | neg (x : α)
-  | zero
-  | one
+inductive ArrayOps (α : Type) : Type → Type  where
+  | get : (l : Array α) → (i : Fin l.size) → ArrayOps α α
+  | find :  (l : Array α) → α → ArrayOps α ℕ
+  | write : (l : Array α) → (i : Fin l.size) →  (x : α) → ArrayOps α (Array α)
 
-noncomputable def RealArithQuery : Model Arith ℝ ℝ where
-  evalQuery q _ :=
+def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) where
+  evalQuery q :=
+    match q with
+    | .write l i x => l.set i x
+    | .get l i => l[i]
+    | .find l elem => l.findIdx (· == elem)
+
+  cost q :=
+    match q with
+    | .find l _ => 1 + Nat.log 2 (l.size)
+    | .write l i x => 1
+    | .get l x => 1
+
+inductive Arith (α : Type) : Type → Type where
+  | add (x y : α) : Arith α α
+  | mul (x y : α) : Arith α α
+  | neg (x : α) : Arith α α
+  | zero : Arith α α
+  | one : Arith α α
+
+noncomputable def RealArithQuery : Model (Arith ℝ) where
+  evalQuery q :=
     match q with
     | .add x y => x + y
     | .mul x y => x * y
@@ -90,23 +128,29 @@ noncomputable def RealArithQuery : Model Arith ℝ ℝ where
 
 end Examples
 
-/-- Programs built as the free ~~monad~~ arrow? over `QueryF`. -/
-inductive Prog (Q : Type u → Type v) : Type u → Type (max u v + 1) where
-  | pure (q : Q α) : Prog Q α
-  | seq (p₁ : Prog Q α) (cont : α → Prog Q β) : Prog Q β
+-- ALternative def where pure has to be a query
+-- /-- Programs built as the free ~~monad~~ arrow? over `QueryF`. -/
+-- inductive Prog (Q : Type u → Type u) : Type u → Type (u + 1)  where
+--   | pure (q : Q α) : Prog Q α
+--   | seq (p₁ : Prog Q ι) (cont : ι → Prog Q α) : Prog Q α
 
+abbrev Prog Q α := FreeM Q α
 namespace Prog
 
--- This is a problem. Only works for a uniform family of models
-def eval (P : Prog Q α β) (modelFamily : ∀ i o, Model Q i o) : α :=
+def eval (P : Prog Q α) (M : Model Q) : α :=
   match P with
   | .pure x => x
-  | @FreeM.liftBind Q α ι q continuation =>
-      let qval := evalQuery (modelFamily ι) q
-      eval (continuation qval) modelFamily
+  | .liftBind op cont  =>
+      let qval := M.evalQuery op
+      eval (cont qval) M
 
-
-
+def time (P : Prog Q α) (M : Model Q) : Nat :=
+  match P with
+  | .pure _ => 0
+  | .liftBind op cont =>
+      let t₁ := M.cost op
+      let qval := M.evalQuery op
+      t₁ + (time (cont qval) M)
 
 end Prog
 
