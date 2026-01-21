@@ -756,7 +756,7 @@ open LTS in
 /-- Bisimilarity can also be characterized through symmetric simulations. -/
 @[scoped grind =]
 theorem Bisimilarity.symm_simulation {lts : LTS State Label} :
-    Bisimilarity lts =
+  Bisimilarity lts =
     fun s1 s2 => ∃ r, r s1 s2 ∧ Std.Symm r ∧ Simulation lts r := by
   funext s1 s2
   apply Iff.eq
