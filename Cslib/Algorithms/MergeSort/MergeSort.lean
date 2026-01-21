@@ -25,7 +25,7 @@ open Cslib
 
 namespace Cslib.Algorithms.MergeSort.QueryBased
 
-open Cslib.Algorithms
+open Cslib.Algorithms Model
 
 
 /-- The Model for comparison sorting natural-number registers.
@@ -73,12 +73,12 @@ def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
 
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
-def merge [DecidableEq α] (x y : List Nat) : Prog ListSortOps Nat
+def merge (x y : List Nat) : Prog (ListSortOps Nat) (List Nat) := do
+  match x,y with
   | [], ys => pure ys
   | xs, [] => pure xs
   | x :: xs', y :: ys' => do
-      let b ← x ≤ y
-      if b then
+      if x ≤ y then
         let rest ← merge xs' (y :: ys')
         pure (x :: rest)
       else
@@ -95,7 +95,7 @@ def split (xs : List Nat) : List Nat × List Nat :=
 
 /-- Merge sort expressed as a program in the query model.
 TODO: Working version without partial -/
-partial def mergeSort : List Nat → Prog (List Nat)
+partial def mergeSort : List Nat → Prog (ListSortOps Nat) (List Nat)
   | []      => pure []
   | [x]     => pure [x]
   | xs      =>
@@ -105,7 +105,7 @@ partial def mergeSort : List Nat → Prog (List Nat)
       let sortedRight ← mergeSort right
       merge sortedLeft sortedRight
 
-#eval evalProg (mergeSort [5,3,8,6,2,7,4,1])
-#eval timeProg (mergeSort [5,3,8,6,2,7,4,1])
+#eval Prog.eval (mergeSort [5,3,8,6,2,7,4,1]) ListSort_WorstCase
+#eval Prog.time (mergeSort [5,3,8,6,2,7,4,1]) ListSort_WorstCase
 
 end Cslib.Algorithms.MergeSort.QueryBased
