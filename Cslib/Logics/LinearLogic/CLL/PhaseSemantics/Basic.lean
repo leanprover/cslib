@@ -3,12 +3,17 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve, Bhavik Mehta
 -/
-import Mathlib.Algebra.Group.Defs
-import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Algebra.Group.Idempotent
-import Mathlib.Data.Set.Basic
-import Mathlib.Order.Closure
-import Cslib.Logics.LinearLogic.CLL.Basic
+
+module
+
+public import Mathlib.Algebra.Group.Defs
+public import Mathlib.Algebra.Group.Pointwise.Set.Basic
+public import Mathlib.Algebra.Group.Idempotent
+public import Mathlib.Data.Set.Basic
+public import Mathlib.Order.Closure
+public import Cslib.Logics.LinearLogic.CLL.Basic
+
+@[expose] public section
 
 /-!
 # Phase semantics for Classical Linear Logic
