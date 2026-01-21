@@ -308,84 +308,6 @@ theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelat
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
 
-
--- TODO: Below
-/- So something like showing that EqvGen r is eq to ReflTransGen (CompRel r)
-by creating an inductive principle like EqvGen.chain_induction_on (?) which can
-then be used in the (3->1) step of Theorem 2.1.5 -/
-
--- If reflexive transitive symmetric closure <-*-> is in that order,
--- are we unravelling the first two to get to the symmetric closure?
--- Is that how the induction works?
-
-/- 
-A relation has the Church Rosser property when equivalence implies multi-joinability.
-As such, we can use EqvGen as a hypothesis (?)
-Recall: EqvGen IS reflexive transitive symmetric closure
-
-abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join (ReflTransGen r) x y
-
-a joins b when a and b can both reach some common c in one step
-(aka Join r a b)
-multi-joinability a ↓ b is when a and b can both reach some c in 0 or more steps
-(aka Join (ReflTransGen r) a b)
--/
-
-/-
-(3 => 1) If -> is semi-confluent and x <-*-> y then we show x ↓ y, i.e. the
-Church-Rosser property, by induction on the length of the chain x <-*-> y.
-
-We want an inductive proof where we induct on the length of the chain x <-*-> y,
-which is a reflexive transitive SYMMETRIC closure. The key part here is that we
-care about the symmetry of the closure, that ↔ := ← ⋃ →, and we want to show at
-each step that x ↓ y
-
-If reflexive (x = y), then we know they are multi-joinable trivially (x ↓ x)
-If x <-*-> y ↔ y' (i.e. non-zero chain length), then x <-*-> y => x ↓ y by IH
-so we need to show that x ↓ y' in total with the prev's help.
-x ↓ y' by cases:
-1. y <- y': x ↓ y' follows from x ↓ y, there is a join point since y' follows y's path
-2. y -> y': by x ↓ y, ∃ z join point for x, y (from x <-*-> y). Then, by semi-confluence
-            we have that z ↓ y' (∃ a, join point for z, y'), so we can extend x-z path 
-            with the z-a path to get that x ↓ y' at point a
-
-^ is the whole proof, but we need to care specifically about creating an inductive structure
-from which we can apply semiconfluence, etc. (aka the case work in the "tail" case)
--/
-
--- a <-*-> c ↔ b (fixed endpoint)
-theorem EqvGen.chain_induction_on {b : α} {motive : ∀ a, EqvGen r a b → Prop} {a : α} [IsRefl α r]
-    (h : EqvGen r a b) (refl : motive b (EqvGen.refl (r := r) (x := b)))
-    (tail : ∀ {a c} (hac : EqvGen r a c) (cb : CompRel r c b), motive c (CompRel.to_eqvGen cb)
-    → motive a (EqvGen.trans (x := a) (y := c) (z := b) hac (CompRel.to_eqvGen cb))) :
-    motive a h := by
-  induction h with
-  | rel x y hxy =>
-    apply tail (hac := (EqvGen.rel _ _ hxy)) (cb := .refl _ _)
-    exact refl
-  | refl => exact refl
-  | symm x y hxy ih =>
-    sorry
-  | trans x y z hxy hyz ih₁ ih₂ =>
-    apply ih₁
-    · exact ih₂ refl tail
-    · intro a c hac cb ih
-      apply tail hac
-      · exact ih
-      · sorry
-    -- refine ih₁ 
-    --   (motive := fun a h => motive a (EqvGen.trans _ _ _ h hyz))
-    --   ?base ?step
-    -- · simpa using ih₂ refl tail
-    -- · intro a c hac cb ih
-    --   have hc : motive y hyz :=
-    --     ih₂ refl tail
-    --   have hcz : EqvGen r c z :=
-    --     EqvGen.trans _ _ _ (CompRel.to_eqvGen cb) hyz
-    --   have hcz₂ : CompRel r c z :=
-    --     sorry
-    --   exact tail (hac := hac) (cb := hcz₂) ih
-
 lemma ReflGen.compRel_symm :
   ReflGen (CompRel r) a b → ReflGen (CompRel r) b a
 | .refl => .refl
@@ -421,11 +343,5 @@ theorem EqvGen_eq_reflTransGen_compRel : EqvGen r = ReflTransGen (CompRel r) := 
       cases hbc with
       | inl h => exact ih.trans _ _ _ (.rel _ _ h)
       | inr h => exact ih.trans _ _ _ (.symm _ _ (EqvGen.rel _ _ h))
-
--- theorem 2.1.5, try proving with chain_induction_on, see if it works bruv
-private theorem confluent_equivalents2 : [ChurchRosser r, SemiConfluent r, Confluent r].TFAE := by
-  sorry
-
-
 
 end Relation
