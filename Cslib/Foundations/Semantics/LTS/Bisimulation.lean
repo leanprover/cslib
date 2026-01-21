@@ -59,6 +59,7 @@ we prove to be sound and complete.
 trace equivalent (see `TraceEq`).
 - `Bisimilarity.deterministic_bisim_eq_traceEq`: in a deterministic LTS, bisimilarity and trace
 equivalence coincide.
+- `Bisimilarity.symm_simulation`: bisimilarity can be characterized through symmetric simulations.
 - `WeakBisimilarity.weakBisim_eq_swBisim`: weak bisimulation and sw-bisimulation coincide.
 - `WeakBisimilarity.eqv`: weak bisimilarity is an equivalence relation.
 
@@ -752,9 +753,11 @@ theorem Bisimulation.simulation_iff {lts : LTS State Label} {r : State → State
   grind [Simulation, flip]
 
 open LTS in
-/-- Bisimilarity can also be characterized through is symmetric simulations. -/
+/-- Bisimilarity can also be characterized through symmetric simulations. -/
+@[scoped grind =]
 theorem Bisimilarity.symm_simulation {lts : LTS State Label} :
-    p ~[lts] q ↔ ∃ r, (r p q ∧ IsSymm State r ∧ Simulation lts r) := by
+    (p ~[lts] q) = (∃ r, (r p q ∧ IsSymm State r ∧ Simulation lts r)) := by
+  apply Iff.eq
   apply Iff.intro
   · intro h
     have bisim : Bisimilarity lts p q ∧ IsSymm State (Bisimilarity lts)
@@ -933,7 +936,7 @@ theorem SWBisimulation.toWeakBisimulation
     lts.IsWeakBisimulation r := LTS.isWeakBisimulation_iff_isSWBisimulation.2 h
 
 /-- Weak bisimilarity can also be characterized through sw-bisimulations. -/
---@[scoped grind _=_]
+@[scoped grind =]
 theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label] (lts : LTS State Label) :
   WeakBisimilarity lts =
     fun s1 s2 => ∃ r : State → State → Prop, r s1 s2 ∧ lts.IsSWBisimulation r := by
