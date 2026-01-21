@@ -361,17 +361,30 @@ theorem EqvGen.chain_induction_on {b : α} {motive : ∀ a, EqvGen r a b → Pro
     motive a h := by
   induction h with
   | rel x y hxy =>
-    -- refl is motive y, so use chain x -> y and y -> y to get tail chain x -> y
-    -- applying motive y -> motive x to the goal motive x will give us motive y
-    -- which then admits refl
     apply tail (hac := (EqvGen.rel _ _ hxy)) (cb := .refl _ _)
     exact refl
   | refl => exact refl
-  -- TODO: This
   | symm x y hxy ih =>
     sorry
-  | trans =>
-    sorry
+  | trans x y z hxy hyz ih₁ ih₂ =>
+    apply ih₁
+    · exact ih₂ refl tail
+    · intro a c hac cb ih
+      apply tail hac
+      · exact ih
+      · sorry
+    -- refine ih₁ 
+    --   (motive := fun a h => motive a (EqvGen.trans _ _ _ h hyz))
+    --   ?base ?step
+    -- · simpa using ih₂ refl tail
+    -- · intro a c hac cb ih
+    --   have hc : motive y hyz :=
+    --     ih₂ refl tail
+    --   have hcz : EqvGen r c z :=
+    --     EqvGen.trans _ _ _ (CompRel.to_eqvGen cb) hyz
+    --   have hcz₂ : CompRel r c z :=
+    --     sorry
+    --   exact tail (hac := hac) (cb := hcz₂) ih
 
 lemma ReflGen.compRel_symm :
   ReflGen (CompRel r) a b → ReflGen (CompRel r) b a
