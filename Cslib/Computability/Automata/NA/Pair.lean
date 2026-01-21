@@ -26,7 +26,7 @@ def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol :=
 
 @[simp, scoped grind =]
 theorem LTS.mem_pairLang {lts : LTS State Symbol} {s t : State} {xs : List Symbol} :
-    xs ∈ (lts.pairLang s t) ↔ lts.MTr s xs t := Iff.rfl
+    xs ∈ lts.pairLang s t ↔ lts.MTr s xs t := Iff.rfl
 
 /-- `LTS.pairLang s t` is a regular language if there are only finitely many states. -/
 @[simp]
