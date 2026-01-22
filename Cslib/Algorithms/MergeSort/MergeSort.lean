@@ -29,8 +29,6 @@ open Cslib
 
 namespace Cslib.Algorithms.MergeSort.QueryBased
 
-open Cslib.Algorithms Model
-
 
 /-- The Model for comparison sorting natural-number registers.
 -/

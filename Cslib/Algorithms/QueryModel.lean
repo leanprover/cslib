@@ -121,7 +121,10 @@ end Model
 --   | seq (p₁ : Prog Q ι) (cont : ι → Prog Q α) : Prog Q α
 
 abbrev Prog Q α := FreeM Q α
+instance {Q α} : Coe (Q α) (outParam <| Prog Q α) where
+  coe := FreeM.lift
 namespace Prog
+
 
 def eval (P : Prog Q α) (M : Model Q) : α :=
   match P with
@@ -179,18 +182,16 @@ def RatArithQuery : Model (Arith ℚ) where
     | .one => (1 : ℚ)
   cost _ := 1
 
-def add (x y : ℚ) : Prog (Arith ℚ) ℚ := FreeM.lift <| Arith.add x y
-def mul (x y : ℚ) : Prog (Arith ℚ) ℚ := FreeM.lift <| Arith.mul x y
-def neg (x : ℚ) : Prog (Arith ℚ) ℚ := FreeM.lift <| Arith.neg x
-def zero : Prog (Arith ℚ) ℚ := FreeM.lift Arith.zero
-def one : Prog (Arith ℚ) ℚ := FreeM.lift Arith.one
+open Arith
 
-def ex1 : Prog (Arith ℚ) ℚ := do
+
+
+def ex1 [Coe (Arith ℚ ℚ) (Prog (Arith ℚ) ℚ)] : Prog (Arith ℚ) ℚ := do
   let mut x ← zero
-  let mut y ← one
-  let z ← add (x + y + y) y
-  let w ← neg <| ←(add z y)
-  add w z
+  let mut y ← Coe.coe one
+  let z ← Coe.coe (add (x + y + y) y)
+  let w ← Coe.coe <| neg <| ←(Coe.coe <| add z y)
+  Coe.coe <| add w z
 
 #eval ex1.eval RatArithQuery
 
@@ -201,21 +202,22 @@ section ArraySort
 /--
 The array version of the sort operations
 -/
-inductive ArraySortOps (α : Type) : Type → Type  where
-  | swap : (a : Array α) → (i j : Fin a.size) → ArraySortOps α (Array α)
-  | cmp :  (a : Array α) → (i j : Fin a.size) → ArraySortOps α Bool
-  | write : (a : Array α) → (i : Fin a.size) → (x : α) → ArraySortOps α (Array α)
-  | read : (a : Array α) → (i : Fin a.size) → ArraySortOps α α
-  | push : (a : Array α) → (elem : α) → ArraySortOps α (Array α)
+inductive VecSortOps (α : Type) : Type → Type  where
+  | swap : (a : Vector α n) → (i j : Fin n) → VecSortOps α (Vector α n)
+  | cmp :  (a : Vector α n) → (i j : Fin n) → VecSortOps α Bool
+  | write : (a : Vector α n) → (i : Fin n) → (x : α) → VecSortOps α (Vector α n)
+  | read : (a : Vector α n) → (i : Fin n) → VecSortOps α α
+  | push : (a : Vector α n) → (elem : α) → VecSortOps α (Vector α (n + 1))
 
-def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
+def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) where
   evalQuery q :=
     match q with
-    | .write a i x => a.set i x
+    | .write v i x => v.set i x
     | .cmp l i j =>  l[i] == l[j]
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
+
   cost q :=
     match q with
     | .write l i x => 1
@@ -225,35 +227,29 @@ def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
     | .push a elem => 2 -- amortized over array insertion and resizing by doubling
 
 def swapOp [LinearOrder α]
-  (a : Array α) (i j : ℕ) (hi : i < a.size := by grind)
-  (hj : j < a.size := by grind) : Prog (ArraySortOps α) (Array α) :=
-  FreeM.lift <| ArraySortOps.swap a ⟨i, hi⟩ ⟨j, hj⟩
+  (v : Vector α n) (i j : Fin n) : Prog (VecSortOps α) (Vector α n) :=
+  FreeM.lift <| VecSortOps.swap v i j
 
 def cmp [LinearOrder α]
-  (a : Array α) (i j : ℕ)
-  (hi : i < a.size := by grind)
-  (hj : j < a.size := by grind) : Prog (ArraySortOps α) Bool :=
-  FreeM.lift <| ArraySortOps.cmp a ⟨i, hi⟩ ⟨j, hj⟩
+  (v : Vector α n) (i j : Fin n) : Prog (VecSortOps α) Bool :=
+  FreeM.lift <| VecSortOps.cmp v i j
 
 def writeOp [LinearOrder α]
-  (a : Array α) (i : Fin a.size) (x : α) : Prog (ArraySortOps α) (Array α) :=
-  FreeM.lift <| ArraySortOps.write a ⟨i, by grind⟩ x
+  (v : Vector α n) (i : Fin n) (x : α) : Prog (VecSortOps α) (Vector α n) :=
+  FreeM.lift <| VecSortOps.write v i x
 
 def read [LinearOrder α]
-  (a : Array α) (i : Fin a.size) : Prog (ArraySortOps α) α :=
-  FreeM.lift <| ArraySortOps.read a ⟨i, by grind⟩
+  (v : Vector α n) (i : Fin n) : Prog (VecSortOps α) α :=
+  FreeM.lift <| VecSortOps.read v i
 
 
-def simpleExample (a : Array ℤ) (i k : ℕ)
-  (hi : i < a.size := by grind)
-  (hk : k < a.size := by grind): Prog (ArraySortOps ℤ) (Array ℤ) :=  do
-  let b ← writeOp a ⟨i, hi⟩ 10
-  have : b.size = a.size := by
-    sorry
-  swapOp b ⟨i, this ▸ hi⟩ ⟨k, this ▸ hk⟩
+def simpleExample (v : Vector ℤ n) (i k : Fin n)
+  : Prog (VecSortOps ℤ) (Vector ℤ n) :=  do
+  let b ← writeOp v i 10
+  swapOp b i k
 
-#eval (simpleExample #[1,2,3,4,5] 0 2).eval ArraySort_WorstCase
-#eval (simpleExample #[1,2,3,4,5] 0 2).time ArraySort_WorstCase
+#eval (simpleExample #v[1,2,3,4,5] 0 2).eval VecSort_WorstCase
+#eval (simpleExample #v[1,2,3,4,5] 0 2).time VecSort_WorstCase
 
 end ArraySort
 
