@@ -188,7 +188,7 @@ def one : Prog (Arith ℚ) ℚ := FreeM.lift Arith.one
 def ex1 : Prog (Arith ℚ) ℚ := do
   let mut x ← zero
   let mut y ← one
-  let z ← add x y
+  let z ← add (x + y + y) y
   let w ← add z y
   add w z
 
