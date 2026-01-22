@@ -37,7 +37,7 @@ namespace Cslib
 
 namespace Algorithms
 
-class Model (QType : Type u → Type u) (Cost : Type) [AddMonoid Cost] where
+class Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] where
   evalQuery : QType ι → ι
   cost : QType ι → Cost
 
@@ -127,7 +127,7 @@ instance {Q α} : Coe (Q α) (FreeM Q α) where
 namespace Prog
 
 
-def eval [AddMonoid Cost]
+def eval [Add Cost] [Zero Cost]
   (P : Prog Q α) (M : Model Q Cost) : α :=
   match P with
   | .pure x => x
@@ -135,7 +135,7 @@ def eval [AddMonoid Cost]
       let qval := M.evalQuery op
       eval (cont qval) M
 
-def time [AddMonoid Cost] (P : Prog Q α) (M : Model Q Cost) : Cost :=
+def time [Add Cost] [Zero Cost] (P : Prog Q α) (M : Model Q Cost) : Cost :=
   match P with
   | .pure _ => 0
   | .liftBind op cont =>
@@ -193,20 +193,14 @@ structure AddMulCosts where
   addCount : ℕ
   mulCount : ℕ
 
+instance : Zero (AddMulCosts) where
+  zero := ⟨0,0⟩
 
-
-instance iAMC : AddMonoid (AddMulCosts) where
-  add x y :=
+instance : Add (AddMulCosts) where
+    add x y :=
       let ⟨x_addcount, x_mulcount⟩ := x
       let ⟨y_addcount, y_mulcount⟩ := y
       ⟨x_addcount + y_addcount, x_mulcount + y_mulcount⟩
-  zero := ⟨0,0⟩
-  zero_add := by
-    intro ⟨a₀,a₁⟩
-    simp [self.add]
-  add_assoc := by
-    intro ⟨a₀,a₁⟩ ⟨b₀,b₁⟩ ⟨c₀,c₁⟩
-
 
 def RatArithQuery_AddMulCost : Model (Arith ℚ) AddMulCosts where
   evalQuery q :=
