@@ -225,9 +225,9 @@ def ex1 : Prog (Arith ℚ) ℚ := do
   add w z
 
 
-#eval ex1.eval RatArithQuery_NatCost
-#eval ex1.time RatArithQuery_NatCost
-#eval ex1.time RatArithQuery_AddMulCost
+--#eval ex1.eval RatArithQuery_NatCost
+--#eval ex1.time RatArithQuery_NatCost
+--#eval ex1.time RatArithQuery_AddMulCost
 
 section ArraySort
 /--
