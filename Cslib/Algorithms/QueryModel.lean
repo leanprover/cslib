@@ -9,7 +9,7 @@ module
 public import Mathlib
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
-
+public import Batteries
 
 @[expose] public section
 
@@ -135,6 +135,8 @@ end Examples
 --   | seq (p₁ : Prog Q ι) (cont : ι → Prog Q α) : Prog Q α
 
 abbrev Prog Q α := FreeM Q α
+
+#print FreeM
 namespace Prog
 
 def eval (P : Prog Q α) (M : Model Q) : α :=
@@ -151,6 +153,28 @@ def time (P : Prog Q α) (M : Model Q) : Nat :=
       let t₁ := M.cost op
       let qval := M.evalQuery op
       t₁ + (time (cont qval) M)
+
+def interpretQueryIntoTime (M : Model Q) (q : Q α) : TimeM α where
+  ret := M.evalQuery q
+  time := M.cost q
+def interpretProgIntoTime (P : Prog Q α) (M : Model Q) : TimeM α where
+  ret := eval P M
+  time := time P M
+
+def liftProgIntoTime (M : Model Q) (P : Prog Q α) : TimeM α :=
+  P.liftM (interpretQueryIntoTime M)
+
+
+-- This lemma is a sanity check. This is the only place `TimeM` is used.
+lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q),
+  time P M = (liftProgIntoTime M P).time := by
+  intro P pm
+  induction P with
+  | pure a =>
+      simp [time,liftProgIntoTime]
+  | liftBind op cont ih =>
+      expose_names
+      simp_all [time, liftProgIntoTime, interpretQueryIntoTime]
 
 end Prog
 

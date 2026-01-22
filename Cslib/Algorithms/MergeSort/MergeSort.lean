@@ -71,41 +71,45 @@ def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
     | .cmp l i j => 1
     | .swap l i j => 1
 
+def exampleCode (a : Array Int) (h : a.size > 0): Prog (ArraySortOps Int) (Int) := do
+  for hi : i in [:a.size] do
+    return ArraySortOps.write a ⟨i, by grind⟩ 1
+  return (ArraySortOps.read a ⟨0, by grind⟩)
 
-/-- Merge two sorted lists using comparisons in the query monad. -/
-def merge (x y : List Nat) : Prog (ListSortOps Nat) (List Nat) := do
-  match x,y with
-  | [], ys => pure ys
-  | xs, [] => pure xs
-  | x :: xs', y :: ys' => do
-      if x ≤ y then
-        let rest ← merge xs' (y :: ys')
-        pure (x :: rest)
-      else
-        let rest ← merge (x :: xs') ys'
-        pure (y :: rest)
+-- /-- Merge two sorted lists using comparisons in the query monad. -/
+-- def merge (x y : List Nat) : Prog (ListSortOps Nat) (List Nat) := do
+--   match x,y with
+--   | [], ys => pure ys
+--   | xs, [] => pure xs
+--   | x :: xs', y :: ys' => do
+--       if x ≤ y then
+--         let rest ← merge xs' (y :: ys')
+--         pure (x :: rest)
+--       else
+--         let rest ← merge (x :: xs') ys'
+--         pure (y :: rest)
 
-/-- Split a list into two lists by alternating elements. -/
-def split (xs : List Nat) : List Nat × List Nat :=
-  let rec go : List Nat → List Nat → List Nat → List Nat × List Nat
-    | [], accL, accR => (accL.reverse, accR.reverse)
-    | [x], accL, accR => ((x :: accL).reverse, accR.reverse)
-    | x :: y :: xs, accL, accR => go xs (x :: accL) (y :: accR)
-  go xs [] []
+-- /-- Split a list into two lists by alternating elements. -/
+-- def split (xs : List Nat) : List Nat × List Nat :=
+--   let rec go : List Nat → List Nat → List Nat → List Nat × List Nat
+--     | [], accL, accR => (accL.reverse, accR.reverse)
+--     | [x], accL, accR => ((x :: accL).reverse, accR.reverse)
+--     | x :: y :: xs, accL, accR => go xs (x :: accL) (y :: accR)
+--   go xs [] []
 
-/-- Merge sort expressed as a program in the query model.
-TODO: Working version without partial -/
-partial def mergeSort : List Nat → Prog (ListSortOps Nat) (List Nat)
-  | []      => pure []
-  | [x]     => pure [x]
-  | xs      =>
-    let (left, right) := split xs
-    do
-      let sortedLeft  ← mergeSort left
-      let sortedRight ← mergeSort right
-      merge sortedLeft sortedRight
+-- /-- Merge sort expressed as a program in the query model.
+-- TODO: Working version without partial -/
+-- partial def mergeSort : List Nat → Prog (ListSortOps Nat) (List Nat)
+--   | []      => pure []
+--   | [x]     => pure [x]
+--   | xs      =>
+--     let (left, right) := split xs
+--     do
+--       let sortedLeft  ← mergeSort left
+--       let sortedRight ← mergeSort right
+--       merge sortedLeft sortedRight
 
-#eval Prog.eval (mergeSort [5,3,8,6,2,7,4,1]) ListSort_WorstCase
-#eval Prog.time (mergeSort [5,3,8,6,2,7,4,1]) ListSort_WorstCase
+-- #eval Prog.eval (mergeSort [5,3,8,6,2,7,4,1]) ListSort_WorstCase
+-- #eval Prog.time (mergeSort [5,3,8,6,2,7,4,1]) ListSort_WorstCase
 
 end Cslib.Algorithms.MergeSort.QueryBased
