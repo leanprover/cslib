@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
 
-import Cslib.Algorithms.QueryModel
+module
+
+public import Cslib.Algorithms.QueryModel
+
+@[expose] public section
 
 /-!
 # Merge sort in the query model
@@ -48,37 +52,7 @@ def ListSort_WorstCase [DecidableEq α] : Model (ListSortOps α) where
     | .read l i =>  l.length
     | .cmp l i j => l.length
 
-/--
-The array version of the sort operations
--/
-inductive ArraySortOps (α : Type) : Type → Type  where
-  | swap : (a : Array α) → (i j : Fin a.size) → ArraySortOps α (Array α)
-  | cmp :  (a : Array α) → (i j : Fin a.size) → ArraySortOps α Bool
-  | write : (a : Array α) → (i : Fin a.size) → (x : α) → ArraySortOps α (Array α)
-  | read : (a : Array α) → (i : Fin a.size) → ArraySortOps α α
 
-def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
-  evalQuery q :=
-    match q with
-    | .write a i x => a.set i x
-    | .cmp l i j =>  l[i] == l[j]
-    | .read l i => l[i]
-    | .swap l i j => l.swap i j
-  cost q :=
-    match q with
-    | .write l i x => 1
-    | .read l i =>  1
-    | .cmp l i j => 1
-    | .swap l i j => 1
-
-notation " ✓✓ " query => FreeM.lift query
-
-variable (a : Array Int) (ha : a.size > 2)
-#check ✓✓ ArraySortOps.write a ⟨1, by grind⟩ 1
-def exampleCode (a : Array Int) (h : a.size > 2): Prog (ArraySortOps Int) (Int) := do
-  let a'' ← ✓✓ ArraySortOps.write a ⟨1, by grind⟩ 1
-  return <| ✓✓ ArraySortOps.read a'' ⟨0, by grind⟩
-  
 
 -- /-- Merge two sorted lists using comparisons in the query monad. -/
 -- def merge (x y : List Nat) : Prog (ListSortOps Nat) (List Nat) := do
