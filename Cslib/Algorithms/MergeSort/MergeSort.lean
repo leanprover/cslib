@@ -30,25 +30,25 @@ open Cslib
 namespace Cslib.Algorithms.MergeSort.QueryBased
 
 
-/-- The Model for comparison sorting natural-number registers.
--/
-inductive ListSortOps (α : Type) : Type → Type  where
-  | cmp :  (l : List α) → (i j : Fin l.length) → ListSortOps α Bool
-  | write : (l : List α) → (i : Fin l.length) → (x : α) → ListSortOps α (List α)
-  | read : (l : List α) → (i : Fin l.length) → ListSortOps α α
+-- /-- The Model for comparison sorting natural-number registers.
+-- -/
+-- inductive ListSortOps (α : Type) : Type → Type  where
+--   | cmp :  (l : List α) → (i j : Fin l.length) → ListSortOps α Bool
+--   | write : (l : List α) → (i : Fin l.length) → (x : α) → ListSortOps α (List α)
+--   | read : (l : List α) → (i : Fin l.length) → ListSortOps α α
 
 
-def ListSort_WorstCase [DecidableEq α] : Model (ListSortOps α) where
-  evalQuery q :=
-    match q with
-    | .write l i x => l.set i x
-    | .cmp l i j =>  l[i] == l[j]
-    | .read l i => l.get i
-  cost q :=
-    match q with
-    | .write l i x => l.length
-    | .read l i =>  l.length
-    | .cmp l i j => l.length
+-- def ListSort_WorstCase [DecidableEq α] : Model (ListSortOps α) where
+--   evalQuery q :=
+--     match q with
+--     | .write l i x => l.set i x
+--     | .cmp l i j =>  l[i] == l[j]
+--     | .read l i => l.get i
+--   cost q :=
+--     match q with
+--     | .write l i x => l.length
+--     | .read l i =>  l.length
+--     | .cmp l i j => l.length
 
 
 
