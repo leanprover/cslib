@@ -281,9 +281,9 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n)
   let elem ← read c i
   push c elem
 
-#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
-#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
-#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
+--#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
+--#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
+--#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
 
 end ArraySort
 
