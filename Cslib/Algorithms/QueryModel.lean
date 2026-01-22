@@ -37,14 +37,14 @@ namespace Cslib
 
 namespace Algorithms
 
-class Model (QType : Type u → Type u) where
+class Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] where
   evalQuery : QType ι → ι
-  cost : QType ι → ℕ
+  cost : QType ι → Cost
 
 namespace Model
 
 def interpretTimeM
-  [M : Model Q] (q : Q ι) : TimeM ι where
+  (M : Model Q ℕ) (q : Q ι) : TimeM ι where
   ret := M.evalQuery q
   time := M.cost q
 
@@ -64,7 +64,7 @@ inductive ListOps (α : Type) : Type → Type  where
   | write : (l : List α) → (i : Fin l.length) →  (x : α) → ListOps α (List α)
 
 
-def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) where
+def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
   evalQuery q :=
     match q with
     | .write l i x => l.set i x
@@ -78,7 +78,7 @@ def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) where
 
 
 
-def List_BinSearch_WorstCase [BEq α] : Model (ListOps α) where
+def List_BinSearch_WorstCase [BEq α] : Model (ListOps α) ℕ where
   evalQuery q :=
     match q with
     | .write l i x => l.set i x
@@ -96,7 +96,7 @@ inductive ArrayOps (α : Type) : Type → Type  where
   | find :  (l : Array α) → α → ArrayOps α ℕ
   | write : (l : Array α) → (i : Fin l.size) →  (x : α) → ArrayOps α (Array α)
 
-def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) where
+def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) ℕ where
   evalQuery q :=
     match q with
     | .write l i x => l.set i x
@@ -121,19 +121,21 @@ end Model
 --   | seq (p₁ : Prog Q ι) (cont : ι → Prog Q α) : Prog Q α
 
 abbrev Prog Q α := FreeM Q α
-instance {Q α} : Coe (Q α) (outParam <| Prog Q α) where
+
+instance {Q α} : Coe (Q α) (FreeM Q α) where
   coe := FreeM.lift
 namespace Prog
 
 
-def eval (P : Prog Q α) (M : Model Q) : α :=
+def eval [Add Cost] [Zero Cost]
+  (P : Prog Q α) (M : Model Q Cost) : α :=
   match P with
   | .pure x => x
   | .liftBind op cont  =>
       let qval := M.evalQuery op
       eval (cont qval) M
 
-def time (P : Prog Q α) (M : Model Q) : Nat :=
+def time [Add Cost] [Zero Cost] (P : Prog Q α) (M : Model Q Cost) : Cost :=
   match P with
   | .pure _ => 0
   | .liftBind op cont =>
@@ -141,19 +143,22 @@ def time (P : Prog Q α) (M : Model Q) : Nat :=
       let qval := M.evalQuery op
       t₁ + (time (cont qval) M)
 
-def interpretQueryIntoTime (M : Model Q) (q : Q α) : TimeM α where
+section TimeM
+
+-- The below is a proof of concept and pointless
+def interpretQueryIntoTime (M : Model Q ℕ) (q : Q α) : TimeM α where
   ret := M.evalQuery q
   time := M.cost q
-def interpretProgIntoTime (P : Prog Q α) (M : Model Q) : TimeM α where
+def interpretProgIntoTime (P : Prog Q α) (M : Model Q ℕ) : TimeM α where
   ret := eval P M
   time := time P M
 
-def liftProgIntoTime (M : Model Q) (P : Prog Q α) : TimeM α :=
+def liftProgIntoTime (M : Model Q ℕ) (P : Prog Q α) : TimeM α :=
   P.liftM (interpretQueryIntoTime M)
 
 
 -- This lemma is a sanity check. This is the only place `TimeM` is used.
-lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q),
+lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q ℕ),
   time P M = (liftProgIntoTime M P).time := by
   intro P pm
   induction P with
@@ -162,6 +167,8 @@ lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q),
   | liftBind op cont ih =>
       expose_names
       simp_all [time, liftProgIntoTime, interpretQueryIntoTime]
+
+end TimeM
 
 section ProgExamples
 
@@ -172,7 +179,7 @@ inductive Arith (α : Type) : Type → Type where
   | zero : Arith α α
   | one : Arith α α
 
-def RatArithQuery : Model (Arith ℚ) where
+def RatArithQuery_NatCost : Model (Arith ℚ) ℕ where
   evalQuery q :=
     match q with
     | .add x y => x + y
@@ -182,21 +189,45 @@ def RatArithQuery : Model (Arith ℚ) where
     | .one => (1 : ℚ)
   cost _ := 1
 
-open Arith
+structure AddMulCosts where
+  addCount : ℕ
+  mulCount : ℕ
+
+instance : Zero (AddMulCosts) where
+  zero := ⟨0,0⟩
+
+instance : Add (AddMulCosts) where
+    add x y :=
+      let ⟨x_addcount, x_mulcount⟩ := x
+      let ⟨y_addcount, y_mulcount⟩ := y
+      ⟨x_addcount + y_addcount, x_mulcount + y_mulcount⟩
+
+def RatArithQuery_AddMulCost : Model (Arith ℚ) AddMulCosts where
+  evalQuery q :=
+    match q with
+    | .add x y => x + y
+    | .mul x y => x * y
+    | .neg x =>  -x
+    | .zero => (0 : ℚ)
+    | .one => (1 : ℚ)
+  cost q :=
+    match q with
+    | .add _ _ => ⟨1,0⟩
+    | .mul _ _ => ⟨0,1⟩
+    | _ => 0
+
+open Arith in
+def ex1 : Prog (Arith ℚ) ℚ := do
+  let mut x : ℚ ← @zero ℚ
+  let mut y ← @one ℚ
+  let z ← (add (x + y + y) y)
+  let w ← @neg ℚ (←(add z y))
+  add w z
 
 
-
-def ex1 [Coe (Arith ℚ ℚ) (Prog (Arith ℚ) ℚ)] : Prog (Arith ℚ) ℚ := do
-  let mut x ← zero
-  let mut y ← Coe.coe one
-  let z ← Coe.coe (add (x + y + y) y)
-  let w ← Coe.coe <| neg <| ←(Coe.coe <| add z y)
-  Coe.coe <| add w z
-
-#eval ex1.eval RatArithQuery
-
-#eval ex1.time RatArithQuery
-
+#eval ex1.eval RatArithQuery_NatCost
+#eval ex1.time RatArithQuery_NatCost
+#eval ex1.time RatArithQuery_AddMulCost
 
 section ArraySort
 /--
@@ -209,7 +240,7 @@ inductive VecSortOps (α : Type) : Type → Type  where
   | read : (a : Vector α n) → (i : Fin n) → VecSortOps α α
   | push : (a : Vector α n) → (elem : α) → VecSortOps α (Vector α (n + 1))
 
-def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) where
+def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery q :=
     match q with
     | .write v i x => v.set i x
