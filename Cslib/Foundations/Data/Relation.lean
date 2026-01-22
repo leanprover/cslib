@@ -45,6 +45,8 @@ theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
 theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
   induction h <;> grind
 
+-- TODO: topNamespace environment linter fails for CompRel.to_eqvGen
+@[nolint topNamespace]
 theorem _root_.CompRel.to_eqvGen (h : CompRel r a b) : EqvGen r a b := by
   induction h <;> grind
 
