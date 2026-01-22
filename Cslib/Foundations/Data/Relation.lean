@@ -9,6 +9,7 @@ module
 public import Cslib.Init
 public import Mathlib.Logic.Relation
 public import Mathlib.Data.List.TFAE
+public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
 
@@ -33,7 +34,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
-attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
+attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
   induction h <;> grind
@@ -44,7 +45,13 @@ theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
 theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
   induction h <;> grind
 
+-- TODO: topNamespace environment linter fails for CompRel.to_eqvGen
+@[nolint topNamespace]
+theorem _root_.CompRel.to_eqvGen (h : CompRel r a b) : EqvGen r a b := by
+  induction h <;> grind
+
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
+  CompRel.to_eqvGen
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
@@ -306,5 +313,30 @@ theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelat
     ReflTransGen r₁ = ReflTransGen r₂ := by
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
+
+lemma ReflGen.compRel_symm : ReflGen (CompRel r) a b → ReflGen (CompRel r) b a
+| .refl => .refl
+| .single (.inl h) => .single (.inr h)
+| .single (.inr h) => .single (.inl h)
+
+@[simp, grind =]
+theorem reflTransGen_compRel : ReflTransGen (CompRel r) = EqvGen r := by
+  ext a b
+  constructor
+  · intro h
+    induction h with
+    | refl => exact .refl _
+    | tail hab hbc ih =>
+      cases hbc with
+      | inl h => exact ih.trans _ _ _ (.rel _ _ h)
+      | inr h => exact ih.trans _ _ _ (.symm _ _ (.rel _ _ h))
+  · intro h
+    induction h with
+    | rel _ _ ih => exact .single (.inl ih)
+    | refl x => exact .refl
+    | symm x y eq ih =>
+      rw [compRel_swap]
+      exact reflTransGen_swap.mp ih
+    | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
 
 end Relation
