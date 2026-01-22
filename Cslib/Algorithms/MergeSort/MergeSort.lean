@@ -71,10 +71,14 @@ def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
     | .cmp l i j => 1
     | .swap l i j => 1
 
-def exampleCode (a : Array Int) (h : a.size > 0): Prog (ArraySortOps Int) (Int) := do
-  for hi : i in [:a.size] do
-    return ArraySortOps.write a ⟨i, by grind⟩ 1
-  return (ArraySortOps.read a ⟨0, by grind⟩)
+notation " ✓✓ " query => FreeM.lift query
+
+variable (a : Array Int) (ha : a.size > 2)
+#check ✓✓ ArraySortOps.write a ⟨1, by grind⟩ 1
+def exampleCode (a : Array Int) (h : a.size > 2): Prog (ArraySortOps Int) (Int) := do
+  let a'' ← ✓✓ ArraySortOps.write a ⟨1, by grind⟩ 1
+  return <| ✓✓ ArraySortOps.read a'' ⟨0, by grind⟩
+  
 
 -- /-- Merge two sorted lists using comparisons in the query monad. -/
 -- def merge (x y : List Nat) : Prog (ListSortOps Nat) (List Nat) := do

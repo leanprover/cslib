@@ -109,24 +109,10 @@ def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) where
     | .write l i x => 1
     | .get l x => 1
 
-inductive Arith (α : Type) : Type → Type where
-  | add (x y : α) : Arith α α
-  | mul (x y : α) : Arith α α
-  | neg (x : α) : Arith α α
-  | zero : Arith α α
-  | one : Arith α α
 
-noncomputable def RealArithQuery : Model (Arith ℝ) where
-  evalQuery q :=
-    match q with
-    | .add x y => x + y
-    | .mul x y => x * y
-    | .neg x =>  -x
-    | .zero => (0 : ℝ)
-    | .one => (1 : ℝ)
-  cost _ := 1
 
 end Examples
+end Model
 
 -- ALternative def where pure has to be a query
 -- /-- Programs built as the free ~~monad~~ arrow? over `QueryF`. -/
@@ -135,8 +121,6 @@ end Examples
 --   | seq (p₁ : Prog Q ι) (cont : ι → Prog Q α) : Prog Q α
 
 abbrev Prog Q α := FreeM Q α
-
-#print FreeM
 namespace Prog
 
 def eval (P : Prog Q α) (M : Model Q) : α :=
@@ -176,9 +160,45 @@ lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q),
       expose_names
       simp_all [time, liftProgIntoTime, interpretQueryIntoTime]
 
-end Prog
+section ProgExamples
 
-end Model
+inductive Arith (α : Type) : Type → Type where
+  | add (x y : α) : Arith α α
+  | mul (x y : α) : Arith α α
+  | neg (x : α) : Arith α α
+  | zero : Arith α α
+  | one : Arith α α
+
+def RatArithQuery : Model (Arith ℚ) where
+  evalQuery q :=
+    match q with
+    | .add x y => x + y
+    | .mul x y => x * y
+    | .neg x =>  -x
+    | .zero => (0 : ℚ)
+    | .one => (1 : ℚ)
+  cost _ := 1
+
+def add (x y : ℚ) : Prog (Arith ℚ) ℚ := FreeM.lift <| Arith.add x y
+def mul (x y : ℚ) : Prog (Arith ℚ) ℚ := FreeM.lift <| Arith.mul x y
+def neg (x : ℚ) : Prog (Arith ℚ) ℚ := FreeM.lift <| Arith.neg x
+def zero : Prog (Arith ℚ) ℚ := FreeM.lift Arith.zero
+def one : Prog (Arith ℚ) ℚ := FreeM.lift Arith.one
+
+def ex1 : Prog (Arith ℚ) ℚ := do
+  let mut x ← zero
+  let mut y ← one
+  let z ← add x y
+  let w ← add z y
+  add w z
+
+#eval ex1.eval RatArithQuery
+
+#eval ex1.time RatArithQuery
+
+end ProgExamples
+
+end Prog
 
 end Algorithms
 
