@@ -426,8 +426,7 @@ lemma relatesWithinSteps.trans {a b c : α} {n₁ n₂ : ℕ}
   · omega
   · exact relatesInSteps.trans hevals₁ hevals₂
 
-/-- Monotonicity of `relatesWithinSteps` in the step bound. -/
-lemma relatesWithinSteps.mono_steps {a b : α} {n₁ n₂ : ℕ}
+lemma relatesWithinSteps.of_le {a b : α} {n₁ n₂ : ℕ}
     (h : relatesWithinSteps r a b n₁) (hn : n₁ ≤ n₂) :
     relatesWithinSteps r a b n₂ := by
   obtain ⟨m, hm, hevals⟩ := h
