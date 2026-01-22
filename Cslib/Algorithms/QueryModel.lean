@@ -225,8 +225,9 @@ def ArraySort_WorstCase [DecidableEq α] : Model (ArraySortOps α) where
     | .push a elem => 2 -- amortized over array insertion and resizing by doubling
 
 def swapOp [LinearOrder α]
-  (a : Array α) (i j : Fin a.size) : Prog (ArraySortOps α) (Array α) :=
-  FreeM.lift <| ArraySortOps.swap a ⟨i, by grind⟩ ⟨j, by grind⟩
+  (a : Array α) (i j : ℕ) (hi : i < a.size := by grind)
+  (hj : j < a.size := by grind) : Prog (ArraySortOps α) (Array α) :=
+  FreeM.lift <| ArraySortOps.swap a ⟨i, hi⟩ ⟨j, hj⟩
 
 def cmp [LinearOrder α]
   (a : Array α) (i j : ℕ)
