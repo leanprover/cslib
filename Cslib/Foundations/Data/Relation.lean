@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi and Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Fabrizio Montesi, Thomas Waring, Chris Henson
+Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 -/
 
 module
@@ -27,7 +27,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 ## References
 
-* [*α Rewriting and All That*][Baader1998]
+* [*Term Rewriting and All That*][Baader1998]
 
 -/
 
