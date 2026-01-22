@@ -6,7 +6,6 @@ Authors: Tanner Duve
 
 module
 
-public import Cslib.Algorithms.QueryModel
 
 @[expose] public section
 
@@ -25,7 +24,7 @@ This file implements merge sort as a program in the query model defined in
 We also provide simple example evaluations of `mergeSort` and its time cost.
 -/
 
-open Cslib
+
 
 namespace Cslib.Algorithms.MergeSort.QueryBased
 
