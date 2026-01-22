@@ -226,7 +226,7 @@ def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) where
     | .swap l i j => 1
     | .push a elem => 2 -- amortized over array insertion and resizing by doubling
 
-def swapOp [LinearOrder α]
+def swap [LinearOrder α]
   (v : Vector α n) (i j : Fin n) : Prog (VecSortOps α) (Vector α n) :=
   FreeM.lift <| VecSortOps.swap v i j
 
@@ -234,7 +234,7 @@ def cmp [LinearOrder α]
   (v : Vector α n) (i j : Fin n) : Prog (VecSortOps α) Bool :=
   FreeM.lift <| VecSortOps.cmp v i j
 
-def writeOp [LinearOrder α]
+def write [LinearOrder α]
   (v : Vector α n) (i : Fin n) (x : α) : Prog (VecSortOps α) (Vector α n) :=
   FreeM.lift <| VecSortOps.write v i x
 
@@ -245,8 +245,9 @@ def read [LinearOrder α]
 
 def simpleExample (v : Vector ℤ n) (i k : Fin n)
   : Prog (VecSortOps ℤ) (Vector ℤ n) :=  do
-  let b ← writeOp v i 10
-  swapOp b i k
+  let b ← write v i 10
+  _ ← swap b i k
+  swap v k i
 
 #eval (simpleExample #v[1,2,3,4,5] 0 2).eval VecSort_WorstCase
 #eval (simpleExample #v[1,2,3,4,5] 0 2).time VecSort_WorstCase
