@@ -25,7 +25,7 @@ public import Mathlib.Tactic.Common
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor
+open Set List Prod Automata Acceptor RightCongruence
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol : Type*}
@@ -162,10 +162,11 @@ theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
 
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
-theorem IsRegular.congr_fin_index {Symbol : Type} [c : RightCongruence Symbol] [Finite c.QuotType]
-    (s : c.QuotType) : (c.eqvCls s).IsRegular := by
+theorem IsRegular.congr_fin_index {Symbol : Type}
+    [c : RightCongruence Symbol] [Finite (QuotType Symbol)]
+    (s : QuotType Symbol) : (eqvCls s).IsRegular := by
   rw [IsRegular.iff_dfa]
-  use c.QuotType, inferInstance, ⟨c.toDA, {s}⟩
+  use QuotType Symbol, inferInstance, ⟨c.toDA, {s}⟩
   exact DA.FinAcc.congr_language_eq
 
 end Cslib.Language

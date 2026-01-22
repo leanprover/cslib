@@ -30,15 +30,15 @@ following two conditions hold:
 (1) `u` can move `na` from `s` to `t` iff `v` can move `na` from `s` to `t`;
 (2) `u` can move `na` from `s` to `t` via an acceptingg states iff `v` can move `na`
 from `s` to `t` via an acceptingg states. -/
-def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
+instance BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.r u v :=
     ∀ {s t}, (u ∈ na.pairLang s t ↔ v ∈ na.pairLang s t) ∧
       (u ∈ na.pairViaLang na.accept s t ↔ v ∈ na.pairViaLang na.accept s t)
   eq.iseqv.refl := by grind
   eq.iseqv.symm := by grind
   eq.iseqv.trans := by grind
-  right_congr := by
-    rintro u v h_eq w s t
+  elim := by
+    rintro u v w h_eq s t
     split_ands <;> constructor <;> intro h
     · obtain ⟨r, h1, _⟩ := LTS.pairLang_split h
       grind [<= LTS.pairLang_append, h_eq.left.mp h1]
@@ -55,7 +55,7 @@ open scoped Classical in
 /-- `BuchiCongrParam` is a parameterization of the equivalence classes of `na.BuchiCongruence`
 using the type `State → State → Prop × Prop`, which is finite if `State` is. -/
 noncomputable def BuchiCongrParam (na : Buchi State Symbol)
-    (f : State → State → Prop × Prop) : na.BuchiCongruence.QuotType :=
+    (f : State → State → Prop × Prop) : Quotient na.BuchiCongruence.eq :=
   if h : ∃ u, ∀ s t, ((f s t).1 ↔ u ∈ na.pairLang s t) ∧
       ((f s t).2 ↔ u ∈ na.pairViaLang na.accept s t)
   then ⟦ Classical.choose h ⟧
@@ -79,7 +79,7 @@ lemma buchiCongrParam_surjective : Surjective na.BuchiCongrParam := by
   grind
 
 /-- `na.BuchiCongruence` is of finite index if `na` has only finitely many states. -/
-theorem buchiCongruence_fin_index [Finite State] : Finite na.BuchiCongruence.QuotType :=
+theorem buchiCongruence_fin_index [Finite State] : Finite (Quotient na.BuchiCongruence.eq) :=
   Finite.of_surjective na.BuchiCongrParam buchiCongrParam_surjective
 
 end Cslib.Automata.NA.Buchi

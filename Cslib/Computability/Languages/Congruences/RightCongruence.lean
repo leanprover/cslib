@@ -25,25 +25,18 @@ namespace Cslib
 /-- A right congruence is an equivalence relation on finite sequences (represented by lists)
 that is preserved by concatenation on the right.  The equivalence relation is represented
 by a setoid to to enable ready access to the quotient construction. -/
-class RightCongruence (α : Type*) extends eq : Setoid (List α) where
-  /-- If `u` an `v` are congruent, then `u ++ w` and `v ++ w` are also congruent for any `w`. -/
-  right_congr {u v} (huv : u ≈ v) (w : List α) : u ++ w ≈ v ++ w
-
-/-- The `≃` notation is supported for right congruences. -/
-instance {α : Type*} [RightCongruence α] : HasEquiv (List α) :=
-  ⟨RightCongruence.eq⟩
+class RightCongruence (α : Type*) extends
+  eq : Setoid (List α) , CovariantClass _ _ (fun x y => y ++ x) eq where
 
 namespace RightCongruence
 
 variable {α : Type*}
 
 /-- The quotient type of a RightCongruence relation. -/
-@[scoped grind =]
-def QuotType (c : RightCongruence α) := Quotient c.eq
+abbrev QuotType (α : Type*) [c : RightCongruence α] := Quotient c.eq
 
 /-- The equivalence class (as a language) corresponding to an element of the quotient type. -/
-@[scoped grind =]
-def eqvCls [c : RightCongruence α] (s : c.QuotType) : Language α :=
+abbrev eqvCls [c : RightCongruence α] (s : QuotType α) : Language α :=
   (Quotient.mk c.eq) ⁻¹' {s}
 
 end RightCongruence
