@@ -98,12 +98,12 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
     ∀ k, (_ : k < xl.length) → na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
-  obtain ⟨sl, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
+  obtain ⟨sl, _, _, _, _⟩ := LTS.mTr_isExecution h_mtr
   by_cases xl.length = 0
   · use [inl ()]
     grind
   · use [inl ()] ++ (sl.extract 1 xl.length).map inr ++ [inl ()]
-    grind [FinAcc.loop]
+    grind [FinAcc.loop, → LTS.tr_setImage]
 
 /-- For any finite word in `language na`, there is a corresponding multistep transition
 of `na.loop`. -/

@@ -73,7 +73,7 @@ def Relation.toLTS [DecidableEq Label] (r : State → State → Prop) (μ : Labe
 
 section MultiStep
 
-/-! ## Multistep transitions with finite traces
+/-! ## Multistep transitions and executions with finite traces
 
 This section treats executions with a finite number of steps.
 -/
@@ -104,7 +104,6 @@ theorem LTS.MTr.single {s1 : State} {μ : Label} {s2 : State} :
   · apply LTS.MTr.refl
 
 /-- Any multistep transition can be extended by adding a transition. -/
-@[scoped grind <=]
 theorem LTS.MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
   lts.MTr s1 μs s2 → lts.Tr s2 μ s3 → lts.MTr s1 (μs ++ [μ]) s3 := by
   intro h1 h2
@@ -144,19 +143,77 @@ theorem LTS.MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
 
-/-- For every multistep transition, there exists a sequence of intermediate states
-which satisfies the single-step transition at every step. -/
-theorem LTS.MTr.exists_states {lts : LTS State Label} {s1 s2 : State} {μs : List Label}
-    (h : lts.MTr s1 μs s2) : ∃ ss : List State, ∃ _ : ss.length = μs.length + 1,
-    ss[0] = s1 ∧ ss[μs.length] = s2 ∧ ∀ k, (_ : k < μs.length) → lts.Tr ss[k] μs[k] ss[k + 1] := by
+/-- A finite execution, or sequence of transitions. -/
+@[scoped grind =]
+def LTS.IsExecution (lts : LTS State Label) (s1 : State) (μs : List Label) (s2 : State)
+    (ss : List State) : Prop :=
+  ∃ _ : ss.length = μs.length + 1, ss[0] = s1 ∧ ss[ss.length - 1] = s2 ∧
+  ∀ k, {_ : k < μs.length} → lts.Tr ss[k] μs[k] ss[k + 1]
+
+/-- Every execution has a start state. -/
+@[scoped grind →]
+theorem LTS.isExecution_nonEmpty_states (h : lts.IsExecution s1 μs s2 ss) :
+    ss ≠ [] := by grind
+
+/-- Every state has an execution of zero steps terminating in itself. -/
+@[scoped grind ⇒]
+theorem LTS.IsExecution.refl (lts : LTS State Label) (s : State) : lts.IsExecution s [] s [s] := by
+  grind
+
+/-- Equivalent of `MTr.stepL` for executions. -/
+theorem LTS.IsExecution.stepL {lts : LTS State Label} (htr : lts.Tr s1 μ s2)
+    (hexec : lts.IsExecution s2 μs s3 ss) : lts.IsExecution s1 (μ :: μs) s3 (s1 :: ss) := by grind
+
+/-- Deconstruction of executions with `List.cons`. -/
+theorem LTS.isExecution_cons_invert (h : lts.IsExecution s1 (μ :: μs) s2 (s1 :: ss)) :
+    lts.IsExecution (ss[0]'(by grind)) μs s2 ss := by
+  obtain ⟨_, _, _, h4⟩ := h
+  exists (by grind)
+  constructorm* _∧_
+  · rfl
+  · grind
+  · intro k valid
+    specialize h4 k <;> grind
+
+open scoped LTS.IsExecution in
+/-- A multistep transition implies the existence of an execution. -/
+@[scoped grind →]
+theorem LTS.mTr_isExecution {lts : LTS State Label} {s1 : State} {μs : List Label} {s2 : State}
+    (h : lts.MTr s1 μs s2) : ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   induction h
   case refl t =>
     use [t]
     grind
-  case stepL t1 μ t2 μs t3 h_tr h_mtr h_ind =>
-    obtain ⟨ss', _, _, _, _⟩ := h_ind
-    use [t1] ++ ss'
+  case stepL t1 μ t2 μs t3 htr hmtr ih =>
+    obtain ⟨ss', _⟩ := ih
+    use t1 :: ss'
     grind
+
+/-- Converts an execution into a multistep transition. -/
+@[scoped grind →]
+theorem LTS.isExecution_mTr (hexec : lts.IsExecution s1 μs s2 ss) :
+    lts.MTr s1 μs s2 := by
+  induction ss generalizing s1 μs
+  case nil => grind
+  case cons s1' ss ih =>
+    let ⟨hlen, hstart, hfinal, hexec'⟩ := hexec
+    have : s1' = s1 := by grind
+    rw [this] at hexec' hexec
+    cases μs
+    · grind
+    case cons μ μs =>
+      specialize ih (s1 := ss[0]'(by grind)) (μs := μs)
+      apply LTS.isExecution_cons_invert at hexec
+      apply LTS.MTr.stepL
+      · have : lts.Tr s1 μ (ss[0]'(by grind)) := by grind
+        apply this
+      · grind
+
+/-- Correspondence of multistep transitions and executions. -/
+@[scoped grind =]
+theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
+    ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
+  grind
 
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
@@ -266,7 +323,7 @@ theorem LTS.ωTr.cons (htr : lts.Tr s μ t) (hωtr : lts.ωTr ss μs) (hm : ss 0
 /-- Prepends an infinite execution with a finite execution. -/
 theorem LTS.ωTr.append (hmtr : lts.MTr s μl t) (hωtr : lts.ωTr ss μs)
     (hm : ss 0 = t) : ∃ ss', lts.ωTr ss' (μl ++ω μs) ∧ ss' 0 = s ∧ ss' μl.length = t := by
-  obtain ⟨sl, _, _, _, _⟩ := LTS.MTr.exists_states hmtr
+  obtain ⟨sl, _, _, _, _⟩ := LTS.mTr_isExecution hmtr
   refine ⟨sl ++ω ss.drop 1, ?_, by grind [get_append_left], by grind [get_append_left]⟩
   intro n
   by_cases n < μl.length
@@ -478,7 +535,6 @@ theorem LTS.mem_setImage {lts : LTS State Label} :
   simp only [setImage, Set.mem_iUnion, exists_prop]
   grind
 
-@[scoped grind →]
 theorem LTS.tr_setImage {lts : LTS State Label} (hs : s ∈ S) (htr : lts.Tr s μ s') :
   s' ∈ lts.setImage S μ := by grind
 
@@ -609,7 +665,6 @@ theorem LTS.saturate_tr_sTr [HasTau Label] {lts : LTS State Label} :
   lts.saturate.Tr = lts.STr := by rfl
 
 /-- Any transition is also a saturated transition. -/
-@[scoped grind →]
 theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
     lts.Tr s μ s' → lts.STr s μ s' := by
   intro h
