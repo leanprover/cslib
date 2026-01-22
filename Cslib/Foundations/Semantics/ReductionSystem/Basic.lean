@@ -29,11 +29,6 @@ structure ReductionSystem (Term : Type u) where
   /-- The reduction relation. -/
   Red : Term → Term → Prop
 
-structure TerminalReductionSystem (Term : Type u) extends ReductionSystem Term where
-  /-- The terminal terms. -/
-  Terminal : Term → Prop
-  /-- A terminal term cannot be further reduced. -/
-  terminal_not_reducible : ∀ t t', Terminal t → ¬ Red t t'
 
 section MultiStep
 
@@ -54,18 +49,6 @@ theorem ReductionSystem.MRed.single (rs : ReductionSystem Term) (h : rs.Red a b)
   Relation.ReflTransGen.single h
 
 end MultiStep
-
-/--
-Given a map σ → Option σ, we can construct a terminal reduction system on `σ` where:
-* a term is terminal if it maps to `none` under the given function,
-* and otherwise is reducible to its `some` value under the given function.
--/
-def TerminalReductionSystem.Option {σ : Type*} (f : σ → Option σ) : TerminalReductionSystem σ where
-  Red := fun a b => f a = some b
-  Terminal := fun a => f a = none
-  terminal_not_reducible := by
-    intros t t' h_terminal h_red
-    simp [h_terminal] at h_red
 
 open Lean Elab Meta Command Term
 
