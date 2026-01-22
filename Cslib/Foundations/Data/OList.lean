@@ -15,6 +15,13 @@ public import Mathlib.Data.List.Basic
 
 This file defines `OList`, a list of option values where the list cannot end with `none`.
 This is useful for representing tape contents where trailing blanks are not stored.
+
+## TODO
+
+- Rename, as this collides with `OList` in Haskell.
+- Maype just bitape and unitape?
+- Can we make pattern matching syntax work?
+
 -/
 
 namespace Turing

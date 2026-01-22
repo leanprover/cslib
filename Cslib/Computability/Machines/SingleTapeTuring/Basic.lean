@@ -501,6 +501,7 @@ def TimeComputable.comp
     (h_mono : Monotone hg.time) :
     (TimeComputable (g ∘ f)) where
   tm := compComputer hf hg
+  -- perhaps it would be good to track the blow up separately?
   time l := (hf.time l) + hg.time (max 1 l + hf.time l)
   outputsFun a := by
     have hf_outputsFun := hf.outputsFun a
@@ -549,8 +550,10 @@ and proves that
 
 ### TODO
 
-Use of mathlib's `Polynomial` type leads to noncomputable definitions here.
+- Use of mathlib's `Polynomial` type leads to noncomputable definitions here.
 Perhaps we could switch to a computable polynomial representation?
+- Move to dedicated file?
+
 -/
 
 section PolyTime
