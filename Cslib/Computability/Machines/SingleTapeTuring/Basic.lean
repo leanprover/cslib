@@ -506,6 +506,8 @@ noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id wher
   poly := 1
   bounds n := by simp only [TimeComputable.id, eval_one, le_refl]
 
+-- TODO remove `h_mono` assumption
+-- by developing function to convert PolyTimeComputable into one with monotone time bound
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
@@ -513,7 +515,6 @@ noncomputable def PolyTimeComputable.comp
     {f g : List α → List α}
     (hf : PolyTimeComputable f)
     (hg : PolyTimeComputable g)
-    -- all Nat polynomials are monotone, but the tighter internal bound maybe is not, awkwardly
     (h_mono : Monotone hg.time_bound) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
