@@ -341,19 +341,54 @@ theorem reflTransGen_compRel : ReflTransGen (CompRel r) = EqvGen r := by
 
 section Steps
 
+variable {a b c : α}
+
 /--
 A relation `r` relates two elements of `α` in `n` steps
 if there is a chain of `n` pairs `(t_i, t_{i+1})` such that `r t_i t_{i+1}` for each `i`,
 starting from the first element and ending at the second.
 -/
 inductive relatesInSteps (r : α → α → Prop) : α → α → ℕ → Prop
-  | refl (t : α) : relatesInSteps r t t 0
-  | cons (t t' t'' : α) (n : ℕ) (h₁ : r t t') (h₂ : relatesInSteps r t' t'' n) :
+  | refl (a : α) : relatesInSteps r a a 0
+  | tail (t t' t'' : α) (n : ℕ) (h₁ : relatesInSteps r t t' n) (h₂ : r t' t'') :
       relatesInSteps r t t'' (n + 1)
+
+theorem relatesInSteps.reflTransGen (h : relatesInSteps r a b n) : ReflTransGen r a b := by
+  induction h with
+  | refl => rfl
+  | tail _ _ _ _ h ih => exact .tail ih h
+
+theorem ReflTransGen.relatesInSteps (h : ReflTransGen r a b) : ∃ n, relatesInSteps r a b n := by
+  induction h with
+  | refl => exact ⟨0, .refl a⟩
+  | tail _ _ ih =>
+    obtain ⟨n, _⟩ := ih
+    exact ⟨n + 1, by grind [relatesInSteps]⟩
 
 lemma relatesInSteps.single {a b : α} (h : r a b) :
     relatesInSteps r a b 1 := by
-  exact relatesInSteps.cons a b b 0 h (relatesInSteps.refl b)
+  exact tail a a b 0 (refl a) h
+
+theorem relatesInSteps.head (t t' t'' : α) (n : ℕ) (h₁ : r t t')
+    (h₂ : relatesInSteps r t' t'' n) : relatesInSteps r t t'' (n+1) := by
+  induction h₂ with
+  | refl =>
+    exact single h₁
+  | tail _ _ n _ hcd hac =>
+    exact tail _ _ _ (n + 1) hac hcd
+
+@[elab_as_elim]
+theorem relatesInSteps.head_induction_on {motive : ∀ (a : α) (n : ℕ), relatesInSteps r a b n → Prop}
+    {a : α} {n : ℕ} (h : relatesInSteps r a b n) (hrefl : motive b 0 (.refl b))
+    (hhead : ∀ {a c n} (h' : r a c) (h : relatesInSteps r c b n),
+      motive c n h → motive a (n + 1) (h.head a c b n h')) :
+    motive a n h := by
+  induction h with
+  | refl => exact hrefl
+  | tail t' b' m hstep hrt'b' hstep_ih =>
+    apply hstep_ih
+    · exact hhead hrt'b' _ hrefl
+    · exact fun h1 h2 ↦ hhead h1 (.tail _ t' b' _ h2 hrt'b')
 
 lemma relatesInSteps.zero {a b : α} (h : relatesInSteps r a b 0) : a = b := by
   cases h
@@ -369,46 +404,43 @@ lemma relatesInSteps.zero_iff {a b : α} : relatesInSteps r a b 0 ↔ a = b := b
 lemma relatesInSteps.trans {a b c : α} {n m : ℕ}
     (h₁ : relatesInSteps r a b n) (h₂ : relatesInSteps r b c m) :
     relatesInSteps r a c (n + m) := by
-  induction h₁ with
-  | refl _ =>
-    rw [Nat.zero_add]
-    exact h₂
-  | cons t t' t'' k h_red _ ih =>
-    rw [Nat.add_right_comm]
-    exact relatesInSteps.cons t t' c (k + m) h_red (ih h₂)
+  induction h₂ generalizing a n with
+  | refl => simp [h₁]
+  | tail t' t'' k hsteps hstep ih =>
+    rw [← Nat.add_assoc]
+    exact .tail _ t' t'' (n + k) (ih h₁) hstep
 
 lemma relatesInSteps.succ {a b : α} {n : ℕ} (h : relatesInSteps r a b (n + 1)) :
-    ∃ t', r a t' ∧ relatesInSteps r t' b n := by
+    ∃ t', relatesInSteps r a t' n ∧ r t' b := by
   cases h with
-  | cons _ t' _ _ h_red h_steps => exact ⟨t', h_red, h_steps⟩
+  | tail t' _ _ hsteps hstep => exact ⟨t', hsteps, hstep⟩
 
 lemma relatesInSteps.succ_iff {a b : α} {n : ℕ} :
-    relatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ relatesInSteps r t' b n := by
-  constructor
-  · exact relatesInSteps.succ
-  · rintro ⟨t', h_red, h_steps⟩
-    exact relatesInSteps.cons a t' b n h_red h_steps
-
-lemma relatesInSteps.succ' {a b : α} {n : ℕ} (h : relatesInSteps r a b (n + 1)) :
-    ∃ t', relatesInSteps r a t' n ∧ r t' b := by
-  induction n generalizing a b with
-  | zero =>
-    obtain ⟨t', h_red, h_steps⟩ := succ h
-    rw [zero_iff] at h_steps
-    subst h_steps
-    exact ⟨a, relatesInSteps.refl a, h_red⟩
-  | succ k ih =>
-    obtain ⟨t', h_red, h_steps⟩ := succ h
-    obtain ⟨t'', h_steps', h_red'⟩ := ih h_steps
-    exact ⟨t'', relatesInSteps.cons a t' t'' k h_red h_steps', h_red'⟩
-
-lemma relatesInSteps.succ'_iff {a b : α} {n : ℕ} :
     relatesInSteps r a b (n + 1) ↔ ∃ t', relatesInSteps r a t' n ∧ r t' b := by
   constructor
-  · exact succ'
+  · exact relatesInSteps.succ
   · rintro ⟨t', h_steps, h_red⟩
-    have h_succ := trans h_steps (cons t' b b 0 h_red (refl b))
-    exact h_succ
+    exact .tail _ t' b n h_steps h_red
+
+lemma relatesInSteps.succ' {a b : α} : ∀ {n : ℕ}, relatesInSteps r a b (n + 1) →
+    ∃ t', r a t' ∧ relatesInSteps r t' b n := by
+  intro n h
+  obtain ⟨t', hsteps, hstep⟩ := succ h
+  cases n with
+  | zero =>
+    rw [zero_iff] at hsteps
+    subst hsteps
+    exact ⟨b, hstep, .refl _⟩
+  | succ k' =>
+    obtain ⟨t''', h_red''', h_steps'''⟩ := succ' hsteps
+    exact ⟨t''', h_red''', .tail _ _ b k' h_steps''' hstep⟩
+
+lemma relatesInSteps.succ'_iff {a b : α} {n : ℕ} :
+    relatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ relatesInSteps r t' b n := by
+  constructor
+  · exact succ'
+  · rintro ⟨t', h_red, h_steps⟩
+    exact h_steps.head a t' b n h_red
 
 /--
 If `h : α → ℕ` increases by at most 1 on each step of `r`,
@@ -419,9 +451,9 @@ lemma relatesInSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
     (m : ℕ) (hevals : relatesInSteps r a b m) :
     h b ≤ h a + m := by
   induction hevals with
-  | refl _ => simp
-  | cons t t' t'' k h_red _ ih =>
-    have h_step' := h_step t t' h_red
+  | refl => simp
+  | tail t' t'' k _ hstep ih =>
+    have h_step' := h_step t' t'' hstep
     omega
 
 /--
@@ -434,9 +466,9 @@ lemma relatesInSteps.map {α α' : Type*}
     {a b : α} {n : ℕ} (h : relatesInSteps r a b n) :
     relatesInSteps r' (g a) (g b) n := by
   induction h with
-  | refl t => exact relatesInSteps.refl (g t)
-  | cons t t' t'' m h_red h_steps ih =>
-    exact relatesInSteps.cons (g t) (g t') (g t'') m (hg t t' h_red) ih
+  | refl => exact relatesInSteps.refl (g _)
+  | tail t' t'' m _ hstep ih =>
+    exact .tail (g _) (g t') (g t'') m ih (hg t' t'' hstep)
 
 /--
 `relatesWithinSteps` is a variant of `relatesInSteps` that allows for a loose bound.
