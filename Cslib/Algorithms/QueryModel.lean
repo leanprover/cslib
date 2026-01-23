@@ -37,7 +37,7 @@ namespace Cslib
 
 namespace Algorithms
 
-class Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] where
+structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] where
   evalQuery : QType ι → ι
   cost : QType ι → Cost
 
