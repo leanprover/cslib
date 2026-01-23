@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Tanner Duve
+Authors: Tanner Duve, Shreyas Srinivas
 -/
 
 module
@@ -336,6 +336,7 @@ lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n)
       done
     · expose_names
       simp_all [VecSearch_Nat]
+      have ⟨hι, hop, hcont⟩ := heq
       done
 
 lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
@@ -353,6 +354,8 @@ lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
     · expose_names
       simp_all
       have ⟨hι, hop, hcont⟩ := heq
+      unfold eval
+
       done
 
 lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
@@ -366,8 +369,7 @@ lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
     split_ifs with hfound
     · simp_all[time]
       exact Nat.one_le_iff_ne_zero.mpr h
-    · simp_wf
-
+    ·
       done
 
 -- The Monadic version
