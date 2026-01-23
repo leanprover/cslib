@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Syntax.HasWellFormed
-import Mathlib.Data.Finset.Dedup
-import Mathlib.Data.List.Sigma
+module
+
+public import Cslib.Foundations.Syntax.HasWellFormed
+public import Mathlib.Data.Finset.Dedup
+public import Mathlib.Data.List.Sigma
+
+@[expose] public section
 
 /-! # λ-calculus
 

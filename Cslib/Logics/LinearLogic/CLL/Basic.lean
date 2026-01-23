@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Init
-import Mathlib.Order.Notation
-import Mathlib.Order.Defs.Unbundled
-import Mathlib.Data.Multiset.Defs
-import Mathlib.Data.Multiset.Fold
-import Mathlib.Data.Multiset.AddSub
+module
+
+public import Cslib.Init
+public import Mathlib.Order.Notation
+public import Mathlib.Order.Defs.Unbundled
+public import Mathlib.Data.Multiset.Defs
+public import Mathlib.Data.Multiset.Fold
+public import Mathlib.Data.Multiset.AddSub
+
+@[expose] public section
 
 /-! # Classical Linear Logic
 
@@ -114,6 +118,14 @@ def Proposition.dual : Proposition Atom → Proposition Atom
 
 @[inherit_doc] scoped postfix:max "⫠" => Proposition.dual
 
+@[scoped grind =]
+theorem Proposition.top_eq_zero_dual : ⊤ = (0⫠ : Proposition Atom) := rfl
+
+/-- Duality preserves size. -/
+@[scoped grind _=_]
+theorem Proposition.dual_sizeOf (a : Proposition Atom) : sizeOf a = sizeOf a⫠ := by
+  induction a <;> simp [dual] <;> grind
+
 /-- No proposition is equal to its dual. -/
 @[scoped grind .]
 theorem Proposition.dual_neq (a : Proposition Atom) : a ≠ a⫠ := by
@@ -127,7 +139,7 @@ theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b :=
 
 /-- Duality is an involution. -/
 @[scoped grind =, simp]
-theorem Proposition.dual.involution (a : Proposition Atom) : a⫠⫠ = a := by
+theorem Proposition.dual_involution (a : Proposition Atom) : a⫠⫠ = a := by
   induction a <;> grind [dual]
 
 /-- Linear implication. -/
@@ -168,7 +180,7 @@ scoped notation "⇓" Γ:90 => Proof Γ
 
 /-- Rewrites the conclusion of a proof into an equal one. -/
 @[scoped grind =]
-def Proof.sequent_rw (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
+def Proof.rwConclusion (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
 
 /-- A sequent is provable if there exists a proof that concludes it. -/
 @[scoped grind =]
@@ -196,7 +208,7 @@ def Proof.ax' {a : Proposition Atom} : ⇓{a⫠, a} :=
 /-- Cut, but where the premises are reversed. -/
 @[scoped grind =]
 def Proof.cut' (p : ⇓(a⫠ ::ₘ Γ)) (q : ⇓(a ::ₘ Δ)) : ⇓(Γ + Δ) :=
-  let r : ⇓(a⫠⫠ ::ₘ Δ) := (Proposition.dual.involution a).symm ▸ q
+  let r : ⇓(a⫠⫠ ::ₘ Δ) := (Proposition.dual_involution a).symm ▸ q
   p.cut r
 
 /-- Inversion of the ⅋ rule. -/
@@ -281,9 +293,9 @@ theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   ⟨
     Provable.fromProof
-      (Proof.cut (hab.1.toProof.sequent_rw (Multiset.pair_comm _ _)) hbc.1.toProof),
+      (Proof.cut (hab.1.toProof.rwConclusion (Multiset.pair_comm _ _)) hbc.1.toProof),
     Provable.fromProof
-      (Proof.cut (hbc.2.toProof.sequent_rw (Multiset.pair_comm _ _)) hab.2.toProof)
+      (Proof.cut (hbc.2.toProof.rwConclusion (Multiset.pair_comm _ _)) hab.2.toProof)
   ⟩
 
 /-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
@@ -302,19 +314,19 @@ def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 :=
 /-- ʔ0 ≡⇓ ⊥ -/
 @[scoped grind =]
 def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
-  ⟨.sequent_rw (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
-   .sequent_rw (Multiset.pair_comm ..) <| .weaken .one⟩
+  ⟨.rwConclusion (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
+   .rwConclusion (Multiset.pair_comm ..) <| .weaken .one⟩
 
 /-- a ⊗ 0 ≡⇓ 0 -/
 @[scoped grind =]
 def tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡⇓ 0 :=
-  ⟨.parr <| .sequent_rw (Multiset.cons_swap ..) .top, .top⟩
+  ⟨.parr <| .rwConclusion (Multiset.cons_swap ..) .top, .top⟩
 
 /-- a ⅋ ⊤ ≡⇓ ⊤ -/
 @[scoped grind =]
 def parr_top_eqv_top (a : Proposition Atom) : a ⅋ ⊤ ≡⇓ ⊤ :=
-  ⟨.sequent_rw (Multiset.cons_swap ..) .top,
-   .sequent_rw (Multiset.cons_swap ..) <| .parr <| .sequent_rw (Multiset.cons_swap ..) .top⟩
+  ⟨.rwConclusion (Multiset.cons_swap ..) .top,
+   .rwConclusion (Multiset.cons_swap ..) <| .parr <| .rwConclusion (Multiset.cons_swap ..) .top⟩
 
 attribute [local grind _=_] Multiset.coe_eq_coe
 attribute [local grind _=_] Multiset.cons_coe
@@ -328,7 +340,7 @@ open scoped Multiset in
 @[scoped grind =]
 def tensor_distrib_oplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a ⊗ b) ⊕ (a ⊗ c) :=
   ⟨.parr <|
-    .sequent_rw (Multiset.cons_swap ..) <|
+    .rwConclusion (Multiset.cons_swap ..) <|
     .with
       (show (b⫠ ::ₘ a⫠ ::ₘ {(a ⊗ b) ⊕ (a ⊗ c)}) = (((a ⊗ b) ⊕ (a ⊗ c)) ::ₘ ({a⫠} + {b⫠})) by grind ▸
        .oplus₁ (.tensor .ax .ax))

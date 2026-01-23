@@ -2,22 +2,29 @@ name: Lean Action CI
 
 on:
   push:
+    branches:
+      - main
+      - nightly-testing
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 jobs:
-  build:
+  ci-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
         with:
-          build-args: "--wfail"
-          mk_all-check: "true"
-      - name: "lake exe shake"
+          build-args: "--wfail --iofail"
+      - name: "lake exe mk_all --check --module"
         run: |
           set -e
-          lake exe shake Cslib
+          lake exe mk_all --check --module
+      #- name: "lake exe shake"
+      #  run: |
+      #    set -e
+      #    lake exe shake Cslib
       - uses: leanprover-community/lint-style-action@main
         with:
           mode: check

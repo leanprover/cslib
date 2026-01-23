@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.Acceptor
-import Cslib.Computability.Automata.OmegaAcceptor
-import Cslib.Foundations.Data.OmegaSequence.InfOcc
-import Cslib.Foundations.Semantics.LTS.FLTS
+module
+
+public import Cslib.Computability.Automata.Acceptors.Acceptor
+public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
+public import Cslib.Foundations.Data.OmegaSequence.InfOcc
+public import Cslib.Foundations.Semantics.FLTS.Basic
+
+@[expose] public section
 
 /-! # Deterministic Automata
 
@@ -63,7 +67,7 @@ theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : 
     da.mtr da.start (xs.extract 0 n) = da.run xs n := by
   induction n
   case zero => rfl
-  case succ n h_ind => grind [extract_succ_right]
+  case succ n h_ind => grind
 
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends DA State Symbol where

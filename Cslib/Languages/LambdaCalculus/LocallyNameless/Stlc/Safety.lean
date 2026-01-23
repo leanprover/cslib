@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+module
+
+public import Cslib.Foundations.Data.Relation
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+
+@[expose] public section
 
 /-! # λ-calculus
 
@@ -46,7 +50,7 @@ theorem redex_preservesTyping :
 open _root_.Relation in
 /-- Confluence preserves type preservation. -/
 theorem confluence_preservesTyping {τ : Ty Base}
-    (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
+    (con : Confluent R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
     (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) :
     ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
   have ⟨d, bd, cd⟩ := con ab ac
@@ -58,6 +62,7 @@ namespace FullBeta
 
 open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
+set_option linter.unusedDecidableInType false in
 /-- Typing preservation for full beta reduction. -/
 @[scoped grind →]
 theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by

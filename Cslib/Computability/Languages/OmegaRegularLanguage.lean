@@ -4,12 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DABuchi
-import Cslib.Computability.Automata.NABuchiEquiv
-import Cslib.Computability.Automata.Sum
-import Cslib.Computability.Languages.ExampleEventuallyZero
-import Cslib.Computability.Languages.RegularLanguage
-import Mathlib.Data.Finite.Sigma
+module
+
+public import Cslib.Computability.Automata.DA.Buchi
+public import Cslib.Computability.Automata.NA.BuchiEquiv
+public import Cslib.Computability.Automata.NA.BuchiInter
+public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Sum
+public import Cslib.Computability.Languages.ExampleEventuallyZero
+public import Cslib.Computability.Languages.RegularLanguage
+public import Mathlib.Data.Finite.Sigma
+public import Mathlib.Data.Finite.Sum
+
+@[expose] public section
 
 /-!
 # ω-Regular languages
@@ -17,14 +25,12 @@ import Mathlib.Data.Finite.Sigma
 This file defines ω-regular languages and proves some properties of them.
 -/
 
-open Set Function Filter Cslib.ωSequence Cslib.Automata ωAcceptor
-open scoped Computability
-
-universe u v
-
 namespace Cslib.ωLanguage
 
-variable {Symbol : Type u}
+open Set Sum Filter ωSequence Automata ωAcceptor
+open scoped Computability LTS
+
+variable {Symbol : Type*}
 
 /-- An ω-language is ω-regular iff it is accepted by a
 finite-state nondeterministic Buchi automaton. -/
@@ -67,7 +73,7 @@ theorem IsRegular.not_da_buchi :
 @[simp]
 theorem IsRegular.regular_omegaLim {l : Language Symbol}
     (h : l.IsRegular) : (l↗ω).IsRegular := by
-  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_cslib_dfa.mp h
+  obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_dfa.mp h
   grind [IsRegular.of_da_buchi, =_ DA.buchi_eq_finAcc_omegaLim]
 
 /-- The empty language is ω-regular. -/
@@ -80,6 +86,20 @@ theorem IsRegular.bot : (⊥ : ωLanguage Symbol).IsRegular := by
   use Unit, inferInstance, na
   ext xs
   simp [na]
+
+/-- The language of all ω-sequences is ω-regular. -/
+@[simp]
+theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
+  let na : NA.Buchi Unit Symbol := {
+    Tr _ _ _ := True
+    start := univ
+    accept := univ }
+  use Unit, inferInstance, na
+  ext xs
+  simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
+    atTop_neBot, and_true, mem_top, iff_true]
+  use const ()
+  grind [NA.Run]
 
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]
@@ -100,6 +120,26 @@ theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
   rw [mem_iUnion, Fin.exists_fin_two]
   grind
 
+open NA.Buchi in
+/-- The intersection of two ω-regular languages is ω-regular. -/
+@[simp]
+theorem IsRegular.inf {p1 p2 : ωLanguage Symbol}
+    (h1 : p1.IsRegular) (h2 : p2.IsRegular) : (p1 ⊓ p2).IsRegular := by
+  obtain ⟨State1, h_fin1, ⟨na1, acc1⟩, rfl⟩ := h1
+  obtain ⟨State2, h_fin1, ⟨na2, acc2⟩, rfl⟩ := h2
+  let State : Bool → Type
+    | false => State1 | true => State2
+  let na : (i : Bool) → NA (State i) Symbol
+    | false => na1 | true => na2
+  let acc : (i : Bool) → Set (State i)
+    | false => acc1 | true => acc2
+  have : ∀ i, Finite (State i) := by grind
+  use (Π i : Bool, State i) × Bool, inferInstance, ⟨(interNA na acc), interAccept acc⟩
+  ext xs
+  simp only [inter_language_eq, mem_inf, mem_language]
+  rw [mem_iInter, Bool.forall_bool]
+  grind
+
 /-- The union of any finite number of ω-regular languages is ω-regular. -/
 @[simp]
 theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage Symbol}
@@ -110,9 +150,40 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage 
     have := ncard_eq_zero (s := s)
     grind [IsRegular.bot, iSup_bot]
   case succ n h_ind =>
-    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
+    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ).mp h_n
     rw [iSup_insert]
     grind [IsRegular.sup]
+
+/-- The intersection of any finite number of ω-regular languages is ω-regular. -/
+@[simp]
+theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {p : I → ωLanguage Symbol}
+    (h : ∀ i ∈ s, (p i).IsRegular) : (⨅ i ∈ s, p i).IsRegular := by
+  generalize h_n : s.ncard = n
+  induction n generalizing s
+  case zero =>
+    have := ncard_eq_zero (s := s)
+    grind [IsRegular.top, iInf_top]
+  case succ n h_ind =>
+    obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ).mp h_n
+    rw [iInf_insert]
+    grind [IsRegular.inf]
+
+/-- The concatenation of a regular language and an ω-regular language is ω-regular. -/
+@[simp]
+theorem IsRegular.hmul {l : Language Symbol} {p : ωLanguage Symbol}
+    (h1 : l.IsRegular) (h2 : p.IsRegular) : (l * p).IsRegular := by
+  obtain ⟨State1, h_fin1, ⟨na1, acc1⟩, rfl⟩ := Language.IsRegular.iff_nfa.mp h1
+  obtain ⟨State2, h_fin1, ⟨na2, acc2⟩, rfl⟩ := h2
+  use State1 ⊕ State2, inferInstance, ⟨NA.concat ⟨na1, acc1⟩ na2, inr '' acc2⟩
+  exact NA.Buchi.concat_language_eq
+
+/-- The ω-power of a regular language is an ω-regular language. -/
+@[simp]
+theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
+    (h : l.IsRegular) : (l^ω).IsRegular := by
+  obtain ⟨State, h_fin, na, rfl⟩ := Language.IsRegular.iff_nfa.mp h
+  use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
+  exact NA.Buchi.loop_language_eq
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :
