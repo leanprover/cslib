@@ -358,7 +358,7 @@ theorem RelatesInSteps.reflTransGen (h : RelatesInSteps r a b n) : ReflTransGen 
   | refl => rfl
   | tail _ _ _ _ h ih => exact .tail ih h
 
-theorem ReflTransGen.RelatesInSteps (h : ReflTransGen r a b) : ∃ n, RelatesInSteps r a b n := by
+theorem ReflTransGen.relatesInSteps (h : ReflTransGen r a b) : ∃ n, RelatesInSteps r a b n := by
   induction h with
   | refl => exact ⟨0, .refl a⟩
   | tail _ _ ih =>
