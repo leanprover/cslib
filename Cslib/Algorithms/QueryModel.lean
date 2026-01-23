@@ -97,13 +97,8 @@ def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) ℕ where
 
 
 end Examples
-end Model
 
--- ALternative def where pure has to be a query
--- /-- Programs built as the free ~~monad~~ arrow? over `QueryF`. -/
--- inductive Prog (Q : Type u → Type u) : Type u → Type (u + 1)  where
---   | pure (q : Q α) : Prog Q α
---   | seq (p₁ : Prog Q ι) (cont : ι → Prog Q α) : Prog Q α
+end Model
 
 abbrev Prog Q α := FreeM Q α
 
@@ -272,6 +267,54 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n)
 
 end ArraySort
 
+section VectorLinearSearch
+
+inductive VecSearch (α : Type) : Type → Type  where
+  | compare :  (a : Vector α n) → (i : ℕ) → (val : α) →  VecSearch α Bool
+
+
+def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
+  evalQuery q :=
+    match q with
+    | .compare l i x =>  l[i]? == some x
+  cost q :=
+    match q with
+    | .compare _ _ _ => 1
+
+
+open VecSearch in
+def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
+  let mut comp_res : Bool := false
+  for i  in [0:n] do
+    comp_res ← compare v i x
+    if comp_res == true then
+      break
+    else
+      continue
+  return comp_res
+
+#eval (linearSearch #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
+#eval (linearSearch #v[1,2,3,4,5,6] 7).eval VecSearch_Nat
+
+#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
+#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Nat
+
+lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, x ∈ v → (linearSearch v x).eval VecSearch_Nat = true := by
+  intro x x_mem_v
+  sorry
+
+lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, x ∉ v → (linearSearch v x).eval VecSearch_Nat = false := by
+  intro x x_mem_v
+  sorry
+
+lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n := by
+  intro x
+  sorry
+
+end VectorLinearSearch
 
 end ProgExamples
 
