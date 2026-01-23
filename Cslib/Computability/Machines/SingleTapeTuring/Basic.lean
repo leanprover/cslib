@@ -343,45 +343,6 @@ private theorem map_toCompCfg_right_step
       | none => simp only [hM, Option.map_some, toCompCfg_right, Option.map_none]
       | some q' => simp only [hM, Option.map_some, toCompCfg_right]
 
-
-/--
-The behavior of the left machine, converted to the composed machine,
-preserves step count
--/
-private theorem comp_left_relatesInSteps (tm1 tm2 : SingleTapeTM α)
-    (cfg : tm1.Cfg)
-    (hcfg : cfg.state.isSome)
-    (haltCfg : tm1.Cfg)
-    (steps : ℕ)
-    (h : RelatesInSteps tm1.TransitionRelation cfg haltCfg steps) :
-    RelatesInSteps (compComputer tm1 tm2).TransitionRelation
-      (toCompCfg_left tm1 tm2 cfg)
-      (toCompCfg_left tm1 tm2 haltCfg)
-      steps := by
-  induction steps generalizing cfg haltCfg with
-  | zero =>
-    simp only [RelatesInSteps.zero_iff] at h ⊢
-    rw [h]
-  | succ n ih =>
-    rw [RelatesInSteps.succ_iff] at h ⊢
-    obtain ⟨c, hc_n, hc_step⟩ := h
-    use toCompCfg_left tm1 tm2 c
-    constructor
-    · apply ih
-      · exact hcfg
-      · exact hc_n
-    · cases c with
-      | mk state BiTape =>
-        cases state with
-        | none =>
-          simp only [TransitionRelation, step] at hc_step
-          cases hc_step
-        | some q =>
-          have h1 := map_toCompCfg_left_step tm1 tm2 ⟨some q, BiTape⟩ (by simp)
-          simp only [TransitionRelation] at hc_step ⊢
-          rw [hc_step, Option.map_some] at h1
-          exact h1.symm
-
 /--
 Simulation for the first phase of the composed computer.
 When the first machine runs from start to halt, the composed machine
@@ -401,18 +362,15 @@ private theorem comp_left_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
       (initialCfg tm1 tm2 input_tape)
       (intermediateCfg tm1 tm2 intermediate_tape)
       t := by
-  obtain ⟨steps, hsteps_le, hsteps_eval⟩ := htm1
-  use steps
-  constructor
-  · exact hsteps_le
-  · have := comp_left_relatesInSteps tm1 tm2
-      (tm1.initCfg input_tape)
-      (by simp [initCfg])
-      (tm1.haltCfg intermediate_tape)
-      steps
-      hsteps_eval
-    simp only [toCompCfg_left, initCfg, haltCfg, initialCfg, intermediateCfg] at this ⊢
-    exact this
+  simp only [initialCfg, intermediateCfg, initCfg, haltCfg] at htm1 ⊢
+  refine RelatesWithinSteps.map (toCompCfg_left tm1 tm2) ?_ htm1
+  intro a b hab
+  have ha : a.state.isSome := by
+    simp only [TransitionRelation, step] at hab
+    cases a with | mk state _ => cases state <;> simp_all
+  have h1 := map_toCompCfg_left_step tm1 tm2 a ha
+  rw [hab, Option.map_some] at h1
+  exact h1.symm
 
 /--
 Simulation for the second phase of the composed computer.
@@ -420,15 +378,15 @@ When the second machine runs from start to halt, the composed machine
 runs from Sum.inr tm2.q₀ to halt.
 -/
 private theorem comp_right_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
-    (input_tape output_tape : List α)
+    (intermediate_tape output_tape : List α)
     (t : ℕ)
     (htm2 :
       RelatesWithinSteps tm2.TransitionRelation
-        (tm2.initCfg input_tape)
+        (tm2.initCfg intermediate_tape)
         (tm2.haltCfg output_tape)
         t) :
     RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (intermediateCfg tm1 tm2 input_tape)
+      (intermediateCfg tm1 tm2 intermediate_tape)
       (finalCfg tm1 tm2 output_tape)
       t := by
   simp only [intermediateCfg, finalCfg, initCfg, haltCfg] at htm2 ⊢
