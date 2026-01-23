@@ -36,6 +36,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
+public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Semantics.FLTS.Basic
