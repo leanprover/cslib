@@ -19,10 +19,27 @@ Defines a single-tape Turing machine for computing functions on `List α` for fi
 These machines have access to a single bidirectionally-infinite tape (`BiTape`)
 which uses symbols from `Option α`.
 
+## Important Declarations
+
+We define a number of structures related to Turing machine computation:
+
+* `Stmt`: the write and movement operations a TM can do in a single step.
+* `SingleTapeTM`: the TM itself.
+* `Cfg`: the configuration of a TM, including internal and tape state.
+* `Computable f`: a TM for computing function `f`, packaged with a proof of correctness.
+* `TimeComputable f`: `Computable f` additionally packaged with a bound on runtime.
+* `PolyTimeComputable f`: `TimeComputable f` packaged with a polynomial bound on runtime.
+
+We also provide ways of constructing polynomial-runtime TMs
+
+* `PolyTimeComputable.id`: computes the identity function
+* `PolyTimeComputable.comp`: computes the composition of polynomial time machines
+
 ## TODOs
 
-- encoding?
-- refactor polynomial time to another file?
+- Encoding of types in lists to represent computations on arbitrary types.
+- Composition notation
+- Check I can't put more args on the same line
 
 -/
 
@@ -34,7 +51,6 @@ variable {α : Type}
 
 namespace SingleTapeTM
 
--- TODO make into a structure?
 /--
 A Turing machine "statement" is just a `Option`al command to move left or right,
 and write a symbol on the `BiTape`.
@@ -127,6 +143,9 @@ def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, Bi
 -/
 def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
 
+/--
+The space used by a configuration is the space used by its tape.
+-/
 def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ :=
   cfg.BiTape.space_used
 
@@ -154,20 +173,19 @@ lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
 end Cfg
 
 /--
-The `TerminalReductionSystem` corresponding to a `SingleTapeTM α`
+The `TransitionRelation` corresponding to a `SingleTapeTM α`
 is defined by the `step` function,
-which maps a configuration to its next configuration if it exists.
+which maps a configuration to its next configuration, if it exists.
 -/
 def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop :=
   tm.step c₁ = some c₂
 
-
-/-- A proof of tm outputting l' when given l. -/
-def Outputs (tm : SingleTapeTM α) (l : List α) (l' : List α) : Prop :=
+/-- A proof of `tm` outputting `l'` on input `l`. -/
+def Outputs (tm : SingleTapeTM α) (l l' : List α) : Prop :=
   ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
 
-/-- A proof of tm outputting l' when given l in at most m steps. -/
-def OutputsWithinTime (tm : SingleTapeTM α) (l : List α) (l' : List α)
+/-- A proof of `tm` outputting `l'` on input `l` in at most `m` steps. -/
+def OutputsWithinTime (tm : SingleTapeTM α) (l l' : List α)
     (m : ℕ) :=
   RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
 
@@ -218,80 +236,74 @@ def idComputer : SingleTapeTM α where
   q₀ := PUnit.unit
   M := fun _ b => ⟨(b, none), none⟩
 
--- TODO switch to where syntax
-/-- A proof that the identity map on α is computable in time. -/
-def TimeComputable.id : TimeComputable (α := α) id :=
-  ⟨idComputer, fun _ => 1, fun x => by
-    refine ⟨1, le_refl 1, ?_⟩
-    -- Need to show reducesToInSteps for 1 step
-    refine RelatesInSteps.head _ _ _ 0 ?_
-      (RelatesInSteps.refl _)
-    -- Show the single step reduction: step (init x) = some (halt x)
+/-- A Turing machine computing the composition of two other Turing machines. -/
+def compComputer (hf hg : SingleTapeTM α) : SingleTapeTM α where
+  Λ := hf.Λ ⊕ hg.Λ
+  q₀ := Sum.inl hf.q₀
+  M q h :=
+    match q with
+    -- If we are in the first machine's states, run that machine
+    | Sum.inl ql => match hf.M ql (h) with
+      -- The action should be the same, and the state should either be the corresponding state
+      -- in the first machine, or transition to the start state of the second machine if halting
+      | (ql', stmt) => (ql',
+          match stmt with
+          -- If it halts, transition to the start state of the second machine
+          | none => some (Sum.inr hg.q₀)
+          -- Otherwise continue as normal
+          | _ => Option.map Sum.inl stmt)
+    -- If we are in the second machine's states, run that machine
+    | Sum.inr qr =>
+      match hg.M qr (h) with
+      -- The action should be the same, and the state should be the corresponding state
+      -- in the second machine, or halting if the second machine halts
+      | (qr', stmt) => (qr',
+          match stmt with
+          -- If it halts, transition to the halting state
+          | none => none
+          -- Otherwise continue as normal
+          | _ => Option.map Sum.inr stmt)
+
+
+/-- The identity map on α is computable in constant time. -/
+def TimeComputable.id : TimeComputable (α := α) id where
+  tm := idComputer
+  time _ := 1
+  outputsFun x := by
+    refine ⟨1, le_refl 1, RelatesInSteps.single ?_⟩
     simp only [TransitionRelation, initCfg, haltCfg, idComputer, step, BiTape.optionMove]
-    congr 1⟩
+    rfl
 
-def compComputer {f : List α → List α} {g : List α → List α}
-    (hf : TimeComputable f)
-    (hg : TimeComputable g) :
-    SingleTapeTM α :=
-  {
-    Λ := hf.tm.Λ ⊕ hg.tm.Λ
-    q₀ := Sum.inl hf.tm.q₀
-    M := fun q h =>
-      match q with
-      -- If we are in the first machine's states, run that machine
-      | Sum.inl ql => match hf.tm.M ql (h) with
-        -- The action should be the same, and the state should either be the corresponding state
-        -- in the first machine, or transition to the start state of the second machine if halting
-        | (ql', stmt) => (ql',
-            match stmt with
-            -- If it halts, transition to the start state of the second machine
-            | none => some (Sum.inr hg.tm.q₀)
-            -- Otherwise continue as normal
-            | _ => Option.map Sum.inl stmt)
-      -- If we are in the second machine's states, run that machine
-      | Sum.inr qr =>
-        match hg.tm.M qr (h) with
-        -- The action should be the same, and the state should be the corresponding state
-        -- in the second machine, or halting if the second machine halts
-        | (qr', stmt) => (qr',
-            match stmt with
-            -- If it halts, transition to the halting state
-            | none => none
-            -- Otherwise continue as normal
-            | _ => Option.map Sum.inr stmt)
-  }
-
-lemma compComputer_q₀_eq (f : List α → List α) (g : List α → List α)
+lemma compComputer_q₀_eq (f g : List α → List α)
   (hf : TimeComputable f) (hg : TimeComputable g) :
-    (compComputer hf hg).q₀ = Sum.inl hf.tm.q₀ :=
+    (compComputer hf.tm hg.tm).q₀ = Sum.inl hf.tm.q₀ :=
   rfl
 
 /-- Lift a config over a tm to a config over the comp -/
-def liftCompCfg_left {f : List α → List α} {g : List α → List α}
+def liftCompCfg_left {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
-    (compComputer hf hg).Cfg :=
+    (compComputer hf.tm hg.tm).Cfg :=
   {
     state := Option.map Sum.inl cfg.state
     BiTape := cfg.BiTape
   }
 
-def liftCompCfg_right {f : List α → List α} {g : List α → List α}
+def liftCompCfg_right {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hg.tm.Cfg) :
-    (compComputer hf hg).Cfg :=
+    (compComputer hf.tm hg.tm).Cfg :=
   {
     state := Option.map Sum.inr cfg.state
     BiTape := cfg.BiTape
   }
 
 theorem map_liftCompCfg_left_step
-    {f : List α → List α} {g : List α → List α}
+    {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hf.tm.Cfg) (hx : ∀ cfg, hf.tm.step x = some cfg → cfg.state.isSome) :
     Option.map (liftCompCfg_left hf hg) (hf.tm.step x) =
-      (compComputer hf hg).step (liftCompCfg_left hf hg x) := by
+      (compComputer hf.tm hg.tm).step (liftCompCfg_left hf hg x) := by
   cases x with
   | mk state BiTape =>
     cases state with
@@ -317,11 +329,11 @@ theorem map_liftCompCfg_left_step
 
 /-- Helper lemma: liftCompCfg_right commutes with step for the second machine -/
 theorem map_liftCompCfg_right_step
-    {f : List α → List α} {g : List α → List α}
+    {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) :
     Option.map (liftCompCfg_right hf hg) (hg.tm.step x) =
-      (compComputer hf hg).step (liftCompCfg_right hf hg x) := by
+      (compComputer hf.tm hg.tm).step (liftCompCfg_right hf hg x) := by
   cases x with
   | mk state BiTape =>
     cases state with
@@ -335,12 +347,12 @@ theorem map_liftCompCfg_right_step
       | none => simp only [hM, Option.map_some, liftCompCfg_right, Option.map_none]
       | some q' => simp only [hM, Option.map_some, liftCompCfg_right]
 
-theorem comp_transition_to_right {f : List α → List α} {g : List α → List α}
+theorem comp_transition_to_right {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (tp : BiTape α)
     (q : hf.tm.Λ)
     (hM : (hf.tm.M q tp.head).2 = none) :
-    (compComputer hf hg).step { state := some (Sum.inl q), BiTape := tp } =
+    (compComputer hf.tm hg.tm).step { state := some (Sum.inl q), BiTape := tp } =
       some { state := some (Sum.inr hg.tm.q₀),
              BiTape := (tp.write (hf.tm.M q tp.head).1.symbol).optionMove
                         (hf.tm.M q tp.head).1.movement } := by
@@ -350,22 +362,22 @@ theorem comp_transition_to_right {f : List α → List α} {g : List α → List
   simp only [hfM_eq]
 
 /-- Helper: lifting to Sum.inl and transitioning to Sum.inr on halt -/
-def liftCompCfg_left_or_right {f : List α → List α} {g : List α → List α}
+def liftCompCfg_left_or_right {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg) :
-    (compComputer hf hg).Cfg :=
+    (compComputer hf.tm hg.tm).Cfg :=
   match cfg.state with
   | some q => { state := some (Sum.inl q), BiTape := cfg.BiTape }
   | none => { state := some (Sum.inr hg.tm.q₀), BiTape := cfg.BiTape }
 
 /-- The lifting function commutes with step, converting halt to transition -/
 theorem map_liftCompCfg_left_or_right_step
-    {f : List α → List α} {g : List α → List α}
+    {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hf.tm.Cfg)
     (hx : x.state.isSome) :
     Option.map (liftCompCfg_left_or_right hf hg) (hf.tm.step x) =
-      (compComputer hf hg).step (liftCompCfg_left_or_right hf hg x) := by
+      (compComputer hf.tm hg.tm).step (liftCompCfg_left_or_right hf hg x) := by
   cases x with
   | mk state BiTape =>
     cases state with
@@ -380,14 +392,14 @@ theorem map_liftCompCfg_left_or_right_step
 
 /-- General simulation: if the first machine goes from cfg to halt, the composed machine
     goes from lifted cfg to Sum.inr hg.tm.q₀ -/
-theorem comp_left_simulation_general {f : List α → List α} {g : List α → List α}
+theorem comp_left_simulation_general {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (cfg : hf.tm.Cfg)
     (hcfg : cfg.state.isSome)
     (haltCfg : hf.tm.Cfg)
     (steps : ℕ)
     (h : RelatesInSteps hf.tm.TransitionRelation cfg haltCfg steps) :
-    RelatesInSteps (compComputer hf hg).TransitionRelation
+    RelatesInSteps (compComputer hf.tm hg.tm).TransitionRelation
       (liftCompCfg_left_or_right hf hg cfg)
       (liftCompCfg_left_or_right hf hg haltCfg)
       steps := by
@@ -434,7 +446,7 @@ runs from start (with Sum.inl state) to Sum.inr hg.tm.q₀ (the start of the sec
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-theorem comp_left_simulation {f : List α → List α} {g : List α → List α}
+theorem comp_left_simulation {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (a : List α)
     (hf_outputsFun :
@@ -442,7 +454,7 @@ theorem comp_left_simulation {f : List α → List α} {g : List α → List α}
         { state := some hf.tm.q₀, BiTape := BiTape.mk₁ a }
         ({ state := none, BiTape := BiTape.mk₁ (f a) })
         (hf.time a.length)) :
-    RelatesWithinSteps (compComputer hf hg).TransitionRelation
+    RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
       { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
       ({ state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) })
       (hf.time a.length) := by
@@ -461,11 +473,11 @@ theorem comp_left_simulation {f : List α → List α} {g : List α → List α}
 
 /-- Simulation lemma for the second machine in the composed computer -/
 theorem comp_right_simulation
-    {f : List α → List α} {g : List α → List α}
+    {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) (y : hg.tm.Cfg) (m : ℕ)
     (h : RelatesWithinSteps hg.tm.TransitionRelation x y m) :
-    RelatesWithinSteps (compComputer hf hg).TransitionRelation
+    RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
       (liftCompCfg_right hf hg x)
       ((liftCompCfg_right hf hg) y)
       m := by
@@ -474,6 +486,8 @@ theorem comp_right_simulation
   have h1 := map_liftCompCfg_right_step hf hg a
   rw [hab, Option.map_some] at h1
   exact h1.symm
+
+
 
 /--
 A composition for TimeComputable.
@@ -497,11 +511,11 @@ evals to the intermediate state from the start state and
 then from the intermediate state to the final state.
 -/
 def TimeComputable.comp
-    {f : List α → List α} {g : List α → List α}
+    {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (h_mono : Monotone hg.time) :
     (TimeComputable (g ∘ f)) where
-  tm := compComputer hf hg
+  tm := compComputer hf.tm hg.tm
   -- perhaps it would be good to track the blow up separately?
   time l := (hf.time l) + hg.time (max 1 l + hf.time l)
   outputsFun a := by
@@ -511,13 +525,13 @@ def TimeComputable.comp
       haltCfg] at hg_outputsFun hf_outputsFun ⊢
     -- The computer reduces a to f a in time hf.time a
     have h_a_reducesTo_f_a :
-        RelatesWithinSteps (compComputer hf hg).TransitionRelation
+        RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
           { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           (hf.time a.length) :=
       comp_left_simulation hf hg a hf_outputsFun
     have h_f_a_reducesTo_g_f_a :
-        RelatesWithinSteps (compComputer hf hg).TransitionRelation
+        RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           { state := none, BiTape := BiTape.mk₁ (g (f a)) }
           (hg.time (f a).length) := by
@@ -580,14 +594,13 @@ noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id wher
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
 noncomputable def PolyTimeComputable.comp
-    {f : List α → List α} {g : List α → List α}
+    {f g : List α → List α}
     (hf : PolyTimeComputable f)
     (hg : PolyTimeComputable g)
     -- all Nat polynomials are monotone, but the tighter internal bound maybe is not, awkwardly
     (h_mono : Monotone hg.time) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
-
   poly := hf.poly + hg.poly.comp (1 + Polynomial.X + hf.poly)
   bounds n := by
     simp only [TimeComputable.comp, Polynomial.eval_add, Polynomial.eval_comp, Polynomial.eval_X,
