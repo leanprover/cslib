@@ -238,32 +238,33 @@ def idComputer : SingleTapeTM α where
 
 /-- A Turing machine computing the composition of two other Turing machines. -/
 def compComputer (hf hg : SingleTapeTM α) : SingleTapeTM α where
+  -- The states of the composed machine are the disjoint union of the states of the input machines.
   Λ := hf.Λ ⊕ hg.Λ
-  q₀ := Sum.inl hf.q₀
+  -- The start state is the start state of the first input machine.
+  q₀ := .inl hf.q₀
   M q h :=
     match q with
-    -- If we are in the first machine's states, run that machine
-    | Sum.inl ql => match hf.M ql (h) with
-      -- The action should be the same, and the state should either be the corresponding state
-      -- in the first machine, or transition to the start state of the second machine if halting
-      | (ql', stmt) => (ql',
-          match stmt with
-          -- If it halts, transition to the start state of the second machine
-          | none => some (Sum.inr hg.q₀)
+    -- If we are in the first input machine's states, run that machine ...
+    | .inl ql => match hf.M ql h with
+      | (stmt, state) =>
+        -- ... taking the same tape action as the first input machine would.
+        (stmt,
+          match state with
+          -- If it halts, transition to the start state of the second input machine
+          | none => some (.inr hg.q₀)
           -- Otherwise continue as normal
-          | _ => Option.map Sum.inl stmt)
-    -- If we are in the second machine's states, run that machine
-    | Sum.inr qr =>
-      match hg.M qr (h) with
-      -- The action should be the same, and the state should be the corresponding state
-      -- in the second machine, or halting if the second machine halts
-      | (qr', stmt) => (qr',
-          match stmt with
+          | _ => Option.map .inl state)
+    -- If we are in the second input machine's states, run that machine ...
+    | .inr qr =>
+      match hg.M qr h with
+      | (stmt, state) =>
+        -- ... taking the same tape action as the second input machine would.
+        (stmt,
+          match state with
           -- If it halts, transition to the halting state
           | none => none
           -- Otherwise continue as normal
-          | _ => Option.map Sum.inr stmt)
-
+          | _ => Option.map .inr state)
 
 /-- The identity map on α is computable in constant time. -/
 def TimeComputable.id : TimeComputable (α := α) id where
