@@ -116,7 +116,7 @@ def step : tm.Cfg → Option tm.Cfg :=
             -- With state q'' (or none for halting)
             q'',
             -- And BiTape updated according to the Stmt
-            (t.write wr).move? dir⟩
+            (t.write wr).optionMove dir⟩
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
 def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
@@ -145,10 +145,10 @@ lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     generalize hM : tm.M q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
-    | none => simp [Cfg.space_used, BiTape.move?, BiTape.space_used_write]
+    | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write]
     | some d =>
       have := BiTape.space_used_move (tape.write wr) d
-      simp only [Cfg.space_used, BiTape.move?, BiTape.space_used_write] at this ⊢; exact this
+      simp only [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write] at this ⊢; exact this
 
 end Cfg
 
@@ -226,7 +226,7 @@ def TimeComputable.id : TimeComputable (α := α) id :=
       (Cslib.ReductionSystem.reducesToInSteps.refl _)
     -- Show the single step reduction: step (init x) = some (halt x)
     simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, initCfg, haltCfg,
-      idComputer, step, BiTape.move?]
+      idComputer, step, BiTape.optionMove]
     congr 1⟩
 
 def compComputer {f : List α → List α} {g : List α → List α}
@@ -308,7 +308,7 @@ theorem map_liftCompCfg_left_step
       | none =>
         -- The first machine halts, but hx says the result has state.isSome
         simp only [step, hM] at hx
-        have := hx ⟨none, (BiTape.write wr).move? dir⟩ rfl
+        have := hx ⟨none, (BiTape.write wr).optionMove dir⟩ rfl
         simp at this
       | some q' =>
         -- Normal step case - both sides produce the lifted config
@@ -341,7 +341,7 @@ theorem comp_transition_to_right {f : List α → List α} {g : List α → List
     (hM : (hf.tm.M q tp.head).2 = none) :
     (compComputer hf hg).step { state := some (Sum.inl q), BiTape := tp } =
       some { state := some (Sum.inr hg.tm.q₀),
-             BiTape := (tp.write (hf.tm.M q tp.head).1.symbol).move?
+             BiTape := (tp.write (hf.tm.M q tp.head).1.symbol).optionMove
                         (hf.tm.M q tp.head).1.movement } := by
   simp only [step, compComputer, hM, Stmt.symbol, Stmt.movement]
   generalize hfM_eq : hf.tm.M q tp.head = result

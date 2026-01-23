@@ -38,15 +38,8 @@ will not collide.
 namespace Turing
 
 /--
-I find this more convenient than mathlib's Tape type,
-because that requires the type tobe inhabited,
-and it is easy to confuse a list representing one thing with a list representing another,
-if the representations are the same except for a sequence of default values at the end.
-
-The head of the machine is the current symbol under the tape head.
-We do not assume here, but could add, that the ends of the tape are never none.
-The move function should guarantee this, so that two tapes are equal
-even if one has written none to the side
+A structure for bidirectionally-infinite Turing machine tapes
+that eventually take on blank `none` values
 -/
 structure BiTape (α : Type) where
   (head : Option α)
@@ -54,11 +47,19 @@ structure BiTape (α : Type) where
   (right : StackTape α)
 deriving Inhabited
 
+/--
+Given a `List` of `α`, construct a `BiTape` by mapping the list to `some` elements
+and laying them out to the right side,
+with the head under the first element of the list if it exists.
+-/
 def BiTape.mk₁ {α} (l : List α) : BiTape α :=
   match l with
   | [] => { head := none, left := StackTape.empty, right := StackTape.empty }
   | h :: t => { head := some h, left := StackTape.empty, right := StackTape.map_some t }
 
+/--
+Move the head to the left or right, shifting the tape underneath it.
+-/
 def BiTape.move {α} : Turing.BiTape α → Dir → Turing.BiTape α
   | t, .left =>
     match t.left, t.head, t.right with
@@ -67,17 +68,22 @@ def BiTape.move {α} : Turing.BiTape α → Dir → Turing.BiTape α
     match t.left, t.head, t.right with
     | l, h, r => { head := r.head, left := StackTape.cons h l, right := r.tail }
 
-
-def BiTape.move? {α} : Turing.BiTape α → Option Dir → Turing.BiTape α
+/--
+Optionally perform a `BiTape.move`, or do nothing if `none`.
+-/
+def BiTape.optionMove {α} : Turing.BiTape α → Option Dir → Turing.BiTape α
   | t, none => t
   | t, some d => t.move d
 
+/--
+Write a value under the head of the `BiTape`.
+-/
 def BiTape.write {α} : Turing.BiTape α → Option α → Turing.BiTape α
   | t, a => { t with head := a }
 
 /--
-The space used by a BiTape is the number of symbols
-between and including the head, and leftmost and rightmost non-blank symbols on the BiTape
+The space used by a `BiTape` is the number of symbols
+between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
 -/
 def BiTape.space_used {α} (t : Turing.BiTape α) : ℕ :=
   1 + t.left.length + t.right.length
@@ -86,27 +92,12 @@ lemma BiTape.space_used_write {α} (t : Turing.BiTape α) (a : Option α) :
     (t.write a).space_used = t.space_used := by
   rfl
 
-lemma BiTape.space_used_mk₁ (l : List α) :
+lemma BiTape.space_used_mk₁ {α} (l : List α) :
     (BiTape.mk₁ l).space_used = max 1 l.length := by
-  cases l with
-  | nil =>
-    simp [mk₁, space_used, StackTape.length_empty]
-  | cons h t =>
-    simp [mk₁, space_used, StackTape.length_empty, StackTape.length_map_some]
-    omega
+  cases l <;> grind [mk₁, space_used, StackTape.length_empty, StackTape.length_map_some]
 
 lemma BiTape.space_used_move {α} (t : Turing.BiTape α) (d : Dir) :
     (t.move d).space_used ≤ t.space_used + 1 := by
-  cases d with
-  | left =>
-    simp only [move, space_used]
-    have h1 := StackTape.length_tail_le t.left
-    have h2 := StackTape.length_cons_le t.head t.right
-    omega
-  | right =>
-    simp only [move, space_used]
-    have h1 := StackTape.length_cons_le t.head t.left
-    have h2 := StackTape.length_tail_le t.right
-    omega
+  cases d <;> grind [move, space_used, StackTape.length_tail_le, StackTape.length_cons_le]
 
 end Turing
