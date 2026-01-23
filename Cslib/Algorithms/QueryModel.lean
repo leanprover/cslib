@@ -281,9 +281,98 @@ def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
     match q with
     | .compare _ _ _ => 1
 
+structure CmpCount where
+  cmp : ℕ
+
+instance : Add (CmpCount) where
+  add x y := ⟨x.1 + y.1⟩
+
+instance : Zero (CmpCount) where
+  zero := ⟨0⟩
+
+def VecSearch_Cmp [DecidableEq α] : Model (VecSearch α) CmpCount where
+  evalQuery q :=
+    match q with
+    | .compare l i x =>  l[i]? == some x
+  cost q :=
+    match q with
+    | .compare _ _ _ => ⟨1⟩
 
 open VecSearch in
-def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
+def linearSearchAux (v : Vector α n)
+  (x : α) (acc : Bool) (index : ℕ) : Prog (VecSearch α) Bool := do
+  if h : index ≥ n then
+    return acc
+  else
+    let cmp_res : Bool ← compare v index x
+    if cmp_res then
+      return true
+    else
+      linearSearchAux v x false (index + 1)
+
+open VecSearch in
+def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool:=
+  linearSearchAux v x false 0
+
+#eval (linearSearch #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
+#eval (linearSearch #v[1,2,3,4,5,6] 7).eval VecSearch_Cmp
+
+#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
+#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Cmp
+
+
+lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n)
+  (hn_pos : n > 0):
+  ∀ x : α, x ∈ v → (linearSearch v x).eval VecSearch_Nat = true := by
+  intro x x_mem_v
+  simp [linearSearch]
+  unfold linearSearchAux
+  split_ifs with h_geq_n
+  · simp_all
+  · unfold eval
+    split
+    · expose_names
+      simp_all
+      done
+    · expose_names
+      simp_all [VecSearch_Nat]
+      done
+
+lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, x ∉ v → (linearSearch v x).eval VecSearch_Nat = false := by
+  intro x x_mem_v
+  simp [linearSearch]
+  unfold linearSearchAux
+  split_ifs with h_geq_n
+  · simp_all [eval]
+  · unfold eval
+    split
+    · expose_names
+      simp_all
+      done
+    · expose_names
+      simp_all
+      have ⟨hι, hop, hcont⟩ := heq
+      done
+
+lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n := by
+  intro x
+  simp only [linearSearch, VecSearch_Nat]
+  unfold linearSearchAux
+  split_ifs with h
+  · simp_all [time]
+  · simp_all [time]
+    split_ifs with hfound
+    · simp_all[time]
+      exact Nat.one_le_iff_ne_zero.mpr h
+    · simp_wf
+
+      done
+
+-- The Monadic version
+open VecSearch in
+def linearSearchM (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
   let mut comp_res : Bool := false
   for i in [0:n] do
     comp_res ← compare v i x
@@ -293,24 +382,24 @@ def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
       continue
   return comp_res
 
-#eval (linearSearch #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
-#eval (linearSearch #v[1,2,3,4,5,6] 7).eval VecSearch_Nat
+#eval (linearSearchM #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
+#eval (linearSearchM #v[1,2,3,4,5,6] 7).eval VecSearch_Nat
 
-#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
-#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Nat
+#eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
+#eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Nat
 
-lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, x ∈ v → (linearSearch v x).eval VecSearch_Nat = true := by
+lemma linearSearchM_correct_true [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, x ∈ v → (linearSearchM v x).eval VecSearch_Nat = true := by
   intro x x_mem_v
   sorry
 
-lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, x ∉ v → (linearSearch v x).eval VecSearch_Nat = false := by
+lemma linearSearchM_correct_false [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, x ∉ v → (linearSearchM v x).eval VecSearch_Nat = false := by
   intro x x_mem_v
   sorry
 
-lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n := by
+lemma linearSearchM_time_complexity [DecidableEq α] (v : Vector α n) :
+  ∀ x : α, (linearSearchM v x).time VecSearch_Nat ≤ n := by
   intro x
   sorry
 
