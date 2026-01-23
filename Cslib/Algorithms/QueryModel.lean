@@ -43,18 +43,7 @@ structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost]
 
 namespace Model
 
-def interpretTimeM
-  (M : Model Q ℕ) (q : Q ι) : TimeM ι where
-  ret := M.evalQuery q
-  time := M.cost q
 
--- inductive QueryF : Type → Type where
---   /-- Read the value stored at index `i`. -/
---   | read  : Nat → QueryF Nat
---   /-- Write value `v` at index `i`. -/
---   | write : Nat → Nat → QueryF PUnit
---   /-- Compare the values at indices `i` and `j`. -/
---   | cmp   : Nat → Nat → QueryF Bool
 
 section Examples
 
