@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2025 Bolton Bailey. All rights reserved.
+Copyright (c) 2026 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
@@ -12,7 +12,7 @@ public import Mathlib.Computability.TuringMachine
 @[expose] public section
 
 /-!
-# BiTape: Tape representation using StackTape
+# BiTape: Bidirectionally infinite TM tape representation using StackTape
 
 This file defines `BiTape`, a tape representation for Turing machines
 in the form of an `List` of `Option` values,
@@ -23,8 +23,8 @@ with the additional property that the list cannot end with `none`.
 Note that Mathlib has a `Tape` type, but it requires the alphabet type to be inhabited,
 and considers the ends of the tape to be filled with default values.
 
-The design that requires the tape elements to be `Option` values ensures that
-Lists of the base alphabet, rendered directly onto the tape by mapping over `some`,
+This design requires the tape elements to be `Option` values, and ensures that
+`List`s of the base alphabet, rendered directly onto the tape by mapping over `some`,
 will not collide.
 
 ## Main definitions

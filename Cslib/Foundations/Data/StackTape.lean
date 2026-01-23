@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2025 Bolton Bailey. All rights reserved.
+Copyright (c) 2026 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
@@ -18,8 +18,6 @@ This is useful for representing tape contents where trailing blanks are not stor
 
 ## TODO
 
-- Rename, as this collides with `StackTape` in Haskell.
-- Maype just bitape and unitape?
 - Can we make pattern matching syntax work?
 
 -/
