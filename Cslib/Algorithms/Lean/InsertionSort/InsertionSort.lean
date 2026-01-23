@@ -110,7 +110,7 @@ theorem insertionSort_length (xs : List α) :
 
 
 theorem insertionSort_time (xs : List α) :
-    (insertionSort xs).time ≤ xs.length * (xs.length + 1) / 2 := by
+    (insertionSort xs).time ≤ xs.length * xs.length:= by
   fun_induction insertionSort with
   | case1 => simp
   | case2 x xs ih =>
