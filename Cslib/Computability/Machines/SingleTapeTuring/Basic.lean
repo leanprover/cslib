@@ -399,16 +399,24 @@ private theorem comp_left_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
     simp only [toCompCfg_left] at this
     exact this
 
-/-- Simulation lemma for the second machine in the composed computer -/
-private theorem comp_right_relatesWithinSteps
-    (tm1 tm2 : SingleTapeTM α)
-    (x : tm2.Cfg) (y : tm2.Cfg) (m : ℕ)
-    (h : RelatesWithinSteps tm2.TransitionRelation x y m) :
+/--
+Simulation for the second phase of the composed computer.
+When the second machine runs from start to halt, the composed machine
+runs from Sum.inr tm2.q₀ to halt.
+-/
+private theorem comp_right_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
+    (input_tape output_tape : List α)
+    (t : ℕ)
+    (htm2 :
+      RelatesWithinSteps tm2.TransitionRelation
+        { state := some tm2.q₀, BiTape := BiTape.mk₁ input_tape }
+        ({ state := none, BiTape := BiTape.mk₁ output_tape })
+        t) :
     RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (toCompCfg_right tm1 tm2 x)
-      ((toCompCfg_right tm1 tm2) y)
-      m := by
-  refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ h
+      { state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ input_tape }
+      ({ state := none, BiTape := BiTape.mk₁ output_tape })
+      t := by
+  refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ htm2
   intro a b hab
   have h1 := map_toCompCfg_right_step tm1 tm2 a
   rw [hab, Option.map_some] at h1
@@ -487,16 +495,8 @@ def TimeComputable.comp
         RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           { state := none, BiTape := BiTape.mk₁ (g (f a)) }
-          (hg.time (f a).length) := by
-      -- TODO why is the previous have a one-liner and this is not?
-      -- reformulate the lemmas above so that this looks the same.
-      have := comp_right_relatesWithinSteps hf.tm hg.tm
-        { state := some hg.tm.q₀, BiTape := BiTape.mk₁ (f a) }
-        { state := none, BiTape := BiTape.mk₁ (g (f a)) }
-        (hg.time (f a).length)
-        hg_outputsFun
-      simp only [toCompCfg_right] at this
-      exact this
+          (hg.time (f a).length) :=
+      comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a)) (hg.time (f a).length) hg_outputsFun
     have h_a_reducesTo_g_f_a :=
       RelatesWithinSteps.trans
         h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
