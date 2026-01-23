@@ -11,14 +11,16 @@ public import Mathlib.Data.List.Basic
 @[expose] public section
 
 /-!
-# StackTape: Lists of Options that don't end with none
+# StackTape: Infinite, eventually-`none` lists of `Option`s
 
 This file defines `StackTape`, a list of `Option` values where the list cannot end with `none`.
-This is useful for representing tape contents where trailing blanks are not stored.
+This represents a stack-like data structure
+which treats the end of the list as an infinite sequence of `none` values.
+This is useful as a data structure with a simple API for manipulation by Turing machines .
 
 ## TODO
 
-- Can we make pattern matching syntax work?
+- Make a `::`-like notation.
 
 -/
 
