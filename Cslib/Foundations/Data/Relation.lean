@@ -477,15 +477,15 @@ def RelatesWithinSteps (r : α → α → Prop) (a b : α) (n : ℕ) : Prop :=
   ∃ m ≤ n, RelatesInSteps r a b m
 
 /-- `RelatesInSteps` implies `RelatesWithinSteps` with the same bound. -/
-lemma RelatesWithinSteps.of_RelatesInSteps {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
+lemma RelatesWithinSteps.of_relatesInSteps {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
     RelatesWithinSteps r a b n :=
   ⟨n, Nat.le_refl n, h⟩
 
 lemma RelatesWithinSteps.refl (a : α) : RelatesWithinSteps r a a 0 :=
-  RelatesWithinSteps.of_RelatesInSteps (RelatesInSteps.refl a)
+  RelatesWithinSteps.of_relatesInSteps (RelatesInSteps.refl a)
 
 lemma RelatesWithinSteps.single {a b : α} (h : r a b) : RelatesWithinSteps r a b 1 :=
-  RelatesWithinSteps.of_RelatesInSteps (RelatesInSteps.single h)
+  RelatesWithinSteps.of_relatesInSteps (RelatesInSteps.single h)
 
 lemma RelatesWithinSteps.zero {a b : α} (h : RelatesWithinSteps r a b 0) : a = b := by
   obtain ⟨m, hm, hevals⟩ := h
