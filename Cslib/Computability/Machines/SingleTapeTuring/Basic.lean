@@ -26,8 +26,7 @@ We define a number of structures related to Turing machine computation:
 * `Stmt`: the write and movement operations a TM can do in a single step.
 * `SingleTapeTM`: the TM itself.
 * `Cfg`: the configuration of a TM, including internal and tape state.
-* `Computable f`: a TM for computing function `f`, packaged with a proof of correctness.
-* `TimeComputable f`: `Computable f` additionally packaged with a bound on runtime.
+* `TimeComputable f`: a TM for computing `f`, packaged with a bound on runtime.
 * `PolyTimeComputable f`: `TimeComputable f` packaged with a polynomial bound on runtime.
 
 We also provide ways of constructing polynomial-runtime TMs
@@ -208,14 +207,7 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List
   specialize hevals fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)
   omega
 
-/-- A Turing machine + a proof it outputsInTime `f`. -/
-structure Computable (f : List α → List α) where
-  /-- the underlying bundled SingleTapeTM -/
-  tm : SingleTapeTM α
-  /-- a proof this machine outputsInTime `f` -/
-  outputsFun : ∀ a, tm.Outputs a (f a)
-
-section
+section Computers
 
 variable [Inhabited α] [Fintype α]
 
@@ -398,7 +390,7 @@ private theorem comp_right_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
 
 end compComputerLemmas
 
-end
+end Computers
 
 /-!
 ## Time Computability
@@ -418,14 +410,14 @@ structure TimeComputable (f : List α → List α) where
   /-- a time function -/
   time : ℕ → ℕ
   /-- proof this machine outputs `f` in at most `time(input.length)` steps -/
-  outputsFun : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
+  outputsFunInTime : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
 
 
 /-- The identity map on α is computable in constant time. -/
 def TimeComputable.id : TimeComputable (α := α) id where
   tm := idComputer
   time _ := 1
-  outputsFun x := by
+  outputsFunInTime x := by
     refine ⟨1, le_refl 1, RelatesInSteps.single ?_⟩
     simp only [TransitionRelation, initCfg, haltCfg, idComputer, step, BiTape.optionMove]
     rfl
@@ -452,9 +444,9 @@ def TimeComputable.comp
   tm := compComputer hf.tm hg.tm
   -- perhaps it would be good to track the blow up separately?
   time l := (hf.time l) + hg.time (max 1 l + hf.time l)
-  outputsFun a := by
-    have hf_outputsFun := hf.outputsFun a
-    have hg_outputsFun := hg.outputsFun (f a)
+  outputsFunInTime a := by
+    have hf_outputsFun := hf.outputsFunInTime a
+    have hg_outputsFun := hg.outputsFunInTime (f a)
     simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
       haltCfg] at hg_outputsFun hf_outputsFun ⊢
     -- The computer reduces a to f a in time hf.time a
@@ -477,7 +469,7 @@ def TimeComputable.comp
     refine Nat.add_le_add_left ?_ (hf.time a.length)
     · apply h_mono
       -- Use the lemma about output length being bounded by input length + time
-      exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFun a)
+      exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a)
 
 end TimeComputable
 
