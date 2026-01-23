@@ -227,26 +227,26 @@ def idComputer : SingleTapeTM α where
   M := fun _ b => ⟨(b, none), none⟩
 
 /-- A Turing machine computing the composition of two other Turing machines. -/
-def compComputer (hf hg : SingleTapeTM α) : SingleTapeTM α where
+def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
   -- The states of the composed machine are the disjoint union of the states of the input machines.
-  Λ := hf.Λ ⊕ hg.Λ
+  Λ := tm1.Λ ⊕ tm2.Λ
   -- The start state is the start state of the first input machine.
-  q₀ := .inl hf.q₀
+  q₀ := .inl tm1.q₀
   M q h :=
     match q with
     -- If we are in the first input machine's states, run that machine ...
-    | .inl ql => match hf.M ql h with
+    | .inl ql => match tm1.M ql h with
       | (stmt, state) =>
         -- ... taking the same tape action as the first input machine would.
         (stmt,
           match state with
           -- If it halts, transition to the start state of the second input machine
-          | none => some (.inr hg.q₀)
+          | none => some (.inr tm2.q₀)
           -- Otherwise continue as normal
           | _ => Option.map .inl state)
     -- If we are in the second input machine's states, run that machine ...
     | .inr qr =>
-      match hg.M qr h with
+      match tm2.M qr h with
       | (stmt, state) =>
         -- ... taking the same tape action as the second input machine would.
         (stmt,
@@ -256,12 +256,16 @@ def compComputer (hf hg : SingleTapeTM α) : SingleTapeTM α where
           -- Otherwise continue as normal
           | _ => Option.map .inr state)
 
+section compComputerLemmas
+
+/-! ### Composition Computer Lemmas -/
+
 lemma compComputer_q₀_eq (tm1 tm2 : SingleTapeTM α) :
     (compComputer tm1 tm2).q₀ = Sum.inl tm1.q₀ :=
   rfl
 
 /-- Convert a `Cfg` over the first input machine to a config over the composed machine -/
-def toCompCfg_left (tm1 tm2 : SingleTapeTM α)
+private def toCompCfg_left (tm1 tm2 : SingleTapeTM α)
     (cfg : tm1.Cfg) :
     (compComputer tm1 tm2).Cfg :=
   {
@@ -270,7 +274,7 @@ def toCompCfg_left (tm1 tm2 : SingleTapeTM α)
   }
 
 /-- Convert a `Cfg` over the second input machine to a config over the composed machine -/
-def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
+private def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
     (cfg : tm2.Cfg) :
     (compComputer tm1 tm2).Cfg :=
   {
@@ -278,7 +282,7 @@ def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
     BiTape := cfg.BiTape
   }
 
-theorem map_toCompCfg_left_step
+private theorem map_toCompCfg_left_step
     (tm1 tm2 : SingleTapeTM α)
     (x : tm1.Cfg) (hx : ∀ cfg, tm1.step x = some cfg → cfg.state.isSome) :
     Option.map (toCompCfg_left tm1 tm2) (tm1.step x) =
@@ -306,7 +310,7 @@ theorem map_toCompCfg_left_step
         simp only [hM, Option.map_some, toCompCfg_left]
 
 /-- Helper lemma: toCompCfg_right commutes with step for the second machine -/
-theorem map_toCompCfg_right_step
+private theorem map_toCompCfg_right_step
     (tm1 tm2 : SingleTapeTM α)
     (x : tm2.Cfg) :
     Option.map (toCompCfg_right tm1 tm2) (tm2.step x) =
@@ -324,7 +328,7 @@ theorem map_toCompCfg_right_step
       | none => simp only [hM, Option.map_some, toCompCfg_right, Option.map_none]
       | some q' => simp only [hM, Option.map_some, toCompCfg_right]
 
-theorem comp_transition_to_right (tm1 tm2 : SingleTapeTM α)
+private theorem comp_transition_to_right (tm1 tm2 : SingleTapeTM α)
     (tp : BiTape α)
     (q : tm1.Λ)
     (hM : (tm1.M q tp.head).2 = none) :
@@ -333,20 +337,20 @@ theorem comp_transition_to_right (tm1 tm2 : SingleTapeTM α)
              BiTape := (tp.write (tm1.M q tp.head).1.symbol).optionMove
                         (tm1.M q tp.head).1.movement } := by
   simp only [step, compComputer, hM, Stmt.symbol, Stmt.movement]
-  generalize hfM_eq : tm1.M q tp.head = result
+  generalize M_eq : tm1.M q tp.head = result
   obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-  simp only [hfM_eq]
+  simp only [M_eq]
 
-/-- Helper: toing to Sum.inl and transitioning to Sum.inr on halt -/
-def toCompCfg_left_or_right (tm1 tm2 : SingleTapeTM α)
+/-- Helper: converting to Sum.inl and transitioning to Sum.inr on halt -/
+private def toCompCfg_left_or_right (tm1 tm2 : SingleTapeTM α)
     (cfg : tm1.Cfg) :
     (compComputer tm1 tm2).Cfg :=
   match cfg.state with
   | some q => { state := some (Sum.inl q), BiTape := cfg.BiTape }
   | none => { state := some (Sum.inr tm2.q₀), BiTape := cfg.BiTape }
 
-/-- The toing function commutes with step, converting halt to transition -/
-theorem map_toCompCfg_left_or_right_step
+/-- The converting function commutes with step, converting halt to transition -/
+private theorem map_toCompCfg_left_or_right_step
     (tm1 tm2 : SingleTapeTM α)
     (x : tm1.Cfg)
     (hx : x.state.isSome) :
@@ -365,8 +369,8 @@ theorem map_toCompCfg_left_or_right_step
       | some q' => simp only [hM, Option.map_some, toCompCfg_left_or_right]
 
 /-- General simulation: if the first machine goes from cfg to halt, the composed machine
-    goes from toed cfg to Sum.inr tm2.q₀ -/
-theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
+    goes from cfg to Sum.inr tm2.q₀ -/
+private theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
     (cfg : tm1.Cfg)
     (hcfg : cfg.state.isSome)
     (haltCfg : tm1.Cfg)
@@ -376,20 +380,11 @@ theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
       (toCompCfg_left_or_right tm1 tm2 cfg)
       (toCompCfg_left_or_right tm1 tm2 haltCfg)
       steps := by
-  -- Proof by induction on steps.
-  -- Key insight: toCompCfg_left_or_right maps:
-  --   { state := some q, BiTape } -> { state := some (Sum.inl q), BiTape }
-  --   { state := none, BiTape }   -> { state := some (Sum.inr tm2.q₀), BiTape }
-  -- For non-halting configs, the composed machine simulates exactly.
-  -- When the first machine halts, the composed machine transitions to Sum.inr tm2.q₀.
   induction steps generalizing cfg haltCfg with
   | zero =>
     simp only [RelatesInSteps.zero_iff] at h ⊢
     rw [h]
   | succ n ih =>
-    -- Use the decomposition lemma: cfg evals to some intermediate c in n steps,
-    -- and then c steps to haltCfg
-    -- obtain ⟨c, hc_n, hc_step⟩ := EvalsToInTime.succ_decompose tm1.step cfg haltCfg n h
     rw [RelatesInSteps.succ_iff] at h ⊢
     obtain ⟨c, hc_n, hc_step⟩ := h
     use toCompCfg_left_or_right tm1 tm2 c
@@ -401,11 +396,9 @@ theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
       | mk state BiTape =>
         cases state with
         | none =>
-          -- c is in halting state, but step of halting state is none, contradiction
           simp only [TransitionRelation, step] at hc_step
           cases hc_step
         | some q =>
-          -- Use the toing lemma
           have h1 := map_toCompCfg_left_or_right_step tm1 tm2 ⟨some q, BiTape⟩ (by simp)
           simp only [TransitionRelation] at hc_step ⊢
           rw [hc_step, Option.map_some] at h1
@@ -419,10 +412,10 @@ runs from start (with Sum.inl state) to Sum.inr tm2.q₀ (the start of the secon
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-theorem comp_left_simulation (tm1 tm2 : SingleTapeTM α)
+private theorem comp_left_simulation (tm1 tm2 : SingleTapeTM α)
     (input_tape intermediate_tape : List α)
     (t : ℕ)
-    (hf_outputsFun :
+    (htm1 :
       RelatesWithinSteps tm1.TransitionRelation
         { state := some tm1.q₀, BiTape := BiTape.mk₁ input_tape }
         ({ state := none, BiTape := BiTape.mk₁ intermediate_tape })
@@ -431,7 +424,7 @@ theorem comp_left_simulation (tm1 tm2 : SingleTapeTM α)
       { state := some (Sum.inl tm1.q₀), BiTape := BiTape.mk₁ input_tape }
       ({ state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ intermediate_tape })
       t := by
-  obtain ⟨steps, hsteps_le, hsteps_eval⟩ := hf_outputsFun
+  obtain ⟨steps, hsteps_le, hsteps_eval⟩ := htm1
   use steps
   constructor
   · exact hsteps_le
@@ -445,7 +438,7 @@ theorem comp_left_simulation (tm1 tm2 : SingleTapeTM α)
     exact this
 
 /-- Simulation lemma for the second machine in the composed computer -/
-theorem comp_right_simulation
+private theorem comp_right_simulation
     (tm1 tm2 : SingleTapeTM α)
     (x : tm2.Cfg) (y : tm2.Cfg) (m : ℕ)
     (h : RelatesWithinSteps tm2.TransitionRelation x y m) :
@@ -459,6 +452,7 @@ theorem comp_right_simulation
   rw [hab, Option.map_some] at h1
   exact h1.symm
 
+end compComputerLemmas
 
 /-- A Turing machine + a time function +
 a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
