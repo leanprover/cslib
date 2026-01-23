@@ -453,7 +453,7 @@ lemma RelatesInSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
   | refl => simp
   | tail t' t'' k _ hstep ih =>
     have h_step' := h_step t' t'' hstep
-    omega
+    lia
 
 /--
 If `g` is a homomorphism from `r` to `r'` (i.e., it preserves the reduction relation),
@@ -510,7 +510,7 @@ lemma RelatesWithinSteps.trans {a b c : α} {n₁ n₂ : ℕ}
   obtain ⟨m₂, hm₂, hevals₂⟩ := h₂
   use m₁ + m₂
   constructor
-  · omega
+  · lia
   · exact RelatesInSteps.trans hevals₁ hevals₂
 
 lemma RelatesWithinSteps.of_le {a b : α} {n₁ n₂ : ℕ}
@@ -527,7 +527,7 @@ lemma RelatesWithinSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
     h b ≤ h a + n := by
   obtain ⟨m, hm, hevals_m⟩ := hevals
   have := RelatesInSteps.apply_le_apply_add h h_step m hevals_m
-  omega
+  lia
 
 /--
 If `g` is a homomorphism from `r` to `r'` (i.e., it preserves the reduction relation),
