@@ -37,7 +37,7 @@ def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.iseqv.refl := by grind
   eq.iseqv.symm := by grind
   eq.iseqv.trans := by grind
-  elim := by
+  right_cov.elim := by
     rintro u v w h_eq s t
     split_ands <;> constructor <;> intro h
     · obtain ⟨r, h1, _⟩ := LTS.pairLang_split h

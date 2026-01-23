@@ -28,7 +28,7 @@ def RightCongruence.toDA [RightCongruence Symbol] : Automata.DA (QuotType Symbol
   tr s x := Quotient.lift (fun u ↦ ⟦ u ++ [x] ⟧) (by
     intro u v h_eq
     apply Quotient.sound
-    exact toCovariantClass.elim [x] h_eq
+    exact right_cov.elim [x] h_eq
   ) s
   start := ⟦ [] ⟧
 
