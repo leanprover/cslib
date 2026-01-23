@@ -226,7 +226,13 @@ def idComputer : SingleTapeTM α where
   q₀ := PUnit.unit
   M := fun _ b => ⟨(b, none), none⟩
 
-/-- A Turing machine computing the composition of two other Turing machines. -/
+/--
+A Turing machine computing the composition of two other Turing machines.
+
+If f and g are computed by turing machines `tm1` and `tm2`
+then we can construct a turing machine which computes g ∘ f by first running `tm1`
+and then, when `tm1` halts, transitioning to the start state of `tm2` and running `tm2`.
+-/
 def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
   -- The states of the composed machine are the disjoint union of the states of the input machines.
   Λ := tm1.Λ ⊕ tm2.Λ
@@ -264,14 +270,16 @@ lemma compComputer_q₀_eq (tm1 tm2 : SingleTapeTM α) :
     (compComputer tm1 tm2).q₀ = Sum.inl tm1.q₀ :=
   rfl
 
-/-- Convert a `Cfg` over the first input machine to a config over the composed machine -/
+/--
+Convert a `Cfg` over the first input machine to a config over the composed machine.
+Note it may transition to the start state of the second machine if the first machine halts.
+-/
 private def toCompCfg_left (tm1 tm2 : SingleTapeTM α)
     (cfg : tm1.Cfg) :
     (compComputer tm1 tm2).Cfg :=
-  {
-    state := Option.map Sum.inl cfg.state
-    BiTape := cfg.BiTape
-  }
+  match cfg.state with
+  | some q => { state := some (Sum.inl q), BiTape := cfg.BiTape }
+  | none => { state := some (Sum.inr tm2.q₀), BiTape := cfg.BiTape }
 
 /-- Convert a `Cfg` over the second input machine to a config over the composed machine -/
 private def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
@@ -282,34 +290,26 @@ private def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
     BiTape := cfg.BiTape
   }
 
+/-- The left converting function commutes with steps of the machines. -/
 private theorem map_toCompCfg_left_step
     (tm1 tm2 : SingleTapeTM α)
-    (x : tm1.Cfg) (hx : ∀ cfg, tm1.step x = some cfg → cfg.state.isSome) :
+    (x : tm1.Cfg)
+    (hx : x.state.isSome) :
     Option.map (toCompCfg_left tm1 tm2) (tm1.step x) =
       (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 x) := by
   cases x with
   | mk state BiTape =>
     cases state with
-    | none =>
-      -- x is already in halting state, step returns none on both sides
-      simp only [step, toCompCfg_left, Option.map_none, compComputer]
+    | none => simp at hx
     | some q =>
-      simp only [step, toCompCfg_left, compComputer, Option.map_some]
-      -- Get the transition result
+      simp only [step, toCompCfg_left, compComputer]
       generalize hM : tm1.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      simp only
-      -- Case on whether the next state is none (halting) or some
       cases nextState with
-      | none =>
-        -- The first machine halts, but hx says the result has state.isSome
-        simp only [step, hM] at hx
-        grind [hx ⟨none, (BiTape.write wr).optionMove dir⟩ rfl]
-      | some q' =>
-        -- Normal step case - both sides produce the toed config
-        simp only [hM, Option.map_some, toCompCfg_left]
+      | none => simp only [hM, Option.map_some, toCompCfg_left]
+      | some q' => simp only [hM, Option.map_some, toCompCfg_left]
 
-/-- Helper lemma: toCompCfg_right commutes with step for the second machine -/
+/-- The right converting function commutes with steps of the machines. -/
 private theorem map_toCompCfg_right_step
     (tm1 tm2 : SingleTapeTM α)
     (x : tm2.Cfg) :
@@ -328,57 +328,20 @@ private theorem map_toCompCfg_right_step
       | none => simp only [hM, Option.map_some, toCompCfg_right, Option.map_none]
       | some q' => simp only [hM, Option.map_some, toCompCfg_right]
 
-private theorem comp_transition_to_right (tm1 tm2 : SingleTapeTM α)
-    (tp : BiTape α)
-    (q : tm1.Λ)
-    (hM : (tm1.M q tp.head).2 = none) :
-    (compComputer tm1 tm2).step { state := some (Sum.inl q), BiTape := tp } =
-      some { state := some (Sum.inr tm2.q₀),
-             BiTape := (tp.write (tm1.M q tp.head).1.symbol).optionMove
-                        (tm1.M q tp.head).1.movement } := by
-  simp only [step, compComputer, hM, Stmt.symbol, Stmt.movement]
-  generalize M_eq : tm1.M q tp.head = result
-  obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-  simp only [M_eq]
 
-/-- Helper: converting to Sum.inl and transitioning to Sum.inr on halt -/
-private def toCompCfg_left_or_right (tm1 tm2 : SingleTapeTM α)
-    (cfg : tm1.Cfg) :
-    (compComputer tm1 tm2).Cfg :=
-  match cfg.state with
-  | some q => { state := some (Sum.inl q), BiTape := cfg.BiTape }
-  | none => { state := some (Sum.inr tm2.q₀), BiTape := cfg.BiTape }
-
-/-- The converting function commutes with step, converting halt to transition -/
-private theorem map_toCompCfg_left_or_right_step
-    (tm1 tm2 : SingleTapeTM α)
-    (x : tm1.Cfg)
-    (hx : x.state.isSome) :
-    Option.map (toCompCfg_left_or_right tm1 tm2) (tm1.step x) =
-      (compComputer tm1 tm2).step (toCompCfg_left_or_right tm1 tm2 x) := by
-  cases x with
-  | mk state BiTape =>
-    cases state with
-    | none => simp at hx
-    | some q =>
-      simp only [step, toCompCfg_left_or_right, compComputer]
-      generalize hM : tm1.M q BiTape.head = result
-      obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      cases nextState with
-      | none => simp only [hM, Option.map_some, toCompCfg_left_or_right]
-      | some q' => simp only [hM, Option.map_some, toCompCfg_left_or_right]
-
-/-- General simulation: if the first machine goes from cfg to halt, the composed machine
-    goes from cfg to Sum.inr tm2.q₀ -/
-private theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
+/--
+The behavior of the left machine, converted to the composed machine,
+preserves step count
+-/
+private theorem comp_left_relatesInSteps (tm1 tm2 : SingleTapeTM α)
     (cfg : tm1.Cfg)
     (hcfg : cfg.state.isSome)
     (haltCfg : tm1.Cfg)
     (steps : ℕ)
     (h : RelatesInSteps tm1.TransitionRelation cfg haltCfg steps) :
     RelatesInSteps (compComputer tm1 tm2).TransitionRelation
-      (toCompCfg_left_or_right tm1 tm2 cfg)
-      (toCompCfg_left_or_right tm1 tm2 haltCfg)
+      (toCompCfg_left tm1 tm2 cfg)
+      (toCompCfg_left tm1 tm2 haltCfg)
       steps := by
   induction steps generalizing cfg haltCfg with
   | zero =>
@@ -387,7 +350,7 @@ private theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
   | succ n ih =>
     rw [RelatesInSteps.succ_iff] at h ⊢
     obtain ⟨c, hc_n, hc_step⟩ := h
-    use toCompCfg_left_or_right tm1 tm2 c
+    use toCompCfg_left tm1 tm2 c
     constructor
     · apply ih
       · exact hcfg
@@ -399,11 +362,10 @@ private theorem comp_left_simulation_general (tm1 tm2 : SingleTapeTM α)
           simp only [TransitionRelation, step] at hc_step
           cases hc_step
         | some q =>
-          have h1 := map_toCompCfg_left_or_right_step tm1 tm2 ⟨some q, BiTape⟩ (by simp)
+          have h1 := map_toCompCfg_left_step tm1 tm2 ⟨some q, BiTape⟩ (by simp)
           simp only [TransitionRelation] at hc_step ⊢
           rw [hc_step, Option.map_some] at h1
           exact h1.symm
-
 
 /--
 Simulation for the first phase of the composed computer.
@@ -412,7 +374,7 @@ runs from start (with Sum.inl state) to Sum.inr tm2.q₀ (the start of the secon
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-private theorem comp_left_simulation (tm1 tm2 : SingleTapeTM α)
+private theorem comp_left_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
     (input_tape intermediate_tape : List α)
     (t : ℕ)
     (htm1 :
@@ -428,17 +390,17 @@ private theorem comp_left_simulation (tm1 tm2 : SingleTapeTM α)
   use steps
   constructor
   · exact hsteps_le
-  · have := comp_left_simulation_general tm1 tm2
+  · have := comp_left_relatesInSteps tm1 tm2
       { state := some tm1.q₀, BiTape := BiTape.mk₁ input_tape }
       (by simp)
       { state := none, BiTape := BiTape.mk₁ intermediate_tape }
       steps
       hsteps_eval
-    simp only [toCompCfg_left_or_right] at this
+    simp only [toCompCfg_left] at this
     exact this
 
 /-- Simulation lemma for the second machine in the composed computer -/
-private theorem comp_right_simulation
+private theorem comp_right_relatesWithinSteps
     (tm1 tm2 : SingleTapeTM α)
     (x : tm2.Cfg) (y : tm2.Cfg) (m : ℕ)
     (h : RelatesWithinSteps tm2.TransitionRelation x y m) :
@@ -454,14 +416,26 @@ private theorem comp_right_simulation
 
 end compComputerLemmas
 
+end
+
+/-!
+## Time Computability
+
+This section defines the notion of time-bounded Turing Machines
+-/
+
+section TimeComputable
+
+variable [Inhabited α] [Fintype α]
+
 /-- A Turing machine + a time function +
-a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
+a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure TimeComputable (f : List α → List α) where
   /-- the underlying bundled SingleTapeTM -/
   tm : SingleTapeTM α
   /-- a time function -/
   time : ℕ → ℕ
-  /-- proof this machine outputsInTime `f` in at most `time(input.length)` steps -/
+  /-- proof this machine outputs `f` in at most `time(input.length)` steps -/
   outputsFun : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
 
 
@@ -475,25 +449,18 @@ def TimeComputable.id : TimeComputable (α := α) id where
     rfl
 
 /--
-A composition for TimeComputable.
+Time bounds for `compComputer`.
 
-If f and g are computed by turing machines M₁ and M₂
-then we can construct a turing machine M which computes g ∘ f by first running M₁
-and then, when M₁ halts, transitioning to the start state of M₂ and running M₂.
+The `compComputer` of two machines which have time bounds is bounded by
 
-This results in time bounded by the amount of time taken by M₁ plus the maximum time taken by M₂ on
-inputs of length of the maximum output length of M₁ for that input size (which is itself bounded by
-the time taken by M₁).
+* The time taken by the first machine on the input size
+* added to the time taken by the second machine on the output size of the first machine
+  (which is itself bounded by the time taken by the first machine)
 
 Note that we require the time function of the second machine to be monotone;
 this is to ensure that if the first machine returns an output
 which is shorter than the maximum possible length of output for that input size,
 then the time bound for the second machine still holds for that shorter input to the second machine.
-
-TODO refactor out the definition of the composed TM.
-Prove separately that it
-evals to the intermediate state from the start state and
-then from the intermediate state to the final state.
 -/
 def TimeComputable.comp
     {f g : List α → List α}
@@ -514,14 +481,16 @@ def TimeComputable.comp
           { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           (hf.time a.length) :=
-      comp_left_simulation hf.tm hg.tm a (f a) (hf.time a.length) hf_outputsFun
+      comp_left_relatesWithinSteps hf.tm hg.tm a (f a) (hf.time a.length) hf_outputsFun
+    -- The computer reduces f a to g (f a) in time hg.time (f a).length
     have h_f_a_reducesTo_g_f_a :
         RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           { state := none, BiTape := BiTape.mk₁ (g (f a)) }
           (hg.time (f a).length) := by
-      -- Use the simulation lemma for the second machine
-      have := comp_right_simulation hf.tm hg.tm
+      -- TODO why is the previous have a one-liner and this is not?
+      -- reformulate the lemmas above so that this looks the same.
+      have := comp_right_relatesWithinSteps hf.tm hg.tm
         { state := some hg.tm.q₀, BiTape := BiTape.mk₁ (f a) }
         { state := none, BiTape := BiTape.mk₁ (g (f a)) }
         (hg.time (f a).length)
@@ -538,7 +507,7 @@ def TimeComputable.comp
       -- Use the lemma about output length being bounded by input length + time
       exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFun a)
 
-end
+end TimeComputable
 
 /-!
 ## Polynomial Time Computability
@@ -556,17 +525,16 @@ Perhaps we could switch to a computable polynomial representation?
 
 -/
 
-section PolyTime
+section PolyTimeComputable
 
 variable [Inhabited α] [Fintype α]
 
-
 /-- A Turing machine + a polynomial time function +
-a proof it outputsInTime `f` in at most `time(input.length)` steps. -/
+a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure PolyTimeComputable (f : List α → List α) extends TimeComputable f where
   /-- a polynomial time bound -/
   poly : Polynomial ℕ
-  /-- proof that this machine outputsInTime `f` in at most `time(input.length)` steps -/
+  /-- proof that this machine outputs `f` in at most `time(input.length)` steps -/
   bounds : ∀ n, time n ≤ poly.eval n
 
 /-- A proof that the identity map on α is computable in polytime. -/
@@ -600,7 +568,7 @@ noncomputable def PolyTimeComputable.comp
       apply le_trans this _
       exact hg.bounds (1 + n + hf.poly.eval n)
 
-end PolyTime
+end PolyTimeComputable
 
 end SingleTapeTM
 
