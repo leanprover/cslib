@@ -68,7 +68,7 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
     case case_inr der _ _ =>
       have ⟨_, ⟨_, _⟩⟩ := der.inr_inv sub
       grind [fresh_exists <| free_union [fv_tm] Var, open_tm_subst_tm_intro, subst_tm]
-  all_goals grind [cases Red]
+  all_goals grind
 
 /-- Any typable term either has a reduction step or is a value. -/
 lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t' := by

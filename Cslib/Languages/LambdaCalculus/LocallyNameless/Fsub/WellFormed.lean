@@ -165,7 +165,7 @@ open Context List Binding
 lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) :
     Env.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
   induction Γ <;> cases wf_env <;>
-  grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.narrow, eq_nil_of_append_eq_nil, cases Env.Wf]
+  grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.narrow]
 
 /-- A context remains well-formed under strengthening. -/
 lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <| Γ ++ Δ := by
