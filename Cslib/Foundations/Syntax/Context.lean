@@ -14,6 +14,7 @@ namespace Cslib
 
 /-- Class for types (`Term`) that have a notion of (single-hole) contexts (`Context`). -/
 class HasContext (Term : Sort*) where
+  /-- The type of contexts. -/
   Context : Sort*
   /-- Replaces the hole in the context with a term. -/
   fill (c : Context) (t : Term) : Term
