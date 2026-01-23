@@ -6,15 +6,15 @@ Authors: Bolton Bailey
 
 module
 
-public import Cslib.Foundations.Data.OList
+public import Cslib.Foundations.Data.StackTape
 public import Mathlib.Computability.TuringMachine
 
 @[expose] public section
 
 /-!
-# OTape: Tape representation using OList
+# BiTape: Tape representation using StackTape
 
-This file defines `OTape`, a tape representation for Turing machines
+This file defines `BiTape`, a tape representation for Turing machines
 in the form of an `List` of `Option` values,
 with the additional property that the list cannot end with `none`.
 
@@ -29,10 +29,10 @@ will not collide.
 
 ## Main definitions
 
-* `OTape`: A tape with a head symbol and left/right contents stored as `OList`
-* `OTape.move`: Move the tape head left or right
-* `OTape.write`: Write a symbol at the current head position
-* `OTape.space_used`: The space used by the tape
+* `BiTape`: A tape with a head symbol and left/right contents stored as `StackTape`
+* `BiTape.move`: Move the tape head left or right
+* `BiTape.write`: Write a symbol at the current head position
+* `BiTape.space_used`: The space used by the tape
 -/
 
 namespace Turing
@@ -48,65 +48,65 @@ We do not assume here, but could add, that the ends of the tape are never none.
 The move function should guarantee this, so that two tapes are equal
 even if one has written none to the side
 -/
-structure OTape (α : Type) where
+structure BiTape (α : Type) where
   (head : Option α)
-  (left : OList α)
-  (right : OList α)
+  (left : StackTape α)
+  (right : StackTape α)
 deriving Inhabited
 
-def OTape.mk₁ {α} (l : List α) : OTape α :=
+def BiTape.mk₁ {α} (l : List α) : BiTape α :=
   match l with
-  | [] => { head := none, left := OList.empty, right := OList.empty }
-  | h :: t => { head := some h, left := OList.empty, right := OList.map_some t }
+  | [] => { head := none, left := StackTape.empty, right := StackTape.empty }
+  | h :: t => { head := some h, left := StackTape.empty, right := StackTape.map_some t }
 
-def OTape.move {α} : Turing.OTape α → Dir → Turing.OTape α
+def BiTape.move {α} : Turing.BiTape α → Dir → Turing.BiTape α
   | t, .left =>
     match t.left, t.head, t.right with
-    | l, h, r => { head := l.head, left := l.tail, right := OList.cons h r }
+    | l, h, r => { head := l.head, left := l.tail, right := StackTape.cons h r }
   | t, .right =>
     match t.left, t.head, t.right with
-    | l, h, r => { head := r.head, left := OList.cons h l, right := r.tail }
+    | l, h, r => { head := r.head, left := StackTape.cons h l, right := r.tail }
 
 
-def OTape.move? {α} : Turing.OTape α → Option Dir → Turing.OTape α
+def BiTape.move? {α} : Turing.BiTape α → Option Dir → Turing.BiTape α
   | t, none => t
   | t, some d => t.move d
 
-def OTape.write {α} : Turing.OTape α → Option α → Turing.OTape α
+def BiTape.write {α} : Turing.BiTape α → Option α → Turing.BiTape α
   | t, a => { t with head := a }
 
 /--
-The space used by a OTape is the number of symbols
-between and including the head, and leftmost and rightmost non-blank symbols on the OTape
+The space used by a BiTape is the number of symbols
+between and including the head, and leftmost and rightmost non-blank symbols on the BiTape
 -/
-def OTape.space_used {α} (t : Turing.OTape α) : ℕ :=
+def BiTape.space_used {α} (t : Turing.BiTape α) : ℕ :=
   1 + t.left.length + t.right.length
 
-lemma OTape.space_used_write {α} (t : Turing.OTape α) (a : Option α) :
+lemma BiTape.space_used_write {α} (t : Turing.BiTape α) (a : Option α) :
     (t.write a).space_used = t.space_used := by
   rfl
 
-lemma OTape.space_used_mk₁ (l : List α) :
-    (OTape.mk₁ l).space_used = max 1 l.length := by
+lemma BiTape.space_used_mk₁ (l : List α) :
+    (BiTape.mk₁ l).space_used = max 1 l.length := by
   cases l with
   | nil =>
-    simp [mk₁, space_used, OList.length_empty]
+    simp [mk₁, space_used, StackTape.length_empty]
   | cons h t =>
-    simp [mk₁, space_used, OList.length_empty, OList.length_map_some]
+    simp [mk₁, space_used, StackTape.length_empty, StackTape.length_map_some]
     omega
 
-lemma OTape.space_used_move {α} (t : Turing.OTape α) (d : Dir) :
+lemma BiTape.space_used_move {α} (t : Turing.BiTape α) (d : Dir) :
     (t.move d).space_used ≤ t.space_used + 1 := by
   cases d with
   | left =>
     simp only [move, space_used]
-    have h1 := OList.length_tail_le t.left
-    have h2 := OList.length_cons_le t.head t.right
+    have h1 := StackTape.length_tail_le t.left
+    have h2 := StackTape.length_cons_le t.head t.right
     omega
   | right =>
     simp only [move, space_used]
-    have h1 := OList.length_cons_le t.head t.left
-    have h2 := OList.length_tail_le t.right
+    have h1 := StackTape.length_cons_le t.head t.left
+    have h2 := StackTape.length_tail_le t.right
     omega
 
 end Turing

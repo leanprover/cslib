@@ -1,12 +1,12 @@
 /-
-Copyright (c) 2025 Bolton Bailey. All rights reserved.
+Copyright (c) 2026 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bolton Bailey TODO add the authors of the mathlib file this is based on
+Authors: Bolton Bailey, Pim Spelier, Daan van Gent
 -/
 
 module
 
-public import Cslib.Foundations.Data.OTape
+public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 public import Mathlib.Algebra.Polynomial.Eval.Defs
 
@@ -16,7 +16,7 @@ public import Mathlib.Algebra.Polynomial.Eval.Defs
 # Single-Tape Turing Machine
 
 Defines a single-tape Turing machine over the alphabet of `Option α`,
-where `none` represents a blank `OTape` symbol.
+where `none` represents a blank `BiTape` symbol.
 
 ## TODOs
 
@@ -36,7 +36,7 @@ namespace SingleTapeTM
 -- TODO make into a structure?
 /--
 A Turing machine "statement" is just a `Option`al command to move left or right,
-and write a symbol on the `OTape`.
+and write a symbol on the `BiTape`.
 -/
 def Stmt (α : Type) := Option α × Option Dir
 deriving Inhabited
@@ -49,7 +49,7 @@ def Stmt.movement : Stmt α → Option Dir
 
 end SingleTapeTM
 
-/-- A SingleTapeTM over the alphabet of Option α (none is blank OTape symbol). -/
+/-- A SingleTapeTM over the alphabet of Option α (none is blank BiTape symbol). -/
 structure SingleTapeTM α where
   /-- Inhabited instance for the alphabet -/
   [Inhabitedα : Inhabited α]
@@ -90,13 +90,13 @@ instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
 /--
 The configurations of a Turing machine consist of an `Option`al state
 (or none for the halting state)
-and an OTape representing the tape contents.
+and an BiTape representing the tape contents.
 -/
 structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.Λ
-  /-- the OTape contents -/
-  OTape : OTape α
+  /-- the BiTape contents -/
+  BiTape : BiTape α
 deriving Inhabited
 
 /-- The step function corresponding to this TM. -/
@@ -115,27 +115,27 @@ def step : tm.Cfg → Option tm.Cfg :=
           some ⟨
             -- With state q'' (or none for halting)
             q'',
-            -- And OTape updated according to the Stmt
+            -- And BiTape updated according to the Stmt
             (t.write wr).move? dir⟩
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
-def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, OTape.mk₁ s⟩
+def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
-def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, OTape.mk₁ s⟩
+def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
 
 def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ :=
-  cfg.OTape.space_used
+  cfg.BiTape.space_used
 
 lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.initCfg s).space_used = max 1 s.length := by
-  simp only [space_used, initCfg, OTape.space_used_mk₁]
+  simp only [space_used, initCfg, BiTape.space_used_mk₁]
 
 lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.haltCfg s).space_used = max 1 s.length := by
-  simp [haltCfg, Cfg.space_used, OTape.space_used_mk₁]
+  simp [haltCfg, Cfg.space_used, BiTape.space_used_mk₁]
 
 lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
@@ -145,10 +145,10 @@ lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     generalize hM : tm.M q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
-    | none => simp [Cfg.space_used, OTape.move?, OTape.space_used_write]
+    | none => simp [Cfg.space_used, BiTape.move?, BiTape.space_used_write]
     | some d =>
-      have := OTape.space_used_move (tape.write wr) d
-      simp only [Cfg.space_used, OTape.move?, OTape.space_used_write] at this ⊢; exact this
+      have := BiTape.space_used_move (tape.write wr) d
+      simp only [Cfg.space_used, BiTape.move?, BiTape.space_used_write] at this ⊢; exact this
 
 end Cfg
 
@@ -226,7 +226,7 @@ def TimeComputable.id : TimeComputable (α := α) id :=
       (Cslib.ReductionSystem.reducesToInSteps.refl _)
     -- Show the single step reduction: step (init x) = some (halt x)
     simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, initCfg, haltCfg,
-      idComputer, step, OTape.move?]
+      idComputer, step, BiTape.move?]
     congr 1⟩
 
 def compComputer {f : List α → List α} {g : List α → List α}
@@ -273,7 +273,7 @@ def liftCompCfg_left {f : List α → List α} {g : List α → List α}
     (compComputer hf hg).Cfg :=
   {
     state := Option.map Sum.inl cfg.state
-    OTape := cfg.OTape
+    BiTape := cfg.BiTape
   }
 
 def liftCompCfg_right {f : List α → List α} {g : List α → List α}
@@ -282,7 +282,7 @@ def liftCompCfg_right {f : List α → List α} {g : List α → List α}
     (compComputer hf hg).Cfg :=
   {
     state := Option.map Sum.inr cfg.state
-    OTape := cfg.OTape
+    BiTape := cfg.BiTape
   }
 
 theorem map_liftCompCfg_left_step
@@ -292,7 +292,7 @@ theorem map_liftCompCfg_left_step
     Option.map (liftCompCfg_left hf hg) (hf.tm.step x) =
       (compComputer hf hg).step (liftCompCfg_left hf hg x) := by
   cases x with
-  | mk state OTape =>
+  | mk state BiTape =>
     cases state with
     | none =>
       -- x is already in halting state, step returns none on both sides
@@ -300,7 +300,7 @@ theorem map_liftCompCfg_left_step
     | some q =>
       simp only [step, liftCompCfg_left, compComputer, Option.map_some]
       -- Get the transition result
-      generalize hM : hf.tm.M q OTape.head = result
+      generalize hM : hf.tm.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
       simp only
       -- Case on whether the next state is none (halting) or some
@@ -308,7 +308,7 @@ theorem map_liftCompCfg_left_step
       | none =>
         -- The first machine halts, but hx says the result has state.isSome
         simp only [step, hM] at hx
-        have := hx ⟨none, (OTape.write wr).move? dir⟩ rfl
+        have := hx ⟨none, (BiTape.write wr).move? dir⟩ rfl
         simp at this
       | some q' =>
         -- Normal step case - both sides produce the lifted config
@@ -322,13 +322,13 @@ theorem map_liftCompCfg_right_step
     Option.map (liftCompCfg_right hf hg) (hg.tm.step x) =
       (compComputer hf hg).step (liftCompCfg_right hf hg x) := by
   cases x with
-  | mk state OTape =>
+  | mk state BiTape =>
     cases state with
     | none =>
       simp only [step, liftCompCfg_right, Option.map_none, compComputer]
     | some q =>
       simp only [step, liftCompCfg_right, compComputer, Option.map_some]
-      generalize hM : hg.tm.M q OTape.head = result
+      generalize hM : hg.tm.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
       cases nextState with
       | none => simp only [hM, Option.map_some, liftCompCfg_right, Option.map_none]
@@ -336,12 +336,12 @@ theorem map_liftCompCfg_right_step
 
 theorem comp_transition_to_right {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (tp : OTape α)
+    (tp : BiTape α)
     (q : hf.tm.Λ)
     (hM : (hf.tm.M q tp.head).2 = none) :
-    (compComputer hf hg).step { state := some (Sum.inl q), OTape := tp } =
+    (compComputer hf hg).step { state := some (Sum.inl q), BiTape := tp } =
       some { state := some (Sum.inr hg.tm.q₀),
-             OTape := (tp.write (hf.tm.M q tp.head).1.symbol).move?
+             BiTape := (tp.write (hf.tm.M q tp.head).1.symbol).move?
                         (hf.tm.M q tp.head).1.movement } := by
   simp only [step, compComputer, hM, Stmt.symbol, Stmt.movement]
   generalize hfM_eq : hf.tm.M q tp.head = result
@@ -354,8 +354,8 @@ def liftCompCfg_left_or_right {f : List α → List α} {g : List α → List α
     (cfg : hf.tm.Cfg) :
     (compComputer hf hg).Cfg :=
   match cfg.state with
-  | some q => { state := some (Sum.inl q), OTape := cfg.OTape }
-  | none => { state := some (Sum.inr hg.tm.q₀), OTape := cfg.OTape }
+  | some q => { state := some (Sum.inl q), BiTape := cfg.BiTape }
+  | none => { state := some (Sum.inr hg.tm.q₀), BiTape := cfg.BiTape }
 
 /-- The lifting function commutes with step, converting halt to transition -/
 theorem map_liftCompCfg_left_or_right_step
@@ -366,12 +366,12 @@ theorem map_liftCompCfg_left_or_right_step
     Option.map (liftCompCfg_left_or_right hf hg) (hf.tm.step x) =
       (compComputer hf hg).step (liftCompCfg_left_or_right hf hg x) := by
   cases x with
-  | mk state OTape =>
+  | mk state BiTape =>
     cases state with
     | none => simp at hx
     | some q =>
       simp only [step, liftCompCfg_left_or_right, compComputer]
-      generalize hM : hf.tm.M q OTape.head = result
+      generalize hM : hf.tm.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
       cases nextState with
       | none => simp only [hM, Option.map_some, liftCompCfg_left_or_right]
@@ -392,8 +392,8 @@ theorem comp_left_simulation_general {f : List α → List α} {g : List α → 
       steps := by
   -- Proof by induction on steps.
   -- Key insight: liftCompCfg_left_or_right maps:
-  --   { state := some q, OTape } -> { state := some (Sum.inl q), OTape }
-  --   { state := none, OTape }   -> { state := some (Sum.inr hg.tm.q₀), OTape }
+  --   { state := some q, BiTape } -> { state := some (Sum.inl q), BiTape }
+  --   { state := none, BiTape }   -> { state := some (Sum.inr hg.tm.q₀), BiTape }
   -- For non-halting configs, the composed machine simulates exactly.
   -- When the first machine halts, the composed machine transitions to Sum.inr hg.tm.q₀.
   induction steps generalizing cfg haltCfg with
@@ -412,7 +412,7 @@ theorem comp_left_simulation_general {f : List α → List α} {g : List α → 
       · exact hcfg
       · exact hc_n
     · cases c with
-      | mk state OTape =>
+      | mk state BiTape =>
         cases state with
         | none =>
           -- c is in halting state, but step of halting state is none, contradiction
@@ -420,7 +420,7 @@ theorem comp_left_simulation_general {f : List α → List α} {g : List α → 
           cases hc_step
         | some q =>
           -- Use the lifting lemma
-          have h1 := map_liftCompCfg_left_or_right_step hf hg ⟨some q, OTape⟩ (by simp)
+          have h1 := map_liftCompCfg_left_or_right_step hf hg ⟨some q, BiTape⟩ (by simp)
           simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option] at hc_step ⊢
           rw [hc_step, Option.map_some] at h1
           exact h1.symm
@@ -438,21 +438,21 @@ theorem comp_left_simulation {f : List α → List α} {g : List α → List α}
     (a : List α)
     (hf_outputsFun :
       hf.tm.TerminalReductionSystem.reducesToWithinSteps
-        { state := some hf.tm.q₀, OTape := OTape.mk₁ a }
-        ({ state := none, OTape := OTape.mk₁ (f a) })
+        { state := some hf.tm.q₀, BiTape := BiTape.mk₁ a }
+        ({ state := none, BiTape := BiTape.mk₁ (f a) })
         (hf.time a.length)) :
     (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
-      { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ a }
-      ({ state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) })
+      { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
+      ({ state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) })
       (hf.time a.length) := by
   obtain ⟨steps, hsteps_le, hsteps_eval⟩ := hf_outputsFun
   use steps
   constructor
   · exact hsteps_le
   · have := comp_left_simulation_general hf hg
-      { state := some hf.tm.q₀, OTape := OTape.mk₁ a }
+      { state := some hf.tm.q₀, BiTape := BiTape.mk₁ a }
       (by simp)
-      { state := none, OTape := OTape.mk₁ (f a) }
+      { state := none, BiTape := BiTape.mk₁ (f a) }
       steps
       hsteps_eval
     simp only [liftCompCfg_left_or_right] at this
@@ -511,19 +511,19 @@ def TimeComputable.comp
     -- The computer reduces a to f a in time hf.time a
     have h_a_reducesTo_f_a :
         (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
-          { state := some (Sum.inl hf.tm.q₀), OTape := OTape.mk₁ a }
-          { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) }
+          { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
+          { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           (hf.time a.length) :=
       comp_left_simulation hf hg a hf_outputsFun
     have h_f_a_reducesTo_g_f_a :
         (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
-          { state := some (Sum.inr hg.tm.q₀), OTape := OTape.mk₁ (f a) }
-          { state := none, OTape := OTape.mk₁ (g (f a)) }
+          { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
+          { state := none, BiTape := BiTape.mk₁ (g (f a)) }
           (hg.time (f a).length) := by
       -- Use the simulation lemma for the second machine
       have := comp_right_simulation hf hg
-        { state := some hg.tm.q₀, OTape := OTape.mk₁ (f a) }
-        { state := none, OTape := OTape.mk₁ (g (f a)) }
+        { state := some hg.tm.q₀, BiTape := BiTape.mk₁ (f a) }
+        { state := none, BiTape := BiTape.mk₁ (g (f a)) }
         (hg.time (f a).length)
         hg_outputsFun
       simp only [liftCompCfg_right] at this
