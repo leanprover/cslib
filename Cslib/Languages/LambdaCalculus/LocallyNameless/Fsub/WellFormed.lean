@@ -96,7 +96,14 @@ lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨
   generalize eq : (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ) = Θ at wf
   induction wf generalizing Γ with
   | all => apply all (free_union [dom] Var) <;> grind [nodupKeys_cons]
-  | _ => grind [sublist_dlookup]
+  | _ =>
+    #adaptation_note
+    /--
+    Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
+    I've had to remove the `append_assoc` lemma from grind;
+    without this `grind` is exploding. This requires further investigation.
+    -/
+    grind [sublist_dlookup, -append_assoc]
 
 lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) (ok : (⟨X, Binding.sub τ'⟩ :: Δ)✓) :
     σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) := by
@@ -158,11 +165,11 @@ open Context List Binding
 lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) :
     Env.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
   induction Γ <;> cases wf_env <;>
-  grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.narrow]
+  grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.narrow, eq_nil_of_append_eq_nil, cases Env.Wf]
 
 /-- A context remains well-formed under strengthening. -/
 lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <| Γ ++ Δ := by
-  induction Γ <;> cases wf <;> grind [Ty.Wf.strengthen, Env.Wf.sub, Env.Wf.ty]
+  induction Γ <;> cases wf <;> grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.strengthen]
 
 variable [HasFresh Var] in
 /-- A context remains well-formed under substitution (of a well-formed type). -/
