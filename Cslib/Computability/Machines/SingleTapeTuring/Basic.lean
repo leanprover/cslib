@@ -407,16 +407,16 @@ a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure TimeComputable (f : List α → List α) where
   /-- the underlying bundled SingleTapeTM -/
   tm : SingleTapeTM α
-  /-- a time function -/
-  time : ℕ → ℕ
-  /-- proof this machine outputs `f` in at most `time(input.length)` steps -/
-  outputsFunInTime : ∀ a, tm.OutputsWithinTime a (f a) (time a.length)
+  /-- a bound on runtime -/
+  time_bound : ℕ → ℕ
+  /-- proof this machine outputs `f` in at most `time_bound(input.length)` steps -/
+  outputsFunInTime : ∀ a, tm.OutputsWithinTime a (f a) (time_bound a.length)
 
 
 /-- The identity map on α is computable in constant time. -/
 def TimeComputable.id : TimeComputable (α := α) id where
   tm := idComputer
-  time _ := 1
+  time_bound _ := 1
   outputsFunInTime x := by
     refine ⟨1, le_refl 1, RelatesInSteps.single ?_⟩
     simp only [TransitionRelation, initCfg, haltCfg, idComputer, step, BiTape.optionMove]
@@ -439,34 +439,36 @@ then the time bound for the second machine still holds for that shorter input to
 def TimeComputable.comp
     {f g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
-    (h_mono : Monotone hg.time) :
+    (h_mono : Monotone hg.time_bound) :
     (TimeComputable (g ∘ f)) where
   tm := compComputer hf.tm hg.tm
   -- perhaps it would be good to track the blow up separately?
-  time l := (hf.time l) + hg.time (max 1 l + hf.time l)
+  time_bound l := (hf.time_bound l) + hg.time_bound (max 1 l + hf.time_bound l)
   outputsFunInTime a := by
     have hf_outputsFun := hf.outputsFunInTime a
     have hg_outputsFun := hg.outputsFunInTime (f a)
     simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
       haltCfg] at hg_outputsFun hf_outputsFun ⊢
-    -- The computer reduces a to f a in time hf.time a
+    -- The computer reduces a to f a in time hf.time_bound a.length
     have h_a_reducesTo_f_a :
         RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
           (initialCfg hf.tm hg.tm a)
           (intermediateCfg hf.tm hg.tm (f a))
-          (hf.time a.length) :=
-      comp_left_relatesWithinSteps hf.tm hg.tm a (f a) (hf.time a.length) hf_outputsFun
-    -- The computer reduces f a to g (f a) in time hg.time (f a).length
+          (hf.time_bound a.length) :=
+      comp_left_relatesWithinSteps hf.tm hg.tm a (f a)
+        (hf.time_bound a.length) hf_outputsFun
+    -- The computer reduces f a to g (f a) in time hg.time_bound (f a).length
     have h_f_a_reducesTo_g_f_a :
         RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
           (intermediateCfg hf.tm hg.tm (f a))
           (finalCfg hf.tm hg.tm (g (f a)))
-          (hg.time (f a).length) :=
-      comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a)) (hg.time (f a).length) hg_outputsFun
+          (hg.time_bound (f a).length) :=
+      comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a))
+        (hg.time_bound (f a).length) hg_outputsFun
     -- Therefore, the computer reduces a to g (f a) in the sum of those times.
     have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
     apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
-    refine Nat.add_le_add_left ?_ (hf.time a.length)
+    refine Nat.add_le_add_left ?_ (hf.time_bound a.length)
     · apply h_mono
       -- Use the lemma about output length being bounded by input length + time
       exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a)
@@ -496,7 +498,7 @@ structure PolyTimeComputable (f : List α → List α) extends TimeComputable f 
   /-- a polynomial time bound -/
   poly : Polynomial ℕ
   /-- proof that this machine outputs `f` in at most `time(input.length)` steps -/
-  bounds : ∀ n, time n ≤ poly.eval n
+  bounds : ∀ n, time_bound n ≤ poly.eval n
 
 /-- A proof that the identity map on α is computable in polytime. -/
 noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id where
@@ -512,7 +514,7 @@ noncomputable def PolyTimeComputable.comp
     (hf : PolyTimeComputable f)
     (hg : PolyTimeComputable g)
     -- all Nat polynomials are monotone, but the tighter internal bound maybe is not, awkwardly
-    (h_mono : Monotone hg.time) :
+    (h_mono : Monotone hg.time_bound) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
   poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
@@ -520,7 +522,8 @@ noncomputable def PolyTimeComputable.comp
     simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · have : hg.time (max 1 n + hf.time n) ≤ hg.time (1 + n + hf.poly.eval n) := by
+    · have : hg.time_bound (max 1 n + hf.time_bound n)
+              ≤ hg.time_bound (1 + n + hf.poly.eval n) := by
         apply h_mono
         apply add_le_add
         · omega -- lia fails
