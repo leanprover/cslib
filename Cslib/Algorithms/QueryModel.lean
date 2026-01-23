@@ -19,10 +19,6 @@ public import Batteries
 This file defines a simple query language modeled as a free monad over a
 parametric type of  query operations.
 
-We equip this language with a cost model (`TimeM`) that counts how many primitive queries
-are performed. An example algorithm (merge sort) is implemented in
-`Cslib.Algorithms.MergeSort.QueryBased`.
-
 ## Main definitions
 
 - `QueryF`, `Prog` : query language and programs
