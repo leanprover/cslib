@@ -45,7 +45,6 @@ variable {t₁ t₂ t₃ : Term Var}
 variable [DecidableEq Var]
 
 /-- Locally closed let bindings have a locally closed body. -/
-@[scoped grind _=_]
 lemma body_let : (let' t₁ t₂).LC ↔ t₁.LC ∧ t₂.body := by
   constructor <;> intro h <;> cases h
   case mp.let' L t₁_lc h => exact ⟨t₁_lc, L, h⟩
@@ -54,7 +53,6 @@ lemma body_let : (let' t₁ t₂).LC ↔ t₁.LC ∧ t₂.body := by
     grind [LC.let' <| free_union Var]
 
 /-- Locally closed case bindings have a locally closed bodies. -/
-@[scoped grind _=_]
 lemma body_case : (case t₁ t₂ t₃).LC ↔ t₁.LC ∧ t₂.body ∧ t₃.body := by
   constructor <;> intro h
   case mp => cases h with | case L t₁_lc h₂ h₃ => exact ⟨t₁_lc, ⟨L, h₂⟩, ⟨L, h₃⟩⟩
@@ -115,7 +113,7 @@ lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
       grind [
         fresh_exists <| free_union [fv_tm, fv_ty] Var, subst_tm_lc,
         subst_ty_lc, open_tm_subst_tm_intro, open_ty_subst_ty_intro]
-  all_goals grind
+  all_goals grind [body_let, body_case]
 
 end Term
 

@@ -86,7 +86,8 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
   case' let' der _ => apply let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
   case' case der _ _ => apply case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
   all_goals
-    grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, <= sublist_dlookup]
+    grind [Env.Wf.sub, Env.Wf.ty, Wf.weaken, Sub.weaken,
+      Wf.of_env_ty, Wf.of_env_sub, Sub.refl, <= sublist_dlookup]
 
 /-- Weakening of typings (at the front). -/
 lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) :

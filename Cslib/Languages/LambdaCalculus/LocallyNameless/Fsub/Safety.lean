@@ -110,11 +110,11 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
     cases ih der with
     | inl _ =>
         exists t₂ ^ᵗᵗ t₁
-        grind
+        grind [body_let]
     | inr red =>
         obtain ⟨t₁', _⟩ := red
         exists t₁'.let' t₂
-        grind
+        grind [body_let]
   case inl der _ ih =>
     cases (ih der) with
     | inl val => grind
@@ -136,20 +136,20 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
     cases ih der with
     | inl val =>
         have ⟨t₁, lr⟩ := der.canonical_form_sum val
-        cases lr <;> [exists t₂ ^ᵗᵗ t₁; exists t₃ ^ᵗᵗ t₁] <;> grind
+        cases lr <;> [exists t₂ ^ᵗᵗ t₁; exists t₃ ^ᵗᵗ t₁] <;> grind [body_case]
     | inr red =>
         obtain ⟨t₁', _⟩ := red
         exists t₁'.case t₂ t₃
-        grind
+        grind [body_case]
   case sub => grind
   case abs σ _ τ L _ _=>
     left
     constructor
-    apply LC.abs L <;> grind [cases Env.Wf, cases Term.LC]
+    apply LC.abs L <;> grind [cases Term.LC]
   case tabs L _ _=>
     left
     constructor
-    apply LC.tabs L <;> grind [cases Env.Wf, cases Term.LC]
+    apply LC.tabs L <;> grind [cases Term.LC]
 
 end LambdaCalculus.LocallyNameless.Fsub
 

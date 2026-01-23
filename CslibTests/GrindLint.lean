@@ -59,8 +59,6 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
-#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Term.body_case
-#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Term.body_let
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Term.open_tm_body
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.app
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.inl
@@ -69,8 +67,6 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.tapp
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.para_subst
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.subst_intro
-#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.sub
-#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

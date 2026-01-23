@@ -61,7 +61,7 @@ lemma wf (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.W
 /-- Subtypes are reflexive when well-formed. -/
 lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
   induction wf_σ with
-  | all => grind [all (free_union [Context.dom] Var)]
+  | all => grind [all (free_union [Context.dom] Var), Env.Wf.sub, Env.Wf.ty]
   | _ => grind
 
 /-- Weakening of subtypes. -/
@@ -70,7 +70,7 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   induction sub generalizing Γ
   case all =>
     subst eq
-    apply all (free_union [Context.dom] Var) <;> grind
+    apply all (free_union [Context.dom] Var) <;> grind [Env.Wf.sub, Env.Wf.ty]
   all_goals grind [Ty.Wf.weaken, <= sublist_dlookup]
 
 lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ σ' := by
