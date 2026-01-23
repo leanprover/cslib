@@ -7,16 +7,17 @@ Authors: Bolton Bailey, Pim Spelier, Daan van Gent
 module
 
 public import Cslib.Foundations.Data.BiTape
-public import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
 
 @[expose] public section
 
 /-!
-# Single-Tape Turing Machine
+# Single-Tape Turing Machines
 
-Defines a single-tape Turing machine over the alphabet of `Option α`,
-where `none` represents a blank `BiTape` symbol.
+Defines a single-tape Turing machine for computing functions on `List α` for finite alphabet `α`.
+These machines have access to a single bidirectionally-infinite tape (`BiTape`)
+which uses symbols from `Option α`.
 
 ## TODOs
 
@@ -25,7 +26,7 @@ where `none` represents a blank `BiTape` symbol.
 
 -/
 
-open Cslib
+open Cslib Relation
 
 namespace Turing
 
@@ -157,17 +158,18 @@ The `TerminalReductionSystem` corresponding to a `SingleTapeTM α`
 is defined by the `step` function,
 which maps a configuration to its next configuration if it exists.
 -/
-def TerminalReductionSystem (tm : SingleTapeTM α) : Cslib.TerminalReductionSystem (tm.Cfg) :=
-  TerminalReductionSystem.Option tm.step
+def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop :=
+  tm.step c₁ = some c₂
+
 
 /-- A proof of tm outputting l' when given l. -/
 def Outputs (tm : SingleTapeTM α) (l : List α) (l' : List α) : Prop :=
-  tm.TerminalReductionSystem.MRed (initCfg tm l) (haltCfg tm l')
+  ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of tm outputting l' when given l in at most m steps. -/
 def OutputsWithinTime (tm : SingleTapeTM α) (l : List α) (l' : List α)
     (m : ℕ) :=
-  tm.TerminalReductionSystem.reducesToWithinSteps (initCfg tm l) (haltCfg tm l') m
+  RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
 
 /--
 This lemma bounds the size blow-up of the output of a Turing machine.
@@ -181,7 +183,7 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List
     l'.length ≤ max 1 l.length + t := by
   simp only [OutputsWithinTime] at h
   obtain ⟨steps, hsteps_le, hevals⟩ := h
-  replace hevals := hevals.bounded_increase
+  replace hevals := hevals.apply_le_apply_add
   specialize hevals (Cfg.space_used tm)
   simp only [Cfg.space_used_initCfg, Cfg.space_used_haltCfg] at hevals
   suffices l'.length ≤ max 1 l.length + steps
@@ -222,11 +224,10 @@ def TimeComputable.id : TimeComputable (α := α) id :=
   ⟨idComputer, fun _ => 1, fun x => by
     refine ⟨1, le_refl 1, ?_⟩
     -- Need to show reducesToInSteps for 1 step
-    refine Cslib.ReductionSystem.reducesToInSteps.cons _ _ _ 0 ?_
-      (Cslib.ReductionSystem.reducesToInSteps.refl _)
+    refine RelatesInSteps.head _ _ _ 0 ?_
+      (RelatesInSteps.refl _)
     -- Show the single step reduction: step (init x) = some (halt x)
-    simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, initCfg, haltCfg,
-      idComputer, step, BiTape.optionMove]
+    simp only [TransitionRelation, initCfg, haltCfg, idComputer, step, BiTape.optionMove]
     congr 1⟩
 
 def compComputer {f : List α → List α} {g : List α → List α}
@@ -385,8 +386,8 @@ theorem comp_left_simulation_general {f : List α → List α} {g : List α → 
     (hcfg : cfg.state.isSome)
     (haltCfg : hf.tm.Cfg)
     (steps : ℕ)
-    (h : hf.tm.TerminalReductionSystem.reducesToInSteps cfg haltCfg steps) :
-    (compComputer hf hg).TerminalReductionSystem.reducesToInSteps
+    (h : RelatesInSteps hf.tm.TransitionRelation cfg haltCfg steps) :
+    RelatesInSteps (compComputer hf hg).TransitionRelation
       (liftCompCfg_left_or_right hf hg cfg)
       (liftCompCfg_left_or_right hf hg haltCfg)
       steps := by
@@ -398,13 +399,13 @@ theorem comp_left_simulation_general {f : List α → List α} {g : List α → 
   -- When the first machine halts, the composed machine transitions to Sum.inr hg.tm.q₀.
   induction steps generalizing cfg haltCfg with
   | zero =>
-    simp only [ReductionSystem.reducesToInSteps.zero_iff] at h ⊢
+    simp only [RelatesInSteps.zero_iff] at h ⊢
     rw [h]
   | succ n ih =>
     -- Use the decomposition lemma: cfg evals to some intermediate c in n steps,
     -- and then c steps to haltCfg
     -- obtain ⟨c, hc_n, hc_step⟩ := EvalsToInTime.succ_decompose hf.tm.step cfg haltCfg n h
-    rw [ReductionSystem.reducesToInSteps.succ'_iff] at h ⊢
+    rw [RelatesInSteps.succ_iff] at h ⊢
     obtain ⟨c, hc_n, hc_step⟩ := h
     use liftCompCfg_left_or_right hf hg c
     constructor
@@ -416,12 +417,12 @@ theorem comp_left_simulation_general {f : List α → List α} {g : List α → 
         cases state with
         | none =>
           -- c is in halting state, but step of halting state is none, contradiction
-          simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option, step] at hc_step
+          simp only [TransitionRelation, step] at hc_step
           cases hc_step
         | some q =>
           -- Use the lifting lemma
           have h1 := map_liftCompCfg_left_or_right_step hf hg ⟨some q, BiTape⟩ (by simp)
-          simp only [TerminalReductionSystem, Cslib.TerminalReductionSystem.Option] at hc_step ⊢
+          simp only [TransitionRelation] at hc_step ⊢
           rw [hc_step, Option.map_some] at h1
           exact h1.symm
 
@@ -437,11 +438,11 @@ theorem comp_left_simulation {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (a : List α)
     (hf_outputsFun :
-      hf.tm.TerminalReductionSystem.reducesToWithinSteps
+      RelatesWithinSteps hf.tm.TransitionRelation
         { state := some hf.tm.q₀, BiTape := BiTape.mk₁ a }
         ({ state := none, BiTape := BiTape.mk₁ (f a) })
         (hf.time a.length)) :
-    (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
+    RelatesWithinSteps (compComputer hf hg).TransitionRelation
       { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
       ({ state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) })
       (hf.time a.length) := by
@@ -463,12 +464,12 @@ theorem comp_right_simulation
     {f : List α → List α} {g : List α → List α}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (x : hg.tm.Cfg) (y : hg.tm.Cfg) (m : ℕ)
-    (h : hg.tm.TerminalReductionSystem.reducesToWithinSteps x y m) :
-    (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
+    (h : RelatesWithinSteps hg.tm.TransitionRelation x y m) :
+    RelatesWithinSteps (compComputer hf hg).TransitionRelation
       (liftCompCfg_right hf hg x)
       ((liftCompCfg_right hf hg) y)
       m := by
-  refine Cslib.ReductionSystem.reducesToWithinSteps.map (liftCompCfg_right hf hg) ?_ h
+  refine RelatesWithinSteps.map (liftCompCfg_right hf hg) ?_ h
   intro a b hab
   have h1 := map_liftCompCfg_right_step hf hg a
   rw [hab, Option.map_some] at h1
@@ -510,13 +511,13 @@ def TimeComputable.comp
       haltCfg] at hg_outputsFun hf_outputsFun ⊢
     -- The computer reduces a to f a in time hf.time a
     have h_a_reducesTo_f_a :
-        (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
+        RelatesWithinSteps (compComputer hf hg).TransitionRelation
           { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           (hf.time a.length) :=
       comp_left_simulation hf hg a hf_outputsFun
     have h_f_a_reducesTo_g_f_a :
-        (compComputer hf hg).TerminalReductionSystem.reducesToWithinSteps
+        RelatesWithinSteps (compComputer hf hg).TransitionRelation
           { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
           { state := none, BiTape := BiTape.mk₁ (g (f a)) }
           (hg.time (f a).length) := by
@@ -529,9 +530,9 @@ def TimeComputable.comp
       simp only [liftCompCfg_right] at this
       exact this
     have h_a_reducesTo_g_f_a :=
-      Cslib.ReductionSystem.reducesToWithinSteps.trans
+      RelatesWithinSteps.trans
         h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
-    apply Cslib.ReductionSystem.reducesToWithinSteps.mono_steps h_a_reducesTo_g_f_a
+    apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
     apply add_le_add
     · omega
     · apply h_mono
@@ -596,7 +597,7 @@ noncomputable def PolyTimeComputable.comp
     · have : hg.time (max 1 n + hf.time n) ≤ hg.time (1 + n + hf.poly.eval n) := by
         apply h_mono
         apply add_le_add
-        · omega
+        · omega -- lia fails
         · exact hf.bounds n
       apply le_trans this _
       exact hg.bounds (1 + n + hf.poly.eval n)
