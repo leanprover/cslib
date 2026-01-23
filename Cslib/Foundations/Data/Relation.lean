@@ -348,29 +348,29 @@ A relation `r` relates two elements of `α` in `n` steps
 if there is a chain of `n` pairs `(t_i, t_{i+1})` such that `r t_i t_{i+1}` for each `i`,
 starting from the first element and ending at the second.
 -/
-inductive relatesInSteps (r : α → α → Prop) : α → α → ℕ → Prop
-  | refl (a : α) : relatesInSteps r a a 0
-  | tail (t t' t'' : α) (n : ℕ) (h₁ : relatesInSteps r t t' n) (h₂ : r t' t'') :
-      relatesInSteps r t t'' (n + 1)
+inductive RelatesInSteps (r : α → α → Prop) : α → α → ℕ → Prop
+  | refl (a : α) : RelatesInSteps r a a 0
+  | tail (t t' t'' : α) (n : ℕ) (h₁ : RelatesInSteps r t t' n) (h₂ : r t' t'') :
+      RelatesInSteps r t t'' (n + 1)
 
-theorem relatesInSteps.reflTransGen (h : relatesInSteps r a b n) : ReflTransGen r a b := by
+theorem RelatesInSteps.reflTransGen (h : RelatesInSteps r a b n) : ReflTransGen r a b := by
   induction h with
   | refl => rfl
   | tail _ _ _ _ h ih => exact .tail ih h
 
-theorem ReflTransGen.relatesInSteps (h : ReflTransGen r a b) : ∃ n, relatesInSteps r a b n := by
+theorem ReflTransGen.RelatesInSteps (h : ReflTransGen r a b) : ∃ n, RelatesInSteps r a b n := by
   induction h with
   | refl => exact ⟨0, .refl a⟩
   | tail _ _ ih =>
     obtain ⟨n, _⟩ := ih
-    exact ⟨n + 1, by grind [relatesInSteps]⟩
+    exact ⟨n + 1, by grind [RelatesInSteps]⟩
 
-lemma relatesInSteps.single {a b : α} (h : r a b) :
-    relatesInSteps r a b 1 := by
+lemma RelatesInSteps.single {a b : α} (h : r a b) :
+    RelatesInSteps r a b 1 := by
   exact tail a a b 0 (refl a) h
 
-theorem relatesInSteps.head (t t' t'' : α) (n : ℕ) (h₁ : r t t')
-    (h₂ : relatesInSteps r t' t'' n) : relatesInSteps r t t'' (n+1) := by
+theorem RelatesInSteps.head (t t' t'' : α) (n : ℕ) (h₁ : r t t')
+    (h₂ : RelatesInSteps r t' t'' n) : RelatesInSteps r t t'' (n+1) := by
   induction h₂ with
   | refl =>
     exact single h₁
@@ -378,9 +378,9 @@ theorem relatesInSteps.head (t t' t'' : α) (n : ℕ) (h₁ : r t t')
     exact tail _ _ _ (n + 1) hac hcd
 
 @[elab_as_elim]
-theorem relatesInSteps.head_induction_on {motive : ∀ (a : α) (n : ℕ), relatesInSteps r a b n → Prop}
-    {a : α} {n : ℕ} (h : relatesInSteps r a b n) (hrefl : motive b 0 (.refl b))
-    (hhead : ∀ {a c n} (h' : r a c) (h : relatesInSteps r c b n),
+theorem RelatesInSteps.head_induction_on {motive : ∀ (a : α) (n : ℕ), RelatesInSteps r a b n → Prop}
+    {a : α} {n : ℕ} (h : RelatesInSteps r a b n) (hrefl : motive b 0 (.refl b))
+    (hhead : ∀ {a c n} (h' : r a c) (h : RelatesInSteps r c b n),
       motive c n h → motive a (n + 1) (h.head a c b n h')) :
     motive a n h := by
   induction h with
@@ -390,40 +390,40 @@ theorem relatesInSteps.head_induction_on {motive : ∀ (a : α) (n : ℕ), relat
     · exact hhead hrt'b' _ hrefl
     · exact fun h1 h2 ↦ hhead h1 (.tail _ t' b' _ h2 hrt'b')
 
-lemma relatesInSteps.zero {a b : α} (h : relatesInSteps r a b 0) : a = b := by
+lemma RelatesInSteps.zero {a b : α} (h : RelatesInSteps r a b 0) : a = b := by
   cases h
   rfl
 
 @[simp]
-lemma relatesInSteps.zero_iff {a b : α} : relatesInSteps r a b 0 ↔ a = b := by
+lemma RelatesInSteps.zero_iff {a b : α} : RelatesInSteps r a b 0 ↔ a = b := by
   constructor
-  · exact relatesInSteps.zero
+  · exact RelatesInSteps.zero
   · intro rfl
-    exact relatesInSteps.refl a
+    exact RelatesInSteps.refl a
 
-lemma relatesInSteps.trans {a b c : α} {n m : ℕ}
-    (h₁ : relatesInSteps r a b n) (h₂ : relatesInSteps r b c m) :
-    relatesInSteps r a c (n + m) := by
+lemma RelatesInSteps.trans {a b c : α} {n m : ℕ}
+    (h₁ : RelatesInSteps r a b n) (h₂ : RelatesInSteps r b c m) :
+    RelatesInSteps r a c (n + m) := by
   induction h₂ generalizing a n with
   | refl => simp [h₁]
   | tail t' t'' k hsteps hstep ih =>
     rw [← Nat.add_assoc]
     exact .tail _ t' t'' (n + k) (ih h₁) hstep
 
-lemma relatesInSteps.succ {a b : α} {n : ℕ} (h : relatesInSteps r a b (n + 1)) :
-    ∃ t', relatesInSteps r a t' n ∧ r t' b := by
+lemma RelatesInSteps.succ {a b : α} {n : ℕ} (h : RelatesInSteps r a b (n + 1)) :
+    ∃ t', RelatesInSteps r a t' n ∧ r t' b := by
   cases h with
   | tail t' _ _ hsteps hstep => exact ⟨t', hsteps, hstep⟩
 
-lemma relatesInSteps.succ_iff {a b : α} {n : ℕ} :
-    relatesInSteps r a b (n + 1) ↔ ∃ t', relatesInSteps r a t' n ∧ r t' b := by
+lemma RelatesInSteps.succ_iff {a b : α} {n : ℕ} :
+    RelatesInSteps r a b (n + 1) ↔ ∃ t', RelatesInSteps r a t' n ∧ r t' b := by
   constructor
-  · exact relatesInSteps.succ
+  · exact RelatesInSteps.succ
   · rintro ⟨t', h_steps, h_red⟩
     exact .tail _ t' b n h_steps h_red
 
-lemma relatesInSteps.succ' {a b : α} : ∀ {n : ℕ}, relatesInSteps r a b (n + 1) →
-    ∃ t', r a t' ∧ relatesInSteps r t' b n := by
+lemma RelatesInSteps.succ' {a b : α} : ∀ {n : ℕ}, RelatesInSteps r a b (n + 1) →
+    ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
   intro n h
   obtain ⟨t', hsteps, hstep⟩ := succ h
   cases n with
@@ -435,8 +435,8 @@ lemma relatesInSteps.succ' {a b : α} : ∀ {n : ℕ}, relatesInSteps r a b (n +
     obtain ⟨t''', h_red''', h_steps'''⟩ := succ' hsteps
     exact ⟨t''', h_red''', .tail _ _ b k' h_steps''' hstep⟩
 
-lemma relatesInSteps.succ'_iff {a b : α} {n : ℕ} :
-    relatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ relatesInSteps r t' b n := by
+lemma RelatesInSteps.succ'_iff {a b : α} {n : ℕ} :
+    RelatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
   constructor
   · exact succ'
   · rintro ⟨t', h_red, h_steps⟩
@@ -446,9 +446,9 @@ lemma relatesInSteps.succ'_iff {a b : α} {n : ℕ} :
 If `h : α → ℕ` increases by at most 1 on each step of `r`,
 then the value of `h` at the output is at most `h` at the input plus the number of steps.
 -/
-lemma relatesInSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
+lemma RelatesInSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
     (h_step : ∀ a b, r a b → h b ≤ h a + 1)
-    (m : ℕ) (hevals : relatesInSteps r a b m) :
+    (m : ℕ) (hevals : RelatesInSteps r a b m) :
     h b ≤ h a + m := by
   induction hevals with
   | refl => simp
@@ -458,41 +458,41 @@ lemma relatesInSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
 
 /--
 If `g` is a homomorphism from `r` to `r'` (i.e., it preserves the reduction relation),
-then `relatesInSteps` is preserved under `g`.
+then `RelatesInSteps` is preserved under `g`.
 -/
-lemma relatesInSteps.map {α α' : Type*}
+lemma RelatesInSteps.map {α α' : Type*}
     {r : α → α → Prop} {r' : α' → α' → Prop}
     (g : α → α') (hg : ∀ a b, r a b → r' (g a) (g b))
-    {a b : α} {n : ℕ} (h : relatesInSteps r a b n) :
-    relatesInSteps r' (g a) (g b) n := by
+    {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
+    RelatesInSteps r' (g a) (g b) n := by
   induction h with
-  | refl => exact relatesInSteps.refl (g _)
+  | refl => exact RelatesInSteps.refl (g _)
   | tail t' t'' m _ hstep ih =>
     exact .tail (g _) (g t') (g t'') m ih (hg t' t'' hstep)
 
 /--
-`relatesWithinSteps` is a variant of `relatesInSteps` that allows for a loose bound.
+`relatesWithinSteps` is a variant of `RelatesInSteps` that allows for a loose bound.
 It states that `a` relates to `b` in *at most* `n` steps.
 -/
 def relatesWithinSteps (r : α → α → Prop) (a b : α) (n : ℕ) : Prop :=
-  ∃ m ≤ n, relatesInSteps r a b m
+  ∃ m ≤ n, RelatesInSteps r a b m
 
-/-- `relatesInSteps` implies `relatesWithinSteps` with the same bound. -/
-lemma relatesWithinSteps.of_relatesInSteps {a b : α} {n : ℕ} (h : relatesInSteps r a b n) :
+/-- `RelatesInSteps` implies `relatesWithinSteps` with the same bound. -/
+lemma relatesWithinSteps.of_RelatesInSteps {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
     relatesWithinSteps r a b n :=
   ⟨n, Nat.le_refl n, h⟩
 
 lemma relatesWithinSteps.refl (a : α) : relatesWithinSteps r a a 0 :=
-  relatesWithinSteps.of_relatesInSteps (relatesInSteps.refl a)
+  relatesWithinSteps.of_RelatesInSteps (RelatesInSteps.refl a)
 
 lemma relatesWithinSteps.single {a b : α} (h : r a b) : relatesWithinSteps r a b 1 :=
-  relatesWithinSteps.of_relatesInSteps (relatesInSteps.single h)
+  relatesWithinSteps.of_RelatesInSteps (RelatesInSteps.single h)
 
 lemma relatesWithinSteps.zero {a b : α} (h : relatesWithinSteps r a b 0) : a = b := by
   obtain ⟨m, hm, hevals⟩ := h
   have : m = 0 := Nat.le_zero.mp hm
   subst this
-  exact relatesInSteps.zero hevals
+  exact RelatesInSteps.zero hevals
 
 @[simp]
 lemma relatesWithinSteps.zero_iff {a b : α} : relatesWithinSteps r a b 0 ↔ a = b := by
@@ -512,7 +512,7 @@ lemma relatesWithinSteps.trans {a b c : α} {n₁ n₂ : ℕ}
   use m₁ + m₂
   constructor
   · omega
-  · exact relatesInSteps.trans hevals₁ hevals₂
+  · exact RelatesInSteps.trans hevals₁ hevals₂
 
 lemma relatesWithinSteps.of_le {a b : α} {n₁ n₂ : ℕ}
     (h : relatesWithinSteps r a b n₁) (hn : n₁ ≤ n₂) :
@@ -527,7 +527,7 @@ lemma relatesWithinSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
     (n : ℕ) (hevals : relatesWithinSteps r a b n) :
     h b ≤ h a + n := by
   obtain ⟨m, hm, hevals_m⟩ := hevals
-  have := relatesInSteps.apply_le_apply_add h h_step m hevals_m
+  have := RelatesInSteps.apply_le_apply_add h h_step m hevals_m
   omega
 
 /--
@@ -539,7 +539,7 @@ lemma relatesWithinSteps.map {α α' : Type*} {r : α → α → Prop} {r' : α'
     {a b : α} {n : ℕ} (h : relatesWithinSteps r a b n) :
     relatesWithinSteps r' (g a) (g b) n := by
   obtain ⟨m, hm, hevals⟩ := h
-  exact ⟨m, hm, relatesInSteps.map g hg hevals⟩
+  exact ⟨m, hm, RelatesInSteps.map g hg hevals⟩
 
 end Steps
 
