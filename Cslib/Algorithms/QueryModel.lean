@@ -285,7 +285,7 @@ def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
 open VecSearch in
 def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
   let mut comp_res : Bool := false
-  for i  in [0:n] do
+  for i in [0:n] do
     comp_res ← compare v i x
     if comp_res == true then
       break
