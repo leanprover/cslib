@@ -204,8 +204,7 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List
   replace hevals := hevals.apply_le_apply_add
   specialize hevals (Cfg.space_used tm)
   simp only [Cfg.space_used_initCfg, Cfg.space_used_haltCfg] at hevals
-  suffices l'.length ≤ max 1 l.length + steps
-    by omega
+  suffices l'.length ≤ max 1 l.length + steps by lia
   specialize hevals fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)
   omega
 
@@ -289,6 +288,22 @@ private def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
     state := Option.map Sum.inr cfg.state
     BiTape := cfg.BiTape
   }
+
+/-- The initial configuration for the composed machine, with the first machine starting. -/
+private def initialCfg (tm1 tm2 : SingleTapeTM α) (input : List α) :
+    (compComputer tm1 tm2).Cfg :=
+  { state := some (Sum.inl tm1.q₀), BiTape := BiTape.mk₁ input }
+
+/-- The intermediate configuration for the composed machine,
+after the first machine halts and the second machine starts. -/
+private def intermediateCfg (tm1 tm2 : SingleTapeTM α) (intermediate : List α) :
+    (compComputer tm1 tm2).Cfg :=
+  { state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ intermediate }
+
+/-- The final configuration for the composed machine, after the second machine halts. -/
+private def finalCfg (tm1 tm2 : SingleTapeTM α) (output : List α) :
+    (compComputer tm1 tm2).Cfg :=
+  { state := none, BiTape := BiTape.mk₁ output }
 
 /-- The left converting function commutes with steps of the machines. -/
 private theorem map_toCompCfg_left_step
@@ -379,24 +394,24 @@ private theorem comp_left_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
     (t : ℕ)
     (htm1 :
       RelatesWithinSteps tm1.TransitionRelation
-        { state := some tm1.q₀, BiTape := BiTape.mk₁ input_tape }
-        ({ state := none, BiTape := BiTape.mk₁ intermediate_tape })
+        (tm1.initCfg input_tape)
+        (tm1.haltCfg intermediate_tape)
         t) :
     RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      { state := some (Sum.inl tm1.q₀), BiTape := BiTape.mk₁ input_tape }
-      ({ state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ intermediate_tape })
+      (initialCfg tm1 tm2 input_tape)
+      (intermediateCfg tm1 tm2 intermediate_tape)
       t := by
   obtain ⟨steps, hsteps_le, hsteps_eval⟩ := htm1
   use steps
   constructor
   · exact hsteps_le
   · have := comp_left_relatesInSteps tm1 tm2
-      { state := some tm1.q₀, BiTape := BiTape.mk₁ input_tape }
-      (by simp)
-      { state := none, BiTape := BiTape.mk₁ intermediate_tape }
+      (tm1.initCfg input_tape)
+      (by simp [initCfg])
+      (tm1.haltCfg intermediate_tape)
       steps
       hsteps_eval
-    simp only [toCompCfg_left] at this
+    simp only [toCompCfg_left, initCfg, haltCfg, initialCfg, intermediateCfg] at this ⊢
     exact this
 
 /--
@@ -409,13 +424,14 @@ private theorem comp_right_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
     (t : ℕ)
     (htm2 :
       RelatesWithinSteps tm2.TransitionRelation
-        { state := some tm2.q₀, BiTape := BiTape.mk₁ input_tape }
-        ({ state := none, BiTape := BiTape.mk₁ output_tape })
+        (tm2.initCfg input_tape)
+        (tm2.haltCfg output_tape)
         t) :
     RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      { state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ input_tape }
-      ({ state := none, BiTape := BiTape.mk₁ output_tape })
+      (intermediateCfg tm1 tm2 input_tape)
+      (finalCfg tm1 tm2 output_tape)
       t := by
+  simp only [intermediateCfg, finalCfg, initCfg, haltCfg] at htm2 ⊢
   refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ htm2
   intro a b hab
   have h1 := map_toCompCfg_right_step tm1 tm2 a
@@ -486,23 +502,21 @@ def TimeComputable.comp
     -- The computer reduces a to f a in time hf.time a
     have h_a_reducesTo_f_a :
         RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-          { state := some (Sum.inl hf.tm.q₀), BiTape := BiTape.mk₁ a }
-          { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
+          (initialCfg hf.tm hg.tm a)
+          (intermediateCfg hf.tm hg.tm (f a))
           (hf.time a.length) :=
       comp_left_relatesWithinSteps hf.tm hg.tm a (f a) (hf.time a.length) hf_outputsFun
     -- The computer reduces f a to g (f a) in time hg.time (f a).length
     have h_f_a_reducesTo_g_f_a :
         RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-          { state := some (Sum.inr hg.tm.q₀), BiTape := BiTape.mk₁ (f a) }
-          { state := none, BiTape := BiTape.mk₁ (g (f a)) }
+          (intermediateCfg hf.tm hg.tm (f a))
+          (finalCfg hf.tm hg.tm (g (f a)))
           (hg.time (f a).length) :=
       comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a)) (hg.time (f a).length) hg_outputsFun
-    have h_a_reducesTo_g_f_a :=
-      RelatesWithinSteps.trans
-        h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
+    -- Therefore, the computer reduces a to g (f a) in the sum of those times.
+    have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
     apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
-    apply add_le_add
-    · omega
+    refine Nat.add_le_add_left ?_ (hf.time a.length)
     · apply h_mono
       -- Use the lemma about output length being bounded by input length + time
       exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFun a)
@@ -513,19 +527,16 @@ end TimeComputable
 ## Polynomial Time Computability
 
 This section defines polynomial time computable functions on Turing machines,
-and proves that
+and proves that:
+
 * The identity function is polynomial time computable
 * The composition of two polynomial time computable functions is polynomial time computable
-
-### TODO
-
-- Use of mathlib's `Polynomial` type leads to noncomputable definitions here.
-Perhaps we could switch to a computable polynomial representation?
-- Move to dedicated file?
 
 -/
 
 section PolyTimeComputable
+
+open Polynomial
 
 variable [Inhabited α] [Fintype α]
 
@@ -541,7 +552,7 @@ structure PolyTimeComputable (f : List α → List α) extends TimeComputable f 
 noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id where
   toTimeComputable := TimeComputable.id
   poly := 1
-  bounds n := by simp only [TimeComputable.id, Polynomial.eval_one, le_refl]
+  bounds n := by simp only [TimeComputable.id, eval_one, le_refl]
 
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
@@ -554,10 +565,9 @@ noncomputable def PolyTimeComputable.comp
     (h_mono : Monotone hg.time) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
-  poly := hf.poly + hg.poly.comp (1 + Polynomial.X + hf.poly)
+  poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
   bounds n := by
-    simp only [TimeComputable.comp, Polynomial.eval_add, Polynomial.eval_comp, Polynomial.eval_X,
-      Polynomial.eval_one]
+    simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
     · have : hg.time (max 1 n + hf.time n) ≤ hg.time (1 + n + hf.poly.eval n) := by
