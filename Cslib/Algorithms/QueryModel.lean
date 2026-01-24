@@ -261,9 +261,9 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n)
   let elem ← read c i
   push c elem
 
---#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
---#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
---#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
+#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
+#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
+#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
 
 end ArraySort
 
@@ -325,52 +325,45 @@ lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n)
   (hn_pos : n > 0):
   ∀ x : α, x ∈ v → (linearSearch v x).eval VecSearch_Nat = true := by
   intro x x_mem_v
-  simp [linearSearch]
-  unfold linearSearchAux
-  split_ifs with h_geq_n
-  · simp_all
-  · unfold eval
-    split
-    · expose_names
+  simp only [linearSearch]
+  induction n with
+  | zero =>
       simp_all
-      done
-    · expose_names
-      simp_all [VecSearch_Nat]
-      have ⟨hι, hop, hcont⟩ := heq
-      done
+  | succ n ih =>
+      simp_all only [gt_iff_lt, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true]
+      unfold linearSearchAux
+      split_ifs with h_cond
+      · simp_all
+      · unfold eval
+        simp_all
+        split_ifs with h_find
+        · simp [eval]
+        · sorry
 
 lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
   ∀ x : α, x ∉ v → (linearSearch v x).eval VecSearch_Nat = false := by
   intro x x_mem_v
-  simp [linearSearch]
-  unfold linearSearchAux
-  split_ifs with h_geq_n
-  · simp_all [eval]
-  · unfold eval
-    split
-    · expose_names
-      simp_all
-      done
-    · expose_names
-      simp_all
-      have ⟨hι, hop, hcont⟩ := heq
-      unfold eval
-
-      done
+  simp only [linearSearch]
+  induction n with
+  | zero =>
+      simp_all [VecSearch_Nat]
+      sorry
+  | succ n ih =>
+      sorry
 
 lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
   ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n := by
   intro x
   simp only [linearSearch, VecSearch_Nat]
-  unfold linearSearchAux
-  split_ifs with h
-  · simp_all [time]
-  · simp_all [time]
-    split_ifs with hfound
-    · simp_all[time]
-      exact Nat.one_le_iff_ne_zero.mpr h
-    ·
-      done
+  induction n with
+  | zero =>
+      simp_all [linearSearchAux, time]
+  | succ n ih =>
+      unfold linearSearchAux
+      split_ifs with h_cond
+      · simp_all
+      · simp [time]
+        sorry
 
 -- The Monadic version
 open VecSearch in
