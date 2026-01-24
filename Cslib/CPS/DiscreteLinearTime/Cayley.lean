@@ -33,14 +33,10 @@ import Mathlib.Algebra.Algebra.Bilinear
 
 
 
---set_option diagnostics true
+
 open scoped ComplexOrder
 
--- Trace instance synthesis to debug
---set_option trace.Meta.synthInstance true
 
--- Test if we can check the instance
-#check (by infer_instance : NormedField ℂ)
 /-!
 # Cayley-Hamilton implications for Controllability
 

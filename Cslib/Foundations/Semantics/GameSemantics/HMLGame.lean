@@ -276,17 +276,17 @@ theorem game_semantics_soundness (lts : LTS State Label) (p : State) (φ : Formu
         simp only [satisfies]
         use p'
         constructor
-        exact h_tr
-        specialize ih p'
-        exact ih.mp h_def_win_ψ
+        · exact h_tr
+        · specialize ih p'
+          exact ih.mp h_def_win_ψ
       · simp only [satisfies]
         intro ⟨p', h_tr, h_sat_ψ⟩
         simp only [defenderWinsHML]
         use p'
         constructor
-        exact h_tr
-        specialize ih p'
-        exact ih.mpr h_sat_ψ
+        · exact h_tr
+        · specialize ih p'
+          exact ih.mpr h_sat_ψ
   | h_conj φs ih_list =>
       constructor
       · intro h_def_win
