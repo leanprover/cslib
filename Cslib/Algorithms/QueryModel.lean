@@ -33,7 +33,14 @@ namespace Cslib
 
 namespace Algorithms
 
-structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] [One Cost] where
+class PureCosts (α : Type u) where
+  pureCost : α
+
+instance : PureCosts ℕ where
+  pureCost := 1
+
+structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost]
+  [PureCosts Cost] where
   evalQuery : QType ι → ι
   cost : QType ι → Cost
 
@@ -107,7 +114,7 @@ instance {Q α} : Coe (Q α) (FreeM Q α) where
 namespace Prog
 
 
-def eval [Add Cost] [Zero Cost] [One Cost]
+def eval [Add Cost] [Zero Cost] [PureCosts Cost]
   (P : Prog Q α) (M : Model Q Cost) : α :=
   match P with
   | .pure x => x
@@ -115,9 +122,10 @@ def eval [Add Cost] [Zero Cost] [One Cost]
       let qval := M.evalQuery op
       eval (cont qval) M
 
-def time [Add Cost] [Zero Cost] [One Cost] (P : Prog Q α) (M : Model Q Cost) : Cost :=
+def time [Add Cost] [Zero Cost] [PureCosts Cost]
+  (P : Prog Q α) (M : Model Q Cost) : Cost :=
   match P with
-  | .pure _ => 1
+  | .pure _ => PureCosts.pureCost
   | .liftBind op cont =>
       let t₁ := M.cost op
       let qval := M.evalQuery op
@@ -177,8 +185,8 @@ structure AddMulCosts where
 instance : Zero (AddMulCosts) where
   zero := ⟨0,0,0⟩
 
-instance : One (AddMulCosts) where
-  one := ⟨0,0,1⟩
+instance : PureCosts (AddMulCosts) where
+  pureCost := ⟨0,0,1⟩
 
 instance : Add (AddMulCosts) where
     add x y :=
@@ -295,8 +303,8 @@ instance : Add (CmpCount) where
 instance : Zero (CmpCount) where
   zero := ⟨0,0⟩
 
-instance : One (CmpCount) where
-  one := ⟨0,1⟩
+instance : PureCosts (CmpCount) where
+  pureCost := ⟨0,1⟩
 
 def VecSearch_Cmp [DecidableEq α] : Model (VecSearch α) CmpCount where
   evalQuery q :=
@@ -360,12 +368,12 @@ lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
       sorry
 
 lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n := by
+  ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n + 1 := by
   intro x
   simp only [linearSearch, VecSearch_Nat]
   induction n with
   | zero =>
-      simp_all [linearSearchAux, time]
+      simp_all [linearSearchAux, time, PureCosts.pureCost]
   | succ n ih =>
       unfold linearSearchAux
       split_ifs with h_cond
