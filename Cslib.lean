@@ -1,4 +1,4 @@
-module
+module  -- shake: keep-all
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
