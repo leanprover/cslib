@@ -17,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
 
       - name: Run shellcheck
         run: find scripts -name '*.sh' -type f -print0 | xargs -0 shellcheck --severity=warning
