@@ -31,7 +31,7 @@ public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
 public import Cslib.Foundations.Control.Monad.Time
-import Cslib.Foundations.Data.FinFun
+public import Cslib.Foundations.Data.FinFun
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs

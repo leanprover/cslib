@@ -398,6 +398,7 @@ def linearSearchM (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
 
 #eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
 #eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Nat
+#eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Cmp
 
 lemma linearSearchM_correct_true [DecidableEq α] (v : Vector α n) :
   ∀ x : α, x ∈ v → (linearSearchM v x).eval VecSearch_Nat = true := by
