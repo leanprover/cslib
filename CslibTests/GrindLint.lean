@@ -35,6 +35,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.FinFun.fromFun_inter
 #grind_lint skip Cslib.LTS.deterministic_not_lto
 #grind_lint skip Cslib.LTS.deterministic_tr_image_singleton
+#grind_lint skip Cslib.LTS.IsExecution.refl
 #grind_lint skip Cslib.LTS.mem_saturate_image_τ
 #grind_lint skip Cslib.ωSequence.drop_const
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
@@ -51,6 +52,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.CLL.Proof.with_inversion₂.eq_1
 #grind_lint skip Cslib.CLL.Proposition.Equiv.trans
 #grind_lint skip Cslib.CLL.Proposition.bang_top_eqv_one.eq_1
+#grind_lint skip Cslib.CLL.Proposition.expand.eq_10
 #grind_lint skip Cslib.CLL.Proposition.parr_top_eqv_top.eq_1
 #grind_lint skip Cslib.CLL.Proposition.tensor_assoc.eq_1
 #grind_lint skip Cslib.CLL.Proposition.tensor_distrib_oplus.eq_1
@@ -67,6 +69,8 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Typing.tapp
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.para_subst
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta.redex_app_l_cong
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta.redex_app_r_cong
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.subst_intro
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty

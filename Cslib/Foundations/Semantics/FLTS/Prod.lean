@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.FLTS.Basic
+module
+
+public import Cslib.Foundations.Semantics.FLTS.Basic
+
+@[expose] public section
 
 /-! # Product of functional labelled transition systems -/
 
