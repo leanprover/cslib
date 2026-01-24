@@ -20,6 +20,7 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.OmegaLanguage

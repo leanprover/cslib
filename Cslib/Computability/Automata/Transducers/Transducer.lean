@@ -56,7 +56,7 @@ attribute [simp, scoped grind =] Transducer.mul_transduceFrom Transducer.transdu
 
 variable {Symbol : Type v} {Weight : Type w}
 
-section
+section Monoid
 
 variable [Monoid Weight]
 
@@ -86,7 +86,7 @@ theorem mul_transduce_mul
     accL * transduce t xs * accR = transduceFrom t xs accL accR := by
   simp
 
-end
+end Monoid
 
 end Transducer
 
