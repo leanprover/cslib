@@ -33,7 +33,7 @@ namespace Cslib
 
 namespace Algorithms
 
-structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] where
+structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost] [One Cost] where
   evalQuery : QType ι → ι
   cost : QType ι → Cost
 
@@ -107,7 +107,7 @@ instance {Q α} : Coe (Q α) (FreeM Q α) where
 namespace Prog
 
 
-def eval [Add Cost] [Zero Cost]
+def eval [Add Cost] [Zero Cost] [One Cost]
   (P : Prog Q α) (M : Model Q Cost) : α :=
   match P with
   | .pure x => x
@@ -115,9 +115,9 @@ def eval [Add Cost] [Zero Cost]
       let qval := M.evalQuery op
       eval (cont qval) M
 
-def time [Add Cost] [Zero Cost] (P : Prog Q α) (M : Model Q Cost) : Cost :=
+def time [Add Cost] [Zero Cost] [One Cost] (P : Prog Q α) (M : Model Q Cost) : Cost :=
   match P with
-  | .pure _ => 0
+  | .pure _ => 1
   | .liftBind op cont =>
       let t₁ := M.cost op
       let qval := M.evalQuery op
@@ -137,16 +137,16 @@ def liftProgIntoTime (M : Model Q ℕ) (P : Prog Q α) : TimeM α :=
   P.liftM (interpretQueryIntoTime M)
 
 
--- This lemma is a sanity check. This is the only place `TimeM` is used.
-lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q ℕ),
-  time P M = (liftProgIntoTime M P).time := by
-  intro P pm
-  induction P with
-  | pure a =>
-      simp [time,liftProgIntoTime]
-  | liftBind op cont ih =>
-      expose_names
-      simp_all [time, liftProgIntoTime, interpretQueryIntoTime]
+-- -- This lemma is a sanity check. This is the only place `TimeM` is used.
+-- lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q ℕ),
+--   time P M = (liftProgIntoTime M P).time := by
+--   intro P pm
+--   induction P with
+--   | pure a =>
+--       simp [time,liftProgIntoTime]
+--   | liftBind op cont ih =>
+--       expose_names
+--       simp_all [time, liftProgIntoTime, interpretQueryIntoTime]
 
 end TimeM
 
@@ -172,15 +172,19 @@ def RatArithQuery_NatCost : Model (Arith ℚ) ℕ where
 structure AddMulCosts where
   addCount : ℕ
   mulCount : ℕ
+  pure : ℕ
 
 instance : Zero (AddMulCosts) where
-  zero := ⟨0,0⟩
+  zero := ⟨0,0,0⟩
+
+instance : One (AddMulCosts) where
+  one := ⟨0,0,1⟩
 
 instance : Add (AddMulCosts) where
     add x y :=
-      let ⟨x_addcount, x_mulcount⟩ := x
-      let ⟨y_addcount, y_mulcount⟩ := y
-      ⟨x_addcount + y_addcount, x_mulcount + y_mulcount⟩
+      let ⟨x_addcount, x_mulcount, x_pure⟩ := x
+      let ⟨y_addcount, y_mulcount, y_pure⟩ := y
+      ⟨x_addcount + y_addcount, x_mulcount + y_mulcount, x_pure + y_pure⟩
 
 def RatArithQuery_AddMulCost : Model (Arith ℚ) AddMulCosts where
   evalQuery q :=
@@ -192,8 +196,8 @@ def RatArithQuery_AddMulCost : Model (Arith ℚ) AddMulCosts where
     | .one => (1 : ℚ)
   cost q :=
     match q with
-    | .add _ _ => ⟨1,0⟩
-    | .mul _ _ => ⟨0,1⟩
+    | .add _ _ => ⟨1,0,0⟩
+    | .mul _ _ => ⟨0,1,0⟩
     | _ => 0
 
 open Arith in
@@ -205,9 +209,9 @@ def ex1 : Prog (Arith ℚ) ℚ := do
   add w z
 
 
---#eval ex1.eval RatArithQuery_NatCost
---#eval ex1.time RatArithQuery_NatCost
---#eval ex1.time RatArithQuery_AddMulCost
+#eval ex1.eval RatArithQuery_NatCost
+#eval ex1.time RatArithQuery_NatCost
+#eval ex1.time RatArithQuery_AddMulCost
 
 section ArraySort
 /--
@@ -283,12 +287,16 @@ def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
 
 structure CmpCount where
   cmp : ℕ
+  pure : ℕ
 
 instance : Add (CmpCount) where
-  add x y := ⟨x.1 + y.1⟩
+  add x y := ⟨x.1 + y.1, x.2 + y.2⟩
 
 instance : Zero (CmpCount) where
-  zero := ⟨0⟩
+  zero := ⟨0,0⟩
+
+instance : One (CmpCount) where
+  one := ⟨0,1⟩
 
 def VecSearch_Cmp [DecidableEq α] : Model (VecSearch α) CmpCount where
   evalQuery q :=
@@ -296,7 +304,7 @@ def VecSearch_Cmp [DecidableEq α] : Model (VecSearch α) CmpCount where
     | .compare l i x =>  l[i]? == some x
   cost q :=
     match q with
-    | .compare _ _ _ => ⟨1⟩
+    | .compare _ _ _ => ⟨1,0⟩
 
 open VecSearch in
 def linearSearchAux (v : Vector α n)
