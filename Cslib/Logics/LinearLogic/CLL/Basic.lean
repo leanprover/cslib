@@ -391,8 +391,7 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
      show a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)} = ((a ⊗ (b ⊗ c)) ::ₘ {a⫠} + ({b⫠} + {c⫠})) by grind ▸
      (.tensor .ax <| .tensor .ax .ax)⟩
 
-instance {Γ : Sequent Atom} :
-    IsSymm (Proposition Atom) (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
+instance {Γ : Sequent Atom} : Std.Symm (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
   symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
 
 /-- ⊕ is idempotent. -/
