@@ -96,11 +96,11 @@ theorem reflTransGen_parallelReduction_mRed :
     Relation.ReflTransGen ParallelReduction = RedSKI.MRed := by
   ext a b
   constructor
-  · apply Relation.reflTransGen_minimal
+  · apply Relation.reflTransGen_of_transitive_reflexive
     · exact fun _ => by rfl
     · exact Relation.transitive_reflTransGen
     · exact @mRed_of_parallelReduction
-  · apply Relation.reflTransGen_minimal
+  · apply Relation.reflTransGen_of_transitive_reflexive
     · exact Relation.reflexive_reflTransGen
     · exact Relation.transitive_reflTransGen
     · exact fun a a' h => Relation.ReflTransGen.single (parallelReduction_of_red h)
