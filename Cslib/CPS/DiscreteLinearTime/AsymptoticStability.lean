@@ -71,7 +71,7 @@ lemma state_evolution_zero_input (sys : DiscreteLinearSystemState σ ι)
    rw [ih] at h1
    rw [h_zero_input] at h1
    unfold zero_input at h1
-   simp [ContinuousLinearMap.map_zero] at h1
+   simp only [ContinuousLinearMap.map_zero, add_zero] at h1
    rw [h1]
    rw [←ContinuousLinearMap.comp_apply]
    congr 1
@@ -88,7 +88,6 @@ theorem bound_x_norm
     (hx : ∀ k, sys.x k = (sys.a ^ k) sys.x₀) (N : ℕ) :
     ∀ k, N < k → ‖sys.x k‖ ≤ ‖sys.a ^ k‖ * ‖sys.x₀‖ := by
   intro k hk
-
   rw [hx k]
   exact ContinuousLinearMap.le_opNorm (sys.a ^ k) sys.x₀
 
@@ -96,7 +95,8 @@ theorem bound_x_norm
 def spectral_radius_less_than_one (a : σ →L[ℂ] σ) : Prop :=
   spectralRadius ℂ a < 1
 
-/-- If the spectral radius of `a` is less than one, then the Gelfand formula limits to less than one. -/
+/-- If the spectral radius of `a` is less than one, then the
+Gelfand formula limits to less than one. -/
 theorem gelfand_le_one_when_spectral_radius_le_one
     [CompleteSpace σ] (a : σ →L[ℂ] σ) :
     spectral_radius_less_than_one a →
@@ -110,8 +110,10 @@ theorem gelfand_le_one_when_spectral_radius_le_one
 
 /-- If the Gelfand limit is < 1, then eventually the root-term is bounded by some `r < 1`. -/
 theorem gelfand_eventually_bounded [CompleteSpace σ]
-    (a : σ →L[ℂ] σ) (h : Filter.limsup (fun n : ℕ ↦ (‖a ^ n‖₊ : ENNReal) ^ (1 / n : ℝ)) Filter.atTop < 1) :
-    ∃ (r : ENNReal) (N : ℕ), 0 < r ∧ r < 1 ∧ ∀ (k : ℕ), N < k → (‖a ^ k‖₊ : ENNReal) ^ (1 / k : ℝ) < r :=
+    (a : σ →L[ℂ] σ) (h : Filter.limsup (fun n :
+    ℕ ↦ (‖a ^ n‖₊ : ENNReal) ^ (1 / n : ℝ)) Filter.atTop < 1) :
+    ∃ (r : ENNReal) (N : ℕ), 0 < r ∧ r < 1
+    ∧ ∀ (k : ℕ), N < k → (‖a ^ k‖₊ : ENNReal) ^ (1 / k : ℝ) < r :=
 by
   obtain ⟨r, h_limsup_lt_r, h_r_lt_one⟩ := exists_between h
   have r_pos : 0 < r := lt_of_le_of_lt (zero_le _) h_limsup_lt_r
@@ -130,11 +132,11 @@ theorem power_to_zero [CompleteSpace σ] (sys : DiscreteLinearSystemState σ ι)
   (h_power : ∀ (k : ℕ), N < k → (‖sys.a ^ k‖₊ : ENNReal) < r ^ k) :
   Filter.Tendsto (fun k => ‖sys.a ^ k‖) Filter.atTop (nhds 0) := by
   have r_real_zero : Filter.Tendsto (fun n => (r ^ n).toReal) Filter.atTop (nhds 0) := by
-    simp
+    simp only [ENNReal.toReal_pow, tendsto_pow_atTop_nhds_zero_iff, ENNReal.abs_toReal]
     cases r with
     | top => simp
     | coe x =>
-      simp
+      simp only [ENNReal.coe_toReal, NNReal.coe_lt_one]
       exact ENNReal.coe_lt_one_iff.mp r_lt_one
   rw [Metric.tendsto_atTop]
   intro ε ε_pos
@@ -145,8 +147,9 @@ theorem power_to_zero [CompleteSpace σ] (sys : DiscreteLinearSystemState σ ι)
   have hkN₁ : N₁ ≤ k := le_trans (le_max_right N N₁) (Nat.le_of_succ_le hk)
   have h_bound := h_power k hkN
   have h_r_small := hN₁ k hkN₁
-  simp
-  simp at h_r_small
+  simp only [dist_zero_right, norm_norm, gt_iff_lt]
+  simp only [ENNReal.toReal_pow, dist_zero_right, norm_pow, Real.norm_eq_abs,
+    ENNReal.abs_toReal] at h_r_small
   have h_r_ennreal : (r ^ k).toReal < ε := by
     rw [ENNReal.toReal_pow]
     exact h_r_small
@@ -194,9 +197,9 @@ theorem asymptotic_stability_discrete [CompleteSpace σ] (sys : DiscreteLinearSy
         rw [← ENNReal.rpow_natCast r k']
         exact ENNReal.rpow_lt_rpow h_bound (Nat.cast_pos.mpr h_k'_pos)
       rw [← ENNReal.rpow_natCast, ← ENNReal.rpow_mul] at h_pow
-      simp at h_pow
+      simp only [one_div, ENNReal.rpow_natCast] at h_pow
       rw [h_inv_k'] at h_pow
-      simp at h_pow
+      simp only [ENNReal.rpow_one] at h_pow
       exact h_pow
   have hx : ∀ k, sys.x k = (sys.a ^ k) sys.x₀ :=
       state_evolution_zero_input sys h_init h_state h_zero_input

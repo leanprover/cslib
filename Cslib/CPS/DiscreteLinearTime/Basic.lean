@@ -27,8 +27,7 @@ import Mathlib.LinearAlgebra.Matrix.Charpoly.LinearMap
 
 open scoped ComplexOrder
 
-#check (by infer_instance : NormedField ℂ)
-set_option linter.flexible false
+
 set_option linter.style.emptyLine false
 set_option linter.deprecated.module false
 

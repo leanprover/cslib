@@ -46,7 +46,7 @@ open scoped ComplexOrder
 
 Auxiliary results based on the Cayley-Hamilton theorem for proving controllability results.
 -/
-set_option linter.flexible false
+
 set_option linter.style.emptyLine false
 set_option linter.deprecated.module false
 
@@ -62,7 +62,7 @@ lemma system_power_multiplication (a : σ →L[ℂ] σ) (k : ℕ) :
     a ^ (k + 1) = (a ^ k).comp a := by
   induction k with
   | zero =>
-    simp [pow_zero]
+    simp only [zero_add, pow_one, pow_zero]
     exact ContinuousLinearMap.id_comp a
 
   | succ k ih =>
@@ -75,7 +75,7 @@ lemma system_power_multiplication_flopped (a : σ →L[ℂ] σ) (k : ℕ) :
     a ^ (k + 1) = a.comp (a^k) := by
   induction k with
   | zero =>
-    simp [pow_zero]
+    simp only [zero_add, pow_one, pow_zero]
     exact ContinuousLinearMap.id_comp a
 
   | succ k ih =>
@@ -101,14 +101,14 @@ lemma helper1 [FiniteDimensional ℂ σ]
 
 /-- The degree of the characteristic polynomial equals the dimension of the space. -/
 lemma helper2 [FiniteDimensional ℂ σ]
-    (a : σ →L[ℂ] σ)  (n : ℕ) (h_dim : Module.finrank ℂ σ = n) :
+    (a : σ →L[ℂ] σ) (n : ℕ) (h_dim : Module.finrank ℂ σ = n) :
     a.toLinearMap.charpoly.natDegree = n := by
   rw [← h_dim]
   exact LinearMap.charpoly_natDegree a.toLinearMap
 
 /-- By Cayley-Hamilton, A^n can be expressed as a linear combination of lower powers. -/
 lemma helper3 [FiniteDimensional ℂ σ]
-    (a : σ →L[ℂ] σ)  (n : ℕ) (h_dim : Module.finrank ℂ σ = n) :
+    (a : σ →L[ℂ] σ) (n : ℕ) (h_dim : Module.finrank ℂ σ = n) :
     ∃ (c : Fin n → ℂ), a.toLinearMap ^ n = ∑ j : Fin n, c j • (a.toLinearMap ^ j.val) := by
 
   let p := a.toLinearMap.charpoly
@@ -270,8 +270,8 @@ theorem cayley_hamilton_controllability' [FiniteDimensional ℂ σ]
         cases h_pred_ge with
         | inl h_ge =>
           apply ih
-          omega
-          exact h_ge
+          · omega
+          · exact h_ge
         | inr h_lt =>
 
 

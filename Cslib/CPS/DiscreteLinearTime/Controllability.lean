@@ -86,7 +86,7 @@ theorem evolution_eq_matrix_form (s : DiscreteLinearSystemState σ ι) (kf : ℕ
     rw [evolve_from_zero_eq_sum]
     simp only [controllabilityMatrix]
     rw [← Finset.sum_attach]
-    simp
+    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
     refine Finset.sum_bij'
       (fun j _ => ⟨kf - 1 - j.val, ?_⟩)
       (fun i _ => ⟨kf - 1 - i.val, ?_⟩)
@@ -106,7 +106,7 @@ theorem reachable_set_eq_controllability_range
 (s : DiscreteLinearSystemState σ ι) (k : ℕ) (hk : k > 0) :
     reachableSetInKSteps s k = controllabilityColumnSpace s.a s.B k := by
   ext x
-  simp [reachableSetInKSteps, controllabilityColumnSpace]
+  simp only [SetLike.mem_coe]
   constructor
   · intro h_reach
     obtain ⟨u, h_reach⟩ := h_reach
