@@ -60,7 +60,6 @@ lemma system_power_multiplication (a : σ →L[ℂ] σ) (k : ℕ) :
   | zero =>
     simp only [zero_add, pow_one, pow_zero]
     exact ContinuousLinearMap.id_comp a
-
   | succ k ih =>
     rw [pow_succ]
     rw [ih]
