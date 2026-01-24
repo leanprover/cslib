@@ -51,19 +51,17 @@ namespace Model
 section Examples
 
 inductive ListOps (α : Type) : Type → Type  where
-  | get : (l : List α) → (i : Fin l.length) → ListOps α α
-  | find :  (l : List α) → α → ListOps α ℕ
-  | write : (l : List α) → (i : Fin l.length) →  (x : α) → ListOps α (List α)
+  | get (l : List α) (i : Fin l.length) : ListOps α α
+  | find (l : List α) (elem : α) : ListOps α ℕ
+  | write (l : List α) (i : Fin l.length) (x : α) : ListOps α (List α)
 
 
 def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .write l i x => l.set i x
     | .find l elem =>  l.findIdx (· = elem)
     | .get l i => l[i]
-  cost q :=
-    match q with
+  cost
     | .write l i x => l.length
     | .find l elem =>  l.length
     | .get l i => l.length
@@ -71,14 +69,12 @@ def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
 
 
 def List_BinSearch_WorstCase [BEq α] : Model (ListOps α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .write l i x => l.set i x
     | .get l i => l[i]
     | .find l elem => l.findIdx (· == elem)
 
-  cost q :=
-    match q with
+  cost
     | .find l _ => 1 + Nat.log 2 (l.length)
     | .write l i x => l.length
     | .get l x => l.length
@@ -89,14 +85,12 @@ inductive ArrayOps (α : Type) : Type → Type  where
   | write : (l : Array α) → (i : Fin l.size) →  (x : α) → ArrayOps α (Array α)
 
 def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .write l i x => l.set i x
     | .get l i => l[i]
     | .find l elem => l.findIdx (· == elem)
 
-  cost q :=
-    match q with
+  cost
     | .find l _ => 1 + Nat.log 2 (l.size)
     | .write l i x => 1
     | .get l x => 1
@@ -137,6 +131,7 @@ section TimeM
 def interpretQueryIntoTime (M : Model Q ℕ) (q : Q α) : TimeM α where
   ret := M.evalQuery q
   time := M.cost q
+
 def interpretProgIntoTime (P : Prog Q α) (M : Model Q ℕ) : TimeM α where
   ret := eval P M
   time := time P M
@@ -144,6 +139,9 @@ def interpretProgIntoTime (P : Prog Q α) (M : Model Q ℕ) : TimeM α where
 def liftProgIntoTime (M : Model Q ℕ) (P : Prog Q α) : TimeM α :=
   P.liftM (interpretQueryIntoTime M)
 
+
+-- The below lemma only holds if the cost of pure operations is zero. This
+-- is however a footgun
 
 -- -- This lemma is a sanity check. This is the only place `TimeM` is used.
 -- lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q ℕ),
@@ -195,15 +193,13 @@ instance : Add (AddMulCosts) where
       ⟨x_addcount + y_addcount, x_mulcount + y_mulcount, x_pure + y_pure⟩
 
 def RatArithQuery_AddMulCost : Model (Arith ℚ) AddMulCosts where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .add x y => x + y
     | .mul x y => x * y
     | .neg x =>  -x
     | .zero => (0 : ℚ)
     | .one => (1 : ℚ)
-  cost q :=
-    match q with
+  cost
     | .add _ _ => ⟨1,0,0⟩
     | .mul _ _ => ⟨0,1,0⟩
     | _ => 0
@@ -233,16 +229,14 @@ inductive VecSortOps (α : Type) : Type → Type  where
   | push : (a : Vector α n) → (elem : α) → VecSortOps α (Vector α (n + 1))
 
 def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .write v i x => v.set i x
     | .cmp l i j =>  l[i] == l[j]
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
 
-  cost q :=
-    match q with
+  cost
     | .write l i x => 1
     | .read l i =>  1
     | .cmp l i j => 1
@@ -250,16 +244,14 @@ def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
     | .push a elem => 2 -- amortized over array insertion and resizing by doubling
 
 def VecSort_CmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .write v i x => v.set i x
     | .cmp l i j =>  l[i] == l[j]
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
 
-  cost q :=
-    match q with
+  cost
     | .cmp l i j => 1
     | .swap l i j => 1
     | _ => 0
@@ -282,7 +274,7 @@ end ArraySort
 section VectorLinearSearch
 
 inductive VecSearch (α : Type) : Type → Type  where
-  | compare :  (a : Vector α n) → (i : ℕ) → (val : α) →  VecSearch α Bool
+  | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
 
 
 def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
