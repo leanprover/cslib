@@ -28,7 +28,10 @@ This is useful as a data structure with a simple API for manipulation by Turing 
 namespace Turing
 
 /--
-List of `Option` values that don't end with `none`
+An infinite tape representation using a list of `Option` values,
+where the list is eventually `none`.
+
+Represented as a `List (Option α)` that does not end with `none`.
 -/
 structure StackTape (α : Type) where
   /-- The underlying list representation -/
