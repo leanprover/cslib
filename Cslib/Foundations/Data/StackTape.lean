@@ -103,9 +103,7 @@ lemma StackTape.tail_cons {α} (o : Option α) (l : StackTape α) :
     | nil => simp [cons, tail, nil]
     | cons hd tl => simp [cons, tail]
   | some a =>
-    simp only [cons]
-    unfold tail
-    grind
+    simp only [cons, tail]
 
 @[simp]
 lemma StackTape.cons_head_tail {α} (l : StackTape α) :

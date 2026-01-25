@@ -68,7 +68,7 @@ def BiTape.mk₁ {α} (l : List α) : BiTape α :=
   | [] => BiTape.nil
   | h :: t => ⟨some h, StackTape.nil, StackTape.map_some t⟩
 
-section move
+section Move
 
 /--
 Move the head left by shifting the left StackTape under the head.
@@ -85,9 +85,9 @@ def BiTape.move_right {α} (t : Turing.BiTape α) : Turing.BiTape α :=
 /--
 Move the head to the left or right, shifting the tape underneath it.
 -/
-def BiTape.move {α} : Turing.BiTape α → Dir → Turing.BiTape α
-  | t, .left => t.move_left
-  | t, .right => t.move_right
+def BiTape.move {α} (t : Turing.BiTape α) : Dir → Turing.BiTape α
+  | .left => t.move_left
+  | .right => t.move_right
 
 /--
 Optionally perform a `BiTape.move`, or do nothing if `none`.
@@ -96,24 +96,21 @@ def BiTape.optionMove {α} : Turing.BiTape α → Option Dir → Turing.BiTape �
   | t, none => t
   | t, some d => t.move d
 
-end move
+end Move
 
 /--
 Write a value under the head of the `BiTape`.
 -/
-def BiTape.write {α} : Turing.BiTape α → Option α → Turing.BiTape α
-  | t, a => { t with head := a }
+def BiTape.write {α} (t : Turing.BiTape α) (a : Option α) : Turing.BiTape α := { t with head := a }
 
 /--
 The space used by a `BiTape` is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
 -/
-def BiTape.space_used {α} (t : Turing.BiTape α) : ℕ :=
-  1 + t.left.length + t.right.length
+def BiTape.space_used {α} (t : Turing.BiTape α) : ℕ := 1 + t.left.length + t.right.length
 
 lemma BiTape.space_used_write {α} (t : Turing.BiTape α) (a : Option α) :
-    (t.write a).space_used = t.space_used := by
-  rfl
+    (t.write a).space_used = t.space_used := by rfl
 
 lemma BiTape.space_used_mk₁ {α} (l : List α) :
     (BiTape.mk₁ l).space_used = max 1 l.length := by
