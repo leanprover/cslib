@@ -81,7 +81,7 @@ structure SingleTapeTM α where
   (q₀ : Λ)
   /-- Transition function, mapping a state and a head symbol
   to a Stmt to invoke, and optionally a new state (none for halt) -/
-  (M : Λ → (Option α) → (Turing.SingleTapeTM.Stmt α × Option Λ))
+  (M : Λ → Option α → Turing.SingleTapeTM.Stmt α × Option Λ)
 
 namespace SingleTapeTM
 
@@ -97,18 +97,16 @@ and the intended initial and final configurations.
 
 variable (tm : SingleTapeTM α)
 
-instance : Inhabited tm.Λ :=
-  ⟨tm.q₀⟩
+instance : Inhabited tm.Λ := ⟨tm.q₀⟩
 
-instance : Fintype tm.Λ :=
-  tm.FintypeΛ
+instance : Fintype tm.Λ := tm.FintypeΛ
 
 instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
 
 /--
-The configurations of a Turing machine consist of an `Option`al state
-(or none for the halting state)
-and an BiTape representing the tape contents.
+The configurations of a Turing machine consist of:
+an `Option`al state (or none for the halting state),
+and a `BiTape` representing the tape contents.
 -/
 structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
@@ -117,7 +115,7 @@ structure Cfg : Type where
   BiTape : BiTape α
 deriving Inhabited
 
-/-- The step function corresponding to this TM. -/
+/-- The step function corresponding to a `SingleTapeTM`. -/
 @[simp]
 def step : tm.Cfg → Option tm.Cfg :=
   fun ⟨q, t⟩ =>
@@ -147,8 +145,7 @@ def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, BiTape.mk�
 /--
 The space used by a configuration is the space used by its tape.
 -/
-def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ :=
-  cfg.BiTape.space_used
+def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
 
 lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.initCfg s).space_used = max 1 s.length := by
@@ -178,16 +175,14 @@ The `TransitionRelation` corresponding to a `SingleTapeTM α`
 is defined by the `step` function,
 which maps a configuration to its next configuration, if it exists.
 -/
-def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop :=
-  tm.step c₁ = some c₂
+def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
 def Outputs (tm : SingleTapeTM α) (l l' : List α) : Prop :=
   ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of `tm` outputting `l'` on input `l` in at most `m` steps. -/
-def OutputsWithinTime (tm : SingleTapeTM α) (l l' : List α)
-    (m : ℕ) :=
+def OutputsWithinTime (tm : SingleTapeTM α) (l l' : List α) (m : ℕ) :=
   RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
 
 /--
@@ -259,57 +254,44 @@ section compComputerLemmas
 
 /-! ### Composition Computer Lemmas -/
 
-lemma compComputer_q₀_eq (tm1 tm2 : SingleTapeTM α) :
-    (compComputer tm1 tm2).q₀ = Sum.inl tm1.q₀ :=
-  rfl
+variable (tm1 tm2 : SingleTapeTM α) (cfg1 : tm1.Cfg) (cfg2 : tm2.Cfg)
+
+lemma compComputer_q₀_eq : (compComputer tm1 tm2).q₀ = Sum.inl tm1.q₀ := rfl
 
 /--
 Convert a `Cfg` over the first input machine to a config over the composed machine.
 Note it may transition to the start state of the second machine if the first machine halts.
 -/
-private def toCompCfg_left (tm1 tm2 : SingleTapeTM α)
-    (cfg : tm1.Cfg) :
-    (compComputer tm1 tm2).Cfg :=
-  match cfg.state with
-  | some q => { state := some (Sum.inl q), BiTape := cfg.BiTape }
-  | none => { state := some (Sum.inr tm2.q₀), BiTape := cfg.BiTape }
+private def toCompCfg_left : (compComputer tm1 tm2).Cfg :=
+  match cfg1.state with
+  | some q => { state := some (Sum.inl q), BiTape := cfg1.BiTape }
+  | none => { state := some (Sum.inr tm2.q₀), BiTape := cfg1.BiTape }
 
 /-- Convert a `Cfg` over the second input machine to a config over the composed machine -/
-private def toCompCfg_right (tm1 tm2 : SingleTapeTM α)
-    (cfg : tm2.Cfg) :
-    (compComputer tm1 tm2).Cfg :=
-  {
-    state := Option.map Sum.inr cfg.state
-    BiTape := cfg.BiTape
-  }
+private def toCompCfg_right : (compComputer tm1 tm2).Cfg :=
+  { state := Option.map Sum.inr cfg2.state, BiTape := cfg2.BiTape }
 
 /-- The initial configuration for the composed machine, with the first machine starting. -/
-private def initialCfg (tm1 tm2 : SingleTapeTM α) (input : List α) :
-    (compComputer tm1 tm2).Cfg :=
+private def initialCfg (input : List α) : (compComputer tm1 tm2).Cfg :=
   { state := some (Sum.inl tm1.q₀), BiTape := BiTape.mk₁ input }
 
 /-- The intermediate configuration for the composed machine,
 after the first machine halts and the second machine starts. -/
-private def intermediateCfg (tm1 tm2 : SingleTapeTM α) (intermediate : List α) :
-    (compComputer tm1 tm2).Cfg :=
+private def intermediateCfg (intermediate : List α) : (compComputer tm1 tm2).Cfg :=
   { state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ intermediate }
 
 /-- The final configuration for the composed machine, after the second machine halts. -/
-private def finalCfg (tm1 tm2 : SingleTapeTM α) (output : List α) :
-    (compComputer tm1 tm2).Cfg :=
+private def finalCfg (output : List α) : (compComputer tm1 tm2).Cfg :=
   { state := none, BiTape := BiTape.mk₁ output }
 
 /-- The left converting function commutes with steps of the machines. -/
-private theorem map_toCompCfg_left_step
-    (tm1 tm2 : SingleTapeTM α)
-    (x : tm1.Cfg)
-    (hx : x.state.isSome) :
-    Option.map (toCompCfg_left tm1 tm2) (tm1.step x) =
-      (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 x) := by
-  cases x with
+private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
+    Option.map (toCompCfg_left tm1 tm2) (tm1.step cfg1) =
+      (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 cfg1) := by
+  cases cfg1 with
   | mk state BiTape =>
     cases state with
-    | none => simp at hx
+    | none => simp at hcfg1
     | some q =>
       simp only [step, toCompCfg_left, compComputer]
       generalize hM : tm1.M q BiTape.head = result
@@ -319,12 +301,10 @@ private theorem map_toCompCfg_left_step
       | some q' => simp only [hM, Option.map_some, toCompCfg_left]
 
 /-- The right converting function commutes with steps of the machines. -/
-private theorem map_toCompCfg_right_step
-    (tm1 tm2 : SingleTapeTM α)
-    (x : tm2.Cfg) :
-    Option.map (toCompCfg_right tm1 tm2) (tm2.step x) =
-      (compComputer tm1 tm2).step (toCompCfg_right tm1 tm2 x) := by
-  cases x with
+private theorem map_toCompCfg_right_step :
+    Option.map (toCompCfg_right tm1 tm2) (tm2.step cfg2) =
+      (compComputer tm1 tm2).step (toCompCfg_right tm1 tm2 cfg2) := by
+  cases cfg2 with
   | mk state BiTape =>
     cases state with
     | none =>
@@ -344,17 +324,15 @@ runs from start (with Sum.inl state) to Sum.inr tm2.q₀ (the start of the secon
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-private theorem comp_left_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
-    (input_tape intermediate_tape : List α)
-    (t : ℕ)
+private theorem comp_left_relatesWithinSteps (input intermediate : List α) (t : ℕ)
     (htm1 :
       RelatesWithinSteps tm1.TransitionRelation
-        (tm1.initCfg input_tape)
-        (tm1.haltCfg intermediate_tape)
+        (tm1.initCfg input)
+        (tm1.haltCfg intermediate)
         t) :
     RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (initialCfg tm1 tm2 input_tape)
-      (intermediateCfg tm1 tm2 intermediate_tape)
+      (initialCfg tm1 tm2 input)
+      (intermediateCfg tm1 tm2 intermediate)
       t := by
   simp only [initialCfg, intermediateCfg, initCfg, haltCfg] at htm1 ⊢
   refine RelatesWithinSteps.map (toCompCfg_left tm1 tm2) ?_ htm1
@@ -371,17 +349,17 @@ Simulation for the second phase of the composed computer.
 When the second machine runs from start to halt, the composed machine
 runs from Sum.inr tm2.q₀ to halt.
 -/
-private theorem comp_right_relatesWithinSteps (tm1 tm2 : SingleTapeTM α)
-    (intermediate_tape output_tape : List α)
+private theorem comp_right_relatesWithinSteps
+    (intermediate output : List α)
     (t : ℕ)
     (htm2 :
       RelatesWithinSteps tm2.TransitionRelation
-        (tm2.initCfg intermediate_tape)
-        (tm2.haltCfg output_tape)
+        (tm2.initCfg intermediate)
+        (tm2.haltCfg output)
         t) :
     RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (intermediateCfg tm1 tm2 intermediate_tape)
-      (finalCfg tm1 tm2 output_tape)
+      (intermediateCfg tm1 tm2 intermediate)
+      (finalCfg tm1 tm2 output)
       t := by
   simp only [intermediateCfg, finalCfg, initCfg, haltCfg] at htm2 ⊢
   refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ htm2
