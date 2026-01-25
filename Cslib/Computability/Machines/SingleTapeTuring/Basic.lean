@@ -117,22 +117,16 @@ deriving Inhabited
 
 /-- The step function corresponding to a `SingleTapeTM`. -/
 @[simp]
-def step : tm.Cfg → Option tm.Cfg :=
-  fun ⟨q, t⟩ =>
-    match q with
+def step : tm.Cfg → Option tm.Cfg
+  | ⟨none, _⟩ =>
     -- If in the halting state, there is no next configuration
-    | none => none
-    -- If in state q'
-    | some q' =>
-      -- Look up the transition function
-      match tm.M q' t.head with
-      | ⟨(wr, dir), q''⟩ =>
-          -- enter a new configuration
-          some ⟨
-            -- With state q'' (or none for halting)
-            q'',
-            -- And BiTape updated according to the Stmt
-            (t.write wr).optionMove dir⟩
+    none
+  | ⟨some q', t⟩ =>
+    -- If in state q', perform look up in the transition function
+    match tm.M q' t.head with
+    -- and enter a new configuration with state q'' (or none for halting)
+    -- and tape updated according to the Stmt
+    | ⟨(wr, dir), q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
 def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
@@ -148,12 +142,10 @@ The space used by a configuration is the space used by its tape.
 def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
 
 lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
-    (tm.initCfg s).space_used = max 1 s.length := by
-  simp only [space_used, initCfg, BiTape.space_used_mk₁]
+    (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
 lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
-    (tm.haltCfg s).space_used = max 1 s.length := by
-  simp [haltCfg, Cfg.space_used, BiTape.space_used_mk₁]
+    (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
 lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
@@ -264,25 +256,25 @@ Note it may transition to the start state of the second machine if the first mac
 -/
 private def toCompCfg_left : (compComputer tm1 tm2).Cfg :=
   match cfg1.state with
-  | some q => { state := some (Sum.inl q), BiTape := cfg1.BiTape }
-  | none => { state := some (Sum.inr tm2.q₀), BiTape := cfg1.BiTape }
+  | some q => ⟨some (Sum.inl q), cfg1.BiTape⟩
+  | none => ⟨some (Sum.inr tm2.q₀), cfg1.BiTape⟩
 
 /-- Convert a `Cfg` over the second input machine to a config over the composed machine -/
 private def toCompCfg_right : (compComputer tm1 tm2).Cfg :=
-  { state := Option.map Sum.inr cfg2.state, BiTape := cfg2.BiTape }
+  ⟨Option.map Sum.inr cfg2.state, cfg2.BiTape⟩
 
 /-- The initial configuration for the composed machine, with the first machine starting. -/
 private def initialCfg (input : List α) : (compComputer tm1 tm2).Cfg :=
-  { state := some (Sum.inl tm1.q₀), BiTape := BiTape.mk₁ input }
+  ⟨some (Sum.inl tm1.q₀), BiTape.mk₁ input⟩
 
 /-- The intermediate configuration for the composed machine,
 after the first machine halts and the second machine starts. -/
 private def intermediateCfg (intermediate : List α) : (compComputer tm1 tm2).Cfg :=
-  { state := some (Sum.inr tm2.q₀), BiTape := BiTape.mk₁ intermediate }
+  ⟨some (Sum.inr tm2.q₀), BiTape.mk₁ intermediate⟩
 
 /-- The final configuration for the composed machine, after the second machine halts. -/
 private def finalCfg (output : List α) : (compComputer tm1 tm2).Cfg :=
-  { state := none, BiTape := BiTape.mk₁ output }
+  ⟨none, BiTape.mk₁ output⟩
 
 /-- The left converting function commutes with steps of the machines. -/
 private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
@@ -291,14 +283,12 @@ private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
   cases cfg1 with
   | mk state BiTape =>
     cases state with
-    | none => simp at hcfg1
+    | none => grind
     | some q =>
       simp only [step, toCompCfg_left, compComputer]
       generalize hM : tm1.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      cases nextState with
-      | none => simp only [hM, Option.map_some, toCompCfg_left]
-      | some q' => simp only [hM, Option.map_some, toCompCfg_left]
+      cases nextState <;> grind [toCompCfg_left]
 
 /-- The right converting function commutes with steps of the machines. -/
 private theorem map_toCompCfg_right_step :
@@ -313,9 +303,7 @@ private theorem map_toCompCfg_right_step :
       simp only [step, toCompCfg_right, compComputer, Option.map_some]
       generalize hM : tm2.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      cases nextState with
-      | none => simp only [hM, Option.map_some, toCompCfg_right, Option.map_none]
-      | some q' => simp only [hM, Option.map_some, toCompCfg_right]
+      cases nextState <;> grind [toCompCfg_right]
 
 /--
 Simulation for the first phase of the composed computer.
@@ -397,10 +385,7 @@ structure TimeComputable (f : List α → List α) where
 def TimeComputable.id : TimeComputable (α := α) id where
   tm := idComputer
   time_bound _ := 1
-  outputsFunInTime x := by
-    refine ⟨1, le_refl 1, RelatesInSteps.single ?_⟩
-    simp only [TransitionRelation, initCfg, haltCfg, idComputer, step, BiTape.optionMove]
-    rfl
+  outputsFunInTime _ := ⟨1, le_refl 1, RelatesInSteps.single rfl⟩
 
 /--
 Time bounds for `compComputer`.
@@ -484,7 +469,7 @@ structure PolyTimeComputable (f : List α → List α) extends TimeComputable f 
 noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id where
   toTimeComputable := TimeComputable.id
   poly := 1
-  bounds n := by simp only [TimeComputable.id, eval_one, le_refl]
+  bounds _ := by simp [TimeComputable.id]
 
 -- TODO remove `h_mono` assumption
 -- by developing function to convert PolyTimeComputable into one with monotone time bound
@@ -492,9 +477,7 @@ noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id wher
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
 noncomputable def PolyTimeComputable.comp
-    {f g : List α → List α}
-    (hf : PolyTimeComputable f)
-    (hg : PolyTimeComputable g)
+    {f g : List α → List α} (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
@@ -509,8 +492,7 @@ noncomputable def PolyTimeComputable.comp
         apply add_le_add
         · omega -- lia fails
         · exact hf.bounds n
-      apply le_trans this _
-      exact hg.bounds (1 + n + hf.poly.eval n)
+      exact le_trans this (hg.bounds _)
 
 end PolyTimeComputable
 
