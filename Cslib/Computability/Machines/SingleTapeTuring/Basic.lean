@@ -57,9 +57,11 @@ and write a symbol on the `BiTape`.
 def Stmt (α : Type) := Option α × Option Dir
 deriving Inhabited
 
+/-- Get the symbol to write from a `Stmt`. -/
 def Stmt.symbol : Stmt α → Option α
   | (symbol, _) => symbol
 
+/-- Get the movement direction from a `Stmt`. -/
 def Stmt.movement : Stmt α → Option Dir
   | (_, movement) => movement
 
