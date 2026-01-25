@@ -395,17 +395,39 @@ def linearSearchM (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
 lemma linearSearchM_correct_true [DecidableEq α] (v : Vector α n) :
   ∀ x : α, x ∈ v → (linearSearchM v x).eval VecSearch_Nat = true := by
   intro x x_mem_v
-  sorry
+  induction h : v.toArray.toList with
+  | nil =>
+      simp_all [linearSearchM, eval]
+      have v_empty : h ▸ v = #v[] := by
+        simp
+      have x_not_mem_v : x ∉ v := by
+        subst h
+        aesop
+      tauto
+  | cons head tail ih =>
+      sorry
+
 
 lemma linearSearchM_correct_false [DecidableEq α] (v : Vector α n) :
   ∀ x : α, x ∉ v → (linearSearchM v x).eval VecSearch_Nat = false := by
   intro x x_mem_v
-  sorry
+  induction h : v.toArray.toList with
+  | nil =>
+      simp_all [linearSearchM, eval]
+  | cons head tail ih =>
+      simp_all [linearSearchM]
+      sorry
 
 lemma linearSearchM_time_complexity [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, (linearSearchM v x).time VecSearch_Nat ≤ n := by
+  ∀ x : α, (linearSearchM v x).time VecSearch_Nat ≤ n + 1 := by
   intro x
-  sorry
+  induction h : v.toArray.toList with
+  | nil =>
+      simp_all [linearSearchM, time, PureCosts.pureCost]
+  | cons head tail ih =>
+      simp_all [linearSearchM, VecSearch_Nat]
+      sorry
+
 
 end VectorLinearSearch
 
