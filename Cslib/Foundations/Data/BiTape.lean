@@ -45,7 +45,15 @@ structure BiTape (α : Type) where
   (head : Option α)
   (left : StackTape α)
   (right : StackTape α)
-deriving Inhabited
+
+/-- The empty `BiTape` -/
+def BiTape.nil {α} : BiTape α := ⟨none, StackTape.nil, StackTape.nil⟩
+
+instance {α : Type} : Inhabited (BiTape α) where
+  default := BiTape.nil
+
+instance {α : Type} : EmptyCollection (BiTape α) :=
+  ⟨BiTape.nil⟩
 
 /--
 Given a `List` of `α`, construct a `BiTape` by mapping the list to `some` elements
@@ -54,19 +62,23 @@ with the head under the first element of the list if it exists.
 -/
 def BiTape.mk₁ {α} (l : List α) : BiTape α :=
   match l with
-  | [] => { head := none, left := StackTape.empty, right := StackTape.empty }
-  | h :: t => { head := some h, left := StackTape.empty, right := StackTape.map_some t }
+  | [] => BiTape.nil
+  | h :: t => ⟨some h, StackTape.nil, StackTape.map_some t⟩
+
+section move
+
+def BiTape.move_left {α} (t : Turing.BiTape α) : Turing.BiTape α :=
+  ⟨t.left.head, t.left.tail, StackTape.cons t.head t.right⟩
+
+def BiTape.move_right {α} (t : Turing.BiTape α) : Turing.BiTape α :=
+  ⟨t.right.head, StackTape.cons t.head t.left, t.right.tail⟩
 
 /--
 Move the head to the left or right, shifting the tape underneath it.
 -/
 def BiTape.move {α} : Turing.BiTape α → Dir → Turing.BiTape α
-  | t, .left =>
-    match t.left, t.head, t.right with
-    | l, h, r => { head := l.head, left := l.tail, right := StackTape.cons h r }
-  | t, .right =>
-    match t.left, t.head, t.right with
-    | l, h, r => { head := r.head, left := StackTape.cons h l, right := r.tail }
+  | t, .left => t.move_left
+  | t, .right => t.move_right
 
 /--
 Optionally perform a `BiTape.move`, or do nothing if `none`.
@@ -74,6 +86,8 @@ Optionally perform a `BiTape.move`, or do nothing if `none`.
 def BiTape.optionMove {α} : Turing.BiTape α → Option Dir → Turing.BiTape α
   | t, none => t
   | t, some d => t.move d
+
+end move
 
 /--
 Write a value under the head of the `BiTape`.
@@ -94,10 +108,13 @@ lemma BiTape.space_used_write {α} (t : Turing.BiTape α) (a : Option α) :
 
 lemma BiTape.space_used_mk₁ {α} (l : List α) :
     (BiTape.mk₁ l).space_used = max 1 l.length := by
-  cases l <;> grind [mk₁, space_used, StackTape.length_empty, StackTape.length_map_some]
+  cases l with
+  | nil => simp [mk₁, space_used, nil, StackTape.length_nil]
+  | cons h t => simp [mk₁, space_used, StackTape.length_nil, StackTape.length_map_some]; omega
 
 lemma BiTape.space_used_move {α} (t : Turing.BiTape α) (d : Dir) :
     (t.move d).space_used ≤ t.space_used + 1 := by
-  cases d <;> grind [move, space_used, StackTape.length_tail_le, StackTape.length_cons_le]
+  cases d <;> grind [move_left, move_right, move,
+    space_used, StackTape.length_tail_le, StackTape.length_cons_le]
 
 end Turing
