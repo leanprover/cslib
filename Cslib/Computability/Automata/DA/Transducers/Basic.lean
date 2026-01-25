@@ -20,6 +20,7 @@ according to an input string.
 
 Transducers with different underlying automata are defined:
 - `DetTransducer`: typical deterministics FSTs over one automaton for look-left
+- `Bimachine`: transducers with one automaton for look-left and one automaton for look-right
 
 ## References
 
@@ -139,6 +140,134 @@ instance : Transducer (DetTransducer State Symbol Weight) Symbol Weight where
 end Semigroup
 
 end DetTransducer
+
+/-- A `Bimachine` maps each position of the input string to a weight
+with look-left via the state reached by a left-underlying `DA` (`daLeft`), and
+with look-right via the state reached by a right-underlying `DA` (`daRight`).
+
+The class of string-to-string transductions recognized by
+the `Bimachine` model is equivalent to
+the class of string-to-string transductions recognized by
+the nondeterminsitic (but functional) transducer model. -/
+structure Bimachine (StateLeft StateRight Symbol Weight : Type*) where
+  daLeft : DA StateLeft Symbol
+  daRight : DA StateRight Symbol
+  startWeight : StateRight → Weight
+  stepWeight : StateLeft → StateRight → Symbol → Weight
+  finalWeight : StateLeft → Weight
+
+namespace Bimachine
+
+section Mul
+
+variable [Mul Weight]
+
+/-- Accumulate weight abstracted over the yet-unknown right-state `sr`
+into the right of the continuation `cont` by
+traversing according to the input string `xs` and starting from the left-state `sl`.
+Then, evaluate the continuation from the start right-state.
+
+This function handles step weights and final weights, but not the start weight.
+The full transduction function is given by
+passing the start weight into `cont` and the start left-state as `sl`,
+as in `Bimachine.instTransducer.transduceFromLeft` later.
+
+The implementation is designed to left-associate multiplication.
+The right-associative version is `runRight`. -/
+def runLeft
+    (bm : Bimachine StateLeft StateRight Symbol Weight)
+    (cont : StateRight → Weight) (xs : List Symbol) (sl : StateLeft) :
+    Weight :=
+  match xs with
+  | [] => cont bm.daRight.start * bm.finalWeight sl
+  | x :: xs =>
+    runLeft bm
+      (fun sr ↦ cont (bm.daRight.tr sr x) * bm.stepWeight sl sr x)
+      xs (bm.daLeft.tr sl x)
+
+/-- Accumulate weight abstracted over the yet-unknown right-state `sr` and remaining weight `w`
+into the left of the continuation `cont` by
+traversing according to the input string `xs` and starting from the left-state `sl`.
+Then, evaluate the continuation from the start right-state
+with the initial right-accumulator `acc`.
+
+This function handles step weights and final weights, but not the start weight.
+The full transduction function is given by
+passing the start weight into `cont` and the start left-state as `sl`,
+as in `Bimachine.instTransducer.transduceFromRight` later.
+
+The implementation is designed to right-associate multiplication.
+The left-associative version is `runLeft`. -/
+def runRight
+    (bm : Bimachine StateLeft StateRight Symbol Weight)
+    (cont : StateRight → Weight → Weight) (xs : List Symbol) (acc : Weight) (sl : StateLeft) :
+    Weight :=
+  match xs with
+  | [] => cont bm.daRight.start (bm.finalWeight sl * acc)
+  | x :: xs =>
+    runRight bm
+      (fun sr w ↦ cont (bm.daRight.tr sr x) (bm.stepWeight sl sr x * w))
+      xs acc (bm.daLeft.tr sl x)
+
+end Mul
+
+section Semigroup
+
+variable [Semigroup Weight]
+
+/-- `runLeft` works by accumulating weight into `cont`. -/
+@[simp, scoped grind =]
+theorem mul_runLeft_eq_runLeft
+    bm (acc : Weight) (cont : StateRight → Weight) (xs : List Symbol) (sl : State) :
+    acc * runLeft bm cont xs sl = runLeft bm (fun sr ↦ acc * cont sr) xs sl := by
+  induction xs generalizing cont sl with
+  | nil => simp [mul_assoc, runLeft]
+  | cons x xs ih => simp [mul_assoc, runLeft, ih]
+
+/-- `runRight` works by accumulating weight onto `acc`.
+
+The `grind` attribute does not accept this theorem: Why? -/
+@[simp]
+theorem runRight_mul_eq_runRight
+    bm
+    (cont : StateRight → Weight) (xs : List Symbol) (acc₁ acc₂ : Weight) (sl : State) :
+    runRight bm (fun sr w ↦ cont sr * w) xs acc₁ sl * acc₂ =
+    runRight bm (fun sr w ↦ cont sr * w) xs (acc₁ * acc₂) sl := by
+  induction xs generalizing cont sl with
+  | nil => simp [mul_assoc, runRight]
+  | cons x xs ih => simp [←mul_assoc, runRight, ih]
+
+/-- `runLeft` and `runRight` represent the same function.
+
+The `grind` attribute does not accept this theorem: Why? -/
+@[simp]
+theorem mul_runRight_eq_runLeft_mul
+    bm
+    (acc₁ : Weight) (cont : StateRight → Weight) (xs : List Symbol) (acc₂ : Weight) (sl : State) :
+    acc₁ * runRight bm (fun sr w ↦ cont sr * w) xs acc₂ sl =
+    runLeft bm (fun sr ↦ acc₁ * cont sr) xs sl * acc₂ := by
+  induction xs generalizing cont sl with
+  | nil => simp [mul_assoc, runLeft, runRight]
+  | cons x xs ih => simp [←mul_assoc, runLeft, runRight, ih]
+
+/-- A `Transducer` instance for `Bimachine`
+exposing the recognized transduction via `transduceFromLeft` and `transduceFromRight`. -/
+@[simp, scoped grind =]
+instance : Transducer (Bimachine StateLeft StateRight Symbol Weight) Symbol Weight where
+  transduceFromLeft bm (acc : Weight) (xs : List Symbol) :=
+    runLeft bm (fun sr ↦ acc * bm.startWeight sr) xs bm.daLeft.start
+  transduceFromRight bm (xs : List Symbol) (acc : Weight) :=
+    runRight bm (fun sr w ↦ bm.startWeight sr * w) xs acc bm.daLeft.start
+  mul_transduceFromRight_eq_transduceFromLeft_mul bm acc₁ xs acc₂ := by
+    simp
+  mul_transduceFromLeft_eq_transduceFromLeft bm acc₁ acc₂ xs := by
+    simp [mul_assoc]
+  transduceFromRight_mul_eq_transduceFromRight bm xs acc₁ acc₂ := by
+    simp
+
+end Semigroup
+
+end Bimachine
 
 end DA
 
