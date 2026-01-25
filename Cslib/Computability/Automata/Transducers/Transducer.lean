@@ -11,9 +11,11 @@ public import Mathlib.Algebra.Group.Basic
 
 @[expose] public section
 
-namespace CSlib.Automata
+namespace Cslib.Automata
 
-/-- A `Transducer` is a machine that assigns weights from a `Semigroup` to input strings.
+/-- A `Transducer` is a machine that assigns weights to input strings.
+Typically, weights are from a `Monoid` or a `Semiring`,
+though `Mul` suffices to state the definition.
 
 The definition specializes to:
 - weighted acceptors,
@@ -21,73 +23,121 @@ The definition specializes to:
 - functional string transducers,
   by having output strings as the weights
 - partial functional string transducers,
-  by having output strings with an annihilator `none` as the weights -/
+  by having output strings with an annihilator `none` as the weights
+
+In the definition, `T` is the type of the transducers.
+The function recognized by a transducer `t : T` can
+be accessed via `transduceFromLeft t` and `transduceFromRight t`.
+In this sense, `T` and `t : T` are analogous to `a` and `a : A` in
+the definition of the `Acceptor` type class. -/
 class Transducer
-    (T : Type u) (Symbol : outParam (Type v)) (Weight : outParam (Type w)) [Semigroup Weight] where
-  /-- The function that assigns weights to input strings
-  by accumulating weight between `accL` and `accR`.
+    (T : Type u) (Symbol : outParam (Type v)) (Weight : outParam (Type w)) [Mul Weight] where
+
+  /-- The function that assigns weights to input strings by
+  accumulating weight onto `acc` via right-multiplication.
   That is, if `t` is meant to assign the weight `w` to the input string `xs`,
-  then `transduceFrom t xs accL accR` should output `accL * w * accR`.
+  then `transduceFromLeft t acc xs` should output `acc * w`.
 
-  Accumulating weight between an initial `accL` and `accR` is beneficial for two reasons:
-  - Othwerise, some transducer instances would need to enforce that
-    weights be from a `Monoid` to guarentee inhabitation by `1`.
-    In the case of this definition, it is `accL` and `accR` that guarentee inhabitation.
-  - It gives the implementer control over the associativity of multiplications.
-    e.g. In the case of strings (`List`), it is computationally redundant
-    to left-multiply (`List.append`) by the result of a transduction.
-    The implementer can avoid this if the right-hand operand is instead passed as `accR`. -/
-  transduceFrom (t : T) (xs : List Symbol) (accL accR : Weight) : Weight
+  Passing an accumulator `acc` allows for a consistent direction of associativity,
+  which is important because some types have a preferred direction for performance.
+  The implemeter of `transduceFromLeft` should left-associate all multiplications,
+  and the caller should always pass an accumulator
+  in place of right-multiplying by the output of `transduceFromLeft`. -/
+  transduceFromLeft (t : T) (acc : Weight) (xs : List Symbol) : Weight
 
-  /-- Proof that `transduceFrom` does, indeed, work by accumulating weight onto `accL`. -/
-  mul_transduceFrom (t : T) (xs : List Symbol) (accL accR acc' : Weight) :
-    acc' * transduceFrom t xs accL accR = transduceFrom t xs (acc' * accL) accR
+  /-- The function that assigns weights to input strings by
+  accumulating weight onto `acc` via left-multiplication.
+  That is, if `t` is meant to assign the weight `w` to the input string `xs`,
+  then `transduceFromRight t xs acc` should output `w * acc`.
 
-  /-- Proof that `transduceFrom` does, indeed, work by accumulating weight onto `accR`. -/
-  transduceFrom_mul (t : T) (xs : List Symbol) (accL accR acc' : Weight) :
-    transduceFrom t xs accL accR * acc' = transduceFrom t xs accL (accR * acc')
+  Passing an accumulator `acc` allows for a consistent direction of associativity,
+  which is important because some types have a preferred direction for performance.
+  The implemeter of `transduceFromRight` should right-associate all multiplications,
+  and the caller should always pass an accumulator
+  in place of left-multiplying by the output of `transduceFromRight`. -/
+  transduceFromRight (t : T) (xs : List Symbol) (acc : Weight) : Weight
+
+  /-- Proof that `transduceFromLeft` and `transduceFromRight` represent the same function. -/
+  mul_transduceFromRight_eq_transduceFromLeft_mul
+      (t : T) (acc₁ : Weight) (xs : List Symbol) (acc₂ : Weight) :
+    acc₁ * transduceFromRight t xs acc₂ = transduceFromLeft t acc₁ xs * acc₂
+
+  /-- Proof that `transduceFromLeft` works by accumulating weight onto `acc`. -/
+  mul_transduceFromLeft_eq_transduceFromLeft
+      (t : T) (acc₁ acc₂ : Weight) (xs : List Symbol) :
+    acc₁ * transduceFromLeft t acc₂ xs = transduceFromLeft t (acc₁ * acc₂) xs
+
+  /-- Proof that `transduceFromRight` works by accumulating weight onto `acc`. -/
+  transduceFromRight_mul_eq_transduceFromRight
+      (t : T) (xs : List Symbol) (acc₁ acc₂ : Weight) :
+    transduceFromRight t xs acc₁ * acc₂ = transduceFromRight t xs (acc₁ * acc₂)
 
 namespace Transducer
 
-/- We choose the direction of simplification that pulls multiplication into the accumulator.
-The motivation is cases like `transduceFrom t xs 1 1 * acc = transduceFrom t xs 1 acc`,
-which are not handled by the other choice of direction. -/
-attribute [simp, scoped grind =] Transducer.mul_transduceFrom Transducer.transduceFrom_mul
+/- We choose the direction of simplification that
+rewrites `transduceFromRight` as `transduceFromLeft` and pulls multiplication into the accumulator.
+This is consistent with the left-associativity of the `Mul` operator. -/
+attribute [simp, scoped grind =]
+  mul_transduceFromRight_eq_transduceFromLeft_mul
+  mul_transduceFromLeft_eq_transduceFromLeft
+  transduceFromRight_mul_eq_transduceFromRight
 
 variable {Symbol : Type v} {Weight : Type w}
 
-section Monoid
+section MulOneClass
 
-variable [Monoid Weight]
+variable [MulOneClass Weight]
 
-/-- When weights are from a `Monoid`, `transduce` is the canonical version
-of the weight assignment function. It accumulates onto the empty weight `1`. -/
-abbrev transduce [Transducer T Symbol Weight] (t : T) (xs : List Symbol) : Weight :=
-  transduceFrom t xs 1 1
+/-- `transduceLeft` is the canonical version of `transduceFromLeft`.
+It accumulates onto the empty weight `1`.
 
-/-- Left-multiplication after transduction is equivalent to
-passing the left-hand operand as an accumulator. -/
-theorem mul_transduce
-    [Transducer T Symbol Weight] (t : T) (xs : List Symbol) (accL : Weight) :
-    accL * transduce t xs = transduceFrom t xs accL 1 := by
+Recall that the caller should not right-multiply by the output of `transduceLeft` for performance.
+Instead, the caller should pass the left-hand operand as an accumulator to `transduceFromLeft`. -/
+abbrev transduceLeft [Transducer T Symbol Weight] (t : T) (xs : List Symbol) : Weight :=
+  transduceFromLeft t 1 xs
+
+/-- `transduceRight` is the canonical version of `transduceFromRight`.
+It accumulates onto the empty weight `1`.
+
+Recall that the caller should not left-multiply by the output of `transduceRight` for performance.
+Instead, the caller should pass the right-hand operand as an accumulator to `transduceFromRight`. -/
+abbrev transduceRight [Transducer T Symbol Weight] (t : T) (xs : List Symbol) : Weight :=
+  transduceFromRight t xs 1
+
+/-- `transduceLeft` and `transduceFromRight` represent the same function. -/
+@[simp, scoped grind =]
+theorem transduceFromRight_eq_transduceLeft_mul
+    [Transducer T Symbol Weight] (t : T) (xs : List Symbol) (acc : Weight) :
+    transduceFromRight t xs acc = transduceLeft t xs * acc := by
+  rw [←one_mul (transduceFromRight t xs acc)]
   simp
 
-/-- Right-multiplication after transduction is equivalent to
-passing the right-hand operand as an accumulator. -/
-theorem transduce_mul
-    [Transducer T Symbol Weight] (t : T) (xs : List Symbol) (accR : Weight) :
-    transduce t xs * accR = transduceFrom t xs 1 accR := by
+/-- `transduceFromLeft` and `transduceRight` represent the same function. -/
+theorem mul_transduceRight_eq_transduceFromLeft
+    [Transducer T Symbol Weight] (t : T) (acc : Weight) (xs : List Symbol) :
+    acc * transduceRight t xs = transduceFromLeft t acc xs := by
   simp
 
-/-- Multiplication after transduction is equivalent to
-passing the operands as accumulators. -/
-theorem mul_transduce_mul
-    [Transducer T Symbol Weight] (t : T) (xs : List Symbol) (accL accR : Weight) :
-    accL * transduce t xs * accR = transduceFrom t xs accL accR := by
+/-- `transduceLeft` and `transduceRight` represent the same function. -/
+theorem transduceRight_eq_transduceLeft
+    [Transducer T Symbol Weight] (t : T) (xs : List Symbol) :
+    transduceRight t xs = transduceLeft t xs := by
   simp
 
-end Monoid
+/-- `transduceFromLeft` works by accumulating weight onto `acc`. -/
+theorem mul_transduceLeft_eq_transduceFromLeft
+    [Transducer T Symbol Weight] (t : T) (acc : Weight) (xs : List Symbol) :
+    acc * transduceLeft t xs = transduceFromLeft t acc xs := by
+  simp
+
+/-- `transduceFromRight` works by accumulating weight onto `acc`. -/
+theorem transduceRight_mul_eq_transduceFromRight
+    [Transducer T Symbol Weight] (t : T) (xs : List Symbol) (acc : Weight) :
+    transduceRight t xs * acc = transduceFromRight t xs acc := by
+  simp
+
+end MulOneClass
 
 end Transducer
 
-end CSlib.Automata
+end Cslib.Automata
