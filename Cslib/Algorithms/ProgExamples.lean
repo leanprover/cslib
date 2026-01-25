@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2025 Shreyas Srinivas. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Shreyas Srinivas
+-/
+
 module
 
 public import Cslib.Algorithms.QueryModel
