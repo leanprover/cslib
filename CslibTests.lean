@@ -1,3 +1,5 @@
+module
+
 import CslibTests.Bisimulation
 import CslibTests.CCS
 import CslibTests.DFA

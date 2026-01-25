@@ -1,3 +1,5 @@
+module
+
 import Cslib.Algorithms.Lean.InsertionSort.InsertionSort
 import Cslib.Algorithms.Lean.MergeSort.MergeSort
 import Cslib.Algorithms.Lean.TimeM
