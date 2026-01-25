@@ -330,7 +330,7 @@ def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool:=
 
 
 lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n)
-  (hn_pos : n > 0):
+  (hn_pos : n > 0) :
   ∀ x : α, x ∈ v → (linearSearch v x).eval VecSearch_Nat = true := by
   intro x x_mem_v
   simp only [linearSearch]
@@ -408,6 +408,96 @@ lemma linearSearchM_time_complexity [DecidableEq α] (v : Vector α n) :
   sorry
 
 end VectorLinearSearch
+
+section ListLinearSearch
+inductive ListSearch (α : Type) : Type → Type  where
+  | compare (a : List α) (val : α) : ListSearch α Bool
+
+
+def ListSearch_Nat [DecidableEq α] : Model (ListSearch α) ℕ where
+  evalQuery q :=
+    match q with
+    | .compare l x => l.head? = some x
+  cost q :=
+    match q with
+    | .compare _ _ => 1
+
+
+def ListSearch_Cmp [DecidableEq α] : Model (ListSearch α) CmpCount where
+  evalQuery q :=
+    match q with
+    | .compare l x =>  l.head? == some x
+  cost q :=
+    match q with
+    | .compare _ _ => ⟨1,0⟩
+
+open ListSearch in
+def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
+  match l with
+  | [] => return false
+  | l :: ls =>
+      let cmp : Bool ← compare (l :: ls) x
+      if cmp then
+        return true
+      else
+        listLinearSearch ls x
+
+lemma listLinearSearchM_correct_true [iDec : DecidableEq α] (l : List α) :
+  ∀ x : α, x ∈ l → (listLinearSearch l x).eval ListSearch_Nat = true := by
+  intro x x_mem_l
+  induction l with
+  | nil =>
+      simp_all only [List.not_mem_nil]
+  | cons head tail ih =>
+      simp_all only [List.mem_cons, listLinearSearch, bind, FreeM.lift_def, pure,
+        FreeM.liftBind_bind, FreeM.pure_bind, eval]
+      split_ifs with h
+      · simp [eval]
+      · obtain (x_head | xtail) := x_mem_l
+        · rw [x_head] at h
+          simp[ListSearch_Nat] at h
+        · specialize ih xtail
+          exact ih
+
+lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) :
+  ∀ x : α, x ∉ l → (listLinearSearch l x).eval ListSearch_Nat = false := by
+  intro x x_mem_l
+  induction l with
+  | nil =>
+      simp_all [listLinearSearch, eval]
+  | cons head tail ih =>
+      simp only [List.mem_cons, not_or] at x_mem_l
+      specialize ih x_mem_l.2
+      simp only [listLinearSearch, bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind,
+        eval]
+      split_ifs with h_eq
+      · simp [ListSearch_Nat] at h_eq
+        exfalso
+        exact x_mem_l.1 h_eq.symm
+      · exact ih
+
+
+
+lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) :
+  ∀ x : α, (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
+  intro x
+  induction l with
+  | nil =>
+      simp_all [listLinearSearch, ListSearch_Nat, time, PureCosts.pureCost]
+  | cons head tail ih =>
+      simp_all [listLinearSearch, ListSearch_Nat, time]
+      split_ifs with h_head
+      · simp [time, PureCosts.pureCost]
+      · grind
+
+lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
+  ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = 1 + l.length := by
+  obtain ⟨x, y, x_neq_y⟩ := inon
+  use [x,x,x,x,x,y], y
+  simp_all [time, ListSearch_Nat, listLinearSearch, PureCosts.pureCost]
+
+
+end ListLinearSearch
 
 end ProgExamples
 
