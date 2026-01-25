@@ -67,9 +67,15 @@ def BiTape.mk₁ {α} (l : List α) : BiTape α :=
 
 section move
 
+/--
+Move the head left by shifting the left StackTape under the head.
+-/
 def BiTape.move_left {α} (t : Turing.BiTape α) : Turing.BiTape α :=
   ⟨t.left.head, t.left.tail, StackTape.cons t.head t.right⟩
 
+/--
+Move the head right by shifting the right StackTape under the head.
+-/
 def BiTape.move_right {α} (t : Turing.BiTape α) : Turing.BiTape α :=
   ⟨t.right.head, StackTape.cons t.head t.left, t.right.tail⟩
 
