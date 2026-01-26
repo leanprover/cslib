@@ -132,6 +132,7 @@ end
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
+set_option linter.unusedFintypeInType false in
 lemma HasFresh.not_of_finite (α : Type u) [Fintype α] : IsEmpty (HasFresh α) :=
   ⟨fun f ↦ (f.fresh_notMem .univ).elim (Finset.mem_univ _)⟩
 
