@@ -32,7 +32,7 @@ namespace Cslib.Automata
 
 namespace DA
 
-variable {State Symbol Weight : Type*}
+variable {State StateLeft StateRight Symbol Weight : Type*}
 
 /-- A `DetTransducer` is a `DA` with a weight attached to:
 - the transition into the start state (`startWeight`)
@@ -145,10 +145,8 @@ end DetTransducer
 with look-left via the state reached by a left-underlying `DA` (`daLeft`), and
 with look-right via the state reached by a right-underlying `DA` (`daRight`).
 
-The class of string-to-string transductions recognized by
-the `Bimachine` model is equivalent to
-the class of string-to-string transductions recognized by
-the nondeterminsitic (but functional) transducer model. -/
+The class of transductions recognized by the `Bimachine` model is equivalent to
+the class of transductions recognized by the nondeterminsitic (but functional) transducer model. -/
 structure Bimachine (StateLeft StateRight Symbol Weight : Type*) where
   daLeft : DA StateLeft Symbol
   daRight : DA StateRight Symbol
