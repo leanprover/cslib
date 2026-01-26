@@ -44,39 +44,40 @@ structure StackTape (α : Type) where
 
 attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 
+namespace StackTape
+
 /-- The empty `StackTape` -/
-def StackTape.nil {α} : StackTape α := ⟨[], by grind⟩
+def nil {α} : StackTape α := ⟨[], by grind⟩
 
 instance {α : Type} : Inhabited (StackTape α) where
-  default := StackTape.nil
+  default := nil
 
 instance {α : Type} : EmptyCollection (StackTape α) :=
-  ⟨StackTape.nil⟩
+  ⟨nil⟩
 
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
-def StackTape.map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
+def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
 
 /-- Prepend an `Option` to the `StackTape` -/
-def StackTape.cons {α} (x : Option α) (xs : StackTape α) : StackTape α :=
+def cons {α} (x : Option α) (xs : StackTape α) : StackTape α :=
   match x, xs with
   | none, ⟨[], _⟩ => ⟨[], by grind⟩
   | none, ⟨hd :: tl, hl⟩ => ⟨none :: hd :: tl, by grind⟩
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
-def StackTape.tail {α} (l : StackTape α) : StackTape α :=
+def tail {α} (l : StackTape α) : StackTape α :=
   match hl : l.toList with
-  | [] => StackTape.nil
+  | [] => nil
   | hd :: t => ⟨t, by grind⟩
 
 /-- Get the first element of the `StackTape`. -/
-def StackTape.head {α} (l : StackTape α) : Option α :=
+def head {α} (l : StackTape α) : Option α :=
   match l.toList with
   | [] => none
   | h :: _ => h
 
-lemma StackTape.eq_iff {α} (l1 l2 : StackTape α) :
-    l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
+lemma eq_iff {α} (l1 l2 : StackTape α) : l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
   constructor
   · grind
   · intro ⟨hhead, htail⟩
@@ -85,8 +86,7 @@ lemma StackTape.eq_iff {α} (l1 l2 : StackTape α) :
     cases as1 <;> cases as2 <;> grind [tail, head, mk.injEq, nil, mk.injEq]
 
 @[simp]
-lemma StackTape.head_cons {α} (o : Option α) (l : StackTape α) :
-    (StackTape.cons o l).head = o := by
+lemma head_cons {α} (o : Option α) (l : StackTape α) : (cons o l).head = o := by
   cases o with
   | none =>
     cases l with | mk toList hl =>
@@ -94,8 +94,7 @@ lemma StackTape.head_cons {α} (o : Option α) (l : StackTape α) :
   | some a => simp [cons, head]
 
 @[simp]
-lemma StackTape.tail_cons {α} (o : Option α) (l : StackTape α) :
-    (StackTape.cons o l).tail = l := by
+lemma tail_cons {α} (o : Option α) (l : StackTape α) : (cons o l).tail = l := by
   cases o with
   | none =>
     cases l with | mk toList h =>
@@ -106,38 +105,37 @@ lemma StackTape.tail_cons {α} (o : Option α) (l : StackTape α) :
     simp only [cons, tail]
 
 @[simp]
-lemma StackTape.cons_head_tail {α} (l : StackTape α) :
-    StackTape.cons (l.head) (l.tail) = l := by
-  rw [StackTape.eq_iff]
+lemma cons_head_tail {α} (l : StackTape α) :
+    cons (l.head) (l.tail) = l := by
+  rw [eq_iff]
   simp
 
 section Length
 
 /-- The length of the `StackTape` is the number of elements up to the last non-`none` element -/
-def StackTape.length {α} (l : StackTape α) : ℕ := l.toList.length
+def length {α} (l : StackTape α) : ℕ := l.toList.length
 
-lemma StackTape.length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
+lemma length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
   grind [tail, length, nil]
 
-lemma StackTape.length_cons_none {α} (l : StackTape α) :
-    (StackTape.cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
+lemma length_cons_none {α} (l : StackTape α) :
+    (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
   cases l with | mk toList h =>
   cases toList <;> simp [cons, length]
 
-lemma StackTape.length_cons_some {α} (a : α) (l : StackTape α) :
-    (StackTape.cons (some a) l).length = l.length + 1 := by
+lemma length_cons_some {α} (a : α) (l : StackTape α) : (cons (some a) l).length = l.length + 1 := by
   simp [cons, length]
 
-lemma StackTape.length_cons_le {α} (o : Option α) (l : StackTape α) :
-    (StackTape.cons o l).length ≤ l.length + 1 := by
+lemma length_cons_le {α} (o : Option α) (l : StackTape α) : (cons o l).length ≤ l.length + 1 := by
   cases o <;> grind [length_cons_none, length_cons_some]
 
-lemma StackTape.length_map_some {α} (l : List α) : (StackTape.map_some l).length = l.length := by
+lemma length_map_some {α} (l : List α) : (map_some l).length = l.length := by
   simp [map_some, length]
 
-lemma StackTape.length_nil {α} : (StackTape.nil : StackTape α).length = 0 := by
-  simp [nil, length]
+lemma length_nil {α} : (nil : StackTape α).length = 0 := by simp [nil, length]
 
 end Length
+
+end StackTape
 
 end Turing
