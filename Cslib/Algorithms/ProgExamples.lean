@@ -77,6 +77,7 @@ def ex1 : Prog (Arith ℚ) ℚ := do
 #eval ex1.time RatArithQuery_NatCost
 #eval ex1.time RatArithQuery_AddMulCost
 
+
 section ArraySort
 /--
 The array version of the sort operations
