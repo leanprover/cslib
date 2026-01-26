@@ -37,8 +37,7 @@ We also provide ways of constructing polynomial-runtime TMs
 ## TODOs
 
 - Encoding of types in lists to represent computations on arbitrary types.
-- Composition notation
-- Check I can't put more args on the same line
+- Add `∘` notation for `compComputer`.
 
 -/
 
