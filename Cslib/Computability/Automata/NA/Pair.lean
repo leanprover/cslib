@@ -53,7 +53,7 @@ theorem LTS.mem_pairViaLang {lts : LTS State Symbol} {via : Set State}
 theorem LTS.pairViaLang_regular [Inhabited Symbol] [Finite State] {lts : LTS State Symbol}
     {via : Set State} {s t : State} : (lts.pairViaLang via s t).IsRegular := by
   apply IsRegular.iSup
-  grind [IsRegular.mul, LTS.pairLang_regular]
+  grind [Language.IsRegular.mul, LTS.pairLang_regular]
 
 theorem LTS.pairLang_append {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol}
     (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2) :
