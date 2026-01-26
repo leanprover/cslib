@@ -97,13 +97,11 @@ def BiTape.optionMove {α} : Turing.BiTape α → Option Dir → Turing.BiTape �
   | t, some d => t.move d
 
 @[simp]
-lemma BiTape.move_left_move_right {α} (t : Turing.BiTape α) :
-    t.move_left.move_right = t := by
+lemma BiTape.move_left_move_right {α} (t : Turing.BiTape α) : t.move_left.move_right = t := by
   simp [move_right, move_left]
 
 @[simp]
-lemma BiTape.move_right_move_left {α} (t : Turing.BiTape α) :
-    t.move_right.move_left = t := by
+lemma BiTape.move_right_move_left {α} (t : Turing.BiTape α) : t.move_right.move_left = t := by
   simp [move_left, move_right]
 
 end Move
