@@ -156,9 +156,8 @@ lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
     | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write]
-    | some d =>
-      have := BiTape.space_used_move (tape.write wr) d
-      simp only [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write] at this ⊢; exact this
+    | some d => simpa [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write] using
+        BiTape.space_used_move (tape.write wr) d
 
 end Cfg
 
@@ -280,9 +279,7 @@ private def finalCfg (output : List α) : (compComputer tm1 tm2).Cfg :=
 private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
     Option.map (toCompCfg_left tm1 tm2) (tm1.step cfg1) =
       (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 cfg1) := by
-  cases cfg1 with
-  | mk state BiTape =>
-    cases state with
+  cases cfg1 with | mk state BiTape => cases state with
     | none => grind
     | some q =>
       simp only [step, toCompCfg_left, compComputer]
@@ -385,7 +382,7 @@ structure TimeComputable (f : List α → List α) where
 def TimeComputable.id : TimeComputable (α := α) id where
   tm := idComputer
   time_bound _ := 1
-  outputsFunInTime _ := ⟨1, le_refl 1, RelatesInSteps.single rfl⟩
+  outputsFunInTime _ := ⟨1, le_rfl, RelatesInSteps.single rfl⟩
 
 /--
 Time bounds for `compComputer`.
@@ -486,13 +483,7 @@ noncomputable def PolyTimeComputable.comp
     simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · have : hg.time_bound (max 1 n + hf.time_bound n)
-              ≤ hg.time_bound (1 + n + hf.poly.eval n) := by
-        apply h_mono
-        apply add_le_add
-        · omega -- lia fails
-        · exact hf.bounds n
-      exact le_trans this (hg.bounds _)
+    · exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (hg.bounds _)
 
 end PolyTimeComputable
 
