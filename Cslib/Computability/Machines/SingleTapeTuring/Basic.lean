@@ -208,8 +208,8 @@ def idComputer : SingleTapeTM α where
 /--
 A Turing machine computing the composition of two other Turing machines.
 
-If f and g are computed by turing machines `tm1` and `tm2`
-then we can construct a turing machine which computes g ∘ f by first running `tm1`
+If f and g are computed by Turing machines `tm1` and `tm2`
+then we can construct a Turing machine which computes g ∘ f by first running `tm1`
 and then, when `tm1` halts, transitioning to the start state of `tm2` and running `tm2`.
 -/
 def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
@@ -334,9 +334,7 @@ Simulation for the second phase of the composed computer.
 When the second machine runs from start to halt, the composed machine
 runs from Sum.inr tm2.q₀ to halt.
 -/
-private theorem comp_right_relatesWithinSteps
-    (intermediate output : List α)
-    (t : ℕ)
+private theorem comp_right_relatesWithinSteps (intermediate output : List α) (t : ℕ)
     (htm2 :
       RelatesWithinSteps tm2.TransitionRelation
         (tm2.initCfg intermediate)
@@ -398,9 +396,7 @@ this is to ensure that if the first machine returns an output
 which is shorter than the maximum possible length of output for that input size,
 then the time bound for the second machine still holds for that shorter input to the second machine.
 -/
-def TimeComputable.comp
-    {f g : List α → List α}
-    (hf : TimeComputable f) (hg : TimeComputable g)
+def TimeComputable.comp {f g : List α → List α} (hf : TimeComputable f) (hg : TimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     (TimeComputable (g ∘ f)) where
   tm := compComputer hf.tm hg.tm
@@ -473,8 +469,8 @@ noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id wher
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
-noncomputable def PolyTimeComputable.comp
-    {f g : List α → List α} (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
+noncomputable def PolyTimeComputable.comp {f g : List α → List α}
+    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
