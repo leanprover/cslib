@@ -176,13 +176,11 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
 theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
-  simp only [Terminating]
-  convert WellFounded.transGen ht using 1
-  grind [transGen_swap, WellFounded.transGen]
+  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
+  grind [transGen_swap]
 
 theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
-  simp only [Terminating]
-  convert @WellFounded.ofTransGen α (Function.swap r) using 2
+  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
   grind [transGen_swap]
 
 theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r :=
