@@ -434,7 +434,7 @@ theorem bisimilarity_is_congruence
 /-- Bisimilarity is a congruence in CCS. -/
 instance bisimilarityCongruence :
     Congruence (Process Name Constant) (Bisimilarity (lts (defs := defs))) where
-  is_congruence := bisimilarity_is_congruence
+  covariant := ⟨by grind [Covariant, bisimilarity_is_congruence]⟩
 
 end CCS
 

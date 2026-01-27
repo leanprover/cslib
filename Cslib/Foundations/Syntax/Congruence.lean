@@ -7,14 +7,14 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Syntax.Context
+public import Mathlib.Algebra.Order.Monoid.Unbundled.Defs
 
 @[expose] public section
 
 namespace Cslib
 
 /-- An equivalence relation preserved by all contexts. -/
-class Congruence (α : Sort*) [HasContext α] (r : α → α → Prop) extends IsEquiv α r where
-  /-- Equivalence is preserved by contexts. -/
-  is_congruence (a b : α) (c : HasContext.Context α) : r a b → r c[a] c[b]
+class Congruence (α : Type*) [HasContext α] (r : α → α → Prop) extends
+  IsEquiv α r, covariant : CovariantClass (HasContext.Context α) α (·[·]) r
 
 end Cslib
