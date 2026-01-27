@@ -156,6 +156,11 @@ theorem Bisimilarity.eqv :
     trans := Bisimilarity.trans
   }
 
+instance : IsEquiv State (Bisimilarity lts) where
+  refl := Bisimilarity.refl
+  symm _ _ := Bisimilarity.symm
+  trans _ _ _ := Bisimilarity.trans
+
 /-- The union of two bisimulations is a bisimulation. -/
 @[scoped grind .]
 theorem Bisimulation.union (hrb : lts.IsBisimulation r) (hsb : lts.IsBisimulation s) :
