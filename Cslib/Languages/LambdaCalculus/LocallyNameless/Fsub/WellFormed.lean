@@ -49,8 +49,6 @@ inductive Env.Wf : Env Var → Prop
   | sub : Wf Γ → τ.Wf Γ → X ∉ Γ.dom → Wf (⟨X, Binding.sub τ⟩ :: Γ)
   | ty : Wf Γ → τ.Wf Γ → x ∉ Γ.dom → Wf (⟨x, Binding.ty τ⟩ :: Γ)
 
-attribute [scoped grind! .] Env.Wf.sub Env.Wf.ty
-
 variable {Γ Δ Θ : Env Var} {σ τ τ' γ δ : Ty Var}
 
 open scoped Context in
@@ -167,11 +165,11 @@ open Context List Binding
 lemma narrow (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) :
     Env.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
   induction Γ <;> cases wf_env <;>
-  grind [Ty.Wf.narrow, eq_nil_of_append_eq_nil, cases Env.Wf]
+  grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.narrow]
 
 /-- A context remains well-formed under strengthening. -/
 lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <| Γ ++ Δ := by
-  induction Γ <;> cases wf <;> grind [Ty.Wf.strengthen]
+  induction Γ <;> cases wf <;> grind [Env.Wf.sub, Env.Wf.ty, Ty.Wf.strengthen]
 
 variable [HasFresh Var] in
 /-- A context remains well-formed under substitution (of a well-formed type). -/
