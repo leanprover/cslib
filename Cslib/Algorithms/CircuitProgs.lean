@@ -20,6 +20,7 @@ inductive Circuit (α : Type u) : Type u → Type u where
   | add (id : ℕ) (c₁ c₂ : Circuit α α) : Circuit α α
   | mul (id : ℕ) (c₁ c₂ : Circuit α α) : Circuit α α
   | neg (id : ℕ) (c : Circuit α α) : Circuit α α
+deriving Repr
 
 structure CircuitCosts where
   depth : ℕ
@@ -42,6 +43,7 @@ def circEval (α : Type u) [Add α] [Mul α] [Neg α] (c : Circuit α ι) : ι :
   | .mul _ c₁ c₂ => circEval α c₁ * circEval α c₂
   | .neg _ c => - circEval α c
 
+
 def depthOf (q : Circuit α β) :=
   match q with
   | .const _ c => 0
@@ -56,29 +58,21 @@ def uniqueIDs (q : Circuit α β) (countedIDs : List ℕ) : List ℕ :=
   | .add id x y =>
       let s₁ := uniqueIDs x countedIDs
       let s₂ := uniqueIDs y s₁
-      if id ∉ s₂
-      then
-        id :: s₂
-      else
-        s₂
+      s₂.insert id
   | .mul id x y =>
       let s₁ := uniqueIDs x countedIDs
       let s₂ := uniqueIDs y s₁
-      if id ∉ s₂
-      then id :: s₂
-      else s₂
+      s₂.insert id
   | .neg id x =>
       let s := uniqueIDs x countedIDs
-      if id ∉ s
-      then id :: s
-      else s
-
+      s.insert id
 
 def sizeOf (q : Circuit α β) := (uniqueIDs q []).length
 
 def circModel (α : Type u) [Add α] [Mul α] [Neg α] : Model (Circuit α) CircuitCosts where
   evalQuery q := circEval α q
   cost q := ⟨depthOf q, sizeOf q, uniqueIDs q []⟩
+
 
 open Circuit in
 def exCircuit1 : Prog (Circuit Bool) Bool := do
@@ -98,17 +92,28 @@ def exCircuit2 : Prog (Circuit ℚ) ℚ := do
   let z := add 2 x y
   mul 4 z z
 
+
 #eval exCircuit2.eval (circModel ℚ)
 #eval exCircuit2.time (circModel ℚ)
 
 open Circuit in
-def exCircuit3 (x y : Circuit ℚ ℚ) : Prog (Circuit ℚ) ℚ := do
+def exCircuit3 : Prog (Circuit ℚ) ℚ := do
+  let x := const 0 (1 : ℚ)
+  let y := const 1 (2 : ℚ)
+  let z := add 2 x y
+  mul 4 z z
+
+#eval exCircuit2.eval (circModel ℚ)
+#eval exCircuit2.time (circModel ℚ)
+
+open Circuit in
+def exCircuit4 (x y : Circuit ℚ ℚ) : Prog (Circuit ℚ) ℚ := do
   let z := add 2 x y
   let w := mul 3 x y
   mul 4 z w
 
-#eval (exCircuit3 (.const 0 (1 : ℚ)) (.const 1 (21 : ℚ))).eval (circModel ℚ)
-#eval (exCircuit3 (.const 0 (1 : ℚ)) (.const 1 (21 : ℚ))).time (circModel ℚ)
+#eval (exCircuit4 (.const 0 (1 : ℚ)) (.const 1 (21 : ℚ))).eval (circModel ℚ)
+#eval (exCircuit4 (.const 0 (1 : ℚ)) (.const 1 (21 : ℚ))).time (circModel ℚ)
 
 
 open Circuit in
@@ -126,6 +131,61 @@ def execCircAnd (x : Fin n → Circuit Bool Bool) : Prog (Circuit Bool) Bool := 
 #eval (execCircAnd ![.const 0 true, .const 1 true, .const 2 true]).eval (circModel Bool)
 #eval (execCircAnd ![.const 0 true, .const 1 true, .const 2 true]).time (circModel Bool)
 
+
+section CircuitQuery
+
+-- Another query type that reduces to Circuit queries. automates identification of nodes
+
+inductive CircuitQuery (α : Type u) : Type u → Type u where
+  | const (x : α) : CircuitQuery α (Circuit α α)
+  | add (c₁ c₂ : CircuitQuery α (Circuit α α)) : CircuitQuery α (Circuit α α)
+  | mul (c₁ c₂ : CircuitQuery α (Circuit α α)) : CircuitQuery α (Circuit α α)
+  | neg (c : CircuitQuery α (Circuit α α)) : CircuitQuery α (Circuit α α)
+
+def circQueryEvalAux (α : Type u) (id : ℕ)
+  (c : CircuitQuery α ι) : ι :=
+  match c with
+  | .const x => Circuit.const id x
+  | .add c₁ c₂ => Circuit.add id (circQueryEvalAux α (id + 1) c₁) (circQueryEvalAux α (id + 2) c₂)
+  | .mul c₁ c₂ => Circuit.add id (circQueryEvalAux α (id + 1) c₁) (circQueryEvalAux α (id + 2) c₂)
+  | .neg c => Circuit.neg id (circQueryEvalAux α (id + 1) c)
+
+def sizeCircQuery (c : CircuitQuery α (Circuit α β)) : CircuitCosts :=
+  let c' := circQueryEvalAux α 0 c
+  ⟨depthOf c', sizeOf c', uniqueIDs c' []⟩
+
+def circQueryModel (α : Type u) [Add α] [Mul α] [Neg α] : Model (CircuitQuery α) CircuitCosts where
+  evalQuery q := circQueryEvalAux α 0 q
+  cost q := match q with
+    | .const x => sizeCircQuery (.const x)
+    | .add c₁ c₂ => sizeCircQuery (.add c₁ c₂)
+    | .mul c₁ c₂ => sizeCircQuery (.mul c₁ c₂)
+    | .neg c => sizeCircQuery (.neg c)
+
+
+def reduceToCirc {α} [iadd : Add α] [imul : Mul α] [ineg : Neg α]
+  (P : Prog (CircuitQuery α) (Circuit α α)) : Prog (Circuit α) α := do
+  P.eval (circQueryModel α)
+
+open CircuitQuery in
+def ex5 : Prog (CircuitQuery ℚ) (Circuit ℚ ℚ) := do
+  let x := const (1 : ℚ)
+  let y := const (2 : ℚ)
+  let z := add x y
+  mul z z
+
+
+#eval ex5.eval (circQueryModel ℚ)
+#eval ex5.time (circQueryModel ℚ)
+
+open CircuitQuery in
+def ex6 (a b : CircuitQuery ℚ (Circuit ℚ ℚ)) : Prog (CircuitQuery ℚ) (Circuit ℚ ℚ) := do
+  let x := a
+  let y := b
+  let z := add x y
+  mul z z
+
+end CircuitQuery
 end Prog
 
 end Algorithms

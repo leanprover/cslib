@@ -120,10 +120,11 @@ end TimeM
 
 section Reduction
 
-structure Reduction (Q Q' : Type u → Type u) where
-  reduce : Q' α → Prog Q α
+structure Reduction (Q₁ Q₂ : Type u → Type u) where
+  reduce : Q₁ α → Prog Q₂ α
 
-
+def reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
+    P.liftM red.reduce
 
 
 end Reduction

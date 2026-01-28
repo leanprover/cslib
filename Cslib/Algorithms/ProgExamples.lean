@@ -203,11 +203,11 @@ lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n)
       unfold linearSearchAux
       split_ifs with h_cond
       · simp_all
-      · unfold Prog.eval
-        simp_all
-        split_ifs with h_find
-        · simp [Prog.eval]
-        · sorry
+      · simp [eval,liftBind]
+        unfold Prog.eval
+        simp_all only [ge_iff_le, nonpos_iff_eq_zero, Nat.add_eq_zero_iff, one_ne_zero, and_false,
+          not_false_eq_true, bind, FreeM.lift_def, pure, zero_add, FreeM.liftBind_bind,
+          FreeM.pure_bind]
 
 lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
   ∀ x : α, x ∉ v → (linearSearch v x).eval VecSearch_Nat = false := by
