@@ -215,6 +215,13 @@ theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
     ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
 
+/-- The composition of two executions is an execution. -/
+theorem LTS.IsExecution.comp
+    {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
+    (h1 : lts.IsExecution s μs1 r ss1) (h2 : lts.IsExecution r μs2 t ss2) :
+    lts.IsExecution s (μs1 ++ μs2) t (ss1 ++ ss2.drop 1) := by
+  use by grind, by grind, by grind, by grind
+
 /-- An execution can be split at any intermediate state into two executions. -/
 theorem LTS.IsExecution.split
     {lts : LTS State Label} {s t : State} {μs : List Label} {ss : List State}
@@ -317,20 +324,17 @@ def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence L
 
 variable {lts : LTS State Label}
 
-open scoped ωSequence in
+open ωSequence
+
 /-- Any finite execution extracted from an infinite execution is valid. -/
+theorem LTS.ωTr_isExecution (h : lts.ωTr ss μs) {n m : ℕ} (hnm : n ≤ m) :
+    lts.IsExecution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
+  grind
+
+/-- Any multistep transition extracted from an infinite execution is valid. -/
 theorem LTS.ωTr_mTr (h : lts.ωTr ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.MTr (ss n) (μs.extract n m) (ss m) := by
-  by_cases heq : n = m
-  case pos => grind
-  case neg =>
-    cases m
-    case zero => grind
-    case succ m =>
-      have : lts.MTr (ss n) (μs.extract n m) (ss m) := ωTr_mTr (hnm := by grind) h
-      grind [MTr.comp]
-
-open ωSequence
+  grind [LTS.ωTr_isExecution h hnm]
 
 /-- Prepends an infinite execution with a transition. -/
 theorem LTS.ωTr.cons (htr : lts.Tr s μ t) (hωtr : lts.ωTr ss μs) (hm : ss 0 = t) :
