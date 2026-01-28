@@ -1,5 +1,7 @@
 module  -- shake: keep-all
 
+public import Cslib.Algorithms.MergeSort.MergeSort
+public import Cslib.Algorithms.QueryModel
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
@@ -28,6 +30,7 @@ public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
+public import Cslib.Foundations.Control.Monad.Time
 public import Cslib.Foundations.Data.FinFun
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.Nat.Segment

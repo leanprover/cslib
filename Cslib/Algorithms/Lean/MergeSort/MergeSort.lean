@@ -6,6 +6,7 @@ Authors: Sorrachai Yingchareonthawornhcai
 
 module
 
+public import Cslib.Init
 public import Cslib.Algorithms.Lean.TimeM
 public import Mathlib.Data.Nat.Cast.Order.Ring
 public import Mathlib.Data.Nat.Lattice
