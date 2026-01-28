@@ -358,40 +358,54 @@ theorem LTS.ωTr.append
   · grind [drop_append_of_ge_length]
 
 open Nat in
-/-- Concatenating an infinite sequence of finite executions that connect an infinite sequence
-of intermediate states. -/
-theorem LTS.ωTr.flatten [Inhabited Label] {ts : ωSequence State} {μls : ωSequence (List Label)}
-    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
-    ∃ ss, lts.ωTr ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
+/-- Concatenating an infinite sequence of finite executions. -/
+theorem LTS.IsExecution.flatten [Inhabited Label]
+    {ts : ωSequence State} {μls : ωSequence (List Label)} {sls : ωSequence (List State)}
+    (hexec : ∀ k, lts.IsExecution (ts k) (μls k) (ts (k + 1)) (sls k))
+    (hpos : ∀ k, (μls k).length > 0) :
+    ∃ ss, lts.ωTr ss μls.flatten ∧
+      ∀ k, ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) = (sls k).take (μls k).length := by
   have : Inhabited State := by exact {default := ts 0}
-  choose sls h_sls using fun k ↦ LTS.mTr_isExecution (hmtr k)
   let segs := ωSequence.mk fun k ↦ (sls k).take (μls k).length
   have h_len : μls.cumLen = segs.cumLen := by ext k; induction k <;> grind
   have h_pos (k : ℕ) : (segs k).length > 0 := by grind [List.eq_nil_iff_length_eq_zero]
   have h_mono := cumLen_strictMono h_pos
   have h_zero := cumLen_zero (ls := segs)
   have h_seg0 (k : ℕ) : (segs k)[0]! = ts k := by grind
-  refine ⟨segs.flatten, ?_, by simp [h_len, flatten_def, segment_idem h_mono, h_seg0]⟩
-  intro n
-  simp only [h_len, flatten_def]
-  simp only [LTS.IsExecution] at h_sls
-  have := segment_lower_bound h_mono h_zero n
-  by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
-  · have := segment_range_val h_mono (by grind) h_n
-    have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length := by
+  use segs.flatten
+  split_ands
+  · intro n
+    simp only [h_len, flatten_def]
+    simp only [LTS.IsExecution] at hexec
+    have := segment_lower_bound h_mono h_zero n
+    by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
+    · have := segment_range_val h_mono (by grind) h_n
+      have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length :=
+        by grind
       grind
-    grind
-  · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
-      grind [segment_upper_bound h_mono h_zero n]
-    have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
-      simp [← h1, segment_idem h_mono]
-    have : n + 1 - segs.cumLen (segment segs.cumLen n) = (μls (segment segs.cumLen n)).length := by
+    · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
+        grind [segment_upper_bound h_mono h_zero n]
+      have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
+        simp [← h1, segment_idem h_mono]
+      have : n + 1 - segs.cumLen (segment segs.cumLen n) = (μls (segment segs.cumLen n)).length :=
+        by grind
+      have h3 : ts (segment segs.cumLen n + 1) =
+          (sls (segment segs.cumLen n))[n + 1 - segs.cumLen (segment segs.cumLen n)]! := by
+        grind
+      simp [h1, h2, h_seg0, h3]
       grind
-    have h3 : ts (segment segs.cumLen n + 1) =
-        (sls (segment segs.cumLen n))[n + 1 - segs.cumLen (segment segs.cumLen n)]! := by
-      grind
-    simp [h1, h2, h_seg0, h3]
-    grind
+  · simp [h_len, extract_flatten h_pos, segs]
+
+/-- Concatenating an infinite sequence of multistep transitions. -/
+theorem LTS.ωTr.flatten [Inhabited Label] {ts : ωSequence State} {μls : ωSequence (List Label)}
+    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
+    ∃ ss, lts.ωTr ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
+  choose sls h_sls using fun k ↦ LTS.mTr_isExecution (hmtr k)
+  obtain ⟨ss, h_ss, h_seg⟩ := LTS.IsExecution.flatten h_sls hpos
+  use ss, h_ss
+  intro k
+  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length := by grind
+  grind [List.getElem_of_eq (h_seg k) h1]
 
 end ωMultiStep
 
