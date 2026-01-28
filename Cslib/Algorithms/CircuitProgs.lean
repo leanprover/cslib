@@ -54,7 +54,7 @@ def depthOf (q : Circuit α β) :=
 def uniqueIDs (q : Circuit α β) (countedIDs : List ℕ) : List ℕ :=
   match q with
   | .const id _ =>
-      if id ∉ countedIDs then id :: countedIDs else countedIDs
+      countedIDs.insert id
   | .add id x y =>
       let s₁ := uniqueIDs x countedIDs
       let s₂ := uniqueIDs y s₁
@@ -185,7 +185,11 @@ def ex6 (a b : CircuitQuery ℚ (Circuit ℚ ℚ)) : Prog (CircuitQuery ℚ) (Ci
   let z := add x y
   mul z z
 
+#eval (ex6 (.const 0) (.const 1)).eval (circQueryModel ℚ)
+#eval (ex6 (.const 0) (.const 1)).time (circQueryModel ℚ)
+
 end CircuitQuery
+
 end Prog
 
 end Algorithms
