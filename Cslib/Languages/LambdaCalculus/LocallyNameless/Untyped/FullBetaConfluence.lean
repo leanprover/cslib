@@ -92,7 +92,7 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
     have : L.app R ↠βᶠ L'.app R := by grind
-    have :  L'.app R ↠βᶠ L'.app R' := by grind
+    have : L'.app R ↠βᶠ L'.app R' := by grind
     grind [ReductionSystem.MRed.trans]
   case abs t t' xs _ ih =>
     apply redex_abs_cong xs
