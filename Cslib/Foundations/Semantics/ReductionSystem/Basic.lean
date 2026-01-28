@@ -264,7 +264,7 @@ macro_rules
   This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
 
   ```
-  @[reduction rs "ₙ", simp]
+  @[reduction_sys rs "ₙ", simp]
   def PredReduction (a b : ℕ) : Prop := a = b + 1
   ```
 -/
