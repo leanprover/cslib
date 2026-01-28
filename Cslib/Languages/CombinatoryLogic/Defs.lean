@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
-public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 @[expose] public section
 

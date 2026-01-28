@@ -8,8 +8,6 @@ module
 
 public import Cslib.Init
 public import Cslib.Foundations.Data.Relation
-public import Mathlib.Logic.Relation
-public import Mathlib.Order.WellFounded
 public import Mathlib.Util.Notation3
 
 @[expose] public section
