@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Init
-import Mathlib.Order.Notation
-import Mathlib.Order.Defs.Unbundled
-import Mathlib.Data.Multiset.Defs
-import Mathlib.Data.Multiset.Fold
-import Mathlib.Data.Multiset.AddSub
+module
+
+public import Cslib.Init
+public import Mathlib.Order.Notation
+public import Mathlib.Order.Defs.Unbundled
+public import Mathlib.Data.Multiset.Defs
+public import Mathlib.Data.Multiset.Fold
+public import Mathlib.Data.Multiset.AddSub
+
+@[expose] public section
 
 /-! # Classical Linear Logic
 
@@ -387,8 +391,7 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
      show a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)} = ((a ⊗ (b ⊗ c)) ::ₘ {a⫠} + ({b⫠} + {c⫠})) by grind ▸
      (.tensor .ax <| .tensor .ax .ax)⟩
 
-instance {Γ : Sequent Atom} :
-    IsSymm (Proposition Atom) (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
+instance {Γ : Sequent Atom} : Std.Symm (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
   symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
 
 /-- ⊕ is idempotent. -/

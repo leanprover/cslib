@@ -4,14 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Basic
+module
+
+public import Cslib.Computability.Automata.NA.Basic
+
+@[expose] public section
 
 /-! # Product of nondeterministic automata. -/
 
 namespace Cslib.Automata.NA
 
 open Set List Cslib.ωSequence
-open scoped Run
+open scoped LTS
 
 variable {Symbol I : Type*} {State : I → Type*}
 
@@ -31,12 +35,12 @@ theorem iProd_run_iff {na : (i : I) → NA (State i) Symbol}
   constructor
   · rintro ⟨h_start, h_trans⟩
     simp only [mem_iInter] at h_start
-    grind
+    grind [Run]
   · intro h
     constructor
     · simp only [mem_iInter]
-      grind
+      grind [Run]
     · intro n i
-      exact (h i).right n
+      exact (h i).trans n
 
 end Cslib.Automata.NA

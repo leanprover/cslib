@@ -1,0 +1,25 @@
+name: Shellcheck
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/**/*.sh'
+  pull_request:
+    paths:
+      - 'scripts/**/*.sh'
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    name: Check shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+
+      - name: Run shellcheck
+        run: find scripts -name '*.sh' -type f -print0 | xargs -0 shellcheck --severity=warning

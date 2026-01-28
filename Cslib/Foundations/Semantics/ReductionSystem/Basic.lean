@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Init
-import Mathlib.Logic.Relation
-import Mathlib.Order.WellFounded
-import Mathlib.Util.Notation3
+module
+
+public import Cslib.Init
+public import Cslib.Foundations.Data.Relation
+public import Mathlib.Logic.Relation
+public import Mathlib.Order.WellFounded
+public import Mathlib.Util.Notation3
+
+@[expose] public section
 
 /-!
 # Reduction System
@@ -61,7 +65,7 @@ theorem ReductionSystem.MRed.cases_iff {a b : Term} :
   Relation.ReflTransGen.cases_tail_iff rs.Red a b
 
 @[induction_eliminator]
-private theorem ReductionSystem.MRed.induction_on {motive : ∀ {x y}, rs.MRed x y → Prop}
+theorem ReductionSystem.MRed.induction_on {motive : ∀ {x y}, rs.MRed x y → Prop}
     (refl : ∀ t : Term, motive (MRed.refl rs t))
     (step : ∀ (a b c : Term) (hab : rs.MRed a b) (hbc : rs.Red b c), motive hab →
       motive (MRed.step rs hab hbc))
@@ -107,7 +111,7 @@ theorem ReductionSystem.Equiv.ofMRed {a b : Term} (h : rs.MRed a b) : rs.Equiv a
   | step a b c hab hbc ih => apply Equiv.trans rs ih (single rs hbc)
 
 @[induction_eliminator]
-private theorem ReductionSystem.Equiv.induction_on {motive : ∀ {x y}, rs.Equiv x y → Prop}
+theorem ReductionSystem.Equiv.induction_on {motive : ∀ {x y}, rs.Equiv x y → Prop}
     (rel : ∀ (a b : Term) (hab : rs.Red a b), motive (Equiv.single rs hab))
     (refl : ∀ t : Term, motive (Equiv.refl rs t))
     (symm : ∀ (a b : Term) (hab : rs.Equiv a b), motive hab → motive (Equiv.symm rs hab))
@@ -154,7 +158,7 @@ end MJoin
 /-- A reduction system has de diamond property when all one-step reduction pairs with a common
 origin are joinable -/
 def ReductionSystem.isDiamond : Prop :=
-  Cslib.Diamond rs.Red
+  Relation.Diamond rs.Red
 
 theorem ReductionSystem.isDiamond_def : rs.isDiamond ↔
     ∀ {a b c : Term}, rs.Red a b → rs.Red a c → rs.Join b c :=
@@ -163,7 +167,7 @@ theorem ReductionSystem.isDiamond_def : rs.isDiamond ↔
 /-- A reduction system is confluent when all multi-step reduction pairs with a common origin are
 multi-step joinable -/
 def ReductionSystem.isConfluent : Prop :=
-  Cslib.Confluence rs.Red
+  Relation.Confluent rs.Red
 
 theorem ReductionSystem.isConfluent_def : rs.isConfluent ↔
     ∀ {a b c : Term}, rs.MRed a b → rs.MRed a c → rs.MJoin b c :=

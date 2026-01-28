@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Hist
-import Cslib.Computability.Automata.NA.Prod
-import Cslib.Foundations.Data.OmegaSequence.Temporal
+module
+
+public import Cslib.Computability.Automata.NA.Hist
+public import Cslib.Computability.Automata.NA.Prod
+public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+@[expose] public section
 
 /-! # Intersection of nondeterministic Buchi automata.
 
@@ -23,7 +27,7 @@ simply because toggling can be easily modeled by the boolean operation `not`.
 namespace Cslib.Automata.NA.Buchi
 
 open Set Prod Filter ωSequence ωAcceptor
-open scoped Run
+open scoped LTS
 
 variable {Symbol : Type*} {State : Bool → Type*}
 
@@ -117,7 +121,7 @@ theorem inter_language_eq :
   · intro h
     choose ss_i h_ss_i using h
     let ss_p : ωSequence (Π i, State i) := fun k i ↦ ss_i i k
-    have h_ss_p : (iProd na).Run xs ss_p := by grind
+    have h_ss_p : (iProd na).Run xs ss_p := by grind [Run]
     have (k : ℕ) (i : Bool) : ss_p k i = ss_i i k := rfl
     obtain ⟨ss, h_run, _⟩ := hist_run_exists h_ss_p
     use ss, h_run

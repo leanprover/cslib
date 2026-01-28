@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Init
-import Mathlib.Computability.Language
+module
+
+public import Cslib.Init
+public import Mathlib.Computability.Language
+
+@[expose] public section
 
 /-!
 # Language (additional definitions and theorems)
@@ -20,10 +24,6 @@ open Set List
 open scoped Computability
 
 variable {α : Type*} {l m : Language α}
-
-@[simp, scoped grind =]
-theorem mem_inf (x : List α) : x ∈ l ⊓ m ↔ x ∈ l ∧ x ∈ m :=
-  Iff.rfl
 
 @[simp]
 theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
@@ -85,5 +85,15 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
       exact ⟨y, h_y, z, h_z, rfl⟩
     · grind [one_def, append_eq_nil_iff]
+
+@[scoped grind =]
+theorem sub_one_kstar : (l - 1)∗ = l∗ := by
+  ext x
+  grind [mem_kstar, mem_kstar_iff_exists_nonempty]
+
+@[scoped grind .]
+theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
+  rw [self_eq_mul_add_iff, mul_one, sub_one_kstar]
+  grind
 
 end Language

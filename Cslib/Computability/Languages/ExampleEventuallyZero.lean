@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Basic
+module
+
+public import Cslib.Computability.Automata.NA.Basic
+
+@[expose] public section
 
 /-!
 # An ω-regular language that is not accepted by any deterministic Buchi automaton
@@ -19,6 +23,8 @@ open Set Function Filter Cslib.ωSequence Cslib.Automata ωAcceptor
 open scoped Computability
 
 namespace Cslib.ωLanguage.Example
+
+open scoped LTS NA
 
 /-- A sequence `xs` is in `eventually_zero` iff `xs k = 0` for all large `k`. -/
 @[scoped grind =]
@@ -42,7 +48,7 @@ theorem eventually_zero_accepted_by_na_buchi :
     use m; intro n h_n
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h_n
     suffices h1 : xs (m + k) = 0 ∧ ss (m + k) = 1 by grind
-    have := h_run.2 m
+    have := h_run.trans m
     induction k <;> grind [NA.Run]
   · intro h
     obtain ⟨m, h_m⟩ := eventually_atTop.mp h

@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Automata.DA.Basic
-import Cslib.Computability.Automata.NA.Basic
-import Cslib.Foundations.Semantics.LTS.FLTSToLTS
+module
+
+public import Cslib.Computability.Automata.DA.Basic
+public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
+
+@[expose] public section
 
 /-! # Translation of Deterministic Automata into Nonodeterministic Automata.
 
@@ -26,7 +30,7 @@ def toNA (a : DA State Symbol) : NA State Symbol :=
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
-open scoped FLTS NA NA.Run in
+open scoped FLTS NA NA.Run LTS in
 @[simp, scoped grind =]
 theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State} :
     a.toNA.Run xs ss ↔ a.run xs = ss := by
@@ -34,7 +38,7 @@ theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence
   · rintro _
     ext n
     induction n <;> grind [NA.Run]
-  · grind
+  · grind [NA.Run]
 
 namespace FinAcc
 

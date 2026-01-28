@@ -4,14 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Bisimulation
-import Cslib.Languages.CCS.Semantics
+module
+
+public import Cslib.Foundations.Semantics.LTS.Bisimulation
+public import Cslib.Languages.CCS.Semantics
+
+@[expose] public section
 
 /-! # Behavioural theory of CCS
 
 ## Main results
 
-- `CCS.bisimilarity_congr`: bisimilarity is a congruence in CCS
+- `CCS.bisimilarityCongruence`: bisimilarity is a congruence in CCS.
 
 Additionally, some standard laws of bisimilarity for CCS, including:
 - `CCS.bisimilarity_par_nil`: P | 𝟎 ~ P.
@@ -25,9 +29,9 @@ section CCS.BehaviouralTheory
 
 variable {Name : Type u} {Constant : Type v} {defs : Constant → CCS.Process Name Constant → Prop}
 
-open CCS CCS.Process CCS.Act
-
 namespace CCS
+
+open Process Act Act.Co Context
 
 attribute [local grind] Tr
 
@@ -410,8 +414,8 @@ theorem bisimilarity_congr_par :
         grind
 
 /-- Bisimilarity is a congruence in CCS. -/
-theorem bisimilarity_congr
-  (c : Context Name Constant) (p q : Process Name Constant) (h : p ~[lts (defs := defs)] q) :
+theorem bisimilarity_is_congruence
+  (p q : Process Name Constant) (c : Context Name Constant) (h : p ~[lts (defs := defs)] q) :
   (c.fill p) ~[lts (defs := defs)] (c.fill q) := by
   induction c with
   | parR r c _ =>
@@ -426,6 +430,11 @@ theorem bisimilarity_congr
       _ ~[lts (defs := defs)] (c.choiceR r |>.fill q) := by grind [bisimilarity_choice_comm]
   | _ => grind [bisimilarity_congr_pre, bisimilarity_congr_par,
                 bisimilarity_congr_choice, bisimilarity_congr_res]
+
+/-- Bisimilarity is a congruence in CCS. -/
+instance bisimilarityCongruence :
+    Congruence (Process Name Constant) (Bisimilarity (lts (defs := defs))) where
+  covariant := ⟨by grind [Covariant, bisimilarity_is_congruence]⟩
 
 end CCS
 

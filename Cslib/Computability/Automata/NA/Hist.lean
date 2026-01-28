@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Basic
+module
+
+public import Cslib.Computability.Automata.NA.Basic
+
+@[expose] public section
 
 /-! # Adding a history states to a nondeterministic automaton.
 
@@ -15,7 +19,7 @@ state. But the evolution of the original state is not constrained by the history
 namespace Cslib.Automata.NA
 
 open Prod ωSequence
-open scoped Run
+open scoped LTS
 
 variable {Symbol State Hist : Type*}
 
@@ -36,7 +40,7 @@ theorem hist_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State × Hist)}
     (h_run : (na.addHist start' tr').Run xs ss) : na.Run xs (ss.map fst) := by
   obtain ⟨h_start, h_trans⟩ := h_run
   simp only [addHist] at h_trans
-  grind
+  grind [Run]
 
 /-- Given a run of the original automaton, `makeHist` builds a run of the history state. -/
 @[scoped grind =]
@@ -52,7 +56,7 @@ theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
   use ⟨fun n ↦ (ss n, makeHist start' tr' xs ss n)⟩
   constructor
   · simp only [addHist]
-    grind
+    grind [Run]
   · grind
 
 end Cslib.Automata.NA

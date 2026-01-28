@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.CombinatoryLogic.Defs
+module
+
+public import Cslib.Foundations.Data.Relation
+public import Cslib.Languages.CombinatoryLogic.Defs
+
+@[expose] public section
 
 /-!
 # SKI reduction is confluent
@@ -40,7 +44,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red MRed ReductionSystem
+open Red MRed ReductionSystem Relation
 
 /-- A reduction step allowing simultaneous reduction of disjoint redexes -/
 inductive ParallelReduction : SKI → SKI → Prop
@@ -92,11 +96,11 @@ theorem reflTransGen_parallelReduction_mRed :
     Relation.ReflTransGen ParallelReduction = RedSKI.MRed := by
   ext a b
   constructor
-  · apply Relation.reflTransGen_minimal
+  · apply Relation.reflTransGen_of_transitive_reflexive
     · exact fun _ => by rfl
     · exact Relation.transitive_reflTransGen
     · exact @mRed_of_parallelReduction
-  · apply Relation.reflTransGen_minimal
+  · apply Relation.reflTransGen_of_transitive_reflexive
     · exact Relation.reflexive_reflTransGen
     · exact Relation.transitive_reflTransGen
     · exact fun a a' h => Relation.ReflTransGen.single (parallelReduction_of_red h)
@@ -227,7 +231,7 @@ theorem parallelReduction_diamond (a a₁ a₂ : SKI) (h₁ : a ⇒ₚ a₁) (h�
 
 theorem join_parallelReduction_equivalence :
     Equivalence (Relation.Join (Relation.ReflTransGen ParallelReduction)) :=
-  church_rosser_of_diamond parallelReduction_diamond
+  Confluent.equivalence_join_reflTransGen <| Diamond.toConfluent (parallelReduction_diamond _ _ _)
 
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem commonReduct_equivalence : Equivalence CommonReduct := by

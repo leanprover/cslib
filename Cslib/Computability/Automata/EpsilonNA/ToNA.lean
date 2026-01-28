@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Computability.Automata.EpsilonNA.Basic
+module
+
+public import Cslib.Computability.Automata.EpsilonNA.Basic
+
+@[expose] public section
 
 /-! # Translation of εNA into NA -/
 
@@ -13,14 +17,13 @@ namespace Cslib
 /-- Converts an `LTS` with Option labels into an `LTS` on the carried label type, by removing all
 ε-transitions. -/
 @[local grind =]
-private def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
+def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
   Tr s μ s' := lts.Tr s (some μ) s'
 
 @[local grind .]
 private lemma LTS.noε_saturate_tr
   {lts : LTS State (Option Label)} {h : μ = some μ'} :
   lts.saturate.Tr s μ s' ↔ lts.saturate.noε.Tr s μ' s' := by
-  simp only [LTS.noε]
   grind
 
 @[scoped grind =]

@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Ching-Tsun Chou, Chris Henson.
 -/
 
-import Cslib.Computability.Automata.Acceptors.Acceptor
-import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
-import Cslib.Foundations.Data.OmegaSequence.InfOcc
-import Cslib.Foundations.Semantics.LTS.Basic
+module
+
+public import Cslib.Computability.Automata.Acceptors.Acceptor
+public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
+public import Cslib.Foundations.Data.OmegaSequence.InfOcc
+public import Cslib.Foundations.Semantics.LTS.Basic
+
+@[expose] public section
 
 /-! # Nondeterministic Automaton
 
@@ -41,27 +45,9 @@ namespace NA
 variable {State Symbol : Type*}
 
 /-- Infinite run. -/
-def Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) :=
-  ss 0 ∈ na.start ∧ ∀ n, na.Tr (ss n) (xs n) (ss (n + 1))
-
--- The following lemmas help `grind` deal with the definition of `NA.Run` better.
-section NARunGrind
-
-variable {na : NA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State}
-
-@[scoped grind <=]
-lemma Run.mk (h₁ : ss 0 ∈ na.start) (h₂ : ∀ n, na.Tr (ss n) (xs n) (ss (n + 1))) : Run na xs ss
-  := ⟨h₁, h₂⟩
-
-@[scoped grind →]
-lemma Run.start (run : Run na xs ss) : ss 0 ∈ na.start :=
-  run.left
-
-@[scoped grind =>]
-lemma Run.trans (run : Run na xs ss) : ∀ n, na.Tr (ss n) (xs n) (ss (n + 1)) :=
-  run.right
-
-end NARunGrind
+structure Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) where
+  start : ss 0 ∈ na.start
+  trans : na.ωTr ss xs
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where
