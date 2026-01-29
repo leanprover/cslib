@@ -102,16 +102,16 @@ theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := MRed.single RedSKI <| red_I ..
 theorem MRed.head {a a' : SKI} (b : SKI) (h : a ↠ a') : (a ⬝ b) ↠ (a' ⬝ b) := by
   induction h with
   | refl => apply MRed.refl
-  | @tail a' a'' _ ha'' ih =>
-    apply Relation.ReflTransGen.tail (b := a' ⬝ b) ih
-    exact Red.red_head a' a'' b ha''
+  | step a a' a'' _ ha' ih =>
+    apply MRed.step RedSKI ih
+    exact Red.red_head a' a'' b ha'
 
 theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠ b') : (a ⬝ b) ↠ (a ⬝ b') := by
   induction h with
   | refl => apply MRed.refl
-  | @tail b' b'' _ hb'' ih =>
-    apply Relation.ReflTransGen.tail (b := a ⬝ b') ih
-    exact Red.red_tail a b' b'' hb''
+  | step b b' b'' _ hb' ih =>
+    apply MRed.step RedSKI ih
+    exact Red.red_tail a b' b'' hb'
 
 lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
     (a ⬝ b) ↠ (a' ⬝ b') :=
