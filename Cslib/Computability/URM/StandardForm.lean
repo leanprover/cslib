@@ -80,7 +80,7 @@ end Program
 theorem straight_line_IsStandardForm {p : Program} (hsl : p.IsStraightLine) :
     p.IsStandardForm := by
   intro instr hinstr
-  exact Instr.JumpsBoundedBy_of_nonJump (hsl instr hinstr) p.length
+  exact Instr.jumpsBoundedBy_of_nonJump (hsl instr hinstr) p.length
 
 /-! ## Behavioral Equivalence
 

@@ -108,7 +108,7 @@ instance (len : ℕ) (instr : Instr) : Decidable (instr.JumpsBoundedBy len) := b
   cases instr <;> simp only [JumpsBoundedBy] <;> infer_instance
 
 /-- Non-jumping instructions have bounded jumps for any length. -/
-theorem JumpsBoundedBy_of_nonJump {instr : Instr} (h : ¬instr.IsJump)
+theorem jumpsBoundedBy_of_nonJump {instr : Instr} (h : ¬instr.IsJump)
     (len : ℕ) : instr.JumpsBoundedBy len := by
   cases instr with
   | J _ _ _ => exact absurd trivial h
