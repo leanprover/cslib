@@ -47,7 +47,7 @@ variable (p : Program)
 Each constructor corresponds to one of the four instruction types:
 - `zero`: Execute `Z n` (set register n to 0)
 - `succ`: Execute `S n` (increment register n)
-- `trans`: Execute `T m n` (copy register m to register n)
+- `transfer`: Execute `T m n` (copy register m to register n)
 - `jump_eq`: Execute `J m n q` when registers m and n are equal (jump to q)
 - `jump_ne`: Execute `J m n q` when registers m and n differ (proceed to next)
 -/
@@ -59,7 +59,7 @@ inductive Step : Config → Config → Prop where
   | succ {c : Config} {n : ℕ}
       (h : p[c.pc]? = some (Instr.S n)) :
       Step c ⟨c.pc + 1, c.state.write n (c.state.read n + 1)⟩
-  | trans {c : Config} {m n : ℕ}
+  | transfer {c : Config} {m n : ℕ}
       (h : p[c.pc]? = some (Instr.T m n)) :
       Step c ⟨c.pc + 1, c.state.write n (c.state.read m)⟩
   | jump_eq {c : Config} {m n q : ℕ}
@@ -96,7 +96,7 @@ theorem preserves_register {c c' : Config} {r : ℕ}
     (hr : ∀ instr, p[c.pc]? = some instr → instr.writes_to ≠ some r) :
     c'.state.read r = c.state.read r := by
   cases hstep with
-  | zero hinstr | succ hinstr | trans hinstr =>
+  | zero hinstr | succ hinstr | transfer hinstr =>
     have := hr _ hinstr
     simp only [Instr.writes_to, ne_eq, Option.some.injEq] at this
     exact Function.update_of_ne (Ne.symm this) _ _

@@ -124,8 +124,8 @@ theorem Step.to_standard_form {p : Program} {c c' : Config} (hstep : Step p c c'
     left; exact Step.zero (by simp [Program.getElem?_to_standard_form, hinstr])
   | succ hinstr =>
     left; exact Step.succ (by simp [Program.getElem?_to_standard_form, hinstr])
-  | trans hinstr =>
-    left; exact Step.trans (by simp [Program.getElem?_to_standard_form, hinstr])
+  | transfer hinstr =>
+    left; exact Step.transfer (by simp [Program.getElem?_to_standard_form, hinstr])
   | jump_ne hinstr hne =>
     left
     rename_i m n q
@@ -201,7 +201,7 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
     cases instr with
     | S n' => simp only [Instr.cap_jump, Instr.S.injEq] at hcap; subst hcap; exact Step.succ hinstr'
     | Z _ | T _ _ | J _ _ _ => simp at hcap
-  | trans hinstr =>
+  | transfer hinstr =>
     left
     rw [Program.getElem?_to_standard_form] at hinstr
     simp only [Option.map_eq_some_iff] at hinstr
@@ -209,7 +209,7 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
     cases instr with
     | T m' n' =>
       simp only [Instr.cap_jump, Instr.T.injEq] at hcap
-      obtain ⟨rfl, rfl⟩ := hcap; exact Step.trans hinstr'
+      obtain ⟨rfl, rfl⟩ := hcap; exact Step.transfer hinstr'
     | Z _ | S _ | J _ _ _ => simp at hcap
   | jump_ne hinstr hne =>
     left

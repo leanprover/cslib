@@ -67,7 +67,7 @@ theorem proj_computable (n : ℕ) (k : Fin n) :
     Computable n (fun inputs => Part.some (inputs k)) := by
   use [Instr.T k 0]
   intro inputs
-  rw [single_instr_eval (Step.trans (p := [Instr.T k 0]) rfl)]
+  rw [single_instr_eval (Step.transfer (p := [Instr.T k 0]) rfl)]
   simp [State.output, State.write, State.read, Config.init, State.of_inputs, k.isLt]
 
 /-- The identity/projection function `U₁¹(x) = x` is URM-computable.

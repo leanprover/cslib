@@ -72,7 +72,7 @@ theorem Step.of_nonJumping {p : Program} {c : Config} (hlt : c.pc < p.length)
   cases hp : (p[c.pc]'hlt) with
   | Z n => exact ⟨_, Step.zero (hp ▸ hinstr), rfl⟩
   | S n => exact ⟨_, Step.succ (hp ▸ hinstr), rfl⟩
-  | T m n => exact ⟨_, Step.trans (hp ▸ hinstr), rfl⟩
+  | T m n => exact ⟨_, Step.transfer (hp ▸ hinstr), rfl⟩
   | J _ _ _ => simp [hp, Instr.isJump] at hnonjump
 
 /-- Straight-line programs halt from any starting state, not just Config.init.
