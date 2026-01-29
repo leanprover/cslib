@@ -112,7 +112,7 @@ theorem Step.to_standard_form {p : Program} {c c' : Config} (hstep : Step p c c'
     left; exact Step.succ (by simp [Program.getElem?_to_standard_form, hinstr])
   | transfer hinstr =>
     left; exact Step.transfer (by simp [Program.getElem?_to_standard_form, hinstr])
-  | jump_ne hinstr hne =>
+  | @jump_ne m n q hinstr hne =>
     left
     rename_i m n q
     have hcap : p.to_standard_form[c.pc]? = some (Instr.J m n (min q p.length)) := by
