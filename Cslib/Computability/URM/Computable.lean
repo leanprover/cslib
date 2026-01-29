@@ -39,15 +39,15 @@ def Computable (n : ℕ) (f : (Fin n → ℕ) → Part ℕ) : Prop :=
 namespace Computable
 
 /-- Helper for single-instruction programs: proves eval equals a given value. -/
-private theorem single_instr_eval {instr : Instr} {inputs : List ℕ} {finalState : State}
-    (hstep : Step [instr] (Config.init inputs) ⟨1, finalState⟩) :
-    eval [instr] inputs = Part.some finalState.output := by
-  have h_final_halted : (⟨1, finalState⟩ : Config).isHalted [instr] := by simp
+private theorem single_instr_eval {instr : Instr} {inputs : List ℕ} {finalRegs : Regs}
+    (hstep : Step [instr] (State.init inputs) ⟨1, finalRegs⟩) :
+    eval [instr] inputs = Part.some finalRegs.output := by
+  have h_final_halted : (⟨1, finalRegs⟩ : State).isHalted [instr] := by simp
   apply Part.ext'
   · simp only [eval, Part.map_Dom, Part.some_dom, iff_true]
-    exact ⟨⟨1, finalState⟩, Steps.single hstep, h_final_halted⟩
+    exact ⟨⟨1, finalRegs⟩, Steps.single hstep, h_final_halted⟩
   · intro hHalts _
-    have ⟨hsteps, hhalted⟩ := evalConfig_spec [instr] hHalts
+    have ⟨hsteps, hhalted⟩ := evalState_spec [instr] hHalts
     have heq := Steps.eq_of_halts hsteps hhalted (Steps.single hstep) h_final_halted
     simp only [eval, Part.map_get, Function.comp_apply, heq, Part.get_some]
 
@@ -58,7 +58,7 @@ theorem succ_computable : Computable 1 (fun inputs => Part.some (inputs 0 + 1)) 
   use [Instr.S 0]
   intro inputs
   rw [single_instr_eval (Step.succ (p := [Instr.S 0]) rfl)]
-  simp [State.output, State.write, State.read, Config.init, State.ofInputs]
+  simp [Regs.output, Regs.write, Regs.read, State.init, Regs.ofInputs]
 
 /-- General projection function `Uₖⁿ(x₀, ..., xₙ₋₁) = xₖ` is URM-computable.
 
@@ -68,7 +68,7 @@ theorem proj_computable (n : ℕ) (k : Fin n) :
   use [Instr.T k 0]
   intro inputs
   rw [single_instr_eval (Step.transfer (p := [Instr.T k 0]) rfl)]
-  simp [State.output, State.write, State.read, Config.init, State.ofInputs, k.isLt]
+  simp [Regs.output, Regs.write, Regs.read, State.init, Regs.ofInputs, k.isLt]
 
 /-- The identity/projection function `U₁¹(x) = x` is URM-computable.
 

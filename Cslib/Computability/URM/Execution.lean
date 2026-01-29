@@ -52,49 +52,49 @@ Each constructor corresponds to one of the four instruction types:
 - `jump_ne`: Execute `J m n q` when registers m and n differ (proceed to next)
 -/
 @[grind]
-inductive Step : Config → Config → Prop where
-  | zero {c : Config} {n : ℕ}
-      (h : p[c.pc]? = some (Instr.Z n)) :
-      Step c ⟨c.pc + 1, c.state.write n 0⟩
-  | succ {c : Config} {n : ℕ}
-      (h : p[c.pc]? = some (Instr.S n)) :
-      Step c ⟨c.pc + 1, c.state.write n (c.state.read n + 1)⟩
-  | transfer {c : Config} {m n : ℕ}
-      (h : p[c.pc]? = some (Instr.T m n)) :
-      Step c ⟨c.pc + 1, c.state.write n (c.state.read m)⟩
-  | jump_eq {c : Config} {m n q : ℕ}
-      (h : p[c.pc]? = some (Instr.J m n q))
-      (heq : c.state.read m = c.state.read n) :
-      Step c ⟨q, c.state⟩
-  | jump_ne {c : Config} {m n q : ℕ}
-      (h : p[c.pc]? = some (Instr.J m n q))
-      (hne : c.state.read m ≠ c.state.read n) :
-      Step c ⟨c.pc + 1, c.state⟩
+inductive Step : State → State → Prop where
+  | zero {s : State} {n : ℕ}
+      (h : p[s.pc]? = some (Instr.Z n)) :
+      Step s ⟨s.pc + 1, s.regs.write n 0⟩
+  | succ {s : State} {n : ℕ}
+      (h : p[s.pc]? = some (Instr.S n)) :
+      Step s ⟨s.pc + 1, s.regs.write n (s.regs.read n + 1)⟩
+  | transfer {s : State} {m n : ℕ}
+      (h : p[s.pc]? = some (Instr.T m n)) :
+      Step s ⟨s.pc + 1, s.regs.write n (s.regs.read m)⟩
+  | jump_eq {s : State} {m n q : ℕ}
+      (h : p[s.pc]? = some (Instr.J m n q))
+      (heq : s.regs.read m = s.regs.read n) :
+      Step s ⟨q, s.regs⟩
+  | jump_ne {s : State} {m n q : ℕ}
+      (h : p[s.pc]? = some (Instr.J m n q))
+      (hne : s.regs.read m ≠ s.regs.read n) :
+      Step s ⟨s.pc + 1, s.regs⟩
 
 /-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
-abbrev Steps : Config → Config → Prop := Relation.ReflTransGen (Step p)
+abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
 
 namespace Step
 
 variable {p : Program}
 
-/-- The step relation is deterministic: each configuration has at most one successor. -/
-theorem deterministic {c c' c'' : Config} (h1 : Step p c c') (h2 : Step p c c'') : c' = c'' := by
+/-- The step relation is deterministic: each state has at most one successor. -/
+theorem deterministic {s s' s'' : State} (h1 : Step p s s') (h2 : Step p s s'') : s' = s'' := by
   cases h1 <;> cases h2 <;> grind
 
-/-- A halted configuration has no successor in the step relation. -/
-theorem no_step_of_halted {c c' : Config} (hhalted : c.isHalted p) : ¬Step p c c' := by
+/-- A halted state has no successor in the step relation. -/
+theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬Step p s s' := by
   intro hstep
-  cases hstep <;> grind [Config.isHalted]
+  cases hstep <;> grind [State.isHalted]
 
 /-- A single step preserves registers not written to by the current instruction.
 
 This is a fundamental property of URM execution: each instruction modifies at most
 one register (Z, S, T write to one register; J writes to none). -/
-theorem preserves_register {c c' : Config} {r : ℕ}
-    (hstep : Step p c c')
-    (hr : ∀ instr, p[c.pc]? = some instr → instr.writesTo ≠ some r) :
-    c'.state.read r = c.state.read r := by
+theorem preserves_register {s s' : State} {r : ℕ}
+    (hstep : Step p s s')
+    (hr : ∀ instr, p[s.pc]? = some instr → instr.writesTo ≠ some r) :
+    s'.regs.read r = s.regs.read r := by
   cases hstep with
   | zero hinstr | succ hinstr | transfer hinstr =>
     have := hr _ hinstr
@@ -109,22 +109,22 @@ namespace Steps
 variable {p : Program}
 
 /-- Steps compose transitively. -/
-theorem trans {c₁ c₂ c₃ : Config} (h1 : Steps p c₁ c₂) (h2 : Steps p c₂ c₃) : Steps p c₁ c₃ :=
+theorem trans {s₁ s₂ s₃ : State} (h1 : Steps p s₁ s₂) (h2 : Steps p s₂ s₃) : Steps p s₁ s₃ :=
   Relation.ReflTransGen.trans h1 h2
 
 /-- One step implies multi-step. -/
-theorem single {c c' : Config} (h : Step p c c') : Steps p c c' :=
+theorem single {s s' : State} (h : Step p s s') : Steps p s s' :=
   Relation.ReflTransGen.single h
 
 /-- Zero steps: reflexivity. -/
-theorem refl (c : Config) : Steps p c c :=
+theorem refl (s : State) : Steps p s s :=
   Relation.ReflTransGen.refl
 
 /-- Multi-step execution preserves registers not written by any executed instruction. -/
-theorem preserves_register {c c' : Config} {r : ℕ}
-    (hsteps : Steps p c c')
+theorem preserves_register {s s' : State} {r : ℕ}
+    (hsteps : Steps p s s')
     (hr : ∀ instr, instr ∈ p → instr.writesTo ≠ some r) :
-    c'.state.read r = c.state.read r := by
+    s'.regs.read r = s.regs.read r := by
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl => rfl
   | head hstep _ ih =>
@@ -132,47 +132,47 @@ theorem preserves_register {c c' : Config} {r : ℕ}
     exact Step.preserves_register hstep fun instr hinstr =>
       hr instr (List.mem_of_getElem? hinstr)
 
-/-- If two halted configurations are reachable from the same start, they are equal.
+/-- If two halted states are reachable from the same start, they are equal.
 
 This follows from the determinism of `Step`: any two execution paths from the same
-initial configuration must be prefixes of each other (or identical if both terminate). -/
-theorem eq_of_halts {init c₁ c₂ : Config}
-    (h1 : Steps p init c₁) (hh1 : c₁.isHalted p)
-    (h2 : Steps p init c₂) (hh2 : c₂.isHalted p) : c₁ = c₂ := by
+initial state must be prefixes of each other (or identical if both terminate). -/
+theorem eq_of_halts {init s₁ s₂ : State}
+    (h1 : Steps p init s₁) (hh1 : s₁.isHalted p)
+    (h2 : Steps p init s₂) (hh2 : s₂.isHalted p) : s₁ = s₂ := by
   induction h1 using Relation.ReflTransGen.head_induction_on with
   | refl =>
-    -- c₁ = init, so init is halted
+    -- s₁ = init, so init is halted
     -- By no_step_of_halted, init cannot step, so h2 must also be refl
     cases h2 using Relation.ReflTransGen.head_induction_on with
     | refl => rfl
     | head hstep _ => exact absurd hstep (Step.no_step_of_halted hh1)
-  | head hstep_c hrest ih =>
-    -- init → c → ... → c₁, where hstep_c : Step p init c
+  | head hstep_s hrest ih =>
+    -- init → s → ... → s₁, where hstep_s : Step p init s
     -- init is not halted (it can step)
     cases h2 using Relation.ReflTransGen.head_induction_on with
     | refl =>
-      -- c₂ = init is halted, but init can step - contradiction
-      exact absurd hstep_c (Step.no_step_of_halted hh2)
-    | head hstep_c' hrest' =>
-      -- init → c' → ... → c₂
-      -- By determinism, c = c'
-      have heq : _ = _ := Step.deterministic hstep_c hstep_c'
+      -- s₂ = init is halted, but init can step - contradiction
+      exact absurd hstep_s (Step.no_step_of_halted hh2)
+    | head hstep_s' hrest' =>
+      -- init → s' → ... → s₂
+      -- By determinism, s = s'
+      have heq : _ = _ := Step.deterministic hstep_s hstep_s'
       subst heq
       exact ih hrest'
 
 end Steps
 
-/-- A program halts on given inputs if there exists a halted configuration reachable from
-the initial configuration. -/
+/-- A program halts on given inputs if there exists a halted state reachable from
+the initial state. -/
 def Halts (inputs : List ℕ) : Prop :=
-  ∃ c, Steps p (Config.init inputs) c ∧ c.isHalted p
+  ∃ s, Steps p (State.init inputs) s ∧ s.isHalted p
 
 /-- A program diverges on given inputs if it does not halt. -/
 def Diverges (inputs : List ℕ) : Prop := ¬Halts p inputs
 
 /-- A program halts on given inputs with a specific result in R[0]. -/
 def HaltsWithResult (inputs : List ℕ) (result : ℕ) : Prop :=
-  ∃ c, Steps p (Config.init inputs) c ∧ c.isHalted p ∧ c.state.output = result
+  ∃ s, Steps p (State.init inputs) s ∧ s.isHalted p ∧ s.regs.output = result
 
 /-- Notation for halting: `p ↓ inputs` means program `p` halts on `inputs`. -/
 scoped notation:50 p " ↓ " inputs:51 => Halts p inputs
@@ -189,54 +189,54 @@ variable {p : Program}
 /-- If a program halts with a result, it halts. -/
 theorem toHalts {inputs : List ℕ} {result : ℕ}
     (h : p ↓ inputs ≫ result) : p ↓ inputs :=
-  let ⟨c, hsteps, hhalted, _⟩ := h
-  ⟨c, hsteps, hhalted⟩
+  let ⟨s, hsteps, hhalted, _⟩ := h
+  ⟨s, hsteps, hhalted⟩
 
 end HaltsWithResult
 
-/-- Evaluation returning the full halting configuration. -/
-noncomputable def evalConfig (inputs : List ℕ) : Part Config :=
+/-- Evaluation returning the full halting state. -/
+noncomputable def evalState (inputs : List ℕ) : Part State :=
   ⟨Halts p inputs, fun h => Classical.choose h⟩
 
-/-- Specification: the config from evalConfig satisfies Steps and isHalted. -/
-theorem evalConfig_spec {inputs : List ℕ} (h : (evalConfig p inputs).Dom) :
-    let c := (evalConfig p inputs).get h
-    Steps p (Config.init inputs) c ∧ c.isHalted p :=
+/-- Specification: the state from evalState satisfies Steps and isHalted. -/
+theorem evalState_spec {inputs : List ℕ} (h : (evalState p inputs).Dom) :
+    let s := (evalState p inputs).get h
+    Steps p (State.init inputs) s ∧ s.isHalted p :=
   Classical.choose_spec h
 
 namespace Halts
 
 variable {p : Program}
 
-/-- If a program halts, it halts with the output of the final configuration. -/
+/-- If a program halts, it halts with the output of the final state. -/
 theorem toHaltsWithResult {inputs : List ℕ} (h : p ↓ inputs) :
-    p ↓ inputs ≫ ((evalConfig p inputs).get h).state.output :=
-  let c := (evalConfig p inputs).get h
-  let ⟨hsteps, hhalted⟩ := evalConfig_spec p h
-  ⟨c, hsteps, hhalted, rfl⟩
+    p ↓ inputs ≫ ((evalState p inputs).get h).regs.output :=
+  let s := (evalState p inputs).get h
+  let ⟨hsteps, hhalted⟩ := evalState_spec p h
+  ⟨s, hsteps, hhalted, rfl⟩
 
 end Halts
 
 /-- Evaluation as a partial function using `Part`.
 Defined when the program halts, returning the value in register 0. -/
 noncomputable def eval (inputs : List ℕ) : Part ℕ :=
-  (evalConfig p inputs).map (·.state.output)
+  (evalState p inputs).map (·.regs.output)
 
 /-- A program halts with result `a` iff evaluation returns `Part.some a`. -/
 theorem haltsWithResult_iff_eval {inputs : List ℕ} {result : ℕ} :
     p ↓ inputs ≫ result ↔ eval p inputs = Part.some result := by
   rw [Part.eq_some_iff, eval, Part.mem_map_iff]
   constructor
-  · intro ⟨c, hsteps, hhalted, hresult⟩
-    have hhalts : Halts p inputs := ⟨c, hsteps, hhalted⟩
-    have heq : (evalConfig p inputs).get hhalts = c :=
-      Steps.eq_of_halts (evalConfig_spec p hhalts).1 (evalConfig_spec p hhalts).2 hsteps hhalted
-    exact ⟨(evalConfig p inputs).get hhalts, Part.get_mem hhalts, heq ▸ hresult⟩
-  · intro ⟨c, hc_mem, hresult⟩
-    rw [Part.mem_eq] at hc_mem
-    obtain ⟨hdom, hget⟩ := hc_mem
-    have hspec := evalConfig_spec p hdom
-    exact ⟨c, hget ▸ hspec.1, hget ▸ hspec.2, hresult⟩
+  · intro ⟨s, hsteps, hhalted, hresult⟩
+    have hhalts : Halts p inputs := ⟨s, hsteps, hhalted⟩
+    have heq : (evalState p inputs).get hhalts = s :=
+      Steps.eq_of_halts (evalState_spec p hhalts).1 (evalState_spec p hhalts).2 hsteps hhalted
+    exact ⟨(evalState p inputs).get hhalts, Part.get_mem hhalts, heq ▸ hresult⟩
+  · intro ⟨s, hs_mem, hresult⟩
+    rw [Part.mem_eq] at hs_mem
+    obtain ⟨hdom, hget⟩ := hs_mem
+    have hspec := evalState_spec p hdom
+    exact ⟨s, hget ▸ hspec.1, hget ▸ hspec.2, hresult⟩
 
 /-- Two programs are equivalent if they produce the same result for all inputs. -/
 def ProgramEquiv (p q : Program) : Prop :=

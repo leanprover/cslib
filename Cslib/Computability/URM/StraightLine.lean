@@ -61,81 +61,81 @@ theorem Program.IsStraightLine.singleton {instr : Instr}
 /-! ## Straight-Line Program Execution -/
 
 /-- A non-jumping instruction produces a step that increments PC by 1. -/
-theorem Step.of_nonJump {p : Program} {c : Config} (hlt : c.pc < p.length)
-    (hnonjump : ¬(p[c.pc]'hlt).IsJump) :
-    ∃ c', Step p c c' ∧ c'.pc = c.pc + 1 := by
-  have hinstr : p[c.pc]? = some p[c.pc] := List.getElem?_eq_getElem hlt
-  cases hp : (p[c.pc]'hlt) with
+theorem Step.of_nonJump {p : Program} {s : State} (hlt : s.pc < p.length)
+    (hnonjump : ¬(p[s.pc]'hlt).IsJump) :
+    ∃ s', Step p s s' ∧ s'.pc = s.pc + 1 := by
+  have hinstr : p[s.pc]? = some p[s.pc] := List.getElem?_eq_getElem hlt
+  cases hp : (p[s.pc]'hlt) with
   | Z n => exact ⟨_, Step.zero (hp ▸ hinstr), rfl⟩
   | S n => exact ⟨_, Step.succ (hp ▸ hinstr), rfl⟩
   | T m n => exact ⟨_, Step.transfer (hp ▸ hinstr), rfl⟩
   | J _ _ _ => exact False.elim (hnonjump (hp ▸ trivial))
 
-/-- Straight-line programs halt from any starting state, not just Config.init.
+/-- Straight-line programs halt from any starting registers, not just State.init.
 Useful for chaining: after running one program, we can run the next
-straight-line segment from whatever state we're in. -/
-theorem straight_line_halts_from_state {p : Program} (hsl : p.IsStraightLine) (s : State) :
-    ∃ c, Steps p ⟨0, s⟩ c ∧ c.isHalted p ∧ c.pc = p.length := by
-  suffices h : ∀ c : Config, c.pc ≤ p.length → ∃ c', Steps p c c' ∧ c'.pc = p.length by
-    obtain ⟨c', hsteps, hpc'⟩ := h ⟨0, s⟩ (Nat.zero_le _)
-    exact ⟨c', hsteps, Nat.le_of_eq hpc'.symm, hpc'⟩
-  intro c hpc_le
-  generalize hrem : p.length - c.pc = remaining
-  induction remaining using Nat.strong_induction_on generalizing c with
+straight-line segment from whatever registers we're in. -/
+theorem straight_line_halts_from_regs {p : Program} (hsl : p.IsStraightLine) (r : Regs) :
+    ∃ s, Steps p ⟨0, r⟩ s ∧ s.isHalted p ∧ s.pc = p.length := by
+  suffices h : ∀ s : State, s.pc ≤ p.length → ∃ s', Steps p s s' ∧ s'.pc = p.length by
+    obtain ⟨s', hsteps, hpc'⟩ := h ⟨0, r⟩ (Nat.zero_le _)
+    exact ⟨s', hsteps, Nat.le_of_eq hpc'.symm, hpc'⟩
+  intro s hpc_le
+  generalize hrem : p.length - s.pc = remaining
+  induction remaining using Nat.strong_induction_on generalizing s with
   | _ remaining ih =>
-    by_cases hhalted : c.pc ≥ p.length
-    · exact ⟨c, Relation.ReflTransGen.refl, by omega⟩
+    by_cases hhalted : s.pc ≥ p.length
+    · exact ⟨s, Relation.ReflTransGen.refl, by omega⟩
     · push_neg at hhalted
-      have hnonjump := hsl p[c.pc] (List.getElem_mem hhalted)
-      obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJump hhalted hnonjump
-      obtain ⟨c'', hsteps'', hpc''⟩ := ih (p.length - c'.pc) (by omega) c' (by omega) rfl
-      exact ⟨c'', Relation.ReflTransGen.head hstep' hsteps'', hpc''⟩
+      have hnonjump := hsl p[s.pc] (List.getElem_mem hhalted)
+      obtain ⟨s', hstep', hpc'⟩ := Step.of_nonJump hhalted hnonjump
+      obtain ⟨s'', hsteps'', hpc''⟩ := ih (p.length - s'.pc) (by omega) s' (by omega) rfl
+      exact ⟨s'', Relation.ReflTransGen.head hstep' hsteps'', hpc''⟩
 
 /-- A straight-line program halts on any input. -/
 theorem straight_line_halts {p : Program} (hsl : p.IsStraightLine) (inputs : List ℕ) :
     Halts p inputs := by
-  obtain ⟨c, hsteps, hhalted, _⟩ := straight_line_halts_from_state hsl (State.ofInputs inputs)
-  exact ⟨c, hsteps, hhalted⟩
+  obtain ⟨s, hsteps, hhalted, _⟩ := straight_line_halts_from_regs hsl (Regs.ofInputs inputs)
+  exact ⟨s, hsteps, hhalted⟩
 
-/-- The halting configuration for a straight-line program starting from state s.
+/-- The halting state for a straight-line program starting from registers r.
 Wraps Classical.choose to hide it from the API. -/
-noncomputable def straightLine_finalConfig {p : Program}
-    (hsl : p.IsStraightLine) (s : State) : Config :=
-  Classical.choose (straight_line_halts_from_state hsl s)
-
-/-- Specification: the config from straightLine_finalConfig satisfies Steps, isHalted,
-and has pc = p.length. -/
-theorem straightLine_finalConfig_spec {p : Program} (hsl : p.IsStraightLine) (s : State) :
-    let c := straightLine_finalConfig hsl s
-    Steps p ⟨0, s⟩ c ∧ c.isHalted p ∧ c.pc = p.length :=
-  Classical.choose_spec (straight_line_halts_from_state hsl s)
-
-/-- The final state after running a straight-line program from a given starting state. -/
 noncomputable def straightLine_finalState {p : Program}
-    (hsl : p.IsStraightLine) (s : State) : State :=
-  (straightLine_finalConfig hsl s).state
+    (hsl : p.IsStraightLine) (r : Regs) : State :=
+  Classical.choose (straight_line_halts_from_regs hsl r)
 
-/-- For a straight-line program, c.state equals straightLine_finalState if halted from s. -/
-theorem straightLine_finalState_eq_of_halted {p : Program} (hsl : p.IsStraightLine)
-    (s : State) (c : Config) (hsteps : Steps p ⟨0, s⟩ c) (hhalted : c.isHalted p) :
-    c.state = straightLine_finalState hsl s :=
-  Steps.eq_of_halts hsteps hhalted (straightLine_finalConfig_spec hsl s).1
-    (straightLine_finalConfig_spec hsl s).2.1 ▸ rfl
+/-- Specification: the state from straightLine_finalState satisfies Steps, isHalted,
+and has pc = p.length. -/
+theorem straightLine_finalState_spec {p : Program} (hsl : p.IsStraightLine) (r : Regs) :
+    let s := straightLine_finalState hsl r
+    Steps p ⟨0, r⟩ s ∧ s.isHalted p ∧ s.pc = p.length :=
+  Classical.choose_spec (straight_line_halts_from_regs hsl r)
+
+/-- The final registers after running a straight-line program from given starting registers. -/
+noncomputable def straightLine_finalRegs {p : Program}
+    (hsl : p.IsStraightLine) (r : Regs) : Regs :=
+  (straightLine_finalState hsl r).regs
+
+/-- For a straight-line program, s.regs equals straightLine_finalRegs if halted from r. -/
+theorem straightLine_finalRegs_eq_of_halted {p : Program} (hsl : p.IsStraightLine)
+    (r : Regs) (s : State) (hsteps : Steps p ⟨0, r⟩ s) (hhalted : s.isHalted p) :
+    s.regs = straightLine_finalRegs hsl r :=
+  Steps.eq_of_halts hsteps hhalted (straightLine_finalState_spec hsl r).1
+    (straightLine_finalState_spec hsl r).2.1 ▸ rfl
 
 /-- In a straight-line program, we can characterize the state at any intermediate pc.
-This gives us the configuration after executing instructions 0..pc-1. -/
+This gives us the state after executing instructions 0..pc-1. -/
 theorem straight_line_state_at_pc {p : Program} (hsl : p.IsStraightLine)
-    (s : State) (targetPc : ℕ) (htarget : targetPc ≤ p.length) :
-    ∃ c, Steps p ⟨0, s⟩ c ∧ c.pc = targetPc := by
+    (r : Regs) (targetPc : ℕ) (htarget : targetPc ≤ p.length) :
+    ∃ s, Steps p ⟨0, r⟩ s ∧ s.pc = targetPc := by
   induction targetPc with
-  | zero => exact ⟨⟨0, s⟩, Relation.ReflTransGen.refl, rfl⟩
+  | zero => exact ⟨⟨0, r⟩, Relation.ReflTransGen.refl, rfl⟩
   | succ n ih =>
-    obtain ⟨c_n, hsteps_n, hpc_n⟩ := ih (Nat.le_of_succ_le htarget)
+    obtain ⟨s_n, hsteps_n, hpc_n⟩ := ih (Nat.le_of_succ_le htarget)
     have hn_lt : n < p.length := Nat.lt_of_succ_le htarget
-    have hpc_lt : c_n.pc < p.length := hpc_n ▸ hn_lt
-    have hnonjump := hsl p[c_n.pc] (List.getElem_mem hpc_lt)
-    obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJump hpc_lt hnonjump
-    exact ⟨c', Relation.ReflTransGen.tail hsteps_n hstep', hpc_n ▸ hpc'⟩
+    have hpc_lt : s_n.pc < p.length := hpc_n ▸ hn_lt
+    have hnonjump := hsl p[s_n.pc] (List.getElem_mem hpc_lt)
+    obtain ⟨s', hstep', hpc'⟩ := Step.of_nonJump hpc_lt hnonjump
+    exact ⟨s', Relation.ReflTransGen.tail hsteps_n hstep', hpc_n ▸ hpc'⟩
 
 end Cslib.URM
 

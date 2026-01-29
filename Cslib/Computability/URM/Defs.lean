@@ -18,9 +18,9 @@ instructions, register state, programs, and machine configurations.
 ## Main definitions
 
 - `URM.Instr`: The four URM instructions (Z, S, T, J)
-- `URM.State`: Register contents as a function `ℕ → ℕ`
+- `URM.Regs`: Register contents as a function `ℕ → ℕ`
 - `URM.Program`: A finite sequence of instructions
-- `URM.Config`: Machine configuration (program counter + state)
+- `URM.State`: Machine state (program counter + registers)
 
 ## File Organization
 
@@ -107,38 +107,38 @@ def shiftRegisters (offset : ℕ) : Instr → Instr
 
 end Instr
 
-/-! ## Register State -/
+/-! ## Register Contents -/
 
-/-- Register state: maps register indices to natural number contents.
+/-- Register contents: maps register indices to natural number contents.
 
 Uses the functional representation `ℕ → ℕ` for efficiency with rewrites,
 following the advice from the `grind` tactic documentation. -/
-abbrev State := ℕ → ℕ
+abbrev Regs := ℕ → ℕ
 
-namespace State
+namespace Regs
 
-/-- The zero state where all registers contain 0. -/
+/-- The zero registers where all registers contain 0. -/
 @[scoped grind =]
-def zero : State := fun _ => 0
+def zero : Regs := fun _ => 0
 
 /-- Read the contents of register n. -/
 @[scoped grind =]
-def read (σ : State) (n : ℕ) : ℕ := σ n
+def read (σ : Regs) (n : ℕ) : ℕ := σ n
 
 /-- Write value v to register n. -/
 @[scoped grind =]
-def write (σ : State) (n : ℕ) (v : ℕ) : State := Function.update σ n v
+def write (σ : Regs) (n : ℕ) (v : ℕ) : Regs := Function.update σ n v
 
-/-- Initialize state with input values in registers 0, 1, ..., k-1.
+/-- Initialize registers with input values in registers 0, 1, ..., k-1.
 Registers beyond the inputs are initialized to 0. -/
 @[scoped grind =]
-def ofInputs (inputs : List ℕ) : State := fun n => inputs.getD n 0
+def ofInputs (inputs : List ℕ) : Regs := fun n => inputs.getD n 0
 
 /-- Extract output from register 0. -/
 @[scoped grind =]
-def output (σ : State) : ℕ := σ 0
+def output (σ : Regs) : ℕ := σ 0
 
-end State
+end Regs
 
 /-! ## Programs -/
 
@@ -167,35 +167,35 @@ def shiftRegisters (p : Program) (offset : ℕ) : Program :=
 
 end Program
 
-/-! ## Machine Configuration -/
+/-! ## Machine State -/
 
-/-- Machine configuration: program counter (0-indexed) and register state. -/
-structure Config where
+/-- Machine state: program counter (0-indexed) and register contents. -/
+structure State where
   /-- Program counter (0-indexed). -/
   pc : ℕ
-  /-- Register state. -/
-  state : State
+  /-- Register contents. -/
+  regs : Regs
 
-namespace Config
+namespace State
 
-/-- Initial configuration for a program with given inputs.
+/-- Initial state for a program with given inputs.
 The program counter starts at 0, and inputs are loaded into registers 0, 1, .... -/
 @[scoped grind =]
-def init (inputs : List ℕ) : Config := ⟨0, State.ofInputs inputs⟩
+def init (inputs : List ℕ) : State := ⟨0, Regs.ofInputs inputs⟩
 
-/-- A configuration is halted if the program counter is at or beyond the program length. -/
+/-- A state is halted if the program counter is at or beyond the program length. -/
 @[scoped grind =]
-def isHalted (c : Config) (p : Program) : Prop := p.length ≤ c.pc
+def isHalted (s : State) (p : Program) : Prop := p.length ≤ s.pc
 
-instance (c : Config) (p : Program) : Decidable (c.isHalted p) :=
-  inferInstanceAs (Decidable (p.length ≤ c.pc))
+instance (s : State) (p : Program) : Decidable (s.isHalted p) :=
+  inferInstanceAs (Decidable (p.length ≤ s.pc))
 
-instance : Inhabited Config := ⟨init []⟩
+instance : Inhabited State := ⟨init []⟩
 
-instance : Repr Config where
-  reprPrec c _ := s!"Config(pc={c.pc})"
+instance : Repr State where
+  reprPrec s _ := s!"State(pc={s.pc})"
 
-end Config
+end State
 
 end Cslib.URM
 

@@ -19,8 +19,8 @@ This file contains basic lemmas and helper operations for URM types.
 
 ## Main results
 
-- `State.write_read_self`, `State.write_read_of_ne`: state read/write lemmas
-- `Config.isHalted_iff`, `Config.ext`: configuration lemmas
+- `Regs.write_read_self`, `Regs.write_read_of_ne`: register read/write lemmas
+- `State.isHalted_iff`, `State.ext`: state lemmas
 - `JumpsBoundedBy.mono`: bounded jumps are monotonic in the bound
 - `JumpsBoundedBy.shiftJumps`: shifting preserves bounded jumps
 - `Program.mem_maxRegister`: instruction maxRegister bounded by program maxRegister
@@ -30,34 +30,34 @@ This file contains basic lemmas and helper operations for URM types.
 
 namespace Cslib.URM
 
+/-! ## Register Lemmas -/
+
+namespace Regs
+
+@[simp, scoped grind =]
+theorem write_read_self (σ : Regs) (n v : ℕ) : (σ.write n v).read n = v := by
+  simp only [write, read, Function.update_self]
+
+@[simp, scoped grind =]
+theorem write_read_of_ne (σ : Regs) (m n v : ℕ) (h : m ≠ n) :
+    (σ.write n v).read m = σ.read m := by
+  simp only [write, read, Function.update_of_ne h]
+
+end Regs
+
 /-! ## State Lemmas -/
 
 namespace State
 
-@[simp, scoped grind =]
-theorem write_read_self (σ : State) (n v : ℕ) : (σ.write n v).read n = v := by
-  simp only [write, read, Function.update_self]
+@[simp]
+theorem isHalted_iff (s : State) (p : Program) : s.isHalted p ↔ p.length ≤ s.pc := Iff.rfl
 
-@[simp, scoped grind =]
-theorem write_read_of_ne (σ : State) (m n v : ℕ) (h : m ≠ n) :
-    (σ.write n v).read m = σ.read m := by
-  simp only [write, read, Function.update_of_ne h]
+/-- Extensionality for State: two states are equal iff their components are equal. -/
+@[ext]
+theorem ext {s₁ s₂ : State} (hpc : s₁.pc = s₂.pc) (hregs : s₁.regs = s₂.regs) : s₁ = s₂ := by
+  cases s₁; cases s₂; simp only at hpc hregs; simp [hpc, hregs]
 
 end State
-
-/-! ## Config Lemmas -/
-
-namespace Config
-
-@[simp]
-theorem isHalted_iff (c : Config) (p : Program) : c.isHalted p ↔ p.length ≤ c.pc := Iff.rfl
-
-/-- Extensionality for Config: two configs are equal iff their components are equal. -/
-@[ext]
-theorem ext {c₁ c₂ : Config} (hpc : c₁.pc = c₂.pc) (hstate : c₁.state = c₂.state) : c₁ = c₂ := by
-  cases c₁; cases c₂; simp only at hpc hstate; simp [hpc, hstate]
-
-end Config
 
 /-! ## Instruction Lemmas -/
 
