@@ -229,22 +229,25 @@ theorem Halts.to_standard_form_iff {p : Program} {inputs : List ℕ} :
 /-! ### eval Preservation -/
 
 /-- State preservation: both reach configs with the same state. -/
-theorem eval_to_standard_form_state {p : Program} {inputs : List ℕ}
-    (hp : Halts p inputs) (hq : Halts p.to_standard_form inputs) :
-    (Classical.choose hp).state = (Classical.choose hq).state := by
-  have ⟨hsteps, hhalted⟩ := Classical.choose_spec hp
-  have ⟨hsteps', hhalted'⟩ := Classical.choose_spec hq
+theorem evalConfig_to_standard_form_state {p : Program} {inputs : List ℕ}
+    (hp : (evalConfig p inputs).Dom) (hq : (evalConfig p.to_standard_form inputs).Dom) :
+    ((evalConfig p inputs).get hp).state =
+      ((evalConfig p.to_standard_form inputs).get hq).state := by
+  have ⟨hsteps, hhalted⟩ := evalConfig_spec p hp
+  have ⟨hsteps', hhalted'⟩ := evalConfig_spec p.to_standard_form hq
   obtain ⟨c₂, hsteps₂, hhalted₂, hstate_eq⟩ := Steps.to_standard_form_halts hsteps hhalted
   rw [Steps.eq_of_halts hsteps' hhalted' hsteps₂ hhalted₂, hstate_eq]
 
 /-- eval equality: both programs produce the same partial result. -/
 theorem eval_to_standard_form {p : Program} {inputs : List ℕ} :
     eval p inputs = eval p.to_standard_form inputs := by
+  simp only [eval]
   apply Part.ext'
-  · simp only [eval]
+  · simp only [Part.map_Dom]
     exact Halts.to_standard_form_iff
   · intro hp hq
-    simp only [eval, State.output, eval_to_standard_form_state hp hq]
+    simp only [Part.map_get, Function.comp_apply, State.output,
+               evalConfig_to_standard_form_state hp hq]
 
 /-- A program is equivalent to its standard form. -/
 theorem to_standard_form_equiv (p : Program) : p.to_standard_form ≈ p :=

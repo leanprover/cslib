@@ -194,15 +194,25 @@ theorem toHalts {inputs : List ℕ} {result : ℕ}
 
 end HaltsWithResult
 
+/-- Evaluation returning the full halting configuration. -/
+noncomputable def evalConfig (inputs : List ℕ) : Part Config :=
+  ⟨Halts p inputs, fun h => Classical.choose h⟩
+
+/-- Specification: the config from evalConfig satisfies Steps and is_halted. -/
+theorem evalConfig_spec {inputs : List ℕ} (h : (evalConfig p inputs).Dom) :
+    let c := (evalConfig p inputs).get h
+    Steps p (Config.init inputs) c ∧ c.is_halted p :=
+  Classical.choose_spec h
+
 namespace Halts
 
 variable {p : Program}
 
 /-- If a program halts, it halts with the output of the final configuration. -/
 theorem toHaltsWithResult {inputs : List ℕ} (h : p ↓ inputs) :
-    p ↓ inputs ≫ (Classical.choose h).state.output :=
-  let c := Classical.choose h
-  let ⟨hsteps, hhalted⟩ := Classical.choose_spec h
+    p ↓ inputs ≫ ((evalConfig p inputs).get h).state.output :=
+  let c := (evalConfig p inputs).get h
+  let ⟨hsteps, hhalted⟩ := evalConfig_spec p h
   ⟨c, hsteps, hhalted, rfl⟩
 
 end Halts
@@ -210,28 +220,23 @@ end Halts
 /-- Evaluation as a partial function using `Part`.
 Defined when the program halts, returning the value in register 0. -/
 noncomputable def eval (inputs : List ℕ) : Part ℕ :=
-  ⟨Halts p inputs, fun h => (Classical.choose h).state.output⟩
+  (evalConfig p inputs).map (·.state.output)
 
 /-- A program halts with result `a` iff evaluation returns `Part.some a`. -/
 theorem haltsWithResult_iff_eval {inputs : List ℕ} {result : ℕ} :
     p ↓ inputs ≫ result ↔ eval p inputs = Part.some result := by
-  rw [Part.eq_some_iff]
+  rw [Part.eq_some_iff, eval, Part.mem_map_iff]
   constructor
   · intro ⟨c, hsteps, hhalted, hresult⟩
-    -- Show result ∈ eval p inputs
-    refine ⟨⟨c, hsteps, hhalted⟩, ?_⟩
-    -- Need to show (eval p inputs).get _ = result
-    simp only [eval]
     have hhalts : Halts p inputs := ⟨c, hsteps, hhalted⟩
-    have heq : Classical.choose hhalts = c :=
-      Steps.eq_of_halts (Classical.choose_spec hhalts).1 (Classical.choose_spec hhalts).2
-        hsteps hhalted
-    simp [heq, hresult]
-  · intro ⟨hdom, hget⟩
-    -- hdom is exactly Halts p inputs by definition of eval
-    let c := Classical.choose hdom
-    have hspec := Classical.choose_spec hdom
-    exact ⟨c, hspec.1, hspec.2, hget⟩
+    have heq : (evalConfig p inputs).get hhalts = c :=
+      Steps.eq_of_halts (evalConfig_spec p hhalts).1 (evalConfig_spec p hhalts).2 hsteps hhalted
+    exact ⟨(evalConfig p inputs).get hhalts, Part.get_mem hhalts, heq ▸ hresult⟩
+  · intro ⟨c, hc_mem, hresult⟩
+    rw [Part.mem_eq] at hc_mem
+    obtain ⟨hdom, hget⟩ := hc_mem
+    have hspec := evalConfig_spec p hdom
+    exact ⟨c, hget ▸ hspec.1, hget ▸ hspec.2, hresult⟩
 
 /-- Two programs are equivalent if they produce the same result for all inputs. -/
 def ProgramEquiv (p q : Program) : Prop :=

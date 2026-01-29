@@ -44,12 +44,12 @@ private theorem single_instr_eval {instr : Instr} {inputs : List ℕ} {finalStat
     eval [instr] inputs = Part.some finalState.output := by
   have h_final_halted : (⟨1, finalState⟩ : Config).is_halted [instr] := by simp
   apply Part.ext'
-  · simp only [eval, Part.some_dom, iff_true]
+  · simp only [eval, Part.map_Dom, Part.some_dom, iff_true]
     exact ⟨⟨1, finalState⟩, Steps.single hstep, h_final_halted⟩
   · intro hHalts _
-    obtain ⟨hsteps, hhalted⟩ := Classical.choose_spec hHalts
+    have ⟨hsteps, hhalted⟩ := evalConfig_spec [instr] hHalts
     have heq := Steps.eq_of_halts hsteps hhalted (Steps.single hstep) h_final_halted
-    simp only [eval, heq, Part.get_some]
+    simp only [eval, Part.map_get, Function.comp_apply, heq, Part.get_some]
 
 /-- The successor function `S(x) = x + 1` is URM-computable.
 
