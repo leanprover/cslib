@@ -138,15 +138,6 @@ def of_inputs (inputs : List ℕ) : State := fun n => inputs.getD n 0
 @[scoped grind =]
 def output (σ : State) : ℕ := σ 0
 
-@[simp, scoped grind =]
-theorem write_read_self (σ : State) (n v : ℕ) : (σ.write n v).read n = v := by
-  simp only [write, read, Function.update_self]
-
-@[simp, scoped grind =]
-theorem write_read_of_ne (σ : State) (m n v : ℕ) (h : m ≠ n) :
-    (σ.write n v).read m = σ.read m := by
-  simp only [write, read, Function.update_of_ne h]
-
 end State
 
 /-! ## Programs -/
@@ -198,14 +189,6 @@ def is_halted (c : Config) (p : Program) : Prop := p.length ≤ c.pc
 
 instance (c : Config) (p : Program) : Decidable (c.is_halted p) :=
   inferInstanceAs (Decidable (p.length ≤ c.pc))
-
-@[simp]
-theorem is_halted_iff (c : Config) (p : Program) : c.is_halted p ↔ p.length ≤ c.pc := Iff.rfl
-
-/-- Extensionality for Config: two configs are equal iff their components are equal. -/
-@[ext]
-theorem ext {c₁ c₂ : Config} (hpc : c₁.pc = c₂.pc) (hstate : c₁.state = c₂.state) : c₁ = c₂ := by
-  cases c₁; cases c₂; simp only at hpc hstate; simp [hpc, hstate]
 
 instance : Inhabited Config := ⟨init []⟩
 

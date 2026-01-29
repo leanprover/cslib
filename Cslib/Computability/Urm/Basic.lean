@@ -9,7 +9,7 @@ public import Cslib.Computability.Urm.Defs
 
 /-! # URM Basic Lemmas
 
-This file contains basic lemmas and helper operations for URM instructions and programs.
+This file contains basic lemmas and helper operations for URM types.
 
 ## Main definitions
 
@@ -19,6 +19,8 @@ This file contains basic lemmas and helper operations for URM instructions and p
 
 ## Main results
 
+- `State.write_read_self`, `State.write_read_of_ne`: state read/write lemmas
+- `Config.is_halted_iff`, `Config.ext`: configuration lemmas
 - `JumpsBoundedBy.mono`: bounded jumps are monotonic in the bound
 - `JumpsBoundedBy.shift_jumps`: shifting preserves bounded jumps
 - `Program.mem_max_register`: instruction max_register bounded by program max_register
@@ -27,6 +29,37 @@ This file contains basic lemmas and helper operations for URM instructions and p
 @[expose] public section
 
 namespace Cslib.Urm
+
+/-! ## State Lemmas -/
+
+namespace State
+
+@[simp, scoped grind =]
+theorem write_read_self (σ : State) (n v : ℕ) : (σ.write n v).read n = v := by
+  simp only [write, read, Function.update_self]
+
+@[simp, scoped grind =]
+theorem write_read_of_ne (σ : State) (m n v : ℕ) (h : m ≠ n) :
+    (σ.write n v).read m = σ.read m := by
+  simp only [write, read, Function.update_of_ne h]
+
+end State
+
+/-! ## Config Lemmas -/
+
+namespace Config
+
+@[simp]
+theorem is_halted_iff (c : Config) (p : Program) : c.is_halted p ↔ p.length ≤ c.pc := Iff.rfl
+
+/-- Extensionality for Config: two configs are equal iff their components are equal. -/
+@[ext]
+theorem ext {c₁ c₂ : Config} (hpc : c₁.pc = c₂.pc) (hstate : c₁.state = c₂.state) : c₁ = c₂ := by
+  cases c₁; cases c₂; simp only at hpc hstate; simp [hpc, hstate]
+
+end Config
+
+/-! ## Instruction Lemmas -/
 
 namespace Instr
 
