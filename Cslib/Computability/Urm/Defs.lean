@@ -156,13 +156,13 @@ def max_register (p : Program) : ℕ :=
 Used when concatenating programs: the second program's jumps must be adjusted
 by the length of the first program. -/
 @[scoped grind =]
-def shift_jumps (offset : ℕ) (p : Program) : Program :=
+def shift_jumps (p : Program) (offset : ℕ) : Program :=
   p.map (Instr.shift_jumps offset)
 
 /-- Shift all register references in a program by `offset`.
 Used to isolate register usage when composing programs. -/
 @[scoped grind =]
-def shift_registers (offset : ℕ) (p : Program) : Program :=
+def shift_registers (p : Program) (offset : ℕ) : Program :=
   p.map (Instr.shift_registers offset)
 
 end Program
