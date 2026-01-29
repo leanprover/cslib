@@ -24,7 +24,7 @@ the right congruence, whose start state is the empty word, and whose transition 
 is concatenation on the right of the input symbol. Note that the transition function is
 well-defined only because `c` is a right congruence. -/
 @[scoped grind =]
-def RightCongruence.toDA [RightCongruence Symbol] : Automata.DA (QuotType Symbol) Symbol where
+def RightCongruence.toDA [c : RightCongruence Symbol] : Automata.DA (Quotient c.eq) Symbol where
   tr s x := Quotient.lift (fun u ↦ ⟦ u ++ [x] ⟧) (by
     intro u v h_eq
     apply Quotient.sound
@@ -56,7 +56,7 @@ open Acceptor RightCongruence
 /-- The language of `c.toDA` with a single accepting state `s` is exactly
 the equivalence class corresponding to `s`. -/
 @[simp]
-theorem congr_language_eq {s : QuotType Symbol} : language (FinAcc.mk c.toDA {s}) = eqvCls s := by
+theorem congr_language_eq {a : Quotient c.eq} : language (FinAcc.mk c.toDA {a}) = eqvCls a := by
   ext
   grind
 

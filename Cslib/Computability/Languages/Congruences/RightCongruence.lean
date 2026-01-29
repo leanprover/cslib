@@ -32,12 +32,9 @@ namespace RightCongruence
 
 variable {α : Type*}
 
-/-- The quotient type of a RightCongruence relation. -/
-abbrev QuotType (α : Type*) [c : RightCongruence α] := Quotient c.eq
-
 /-- The equivalence class (as a language) corresponding to an element of the quotient type. -/
-abbrev eqvCls [c : RightCongruence α] (s : QuotType α) : Language α :=
-  (Quotient.mk c.eq) ⁻¹' {s}
+abbrev eqvCls [c : RightCongruence α] (a : Quotient c.eq) : Language α :=
+  (Quotient.mk c.eq) ⁻¹' {a}
 
 end RightCongruence
 

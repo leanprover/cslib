@@ -163,10 +163,10 @@ theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
-    [c : RightCongruence Symbol] [Finite (QuotType Symbol)]
-    (s : QuotType Symbol) : (eqvCls s).IsRegular := by
+    [c : RightCongruence Symbol] [Finite (Quotient c.eq)]
+    (a : Quotient c.eq) : (eqvCls a).IsRegular := by
   rw [IsRegular.iff_dfa]
-  use QuotType Symbol, inferInstance, ⟨c.toDA, {s}⟩
+  use Quotient c.eq, inferInstance, ⟨c.toDA, {a}⟩
   exact DA.FinAcc.congr_language_eq
 
 end Cslib.Language
