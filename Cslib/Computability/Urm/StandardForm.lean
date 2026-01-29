@@ -118,21 +118,16 @@ theorem Step.to_standard_form {p : Program} {c c' : Config} (hstep : Step p c c'
     have hcap : p.to_standard_form[c.pc]? = some (Instr.J m n (min q p.length)) := by
       simp [Program.getElem?_to_standard_form, hinstr]
     exact Step.jump_ne hcap hne
-  | jump_eq hinstr heq =>
-    rename_i m n q
-    by_cases hbounded : q ≤ p.length
-    · left
-      have hcap : p.to_standard_form[c.pc]? = some (Instr.J m n q) := by
-        simp [Program.getElem?_to_standard_form, hinstr, Instr.cap_jump, Nat.min_eq_left hbounded]
-      exact Step.jump_eq hcap heq
+  | @jump_eq m n q hinstr heq =>
+    have (x : ℕ) (h : min q p.length = x) : p.to_standard_form[c.pc]? = some (Instr.J m n x) := by
+      grind [Program.getElem?_to_standard_form, Instr.cap_jump]
+    by_cases q ≤ p.length
+    · grind [Step.jump_eq]
     · right
-      have hgt : q > p.length := Nat.not_le.mp hbounded
-      have hcap : p.to_standard_form[c.pc]? = some (Instr.J m n p.length) := by
-        simp [Program.getElem?_to_standard_form, hinstr, Instr.cap_jump,
-              Nat.min_eq_right (Nat.le_of_lt hgt)]
-      exact ⟨by simp [Config.is_halted]; omega,
-             ⟨p.length, c.state⟩, Step.jump_eq hcap heq,
-             by simp [Config.is_halted, Program.to_standard_form_length], rfl⟩
+      split_ands
+      · grind [Config.is_halted]
+      · use ⟨p.length, c.state⟩
+        grind [Config.is_halted, Program.to_standard_form_length]
 
 /-- Forward halting: if p reaches a halted config, p.to_standard_form reaches a halted config
     with the same state. -/
