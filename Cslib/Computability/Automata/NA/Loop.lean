@@ -92,6 +92,7 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
     exact neq.imp (congrArg List.length)
   · grind [loop_run_from_left]
 
+open List in
 /-- For any finite word in `language na`, there is a corresponding finite run of `na.loop`. -/
 theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     ∃ sl : List (Unit ⊕ State), ∃ _ : sl.length = xl.length + 1,
@@ -103,7 +104,11 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
   · use [inl ()]
     grind
   · use [inl ()] ++ (sl.extract 1 xl.length).map inr ++ [inl ()]
-    grind [FinAcc.loop, → LTS.tr_setImage]
+    #adaptation_note
+    /-- This squeeze was required moving to nightly-2026-01-28 -/
+    grind only [= length_append, = length_cons, = length_nil, = length_map, = List.length_take,
+      = length_drop, = min_def, = getElem_append, = getElem_cons, = List.take_zero, FinAcc.loop,
+      = map_nil, = getElem_map, = getElem_take, = getElem_drop]
 
 /-- For any finite word in `language na`, there is a corresponding multistep transition
 of `na.loop`. -/
@@ -142,7 +147,10 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
       have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
         simp [← h1, segment_idem h_mono]
       simp [h1, h2, h_seg0]
-      grind
+      #adaptation_note
+      /-- This squeeze was required moving to nightly-2026-01-28 -/
+      grind only [= cumLen_succ, = getElem?_pos, = get_fun, = List.length_take,
+        = List.getElem?_take, = min_def, = Option.getD_some]
   · simp [h_len, flatten_def, segment_idem h_mono, h_seg0]
 
 namespace Buchi
