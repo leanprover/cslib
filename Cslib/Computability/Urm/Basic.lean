@@ -118,9 +118,7 @@ theorem JumpsBoundedBy_of_nonJump {instr : Instr} (h : ¬instr.IsJump)
 theorem JumpsBoundedBy.mono {instr : Instr} {len1 len2 : ℕ}
     (h : instr.JumpsBoundedBy len1) (hle : len1 ≤ len2) :
     instr.JumpsBoundedBy len2 := by
-  cases instr with
-  | J _ _ q => exact Nat.le_trans h hle
-  | _ => trivial
+  grind [JumpsBoundedBy]
 
 /-- shift_jumps preserves bounded jumps with adjusted bound. -/
 theorem JumpsBoundedBy.shift_jumps {instr : Instr} {len offset : ℕ}
