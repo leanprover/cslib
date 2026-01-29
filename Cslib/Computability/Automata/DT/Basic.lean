@@ -7,7 +7,7 @@ Authors: William (Liam) Schilling
 module
 
 public import Cslib.Computability.Automata.DA.Basic
-public import Cslib.Computability.Automata.Transducers.Transducer
+public import Cslib.Computability.Automata.Acceptors.Transducer
 
 @[expose] public section
 
