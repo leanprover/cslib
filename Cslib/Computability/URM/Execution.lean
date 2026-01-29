@@ -83,9 +83,9 @@ theorem deterministic {c c' c'' : Config} (h1 : Step p c c') (h2 : Step p c c'')
   cases h1 <;> cases h2 <;> grind
 
 /-- A halted configuration has no successor in the step relation. -/
-theorem no_step_of_halted {c c' : Config} (hhalted : c.is_halted p) : ¬Step p c c' := by
+theorem no_step_of_halted {c c' : Config} (hhalted : c.isHalted p) : ¬Step p c c' := by
   intro hstep
-  cases hstep <;> grind [Config.is_halted]
+  cases hstep <;> grind [Config.isHalted]
 
 /-- A single step preserves registers not written to by the current instruction.
 
@@ -93,12 +93,12 @@ This is a fundamental property of URM execution: each instruction modifies at mo
 one register (Z, S, T write to one register; J writes to none). -/
 theorem preserves_register {c c' : Config} {r : ℕ}
     (hstep : Step p c c')
-    (hr : ∀ instr, p[c.pc]? = some instr → instr.writes_to ≠ some r) :
+    (hr : ∀ instr, p[c.pc]? = some instr → instr.writesTo ≠ some r) :
     c'.state.read r = c.state.read r := by
   cases hstep with
   | zero hinstr | succ hinstr | transfer hinstr =>
     have := hr _ hinstr
-    simp only [Instr.writes_to, ne_eq, Option.some.injEq] at this
+    simp only [Instr.writesTo, ne_eq, Option.some.injEq] at this
     exact Function.update_of_ne (Ne.symm this) _ _
   | jump_eq _ _ | jump_ne _ _ => rfl
 
@@ -123,7 +123,7 @@ theorem refl (c : Config) : Steps p c c :=
 /-- Multi-step execution preserves registers not written by any executed instruction. -/
 theorem preserves_register {c c' : Config} {r : ℕ}
     (hsteps : Steps p c c')
-    (hr : ∀ instr, instr ∈ p → instr.writes_to ≠ some r) :
+    (hr : ∀ instr, instr ∈ p → instr.writesTo ≠ some r) :
     c'.state.read r = c.state.read r := by
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl => rfl
@@ -137,8 +137,8 @@ theorem preserves_register {c c' : Config} {r : ℕ}
 This follows from the determinism of `Step`: any two execution paths from the same
 initial configuration must be prefixes of each other (or identical if both terminate). -/
 theorem eq_of_halts {init c₁ c₂ : Config}
-    (h1 : Steps p init c₁) (hh1 : c₁.is_halted p)
-    (h2 : Steps p init c₂) (hh2 : c₂.is_halted p) : c₁ = c₂ := by
+    (h1 : Steps p init c₁) (hh1 : c₁.isHalted p)
+    (h2 : Steps p init c₂) (hh2 : c₂.isHalted p) : c₁ = c₂ := by
   induction h1 using Relation.ReflTransGen.head_induction_on with
   | refl =>
     -- c₁ = init, so init is halted
@@ -165,14 +165,14 @@ end Steps
 /-- A program halts on given inputs if there exists a halted configuration reachable from
 the initial configuration. -/
 def Halts (inputs : List ℕ) : Prop :=
-  ∃ c, Steps p (Config.init inputs) c ∧ c.is_halted p
+  ∃ c, Steps p (Config.init inputs) c ∧ c.isHalted p
 
 /-- A program diverges on given inputs if it does not halt. -/
 def Diverges (inputs : List ℕ) : Prop := ¬Halts p inputs
 
 /-- A program halts on given inputs with a specific result in R[0]. -/
 def HaltsWithResult (inputs : List ℕ) (result : ℕ) : Prop :=
-  ∃ c, Steps p (Config.init inputs) c ∧ c.is_halted p ∧ c.state.output = result
+  ∃ c, Steps p (Config.init inputs) c ∧ c.isHalted p ∧ c.state.output = result
 
 /-- Notation for halting: `p ↓ inputs` means program `p` halts on `inputs`. -/
 scoped notation:50 p " ↓ " inputs:51 => Halts p inputs
@@ -198,10 +198,10 @@ end HaltsWithResult
 noncomputable def evalConfig (inputs : List ℕ) : Part Config :=
   ⟨Halts p inputs, fun h => Classical.choose h⟩
 
-/-- Specification: the config from evalConfig satisfies Steps and is_halted. -/
+/-- Specification: the config from evalConfig satisfies Steps and isHalted. -/
 theorem evalConfig_spec {inputs : List ℕ} (h : (evalConfig p inputs).Dom) :
     let c := (evalConfig p inputs).get h
-    Steps p (Config.init inputs) c ∧ c.is_halted p :=
+    Steps p (Config.init inputs) c ∧ c.isHalted p :=
   Classical.choose_spec h
 
 namespace Halts

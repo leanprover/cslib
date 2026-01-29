@@ -42,7 +42,7 @@ namespace Computable
 private theorem single_instr_eval {instr : Instr} {inputs : List ℕ} {finalState : State}
     (hstep : Step [instr] (Config.init inputs) ⟨1, finalState⟩) :
     eval [instr] inputs = Part.some finalState.output := by
-  have h_final_halted : (⟨1, finalState⟩ : Config).is_halted [instr] := by simp
+  have h_final_halted : (⟨1, finalState⟩ : Config).isHalted [instr] := by simp
   apply Part.ext'
   · simp only [eval, Part.map_Dom, Part.some_dom, iff_true]
     exact ⟨⟨1, finalState⟩, Steps.single hstep, h_final_halted⟩
@@ -58,7 +58,7 @@ theorem succ_computable : Computable 1 (fun inputs => Part.some (inputs 0 + 1)) 
   use [Instr.S 0]
   intro inputs
   rw [single_instr_eval (Step.succ (p := [Instr.S 0]) rfl)]
-  simp [State.output, State.write, State.read, Config.init, State.of_inputs]
+  simp [State.output, State.write, State.read, Config.init, State.ofInputs]
 
 /-- General projection function `Uₖⁿ(x₀, ..., xₙ₋₁) = xₖ` is URM-computable.
 
@@ -68,7 +68,7 @@ theorem proj_computable (n : ℕ) (k : Fin n) :
   use [Instr.T k 0]
   intro inputs
   rw [single_instr_eval (Step.transfer (p := [Instr.T k 0]) rfl)]
-  simp [State.output, State.write, State.read, Config.init, State.of_inputs, k.isLt]
+  simp [State.output, State.write, State.read, Config.init, State.ofInputs, k.isLt]
 
 /-- The identity/projection function `U₁¹(x) = x` is URM-computable.
 

@@ -75,7 +75,7 @@ theorem Step.of_nonJump {p : Program} {c : Config} (hlt : c.pc < p.length)
 Useful for chaining: after running one program, we can run the next
 straight-line segment from whatever state we're in. -/
 theorem straight_line_halts_from_state {p : Program} (hsl : p.IsStraightLine) (s : State) :
-    ∃ c, Steps p ⟨0, s⟩ c ∧ c.is_halted p ∧ c.pc = p.length := by
+    ∃ c, Steps p ⟨0, s⟩ c ∧ c.isHalted p ∧ c.pc = p.length := by
   suffices h : ∀ c : Config, c.pc ≤ p.length → ∃ c', Steps p c c' ∧ c'.pc = p.length by
     obtain ⟨c', hsteps, hpc'⟩ := h ⟨0, s⟩ (Nat.zero_le _)
     exact ⟨c', hsteps, Nat.le_of_eq hpc'.symm, hpc'⟩
@@ -94,7 +94,7 @@ theorem straight_line_halts_from_state {p : Program} (hsl : p.IsStraightLine) (s
 /-- A straight-line program halts on any input. -/
 theorem straight_line_halts {p : Program} (hsl : p.IsStraightLine) (inputs : List ℕ) :
     Halts p inputs := by
-  obtain ⟨c, hsteps, hhalted, _⟩ := straight_line_halts_from_state hsl (State.of_inputs inputs)
+  obtain ⟨c, hsteps, hhalted, _⟩ := straight_line_halts_from_state hsl (State.ofInputs inputs)
   exact ⟨c, hsteps, hhalted⟩
 
 /-- The halting configuration for a straight-line program starting from state s.
@@ -103,11 +103,11 @@ noncomputable def straightLine_finalConfig {p : Program}
     (hsl : p.IsStraightLine) (s : State) : Config :=
   Classical.choose (straight_line_halts_from_state hsl s)
 
-/-- Specification: the config from straightLine_finalConfig satisfies Steps, is_halted,
+/-- Specification: the config from straightLine_finalConfig satisfies Steps, isHalted,
 and has pc = p.length. -/
 theorem straightLine_finalConfig_spec {p : Program} (hsl : p.IsStraightLine) (s : State) :
     let c := straightLine_finalConfig hsl s
-    Steps p ⟨0, s⟩ c ∧ c.is_halted p ∧ c.pc = p.length :=
+    Steps p ⟨0, s⟩ c ∧ c.isHalted p ∧ c.pc = p.length :=
   Classical.choose_spec (straight_line_halts_from_state hsl s)
 
 /-- The final state after running a straight-line program from a given starting state. -/
@@ -117,7 +117,7 @@ noncomputable def straightLine_finalState {p : Program}
 
 /-- For a straight-line program, c.state equals straightLine_finalState if halted from s. -/
 theorem straightLine_finalState_eq_of_halted {p : Program} (hsl : p.IsStraightLine)
-    (s : State) (c : Config) (hsteps : Steps p ⟨0, s⟩ c) (hhalted : c.is_halted p) :
+    (s : State) (c : Config) (hsteps : Steps p ⟨0, s⟩ c) (hhalted : c.isHalted p) :
     c.state = straightLine_finalState hsl s :=
   Steps.eq_of_halts hsteps hhalted (straightLine_finalConfig_spec hsl s).1
     (straightLine_finalConfig_spec hsl s).2.1 ▸ rfl

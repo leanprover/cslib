@@ -20,10 +20,10 @@ This file contains basic lemmas and helper operations for URM types.
 ## Main results
 
 - `State.write_read_self`, `State.write_read_of_ne`: state read/write lemmas
-- `Config.is_halted_iff`, `Config.ext`: configuration lemmas
+- `Config.isHalted_iff`, `Config.ext`: configuration lemmas
 - `JumpsBoundedBy.mono`: bounded jumps are monotonic in the bound
-- `JumpsBoundedBy.shift_jumps`: shifting preserves bounded jumps
-- `Program.mem_max_register`: instruction max_register bounded by program max_register
+- `JumpsBoundedBy.shiftJumps`: shifting preserves bounded jumps
+- `Program.mem_maxRegister`: instruction maxRegister bounded by program maxRegister
 -/
 
 @[expose] public section
@@ -50,7 +50,7 @@ end State
 namespace Config
 
 @[simp]
-theorem is_halted_iff (c : Config) (p : Program) : c.is_halted p ↔ p.length ≤ c.pc := Iff.rfl
+theorem isHalted_iff (c : Config) (p : Program) : c.isHalted p ↔ p.length ≤ c.pc := Iff.rfl
 
 /-- Extensionality for Config: two configs are equal iff their components are equal. -/
 @[ext]
@@ -89,9 +89,9 @@ theorem T_nonJump (m n : ℕ) : ¬(T m n).IsJump := not_false
 @[simp]
 theorem J_IsJump (m n q : ℕ) : (J m n q).IsJump := trivial
 
-/-- shift_jumps is identity for non-jumping instructions. -/
-theorem shift_jumps_of_nonJump {instr : Instr}
-    (h : ¬instr.IsJump) (offset : ℕ) : instr.shift_jumps offset = instr := by
+/-- shiftJumps is identity for non-jumping instructions. -/
+theorem shiftJumps_of_nonJump {instr : Instr}
+    (h : ¬instr.IsJump) (offset : ℕ) : instr.shiftJumps offset = instr := by
   cases instr with
   | Z _ | S _ | T _ _ => rfl
   | J _ _ _ => exact absurd trivial h
@@ -120,12 +120,12 @@ theorem JumpsBoundedBy.mono {instr : Instr} {len1 len2 : ℕ}
     instr.JumpsBoundedBy len2 := by
   grind [JumpsBoundedBy]
 
-/-- shift_jumps preserves bounded jumps with adjusted bound. -/
-theorem JumpsBoundedBy.shift_jumps {instr : Instr} {len offset : ℕ}
+/-- shiftJumps preserves bounded jumps with adjusted bound. -/
+theorem JumpsBoundedBy.shiftJumps {instr : Instr} {len offset : ℕ}
     (h : instr.JumpsBoundedBy len) :
-    (instr.shift_jumps offset).JumpsBoundedBy (offset + len) := by
+    (instr.shiftJumps offset).JumpsBoundedBy (offset + len) := by
   cases instr with
-  | J _ _ q => simp only [Instr.shift_jumps, JumpsBoundedBy] at h ⊢; omega
+  | J _ _ q => simp only [Instr.shiftJumps, JumpsBoundedBy] at h ⊢; omega
   | _ => trivial
 
 /-! ## Jump Target Capping -/
@@ -169,10 +169,10 @@ end Instr
 
 namespace Program
 
-/-- Any instruction in a program has max_register at most the program's max_register. -/
-theorem mem_max_register {p : Program} {instr : Instr} (h : instr ∈ p) :
-    instr.max_register ≤ p.max_register := by
-  unfold max_register
+/-- Any instruction in a program has maxRegister at most the program's maxRegister. -/
+theorem mem_maxRegister {p : Program} {instr : Instr} (h : instr ∈ p) :
+    instr.maxRegister ≤ p.maxRegister := by
+  unfold maxRegister
   rw [List.foldl_map.symm, List.foldl_eq_foldr]
   exact List.le_max_of_le' 0 (List.mem_map.mpr ⟨instr, h, rfl⟩) (le_refl _)
 

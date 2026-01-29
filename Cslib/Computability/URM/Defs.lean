@@ -65,7 +65,7 @@ namespace Instr
 
 /-- The registers read by an instruction. -/
 @[scoped grind =]
-def reads_from : Instr → Finset ℕ
+def readsFrom : Instr → Finset ℕ
   | Z _ => ∅
   | S n => {n}
   | T m _ => {m}
@@ -73,7 +73,7 @@ def reads_from : Instr → Finset ℕ
 
 /-- The register written to by an instruction, if any. -/
 @[scoped grind =]
-def writes_to : Instr → Option ℕ
+def writesTo : Instr → Option ℕ
   | Z n => some n
   | S n => some n
   | T _ n => some n
@@ -81,7 +81,7 @@ def writes_to : Instr → Option ℕ
 
 /-- The maximum register index referenced by an instruction. -/
 @[scoped grind =]
-def max_register : Instr → ℕ
+def maxRegister : Instr → ℕ
   | Z n => n
   | S n => n
   | T m n => max m n
@@ -90,7 +90,7 @@ def max_register : Instr → ℕ
 /-- Shift all jump targets in an instruction by `offset`.
 Used when concatenating programs to maintain correct jump destinations. -/
 @[scoped grind =]
-def shift_jumps (offset : ℕ) : Instr → Instr
+def shiftJumps (offset : ℕ) : Instr → Instr
   | Z n => Z n
   | S n => S n
   | T m n => T m n
@@ -99,7 +99,7 @@ def shift_jumps (offset : ℕ) : Instr → Instr
 /-- Shift all register references in an instruction by `offset`.
 Used to isolate register usage when composing programs. -/
 @[scoped grind =]
-def shift_registers (offset : ℕ) : Instr → Instr
+def shiftRegisters (offset : ℕ) : Instr → Instr
   | Z n => Z (n + offset)
   | S n => S (n + offset)
   | T m n => T (m + offset) (n + offset)
@@ -132,7 +132,7 @@ def write (σ : State) (n : ℕ) (v : ℕ) : State := Function.update σ n v
 /-- Initialize state with input values in registers 0, 1, ..., k-1.
 Registers beyond the inputs are initialized to 0. -/
 @[scoped grind =]
-def of_inputs (inputs : List ℕ) : State := fun n => inputs.getD n 0
+def ofInputs (inputs : List ℕ) : State := fun n => inputs.getD n 0
 
 /-- Extract output from register 0. -/
 @[scoped grind =]
@@ -149,21 +149,21 @@ namespace Program
 
 /-- The maximum register index referenced by any instruction in the program. -/
 @[scoped grind =]
-def max_register (p : Program) : ℕ :=
-  p.foldl (fun acc instr => max acc instr.max_register) 0
+def maxRegister (p : Program) : ℕ :=
+  p.foldl (fun acc instr => max acc instr.maxRegister) 0
 
 /-- Shift all jump targets in a program by `offset`.
 Used when concatenating programs: the second program's jumps must be adjusted
 by the length of the first program. -/
 @[scoped grind =]
-def shift_jumps (p : Program) (offset : ℕ) : Program :=
-  p.map (Instr.shift_jumps offset)
+def shiftJumps (p : Program) (offset : ℕ) : Program :=
+  p.map (Instr.shiftJumps offset)
 
 /-- Shift all register references in a program by `offset`.
 Used to isolate register usage when composing programs. -/
 @[scoped grind =]
-def shift_registers (p : Program) (offset : ℕ) : Program :=
-  p.map (Instr.shift_registers offset)
+def shiftRegisters (p : Program) (offset : ℕ) : Program :=
+  p.map (Instr.shiftRegisters offset)
 
 end Program
 
@@ -181,13 +181,13 @@ namespace Config
 /-- Initial configuration for a program with given inputs.
 The program counter starts at 0, and inputs are loaded into registers 0, 1, .... -/
 @[scoped grind =]
-def init (inputs : List ℕ) : Config := ⟨0, State.of_inputs inputs⟩
+def init (inputs : List ℕ) : Config := ⟨0, State.ofInputs inputs⟩
 
 /-- A configuration is halted if the program counter is at or beyond the program length. -/
 @[scoped grind =]
-def is_halted (c : Config) (p : Program) : Prop := p.length ≤ c.pc
+def isHalted (c : Config) (p : Program) : Prop := p.length ≤ c.pc
 
-instance (c : Config) (p : Program) : Decidable (c.is_halted p) :=
+instance (c : Config) (p : Program) : Decidable (c.isHalted p) :=
   inferInstanceAs (Decidable (p.length ≤ c.pc))
 
 instance : Inhabited Config := ⟨init []⟩
