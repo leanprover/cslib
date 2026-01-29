@@ -14,13 +14,12 @@ and proves their execution properties.
 
 ## Main definitions
 
-- `Program.isStandardForm`: all jump targets are bounded by program length
-- `Program.IsStandardForm`: Prop version of the standard form property
+- `Program.IsStandardForm`: all jump targets are bounded by program length
 - `Program.to_standard_form`: convert a program to standard form
 
 ## Main results
 
-- `straight_line_isStandardForm`: straight-line programs are standard form
+- `straight_line_IsStandardForm`: straight-line programs are standard form
 - `Halts.to_standard_form_iff`: halting equivalence with normalized programs
 -/
 
@@ -34,19 +33,11 @@ namespace Program
 
 /-- A program is in standard form if all jump targets are bounded by the program length.
 Jumps can target any instruction (0..length-1) or the "virtual halt" position (length). -/
-def isStandardForm (p : Program) : Bool :=
-  p.all (Instr.jumps_bounded_by p.length)
-
-/-- Prop version: a program is in standard form. -/
 def IsStandardForm (p : Program) : Prop :=
   ∀ instr ∈ p, instr.JumpsBoundedBy p.length
 
 instance (p : Program) : Decidable p.IsStandardForm :=
   inferInstanceAs (Decidable (∀ instr ∈ p, instr.JumpsBoundedBy p.length))
-
-theorem isStandardForm_iff_IsStandardForm (p : Program) :
-    p.isStandardForm = true ↔ p.IsStandardForm := by
-  simp only [isStandardForm, IsStandardForm, Instr.JumpsBoundedBy, List.all_eq_true]
 
 /-- Convert a program to standard form by capping all jump targets at the program length. -/
 def to_standard_form (p : Program) : Program :=
@@ -86,15 +77,10 @@ end Program
 /-! ## Standard Form Properties -/
 
 /-- Straight-line programs are in standard form. -/
-theorem straight_line_isStandardForm {p : Program} (hsl : p.IsStraightLine) :
+theorem straight_line_IsStandardForm {p : Program} (hsl : p.IsStraightLine) :
     p.IsStandardForm := by
-  unfold Program.IsStandardForm
   intro instr hinstr
-  unfold Program.IsStraightLine Program.is_straight_line at hsl
-  simp only [List.all_eq_true, Bool.not_eq_true'] at hsl
-  have hnotJump : ¬instr.IsJump := by
-    unfold Instr.IsJump; simp only [Bool.not_eq_true]; exact hsl instr hinstr
-  exact Instr.JumpsBoundedBy_of_not_IsJump hnotJump p.length
+  exact Instr.JumpsBoundedBy_of_nonJump (hsl instr hinstr) p.length
 
 /-! ## Behavioral Equivalence
 

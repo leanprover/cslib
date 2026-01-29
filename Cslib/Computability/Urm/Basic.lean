@@ -13,8 +13,8 @@ This file contains basic lemmas and helper operations for URM types.
 
 ## Main definitions
 
-- `Instr.isJump`: predicate for jump instructions
-- `Instr.jumps_bounded_by`: checks if jump targets are bounded
+- `Instr.IsJump`: predicate for jump instructions
+- `Instr.JumpsBoundedBy`: checks if jump targets are bounded
 - `Instr.cap_jump`: caps jump targets to a given length
 
 ## Main results
@@ -65,94 +65,70 @@ namespace Instr
 
 /-! ## Jump Instructions -/
 
-/-- An instruction is a jump instruction if it's J. -/
-def isJump : Instr → Bool
-  | J _ _ _ => true
-  | _ => false
+/-- An instruction is a jump instruction. -/
+def IsJump : Instr → Prop
+  | J _ _ _ => True
+  | _ => False
 
-/-- Prop version: an instruction is a jump. -/
-def IsJump (instr : Instr) : Prop := instr.isJump = true
-
-instance (instr : Instr) : Decidable instr.IsJump :=
-  decidable_of_iff (instr.isJump = true) Iff.rfl
+instance (instr : Instr) : Decidable instr.IsJump := by
+  cases instr <;> simp only [IsJump] <;> infer_instance
 
 /-- Z instruction is not a jump. -/
-@[simp, scoped grind =]
-theorem Z_not_isJump (n : ℕ) : (Z n).isJump = false := rfl
+@[simp]
+theorem Z_nonJump (n : ℕ) : ¬(Z n).IsJump := not_false
 
 /-- S instruction is not a jump. -/
-@[simp, scoped grind =]
-theorem S_not_isJump (n : ℕ) : (S n).isJump = false := rfl
+@[simp]
+theorem S_nonJump (n : ℕ) : ¬(S n).IsJump := not_false
 
 /-- T instruction is not a jump. -/
-@[simp, scoped grind =]
-theorem T_not_isJump (m n : ℕ) : (T m n).isJump = false := rfl
+@[simp]
+theorem T_nonJump (m n : ℕ) : ¬(T m n).IsJump := not_false
 
 /-- J instruction is a jump. -/
-@[simp, scoped grind =]
-theorem J_isJump (m n q : ℕ) : (J m n q).isJump = true := rfl
-
-/-- Z instruction is not a jump (Prop version). -/
 @[simp]
-theorem Z_not_IsJump (n : ℕ) : ¬(Z n).IsJump := by simp [IsJump]
-
-/-- S instruction is not a jump (Prop version). -/
-@[simp]
-theorem S_not_IsJump (n : ℕ) : ¬(S n).IsJump := by simp [IsJump]
-
-/-- T instruction is not a jump (Prop version). -/
-@[simp]
-theorem T_not_IsJump (m n : ℕ) : ¬(T m n).IsJump := by simp [IsJump]
-
-/-- J instruction is a jump (Prop version). -/
-theorem J_IsJump (m n q : ℕ) : (J m n q).IsJump := rfl
+theorem J_IsJump (m n q : ℕ) : (J m n q).IsJump := trivial
 
 /-- shift_jumps is identity for non-jumping instructions. -/
-theorem shift_jumps_of_not_isJump {instr : Instr}
-    (h : instr.isJump = false) (offset : ℕ) : instr.shift_jumps offset = instr := by
+theorem shift_jumps_of_nonJump {instr : Instr}
+    (h : ¬instr.IsJump) (offset : ℕ) : instr.shift_jumps offset = instr := by
   cases instr with
   | Z _ | S _ | T _ _ => rfl
-  | J _ _ _ => simp [isJump] at h
+  | J _ _ _ => exact absurd trivial h
 
 /-! ## Bounded Jump Targets -/
 
-/-- Check if an instruction's jump target is bounded by a given length.
+/-- An instruction's jump target is bounded by a given length.
 Non-jump instructions trivially satisfy this. -/
-def jumps_bounded_by (len : ℕ) : Instr → Bool
-  | Z _ => true
-  | S _ => true
-  | T _ _ => true
+def JumpsBoundedBy (len : ℕ) : Instr → Prop
   | J _ _ q => q ≤ len
+  | _ => True
 
-/-- Prop version: an instruction's jump target is bounded. -/
-def JumpsBoundedBy (len : ℕ) (instr : Instr) : Prop := instr.jumps_bounded_by len = true
-
-instance (len : ℕ) (instr : Instr) : Decidable (instr.JumpsBoundedBy len) :=
-  decidable_of_iff (instr.jumps_bounded_by len = true) Iff.rfl
+instance (len : ℕ) (instr : Instr) : Decidable (instr.JumpsBoundedBy len) := by
+  cases instr <;> simp only [JumpsBoundedBy] <;> infer_instance
 
 /-- Non-jumping instructions have bounded jumps for any length. -/
-theorem JumpsBoundedBy_of_not_IsJump {instr : Instr} (h : ¬instr.IsJump)
+theorem JumpsBoundedBy_of_nonJump {instr : Instr} (h : ¬instr.IsJump)
     (len : ℕ) : instr.JumpsBoundedBy len := by
-  unfold IsJump at h; simp only [Bool.not_eq_true] at h
-  cases instr <;> grind [isJump, jumps_bounded_by, JumpsBoundedBy]
+  cases instr with
+  | J _ _ _ => exact absurd trivial h
+  | _ => trivial
 
-/-- jumps_bounded_by is monotonic: if bounded for len1, then bounded for any len2 ≥ len1. -/
+/-- JumpsBoundedBy is monotonic: if bounded for len1, then bounded for any len2 ≥ len1. -/
 theorem JumpsBoundedBy.mono {instr : Instr} {len1 len2 : ℕ}
     (h : instr.JumpsBoundedBy len1) (hle : len1 ≤ len2) :
     instr.JumpsBoundedBy len2 := by
-  unfold JumpsBoundedBy at h ⊢
   cases instr with
-  | Z _ | S _ | T _ _ => simp [jumps_bounded_by]
-  | J _ _ q => simp only [jumps_bounded_by, decide_eq_true_eq] at h ⊢; omega
+  | J _ _ q => exact Nat.le_trans h hle
+  | _ => trivial
 
 /-- shift_jumps preserves bounded jumps with adjusted bound. -/
 theorem JumpsBoundedBy.shift_jumps {instr : Instr} {len offset : ℕ}
     (h : instr.JumpsBoundedBy len) :
     (instr.shift_jumps offset).JumpsBoundedBy (offset + len) := by
-  unfold JumpsBoundedBy at h ⊢
   cases instr with
-  | Z _ | S _ | T _ _ => rfl
-  | J _ _ q => simp only [Instr.shift_jumps, jumps_bounded_by, decide_eq_true_eq] at h ⊢; omega
+  | J _ _ q => simp only [Instr.shift_jumps, JumpsBoundedBy] at h ⊢; omega
+  | _ => trivial
 
 /-! ## Jump Target Capping -/
 
@@ -179,8 +155,9 @@ theorem cap_jump_J (len m n q : ℕ) :
 /-- cap_jump always produces an instruction with bounded jump. -/
 theorem JumpsBoundedBy.cap_jump (len : ℕ) (instr : Instr) :
     (instr.cap_jump len).JumpsBoundedBy len := by
-  unfold JumpsBoundedBy
-  cases instr <;> grind [cap_jump, jumps_bounded_by]
+  cases instr with
+  | J _ _ q => exact Nat.min_le_right q len
+  | _ => trivial
 
 /-- cap_jump is idempotent: capping twice is the same as capping once. -/
 @[simp]

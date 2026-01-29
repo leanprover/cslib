@@ -14,8 +14,7 @@ they always halt exactly at their length.
 
 ## Main definitions
 
-- `Program.is_straight_line`: a program contains no jump instructions
-- `Program.IsStraightLine`: Prop version of straight-line property
+- `Program.IsStraightLine`: a program contains no jump instructions
 
 ## Main results
 
@@ -30,50 +29,47 @@ namespace Cslib.Urm
 /-! ## Straight-Line Programs -/
 
 /-- A program is "straight-line" if it contains no jump instructions. -/
-def Program.is_straight_line (p : Program) : Bool :=
-  p.all (fun i => !i.isJump)
-
-/-- Prop version: a program is straight-line (no jumps). -/
-def Program.IsStraightLine (p : Program) : Prop := p.is_straight_line = true
+def Program.IsStraightLine (p : Program) : Prop :=
+  ∀ i ∈ p, ¬i.IsJump
 
 instance (p : Program) : Decidable p.IsStraightLine :=
-  decidable_of_iff (p.is_straight_line = true) Iff.rfl
+  inferInstanceAs (Decidable (∀ i ∈ p, ¬i.IsJump))
 
 /-- Append preserves straight-line property. -/
 theorem Program.IsStraightLine.append {p q : Program}
     (hp : p.IsStraightLine) (hq : q.IsStraightLine) :
-    Program.IsStraightLine (p ++ q) := by
-  unfold Program.IsStraightLine Program.is_straight_line at hp hq ⊢
-  simp only [List.all_append]; simp [hp, hq]
+    (p ++ q).IsStraightLine := by
+  intro i hi
+  simp only [List.mem_append] at hi
+  rcases hi with hi | hi <;> [exact hp i hi; exact hq i hi]
 
 /-- Cons of non-jumping instruction preserves straight-line. -/
 theorem Program.IsStraightLine.cons {instr : Instr} {p : Program}
     (hinstr : ¬instr.IsJump) (hp : p.IsStraightLine) :
     Program.IsStraightLine (instr :: p) := by
-  unfold Instr.IsJump at hinstr; simp only [Bool.not_eq_true] at hinstr
-  unfold Program.IsStraightLine Program.is_straight_line at hp ⊢
-  simp only [List.all_cons]; simp [hinstr, hp]
+  intro i hi
+  simp only [List.mem_cons] at hi
+  rcases hi with rfl | hi <;> [exact hinstr; exact hp i hi]
 
 /-- Singleton non-jumping instruction is straight-line. -/
 theorem Program.IsStraightLine.singleton {instr : Instr}
-    (h : ¬instr.IsJump) :
-    Program.IsStraightLine [instr] := by
-  unfold Instr.IsJump at h; simp only [Bool.not_eq_true] at h
-  unfold Program.IsStraightLine Program.is_straight_line
-  simp only [List.all_cons, List.all_nil, h, Bool.and_self, Bool.not_false]
+    (h : ¬instr.IsJump) : Program.IsStraightLine [instr] := by
+  intro i hi
+  simp only [List.mem_singleton] at hi
+  exact hi ▸ h
 
 /-! ## Straight-Line Program Execution -/
 
 /-- A non-jumping instruction produces a step that increments PC by 1. -/
-theorem Step.of_nonJumping {p : Program} {c : Config} (hlt : c.pc < p.length)
-    (hnonjump : (p[c.pc]'hlt).isJump = false) :
+theorem Step.of_nonJump {p : Program} {c : Config} (hlt : c.pc < p.length)
+    (hnonjump : ¬(p[c.pc]'hlt).IsJump) :
     ∃ c', Step p c c' ∧ c'.pc = c.pc + 1 := by
   have hinstr : p[c.pc]? = some p[c.pc] := List.getElem?_eq_getElem hlt
   cases hp : (p[c.pc]'hlt) with
   | Z n => exact ⟨_, Step.zero (hp ▸ hinstr), rfl⟩
   | S n => exact ⟨_, Step.succ (hp ▸ hinstr), rfl⟩
   | T m n => exact ⟨_, Step.transfer (hp ▸ hinstr), rfl⟩
-  | J _ _ _ => simp [hp, Instr.isJump] at hnonjump
+  | J _ _ _ => exact False.elim (hnonjump (hp ▸ trivial))
 
 /-- Straight-line programs halt from any starting state, not just Config.init.
 Useful for chaining: after running one program, we can run the next
@@ -90,10 +86,8 @@ theorem straight_line_halts_from_state {p : Program} (hsl : p.IsStraightLine) (s
     by_cases hhalted : c.pc ≥ p.length
     · exact ⟨c, Relation.ReflTransGen.refl, by omega⟩
     · push_neg at hhalted
-      unfold Program.IsStraightLine Program.is_straight_line at hsl
-      simp only [List.all_eq_true, Bool.not_eq_true'] at hsl
       have hnonjump := hsl p[c.pc] (List.getElem_mem hhalted)
-      obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJumping hhalted hnonjump
+      obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJump hhalted hnonjump
       obtain ⟨c'', hsteps'', hpc''⟩ := ih (p.length - c'.pc) (by omega) c' (by omega) rfl
       exact ⟨c'', Relation.ReflTransGen.head hstep' hsteps'', hpc''⟩
 
@@ -133,10 +127,8 @@ theorem straight_line_state_at_pc {p : Program} (hsl : p.IsStraightLine)
     obtain ⟨c_n, hsteps_n, hpc_n⟩ := ih (Nat.le_of_succ_le htarget)
     have hn_lt : n < p.length := Nat.lt_of_succ_le htarget
     have hpc_lt : c_n.pc < p.length := hpc_n ▸ hn_lt
-    unfold Program.IsStraightLine Program.is_straight_line at hsl
-    simp only [List.all_eq_true, Bool.not_eq_true'] at hsl
     have hnonjump := hsl p[c_n.pc] (List.getElem_mem hpc_lt)
-    obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJumping hpc_lt hnonjump
+    obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJump hpc_lt hnonjump
     exact ⟨c', Relation.ReflTransGen.tail hsteps_n hstep', hpc_n ▸ hpc'⟩
 
 end Cslib.Urm
