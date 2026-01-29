@@ -107,11 +107,14 @@ theorem Step.to_standard_form {p : Program} {c c' : Config} (hstep : Step p c c'
       c₂.is_halted p.to_standard_form ∧ c'.state = c₂.state) := by
   cases hstep with
   | zero hinstr =>
-    left; exact Step.zero (by simp [Program.getElem?_to_standard_form, hinstr])
+    left
+    exact Step.zero (by simp [Program.getElem?_to_standard_form, hinstr])
   | succ hinstr =>
-    left; exact Step.succ (by simp [Program.getElem?_to_standard_form, hinstr])
+    left
+    exact Step.succ (by simp [Program.getElem?_to_standard_form, hinstr])
   | transfer hinstr =>
-    left; exact Step.transfer (by simp [Program.getElem?_to_standard_form, hinstr])
+    left
+    exact Step.transfer (by simp [Program.getElem?_to_standard_form, hinstr])
   | @jump_ne m n q hinstr hne =>
     left
     have hcap : p.to_standard_form[c.pc]? = some (Instr.J m n (min q p.length)) := by
@@ -137,7 +140,8 @@ theorem Steps.to_standard_form_halts {p : Program} {c c' : Config}
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl =>
     refine ⟨c', Steps.refl _, ?_, rfl⟩
-    simp only [Config.is_halted, Program.to_standard_form_length]; exact hhalted
+    simp only [Config.is_halted, Program.to_standard_form_length]
+    exact hhalted
   | head hstep hrest ih =>
     rcases Step.to_standard_form hstep with
       hsame | ⟨hhalted_mid, c_mid, hstep_mid, hhalted_mid', hstate_eq⟩
@@ -167,7 +171,8 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
     rw [Program.getElem?_to_standard_form] at hinstr
     simp only [Option.map_eq_some_iff] at hinstr
     obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr <;> simp only [Instr.cap_jump] at hcap <;> grind
+    cases instr <;> simp only [Instr.cap_jump] at hcap
+    all_goals grind
   | jump_eq hinstr heq =>
     rw [Program.getElem?_to_standard_form] at hinstr
     simp only [Option.map_eq_some_iff] at hinstr
@@ -178,12 +183,16 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
       simp only [Instr.cap_jump, Instr.J.injEq] at hcap
       obtain ⟨rfl, rfl, htarget⟩ := hcap
       by_cases hbounded : q' ≤ p.length
-      · simp only [Nat.min_eq_left hbounded] at htarget; subst htarget
-        left; grind
-      · simp only [Nat.min_eq_right (Nat.le_of_not_le hbounded)] at htarget; subst htarget
-        right; exact ⟨by grind [Config.is_halted, Program.to_standard_form_length],
-               ⟨q', c.state⟩, Step.jump_eq hinstr' heq,
-               by grind [Config.is_halted], rfl⟩
+      · simp only [Nat.min_eq_left hbounded] at htarget
+        subst htarget
+        left
+        grind
+      · simp only [Nat.min_eq_right (Nat.le_of_not_le hbounded)] at htarget
+        subst htarget
+        right
+        refine ⟨?_, ⟨q', c.state⟩, Step.jump_eq hinstr' heq, ?_, rfl⟩
+        · grind [Config.is_halted, Program.to_standard_form_length]
+        · grind [Config.is_halted]
 
 /-- Reverse halting: if p.to_standard_form reaches a halted config, p reaches a halted config
     with the same state. -/
@@ -193,7 +202,8 @@ theorem Steps.from_to_standard_form_halts {p : Program} {c c' : Config}
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl =>
     refine ⟨c', Steps.refl _, ?_, rfl⟩
-    simp only [Config.is_halted, Program.to_standard_form_length] at hhalted ⊢; exact hhalted
+    simp only [Config.is_halted, Program.to_standard_form_length] at hhalted ⊢
+    exact hhalted
   | head hstep hrest ih =>
     rcases Step.from_to_standard_form hstep with
       hsame | ⟨hhalted_mid, c_mid, hstep_mid, hhalted_mid', hstate_eq⟩
