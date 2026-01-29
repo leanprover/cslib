@@ -144,10 +144,7 @@ theorem Steps.to_standard_form_halts {p : Program} {c c' : Config}
       hsame | ⟨hhalted_mid, c_mid, hstep_mid, hhalted_mid', hstate_eq⟩
     · obtain ⟨c₂, hsteps₂, hhalted₂, hstate_eq⟩ := ih
       exact ⟨c₂, Steps.trans (Steps.single hsame) hsteps₂, hhalted₂, hstate_eq⟩
-    · rename_i c_next
-      have hrest_trivial : c_next = c' := Steps.eq_of_halts (Steps.refl _) hhalted_mid hrest hhalted
-      subst hrest_trivial
-      exact ⟨c_mid, Steps.single hstep_mid, hhalted_mid', hstate_eq⟩
+    · grind [(Steps.refl _).eq_of_halts hhalted_mid hrest hhalted]
 
 /-- Forward halting theorem. -/
 theorem Halts.to_standard_form {p : Program} {inputs : List ℕ} (h : Halts p inputs) :
