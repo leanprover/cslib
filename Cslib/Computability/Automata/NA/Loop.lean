@@ -142,7 +142,10 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
       have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
         simp [← h1, segment_idem h_mono]
       simp [h1, h2, h_seg0]
-      grind
+      #adaptation_note
+      /-- This squeeze was required moving to nightly-2026-01-28 -/
+      grind only [= cumLen_succ, = getElem?_pos, = get_fun, = List.length_take,
+        = List.getElem?_take, = min_def, = Option.getD_some]
   · simp [h_len, flatten_def, segment_idem h_mono, h_seg0]
 
 namespace Buchi
