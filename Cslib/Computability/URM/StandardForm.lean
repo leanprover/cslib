@@ -41,7 +41,7 @@ instance (p : Program) : Decidable p.IsStandardForm :=
 
 /-- Convert a program to standard form by capping all jump targets at the program length. -/
 def to_standard_form (p : Program) : Program :=
-  p.map (Instr.cap_jump p.length)
+  p.map (Instr.capJump p.length)
 
 /-- to_standard_form preserves program length. -/
 @[simp]
@@ -56,11 +56,11 @@ theorem to_standard_form_isStandardForm (p : Program) :
   rw [List.length_map]
   intro instr hinstr
   obtain ⟨orig, _, rfl⟩ := List.mem_map.mp hinstr
-  exact Instr.JumpsBoundedBy.cap_jump p.length orig
+  exact Instr.JumpsBoundedBy.capJump p.length orig
 
-/-- Accessing an instruction in to_standard_form gives the cap_jump'd instruction. -/
+/-- Accessing an instruction in to_standard_form gives the capJump'd instruction. -/
 theorem getElem?_to_standard_form (p : Program) (i : ℕ) :
-    p.to_standard_form[i]? = (p[i]?).map (Instr.cap_jump p.length) := by
+    p.to_standard_form[i]? = (p[i]?).map (Instr.capJump p.length) := by
   simp only [to_standard_form, List.getElem?_map]
 
 /-- to_standard_form is idempotent: applying it twice equals applying it once. -/
@@ -70,7 +70,7 @@ theorem to_standard_form_idempotent (p : Program) :
   simp only [to_standard_form, List.length_map, List.map_map]
   congr 1
   funext instr
-  exact Instr.cap_jump_idempotent p.length instr
+  exact Instr.capJump_idempotent p.length instr
 
 end Program
 
@@ -122,7 +122,7 @@ theorem Step.to_standard_form {p : Program} {c c' : Config} (hstep : Step p c c'
     exact Step.jump_ne hcap hne
   | @jump_eq m n q hinstr heq =>
     have (x : ℕ) (h : min q p.length = x) : p.to_standard_form[c.pc]? = some (Instr.J m n x) := by
-      grind [Program.getElem?_to_standard_form, Instr.cap_jump]
+      grind [Program.getElem?_to_standard_form, Instr.capJump]
     by_cases q ≤ p.length
     · grind [Step.jump_eq]
     · right
@@ -171,7 +171,7 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
     rw [Program.getElem?_to_standard_form] at hinstr
     simp only [Option.map_eq_some_iff] at hinstr
     obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr <;> simp only [Instr.cap_jump] at hcap
+    cases instr <;> simp only [Instr.capJump] at hcap
     all_goals grind
   | jump_eq hinstr heq =>
     rw [Program.getElem?_to_standard_form] at hinstr
@@ -180,7 +180,7 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
     cases instr with
     | Z _ | S _ | T _ _ => simp at hcap
     | J m' n' q' =>
-      simp only [Instr.cap_jump, Instr.J.injEq] at hcap
+      simp only [Instr.capJump, Instr.J.injEq] at hcap
       obtain ⟨rfl, rfl, htarget⟩ := hcap
       by_cases hbounded : q' ≤ p.length
       · simp only [Nat.min_eq_left hbounded] at htarget

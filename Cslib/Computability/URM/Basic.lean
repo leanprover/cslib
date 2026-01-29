@@ -15,7 +15,7 @@ This file contains basic lemmas and helper operations for URM types.
 
 - `Instr.IsJump`: predicate for jump instructions
 - `Instr.JumpsBoundedBy`: checks if jump targets are bounded
-- `Instr.cap_jump`: caps jump targets to a given length
+- `Instr.capJump`: caps jump targets to a given length
 
 ## Main results
 
@@ -131,39 +131,39 @@ theorem JumpsBoundedBy.shift_jumps {instr : Instr} {len offset : ℕ}
 /-! ## Jump Target Capping -/
 
 /-- Cap a jump target to be at most `len`. Non-jump instructions are unchanged. -/
-def cap_jump (len : ℕ) : Instr → Instr
+def capJump (len : ℕ) : Instr → Instr
   | Z n => Z n
   | S n => S n
   | T m n => T m n
   | J m n q => J m n (min q len)
 
 @[simp]
-theorem cap_jump_Z (len n : ℕ) : (Z n).cap_jump len = Z n := rfl
+theorem capJump_Z (len n : ℕ) : (Z n).capJump len = Z n := rfl
 
 @[simp]
-theorem cap_jump_S (len n : ℕ) : (S n).cap_jump len = S n := rfl
+theorem capJump_S (len n : ℕ) : (S n).capJump len = S n := rfl
 
 @[simp]
-theorem cap_jump_T (len m n : ℕ) : (T m n).cap_jump len = T m n := rfl
+theorem capJump_T (len m n : ℕ) : (T m n).capJump len = T m n := rfl
 
 @[simp]
-theorem cap_jump_J (len m n q : ℕ) :
-    (J m n q).cap_jump len = J m n (min q len) := rfl
+theorem capJump_J (len m n q : ℕ) :
+    (J m n q).capJump len = J m n (min q len) := rfl
 
-/-- cap_jump always produces an instruction with bounded jump. -/
-theorem JumpsBoundedBy.cap_jump (len : ℕ) (instr : Instr) :
-    (instr.cap_jump len).JumpsBoundedBy len := by
+/-- capJump always produces an instruction with bounded jump. -/
+theorem JumpsBoundedBy.capJump (len : ℕ) (instr : Instr) :
+    (instr.capJump len).JumpsBoundedBy len := by
   cases instr with
   | J _ _ q => exact Nat.min_le_right q len
   | _ => trivial
 
-/-- cap_jump is idempotent: capping twice is the same as capping once. -/
+/-- capJump is idempotent: capping twice is the same as capping once. -/
 @[simp]
-theorem cap_jump_idempotent (len : ℕ) (instr : Instr) :
-    (instr.cap_jump len).cap_jump len = instr.cap_jump len := by
+theorem capJump_idempotent (len : ℕ) (instr : Instr) :
+    (instr.capJump len).capJump len = instr.capJump len := by
   cases instr with
   | Z | S | T => rfl
-  | J m n q => simp [cap_jump]
+  | J m n q => simp [capJump]
 
 end Instr
 
