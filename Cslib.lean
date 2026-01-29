@@ -27,6 +27,7 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Urm.Defs
+public import Cslib.Computability.Urm.Basic
 public import Cslib.Computability.Urm.Execution
 public import Cslib.Computability.Urm.StraightLine
 public import Cslib.Computability.Urm.StandardForm

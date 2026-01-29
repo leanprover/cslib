@@ -5,7 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.Urm.Defs
+public import Cslib.Computability.Urm.Basic
 public import Mathlib.Logic.Relation
 public import Mathlib.Data.Part
 public import Mathlib.Data.Setoid.Basic
