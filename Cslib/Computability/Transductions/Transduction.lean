@@ -6,7 +6,8 @@ Authors: William (Liam) Schilling
 
 module
 
-public import Cslib.Computability.Transductions.Algebra
+public import Cslib.Foundations.Algebra.Div
+public import Cslib.Foundations.Algebra.LeftGCDMonoid
 
 @[expose] public section
 
@@ -22,7 +23,7 @@ namespace Cslib
 open Semigroup LeftSetGCDMonoid
 
 /- A transduction is a function with string inputs. -/
-def Transduction (α β) :=
+def Transduction (α β : Type*) :=
   List α → β
 
 namespace Transduction
@@ -60,8 +61,8 @@ is the transduction from remaining input suffixes to new output suffixes of `f` 
 noncomputable def tail (xs : List α) (f : Transduction α β) : Transduction α β :=
   fun ys => divl (pref f xs) (residual xs f ys) (pref_dvd f xs ys)
 
-/-- Strings are tail-congruent with respect to `f` if they yield the same tail function of `f`.
-That is, `f` behaves the same given either string as an input prefix. -/
+/-- Strings are tail congruent with respect to `f` if they yield the same tail function of `f`.
+That is, `f` behaves the same after being given either string as an input prefix. -/
 def tailCongr (f : Transduction α β) : List α → List α → Prop :=
   (· = ·) on (tail · f)
 

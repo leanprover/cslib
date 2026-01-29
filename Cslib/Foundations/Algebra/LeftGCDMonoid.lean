@@ -12,7 +12,7 @@ public import Mathlib.Data.Set.Basic
 
 @[expose] public section
 
-/-! ## Left GCD Monoids
+/-! # Left GCD Monoids
 
 A left GCD monoid is a generalization of `GCDMonoid` that relaxes commutativity.
 
@@ -20,20 +20,6 @@ A GCD will be necessary for defining the tail function of a transduction,
 but commutativity is too strict to accommodate cases we care about
 such as string-to-string transduction.
 -/
-
-namespace Semigroup
-
-variable {α : Type*} [Semigroup α]
-
-/-- Extract a witness of `a ∣ b`, that is, a result of left-dividing `b` by `a`. -/
-noncomputable def divl (a b : α) (h : a ∣ b) : α :=
-  Classical.choose h
-
-/-- Multiplying `a` with a left-quotient of `b` by `a` yields `b`. -/
-theorem divl_spec (a b : α) (h : a ∣ b) : b = a * divl a b h :=
-  Classical.choose_spec h
-
-end Semigroup
 
 /-- Left GCD monoid:
 a `Monoid` with a `gcdl` (greatest common left divisor) for pairs of elements. -/

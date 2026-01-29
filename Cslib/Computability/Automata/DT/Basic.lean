@@ -28,9 +28,7 @@ Transducers with different underlying automata are defined:
   *Finite-State Techniques: Automata, Transducers and Bimachines*][Mihov2019]
 -/
 
-namespace Cslib.Automata
-
-namespace DA
+namespace Cslib.Automata.DT
 
 variable {State StateLeft StateRight Symbol Weight : Type*}
 
@@ -50,6 +48,10 @@ structure DetTransducer (State Symbol Weight : Type*) extends DA State Symbol wh
   finalWeight : State → Weight
 
 namespace DetTransducer
+
+/-- A transducer is final-empty if all of its final weights are the empty weight `1`. -/
+def IsFinalEmpty (dt : DetTransducer State Symbol Weight) [MulOneClass Weight] : Prop :=
+  ∀ s, dt.finalWeight s = 1
 
 section Mul
 
@@ -124,7 +126,6 @@ theorem mul_runRight_eq_runLeft_mul
 
 /-- A `Transducer` instance for `DetTransducer`
 exposing the recognized transduction via `transduceFromLeft` and `transduceFromRight`. -/
-@[simp, scoped grind =]
 instance : Transducer (DetTransducer State Symbol Weight) Symbol Weight where
   transduceFromLeft dt (acc : Weight) (xs : List Symbol) :=
     runLeft dt (acc * dt.startWeight) xs dt.start
@@ -250,7 +251,6 @@ theorem mul_runRight_eq_runLeft_mul
 
 /-- A `Transducer` instance for `Bimachine`
 exposing the recognized transduction via `transduceFromLeft` and `transduceFromRight`. -/
-@[simp, scoped grind =]
 instance : Transducer (Bimachine StateLeft StateRight Symbol Weight) Symbol Weight where
   transduceFromLeft bm (acc : Weight) (xs : List Symbol) :=
     runLeft bm (fun sr ↦ acc * bm.startWeight sr) xs bm.daLeft.start
@@ -267,6 +267,4 @@ end Semigroup
 
 end Bimachine
 
-end DA
-
-end Cslib.Automata
+end Cslib.Automata.DT
