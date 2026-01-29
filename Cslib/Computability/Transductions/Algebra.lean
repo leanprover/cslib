@@ -51,7 +51,7 @@ class LeftGCDMonoid (α : Type*) [LeftCancelMonoid α] where
 
 /-- Left GCD-of-set monoid:
 a `Monoid` with `sgcdl` (greatest common left divisor) for sets of elements. -/
-class LeftGCDSetMonoid (α : Type*) [LeftCancelMonoid α] extends LeftGCDMonoid α where
+class LeftSetGCDMonoid (α : Type*) [LeftCancelMonoid α] extends LeftGCDMonoid α where
   /-- The greatest common divisor between a set of elements. -/
   sgcdl : Set α → α
   /-- The GCD is a divisor of any contained element. -/
@@ -61,9 +61,9 @@ class LeftGCDSetMonoid (α : Type*) [LeftCancelMonoid α] extends LeftGCDMonoid 
   /-- The set GCD agrees with the pair GCD. -/
   sgcdl_eq_gcdl : ∀ a b, sgcdl {a, b} = gcdl a b
 
-namespace LeftGCDSetMonoid
+namespace LeftSetGCDMonoid
 
-variable {α ι : Type*} [LeftCancelMonoid α] [LeftGCDSetMonoid α]
+variable {α ι : Type*} [LeftCancelMonoid α] [LeftSetGCDMonoid α]
 
 /-- Indexed version of the set GCD function `sgcdl`. -/
 def igcdl (s : ι → α) : α :=
@@ -84,4 +84,4 @@ theorem dvd_igcdl (s : ι → α) {a} : (∀ i, a ∣ s i) → a ∣ igcdl s := 
   rw [←h_mem]
   apply h_dvd
 
-end LeftGCDSetMonoid
+end LeftSetGCDMonoid

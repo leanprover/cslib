@@ -19,7 +19,7 @@ A *string-to-string* transduction has output strings as its weights.
 
 namespace Cslib
 
-open Semigroup LeftGCDSetMonoid
+open Semigroup LeftSetGCDMonoid
 
 /- A transduction is a function with string inputs. -/
 def Transduction (α β) :=
@@ -29,7 +29,7 @@ namespace Transduction
 
 open scoped Function
 
-variable {α β : Type*} [LeftCancelMonoid β] [LeftGCDSetMonoid β]
+variable {α β : Type*} [LeftCancelMonoid β] [LeftSetGCDMonoid β]
 
 instance : CoeFun (Transduction α β) (fun _ ↦ List α → β) := ⟨fun f => f⟩
 
