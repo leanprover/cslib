@@ -17,10 +17,10 @@ instructions, register state, programs, and machine configurations.
 
 ## Main definitions
 
-- `Urm.Instr`: The four URM instructions (Z, S, T, J)
-- `Urm.State`: Register contents as a function `ℕ → ℕ`
-- `Urm.Program`: A finite sequence of instructions
-- `Urm.Config`: Machine configuration (program counter + state)
+- `URM.Instr`: The four URM instructions (Z, S, T, J)
+- `URM.State`: Register contents as a function `ℕ → ℕ`
+- `URM.Program`: A finite sequence of instructions
+- `URM.Config`: Machine configuration (program counter + state)
 
 ## File Organization
 
@@ -42,7 +42,7 @@ The URM module is organized into the following files:
 
 @[expose] public section
 
-namespace Cslib.Urm
+namespace Cslib.URM
 
 /-! ## Instructions -/
 
@@ -197,6 +197,6 @@ instance : Repr Config where
 
 end Config
 
-end Cslib.Urm
+end Cslib.URM
 
 end

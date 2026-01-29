@@ -5,7 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.Urm.Basic
+public import Cslib.Computability.URM.Basic
 public import Mathlib.Logic.Relation
 public import Mathlib.Data.Part
 public import Mathlib.Data.Setoid.Basic
@@ -16,13 +16,13 @@ Single-step and multi-step execution semantics for URMs.
 
 ## Main definitions
 
-- `Urm.Step`: Single-step execution relation
-- `Urm.Steps`: Multi-step execution (reflexive-transitive closure of `Step`)
-- `Urm.Halts`: A program halts on given inputs
-- `Urm.Diverges`: A program diverges on given inputs
-- `Urm.HaltsWithResult`: A program halts on given inputs with a specific result
+- `URM.Step`: Single-step execution relation
+- `URM.Steps`: Multi-step execution (reflexive-transitive closure of `Step`)
+- `URM.Halts`: A program halts on given inputs
+- `URM.Diverges`: A program diverges on given inputs
+- `URM.HaltsWithResult`: A program halts on given inputs with a specific result
 
-## Notation (scoped to `Urm` namespace)
+## Notation (scoped to `URM` namespace)
 
 Standard computability theory notation:
 - `p ↓ inputs` — program `p` halts on inputs
@@ -38,7 +38,7 @@ Standard computability theory notation:
 
 @[expose] public section
 
-namespace Cslib.Urm
+namespace Cslib.URM
 
 variable (p : Program)
 
@@ -263,6 +263,6 @@ theorem ProgramEquiv.symm {p q : Program} (h : p ≈ q) : q ≈ p := Setoid.symm
 theorem ProgramEquiv.trans {p q r : Program} (h₁ : p ≈ q) (h₂ : q ≈ r) : p ≈ r :=
   Setoid.trans h₁ h₂
 
-end Cslib.Urm
+end Cslib.URM
 
 end

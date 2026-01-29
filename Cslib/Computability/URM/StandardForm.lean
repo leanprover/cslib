@@ -5,7 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.Urm.StraightLine
+public import Cslib.Computability.URM.StraightLine
 
 /-! # Standard Form Programs
 
@@ -25,7 +25,7 @@ and proves their execution properties.
 
 @[expose] public section
 
-namespace Cslib.Urm
+namespace Cslib.URM
 
 /-! ## Standard Form Definitions -/
 
@@ -253,6 +253,6 @@ theorem eval_to_standard_form {p : Program} {inputs : List ℕ} :
 theorem to_standard_form_equiv (p : Program) : p.to_standard_form ≈ p :=
   fun _ => eval_to_standard_form.symm
 
-end Cslib.Urm
+end Cslib.URM
 
 end

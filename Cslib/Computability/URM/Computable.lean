@@ -5,7 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.Urm.Execution
+public import Cslib.Computability.URM.Execution
 
 /-! # URM-Computable Functions
 
@@ -13,14 +13,14 @@ This file defines the notion of URM-computability for partial functions on natur
 
 ## Main definitions
 
-- `Urm.Computes`: A program computes a given partial function.
-- `Urm.Computable`: A partial function is URM-computable if there exists a URM program that
+- `URM.Computes`: A program computes a given partial function.
+- `URM.Computable`: A partial function is URM-computable if there exists a URM program that
   computes it.
 -/
 
 @[expose] public section
 
-namespace Cslib.Urm
+namespace Cslib.URM
 
 /-- A program `p` computes a partial function `f : (Fin n → ℕ) → Part ℕ` if for any input,
 `eval p inputs = f inputs` as partial values. This captures both:
@@ -78,6 +78,6 @@ theorem id_computable : Computable 1 (fun inputs => Part.some (inputs 0)) :=
 
 end Computable
 
-end Cslib.Urm
+end Cslib.URM
 
 end

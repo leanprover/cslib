@@ -5,7 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.Urm.Defs
+public import Cslib.Computability.URM.Defs
 
 /-! # URM Basic Lemmas
 
@@ -28,7 +28,7 @@ This file contains basic lemmas and helper operations for URM types.
 
 @[expose] public section
 
-namespace Cslib.Urm
+namespace Cslib.URM
 
 /-! ## State Lemmas -/
 
@@ -178,6 +178,6 @@ theorem mem_max_register {p : Program} {instr : Instr} (h : instr ∈ p) :
 
 end Program
 
-end Cslib.Urm
+end Cslib.URM
 
 end

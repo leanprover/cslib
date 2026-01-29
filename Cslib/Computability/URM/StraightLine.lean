@@ -5,7 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.Urm.Execution
+public import Cslib.Computability.URM.Execution
 
 /-! # Straight-Line Programs
 
@@ -24,7 +24,7 @@ they always halt exactly at their length.
 
 @[expose] public section
 
-namespace Cslib.Urm
+namespace Cslib.URM
 
 /-! ## Straight-Line Programs -/
 
@@ -137,6 +137,6 @@ theorem straight_line_state_at_pc {p : Program} (hsl : p.IsStraightLine)
     obtain ⟨c', hstep', hpc'⟩ := Step.of_nonJump hpc_lt hnonjump
     exact ⟨c', Relation.ReflTransGen.tail hsteps_n hstep', hpc_n ▸ hpc'⟩
 
-end Cslib.Urm
+end Cslib.URM
 
 end
