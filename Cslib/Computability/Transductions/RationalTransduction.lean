@@ -12,6 +12,14 @@ public import Cslib.Computability.Transductions.Transduction
 @[expose] public section
 
 /-! # Rational Transductions
+
+A transduction `IsRational` if it is recognized by a deterministic printer
+with finite-state look-left and look-right (a `Bimachine`).
+Equivalently, a rational transduction is recognized by
+a nondeterministic finite-state left-to-right reader-printer.
+A transduction `IsSubsequential` if it is recognized by
+a deterministic finite-state left-to-right reader-printer (a `DetTransducer`).
+All subsequential transductions are rational transductions.
 -/
 
 namespace Cslib.Transduction
@@ -31,7 +39,7 @@ def IsSubsequential (f : Transduction Symbol Weight) : Prop :=
   ∃ σ : Type, ∃ _ : Fintype σ, ∃ dt : DetTransducer σ Symbol Weight,
     transduceLeft dt = f
 
-/-- A rational function is recognized by a bimachine. -/
+/-- A rational transduction is recognized by a bimachine. -/
 def IsRational (f : Transduction Symbol Weight) : Prop :=
   ∃ σl σr : Type, ∃ _ : Fintype σl, ∃ _ : Fintype σr, ∃ bm : Bimachine σl σr Symbol Weight,
     transduceLeft bm = f
