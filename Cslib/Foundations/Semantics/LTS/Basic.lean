@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Init
-public import Cslib.Foundations.Data.OmegaSequence.Init
+public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Order.ConditionallyCompleteLattice.Basic
@@ -215,6 +215,26 @@ theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
     ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
 
+/-- An execution can be split at any intermediate state into two executions. -/
+theorem LTS.IsExecution.split
+    {lts : LTS State Label} {s t : State} {μs : List Label} {ss : List State}
+    (he : lts.IsExecution s μs t ss) (n : ℕ) (hn : n ≤ μs.length) :
+    lts.IsExecution s (μs.take n) (ss[n]'(by grind)) (ss.take (n + 1)) ∧
+    lts.IsExecution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
+  split_ands
+  · grind
+  · use by grind, by grind, ?_, by grind
+    simp [List.getElem_drop, show n + (ss.length - n - 1) = ss.length - 1 by grind]
+    grind
+
+/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
+theorem LTS.MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
+    (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
+  obtain ⟨ss, h_ss⟩ := LTS.mTr_isExecution h
+  obtain ⟨_, _⟩ := LTS.IsExecution.split h_ss μs1.length (by grind)
+  use ss[μs1.length]'(by grind)
+  grind [List.take_append]
+
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
 @[scoped grind =]
@@ -321,16 +341,71 @@ theorem LTS.ωTr.cons (htr : lts.Tr s μ t) (hωtr : lts.ωTr ss μs) (hm : ss 0
   induction i <;> grind
 
 /-- Prepends an infinite execution with a finite execution. -/
-theorem LTS.ωTr.append (hmtr : lts.MTr s μl t) (hωtr : lts.ωTr ss μs)
-    (hm : ss 0 = t) : ∃ ss', lts.ωTr ss' (μl ++ω μs) ∧ ss' 0 = s ∧ ss' μl.length = t := by
+theorem LTS.ωTr.append
+    (hmtr : lts.MTr s μl t) (hωtr : lts.ωTr ss μs) (hm : ss 0 = t) :
+    ∃ ss', lts.ωTr ss' (μl ++ω μs) ∧ ss' 0 = s ∧ ss' μl.length = t ∧ ss'.drop μl.length = ss := by
   obtain ⟨sl, _, _, _, _⟩ := LTS.mTr_isExecution hmtr
-  refine ⟨sl ++ω ss.drop 1, ?_, by grind [get_append_left], by grind [get_append_left]⟩
-  intro n
-  by_cases n < μl.length
-  · grind [get_append_left]
-  · by_cases n = μl.length
+  use sl.take μl.length ++ω ss
+  split_ands
+  · intro n
+    by_cases n < μl.length
     · grind [get_append_left]
-    · grind [get_append_right', hωtr (n - μl.length - 1)]
+    · by_cases n = μl.length
+      · grind [get_append_left, get_append_right']
+      · grind [get_append_right', hωtr (n - μl.length - 1)]
+  · grind [get_append_left]
+  · grind [get_append_left]
+  · grind [drop_append_of_ge_length]
+
+open Nat in
+/-- Concatenating an infinite sequence of finite executions. -/
+theorem LTS.IsExecution.flatten [Inhabited Label]
+    {ts : ωSequence State} {μls : ωSequence (List Label)} {sls : ωSequence (List State)}
+    (hexec : ∀ k, lts.IsExecution (ts k) (μls k) (ts (k + 1)) (sls k))
+    (hpos : ∀ k, (μls k).length > 0) :
+    ∃ ss, lts.ωTr ss μls.flatten ∧
+      ∀ k, ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) = (sls k).take (μls k).length := by
+  have : Inhabited State := by exact {default := ts 0}
+  let segs := ωSequence.mk fun k ↦ (sls k).take (μls k).length
+  have h_len : μls.cumLen = segs.cumLen := by ext k; induction k <;> grind
+  have h_pos (k : ℕ) : (segs k).length > 0 := by grind [List.eq_nil_iff_length_eq_zero]
+  have h_mono := cumLen_strictMono h_pos
+  have h_zero := cumLen_zero (ls := segs)
+  have h_seg0 (k : ℕ) : (segs k)[0]! = ts k := by grind
+  use segs.flatten
+  split_ands
+  · intro n
+    simp only [h_len, flatten_def]
+    simp only [LTS.IsExecution] at hexec
+    have := segment_lower_bound h_mono h_zero n
+    by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
+    · have := segment_range_val h_mono (by grind) h_n
+      have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length :=
+        by grind
+      grind
+    · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
+        grind [segment_upper_bound h_mono h_zero n]
+      have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
+        simp [← h1, segment_idem h_mono]
+      have : n + 1 - segs.cumLen (segment segs.cumLen n) = (μls (segment segs.cumLen n)).length :=
+        by grind
+      have h3 : ts (segment segs.cumLen n + 1) =
+          (sls (segment segs.cumLen n))[n + 1 - segs.cumLen (segment segs.cumLen n)]! := by
+        grind
+      simp [h1, h2, h_seg0, h3]
+      grind
+  · simp [h_len, extract_flatten h_pos, segs]
+
+/-- Concatenating an infinite sequence of multistep transitions. -/
+theorem LTS.ωTr.flatten [Inhabited Label] {ts : ωSequence State} {μls : ωSequence (List Label)}
+    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
+    ∃ ss, lts.ωTr ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
+  choose sls h_sls using fun k ↦ LTS.mTr_isExecution (hmtr k)
+  obtain ⟨ss, h_ss, h_seg⟩ := LTS.IsExecution.flatten h_sls hpos
+  use ss, h_ss
+  intro k
+  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length := by grind
+  grind [List.getElem_of_eq (h_seg k) h1]
 
 end ωMultiStep
 
@@ -376,7 +451,8 @@ theorem LTS.Total.mTr_ωTr [Inhabited Label] [ht : lts.Total] {μl : List Label}
     (hm : lts.MTr s μl t) : ∃ μs ss, lts.ωTr ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
   let μs : ωSequence Label := .const default
   obtain ⟨ss', ho, h0⟩ := LTS.Total.ωTr_exists (h := ht) t μs
-  refine ⟨μs, LTS.ωTr.append hm ho h0⟩
+  use μs
+  grind [LTS.ωTr.append hm ho h0]
 
 /-- `LTS.totalize` constructs a total LTS from any given LTS by adding a sink state. -/
 def LTS.totalize (lts : LTS State Label) : LTS (State ⊕ Unit) Label where

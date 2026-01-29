@@ -120,30 +120,12 @@ the state `()` marks the boundaries between the finite words in `xls`. -/
 theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
     (h : ∀ k, (xls k) ∈ language na - 1) :
     ∃ ss, na.loop.Run xls.flatten ss ∧ ∀ k, ss (xls.cumLen k) = inl () := by
-  have : Inhabited State := by
-    choose s0 _ using (h 0).left
-    exact { default := s0 }
-  choose sls h_sls using fun k ↦ loop_fin_run_exists <| (h k).left
-  let segs := ωSequence.mk fun k ↦ (sls k).take (xls k).length
-  have h_len : xls.cumLen = segs.cumLen := by ext k; induction k <;> grind
-  have h_pos (k : ℕ) : (segs k).length > 0 := by grind [List.eq_nil_iff_length_eq_zero]
-  have h_mono := cumLen_strictMono h_pos
-  have h_zero := cumLen_zero (ls := segs)
-  have h_seg0 (k : ℕ) : (segs k)[0]! = inl () := by grind
-  refine ⟨segs.flatten, Run.mk ?_ ?_, ?_⟩
-  · simp [h_seg0, flatten_def, FinAcc.loop]
-  · intro n
-    simp only [h_len, flatten_def]
-    have := segment_lower_bound h_mono h_zero n
-    by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
-    · grind [segment_range_val h_mono (by grind) h_n]
-    · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
-        grind [segment_upper_bound h_mono h_zero n]
-      have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
-        simp [← h1, segment_idem h_mono]
-      simp [h1, h2, h_seg0]
-      grind
-  · simp [h_len, flatten_def, segment_idem h_mono, h_seg0]
+  let ts := ωSequence.const (inl () : Unit ⊕ State)
+  have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
+  have h_pos (k : ℕ) : (xls k).length > 0 := by grind
+  obtain ⟨ss, _, _⟩ := LTS.ωTr.flatten h_mtr h_pos
+  use ss
+  grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]
 
 namespace Buchi
 
