@@ -91,7 +91,9 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
   induction para
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
-    refine .trans (?_ : L.app R ↠βᶠ L'.app R) (?_ : L'.app R ↠βᶠ L'.app R') <;> grind
+    have : L.app R ↠βᶠ L'.app R := by grind
+    have : L'.app R ↠βᶠ L'.app R' := by grind
+    grind [ReductionSystem.MRed.trans]
   case abs t t' xs _ ih =>
     apply redex_abs_cong xs
     grind
@@ -109,8 +111,8 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
   refine Iff.intro ?chain_redex ?redex_chain <;> intros h <;> induction h <;> try rfl
-  case redex_chain.tail redex chain => exact ReflTransGen.tail chain (step_to_para redex)
-  case chain_redex.tail para  redex => exact ReflTransGen.trans redex (para_to_redex para)
+  case redex_chain redex chain => exact ReflTransGen.tail chain (step_to_para redex)
+  case chain_redex para  redex => exact ReflTransGen.trans redex (para_to_redex para)
 
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]

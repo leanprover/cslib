@@ -1,4 +1,4 @@
-module
+module  -- shake: keep-all
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
@@ -50,6 +50,8 @@ public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public import Cslib.Foundations.Syntax.Congruence
+public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
 public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Foundations.Syntax.HasWellFormed
