@@ -6,10 +6,9 @@ Authors: Alexandre Rademaker
 
 import Cslib.Logics.LinearLogic.CLL.Basic
 
-/-! # Tests for Classical Linear Logic
+namespace CslibTests
 
-This file contains tests for the CLL implementation in
-`Cslib.Logics.LinearLogic.CLL.Basic`.
+/-! # Tests for Classical Linear Logic
 
 I use `Proposition Nat` as the concrete instantiation for atoms.
 -/
@@ -17,8 +16,6 @@ I use `Proposition Nat` as the concrete instantiation for atoms.
 open Cslib.CLL
 
 /-! ## Proposition construction tests -/
-
-section PropositionTests
 
 -- Define some atomic propositions for testing
 abbrev P := Proposition Nat
@@ -46,11 +43,7 @@ example : P := (a ⊗ b) ⅋ c
 example : P := !(a ⊗ b)
 example : P := a ⊕ (b & c)
 
-end PropositionTests
-
 /-! ## Duality tests -/
-
-section DualityTests
 
 -- dual_involution: a⫠⫠ = a
 example : (a⫠⫠ : P) = a := Proposition.dual_involution a
@@ -75,11 +68,8 @@ example : (1 : P) ≠ (1 : P)⫠ := Proposition.dual_neq 1
 -- dual_inj: duality is injective
 example : (a⫠ = b⫠) ↔ (a = b) := Proposition.dual_inj a b
 
-end DualityTests
 
 /-! ## Basic proof tests -/
-
-section ProofTests
 
 -- Axiom: ⊢ a, a⫠
 example : ⇓({a, a⫠} : Sequent Nat) := Proof.ax
@@ -114,11 +104,8 @@ example : ⇓({ʔa, a⫠} : Sequent Nat) := Proof.quest Proof.ax
 -- Weaken: from ⊢ Γ derive ⊢ ʔa, Γ
 example : ⇓({ʔa, 1} : Sequent Nat) := Proof.weaken Proof.one
 
-end ProofTests
 
 /-! ## Logical equivalence tests (proof-irrelevant) -/
-
-section EquivalenceTests
 
 -- Reflexivity
 example : (a : P) ≡ a := Proposition.Equiv.refl a
@@ -140,11 +127,8 @@ example : (a ⊗ (b ⊕ c) : P) ≡ (a ⊗ b) ⊕ (a ⊗ c) := (Proposition.tens
 example : (a ⊕ a : P) ≡ a := Proposition.oplus_idem.toProp
 example : (a & a : P) ≡ a := Proposition.with_idem.toProp
 
-end EquivalenceTests
 
 /-! ## Proof-relevant equivalence tests -/
-
-section ProofRelevantTests
 
 -- equiv.refl
 example : (a : P) ≡⇓ a := Proposition.equiv.refl a
@@ -163,11 +147,8 @@ example : (a ⊗ (b ⊗ c) : P) ≡⇓ (a ⊗ b) ⊗ c := Proposition.tensor_ass
 example : (a ⊕ a : P) ≡⇓ a := Proposition.oplus_idem
 example : (a & a : P) ≡⇓ a := Proposition.with_idem
 
-end ProofRelevantTests
 
 /-! ## Inversion tests -/
-
-section InversionTests
 
 -- parr_inversion
 example (h : ⇓({a ⅋ b} : Sequent Nat)) : ⇓({a, b} : Sequent Nat) := Proof.parr_inversion h
@@ -179,11 +160,8 @@ example (h : ⇓({⊥, 1} : Sequent Nat)) : ⇓({1} : Sequent Nat) := Proof.bot_
 example (h : ⇓({a & b} : Sequent Nat)) : ⇓({a} : Sequent Nat) := Proof.with_inversion₁ h
 example (h : ⇓({a & b} : Sequent Nat)) : ⇓({b} : Sequent Nat) := Proof.with_inversion₂ h
 
-end InversionTests
 
 /-! ## Positive/Negative classification tests -/
-
-section ClassificationTests
 
 -- Positive propositions
 example : Proposition.positive a = true := rfl
@@ -201,11 +179,9 @@ example : Proposition.negative (a ⅋ b) = true := rfl
 example : Proposition.negative (a & b) = true := rfl
 example : Proposition.negative (ʔa) = true := rfl
 
-end ClassificationTests
 
-/-! ## Linear implication proof tests -/
+/-! ## linear logic proofs tests -/
 
-section LinearImplicationTests
 /-- Example 37 Figure 5 from https://arxiv.org/abs/1904.06850
 
 B ⊢ (!(A ⊸ B) ⊸ B) ⊗ (B ⊸ (!A ⊸ B))
@@ -216,22 +192,20 @@ This translates to the sequent:
 
 Breaking down the formula:
 
-              A ⊸ B = A⫠ ⅋ B (linear implication)
-           !(A ⊸ B) = !(A⫠ ⅋ B)
-        (!(A ⊸ B))⫠ = ʔ((A⫠ ⅋ B)⫠) = ʔ(A ⊗ B⫠)
-       !(A ⊸ B) ⊸ B = (!(A ⊸ B))⫠ ⅋ B = ʔ(A ⊗ B⫠) ⅋ B
- !A ⊸ B = (!A)⫠ ⅋ B = ʔA⫠ ⅋ B
-       B ⊸ (!A ⊸ B) = B⫠ ⅋ (ʔA⫠ ⅋ B) -/
---/
-
--- The tensor rule: from ⊢ P, Γ and ⊢ Q, Δ derive ⊢ P ⊗ Q, Γ + Δ.
--- We need Γ + Δ = {b⫠}, so Γ = {b⫠} and Δ = {}
+         A ⊸ B = A⫠ ⅋ B (linear implication)
+      !(A ⊸ B) = !(A⫠ ⅋ B)
+   (!(A ⊸ B))⫠ = ʔ((A⫠ ⅋ B)⫠) = ʔ(A ⊗ B⫠)
+  !(A ⊸ B) ⊸ B = (!(A ⊸ B))⫠ ⅋ B = ʔ(A ⊗ B⫠) ⅋ B
+        !A ⊸ B = (!A)⫠ ⅋ B = ʔA⫠ ⅋ B
+  B ⊸ (!A ⊸ B) = B⫠ ⅋ (ʔA⫠ ⅋ B)
+-/
 example : ⇓({b⫠, (!(a ⊸ b) ⊸ b) ⊗ (b ⊸ (!a ⊸ b))} : Sequent Nat) := by
   apply Proof.rwConclusion (Multiset.pair_comm ..)
+  -- tensor rule, We need Γ + Δ = {b⫠}, so Γ = {b⫠} and Δ = {}
   apply Proof.tensor (Γ := {b⫠}) (Δ := {})
   · -- !(a ⊸ b) ⊸ b = ʔ(a ⊗ b⫠) ⅋ b
     apply Proof.parr   -- Apply parr to get: ⊢ ʔ(a ⊗ b⫠), b, b⫠
-    apply Proof.weaken -- Then weaken from ⊢ b, b⫠
+    apply Proof.weaken
     apply Proof.ax
   · -- b ⊸ (!a ⊸ b) = b⫠ ⅋ (ʔa⫠ ⅋ b)
     apply Proof.parr   -- Apply parr to get: ⊢ b⫠, ʔa⫠ ⅋ b
@@ -240,4 +214,5 @@ example : ⇓({b⫠, (!(a ⊸ b) ⊸ b) ⊗ (b ⊸ (!a ⊸ b))} : Sequent Nat) :
     apply Proof.weaken
     exact Proof.ax
 
-end LinearImplicationTests
+
+end CslibTests
