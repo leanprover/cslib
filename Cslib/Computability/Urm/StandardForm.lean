@@ -171,61 +171,28 @@ theorem Step.from_to_standard_form {p : Program} {c c' : Config}
     (c'.is_halted p.to_standard_form ∧ ∃ c₂, Step p c c₂ ∧
       c₂.is_halted p ∧ c'.state = c₂.state) := by
   cases hstep with
-  | zero hinstr =>
+  | zero hinstr | succ hinstr | transfer hinstr | jump_ne hinstr _ =>
     left
     rw [Program.getElem?_to_standard_form] at hinstr
     simp only [Option.map_eq_some_iff] at hinstr
     obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr with
-    | Z n' => simp only [Instr.cap_jump, Instr.Z.injEq] at hcap; subst hcap; exact Step.zero hinstr'
-    | S _ | T _ _ | J _ _ _ => simp at hcap
-  | succ hinstr =>
-    left
-    rw [Program.getElem?_to_standard_form] at hinstr
-    simp only [Option.map_eq_some_iff] at hinstr
-    obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr with
-    | S n' => simp only [Instr.cap_jump, Instr.S.injEq] at hcap; subst hcap; exact Step.succ hinstr'
-    | Z _ | T _ _ | J _ _ _ => simp at hcap
-  | transfer hinstr =>
-    left
-    rw [Program.getElem?_to_standard_form] at hinstr
-    simp only [Option.map_eq_some_iff] at hinstr
-    obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr with
-    | T m' n' =>
-      simp only [Instr.cap_jump, Instr.T.injEq] at hcap
-      obtain ⟨rfl, rfl⟩ := hcap; exact Step.transfer hinstr'
-    | Z _ | S _ | J _ _ _ => simp at hcap
-  | jump_ne hinstr hne =>
-    left
-    rw [Program.getElem?_to_standard_form] at hinstr
-    simp only [Option.map_eq_some_iff] at hinstr
-    obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr with
-    | J m' n' q' =>
-      simp only [Instr.cap_jump, Instr.J.injEq] at hcap
-      obtain ⟨rfl, rfl, _⟩ := hcap; exact Step.jump_ne hinstr' hne
-    | Z _ | S _ | T _ _ => simp at hcap
+    cases instr <;> simp only [Instr.cap_jump] at hcap <;> grind
   | jump_eq hinstr heq =>
     rw [Program.getElem?_to_standard_form] at hinstr
     simp only [Option.map_eq_some_iff] at hinstr
     obtain ⟨instr, hinstr', hcap⟩ := hinstr
     cases instr with
+    | Z _ | S _ | T _ _ => simp at hcap
     | J m' n' q' =>
       simp only [Instr.cap_jump, Instr.J.injEq] at hcap
       obtain ⟨rfl, rfl, htarget⟩ := hcap
       by_cases hbounded : q' ≤ p.length
-      · left
-        rw [Nat.min_eq_left hbounded] at htarget; subst htarget
-        exact Step.jump_eq hinstr' heq
-      · right
-        have hgt : q' > p.length := Nat.not_le.mp hbounded
-        rw [Nat.min_eq_right (Nat.le_of_lt hgt)] at htarget; subst htarget
-        exact ⟨by simp [Config.is_halted, Program.to_standard_form_length],
+      · simp only [Nat.min_eq_left hbounded] at htarget; subst htarget
+        left; grind
+      · simp only [Nat.min_eq_right (Nat.le_of_not_le hbounded)] at htarget; subst htarget
+        right; exact ⟨by grind [Config.is_halted, Program.to_standard_form_length],
                ⟨q', c.state⟩, Step.jump_eq hinstr' heq,
-               by simp [Config.is_halted]; omega, rfl⟩
-    | Z _ | S _ | T _ _ => simp at hcap
+               by grind [Config.is_halted], rfl⟩
 
 /-- Reverse halting: if p.to_standard_form reaches a halted config, p reaches a halted config
     with the same state. -/
