@@ -16,6 +16,7 @@ public import Cslib.Computability.Automata.NA.BuchiInter
 public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
@@ -39,6 +40,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
