@@ -7,8 +7,6 @@ Authors: William (Liam) Schilling
 module
 
 public import Cslib.Computability.Transductions.Algebra
-public import Mathlib.Algebra.Order.Monoid.Basic
-public import Mathlib.Data.Setoid.Basic
 
 @[expose] public section
 

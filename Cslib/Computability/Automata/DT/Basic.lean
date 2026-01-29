@@ -6,8 +6,8 @@ Authors: William (Liam) Schilling
 
 module
 
-public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.Acceptors.Transducer
+public import Cslib.Computability.Automata.DA.Basic
 
 @[expose] public section
 
