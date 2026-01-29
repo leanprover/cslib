@@ -25,6 +25,15 @@ public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Computability.Urm.Basic
+public import Cslib.Computability.Urm.Computable
+public import Cslib.Computability.Urm.Config
+public import Cslib.Computability.Urm.Execution
+public import Cslib.Computability.Urm.Instr
+public import Cslib.Computability.Urm.Program
+public import Cslib.Computability.Urm.StandardForm
+public import Cslib.Computability.Urm.State
+public import Cslib.Computability.Urm.StraightLine
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
