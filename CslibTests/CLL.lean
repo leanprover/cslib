@@ -11,7 +11,7 @@ import Cslib.Logics.LinearLogic.CLL.Basic
 This file contains tests for the CLL implementation in
 `Cslib.Logics.LinearLogic.CLL.Basic`.
 
-We use `Proposition Nat` as the concrete instantiation for atoms.
+I use `Proposition Nat` as the concrete instantiation for atoms.
 -/
 
 open Cslib.CLL
@@ -202,3 +202,42 @@ example : Proposition.negative (a & b) = true := rfl
 example : Proposition.negative (ʔa) = true := rfl
 
 end ClassificationTests
+
+/-! ## Linear implication proof tests -/
+
+section LinearImplicationTests
+/-- Example 37 Figure 5 from https://arxiv.org/abs/1904.06850
+
+B ⊢ (!(A ⊸ B) ⊸ B) ⊗ (B ⊸ (!A ⊸ B))
+
+This translates to the sequent:
+
+⊢ B⫠, (!(A ⊸ B) ⊸ B) ⊗ (B ⊸ (!A ⊸ B))
+
+Breaking down the formula:
+
+              A ⊸ B = A⫠ ⅋ B (linear implication)
+           !(A ⊸ B) = !(A⫠ ⅋ B)
+        (!(A ⊸ B))⫠ = ʔ((A⫠ ⅋ B)⫠) = ʔ(A ⊗ B⫠)
+       !(A ⊸ B) ⊸ B = (!(A ⊸ B))⫠ ⅋ B = ʔ(A ⊗ B⫠) ⅋ B
+ !A ⊸ B = (!A)⫠ ⅋ B = ʔA⫠ ⅋ B
+       B ⊸ (!A ⊸ B) = B⫠ ⅋ (ʔA⫠ ⅋ B) -/
+--/
+
+-- The tensor rule: from ⊢ P, Γ and ⊢ Q, Δ derive ⊢ P ⊗ Q, Γ + Δ.
+-- We need Γ + Δ = {b⫠}, so Γ = {b⫠} and Δ = {}
+example : ⇓({b⫠, (!(a ⊸ b) ⊸ b) ⊗ (b ⊸ (!a ⊸ b))} : Sequent Nat) := by
+  apply Proof.rwConclusion (Multiset.pair_comm ..)
+  apply Proof.tensor (Γ := {b⫠}) (Δ := {})
+  · -- !(a ⊸ b) ⊸ b = ʔ(a ⊗ b⫠) ⅋ b
+    apply Proof.parr   -- Apply parr to get: ⊢ ʔ(a ⊗ b⫠), b, b⫠
+    apply Proof.weaken -- Then weaken from ⊢ b, b⫠
+    apply Proof.ax
+  · -- b ⊸ (!a ⊸ b) = b⫠ ⅋ (ʔa⫠ ⅋ b)
+    apply Proof.parr   -- Apply parr to get: ⊢ b⫠, ʔa⫠ ⅋ b
+    apply Proof.rwConclusion (Multiset.pair_comm ..)
+    apply Proof.parr   -- Apply parr to get: ⊢ b⫠, ʔa⫠, b
+    apply Proof.weaken
+    exact Proof.ax
+
+end LinearImplicationTests
