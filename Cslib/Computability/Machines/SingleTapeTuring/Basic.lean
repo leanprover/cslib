@@ -96,6 +96,10 @@ and the intended initial and final configurations.
 
 variable (tm : SingleTapeTM α)
 
+instance : Inhabited α := tm.αInhabited
+
+instance : Fintype α := tm.αFintype
+
 instance : Inhabited tm.Λ := ⟨tm.q₀⟩
 
 instance : Fintype tm.Λ := tm.ΛFintype
