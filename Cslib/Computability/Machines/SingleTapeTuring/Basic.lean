@@ -69,7 +69,7 @@ end SingleTapeTM
 /-- A SingleTapeTM over the alphabet of Option α (none is blank BiTape symbol). -/
 structure SingleTapeTM α where
   /-- Inhabited instance for the alphabet -/
-  [Inhabitedα : Inhabited α]
+  [αInhabited : Inhabited α]
   /-- Finiteness of the alphabet -/
   [Fintypeα : Fintype α]
   /-- type of state labels -/
