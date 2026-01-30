@@ -202,7 +202,7 @@ variable [Inhabited α] [Fintype α]
 def idComputer : SingleTapeTM α where
   Λ := PUnit
   q₀ := PUnit.unit
-  M := fun _ b => ⟨(b, none), none⟩
+  M _ b := ⟨(b, none), none⟩
 
 /--
 A Turing machine computing the composition of two other Turing machines.
