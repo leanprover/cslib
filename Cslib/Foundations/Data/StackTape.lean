@@ -14,10 +14,24 @@ public import Mathlib.Data.List.Basic
 /-!
 # StackTape: Infinite, eventually-`none` lists of `Option`s
 
-This file defines `StackTape`, a list of `Option` values where the list cannot end with `none`.
-This represents a stack-like data structure
-which treats the end of the list as an infinite sequence of `none` values.
+This file defines `StackTape`, a stack-like data structure of `Option` values,
+where the tape is considered to be infinite and eventually all `none`s.
 This is useful as a data structure with a simple API for manipulation by Turing machines.
+
+## Design
+
+`StackTape` is represented as a list of `Option` values where the list cannot end with `none`.
+The end of the list is then treated as the start of an infinite sequence of `none` values
+by the low-level API.
+This design makes it convenient to express the length of the tape in terms of the list length.
+
+An alternative design would be to represent the tape as a `Stream' (Option α)`,
+with additional fields tracking the length and the fact that the stream eventually becomes `none`.
+This design might complicate reasoning about the length of the tape, but could make other operations
+more straightforward.
+
+Future design work might explore this alternative representation and compare its
+advantages and disadvantages.
 
 ## TODO
 
