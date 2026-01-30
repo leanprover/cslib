@@ -43,11 +43,11 @@ that eventually take on blank `none` values
 -/
 structure BiTape (α : Type) where
   /-- The symbol currently under the tape head -/
-  (head : Option α)
+  head : Option α
   /-- The contents to the left of the head -/
-  (left : StackTape α)
+  left : StackTape α
   /-- The contents to the right of the head -/
-  (right : StackTape α)
+  right : StackTape α
 
 namespace BiTape
 

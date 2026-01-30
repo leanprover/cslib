@@ -35,12 +35,12 @@ Represented as a `List (Option α)` that does not end with `none`.
 -/
 structure StackTape (α : Type) where
   /-- The underlying list representation -/
-  (toList : List (Option α))
+  toList : List (Option α)
   /--
   The list can be empty (i.e. `none`),
   but if it is not empty, the last element is not (`some`) `none`
   -/
-  (toList_getLast?_ne_some_none : toList.getLast? ≠ some none)
+  toList_getLast?_ne_some_none : toList.getLast? ≠ some none
 
 attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 
