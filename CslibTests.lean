@@ -1,7 +1,8 @@
-module
+module  -- shake: keep-all
 
 public import CslibTests.Bisimulation
 public import CslibTests.CCS
+public import CslibTests.CLL
 public import CslibTests.DFA
 public import CslibTests.FreeMonad
 public import CslibTests.GrindLint

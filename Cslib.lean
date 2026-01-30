@@ -1,4 +1,4 @@
-module
+module  -- shake: keep-all
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
@@ -16,6 +16,7 @@ public import Cslib.Computability.Automata.NA.BuchiInter
 public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
@@ -41,6 +42,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.StackTape
+public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
@@ -51,6 +53,8 @@ public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public import Cslib.Foundations.Syntax.Congruence
+public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
 public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Foundations.Syntax.HasWellFormed
