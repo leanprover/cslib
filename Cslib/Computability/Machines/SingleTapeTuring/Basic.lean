@@ -60,17 +60,12 @@ structure Stmt (α : Type) where
   movement : Option Dir
 deriving Inhabited
 
--- /-- Get the symbol to write from a `Stmt`. -/
--- def Stmt.symbol : Stmt α → Option α
---   | (symbol, _) => symbol
-
--- /-- Get the movement direction from a `Stmt`. -/
--- def Stmt.movement : Stmt α → Option Dir
---   | (_, movement) => movement
-
 end SingleTapeTM
 
-/-- A SingleTapeTM over the alphabet of Option α (none is blank BiTape symbol). -/
+/--
+A single-tape Turing machine
+over the alphabet of `Option α` (where `none` is the blank `BiTape` symbol).
+-/
 structure SingleTapeTM α where
   /-- Inhabited instance for the alphabet -/
   [αInhabited : Inhabited α]
@@ -82,9 +77,9 @@ structure SingleTapeTM α where
   [ΛFintype : Fintype Λ]
   /-- Initial state -/
   (q₀ : Λ)
-  /-- Transition function, mapping a state and a head symbol
-  to a Stmt to invoke, and optionally a new state (none for halt) -/
-  (M : Λ → Option α → Turing.SingleTapeTM.Stmt α × Option Λ)
+  /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
+  and optionally the new state to transition to afterwards (`none` for halt) -/
+  (M : Λ → Option α → SingleTapeTM.Stmt α × Option Λ)
 
 namespace SingleTapeTM
 
