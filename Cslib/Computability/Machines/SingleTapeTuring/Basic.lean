@@ -53,16 +53,20 @@ namespace SingleTapeTM
 A Turing machine "statement" is just a `Option`al command to move left or right,
 and write a symbol on the `BiTape`.
 -/
-def Stmt (α : Type) := Option α × Option Dir
+structure Stmt (α : Type) where
+  /-- The symbol to write at the current head position -/
+  symbol : Option α
+  /-- The direction to move the tape head -/
+  movement : Option Dir
 deriving Inhabited
 
-/-- Get the symbol to write from a `Stmt`. -/
-def Stmt.symbol : Stmt α → Option α
-  | (symbol, _) => symbol
+-- /-- Get the symbol to write from a `Stmt`. -/
+-- def Stmt.symbol : Stmt α → Option α
+--   | (symbol, _) => symbol
 
-/-- Get the movement direction from a `Stmt`. -/
-def Stmt.movement : Stmt α → Option Dir
-  | (_, movement) => movement
+-- /-- Get the movement direction from a `Stmt`. -/
+-- def Stmt.movement : Stmt α → Option Dir
+--   | (_, movement) => movement
 
 end SingleTapeTM
 
@@ -129,7 +133,7 @@ def step : tm.Cfg → Option tm.Cfg
     match tm.M q' t.head with
     -- and enter a new configuration with state q'' (or none for halting)
     -- and tape updated according to the Stmt
-    | ⟨(wr, dir), q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
+  | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
 def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
@@ -158,8 +162,8 @@ lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
     generalize hM : tm.M q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
-    | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write]
-    | some d => simpa [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write] using
+    | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM]
+    | some d => simpa [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM] using
         BiTape.space_used_move (tape.write wr) d
 
 end Cfg
@@ -202,7 +206,7 @@ variable [Inhabited α] [Fintype α]
 def idComputer : SingleTapeTM α where
   Λ := PUnit
   q₀ := PUnit.unit
-  M _ b := ⟨(b, none), none⟩
+  M _ b := ⟨⟨b, none⟩, none⟩
 
 /--
 A Turing machine computing the composition of two other Turing machines.
