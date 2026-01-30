@@ -55,6 +55,9 @@ instance {α : Type} : Inhabited (StackTape α) where
 instance {α : Type} : EmptyCollection (StackTape α) :=
   ⟨nil⟩
 
+@[simp]
+lemma empty_eq_nil {α} : (∅ : StackTape α) = nil := rfl
+
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
 

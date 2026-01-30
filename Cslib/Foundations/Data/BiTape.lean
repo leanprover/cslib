@@ -52,13 +52,16 @@ structure BiTape (α : Type) where
 namespace BiTape
 
 /-- The empty `BiTape` -/
-def nil {α} : BiTape α := ⟨none, StackTape.nil, StackTape.nil⟩
+def nil {α} : BiTape α := ⟨none, ∅, ∅⟩
 
 instance {α : Type} : Inhabited (BiTape α) where
   default := nil
 
 instance {α : Type} : EmptyCollection (BiTape α) :=
   ⟨nil⟩
+
+@[simp]
+lemma empty_eq_nil {α} : (∅ : BiTape α) = nil := rfl
 
 /--
 Given a `List` of `α`, construct a `BiTape` by mapping the list to `some` elements
@@ -67,8 +70,8 @@ with the head under the first element of the list if it exists.
 -/
 def mk₁ {α} (l : List α) : BiTape α :=
   match l with
-  | [] => nil
-  | h :: t => ⟨some h, StackTape.nil, StackTape.map_some t⟩
+  | [] => ∅
+  | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
 
 section Move
 
