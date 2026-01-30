@@ -73,15 +73,23 @@ instance {α : Type} : EmptyCollection (StackTape α) :=
 @[simp]
 lemma empty_eq_nil {α} : (∅ : StackTape α) = nil := rfl
 
-/-- Create a `StackTape` from a list by mapping all elements to `some` -/
-def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
+@[simp, grind =]
+lemma nil_toList {α} : (nil : StackTape α).toList = [] := rfl
 
 /-- Prepend an `Option` to the `StackTape` -/
+@[grind]
 def cons {α} (x : Option α) (xs : StackTape α) : StackTape α :=
   match x, xs with
   | none, ⟨[], _⟩ => ⟨[], by grind⟩
   | none, ⟨hd :: tl, hl⟩ => ⟨none :: hd :: tl, by grind⟩
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
+
+@[simp, grind =]
+lemma cons_none_nil_toList {α} : (cons none (nil : StackTape α)).toList = [] := by grind
+
+@[simp, grind =]
+lemma cons_some_toList {α} (a : α) (l : StackTape α) :
+    (cons (some a) l).toList = some a :: l.toList := by simp [cons]
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
 @[grind]
@@ -130,6 +138,10 @@ lemma cons_head_tail {α} (l : StackTape α) :
   rw [eq_iff]
   simp
 
+/-- Create a `StackTape` from a list by mapping all elements to `some` -/
+@[grind]
+def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
+
 section Length
 
 /-- The length of the `StackTape` is the number of elements up to the last non-`none` element -/
@@ -147,17 +159,16 @@ lemma length_cons_none {α} (l : StackTape α) :
 
 @[grind =]
 lemma length_cons_some {α} (a : α) (l : StackTape α) : (cons (some a) l).length = l.length + 1 := by
-  simp [cons, length]
+  grind
 
 lemma length_cons_le {α} (o : Option α) (l : StackTape α) : (cons o l).length ≤ l.length + 1 := by
   cases o <;> grind
 
 @[simp, grind =]
-lemma length_map_some {α} (l : List α) : (map_some l).length = l.length := by
-  simp [map_some, length]
+lemma length_map_some {α} (l : List α) : (map_some l).length = l.length := by grind
 
 @[simp, grind =]
-lemma length_nil {α} : (nil : StackTape α).length = 0 := by simp [nil, length]
+lemma length_nil {α} : (nil : StackTape α).length = 0 := by grind
 
 end Length
 
