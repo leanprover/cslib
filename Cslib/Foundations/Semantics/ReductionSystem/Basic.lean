@@ -204,7 +204,7 @@ theorem Normal_iff (t : Term) :
   unfold Normal Reducible
   rw [not_exists]
 
-theorem eq_of_Normal_of_MRed {a b : Term} (ha : rs.Normal a) (hab : rs.MRed a b) :
+theorem eq_of_MRed_of_Normal {a b : Term} (ha : rs.Normal a) (hab : rs.MRed a b) :
     a = b := by
   induction hab with
   | refl => rfl
