@@ -130,7 +130,11 @@ def step : tm.Cfg → Option tm.Cfg
     -- and tape updated according to the Stmt
   | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
 
-/-- The initial configuration corresponding to a list in the input alphabet. -/
+/--
+The initial configuration corresponding to a list in the input alphabet.
+Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` values.
+This is to ensure that distinct lists map to distinct initial configurations.
+-/
 def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
