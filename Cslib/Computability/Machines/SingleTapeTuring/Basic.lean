@@ -299,7 +299,7 @@ private theorem map_toCompCfg_right_step :
       simp only [step, toCompCfg_right, compComputer, Option.map_some]
       generalize hM : tm2.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      cases nextState <;> grind [toCompCfg_right]
+      grind [toCompCfg_right]
 
 /--
 Simulation for the first phase of the composed computer.
