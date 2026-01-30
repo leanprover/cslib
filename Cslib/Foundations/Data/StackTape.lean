@@ -61,6 +61,7 @@ attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 namespace StackTape
 
 /-- The empty `StackTape` -/
+@[grind]
 def nil {α} : StackTape α := ⟨[], by grind⟩
 
 instance {α : Type} : Inhabited (StackTape α) where
@@ -83,12 +84,14 @@ def cons {α} (x : Option α) (xs : StackTape α) : StackTape α :=
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
+@[grind]
 def tail {α} (l : StackTape α) : StackTape α :=
   match hl : l.toList with
   | [] => nil
   | hd :: t => ⟨t, by grind⟩
 
 /-- Get the first element of the `StackTape`. -/
+@[grind]
 def head {α} (l : StackTape α) : Option α :=
   match l.toList with
   | [] => none
@@ -100,7 +103,7 @@ lemma eq_iff {α} (l1 l2 : StackTape α) : l1 = l2 ↔ l1.head = l2.head ∧ l1.
   · intro ⟨hhead, htail⟩
     cases l1 with | mk as1 h1 =>
     cases l2 with | mk as2 h2 =>
-    cases as1 <;> cases as2 <;> grind [tail, head, mk.injEq, nil, mk.injEq]
+    cases as1 <;> cases as2 <;> grind
 
 @[simp]
 lemma head_cons {α} (o : Option α) (l : StackTape α) : (cons o l).head = o := by
@@ -130,25 +133,30 @@ lemma cons_head_tail {α} (l : StackTape α) :
 section Length
 
 /-- The length of the `StackTape` is the number of elements up to the last non-`none` element -/
+@[grind]
 def length {α} (l : StackTape α) : ℕ := l.toList.length
 
 lemma length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
-  grind [tail, length, nil]
+  grind
 
+@[grind =]
 lemma length_cons_none {α} (l : StackTape α) :
     (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
   cases l with | mk toList h =>
   cases toList <;> simp [cons, length]
 
+@[grind =]
 lemma length_cons_some {α} (a : α) (l : StackTape α) : (cons (some a) l).length = l.length + 1 := by
   simp [cons, length]
 
 lemma length_cons_le {α} (o : Option α) (l : StackTape α) : (cons o l).length ≤ l.length + 1 := by
-  cases o <;> grind [length_cons_none, length_cons_some]
+  cases o <;> grind
 
+@[simp, grind =]
 lemma length_map_some {α} (l : List α) : (map_some l).length = l.length := by
   simp [map_some, length]
 
+@[simp, grind =]
 lemma length_nil {α} : (nil : StackTape α).length = 0 := by simp [nil, length]
 
 end Length

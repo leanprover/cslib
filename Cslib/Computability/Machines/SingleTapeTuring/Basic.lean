@@ -124,7 +124,7 @@ def step : tm.Cfg → Option tm.Cfg
     match tm.M q' t.head with
     -- and enter a new configuration with state q'' (or none for halting)
     -- and tape updated according to the Stmt
-  | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
+    | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
 
 /--
 The initial configuration corresponding to a list in the input alphabet.
@@ -143,9 +143,11 @@ The space used by a configuration is the space used by its tape.
 -/
 def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
 
+@[grind =]
 lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
+@[grind =]
 lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
@@ -189,8 +191,7 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List
     (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
   obtain ⟨steps, hsteps_le, hevals⟩ := h
-  grind [Cfg.space_used_initCfg, Cfg.space_used_haltCfg,
-    hevals.apply_le_apply_add (Cfg.space_used tm)
+  grind [hevals.apply_le_apply_add (Cfg.space_used tm)
       fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
 
 section Computers
@@ -298,7 +299,7 @@ private theorem map_toCompCfg_right_step :
       generalize hM : tm2.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
       simp only [compComputer]
-      grind [toCompCfg_right, step, toCompCfg_right, compComputer]
+      grind [toCompCfg_right, step, compComputer]
 
 /--
 Simulation for the first phase of the composed computer.
