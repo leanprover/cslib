@@ -71,11 +71,11 @@ structure SingleTapeTM α where
   /-- Inhabited instance for the alphabet -/
   [αInhabited : Inhabited α]
   /-- Finiteness of the alphabet -/
-  [Fintypeα : Fintype α]
+  [αFintype : Fintype α]
   /-- type of state labels -/
   (Λ : Type)
   /-- finiteness of the state type -/
-  [FintypeΛ : Fintype Λ]
+  [ΛFintype : Fintype Λ]
   /-- Initial state -/
   (q₀ : Λ)
   /-- Transition function, mapping a state and a head symbol
@@ -98,7 +98,7 @@ variable (tm : SingleTapeTM α)
 
 instance : Inhabited tm.Λ := ⟨tm.q₀⟩
 
-instance : Fintype tm.Λ := tm.FintypeΛ
+instance : Fintype tm.Λ := tm.ΛFintype
 
 instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
 
