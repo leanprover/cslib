@@ -189,14 +189,9 @@ is bounded by the output length of the first machine.
 lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List α) (t : ℕ)
     (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
-  simp only [OutputsWithinTime] at h
-  obtain ⟨steps, hsteps_le, hevals⟩ := h
-  replace hevals := hevals.apply_le_apply_add
-  specialize hevals (Cfg.space_used tm)
-  simp only [Cfg.space_used_initCfg, Cfg.space_used_haltCfg] at hevals
-  suffices l'.length ≤ max 1 l.length + steps by lia
-  specialize hevals fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)
-  omega
+  have (a b) (hstep : tm.TransitionRelation a b) : tm.step a = some b := Option.mem_def.mp hstep
+  have := hevals.apply_le_apply_add (Cfg.space_used tm)
+  grind [→ Cfg.space_used_step, Cfg.space_used_initCfg, Cfg.space_used_haltCfg]
 
 section Computers
 
