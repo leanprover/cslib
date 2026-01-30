@@ -51,7 +51,7 @@ namespace SingleTapeTM
 
 /--
 A Turing machine "statement" is just a `Option`al command to move left or right,
-and write a symbol on the `BiTape`.
+and write a symbol (i.e. an `Option α`, where `none` is the blank symbol) on the `BiTape`
 -/
 structure Stmt (α : Type) where
   /-- The symbol to write at the current head position -/
