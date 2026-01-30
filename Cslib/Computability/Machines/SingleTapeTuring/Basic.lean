@@ -372,7 +372,7 @@ structure TimeComputable (f : List α → List α) where
   /-- a bound on runtime -/
   time_bound : ℕ → ℕ
   /-- proof this machine outputs `f` in at most `time_bound(input.length)` steps -/
-  outputsFunInTime : ∀ a, tm.OutputsWithinTime a (f a) (time_bound a.length)
+  outputsFunInTime (a) : tm.OutputsWithinTime a (f a) (time_bound a.length)
 
 
 /-- The identity map on α is computable in constant time. -/
