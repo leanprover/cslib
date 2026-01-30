@@ -296,10 +296,10 @@ private theorem map_toCompCfg_right_step :
     | none =>
       simp only [step, toCompCfg_right, Option.map_none, compComputer]
     | some q =>
-      simp only [step, toCompCfg_right, compComputer, Option.map_some]
       generalize hM : tm2.M q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      grind [toCompCfg_right]
+      simp only [compComputer]
+      grind [toCompCfg_right, step, toCompCfg_right, compComputer]
 
 /--
 Simulation for the first phase of the composed computer.
