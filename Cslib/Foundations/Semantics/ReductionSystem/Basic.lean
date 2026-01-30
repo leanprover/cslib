@@ -266,7 +266,7 @@ theorem Terminating.isConfluent_iff_all_unique_Normal (ht : rs.Terminating) :
     rw [Confluent_def] at hc
     have hj : rs.MJoin n₁ n₂ := hc hr₁ hr₂
     obtain ⟨m, h₁, h₂⟩ := rs.MJoin_def.mp hj
-    rw [eq_of_Normal_of_MRed rs hn₁ h₁, eq_of_Normal_of_MRed rs hn₂ h₂]
+    rw [eq_of_MRed_of_Normal rs hn₁ h₁, eq_of_MRed_of_Normal rs hn₂ h₂]
   · intro h
     rw [Confluent_def]
     intro a b c hab hac
