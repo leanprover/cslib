@@ -170,6 +170,7 @@ The `TransitionRelation` corresponding to a `SingleTapeTM α`
 is defined by the `step` function,
 which maps a configuration to its next configuration, if it exists.
 -/
+@[grind =]
 def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
@@ -346,9 +347,7 @@ private theorem comp_right_relatesWithinSteps (intermediate output : List α) (t
   simp only [intermediateCfg, finalCfg, initCfg, haltCfg] at htm2 ⊢
   refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ htm2
   intro a b hab
-  have h1 := map_toCompCfg_right_step tm1 tm2 a
-  rw [hab, Option.map_some] at h1
-  exact h1.symm
+  grind [map_toCompCfg_right_step tm1 tm2 a]
 
 end compComputerLemmas
 

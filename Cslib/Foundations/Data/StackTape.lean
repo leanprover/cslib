@@ -89,7 +89,7 @@ lemma cons_none_nil_toList {α} : (cons none (nil : StackTape α)).toList = [] :
 
 @[simp, grind =]
 lemma cons_some_toList {α} (a : α) (l : StackTape α) :
-    (cons (some a) l).toList = some a :: l.toList := by simp [cons]
+    (cons (some a) l).toList = some a :: l.toList := by simp only [cons]
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
 @[grind]
@@ -118,17 +118,15 @@ lemma head_cons {α} (o : Option α) (l : StackTape α) : (cons o l).head = o :=
   cases o with
   | none =>
     cases l with | mk toList hl =>
-    cases toList <;> simp [cons, head]
-  | some a => simp [cons, head]
+    cases toList <;> grind
+  | some a => grind
 
 @[simp]
 lemma tail_cons {α} (o : Option α) (l : StackTape α) : (cons o l).tail = l := by
   cases o with
   | none =>
     cases l with | mk toList h =>
-    cases toList with
-    | nil => simp [cons, tail, nil]
-    | cons hd tl => simp [cons, tail]
+    cases toList <;> grind
   | some a =>
     simp only [cons, tail]
 
@@ -151,11 +149,13 @@ def length {α} (l : StackTape α) : ℕ := l.toList.length
 lemma length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
   grind
 
+grind_pattern length_tail_le => l.tail.length
+
 @[grind =]
 lemma length_cons_none {α} (l : StackTape α) :
     (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
   cases l with | mk toList h =>
-  cases toList <;> simp [cons, length]
+  cases toList <;> grind
 
 @[grind =]
 lemma length_cons_some {α} (a : α) (l : StackTape α) : (cons (some a) l).length = l.length + 1 := by
