@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Thomas Waring
+Authors: Fabrizio Montesi, Thomas Waring, Iván Renison
 -/
 
 module
@@ -163,9 +163,8 @@ theorem Confluent_def : rs.Confluent ↔
     ∀ {a b c : Term}, rs.MRed a b → rs.MRed a c → rs.MJoin b c :=
   Iff.rfl
 
-theorem isConfluent_of_unique_end (t : Term) (h : ∀ a : Term, rs.MRed a t) : rs.Confluent := by
-  intro a b c hab hac
-  exact ⟨t, h b, h c⟩
+theorem isConfluent_of_unique_end (t : Term) (h : ∀ a : Term, rs.MRed a t) : rs.Confluent :=
+  Relation.Confluent_of_unique_end h
 
 end Confluence
 
@@ -197,23 +196,28 @@ end Reducibility
 section Normalization
 
 /-- A term is in normal form when it is not reducible. -/
-def Normal (t : Term) : Prop := ¬ rs.Reducible t
+def Normal (t : Term) : Prop := Relation.Normal rs.Red t
 
-theorem Normal_iff (t : Term) :
-    rs.Normal t ↔ ∀ t' : Term, ¬ rs.Red t t' := by
-  unfold Normal Reducible
-  rw [not_exists]
+theorem Normal_def (t : Term) : rs.Normal t ↔ ¬ rs.Reducible t := Iff.rfl
 
-theorem eq_of_MRed_of_Normal {a b : Term} (ha : rs.Normal a) (hab : rs.MRed a b) :
-    a = b := by
-  induction hab with
-  | refl => rfl
-  | step a b c hab hbc hab' =>
-    rw [← hab' ha] at hbc
-    exact ((rs.Normal_iff a).mp ha c hbc).elim
+theorem Normal_iff (t : Term) : rs.Normal t ↔ ∀ t' : Term, ¬ rs.Red t t' :=
+  Relation.Normal_iff rs.Red t
 
-/-- A reduction system is normalizing when every term reduces to at least one normal form. -/
-def Normalizing : Prop := ∀ t : Term, ∃ n : Term, rs.MRed t n ∧ rs.Normal n
+theorem Normal.MRed_eq {rs : ReductionSystem Term} {a b : Term} (ha : rs.Normal a)
+    (hab : rs.MRed a b) : a = b :=
+  Relation.Normal.reflTransGen_eq ha hab
+
+/-- A term is normalizable when it reduces to at least one normal form. -/
+def Normalizable (t : Term) : Prop := Relation.Normalizable rs.Red t
+
+theorem Normalizable_def (t : Term) : rs.Normalizable t ↔ ∃ n : Term, rs.MRed t n ∧ rs.Normal n :=
+  Iff.rfl
+
+/-- A reduction system is normalizing when every term is Normalizable. -/
+def Normalizing : Prop := Relation.Normalizing rs.Red
+
+theorem Normalizing_def : rs.Normalizing ↔ ∀ t : Term, rs.Normalizable t :=
+  Iff.rfl
 
 end Normalization
 
@@ -232,55 +236,21 @@ theorem isTerminating_iff_WellFounded : rs.Terminating ↔ WellFounded rs.RRed :
   rfl
 
 theorem isTerminating_of_WellFounded {r : Term → Term → Prop} (hr : WellFounded r)
-    (h : ∀ a b : Term, rs.Red a b → r b a) : rs.Terminating := by
-  rw [wellFounded_iff_isEmpty_descending_chain] at hr
-  rw [Terminating_def]
-  intro ⟨f, hf⟩
-  exact hr.elim ⟨f, fun n ↦ h (f n) (f (n + 1)) (hf n)⟩
+    (h : Subrelation rs.RRed r) : rs.Terminating :=
+  Relation.Terminating.subrelation hr h
 
 theorem isTerminating_of_WellFoundedLT [LT Term] [hw : WellFoundedLT Term]
-    (h : ∀ a b : Term, rs.Red a b → b < a) : rs.Terminating :=
+    (h : Subrelation rs.RRed LT.lt) : rs.Terminating :=
   rs.isTerminating_of_WellFounded hw.wf h
 
 variable {rs : ReductionSystem Term}
 
-theorem Terminating.isNormalizing (h : rs.Terminating) : rs.Normalizing := by
-  rw [isTerminating_iff_WellFounded] at h
-  intro t
-  apply WellFounded.induction h t
-  intro a ih
-  by_cases ha : rs.Reducible a
-  · obtain ⟨b, hab⟩ := ha
-    obtain ⟨n, hbn, hn⟩ := ih b hab
-    exact ⟨n, MRed.trans rs (MRed.single rs hab) hbn, hn⟩
-  · unfold Normal
-    use a
+theorem Terminating.isNormalizing (h : rs.Terminating) : rs.Normalizing :=
+  Relation.Terminating.isNormalizing h
 
 theorem Terminating.isConfluent_iff_all_unique_Normal (ht : rs.Terminating) :
-    rs.Confluent ↔ ∀ a : Term, ∃! n : Term, rs.MRed a n ∧ rs.Normal n := by
-  have hn : rs.Normalizing := ht.isNormalizing
-  constructor
-  · intro hc a
-    apply existsUnique_of_exists_of_unique (hn a)
-    rintro n₁ n₂ ⟨hr₁, hn₁⟩ ⟨hr₂, hn₂⟩
-    rw [Confluent_def] at hc
-    have hj : rs.MJoin n₁ n₂ := hc hr₁ hr₂
-    obtain ⟨m, h₁, h₂⟩ := rs.MJoin_def.mp hj
-    rw [eq_of_MRed_of_Normal rs hn₁ h₁, eq_of_MRed_of_Normal rs hn₂ h₂]
-  · intro h
-    rw [Confluent_def]
-    intro a b c hab hac
-    obtain ⟨na, ⟨han, hnnor⟩, H⟩ := h a
-    use na
-    obtain ⟨nb, hbnb, hnb⟩ := hn b
-    obtain ⟨nc, hcnc, hnc⟩ := hn c
-    have hanb : rs.MRed a nb := MRed.trans rs hab hbnb
-    have hanc : rs.MRed a nc := MRed.trans rs hac hcnc
-    have hnanb : nb = na := H nb ⟨hanb, hnb⟩
-    have hnanc : nc = na := H nc ⟨hanc, hnc⟩
-    rw [hnanb] at hbnb
-    rw [hnanc] at hcnc
-    exact ⟨hbnb, hcnc⟩
+    rs.Confluent ↔ ∀ a : Term, ∃! n : Term, rs.MRed a n ∧ rs.Normal n :=
+  Relation.Terminating.isConfluent_iff_all_unique_Normal ht
 
 end Termination
 
