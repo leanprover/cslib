@@ -120,7 +120,7 @@ def write {α} (t : BiTape α) (a : Option α) : BiTape α := { t with head := a
 The space used by a `BiTape` is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
 -/
-@[grind]
+@[scoped grind]
 def space_used {α} (t : BiTape α) : ℕ := 1 + t.left.length + t.right.length
 
 @[simp, grind =]

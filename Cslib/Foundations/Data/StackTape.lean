@@ -61,7 +61,7 @@ attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 namespace StackTape
 
 /-- The empty `StackTape` -/
-@[grind]
+@[scoped grind]
 def nil {α} : StackTape α := ⟨[], by grind⟩
 
 instance {α : Type} : Inhabited (StackTape α) where
@@ -73,33 +73,33 @@ instance {α : Type} : EmptyCollection (StackTape α) :=
 @[simp]
 lemma empty_eq_nil {α} : (∅ : StackTape α) = nil := rfl
 
-@[simp, grind =]
+@[simp, scoped grind =]
 lemma nil_toList {α} : (nil : StackTape α).toList = [] := rfl
 
 /-- Prepend an `Option` to the `StackTape` -/
-@[grind]
+@[scoped grind]
 def cons {α} (x : Option α) (xs : StackTape α) : StackTape α :=
   match x, xs with
   | none, ⟨[], _⟩ => ⟨[], by grind⟩
   | none, ⟨hd :: tl, hl⟩ => ⟨none :: hd :: tl, by grind⟩
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
-@[simp, grind =]
+@[simp, scoped grind =]
 lemma cons_none_nil_toList {α} : (cons none (nil : StackTape α)).toList = [] := by grind
 
-@[simp, grind =]
+@[simp, scoped grind =]
 lemma cons_some_toList {α} (a : α) (l : StackTape α) :
     (cons (some a) l).toList = some a :: l.toList := by simp only [cons]
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
-@[grind]
+@[scoped grind]
 def tail {α} (l : StackTape α) : StackTape α :=
   match hl : l.toList with
   | [] => nil
   | hd :: t => ⟨t, by grind⟩
 
 /-- Get the first element of the `StackTape`. -/
-@[grind]
+@[scoped grind]
 def head {α} (l : StackTape α) : Option α :=
   match l.toList with
   | [] => none
@@ -137,13 +137,13 @@ lemma cons_head_tail {α} (l : StackTape α) :
   simp
 
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
-@[grind]
+@[scoped grind]
 def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
 
 section Length
 
 /-- The length of the `StackTape` is the number of elements up to the last non-`none` element -/
-@[grind]
+@[scoped grind]
 def length {α} (l : StackTape α) : ℕ := l.toList.length
 
 lemma length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
@@ -151,23 +151,23 @@ lemma length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
 
 grind_pattern length_tail_le => l.tail.length
 
-@[grind =]
+@[scoped grind =]
 lemma length_cons_none {α} (l : StackTape α) :
     (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
   cases l with | mk toList h =>
   cases toList <;> grind
 
-@[grind =]
+@[scoped grind =]
 lemma length_cons_some {α} (a : α) (l : StackTape α) : (cons (some a) l).length = l.length + 1 := by
   grind
 
 lemma length_cons_le {α} (o : Option α) (l : StackTape α) : (cons o l).length ≤ l.length + 1 := by
   cases o <;> grind
 
-@[simp, grind =]
+@[simp, scoped grind =]
 lemma length_map_some {α} (l : List α) : (map_some l).length = l.length := by grind
 
-@[simp, grind =]
+@[simp, scoped grind =]
 lemma length_nil {α} : (nil : StackTape α).length = 0 := by grind
 
 end Length

@@ -45,6 +45,8 @@ open Cslib Relation
 
 namespace Turing
 
+open BiTape StackTape
+
 variable {α : Type}
 
 namespace SingleTapeTM
@@ -143,11 +145,11 @@ The space used by a configuration is the space used by its tape.
 -/
 def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
 
-@[grind =]
+@[scoped grind =]
 lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
-@[grind =]
+@[scoped grind =]
 lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
     (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
@@ -165,12 +167,14 @@ lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
 
 end Cfg
 
+open Cfg
+
 /--
 The `TransitionRelation` corresponding to a `SingleTapeTM α`
 is defined by the `step` function,
 which maps a configuration to its next configuration, if it exists.
 -/
-@[grind =]
+@[scoped grind =]
 def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
