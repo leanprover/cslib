@@ -257,22 +257,21 @@ end Termination
 section Convergence
 
 /-- A reduction system is convergent when it is both confluent and terminating. -/
-structure Convergent : Prop where
-  isConfluent : rs.Confluent
-  isTerminating : rs.Terminating
+def Convergent : Prop := Relation.Convergent rs.Red
 
-theorem Convergent_iff :
-    rs.Convergent ↔ rs.Confluent ∧ rs.Terminating :=
-  ⟨fun ⟨hc, ht⟩ ↦ ⟨hc, ht⟩, fun ⟨hc, ht⟩ ↦ ⟨hc, ht⟩⟩
+theorem Convergent_def : rs.Convergent ↔ rs.Confluent ∧ rs.Terminating := Iff.rfl
 
 variable {rs : ReductionSystem Term}
+
+theorem Convergent.isTerminating (h : rs.Convergent) : rs.Terminating := h.right
+
+theorem Convergent.isConfluent (h : rs.Convergent) : rs.Confluent := h.left
 
 theorem Convergent.isNormalizing (h : rs.Convergent) : rs.Normalizing :=
   h.isTerminating.isNormalizing
 
 theorem Convergent.unique_Normal (h : rs.Convergent) (a : Term) :
-    ∃! n : Term, rs.MRed a n ∧ rs.Normal n :=
-  h.isTerminating.isConfluent_iff_all_unique_Normal.mp h.isConfluent a
+    ∃! n : Term, rs.MRed a n ∧ rs.Normal n := Relation.Convergent.unique_Normal h a
 
 end Convergence
 

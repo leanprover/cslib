@@ -242,6 +242,18 @@ theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     rw [hnanc] at hcnc
     exact ⟨hbnb, hcnc⟩
 
+/-- A relation is convergent when it is both confluent and terminating. -/
+abbrev Convergent (r : α → α → Prop) := Confluent r ∧ Terminating r
+
+theorem Convergent.isTerminating (h : Convergent r) : Terminating r := h.right
+
+theorem Convergent.isConfluent (h : Convergent r) : Confluent r := h.left
+
+theorem Convergent.isNormalizing (h : Convergent r) : Normalizing r := h.isTerminating.isNormalizing
+
+theorem Convergent.unique_Normal (h : Convergent r) :
+    ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n :=
+  h.isTerminating.isConfluent_iff_all_unique_Normal.mp h.isConfluent
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=
