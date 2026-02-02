@@ -81,6 +81,27 @@ def nth {α} (t : BiTape α) (n : ℤ) : Option α :=
   | Int.ofNat (n + 1) => t.right.toList.getD n none
   | Int.negSucc n => t.left.toList.getD n none
 
+lemma ext_nth {α} {t₁ t₂ : BiTape α} (h_nth_eq : ∀ n, t₁.nth n = t₂.nth n) :
+  t₁ = t₂ := by
+  cases t₁ with | mk head₁ left₁ right₁
+  cases t₂ with | mk head₂ left₂ right₂
+  have h_head : head₁ = head₂ := by
+    specialize h_nth_eq 0
+    simpa [nth] using h_nth_eq
+  have h_right : right₁ = right₂ := by
+    apply StackTape.ext_toList
+    intro n
+    specialize h (Int.ofNat (n + 1))
+    simp [nth] at h
+    exact h
+  have h_left : left₁ = left₂ := by
+    apply StackTape.ext_toList
+    intro n
+    specialize h (Int.negSucc n)
+    simp [nth] at h
+    exact h
+  rw [h_head, h_left, h_right]
+
 section Move
 
 /--
@@ -178,6 +199,23 @@ def move_int {α} (t : BiTape α) (delta : ℤ) : BiTape α :=
   match delta with
   | Int.ofNat n => move_right^[n] t
   | Int.negSucc n => move_left^[n + 1] t
+
+@[simp, grind =]
+lemma move_int_move_int {α} (t : BiTape α) (n₁ n₂ : ℤ) :
+  (t.move_int n₁).move_int n₂ = t.move_int (n₁ + n₂) := by
+  unfold move_int
+  split
+  · split
+    · split
+      · grind [Function.iterate_add_apply]
+        simp_all
+    · simp
+      rename_i n₁' n₂'
+    simp only [Int.ofNat_add, Function.iterate_add_apply]
+    grind
+  · rename_i n₁' n₂'
+    simp only [Int.negSucc_add_ofNat, Function.iterate_add_apply]
+    grind
 
 @[simp, grind =]
 lemma move_int_nth {α} (t : BiTape α) (n p : ℤ) :
