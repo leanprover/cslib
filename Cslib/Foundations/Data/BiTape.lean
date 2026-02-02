@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bolton Bailey
+Authors: Bolton Bailey, Christian Reitwiessner
 -/
 
 module
@@ -102,8 +102,23 @@ def move {α} (t : BiTape α) : Dir → BiTape α
   | .left => t.move_left
   | .right => t.move_right
 
+/--
+Optionally perform a `move`, or do nothing if `none`.
+-/
+def optionMove {α} : BiTape α → Option Dir → BiTape α
+  | t, none => t
+  | t, some d => t.move d
 
 @[simp]
+lemma move_left_move_right {α} (t : BiTape α) : t.move_left.move_right = t := by
+  simp [move_right, move_left]
+
+@[simp]
+lemma move_right_move_left {α} (t : BiTape α) : t.move_right.move_left = t := by
+  simp [move_left, move_right]
+
+
+@[simp, grind =]
 lemma move_right_nth {α} (t : BiTape α) (p : ℤ) :
     (t.move_right).nth p = t.nth (p + 1) := by
   unfold nth
@@ -132,28 +147,43 @@ lemma move_right_nth {α} (t : BiTape α) (p : ℤ) :
       simp only [StackTape.cons]
       grind
 
+@[simp, grind =]
+lemma move_left_nth {α} (t : BiTape α) (p : ℤ) :
+    (t.move_left).nth p = t.nth (p - 1) := by
+  rw [← move_left_move_right t]
+  simp only [move_right_nth]
+  simp
+
+@[simp, grind =]
+lemma move_right_iter_nth {α} (t : BiTape α) (n : ℕ) (p : ℤ) :
+    (move_right^[n] t).nth p = t.nth (p + n) := by
+  induction n generalizing p with
+  | zero => simp
+  | succ n ih =>
+    simp only [Function.iterate_succ_apply']
+    grind
+
+@[simp, grind =]
+lemma move_left_iter_nth {α} (t : BiTape α) (n : ℕ) (p : ℤ) :
+    (move_left^[n] t).nth p = t.nth (p - n) := by
+  induction n generalizing p with
+  | zero => simp
+  | succ n ih =>
+    simp only [Function.iterate_succ_apply']
+    grind
+
 /-- Move the head by an integer amount of cells where positive amounts cause the tape head to move
 to the right while a negative amounts move the tape head to the left. -/
 def move_int {α} (t : BiTape α) (delta : ℤ) : BiTape α :=
   match delta with
-  | Int.ofNat 0 => t
-  | Int.ofNat (n + 1) => (BiTape.move · Dir.right)^[n] t
-  | Int.negSucc n => (BiTape.move · Dir.left)^[n] t
+  | Int.ofNat n => move_right^[n] t
+  | Int.negSucc n => move_left^[n + 1] t
 
-/--
-Optionally perform a `move`, or do nothing if `none`.
--/
-def optionMove {α} : BiTape α → Option Dir → BiTape α
-  | t, none => t
-  | t, some d => t.move d
-
-@[simp]
-lemma move_left_move_right {α} (t : BiTape α) : t.move_left.move_right = t := by
-  simp [move_right, move_left]
-
-@[simp]
-lemma move_right_move_left {α} (t : BiTape α) : t.move_right.move_left = t := by
-  simp [move_left, move_right]
+@[simp, grind =]
+lemma move_int_nth {α} (t : BiTape α) (n p : ℤ) :
+    (move_int t n).nth p = t.nth (p + n) := by
+  unfold move_int
+  split <;> grind
 
 end Move
 
