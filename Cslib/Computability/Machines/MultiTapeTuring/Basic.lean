@@ -120,9 +120,17 @@ def step : tm.Cfg → Option tm.Cfg
 def configurations (initialConfig : tm.Cfg) (n : ℕ) : Option tm.Cfg :=
   (fun c => Option.bind c tm.step)^[n] initialConfig
 
+@[simp]
 lemma configurations_zero (initialConfig : tm.Cfg) :
     tm.configurations initialConfig 0 = some initialConfig := by
   simp [configurations]
+
+-- TODO lemma configurations_succ (initialConfig : tm.Cfg) (n : ℕ) :
+
+lemma configurations_succ' (initialConfig : tm.Cfg) (n : ℕ) :
+    tm.configurations initialConfig (n + 1) =
+      Option.bind (tm.configurations initialConfig n) tm.step := by
+  simp [configurations, Function.iterate_succ_apply']
 
 def halts_in_steps (initialConfig : tm.Cfg) (n : ℕ) : Prop :=
   (tm.configurations initialConfig n).map (·.state.isNone) = .some True
@@ -162,12 +170,12 @@ def Cfg.space_used (tm : MultiTapeTM k α) (cfg : tm.Cfg) : ℕ := ∑ i, (cfg.t
 -- lemma Cfg.space_used_haltCfg (tm : MultiTapeTM α) (s : List α) :
 --     (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
-lemma Cfg.space_used_step {tm : MultiTapeTM k α} (cfg cfg' : tm.Cfg)
-    (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + k := by
-  obtain ⟨_ | q, tapes⟩ := cfg
-  · simp [step] at hstep
-  · simp at hstep
-    sorry
+-- lemma Cfg.space_used_step {tm : MultiTapeTM k α} (cfg cfg' : tm.Cfg)
+--     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + k := by
+--   obtain ⟨_ | q, tapes⟩ := cfg
+--   · simp [step] at hstep
+--   · simp at hstep
+--     sorry
 
 end Cfg
 
@@ -193,12 +201,41 @@ def TransformsTapesWithinTime
     (t : ℕ) : Prop :=
   RelatesWithinSteps tm.TransitionRelation ⟨some tm.q₀, tapes⟩ ⟨none, tapes'⟩ t
 
-def eval (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) [DecidableEq tm.Λ] [DecidableEq α] :
+def eval (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) :
     Part (Fin k → BiTape α) :=
-  -- TODO avoid the inner definitions.
+  -- TODO avoid the inner definitions and use halts_in_steps instead
   let configs := tm.configurations ⟨tm.q₀, tapes⟩
   let halts := fun t => (configs t).map (·.state.isNone) = .some True
   (PartENat.find halts).bind (fun t => Part.ofOption ((configs t).map (·.tapes)))
+
+lemma relatesInSteps_iff_configurations_eq_some
+    (tm : MultiTapeTM k α)
+    (cfg₁ cfg₂ : tm.Cfg)
+    (t : ℕ) :
+  RelatesInSteps tm.TransitionRelation cfg₁ cfg₂ t ↔
+    tm.configurations cfg₁ t = .some cfg₂ := by
+  induction t generalizing cfg₁ cfg₂ with
+  | zero => simp
+  | succ t ih =>
+    rw [RelatesInSteps.succ_iff, configurations_succ']
+    constructor
+    · grind only [TransitionRelation, = Option.bind_some]
+    · intro h_configs
+      cases h : tm.configurations cfg₁ t
+      · simp [h] at h_configs
+      · rename_i cfg'
+        use cfg'
+        grind
+
+lemma eval_of_TransformsTapesinTime
+    {tm : MultiTapeTM k α}
+    {tapes tapes' : Fin k → BiTape α}
+    {t : ℕ}
+    (h : tm.TransformsTapesInTime tapes tapes' t) :
+    tm.eval tapes = Part.some tapes' := by
+  simp [TransformsTapesInTime, eval] at h ⊢
+  simp only [Part.eq_some_iff]
+  sorry
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
 def Outputs (tm : MultiTapeTM k α) (l l' : List α) : Prop :=
@@ -315,9 +352,6 @@ private theorem map_toSeqCfg_right_step :
   simp only [step, toSeqCfg_right, seq]
   grind [toSeqCfg_right]
 
-theorem seq_relatesWithinSteps
-  (t₁ t₂ : ℕ)
-  (h_tm₁ : RelatesInSteps tm₁.Trans
 
 /--
 Simulation for the first phase of the composed computer.
