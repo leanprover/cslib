@@ -192,6 +192,9 @@ Write a value under the head of the `BiTape`.
 -/
 def write {α} (t : BiTape α) (a : Option α) : BiTape α := { t with head := a }
 
+@[simp, grind =]
+lemma write_head {α} (t : BiTape α) : t.write t.head = t := by rfl
+
 /--
 The space used by a `BiTape` is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
