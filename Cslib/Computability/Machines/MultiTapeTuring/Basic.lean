@@ -194,12 +194,11 @@ def TransformsTapesWithinTime
   RelatesWithinSteps tm.TransitionRelation ⟨some tm.q₀, tapes⟩ ⟨none, tapes'⟩ t
 
 def eval (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) [DecidableEq tm.Λ] [DecidableEq α] :
-    Option (Fin k → BiTape α) :=
-  -- (PartENat.find (fun t => tm.halts_in_steps ⟨some tm.q₀, tapes⟩ t)).map (fun t =>
-  --     (tm.configurations ⟨some tm.q₀, tapes⟩).tapes)
-  let configs := fun t => ((Option.bind · tm.step)^[t] (Option.some ⟨tm.q₀, tapes⟩))
+    Part (Fin k → BiTape α) :=
+  -- TODO avoid the inner definitions.
+  let configs := tm.configurations ⟨tm.q₀, tapes⟩
   let halts := fun t => (configs t).map (·.state.isNone) = .some True
-  (PartENat.find (fun t => halts t)).map (fun t => (configs t).map (·.tapes))
+  (PartENat.find halts).bind (fun t => Part.ofOption ((configs t).map (·.tapes)))
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
 def Outputs (tm : MultiTapeTM k α) (l l' : List α) : Prop :=
