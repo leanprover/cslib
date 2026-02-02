@@ -90,16 +90,50 @@ lemma ext_nth {α} {t₁ t₂ : BiTape α} (h_nth_eq : ∀ n, t₁.nth n = t₂.
     simpa [nth] using h_nth_eq
   have h_right : right₁ = right₂ := by
     apply StackTape.ext_toList
-    intro n
-    specialize h (Int.ofNat (n + 1))
-    simp [nth] at h
-    exact h
+    apply List.ext_get
+    · by_contra h_ne
+      rcases Nat.lt_trichotomy right₁.toList.length right₂.toList.length with hlt | _ | hgt
+      · have h := h_nth_eq (Int.ofNat (right₁.toList.length + 1))
+        simp [nth, List.getD_eq_getElem?_getD] at h
+        split at h
+        · rename_i h_get; simp at h_get; omega
+        · split at h; simp at h
+      · contradiction
+      · have h := h_nth_eq (Int.ofNat (right₂.toList.length + 1))
+        simp [nth, List.getD_eq_getElem?_getD] at h
+        split at h
+        · split at h; simp at h
+        · rename_i h_get; simp at h_get; omega
+    · intro n h₁ h₂
+      have h := h_nth_eq (Int.ofNat (n + 1))
+      simp [nth, List.getD_eq_getElem?_getD] at h
+      split at h <;> split at h
+      · exact h
+      · omega
+      · omega
   have h_left : left₁ = left₂ := by
     apply StackTape.ext_toList
-    intro n
-    specialize h (Int.negSucc n)
-    simp [nth] at h
-    exact h
+    apply List.ext_get
+    · by_contra h_ne
+      rcases Nat.lt_trichotomy left₁.toList.length left₂.toList.length with hlt | _ | hgt
+      · have h := h_nth_eq (Int.negSucc left₁.toList.length)
+        simp [nth, List.getD_eq_getElem?_getD] at h
+        split at h
+        · rename_i h_get; simp at h_get; omega
+        · split at h; simp at h
+      · contradiction
+      · have h := h_nth_eq (Int.negSucc left₂.toList.length)
+        simp [nth, List.getD_eq_getElem?_getD] at h
+        split at h
+        · split at h; simp at h
+        · rename_i h_get; simp at h_get; omega
+    · intro n h₁ h₂
+      have h := h_nth_eq (Int.negSucc n)
+      simp [nth, List.getD_eq_getElem?_getD] at h
+      split at h <;> split at h
+      · exact h
+      · omega
+      · omega
   rw [h_head, h_left, h_right]
 
 section Move

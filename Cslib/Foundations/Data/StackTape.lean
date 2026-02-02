@@ -145,6 +145,14 @@ lemma cons_head_tail {α} (l : StackTape α) :
   rw [eq_iff]
   simp
 
+lemma ext_toList {α} {s₁ s₂ : StackTape α} (h : s₁.toList = s₂.toList) :
+    s₁ = s₂ := by
+  cases s₁ with | mk l₁ h₁ =>
+  cases s₂ with | mk l₂ h₂ =>
+  simp only at h
+  subst h
+  rfl
+
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
 def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
