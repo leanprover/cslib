@@ -274,20 +274,31 @@ lemma configurations_of_transformsTapesInTime
 lemma eval_iff_exists_steps_iter_eq_some
     {tm : MultiTapeTM k α}
     {tapes tapes' : Fin k → BiTape α} :
-    tm.eval tapes = some tapes' ↔
+    tm.eval tapes = .some tapes' ↔
       ∃ t : ℕ, (Option.bind · tm.step)^[t] (tm.initCfgTapes tapes) =
           some (tm.haltCfgTapes tapes') := by
+  simp only [Part.eq_some_iff, eval]
   constructor
-  · simp only [Part.coe_some, Part.eq_some_iff, eval]
-    intro ⟨h_x, h_tapes_eq⟩
-    simp at h_tapes_eq
-    obtain ⟨tapes'', h_choose⟩ := h_x
-    let tapes'' := h_choose.choose
-    use tapes''
-    obtain ⟨t, h_transforms⟩ := h_choose
+  · intro h
+    obtain ⟨h_dom, h_get⟩ := h
+    simp only at h_get
+    rw [← h_get]
+    obtain ⟨t, h_transforms_in_time⟩ := (h_dom.choose_spec : TransformsTapes tm tapes h_dom.choose)
+    use t
     rw [← relatesInSteps_iff_step_iter_eq_some]
-    sorry
-  · sorry
+    simpa [TransformsTapesInTime, initCfgTapes, haltCfgTapes] using h_transforms_in_time
+  · intro ⟨t, h_iter⟩
+    have h_dom : ∃ tapes', tm.TransformsTapes tapes tapes' := by
+      use tapes'
+      use t
+      simp only [TransformsTapesInTime]
+      rw [relatesInSteps_iff_step_iter_eq_some]
+      exact h_iter
+    refine ⟨h_dom, ?_⟩
+    apply transformsTapes_unique tm tapes
+    · exact (h_dom.choose_spec : TransformsTapes tm tapes h_dom.choose)
+    · use t
+      simpa [TransformsTapesInTime, relatesInSteps_iff_step_iter_eq_some] using h_iter
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
 def Outputs (tm : MultiTapeTM k α) (l l' : List α) : Prop :=
