@@ -105,6 +105,15 @@ def head {α} (l : StackTape α) : Option α :=
   | [] => none
   | h :: _ => h
 
+@[grind =]
+lemma head_eq_list_getD {α} (l : StackTape α) : l.head = l.toList.getD 0 none := by
+  cases l with | mk toList h =>
+  cases toList <;> grind
+
+@[simp, scoped grind =]
+lemma tail_toList_get_eq_right_toList_get_succ {α} (t : StackTape α) (n : ℕ) :
+  t.tail.toList[n]? = t.toList[n + 1]? := by grind
+
 lemma eq_iff {α} (l1 l2 : StackTape α) : l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
   constructor
   · grind

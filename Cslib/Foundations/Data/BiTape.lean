@@ -73,6 +73,14 @@ def mk₁ {α} (l : List α) : BiTape α :=
   | [] => ∅
   | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
 
+/-- Indexes the tape using integers, where `0` is the symbol at the tape head,
+positive integers index to the right, and negative integers index to the left. -/
+def nth {α} (t : BiTape α) (n : ℤ) : Option α :=
+  match n with
+  | Int.ofNat 0 => t.head
+  | Int.ofNat (n + 1) => t.right.toList.getD n none
+  | Int.negSucc n => t.left.toList.getD n none
+
 section Move
 
 /--
@@ -93,6 +101,44 @@ Move the head to the left or right, shifting the tape underneath it.
 def move {α} (t : BiTape α) : Dir → BiTape α
   | .left => t.move_left
   | .right => t.move_right
+
+
+@[simp]
+lemma move_right_nth {α} (t : BiTape α) (p : ℤ) :
+    (t.move_right).nth p = t.nth (p + 1) := by
+  unfold nth
+  split
+  · grind [move_right]
+  · rename_i n
+    simp only [move_right, List.getD_eq_getElem?_getD, Nat.succ_eq_add_one, Int.ofNat_eq_natCast,
+      Int.natCast_add, Int.cast_ofNat_Int]
+    have h: (n : ℤ) + 1 + 1 ≥ 2 := by omega
+    split
+    · grind
+    · rename_i n'' h_eq
+      simp at h_eq
+      rw [show n'' = n + 1 by omega]
+      simp
+    · grind
+  · rename_i n
+    simp only [move_right, List.getD_eq_getElem?_getD]
+    split
+    · rename_i h_eq
+      simp only [StackTape.cons]
+      grind
+    · grind
+    · rename_i n' h_eq
+      rw [show n = n' + 1 by omega]
+      simp only [StackTape.cons]
+      grind
+
+/-- Move the head by an integer amount of cells where positive amounts cause the tape head to move
+to the right while a negative amounts move the tape head to the left. -/
+def move_int {α} (t : BiTape α) (delta : ℤ) : BiTape α :=
+  match delta with
+  | Int.ofNat 0 => t
+  | Int.ofNat (n + 1) => (BiTape.move · Dir.right)^[n] t
+  | Int.negSucc n => (BiTape.move · Dir.left)^[n] t
 
 /--
 Optionally perform a `move`, or do nothing if `none`.
