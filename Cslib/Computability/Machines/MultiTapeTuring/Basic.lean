@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Bolton Bailey. All rights reserved.
+Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey, Pim Spelier, Daan van Gent
 -/
@@ -8,16 +8,19 @@ module
 
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
-public import Mathlib.Algebra.Polynomial.Eval.Defs
+
+-- TODO create a "common file"
+public import Cslib.Computability.Machines.SingleTapeTuring.Basic
+
+public import Mathlib.Data.Nat.PartENat
 
 @[expose] public section
 
 /-!
-# Single-Tape Turing Machines
+# Multi-Tape Turing Machines
 
-Defines a single-tape Turing machine for computing functions on `List α` for finite alphabet `α`.
-These machines have access to a single bidirectionally-infinite tape (`BiTape`)
-which uses symbols from `Option α`.
+Defines Turing machines with `k` tapes (bidirectionally infinite, `BiTape`) containing symbols
+from `Option α` for a finite alphabet `α` (where `none` is the blank symbol).
 
 ## Important Declarations
 
@@ -36,8 +39,6 @@ We also provide ways of constructing polynomial-runtime TMs
 
 ## TODOs
 
-- Encoding of types in lists to represent computations on arbitrary types.
-- Add `∘` notation for `compComputer`.
 
 -/
 
@@ -49,26 +50,13 @@ open BiTape StackTape
 
 variable {α : Type}
 
-namespace SingleTapeTM
+variable {k : ℕ}
 
 /--
-A Turing machine "statement" is just a `Option`al command to move left or right,
-and write a symbol (i.e. an `Option α`, where `none` is the blank symbol) on the `BiTape`
--/
-structure Stmt (α : Type) where
-  /-- The symbol to write at the current head position -/
-  symbol : Option α
-  /-- The direction to move the tape head -/
-  movement : Option Dir
-deriving Inhabited
-
-end SingleTapeTM
-
-/--
-A single-tape Turing machine
+A `k`-tape Turing machine
 over the alphabet of `Option α` (where `none` is the blank `BiTape` symbol).
 -/
-structure SingleTapeTM α where
+structure MultiTapeTM k α where
   /-- Inhabited instance for the alphabet -/
   [αInhabited : Inhabited α]
   /-- Finiteness of the alphabet -/
@@ -81,9 +69,9 @@ structure SingleTapeTM α where
   (q₀ : Λ)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
   and optionally the new state to transition to afterwards (`none` for halt) -/
-  (M : Λ → Option α → SingleTapeTM.Stmt α × Option Λ)
+  (M : Λ → (Fin k → Option α) → ((Fin k → (SingleTapeTM.Stmt α)) × Option Λ))
 
-namespace SingleTapeTM
+namespace MultiTapeTM
 
 section Cfg
 
@@ -95,13 +83,13 @@ the step function that lets the machine transition from one configuration to the
 and the intended initial and final configurations.
 -/
 
-variable (tm : SingleTapeTM α)
+variable (tm : MultiTapeTM k α)
 
 instance : Inhabited tm.Λ := ⟨tm.q₀⟩
 
 instance : Fintype tm.Λ := tm.ΛFintype
 
-instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
+instance inhabitedStmt : Inhabited (SingleTapeTM.Stmt α) := inferInstance
 
 /--
 The configurations of a Turing machine consist of:
@@ -112,102 +100,132 @@ structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.Λ
   /-- the BiTape contents -/
-  BiTape : BiTape α
+  tapes : Fin k → BiTape α
 deriving Inhabited
 
-/-- The step function corresponding to a `SingleTapeTM`. -/
+/-- The step function corresponding to a `MultiTapeTM`. -/
 @[simp]
 def step : tm.Cfg → Option tm.Cfg
   | ⟨none, _⟩ =>
     -- If in the halting state, there is no next configuration
     none
-  | ⟨some q', t⟩ =>
+  | ⟨some q, tapes⟩ =>
     -- If in state q', perform look up in the transition function
-    match tm.M q' t.head with
+    match tm.M q (fun i => (tapes i).head) with
     -- and enter a new configuration with state q'' (or none for halting)
     -- and tape updated according to the Stmt
-    | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
+    | ⟨stmts, q'⟩ => some ⟨q', fun i =>
+        ((tapes i).write (stmts i).symbol).optionMove (stmts i).movement⟩
+
+def configurations (initialConfig : tm.Cfg) (n : ℕ) : Option tm.Cfg :=
+  (fun c => Option.bind c tm.step)^[n] initialConfig
+
+lemma configurations_zero (initialConfig : tm.Cfg) :
+    tm.configurations initialConfig 0 = some initialConfig := by
+  simp [configurations]
+
+def halts_in_steps (initialConfig : tm.Cfg) (n : ℕ) : Prop :=
+  (tm.configurations initialConfig n).map (·.state.isNone) = .some True
+
+def first_tape_with (s : List α) : Fin k → BiTape α
+  | ⟨0, _⟩ => BiTape.mk₁ s
+  | ⟨_, _⟩ => default
 
 /--
 The initial configuration corresponding to a list in the input alphabet.
 Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` values.
 This is to ensure that distinct lists map to distinct initial configurations.
 -/
-def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
+def initCfg (tm : MultiTapeTM k α) (s : List α) : tm.Cfg :=
+  ⟨some tm.q₀, first_tape_with s⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
-def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
+def haltCfg (tm : MultiTapeTM k α) (s : List α) : tm.Cfg :=
+  ⟨none, first_tape_with s⟩
+
+example (tm : MultiTapeTM k α) (s : List α) :
+    tm.halts_in_steps (tm.haltCfg s) 0 := by
+  simp [haltCfg, halts_in_steps, configurations]
 
 /--
 The space used by a configuration is the space used by its tape.
 -/
-def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
+def Cfg.space_used (tm : MultiTapeTM k α) (cfg : tm.Cfg) : ℕ := ∑ i, (cfg.tapes i).space_used
 
-@[scoped grind =]
-lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
-    (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
+-- @[scoped grind =]
+-- lemma Cfg.space_used_initCfg (tm : MultiTapeTM k.succ α) (s : List α) :
+--     (tm.initCfg s).space_used = k + max 1 s.length := by grind
 
-@[scoped grind =]
-lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
-    (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
+-- @[scoped grind =]
+-- lemma Cfg.space_used_haltCfg (tm : MultiTapeTM α) (s : List α) :
+--     (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
-lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
-    (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
-  obtain ⟨_ | q, tape⟩ := cfg
+lemma Cfg.space_used_step {tm : MultiTapeTM k α} (cfg cfg' : tm.Cfg)
+    (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + k := by
+  obtain ⟨_ | q, tapes⟩ := cfg
   · simp [step] at hstep
-  · simp only [step] at hstep
-    generalize hM : tm.M q tape.head = result at hstep
-    obtain ⟨⟨wr, dir⟩, q''⟩ := result
-    cases hstep; cases dir with
-    | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM]
-    | some d => simpa [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM] using
-        BiTape.space_used_move (tape.write wr) d
+  · simp at hstep
+    sorry
 
 end Cfg
 
 open Cfg
 
 /--
-The `TransitionRelation` corresponding to a `SingleTapeTM α`
+The `TransitionRelation` corresponding to a `MultiTapeTM k α`
 is defined by the `step` function,
 which maps a configuration to its next configuration, if it exists.
 -/
 @[scoped grind =]
-def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
+def TransitionRelation (tm : MultiTapeTM k α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
+
+def TransformsTapesInTime
+    (tm : MultiTapeTM k α)
+    (tapes tapes' : Fin k → BiTape α)
+    (t : ℕ) : Prop :=
+  RelatesInSteps tm.TransitionRelation ⟨some tm.q₀, tapes⟩ ⟨none, tapes'⟩ t
+
+def TransformsTapesWithinTime
+    (tm : MultiTapeTM k α)
+    (tapes tapes' : Fin k → BiTape α)
+    (t : ℕ) : Prop :=
+  RelatesWithinSteps tm.TransitionRelation ⟨some tm.q₀, tapes⟩ ⟨none, tapes'⟩ t
+
+def eval (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) [DecidableEq tm.Λ] [DecidableEq α] :
+    Option (Fin k → BiTape α) :=
+  -- (PartENat.find (fun t => tm.halts_in_steps ⟨some tm.q₀, tapes⟩ t)).map (fun t =>
+  --     (tm.configurations ⟨some tm.q₀, tapes⟩).tapes)
+  let configs := fun t => ((Option.bind · tm.step)^[t] (Option.some ⟨tm.q₀, tapes⟩))
+  let halts := fun t => (configs t).map (·.state.isNone) = .some True
+  (PartENat.find (fun t => halts t)).map (fun t => (configs t).map (·.tapes))
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
-def Outputs (tm : SingleTapeTM α) (l l' : List α) : Prop :=
+def Outputs (tm : MultiTapeTM k α) (l l' : List α) : Prop :=
   ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of `tm` outputting `l'` on input `l` in at most `m` steps. -/
-def OutputsWithinTime (tm : SingleTapeTM α) (l l' : List α) (m : ℕ) :=
+def OutputsWithinTime (tm : MultiTapeTM k α) (l l' : List α) (m : ℕ) :=
   RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
 
-/--
-This lemma bounds the size blow-up of the output of a Turing machine.
-It states that the increase in length of the output over the input is bounded by the runtime.
-This is important for guaranteeing that composition of polynomial time Turing machines
-remains polynomial time, as the input to the second machine
-is bounded by the output length of the first machine.
--/
-lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List α) (t : ℕ)
-    (h : tm.OutputsWithinTime l l' t) :
-    l'.length ≤ max 1 l.length + t := by
-  obtain ⟨steps, hsteps_le, hevals⟩ := h
-  grind [hevals.apply_le_apply_add (Cfg.space_used tm)
-      fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
+-- /--
+-- This lemma bounds the size blow-up of the output of a Turing machine.
+-- It states that the increase in length of the output over the input is bounded by the runtime.
+-- This is important for guaranteeing that composition of polynomial time Turing machines
+-- remains polynomial time, as the input to the second machine
+-- is bounded by the output length of the first machine.
+-- -/
+-- lemma output_length_le_input_length_add_time (tm : MultiTapeTM k α) (l l' : List α) (t : ℕ)
+--     (h : tm.OutputsWithinTime l l' t) :
+--     l'.length ≤ max 1 l.length + k * t := by
+--   obtain ⟨steps, hsteps_le, hevals⟩ := h
+--   grind [hevals.apply_le_apply_add (Cfg.space_used tm)
+--       fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
 
-section Computers
+section Combinators
 
 variable [Inhabited α] [Fintype α]
-
-/-- A Turing machine computing the identity. -/
-def idComputer : SingleTapeTM α where
-  Λ := PUnit
-  q₀ := PUnit.unit
-  M _ b := ⟨⟨b, none⟩, none⟩
 
 /--
 A Turing machine computing the composition of two other Turing machines.
@@ -216,7 +234,10 @@ If f and g are computed by Turing machines `tm1` and `tm2`
 then we can construct a Turing machine which computes g ∘ f by first running `tm1`
 and then, when `tm1` halts, transitioning to the start state of `tm2` and running `tm2`.
 -/
-def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
+-- TODO called compComputer in SingleTapeTM
+-- maybe more exact: sequential composition
+-- TODO the definition is exactly the same.
+def seq (tm1 tm2 : MultiTapeTM k α) : MultiTapeTM k α where
   -- The states of the composed machine are the disjoint union of the states of the input machines.
   Λ := tm1.Λ ⊕ tm2.Λ
   -- The start state is the start state of the first input machine.
@@ -245,66 +266,59 @@ def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
           -- Otherwise continue as normal
           | _ => Option.map .inr state)
 
-section compComputerLemmas
+section seqLemmas
 
 /-! ### Composition Computer Lemmas -/
 
-variable (tm1 tm2 : SingleTapeTM α) (cfg1 : tm1.Cfg) (cfg2 : tm2.Cfg)
+variable (tm1 tm2 : MultiTapeTM k α) (cfg1 : tm1.Cfg) (cfg2 : tm2.Cfg)
 
-lemma compComputer_q₀_eq : (compComputer tm1 tm2).q₀ = Sum.inl tm1.q₀ := rfl
+lemma seq_q₀_eq : (seq tm1 tm2).q₀ = Sum.inl tm1.q₀ := rfl
 
 /--
 Convert a `Cfg` over the first input machine to a config over the composed machine.
 Note it may transition to the start state of the second machine if the first machine halts.
 -/
-private def toCompCfg_left : (compComputer tm1 tm2).Cfg :=
+private def toSeqCfg_left : (seq tm1 tm2).Cfg :=
   match cfg1.state with
-  | some q => ⟨some (Sum.inl q), cfg1.BiTape⟩
-  | none => ⟨some (Sum.inr tm2.q₀), cfg1.BiTape⟩
+  | some q => ⟨some (Sum.inl q), cfg1.tapes⟩
+  | none => ⟨some (Sum.inr tm2.q₀), cfg1.tapes⟩
 
 /-- Convert a `Cfg` over the second input machine to a config over the composed machine -/
-private def toCompCfg_right : (compComputer tm1 tm2).Cfg :=
-  ⟨Option.map Sum.inr cfg2.state, cfg2.BiTape⟩
+private def toSeqCfg_right : (seq tm1 tm2).Cfg :=
+  ⟨Option.map Sum.inr cfg2.state, cfg2.tapes⟩
 
-/-- The initial configuration for the composed machine, with the first machine starting. -/
-private def initialCfg (input : List α) : (compComputer tm1 tm2).Cfg :=
-  ⟨some (Sum.inl tm1.q₀), BiTape.mk₁ input⟩
+-- /-- The initial configuration for the composed machine, with the first machine starting. -/
+-- private def initialCfg (input : List α) : (seq tm1 tm2).Cfg :=
+--   ⟨some (Sum.inl tm1.q₀), first_tape_with input⟩
 
-/-- The intermediate configuration for the composed machine,
-after the first machine halts and the second machine starts. -/
-private def intermediateCfg (intermediate : List α) : (compComputer tm1 tm2).Cfg :=
-  ⟨some (Sum.inr tm2.q₀), BiTape.mk₁ intermediate⟩
+-- /-- The intermediate configuration for the composed machine,
+-- after the first machine halts and the second machine starts. -/
+-- private def intermediateCfg (intermediate : List α) : (seq tm1 tm2).Cfg :=
+--   ⟨some (Sum.inr tm2.q₀), first_tape_with intermediate⟩
 
-/-- The final configuration for the composed machine, after the second machine halts. -/
-private def finalCfg (output : List α) : (compComputer tm1 tm2).Cfg :=
-  ⟨none, BiTape.mk₁ output⟩
+-- /-- The final configuration for the composed machine, after the second machine halts. -/
+-- private def finalCfg (output : List α) : (compComputer tm1 tm2).Cfg :=
+--   ⟨none, BiTape.mk₁ output⟩
 
 /-- The left converting function commutes with steps of the machines. -/
-private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
-    Option.map (toCompCfg_left tm1 tm2) (tm1.step cfg1) =
-      (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 cfg1) := by
-  cases cfg1 with | mk state BiTape => cases state with
-    | none => grind
-    | some q =>
-      simp only [step, toCompCfg_left, compComputer]
-      -- generalize hM : tm1.M q BiTape.head = result
-      -- obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      grind [toCompCfg_left, compComputer, step]
+@[scoped grind =]
+private theorem map_toSeqCfg_left_step (hcfg1 : cfg1.state.isSome) :
+    Option.map (toSeqCfg_left tm1 tm2) (tm1.step cfg1) =
+      (seq tm1 tm2).step (toSeqCfg_left tm1 tm2 cfg1) := by
+  simp only [step, toSeqCfg_left, seq]
+  grind [toSeqCfg_left]
 
 /-- The right converting function commutes with steps of the machines. -/
-private theorem map_toCompCfg_right_step :
-    Option.map (toCompCfg_right tm1 tm2) (tm2.step cfg2) =
-      (compComputer tm1 tm2).step (toCompCfg_right tm1 tm2 cfg2) := by
-  cases cfg2 with
-  | mk state BiTape =>
-    cases state with
-    | none =>
-      simp only [step, toCompCfg_right, Option.map_none, compComputer]
-    | some q =>
-      generalize hM : tm2.M q BiTape.head = result
-      obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      simp only [compComputer]
-      grind [toCompCfg_right, step, compComputer]
+@[scoped grind =]
+private theorem map_toSeqCfg_right_step :
+    Option.map (toSeqCfg_right tm1 tm2) (tm2.step cfg2) =
+      (seq tm1 tm2).step (toSeqCfg_right tm1 tm2 cfg2) := by
+  simp only [step, toSeqCfg_right, seq]
+  grind [toSeqCfg_right]
+
+theorem seq_relatesWithinSteps
+  (t₁ t₂ : ℕ)
+  (h_tm₁ : RelatesInSteps tm₁.Trans
 
 /--
 Simulation for the first phase of the composed computer.
@@ -313,14 +327,10 @@ runs from start (with Sum.inl state) to Sum.inr tm2.q₀ (the start of the secon
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-private theorem comp_left_relatesWithinSteps (input intermediate : List α) (t : ℕ)
-    (htm1 :
-      RelatesWithinSteps tm1.TransitionRelation
-        (tm1.initCfg input)
-        (tm1.haltCfg intermediate)
-        t) :
-    RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (initialCfg tm1 tm2 input)
+private theorem comp_left_relatesWithinSteps (initial intermediate : tm1.Cfg) (t : ℕ)
+    (htm1 : RelatesWithinSteps tm1.TransitionRelation initial intermediate t) :
+    RelatesWithinSteps (seq tm1 tm2).TransitionRelation
+      (toSeqCfg_left tm1 tm2 initial)
       (intermediateCfg tm1 tm2 intermediate)
       t := by
   simp only [initialCfg, intermediateCfg, initCfg, haltCfg] at htm1 ⊢
@@ -370,8 +380,8 @@ variable [Inhabited α] [Fintype α]
 /-- A Turing machine + a time function +
 a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure TimeComputable (f : List α → List α) where
-  /-- the underlying bundled SingleTapeTM -/
-  tm : SingleTapeTM α
+  /-- the underlying bundled MultiTapeTM -/
+  tm : MultiTapeTM α
   /-- a bound on runtime -/
   time_bound : ℕ → ℕ
   /-- proof this machine outputs `f` in at most `time_bound(input.length)` steps -/
@@ -485,6 +495,6 @@ noncomputable def PolyTimeComputable.comp {f g : List α → List α}
 
 end PolyTimeComputable
 
-end SingleTapeTM
+end MultiTapeTM
 
 end Turing

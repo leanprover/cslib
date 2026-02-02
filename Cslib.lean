@@ -27,6 +27,7 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Machines.SingleTapeTuring.Basic
+public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold

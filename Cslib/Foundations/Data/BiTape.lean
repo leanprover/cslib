@@ -133,6 +133,10 @@ lemma space_used_mk₁ {α} (l : List α) :
   | nil => simp [mk₁, space_used, nil, StackTape.length_nil]
   | cons h t => simp [mk₁, space_used, StackTape.length_nil, StackTape.length_map_some]; omega
 
+@[simp, grind =]
+lemma space_used_defaul {α} : (default : BiTape α).space_used = 1 := by
+  simp [space_used, nil, default]
+
 lemma space_used_move {α} (t : BiTape α) (d : Dir) :
     (t.move d).space_used ≤ t.space_used + 1 := by
   cases d <;> grind [move_left, move_right, move,
