@@ -153,6 +153,12 @@ lemma ext_toList {α} {s₁ s₂ : StackTape α} (h : s₁.toList = s₂.toList)
   subst h
   rfl
 
+lemma ext_iff {α} {s₁ s₂ : StackTape α} :
+    s₁ = s₂ ↔ s₁.toList = s₂.toList := by
+  cases s₁ with | mk l₁ h₁ =>
+  cases s₂ with | mk l₂ h₂ =>
+  simp
+
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
 def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
