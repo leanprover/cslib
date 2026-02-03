@@ -76,15 +76,23 @@ inductive Step : State → State → Prop where
       (hne : s.regs.read m ≠ s.regs.read n) :
       Step s ⟨s.pc + 1, s.regs⟩
 
-/-- ReductionSystem for URM execution, parameterized by program. -/
+/-- ReductionSystem for URM execution, parameterized by program.
+
+This integrates URM execution with CSLib's `ReductionSystem` infrastructure. -/
 def stepRs : ReductionSystem State := ⟨Step p⟩
 
-/-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
+/-- Multi-step execution: the reflexive-transitive closure of `Step`.
+
+This is equivalent to `(stepRs p).MRed` from the `ReductionSystem`. -/
 abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
 
-/-- Notation for single-step reduction: `s ⭢ᵉ s'` means `Step p s s'`. -/
+/-- Notation for single-step reduction: `s ⭢ᵉ s'` means `Step p s s'`.
+
+The program parameter is inferred from context. Aligned with CSLib's `ReductionSystem` notation. -/
 scoped notation3:39 s:39 " ⭢ᵉ " s':39 => Step _ s s'
-/-- Notation for multi-step reduction: `s ↠ᵉ s'` means `Steps p s s'`. -/
+/-- Notation for multi-step reduction: `s ↠ᵉ s'` means `Steps p s s'`.
+
+The program parameter is inferred from context. Aligned with CSLib's `ReductionSystem` notation. -/
 scoped notation3:39 s:39 " ↠ᵉ " s':39 => Steps _ s s'
 
 namespace Step
