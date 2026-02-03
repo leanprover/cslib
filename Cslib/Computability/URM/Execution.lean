@@ -9,6 +9,7 @@ public import Cslib.Computability.URM.Basic
 public import Mathlib.Logic.Relation
 public import Mathlib.Data.Part
 public import Mathlib.Data.Setoid.Basic
+public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 /-! # URM Execution Semantics
 
@@ -28,6 +29,10 @@ Standard computability theory notation:
 - `p ↓ inputs` — program `p` halts on inputs
 - `p ↑ inputs` — program `p` diverges on inputs
 - `p ↓ inputs ≫ result` — program `p` halts on inputs with result in R[0]
+
+Reduction system notation (aligned with CSLib's `ReductionSystem`):
+- `s ⭢ᵉ s'` — single-step execution (`Step p s s'`)
+- `s ↠ᵉ s'` — multi-step execution (`Steps p s s'`)
 
 ## Main statements
 
@@ -71,8 +76,16 @@ inductive Step : State → State → Prop where
       (hne : s.regs.read m ≠ s.regs.read n) :
       Step s ⟨s.pc + 1, s.regs⟩
 
+/-- ReductionSystem for URM execution, parameterized by program. -/
+def stepRs : ReductionSystem State := ⟨Step p⟩
+
 /-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
 abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
+
+/-- Notation for single-step reduction: `s ⭢ᵉ s'` means `Step p s s'`. -/
+scoped notation3:39 s:39 " ⭢ᵉ " s':39 => Step _ s s'
+/-- Notation for multi-step reduction: `s ↠ᵉ s'` means `Steps p s s'`. -/
+scoped notation3:39 s:39 " ↠ᵉ " s':39 => Steps _ s s'
 
 namespace Step
 
