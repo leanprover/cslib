@@ -104,7 +104,6 @@ structure Cfg : Type where
 deriving Inhabited
 
 /-- The step function corresponding to a `MultiTapeTM`. -/
-@[simp]
 def step : tm.Cfg → Option tm.Cfg
   | ⟨none, _⟩ =>
     -- If in the halting state, there is no next configuration
@@ -123,7 +122,7 @@ lemma step_iter_none_eq_none (tapes : Fin k → BiTape α) (n : ℕ) :
     (Option.bind · tm.step)^[n + 1] (some ⟨none, tapes⟩) = none := by
   rw [Function.iterate_succ_apply]
   induction n with
-  | zero => simp
+  | zero => simp [step]
   | succ n ih =>
     simp only [Function.iterate_succ_apply', ih]
     simp [step]
@@ -139,18 +138,22 @@ The initial configuration corresponding to a list in the input alphabet.
 Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` values.
 This is to ensure that distinct lists map to distinct initial configurations.
 -/
+@[simp, grind =]
 def initCfg (s : List α) : tm.Cfg :=
   ⟨some tm.q₀, first_tape s⟩
 
+@[simp, grind =]
 def initCfgTapes (tapes : Fin k → BiTape α) : tm.Cfg :=
   ⟨some tm.q₀, tapes⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
+@[simp, grind =]
 def haltCfg (s : List α) : tm.Cfg :=
   ⟨none, first_tape s⟩
 
+@[simp, grind =]
 def haltCfgTapes (tapes : Fin k → BiTape α) : tm.Cfg :=
   ⟨none, tapes⟩
 
