@@ -85,62 +85,21 @@ lemma ext_nth {α} {t₁ t₂ : BiTape α} (h_nth_eq : ∀ n, t₁.nth n = t₂.
   t₁ = t₂ := by
   cases t₁ with | mk head₁ left₁ right₁
   cases t₂ with | mk head₂ left₂ right₂
-  have h_head : head₁ = head₂ := by
+  simp only [mk.injEq]
+  refine ⟨?_, ?_, ?_⟩
+  · -- head₁ = head₂
     have := h_nth_eq 0
     simpa [nth] using this
-  have h_right : right₁ = right₂ := by
+  · -- left₁ = left₂
     apply StackTape.ext_toList
-    apply List.ext_get
-    · by_contra h_ne
-      rcases Nat.lt_trichotomy right₁.toList.length right₂.toList.length with hlt | _ | hgt
-      · have h := h_nth_eq (Int.ofNat (right₁.toList.length + 1))
-        simp [nth] at h
-        rw [List.getD_eq_getElem?_getD] at h
-        have : right₁.toList.length < right₁.toList.length := by
-          simp at h
-          omega
-        omega
-      · contradiction
-      · have h := h_nth_eq (Int.ofNat (right₂.toList.length + 1))
-        simp [nth] at h
-        rw [List.getD_eq_getElem?_getD] at h
-        have : right₂.toList.length < right₂.toList.length := by
-          simp at h
-          omega
-        omega
-    · intro n h₁ h₂
-      have h := h_nth_eq (Int.ofNat (n + 1))
-      simp [nth] at h
-      rw [List.getD_eq_getElem?_getD, List.getD_eq_getElem?_getD] at h
-      simp [h₁, h₂] at h
-      exact h
-  have h_left : left₁ = left₂ := by
+    intro n
+    have := h_nth_eq (Int.negSucc n)
+    simpa [nth] using this
+  · -- right₁ = right₂
     apply StackTape.ext_toList
-    apply List.ext_get
-    · by_contra h_ne
-      rcases Nat.lt_trichotomy left₁.toList.length left₂.toList.length with hlt | _ | hgt
-      · have h := h_nth_eq (Int.negSucc left₁.toList.length)
-        simp [nth] at h
-        rw [List.getD_eq_getElem?_getD] at h
-        have : left₁.toList.length < left₁.toList.length := by
-          simp at h
-          omega
-        omega
-      · contradiction
-      · have h := h_nth_eq (Int.negSucc left₂.toList.length)
-        simp [nth] at h
-        rw [List.getD_eq_getElem?_getD] at h
-        have : left₂.toList.length < left₂.toList.length := by
-          simp at h
-          omega
-        omega
-    · intro n h₁ h₂
-      have h := h_nth_eq (Int.negSucc n)
-      simp [nth] at h
-      rw [List.getD_eq_getElem?_getD, List.getD_eq_getElem?_getD] at h
-      simp [h₁, h₂] at h
-      exact h
-  rw [h_head, h_left, h_right]
+    intro n
+    have := h_nth_eq (Int.ofNat (n + 1))
+    simpa [nth] using this
 
 section Move
 
@@ -250,7 +209,6 @@ lemma move_int_nth {α} (t : BiTape α) (n p : ℤ) :
 lemma move_int_move_int {α} (t : BiTape α) (n₁ n₂ : ℤ) :
   (t.move_int n₁).move_int n₂ = t.move_int (n₁ + n₂) := by
   apply BiTape.ext_nth
-  intro i
   grind
 
 end Move
