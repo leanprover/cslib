@@ -84,18 +84,9 @@ theorem straight_line_IsStandardForm {p : Program} (hsl : p.IsStraightLine) :
 
 /-! ## Behavioral Equivalence
 
-Two programs are behaviorally equivalent if they halt on the same inputs
-and produce the same results. We prove that p and p.toStandardForm are
-behaviorally equivalent. -/
-
-/-! ### Behavioral Equivalence via Step Correspondence
-
-p and p.toStandardForm differ only for jumps with target q > p.length:
-- Original: jumps to q (halted since q ≥ p.length)
-- Standard form: jumps to min q p.length = p.length (also halted)
-- Both halt with the same state
-
-For all other cases, both programs step identically. -/
+`p` and `p.toStandardForm` are behaviorally equivalent: they halt on the same
+inputs with the same results. The key insight is that jumps with target `q > p.length`
+land in halted states in both programs. -/
 
 /-- Forward step correspondence: if p steps from s to s', then either:
     (1) p.toStandardForm steps from s to s' (same step), or

@@ -22,17 +22,6 @@ instructions, register state, programs, and machine configurations.
 - `URM.Program`: A finite sequence of instructions
 - `URM.State`: Machine state (program counter + registers)
 
-## File Organization
-
-The URM module is organized into the following files:
-
-- `Defs.lean`: Core type definitions (this file)
-- `Basic.lean`: Basic lemmas about instructions and programs
-- `Execution.lean`: Step/Steps/Halts/eval definitions
-- `StraightLine.lean`: Straight-line program execution theorems
-- `StandardForm.lean`: Standard form program execution theorems
-- `Computable.lean`: URM-computable functions
-
 ## References
 
 * [N.J. Cutland, *Computability: An Introduction to Recursive Function Theory*][Cutland1980]

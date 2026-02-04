@@ -38,10 +38,9 @@ Execution notation:
 - `s ⭢ᵉ s'` — single-step execution (`Step p s s'`)
 - `s ↠ᵉ s'` — multi-step execution (`Steps p s s'`)
 
-## Main statements
+## Main results
 
 - `Step.deterministic`: The step relation is deterministic
-- `Step.no_step_of_halted`: Halted configurations have no successor
 - `Step_confluent`: The step relation is confluent (from determinism)
 - `haltsWithResult_iff_eval`: `p ↓ inputs ≫ result ↔ eval p inputs = Part.some result`
 -/
