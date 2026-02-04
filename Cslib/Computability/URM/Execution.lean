@@ -286,19 +286,7 @@ theorem ProgramEquiv.equivalence : Equivalence ProgramEquiv where
   trans := fun h₁ h₂ inputs => (h₁ inputs).trans (h₂ inputs)
 
 /-- Setoid instance for programs, enabling the ≈ notation. -/
-instance : Setoid Program where
-  r := ProgramEquiv
-  iseqv := ProgramEquiv.equivalence
-
-/-- Equivalence is reflexive. -/
-theorem ProgramEquiv.refl (p : Program) : p ≈ p := Setoid.refl p
-
-/-- Equivalence is symmetric. -/
-theorem ProgramEquiv.symm {p q : Program} (h : p ≈ q) : q ≈ p := Setoid.symm h
-
-/-- Equivalence is transitive. -/
-theorem ProgramEquiv.trans {p q r : Program} (h₁ : p ≈ q) (h₂ : q ≈ r) : p ≈ r :=
-  Setoid.trans h₁ h₂
+instance : Setoid Program := Setoid.mk _ ProgramEquiv.equivalence
 
 end Cslib.URM
 
