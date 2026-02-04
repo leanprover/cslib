@@ -9,6 +9,7 @@ public import Cslib.Computability.URM.Basic
 public import Mathlib.Logic.Relation
 public import Mathlib.Data.Part
 public import Mathlib.Data.Setoid.Basic
+public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 /-! # URM Execution Semantics
 
@@ -75,17 +76,32 @@ inductive Step : State → State → Prop where
       (hne : s.regs.read m ≠ s.regs.read n) :
       Step s ⟨s.pc + 1, s.regs⟩
 
+-- TODO: Ideally we'd use `@[reduction_sys stepRs "ᵉ "]` here, but the attribute doesn't
+-- currently handle value parameters like `Program`. It works for implicit type parameters
+-- (as in FullBeta.lean) but not explicit value parameters from `variable (p : Program)`.
+/-- `ReductionSystem` wrapper for `Step`, following the pattern from `FullBeta.lean`.
+
+This enables use of the `ReductionSystem` API (confluence, normalization, etc.) for URM
+execution. Since `Step` is parameterized by `Program`, `stepRs` is a function from programs
+to reduction systems. -/
+def stepRs : ReductionSystem State := ⟨Step p⟩
+
 /-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
-abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
+abbrev Steps : State → State → Prop := (stepRs p).MRed
 
 /-- Notation for single-step reduction: `s ⭢ᵉ s'` means `Step p s s'`.
 
 The program parameter is inferred from context. -/
 scoped notation3:39 s:39 " ⭢ᵉ " s':39 => Step _ s s'
+
 /-- Notation for multi-step reduction: `s ↠ᵉ s'` means `Steps p s s'`.
 
 The program parameter is inferred from context. -/
 scoped notation3:39 s:39 " ↠ᵉ " s':39 => Steps _ s s'
+
+/-- API lemma showing equivalence between notation and `stepRs.Red`. -/
+@[scoped grind _=_]
+lemma stepRs_Red_eq {p : Program} {s s' : State} : (stepRs p).Red s s' ↔ Step p s s' := by rfl
 
 namespace Step
 
