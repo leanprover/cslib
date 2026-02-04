@@ -91,10 +91,8 @@ inductive Step : State → State → Prop where
       (hne : s.regs.read m ≠ s.regs.read n) :
       Step s ⟨s.pc + 1, s.regs⟩
 
--- TODO: Ideally we'd use `@[reduction_sys stepRs "ᵉ "]` here, but the attribute doesn't
--- currently handle value parameters like `Program`. It works for implicit type parameters
--- (as in FullBeta.lean) but not explicit value parameters from `variable (p : Program)`.
-/-- `ReductionSystem` wrapper for `Step`, following the pattern from `FullBeta.lean`.
+-- TODO: Use `@[reduction_sys stepRs "ᵉ "]` once it supports value parameters like `Program`.
+/-- `ReductionSystem` wrapper for `Step`.
 
 This enables use of the `ReductionSystem` API (confluence, normalization, etc.) for URM
 execution. Since `Step` is parameterized by `Program`, `stepRs` is a function from programs
