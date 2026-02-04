@@ -63,6 +63,20 @@ instance : Monad TimeM where
   pure := pure
   bind := bind
 
+instance : LawfulMonad TimeM := .mk'
+  (id_map := fun x => by rfl)
+  (pure_bind := by
+    intros
+    simp only [Bind.bind, Pure.pure]
+    rw [bind, pure]
+    simp)
+  (bind_assoc := by
+    intros
+    simp only [Bind.bind]
+    unfold bind
+    simp only [mk.injEq, true_and]
+    ac_rfl)
+
 /-- Creates a `TimeM` computation with a specified value and time cost.
 The time cost defaults to 1 if not provided. -/
 @[simp, grind =] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α := ⟨a, c⟩
