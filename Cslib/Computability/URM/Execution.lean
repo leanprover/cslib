@@ -89,12 +89,11 @@ variable {p : Program}
 
 /-- The step relation is deterministic: each state has at most one successor. -/
 theorem deterministic {s s' s'' : State} (h1 : Step p s s') (h2 : Step p s s'') : s' = s'' := by
-  cases h1 <;> cases h2 <;> grind
+  grind
 
 /-- A halted state has no successor in the step relation. -/
 theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬Step p s s' := by
-  intro hstep
-  cases hstep <;> grind [State.isHalted]
+  grind [State.isHalted]
 
 /-- A single step preserves registers not written to by the current instruction.
 
@@ -203,12 +202,7 @@ def Halts (inputs : List ℕ) : Prop :=
 /-- Halting is equivalent to normalizability in the reduction system. -/
 theorem halts_iff_normalizable {p : Program} {inputs : List ℕ} :
     Halts p inputs ↔ Relation.Normalizable (Step p) (State.init inputs) := by
-  simp only [Halts]
-  constructor
-  · intro ⟨s, hsteps, hhalted⟩
-    exact ⟨s, hsteps, isHalted_iff_normal.mp hhalted⟩
-  · intro ⟨s, hsteps, hnormal⟩
-    exact ⟨s, hsteps, isHalted_iff_normal.mpr hnormal⟩
+  grind [Halts, isHalted_iff_normal]
 
 /-- A program diverges on given inputs if it does not halt. -/
 def Diverges (inputs : List ℕ) : Prop := ¬Halts p inputs
