@@ -9,7 +9,6 @@ public import Cslib.Computability.URM.Basic
 public import Mathlib.Logic.Relation
 public import Mathlib.Data.Part
 public import Mathlib.Data.Setoid.Basic
-public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 /-! # URM Execution Semantics
 
@@ -30,7 +29,7 @@ Standard computability theory notation:
 - `p ↑ inputs` — program `p` diverges on inputs
 - `p ↓ inputs ≫ result` — program `p` halts on inputs with result in R[0]
 
-Reduction system notation (aligned with CSLib's `ReductionSystem`):
+Execution notation:
 - `s ⭢ᵉ s'` — single-step execution (`Step p s s'`)
 - `s ↠ᵉ s'` — multi-step execution (`Steps p s s'`)
 
@@ -76,23 +75,16 @@ inductive Step : State → State → Prop where
       (hne : s.regs.read m ≠ s.regs.read n) :
       Step s ⟨s.pc + 1, s.regs⟩
 
-/-- ReductionSystem for URM execution, parameterized by program.
-
-This integrates URM execution with CSLib's `ReductionSystem` infrastructure. -/
-def stepRs : ReductionSystem State := ⟨Step p⟩
-
-/-- Multi-step execution: the reflexive-transitive closure of `Step`.
-
-This is equivalent to `(stepRs p).MRed` from the `ReductionSystem`. -/
+/-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
 abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
 
 /-- Notation for single-step reduction: `s ⭢ᵉ s'` means `Step p s s'`.
 
-The program parameter is inferred from context. Aligned with CSLib's `ReductionSystem` notation. -/
+The program parameter is inferred from context. -/
 scoped notation3:39 s:39 " ⭢ᵉ " s':39 => Step _ s s'
 /-- Notation for multi-step reduction: `s ↠ᵉ s'` means `Steps p s s'`.
 
-The program parameter is inferred from context. Aligned with CSLib's `ReductionSystem` notation. -/
+The program parameter is inferred from context. -/
 scoped notation3:39 s:39 " ↠ᵉ " s':39 => Steps _ s s'
 
 namespace Step
@@ -160,31 +152,22 @@ initial state must be prefixes of each other (or identical if both terminate). -
 theorem eq_of_halts {init s₁ s₂ : State}
     (h1 : Steps p init s₁) (hh1 : s₁.isHalted p)
     (h2 : Steps p init s₂) (hh2 : s₂.isHalted p) : s₁ = s₂ := by
-  induction h1 using Relation.ReflTransGen.head_induction_on with
+  induction h1 using Relation.ReflTransGen.head_induction_on generalizing s₂ with
   | refl =>
-    -- s₁ = init, so init is halted
-    -- By no_step_of_halted, init cannot step, so h2 must also be refl
     cases h2 using Relation.ReflTransGen.head_induction_on with
     | refl => rfl
     | head hstep _ => exact absurd hstep (Step.no_step_of_halted hh1)
   | head hstep_s hrest ih =>
-    -- init → s → ... → s₁, where hstep_s : Step p init s
-    -- init is not halted (it can step)
     cases h2 using Relation.ReflTransGen.head_induction_on with
-    | refl =>
-      -- s₂ = init is halted, but init can step - contradiction
-      exact absurd hstep_s (Step.no_step_of_halted hh2)
+    | refl => exact absurd hstep_s (Step.no_step_of_halted hh2)
     | head hstep_s' hrest' =>
-      -- init → s' → ... → s₂
-      -- By determinism, s = s'
-      have heq : _ = _ := Step.deterministic hstep_s hstep_s'
+      have heq := Step.deterministic hstep_s hstep_s'
       subst heq
-      exact ih hrest'
+      exact ih hrest' hh2
 
 end Steps
 
-/-- A program halts on given inputs if there exists a halted state reachable from
-the initial state. -/
+/-- A program halts on given inputs if execution reaches a halted state. -/
 def Halts (inputs : List ℕ) : Prop :=
   ∃ s, Steps p (State.init inputs) s ∧ s.isHalted p
 
