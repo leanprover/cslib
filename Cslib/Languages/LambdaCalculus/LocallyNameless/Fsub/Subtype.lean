@@ -55,13 +55,13 @@ variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 @[grind →]
 lemma wf (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.Wf Γ ∧ σ'.Wf Γ := by
   induction sub with
-  | all => grind [Wf.all (free_union Var), Wf.narrow_cons, cases Env.Wf, cases LC]
+  | all => grind [Wf.all (free_union Var), Wf.narrow_cons]
   | _ => grind
 
 /-- Subtypes are reflexive when well-formed. -/
 lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
   induction wf_σ with
-  | all => grind [all (free_union [Context.dom] Var)]
+  | all => grind [all (free_union [Context.dom] Var), Env.Wf.sub, Env.Wf.ty]
   | _ => grind
 
 /-- Weakening of subtypes. -/
@@ -70,7 +70,7 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   induction sub generalizing Γ
   case all =>
     subst eq
-    apply all (free_union [Context.dom] Var) <;> grind
+    apply all (free_union [Context.dom] Var) <;> grind [Env.Wf.sub, Env.Wf.ty]
   all_goals grind [Ty.Wf.weaken, <= sublist_dlookup]
 
 lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ σ' := by
@@ -109,7 +109,7 @@ lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
   case top => cases sub₁ <;> cases sub₂ <;> grind
   case var X =>
     generalize eq : fvar X = γ at sub₁
-    induction sub₁ <;> grind [cases Sub]
+    induction sub₁ <;> grind
   case arrow σ' τ' _ _ _ _ =>
     generalize eq : σ'.arrow τ' = γ at sub₁
     induction sub₁ <;> grind [cases Sub]
