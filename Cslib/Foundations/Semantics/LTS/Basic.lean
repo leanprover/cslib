@@ -221,11 +221,9 @@ theorem LTS.IsExecution.split
     (he : lts.IsExecution s μs t ss) (n : ℕ) (hn : n ≤ μs.length) :
     lts.IsExecution s (μs.take n) (ss[n]'(by grind)) (ss.take (n + 1)) ∧
     lts.IsExecution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
-  split_ands
-  · grind
-  · use by grind, by grind, ?_, by grind
-    simp [List.getElem_drop, show n + (ss.length - n - 1) = ss.length - 1 by grind]
-    grind
+  have : n + (ss.length - n - 1) = ss.length - 1 := by grind
+  simp [IsExecution]
+  grind
 
 /-- A multistep transition over a concatenation can be split into two multistep transitions. -/
 theorem LTS.MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}

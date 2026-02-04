@@ -38,18 +38,8 @@ def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.iseqv.symm := by grind
   eq.iseqv.trans := by grind
   right_cov.elim := by
-    rintro u v w h_eq s t
-    split_ands <;> constructor <;> intro h
-    · obtain ⟨r, h1, _⟩ := LTS.pairLang_split h
-      grind [<= LTS.pairLang_append, h_eq.left.mp h1]
-    · obtain ⟨r, h1, _⟩ := LTS.pairLang_split h
-      grind [<= LTS.pairLang_append, h_eq.left.mpr h1]
-    · obtain ⟨r, ⟨h1, _⟩ | ⟨h1, _⟩⟩ := LTS.pairViaLang_split h
-      · grind [<= LTS.pairViaLang_append_pairLang, h_eq.right.mp h1]
-      · grind [<= LTS.pairLang_append_pairViaLang, h_eq.left.mp h1]
-    · obtain ⟨r, ⟨h1, _⟩ | ⟨h1, _⟩⟩ := LTS.pairViaLang_split h
-      · grind [<= LTS.pairViaLang_append_pairLang, h_eq.right.mpr h1]
-      · grind [<= LTS.pairLang_append_pairViaLang, h_eq.left.mpr h1]
+    grind [Covariant, → LTS.pairLang_split, <= LTS.pairLang_append, → LTS.pairViaLang_split,
+      <= LTS.pairViaLang_append_pairLang, <= LTS.pairLang_append_pairViaLang]
 
 open scoped Classical in
 /-- `BuchiCongrParam` is a parameterization of the equivalence classes of `na.BuchiCongruence`

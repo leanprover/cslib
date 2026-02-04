@@ -25,8 +25,8 @@ namespace Cslib
 /-- A right congruence is an equivalence relation on finite sequences (represented by lists)
 that is preserved by concatenation on the right.  The equivalence relation is represented
 by a setoid to to enable ready access to the quotient construction. -/
-class RightCongruence (α : Type*) extends
-  eq : Setoid (List α) , right_cov : CovariantClass _ _ (fun x y => y ++ x) eq
+class RightCongruence (α : Type*) extends eq : Setoid (List α) where
+  right_cov : CovariantClass _ _ (fun x y => y ++ x) eq
 
 namespace RightCongruence
 
