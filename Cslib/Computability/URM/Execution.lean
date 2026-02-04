@@ -23,8 +23,8 @@ Single-step and multi-step execution semantics for URMs.
 - `URM.HaltsWithResult`: A program halts on given inputs with a specific result
 
 Bridge lemmas:
-- `isHalted_iff_normal`: `s.isHalted p ↔ (Step p).Normal s`
-- `halts_iff_normalizable`: `Halts p inputs ↔ (Step p).Normalizable (State.init inputs)`
+- `isHalted_iff_normal`: `s.isHalted p ↔ Relation.Normal (Step p) s`
+- `halts_iff_normalizable`: `Halts p inputs ↔ Relation.Normalizable (Step p) (State.init inputs)`
 - `Step_confluent`: The step relation is confluent (follows from determinism)
 
 ## Notation (scoped to `URM` namespace)
@@ -33,10 +33,6 @@ Standard computability theory notation:
 - `p ↓ inputs` — program `p` halts on inputs
 - `p ↑ inputs` — program `p` diverges on inputs
 - `p ↓ inputs ≫ result` — program `p` halts on inputs with result in R[0]
-
-Execution notation:
-- `s ⭢ᵉ s'` — single-step execution (`Step p s s'`)
-- `s ↠ᵉ s'` — multi-step execution (`Steps p s s'`)
 
 ## Main results
 
