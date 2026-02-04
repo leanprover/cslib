@@ -128,11 +128,26 @@ theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
 theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
   List.TFAE.out confluent_equivalents 2 1
 
+theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
+  intro a b c hab hac
+  exact ⟨x, h b, h c⟩
+
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 
 /-- An element is normal if it is not reducible. -/
 abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
+
+theorem Normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ r x y := by
+  rw [Normal, not_exists]
+
+/-- An element is normalizable if it is related to a normal element. -/
+abbrev Normalizable (r : α → α → Prop) (x : α) : Prop :=
+  ∃ n, ReflTransGen r x n ∧ Normal r n
+
+/-- A relation is normalizing when every element is normalizable. -/
+abbrev Normalizing (r : α → α → Prop) : Prop :=
+  ∀ x, Normalizable r x
 
 /-- A multi-step from a normal form must be reflexive. -/
 @[grind =>]
@@ -185,6 +200,60 @@ theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := b
 
 theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r :=
   ⟨ofTransGen, toTransGen⟩
+
+theorem Terminating.subrelation {r' : α → α → Prop} (hr : Terminating r) (h : Subrelation r' r) :
+    Terminating r' := by
+  rw [Terminating, wellFounded_iff_isEmpty_descending_chain] at hr ⊢
+  rw [isEmpty_subtype]
+  intro f hf
+  exact hr.elim ⟨f, fun n ↦ by exact h (hf n)⟩
+
+theorem Terminating.isNormalizing (h : Terminating r) : Normalizing r := by
+  unfold Terminating at h
+  intro t
+  apply WellFounded.induction h t
+  intro a ih
+  by_cases ha : Reducible r a
+  · obtain ⟨b, hab⟩ := ha
+    obtain ⟨n, hbn, hn⟩ := ih b hab
+    exact ⟨n, ReflTransGen.head hab hbn, hn⟩
+  · use a
+
+theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
+    Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
+  have hn : Normalizing r := ht.isNormalizing
+  constructor
+  · intro hc a
+    apply existsUnique_of_exists_of_unique (hn a)
+    rintro n₁ n₂ ⟨hr₁, hn₁⟩ ⟨hr₂, hn₂⟩
+    have hj : Join (ReflTransGen r) n₁ n₂ := hc hr₁ hr₂
+    obtain ⟨m, h₁, h₂⟩ := hj
+    rw [Normal.reflTransGen_eq hn₁ h₁, Normal.reflTransGen_eq hn₂ h₂]
+  · intro h a b c hab hac
+    obtain ⟨na, ⟨han, hnnor⟩, H⟩ := h a
+    use na
+    obtain ⟨nb, hbnb, hnb⟩ := hn b
+    obtain ⟨nc, hcnc, hnc⟩ := hn c
+    have hanb : (ReflTransGen r) a nb := ReflTransGen.trans hab hbnb
+    have hanc : (ReflTransGen r) a nc := ReflTransGen.trans hac hcnc
+    have hnanb : nb = na := H nb ⟨hanb, hnb⟩
+    have hnanc : nc = na := H nc ⟨hanc, hnc⟩
+    rw [hnanb] at hbnb
+    rw [hnanc] at hcnc
+    exact ⟨hbnb, hcnc⟩
+
+/-- A relation is convergent when it is both confluent and terminating. -/
+abbrev Convergent (r : α → α → Prop) := Confluent r ∧ Terminating r
+
+theorem Convergent.isTerminating (h : Convergent r) : Terminating r := h.right
+
+theorem Convergent.isConfluent (h : Convergent r) : Confluent r := h.left
+
+theorem Convergent.isNormalizing (h : Convergent r) : Normalizing r := h.isTerminating.isNormalizing
+
+theorem Convergent.unique_Normal (h : Convergent r) :
+    ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n :=
+  h.isTerminating.isConfluent_iff_all_unique_Normal.mp h.isConfluent
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=

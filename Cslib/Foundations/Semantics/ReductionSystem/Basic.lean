@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Thomas Waring
+Authors: Fabrizio Montesi, Thomas Waring, Iván Renison
 -/
 
 module
@@ -29,6 +29,7 @@ structure ReductionSystem (Term : Type u) where
   /-- The reduction relation. -/
   Red : Term → Term → Prop
 
+namespace ReductionSystem
 
 variable {Term : Type u} (rs : ReductionSystem Term)
 
@@ -37,32 +38,31 @@ section MultiStep
 /-! ## Multi-step reductions -/
 
 /-- Multi-step reduction relation. -/
-abbrev ReductionSystem.MRed :=
-  Relation.ReflTransGen rs.Red
+abbrev MRed := Relation.ReflTransGen rs.Red
 
 /-- All multi-step reduction relations are reflexive. -/
 @[refl]
-theorem ReductionSystem.MRed.refl (t : Term) : rs.MRed t t :=
+theorem MRed.refl (t : Term) : rs.MRed t t :=
   Relation.ReflTransGen.refl
 
 /-- Any reduction is a multi-step -/
-theorem ReductionSystem.MRed.single {a b : Term} (h : rs.Red a b) : rs.MRed a b :=
+theorem MRed.single {a b : Term} (h : rs.Red a b) : rs.MRed a b :=
   Relation.ReflTransGen.single h
 
-theorem ReductionSystem.MRed.step {a b c : Term} (hab : rs.MRed a b) (hbc : rs.Red b c) :
+theorem MRed.step {a b c : Term} (hab : rs.MRed a b) (hbc : rs.Red b c) :
     rs.MRed a c :=
   Relation.ReflTransGen.tail hab hbc
 
-theorem ReductionSystem.MRed.trans {a b c : Term} (hab : rs.MRed a b) (hbc : rs.MRed b c) :
+theorem MRed.trans {a b c : Term} (hab : rs.MRed a b) (hbc : rs.MRed b c) :
     rs.MRed a c :=
   Relation.ReflTransGen.trans hab hbc
 
-theorem ReductionSystem.MRed.cases_iff {a b : Term} :
+theorem MRed.cases_iff {a b : Term} :
     rs.MRed a b ↔ b = a ∨ ∃ c : Term, rs.MRed a c ∧ rs.Red c b :=
   Relation.ReflTransGen.cases_tail_iff rs.Red a b
 
 @[induction_eliminator]
-theorem ReductionSystem.MRed.induction_on {motive : ∀ {x y}, rs.MRed x y → Prop}
+theorem MRed.induction_on {motive : ∀ {x y}, rs.MRed x y → Prop}
     (refl : ∀ t : Term, motive (MRed.refl rs t))
     (step : ∀ (a b c : Term) (hab : rs.MRed a b) (hbc : rs.Red b c), motive hab →
       motive (MRed.step rs hab hbc))
@@ -75,36 +75,35 @@ end MultiStep
 section Reverse
 
 /-- Reverse reduction relation -/
-def ReductionSystem.RRed : Term → Term → Prop :=
-  Function.swap rs.Red
+def RRed : Term → Term → Prop := Function.swap rs.Red
 
-theorem ReductionSystem.RRed.single {a b : Term} (h : rs.Red a b) : rs.RRed b a := h
+theorem RRed.single {a b : Term} (h : rs.Red a b) : rs.RRed b a := h
 
 end Reverse
 
 section Equivalence
 
 /-- Equivalence closure relation -/
-def ReductionSystem.Eqv : Term → Term → Prop := Relation.EqvGen rs.Red
+def Eqv : Term → Term → Prop := Relation.EqvGen rs.Red
 
-theorem ReductionSystem.Eqv.refl (t : Term) : rs.Eqv t t :=
+theorem Eqv.refl (t : Term) : rs.Eqv t t :=
   Relation.EqvGen.refl t
 
-theorem ReductionSystem.Eqv.single {a b : Term} (h : rs.Red a b) : rs.Eqv a b :=
+theorem Eqv.single {a b : Term} (h : rs.Red a b) : rs.Eqv a b :=
   Relation.EqvGen.rel a b h
 
-theorem ReductionSystem.Eqv.symm {a b : Term} (h : rs.Eqv a b) : rs.Eqv b a :=
+theorem Eqv.symm {a b : Term} (h : rs.Eqv a b) : rs.Eqv b a :=
   Relation.EqvGen.symm a b h
 
-theorem ReductionSystem.Eqv.trans {a b c : Term} (h₁ : rs.Eqv a b) (h₂ : rs.Eqv b c) :
+theorem Eqv.trans {a b c : Term} (h₁ : rs.Eqv a b) (h₂ : rs.Eqv b c) :
     rs.Eqv a c :=
   Relation.EqvGen.trans a b c h₁ h₂
 
-theorem ReductionSystem.Eqv.ofMRed {a b : Term} (h : rs.MRed a b) : rs.Eqv a b :=
+theorem Eqv.ofMRed {a b : Term} (h : rs.MRed a b) : rs.Eqv a b :=
   Relation.ReflTransGen.to_eqvGen h
 
 @[induction_eliminator]
-theorem ReductionSystem.Eqv.induction_on {motive : ∀ {x y}, rs.Eqv x y → Prop}
+theorem Eqv.induction_on {motive : ∀ {x y}, rs.Eqv x y → Prop}
     (rel : ∀ (a b : Term) (hab : rs.Red a b), motive (Eqv.single rs hab))
     (refl : ∀ t : Term, motive (Eqv.refl rs t))
     (symm : ∀ (a b : Term) (hab : rs.Eqv a b), motive hab → motive (Eqv.symm rs hab))
@@ -118,85 +117,165 @@ end Equivalence
 section Join
 
 /-- Join relation -/
-def ReductionSystem.Join : Term → Term → Prop :=
-  Relation.Join rs.Red
+def Join : Term → Term → Prop := Relation.Join rs.Red
 
-theorem ReductionSystem.Join_def {a b : Term} :
+theorem Join_def {a b : Term} :
     rs.Join a b ↔ ∃ c : Term, rs.Red a c ∧ rs.Red b c := by rfl
 
-theorem ReductionSystem.Join.symm : Symmetric rs.Join := Relation.symmetric_join
+theorem Join.symm : Symmetric rs.Join := Relation.symmetric_join
 
 end Join
 
 section MJoin
 
 /-- Multi-step join relation -/
-def ReductionSystem.MJoin : Term → Term → Prop :=
-  Relation.Join rs.MRed
+def MJoin : Term → Term → Prop := Relation.Join rs.MRed
 
-theorem ReductionSystem.MJoin_def {a b : Term} :
+theorem MJoin_def {a b : Term} :
     rs.MJoin a b ↔ ∃ c : Term, rs.MRed a c ∧ rs.MRed b c := by rfl
 
-theorem ReductionSystem.MJoin.refl (t : Term) : rs.MJoin t t := by
+theorem MJoin.refl (t : Term) : rs.MJoin t t := by
   use t
 
-theorem ReductionSystem.MJoin.symm : Symmetric rs.MJoin := Relation.symmetric_join
+theorem MJoin.symm : Symmetric rs.MJoin := Relation.symmetric_join
 
 end MJoin
 
+section Diamond
+
 /-- A reduction system has the diamond property when all one-step reduction pairs with a common
 origin are joinable -/
-def ReductionSystem.Diamond : Prop :=
-  Relation.Diamond rs.Red
+def Diamond : Prop := Relation.Diamond rs.Red
 
-theorem ReductionSystem.isDiamond_def : rs.Diamond ↔
+theorem isDiamond_def : rs.Diamond ↔
     ∀ {a b c : Term}, rs.Red a b → rs.Red a c → rs.Join b c :=
   Iff.rfl
 
+end Diamond
+
+section Confluence
+
 /-- A reduction system is confluent when all multi-step reduction pairs with a common origin are
 multi-step joinable -/
-def ReductionSystem.Confluent : Prop :=
-  Relation.Confluent rs.Red
+def Confluent : Prop := Relation.Confluent rs.Red
 
-theorem ReductionSystem.Confluent_def : rs.Confluent ↔
+theorem Confluent_def : rs.Confluent ↔
     ∀ {a b c : Term}, rs.MRed a b → rs.MRed a c → rs.MJoin b c :=
   Iff.rfl
 
+theorem isConfluent_of_unique_end (t : Term) (h : ∀ a : Term, rs.MRed a t) : rs.Confluent :=
+  Relation.Confluent_of_unique_end h
+
+end Confluence
+
+section ChurchRosser
+
 /-- A reduction system is Church-Rosser when all equivalent terms are multi-step joinable -/
-def ReductionSystem.ChurchRosser : Prop := Relation.ChurchRosser rs.Red
+def ChurchRosser : Prop := Relation.ChurchRosser rs.Red
+
+theorem ChurchRosser_def :
+    rs.ChurchRosser ↔ ∀ {a b : Term}, rs.Eqv a b → rs.MJoin a b :=
+  Iff.rfl
+
+theorem isConfluent_iff_isChurchRosser : rs.Confluent ↔ rs.ChurchRosser :=
+  Relation.Confluent_iff_ChurchRosser
+
+end ChurchRosser
+
+section Reducibility
 
 /-- A term is reducible when there exists a one-step reduction from it. -/
-def ReductionSystem.Reducible (t : Term) : Prop := Relation.Reducible rs.Red t
+def Reducible (t : Term) : Prop := Relation.Reducible rs.Red t
+
+theorem Reducible_def (t : Term) :
+    rs.Reducible t ↔ ∃ t' : Term, rs.Red t t' := by
+  rfl
+
+end Reducibility
+
+section Normalization
 
 /-- A term is in normal form when it is not reducible. -/
-def ReductionSystem.Normal (t : Term) : Prop := ¬ rs.Reducible t
+def Normal (t : Term) : Prop := Relation.Normal rs.Red t
 
-/-- A reduction system is normalizing when every term reduces to at least one normal form. -/
-def ReductionSystem.Normalizing : Prop :=
-  ∀ t : Term, ∃ n : Term, rs.MRed t n ∧ rs.Normal n
+theorem Normal_def (t : Term) : rs.Normal t ↔ ¬ rs.Reducible t := Iff.rfl
+
+theorem Normal_iff (t : Term) : rs.Normal t ↔ ∀ t' : Term, ¬ rs.Red t t' :=
+  Relation.Normal_iff rs.Red t
+
+theorem Normal.MRed_eq {rs : ReductionSystem Term} {a b : Term} (ha : rs.Normal a)
+    (hab : rs.MRed a b) : a = b :=
+  Relation.Normal.reflTransGen_eq ha hab
+
+/-- A term is normalizable when it reduces to at least one normal form. -/
+def Normalizable (t : Term) : Prop := Relation.Normalizable rs.Red t
+
+theorem Normalizable_def (t : Term) : rs.Normalizable t ↔ ∃ n : Term, rs.MRed t n ∧ rs.Normal n :=
+  Iff.rfl
+
+/-- A reduction system is normalizing when every term is Normalizable. -/
+def Normalizing : Prop := Relation.Normalizing rs.Red
+
+theorem Normalizing_def : rs.Normalizing ↔ ∀ t : Term, rs.Normalizable t :=
+  Iff.rfl
+
+end Normalization
+
+section Termination
 
 /-- A reduction system is terminating when there are no infinite sequences of one-step reductions.
 -/
-def ReductionSystem.Terminating : Prop := Relation.Terminating rs.Red
+def Terminating : Prop := Relation.Terminating rs.Red
 
-theorem ReductionSystem.isConfluent_iff_isChurchRosser : rs.Confluent ↔ rs.ChurchRosser :=
-  Relation.Confluent_iff_ChurchRosser
+theorem Terminating_def :
+    rs.Terminating ↔ ¬ ∃ f : ℕ → Term, ∀ n : ℕ, rs.Red (f n) (f (n + 1)) := by
+  unfold Terminating Relation.Terminating
+  rw [wellFounded_iff_isEmpty_descending_chain, not_exists, isEmpty_subtype]
 
-theorem ReductionSystem.isTerminating_iff_WellFounded : rs.Terminating ↔ WellFounded rs.RRed := by
+theorem isTerminating_iff_WellFounded : rs.Terminating ↔ WellFounded rs.RRed := by
   rfl
 
-theorem ReductionSystem.isNormalizing_of_isTerminating (h : rs.Terminating) :
-    rs.Normalizing := by
-  rw [isTerminating_iff_WellFounded] at h
-  intro t
-  apply WellFounded.induction h t
-  intro a ih
-  by_cases ha : rs.Reducible a
-  · obtain ⟨b, hab⟩ := ha
-    obtain ⟨n, hbn, hn⟩ := ih b hab
-    exact ⟨n, MRed.trans rs (MRed.single rs hab) hbn, hn⟩
-  · unfold Normal
-    use a
+theorem isTerminating_of_WellFounded {r : Term → Term → Prop} (hr : WellFounded r)
+    (h : Subrelation rs.RRed r) : rs.Terminating :=
+  Relation.Terminating.subrelation hr h
+
+theorem isTerminating_of_WellFoundedLT [LT Term] [hw : WellFoundedLT Term]
+    (h : Subrelation rs.RRed LT.lt) : rs.Terminating :=
+  rs.isTerminating_of_WellFounded hw.wf h
+
+variable {rs : ReductionSystem Term}
+
+theorem Terminating.isNormalizing (h : rs.Terminating) : rs.Normalizing :=
+  Relation.Terminating.isNormalizing h
+
+theorem Terminating.isConfluent_iff_all_unique_Normal (ht : rs.Terminating) :
+    rs.Confluent ↔ ∀ a : Term, ∃! n : Term, rs.MRed a n ∧ rs.Normal n :=
+  Relation.Terminating.isConfluent_iff_all_unique_Normal ht
+
+end Termination
+
+section Convergence
+
+/-- A reduction system is convergent when it is both confluent and terminating. -/
+def Convergent : Prop := Relation.Convergent rs.Red
+
+theorem Convergent_def : rs.Convergent ↔ rs.Confluent ∧ rs.Terminating := Iff.rfl
+
+variable {rs : ReductionSystem Term}
+
+theorem Convergent.isTerminating (h : rs.Convergent) : rs.Terminating := h.right
+
+theorem Convergent.isConfluent (h : rs.Convergent) : rs.Confluent := h.left
+
+theorem Convergent.isNormalizing (h : rs.Convergent) : rs.Normalizing :=
+  h.isTerminating.isNormalizing
+
+theorem Convergent.unique_Normal (h : rs.Convergent) (a : Term) :
+    ∃! n : Term, rs.MRed a n ∧ rs.Normal n := Relation.Convergent.unique_Normal h a
+
+end Convergence
+
+end ReductionSystem
 
 open Lean Elab Meta Command Term
 
