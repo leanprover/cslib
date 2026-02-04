@@ -6,36 +6,26 @@ Authors: Jesse Alama
 module
 
 public import Cslib.Computability.URM.Basic
-public import Mathlib.Logic.Relation
+public import Cslib.Foundations.Data.Relation
 public import Mathlib.Data.Part
 public import Mathlib.Data.Setoid.Basic
-public import Cslib.Foundations.Semantics.ReductionSystem.Basic
 
 /-! # URM Execution Semantics
 
-Single-step and multi-step execution semantics for URMs, integrated with the
-`ReductionSystem` framework.
+Single-step and multi-step execution semantics for URMs.
 
 ## Main definitions
 
 - `URM.Step`: Single-step execution relation
-- `URM.stepRs`: `ReductionSystem` wrapper for `Step`, enabling reuse of reduction system theory
-- `URM.Steps`: Multi-step execution via `stepRs.MRed` (reflexive-transitive closure)
+- `URM.Steps`: Multi-step execution (reflexive-transitive closure of `Step`)
 - `URM.Halts`: A program halts on given inputs
 - `URM.Diverges`: A program diverges on given inputs
 - `URM.HaltsWithResult`: A program halts on given inputs with a specific result
 
-## ReductionSystem Integration
-
-The `stepRs` wrapper connects URM execution to the general theory of reduction systems:
-- `State.isHalted` corresponds to `ReductionSystem.Normal` (no successor states)
-- `Halts` corresponds to `ReductionSystem.Normalizable` (reaches a normal form)
-- `Step.deterministic` gives us `ReductionSystem.Diamond`, hence `Confluent`
-
 Bridge lemmas:
-- `isHalted_iff_normal`: `s.isHalted p ↔ (stepRs p).Normal s`
-- `halts_iff_normalizable`: `Halts p inputs ↔ (stepRs p).Normalizable (State.init inputs)`
-- `stepRs_confluent`: The step relation is confluent (follows from determinism)
+- `isHalted_iff_normal`: `s.isHalted p ↔ (Step p).Normal s`
+- `halts_iff_normalizable`: `Halts p inputs ↔ (Step p).Normalizable (State.init inputs)`
+- `Step_confluent`: The step relation is confluent (follows from determinism)
 
 ## Notation (scoped to `URM` namespace)
 
@@ -52,7 +42,7 @@ Execution notation:
 
 - `Step.deterministic`: The step relation is deterministic
 - `Step.no_step_of_halted`: Halted configurations have no successor
-- `stepRs_confluent`: The step relation is confluent (from determinism)
+- `Step_confluent`: The step relation is confluent (from determinism)
 - `haltsWithResult_iff_eval`: `p ↓ inputs ≫ result ↔ eval p inputs = Part.some result`
 -/
 
@@ -91,32 +81,8 @@ inductive Step : State → State → Prop where
       (hne : s.regs.read m ≠ s.regs.read n) :
       Step s ⟨s.pc + 1, s.regs⟩
 
--- TODO: Ideally we'd use `@[reduction_sys stepRs "ᵉ "]` here, but the attribute doesn't
--- currently handle value parameters like `Program`. It works for implicit type parameters
--- (as in FullBeta.lean) but not explicit value parameters from `variable (p : Program)`.
-/-- `ReductionSystem` wrapper for `Step`, following the pattern from `FullBeta.lean`.
-
-This enables use of the `ReductionSystem` API (confluence, normalization, etc.) for URM
-execution. Since `Step` is parameterized by `Program`, `stepRs` is a function from programs
-to reduction systems. -/
-def stepRs : ReductionSystem State := ⟨Step p⟩
-
 /-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
-abbrev Steps : State → State → Prop := (stepRs p).MRed
-
-/-- Notation for single-step reduction: `s ⭢ᵉ s'` means `Step p s s'`.
-
-The program parameter is inferred from context. -/
-scoped notation3:39 s:39 " ⭢ᵉ " s':39 => Step _ s s'
-
-/-- Notation for multi-step reduction: `s ↠ᵉ s'` means `Steps p s s'`.
-
-The program parameter is inferred from context. -/
-scoped notation3:39 s:39 " ↠ᵉ " s':39 => Steps _ s s'
-
-/-- API lemma showing equivalence between notation and `stepRs.Red`. -/
-@[scoped grind _=_]
-lemma stepRs_Red_eq {p : Program} {s s' : State} : (stepRs p).Red s s' ↔ Step p s s' := by rfl
+abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
 
 namespace Step
 
@@ -148,11 +114,11 @@ theorem preserves_register {s s' : State} {r : ℕ}
 
 end Step
 
-/-! ### ReductionSystem Properties -/
+/-! ### Step Properties -/
 
 /-- A state is halted iff it is normal (has no successor) in the reduction system. -/
 theorem isHalted_iff_normal {p : Program} {s : State} :
-    s.isHalted p ↔ (stepRs p).Normal s := by
+    s.isHalted p ↔ Relation.Normal (Step p) s := by
   constructor
   · intro hhalted ⟨s', hstep⟩
     exact Step.no_step_of_halted hhalted hstep
@@ -178,7 +144,7 @@ For a deterministic relation, any two execution paths from the same state must f
 the same sequence of steps, so if both reach some state, they reach the same state.
 We prove this directly rather than via Diamond since Diamond requires the relation
 to always have successors. -/
-theorem stepRs_confluent (p : Program) : (stepRs p).Confluent := by
+theorem Step_confluent (p : Program) : Relation.Confluent (Step p) := by
   intro init s₁ s₂ h1 h2
   -- Two multi-step reductions from init must follow the same path due to determinism
   induction h1 using Relation.ReflTransGen.head_induction_on generalizing s₂ with
@@ -203,65 +169,42 @@ namespace Steps
 
 variable {p : Program}
 
-/-- Steps compose transitively (via `ReductionSystem.MRed.trans`). -/
-theorem trans {s₁ s₂ s₃ : State} (h1 : Steps p s₁ s₂) (h2 : Steps p s₂ s₃) : Steps p s₁ s₃ :=
-  ReductionSystem.MRed.trans (stepRs p) h1 h2
-
-/-- One step implies multi-step (via `ReductionSystem.MRed.single`). -/
-theorem single {s s' : State} (h : Step p s s') : Steps p s s' :=
-  ReductionSystem.MRed.single (stepRs p) h
-
-/-- Zero steps: reflexivity (via `ReductionSystem.MRed.refl`). -/
-theorem refl (s : State) : Steps p s s :=
-  ReductionSystem.MRed.refl (stepRs p) s
-
-/-- Append a single step to a multi-step sequence (via `ReductionSystem.MRed.step`). -/
-theorem step {s₁ s₂ s₃ : State} (h1 : Steps p s₁ s₂) (h2 : Step p s₂ s₃) : Steps p s₁ s₃ :=
-  ReductionSystem.MRed.step (stepRs p) h1 h2
-
 /-- Multi-step execution preserves registers not written by any executed instruction. -/
 theorem preserves_register {s s' : State} {r : ℕ}
     (hsteps : Steps p s s')
     (hr : ∀ instr, instr ∈ p → instr.writesTo ≠ some r) :
     s'.regs.read r = s.regs.read r := by
-  induction hsteps using ReductionSystem.MRed.induction_on with
+  induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl => rfl
-  | step a b c hab hbc ih =>
-    -- hab : a ↠ b, hbc : b ⭢ c, ih : b.regs.read r = a.regs.read r
-    -- goal: c.regs.read r = a.regs.read r
-    have hbc_pres := Step.preserves_register hbc fun instr hinstr =>
-      hr instr (List.mem_of_getElem? hinstr)
-    rw [hbc_pres, ih]
+  | head => grind [Step.preserves_register]
 
 /-- If two halted states are reachable from the same start, they are equal.
 
-This follows from confluence: since `stepRs p` is confluent and both `s₁` and `s₂`
+This follows from confluence: since `Step p` is confluent and both `s₁` and `s₂`
 are normal forms reachable from `init`, they must be equal. -/
 theorem eq_of_halts {init s₁ s₂ : State}
     (h1 : Steps p init s₁) (hh1 : s₁.isHalted p)
     (h2 : Steps p init s₂) (hh2 : s₂.isHalted p) : s₁ = s₂ := by
   -- Use confluence: both s₁ and s₂ are reachable from init, so they're joinable
-  have ⟨w, hw1, hw2⟩ := stepRs_confluent p h1 h2
+  have ⟨w, hw1, hw2⟩ := Step_confluent p h1 h2
   -- But s₁ and s₂ are normal forms, so w must equal both
   have hn1 := isHalted_iff_normal.mp hh1
   have hn2 := isHalted_iff_normal.mp hh2
-  have heq1 : s₁ = w := hn1.MRed_eq hw1
-  have heq2 : s₂ = w := hn2.MRed_eq hw2
-  rw [heq1, heq2]
+  grind
 
 end Steps
 
 /-- A program halts on given inputs if execution reaches a halted state.
 
-This is equivalent to `(stepRs p).Normalizable (State.init inputs)` —
+This is equivalent to `(Step p).Normalizable (State.init inputs)` —
 see `halts_iff_normalizable`. -/
 def Halts (inputs : List ℕ) : Prop :=
   ∃ s, Steps p (State.init inputs) s ∧ s.isHalted p
 
 /-- Halting is equivalent to normalizability in the reduction system. -/
 theorem halts_iff_normalizable {p : Program} {inputs : List ℕ} :
-    Halts p inputs ↔ (stepRs p).Normalizable (State.init inputs) := by
-  simp only [Halts, ReductionSystem.Normalizable]
+    Halts p inputs ↔ Relation.Normalizable (Step p) (State.init inputs) := by
+  simp only [Halts]
   constructor
   · intro ⟨s, hsteps, hhalted⟩
     exact ⟨s, hsteps, isHalted_iff_normal.mp hhalted⟩

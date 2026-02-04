@@ -139,15 +139,15 @@ theorem Steps.toStandardForm_halts {p : Program} {s s' : State}
       s₂.isHalted p.toStandardForm ∧ s'.regs = s₂.regs := by
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl =>
-    refine ⟨s', Steps.refl _, ?_, rfl⟩
+    refine ⟨s', .refl, ?_, rfl⟩
     simp only [State.isHalted, Program.toStandardForm_length]
     exact hhalted
   | head hstep hrest ih =>
     rcases Step.toStandardForm hstep with
       hsame | ⟨hhalted_mid, s_mid, hstep_mid, hhalted_mid', hregs_eq⟩
     · obtain ⟨s₂, hsteps₂, hhalted₂, hregs_eq⟩ := ih
-      exact ⟨s₂, Steps.trans (Steps.single hsame) hsteps₂, hhalted₂, hregs_eq⟩
-    · grind [(Steps.refl _).eq_of_halts hhalted_mid hrest hhalted]
+      exact ⟨s₂, .trans (.single hsame) hsteps₂, hhalted₂, hregs_eq⟩
+    · grind [Steps.eq_of_halts .refl hhalted_mid hrest hhalted]
 
 /-- Forward halting theorem. -/
 theorem Halts.toStandardForm {p : Program} {inputs : List ℕ} (h : Halts p inputs) :
@@ -201,18 +201,18 @@ theorem Steps.from_toStandardForm_halts {p : Program} {s s' : State}
     ∃ s₂, Steps p s s₂ ∧ s₂.isHalted p ∧ s'.regs = s₂.regs := by
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl =>
-    refine ⟨s', Steps.refl _, ?_, rfl⟩
+    refine ⟨s', by rfl, ?_, rfl⟩
     simp only [State.isHalted, Program.toStandardForm_length] at hhalted ⊢
     exact hhalted
   | head hstep hrest ih =>
     rcases Step.from_toStandardForm hstep with
       hsame | ⟨hhalted_mid, s_mid, hstep_mid, hhalted_mid', hregs_eq⟩
     · obtain ⟨s₂, hsteps₂, hhalted₂, hregs_eq⟩ := ih
-      exact ⟨s₂, Steps.trans (Steps.single hsame) hsteps₂, hhalted₂, hregs_eq⟩
+      exact ⟨s₂, .trans (.single hsame) hsteps₂, hhalted₂, hregs_eq⟩
     · rename_i s_next
-      have hrest_trivial : s_next = s' := Steps.eq_of_halts (Steps.refl _) hhalted_mid hrest hhalted
+      have hrest_trivial : s_next = s' := Steps.eq_of_halts .refl hhalted_mid hrest hhalted
       subst hrest_trivial
-      exact ⟨s_mid, Steps.single hstep_mid, hhalted_mid', hregs_eq⟩
+      exact ⟨s_mid, .single hstep_mid, hhalted_mid', hregs_eq⟩
 
 /-- Reverse halting theorem. -/
 theorem Halts.of_toStandardForm {p : Program} {inputs : List ℕ}
