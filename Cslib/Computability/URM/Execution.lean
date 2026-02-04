@@ -27,15 +27,8 @@ Single-step and multi-step execution semantics for URMs, integrated with the
 
 ## ReductionSystem Integration
 
-The `stepRs` wrapper connects URM execution to the general theory of reduction systems:
-- `State.isHalted` corresponds to `ReductionSystem.Normal` (no successor states)
-- `Halts` corresponds to `ReductionSystem.Normalizable` (reaches a normal form)
-- `Step.deterministic` gives us `ReductionSystem.Diamond`, hence `Confluent`
-
-Bridge lemmas:
-- `isHalted_iff_normal`: `s.isHalted p ↔ (stepRs p).Normal s`
-- `halts_iff_normalizable`: `Halts p inputs ↔ (stepRs p).Normalizable (State.init inputs)`
-- `stepRs_confluent`: The step relation is confluent (follows from determinism)
+`stepRs` wraps `Step` as a `ReductionSystem`, connecting to general reduction theory.
+See `isHalted_iff_normal`, `halts_iff_normalizable`, and `stepRs_confluent`.
 
 ## Notation (scoped to `URM` namespace)
 
@@ -48,10 +41,9 @@ Execution notation:
 - `s ⭢ᵉ s'` — single-step execution (`Step p s s'`)
 - `s ↠ᵉ s'` — multi-step execution (`Steps p s s'`)
 
-## Main statements
+## Main results
 
 - `Step.deterministic`: The step relation is deterministic
-- `Step.no_step_of_halted`: Halted configurations have no successor
 - `stepRs_confluent`: The step relation is confluent (from determinism)
 - `haltsWithResult_iff_eval`: `p ↓ inputs ≫ result ↔ eval p inputs = Part.some result`
 -/
@@ -62,15 +54,7 @@ namespace Cslib.URM
 
 variable (p : Program)
 
-/-- Single-step execution relation for URMs.
-
-Each constructor corresponds to one of the four instruction types:
-- `zero`: Execute `Z n` (set register n to 0)
-- `succ`: Execute `S n` (increment register n)
-- `transfer`: Execute `T m n` (copy register m to register n)
-- `jump_eq`: Execute `J m n q` when registers m and n are equal (jump to q)
-- `jump_ne`: Execute `J m n q` when registers m and n differ (proceed to next)
--/
+/-- Single-step execution relation for URMs. -/
 @[grind]
 inductive Step : State → State → Prop where
   | zero {s : State} {n : ℕ}
