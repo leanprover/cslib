@@ -125,16 +125,17 @@ theorem satisfies_mem_denotation {lts : LTS State Label} :
   induction a generalizing s <;> grind
 
 /-- A state satisfies a proposition iff it does not satisfy the negation of the proposition. -/
+@[simp, scoped grind =]
 theorem neg_satisfies {lts : LTS State Label} :
-    Satisfies lts s a ↔ ¬Satisfies lts s a.neg := by
+    ¬Satisfies lts s a.neg ↔ Satisfies lts s a := by
   induction a generalizing s <;> grind
 
 /-- A state is in the denotation of a proposition iff it is not in the denotation of the negation
 of the proposition. -/
 @[scoped grind =]
 theorem neg_denotation {lts : LTS State Label} (a : Proposition Label) :
-    s ∈ a.denotation lts ↔ s ∉ a.neg.denotation lts := by
-  grind [_=_ satisfies_mem_denotation, neg_satisfies]
+    s ∉ a.neg.denotation lts ↔ s ∈ a.denotation lts := by
+  grind [_=_ satisfies_mem_denotation]
 
 /-- A state satisfies a finite conjunction iff it satisfies all conjuncts. -/
 @[scoped grind =]
@@ -163,7 +164,7 @@ theorem theoryEq_denotation_eq {lts : LTS State Label} :
 /-- If two states are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬ TheoryEq lts s1 s2) :
     ∃ a, (Satisfies lts s1 a ∧ ¬Satisfies lts s2 a) := by
-  grind [neg_satisfies]
+  grind [=_ neg_satisfies]
 
 /-- If two states are theory equivalent and the former satisfies a proposition, the latter does as
 well. -/
@@ -269,15 +270,8 @@ lemma bisimulation_TheoryEq {lts : LTS State Label}
     {hrb : lts.IsBisimulation r}
     (hr : r s1 s2) :
     TheoryEq lts s1 s2 := by
-  unfold TheoryEq theory
-  ext a
-  apply Iff.intro <;> intro h
-  case mp =>
-    grind
-  case mpr =>
-    have hbs : s2 ~[lts] s1 := by grind [Bisimilarity.symm]
-    obtain ⟨r', hr', hr'b⟩ := hbs
-    grind
+  have : s2 ~[lts] s1 := by grind [Bisimilarity.symm]
+  grind
 
 /-- Theory equivalence and bisimilarity coincide for image-finite LTSs. -/
 theorem theoryEq_eq_bisimilarity (lts : LTS State Label)
