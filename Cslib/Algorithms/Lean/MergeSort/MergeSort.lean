@@ -130,32 +130,24 @@ def timeMergeSortRec : ℕ → ℕ
 | 1 => 0
 | n@(_+2) => timeMergeSortRec (n/2) + timeMergeSortRec ((n-1)/2 + 1) + n
 
-/-- The ceiling of Nat.log 2 -/
-@[grind =]
-def clog2 (n : ℕ) : ℕ :=
-  if n ≤ 1 then 0 else Nat.log 2 (n - 1) + 1
+open Nat (clog)
 
 /-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
 @[grind →]
-lemma clog2_half_le (n : ℕ) (h : n > 1) : clog2 ((n + 1) / 2) ≤ clog2 n - 1 := by
-  have := Nat.sub_mul_div (n + 1) 2 1
-  grind [Nat.log_eq_zero_iff, Nat.log_div_base]
+lemma clog2_half_le (n : ℕ) (h : n > 1) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
+  rw [Nat.clog_of_one_lt one_lt_two h]
+  grind
 
 /-- Same logic for the floor half: ⌈log2 ⌊n/2⌋⌉ ≤ ⌈log2 n⌉ - 1 -/
 @[grind →]
-lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog2 (n / 2) ≤ clog2 n - 1 := by
+lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
   apply Nat.le_trans _ (clog2_half_le n h)
-  simp only [clog2]
-  split_ifs
-  · grind
-  · grind
-  · grind
-  · grw [Nat.log_mono_right]
-    grind
+  apply Nat.clog_monotone
+  grind
 
 private lemma some_algebra (n : ℕ) :
-  (n / 2 + 1) * clog2 (n / 2 + 1) + ((n + 1) / 2 + 1) * clog2 ((n + 1) / 2 + 1) + (n + 2) ≤
-  (n + 2) * clog2 (n + 2) := by
+    (n / 2 + 1) * clog 2 (n / 2 + 1) + ((n + 1) / 2 + 1) * clog 2 ((n + 1) / 2 + 1) + (n + 2) ≤
+    (n + 2) * clog 2 (n + 2) := by
   -- 1. Substitution: Let N = n_1 + 2 to clean up the expression
   let N := n + 2
   have hN : N ≥ 2 := by omega
@@ -163,15 +155,15 @@ private lemma some_algebra (n : ℕ) :
   have t1 : n / 2 + 1 = N / 2 := by omega
   have t2 : (n + 1) / 2 + 1 = (N + 1) / 2 := by omega
   have t3 : n + 1 + 1 = N := by omega
-  let k := clog2 N
-  have h_bound_l : clog2 (N / 2) ≤ k - 1 := clog2_floor_half_le N hN
-  have h_bound_r : clog2 ((N + 1) / 2) ≤ k - 1 := clog2_half_le N hN
+  let k := clog 2 N
+  have h_bound_l : clog 2 (N / 2) ≤ k - 1 := clog2_floor_half_le N hN
+  have h_bound_r : clog 2 ((N + 1) / 2) ≤ k - 1 := clog2_half_le N hN
   have h_split : N / 2 + (N + 1) / 2 = N := by omega
   grw [t1, t2, t3, h_bound_l, h_bound_r, ←Nat.add_mul, h_split]
   exact Nat.le_refl (N * (k - 1) + N)
 
 /-- Upper bound function for merge sort time complexity: `T(n) = n * ⌈log₂ n⌉` -/
-abbrev T (n : ℕ) : ℕ := n * clog2 n
+abbrev T (n : ℕ) : ℕ := n * clog 2 n
 
 /-- Solve the recurrence -/
 theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
@@ -216,8 +208,8 @@ theorem mergeSort_time_le (xs : List α) :
 
 /-- Time complexity of mergeSort -/
 theorem mergeSort_time (xs : List α) :
-    let n := xs.length
-    (mergeSort xs).time ≤ n * clog2 n := by
+  let n := xs.length
+  (mergeSort xs).time ≤ n * clog 2 n := by
   grind [mergeSort_time_le, timeMergeSortRec_le]
 
 end TimeComplexity
