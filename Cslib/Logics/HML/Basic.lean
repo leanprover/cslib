@@ -150,18 +150,15 @@ theorem satisfies_finiteOr {lts : LTS State Label} {s : State}
     Satisfies lts s (Proposition.finiteOr as) ↔ ∃ a ∈ as, Satisfies lts s a := by
   induction as <;> grind
 
+@[scoped grind →]
+theorem satisfies_theory (h : Satisfies lts s a) : a ∈ theory lts s := by
+  grind
+
 /-- Two states are theory-equivalent iff they are denotationally equivalent. -/
 theorem theoryEq_denotation_eq {lts : LTS State Label} :
     TheoryEq lts s1 s2 ↔
     (∀ a : Proposition Label, s1 ∈ a.denotation lts ↔ s2 ∈ a.denotation lts) := by
-  apply Iff.intro <;> intro h
-  · intro a
-    apply Iff.intro <;> intro hmem
-    · have : a ∈ theory lts s1 := by grind
-      grind
-    · have : a ∈ theory lts s1 := by grind
-      grind
-  · grind
+  grind [_=_ satisfies_mem_denotation]
 
 /-- If two states are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬(TheoryEq lts) s1 s2) :
