@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Sorrachai Yingchareonthawornhcai. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sorrachai Yingchareonthawornhcai
+Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser
 -/
 
 module
@@ -40,6 +40,7 @@ namespace Cslib.Algorithms.Lean
 /-- A monad for tracking time complexity of computations.
 `TimeM α` represents a computation that returns a value of type `α`
 and accumulates a time cost (represented as a natural number). -/
+@[ext]
 structure TimeM (α : Type*) where
   /-- The return value of the computation -/
   ret : α
@@ -48,50 +49,61 @@ structure TimeM (α : Type*) where
 
 namespace TimeM
 
-/-- Lifts a pure value into a `TimeM` computation with zero time cost. -/
-@[scoped grind =]
-def pure {α} (a : α) : TimeM α :=
+/-- Lifts a pure value into a `TimeM` computation with zero time cost.
+
+Prefer to use `pure` instead of `TimeM.pure`. -/
+protected def pure {α} (a : α) : TimeM α :=
   ⟨a, 0⟩
 
-/-- Sequentially composes two `TimeM` computations, summing their time costs. -/
-@[scoped grind =]
-def bind {α β} (m : TimeM α) (f : α → TimeM β) : TimeM β :=
+/-- Sequentially composes two `TimeM` computations, summing their time costs.
+
+Prefer to use the `>>=` notation. -/
+protected def bind {α β} (m : TimeM α) (f : α → TimeM β) : TimeM β :=
   let r := f m.ret
   ⟨r.ret, m.time + r.time⟩
 
 instance : Monad TimeM where
-  pure := pure
-  bind := bind
+  pure := TimeM.pure
+  bind := TimeM.bind
 
-/-- Creates a `TimeM` computation with a specified value and time cost.
+@[simp, grind =] theorem ret_pure {α} (a : α) : (pure a : TimeM α).ret = a := rfl
+@[simp, grind =] theorem ret_bind {α β} (m : TimeM α) (f : α → TimeM β) :
+    (m >>= f).ret = (f m.ret).ret := rfl
+@[simp, grind =] theorem ret_map {α β} (f : α → β) (x : TimeM α) : (f <$> x).ret = f x.ret := rfl
+@[simp] theorem ret_seqRight {α} (x y : TimeM α) : (x *> y).ret = y.ret := rfl
+@[simp] theorem ret_seqLeft {α} (x y : TimeM α) : (x <* y).ret = x.ret := rfl
+@[simp] theorem ret_seq {α β} (f : TimeM (α → β)) (x : TimeM α) : (f <*> x).ret = f.ret x.ret := rfl
+
+@[simp, grind =] theorem time_bind {α β} (m : TimeM α) (f : α → TimeM β) :
+    (m >>= f).time = m.time + (f m.ret).time := rfl
+@[simp, grind =] theorem time_pure {α} (a : α) : (pure a : TimeM α).time = 0 := rfl
+@[simp, grind =] theorem time_map {α β} (f : α → β) (x : TimeM α) : (f <$> x).time = x.time := rfl
+@[simp] theorem time_seqRight {α} (x y : TimeM α) : (x *> y).time = x.time + y.time := rfl
+@[simp] theorem time_seqLeft {α} (x y : TimeM α) : (x <* y).time = x.time + y.time := rfl
+@[simp] theorem time_seq {α β} (f : TimeM (α → β)) (x : TimeM α) :
+    (f <*> x).time = f.time + x.time := rfl
+
+
+instance : LawfulMonad TimeM := .mk'
+  (id_map := fun x => rfl)
+  (pure_bind := fun _ _ => by ext <;> simp)
+  (bind_assoc := fun _ _ _ => by ext <;> simp [Nat.add_assoc])
+
+/-- Creates a `TimeM` computation with a time cost.
 The time cost defaults to 1 if not provided. -/
-@[simp, grind =] def tick {α : Type*} (a : α) (c : ℕ := 1) : TimeM α := ⟨a, c⟩
+def tick (c : ℕ := 1) : TimeM PUnit := ⟨.unit, c⟩
 
-/-- Notation for `tick` with explicit time cost: `✓ a, c` -/
-scoped notation "✓" a:arg ", " c:arg => tick a c
+@[simp, grind =] theorem ret_tick (c : ℕ) : (tick c).ret = () := rfl
+@[simp, grind =] theorem time_tick (c : ℕ) : (tick c).time = c := rfl
 
-/-- Notation for `tick` with default time cost of 1: `✓ a` -/
-scoped notation "✓" a:arg => tick a
+/-- `✓[c] x` adds `c` ticks, then executes `x`. -/
+macro "✓[" c:term "]" body:doElem : doElem => `(doElem| do TimeM.tick $c; $body:doElem)
+
+/-- `✓ x` is a shorthand for `✓[1] x`, which adds one tick and executes `x`. -/
+macro "✓" body:doElem : doElem => `(doElem| ✓[1] $body)
 
 /-- Notation for extracting the return value from a `TimeM` computation: `⟪tm⟫` -/
 scoped notation:max "⟪" tm "⟫" => (TimeM.ret tm)
-
-/-- A unit computation with time cost 1. -/
-def tickUnit : TimeM Unit :=
-  ✓ ()
-
-@[simp] theorem time_of_pure {α} (a : α) : (pure a).time = 0 := rfl
-
-@[simp] theorem time_of_bind {α β} (m : TimeM α) (f : α → TimeM β) :
- (TimeM.bind m f).time = m.time + (f m.ret).time := rfl
-
-@[simp] theorem time_of_tick {α} (a : α) (c : ℕ) : (tick a c).time = c := rfl
-
-@[simp] theorem ret_bind {α β} (m : TimeM α) (f : α → TimeM β) :
-  (TimeM.bind m f).ret = (f m.ret).ret := rfl
-
--- this allow us to simplify the chain of monadic compositions
-attribute [simp] Bind.bind Pure.pure TimeM.pure TimeM.bind
 
 end TimeM
 end Cslib.Algorithms.Lean
