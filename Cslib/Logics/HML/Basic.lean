@@ -174,28 +174,28 @@ theorem theoryEq_satisfies {lts : LTS State Label} (h : TheoryEq lts s1 s2)
   rw [Set.ext_iff] at h
   exact (h a).mp hs
 
-section eqv_data
+section ImageToPropositions
 
-variable {lts : LTS State Label} (f : lts.image s2 μ → Proposition Label)
-variable [ft : Fintype (lts.image s2 μ)]
+variable {lts : LTS State Label} (stateMap : lts.image s μ → Proposition Label)
+variable [finImage : Fintype (lts.image s μ)]
 
 /-- The list of propositions over finite μ-derivatives. -/
-noncomputable def formulas : List (Proposition Label) :=
-  ft.elems.toList.map f
+noncomputable def propositions : List (Proposition Label) :=
+  finImage.elems.toList.map stateMap
 
-theorem formulas_complete (x : lts.image s2 μ) : f x ∈ formulas f := by
+theorem propositions_complete (s' : lts.image s μ) : stateMap s' ∈ propositions stateMap := by
   apply List.mem_map.mpr
-  use x, Finset.mem_toList.mpr (Fintype.complete x)
+  use s', Finset.mem_toList.mpr (Fintype.complete s')
 
-theorem formulas_satisfies_conjunction (htr : lts.Tr s1 μ s1')
-  (hdist_spec : ∀ s2', Satisfies lts s1' (f s2')) :
-    Satisfies lts s1 (.diamond μ <| Proposition.finiteAnd (formulas f)) := by
+theorem propositions_satisfies_conjunction (htr : lts.Tr s1 μ s1')
+  (hdist_spec : ∀ s2', Satisfies lts s1' (stateMap s2')) :
+    Satisfies lts s1 (.diamond μ <| Proposition.finiteAnd (propositions stateMap)) := by
   apply Satisfies.diamond htr
   rw [satisfies_finiteAnd]
   intro a ha_mem
   grind [List.mem_map.mp ha_mem]
 
-end eqv_data
+end ImageToPropositions
 
 /-- Theory equivalence is a bisimulation. -/
 @[scoped grind ⇒]
@@ -213,11 +213,11 @@ theorem theoryEq_isBisimulation (lts : LTS State Label)
       apply not_theoryEq_satisfies
       grind
     choose dist_formula hdist_spec using hdist
-    let conjunction := Proposition.finiteAnd (formulas dist_formula)
+    let conjunction := Proposition.finiteAnd (propositions dist_formula)
     have hs1_diamond : Satisfies lts s1 (.diamond μ conjunction) := by
-      grind [formulas_satisfies_conjunction]
+      grind [propositions_satisfies_conjunction]
     cases (theoryEq_satisfies h hs1_diamond) with | @diamond _ s2'' _ _ htr2 hsat =>
-    grind [formulas_complete dist_formula ⟨s2'', htr2⟩]
+    grind [propositions_complete dist_formula ⟨s2'', htr2⟩]
   case right =>
     -- Symmetric to left case
     intro s2' htr
@@ -227,11 +227,11 @@ theorem theoryEq_isBisimulation (lts : LTS State Label)
       apply not_theoryEq_satisfies
       grind
     choose dist_formula hdist_spec using hdist
-    let conjunction := Proposition.finiteAnd (formulas dist_formula)
+    let conjunction := Proposition.finiteAnd (propositions dist_formula)
     have hs2_diamond : Satisfies lts s2 (.diamond μ conjunction) := by
-      grind [formulas_satisfies_conjunction]
+      grind [propositions_satisfies_conjunction]
     cases (theoryEq_satisfies h.symm hs2_diamond) with | @diamond _ s1'' _ _ htr1 hsat =>
-    grind [formulas_complete dist_formula ⟨s1'', htr1⟩]
+    grind [propositions_complete dist_formula ⟨s1'', htr1⟩]
 
 /-- If two states are in a bisimulation and the former satisfies a proposition, the latter does as
 well. -/
