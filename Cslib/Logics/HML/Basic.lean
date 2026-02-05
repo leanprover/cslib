@@ -261,21 +261,9 @@ lemma bisimulation_satisfies {lts : LTS State Label}
     {hrb : lts.IsBisimulation r}
     (hr : r s1 s2) (a : Proposition Label) (hs : Satisfies lts s1 a) :
     Satisfies lts s2 a := by
-  induction a generalizing s1 s2
-  case true => grind
-  case false => grind
-  case and a b => grind
-  case or a b => grind
-  case diamond μ a ih =>
-    cases hs
-    rename_i s1' htr hs
-    have := hrb.follow_fst hr htr
-    grind
-  case box μ a ih =>
-    apply Satisfies.box
-    cases hs
-    rename_i hs
-    grind
+  induction a generalizing s1 s2 with
+  | diamond => cases hs with | diamond htr _ => grind [hrb.follow_fst hr htr]
+  | _ => grind
 
 lemma bisimulation_TheoryEq {lts : LTS State Label}
     {hrb : lts.IsBisimulation r}
