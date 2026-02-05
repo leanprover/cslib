@@ -32,6 +32,19 @@ The library hosts a number of languages with their own syntax and semantics, so 
 - If you want notation for a common concept, like reductions or transitions in an operational semantics, try to find an existing typeclass that fits your need.
 - If you define new notation that in principle can apply to different types (e.g., syntax or semantics of other languages), keep it locally scoped or create a new typeclass.
 
+## Documentation
+
+Document your definitions and theorems to ease both use and reviewing.
+When formalising a concept that is explained in a published resource, please reference the resource in your documentation.
+
+# Design principles
+
+## Reuse
+
+A central focus of CSLib is providing reusable abstractions and their consistent usage across the
+library. New definitions should instantiate existing abstractions whenever appropriate: a
+labelled transition system should use `LTS`, a reduction system `ReductionSystem`, etc.
+
 # Continuous Integration
 
 There are a number of checks that run in continuous integration. Here is a brief guide that includes

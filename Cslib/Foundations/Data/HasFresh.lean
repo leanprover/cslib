@@ -132,14 +132,17 @@ end
 
 export HasFresh (fresh fresh_notMem fresh_exists)
 
-lemma HasFresh.not_of_finite (α : Type u) [Fintype α] : IsEmpty (HasFresh α) :=
-  ⟨fun f ↦ (f.fresh_notMem .univ).elim (Finset.mem_univ _)⟩
+/-- `HasFresh α` implies a computably infinite type. -/
+instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
+  apply Infinite.of_not_fintype
+  rintro ⟨elems, _⟩
+  grind [fresh_notMem elems]
 
 /-- All infinite types have an associated (at least noncomputable) fresh function.
-This, in conjunction with `HasFresh.not_of_finite`, characterizes `HasFresh`. -/
-noncomputable def HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
-  fresh s := s.finite_toSet.infinite_compl.nonempty.choose
-  fresh_notMem s := s.finite_toSet.infinite_compl.nonempty.choose_spec
+This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
+noncomputable instance HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
+  fresh s := Infinite.exists_notMem_finset s |>.choose
+  fresh_notMem s := by grind
 
 open Finset in
 /-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/

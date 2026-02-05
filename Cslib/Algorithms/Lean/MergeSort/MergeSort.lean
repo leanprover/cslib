@@ -75,8 +75,7 @@ theorem mem_either_merge (xs ys : List α) (z : α) (hz : z ∈ ⟪merge xs ys�
   · exact mem_reverseAux.mp hz
   · left
     exact hz
-  · simp_all
-    grind
+  · grind
 
 theorem min_all_merge (x : α) (xs ys : List α) (hxs : MinOfList x xs) (hys : MinOfList x ys) :
     MinOfList x ⟪merge xs ys⟫ := by

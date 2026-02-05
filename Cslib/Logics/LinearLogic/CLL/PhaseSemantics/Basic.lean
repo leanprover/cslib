@@ -11,6 +11,7 @@ public import Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Idempotent
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Closure
+public import Mathlib.Order.Defs.PartialOrder
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
 @[expose] public section
@@ -156,6 +157,8 @@ structure Fact (P : Type*) [PhaseSpace P] where
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
   coe_injective' _ _ _ := by grind [cases Fact]
+
+instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
 
 instance : HasSubset (Fact P) :=
   ⟨fun A B => (A : Set P) ⊆ (B : Set P)⟩
