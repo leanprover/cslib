@@ -179,6 +179,7 @@ section eqv_data
 variable {lts : LTS State Label} (f : lts.image s2 μ → Proposition Label)
 variable [ft : Fintype (lts.image s2 μ)]
 
+/-- The list of propositions over finite μ-derivatives. -/
 noncomputable def formulas : List (Proposition Label) :=
   ft.elems.toList.map f
 
