@@ -174,86 +174,63 @@ theorem theoryEq_satisfies {lts : LTS State Label} (h : TheoryEq lts s1 s2)
   rw [Set.ext_iff] at h
   exact (h a).mp hs
 
+section eqv_data
+
+variable {lts : LTS State Label} (f : lts.image s2 μ → Proposition Label)
+variable [ft : Fintype (lts.image s2 μ)]
+
+noncomputable def formulas : List (Proposition Label) :=
+  ft.elems.toList.map f
+
+theorem formulas_complete (x : lts.image s2 μ) : f x ∈ formulas f := by
+  apply List.mem_map.mpr
+  use x, Finset.mem_toList.mpr (Fintype.complete x)
+
+theorem formulas_satisfies_conjunction (htr : lts.Tr s1 μ s1')
+  (hdist_spec : ∀ s2', Satisfies lts s1' (f s2')) :
+    Satisfies lts s1 (.diamond μ <| Proposition.finiteAnd (formulas f)) := by
+  apply Satisfies.diamond htr
+  rw [satisfies_finiteAnd]
+  intro a ha_mem
+  grind [List.mem_map.mp ha_mem]
+
+end eqv_data
+
 /-- Theory equivalence is a bisimulation. -/
 @[scoped grind ⇒]
 theorem theoryEq_isBisimulation (lts : LTS State Label)
     [image_finite : ∀ s μ, Finite (lts.image s μ)] :
     lts.IsBisimulation (TheoryEq lts) := by
   intro s1 s2 h μ
+  let (s : State) := @Fintype.ofFinite (lts.image s μ) (image_finite s μ)
   constructor
   case left =>
     intro s1' htr
-    by_contra hnex
-    simp only [not_exists, not_and] at hnex
-    -- hnex : ∀ s2', lts.Tr s2 μ s2' → ¬TheoryEq lts s1' s2'
-    have hfin : Finite (lts.image s2 μ) := image_finite s2 μ
-    -- For each s2' reachable from s2, find a formula that s1' satisfies but s2' doesn't
-    have hdist : ∀ s2' : lts.image s2 μ,
-        ∃ a, Satisfies lts s1' a ∧ ¬Satisfies lts s2'.val a := by
+    by_contra
+    have hdist : ∀ s2' : lts.image s2 μ, ∃ a, Satisfies lts s1' a ∧ ¬Satisfies lts s2'.val a := by
       intro ⟨s2', hs2'⟩
-      exact not_theoryEq_satisfies (hnex s2' hs2')
-    -- Build finite conjunction of distinguishing formulas
-    let ft := Fintype.ofFinite (lts.image s2 μ)
+      apply not_theoryEq_satisfies
+      grind
     choose dist_formula hdist_spec using hdist
-    let formulas := ft.elems.toList.map (fun s2' => dist_formula s2')
-    let conjunction := Proposition.finiteAnd formulas
-    -- s1 ⊨ ◇μ(⋀_i a_i) via s1'
+    let conjunction := Proposition.finiteAnd (formulas dist_formula)
     have hs1_diamond : Satisfies lts s1 (.diamond μ conjunction) := by
-      apply Satisfies.diamond htr
-      rw [satisfies_finiteAnd]
-      intro a ha_mem
-      obtain ⟨s2'_sub, _, ha_eq⟩ := List.mem_map.mp ha_mem
-      rw [← ha_eq]
-      exact (hdist_spec s2'_sub).1
-    -- s2 ⊨ ◇μ(⋀_i a_i) by TheoryEq
-    have hs2_diamond : Satisfies lts s2 (.diamond μ conjunction) :=
-      theoryEq_satisfies h hs1_diamond
-    -- But every s2' fails its own distinguishing formula
-    cases hs2_diamond
-    rename_i s2'' htr2 hsat
-    let s2''_sub : lts.image s2 μ := ⟨s2'', htr2⟩
-    rw [satisfies_finiteAnd] at hsat
-    have hmem : dist_formula s2''_sub ∈ formulas := by
-      apply List.mem_map.mpr
-      exists s2''_sub
-      exact ⟨Finset.mem_toList.mpr (Fintype.complete s2''_sub), rfl⟩
-    have := hsat (dist_formula s2''_sub) hmem
-    exact (hdist_spec s2''_sub).2 this
+      grind [formulas_satisfies_conjunction]
+    cases (theoryEq_satisfies h hs1_diamond) with | @diamond _ s2'' _ _ htr2 hsat =>
+    grind [formulas_complete dist_formula ⟨s2'', htr2⟩]
   case right =>
     -- Symmetric to left case
     intro s2' htr
-    by_contra hnex
-    simp only [not_exists, not_and] at hnex
-    have hfin : Finite (lts.image s1 μ) := image_finite s1 μ
-    have hdist : ∀ s1' : lts.image s1 μ,
-        ∃ a, Satisfies lts s2' a ∧ ¬Satisfies lts s1'.val a := by
+    by_contra
+    have hdist : ∀ s1' : lts.image s1 μ, ∃ a, Satisfies lts s2' a ∧ ¬Satisfies lts s1'.val a := by
       intro ⟨s1', hs1'⟩
-      have hne := hnex s1' hs1'
-      have hne' : ¬TheoryEq lts s2' s1' := fun h' => hne h'.symm
-      exact not_theoryEq_satisfies hne'
-    let ft := Fintype.ofFinite (lts.image s1 μ)
+      apply not_theoryEq_satisfies
+      grind
     choose dist_formula hdist_spec using hdist
-    let formulas := ft.elems.toList.map (fun s1' => dist_formula s1')
-    let conjunction := Proposition.finiteAnd formulas
+    let conjunction := Proposition.finiteAnd (formulas dist_formula)
     have hs2_diamond : Satisfies lts s2 (.diamond μ conjunction) := by
-      apply Satisfies.diamond htr
-      rw [satisfies_finiteAnd]
-      intro a ha_mem
-      obtain ⟨s1'_sub, _, ha_eq⟩ := List.mem_map.mp ha_mem
-      rw [← ha_eq]
-      exact (hdist_spec s1'_sub).1
-    have hs1_diamond : Satisfies lts s1 (.diamond μ conjunction) :=
-      theoryEq_satisfies h.symm hs2_diamond
-    cases hs1_diamond
-    rename_i s1'' htr1 hsat
-    let s1''_sub : lts.image s1 μ := ⟨s1'', htr1⟩
-    rw [satisfies_finiteAnd] at hsat
-    have hmem : dist_formula s1''_sub ∈ formulas := by
-      apply List.mem_map.mpr
-      exists s1''_sub
-      exact ⟨Finset.mem_toList.mpr (Fintype.complete s1''_sub), rfl⟩
-    have := hsat (dist_formula s1''_sub) hmem
-    exact (hdist_spec s1''_sub).2 this
+      grind [formulas_satisfies_conjunction]
+    cases (theoryEq_satisfies h.symm hs2_diamond) with | @diamond _ s1'' _ _ htr1 hsat =>
+    grind [formulas_complete dist_formula ⟨s1'', htr1⟩]
 
 /-- If two states are in a bisimulation and the former satisfies a proposition, the latter does as
 well. -/
