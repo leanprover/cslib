@@ -52,10 +52,10 @@ namespace Cslib.Logic.HML
 inductive Proposition (Label : Type u) : Type u where
   | true
   | false
-  | and (a : Proposition Label) (b : Proposition Label)
-  | or (a : Proposition Label) (b : Proposition Label)
-  | diamond (μ : Label) (a : Proposition Label)
-  | box (μ : Label) (a : Proposition Label)
+  | and (φ₁ φ₂ : Proposition Label)
+  | or (φ₁ φ₂ : Proposition Label)
+  | diamond (μ : Label) (φ : Proposition Label)
+  | box (μ : Label) (φ : Proposition Label)
 
 /-- Negation of a proposition. -/
 @[simp, scoped grind =]
@@ -161,7 +161,7 @@ theorem theoryEq_denotation_eq {lts : LTS State Label} :
   grind [_=_ satisfies_mem_denotation]
 
 /-- If two states are not theory equivalent, there exists a distinguishing proposition. -/
-lemma not_theoryEq_satisfies (h : ¬(TheoryEq lts) s1 s2) :
+lemma not_theoryEq_satisfies (h : ¬ TheoryEq lts s1 s2) :
     ∃ a, (Satisfies lts s1 a ∧ ¬Satisfies lts s2 a) := by
   grind [neg_satisfies]
 
