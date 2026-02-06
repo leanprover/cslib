@@ -5,6 +5,7 @@ public import CslibTests.CCS
 public import CslibTests.DFA
 public import CslibTests.FreeMonad
 public import CslibTests.GrindLint
+public import CslibTests.HML
 public import CslibTests.HasFresh
 public import CslibTests.ImportWithMathlib
 public import CslibTests.LTS
