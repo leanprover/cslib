@@ -85,7 +85,7 @@ theorem IsRegular.bot : (⊥ : ωLanguage Symbol).IsRegular := by
     accept := ∅ }
   use Unit, inferInstance, na
   ext xs
-  simp [na]
+  simp +instances [na]
 
 /-- The language of all ω-sequences is ω-regular. -/
 @[simp]
@@ -96,8 +96,8 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
     accept := univ }
   use Unit, inferInstance, na
   ext xs
-  simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
-    atTop_neBot, and_true, mem_top, iff_true]
+  simp +instances only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ,
+    frequently_true_iff_neBot, atTop_neBot, and_true, mem_top, iff_true]
   use const ()
   grind [NA.Run]
 
