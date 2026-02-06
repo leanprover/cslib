@@ -63,6 +63,14 @@ section Correctness
 
 open List
 
+/-- Our merge computes the one already in mathlib. -/
+@[simp, grind =]
+theorem ret_merge (xs ys : List α) : ⟪merge xs ys⟫ = xs.merge ys := by
+  fun_induction merge
+  · simp
+  · simp
+  · grind [cons_merge_cons]
+
 /-- A list is sorted if it satisfies the `Pairwise (· ≤ ·)` predicate. -/
 abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
 
@@ -71,11 +79,7 @@ abbrev MinOfList (x : α) (l : List α) : Prop := ∀ b ∈ l, x ≤ b
 
 @[grind →]
 theorem mem_either_merge (xs ys : List α) (z : α) (hz : z ∈ ⟪merge xs ys⟫) : z ∈ xs ∨ z ∈ ys := by
-  fun_induction merge
-  · exact mem_reverseAux.mp hz
-  · left
-    exact hz
-  · grind
+  grind [List.mem_merge]
 
 theorem min_all_merge (x : α) (xs ys : List α) (hxs : MinOfList x xs) (hys : MinOfList x ys) :
     MinOfList x ⟪merge xs ys⟫ := by
@@ -83,10 +87,7 @@ theorem min_all_merge (x : α) (xs ys : List α) (hxs : MinOfList x xs) (hys : M
 
 theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1) (hys : IsSorted l2) :
     IsSorted ⟪merge l1 l2⟫ := by
-  fun_induction merge l1 l2 with
-  | case3 =>
-    grind [pairwise_cons]
-  | _ => simpa
+  grind [hxs.merge hys]
 
 theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
   fun_induction mergeSort xs with
@@ -177,16 +178,13 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
 
 @[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
     ⟪merge xs ys⟫.length = xs.length + ys.length := by
-  fun_induction merge with
-  | case3 =>
-    grind
-  | _ => simp
+  simp
 
 @[simp] theorem mergeSort_same_length (xs : List α) :
     ⟪mergeSort xs⟫.length = xs.length := by
   fun_induction mergeSort
   · simp
-  · grind [merge_ret_length_eq_sum]
+  · grind [List.length_merge]
 
 @[simp] theorem merge_time (xs ys : List α) : (merge xs ys).time ≤ xs.length + ys.length := by
   fun_induction merge with
