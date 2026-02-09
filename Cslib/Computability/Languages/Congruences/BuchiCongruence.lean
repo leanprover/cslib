@@ -7,8 +7,7 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Pair
-public import Cslib.Computability.Languages.Congruences.RightCongruence
-public import Cslib.Computability.Languages.OmegaLanguage
+public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Data.Set.Saturation
 
 @[expose] public section
@@ -105,6 +104,38 @@ theorem mem_buchiFamily [Inhabited Symbol]
       xl ∈ na.BuchiCongruence.eqvCls a ∧ (∀ k, xls k ∈ na.BuchiCongruence.eqvCls b - 1) ∧
       xl ++ω xls.flatten = xs := by
   grind [buchiFamily]
+
+/-- `na.buchiFamily` is a cover if `na` has only finitely many states.
+This theorem uses the Ramsey theorem for infinite graphs and does not depend on any details
+of `na.BuchiCongruence` other than that it is of finite index. -/
+theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
+    ⨆ i, na.buchiFamily i = ⊤ := by
+  ext xs
+  simp only [ωLanguage.mem_iSup, Prod.exists, ωLanguage.mem_top, iff_true]
+  have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
+  let color (t : Finset ℕ) : Quotient na.BuchiCongruence.eq :=
+    if h : t.Nonempty then ⟦ xs.extract (t.min' h) (t.max' h) ⟧ else ⟦ [] ⟧
+  obtain ⟨b, ns, h_ns, h_color⟩ := infinite_graph_ramsey color
+  obtain ⟨f, h_mono, rfl⟩ := strictMono_of_infinite h_ns
+  let a : Quotient na.BuchiCongruence.eq := ⟦ xs.take (f 0) ⟧
+  use a, b
+  apply mem_buchiFamily.mpr
+  let ys := xs.drop (f 0)
+  let g := (f · - f 0)
+  have h_mono' : StrictMono g := Nat.base_zero_strictMono h_mono
+  use xs.take (f 0), ys.toSegs g, by grind, ?_, by grind
+  intro k
+  simp only [toSegs_def, Language.mem_sub_one]
+  split_ands
+  · have := h_mono.monotone (show 0 ≤ k by grind)
+    have := h_mono.monotone (show 0 ≤ k + 1 by grind)
+    simp [ys, g, extract_drop, show f 0 + (f k - f 0) = f k by grind,
+      show f 0 + (f (k + 1) - f 0) = f (k + 1) by grind]
+    have := h_mono (show k < k + 1 by grind)
+    specialize h_color ({f k, f (k + 1)} : Finset ℕ) (by grind) (by grind)
+    simp [color] at h_color
+    grind
+  · grind [h_mono' (show k < k + 1 by grind)]
 
 -- This intermediate result is split out of the proof of `buchiCongruence_saturation` below
 -- because that proof was too big and kept exceeding the default `maxHeartbeats`.
