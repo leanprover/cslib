@@ -513,7 +513,7 @@ theorem LTS.STr.single [HasTau Label] (lts : LTS State Label) :
   apply LTS.STr.tr .refl h .refl
 
 /-- STr transitions labeled by HasTau.τ are exactly the τSTr transitions. -/
-@[scoped grind _=_]
+@[simp, scoped grind _=_]
 theorem LTS.sTr_τSTr [HasTau Label] (lts : LTS State Label) :
   lts.STr s HasTau.τ s' ↔ lts.τSTr s s' := by
   apply Iff.intro <;> intro h
