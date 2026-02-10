@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Init
-import Mathlib.Algebra.Order.Sub.Basic
-import Mathlib.Data.Nat.Nth
+module
+
+public import Cslib.Init
+public import Mathlib.Algebra.Order.Sub.Basic
+public import Mathlib.Data.Nat.Nth
+
+@[expose] public section
 
 open Function Set
 
@@ -184,7 +188,7 @@ private lemma base_zero_shift (f : ℕ → ℕ) :
     (f · - f 0) 0 = 0 := by
   simp
 
-private lemma base_zero_strictMono (hm : StrictMono f) :
+theorem base_zero_strictMono (hm : StrictMono f) :
     StrictMono (f · - f 0) := by
   intro m n h_m_n; simp
   have := hm h_m_n

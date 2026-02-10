@@ -4,15 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Buchi
-import Cslib.Computability.Automata.NA.BuchiEquiv
-import Cslib.Computability.Automata.NA.BuchiInter
-import Cslib.Computability.Automata.NA.Concat
-import Cslib.Computability.Automata.NA.Sum
-import Cslib.Computability.Languages.ExampleEventuallyZero
-import Cslib.Computability.Languages.RegularLanguage
-import Mathlib.Data.Finite.Sigma
-import Mathlib.Data.Finite.Sum
+module
+
+public import Cslib.Computability.Automata.DA.Buchi
+public import Cslib.Computability.Automata.NA.BuchiEquiv
+public import Cslib.Computability.Automata.NA.BuchiInter
+public import Cslib.Computability.Automata.NA.Pair
+public import Cslib.Computability.Automata.NA.Sum
+public import Cslib.Computability.Languages.ExampleEventuallyZero
+public import Cslib.Foundations.Data.Set.Saturation
+public import Mathlib.Data.Finite.Card
+public import Mathlib.Data.Finite.Sigma
+public import Mathlib.Logic.Equiv.Fin.Basic
+
+@[expose] public section
 
 /-!
 # ω-Regular languages
@@ -20,14 +25,12 @@ import Mathlib.Data.Finite.Sum
 This file defines ω-regular languages and proves some properties of them.
 -/
 
-open Set Sum Filter Cslib.ωSequence Cslib.Automata ωAcceptor
-open scoped Computability Cslib.LTS
-
-universe u v
-
 namespace Cslib.ωLanguage
 
-variable {Symbol : Type u}
+open Set Sum Filter ωSequence Automata ωAcceptor
+open scoped Computability LTS
+
+variable {Symbol : Type*}
 
 /-- An ω-language is ω-regular iff it is accepted by a
 finite-state nondeterministic Buchi automaton. -/
@@ -171,11 +174,59 @@ theorem IsRegular.hmul {l : Language Symbol} {p : ωLanguage Symbol}
     (h1 : l.IsRegular) (h2 : p.IsRegular) : (l * p).IsRegular := by
   obtain ⟨State1, h_fin1, ⟨na1, acc1⟩, rfl⟩ := Language.IsRegular.iff_nfa.mp h1
   obtain ⟨State2, h_fin1, ⟨na2, acc2⟩, rfl⟩ := h2
-  let State := State1 ⊕ State2
-  let na := NA.concat ⟨na1, acc1⟩ na2
-  let acc : Set State := inr '' acc2
-  use State, inferInstance, ⟨na, acc⟩
-  rw [NA.Buchi.concat_language_eq]
+  use State1 ⊕ State2, inferInstance, ⟨NA.concat ⟨na1, acc1⟩ na2, inr '' acc2⟩
+  exact NA.Buchi.concat_language_eq
+
+/-- The ω-power of a regular language is an ω-regular language. -/
+@[simp]
+theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
+    (h : l.IsRegular) : (l^ω).IsRegular := by
+  obtain ⟨State, h_fin, na, rfl⟩ := Language.IsRegular.iff_nfa.mp h
+  use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
+  exact NA.Buchi.loop_language_eq
+
+/-- An ω-language is regular iff it is the finite union of ω-languages of the form `L * M^ω`,
+where all `L`s and `M`s are regular languages. -/
+theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage Symbol) :
+    p.IsRegular ↔ ∃ n : ℕ, ∃ l m : Fin n → Language Symbol,
+      (∀ i, (l i).IsRegular ∧ (m i).IsRegular) ∧ p = ⨆ i, (l i) * (m i)^ω := by
+  constructor
+  · rintro ⟨State, _, na, rfl⟩
+    rw [NA.Buchi.language_eq_fin_iSup_hmul_omegaPow na]
+    have eq_start := Finite.equivFin ↑na.start
+    have eq_accept := Finite.equivFin ↑na.accept
+    have eq_prod := eq_start.prodCongr eq_accept
+    have eq := (eq_prod.trans finProdFinEquiv).symm
+    refine ⟨Nat.card ↑na.start * Nat.card ↑na.accept,
+      fun i ↦ na.pairLang (eq i).1 (eq i).2,
+      fun i ↦ na.pairLang (eq i).2 (eq i).2,
+      by grind [LTS.pairLang_regular], ?_⟩
+    ext xs
+    simp only [mem_iSup]
+    refine ⟨?_, by grind⟩
+    rintro ⟨s, h_s, t, h_t, h_mem⟩
+    use eq.invFun (⟨s, h_s⟩, ⟨t, h_t⟩)
+    simp [h_mem]
+  · rintro ⟨n, l, m, _, rfl⟩
+    rw [← iSup_univ]
+    apply IsRegular.iSup
+    grind [IsRegular.hmul, IsRegular.omegaPow]
+
+/-- If an ω-language has a finite saturating cover made of ω-regular languages,
+then it is an ω-regular language. -/
+theorem IsRegular.fin_cover_saturates {I : Type*} [Finite I]
+    {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
+    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : q.IsRegular := by
+  rw [saturates_eq_biUnion hs hc]
+  apply IsRegular.iSup
+  grind
+
+/-- If an ω-language has a finite saturating cover made of ω-regular languages,
+then its complement is an ω-regular language. -/
+theorem IsRegular.fin_cover_saturates_compl {I : Type*} [Finite I]
+    {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
+    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular :=
+  IsRegular.fin_cover_saturates (saturates_compl hs) hc hr
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :

@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.NA.Basic
-import Cslib.Foundations.Data.OmegaSequence.Temporal
+module
+
+public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+@[expose] public section
 
 /-! # Concatenation of nondeterministic automata. -/
 
@@ -45,7 +49,6 @@ lemma concat_run_left {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ Stat
     obtain ⟨t1, h_mtr, _⟩ := h_ind (by grind)
     obtain ⟨t1', h_tr, _⟩ : ∃ t1', na1.Tr t1 (xs n) t1' ∧ ss (n + 1) = inl t1' := by
       grind [concat, hc.trans n]
-    use t1'
     grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
 
 lemma concat_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
@@ -74,17 +77,18 @@ lemma concat_run_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ Sta
 
 /-- A run of `concat na1 na2` containing at least one `na2` state is the concatenation of
 an accepting finite run of `na1` followed by a run of `na2`. -/
-theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
-    (hc : (concat na1 na2).Run xs ss) (hr : ∃ k, (ss k).isRight) :
-    ∃ n, xs.take n ∈ language na1 ∧ ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
-  let n := Nat.find hr
-  have hl (k) (h_k : k < n) := not_isRight.mp <| Nat.find_min hr h_k
-  refine ⟨n, ?_, ?_⟩
+theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)} {k : ℕ}
+    (hc : (concat na1 na2).Run xs ss) (hr : (ss k).isRight) :
+    ∃ n, n ≤ k ∧ xs.take n ∈ language na1 ∧
+    ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
+  have hr' : ∃ k, (ss k).isRight := by grind
+  let n := Nat.find hr'
+  have hl (k) (h_k : k < n) := not_isRight.mp <| Nat.find_min hr' h_k
+  refine ⟨n, by grind, ?_, ?_⟩
   · by_cases h_n : n = 0
     · grind [concat_start_right]
     · grind [concat_run_left_right]
-  · have hr : (ss n).isRight := Nat.find_spec hr
-    grind [concat_run_right hc n hl hr]
+  · exact concat_run_right hc n hl (Nat.find_spec hr')
 
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
@@ -95,13 +99,13 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
     refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.ωTr], by simp⟩
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
-    obtain ⟨ss1, _, _, _, _⟩ := LTS.MTr.exists_states h_mtr
+    obtain ⟨ss1, _, _, _, _⟩ := LTS.mTr_isExecution h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
     · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
       simp only [concat]
-      grind [Run, LTS.ωTr, get_append_right', get_append_left]
+      grind [Run, LTS.ωTr, get_append_right', get_append_left, LTS.IsExecution]
     · grind [drop_append_of_le_length]
 
 namespace Buchi
@@ -117,8 +121,8 @@ theorem concat_language_eq {acc2 : Set State2} :
   ext xs
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
-    have h_ex2 : ∃ k, (ss k).isRight := by grind [Frequently.exists h_acc]
-    obtain ⟨n, h_acc1, ss2, h_run2, h_map2⟩ := concat_run_proj h_run h_ex2
+    obtain ⟨k, h_k⟩ : ∃ k, (ss k).isRight := by grind [Frequently.exists h_acc]
+    obtain ⟨n, _, h_acc1, ss2, h_run2, h_map2⟩ := concat_run_proj h_run h_k
     use xs.take n, h_acc1, xs.drop n, ?_, by simp
     use ss2, h_run2
     grind [(drop_frequently_iff_frequently n).mpr h_acc]
@@ -129,5 +133,49 @@ theorem concat_language_eq {acc2 : Set State2} :
     grind
 
 end Buchi
+
+namespace FinAcc
+
+/-- `finConcat na1 na2` is the concatenation of the "totalized" versions of `na1` and `na2`. -/
+def finConcat (na1 : FinAcc State1 Symbol) (na2 : FinAcc State2 Symbol)
+  : NA ((State1 ⊕ Unit) ⊕ (State2 ⊕ Unit)) Symbol :=
+  concat ⟨na1.totalize, inl '' na1.accept⟩ na2.totalize
+
+variable {na1 : FinAcc State1 Symbol} {na2 : FinAcc State2 Symbol}
+
+/-- `finConcat na1 na2` is total. -/
+instance : (finConcat na1 na2).Total where
+  total s x := match s with
+    | inl _ => ⟨inl (inr ()), by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
+    | inr _ => ⟨inr (inr ()), by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
+
+/-- `finConcat na1 na2` accepts the concatenation of the languages of `na1` and `na2`. -/
+theorem finConcat_language_eq [Inhabited Symbol] :
+    language (FinAcc.mk (finConcat na1 na2) (inr '' (inl '' na2.accept))) =
+    language na1 * language na2 := by
+  ext xl
+  constructor
+  · rintro ⟨s, _, t, h_acc, h_mtr⟩
+    obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr h_mtr
+    have hc : (finConcat na1 na2).Run (xl ++ω xs) ss := by grind [Run]
+    have hr : (ss xl.length).isRight := by grind
+    obtain ⟨n, _⟩ := concat_run_proj hc hr
+    refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
+    · grind [totalize_language_eq, take_append_of_le_length]
+    · have : ss xl.length = (ss.drop n) (xl.length - n) := by grind
+      grind [drop_append_of_le_length, take_append_of_le_length, totalize_run_mtr]
+    · exact xl.take_append_drop n
+  · rintro ⟨xl1, h_xl1, xl2, h_xl2, rfl⟩
+    rw [← totalize_language_eq] at h_xl1
+    obtain ⟨_, h_s2, _, _, h_mtr2⟩ := h_xl2
+    obtain ⟨_, _, h_run2, _, _⟩ := totalize_mtr_run h_s2 h_mtr2
+    obtain ⟨ss, ⟨_, h_ωtr⟩, _⟩ := concat_run_exists h_xl1 h_run2
+    grind [
+      finConcat, List.length_append, take_append_of_le_length,
+      extract_eq_drop_take, =_ append_append_ωSequence, get_drop xl2.length xl1.length ss,
+      LTS.ωTr_mTr h_ωtr (zero_le (xl1.length + xl2.length))
+    ]
+
+end FinAcc
 
 end Cslib.Automata.NA

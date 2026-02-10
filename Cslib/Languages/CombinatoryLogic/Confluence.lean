@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.CombinatoryLogic.Defs
+module
+
+public import Cslib.Foundations.Data.Relation
+public import Cslib.Languages.CombinatoryLogic.Defs
+
+@[expose] public section
 
 /-!
 # SKI reduction is confluent
@@ -92,11 +96,11 @@ theorem reflTransGen_parallelReduction_mRed :
     Relation.ReflTransGen ParallelReduction = RedSKI.MRed := by
   ext a b
   constructor
-  · apply Relation.reflTransGen_minimal
+  · apply Relation.reflTransGen_of_transitive_reflexive
     · exact fun _ => by rfl
     · exact Relation.transitive_reflTransGen
     · exact @mRed_of_parallelReduction
-  · apply Relation.reflTransGen_minimal
+  · apply Relation.reflTransGen_of_transitive_reflexive
     · exact Relation.reflexive_reflTransGen
     · exact Relation.transitive_reflTransGen
     · exact fun a a' h => Relation.ReflTransGen.single (parallelReduction_of_red h)

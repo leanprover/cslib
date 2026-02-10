@@ -4,11 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 -/
 
-import Cslib.Init
-import Mathlib.Logic.Relation
-import Mathlib.Data.List.TFAE
-import Mathlib.Order.WellFounded
-import Mathlib.Order.BooleanAlgebra.Basic
+module
+
+public import Cslib.Init
+public import Mathlib.Logic.Relation
+public import Mathlib.Data.List.TFAE
+public import Mathlib.Order.Comparable
+public import Mathlib.Order.WellFounded
+public import Mathlib.Order.BooleanAlgebra.Basic
+
+@[expose] public section
 
 variable {α : Type*} {r : α → α → Prop}
 
@@ -29,7 +34,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
-attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
+attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
   induction h <;> grind
@@ -40,7 +45,11 @@ theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
 theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
   induction h <;> grind
 
+theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b := by
+  induction h <;> grind
+
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
+  SymmGen.to_eqvGen
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
@@ -117,11 +126,26 @@ theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
 theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
   List.TFAE.out confluent_equivalents 2 1
 
+theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
+  intro a b c hab hac
+  exact ⟨x, h b, h c⟩
+
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 
 /-- An element is normal if it is not reducible. -/
 abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
+
+theorem Normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ r x y := by
+  rw [Normal, not_exists]
+
+/-- An element is normalizable if it is related to a normal element. -/
+abbrev Normalizable (r : α → α → Prop) (x : α) : Prop :=
+  ∃ n, ReflTransGen r x n ∧ Normal r n
+
+/-- A relation is normalizing when every element is normalizable. -/
+abbrev Normalizing (r : α → α → Prop) : Prop :=
+  ∀ x, Normalizable r x
 
 /-- A multi-step from a normal form must be reflexive. -/
 @[grind =>]
@@ -165,17 +189,69 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
 theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
-  simp only [Terminating]
-  convert WellFounded.transGen ht using 1
-  grind [transGen_swap, WellFounded.transGen]
+  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
+  grind [transGen_swap]
 
 theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
-  simp only [Terminating]
-  convert @WellFounded.ofTransGen α (Function.swap r) using 2
+  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
   grind [transGen_swap]
 
 theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r :=
   ⟨ofTransGen, toTransGen⟩
+
+theorem Terminating.subrelation {r' : α → α → Prop} (hr : Terminating r) (h : Subrelation r' r) :
+    Terminating r' := by
+  rw [Terminating, wellFounded_iff_isEmpty_descending_chain] at hr ⊢
+  rw [isEmpty_subtype]
+  intro f hf
+  exact hr.elim ⟨f, fun n ↦ by exact h (hf n)⟩
+
+theorem Terminating.isNormalizing (h : Terminating r) : Normalizing r := by
+  unfold Terminating at h
+  intro t
+  apply WellFounded.induction h t
+  intro a ih
+  by_cases ha : Reducible r a
+  · obtain ⟨b, hab⟩ := ha
+    obtain ⟨n, hbn, hn⟩ := ih b hab
+    exact ⟨n, ReflTransGen.head hab hbn, hn⟩
+  · use a
+
+theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
+    Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
+  have hn : Normalizing r := ht.isNormalizing
+  constructor
+  · intro hc a
+    apply existsUnique_of_exists_of_unique (hn a)
+    rintro n₁ n₂ ⟨hr₁, hn₁⟩ ⟨hr₂, hn₂⟩
+    have hj : Join (ReflTransGen r) n₁ n₂ := hc hr₁ hr₂
+    obtain ⟨m, h₁, h₂⟩ := hj
+    rw [Normal.reflTransGen_eq hn₁ h₁, Normal.reflTransGen_eq hn₂ h₂]
+  · intro h a b c hab hac
+    obtain ⟨na, ⟨han, hnnor⟩, H⟩ := h a
+    use na
+    obtain ⟨nb, hbnb, hnb⟩ := hn b
+    obtain ⟨nc, hcnc, hnc⟩ := hn c
+    have hanb : (ReflTransGen r) a nb := ReflTransGen.trans hab hbnb
+    have hanc : (ReflTransGen r) a nc := ReflTransGen.trans hac hcnc
+    have hnanb : nb = na := H nb ⟨hanb, hnb⟩
+    have hnanc : nc = na := H nc ⟨hanc, hnc⟩
+    rw [hnanb] at hbnb
+    rw [hnanc] at hcnc
+    exact ⟨hbnb, hcnc⟩
+
+/-- A relation is convergent when it is both confluent and terminating. -/
+abbrev Convergent (r : α → α → Prop) := Confluent r ∧ Terminating r
+
+theorem Convergent.isTerminating (h : Convergent r) : Terminating r := h.right
+
+theorem Convergent.isConfluent (h : Convergent r) : Confluent r := h.left
+
+theorem Convergent.isNormalizing (h : Convergent r) : Normalizing r := h.isTerminating.isNormalizing
+
+theorem Convergent.unique_Normal (h : Convergent r) :
+    ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n :=
+  h.isTerminating.isConfluent_iff_all_unique_Normal.mp h.isConfluent
 
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=
@@ -302,5 +378,30 @@ theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelat
     ReflTransGen r₁ = ReflTransGen r₂ := by
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
+
+lemma ReflGen.compRel_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
+| .refl => .refl
+| .single (.inl h) => .single (.inr h)
+| .single (.inr h) => .single (.inl h)
+
+@[simp, grind =]
+theorem reflTransGen_compRel : ReflTransGen (SymmGen r) = EqvGen r := by
+  ext a b
+  constructor
+  · intro h
+    induction h with
+    | refl => exact .refl _
+    | tail hab hbc ih =>
+      cases hbc with
+      | inl h => exact ih.trans _ _ _ (.rel _ _ h)
+      | inr h => exact ih.trans _ _ _ (.symm _ _ (.rel _ _ h))
+  · intro h
+    induction h with
+    | rel _ _ ih => exact .single (.inl ih)
+    | refl x => exact .refl
+    | symm x y eq ih =>
+      rw [symmGen_swap]
+      exact reflTransGen_swap.mp ih
+    | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
 
 end Relation

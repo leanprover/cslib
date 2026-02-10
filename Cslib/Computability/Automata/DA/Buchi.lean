@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Computability.Automata.DA.Basic
+module
+
+public import Cslib.Computability.Automata.DA.Basic
+
+public section
 
 /-! # Deterministic Buchi automata.
 -/

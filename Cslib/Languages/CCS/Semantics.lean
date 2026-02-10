@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Basic
-import Cslib.Languages.CCS.Basic
+module
+
+public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Languages.CCS.Basic
+
+@[expose] public section
 
 /-! # Semantics of CCS
 

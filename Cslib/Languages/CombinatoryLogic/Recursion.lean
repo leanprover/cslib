@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
 
-import Cslib.Languages.CombinatoryLogic.Basic
+module
+
+public import Cslib.Languages.CombinatoryLogic.Basic
+
+@[expose] public section
 
 /-!
 # General recursion in the SKI calculus

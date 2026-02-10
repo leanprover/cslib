@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Data.HasFresh
-import Cslib.Foundations.Syntax.HasSubstitution
+module
+
+public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Syntax.HasSubstitution
+
+@[expose] public section
 
 /-! # λ-calculus
 
