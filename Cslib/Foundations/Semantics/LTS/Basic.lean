@@ -745,6 +745,7 @@ theorem LTS.saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label
       exact Relation.ReflTransGen.single h4
 
 /-- In a saturated LTS, every state is in its τ-image. -/
+@[grind .]
 theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
   s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
 
@@ -769,6 +770,7 @@ theorem LTS.STr.comp
     exact LTS.STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
 /-- Saturated transitions labelled by τ can be composed. -/
+@[grind .]
 theorem LTS.STr.trans_τ
   [HasTau Label] (lts : LTS State Label)
   (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
