@@ -1,5 +1,9 @@
 import Cslib.Foundations.Data.HasFresh
 
+namespace CslibTests
+
+open Cslib
+
 variable {Var Term : Type} [DecidableEq Var] [HasFresh Var]
 
 open HasFresh
@@ -14,7 +18,7 @@ example (x : Var) (xs : Finset Var) : ∃ y, x ≠ y ∧ y ∉ xs := by
 def fv : Term → Finset ℕ := fun _ ↦ {1, 2, 3}
 
 /-- An example including a specified `free` function. -/
-example (_ : Term) (x : ℕ) (xs : Finset ℕ) : 
+example (_ : Term) (x : ℕ) (xs : Finset ℕ) :
     ∃ y : ℕ, x ≠ y ∧ y ∉ xs ∧ y ∉ ({1, 2, 3} : Finset ℕ) := by
   let ⟨fresh, _⟩ := fresh_exists <| free_union [@fv Term] ℕ
   exists fresh
@@ -49,3 +53,5 @@ def g (_ : String) : Finset ℕ := {4, 5, 6}
 #check free_union (singleton := false) (finset := false) ℕ
 
 end
+
+end CslibTests

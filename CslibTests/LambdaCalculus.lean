@@ -6,8 +6,11 @@ Authors: Fabrizio Montesi
 
 import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 
-open LambdaCalculus.Named
-open LambdaCalculus.Named.Term
+
+
+namespace CslibTests
+
+open Cslib LambdaCalculus.Named LambdaCalculus.Named.Term
 
 abbrev NatTerm := Term ℕ
 
@@ -30,7 +33,9 @@ attribute [simp] x y z w
 local instance coeNatTerm : Coe ℕ (Term ℕ) := ⟨Term.var⟩
 
 -- section 5.3.4 of TAPL
-example : (abs y (app x y))[x := (app y z : Term ℕ)] = (abs w (app (app y z) w)) := by 
+example : (abs y (app x y))[x := (app y z : Term ℕ)] = (abs w (app (app y z) w)) := by
   simp [subst, fv, bv, vars, rename, instHasFreshNat, HasFresh.ofSucc, instHasSubstitutionTerm]
 
 -- example : (abs 0 (abs 1 (app (var 0) (var 1)))) =α (abs 1 (abs 0 (app (var 1) (var 0)))) := by
+
+end CslibTests
