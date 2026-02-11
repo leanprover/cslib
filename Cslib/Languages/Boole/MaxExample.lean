@@ -8,7 +8,7 @@ def maxExample : Strata.Program :=
 #strata
 program Boole; // Specify that this is a Boole program.
 
-procedure loopSimple (x: int, y: int) returns (r: int)
+procedure max (x: int, y: int) returns (r: int)
 spec {
   ensures r >= x && r >= y;
   ensures r == x || r == y;
