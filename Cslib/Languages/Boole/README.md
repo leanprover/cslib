@@ -145,7 +145,7 @@ resulting obligations into Lean.
 You can try this approach by proving the following theorem:
 
 ```lean
-theorem maxExample_smtVCsCorrect : smtVCsCorrect maxExample := by
+theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrect maxExample := by
   gen_smt_vcs
 ```
 
@@ -171,7 +171,7 @@ case loopSimple_ensures_0
 These goals can be discharged using standard Lean tactics. For example:
 
 ```lean
-theorem maxExample_smtVCsCorrect : smtVCsCorrect maxExample := by
+theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrect maxExample := by
   gen_smt_vcs
   all_goals smt
 ```
@@ -184,38 +184,4 @@ To use it, ensure you import:
 import Smt
 ```
 
-## Full Example
-
-```lean
-import Strata.MetaVerifier
-import Smt
-
-open Strata
-
-def maxExample : Strata.Program :=
-#strata
-program Boole;
-
-procedure loopSimple (x: int, y: int) returns (r: int)
-spec {
-  ensures r >= x && r >= y;
-  ensures r == x || r == y;
-}
-{
-  if (x >= y) {
-    r := x;
-  }
-  else {
-    r := y;
-  }
-};
-#end
-
-#eval Strata.Boole.verify "cvc5" maxExample
-
-open Strata.SMT
-
-theorem maxExample_smtVCsCorrect : smtVCsCorrect maxExample := by
-  gen_smt_vcs
-  all_goals smt
-```
+The full example is available in [`MaxExample.lean`](MaxExample.lean).
