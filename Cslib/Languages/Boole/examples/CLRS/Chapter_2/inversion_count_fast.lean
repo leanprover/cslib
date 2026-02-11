@@ -56,7 +56,7 @@ spec
   // copy A[l .. m] into L[0 .. nL-1]
   i := 0;
   while (i < nL)
-    invariant (0 <= i && i <= nL);
+    invariant (0 <= i && i <= nL)
   {
     L := L[i := A[l + i]];
     // [FEATURE REQUEST] Support for simple indexing
@@ -69,7 +69,7 @@ spec
   // copy A[m+1 .. r] into R[0 .. nR-1]
   j := 0;
   while (j < nR)
-    invariant (0 <= j && j <= nR);
+    invariant (0 <= j && j <= nR)
   {
     R := R[j := A[m + 1 + j]];
     // [FEATURE REQUEST] Support for simple indexing
@@ -83,10 +83,10 @@ spec
   k := l;
 
   while (i < nL && j < nR)
-    // invariant (0 <= i && i <= nL);
-    // invariant (0 <= j && j <= nR);
-    // invariant (l <= k && k <= r + 1);
-    invariant (inv >= 0);
+    // invariant (0 <= i && i <= nL)
+    // invariant (0 <= j && j <= nR)
+    // invariant (l <= k && k <= r + 1)
+    invariant (inv >= 0)
     // [FEATURE REQUEST]
     // [Style] Support for multiple invariants
   {
@@ -104,8 +104,8 @@ spec
 
   // copy any remaining L
   while (i < nL)
-    //invariant (0 <= i && i <= nL);
-    invariant (l <= k && k <= r + 1);
+    //invariant (0 <= i && i <= nL)
+    invariant (l <= k && k <= r + 1)
   {
     A := A[k := L[i]];
     i := i + 1;
@@ -114,8 +114,8 @@ spec
 
   // copy any remaining R
   while (j < nR)
-    //invariant (0 <= j && j <= nR);
-    invariant (l <= k && k <= r + 1);
+    //invariant (0 <= j && j <= nR)
+    invariant (l <= k && k <= r + 1)
   {
     A := A[k := R[j]];
     j := j + 1;

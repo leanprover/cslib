@@ -11,7 +11,7 @@ spec {
   else{
     y := 1;
     while (y * y <= x)
-      invariant ((y - 1) * (y - 1) <= x);
+      invariant ((y - 1) * (y - 1) <= x)
     {
       y := y + 1;
     }

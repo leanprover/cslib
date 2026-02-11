@@ -39,7 +39,7 @@ spec {
   assert (fa * fb < 0.0);
 
   while (epsilon <= (b - a) div 2.0)
-    invariant (a <= b && fa * fb <= 0.0);
+    invariant (a <= b && fa * fb <= 0.0)
     // Root exists in [a,b]
     // [NOTE] specifying decreases clause for reals
   {

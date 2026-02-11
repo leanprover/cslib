@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -52,7 +53,7 @@ procedure Loop () returns ()
   i := 0;
 
   while (i < 10)
-    invariant 0 <= i && i <= 10;
+    invariant 0 <= i && i <= 10
   {
     i := i + 1;
   }
@@ -75,6 +76,6 @@ procedure Evaluate () returns ()
 
 example : Strata.smtVCsCorrect constants := by
   gen_smt_vcs
-  all_goals grind
+  all_goals smt
 
 end Strata

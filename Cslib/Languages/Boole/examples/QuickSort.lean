@@ -30,7 +30,7 @@ procedure Partition(a: Array, low: int, high: int) returns (result: Array, pivot
     j := low;
 
     while (j < high)
-      invariant low - 1 <= i < j <= high;
+      invariant low - 1 <= i < j <= high
     {
         if (a[j] <= pivot) {
             i := i + 1;

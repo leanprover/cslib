@@ -53,14 +53,14 @@ spec
 
   // Convert CLRS 1-based loops to 0-based:
   for (var i : int := 0; i < n; i + 1)
-    invariant (0 <= i && i <= n && inv >= 0);
+    invariant (0 <= i && i <= n && inv >= 0)
   {
     // for j = i+1 to n-1:
     j := i + 1;
     while (j < n)
-      //invariant (i + 1 <= j && j <= n);
-      //invariant (0 <= i && i < n + 1);
-      invariant (inv >= 0);
+      //invariant (i + 1 <= j && j <= n)
+      //invariant (0 <= i && i < n + 1)
+      invariant (inv >= 0)
       // [FEATURE REQUEST] Support for multiple invariants
     {
       if (A[i] > A[j]) {

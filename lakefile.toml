@@ -21,6 +21,11 @@ rev = "v4.27.0"
 [[require]]
 name = "Strata"
 git = "https://github.com/abdoo8080/Strata"
+rev = "boole-clean"
+
+[[require]]
+name = "smt"
+git = "https://github.com/ufmg-smite/lean-smt"
 rev = "boole"
 
 [[lean_lib]]

@@ -58,9 +58,9 @@ procedure findUnmatchedStudent() returns (s: int)
   i := 1;
   
   while (i <= n)
-    invariant 1 <= i <= n + 1;
-    invariant s == 0 ==> (forall j: int :: 1 <= j < i ==> !isStudentUnmatched(j) || hasProposedToAll(j));
-    invariant s != 0 ==> 1 <= s < i && isStudentUnmatched(s) && !hasProposedToAll(s);
+    invariant 1 <= i <= n + 1
+    invariant s == 0 ==> (forall j: int :: 1 <= j < i ==> !isStudentUnmatched(j) || hasProposedToAll(j))
+    invariant s != 0 ==> 1 <= s < i && isStudentUnmatched(s) && !hasProposedToAll(s)
   {
     if (isStudentUnmatched(i) && !hasProposedToAll(i)) {
       s := i;
@@ -94,12 +94,12 @@ procedure GaleShapley()
   assume (forall s: int :: 1 <= s <= n ==> count[s] == 0);
   
   while (true)
-    invariant (forall s: int :: 1 <= s <= n ==> 0 <= hospital[s] <= n);
-    invariant (forall h: int :: 1 <= h <= n ==> 0 <= student[h] <= n);
-    invariant (forall s: int :: 1 <= s <= n ==> 0 <= count[s] <= n);
+    invariant (forall s: int :: 1 <= s <= n ==> 0 <= hospital[s] <= n)
+    invariant (forall h: int :: 1 <= h <= n ==> 0 <= student[h] <= n)
+    invariant (forall s: int :: 1 <= s <= n ==> 0 <= count[s] <= n)
     // Matching consistency
-    invariant (forall s: int :: 1 <= s <= n && hospital[s] != 0 ==> student[hospital[s]] == s);
-    invariant (forall h: int :: 1 <= h <= n && student[h] != 0 ==> hospital[student[h]] == h);
+    invariant (forall s: int :: 1 <= s <= n && hospital[s] != 0 ==> student[hospital[s]] == s)
+    invariant (forall h: int :: 1 <= h <= n && student[h] != 0 ==> hospital[student[h]] == h)
   {
     call currentStudent := findUnmatchedStudent();
     
@@ -147,11 +147,11 @@ procedure isStableMatching() returns (stable: bool)
   s := 1;
   
   while (s <= n && stable)
-    invariant 1 <= s <= n + 1;
+    invariant 1 <= s <= n + 1
   {
     h := 1;
     while (h <= n && stable)
-      invariant 1 <= h <= n + 1;
+      invariant 1 <= h <= n + 1
     {
       if (hospital[s] != h && student[h] != 0) {
         // Check if (s,h) forms a blocking pair

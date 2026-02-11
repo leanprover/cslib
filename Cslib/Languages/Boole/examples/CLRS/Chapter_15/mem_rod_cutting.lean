@@ -73,8 +73,8 @@ spec
       // for i = 1 to n
       i := 1;
       while (i <= n)
-        // invariant (1 <= i && i <= n + 1);
-        // invariant (q >= 0);
+        // invariant (1 <= i && i <= n + 1)
+        // invariant (q >= 0)
         // [FEATURE REQUEST] Support for multiple invariants
         invariant (
           forall t:int :: 0 <= t && t <= n ==> (r'[t] == -1 || r'[t] >= 0)
@@ -124,7 +124,7 @@ spec
   // [FEATURE REQUEST] Array allocation / initialization sugar
   i := 0;
   while (i <= n)
-    // invariant (0 <= i && i <= n + 1);
+    // invariant (0 <= i && i <= n + 1)
     // [FEATURE REQUEST] Support for multiple invariants
     invariant (
       forall t:int :: 0 <= t && t < i ==> r[t] == -1

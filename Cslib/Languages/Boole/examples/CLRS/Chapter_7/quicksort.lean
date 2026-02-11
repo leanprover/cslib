@@ -69,7 +69,7 @@ spec
   j := p;
 
   while (j <= r - 1)
-    invariant p - 1 <= i && i < j && j <= r;
+    invariant p - 1 <= i && i < j && j <= r
   {
     if (A[j] <= x) {
       i := i + 1;

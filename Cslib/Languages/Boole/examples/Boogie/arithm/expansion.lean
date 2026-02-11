@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -30,5 +31,5 @@ procedure foo() returns ()
 #eval Strata.Boole.verify "cvc5" expansion
 
 example : Strata.smtVCsCorrect expansion := by
-  gen_boogie_vcs
+  gen_smt_vcs
   all_goals grind

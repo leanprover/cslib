@@ -34,7 +34,7 @@ spec
   s := 0;
   foo := 27;
   while (i < n)
-    invariant (0 <= i && i <= n) && (s == (i * (i + 1)) div 2) && (n >= 0);
+    invariant (0 <= i && i <= n) && (s == (i * (i + 1)) div 2) && (n >= 0)
   {
     i := i + 1;
     s := s + i;

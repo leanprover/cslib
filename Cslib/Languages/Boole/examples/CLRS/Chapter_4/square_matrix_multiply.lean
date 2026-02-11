@@ -41,16 +41,16 @@ spec
 
   i := 1;
   while (i <= n)
-    invariant 1 <= i && i <= n + 1;
+    invariant 1 <= i && i <= n + 1
   {
     j := 1;
     while (j <= n)
-      invariant 1 <= j && j <= n + 1;
+      invariant 1 <= j && j <= n + 1
     {
       C := (C[i := C[i][j := 0]]);
       k := 1;
       while (k <= n)
-        invariant 1 <= k && k <= n + 1;
+        invariant 1 <= k && k <= n + 1
       {
         C := (C[i := C[i][j := (C[i][j] + (A[i][k] * B[k][j]))]]);
         k := k + 1;

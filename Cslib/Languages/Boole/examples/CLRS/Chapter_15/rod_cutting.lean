@@ -51,8 +51,8 @@ spec
   // for j = 1 to n
   j := 1;
   while (j <= n)
-    // invariant (1 <= j && j <= n + 1);
-    // invariant (r[0] == 0);
+    // invariant (1 <= j && j <= n + 1)
+    // invariant (r[0] == 0)
     // [FEATURE REQUEST] Support for multiple invariants
     invariant (
       forall t:int ::
@@ -66,8 +66,8 @@ spec
     // for i = 1 to j
     i := 1;
     while (i <= j)
-      // invariant (1 <= i && i <= j + 1);
-      // invariant (q >= 0);
+      // invariant (1 <= i && i <= j + 1)
+      // invariant (q >= 0)
       // [FEATURE REQUEST] Support for multiple invariants
       invariant (
         forall t:int ::

@@ -40,7 +40,7 @@ spec
   // for i = n downto 0
   // [FEATURE REQUEST] For loop construct with downto
   while (i >= 0)
-    invariant (i >= -1 && i <= n);
+    invariant (i >= -1 && i <= n)
   {
     y := A[i] + x * y;
     i := i - 1;

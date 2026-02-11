@@ -8,7 +8,7 @@ namespace Strata
 -- HEAPSORT(A)
 -- 1  BUILD_MAX_HEAP(A)
 -- 2  for i = A.length to 2
--- 3    exchange A[1] with A[i]      
+-- 3    exchange A[1] with A[i]
 -- 4    A.heapsize = A.heapsize - 1
 -- 5    MAX_HEAPIFY(A, 1)
 -- To sort an entire array A, the initial call is HEAPSORT(A)
@@ -76,10 +76,10 @@ spec
     var r: int;
     var largest: int;
     var tmp: int;
-    
+
     call l := Left(i);
     call r := Right(i);
-    
+
     if (l <= heapsize && A[l] > A[i]) {
         largest := l;
     } else {
@@ -97,7 +97,7 @@ spec
 
         call MaxHeapify(largest);
     }
-  
+
 };
 
 procedure BuildMaxHeap() returns ()
@@ -111,13 +111,13 @@ spec
 
     var i: int;
     i := n div 2; -- floor ideally
-    while (i >= 1) 
-        invariant 1 <= i <= n/2 + 1;
-        invariant heapsize == n;
-        invariant forall j: int, i + 1 <= j && j <= n ==> A[j/2] >= A[j]; -- IsMaxHeap(i+1, n)
+    while (i >= 1)
+        invariant 1 <= i <= n/2 + 1
+        invariant heapsize == n
+        invariant forall j: int, i + 1 <= j && j <= n ==> A[j/2] >= A[j] -- IsMaxHeap(i+1, n)
     {
        call MaxHeapify(i);
-       i := i - 1; 
+       i := i - 1;
     }
 };
 
@@ -133,21 +133,21 @@ spec
     var i: int;
 
     i := n;
-    while (i > 1) 
-        invariant 1 <= i <= n;
-        invariant heapsize == i;
-        invariant forall j : int, 2 <= j && j <= i ==> A[j/2] >= A[j];
-        invariant forall j, k: int, i + 1 <= j < k <= n => A[j] <= A[k];
+    while (i > 1)
+        invariant 1 <= i <= n
+        invariant heapsize == i
+        invariant forall j : int, 2 <= j && j <= i ==> A[j/2] >= A[j]
+        invariant forall j, k: int, i + 1 <= j < k <= n => A[j] <= A[k]
     {
         -- swap A[1] and A[i]
         var tmp: int;
         tmp := A[1];
         A := A[1 := A[i]];
         A := A[i := tmp];
-        
+
         heapsize := heapsize - 1
         call MaxHeapify(1);
-        i := i - 1; 
+        i := i - 1;
     }
 };
 

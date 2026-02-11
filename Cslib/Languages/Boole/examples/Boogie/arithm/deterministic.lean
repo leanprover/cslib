@@ -1,4 +1,6 @@
 import Strata.MetaVerifier
+import Smt
+
 namespace Strata
 
 private def deterministic :=
@@ -41,6 +43,6 @@ procedure Check(x1:int, x2:int) returns ()
 
 example : Strata.smtVCsCorrect deterministic := by
   gen_smt_vcs
-  all_goals grind
+  all_goals smt
 
 end Strata

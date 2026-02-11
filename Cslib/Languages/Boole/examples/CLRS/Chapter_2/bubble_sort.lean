@@ -42,7 +42,7 @@ spec
   i := 0;
 
   while (i < n - 1)
-    // invariant (0 <= i && i <= n - 1);
+    // invariant (0 <= i && i <= n - 1)
     // [FEATURE REQUEST] Support for multiple invariants
     invariant (
       forall p:int, q:int ::
@@ -53,8 +53,8 @@ spec
     j := n - 1;
 
     while (j > i)
-      //invariant (i < j && j < n);
-      //invariant (0 <= i && i <= n - 1);
+      //invariant (i < j && j < n)
+      //invariant (0 <= i && i <= n - 1)
       invariant (
         forall p:int, q:int ::
           (n - (i)) <= p && p <= q && q < n ==> A[p] <= A[q]
