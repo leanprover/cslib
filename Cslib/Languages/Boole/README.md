@@ -31,7 +31,8 @@ Build and test the project using Lean's standard workflow:
 lake update && lake build
 ```
 
-Some files will fail to build if you don't have `cvc5` installed on your machine. However, you can resolve those failures by commenting out commands of the form `#eval Strata.Boole.verify <program>`.
+Some files will fail to build if you don't have `cvc5` installed on your machine. However, you can
+resolve those failures by commenting out commands of the form `#eval Strata.Boole.verify <program>`.
 
 After a successful build, you should be able to open any file in this directory and have Lean
 automatically elaborate the code and attempt to verify the stated properties (some may fail if
