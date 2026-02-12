@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -57,7 +58,7 @@ spec
     invariant (
       forall t:int ::
         0 <= t && t < j ==> r[t] >= 0
-    );
+    )
   {
     // q = 0   (instead of -∞)
     // [FEATURE REQUEST] Support for -∞ / extended integers
@@ -72,7 +73,7 @@ spec
       invariant (
         forall t:int ::
           0 <= t && t < j ==> r[t] >= 0
-      );
+      )
     {
       // cand = p[i] + r[j - i]
       cand := p[i] + r[j - i];
@@ -81,7 +82,7 @@ spec
       // [FEATURE REQUEST] Built-in max operator
       if (cand > q) {
         q := cand;
-      };
+      }
 
       i := i + 1;
     }
@@ -97,4 +98,4 @@ spec
 
 #end
 
-#eval verify "cvc5" rodCuttingPgm
+#eval Strata.Boole.verify "cvc5" rodCuttingPgm

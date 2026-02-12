@@ -217,7 +217,7 @@ termination_by xs.length decreasing_by all_goals grind
 #eval (mergeSort [1,2,3,4,5,6,7,8]).run.1.2
 
 
-lemma correctness(xs : List ℕ ): List.Sorted (. ≤ .) (mergeSort xs).run.1.1  := sorry
+lemma correctness(xs : List ℕ ): List.Pairwise (. ≤ .) (mergeSort xs).run.1.1  := sorry
 lemma nlogn_time (xs : List ℕ ): (mergeSort xs).run.2 ≤ 10*xs.length* (Nat.log2 xs.length) := sorry
 
 lemma no_mem_leak(xs : List ℕ ): (mergeSort xs).run.1.2.space = xs.length := sorry

@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -47,12 +48,12 @@ spec
     while (j <= n)
       invariant 1 <= j && j <= n + 1
     {
-      C := (C[i := C[i][j := 0]]);
+      C := (C[i := (C[i])[j := 0]]);
       k := 1;
       while (k <= n)
         invariant 1 <= k && k <= n + 1
       {
-        C := (C[i := C[i][j := (C[i][j] + (A[i][k] * B[k][j]))]]);
+        C := (C[i := (C[i])[j := ((C[i])[j] + ((A[i])[k] * (B[k])[j]))]]);
         k := k + 1;
       }
       j := j + 1;
@@ -63,4 +64,8 @@ spec
 
 #end
 
-#eval verify "cvc5" squareMatrixMult
+#eval Strata.Boole.verify "cvc5" squareMatrixMult
+
+example : Strata.smtVCsCorrect squareMatrixMult := by
+  gen_smt_vcs
+  all_goals smt

@@ -7,7 +7,7 @@ QuickSort
 /-
 def LinearSearchEnv :=
 #strata
-program Boogie;
+program Boole;
 
 type Array = [int]int;
 

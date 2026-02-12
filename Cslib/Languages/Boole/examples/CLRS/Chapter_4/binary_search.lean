@@ -1,5 +1,5 @@
 import Strata.MetaVerifier
-namespace Strata
+import Smt
 
 -- Exercise 2.3-5 solution
 -- Standard binary search: given a sorted array A[0..n-1] and a value x,
@@ -29,7 +29,7 @@ var A : Array;
 // Why we need this:
 // After binary search exits without finding x, we know logically that the remaining search
 // interval is empty (low > high). The loop invariant tracks that any occurrence of x must be
-// within [low..high]. However, Boogie/Strata cannot automatically deduce that an empty interval
+// within [low..high]. However, Strata cannot automatically deduce that an empty interval
 // implies no x exists. The lemma explicitly bridges this gap.
 procedure IntervalEmptyImpliesNoX(low: int, high: int, n: int, A: Map int int, x: int) returns ()
 spec {
@@ -80,7 +80,7 @@ spec
             && -1 <= high && high < n
             && (idx != -1 ==> 0 <= idx && idx < n && A[idx] == x)
             // any x must be in the current search interval
-            && forall k:int :: 0 <= k && k < n && A[k] == x ==> low <= k && k <= high;
+            && forall k:int :: 0 <= k && k < n && A[k] == x ==> low <= k && k <= high
     {
         mid := (low + high) div 2;
 
@@ -106,4 +106,10 @@ spec
 
 #end
 
-#eval verify "cvc5" binarySearch
+#eval Strata.Boole.verify "cvc5" binarySearch
+
+example : Strata.smtVCsCorrect binarySearch := by
+  gen_smt_vcs
+  all_goals (try smt +mono)
+  · sorry
+  · sorry

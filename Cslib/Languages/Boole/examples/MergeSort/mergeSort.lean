@@ -2,6 +2,7 @@ import Mathlib.Data.Nat.Basic
 import Init.Data.Option.Coe
 import Mathlib.Order.Lattice
 import Mathlib.Data.List.Sort
+import Mathlib.Tactic.Cases
 import Mathlib.Tactic.Ring.Basic
 import Mathlib.Tactic.Ring.RingNF
 import Mathlib.Data.Nat.Log
@@ -107,7 +108,7 @@ termination_by xs.length decreasing_by all_goals grind
 
 open List
 
-@[simp, grind] def IsSorted (l : List ℕ) : Prop := Sorted (· ≤ ·) l
+@[simp, grind] def IsSorted (l : List ℕ) : Prop := Pairwise (· ≤ ·) l
 @[simp, grind] def MinOfList (x : ℕ) (l : List ℕ) : Prop := ∀ b ∈ l, x ≤ b
 
 theorem mem_either_merge (xs ys : List ℕ) (z : ℕ)
@@ -131,9 +132,9 @@ theorem min_all_merge (x : ℕ) (xs ys : List ℕ)
 theorem sorted_merge {l1 l2 : List ℕ} (hxs : IsSorted l1)
   (hys : IsSorted l2) : IsSorted ((merge l1 l2).ret) := by
   fun_induction merge.go l1 l2 <;> all_goals (first| simpa [merge,merge.go,tick]|
-    simp only [IsSorted, merge, merge.go, h, ↓reduceIte, Bind.bind, tick, ret_bind, sorted_cons]
+    simp only [IsSorted, merge, merge.go, h, ↓reduceIte, Bind.bind, tick, ret_bind, pairwise_cons]
     simp [merge] at ih1
-    simp_all only [IsSorted, sorted_cons, implies_true, forall_const, and_true]
+    simp_all only [IsSorted, pairwise_cons, implies_true, forall_const, and_true]
     apply min_all_merge <;> all_goals grind
   )
 
@@ -147,10 +148,10 @@ theorem MSMCorrect (xs : List ℕ) : IsSorted (mergeSort xs).ret := by
         exact List.length_eq_one_iff.mp this
     · subst h
       simp only [IsSorted]
-      exact sorted_nil
+      exact Pairwise.nil
     · obtain ⟨a,ha⟩ := h
       rw [ha]
-      exact sorted_singleton a
+      exact pairwise_singleton _ a
   · simp only [IsSorted, Bind.bind, ret_bind]
     exact sorted_merge ih2 ih1
 

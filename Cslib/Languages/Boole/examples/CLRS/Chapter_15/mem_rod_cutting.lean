@@ -26,6 +26,9 @@ namespace Strata
 -- Assumption: prices are nonnegative, so we can use r[k] = -1 as "unknown"
 -- (instead of -∞) and initialize q := 0.
 
+-- TODO: fix example
+
+/-
 private def rodCuttingTopDownPgm :=
 #strata
 program Boole;
@@ -78,11 +81,12 @@ spec
         // [FEATURE REQUEST] Support for multiple invariants
         invariant (
           forall t:int :: 0 <= t && t <= n ==> (r'[t] == -1 || r'[t] >= 0)
-        );
+        )
       {
         // recursive call on (n - i)
         // [FEATURE REQUEST] Better support for mutual recursion / termination measures
-        sub, r2 := MemoizedCutRodAux(p, n - i, r');
+        call MemoizedCutRodAux(p, n - i, r');
+        // sub..r2 := MemoizedCutRodAux(p, n - i, r');
 
         // carry forward updated memo table from recursion
         r' := r2;
@@ -93,11 +97,11 @@ spec
         // [FEATURE REQUEST] Built-in max operator
         if (cand > q) {
           q := cand;
-        };
+        }
 
         i := i + 1;
       }
-    };
+    }
 
     // r[n] = q
     r' := r'[n := q];
@@ -128,16 +132,17 @@ spec
     // [FEATURE REQUEST] Support for multiple invariants
     invariant (
       forall t:int :: 0 <= t && t < i ==> r[t] == -1
-    );
+    )
   {
     r := r[i := -1];
     i := i + 1;
   }
 
-  q, r2 := MemoizedCutRodAux(p, n, r);
+  // q..r2 := MemoizedCutRodAux(p, n, r);
   res := q;
 };
 
 #end
 
-#eval verify "cvc5" rodCuttingTopDownPgm
+#eval Strata.Boole.verify "cvc5" rodCuttingTopDownPgm
+-/

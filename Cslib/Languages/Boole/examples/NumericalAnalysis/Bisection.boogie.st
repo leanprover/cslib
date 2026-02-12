@@ -1,4 +1,4 @@
-program Boogie;
+program Boole;
 
 // Helper function to compute square
 function Square(x: real): real {

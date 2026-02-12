@@ -1,10 +1,10 @@
-import Strata.Languages.Boogie.Verifier
+import Strata.MetaVerifier
 
 namespace Strata
 
 private def basicOp :=
 #strata
-program Boogie;
+program Boole;
 
 function concat(x: string, y: string): string;
 function len(x: string): int;
@@ -104,4 +104,4 @@ procedure main() returns () {
 
 #end
 
-#eval verify "cvc5" basicOp
+#eval Strata.Boole.verify "cvc5" basicOp

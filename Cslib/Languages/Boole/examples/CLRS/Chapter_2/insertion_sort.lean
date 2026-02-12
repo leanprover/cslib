@@ -61,7 +61,7 @@ spec
      invariant (
       forall p:int, q:int ::
         0 <= p && p <= q && q < i ==> A[p] <= A[q]
-     );
+     )
     {
       // map update: A[j+1] := A[j]
       A := A[j + 1 := A[j]];
@@ -78,4 +78,5 @@ spec
 };
 #end
 
-#eval verify "cvc5" insertionSortPgm
+-- TODO: cvc5 is finding counter-examples... fix wrong VCs
+#eval Strata.Boole.verify "cvc5" insertionSortPgm

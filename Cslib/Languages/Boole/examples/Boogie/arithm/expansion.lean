@@ -1,5 +1,4 @@
 import Strata.MetaVerifier
-import Smt
 
 namespace Strata
 

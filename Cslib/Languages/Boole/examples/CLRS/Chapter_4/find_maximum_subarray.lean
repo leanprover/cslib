@@ -126,4 +126,4 @@ spec
 
 #end
 
-#eval verify "cvc5" findMaxSubArray
+#eval Strata.Boole.verify "cvc5" findMaxSubArray

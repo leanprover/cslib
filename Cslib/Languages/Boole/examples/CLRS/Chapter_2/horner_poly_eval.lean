@@ -48,4 +48,4 @@ spec
 };
 #end
 
-#eval verify "cvc5" hornerPgm
+#eval Strata.Boole.verify "cvc5" hornerPgm

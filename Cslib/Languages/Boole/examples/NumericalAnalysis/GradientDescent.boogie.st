@@ -1,4 +1,4 @@
-program Boogie;
+program Boole;
 
 // Helper function to compute absolute value
 function Abs(x: real): real {
@@ -25,7 +25,7 @@ spec {
   requires (iter >= 0);                   // non-negative iterations
 }
 {
-  // Is it possible to pass a callback function as argument in Boogie?
+  // Is it possible to pass a callback function as argument in Boole?
   var grad: real;
   var x1: real;
   

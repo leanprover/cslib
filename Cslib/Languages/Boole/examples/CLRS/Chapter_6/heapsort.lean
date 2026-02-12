@@ -1,6 +1,4 @@
-import Strata.Languages.Boogie.Verifier
-
-namespace Strata
+import Strata.MetaVerifier
 
 -- CLRS Chapter 6: HEAPSORT
 -- Pseudo-code adapted from CLRS book (3rd edition), page 160
@@ -36,39 +34,38 @@ namespace Strata
 -- RIGHT(i)
 -- 1 return 2 * i + 1
 
+private def heapSort :=
+#strata
+program Boole;
 
 var A: Map int int;
 var heapsize: int;
-var n: int; -- array length
+var n: int; // array length
 
-private def heapSort :=
-#strata
-program Boogie;
-
-procedure Left(i: int) return (j: int)
+procedure Left(i: int) returns (j: int)
 spec
 {
     requires i >= 1;
     ensures j >= i;
 }
 {
-    j = 2 * i;
-}
+    j := 2 * i;
+};
 
-procedure Right(i: int) return (j: int)
+procedure Right(i: int) returns (j: int)
 spec
 {
     requires i >= 1;
     ensures j >= i;
 }
 {
-    j = 2 * i + 1;
-}
+    j := 2 * i + 1;
+};
 
 procedure MaxHeapify(i: int) returns ()
 spec
 {
-  requires 1 <= i <= heapsize;
+  requires 1 <= i && i <= heapsize;
   modifies A;
 }
 {
@@ -110,11 +107,11 @@ spec
     heapsize := n;
 
     var i: int;
-    i := n div 2; -- floor ideally
+    i := n div 2; // floor ideally
     while (i >= 1)
-        invariant 1 <= i <= n/2 + 1
+        invariant 1 <= i && i <= n div 2 + 1
         invariant heapsize == n
-        invariant forall j: int, i + 1 <= j && j <= n ==> A[j/2] >= A[j] -- IsMaxHeap(i+1, n)
+        invariant forall j: int :: i + 1 <= j && j <= n ==> A[j div 2] >= A[j] // IsMaxHeap(i+1, n)
     {
        call MaxHeapify(i);
        i := i - 1;
@@ -133,19 +130,20 @@ spec
     var i: int;
 
     i := n;
+    var tmp: int;
     while (i > 1)
-        invariant 1 <= i <= n
+        invariant 1 <= i && i <= n
         invariant heapsize == i
-        invariant forall j : int, 2 <= j && j <= i ==> A[j/2] >= A[j]
-        invariant forall j, k: int, i + 1 <= j < k <= n => A[j] <= A[k]
+        invariant forall j : int :: 2 <= j && j <= i ==> A[j div 2] >= A[j]
+        invariant forall j : int :: forall k: int :: i + 1 <= j && j < k && k <= n ==> A[j] <= A[k]
     {
-        -- swap A[1] and A[i]
-        var tmp: int;
+        // swap A[1] and A[i]
+        // var tmp: int; TODO: this does not currently work
         tmp := A[1];
         A := A[1 := A[i]];
         A := A[i := tmp];
 
-        heapsize := heapsize - 1
+        heapsize := heapsize - 1;
         call MaxHeapify(1);
         i := i - 1;
     }
@@ -153,4 +151,4 @@ spec
 
 #end
 
-#eval verify "cvc5" heapSort
+#eval Strata.Boole.verify "cvc5" heapSort

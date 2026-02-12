@@ -1,5 +1,4 @@
 import Strata.MetaVerifier
-import Smt
 
 namespace Strata
 
@@ -78,6 +77,6 @@ procedure FooTooStepByStep () returns ()
 
 example : Strata.smtVCsCorrect ineq := by
   gen_smt_vcs
-  all_goals smt
+  all_goals grind
 
 end Strata

@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -106,11 +107,11 @@ spec
 
 #end
 
-#eval verify "cvc5" stackArrayPgm
+#eval Strata.Boole.verify "cvc5" stackArrayPgm
 
 example : Strata.smtVCsCorrect stackArrayPgm := by
-  gen_boogie_vcs
-  all_goals grind
+  gen_smt_vcs
+  all_goals smt +mono
 
 -- [FEATURE REQUEST]
 -- Support for structures/records and encapsulating methods.

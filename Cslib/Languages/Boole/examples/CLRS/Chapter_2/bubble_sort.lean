@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -47,7 +48,7 @@ spec
     invariant (
       forall p:int, q:int ::
         (n - (i)) <= p && p <= q && q < n ==> A[p] <= A[q]
-    );
+    )
   {
     // inner loop: j = n-1 downto i+1
     j := n - 1;
@@ -58,7 +59,7 @@ spec
       invariant (
         forall p:int, q:int ::
           (n - (i)) <= p && p <= q && q < n ==> A[p] <= A[q]
-      );
+      )
     {
       if (A[j] < A[j - 1])
       {
@@ -75,4 +76,9 @@ spec
 };
 #end
 
-#eval verify "cvc5" bubbleSortPgm
+#eval Strata.Boole.verify "cvc5" bubbleSortPgm
+
+-- TODO : VCs are too hard for cvc5 to prove
+-- example : Strata.smtVCsCorrect bubbleSortPgm := by
+--   gen_smt_vcs
+--   all_goals smt +mono

@@ -174,4 +174,4 @@ spec
 };
 #end
 
-#eval verify "cvc5" inversionCountMergeSortPgm
+#eval Strata.Boole.verify "cvc5" inversionCountMergeSortPgm

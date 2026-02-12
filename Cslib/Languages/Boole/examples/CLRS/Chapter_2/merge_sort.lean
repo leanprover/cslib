@@ -148,4 +148,4 @@ spec
 };
 #end
 
-#eval verify "cvc5" mergeSortPgm
+#eval Strata.Boole.verify "cvc5" mergeSortPgm

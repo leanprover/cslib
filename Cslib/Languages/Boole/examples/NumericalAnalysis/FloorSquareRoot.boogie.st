@@ -1,4 +1,4 @@
-program Boogie;
+program Boole;
 procedure FloorSquareRoot(x : int) returns (y : int)
 spec {
   requires (x >= 0);

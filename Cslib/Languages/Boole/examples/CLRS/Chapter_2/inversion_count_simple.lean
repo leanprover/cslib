@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -52,7 +53,7 @@ spec
   inv := 0;
 
   // Convert CLRS 1-based loops to 0-based:
-  for (var i : int := 0; i < n; i + 1)
+  for (i : int := 0; i < n; i + 1)
     invariant (0 <= i && i <= n && inv >= 0)
   {
     // for j = i+1 to n-1:
@@ -77,6 +78,6 @@ spec
 
 example : Strata.smtVCsCorrect inversionCountPgm := by
   gen_smt_vcs
-  all_goals grind
+  all_goals smt +mono
 
 end Strata

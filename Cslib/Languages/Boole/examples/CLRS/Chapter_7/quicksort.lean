@@ -89,4 +89,4 @@ spec
 
 #end
 
-#eval verify "cvc5" quickSort
+#eval Strata.Boole.verify "cvc5" quickSort
