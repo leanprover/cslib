@@ -26,7 +26,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 open Relation
 
 /-- A parallel β-reduction step. -/
-@[reduction_sys paraRs "ₚ"]
+@[reduction_sys "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -47,11 +47,6 @@ attribute [scoped grind .] Parallel.fvar Parallel.app
 attribute [scoped grind cases] Parallel
 
 variable {M M' N N' : Term Var}
-
---- TODO: I think this could be generated along with the ReductionSystem
-@[scoped grind _=_]
-private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
-  rfl
 
 /-- The left side of a parallel reduction is locally closed. -/
 @[scoped grind →]
@@ -92,8 +87,7 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
     have : L.app R ↠βᶠ L'.app R := by grind
-    have : L'.app R ↠βᶠ L'.app R' := by grind
-    grind [ReductionSystem.MRed.trans]
+    grind [ReflTransGen.trans]
   case abs t t' xs _ ih =>
     apply redex_abs_cong xs
     grind
