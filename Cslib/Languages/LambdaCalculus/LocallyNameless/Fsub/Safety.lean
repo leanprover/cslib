@@ -48,7 +48,8 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
     case tabs der _ _ =>
       have sub : Sub Γ (σ.all τ) (σ.all τ) := by grind [Sub.refl]
       have ⟨_, _, ⟨_, _⟩⟩ := der.tabs_inv sub
-      have ⟨X, _⟩ := fresh_exists <| free_union [Ty.fv, fv_ty] Var
+      have ⟨X, mem⟩ := fresh_exists <| free_union [Ty.fv, fv_ty] Var
+      simp at mem
       have : Γ = (Context.map_val (·[X:=σ']) []) ++ Γ := by grind
       rw [open_ty_subst_ty_intro (X := X), open_subst_intro (X := X)] <;> grind [subst_ty]
     case tapp => grind
