@@ -4,10 +4,13 @@ public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
+public import Cslib.Computability.Automata.Acceptors.Transducer
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.DA.Buchi
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.DT.Basic
+public import Cslib.Computability.Automata.DT.ToBimachine
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
 public import Cslib.Computability.Automata.NA.Basic
@@ -26,6 +29,10 @@ public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Computability.Transductions.RationalTransduction
+public import Cslib.Computability.Transductions.Transduction
+public import Cslib.Foundations.Algebra.Div
+public import Cslib.Foundations.Algebra.LeftGCDMonoid
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold

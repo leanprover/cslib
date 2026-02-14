@@ -69,6 +69,12 @@ theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : 
   case zero => rfl
   case succ n h_ind => grind
 
+/-- The single-state `DA`. -/
+@[scoped grind =]
+def unit (Symbol : Type*) : DA Unit Symbol where
+  toFLTS := FLTS.unit Symbol
+  start := ()
+
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends DA State Symbol where
   /-- The set of accepting states. -/

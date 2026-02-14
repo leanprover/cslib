@@ -48,6 +48,11 @@ def mtr (flts : FLTS State Label) (s : State) (μs : List Label) := μs.foldl fl
 @[scoped grind =]
 theorem mtr_nil_eq {flts : FLTS State Label} {s : State} : flts.mtr s [] = s := rfl
 
+/-- The single-state `FLTS`. -/
+@[scoped grind =]
+def unit (Label : Type*) : FLTS Unit Label where
+  tr := fun () _ => ()
+
 end FLTS
 
 end Cslib
