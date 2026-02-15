@@ -44,7 +44,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red MRed ReductionSystem Relation
+open Red MRed Relation
 
 /-- A reduction step allowing simultaneous reduction of disjoint redexes -/
 inductive ParallelReduction : SKI → SKI → Prop
@@ -59,6 +59,7 @@ inductive ParallelReduction : SKI → SKI → Prop
       ParallelReduction a a' → ParallelReduction b b' → ParallelReduction (a ⬝ b) (a' ⬝ b')
 
 
+-- TODO: SKI.ParallelReduction should use standard relation notation
 /-- Notation for parallel reduction -/
 scoped infix:90 " ⇒ₚ " => ParallelReduction
 
@@ -93,7 +94,7 @@ theorem parallelReduction_of_red {a a' : SKI} (h : a ⭢ a') : a ⇒ₚ a' := by
 `parallelReduction_of_red` imply that `⇒` and `⇒ₚ` have the same reflexive-transitive
 closure. -/
 theorem reflTransGen_parallelReduction_mRed :
-    Relation.ReflTransGen ParallelReduction = RedSKI.MRed := by
+    ReflTransGen ParallelReduction = ReflTransGen Red := by
   ext a b
   constructor
   · apply Relation.reflTransGen_of_transitive_reflexive
@@ -235,15 +236,15 @@ theorem join_parallelReduction_equivalence :
 
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem commonReduct_equivalence : Equivalence CommonReduct := by
-  unfold CommonReduct
+  simp only [CommonReduct, MJoin]
   rw [←reflTransGen_parallelReduction_mRed]
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/
 theorem MRed.diamond (a b c : SKI) (hab : a ↠ b) (hac : a ↠ c) : CommonReduct b c := by
   apply commonReduct_equivalence.trans (y := a)
-  · exact commonReduct_equivalence.symm (commonReduct_of_single hab)
-  · exact commonReduct_of_single hac
+  · exact commonReduct_equivalence.symm (MJoin.single hab)
+  · exact MJoin.single hac
 
 end SKI
 

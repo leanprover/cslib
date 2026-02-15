@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public meta import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
 
 @[expose] public section
@@ -85,7 +85,7 @@ lemma Value.lc {t : Term Var} (val : t.Value) : t.LC := by
   induction val <;> grind
 
 /-- The call-by-value reduction relation. -/
-@[grind, reduction_sys rs "βᵛ"]
+@[grind, reduction_sys "βᵛ"]
 inductive Red : Term Var → Term Var → Prop
   | appₗ : LC t₂ → Red t₁ t₁' → Red (app t₁ t₂) (app t₁' t₂)
   | appᵣ : Value t₁ → Red t₂ t₂' → Red (app t₁ t₂) (app t₁ t₂')
@@ -99,10 +99,6 @@ inductive Red : Term Var → Term Var → Prop
   | case : Red t₁ t₁' → t₂.body → t₃.body → Red (case t₁ t₂ t₃) (case t₁' t₂ t₃)
   | case_inl : Value t₁ → t₂.body → t₃.body → Red (case (inl t₁) t₂ t₃) (t₂ ^ᵗᵗ t₁)
   | case_inr : Value t₁ → t₂.body → t₃.body → Red (case (inr t₁) t₂ t₃) (t₃ ^ᵗᵗ t₁)
-
-@[grind _=_]
-lemma rs_eq {t t' : Term Var} : t ⭢βᵛ t' ↔ Red t t' := by
-  rfl
 
 variable [HasFresh Var] [DecidableEq Var] in
 /-- Terms of a reduction are locally closed. -/

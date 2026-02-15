@@ -6,7 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public meta import Cslib.Foundations.Data.Relation
 
 @[expose] public section
 
@@ -72,7 +72,7 @@ def size : SKI → Nat
 /-! ### Reduction relations between SKI terms -/
 
 /-- Single-step reduction of SKI terms -/
-@[reduction_sys RedSKI]
+@[scoped grind, reduction_sys]
 inductive Red : SKI → SKI → Prop where
   /-- The operational semantics of the `S`, -/
   | red_S (x y z : SKI) : Red (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z))
@@ -86,7 +86,7 @@ inductive Red : SKI → SKI → Prop where
   | red_tail (x y y' : SKI) (_ : Red y y') : Red (x ⬝ y) (x ⬝ y')
 
 
-open Red ReductionSystem
+open Red
 
 lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
   | red_S _ _ _, h => by cases h
@@ -95,44 +95,26 @@ lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
   | red_head _ _ _ h', h => Red.ne h' (SKI.app.inj h).1
   | red_tail _ _ _ h', h => Red.ne h' (SKI.app.inj h).2
 
-theorem MRed.S (x y z : SKI) : (S ⬝ x ⬝ y ⬝ z) ↠ (x ⬝ z ⬝ (y ⬝ z)) := MRed.single RedSKI <| red_S ..
-theorem MRed.K (x y : SKI) : (K ⬝ x ⬝ y) ↠ x := MRed.single RedSKI <| red_K ..
-theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := MRed.single RedSKI <| red_I ..
+theorem MRed.S (x y z : SKI) : (S ⬝ x ⬝ y ⬝ z) ↠ (x ⬝ z ⬝ (y ⬝ z)) := .single <| red_S ..
+theorem MRed.K (x y : SKI) : (K ⬝ x ⬝ y) ↠ x := .single <| red_K ..
+theorem MRed.I (x : SKI) : (I ⬝ x) ↠ x := .single <| red_I ..
 
 theorem MRed.head {a a' : SKI} (b : SKI) (h : a ↠ a') : (a ⬝ b) ↠ (a' ⬝ b) := by
-  induction h with
-  | refl => apply MRed.refl
-  | step a a' a'' _ ha' ih =>
-    apply MRed.step RedSKI ih
-    exact Red.red_head a' a'' b ha'
+  induction h <;> grind
 
 theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠ b') : (a ⬝ b) ↠ (a ⬝ b') := by
-  induction h with
-  | refl => apply MRed.refl
-  | step b b' b'' _ hb' ih =>
-    apply MRed.step RedSKI ih
-    exact Red.red_tail a b' b'' hb'
+  induction h <;> grind
 
 lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
     (a ⬝ b) ↠ (a' ⬝ b') :=
   Trans.simple (MRed.head b ha) (MRed.tail a' hb)
 
 lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b) ↠ (a' ⬝ b') := by
-  trans a' ⬝ b
-  all_goals apply MRed.single
-  · exact Red.red_head a a' b ha
-  · exact Red.red_tail a' b b' hb
+  trans a' ⬝ b <;> grind
 
+-- TODO: inline `SKI.CommonReduct` as `Relation.MJoin Red`
 /-- Express that two terms have a reduce to a common term. -/
-def CommonReduct : SKI → SKI → Prop := Relation.Join RedSKI.MRed
-
-lemma commonReduct_of_single {a b : SKI} (h : a ↠ b) : CommonReduct a b := ⟨b, h, by rfl⟩
-
-theorem symmetric_commonReduct : Symmetric CommonReduct := Relation.symmetric_join
-
-theorem reflexive_commonReduct : Reflexive CommonReduct := by
-  intro x
-  use x
+def CommonReduct : SKI → SKI → Prop := Relation.MJoin Red
 
 theorem commonReduct_head {x x' : SKI} (y : SKI) : CommonReduct x x' → CommonReduct (x ⬝ y) (x' ⬝ y)
   | ⟨z, hz, hz'⟩ => ⟨z ⬝ y, MRed.head y hz, MRed.head y hz'⟩

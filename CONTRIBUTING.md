@@ -43,7 +43,7 @@ When formalising a concept that is explained in a published resource, please ref
 
 A central focus of CSLib is providing reusable abstractions and their consistent usage across the
 library. New definitions should instantiate existing abstractions whenever appropriate: a
-labelled transition system should use `LTS`, a reduction system `ReductionSystem`, etc.
+labelled transition system should use `LTS`, etc.
 
 # Continuous Integration
 

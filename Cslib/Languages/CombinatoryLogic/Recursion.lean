@@ -55,7 +55,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red MRed ReductionSystem
+open Red MRed
 
 /-- Function form of the church numerals. -/
 def Church (n : Nat) (f x : SKI) : SKI :=
@@ -99,7 +99,7 @@ protected def One : SKI := I
 theorem one_correct : IsChurch 1 SKI.One := by
   intro f x
   apply head
-  exact MRed.single RedSKI (red_I f)
+  exact .single (red_I f)
 
 /-- Church succ := λ a f x. f (a f x) ~ λ a f. B f (a f) ~ λ a. S B a ~ S B -/
 protected def Succ : SKI := S ⬝ B
