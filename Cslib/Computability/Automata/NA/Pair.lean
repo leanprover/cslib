@@ -37,6 +37,67 @@ theorem LTS.pairLang_regular [Finite State] {lts : LTS State Symbol} {s t : Stat
   ext
   simp
 
+/-- `LTS.pairViaLang via s t` is the language of finite words that can take the LTS
+from state `s` to state `t` via a state in `via`. -/
+def LTS.pairViaLang (lts : LTS State Symbol) (via : Set State) (s t : State) : Language Symbol :=
+  ⨆ r ∈ via, lts.pairLang s r * lts.pairLang r t
+
+@[simp, scoped grind =]
+theorem LTS.mem_pairViaLang {lts : LTS State Symbol} {via : Set State}
+    {s t : State} {xs : List Symbol} : xs ∈ lts.pairViaLang via s t ↔
+      ∃ r ∈ via, ∃ xs1 xs2, lts.MTr s xs1 r ∧ lts.MTr r xs2 t ∧ xs1 ++ xs2 = xs := by
+  simp [LTS.pairViaLang, Language.mem_mul]
+
+/-- `LTS.pairViaLang via s t` is a regular language if there are only finitely many states. -/
+@[simp]
+theorem LTS.pairViaLang_regular [Inhabited Symbol] [Finite State] {lts : LTS State Symbol}
+    {via : Set State} {s t : State} : (lts.pairViaLang via s t).IsRegular := by
+  apply IsRegular.iSup
+  grind [Language.IsRegular.mul, LTS.pairLang_regular]
+
+theorem LTS.pairLang_append {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol}
+    (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2) :
+    xs1 ++ xs2 ∈ lts.pairLang s0 s2 := by
+  grind [<= LTS.MTr.comp]
+
+theorem LTS.pairLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
+    (h : xs1 ++ xs2 ∈ lts.pairLang s0 s2) :
+    ∃ s1, xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2 := by
+  obtain ⟨r, _, _⟩ := LTS.MTr.split <| LTS.mem_pairLang.mp h
+  use r
+  grind
+
+theorem LTS.pairViaLang_append_pairLang {lts : LTS State Symbol}
+    {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
+    (h1 : xs1 ∈ lts.pairViaLang via s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2) :
+    xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
+  obtain ⟨r, _, _, _, _, _, rfl⟩ := LTS.mem_pairViaLang.mp h1
+  apply LTS.mem_pairViaLang.mpr
+  use r
+  grind [<= LTS.MTr.comp]
+
+theorem LTS.pairLang_append_pairViaLang {lts : LTS State Symbol}
+    {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
+    (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairViaLang via s1 s2) :
+    xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
+  obtain ⟨r, _, _, _, _, _, rfl⟩ := LTS.mem_pairViaLang.mp h2
+  apply LTS.mem_pairViaLang.mpr
+  use r
+  grind [<= LTS.MTr.comp]
+
+theorem LTS.pairViaLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
+    {via : Set State} (h : xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2) :
+    ∃ s1, xs1 ∈ lts.pairViaLang via s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2 ∨
+          xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairViaLang via s1 s2 := by
+  obtain ⟨r, h_r, ys1, ys2, h_ys1, h_ys2, h_eq⟩ := LTS.mem_pairViaLang.mp h
+  obtain ⟨zs1, rfl, rfl⟩ | ⟨zs2, rfl, rfl⟩ := List.append_eq_append_iff.mp h_eq
+  · obtain ⟨s1, _, _⟩ := LTS.MTr.split h_ys2
+    use s1
+    grind
+  · obtain ⟨s1, _, _⟩ := LTS.MTr.split h_ys1
+    use s1
+    grind
+
 namespace Automata.NA.Buchi
 
 open Set Filter ωSequence ωLanguage ωAcceptor
