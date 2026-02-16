@@ -131,22 +131,24 @@ theorem evalStep_right_correct : (x y : SKI) → (x.evalStep = Sum.inr y) → x 
           rw [←h]
           exact red_head _ _ _ <| evalStep_right_correct _ _ habcd
 
-theorem redexFree_of_no_red {x : SKI} (h : ∀ y, ¬ (x ⭢ y)) : x.RedexFree := by
+theorem redexFree_of_no_red {x : SKI} (h : Normal Red x) : x.RedexFree := by
   match hx : x.evalStep with
   | Sum.inl h' => exact h'.down
-  | Sum.inr y => cases h _ (evalStep_right_correct x y hx)
+  | Sum.inr y => rw [Normal_iff] at h; cases h _ (evalStep_right_correct x y hx)
 
-theorem RedexFree.no_red : {x : SKI} → x.RedexFree → ∀ y, ¬ (x ⭢ y)
-| S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
-| K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
-| S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => hx.no_red _ h3
-| S ⬝ _ ⬝ _, ⟨_, hy⟩, S ⬝ _ ⬝ _, red_tail _ _ _ h3 => hy.no_red _ h3
-| _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => hx.no_red _ hq
-| _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => hy.no_red _ he
+theorem RedexFree.no_red {x : SKI} (hx : x.RedexFree) : Normal Red x := by
+  simp_rw [Normal_iff]
+  intro y hy
+  match x, hx, y, hy with
+  | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.no_red ⟨_, hx'⟩
+  | K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.no_red ⟨_, hx'⟩
+  | S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => exact hx.no_red ⟨_, h3⟩
+  | S ⬝ _ ⬝ _, ⟨_, hy⟩, S ⬝ _ ⬝ _, red_tail _ _ _ h3 => exact hy.no_red ⟨_, h3⟩
+  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => exact hx.no_red ⟨_, hq⟩
+  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => exact hy.no_red ⟨_, he⟩
 
--- TODO: `SKI.redexFree_iff` and related theorems should use `Relation.Normal`
 /-- A term is redex free iff it has no one-step reductions. -/
-theorem redexFree_iff {x : SKI} : x.RedexFree ↔ ∀ y, ¬ (x ⭢ y) :=
+theorem redexFree_iff {x : SKI} : x.RedexFree ↔ Normal Red x :=
   ⟨RedexFree.no_red, redexFree_of_no_red⟩
 
 theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft = true := by
@@ -155,7 +157,7 @@ theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft =
     intro h
     match hx : x.evalStep with
     | Sum.inl h' => exact rfl
-    | Sum.inr y => cases h.no_red _ (evalStep_right_correct _ _ hx)
+    | Sum.inr y => cases h.no_red ⟨_, (evalStep_right_correct _ _ hx)⟩
   case mpr =>
     intro h
     match hx : x.evalStep with
@@ -176,14 +178,14 @@ theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x
       case inl => assumption
       case inr h' =>
         obtain ⟨z, hz, _⟩ := h'
-        cases h.no_red _ hz
+        cases h.no_red ⟨_, hz⟩
     case mpr =>
       intro h
       rw [h]
   case mpr =>
     intro h
     rw [redexFree_iff]
-    intro y hy
+    intro ⟨y, hy⟩
     specialize h y
     exact Red.ne hy (h.1 (Relation.ReflTransGen.single hy))
 
@@ -222,11 +224,11 @@ lemma sk_nequiv : ¬ MJoin Red S K := by
 theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
     (hxy : MJoin Red x y) : u = v := by
   have h : MJoin Red (if u then S else K) (if v then S else K) := by
-    apply commonReduct_equivalence.trans (y := x ⬝ S ⬝ K)
-    · apply commonReduct_equivalence.symm
+    apply mJoin_red_equivalence.trans (y := x ⬝ S ⬝ K)
+    · apply mJoin_red_equivalence.symm
       apply Relation.MJoin.single
       exact hx S K
-    · apply commonReduct_equivalence.trans (y := y ⬝ S ⬝ K)
+    · apply mJoin_red_equivalence.trans (y := y ⬝ S ⬝ K)
       · exact mJoin_red_head K <| mJoin_red_head S hxy
       · apply Relation.MJoin.single
         exact hy S K
@@ -242,7 +244,7 @@ theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool
     by_cases v
     case pos hv =>
       simp_rw [hu, hv, Bool.false_eq_true, reduceIte] at h
-      exact False.elim <| sk_nequiv (commonReduct_equivalence.symm h)
+      exact False.elim <| sk_nequiv (mJoin_red_equivalence.symm h)
     case neg hv =>
       simp_rw [hu, hv]
 
@@ -276,10 +278,10 @@ theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsC
   suffices MJoin Red (churchK n) (churchK m) by
     apply churchK_injective
     exact eq_of_mJoin_red_redexFree this (churchK_redexFree n) (churchK_redexFree m)
-  apply commonReduct_equivalence.trans (y := x ⬝ K ⬝ K)
+  apply mJoin_red_equivalence.trans (y := x ⬝ K ⬝ K)
   · simp_rw [churchK_church]
-    exact commonReduct_equivalence.symm <| Relation.MJoin.single (hx K K)
-  · apply commonReduct_equivalence.trans (y := y ⬝ K ⬝ K)
+    exact mJoin_red_equivalence.symm <| Relation.MJoin.single (hx K K)
+  · apply mJoin_red_equivalence.trans (y := y ⬝ K ⬝ K)
     · apply mJoin_red_head; apply mJoin_red_head; assumption
     · simp_rw [churchK_church]
       exact Relation.MJoin.single (hy K K)
