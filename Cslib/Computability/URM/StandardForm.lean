@@ -82,9 +82,9 @@ theorem straight_line_IsStandardForm {p : Program} (hsl : p.IsStraightLine) :
   intro instr hinstr
   exact Instr.jumpsBoundedBy_of_nonJump (hsl instr hinstr) p.length
 
-/-! ## Behavioral Equivalence
+/-! ## Functional Equivalence
 
-`p` and `p.toStandardForm` are behaviorally equivalent: they halt on the same
+`p` and `p.toStandardForm` are functionally equivalent: they halt on the same
 inputs with the same results. The key insight is that jumps with target `q > p.length`
 land in halted states in both programs. -/
 

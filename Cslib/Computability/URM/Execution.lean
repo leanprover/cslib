@@ -25,7 +25,7 @@ Single-step and multi-step execution semantics for URMs.
 Bridge lemmas:
 - `isHalted_iff_normal`: `s.isHalted p ↔ Relation.Normal (Step p) s`
 - `halts_iff_normalizable`: `Halts p inputs ↔ Relation.Normalizable (Step p) (State.init inputs)`
-- `Step_confluent`: The step relation is confluent (follows from determinism)
+- `step_confluent`: The step relation is confluent (follows from determinism)
 
 ## Notation (scoped to `URM` namespace)
 
@@ -37,7 +37,7 @@ Standard computability theory notation:
 ## Main results
 
 - `Step.deterministic`: The step relation is deterministic
-- `Step_confluent`: The step relation is confluent (from determinism)
+- `step_confluent`: The step relation is confluent (from determinism)
 - `haltsWithResult_iff_eval`: `p ↓ inputs ≫ result ↔ eval p inputs = Part.some result`
 -/
 
@@ -138,7 +138,7 @@ For a deterministic relation, any two execution paths from the same state must f
 the same sequence of steps, so if both reach some state, they reach the same state.
 We prove this directly rather than via Diamond since Diamond requires the relation
 to always have successors. -/
-theorem Step_confluent (p : Program) : Relation.Confluent (Step p) := by
+theorem step_confluent (p : Program) : Relation.Confluent (Step p) := by
   intro init s₁ s₂ h1 h2
   -- Two multi-step reductions from init must follow the same path due to determinism
   induction h1 using Relation.ReflTransGen.head_induction_on generalizing s₂ with
@@ -180,7 +180,7 @@ theorem eq_of_halts {init s₁ s₂ : State}
     (h1 : Steps p init s₁) (hh1 : s₁.isHalted p)
     (h2 : Steps p init s₂) (hh2 : s₂.isHalted p) : s₁ = s₂ := by
   -- Use confluence: both s₁ and s₂ are reachable from init, so they're joinable
-  have ⟨w, hw1, hw2⟩ := Step_confluent p h1 h2
+  have ⟨w, hw1, hw2⟩ := step_confluent p h1 h2
   -- But s₁ and s₂ are normal forms, so w must equal both
   have hn1 := isHalted_iff_normal.mp hh1
   have hn2 := isHalted_iff_normal.mp hh2
