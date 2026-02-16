@@ -29,6 +29,12 @@ public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Computability.URM.Basic
+public import Cslib.Computability.URM.Computable
+public import Cslib.Computability.URM.Defs
+public import Cslib.Computability.URM.Execution
+public import Cslib.Computability.URM.StandardForm
+public import Cslib.Computability.URM.StraightLine
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
@@ -79,6 +85,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Safety
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Logics.HML.Basic
