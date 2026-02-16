@@ -82,11 +82,13 @@ theorem straight_line_IsStandardForm {p : Program} (hsl : p.IsStraightLine) :
   intro instr hinstr
   exact Instr.jumpsBoundedBy_of_nonJump (hsl instr hinstr) p.length
 
-/-! ## Functional Equivalence
+/-! ## Bisimulation
 
-`p` and `p.toStandardForm` are functionally equivalent: they halt on the same
-inputs with the same results. The key insight is that jumps with target `q > p.length`
-land in halted states in both programs. -/
+`p` and `p.toStandardForm` are bisimilar: each step in one program corresponds to a
+step in the other that either reaches the same state or reaches a halted state with the
+same registers. This bisimulation implies functional equivalence (`eval_toStandardForm`).
+The key insight is that jumps with target `q > p.length` land in halted states in both
+programs. -/
 
 /-- Forward step correspondence: if p steps from s to s', then either:
     (1) p.toStandardForm steps from s to s' (same step), or
