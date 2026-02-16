@@ -27,6 +27,12 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
+public import Cslib.Computability.URM.Basic
+public import Cslib.Computability.URM.Computable
+public import Cslib.Computability.URM.Defs
+public import Cslib.Computability.URM.Execution
+public import Cslib.Computability.URM.StandardForm
+public import Cslib.Computability.URM.StraightLine
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
