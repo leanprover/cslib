@@ -39,7 +39,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red
+open Red Relation
 
 /-- The predicate that a term has no reducible sub-terms. -/
 def RedexFree : SKI → Prop
@@ -188,7 +188,7 @@ theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x
     exact Red.ne hy (h.1 (Relation.ReflTransGen.single hy))
 
 /-- If a term has a common reduct with a normal term, it in fact reduces to that term. -/
-theorem commonReduct_redexFree {x y : SKI} (hy : y.RedexFree) (h : CommonReduct x y) : x ↠ y :=
+theorem mJoin_red_redexFree {x y : SKI} (hy : y.RedexFree) (h : MJoin Red x y) : x ↠ y :=
   let ⟨w, hyw, hzw⟩ := h
   (redexFree_iff_mred_eq.1 hy _ |>.1 hzw : y = w) ▸ hyw
 
@@ -205,13 +205,13 @@ lemma unique_normal_form {x y z : SKI}
   (redexFree_iff_mred_eq.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
-lemma eq_of_commonReduct_redexFree {x y : SKI} (h : CommonReduct x y)
+lemma eq_of_mJoin_red_redexFree {x y : SKI} (h : MJoin Red x y)
     (hx : x.RedexFree) (hy : y.RedexFree) : x = y :=
-  (redexFree_iff_mred_eq.1 hx _).1 (commonReduct_redexFree hy h)
+  (redexFree_iff_mred_eq.1 hx _).1 (mJoin_red_redexFree hy h)
 
 /-! ### Injectivity for datatypes -/
 
-lemma sk_nequiv : ¬ CommonReduct S K := by
+lemma sk_nequiv : ¬ MJoin Red S K := by
   intro ⟨z, hsz, hkz⟩
   have hS : RedexFree S := by simp [RedexFree]
   have hK : RedexFree K := by simp [RedexFree]
@@ -220,14 +220,14 @@ lemma sk_nequiv : ¬ CommonReduct S K := by
 
 /-- Injectivity for booleans. -/
 theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
-    (hxy : CommonReduct x y) : u = v := by
-  have h : CommonReduct (if u then S else K) (if v then S else K) := by
+    (hxy : MJoin Red x y) : u = v := by
+  have h : MJoin Red (if u then S else K) (if v then S else K) := by
     apply commonReduct_equivalence.trans (y := x ⬝ S ⬝ K)
     · apply commonReduct_equivalence.symm
       apply Relation.MJoin.single
       exact hx S K
     · apply commonReduct_equivalence.trans (y := y ⬝ S ⬝ K)
-      · exact commonReduct_head K <| commonReduct_head S hxy
+      · exact mJoin_red_head K <| mJoin_red_head S hxy
       · apply Relation.MJoin.single
         exact hy S K
   by_cases u
@@ -246,7 +246,7 @@ theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool
     case neg hv =>
       simp_rw [hu, hv]
 
-lemma TF_nequiv : ¬ CommonReduct TT FF := fun h =>
+lemma TF_nequiv : ¬ MJoin Red TT FF := fun h =>
   (Bool.eq_not_self true).mp <| isBool_injective TT FF true false TT_correct FF_correct h
 
 /-- A specialisation of `Church : Nat → SKI`. -/
@@ -272,15 +272,15 @@ lemma churchK_injective : Function.Injective churchK :=
 
 /-- Injectivity for Church numerals -/
 theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsChurch m y)
-    (hxy : CommonReduct x y) : n = m := by
-  suffices CommonReduct (churchK n) (churchK m) by
+    (hxy : MJoin Red x y) : n = m := by
+  suffices MJoin Red (churchK n) (churchK m) by
     apply churchK_injective
-    exact eq_of_commonReduct_redexFree this (churchK_redexFree n) (churchK_redexFree m)
+    exact eq_of_mJoin_red_redexFree this (churchK_redexFree n) (churchK_redexFree m)
   apply commonReduct_equivalence.trans (y := x ⬝ K ⬝ K)
   · simp_rw [churchK_church]
     exact commonReduct_equivalence.symm <| Relation.MJoin.single (hx K K)
   · apply commonReduct_equivalence.trans (y := y ⬝ K ⬝ K)
-    · apply commonReduct_head; apply commonReduct_head; assumption
+    · apply mJoin_red_head; apply mJoin_red_head; assumption
     · simp_rw [churchK_church]
       exact Relation.MJoin.single (hy K K)
 

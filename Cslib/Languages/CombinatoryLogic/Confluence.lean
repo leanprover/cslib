@@ -18,8 +18,8 @@ This file proves the **Church-Rosser** theorem for the SKI calculus, that is, if
 `a ↠ c`, `b ↠ d` and `c ↠ d` for some term `d`. More strongly (though equivalently), we show
 that the relation of having a common reduct is transitive — in the above situation, `a` and `b`,
 and `a` and `c` have common reducts, so the result implies the same of `b` and `c`. Note that
-`CommonReduct` is symmetric (trivially) and reflexive (since `↠` is), so we in fact show that
-`CommonReduct` is an equivalence.
+`MJoin Red` is symmetric (trivially) and reflexive (since `↠` is), so we in fact show that
+`MJoin Red` is an equivalence.
 
 Our proof
 follows the method of Tait and Martin-Löf for the lambda calculus, as presented for instance in
@@ -35,7 +35,7 @@ reduction on the head and tail of a term.
 
 - `parallelReduction_diamond` : parallel reduction satisfies the diamond property, that is, it is
 confluent in a single step.
-- `commonReduct_equivalence` : by a general result, the diamond property for `⇒ₚ` implies the same
+- `mJoin_red_equivalence` : by a general result, the diamond property for `⇒ₚ` implies the same
 for its reflexive-transitive closure. This closure is exactly `↠`, which implies the
 **Church-Rosser** theorem as sketched above.
 -/
@@ -235,15 +235,14 @@ theorem join_parallelReduction_equivalence :
   Confluent.equivalence_join_reflTransGen <| Diamond.toConfluent (parallelReduction_diamond _ _ _)
 
 /-- The **Church-Rosser** theorem in its general form. -/
-theorem commonReduct_equivalence : Equivalence CommonReduct := by
-  simp only [CommonReduct, MJoin]
-  rw [←reflTransGen_parallelReduction_mRed]
+theorem mJoin_red_equivalence : Equivalence (MJoin Red) := by
+  rw [MJoin, ←reflTransGen_parallelReduction_mRed]
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/
-theorem MRed.diamond (a b c : SKI) (hab : a ↠ b) (hac : a ↠ c) : CommonReduct b c := by
-  apply commonReduct_equivalence.trans (y := a)
-  · exact commonReduct_equivalence.symm (MJoin.single hab)
+theorem MRed.diamond (a b c : SKI) (hab : a ↠ b) (hac : a ↠ c) : MJoin Red b c := by
+  apply mJoin_red_equivalence.trans (y := a)
+  · exact mJoin_red_equivalence.symm (MJoin.single hab)
   · exact MJoin.single hac
 
 end SKI
