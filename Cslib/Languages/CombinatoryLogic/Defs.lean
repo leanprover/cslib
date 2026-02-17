@@ -20,13 +20,12 @@ using the SKI basis.
 
 - `SKI`: the type of expressions in the SKI calculus,
 - `Red`: single-step reduction of SKI expressions,
-- `MRed`: multi-step reduction of SKI expressions,
-- `CommonReduct`: the relation between terms having a common reduct,
+- `MRed`: multi-step reduction of SKI expressions.
 
 ## Notation
 
 - `⬝` : application between SKI terms,
-- `⇒` : single-step reduction,
+- `⭢` : single-step reduction,
 - `↠` : multi-step reduction,
 
 ## References
@@ -86,7 +85,7 @@ inductive Red : SKI → SKI → Prop where
   | red_tail (x y y' : SKI) (_ : Red y y') : Red (x ⬝ y) (x ⬝ y')
 
 
-open Red
+open Red Relation
 
 lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
   | red_S _ _ _, h => by cases h
@@ -112,14 +111,10 @@ lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
 lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b) ↠ (a' ⬝ b') := by
   trans a' ⬝ b <;> grind
 
--- TODO: inline `SKI.CommonReduct` as `Relation.MJoin Red`
-/-- Express that two terms have a reduce to a common term. -/
-def CommonReduct : SKI → SKI → Prop := Relation.MJoin Red
-
-theorem commonReduct_head {x x' : SKI} (y : SKI) : CommonReduct x x' → CommonReduct (x ⬝ y) (x' ⬝ y)
+theorem mJoin_red_head {x x' : SKI} (y : SKI) : MJoin Red x x' → MJoin Red (x ⬝ y) (x' ⬝ y)
   | ⟨z, hz, hz'⟩ => ⟨z ⬝ y, MRed.head y hz, MRed.head y hz'⟩
 
-theorem commonReduct_tail (x : SKI) {y y' : SKI} : CommonReduct y y' → CommonReduct (x ⬝ y) (x ⬝ y')
+theorem mJoin_red_tail (x : SKI) {y y' : SKI} : MJoin Red y y' → MJoin Red (x ⬝ y) (x ⬝ y')
   | ⟨z, hz, hz'⟩ => ⟨x ⬝ z, MRed.tail x hz, MRed.tail x hz'⟩
 
 end SKI
