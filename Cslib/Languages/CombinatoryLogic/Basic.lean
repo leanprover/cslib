@@ -60,9 +60,9 @@ instance CoeTermPolynomial (n : Nat) : Coe SKI (SKI.Polynomial n) := ⟨SKI.Poly
 def Polynomial.eval {n : Nat} (Γ : SKI.Polynomial n) (l : List SKI) (hl : List.length l = n) :
     SKI :=
   match Γ with
-  | SKI.Polynomial.term x => x
-  | SKI.Polynomial.var i => l[i]
-  | SKI.Polynomial.app Γ Δ => (Γ.eval l hl) ⬝ (Δ.eval l hl)
+  | .term x => x
+  | .var i => l[i]
+  | .app Γ Δ => (Γ.eval l hl) ⬝ (Δ.eval l hl)
 
 /-- A polynomial with no free variables is a term -/
 def Polynomial.varFreeToSKI (Γ : SKI.Polynomial 0) : SKI := Γ.eval [] (by trivial)
@@ -71,15 +71,15 @@ def Polynomial.varFreeToSKI (Γ : SKI.Polynomial 0) : SKI := Γ.eval [] (by triv
 defined reduction on polynomials) `Γ' ⬝ t ↠ Γ[xₙ ← t]`. -/
 def Polynomial.elimVar {n : Nat} : SKI.Polynomial (n+1) → SKI.Polynomial n
   /- The K-combinator leaves plain terms unchanged by substitution `K ⬝ x ⬝ t ⇒ x` -/
-  | SKI.Polynomial.term x => K ⬝' x
+  | .term x => K ⬝' x
   /- Variables other than `xₙ` use the K-combinator as above, for `xₙ` we use `I`. -/
-  | SKI.Polynomial.var i => by
+  | .var i => by
     by_cases i<n
     case pos h =>
-      exact K ⬝' (SKI.Polynomial.var <| @Fin.ofNat n ⟨Nat.ne_zero_of_lt h⟩ i)
+      exact K ⬝' (.var <| @Fin.ofNat n ⟨Nat.ne_zero_of_lt h⟩ i)
     case neg h => exact ↑I
   /- The S-combinator inductively applies the substitution to the subterms of an application. -/
-  | SKI.Polynomial.app Γ Δ => S ⬝' Γ.elimVar ⬝' Δ.elimVar
+  | .app Γ Δ => S ⬝' Γ.elimVar ⬝' Δ.elimVar
 
 
 /--
@@ -94,17 +94,17 @@ theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n + 1)) {ys :
       (by rw [List.length_append, hys, List.length_singleton])
     := by
   match n, Γ with
-  | _, SKI.Polynomial.term x =>
+  | _, .term x =>
     rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
     exact MRed.K _ _
-  | _, SKI.Polynomial.app Γ Δ =>
+  | _, .app Γ Δ =>
     rw [SKI.Polynomial.elimVar, SKI.Polynomial.eval]
     trans Γ.elimVar.eval ys hys ⬝ z ⬝ (Δ.elimVar.eval ys hys ⬝ z)
     · exact MRed.S _ _ _
     · apply parallel_mRed
       · exact elimVar_correct Γ hys z
       · exact elimVar_correct Δ hys z
-  | n, SKI.Polynomial.var i =>
+  | n, .var i =>
     rw [SKI.Polynomial.elimVar]
     split_ifs with hi
     · have h : (ys ++ [z])[i]'(by simp [hys]) = ys[↑i] := by grind
