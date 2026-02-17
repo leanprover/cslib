@@ -78,7 +78,6 @@ def IsChurch (n : Nat) (a : SKI) : Prop :=
     ∀ f x :SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
 
 /-- To show `IsChurch n a` it suffices to show the same for a reduct of `a`. -/
--- not a grind rule: triggers too many instantiations (#grind_lint)
 theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠ a') :
     IsChurch n a' → IsChurch n a := by
   simp_rw [IsChurch]
