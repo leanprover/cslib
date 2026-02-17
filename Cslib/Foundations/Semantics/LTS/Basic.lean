@@ -453,7 +453,6 @@ theorem LTS.Total.mTr_ωTr [Inhabited Label] [ht : lts.Total] {μl : List Label}
     (hm : lts.MTr s μl t) : ∃ μs ss, lts.ωTr ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
   let μs : ωSequence Label := .const default
   obtain ⟨ss', ho, h0⟩ := LTS.Total.ωTr_exists (h := ht) t μs
-  use μs
   grind [LTS.ωTr.append hm ho h0]
 
 /-- `LTS.totalize` constructs a total LTS from any given LTS by adding a sink state. -/
