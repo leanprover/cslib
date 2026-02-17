@@ -42,12 +42,12 @@ theorem isChurchList_trans {ns : List ℕ} {cns cns' : SKI} (h : cns ↠ cns')
   | x :: xs =>
     intro c n
     obtain ⟨cx, cxs, hcx, hcxs, hred⟩ := hcns' c n
-    exact ⟨cx, cxs, hcx, hcxs,
-      Trans.trans (parallel_mRed (MRed.head c h) .refl) hred⟩
+    exact ⟨cx, cxs, hcx, hcxs, Trans.trans (parallel_mRed (MRed.head c h) .refl) hred⟩
 
 /-- Both components of a pair are Church lists. -/
-def IsChurchListPair (prev curr : List ℕ) (p : SKI) : Prop :=
-  IsChurchList prev (Fst ⬝ p) ∧ IsChurchList curr (Snd ⬝ p)
+structure IsChurchListPair (prev curr : List ℕ) (p : SKI) : Prop where
+  fst : IsChurchList prev (Fst ⬝ p)
+  snd : IsChurchList curr (Snd ⬝ p)
 
 /-- IsChurchListPair is preserved under reduction. -/
 @[scoped grind →]
@@ -110,6 +110,7 @@ def toChurch : List ℕ → SKI
 /-- `toChurch [] = Nil`. -/
 @[simp]
 lemma toChurch_nil : toChurch [] = Nil := rfl
+
 /-- `toChurch (x :: xs) = Cons ⬝ SKI.toChurch x ⬝ toChurch xs`. -/
 @[simp]
 lemma toChurch_cons (x : ℕ) (xs : List ℕ) :
@@ -211,12 +212,10 @@ theorem tailFold_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns
     use MkPair ⬝ Nil ⬝ Nil
     constructor
     · exact hcns TailStep (MkPair ⬝ Nil ⬝ Nil)
-    · simp only [List.tail_nil]
-      exact tail_init
+    · exact tail_init
   | cons x xs ih =>
     -- For x :: xs, first fold xs, then apply step
     -- cns ⬝ TailStep ⬝ init ↠ TailStep ⬝ cx ⬝ (cxs ⬝ TailStep ⬝ init)
-    simp only [List.tail_cons]
     -- Get the Church representations for x and xs
     obtain ⟨cx, cxs, hcx, hcxs, hred⟩ := hcns TailStep (MkPair ⬝ Nil ⬝ Nil)
     -- By IH, folding xs gives a pair representing (xs.tail, xs)
