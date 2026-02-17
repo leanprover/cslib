@@ -36,19 +36,7 @@ def insertion_sort (l : List α) : TimeM (List α):=
 #eval (insertion_sort [1, 2, 3, 4])
 #eval (insertion_sort [4, 3, 2, 1])
 
-inductive Sorted : List α → Prop where
-| sorted_nil : Sorted nil
-| sorted_one : ∀ x, Sorted [x]
-| sorted_cons : ∀ l (x y : α), Sorted (x :: l) → (y <= x) → Sorted (y :: x :: l)
-
-open Sorted
-
 abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
-
-example : Sorted [1,3,4] := by
-  repeat apply sorted_cons
-  · apply sorted_one
-  all_goals simp
 
 @[grind →]
 lemma mem_either_insert (l : List α) (h : x ∈ ⟪insert y l⟫) :  x = y ∨ x ∈ l := by
@@ -62,7 +50,7 @@ lemma mem_either_insert (l : List α) (h : x ∈ ⟪insert y l⟫) :  x = y ∨ 
       grind
 
 
-lemma insert_correct' : ∀ a (l : List α) (_ : IsSorted l), IsSorted (⟪insert a l⟫) := by
+lemma insert_correct : ∀ a (l : List α) (_ : IsSorted l), IsSorted (⟪insert a l⟫) := by
   intros a l h
   fun_induction insert a l with
   | case1 => simp
@@ -80,57 +68,15 @@ lemma insert_correct' : ∀ a (l : List α) (_ : IsSorted l), IsSorted (⟪inser
         grind
       · grind
 
-lemma insert_correct : ∀ a (l : List α) (_ : Sorted l), Sorted (⟪insert a l⟫) := by
-  intros n l h
-  induction h with
-  | sorted_nil =>
-    simp only [insert, ret_pure]
-    apply sorted_one
-  | sorted_one x =>
-    simp only [insert]
-    by_cases h : n <= x
-    · simp only [h]
-      apply sorted_cons
-      · apply sorted_one
-      assumption
-    · simp only [h]
-      apply sorted_cons
-      · apply sorted_one
-      exact le_of_lt (not_le.mp h)
-  | sorted_cons l x m h h1 ih =>
-    simp only [insert] at *
-    by_cases h2 : n <= x
-    · simp only [h2] at ih
-      by_cases h3 : n <= m
-      · simp only [h3]
-        cases ih
-        apply sorted_cons <;> try assumption
-        apply sorted_cons <;> try assumption
-      · simp only [h3, h2]
-        apply sorted_cons <;> try assumption
-        have : n ≥ m := by
-          simp only [ge_iff_le]
-          exact le_of_lt (not_le.mp h3)
-        exact this
-    · simp [h2] at ih
-      by_cases h3 : n <= m
-      · simp only [h3]
-        apply sorted_cons <;> try assumption
-        apply sorted_cons <;> assumption
-      · simp only [h3]
-        simp only [h2]
-        apply sorted_cons <;> assumption
-
 theorem insertion_sort_correct : ∀ (l : List α),
-  Sorted (insertion_sort l) := by
+  IsSorted (⟪insertion_sort l⟫) := by
   intro l
   induction l with
   | nil =>
-    simp only [insertion_sort]
-    apply sorted_nil
+    simp only [insertion_sort, ret_pure, Pairwise.nil]
   | cons x xs ih =>
-    simp only [insertion_sort]
-    exact insert_correct x (insertion_sort xs) ih
+    simp only [insertion_sort, ret_bind]
+    exact insert_correct' x ⟪(insertion_sort xs)⟫ ih
 
 inductive Permutation {α : Type} : List α → List α → Prop where
 | perm_nil : Permutation [] []
