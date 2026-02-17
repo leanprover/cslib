@@ -20,7 +20,7 @@ using the SKI basis.
 
 - `SKI`: the type of expressions in the SKI calculus,
 - `Red`: single-step reduction of SKI expressions,
-- `MRed`: multi-step reduction of SKI expressions,
+- `MRed`: multi-step reduction of SKI expressions.
 
 ## Notation
 

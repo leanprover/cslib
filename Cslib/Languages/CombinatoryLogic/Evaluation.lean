@@ -131,25 +131,25 @@ theorem evalStep_right_correct : (x y : SKI) → (x.evalStep = Sum.inr y) → x 
           rw [←h]
           exact red_head _ _ _ <| evalStep_right_correct _ _ habcd
 
-theorem redexFree_of_no_red {x : SKI} (h : Normal Red x) : x.RedexFree := by
+theorem redexFree_of_normal_red {x : SKI} (h : Normal Red x) : x.RedexFree := by
   match hx : x.evalStep with
   | Sum.inl h' => exact h'.down
   | Sum.inr y => rw [Normal_iff] at h; cases h _ (evalStep_right_correct x y hx)
 
-theorem RedexFree.no_red {x : SKI} (hx : x.RedexFree) : Normal Red x := by
+theorem RedexFree.normal_red {x : SKI} (hx : x.RedexFree) : Normal Red x := by
   simp_rw [Normal_iff]
   intro y hy
   match x, hx, y, hy with
-  | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.no_red ⟨_, hx'⟩
-  | K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.no_red ⟨_, hx'⟩
-  | S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => exact hx.no_red ⟨_, h3⟩
-  | S ⬝ _ ⬝ _, ⟨_, hy⟩, S ⬝ _ ⬝ _, red_tail _ _ _ h3 => exact hy.no_red ⟨_, h3⟩
-  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => exact hx.no_red ⟨_, hq⟩
-  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => exact hy.no_red ⟨_, he⟩
+  | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.normal_red ⟨_, hx'⟩
+  | K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.normal_red ⟨_, hx'⟩
+  | S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => exact hx.normal_red ⟨_, h3⟩
+  | S ⬝ _ ⬝ _, ⟨_, hy⟩, S ⬝ _ ⬝ _, red_tail _ _ _ h3 => exact hy.normal_red ⟨_, h3⟩
+  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => exact hx.normal_red ⟨_, hq⟩
+  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => exact hy.normal_red ⟨_, he⟩
 
 /-- A term is redex free iff it has no one-step reductions. -/
 theorem redexFree_iff {x : SKI} : x.RedexFree ↔ Normal Red x :=
-  ⟨RedexFree.no_red, redexFree_of_no_red⟩
+  ⟨RedexFree.normal_red, redexFree_of_normal_red⟩
 
 theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft = true := by
   constructor
@@ -157,7 +157,7 @@ theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft =
     intro h
     match hx : x.evalStep with
     | Sum.inl h' => exact rfl
-    | Sum.inr y => cases h.no_red ⟨_, (evalStep_right_correct _ _ hx)⟩
+    | Sum.inr y => cases h.normal_red ⟨_, (evalStep_right_correct _ _ hx)⟩
   case mpr =>
     intro h
     match hx : x.evalStep with
@@ -178,7 +178,7 @@ theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x
       case inl => assumption
       case inr h' =>
         obtain ⟨z, hz, _⟩ := h'
-        cases h.no_red ⟨_, hz⟩
+        cases h.normal_red ⟨_, hz⟩
     case mpr =>
       intro h
       rw [h]
@@ -196,7 +196,7 @@ theorem mJoin_red_redexFree {x y : SKI} (hy : y.RedexFree) (h : MJoin Red x y) :
 
 /-- If `x` reduces to both `y` and `z`, and `z` is not reducible, then `y` reduces to `z`. -/
 lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : RedexFree z) : y ↠ z :=
-  let ⟨w, hyw, hzw⟩ := MRed.diamond x y z hxy hxz
+  let ⟨w, hyw, hzw⟩ := MRed.diamond hxy hxz
   (redexFree_iff_mred_eq.1 hz _ |>.1 hzw : z = w) ▸ hyw
 
 /--
@@ -311,7 +311,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ P ⬝ (TT ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
       _ ↠ P ⬝ b := by apply MRed.tail; apply TT_correct
       _ ↠ FF := hb
-    exact TF_nequiv <| MRed.diamond _ _ _ h this
+    exact TF_nequiv <| MRed.diamond h this
   case inr h =>
     have : (P ⬝ Abs) ↠ TT := calc
       _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
@@ -319,7 +319,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ P ⬝ (FF ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
       _ ↠ P ⬝ a := by apply MRed.tail; apply FF_correct
       _ ↠ TT := ha
-    exact TF_nequiv <| MRed.diamond _ _ _ this h
+    exact TF_nequiv <| MRed.diamond this h
 
 /-- **Rice's theorem**: any SKI predicate is trivial.
 

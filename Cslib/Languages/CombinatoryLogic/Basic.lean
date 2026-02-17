@@ -107,37 +107,29 @@ theorem Polynomial.elimVar_correct {n : Nat} (Γ : SKI.Polynomial (n + 1)) {ys :
   | n, SKI.Polynomial.var i =>
     rw [SKI.Polynomial.elimVar]
     split_ifs with hi
-    /- This part is quite messy because of the list indexing: possibly it could be cleaned up. -/
-    · simp_rw [SKI.Polynomial.eval]
-      have h : (ys ++ [z])[i]'(by simp [hys]) = ys[↑i] := by
-        simp only [Fin.getElem_fin]
-        rw [List.getElem_append_left]
-      rw [h]
-      simp_rw [Fin.getElem_fin, Fin.val_ofNat, Nat.mod_eq_of_lt hi]
+    · have h : (ys ++ [z])[i]'(by simp [hys]) = ys[↑i] := by grind
+      simp_rw [SKI.Polynomial.eval, h, Fin.getElem_fin, Fin.val_ofNat, Nat.mod_eq_of_lt hi]
       exact MRed.K _ _
-    · simp_rw [SKI.Polynomial.eval]
-      replace hi := Nat.eq_of_lt_succ_of_not_lt i.isLt hi
-      simp_rw [Fin.getElem_fin, hi]
-      have app_len : (ys ++ [z]).length = n+1 := by simpa
+    · replace hi := Nat.eq_of_lt_succ_of_not_lt i.isLt hi
+      have app_len : (ys ++ [z]).length = n + 1 := by simpa
       have : (ys ++ [z])[n]'(by rw [app_len]; exact Nat.lt_add_one n) = z := by
         rw [List.getElem_append_right] <;> simp [hys]
-      rw [this]
+      simp_rw [SKI.Polynomial.eval, Fin.getElem_fin, hi, this]
       exact MRed.I _
 
 /-- Bracket abstraction, by induction using `SKI.Polynomial.elimVar` -/
 def Polynomial.toSKI {n : Nat} (Γ : SKI.Polynomial n) : SKI :=
   match n with
   | 0 => Γ.varFreeToSKI
-  | _+1 => Γ.elimVar.toSKI
+  | _ + 1 => Γ.elimVar.toSKI
 
 /-- Correctness for the toSKI (bracket abstraction) algorithm. -/
 theorem Polynomial.toSKI_correct {n : Nat} (Γ : SKI.Polynomial n) (xs : List SKI)
     (hxs : xs.length = n) : Γ.toSKI.applyList xs ↠ Γ.eval xs hxs := by
   match n with
   | 0 =>
-    unfold toSKI varFreeToSKI applyList
     rw [List.length_eq_zero_iff] at hxs
-    simp_rw [hxs, List.foldl_nil]
+    simp_rw [hxs, applyList, List.foldl_nil]
     rfl
   | n+1 =>
     -- show that xs = ys + [z]
@@ -147,17 +139,15 @@ theorem Polynomial.toSKI_correct {n : Nat} (Γ : SKI.Polynomial n) (xs : List SK
     simp_rw [this, false_or, List.concat_eq_append] at h
     replace ⟨ys, z, h⟩ := h
     -- apply inductive step, using elimVar_correct
-    unfold toSKI
     have : ys.length = n := by
       replace h := congr_arg List.length <| h
       simp_rw [List.length_append, List.length_singleton, hxs] at h
-      exact Nat.succ_inj.mp (id (Eq.symm h))
+      exact Nat.succ_inj.mp h.symm
     simp_rw [h, applyList_concat]
     trans Γ.elimVar.eval ys this ⬝ z
     · apply MRed.head
       exact SKI.Polynomial.toSKI_correct Γ.elimVar ys this
     · exact SKI.Polynomial.elimVar_correct Γ this z
-
 
 /-!
 ### Basic auxiliary combinators.
@@ -175,14 +165,12 @@ def R : SKI := RPoly.toSKI
 theorem R_def (x y : SKI) : (R ⬝ x ⬝ y) ↠ y ⬝ x :=
   RPoly.toSKI_correct [x, y] (by simp)
 
-
 /-- Composition: B := λ f g x. f (g x) -/
 def BPoly : SKI.Polynomial 3 := &0 ⬝' (&1 ⬝' &2)
 /-- A SKI term representing B -/
 def B : SKI := BPoly.toSKI
 theorem B_def (f g x : SKI) : (B ⬝ f ⬝ g ⬝ x) ↠ f ⬝ (g ⬝ x) :=
   BPoly.toSKI_correct [f, g, x] (by simp)
-
 
 /-- C := λ f x y. f y x -/
 def CPoly : SKI.Polynomial 3 := &0 ⬝' &2 ⬝' &1
@@ -191,14 +179,12 @@ def C : SKI := CPoly.toSKI
 theorem C_def (f x y : SKI) : (C ⬝ f ⬝ x ⬝ y) ↠ f ⬝ y ⬝ x :=
   CPoly.toSKI_correct [f, x, y] (by simp)
 
-
 /-- Rotate right: RotR := λ x y z. z x y -/
 def RotRPoly : SKI.Polynomial 3 := &2 ⬝' &0 ⬝' &1
 /-- A SKI term representing RotR -/
 def RotR : SKI := RotRPoly.toSKI
 theorem rotR_def (x y z : SKI) : (RotR ⬝ x ⬝ y ⬝ z) ↠ z ⬝ x ⬝ y :=
   RotRPoly.toSKI_correct [x, y, z] (by simp)
-
 
 /-- Rotate left: RotR := λ x y z. y z x -/
 def RotLPoly : SKI.Polynomial 3 := &1 ⬝' &2 ⬝' &0
@@ -207,14 +193,12 @@ def RotL : SKI := RotLPoly.toSKI
 theorem rotL_def (x y z : SKI) : (RotL ⬝ x ⬝ y ⬝ z) ↠ y ⬝ z ⬝ x :=
   RotLPoly.toSKI_correct [x, y, z] (by simp)
 
-
 /-- Self application: δ := λ x. x x -/
 def DelPoly : SKI.Polynomial 1 := &0 ⬝' &0
 /-- A SKI term representing δ -/
 def Del : SKI := DelPoly.toSKI
 theorem del_def (x : SKI) : (Del ⬝ x) ↠ x ⬝ x :=
   DelPoly.toSKI_correct [x] (by simp)
-
 
 /-- H := λ f x. f (x x) -/
 def HPoly : SKI.Polynomial 2 := &0 ⬝' (&1 ⬝' &1)
@@ -223,14 +207,12 @@ def H : SKI := HPoly.toSKI
 theorem H_def (f x : SKI) : (H ⬝ f ⬝ x) ↠ f ⬝ (x ⬝ x) :=
   HPoly.toSKI_correct [f, x] (by simp)
 
-
 /-- Curry's fixed-point combinator: Y := λ f. H f (H f) -/
 def YPoly : SKI.Polynomial 1 := H ⬝' &0 ⬝' (H ⬝' &0)
 /-- A SKI term representing Y -/
 def Y : SKI := YPoly.toSKI
 theorem Y_def (f : SKI) : (Y ⬝ f) ↠ H ⬝ f ⬝ (H ⬝ f) :=
   YPoly.toSKI_correct [f] (by simp)
-
 
 /-- The fixed-point property of the Y-combinator -/
 theorem Y_correct (f : SKI) : MJoin Red (Y ⬝ f) (f ⬝ (Y ⬝ f)) := by
@@ -255,12 +237,10 @@ def ThAux : SKI := ThAuxPoly.toSKI
 theorem ThAux_def (x y : SKI) : (ThAux ⬝ x ⬝ y) ↠ y ⬝ (x ⬝ x ⬝ y) :=
   ThAuxPoly.toSKI_correct [x, y] (by simp)
 
-
 /-- Turing's fixed-point combinator: Θ := (λ x y. y (x x y)) (λ x y. y (x x y)) -/
 def Th : SKI := ThAux ⬝ ThAux
 /-- A SKI term representing Θ -/
 theorem Th_correct (f : SKI) : (Th ⬝ f) ↠ f ⬝ (Th ⬝ f) := ThAux_def ThAux f
-
 
 /-! ### Church Booleans -/
 
@@ -324,6 +304,7 @@ theorem and_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool u
     cases ub
     · simp [FF_correct]
     · simp [TT_correct]
+
 /-- Or := λ a b. Cond TT (Cond TT FF b) b -/
 def OrPoly : SKI.Polynomial 2 := SKI.Cond ⬝' TT ⬝' (SKI.Cond ⬝ TT ⬝ FF ⬝' &1) ⬝' &0
 /-- A SKI term representing Or -/
@@ -344,9 +325,7 @@ theorem or_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub
   · apply isBool_trans (a' := TT) (h := cond_correct a _ _ true ha)
     simp [TT_correct]
 
-
 /- TODO?: other boolean connectives -/
-
 
 /-! ### Pairs -/
 
