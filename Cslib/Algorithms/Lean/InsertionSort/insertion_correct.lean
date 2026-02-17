@@ -68,9 +68,8 @@ lemma insert_correct : ∀ a (l : List α) (_ : IsSorted l), IsSorted (⟪insert
         grind
       · grind
 
-theorem insertion_sort_correct : ∀ (l : List α),
+theorem insertionSort_sorted (l : List α) :
   IsSorted (⟪insertion_sort l⟫) := by
-  intro l
   induction l with
   | nil =>
     simp only [insertion_sort, ret_pure, Pairwise.nil]
@@ -93,30 +92,31 @@ lemma permutation_insert : ∀ (l : List α) a,
 
 lemma permutation_insert' : ∀ (l l' : List α) a,
   l ~ l' →
-  (a :: l) ~ ⟪insert a l'⟫ := by
+  ⟪insert a l⟫ ~ a :: l' := by
   intro l l' a h
-  cases l with
+  cases l' with
   | nil =>
-    have h1 : [].isEmpty = l'.isEmpty := Perm.isEmpty_eq h
-    simp only [isEmpty_nil, Bool.true_eq, List.isEmpty_iff] at h1
+    have h1 : l.isEmpty = [].isEmpty := Perm.isEmpty_eq h
+    simp only [isEmpty_nil, List.isEmpty_iff] at h1
     rw [h1]
     simp
-  | cons a' l =>
-    apply Perm.trans (l₂ := a :: l')
+  | cons a' l' =>
+    apply Perm.symm
+    apply Perm.trans (l₂ := a :: l)
     · simp only [perm_cons]
+      apply Perm.symm
       assumption
     apply Perm.symm
     apply permutation_insert
 
-theorem sorted_correct : ∀ (l : List α),
-  ∃ l', Sorted l' ∧ Permutation l l' := by
-  intro l
-  exists (insertion_sort l)
-  apply And.intro
-  · apply insertion_sort_correct
-  · induction l with
-    | nil => simp [insertion_sort]
-    | cons x xs ih =>
-      simp only [insertion_sort]
-      apply permutation_insert'
-      assumption
+lemma insertionSort_perm (l : List α) : ⟪insertion_sort l⟫ ~ l := by
+  fun_induction insertion_sort with
+  | case1 => simp
+  | case2 a l ih =>
+    simp only [ret_bind]
+    apply permutation_insert'
+    assumption
+
+theorem insertionSort_correct (l : List α) :
+  IsSorted (⟪insertion_sort l⟫) ∧ ⟪insertion_sort l⟫ ~ l :=
+    ⟨ insertionSort_sorted l, insertionSort_perm l⟩
