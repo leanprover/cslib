@@ -120,3 +120,31 @@ lemma insertionSort_perm (l : List α) : ⟪insertion_sort l⟫ ~ l := by
 theorem insertionSort_correct (l : List α) :
   IsSorted (⟪insertion_sort l⟫) ∧ ⟪insertion_sort l⟫ ~ l :=
     ⟨ insertionSort_sorted l, insertionSort_perm l⟩
+
+lemma insert_time (l : List α) :
+  (insert a l).time ≤ l.length := by
+  fun_induction insert with
+  | case1 => simp
+  | case2 b l ih =>
+    simp at *
+    split_ifs with h1
+    · simp
+    · grind
+
+lemma insertion_sort_len (l : List α) :
+  ⟪insertion_sort l⟫.length = l.length := by
+  have h := insertionSort_perm l
+  apply Perm.length_eq at h
+  exact h
+
+theorem insertionSort_time (l : List α) :
+  let n := l.length
+  (insertion_sort l).time ≤ n^2 := by
+  fun_induction insertion_sort with
+  | case1 => simp
+  | case2 a l ih =>
+    simp only [time_bind, length_cons] at *
+    have h : (insert a ⟪insertion_sort l⟫).time ≤ ⟪insertion_sort l⟫.length := by
+      apply insert_time
+    rw [insertion_sort_len] at h
+    grind
