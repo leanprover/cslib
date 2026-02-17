@@ -270,9 +270,7 @@ theorem succHead_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns
     IsChurchList [ns.headD 0 + 1] (SuccHead ⬝ cns) := by
   have hhead := head_correct ns cns hcns
   have hsucc := succ_correct (ns.headD 0) (Head ⬝ cns) hhead
-  apply isChurchList_trans
-    (Trans.trans (B_tail_mred _ _ _ _ (B_def SKI.Succ Head cns))
-                 (C_def Cons Nil _))
+  apply isChurchList_trans (.trans (B_tail_mred _ _ _ _ (B_def .Succ Head cns)) (C_def Cons Nil _))
   exact cons_correct hsucc nil_correct
 
 end List
