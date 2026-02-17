@@ -76,94 +76,36 @@ theorem insertion_sort_correct : ∀ (l : List α),
     simp only [insertion_sort, ret_pure, Pairwise.nil]
   | cons x xs ih =>
     simp only [insertion_sort, ret_bind]
-    exact insert_correct' x ⟪(insertion_sort xs)⟫ ih
-
-inductive Permutation {α : Type} : List α → List α → Prop where
-| perm_nil : Permutation [] []
-| perm_skip x l l' : Permutation l l' → Permutation (x :: l) (x :: l')
-| perm_swap x y l : Permutation (y :: x :: l) (x :: y :: l)
-| perm_trans l l₁ l₂ :
-  Permutation l l₁ → Permutation l₁ l₂ → Permutation l l₂
-
-attribute [simp] Permutation.perm_nil Permutation.perm_skip Permutation.perm_swap
-
-open Permutation
-
-def permutation {α} (l l' : List α) :=
-  ∀ (n : Nat) x, l[n]? = some x → ∃ (n' : Nat), l'[n']? = some x
-
-example : Permutation [1] [1] := by
-  aesop
-
-example : Permutation [1,2] [2,1] := by
-  aesop
-
-lemma permutation_self {α} : forall (l : List α), Permutation l l := by
-  intros l
-  induction l with
-  | nil =>
-    simp
-  | cons x xs ih =>
-    apply perm_skip
-    assumption
+    exact insert_correct x ⟪(insertion_sort xs)⟫ ih
 
 
 lemma permutation_insert : ∀ (l : List α) a,
-  Permutation (a :: l) (insert a l) := by
+  ⟪insert a l⟫ ~ (a :: l) := by
   intros l a
-  induction l with
-  | nil =>
+  fun_induction insert with
+  | case1 => simp only [ret_pure, Perm.refl]
+  | case2 b l' ih =>
     simp
-  | cons x xs ih =>
-    simp only [_root_.insert]
-    by_cases h : a <= x
-    · simp only [h]
-      apply perm_skip
-      apply perm_skip
-      apply permutation_self
-    · simp only [h]
-      apply perm_trans (l₁ := x :: a :: xs)
-      · apply perm_swap
-      apply perm_skip
-      assumption
-
-lemma permutation_length {α} : ∀ (l₁ l₂ : List α),
-  Permutation l₁ l₂ -> length l₁ = length l₂ := by
-  intros l₁ l₂ h
-  induction h with
-  | perm_nil => simp
-  | perm_skip x l1 l2 h ih => simp only [length_cons, Nat.add_right_cancel_iff]; assumption
-  | perm_swap x y l => simp
-  | perm_trans l l1 l2 h1 h2 ih1 ih2 =>
-    rw [ih1, ih2]
-
-
-lemma permutation_empty {α} : ∀ (l : List α),
-  Permutation [] l → l = [] := by
-  intros l h
-  have hlen : l.length = 0 := by
-    apply Eq.symm
-    apply permutation_length _ _ h
-  -- now finish by cases on `l`
-  cases l with
-  | nil => rfl
-  | cons _ _ =>
-    simp [length] at hlen  -- hlen becomes `Nat.succ _ = 0`
+    split_ifs with h1
+    · simp
+    · simp
+      grind
 
 lemma permutation_insert' : ∀ (l l' : List α) a,
-  Permutation l l' →
-  Permutation (a :: l) (insert a l') := by
+  l ~ l' →
+  (a :: l) ~ ⟪insert a l'⟫ := by
   intro l l' a h
-  induction l with
+  cases l with
   | nil =>
-    have h1 : l' = [] := by apply permutation_empty _ h
+    have h1 : [].isEmpty = l'.isEmpty := Perm.isEmpty_eq h
+    simp only [isEmpty_nil, Bool.true_eq, List.isEmpty_iff] at h1
     rw [h1]
     simp
-  | cons x xs ih =>
-    simp only at *
-    apply perm_trans (l₁ := a :: l')
-    · apply perm_skip
+  | cons a' l =>
+    apply Perm.trans (l₂ := a :: l')
+    · simp only [perm_cons]
       assumption
+    apply Perm.symm
     apply permutation_insert
 
 theorem sorted_correct : ∀ (l : List α),
