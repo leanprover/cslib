@@ -58,11 +58,8 @@ spec
   while (i < nL)
     invariant (0 <= i && i <= nL)
   {
+    // [FEATURE REQUEST] clean array assignment syntax
     L := L[i := A[l + i]];
-    // [FEATURE REQUEST] Support for simple indexing
-    // like L[i] := A[l + i]
-    // This is hard to read specially when
-    // assigning from a different array.
     i := i + 1;
   }
 
@@ -71,9 +68,8 @@ spec
   while (j < nR)
     invariant (0 <= j && j <= nR)
   {
+    // [FEATURE REQUEST] clean array assignment syntax
     R := R[j := A[m + 1 + j]];
-    // [FEATURE REQUEST] Support for simple indexing
-    // [Style] like R[j] := A[m + 1 + j]
     j := j + 1;
   }
 
@@ -83,12 +79,10 @@ spec
   k := l;
 
   while (i < nL && j < nR)
-    // invariant (0 <= i && i <= nL)
-    // invariant (0 <= j && j <= nR)
-    // invariant (l <= k && k <= r + 1)
+    invariant (0 <= i && i <= nL)
+    invariant (0 <= j && j <= nR)
+    invariant (l <= k && k <= r + 1)
     invariant (inv >= 0)
-    // [FEATURE REQUEST]
-    // [Style] Support for multiple invariants
   {
     if (L[i] <= R[j]) {
       A := A[k := L[i]];

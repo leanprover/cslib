@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -127,3 +128,6 @@ spec
 #end
 
 #eval Strata.Boole.verify "cvc5" findMaxSubArray
+example : Strata.smtVCsCorrect findMaxSubArray := by
+  gen_smt_vcs
+  all_goals grind

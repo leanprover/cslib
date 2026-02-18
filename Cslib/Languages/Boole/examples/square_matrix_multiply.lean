@@ -20,8 +20,6 @@ private def squareMatrixMult :=
 #strata
 program Boole;
 
-// [FEATURE_REQUEST] the definitions below
-// could have a better representation
 var A : (Map int (Map int int));
 var B : (Map int (Map int int));
 var C : (Map int (Map int int));

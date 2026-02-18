@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -69,7 +70,9 @@ spec
   j := p;
 
   while (j <= r - 1)
-    invariant p - 1 <= i && i < j && j <= r
+    invariant p - 1 <= i
+    invariant i < j
+    invariant j <= r
   {
     if (A[j] <= x) {
       i := i + 1;
@@ -90,3 +93,7 @@ spec
 #end
 
 #eval Strata.Boole.verify "cvc5" quickSort
+
+example : Strata.smtVCsCorrect quickSort := by
+  gen_smt_vcs
+  all_goals smt +mono

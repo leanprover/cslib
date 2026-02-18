@@ -112,38 +112,3 @@ spec
 example : Strata.smtVCsCorrect stackArrayPgm := by
   gen_smt_vcs
   all_goals smt +mono
-
--- [FEATURE REQUEST]
--- Support for structures/records and encapsulating methods.
--- For example, we would like to write:
-
---
--- record Stack :=
---   arr : Array;
---   top : int;
---   cap : int;
-
--- def Stack.init(cap : int) returns (s : Stack)
--- spec { ensures s.top == 0; ensures s.cap == cap; }
--- {
---   s.top := 0;
---   s.cap := cap;
--- }
-
--- def Stack.push(s : Stack, x : int) returns (s' : Stack)
--- spec {
---   requires s.top < s.cap;
---   ensures s'.top == s.top + 1;
---   ensures s'.cap == s.cap;
---   ensures s'.arr[s'.top] == x;
--- }
--- {
---   s' := s;
---   s'.top := s.top + 1;
---   s'.arr := s.arr[s'.top := x];
--- }
-
--- Accessing fields would then be done via:
--- s.top
--- s.cap
--- s.arr[i]

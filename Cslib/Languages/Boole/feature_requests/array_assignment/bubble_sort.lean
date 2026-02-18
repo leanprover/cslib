@@ -21,9 +21,6 @@ type Array := Map int int;
 var A : Array;
 var n : int;
 
-// function array_length(a: Array) : int { n }
-// axiom (array_length(A) == n);
-
 procedure BubbleSort() returns ()
 spec
 {
@@ -43,27 +40,21 @@ spec
   i := 0;
 
   while (i < n - 1)
-    // invariant (0 <= i && i <= n - 1)
-    // [FEATURE REQUEST] Support for multiple invariants
-    invariant (
-      forall p:int, q:int ::
-        (n - (i)) <= p && p <= q && q < n ==> A[p] <= A[q]
-    )
+    invariant forall p:int, q:int ::
+      n - i <= p && p <= q && q < n ==> A[p] <= A[q]
   {
     // inner loop: j = n-1 downto i+1
     j := n - 1;
 
     while (j > i)
-      //invariant (i < j && j < n)
-      //invariant (0 <= i && i <= n - 1)
-      invariant (
-        forall p:int, q:int ::
-          (n - (i)) <= p && p <= q && q < n ==> A[p] <= A[q]
-      )
+      invariant forall p:int, q:int ::
+        n - i <= p && p <= q && q < n ==> A[p] <= A[q]
     {
       if (A[j] < A[j - 1])
       {
         tmp := A[j];
+        // [FEATURE REQUEST] clean array assignment syntax
+        // A[j] := A[j - 1]
         A := A[j := A[j - 1]];
         A := A[j - 1 := tmp];
       }
@@ -78,7 +69,6 @@ spec
 
 #eval Strata.Boole.verify "cvc5" bubbleSortPgm
 
--- TODO : VCs are too hard for cvc5 to prove
--- example : Strata.smtVCsCorrect bubbleSortPgm := by
---   gen_smt_vcs
---   all_goals smt +mono
+example : Strata.smtVCsCorrect bubbleSortPgm := by
+  gen_smt_vcs
+  all_goals smt +mono

@@ -18,7 +18,6 @@ private def hornerPgm :=
 #strata
 program Boole;
 
-// "Array" of ints represented as a map from int to int
 type Array := Map int int;
 
 procedure Horner(A : Array, n : int, x : int) returns (y : int)
@@ -37,10 +36,9 @@ spec
   y := 0;
   i := n;
 
+  // [FEATURE REQUEST] for loop construct with downto
   // for i = n downto 0
-  // [FEATURE REQUEST] For loop construct with downto
   while (i >= 0)
-    invariant (i >= -1 && i <= n)
   {
     y := A[i] + x * y;
     i := i - 1;

@@ -18,7 +18,7 @@ import Smt
 --            low <- mid + 1
 --    return NIL
 
-private def binarySearch :=
+private def binarySearchPgm :=
 #strata
 program Boole;
 
@@ -106,10 +106,9 @@ spec
 
 #end
 
-#eval Strata.Boole.verify "cvc5" binarySearch
+#eval Strata.Boole.verify "cvc5" binarySearchPgm
 
-example : Strata.smtVCsCorrect binarySearch := by
-  gen_smt_vcs
-  all_goals (try smt +mono)
-  · sorry
-  · sorry
+-- TODO `smt` tactic cannot prove VCs
+-- theorem binarySearchPgm_smtVCsCorrect : Strata.smtVCsCorrect binarySearchPgm := by
+--   gen_smt_vcs
+--   all_goals smt +mono

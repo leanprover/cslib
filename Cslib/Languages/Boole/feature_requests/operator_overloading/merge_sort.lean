@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 ---------------------------------------------------------------------
 namespace Strata
@@ -38,7 +39,6 @@ private def mergeSortPgm :=
 #strata
 program Boole;
 
-// An "array of ints" is a map from int to int
 type Array := Map int int;
 
 // Global array we’ll sort, and its length
@@ -77,9 +77,9 @@ spec
   var m : int;
 
   if (l < r) {
+    //[FEATURE REQUEST] Support for `/` division operator
     // m = floor((l + r) / 2)
     m := (l + r) div 2;
-    //[FEATURE REQUEST] Support for `/` division operator
 
     // Recursively sort A[l..m] and A[m+1..r]
     call MergeSortRange(l, m);
@@ -149,3 +149,7 @@ spec
 #end
 
 #eval Strata.Boole.verify "cvc5" mergeSortPgm
+
+theorem mergeSortPgm_smtVCsCorrect : Strata.smtVCsCorrect mergeSortPgm := by
+  gen_smt_vcs
+  all_goals grind
