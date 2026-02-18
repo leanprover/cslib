@@ -215,12 +215,35 @@ theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
     ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
 
+lemma LTS.IsExecution.comp_seg2
+    {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
+    (h1 : lts.IsExecution s μs1 r ss1) (h2 : lts.IsExecution r μs2 t ss2)
+    (k : ℕ) (h_k : k < ss2.length) :
+    (ss1 ++ ss2.tail)[μs1.length + k]'(by grind) = ss2[k] := by
+  by_cases h : k = 0
+  · simp (disch := grind) only [h, add_zero, List.getElem_append_left]
+    grind
+  · simp (disch := grind) only [List.getElem_append_right, List.getElem_tail]
+    have : μs1.length + k - ss1.length + 1 = k := by grind
+    grind only
+
 /-- The composition of two executions is an execution. -/
 theorem LTS.IsExecution.comp
     {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
     (h1 : lts.IsExecution s μs1 r ss1) (h2 : lts.IsExecution r μs2 t ss2) :
-    lts.IsExecution s (μs1 ++ μs2) t (ss1 ++ ss2.drop 1) := by
-  use by grind, by grind, by grind, by grind
+    lts.IsExecution s (μs1 ++ μs2) t (ss1 ++ ss2.tail) := by
+  have h0 : (ss1 ++ ss2.tail).length = (μs1 ++ μs2).length + 1 := by grind
+  use h0
+  split_ands
+  · grind
+  · have := LTS.IsExecution.comp_seg2 h1 h2 μs2.length (by grind)
+    grind only [IsExecution, = List.length_append]
+  · intro k h_k
+    by_cases k < μs1.length
+    · grind only [IsExecution, = List.getElem_append]
+    · have := LTS.IsExecution.comp_seg2 h1 h2 (k - μs1.length) (by grind)
+      have := LTS.IsExecution.comp_seg2 h1 h2 (k - μs1.length + 1) (by grind)
+      grind
 
 /-- An execution can be split at any intermediate state into two executions. -/
 theorem LTS.IsExecution.split
