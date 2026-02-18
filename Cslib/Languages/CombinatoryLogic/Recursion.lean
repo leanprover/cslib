@@ -304,23 +304,17 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
   induction n generalizing m x
   all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
   case zero.a =>
-    apply isChurch_trans (a' := x)
-    · have : IsChurch (fNat m) (f ⬝ x) := hf m x hx
-      rw [Nat.add_zero] at hroot
-      simp_rw [hroot] at this
-      apply rfindAboveAux_base
-      assumption
-    · assumption
+    apply isChurch_trans (a' := x) <;>
+      grind [rfindAboveAux_base]
   case succ.a n ih =>
-    unfold RFindAbove
     apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
     · let y := (fNat m).pred
-      have : IsChurch (y+1) (f ⬝ x) := by
+      have : IsChurch (y + 1) (f ⬝ x) := by
         subst y
         exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
       apply rfindAboveAux_step
       assumption
-    · replace ih := ih (SKI.Succ ⬝ x) (m+1) (succ_correct _ x hx)
+    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
       grind
   -- close the `h` goals of the above `apply isChurch_trans`
   all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
@@ -347,8 +341,8 @@ theorem add_def (a b : SKI) : (SKI.Add ⬝ a ⬝ b) ↠ a ⬝ SKI.Succ ⬝ b :=
   AddPoly.toSKI_correct [a, b] (by simp)
 
 theorem add_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n+m) (SKI.Add ⬝ a ⬝ b) := by
-  refine isChurch_trans (n+m) (a' := Church n SKI.Succ b) ?_ ?_
+    IsChurch (n + m) (SKI.Add ⬝ a ⬝ b) := by
+  refine isChurch_trans (n + m) (a' := Church n SKI.Succ b) ?_ ?_
   · calc
     _ ↠ a ⬝ SKI.Succ ⬝ b := add_def a b
     _ ↠ Church n SKI.Succ b := ha SKI.Succ b
@@ -367,15 +361,15 @@ theorem mul_def (a b : SKI) : (SKI.Mul ⬝ a ⬝ b) ↠ a ⬝ (SKI.Add ⬝ b) �
   MulPoly.toSKI_correct [a, b] (by simp)
 
 theorem mul_correct {n m : Nat} {a b : SKI} (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n*m) (SKI.Mul ⬝ a ⬝ b) := by
-  refine isChurch_trans (n*m) (a' := Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
+    IsChurch (n * m) (SKI.Mul ⬝ a ⬝ b) := by
+  refine isChurch_trans (n * m) (a' := Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
   · exact Trans.trans (mul_def a b) (ha (SKI.Add ⬝ b) SKI.Zero)
   · clear ha
     induction n with
       | zero => simp_rw [Nat.zero_mul, Church]; exact zero_correct
       | succ n ih =>
         simp_rw [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church]
-        exact add_correct m (n*m) b (Church n (SKI.Add ⬝ b) SKI.Zero) hb ih
+        exact add_correct m (n * m) b (Church n (SKI.Add ⬝ b) SKI.Zero) hb ih
 
 /-- Subtraction: λ n m. n Pred m -/
 def SubPoly : SKI.Polynomial 2 := &1 ⬝' Pred ⬝' &0
@@ -385,8 +379,8 @@ theorem sub_def (a b : SKI) : (SKI.Sub ⬝ a ⬝ b) ↠ b ⬝ Pred ⬝ a :=
   SubPoly.toSKI_correct [a, b] (by simp)
 
 theorem sub_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n-m) (SKI.Sub ⬝ a ⬝ b) := by
-  refine isChurch_trans (n-m) (a' := Church m Pred a) ?_ ?_
+    IsChurch (n - m) (SKI.Sub ⬝ a ⬝ b) := by
+  refine isChurch_trans (n - m) (a' := Church m Pred a) ?_ ?_
   · calc
     _ ↠ b ⬝ Pred ⬝ a := sub_def a b
     _ ↠ Church m Pred a := hb Pred a
