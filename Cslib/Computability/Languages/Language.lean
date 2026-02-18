@@ -50,8 +50,6 @@ theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
 theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.reverse := by
   ext x; simp [mem_sub]
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 @[scoped grind =]
 theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
   ext x; constructor
