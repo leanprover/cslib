@@ -225,7 +225,7 @@ lemma LTS.IsExecution.comp_seg2
     grind
   · simp (disch := grind) only [List.getElem_append_right, List.getElem_tail]
     have : μs1.length + k - ss1.length + 1 = k := by grind
-    grind only
+    grind
 
 /-- The composition of two executions is an execution. -/
 theorem LTS.IsExecution.comp
@@ -236,13 +236,13 @@ theorem LTS.IsExecution.comp
   use h0
   split_ands
   · grind
-  · have := LTS.IsExecution.comp_seg2 h1 h2 μs2.length (by grind)
+  · have := LTS.IsExecution.comp_seg2 h1 h2 μs2.length
     grind only [IsExecution, = List.length_append]
   · intro k h_k
     by_cases k < μs1.length
     · grind only [IsExecution, = List.getElem_append]
-    · have := LTS.IsExecution.comp_seg2 h1 h2 (k - μs1.length) (by grind)
-      have := LTS.IsExecution.comp_seg2 h1 h2 (k - μs1.length + 1) (by grind)
+    · have := LTS.IsExecution.comp_seg2 h1 h2 (k - μs1.length)
+      have := LTS.IsExecution.comp_seg2 h1 h2 (k - μs1.length + 1)
       grind
 
 /-- An execution can be split at any intermediate state into two executions. -/
