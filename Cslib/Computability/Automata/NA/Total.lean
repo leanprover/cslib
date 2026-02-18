@@ -54,7 +54,7 @@ as long as the accepting states are also lifted in the obvious way. -/
 theorem totalize_language_eq {na : FinAcc State Symbol} :
     language (FinAcc.mk na.totalize (inl '' na.accept)) = language na := by
   ext xl
-  simp [totalize]
+  simp +instances [totalize]
 
 end FinAcc
 

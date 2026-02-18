@@ -54,10 +54,9 @@ theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.revers
 theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
   ext x; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
-    rw [mem_sub, mem_one] at h_u ⊢
     constructor
     · refine ⟨u, ?_, v, ?_⟩ <;> grind
-    · grind [append_eq_nil_iff]
+    · grind [append_eq_nil_iff, mem_one]
   · rintro ⟨⟨u, h_u, v, h_v, rfl⟩, h_x⟩
     rcases eq_or_ne u [] with (rfl | h_u')
     · refine ⟨v, ?_, [], ?_⟩ <;> grind [mem_sub, mem_one]
