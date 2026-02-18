@@ -172,12 +172,20 @@ def B : SKI := BPoly.toSKI
 theorem B_def (f g x : SKI) : (B ⬝ f ⬝ g ⬝ x) ↠ f ⬝ (g ⬝ x) :=
   BPoly.toSKI_correct [f, g, x] (by simp)
 
+/-- B followed by tail reduction -/
+lemma B_tail_mred (f g x y : SKI) (h : (g ⬝ x) ↠ y) : (B ⬝ f ⬝ g ⬝ x) ↠ f ⬝ y :=
+  Trans.trans (B_def f g x) (MRed.tail f h)
+
 /-- C := λ f x y. f y x -/
 def CPoly : SKI.Polynomial 3 := &0 ⬝' &2 ⬝' &1
 /-- A SKI term representing C -/
 def C : SKI := CPoly.toSKI
 theorem C_def (f x y : SKI) : (C ⬝ f ⬝ x ⬝ y) ↠ f ⬝ y ⬝ x :=
   CPoly.toSKI_correct [f, x, y] (by simp)
+
+/-- C followed by head reduction -/
+lemma C_head_mred (f x y z : SKI) (h : (f ⬝ y) ↠ z) : (C ⬝ f ⬝ x ⬝ y) ↠ z ⬝ x :=
+  Trans.trans (C_def f x y) (MRed.head x h)
 
 /-- Rotate right: RotR := λ x y z. z x y -/
 def RotRPoly : SKI.Polynomial 3 := &2 ⬝' &0 ⬝' &1
@@ -259,10 +267,12 @@ theorem isBool_trans (u : Bool) (a a' : SKI) (h : a ↠ a') (ha' : IsBool u a') 
 
 /-- Standard true: TT := λ x y. x -/
 def TT : SKI := K
+@[scoped grind .]
 theorem TT_correct : IsBool true TT := fun x y ↦ MRed.K x y
 
 /-- Standard false: FF := λ x y. y -/
 def FF : SKI := K ⬝ I
+@[scoped grind .]
 theorem FF_correct : IsBool false FF :=
   fun x y ↦ calc
     (FF ⬝ x ⬝ y) ↠ I ⬝ y := by apply Relation.ReflTransGen.single; apply red_head; exact red_K I x
@@ -336,10 +346,12 @@ def Fst : SKI := R ⬝ TT
 /-- Second projection -/
 def Snd : SKI := R ⬝ FF
 
+@[scoped grind .]
 theorem fst_correct (a b : SKI) : (Fst ⬝ (MkPair ⬝ a ⬝ b)) ↠ a := by calc
   _ ↠ SKI.Cond ⬝ a ⬝ b ⬝ TT := R_def _ _
   _ ↠ a := cond_correct TT a b true TT_correct
 
+@[scoped grind .]
 theorem snd_correct (a b : SKI) : (Snd ⬝ (MkPair ⬝ a ⬝ b)) ↠ b := by calc
   _ ↠ SKI.Cond ⬝ a ⬝ b ⬝ FF := R_def _ _
   _ ↠ b := cond_correct FF a b false FF_correct
