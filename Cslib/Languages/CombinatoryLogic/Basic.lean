@@ -140,7 +140,7 @@ theorem Polynomial.toSKI_correct {n : Nat} (Γ : SKI.Polynomial n) (xs : List SK
     replace ⟨ys, z, h⟩ := h
     -- apply inductive step, using elimVar_correct
     have : ys.length = n := by
-      replace h := congr_arg List.length <| h
+      replace h := congr_arg List.length h
       simp_rw [List.length_append, List.length_singleton, hxs] at h
       exact Nat.succ_inj.mp h.symm
     simp_rw [h, applyList_concat]
