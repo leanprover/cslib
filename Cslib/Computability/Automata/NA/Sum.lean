@@ -58,10 +58,10 @@ namespace Buchi
 
 open ωAcceptor
 
-/-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
-by its component automata. -/
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
+/-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
+by its component automata. -/
 @[simp]
 theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) → Set (State i)} :
     language (Buchi.mk (iSum na) (⋃ i, Sigma.mk i '' (acc i))) =

@@ -93,10 +93,10 @@ lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((�
   apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false}) <;>
   grind [until_frequently_leadsTo_and, univ_inter]
 
-/-- The language accepted by the intersection automaton is the intersection of
-the languages accepted by the two component automata. -/
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
+/-- The language accepted by the intersection automaton is the intersection of
+the languages accepted by the two component automata. -/
 @[simp, scoped grind =]
 theorem inter_language_eq :
     language (Buchi.mk (interNA na acc) (interAccept acc)) =

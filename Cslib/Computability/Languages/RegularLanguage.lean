@@ -149,10 +149,10 @@ theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
     ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
   exact finConcat_language_eq
 
-open NA.FinAcc Sum in
-/-- The Kleene star of a regular language is regular. -/
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
+open NA.FinAcc Sum in
+/-- The Kleene star of a regular language is regular. -/
 @[simp]
 theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
     (h : l.IsRegular) : (l∗).IsRegular := by
