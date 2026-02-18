@@ -35,7 +35,7 @@ theorem LTS.pairLang_regular [Finite State] {lts : LTS State Symbol} {s t : Stat
   rw [IsRegular.iff_nfa]
   use State, inferInstance, (NA.FinAcc.mk ⟨lts, {s}⟩ {t})
   ext
-  simp
+  simp +instances
 
 /-- `LTS.pairViaLang via s t` is the language of finite words that can take the LTS
 from state `s` to state `t` via a state in `via`. -/
@@ -108,8 +108,7 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     [Inhabited Symbol] [Finite State] (na : Buchi State Symbol) :
     language na = ⨆ s ∈ na.start, ⨆ t ∈ na.accept, (na.pairLang s t) * (na.pairLang t t)^ω := by
   ext xs
-  simp only [Buchi.instωAcceptor, ωAcceptor.mem_language,
-    ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
+  simp only [ωAcceptor.mem_language, ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
   constructor
   · rintro ⟨ss, h_run, h_inf⟩
     obtain ⟨t, h_acc, h_t⟩ := frequently_in_finite_type.mp h_inf
