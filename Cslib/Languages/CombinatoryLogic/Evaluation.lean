@@ -169,19 +169,7 @@ instance : DecidablePred RedexFree := fun _ => decidable_of_iff' _ redexFree_iff
 /-- A term is redex free iff its only many-step reduction is itself. -/
 theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x = y := by
   constructor
-  case mp =>
-    intro h y
-    constructor
-    case mp =>
-      intro h'
-      cases h'.cases_head
-      case inl => assumption
-      case inr h' =>
-        obtain ⟨z, hz, _⟩ := h'
-        cases h.normal_red ⟨_, hz⟩
-    case mpr =>
-      intro h
-      rw [h]
+  case mp => grind [RedexFree.normal_red]
   case mpr =>
     intro h
     rw [redexFree_iff]
@@ -232,21 +220,7 @@ theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool
       · exact mJoin_red_head K <| mJoin_red_head S hxy
       · apply Relation.MJoin.single
         exact hy S K
-  by_cases u
-  case pos hu =>
-    by_cases v
-    case pos hv =>
-      rw [hu, hv]
-    case neg hv =>
-      simp_rw [hu, hv, Bool.false_eq_true, reduceIte] at h
-      exact False.elim <| sk_nequiv h
-  case neg hu =>
-    by_cases v
-    case pos hv =>
-      simp_rw [hu, hv, Bool.false_eq_true, reduceIte] at h
-      exact False.elim <| sk_nequiv (mJoin_red_equivalence.symm h)
-    case neg hv =>
-      simp_rw [hu, hv]
+  grind [sk_nequiv, mJoin_red_equivalence.symm h]
 
 lemma TF_nequiv : ¬ MJoin Red TT FF := fun h =>
   (Bool.eq_not_self true).mp <| isBool_injective TT FF true false TT_correct FF_correct h
