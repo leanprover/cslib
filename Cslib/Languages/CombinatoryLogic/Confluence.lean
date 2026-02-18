@@ -172,13 +172,9 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
       let ⟨a'', c', h⟩ := Sab_irreducible a c a' ha'
       rw [h.2.2]
       use a'' ⬝ b' ⬝ (c' ⬝ b'), .red_S a'' c' b'
-      apply ParallelReduction.par
-      · apply ParallelReduction.par
-        · exact h.1
-        · exact hb'
-      · apply ParallelReduction.par
-        · exact h.2.1
-        · exact hb'
+      apply ParallelReduction.par <;>
+        apply ParallelReduction.par <;>
+        grind
   case red_I =>
     cases h₂
     case refl => use a₁; exact ⟨.refl a₁, .red_I a₁⟩
@@ -201,7 +197,7 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
     cases h₂
     case refl =>
       use a ⬝ c ⬝ (b ⬝ c)
-      exact ⟨.refl _, .red_S _ _ _⟩
+      exact ⟨.refl _, .red_S ..⟩
     case par d c' hd hc =>
       let ⟨a', b', h⟩ := Sab_irreducible a b d hd
       rw [h.2.2]
@@ -210,7 +206,7 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
       · apply ParallelReduction.par
         · exact .par h.left hc
         · exact .par h.2.1 hc
-      · exact .red_S _ _ _
+      · exact .red_S ..
     case red_S => exact ⟨a ⬝ c ⬝ (b ⬝ c), .refl _, .refl _,⟩
 
 theorem join_parallelReduction_equivalence :
