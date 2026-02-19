@@ -55,13 +55,16 @@ namespace Cslib
 
 namespace SKI
 
-open Red MRed ReductionSystem
+open Red MRed
 
 /-- Function form of the church numerals. -/
 def Church (n : Nat) (f x : SKI) : SKI :=
 match n with
 | 0 => x
 | n+1 => f ⬝ (Church n f x)
+
+@[simp] lemma Church_zero (f x : SKI) : Church 0 f x = x := rfl
+@[simp] lemma Church_succ (n : Nat) (f x : SKI) : Church (n+1) f x = f ⬝ Church n f x := rfl
 
 /-- `church` commutes with reduction. -/
 lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ↠ f') (hx : x ↠ x') :
@@ -75,7 +78,8 @@ def IsChurch (n : Nat) (a : SKI) : Prop :=
     ∀ f x :SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
 
 /-- To show `IsChurch n a` it suffices to show the same for a reduct of `a`. -/
-theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠ a') : IsChurch n a' → IsChurch n a := by
+theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠ a') :
+    IsChurch n a' → IsChurch n a := by
   simp_rw [IsChurch]
   intro ha' f x
   calc
@@ -87,6 +91,7 @@ theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠ a') : IsChurch n a' →
 
 /-- Church zero := λ f x. x -/
 protected def Zero : SKI := K ⬝ I
+@[scoped grind .]
 theorem zero_correct : IsChurch 0 SKI.Zero := by
   unfold IsChurch SKI.Zero Church
   intro f x
@@ -96,19 +101,39 @@ theorem zero_correct : IsChurch 0 SKI.Zero := by
 
 /-- Church one := λ f x. f x -/
 protected def One : SKI := I
+@[scoped grind .]
 theorem one_correct : IsChurch 1 SKI.One := by
   intro f x
   apply head
-  exact MRed.single RedSKI (red_I f)
+  exact .single (red_I f)
 
 /-- Church succ := λ a f x. f (a f x) ~ λ a f. B f (a f) ~ λ a. S B a ~ S B -/
 protected def Succ : SKI := S ⬝ B
-theorem succ_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch (n+1) (SKI.Succ ⬝ a) := by
+@[scoped grind →]
+theorem succ_correct (n : Nat) (a : SKI) (h : IsChurch n a) :
+    IsChurch (n+1) (SKI.Succ ⬝ a) := by
   intro f x
   calc
   _ ⭢ B ⬝ f ⬝ (a ⬝ f) ⬝ x := by apply red_head; apply red_S
   _ ↠ f ⬝ (a ⬝ f ⬝ x) := by apply B_def
   _ ↠ f ⬝ (Church n  f x) := by apply MRed.tail; exact h f x
+
+/-- Build the canonical SKI Church numeral for `n`. -/
+def toChurch : ℕ → SKI
+  | 0 => SKI.Zero
+  | n + 1 => SKI.Succ ⬝ (toChurch n)
+
+/-- `toChurch 0 = Zero`. -/
+@[simp] lemma toChurch_zero : toChurch 0 = SKI.Zero := rfl
+/-- `toChurch (n + 1) = Succ ⬝ toChurch n`. -/
+@[simp] lemma toChurch_succ (n : ℕ) : toChurch (n + 1) = SKI.Succ ⬝ (toChurch n) := rfl
+
+/-- `toChurch n` correctly represents `n`. -/
+@[scoped grind .]
+theorem toChurch_correct (n : ℕ) : IsChurch n (toChurch n) := by
+  induction n with
+  | zero => exact zero_correct
+  | succ n ih => exact succ_correct n (toChurch n) ih
 
 /--
 To define the predecessor, iterate the function `PredAux` ⟨i, j⟩ ↦ ⟨j, j+1⟩ on ⟨0,0⟩, then take
@@ -155,7 +180,7 @@ theorem predAux_correct' (n : Nat) :
       · exact fst_correct _ _
       · exact snd_correct _ _
     | succ n ih =>
-      simp_rw [Church]
+      simp_rw [Church_succ]
       apply predAux_correct (ns := ⟨n.pred, n⟩) (h := ih)
 
 /-- Predecessor := λ n. Fst ⬝ (n ⬝ PredAux ⬝ (MkPair ⬝ Zero ⬝ Zero)) -/
@@ -279,23 +304,17 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
   induction n generalizing m x
   all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
   case zero.a =>
-    apply isChurch_trans (a' := x)
-    · have : IsChurch (fNat m) (f ⬝ x) := hf m x hx
-      rw [Nat.add_zero] at hroot
-      simp_rw [hroot] at this
-      apply rfindAboveAux_base
-      assumption
-    · assumption
+    apply isChurch_trans (a' := x) <;>
+      grind [rfindAboveAux_base]
   case succ.a n ih =>
-    unfold RFindAbove
     apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
     · let y := (fNat m).pred
-      have : IsChurch (y+1) (f ⬝ x) := by
+      have : IsChurch (y + 1) (f ⬝ x) := by
         subst y
         exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
       apply rfindAboveAux_step
       assumption
-    · replace ih := ih (SKI.Succ ⬝ x) (m+1) (succ_correct _ x hx)
+    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
       grind
   -- close the `h` goals of the above `apply isChurch_trans`
   all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
@@ -322,8 +341,8 @@ theorem add_def (a b : SKI) : (SKI.Add ⬝ a ⬝ b) ↠ a ⬝ SKI.Succ ⬝ b :=
   AddPoly.toSKI_correct [a, b] (by simp)
 
 theorem add_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n+m) (SKI.Add ⬝ a ⬝ b) := by
-  refine isChurch_trans (n+m) (a' := Church n SKI.Succ b) ?_ ?_
+    IsChurch (n + m) (SKI.Add ⬝ a ⬝ b) := by
+  refine isChurch_trans (n + m) (a' := Church n SKI.Succ b) ?_ ?_
   · calc
     _ ↠ a ⬝ SKI.Succ ⬝ b := add_def a b
     _ ↠ Church n SKI.Succ b := ha SKI.Succ b
@@ -342,15 +361,15 @@ theorem mul_def (a b : SKI) : (SKI.Mul ⬝ a ⬝ b) ↠ a ⬝ (SKI.Add ⬝ b) �
   MulPoly.toSKI_correct [a, b] (by simp)
 
 theorem mul_correct {n m : Nat} {a b : SKI} (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n*m) (SKI.Mul ⬝ a ⬝ b) := by
-  refine isChurch_trans (n*m) (a' := Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
+    IsChurch (n * m) (SKI.Mul ⬝ a ⬝ b) := by
+  refine isChurch_trans (n * m) (a' := Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
   · exact Trans.trans (mul_def a b) (ha (SKI.Add ⬝ b) SKI.Zero)
   · clear ha
     induction n with
       | zero => simp_rw [Nat.zero_mul, Church]; exact zero_correct
       | succ n ih =>
         simp_rw [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church]
-        exact add_correct m (n*m) b (Church n (SKI.Add ⬝ b) SKI.Zero) hb ih
+        exact add_correct m (n * m) b (Church n (SKI.Add ⬝ b) SKI.Zero) hb ih
 
 /-- Subtraction: λ n m. n Pred m -/
 def SubPoly : SKI.Polynomial 2 := &1 ⬝' Pred ⬝' &0
@@ -360,8 +379,8 @@ theorem sub_def (a b : SKI) : (SKI.Sub ⬝ a ⬝ b) ↠ b ⬝ Pred ⬝ a :=
   SubPoly.toSKI_correct [a, b] (by simp)
 
 theorem sub_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n-m) (SKI.Sub ⬝ a ⬝ b) := by
-  refine isChurch_trans (n-m) (a' := Church m Pred a) ?_ ?_
+    IsChurch (n - m) (SKI.Sub ⬝ a ⬝ b) := by
+  refine isChurch_trans (n - m) (a' := Church m Pred a) ?_ ?_
   · calc
     _ ↠ b ⬝ Pred ⬝ a := sub_def a b
     _ ↠ Church m Pred a := hb Pred a

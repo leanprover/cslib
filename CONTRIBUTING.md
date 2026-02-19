@@ -32,6 +32,19 @@ The library hosts a number of languages with their own syntax and semantics, so 
 - If you want notation for a common concept, like reductions or transitions in an operational semantics, try to find an existing typeclass that fits your need.
 - If you define new notation that in principle can apply to different types (e.g., syntax or semantics of other languages), keep it locally scoped or create a new typeclass.
 
+## Documentation
+
+Document your definitions and theorems to ease both use and reviewing.
+When formalising a concept that is explained in a published resource, please reference the resource in your documentation.
+
+# Design principles
+
+## Reuse
+
+A central focus of CSLib is providing reusable abstractions and their consistent usage across the
+library. New definitions should instantiate existing abstractions whenever appropriate: a
+labelled transition system should use `LTS`, etc.
+
 # Continuous Integration
 
 There are a number of checks that run in continuous integration. Here is a brief guide that includes
@@ -64,9 +77,5 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 
 ## Imports
 
-CSLib tests for minimized imports using `lake exe shake`, which also comes with a `--fix` option.
-Note that this tooling is not aware of imports required for tactics or typeclasses. Such imports may
-be specified as exceptions in [scripts/noshake.json](/scripts/noshake.json).
-
 There is a also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
-running `lake exe mk_all` locally, which will make the required changes.
+running `lake exe mk_all --module` locally, which will make the required changes.
