@@ -84,7 +84,7 @@ namespace Step
 variable {p : Program}
 
 /-- The step relation is deterministic: each state has at most one successor. -/
-theorem deterministic : Relation.Deterministic (Step p) := by grind
+theorem deterministic : Relator.RightUnique (Step p) := by grind [Relator.RightUnique]
 
 /-- A halted state has no successor in the step relation. -/
 theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬Step p s s' := by
@@ -133,7 +133,7 @@ theorem isHalted_iff_normal {p : Program} {s : State} :
 
 /-- The step relation is confluent. -/
 theorem step_confluent (p : Program) : Relation.Confluent (Step p) := by
-  apply Relation.Deterministic.toConfluent
+  apply Relation.RightUnique.toConfluent
   exact Step.deterministic
 
 namespace Steps
