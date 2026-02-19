@@ -84,8 +84,7 @@ namespace Step
 variable {p : Program}
 
 /-- The step relation is deterministic: each state has at most one successor. -/
-theorem deterministic {s s' s'' : State} (h1 : Step p s s') (h2 : Step p s s'') : s' = s'' := by
-  grind
+theorem deterministic : Relator.RightUnique (Step p) := by grind [Relator.RightUnique]
 
 /-- A halted state has no successor in the step relation. -/
 theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬Step p s s' := by
@@ -132,32 +131,10 @@ theorem isHalted_iff_normal {p : Program} {s : State} :
       · exact hnormal ⟨_, Step.jump_eq (hp ▸ hinstr) heq⟩
       · exact hnormal ⟨_, Step.jump_ne (hp ▸ hinstr) heq⟩
 
-/-- The step relation is confluent.
-
-For a deterministic relation, any two execution paths from the same state must follow
-the same sequence of steps, so if both reach some state, they reach the same state.
-We prove this directly rather than via Diamond since Diamond requires the relation
-to always have successors. -/
+/-- The step relation is confluent. -/
 theorem step_confluent (p : Program) : Relation.Confluent (Step p) := by
-  intro init s₁ s₂ h1 h2
-  -- Two multi-step reductions from init must follow the same path due to determinism
-  induction h1 using Relation.ReflTransGen.head_induction_on generalizing s₂ with
-  | refl =>
-    -- s₁ = init, so s₂ is reachable from s₁
-    exact ⟨s₂, h2, Relation.ReflTransGen.refl⟩
-  | head hstep_a hrest_a ih =>
-    -- init → a → ... → s₁
-    cases h2 using Relation.ReflTransGen.head_induction_on with
-    | refl =>
-      -- s₂ = init, so s₁ is reachable from s₂
-      exact ⟨s₁, Relation.ReflTransGen.refl, Relation.ReflTransGen.head hstep_a hrest_a⟩
-    | head hstep_b hrest_b =>
-      -- init → b → ... → s₂
-      -- By determinism, a = b
-      have heq := Step.deterministic hstep_a hstep_b
-      subst heq
-      -- Now both paths go through the same intermediate state
-      exact ih hrest_b
+  apply Relation.RightUnique.toConfluent
+  exact Step.deterministic
 
 namespace Steps
 
