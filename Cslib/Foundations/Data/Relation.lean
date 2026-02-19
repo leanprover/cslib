@@ -422,11 +422,11 @@ right. This is the same as Mathlib's `Relator.RightUnique`, which is not current
 abbrev Deterministic {α β : Type*} (r : α → β → Prop) : Prop := ∀ {x y y'}, r x y → r x y' → y = y'
 
 theorem Deterministic.toSemiConfluent (hr : Deterministic r) : SemiConfluent r := by
-  intro _ _ _ h' h
-  obtain (rfl | ⟨_, hxz, hzy'⟩) := h'.cases_head
+  intro _ _ _ (h : ReflTransGen r _ _) (h' : r _ _)
+  obtain (rfl | ⟨_, hxz, hzy'⟩) := h.cases_head -- either h starts with a step or is refl
   · apply symmetric_join
-    exact join_of_single reflexive_reflTransGen (.single h)
-  · rw [← hr hxz h]
+    exact join_of_single reflexive_reflTransGen (.single h')
+  · rw [← hr hxz h'] -- in the second case the first step of h must be h'
     exact MJoin.single hzy'
 
 theorem Deterministic.toConfluent (hr : Deterministic r) : Confluent r :=
