@@ -420,8 +420,7 @@ theorem reflTransGen_compRel : ReflTransGen (SymmGen r) = EqvGen r := by
 /-- `Relator.RightUnique` corresponds to deterministic reductions, which are confluent, as all
 multi-reductions with a common origin start the same (this fact is
 `Relation.ReflTransGen.total_of_right_unique`.) -/
-theorem RightUnique.toConfluent (hr : Relator.RightUnique r) :
-  Confluent r := by
+theorem RightUnique.toConfluent (hr : Relator.RightUnique r) : Confluent r := by
   intro a b c ab ac
   obtain (h | h) := ReflTransGen.total_of_right_unique hr ab ac
   · use c
