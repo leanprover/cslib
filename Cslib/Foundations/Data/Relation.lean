@@ -417,6 +417,21 @@ theorem reflTransGen_compRel : ReflTransGen (SymmGen r) = EqvGen r := by
       exact reflTransGen_swap.mp ih
     | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
 
+/-- A relation is deterministic if any term on the left is related to at most one term on the
+right. This is the same as Mathlib's `Relator.RightUnique`, which is not currently imported. -/
+abbrev Deterministic {α β : Type*} (r : α → β → Prop) : Prop := ∀ {x y y'}, r x y → r x y' → y = y'
+
+theorem Deterministic.toSemiConfluent (hr : Deterministic r) : SemiConfluent r := by
+  intro _ _ _ h' h
+  obtain (rfl | ⟨_, hxz, hzy'⟩) := h'.cases_head
+  · apply symmetric_join
+    exact join_of_single reflexive_reflTransGen (.single h)
+  · rw [← hr hxz h]
+    exact MJoin.single hzy'
+
+theorem Deterministic.toConfluent (hr : Deterministic r) : Confluent r :=
+  SemiConfluent.toConfluent hr.toSemiConfluent
+
 public meta section
 
 open Lean Elab Meta Command Term
