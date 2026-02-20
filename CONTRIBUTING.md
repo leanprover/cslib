@@ -43,7 +43,7 @@ When formalising a concept that is explained in a published resource, please ref
 
 A central focus of CSLib is providing reusable abstractions and their consistent usage across the
 library. New definitions should instantiate existing abstractions whenever appropriate: a
-labelled transition system should use `LTS`, a reduction system `ReductionSystem`, etc.
+labelled transition system should use `LTS`, etc.
 
 # Continuous Integration
 
@@ -77,9 +77,5 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 
 ## Imports
 
-CSLib tests for minimized imports using `lake exe shake`, which also comes with a `--fix` option.
-Note that this tooling is not aware of imports required for tactics or typeclasses. Such imports may
-be specified as exceptions in [scripts/noshake.json](/scripts/noshake.json).
-
 There is a also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
-running `lake exe mk_all` locally, which will make the required changes.
+running `lake exe mk_all --module` locally, which will make the required changes.
