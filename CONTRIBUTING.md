@@ -263,7 +263,7 @@ You can try the Boole sandbox examples at <https://github.com/leanprover/cslib/t
 
 We are interested in collecting a large number of programs in Boole.
 
-If you'd like to contribute examples, please propose and coordinate on Zulip first (especially if the example requires new features).
+If you'd like to contribute examples, please propose and coordinate on the [Zulip channel for code reasoning](https://leanprover.zulipchat.com/#narrow/channel/563135-CSLib.3A-Code-Reasoning) first (especially if the example requires new features).
 
 We separate Boole examples into two directories:
 
