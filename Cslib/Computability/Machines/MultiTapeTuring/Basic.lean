@@ -13,6 +13,7 @@ public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Machines.SingleTapeTuring.Basic
 
 public import Mathlib.Data.Nat.PartENat
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 @[expose] public section
 
