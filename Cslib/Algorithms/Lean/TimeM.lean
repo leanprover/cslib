@@ -42,8 +42,8 @@ See [Danielsson2008] for the discussion.
 namespace Cslib.Algorithms.Lean
 
 /-- A monad for tracking time complexity of computations.
-`TimeM C α` represents a computation that returns a value of type `α`
-and accumulates a time cost (represented as a type `C`, typically `ℕ`). -/
+`TimeM T α` represents a computation that returns a value of type `α`
+and accumulates a time cost (represented as a type `T`, typically `ℕ`). -/
 @[ext]
 structure TimeM (T : Type*) (α : Type*) where
   /-- The return value of the computation -/
