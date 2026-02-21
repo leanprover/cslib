@@ -17,8 +17,28 @@ public import Mathlib.Algebra.Polynomial.Eval.Defs
 
 Defines a single-tape Turing machine for computing functions on `List Symbol`
 for finite alphabet `Symbol`.
+
+## Design
+
+Here are some design choices made in this file:
+
 These machines have access to a single bidirectionally-infinite tape (`BiTape`)
 which uses symbols from `Option Symbol`.
+
+The transition function of the machine takes a state
+and a tape alphabet character under the read-head (i.e. an `Option Symbol`)
+and returns a `Stmt` describing the tape action to take,
+as well as an optional new state to transition to (where `none` means halt).
+
+We do not make the "halting state" a member of the state type for a few reasons:
+
+* To avoid the need for passing a subtype of "non-halting states" to the transition function.
+* To make clear that TMs are not expected to continue on after entering this special state
+  (in contrast to, say, a DFA entering/leaving an accepting state).
+* To make it simpler to match on halting when modifying a machine.
+
+We also include the possibility for non-movement actions,
+for convenience in composition of machines.
 
 ## Important Declarations
 
