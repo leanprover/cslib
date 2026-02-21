@@ -74,14 +74,14 @@ structure SingleTapeTM α where
   /-- Finiteness of the alphabet -/
   [αFintype : Fintype α]
   /-- type of state labels -/
-  (Λ : Type)
+  (State : Type)
   /-- finiteness of the state type -/
-  [ΛFintype : Fintype Λ]
+  [StateFintype : Fintype State]
   /-- Initial state -/
-  (q₀ : Λ)
+  (q₀ : State)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
   and optionally the new state to transition to afterwards (`none` for halt) -/
-  (M : Λ → Option α → SingleTapeTM.Stmt α × Option Λ)
+  (M : State → Option α → SingleTapeTM.Stmt α × Option State)
 
 namespace SingleTapeTM
 
@@ -97,9 +97,9 @@ and the intended initial and final configurations.
 
 variable (tm : SingleTapeTM α)
 
-instance : Inhabited tm.Λ := ⟨tm.q₀⟩
+instance : Inhabited tm.State := ⟨tm.q₀⟩
 
-instance : Fintype tm.Λ := tm.ΛFintype
+instance : Fintype tm.State := tm.StateFintype
 
 instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
 
@@ -110,7 +110,7 @@ and a `BiTape` representing the tape contents.
 -/
 structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
-  state : Option tm.Λ
+  state : Option tm.State
   /-- the BiTape contents -/
   BiTape : BiTape α
 deriving Inhabited
@@ -205,7 +205,7 @@ variable [Inhabited α] [Fintype α]
 
 /-- A Turing machine computing the identity. -/
 def idComputer : SingleTapeTM α where
-  Λ := PUnit
+  State := PUnit
   q₀ := PUnit.unit
   M _ b := ⟨⟨b, none⟩, none⟩
 
@@ -218,7 +218,7 @@ and then, when `tm1` halts, transitioning to the start state of `tm2` and runnin
 -/
 def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
   -- The states of the composed machine are the disjoint union of the states of the input machines.
-  Λ := tm1.Λ ⊕ tm2.Λ
+  State := tm1.State ⊕ tm2.State
   -- The start state is the start state of the first input machine.
   q₀ := .inl tm1.q₀
   M q h :=
