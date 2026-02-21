@@ -105,7 +105,6 @@ structure Cfg : Type where
 deriving Inhabited
 
 /-- The step function corresponding to a `MultiTapeTM`. -/
-@[simp]
 def step : tm.Cfg → Option tm.Cfg
   | ⟨none, _⟩ =>
     -- If in the halting state, there is no next configuration
@@ -124,7 +123,7 @@ lemma step_iter_none_eq_none (tapes : Fin k → BiTape α) (n : ℕ) :
     (Option.bind · tm.step)^[n + 1] (some ⟨none, tapes⟩) = none := by
   rw [Function.iterate_succ_apply]
   induction n with
-  | zero => simp
+  | zero => simp [step]
   | succ n ih =>
     simp only [Function.iterate_succ_apply', ih]
     simp [step]
@@ -140,20 +139,31 @@ The initial configuration corresponding to a list in the input alphabet.
 Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` values.
 This is to ensure that distinct lists map to distinct initial configurations.
 -/
+@[simp, grind =]
 def initCfg (s : List α) : tm.Cfg :=
   ⟨some tm.q₀, first_tape s⟩
 
+/-- Create an initial configuration given a tuple of tapes. -/
+@[simp, grind =]
 def initCfgTapes (tapes : Fin k → BiTape α) : tm.Cfg :=
   ⟨some tm.q₀, tapes⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
+@[simp, grind =]
 def haltCfg (s : List α) : tm.Cfg :=
   ⟨none, first_tape s⟩
 
+/-- The final configuration of a Turing machine given a sequence of tapes. -/
+@[simp, grind =]
 def haltCfgTapes (tapes : Fin k → BiTape α) : tm.Cfg :=
   ⟨none, tapes⟩
+
+/-- The configuration of the Turing machine starting with initial state and given tapes
+at step `t`. -/
+def configurations (tapes : Fin k → BiTape α) (t : ℕ) : Option tm.Cfg :=
+  (Option.bind · tm.step)^[t] (tm.initCfgTapes tapes)
 
 /--
 The space used by a configuration is the space used by its tape.
@@ -188,18 +198,41 @@ which maps a configuration to its next configuration, if it exists.
 @[scoped grind =]
 def TransitionRelation (tm : MultiTapeTM k α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
+/-- The Turing machine `tm` transforms tapes `tapes` to `tapes'` in exactly `t` steps. -/
 def TransformsTapesInTime
     (tm : MultiTapeTM k α)
     (tapes tapes' : Fin k → BiTape α)
     (t : ℕ) : Prop :=
   RelatesInSteps tm.TransitionRelation ⟨some tm.q₀, tapes⟩ ⟨none, tapes'⟩ t
 
+/-- A proof that the Turing machine `tm` uses at most space `s` when run for up to `t` steps
+on initial tapes `tapes`. -/
+def UsesSpaceUpToStep
+    (tm : MultiTapeTM k α)
+    (tapes : Fin k → BiTape α)
+    (s : ℕ)
+    (t : ℕ) : Prop :=
+  ∀ t' ≤ t, match tm.configurations tapes t' with
+      | none => true
+      | some cfg => cfg.space_used ≤ s
+
+/-- The Turing machine `tm` transforms tapes `tapes` to `tapes'` in `t` steps and uses at most
+`s` space. -/
+def TransformsTapesInTimeAndSpace
+    (tm : MultiTapeTM k α)
+    (tapes tapes' : Fin k → BiTape α)
+    (t : ℕ) (s : ℕ) : Prop :=
+  tm.TransformsTapesInTime tapes tapes' t ∧
+    tm.UsesSpaceUpToStep tapes s t
+
+/-- The Turing machine `tm` transforms tapes `tapes` to `tapes'` in `t` steps. -/
 def TransformsTapesWithinTime
     (tm : MultiTapeTM k α)
     (tapes tapes' : Fin k → BiTape α)
     (t : ℕ) : Prop :=
   RelatesWithinSteps tm.TransitionRelation ⟨some tm.q₀, tapes⟩ ⟨none, tapes'⟩ t
 
+/-- The Turing machine `tm` transforms tapes `tapes` to `tapes'`. -/
 def TransformsTapes
     (tm : MultiTapeTM k α)
     (tapes tapes' : Fin k → BiTape α) : Prop :=
@@ -255,10 +288,13 @@ lemma transformsTapes_unique (tm : MultiTapeTM k α)
 
 -- TODO we can actually make it computable, but we have to go a different route
 -- via iterated steps
+/--
+Execute the Turing machine `tm` on initial tapes `tapes`. -/
 public noncomputable def eval (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) :
     Part (Fin k → BiTape α) :=
   ⟨∃ tapes', tm.TransformsTapes tapes tapes', fun h => h.choose⟩
 
+-- TODO use MultiTapeTM.configurations?
 -- TODO this is a simple consequence of relatesInSteps_iff_configurations_eq_some, maybe not needed.
 lemma configurations_of_transformsTapesInTime
     (tm : MultiTapeTM k α)
@@ -271,6 +307,7 @@ lemma configurations_of_transformsTapesInTime
   apply (relatesInSteps_iff_step_iter_eq_some tm (tm.initCfgTapes tapes) ⟨none, tapes'⟩ t).mp
   simpa using h_transforms
 
+-- TODO use MultiTapeTM.configurations?
 @[scoped grind =]
 lemma eval_iff_exists_steps_iter_eq_some
     {tm : MultiTapeTM k α}

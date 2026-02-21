@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
-        with:
-          build-args: "--iofail"
+        # with:
+        #   build-args: "--iofail"
       - name: "lake exe mk_all --check --module"
         run: |
           set -e

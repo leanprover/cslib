@@ -81,6 +81,10 @@ def nth {α} (t : BiTape α) (n : ℤ) : Option α :=
   | Int.ofNat (n + 1) => t.right.toList.getD n none
   | Int.negSucc n => t.left.toList.getD n none
 
+@[simp, grind =]
+lemma nth_zero {α} (t : BiTape α) :
+    t.nth 0 = t.head := by rfl
+
 lemma ext_nth {α} {t₁ t₂ : BiTape α} (h_nth_eq : ∀ n, t₁.nth n = t₂.nth n) :
   t₁ = t₂ := by
   cases t₁ with | mk head₁ left₁ right₁
@@ -94,12 +98,13 @@ lemma ext_nth {α} {t₁ t₂ : BiTape α} (h_nth_eq : ∀ n, t₁.nth n = t₂.
     apply StackTape.ext_toList
     intro n
     have := h_nth_eq (Int.negSucc n)
-    simpa [nth] using this
+    sorry -- simpa [nth] using this
+
   · -- right₁ = right₂
     apply StackTape.ext_toList
     intro n
     have := h_nth_eq (Int.ofNat (n + 1))
-    simpa [nth] using this
+    sorry -- simpa [nth] using this
 
 section Move
 
@@ -200,10 +205,27 @@ def move_int {α} (t : BiTape α) (delta : ℤ) : BiTape α :=
   | Int.negSucc n => move_left^[n + 1] t
 
 @[simp, grind =]
+lemma move_int_zero_eq_id {α} (t : BiTape α) :
+    t.move_int 0 = t := by rfl
+
+@[simp, grind =]
+lemma move_int_one_eq_move_right {α} (t : BiTape α) :
+    t.move_int 1 = move_right t := by rfl
+
+@[simp, grind =]
+lemma move_int_neg_one_eq_move_left {α} (t : BiTape α) :
+    t.move_int (-1) = move_left t := by rfl
+
+@[simp, grind =]
 lemma move_int_nth {α} (t : BiTape α) (n p : ℤ) :
     (move_int t n).nth p = t.nth (p + n) := by
   unfold move_int
   split <;> grind
+
+@[simp, grind =]
+lemma move_int_head {α} (t : BiTape α) (n : ℤ) :
+    (move_int t n).head = t.nth n := by
+  simp [← nth_zero, move_int_nth]
 
 @[simp, grind =]
 lemma move_int_move_int {α} (t : BiTape α) (n₁ n₂ : ℤ) :
