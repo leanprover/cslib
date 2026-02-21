@@ -17,7 +17,7 @@ public import Mathlib.Data.Nat.Log
 # MergeSort on a list
 
 In this file we introduce `merge` and `mergeSort` algorithms that returns a time monad
-over the list `TimeM (List α)`. The time complexity of `mergeSort` is the number of comparisons.
+over the list `TimeM ℕ (List α)`. The time complexity of `mergeSort` is the number of comparisons.
 
 --
 ## Main results
@@ -34,8 +34,8 @@ namespace Cslib.Algorithms.Lean.TimeM
 variable {α : Type} [LinearOrder α]
 
 /-- Merges two lists into a single list, counting comparisons as time cost.
-Returns a `TimeM (List α)` where the time represents the number of comparisons performed. -/
-def merge :  List α → List α → TimeM (List α)
+Returns a `TimeM ℕ (List α)` where the time represents the number of comparisons performed. -/
+def merge :  List α → List α → TimeM ℕ (List α)
   | [], ys => return ys
   | xs, [] => return xs
   | x::xs', y::ys' => do
@@ -48,8 +48,8 @@ def merge :  List α → List α → TimeM (List α)
       return (y :: rest)
 
 /-- Sorts a list using the merge sort algorithm, counting comparisons as time cost.
-Returns a `TimeM (List α)` where the time represents the total number of comparisons. -/
-def mergeSort (xs : List α) : TimeM (List α) :=  do
+Returns a `TimeM ℕ (List α)` where the time represents the total number of comparisons. -/
+def mergeSort (xs : List α) : TimeM ℕ (List α) :=  do
   if xs.length < 2 then return xs
   else
     let half  := xs.length / 2
