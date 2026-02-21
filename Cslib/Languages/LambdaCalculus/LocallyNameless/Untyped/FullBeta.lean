@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public meta import Cslib.Foundations.Semantics.ReductionSystem.Basic
+public meta import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 public section
@@ -32,7 +32,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-- A single β-reduction step. -/
-@[reduction_sys fullBetaRs "βᶠ"]
+@[reduction_sys "βᶠ"]
 inductive FullBeta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
 | beta : LC (abs M)→ LC N → FullBeta (app (abs M) N) (M ^ N)
@@ -49,11 +49,6 @@ attribute [scoped grind .] appL appR
 
 variable {M M' N N' : Term Var}
 
---- TODO: I think this could be generated along with the ReductionSystem
-@[scoped grind _=_]
-lemma fullBetaRs_Red_eq : M ⭢βᶠ N ↔ FullBeta M N := by
-  rfl
-
 /-- The left side of a reduction is locally closed. -/
 @[scoped grind →]
 lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
@@ -63,16 +58,12 @@ lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
 /-- Left congruence rule for application in multiple reduction. -/
 @[scoped grind ←]
 theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠βᶠ app M' N := by
-  induction redex
-  case refl => rfl
-  case step a b c hab hbc ih => exact ReductionSystem.MRed.step fullBetaRs ih (appR lc_N hbc)
+  induction redex <;> grind
 
 /-- Right congruence rule for application in multiple reduction. -/
 @[scoped grind ←]
 theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
-  induction redex
-  case refl => rfl
-  case step ih r => exact Relation.ReflTransGen.tail r (appL lc_N ih)
+  induction redex <;> grind
 
 variable [HasFresh Var] [DecidableEq Var]
 
