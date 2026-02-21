@@ -15,9 +15,9 @@ public import Mathlib.Algebra.Polynomial.Eval.Defs
 /-!
 # Single-Tape Turing Machines
 
-Defines a single-tape Turing machine for computing functions on `List α` for finite alphabet `α`.
+Defines a single-tape Turing machine for computing functions on `List Symbol` for finite alphabet `Symbol`.
 These machines have access to a single bidirectionally-infinite tape (`BiTape`)
-which uses symbols from `Option α`.
+which uses symbols from `Option Symbol`.
 
 ## Important Declarations
 
@@ -47,17 +47,17 @@ namespace Turing
 
 open BiTape StackTape
 
-variable {α : Type}
+variable {Symbol : Type}
 
 namespace SingleTapeTM
 
 /--
 A Turing machine "statement" is just a `Option`al command to move left or right,
-and write a symbol (i.e. an `Option α`, where `none` is the blank symbol) on the `BiTape`
+and write a symbol (i.e. an `Option Symbol`, where `none` is the blank symbol) on the `BiTape`
 -/
-structure Stmt (α : Type) where
+structure Stmt (Symbol : Type) where
   /-- The symbol to write at the current head position -/
-  symbol : Option α
+  symbol : Option Symbol
   /-- The direction to move the tape head -/
   movement : Option Dir
 deriving Inhabited
@@ -66,13 +66,13 @@ end SingleTapeTM
 
 /--
 A single-tape Turing machine
-over the alphabet of `Option α` (where `none` is the blank `BiTape` symbol).
+over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
 -/
-structure SingleTapeTM α where
+structure SingleTapeTM Symbol where
   /-- Inhabited instance for the alphabet -/
-  [αInhabited : Inhabited α]
+  [SymbolInhabited : Inhabited Symbol]
   /-- Finiteness of the alphabet -/
-  [αFintype : Fintype α]
+  [SymbolFintype : Fintype Symbol]
   /-- type of state labels -/
   (State : Type)
   /-- finiteness of the state type -/
@@ -81,7 +81,7 @@ structure SingleTapeTM α where
   (q₀ : State)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
   and optionally the new state to transition to afterwards (`none` for halt) -/
-  (M : State → Option α → SingleTapeTM.Stmt α × Option State)
+  (M : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
 
 namespace SingleTapeTM
 
@@ -95,13 +95,13 @@ the step function that lets the machine transition from one configuration to the
 and the intended initial and final configurations.
 -/
 
-variable (tm : SingleTapeTM α)
+variable (tm : SingleTapeTM Symbol)
 
 instance : Inhabited tm.State := ⟨tm.q₀⟩
 
 instance : Fintype tm.State := tm.StateFintype
 
-instance inhabitedStmt : Inhabited (Stmt α) := inferInstance
+instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
 
 /--
 The configurations of a Turing machine consist of:
@@ -112,7 +112,7 @@ structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.State
   /-- the BiTape contents -/
-  BiTape : BiTape α
+  BiTape : BiTape Symbol
 deriving Inhabited
 
 /-- The step function corresponding to a `SingleTapeTM`. -/
@@ -133,27 +133,27 @@ The initial configuration corresponding to a list in the input alphabet.
 Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` values.
 This is to ensure that distinct lists map to distinct initial configurations.
 -/
-def initCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
+def initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
-def haltCfg (tm : SingleTapeTM α) (s : List α) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
+def haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
 
 /--
 The space used by a configuration is the space used by its tape.
 -/
-def Cfg.space_used (tm : SingleTapeTM α) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
+def Cfg.space_used (tm : SingleTapeTM Symbol) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
 
 @[scoped grind =]
-lemma Cfg.space_used_initCfg (tm : SingleTapeTM α) (s : List α) :
+lemma Cfg.space_used_initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
     (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
 @[scoped grind =]
-lemma Cfg.space_used_haltCfg (tm : SingleTapeTM α) (s : List α) :
+lemma Cfg.space_used_haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
     (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
 
-lemma Cfg.space_used_step {tm : SingleTapeTM α} (cfg cfg' : tm.Cfg)
+lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
   obtain ⟨_ | q, tape⟩ := cfg
   · simp [step] at hstep
@@ -170,19 +170,19 @@ end Cfg
 open Cfg
 
 /--
-The `TransitionRelation` corresponding to a `SingleTapeTM α`
+The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
 is defined by the `step` function,
 which maps a configuration to its next configuration, if it exists.
 -/
 @[scoped grind =]
-def TransitionRelation (tm : SingleTapeTM α) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
+def TransitionRelation (tm : SingleTapeTM Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
-def Outputs (tm : SingleTapeTM α) (l l' : List α) : Prop :=
+def Outputs (tm : SingleTapeTM Symbol) (l l' : List Symbol) : Prop :=
   ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
 
 /-- A proof of `tm` outputting `l'` on input `l` in at most `m` steps. -/
-def OutputsWithinTime (tm : SingleTapeTM α) (l l' : List α) (m : ℕ) :=
+def OutputsWithinTime (tm : SingleTapeTM Symbol) (l l' : List Symbol) (m : ℕ) :=
   RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
 
 /--
@@ -192,7 +192,7 @@ This is important for guaranteeing that composition of polynomial time Turing ma
 remains polynomial time, as the input to the second machine
 is bounded by the output length of the first machine.
 -/
-lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List α) (t : ℕ)
+lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : List Symbol) (t : ℕ)
     (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
   obtain ⟨steps, hsteps_le, hevals⟩ := h
@@ -201,10 +201,10 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM α) (l l' : List
 
 section Computers
 
-variable [Inhabited α] [Fintype α]
+variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine computing the identity. -/
-def idComputer : SingleTapeTM α where
+def idComputer : SingleTapeTM Symbol where
   State := PUnit
   q₀ := PUnit.unit
   M _ b := ⟨⟨b, none⟩, none⟩
@@ -216,7 +216,7 @@ If f and g are computed by Turing machines `tm1` and `tm2`
 then we can construct a Turing machine which computes g ∘ f by first running `tm1`
 and then, when `tm1` halts, transitioning to the start state of `tm2` and running `tm2`.
 -/
-def compComputer (tm1 tm2 : SingleTapeTM α) : SingleTapeTM α where
+def compComputer (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
   -- The states of the composed machine are the disjoint union of the states of the input machines.
   State := tm1.State ⊕ tm2.State
   -- The start state is the start state of the first input machine.
@@ -249,7 +249,7 @@ section compComputerLemmas
 
 /-! ### Composition Computer Lemmas -/
 
-variable (tm1 tm2 : SingleTapeTM α) (cfg1 : tm1.Cfg) (cfg2 : tm2.Cfg)
+variable (tm1 tm2 : SingleTapeTM Symbol) (cfg1 : tm1.Cfg) (cfg2 : tm2.Cfg)
 
 lemma compComputer_q₀_eq : (compComputer tm1 tm2).q₀ = Sum.inl tm1.q₀ := rfl
 
@@ -267,16 +267,16 @@ private def toCompCfg_right : (compComputer tm1 tm2).Cfg :=
   ⟨Option.map Sum.inr cfg2.state, cfg2.BiTape⟩
 
 /-- The initial configuration for the composed machine, with the first machine starting. -/
-private def initialCfg (input : List α) : (compComputer tm1 tm2).Cfg :=
+private def initialCfg (input : List Symbol) : (compComputer tm1 tm2).Cfg :=
   ⟨some (Sum.inl tm1.q₀), BiTape.mk₁ input⟩
 
 /-- The intermediate configuration for the composed machine,
 after the first machine halts and the second machine starts. -/
-private def intermediateCfg (intermediate : List α) : (compComputer tm1 tm2).Cfg :=
+private def intermediateCfg (intermediate : List Symbol) : (compComputer tm1 tm2).Cfg :=
   ⟨some (Sum.inr tm2.q₀), BiTape.mk₁ intermediate⟩
 
 /-- The final configuration for the composed machine, after the second machine halts. -/
-private def finalCfg (output : List α) : (compComputer tm1 tm2).Cfg :=
+private def finalCfg (output : List Symbol) : (compComputer tm1 tm2).Cfg :=
   ⟨none, BiTape.mk₁ output⟩
 
 /-- The left converting function commutes with steps of the machines. -/
@@ -313,7 +313,7 @@ runs from start (with Sum.inl state) to Sum.inr tm2.q₀ (the start of the secon
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-private theorem comp_left_relatesWithinSteps (input intermediate : List α) (t : ℕ)
+private theorem comp_left_relatesWithinSteps (input intermediate : List Symbol) (t : ℕ)
     (htm1 :
       RelatesWithinSteps tm1.TransitionRelation
         (tm1.initCfg input)
@@ -338,7 +338,7 @@ Simulation for the second phase of the composed computer.
 When the second machine runs from start to halt, the composed machine
 runs from Sum.inr tm2.q₀ to halt.
 -/
-private theorem comp_right_relatesWithinSteps (intermediate output : List α) (t : ℕ)
+private theorem comp_right_relatesWithinSteps (intermediate output : List Symbol) (t : ℕ)
     (htm2 :
       RelatesWithinSteps tm2.TransitionRelation
         (tm2.initCfg intermediate)
@@ -365,21 +365,21 @@ This section defines the notion of time-bounded Turing Machines
 
 section TimeComputable
 
-variable [Inhabited α] [Fintype α]
+variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine + a time function +
 a proof it outputs `f` in at most `time(input.length)` steps. -/
-structure TimeComputable (f : List α → List α) where
+structure TimeComputable (f : List Symbol → List Symbol) where
   /-- the underlying bundled SingleTapeTM -/
-  tm : SingleTapeTM α
+  tm : SingleTapeTM Symbol
   /-- a bound on runtime -/
   time_bound : ℕ → ℕ
   /-- proof this machine outputs `f` in at most `time_bound(input.length)` steps -/
   outputsFunInTime (a) : tm.OutputsWithinTime a (f a) (time_bound a.length)
 
 
-/-- The identity map on α is computable in constant time. -/
-def TimeComputable.id : TimeComputable (α := α) id where
+/-- The identity map on Symbol is computable in constant time. -/
+def TimeComputable.id : TimeComputable (Symbol := Symbol) id where
   tm := idComputer
   time_bound _ := 1
   outputsFunInTime _ := ⟨1, le_rfl, RelatesInSteps.single rfl⟩
@@ -398,7 +398,8 @@ this is to ensure that if the first machine returns an output
 which is shorter than the maximum possible length of output for that input size,
 then the time bound for the second machine still holds for that shorter input to the second machine.
 -/
-def TimeComputable.comp {f g : List α → List α} (hf : TimeComputable f) (hg : TimeComputable g)
+def TimeComputable.comp {f g : List Symbol → List Symbol}
+    (hf : TimeComputable f) (hg : TimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     (TimeComputable (g ∘ f)) where
   tm := compComputer hf.tm hg.tm
@@ -450,18 +451,18 @@ section PolyTimeComputable
 
 open Polynomial
 
-variable [Inhabited α] [Fintype α]
+variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine + a polynomial time function +
 a proof it outputs `f` in at most `time(input.length)` steps. -/
-structure PolyTimeComputable (f : List α → List α) extends TimeComputable f where
+structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeComputable f where
   /-- a polynomial time bound -/
   poly : Polynomial ℕ
   /-- proof that this machine outputs `f` in at most `time(input.length)` steps -/
   bounds : ∀ n, time_bound n ≤ poly.eval n
 
-/-- A proof that the identity map on α is computable in polytime. -/
-noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id where
+/-- A proof that the identity map on Symbol is computable in polytime. -/
+noncomputable def PolyTimeComputable.id : @PolyTimeComputable (Symbol := Symbol) id where
   toTimeComputable := TimeComputable.id
   poly := 1
   bounds _ := by simp [TimeComputable.id]
@@ -471,7 +472,7 @@ noncomputable def PolyTimeComputable.id : @PolyTimeComputable (α := α) id wher
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
-noncomputable def PolyTimeComputable.comp {f g : List α → List α}
+noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
     (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     PolyTimeComputable (g ∘ f) where
