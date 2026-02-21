@@ -15,7 +15,8 @@ public import Mathlib.Algebra.Polynomial.Eval.Defs
 /-!
 # Single-Tape Turing Machines
 
-Defines a single-tape Turing machine for computing functions on `List Symbol` for finite alphabet `Symbol`.
+Defines a single-tape Turing machine for computing functions on `List Symbol`
+for finite alphabet `Symbol`.
 These machines have access to a single bidirectionally-infinite tape (`BiTape`)
 which uses symbols from `Option Symbol`.
 
@@ -81,7 +82,7 @@ structure SingleTapeTM Symbol where
   (q₀ : State)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
   and optionally the new state to transition to afterwards (`none` for halt) -/
-  (M : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
+  (tr : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
 
 namespace SingleTapeTM
 
@@ -123,7 +124,7 @@ def step : tm.Cfg → Option tm.Cfg
     none
   | ⟨some q', t⟩ =>
     -- If in state q', perform look up in the transition function
-    match tm.M q' t.head with
+    match tm.tr q' t.head with
     -- and enter a new configuration with state q'' (or none for halting)
     -- and tape updated according to the Stmt
     | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
@@ -158,7 +159,7 @@ lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
   obtain ⟨_ | q, tape⟩ := cfg
   · simp [step] at hstep
   · simp only [step] at hstep
-    generalize hM : tm.M q tape.head = result at hstep
+    generalize hM : tm.tr q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
     | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM]
@@ -207,7 +208,7 @@ variable [Inhabited Symbol] [Fintype Symbol]
 def idComputer : SingleTapeTM Symbol where
   State := PUnit
   q₀ := PUnit.unit
-  M _ b := ⟨⟨b, none⟩, none⟩
+  tr _ b := ⟨⟨b, none⟩, none⟩
 
 /--
 A Turing machine computing the composition of two other Turing machines.
@@ -221,10 +222,10 @@ def compComputer (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
   State := tm1.State ⊕ tm2.State
   -- The start state is the start state of the first input machine.
   q₀ := .inl tm1.q₀
-  M q h :=
+  tr q h :=
     match q with
     -- If we are in the first input machine's states, run that machine ...
-    | .inl ql => match tm1.M ql h with
+    | .inl ql => match tm1.tr ql h with
       | (stmt, state) =>
         -- ... taking the same tape action as the first input machine would.
         (stmt,
@@ -235,7 +236,7 @@ def compComputer (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
           | _ => Option.map .inl state)
     -- If we are in the second input machine's states, run that machine ...
     | .inr qr =>
-      match tm2.M qr h with
+      match tm2.tr qr h with
       | (stmt, state) =>
         -- ... taking the same tape action as the second input machine would.
         (stmt,
@@ -287,7 +288,7 @@ private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
     | none => grind
     | some q =>
       simp only [step, toCompCfg_left, compComputer]
-      generalize hM : tm1.M q BiTape.head = result
+      generalize hM : tm1.tr q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
       cases nextState <;> grind [toCompCfg_left]
 
@@ -301,7 +302,7 @@ private theorem map_toCompCfg_right_step :
     | none =>
       simp only [step, toCompCfg_right, Option.map_none, compComputer]
     | some q =>
-      generalize hM : tm2.M q BiTape.head = result
+      generalize hM : tm2.tr q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
       simp only [compComputer]
       grind [toCompCfg_right, step, compComputer]
