@@ -23,7 +23,10 @@ comparisons.
 
 - `insertionSort_correct`: `insertionSort` permutes the list into a sorted one.
 - `insertionSort_time`: The number of comparisons of `insertionSort` is at most `(n * (n - 1)) / 2`.
-
+- `insertionSort_time_worst_case`: In the worst case, the number of comparisons
+is exactly `(n * (n - 1)) / 2`.
+- `insertionSort_time_best_case`: In the best case, the number of comparisons
+is `n - 1` for a non-empty list, and `0` for an empty list.
 -/
 
 set_option autoImplicit false
