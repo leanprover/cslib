@@ -320,6 +320,21 @@ theorem insertionSort_time (xs : List α) :
     (insertionSort xs).time ≤ (n * (n - 1)) / 2 := by
   grind [insertionSort_time_le, timeInsertionSortRec_eq]
 
+/-- Auxiliary lemma to show that the closed-form solution of the recurrence matches
+the expected formula.
+-/
+private lemma worst_case_math (n : ℕ) : n * (n - 1) / 2 + n = (n + 1) * n / 2 := by
+  have h1 : timeInsertionSortRec n = n * (n - 1) / 2 := by
+    have h := timeInsertionSortRec_eq n
+    omega
+  have h2 : timeInsertionSortRec (n + 1) = (n + 1) * n / 2 := by
+    have h := timeInsertionSortRec_eq (n + 1)
+    have h_sub : (n + 1) - 1 = n := rfl
+    rw [h_sub] at h
+    omega
+  have h3 : timeInsertionSortRec (n + 1) = timeInsertionSortRec n + n := rfl
+  omega
+
 /-- Time complexity of `insertionSort` - Worst-case scenario.
 
 In the worst case, the input list is strictly sorted in descending order,
@@ -330,10 +345,12 @@ Thus, the total time is `n * (n - 1) / 2` comparisons for a list of length `n`.
 theorem insertionSort_time_worst_case (xs : List α) (h_sorted : IsStrictlySortedDescending xs) :
     let n := xs.length
     (insertionSort xs).time = n * (n - 1) / 2 := by
+  -- The proof proceeds by induction on the structure of the list `xs`.
   induction xs with
+  -- Base case: n = 0.
   | nil =>
-    -- Base case: n = 0. Time is 0.
     simp [insertionSort]
+  -- Inductive case: Assume the statement holds for lists of length `n`, and prove it for `n + 1`.
   | cons x xs ih =>
     rw [IsStrictlySortedDescending, List.pairwise_cons] at h_sorted
     have h_head : ∀ y ∈ xs, x > y := h_sorted.left
@@ -347,20 +364,55 @@ theorem insertionSort_time_worst_case (xs : List α) (h_sorted : IsStrictlySorte
     have h_insert_time : (insert x ⟪insertionSort xs⟫).time = ⟪insertionSort xs⟫.length :=
       insert_time_of_gt_all x ⟪insertionSort xs⟫ h_gt_sorted
     rw [h_insert_time, ih_tail, insertionSort_same_length]
-    simp_all
-    sorry
+    simp
+    have h_math := worst_case_math xs.length
+    simp [h_math]
 
 /-- Time complexity of `insertionSort` - Best-case scenario.
 
 In the best case, the input list is already sorted in ascending order,
 so each insertion takes only 1 comparison.
 
-Thus, the total time is `n - 1` comparisons for a list of length `n`.
+Thus, if `xs` is a non-empty sorted list of length `n > 0`, the total time is `n - 1` comparisons
+for a list of length `n`.
+If `xs` is empty, the time is 0 comparisons.
 -/
 theorem insertionSort_time_best_case (xs : List α) (h_sorted : IsSortedAscending xs) :
     let n := xs.length
-    (insertionSort xs).time = n - 1 := by
-  sorry
+    if n = 0
+    then (insertionSort xs).time = 0
+    else (insertionSort xs).time = n - 1 := by
+  -- Remove the `let n := xs.length` to avoid issues with the `if` statement
+  -- and make the proof more straightforward.
+  change
+    if xs.length = 0
+    then (insertionSort xs).time = 0
+    else (insertionSort xs).time = xs.length - 1
+  -- The proof proceeds by induction on the structure of the list `xs`.
+  induction xs with
+  -- Base case: n = 0.
+  | nil =>
+    simp [insertionSort]
+  -- Inductive case: Assume the statement holds for lists of length `n`, and prove it for `n + 1`.
+  | cons x xs ih =>
+    split
+    · contradiction
+    · rw [IsSortedAscending, List.pairwise_cons] at h_sorted
+      have h_head : ∀ y ∈ xs, x ≤ y := h_sorted.left
+      have h_tail : IsSortedAscending xs := h_sorted.right
+      unfold insertionSort
+      simp only [time_bind]
+      rw [insertionSort_eq_of_sorted xs h_tail]
+      cases xs with
+      | nil =>
+        simp [insert, insertionSort]
+      | cons y ys =>
+        have h_x_le_y : x ≤ y := h_head y List.mem_cons_self
+        rw [insert_time_of_le x y ys h_x_le_y]
+        have ih_tail := ih h_tail
+        split at ih_tail
+        · contradiction
+        · simp_all
 
 end TimeComplexity
 
