@@ -125,8 +125,8 @@ instance [AddMonoid T] : LawfulMonad (TimeM T) := .mk'
 /-- Creates a `TimeM` computation with a time cost. -/
 def tick (c : T) : TimeM T PUnit := ⟨.unit, c⟩
 
-@[simp, grind =] theorem ret_tick (c : ℕ) : (tick c).ret = () := rfl
-@[simp, grind =] theorem time_tick (c : ℕ) : (tick c).time = c := rfl
+@[simp, grind =] theorem ret_tick (c : T) : (tick c).ret = () := rfl
+@[simp, grind =] theorem time_tick (c : T) : (tick c).time = c := rfl
 
 /-- `✓[c] x` adds `c` ticks, then executes `x`. -/
 macro "✓[" c:term "]" body:doElem : doElem => `(doElem| do TimeM.tick $c; $body:doElem)
