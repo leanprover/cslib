@@ -148,7 +148,7 @@ theorem Halts.toStandardForm {p : Program} {inputs : List ℕ} (h : Halts p inpu
   obtain ⟨s₂, hsteps₂, hhalted₂, _⟩ := Steps.toStandardForm_halts hsteps hhalted
   exact ⟨s₂, hsteps₂, hhalted₂⟩
 
-open Program in
+open Program State in
 /-- Reverse step correspondence: if p.toStandardForm steps from s to s', then either:
     (1) p steps from s to s' (same step), or
     (2) s' is halted in p.toStandardForm, and p steps to a state that is also halted
@@ -156,7 +156,14 @@ open Program in
 theorem Step.from_toStandardForm {p : Program} {s s' : State} (hstep : Step p.toStandardForm s s') :
     Step p s s' ∨
     (s'.isHalted p.toStandardForm ∧ ∃ s₂, Step p s s₂ ∧ s₂.isHalted p ∧ s'.regs = s₂.regs) := by
-  grind [getElem?_toStandardForm, Instr.capJump, => jump_eq, State.isHalted, Option.map_eq_some_iff]
+  cases hstep with
+  | jump_eq hinstr _ =>
+    simp only [Program.getElem?_toStandardForm, Option.map_eq_some_iff] at hinstr
+    obtain ⟨instr, _⟩ := hinstr
+    cases instr with
+    | J => grind [Instr.capJump, => jump_eq]
+    | _ => grind [Instr.capJump]
+  | _ => grind [getElem?_toStandardForm, Instr.capJump, Option.map_eq_some_iff]
 
 /-- Reverse halting: if p.toStandardForm reaches a halted state, p reaches a halted state
     with the same registers. -/
