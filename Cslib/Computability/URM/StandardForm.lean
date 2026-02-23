@@ -161,10 +161,7 @@ theorem Step.from_toStandardForm {p : Program} {s s' : State} (hstep : Step p.to
     simp only [Program.getElem?_toStandardForm, Option.map_eq_some_iff] at hinstr
     obtain ⟨instr, _⟩ := hinstr
     cases instr with
-    | J _ _ q' =>
-      by_cases q' ≤ p.length
-      · grind
-      · grind [=> jump_eq]
+    | J => grind [=> jump_eq]
     | _ => grind
   | _ => grind [getElem?_toStandardForm, Option.map_eq_some_iff]
 
