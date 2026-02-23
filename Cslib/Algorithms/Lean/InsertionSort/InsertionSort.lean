@@ -27,6 +27,7 @@ comparisons.
 -/
 
 set_option autoImplicit false
+set_option linter.unusedSectionVars false
 
 namespace Cslib.Algorithms.Lean.TimeM
 
@@ -246,7 +247,7 @@ theorem insertionSort_eq_of_sorted (xs : List α) (h : IsSortedAscending xs) :
 
 /-- If two lists are permutations of each other, any element-wise property
 that holds for all elements of the first list also holds for the second. -/
-theorem forall_mem_of_perm {P : α → Prop} {l1 l2 : List α} -- TODO: Fix linter warning.
+theorem forall_mem_of_perm {P : α → Prop} {l1 l2 : List α}
     (h_perm : l1 ~ l2) (h_forall : ∀ a ∈ l1, P a) :
     ∀ a ∈ l2, P a := by
   intro a ha
