@@ -25,19 +25,16 @@ namespace Routines
 @[simp]
 lemma succ_iter {k r : ℕ} {i : Fin k.succ} {tapes : Fin k.succ → List (List OneTwo)} :
   (Part.bind · (succ i).eval_list)^[r] (.some tapes) = Part.some (Function.update tapes i (
-    if h : tapes i ≠ [] then
-      (dya ((dya_inv ((tapes i).head h)) + r)) :: (tapes i).tail
+    if r ≠ 0 then
+      (dya ((dya_inv ((tapes i).headD [])) + r)) :: (tapes i).tail
     else
       tapes i)) := by
   induction r with
     | zero => simp
     | succ r ih =>
       rw [Function.iterate_succ_apply']
-      simp [ih, succ_eval_list]
-      by_cases h_empty : tapes i = []
-      · simp [h_empty]
-      · simp [h_empty]
-        grind
+      simp [ih]
+      grind
 
 --- Add 0 and 1 and store the result in 2.
 --- Assumes zero for an empty tape.
@@ -50,7 +47,9 @@ theorem add₀_eval_list {tapes : Fin 6 → List (List OneTwo)} :
     (Function.update tapes 2 ((dya (dya_inv ((tapes 0).headD []) +
       dya_inv ((tapes 1).headD [])) :: (tapes 2)))) := by
   simp [add₀]
-  grind
+  by_cases h : dya_inv ((tapes 0).head?.getD []) = 0
+  · simp [h]; grind
+  · grind
 
 /--
 A Turing machine that adds the heads of tapes i and j (in dyadic encoding) and pushes the result
