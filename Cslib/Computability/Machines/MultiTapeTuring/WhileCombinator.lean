@@ -50,14 +50,14 @@ public def doWhile (i : Fin k) (tm : MultiTapeTM k (WithSep α)) :
   M _ syms := sorry
 
 @[simp]
-public theorem doWhile_eval
-  (i : Fin k)
-  (tm : MultiTapeTM k (WithSep α))
-  (tapes_seq : ℕ → Fin k → List (List α))
-  (h_transform : ∀ j, tm.eval_list (tapes_seq j) = .some (tapes_seq j.succ))
-  (h_nonempty : ∀ j, tapes_seq j i ≠ [])
-  (h_stops : ∃ m, (tapes_seq m i).head (h_nonempty m) = []) :
-  (doWhile i tm).eval_list (tapes_seq 0) = .some (tapes_seq (Nat.find h_stops)) := by
+public theorem doWhile_eval_list
+  {i : Fin k}
+  {tm : MultiTapeTM k (WithSep α)}
+  {tapes : Fin k → List (List α)}
+  (h_halts : ∀ tapes', tm.HaltsOnLists tapes') :
+  (doWhile i tm).eval_list tapes =
+    ⟨∃ n, ((tm.eval_list_tot h_halts)^[n] tapes i).head?.getD [] = [],
+      fun h_loopEnds => (tm.eval_list_tot h_halts)^[Nat.find h_loopEnds] tapes⟩ := by
   sorry
 
 end Routines

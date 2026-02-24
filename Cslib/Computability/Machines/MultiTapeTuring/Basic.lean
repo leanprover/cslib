@@ -238,6 +238,10 @@ def TransformsTapes
     (tapes tapes' : Fin k → BiTape α) : Prop :=
   ∃ t, tm.TransformsTapesInTime tapes tapes' t
 
+/-- The Turing machine `tm` eventually halts starting from any initial tape configuration. -/
+def haltsOn (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) : Prop :=
+  ∃ tapes', tm.TransformsTapes tapes tapes'
+
 @[scoped grind =]
 lemma relatesInSteps_iff_step_iter_eq_some
     (tm : MultiTapeTM k α)
@@ -293,6 +297,13 @@ Execute the Turing machine `tm` on initial tapes `tapes`. -/
 public noncomputable def eval (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) :
     Part (Fin k → BiTape α) :=
   ⟨∃ tapes', tm.TransformsTapes tapes tapes', fun h => h.choose⟩
+
+/--
+Execute the Turing machine `tm` on initial tapes `tapes` given a proof that it always halts
+and thus this yields a total function. -/
+public noncomputable def eval_tot (tm : MultiTapeTM k α) {h : ∀ tapes, tm.haltsOn tapes}
+  (tapes : Fin k → BiTape α) : Fin k → BiTape α :=
+  (tm.eval tapes).get (h tapes)
 
 -- TODO use MultiTapeTM.configurations?
 -- TODO this is a simple consequence of relatesInSteps_iff_configurations_eq_some, maybe not needed.
