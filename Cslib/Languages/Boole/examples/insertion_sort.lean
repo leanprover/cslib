@@ -1,6 +1,6 @@
 import Strata.MetaVerifier
 
----------------------------------------------------------------------
+------------------------------------------------------------
 namespace Strata
 
 -- CLRS Chapter 1: Insertion Sort
@@ -96,7 +96,8 @@ spec
 -- Note: use `#eval!` if your dependency graph contains `sorry`.
 -- #eval! Strata.Boole.verify "cvc5" insertionSortPgm
 
-set_option maxHeartbeats 1000000 in
 example : Strata.smtVCsCorrect insertionSortPgm := by
   gen_smt_vcs
   all_goals grind
+
+end Strata
