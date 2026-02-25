@@ -6,9 +6,9 @@ Authors: Ching-Tsun Chou
 
 module
 
+public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Data.Fintype.Pigeonhole
-public import Mathlib.Order.Filter.AtTopBot.Basic
 public import Mathlib.Order.Filter.Cofinite
 
 @[expose] public section
@@ -58,6 +58,24 @@ theorem frequently_in_finite_type [Finite α] {s : Set α} {xs : ωSequence α} 
   · rintro ⟨_, _, h_inf⟩
     apply Frequently.mono h_inf
     grind
+
+open Nat in
+/-- If `p` is true infinitely often, then `p` is true in infinitely many segments
+of any strictly monotonic function `f`. -/
+theorem frequently_in_strictMono {p : ℕ → Prop} {f : ℕ → ℕ}
+    (hm : StrictMono f) (hf : ∃ᶠ k in atTop, p k) :
+    ∃ᶠ n in atTop, ∃ k, k < f (n + 1) - f n ∧ p (f n + k) := by
+  apply frequently_atTop.mpr
+  intro m
+  obtain ⟨k, _, _⟩ := frequently_atTop.mp hf (f m)
+  use segment f k
+  have h0 : f 0 ≤ k := by grind [StrictMono.monotone hm (show 0 ≤ m by grind)]
+  split_ands
+  · by_contra
+    have h1 : segment f k + 1 ≤ m := by grind
+    grind [(StrictMono.le_iff_le hm).mpr h1, segment_upper_bound' hm h0]
+  · use k - f (segment f k)
+    grind [segment_lower_bound' hm h0, segment_upper_bound' hm h0]
 
 end ωSequence
 
