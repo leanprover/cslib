@@ -1,6 +1,6 @@
 import Strata.MetaVerifier
 
----------------------------------------------------------------------
+------------------------------------------------------------
 namespace Strata
 
 -- CLRS Chapter 1: Insertion Sort
@@ -99,4 +99,6 @@ spec
 set_option maxHeartbeats 1000000 in
 example : Strata.smtVCsCorrect insertionSortPgm := by
   gen_smt_vcs
-  all_goals grind
+  all_goals grind (config := { splits := 20, gen := 10 })
+
+end Strata
