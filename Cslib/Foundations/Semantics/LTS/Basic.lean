@@ -229,9 +229,8 @@ theorem LTS.IsExecution.split
 theorem LTS.MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
     (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
   obtain ⟨ss, h_ss⟩ := LTS.mTr_isExecution h
-  obtain ⟨_, _⟩ := LTS.IsExecution.split h_ss μs1.length (by grind)
-  use ss[μs1.length]'(by grind)
-  grind [List.take_append]
+  have := LTS.IsExecution.split h_ss μs1.length
+  grind
 
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
