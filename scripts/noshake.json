@@ -1,3 +1,0 @@
-{
-  "ignoreImport" : ["Cslib.Init", "Init", "Mathlib.Tactic.Bound"]
-}
