@@ -17,6 +17,7 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
+          test-args: "--wfail --iofail"
       - name: "lake exe mk_all --check --module"
         run: |
           set -e
