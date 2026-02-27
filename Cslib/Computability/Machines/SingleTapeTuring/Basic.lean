@@ -89,11 +89,7 @@ end SingleTapeTM
 A single-tape Turing machine
 over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
 -/
-structure SingleTapeTM Symbol where
-  /-- Inhabited instance for the alphabet -/
-  [SymbolInhabited : Inhabited Symbol]
-  /-- Finiteness of the alphabet -/
-  [SymbolFintype : Fintype Symbol]
+structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
   /-- type of state labels -/
   (State : Type)
   /-- finiteness of the state type -/
@@ -116,7 +112,7 @@ the step function that lets the machine transition from one configuration to the
 and the intended initial and final configurations.
 -/
 
-variable (tm : SingleTapeTM Symbol)
+variable [Inhabited Symbol] [Fintype Symbol] (tm : SingleTapeTM Symbol)
 
 instance : Inhabited tm.State := ⟨tm.q₀⟩
 
@@ -190,6 +186,8 @@ end Cfg
 
 open Cfg
 
+variable [Inhabited Symbol] [Fintype Symbol]
+
 /--
 The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
 is defined by the `step` function,
@@ -221,8 +219,6 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : 
       fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
 
 section Computers
-
-variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine computing the identity. -/
 def idComputer : SingleTapeTM Symbol where
@@ -483,7 +479,7 @@ structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeCompu
   bounds : ∀ n, time_bound n ≤ poly.eval n
 
 /-- A proof that the identity map on Symbol is computable in polytime. -/
-noncomputable def PolyTimeComputable.id : @PolyTimeComputable (Symbol := Symbol) id where
+noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) id where
   toTimeComputable := TimeComputable.id
   poly := 1
   bounds _ := by simp [TimeComputable.id]
