@@ -7,7 +7,8 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Syntax.Context
-public import Cslib.Foundations.Syntax.Congruence
+public import Mathlib.Tactic.ToAdditive
+public import Mathlib.Tactic.ToDual
 
 @[expose] public section
 

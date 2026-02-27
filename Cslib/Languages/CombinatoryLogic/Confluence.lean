@@ -6,7 +6,6 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.CombinatoryLogic.Defs
 
 @[expose] public section
