@@ -93,7 +93,7 @@ structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
   /-- type of state labels -/
   (State : Type)
   /-- finiteness of the state type -/
-  [StateFintype : Fintype State]
+  [stateFintype : Fintype State]
   /-- Initial state -/
   (q₀ : State)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
@@ -116,7 +116,7 @@ variable [Inhabited Symbol] [Fintype Symbol] (tm : SingleTapeTM Symbol)
 
 instance : Inhabited tm.State := ⟨tm.q₀⟩
 
-instance : Fintype tm.State := tm.StateFintype
+instance : Fintype tm.State := tm.stateFintype
 
 instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
 
