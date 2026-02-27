@@ -113,7 +113,7 @@ def fv : Term Var → Finset Var
 
 /-- Locally closed terms. -/
 inductive LC : Term Var → Prop
-| fvar (x)  : LC (fvar x)
+| fvar (x : Var)  : LC (fvar x)
 | abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
 | app {l r} : l.LC → r.LC → LC (app l r)
 
