@@ -103,6 +103,7 @@ theorem subst_lc {x : Var} {e u : Term Var} (e_lc : LC e) (u_lc : LC u) : LC (e 
   case' abs => apply LC.abs (free_union Var)
   all_goals grind
 
+
 /-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
 lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) :
     e ^ t = (e ^ fvar x) [ x := t ] := by grind [subst_fresh]
@@ -115,6 +116,7 @@ set_option linter.unusedDecidableInType false in
 theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) := by
   cases m_lc with
   | abs => grind [fresh_exists <| free_union [fv] Var]
+
 
 /-- Opening then closing is equivalent to substitution. -/
 @[scoped grind =]

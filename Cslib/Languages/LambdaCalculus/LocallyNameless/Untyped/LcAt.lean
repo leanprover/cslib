@@ -86,4 +86,15 @@ theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
         grind [fresh_exists L]
     | _ => grind [cases LC]
 
+theorem lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
+    LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
+  induction M generalizing i <;> try grind
+
+lemma open_abs_lc [HasFresh Var] : forall {M N : Term Var},
+  LC (M ^ N) → LC (M.abs) := by
+  intro M N hlc
+  rw[←lcAt_iff_LC]
+  rw[←lcAt_iff_LC] at hlc
+  apply lcAt_openRec_lcAt _ _ _ hlc
+
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term
