@@ -7,7 +7,6 @@ Authors: Bolton Bailey
 module
 
 public import Cslib.Init
-public import Mathlib.Data.List.Basic
 
 @[expose] public section
 

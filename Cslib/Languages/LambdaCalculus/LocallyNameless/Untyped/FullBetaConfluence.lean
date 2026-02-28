@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
 @[expose] public section

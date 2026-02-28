@@ -8,7 +8,6 @@ module
 
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Data.Fintype.Pigeonhole
-public import Mathlib.Order.Filter.AtTopBot.Basic
 public import Mathlib.Order.Filter.Cofinite
 
 @[expose] public section

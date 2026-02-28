@@ -1,7 +1,0 @@
-{
-  "ignoreImport" : ["Cslib.Init", "Init", "Mathlib.Tactic.Bound"],
-  "ignore":{
-    "Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic": ["Cslib.Foundations.Data.HasFresh"],
-    "Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic": ["Cslib.Foundations.Data.HasFresh"]
-  }
-}

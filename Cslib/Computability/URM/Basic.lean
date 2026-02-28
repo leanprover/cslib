@@ -6,6 +6,7 @@ Authors: Jesse Alama
 module
 
 public import Cslib.Computability.URM.Defs
+public import Mathlib.Data.List.MinMax
 
 /-! # URM Basic Lemmas
 
