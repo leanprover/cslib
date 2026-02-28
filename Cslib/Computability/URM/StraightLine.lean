@@ -5,6 +5,7 @@ Authors: Jesse Alama
 -/
 module
 
+public import Cslib.Computability.URM.Basic
 public import Cslib.Computability.URM.Execution
 
 /-! # Straight-Line Programs

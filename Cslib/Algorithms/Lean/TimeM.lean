@@ -6,8 +6,9 @@ Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser
 
 module
 
-import Cslib.Init
+public import Cslib.Init
 public import Mathlib.Algebra.Group.Defs
+
 
 @[expose] public section
 

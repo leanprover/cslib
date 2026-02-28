@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Kenny Lau
 -/
 
-module
+module -- shake: keep-downstream
 
 public import Cslib.Init
 public import Mathlib.Analysis.Normed.Field.Lemmas
