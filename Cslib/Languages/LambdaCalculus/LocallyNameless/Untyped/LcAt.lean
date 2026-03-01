@@ -88,7 +88,7 @@ theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
 
 theorem lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
     LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
-  induction M generalizing i <;> try grind
+  induction M generalizing i <;> grind
 
 lemma open_abs_lc [HasFresh Var] : forall {M N : Term Var},
   LC (M ^ N) → LC (M.abs) := by
