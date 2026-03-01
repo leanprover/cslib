@@ -142,9 +142,8 @@ theorem redex_abs_fvar_finset_exists (xs : Finset Var)
 lemma step_open_cong
   (s s' t) (L : Finset Var) (step : ∀ x ∉ L, (s ^ fvar x) ⭢βᶠ (s' ^ fvar x)) (h_lc : LC t) :
     (s ^ t) ⭢βᶠ (s' ^ t) := by
-  let x := fresh (L ∪ s.fv ∪ s'.fv)
-  have H : x ∉ (L ∪ s.fv ∪ s'.fv) := fresh_notMem (L ∪ s.fv ∪ s'.fv)
-  rw[subst_intro x t s, subst_intro x t s'] <;> simp_all[redex_subst_cong_lc]
+  have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+  grind [subst_intro, redex_subst_cong_lc]
 
 lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
   ∃ (s' : Term Var), s.abs ↠βᶠ s'.abs ∧ t = s'.abs := by
