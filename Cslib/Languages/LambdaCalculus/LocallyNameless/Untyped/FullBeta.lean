@@ -166,23 +166,13 @@ lemma steps_open_l_abs
 
 lemma step_subst_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_lc : LC s) :
     (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
-  induction h_lc
-  · case fvar y =>
-      rw[Term.subst_fvar, Term.subst_fvar]
-      grind
-  · case abs L N h_lc ih =>
-      simp[subst_abs]
-      apply FullBeta.redex_abs_cong (L ∪ {x})
-      intro y h_fresh
-      rw[←Term.subst_open_var, ←Term.subst_open_var] <;> try grind[FullBeta.step_lc_r, FullBeta.step_lc_l]
-  · case app l r ih_l ih_r =>
-    transitivity
-    · apply FullBeta.redex_app_r_cong
-      · apply ih_r
-      · grind[Term.subst_lc, FullBeta.step_lc_l]
-    · apply FullBeta.redex_app_l_cong
-      · apply ih_l
-      · grind[Term.subst_lc, FullBeta.step_lc_r]
+  induction h_lc with
+  | fvar y => grind
+  | abs => grind [redex_abs_cong (free_union Var)]
+  | @app l r =>
+     calc
+       (l.app r)[x:=t] ↠βᶠ l[x := t].app (r[x:=t']) := by grind
+       _               ↠βᶠ (l.app r)[x:=t'] := by grind
 
 lemma steps_subst_cong2 {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
     (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
