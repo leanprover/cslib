@@ -153,28 +153,16 @@ lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
 
 
 
-lemma steps_open_l_abs (s s' t : Term Var)
-  (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
-  (s ^ t) ↠βᶠ (s' ^ t) := by
+lemma steps_open_l_abs
+  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
+    (s ^ t) ↠βᶠ (s' ^ t) := by
   generalize eq : s.abs = s_abs at steps
   generalize eq' : s'.abs = s'_abs at steps
-  revert s s'
-  induction steps
-  · case refl => grind
-  · case tail steps step ih =>
-    intro s s'' lc_sabs eq1 eq2
-    rw[←eq1] at steps
-    match (invert_steps_abs steps) with
-    | ⟨s', step_s, eq⟩ =>
-      specialize (ih s s' lc_sabs eq1 eq.symm)
-      transitivity
-      · apply ih
-      · rw[eq,←eq2] at step
-        apply Relation.ReflTransGen.single
-        have ⟨ L, cofin⟩ := redex_abs_fvar_finset_exists (free_union [fv] Var) s' s'' step
-        apply step_open_cong1
-        · assumption
-        · assumption
+  induction steps generalizing s s' with
+  | refl => grind
+  | tail _ step ih =>
+    specialize ih s
+    cases step with grind [invert_steps_abs, step_open_cong (L := free_union Var)]
 
 lemma step_subst_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_lc : LC s) :
     (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
