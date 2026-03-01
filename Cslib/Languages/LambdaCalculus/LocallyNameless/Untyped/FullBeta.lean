@@ -77,14 +77,8 @@ lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
   case' abs => constructor; assumption
   all_goals grind
 
-lemma steps_lc {M M' : Term Var} (steps : M ↠βᶠ M') (lc_M : LC M) : LC M' := by
-  induction steps <;> grind[FullBeta.step_lc_r]
-
-lemma steps_lc_or_rfl {M M' : Term Var} :
-  M ↠βᶠ M' →
-  LC M' ∨ M = M' := by
-  intro redex
-  cases redex <;> grind[FullBeta.step_lc_r]
+lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M') ∨ M = M' := by
+  grind
 
 /-- Substitution respects a single reduction step. -/
 lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
