@@ -189,18 +189,14 @@ lemma steps_open_cong_abs (s s' t t' : Term Var)
     (lc_t : LC t)
     (lc_s : LC s.abs) :
     (s ^ t) ↠βᶠ (s' ^ t') := by
-    have lcsabs := lc_s
-    cases lc_s
-    · case abs _ L h_lc =>
-      let x := fresh (L ∪ s.fv ∪ s'.fv ∪ t.fv ∪ t'.fv)
-      have H : x ∉ (L ∪ s.fv ∪ s'.fv ∪ t.fv ∪ t'.fv) := fresh_notMem _
-      rw[subst_intro x t s, subst_intro x t' s'] <;> try grind[FullBeta.steps_lc]
-      · transitivity
-        · apply steps_subst_cong2
-          · assumption
-          · grind
-        · rw[←subst_intro, ←subst_intro] <;> try grind[FullBeta.steps_lc]
-          · apply FullBeta.steps_open_l_abs <;> try grind[FullBeta.steps_lc]
+    cases lc_s with
+    | abs L h_lc =>
+      have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+      rw [subst_intro x t s, subst_intro x t' s']
+      · trans (s ^ fvar x)[x:=t']
+        · grind [steps_subst_cong2]
+        · grind [=_ subst_intro, steps_open_l_abs]
+      all_goals grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta
 
