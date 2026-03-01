@@ -146,7 +146,7 @@ lemma step_open_cong
   grind [subst_intro, redex_subst_cong_lc]
 
 lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
-  ∃ (s' : Term Var), s.abs ↠βᶠ s'.abs ∧ t = s'.abs := by
+    ∃ (s' : Term Var), s.abs ↠βᶠ s'.abs ∧ t = s'.abs := by
   induction step
   · case refl => aesop
   · case tail steps step ih =>
