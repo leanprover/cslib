@@ -95,14 +95,10 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
 /-- Substitution respects a single reduction step. -/
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s [ x := t ] ⭢βᶠ s' [ x := t ] := by
-  induction step
-  case beta m n abs_lc n_lc =>
-    cases abs_lc with | abs xs _ mem =>
-      rw [subst_open x t n m (by grind)]
-      refine beta ?_ (by grind)
-      exact subst_lc (LC.abs xs m mem) h_lc
-  case abs => grind [abs <| free_union Var]
-  all_goals grind
+  induction step with
+  | beta => grind [subst_open, beta]
+  | abs  => grind [abs <| free_union Var]
+  | _ => grind
 
 
 
