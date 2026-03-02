@@ -330,6 +330,148 @@ theorem cmpSort_lower_bound
     simpa [Nat.log_pow (b := 2) (x := worstTime P) (by decide : 1 < 2)] using hLog
   exact le_trans (hFactorialLog n) hTime
 
+section HiddenOrderEquiv
+
+/-- Hidden order induced by a permutation after encoding elements with `e : β ≃ Fin n`. -/
+def permLEEquiv {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (σ : Equiv.Perm (Fin n)) : β → β → Bool :=
+  fun x y => decide (σ (e x) ≤ σ (e y))
+
+/-- Canonical sorted output induced by `σ`, transported through `e`. -/
+def permOutputEquiv {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (σ : Equiv.Perm (Fin n)) : List β :=
+  List.ofFn (fun i => e.symm (σ.symm i))
+
+lemma permOutputEquiv_pairwise {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (σ : Equiv.Perm (Fin n)) :
+    (permOutputEquiv e σ).Pairwise (fun x y => permLEEquiv e σ x y = true) := by
+  rw [permOutputEquiv, List.pairwise_ofFn]
+  intro i j hij
+  simpa [permLEEquiv, decide_eq_true_eq] using (le_of_lt hij)
+
+lemma permOutputEquiv_injective {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) :
+    Function.Injective (permOutputEquiv e) := by
+  intro σ τ h
+  have hsymm :
+      (fun i => e.symm (σ.symm i)) = fun i => e.symm (τ.symm i) :=
+    List.ofFn_injective h
+  ext x
+  have hAt : e.symm (σ.symm (τ x)) = e.symm (τ.symm (τ x)) := by
+    simpa using congrArg (fun f => f (τ x)) hsymm
+  have hAt' : σ.symm (τ x) = τ.symm (τ x) := by
+    simpa using congrArg e hAt
+  have hσ : τ x = σ x := by
+    simpa using congrArg σ hAt'
+  simpa [eq_comm] using congrArg Fin.val hσ
+
+/-- Worst-case comparisons over hidden permutations, transported through `e`. -/
+def worstTimeEquiv {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (P : Prog (SortOps β) (List β)) : ℕ :=
+  (Finset.univ : Finset (Equiv.Perm (Fin n))).sup
+    (fun σ => Prog.time P (sortModelNat (α := β) (permLEEquiv e σ)))
+
+/-- Fixed-length transcript code at depth `worstTimeEquiv`. -/
+def traceCodeEquiv {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (P : Prog (SortOps β) (List β)) :
+    Equiv.Perm (Fin n) → (Fin (worstTimeEquiv e P) → Bool) :=
+  fun σ => padTrace (worstTimeEquiv e P) (traceSort P (permLEEquiv e σ))
+
+lemma traceCodeEquiv_injective
+    {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (P : Prog (SortOps β) (List β))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin n),
+      Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) = permOutputEquiv e σ) :
+    Function.Injective (traceCodeEquiv e P) := by
+  intro σ τ hCode
+  have hTimeσ :
+      Prog.time P (sortModelNat (α := β) (permLEEquiv e σ)) ≤
+        (Finset.univ : Finset (Equiv.Perm (Fin n))).sup
+          (fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ))) := by
+    exact Finset.le_sup
+      (s := (Finset.univ : Finset (Equiv.Perm (Fin n))))
+      (f := fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ)))
+      (Finset.mem_univ σ)
+  have hTimeτ :
+      Prog.time P (sortModelNat (α := β) (permLEEquiv e τ)) ≤
+        (Finset.univ : Finset (Equiv.Perm (Fin n))).sup
+          (fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ))) := by
+    exact Finset.le_sup
+      (s := (Finset.univ : Finset (Equiv.Perm (Fin n))))
+      (f := fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ)))
+      (Finset.mem_univ τ)
+  have hLenσ : (traceSort P (permLEEquiv e σ)).length ≤ worstTimeEquiv e P := by
+    simpa [worstTimeEquiv, traceSort_length_eq_time] using hTimeσ
+  have hLenτ : (traceSort P (permLEEquiv e τ)).length ≤ worstTimeEquiv e P := by
+    simpa [worstTimeEquiv, traceSort_length_eq_time] using hTimeτ
+  have hTrace :
+      traceSort P (permLEEquiv e σ) = traceSort P (permLEEquiv e τ) := by
+    exact traceSort_eq_of_padTrace_eq P hLenσ hLenτ hCode
+  have hEval :
+      Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) =
+        Prog.eval P (sortModelNat (α := β) (permLEEquiv e τ)) :=
+    eval_eq_of_traceSort_eq P hTrace
+  have hOut : permOutputEquiv e σ = permOutputEquiv e τ := by
+    simpa [hCorrect σ, hCorrect τ] using hEval
+  exact permOutputEquiv_injective e hOut
+
+lemma hDecisionTreeLowerEquiv
+    {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (P : Prog (SortOps β) (List β))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin n),
+      Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) = permOutputEquiv e σ) :
+    Nat.factorial n ≤ 2 ^ worstTimeEquiv e P := by
+  have hCard :
+      Fintype.card (Equiv.Perm (Fin n)) ≤ 2 ^ worstTimeEquiv e P :=
+    hDecisionTreeFintype (β := Equiv.Perm (Fin n)) (worstTimeEquiv e P) (traceCodeEquiv e P)
+      (traceCodeEquiv_injective e P hCorrect)
+  simpa [Fintype.card_perm] using hCard
+
+/-- `Ω(n log n)` lower bound on any type equivalent to `Fin n`. -/
+theorem cmpSort_lower_bound_equiv
+    {β : Type} {n : ℕ}
+    (e : β ≃ Fin n) (P : Prog (SortOps β) (List β))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin n),
+      Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) = permOutputEquiv e σ) :
+    worstTimeEquiv e P ≥ (n / 2) * Nat.log 2 (n / 2) := by
+  have hDecision : Nat.factorial n ≤ 2 ^ worstTimeEquiv e P :=
+    hDecisionTreeLowerEquiv e P hCorrect
+  have hLog :
+      Nat.log 2 (Nat.factorial n) ≤ Nat.log 2 (2 ^ worstTimeEquiv e P) :=
+    Nat.log_mono_right hDecision
+  have hTime : Nat.log 2 (Nat.factorial n) ≤ worstTimeEquiv e P := by
+    simpa [Nat.log_pow (b := 2) (x := worstTimeEquiv e P) (by decide : 1 < 2)] using hLog
+  exact le_trans (hFactorialLog n) hTime
+
+/-- `Ω(n log n)` lower bound stated directly for a finite carrier type `α`. -/
+theorem cmpSort_lower_bound_fintype
+    (α : Type) [Fintype α]
+    (P : Prog (SortOps α) (List α))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin (Fintype.card α)),
+      Prog.eval P (sortModelNat (α := α) (permLEEquiv (Fintype.equivFin α) σ)) =
+        permOutputEquiv (Fintype.equivFin α) σ) :
+    worstTimeEquiv (Fintype.equivFin α) P ≥
+      (Fintype.card α / 2) * Nat.log 2 (Fintype.card α / 2) := by
+  simpa using cmpSort_lower_bound_equiv (e := Fintype.equivFin α) (P := P) hCorrect
+
+/--
+Lower bound specialized to a fixed nodup list `l`.
+This is a corollary of the fintype statement with carrier `{x // x ∈ l}`.
+-/
+theorem cmpSort_lower_bound_nodup_list
+    {α : Type} [DecidableEq α]
+    (l : List α) (hNodup : l.Nodup)
+    (P : Prog (SortOps {x // x ∈ l}) (List {x // x ∈ l}))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin l.length),
+      Prog.eval P (sortModelNat (α := {x // x ∈ l})
+        (permLEEquiv (List.Nodup.getEquiv l hNodup).symm σ)) =
+        permOutputEquiv (List.Nodup.getEquiv l hNodup).symm σ) :
+    worstTimeEquiv (List.Nodup.getEquiv l hNodup).symm P ≥
+      (l.length / 2) * Nat.log 2 (l.length / 2) := by
+  simpa using cmpSort_lower_bound_equiv (List.Nodup.getEquiv l hNodup).symm P hCorrect
+
+end HiddenOrderEquiv
+
 end Algorithms
 
 end Cslib
