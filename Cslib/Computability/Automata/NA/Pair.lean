@@ -24,7 +24,7 @@ from state `s` to state `t`. -/
 def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol :=
   { xs | lts.MTr s xs t }
 
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem LTS.mem_pairLang {lts : LTS State Symbol} {s t : State} {xs : List Symbol} :
     xs ∈ lts.pairLang s t ↔ lts.MTr s xs t := Iff.rfl
 
@@ -42,7 +42,7 @@ from state `s` to state `t` via a state in `via`. -/
 def LTS.pairViaLang (lts : LTS State Symbol) (via : Set State) (s t : State) : Language Symbol :=
   ⨆ r ∈ via, lts.pairLang s r * lts.pairLang r t
 
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem LTS.mem_pairViaLang {lts : LTS State Symbol} {via : Set State}
     {s t : State} {xs : List Symbol} : xs ∈ lts.pairViaLang via s t ↔
       ∃ r ∈ via, ∃ xs1 xs2, lts.MTr s xs1 r ∧ lts.MTr r xs2 t ∧ xs1 ++ xs2 = xs := by
@@ -58,14 +58,14 @@ theorem LTS.pairViaLang_regular [Inhabited Symbol] [Finite State] {lts : LTS Sta
 theorem LTS.pairLang_append {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol}
     (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2) :
     xs1 ++ xs2 ∈ lts.pairLang s0 s2 := by
-  grind [<= LTS.MTr.comp]
+  grind [automata, <= LTS.MTr.comp]
 
 theorem LTS.pairLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
     (h : xs1 ++ xs2 ∈ lts.pairLang s0 s2) :
     ∃ s1, xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2 := by
   obtain ⟨r, _, _⟩ := LTS.MTr.split <| LTS.mem_pairLang.mp h
   use r
-  grind
+  grind [automata]
 
 theorem LTS.pairViaLang_append_pairLang {lts : LTS State Symbol}
     {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
@@ -74,13 +74,13 @@ theorem LTS.pairViaLang_append_pairLang {lts : LTS State Symbol}
   obtain ⟨r, _, _, _, _, _, rfl⟩ := LTS.mem_pairViaLang.mp h1
   apply LTS.mem_pairViaLang.mpr
   use r
-  grind [<= LTS.MTr.comp]
+  grind [automata, <= LTS.MTr.comp]
 
 theorem LTS.pairLang_append_pairViaLang {lts : LTS State Symbol}
     {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
     (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairViaLang via s1 s2) :
     xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
-  grind [<= LTS.MTr.comp]
+  grind [automata, <= LTS.MTr.comp]
 
 theorem LTS.pairViaLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
     {via : Set State} (h : xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2) :
@@ -90,10 +90,10 @@ theorem LTS.pairViaLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 
   obtain ⟨zs1, rfl, rfl⟩ | ⟨zs2, rfl, rfl⟩ := List.append_eq_append_iff.mp h_eq
   · obtain ⟨s1, _, _⟩ := LTS.MTr.split h_ys2
     use s1
-    grind
+    grind [automata]
   · obtain ⟨s1, _, _⟩ := LTS.MTr.split h_ys1
     use s1
-    grind
+    grind [automata]
 
 namespace Automata.NA.Buchi
 

@@ -58,7 +58,7 @@ the equivalence class corresponding to `s`. -/
 @[simp]
 theorem congr_language_eq {a : Quotient c.eq} : language (FinAcc.mk c.toDA {a}) = eqvCls a := by
   ext
-  grind
+  grind [automata]
 
 end FinAcc
 

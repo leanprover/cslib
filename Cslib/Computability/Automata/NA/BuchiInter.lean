@@ -32,30 +32,30 @@ open scoped LTS
 variable {Symbol : Type*} {State : Bool → Type*}
 
 /-- The initial history state. -/
-@[scoped grind =, nolint unusedArguments]
+@[automata =, nolint unusedArguments]
 def histStart (_ : Π i, State i) : Bool := false
 
 /-- The two accepting conditions of the intersection automaton. -/
-@[scoped grind =]
+@[automata =]
 def interAcc (j : Bool) (acc : (i : Bool) → Set (State i)) : Set ((Π i, State i) × Bool) :=
   { (s, h) | s j ∈ acc j ∧ h = j }
 
 open scoped Classical in
 /-- The transition function of the history state. -/
-@[scoped grind =, nolint unusedArguments]
+@[automata =, nolint unusedArguments]
 noncomputable def histTrans (acc : (i : Bool) → Set (State i))
     (s : (Π i, State i) × Bool) (_ : Symbol) (_ : Π i, State i) : Bool :=
   if s ∈ interAcc false acc then true else
   if s ∈ interAcc true acc then false else s.snd
 
 /-- The intersection automaton. -/
-@[scoped grind =]
+@[automata =]
 noncomputable def interNA (na : (i : Bool) → NA (State i) Symbol)
     (acc : (i : Bool) → Set (State i)) : NA ((Π i, State i) × Bool) Symbol :=
   (iProd na).addHist histStart (histTrans acc)
 
 /-- The overall accepting conditon of the intersection automaton. -/
-@[scoped grind =]
+@[automata =]
 def interAccept (acc : (i : Bool) → Set (State i)) : Set ((Π i, State i) × Bool) :=
   interAcc false acc ∪ interAcc true acc
 
@@ -70,11 +70,11 @@ lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, 
   apply frequently_leadsTo_frequently h_inf
   apply leadsTo_trans (q := {s | s.snd = !i})
   · apply step_leadsTo
-    grind
+    grind [automata]
   · apply until_frequently_not_leadsTo
-    · grind
+    · grind [automata]
     · apply Frequently.mono h_inf
-      grind
+      grind [automata]
 
 /-- If the intersection automaton sees the accepting condtions of both component automata
 infinitely many times, then its own accepting condition also happens infinitely many times. -/
@@ -86,18 +86,18 @@ lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((�
   have (k : ℕ) := (h_run.trans k).right
   have h_univ : ∃ᶠ k in atTop, ss k ∈ univ := by simp [atTop_neBot]
   have (b : Bool) : interAcc b acc = {⟨_, b'⟩ | b' = b} ∩ {⟨p,_⟩ | p b ∈ acc b} := by
-    ext; grind
+    ext; grind [automata]
   have : {⟨_, b⟩ : (Π i, State i) × Bool | b = false}ᶜ = {⟨_, b⟩ | b = true} := by
     ext; grind
   apply frequently_leadsTo_frequently h_univ
   apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false}) <;>
-  grind [until_frequently_leadsTo_and, univ_inter]
+  grind [automata, until_frequently_leadsTo_and, univ_inter]
 
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
 /-- The language accepted by the intersection automaton is the intersection of
 the languages accepted by the two component automata. -/
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem inter_language_eq :
     language (Buchi.mk (interNA na acc) (interAccept acc)) =
     ⋂ i, language (Buchi.mk (na i) (acc i)) := by
@@ -112,18 +112,18 @@ theorem inter_language_eq :
       cases i
       · rcases h_inf with h_inf_f | h_inf_t
         · apply Frequently.mono h_inf_f
-          grind
+          grind [automata]
         · apply Frequently.mono <| inter_freq_acc_freq_acc h_run h_inf_t
-          grind
+          grind [automata]
       · rcases h_inf with h_inf_f | h_inf_t
         · apply Frequently.mono <| inter_freq_acc_freq_acc h_run h_inf_f
-          grind
+          grind [automata]
         · apply Frequently.mono h_inf_t
-          grind
+          grind [automata]
   · intro h
     choose ss_i h_ss_i using h
     let ss_p : ωSequence (Π i, State i) := fun k i ↦ ss_i i k
-    have h_ss_p : (iProd na).Run xs ss_p := by grind [Run]
+    have h_ss_p : (iProd na).Run xs ss_p := by grind [automata, Run]
     have (k : ℕ) (i : Bool) : ss_p k i = ss_i i k := rfl
     obtain ⟨ss, h_run, _⟩ := hist_run_exists h_ss_p
     use ss, h_run

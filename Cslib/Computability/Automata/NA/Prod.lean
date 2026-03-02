@@ -20,14 +20,14 @@ open scoped LTS
 variable {Symbol I : Type*} {State : I → Type*}
 
 /-- The product of an indexed family of nondeterministic automata. -/
-@[scoped grind =]
+@[automata =]
 def iProd (na : (i : I) → NA (State i) Symbol) : NA (Π i, State i) Symbol where
   Tr s x t := ∀ i, (na i).Tr (s i) x (t i)
   start := ⋂ i, (· i) ⁻¹' (na i).start
 
 /-- Every run of the product automaton projects onto runs of its component automata,
 and vice versa. -/
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem iProd_run_iff {na : (i : I) → NA (State i) Symbol}
     {xs : ωSequence Symbol} {ss : ωSequence (Π i, State i)} :
     (iProd na).Run xs ss ↔ ∀ i, (na i).Run xs (ss.map (· i)) := by

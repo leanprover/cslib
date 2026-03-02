@@ -26,7 +26,7 @@ private lemma LTS.noε_saturate_tr
   lts.saturate.Tr s μ s' ↔ lts.saturate.noε.Tr s μ' s' := by
   grind
 
-@[scoped grind =]
+@[automata =]
 lemma LTS.noε_saturate_mTr {lts : LTS State (Option Label)} :
   lts.saturate.MTr s (μs.map some) = lts.saturate.noε.MTr s μs := by
   ext s'
@@ -37,7 +37,7 @@ namespace Automata.εNA.FinAcc
 variable {State Symbol : Type*}
 
 /-- Any `εNA.FinAcc` can be converted into an `NA.FinAcc` that does not use ε-transitions. -/
-@[scoped grind]
+@[automata]
 def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
   start := a.εClosure a.start
   accept := a.accept
@@ -46,13 +46,13 @@ def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
 open Acceptor in
 open scoped NA.FinAcc in
 /-- Correctness of `toNAFinAcc`. -/
-@[scoped grind _=_]
+@[automata _=_]
 theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
     language ena.toNAFinAcc = language ena := by
   ext xs
   have : ∀ s s', ena.saturate.MTr s (xs.map some) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
-  grind
+  grind [automata]
 
 end Automata.εNA.FinAcc
 

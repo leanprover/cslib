@@ -60,7 +60,7 @@ namespace FinAcc
 accept state.
 
 This is the standard string recognition performed by NFAs in the literature. -/
-@[simp, scoped grind =]
+@[simp, automata =]
 instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s'
@@ -75,7 +75,7 @@ structure Buchi (State Symbol : Type*) extends NA State Symbol where
 namespace Buchi
 
 /-- An infinite run is accepting iff accepting states occur infinitely many times. -/
-@[simp, scoped grind =]
+@[simp, automata =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
   Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) :=
     ∃ ss, a.Run xs ss ∧ ∃ᶠ k in atTop, ss k ∈ a.accept
@@ -91,7 +91,7 @@ namespace Muller
 
 /-- An infinite run is accepting iff the set of states that occur infinitely many times
 is one of the sets in `accept`. -/
-@[simp, scoped grind =]
+@[simp, automata =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
   Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) :=
     ∃ ss, a.Run xs ss ∧ ss.infOcc ∈ a.accept

@@ -163,7 +163,7 @@ theorem finConcat_language_eq [Inhabited Symbol] :
     refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
     · grind [totalize_language_eq, take_append_of_le_length]
     · have : ss xl.length = (ss.drop n) (xl.length - n) := by grind
-      grind [drop_append_of_le_length, take_append_of_le_length, totalize_run_mtr]
+      grind [automata, drop_append_of_le_length, take_append_of_le_length, totalize_run_mtr]
     · exact xl.take_append_drop n
   · rintro ⟨xl1, h_xl1, xl2, h_xl2, rfl⟩
     rw [← totalize_language_eq] at h_xl1
@@ -171,7 +171,7 @@ theorem finConcat_language_eq [Inhabited Symbol] :
     obtain ⟨_, _, h_run2, _, _⟩ := totalize_mtr_run h_s2 h_mtr2
     obtain ⟨ss, ⟨_, h_ωtr⟩, _⟩ := concat_run_exists h_xl1 h_run2
     grind [
-      finConcat, List.length_append, take_append_of_le_length,
+      automata, finConcat, List.length_append, take_append_of_le_length,
       extract_eq_drop_take, =_ append_append_ωSequence, get_drop xl2.length xl1.length ss,
       LTS.ωTr_mTr h_ωtr (zero_le (xl1.length + xl2.length))
     ]

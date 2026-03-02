@@ -24,25 +24,25 @@ variable {State Symbol : Type*}
 section SubsetConstruction
 
 /-- Converts an `NA` into a `DA` using the subset construction. -/
-@[scoped grind =]
+@[automata =]
 def toDA (a : NA State Symbol) : DA (Set State) Symbol :=
   { a.toFLTS with start := a.start }
 
 namespace FinAcc
 
 /-- Converts an `NA.FinAcc` into a `DA.FinAcc` using the subset construction. -/
-@[scoped grind =]
+@[automata =]
 def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol :=
   { a.toDA with accept := { S | ∃ s ∈ S, s ∈ a.accept } }
 
 open Acceptor in
 open scoped DA.FinAcc LTS in
 /-- The `DA` constructed from an `NA` has the same language. -/
-@[scoped grind _=_]
+@[automata _=_]
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
   language na.toDAFinAcc = language na := by
   ext xs
-  grind
+  grind [automata]
 
 end FinAcc
 
