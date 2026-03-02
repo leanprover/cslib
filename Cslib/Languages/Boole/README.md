@@ -17,6 +17,15 @@ Boole and Strata are implemented in Lean 4. Install Lean 4 by following the inst
 Some verification pipelines rely on external SMT solvers. You may use either **cvc5** or **Z3**; the
 examples in this repository assume `cvc5` is available on your `PATH`.
 
+In addition:
+
+- If you run `#eval Strata.Boole.verify "cvc5" <program>`, Lean will try to execute the external
+  `cvc5` binary. Make sure `cvc5` is on your `PATH` when running Lean.
+- If you use `import Smt` (e.g. to run `all_goals smt`), Lean also needs to load cvc5's native
+  bindings at runtime. This requires passing `--load-dynlib` to Lean (see below).
+- If you ran `lake update`, you likely already have a suitable `cvc5` binary under
+  `.lake/packages/cvc5`; `scripts/boole-smt.sh` can help run Lean with the right setup.
+
 ## Build Instructions
 
 Clone the `Boole-sandbox` branch of CSLib:
@@ -121,6 +130,15 @@ To invoke the SMT-based pipeline, add the following line:
 #eval Strata.Boole.verify "cvc5" maxExample
 ```
 
+If you are using the cvc5 binary vendored via Lake (under `.lake/packages/cvc5`), the easiest way
+to run a Boole file with the right environment is:
+
+```bash
+./scripts/boole-smt.sh Cslib/Languages/Boole/examples/MaxExample.lean
+```
+
+(Manual setup is also possible; the exact `cvc5` binary path is platform-dependent.)
+
 You should see output similar to the following in Lean's InfoView:
 
 ```
@@ -186,5 +204,18 @@ To use it, ensure you import:
 ```lean
 import Smt
 ```
+
+To run files that import `Smt`, you may need to pass `--load-dynlib` so Lean can load cvc5's native
+bindings. For convenience, `scripts/boole-smt.sh` attempts to set up `PATH` and `--load-dynlib`
+automatically:
+
+```bash
+./scripts/boole-smt.sh Cslib/Languages/Boole/examples/MaxExample.lean
+```
+
+VS Code note: the `--load-dynlib` requirement is not VS Code-specific; it applies to any way of
+running Lean that loads and executes `Smt` code. If you want this to work in the editor, configure
+your Lean server to start with that extra argument (and ensure `cvc5` is on `PATH`, e.g. by starting
+VS Code from a shell where it is set).
 
 The full example is available in [`MaxExample.lean`](MaxExample.lean).
