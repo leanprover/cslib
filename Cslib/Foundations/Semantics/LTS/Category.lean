@@ -52,6 +52,7 @@ instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) 
   id                        := LTSMorphism.id
   comp {lts₁} {lts₂} {lts₃} := LTSMorphism.comp lts₁ lts₂ lts₃
 
+/-- Proof that the above structure actually forms a category. -/
 instance {State Label : Type} : CategoryTheory.Category (LTS State Label) where
   id_comp := by
     intro _ _ f
