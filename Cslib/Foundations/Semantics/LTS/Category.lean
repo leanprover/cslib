@@ -26,16 +26,16 @@ variable (lts₃ : LTS State₃ Label₃)
 function on labels, and a proof that transitions are preserved. -/
 structure LTSMorphism (lts₁ : LTS State₁ Label₁) (lts₂ : LTS State₂ Label₂) : Type where
   toFun : State₁ → State₂
-  lam   : Label₁ → Label₂
+  labelMap : Label₁ → Label₂
   fun_preserves_transitions : (s s' : State₁)
                             → (l : Label₁)
                             → lts₁.Tr s l s'
-                            → lts₂.Tr (toFun s) (lam l) (toFun s')
+                            → lts₂.Tr (toFun s) (labelMap l) (toFun s')
 
 /-- The identity LTS morphism. -/
 def LTSMorphism.id (lts : LTS State Label) : LTSMorphism lts lts :=
   { toFun                     := _root_.id
-  , lam                       := _root_.id
+  , labelMap                  := _root_.id
   , fun_preserves_transitions := fun _ _ _ h => h
   }
 
