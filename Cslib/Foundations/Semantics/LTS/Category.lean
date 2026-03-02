@@ -20,6 +20,8 @@ variable (lts₃ : LTS State₃ Label₃)
 # Category of Labelled Transition Systems
 -/
 
+/-! ## Definition of LTS morphism -/
+
 /-- A morphism between two labelled transition systems, consisting of a function on states, a
 function on labels, and a proof that transitions are preserved. -/
 structure LTSMorphism (lts₁ : LTS State₁ Label₁) (lts₂ : LTS State₂ Label₂) : Type where
@@ -45,6 +47,8 @@ def LTSMorphism.comp : LTSMorphism lts₁ lts₂ → LTSMorphism lts₂ lts₃ �
                 apply p
                 exact h
     ⟨g ∘ f, ν ∘ μ, r⟩
+
+/-! ## LTSs and LTS morphisms form a category -/
 
 /-- `LTSMorphism` provides a category structure on the `LTS` type. -/
 instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) where
