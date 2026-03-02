@@ -1,5 +1,6 @@
 module  -- shake: keep-all
 
+public import Cslib.Algorithms.DynamicProgramming.LCS
 public import Cslib.Algorithms.Graph.BFS
 public import Cslib.Algorithms.Graph.DFS
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
