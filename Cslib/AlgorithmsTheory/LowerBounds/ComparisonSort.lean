@@ -384,36 +384,18 @@ lemma traceCodeEquiv_injective
       Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) = permOutputEquiv e σ) :
     Function.Injective (traceCodeEquiv e P) := by
   intro σ τ hCode
-  have hTimeσ :
-      Prog.time P (sortModelNat (α := β) (permLEEquiv e σ)) ≤
-        (Finset.univ : Finset (Equiv.Perm (Fin n))).sup
-          (fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ))) := by
-    exact Finset.le_sup
-      (s := (Finset.univ : Finset (Equiv.Perm (Fin n))))
-      (f := fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ)))
-      (Finset.mem_univ σ)
-  have hTimeτ :
-      Prog.time P (sortModelNat (α := β) (permLEEquiv e τ)) ≤
-        (Finset.univ : Finset (Equiv.Perm (Fin n))).sup
-          (fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ))) := by
-    exact Finset.le_sup
-      (s := (Finset.univ : Finset (Equiv.Perm (Fin n))))
-      (f := fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ)))
-      (Finset.mem_univ τ)
-  have hLenσ : (traceSort P (permLEEquiv e σ)).length ≤ worstTimeEquiv e P := by
-    simpa [worstTimeEquiv, traceSort_length_eq_time] using hTimeσ
-  have hLenτ : (traceSort P (permLEEquiv e τ)).length ≤ worstTimeEquiv e P := by
-    simpa [worstTimeEquiv, traceSort_length_eq_time] using hTimeτ
+  have hLen (ρ : Equiv.Perm (Fin n)) :
+      (traceSort P (permLEEquiv e ρ)).length ≤ worstTimeEquiv e P := by
+    simpa [worstTimeEquiv, traceSort_length_eq_time] using
+      (Finset.le_sup
+        (s := (Finset.univ : Finset (Equiv.Perm (Fin n))))
+        (f := fun ρ => Prog.time P (sortModelNat (α := β) (permLEEquiv e ρ)))
+        (Finset.mem_univ ρ))
   have hTrace :
       traceSort P (permLEEquiv e σ) = traceSort P (permLEEquiv e τ) := by
-    exact traceSort_eq_of_padTrace_eq P hLenσ hLenτ hCode
-  have hEval :
-      Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) =
-        Prog.eval P (sortModelNat (α := β) (permLEEquiv e τ)) :=
-    eval_eq_of_traceSort_eq P hTrace
-  have hOut : permOutputEquiv e σ = permOutputEquiv e τ := by
-    simpa [hCorrect σ, hCorrect τ] using hEval
-  exact permOutputEquiv_injective e hOut
+    exact traceSort_eq_of_padTrace_eq P (hLen σ) (hLen τ) hCode
+  exact permOutputEquiv_injective e <| by
+    simpa [hCorrect σ, hCorrect τ] using eval_eq_of_traceSort_eq P hTrace
 
 lemma hDecisionTreeLowerEquiv
     {β : Type} {n : ℕ}
@@ -453,22 +435,6 @@ theorem cmpSort_lower_bound_fintype
     worstTimeEquiv (Fintype.equivFin α) P ≥
       (Fintype.card α / 2) * Nat.log 2 (Fintype.card α / 2) := by
   simpa using cmpSort_lower_bound_equiv (e := Fintype.equivFin α) (P := P) hCorrect
-
-/--
-Lower bound specialized to a fixed nodup list `l`.
-This is a corollary of the fintype statement with carrier `{x // x ∈ l}`.
--/
-theorem cmpSort_lower_bound_nodup_list
-    {α : Type} [DecidableEq α]
-    (l : List α) (hNodup : l.Nodup)
-    (P : Prog (SortOps {x // x ∈ l}) (List {x // x ∈ l}))
-    (hCorrect : ∀ σ : Equiv.Perm (Fin l.length),
-      Prog.eval P (sortModelNat (α := {x // x ∈ l})
-        (permLEEquiv (List.Nodup.getEquiv l hNodup).symm σ)) =
-        permOutputEquiv (List.Nodup.getEquiv l hNodup).symm σ) :
-    worstTimeEquiv (List.Nodup.getEquiv l hNodup).symm P ≥
-      (l.length / 2) * Nat.log 2 (l.length / 2) := by
-  simpa using cmpSort_lower_bound_equiv (List.Nodup.getEquiv l hNodup).symm P hCorrect
 
 end HiddenOrderEquiv
 
