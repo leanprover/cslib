@@ -436,6 +436,22 @@ theorem cmpSort_lower_bound_fintype
       (Fintype.card α / 2) * Nat.log 2 (Fintype.card α / 2) := by
   simpa using cmpSort_lower_bound_equiv (e := Fintype.equivFin α) (P := P) hCorrect
 
+/--
+Lower bound specialized to a fixed nodup list `l`.
+This is a corollary of the fintype statement with carrier `{x // x ∈ l}`.
+-/
+theorem cmpSort_lower_bound_infinite_types
+    {α : Type} [DecidableEq α]
+    (l : List α) (hNodup : l.Nodup)
+    (P : Prog (SortOps {x // x ∈ l}) (List {x // x ∈ l}))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin l.length),
+      Prog.eval P (sortModelNat (α := {x // x ∈ l})
+        (permLEEquiv (List.Nodup.getEquiv l hNodup).symm σ)) =
+        permOutputEquiv (List.Nodup.getEquiv l hNodup).symm σ) :
+    worstTimeEquiv (List.Nodup.getEquiv l hNodup).symm P ≥
+      (l.length / 2) * Nat.log 2 (l.length / 2) := by
+  simpa using cmpSort_lower_bound_equiv (List.Nodup.getEquiv l hNodup).symm P hCorrect
+
 end HiddenOrderEquiv
 
 end Algorithms
