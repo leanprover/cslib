@@ -52,3 +52,19 @@ instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) 
   , id                        := LTSMorphism.id
   , comp {lts₁} {lts₂} {lts₃} := LTSMorphism.comp lts₁ lts₂ lts₃
   }
+
+instance {State Label : Type} : CategoryTheory.Category (LTS State Label) where
+  id_comp := by
+    intro _ _ f
+    cases f
+    rfl
+  comp_id := by
+    intro _ _ f
+    cases f
+    rfl
+  assoc := by
+    intro _ _ _ _ f g h
+    cases f
+    cases g
+    cases h
+    rfl
