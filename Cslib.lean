@@ -3,6 +3,7 @@ module  -- shake: keep-all
 public import Cslib.Algorithms.Graph.BFS
 public import Cslib.Algorithms.Graph.DFS
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.Search.BinarySearch
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
