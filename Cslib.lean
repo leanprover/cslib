@@ -4,6 +4,7 @@ public import Cslib.Algorithms.DynamicProgramming.EditDistance
 public import Cslib.Algorithms.DynamicProgramming.LCS
 public import Cslib.Algorithms.Graph.BFS
 public import Cslib.Algorithms.Graph.DFS
+public import Cslib.Algorithms.Graph.Dijkstra
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Algorithms.Search.BinarySearch
