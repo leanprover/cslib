@@ -101,6 +101,12 @@ def permLE {n : ℕ} (σ : Equiv.Perm (Fin n)) : Fin n → Fin n → Bool :=
 def permOutput {n : ℕ} (σ : Equiv.Perm (Fin n)) : List (Fin n) :=
   List.ofFn σ.symm
 
+lemma permOutput_pairwise {n : ℕ} (σ : Equiv.Perm (Fin n)) :
+    (permOutput σ).Pairwise (fun x y => permLE σ x y = true) := by
+  rw [permOutput, List.pairwise_ofFn]
+  intro i j hij
+  simpa [permLE, decide_eq_true_eq] using (le_of_lt hij)
+
 lemma permOutput_injective {n : ℕ} :
     Function.Injective (permOutput (n := n)) := by
   intro σ τ h
@@ -293,7 +299,18 @@ lemma hDecisionTreeLower
       (traceCode_injective P hCorrect)
   simpa [Fintype.card_perm] using hCard
 
+lemma eval_pairwise_of_correct
+    {n : ℕ} (P : Prog (SortOps (Fin n)) (List (Fin n)))
+    (hCorrect : ∀ σ : Equiv.Perm (Fin n),
+      P.eval (sortModelNat (permLE σ)) = permOutput σ)
+    (σ : Equiv.Perm (Fin n)) :
+    (P.eval (sortModelNat (permLE σ))).Pairwise (fun x y => permLE σ x y = true) := by
+  simpa [hCorrect σ] using permOutput_pairwise σ
 
+/--
+GPT suggested to pick an abitrary hidden permutation of `Fin n` and generate a list from it
+and then prove that for this, sorting takes `n /2 * (Nat.log 2 (n / 2))`
+-/
 theorem cmpSort_lower_bound
     (n : ℕ) (P : Prog (SortOps (Fin n)) (List (Fin n)))
     (hCorrect : ∀ σ : Equiv.Perm (Fin n),
