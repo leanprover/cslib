@@ -27,7 +27,7 @@ simply because toggling can be easily modeled by the boolean operation `not`.
 namespace Cslib.Automata.NA.Buchi
 
 open Set Prod Filter ωSequence ωAcceptor
-open scoped LTS
+open LTS
 
 variable {Symbol : Type*} {State : Bool → Type*}
 

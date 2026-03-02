@@ -15,7 +15,7 @@ public import Cslib.Computability.Languages.Congruences.RightCongruence
 
 namespace Cslib
 
-open scoped FLTS RightCongruence
+open FLTS RightCongruence
 
 variable {Symbol : Type*}
 

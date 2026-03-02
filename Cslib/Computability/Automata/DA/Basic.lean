@@ -29,7 +29,7 @@ finiteness assumptions), deterministic Buchi automata, and deterministic Muller 
 -/
 
 open List Filter Cslib.ωSequence
-open scoped Cslib.FLTS
+open Cslib.FLTS
 
 namespace Cslib.Automata
 

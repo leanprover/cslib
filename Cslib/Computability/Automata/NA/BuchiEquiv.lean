@@ -13,7 +13,7 @@ public import Cslib.Computability.Automata.NA.Basic
 /-! # Equivalence of nondeterministic Buchi automata (NBAs). -/
 
 open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
+open Cslib.LTS
 
 universe u v w
 

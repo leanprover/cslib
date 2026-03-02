@@ -30,7 +30,7 @@ def toNA (a : DA State Symbol) : NA State Symbol :=
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
-open scoped FLTS NA NA.Run LTS in
+open FLTS NA NA.Run LTS in
 @[simp, automata =]
 theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State} :
     a.toNA.Run xs ss ↔ a.run xs = ss := by
@@ -47,8 +47,7 @@ namespace FinAcc
 def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol :=
   { a.toNA with accept := a.accept }
 
-open Acceptor in
-open scoped FLTS NA.FinAcc in
+open Acceptor FLTS NA.FinAcc in
 /-- The `NA.FinAcc` constructed from a `DA.FinAcc` has the same language. -/
 @[simp, automata _=_]
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
@@ -69,8 +68,7 @@ namespace Buchi
 def toNABuchi (a : DA.Buchi State Symbol) : NA.Buchi State Symbol :=
   { a.toNA with accept := a.accept }
 
-open ωAcceptor in
-open scoped NA.Buchi in
+open ωAcceptor NA.Buchi in
 /-- The `NA.Buchi` constructed from a `DA.Buchi` has the same ω-language. -/
 @[simp, automata _=_]
 theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :

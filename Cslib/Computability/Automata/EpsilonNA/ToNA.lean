@@ -43,8 +43,7 @@ def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
   accept := a.accept
   Tr := a.saturate.noε.Tr
 
-open Acceptor in
-open scoped NA.FinAcc in
+open Acceptor NA.FinAcc in
 /-- Correctness of `toNAFinAcc`. -/
 @[automata _=_]
 theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :

@@ -19,7 +19,7 @@ state. But the evolution of the original state is not constrained by the history
 namespace Cslib.Automata.NA
 
 open Prod ωSequence
-open scoped LTS
+open LTS
 
 variable {Symbol State Hist : Type*}
 

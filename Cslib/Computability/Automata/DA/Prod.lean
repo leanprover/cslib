@@ -16,7 +16,7 @@ public import Cslib.Foundations.Semantics.FLTS.Prod
 namespace Cslib.Automata
 
 open List
-open scoped FLTS
+open FLTS
 
 variable {State1 State2 Symbol : Type*}
 

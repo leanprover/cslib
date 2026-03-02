@@ -36,7 +36,7 @@ def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol :=
   { a.toDA with accept := { S | ∃ s ∈ S, s ∈ a.accept } }
 
 open Acceptor in
-open scoped DA.FinAcc LTS in
+open DA.FinAcc LTS in
 /-- The `DA` constructed from an `NA` has the same language. -/
 @[automata _=_]
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :

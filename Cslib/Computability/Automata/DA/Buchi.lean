@@ -17,7 +17,7 @@ open Filter
 
 namespace Cslib.Automata.DA
 
-open scoped FinAcc Buchi
+open FinAcc Buchi
 
 variable {State Symbol : Type*}
 

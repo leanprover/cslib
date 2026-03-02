@@ -15,7 +15,7 @@ public import Cslib.Computability.Automata.NA.Basic
 namespace Cslib.Automata.NA
 
 open Set List Cslib.ωSequence
-open scoped LTS
+open LTS
 
 variable {Symbol I : Type*} {State : I → Type*}
 

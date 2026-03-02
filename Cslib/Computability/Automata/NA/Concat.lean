@@ -19,7 +19,7 @@ open Sum ωSequence Acceptor
 
 variable {Symbol State1 State2 : Type*}
 
-open scoped Classical in
+open Classical in
 /-- `concat na1 na2` starts by running `na1` and then nondeterministically switches to `na2`
 by identifying an accepting state of `na1` with an initial state of `na2`. If `na1` accepts the
 empty word, it may also start running `na2` from the beginning. Once it starts running `na2`,
