@@ -6,8 +6,13 @@ Authors: Shreyas Srinivas
 
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Algebra.Ring.Nat
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Fintype.Perm
+public import Mathlib.Data.Nat.Lattice
+public import Mathlib.Data.Nat.Log
 import all Init.Data.List.Sort.Basic
 
 public import Mathlib
@@ -324,8 +329,6 @@ theorem cmpSort_lower_bound
   have hTime : Nat.log 2 (Nat.factorial n) ≤ worstTime P := by
     simpa [Nat.log_pow (b := 2) (x := worstTime P) (by decide : 1 < 2)] using hLog
   exact le_trans (hFactorialLog n) hTime
-
-
 
 end Algorithms
 
