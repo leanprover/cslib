@@ -40,7 +40,7 @@ def LTSMorphism.id (lts : LTS State Label) : LTSMorphism lts lts :=
 /-- Composition of LTS morphisms. -/
 def LTSMorphism.comp : LTSMorphism lts₁ lts₂ → LTSMorphism lts₂ lts₃ → LTSMorphism lts₁ lts₃ :=
   fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
-    let r := by intros s s' l h
+    let r := by intros _ _ _ h
                 apply q
                 apply p
                 exact h
