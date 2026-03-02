@@ -29,8 +29,3 @@ globs = ["CslibTests.+"]
 name = "checkInitImports"
 srcDir = "scripts"
 root = "CheckInitImports"
-
-[[lean_exe]]
-name = "runTests"
-srcDir = "scripts"
-root = "RunTests"
