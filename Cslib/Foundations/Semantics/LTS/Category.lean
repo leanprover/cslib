@@ -47,11 +47,10 @@ def LTSMorphism.comp : LTSMorphism lts₁ lts₂ → LTSMorphism lts₂ lts₃ �
     ⟨g ∘ f, ν ∘ μ, r⟩
 
 /-- `LTSMorphism` provides a category structure on the `LTS` type. -/
-instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) :=
-  { Hom                       := LTSMorphism
-  , id                        := LTSMorphism.id
-  , comp {lts₁} {lts₂} {lts₃} := LTSMorphism.comp lts₁ lts₂ lts₃
-  }
+instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) where
+  Hom                       := LTSMorphism
+  id                        := LTSMorphism.id
+  comp {lts₁} {lts₂} {lts₃} := LTSMorphism.comp lts₁ lts₂ lts₃
 
 instance {State Label : Type} : CategoryTheory.Category (LTS State Label) where
   id_comp := by
