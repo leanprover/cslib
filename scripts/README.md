@@ -55,3 +55,8 @@ to learn about it as well!
   ```bash
   bash scripts/weekly_lint_report.sh <output_file> <sha> <repo> <run_id>
   ```
+
+**Boole / SMT**
+- `boole-smt.sh`
+  Runs `lake env lean` with a best-effort setup for Boole/Strata SMT workflows: it tries to put the vendored
+  `cvc5` binary on `PATH` and to pass `--load-dynlib` for cvc5's native bindings (needed for `import Smt`).

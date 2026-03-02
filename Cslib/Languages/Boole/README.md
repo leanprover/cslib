@@ -218,4 +218,4 @@ running Lean that loads and executes `Smt` code. If you want this to work in the
 your Lean server to start with that extra argument (and ensure `cvc5` is on `PATH`, e.g. by starting
 VS Code from a shell where it is set).
 
-The full example is available in [`MaxExample.lean`](MaxExample.lean).
+The full example is available in [`MaxExample.lean`](examples/MaxExample.lean).

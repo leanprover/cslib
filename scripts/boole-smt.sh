@@ -13,20 +13,33 @@ Runs `lake env lean` with:
 This is useful for Boole/Strata examples that use:
   - `#eval Strata.Boole.verify "cvc5" ...` (needs `cvc5` on PATH)
   - `import Smt` / `smt` tactic (needs `--load-dynlib`)
+
+Notes:
+  - `<file.lean>` may be given as an absolute path, or as a path relative to the
+    repository root.
 EOF
 }
 
-if [[ $# -lt 1 ]] || [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
+if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+if [[ $# -lt 1 ]]; then
   usage
   exit 2
 fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FILE="$1"
+FILE_ARG="$1"
 shift
 
+FILE="$FILE_ARG"
+if [[ "$FILE_ARG" != /* ]]; then
+  FILE="$ROOT/$FILE_ARG"
+fi
+
 if [[ ! -e "$FILE" ]]; then
-  echo "error: file not found: $FILE" >&2
+  echo "error: file not found: $FILE_ARG" >&2
   exit 2
 fi
 
@@ -58,4 +71,4 @@ else
   echo "warning: `#eval Strata.Boole.verify \"cvc5\" ...` may fail unless `cvc5` is on PATH." >&2
 fi
 
-exec lake env lean "${LOAD_DYNLIB_ARGS[@]}" "$FILE" "$@"
+exec lake -d "$ROOT" env lean "${LOAD_DYNLIB_ARGS[@]}" "$FILE" "$@"
