@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Syntax.Context
 public import Mathlib.Data.Multiset.Fold
 
 @[expose] public section
@@ -67,6 +68,44 @@ instance : Bot (Proposition Atom) := ⟨.bot⟩
 
 @[inherit_doc] scoped prefix:95 "!" => Proposition.bang
 @[inherit_doc] scoped prefix:95 "ʔ" => Proposition.quest
+
+/-- Propositional contexts (single-hole contexts for propositions). -/
+inductive Proposition.Context (Atom : Type u) : Type u where
+  | hole
+  | tensorL (c : Context Atom) (b : Proposition Atom)
+  | tensorR (a : Proposition Atom) (c : Context Atom)
+  | parrL (c : Context Atom) (b : Proposition Atom)
+  | parrR (a : Proposition Atom) (c : Context Atom)
+  | oplusL (c : Context Atom) (b : Proposition Atom)
+  | oplusR (a : Proposition Atom) (c : Context Atom)
+  | withL (c : Context Atom) (b : Proposition Atom)
+  | withR (a : Proposition Atom) (c : Context Atom)
+  | bang (c : Context Atom)
+  | quest (c : Context Atom)
+deriving DecidableEq, BEq
+
+/-- Replaces the hole in a propositional context with a propositions. -/
+def Proposition.Context.fill (c : Context Atom) (a : Proposition Atom) : Proposition Atom :=
+  match c with
+  | hole => a
+  | tensorL c b => .tensor (c.fill a) b
+  | tensorR b c => .tensor b (c.fill a)
+  | parrL c b => .parr (c.fill a) b
+  | parrR b c => .parr b (c.fill a)
+  | oplusL c b => .oplus (c.fill a) b
+  | oplusR b c => .oplus b (c.fill a)
+  | withL c b => .with (c.fill a) b
+  | withR b c => .with b (c.fill a)
+  | bang c => .bang (c.fill a)
+  | quest c => .quest (c.fill a)
+
+instance : HasContext (Proposition Atom) :=
+  ⟨Proposition.Context Atom, Proposition.Context.fill⟩
+
+/-- Definition of context filling. -/
+@[scoped grind =]
+theorem Proposition.hasContext_def (c : Proposition.Context Atom) (a : Proposition Atom) :
+  c<[a] = c.fill a := rfl
 
 /-- Positive propositions. -/
 def Proposition.positive : Proposition Atom → Bool
