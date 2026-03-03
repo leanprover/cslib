@@ -6,11 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Semantics.FLTS.Basic
-public import Mathlib.Data.Set.Finite.Basic
-public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 @[expose] public section
 

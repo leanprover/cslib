@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Pair
-public import Cslib.Computability.Languages.Congruences.RightCongruence
 
 @[expose] public section
 

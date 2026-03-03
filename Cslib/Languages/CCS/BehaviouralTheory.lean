@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
+public import Cslib.Foundations.Syntax.Congruence
 public import Cslib.Languages.CCS.Semantics
 
 @[expose] public section
