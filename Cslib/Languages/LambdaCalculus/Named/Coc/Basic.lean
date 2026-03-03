@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
+public import Cslib.Foundations.Syntax.HasBetaEquiv
 public import Cslib.Foundations.Syntax.HasSubstitution
 
 @[expose] public section
@@ -105,6 +106,16 @@ def subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Term Va
 instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
     HasSubstitution (Term Var) Var (Term Var) where
   subst := Term.subst
+
+/-- β-equivalence. -/
+inductive BetaEquiv [DecidableEq Var] [HasFresh Var] : Term Var → Term Var → Prop
+  /-- Equivalance -/
+  | eq : BetaEquiv (B [x := N]) (.app (.lam x A B) N)
+  /-- Congruence -/
+  | cong : BetaEquiv B A → BetaEquiv N M → BetaEquiv (.app B N) (.app A M)
+
+instance instHasBetaEquivTerm [DecidableEq Var] [HasFresh Var] : HasBetaEquiv (Term Var) where
+  BetaEquiv := BetaEquiv
 
 end Term
 
