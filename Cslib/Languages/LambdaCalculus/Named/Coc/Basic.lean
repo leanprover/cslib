@@ -110,7 +110,7 @@ instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
 /-- β-equivalence. -/
 inductive BetaEquiv [DecidableEq Var] [HasFresh Var] : Term Var → Term Var → Prop
   /-- Equivalance -/
-  | eq : BetaEquiv (B [x := N]) (.app (.abs x A B) N)
+  | eq : BetaEquiv (.app (.abs x A B) N) (B [x := N])
   /-- Congruence -/
   | cong : BetaEquiv B A → BetaEquiv N M → BetaEquiv (.app B N) (.app A M)
 
