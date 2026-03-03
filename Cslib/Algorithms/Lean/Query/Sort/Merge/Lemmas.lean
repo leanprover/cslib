@@ -27,7 +27,7 @@ public theorem id_run_merge (le : α → α → Bool) (xs ys : List α) :
   | case3 x xs y ys ih_t ih_f =>
     simp only [Id.run_bind, Id.run_pure] at ih_t ih_f ⊢
     rw [List.cons_merge_cons]
-    split <;> simp_all
+    split <;> grind
 
 -- Unlike `id_run_merge` above, we don't prove a conformance lemma
 -- `id_run_mergeSort : Id.run (mergeSort ...) = List.mergeSort ...`

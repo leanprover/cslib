@@ -163,10 +163,9 @@ theorem IsMonadicSort.lowerBound_infinite [Infinite α]
       rw [key, key] at h_eval'
       exact e.symm.injective (map_infinite_embedding_injective h_eval')
     intro i
-    set σ := e.symm i
-    have hc := h.queryTree_correct (infinitePermOrder (α := α) n σ) xs
-    exact hc.1.trans (map_perm_of_infinite_embedding σ).symm |>.eq_of_pairwise'
-      hc.2 (pairwise_map_infinitePermOrder σ)
+    have hc := h.queryTree_correct (infinitePermOrder (α := α) n (e.symm i)) xs
+    exact hc.1.trans (map_perm_of_infinite_embedding (e.symm i)).symm |>.eq_of_pairwise'
+      hc.2 (pairwise_map_infinitePermOrder (e.symm i))
   obtain ⟨i, hi⟩ := QueryTree.exists_queriesOn_ge_clog tree oracles (Nat.factorial_pos n) h_inj
   exact ⟨oracles i, hi⟩
 

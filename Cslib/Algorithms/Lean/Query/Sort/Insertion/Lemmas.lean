@@ -107,7 +107,7 @@ public theorem id_run_orderedInsert (r : α → α → Prop) [DecidableRel r] (x
   | nil => simp [orderedInsert, Id.run_pure]
   | cons y ys ih =>
     simp only [orderedInsert, Id.run_bind, Id.run_pure, List.orderedInsert_cons]
-    split <;> simp_all [decide_eq_true_eq]
+    split <;> grind
 
 /-- The monadic `insertionSort` at `m := Id` agrees with `List.insertionSort`. -/
 public theorem id_run_insertionSort (r : α → α → Prop) [DecidableRel r] (xs : List α) :
