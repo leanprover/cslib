@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2025 Sorrachai Yingchareonthawornhcai. All rights reserved.
+Copyright (c) 2025 Sorrachai Yingchareonthawornchai. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser, Kim Morrison
+Authors: Sorrachai Yingchareonthawornchai, Eric Wieser, Kim Morrison
 -/
 module
 
