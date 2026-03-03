@@ -11,7 +11,7 @@ open Cslib
 
 @[expose] public section
 
-variable {State Label State₃ Label₃ State₁ State₂ Label₁ Label₂ : Type}
+variable {State Label State₁ State₂ State₃ Label₁ Label₂ Label₃ : Type}
 variable (lts₁ : LTS State₁ Label₁)
 variable (lts₂ : LTS State₂ Label₂)
 variable (lts₃ : LTS State₃ Label₃)
