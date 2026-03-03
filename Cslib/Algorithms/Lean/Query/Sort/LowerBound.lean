@@ -46,8 +46,9 @@ theorem IsMonadicSort.queryTree_correct
       (m := OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2)))
       (fun p => QueryTree.ask p) (fun p => decide (r p.1 p.2)) :=
     fun p => by simp [Triple, OracleQueryTree.wp_eq]
-  exact ⟨@h.perm _ .pure _ OracleQueryTree.instWPMonad _ hcmp.nonFailing xs trivial,
-    @h.sorted r _ _ _ _ .pure _ OracleQueryTree.instWPMonad _ hcmp xs trivial⟩
+  let M := OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2))
+  exact ⟨h.perm (m := M) _ hcmp.nonFailing xs trivial,
+    h.sorted r (m := M) _ hcmp xs trivial⟩
 
 open Classical in
 /-- A total order on an infinite type `α` that orders `n` embedded elements
