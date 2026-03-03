@@ -20,6 +20,7 @@ scope = "leanprover-community"
 [[lean_lib]]
 name = "Cslib"
 globs = ["Cslib.*"]
+leanOptions.experimental.module = true
 
 [[lean_lib]]
 name = "CslibTests"
