@@ -17,7 +17,7 @@ public import Mathlib.Data.Nat.Log
 # MergeSort on a list
 
 In this file we introduce `merge` and `mergeSort` algorithms that returns a time monad
-over the list `TimeM (List α)`. The time complexity of `mergeSort` is the number of comparisons.
+over the list `TimeM ℕ (List α)`. The time complexity of `mergeSort` is the number of comparisons.
 
 --
 ## Main results
@@ -34,8 +34,8 @@ namespace Cslib.Algorithms.Lean.TimeM
 variable {α : Type} [LinearOrder α]
 
 /-- Merges two lists into a single list, counting comparisons as time cost.
-Returns a `TimeM (List α)` where the time represents the number of comparisons performed. -/
-def merge :  List α → List α → TimeM (List α)
+Returns a `TimeM ℕ (List α)` where the time represents the number of comparisons performed. -/
+def merge :  List α → List α → TimeM ℕ (List α)
   | [], ys => return ys
   | xs, [] => return xs
   | x::xs', y::ys' => do
@@ -48,8 +48,8 @@ def merge :  List α → List α → TimeM (List α)
       return (y :: rest)
 
 /-- Sorts a list using the merge sort algorithm, counting comparisons as time cost.
-Returns a `TimeM (List α)` where the time represents the total number of comparisons. -/
-def mergeSort (xs : List α) : TimeM (List α) :=  do
+Returns a `TimeM ℕ (List α)` where the time represents the total number of comparisons. -/
+def mergeSort (xs : List α) : TimeM ℕ (List α) :=  do
   if xs.length < 2 then return xs
   else
     let half  := xs.length / 2
@@ -63,6 +63,11 @@ section Correctness
 
 open List
 
+/-- Our merge computes the one already in mathlib. -/
+@[simp, grind =]
+theorem ret_merge (xs ys : List α) : ⟪merge xs ys⟫ = xs.merge ys := by
+  fun_induction merge with grind [nil_merge, merge_right, cons_merge_cons]
+
 /-- A list is sorted if it satisfies the `Pairwise (· ≤ ·)` predicate. -/
 abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
 
@@ -71,11 +76,7 @@ abbrev MinOfList (x : α) (l : List α) : Prop := ∀ b ∈ l, x ≤ b
 
 @[grind →]
 theorem mem_either_merge (xs ys : List α) (z : α) (hz : z ∈ ⟪merge xs ys⟫) : z ∈ xs ∨ z ∈ ys := by
-  fun_induction merge
-  · exact mem_reverseAux.mp hz
-  · left
-    exact hz
-  · grind
+  grind [List.mem_merge]
 
 theorem min_all_merge (x : α) (xs ys : List α) (hxs : MinOfList x xs) (hys : MinOfList x ys) :
     MinOfList x ⟪merge xs ys⟫ := by
@@ -83,10 +84,7 @@ theorem min_all_merge (x : α) (xs ys : List α) (hxs : MinOfList x xs) (hys : M
 
 theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1) (hys : IsSorted l2) :
     IsSorted ⟪merge l1 l2⟫ := by
-  fun_induction merge l1 l2 with
-  | case3 =>
-    grind [pairwise_cons]
-  | _ => simpa
+  grind [hxs.merge hys]
 
 theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
   fun_induction mergeSort xs with
@@ -95,11 +93,7 @@ theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
   | case2 _ _ _ _ _ ih2 ih1 => exact sorted_merge ih2 ih1
 
 lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
-  fun_induction merge with
-  | case1 => simp
-  | case2 => simp
-  | case3 =>
-    grind
+  fun_induction merge with grind [List.merge_perm_append]
 
 theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
   fun_induction mergeSort xs with
@@ -135,8 +129,7 @@ open Nat (clog)
 /-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
 @[grind →]
 lemma clog2_half_le (n : ℕ) (h : n > 1) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
-  rw [Nat.clog_of_one_lt one_lt_two h]
-  grind
+  grind [Nat.clog_of_one_lt one_lt_two h]
 
 /-- Same logic for the floor half: ⌈log2 ⌊n/2⌋⌉ ≤ ⌈log2 n⌉ - 1 -/
 @[grind →]
@@ -175,18 +168,15 @@ theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
     have := some_algebra n
     grind [Nat.add_div_right]
 
-@[simp] theorem merge_ret_length_eq_sum (xs ys : List α) :
+theorem merge_ret_length_eq_sum (xs ys : List α) :
     ⟪merge xs ys⟫.length = xs.length + ys.length := by
-  fun_induction merge with
-  | case3 =>
-    grind
-  | _ => simp
+  simp
 
 @[simp] theorem mergeSort_same_length (xs : List α) :
     ⟪mergeSort xs⟫.length = xs.length := by
   fun_induction mergeSort
   · simp
-  · grind [merge_ret_length_eq_sum]
+  · grind [List.length_merge]
 
 @[simp] theorem merge_time (xs ys : List α) : (merge xs ys).time ≤ xs.length + ys.length := by
   fun_induction merge with

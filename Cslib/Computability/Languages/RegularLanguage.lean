@@ -15,7 +15,6 @@ public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
 public import Mathlib.Data.Finite.Sum
 public import Mathlib.Data.Set.Card
-public import Mathlib.Tactic.Common
 
 @[expose] public section
 

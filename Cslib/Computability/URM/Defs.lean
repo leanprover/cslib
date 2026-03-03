@@ -7,8 +7,6 @@ module
 
 public import Cslib.Init
 public import Mathlib.Data.Finset.Insert
-public import Mathlib.Logic.Function.Basic
-public import Mathlib.Data.List.MinMax
 
 /-! # URM Core Definitions
 

@@ -7,11 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Init
-public import Mathlib.Order.Notation
-public import Mathlib.Order.Defs.Unbundled
-public import Mathlib.Data.Multiset.Defs
 public import Mathlib.Data.Multiset.Fold
-public import Mathlib.Data.Multiset.AddSub
 
 @[expose] public section
 

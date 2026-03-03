@@ -17,14 +17,15 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
+          test-args: "--wfail --iofail"
       - name: "lake exe mk_all --check --module"
         run: |
           set -e
           lake exe mk_all --check --module
-      #- name: "lake exe shake"
-      #  run: |
-      #    set -e
-      #    lake exe shake Cslib
+      - name: "lake shake"
+        run: |
+          set -e
+          lake shake --add-public --keep-implied --keep-prefix Cslib
       - uses: leanprover-community/lint-style-action@main
         with:
           mode: check

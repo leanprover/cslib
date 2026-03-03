@@ -7,12 +7,10 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Init
-public import Mathlib.Logic.Relation
 public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
-public import Mathlib.Util.Notation3
 
 @[expose] public section
 

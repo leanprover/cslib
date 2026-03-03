@@ -5,10 +5,9 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Computability.URM.Basic
+public import Cslib.Computability.URM.Defs
 public import Cslib.Foundations.Data.Relation
 public import Mathlib.Data.Part
-public import Mathlib.Data.Setoid.Basic
 
 /-! # URM Execution Semantics
 

@@ -7,7 +7,7 @@ Authors: Chris Henson
 module
 
 public import Batteries.Tactic.Lint.Basic
-public meta import Lean.Meta.Instances
+public import Lean.Message
 
 namespace Cslib.Lint
 
@@ -21,7 +21,7 @@ public meta def topNamespace : Batteries.Tactic.Lint.Linter where
   test declName := do
     if ← isAutoDecl declName then return none
     let env ← getEnv
-    if ← isInstanceReducible declName then return none
+    if ← isImplicitReducible declName then return none
     let nss := env.getNamespaceSet
     let top := nss.fold (init := (∅ : NameSet)) fun tot n =>
       match n.components with
