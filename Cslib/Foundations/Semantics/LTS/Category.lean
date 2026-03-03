@@ -24,7 +24,7 @@ variable (lts₃ : LTS State₃ Label₃)
 
 /-- A morphism between two labelled transition systems, consisting of a function on states, a
 function on labels, and a proof that transitions are preserved. -/
-structure LTSMorphism (lts₁ : LTS State₁ Label₁) (lts₂ : LTS State₂ Label₂) : Type where
+structure LTS.Morphism (lts₁ : LTS State₁ Label₁) (lts₂ : LTS State₂ Label₂) : Type where
   toFun : State₁ → State₂
   labelMap : Label₁ → Label₂
   fun_preserves_transitions : (s s' : State₁)
@@ -33,14 +33,15 @@ structure LTSMorphism (lts₁ : LTS State₁ Label₁) (lts₂ : LTS State₂ La
                             → lts₂.Tr (toFun s) (labelMap l) (toFun s')
 
 /-- The identity LTS morphism. -/
-def LTSMorphism.id (lts : LTS State Label) : LTSMorphism lts lts :=
+def LTS.Morphism.id (lts : LTS State Label) : LTS.Morphism lts lts :=
   { toFun                     := _root_.id
   , labelMap                  := _root_.id
   , fun_preserves_transitions := fun _ _ _ h => h
   }
 
 /-- Composition of LTS morphisms. -/
-def LTSMorphism.comp : LTSMorphism lts₁ lts₂ → LTSMorphism lts₂ lts₃ → LTSMorphism lts₁ lts₃ :=
+def LTS.Morphism.comp :
+    LTS.Morphism lts₁ lts₂ → LTS.Morphism lts₂ lts₃ → LTS.Morphism lts₁ lts₃ :=
   fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
     let r := by intros _ _ _ h
                 apply q
@@ -50,11 +51,11 @@ def LTSMorphism.comp : LTSMorphism lts₁ lts₂ → LTSMorphism lts₂ lts₃ �
 
 /-! ## LTSs and LTS morphisms form a category -/
 
-/-- `LTSMorphism` provides a category structure on the `LTS` type. -/
+/-- `LTS.Morphism` provides a category structure on the `LTS` type. -/
 instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) where
-  Hom                       := LTSMorphism
-  id                        := LTSMorphism.id
-  comp {lts₁} {lts₂} {lts₃} := LTSMorphism.comp lts₁ lts₂ lts₃
+  Hom                       := LTS.Morphism
+  id                        := LTS.Morphism.id
+  comp {lts₁} {lts₂} {lts₃} := LTS.Morphism.comp lts₁ lts₂ lts₃
 
 /-- Proof that the above structure actually forms a category. -/
 instance {State Label : Type} : CategoryTheory.Category (LTS State Label) where
