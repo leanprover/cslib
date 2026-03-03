@@ -9,6 +9,8 @@ public import Cslib.Foundations.Semantics.LTS.Basic
 public import Mathlib.CategoryTheory.Category.Basic
 open Cslib
 
+universe u v
+
 @[expose] public section
 
 variable {State Label State₁ State₂ State₃ Label₁ Label₂ Label₃ : Type}
@@ -51,25 +53,33 @@ def LTS.Morphism.comp :
 
 /-! ## LTSs and LTS morphisms form a category -/
 
-/-- `LTS.Morphism` provides a category structure on the `LTS` type. -/
-instance {State Label : Type} : CategoryTheory.CategoryStruct (LTS State Label) where
-  Hom                       := LTS.Morphism
-  id                        := LTS.Morphism.id
-  comp {lts₁} {lts₂} {lts₃} := LTS.Morphism.comp lts₁ lts₂ lts₃
+/-- The notion of labelled transition system -/
+structure BundledLTS where
+  State : Type u
+  Label : Type v
+  lts : LTS State Label
+
+/- Remark: I do not like the name 'bundled LTS'; and LTS is already the bundled notion.
+   The name `LTS` for the transition relation on a fixed set of states and
+   labels is what is confusing here. I propose to change that to `LTS-Structure`.
+-/
+
+/-- `LTS.Morphism` provides a category structure on bundled LTSs. -/
+instance : CategoryTheory.CategoryStruct BundledLTS where
+  Hom X Y               := LTS.Morphism X.lts Y.lts
+  id X                  := LTS.Morphism.id X.lts
+  comp {X} {Y} {Z} f g  := LTS.Morphism.comp X.lts Y.lts Z.lts f g
 
 /-- Proof that the above structure actually forms a category. -/
-instance {State Label : Type} : CategoryTheory.Category (LTS State Label) where
-  id_comp := by
-    intro _ _ f
-    cases f
-    rfl
-  comp_id := by
-    intro _ _ f
-    cases f
-    rfl
-  assoc := by
-    intro _ _ _ _ f g h
-    cases f
-    cases g
-    cases h
-    rfl
+instance : CategoryTheory.Category BundledLTS where
+  id_comp := by intro _ _ f
+                cases f
+                rfl
+  comp_id := by intro _ _ f
+                cases f
+                rfl
+  assoc := by intro _ _ _ _ f g h
+              cases f
+              cases g
+              cases h
+              rfl
