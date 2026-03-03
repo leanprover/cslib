@@ -168,6 +168,7 @@ end QueryTree
 
 /-- `OracleQueryTree Q R oracle` is `QueryTree Q R` with a fixed oracle baked into the type,
     enabling a `WPMonad` instance where `wp t = pure (t.eval oracle)`. -/
+@[nolint unusedArguments]
 abbrev OracleQueryTree (Q R : Type) (_oracle : Q → R) := QueryTree Q R
 
 namespace OracleQueryTree
