@@ -35,7 +35,7 @@ namespace LambdaCalculus.Named.Coc
 inductive Term (Var : Type u) : Type u
   | var : Var → Term Var
   | app : Term Var → Term Var → Term Var
-  | lam : Var → Term Var → Term Var → Term Var
+  | abs : Var → Term Var → Term Var → Term Var
   | pi : Var → Term Var → Term Var → Term Var
   | type : Term Var
 deriving DecidableEq
@@ -46,7 +46,7 @@ namespace Term
 def rename [DecidableEq Var] (m : Term Var) (x : Var) (y : Var) : Term Var := match m with
   | .var z => if z = x then .var y else .var z
   | .app f a => .app (f.rename x y) (a.rename x y)
-  | .lam v t b => .lam v (t.rename x y) (b.rename x y)
+  | .abs v t b => .abs v (t.rename x y) (b.rename x y)
   | .pi v t b => .pi v (t.rename x y) (b.rename x y)
   | .type => .type
 
@@ -59,7 +59,7 @@ theorem rename.eq_sizeOf {m : Term Var} {x y : Var} [DecidableEq Var] :
 def fv [DecidableEq Var] : Term Var → Finset Var
   | .var z => {z}
   | .app f a => f.fv ∪ a.fv
-  | .lam v t b => (t.fv ∪ b.fv).erase v
+  | .abs v t b => (t.fv ∪ b.fv).erase v
   | .pi v t b => (t.fv ∪ b.fv).erase v
   | .type => ∅
 
@@ -67,7 +67,7 @@ def fv [DecidableEq Var] : Term Var → Finset Var
 def bv [DecidableEq Var] : Term Var → Finset Var
   | .var _ => ∅
   | .app f a => f.bv ∪ a.bv
-  | .lam v t b => (t.bv ∪ b.bv) ∪ {v}
+  | .abs v t b => (t.bv ∪ b.bv) ∪ {v}
   | .pi v t b => (t.bv ∪ b.bv) ∪ {v}
   | .type => ∅
 
@@ -82,14 +82,14 @@ def subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Term Va
   match m with
   | .var z => if z = x then r else .var z
   | .app f a => .app (f.subst x r) (a.subst x r)
-  | .lam y t b =>
+  | .abs y t b =>
     if y = x then
-      .lam y (t.subst x r) b
+      .abs y (t.subst x r) b
     else if y ∉ r.fv then
-      .lam y (t.subst x r) (b.subst x r)
+      .abs y (t.subst x r) (b.subst x r)
     else
       let z := HasFresh.fresh (t.vars ∪ b.vars ∪ r.vars ∪ {y})
-      .lam z ((t.rename y z).subst x r) ((b.rename y z).subst x r)
+      .abs z ((t.rename y z).subst x r) ((b.rename y z).subst x r)
   | .pi y t b =>
     if y = x then
       .pi y (t.subst x r) b
@@ -110,7 +110,7 @@ instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
 /-- β-equivalence. -/
 inductive BetaEquiv [DecidableEq Var] [HasFresh Var] : Term Var → Term Var → Prop
   /-- Equivalance -/
-  | eq : BetaEquiv (B [x := N]) (.app (.lam x A B) N)
+  | eq : BetaEquiv (B [x := N]) (.app (.abs x A B) N)
   /-- Congruence -/
   | cong : BetaEquiv B A → BetaEquiv N M → BetaEquiv (.app B N) (.app A M)
 
@@ -124,7 +124,7 @@ inductive Typing [DecidableEq v] [HasFresh v] : List (v × Term v) → Term v �
   /-- Function application -/
   | app : Typing Γ M (.pi x A B) → Typing Γ N A → Typing Γ (.app M N) (B[x := N])
   /-- Lambda -/
-  | lam : Typing Γ A K → Typing (⟨x, A⟩ :: Γ) N B → Typing Γ (.lam x A N) (.pi x A B)
+  | abs : Typing Γ A K → Typing (⟨x, A⟩ :: Γ) N B → Typing Γ (.abs x A N) (.pi x A B)
   /-- Pi -/
   | pi : Typing Γ A K → Typing (⟨x, A⟩ :: Γ) B L → Typing Γ (.pi x A B) L
   /-- Type -/

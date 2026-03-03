@@ -13,9 +13,9 @@ public section
 namespace Cslib
 
 /-- Typeclass for the β-equivalence notation `x =β y`. -/
-class HasBetaEquiv (β : Type u) where
-  /-- β-equivalence relation for type β. -/
-  BetaEquiv : β → β → Prop
+class HasBetaEquiv (α : Type u) where
+  /-- β-equivalence relation for type α. -/
+  BetaEquiv : α → α → Prop
 
 @[inherit_doc]
 notation m:max " =β " n:max => HasBetaEquiv.BetaEquiv m n
