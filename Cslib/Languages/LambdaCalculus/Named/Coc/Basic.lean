@@ -117,6 +117,21 @@ inductive BetaEquiv [DecidableEq Var] [HasFresh Var] : Term Var → Term Var →
 instance instHasBetaEquivTerm [DecidableEq Var] [HasFresh Var] : HasBetaEquiv (Term Var) where
   BetaEquiv := BetaEquiv
 
+/-- Typing judgement -/
+inductive Typing [DecidableEq v] [HasFresh v] : List (v × Term v) → Term v → Term v → Prop
+  /-- Variable lookup in Γ -/
+  | var : ⟨x, A⟩ ∈ Γ → Typing Γ (.var x) A
+  /-- Function application -/
+  | app : Typing Γ M (.pi x A B) → Typing Γ N A → Typing Γ (.app M N) (B[x := N])
+  /-- Lambda -/
+  | lam : Typing Γ A K → Typing (⟨x, A⟩ :: Γ) N B → Typing Γ (.lam x A N) (.pi x A B)
+  /-- Pi -/
+  | pi : Typing Γ A K → Typing (⟨x, A⟩ :: Γ) B L → Typing Γ (.pi x A B) L
+  /-- Type -/
+  | type : Typing Γ .type .type
+  /-- Conversion -/
+  | conv : Typing Γ M A → A =β B → Typing Γ M B
+
 end Term
 
 end LambdaCalculus.Named.Coc
