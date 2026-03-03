@@ -67,8 +67,7 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : BundledLTS} :
 instance : CategoryTheory.CategoryStruct BundledLTS where
   Hom lts₁ lts₂         := LTS.Morphism lts₁ lts₂
   id lts                := LTS.Morphism.id lts
-  comp {lts₁} {lts₂} {lts₃} f g :=
-    LTS.Morphism.comp (lts₁ := lts₁) (lts₂ := lts₂) (lts₃ := lts₃) f g
+  comp {lts₁} {lts₂} {lts₃} f g := @LTS.Morphism.comp lts₁ lts₂ lts₃ f g
 
 /-- Proof that the above structure actually forms a category. -/
 instance : CategoryTheory.Category BundledLTS where
