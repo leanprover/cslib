@@ -67,9 +67,9 @@ public theorem mergeSort_perm {ps : PostShape} [Monad m] [WPMonad m ps]
     · apply SPred.pure_mono
       intro h_merge
       rename_i _ _ _ h_left _ h_right _
-      have hsplit := List.MergeSort.Internal.splitInTwo_fst_append_splitInTwo_snd
-        ⟨a :: b :: xs, rfl⟩
-      exact h_merge.trans ((h_left.append h_right).trans (.of_eq hsplit))
+      exact h_merge.trans ((h_left.append h_right).trans
+        (.of_eq (List.MergeSort.Internal.splitInTwo_fst_append_splitInTwo_snd
+          ⟨a :: b :: xs, rfl⟩)))
 
 /-- `merge` uses at most `xs.length + ys.length` queries. -/
 public theorem merge_costs (query : (α × α) → TimeM Bool) (hquery : ∀ a, Costs (query a) 1)

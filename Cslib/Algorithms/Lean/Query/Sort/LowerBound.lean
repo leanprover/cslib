@@ -42,22 +42,12 @@ theorem IsMonadicSort.queryTree_correct
     let result := (sort (fun p => QueryTree.ask p) xs :
       QueryTree (α × α) Bool (List α)).eval oracle
     result.Perm xs ∧ result.Pairwise r := by
-  constructor
-  · -- Permutation: specialize h.perm to OracleQueryTree
-    have := @h.perm (OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2)))
-      .pure _ OracleQueryTree.instWPMonad
-      (fun p => QueryTree.ask p)
-      (fun p => by simp [Triple, OracleQueryTree.wp_eq])
-      xs
-    exact this trivial
-  · -- Sortedness: specialize h.sorted to OracleQueryTree
-    have := @h.sorted r _ _ _
-      (OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2)))
-      .pure _ OracleQueryTree.instWPMonad
-      (fun p => QueryTree.ask p)
-      (fun p => by simp [Triple, OracleQueryTree.wp_eq])
-      xs
-    exact this trivial
+  have hcmp : PureReturn
+      (m := OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2)))
+      (fun p => QueryTree.ask p) (fun p => decide (r p.1 p.2)) :=
+    fun p => by simp [Triple, OracleQueryTree.wp_eq]
+  exact ⟨@h.perm _ .pure _ OracleQueryTree.instWPMonad _ hcmp.nonFailing xs trivial,
+    @h.sorted r _ _ _ _ .pure _ OracleQueryTree.instWPMonad _ hcmp xs trivial⟩
 
 open Classical in
 /-- A total order on an infinite type `α` that orders `n` embedded elements
