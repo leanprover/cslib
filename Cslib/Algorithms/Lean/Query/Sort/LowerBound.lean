@@ -42,11 +42,10 @@ theorem IsMonadicSort.queryTree_correct
     let result := (sort (fun p => QueryTree.ask p) xs :
       QueryTree (α × α) Bool (List α)).eval oracle
     result.Perm xs ∧ result.Pairwise r := by
-  have hcmp : PureReturn
-      (m := OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2)))
+  let M := OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2))
+  have hcmp : PureReturn (m := M)
       (fun p => QueryTree.ask p) (fun p => decide (r p.1 p.2)) :=
     fun p => by simp [Triple, OracleQueryTree.wp_eq]
-  let M := OracleQueryTree (α × α) Bool (fun p => decide (r p.1 p.2))
   exact ⟨h.perm (m := M) _ hcmp.nonFailing xs trivial,
     h.sorted r (m := M) _ hcmp xs trivial⟩
 

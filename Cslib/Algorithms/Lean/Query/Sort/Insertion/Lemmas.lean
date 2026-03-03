@@ -43,10 +43,8 @@ private theorem orderedInsert_perm' {ps : PostShape} [Monad m] [WPMonad m ps]
   simp only [Triple]
   apply SPred.pure_elim'
   intro hsorted
-  exact Triple.entails_wp_of_post (orderedInsert_perm cmp hcmp x sorted) (by
-    simp only [PostCond.entails_noThrow]
-    intro result
-    exact SPred.pure_mono fun hperm => hperm.trans (List.Perm.cons x hsorted))
+  exact triple_mono (orderedInsert_perm cmp hcmp x sorted)
+    (fun _ hperm => hperm.trans (List.Perm.cons x hsorted))
 
 /-- `insertionSort` produces a permutation of its input, for any non-failing monadic comparator. -/
 public theorem insertionSort_perm {ps : PostShape} [Monad m] [WPMonad m ps]
@@ -169,8 +167,7 @@ public theorem orderedInsert_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
   simp only [Triple]
   apply SPred.pure_elim'
   intro hpw
-  exact Triple.entails_wp_of_post (orderedInsert_spec r cmp hcmp x xs hpw) (by
-    simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
+  exact triple_mono (orderedInsert_spec r cmp hcmp x xs hpw) (fun _ => And.left)
 
 /-- `insertionSort` produces a sorted list, for any monadic comparator with a pure return
     reflecting `r`. -/

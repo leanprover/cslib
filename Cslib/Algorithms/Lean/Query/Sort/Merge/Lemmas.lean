@@ -183,8 +183,7 @@ public theorem merge_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
   simp only [Triple]
   apply SPred.pure_elim'
   intro ⟨hxs, hys⟩
-  exact Triple.entails_wp_of_post (merge_spec r cmp hcmp xs ys hxs hys) (by
-    simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
+  exact triple_mono (merge_spec r cmp hcmp xs ys hxs hys) (fun _ => And.left)
 
 /-- `mergeSort` produces a sorted list, for any monadic comparator with a pure return
     reflecting `r`. -/
@@ -207,8 +206,7 @@ public theorem mergeSort_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
     have hmerge : ∀ right, ⦃⌜List.Pairwise r right⌝⦄ merge cmp left right
         ⦃⇓result => ⌜List.Pairwise r result⌝⦄ := by
       intro right; simp only [Triple]; apply SPred.pure_elim'; intro hright
-      exact Triple.entails_wp_of_post (merge_spec r cmp hcmp left right hleft hright)
-        (by simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
+      exact triple_mono (merge_spec r cmp hcmp left right hleft hright) (fun _ => And.left)
     mvcgen [ih_right, hmerge]
 
 /-- At `m := TimeT n`, `merge` preserves sortedness (with a pure comparator). -/

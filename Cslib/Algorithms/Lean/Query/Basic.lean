@@ -255,6 +255,16 @@ public theorem countedM_costs [Monad n] [WPMonad n ps] (f : α → n β) (a : α
 
 end TimeT
 
+/-- Weaken the normal-return postcondition of a Hoare triple via a monotone function.
+    Useful for projecting out one component of a conjunction postcondition, e.g.,
+    `triple_mono h (fun _ => And.left)`. -/
+public theorem triple_mono [Monad m] [WPMonad m ps] {x : m α}
+    {A B : α → Prop}
+    (h : ⦃P⦄ x ⦃⇓result => ⌜A result⌝⦄) (f : ∀ a, A a → B a) :
+    ⦃P⦄ x ⦃⇓result => ⌜B result⌝⦄ :=
+  Triple.entails_wp_of_post h (by
+    simp only [PostCond.entails_noThrow]; intro a; exact SPred.pure_mono (f a))
+
 /-- A monadic function has a pure return: its output is determined by a pure function
     of its input, regardless of monadic effects. -/
 @[expose] def PureReturn {ps : PostShape} [Monad m] [WPMonad m ps]
