@@ -8,6 +8,8 @@ module
 
 public import Cslib.Init
 public import Cslib.Foundations.Syntax.Context
+public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Mathlib.Data.Multiset.Fold
 
 @[expose] public section
@@ -99,12 +101,11 @@ def Proposition.Context.fill (c : Context Atom) (a : Proposition Atom) : Proposi
   | bang c => .bang (c.fill a)
   | quest c => .quest (c.fill a)
 
-instance : HasContext (Proposition Atom) :=
-  ⟨Proposition.Context Atom, Proposition.Context.fill⟩
+instance : HasContext (Proposition Atom) := ⟨Proposition.Context Atom, Proposition.Context.fill⟩
 
 /-- Definition of context filling. -/
 @[scoped grind =]
-theorem Proposition.hasContext_def (c : Proposition.Context Atom) (a : Proposition Atom) :
+theorem Proposition.context_fill_def (c : Context Atom) (a : Proposition Atom) :
   c<[a] = c.fill a := rfl
 
 /-- Positive propositions. -/
@@ -191,6 +192,15 @@ def Sequent.allQuest (Γ : Sequent Atom) :=
   Γ.map (· matches ʔ_)
   |> Multiset.fold Bool.and true
 
+/-- Judgemental contexts for CLL. -/
+def Sequent.Context Atom := Multiset (Proposition Atom) × Unit
+
+/-- Filling a judgemental context returns a sequent. -/
+def Sequent.Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc.1
+
+instance : HasHContext (Sequent Atom) (Proposition Atom) :=
+  ⟨Sequent.Context Atom, Sequent.Context.fill⟩
+
 open Proposition in
 /-- A proof in the sequent calculus for classical linear logic. -/
 inductive Proof : Sequent Atom → Type u where
@@ -210,34 +220,19 @@ inductive Proof : Sequent Atom → Type u where
   | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a ::ₘ Γ) → Proof ((!a) ::ₘ Γ)
   -- No rule for zero.
 
-@[inherit_doc]
-scoped notation "⇓" Γ:90 => Proof Γ
+open Logic
 
-/-- Rewrites the conclusion of a proof into an equal one. -/
+instance : InferenceSystem (Sequent Atom) := ⟨Proof⟩
+
+open InferenceSystem
+
+/-- Convenience definition for rewriting conclusions in proofs. -/
 @[scoped grind =]
-def Proof.rwConclusion (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
-
-/-- A sequent is provable if there exists a proof that concludes it. -/
-@[scoped grind =]
-def Sequent.Provable (Γ : Sequent Atom) := Nonempty (⇓Γ)
-
-/-- Having a proof of Γ shows that it is provable. -/
-theorem Sequent.Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : Γ.Provable := ⟨p⟩
-
-/-- Having a proof of Γ shows that it is provable. -/
-@[scoped grind =]
-noncomputable def Sequent.Provable.toProof {Γ : Sequent Atom} (p : Γ.Provable) : ⇓Γ :=
-  Classical.choice p
-
-instance : Coe (Proof Γ) (Γ.Provable) where
-  coe p := Sequent.Provable.fromProof p
-
-noncomputable instance : Coe (Γ.Provable) (Proof Γ) where
-  coe p := p.toProof
+def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : ⇓Γ) := InferenceSystem.rwConclusion h p
 
 /-- The axiom, but where the order of propositions is reversed. -/
 @[scoped grind <=]
-def Proof.ax' {a : Proposition Atom} : ⇓{a⫠, a} :=
+def Proof.ax' {a : Proposition Atom} : ⇓({a⫠, a} : Sequent Atom) :=
   Multiset.pair_comm a (a⫠) ▸ Proof.ax
 
 /-- Cut, but where the premises are reversed. -/
@@ -274,27 +269,29 @@ section LogicalEquiv
 
 /-- Two propositions are equivalent if one implies the other and vice versa.
 Proof-relevant version. -/
-def Proposition.equiv (a b : Proposition Atom) := ⇓{a⫠, b} × ⇓{b⫠, a}
-
-open Sequent in
-/-- Propositional equivalence, proof-irrelevant version (`Prop`). -/
-def Proposition.Equiv (a b : Proposition Atom) := Provable {a⫠, b} ∧ Provable {b⫠, a}
-
-/-- Conversion from proof-relevant to proof-irrelevant versions of propositional
-equivalence. -/
-theorem Proposition.equiv.toProp (h : Proposition.equiv a b) : Proposition.Equiv a b := by
-  obtain ⟨p, q⟩ := h
-  exact ⟨p, q⟩
+def Proposition.equiv (a b : Proposition Atom) :=
+  ⇓({a⫠, b} : Sequent Atom) × ⇓({b⫠, a} : Sequent Atom)
 
 @[inherit_doc]
 scoped infix:29 " ≡⇓ " => Proposition.equiv
 
+open Sequent in
+/-- Propositional equivalence, proof-irrelevant version (`Prop`). -/
+def Proposition.Equiv (a b : Proposition Atom) :=
+  Derivable ({a⫠, b} : Sequent Atom) ∧ Derivable ({b⫠, a} : Sequent Atom)
+
 @[inherit_doc]
 scoped infix:29 " ≡ " => Proposition.Equiv
 
+/-- Conversion from proof-relevant to proof-irrelevant versions of propositional
+equivalence. -/
+theorem Proposition.equiv.toProp (h : a ≡⇓ b) : a ≡ b := ⟨h.1, h.2⟩
+
 /-- Proof-relevant equivalence is coerciable into proof-irrelevant equivalence. -/
-instance {a b : Proposition Atom} : Coe (a ≡⇓ b) (a ≡ b) where
-  coe := Proposition.equiv.toProp
+instance : Coe (a ≡⇓ b) (a ≡ b) := ⟨Proposition.equiv.toProp⟩
+
+/-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
+noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b := ⟨h.1, h.2⟩
 
 namespace Proposition
 
@@ -302,8 +299,7 @@ open Sequent
 
 /-- Proof-relevant equivalence is reflexive. -/
 @[scoped grind =]
-def equiv.refl (a : Proposition Atom) : a.equiv a :=
-  ⟨Proof.ax', Proof.ax'⟩
+def equiv.refl (a : Proposition Atom) : a ≡⇓ a := ⟨Proof.ax', Proof.ax'⟩
 
 /-- Proof-relevant equivalence is symmetric. -/
 @[scoped grind =]
@@ -326,20 +322,16 @@ theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h
 /-- Proof-irrelevant equivalence is transitive. -/
 @[scoped grind →]
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
-  ⟨
-    Provable.fromProof
-      (Proof.cut (hab.1.toProof.rwConclusion (Multiset.pair_comm _ _)) hbc.1.toProof),
-    Provable.fromProof
-      (Proof.cut (hbc.2.toProof.rwConclusion (Multiset.pair_comm _ _)) hab.2.toProof)
-  ⟩
-
-/-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
-noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
-  ⟨h.1.toProof, h.2.toProof⟩
+  equiv.trans (chooseEquiv hab) (chooseEquiv hbc)
 
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
   ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
+
+instance : IsEquiv (Proposition Atom) Proposition.Equiv where
+  refl := Equiv.refl
+  symm a b := Equiv.symm (a := a) (b := b)
+  trans a b c := Equiv.trans (a := a) (b := b) (c := c)
 
 /-- !⊤ ≡⇓ 1 -/
 @[scoped grind =]
@@ -349,8 +341,8 @@ def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 :=
 /-- ʔ0 ≡⇓ ⊥ -/
 @[scoped grind =]
 def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
-  ⟨.rwConclusion (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
-   .rwConclusion (Multiset.pair_comm ..) <| .weaken .one⟩
+  ⟨rwConclusion (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
+   rwConclusion (Multiset.pair_comm ..) <| .weaken .one⟩
 
 /-- a ⊗ 0 ≡⇓ 0 -/
 @[scoped grind =]
@@ -405,6 +397,18 @@ open scoped Multiset in
 def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
   add_middle_eq_cons ▸ subst_eqv_head heqv (add_middle_eq_cons ▸ p)
 
+instance : Congruence (Proposition Atom) Proposition.Equiv where
+  elim :
+      Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
+      Proposition.Equiv := by
+    sorry
+
+instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
+  eqv := Proposition.Equiv
+  eqv_fill_valid {a b : Proposition Atom} (heqv : a.Equiv b)
+      (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
+      (h : ⇓c<[a]) : ⇓c<[b] := sorry
+
 /-- Tensor is commutative. -/
 @[scoped grind =]
 def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
@@ -426,8 +430,8 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
      show a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)} = ((a ⊗ (b ⊗ c)) ::ₘ {a⫠} + ({b⫠} + {c⫠})) by grind ▸
      (.tensor .ax <| .tensor .ax .ax)⟩
 
-instance {Γ : Sequent Atom} : Std.Symm (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
-  symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
+instance {Γ : Sequent Atom} : Std.Symm (fun a b => Derivable ((a ⊗ b) ::ₘ Γ)) where
+  symm _ _ h := Derivable.fromDerivation (subst_eqv_head tensor_symm (Derivable.toDerivation h))
 
 /-- ⊕ is idempotent. -/
 @[scoped grind =]

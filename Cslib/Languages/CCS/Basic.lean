@@ -119,11 +119,12 @@ def Context.fill (c : Context Name Constant) (p : Process Name Constant) : Proce
   | choiceR r c => Process.choice r (c.fill p)
   | res a c => Process.res a (c.fill p)
 
-instance : HasContext (Process Name Constant) := ⟨Context Name Constant, Context.fill⟩
+instance : IsContext (Context Name Constant) (Process Name Constant)  (Process Name Constant) :=
+  ⟨Context.fill⟩
 
 /-- Definition of context filling. -/
 @[scoped grind =]
-theorem hasContext_def (c : Context Name Constant) (p : Process Name Constant) :
+theorem context_fill_def (c : Context Name Constant) (p : Process Name Constant) :
   c<[p] = c.fill p := rfl
 
 /-- Any `Process` can be obtained by filling a `Context` with an atom. This proves that `Context`

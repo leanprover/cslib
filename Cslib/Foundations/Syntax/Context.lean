@@ -12,10 +12,20 @@ public import Cslib.Init
 
 namespace Cslib
 
-/-- Class for types (`Term`) that have a notion of (single-hole) contexts (`Context`). -/
-class HasContext (Term : Sort*) where
+/-- Class for types with a canonical notion of heterogeneous single-hole contexts. -/
+class HasHContext (α : Type u) (β : Type v) where
   /-- The type of contexts. -/
-  Context : Sort*
+  Context : Type*
+  /-- Replaces the hole in the context with a term, resulting in a new value. -/
+  fill (c : Context) (b : β) : α
+
+@[inherit_doc] notation:max c "<[" t "]" => HasHContext.fill c t
+
+/-- Class for types (`Term`) that have a canonical notion of homogeneous single-hole contexts
+(`Context`). -/
+class HasContext (Term : Type*) where
+  /-- The type of contexts. -/
+  Context : Type*
   /-- Replaces the hole in the context with a term. -/
   fill (c : Context) (t : Term) : Term
 
