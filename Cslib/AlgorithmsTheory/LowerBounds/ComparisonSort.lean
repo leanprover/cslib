@@ -26,32 +26,6 @@ namespace Algorithms
 open Prog
 
 /--
-Finite pigeonhole/cardinality step:
-if we can inject `m` distinguishable inputs into Boolean transcripts of length `t`,
-then `m ≤ 2^t`.
--/
-lemma hDecisionTree
-    (m t : ℕ)
-    (traceCode : Fin m → (Fin t → Bool))
-    (hTraceInj : Function.Injective traceCode) :
-    m ≤ 2 ^ t := by
-  simpa [Fintype.card_fun, Fintype.card_bool] using
-    (Fintype.card_le_of_injective traceCode hTraceInj)
-
-/--
-Pigeonhole principle in existential form.
--/
-lemma hDecisionTreeBound
-    (m t : ℕ)
-    (hTraceCode :
-      ∃ traceCode : Fin m →
-          (Fin t → Bool),
-        Function.Injective traceCode) :
-    m ≤ 2 ^ t := by
-  rcases hTraceCode with ⟨traceCode, hTraceInj⟩
-  exact hDecisionTree m t traceCode hTraceInj
-
-/--
 Finite pigeonhole/cardinality step over an arbitrary finite domain.
 -/
 lemma hDecisionTreeFintype
