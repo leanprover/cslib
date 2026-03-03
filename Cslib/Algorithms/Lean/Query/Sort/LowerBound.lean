@@ -73,17 +73,15 @@ private noncomputable def infinitePermOrder [Infinite α] (n : Nat)
     if _ : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b then False
     else @LE.le α (IsWellOrder.linearOrder (α := α) WellOrderingRel).toLE a b
 
-private noncomputable instance infinitePermOrder.instDecidableRel [Infinite α] :
+private noncomputable instance [Infinite α] :
     DecidableRel (infinitePermOrder (α := α) n σ) := Classical.decRel _
 
 private theorem infinitePermOrder.choose_eq [Infinite α] {i : Fin n}
     (h : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = (Infinite.natEmbedding α) i.val) :
     h.choose = i := by
-  have := h.choose_spec
-  have := (Infinite.natEmbedding α).injective this
-  exact Fin.ext this
+  grind
 
-private theorem infinitePermOrder.instIsTrans [Infinite α] :
+private instance [Infinite α] :
     IsTrans α (infinitePermOrder (α := α) n σ) where
   trans a b c hab hbc := by
     letI : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
@@ -91,33 +89,32 @@ private theorem infinitePermOrder.instIsTrans [Infinite α] :
     by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
     by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>
     by_cases hc : ∃ k : Fin n, (Infinite.natEmbedding α) k.val = c <;>
-    simp_all only [↓reduceDIte, not_exists, exists_false] <;>
-      exact le_trans ‹_› ‹_›
+    grind
 
-private theorem infinitePermOrder.instTotal [Infinite α] :
+private instance [Infinite α] :
     Std.Total (infinitePermOrder (α := α) n σ) where
   total a b := by
     letI : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
     unfold infinitePermOrder
-    by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
-    by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>
-      simp_all [le_total]
+    by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a
+    · simp only [dite_else_true]
+      grind
+    · simp_all only [reduceDIte, dite_eq_ite, if_true_left]
+      grind
 
-private theorem infinitePermOrder.instAntisymm [Infinite α] :
+-- This should be a global attribute in Mathlib
+attribute [local grind inj] Equiv.injective in
+private instance [Infinite α] :
     Std.Antisymm (infinitePermOrder (α := α) n σ) where
   antisymm a b hab hba := by
     letI : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
     simp only [infinitePermOrder] at hab hba
     by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
     by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>
-      simp_all only [↓reduceDIte, not_exists]
-    · calc a = (Infinite.natEmbedding α) ha.choose.val := ha.choose_spec.symm
-        _ = (Infinite.natEmbedding α) hb.choose.val := by
-            congr 1; exact congrArg Fin.val (σ.symm.injective (le_antisymm hab hba))
-        _ = b := hb.choose_spec
-    · exact le_antisymm hab hba
+      simp_all only [↓reduceDIte, not_exists] <;> grind
 
 /-- `infinitePermOrder` restricted to embedded values matches `σ⁻¹(·) ≤ σ⁻¹(·)`. -/
+@[grind =]
 private theorem infinitePermOrder_on_embedded [Infinite α] {i j : Fin n} :
     infinitePermOrder (α := α) n σ ((Infinite.natEmbedding α) i.val)
       ((Infinite.natEmbedding α) j.val) ↔ σ.symm i ≤ σ.symm j := by
@@ -125,25 +122,23 @@ private theorem infinitePermOrder_on_embedded [Infinite α] {i j : Fin n} :
     ⟨i, rfl⟩
   have hj : ∃ k : Fin n, (Infinite.natEmbedding α) k.val = (Infinite.natEmbedding α) j.val :=
     ⟨j, rfl⟩
-  unfold infinitePermOrder
-  rw [dif_pos hi, dif_pos hj, infinitePermOrder.choose_eq hi, infinitePermOrder.choose_eq hj]
+  grind [infinitePermOrder]
 
 /-- `map (ι ∘ Fin.val ∘ σ) (finRange n)` is pairwise sorted by `infinitePermOrder n σ`. -/
 private theorem pairwise_map_infinitePermOrder [Infinite α] (σ : Equiv.Perm (Fin n)) :
     List.Pairwise (infinitePermOrder (α := α) n σ)
       ((List.finRange n).map (fun i => (Infinite.natEmbedding α) (σ i).val)) := by
   rw [List.pairwise_map]
-  exact (List.pairwise_le_finRange n).imp fun hab => by
-    simp only [infinitePermOrder_on_embedded, Equiv.symm_apply_apply]
-    exact hab
+  exact (List.pairwise_le_finRange n).imp fun hab => by grind
 
 /-- `map (ι ∘ Fin.val ∘ σ) (finRange n)` is a permutation of `map (ι ∘ Fin.val) (finRange n)`. -/
 private theorem map_perm_of_infinite_embedding [Infinite α] (σ : Equiv.Perm (Fin n)) :
     ((List.finRange n).map (fun i => (Infinite.natEmbedding α) (σ i).val)).Perm
       ((List.finRange n).map (fun i => (Infinite.natEmbedding α) i.val)) := by
   rw [show (fun i => (Infinite.natEmbedding α) (σ i).val) =
-      (fun i => (Infinite.natEmbedding α) i.val) ∘ σ from rfl, ← List.map_map]
-  exact (Equiv.Perm.map_finRange_perm σ).map _
+      (fun i => (Infinite.natEmbedding α) i.val) ∘ σ from rfl]
+  -- TODO: some more general lemma should be `@[grind]`:
+  grind [Equiv.Perm.map_finRange_perm]
 
 /-- Different permutations give different `map (ι ∘ Fin.val ∘ σ) (finRange n)`. -/
 private theorem map_infinite_embedding_injective [Infinite α] :
@@ -152,7 +147,7 @@ private theorem map_infinite_embedding_injective [Infinite α] :
   intro σ τ h
   exact Equiv.ext fun i => by
     have := List.map_inj_left.mp h i (List.mem_finRange i)
-    exact Fin.val_injective ((Infinite.natEmbedding α).injective this)
+    grind
 
 /-- Any correct comparison sort on an infinite type has query complexity at least `⌈log₂(n!)⌉`
     for every input size `n`. -/
@@ -179,11 +174,7 @@ theorem IsMonadicSort.lowerBound_infinite [Infinite α]
       exact e.symm.injective (map_infinite_embedding_injective h_eval')
     intro i
     set σ := e.symm i
-    letI := infinitePermOrder.instDecidableRel (α := α) (n := n) (σ := σ)
-    letI := infinitePermOrder.instIsTrans (α := α) (n := n) (σ := σ)
-    letI := infinitePermOrder.instTotal (α := α) (n := n) (σ := σ)
     have hc := h.queryTree_correct (infinitePermOrder (α := α) n σ) xs
-    haveI := infinitePermOrder.instAntisymm (α := α) (n := n) (σ := σ)
     exact hc.1.trans (map_perm_of_infinite_embedding σ).symm |>.eq_of_pairwise'
       hc.2 (pairwise_map_infinitePermOrder σ)
   obtain ⟨i, hi⟩ := QueryTree.exists_queriesOn_ge_clog tree oracles (Nat.factorial_pos n) h_inj

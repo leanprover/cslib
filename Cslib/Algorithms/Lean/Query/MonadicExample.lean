@@ -96,8 +96,7 @@ public theorem mapSum_spec_tick (f : Int → Int) (xs : List Int) :
     (fun c => (fun _ => fun n => ⌜n = c⌝ : Assertion _))
     (by intro x c; simp only [TimeT.counted]; mvcgen)
     (by intro v c; simp only [Triple]; mvcgen
-        simp only [TimeT.wp_monadLift, Std.Do.WP.modifyGet_StateT]
-        intro _ _ h; subst h; rfl)
+        simp_all [TimeT.wp_monadLift, Std.Do.WP.modifyGet_StateT])
     xs
 
 end Cslib.Query
