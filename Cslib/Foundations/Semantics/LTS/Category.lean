@@ -13,43 +13,11 @@ universe u v
 
 @[expose] public section
 
-variable {State Label State₁ State₂ State₃ Label₁ Label₂ Label₃ : Type}
-variable (lts₁ : LTS State₁ Label₁)
-variable (lts₂ : LTS State₂ Label₂)
-variable (lts₃ : LTS State₃ Label₃)
+variable {State Label : Type}
 
 /-!
 # Category of Labelled Transition Systems
 -/
-
-/-! ## Definition of LTS morphism -/
-
-/-- A morphism between two labelled transition systems, consisting of a function on states, a
-function on labels, and a proof that transitions are preserved. -/
-structure LTS.Morphism (lts₁ : LTS State₁ Label₁) (lts₂ : LTS State₂ Label₂) : Type where
-  toFun : State₁ → State₂
-  labelMap : Label₁ → Label₂
-  fun_preserves_transitions : (s s' : State₁)
-                            → (l : Label₁)
-                            → lts₁.Tr s l s'
-                            → lts₂.Tr (toFun s) (labelMap l) (toFun s')
-
-/-- The identity LTS morphism. -/
-def LTS.Morphism.id (lts : LTS State Label) : LTS.Morphism lts lts :=
-  { toFun                     := _root_.id
-  , labelMap                  := _root_.id
-  , fun_preserves_transitions := fun _ _ _ h => h
-  }
-
-/-- Composition of LTS morphisms. -/
-def LTS.Morphism.comp :
-    LTS.Morphism lts₁ lts₂ → LTS.Morphism lts₂ lts₃ → LTS.Morphism lts₁ lts₃ :=
-  fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
-    let r := by intros _ _ _ h
-                apply q
-                apply p
-                exact h
-    ⟨g ∘ f, ν ∘ μ, r⟩
 
 /-! ## LTSs and LTS morphisms form a category -/
 
@@ -59,16 +27,48 @@ structure BundledLTS where
   Label : Type v
   lts : LTS State Label
 
-/- Remark: I do not like the name 'bundled LTS'; and LTS is already the bundled notion.
-   The name `LTS` for the transition relation on a fixed set of states and
-   labels is what is confusing here. I propose to change that to `LTS-Structure`.
+/- Remark: I do not like the name 'bundled LTS'; and LTS is already the bundled notion. The name
+   `LTS` for the transition relation on a fixed set of states and labels is what is confusing here.
+    I propose to change that to `LTS-Structure` and call the above `LTS`.
 -/
+
+/-! ## Definition of LTS morphism -/
+
+/--
+A morphism between two labelled transition systems consists of a function on
+states, a function on labels, and a proof that transitions are preserved.
+-/
+structure LTS.Morphism (lts₁ lts₂ : BundledLTS) : Type where
+  toFun : lts₁.State → lts₂.State
+  labelMap : lts₁.Label → lts₂.Label
+  fun_preserves_transitions : (s s' : lts₁.State)
+                            → (l : lts₁.Label)
+                            → lts₁.lts.Tr s l s'
+                            → lts₂.lts.Tr (toFun s) (labelMap l) (toFun s')
+
+/-- The identity LTS morphism. -/
+def LTS.Morphism.id (lts : BundledLTS) : LTS.Morphism lts lts :=
+  { toFun                     := _root_.id
+  , labelMap                  := _root_.id
+  , fun_preserves_transitions := fun _ _ _ h => h
+  }
+
+/-- Composition of LTS morphisms. -/
+def LTS.Morphism.comp {lts₁ lts₂ lts₃ : BundledLTS} :
+    LTS.Morphism lts₁ lts₂ → LTS.Morphism lts₂ lts₃ → LTS.Morphism lts₁ lts₃ :=
+  fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
+    let r := by intros _ _ _ h
+                apply q
+                apply p
+                exact h
+    ⟨g ∘ f, ν ∘ μ, r⟩
 
 /-- `LTS.Morphism` provides a category structure on bundled LTSs. -/
 instance : CategoryTheory.CategoryStruct BundledLTS where
-  Hom X Y               := LTS.Morphism X.lts Y.lts
-  id X                  := LTS.Morphism.id X.lts
-  comp {X} {Y} {Z} f g  := LTS.Morphism.comp X.lts Y.lts Z.lts f g
+  Hom lts₁ lts₂         := LTS.Morphism lts₁ lts₂
+  id lts                := LTS.Morphism.id lts
+  comp {lts₁} {lts₂} {lts₃} f g :=
+    LTS.Morphism.comp (lts₁ := lts₁) (lts₂ := lts₂) (lts₃ := lts₃) f g
 
 /-- Proof that the above structure actually forms a category. -/
 instance : CategoryTheory.Category BundledLTS where
