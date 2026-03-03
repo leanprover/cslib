@@ -54,6 +54,58 @@ theorem rename.eq_sizeOf {m : Term Var} {x y : Var} [DecidableEq Var] :
     sizeOf (m.rename x y) = sizeOf m := by
   induction m <;> simp_all [Term.rename] ; split <;> simp_all
 
+/-- Free variables. -/
+def fv [DecidableEq Var] : Term Var → Finset Var
+  | .var z => {z}
+  | .app f a => f.fv ∪ a.fv
+  | .lam v t b => (t.fv ∪ b.fv).erase v
+  | .pi v t b => (t.fv ∪ b.fv).erase v
+  | .type => ∅
+
+/-- Bound variables. -/
+def bv [DecidableEq Var] : Term Var → Finset Var
+  | .var _ => ∅
+  | .app f a => f.bv ∪ a.bv
+  | .lam v t b => (t.bv ∪ b.bv) ∪ {v}
+  | .pi v t b => (t.bv ∪ b.bv) ∪ {v}
+  | .type => ∅
+
+/-- Variable names (free and bound) in a term. -/
+def vars [DecidableEq Var] (t : Term Var) : Finset Var := t.fv ∪ t.bv
+
+/--
+Capture-avoiding substitution.
+`m.subst x r` replaces the free occurrences of variable `x` in `m` with `r`.
+-/
+def subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Term Var) : Term Var :=
+  match m with
+  | .var z => if z = x then r else .var z
+  | .app f a => .app (f.subst x r) (a.subst x r)
+  | .lam y t b =>
+    if y = x then
+      .lam y (t.subst x r) b
+    else if y ∉ r.fv then
+      .lam y (t.subst x r) (b.subst x r)
+    else
+      let z := HasFresh.fresh (t.vars ∪ b.vars ∪ r.vars ∪ {y})
+      .lam z ((t.rename y z).subst x r) ((b.rename y z).subst x r)
+  | .pi y t b =>
+    if y = x then
+      .pi y (t.subst x r) b
+    else if y ∉ r.fv then
+      .pi y (t.subst x r) (b.subst x r)
+    else
+      let z := HasFresh.fresh (t.vars ∪ b.vars ∪ r.vars ∪ {y})
+      .pi z ((t.rename y z).subst x r) ((b.rename y z).subst x r)
+  | .type => .type
+  termination_by m
+  decreasing_by all_goals grind [rename.eq_sizeOf]
+
+/-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
+instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
+    HasSubstitution (Term Var) Var (Term Var) where
+  subst := Term.subst
+
 end Term
 
 end LambdaCalculus.Named.Coc
