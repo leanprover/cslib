@@ -159,32 +159,24 @@ lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_
 /- the previous lemma can be generalized to multiple reductions t ↠βᶠ t'.
    This requires s to be locally closed, locally closedness of t and t'
    can be infered by the fact t reduces to t' -/
-lemma steps_subst_cong_r {x : Var} (s t t' : Term Var)
-  (step : t ↠βᶠ t')
-  (h_lc : LC s) :
-  (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
-  induction step
-  · case refl => rfl
-  · case tail t' t'' steps step ih =>
-    transitivity
-    · apply ih
-    · apply step_subst_cong_r <;> assumption
+lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
+    (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
+  induction step with
+  | refl => rfl
+  | tail steps step ih => grind [Relation.ReflTransGen.trans, step_subst_cong_r]
 
 /- When both t and s reduce to t' and s', then t ^ s reduces to t' ^ s' -/
 lemma steps_open_cong_abs (s s' t t' : Term Var)
-    (step1 : t ↠βᶠ t')
-    (step2 : s.abs ↠βᶠ s'.abs)
-    (lc_t : LC t)
-    (lc_s : LC s.abs) :
+  (step1 : t ↠βᶠ t') (step2 : s.abs ↠βᶠ s'.abs) (lc_t : LC t) (lc_s : LC s.abs) :
     (s ^ t) ↠βᶠ (s' ^ t') := by
-    cases lc_s with
-    | abs L h_lc =>
-      have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
-      rw [subst_intro x t s, subst_intro x t' s']
-      · trans (s ^ fvar x)[x:=t']
-        · grind [steps_subst_cong_r]
-        · grind [=_ subst_intro, steps_open_cong_l_abs]
-      all_goals grind
+  cases lc_s with
+  | abs L =>
+    have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+    rw [subst_intro x t s, subst_intro x t' s']
+    · trans (s ^ fvar x)[x:=t']
+      · grind [steps_subst_cong_r]
+      · grind [=_ subst_intro, steps_open_cong_l_abs]
+    all_goals grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta
 
