@@ -16,19 +16,19 @@ namespace Cslib
 class HasHContext (α : Type u) (β : Type v) where
   /-- The type of contexts. -/
   Context : Type*
-  /-- Replaces the hole in the context with a term, resulting in a new value. -/
+  /-- Replaces the hole in the context with a value, resulting in a new value. -/
   fill (c : Context) (b : β) : α
 
 @[inherit_doc] notation:max c "<[" t "]" => HasHContext.fill c t
 
-/-- Class for types (`Term`) that have a canonical notion of homogeneous single-hole contexts
+/-- Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
 (`Context`). -/
-class HasContext (Term : Type*) where
+class HasContext (α : Type*) where
   /-- The type of contexts. -/
   Context : Type*
   /-- Replaces the hole in the context with a term. -/
-  fill (c : Context) (t : Term) : Term
+  fill (c : Context) (a : α) : α
 
-@[inherit_doc] notation:max c "<[" t "]" => HasContext.fill c t
+instance [inst : HasContext α] : HasHContext α α := ⟨inst.Context, inst.fill⟩
 
 end Cslib

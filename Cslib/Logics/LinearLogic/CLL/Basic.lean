@@ -87,6 +87,7 @@ inductive Proposition.Context (Atom : Type u) : Type u where
 deriving DecidableEq, BEq
 
 /-- Replaces the hole in a propositional context with a propositions. -/
+@[scoped grind =]
 def Proposition.Context.fill (c : Context Atom) (a : Proposition Atom) : Proposition Atom :=
   match c with
   | hole => a
@@ -397,17 +398,67 @@ open scoped Multiset in
 def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
   add_middle_eq_cons ▸ subst_eqv_head heqv (add_middle_eq_cons ▸ p)
 
+open scoped Context
+
+@[local grind .]
+private lemma Proposition.equiv_tensor₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a ⊗ b ≡ a' ⊗ b := by sorry
+  -- obtain ⟨h₁, h₂⟩ := h
+  -- obtain h₁ := h₁.some
+  -- obtain h₂ := h₂.some
+  -- constructor
+  -- case left =>
+  --   constructor
+
+@[local grind .]
+private lemma Proposition.equiv_tensor₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⊗ b ≡ a ⊗ b' := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_parr₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a ⅋ b ≡ a' ⅋ b := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_parr₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⅋ b ≡ a ⅋ b' := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_oplus₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a ⊕ b ≡ a' ⊕ b := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_oplus₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⊕ b ≡ a ⊕ b' := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_with₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a & b ≡ a' & b := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_with₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a & b ≡ a & b' := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_bang {a a' : Proposition Atom} (h : a ≡ a') :
+    !a ≡ !a' := by sorry
+
+@[local grind .]
+private lemma Proposition.equiv_quest {a a' : Proposition Atom} (h : a ≡ a') :
+    ʔa ≡ ʔa' := by sorry
+
 instance : Congruence (Proposition Atom) Proposition.Equiv where
   elim :
       Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
       Proposition.Equiv := by
-    sorry
+    intro ctx a b hab
+    induction ctx <;> grind
 
-instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
+noncomputable instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
   eqv := Proposition.Equiv
   eqv_fill_valid {a b : Proposition Atom} (heqv : a.Equiv b)
       (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
-      (h : ⇓c<[a]) : ⇓c<[b] := sorry
+      (h : ⇓c<[a]) : ⇓c<[b] := by
+    apply subst_eqv_head (chooseEquiv heqv) h
 
 /-- Tensor is commutative. -/
 @[scoped grind =]

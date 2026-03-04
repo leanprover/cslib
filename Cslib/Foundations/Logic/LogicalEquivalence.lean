@@ -14,7 +14,7 @@ public import Cslib.Foundations.Syntax.Congruence
 namespace Cslib.Logic
 
 /-- A logical equivalence for a given type of `Judgement`s is a congruence on propositions that
-preserves validity of judgements. -/
+preserves validity of judgements under any judgemental context. -/
 class LogicalEquivalence
     (Proposition : Type u) [HasContext Proposition]
     (Judgement : Type v) [HasHContext Judgement Proposition]
