@@ -92,6 +92,7 @@ public def MultiTapeTM.eval_list
     Part (Fin k → List (List Symbol)) :=
   (tm.eval (listToTape ∘ tapes)).bind fun tapes => tapesToLists tapes
 
+@[simp]
 public theorem MultiTapeTM.HaltsOnLists_of_eval_list
     {tm : MultiTapeTM k (WithSep Symbol)}
     {tapes : Fin k → List (List Symbol)}
@@ -99,14 +100,23 @@ public theorem MultiTapeTM.HaltsOnLists_of_eval_list
     tm.HaltsOnLists tapes := by
   sorry
 
+@[simp]
+public lemma MultiTapeTM.eval_list_dom_of_halts_on_lists
+    {tm : MultiTapeTM k (WithSep Symbol)}
+    {tapes : Fin k → List (List Symbol)}
+    (h_halts : tm.HaltsOnLists tapes) :
+    (tm.eval_list tapes).Dom := by
+  sorry
+
 /-- Execute the Turing machine `tm` knowing that it always halts, thus yielding a total function
 on the tapes. -/
+@[simp]
 public def MultiTapeTM.eval_list_tot
     (tm : MultiTapeTM k (WithSep Symbol))
-    (h_alwaysHalts : ∀ tapes, (tm.eval_list tapes).Dom)
+    (h_alwaysHalts : ∀ tapes, tm.HaltsOnLists tapes)
     (tapes : Fin k → List (List Symbol)) :
   Fin k → List (List Symbol) :=
-    (tm.eval_list tapes).get (h_alwaysHalts tapes)
+    (tm.eval_list tapes).get (tm.eval_list_dom_of_halts_on_lists (h_alwaysHalts tapes))
 
 @[simp, grind =]
 public theorem MultiTapeTM.extend_eval_list
@@ -170,6 +180,8 @@ public def MultiTapeTM.computes
   ∀ tapes, tm.eval_list tapes = .some (f tapes)
 
 public theorem MultiTapeTM.eval_of_computes
+    {Symbol : Type}
+    [Fintype Symbol]
     {tm : MultiTapeTM k (WithSep Symbol)}
     {f : (Fin k → List (List Symbol)) → (Fin k → List (List Symbol))}
     (h_computes : tm.computes f)

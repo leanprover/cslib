@@ -51,14 +51,9 @@ public theorem loop_eval_list {i : Fin k}
 @[simp]
 public theorem loop_halts_of_halts {i : Fin k}
   {tm : MultiTapeTM k (WithSep OneTwo)}
-  (h_halts : ∀ tapes, (tm.eval_list tapes).Dom) :
-  ∀ tapes, ((loop i tm).eval_list tapes).Dom := by
-  intro tapes
-  simp only [loop_eval_list]
-  induction n : dya_inv ((tapes ⟨i, by omega⟩).headD []) generalizing tapes with
-  | zero => simp
-  | succ n' ih =>
-    sorry
+  (h_halts : ∀ tapes, tm.HaltsOnLists tapes) :
+  ∀ tapes, (loop i tm).HaltsOnLists tapes := by
+  sorry
 
 end Routines
 end Turing
