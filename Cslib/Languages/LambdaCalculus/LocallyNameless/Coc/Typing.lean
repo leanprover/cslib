@@ -8,7 +8,7 @@ module
 
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
-public import Cslib.Foundations.Syntax.HasBetaEquiv
+public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Coc.Opening
 
@@ -35,6 +35,7 @@ namespace LambdaCalculus.LocallyNameless.Coc
 open Term
 
 /-- β-reduction. -/
+@[reduction_sys "β"]
 inductive BetaEquiv : Term Var → Term Var → Prop
   /-- β-redex: `(λ A. B) N ⟶ B ^ᵗ N`. -/
   | red : (abs A B).LC → N.LC → BetaEquiv (.app (.abs A B) N) (B ^ᵗ N)
@@ -56,10 +57,6 @@ inductive BetaEquiv : Term Var → Term Var → Prop
       t₁.LC →
       (∀ x ∉ ρ, BetaEquiv (t₂ ^ᵗ .fvar x) (t₂' ^ᵗ .fvar x)) →
       BetaEquiv (.pi t₁ t₂) (.pi t₁ t₂')
-
-instance instHasBetaEquivTerm : HasBetaEquiv (Term Var) where
-  BetaEquiv := BetaEquiv
-
 
 variable [DecidableEq Var]
 
@@ -108,7 +105,7 @@ inductive Typing : Env Var → Term Var → Term Var → Prop
   /-- Type universe -/
   | type : Typing Γ (.type s) (.type (s + 1))
   /-- β-conversion -/
-  | conv : Typing Γ M A → A =β B → Typing Γ B (.type i) → Typing Γ M B
+  | conv : Typing Γ M A → A ↠β B → Typing Γ B (.type i) → Typing Γ M B
 
 end
 
