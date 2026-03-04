@@ -30,9 +30,12 @@ bounds) then yield lower bounds.
 
 ## Design
 
-`QueryTree Q R` is isomorphic to `FreeM (fun _ => Q)` restricted to operations returning `R`,
-but is defined as a dedicated inductive to avoid universe issues with `FreeM`'s existential
-`ι` parameter (which would require producing values of arbitrary types during evaluation).
+`QueryTree Q R α` is a dedicated two-constructor inductive with all parameters in `Type`,
+so algorithms and their decision trees need no universe annotations and proofs proceed by
+straightforward structural recursion. A general free monad over an operation family
+`(ι : Type) → (ι → Type)` would introduce an existential bumping the universe; since query
+complexity needs only a single fixed query/response signature, the dedicated inductive
+avoids this.
 
 Note that the graph-theoretic depth of the tree can be strictly larger than
 `sup_oracle queriesOn oracle`, because the same query may appear at the root and inside a
