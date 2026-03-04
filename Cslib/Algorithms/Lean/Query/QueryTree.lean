@@ -31,11 +31,7 @@ bounds) then yield lower bounds.
 ## Design
 
 `QueryTree Q R α` is a dedicated two-constructor inductive with all parameters in `Type`,
-so algorithms and their decision trees need no universe annotations and proofs proceed by
-straightforward structural recursion. A general free monad over an operation family
-`(ι : Type) → (ι → Type)` would introduce an existential bumping the universe; since query
-complexity needs only a single fixed query/response signature, the dedicated inductive
-avoids this.
+so proofs proceed by straightforward structural recursion.
 
 Note that the graph-theoretic depth of the tree can be strictly larger than
 `sup_oracle queriesOn oracle`, because the same query may appear at the root and inside a
