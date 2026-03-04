@@ -8,7 +8,6 @@ module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 public import Cslib.Computability.Machines.MultiTapeTuring.ListEncoding
-public import Cslib.Computability.Machines.MultiTapeTuring.HeadStats
 
 namespace Turing
 
@@ -22,9 +21,10 @@ A Turing machine combinator that runs `tm₁` if the first word on tape `i` exis
 otherwise it runs `tm₂`. -/
 public def ite (i : Fin k) (tm₁ tm₂ : MultiTapeTM k (WithSep α)) :
     MultiTapeTM k (WithSep α) where
-  Λ := PUnit
-  q₀ := 0
-  M _ syms := sorry
+  State := PUnit
+  stateFintype := inferInstance
+  q₀ := PUnit.unit
+  tr _ syms := sorry
 
 @[simp, grind =]
 public theorem ite_eval_list

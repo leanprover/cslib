@@ -17,9 +17,10 @@ namespace Routines
 variable [Inhabited α] [Fintype α]
 
 def copy₁ : MultiTapeTM 2 (WithSep α) where
-  Λ := PUnit
-  q₀ := 0
-  M _ syms := sorry
+  State := PUnit
+  stateFintype := inferInstance
+  q₀ := PUnit.unit
+  tr _ syms := sorry
 
 @[simp]
 lemma copy₁_eval_list {tapes : Fin 2 → List (List α)} :
@@ -31,22 +32,21 @@ lemma copy₁_eval_list {tapes : Fin 2 → List (List α)} :
 A Turing machine that copies the first word on tape `i` to tape `j`.
 If Tape `i` is empty, pushes the empty word to tape `j`.
 -/
-public def copy {k : ℕ} (i j : ℕ)
-  (h_neq : i ≠ j := by decide)
-  (h_i_lt : i < k := by decide)
-  (h_j_lt : j < k := by decide) :
-  MultiTapeTM k (WithSep α) :=
-  copy₁.with_tapes [⟨i, h_i_lt⟩, ⟨j, h_j_lt⟩].get (by intro x y; grind)
+public def copy {k : ℕ} (i j : Fin k)
+  (h_inj : [i, j].get.Injective := by intro x y; grind) :
+    MultiTapeTM k (WithSep α) :=
+  copy₁.with_tapes [i, j].get h_inj
 
 @[simp, grind =]
 public lemma copy_eval_list
-  {k : ℕ} {i j : ℕ} {h_neq : i ≠ j} {h_i_lt : i < k} {h_j_lt : j < k}
+  {k : ℕ}
+  {i j : Fin k}
+  (h_inj : [i, j].get.Injective)
   {tapes : Fin k → List (List α)} :
-  (copy i j (h_neq := h_neq) (h_i_lt) (h_j_lt)).eval_list tapes = Part.some
-    (Function.update tapes ⟨j, h_j_lt⟩
-      (((tapes ⟨i, h_i_lt⟩).headD []) :: (tapes ⟨j, h_j_lt⟩))) := by
-  have h_inj : [(⟨i, h_i_lt⟩ : Fin k), ⟨j, h_j_lt⟩].get.Injective := by intro x y; grind
+  (copy i j h_inj).eval_list tapes = Part.some
+    (Function.update tapes j (((tapes i).headD []) :: (tapes j))) := by
   simp_all [copy]
+  grind
 
 end Routines
 

@@ -9,12 +9,10 @@ module
 public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeExtension
 
--- TODO create a "common file"
-import Cslib.Computability.Machines.SingleTapeTuring.Basic
 
 namespace Turing
 
-variable [Inhabited α]
+variable [Inhabited Symbol] [Fintype Symbol]
 
 variable {k : ℕ}
 
@@ -37,15 +35,15 @@ public def HeadStats.space (hs : HeadStats) : ℕ :=
 
 
 /-- Compute the head statistics for a turing machine starting with a certain tape configuration. -/
-public def headStats (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) :
+public def headStats (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) :
   Part (Fin k → HeadStats) := sorry
 
 /-- Execute a Turing machine and also compute head statistics. -/
-public def MultiTapeTM.evalWithStats (tm : MultiTapeTM k α) (tapes : Fin k → BiTape α) :
-  Part ((Fin k → BiTape α) × (Fin k → HeadStats)) := sorry
+public def MultiTapeTM.evalWithStats (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) :
+  Part ((Fin k → BiTape Symbol) × (Fin k → HeadStats)) := sorry
 
 -- move this somewhere else
-def seq (tm₁ tm₂ : MultiTapeTM k α) : MultiTapeTM k α := sorry
+def seq (tm₁ tm₂ : MultiTapeTM k Symbol) : MultiTapeTM k Symbol := sorry
 
 def seq_combine_stats (stats₁ stats₂ : Fin k → HeadStats) : Fin k → HeadStats :=
   fun i => match (stats₁ i, stats₂ i) with
@@ -55,7 +53,7 @@ def seq_combine_stats (stats₁ stats₂ : Fin k → HeadStats) : Fin k → Head
     final₁ + final₂,
     by omega⟩
 
-lemma seq_evalWithStats (tm₁ tm₂ : MultiTapeTM k α) (tapes : Fin k → BiTape α) (i : Fin k) :
+lemma seq_evalWithStats (tm₁ tm₂ : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) (i : Fin k) :
   (seq tm₁ tm₂).evalWithStats tapes = do
       let (tapes', stats₁) ← tm₁.evalWithStats tapes
       let (tapes'', stats₂) ← tm₂.evalWithStats tapes'
@@ -63,7 +61,7 @@ lemma seq_evalWithStats (tm₁ tm₂ : MultiTapeTM k α) (tapes : Fin k → BiTa
 
 -- Next step: relate space requirements and head stats.
 
-theorem stats_and_space (tm : MultiTapeTM k α) (tapes tapes' : Fin k → BiTape α) (s : ℕ) :
+theorem stats_and_space (tm : MultiTapeTM k Symbol) (tapes tapes' : Fin k → BiTape Symbol) (s : ℕ) :
   (∃ t, tm.TransformsTapesInTimeAndSpace tapes tapes' t s) ↔
     ∃ hs, (∑ i, (hs i).space) ≤ s ∧ tm.evalWithStats tapes = .some (tapes', hs) := by sorry
 end Turing

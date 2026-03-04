@@ -22,7 +22,7 @@ namespace Routines
 /--
 A Turing machine that computes the logical negation: It replaces an empty (or non-existing) head
 on tape `i` by the word "1" and everything else by the empty word. -/
-public def isZero (i : Fin k) := ite i (pop i <;> push i []) (pop i <;> push i [OneTwo.one])
+public def isZero (i : Fin k) := ite i (pop i ;ₜ push i []) (pop i ;ₜ push i [OneTwo.one])
 
 @[simp, grind =]
 public theorem isZero_eval_list {i : Fin k} {tapes : Fin k → List (List OneTwo)} :

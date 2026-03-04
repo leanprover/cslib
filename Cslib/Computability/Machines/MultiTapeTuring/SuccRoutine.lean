@@ -20,9 +20,10 @@ namespace Turing
 namespace Routines
 
 def succ₀ : MultiTapeTM 1 (WithSep OneTwo) where
-  Λ := PUnit
-  q₀ := 0
-  M _ syms := sorry
+  State := PUnit
+  stateFintype := inferInstance
+  q₀ := PUnit.unit
+  tr _ syms := sorry
 
 @[simp]
 lemma succ₀_eval_list {tapes : Fin 1 → List (List OneTwo)} :
@@ -42,16 +43,16 @@ public theorem succ_eval_list {k : ℕ} {i : Fin k} {tapes : Fin k → List (Lis
     ((dya (dya_inv ((tapes i).headD [])).succ) :: (tapes i).tail)) := by
   simpa [succ] using apply_updates_function_update (by intro x y; grind)
 
-lemma succ₀_evalWithStats_list {n : ℕ} {ls : List (List OneTwo)} :
-  succ₀.evalWithStats_list [(dya n) :: ls].get =
-    .some (
-      [(dya n.succ) :: ls].get,
-      -- this depends on if we have overflow on the highest dyadic character or not.
-      if (dya n.succ).length = (dya n).length then
-        [⟨0, (dya n).length, 0, by omega⟩].get
-      else
-        [⟨-1, (dya n).length, -1, by omega⟩].get) := by
-  sorry
+-- lemma succ₀_evalWithStats_list {n : ℕ} {ls : List (List OneTwo)} :
+--   succ₀.evalWithStats_list [(dya n) :: ls].get =
+--     .some (
+--       [(dya n.succ) :: ls].get,
+--       -- this depends on if we have overflow on the highest dyadic character or not.
+--       if (dya n.succ).length = (dya n).length then
+--         [⟨0, (dya n).length, 0, by omega⟩].get
+--       else
+--         [⟨-1, (dya n).length, -1, by omega⟩].get) := by
+--   sorry
 
 
 end Routines

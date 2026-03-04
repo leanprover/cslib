@@ -17,9 +17,10 @@ namespace Routines
 variable [Inhabited α] [Fintype α]
 
 def pop₁ : MultiTapeTM 1 (WithSep α) where
-  Λ := PUnit
-  q₀ := 0
-  M _ syms := sorry
+  State := PUnit
+  stateFintype := inferInstance
+  q₀ := PUnit.unit
+  tr _ syms := sorry
 
 @[simp]
 lemma pop₁_eval_list {tapes : Fin 1 → List (List α)} :

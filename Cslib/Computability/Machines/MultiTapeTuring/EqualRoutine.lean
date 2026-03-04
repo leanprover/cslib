@@ -23,9 +23,10 @@ and otherwise pushes the empty word to the third tape.
 If one of the first two tapes is empty, uses the empty word for comparison.
 -/
 def eq₀ : MultiTapeTM 3 (WithSep OneTwo) where
-  Λ := PUnit
-  q₀ := 0
-  M _ syms := sorry
+  State := PUnit
+  stateFintype := inferInstance
+  q₀ := PUnit.unit
+  tr _ syms := sorry
 
 @[simp]
 theorem eq₀_eval_list {tapes : Fin 3 → List (List OneTwo)} :

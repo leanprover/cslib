@@ -22,7 +22,7 @@ namespace Routines
 
 -- Multiplies the heads of 0 and 1 and stores the result in 2.
 def mul₀ : MultiTapeTM 9 (WithSep OneTwo) :=
-  (push 2 []) <;> loop 0 (h_i := by omega) (add_assign 1 2 3)
+  push 2 [] ;ₜ loop 0 (add_assign 1 2 3)
 
 @[simp]
 lemma add_assign_iter {i j aux : Fin (k + 6)} {r : ℕ}
@@ -51,10 +51,7 @@ theorem mul₀_eval_list {tapes : Fin 9 → List (List OneTwo)} :
     (Function.update tapes 2 (
       (dya (dya_inv ((tapes 0).headD []) * dya_inv ((tapes 1).headD [])) :: (tapes 2)))) := by
   by_cases h_zero: dya_inv ((tapes 0).head?.getD []) = 0
-  · simp [mul₀, h_zero]
-    grind
-  · simp [mul₀, h_zero]
-    grind
+  <;> simp [mul₀, h_zero] <;> grind
 
 /--
 A Turing machine that multiplies the heads of tapes i and j and pushes the result to tape l.

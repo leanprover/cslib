@@ -99,14 +99,14 @@ public theorem MultiTapeTM.HaltsOnLists_of_eval_list
     tm.HaltsOnLists tapes := by
   sorry
 
--- /-- Execute the Turing machine `tm` knowing that it always halts, thus yielding a total function
--- on the tapes. -/
--- public def MultiTapeTM.eval_list_tot
---   (tm : MultiTapeTM k (WithSep Symbol))
---   (h_alwaysHalts : ∀ tapes, tm.HaltsOnLists tapes)
---   (tapes : Fin k → List (List Symbol)) :
---   Fin k → List (List Symbol) :=
---   (tm.eval_list tapes).get (h_alwaysHalts tapes)
+/-- Execute the Turing machine `tm` knowing that it always halts, thus yielding a total function
+on the tapes. -/
+public def MultiTapeTM.eval_list_tot
+    (tm : MultiTapeTM k (WithSep Symbol))
+    (h_alwaysHalts : ∀ tapes, (tm.eval_list tapes).Dom)
+    (tapes : Fin k → List (List Symbol)) :
+  Fin k → List (List Symbol) :=
+    (tm.eval_list tapes).get (h_alwaysHalts tapes)
 
 @[simp, grind =]
 public theorem MultiTapeTM.extend_eval_list

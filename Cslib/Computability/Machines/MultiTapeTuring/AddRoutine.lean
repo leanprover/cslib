@@ -39,7 +39,7 @@ lemma succ_iter {k r : ℕ} {i : Fin k.succ} {tapes : Fin k.succ → List (List 
 --- Add 0 and 1 and store the result in 2.
 --- Assumes zero for an empty tape.
 def add₀ : MultiTapeTM 6 (WithSep OneTwo) :=
-  (copy 1 2) <;> loop (h_i := by decide) 0 (succ 2)
+  (copy 1 2) ;ₜ loop 0 (succ 2)
 
 @[simp, grind =]
 theorem add₀_eval_list {tapes : Fin 6 → List (List OneTwo)} :
@@ -72,7 +72,7 @@ public theorem add_eval_list (i j l aux : Fin (k + 6))
 
 -- Add head of 0 to head of 1 (and store it in head of 1).
 def add_assign₀ : MultiTapeTM 6 (WithSep OneTwo) :=
-  add 0 1 2 (h_inj := by decide) <;> pop 1 <;> copy 2 1 <;> pop 2
+  add 0 1 2 (h_inj := by decide) ;ₜ pop 1 ;ₜ copy 2 1 ;ₜ pop 2
 
 @[simp]
 lemma add_assign₀_eval_list {tapes : Fin 6 → List (List OneTwo)} :

@@ -19,7 +19,7 @@ variable {k : ℕ}
 A Turing machine that executes `tm` a number of times as given by the first word on tape `i`.
 If tape `i` is empty, do not execute the TM.
 Note that the iteration counter is not directly available to `tm`. -/
-public def loop (i : ℕ) {h_i : i < k}
+public def loop (i : Fin k)
   (tm : MultiTapeTM k (WithSep OneTwo)) : MultiTapeTM (k + 3) (WithSep OneTwo) :=
   sorry
   -- let target : Fin (k + (aux + 3)) := ⟨aux, by omega⟩
@@ -39,14 +39,26 @@ public def loop (i : ℕ) {h_i : i < k}
 
 
 @[simp]
-public theorem loop_eval_list {i : ℕ} {h_i : i < k}
+public theorem loop_eval_list {i : Fin k}
   {tm : MultiTapeTM k (WithSep OneTwo)}
   {tapes : Fin (k + 3) → List (List OneTwo)} :
-  (loop i tm (h_i := h_i)).eval_list tapes =
+  (loop i tm).eval_list tapes =
       (((Part.bind · tm.eval_list)^[dya_inv ((tapes ⟨i, by omega⟩).headD [])]
         (Part.some (tapes_take tapes k (by omega))))).map
           fun tapes' => tapes_extend_by tapes' tapes := by
   sorry
+
+@[simp]
+public theorem loop_halts_of_halts {i : Fin k}
+  {tm : MultiTapeTM k (WithSep OneTwo)}
+  (h_halts : ∀ tapes, (tm.eval_list tapes).Dom) :
+  ∀ tapes, ((loop i tm).eval_list tapes).Dom := by
+  intro tapes
+  simp only [loop_eval_list]
+  induction n : dya_inv ((tapes ⟨i, by omega⟩).headD []) generalizing tapes with
+  | zero => simp
+  | succ n' ih =>
+    sorry
 
 end Routines
 end Turing
