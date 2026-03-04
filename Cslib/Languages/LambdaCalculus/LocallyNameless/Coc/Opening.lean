@@ -42,7 +42,7 @@ def openRec (i : ℕ) (s : Term Var) : Term Var → Term Var
   | .app f a => .app (openRec i s f) (openRec i s a)
   | .abs σ t₁ => abs (openRec i s σ) (openRec (i + 1) s t₁)
   | .pi σ t₁ => .pi (openRec i s σ) (openRec (i + 1) s t₁)
-  | .type => .type
+  | .type s => .type s
 
 /-- Variable opening of the closest binding. -/
 @[scoped grind =]
@@ -66,7 +66,7 @@ def subst [DecidableEq Var] (m : Term Var) (x : Var) (r : Term Var) : Term Var :
   | .app f a => .app (f.subst x r) (a.subst x r)
   | .abs t b => .abs (t.subst x r) (b.subst x r)
   | .pi t b => .pi (t.subst x r) (b.subst x r)
-  | .type => .type
+  | .type s => .type s
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
 instance instHasSubstitutionTerm [DecidableEq Var] :
@@ -93,7 +93,7 @@ inductive LC : Term Var → Prop
   | app : LC t₁ → LC t₂ → LC (app t₁ t₂)
   | abs (L : Finset Var) : t₁.LC → (∀ x ∉ L, LC (t₂ ^ᵗ fvar x)) → LC (abs t₁ t₂)
   | pi (L : Finset Var) : t₁.LC → (∀ x ∉ L, LC (t₂ ^ᵗ fvar x)) → LC (pi t₁ t₂)
-  | type : LC .type
+  | type : LC (.type _)
 
 attribute [scoped grind .] LC.var LC.app LC.type
 

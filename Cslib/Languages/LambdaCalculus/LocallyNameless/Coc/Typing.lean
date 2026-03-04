@@ -77,7 +77,7 @@ inductive Typing [DecidableEq Var] : Env Var → Term Var → Term Var → Prop
       (∀ x ∉ ρ, Typing ({⟨x, A⟩} ∪ Γ) (B ^ᵗ .fvar x) L) →
       Typing Γ (.pi A B) L
   /-- Type universe -/
-  | type : Typing Γ .type .type
+  | type : Typing Γ (.type s) (.type (s + 1))
   /-- β-conversion -/
   | conv : Typing Γ M A → A =β B → Typing Γ M B
 

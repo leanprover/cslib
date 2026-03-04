@@ -44,7 +44,7 @@ inductive Wf : Env Var → Term Var → Prop
       Wf Γ σ →
       (∀ X ∉ L, Wf ({⟨X,σ⟩} ∪ Γ) (τ ^ᵗ fvar X)) →
       Wf Γ (pi σ τ)
-  | type : Wf Γ .type
+  | type : Wf Γ (.type _)
 
 end Term
 

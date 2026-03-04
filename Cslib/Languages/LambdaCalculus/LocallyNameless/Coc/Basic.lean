@@ -42,7 +42,7 @@ inductive Term (Var : Type u) : Type u
   /-- Pi type. -/
   | pi : Term Var → Term Var → Term Var
   /-- Type universe. -/
-  | type : Term Var
+  | type : ℕ → Term Var
 deriving DecidableEq
 
 /-- Free variables. -/
@@ -53,7 +53,7 @@ def Term.fv [DecidableEq Var] : Term Var → Finset Var
   | .app f a => f.fv ∪ a.fv
   | .abs t b => t.fv ∪ b.fv
   | .pi t b => t.fv ∪ b.fv
-  | .type => ∅
+  | .type _ => ∅
 
 abbrev Env (Var : Type u) := Context Var (Term Var)
 
