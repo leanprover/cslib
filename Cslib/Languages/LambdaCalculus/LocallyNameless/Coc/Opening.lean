@@ -22,6 +22,8 @@ The Calculus of Constructions
 
 -/
 
+set_option linter.unusedDecidableInType false
+
 namespace Cslib
 
 universe u
@@ -94,8 +96,7 @@ inductive LC : Term Var → Prop
 attribute [scoped grind .] LC.var LC.app LC.type
 
 /-- A locally closed term is unchanged by opening. -/
-lemma openRec_lc [HasFresh Var] {σ τ : Term Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ := by
-  classical
+lemma openRec_lc [DecidableEq Var] [HasFresh Var] {σ τ : Term Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ := by
   induction lc generalizing X with
   | abs | pi => grind [fresh_exists <| free_union Var, openRec_neq_eq]
   | _ => grind
