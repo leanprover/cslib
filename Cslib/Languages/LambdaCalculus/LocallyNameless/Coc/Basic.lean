@@ -52,6 +52,10 @@ def Term.fv [DecidableEq Var] : Term Var → Finset Var
   | .pi t b => t.fv ∪ b.fv
   | .type => ∅
 
+abbrev Env (Var : Type u) := Finset (Var × Term Var)
+
+def Env.dom [DecidableEq Var] : Env Var → Finset Var := Finset.image Prod.fst
+
 end LambdaCalculus.LocallyNameless.Coc
 
 end Cslib
