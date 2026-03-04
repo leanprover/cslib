@@ -78,25 +78,18 @@ lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
 lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M') ∨ M = M' := by
   grind
 
-/-- Substitution respects a single reduction step. -/
-lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
-    s [ x := fvar y ] ⭢βᶠ s' [ x := fvar y ] := by
-  induction step
-  case beta m n abs_lc n_lc =>
-    cases abs_lc with | abs xs _ mem =>
-      rw [subst_open x (fvar y) n m (by grind)]
-      refine beta ?_ (by grind)
-      exact subst_lc (LC.abs xs m mem) (LC.fvar y)
-  case abs => grind [abs <| free_union Var]
-  all_goals grind
-
-/-- Substitution respects a single reduction step. -/
+/-- Substitution of a locally closed term respects a single reduction step. -/
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s [ x := t ] ⭢βᶠ s' [ x := t ] := by
   induction step with
   | beta => grind [subst_open, beta]
   | abs  => grind [abs <| free_union Var]
   | _ => grind
+
+/-- Substitution respects a single reduction step of a free variable. -/
+lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
+    s [ x := fvar y ] ⭢βᶠ s' [ x := fvar y ] :=
+  redex_subst_cong_lc _ _ _ _ step (.fvar y)
 
 /-- Abstracting then closing preserves a single reduction. -/
 lemma step_abs_close {x : Var} (step : M ⭢βᶠ M') : M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs := by
