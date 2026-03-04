@@ -32,23 +32,23 @@ namespace Term
 
 /-- Variable opening of the ith bound variable. -/
 @[scoped grind =]
-def openingRec (i : ℕ) (s : Term Var) : Term Var → Term Var
+def openRec (i : ℕ) (s : Term Var) : Term Var → Term Var
   | .bvar y => if i = y then s else (bvar y)
   | .fvar x => fvar x
-  | .app f a => .app (openingRec i s f) (openingRec i s a)
-  | .abs σ t₁ => abs (openingRec i s σ) (openingRec (i + 1) s t₁)
-  | .pi σ t₁ => .pi (openingRec i s σ) (openingRec (i + 1) s t₁)
+  | .app f a => .app (openRec i s f) (openRec i s a)
+  | .abs σ t₁ => abs (openRec i s σ) (openRec (i + 1) s t₁)
+  | .pi σ t₁ => .pi (openRec i s σ) (openRec (i + 1) s t₁)
   | .type => .type
 
 /-- Variable opening of the closest binding. -/
 @[scoped grind =]
-def opening (s : Term Var) (t : Term Var) : Term Var := openingRec 0 t s
+def open' (s : Term Var) (t : Term Var) : Term Var := openRec 0 t s
 
 @[inherit_doc]
-scoped infixr:80 " ^ᵗ " => opening
+scoped infixr:80 " ^ᵗ " => open'
 
 @[inherit_doc]
-scoped notation:68 γ "⟦" X " ↝ " δ "⟧"=> openingRec X δ γ
+scoped notation:68 γ "⟦" X " ↝ " δ "⟧"=> openRec X δ γ
 
 /--
 Capture-avoiding substitution.
@@ -79,7 +79,7 @@ lemma subst_fresh [DecidableEq Var] {γ : Term Var}
   induction γ <;> grind
 
 /-- An opening appearing in both sides of an equality of terms can be removed. -/
-lemma openingRec_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ = t⟦y ↝ s₁⟧⟦x ↝ s₂⟧) :
+lemma openRec_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ = t⟦y ↝ s₁⟧⟦x ↝ s₂⟧) :
     t = t⟦x ↝ s₂⟧ := by
   induction t generalizing x y <;> grind
 
@@ -94,25 +94,25 @@ inductive LC : Term Var → Prop
 attribute [scoped grind .] LC.var LC.app LC.type
 
 /-- A locally closed term is unchanged by opening. -/
-lemma openingRec_lc [HasFresh Var] {σ τ : Term Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ := by
+lemma openRec_lc [HasFresh Var] {σ τ : Term Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ := by
   classical
   induction lc generalizing X with
-  | abs | pi => grind [fresh_exists <| free_union Var, openingRec_neq_eq]
+  | abs | pi => grind [fresh_exists <| free_union Var, openRec_neq_eq]
   | _ => grind
 
 /-- Substitution of a locally closed type distributes with opening. -/
-lemma openingRec_subst [DecidableEq Var] [HasFresh Var] {δ : Term Var}
+lemma openRec_subst [DecidableEq Var] [HasFresh Var] {δ : Term Var}
     (Y : ℕ) (σ τ : Term Var) (lc : δ.LC) (X : Var) :
     (σ⟦Y ↝ τ⟧)[X := δ] = σ[X := δ]⟦Y ↝ τ[X := δ]⟧ := by
-  induction σ generalizing Y <;> grind [openingRec_lc]
+  induction σ generalizing Y <;> grind [openRec_lc]
 
 /-- A locally closed term remains locally closed after substitution. -/
 lemma subst_lc [DecidableEq Var] [HasFresh Var] {σ τ : Term Var}
     (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
   induction σ_lc with
-  | abs => grind [LC.abs (free_union Var), openingRec_subst]
-  | pi => grind [LC.pi (free_union Var), openingRec_subst]
-  | _ => grind [openingRec_subst]
+  | abs => grind [LC.abs (free_union Var), openRec_subst]
+  | pi => grind [LC.pi (free_union Var), openRec_subst]
+  | _ => grind [openRec_subst]
 
 end Term
 
