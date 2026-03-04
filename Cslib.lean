@@ -1,15 +1,16 @@
 module  -- shake: keep-all
 
 public import Cslib.Algorithms.Lean.Query.Basic
+public import Cslib.Algorithms.Lean.Query.LowerBound
+public import Cslib.Algorithms.Lean.Query.MonadicExample
+public import Cslib.Algorithms.Lean.Query.QueryTree
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
-public import Cslib.Algorithms.Lean.Query.LowerBound
 public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
 public import Cslib.Algorithms.Lean.Query.Sort.MonadicSort
-public import Cslib.Algorithms.Lean.Query.MonadicExample
-public import Cslib.Algorithms.Lean.Query.QueryTree
+public import Cslib.Algorithms.Lean.Query.Sort.QueryTree
 public import Cslib.Algorithms.Lean.Query.UpperBound
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
