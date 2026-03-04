@@ -23,9 +23,10 @@ Permute tapes according to a bijection.
 -/
 public def MultiTapeTM.permute_tapes
   (tm : MultiTapeTM k α) (σ : Equiv.Perm (Fin k)) : MultiTapeTM k α where
-  Λ := tm.Λ
+  State := tm.State
+  stateFintype := tm.stateFintype
   q₀ := tm.q₀
-  M := fun q syms => match tm.M q (syms ∘ σ) with
+  tr := fun q syms => match tm.tr q (syms ∘ σ) with
     | (stmts, q') => (stmts ∘ σ.symm, q')
 
 --- General theorem: permuting tapes commutes with evaluation

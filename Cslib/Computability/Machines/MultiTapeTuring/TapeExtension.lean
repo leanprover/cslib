@@ -6,22 +6,20 @@ Authors: Christian Reitwiessner
 
 module
 
-import Cslib.Foundations.Data.BiTape
-import Cslib.Foundations.Data.RelatesInSteps
-
 public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 
 namespace Turing
 
-variable [Inhabited α] [Fintype α]
+variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- Extend a Turing machine to work with more tapes.
 The added tapes are not acted upon. -/
 public def MultiTapeTM.extend {k₁ k₂ : ℕ} (h_le : k₁ ≤ k₂)
-    (tm : MultiTapeTM k₁ α) : MultiTapeTM k₂ α where
-  Λ := tm.Λ
+    (tm : MultiTapeTM k₁ Symbol) : MultiTapeTM k₂ Symbol where
+  State := tm.State
+  stateFintype := tm.stateFintype
   q₀ := tm.q₀
-  M := fun q syms => match tm.M q (fun i => syms ⟨i, by omega⟩) with
+  tr := fun q syms => match tm.tr q (fun i => syms ⟨i, by omega⟩) with
     | (stmts, q') =>
       (fun i => if h : i < k₁ then stmts ⟨i, h⟩ else default, q')
 
@@ -65,8 +63,8 @@ public abbrev tapes_extend_by
 
 @[simp, grind =]
 public lemma MultiTapeTM.extend_eval {k₁ k₂ : ℕ} (h_le : k₁ ≤ k₂)
-  (tm : MultiTapeTM k₁ α)
-  {tapes : Fin k₂ → BiTape α} :
+  (tm : MultiTapeTM k₁ Symbol)
+  {tapes : Fin k₂ → BiTape Symbol} :
   (tm.extend h_le).eval tapes =
     (tm.eval (tapes ⟨·, by omega⟩)).map (fun tapes' => tapes_extend_by tapes' tapes) := by
   sorry
