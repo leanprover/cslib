@@ -20,6 +20,8 @@ The Calculus of Constructions
 
 * [T. Coquand, *An algorithm for type-checking dependent types*][Coquand1996]
 
+* [A. Chargueraud, *The Locally Nameless Representation*][Chargueraud2012]
+
 -/
 
 set_option linter.unusedDecidableInType false
@@ -94,6 +96,10 @@ inductive LC : Term Var → Prop
   | type : LC .type
 
 attribute [scoped grind .] LC.var LC.app LC.type
+
+/-- Predicate for being a locally closed body of an abstraction. -/
+@[scoped grind =]
+def body (t : Term Var) := ∃ L : Finset Var, ∀ x ∉ L, LC (t ^ᵗ fvar x)
 
 /-- A locally closed term is unchanged by opening. -/
 lemma openRec_lc [DecidableEq Var] [HasFresh Var] {σ τ : Term Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ := by

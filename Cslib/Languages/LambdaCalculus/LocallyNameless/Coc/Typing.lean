@@ -22,6 +22,8 @@ The Calculus of Constructions
 
 * [T. Coquand, *An algorithm for type-checking dependent types*][Coquand1996]
 
+* [A. Chargueraud, *The Locally Nameless Representation*][Chargueraud2012]
+
 -/
 
 namespace Cslib
@@ -32,12 +34,28 @@ namespace LambdaCalculus.LocallyNameless.Coc
 
 open Term
 
-/-- β-equivalence. -/
+/-- β-reduction. -/
 inductive BetaEquiv : Term Var → Term Var → Prop
-  /-- Equivalance -/
-  | eq : BetaEquiv (.app (.abs A B) N) (B ^ᵗ N)
-  /-- Congruence -/
-  | cong : BetaEquiv B A → BetaEquiv N M → BetaEquiv (.app B N) (.app A M)
+  /-- β-redex: `(λ A. B) N ⟶ B ^ᵗ N`. -/
+  | red : (abs A B).LC → N.LC → BetaEquiv (.app (.abs A B) N) (B ^ᵗ N)
+  /-- Congruence in the function position of an application. -/
+  | app₁ : t₂.LC → BetaEquiv t₁ t₁' → BetaEquiv (.app t₁ t₂) (.app t₁' t₂)
+  /-- Congruence in the argument position of an application. -/
+  | app₂ : t₁.LC → BetaEquiv t₂ t₂' → BetaEquiv (.app t₁ t₂) (.app t₁ t₂')
+  /-- Congruence in the type annotation of an abstraction. -/
+  | abs₁ : t₂.body → BetaEquiv t₁ t₁' → BetaEquiv (.abs t₁ t₂) (.abs t₁' t₂)
+  /-- Congruence in the body of an abstraction. -/
+  | abs₂ (ρ : Finset Var) :
+      t₁.LC →
+      (∀ x ∉ ρ, BetaEquiv (t₂ ^ᵗ .fvar x) (t₂' ^ᵗ .fvar x)) →
+      BetaEquiv (.abs t₁ t₂) (.abs t₁ t₂')
+  /-- Congruence in the domain of a pi type. -/
+  | pi₁ : t₂.body → BetaEquiv t₁ t₁' → BetaEquiv (.pi t₁ t₂) (.pi t₁' t₂)
+  /-- Congruence in the codomain of a pi type. -/
+  | pi₂ (ρ : Finset Var) :
+      t₁.LC →
+      (∀ x ∉ ρ, BetaEquiv (t₂ ^ᵗ .fvar x) (t₂' ^ᵗ .fvar x)) →
+      BetaEquiv (.pi t₁ t₂) (.pi t₁ t₂')
 
 instance instHasBetaEquivTerm : HasBetaEquiv (Term Var) where
   BetaEquiv := BetaEquiv

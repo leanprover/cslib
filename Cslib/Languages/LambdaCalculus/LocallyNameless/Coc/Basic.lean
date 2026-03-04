@@ -19,6 +19,8 @@ The Calculus of Constructions
 
 * [T. Coquand, *An algorithm for type-checking dependent types*][Coquand1996]
 
+* [A. Chargueraud, *The Locally Nameless Representation*][Chargueraud2012]
+
 -/
 
 namespace Cslib
