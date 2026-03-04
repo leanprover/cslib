@@ -91,8 +91,8 @@ lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
     LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
   induction M generalizing i <;> grind
 
-/- When M ^ N is locally closed, then M.abs is locally closed. This is proven by translating LC to
-   LcAt, applying lcAt_openRec_lcAt, then translating back to LC -/
+/- When `M ^ N` is locally closed, then `M.abs` is locally closed. This is proven by translating LC
+   to LcAt, applying lcAt_openRec_lcAt, then translating back to LC -/
 lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs) := by
   rw [← lcAt_iff_LC] at *
   exact lcAt_openRec_lcAt _ _ _ hlc

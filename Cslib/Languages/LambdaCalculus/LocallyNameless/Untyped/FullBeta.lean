@@ -123,14 +123,14 @@ lemma step_open_cong_l
   have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
   grind [subst_intro, redex_subst_cong_lc]
 
-/- Multiple reduction λ s ↠βᶠ t implies t = λ s' for some s' -/
+/- Multiple reduction `λ s ↠βᶠ t` implies `t = λ s'` for some s' -/
 lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
     ∃ (s' : Term Var), s.abs ↠βᶠ s'.abs ∧ t = s'.abs := by
   induction step with
   | refl => grind
   | tail _ step _ => cases step with grind [step_abs_cong (free_union Var)]
 
-/- λ s ↠βᶠ λ s' implies s ^ t ↠βᶠ s' ^ t' -/
+/- `λ s ↠βᶠ λ s'` implies `s ^ t ↠βᶠ s' ^ t'` -/
 lemma steps_open_cong_l_abs
   (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
     (s ^ t) ↠βᶠ (s' ^ t) := by
@@ -142,10 +142,10 @@ lemma steps_open_cong_l_abs
     specialize ih s
     cases step with grind [invert_steps_abs, step_open_cong_l (L := free_union Var)]
 
-/- t ↠βᶠ t' implies s [ x := t ] ↠βᶠ s [ x := t' ].
+/- `t ↠βᶠ t'` implies `s [ x := t ] ↠βᶠ s [ x := t' ]`.
    There is no single step lemma in this case because x
    may be substituted for n times, so a single step t ↠βᶠ t
-   in general requires n steps in s [ x := t ] ↠βᶠ (s [ x := t' ]) -/
+   in general requires n steps in `s [ x := t ] ↠βᶠ (s [ x := t' ])` -/
 lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_lc : LC s) :
     (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
   induction h_lc with
@@ -156,7 +156,7 @@ lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_
        (l.app r)[x:=t] ↠βᶠ l[x := t].app (r[x:=t']) := by grind
        _               ↠βᶠ (l.app r)[x:=t'] := by grind
 
-/- the previous lemma can be generalized to multiple reductions t ↠βᶠ t'.
+/- `step_subst_cong_r` can be generalized to multiple reductions `t ↠βᶠ t'`.
    This requires s to be locally closed, locally closedness of t and t'
    can be infered by the fact t reduces to t' -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
@@ -165,7 +165,7 @@ lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h
   | refl => rfl
   | tail steps step ih => grind [Relation.ReflTransGen.trans, step_subst_cong_r]
 
-/- When both t and s reduce to t' and s', then t ^ s reduces to t' ^ s' -/
+/- When both `t` and `s` reduce to `t'` and `s'`, then `t ^ s` reduces to `t' ^ s'` -/
 lemma steps_open_cong_abs (s s' t t' : Term Var)
   (step1 : t ↠βᶠ t') (step2 : s.abs ↠βᶠ s'.abs) (lc_t : LC t) (lc_s : LC s.abs) :
     (s ^ t) ↠βᶠ (s' ^ t') := by
