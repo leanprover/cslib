@@ -113,6 +113,12 @@ lemma openRec_subst [DecidableEq Var] [HasFresh Var] {δ : Term Var}
     (t₁⟦Y ↝ t₂⟧)[X := δ] = t₁[X := δ]⟦Y ↝ t₂[X := δ]⟧ := by
   induction t₁ generalizing Y <;> grind [openRec_lc]
 
+/-- Specialize `openRec_subst` to the first opening. -/
+lemma open_subst [DecidableEq Var] [HasFresh Var] {δ : Term Var}
+    (σ τ : Term Var) (lc : δ.LC) (X : Var) :
+    (σ ^ᵗ τ)[X := δ] = σ[X := δ] ^ᵗ τ[X := δ]
+  := openRec_subst 0 σ τ lc X
+
 /-- A locally closed term remains locally closed after substitution. -/
 lemma subst_lc [DecidableEq Var] [HasFresh Var] {t₁ t₂ : Term Var}
     (t₁_lc : t₁.LC) (t₂_lc : t₂.LC) (X : Var) : t₁[X := t₂].LC := by
@@ -120,6 +126,22 @@ lemma subst_lc [DecidableEq Var] [HasFresh Var] {t₁ t₂ : Term Var}
   | abs => grind [LC.abs (free_union Var), openRec_subst]
   | pi => grind [LC.pi (free_union Var), openRec_subst]
   | _ => grind [openRec_subst]
+
+/-- Opening to a type is equivalent to opening to a free variable and substituting. -/
+lemma openRec_subst_intro [DecidableEq Var] (Y : ℕ) (δ : Term Var) (nmem : X ∉ γ.fv) :
+    γ⟦Y ↝ δ⟧ = (γ⟦Y ↝ fvar X⟧)[X := δ] := by
+  induction γ generalizing δ Y <;> grind
+
+/-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
+lemma subst_intro [DecidableEq Var] (x : Var) (t e : Term Var) (mem : x ∉ e.fv) :
+    e ^ᵗ t = (e ^ᵗ fvar x) [ x := t ] := by grind [openRec_subst_intro]
+
+/-- Substitution and opening by a fresh variable commute. -/
+lemma subst_open_var [DecidableEq Var] [HasFresh Var]
+    (x y : Var) (u e : Term Var) (neq : y ≠ x) (lc : u.LC) :
+    e.subst x u ^ᵗ fvar y = (e ^ᵗ fvar y).subst x u := by
+  change e[x:=u] ^ᵗ fvar y = (e ^ᵗ fvar y)[x:=u]
+  rw [open_subst e (fvar y) lc x]; grind [subst]
 
 end Term
 

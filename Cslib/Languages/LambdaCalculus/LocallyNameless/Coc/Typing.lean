@@ -10,7 +10,7 @@ public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Syntax.HasSubstitution
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Coc.Opening
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Coc.Reduction
 
 @[expose] public section
 
@@ -33,30 +33,6 @@ universe u
 namespace LambdaCalculus.LocallyNameless.Coc
 
 open Term
-
-/-- β-reduction. -/
-@[reduction_sys "β"]
-inductive BetaEquiv : Term Var → Term Var → Prop
-  /-- β-redex: `(λ A. B) N ⟶ B ^ᵗ N`. -/
-  | red : (abs A B).LC → N.LC → BetaEquiv (.app (.abs A B) N) (B ^ᵗ N)
-  /-- Congruence in the function position of an application. -/
-  | app₁ : t₂.LC → BetaEquiv t₁ t₁' → BetaEquiv (.app t₁ t₂) (.app t₁' t₂)
-  /-- Congruence in the argument position of an application. -/
-  | app₂ : t₁.LC → BetaEquiv t₂ t₂' → BetaEquiv (.app t₁ t₂) (.app t₁ t₂')
-  /-- Congruence in the type annotation of an abstraction. -/
-  | abs₁ : t₂.body → BetaEquiv t₁ t₁' → BetaEquiv (.abs t₁ t₂) (.abs t₁' t₂)
-  /-- Congruence in the body of an abstraction. -/
-  | abs₂ (ρ : Finset Var) :
-      t₁.LC →
-      (∀ x ∉ ρ, BetaEquiv (t₂ ^ᵗ .fvar x) (t₂' ^ᵗ .fvar x)) →
-      BetaEquiv (.abs t₁ t₂) (.abs t₁ t₂')
-  /-- Congruence in the domain of a pi type. -/
-  | pi₁ : t₂.body → BetaEquiv t₁ t₁' → BetaEquiv (.pi t₁ t₂) (.pi t₁' t₂)
-  /-- Congruence in the codomain of a pi type. -/
-  | pi₂ (ρ : Finset Var) :
-      t₁.LC →
-      (∀ x ∉ ρ, BetaEquiv (t₂ ^ᵗ .fvar x) (t₂' ^ᵗ .fvar x)) →
-      BetaEquiv (.pi t₁ t₂) (.pi t₁ t₂')
 
 variable [DecidableEq Var]
 
