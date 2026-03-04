@@ -10,7 +10,7 @@ public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
 public import Cslib.Foundations.Syntax.HasBetaEquiv
 public import Cslib.Foundations.Syntax.HasSubstitution
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Coc.WellFormed
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Coc.Opening
 
 @[expose] public section
 
@@ -60,8 +60,36 @@ inductive BetaEquiv : Term Var → Term Var → Prop
 instance instHasBetaEquivTerm : HasBetaEquiv (Term Var) where
   BetaEquiv := BetaEquiv
 
+
+variable [DecidableEq Var]
+
+namespace Term
+
+/-- Well-formedness of terms. -/
+inductive Wf : Env Var → Term Var → Prop
+  | var : ⟨x, _⟩ ∈ Γ → Wf Γ (fvar x)
+  | app : Wf Γ f → Wf Γ a → Wf Γ (app f a)
+  | abs (L : Finset Var) :
+      Wf Γ σ →
+      (∀ X ∉ L, Wf ({⟨X,σ⟩} ∪ Γ) (τ ^ᵗ fvar X)) →
+      Wf Γ (abs σ τ)
+  | pi (L : Finset Var) :
+      Wf Γ σ →
+      (∀ X ∉ L, Wf ({⟨X,σ⟩} ∪ Γ) (τ ^ᵗ fvar X)) →
+      Wf Γ (pi σ τ)
+  | type : Wf Γ (type _)
+
+end Term
+
+mutual
+
+/-- An environment is well-formed if it binds each variable exactly once to a well-formed type. -/
+inductive Env.Wf : Env Var → Prop
+  | nil : Env.Wf {}
+  | cons : Env.Wf Γ → Typing Γ τ (.type i) → x ∉ Γ.dom → Env.Wf ({⟨x, τ⟩} ∪ Γ)
+
 /-- Typing judgement -/
-inductive Typing [DecidableEq Var] : Env Var → Term Var → Term Var → Prop
+inductive Typing : Env Var → Term Var → Term Var → Prop
   /-- Variable lookup in Γ -/
   | var : Γ.Wf → ⟨x, A⟩ ∈ Γ → Typing Γ (.fvar x) A
   /-- Function application -/
@@ -73,13 +101,16 @@ inductive Typing [DecidableEq Var] : Env Var → Term Var → Term Var → Prop
       Typing Γ (.abs A N) (.pi A B)
   /-- Pi type -/
   | pi (ρ : Finset Var) :
-      Typing Γ A K →
-      (∀ x ∉ ρ, Typing ({⟨x, A⟩} ∪ Γ) (B ^ᵗ .fvar x) L) →
-      Typing Γ (.pi A B) L
+      Typing Γ A (.type k) →
+      (∀ x ∉ ρ, Typing ({⟨x, A⟩} ∪ Γ) (B ^ᵗ .fvar x) (.type i)) →
+      (i = k ∨ i = 0) →
+      Typing Γ (.pi A B) (.type i)
   /-- Type universe -/
   | type : Typing Γ (.type s) (.type (s + 1))
   /-- β-conversion -/
-  | conv : Typing Γ M A → A =β B → Typing Γ M B
+  | conv : Typing Γ M A → A =β B → Typing Γ B (.type i) → Typing Γ M B
+
+end
 
 end LambdaCalculus.LocallyNameless.Coc
 
