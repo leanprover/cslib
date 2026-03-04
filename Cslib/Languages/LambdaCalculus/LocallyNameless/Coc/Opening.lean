@@ -87,8 +87,8 @@ lemma openRec_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ = t⟦y ↝ s₁⟧
 inductive LC : Term Var → Prop
   | var : LC (.fvar x)
   | app : LC t₁ → LC t₂ → LC (app t₁ t₂)
-  | abs (L : Finset Var) : σ.LC → (∀ x ∉ L, LC (t₁ ^ᵗ fvar x)) → LC (abs σ t₁)
-  | pi (L : Finset Var) : σ.LC → (∀ x ∉ L, LC (t₁ ^ᵗ fvar x)) → LC (pi σ t₁)
+  | abs (L : Finset Var) : t₁.LC → (∀ x ∉ L, LC (t₂ ^ᵗ fvar x)) → LC (abs t₁ t₂)
+  | pi (L : Finset Var) : t₁.LC → (∀ x ∉ L, LC (t₂ ^ᵗ fvar x)) → LC (pi t₁ t₂)
   | type : LC .type
 
 attribute [scoped grind .] LC.var LC.app LC.type
@@ -102,14 +102,14 @@ lemma openRec_lc [HasFresh Var] {σ τ : Term Var} (lc : σ.LC) : σ = σ⟦X �
 
 /-- Substitution of a locally closed type distributes with opening. -/
 lemma openRec_subst [DecidableEq Var] [HasFresh Var] {δ : Term Var}
-    (Y : ℕ) (σ τ : Term Var) (lc : δ.LC) (X : Var) :
-    (σ⟦Y ↝ τ⟧)[X := δ] = σ[X := δ]⟦Y ↝ τ[X := δ]⟧ := by
-  induction σ generalizing Y <;> grind [openRec_lc]
+    (Y : ℕ) (t₁ t₂ : Term Var) (lc : δ.LC) (X : Var) :
+    (t₁⟦Y ↝ t₂⟧)[X := δ] = t₁[X := δ]⟦Y ↝ t₂[X := δ]⟧ := by
+  induction t₁ generalizing Y <;> grind [openRec_lc]
 
 /-- A locally closed term remains locally closed after substitution. -/
-lemma subst_lc [DecidableEq Var] [HasFresh Var] {σ τ : Term Var}
-    (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
-  induction σ_lc with
+lemma subst_lc [DecidableEq Var] [HasFresh Var] {t₁ t₂ : Term Var}
+    (t₁_lc : t₁.LC) (t₂_lc : t₂.LC) (X : Var) : t₁[X := t₂].LC := by
+  induction t₁_lc with
   | abs => grind [LC.abs (free_union Var), openRec_subst]
   | pi => grind [LC.pi (free_union Var), openRec_subst]
   | _ => grind [openRec_subst]
