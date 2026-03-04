@@ -7,6 +7,7 @@ Authors: Matt Hunzinger
 module
 
 public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 
 @[expose] public section
 
@@ -52,9 +53,7 @@ def Term.fv [DecidableEq Var] : Term Var → Finset Var
   | .pi t b => t.fv ∪ b.fv
   | .type => ∅
 
-abbrev Env (Var : Type u) := Finset (Var × Term Var)
-
-def Env.dom [DecidableEq Var] : Env Var → Finset Var := Finset.image Prod.fst
+abbrev Env (Var : Type u) := Context Var (Term Var)
 
 end LambdaCalculus.LocallyNameless.Coc
 
