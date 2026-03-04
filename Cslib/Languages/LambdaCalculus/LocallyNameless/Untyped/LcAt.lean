@@ -6,7 +6,7 @@ Authors: Elimia (Sehun Kim)
 
 module
 
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
 @[expose] public section
 

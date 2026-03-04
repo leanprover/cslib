@@ -7,7 +7,6 @@ Authors: Bolton Bailey
 module
 
 public import Cslib.Init
-public import Mathlib.Data.List.Basic
 
 @[expose] public section
 
@@ -25,7 +24,7 @@ The end of the list is then treated as the start of an infinite sequence of `non
 by the low-level API.
 This design makes it convenient to express the length of the tape in terms of the list length.
 
-An alternative design would be to represent the tape as a `Stream' (Option α)`,
+An alternative design would be to represent the tape as a `Stream' (Option Symbol)`,
 with additional fields tracking the length and the fact that the stream eventually becomes `none`.
 This design might complicate reasoning about the length of the tape, but could make other operations
 more straightforward.
@@ -45,11 +44,11 @@ namespace Turing
 An infinite tape representation using a list of `Option` values,
 where the list is eventually `none`.
 
-Represented as a `List (Option α)` that does not end with `none`.
+Represented as a `List (Option Symbol)` that does not end with `none`.
 -/
-structure StackTape (α : Type) where
+structure StackTape (Symbol : Type) where
   /-- The underlying list representation -/
-  toList : List (Option α)
+  toList : List (Option Symbol)
   /--
   The list can be empty (i.e. `none`),
   but if it is not empty, the last element is not (`some`) `none`
@@ -60,61 +59,55 @@ attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 
 namespace StackTape
 
+variable {Symbol : Type}
+
 /-- The empty `StackTape` -/
 @[scoped grind]
-def nil {α} : StackTape α := ⟨[], by grind⟩
+def nil : StackTape Symbol := ⟨[], by grind⟩
 
-instance {α : Type} : Inhabited (StackTape α) where
+instance : Inhabited (StackTape Symbol) where
   default := nil
 
-instance {α : Type} : EmptyCollection (StackTape α) :=
+instance : EmptyCollection (StackTape Symbol) :=
   ⟨nil⟩
 
 @[simp]
-lemma empty_eq_nil {α} : (∅ : StackTape α) = nil := rfl
+lemma empty_eq_nil : (∅ : StackTape Symbol) = nil := rfl
 
 @[simp, scoped grind =]
-lemma nil_toList {α} : (nil : StackTape α).toList = [] := rfl
+lemma nil_toList : (nil : StackTape Symbol).toList = [] := rfl
 
 /-- Prepend an `Option` to the `StackTape` -/
 @[scoped grind]
-def cons {α} (x : Option α) (xs : StackTape α) : StackTape α :=
+def cons (x : Option Symbol) (xs : StackTape Symbol) : StackTape Symbol :=
   match x, xs with
   | none, ⟨[], _⟩ => ⟨[], by grind⟩
   | none, ⟨hd :: tl, hl⟩ => ⟨none :: hd :: tl, by grind⟩
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
 @[simp, scoped grind =]
-lemma cons_none_nil_toList {α} : (cons none (nil : StackTape α)).toList = [] := by grind
+lemma cons_none_nil_toList : (cons none (nil : StackTape Symbol)).toList = [] := by grind
 
 @[simp, scoped grind =]
-lemma cons_some_toList {α} (a : α) (l : StackTape α) :
+lemma cons_some_toList (a : Symbol) (l : StackTape Symbol) :
     (cons (some a) l).toList = some a :: l.toList := by simp only [cons]
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
 @[scoped grind]
-def tail {α} (l : StackTape α) : StackTape α :=
+def tail (l : StackTape Symbol) : StackTape Symbol :=
   match hl : l.toList with
   | [] => nil
   | hd :: t => ⟨t, by grind⟩
 
 /-- Get the first element of the `StackTape`. -/
 @[scoped grind]
-def head {α} (l : StackTape α) : Option α :=
+def head (l : StackTape Symbol) : Option Symbol :=
   match l.toList with
   | [] => none
   | h :: _ => h
 
-@[grind =]
-lemma head_eq_list_getD {α} (l : StackTape α) : l.head = l.toList.getD 0 none := by
-  cases l with | mk toList h =>
-  cases toList <;> grind
-
-@[simp, scoped grind =]
-lemma tail_toList_get_eq_right_toList_get_succ {α} (t : StackTape α) (n : ℕ) :
-  t.tail.toList[n]? = t.toList[n + 1]? := by grind
-
-lemma eq_iff {α} (l1 l2 : StackTape α) : l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
+lemma eq_iff (l1 l2 : StackTape Symbol) :
+    l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
   constructor
   · grind
   · intro ⟨hhead, htail⟩
@@ -123,7 +116,7 @@ lemma eq_iff {α} (l1 l2 : StackTape α) : l1 = l2 ↔ l1.head = l2.head ∧ l1.
     cases as1 <;> cases as2 <;> grind
 
 @[simp]
-lemma head_cons {α} (o : Option α) (l : StackTape α) : (cons o l).head = o := by
+lemma head_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).head = o := by
   cases o with
   | none =>
     cases l with | mk toList hl =>
@@ -131,7 +124,7 @@ lemma head_cons {α} (o : Option α) (l : StackTape α) : (cons o l).head = o :=
   | some a => grind
 
 @[simp]
-lemma tail_cons {α} (o : Option α) (l : StackTape α) : (cons o l).tail = l := by
+lemma tail_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).tail = l := by
   cases o with
   | none =>
     cases l with | mk toList h =>
@@ -140,57 +133,46 @@ lemma tail_cons {α} (o : Option α) (l : StackTape α) : (cons o l).tail = l :=
     simp only [cons, tail]
 
 @[simp]
-lemma cons_head_tail {α} (l : StackTape α) :
+lemma cons_head_tail (l : StackTape Symbol) :
     cons (l.head) (l.tail) = l := by
   rw [eq_iff]
   simp
 
-lemma ext_toList {α} {s₁ s₂ : StackTape α}
-    (h : ∀ (n : ℕ), s₁.toList.getD n none = s₂.toList.getD n none) :
-    s₁ = s₂ := by
-  -- TODO not sure how to prove this. The main idea behind this type is that
-  -- toList is injective, so it should be true.
-  sorry
-
-lemma ext_iff {α} {s₁ s₂ : StackTape α} :
-    s₁ = s₂ ↔ s₁.toList = s₂.toList := by
-  cases s₁ with | mk l₁ h₁ =>
-  cases s₂ with | mk l₂ h₂ =>
-  simp
-
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
-def map_some {α} (l : List α) : StackTape α := ⟨l.map some, by simp⟩
+def map_some (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
 
 section Length
 
 /-- The length of the `StackTape` is the number of elements up to the last non-`none` element -/
 @[scoped grind]
-def length {α} (l : StackTape α) : ℕ := l.toList.length
+def length (l : StackTape Symbol) : ℕ := l.toList.length
 
-lemma length_tail_le {α} (l : StackTape α) : l.tail.length ≤ l.length := by
+lemma length_tail_le (l : StackTape Symbol) : l.tail.length ≤ l.length := by
   grind
 
 grind_pattern length_tail_le => l.tail.length
 
 @[scoped grind =]
-lemma length_cons_none {α} (l : StackTape α) :
+lemma length_cons_none (l : StackTape Symbol) :
     (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
   cases l with | mk toList h =>
   cases toList <;> grind
 
 @[scoped grind =]
-lemma length_cons_some {α} (a : α) (l : StackTape α) : (cons (some a) l).length = l.length + 1 := by
+lemma length_cons_some (a : Symbol) (l : StackTape Symbol) :
+    (cons (some a) l).length = l.length + 1 := by
   grind
 
-lemma length_cons_le {α} (o : Option α) (l : StackTape α) : (cons o l).length ≤ l.length + 1 := by
+lemma length_cons_le (o : Option Symbol) (l : StackTape Symbol) :
+    (cons o l).length ≤ l.length + 1 := by
   cases o <;> grind
 
 @[simp, scoped grind =]
-lemma length_map_some {α} (l : List α) : (map_some l).length = l.length := by grind
+lemma length_map_some (l : List Symbol) : (map_some l).length = l.length := by grind
 
 @[simp, scoped grind =]
-lemma length_nil {α} : (nil : StackTape α).length = 0 := by grind
+lemma length_nil : (nil : StackTape Symbol).length = 0 := by grind
 
 end Length
 

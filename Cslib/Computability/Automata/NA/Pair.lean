@@ -80,9 +80,6 @@ theorem LTS.pairLang_append_pairViaLang {lts : LTS State Symbol}
     {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
     (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairViaLang via s1 s2) :
     xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
-  obtain ⟨r, _, _, _, _, _, rfl⟩ := LTS.mem_pairViaLang.mp h2
-  apply LTS.mem_pairViaLang.mpr
-  use r
   grind [<= LTS.MTr.comp]
 
 theorem LTS.pairViaLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
