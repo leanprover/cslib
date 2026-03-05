@@ -402,21 +402,75 @@ open scoped Context
 
 @[local grind .]
 private lemma Proposition.equiv_tensor₁ {a a' b : Proposition Atom} (h : a ≡ a') :
-    a ⊗ b ≡ a' ⊗ b := by sorry
-  -- obtain ⟨h₁, h₂⟩ := h
-  -- obtain h₁ := h₁.some
-  -- obtain h₂ := h₂.some
-  -- constructor
-  -- case left =>
-  --   constructor
+    a ⊗ b ≡ a' ⊗ b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b⫠ ::ₘ {a' ⊗ b}) = ((a' ⊗ b) ::ₘ ({a⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · apply h₁.rwConclusion (by grind)
+    · exact Proof.ax
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a'⫠ ::ₘ b⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a'⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · apply h₂.rwConclusion (by grind)
+    · exact Proof.ax
 
 @[local grind .]
 private lemma Proposition.equiv_tensor₂ {a b b' : Proposition Atom} (h : b ≡ b') :
-    a ⊗ b ≡ a ⊗ b' := by sorry
+    a ⊗ b ≡ a ⊗ b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b⫠ ::ₘ {a ⊗ b'}) = ((a ⊗ b') ::ₘ ({a⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax
+    · apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b'⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a⫠} + {b'⫠})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax
+    · apply h₂.rwConclusion (by grind)
 
 @[local grind .]
 private lemma Proposition.equiv_parr₁ {a a' b : Proposition Atom} (h : a ≡ a') :
-    a ⅋ b ≡ a' ⅋ b := by sorry
+    a ⅋ b ≡ a' ⅋ b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b⫠ ::ₘ {a ⊗ b'}) = ((a ⊗ b') ::ₘ ({a⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax
+    · apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b'⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a⫠} + {b'⫠})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax
+    · apply h₂.rwConclusion (by grind)
 
 @[local grind .]
 private lemma Proposition.equiv_parr₂ {a b b' : Proposition Atom} (h : b ≡ b') :
