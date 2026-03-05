@@ -781,6 +781,8 @@ end Bisimulation
 
 section WeakBisimulation
 
+open LTS.STr
+
 /-! ## Weak bisimulation and weak bisimilarity -/
 
 /-- A weak bisimulation is similar to a `Bisimulation`, but allows for the related processes to do
@@ -808,76 +810,46 @@ def LTS.IsSWBisimulation [HasTau Label] (lts : LTS State Label) (r : State → S
   )
 
 /-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
-(first component, weighted version). -/
-theorem SWBisimulation.follow_internal_fst_n
-  [HasTau Label] {lts : LTS State Label}
-  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstrN : lts.STrN n s1 HasTau.τ s1') :
-  ∃ s2', lts.STr s2 HasTau.τ s2' ∧ r s1' s2' := by
-  cases n
-  case zero =>
-    cases hstrN
-    exists s2
-    constructor; constructor
-    exact hr
-  case succ n ih =>
-    cases hstrN
-    rename_i n1 sb sb' n2 hstrN1 htr hstrN2
-    let hswb_m := hswb
-    have ih1 := SWBisimulation.follow_internal_fst_n hswb hr hstrN1
-    obtain ⟨sb2, hstrs2, hrsb⟩ := ih1
-    have h := (hswb hrsb HasTau.τ).1 sb' htr
-    obtain ⟨sb2', hstrsb2, hrsb2⟩ := h
-    have ih2 := SWBisimulation.follow_internal_fst_n hswb hrsb2 hstrN2
-    obtain ⟨s2', hstrs2', hrs2⟩ := ih2
-    exists s2'
-    constructor
-    · apply LTS.STr.trans_τ lts (LTS.STr.trans_τ lts hstrs2 hstrsb2) hstrs2'
-    · exact hrs2
-
-/-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
-(second component, weighted version). -/
-theorem SWBisimulation.follow_internal_snd_n
-  [HasTau Label] {lts : LTS State Label}
-  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstrN : lts.STrN n s2 HasTau.τ s2') :
-  ∃ s1', lts.STr s1 HasTau.τ s1' ∧ r s1' s2' := by
-  cases n
-  case zero =>
-    cases hstrN
-    exists s1
-    constructor; constructor
-    exact hr
-  case succ n ih =>
-    cases hstrN
-    rename_i n1 sb sb' n2 hstrN1 htr hstrN2
-    let hswb_m := hswb
-    have ih1 := SWBisimulation.follow_internal_snd_n hswb hr hstrN1
-    obtain ⟨sb1, hstrs1, hrsb⟩ := ih1
-    have h := (hswb hrsb HasTau.τ).2 sb' htr
-    obtain ⟨sb2', hstrsb2, hrsb2⟩ := h
-    have ih2 := SWBisimulation.follow_internal_snd_n  hswb hrsb2 hstrN2
-    obtain ⟨s2', hstrs2', hrs2⟩ := ih2
-    exists s2'
-    constructor
-    · apply LTS.STr.trans_τ lts (LTS.STr.trans_τ lts hstrs1 hstrsb2) hstrs2'
-    · exact hrs2
-
-/-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
 (first component). -/
 theorem SWBisimulation.follow_internal_fst
   [HasTau Label] {lts : LTS State Label}
-  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstr : lts.STr s1 HasTau.τ s1') :
-  ∃ s2', lts.STr s2 HasTau.τ s2' ∧ r s1' s2' := by
-  obtain ⟨n, hstrN⟩ := (LTS.sTr_sTrN lts).1 hstr
-  apply SWBisimulation.follow_internal_fst_n hswb hr hstrN
+  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstr : lts.τSTr s1 s1') :
+  ∃ s2', lts.τSTr s2 s2' ∧ r s1' s2' := by
+    induction hstr
+    case refl =>
+      exists s2
+      constructor; constructor
+      exact hr
+    case tail sb hrsb htrsb ih1 ih2 =>
+      obtain ⟨sb2, htrsb2, hrb⟩ := ih2
+      have h := (hswb hrb HasTau.τ).left _ ih1
+      obtain ⟨sb2', htrsb2', hrb'⟩ := h
+      exists sb2'
+      constructor
+      · simp only [LTS.sTr_τSTr] at htrsb htrsb2'
+        exact Relation.ReflTransGen.trans htrsb2 htrsb2'
+      · exact hrb'
 
 /-- Utility theorem for 'following' internal transitions using an `SWBisimulation`
 (second component). -/
 theorem SWBisimulation.follow_internal_snd
   [HasTau Label] {lts : LTS State Label}
-  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstr : lts.STr s2 HasTau.τ s2') :
-  ∃ s1', lts.STr s1 HasTau.τ s1' ∧ r s1' s2' := by
-  obtain ⟨n, hstrN⟩ := (LTS.sTr_sTrN lts).1 hstr
-  apply SWBisimulation.follow_internal_snd_n hswb hr hstrN
+  (hswb : lts.IsSWBisimulation r) (hr : r s1 s2) (hstr : lts.τSTr s2 s2') :
+  ∃ s1', lts.τSTr s1 s1' ∧ r s1' s2' := by
+    induction hstr
+    case refl =>
+      exists s1
+      constructor; constructor
+      exact hr
+    case tail sb hrsb htrsb ih1 ih2 =>
+      obtain ⟨sb2, htrsb2, hrb⟩ := ih2
+      have h := (hswb hrb HasTau.τ).right _ ih1
+      obtain ⟨sb2', htrsb2', hrb'⟩ := h
+      exists sb2'
+      constructor
+      · simp only [LTS.sTr_τSTr] at htrsb htrsb2'
+        exact Relation.ReflTransGen.trans htrsb2 htrsb2'
+      · exact hrb'
 
 /-- We can now prove that any relation is a `WeakBisimulation` iff it is an `SWBisimulation`.
 This formalises lemma 4.2.10 in [Sangiorgi2011]. -/
@@ -911,12 +883,15 @@ theorem LTS.isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
-        obtain ⟨sb2, hstr2b, hrb⟩ := SWBisimulation.follow_internal_fst h hr hstr1
-        obtain ⟨sb2', hstr2b', hrb'⟩ := (h hrb μ).1 _ htr
-        obtain ⟨s2', hstr2', hrb2⟩ := SWBisimulation.follow_internal_fst h hrb' hstr2
-        exists s2'
+        rw [←LTS.sTr_τSTr] at hstr1 hstr2
+        simp only [sTr_τSTr] at hstr1 hstr2
+        obtain ⟨sb1, hstr1b, hrb⟩ := SWBisimulation.follow_internal_fst h hr hstr1
+        obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).left _ htr
+        obtain ⟨s1', hstr1', hrb2⟩ := SWBisimulation.follow_internal_fst h hrb' hstr2
+        rw [←LTS.sTr_τSTr] at hstr1' hstr1b
+        exists s1'
         constructor
-        · exact LTS.STr.comp lts hstr2b hstr2b' hstr2'
+        · exact LTS.STr.comp lts hstr1b hstr1b' hstr1'
         · exact hrb2
     case right =>
       intro s2' hstr
@@ -926,9 +901,12 @@ theorem LTS.isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
+        rw [←LTS.sTr_τSTr] at hstr1 hstr2
+        simp only [sTr_τSTr] at hstr1 hstr2
         obtain ⟨sb1, hstr1b, hrb⟩ := SWBisimulation.follow_internal_snd h hr hstr1
-        obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).2 _ htr
+        obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).right _ htr
         obtain ⟨s1', hstr1', hrb2⟩ := SWBisimulation.follow_internal_snd h hrb' hstr2
+        rw [←LTS.sTr_τSTr] at hstr1' hstr1b
         exists s1'
         constructor
         · exact LTS.STr.comp lts hstr1b hstr1b' hstr1'
