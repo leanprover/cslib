@@ -84,11 +84,10 @@ structure Satisfies.Context (State : Type u) (Label : Type v) where
 
 /-- Fills a judgemental context with a proposition. -/
 def Satisfies.Context.fill (c : Satisfies.Context State Label) (φ : Proposition Label) :
-    Satisfies.Judgement State Label := {
+    Satisfies.Judgement State Label where
   lts := c.lts
   state := c.state
   φ := φ
-}
 
 instance judgementalContext :
     HasHContext (Satisfies.Judgement State Label) (Proposition Label) :=

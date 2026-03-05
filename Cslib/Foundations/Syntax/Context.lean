@@ -13,7 +13,7 @@ public import Cslib.Init
 namespace Cslib
 
 /-- Class for types with a canonical notion of heterogeneous single-hole contexts. -/
-class HasHContext (α : Type u) (β : Type v) where
+class HasHContext (α β : Type*) where
   /-- The type of contexts. -/
   Context : Type*
   /-- Replaces the hole in the context with a value, resulting in a new value. -/
