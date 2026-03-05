@@ -1,6 +1,8 @@
 module  -- shake: keep-all
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.Lean.Query.Arith.Defs
+public import Cslib.Algorithms.Lean.Query.Arith.Lemmas
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Prog
 public import Cslib.Algorithms.Lean.Query.QueryTree
