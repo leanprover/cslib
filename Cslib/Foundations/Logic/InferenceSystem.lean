@@ -6,6 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
+public import Cslib.Init
+
 @[expose] public section
 
 namespace Cslib.Logic
