@@ -23,12 +23,7 @@ class HasHContext (α β : Type*) where
 
 /-- Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
 (`Context`). -/
-class HasContext (α : Type*) where
-  /-- The type of contexts. -/
-  Context : Type*
-  /-- Replaces the hole in the context with a term. -/
-  fill (c : Context) (a : α) : α
-
-instance [inst : HasContext α] : HasHContext α α := ⟨inst.Context, inst.fill⟩
+abbrev HasContext (α : Type*) := HasHContext α α
+def HasContext.Context (α : Type*) [HasContext α] : Type* := HasHContext.Context α α
 
 end Cslib
