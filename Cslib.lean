@@ -54,6 +54,8 @@ public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
+public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
@@ -94,6 +96,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Logics.HML.Basic
+public import Cslib.Logics.HML.LogicalEquivalence
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
