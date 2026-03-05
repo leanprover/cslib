@@ -458,43 +458,181 @@ private lemma Proposition.equiv_parr₁ {a a' b : Proposition Atom} (h : a ≡ a
   case left =>
     constructor
     simp only [Proposition.dual]
+    rw [show {a⫠ ⊗ b⫠, a' ⅋ b} = (a' ⅋ b) ::ₘ {a⫠ ⊗ b⫠} by grind]
     apply Proof.parr
-    rw [show (a⫠ ::ₘ b⫠ ::ₘ {a ⊗ b'}) = ((a ⊗ b') ::ₘ ({a⫠} + {b⫠})) by grind]
+    rw [show (a' ::ₘ b ::ₘ {a⫠ ⊗ b⫠}) = ((a⫠ ⊗ b⫠) ::ₘ ({a'} + {b})) by grind]
     apply Proof.tensor
-    · exact Proof.ax
+    · apply h₁.rwConclusion (by grind)
+    · exact Proof.ax'
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a'⫠ ⊗ b⫠, a ⅋ b} = (a ⅋ b) ::ₘ {a'⫠ ⊗ b⫠} by grind]
+    apply Proof.parr
+    rw [show (a ::ₘ b ::ₘ {a'⫠ ⊗ b⫠}) = ((a'⫠ ⊗ b⫠) ::ₘ ({a} + {b})) by grind]
+    apply Proof.tensor
+    · apply h₂.rwConclusion (by grind)
+    · exact Proof.ax'
+
+@[local grind .]
+private lemma Proposition.equiv_parr₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⅋ b ≡ a ⅋ b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊗ b⫠, a ⅋ b'} = (a ⅋ b') ::ₘ {a⫠ ⊗ b⫠} by grind]
+    apply Proof.parr
+    rw [show (a ::ₘ b' ::ₘ {a⫠ ⊗ b⫠}) = ((a⫠ ⊗ b⫠) ::ₘ ({a} + {b'})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax'
     · apply h₁.rwConclusion (by grind)
   case right =>
     constructor
     simp only [Proposition.dual]
+    rw [show {a⫠ ⊗ b'⫠, a ⅋ b} = (a ⅋ b) ::ₘ {a⫠ ⊗ b'⫠} by grind]
     apply Proof.parr
-    rw [show (a⫠ ::ₘ b'⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a⫠} + {b'⫠})) by grind]
+    rw [show (a ::ₘ b ::ₘ {a⫠ ⊗ b'⫠}) = ((a⫠ ⊗ b'⫠) ::ₘ ({a} + {b})) by grind]
     apply Proof.tensor
-    · exact Proof.ax
+    · exact Proof.ax'
     · apply h₂.rwConclusion (by grind)
 
 @[local grind .]
-private lemma Proposition.equiv_parr₂ {a b b' : Proposition Atom} (h : b ≡ b') :
-    a ⅋ b ≡ a ⅋ b' := by sorry
-
-@[local grind .]
 private lemma Proposition.equiv_oplus₁ {a a' b : Proposition Atom} (h : a ≡ a') :
-    a ⊕ b ≡ a' ⊕ b := by sorry
+    a ⊕ b ≡ a' ⊕ b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a⫠ ::ₘ {a' ⊕ b} = (a' ⊕ b) ::ₘ {a⫠} by grind]
+      apply Proof.oplus₁
+      apply h₁.rwConclusion (by grind)
+    · rw [show b⫠ ::ₘ {a' ⊕ b} = (a' ⊕ b) ::ₘ {b⫠} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a'⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {a'⫠} by grind]
+      apply Proof.oplus₁
+      apply h₂.rwConclusion (by grind)
+    · rw [show b⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {b⫠} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax
 
 @[local grind .]
 private lemma Proposition.equiv_oplus₂ {a b b' : Proposition Atom} (h : b ≡ b') :
-    a ⊕ b ≡ a ⊕ b' := by sorry
+    a ⊕ b ≡ a ⊕ b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a⫠ ::ₘ {a ⊕ b'} = (a ⊕ b') ::ₘ {a⫠} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax
+    · rw [show b⫠ ::ₘ {a ⊕ b'} = (a ⊕ b') ::ₘ {b⫠} by grind]
+      apply Proof.oplus₂
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {a⫠} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax
+    · rw [show b'⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {b'⫠} by grind]
+      apply Proof.oplus₂
+      apply h₂.rwConclusion (by grind)
 
 @[local grind .]
 private lemma Proposition.equiv_with₁ {a a' b : Proposition Atom} (h : a ≡ a') :
-    a & b ≡ a' & b := by sorry
+    a & b ≡ a' & b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊕ b⫠, a' & b} = (a' & b) ::ₘ {a⫠ ⊕ b⫠} by grind]
+    apply Proof.with
+    · rw [show a' ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {a'} by grind]
+      apply Proof.oplus₁
+      apply h₁.rwConclusion (by grind)
+    · rw [show b ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {b} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax'
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a'⫠ ⊕ b⫠, a & b} = (a & b) ::ₘ {a'⫠ ⊕ b⫠} by grind]
+    apply Proof.with
+    · rw [show a ::ₘ {a'⫠ ⊕ b⫠} = (a'⫠ ⊕ b⫠) ::ₘ {a} by grind]
+      apply Proof.oplus₁
+      apply h₂.rwConclusion (by grind)
+    · rw [show b ::ₘ {a'⫠ ⊕ b⫠} = (a'⫠ ⊕ b⫠) ::ₘ {b} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax'
 
 @[local grind .]
 private lemma Proposition.equiv_with₂ {a b b' : Proposition Atom} (h : b ≡ b') :
-    a & b ≡ a & b' := by sorry
+    a & b ≡ a & b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊕ b⫠, a & b'} = (a & b') ::ₘ {a⫠ ⊕ b⫠} by grind]
+    apply Proof.with
+    · rw [show a ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {a} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax'
+    · rw [show b' ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {b'} by grind]
+      apply Proof.oplus₂
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊕ b'⫠, a & b} = (a & b) ::ₘ {a⫠ ⊕ b'⫠} by grind]
+    apply Proof.with
+    · rw [show a ::ₘ {a⫠ ⊕ b'⫠} = (a⫠ ⊕ b'⫠) ::ₘ {a} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax'
+    · rw [show b ::ₘ {a⫠ ⊕ b'⫠} = (a⫠ ⊕ b'⫠) ::ₘ {b} by grind]
+      apply Proof.oplus₂
+      apply h₂.rwConclusion (by grind)
 
 @[local grind .]
 private lemma Proposition.equiv_bang {a a' : Proposition Atom} (h : a ≡ a') :
-    !a ≡ !a' := by sorry
+    !a ≡ !a' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {ʔa⫠, !a'} = (!a') ::ₘ {ʔa⫠} by grind]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a' ::ₘ {ʔa⫠} = ʔa⫠ ::ₘ {a'} by grind]
+      apply Proof.quest
+      apply h₁.rwConclusion (by grind)
+  case right => sorry
 
 @[local grind .]
 private lemma Proposition.equiv_quest {a a' : Proposition Atom} (h : a ≡ a') :
