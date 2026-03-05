@@ -35,7 +35,8 @@ def rwConclusion [InferenceSystem α] {Γ Δ : α} (h : Γ = Δ) (p : ⇓Γ) : �
 def Derivable [InferenceSystem α] (a : α) := Nonempty (⇓a)
 
 /-- Shows derivability from a derivation. -/
-def Derivable.fromDerivation [InferenceSystem α] {a : α} (d : ⇓a) : Derivable a := Nonempty.intro d
+theorem Derivable.fromDerivation [InferenceSystem α] {a : α} (d : ⇓a) : Derivable a :=
+  Nonempty.intro d
 
 instance [InferenceSystem α] {a : α} : Coe (⇓a) (Derivable a) := ⟨Derivable.fromDerivation⟩
 
