@@ -632,11 +632,39 @@ private lemma Proposition.equiv_bang {a a' : Proposition Atom} (h : a ≡ a') :
     · rw [show a' ::ₘ {ʔa⫠} = ʔa⫠ ::ₘ {a'} by grind]
       apply Proof.quest
       apply h₁.rwConclusion (by grind)
-  case right => sorry
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {ʔa'⫠, !a} = (!a) ::ₘ {ʔa'⫠} by grind]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a ::ₘ {ʔa'⫠} = ʔa'⫠ ::ₘ {a} by grind]
+      apply Proof.quest
+      apply h₂.rwConclusion (by grind)
 
 @[local grind .]
 private lemma Proposition.equiv_quest {a a' : Proposition Atom} (h : a ≡ a') :
-    ʔa ≡ ʔa' := by sorry
+    ʔa ≡ ʔa' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a⫠ ::ₘ {ʔa'} = ʔa' ::ₘ {a⫠} by grind]
+      apply Proof.quest
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a'⫠ ::ₘ {ʔa} = ʔa ::ₘ {a'⫠} by grind]
+      apply Proof.quest
+      apply h₂.rwConclusion (by grind)
 
 instance : Congruence (Proposition Atom) Proposition.Equiv where
   elim :

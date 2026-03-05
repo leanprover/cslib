@@ -119,8 +119,7 @@ def Context.fill (c : Context Name Constant) (p : Process Name Constant) : Proce
   | choiceR r c => Process.choice r (c.fill p)
   | res a c => Process.res a (c.fill p)
 
-instance : IsContext (Context Name Constant) (Process Name Constant)  (Process Name Constant) :=
-  ⟨Context.fill⟩
+instance : HasContext (Process Name Constant) := ⟨Context Name Constant, Context.fill⟩
 
 /-- Definition of context filling. -/
 @[scoped grind =]
