@@ -85,6 +85,39 @@ variable {Q : Type → Type} {α β : Type}
     simp only [FreeM.bind, queriesOn_liftBind, eval_liftBind, ih (oracle op)]
     omega
 
+/-- Weighted query cost: each query has a cost given by `weight`. -/
+@[expose] def cost (oracle : {ι : Type} → Q ι → ι)
+    (weight : {ι : Type} → Q ι → Nat) : Prog Q α → Nat
+  | .pure _ => 0
+  | .liftBind op cont => weight op + cost oracle weight (cont (oracle op))
+
+-- Simp lemmas for cost
+
+@[simp] theorem cost_pure (oracle : {ι : Type} → Q ι → ι)
+    (weight : {ι : Type} → Q ι → Nat) (a : α) :
+    cost oracle weight (.pure a : Prog Q α) = 0 := rfl
+
+@[simp] theorem cost_liftBind (oracle : {ι : Type} → Q ι → ι)
+    (weight : {ι : Type} → Q ι → Nat) {ι : Type} (op : Q ι) (cont : ι → Prog Q α) :
+    cost oracle weight (.liftBind op cont) =
+      weight op + cost oracle weight (cont (oracle op)) := rfl
+
+@[simp] theorem cost_bind (oracle : {ι : Type} → Q ι → ι)
+    (weight : {ι : Type} → Q ι → Nat) (t : Prog Q α) (f : α → Prog Q β) :
+    cost oracle weight (t.bind f) =
+      cost oracle weight t + cost oracle weight (f (eval oracle t)) := by
+  induction t with
+  | pure a => simp [FreeM.bind]
+  | liftBind op cont ih =>
+    simp only [FreeM.bind, cost_liftBind, eval_liftBind, ih (oracle op)]
+    omega
+
+theorem queriesOn_eq_cost_one (oracle : {ι : Type} → Q ι → ι) (p : Prog Q α) :
+    queriesOn oracle p = cost oracle (fun _ => 1) p := by
+  induction p with
+  | pure a => rfl
+  | liftBind op cont ih => simp [ih (oracle op)]
+
 end Prog
 
 end Cslib.Query
