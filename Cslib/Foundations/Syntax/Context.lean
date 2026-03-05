@@ -24,6 +24,8 @@ class HasHContext (α β : Type*) where
 /-- Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
 (`Context`). -/
 abbrev HasContext (α : Type*) := HasHContext α α
+
+@[inherit_doc HasHContext.Context]
 def HasContext.Context (α : Type*) [HasContext α] : Type* := HasHContext.Context α α
 
 end Cslib
