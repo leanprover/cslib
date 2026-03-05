@@ -40,9 +40,11 @@ def Derivable.fromDerivation [InferenceSystem α] {a : α} (d : ⇓a) : Derivabl
 instance [InferenceSystem α] {a : α} : Coe (⇓a) (Derivable a) := ⟨Derivable.fromDerivation⟩
 
 /-- Extracts (noncomputably) a derivation from the fact that a conclusion is derivable. -/
-noncomputable def Derivable.toDerivation [InferenceSystem α] {a : α} (d : Derivable a) : ⇓a := Classical.choice d
+noncomputable def Derivable.toDerivation [InferenceSystem α] {a : α} (d : Derivable a) : ⇓a :=
+  Classical.choice d
 
-noncomputable instance [InferenceSystem α] {a : α} : Coe (Derivable a) (⇓a) := ⟨Derivable.toDerivation⟩
+noncomputable instance [InferenceSystem α] {a : α} : Coe (Derivable a) (⇓a) :=
+  ⟨Derivable.toDerivation⟩
 
 end InferenceSystem
 
