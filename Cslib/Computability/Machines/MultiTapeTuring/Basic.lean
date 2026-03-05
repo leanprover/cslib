@@ -324,6 +324,10 @@ public lemma configs_isSome_of_haltsAtStep
     (tm.configs tapes t).isSome := by
   grind [haltsAtStep]
 
+/-- The Turing machine `tm` eventually halts starting from any initial tape configuration. -/
+public def HaltsOn (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) : Prop :=
+  ∃ t, tm.haltsAtStep tapes t
+
 /-- Execute the Turing machine `tm` on initial tapes `tapes` and return the resulting tapes
 if it eventually halts. -/
 public def eval (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) :
@@ -358,6 +362,16 @@ public lemma eval_eq_some_iff_transformsTapes
     use h_halts
     have h_eq : Nat.find h_halts = t := halting_step_unique (Nat.find_spec h_halts) h_halts_at_t
     simp [h_eq, h_iter]
+
+/-- Execute the Turing machine `tm` that always halts on initial tapes `tapes` and
+return the resulting tapes. -/
+@[simp]
+public def eval_tot
+  (tm : MultiTapeTM k Symbol)
+  (h_alwaysHalts : ∀ tapes, tm.HaltsOn tapes)
+  (tapes : Fin k → BiTape Symbol) :
+  Fin k → BiTape Symbol :=
+(tm.eval tapes).get (h_alwaysHalts tapes)
 
 end MultiTapeTM
 
