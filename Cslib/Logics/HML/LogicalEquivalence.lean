@@ -71,8 +71,11 @@ instance {State : Type u} {Label : Type v} :
 
 /-- Bundled version of a judgement for `Satisfy`. -/
 structure Satisfies.Judgement (State : Type u) (Label : Type v) where
+  /-- The state transition system to consider. -/
   lts : LTS State Label
+  /-- The state to check the proposition against. -/
   state : State
+  /-- The proposition to check. -/
   φ : Proposition Label
 
 /-- `Satisfies` variant using bundled judgements. -/
@@ -83,7 +86,9 @@ theorem Satisfies.bundled_char : Satisfies.Bundled j ↔ Satisfies j.lts j.state
 
 /-- Judgemental contexts. -/
 structure Satisfies.Context (State : Type u) (Label : Type v) where
+  /-- The state transition system to consider. -/
   lts : LTS State Label
+  /-- The state to check propositions against. -/
   state : State
 
 /-- Fills a judgemental context with a proposition. -/
