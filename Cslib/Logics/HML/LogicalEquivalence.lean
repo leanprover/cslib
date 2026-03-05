@@ -19,9 +19,13 @@ This module defines logical equivalence for HML propositions and instantiates `L
 namespace Cslib.Logic.HML
 
 /-- Logical equivalence for HML propositions. -/
-@[scoped grind =]
 def Proposition.Equiv {State : Type u} {Label : Type v} (a b : Proposition Label) : Prop :=
   ∀ lts : LTS State Label, a.denotation lts = b.denotation lts
+
+@[scoped grind =]
+theorem Proposition.equiv_def {State : Type u} {Label : Type v} (a b : Proposition Label) :
+    Equiv (State := State) a b ↔
+    (∀ lts : LTS State Label, a.denotation lts = b.denotation lts) := by rfl
 
 /-- Propositional contexts. -/
 inductive Proposition.Context (Label : Type u) : Type u where
