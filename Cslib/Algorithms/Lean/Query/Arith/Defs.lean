@@ -9,13 +9,12 @@ public import Cslib.Algorithms.Lean.Query.Prog
 
 /-! # Arithmetic Queries and Complex Multiplication
 
-Demonstrates the `Prog.cost` framework with non-uniform query costs.
-`ArithQuery α` supports addition, subtraction, and multiplication, each with
-independently parametrized costs.
+A simple example showing how to use `Prog.cost` with variable/parametrized query costs.
 
-The motivating example is complex number multiplication, where two algorithms
-(naive and Gauss's trick) trade multiplications for additions. With parametric
-costs `c_add` and `c_mul`, the optimal choice depends on their ratio.
+`ArithQuery α` supports addition, subtraction, and multiplication, each with
+independently parametrized costs. Complex number multiplication provides a toy example
+where two algorithms (naive and Gauss's trick) trade multiplications for additions,
+and the optimal choice depends on the cost ratio.
 -/
 
 open Cslib.Query
