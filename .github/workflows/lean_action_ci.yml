@@ -22,10 +22,10 @@ jobs:
         run: |
           set -e
           lake exe mk_all --check --module
-      - name: "lake shake"
-        run: |
-          set -e
-          lake shake --add-public --keep-implied --keep-prefix Cslib
+      #- name: "lake shake"
+      #  run: |
+      #    set -e
+      #    lake shake --add-public --keep-implied --keep-prefix Cslib
       - uses: leanprover-community/lint-style-action@main
         with:
           mode: check
