@@ -194,10 +194,10 @@ def Sequent.allQuest (Γ : Sequent Atom) :=
   |> Multiset.fold Bool.and true
 
 /-- Judgemental contexts for CLL. -/
-def Sequent.Context Atom := Multiset (Proposition Atom) × Unit
+def Sequent.Context Atom := Sequent Atom
 
 /-- Filling a judgemental context returns a sequent. -/
-def Sequent.Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc.1
+def Sequent.Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc
 
 instance : HasHContext (Sequent Atom) (Proposition Atom) :=
   ⟨Sequent.Context Atom, Sequent.Context.fill⟩
