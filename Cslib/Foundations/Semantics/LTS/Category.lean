@@ -51,10 +51,11 @@ def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
 def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
     LTS.Morphism lts₁ lts₂ → LTS.Morphism lts₂ lts₃ → LTS.Morphism lts₁ lts₃ :=
   fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
-    let r := by intros _ _ _ h
-                apply q
-                apply p
-                exact h
+    let r := by
+      intros _ _ _ h
+      apply q
+      apply p
+      exact h
     ⟨g ∘ f, ν ∘ μ, r⟩
 
 /-- `LTS.Morphism` provides a category structure on bundled LTSs. -/
