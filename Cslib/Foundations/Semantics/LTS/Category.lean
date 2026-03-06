@@ -58,14 +58,11 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
       exact h
     ⟨g ∘ f, ν ∘ μ, r⟩
 
-/-- `LTS.Morphism` provides a category structure on bundled LTSs. -/
-instance : CategoryTheory.CategoryStruct LTSCat where
+/-- Proof that the above structure actually forms a category. -/
+instance : CategoryTheory.Category LTSCat where
   Hom lts₁ lts₂ := LTS.Morphism lts₁ lts₂
   id lts := LTS.Morphism.id lts
   comp {lts₁} {lts₂} {lts₃} f g := @LTS.Morphism.comp lts₁ lts₂ lts₃ f g
-
-/-- Proof that the above structure actually forms a category. -/
-instance : CategoryTheory.Category LTSCat where
   id_comp := by intro _ _ f
                 cases f
                 rfl
