@@ -25,6 +25,7 @@ Sequential combination of Turing machines. Runs `tm₁` and then `tm₂` on the 
 -/
 public def seq (tm₁ tm₂ : MultiTapeTM k Symbol) : MultiTapeTM k Symbol := sorry
 
+@[simp]
 public theorem seq_eval
   (tm₁ tm₂ : MultiTapeTM k Symbol)
   (tapes₀ : Fin k → BiTape Symbol) :

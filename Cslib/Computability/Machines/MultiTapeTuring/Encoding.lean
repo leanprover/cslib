@@ -52,6 +52,16 @@ public class StrEnc (α : Type*) where
   /-- For non-recursive inductive types: `fieldDepths[i][j] = StrEnc.depth` of the `j`-th field
       of the `i`-th constructor. -/
   fieldDepths : Array (Array ℕ)
+  /-- Maps a value to the index of the constructor used to build it.
+      For non-inductive types (e.g. `ℕ`, `List`), this is `fun _ => 0`. -/
+  ctorIndex : α → ℕ
+  /-- For inductive types, the inner encoding starts with the encoded
+      constructor index: `encInner x = enc (ctorIndex x) ++ encFields x`.
+      This is trivially true for types with `fieldDepths = #[]`. -/
+  encFields : α → List Char
+  hEncInner : ∀ w, fieldDepths.size > 0 →
+    encInner w =
+      (['('] ++ dyadic (ctorIndex w) ++ [')']) ++ encFields w
   hDepth : ∀ w, parenDepth (encInner w) ≤ depth
   hInj : encInner.Injective
 
@@ -68,6 +78,9 @@ public instance (α : Type*) [StrEnc α] : StrEnc (List α) where
   encInner l := List.flatten (l.map StrEnc.enc)
   maxDepth := (StrEnc.maxDepth α) + 1
   fieldDepths := [].toArray
+  ctorIndex := fun _ => 0
+  encFields := fun _ => []
+  hEncInner := by simp [Array.size]
   hDepth := sorry
   hInj := sorry
 
@@ -75,6 +88,9 @@ public instance : StrEnc ℕ where
   encInner := dyadic
   maxDepth := 0
   fieldDepths := [].toArray
+  ctorIndex := fun _ => 0
+  encFields := fun _ => []
+  hEncInner := by simp [Array.size]
   hDepth := by sorry -- TODO use parenDepth_of_no_parens
   hInj := sorry
 
@@ -84,6 +100,11 @@ public instance : StrEnc Bool where
     | true => StrEnc.enc 1
   maxDepth := 1
   fieldDepths := #[#[], #[]]
+  ctorIndex
+    | false => 0
+    | true => 1
+  encFields := fun _ => []
+  hEncInner := by sorry
   hDepth := sorry
   hInj := sorry
 

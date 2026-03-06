@@ -26,6 +26,13 @@ instance : StrEnc Literal where
     | Literal.neg v => (StrEnc.enc 1) ++ (StrEnc.enc v)
   maxDepth := 1
   fieldDepths := #[#[StrEnc.maxDepth ℕ], #[StrEnc.maxDepth ℕ]]
+  ctorIndex
+    | Literal.pos _ => 0
+    | Literal.neg _ => 1
+  encFields
+    | Literal.pos v => StrEnc.enc v
+    | Literal.neg v => StrEnc.enc v
+  hEncInner := by sorry
   hDepth := sorry
   hInj := sorry
 
@@ -43,7 +50,12 @@ instance : StrEnc SATInput where
   encInner
     | SATInput.mk f a => (StrEnc.enc 0) ++ (StrEnc.enc f) ++ (StrEnc.enc a)
   maxDepth := StrEnc.maxDepth Formula + 1
-  fieldDepths := #[#[StrEnc.maxDepth Formula, StrEnc.maxDepth Assignments]]
+  fieldDepths :=
+    #[#[StrEnc.maxDepth Formula, StrEnc.maxDepth Assignments]]
+  ctorIndex := fun _ => 0
+  encFields
+    | SATInput.mk f a => StrEnc.enc f ++ StrEnc.enc a
+  hEncInner := by sorry
   hDepth := sorry
   hInj := sorry
 

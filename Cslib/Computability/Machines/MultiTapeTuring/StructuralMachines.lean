@@ -117,7 +117,7 @@ public def put {k : ℕ} (α : Type*) [StrEnc α] (x : α) (i : Fin k) :
 @[simp]
 public lemma put_eval {k : ℕ} {α : Type*} [StrEnc α] {x : α} {i : Fin k}
   {tapes : Fin k → BiTape Char}
-  {l r : List Char}
+  {r : List Char}
   (h_tape : tapes i = BiTape.mk₁ r) :
   (put α x i).eval tapes = .some (Function.update tapes i
       (BiTape.mk₁ ((StrEnc.enc x) ++ r))) := by sorry
@@ -177,10 +177,10 @@ public def erase {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k) :
 public lemma erase_eval {k : ℕ} {α : Type*} [StrEnc α] {i : Fin k}
   {tapes : Fin k → BiTape Char}
   {x : α}
-  {l r : List Char}
-  (h_tape : tapes i = BiTape.mk₂ l ((StrEnc.enc x) ++ r)) :
+  {r : List Char}
+  (h_tape : tapes i = BiTape.mk₁ ((StrEnc.enc x) ++ r)) :
   (erase α i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₂ l r)) := by sorry
+      (BiTape.mk₁ r)) := by sorry
 
 /--
 Prepend an item to a StrEnc-encoded list on tape `i`.
@@ -224,9 +224,50 @@ public lemma popEnc_eval_nil {k : ℕ} {α : Type*} [StrEnc α] {i : Fin k}
 Dispatch on the constructor of a StrEnc-encoded value on tape `i`.
 Reads the constructor index, positions the head at the first argument,
 runs the corresponding branch, then repositions the head at the start of the encoding.
+Requires `StrEnc.fieldDepths.size > 0` (i.e., the type is inductive).
 -/
 public def case {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
     (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
+
+/-- Generic `case` eval: dispatches to `branches[ctorIndex x]`. -/
+@[simp]
+public lemma case_eval {α : Type*} [StrEnc α] {i : Fin k}
+    {branches : List (MultiTapeTM k Char)}
+    {tapes : Fin k → BiTape Char}
+    {x : α}
+    {r : List Char}
+    (h_tape : tapes i = BiTape.mk₁ (StrEnc.enc x ++ r))
+    (h_idx : StrEnc.ctorIndex x < branches.length) :
+    (case α i branches).eval tapes =
+      branches[StrEnc.ctorIndex x].eval tapes := by sorry
+
+/-- `case` on a `false` value dispatches to the first branch. -/
+@[simp]
+public lemma case_Bool_false_eval {i : Fin k}
+    {tm₀ : MultiTapeTM k Char} {tms : List (MultiTapeTM k Char)}
+    {tapes : Fin k → BiTape Char}
+    {r : List Char}
+    (h_tape : tapes i = BiTape.mk₁ (StrEnc.enc false ++ r)) :
+    (case Bool i (tm₀ :: tms)).eval tapes = tm₀.eval tapes := by
+  have h_idx : StrEnc.ctorIndex false < (tm₀ :: tms).length :=
+    Nat.zero_lt_succ _
+  rw [case_eval (x := false) h_tape h_idx]
+  rfl
+
+/-- `case` on a `true` value dispatches to the second branch. -/
+@[simp]
+public lemma case_Bool_true_eval {i : Fin k}
+    {tm₀ tm₁ : MultiTapeTM k Char}
+    {tms : List (MultiTapeTM k Char)}
+    {tapes : Fin k → BiTape Char}
+    {r : List Char}
+    (h_tape : tapes i = BiTape.mk₁ (StrEnc.enc true ++ r)) :
+    (case Bool i (tm₀ :: tm₁ :: tms)).eval tapes =
+      tm₁.eval tapes := by
+  have h_idx : StrEnc.ctorIndex true < (tm₀ :: tm₁ :: tms).length := by
+    simp [show StrEnc.ctorIndex true = 1 from rfl]
+  rw [case_eval (x := true) h_tape h_idx]
+  rfl
 
 /--
 Copy a StrEnc-encoded value of type `α` from tape `i` to tape `j`
@@ -275,25 +316,110 @@ public lemma isEq_eval {k : ℕ} {α : Type*} [StrEnc α] [DecidableEq α]
     (Function.update tapes result
       (BiTape.mk₁ ((StrEnc.enc (decide (x = y))) ++ rₖ))) := by sorry
 
-/--
-Execute a Turing machine `tm` on every item in the StrEnc-encoded list on tape `i`,
-assuming the state of tape `i` is reset by `tm`.
-`run_list α i tm = right i ;ₜ while_neq ')' i (tm ;ₜ skipRight α i) ;ₜ while_neq '(' i (skipLeft α i)`
--/
-public def run_list {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
-    (tm : MultiTapeTM k Char) : MultiTapeTM k Char :=
-  right i ;ₜ while_neq ')' i (tm ;ₜ skipRight α i) ;ₜ
-    while_neq '(' i (skipLeft α i)
+@[simp]
+private lemma Function.update_update {α : Type*} {β : Type*}
+    [DecidableEq α] {f : α → β} {a : α} {b c : β} :
+    Function.update (Function.update f a b) a c =
+      Function.update f a c := by
+  ext x; simp [Function.update]; split <;> rfl
+
+@[simp]
+private lemma part_some_bind_eq {α : Type u}
+    {a : α} {f : α → Part α} :
+    Part.some a >>= f = f a := by
+  change (Part.some a).bind f = f a
+  exact Part.bind_some a f
 
 /-- Combine two Bool values using logical OR.
     `combineOr j = case Bool j [erase Bool j, erase Bool j ;ₜ erase Bool j ;ₜ put Bool true j]` -/
 public def combineOr {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
   case Bool j [erase Bool j, erase Bool j ;ₜ erase Bool j ;ₜ put Bool true j]
 
-/-- Negate a Bool value on tape `j`.
-    `negateBool j = case Bool j [erase Bool j ;ₜ put Bool true j, erase Bool j ;ₜ put Bool false j]` -/
+@[simp]
+public lemma combineOr_eval {j : Fin k} {b₁ b₂ : Bool}
+    {tapes : Fin k → BiTape Char}
+    {r : List Char}
+    (h_tape : tapes j = BiTape.mk₁ (StrEnc.enc b₁ ++ StrEnc.enc b₂ ++ r)) :
+    (combineOr j).eval tapes = .some (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc (b₁ || b₂) ++ r))) := by
+  unfold combineOr
+  have h_assoc : tapes j = BiTape.mk₁ (StrEnc.enc b₁ ++ (StrEnc.enc b₂ ++ r)) := by
+    simp only [List.append_assoc] at h_tape; exact h_tape
+  cases b₁ with
+  | false =>
+    simp only [Bool.false_or, case_Bool_false_eval h_assoc,
+      erase_eval (x := false) h_assoc]
+  | true =>
+    simp only [Bool.true_or, case_Bool_true_eval h_assoc,
+      MultiTapeTM.seq_eval,
+      erase_eval (x := true) h_assoc, part_some_bind_eq,
+      erase_eval (x := b₂) (Function.update_self j _ tapes),
+      Function.update_update,
+      put_eval (x := true) (Function.update_self j _ tapes)]
+
+/-- Negate a Bool value on tape `j`. -/
 public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
-  case Bool j [erase Bool j ;ₜ put Bool true j, erase Bool j ;ₜ put Bool false j]
+  case Bool j
+    [erase Bool j ;ₜ put Bool true j,
+     erase Bool j ;ₜ put Bool false j]
+
+@[simp]
+public lemma negateBool_eval {j : Fin k} {b : Bool}
+    {tapes : Fin k → BiTape Char}
+    {r : List Char}
+    (h_tape : tapes j = BiTape.mk₁ (StrEnc.enc b ++ r)) :
+    (negateBool j).eval tapes = .some (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc (!b) ++ r))) := by
+  unfold negateBool
+  cases b with
+  | false =>
+    simp only [Bool.not_false, case_Bool_false_eval h_tape,
+      MultiTapeTM.seq_eval,
+      erase_eval (x := false) h_tape, part_some_bind_eq,
+      put_eval (x := true) (Function.update_self j _ tapes),
+      Function.update_update]
+  | true =>
+    simp only [Bool.not_true, case_Bool_true_eval h_tape,
+      MultiTapeTM.seq_eval,
+      erase_eval (x := true) h_tape, part_some_bind_eq,
+      put_eval (x := false) (Function.update_self j _ tapes),
+      Function.update_update]
+
+/--
+Execute a Turing machine `tm` on every item in the StrEnc-encoded list on tape `i`,
+assuming the state of tape `i` is reset by `tm`.
+-/
+public def run_list {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
+    (tm : MultiTapeTM k Char) : MultiTapeTM k Char :=
+  right i ;ₜ while_neq ')' i (tm ;ₜ skipRight α i) ;ₜ
+    while_neq '(' i (skipLeft α i)
+
+/--
+After `run_list α i (tm ;ₜ combineOr j)` processes a list `xs` on tape `i`,
+with an initial boolean accumulator `b₀` on tape `j`, the result on tape `j` is
+`enc(xs.any f || b₀)`, where `f` is the boolean function computed by `tm`.
+Tape `i` is restored to its original state.
+-/
+@[simp]
+public lemma run_list_combineOr_eval {α : Type*} [StrEnc α] {i j : Fin k}
+    (h_ne : i ≠ j)
+    {tm : MultiTapeTM k Char}
+    {xs : List α} {f : α → Bool} {b₀ : Bool}
+    {tapes : Fin k → BiTape Char}
+    {r_i r_j : List Char}
+    (h_tape_i : tapes i = BiTape.mk₁ (StrEnc.enc xs ++ r_i))
+    (h_tape_j : tapes j = BiTape.mk₁ (StrEnc.enc b₀ ++ r_j))
+    (h_halts : ∀ tapes,
+      (tm ;ₜ combineOr j ;ₜ skipRight α i).HaltsOn tapes)
+    (h_tm : ∀ (x : α) (t : Fin k → BiTape Char)
+      (l r : List Char) (b : Bool) (r' : List Char),
+      t i = BiTape.mk₂ l (StrEnc.enc x ++ r) →
+      t j = BiTape.mk₁ (StrEnc.enc b ++ r') →
+      ∃ t', tm.eval t = .some t' ∧ t' i = t i ∧
+        t' j = BiTape.mk₁ (StrEnc.enc (f x) ++ StrEnc.enc b ++ r')) :
+    (run_list α i (tm ;ₜ combineOr j)).eval tapes = .some (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc (xs.any f || b₀) ++ r_j))) := by sorry
+
 
 /--
 Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
@@ -305,6 +431,43 @@ public def any_list {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
   put Bool false j ;ₜ run_list α i (tm ;ₜ combineOr j)
 
 /--
+Semantics of `any_list`: given a list `xs` on tape `i` and a TM `tm` that for each
+element `x` prepends `enc(f x)` to tape `j`, `any_list` produces `enc(xs.any f)`
+on tape `j`.
+-/
+@[simp]
+public lemma any_list_eval {α : Type*} [StrEnc α] {i j : Fin k}
+    (h_ne : i ≠ j)
+    {tm : MultiTapeTM k Char}
+    {xs : List α} {f : α → Bool}
+    {tapes : Fin k → BiTape Char}
+    {r_i r_j : List Char}
+    (h_tape_i : tapes i = BiTape.mk₁ (StrEnc.enc xs ++ r_i))
+    (h_tape_j : tapes j = BiTape.mk₁ r_j)
+    (h_halts : ∀ tapes, (tm ;ₜ combineOr j ;ₜ skipRight α i).HaltsOn tapes)
+    (h_tm : ∀ (x : α) (t : Fin k → BiTape Char) (l r : List Char) (b : Bool) (r' : List Char),
+      t i = BiTape.mk₂ l (StrEnc.enc x ++ r) →
+      t j = BiTape.mk₁ (StrEnc.enc b ++ r') →
+      ∃ t', tm.eval t = .some t' ∧ t' i = t i ∧
+        t' j = BiTape.mk₁ (StrEnc.enc (f x) ++ StrEnc.enc b ++ r')) :
+    (any_list α i tm j).eval tapes = .some (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc (xs.any f) ++ r_j))) := by
+  unfold any_list
+  simp only [MultiTapeTM.seq_eval,
+    put_eval (x := false) h_tape_j, part_some_bind_eq]
+  have h_i' : (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc false ++ r_j))) i =
+      BiTape.mk₁ (StrEnc.enc xs ++ r_i) := by
+    rw [Function.update_of_ne h_ne]; exact h_tape_i
+  have h_j' : (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc false ++ r_j))) j =
+      BiTape.mk₁ (StrEnc.enc false ++ r_j) :=
+    Function.update_self j
+      (BiTape.mk₁ (StrEnc.enc false ++ r_j)) tapes
+  rw [run_list_combineOr_eval h_ne h_i' h_j' h_halts h_tm]
+  simp only [Bool.or_false, Function.update_update]
+
+/--
 Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
 value to tape `j`, and compute the logical AND of the results across the list.
 `all_list α i tm j = any_list α i (tm ;ₜ negateBool j) j ;ₜ negateBool j`
@@ -312,6 +475,35 @@ value to tape `j`, and compute the logical AND of the results across the list.
 public def all_list {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
     (tm : MultiTapeTM k Char) (j : Fin k) : MultiTapeTM k Char :=
   any_list α i (tm ;ₜ negateBool j) j ;ₜ negateBool j
+
+/--
+Semantics of `all_list`: given a list `xs` on tape `i` and a TM `tm` that for each
+element `x` prepends `enc(f x)` to tape `j`, `all_list` produces `enc(xs.all f)`
+on tape `j`.
+-/
+@[simp]
+public lemma all_list_eval {α : Type*} [StrEnc α] {i j : Fin k}
+    (h_ne : i ≠ j)
+    {tm : MultiTapeTM k Char}
+    {xs : List α} {f : α → Bool}
+    {tapes : Fin k → BiTape Char}
+    {r_i r_j : List Char}
+    (h_tape_i : tapes i = BiTape.mk₁ (StrEnc.enc xs ++ r_i))
+    (h_tape_j : tapes j = BiTape.mk₁ r_j)
+    (h_halts : ∀ tapes,
+      (tm ;ₜ negateBool j ;ₜ combineOr j ;ₜ skipRight α i).HaltsOn tapes)
+    (h_tm : ∀ (x : α) (t : Fin k → BiTape Char) (l r : List Char) (b : Bool) (r' : List Char),
+      t i = BiTape.mk₂ l (StrEnc.enc x ++ r) →
+      t j = BiTape.mk₁ (StrEnc.enc b ++ r') →
+      ∃ t', (tm ;ₜ negateBool j).eval t = .some t' ∧ t' i = t i ∧
+        t' j = BiTape.mk₁ (StrEnc.enc (!(f x)) ++ StrEnc.enc b ++ r')) :
+    (all_list α i tm j).eval tapes = .some (Function.update tapes j
+      (BiTape.mk₁ (StrEnc.enc (xs.all f) ++ r_j))) := by
+  unfold all_list
+  simp only [MultiTapeTM.seq_eval,
+    any_list_eval h_ne h_tape_i h_tape_j h_halts h_tm, part_some_bind_eq,
+    negateBool_eval (Function.update_self j _ tapes),
+    Function.update_update, List.all_eq_not_any_not, Bool.not_not]
 
 /--
 Check if the value on tape `i` is contained in the list on tape `j`
