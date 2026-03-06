@@ -89,11 +89,15 @@ end SingleTapeTM
 A single-tape Turing machine
 over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
 -/
-structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
+structure SingleTapeTM Symbol where
+  /-- Inhabited instance for the alphabet -/
+  [SymbolInhabited : Inhabited Symbol]
+  /-- Finiteness of the alphabet -/
+  [SymbolFintype : Fintype Symbol]
   /-- type of state labels -/
   (State : Type)
   /-- finiteness of the state type -/
-  [stateFintype : Fintype State]
+  [StateFintype : Fintype State]
   /-- Initial state -/
   (q₀ : State)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
@@ -112,11 +116,11 @@ the step function that lets the machine transition from one configuration to the
 and the intended initial and final configurations.
 -/
 
-variable [Inhabited Symbol] [Fintype Symbol] (tm : SingleTapeTM Symbol)
+variable (tm : SingleTapeTM Symbol)
 
 instance : Inhabited tm.State := ⟨tm.q₀⟩
 
-instance : Fintype tm.State := tm.stateFintype
+instance : Fintype tm.State := tm.StateFintype
 
 instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
 
@@ -186,8 +190,6 @@ end Cfg
 
 open Cfg
 
-variable [Inhabited Symbol] [Fintype Symbol]
-
 /--
 The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
 is defined by the `step` function,
@@ -195,6 +197,42 @@ which maps a configuration to its next configuration, if it exists.
 -/
 @[scoped grind =]
 def TransitionRelation (tm : SingleTapeTM Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
+
+/-- The transition relation is deterministic: each configuration has at most
+one successor, since `step` is a function. -/
+lemma TransitionRelation_deterministic (tm : SingleTapeTM Symbol)
+    (a b c : tm.Cfg) (hab : tm.TransitionRelation a b) (hac : tm.TransitionRelation a c) :
+    b = c := by
+  simp only [TransitionRelation] at hab hac
+  rw [hab] at hac
+  exact Option.some.inj hac
+
+/-- No transitions from a halted configuration (state = none). -/
+lemma no_step_from_halt (tm : SingleTapeTM Symbol) (cfg cfg' : tm.Cfg)
+    (h : cfg.state = none) : ¬tm.TransitionRelation cfg cfg' := by
+  simp only [TransitionRelation, step]
+  cases cfg with | mk state tape => subst h; simp
+
+/-- In a deterministic relation where the endpoint has no successors,
+any chain starting from the same origin has length at most `n`. -/
+lemma reachable_steps_le_halting_steps (tm : SingleTapeTM Symbol)
+    {a b : tm.Cfg} {n : ℕ} (hab : RelatesInSteps tm.TransitionRelation a b n)
+    (hhalt : ∀ cfg', ¬tm.TransitionRelation b cfg')
+    {c : tm.Cfg} {m : ℕ} (hac : RelatesInSteps tm.TransitionRelation a c m) :
+    m ≤ n := by
+  induction m generalizing a n with
+  | zero => omega
+  | succ k ih =>
+    obtain ⟨a', ha_a', hac'⟩ := hac.succ'
+    match n, hab with
+    | 0, hab =>
+      have := hab.zero; subst this
+      exact absurd ha_a' (hhalt a')
+    | n'+1, hab =>
+      obtain ⟨a'', ha_a'', hab'⟩ := hab.succ'
+      have := TransitionRelation_deterministic tm a a' a'' ha_a' ha_a''
+      subst this
+      exact Nat.succ_le_succ (ih hab' hac')
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
 def Outputs (tm : SingleTapeTM Symbol) (l l' : List Symbol) : Prop :=
@@ -219,6 +257,8 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : 
       fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
 
 section Computers
+
+variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine computing the identity. -/
 def idComputer : SingleTapeTM Symbol where
@@ -375,6 +415,38 @@ end compComputerLemmas
 end Computers
 
 /-!
+## Monotone Envelope
+
+The running maximum of a function, used to convert arbitrary time bounds
+into monotone time bounds without changing the underlying Turing machine.
+-/
+
+/-- The running maximum of `f`: `monotoneEnvelope f n = max (f 0) (f 1) ⋯ (f n)`. -/
+def monotoneEnvelope (f : ℕ → ℕ) : ℕ → ℕ
+  | 0 => f 0
+  | n + 1 => max (monotoneEnvelope f n) (f (n + 1))
+
+theorem monotoneEnvelope_mono (f : ℕ → ℕ) : Monotone (monotoneEnvelope f) := by
+  intro a b hab
+  induction hab with
+  | refl => exact le_refl _
+  | step _ ih => exact le_trans ih (le_max_left _ _)
+
+theorem le_monotoneEnvelope (f : ℕ → ℕ) (n : ℕ) : f n ≤ monotoneEnvelope f n := by
+  cases n with
+  | zero => exact le_refl _
+  | succ n => exact le_max_right _ _
+
+theorem monotoneEnvelope_le_of_le_monotone {f g : ℕ → ℕ}
+    (hle : ∀ n, f n ≤ g n) (hg : Monotone g) (n : ℕ) :
+    monotoneEnvelope f n ≤ g n := by
+  induction n with
+  | zero => exact hle 0
+  | succ n ih =>
+    simp only [monotoneEnvelope]
+    exact max_le (le_trans ih (hg (Nat.le_succ n))) (hle (n + 1))
+
+/-!
 ## Time Computability
 
 This section defines the notion of time-bounded Turing Machines
@@ -401,6 +473,15 @@ def TimeComputable.id : TimeComputable (Symbol := Symbol) id where
   time_bound _ := 1
   outputsFunInTime _ := ⟨1, le_rfl, RelatesInSteps.single rfl⟩
 
+/-- Convert a `TimeComputable` to one with a monotone time bound,
+using the same TM but replacing the time bound with its monotone envelope. -/
+def TimeComputable.toMonotone {f : List Symbol → List Symbol}
+    (hf : TimeComputable f) : TimeComputable f where
+  tm := hf.tm
+  time_bound := monotoneEnvelope hf.time_bound
+  outputsFunInTime a := RelatesWithinSteps.of_le
+    (hf.outputsFunInTime a) (le_monotoneEnvelope hf.time_bound a.length)
+
 /--
 Time bounds for `compComputer`.
 
@@ -410,46 +491,44 @@ The `compComputer` of two machines which have time bounds is bounded by
 * added to the time taken by the second machine on the output size of the first machine
   (which is itself bounded by the time taken by the first machine)
 
-Note that we require the time function of the second machine to be monotone;
-this is to ensure that if the first machine returns an output
-which is shorter than the maximum possible length of output for that input size,
-then the time bound for the second machine still holds for that shorter input to the second machine.
+The time bound of the second machine is automatically made monotone using
+`monotoneEnvelope`, so the caller does not need to supply a monotonicity proof.
 -/
 def TimeComputable.comp {f g : List Symbol → List Symbol}
-    (hf : TimeComputable f) (hg : TimeComputable g)
-    (h_mono : Monotone hg.time_bound) :
-    (TimeComputable (g ∘ f)) where
-  tm := compComputer hf.tm hg.tm
-  -- perhaps it would be good to track the blow up separately?
-  time_bound l := (hf.time_bound l) + hg.time_bound (max 1 l + hf.time_bound l)
-  outputsFunInTime a := by
-    have hf_outputsFun := hf.outputsFunInTime a
-    have hg_outputsFun := hg.outputsFunInTime (f a)
-    simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
-      haltCfg] at hg_outputsFun hf_outputsFun ⊢
-    -- The computer reduces a to f a in time hf.time_bound a.length
-    have h_a_reducesTo_f_a :
-        RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-          (initialCfg hf.tm hg.tm a)
-          (intermediateCfg hf.tm hg.tm (f a))
-          (hf.time_bound a.length) :=
-      comp_left_relatesWithinSteps hf.tm hg.tm a (f a)
-        (hf.time_bound a.length) hf_outputsFun
-    -- The computer reduces f a to g (f a) in time hg.time_bound (f a).length
-    have h_f_a_reducesTo_g_f_a :
-        RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-          (intermediateCfg hf.tm hg.tm (f a))
-          (finalCfg hf.tm hg.tm (g (f a)))
-          (hg.time_bound (f a).length) :=
-      comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a))
-        (hg.time_bound (f a).length) hg_outputsFun
-    -- Therefore, the computer reduces a to g (f a) in the sum of those times.
-    have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
-    apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
-    refine Nat.add_le_add_left ?_ (hf.time_bound a.length)
-    · apply h_mono
-      -- Use the lemma about output length being bounded by input length + time
-      exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a)
+    (hf : TimeComputable f) (hg : TimeComputable g) :
+    (TimeComputable (g ∘ f)) :=
+  let hg' := hg.toMonotone
+  { tm := compComputer hf.tm hg'.tm
+    -- perhaps it would be good to track the blow up separately?
+    time_bound := fun l => (hf.time_bound l) + hg'.time_bound (max 1 l + hf.time_bound l)
+    outputsFunInTime := fun a => by
+      have hf_outputsFun := hf.outputsFunInTime a
+      have hg_outputsFun := hg'.outputsFunInTime (f a)
+      simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
+        haltCfg] at hg_outputsFun hf_outputsFun ⊢
+      -- The computer reduces a to f a in time hf.time_bound a.length
+      have h_a_reducesTo_f_a :
+          RelatesWithinSteps (compComputer hf.tm hg'.tm).TransitionRelation
+            (initialCfg hf.tm hg'.tm a)
+            (intermediateCfg hf.tm hg'.tm (f a))
+            (hf.time_bound a.length) :=
+        comp_left_relatesWithinSteps hf.tm hg'.tm a (f a)
+          (hf.time_bound a.length) hf_outputsFun
+      -- The computer reduces f a to g (f a) in time hg'.time_bound (f a).length
+      have h_f_a_reducesTo_g_f_a :
+          RelatesWithinSteps (compComputer hf.tm hg'.tm).TransitionRelation
+            (intermediateCfg hf.tm hg'.tm (f a))
+            (finalCfg hf.tm hg'.tm (g (f a)))
+            (hg'.time_bound (f a).length) :=
+        comp_right_relatesWithinSteps hf.tm hg'.tm (f a) (g (f a))
+          (hg'.time_bound (f a).length) hg_outputsFun
+      -- Therefore, the computer reduces a to g (f a) in the sum of those times.
+      have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
+      apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
+      refine Nat.add_le_add_left ?_ (hf.time_bound a.length)
+      · apply monotoneEnvelope_mono
+        -- Use the lemma about output length being bounded by input length + time
+        exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a) }
 
 end TimeComputable
 
@@ -468,6 +547,17 @@ section PolyTimeComputable
 
 open Polynomial
 
+/-- Evaluation of a polynomial with natural number coefficients is monotone. -/
+private theorem poly_eval_nat_mono (p : Polynomial ℕ) : Monotone (fun n => p.eval n) := by
+  intro a b hab
+  induction p using Polynomial.induction_on' with
+  | add p q ihp ihq =>
+    simp only [eval_add]
+    exact Nat.add_le_add (ihp) (ihq)
+  | monomial n c =>
+    simp only [eval_monomial]
+    exact Nat.mul_le_mul_left c (pow_le_pow_left' hab n)
+
 variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine + a polynomial time function +
@@ -479,27 +569,32 @@ structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeCompu
   bounds : ∀ n, time_bound n ≤ poly.eval n
 
 /-- A proof that the identity map on Symbol is computable in polytime. -/
-noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) id where
+noncomputable def PolyTimeComputable.id : @PolyTimeComputable (Symbol := Symbol) id where
   toTimeComputable := TimeComputable.id
   poly := 1
   bounds _ := by simp [TimeComputable.id]
 
--- TODO remove `h_mono` assumption
--- by developing function to convert PolyTimeComputable into one with monotone time bound
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
+
+The monotonicity of time bounds is handled internally via `monotoneEnvelope`,
+so no monotonicity assumption is needed from the caller.
 -/
 noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
-    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
-    (h_mono : Monotone hg.time_bound) :
+    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g) :
     PolyTimeComputable (g ∘ f) where
-  toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
+  toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable
   poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
   bounds n := by
-    simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
+    simp only [TimeComputable.comp, TimeComputable.toMonotone, eval_add, eval_comp, eval_X,
+      eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (hg.bounds _)
+    · calc monotoneEnvelope hg.time_bound (max 1 n + hf.time_bound n)
+          _ ≤ hg.poly.eval (max 1 n + hf.time_bound n) :=
+            monotoneEnvelope_le_of_le_monotone hg.bounds (poly_eval_nat_mono hg.poly) _
+          _ ≤ hg.poly.eval (1 + n + hf.poly.eval n) :=
+            poly_eval_nat_mono hg.poly (add_le_add (by omega) (hf.bounds n))
 
 end PolyTimeComputable
 
