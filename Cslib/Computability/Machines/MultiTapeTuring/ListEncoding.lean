@@ -206,6 +206,9 @@ public def dya (n : ℕ) : List OneTwo :=
 public def dya_inv : List OneTwo → ℕ := sorry
 
 @[simp, grind =]
+public lemma dya_zero : dya 0 = [] := by simp [dya]
+
+@[simp, grind =]
 public lemma dya_inv_zero : dya_inv [] = 0 := by
   sorry
 

@@ -78,6 +78,9 @@ def mk₁ (l : List Symbol) : BiTape Symbol :=
   | [] => ∅
   | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
 
+def mk₂ (l r : List Symbol) : BiTape Symbol :=
+  ⟨r.head?, StackTape.map_some l, StackTape.map_some r.tail ⟩
+
 section Move
 
 /--
