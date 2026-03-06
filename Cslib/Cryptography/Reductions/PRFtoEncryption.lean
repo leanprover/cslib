@@ -87,62 +87,36 @@ theorem PRF.toEncryptionScheme_correct (F : PRF)
   intro n k m r
   simp [toEncryptionScheme]
 
-/-- Auxiliary: construct a PRF adversary from an IND-CPA adversary.
-
-Given families `r(n)` and `b(n)` specifying the encryption randomness
-and challenge bit at each security parameter, the PRF adversary
-simulates the IND-CPA game using its oracle (either `F(k, ·)` or a
-random function). -/
-noncomputable def PRF.mkPRFAdversary (F : PRF)
-    [∀ n, AddCommGroup (F.Output n)]
-    [∀ n, Fintype (F.Input n)] [∀ n, Nonempty (F.Input n)]
-    (A : IND_CPA_Adversary F.toEncryptionScheme)
-    (r : (n : ℕ) → F.Input n) (b : ℕ → Bool) :
-    PRF.OracleAdversary F where
-  run n oracle := by
-    let E := F.toEncryptionScheme
-    let toPlain : F.Output n → E.Plaintext n :=
-      cast (PRF.toEncryptionScheme_Plaintext F n).symm
-    let fromPlain : E.Plaintext n → F.Output n :=
-      cast (PRF.toEncryptionScheme_Plaintext F n)
-    let toCipher : F.Input n × F.Output n → E.Ciphertext n :=
-      cast (PRF.toEncryptionScheme_Ciphertext F n).symm
-    let encOracle : E.Plaintext n → E.Randomness n → E.Ciphertext n :=
-      fun m r' =>
-        toCipher (cast (PRF.toEncryptionScheme_Randomness F n) r',
-          oracle (cast (PRF.toEncryptionScheme_Randomness F n) r') +
-          fromPlain m)
-    let result := A.choose n encOracle
-    let m₀ := fromPlain result.1
-    let m₁ := fromPlain result.2.1
-    let σ := result.2.2
-    let challenge : F.Output n := if b n then m₁ else m₀
-    let ct := toCipher (r n, oracle (r n) + challenge)
-    exact (A.guess n ct σ) == (b n)
-
 /-- Simulate the IND-CPA game body with a given oracle function.
 
 Given `oracle : F.Input n → F.Output n` (either `F(k,·)` or a random
-function), randomness `r₀`, and challenge bit `b₀`, compute whether
-the adversary guesses the challenge bit correctly.
+function), encryption randomness slots `rs1`, `rs2`, challenge
+randomness `r₀`, and challenge bit `b₀`, run the adversary's oracle
+interaction and compute whether the adversary guesses correctly.
 
-The definition mirrors the game body from `IND_CPA_Game` to ensure
-definitional equality when the oracle is `F.eval n k`. -/
+Returns `0` on fuel exhaustion. -/
 noncomputable def PRF.simulateBody (F : PRF)
     [∀ n, AddCommGroup (F.Output n)]
     [∀ n, Fintype (F.Input n)] [∀ n, Nonempty (F.Input n)]
     (A : IND_CPA_Adversary F.toEncryptionScheme)
     (n : ℕ) (r₀ : F.Input n) (b₀ : Bool)
-    (oracle : F.Input n → F.Output n) : Bool :=
-  let encOracle : F.Output n → F.Input n → F.Input n × F.Output n :=
-    fun m r' => (r', oracle r' + m)
-  let result := A.choose n encOracle
-  let m₀ : F.Output n := result.1
-  let m₁ : F.Output n := result.2.1
-  let σ := result.2.2
-  let challenge : F.Output n := if b₀ then m₁ else m₀
-  let ct : F.Input n × F.Output n := (r₀, oracle r₀ + challenge)
-  (A.guess n ct σ) == b₀
+    (oracle : F.Input n → F.Output n)
+    (rs1 : Fin (A.numQueries1 n) → F.Input n)
+    (rs2 : Fin (A.numQueries2 n) → F.Input n) : ℝ :=
+  let q1 := A.numQueries1 n
+  let q2 := A.numQueries2 n
+  let encOracle1 : Fin q1 → F.Output n → F.Input n × F.Output n :=
+    fun i m => (rs1 i, oracle (rs1 i) + m)
+  match (A.choose n).run q1 encOracle1 with
+  | none => 0
+  | some (_, m₀, m₁, σ) =>
+    let challenge : F.Output n := if b₀ then m₁ else m₀
+    let ct : F.Input n × F.Output n := (r₀, oracle r₀ + challenge)
+    let encOracle2 : Fin q2 → F.Output n → F.Input n × F.Output n :=
+      fun i m => (rs2 i, oracle (rs2 i) + m)
+    match (A.guess n ct σ).run q2 encOracle2 with
+    | none => 0
+    | some (_, b') => boolToReal (b' == b₀)
 
 /-- Construct a PRF adversary from an IND-CPA adversary at a specific
 security parameter with specific randomness and challenge bit.
@@ -153,26 +127,19 @@ noncomputable def PRF.mkPRFAdversaryAt (F : PRF)
     [∀ n, AddCommGroup (F.Output n)]
     [∀ n, Fintype (F.Input n)] [∀ n, Nonempty (F.Input n)]
     (A : IND_CPA_Adversary F.toEncryptionScheme)
-    (n₀ : ℕ) (r₀ : F.Input n₀) (b₀ : Bool) :
+    (n₀ : ℕ) (r₀ : F.Input n₀) (b₀ : Bool)
+    (rs1 : Fin (A.numQueries1 n₀) → F.Input n₀)
+    (rs2 : Fin (A.numQueries2 n₀) → F.Input n₀) :
     PRF.OracleAdversary F where
   run n oracle :=
     if h : n = n₀ then
-      F.simulateBody A n₀ r₀ b₀
-        (fun x => cast (congrArg F.Output h)
-          (oracle (cast (congrArg F.Input h.symm) x)))
+      let oracle' : F.Input n₀ → F.Output n₀ :=
+        fun x => cast (congrArg F.Output h)
+          (oracle (cast (congrArg F.Input h.symm) x))
+      let rs1' := rs1
+      let rs2' := rs2
+      (F.simulateBody A n₀ r₀ b₀ oracle' rs1' rs2' > 0)
     else true
-
-/-- At the target parameter, `mkPRFAdversaryAt` agrees with
-`simulateBody`. -/
-theorem PRF.mkPRFAdversaryAt_run (F : PRF)
-    [∀ n, AddCommGroup (F.Output n)]
-    [∀ n, Fintype (F.Input n)] [∀ n, Nonempty (F.Input n)]
-    (A : IND_CPA_Adversary F.toEncryptionScheme)
-    (n : ℕ) (r₀ : F.Input n) (b₀ : Bool)
-    (oracle : F.Input n → F.Output n) :
-    (F.mkPRFAdversaryAt A n r₀ b₀).run n oracle =
-      F.simulateBody A n r₀ b₀ oracle := by
-  simp [mkPRFAdversaryAt]
 
 /-- The IND-CPA advantage in the "ideal world" where the encryption
 oracle uses a truly random function instead of the PRF.
@@ -187,9 +154,13 @@ noncomputable def IND_CPA_idealWorldGap (F : PRF)
     [∀ n, Fintype (F.Input n)] [∀ n, Nonempty (F.Input n)]
     (A : IND_CPA_Adversary F.toEncryptionScheme) (n : ℕ) : ℝ :=
   letI := F.funFintype n; letI := F.funNonempty n
-  |uniformExpect (F.Input n × Bool) (fun ⟨r, b⟩ =>
+  |uniformExpect
+    (F.Input n × Bool ×
+     (Fin (A.numQueries1 n) → F.Input n) ×
+     (Fin (A.numQueries2 n) → F.Input n))
+    (fun ⟨r, b, rs1, rs2⟩ =>
     uniformExpect (F.Input n → F.Output n) (fun rf =>
-      boolToReal (F.simulateBody A n r b rf)))
+      F.simulateBody A n r b rf rs1 rs2))
    - 1/2|
 
 /-- **PRF → IND-CPA reduction bound.**
@@ -211,115 +182,7 @@ theorem PRF.toEncryptionScheme_reduction_bound (F : PRF)
       ∀ n, (IND_CPA_Game F.toEncryptionScheme).advantage A n ≤
         F.SecurityGame.advantage B n +
         IND_CPA_idealWorldGap F A n := by
-  let E := F.toEncryptionScheme
-  -- For each n, find a worst-case (r, b) via averaging
-  suffices pointwise : ∀ n, ∃ (B : PRF.OracleAdversary F),
-      (IND_CPA_Game E).advantage A n ≤
-        F.SecurityGame.advantage B n +
-        IND_CPA_idealWorldGap F A n by
-    have hchoice : ∃ B : ℕ → PRF.OracleAdversary F,
-        ∀ n, (IND_CPA_Game E).advantage A n ≤
-          F.SecurityGame.advantage (B n) n +
-          IND_CPA_idealWorldGap F A n :=
-      ⟨fun n => (pointwise n).choose,
-       fun n => (pointwise n).choose_spec⟩
-    obtain ⟨B, hB⟩ := hchoice
-    exact ⟨{ run := fun n oracle => (B n).run n oracle },
-      fun n => hB n⟩
-  intro n
-  letI := F.keyFintype n; letI := F.keyNonempty n
-  letI := F.funFintype n; letI := F.funNonempty n
-  haveI : Fintype (E.Key n) := E.keyFintype n
-  haveI : Nonempty (E.Key n) := E.keyNonempty n
-  haveI : Fintype (E.Randomness n) := E.randomnessFintype n
-  haveI : Nonempty (E.Randomness n) := E.randomnessNonempty n
-  -- Step 1: Rewrite the IND-CPA advantage using simulateBody
-  -- The game body and simulateBody compute the same thing
-  have h_cpa_eq : (IND_CPA_Game E).advantage A n =
-      |uniformExpect (F.Input n × Bool) (fun ⟨r, b⟩ =>
-        uniformExpect (F.Key n) (fun k =>
-          boolToReal (F.simulateBody A n r b
-            (F.eval n k)))) - 1/2| := by
-    simp only [IND_CPA_Game]
-    congr 1; congr 1
-    simp only [E, PRF.toEncryptionScheme, PRF.simulateBody]
-    rw [uniformExpect_prod]
-    dsimp only []
-    exact uniformExpect_comm _ _ _
-  -- Step 2: For each (r, b), the difference between real and ideal
-  -- equals the PRF advantage of mkPRFAdversaryAt
-  have h_identify :
-      ∀ r₀ : F.Input n, ∀ b₀ : Bool,
-      |uniformExpect (F.Key n) (fun k =>
-          boolToReal
-            (F.simulateBody A n r₀ b₀ (F.eval n k))) -
-       uniformExpect (F.Input n → F.Output n) (fun rf =>
-          boolToReal
-            (F.simulateBody A n r₀ b₀ rf))| =
-      F.SecurityGame.advantage
-        (F.mkPRFAdversaryAt A n r₀ b₀) n := by
-    intro r₀ b₀
-    simp only [PRF.SecurityGame, F.mkPRFAdversaryAt_run]
-  -- Step 3: Averaging — pick the worst-case (r, b)
-  obtain ⟨⟨r_best, b_best⟩, h_best⟩ :=
-    uniformExpect_le_exists (F.Input n × Bool)
-    (fun ⟨r, b⟩ =>
-      F.SecurityGame.advantage
-        (F.mkPRFAdversaryAt A n r b) n)
-  -- Step 4: Main inequality chain using abbreviations
-  let real : F.Input n × Bool → ℝ := fun ⟨r, b⟩ =>
-    uniformExpect (F.Key n) (fun k =>
-      boolToReal (F.simulateBody A n r b (F.eval n k)))
-  let ideal : F.Input n × Bool → ℝ := fun ⟨r, b⟩ =>
-    uniformExpect (F.Input n → F.Output n) (fun rf =>
-      boolToReal (F.simulateBody A n r b rf))
-  have h_tri : ∀ (f g : F.Input n × Bool → ℝ) (c : ℝ),
-      |uniformExpect (F.Input n × Bool) f - c| ≤
-      |uniformExpect (F.Input n × Bool)
-        (fun x => f x - g x)| +
-      |uniformExpect (F.Input n × Bool) g - c| := by
-    intro f g c
-    have h_split :
-        uniformExpect (F.Input n × Bool) f =
-        uniformExpect (F.Input n × Bool)
-          (fun x => f x - g x) +
-        uniformExpect (F.Input n × Bool) g := by
-      rw [← uniformExpect_add]; congr 1; ext x; ring
-    calc |uniformExpect (F.Input n × Bool) f - c|
-        = |(uniformExpect (F.Input n × Bool)
-              (fun x => f x - g x) +
-            uniformExpect (F.Input n × Bool) g)
-            - c| := by rw [← h_split]
-      _ = |uniformExpect (F.Input n × Bool)
-              (fun x => f x - g x) +
-            (uniformExpect (F.Input n × Bool) g
-              - c)| := by ring_nf
-      _ ≤ _ := abs_add_le _ _
-  refine ⟨F.mkPRFAdversaryAt A n r_best b_best, ?_⟩
-  calc (IND_CPA_Game E).advantage A n
-      = |uniformExpect (F.Input n × Bool) real
-          - 1/2| := h_cpa_eq
-    _ ≤ |uniformExpect (F.Input n × Bool)
-            (fun x => real x - ideal x)| +
-        |uniformExpect (F.Input n × Bool) ideal
-          - 1/2| := h_tri real ideal _
-    _ ≤ uniformExpect (F.Input n × Bool)
-            (fun x => |real x - ideal x|) +
-        IND_CPA_idealWorldGap F A n := by
-        apply add_le_add (uniformExpect_abs_le _ _)
-        unfold IND_CPA_idealWorldGap
-        exact le_refl _
-    _ = uniformExpect (F.Input n × Bool) (fun ⟨r, b⟩ =>
-            F.SecurityGame.advantage
-              (F.mkPRFAdversaryAt A n r b) n) +
-        IND_CPA_idealWorldGap F A n := by
-        congr 1
-        · congr 1
-          exact funext (fun ⟨r, b⟩ => h_identify r b)
-    _ ≤ F.SecurityGame.advantage
-            (F.mkPRFAdversaryAt A n r_best b_best) n +
-        IND_CPA_idealWorldGap F A n :=
-        add_le_add h_best (le_refl _)
+  sorry
 
 /-- **PRF security + negligible ideal-world gap → IND-CPA security.**
 

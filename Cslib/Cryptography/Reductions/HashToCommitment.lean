@@ -55,16 +55,19 @@ def HashFamily.toKeyedCommitmentScheme (H : HashFamily)
   Message := H.Input
   Commitment := H.Output
   Opening := H.Input
+  Randomness := fun _ => Unit
   commitKeyFintype := H.keyFintype
   commitKeyNonempty := H.keyNonempty
-  commit n ck m := (H.hash n ck m, m)
+  randomnessFintype := fun _ => inferInstance
+  randomnessNonempty := fun _ => inferInstance
+  commit n ck m _ := (H.hash n ck m, m)
   verify n ck c m _opening := decide (H.hash n ck m = c)
 
 /-- The hash-based keyed commitment scheme is correct. -/
 theorem HashFamily.toKeyedCommitmentScheme_correct (H : HashFamily)
     [∀ n, DecidableEq (H.Output n)] :
     H.toKeyedCommitmentScheme.Correct := by
-  intro n ck m
+  intro n ck m r
   simp [toKeyedCommitmentScheme]
 
 /-- **Collision resistance implies keyed binding** for the hash-based
