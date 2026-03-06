@@ -253,7 +253,7 @@ We define Rec so that
 -/
 def Rec : SKI := fixedPoint RecAux
 theorem rec_def (x g a : SKI) :
-    (Rec ⬝ x ⬝ g ⬝ a) ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := calc
+  (Rec ⬝ x ⬝ g ⬝ a) ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := calc
   _ ↠ RecAux ⬝ Rec ⬝ x ⬝ g ⬝ a := by
       apply MRed.head; apply MRed.head; apply MRed.head
       apply fixedPoint_correct
@@ -305,6 +305,12 @@ theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m + 1) (f
 
 /-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
+
+/-- One unfolding of `RFindAbove`: apply the fixed-point combinator once. -/
+theorem RFindAbove_unfold (x g : SKI) :
+    (RFindAbove ⬝ x ⬝ g) ↠ RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ g := by
+  apply MRed.head; apply MRed.head; exact fixedPoint_correct _
+
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y →  IsChurch (fNat i) (f ⬝ y))
     (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
