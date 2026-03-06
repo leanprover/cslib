@@ -26,8 +26,8 @@ systems, as defined in
 -/
 
 /--
-We first define what Winskel and Nielsen denote Tran*: the extension
-of an LTS with idle transitions.
+We first define what is denoted Tran* in [WinskelNielsen1995]: the extension of
+a transition relation with idle transitions.
 -/
 def lift (trans : State → Label → State → Prop) :
   State → (Option Label) → State → Prop :=
@@ -35,7 +35,7 @@ def lift (trans : State → Label → State → Prop) :
 
 /-! ## LTSs and LTS morphisms form a category -/
 
-/-- The notion of labelled transition system -/
+/-- The definition of labelled transition system. -/
 structure LTSCat : Type (max u v + 1) where
   State : Type u
   Label : Type v
@@ -74,7 +74,7 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
         exact q (f s) (f s') m hp
     ⟨g ∘ f, μ >=> ν, r⟩
 
-/-- Proof that the above structure actually forms a category. -/
+/-- Proof that these form a category. -/
 instance : CategoryTheory.Category LTSCat where
   Hom lts₁ lts₂ := LTS.Morphism lts₁ lts₂
   id lts := LTS.Morphism.id lts
