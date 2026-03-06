@@ -1,6 +1,7 @@
 module  -- shake: keep-all
 
 public import CslibTests.Bisimulation
+public import CslibTests.BooleanFormula
 public import CslibTests.CCS
 public import CslibTests.CLL
 public import CslibTests.DFA

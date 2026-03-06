@@ -22,6 +22,14 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Computability.Circuits.Basis
+public import Cslib.Computability.Circuits.Circuit.Basic
+public import Cslib.Computability.Circuits.Formula.Basic
+public import Cslib.Computability.Circuits.Formula.Measures
+public import Cslib.Computability.Circuits.Formula.Std
+public import Cslib.Computability.Complexity.CircuitHierarchy
+public import Cslib.Computability.Complexity.NonUniform
+public import Cslib.Computability.Complexity.Space
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero

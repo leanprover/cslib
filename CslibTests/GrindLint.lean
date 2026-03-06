@@ -27,6 +27,18 @@ open_scoped_all Cslib
 -/
 
 #grind_lint skip Cslib.Bisimilarity.trans
+#grind_lint skip Cslib.Circuits.Formula.deMorgan_and
+#grind_lint skip Cslib.Circuits.Formula.deMorgan_or
+#grind_lint skip Cslib.Circuits.Formula.depth_and
+#grind_lint skip Cslib.Circuits.Formula.depth_not
+#grind_lint skip Cslib.Circuits.Formula.depth_or
+#grind_lint skip Cslib.Circuits.Formula.eval_and
+#grind_lint skip Cslib.Circuits.Formula.eval_not
+#grind_lint skip Cslib.Circuits.Formula.eval_not_not
+#grind_lint skip Cslib.Circuits.Formula.eval_or
+#grind_lint skip Cslib.Circuits.Formula.size_and
+#grind_lint skip Cslib.Circuits.Formula.size_not
+#grind_lint skip Cslib.Circuits.Formula.size_or
 #grind_lint skip Cslib.FLTS.toLTS_tr
 #grind_lint skip Cslib.FinFun.coe_fromFun_id
 #grind_lint skip Cslib.FinFun.fromFun_comm
