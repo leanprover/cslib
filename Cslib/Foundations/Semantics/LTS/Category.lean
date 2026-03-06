@@ -13,7 +13,7 @@ universe u v
 
 @[expose] public section
 
-variable {State Label : Type}
+variable {State : Type u} {Label : Type v}
 
 /-!
 # Category of Labelled Transition Systems
