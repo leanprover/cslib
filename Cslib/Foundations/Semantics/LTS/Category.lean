@@ -65,8 +65,8 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
 
 /-- `LTS.Morphism` provides a category structure on bundled LTSs. -/
 instance : CategoryTheory.CategoryStruct LTSCat where
-  Hom lts₁ lts₂         := LTS.Morphism lts₁ lts₂
-  id lts                := LTS.Morphism.id lts
+  Hom lts₁ lts₂ := LTS.Morphism lts₁ lts₂
+  id lts := LTS.Morphism.id lts
   comp {lts₁} {lts₂} {lts₃} f g := @LTS.Morphism.comp lts₁ lts₂ lts₃ f g
 
 /-- Proof that the above structure actually forms a category. -/
