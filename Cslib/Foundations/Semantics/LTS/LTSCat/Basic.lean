@@ -15,8 +15,14 @@ universe u v
 
 variable {State : Type u} {Label : Type v}
 
-/-!
-# Category of Labelled Transition Systems
+/-! # Category of Labelled Transition Systems
+
+This file contains the definition of the category of labelled transition
+systems, as defined in
+
+## References
+
+* [N. Winskel and M. Nielsen, *Models for concurrency*][WinskelNielsen1995]
 -/
 
 /--
