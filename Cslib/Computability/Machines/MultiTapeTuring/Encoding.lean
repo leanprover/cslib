@@ -61,7 +61,7 @@ public def StrEnc.enc {α : Type*} [StrEnc α] (w : α) : List Char :=
 
 /-- Convenience accessor: depth bound of the `j`-th field of the `i`-th constructor of `α`.
     Returns 0 if the indices are out of range. -/
-def StrEnc.fieldDepth (α : Type*) [StrEnc α] (ctorIdx fieldIdx : ℕ) : ℕ :=
+public def StrEnc.fieldDepth (α : Type*) [StrEnc α] (ctorIdx fieldIdx : ℕ) : ℕ :=
   ((StrEnc.fieldDepths (α := α))[ctorIdx]? |>.getD #[])[fieldIdx]? |>.getD 0
 
 public instance (α : Type*) [StrEnc α] : StrEnc (List α) where
@@ -76,6 +76,15 @@ public instance : StrEnc ℕ where
   maxDepth := 0
   fieldDepths := [].toArray
   hDepth := by sorry -- TODO use parenDepth_of_no_parens
+  hInj := sorry
+
+public instance : StrEnc Bool where
+  encInner
+    | false => StrEnc.enc 0
+    | true => StrEnc.enc 1
+  maxDepth := 1
+  fieldDepths := #[#[], #[]]
+  hDepth := sorry
   hInj := sorry
 
 -- TODO create a derive method for all non-recursive types.
