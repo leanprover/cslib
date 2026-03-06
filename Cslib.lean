@@ -61,6 +61,10 @@ public import Cslib.Cryptography.Primitives.OneWayFunction
 public import Cslib.Cryptography.Primitives.PRF
 public import Cslib.Cryptography.Primitives.PRG
 public import Cslib.Cryptography.Primitives.Signature
+public import Cslib.Cryptography.Protocols.Combinators
+public import Cslib.Cryptography.Protocols.FiatShamir
+public import Cslib.Cryptography.Protocols.Schnorr
+public import Cslib.Cryptography.Protocols.SigmaProtocol
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
