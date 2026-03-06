@@ -34,16 +34,16 @@ A morphism between two labelled transition systems consists of a function on
 states, a function on labels, and a proof that transitions are preserved.
 -/
 structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
-  toFun : lts₁.State → lts₂.State
+  stateMap : lts₁.State → lts₂.State
   labelMap : lts₁.Label → lts₂.Label
   fun_preserves_transitions : (s s' : lts₁.State)
                             → (l : lts₁.Label)
                             → lts₁.lts.Tr s l s'
-                            → lts₂.lts.Tr (toFun s) (labelMap l) (toFun s')
+                            → lts₂.lts.Tr (stateMap s) (labelMap l) (stateMap s')
 
 /-- The identity LTS morphism. -/
 def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
-  toFun := _root_.id
+  stateMap := _root_.id
   labelMap := _root_.id
   fun_preserves_transitions := fun _ _ _ h => h
 
