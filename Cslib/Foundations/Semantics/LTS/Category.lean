@@ -27,11 +27,6 @@ structure LTSCat where
   Label : Type v
   lts : LTS State Label
 
-/- Remark: I do not like the name 'bundled LTS'; and LTS is already the bundled notion. The name
-   `LTS` for the transition relation on a fixed set of states and labels is what is confusing here.
-    I propose to change that to `LTS-Structure` and call the above `LTS`.
--/
-
 /-! ## Definition of LTS morphism -/
 
 /--
