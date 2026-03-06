@@ -42,11 +42,10 @@ structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
                             → lts₂.lts.Tr (toFun s) (labelMap l) (toFun s')
 
 /-- The identity LTS morphism. -/
-def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts :=
-  { toFun := _root_.id
-  , labelMap := _root_.id
-  , fun_preserves_transitions := fun _ _ _ h => h
-  }
+def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
+  toFun := _root_.id
+  labelMap := _root_.id
+  fun_preserves_transitions := fun _ _ _ h => h
 
 /-- Composition of LTS morphisms. -/
 def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
