@@ -38,7 +38,7 @@ structure LTSCat where
 A morphism between two labelled transition systems consists of a function on
 states, a function on labels, and a proof that transitions are preserved.
 -/
-structure LTS.Morphism (lts₁ lts₂ : BundledLTS) : Type where
+structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
   toFun : lts₁.State → lts₂.State
   labelMap : lts₁.Label → lts₂.Label
   fun_preserves_transitions : (s s' : lts₁.State)
@@ -47,14 +47,14 @@ structure LTS.Morphism (lts₁ lts₂ : BundledLTS) : Type where
                             → lts₂.lts.Tr (toFun s) (labelMap l) (toFun s')
 
 /-- The identity LTS morphism. -/
-def LTS.Morphism.id (lts : BundledLTS) : LTS.Morphism lts lts :=
+def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts :=
   { toFun                     := _root_.id
   , labelMap                  := _root_.id
   , fun_preserves_transitions := fun _ _ _ h => h
   }
 
 /-- Composition of LTS morphisms. -/
-def LTS.Morphism.comp {lts₁ lts₂ lts₃ : BundledLTS} :
+def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
     LTS.Morphism lts₁ lts₂ → LTS.Morphism lts₂ lts₃ → LTS.Morphism lts₁ lts₃ :=
   fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
     let r := by intros _ _ _ h
@@ -64,13 +64,13 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : BundledLTS} :
     ⟨g ∘ f, ν ∘ μ, r⟩
 
 /-- `LTS.Morphism` provides a category structure on bundled LTSs. -/
-instance : CategoryTheory.CategoryStruct BundledLTS where
+instance : CategoryTheory.CategoryStruct LTSCat where
   Hom lts₁ lts₂         := LTS.Morphism lts₁ lts₂
   id lts                := LTS.Morphism.id lts
   comp {lts₁} {lts₂} {lts₃} f g := @LTS.Morphism.comp lts₁ lts₂ lts₃ f g
 
 /-- Proof that the above structure actually forms a category. -/
-instance : CategoryTheory.Category BundledLTS where
+instance : CategoryTheory.Category LTSCat where
   id_comp := by intro _ _ f
                 cases f
                 rfl
