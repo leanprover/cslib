@@ -6,7 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Languages.CombinatoryLogic.Basic
+public import Cslib.Languages.CombinatoryLogic.Encoded
 
 @[expose] public section
 
@@ -73,27 +73,21 @@ lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ↠ f') (hx : x ↠ x') :
   | zero => exact hx
   | succ n ih => exact parallel_mRed hf ih
 
-/-- The term `a` is βη-equivalent to a standard church numeral. -/
-def IsChurch (n : Nat) (a : SKI) : Prop :=
-    ∀ f x :SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
-
-/-- To show `IsChurch n a` it suffices to show the same for a reduct of `a`. -/
-theorem isChurch_trans (n : Nat) {a a' : SKI} (h : a ↠ a') :
-    IsChurch n a' → IsChurch n a := by
-  simp_rw [IsChurch]
-  intro ha' f x
-  calc
-  _ ↠ a' ⬝ f ⬝ x := by apply MRed.head; apply MRed.head; exact h
-  _ ↠ Church n f x := by apply ha'
-
+instance instEncodedLiftNat : EncodedLift Nat Red where
+  IsEncoding n a := ∀ f x : SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
+  isEncoding_left_of_red := by
+    intro n a a' ha' h f x
+    calc
+    (a ⬝ f ⬝ x) ⭢ a' ⬝ f ⬝ x := red_head _ _ x <| red_head _ _ f <| h
+    _ ↠ Church n f x := by apply ha'
 
 /-! ### Church numeral basics -/
 
 /-- Church zero := λ f x. x -/
 protected def Zero : SKI := K ⬝ I
+
 @[scoped grind .]
-theorem zero_correct : IsChurch 0 SKI.Zero := by
-  unfold IsChurch SKI.Zero Church
+theorem isEncoding_zero : SKI.Zero ⊩ 0 := by
   intro f x
   calc
   _ ↠ I ⬝ x := by apply Relation.ReflTransGen.single; apply red_head; apply red_K
@@ -101,22 +95,22 @@ theorem zero_correct : IsChurch 0 SKI.Zero := by
 
 /-- Church one := λ f x. f x -/
 protected def One : SKI := I
+
 @[scoped grind .]
-theorem one_correct : IsChurch 1 SKI.One := by
+theorem isEncoding_one : SKI.One ⊩ 1 := by
   intro f x
   apply head
   exact .single (red_I f)
 
 /-- Church succ := λ a f x. f (a f x) ~ λ a f. B f (a f) ~ λ a. S B a ~ S B -/
 protected def Succ : SKI := S ⬝ B
-@[scoped grind →]
-theorem succ_correct (n : Nat) (a : SKI) (h : IsChurch n a) :
-    IsChurch (n+1) (SKI.Succ ⬝ a) := by
-  intro f x
+
+theorem isEncoding_succ : SKI.Succ ⊩ Nat.succ := by
+  intro n xn hn f x
   calc
-  _ ⭢ B ⬝ f ⬝ (a ⬝ f) ⬝ x := by apply red_head; apply red_S
-  _ ↠ f ⬝ (a ⬝ f ⬝ x) := by apply B_def
-  _ ↠ f ⬝ (Church n  f x) := by apply MRed.tail; exact h f x
+  _ ⭢ B ⬝ f ⬝ (xn ⬝ f) ⬝ x := by apply red_head; apply red_S
+  _ ↠ f ⬝ (xn ⬝ f ⬝ x) := by apply B_def
+  _ ↠ f ⬝ (Church n  f x) := by apply MRed.tail; exact hn f x
 
 /-- Build the canonical SKI Church numeral for `n`. -/
 def toChurch : ℕ → SKI
@@ -125,81 +119,94 @@ def toChurch : ℕ → SKI
 
 /-- `toChurch 0 = Zero`. -/
 @[simp] lemma toChurch_zero : toChurch 0 = SKI.Zero := rfl
+
 /-- `toChurch (n + 1) = Succ ⬝ toChurch n`. -/
 @[simp] lemma toChurch_succ (n : ℕ) : toChurch (n + 1) = SKI.Succ ⬝ (toChurch n) := rfl
 
 /-- `toChurch n` correctly represents `n`. -/
 @[scoped grind .]
-theorem toChurch_correct (n : ℕ) : IsChurch n (toChurch n) := by
+theorem toChurch_correct (n : ℕ) : (toChurch n) ⊩ n := by
   induction n with
-  | zero => exact zero_correct
-  | succ n ih => exact succ_correct n (toChurch n) ih
+  | zero => exact isEncoding_zero
+  | succ n ih => exact isEncoding_succ ih
 
-/--
-To define the predecessor, iterate the function `PredAux` ⟨i, j⟩ ↦ ⟨j, j+1⟩ on ⟨0,0⟩, then take
-the  first component.
--/
-def PredAuxPoly : SKI.Polynomial 1 := MkPair ⬝' (Snd ⬝' &0) ⬝' (SKI.Succ ⬝' (Snd ⬝' &0))
-/-- A term representing PredAux -/
-def PredAux : SKI := PredAuxPoly.toSKI
-theorem predAux_def (p : SKI) :  (PredAux ⬝ p) ↠ MkPair ⬝ (Snd ⬝ p) ⬝ (SKI.Succ ⬝ (Snd ⬝ p)) :=
-  PredAuxPoly.toSKI_correct [p] (by simp)
+variable {α : Type*} [EncodedLift α Red]
 
-/-- Useful auxiliary definition expressing that `p` represents ns ∈ Nat × Nat. -/
-def IsChurchPair (ns : Nat × Nat) (x : SKI) : Prop :=
-  IsChurch ns.1 (Fst ⬝ x) ∧ IsChurch ns.2 (Snd ⬝ x)
+def Iter := R
 
-theorem isChurchPair_trans (ns : Nat × Nat) (a a' : SKI) (h : a ↠ a') :
-    IsChurchPair ns a' → IsChurchPair ns a := by
-  simp_rw [IsChurchPair]
-  intro ⟨ha₁,ha₂⟩
-  constructor
-  · apply isChurch_trans (a' := Fst ⬝ a')
-    · apply MRed.tail; exact h
-    · exact ha₁
-  · apply isChurch_trans (a' := Snd ⬝ a')
-    · apply MRed.tail; exact h
-    · exact ha₂
-
-theorem predAux_correct (p : SKI) (ns : Nat × Nat) (h : IsChurchPair ns p) :
-    IsChurchPair ⟨ns.2, ns.2+1⟩ (PredAux ⬝ p) := by
-  refine isChurchPair_trans _ _ (MkPair ⬝ (Snd ⬝ p) ⬝ (SKI.Succ ⬝ (Snd ⬝ p))) (predAux_def p) ?_
-  constructor
-  · exact isChurch_trans ns.2 (fst_correct _ _) h.2
-  · refine isChurch_trans (ns.2+1) (snd_correct _ _) ?_
-    exact succ_correct ns.2 (Snd ⬝ p) h.2
-
-/-- The stronger induction hypothesis necessary for the proof of `pred_correct`. -/
-theorem predAux_correct' (n : Nat) :
-    IsChurchPair (n.pred, n) <| Church n PredAux  (MkPair ⬝ SKI.Zero ⬝ SKI.Zero) := by
+lemma isEncoding_iter : Iter ⊩ (Nat.iterate (α := α)) := by
+  intro f xf hf n xn hn a xa ha
+  suffices IsEncoding (f^[n] a) (Church n xf xa) by
+    apply this.left_of_mRed
+    calc
+      _ ↠ xn ⬝ xf ⬝ xa := MRed.head _ <| R_def ..
+      _ ↠ Church n xf xa := hn ..
+  clear hn
   induction n with
-    | zero =>
-      apply isChurchPair_trans ⟨0,0⟩ _ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)
-        (by rfl)
-      constructor <;> apply isChurch_trans 0 ?_ zero_correct
-      · exact fst_correct _ _
-      · exact snd_correct _ _
-    | succ n ih =>
-      simp_rw [Church_succ]
-      apply predAux_correct (ns := ⟨n.pred, n⟩) (h := ih)
+  | zero => simpa
+  | succ n ih =>
+      rw [Function.iterate_succ']
+      exact hf ih
 
-/-- Predecessor := λ n. Fst ⬝ (n ⬝ PredAux ⬝ (MkPair ⬝ Zero ⬝ Zero)) -/
-def PredPoly : SKI.Polynomial 1 := Fst ⬝' (&0 ⬝' PredAux ⬝' (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))
-/-- A term representing Pred -/
-def Pred : SKI := PredPoly.toSKI
-theorem pred_def (a : SKI) : (Pred ⬝ a) ↠ Fst ⬝ (a ⬝ PredAux ⬝ (MkPair ⬝ SKI.Zero ⬝ SKI.Zero)) :=
-  PredPoly.toSKI_correct [a] (by simp)
+def Nat.recPairStep (f : Nat → α → α) : α × Nat → α × Nat
+  | ⟨y, m⟩ => ⟨f m y, m + 1⟩
 
-theorem pred_correct (n : Nat) (a : SKI) (h : IsChurch n a) : IsChurch n.pred (Pred ⬝ a) := by
-  refine isChurch_trans n.pred
-    (pred_def a) ?_
-  refine isChurch_trans _ (a' := Fst ⬝ (Church n PredAux (MkPair ⬝ SKI.Zero ⬝ SKI.Zero))) ?_ ?_
-  · apply MRed.tail
-    exact h _ _
-  · exact predAux_correct' n |>.1
+lemma Nat.recPairStep_correct {α' : Type*} (a : α') (f : Nat → α' → α') (n : Nat) :
+    (Nat.recPairStep f)^[n] ⟨a, 0⟩ = ⟨Nat.rec a f n, n⟩ := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [Function.iterate_succ', Function.comp_apply, ih, recPairStep]
 
+/-- We encode primitive recursion on `Nat` by the usual Kleene dentist trick. -/
+def natRecAuxPoly : SKI.Polynomial 2 :=
+  SKI.MkPair ⬝' (&0 ⬝' (Snd ⬝' &1) ⬝' (Fst ⬝' &1)) ⬝' (SKI.Succ ⬝' (Snd ⬝' &1))
+def natRecAux := natRecAuxPoly.toSKI
+lemma natRecAux_def (f p : SKI) :
+    (natRecAux ⬝ f ⬝ p) ↠ SKI.MkPair ⬝ (f ⬝ (Snd ⬝ p) ⬝ (Fst ⬝ p)) ⬝ (SKI.Succ ⬝ (Snd ⬝ p)) :=
+  natRecAuxPoly.toSKI_correct [f, p] (by simp)
 
-/-! ### Primitive recursion -/
+lemma natRecAux_correct {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) :
+    (natRecAux ⬝ xf) ⊩ (Nat.recPairStep f) := by
+  intro p xp hp
+  suffices IsEncoding (Nat.recPairStep f p)
+      (SKI.MkPair ⬝ (xf ⬝ (Snd ⬝ xp) ⬝ (Fst ⬝ xp)) ⬝ (SKI.Succ ⬝ (Snd ⬝ xp))) by
+    exact this.left_of_mRed <| natRecAux_def ..
+  apply isEncoding_mkPair
+  · exact hf hp.2 hp.1
+  · exact SKI.isEncoding_succ hp.2
+
+lemma isEncoded_recPairStep_iter {a : α} {xa : SKI} (ha : xa ⊩ a)
+    {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) {n : Nat} {xn : SKI} (hn : xn ⊩ n) :
+    (R ⬝ (natRecAux ⬝ xf) ⬝ xn ⬝ (MkPair ⬝ xa ⬝ SKI.Zero)) ⊩ (⟨Nat.rec a f n, n⟩ : α × Nat) := by
+  rw [←Nat.recPairStep_correct]
+  refine isEncoding_iter (natRecAux_correct hf) hn ?_
+  apply isEncoding_mkPair
+  · exact ha
+  · exact isEncoding_zero
+
+def natRecPoly : SKI.Polynomial 3 :=
+  Fst ⬝' (R ⬝' (natRecAux ⬝' &1) ⬝' &2 ⬝' (MkPair ⬝' &0 ⬝' SKI.Zero))
+def natRec := natRecPoly.toSKI
+lemma natRec_def (xa xf xn : SKI) :
+    (natRec ⬝ xa ⬝ xf ⬝ xn) ↠ Fst ⬝ (R ⬝ (natRecAux ⬝ xf) ⬝ xn ⬝ (MkPair ⬝ xa ⬝ SKI.Zero)) :=
+  natRecPoly.toSKI_correct [xa, xf, xn] (by simp)
+
+/-- Primitive recursion on `Nat`. -/
+theorem isEncoding_nat_rec :
+    natRec ⊩ (Nat.rec : α → (Nat → α → α) → Nat → α) := by
+  intro a xa ha f xf hf n xn hn
+  exact IsEncoding.left_of_mRed (isEncoded_recPairStep_iter ha hf hn).1 (natRec_def xa xf xn)
+
+def Pred : SKI := natRec ⬝ SKI.Zero ⬝ K
+
+theorem isEncoding_pred : Pred ⊩ Nat.pred := by
+  intro n xn hn
+  have : n.pred = n.rec 0 (fun a _ => a) := by induction n <;> simp
+  rw [this]
+  refine isEncoding_nat_rec isEncoding_zero ?_ hn
+  intro _ _ h _ _ _
+  exact h.left_of_red <| red_K ..
 
 /-- IsZero := λ n. n (K FF) TT -/
 def IsZeroPoly : SKI.Polynomial 1 := &0 ⬝' (K ⬝ FF) ⬝' TT
@@ -207,65 +214,22 @@ def IsZeroPoly : SKI.Polynomial 1 := &0 ⬝' (K ⬝ FF) ⬝' TT
 def IsZero : SKI := IsZeroPoly.toSKI
 theorem isZero_def (a : SKI) : (IsZero ⬝ a) ↠ a ⬝ (K ⬝ FF) ⬝ TT :=
   IsZeroPoly.toSKI_correct [a] (by simp)
-theorem isZero_correct (n : Nat) (a : SKI) (h : IsChurch n a) :
-    IsBool (n = 0) (IsZero ⬝ a) := by
-  apply isBool_trans (a' := a ⬝ (K ⬝ FF) ⬝ TT) (h := isZero_def a)
-  by_cases n=0
+
+theorem isEncoding_isZero : IsZero ⊩ (· == 0) := by
+  intro n xn hn
+  refine IsEncoding.left_of_mRed ?_ (isZero_def _)
+  by_cases n = 0
   case pos h0 =>
-    simp_rw [h0]
-    rw [h0] at h
-    apply isBool_trans (ha' := TT_correct)
-    exact h _ _
+    simp_rw [h0] at hn ⊢
+    exact TT_correct.left_of_mRed <| hn ..
   case neg h0 =>
-    simp_rw [h0]
-    let ⟨k,hk⟩ := Nat.exists_eq_succ_of_ne_zero h0
-    rw [hk] at h
-    apply isBool_trans (ha' := FF_correct)
+    simp_rw [beq_false_of_ne h0]
+    let ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero h0
+    rw [hk] at hn
+    apply FF_correct.left_of_mRed
     calc
-    _ ↠ (K ⬝ FF) ⬝ Church k (K ⬝ FF) TT := h _ _
-    _ ⭢ FF := red_K _ _
-
-
-/--
-To define `Rec x g n := if n==0 then x else (Rec x g (Pred n))`, we obtain a fixed point of
-R ↦ λ x g n. Cond ⬝ (IsZero ⬝ n) ⬝ x ⬝ (g ⬝ a ⬝ (R ⬝ x ⬝ g ⬝ (Pred ⬝ n)))
--/
-def RecAuxPoly : SKI.Polynomial 4 :=
-  SKI.Cond ⬝' &1 ⬝' (&2 ⬝' &3 ⬝' (&0 ⬝' &1 ⬝' &2 ⬝' (Pred ⬝' &3))) ⬝' (IsZero ⬝' &3)
-/-- A term representing RecAux -/
-def RecAux : SKI := RecAuxPoly.toSKI
-theorem recAux_def (R₀ x g a : SKI) :
-    (RecAux ⬝ R₀ ⬝ x ⬝ g ⬝ a) ↠
-      SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (R₀ ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a)  :=
-  RecAuxPoly.toSKI_correct [R₀, x, g, a] (by simp)
-
-/--
-We define Rec so that
-`Rec ⬝ x ⬝ g ⬝ a ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a)`
--/
-def Rec : SKI := fixedPoint RecAux
-theorem rec_def (x g a : SKI) :
-  (Rec ⬝ x ⬝ g ⬝ a) ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := calc
-  _ ↠ RecAux ⬝ Rec ⬝ x ⬝ g ⬝ a := by
-      apply MRed.head; apply MRed.head; apply MRed.head
-      apply fixedPoint_correct
-  _ ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := recAux_def Rec x g a
-
-theorem rec_zero (x g a : SKI) (ha : IsChurch 0 a) : (Rec ⬝ x ⬝ g ⬝ a) ↠ x := by
-  calc
-  _ ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := rec_def _ _ _
-  _ ↠ if (Nat.beq 0 0) then x else (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) := by
-      apply cond_correct
-      exact isZero_correct 0 a ha
-
-theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n + 1) a) :
-    (Rec ⬝ x ⬝ g ⬝ a) ↠ g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a)) := by
-  calc
-  _ ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := rec_def _ _ _
-  _ ↠ if (Nat.beq (n+1) 0) then x else (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) := by
-      apply cond_correct
-      exact isZero_correct (n+1) a ha
-
+    _ ↠ (K ⬝ FF) ⬝ Church k (K ⬝ FF) TT := hn ..
+    _ ⭢ FF := red_K ..
 
 /-! ### Root-finding (μ-recursion) -/
 
@@ -282,54 +246,46 @@ lemma rfindAboveAux_def (R₀ f a : SKI) :
     (RFindAboveAux ⬝ R₀ ⬝ a ⬝ f) ↠ SKI.Cond ⬝ a ⬝ (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) :=
   RFindAboveAuxPoly.toSKI_correct [R₀, a, f] (by trivial)
 
-theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : IsChurch 0 (f ⬝ a)) :
+theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : (f ⬝ a) ⊩ 0) :
     (RFindAboveAux ⬝ R₀ ⬝ a ⬝ f) ↠ a := calc
   _ ↠ SKI.Cond ⬝ a ⬝ (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ↠ if (Nat.beq 0 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
-      apply cond_correct
-      apply isZero_correct _ _ hfa
-theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m + 1) (f ⬝ a)) :
+      exact cond_def <| isEncoding_isZero hfa
+
+theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : (f ⬝ a) ⊩ m + 1) :
     (RFindAboveAux ⬝ R₀ ⬝ a ⬝ f) ↠ R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f := calc
   _ ↠ SKI.Cond ⬝ a ⬝ (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
-  _ ↠ if (Nat.beq (m+1) 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
-      apply cond_correct
-      apply isZero_correct _ _ hfa
+  _ ↠ if (Nat.beq (m + 1) 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
+      exact cond_def <| isEncoding_isZero hfa
 
 /-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
-theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
-    (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y →  IsChurch (fNat i) (f ⬝ y))
-    (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
-    IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
+
+theorem RFindAbove_correct (f : Nat → Nat) (xf x : SKI) (hf : xf ⊩ f) (n m : Nat) (hx : x ⊩ m)
+    (hroot : f (m + n) = 0) (hpos : ∀ i < n, f (m + i) ≠ 0) :
+    (RFindAbove ⬝ x ⬝ xf) ⊩ (m + n) := by
   induction n generalizing m x
-  all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
-  case zero.a =>
-    apply isChurch_trans (a' := x) <;>
-      grind [rfindAboveAux_base]
-  case succ.a n ih =>
-    apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
-    · let y := (fNat m).pred
-      have : IsChurch (y + 1) (f ⬝ x) := by
-        subst y
-        exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
-      apply rfindAboveAux_step
-      assumption
-    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
+  all_goals apply IsEncoding.left_of_mRed (y := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ xf)
+  case zero.ha =>
+    apply hx.left_of_mRed
+    apply rfindAboveAux_base
+    exact hroot ▸ hf hx
+  case succ.ha n ih =>
+    apply IsEncoding.left_of_mRed (y := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ xf)
+    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (isEncoding_succ hx)
       grind
+    · have : (xf ⬝ x) ⊩ ((f m).pred + 1) := Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf hx
+      exact rfindAboveAux_step _ _ _ this
   -- close the `h` goals of the above `apply isChurch_trans`
   all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
 
-
 /-- Ordinary root finding is root finding above zero -/
 def RFind := RFindAbove ⬝ SKI.Zero
-theorem RFind_correct (fNat : Nat → Nat) (f : SKI)
-    (hf : ∀ (i : Nat) (y : SKI), IsChurch i y → IsChurch (fNat i) (f ⬝ y))
-    (n : Nat) (hroot : fNat n = 0) (hpos : ∀ i < n, fNat i ≠ 0) : IsChurch n (RFind ⬝ f) := by
-  have :_ := RFindAbove_correct (n := n) (fNat := fNat) (hf := hf) (hx := zero_correct)
+theorem RFind_correct (f : Nat → Nat) (xf : SKI) (hf : xf ⊩ f)
+    (n : Nat) (hroot : f n = 0) (hpos : ∀ i < n, f i ≠ 0) : (RFind ⬝ xf) ⊩ n := by
+  have :_ := RFindAbove_correct (n := n) (f := f) (hf := hf) (hx := isEncoding_zero)
   simp_rw [Nat.zero_add] at this
   exact this hroot hpos
-
-
 
 /-! ### Further numeric operations -/
 
@@ -340,18 +296,17 @@ protected def Add : SKI := AddPoly.toSKI
 theorem add_def (a b : SKI) : (SKI.Add ⬝ a ⬝ b) ↠ a ⬝ SKI.Succ ⬝ b :=
   AddPoly.toSKI_correct [a, b] (by simp)
 
-theorem add_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n + m) (SKI.Add ⬝ a ⬝ b) := by
-  refine isChurch_trans (n + m) (a' := Church n SKI.Succ b) ?_ ?_
-  · calc
-    _ ↠ a ⬝ SKI.Succ ⬝ b := add_def a b
-    _ ↠ Church n SKI.Succ b := ha SKI.Succ b
-  · clear ha
+theorem isEncoding_add : SKI.Add ⊩ Nat.add:= by
+  intro n xn hn m xm hm
+  refine IsEncoding.left_of_mRed (y := Church n SKI.Succ xm) ?_ ?_
+  · clear hn
     induction n with
-      | zero => simp_rw [Nat.zero_add, Church]; exact hb
+      | zero => simpa
       | succ n ih =>
-        simp_rw [Nat.add_right_comm, Church]
-        exact succ_correct _ _ ih
+        simpa [Nat.add_right_comm] using isEncoding_succ ih
+  · calc
+    _ ↠ xn ⬝ SKI.Succ ⬝ xm := add_def ..
+    _ ↠ Church n SKI.Succ xm := hn ..
 
 /-- Multiplication: λ n m. n (Add m) Zero -/
 def MulPoly : SKI.Polynomial 2 := &0 ⬝' (SKI.Add ⬝' &1) ⬝' SKI.Zero
@@ -360,16 +315,15 @@ protected def Mul : SKI := MulPoly.toSKI
 theorem mul_def (a b : SKI) : (SKI.Mul ⬝ a ⬝ b) ↠ a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero :=
   MulPoly.toSKI_correct [a, b] (by simp)
 
-theorem mul_correct {n m : Nat} {a b : SKI} (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n * m) (SKI.Mul ⬝ a ⬝ b) := by
-  refine isChurch_trans (n * m) (a' := Church n (SKI.Add ⬝ b) SKI.Zero) ?_ ?_
-  · exact Trans.trans (mul_def a b) (ha (SKI.Add ⬝ b) SKI.Zero)
-  · clear ha
+theorem mul_correct : SKI.Mul ⊩ Nat.mul := by
+  intro n xn hn m xm hm
+  refine IsEncoding.left_of_mRed (y := Church n (SKI.Add ⬝ xm) SKI.Zero) ?_ ?_
+  · clear hn
     induction n with
-      | zero => simp_rw [Nat.zero_mul, Church]; exact zero_correct
+      | zero => simpa using isEncoding_zero
       | succ n ih =>
-        simp_rw [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church]
-        exact add_correct m (n * m) b (Church n (SKI.Add ⬝ b) SKI.Zero) hb ih
+        simpa [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church] using isEncoding_add hm ih
+  · exact Trans.trans (mul_def xn xm) (hn (SKI.Add ⬝ xm) SKI.Zero)
 
 /-- Subtraction: λ n m. n Pred m -/
 def SubPoly : SKI.Polynomial 2 := &1 ⬝' Pred ⬝' &0
@@ -378,18 +332,17 @@ protected def Sub : SKI := SubPoly.toSKI
 theorem sub_def (a b : SKI) : (SKI.Sub ⬝ a ⬝ b) ↠ b ⬝ Pred ⬝ a :=
   SubPoly.toSKI_correct [a, b] (by simp)
 
-theorem sub_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsChurch (n - m) (SKI.Sub ⬝ a ⬝ b) := by
-  refine isChurch_trans (n - m) (a' := Church m Pred a) ?_ ?_
-  · calc
-    _ ↠ b ⬝ Pred ⬝ a := sub_def a b
-    _ ↠ Church m Pred a := hb Pred a
-  · clear hb
+theorem sub_correct : SKI.Sub ⊩ Nat.sub := by
+  intro n xn hn m xm hm
+  refine IsEncoding.left_of_mRed (y := Church m Pred xn) ?_ ?_
+  · clear hm
     induction m with
-      | zero => simp_rw [Nat.sub_zero, Church]; exact ha
+      | zero => simpa using hn
       | succ m ih =>
-        simp_rw [←Nat.sub_sub, Church]
-        exact pred_correct _ _ ih
+        simpa using isEncoding_pred ih
+  · calc
+    _ ↠ xm ⬝ Pred ⬝ xn := sub_def ..
+    _ ↠ Church m Pred xn := hm Pred xn
 
 /-- Comparison: (. ≤ .) := λ n m. IsZero ⬝ (Sub ⬝ n ⬝ m) -/
 def LEPoly : SKI.Polynomial 2 := IsZero ⬝' (SKI.Sub ⬝' &0 ⬝' &1)
@@ -398,11 +351,11 @@ protected def LE : SKI := LEPoly.toSKI
 theorem le_def (a b : SKI) : (SKI.LE ⬝ a ⬝ b) ↠ IsZero ⬝ (SKI.Sub ⬝ a ⬝ b) :=
   LEPoly.toSKI_correct [a, b] (by simp)
 
-theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m b) :
-    IsBool (n ≤ m) (SKI.LE ⬝ a ⬝ b) := by
-  simp only [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
-  apply isBool_trans (a' := IsZero ⬝ (SKI.Sub ⬝ a ⬝ b)) (h := le_def _ _)
-  apply isZero_correct
+theorem le_correct : SKI.LE ⊩ (· ≤ · : Nat → Nat → Bool) := by
+  intro n xn hn m xm hm
+  simp_rw [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
+  apply IsEncoding.left_of_mRed (y := IsZero ⬝ (SKI.Sub ⬝ xn ⬝ xm)) (h := le_def _ _)
+  apply isEncoding_isZero
   apply sub_correct <;> assumption
 
 end SKI
