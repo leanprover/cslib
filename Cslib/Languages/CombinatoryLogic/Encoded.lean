@@ -8,6 +8,7 @@ module
 
 public import Cslib.Languages.CombinatoryLogic.Basic
 public import Cslib.Foundations.Semantics.Encoded
+public import Mathlib.Data.Part
 
 @[expose] public section
 
@@ -228,5 +229,35 @@ theorem isEncoding_sum_rec {α β γ : Type*} [Encoded α SKI] [Encoded β SKI] 
   | inr b =>
     obtain ⟨xb, hb, hred⟩ := hab xf xg
     exact (hg hb).left_of_mRed <| (rotR_def ..).trans hred
+
+/-!
+### Partial values
+
+A term `x` encodes a partial value `o` if `o = Part.none`, or `o = Part.some a` and `x ⊩ a`.
+-/
+
+instance instEncodedPart {α : Type*} [Encoded α SKI] : Encoded (Part α) SKI where
+  IsEncoding o x := (h : o.Dom) → x ⊩ (o.get h)
+
+lemma isEncoding_of_mem {α : Type*} [Encoded α SKI] {o : Part α} {x : SKI} (h : x ⊩ o)
+    {a : α} (ha : a ∈ o) : x ⊩ a := by
+  obtain ⟨hao, ha⟩ := ha
+  exact ha ▸ h hao
+
+lemma isEncoding_some_iff {α : Type*} [Encoded α SKI] {a : α} {x : SKI} :
+    (x ⊩ Part.some a) ↔ x ⊩ a := by
+  refine ⟨?_, ?_⟩
+  · intro h; exact h (Part.some_dom a)
+  · intro h; exact fun _ => h
+
+instance instEncodedLiftPart {α : Type*} [EncodedLift α Red] : EncodedLift (Part α) Red where
+  isEncoding_left_of_red := by
+    intro o x y ho h hdom
+    exact (ho hdom).left_of_red h
+
+instance instEncodedDescPart {α : Type*} [EncodedDesc α Red] : EncodedDesc (Part α) Red where
+  isEncoding_right_of_red := by
+    intro o x y ho h hdom
+    exact (ho hdom).right_of_red h
 
 end Cslib.SKI

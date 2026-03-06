@@ -81,7 +81,10 @@ instance instEncodedLiftNat : EncodedLift Nat Red where
     (a ⬝ f ⬝ x) ⭢ a' ⬝ f ⬝ x := red_head _ _ x <| red_head _ _ f <| h
     _ ↠ Church n f x := by apply ha'
 
-/-! ### Church numeral basics -/
+/-! ### Church numeral basics
+
+Canonical constructors, iteration and primitive recursion.
+-/
 
 /-- Church zero := λ f x. x -/
 protected def Zero : SKI := K ⬝ I
@@ -125,7 +128,7 @@ def toChurch : ℕ → SKI
 
 /-- `toChurch n` correctly represents `n`. -/
 @[scoped grind .]
-theorem toChurch_correct (n : ℕ) : (toChurch n) ⊩ n := by
+theorem isEncoding_toChurch (n : ℕ) : (toChurch n) ⊩ n := by
   induction n with
   | zero => exact isEncoding_zero
   | succ n ih => exact isEncoding_succ ih
@@ -151,7 +154,7 @@ lemma isEncoding_iter : Iter ⊩ (Nat.iterate (α := α)) := by
 def Nat.recPairStep (f : Nat → α → α) : α × Nat → α × Nat
   | ⟨y, m⟩ => ⟨f m y, m + 1⟩
 
-lemma Nat.recPairStep_correct {α' : Type*} (a : α') (f : Nat → α' → α') (n : Nat) :
+lemma Nat.isEncoding_recPairStep {α' : Type*} (a : α') (f : Nat → α' → α') (n : Nat) :
     (Nat.recPairStep f)^[n] ⟨a, 0⟩ = ⟨Nat.rec a f n, n⟩ := by
   induction n with
   | zero => simp
@@ -176,10 +179,10 @@ lemma natRecAux_correct {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) :
   · exact hf hp.2 hp.1
   · exact SKI.isEncoding_succ hp.2
 
-lemma isEncoded_recPairStep_iter {a : α} {xa : SKI} (ha : xa ⊩ a)
+lemma isEncoding_recPairStep_iter {a : α} {xa : SKI} (ha : xa ⊩ a)
     {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) {n : Nat} {xn : SKI} (hn : xn ⊩ n) :
     (R ⬝ (natRecAux ⬝ xf) ⬝ xn ⬝ (MkPair ⬝ xa ⬝ SKI.Zero)) ⊩ (⟨Nat.rec a f n, n⟩ : α × Nat) := by
-  rw [←Nat.recPairStep_correct]
+  rw [←Nat.isEncoding_recPairStep]
   refine isEncoding_iter (natRecAux_correct hf) hn ?_
   apply isEncoding_mkPair
   · exact ha
@@ -196,7 +199,7 @@ lemma natRec_def (xa xf xn : SKI) :
 theorem isEncoding_nat_rec :
     natRec ⊩ (Nat.rec : α → (Nat → α → α) → Nat → α) := by
   intro a xa ha f xf hf n xn hn
-  exact IsEncoding.left_of_mRed (isEncoded_recPairStep_iter ha hf hn).1 (natRec_def xa xf xn)
+  exact IsEncoding.left_of_mRed (isEncoding_recPairStep_iter ha hf hn).1 (natRec_def xa xf xn)
 
 def Pred : SKI := natRec ⬝ SKI.Zero ⬝ K
 
@@ -315,7 +318,7 @@ protected def Mul : SKI := MulPoly.toSKI
 theorem mul_def (a b : SKI) : (SKI.Mul ⬝ a ⬝ b) ↠ a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero :=
   MulPoly.toSKI_correct [a, b] (by simp)
 
-theorem mul_correct : SKI.Mul ⊩ Nat.mul := by
+theorem isEncoding_mul : SKI.Mul ⊩ Nat.mul := by
   intro n xn hn m xm hm
   refine IsEncoding.left_of_mRed (y := Church n (SKI.Add ⬝ xm) SKI.Zero) ?_ ?_
   · clear hn
@@ -332,7 +335,7 @@ protected def Sub : SKI := SubPoly.toSKI
 theorem sub_def (a b : SKI) : (SKI.Sub ⬝ a ⬝ b) ↠ b ⬝ Pred ⬝ a :=
   SubPoly.toSKI_correct [a, b] (by simp)
 
-theorem sub_correct : SKI.Sub ⊩ Nat.sub := by
+theorem isEncoding_sub : SKI.Sub ⊩ Nat.sub := by
   intro n xn hn m xm hm
   refine IsEncoding.left_of_mRed (y := Church m Pred xn) ?_ ?_
   · clear hm
@@ -351,12 +354,12 @@ protected def LE : SKI := LEPoly.toSKI
 theorem le_def (a b : SKI) : (SKI.LE ⬝ a ⬝ b) ↠ IsZero ⬝ (SKI.Sub ⬝ a ⬝ b) :=
   LEPoly.toSKI_correct [a, b] (by simp)
 
-theorem le_correct : SKI.LE ⊩ (· ≤ · : Nat → Nat → Bool) := by
+theorem isEncoding_le : SKI.LE ⊩ (· ≤ · : Nat → Nat → Bool) := by
   intro n xn hn m xm hm
   simp_rw [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
   apply IsEncoding.left_of_mRed (y := IsZero ⬝ (SKI.Sub ⬝ xn ⬝ xm)) (h := le_def _ _)
   apply isEncoding_isZero
-  apply sub_correct <;> assumption
+  apply isEncoding_sub <;> assumption
 
 end SKI
 

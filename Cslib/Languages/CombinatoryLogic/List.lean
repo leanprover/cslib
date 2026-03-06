@@ -13,8 +13,8 @@ public import Cslib.Languages.CombinatoryLogic.Recursion
 /-!
 # Church-Encoded Lists in SKI Combinatory Logic
 
-Church-encoded lists for proving SKI ≃ TM equivalence. A list is encoded as
-`λ c n. c a₀ (c a₁ (... (c aₖ n)...))` where each `aᵢ` is a Church numeral.
+Church-encoded lists for proving SKI ≃ TM equivalence. A list `[a₀, ... aₖ]` is encoded as
+`λ c n. c xa₀ (c xa₁ (... (c xaₖ n)...))` where each `xaᵢ` represents `aᵢ`.
 -/
 
 namespace Cslib
@@ -93,6 +93,8 @@ theorem isEncoding_singleton {x : α} {cx : SKI} (hcx : cx ⊩ x) :
     (Cons ⬝ cx ⬝ Nil) ⊩ [x] :=
   isEncoding_cons hcx isEncoding_nil
 
+/-! ### Basic recursion on lists -/
+
 def FoldR := RotR
 
 lemma isEncoding_list_foldr {α β : Type*} [Encoded α SKI] [EncodedLift β Red] :
@@ -122,7 +124,7 @@ lemma listRecAux_def (xf xa xp : SKI) :
       SKI.MkPair ⬝ (xf ⬝ xa ⬝ (Snd ⬝ xp) ⬝ (Fst ⬝ xp)) ⬝ (Cons ⬝ xa ⬝ (Snd ⬝ xp)) :=
   listRecAuxPoly.toSKI_correct [xf, xa, xp] (by simp)
 
-lemma listRecAux_correct {α β : Type*} [EncodedLift α Red] [EncodedLift β Red]
+lemma isEncoding_listRecAux {α β : Type*} [EncodedLift α Red] [EncodedLift β Red]
     {f : α → List α → β → β} {xf : SKI} (hf : xf ⊩ f) :
     (listRecAux ⬝ xf) ⊩ (List.recPairStep f) := by
   intro a xa ha p xp hp
@@ -137,7 +139,7 @@ lemma isEncoding_recPairStep_foldr {α β : Type*} [EncodedLift α Red] [Encoded
     (SKI.RotR ⬝ (listRecAux ⬝ xf) ⬝ (MkPair ⬝ xb ⬝ Nil) ⬝ xas) ⊩
       (⟨List.rec b f as, as⟩ : β × List α) := by
   rw [←List.recPairStep_foldr]
-  refine isEncoding_list_foldr (listRecAux_correct hf) ?_ has
+  refine isEncoding_list_foldr (isEncoding_listRecAux hf) ?_ has
   exact isEncoding_mkPair hb isEncoding_nil
 
 def listRecPoly : SKI.Polynomial 3 :=
