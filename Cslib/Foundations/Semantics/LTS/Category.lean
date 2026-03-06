@@ -22,7 +22,7 @@ variable {State : Type u} {Label : Type v}
 /-! ## LTSs and LTS morphisms form a category -/
 
 /-- The notion of labelled transition system -/
-structure LTSCat where
+structure LTSCat : Type (max u v + 1) where
   State : Type u
   Label : Type v
   lts : LTS State Label
