@@ -52,6 +52,15 @@ public import Cslib.Cryptography.Foundations.OracleInteraction
 public import Cslib.Cryptography.Foundations.PolyTimeDistinguisher
 public import Cslib.Cryptography.Foundations.RandomOracle
 public import Cslib.Cryptography.Foundations.SecurityGame
+public import Cslib.Cryptography.Assumptions.DiscreteLog
+public import Cslib.Cryptography.Primitives.Commitment
+public import Cslib.Cryptography.Primitives.Encryption
+public import Cslib.Cryptography.Primitives.HashFunction
+public import Cslib.Cryptography.Primitives.MAC
+public import Cslib.Cryptography.Primitives.OneWayFunction
+public import Cslib.Cryptography.Primitives.PRF
+public import Cslib.Cryptography.Primitives.PRG
+public import Cslib.Cryptography.Primitives.Signature
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
