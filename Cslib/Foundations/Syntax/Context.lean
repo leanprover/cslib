@@ -19,6 +19,6 @@ class HasContext (Term : Sort*) where
   /-- Replaces the hole in the context with a term. -/
   fill (c : Context) (t : Term) : Term
 
-@[inherit_doc] notation:max c "[" t "]" => HasContext.fill c t
+@[inherit_doc] notation:max c "<[" t "]" => HasContext.fill c t
 
 end Cslib

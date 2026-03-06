@@ -44,7 +44,7 @@ to learn about it as well!
   - Optional: `zulip-send` CLI for automatic Zulip notifications
 
 **Init Imports**
-- `CheckInitImports.lean` (usually run from `lake test`) checks that all files transitively import `Cslib.Init`.
+- `CheckInitImports.lean` (run by `lake exe checkInitImports`) checks that all files transitively import `Cslib.Init`.
 
 **Linting**
 - `weekly_lint_report.sh`

@@ -22,10 +22,14 @@ jobs:
         run: |
           set -e
           lake exe mk_all --check --module
-      - name: "lake shake"
+      #- name: "lake shake"
+      #  run: |
+      #    set -e
+      #    lake shake --add-public --keep-implied --keep-prefix Cslib
+      - name: "checkInitImports"
         run: |
           set -e
-          lake shake --add-public --keep-implied --keep-prefix Cslib
+          lake exe checkInitImports
       - uses: leanprover-community/lint-style-action@main
         with:
           mode: check
