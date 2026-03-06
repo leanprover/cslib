@@ -36,10 +36,8 @@ states, a function on labels, and a proof that transitions are preserved.
 structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
   stateMap : lts₁.State → lts₂.State
   labelMap : lts₁.Label → lts₂.Label
-  labelMap_tr : (s s' : lts₁.State)
-                            → (l : lts₁.Label)
-                            → lts₁.lts.Tr s l s'
-                            → lts₂.lts.Tr (stateMap s) (labelMap l) (stateMap s')
+  labelMap_tr (s s' : lts₁.State) (l : lts₁.Label) :
+    lts₁.lts.Tr s l s' → lts₂.lts.Tr (stateMap s) (labelMap l) (stateMap s')
 
 /-- The identity LTS morphism. -/
 def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
