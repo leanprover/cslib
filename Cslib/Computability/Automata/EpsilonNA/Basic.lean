@@ -43,7 +43,7 @@ namespace FinAcc
 
 /-- An `εNA.FinAcc` accepts a string if there is a saturated multistep accepting derivative with
 that trace from the start state. -/
-@[scoped grind =]
+@[automata =]
 instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.εClosure a.start, ∃ s' ∈ a.accept,

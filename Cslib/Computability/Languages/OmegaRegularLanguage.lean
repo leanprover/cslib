@@ -120,7 +120,7 @@ theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
   ext xs
   simp only [NA.Buchi.iSum_language_eq, mem_sup, mem_language]
   rw [mem_iUnion, Fin.exists_fin_two]
-  grind
+  grind [automata]
 
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
@@ -142,7 +142,7 @@ theorem IsRegular.inf {p1 p2 : ωLanguage Symbol}
   ext xs
   simp only [inter_language_eq, mem_inf, mem_language]
   rw [mem_iInter, Bool.forall_bool]
-  grind
+  grind [automata]
 
 /-- The union of any finite number of ω-regular languages is ω-regular. -/
 @[simp]

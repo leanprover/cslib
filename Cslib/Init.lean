@@ -10,6 +10,8 @@ public import Cslib.Foundations.Lint.Basic
 public import Mathlib.Init
 public import Mathlib.Tactic.Common
 
+register_grind_attr automata
+
 /-!
 # CSLib Initialization
 

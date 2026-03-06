@@ -13,7 +13,7 @@ public import Cslib.Computability.Automata.NA.Basic
 /-! # Equivalence of nondeterministic Buchi automata (NBAs). -/
 
 open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
+open Cslib.LTS
 
 universe u v w
 
@@ -24,7 +24,7 @@ open ωAcceptor
 variable {Symbol : Type u} {State : Type v} {State' : Type w}
 
 /-- Lifts an equivalence on states to an equivalence on NBAs. -/
-@[scoped grind =]
+@[automata =]
 def reindex (f : State ≃ State') : Buchi State Symbol ≃ Buchi State' Symbol where
   toFun nba := {
     Tr s x t := nba.Tr (f.symm s) x (f.symm t)
@@ -54,15 +54,15 @@ theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}
     (nba.reindex f).Run xs (ss.map f) ↔ nba.Run xs ss := by
   simp [reindex_run_iff]
 
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem reindex_language_eq {f : State ≃ State'} {nba : Buchi State Symbol} :
     language (nba.reindex f) = language nba := by
   ext xs
   constructor
   · rintro ⟨ss', h_run', h_acc'⟩
-    grind [reindex_run_iff]
+    grind [automata, reindex_run_iff]
   · rintro ⟨ss, h_run, h_acc⟩
     use ss.map f
-    constructor <;> grind [reindex_run_iff']
+    constructor <;> grind [automata, reindex_run_iff']
 
 end Cslib.Automata.NA.Buchi
