@@ -15,6 +15,6 @@ namespace Cslib
 
 /-- An equivalence relation preserved by all contexts. -/
 class Congruence (α : Type*) [HasContext α] (r : α → α → Prop) extends
-  IsEquiv α r, covariant : CovariantClass (HasContext.Context α) α (·[·]) r
+  IsEquiv α r, covariant : CovariantClass (HasContext.Context α) α (·<[·]) r
 
 end Cslib
