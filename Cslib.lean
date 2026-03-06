@@ -65,6 +65,11 @@ public import Cslib.Cryptography.Protocols.Combinators
 public import Cslib.Cryptography.Protocols.FiatShamir
 public import Cslib.Cryptography.Protocols.Schnorr
 public import Cslib.Cryptography.Protocols.SigmaProtocol
+public import Cslib.Cryptography.Reductions.FiatShamirROM
+public import Cslib.Cryptography.Reductions.HashToCommitment
+public import Cslib.Cryptography.Reductions.PRFtoEncryption
+public import Cslib.Cryptography.Reductions.PRFtoMAC
+public import Cslib.Cryptography.Reductions.PRGtoEncryption
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
