@@ -93,6 +93,42 @@ def sat : MultiTapeTM 3 Char :=
   outOfArg SATInput 0 0 0 ;ₜ
   erase Assignments 1
 
+section SATInput_tape_lemmas
+
+/-- `toArg SATInput 0 0` positions the head at the formula field. -/
+@[simp]
+lemma toArg_tape_SATInput_0 {f : Formula} {a : Assignments} {r : List Char} :
+    Routines.toArg_tape SATInput 0 0
+        (BiTape.mk₁ (StrEnc.enc (SATInput.mk f a) ++ r)) =
+      BiTape.mk₂ ((StrEnc.enc (0 : ℕ)).reverse ++ ['('])
+        (StrEnc.enc f ++ StrEnc.enc a ++ [')'] ++ r) := by sorry
+
+/-- `toArg SATInput 0 1` positions the head at the assignment field. -/
+@[simp]
+lemma toArg_tape_SATInput_1 {f : Formula} {a : Assignments} {r : List Char} :
+    Routines.toArg_tape SATInput 0 1
+        (BiTape.mk₁ (StrEnc.enc (SATInput.mk f a) ++ r)) =
+      BiTape.mk₂ ((StrEnc.enc f).reverse ++ (StrEnc.enc (0 : ℕ)).reverse ++ ['('])
+        (StrEnc.enc a ++ [')'] ++ r) := by sorry
+
+/-- `copyEnc_tape Assignments` on the positioned tape reads the assignment. -/
+@[simp]
+lemma copyEnc_tape_Assignments {a : Assignments} {prefix_ suffix_ : List Char}
+    {rⱼ : List Char} :
+    Routines.copyEnc_tape Assignments
+      (BiTape.mk₂ prefix_ (StrEnc.enc a ++ suffix_))
+      (BiTape.mk₁ rⱼ) =
+    BiTape.mk₁ (StrEnc.enc a ++ rⱼ) := by sorry
+
+/-- `erase_tape Assignments` on a tape with an encoded assignment removes it. -/
+@[simp]
+lemma erase_tape_Assignments {a : Assignments} {r : List Char} :
+    Routines.erase_tape Assignments
+      (BiTape.mk₁ (StrEnc.enc a ++ r)) =
+    BiTape.mk₁ r := by sorry
+
+end SATInput_tape_lemmas
+
 /-- Evaluate a literal given a list of positive-variable assignments. -/
 def evalLiteral (a : Assignments) : Literal → Bool
   | Literal.pos v => a.contains v
@@ -126,13 +162,24 @@ theorem sat_eval
   obtain ⟨formula, assignment⟩ := input
   simp only [evalFormula]
   unfold sat
+  -- Step 1: Resolve all .eval calls via unconditional simp lemmas
   simp only [MultiTapeTM.seq_eval, Routines.part_some_bind_eq,
     Routines.toArg_eval, Routines.copyEnc_eval, Routines.outOfArg_eval,
     Routines.all_list_eval, Routines.erase_eval,
     Routines.Function.update_update]
-  -- After simp, all evals are resolved. The remaining goal involves
-  -- reducing the opaque result functions (toArg_result, copyEnc_result,
-  -- outOfArg_result, all_list_result, erase_result) for the SATInput case.
+  -- Step 2: Resolve Function.update lookups and substitute known tape values,
+  -- then reduce the *_tape functions via SATInput-specific simp lemmas
+  simp only [Function.update_self, Function.update_of_ne (by decide : (0 : Fin 3) ≠ 1),
+    Function.update_of_ne (by decide : (0 : Fin 3) ≠ 2),
+    Function.update_of_ne (by decide : (1 : Fin 3) ≠ 0),
+    Function.update_of_ne (by decide : (1 : Fin 3) ≠ 2),
+    Function.update_of_ne (by decide : (2 : Fin 3) ≠ 0),
+    Function.update_of_ne (by decide : (2 : Fin 3) ≠ 1),
+    h_tape0, h_tape1, h_tape2,
+    toArg_tape_SATInput_0, toArg_tape_SATInput_1,
+    copyEnc_tape_Assignments, erase_tape_Assignments,
+    Routines.outOfArg_toArg_tape,
+    Routines.Function.update_update]
   sorry
 
 end Satisfiability
