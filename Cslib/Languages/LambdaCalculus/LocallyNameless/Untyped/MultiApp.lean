@@ -27,7 +27,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
   multiApp f [x_1, x_2, ..., x_n] applies the arguments x_1, x_2, ..., x_n
   to f in left-associative order, i.e. as (((f x_1) x_2) ... x_n).
 -/
-@[simp]
+@[simp, scoped grind =]
 def multiApp (f : Term Var) (args : List (Term Var)) :=
   match args with
   | []      => f
@@ -41,23 +41,22 @@ def multiApp (f : Term Var) (args : List (Term Var)) :=
   if one of the arguments performs a single step xᵢ ⭢βᶠ xᵢ'
   and the rest of the arguments are locally closed.
 -/
-@[reduction_sys "βᶠ"]
-inductive multiApp_full_beta : List (Term Var) → List (Term Var) → Prop where
-| step : N ⭢βᶠ N' → (∀ N ∈ Ns, LC N) → multiApp_full_beta (N :: Ns) (N' :: Ns)
-| cons : LC N → multiApp_full_beta Ns Ns' → multiApp_full_beta (N :: Ns) (N :: Ns')
+@[reduction_sys "lβᶠ"]
+inductive list_full_beta : List (Term Var) → List (Term Var) → Prop where
+| step : N ⭢βᶠ N' → (∀ N ∈ Ns, LC N) → list_full_beta (N :: Ns) (N' :: Ns)
+| cons : LC N → list_full_beta Ns Ns' → list_full_beta (N :: Ns) (N :: Ns')
 
-attribute [scoped grind .] multiApp_full_beta.step multiApp_full_beta.cons
+attribute [scoped grind .] list_full_beta.step list_full_beta.cons
 
 /- just like ordinary beta reduction, the right-hand side
    of a multi-application step is locally closed -/
-lemma multiApp_step_lc_r {Ns Ns' : List (Term Var)}
-  (step : Ns ⭢βᶠ Ns') :
+lemma multiApp_step_lc_r {Ns Ns' : List (Term Var)} (step : Ns ⭢lβᶠ Ns') :
     (∀ N ∈ Ns', LC N) := by
   induction step <;> grind [FullBeta.step_lc_r]
 
 /- just like ordinary beta reduction, multiple steps of a argument list preserves local closure -/
 lemma multiApp_steps_lc {Ns Ns' : List (Term Var)}
-  (step : Ns ↠βᶠ Ns') (H : ∀ N ∈ Ns, LC N) :
+  (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) :
     (∀ N ∈ Ns', LC N) := by
   induction step <;> grind [FullBeta.step_lc_r, multiApp_step_lc_r]
 
@@ -66,12 +65,11 @@ lemma multiApp_steps_lc {Ns Ns' : List (Term Var)}
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma multiApp_lc {M : Term Var} {Ns : List (Term Var)} :
-    LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N)
-   := by
+    LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
   constructor
-  · induction Ns
-    · case nil => grind [multiApp]
-    · case cons N Ns ih => intro h_lc; cases h_lc; grind
+  · induction Ns with
+    | nil  => grind [multiApp]
+    | cons => intro h_lc; cases h_lc; grind
   · induction Ns <;> grind [multiApp, LC.app]
 
 /- just like ordinary beta reduction, the left-hand side
@@ -97,7 +95,7 @@ lemma steps_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma step_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
-  (steps : Ns ⭢βᶠ Ns')
+  (steps : Ns ⭢lβᶠ Ns')
   (lc_M : LC M) :
     M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
@@ -106,7 +104,7 @@ lemma step_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma steps_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
-  (steps : Ns ↠βᶠ Ns')
+  (steps : Ns ↠lβᶠ Ns')
   (lc_M : LC M) :
     M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
@@ -123,15 +121,15 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
   (h_red : multiApp (M.abs.app N) Ps ⭢βᶠ Q) :
     (∃ M', M.abs ⭢βᶠ Term.abs M' ∧ Q = multiApp (M'.abs.app N) Ps) ∨
     (∃ N', N ⭢βᶠ N' ∧ Q = multiApp (M.abs.app N') Ps) ∨
-    (∃ Ps', Ps ⭢βᶠ Ps' ∧ Q = multiApp (M.abs.app N) Ps') ∨
+    (∃ Ps', Ps ⭢lβᶠ Ps' ∧ Q = multiApp (M.abs.app N) Ps') ∨
     (Q = multiApp (M ^ N) Ps) := by
   induction Ps generalizing M N Q with
   | nil =>
     rw [multiApp] at h_red
     rw [multiApp]
     cases h_red
-    · case beta abs_lc n_lc => aesop
-    · case appL M N' lc_z h_red => aesop
+    · case beta abs_lc n_lc => grind
+    · case appL M N' lc_z h_red => grind
     · case appR M M' lc_z h_red =>
         left
         cases lc_z
@@ -150,20 +148,16 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     · case beta abs_lc n_lc => cases Ps <;> contradiction
     · case appL Y M P' lc_z h_red =>
         right; right; left
-        exists (P' :: Ps)
-        simp
-        grind
+        exists (P' :: Ps); grind
     · case appR M Q'' h_red P_lc =>
         rw [←Heq] at h_red
         match (ih h_red) with
-        | .inl ⟨ M', st, Heq' ⟩                => aesop
-        | .inr (.inl ⟨ N', st, Heq' ⟩)         => aesop
+        | .inl ⟨ M', st, Heq' ⟩                => grind
+        | .inr (.inl ⟨ N', st, Heq' ⟩)         => grind
         | .inr (.inr (.inl ⟨ Ps', st, Heq' ⟩)) =>
           right; right; left
-          exists (P :: Ps')
-          simp
-          grind
-        | .inr (.inr (.inr Heq'))              => aesop
+          exists (P :: Ps');grind
+        | .inr (.inr (.inr Heq'))              => grind
 
 /- if a term (λ M) N P_1 ... P_n reduces in multiple steps to Q, then either Q if of the form
 
@@ -183,10 +177,10 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
 -/
 lemma invert_abs_multiApp_mst {Ps} {M N Q : Term Var}
   (h_red : multiApp (M.abs.app N) Ps ↠βᶠ Q) :
-    ∃ M' N' Ns', M.abs ↠βᶠ M'.abs ∧ N ↠βᶠ N' ∧ Ps ↠βᶠ Ns' ∧
+    ∃ M' N' Ns', M.abs ↠βᶠ M'.abs ∧ N ↠βᶠ N' ∧ Ps ↠lβᶠ Ns' ∧
                  (Q = multiApp (M'.abs.app N') Ns' ∨
      (multiApp (M.abs.app N) Ps ↠βᶠ multiApp (M' ^ N') Ns' ∧
-                                      multiApp (M' ^ N') Ns' ↠βᶠ Q)) := by
+                                     multiApp (M' ^ N') Ns' ↠βᶠ Q)) := by
   induction h_red
   · case refl => grind
   · case tail Q' Q'' steps step ih =>
