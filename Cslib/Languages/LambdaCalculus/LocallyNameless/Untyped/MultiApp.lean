@@ -23,9 +23,11 @@ variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 
+
+
 /-
-  multiApp f [x_1, x_2, ..., x_n] applies the arguments x_1, x_2, ..., x_n
-  to f in left-associative order, i.e. as (((f x_1) x_2) ... x_n).
+  multiApp f [x₁, x₂, ..., xₙ] applies the arguments x₁, x₂, ..., xₙ
+  to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ).
 -/
 @[simp, scoped grind =]
 def multiApp (f : Term Var) (args : List (Term Var)) :=
@@ -48,15 +50,16 @@ inductive list_full_beta : List (Term Var) → List (Term Var) → Prop where
 
 attribute [scoped grind .] list_full_beta.step list_full_beta.cons
 
+variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
+
 /- just like ordinary beta reduction, the right-hand side
    of a multi-application step is locally closed -/
-lemma multiApp_step_lc_r {Ns Ns' : List (Term Var)} (step : Ns ⭢lβᶠ Ns') :
+lemma multiApp_step_lc_r (step : Ns ⭢lβᶠ Ns') :
     (∀ N ∈ Ns', LC N) := by
   induction step <;> grind [FullBeta.step_lc_r]
 
 /- just like ordinary beta reduction, multiple steps of a argument list preserves local closure -/
-lemma multiApp_steps_lc {Ns Ns' : List (Term Var)}
-  (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) :
+lemma multiApp_steps_lc (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) :
     (∀ N ∈ Ns', LC N) := by
   induction step <;> grind [FullBeta.step_lc_r, multiApp_step_lc_r]
 
@@ -64,7 +67,7 @@ lemma multiApp_steps_lc {Ns Ns' : List (Term Var)}
    and only if the leftmost term and all arguments applied to it are locally closed -/
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
-lemma multiApp_lc {M : Term Var} {Ns : List (Term Var)} :
+lemma multiApp_lc :
     LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
   constructor
   · induction Ns with
@@ -76,36 +79,28 @@ lemma multiApp_lc {M : Term Var} {Ns : List (Term Var)} :
    of a multi-application step is locally closed -/
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
-lemma step_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
-  (steps : M ⭢βᶠ M')
-  (lc_Ns : ∀ N ∈ Ns, LC N) :
+lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ⭢βᶠ M'.multiApp Ns := by
   induction Ns <;> grind [multiApp, FullBeta.appR]
 
 /- congruence lemma for multi reduction of the left most term of a multi-application -/
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
-lemma steps_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
-  (steps : M ↠βᶠ M')
-  (lc_Ns : ∀ N ∈ Ns, LC N) :
+lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ↠βᶠ M'.multiApp Ns := by
   induction steps <;> grind
 
 /- congruence lemma for single reduction of one of the arguments of a multi-application -/
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
-lemma step_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
-  (steps : Ns ⭢lβᶠ Ns')
-  (lc_M : LC M) :
+lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) :
     M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
 
 /- congruence lemma for multiple reduction of one of the arguments of a multi-application -/
 omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
-lemma steps_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
-  (steps : Ns ↠lβᶠ Ns')
-  (lc_M : LC M) :
+lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) :
     M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
 
@@ -159,19 +154,19 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
           exists (P :: Ps');grind
         | .inr (.inr (.inr Heq'))              => grind
 
-/- if a term (λ M) N P_1 ... P_n reduces in multiple steps to Q, then either Q if of the form
+/- if a term (λ M) N P₁ ... Pₙ reduces in multiple steps to Q, then either Q if of the form
 
-    Q = (λ M') N' P'_1 ... P'_n
+    Q = (λ M') N' P'₁ ... P'ₙ
 
    or
 
     we first reach an intermediate term of this shape,
 
-    (λ M) N P_1 ... P_n ↠βᶠ (λ M') N' P'_1 ... P'_n
+    (λ M) N P₁ ... Pₙ ↠βᶠ (λ M') N' P'₁ ... P'ₙ
 
     then perform a beta reduction and reduce further to Q
 
-    (λ M') N' P'_1 ... P'_n ↠βᶠ M' ^ N' P'_1 ... P'_n ↠βᶠ Q
+    (λ M') N' P'₁ ... P'ₙ ↠βᶠ M' ^ N' P'_₁ ... P'_ₙ ↠βᶠ Q
 
    where M ↠βᶠ M' and N ↠βᶠ N' and P_i ↠βᶠ P_i' for all i,
 -/
