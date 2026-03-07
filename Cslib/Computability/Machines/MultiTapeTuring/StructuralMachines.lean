@@ -431,12 +431,31 @@ public def any_list {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
   put Bool false j ;ₜ run_list α i (tm ;ₜ combineOr j)
 
 /--
-Semantics of `any_list`: given a list `xs` on tape `i` and a TM `tm` that for each
-element `x` prepends `enc(f x)` to tape `j`, `any_list` produces `enc(xs.any f)`
-on tape `j`.
+The result on tape `j` after running `any_list α i tm j` on `tapes`.
+Use simp lemmas like `any_list_result_spec` to reduce this for specific inputs.
+-/
+public noncomputable def any_list_result {k : ℕ} (α : Type*) [StrEnc α]
+    (i : Fin k) (tm : MultiTapeTM k Char) (j : Fin k)
+    (tapes : Fin k → BiTape Char) : BiTape Char := sorry
+
+/--
+Unconditional simp lemma: `any_list` always produces an update to tape `j`.
+The actual content of tape `j` is described by `any_list_result`, which has its
+own simp rules for specific inputs.
 -/
 @[simp]
 public lemma any_list_eval {α : Type*} [StrEnc α] {i j : Fin k}
+    {tm : MultiTapeTM k Char}
+    {tapes : Fin k → BiTape Char} :
+    (any_list α i tm j).eval tapes = .some (Function.update tapes j
+      (any_list_result α i tm j tapes)) := by sorry
+
+/--
+Reduce `any_list_result` when the list on tape `i` and the function computed by
+`tm` are known.
+-/
+@[simp]
+public lemma any_list_result_spec {α : Type*} [StrEnc α] {i j : Fin k}
     (h_ne : i ≠ j)
     {tm : MultiTapeTM k Char}
     {xs : List α} {f : α → Bool}
@@ -450,22 +469,8 @@ public lemma any_list_eval {α : Type*} [StrEnc α] {i j : Fin k}
       t j = BiTape.mk₁ (StrEnc.enc b ++ r') →
       ∃ t', tm.eval t = .some t' ∧ t' i = t i ∧
         t' j = BiTape.mk₁ (StrEnc.enc (f x) ++ StrEnc.enc b ++ r')) :
-    (any_list α i tm j).eval tapes = .some (Function.update tapes j
-      (BiTape.mk₁ (StrEnc.enc (xs.any f) ++ r_j))) := by
-  unfold any_list
-  simp only [MultiTapeTM.seq_eval,
-    put_eval (x := false) h_tape_j, part_some_bind_eq]
-  have h_i' : (Function.update tapes j
-      (BiTape.mk₁ (StrEnc.enc false ++ r_j))) i =
-      BiTape.mk₁ (StrEnc.enc xs ++ r_i) := by
-    rw [Function.update_of_ne h_ne]; exact h_tape_i
-  have h_j' : (Function.update tapes j
-      (BiTape.mk₁ (StrEnc.enc false ++ r_j))) j =
-      BiTape.mk₁ (StrEnc.enc false ++ r_j) :=
-    Function.update_self j
-      (BiTape.mk₁ (StrEnc.enc false ++ r_j)) tapes
-  rw [run_list_combineOr_eval h_ne h_i' h_j' h_halts h_tm]
-  simp only [Bool.or_false, Function.update_update]
+    any_list_result α i tm j tapes =
+      BiTape.mk₁ (StrEnc.enc (xs.any f) ++ r_j) := by sorry
 
 /--
 Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
@@ -477,12 +482,29 @@ public def all_list {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k)
   any_list α i (tm ;ₜ negateBool j) j ;ₜ negateBool j
 
 /--
-Semantics of `all_list`: given a list `xs` on tape `i` and a TM `tm` that for each
-element `x` prepends `enc(f x)` to tape `j`, `all_list` produces `enc(xs.all f)`
-on tape `j`.
+The result on tape `j` after running `all_list α i tm j` on `tapes`.
+Use simp lemmas like `all_list_result_spec` to reduce this for specific inputs.
+-/
+public noncomputable def all_list_result {k : ℕ} (α : Type*) [StrEnc α]
+    (i : Fin k) (tm : MultiTapeTM k Char) (j : Fin k)
+    (tapes : Fin k → BiTape Char) : BiTape Char := sorry
+
+/--
+Unconditional simp lemma: `all_list` always produces an update to tape `j`.
 -/
 @[simp]
 public lemma all_list_eval {α : Type*} [StrEnc α] {i j : Fin k}
+    {tm : MultiTapeTM k Char}
+    {tapes : Fin k → BiTape Char} :
+    (all_list α i tm j).eval tapes = .some (Function.update tapes j
+      (all_list_result α i tm j tapes)) := by sorry
+
+/--
+Reduce `all_list_result` when the list on tape `i` and the function computed by
+`tm` are known.
+-/
+@[simp]
+public lemma all_list_result_spec {α : Type*} [StrEnc α] {i j : Fin k}
     (h_ne : i ≠ j)
     {tm : MultiTapeTM k Char}
     {xs : List α} {f : α → Bool}
@@ -497,13 +519,8 @@ public lemma all_list_eval {α : Type*} [StrEnc α] {i j : Fin k}
       t j = BiTape.mk₁ (StrEnc.enc b ++ r') →
       ∃ t', (tm ;ₜ negateBool j).eval t = .some t' ∧ t' i = t i ∧
         t' j = BiTape.mk₁ (StrEnc.enc (!(f x)) ++ StrEnc.enc b ++ r')) :
-    (all_list α i tm j).eval tapes = .some (Function.update tapes j
-      (BiTape.mk₁ (StrEnc.enc (xs.all f) ++ r_j))) := by
-  unfold all_list
-  simp only [MultiTapeTM.seq_eval,
-    any_list_eval h_ne h_tape_i h_tape_j h_halts h_tm, part_some_bind_eq,
-    negateBool_eval (Function.update_self j _ tapes),
-    Function.update_update, List.all_eq_not_any_not, Bool.not_not]
+    all_list_result α i tm j tapes =
+      BiTape.mk₁ (StrEnc.enc (xs.all f) ++ r_j) := by sorry
 
 /--
 Check if the value on tape `i` is contained in the list on tape `j`
