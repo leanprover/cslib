@@ -1,5 +1,7 @@
 /-
-Author: David Wegmann
+Copyright (c) 2025 David Wegmann. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: David Wegmann
 -/
 
 
@@ -9,8 +11,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
 set_option linter.unusedDecidableInType false
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 @[expose] public section
 
@@ -36,9 +36,10 @@ def multiApp (f : Term Var) (args : List (Term Var)) :=
 /-
   A list of arguments performs a single reduction step
 
-  [x_1, ..., x_i ..., x_n] ⭢βᶠ [x_1, ..., x_i', ..., x_n]
+  [x₁, ..., xᵢ ..., xₙ] ⭢βᶠ [x₁, ..., xᵢ', ..., xₙ]
 
-  if one of the arguments performs a single step, and the rest are locally closed.
+  if one of the arguments performs a single step xᵢ ⭢βᶠ xᵢ'
+  and the rest of the arguments are locally closed.
 -/
 @[reduction_sys "βᶠ"]
 inductive multiApp_full_beta : List (Term Var) → List (Term Var) → Prop where
@@ -62,6 +63,7 @@ lemma multiApp_steps_lc {Ns Ns' : List (Term Var)}
 
 /- a term resulting from a multi-application is locally closed if
    and only if the leftmost term and all arguments applied to it are locally closed -/
+omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma multiApp_lc {M : Term Var} {Ns : List (Term Var)} :
     LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N)
@@ -74,6 +76,7 @@ lemma multiApp_lc {M : Term Var} {Ns : List (Term Var)} :
 
 /- just like ordinary beta reduction, the left-hand side
    of a multi-application step is locally closed -/
+omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma step_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
   (steps : M ⭢βᶠ M')
@@ -82,6 +85,7 @@ lemma step_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
   induction Ns <;> grind [multiApp, FullBeta.appR]
 
 /- congruence lemma for multi reduction of the left most term of a multi-application -/
+omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma steps_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
   (steps : M ↠βᶠ M')
@@ -90,6 +94,7 @@ lemma steps_multiApp_l {M M' : Term Var} {Ns : List (Term Var)}
   induction steps <;> grind
 
 /- congruence lemma for single reduction of one of the arguments of a multi-application -/
+omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma step_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
   (steps : Ns ⭢βᶠ Ns')
@@ -98,6 +103,7 @@ lemma step_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
 
 /- congruence lemma for multiple reduction of one of the arguments of a multi-application -/
+omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma steps_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
   (steps : Ns ↠βᶠ Ns')
@@ -108,10 +114,10 @@ lemma steps_multiApp_r {M : Term Var} {Ns Ns' : List (Term Var)}
 /- if a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
    Q must be one of the following forms:
 
-    Q = (λ M') N P_1 ... P_n where M ⭢βᶠ M' or
-    Q = (λ M) N' P_1 ... P_n where N ⭢βᶠ N' or
-    Q = (λ M) N P_1' ... P_n' where P_i ⭢βᶠ P_i' for some i or
-    Q = (M ^ N) P_1 ... P_n
+    Q = (λ M') N P₁ ... Pₙ where M ⭢βᶠ M' or
+    Q = (λ M) N' P₁ ... Pₙ where N ⭢βᶠ N' or
+    Q = (λ M) N P₁' ... Pₙ' where P_i ⭢βᶠ P_i' for some i or
+    Q = (M ^ N) P₁ ... Pₙ
 -/
 lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
   (h_red : multiApp (M.abs.app N) Ps ⭢βᶠ Q) :
