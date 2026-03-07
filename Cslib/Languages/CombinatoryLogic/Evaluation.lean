@@ -209,7 +209,7 @@ lemma sk_nequiv : ¬ MJoin Red S K := by
   cases (redexFree_iff_mred_eq.1 hK _).1 hkz
 
 /-- Injectivity for booleans. -/
-theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
+theorem realizes_bool_injective (x y : SKI) (u v : Bool) (hx : x ⊩ u) (hy : y ⊩ v)
     (hxy : MJoin Red x y) : u = v := by
   have h : MJoin Red (if u then S else K) (if v then S else K) := by
     apply mJoin_red_equivalence.trans (y := x ⬝ S ⬝ K)
@@ -223,7 +223,8 @@ theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool
   grind [sk_nequiv, mJoin_red_equivalence.symm h]
 
 lemma TF_nequiv : ¬ MJoin Red TT FF := fun h =>
-  (Bool.eq_not_self true).mp <| isBool_injective TT FF true false TT_correct FF_correct h
+  (Bool.eq_not_self true).mp <|
+    realizes_bool_injective TT FF true false realizes_true realizes_false h
 
 /-- A specialisation of `Church : Nat → SKI`. -/
 def churchK : Nat → SKI
@@ -247,7 +248,7 @@ lemma churchK_injective : Function.Injective churchK :=
   fun n m h => by simpa using congrArg SKI.size h
 
 /-- Injectivity for Church numerals -/
-theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsChurch m y)
+theorem realizes_nat_injective (x y : SKI) (n m : Nat) (hx : x ⊩ n) (hy : y ⊩ m)
     (hxy : MJoin Red x y) : n = m := by
   suffices MJoin Red (churchK n) (churchK m) by
     apply churchK_injective
@@ -283,7 +284,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
       _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
       _ ↠ P ⬝ (TT ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
-      _ ↠ P ⬝ b := by apply MRed.tail; apply TT_correct
+      _ ↠ P ⬝ b := by apply MRed.tail; apply realizes_true
       _ ↠ FF := hb
     exact TF_nequiv <| MRed.diamond h this
   case inr h =>
@@ -291,7 +292,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
       _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
       _ ↠ P ⬝ (FF ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
-      _ ↠ P ⬝ a := by apply MRed.tail; apply FF_correct
+      _ ↠ P ⬝ a := by apply MRed.tail; apply realizes_false
       _ ↠ TT := ha
     exact TF_nequiv <| MRed.diamond this h
 
