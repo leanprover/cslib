@@ -39,12 +39,12 @@ open Nat.Partrec
 /-! ### Computability predicate for functions on ℕ -/
 
 /-- An SKI term `t` computes a partial function `f : ℕ →. ℕ` if,
-for every Church numeral input, `t` reduces to a Church numeral output
-whenever `f` is defined. -/
+for every Church numeral input, `t` applied to the input is a Church numeral
+for the output whenever `f` is defined. -/
 def Computes (t : SKI) (f : ℕ →. ℕ) : Prop :=
   ∀ n : ℕ, ∀ cn : SKI, IsChurch n cn →
     ∀ m : ℕ, f n = Part.some m →
-      ∃ cm : SKI, IsChurch m cm ∧ (t ⬝ cn) ↠ cm
+      IsChurch m (t ⬝ cn)
 
 /-! ### Helper terms for prec and rfind' translations -/
 
@@ -117,7 +117,7 @@ theorem zero_computes : Computes (K ⬝ SKI.Zero) (Code.eval .zero) := by
   rw [h0] at hm
   have heq : (0 : ℕ) = m := Part.some_injective hm
   subst heq
-  exact ⟨SKI.Zero, zero_correct, MRed.K SKI.Zero cn⟩
+  exact isChurch_trans 0 (MRed.K SKI.Zero cn) zero_correct
 
 /-- `Code.succ` computes the successor function. -/
 theorem succ_computes : Computes SKI.Succ (Code.eval .succ) := by
@@ -127,7 +127,7 @@ theorem succ_computes : Computes SKI.Succ (Code.eval .succ) := by
   rw [h0] at hm
   have heq : n + 1 = m := Part.some_injective hm
   subst heq
-  exact ⟨SKI.Succ ⬝ cn, succ_correct n cn hcn, .refl⟩
+  exact succ_correct n cn hcn
 
 /-- `Code.left` computes the left projection of `Nat.unpair`. -/
 theorem left_computes : Computes NatUnpairLeft (Code.eval .left) := by
@@ -137,7 +137,7 @@ theorem left_computes : Computes NatUnpairLeft (Code.eval .left) := by
   rw [h0] at hm
   have heq := Part.some_injective hm
   subst heq
-  exact ⟨NatUnpairLeft ⬝ cn, natUnpairLeft_correct n cn hcn, .refl⟩
+  exact natUnpairLeft_correct n cn hcn
 
 /-- `Code.right` computes the right projection of `Nat.unpair`. -/
 theorem right_computes : Computes NatUnpairRight (Code.eval .right) := by
@@ -147,7 +147,7 @@ theorem right_computes : Computes NatUnpairRight (Code.eval .right) := by
   rw [h0] at hm
   have heq := Part.some_injective hm
   subst heq
-  exact ⟨NatUnpairRight ⬝ cn, natUnpairRight_correct n cn hcn, .refl⟩
+  exact natUnpairRight_correct n cn hcn
 
 /-- Composition of computable functions is computable. -/
 theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
@@ -159,9 +159,9 @@ theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
   obtain ⟨intermediate, hint_mem, hm_mem⟩ := Part.mem_bind_iff.mp hm'
   have hgn : g n = Part.some intermediate := Part.eq_some_iff.mpr hint_mem
   have hfint : f intermediate = Part.some m := Part.eq_some_iff.mpr hm_mem
-  obtain ⟨cint, hcint, hcint_red⟩ := hg n cn hcn intermediate hgn
-  obtain ⟨cm, hcm, hcm_red⟩ := hf intermediate cint hcint m hfint
-  exact ⟨cm, hcm, Trans.trans (B_tail_mred tf tg cn _ hcint_red) hcm_red⟩
+  have hcint := hg n cn hcn intermediate hgn
+  have hcm := hf intermediate (tg ⬝ cn) hcint m hfint
+  exact isChurch_trans _ (B_def tf tg cn) hcm
 
 /-- Pairing of computable functions is computable. -/
 theorem pair_computes {f g : ℕ →. ℕ} {tf tg : SKI}
@@ -180,16 +180,13 @@ theorem pair_computes {f g : ℕ →. ℕ} {tf tg : SKI}
   obtain ⟨b, hb_mem, hm_eq⟩ := (Part.mem_map_iff _).mp hm_in_h
   have hfn : f n = Part.some a := Part.eq_some_iff.mpr ha_mem
   have hgn : g n = Part.some b := Part.eq_some_iff.mpr hb_mem
-  obtain ⟨ca, hca, hca_red⟩ := hf n cn hcn a hfn
-  obtain ⟨cb, hcb, hcb_red⟩ := hg n cn hcn b hgn
-  refine ⟨NatPair ⬝ ca ⬝ cb, ?_, ?_⟩
-  · subst hm_eq
-    exact natPair_correct a b ca cb hca hcb
-  · calc (S ⬝ (B ⬝ NatPair ⬝ tf) ⬝ tg ⬝ cn)
-        ↠ ((B ⬝ NatPair ⬝ tf) ⬝ cn ⬝ (tg ⬝ cn)) := MRed.S _ _ _
-      _ ↠ ((NatPair ⬝ (tf ⬝ cn)) ⬝ (tg ⬝ cn)) := MRed.head _ (B_def _ _ _)
-      _ ↠ ((NatPair ⬝ ca) ⬝ (tg ⬝ cn)) := MRed.head _ (MRed.tail _ hca_red)
-      _ ↠ (NatPair ⬝ ca ⬝ cb) := MRed.tail _ hcb_red
+  have hca := hf n cn hcn a hfn
+  have hcb := hg n cn hcn b hgn
+  subst hm_eq
+  exact isChurch_trans _ (calc (S ⬝ (B ⬝ NatPair ⬝ tf) ⬝ tg ⬝ cn)
+      ↠ ((B ⬝ NatPair ⬝ tf) ⬝ cn ⬝ (tg ⬝ cn)) := MRed.S _ _ _
+    _ ↠ (NatPair ⬝ (tf ⬝ cn) ⬝ (tg ⬝ cn)) := MRed.head _ (B_def _ _ _))
+    (natPair_correct a b (tf ⬝ cn) (tg ⬝ cn) hca hcb)
 
 /-- Helper: `Rec` correctly implements primitive recursion from `Code.prec`. -/
 private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
@@ -198,15 +195,13 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
     ∀ b₀ : ℕ, ∀ m : ℕ,
     Code.eval (f.prec g) (Nat.pair a₀ b₀) = Part.some m →
     ∀ cb : SKI, IsChurch b₀ cb →
-    ∃ cm, IsChurch m cm ∧
-      (Rec ⬝ (tf ⬝ ca) ⬝ (PrecStep tg ⬝ ca) ⬝ cb) ↠ cm := by
+    IsChurch m (Rec ⬝ (tf ⬝ ca) ⬝ (PrecStep tg ⬝ ca) ⬝ cb) := by
   intro b₀
   induction b₀ with
   | zero =>
     intro m hm cb hcb
     rw [Code.eval_prec_zero] at hm
-    obtain ⟨cm, hcm, hred⟩ := ihf a₀ ca hca m hm
-    exact ⟨cm, hcm, Trans.trans (rec_zero _ _ cb hcb) hred⟩
+    exact isChurch_trans _ (rec_zero _ _ cb hcb) (ihf a₀ ca hca m hm)
   | succ k ih =>
     intro m hm cb hcb
     rw [Code.eval_prec_succ] at hm
@@ -219,24 +214,19 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
     have hm_eq := Part.eq_some_iff.mpr hm_mem
     -- By IH, Rec computes the intermediate value on Pred ⬝ cb
     have hpred : IsChurch k (Pred ⬝ cb) := pred_correct (k + 1) cb hcb
-    obtain ⟨cih, hcih, hcih_red⟩ := ih ih_val hih_eq (Pred ⬝ cb) hpred
-    -- Build Church numeral for the argument to g
-    have hpair_inner := natPair_correct k ih_val (Pred ⬝ cb) cih hpred hcih
-    have hpair_full := natPair_correct a₀ (Nat.pair k ih_val) ca
-      (NatPair ⬝ (Pred ⬝ cb) ⬝ cih) hca hpair_inner
-    -- By ihg, tg computes the result
-    obtain ⟨cm, hcm, hcm_red⟩ := ihg _ _ hpair_full m hm_eq
-    -- Chain the reductions
     set step := PrecStep tg ⬝ ca
     set base := tf ⬝ ca
-    refine ⟨cm, hcm, ?_⟩
-    calc
-      _ ↠ step ⬝ cb ⬝ (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)) :=
-        rec_succ k base step cb hcb
-      _ ↠ step ⬝ cb ⬝ cih := MRed.tail _ hcih_red
-      _ ↠ tg ⬝ (NatPair ⬝ ca ⬝ (NatPair ⬝ (Pred ⬝ cb) ⬝ cih)) :=
-        precStep_def tg ca cb cih
-      _ ↠ cm := hcm_red
+    have hcih := ih ih_val hih_eq (Pred ⬝ cb) hpred
+    -- Build Church numeral for the argument to g
+    have hpair_inner := natPair_correct k ih_val (Pred ⬝ cb)
+      (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)) hpred hcih
+    have hpair_full := natPair_correct a₀ (Nat.pair k ih_val) ca
+      (NatPair ⬝ (Pred ⬝ cb) ⬝ (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb))) hca hpair_inner
+    -- By ihg, tg computes the result
+    have hcm := ihg _ _ hpair_full m hm_eq
+    -- Chain the reductions
+    exact isChurch_trans _ (Trans.trans (rec_succ k base step cb hcb)
+      (precStep_def tg ca cb (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)))) hcm
 
 /-- Helper: extract eval facts from rfind membership, with `m₀ +` order
     matching `rfind_above_induction`. -/
@@ -281,8 +271,7 @@ private theorem rfind_above_induction (f : Code) (tf : SKI)
       subst hg
       apply isChurch_trans _ (B_def tf (NatPair ⬝ ca) x)
       have hpair := natPair_correct a₀ m ca x hca hx
-      obtain ⟨cm, hcm, hred⟩ := ihf _ _ hpair 0 hroot
-      exact isChurch_trans 0 hred hcm
+      exact ihf _ _ hpair 0 hroot
     · exact hx
   | succ n ih =>
     intro m x hx hroot hbelow
@@ -296,10 +285,9 @@ private theorem rfind_above_induction (f : Code) (tf : SKI)
       subst hg
       apply isChurch_trans _ (B_def tf (NatPair ⬝ ca) x)
       have hpair := natPair_correct a₀ m ca x hca hx
-      obtain ⟨cm, hcm, hred⟩ := ihf _ _ hpair v₀ hv₀_eval
       have hv₀_pos : v₀ - 1 + 1 = v₀ := Nat.succ_pred_eq_of_ne_zero hv₀_ne
       rw [hv₀_pos]
-      exact isChurch_trans _ hred hcm
+      exact ihf _ _ hpair v₀ hv₀_eval
     · have h := ih (m + 1) (SKI.Succ ⬝ x) (succ_correct m x hx)
         (by rw [show m + 1 + n = m + (n + 1) from by omega]; exact hroot)
         (by
@@ -333,10 +321,9 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
     have hpair : n = Nat.pair (Nat.unpair n).1 (Nat.unpair n).2 :=
       (Nat.pair_unpair n).symm
     rw [hpair] at hm
-    obtain ⟨cm, hcm, hcm_red⟩ := prec_rec_correct f g _ _ ihf ihg
+    exact isChurch_trans _ hred (prec_rec_correct f g _ _ ihf ihg
       (Nat.unpair n).1 (NatUnpairLeft ⬝ cn) hca
-      (Nat.unpair n).2 m hm (NatUnpairRight ⬝ cn) hcb
-    exact ⟨cm, hcm, Trans.trans hred hcm_red⟩
+      (Nat.unpair n).2 m hm (NatUnpairRight ⬝ cn) hcb)
   | rfind' f ihf =>
     simp only [codeToSKINat]
     intro n cn hcn result hresult
@@ -360,7 +347,7 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
       (NatUnpairLeft ⬝ cn) hca g rfl k m₀
       (NatUnpairRight ⬝ cn) hcm₀ heval_root heval_below
     rw [Nat.add_comm] at hind
-    exact ⟨RFindAbove ⬝ (NatUnpairRight ⬝ cn) ⬝ g, hind, hred⟩
+    exact isChurch_trans _ hred hind
 
 /-! ### Main equivalence theorem -/
 
