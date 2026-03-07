@@ -2,9 +2,15 @@
 Author: David Wegmann
 -/
 
+
 module
 
+
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+
+set_option linter.unusedDecidableInType false
+set_option linter.unusedSectionVars false false
+set_option linter.unusedVariables false
 
 @[expose] public section
 
