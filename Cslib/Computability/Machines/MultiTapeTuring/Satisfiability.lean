@@ -93,6 +93,38 @@ def sat : MultiTapeTM 3 Char :=
   outOfArg SATInput 0 0 0 ;ₜ
   erase Assignments 1
 
+/-- Evaluate a literal given a list of positive-variable assignments. -/
+def evalLiteral (a : Assignments) : Literal → Bool
+  | Literal.pos v => a.contains v
+  | Literal.neg v => !(a.contains v)
+
+/-- Evaluate a clause (disjunction of literals). -/
+def evalClause (a : Assignments) (c : Clause) : Bool :=
+  c.any (evalLiteral a)
+
+/-- Evaluate a formula (conjunction of clauses). -/
+def evalFormula (a : Assignments) (f : Formula) : Bool :=
+  f.all (evalClause a)
+
+/--
+The main theorem: `sat` decides satisfiability.
+Given a `SATInput` containing a formula and an assignment on tape 0,
+`sat` produces `enc(evalFormula assignment formula)` on tape 2,
+with tape 0 restored and tape 1 erased.
+-/
+theorem sat_eval
+    {input : SATInput}
+    {tapes : Fin 3 → BiTape Char}
+    (h_tape0 : tapes 0 = BiTape.mk₁ (StrEnc.enc input))
+    (h_tape1 : tapes 1 = BiTape.mk₁ [])
+    (h_tape2 : tapes 2 = BiTape.mk₁ []) :
+    sat.eval tapes = .some
+      (Function.update
+        (Function.update tapes 0 (BiTape.mk₁ (StrEnc.enc input)))
+        2 (BiTape.mk₁ (StrEnc.enc (match input with
+          | SATInput.mk f a => evalFormula a f)))) := by
+  sorry
+
 end Satisfiability
 
 end Turing
