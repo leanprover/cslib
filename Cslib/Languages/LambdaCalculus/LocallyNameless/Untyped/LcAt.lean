@@ -86,15 +86,15 @@ theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
         grind [fresh_exists L]
     | _ => grind [cases LC]
 
-theorem lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
+/- Opening for some term at i-th bound variable increments `LcAt` by one -/
+lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
     LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
-  induction M generalizing i <;> try grind
+  induction M generalizing i <;> grind
 
-lemma open_abs_lc [HasFresh Var] : forall {M N : Term Var},
-  LC (M ^ N) → LC (M.abs) := by
-  intro M N hlc
-  rw[←lcAt_iff_LC]
-  rw[←lcAt_iff_LC] at hlc
-  apply lcAt_openRec_lcAt _ _ _ hlc
+/- When `M ^ N` is locally closed, then `M.abs` is locally closed. This is proven by translating LC
+   to LcAt, applying lcAt_openRec_lcAt, then translating back to LC -/
+lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs) := by
+  rw [← lcAt_iff_LC] at *
+  exact lcAt_openRec_lcAt _ _ _ hlc
 
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term
