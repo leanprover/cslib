@@ -7,32 +7,32 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Languages.CombinatoryLogic.Basic
-public import Cslib.Foundations.Semantics.Encoded
+public import Cslib.Foundations.Semantics.Realizes
 public import Mathlib.Data.Part
 
 @[expose] public section
 
 namespace Cslib.SKI
 
-open Red MRed Relation Encoded IsEncoding
+open Red MRed Relation HasRealizer Realizes
 
 /-- A term `xf` encodes a function `f : α → β` if for every `xa ⊩ a : α`, `xf ⬝ a ⊩ f a`. -/
-instance instEncodedPi (α β : Type*) [hα : Encoded α SKI] [hβ : Encoded β SKI] :
-    Encoded (α → β) SKI where
-  IsEncoding f z := ∀ {a : α} {x : SKI}, (x ⊩ a) → (z ⬝ x) ⊩ (f a)
+instance instHasRealizerPi (α β : Type*) [hα : HasRealizer α SKI] [hβ : HasRealizer β SKI] :
+    HasRealizer (α → β) SKI where
+  Realizes z f := ∀ {a : α} {x : SKI}, (x ⊩ a) → (z ⬝ x) ⊩ (f a)
 
-instance instEncodedLiftPi (α β : Type*) [hα : Encoded α SKI] [hβ : EncodedLift β Red] :
-    EncodedLift (α → β) Red where
-  isEncoding_left_of_red := by
+instance instHasRealizerLiftPi (α β : Type*) [hα : HasRealizer α SKI] [hβ : HasRealizerLift β Red] :
+    HasRealizerLift (α → β) Red where
+  realizes_left_of_red := by
     intro f x y hy h a z hz
-    apply EncodedLift.isEncoding_left_of_red (hy hz)
+    apply HasRealizerLift.realizes_left_of_red (hy hz)
     exact red_head _ _ _ h
 
-instance instEncodedDescPi (α β : Type*) [hα : Encoded α SKI] [hβ : EncodedDesc β Red] :
-    EncodedDesc (α → β) Red where
-  isEncoding_right_of_red := by
+instance instHasRealizerDescPi (α β : Type*) [hα : HasRealizer α SKI] [hβ : HasRealizerDesc β Red] :
+    HasRealizerDesc (α → β) Red where
+  realizes_right_of_red := by
     intro f x y hy h a z hz
-    apply EncodedDesc.isEncoding_right_of_red (hy hz)
+    apply HasRealizerDesc.realizes_right_of_red (hy hz)
     exact red_head _ _ _ h
 
 /-!
@@ -41,9 +41,9 @@ instance instEncodedDescPi (α β : Type*) [hα : Encoded α SKI] [hβ : Encoded
 `xu ⊩ u` if `xu` is βη-equivalent to the standard Church boolean.
 -/
 
-instance instEncodedLiftBool : EncodedLift Bool Red where
-  IsEncoding u z := ∀ x y : SKI, (z ⬝ x ⬝ y) ↠ (if u then x else y)
-  isEncoding_left_of_red := by
+instance instHasRealizerLiftBool : HasRealizerLift Bool Red where
+  Realizes z u := ∀ x y : SKI, (z ⬝ x ⬝ y) ↠ (if u then x else y)
+  realizes_left_of_red := by
     intro u x y hu h a b
     trans y ⬝ a ⬝ b
     · apply MRed.head; apply MRed.head; exact Relation.ReflTransGen.single h
@@ -54,13 +54,13 @@ instance instEncodedLiftBool : EncodedLift Bool Red where
 def TT : SKI := K
 
 @[scoped grind .]
-theorem TT_correct : TT ⊩ true := fun x y ↦ MRed.K x y
+theorem realizes_true : TT ⊩ true := fun x y ↦ MRed.K x y
 
 /-- Standard false: FF := λ x y. y -/
 def FF : SKI := K ⬝ I
 
 @[scoped grind .]
-theorem FF_correct : FF ⊩ false :=
+theorem realizes_false : FF ⊩ false :=
   fun x y ↦ calc
     (FF ⬝ x ⬝ y) ↠ I ⬝ y := by apply Relation.ReflTransGen.single; apply red_head; exact red_K I x
     _         ⭢ y := red_I y
@@ -77,7 +77,7 @@ lemma cond_def {xu y z} {u : Bool} (hu : xu ⊩ u) :
     · exact hu ..
     }
 
-lemma isEncoding_cond {α : Type*} [EncodedLift α Red] :
+lemma realizes_cond {α : Type*} [HasRealizerLift α Red] :
     SKI.Cond ⊩ (fun (a b : α) (u : Bool) => if u then a else b) := by
   intro a xa ha b xb hb u xu hu
   cases u
@@ -115,12 +115,13 @@ theorem snd_correct (a b : SKI) : (Snd ⬝ (MkPair ⬝ a ⬝ b)) ↠ b := by cal
   _ ⭢ I ⬝ b := red_head _ _ b <| red_K ..
   _ ⭢ b := red_I b
 
-instance instEncodedProd {α β : Type*} [Encoded α SKI] [Encoded β SKI] : Encoded (α × β) SKI where
-  IsEncoding p x := ((Fst ⬝ x) ⊩ p.1)  ∧ (Snd ⬝ x) ⊩ p.2
+instance instHasRealizerProd {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] :
+    HasRealizer (α × β) SKI where
+  Realizes x p := ((Fst ⬝ x) ⊩ p.1)  ∧ (Snd ⬝ x) ⊩ p.2
 
-instance instEncodedLiftProd {α β : Type*} [EncodedLift α Red] [EncodedLift β Red] :
-    EncodedLift (α × β) Red where
-  isEncoding_left_of_red := by
+instance instHasRealizerLiftProd {α β : Type*} [HasRealizerLift α Red] [HasRealizerLift β Red] :
+    HasRealizerLift (α × β) Red where
+  realizes_left_of_red := by
     intro p x y ⟨hp₁, hp₂⟩ h
     constructor
     · apply hp₁.left_of_mRed
@@ -128,9 +129,9 @@ instance instEncodedLiftProd {α β : Type*} [EncodedLift α Red] [EncodedLift �
     · apply hp₂.left_of_mRed
       exact Relation.ReflTransGen.single <| red_tail Snd _ _ h
 
-instance instEncodedDescProd {α β : Type*} [EncodedDesc α Red] [EncodedDesc β Red] :
-    EncodedDesc (α × β) Red where
-  isEncoding_right_of_red := by
+instance instHasRealizerDescProd {α β : Type*} [HasRealizerDesc α Red] [HasRealizerDesc β Red] :
+    HasRealizerDesc (α × β) Red where
+  realizes_right_of_red := by
     intro p x y ⟨hp₁, hp₂⟩ h
     constructor
     · apply hp₁.right_of_mRed
@@ -139,19 +140,19 @@ instance instEncodedDescProd {α β : Type*} [EncodedDesc α Red] [EncodedDesc �
       exact Relation.ReflTransGen.single <| red_tail Snd _ _ h
 
 /-- The pairing term `SKI.MkPair` indeed encodes `Prod.Mk`. -/
-lemma isEncoding_mkPair {α β : Type*} [EncodedLift α Red] [EncodedLift β Red] :
+lemma realizes_mkPair {α β : Type*} [HasRealizerLift α Red] [HasRealizerLift β Red] :
     SKI.MkPair ⊩ (Prod.mk : α → β → α × β) := by
   intro a xa ha b xb hb
   constructor
   · exact ha.left_of_mRed <| fst_correct ..
   · exact hb.left_of_mRed <| snd_correct ..
 
-lemma isEncoding_fst {α β : Type*} [Encoded α SKI] [Encoded β SKI] :
+lemma realizes_fst {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] :
     SKI.Fst ⊩ (Prod.fst : α × β → α) := by
   intro _ _ h
   exact h.1
 
-lemma isEncoding_snd {α β : Type*} [Encoded α SKI] [Encoded β SKI] :
+lemma realizes_snd {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] :
     SKI.Snd ⊩ (Prod.snd : α × β → β) := by
   intro _ _ h
   exact h.2
@@ -162,8 +163,8 @@ def prodRec := prodRecPoly.toSKI
 lemma prodRec_def (xf xp : SKI) : (prodRec ⬝ xf ⬝ xp) ↠ xf ⬝ (Fst ⬝ xp) ⬝ (Snd ⬝ xp) :=
   prodRecPoly.toSKI_correct [xf, xp] (by simp)
 
-theorem isEncoding_prod_rec {α β γ : Type*} [Encoded α SKI] [Encoded β SKI]
-    [EncodedLift γ Red] : prodRec ⊩ (Prod.rec : (α → β → γ) → α × β → γ) := by
+theorem realizes_prod_rec {α β γ : Type*} [HasRealizer α SKI] [HasRealizer β SKI]
+    [HasRealizerLift γ Red] : prodRec ⊩ (Prod.rec : (α → β → γ) → α × β → γ) := by
   intro f xf hf p xp hp
   exact (hf hp.1 hp.2).left_of_mRed <| prodRec_def ..
 
@@ -174,16 +175,17 @@ theorem isEncoding_prod_rec {α β γ : Type*} [Encoded α SKI] [Encoded β SKI]
 `xa ⊩ a`, or `g ⬝ xb`, for `s = .inr b` and `xb ⊩  b`.
 -/
 
-def isEncodingSum {α β : Type*} [Encoded α SKI] [Encoded β SKI] : α ⊕ β → SKI → Prop
-  | .inl a, x => ∀ f g : SKI, ∃ xa : SKI, (xa ⊩ a) ∧ (x ⬝ f ⬝ g) ↠ f ⬝ xa
-  | .inr b, x => ∀ f g : SKI, ∃ xb : SKI, (xb ⊩ b) ∧ (x ⬝ f ⬝ g) ↠ g ⬝ xb
+def realizesSum {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] (x : SKI) : α ⊕ β → Prop
+  | .inl a => ∀ f g : SKI, ∃ xa : SKI, (xa ⊩ a) ∧ (x ⬝ f ⬝ g) ↠ f ⬝ xa
+  | .inr b => ∀ f g : SKI, ∃ xb : SKI, (xb ⊩ b) ∧ (x ⬝ f ⬝ g) ↠ g ⬝ xb
 
-instance instEncodedSum {α β : Type*} [Encoded α SKI] [Encoded β SKI] : Encoded (α ⊕ β) SKI where
-  IsEncoding := isEncodingSum
+instance instHasRealizerSum {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] :
+    HasRealizer (α ⊕ β) SKI where
+  Realizes := realizesSum
 
-instance instEncodedLiftSum {α β : Type*} [EncodedLift α Red] [EncodedLift β Red] :
-    EncodedLift (α ⊕ β) Red where
-  isEncoding_left_of_red := by
+instance instHasRealizerLiftSum {α β : Type*} [HasRealizerLift α Red] [HasRealizerLift β Red] :
+    HasRealizerLift (α ⊕ β) Red where
+  realizes_left_of_red := by
     intro ab x y hy h
     cases ab
     case inl a =>
@@ -202,7 +204,7 @@ protected def Inl : SKI := inlPoly.toSKI
 lemma inl_def (a f g : SKI) : (SKI.Inl ⬝ a ⬝ f ⬝ g) ↠ f ⬝ a :=
   inlPoly.toSKI_correct [a, f, g] (by simp)
 
-lemma isEncoding_sum_inl {α β : Type*} [Encoded α SKI] [Encoded β SKI] :
+lemma realizes_sum_inl {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] :
     SKI.Inl ⊩ (Sum.inl : α → α ⊕ β) := by
   intro a xa ha f g
   use xa, ha, inl_def ..
@@ -212,15 +214,15 @@ protected def Inr : SKI := inrPoly.toSKI
 lemma inr_def (a f g : SKI) : (SKI.Inr ⬝ a ⬝ f ⬝ g) ↠ g ⬝ a :=
   inrPoly.toSKI_correct [a, f, g] (by simp)
 
-lemma isEncoding_sum_inr {α β : Type*} [Encoded α SKI] [Encoded β SKI] :
+lemma realizes_sum_inr {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] :
     SKI.Inr ⊩ (Sum.inr : β → α ⊕ β) := by
   intro b xb hb f g
   use xb, hb, inr_def ..
 
 def sumRec : SKI := RotR
 
-theorem isEncoding_sum_rec {α β γ : Type*} [Encoded α SKI] [Encoded β SKI] [EncodedLift γ Red] :
-    sumRec ⊩ (Sum.rec : (α → γ) → (β → γ) → α ⊕ β → γ) := by
+theorem realizes_sum_rec {α β γ : Type*} [HasRealizer α SKI] [HasRealizer β SKI]
+    [HasRealizerLift γ Red] : sumRec ⊩ (Sum.rec : (α → γ) → (β → γ) → α ⊕ β → γ) := by
   intro f xf hf g xg hg ab xab hab
   cases ab with
   | inl a =>
@@ -236,27 +238,32 @@ theorem isEncoding_sum_rec {α β γ : Type*} [Encoded α SKI] [Encoded β SKI] 
 A term `x` encodes a partial value `o` if `o = Part.none`, or `o = Part.some a` and `x ⊩ a`.
 -/
 
-instance instEncodedPart {α : Type*} [Encoded α SKI] : Encoded (Part α) SKI where
-  IsEncoding o x := (h : o.Dom) → x ⊩ (o.get h)
+instance instHasRealizerPart {α : Type*} [HasRealizer α SKI] : HasRealizer (Part α) SKI where
+  Realizes x o := (h : o.Dom) → x ⊩ (o.get h)
 
-lemma isEncoding_of_mem {α : Type*} [Encoded α SKI] {o : Part α} {x : SKI} (h : x ⊩ o)
+lemma realizes_of_mem {α : Type*} [HasRealizer α SKI] {o : Part α} {x : SKI} (h : x ⊩ o)
     {a : α} (ha : a ∈ o) : x ⊩ a := by
   obtain ⟨hao, ha⟩ := ha
   exact ha ▸ h hao
 
-lemma isEncoding_some_iff {α : Type*} [Encoded α SKI] {a : α} {x : SKI} :
+lemma realizes_some_iff {α : Type*} [HasRealizer α SKI] {a : α} {x : SKI} :
     (x ⊩ Part.some a) ↔ x ⊩ a := by
   refine ⟨?_, ?_⟩
   · intro h; exact h (Part.some_dom a)
   · intro h; exact fun _ => h
 
-instance instEncodedLiftPart {α : Type*} [EncodedLift α Red] : EncodedLift (Part α) Red where
-  isEncoding_left_of_red := by
+lemma realizes_none {α : Type*} [HasRealizer α SKI] (x : SKI) : x ⊩ (Part.none : Part α) :=
+  fun h => False.elim (Part.not_none_dom h)
+
+instance instHasRealizerLiftPart {α : Type*} [HasRealizerLift α Red] :
+    HasRealizerLift (Part α) Red where
+  realizes_left_of_red := by
     intro o x y ho h hdom
     exact (ho hdom).left_of_red h
 
-instance instEncodedDescPart {α : Type*} [EncodedDesc α Red] : EncodedDesc (Part α) Red where
-  isEncoding_right_of_red := by
+instance instHasRealizerDescPart {α : Type*} [HasRealizerDesc α Red] :
+    HasRealizerDesc (Part α) Red where
+  realizes_right_of_red := by
     intro o x y ho h hdom
     exact (ho hdom).right_of_red h
 

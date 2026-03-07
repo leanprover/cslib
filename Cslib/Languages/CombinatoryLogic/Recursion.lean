@@ -6,7 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Languages.CombinatoryLogic.Encoded
+public import Cslib.Languages.CombinatoryLogic.Realizes
 
 @[expose] public section
 
@@ -73,9 +73,9 @@ lemma church_red (n : Nat) (f f' x x' : SKI) (hf : f ↠ f') (hx : x ↠ x') :
   | zero => exact hx
   | succ n ih => exact parallel_mRed hf ih
 
-instance instEncodedLiftNat : EncodedLift Nat Red where
-  IsEncoding n a := ∀ f x : SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
-  isEncoding_left_of_red := by
+instance instHasRealizerLiftNat : HasRealizerLift Nat Red where
+  Realizes a n := ∀ f x : SKI, (a ⬝ f ⬝ x) ↠ (Church n f x)
+  realizes_left_of_red := by
     intro n a a' ha' h f x
     calc
     (a ⬝ f ⬝ x) ⭢ a' ⬝ f ⬝ x := red_head _ _ x <| red_head _ _ f <| h
@@ -90,7 +90,7 @@ Canonical constructors, iteration and primitive recursion.
 protected def Zero : SKI := K ⬝ I
 
 @[scoped grind .]
-theorem isEncoding_zero : SKI.Zero ⊩ 0 := by
+theorem realizes_zero : SKI.Zero ⊩ 0 := by
   intro f x
   calc
   _ ↠ I ⬝ x := by apply Relation.ReflTransGen.single; apply red_head; apply red_K
@@ -100,7 +100,7 @@ theorem isEncoding_zero : SKI.Zero ⊩ 0 := by
 protected def One : SKI := I
 
 @[scoped grind .]
-theorem isEncoding_one : SKI.One ⊩ 1 := by
+theorem realizes_one : SKI.One ⊩ 1 := by
   intro f x
   apply head
   exact .single (red_I f)
@@ -108,7 +108,7 @@ theorem isEncoding_one : SKI.One ⊩ 1 := by
 /-- Church succ := λ a f x. f (a f x) ~ λ a f. B f (a f) ~ λ a. S B a ~ S B -/
 protected def Succ : SKI := S ⬝ B
 
-theorem isEncoding_succ : SKI.Succ ⊩ Nat.succ := by
+theorem realizes_succ : SKI.Succ ⊩ Nat.succ := by
   intro n xn hn f x
   calc
   _ ⭢ B ⬝ f ⬝ (xn ⬝ f) ⬝ x := by apply red_head; apply red_S
@@ -128,18 +128,18 @@ def toChurch : ℕ → SKI
 
 /-- `toChurch n` correctly represents `n`. -/
 @[scoped grind .]
-theorem isEncoding_toChurch (n : ℕ) : (toChurch n) ⊩ n := by
+theorem realizes_toChurch (n : ℕ) : (toChurch n) ⊩ n := by
   induction n with
-  | zero => exact isEncoding_zero
-  | succ n ih => exact isEncoding_succ ih
+  | zero => exact realizes_zero
+  | succ n ih => exact realizes_succ ih
 
-variable {α : Type*} [EncodedLift α Red]
+variable {α : Type*} [HasRealizerLift α Red]
 
 def Iter := R
 
-lemma isEncoding_iter : Iter ⊩ (Nat.iterate (α := α)) := by
+lemma realizes_iter : Iter ⊩ (Nat.iterate (α := α)) := by
   intro f xf hf n xn hn a xa ha
-  suffices IsEncoding (f^[n] a) (Church n xf xa) by
+  suffices (Church n xf xa) ⊩ f^[n] a by
     apply this.left_of_mRed
     calc
       _ ↠ xn ⬝ xf ⬝ xa := MRed.head _ <| R_def ..
@@ -154,7 +154,7 @@ lemma isEncoding_iter : Iter ⊩ (Nat.iterate (α := α)) := by
 def Nat.recPairStep (f : Nat → α → α) : α × Nat → α × Nat
   | ⟨y, m⟩ => ⟨f m y, m + 1⟩
 
-lemma Nat.isEncoding_recPairStep {α' : Type*} (a : α') (f : Nat → α' → α') (n : Nat) :
+lemma Nat.realizes_recPairStep {α' : Type*} (a : α') (f : Nat → α' → α') (n : Nat) :
     (Nat.recPairStep f)^[n] ⟨a, 0⟩ = ⟨Nat.rec a f n, n⟩ := by
   induction n with
   | zero => simp
@@ -169,24 +169,24 @@ lemma natRecAux_def (f p : SKI) :
     (natRecAux ⬝ f ⬝ p) ↠ SKI.MkPair ⬝ (f ⬝ (Snd ⬝ p) ⬝ (Fst ⬝ p)) ⬝ (SKI.Succ ⬝ (Snd ⬝ p)) :=
   natRecAuxPoly.toSKI_correct [f, p] (by simp)
 
-lemma natRecAux_correct {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) :
+lemma natRecAux_realizes {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) :
     (natRecAux ⬝ xf) ⊩ (Nat.recPairStep f) := by
   intro p xp hp
-  suffices IsEncoding (Nat.recPairStep f p)
-      (SKI.MkPair ⬝ (xf ⬝ (Snd ⬝ xp) ⬝ (Fst ⬝ xp)) ⬝ (SKI.Succ ⬝ (Snd ⬝ xp))) by
+  suffices (SKI.MkPair ⬝ (xf ⬝ (Snd ⬝ xp) ⬝ (Fst ⬝ xp)) ⬝ (SKI.Succ ⬝ (Snd ⬝ xp))) ⊩
+      (Nat.recPairStep f p) by
     exact this.left_of_mRed <| natRecAux_def ..
-  apply isEncoding_mkPair
+  apply realizes_mkPair
   · exact hf hp.2 hp.1
-  · exact SKI.isEncoding_succ hp.2
+  · exact SKI.realizes_succ hp.2
 
-lemma isEncoding_recPairStep_iter {a : α} {xa : SKI} (ha : xa ⊩ a)
+lemma realizes_recPairStep_iter {a : α} {xa : SKI} (ha : xa ⊩ a)
     {f : Nat → α → α} {xf : SKI} (hf : xf ⊩ f) {n : Nat} {xn : SKI} (hn : xn ⊩ n) :
     (R ⬝ (natRecAux ⬝ xf) ⬝ xn ⬝ (MkPair ⬝ xa ⬝ SKI.Zero)) ⊩ (⟨Nat.rec a f n, n⟩ : α × Nat) := by
-  rw [←Nat.isEncoding_recPairStep]
-  refine isEncoding_iter (natRecAux_correct hf) hn ?_
-  apply isEncoding_mkPair
+  rw [←Nat.realizes_recPairStep]
+  refine realizes_iter (natRecAux_realizes hf) hn ?_
+  apply realizes_mkPair
   · exact ha
-  · exact isEncoding_zero
+  · exact realizes_zero
 
 def natRecPoly : SKI.Polynomial 3 :=
   Fst ⬝' (R ⬝' (natRecAux ⬝' &1) ⬝' &2 ⬝' (MkPair ⬝' &0 ⬝' SKI.Zero))
@@ -196,18 +196,18 @@ lemma natRec_def (xa xf xn : SKI) :
   natRecPoly.toSKI_correct [xa, xf, xn] (by simp)
 
 /-- Primitive recursion on `Nat`. -/
-theorem isEncoding_nat_rec :
+theorem realizes_nat_rec :
     natRec ⊩ (Nat.rec : α → (Nat → α → α) → Nat → α) := by
   intro a xa ha f xf hf n xn hn
-  exact IsEncoding.left_of_mRed (isEncoding_recPairStep_iter ha hf hn).1 (natRec_def xa xf xn)
+  exact Realizes.left_of_mRed (realizes_recPairStep_iter ha hf hn).1 (natRec_def xa xf xn)
 
 def Pred : SKI := natRec ⬝ SKI.Zero ⬝ K
 
-theorem isEncoding_pred : Pred ⊩ Nat.pred := by
+theorem realizes_pred : Pred ⊩ Nat.pred := by
   intro n xn hn
   have : n.pred = n.rec 0 (fun a _ => a) := by induction n <;> simp
   rw [this]
-  refine isEncoding_nat_rec isEncoding_zero ?_ hn
+  refine realizes_nat_rec realizes_zero ?_ hn
   intro _ _ h _ _ _
   exact h.left_of_red <| red_K ..
 
@@ -218,18 +218,18 @@ def IsZero : SKI := IsZeroPoly.toSKI
 theorem isZero_def (a : SKI) : (IsZero ⬝ a) ↠ a ⬝ (K ⬝ FF) ⬝ TT :=
   IsZeroPoly.toSKI_correct [a] (by simp)
 
-theorem isEncoding_isZero : IsZero ⊩ (· == 0) := by
+theorem realizes_isZero : IsZero ⊩ (· == 0) := by
   intro n xn hn
-  refine IsEncoding.left_of_mRed ?_ (isZero_def _)
+  refine Realizes.left_of_mRed ?_ (isZero_def _)
   by_cases n = 0
   case pos h0 =>
     simp_rw [h0] at hn ⊢
-    exact TT_correct.left_of_mRed <| hn ..
+    exact realizes_true.left_of_mRed <| hn ..
   case neg h0 =>
     simp_rw [beq_false_of_ne h0]
     let ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero h0
     rw [hk] at hn
-    apply FF_correct.left_of_mRed
+    apply realizes_false.left_of_mRed
     calc
     _ ↠ (K ⬝ FF) ⬝ Church k (K ⬝ FF) TT := hn ..
     _ ⭢ FF := red_K ..
@@ -253,13 +253,13 @@ theorem rfindAboveAux_base (R₀ f a : SKI) (hfa : (f ⬝ a) ⊩ 0) :
     (RFindAboveAux ⬝ R₀ ⬝ a ⬝ f) ↠ a := calc
   _ ↠ SKI.Cond ⬝ a ⬝ (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ↠ if (Nat.beq 0 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
-      exact cond_def <| isEncoding_isZero hfa
+      exact cond_def <| realizes_isZero hfa
 
 theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : (f ⬝ a) ⊩ m + 1) :
     (RFindAboveAux ⬝ R₀ ⬝ a ⬝ f) ↠ R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f := calc
   _ ↠ SKI.Cond ⬝ a ⬝ (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) ⬝ (IsZero ⬝ (f ⬝ a)) := rfindAboveAux_def _ _ _
   _ ↠ if (Nat.beq (m + 1) 0) then a else (R₀ ⬝ (SKI.Succ ⬝ a) ⬝ f) := by
-      exact cond_def <| isEncoding_isZero hfa
+      exact cond_def <| realizes_isZero hfa
 
 /-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
@@ -268,14 +268,14 @@ theorem RFindAbove_correct (f : Nat → Nat) (xf x : SKI) (hf : xf ⊩ f) (n m :
     (hroot : f (m + n) = 0) (hpos : ∀ i < n, f (m + i) ≠ 0) :
     (RFindAbove ⬝ x ⬝ xf) ⊩ (m + n) := by
   induction n generalizing m x
-  all_goals apply IsEncoding.left_of_mRed (y := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ xf)
+  all_goals apply Realizes.left_of_mRed (y := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ xf)
   case zero.ha =>
     apply hx.left_of_mRed
     apply rfindAboveAux_base
     exact hroot ▸ hf hx
   case succ.ha n ih =>
-    apply IsEncoding.left_of_mRed (y := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ xf)
-    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (isEncoding_succ hx)
+    apply Realizes.left_of_mRed (y := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ xf)
+    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (realizes_succ hx)
       grind
     · have : (xf ⬝ x) ⊩ ((f m).pred + 1) := Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf hx
       exact rfindAboveAux_step _ _ _ this
@@ -286,7 +286,7 @@ theorem RFindAbove_correct (f : Nat → Nat) (xf x : SKI) (hf : xf ⊩ f) (n m :
 def RFind := RFindAbove ⬝ SKI.Zero
 theorem RFind_correct (f : Nat → Nat) (xf : SKI) (hf : xf ⊩ f)
     (n : Nat) (hroot : f n = 0) (hpos : ∀ i < n, f i ≠ 0) : (RFind ⬝ xf) ⊩ n := by
-  have :_ := RFindAbove_correct (n := n) (f := f) (hf := hf) (hx := isEncoding_zero)
+  have :_ := RFindAbove_correct (n := n) (f := f) (hf := hf) (hx := realizes_zero)
   simp_rw [Nat.zero_add] at this
   exact this hroot hpos
 
@@ -299,14 +299,14 @@ protected def Add : SKI := AddPoly.toSKI
 theorem add_def (a b : SKI) : (SKI.Add ⬝ a ⬝ b) ↠ a ⬝ SKI.Succ ⬝ b :=
   AddPoly.toSKI_correct [a, b] (by simp)
 
-theorem isEncoding_add : SKI.Add ⊩ Nat.add:= by
+theorem realizes_add : SKI.Add ⊩ Nat.add:= by
   intro n xn hn m xm hm
-  refine IsEncoding.left_of_mRed (y := Church n SKI.Succ xm) ?_ ?_
+  refine Realizes.left_of_mRed (y := Church n SKI.Succ xm) ?_ ?_
   · clear hn
     induction n with
       | zero => simpa
       | succ n ih =>
-        simpa [Nat.add_right_comm] using isEncoding_succ ih
+        simpa [Nat.add_right_comm] using realizes_succ ih
   · calc
     _ ↠ xn ⬝ SKI.Succ ⬝ xm := add_def ..
     _ ↠ Church n SKI.Succ xm := hn ..
@@ -318,14 +318,14 @@ protected def Mul : SKI := MulPoly.toSKI
 theorem mul_def (a b : SKI) : (SKI.Mul ⬝ a ⬝ b) ↠ a ⬝ (SKI.Add ⬝ b) ⬝ SKI.Zero :=
   MulPoly.toSKI_correct [a, b] (by simp)
 
-theorem isEncoding_mul : SKI.Mul ⊩ Nat.mul := by
+theorem realizes_mul : SKI.Mul ⊩ Nat.mul := by
   intro n xn hn m xm hm
-  refine IsEncoding.left_of_mRed (y := Church n (SKI.Add ⬝ xm) SKI.Zero) ?_ ?_
+  refine Realizes.left_of_mRed (y := Church n (SKI.Add ⬝ xm) SKI.Zero) ?_ ?_
   · clear hn
     induction n with
-      | zero => simpa using isEncoding_zero
+      | zero => simpa using realizes_zero
       | succ n ih =>
-        simpa [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church] using isEncoding_add hm ih
+        simpa [Nat.add_mul, Nat.one_mul, Nat.add_comm, Church] using realizes_add hm ih
   · exact Trans.trans (mul_def xn xm) (hn (SKI.Add ⬝ xm) SKI.Zero)
 
 /-- Subtraction: λ n m. n Pred m -/
@@ -335,14 +335,14 @@ protected def Sub : SKI := SubPoly.toSKI
 theorem sub_def (a b : SKI) : (SKI.Sub ⬝ a ⬝ b) ↠ b ⬝ Pred ⬝ a :=
   SubPoly.toSKI_correct [a, b] (by simp)
 
-theorem isEncoding_sub : SKI.Sub ⊩ Nat.sub := by
+theorem realizes_sub : SKI.Sub ⊩ Nat.sub := by
   intro n xn hn m xm hm
-  refine IsEncoding.left_of_mRed (y := Church m Pred xn) ?_ ?_
+  refine Realizes.left_of_mRed (y := Church m Pred xn) ?_ ?_
   · clear hm
     induction m with
       | zero => simpa using hn
       | succ m ih =>
-        simpa using isEncoding_pred ih
+        simpa using realizes_pred ih
   · calc
     _ ↠ xm ⬝ Pred ⬝ xn := sub_def ..
     _ ↠ Church m Pred xn := hm Pred xn
@@ -354,12 +354,12 @@ protected def LE : SKI := LEPoly.toSKI
 theorem le_def (a b : SKI) : (SKI.LE ⬝ a ⬝ b) ↠ IsZero ⬝ (SKI.Sub ⬝ a ⬝ b) :=
   LEPoly.toSKI_correct [a, b] (by simp)
 
-theorem isEncoding_le : SKI.LE ⊩ (· ≤ · : Nat → Nat → Bool) := by
+theorem realizes_le : SKI.LE ⊩ (· ≤ · : Nat → Nat → Bool) := by
   intro n xn hn m xm hm
   simp_rw [← decide_eq_decide.mpr <| Nat.sub_eq_zero_iff_le]
-  apply IsEncoding.left_of_mRed (y := IsZero ⬝ (SKI.Sub ⬝ xn ⬝ xm)) (h := le_def _ _)
-  apply isEncoding_isZero
-  apply isEncoding_sub <;> assumption
+  apply Realizes.left_of_mRed (y := IsZero ⬝ (SKI.Sub ⬝ xn ⬝ xm)) (h := le_def _ _)
+  apply realizes_isZero
+  apply realizes_sub <;> assumption
 
 end SKI
 
