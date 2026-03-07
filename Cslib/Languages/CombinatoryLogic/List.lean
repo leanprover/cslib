@@ -74,6 +74,7 @@ theorem nil_def (c n : SKI) : (Nil ⬝ c ⬝ n) ↠ n :=
   NilPoly.toSKI_correct [c, n] (by simp)
 
 /-- The empty list term correctly represents `[]`. -/
+@[scoped grind .]
 theorem nil_correct : IsChurchList [] Nil := nil_def
 
 /-! ### Cons: Consing an element onto a list -/
