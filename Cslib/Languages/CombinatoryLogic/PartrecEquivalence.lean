@@ -46,15 +46,23 @@ def Computes (t : SKI) (f : ℕ →. ℕ) : Prop :=
     ∀ m : ℕ, f n = Part.some m →
       IsChurch m (t ⬝ cn)
 
-/-! ### Helper terms for prec and rfind' translations -/
+/-! ### Helper terms for prec and rfind' translations
+
+These helpers adapt the `Rec` combinator from `Recursion.lean` for the paired encoding
+used by `Nat.Partrec.Code.prec`, which passes arguments as `Nat.pair a (Nat.pair counter prev)`.
+-/
 
 /-- Step function for primitive recursion:
     `λ a cn prev. tg ⬝ (NatPair ⬝ a ⬝ (NatPair ⬝ (Pred ⬝ cn) ⬝ prev))`
     Variables: &0 = a, &1 = cn, &2 = prev -/
 def PrecStepPoly (tg : SKI) : SKI.Polynomial 3 :=
   tg ⬝' (NatPair ⬝' &0 ⬝' (NatPair ⬝' (Pred ⬝' &1) ⬝' &2))
-/-- SKI term for the primitive recursion step function. -/
+
+/-- SKI term for the primitive recursion step function. Adapts `Rec`'s step argument
+to `Code.prec`'s calling convention by repacking `(a, counter, prev_result)` into the
+`Nat.pair a (Nat.pair (counter - 1) prev_result)` format expected by `tg`. -/
 def PrecStep (tg : SKI) : SKI := (PrecStepPoly tg).toSKI
+
 theorem precStep_def (tg a cn prev : SKI) :
     (PrecStep tg ⬝ a ⬝ cn ⬝ prev) ↠
       tg ⬝ (NatPair ⬝ a ⬝ (NatPair ⬝ (Pred ⬝ cn) ⬝ prev)) :=
@@ -66,8 +74,12 @@ def PrecTransPoly (tf tg : SKI) : SKI.Polynomial 1 :=
   Rec ⬝' (tf ⬝' (NatUnpairLeft ⬝' &0))
       ⬝' (PrecStep tg ⬝' (NatUnpairLeft ⬝' &0))
       ⬝' (NatUnpairRight ⬝' &0)
-/-- SKI term for primitive recursion. -/
+
+/-- SKI term for primitive recursion. Delegates to the `Rec` combinator from `Recursion.lean`,
+using pair/unpair plumbing to translate between `Nat.Partrec.Code.prec`'s paired input
+convention (`Nat.pair a n`) and `Rec`'s direct arguments `(base, step, n)`. -/
 def PrecTrans (tf tg : SKI) : SKI := (PrecTransPoly tf tg).toSKI
+
 theorem precTrans_def (tf tg cn : SKI) :
     (PrecTrans tf tg ⬝ cn) ↠
       Rec ⬝ (tf ⬝ (NatUnpairLeft ⬝ cn))
@@ -80,8 +92,10 @@ theorem precTrans_def (tf tg cn : SKI) :
 def RFindTransPoly (tf : SKI) : SKI.Polynomial 1 :=
   RFindAbove ⬝' (NatUnpairRight ⬝' &0)
              ⬝' (B ⬝' tf ⬝' (NatPair ⬝' (NatUnpairLeft ⬝' &0)))
+
 /-- SKI term for unbounded search (μ-recursion). -/
 def RFindTrans (tf : SKI) : SKI := (RFindTransPoly tf).toSKI
+
 theorem rfindTrans_def (tf cn : SKI) :
     (RFindTrans tf ⬝ cn) ↠
       RFindAbove ⬝ (NatUnpairRight ⬝ cn)
