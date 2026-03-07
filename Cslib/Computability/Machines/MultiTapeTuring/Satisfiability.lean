@@ -123,6 +123,16 @@ theorem sat_eval
         (Function.update tapes 0 (BiTape.mk₁ (StrEnc.enc input)))
         2 (BiTape.mk₁ (StrEnc.enc (match input with
           | SATInput.mk f a => evalFormula a f)))) := by
+  obtain ⟨formula, assignment⟩ := input
+  simp only [evalFormula]
+  unfold sat
+  simp only [MultiTapeTM.seq_eval, Routines.part_some_bind_eq,
+    Routines.toArg_eval, Routines.copyEnc_eval, Routines.outOfArg_eval,
+    Routines.all_list_eval, Routines.erase_eval,
+    Routines.Function.update_update]
+  -- After simp, all evals are resolved. The remaining goal involves
+  -- reducing the opaque result functions (toArg_result, copyEnc_result,
+  -- outOfArg_result, all_list_result, erase_result) for the SATInput case.
   sorry
 
 end Satisfiability

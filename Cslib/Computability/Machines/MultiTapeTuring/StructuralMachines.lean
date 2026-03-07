@@ -161,6 +161,17 @@ public def toArg {k : ℕ} (α : Type*) [StrEnc α] (ctorIdx argIdx : ℕ)
     (i : Fin k) : MultiTapeTM k Char :=
   right i ;ₜ skipRight ℕ i ;ₜ skipFields α ctorIdx argIdx i
 
+/-- The tape `i` state after `toArg`. -/
+public noncomputable def toArg_result {k : ℕ} (α : Type*) [StrEnc α]
+    (ctorIdx argIdx : ℕ) (i : Fin k)
+    (tapes : Fin k → BiTape Char) : BiTape Char := sorry
+
+@[simp]
+public lemma toArg_eval {k : ℕ} {α : Type*} [StrEnc α]
+    {ctorIdx argIdx : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
+    (toArg α ctorIdx argIdx i).eval tapes = .some
+      (Function.update tapes i (toArg_result α ctorIdx argIdx i tapes)) := by sorry
+
 /--
 Move the head back from the `argIdx`-th argument to the start of the encoding
 (inverse of `toArg`).
@@ -169,18 +180,38 @@ public def outOfArg {k : ℕ} (α : Type*) [StrEnc α] (ctorIdx argIdx : ℕ)
     (i : Fin k) : MultiTapeTM k Char :=
   skipFieldsLeft α ctorIdx argIdx i ;ₜ skipLeft ℕ i ;ₜ left i
 
+/-- The tape `i` state after `outOfArg`. -/
+public noncomputable def outOfArg_result {k : ℕ} (α : Type*) [StrEnc α]
+    (ctorIdx argIdx : ℕ) (i : Fin k)
+    (tapes : Fin k → BiTape Char) : BiTape Char := sorry
+
+@[simp]
+public lemma outOfArg_eval {k : ℕ} {α : Type*} [StrEnc α]
+    {ctorIdx argIdx : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
+    (outOfArg α ctorIdx argIdx i).eval tapes = .some
+      (Function.update tapes i (outOfArg_result α ctorIdx argIdx i tapes)) := by sorry
+
 /-- Erase the StrEnc-encoded value at the head of tape `i`. -/
 public def erase {k : ℕ} (α : Type*) [StrEnc α] (i : Fin k) :
     MultiTapeTM k Char := sorry
 
+/-- The tape `i` state after `erase`. -/
+public noncomputable def erase_result {k : ℕ} (α : Type*) [StrEnc α]
+    (i : Fin k) (tapes : Fin k → BiTape Char) : BiTape Char := sorry
+
 @[simp]
 public lemma erase_eval {k : ℕ} {α : Type*} [StrEnc α] {i : Fin k}
+  {tapes : Fin k → BiTape Char} :
+  (erase α i).eval tapes = .some (Function.update tapes i
+      (erase_result α i tapes)) := by sorry
+
+@[simp]
+public lemma erase_result_spec {k : ℕ} {α : Type*} [StrEnc α] {i : Fin k}
   {tapes : Fin k → BiTape Char}
   {x : α}
   {r : List Char}
   (h_tape : tapes i = BiTape.mk₁ ((StrEnc.enc x) ++ r)) :
-  (erase α i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₁ r)) := by sorry
+  erase_result α i tapes = BiTape.mk₁ r := by sorry
 
 /--
 Prepend an item to a StrEnc-encoded list on tape `i`.
@@ -276,8 +307,17 @@ Copy a StrEnc-encoded value of type `α` from tape `i` to tape `j`
 public def copyEnc {k : ℕ} (α : Type*) [StrEnc α] (i j : Fin k) :
     MultiTapeTM k Char := sorry
 
+/-- The full tape state after `copyEnc`. -/
+public noncomputable def copyEnc_result {k : ℕ} (α : Type*) [StrEnc α]
+    (i j : Fin k) (tapes : Fin k → BiTape Char) : Fin k → BiTape Char := sorry
+
 @[simp]
 public lemma copyEnc_eval {k : ℕ} {α : Type*} [StrEnc α]
+  {i j : Fin k} {tapes : Fin k → BiTape Char} :
+  (copyEnc α i j).eval tapes = .some (copyEnc_result α i j tapes) := by sorry
+
+@[simp]
+public lemma copyEnc_result_spec {k : ℕ} {α : Type*} [StrEnc α]
   {i j : Fin k} (h_ne : i ≠ j)
   {tapes : Fin k → BiTape Char}
   {x : α}
@@ -285,7 +325,7 @@ public lemma copyEnc_eval {k : ℕ} {α : Type*} [StrEnc α]
   {rⱼ : List Char}
   (h_tapei : tapes i = BiTape.mk₂ lᵢ ((StrEnc.enc x) ++ rᵢ))
   (h_tapej : tapes j = BiTape.mk₁ rⱼ) :
-  (copyEnc α i j).eval tapes = .some
+  copyEnc_result α i j tapes =
     (Function.update (Function.update tapes i (BiTape.mk₂ lᵢ ((StrEnc.enc x) ++ rᵢ)))
       j (BiTape.mk₁ ((StrEnc.enc x) ++ rⱼ))) := by sorry
 
@@ -317,14 +357,14 @@ public lemma isEq_eval {k : ℕ} {α : Type*} [StrEnc α] [DecidableEq α]
       (BiTape.mk₁ ((StrEnc.enc (decide (x = y))) ++ rₖ))) := by sorry
 
 @[simp]
-private lemma Function.update_update {α : Type*} {β : Type*}
+public lemma Function.update_update {α : Type*} {β : Type*}
     [DecidableEq α] {f : α → β} {a : α} {b c : β} :
     Function.update (Function.update f a b) a c =
       Function.update f a c := by
   ext x; simp [Function.update]; split <;> rfl
 
 @[simp]
-private lemma part_some_bind_eq {α : Type u}
+public lemma part_some_bind_eq {α : Type u}
     {a : α} {f : α → Part α} :
     Part.some a >>= f = f a := by
   change (Part.some a).bind f = f a
@@ -348,12 +388,12 @@ public lemma combineOr_eval {j : Fin k} {b₁ b₂ : Bool}
   cases b₁ with
   | false =>
     simp only [Bool.false_or, case_Bool_false_eval h_assoc,
-      erase_eval (x := false) h_assoc]
+      erase_eval, erase_result_spec (x := false) h_assoc]
   | true =>
     simp only [Bool.true_or, case_Bool_true_eval h_assoc,
       MultiTapeTM.seq_eval,
-      erase_eval (x := true) h_assoc, part_some_bind_eq,
-      erase_eval (x := b₂) (Function.update_self j _ tapes),
+      erase_eval, erase_result_spec (x := true) h_assoc, part_some_bind_eq,
+      erase_result_spec (x := b₂) (Function.update_self j _ tapes),
       Function.update_update,
       put_eval (x := true) (Function.update_self j _ tapes)]
 
@@ -375,13 +415,13 @@ public lemma negateBool_eval {j : Fin k} {b : Bool}
   | false =>
     simp only [Bool.not_false, case_Bool_false_eval h_tape,
       MultiTapeTM.seq_eval,
-      erase_eval (x := false) h_tape, part_some_bind_eq,
+      erase_eval, erase_result_spec (x := false) h_tape, part_some_bind_eq,
       put_eval (x := true) (Function.update_self j _ tapes),
       Function.update_update]
   | true =>
     simp only [Bool.not_true, case_Bool_true_eval h_tape,
       MultiTapeTM.seq_eval,
-      erase_eval (x := true) h_tape, part_some_bind_eq,
+      erase_eval, erase_result_spec (x := true) h_tape, part_some_bind_eq,
       put_eval (x := false) (Function.update_self j _ tapes),
       Function.update_update]
 
