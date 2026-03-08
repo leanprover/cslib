@@ -52,16 +52,16 @@ variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
 lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
   constructor
   · induction Ns with
-    | nil  => grind [multiApp]
+    | nil  => grind
     | cons => intro h_lc; cases h_lc; grind
-  · induction Ns <;> grind [multiApp, LC.app]
+  · induction Ns <;> grind
 
 /- Just like ordinary beta reduction, the left-hand side
    of a multi-application step is locally closed -/
 @[scoped grind ←]
 lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ⭢βᶠ M'.multiApp Ns := by
-  induction Ns <;> grind [multiApp, FullBeta.appR]
+  induction Ns <;> grind [FullBeta.appR]
 
 /- Congruence lemma for multi reduction of the left most term of a multi-application -/
 @[scoped grind ←]
@@ -72,12 +72,12 @@ lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
 /- Congruence lemma for single reduction of one of the arguments of a multi-application -/
 @[scoped grind ←]
 lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
-  induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
+  induction steps <;> grind [FullBeta.appL, FullBeta.appR]
 
 /- Congruence lemma for multiple reduction of one of the arguments of a multi-application -/
 @[scoped grind ←]
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
-  induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
+  induction steps <;> grind [FullBeta.appL, FullBeta.appR]
 
 variable [DecidableEq Var] [HasFresh Var]
 
