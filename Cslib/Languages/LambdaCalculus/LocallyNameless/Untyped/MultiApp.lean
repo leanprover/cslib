@@ -22,24 +22,24 @@ variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
-/-
-  multiApp f [x₁, x₂, ..., xₙ] applies the arguments x₁, x₂, ..., xₙ
-  to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ). -/
+/- multiApp f [x₁, x₂, ..., xₙ] applies the arguments x₁, x₂, ..., xₙ
+   to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ). -/
 @[simp, scoped grind =]
 def multiApp (f : Term Var) : List (Term Var) → Term Var
 | []      => f
 | a :: as => Term.app (multiApp f as) a
 
-/-
-  A list of arguments performs a single reduction step
+/- A list of arguments performs a single reduction step
 
-  [x₁, ..., xᵢ ..., xₙ] ⭢βᶠ [x₁, ..., xᵢ', ..., xₙ]
+   [x₁, ..., xᵢ ..., xₙ] ⭢βᶠ [x₁, ..., xᵢ', ..., xₙ]
 
-  if one of the arguments performs a single step xᵢ ⭢βᶠ xᵢ'
-  and the rest of the arguments are locally closed. -/
+   if one of the arguments performs a single step xᵢ ⭢βᶠ xᵢ'
+   and the rest of the arguments are locally closed. -/
 @[scoped grind, reduction_sys "lβᶠ"]
 inductive ListFullBeta : List (Term Var) → List (Term Var) → Prop where
+/- head of the list performs a single reduction step, the rest are locally closed -/
 | step : N ⭢βᶠ N' → (∀ N ∈ Ns, LC N) → ListFullBeta (N :: Ns) (N' :: Ns)
+/- given a list that already contains a step, we can add locally closed terms to the front -/
 | cons : LC N → ListFullBeta Ns Ns' → ListFullBeta (N :: Ns) (N :: Ns')
 
 variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
