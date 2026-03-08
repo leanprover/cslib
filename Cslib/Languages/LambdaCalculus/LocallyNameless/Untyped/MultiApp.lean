@@ -60,7 +60,6 @@ lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
   induction Ns <;> grind [FullBeta.appR]
 
 /- Congruence lemma for multi reduction of the left most term of a multi-application -/
-@[scoped grind ←]
 lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ↠βᶠ M'.multiApp Ns := by
   induction steps <;> grind
@@ -71,7 +70,6 @@ lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns �
   induction steps <;> grind [FullBeta.appL, FullBeta.appR]
 
 /- Congruence lemma for multiple reduction of one of the arguments of a multi-application -/
-@[scoped grind ←]
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind [FullBeta.appL, FullBeta.appR]
 
