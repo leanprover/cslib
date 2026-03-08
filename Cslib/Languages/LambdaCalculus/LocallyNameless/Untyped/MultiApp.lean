@@ -162,20 +162,14 @@ lemma invert_abs_multiApp_mst {Ps} {M N Q : Term Var}
                  (Q = multiApp (M'.abs.app N') Ns' ∨
      (multiApp (M.abs.app N) Ps ↠βᶠ multiApp (M' ^ N') Ns' ∧
                                      multiApp (M' ^ N') Ns' ↠βᶠ Q)) := by
-  induction h_red
-  · case refl => grind
-  · case tail Q' Q'' steps step ih =>
-    match ih with
-    | ⟨ M', N', Ps', st_M, st_N, st_Ps, Cases ⟩ =>
-      match Cases with
-      | .inl Heq =>
-        rw [Heq] at step
-        match (invert_abs_multiApp_st step) with
-        | .inl ⟨ M'', st, HeqM'' ⟩             => grind
-        | .inr (.inl ⟨ N', st, Heq' ⟩)         => grind
-        | .inr (.inr (.inl ⟨ Ps', st, Heq' ⟩)) => grind
-        | .inr (.inr (.inr Heq'))              => grind
-      | .inr ⟨ steps1, steps2 ⟩ => grind [Relation.ReflTransGen.single]
+  induction h_red with
+  | refl => grind
+  | tail _ step ih =>
+    obtain ⟨_, _, _, _, _, _, h⟩ := ih
+    rcases h with heq | _
+    · subst heq
+      grind [invert_abs_multiApp_st step]
+    · grind [Relation.ReflTransGen.single]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
