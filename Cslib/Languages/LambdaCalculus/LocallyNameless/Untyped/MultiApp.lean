@@ -18,22 +18,18 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
+variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
-
-
-
 
 /-
   multiApp f [x₁, x₂, ..., xₙ] applies the arguments x₁, x₂, ..., xₙ
   to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ).
 -/
 @[simp, scoped grind =]
-def multiApp (f : Term Var) (args : List (Term Var)) :=
-  match args with
-  | []      => f
-  | a :: as => Term.app (multiApp f as) a
+def multiApp (f : Term Var) : List (Term Var) → Term Var
+| []      => f
+| a :: as => Term.app (multiApp f as) a
 
 /-
   A list of arguments performs a single reduction step
@@ -43,68 +39,58 @@ def multiApp (f : Term Var) (args : List (Term Var)) :=
   if one of the arguments performs a single step xᵢ ⭢βᶠ xᵢ'
   and the rest of the arguments are locally closed.
 -/
-@[reduction_sys "lβᶠ"]
-inductive list_full_beta : List (Term Var) → List (Term Var) → Prop where
-| step : N ⭢βᶠ N' → (∀ N ∈ Ns, LC N) → list_full_beta (N :: Ns) (N' :: Ns)
-| cons : LC N → list_full_beta Ns Ns' → list_full_beta (N :: Ns) (N :: Ns')
-
-attribute [scoped grind .] list_full_beta.step list_full_beta.cons
+@[scoped grind, reduction_sys "lβᶠ"]
+inductive ListFullBeta : List (Term Var) → List (Term Var) → Prop where
+| step : N ⭢βᶠ N' → (∀ N ∈ Ns, LC N) → ListFullBeta (N :: Ns) (N' :: Ns)
+| cons : LC N → ListFullBeta Ns Ns' → ListFullBeta (N :: Ns) (N :: Ns')
 
 variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
 
-/- just like ordinary beta reduction, the right-hand side
-   of a multi-application step is locally closed -/
-lemma multiApp_step_lc_r (step : Ns ⭢lβᶠ Ns') :
-    (∀ N ∈ Ns', LC N) := by
-  induction step <;> grind [FullBeta.step_lc_r]
-
-/- just like ordinary beta reduction, multiple steps of a argument list preserves local closure -/
-lemma multiApp_steps_lc (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) :
-    (∀ N ∈ Ns', LC N) := by
-  induction step <;> grind [FullBeta.step_lc_r, multiApp_step_lc_r]
-
-/- a term resulting from a multi-application is locally closed if
+/- A term resulting from a multi-application is locally closed if
    and only if the leftmost term and all arguments applied to it are locally closed -/
-omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
-lemma multiApp_lc :
-    LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
+lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
   constructor
   · induction Ns with
     | nil  => grind [multiApp]
     | cons => intro h_lc; cases h_lc; grind
   · induction Ns <;> grind [multiApp, LC.app]
 
-/- just like ordinary beta reduction, the left-hand side
+/- Just like ordinary beta reduction, the left-hand side
    of a multi-application step is locally closed -/
-omit [DecidableEq Var] [HasFresh Var] in
 @[scoped grind ←]
 lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ⭢βᶠ M'.multiApp Ns := by
   induction Ns <;> grind [multiApp, FullBeta.appR]
 
-/- congruence lemma for multi reduction of the left most term of a multi-application -/
-omit [DecidableEq Var] [HasFresh Var] in
+/- Congruence lemma for multi reduction of the left most term of a multi-application -/
 @[scoped grind ←]
 lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ↠βᶠ M'.multiApp Ns := by
   induction steps <;> grind
 
-/- congruence lemma for single reduction of one of the arguments of a multi-application -/
-omit [DecidableEq Var] [HasFresh Var] in
+/- Congruence lemma for single reduction of one of the arguments of a multi-application -/
 @[scoped grind ←]
-lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) :
-    M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
+lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
 
-/- congruence lemma for multiple reduction of one of the arguments of a multi-application -/
-omit [DecidableEq Var] [HasFresh Var] in
+/- Congruence lemma for multiple reduction of one of the arguments of a multi-application -/
 @[scoped grind ←]
-lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) :
-    M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
+lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind [multiApp, FullBeta.appL, FullBeta.appR]
 
-/- if a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
+variable [DecidableEq Var] [HasFresh Var]
+
+/- Just like ordinary beta reduction, the right-hand side
+   of a multi-application step is locally closed -/
+lemma multiApp_step_lc_r (step : Ns ⭢lβᶠ Ns') : ∀ N ∈ Ns', LC N := by
+  induction step <;> grind [FullBeta.step_lc_r]
+
+/- Just like ordinary beta reduction, multiple steps of a argument list preserves local closure -/
+lemma multiApp_steps_lc (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) : ∀ N ∈ Ns', LC N := by
+  induction step <;> grind [FullBeta.step_lc_r, multiApp_step_lc_r]
+
+/- If a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
    Q must be one of the following forms:
 
     Q = (λ M') N P₁ ... Pₙ where M ⭢βᶠ M' or
@@ -154,7 +140,7 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
           exists (P :: Ps');grind
         | .inr (.inr (.inr Heq'))              => grind
 
-/- if a term (λ M) N P₁ ... Pₙ reduces in multiple steps to Q, then either Q if of the form
+/- If a term (λ M) N P₁ ... Pₙ reduces in multiple steps to Q, then either Q if of the form
 
     Q = (λ M') N' P'₁ ... P'ₙ
 
