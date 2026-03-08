@@ -31,7 +31,7 @@ a transition relation with idle transitions.
 -/
 def lift (trans : State → Label → State → Prop) :
   State → (Option Label) → State → Prop :=
-  fun s l s' => l.elim True (trans s · s')
+  fun s l s' => l.elim (s = s') (trans s · s')
 
 /-! ## LTSs and LTS morphisms form a category -/
 
