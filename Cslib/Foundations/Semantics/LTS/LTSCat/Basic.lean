@@ -37,7 +37,7 @@ def lift (trans : State → Label → State → Prop) :
 
 /--
 The definition of labelled transition system (with the type of states and the
-type of states as part of the structure).
+type of labels as part of the structure).
 -/
 structure LTSCat : Type (max u v + 1) where
   State : Type u
@@ -46,7 +46,7 @@ structure LTSCat : Type (max u v + 1) where
 
 /--
 A morphism between two labelled transition systems consists of (1) a function on
-states, (1) a partial function on labels, and a proof that (1) preserves each
+states, (2) a partial function on labels, and a proof that (1) preserves each
 transition along (2).
 -/
 structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
@@ -105,3 +105,5 @@ instance : CategoryTheory.Category LTSCat where
     funext x
     change ((μ₁ x).bind μ₂).bind μ₃ = (μ₁ x).bind fun a => (μ₂ a).bind μ₃
     cases μ₁ x <;> rfl
+
+end
