@@ -109,7 +109,7 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
 
       (λ M') N' P'₁ ... P'ₙ ↠βᶠ M' ^ N' P'_₁ ... P'_ₙ ↠βᶠ Q
 
-   where M ↠βᶠ M' and N ↠βᶠ N' and P_i ↠βᶠ P_i' for all i, -/
+   where M ↠βᶠ M' and N ↠βᶠ N' and P_i ↠βᶠ P_i' for all i -/
 lemma invert_abs_multiApp_mst {Ps} {M N Q : Term Var}
   (h_red : multiApp (M.abs.app N) Ps ↠βᶠ Q) :
     ∃ M' N' Ns', M.abs ↠βᶠ M'.abs ∧ N ↠βᶠ N' ∧ Ps ↠lβᶠ Ns' ∧
