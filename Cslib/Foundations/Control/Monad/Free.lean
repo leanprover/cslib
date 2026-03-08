@@ -267,6 +267,30 @@ theorem Interprets.iff (handler : {ι : Type u} → F ι → m ι) (interp : Fre
 
 end liftM
 
+section MonadLift
+
+/-- A typeclass providing an interpretation of effects `F` in a monad `m`.
+
+This is used to define a canonical `MonadLift (FreeM F) m` instance using `liftM`. -/
+class FreeInterp (m : Type u → Type w) (F : outParam (Type u → Type v)) where
+  /-- The effect handler interpreting each operation of `F` in `m`. -/
+  handler : {ι : Type u} → F ι → m ι
+
+variable {F : Type u → Type v} {m : Type u → Type w} [Monad m] [FreeInterp m F]
+
+instance : MonadLift (FreeM F) m where
+  monadLift := fun {_} x => x.liftM FreeInterp.handler
+
+instance [LawfulMonad m] : LawfulMonadLift (FreeM F) m where
+  monadLift_pure := by
+    intro α a
+    rfl
+  monadLift_bind := by
+    intro α β x f
+    simp [MonadLift.monadLift]
+
+end MonadLift
+
 end FreeM
 
 end Cslib
