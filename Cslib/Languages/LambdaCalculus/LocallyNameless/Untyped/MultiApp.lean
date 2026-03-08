@@ -24,8 +24,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-
   multiApp f [x₁, x₂, ..., xₙ] applies the arguments x₁, x₂, ..., xₙ
-  to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ).
--/
+  to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ). -/
 @[simp, scoped grind =]
 def multiApp (f : Term Var) : List (Term Var) → Term Var
 | []      => f
@@ -37,8 +36,7 @@ def multiApp (f : Term Var) : List (Term Var) → Term Var
   [x₁, ..., xᵢ ..., xₙ] ⭢βᶠ [x₁, ..., xᵢ', ..., xₙ]
 
   if one of the arguments performs a single step xᵢ ⭢βᶠ xᵢ'
-  and the rest of the arguments are locally closed.
--/
+  and the rest of the arguments are locally closed. -/
 @[scoped grind, reduction_sys "lβᶠ"]
 inductive ListFullBeta : List (Term Var) → List (Term Var) → Prop where
 | step : N ⭢βᶠ N' → (∀ N ∈ Ns, LC N) → ListFullBeta (N :: Ns) (N' :: Ns)
@@ -79,8 +77,7 @@ lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns 
     Q = (λ M') N P₁ ... Pₙ where M ⭢βᶠ M' or
     Q = (λ M) N' P₁ ... Pₙ where N ⭢βᶠ N' or
     Q = (λ M) N P₁' ... Pₙ' where P_i ⭢βᶠ P_i' for some i or
-    Q = (M ^ N) P₁ ... Pₙ
--/
+    Q = (M ^ N) P₁ ... Pₙ -/
 lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
   (h_red : multiApp (M.abs.app N) Ps ⭢βᶠ Q) :
     (∃ M', M.abs ⭢βᶠ Term.abs M' ∧ Q = multiApp (M'.abs.app N) Ps) ∨
@@ -112,8 +109,7 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
 
     (λ M') N' P'₁ ... P'ₙ ↠βᶠ M' ^ N' P'_₁ ... P'_ₙ ↠βᶠ Q
 
-   where M ↠βᶠ M' and N ↠βᶠ N' and P_i ↠βᶠ P_i' for all i,
--/
+   where M ↠βᶠ M' and N ↠βᶠ N' and P_i ↠βᶠ P_i' for all i, -/
 lemma invert_abs_multiApp_mst {Ps} {M N Q : Term Var}
   (h_red : multiApp (M.abs.app N) Ps ↠βᶠ Q) :
     ∃ M' N' Ns', M.abs ↠βᶠ M'.abs ∧ N ↠βᶠ N' ∧ Ps ↠lβᶠ Ns' ∧
