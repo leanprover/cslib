@@ -50,11 +50,7 @@ variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
    and only if the leftmost term and all arguments applied to it are locally closed -/
 @[scoped grind ←]
 lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
-  constructor
-  · induction Ns with
-    | nil  => grind
-    | cons => intro h_lc; cases h_lc; grind
-  · induction Ns <;> grind
+  induction Ns with grind [cases LC]
 
 /- Just like ordinary beta reduction, the left-hand side
    of a multi-application step is locally closed -/
@@ -79,17 +75,6 @@ lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns �
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind [FullBeta.appL, FullBeta.appR]
 
-variable [DecidableEq Var] [HasFresh Var]
-
-/- Just like ordinary beta reduction, the right-hand side
-   of a multi-application step is locally closed -/
-lemma multiApp_step_lc_r (step : Ns ⭢lβᶠ Ns') : ∀ N ∈ Ns', LC N := by
-  induction step <;> grind [FullBeta.step_lc_r]
-
-/- Just like ordinary beta reduction, multiple steps of a argument list preserves local closure -/
-lemma multiApp_steps_lc (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) : ∀ N ∈ Ns', LC N := by
-  induction step <;> grind [FullBeta.step_lc_r, multiApp_step_lc_r]
-
 /- If a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
    Q must be one of the following forms:
 
@@ -105,40 +90,15 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     (∃ Ps', Ps ⭢lβᶠ Ps' ∧ Q = multiApp (M.abs.app N) Ps') ∨
     (Q = multiApp (M ^ N) Ps) := by
   induction Ps generalizing M N Q with
-  | nil =>
-    rw [multiApp] at h_red
-    rw [multiApp]
-    cases h_red
-    · case beta abs_lc n_lc => grind
-    · case appL M N' lc_z h_red => grind
-    · case appR M M' lc_z h_red =>
-        left
-        cases lc_z
-        · case abs M' xs h_lc =>
-            exists M'
-            constructor
-            · apply FullBeta.step_abs_cong
-              assumption
-            · rfl
+  | nil => grind [cases FullBeta]
   | cons P Ps ih =>
-    have h_lc := (FullBeta.step_lc_l h_red)
-    rw [multiApp] at h_red
     generalize Heq : (M.abs.app N).multiApp Ps = Q'
-    rw [Heq] at h_red
-    cases h_red
-    · case beta abs_lc n_lc => cases Ps <;> contradiction
-    · case appL Y M P' lc_z h_red =>
-        right; right; left
-        exists (P' :: Ps); grind
-    · case appR M Q'' h_red P_lc =>
-        rw [←Heq] at h_red
-        match (ih h_red) with
-        | .inl ⟨ M', st, Heq' ⟩                => grind
-        | .inr (.inl ⟨ N', st, Heq' ⟩)         => grind
-        | .inr (.inr (.inl ⟨ Ps', st, Heq' ⟩)) =>
-          right; right; left
-          exists (P :: Ps');grind
-        | .inr (.inr (.inr Heq'))              => grind
+    have : ∀ P', Q'.app P' = (M.abs.app N).multiApp (P' :: Ps) := by grind
+    rw [multiApp, Heq] at h_red
+    cases h_red with
+    | beta => cases Ps <;> contradiction
+    | appR => grind [→ ListFullBeta.cons]
+    | appL => grind
 
 /- If a term (λ M) N P₁ ... Pₙ reduces in multiple steps to Q, then either Q if of the form
 
@@ -170,6 +130,17 @@ lemma invert_abs_multiApp_mst {Ps} {M N Q : Term Var}
     · subst heq
       grind [invert_abs_multiApp_st step]
     · grind [Relation.ReflTransGen.single]
+
+variable [DecidableEq Var] [HasFresh Var]
+
+/- Just like ordinary beta reduction, the right-hand side
+   of a multi-application step is locally closed -/
+lemma multiApp_step_lc_r (step : Ns ⭢lβᶠ Ns') : ∀ N ∈ Ns', LC N := by
+  induction step <;> grind [FullBeta.step_lc_r]
+
+/- Just like ordinary beta reduction, multiple steps of a argument list preserves local closure -/
+lemma multiApp_steps_lc (step : Ns ↠lβᶠ Ns') (H : ∀ N ∈ Ns, LC N) : ∀ N ∈ Ns', LC N := by
+  induction step <;> grind [FullBeta.step_lc_r, multiApp_step_lc_r]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
