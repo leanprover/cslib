@@ -269,14 +269,15 @@ end liftM
 
 section MonadLift
 
-/-- A typeclass providing an interpretation of effects `F` in a monad `m`.
+/-- A polymorphic function from a type constructor `F` to a type constructor `m`
 
-This is used to define a canonical `MonadLift (FreeM F) m` instance using `liftM`. -/
+Providing an instance of `EffectHandler m F` enables a `MonadLift (FreeM F) m` instance
+via `FreeM.liftM`. -/
 class EffectHandler (m : Type u → Type w) (F : outParam (Type u → Type v)) where
-  /-- The effect handler interpreting each operation of `F` in `m`. -/
+  /-- Map each operation of `F` into `m`. -/
   handler : {ι : Type u} → F ι → m ι
 
-variable {F : Type u → Type v} {m : Type u → Type w} [Monad m] [EffectHandler m F]
+variable (F : Type u → Type v) {m : Type u → Type w} [Monad m] [EffectHandler m F]
 
 instance : MonadLift (FreeM F) m where
   monadLift := fun {_} x => x.liftM EffectHandler.handler
