@@ -71,9 +71,11 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
     let r := by
       intro s s' l h
       have hp := p s s' l h
-      change ((μ l).bind ν).elim True _
+      change ((μ l).bind ν).elim (g (f s) = g (f s')) _
       cases hμ : μ l with
-      | none => trivial
+      | none =>
+        rw [hμ] at hp
+        exact congrArg g hp
       | some m =>
         rw [hμ] at hp
         exact q (f s) (f s') m hp
@@ -87,7 +89,8 @@ instance : CategoryTheory.Category LTSCat where
   id_comp := by
     intro _ _ f
     cases f
-    rfl
+    simp only [LTS.Morphism.comp, LTS.Morphism.id, Function.comp_id]
+    congr 1
   comp_id := by
     intro _ _ ⟨f, μ, p⟩
     simp only [LTS.Morphism.comp, LTS.Morphism.id]
