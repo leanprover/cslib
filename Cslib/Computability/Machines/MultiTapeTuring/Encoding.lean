@@ -279,6 +279,49 @@ public lemma pushList_nonempty_path {d : Data} {dat : Option Data}
     | num _ => rfl
     | list _ => rfl
 
+/-- Remove the first element from a list on tape and return both the element and
+    the updated `TapeView`.
+    If the path is `[]` and `data` is `some (Data.list (d :: ds))`,
+    returns `some (d, ⟨some (Data.list ds), []⟩)`.
+    Otherwise, returns `none`. -/
+public def popList (tv : TapeView) : Option (Data × TapeView) :=
+  match tv with
+  | ⟨some (Data.list (d :: ds)), []⟩ => some (d, ⟨some (Data.list ds), []⟩)
+  | _ => none
+
+@[simp]
+public lemma popList_cons {d : Data} {ds : List Data} :
+    (TapeView.mk (some (Data.list (d :: ds))) []).popList =
+      some (d, TapeView.mk (some (Data.list ds)) []) := by
+  unfold popList; rfl
+
+@[simp]
+public lemma popList_nil :
+    (TapeView.mk (some (Data.list [])) []).popList = none := by
+  unfold popList; rfl
+
+@[simp]
+public lemma popList_none {p : List ℕ} :
+    (TapeView.mk none p).popList = none := by
+  unfold popList; rfl
+
+@[simp]
+public lemma popList_num {n : ℕ} {p : List ℕ} :
+    (TapeView.mk (some (Data.num n)) p).popList = none := by
+  unfold popList; rfl
+
+@[simp]
+public lemma popList_nonempty_path {dat : Option Data}
+    {k : ℕ} {rest : List ℕ} :
+    (TapeView.mk dat (k :: rest)).popList = none := by
+  unfold popList; cases dat with
+  | none => rfl
+  | some d' => cases d' with
+    | num _ => rfl
+    | list ds => cases ds with
+      | nil => rfl
+      | cons _ _ => rfl
+
 end TapeView
 
 end Turing
