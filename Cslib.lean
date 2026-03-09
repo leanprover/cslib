@@ -60,6 +60,7 @@ public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
+public import Cslib.Foundations.Semantics.LTS.LTSCat.Basic
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Cslib.Foundations.Syntax.Congruence
