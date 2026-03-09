@@ -122,7 +122,10 @@ public lemma case_num_true_eval_struct {k : ℕ} {i : Fin k}
     or the index is out of range, leaves the tape unmodified. -/
 public def case_popList_num {k : ℕ} (i : Fin k)
     (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char :=
-    sorry
+    -- Move past '(' to reach the first element's encoding [dyadic(n)]
+    right i ;ₜ
+    -- Dispatch on the numeric value; case_num reads [dyadic(n)] and selects branches[n]
+    case_num i branches
 
 @[simp]
 public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
