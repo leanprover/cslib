@@ -65,7 +65,7 @@ def semanticMap (τ : Ty Base) : Set (Term Var) :=
 
 
 /-- The sets constructed by semanticMap are saturated -/
-def semanticMap_saturated (τ : Ty Base) :
+lemma semanticMap_saturated (τ : Ty Base) :
     @saturated Var (semanticMap τ) := by
   induction τ
   · case base b =>
