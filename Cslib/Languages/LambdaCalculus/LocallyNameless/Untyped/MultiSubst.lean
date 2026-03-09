@@ -60,7 +60,7 @@ lemma multiSubst_fvar_fresh (E : Environment Var) :
     ∀ x ∉ E.dom, multiSubst E (Term.fvar x) = Term.fvar x := by
   induction E
   · case nil => simp [multiSubst]
-  · case cons N E ih => cases N ; simp_all ; grind[multiSubst]
+  · case cons N E ih => cases N; simp_all; grind[multiSubst]
 
 /-- when x is neither a free variable of an environment Ns or a term M, then
     x is also not a free variable of the multi-substitution of Ns into M -/
