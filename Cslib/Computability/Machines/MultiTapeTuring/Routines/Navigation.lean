@@ -48,24 +48,49 @@ public lemma outOfArg_toArg_tape (argIdx : ℕ) (tape : BiTape Char) :
     outOfArg_tape argIdx (toArg_tape argIdx tape) = tape := by sorry
 
 /-- `toArg argIdx i` descends into the `argIdx`-th element of the topmost
-    `Data.list` on tape `i`, appending `argIdx` to the path. -/
+    `Data.list` on tape `i`, appending `argIdx` to the path.
+    Only descends if the current element is a `Data.list` with a valid index;
+    otherwise, the `TapeView` is unchanged. -/
 @[simp]
-public lemma toArg_eval_struct {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView} :
+public lemma toArg_eval_struct_valid {k : ℕ} {argIdx : ℕ} {i : Fin k}
+    {views : Fin k → TapeView}
+    {ds : List Data}
+    (h_current : (views i).current = some (Data.list ds))
+    (h_bound : argIdx < ds.length) :
     (toArg argIdx i).eval_struct views = some
       (Function.update views i
         ⟨(views i).data, (views i).path ++ [argIdx]⟩) := by sorry
 
-/-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
-    removing it from the end of the path. -/
 @[simp]
-public lemma outOfArg_eval_struct {k : ℕ} {argIdx : ℕ} {i : Fin k}
+public lemma toArg_eval_struct_invalid {k : ℕ} {argIdx : ℕ} {i : Fin k}
+    {views : Fin k → TapeView}
+    (h_invalid : ∀ ds, (views i).current = some (Data.list ds) → ds.length ≤ argIdx) :
+    (toArg argIdx i).eval_struct views = some views := by sorry
+
+/-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
+    removing it from the end of the path. If the path ends with `argIdx`,
+    strips it. If the path is empty or the tape is empty, does not change
+    the `TapeView`. -/
+@[simp]
+public lemma outOfArg_eval_struct_valid {k : ℕ} {argIdx : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {rest : List ℕ}
     (h_path : (views i).path = rest ++ [argIdx]) :
     (outOfArg argIdx i).eval_struct views = some
       (Function.update views i
         ⟨(views i).data, rest⟩) := by sorry
+
+@[simp]
+public lemma outOfArg_eval_struct_empty_path {k : ℕ} {argIdx : ℕ} {i : Fin k}
+    {views : Fin k → TapeView}
+    (h_path : (views i).path = []) :
+    (outOfArg argIdx i).eval_struct views = some views := by sorry
+
+@[simp]
+public lemma outOfArg_eval_struct_none {k : ℕ} {argIdx : ℕ} {i : Fin k}
+    {views : Fin k → TapeView}
+    (h_none : (views i).data = none) :
+    (outOfArg argIdx i).eval_struct views = some views := by sorry
 
 end Routines
 end Turing
