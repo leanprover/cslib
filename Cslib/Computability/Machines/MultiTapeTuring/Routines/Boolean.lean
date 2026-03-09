@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
 
 namespace Turing
 namespace Routines
@@ -42,7 +43,12 @@ public lemma combineOr_eval_struct {k : ℕ} {i j : Fin k}
 
 /-- Negate a Bool value on tape `j`.
     Pops the first element from tape `j` and pushes its negation. -/
-public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char := sorry
+public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
+  case_popList_num j
+    [-- false (0) → push true (1)
+     pushList (StrEnc.toData true) j,
+     -- true (1) → push false (0)
+     pushList (StrEnc.toData false) j]
 
 @[simp]
 public lemma negateBool_eval_struct {k : ℕ} {j : Fin k}
