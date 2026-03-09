@@ -31,10 +31,10 @@ def multiSubst (σ : Environment Var) (M : Term Var) : Term Var :=
 /-- the free variables of an environment are the union of
     the free variables of all terms in the environment.
     The target variables are not necessarily included -/
-def Environment.fv (Ns : Environment Var) : Finset Var :=
-  match Ns with
+def Environment.fv (E : Environment Var) : Finset Var :=
+  match E with
   | [] => {}
-  | ⟨ _, sub ⟩ :: Ns' => sub.fv ∪ fv Ns'
+  | ⟨ _, sub ⟩ :: E' => sub.fv ∪ Environment.fv E'
 
 /-- an environment is locally closed if all terms in the environment are locally closed -/
 @[simp, grind .]
@@ -50,42 +50,42 @@ lemma env_LC_cons {Γ : Environment Var} {x : Var} {sub : Term Var}
   cases h_mem <;> aesop
 
 /-- multi-substitution of a fresh variable does nothing -/
-def multiSubst_fvar_fresh (Ns : Environment Var) :
-    ∀ x ∉ Ns.dom, multiSubst Ns (Term.fvar x) = Term.fvar x := by
-  induction Ns
+def multiSubst_fvar_fresh (E : Environment Var) :
+    ∀ x ∉ E.dom, multiSubst E (Term.fvar x) = Term.fvar x := by
+  induction E
   · case nil => simp [multiSubst]
-  · case cons N Ns ih => cases N ; simp_all ; grind[multiSubst]
+  · case cons N E ih => cases N ; simp_all ; grind[multiSubst]
 
 omit [HasFresh Var] in
+/-- when x is neither a free variable of an environment Ns or a term M, then
+    x is also not a free variable of the multi-substitution of Ns into M -/
 lemma multiSubst_preserves_not_fvar {x : Var}
   (M : Term Var)
-  (Ns : Environment Var)
-  (nmem : x ∉ M.fv ∪ Ns.fv) :
-    x ∉ (multiSubst Ns M).fv := by
-  induction Ns <;> grind[multiSubst, subst_preserve_not_fvar, Environment.fv]
+  (E : Environment Var)
+  (nmem : x ∉ M.fv ∪ E.fv) :
+    x ∉ (multiSubst E M).fv := by
+  induction E <;> grind[multiSubst, subst_preserve_not_fvar, Environment.fv]
 
 /-- multi-substitution propagates recursively through an application -/
-def multiSubst_app (M N : Term Var) (Ps : Environment Var) :
-      multiSubst Ps (Term.app M N) = Term.app (multiSubst Ps M) (multiSubst Ps N) := by
-  induction Ps <;> grind[multiSubst]
+def multiSubst_app (M N : Term Var) (E : Environment Var) :
+      multiSubst E (Term.app M N) = Term.app (multiSubst E M) (multiSubst E N) := by
+  induction E <;> grind[multiSubst]
 
 /-- multi-substitution propagates recursively through an abstraction -/
-def multiSubst_abs (M : Term Var) (Ns : Environment Var) :
-      multiSubst Ns (Term.abs M) = Term.abs (multiSubst Ns M) := by
-  induction Ns <;> grind[multiSubst]
+def multiSubst_abs (M : Term Var) (E : Environment Var) :
+      multiSubst E (Term.abs M) = Term.abs (multiSubst E M) := by
+  induction E <;> grind[multiSubst]
 
-omit [HasFresh Var] in
-lemma open'_fvar_subst (M N : Term Var) (x : Var) (H : x ∉ Term.fv M) :
-    (i : Nat) → (M ⟦ i ↝ Term.fvar x ⟧) [x := N] = M ⟦ i ↝ N ⟧ := by
-  induction M <;> grind
-
-lemma multiSubst_open_var (M : Term Var) (Ns : Environment Var) (x : Var)
-  (h_ndom : x ∉ Ns.dom)
-  (h_lc : env_LC Ns) :
-    (multiSubst Ns (M ^ (Term.fvar x))) = (multiSubst Ns M) ^ (Term.fvar x) := by
-  induction Ns with
+/-- multi-substitution commutes with opening a term with a fresh variable,
+    provided that the variable is not in the domain of the environment
+    and the environment is locally closed -/
+lemma multiSubst_open_var (M : Term Var) (E : Environment Var) (x : Var)
+  (h_ndom : x ∉ E.dom)
+  (h_lc : env_LC E) :
+    (multiSubst E (M ^ (Term.fvar x))) = (multiSubst E M) ^ (Term.fvar x) := by
+  induction E with
   | nil => rfl
-  | cons N Ns ih =>
+  | cons N E ih =>
     rw[multiSubst, multiSubst]
     rw[ih]
     · rw[subst_open_var]
