@@ -22,15 +22,18 @@ universe u v
 
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
+open scoped Context
+
 variable {Var : Type u} {Base : Type v} [DecidableEq Var]
 
 /-- An environment in context of multi substition is a list of pairs of
     variable targets and terms to be substituted for that target -/
-abbrev Environment (Var : Type u) := Context Var (Term Var)
+abbrev Env (Var : Type u) := Context Var (Term Var)
 
 /-- Multi-substitution substitutes all target variables
     in an environment by their corresponding terms -/
-def multiSubst (σ : Environment Var) (M : Term Var) : Term Var :=
+@[scoped grind =]
+def multiSubst (σ : Env Var) (M : Term Var) : Term Var :=
   match σ with
   | [] => M
   | ⟨ i, sub ⟩ :: σ' => (multiSubst σ' M) [ i := sub ]
@@ -38,68 +41,51 @@ def multiSubst (σ : Environment Var) (M : Term Var) : Term Var :=
 /-- The free variables of an environment are the union of
     the free variables of all terms in the environment.
     The target variables are not necessarily included -/
-def Environment.fv (E : Environment Var) : Finset Var :=
+@[scoped grind =]
+def Env.fv (E : Env Var) : Finset Var :=
   match E with
   | [] => {}
-  | ⟨ _, sub ⟩ :: E' => sub.fv ∪ Environment.fv E'
+  | ⟨ _, sub ⟩ :: E' => sub.fv ∪ Env.fv E'
 
 /-- An environment is locally closed if all terms in the environment are locally closed -/
-@[simp, grind .]
-def env_LC (Γ : Environment Var) : Prop := ∀ {x M}, ⟨ x, M ⟩ ∈ Γ → LC M
+abbrev env_LC (E : Env Var) : Prop := ∀ {x M}, ⟨ x, M ⟩ ∈ E → LC M
 
 omit [DecidableEq Var] in
 /-- Adding a locally closed term to an environment preserves local closure -/
-lemma env_LC_cons {Γ : Environment Var} {x : Var} {sub : Term Var}
-  (lc_sub : LC sub) (lc_Γ : env_LC Γ)
-  : env_LC (⟨ x, sub ⟩ :: Γ) := by
+lemma env_LC_cons {E : Env Var} {x : Var} {sub : Term Var}
+  (lc_sub : LC sub) (lc_E : env_LC E)
+  : env_LC (⟨ x, sub ⟩ :: E) := by
   intro y M h_mem
   cases h_mem <;> aesop
 
 /-- Multi-substitution of a fresh variable does nothing -/
-lemma multiSubst_fvar_fresh (E : Environment Var) :
+lemma multiSubst_fvar_fresh (E : Env Var) :
     ∀ x ∉ E.dom, multiSubst E (Term.fvar x) = Term.fvar x := by
-  induction E
-  · case nil => simp [multiSubst]
-  · case cons N E ih => cases N; simp_all; grind[multiSubst]
+  induction E with grind [multiSubst]
 
 /-- If x is neither a free variable of an environment Ns or a term M, then
     x is also not a free variable of the multi-substitution of Ns into M -/
-lemma multiSubst_preserves_not_fvar {x : Var}
-  (M : Term Var)
-  (E : Environment Var)
-  (nmem : x ∉ M.fv ∪ E.fv) :
+lemma multiSubst_preserves_not_fvar (M : Term Var) (E : Env Var) (nmem : x ∉ M.fv ∪ E.fv) :
     x ∉ (multiSubst E M).fv := by
-  induction E <;> grind[multiSubst, subst_preserve_not_fvar, Environment.fv]
+  induction E with grind [multiSubst, subst_preserve_not_fvar, Env.fv]
 
 /-- Multi-substitution propagates recursively through an application -/
-lemma multiSubst_app (M N : Term Var) (E : Environment Var) :
+lemma multiSubst_app (M N : Term Var) (E : Env Var) :
       multiSubst E (Term.app M N) = Term.app (multiSubst E M) (multiSubst E N) := by
-  induction E <;> grind[multiSubst]
+  induction E with grind [multiSubst]
 
 /-- Multi-substitution propagates recursively through an abstraction -/
-lemma multiSubst_abs (M : Term Var) (E : Environment Var) :
+lemma multiSubst_abs (M : Term Var) (E : Env Var) :
       multiSubst E (Term.abs M) = Term.abs (multiSubst E M) := by
-  induction E <;> grind[multiSubst]
+  induction E with grind [multiSubst]
 
 /-- Multi-substitution commutes with opening a term with a fresh variable,
     provided that the variable is not in the domain of the environment
     and the environment is locally closed -/
-lemma multiSubst_open_var [HasFresh Var] (M : Term Var) (E : Environment Var) (x : Var)
-  (h_ndom : x ∉ E.dom)
-  (h_lc : env_LC E) :
-    (multiSubst E (M ^ (Term.fvar x))) = (multiSubst E M) ^ (Term.fvar x) := by
-  induction E with
-  | nil => rfl
-  | cons N E ih =>
-    rw[multiSubst, multiSubst]
-    rw[ih]
-    · rw[subst_open_var]
-      · cases N
-        simp_all
-        grind
-      · grind
-    · simp_all
-    grind
+lemma multiSubst_open_var [HasFresh Var] (M : Term Var) (E : Env Var) (x : Var)
+  (h_ndom : x ∉ E.dom) (h_lc : env_LC E) :
+    multiSubst E (M ^ Term.fvar x) = multiSubst E M ^ Term.fvar x := by
+  induction E with grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
