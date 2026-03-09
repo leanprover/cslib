@@ -19,14 +19,14 @@ state. But the evolution of the original state is not constrained by the history
 namespace Cslib.Automata.NA
 
 open Prod ωSequence
-open scoped LTS
+open LTS
 
 variable {Symbol State Hist : Type*}
 
 /-- The construction of adding a history state.  Note that `start'` can depend on the initial
 value of the original state and `tr'` can depend on the new value of the original state.
 So there is no loss of generality in their being functions, rather than relations. -/
-@[scoped grind =]
+@[automata =]
 def addHist (na : NA State Symbol) (start' : State → Hist)
     (tr' : State × Hist → Symbol → State → Hist) : NA (State × Hist) Symbol where
   Tr s x t := na.Tr s.fst x t.fst ∧ tr' s x t.fst = t.snd
@@ -40,10 +40,10 @@ theorem hist_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State × Hist)}
     (h_run : (na.addHist start' tr').Run xs ss) : na.Run xs (ss.map fst) := by
   obtain ⟨h_start, h_trans⟩ := h_run
   simp only [addHist] at h_trans
-  grind [Run]
+  grind [automata, Run]
 
 /-- Given a run of the original automaton, `makeHist` builds a run of the history state. -/
-@[scoped grind =]
+@[automata =]
 def makeHist (start' : State → Hist) (tr' : State × Hist → Symbol → State → Hist)
   (xs : ωSequence Symbol) (ss : ωSequence State) : ℕ → Hist
   | 0 => start' (ss 0)
@@ -56,7 +56,7 @@ theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
   use ⟨fun n ↦ (ss n, makeHist start' tr' xs ss n)⟩
   constructor
   · simp only [addHist]
-    grind [Run]
+    grind [automata, Run]
   · grind
 
 end Cslib.Automata.NA

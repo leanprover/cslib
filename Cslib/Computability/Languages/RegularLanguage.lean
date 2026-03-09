@@ -51,17 +51,17 @@ theorem IsRegular.iff_nfa {l : Language Symbol} :
   rw [IsRegular.iff_dfa]; constructor
   · rintro ⟨State, h_fin, ⟨da, acc⟩, rfl⟩
     use State, h_fin, ⟨da.toNA, acc⟩
-    grind
+    grind [automata]
   · rintro ⟨State, _, na, rfl⟩
     use Set State, inferInstance, na.toDAFinAcc
-    grind
+    grind [automata]
 
 /-- The complementation of a regular language is regular. -/
 theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
   rw [IsRegular.iff_dfa] at h ⊢
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
   use State, inferInstance, ⟨da, accᶜ⟩
-  grind
+  grind [automata]
 
 /-- The empty language is regular. -/
 @[simp]
@@ -69,7 +69,7 @@ theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
   let flts := FLTS.mk (fun () (_ : Symbol) ↦ ())
   use Unit, inferInstance, ⟨DA.mk flts (), ∅⟩
-  grind
+  grind [automata]
 
 /-- The language containing only the empty word is regular. -/
 @[simp]
@@ -80,8 +80,11 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   ext; constructor
   · intro h; by_contra h'
     have := dropLast_append_getLast h'
-    grind
-  · grind [Language.mem_one]
+    grind [automata]
+  · grind only [
+      Language.mem_one, = mem_language, = language.eq_1, = DA.FinAcc.instAcceptor.eq_1,
+      = mem_singleton_iff, = FLTS.mtr_nil_eq
+    ]
 
 /-- The language of all finite words is regular. -/
 @[simp]
@@ -97,7 +100,7 @@ theorem IsRegular.inf {l1 l2 : Language Symbol}
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2⟩
-  ext; grind [Language.mem_inf]
+  ext; grind [automata, Language.mem_inf]
 
 /-- The union of two regular languages is regular. -/
 @[simp]
@@ -107,7 +110,7 @@ theorem IsRegular.add {l1 l2 : Language Symbol}
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
-  ext; grind [Language.mem_add]
+  ext; grind [automata, Language.mem_add]
 
 /-- The intersection of any finite number of regular languages is regular. -/
 @[simp]

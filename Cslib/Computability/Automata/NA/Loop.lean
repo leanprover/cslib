@@ -162,7 +162,7 @@ end Buchi
 
 namespace FinAcc
 
-open scoped Computability
+open Computability
 
 /-- `finLoop na` is the loop construction applied to the "totalized" version of `na`. -/
 def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ (State ⊕ Unit)) Symbol :=

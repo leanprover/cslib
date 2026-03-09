@@ -29,7 +29,7 @@ finiteness assumptions), deterministic Buchi automata, and deterministic Muller 
 -/
 
 open List Filter Cslib.ωSequence
-open scoped Cslib.FLTS
+open Cslib.FLTS
 
 namespace Cslib.Automata
 
@@ -43,31 +43,31 @@ namespace DA
 variable {State Symbol : Type*}
 
 /-- Helper function for defining `run` below. -/
-@[scoped grind =]
+@[automata =]
 def run' (da : DA State Symbol) (xs : ωSequence Symbol) : ℕ → State
   | 0 => da.start
   | n + 1 => da.tr (run' da xs n) (xs n)
 
 /-- Infinite run. -/
-@[scoped grind =]
+@[automata =]
 def run (da : DA State Symbol) (xs : ωSequence Symbol) : ωSequence State := da.run' xs
 
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem run_zero {da : DA State Symbol} {xs : ωSequence Symbol} :
     da.run xs 0 = da.start :=
   rfl
 
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem run_succ {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ} :
     da.run xs (n + 1) = da.tr (da.run xs n) (xs n) := by
   rfl
 
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ} :
     da.mtr da.start (xs.extract 0 n) = da.run xs n := by
   induction n
   case zero => rfl
-  case succ n h_ind => grind
+  case succ n h_ind => grind [automata]
 
 /-- A deterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends DA State Symbol where

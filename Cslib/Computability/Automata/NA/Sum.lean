@@ -13,20 +13,20 @@ public import Cslib.Computability.Automata.NA.Basic
 /-! # Sum of nondeterministic automata. -/
 
 open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
+open Cslib.LTS
 
 namespace Cslib.Automata.NA
 
 variable {Symbol I : Type*} {State : I → Type*}
 
 /-- The sum of an indexed family of nondeterministic automata. -/
-@[scoped grind =]
+@[automata =]
 def iSum (na : (i : I) → NA (State i) Symbol) : NA (Σ i, State i) Symbol where
   start := ⋃ i, Sigma.mk i '' (na i).start
   Tr s x t := ∃ i s_i t_i, (na i).Tr s_i x t_i ∧ ⟨i, s_i⟩ = s ∧ ⟨i, t_i⟩ = t
 
 /-- An infinite run of the sum automaton is an infinite run of one of its component automata. -/
-@[simp, scoped grind =]
+@[simp, automata =]
 theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
     {xs : ωSequence Symbol} {ss : ωSequence (Σ i, State i)} :
     (iSum na).Run xs ss ↔ ∃ i ss_i, (na i).Run xs ss_i ∧ ss_i.map (Sigma.mk i) = ss := by
@@ -52,7 +52,7 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
     · simp only [iSum, get_map, mem_iUnion]
       grind [NA.Run]
     · simp only [LTS.ωTr]
-      grind [NA.Run]
+      grind [automata, NA.Run]
 
 namespace Buchi
 
@@ -71,11 +71,11 @@ theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) �
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
     simp only [mem_iUnion] at h_acc
-    grind
+    grind [automata]
   · rintro ⟨i, ss_i, _⟩
     use ss_i.map (Sigma.mk i)
     simp only [mem_iUnion]
-    grind
+    grind [automata]
 
 end Buchi
 

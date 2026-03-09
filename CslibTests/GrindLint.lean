@@ -40,13 +40,8 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.ωSequence.drop_const
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
 #grind_lint skip Cslib.ωSequence.map_id
-#grind_lint skip Cslib.Automata.DA.buchi_eq_finAcc_omegaLim
 #grind_lint skip Cslib.LTS.MTr.stepL
 #grind_lint skip Cslib.LTS.STr.trans_τ
-#grind_lint skip Cslib.Automata.DA.FinAcc.toNAFinAcc_language_eq
-#grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
-#grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
-#grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
 #grind_lint skip Cslib.CLL.Proof.parr_inversion.eq_1
 #grind_lint skip Cslib.CLL.Proof.with_inversion₁.eq_1
 #grind_lint skip Cslib.CLL.Proof.with_inversion₂.eq_1
