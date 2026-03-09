@@ -30,20 +30,20 @@ public def putEnc {k : ℕ} {α : Type*} [StrEnc α] (x : α) (i : Fin k) :
     MultiTapeTM k Char :=
   put (StrEnc.toData x) i
 
-/-- `put d i` writes a `Data` value to tape `i` if the tape is empty (`none`).
-    If the tape already has data (`some`), `put` is a no-op.
+/-- `put d i` writes a `Data` value to tape `i` if the tape is empty.
+    If the tape already has data, `put` is a no-op.
     Resets the path to `[]`. -/
 @[simp]
-public lemma put_eval_struct_none {k : ℕ} {d : Data} {i : Fin k}
+public lemma put_eval_struct_empty {k : ℕ} {d : Data} {i : Fin k}
     {views : Fin k → TapeView}
-    (h_empty : (views i).data = none) :
+    (h_empty : (views i).data = Data.list []) :
     (put d i).eval_struct views = some
-      (Function.update views i ⟨some d, []⟩) := by sorry
+      (Function.update views i ⟨d, []⟩) := by sorry
 
 @[simp]
-public lemma put_eval_struct_some {k : ℕ} {d d' : Data} {i : Fin k}
+public lemma put_eval_struct_nonempty {k : ℕ} {d : Data} {i : Fin k}
     {views : Fin k → TapeView}
-    (h_some : (views i).data = some d') :
+    (h_nonempty : (views i).data ≠ Data.list []) :
     (put d i).eval_struct views = some views := by sorry
 
 end Routines

@@ -40,9 +40,9 @@ public lemma copyEnc_eval_struct {k : ℕ} {i j : Fin k}
     {d : Data}
     (h_ne : i ≠ j)
     (h_current : (views i).current = some d)
-    (h_empty_j : (views j).data = none) :
+    (h_empty_j : (views j).data = Data.list []) :
     (copyEnc i j).eval_struct views = some
-      (Function.update views j ⟨some d, []⟩) := by sorry
+      (Function.update views j ⟨d, []⟩) := by sorry
 
 /-- `isEq i j result` compares the `Data` elements at the current positions
     of tapes `i` and `j`, and writes the boolean result to tape `result`
@@ -53,10 +53,10 @@ public lemma isEq_eval_struct {k : ℕ} {i j result : Fin k}
     {d₁ d₂ : Data}
     (h_current_i : (views i).current = some d₁)
     (h_current_j : (views j).current = some d₂)
-    (h_empty_r : (views result).data = none) :
+    (h_empty_r : (views result).data = Data.list []) :
     (isEq i j result).eval_struct views = some
       (Function.update views result
-        ⟨some (StrEnc.toData (decide (d₁ = d₂))), []⟩) := by sorry
+        ⟨StrEnc.toData (decide (d₁ = d₂)), []⟩) := by sorry
 
 end Routines
 end Turing

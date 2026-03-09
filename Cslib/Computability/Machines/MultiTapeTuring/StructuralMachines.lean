@@ -103,20 +103,20 @@ public lemma part_some_bind_eq {α : Type u}
 
 @[simp]
 public lemma Function.update_tapeview_data {k : ℕ} {views : Fin k → TapeView}
-    {i : Fin k} {d : Option Data} {p : List ℕ} :
+    {i : Fin k} {d : Data} {p : List ℕ} :
     (Function.update views i ⟨d, p⟩ i).data = d := by
   simp [Function.update]
 
 @[simp]
 public lemma Function.update_tapeview_path {k : ℕ} {views : Fin k → TapeView}
-    {i : Fin k} {d : Option Data} {p : List ℕ} :
+    {i : Fin k} {d : Data} {p : List ℕ} :
     (Function.update views i ⟨d, p⟩ i).path = p := by
   simp [Function.update]
 
 @[simp]
 public lemma Function.update_tapeview_current_ofData {k : ℕ}
     {views : Fin k → TapeView} {i : Fin k} {d : Data} :
-    (Function.update views i ⟨some d, []⟩ i).current = some d := by sorry
+    (Function.update views i ⟨d, []⟩ i).current = some d := by sorry
 
 end Routines
 

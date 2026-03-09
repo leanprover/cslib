@@ -57,11 +57,5 @@ public lemma outOfArg_eval_struct_empty_path {k : ℕ} {argIdx : ℕ} {i : Fin k
     (h_path : (views i).path = []) :
     (outOfArg argIdx i).eval_struct views = some views := by sorry
 
-@[simp]
-public lemma outOfArg_eval_struct_none {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    (h_none : (views i).data = none) :
-    (outOfArg argIdx i).eval_struct views = some views := by sorry
-
 end Routines
 end Turing

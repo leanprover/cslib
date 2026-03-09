@@ -30,10 +30,10 @@ public lemma pushList_eval_struct {k : ℕ} {d : Data} {i : Fin k}
     {views : Fin k → TapeView}
     {ds : List Data}
     (h_path : (views i).path = [])
-    (h_data : (views i).data = some (Data.list ds)) :
+    (h_data : (views i).data = Data.list ds) :
     (pushList d i).eval_struct views = some
       (Function.update views i
-        ⟨some (Data.list (d :: ds)), []⟩) := by sorry
+        ⟨Data.list (d :: ds), []⟩) := by sorry
 
 /-- `popEnc i` removes the first element from the topmost `Data.list` on tape `i`. -/
 @[simp]
@@ -41,17 +41,17 @@ public lemma popEnc_eval_struct_cons {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {d : Data} {ds : List Data}
     (h_path : (views i).path = [])
-    (h_data : (views i).data = some (Data.list (d :: ds))) :
+    (h_data : (views i).data = Data.list (d :: ds)) :
     (popEnc i).eval_struct views = some
       (Function.update views i
-        ⟨some (Data.list ds), []⟩) := by sorry
+        ⟨Data.list ds, []⟩) := by sorry
 
 /-- `popEnc i` on an empty list is a no-op. -/
 @[simp]
 public lemma popEnc_eval_struct_nil {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     (h_path : (views i).path = [])
-    (h_data : (views i).data = some (Data.list [])) :
+    (h_data : (views i).data = Data.list []) :
     (popEnc i).eval_struct views = some views := by sorry
 
 end Routines

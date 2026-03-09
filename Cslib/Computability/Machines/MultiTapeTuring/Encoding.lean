@@ -178,35 +178,34 @@ public lemma Data.atPath_list_cons (ds : List Data) (k : ℕ) (rest : List ℕ)
       `[k₁, k₂]` means we descended into element `k₁` (a list), then element `k₂`.
 
     Examples:
-    - `⟨some (Data.num 5), []⟩` — tape contains `[12]`, head at start
-    - `⟨some (Data.list [a, b]), [1]⟩` — tape contains `(enc(a) enc(b))`,
+    - `⟨Data.num 5, []⟩` — tape contains `[12]`, head at start
+    - `⟨Data.list [a, b], [1]⟩` — tape contains `(enc(a) enc(b))`,
       head at start of `enc(b)`
-    - `⟨none, []⟩` — tape is empty -/
+    - `⟨Data.list [], []⟩` — tape is empty -/
 public structure TapeView where
-  /-- The optional `Data` value on the tape. -/
-  data : Option Data
+  /-- The `Data` value on the tape. -/
+  data : Data
   /-- Navigation path into the `Data` value. -/
   path : List ℕ
-  deriving Inhabited
+
+instance : Inhabited TapeView := ⟨⟨Data.list [], []⟩⟩
 
 namespace TapeView
 
-/-- An empty tape. -/
-public def empty : TapeView := ⟨none, []⟩
+/-- An empty tape (represented as an empty list). -/
+public def empty : TapeView := ⟨Data.list [], []⟩
 
 /-- A tape containing a single Data value with the head at the start. -/
-public def ofData (d : Data) : TapeView := ⟨some d, []⟩
+public def ofData (d : Data) : TapeView := ⟨d, []⟩
 
 /-- A tape containing a single typed value with the head at the start. -/
 public def ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
   ofData (StrEnc.toData x)
 
 /-- The Data element currently pointed to by the head (at the path position).
-    Returns `none` if the tape is empty or the path is invalid. -/
+    Returns `none` if the path is invalid. -/
 public def current (tv : TapeView) : Option Data :=
-  match tv.data with
-  | none => none
-  | some d => d.atPath tv.path
+  tv.data.atPath tv.path
 
 /-- The current value as a natural number, if it is a `Data.num`.
     Returns `none` if the tape is empty, the path is invalid,
@@ -226,7 +225,7 @@ public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
 public def toBiTape (tv : TapeView) : BiTape Char := sorry
 
 @[simp]
-public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ [] := by sorry
+public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by sorry
 
 @[simp]
 public lemma toBiTape_ofData (d : Data) :
@@ -238,86 +237,72 @@ public lemma toBiTape_ofEnc {α : Type*} [StrEnc α] (x : α) :
 
 @[simp]
 public lemma toBiTape_data_empty_path (d : Data) :
-    (TapeView.mk (some d) []).toBiTape = BiTape.mk₁ (Data.enc d) := by sorry
+    (TapeView.mk d []).toBiTape = BiTape.mk₁ (Data.enc d) := by sorry
 
 public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sorry
 
 /-- Prepend a `Data` value to the front of a list on tape.
-    If the path is `[]` and `data` is `some (Data.list ds)`,
-    returns `⟨some (Data.list (d :: ds)), []⟩`.
+    If the path is `[]` and `data` is `Data.list ds`,
+    returns `⟨Data.list (d :: ds), []⟩`.
     Otherwise, returns the `TapeView` unchanged. -/
 public def pushList (d : Data) (tv : TapeView) : TapeView :=
   match tv with
-  | ⟨some (Data.list ds), []⟩ => ⟨some (Data.list (d :: ds)), []⟩
+  | ⟨Data.list ds, []⟩ => ⟨Data.list (d :: ds), []⟩
   | other => other
 
 @[simp]
 public lemma pushList_list {d : Data} {ds : List Data} :
-    (TapeView.mk (some (Data.list ds)) []).pushList d =
-      TapeView.mk (some (Data.list (d :: ds))) [] := by
-  unfold pushList; rfl
-
-@[simp]
-public lemma pushList_none {d : Data} {p : List ℕ} :
-    (TapeView.mk none p).pushList d = TapeView.mk none p := by
+    (TapeView.mk (Data.list ds) []).pushList d =
+      TapeView.mk (Data.list (d :: ds)) [] := by
   unfold pushList; rfl
 
 @[simp]
 public lemma pushList_num {d : Data} {n : ℕ} {p : List ℕ} :
-    (TapeView.mk (some (Data.num n)) p).pushList d =
-      TapeView.mk (some (Data.num n)) p := by
+    (TapeView.mk (Data.num n) p).pushList d =
+      TapeView.mk (Data.num n) p := by
   unfold pushList; rfl
 
 @[simp]
-public lemma pushList_nonempty_path {d : Data} {dat : Option Data}
+public lemma pushList_nonempty_path {d : Data} {dat : Data}
     {k : ℕ} {rest : List ℕ} :
     (TapeView.mk dat (k :: rest)).pushList d =
       TapeView.mk dat (k :: rest) := by
   unfold pushList; cases dat with
-  | none => rfl
-  | some d' => cases d' with
-    | num _ => rfl
-    | list _ => rfl
+  | num _ => rfl
+  | list _ => rfl
 
 /-- Remove the first element from a list on tape and return both the element and
     the updated `TapeView`.
-    If the path is `[]` and `data` is `some (Data.list (d :: ds))`,
-    returns `some (d, ⟨some (Data.list ds), []⟩)`.
+    If the path is `[]` and `data` is `Data.list (d :: ds)`,
+    returns `some (d, ⟨Data.list ds, []⟩)`.
     Otherwise, returns `none`. -/
 public def popList (tv : TapeView) : Option (Data × TapeView) :=
   match tv with
-  | ⟨some (Data.list (d :: ds)), []⟩ => some (d, ⟨some (Data.list ds), []⟩)
+  | ⟨Data.list (d :: ds), []⟩ => some (d, ⟨Data.list ds, []⟩)
   | _ => none
 
 @[simp]
 public lemma popList_cons {d : Data} {ds : List Data} :
-    (TapeView.mk (some (Data.list (d :: ds))) []).popList =
-      some (d, TapeView.mk (some (Data.list ds)) []) := by
+    (TapeView.mk (Data.list (d :: ds)) []).popList =
+      some (d, TapeView.mk (Data.list ds) []) := by
   unfold popList; rfl
 
 @[simp]
 public lemma popList_nil :
-    (TapeView.mk (some (Data.list [])) []).popList = none := by
-  unfold popList; rfl
-
-@[simp]
-public lemma popList_none {p : List ℕ} :
-    (TapeView.mk none p).popList = none := by
+    (TapeView.mk (Data.list []) []).popList = none := by
   unfold popList; rfl
 
 @[simp]
 public lemma popList_num {n : ℕ} {p : List ℕ} :
-    (TapeView.mk (some (Data.num n)) p).popList = none := by
+    (TapeView.mk (Data.num n) p).popList = none := by
   unfold popList; rfl
 
 @[simp]
-public lemma popList_nonempty_path {dat : Option Data}
+public lemma popList_nonempty_path {dat : Data}
     {k : ℕ} {rest : List ℕ} :
     (TapeView.mk dat (k :: rest)).popList = none := by
   unfold popList; cases dat with
-  | none => rfl
-  | some d' => cases d' with
-    | num _ => rfl
+  | num _ => rfl
     | list ds => cases ds with
       | nil => rfl
       | cons _ _ => rfl

@@ -18,12 +18,12 @@ namespace Routines
 /-- Erase the Data-encoded value at the head of tape `i`. -/
 public def erase {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
-/-- `erase i` clears the tape, setting data to `none` and path to `[]`. -/
+/-- `erase i` clears the tape, setting data to `Data.list []` and path to `[]`. -/
 @[simp]
 public lemma erase_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (erase i).eval_struct views = some
-      (Function.update views i ⟨none, []⟩) := by sorry
+      (Function.update views i ⟨Data.list [], []⟩) := by sorry
 
 end Routines
 end Turing

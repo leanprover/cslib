@@ -34,7 +34,7 @@ public lemma case_data_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {d : Data}
     (h_path : (views i).path = [])
-    (h_data : (views i).data = some d) :
+    (h_data : (views i).data = d) :
     (case_data i num_branch list_branch).eval_struct views =
       match d with
       | Data.num _ => num_branch.eval_struct views
@@ -85,14 +85,13 @@ public def case_popList_num {k : ℕ} (i : Fin k)
 public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
     {branches : List (MultiTapeTM k Char)}
     {views : Fin k → TapeView} :
-    (case_popList_num i branches).eval_struct views =
-      match (views i).popList with
-      | some (Data.num n, tv') =>
+    (case_popList_num i branches).eval_struct views = match views i with
+      | ⟨Data.list ((Data.num n) :: ds), []⟩ =>
         if h : n < branches.length then
-          branches[n].eval_struct (Function.update views i tv')
-        else some views
-      | some (Data.list _, _) => some views
-      | none => some views := by sorry
+          branches[n].eval_struct (Function.update views i (⟨Data.list ds, []⟩))
+        else
+          views
+      | _ => views := by sorry
 
 end Routines
 end Turing
