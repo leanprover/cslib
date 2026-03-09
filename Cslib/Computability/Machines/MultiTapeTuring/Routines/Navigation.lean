@@ -55,13 +55,13 @@ public lemma outOfArg_toArg_tape (argIdx : ℕ) (tape : BiTape Char) :
 public lemma toArg_eval_struct {k : ℕ} {argIdx : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (toArg argIdx i).eval_struct views = some
-      (match (views i).current with
-      | some (Data.list ds) =>
-        if argIdx < ds.length then
-          Function.update views i
+      (Function.update views i
+        (match (views i).current with
+        | some (Data.list ds) =>
+          if argIdx < ds.length then
             ⟨(views i).data, (views i).path ++ [argIdx]⟩
-        else views
-      | _ => views) := by sorry
+          else views i
+        | _ => views i)) := by sorry
 
 /-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
     removing it from the end of the path. If the path ends with `argIdx`,
