@@ -142,7 +142,7 @@ lemma abs_sn : ∀ {M N : Term Var},
         specialize ih (M' ^ N)
         rw[←h] at ih
         apply ih
-        · apply FullBeta.step_open_cong1 <;> assumption
+        · apply FullBeta.step_open_cong_l <;> assumption
         · assumption
         · rfl
 
@@ -178,7 +178,7 @@ lemma multiApp_sn : ∀ {Ps} {M N : Term Var},
         · cases lc_MNPs
           assumption
       · intro Q' P' hstep1 hstep2
-        match (Term.invert_multiApp_mst hstep1) with
+        match (Term.invert_abs_multiApp_mst hstep1) with
         | ⟨ M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases ⟩ =>
           match h_cases with
           | Or.inl h_P => cases Ps' <;> rw[multiApp] at h_cases <;> contradiction
@@ -201,7 +201,7 @@ lemma multiApp_sn : ∀ {Ps} {M N : Term Var},
               have H3 : (multiApp (M ^ N) Ps) ↠βᶠ Q'.abs := by
                 transitivity <;> try assumption
               have H4 : Q'.abs.app P' ↠βᶠ Q' ^ P' := by
-                grind[FullBeta.beta, FullBeta.steps_lc]
+                grind[FullBeta.beta, FullBeta.step_lc_r]
               have H4 : ((M ^ N).multiApp Ps).app P ↠βᶠ Q'.abs.app P' := by
                 cases lc_MNPs
                 transitivity
