@@ -7,6 +7,9 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Syntax.Context
+public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Mathlib.Data.Multiset.Fold
 
 @[expose] public section
@@ -67,6 +70,44 @@ instance : Bot (Proposition Atom) := ⟨.bot⟩
 
 @[inherit_doc] scoped prefix:95 "!" => Proposition.bang
 @[inherit_doc] scoped prefix:95 "ʔ" => Proposition.quest
+
+/-- Propositional contexts (single-hole contexts for propositions). -/
+inductive Proposition.Context (Atom : Type u) : Type u where
+  | hole
+  | tensorL (c : Context Atom) (b : Proposition Atom)
+  | tensorR (a : Proposition Atom) (c : Context Atom)
+  | parrL (c : Context Atom) (b : Proposition Atom)
+  | parrR (a : Proposition Atom) (c : Context Atom)
+  | oplusL (c : Context Atom) (b : Proposition Atom)
+  | oplusR (a : Proposition Atom) (c : Context Atom)
+  | withL (c : Context Atom) (b : Proposition Atom)
+  | withR (a : Proposition Atom) (c : Context Atom)
+  | bang (c : Context Atom)
+  | quest (c : Context Atom)
+deriving DecidableEq, BEq
+
+/-- Replaces the hole in a propositional context with a propositions. -/
+@[scoped grind =]
+def Proposition.Context.fill (c : Context Atom) (a : Proposition Atom) : Proposition Atom :=
+  match c with
+  | hole => a
+  | tensorL c b => .tensor (c.fill a) b
+  | tensorR b c => .tensor b (c.fill a)
+  | parrL c b => .parr (c.fill a) b
+  | parrR b c => .parr b (c.fill a)
+  | oplusL c b => .oplus (c.fill a) b
+  | oplusR b c => .oplus b (c.fill a)
+  | withL c b => .with (c.fill a) b
+  | withR b c => .with b (c.fill a)
+  | bang c => .bang (c.fill a)
+  | quest c => .quest (c.fill a)
+
+instance : HasContext (Proposition Atom) := ⟨Proposition.Context Atom, Proposition.Context.fill⟩
+
+/-- Definition of context filling. -/
+@[scoped grind =]
+theorem Proposition.context_fill_def (c : Context Atom) (a : Proposition Atom) :
+  c<[a] = c.fill a := rfl
 
 /-- Positive propositions. -/
 def Proposition.positive : Proposition Atom → Bool
@@ -152,6 +193,15 @@ def Sequent.allQuest (Γ : Sequent Atom) :=
   Γ.map (· matches ʔ_)
   |> Multiset.fold Bool.and true
 
+/-- Judgemental contexts for CLL. -/
+def Sequent.Context Atom := Sequent Atom
+
+/-- Filling a judgemental context returns a sequent. -/
+def Sequent.Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc
+
+instance : HasHContext (Sequent Atom) (Proposition Atom) :=
+  ⟨Sequent.Context Atom, Sequent.Context.fill⟩
+
 open Proposition in
 /-- A proof in the sequent calculus for classical linear logic. -/
 inductive Proof : Sequent Atom → Type u where
@@ -171,34 +221,19 @@ inductive Proof : Sequent Atom → Type u where
   | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a ::ₘ Γ) → Proof ((!a) ::ₘ Γ)
   -- No rule for zero.
 
-@[inherit_doc]
-scoped notation "⇓" Γ:90 => Proof Γ
+open Logic
 
-/-- Rewrites the conclusion of a proof into an equal one. -/
+instance : InferenceSystem (Sequent Atom) := ⟨Proof⟩
+
+open InferenceSystem
+
+/-- Convenience definition for rewriting conclusions in proofs. -/
 @[scoped grind =]
-def Proof.rwConclusion (h : Γ = Δ) (p : ⇓Γ) : ⇓Δ := h ▸ p
-
-/-- A sequent is provable if there exists a proof that concludes it. -/
-@[scoped grind =]
-def Sequent.Provable (Γ : Sequent Atom) := Nonempty (⇓Γ)
-
-/-- Having a proof of Γ shows that it is provable. -/
-theorem Sequent.Provable.fromProof {Γ : Sequent Atom} (p : ⇓Γ) : Γ.Provable := ⟨p⟩
-
-/-- Having a proof of Γ shows that it is provable. -/
-@[scoped grind =]
-noncomputable def Sequent.Provable.toProof {Γ : Sequent Atom} (p : Γ.Provable) : ⇓Γ :=
-  Classical.choice p
-
-instance : Coe (Proof Γ) (Γ.Provable) where
-  coe p := Sequent.Provable.fromProof p
-
-noncomputable instance : Coe (Γ.Provable) (Proof Γ) where
-  coe p := p.toProof
+def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : ⇓Γ) := InferenceSystem.rwConclusion h p
 
 /-- The axiom, but where the order of propositions is reversed. -/
 @[scoped grind <=]
-def Proof.ax' {a : Proposition Atom} : ⇓{a⫠, a} :=
+def Proof.ax' {a : Proposition Atom} : ⇓({a⫠, a} : Sequent Atom) :=
   Multiset.pair_comm a (a⫠) ▸ Proof.ax
 
 /-- Cut, but where the premises are reversed. -/
@@ -235,27 +270,29 @@ section LogicalEquiv
 
 /-- Two propositions are equivalent if one implies the other and vice versa.
 Proof-relevant version. -/
-def Proposition.equiv (a b : Proposition Atom) := ⇓{a⫠, b} × ⇓{b⫠, a}
-
-open Sequent in
-/-- Propositional equivalence, proof-irrelevant version (`Prop`). -/
-def Proposition.Equiv (a b : Proposition Atom) := Provable {a⫠, b} ∧ Provable {b⫠, a}
-
-/-- Conversion from proof-relevant to proof-irrelevant versions of propositional
-equivalence. -/
-theorem Proposition.equiv.toProp (h : Proposition.equiv a b) : Proposition.Equiv a b := by
-  obtain ⟨p, q⟩ := h
-  exact ⟨p, q⟩
+def Proposition.equiv (a b : Proposition Atom) :=
+  ⇓({a⫠, b} : Sequent Atom) × ⇓({b⫠, a} : Sequent Atom)
 
 @[inherit_doc]
 scoped infix:29 " ≡⇓ " => Proposition.equiv
 
+open Sequent in
+/-- Propositional equivalence, proof-irrelevant version (`Prop`). -/
+def Proposition.Equiv (a b : Proposition Atom) :=
+  Derivable ({a⫠, b} : Sequent Atom) ∧ Derivable ({b⫠, a} : Sequent Atom)
+
 @[inherit_doc]
 scoped infix:29 " ≡ " => Proposition.Equiv
 
+/-- Conversion from proof-relevant to proof-irrelevant versions of propositional
+equivalence. -/
+theorem Proposition.equiv.toProp (h : a ≡⇓ b) : a ≡ b := ⟨h.1, h.2⟩
+
 /-- Proof-relevant equivalence is coerciable into proof-irrelevant equivalence. -/
-instance {a b : Proposition Atom} : Coe (a ≡⇓ b) (a ≡ b) where
-  coe := Proposition.equiv.toProp
+instance : Coe (a ≡⇓ b) (a ≡ b) := ⟨Proposition.equiv.toProp⟩
+
+/-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
+noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b := ⟨h.1, h.2⟩
 
 namespace Proposition
 
@@ -263,8 +300,7 @@ open Sequent
 
 /-- Proof-relevant equivalence is reflexive. -/
 @[scoped grind =]
-def equiv.refl (a : Proposition Atom) : a.equiv a :=
-  ⟨Proof.ax', Proof.ax'⟩
+def equiv.refl (a : Proposition Atom) : a ≡⇓ a := ⟨Proof.ax', Proof.ax'⟩
 
 /-- Proof-relevant equivalence is symmetric. -/
 @[scoped grind =]
@@ -287,20 +323,16 @@ theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h
 /-- Proof-irrelevant equivalence is transitive. -/
 @[scoped grind →]
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
-  ⟨
-    Provable.fromProof
-      (Proof.cut (hab.1.toProof.rwConclusion (Multiset.pair_comm _ _)) hbc.1.toProof),
-    Provable.fromProof
-      (Proof.cut (hbc.2.toProof.rwConclusion (Multiset.pair_comm _ _)) hab.2.toProof)
-  ⟩
-
-/-- Transforms a proof-irrelevant equivalence into a proof-relevant one (this is not computable). -/
-noncomputable def chooseEquiv (h : a ≡ b) : a ≡⇓ b :=
-  ⟨h.1.toProof, h.2.toProof⟩
+  equiv.trans (chooseEquiv hab) (chooseEquiv hbc)
 
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
   ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
+
+instance : IsEquiv (Proposition Atom) Proposition.Equiv where
+  refl := Equiv.refl
+  symm a b := Equiv.symm (a := a) (b := b)
+  trans a b c := Equiv.trans (a := a) (b := b) (c := c)
 
 /-- !⊤ ≡⇓ 1 -/
 @[scoped grind =]
@@ -310,8 +342,8 @@ def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 :=
 /-- ʔ0 ≡⇓ ⊥ -/
 @[scoped grind =]
 def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
-  ⟨.rwConclusion (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
-   .rwConclusion (Multiset.pair_comm ..) <| .weaken .one⟩
+  ⟨rwConclusion (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
+   rwConclusion (Multiset.pair_comm ..) <| .weaken .one⟩
 
 /-- a ⊗ 0 ≡⇓ 0 -/
 @[scoped grind =]
@@ -366,6 +398,288 @@ open scoped Multiset in
 def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
   add_middle_eq_cons ▸ subst_eqv_head heqv (add_middle_eq_cons ▸ p)
 
+open scoped Context
+
+@[local grind .]
+private lemma Proposition.equiv_tensor₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a ⊗ b ≡ a' ⊗ b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b⫠ ::ₘ {a' ⊗ b}) = ((a' ⊗ b) ::ₘ ({a⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · apply h₁.rwConclusion (by grind)
+    · exact Proof.ax
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a'⫠ ::ₘ b⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a'⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · apply h₂.rwConclusion (by grind)
+    · exact Proof.ax
+
+@[local grind .]
+private lemma Proposition.equiv_tensor₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⊗ b ≡ a ⊗ b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b⫠ ::ₘ {a ⊗ b'}) = ((a ⊗ b') ::ₘ ({a⫠} + {b⫠})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax
+    · apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.parr
+    rw [show (a⫠ ::ₘ b'⫠ ::ₘ {a ⊗ b}) = ((a ⊗ b) ::ₘ ({a⫠} + {b'⫠})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax
+    · apply h₂.rwConclusion (by grind)
+
+@[local grind .]
+private lemma Proposition.equiv_parr₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a ⅋ b ≡ a' ⅋ b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊗ b⫠, a' ⅋ b} = (a' ⅋ b) ::ₘ {a⫠ ⊗ b⫠} by grind]
+    apply Proof.parr
+    rw [show (a' ::ₘ b ::ₘ {a⫠ ⊗ b⫠}) = ((a⫠ ⊗ b⫠) ::ₘ ({a'} + {b})) by grind]
+    apply Proof.tensor
+    · apply h₁.rwConclusion (by grind)
+    · exact Proof.ax'
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a'⫠ ⊗ b⫠, a ⅋ b} = (a ⅋ b) ::ₘ {a'⫠ ⊗ b⫠} by grind]
+    apply Proof.parr
+    rw [show (a ::ₘ b ::ₘ {a'⫠ ⊗ b⫠}) = ((a'⫠ ⊗ b⫠) ::ₘ ({a} + {b})) by grind]
+    apply Proof.tensor
+    · apply h₂.rwConclusion (by grind)
+    · exact Proof.ax'
+
+@[local grind .]
+private lemma Proposition.equiv_parr₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⅋ b ≡ a ⅋ b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊗ b⫠, a ⅋ b'} = (a ⅋ b') ::ₘ {a⫠ ⊗ b⫠} by grind]
+    apply Proof.parr
+    rw [show (a ::ₘ b' ::ₘ {a⫠ ⊗ b⫠}) = ((a⫠ ⊗ b⫠) ::ₘ ({a} + {b'})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax'
+    · apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊗ b'⫠, a ⅋ b} = (a ⅋ b) ::ₘ {a⫠ ⊗ b'⫠} by grind]
+    apply Proof.parr
+    rw [show (a ::ₘ b ::ₘ {a⫠ ⊗ b'⫠}) = ((a⫠ ⊗ b'⫠) ::ₘ ({a} + {b})) by grind]
+    apply Proof.tensor
+    · exact Proof.ax'
+    · apply h₂.rwConclusion (by grind)
+
+@[local grind .]
+private lemma Proposition.equiv_oplus₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a ⊕ b ≡ a' ⊕ b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a⫠ ::ₘ {a' ⊕ b} = (a' ⊕ b) ::ₘ {a⫠} by grind]
+      apply Proof.oplus₁
+      apply h₁.rwConclusion (by grind)
+    · rw [show b⫠ ::ₘ {a' ⊕ b} = (a' ⊕ b) ::ₘ {b⫠} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a'⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {a'⫠} by grind]
+      apply Proof.oplus₁
+      apply h₂.rwConclusion (by grind)
+    · rw [show b⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {b⫠} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax
+
+@[local grind .]
+private lemma Proposition.equiv_oplus₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a ⊕ b ≡ a ⊕ b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a⫠ ::ₘ {a ⊕ b'} = (a ⊕ b') ::ₘ {a⫠} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax
+    · rw [show b⫠ ::ₘ {a ⊕ b'} = (a ⊕ b') ::ₘ {b⫠} by grind]
+      apply Proof.oplus₂
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.with
+    · rw [show a⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {a⫠} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax
+    · rw [show b'⫠ ::ₘ {a ⊕ b} = (a ⊕ b) ::ₘ {b'⫠} by grind]
+      apply Proof.oplus₂
+      apply h₂.rwConclusion (by grind)
+
+@[local grind .]
+private lemma Proposition.equiv_with₁ {a a' b : Proposition Atom} (h : a ≡ a') :
+    a & b ≡ a' & b := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊕ b⫠, a' & b} = (a' & b) ::ₘ {a⫠ ⊕ b⫠} by grind]
+    apply Proof.with
+    · rw [show a' ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {a'} by grind]
+      apply Proof.oplus₁
+      apply h₁.rwConclusion (by grind)
+    · rw [show b ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {b} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax'
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a'⫠ ⊕ b⫠, a & b} = (a & b) ::ₘ {a'⫠ ⊕ b⫠} by grind]
+    apply Proof.with
+    · rw [show a ::ₘ {a'⫠ ⊕ b⫠} = (a'⫠ ⊕ b⫠) ::ₘ {a} by grind]
+      apply Proof.oplus₁
+      apply h₂.rwConclusion (by grind)
+    · rw [show b ::ₘ {a'⫠ ⊕ b⫠} = (a'⫠ ⊕ b⫠) ::ₘ {b} by grind]
+      apply Proof.oplus₂
+      exact Proof.ax'
+
+@[local grind .]
+private lemma Proposition.equiv_with₂ {a b b' : Proposition Atom} (h : b ≡ b') :
+    a & b ≡ a & b' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊕ b⫠, a & b'} = (a & b') ::ₘ {a⫠ ⊕ b⫠} by grind]
+    apply Proof.with
+    · rw [show a ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {a} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax'
+    · rw [show b' ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {b'} by grind]
+      apply Proof.oplus₂
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {a⫠ ⊕ b'⫠, a & b} = (a & b) ::ₘ {a⫠ ⊕ b'⫠} by grind]
+    apply Proof.with
+    · rw [show a ::ₘ {a⫠ ⊕ b'⫠} = (a⫠ ⊕ b'⫠) ::ₘ {a} by grind]
+      apply Proof.oplus₁
+      exact Proof.ax'
+    · rw [show b ::ₘ {a⫠ ⊕ b'⫠} = (a⫠ ⊕ b'⫠) ::ₘ {b} by grind]
+      apply Proof.oplus₂
+      apply h₂.rwConclusion (by grind)
+
+@[local grind .]
+private lemma Proposition.equiv_bang {a a' : Proposition Atom} (h : a ≡ a') :
+    !a ≡ !a' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {ʔa⫠, !a'} = (!a') ::ₘ {ʔa⫠} by grind]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a' ::ₘ {ʔa⫠} = ʔa⫠ ::ₘ {a'} by grind]
+      apply Proof.quest
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    rw [show {ʔa'⫠, !a} = (!a) ::ₘ {ʔa'⫠} by grind]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a ::ₘ {ʔa'⫠} = ʔa'⫠ ::ₘ {a} by grind]
+      apply Proof.quest
+      apply h₂.rwConclusion (by grind)
+
+@[local grind .]
+private lemma Proposition.equiv_quest {a a' : Proposition Atom} (h : a ≡ a') :
+    ʔa ≡ ʔa' := by
+  obtain ⟨h₁, h₂⟩ := h
+  obtain h₁ := h₁.some
+  obtain h₂ := h₂.some
+  constructor
+  case left =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a⫠ ::ₘ {ʔa'} = ʔa' ::ₘ {a⫠} by grind]
+      apply Proof.quest
+      apply h₁.rwConclusion (by grind)
+  case right =>
+    constructor
+    simp only [Proposition.dual]
+    apply Proof.bang
+    · simp [allQuest, Multiset.fold]
+    · rw [show a'⫠ ::ₘ {ʔa} = ʔa ::ₘ {a'⫠} by grind]
+      apply Proof.quest
+      apply h₂.rwConclusion (by grind)
+
+instance : Congruence (Proposition Atom) Proposition.Equiv where
+  elim :
+      Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
+      Proposition.Equiv := by
+    intro ctx a b hab
+    induction ctx <;> grind
+
+noncomputable instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
+  eqv := Proposition.Equiv
+  eqv_fill_valid {a b : Proposition Atom} (heqv : a.Equiv b)
+      (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
+      (h : ⇓c<[a]) : ⇓c<[b] := by
+    apply subst_eqv_head (chooseEquiv heqv) h
+
 /-- Tensor is commutative. -/
 @[scoped grind =]
 def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
@@ -387,8 +701,8 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
      show a⫠ ::ₘ b⫠ ::ₘ c⫠ ::ₘ {a ⊗ (b ⊗ c)} = ((a ⊗ (b ⊗ c)) ::ₘ {a⫠} + ({b⫠} + {c⫠})) by grind ▸
      (.tensor .ax <| .tensor .ax .ax)⟩
 
-instance {Γ : Sequent Atom} : Std.Symm (fun a b => Sequent.Provable ((a ⊗ b) ::ₘ Γ)) where
-  symm _ _ h := Sequent.Provable.fromProof (subst_eqv_head tensor_symm h.toProof)
+instance {Γ : Sequent Atom} : Std.Symm (fun a b => Derivable ((a ⊗ b) ::ₘ Γ)) where
+  symm _ _ h := Derivable.fromDerivation (subst_eqv_head tensor_symm (Derivable.toDerivation h))
 
 /-- ⊕ is idempotent. -/
 @[scoped grind =]
