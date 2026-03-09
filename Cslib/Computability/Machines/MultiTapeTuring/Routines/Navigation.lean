@@ -52,20 +52,16 @@ public lemma outOfArg_toArg_tape (argIdx : ℕ) (tape : BiTape Char) :
     Only descends if the current element is a `Data.list` with a valid index;
     otherwise, the `TapeView` is unchanged. -/
 @[simp]
-public lemma toArg_eval_struct_valid {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    {ds : List Data}
-    (h_current : (views i).current = some (Data.list ds))
-    (h_bound : argIdx < ds.length) :
+public lemma toArg_eval_struct {k : ℕ} {argIdx : ℕ} {i : Fin k}
+    {views : Fin k → TapeView} :
     (toArg argIdx i).eval_struct views = some
-      (Function.update views i
-        ⟨(views i).data, (views i).path ++ [argIdx]⟩) := by sorry
-
-@[simp]
-public lemma toArg_eval_struct_invalid {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    (h_invalid : ∀ ds, (views i).current = some (Data.list ds) → ds.length ≤ argIdx) :
-    (toArg argIdx i).eval_struct views = some views := by sorry
+      (match (views i).current with
+      | some (Data.list ds) =>
+        if argIdx < ds.length then
+          Function.update views i
+            ⟨(views i).data, (views i).path ++ [argIdx]⟩
+        else views
+      | _ => views) := by sorry
 
 /-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
     removing it from the end of the path. If the path ends with `argIdx`,
