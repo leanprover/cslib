@@ -115,5 +115,27 @@ public lemma case_num_true_eval_struct {k : ℕ} {i : Fin k}
       tm₁.eval_struct views := by
   simp [h_data]
 
+/-- Dispatch on the numeric value of the first element of a list.
+    Pops the first element from the list on tape `i`. If it is `Data.num n`
+    and `n < branches.length`, runs `branches[n]` on the updated views
+    (with the element removed). If the pop fails, the element is not a number,
+    or the index is out of range, leaves the tape unmodified. -/
+public def case_popList_num {k : ℕ} (i : Fin k)
+    (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char :=
+    sorry
+
+@[simp]
+public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
+    {branches : List (MultiTapeTM k Char)}
+    {views : Fin k → TapeView} :
+    (case_popList_num i branches).eval_struct views =
+      match (views i).popList with
+      | some (Data.num n, tv') =>
+        if h : n < branches.length then
+          branches[n].eval_struct (Function.update views i tv')
+        else some views
+      | some (Data.list _, _) => some views
+      | none => some views := by sorry
+
 end Routines
 end Turing
