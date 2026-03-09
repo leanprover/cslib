@@ -21,7 +21,7 @@ public def pushList {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   right i ;ₜ put d i ;ₜ left i ;ₜ write '(' i
 
 @[simp]
-public lemma pushList_eval {k : ℕ} {d : Data}
+public lemma pushList_eval_struct {k : ℕ} {d : Data}
   {ds : List Data} {i : Fin k}
   {tapes : Fin k → BiTape Char}
   {r : List Char}

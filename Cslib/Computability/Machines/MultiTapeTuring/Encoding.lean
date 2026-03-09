@@ -242,6 +242,43 @@ public lemma toBiTape_data_empty_path (d : Data) :
 
 public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sorry
 
+/-- Prepend a `Data` value to the front of a list on tape.
+    If the path is `[]` and `data` is `some (Data.list ds)`,
+    returns `⟨some (Data.list (d :: ds)), []⟩`.
+    Otherwise, returns the `TapeView` unchanged. -/
+public def pushList (d : Data) (tv : TapeView) : TapeView :=
+  match tv with
+  | ⟨some (Data.list ds), []⟩ => ⟨some (Data.list (d :: ds)), []⟩
+  | other => other
+
+@[simp]
+public lemma pushList_list {d : Data} {ds : List Data} :
+    (TapeView.mk (some (Data.list ds)) []).pushList d =
+      TapeView.mk (some (Data.list (d :: ds))) [] := by
+  unfold pushList; rfl
+
+@[simp]
+public lemma pushList_none {d : Data} {p : List ℕ} :
+    (TapeView.mk none p).pushList d = TapeView.mk none p := by
+  unfold pushList; rfl
+
+@[simp]
+public lemma pushList_num {d : Data} {n : ℕ} {p : List ℕ} :
+    (TapeView.mk (some (Data.num n)) p).pushList d =
+      TapeView.mk (some (Data.num n)) p := by
+  unfold pushList; rfl
+
+@[simp]
+public lemma pushList_nonempty_path {d : Data} {dat : Option Data}
+    {k : ℕ} {rest : List ℕ} :
+    (TapeView.mk dat (k :: rest)).pushList d =
+      TapeView.mk dat (k :: rest) := by
+  unfold pushList; cases dat with
+  | none => rfl
+  | some d' => cases d' with
+    | num _ => rfl
+    | list _ => rfl
+
 end TapeView
 
 end Turing

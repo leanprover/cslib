@@ -63,7 +63,11 @@ public lemma combineOr_eval_struct {k : ℕ} {i j : Fin k}
       | some true => some
           (Function.update (Function.update views i ⟨none, []⟩)
             j ⟨some (StrEnc.toData true), []⟩)
-      | none => some views := by sorry
+      | none => some views := by
+  simp [combineOr]
+  by_cases h : (views i).currentNum with
+  · sorry
+  · sorry
 
 /-- `negateBool j` replaces the topmost boolean on tape `j` with its negation. -/
 @[simp]
