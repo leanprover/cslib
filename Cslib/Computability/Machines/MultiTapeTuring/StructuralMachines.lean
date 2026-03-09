@@ -45,56 +45,17 @@ namespace Routines
 
 public def right (i : Fin k) : MultiTapeTM k Char := sorry
 
-@[simp]
-public lemma right_eval {i : Fin k} {tapes : Fin k → BiTape Char} :
-    (right i).eval tapes = .some
-      (Function.update tapes i (tapes i).move_right) := by sorry
-
 public def left (i : Fin k) : MultiTapeTM k Char := sorry
-
-@[simp]
-public lemma left_eval {i : Fin k} {tapes : Fin k → BiTape Char} :
-    (left i).eval tapes = .some
-      (Function.update tapes i (tapes i).move_left) := by sorry
 
 public def write (c : Char) (i : Fin k) : MultiTapeTM k Char := sorry
 
-@[simp]
-public lemma write_eval {c : Char} {i : Fin k} {tapes : Fin k → BiTape Char} :
-    (write c i).eval tapes = .some
-      (Function.update tapes i ((tapes i).write (.some c))) := by sorry
-
 public def noop : MultiTapeTM k Char := sorry
-
-@[simp]
-public lemma noop_eval {tapes : Fin k → BiTape Char} :
-    (noop (k := k)).eval tapes = .some tapes := by sorry
 
 public def while_eq (c : Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
 
-@[simp]
-public lemma while_eq_eval {i : Fin k} {c : Char}
-  {tm : MultiTapeTM k Char}
-  {tapes : Fin k → BiTape Char}
-  (h_halts : ∀ tapes, tm.HaltsOn tapes) :
-    (while_eq c i tm).eval tapes =
-    ⟨∃ n, ((tm.eval_tot h_halts)^[n] tapes i).head ≠ .some c,
-      fun h_loopEnds => (tm.eval_tot h_halts)^[Nat.find h_loopEnds] tapes⟩ := by
-    sorry
-
 public def while_neq (c : Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
-
-@[simp]
-public lemma while_neq_eval {i : Fin k} {c : Char}
-  {tm : MultiTapeTM k Char}
-  {tapes : Fin k → BiTape Char}
-  (h_halts : ∀ tapes, tm.HaltsOn tapes) :
-    (while_eq c i tm).eval tapes =
-    ⟨∃ n, ((tm.eval_tot h_halts)^[n] tapes i).head = .some c,
-      fun h_loopEnds => (tm.eval_tot h_halts)^[Nat.find h_loopEnds] tapes⟩ := by
-    sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- eval_struct lemmas: Compositionality

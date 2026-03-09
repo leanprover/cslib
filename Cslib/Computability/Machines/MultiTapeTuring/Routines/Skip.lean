@@ -19,26 +19,8 @@ namespace Routines
     Works for both `[...]` (num) and `(...)` (list) encodings. -/
 public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
-@[simp]
-public lemma skipRight_eval {k : ℕ} {i : Fin k}
-  {tapes : Fin k → BiTape Char}
-  {d : Data}
-  {l r : List Char}
-  (h_hasValue : tapes i = BiTape.mk₂ l (Data.enc d ++ r)) :
-  (skipRight i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₂ ((Data.enc d).reverse ++ l) r)) := by sorry
-
 /-- Skip to the left across a Data-encoded value (inverse of `skipRight`). -/
 public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
-
-@[simp]
-public lemma skipLeft_eval {k : ℕ} {i : Fin k}
-  {tapes : Fin k → BiTape Char}
-  {d : Data}
-  {l r : List Char}
-  (h_hasValue : tapes i = BiTape.mk₂ ((Data.enc d).reverse ++ l) r) :
-  (skipLeft i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₂ l (Data.enc d ++ r))) := by sorry
 
 /-- `skipRight i` moves to the next sibling element within a list,
     incrementing the last path index. -/

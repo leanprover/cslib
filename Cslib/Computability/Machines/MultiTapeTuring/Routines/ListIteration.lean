@@ -24,32 +24,6 @@ public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
   right i ;ₜ while_neq ')' i (tm ;ₜ skipRight i) ;ₜ
     while_neq '(' i (skipLeft i)
 
-/-- After `run_list i (tm ;ₜ combineOr tmp j)` processes a list `ds` on tape `i`,
-    with an initial boolean accumulator `b₀` on tape `j` and empty tape `tmp`,
-    the result on tape `j` is `enc(ds.any f || b₀)`, where `f` is the boolean
-    function computed by `tm` (writing its result to tape `tmp`).
-    Tape `i` is restored to its original state. -/
-@[simp]
-public lemma run_list_combineOr_eval {i j tmp : Fin k}
-    (h_ne_ij : i ≠ j) (h_ne_it : i ≠ tmp) (h_ne_jt : j ≠ tmp)
-    {tm : MultiTapeTM k Char}
-    {ds : List Data} {f : Data → Bool} {b₀ : Bool}
-    {tapes : Fin k → BiTape Char}
-    {r_i : List Char}
-    (h_tape_i : tapes i = BiTape.mk₁ (Data.enc (Data.list ds) ++ r_i))
-    (h_tape_j : tapes j = BiTape.mk₁ (StrEnc.enc b₀))
-    (h_tape_tmp : tapes tmp = BiTape.mk₁ [])
-    (h_halts : ∀ tapes,
-      (tm ;ₜ combineOr tmp j ;ₜ skipRight i).HaltsOn tapes)
-    (h_tm : ∀ (d : Data) (t : Fin k → BiTape Char)
-      (l r : List Char),
-      t i = BiTape.mk₂ l (Data.enc d ++ r) →
-      t tmp = BiTape.mk₁ [] →
-      ∃ t', tm.eval t = .some t' ∧ t' i = t i ∧
-        t' tmp = BiTape.mk₁ (StrEnc.enc (f d))) :
-    (run_list i (tm ;ₜ combineOr tmp j)).eval tapes = .some (Function.update tapes j
-      (BiTape.mk₁ (StrEnc.enc (ds.any f || b₀)))) := by sorry
-
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
     value to tape `tmp`, and compute the logical OR of the results across the list.
     Uses tape `tmp` for intermediate results and accumulates on tape `j`.
@@ -58,86 +32,12 @@ public def any_list {k : ℕ} (i : Fin k)
     (tm : MultiTapeTM k Char) (j tmp : Fin k) : MultiTapeTM k Char :=
   put (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOr tmp j)
 
-/-- The result on tape `j` after running `any_list i tm j tmp` on `tapes`.
-    Use simp lemmas like `any_list_result_spec` to reduce this for specific inputs. -/
-public noncomputable def any_list_result {k : ℕ}
-    (i : Fin k) (tm : MultiTapeTM k Char) (j tmp : Fin k)
-    (tapes : Fin k → BiTape Char) : BiTape Char := sorry
-
-/-- Unconditional simp lemma: `any_list` always produces an update to tape `j`.
-    The actual content of tape `j` is described by `any_list_result`, which has its
-    own simp rules for specific inputs. -/
-@[simp]
-public lemma any_list_eval {i j tmp : Fin k}
-    {tm : MultiTapeTM k Char}
-    {tapes : Fin k → BiTape Char} :
-    (any_list i tm j tmp).eval tapes = .some (Function.update tapes j
-      (any_list_result i tm j tmp tapes)) := by sorry
-
-/-- Reduce `any_list_result` when the list on tape `i` and the function computed by
-    `tm` are known. The inner `tm` writes its boolean result to tape `tmp`. -/
-@[simp]
-public lemma any_list_result_spec {i j tmp : Fin k}
-    (h_ne_ij : i ≠ j) (h_ne_it : i ≠ tmp) (h_ne_jt : j ≠ tmp)
-    {tm : MultiTapeTM k Char}
-    {ds : List Data} {f : Data → Bool}
-    {tapes : Fin k → BiTape Char}
-    {r_i : List Char}
-    (h_tape_i : tapes i = BiTape.mk₁ (Data.enc (Data.list ds) ++ r_i))
-    (h_tape_j : tapes j = BiTape.mk₁ [])
-    (h_tape_tmp : tapes tmp = BiTape.mk₁ [])
-    (h_halts : ∀ tapes, (tm ;ₜ combineOr tmp j ;ₜ skipRight i).HaltsOn tapes)
-    (h_tm : ∀ (d : Data) (t : Fin k → BiTape Char)
-      (l r : List Char),
-      t i = BiTape.mk₂ l (Data.enc d ++ r) →
-      t tmp = BiTape.mk₁ [] →
-      ∃ t', tm.eval t = .some t' ∧ t' i = t i ∧
-        t' tmp = BiTape.mk₁ (StrEnc.enc (f d))) :
-    any_list_result i tm j tmp tapes =
-      BiTape.mk₁ (StrEnc.enc (ds.any f)) := by sorry
-
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
     value to tape `tmp`, and compute the logical AND of the results across the list.
     Uses tape `tmp` for intermediate results and accumulates on tape `j`. -/
 public def all_list {k : ℕ} (i : Fin k)
     (tm : MultiTapeTM k Char) (j tmp : Fin k) : MultiTapeTM k Char :=
   any_list i (tm ;ₜ negateBool tmp) j tmp ;ₜ negateBool j
-
-/-- The result on tape `j` after running `all_list i tm j tmp` on `tapes`. -/
-public noncomputable def all_list_result {k : ℕ}
-    (i : Fin k) (tm : MultiTapeTM k Char) (j tmp : Fin k)
-    (tapes : Fin k → BiTape Char) : BiTape Char := sorry
-
-/-- Unconditional simp lemma: `all_list` always produces an update to tape `j`. -/
-@[simp]
-public lemma all_list_eval {i j tmp : Fin k}
-    {tm : MultiTapeTM k Char}
-    {tapes : Fin k → BiTape Char} :
-    (all_list i tm j tmp).eval tapes = .some (Function.update tapes j
-      (all_list_result i tm j tmp tapes)) := by sorry
-
-/-- Reduce `all_list_result` when the list on tape `i` and the function computed by
-    `tm` are known. -/
-@[simp]
-public lemma all_list_result_spec {i j tmp : Fin k}
-    (h_ne_ij : i ≠ j) (h_ne_it : i ≠ tmp) (h_ne_jt : j ≠ tmp)
-    {tm : MultiTapeTM k Char}
-    {ds : List Data} {f : Data → Bool}
-    {tapes : Fin k → BiTape Char}
-    {r_i : List Char}
-    (h_tape_i : tapes i = BiTape.mk₁ (Data.enc (Data.list ds) ++ r_i))
-    (h_tape_j : tapes j = BiTape.mk₁ [])
-    (h_tape_tmp : tapes tmp = BiTape.mk₁ [])
-    (h_halts : ∀ tapes,
-      (tm ;ₜ negateBool tmp ;ₜ combineOr tmp j ;ₜ skipRight i).HaltsOn tapes)
-    (h_tm : ∀ (d : Data) (t : Fin k → BiTape Char)
-      (l r : List Char),
-      t i = BiTape.mk₂ l (Data.enc d ++ r) →
-      t tmp = BiTape.mk₁ [] →
-      ∃ t', tm.eval t = .some t' ∧ t' i = t i ∧
-        t' tmp = BiTape.mk₁ (StrEnc.enc (f d))) :
-    all_list_result i tm j tmp tapes =
-      BiTape.mk₁ (StrEnc.enc (ds.all f)) := by sorry
 
 /-- Check if the value on tape `i` is contained in the list on tape `j`
     and store the boolean result on tape `result`.

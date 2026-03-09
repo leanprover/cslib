@@ -20,34 +20,9 @@ namespace Routines
 public def pushList {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   right i ;ₜ put d i ;ₜ left i ;ₜ write '(' i
 
-@[simp]
-public lemma pushList_eval {k : ℕ} {d : Data}
-  {ds : List Data} {i : Fin k}
-  {tapes : Fin k → BiTape Char}
-  {r : List Char}
-  (h_tape : tapes i = BiTape.mk₁ (Data.enc (Data.list ds) ++ r)) :
-  (pushList d i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₁ (Data.enc (Data.list (d :: ds)) ++ r))) := by sorry
-
 /-- Remove the first element from a list encoding on tape `i`.
     Running `popEnc` on an empty list does not modify the tape. -/
 public def popEnc {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
-
-@[simp]
-public lemma popEnc_eval_cons {k : ℕ}
-  {d : Data} {ds : List Data} {i : Fin k}
-  {tapes : Fin k → BiTape Char}
-  {r : List Char}
-  (h_tape : tapes i = BiTape.mk₁ (Data.enc (Data.list (d :: ds)) ++ r)) :
-  (popEnc i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₁ (Data.enc (Data.list ds) ++ r))) := by sorry
-
-@[simp]
-public lemma popEnc_eval_nil {k : ℕ} {i : Fin k}
-  {tapes : Fin k → BiTape Char}
-  {r : List Char}
-  (h_tape : tapes i = BiTape.mk₁ (Data.enc (Data.list []) ++ r)) :
-  (popEnc i).eval tapes = .some tapes := by sorry
 
 /-- `pushList d i` prepends a Data element to the topmost `Data.list` on tape `i`. -/
 @[simp]

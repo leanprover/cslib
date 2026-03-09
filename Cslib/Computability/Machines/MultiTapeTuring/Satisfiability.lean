@@ -58,73 +58,6 @@ public instance : StrEnc SATInput where
   fromData_toData
     | SATInput.mk f a => by simp [StrEnc.fromData_toData f, StrEnc.fromData_toData a]
 
-section SATInput_tape_lemmas
-
-/-- `toArg 0` positions the head at the formula field of a SATInput encoding. -/
-@[simp]
-public lemma toArg_tape_SATInput_0 {f : Formula} {a : Assignments} {r : List Char} :
-    Routines.toArg_tape 0
-        (BiTape.mk₁ (StrEnc.enc (SATInput.mk f a) ++ r)) =
-      BiTape.mk₂ ['(']
-        (Data.enc (StrEnc.toData f) ++ Data.enc (StrEnc.toData a) ++ [')'] ++ r) := by sorry
-
-/-- `toArg 0` on a tape with exactly the encoding (no trailing data). -/
-@[simp]
-public lemma toArg_tape_SATInput_0_nil {f : Formula} {a : Assignments} :
-    Routines.toArg_tape 0
-        (BiTape.mk₁ (StrEnc.enc (SATInput.mk f a))) =
-      BiTape.mk₂ ['(']
-        (Data.enc (StrEnc.toData f) ++ Data.enc (StrEnc.toData a) ++ [')']) := by sorry
-
-/-- `toArg 1` positions the head at the assignment field of a SATInput encoding. -/
-@[simp]
-public lemma toArg_tape_SATInput_1 {f : Formula} {a : Assignments} {r : List Char} :
-    Routines.toArg_tape 1
-        (BiTape.mk₁ (StrEnc.enc (SATInput.mk f a) ++ r)) =
-      BiTape.mk₂ ((Data.enc (StrEnc.toData f)).reverse ++ ['('])
-        (Data.enc (StrEnc.toData a) ++ [')'] ++ r) := by sorry
-
-/-- `toArg 1` on a tape with exactly the encoding (no trailing data). -/
-@[simp]
-public lemma toArg_tape_SATInput_1_nil {f : Formula} {a : Assignments} :
-    Routines.toArg_tape 1
-        (BiTape.mk₁ (StrEnc.enc (SATInput.mk f a))) =
-      BiTape.mk₂ ((Data.enc (StrEnc.toData f)).reverse ++ ['('])
-        (Data.enc (StrEnc.toData a) ++ [')']) := by sorry
-
-/-- `copyEnc_tape` on the positioned tape reads the assignment. -/
-@[simp]
-public lemma copyEnc_tape_Assignments {a : Assignments} {prefix_ suffix_ : List Char}
-    {rⱼ : List Char} :
-    Routines.copyEnc_tape
-      (BiTape.mk₂ prefix_ (Data.enc (StrEnc.toData a) ++ suffix_))
-      (BiTape.mk₁ rⱼ) =
-    BiTape.mk₁ (Data.enc (StrEnc.toData a) ++ rⱼ) := by sorry
-
-/-- `copyEnc_tape` with empty target tape. -/
-@[simp]
-public lemma copyEnc_tape_Assignments_nil {a : Assignments} {prefix_ suffix_ : List Char} :
-    Routines.copyEnc_tape
-      (BiTape.mk₂ prefix_ (Data.enc (StrEnc.toData a) ++ suffix_))
-      (BiTape.mk₁ []) =
-    BiTape.mk₁ (Data.enc (StrEnc.toData a)) := by sorry
-
-/-- `erase_tape` on a tape with an encoded assignment removes it. -/
-@[simp]
-public lemma erase_tape_Assignments {a : Assignments} {r : List Char} :
-    Routines.erase_tape
-      (BiTape.mk₁ (Data.enc (StrEnc.toData a) ++ r)) =
-    BiTape.mk₁ r := by sorry
-
-/-- `erase_tape` on a tape with exactly an encoded assignment. -/
-@[simp]
-public lemma erase_tape_Assignments_nil {a : Assignments} :
-    Routines.erase_tape
-      (BiTape.mk₁ (Data.enc (StrEnc.toData a))) =
-    BiTape.mk₁ [] := by sorry
-
-end SATInput_tape_lemmas
-
 /-- Evaluate a literal given a list of positive-variable assignments. -/
 public def evalLiteral (a : Assignments) : Literal → Bool
   | Literal.pos v => a.contains v
@@ -177,26 +110,6 @@ public def sat : MultiTapeTM 5 Char :=
   -- Cleanup
   outOfArg 0 0 ;ₜ
   erase 1
-
-/--
-The main theorem: `sat` decides satisfiability.
-Given a `SATInput` containing a formula and an assignment on tape 0,
-`sat` produces `enc(evalFormula assignment formula)` on tape 2,
-with tape 0 restored and tape 1 erased.
--/
-public theorem sat_eval
-    {input : SATInput}
-    {tapes : Fin 5 → BiTape Char}
-    (h_tape0 : tapes 0 = BiTape.mk₁ (StrEnc.enc input))
-    (h_tape1 : tapes 1 = BiTape.mk₁ [])
-    (h_tape2 : tapes 2 = BiTape.mk₁ [])
-    (h_tape3 : tapes 3 = BiTape.mk₁ [])
-    (h_tape4 : tapes 4 = BiTape.mk₁ []) :
-    sat.eval tapes = .some
-      (Function.update
-        (Function.update tapes 0 (BiTape.mk₁ (StrEnc.enc input)))
-        2 (BiTape.mk₁ (StrEnc.enc (match input with
-          | SATInput.mk f a => evalFormula a f)))) := by sorry
 
 end Satisfiability
 

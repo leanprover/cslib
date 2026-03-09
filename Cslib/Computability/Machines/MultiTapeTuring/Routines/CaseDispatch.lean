@@ -20,53 +20,11 @@ namespace Routines
 public def case_data {k : ℕ} (i : Fin k)
     (num_branch list_branch : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
 
-@[simp]
-public lemma case_data_eval {k : ℕ} {i : Fin k}
-    {num_branch list_branch : MultiTapeTM k Char}
-    {tapes : Fin k → BiTape Char}
-    {d : Data} {r : List Char}
-    (h_tape : tapes i = BiTape.mk₁ (Data.enc d ++ r)) :
-    (case_data i num_branch list_branch).eval tapes =
-      match d with
-      | Data.num _ => num_branch.eval tapes
-      | Data.list _ => list_branch.eval tapes := by sorry
-
 /-- Dispatch on the numeric value of a `Data.num` encoding.
     Reads the number `n` and runs `branches[n]`.
     The head stays at the start of the encoding. -/
 public def case_num {k : ℕ} (i : Fin k)
     (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
-
-@[simp]
-public lemma case_num_eval {k : ℕ} {i : Fin k}
-    {branches : List (MultiTapeTM k Char)}
-    {tapes : Fin k → BiTape Char}
-    {n : ℕ} {r : List Char}
-    (h_tape : tapes i = BiTape.mk₁ (Data.enc (Data.num n) ++ r))
-    (h_idx : n < branches.length) :
-    (case_num i branches).eval tapes = branches[n].eval tapes := by sorry
-
-/-- `case_num` on a `false` value (encoded as `Data.num 0`) dispatches to the first branch. -/
-@[simp]
-public lemma case_num_false_eval {i : Fin k}
-    {tm₀ : MultiTapeTM k Char} {tms : List (MultiTapeTM k Char)}
-    {tapes : Fin k → BiTape Char}
-    {r : List Char}
-    (h_tape : tapes i = BiTape.mk₁ (StrEnc.enc false ++ r)) :
-    (case_num i (tm₀ :: tms)).eval tapes = tm₀.eval tapes := by
-  exact case_num_eval h_tape (by simp)
-
-/-- `case_num` on a `true` value (encoded as `Data.num 1`) dispatches to the second branch. -/
-@[simp]
-public lemma case_num_true_eval {i : Fin k}
-    {tm₀ tm₁ : MultiTapeTM k Char}
-    {tms : List (MultiTapeTM k Char)}
-    {tapes : Fin k → BiTape Char}
-    {r : List Char}
-    (h_tape : tapes i = BiTape.mk₁ (StrEnc.enc true ++ r)) :
-    (case_num i (tm₀ :: tm₁ :: tms)).eval tapes =
-      tm₁.eval tapes := by
-  exact case_num_eval h_tape (by simp)
 
 /-- `case_data i nb lb` branches on the constructor of the `Data` value.
     Runs `nb` if it is a `num`, `lb` if it is a `list`. -/

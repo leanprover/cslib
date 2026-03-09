@@ -25,14 +25,6 @@ public def putChars : List Char → Fin k → MultiTapeTM k Char
 public def put {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   putChars (Data.enc d) i
 
-@[simp]
-public lemma put_eval {k : ℕ} {d : Data} {i : Fin k}
-  {tapes : Fin k → BiTape Char}
-  {r : List Char}
-  (h_tape : tapes i = BiTape.mk₁ r) :
-  (put d i).eval tapes = .some (Function.update tapes i
-      (BiTape.mk₁ (Data.enc d ++ r))) := by sorry
-
 /-- Prepend the encoding of a value of type `α` (via its `StrEnc` instance) to tape `i`. -/
 public def putEnc {k : ℕ} {α : Type*} [StrEnc α] (x : α) (i : Fin k) :
     MultiTapeTM k Char :=
