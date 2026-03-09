@@ -38,7 +38,7 @@ lemma sn_step {t t' : Term Var} (t_st_t' : t ⭢βᶠ t') (sn_t : SN t) : SN t' 
 /-- Multiple β-reduction steps also preserve strong normalization. -/
 @[aesop safe]
 lemma sn_steps {t t' : Term Var} (t_st_t' : t ↠βᶠ t') (sn_t : SN t) : SN t' := by
-  induction t_st_t' <;> grind[sn_step]
+  induction t_st_t' with grind[sn_step]
 
 /-- Free variables are strongly normalizing. -/
 lemma sn_fvar {x : Var} : SN (Term.fvar x) := by
@@ -118,14 +118,12 @@ inductive neutral : Term Var → Prop
 attribute [scoped grind .] neutral.bvar neutral.fvar neutral.app
 
 /-- Neutral terms only reduce to other neutral terms in a single step -/
-@[aesop safe]
 lemma neutral_step {t t' : Term Var}
   (Hneut : neutral t) (Hstep : t ⭢βᶠ t') : neutral t' := by
   induction Hneut generalizing t' <;> cases Hstep <;> try grind[sn_step]
   · contradiction
 
 /-- Neutral terms only reduce to other neutral terms in multiple steps -/
-@[aesop safe]
 lemma neutral_steps {t t' : Term Var}
     (Hneut : neutral t) (Hsteps : t ↠βᶠ t') : neutral t' := by
   induction Hsteps <;> grind[neutral_step]

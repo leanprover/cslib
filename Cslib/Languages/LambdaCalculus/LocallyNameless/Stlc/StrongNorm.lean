@@ -115,7 +115,7 @@ def semanticMap_saturated (τ : Ty Base) :
 
 /-- The `entails_context` predicate ensures that each variable in the context
     is mapped to a term in the corresponding semantic map. -/
-def entails_context (E : Term.Environment Var) (Γ : Context Var (Ty Base)) :=
+def entails_context (E : Term.Env Var) (Γ : Context Var (Ty Base)) :=
   ∀ {x τ}, ⟨ x, τ ⟩ ∈ Γ → (multiSubst E (Term.fvar x)) ∈ semanticMap τ
 
 /-- The empty context is entailed by any environment. -/
@@ -129,7 +129,7 @@ omit [HasFresh Var] in
 /-- The `entails_context` predicate is preserved when extending the context
     with a new variable, provided the new variable is fresh and its
     substitution is in the corresponding semantic map. -/
-lemma entails_context_cons (E : Term.Environment Var) (Γ : Context Var (Ty Base))
+lemma entails_context_cons (E : Term.Env Var) (Γ : Context Var (Ty Base))
   (x : Var) (τ : Ty Base) (sub : Term Var) :
   x ∉ E.dom ∪ E.fv ∪ Γ.dom →
   sub ∈ semanticMap τ →
@@ -175,8 +175,8 @@ lemma soundness {Γ : Context Var (Ty Base)} {t : Term Var} {τ : Ty Base} :
         assumption
       · rw[multiApp]
         set x := fresh (t.fv ∪ L ∪ E.dom ∪ E.fv ∪ Context.dom Γ ∪ (multiSubst E t).fv)
-        have hfresh : x ∉ t.fv ∪ L ∪ E.dom ∪ E.fv ∪ Context.dom Γ  ∪ (multiSubst E t).fv
-          := by apply fresh_notMem
+        have hfresh : x ∉ t.fv ∪ L ∪ E.dom ∪ E.fv ∪ Context.dom Γ  ∪ (multiSubst E t).fv := by
+          apply fresh_notMem
         have hfreshL : x ∉ L := by simp_all
         have H1 := derivation_t x hfreshL
         rw[entails] at H1
@@ -203,7 +203,7 @@ lemma soundness {Γ : Context Var (Ty Base)} {t : Term Var} {τ : Ty Base} :
     is entailed by any environment, we can conclude that
     a well-typed term is strongly normalizing. -/
 theorem strong_norm {Γ} {t : Term Var} {τ : Ty Base} (der : Γ ⊢ t ∶ τ) : SN t := by
-  have H := soundness der [] (by aesop) entails_context_empty
+  have H := soundness der [] (by grind) entails_context_empty
   apply (semanticMap_saturated τ).2
   assumption
 
