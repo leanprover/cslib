@@ -343,21 +343,12 @@ public lemma eval_eq_some_iff_transformsTapes
   constructor
   · intro ⟨h_dom, h_get⟩
     use Nat.find h_dom
-    rw [TransformsTapesInExactTime, relatesInSteps_iff_step_iter_eq_some]
-    rw [← configs, Option.eq_some_iff_get_eq]
-    use configs_isSome_of_haltsAtStep (Nat.find_spec h_dom)
-    ext1
-    · simp
-      grind [haltsAtStep, Nat.find_spec h_dom]
-    · exact h_get
+    grind [TransformsTapesInExactTime, configs, haltCfgTapes, haltsAtStep]
   · intro ⟨t, h_iter⟩
-    rw [TransformsTapesInExactTime, relatesInSteps_iff_step_iter_eq_some] at h_iter
-    rw [← configs] at h_iter
-    have h_halts_at_t : tm.haltsAtStep tapes t := by simp [haltsAtStep, h_iter]
-    let h_halts : ∃ t, tm.haltsAtStep tapes t := ⟨t, h_halts_at_t⟩
-    use h_halts
-    have h_eq : Nat.find h_halts = t := halting_step_unique (Nat.find_spec h_halts) h_halts_at_t
-    simp [h_eq, h_iter]
+    rw [TransformsTapesInExactTime, relatesInSteps_iff_step_iter_eq_some, ← configs] at h_iter
+    have h_halts_at_t : tm.haltsAtStep tapes t := by grind [haltsAtStep]
+    have : ∃ t, tm.haltsAtStep tapes t := ⟨t, h_halts_at_t⟩
+    grind [haltCfgTapes, halting_step_unique]
 
 end MultiTapeTM
 
