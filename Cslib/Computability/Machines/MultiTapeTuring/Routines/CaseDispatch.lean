@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
+public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
 
 namespace Turing
 namespace Routines
@@ -92,6 +93,22 @@ public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
         else
           views
       | _ => views := by sorry
+
+/-- Runs `then_branch` if tape `i` points at a list whose head is `v`, otherwise
+runs `else_branch`. -/
+public def ite_list_head {k : ℕ} (i : Fin k)
+    (v : Data) (then_branch else_branch : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
+
+@[simp]
+public lemma ite_list_head_eval_struct {k : ℕ} {i : Fin k}
+    (v : Data)
+    (then_branch else_branch : MultiTapeTM k Char)
+    {views : Fin k → TapeView} :
+    (ite_list_head i v then_branch else_branch).eval_struct views =
+      if (views i).currentListHead = some v then
+        then_branch.eval_struct views
+      else
+        else_branch.eval_struct views := by sorry
 
 end Routines
 end Turing

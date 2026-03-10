@@ -12,8 +12,6 @@ public import Cslib.Computability.Machines.MultiTapeTuring.SequentialCombinator
 
 namespace Turing
 
-public instance : Fintype Char := by sorry
-
 -- ═══════════════════════════════════════════════════════════════════════════
 -- eval_struct
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -36,6 +34,15 @@ public lemma MultiTapeTM.eval_struct_sound
     (h : tm.eval_struct views = some views') :
     tm.eval (fun i => (views i).toBiTape) =
       some (fun i => (views' i).toBiTape) := by sorry
+
+
+/-- The Turing machine `tm` always outputs a single value of type `α` on tape `i`
+(if that tape is a list) and leaves all other tapes unmodified. -/
+public def outputsType {k : ℕ}
+    (tm : MultiTapeTM k Char) (α : Type*) [StrEnc α] (i : Fin k) : Prop :=
+    ∀ views rs, (views i = ⟨Data.list rs, []⟩) →
+      ∃ x : α, tm.eval_struct views = some (Function.update views i
+        ⟨Data.list (StrEnc.toData x :: rs), []⟩)
 
 namespace Routines
 

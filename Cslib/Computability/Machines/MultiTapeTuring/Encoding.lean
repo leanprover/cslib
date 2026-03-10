@@ -10,6 +10,8 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 
 namespace Turing
 
+public instance : Fintype Char := by sorry
+
 /-- Dyadic encoding of natural numbers. -/
 public def dyadic (n : ℕ) : List Char :=
   if n = 0 then []
@@ -306,6 +308,12 @@ public lemma popList_nonempty_path {dat : Data}
     | list ds => cases ds with
       | nil => rfl
       | cons _ _ => rfl
+
+/-- If `tv` currently points at a non-empty list, returns its head, otherwise returns none. -/
+public def currentListHead (tv : TapeView) : Option Data :=
+  match tv.current with
+  | Data.list (d :: _) => some d
+  | _ => none
 
 end TapeView
 

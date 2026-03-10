@@ -50,18 +50,32 @@ public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
      -- true (1) → push false (0)
      pushList (StrEnc.toData false) j]
 
+-- TODO from here below the simp lemmas are nice. Let us try to find a similarly nice
+-- simpe lemma for case_popList_num. Maybe the array is the problem?
 @[simp]
-public lemma negateBool_eval_struct {k : ℕ} {j : Fin k}
+public lemma negateBool_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
-    (negateBool j).eval_struct views = some
-      (match (views j).popList with
-      | some (b_data, vj') =>
-        if b_data = StrEnc.toData false then
-          Function.update views j (vj'.pushList (StrEnc.toData true))
-        else if b_data = StrEnc.toData true then
-          Function.update views j (vj'.pushList (StrEnc.toData false))
-        else views
-      | none => views) := by sorry
+    (negateBool i).eval_struct views = some
+      (Function.update views i (match views i with
+      | ⟨Data.list (Data.num 0 :: rest), []⟩ => ⟨Data.list (Data.num 1 :: rest), []⟩
+      | ⟨Data.list (Data.num 1 :: rest), []⟩ => ⟨Data.list (Data.num 0 :: rest), []⟩
+      | _ => views i)) := by
+  simp [negateBool]
+  match views i with
+  | ⟨Data.list (Data.num 0 :: rest), []⟩ => simp
+  | ⟨Data.list (Data.num 1 :: rest), []⟩ => simp
+  | _ => simp
+  sorry
+
+public def test : MultiTapeTM 1 Char := pushList (StrEnc.toData true) 0 ;ₜ negateBool 0
+
+public lemma test_eval_struct
+    {views : Fin 1 → TapeView}
+    (h_data : (views 0) = ⟨Data.list [], []⟩)
+      :
+    test.eval_struct views = some
+      (Function.update views 0 ⟨Data.list [StrEnc.toData false], []⟩) := by
+  simp [test, h_data]
 
 end Routines
 end Turing
