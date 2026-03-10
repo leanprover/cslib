@@ -6,12 +6,12 @@ Authors: Christian Reitwiessner
 
 module
 
--- TODO create a "common file"?
-public import Cslib.Computability.Machines.SingleTapeTuring.Basic
-
 public import Mathlib.Data.Part
-
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Data.Fintype.Defs
+public import Cslib.Foundations.Data.BiTape
+public import Cslib.Foundations.Data.RelatesInSteps
+public import Cslib.Computability.Machines.TuringCommon
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 /-!
 # Multi-Tape Turing Machines
@@ -84,7 +84,7 @@ public structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
   (q₀ : State)
   /-- transition function, mapping a state and a tuple of head symbols to a `Stmt` to invoke
   for each tape and optionally the new state to transition to afterwards (`none` for halt) -/
-  (tr : State → (Fin k → Option Symbol) → ((Fin k → (SingleTapeTM.Stmt Symbol)) × Option State))
+  (tr : State → (Fin k → Option Symbol) → ((Fin k → (Stmt Symbol)) × Option State))
 
 namespace MultiTapeTM
 
@@ -104,7 +104,7 @@ instance : Inhabited tm.State := ⟨tm.q₀⟩
 
 instance : Fintype tm.State := tm.stateFintype
 
-instance inhabitedStmt : Inhabited (SingleTapeTM.Stmt Symbol) := inferInstance
+instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
 
 
 /--
