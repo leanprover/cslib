@@ -77,14 +77,14 @@ over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol)
 -/
 public structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
   /-- type of state labels -/
-  (State : Type)
+  State : Type
   /-- finiteness of the state type -/
   [stateFintype : Fintype State]
   /-- initial state -/
-  (q₀ : State)
+  q₀ : State
   /-- transition function, mapping a state and a tuple of head symbols to a `Stmt` to invoke
   for each tape and optionally the new state to transition to afterwards (`none` for halt) -/
-  (tr : State → (Fin k → Option Symbol) → ((Fin k → (Stmt Symbol)) × Option State))
+  tr : State → (Fin k → Option Symbol) → ((Fin k → (Stmt Symbol)) × Option State)
 
 namespace MultiTapeTM
 
@@ -139,10 +139,8 @@ public lemma step_iter_none_eq_none (tapes : Fin k → BiTape Symbol) (n : ℕ) 
     (Option.bind · tm.step)^[n + 1] (some ⟨none, tapes⟩) = none := by
   rw [Function.iterate_succ_apply]
   induction n with
-  | zero => simp [step]
-  | succ n ih =>
-    simp only [Function.iterate_succ_apply', ih]
-    simp [step]
+  | zero => rfl
+  | succ n ih => grind [Function.iterate_succ_apply']
 
 /-- A collection of tapes where the first tape contains `s` -/
 public def firstTape (s : List Symbol) : Fin k → BiTape Symbol
@@ -280,7 +278,7 @@ public lemma relatesInSteps_iff_step_iter_eq_some
   | succ t ih =>
     rw [RelatesInSteps.succ_iff, Function.iterate_succ_apply']
     constructor
-    · grind only [TransitionRelation, = Option.bind_some]
+    · grind
     · intro h_configs
       cases h : (Option.bind · tm.step)^[t] cfg₁ with
       | none => grind
