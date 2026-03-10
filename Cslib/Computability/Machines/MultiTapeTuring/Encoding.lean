@@ -273,41 +273,11 @@ public lemma pushList_nonempty_path {d : Data} {dat : Data}
   | num _ => rfl
   | list _ => rfl
 
-/-- Remove the first element from a list on tape and return both the element and
-    the updated `TapeView`.
-    If the path is `[]` and `data` is `Data.list (d :: ds)`,
-    returns `some (d, ⟨Data.list ds, []⟩)`.
-    Otherwise, returns `none`. -/
-public def popList (tv : TapeView) : Option (Data × TapeView) :=
+/-- Remove the first element from a list on tape. -/
+public def popList (tv : TapeView) : TapeView :=
   match tv with
-  | ⟨Data.list (d :: ds), []⟩ => some (d, ⟨Data.list ds, []⟩)
-  | _ => none
-
-@[simp]
-public lemma popList_cons {d : Data} {ds : List Data} :
-    (TapeView.mk (Data.list (d :: ds)) []).popList =
-      some (d, TapeView.mk (Data.list ds) []) := by
-  unfold popList; rfl
-
-@[simp]
-public lemma popList_nil :
-    (TapeView.mk (Data.list []) []).popList = none := by
-  unfold popList; rfl
-
-@[simp]
-public lemma popList_num {n : ℕ} {p : List ℕ} :
-    (TapeView.mk (Data.num n) p).popList = none := by
-  unfold popList; rfl
-
-@[simp]
-public lemma popList_nonempty_path {dat : Data}
-    {k : ℕ} {rest : List ℕ} :
-    (TapeView.mk dat (k :: rest)).popList = none := by
-  unfold popList; cases dat with
-  | num _ => rfl
-    | list ds => cases ds with
-      | nil => rfl
-      | cons _ _ => rfl
+  | ⟨Data.list l, []⟩ => ⟨Data.list l.tail, []⟩
+  | tv => tv
 
 /-- If `tv` currently points at a non-empty list, returns its head, otherwise returns none. -/
 public def currentListHead (tv : TapeView) : Option Data :=

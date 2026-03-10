@@ -25,21 +25,21 @@ namespace Routines
     If tape `i` cannot be popped, does nothing. -/
 public def combineOr {k : ℕ} (i j : Fin k) : MultiTapeTM k Char := sorry
 
-@[simp]
-public lemma combineOr_eval_struct {k : ℕ} {i j : Fin k}
-    {views : Fin k → TapeView} :
-    (combineOr i j).eval_struct views = some
-      (match (views i).popList with
-      | some (b_data, vi') =>
-        let views' := Function.update views i vi'
-        if b_data = StrEnc.toData true then
-          match (views' j).popList with
-          | some (_, vj') =>
-            Function.update (Function.update views' i vi')
-              j ((vj').pushList (StrEnc.toData true))
-          | none => views'
-        else views'
-      | none => views) := by sorry
+-- @[simp]
+-- public lemma combineOr_eval_struct {k : ℕ} {i j : Fin k}
+--     {views : Fin k → TapeView} :
+--     (combineOr i j).eval_struct views = some
+--       (match (views i).popList with
+--       | some (b_data, vi') =>
+--         let views' := Function.update views i vi'
+--         if b_data = StrEnc.toData true then
+--           match (views' j).popList with
+--           | some (_, vj') =>
+--             Function.update (Function.update views' i vi')
+--               j ((vj').pushList (StrEnc.toData true))
+--           | none => views'
+--         else views'
+--       | none => views) := by sorry
 
 /-- Negate a Bool value on tape `j`.
     Pops the first element from tape `j` and pushes its negation. -/
@@ -60,12 +60,10 @@ public lemma negateBool_eval_struct {k : ℕ} {i : Fin k}
       | ⟨Data.list (Data.num 0 :: rest), []⟩ => ⟨Data.list (Data.num 1 :: rest), []⟩
       | ⟨Data.list (Data.num 1 :: rest), []⟩ => ⟨Data.list (Data.num 0 :: rest), []⟩
       | _ => views i)) := by
-  simp [negateBool]
-  match views i with
-  | ⟨Data.list (Data.num 0 :: rest), []⟩ => simp
-  | ⟨Data.list (Data.num 1 :: rest), []⟩ => simp
-  | _ => simp
-  sorry
+  match h_v : views i with
+  | ⟨Data.list (Data.num 0 :: rest), []⟩ => simp [negateBool, h_v]
+  | ⟨Data.list (Data.num 1 :: rest), []⟩ => simp [negateBool, h_v]
+  | v => sorry
 
 public def test : MultiTapeTM 1 Char := pushList (StrEnc.toData true) 0 ;ₜ negateBool 0
 
