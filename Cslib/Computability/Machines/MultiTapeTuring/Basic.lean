@@ -13,6 +13,8 @@ public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Machines.TuringCommon
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
+@[expose] public section
+
 /-!
 # Multi-Tape Turing Machines
 
@@ -75,7 +77,7 @@ variable {k : ℕ}
 A `k`-tape Turing machine
 over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
 -/
-public structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
+structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
   /-- type of state labels -/
   State : Type
   /-- finiteness of the state type -/
@@ -113,7 +115,7 @@ an `Option`al state (or none for the halting state),
 and a `BiTape` representing the tape contents.
 -/
 @[ext]
-public structure Cfg : Type where
+structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.State
   /-- the BiTape contents -/
@@ -121,7 +123,7 @@ public structure Cfg : Type where
 deriving Inhabited
 
 /-- The step function corresponding to a `MultiTapeTM`. -/
-public def step : tm.Cfg → Option tm.Cfg
+def step : tm.Cfg → Option tm.Cfg
   | ⟨none, _⟩ =>
     -- If in the halting state, there is no next configuration
     none
@@ -135,7 +137,7 @@ public def step : tm.Cfg → Option tm.Cfg
 
 /-- Any number of positive steps run from a halting configuration lead to `none`. -/
 @[simp, scoped grind =]
-public lemma step_iter_none_eq_none (tapes : Fin k → BiTape Symbol) (n : ℕ) :
+lemma step_iter_none_eq_none (tapes : Fin k → BiTape Symbol) (n : ℕ) :
     (Option.bind · tm.step)^[n + 1] (some ⟨none, tapes⟩) = none := by
   rw [Function.iterate_succ_apply]
   induction n with
@@ -143,7 +145,7 @@ public lemma step_iter_none_eq_none (tapes : Fin k → BiTape Symbol) (n : ℕ) 
   | succ n ih => grind [Function.iterate_succ_apply']
 
 /-- A collection of tapes where the first tape contains `s` -/
-public def firstTape (s : List Symbol) : Fin k → BiTape Symbol
+def firstTape (s : List Symbol) : Fin k → BiTape Symbol
   | ⟨0, _⟩ => BiTape.mk₁ s
   | ⟨_, _⟩ => default
 
@@ -153,46 +155,42 @@ Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` v
 This is to ensure that distinct lists map to distinct initial configurations.
 -/
 @[simp]
-public def initCfg (s : List Symbol) : tm.Cfg :=
+def initCfg (s : List Symbol) : tm.Cfg :=
   ⟨some tm.q₀, firstTape s⟩
 
 /-- Create an initial configuration given a tuple of tapes. -/
 @[simp]
-public def initCfgTapes (tapes : Fin k → BiTape Symbol) : tm.Cfg :=
+def initCfgTapes (tapes : Fin k → BiTape Symbol) : tm.Cfg :=
   ⟨some tm.q₀, tapes⟩
 
 /-- The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
 @[simp]
-public def haltCfg (s : List Symbol) : tm.Cfg :=
+def haltCfg (s : List Symbol) : tm.Cfg :=
   ⟨none, firstTape s⟩
 
 /-- The final configuration of a Turing machine given a tuple of tapes. -/
 @[simp]
-public def haltCfgTapes (tapes : Fin k → BiTape Symbol) : tm.Cfg :=
+def haltCfgTapes (tapes : Fin k → BiTape Symbol) : tm.Cfg :=
   ⟨none, tapes⟩
 
 /-- The sequence of configurations of the Turing machine starting with initial state and
 given tapes at step `t`.
 If the Turing machine halts, it will eventually get and stay `none` after reaching the halting
 configuration. -/
-public def configs (tapes : Fin k → BiTape Symbol) (t : ℕ) : Option tm.Cfg :=
+def configs (tapes : Fin k → BiTape Symbol) (t : ℕ) : Option tm.Cfg :=
   (Option.bind · tm.step)^[t] (tm.initCfgTapes tapes)
-
-
-
--- TODO shouldn't this be spaceUsed? (If yes, also change it in SingleTapeTM)
 
 /--
 The space used by a configuration is the sum of the space used by its tapes.
 -/
-public def Cfg.space_used (cfg : tm.Cfg) : ℕ := ∑ i, (cfg.tapes i).space_used
+def Cfg.space_used (cfg : tm.Cfg) : ℕ := ∑ i, (cfg.tapes i).space_used
 
 /--
 The space used by a configuration grows by at most `k` each step.
 -/
-public lemma Cfg.space_used_step (cfg cfg' : tm.Cfg)
+lemma Cfg.space_used_step (cfg cfg' : tm.Cfg)
     (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + k := by
   obtain ⟨_ | q, tapes⟩ := cfg
   · simp [step] at hstep
@@ -220,12 +218,12 @@ is defined by the `step` function,
 which maps a configuration to its next configuration, if it exists.
 -/
 @[scoped grind =]
-public def TransitionRelation (tm : MultiTapeTM k Symbol) (c₁ c₂ : tm.Cfg) : Prop :=
+def TransitionRelation (tm : MultiTapeTM k Symbol) (c₁ c₂ : tm.Cfg) : Prop :=
   tm.step c₁ = some c₂
 
 /-- A proof that the Turing machine `tm` transforms tapes `tapes` to `tapes'` in exactly
 `t` steps. -/
-public def TransformsTapesInExactTime
+def TransformsTapesInExactTime
     (tm : MultiTapeTM k Symbol)
     (tapes tapes' : Fin k → BiTape Symbol)
     (t : ℕ) : Prop :=
@@ -233,21 +231,19 @@ public def TransformsTapesInExactTime
 
 /-- A proof that the Turing machine `tm` transforms tapes `tapes` to `tapes'` in up to
 `t` steps. -/
-public def TransformsTapesInTime
+def TransformsTapesInTime
     (tm : MultiTapeTM k Symbol)
     (tapes tapes' : Fin k → BiTape Symbol)
     (t : ℕ) : Prop :=
   RelatesWithinSteps tm.TransitionRelation (tm.initCfgTapes tapes) (tm.haltCfgTapes tapes') t
 
 /-- The Turing machine `tm` transforms tapes `tapes` to `tapes'`. -/
-public def TransformsTapes
-    (tm : MultiTapeTM k Symbol)
-    (tapes tapes' : Fin k → BiTape Symbol) : Prop :=
+def TransformsTapes (tm : MultiTapeTM k Symbol) (tapes tapes' : Fin k → BiTape Symbol) : Prop :=
   ∃ t, tm.TransformsTapesInExactTime tapes tapes' t
 
 /-- A proof that the Turing machine `tm` uses at most space `s` when run for up to `t` steps
 on initial tapes `tapes`. -/
-public def UsesSpaceUntilStep
+def UsesSpaceUntilStep
     (tm : MultiTapeTM k Symbol)
     (tapes : Fin k → BiTape Symbol)
     (s t : ℕ) : Prop :=
@@ -257,7 +253,7 @@ public def UsesSpaceUntilStep
 
 /-- A proof that the Turing machine `tm` transforms tapes `tapes` to `tapes'` in exactly `t` steps
 and uses at most `s` space. -/
-public def TransformsTapesInTimeAndSpace
+def TransformsTapesInTimeAndSpace
     (tm : MultiTapeTM k Symbol)
     (tapes tapes' : Fin k → BiTape Symbol)
     (t s : ℕ) : Prop :=
@@ -267,7 +263,7 @@ public def TransformsTapesInTimeAndSpace
 /-- This lemma translates between the relational notion and the iterated step notion. The latter
 can be more convenient especially for deterministic machines as we have here. -/
 @[scoped grind =]
-public lemma relatesInSteps_iff_step_iter_eq_some
+lemma relatesInSteps_iff_step_iter_eq_some
     (tm : MultiTapeTM k Symbol)
     (cfg₁ cfg₂ : tm.Cfg)
     (t : ℕ) :
@@ -287,14 +283,13 @@ public lemma relatesInSteps_iff_step_iter_eq_some
         grind
 
 /-- The Turing machine `tm` halts after exactly `t` steps on initial tapes `tapes`. -/
-public def haltsAtStep
-    (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) (t : ℕ) : Bool :=
+def haltsAtStep (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) (t : ℕ) : Bool :=
   match (tm.configs tapes t) with
   | some ⟨none, _⟩ => true
   | _ => false
 
 /-- If a Turing machine halts, the time step is uniquely determined. -/
-public lemma halting_step_unique
+lemma halting_step_unique
     {tm : MultiTapeTM k Symbol}
     {tapes : Fin k → BiTape Symbol}
     {t₁ t₂ : ℕ}
@@ -316,7 +311,7 @@ public lemma halting_step_unique
       simp at h_halts₂
 
 /-- At the halting step, the configuration sequence of a Turing machine is still `some`. -/
-public lemma configs_isSome_of_haltsAtStep
+lemma configs_isSome_of_haltsAtStep
     {tm : MultiTapeTM k Symbol} {tapes : Fin k → BiTape Symbol} {t : ℕ}
     (h_halts : tm.haltsAtStep tapes t) :
     (tm.configs tapes t).isSome := by
@@ -324,7 +319,7 @@ public lemma configs_isSome_of_haltsAtStep
 
 /-- Execute the Turing machine `tm` on initial tapes `tapes` and return the resulting tapes
 if it eventually halts. -/
-public def eval (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) :
+def eval (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) :
     Part (Fin k → BiTape Symbol) :=
   ⟨∃ t, tm.haltsAtStep tapes t,
     fun h => ((tm.configs tapes (Nat.find h)).get
@@ -333,7 +328,7 @@ public def eval (tm : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) :
 /-- Evaluating a Turing machine on a tuple of tapes `tapes` has a value `tapes'` if and only if
 it transforms `tapes` into `tapes'`. -/
 @[scoped grind =]
-public lemma eval_eq_some_iff_transformsTapes
+lemma eval_eq_some_iff_transformsTapes
     {tm : MultiTapeTM k Symbol}
     {tapes tapes' : Fin k → BiTape Symbol} :
     tm.eval tapes = .some tapes' ↔ tm.TransformsTapes tapes tapes' := by
