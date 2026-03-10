@@ -30,6 +30,8 @@ attribute [grind =] Finset.union_singleton
 inductive SN {α} : Term α → Prop
 | sn t : (∀ (t' : Term α), (t ⭢βᶠ t') → SN t') → SN t
 
+attribute [scoped grind .] SN.sn
+
 /-- A single β-reduction step preserves strong normalization. -/
 @[aesop safe]
 lemma sn_step {t t' : Term Var} (t_st_t' : t ⭢βᶠ t') (sn_t : SN t) : SN t' := by
@@ -48,35 +50,34 @@ lemma sn_fvar {x : Var} : SN (Term.fvar x) := by
 
 /-- An application is strongly normalizing if the left and right terms are strongly normalizing,
     as well as all possible future top level abstraction application beta reductions -/
-lemma sn_app (t s : Term Var) :
-  SN t →
-  SN s →
-  (∀ {t' s' : Term Var}, t ↠βᶠ t'.abs → s ↠βᶠ s' → SN (t' ^ s')) →
-  SN (t.app s) := by
-  intro h_sn_t h_sn_s hβ
-  induction h_sn_t generalizing s with | sn t ht ih_t =>
-  induction h_sn_s with | sn s hs ih_s =>
-  constructor
-  intro u hstep
-  cases hstep with
-  | beta _ _ => apply hβ <;> rfl
-  | appL _ h_s_red =>
-    apply ih_s _ h_s_red
-    intro t' s'' hstep1 hstep2
-    exact hβ hstep1 (Relation.ReflTransGen.head h_s_red hstep2)
-  | appR _ h_t_red =>
-    apply ih_t _ h_t_red _ (SN.sn s hs)
-    intro t' s' hstep1 hstep2
-    exact hβ (Relation.ReflTransGen.head h_t_red hstep1) hstep2
+lemma sn_app (t s : Term Var)
+  (sn_t : SN t)
+  (sn_s : SN s)
+  (hβ : ∀ {t' s' : Term Var}, t ↠βᶠ t'.abs → s ↠βᶠ s' → SN (t' ^ s')) :
+    SN (t.app s) := by
+  induction sn_t generalizing s with
+  | sn t ht ih_t =>
+    induction sn_s with
+    | sn s hs ih_s =>
+      constructor
+      intro u hstep
+      cases hstep with
+      | beta _ _       => grind
+      | appL _ h_s_red => apply ih_s _ h_s_red
+                          grind[Relation.ReflTransGen.head]
+      | appR _ h_t_red => apply ih_t _ h_t_red _ (SN.sn s hs)
+                          grind[Relation.ReflTransGen.head]
 
 
 /-- The left side of a strongly normalizing application is strongly normalizing. -/
-lemma sn_app_left (M N : Term Var) : Term.LC N → SN (M.app N) → SN M := by
-  intro lc_N h_sn
+lemma sn_app_left (M N : Term Var)
+  (lc_N : Term.LC N)
+  (sn_MN : SN (M.app N)) :
+    SN M := by
   generalize Heq : M.app N = P
-  rw[Heq] at h_sn
+  rw[Heq] at sn_MN
   revert M N
-  induction h_sn
+  induction sn_MN
   · case sn P h_sn ih =>
     intro M N lc_N Heq
     rw[←Heq] at ih
@@ -88,12 +89,14 @@ lemma sn_app_left (M N : Term Var) : Term.LC N → SN (M.app N) → SN M := by
     · rfl
 
 /-- The right side of a strongly normalizing application is strongly normalizing. -/
-lemma sn_app_right (M N : Term Var) : Term.LC M → SN (M.app N) → SN N := by
-  intro lc_N h_sn
+lemma sn_app_right (M N : Term Var)
+  (lc_N : Term.LC M)
+  (sn_MN : SN (M.app N)) :
+    SN N := by
   generalize Heq : M.app N = P
-  rw[Heq] at h_sn
+  rw[Heq] at sn_MN
   revert M N
-  induction h_sn
+  induction sn_MN
   · case sn P h_sn ih =>
     intro M N lc_N Heq
     rw[←Heq] at ih
@@ -120,13 +123,13 @@ attribute [scoped grind .] neutral.bvar neutral.fvar neutral.app
 /-- Neutral terms only reduce to other neutral terms in a single step -/
 lemma neutral_step {t t' : Term Var}
   (Hneut : neutral t) (Hstep : t ⭢βᶠ t') : neutral t' := by
-  induction Hneut generalizing t' <;> cases Hstep <;> try grind[sn_step]
+  induction Hneut generalizing t' <;> cases Hstep <;> try grind [sn_step]
   · contradiction
 
 /-- Neutral terms only reduce to other neutral terms in multiple steps -/
 lemma neutral_steps {t t' : Term Var}
     (Hneut : neutral t) (Hsteps : t ↠βᶠ t') : neutral t' := by
-  induction Hsteps <;> grind[neutral_step]
+  induction Hsteps <;> grind [neutral_step]
 
 /-- Neutral terms are strongly normalizing. -/
 lemma sn_neutral {t : Term Var} (Hneut : neutral t) : SN t := by
@@ -177,19 +180,17 @@ lemma sn_multiApp [DecidableEq Var] [HasFresh Var] : ∀ {Ps} {M N : Term Var},
   induction P <;> intros M N sn_N sn_MNPs lc_N lc_MNPs
   · case nil =>
       apply sn_app
-      · apply sn_abs at sn_MNPs
-        simp_all
+      · grind [sn_abs]
       · assumption
       · intro M' N' hstep1 hstep2
         have Hmst : (M ^ N) ↠βᶠ (M' ^ N') := by
-          apply FullBeta.steps_open_cong_abs <;> try assumption
-          apply open_abs_lc <;> assumption
-        apply sn_steps <;> assumption
+          grind [FullBeta.steps_open_cong_abs, open_abs_lc]
+        grind [sn_steps]
   · case cons P Ps ih =>
       apply sn_app
       · apply ih <;> try assumption
-        · apply sn_app_left at sn_MNPs <;> try grind[Untyped.Term.multiApp_lc]
-        · grind[Untyped.Term.multiApp_lc]
+        · apply sn_app_left at sn_MNPs <;> try grind [sn_app_left, Untyped.Term.multiApp_lc]
+        · grind [Untyped.Term.multiApp_lc]
       · apply sn_app_right at sn_MNPs
         · assumption
         · cases lc_MNPs
@@ -205,28 +206,23 @@ lemma sn_multiApp [DecidableEq Var] [HasFresh Var] : ∀ {Ps} {M N : Term Var},
                 transitivity
                 · apply steps_multiApp_r
                   · assumption
-                  · rw[multiApp_lc] at lc_MNPs
-                    simp_all
-                · apply steps_multiApp_l
-                  · rw[multiApp_lc] at lc_MNPs
-                    apply FullBeta.steps_open_cong_abs M M' N N' <;> try assumption
-                    · apply open_abs_lc
-                      · apply lc_MNPs.1
-                  · rw[multiApp_lc] at lc_MNPs
-                    apply multiApp_steps_lc at h_Ps_red
-                    simp_all
+                  · grind [steps_multiApp_r, multiApp_lc]
+                · grind [steps_multiApp_r,
+                         steps_multiApp_l,
+                         multiApp_steps_lc,
+                         multiApp_lc,
+                         FullBeta.steps_open_cong_abs, open_abs_lc]
               have H3 : (multiApp (M ^ N) Ps) ↠βᶠ Q'.abs := by
-                transitivity <;> try assumption
+                transitivity <;> assumption
               have H4 : Q'.abs.app P' ↠βᶠ Q' ^ P' := by
-                grind[FullBeta.beta, FullBeta.step_lc_r]
+                grind [FullBeta.beta, FullBeta.step_lc_r]
               have H4 : ((M ^ N).multiApp Ps).app P ↠βᶠ Q'.abs.app P' := by
                 cases lc_MNPs
                 transitivity
                 · apply FullBeta.redex_app_r_cong <;> assumption
-                · apply FullBeta.redex_app_l_cong <;> grind[FullBeta.step_lc_r]
-              transitivity <;> try assumption
-            apply sn_steps <;> try assumption
-
+                · apply FullBeta.redex_app_l_cong <;> grind [FullBeta.step_lc_r]
+              transitivity <;> assumption
+            grind [sn_steps]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
