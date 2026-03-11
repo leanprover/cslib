@@ -306,12 +306,12 @@ instance : InfSet (Fact P) where
 
 omit [PhaseSpace P] in
 lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
-  (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
+    (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
 
 @[scoped grind =, simp]
 lemma inter_eq_orth_union_orth (G H : Fact P) :
-  ((G : Set P) ∩ (H : Set P) : Set P) =
-    (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
+    ((G : Set P) ∩ (H : Set P) : Set P) =
+      (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
   ext m
   constructor
   · simp only [orthogonal_def, mem_union]
