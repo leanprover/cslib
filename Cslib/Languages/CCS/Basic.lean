@@ -7,7 +7,8 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Syntax.Context
-public import Cslib.Foundations.Syntax.Congruence
+public import Mathlib.Tactic.ToAdditive
+public import Mathlib.Tactic.ToDual
 
 @[expose] public section
 
@@ -122,14 +123,14 @@ instance : HasContext (Process Name Constant) := ⟨Context Name Constant, Conte
 
 /-- Definition of context filling. -/
 @[scoped grind =]
-theorem isContext_def (c : Context Name Constant) (p : Process Name Constant) :
-  c[p] = c.fill p := rfl
+theorem hasContext_def (c : Context Name Constant) (p : Process Name Constant) :
+  c<[p] = c.fill p := rfl
 
 /-- Any `Process` can be obtained by filling a `Context` with an atom. This proves that `Context`
 is a complete formalisation of syntactic contexts for CCS. -/
 theorem Context.complete (p : Process Name Constant) :
-    ∃ c : Context Name Constant, p = c[Process.nil] ∨
-    ∃ k : Constant, p = c[Process.const k] := by
+    ∃ c : Context Name Constant, p = c<[Process.nil] ∨
+    ∃ k : Constant, p = c<[Process.const k] := by
   induction p
   case nil =>
     exists hole

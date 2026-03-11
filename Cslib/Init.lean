@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jesse Alama
 -/
 
-module
+module -- shake: keep-downstream, shake: keep-all
 
 public import Cslib.Foundations.Lint.Basic
 public import Mathlib.Init

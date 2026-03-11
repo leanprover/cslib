@@ -1,7 +1,15 @@
 module  -- shake: keep-all
 
-public import Cslib.Algorithms.Lean.MergeSort.MergeSort
-public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.AlgorithmsTheory.Algorithms.ListInsertionSort
+public import Cslib.AlgorithmsTheory.Algorithms.ListLinearSearch
+public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
+public import Cslib.AlgorithmsTheory.Algorithms.MergeSort
+public import Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
+public import Cslib.AlgorithmsTheory.Lean.TimeM
+public import Cslib.AlgorithmsTheory.LowerBounds.ComparisonSort
+public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
+public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
+public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
@@ -29,6 +37,7 @@ public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Computability.Machines.SingleTapeTuring.Basic
 public import Cslib.Computability.URM.Basic
 public import Cslib.Computability.URM.Computable
 public import Cslib.Computability.URM.Defs
@@ -39,6 +48,7 @@ public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
+public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.FinFun
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.Nat.Segment
@@ -50,6 +60,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
+public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
