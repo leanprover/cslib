@@ -29,6 +29,7 @@ following two conditions hold:
 (1) `u` can move `na` from `s` to `t` iff `v` can move `na` from `s` to `t`;
 (2) `u` can move `na` from `s` to `t` via an acceptingg states iff `v` can move `na`
 from `s` to `t` via an acceptingg states. -/
+@[implicit_reducible]
 def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.r u v :=
     ∀ {s t}, (u ∈ na.pairLang s t ↔ v ∈ na.pairLang s t) ∧

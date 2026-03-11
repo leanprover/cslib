@@ -659,7 +659,7 @@ theorem LTS.deterministic_tr_image_singleton [lts.Deterministic] :
 /-- In a deterministic LTS, any image is either a singleton or the empty set. -/
 @[scoped grind .]
 theorem LTS.deterministic_image_char [lts.Deterministic] (s : State) (μ : Label) :
-  (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
+    (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
 
 /-- In a deterministic LTS, the image of any state-label combination is finite. -/
 instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) := by
@@ -777,9 +777,9 @@ theorem LTS.sTr_sTrN [HasTau Label] (lts : LTS State Label) :
 /-- Saturated transitions labelled by τ can be composed (weighted version). -/
 @[scoped grind →]
 theorem LTS.STrN.trans_τ
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
-  lts.STrN (n + m) s1 HasTau.τ s3 := by
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
+    lts.STrN (n + m) s1 HasTau.τ s3 := by
   cases h1
   case refl => grind
   case tr n1 sb sb' n2 hstr1 htr hstr2 =>
@@ -790,9 +790,9 @@ theorem LTS.STrN.trans_τ
 /-- Saturated transitions labelled by τ can be composed. -/
 @[scoped grind →]
 theorem LTS.STr.trans_τ
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
-  lts.STr s1 HasTau.τ s3 := by
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
+    lts.STr s1 HasTau.τ s3 := by
   obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
   obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
   have concN := LTS.STrN.trans_τ lts h1N h2N
@@ -801,10 +801,10 @@ theorem LTS.STr.trans_τ
 /-- Saturated transitions can be appended with τ-transitions (weighted version). -/
 @[scoped grind <=]
 theorem LTS.STrN.append
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 μ s2)
-  (h2 : lts.STrN n2 s2 HasTau.τ s3) :
-  lts.STrN (n1 + n2) s1 μ s3 := by
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 μ s2)
+    (h2 : lts.STrN n2 s2 HasTau.τ s3) :
+    lts.STrN (n1 + n2) s1 μ s3 := by
   cases h1
   case refl => grind
   case tr n11 sb sb' n12 hstr1 htr hstr2 =>
@@ -816,11 +816,11 @@ theorem LTS.STrN.append
 /-- Saturated transitions can be composed (weighted version). -/
 @[scoped grind <=]
 theorem LTS.STrN.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STrN n1 s1 HasTau.τ s2)
-  (h2 : lts.STrN n2 s2 μ s3)
-  (h3 : lts.STrN n3 s3 HasTau.τ s4) :
-  lts.STrN (n1 + n2 + n3) s1 μ s4 := by
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 HasTau.τ s2)
+    (h2 : lts.STrN n2 s2 μ s3)
+    (h3 : lts.STrN n3 s3 HasTau.τ s4) :
+    lts.STrN (n1 + n2 + n3) s1 μ s4 := by
   cases h2
   case refl =>
     apply LTS.STrN.trans_τ lts h1 h3
@@ -833,11 +833,11 @@ theorem LTS.STrN.comp
 /-- Saturated transitions can be composed. -/
 @[scoped grind <=]
 theorem LTS.STr.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2)
-  (h2 : lts.STr s2 μ s3)
-  (h3 : lts.STr s3 HasTau.τ s4) :
-  lts.STr s1 μ s4 := by
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STr s1 HasTau.τ s2)
+    (h2 : lts.STr s2 μ s3)
+    (h3 : lts.STr s3 HasTau.τ s4) :
+    lts.STr s1 μ s4 := by
   obtain ⟨n1, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
   obtain ⟨n2, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
   obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
@@ -848,7 +848,7 @@ open scoped LTS.STr in
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
 @[scoped grind _=_]
 theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
-  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+    (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
   apply Iff.intro <;> intro h
   case mp =>
@@ -894,9 +894,9 @@ def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
 /-- If a trace is divergent, then any 'suffix' is also divergent. -/
 @[scoped grind ⇒]
 theorem LTS.divergentTrace_drop
-  [HasTau Label] {μs : ωSequence Label}
-  (h : DivergentTrace μs) (n : ℕ) :
-  DivergentTrace (μs.drop n) := by
+    [HasTau Label] {μs : ωSequence Label}
+    (h : DivergentTrace μs) (n : ℕ) :
+    DivergentTrace (μs.drop n) := by
   intro m
   simp only [DivergentTrace] at h
   simp only [ωSequence.get_fun, ωSequence.drop]
