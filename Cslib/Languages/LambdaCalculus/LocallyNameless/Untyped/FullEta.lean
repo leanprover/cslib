@@ -50,7 +50,7 @@ variable [HasFresh Var] [DecidableEq Var]
 /-- An η-reduction step does not introduce new free variables. -/
 lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
   induction step
-  case abs M_inner N_inner xs st_body ih =>
+  case abs M_inner N_inner xs _ ih =>
     have ⟨x, hx⟩ := fresh_exists (xs ∪ {w} ∪ M_inner.fv ∪ N_inner.fv)
     simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hx
     rcases hx with ⟨⟨⟨hxs, hw_neq⟩, _⟩, hxN⟩
