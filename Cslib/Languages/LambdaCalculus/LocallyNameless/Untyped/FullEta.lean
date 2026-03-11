@@ -42,7 +42,7 @@ variable {M M' : Term Var}
 /-- The right side of an η-reduction is locally closed. -/
 lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
   induction step
-  case' abs => constructor; assumption
+  case abs => constructor; assumption
   all_goals grind
 
 variable [HasFresh Var] [DecidableEq Var]
