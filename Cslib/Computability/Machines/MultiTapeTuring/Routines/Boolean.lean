@@ -14,6 +14,43 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
 namespace Turing
 namespace Routines
 
+/-- Turing machine `tm` computes a function on data from tape `i` and updates tape `j`. -/
+-- TODO move this somewhere else
+public def computes_function {k : ℕ}
+  (tm : MultiTapeTM k Char) (f : TapeView → Data → TapeView)
+  (i j : Fin k) (_h_neq : i ≠ j)
+  (views : Fin k → TapeView) :=
+  tm.eval_struct views = some (Function.update views j
+    (((views i).current.map (f (views j))).getD (views j)))
+
+
+-- TODO could generalize this to `f` having a preimage β.
+public def computes_function_push {k : ℕ}
+  {α : Type} [StrEnc α]
+  (tm : MultiTapeTM k Char) (f : Data → α)
+  (i j : Fin k) (_h_neq : i ≠ j) :=
+  computes_function tm (fun tv d => tv.pushList (StrEnc.toData (f d))) i j _h_neq
+
+public def computes_function_push_bool {k : ℕ}
+  (tm : MultiTapeTM k Char) (f : Data → Bool)
+  (i j : Fin k) (h_neq : i ≠ j) :=
+  computes_function_push (α := Bool) tm f i j h_neq
+
+/-- Turing machine `tm` updates the head of tape `i`. -/
+public def computes_function_update {k : ℕ}
+  {α β : Type} [StrEnc α] [StrEnc β]
+  (tm : MultiTapeTM k Char) (f : α → β)
+  (i : Fin k)
+  (views : Fin k → TapeView) :=
+  tm.eval_struct views = some (Function.update views i ((views i).updateListHeadTyped f))
+
+@[simp]
+public def computes_fun_push_bool_update_seq {k : ℕ}
+  (tm₁ tm₂ : MultiTapeTM k Char) (f₁ : Data → Bool) (f₂ : Data → Data)
+  (i : Fin k) :=
+  computes_function_push_bool tm f i i (by simp)
+
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Boolean operations
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -23,7 +60,7 @@ namespace Routines
     If it is `false`, leaves tape `j` unchanged.
     If it is `true`, pops the first element from tape `j` and pushes `true`.
     If tape `i` cannot be popped, does nothing. -/
-public def combineOr {k : ℕ} (i j : Fin k) : MultiTapeTM k Char := sorry
+public def combineOr {k : ℕ} (j : Fin k) : MultiTapeTM k Char := sorry
 
 -- @[simp]
 -- public lemma combineOr_eval_struct {k : ℕ} {i j : Fin k}
@@ -49,6 +86,11 @@ public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
      pushList (StrEnc.toData true) j,
      -- true (1) → push false (0)
      pushList (StrEnc.toData false) j]
+
+@[simp]
+public lemma computes_fun_negateBool {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+    computes_function_update (negateBool i) (fun b : Bool => !b) i views := by
+  sorry
 
 -- TODO from here below the simp lemmas are nice. Let us try to find a similarly nice
 -- simpe lemma for case_popList_num. Maybe the array is the problem?

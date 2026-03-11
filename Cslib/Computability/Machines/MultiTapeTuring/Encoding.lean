@@ -200,6 +200,8 @@ public def empty : TapeView := ⟨Data.list [], []⟩
 /-- A tape containing a single Data value with the head at the start. -/
 public def ofData (d : Data) : TapeView := ⟨d, []⟩
 
+public def ofList (ls : List Data) : TapeView := ofData (Data.list ls)
+
 /-- A tape containing a single typed value with the head at the start. -/
 public def ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
   ofData (StrEnc.toData x)
@@ -215,6 +217,14 @@ public def current (tv : TapeView) : Option Data :=
 public def currentNum (tv : TapeView) : Option ℕ :=
   match tv.current with
   | some (Data.num n) => some n
+  | _ => none
+
+/-- The current value as a list, if it is a `List`.
+    Returns `none` if the tape is empty, the path is invalid,
+    or the value at the path is not a `Data.list`. -/
+public def currentList (tv : TapeView) : Option (List Data) :=
+  match tv.current with
+  | some (Data.list ls) => some ls
   | _ => none
 
 /-- Attempt to decode the current value as a typed value of type `α`.
@@ -273,17 +283,34 @@ public lemma pushList_nonempty_path {d : Data} {dat : Data}
   | num _ => rfl
   | list _ => rfl
 
+public def asWritableList (tv : TapeView) : Option (List Data) :=
+  match tv with
+  | ⟨Data.list l, []⟩ => some l
+  | _ => none
+
 /-- Remove the first element from a list on tape. -/
 public def popList (tv : TapeView) : TapeView :=
-  match tv with
-  | ⟨Data.list l, []⟩ => ⟨Data.list l.tail, []⟩
-  | tv => tv
+  (tv.asWritableList.map fun ls => TapeView.ofList ls.tail).getD tv
 
 /-- If `tv` currently points at a non-empty list, returns its head, otherwise returns none. -/
 public def currentListHead (tv : TapeView) : Option Data :=
   match tv.current with
   | Data.list (d :: _) => some d
   | _ => none
+
+public def updateListHead (tv : TapeView) (f : Data → Data) : TapeView :=
+  match tv with
+  | ⟨Data.list (d :: ds), []⟩ => ⟨Data.list (f d :: ds), []⟩
+  | other => other
+
+public def updateListHeadTyped
+  {α β : Type} [StrEnc α] [StrEnc β]
+  (tv : TapeView) (f : α → β) : TapeView := (do
+    let ls <- tv.asWritableList
+    let d <- ls.head?
+    let x <- StrEnc.fromData d
+    return TapeView.ofList ((StrEnc.toData (f x)) :: ls.tail)).getD tv
+
 
 end TapeView
 
