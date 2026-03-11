@@ -132,7 +132,7 @@ theorem map_eq_map {α β : Type w} : FreeM.map (F := F) (α := α) (β := β) =
 
 /-- Lift an operation from the effect signature `F` into the `FreeM F` monad. -/
 def lift (op : F ι) : FreeM F ι :=
-  .liftBind op .pure
+  .liftBind op pure
 
 @[simp]
 lemma liftBind_eq (op : F ι) :

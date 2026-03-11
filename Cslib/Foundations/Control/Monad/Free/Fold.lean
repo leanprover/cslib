@@ -69,6 +69,22 @@ theorem foldFreeM_lift_bind
       foldFreeM onValue onEffect ((lift op).bind k)
       = onEffect op (fun x => foldFreeM onValue onEffect (k x)) := rfl
 
+@[simp]
+theorem foldFreeM_lift_bind' {F : Type w → Type v} {ι : Type w}
+    (onValue : α → β)
+    (onEffect : {ι : Type w} → F ι → (ι → β) → β)
+    (op : F ι) (k : ι → FreeM F α) :
+      foldFreeM onValue onEffect ((lift op) >>= k)
+      = onEffect op (fun x => foldFreeM onValue onEffect (k x)) := rfl
+
+@[simp]
+theorem foldFreeM_lift
+    (onValue : ι → β)
+    (onEffect : {ι : Type u} → F ι → (ι → β) → β)
+    (op : F ι) :
+    foldFreeM onValue onEffect (lift op) = onEffect op onValue :=
+  rfl
+
 /--
 **Universal Property**: If `h : FreeM F α → β` satisfies:
 * `h (pure a) = onValue a`
