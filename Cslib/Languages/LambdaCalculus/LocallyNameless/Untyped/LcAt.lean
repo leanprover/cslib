@@ -43,8 +43,9 @@ def depth : Term Var → ℕ
 
 @[elab_as_elim]
 protected lemma ind_on_depth (P : Term Var → Prop) (bvar : ∀ i, P (bvar i)) (fvar : ∀ x, P (fvar x))
-  (app : ∀ M N, P M → P N → P (app M N)) (abs : ∀ M, P M → (∀ N, N.depth ≤ M.depth → P N) → P M.abs)
-  (M : Term Var) : P M := by
+    (app : ∀ M N, P M → P N → P (app M N))
+    (abs : ∀ M, P M → (∀ N, N.depth ≤ M.depth → P N) → P M.abs)
+    (M : Term Var) : P M := by
   have h {d : ℕ} {M : Term Var} (p : M.depth ≤ d) : P M := by
     induction d generalizing M with
     | zero => induction M <;> grind

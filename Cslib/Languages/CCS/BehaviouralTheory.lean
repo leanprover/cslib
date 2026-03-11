@@ -81,7 +81,7 @@ private inductive ParAssoc : Process Name Constant → Process Name Constant →
 
 /-- P | (Q | R) ~ (P | Q) | R -/
 theorem bisimilarity_par_assoc :
-  (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
+    (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
   use ParAssoc, ParAssoc.assoc
   intro s1 s2 hr μ
   apply And.intro <;> cases hr
@@ -169,7 +169,7 @@ private inductive ChoiceIdem : Process Name Constant → Process Name Constant �
 
 /-- P + P ~ P -/
 theorem bisimilarity_choice_idem :
-  (choice p p) ~[lts (defs := defs)] p := by
+    (choice p p) ~[lts (defs := defs)] p := by
   exists ChoiceIdem
   apply And.intro
   case left => grind
@@ -250,7 +250,7 @@ private inductive PreBisim : Process Name Constant → Process Name Constant →
 open scoped LTS in
 /-- P ~ Q → μ.P ~ μ.Q -/
 theorem bisimilarity_congr_pre :
-  (p ~[lts (defs := defs)] q) → (pre μ p) ~[lts (defs := defs)] (pre μ q) := by
+    (p ~[lts (defs := defs)] q) → (pre μ p) ~[lts (defs := defs)] (pre μ q) := by
   intro hpq
   exists @PreBisim _ _ defs
   constructor
@@ -269,7 +269,7 @@ private inductive ResBisim : Process Name Constant → Process Name Constant →
 
 /-- P ~ Q → (ν a) P ~ (ν a) Q -/
 theorem bisimilarity_congr_res :
-  (p ~[lts (defs := defs)] q) → (res a p) ~[lts (defs := defs)] (res a q) := by
+    (p ~[lts (defs := defs)] q) → (res a p) ~[lts (defs := defs)] (res a q) := by
   intro hpq
   exists @ResBisim _ _ defs
   constructor
@@ -299,7 +299,7 @@ private inductive ChoiceBisim : Process Name Constant → Process Name Constant 
 
 /-- P ~ Q → P + R ~ Q + R -/
 theorem bisimilarity_congr_choice :
-  (p ~[lts (defs := defs)] q) → (choice p r) ~[lts (defs := defs)] (choice q r) := by
+    (p ~[lts (defs := defs)] q) → (choice p r) ~[lts (defs := defs)] (choice q r) := by
   intro h
   exists @ChoiceBisim _ _ defs
   constructor
@@ -367,7 +367,7 @@ private inductive ParBisim : Process Name Constant → Process Name Constant →
 
 /-- P ~ Q → P | R ~ Q | R -/
 theorem bisimilarity_congr_par :
-  (p ~[lts (defs := defs)] q) → (par p r) ~[lts (defs := defs)] (par q r) := by
+    (p ~[lts (defs := defs)] q) → (par p r) ~[lts (defs := defs)] (par q r) := by
   intro h
   exists @ParBisim _ _ defs
   constructor
@@ -415,8 +415,8 @@ theorem bisimilarity_congr_par :
 
 /-- Bisimilarity is a congruence in CCS. -/
 theorem bisimilarity_is_congruence
-  (p q : Process Name Constant) (c : Context Name Constant) (h : p ~[lts (defs := defs)] q) :
-  (c.fill p) ~[lts (defs := defs)] (c.fill q) := by
+    (p q : Process Name Constant) (c : Context Name Constant) (h : p ~[lts (defs := defs)] q) :
+    (c.fill p) ~[lts (defs := defs)] (c.fill q) := by
   induction c with
   | parR r c _ =>
     calc
