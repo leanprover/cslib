@@ -128,9 +128,8 @@ abbrev entails (Γ : Context Var (Ty Base)) (t : Term Var) (τ : Ty Base) :=
 
 /-- The `soundness` lemma states that if a term `t` has type `τ` in context `Γ`,
     then `t` is semantically valid with respect to `Γ` and `τ` -/
-lemma soundness {Γ : Context Var (Ty Base)} {t : Term Var} {τ : Ty Base} :
-    Γ ⊢ t ∶ τ → entails Γ t τ := by
-  intro derivation_t
+lemma soundness {Γ : Context Var (Ty Base)} {t : Term Var} {τ : Ty Base}
+    (derivation_t : Γ ⊢ t ∶ τ) : entails Γ t τ := by
   induction derivation_t
   · case var Γ xσ_mem_Γ => grind
   · case' abs σ Γ t τ L HL IH =>
