@@ -24,20 +24,56 @@ public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
   right i ;ₜ while_neq ')' i (tm ;ₜ skipRight i) ;ₜ
     while_neq '(' i (skipLeft i)
 
-/-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
-    value to tape `tmp`, and compute the logical OR of the results across the list.
-    Uses tape `tmp` for intermediate results and accumulates on tape `j`.
-    `any_list i tm j tmp = put false j ;ₜ run_list i (tm ;ₜ combineOr tmp j)` -/
-public def any_list {k : ℕ} (i : Fin k)
-    (tm : MultiTapeTM k Char) (j tmp : Fin k) : MultiTapeTM k Char :=
-  put (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOr tmp j)
+/-- If `tm` computes a function `f` that acts like a folding function, the result of using
+`run_list` is a fold with accumulator on tape `j`. -/
+@[simp]
+public lemma run_list_fold {k : ℕ} (i j : Fin k) (h_neq : i ≠ j) {tm : MultiTapeTM k Char}
+  (f : TapeView → Data → TapeView)
+  (h_comp : ∀ views, computes_function tm f i j h_neq views)
+  (views : Fin k → TapeView) :
+  (run_list i tm).eval_struct views = some (Function.update views j
+      (((views i).currentList.map (fun ls => ls.foldl f (views j))).getD (views j))) := by
+  sorry
+
+public def any_list {k : ℕ}
+    (tm : MultiTapeTM k Char) (i j : Fin k) (_h_neq : i ≠ j) : MultiTapeTM k Char :=
+  pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOr j)
+
+@[simp]
+public theorem any_list_eval_list {k : ℕ} (i j : Fin k)
+    (h_neq : i ≠ j)
+    {tm : MultiTapeTM k Char}
+    {f : Data → Bool}
+    (h_comp : ∀ views, computes_function_push_bool tm f i j h_neq views)
+    (views : Fin k → TapeView) :
+    (any_list tm i j h_neq).eval_struct views = some (Function.update views j
+      (((views i).currentList.map
+        fun ls => (views j).pushList (StrEnc.toData (ls.any f))).getD (views j))) := by sorry
 
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
     value to tape `tmp`, and compute the logical AND of the results across the list.
     Uses tape `tmp` for intermediate results and accumulates on tape `j`. -/
-public def all_list {k : ℕ} (i : Fin k)
-    (tm : MultiTapeTM k Char) (j tmp : Fin k) : MultiTapeTM k Char :=
-  any_list i (tm ;ₜ negateBool tmp) j tmp ;ₜ negateBool j
+public def all_list {k : ℕ}
+    (tm : MultiTapeTM k Char)
+    (i j : Fin k) (h_neq : i ≠ j) : MultiTapeTM k Char :=
+  any_list (tm ;ₜ negateBool j) i j h_neq ;ₜ negateBool j
+
+@[simp]
+public theorem all_list_eval_list {k : ℕ} (i j : Fin k)
+    (h_neq : i ≠ j)
+    {tm : MultiTapeTM k Char}
+    {f : Data → Bool}
+    (h_comp : ∀ views, computes_function_push_bool tm f i j h_neq views)
+    (views : Fin k → TapeView) :
+    (all_list tm i j h_neq).eval_struct views = some (Function.update views j
+      (((views i).currentList.map
+        fun ls => (views j).pushList (StrEnc.toData (ls.all f))).getD (views j))) := by
+  unfold all_list
+  have h_comp' : ∀ views, computes_function_push_bool (tm ;ₜ negateBool j) (fun d => !f d) i j h_neq views := by
+    intro views
+    rw [computes_function_push_bool, computes_function_push_bool] at h_comp
+  rw [any_list_eval_list i j h_neq _ _ views]
+  sorry
 
 /-- Check if the value on tape `i` is contained in the list on tape `j`
     and store the boolean result on tape `result`.

@@ -10,45 +10,10 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 
 namespace Turing
 namespace Routines
-
-/-- Turing machine `tm` computes a function on data from tape `i` and updates tape `j`. -/
--- TODO move this somewhere else
-public def computes_function {k : ℕ}
-  (tm : MultiTapeTM k Char) (f : TapeView → Data → TapeView)
-  (i j : Fin k) (_h_neq : i ≠ j)
-  (views : Fin k → TapeView) :=
-  tm.eval_struct views = some (Function.update views j
-    (((views i).current.map (f (views j))).getD (views j)))
-
-
--- TODO could generalize this to `f` having a preimage β.
-public def computes_function_push {k : ℕ}
-  {α : Type} [StrEnc α]
-  (tm : MultiTapeTM k Char) (f : Data → α)
-  (i j : Fin k) (_h_neq : i ≠ j) :=
-  computes_function tm (fun tv d => tv.pushList (StrEnc.toData (f d))) i j _h_neq
-
-public def computes_function_push_bool {k : ℕ}
-  (tm : MultiTapeTM k Char) (f : Data → Bool)
-  (i j : Fin k) (h_neq : i ≠ j) :=
-  computes_function_push (α := Bool) tm f i j h_neq
-
-/-- Turing machine `tm` updates the head of tape `i`. -/
-public def computes_function_update {k : ℕ}
-  {α β : Type} [StrEnc α] [StrEnc β]
-  (tm : MultiTapeTM k Char) (f : α → β)
-  (i : Fin k)
-  (views : Fin k → TapeView) :=
-  tm.eval_struct views = some (Function.update views i ((views i).updateListHeadTyped f))
-
-@[simp]
-public def computes_fun_push_bool_update_seq {k : ℕ}
-  (tm₁ tm₂ : MultiTapeTM k Char) (f₁ : Data → Bool) (f₂ : Data → Data)
-  (i : Fin k) :=
-  computes_function_push_bool tm f i i (by simp)
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
