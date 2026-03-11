@@ -67,7 +67,7 @@ def semanticMap (τ : Ty Base) : Set (Term Var) :=
 lemma semanticMap_saturated (τ : Ty Base) :
     @saturated Var (semanticMap τ) := by
   induction τ
-  · case base b => grind[sn_multiApp, sn_neutral, multiApp_lc, open_abs_lc]
+  · case base b => grind[sn_abs_app_multiApp, sn_neutral, multiApp_lc, open_abs_lc]
   · case arrow τ₁ τ₂ ih₁ ih₂ =>
       constructor
       · intro M hM

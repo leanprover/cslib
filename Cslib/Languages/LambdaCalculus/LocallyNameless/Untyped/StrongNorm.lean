@@ -23,6 +23,8 @@ variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
+open FullBeta
+
 attribute [grind =] Finset.union_singleton
 
 /-- A term is strongly normalizing if every reduction sequence terminates at some point.
@@ -169,7 +171,7 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] : ∀ {M N : Term Var},
       1. M ^ N P₁ … Pₙ is strongly normalizing,
       1. N is locally closed,
       1. M ^ N P₁ … Pₙ is locally closed -/
-lemma sn_multiApp [DecidableEq Var] [HasFresh Var] : ∀ {Ps} {M N : Term Var},
+lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] : ∀ {Ps} {M N : Term Var},
   SN N →
   SN (multiApp (M ^ N) Ps) →
   LC N →
@@ -187,42 +189,34 @@ lemma sn_multiApp [DecidableEq Var] [HasFresh Var] : ∀ {Ps} {M N : Term Var},
           grind [FullBeta.steps_open_cong_abs, open_abs_lc]
         grind [sn_steps]
   · case cons P Ps ih =>
+      cases lc_MNPs
       apply sn_app
-      · apply ih <;> try assumption
-        · apply sn_app_left at sn_MNPs <;> try grind [sn_app_left, Untyped.Term.multiApp_lc]
-        · grind [Untyped.Term.multiApp_lc]
-      · apply sn_app_right at sn_MNPs
-        · assumption
-        · cases lc_MNPs
-          assumption
+      · grind [sn_app_left]
+      · grind [sn_app_right]
       · intro Q' P' hstep1 hstep2
         match (Term.invert_abs_multiApp_mst hstep1) with
         | ⟨ M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases ⟩ =>
           match h_cases with
           | Or.inl h_P => cases Ps' <;> rw[multiApp] at h_cases <;> contradiction
           | Or.inr ⟨ h_st1, h_st2 ⟩ =>
-            have H1 : (multiApp (M ^ N) Ps).app P ↠βᶠ Q' ^ P' := by
-              have H2 : (multiApp (M ^ N) Ps) ↠βᶠ (M' ^ N').multiApp Ps' := by
-                transitivity
-                · apply steps_multiApp_r
-                  · assumption
-                  · grind [steps_multiApp_r, multiApp_lc]
-                · grind [steps_multiApp_r,
-                         steps_multiApp_l,
+            have innerSteps :=
+              calc
+                (M ^ N).multiApp Ps ↠βᶠ (multiApp (M ^ N) Ps') := by
+                  grind [steps_multiApp_r, FullBeta.steps_open_cong_abs, open_abs_lc]
+                _                   ↠βᶠ (M' ^ N').multiApp Ps' := by
+                  grind [steps_multiApp_l,
                          multiApp_steps_lc,
                          multiApp_lc,
-                         FullBeta.steps_open_cong_abs, open_abs_lc]
-              have H3 : (multiApp (M ^ N) Ps) ↠βᶠ Q'.abs := by
-                transitivity <;> assumption
-              have H4 : Q'.abs.app P' ↠βᶠ Q' ^ P' := by
-                grind [FullBeta.beta, FullBeta.step_lc_r]
-              have H4 : ((M ^ N).multiApp Ps).app P ↠βᶠ Q'.abs.app P' := by
-                cases lc_MNPs
-                transitivity
-                · apply FullBeta.redex_app_r_cong <;> assumption
-                · apply FullBeta.redex_app_l_cong <;> grind [FullBeta.step_lc_r]
-              transitivity <;> assumption
-            grind [sn_steps]
+                         FullBeta.steps_open_cong_abs,
+                         open_abs_lc]
+                _                   ↠βᶠ Q'.abs := by
+                  grind [steps_multiApp_l]
+            have lc_abs_Q' : LC (Q'.abs) := by grind [FullBeta.steps_lc_or_rfl]
+            apply sn_steps _ sn_MNPs
+            calc
+              (multiApp (M ^ N) Ps).app P ↠βᶠ Q'.abs.app P  := by grind
+              _                           ↠βᶠ Q'.abs.app P' := by grind
+              _                           ↠βᶠ Q' ^ P'       := by grind [FullBeta.beta]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
