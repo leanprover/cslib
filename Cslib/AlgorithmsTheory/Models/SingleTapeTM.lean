@@ -12,11 +12,11 @@ public import Cslib.Computability.Machines.SingleTapeTuring.Basic
 @[expose] public section
 
 /-!
-# Query Type for Comparison Search in Lists
+# Query Type for Single Tape Turing Machines
 
-In this file we define a query type `ListSearch` for comparison based searching in Lists,
-whose sole query `compare` compares the head of the list with a given argument. It
-further defines a model `ListSearch.natCost` for this query.
+We define a query type for single tape turing machines to allow
+users to write such turing machines using lean's monadic syntax,
+and integrate with the `Prog` framework.
 
 --
 ## Definitions
