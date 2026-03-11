@@ -51,8 +51,6 @@ The `FreeM` monad is defined using an inductive type with constructors `.pure` a
 We implement `Functor` and `Monad` instances, and prove the corresponding `LawfulFunctor`
 and `LawfulMonad` instances.
 
-For now we choose to make the constructors the simp-normal form, as opposed to the standard
-monad notation.
 
 The file `Free/Effects.lean` demonstrates practical applications by implementing State, Writer, and
 Continuations monads using `FreeM` with appropriate effect signatures.
@@ -71,6 +69,9 @@ Free monad, state monad
 
 namespace Cslib
 
+-- Disable generation of unneeded lemmas which the simpNF linter would complain about.
+set_option genInjectivity false in
+set_option genSizeOfSpec false in
 /-- The Free monad over a type constructor `F`.
 
 A `FreeM F a` is a tree of operations from the type constructor `F`, with leaves of type `a`.
@@ -94,35 +95,89 @@ universe u v w w' w''
 namespace FreeM
 variable {F : Type u → Type v} {ι : Type u} {α : Type w} {β : Type w'} {γ : Type w''}
 
+section notations
+
 instance : Pure (FreeM F) where pure := .pure
 
 @[simp]
-theorem pure_eq_pure : (pure : α → FreeM F α) = FreeM.pure := rfl
+theorem pure_eq_pure : FreeM.pure = (pure : α → FreeM F α) := rfl
 
-/-- Bind operation for the `FreeM` monad. -/
+/-- Bind operation for the `FreeM` monad.
+
+The builtin `>>=` notation should be preferred when `α` and `β` are in the same universe. -/
 protected def bind (x : FreeM F α) (f : α → FreeM F β) : FreeM F β :=
   match x with
   | .pure a => f a
   | .liftBind op cont => .liftBind op fun z => FreeM.bind (cont z) f
 
+instance : Bind (FreeM F) where bind := .bind
+
+/-- Note that this lemma does not always apply, as it is universe-constrained by `Bind.bind`. -/
+@[simp]
+theorem bind_eq_bind {α β : Type w} : (FreeM.bind : FreeM F α → _ → FreeM F β) = Bind.bind := rfl
+
+/-- Map a function over a `FreeM` monad.
+
+The builtin `<$>` notation should be preferred when `α` and `β` are in the same universe. -/
+def map (f : α → β) : FreeM F α → FreeM F β
+  | .pure a => .pure (f a)
+  | .liftBind op cont => .liftBind op fun z => FreeM.map f (cont z)
+
+instance : Functor (FreeM F) where
+  map := .map
+
+/-- Note that this lemma does not always apply, as it is universe-constrained by `Functor.map`. -/
+@[simp]
+theorem map_eq_map {α β : Type w} : FreeM.map (F := F) (α := α) (β := β) = Functor.map := rfl
+
+/-- Lift an operation from the effect signature `F` into the `FreeM F` monad. -/
+def lift (op : F ι) : FreeM F ι :=
+  .liftBind op pure
+
+@[simp]
+lemma liftBind_eq (op : F ι) :
+    liftBind op cont = (lift op : FreeM F ι).bind cont :=
+  rfl
+
+set_option linter.unusedVariables false in
+/-- An override for the default induction principle that is in simp-normal form. -/
+@[induction_eliminator]
+protected theorem induction {motive : FreeM F α → Prop}
+    (pure : ∀ a, motive (pure a))
+    (lift_bind : ∀ {ι} (op : F ι) (cont : ι → FreeM F α) (ih : ∀ i, motive (cont i)),
+      motive ((lift op).bind cont)) : ∀ x, motive x
+  | .pure a => pure a
+  | liftBind _ _ => lift_bind _ _ fun _ => FreeM.induction pure lift_bind _
+
+end notations
+
 protected theorem bind_assoc (x : FreeM F α) (f : α → FreeM F β) (g : β → FreeM F γ) :
     (x.bind f).bind g = x.bind (fun x => (f x).bind g) := by
   induction x with
   | pure a => rfl
-  | liftBind op cont ih =>
-    simp [FreeM.bind] at *
-    simp [ih]
+  | lift_bind op cont ih => simp [← liftBind_eq, FreeM.bind, ih] at *
 
-instance : Bind (FreeM F) where bind := .bind
+/-- `.pure a` followed by `bind` collapses immediately. -/
+@[simp]
+lemma pure_bind (a : α) (f : α → FreeM F β) : (pure a : FreeM F α).bind f = f a := rfl
 
 @[simp]
-theorem bind_eq_bind {α β : Type w} : Bind.bind = (FreeM.bind : FreeM F α → _ → FreeM F β) := rfl
+lemma bind_pure : ∀ x : FreeM F α, x.bind pure = x
+  | .pure a => rfl
+  | liftBind op k => by simp [FreeM.bind, bind_pure, -bind_eq_bind]
 
-/-- Map a function over a `FreeM` monad. -/
 @[simp]
-def map (f : α → β) : FreeM F α → FreeM F β
-  | .pure a => .pure (f a)
-  | .liftBind op cont => .liftBind op fun z => FreeM.map f (cont z)
+lemma bind_pure_comp (f : α → β) : ∀ x : FreeM F α, x.bind (pure ∘ f) = map f x
+  | .pure a => rfl
+  | liftBind op k => by simp only [FreeM.bind, map, bind_pure_comp]
+
+@[simp]
+theorem map_pure (f : α → β) (x : α) : map f (pure x : FreeM F α) = pure (f x) := rfl
+
+@[simp]
+theorem map_bind (f : β → γ) (x : FreeM F α) (c : α → FreeM F β) :
+    map f (x.bind c) = x.bind fun a => (c a).map f := by
+  simp_rw [← bind_pure_comp, FreeM.bind_assoc]
 
 @[simp]
 theorem id_map : ∀ x : FreeM F α, map id x = x
@@ -132,45 +187,6 @@ theorem id_map : ∀ x : FreeM F α, map id x = x
 theorem comp_map (h : β → γ) (g : α → β) : ∀ x : FreeM F α, map (h ∘ g) x = map h (map g x)
   | .pure a => rfl
   | .liftBind op cont => by simp_all [map, comp_map]
-
-instance : Functor (FreeM F) where
-  map := .map
-
-@[simp]
-theorem map_eq_map {α β : Type w} : Functor.map = FreeM.map (F := F) (α := α) (β := β) := rfl
-
-/-- Lift an operation from the effect signature `F` into the `FreeM F` monad. -/
-def lift (op : F ι) : FreeM F ι :=
-  .liftBind op .pure
-
-/-- Rewrite `lift` to the constructor form so that simplification stays in constructor normal
-form. -/
-@[simp]
-lemma lift_def (op : F ι) :
-    (lift op : FreeM F ι) = liftBind op .pure := rfl
-
-@[simp]
-lemma map_lift (f : ι → α) (op : F ι) :
-    map f (lift op : FreeM F ι) = liftBind op (fun z => (.pure (f z) : FreeM F α)) := rfl
-
-/-- `.pure a` followed by `bind` collapses immediately. -/
-@[simp]
-lemma pure_bind (a : α) (f : α → FreeM F β) : (.pure a : FreeM F α).bind f = f a := rfl
-
-@[simp]
-lemma bind_pure : ∀ x : FreeM F α, x.bind (.pure) = x
-  | .pure a => rfl
-  | liftBind op k => by simp [FreeM.bind, bind_pure]
-
-@[simp]
-lemma bind_pure_comp (f : α → β) : ∀ x : FreeM F α, x.bind (.pure ∘ f) = map f x
-  | .pure a => rfl
-  | liftBind op k => by simp only [FreeM.bind, map, bind_pure_comp]
-
-/-- Collapse a `.bind` that follows a `liftBind` into a single `liftBind` -/
-@[simp]
-lemma liftBind_bind (op : F ι) (cont : ι → FreeM F α) (f : α → FreeM F β) :
-    (liftBind op cont).bind f = liftBind op fun x => (cont x).bind f := rfl
 
 instance : LawfulFunctor (FreeM F) where
   map_const := rfl
@@ -202,16 +218,16 @@ protected def liftM (interp : {ι : Type u} → F ι → m ι) : FreeM F α → 
 
 @[simp]
 lemma liftM_pure (interp : {ι : Type u} → F ι → m ι) (a : α) :
-    (.pure a : FreeM F α).liftM interp = pure a := rfl
+    (pure a : FreeM F α).liftM interp = pure a := rfl
 
 @[simp]
-lemma liftM_liftBind (interp : {ι : Type u} → F ι → m ι) (op : F β) (cont : β → FreeM F α) :
-    (liftBind op cont).liftM interp = (do let b ← interp op; (cont b).liftM interp) := by
+lemma liftM_lift_bind (interp : {ι : Type u} → F ι → m ι) (op : F β) (cont : β → FreeM F α) :
+    ((lift op) >>= cont).liftM interp = (do let b ← interp op; (cont b).liftM interp) := by
   rfl
 
 lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op : F β) :
     (lift op).liftM interp = interp op := by
-  simp_rw [lift_def, liftM_liftBind, liftM_pure, _root_.bind_pure]
+  simp_rw [lift, FreeM.liftM, _root_.bind_pure]
 
 @[simp]
 lemma liftM_bind [LawfulMonad m]
@@ -219,9 +235,7 @@ lemma liftM_bind [LawfulMonad m]
     (x.bind f : FreeM F β).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
   induction x generalizing f with
   | pure a => simp only [pure_bind, liftM_pure, LawfulMonad.pure_bind]
-  | liftBind op cont ih =>
-    rw [FreeM.bind, liftM_liftBind, liftM_liftBind, bind_assoc]
-    simp_rw [ih]
+  | lift_bind op cont ih => simp [← ih]
 
 /--
 A predicate stating that `interp : FreeM F α → m α` is an interpreter for the effect
@@ -237,8 +251,8 @@ Formally, `interp` satisfies the two equations:
 -/
 structure Interprets (handler : {ι : Type u} → F ι → m ι) (interp : FreeM F α → m α) : Prop where
   apply_pure (a : α) : interp (.pure a) = pure a
-  apply_liftBind {ι : Type u} (op : F ι) (cont : ι → FreeM F α) :
-    interp (liftBind op cont) = handler op >>= fun x => interp (cont x)
+  apply_lift_bind {ι : Type u} (op : F ι) (cont : ι → FreeM F α) :
+    interp (lift op >>= cont) = handler op >>= fun x => interp (cont x)
 
 theorem Interprets.eq {handler : {ι : Type u} → F ι → m ι} {interp : FreeM F α → m α}
     (h : Interprets handler interp) :
@@ -246,14 +260,13 @@ theorem Interprets.eq {handler : {ι : Type u} → F ι → m ι} {interp : Free
   ext x
   induction x with
   | pure a => exact h.apply_pure a
-  | liftBind op cont ih =>
-    rw [liftM_liftBind, h.apply_liftBind]
-    simp [ih]
+  | lift_bind op cont ih =>
+    simp [h.apply_lift_bind, ih]
 
 theorem Interprets.liftM (handler : {ι : Type u} → F ι → m ι) :
     Interprets handler (·.liftM handler : FreeM F α → _) where
   apply_pure _ := rfl
-  apply_liftBind _ _ := rfl
+  apply_lift_bind _ _ := rfl
 
 /--
 The universal property of the free monad `FreeM`.
