@@ -59,5 +59,8 @@ public theorem computes_function_seq {k : ℕ}
   (views : Fin k → TapeView) :
   computes_function_push (tm₁ ;ₜ tm₂) (f₂ ∘ f₁) i j h_neq views := by sorry
 
+-- We have a function that has j : +Bool
+-- Do we model the effect on the tape?
+
 end Routines
 end Turing
