@@ -59,20 +59,20 @@ def foldFreeM
 theorem foldFreeM_pure
     (onValue : α → β)
     (onEffect : {ι : Type u} → F ι → (ι → β) → β)
-    (a : α) : foldFreeM onValue onEffect (.pure a) = onValue a := rfl
+    (a : α) : foldFreeM onValue onEffect (pure a) = onValue a := rfl
 
 @[simp]
-theorem foldFreeM_liftBind
+theorem foldFreeM_lift_bind
     (onValue : α → β)
     (onEffect : {ι : Type u} → F ι → (ι → β) → β)
     (op : F ι) (k : ι → FreeM F α) :
-    foldFreeM onValue onEffect (.liftBind op k)
+      foldFreeM onValue onEffect ((lift op).bind k)
       = onEffect op (fun x => foldFreeM onValue onEffect (k x)) := rfl
 
 /--
 **Universal Property**: If `h : FreeM F α → β` satisfies:
-* `h (.pure a) = onValue a`
-* `h (.liftBind op k) = onEffect op (fun x => h (k x))`
+* `h (pure a) = onValue a`
+* `h ((lift op).bind k) = onEffect op (fun x => h (k x))`
 
 then `h` is equal to `foldFreeM onValue onEffect`.
 -/
@@ -80,16 +80,16 @@ theorem foldFreeM_unique
     (onValue : α → β)
     (onEffect : {ι : Type u} → F ι → (ι → β) → β)
     (h : FreeM F α → β)
-    (h_pure : ∀ a, h (.pure a) = onValue a)
+    (h_pure : ∀ a, h (pure a) = onValue a)
     (h_liftBind : ∀ {ι} (op : F ι) (k : ι → FreeM F α),
-      h (.liftBind op k) = onEffect op (fun x => h (k x))) :
+      h ((lift op).bind k) = onEffect op (fun x => h (k x))) :
     h = foldFreeM onValue onEffect := by
   funext x
   induction x with
   | pure a =>
     rw [foldFreeM_pure, h_pure]
-  | liftBind op k ih =>
-    rw [foldFreeM_liftBind, h_liftBind]
+  | lift_bind op k ih =>
+    rw [foldFreeM_lift_bind, h_liftBind]
     grind
 
 end FreeM
