@@ -145,12 +145,11 @@ lemma sn_neutral {t : Term Var} (Hneut : neutral t) : SN t := by
       contradiction
 
 /-- A lambda abstraction is strongly normalizing if its body is strongly normalizing. -/
-lemma sn_abs [DecidableEq Var] [HasFresh Var] : ∀ {M N : Term Var},
-  SN (M ^ N) → LC N → SN (Term.abs M) := by
-  intro M N sn_M lc_N
-  generalize h : (M ^ N) = M_open at sn_M
+lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var}
+  (sn_MN : SN (M ^ N)) (lc_N : LC N) : SN (Term.abs M) := by
+  generalize h : (M ^ N) = M_open at sn_MN
   revert N M
-  induction sn_M with
+  induction sn_MN with
   | sn M_open h_sn ih =>
       intro M N lc_N h
       constructor
@@ -171,15 +170,13 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] : ∀ {M N : Term Var},
       1. M ^ N P₁ … Pₙ is strongly normalizing,
       1. N is locally closed,
       1. M ^ N P₁ … Pₙ is locally closed -/
-lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] : ∀ {Ps} {M N : Term Var},
-  SN N →
-  SN (multiApp (M ^ N) Ps) →
-  LC N →
-  LC (multiApp (M ^ N) Ps) →
-  -------------------------------------
-  SN (multiApp ((Term.abs M).app N) Ps) := by
-  intro P
-  induction P <;> intros M N sn_N sn_MNPs lc_N lc_MNPs
+lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
+  (sn_N : SN N)
+  (sn_MNPs : SN (multiApp (M ^ N) Ps))
+  (lc_N : LC N)
+  (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
+    SN (multiApp ((Term.abs M).app N) Ps) := by
+  induction Ps
   · case nil =>
       apply sn_app
       · grind [sn_abs]
