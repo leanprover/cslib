@@ -60,7 +60,7 @@ def Term.vars [DecidableEq Var] : Term Var → Finset Var
     `m.rename x y` changes all occurrences of `x` into `y` in `m`. -/
 def Term.rename [DecidableEq Var] (m : Term Var) (x y : Var) : Term Var :=
   match m with
-  | var z => if z = x then (var y) else (var z)
+  | var z => var (if z = x then y else z)
   | abs z m' => abs (if z = x then y else z) (m'.rename x y)
   | app n1 n2 => app (n1.rename x y) (n2.rename x y)
 
@@ -75,7 +75,7 @@ open Term
 /-- α-equivalence. -/
 inductive Term.AlphaEquiv [DecidableEq Var] : Term Var → Term Var → Prop where
 | var {x} : AlphaEquiv (var x) (var x)
-| abs {y x1 x2 m1 m2} : y ≠ x1 → y ≠ x2 → y ∉ m1.vars → y ∉ m2.vars →
+| abs {y x1 x2 m1 m2} : y ∉ m1.vars ∪ m2.vars ∪ {x1, x2} →
   AlphaEquiv (m1.rename x1 y) (m2.rename x2 y) → AlphaEquiv (abs x1 m1) (abs x2 m2)
 | app {m1 n1 m2 n2} : AlphaEquiv m1 n1 → AlphaEquiv m2 n2 → AlphaEquiv (app m1 m2) (app n1 n2)
 
@@ -85,12 +85,12 @@ instance instHasAlphaEquivTerm [DecidableEq Var] : HasAlphaEquiv (Term Var) wher
 
 /-- Capture-avoiding substitution, as an inference system. -/
 inductive Term.Subst [DecidableEq Var] : Term Var → Var → Term Var → Term Var → Prop where
-  | varHit : (var x).Subst x r r
-  | varMiss : x ≠ y → (var y).Subst x r (var y)
-  | absShadow : (abs x m).Subst x r (abs x m)
-  | absIn : x ≠ y → y ∉ r.fv → m.Subst x r m' → (abs y m).Subst x r (abs y m')
-  | app : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
-  | alpha : m =α m' → r =α r' → n =α n' → Subst m x r n → m'.Subst x r' n'
+  | varHit {x r} : (var x).Subst x r r
+  | varMiss {x y r} : x ≠ y → (var y).Subst x r (var y)
+  | absShadow {x m r} : (abs x m).Subst x r (abs x m)
+  | absIn {x y m r m'} : y ∉ r.fv ∪ {x} → m.Subst x r m' → (abs y m).Subst x r (abs y m')
+  | app {m n x r m' n'} : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
+  | alpha {m m' r r' n n' x} : m =α m' → r =α r' → n =α n' → Subst m x r n → m'.Subst x r' n'
 
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
