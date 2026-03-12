@@ -5,7 +5,6 @@ Authors: Tanner Duve
 -/
 import Cslib.Foundations.Control.Monad.Free
 import Mathlib.Tactic.Cases
-import Cslib.Foundations.Control.Monad.Free.Fold
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 
 /-!
@@ -149,14 +148,7 @@ Represents computations that:
 - If successful, produce a result value along with updated environment and trace
 
 This is the target domain for interpreting `FreeM Eff` programs. -/
-abbrev EffAction (α : Type) := Env → Trace → Except String (α × Env × Trace)
-
-/-- Algebra component for pure values.
-
-Maps pure values to effectful actions that return the value unchanged
-without modifying the environment or trace. -/
-def effPure {α} (a : α) : EffAction α :=
-  fun env tr => .ok (a, env, tr)
+abbrev EffAction := StateT Env <| StateT Trace <| ExceptT String <| Id
 
 /-- Algebra component for effect operations.
 
@@ -167,12 +159,11 @@ Interprets each effect constructor into the target semantic domain:
 - `Log`: appends message to trace
 
 This defines the concrete semantics of each abstract effect. -/
-def effStep {α} :
-    {ι : Type} → Eff ι → (ι → EffAction α) → EffAction α
-  | _, .inl StateEff.Get, k => fun env tr => k env env tr
-  | _, .inl (StateEff.Put σ), k => fun _ tr => k () σ tr
-  | _, .inr (.inl (ErrorEff.Fail msg)), _ => fun _ _ => .error msg
-  | _, .inr (.inr (TraceEff.Log msg)), k => fun env tr => k () env (tr ++ [msg])
+def effStep : {ι : Type} → Eff ι → EffAction ι
+  | _, .inl StateEff.Get => getThe Env
+  | _, .inl (StateEff.Put σ) => set σ
+  | _, .inr (.inl (ErrorEff.Fail msg)) => throw msg
+  | _, .inr (.inr (TraceEff.Log msg)) => modifyThe Trace (· ++ [msg])
 
 /-- Catamorphic interpreter for effectful computations.
 
@@ -180,8 +171,8 @@ Transforms a `FreeM Eff` program into a concrete effectful computation
 by folding the syntax tree using the algebra defined by `effPure` and `effStep`.
 
 This is the main interpreter that gives operational meaning to effect programs. -/
-def runEff {α} : FreeM Eff α → EffAction α :=
-  foldFreeM effPure effStep
+abbrev runEff {α} : FreeM Eff α → EffAction α :=
+  FreeM.liftM effStep
 
 /-- Big-step operational semantics for expression evaluation.
 
@@ -190,34 +181,34 @@ evaluates to `result` when started with environment `env` and trace `trace`.
 
 This provides the "reference semantics" against which we prove our
 free monad interpreter correct -/
-inductive EvalRel : Expr → Env → Trace → Except String (Int × Env × Trace) → Prop where
+inductive EvalRel : Expr → Env → Trace → Except String ((Int × Env) × Trace) → Prop where
 | val :
     ∀ n env trace,
-    EvalRel (.val n) env trace (.ok (n, env, trace))
+    EvalRel (.val n) env trace (.ok ((n, env), trace))
 | var_found :
     ∀ x env trace v,
     env.find? (·.1 = x) = some ⟨x, v⟩ →
-    EvalRel (.var x) env trace (.ok (v, env, trace))
+    EvalRel (.var x) env trace (.ok ((v, env), trace))
 | var_missing :
     ∀ x env trace,
     env.find? (·.1 = x) = none →
     EvalRel (.var x) env trace (.error s!"unbound variable {x}")
 | add :
     ∀ e1 e2 env trace₁ trace₂ trace₃ v1 v2 env₂ env₃,
-    EvalRel e1 env trace₁ (.ok (v1, env₂, trace₂)) →
-    EvalRel e2 env₂ trace₂ (.ok (v2, env₃, trace₃)) →
-    EvalRel (.add e1 e2) env trace₁ (.ok (v1 + v2, env₃, trace₃))
+    EvalRel e1 env trace₁ (.ok ((v1, env₂), trace₂)) →
+    EvalRel e2 env₂ trace₂ (.ok ((v2, env₃), trace₃)) →
+    EvalRel (.add e1 e2) env trace₁ (.ok ((v1 + v2, env₃), trace₃))
 | div_ok :
     ∀ e1 e2 env trace₁ trace₂ trace₃ v1 v2 env₂ env₃,
     v2 ≠ 0 →
-    EvalRel e1 env trace₁ (.ok (v1, env₂, trace₂)) →
-    EvalRel e2 env₂ trace₂ (.ok (v2, env₃, trace₃)) →
-    EvalRel (.div e1 e2) env trace₁ (.ok (v1 / v2, env₃, trace₃))
+    EvalRel e1 env trace₁ (.ok ((v1, env₂), trace₂)) →
+    EvalRel e2 env₂ trace₂ (.ok ((v2, env₃), trace₃)) →
+    EvalRel (.div e1 e2) env trace₁ (.ok ((v1 / v2, env₃), trace₃))
 | div_zero :
     ∀ e1 e2 env trace₁ trace₂ trace₃ v1 v2 env₂ env₃,
     v2 = 0 →
-    EvalRel e1 env trace₁ (.ok (v1, env₂, trace₂)) →
-    EvalRel e2 env₂ trace₂ (.ok (v2, env₃, trace₃)) →
+    EvalRel e1 env trace₁ (.ok ((v1, env₂), trace₂)) →
+    EvalRel e2 env₂ trace₂ (.ok ((v2, env₃), trace₃)) →
     EvalRel (.div e1 e2) env trace₁ (.error "divide by zero")
 
 /-- Expression evaluator that constructs free monad syntax trees.
@@ -261,10 +252,10 @@ This captures the expected sequential composition behavior of effectful computat
 theorem runEff_bind_ok {α β}
     {p : FreeM Eff α} {k : α → FreeM Eff β}
     {env env' : Env} {tr tr' : Trace} {v : α}
-    (h : runEff p env tr = .ok (v, env', tr')) :
-    runEff (p >>= k) env tr = runEff (k v) env' tr' := by
-  revert h
-  induction p generalizing env env' tr tr' v <;> simp only [runEff, bind, foldFreeM] <;> intro h
+    (h : (runEff p |>.run env |>.run tr |>.run) = .ok ((v, env'), tr')) :
+    (runEff (p >>= k) |>.run env |>.run tr |>.run.run)
+      = (runEff (k v) |>.run env' |>.run tr'|>.run.run) := by
+  induction p generalizing env env' tr tr' v <;> simp only [runEff]
   · case pure => cases h; rfl
   · case liftBind _ op _ ih =>
     cases op
@@ -283,10 +274,10 @@ This captures the expected error propagation behavior in effectful computations.
 theorem runEff_bind_err {α β}
     {p : FreeM Eff α} {k : α → FreeM Eff β}
     {env : Env} {tr : Trace} {msg : String} :
-    runEff p env tr = .error msg →
-    runEff (p >>= k) env tr = .error msg := by
-  induction p generalizing env tr msg <;> simp only [runEff, bind, foldFreeM] <;> intro h
-  · case pure => simp [effPure] at h
+    (runEff p |>.run env |>.run tr |>.run.run) = .error msg →
+    (runEff (p >>= k) |>.run env |>.run tr |>.run.run) = .error msg := by
+  induction p generalizing env tr msg <;> simp only [runEff] <;> intro h
+  · case pure => simp at h
   · case liftBind _ op _ ih =>
     cases op
     · case inl s => cases s <;> exact ih _ h
@@ -304,44 +295,45 @@ under environment `env` and trace `trace`, then running the free monad program
 This establishes that our free monad interpreter is sound with respect to
 the reference operational semantics. -/
 theorem runEff_eval_correct (e : Expr) (env : Env) (trace : Trace)
-    (res : Except String (Int × Env × Trace))
+    (res : Except String ((Int × Env) × Trace))
     (h : EvalRel e env trace res) :
-    runEff (eval e) env trace = res := by
+    (runEff (eval e) |>.run env |>.run trace |>.run.run) = res := by
+  rw [runEff]
   induction h
   · case val z env trace =>
-    simp [eval, pure_eq_pure, runEff, effPure]
+    simp [eval]
   · case var_found x env trace v h =>
-    simp [runEff, eval, getEnv, lift_def, effStep, h, effPure]
+    simp [eval, getEnv, effStep, h]
   · case var_missing x env trace h =>
-    simp [runEff, eval, bind, getEnv, fail, lift_def, effStep, h]
+    simp [eval, getEnv, fail, effStep, h]
   · case add e₁ e₂ env trace₁ trace₂ trace₃ v1 v2 env₂ env₃ h₁ h₂ ih₁ ih₂ =>
-    simp [eval, bind]
+    simp [eval]
     have step₁ := runEff_bind_ok (p := eval e₁ ) (k := fun v1 => do
       let v2 ← eval e₂
       pure (v1 + v2)) ih₁
-    simp [bind] at step₁; simp [step₁]
+    simp at step₁
+    simp [step₁]
     have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v2 => pure (v1 + v2)) ih₂
-    simp [bind] at step₂; simp [step₂]; rfl
+    simp at step₂; simp [step₂]
   · case div_ok e₁ e₂ env trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_ne_0 h₁ h₂ ih₁ ih₂  =>
-    simp [eval, bind]
+    simp [eval]
     have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v1 => do
       let v2 ← eval e₂
       if v2 = 0 then do fail "divide by zero"; pure 0 else pure (v1 / v2)) ih₁
-    simp [bind] at step₁; simp [step₁]
+    simp at step₁; simp [step₁]
     have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
       if v₂ = 0 then do fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₂
-    simp [bind] at step₂; simp [step₂, v₂_ne_0]
-    rfl
+    simp at step₂; simp [step₂, v₂_ne_0]
   · case div_zero e₁ e₂ env' trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_eq_0 h₁ h₂ ih₁ ih₂ =>
-    simp [eval, bind]
+    simp [eval]
     have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v₁ => do
       let v₂ ← eval e₂
       if v₂ = 0 then fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₁
-    simp [bind] at step₁; simp [step₁]
+    simp at step₁; simp [step₁]
     have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
       if v₂ = 0 then (do fail "divide by zero"; pure 0) else pure (v₁ / v₂)) ih₂
-    simp [bind] at step₂; simp [step₂, v₂_eq_0]
-    simp [fail, lift, runEff]
+    simp at step₂; simp [step₂, v₂_eq_0]
+    simp [fail]
     rfl
 
 end CslibTests
