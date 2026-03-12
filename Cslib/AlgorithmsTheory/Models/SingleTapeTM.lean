@@ -113,7 +113,7 @@ Space complexity in this single tape TM is counted as the number of unread cells
 written to during the TM's operation.
 -/
 @[simps, grind]
-def sortModel (tm : SingleTapeTM Symbol) :
+def TMModel (tm : SingleTapeTM Symbol) :
     Model (TMQuery tm) TMCost where
   evalQuery
     | .readTape cfg => cfg.BiTape.head
