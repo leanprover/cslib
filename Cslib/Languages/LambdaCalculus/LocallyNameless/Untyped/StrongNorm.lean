@@ -34,28 +34,21 @@ inductive SN {α} : Term α → Prop
 attribute [scoped grind .] SN.sn
 
 /-- A single β-reduction step preserves strong normalization. -/
-@[aesop safe]
 lemma sn_step (t_st_t' : t ⭢βᶠ t') (sn_t : SN t) : SN t' := by
-  cases sn_t; grind
+  grind [cases SN]
 
 /-- Multiple β-reduction steps also preserve strong normalization. -/
-@[aesop safe]
 lemma sn_steps (t_st_t' : t ↠βᶠ t') (sn_t : SN t) : SN t' := by
   induction t_st_t' with grind [sn_step]
 
 /-- Free variables are strongly normalizing. -/
 lemma sn_fvar {x : Var} : SN (fvar x) := by
-  constructor
-  intro t' hstep
-  cases hstep
+  grind [cases FullBeta]
 
 /-- An application is strongly normalizing if the left and right terms are strongly normalizing,
     as well as all possible future top level abstraction application beta reductions -/
-lemma sn_app (t s : Term Var)
-  (sn_t : SN t)
-  (sn_s : SN s)
-  (hβ : ∀ {t' s' : Term Var}, t ↠βᶠ t'.abs → s ↠βᶠ s' → SN (t' ^ s')) :
-    SN (t.app s) := by
+lemma sn_app (t s : Term Var) (sn_t : SN t) (sn_s : SN s)
+    (hβ : ∀ {t' s' : Term Var}, t ↠βᶠ t'.abs → s ↠βᶠ s' → SN (t' ^ s')) : SN (t.app s) := by
   induction sn_t generalizing s with
   | sn t ht ih_t =>
     induction sn_s with
@@ -65,48 +58,27 @@ lemma sn_app (t s : Term Var)
       cases hstep with
       | beta _ _       => grind
       | appL _ h_s_red => apply ih_s _ h_s_red
-                          grind[Relation.ReflTransGen.head]
+                          grind [Relation.ReflTransGen.head]
       | appR _ h_t_red => apply ih_t _ h_t_red _ (SN.sn s hs)
-                          grind[Relation.ReflTransGen.head]
-
+                          grind [Relation.ReflTransGen.head]
 
 /-- The left side of a strongly normalizing application is strongly normalizing. -/
 lemma sn_app_left (M N : Term Var) (lc_N : Term.LC N) (sn_MN : SN (M.app N)) :
     SN M := by
   generalize Heq : M.app N = P
-  rw[Heq] at sn_MN
-  revert M N
-  induction sn_MN
-  · case sn P h_sn ih =>
-    intro M N lc_N Heq
-    rw[←Heq] at ih
-    constructor
-    intro M' h_step
-    apply ih (M'.app N)
-    apply Term.FullBeta.appR <;> assumption
-    · assumption
-    · rfl
+  rw [Heq] at sn_MN
+  induction sn_MN generalizing M N with grind
 
 /-- The right side of a strongly normalizing application is strongly normalizing. -/
 lemma sn_app_right (M N : Term Var) (lc_N : Term.LC M) (sn_MN : SN (M.app N)) :
     SN N := by
   generalize Heq : M.app N = P
   rw [Heq] at sn_MN
-  revert M N
-  induction sn_MN
-  · case sn P h_sn ih =>
-    intro M N lc_N Heq
-    rw[←Heq] at ih
-    constructor
-    intro N' h_step
-    apply ih (M.app N')
-    apply Term.FullBeta.appL <;> assumption
-    · assumption
-    · rfl
-
+  induction sn_MN generalizing M N with grind
 
 /-- A neutral term is a term of the form v t₁ … t_n where
     v is a variable and t₁ … t_n are strongly normalizing terms. -/
+@[scoped grind]
 inductive Neutral : Term Var → Prop
 /-- Just a bound variable is neutral. -/
 | bvar : ∀ n, Neutral (bvar n)
@@ -115,12 +87,11 @@ inductive Neutral : Term Var → Prop
 /-- Applying a strongly normalizing term to a neutral term yields a neutral term. -/
 | app : ∀ t1 t2, Neutral t1 → SN t2 → Neutral (app t1 t2)
 
-attribute [scoped grind .] Neutral.bvar Neutral.fvar Neutral.app
+--attribute [scoped grind .] Neutral.bvar Neutral.fvar Neutral.app
 
 /-- Neutral terms only reduce to other neutral terms in a single step -/
 lemma neutral_step (Hneut : Neutral t) (Hstep : t ⭢βᶠ t') : Neutral t' := by
-  induction Hneut generalizing t' <;> cases Hstep <;> try grind [sn_step]
-  · contradiction
+  induction Hneut generalizing t' with grind [cases FullBeta, sn_step]
 
 /-- Neutral terms only reduce to other neutral terms in multiple steps -/
 lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' := by
@@ -128,33 +99,19 @@ lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' :=
 
 /-- Neutral terms are strongly normalizing. -/
 lemma sn_neutral (Hneut : Neutral t) : SN t := by
-  induction Hneut
-  · case bvar n => constructor; intro t' hstep; cases hstep
-  · case fvar x => constructor; intro t' hstep; cases hstep
-  · case app t1 t'_neut t1_sn t1'_sn =>
-      apply sn_app <;> try assumption
-      intro t1' t2' hstep1 hstep2
-      have H_neut := neutral_steps t'_neut hstep1
-      contradiction
+  induction Hneut with
+  | app => grind [→ neutral_steps, sn_app]
+  | _ => grind [cases FullBeta]
 
 /-- A lambda abstraction is strongly normalizing if its body is strongly normalizing. -/
 lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN (M ^ N)) (lc_N : LC N) :
     SN (abs M) := by
   generalize h : (M ^ N) = M_open at sn_MN
-  revert N M
-  induction sn_MN with
-  | sn M_open h_sn ih =>
-    intro M N lc_N h
+  induction sn_MN generalizing M N with
+  | sn =>
     constructor
-    intro M' h_step
-    cases h_step with
-    | @abs h_M_red M' L H =>
-      specialize ih (M' ^ N)
-      rw[←h] at ih
-      apply ih
-      · apply FullBeta.step_open_cong_l <;> assumption
-      · assumption
-      · rfl
+    intro _ h_step
+    cases h_step with | abs _ H => grind [step_open_cong_l _ _ _ _ H]
 
 /-- A term of the form λ M N P_1 … P_n is strongly normalizing if
       1. N is strongly normalizing,
@@ -169,18 +126,15 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
   · case nil =>
       apply sn_app
       · grind [sn_abs]
-      · assumption
-      · intro M' N' hstep1 hstep2
-        have Hmst : (M ^ N) ↠βᶠ (M' ^ N') := by
-          grind [FullBeta.steps_open_cong_abs, open_abs_lc]
-        grind [sn_steps]
+      · exact sn_N
+      · grind [→ steps_open_cong_abs, open_abs_lc, sn_steps]
   · case cons P Ps ih =>
       cases lc_MNPs
       apply sn_app
       · grind [sn_app_left]
       · grind [sn_app_right]
       · intro Q' P' hstep1 hstep2
-        match (Term.invert_abs_multiApp_mst hstep1) with
+        match invert_abs_multiApp_mst hstep1 with
         | ⟨ M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases ⟩ =>
           match h_cases with
           | Or.inl h_P => cases Ps' <;> rw[multiApp] at h_cases <;> contradiction
@@ -188,16 +142,16 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
             have innerSteps :=
               calc
                 (M ^ N).multiApp Ps ↠βᶠ (multiApp (M ^ N) Ps') := by
-                  grind [steps_multiApp_r, FullBeta.steps_open_cong_abs, open_abs_lc]
+                  grind [steps_multiApp_r, steps_open_cong_abs, open_abs_lc]
                 _                   ↠βᶠ (M' ^ N').multiApp Ps' := by
                   grind [steps_multiApp_l,
                          multiApp_steps_lc,
                          multiApp_lc,
-                         FullBeta.steps_open_cong_abs,
+                         steps_open_cong_abs,
                          open_abs_lc]
                 _                   ↠βᶠ Q'.abs := by
                   grind [steps_multiApp_l]
-            have lc_abs_Q' : LC (Q'.abs) := by grind [FullBeta.steps_lc_or_rfl]
+            have lc_abs_Q' : LC (Q'.abs) := by grind [steps_lc_or_rfl]
             apply sn_steps _ sn_MNPs
             calc
               (multiApp (M ^ N) Ps).app P ↠βᶠ Q'.abs.app P  := by grind
