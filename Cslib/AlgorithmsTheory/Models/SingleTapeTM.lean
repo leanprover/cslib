@@ -21,10 +21,8 @@ and integrate with the `Prog` framework.
 --
 ## Definitions
 
-- `Dir` indicates the direction of movement on the TM tape
-- `TMQuery` a query type for operations on single tape TMs
-- `TMCost` a cost type that encompasses time and space complexity in TMs
-- `tmModel` : a model of execution of single tape TMs
+
+
 -/
 
 namespace Cslib
@@ -35,27 +33,44 @@ open Prog Turing
 
 variable [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol]
 
+/--
+The directions in which one can take move on the Turing Machine's tape.
+-/
 inductive Dir where
   | Left
   | Right
   | Stop
 
+/--
+A query type of possible operating steps in a Turing machine.
+-/
 inductive TMQuery (tm : SingleTapeTM Symbol) : Type → Type where
+  /-- Read a symbol under the TM head on the tape -/
   | readTape (inpCfg : tm.Cfg) : TMQuery tm (Option Symbol)
+  /-- Read the state of the TM -/
   | readState (inpCfg : tm.Cfg) : TMQuery tm (Option tm.State)
+  /-- Write a symbol under the TM head on the tape -/
   | write (inpCfg : tm.Cfg) (s : Option Symbol) : TMQuery tm tm.Cfg
+  /-- Update the TM's state -/
   | update (inpCfg : tm.Cfg) (st : tm.State): TMQuery tm tm.Cfg
+  /-- Move the TM one step in the specified direction or stay in place -/
   | move (inpCfg : tm.Cfg) (dir : Dir) : TMQuery tm tm.Cfg
 
+/--
+The Turing machine cost structure.
+-/
 @[ext, grind]
 structure TMCost where
   /-- `steps` counts the number of moves in the TM -/
   steps : ℕ
-  /-- `writeCells` is a set of cells that were previously unwritten -/
+  /--
+  `writeCells` is a set of cells that were previously unwritten. Thus input cells are excluded.
+  This unfortunately also includes output cells, an issue we hope to address in multi tape TMs
+  -/
   writeCells : ℕ
 
 
-/-- Equivalence between SortOpsCost and a product type. -/
+/-- Equivalence between `TMCost` and a product type. -/
 def TMCost.equivProd : TMCost ≃ (ℕ × ℕ) where
   toFun sortOps := (sortOps.steps, sortOps.writeCells)
   invFun pair := ⟨pair.1, pair.2⟩
@@ -98,7 +113,7 @@ Space complexity in this single tape TM is counted as the number of unread cells
 written to during the TM's operation.
 -/
 @[simps, grind]
-def tmModel (tm : SingleTapeTM Symbol) :
+def sortModel (tm : SingleTapeTM Symbol) :
     Model (TMQuery tm) TMCost where
   evalQuery
     | .readTape cfg => cfg.BiTape.head
