@@ -79,7 +79,7 @@ inductive StateEff : Type → Type where
 Allows computations to signal failure with descriptive error messages.
 Useful for variable lookup failures and division by zero errors. -/
 inductive ErrorEff : Type → Type where
-  | Fail : String → ErrorEff Unit
+  | Fail : String → ErrorEff α
 
 /-- Trace effect signature for logging string messages.
 
@@ -114,7 +114,7 @@ def putEnv (e : Env) : FreeM Eff Unit :=
   lift (FSum.inl (StateEff.Put e))
 
 /-- Signal computation failure with the given error message. -/
-def fail (msg : String) : FreeM Eff Unit :=
+def fail (msg : String) : FreeM Eff α :=
   lift (FSum.inr (FSum.inl (ErrorEff.Fail msg)))
 
 /-- Emit a log message to the trace. -/
@@ -135,7 +135,6 @@ def exampleProgram : FreeM Eff Int := do
   | some ⟨_, x⟩ => pure (x + 1)
   | none => do
       fail "x not found"
-      pure 0
 
 /-- Trace log represented as a list of string messages. -/
 abbrev Trace := List String
@@ -229,7 +228,6 @@ def eval : Expr → FreeM Eff Int
       | some ⟨_, v⟩ => pure v
       | none => do
           fail s!"unbound variable {x}"
-          pure 0
   | .add e1 e2 => do
       let v1 ← eval e1
       let v2 ← eval e2
@@ -239,7 +237,6 @@ def eval : Expr → FreeM Eff Int
       let v2 ← eval e2
       if v2 = 0 then do
         fail "divide by zero"
-        pure 0
       else
         pure (v1 / v2)
 
@@ -319,19 +316,19 @@ theorem runEff_eval_correct (e : Expr) (env : Env) (trace : Trace)
     simp [eval]
     have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v1 => do
       let v2 ← eval e₂
-      if v2 = 0 then do fail "divide by zero"; pure 0 else pure (v1 / v2)) ih₁
+      if v2 = 0 then do fail "divide by zero" else pure (v1 / v2)) ih₁
     simp at step₁; simp [step₁]
     have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
-      if v₂ = 0 then do fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₂
+      if v₂ = 0 then do fail "divide by zero" else pure (v₁ / v₂)) ih₂
     simp at step₂; simp [step₂, v₂_ne_0]
   · case div_zero e₁ e₂ env' trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_eq_0 h₁ h₂ ih₁ ih₂ =>
     simp [eval]
     have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v₁ => do
       let v₂ ← eval e₂
-      if v₂ = 0 then fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₁
+      if v₂ = 0 then fail "divide by zero" else pure (v₁ / v₂)) ih₁
     simp at step₁; simp [step₁]
     have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
-      if v₂ = 0 then (do fail "divide by zero"; pure 0) else pure (v₁ / v₂)) ih₂
+      if v₂ = 0 then (do fail "divide by zero") else pure (v₁ / v₂)) ih₂
     simp at step₂; simp [step₂, v₂_eq_0]
     simp [fail]
     rfl
