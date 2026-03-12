@@ -45,7 +45,7 @@ theorem hist_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State × Hist)}
 /-- Given a run of the original automaton, `makeHist` builds a run of the history state. -/
 @[scoped grind =]
 def makeHist (start' : State → Hist) (tr' : State × Hist → Symbol → State → Hist)
-  (xs : ωSequence Symbol) (ss : ωSequence State) : ℕ → Hist
+    (xs : ωSequence Symbol) (ss : ωSequence State) : ℕ → Hist
   | 0 => start' (ss 0)
   | n + 1 => tr' (ss n, makeHist start' tr' xs ss n) (xs n) (ss (n + 1))
 
