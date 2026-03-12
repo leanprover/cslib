@@ -165,12 +165,7 @@ def effStep : {ι : Type} → Eff ι → EffAction ι
   | _, .inr (.inl (ErrorEff.Fail msg)) => throw msg
   | _, .inr (.inr (TraceEff.Log msg)) => modifyThe Trace (· ++ [msg])
 
-/-- Catamorphic interpreter for effectful computations.
-
-Transforms a `FreeM Eff` program into a concrete effectful computation
-by folding the syntax tree using the algebra defined by `effPure` and `effStep`.
-
-This is the main interpreter that gives operational meaning to effect programs. -/
+/-- The unique interpreter into the `EffAction` monad extending the effect handler `effStep`. -/
 abbrev runEff {α} : FreeM Eff α → EffAction α :=
   FreeM.liftM effStep
 
