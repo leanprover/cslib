@@ -42,7 +42,7 @@ open scoped Term
 abbrev saturated (S : Set (Term Var)) : Prop :=
           (∀ M ∈ S, LC M) ∧
           (∀ M ∈ S, SN M) ∧
-          (∀ M, neutral M → LC M → M ∈ S) ∧
+          (∀ M, Neutral M → LC M → M ∈ S) ∧
           (∀ M N P, LC N →
                     SN N →
                     multiApp (M ^ N) P ∈ S →

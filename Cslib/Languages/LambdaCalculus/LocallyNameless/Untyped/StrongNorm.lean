@@ -18,10 +18,9 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u}
-
-
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
+
+variable {Var : Type u} {t t' : Term Var}
 
 open FullBeta
 
@@ -30,22 +29,22 @@ attribute [grind =] Finset.union_singleton
 /-- A term is strongly normalizing if every reduction sequence terminates at some point.
     This is ensured by the following type as inductive data must always be finite. -/
 inductive SN {α} : Term α → Prop
-| sn t : (∀ (t' : Term α), (t ⭢βᶠ t') → SN t') → SN t
+| sn t : (∀ t', t ⭢βᶠ t' → SN t') → SN t
 
 attribute [scoped grind .] SN.sn
 
 /-- A single β-reduction step preserves strong normalization. -/
 @[aesop safe]
-lemma sn_step {t t' : Term Var} (t_st_t' : t ⭢βᶠ t') (sn_t : SN t) : SN t' := by
+lemma sn_step (t_st_t' : t ⭢βᶠ t') (sn_t : SN t) : SN t' := by
   cases sn_t; grind
 
 /-- Multiple β-reduction steps also preserve strong normalization. -/
 @[aesop safe]
-lemma sn_steps {t t' : Term Var} (t_st_t' : t ↠βᶠ t') (sn_t : SN t) : SN t' := by
-  induction t_st_t' with grind[sn_step]
+lemma sn_steps (t_st_t' : t ↠βᶠ t') (sn_t : SN t) : SN t' := by
+  induction t_st_t' with grind [sn_step]
 
 /-- Free variables are strongly normalizing. -/
-lemma sn_fvar {x : Var} : SN (Term.fvar x) := by
+lemma sn_fvar {x : Var} : SN (fvar x) := by
   constructor
   intro t' hstep
   cases hstep
@@ -72,9 +71,7 @@ lemma sn_app (t s : Term Var)
 
 
 /-- The left side of a strongly normalizing application is strongly normalizing. -/
-lemma sn_app_left (M N : Term Var)
-  (lc_N : Term.LC N)
-  (sn_MN : SN (M.app N)) :
+lemma sn_app_left (M N : Term Var) (lc_N : Term.LC N) (sn_MN : SN (M.app N)) :
     SN M := by
   generalize Heq : M.app N = P
   rw[Heq] at sn_MN
@@ -91,12 +88,10 @@ lemma sn_app_left (M N : Term Var)
     · rfl
 
 /-- The right side of a strongly normalizing application is strongly normalizing. -/
-lemma sn_app_right (M N : Term Var)
-  (lc_N : Term.LC M)
-  (sn_MN : SN (M.app N)) :
+lemma sn_app_right (M N : Term Var) (lc_N : Term.LC M) (sn_MN : SN (M.app N)) :
     SN N := by
   generalize Heq : M.app N = P
-  rw[Heq] at sn_MN
+  rw [Heq] at sn_MN
   revert M N
   induction sn_MN
   · case sn P h_sn ih =>
@@ -112,29 +107,27 @@ lemma sn_app_right (M N : Term Var)
 
 /-- A neutral term is a term of the form v t₁ … t_n where
     v is a variable and t₁ … t_n are strongly normalizing terms. -/
-inductive neutral : Term Var → Prop
+inductive Neutral : Term Var → Prop
 /-- Just a bound variable is neutral. -/
-| bvar : ∀ n, neutral (Term.bvar n)
+| bvar : ∀ n, Neutral (bvar n)
 /-- Just a free variable is neutral. -/
-| fvar : ∀ x, neutral (Term.fvar x)
+| fvar : ∀ x, Neutral (fvar x)
 /-- Applying a strongly normalizing term to a neutral term yields a neutral term. -/
-| app : ∀ t1 t2, neutral t1 → SN t2 → neutral (Term.app t1 t2)
+| app : ∀ t1 t2, Neutral t1 → SN t2 → Neutral (app t1 t2)
 
-attribute [scoped grind .] neutral.bvar neutral.fvar neutral.app
+attribute [scoped grind .] Neutral.bvar Neutral.fvar Neutral.app
 
 /-- Neutral terms only reduce to other neutral terms in a single step -/
-lemma neutral_step {t t' : Term Var}
-  (Hneut : neutral t) (Hstep : t ⭢βᶠ t') : neutral t' := by
+lemma neutral_step (Hneut : Neutral t) (Hstep : t ⭢βᶠ t') : Neutral t' := by
   induction Hneut generalizing t' <;> cases Hstep <;> try grind [sn_step]
   · contradiction
 
 /-- Neutral terms only reduce to other neutral terms in multiple steps -/
-lemma neutral_steps {t t' : Term Var}
-    (Hneut : neutral t) (Hsteps : t ↠βᶠ t') : neutral t' := by
+lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' := by
   induction Hsteps <;> grind [neutral_step]
 
 /-- Neutral terms are strongly normalizing. -/
-lemma sn_neutral {t : Term Var} (Hneut : neutral t) : SN t := by
+lemma sn_neutral (Hneut : Neutral t) : SN t := by
   induction Hneut
   · case bvar n => constructor; intro t' hstep; cases hstep
   · case fvar x => constructor; intro t' hstep; cases hstep
@@ -145,25 +138,23 @@ lemma sn_neutral {t : Term Var} (Hneut : neutral t) : SN t := by
       contradiction
 
 /-- A lambda abstraction is strongly normalizing if its body is strongly normalizing. -/
-lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var}
-  (sn_MN : SN (M ^ N)) (lc_N : LC N) : SN (Term.abs M) := by
+lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN (M ^ N)) (lc_N : LC N) :
+    SN (abs M) := by
   generalize h : (M ^ N) = M_open at sn_MN
   revert N M
   induction sn_MN with
   | sn M_open h_sn ih =>
-      intro M N lc_N h
-      constructor
-      intro M' h_step
-      cases h_step with
-      | @abs h_M_red M' L H =>
-        specialize ih (M' ^ N)
-        rw[←h] at ih
-        apply ih
-        · apply FullBeta.step_open_cong_l <;> assumption
-        · assumption
-        · rfl
-
-
+    intro M N lc_N h
+    constructor
+    intro M' h_step
+    cases h_step with
+    | @abs h_M_red M' L H =>
+      specialize ih (M' ^ N)
+      rw[←h] at ih
+      apply ih
+      · apply FullBeta.step_open_cong_l <;> assumption
+      · assumption
+      · rfl
 
 /-- A term of the form λ M N P_1 … P_n is strongly normalizing if
       1. N is strongly normalizing,
@@ -171,10 +162,8 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var}
       1. N is locally closed,
       1. M ^ N P₁ … Pₙ is locally closed -/
 lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
-  (sn_N : SN N)
-  (sn_MNPs : SN (multiApp (M ^ N) Ps))
-  (lc_N : LC N)
-  (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
+  (sn_N : SN N) (sn_MNPs : SN (multiApp (M ^ N) Ps))
+  (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
     SN (multiApp ((Term.abs M).app N) Ps) := by
   induction Ps
   · case nil =>
