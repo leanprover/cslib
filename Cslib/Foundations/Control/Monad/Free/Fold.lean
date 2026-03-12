@@ -47,7 +47,12 @@ universe u v w w'
 namespace FreeM
 variable {F : Type u → Type v} {ι : Type u} {α : Type w} {β : Type w'}
 
-/-- Fold function for the `FreeM` monad -/
+/-- Fold function for the `FreeM` monad.
+
+If a suitable monad `β` can be chosen, then `FreeM.liftM` is often more convenient.
+
+Note that this is simply a non-dependent special-case of the builtin recursor `FreeM.rec`.
+-/
 def foldFreeM
     (onValue : α → β)
     (onEffect : {ι : Type u} → F ι → (ι → β) → β) :
