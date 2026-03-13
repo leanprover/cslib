@@ -64,7 +64,7 @@ structure TMCost where
   /-- `steps` counts the number of moves in the TM -/
   steps : ℕ
   /--
-  `writeCells` is a set of cells that were previously unwritten. Thus input cells are excluded.
+  `writeCells` is the number of cells that were previously unwritten. Thus input cells are excluded.
   This unfortunately also includes output cells, an issue we hope to address in multi tape TMs
   -/
   writeCells : ℕ
@@ -72,7 +72,7 @@ structure TMCost where
 
 /-- Equivalence between `TMCost` and a product type. -/
 def TMCost.equivProd : TMCost ≃ (ℕ × ℕ) where
-  toFun sortOps := (sortOps.steps, sortOps.writeCells)
+  toFun tmOps := (tmOps.steps, tmOps.writeCells)
   invFun pair := ⟨pair.1, pair.2⟩
   left_inv _ := rfl
   right_inv _ := rfl
