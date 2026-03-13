@@ -7,7 +7,6 @@ Authors: Tanner Duve, Bhavik Mehta, Aleph Prover
 module
 
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Soundness
-
 public import Mathlib.Algebra.Group.TypeTags.Basic
 public import Mathlib.Data.Multiset.Basic
 public import Mathlib.Algebra.Order.Group.Multiset
