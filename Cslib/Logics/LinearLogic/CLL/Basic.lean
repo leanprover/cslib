@@ -747,9 +747,10 @@ theorem foldPar_isMALL {Atom : Type u} (Γ : Sequent Atom)
     exact this _ (fun A hA => h A (by aesop))
   intro l hl; induction l <;> simp [Proposition.IsMALL]; grind [Proposition.IsMALL]
 
-theorem provable_of_list_foldr_parr {Atom : Type u} (l : List (Proposition Atom)) (Δ : Sequent Atom)
-    : Derivable ((List.foldr (· ⅋ ·) ⊥ l) ::ₘ Δ) →
-      Derivable ((l : Sequent Atom) + Δ) := by
+theorem provable_of_list_foldr_parr {Atom : Type u}
+    (l : List (Proposition Atom)) (Δ : Sequent Atom) :
+    Derivable ((List.foldr (· ⅋ ·) ⊥ l) ::ₘ Δ) →
+    Derivable ((l : Sequent Atom) + Δ) := by
   induction l generalizing Δ with
   | nil => intro ⟨p⟩; exact ⟨Proof.rwConclusion (by simp) p.bot_inversion⟩
   | cons a l ih =>

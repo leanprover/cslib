@@ -166,7 +166,8 @@ theorem interpSequent_allQuest_quest_stable {M : Type*} [PhaseSpace M]
   induction Γ using Multiset.induction_on with
   | empty =>
     intro m hm
-    exact mul_one m ▸ hm 1 ⟨fun x hx => by rwa [one_mul], ⟨IsIdempotentElem.one, one_mem_one⟩⟩
+    exact mul_one m ▸
+      hm 1 ⟨fun x hx => by rwa [one_mul], ⟨IsIdempotentElem.one, one_mem_one⟩⟩
   | @cons A Γ ih =>
     cases A <;> simp only [Sequent.allQuest, Multiset.map_cons,
       Multiset.fold_cons_left, Bool.false_and, Bool.false_eq_true] at hQuest ⊢
@@ -224,7 +225,8 @@ theorem cut_valid {M : Type*} [PhaseSpace M] {v : Atom → Fact M}
   set G := interpSequent M v Γ
   set H := interpSequent M v Δ
   set F := interpProp v A
-  exact IsValid_monotone (par_le_par le_rfl (le_trans (orth_antitone (valid_par_implies_neg_le hΓ))
+  exact IsValid_monotone
+    (par_le_par le_rfl (le_trans (orth_antitone (valid_par_implies_neg_le hΓ))
     (valid_par_implies_neg_le hΔ)))
     (by change (1 : M) ∈ G ⅋ Gᗮ; rw [par_of_linImpl]
         apply linImpl_iff_implies.mpr; intro x hx; rw [one_mul]; exact hx)
