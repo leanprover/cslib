@@ -532,7 +532,7 @@ The exponential `!X` (of course) of a fact,
 defined as the dual of the orthogonal of the intersection with the idempotents.
 -/
 def bang (X : Fact P) : Fact P := dualFact (X ∩ I)⫠
-@[inherit_doc] prefix:100 " ! " => bang
+@[inherit_doc] prefix:100 "!" => bang
 
 /--
 The exponential `?X` (why not) of a fact,

@@ -61,8 +61,7 @@ variable {Atom : Type u}
 def PrSet (Atom : Type u) (A : Proposition Atom) : Set (CanonM Atom) :=
   {m | Derivable (A ::ₘ m.toAdd)}
 
-theorem PrSet_top {Atom : Type u} : PrSet Atom (⊤ : Proposition Atom) =
-(.univ : Set (CanonM Atom)) := by
+theorem PrSet_top {Atom : Type u} : PrSet Atom ⊤ = .univ := by
   ext m; exact ⟨fun _ => trivial, fun _ => ⟨Proof.top⟩⟩
 
 theorem PrSet_with {Atom : Type u} (A B : Proposition Atom) : PrSet Atom (A & B) =
@@ -75,7 +74,7 @@ theorem PrSet_with {Atom : Type u} (A B : Proposition Atom) : PrSet Atom (A & B)
 def canonBot (Atom : Type u) : Set (CanonM Atom) :=
   {m | Derivable m.toAdd}
 
-theorem PrSet_bot {Atom : Type u} : PrSet Atom (⊥ : Proposition Atom) = canonBot Atom := by
+theorem PrSet_bot {Atom : Type u} : PrSet Atom ⊥ = canonBot Atom := by
   ext m; exact ⟨fun ⟨p⟩ => ⟨p.bot_inversion⟩, fun ⟨p⟩ => ⟨p.bot⟩⟩
 
 instance canonPhaseSpace (Atom : Type u) : PhaseSpace (CanonM Atom) := by

@@ -57,7 +57,7 @@ theorem IsValid_monotone {M : Type*} [PhaseSpace M]
     interpProp v (Proposition.atomDual a) = (v a)ᗮ := rfl
 
 theorem dualFact_coe (M : Type*) [PhaseSpace M] (S : Set M) :
-    ((dualFact S) : Set M) = S⫠ := by
+    (dualFact S) = S⫠ := by
   simp [dualFact]
 
 @[simp] theorem interpProp_bang {M : Type*} [PhaseSpace M]
@@ -88,7 +88,7 @@ theorem dualFact_coe (M : Type*) [PhaseSpace M] (S : Set M) :
 /-! ## Exponential structural lemmas -/
 
 theorem quest_contract_le {M : Type*} [PhaseSpace M] (G : Fact M) :
-    (ʔG ⅋ ʔG : Fact M) ≤ ʔG := by
+    (ʔG ⅋ ʔG) ≤ ʔG := by
   intro m hm x ⟨hxG, hxI⟩
   exact hxI.1.eq ▸ hm (x * x) (Set.mem_mul.mpr ⟨x, orth_extensive _ ⟨hxG, hxI⟩,
     x, orth_extensive _ ⟨hxG, hxI⟩, rfl⟩)
@@ -97,11 +97,11 @@ theorem quest_le {M : Type*} [PhaseSpace M] (G : Fact M) : G ≤ ʔG := by
   intro x hx y ⟨hy, _⟩; exact mul_comm y x ▸ hy x hx
 
 theorem bot_le_quest {M : Type*} [PhaseSpace M] (G : Fact M) :
-    (⊥ : Fact M) ≤ ʔG := by
+    ⊥ ≤ ʔG := by
   intro m hm x ⟨_, hxI⟩; exact mul_comm m x ▸ (mem_one.mp hxI.2) m hm
 
 theorem quest_idem_le {M : Type*} [PhaseSpace M] {G : Fact M} :
-    (ʔ(ʔG) : Fact M) ≤ ʔG := by
+    ʔ(ʔG) ≤ ʔG := by
   intro m hm x hx; exact hm x ⟨fun y hy => mul_comm x y ▸ hy x hx, hx.2⟩
 
 theorem quest_monotone {M : Type*} [PhaseSpace M] {G H : Fact M}
@@ -111,7 +111,7 @@ theorem quest_monotone {M : Type*} [PhaseSpace M] {G H : Fact M}
 theorem tensor_mem_inter_I_of_mem_inter_I {M : Type*} [PhaseSpace M]
     {G H : Fact M} {g h : M}
     (hg : g ∈ (G : Set M) ∩ I) (hh : h ∈ (H : Set M) ∩ I) :
-    g * h ∈ ((G ⊗ H : Fact M) : Set M) ∩ I :=
+    g * h ∈ ((G ⊗ H) : Set M) ∩ I :=
   ⟨mul_subset_tensor (Set.mul_mem_mul hg.1 hh.1),
    hg.2.1.mul hh.2.1, mul_mem_one hg.2.2 hh.2.2⟩
 
@@ -122,10 +122,10 @@ theorem mul_inter_I_subset_tensor_inter_I {M : Type*} [PhaseSpace M] {G H : Fact
 
 theorem bang_tensor_le {M : Type*} [PhaseSpace M] {G H : Fact M} :
     (bang G ⊗ bang H : Fact M) ≤ bang (G ⊗ H) := by
-  rw [show (bang G ⊗ bang H : Fact M) ≤ bang (G ⊗ H) ↔
-    ((bang G : Fact M) : Set M) * (bang H : Fact M) ⊆ bang (G ⊗ H)
+  rw [show (bang G ⊗ bang H) ≤ bang (G ⊗ H) ↔
+    (bang G : Set M) * bang H ⊆ bang (G ⊗ H)
     from dual_dual_subset_Fact_iff]
-  have step1 : ((bang G : Fact M) : Set M) * (bang H : Fact M) ⊆
+  have step1 : (bang G : Set M) * bang H ⊆
       (((G : Set M) ∩ I) * ((H : Set M) ∩ I))⫠⫠ := by
     change ((bang G).carrier * (bang H).carrier) ⊆ _
     simp only [bang, dualFact, mk_dual, mk_subset]
@@ -137,23 +137,22 @@ theorem bang_tensor_le {M : Type*} [PhaseSpace M] {G H : Fact M} :
 /-! ## Duality between ! and ? -/
 
 theorem quest_neg_set (M : Type*) [PhaseSpace M] (G : Fact M) :
-    (quest Gᗮ : Fact M) =
-    ((@bang M _ G : Fact M) : Set M)⫠ := by
-  calc ((@quest M _ (Gᗮ) : Fact M) : Set M)
-      = (((Gᗮ : Set M)⫠ ∩ I) : Set M)⫠ := by
+    quest Gᗮ = ((@bang M _ G) : Set M)⫠ := by
+  calc (@quest M _ (Gᗮ))
+      = (((Gᗮ : Set M)⫠ ∩ I))⫠ := by
           simp only [quest, dualFact_coe]
-    _ = (((G : Set M)⫠⫠ ∩ I) : Set M)⫠ := by simp only [coe_neg]
-    _ = (((G : Set M) ∩ I) : Set M)⫠ := by
-      grind [isFact, congrArg (fun S : Set M => (S ∩ I)⫠) G.property.symm]
-    _ = ((bang (P := M) G : Fact M) : Set M)⫠ := by
+    _ = (((G : Set M)⫠⫠ ∩ I))⫠ := by simp only [coe_neg]
+    _ = (((G : Set M) ∩ I))⫠ := by
+      grind [isFact, congrArg (fun S => (S ∩ I)⫠) G.property.symm]
+    _ = ((bang (P := M) G : Fact M))⫠ := by
         simp only [bang, dualFact_coe, triple_orth]
 
 theorem quest_neg (M : Type*) [PhaseSpace M] (G : Fact M) :
-    (ʔ (Gᗮ)) = ( ! G)ᗮ := by
+    (ʔ (Gᗮ)) = (!G)ᗮ := by
   apply SetLike.coe_injective; simp [quest_neg_set]
 
 theorem bang_neg (M : Type*) [PhaseSpace M] (G : Fact M) :
-    ( ! (Gᗮ)) = (ʔ G)ᗮ := by
+    (!(Gᗮ)) = (ʔG)ᗮ := by
   have h' := congrArg (fun H => (Hᗮ)) (quest_neg M Gᗮ)
   simp_all only [Fact.neg_neg]
 
@@ -167,7 +166,7 @@ theorem quest_par_le {M : Type*} [PhaseSpace M] {G H : Fact M} :
 
 theorem interpSequent_allQuest_quest_stable {M : Type*} [PhaseSpace M]
     {v : Atom → Fact M} {Γ : Sequent Atom} (hQuest : Γ.allQuest) :
-    (ʔ(interpSequent M v Γ) : Fact M) ≤ interpSequent M v Γ := by
+    ʔ(interpSequent M v Γ) ≤ interpSequent M v Γ := by
   induction Γ using Multiset.induction_on with
   | empty =>
     intro m hm
@@ -215,7 +214,7 @@ theorem interpProp_dual {M : Type*} [PhaseSpace M]
   | quest _ ih => simp only [interpProp, Proposition.dual, ih]; exact bang_neg ..
 
 theorem ax_valid {M : Type*} [PhaseSpace M] (v : Atom → Fact M) (A : Proposition Atom) :
-    (interpProp v A ⅋ (interpProp v A)ᗮ : Fact M).IsValid := by
+    (interpProp v A ⅋ (interpProp v A)ᗮ).IsValid := by
   change (1 : M) ∈ interpProp v A ⅋ (interpProp v A)ᗮ
   rw [par_of_linImpl]
   apply linImpl_iff_implies.mpr
