@@ -325,7 +325,7 @@ instance : Min (Fact P) where
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
 
-/-- The set I of idempotents in the fact `1` (i.e., in `⊥⫠`). -/
+/-- The set I of idempotents that "belong to 1" in the phase semantics. -/
 def I : Set P := idempotentsIn (↑(1 : Fact P))
 
 /-! ## Interpretation of the connectives -/
