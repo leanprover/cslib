@@ -83,7 +83,7 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
     ReflGen FullEta M.abs (N ^* x).abs := by
   cases st_M with
   | refl =>
-    have eq_M : M = (M ^ fvar x) ^* x := open_close x M 0 hx_M
+    have eq_M : M = (M ^ fvar x) ^* x := open_close_var x M hx_M
     rw [←eq_M]
   | single st =>
     exact .single (.abs {x} fun _ _ => by grind)
