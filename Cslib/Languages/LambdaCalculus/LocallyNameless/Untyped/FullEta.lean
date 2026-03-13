@@ -79,7 +79,7 @@ lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢�
 
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
-lemma close_eta_steps' (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
+lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
     ReflGen FullEta M.abs (N ^* x).abs := by
   cases st_M with
   | refl =>
