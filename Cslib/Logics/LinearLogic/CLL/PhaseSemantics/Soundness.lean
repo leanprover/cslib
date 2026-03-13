@@ -24,10 +24,6 @@ import Mathlib.Algebra.Group.Pointwise.Set.Basic
 This file proves that provable sequents of classical linear logic are valid in every
 phase space under every valuation.
 
-## Main definitions
-
-* `interpSequent`: interprets a sequent as the par-fold of its formulas
-
 ## Main results
 
 * `interpProp_dual`: interpretation commutes with duality

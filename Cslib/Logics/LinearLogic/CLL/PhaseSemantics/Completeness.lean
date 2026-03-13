@@ -27,8 +27,7 @@ multiplicative-additive fragment of classical linear logic.
 
 * `CanonM`: the monoid of sequents
 * `PrSet`: the interpretation of propositions in the model
-* `canonVal`: the distinguished valuation
-* `foldPar`: folds a sequent into a single par-formula
+* `canonVal`: the distinguished valuationxw
 
 ## Main results
 
