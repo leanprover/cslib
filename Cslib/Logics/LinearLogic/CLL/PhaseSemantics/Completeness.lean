@@ -75,8 +75,8 @@ def canonBot (Atom : Type u) : Set (CanonM Atom) :=
 theorem PrSet_bot {Atom : Type u} : PrSet Atom ⊥ = canonBot Atom := by
   ext m; exact ⟨fun ⟨p⟩ => ⟨p.bot_inversion⟩, fun ⟨p⟩ => ⟨p.bot⟩⟩
 
-instance canonPhaseSpace (Atom : Type u) : PhaseSpace (CanonM Atom) := by
-  exact { bot := canonBot Atom, toCommMonoid := inferInstance }
+instance canonPhaseSpace (Atom : Type u) : PhaseSpace (CanonM Atom) where
+  bot := canonBot Atom
 
 theorem PrSet_eq_orth {Atom : Type u} (A : Proposition Atom) :
     PrSet Atom A = orthogonal (PrSet Atom (Proposition.dual A)) := by
