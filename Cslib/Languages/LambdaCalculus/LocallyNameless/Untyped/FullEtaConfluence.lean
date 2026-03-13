@@ -71,12 +71,10 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
       use z'
       grind [→ eta, step_not_fv, open_eq_app]
     case abs N2 L2 st_M_N2 =>
-      have ⟨x, hx⟩ := fresh_exists (L ∪ L2 ∪ N.fv ∪ N2.fv)
-      simp only [Finset.mem_union, not_or] at hx
-      rcases hx with ⟨⟨⟨hx_L, hx_L2⟩, hx_N⟩, hx_N2⟩
-      obtain ⟨w, hw_N, hw_N2⟩ := ih₂ x hx_L (st_M_N2 x hx_L2)
+      have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+      have ⟨w, _⟩ := ih₂ (z := N2 ^ fvar x) x (by grind) (by grind)
       use abs (w⟦0 ↜ x⟧)
-      exact ⟨close_eta_steps hx_N hw_N, close_eta_steps hx_N2 hw_N2⟩
+      grind [close_eta_steps]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
