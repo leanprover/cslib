@@ -72,7 +72,7 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
     case abs N2 L2 st_M_N2 =>
       have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
       have ⟨w, _⟩ := ih₂ (z := N2 ^ fvar x) x (by grind) (by grind)
-      use abs (w⟦0 ↜ x⟧)
+      use abs (w ^* x)
       grind [close_eta_steps]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
