@@ -44,17 +44,17 @@ inductive Dir where
 /--
 A query type of possible operating steps in a Turing machine.
 -/
-inductive TMQuery (tm : SingleTapeTM Symbol) : Type → Type where
+inductive TMQuery : (tm : SingleTapeTM Symbol) → Type → Type where
   /-- Read a symbol under the TM head on the tape -/
-  | readTape (inpCfg : tm.Cfg) : TMQuery tm (Option Symbol)
+  | readTape {tm} (inpCfg : tm.Cfg) : TMQuery tm (Option Symbol)
   /-- Read the state of the TM -/
-  | readState (inpCfg : tm.Cfg) : TMQuery tm (Option tm.State)
+  | readState {tm} (inpCfg : tm.Cfg) : TMQuery tm (Option tm.State)
   /-- Write a symbol under the TM head on the tape -/
-  | write (inpCfg : tm.Cfg) (s : Option Symbol) : TMQuery tm tm.Cfg
+  | write {tm} (inpCfg : tm.Cfg) (s : Option Symbol) : TMQuery tm tm.Cfg
   /-- Update the TM's state -/
-  | update (inpCfg : tm.Cfg) (st : tm.State): TMQuery tm tm.Cfg
+  | update {tm} (inpCfg : tm.Cfg) (st : tm.State): TMQuery tm tm.Cfg
   /-- Move the TM one step in the specified direction or stay in place -/
-  | move (inpCfg : tm.Cfg) (dir : Dir) : TMQuery tm tm.Cfg
+  | move {tm} (inpCfg : tm.Cfg) (dir : Dir) : TMQuery tm tm.Cfg
 
 /--
 The Turing machine cost structure.
