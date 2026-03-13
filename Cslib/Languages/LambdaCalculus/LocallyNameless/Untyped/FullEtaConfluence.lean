@@ -66,21 +66,10 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
   case abs M N L ih₁ ih₂ =>
     cases h₂
     case eta z _ =>
-      have ⟨w, hw⟩ := fresh_exists (L ∪ N.fv ∪ z.fv)
-      simp only [Finset.mem_union, not_or] at hw
-      rcases hw with ⟨⟨hw_L, hw_N⟩, hw_z⟩
-      have st_body := ih₁ w hw_L
-      have eq_z : z ^ fvar w = z := by grind
-      have eq_app : (app z (bvar 0)) ^ fvar w = app z (fvar w) := by grind
-      rw [eq_app] at st_body
-      rcases invert_step_app_fvar st_body with ⟨z', h_eq, st_z⟩
+      have ⟨w,  _⟩ := fresh_exists <| free_union [fv] Var
+      have ⟨z', _⟩ := invert_step_app_fvar <| ih₁ w <| by grind
       use z'
-      constructor
-      · have lc_z' := step_lc_r st_z
-        have hw_z' := step_not_fv st_z hw_z
-        rw [open_eq_app hw_N hw_z' lc_z' h_eq]
-        exact .single (eta lc_z')
-      · exact .single st_z
+      grind [→ eta, step_not_fv, open_eq_app]
     case abs N2 L2 st_M_N2 =>
       have ⟨x, hx⟩ := fresh_exists (L ∪ L2 ∪ N.fv ∪ N2.fv)
       simp only [Finset.mem_union, not_or] at hx
