@@ -86,8 +86,7 @@ theorem PrSet_eq_orth {Atom : Type u} (A : Proposition Atom) :
     exact ⟨(toAdd_mul m n).symm ▸ hm.toDerivation.cut hn.toDerivation⟩
   · intro hm
     let n : CanonM Atom := Multiplicative.ofAdd {A}
-    have hn : n ∈ PrSet Atom A⫠ := by
-      simp only [PrSet, Set.mem_setOf_eq, n]; exact ⟨@Proof.ax' _ A⟩
+    have hn : n ∈ PrSet Atom A⫠ := ⟨@Proof.ax' Atom A⟩
     exact ⟨(hm n hn).toDerivation.rwConclusion (by simp [n, toAdd_mul, add_comm])⟩
 
 theorem PrSet_dual_eq_orth {Atom : Type u} (A : Proposition Atom) :
