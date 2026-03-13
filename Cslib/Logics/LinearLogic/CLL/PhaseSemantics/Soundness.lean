@@ -59,22 +59,29 @@ theorem dualFact_coe (M : Type*) [PhaseSpace M] (S : Set M) :
 @[simp] theorem interpProp_bang {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A : Proposition Atom) :
     interpProp v (!A) = (!(interpProp v A)) := rfl
+
 @[simp] theorem interpProp_bot {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
     interpProp v ⊥ = ⊥ := rfl
+
 @[simp] theorem interpProp_one {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
     interpProp v 1 = 1 := rfl
+
 @[simp] theorem interpProp_oplus {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A B : Proposition Atom) :
     interpProp v (A ⊕ B) = (interpProp v A ⊕ interpProp v B : Fact M) := rfl
+
 @[simp] theorem interpProp_parr {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A B : Proposition Atom) :
     interpProp v (A ⅋ B) = (interpProp v A ⅋ interpProp v B) := rfl
+
 @[simp] theorem interpProp_quest {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A : Proposition Atom) :
     interpProp v (ʔA) = (ʔ(interpProp v A)) := rfl
+
 @[simp] theorem interpProp_tensor {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A B : Proposition Atom) :
     interpProp v (A ⊗ B) = (interpProp v A ⊗ interpProp v B) := rfl
+
 @[simp] theorem interpProp_top {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
     interpProp v (⊤ : Proposition Atom) = ⊤ := rfl
 @[simp] theorem interpProp_with {M : Type*} [PhaseSpace M]
