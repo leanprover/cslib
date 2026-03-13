@@ -63,8 +63,8 @@ def PrSet (Atom : Type u) (A : Proposition Atom) : Set (CanonM Atom) :=
 theorem PrSet_top {Atom : Type u} : PrSet Atom ⊤ = .univ := by
   ext m; exact ⟨fun _ => trivial, fun _ => ⟨Proof.top⟩⟩
 
-theorem PrSet_with {Atom : Type u} (A B : Proposition Atom) : PrSet Atom (A & B) =
-  PrSet Atom A ∩ PrSet Atom B := by
+theorem PrSet_with {Atom : Type u} (A B : Proposition Atom) :
+    PrSet Atom (A & B) = PrSet Atom A ∩ PrSet Atom B := by
   ext m; simp only [PrSet, Set.mem_setOf_eq, Set.mem_inter_iff]
   exact ⟨fun ⟨p⟩ => ⟨⟨p.with_inversion₁⟩, ⟨p.with_inversion₂⟩⟩,
     fun ⟨⟨p⟩, ⟨q⟩⟩ => ⟨.with p q⟩⟩
@@ -80,7 +80,7 @@ instance canonPhaseSpace (Atom : Type u) : PhaseSpace (CanonM Atom) := by
   exact { bot := canonBot Atom, toCommMonoid := inferInstance }
 
 theorem PrSet_eq_orth {Atom : Type u} (A : Proposition Atom) :
-PrSet Atom A = orthogonal (PrSet Atom (Proposition.dual A)) := by
+    PrSet Atom A = orthogonal (PrSet Atom (Proposition.dual A)) := by
   ext m; constructor
   · intro hm n hn
     change (m * n) ∈ canonBot Atom
@@ -95,11 +95,11 @@ PrSet Atom A = orthogonal (PrSet Atom (Proposition.dual A)) := by
     aesop
 
 theorem PrSet_dual_eq_orth {Atom : Type u} (A : Proposition Atom) :
-PrSet Atom (Proposition.dual A) = orthogonal (PrSet Atom A) := by
+    PrSet Atom (Proposition.dual A) = orthogonal (PrSet Atom A) := by
   grind [Proposition.dual_involution, PrSet_eq_orth]
 
 theorem PrSet_oplus {Atom : Type u} (A B : Proposition Atom) :
-PrSet Atom (A ⊕ B) = orthogonal (orthogonal (PrSet Atom A ∪ PrSet Atom B)) := by
+    PrSet Atom (A ⊕ B) = orthogonal (orthogonal (PrSet Atom A ∪ PrSet Atom B)) := by
   rw [PrSet_eq_orth (A := A ⊕ B)]; congr 1
   simp only [Proposition.dual]
   rw [PrSet_with A⫠ B⫠, PrSet_dual_eq_orth A, PrSet_dual_eq_orth B]
@@ -107,8 +107,9 @@ PrSet Atom (A ⊕ B) = orthogonal (orthogonal (PrSet Atom A ∪ PrSet Atom B)) :
   exact ⟨fun ⟨hmA, hmB⟩ _ ha => ha.elim (hmA _) (hmB _),
     fun hm => ⟨fun a ha => hm a (.inl ha), fun a ha => hm a (.inr ha)⟩⟩
 
-theorem PrSet_parr {Atom : Type u} (A B : Proposition Atom) : PrSet Atom (A ⅋ B) =
-orthogonal (PrSet Atom (Proposition.dual A) * PrSet Atom (Proposition.dual B)) := by
+theorem PrSet_parr {Atom : Type u} (A B : Proposition Atom) :
+    PrSet Atom (A ⅋ B) =
+    orthogonal (PrSet Atom (Proposition.dual A) * PrSet Atom (Proposition.dual B)) := by
   ext m; constructor
   · intro hm x hx
     rcases Set.mem_mul.mp hx with ⟨s, hs, t, ht, rfl⟩
@@ -130,8 +131,9 @@ orthogonal (PrSet Atom (Proposition.dual A) * PrSet Atom (Proposition.dual B)) :
     exact ⟨Proof.parr (hprov.toDerivation.rwConclusion (by simp [s, t, toAdd_mul, add_comm,
       Multiset.singleton_add]))⟩
 
-theorem PrSet_tensor {Atom : Type u} (A B : Proposition Atom) : PrSet Atom (A ⊗ B) =
-orthogonal (orthogonal (PrSet Atom A * PrSet Atom B)) := by
+theorem PrSet_tensor {Atom : Type u} (A B : Proposition Atom) :
+    PrSet Atom (A ⊗ B) =
+    orthogonal (orthogonal (PrSet Atom A * PrSet Atom B)) := by
   rw [PrSet_eq_orth (A ⊗ B)]
   congr 1
   have := PrSet_parr (Proposition.dual A) (Proposition.dual B)
@@ -179,14 +181,14 @@ theorem interpProp_canon_carrier {Atom : Type u} (A : Proposition Atom)
   | quest _ _ => exact False.elim hA
 
 theorem interpProp_list_foldr_parr {Atom : Type u} {M : Type*} [PhaseSpace M]
-(v : Atom → Fact M) (l : List (Proposition Atom)) :
-interpProp v (List.foldr (fun A B => A ⅋ B) ⊥ l) =
-List.foldr (fun A acc => (interpProp v A) ⅋ acc) ⊥ l := by
+    (v : Atom → Fact M) (l : List (Proposition Atom)) :
+    interpProp v (List.foldr (fun A B => A ⅋ B) ⊥ l) =
+    List.foldr (fun A acc => (interpProp v A) ⅋ acc) ⊥ l := by
   induction l <;> aesop
 
 theorem interpSequent_eq_interpProp_foldPar {Atom : Type u} (M : Type*) [PhaseSpace M]
-(v : Atom → Fact M) (Γ : Sequent Atom) :
-interpSequent M v Γ = interpProp v (foldPar Γ) := by
+    (v : Atom → Fact M) (Γ : Sequent Atom) :
+    interpSequent M v Γ = interpProp v (foldPar Γ) := by
   simp only [interpSequent, foldPar]
   rw [interpProp_list_foldr_parr v Γ.toList]
   have hfold : ∀ l : List (Proposition Atom),
