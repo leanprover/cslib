@@ -20,17 +20,15 @@ namespace Routines
 -- Boolean operations
 -- ═══════════════════════════════════════════════════════════════════════════
 
-/-- Combine two Bool values using logical OR, operating on lists.
-    Pops the first element from tape `i`.
-    If it is `false`, leaves tape `j` unchanged.
-    If it is `true`, pops the first element from tape `j` and pushes `true`.
-    If tape `i` cannot be popped, does nothing. -/
-public def combineOr {k : ℕ} (j : Fin k) : MultiTapeTM k Char := sorry
+public def combineOrUpdate {k : ℕ} (j : Fin k) :
+  MultiTapeTM k Char := sorry
 
 -- @[simp]
--- public lemma combineOr_eval_struct {k : ℕ} {i j : Fin k}
+-- public lemma combineOr_eval_struct {k : ℕ}
+--     (in₁ in₂ out : Fin k)
+--     (h_inj : [in₁, in₂, out].get.Injective)
 --     {views : Fin k → TapeView} :
---     (combineOr i j).eval_struct views = some
+--     (combineOr in₁ in₂ out h_inj).eval_struct views = some
 --       (match (views i).popList with
 --       | some (b_data, vi') =>
 --         let views' := Function.update views i vi'
@@ -53,8 +51,8 @@ public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
      pushList (StrEnc.toData false) j]
 
 @[simp]
-public lemma computes_fun_negateBool {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
-    computes_function_update (negateBool i) (fun b : Bool => !b) i views := by
+public lemma negateBool.computes_head_update {k : ℕ} {i : Fin k} :
+  computes_function_head_update (negateBool i) (fun b : Bool => !b) i := by
   sorry
 
 -- TODO from here below the simp lemmas are nice. Let us try to find a similarly nice

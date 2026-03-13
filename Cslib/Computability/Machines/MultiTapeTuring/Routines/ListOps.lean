@@ -17,6 +17,7 @@ namespace Routines
 -- ═══════════════════════════════════════════════════════════════════════════
 
 /-- Prepend a Data element to a list encoding on tape `i`. -/
+@[expose]
 public def pushList {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   right i ;ₜ put d i ;ₜ left i ;ₜ write '(' i
 

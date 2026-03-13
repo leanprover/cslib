@@ -28,27 +28,41 @@ public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
 `run_list` is a fold with accumulator on tape `j`. -/
 @[simp]
 public lemma run_list_fold {k : ℕ} (i j : Fin k) (h_neq : i ≠ j) {tm : MultiTapeTM k Char}
-  (f : TapeView → Data → TapeView)
-  (h_comp : ∀ views, computes_function tm f i j h_neq views)
+  (f : Data → TapeView → TapeView)
+  (h_comp : computes_function_read_update tm f i j h_neq)
   (views : Fin k → TapeView) :
   (run_list i tm).eval_struct views = some (Function.update views j
-      (((views i).currentList.map (fun ls => ls.foldl f (views j))).getD (views j))) := by
+      (((views i).currentList.map
+        (fun ls => ls.foldl (fun acc d => f d acc) (views j))).getD (views j))) := by
   sorry
 
 public def any_list {k : ℕ}
     (tm : MultiTapeTM k Char) (i j : Fin k) (_h_neq : i ≠ j) : MultiTapeTM k Char :=
-  pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOr j)
+  pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOrUpdate j)
 
 @[simp]
 public theorem any_list_eval_struct {k : ℕ} (i j : Fin k)
     (h_neq : i ≠ j)
     {tm : MultiTapeTM k Char}
     {f : Data → Bool}
-    (h_comp : ∀ views, computes_function_push_bool tm f i j h_neq views)
+    (h_comp : computes_function_read_push tm f i j h_neq)
     (views : Fin k → TapeView) :
     (any_list tm i j h_neq).eval_struct views = some (Function.update views j
       (((views i).currentList.map
         fun ls => (views j).pushList (StrEnc.toData (ls.any f))).getD (views j))) := by
+  sorry
+
+@[simp]
+public theorem any_list.computes_fun {k : ℕ} (i j : Fin k)
+    (h_neq : i ≠ j)
+    {tm : MultiTapeTM k Char}
+    {f : Data → Bool}
+    (h_comp : computes_function_read_push tm f i j h_neq)
+    (views : Fin k → TapeView) :
+    computes_function_readList_push
+      (any_list tm i j h_neq)
+      (fun ls => StrEnc.toData (ls.any f))
+      i j h_neq := by
   sorry
 
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
@@ -60,15 +74,18 @@ public def all_list {k : ℕ}
   any_list (tm ;ₜ negateBool j) i j h_neq ;ₜ negateBool j
 
 @[simp]
-public theorem all_list_eval_struct {k : ℕ} (i j : Fin k)
+public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
     (h_neq : i ≠ j)
     {tm : MultiTapeTM k Char}
     {f : Data → Bool}
-    (h_comp : ∀ views, computes_function_push_bool tm f i j h_neq views)
+    (h_comp : computes_function_read_push tm f i j h_neq)
     (views : Fin k → TapeView) :
-    (all_list tm i j h_neq).eval_struct views = some (Function.update views j
-      (((views i).currentList.map
-        fun ls => (views j).pushList (StrEnc.toData (ls.all f))).getD (views j))) := by
+    computes_function_readList_push
+      (all_list tm i j h_neq)
+      (fun ls => StrEnc.toData (ls.all f))
+      i j h_neq := by
+  unfold all_list
+  -- refine computes_function_seq₂ h_neq ?_ (negateBool.computes_head_update)
   sorry
 
 /-- Check if the value on tape `j` is contained in the list on tape `i`
