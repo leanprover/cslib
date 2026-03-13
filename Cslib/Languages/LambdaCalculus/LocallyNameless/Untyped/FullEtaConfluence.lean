@@ -39,21 +39,12 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
   induction h₁ generalizing z
   case appL Z _ N _ _ ih =>
     cases h₂
-    case appL _ _ st =>
-      obtain ⟨w, _, _⟩ := ih st
-      use (disch := grind) app Z w
-    case appR z_red _ _ =>
-      use app z_red N
-      grind
+    case appL _ _ st => use (disch := grind) app Z (ih st).choose
+    case appR z_red _ _ => use (disch := grind) app z_red N
   case appR M _ Z _ _ ih =>
     cases h₂
-    case appR _ st _ =>
-      obtain ⟨w, _, _⟩ := ih st
-      use app w M
-      grind
-    case appL z_red _ _ =>
-      use app Z z_red
-      grind
+    case appR _ st _ => use (disch := grind) app (ih st).choose M
+    case appL z_red _ _ => use (disch := grind) app Z z_red
   case eta M lc_M =>
     cases h₂
     case eta => use M
