@@ -255,12 +255,11 @@ theorem soundness (Γ : Sequent Atom) :
     exact cut_valid (by aesop)
       (by grind [interpSequent_cons, interpProp_dual])
   | one =>
-    simp only [show ({(1 : Proposition Atom)} : Sequent Atom) = (1 : Proposition Atom) ::ₘ 0
+    simp only [show ({1} : Sequent Atom) = 1 ::ₘ 0
       from by simp, interpSequent_cons, interpSequent_nil, interpProp_one, par_bot]
     exact one_mem_one
-  | bot _ ih => simp only [interpSequent_cons, interpProp_bot, bot_par]; exact ih
-  | parr _ ih =>
-    simp only [interpSequent_cons, interpProp_parr] at ih ⊢; rw [par_assoc]; exact ih
+  | bot _ ih => aesop
+  | parr _ ih => aesop
   | tensor p q ihp ihq =>
     rename_i a Γ b Δ
     let A := interpProp v a; let B := interpProp v b
@@ -269,10 +268,10 @@ theorem soundness (Γ : Sequent Atom) :
     have hBH : (B ⅋ H).IsValid := by aesop
     have hA := valid_par_implies_neg_le hAG
     have hB := valid_par_implies_neg_le hBH
-    have hgoal : ((A ⊗ B) ⅋ (G ⅋ H) : Fact M).IsValid := by
-      change (1 : M) ∈ ((A ⊗ B) ⅋ (G ⅋ H) : Fact M)
+    have hgoal : ((A ⊗ B) ⅋ (G ⅋ H)).IsValid := by
+      change 1 ∈ (A ⊗ B) ⅋ (G ⅋ H)
       simp only [par_of_linImpl, neg_tensor]
-      exact (@linImpl_iff_implies _ _ (p := (1 : M)) (G := Aᗮ ⅋ Bᗮ) (H := G ⅋ H)).2
+      exact (@linImpl_iff_implies _ _ 1 (Aᗮ ⅋ Bᗮ) (G ⅋ H)).2
         (fun x hx => by rw [one_mul]; exact par_le_par hA hB hx)
     grind [interpSequent_cons, interpSequent_add, interpProp_tensor, par_assoc]
   | oplus₁ _ ih =>
@@ -293,7 +292,7 @@ theorem soundness (Γ : Sequent Atom) :
   | weaken p ih =>
     rename_i Γ a
     simp only [interpSequent_cons, interpProp_quest]
-    have hle : (interpSequent M v Γ : Fact M) ≤
+    have hle : interpSequent M v Γ ≤
         (quest (interpProp v a) ⅋ interpSequent M v Γ) := by
       have := (par_le_par (bot_le_quest (interpProp v a)) le_rfl :
         (⊥ ⅋ interpSequent M v Γ) ≤ _)
