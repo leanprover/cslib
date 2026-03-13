@@ -44,10 +44,6 @@ correspond to specific set-theoretic operations.
 
 Several lemmas about facts and orthogonality useful in the proof of soundness are proven here.
 
-## TODO
-- Soundness theorem
-- Completeness theorem
-
 ## References
 
 * [J.-Y. Girard, *Linear logic*][Girard1987]
@@ -329,8 +325,8 @@ instance : Min (Fact P) where
 /-- The idempotent elements within a given set X. -/
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
 
-/-- The set I of idempotents that "belong to 1" in the phase semantics. -/
-def I : Set P := idempotentsIn (1 : Set P)
+/-- The set I of idempotents in the fact `1` (i.e., in `⊥⫠`). -/
+def I : Set P := idempotentsIn (↑(1 : Fact P))
 
 /-! ## Interpretation of the connectives -/
 
@@ -454,7 +450,13 @@ lemma par_le_par {G H K L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G ⅋ H) 
 
 @[simp] lemma par_assoc {G H K : Fact P} : ((G ⅋ H) ⅋ K) = (G ⅋ H ⅋ K) := by simp [par_of_tensor]
 
+instance parAssociative {M : Type*} [PhaseSpace M] :
+    Std.Associative (α := Fact M) (· ⅋ ·) := ⟨fun _ _ _ => par_assoc⟩
+
 lemma par_comm (G H : Fact P) : (G ⅋ H) = (H ⅋ G) := by simp [par_of_tensor, tensor_comm]
+
+instance parCommutative {M : Type*} [PhaseSpace M] :
+    Std.Commutative (α := Fact M) (· ⅋ ·) := ⟨par_comm⟩
 
 /--
 Linear implication between facts,
@@ -537,7 +539,7 @@ The exponential `?X` (why not) of a fact,
 defined as the dual of the intersection of the orthogonal with the idempotents.
 -/
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
-@[inherit_doc] prefix:100 " ʔ " => quest
+@[inherit_doc] prefix:100 "ʔ" => quest
 
 /-! ### Properties of Additives -/
 
@@ -694,6 +696,29 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
   | .quest  A     => ʔ(interpProp v A)
 
 @[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interpProp v P
+
+/-- Semantic interpretation of a sequent as the par-fold of its members. -/
+def interpSequent (M : Type*) [PhaseSpace M]
+    (v : Atom → Fact M) (Γ : Sequent Atom) : Fact M :=
+  (Γ.map (fun A => (interpProp v A : Fact M))).fold (· ⅋ ·) ⊥
+
+theorem interpSequent_nil {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
+    interpSequent M v (0 : Sequent Atom) = ⊥ := by simp [interpSequent]
+
+theorem interpSequent_add {M : Type*} [PhaseSpace M]
+    (v : Atom → Fact M) (Γ Δ : Sequent Atom) :
+    interpSequent M v (Γ + Δ) = interpSequent M v Γ ⅋ interpSequent M v Δ := by
+  simp only [interpSequent]
+  rw [Multiset.map_add]
+  have := Multiset.fold_add
+    (fun (x y : Fact M) => x ⅋ y) ⊥ ⊥ (Γ.map fun A => interpProp v A)
+    ( Δ.map fun A => interpProp v A)
+  rwa [bot_par] at this
+
+@[simp] theorem interpSequent_cons {M : Type*} [PhaseSpace M]
+    (v : Atom → Fact M) (A : Proposition Atom) (Γ : Sequent Atom) :
+    interpSequent M v (A ::ₘ Γ) = interpProp v A ⅋ interpSequent M v Γ := by
+  simp [interpSequent]
 
 end PhaseSpace
 
