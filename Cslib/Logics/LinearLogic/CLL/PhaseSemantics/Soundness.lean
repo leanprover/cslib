@@ -84,6 +84,7 @@ theorem dualFact_coe (M : Type*) [PhaseSpace M] (S : Set M) :
 
 @[simp] theorem interpProp_top {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
     interpProp v (⊤ : Proposition Atom) = ⊤ := rfl
+
 @[simp] theorem interpProp_with {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A B : Proposition Atom) :
     interpProp v (A & B) = (interpProp v A & interpProp v B) := rfl
