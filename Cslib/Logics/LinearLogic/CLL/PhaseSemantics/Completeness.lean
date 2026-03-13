@@ -144,8 +144,7 @@ theorem interpProp_canon_carrier {Atom : Type u} (A : Proposition Atom)
       PrSet Atom A := by
   induction A with
   | atom a =>
-    simp only [interpProp, canonVal, dualFact, mk_dual_coe]
-    rw [PrSet_eq_orth (.atom a)]; simp [Proposition.dual, -orthogonal_def]
+    simp [interpProp, canonVal, PrSet_eq_orth (.atom a), Proposition.dual]
   | atomDual a =>
     simp only [interpProp, canonVal, dualFact, coe_neg, mk_dual_coe]
     conv_rhs => rw [PrSet_eq_orth (.atomDual a)]
