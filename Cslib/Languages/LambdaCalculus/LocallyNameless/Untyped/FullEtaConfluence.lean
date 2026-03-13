@@ -42,7 +42,6 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
     case appL _ _ st =>
       obtain ⟨w, _, _⟩ := ih st
       use (disch := grind) app Z w
-      grind
     case appR z_red _ _ =>
       use app z_red N
       grind

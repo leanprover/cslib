@@ -40,6 +40,10 @@ theorem subst_fresh (x : Var) (t sub : Term Var) (nmem : x ∉ t.fv) : t [x := s
 lemma open_close (x : Var) (t : Term Var) (k : ℕ) (nmem : x ∉ t.fv) : t = t⟦k ↝ fvar x⟧⟦k ↜ x⟧ := by
   induction t generalizing k <;> grind
 
+/-- Specializes `open_close` to the first closing. -/
+lemma open_close_var (x : Var) (t : Term Var) (nmem : x ∉ t.fv) : t = (t ^ fvar x) ^* x :=
+  open_close x t 0 nmem
+
 /-- Opening is injective. -/
 lemma open_injective (x : Var) (M M') (free_M : x ∉ M.fv) (free_M' : x ∉ M'.fv)
     (eq : M ^ fvar x = M' ^ fvar x) : M = M' := by
