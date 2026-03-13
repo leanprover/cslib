@@ -89,10 +89,7 @@ theorem PrSet_eq_orth {Atom : Type u} (A : Proposition Atom) :
     let n : CanonM Atom := Multiplicative.ofAdd {A}
     have hn : n ∈ PrSet Atom A⫠ := by
       simp only [PrSet, Set.mem_setOf_eq, n]; exact ⟨@Proof.ax' _ A⟩
-    have hbot := hm n hn
-    have hprov : Derivable (m.toAdd + {A}) := by aesop
-    have hprov' : Derivable ({A} + m.toAdd) := by grind
-    aesop
+    exact ⟨(hm n hn).toDerivation.rwConclusion (by simp [n, toAdd_mul, add_comm])⟩
 
 theorem PrSet_dual_eq_orth {Atom : Type u} (A : Proposition Atom) :
     PrSet Atom (Proposition.dual A) = orthogonal (PrSet Atom A) := by
@@ -126,8 +123,7 @@ theorem PrSet_parr {Atom : Type u} (A B : Proposition Atom) :
       simp only [PrSet, Set.mem_setOf_eq, s]; exact ⟨@Proof.ax' _ A⟩
     have ht : t ∈ PrSet Atom B⫠ := by
       simp only [PrSet, Set.mem_setOf_eq, t]; exact ⟨@Proof.ax' _ B⟩
-    have hprov : Derivable ((m * (s * t)).toAdd) := by
-      have h := hm (s * t) (Set.mul_mem_mul hs ht); simp only at h; exact h
+    have hprov : Derivable ((m * (s * t)).toAdd) := hm (s * t) (Set.mul_mem_mul hs ht)
     exact ⟨Proof.parr (hprov.toDerivation.rwConclusion (by simp [s, t, toAdd_mul, add_comm,
       Multiset.singleton_add]))⟩
 
