@@ -198,14 +198,14 @@ interpSequent M v Γ = interpProp v (foldPar Γ) := by
   rw [hfold]
   calc
     (Γ.map (fun A => (interpProp v A))).fold (fun x y : Fact M => x ⅋ y) ⊥
-        = (((Multiset.toList Γ) : Multiset (Proposition Atom)).map (fun A =>
+        = ((Γ.toList : Multiset (Proposition Atom)).map (fun A =>
         (interpProp v A))).fold (fun x y : Fact M => x ⅋ y) ⊥ := by simp
-    _ = (((Multiset.toList Γ).map (fun A => interpProp v A)) :
+    _ = (((Γ.toList).map (fun A => interpProp v A)) :
             Multiset (Fact M)).fold (fun x y : Fact M => x ⅋ y) ⊥ := by
       grind [congrArg (fun s => s.fold (fun x y : Fact M => x ⅋ y) ⊥)
-        (@Multiset.map_coe _ _ (fun A => (interpProp v A)) (Multiset.toList Γ))]
+        (@Multiset.map_coe _ _ (fun A => (interpProp v A)) (Γ.toList))]
     _ = List.foldr (fun x y : Fact M => x ⅋ y) ⊥
-            ((Multiset.toList Γ).map (fun A => interpProp v A)) := by simp
+            ((Γ.toList).map (fun A => interpProp v A)) := by simp
 
 theorem completeness {Atom : Type u} (Γ : Sequent Atom)
     (hMALL : IsMALL Γ) :
