@@ -82,6 +82,12 @@ lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
   | abs xs e _ _ => grind [open_lc_aux e 0 (fvar (fresh xs)) (k+1) t]
   | _ => grind
 
+/- If opening yields `app m x`, the original term was `app m (bvar 0)`. -/
+lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m.fv) (lc_m : LC m)
+    (h : n ^ fvar x = app m (fvar x)) : n = app m (bvar 0) := by
+  apply open_injective x n _ hw_n (by grind)
+  grind [open_lc 0 (fvar x) m lc_m]
+
 /-- Substitution of a locally closed term distributes with opening. -/
 @[scoped grind =]
 lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e : Term Var) (lc : LC t) :
