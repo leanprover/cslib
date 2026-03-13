@@ -57,7 +57,7 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
       grind
   case eta M lc_M =>
     cases h₂
-    case eta => exact ⟨M, .refl, .refl⟩
+    case eta => use M
     case abs N L st_body =>
       have ⟨w, hw⟩ := fresh_exists (L ∪ N.fv ∪ M.fv)
       simp only [Finset.mem_union, not_or] at hw
