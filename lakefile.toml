@@ -1,7 +1,7 @@
 name = "cslib"
 version = "0.1.0"
 defaultTargets = ["Cslib"]
-testDriver = "runTests"
+testDriver = "CslibTests"
 lintDriver = "batteries/runLinter"
 
 [leanOptions]
@@ -29,8 +29,3 @@ globs = ["CslibTests.+"]
 name = "checkInitImports"
 srcDir = "scripts"
 root = "CheckInitImports"
-
-[[lean_exe]]
-name = "runTests"
-srcDir = "scripts"
-root = "RunTests"

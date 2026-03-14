@@ -6,7 +6,7 @@ Authors: Elimia (Sehun Kim)
 
 module
 
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
 @[expose] public section
 
@@ -43,16 +43,13 @@ def depth : Term Var → ℕ
 
 @[elab_as_elim]
 protected lemma ind_on_depth (P : Term Var → Prop) (bvar : ∀ i, P (bvar i)) (fvar : ∀ x, P (fvar x))
-  (app : ∀ M N, P M → P N → P (app M N)) (abs : ∀ M, P M → (∀ N, N.depth ≤ M.depth → P N) → P M.abs)
-  (M : Term Var) : P M := by
-  have h {d : ℕ} {M : Term Var} (p : M.depth ≤ d) : P M := by
-    induction d generalizing M with
-    | zero => induction M <;> grind
-    | succ =>
-      induction M with
-      | abs M' => apply abs M' <;> grind
-      | _ => grind [sup_le_iff]
-  exact h M.depth.le_refl
+    (app : ∀ M N, P M → P N → P (app M N))
+    (abs : ∀ M, P M → (∀ N, N.depth ≤ M.depth → P N) → P M.abs)
+    (M : Term Var) : P M := by
+  induction h : M.depth using Nat.strong_induction_on generalizing M with | _ n ih
+  induction M with
+  | abs M' => apply abs M' <;> grind
+  | _ => grind [sup_le_iff]
 
 /-- The depth of the lambda expression doesn't change by opening at i-th bound variable
  for some free variable. -/
@@ -85,5 +82,16 @@ theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
         rcases h2 with ⟨⟩|⟨L,_,_⟩
         grind [fresh_exists L]
     | _ => grind [cases LC]
+
+/- Opening for some term at i-th bound variable increments `LcAt` by one -/
+lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
+    LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
+  induction M generalizing i <;> grind
+
+/- When `M ^ N` is locally closed, then `M.abs` is locally closed. This is proven by translating LC
+   to LcAt, applying lcAt_openRec_lcAt, then translating back to LC -/
+lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs) := by
+  rw [← lcAt_iff_LC] at *
+  exact lcAt_openRec_lcAt _ _ _ hlc
 
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term

@@ -74,8 +74,8 @@ theorem Similarity.refl (s : State) : s ≤[lts] s := by
 
 /-- The composition of two simulations is a simulation. -/
 theorem Simulation.comp
-  (r1 r2 : State → State → Prop) (h1 : Simulation lts r1) (h2 : Simulation lts r2) :
-  Simulation lts (Relation.Comp r1 r2) := by
+    (r1 r2 : State → State → Prop) (h1 : Simulation lts r1) (h2 : Simulation lts r2) :
+    Simulation lts (Relation.Comp r1 r2) := by
   simp_all only [Simulation]
   intro s1 s2 hrc μ s1' htr
   rcases hrc with ⟨sb, hr1, hr2⟩

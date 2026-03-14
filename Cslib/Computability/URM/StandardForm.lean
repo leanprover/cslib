@@ -44,9 +44,8 @@ def toStandardForm (p : Program) : Program :=
   p.map (Instr.capJump p.length)
 
 /-- toStandardForm preserves program length. -/
-@[simp]
-theorem toStandardForm_length (p : Program) :
-    p.toStandardForm.length = p.length := by
+@[simp, scoped grind =]
+theorem toStandardForm_length (p : Program) : p.toStandardForm.length = p.length := by
   simp [toStandardForm]
 
 /-- toStandardForm produces a standard form program. -/
@@ -149,43 +148,22 @@ theorem Halts.toStandardForm {p : Program} {inputs : List ℕ} (h : Halts p inpu
   obtain ⟨s₂, hsteps₂, hhalted₂, _⟩ := Steps.toStandardForm_halts hsteps hhalted
   exact ⟨s₂, hsteps₂, hhalted₂⟩
 
+open Program State Instr in
 /-- Reverse step correspondence: if p.toStandardForm steps from s to s', then either:
     (1) p steps from s to s' (same step), or
     (2) s' is halted in p.toStandardForm, and p steps to a state that is also halted
         with the same registers (this only happens for jumps with unbounded targets). -/
-theorem Step.from_toStandardForm {p : Program} {s s' : State}
-    (hstep : Step p.toStandardForm s s') :
+theorem Step.from_toStandardForm {p : Program} {s s' : State} (hstep : Step p.toStandardForm s s') :
     Step p s s' ∨
-    (s'.isHalted p.toStandardForm ∧ ∃ s₂, Step p s s₂ ∧
-      s₂.isHalted p ∧ s'.regs = s₂.regs) := by
+    (s'.isHalted p.toStandardForm ∧ ∃ s₂, Step p s s₂ ∧ s₂.isHalted p ∧ s'.regs = s₂.regs) := by
   cases hstep with
-  | zero hinstr | succ hinstr | transfer hinstr | jump_ne hinstr _ =>
-    left
-    rw [Program.getElem?_toStandardForm] at hinstr
-    simp only [Option.map_eq_some_iff] at hinstr
-    obtain ⟨instr, hinstr', hcap⟩ := hinstr
-    cases instr <;> simp only [Instr.capJump] at hcap
-    all_goals grind
-  | jump_eq hinstr heq =>
-    rw [Program.getElem?_toStandardForm] at hinstr
-    simp only [Option.map_eq_some_iff] at hinstr
-    obtain ⟨instr, hinstr', hcap⟩ := hinstr
+  | jump_eq hinstr _ =>
+    simp only [Program.getElem?_toStandardForm, Option.map_eq_some_iff] at hinstr
+    obtain ⟨instr, _⟩ := hinstr
     cases instr with
-    | Z _ | S _ | T _ _ => simp at hcap
-    | J m' n' q' =>
-      simp only [Instr.capJump, Instr.J.injEq] at hcap
-      obtain ⟨rfl, rfl, htarget⟩ := hcap
-      by_cases hbounded : q' ≤ p.length
-      · simp only [Nat.min_eq_left hbounded] at htarget
-        subst htarget
-        left
-        grind
-      · simp only [Nat.min_eq_right (Nat.le_of_not_le hbounded)] at htarget
-        subst htarget
-        right
-        refine ⟨?_, ⟨q', s.regs⟩, Step.jump_eq hinstr' heq, ?_, rfl⟩
-        · grind [State.isHalted, Program.toStandardForm_length]
-        · grind [State.isHalted]
+    | J => grind [=> jump_eq]
+    | _ => grind
+  | _ => grind [getElem?_toStandardForm, Option.map_eq_some_iff]
 
 /-- Reverse halting: if p.toStandardForm reaches a halted state, p reaches a halted state
     with the same registers. -/

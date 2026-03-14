@@ -188,7 +188,7 @@ theorem propositions_complete (s' : lts.image s μ) : stateMap s' ∈ propositio
   use s', Finset.mem_toList.mpr (Fintype.complete s')
 
 theorem propositions_satisfies_conjunction (htr : lts.Tr s1 μ s1')
-  (hdist_spec : ∀ s2', Satisfies lts s1' (stateMap s2')) :
+    (hdist_spec : ∀ s2', Satisfies lts s1' (stateMap s2')) :
     Satisfies lts s1 (.diamond μ <| Proposition.finiteAnd (propositions stateMap)) := by
   apply Satisfies.diamond htr
   rw [satisfies_finiteAnd]

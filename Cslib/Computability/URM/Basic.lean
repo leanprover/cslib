@@ -6,6 +6,7 @@ Authors: Jesse Alama
 module
 
 public import Cslib.Computability.URM.Defs
+public import Mathlib.Data.List.MinMax
 
 /-! # URM Basic Lemmas
 
@@ -131,6 +132,7 @@ theorem JumpsBoundedBy.shiftJumps {instr : Instr} {len offset : ℕ}
 /-! ## Jump Target Capping -/
 
 /-- Cap a jump target to be at most `len`. Non-jump instructions are unchanged. -/
+@[scoped grind =]
 def capJump (len : ℕ) : Instr → Instr
   | Z n => Z n
   | S n => S n

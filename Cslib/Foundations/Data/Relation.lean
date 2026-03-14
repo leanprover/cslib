@@ -7,12 +7,10 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Init
-public import Mathlib.Logic.Relation
 public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
-public import Mathlib.Util.Notation3
 
 @[expose] public section
 
@@ -178,16 +176,19 @@ theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Nor
   grind
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
+@[implicit_reducible]
 def trans_of_subrelation (s s' r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) (h' : Subrelation s' r) : Trans s s' r where
   trans hab hbc := hr (h hab) (h' hbc)
 
 /-- A subrelation lifts to transitivity on the left of the relation. -/
+@[implicit_reducible]
 def trans_of_subrelation_left (s r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) : Trans s r r where
   trans hab hbc := hr (h hab) hbc
 
 /-- A subrelation lifts to transitivity on the right of the relation. -/
+@[implicit_reducible]
 def trans_of_subrelation_right (s r : α → α → Prop) (hr : Transitive r)
     (h : Subrelation s r) : Trans r s r where
   trans hab hbc := hr hab (h hbc)
