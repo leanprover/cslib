@@ -85,7 +85,7 @@ theorem IsRegular.bot : (⊥ : ωLanguage Symbol).IsRegular := by
     accept := ∅ }
   use Unit, inferInstance, na
   ext xs
-  simp [na]
+  simp +instances [na]
 
 /-- The language of all ω-sequences is ω-regular. -/
 @[simp]
@@ -96,11 +96,13 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
     accept := univ }
   use Unit, inferInstance, na
   ext xs
-  simp only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ, frequently_true_iff_neBot,
-    atTop_neBot, and_true, mem_top, iff_true]
+  simp +instances only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ,
+    frequently_true_iff_neBot, atTop_neBot, and_true, mem_top, iff_true]
   use const ()
   grind [NA.Run]
 
+-- TODO: fix proof to work with backward.isDefEq.respectTransparency
+set_option backward.isDefEq.respectTransparency false in
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]
 theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
@@ -120,6 +122,8 @@ theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
   rw [mem_iUnion, Fin.exists_fin_two]
   grind
 
+-- TODO: fix proof to work with backward.isDefEq.respectTransparency
+set_option backward.isDefEq.respectTransparency false in
 open NA.Buchi in
 /-- The intersection of two ω-regular languages is ω-regular. -/
 @[simp]
@@ -185,6 +189,8 @@ theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
   use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
   exact NA.Buchi.loop_language_eq
 
+-- TODO: fix proof to work with backward.isDefEq.respectTransparency
+set_option backward.isDefEq.respectTransparency false in
 /-- An ω-language is regular iff it is the finite union of ω-languages of the form `L * M^ω`,
 where all `L`s and `M`s are regular languages. -/
 theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage Symbol) :

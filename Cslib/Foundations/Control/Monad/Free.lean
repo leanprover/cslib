@@ -6,7 +6,7 @@ Authors: Tanner Duve, Eric Wieser
 
 module
 
-import Cslib.Init
+public import Cslib.Init
 
 @[expose] public section
 

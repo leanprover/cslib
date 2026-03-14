@@ -6,12 +6,9 @@ Authors: Tanner Duve, Bhavik Mehta
 
 module
 
-public import Mathlib.Algebra.Group.Defs
 public import Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Idempotent
-public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Closure
-public import Mathlib.Order.Defs.PartialOrder
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
 @[expose] public section
@@ -309,12 +306,12 @@ instance : InfSet (Fact P) where
 
 omit [PhaseSpace P] in
 lemma iInter_eq_sInf_image {α} (S : Set α) (f : α → Set P) :
-  (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
+    (⋂ x ∈ S, f x) = sInf (f '' S) := by aesop
 
 @[scoped grind =, simp]
 lemma inter_eq_orth_union_orth (G H : Fact P) :
-  ((G : Set P) ∩ (H : Set P) : Set P) =
-    (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
+    ((G : Set P) ∩ (H : Set P) : Set P) =
+      (((G : Set P)⫠) ∪ ((H : Set P)⫠) : Set P)⫠ := by
   ext m
   constructor
   · simp only [orthogonal_def, mem_union]

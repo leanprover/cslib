@@ -6,11 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Semantics.FLTS.Basic
-public import Mathlib.Data.Set.Finite.Basic
-public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 @[expose] public section
 
@@ -215,6 +212,23 @@ theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
     ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
 
+/-- An execution can be split at any intermediate state into two executions. -/
+theorem LTS.IsExecution.split
+    {lts : LTS State Label} {s t : State} {μs : List Label} {ss : List State}
+    (he : lts.IsExecution s μs t ss) (n : ℕ) (hn : n ≤ μs.length) :
+    lts.IsExecution s (μs.take n) (ss[n]'(by grind)) (ss.take (n + 1)) ∧
+    lts.IsExecution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
+  have : n + (ss.length - n - 1) = ss.length - 1 := by grind
+  simp [IsExecution]
+  grind
+
+/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
+theorem LTS.MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
+    (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
+  obtain ⟨ss, h_ss⟩ := LTS.mTr_isExecution h
+  have := LTS.IsExecution.split h_ss μs1.length
+  grind
+
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
 @[scoped grind =]
@@ -338,40 +352,54 @@ theorem LTS.ωTr.append
   · grind [drop_append_of_ge_length]
 
 open Nat in
-/-- Concatenating an infinite sequence of finite executions that connect an infinite sequence
-of intermediate states. -/
-theorem LTS.ωTr.flatten [Inhabited Label] {ts : ωSequence State} {μls : ωSequence (List Label)}
-    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
-    ∃ ss, lts.ωTr ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
+/-- Concatenating an infinite sequence of finite executions. -/
+theorem LTS.IsExecution.flatten [Inhabited Label]
+    {ts : ωSequence State} {μls : ωSequence (List Label)} {sls : ωSequence (List State)}
+    (hexec : ∀ k, lts.IsExecution (ts k) (μls k) (ts (k + 1)) (sls k))
+    (hpos : ∀ k, (μls k).length > 0) :
+    ∃ ss, lts.ωTr ss μls.flatten ∧
+      ∀ k, ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) = (sls k).take (μls k).length := by
   have : Inhabited State := by exact {default := ts 0}
-  choose sls h_sls using fun k ↦ LTS.mTr_isExecution (hmtr k)
   let segs := ωSequence.mk fun k ↦ (sls k).take (μls k).length
   have h_len : μls.cumLen = segs.cumLen := by ext k; induction k <;> grind
   have h_pos (k : ℕ) : (segs k).length > 0 := by grind [List.eq_nil_iff_length_eq_zero]
   have h_mono := cumLen_strictMono h_pos
   have h_zero := cumLen_zero (ls := segs)
   have h_seg0 (k : ℕ) : (segs k)[0]! = ts k := by grind
-  refine ⟨segs.flatten, ?_, by simp [h_len, flatten_def, segment_idem h_mono, h_seg0]⟩
-  intro n
-  simp only [h_len, flatten_def]
-  simp only [LTS.IsExecution] at h_sls
-  have := segment_lower_bound h_mono h_zero n
-  by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
-  · have := segment_range_val h_mono (by grind) h_n
-    have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length := by
+  use segs.flatten
+  split_ands
+  · intro n
+    simp only [h_len, flatten_def]
+    simp only [LTS.IsExecution] at hexec
+    have := segment_lower_bound h_mono h_zero n
+    by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
+    · have := segment_range_val h_mono (by grind) h_n
+      have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length :=
+        by grind
       grind
-    grind
-  · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
-      grind [segment_upper_bound h_mono h_zero n]
-    have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
-      simp [← h1, segment_idem h_mono]
-    have : n + 1 - segs.cumLen (segment segs.cumLen n) = (μls (segment segs.cumLen n)).length := by
+    · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
+        grind [segment_upper_bound h_mono h_zero n]
+      have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
+        simp [← h1, segment_idem h_mono]
+      have : n + 1 - segs.cumLen (segment segs.cumLen n) = (μls (segment segs.cumLen n)).length :=
+        by grind
+      have h3 : ts (segment segs.cumLen n + 1) =
+          (sls (segment segs.cumLen n))[n + 1 - segs.cumLen (segment segs.cumLen n)]! := by
+        grind
+      simp [h1, h2, h_seg0, h3]
       grind
-    have h3 : ts (segment segs.cumLen n + 1) =
-        (sls (segment segs.cumLen n))[n + 1 - segs.cumLen (segment segs.cumLen n)]! := by
-      grind
-    simp [h1, h2, h_seg0, h3]
-    grind
+  · simp [h_len, extract_flatten h_pos, segs]
+
+/-- Concatenating an infinite sequence of multistep transitions. -/
+theorem LTS.ωTr.flatten [Inhabited Label] {ts : ωSequence State} {μls : ωSequence (List Label)}
+    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
+    ∃ ss, lts.ωTr ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
+  choose sls h_sls using fun k ↦ LTS.mTr_isExecution (hmtr k)
+  obtain ⟨ss, h_ss, h_seg⟩ := LTS.IsExecution.flatten h_sls hpos
+  use ss, h_ss
+  intro k
+  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length := by grind
+  grind [List.getElem_of_eq (h_seg k) h1]
 
 end ωMultiStep
 
@@ -417,7 +445,6 @@ theorem LTS.Total.mTr_ωTr [Inhabited Label] [ht : lts.Total] {μl : List Label}
     (hm : lts.MTr s μl t) : ∃ μs ss, lts.ωTr ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
   let μs : ωSequence Label := .const default
   obtain ⟨ss', ho, h0⟩ := LTS.Total.ωTr_exists (h := ht) t μs
-  use μs
   grind [LTS.ωTr.append hm ho h0]
 
 /-- `LTS.totalize` constructs a total LTS from any given LTS by adding a sink state. -/
@@ -632,7 +659,7 @@ theorem LTS.deterministic_tr_image_singleton [lts.Deterministic] :
 /-- In a deterministic LTS, any image is either a singleton or the empty set. -/
 @[scoped grind .]
 theorem LTS.deterministic_image_char [lts.Deterministic] (s : State) (μ : Label) :
-  (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
+    (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
 
 /-- In a deterministic LTS, the image of any state-label combination is finite. -/
 instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) := by
@@ -728,60 +755,79 @@ theorem LTS.sTr_τSTr [HasTau Label] (lts : LTS State Label) :
     case refl => exact LTS.STr.refl
     case tail _ h1 h2 => exact LTS.STr.tr h1 h2 .refl
 
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-theorem LTS.saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label)
-  : lts.saturate.τSTr s = lts.τSTr s := by
-  ext s''
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl => constructor
-    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((LTS.sTr_τSTr _).mp h2)
-  case mpr =>
-    cases h
-    case refl => constructor
-    case tail s' h2 h3 =>
-      have h4 := LTS.STr.tr h2 h3 Relation.ReflTransGen.refl
-      exact Relation.ReflTransGen.single h4
+/-- Saturated transitions labelled by τ can be composed (weighted version). -/
+@[scoped grind →]
+theorem LTS.STrN.trans_τ
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n s1 HasTau.τ s2) (h2 : lts.STrN m s2 HasTau.τ s3) :
+    lts.STrN (n + m) s1 HasTau.τ s3 := by
+  cases h1
+  case refl => grind
+  case tr n1 sb sb' n2 hstr1 htr hstr2 =>
+    have ih := LTS.STrN.trans_τ lts hstr2 h2
+    have conc := LTS.STrN.tr hstr1 htr ih
+    grind
 
-/-- In a saturated LTS, every state is in its τ-image. -/
-@[grind .]
-theorem LTS.mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
-  s ∈ lts.saturate.image s HasTau.τ := LTS.STr.refl
+/-- Saturated transitions labelled by τ can be composed. -/
+@[scoped grind →]
+theorem LTS.STr.trans_τ
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
+    lts.STr s1 HasTau.τ s3 := by
+  obtain ⟨n, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨m, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  have concN := LTS.STrN.trans_τ lts h1N h2N
+  apply (LTS.sTr_sTrN lts).2 ⟨n + m, concN⟩
 
-/-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
-by performing only `τ`-transitions. -/
-def LTS.τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
-  lts.saturate.setImage S HasTau.τ
+/-- Saturated transitions can be appended with τ-transitions (weighted version). -/
+@[scoped grind <=]
+theorem LTS.STrN.append
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 μ s2)
+    (h2 : lts.STrN n2 s2 HasTau.τ s3) :
+    lts.STrN (n1 + n2) s1 μ s3 := by
+  cases h1
+  case refl => grind
+  case tr n11 sb sb' n12 hstr1 htr hstr2 =>
+    have hsuffix := LTS.STrN.trans_τ lts hstr2 h2
+    have n_eq : n11 + (n12 + n2) + 1 = (n11 + n12 + 1 + n2) := by omega
+    rw [← n_eq]
+    apply LTS.STrN.tr hstr1 htr hsuffix
+
+/-- Saturated transitions can be composed (weighted version). -/
+@[scoped grind <=]
+theorem LTS.STrN.comp
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STrN n1 s1 HasTau.τ s2)
+    (h2 : lts.STrN n2 s2 μ s3)
+    (h3 : lts.STrN n3 s3 HasTau.τ s4) :
+    lts.STrN (n1 + n2 + n3) s1 μ s4 := by
+  cases h2
+  case refl =>
+    apply LTS.STrN.trans_τ lts h1 h3
+  case tr n21 sb sb' n22 hstr1 htr hstr2 =>
+    have hprefix_τ := LTS.STrN.trans_τ lts h1 hstr1
+    have hprefix := LTS.STrN.tr hprefix_τ htr hstr2
+    have conc := LTS.STrN.append lts hprefix h3
+    grind
 
 /-- Saturated transitions can be composed. -/
 theorem LTS.STr.comp
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2)
-  (h2 : lts.STr s2 μ s3)
-  (h3 : lts.STr s3 HasTau.τ s4) :
-  lts.STr s1 μ s4 := by
-  rw [LTS.sTr_τSTr _] at h1 h3
-  cases h2
-  case refl =>
-    rw [LTS.sTr_τSTr _]
-    apply Relation.ReflTransGen.trans h1 h3
-  case tr _ _ hτ1 htr hτ2 =>
-    exact LTS.STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
-
-/-- Saturated transitions labelled by τ can be composed. -/
-@[grind .]
-theorem LTS.STr.trans_τ
-  [HasTau Label] (lts : LTS State Label)
-  (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
-  lts.STr s1 HasTau.τ s3 := by
-  rw [LTS.sTr_τSTr _] at h1 h2
-  rw [LTS.sTr_τSTr _]
-  apply Relation.ReflTransGen.trans h1 h2
+    [HasTau Label] (lts : LTS State Label)
+    (h1 : lts.STr s1 HasTau.τ s2)
+    (h2 : lts.STr s2 μ s3)
+    (h3 : lts.STr s3 HasTau.τ s4) :
+    lts.STr s1 μ s4 := by
+  obtain ⟨n1, h1N⟩ := (LTS.sTr_sTrN lts).1 h1
+  obtain ⟨n2, h2N⟩ := (LTS.sTr_sTrN lts).1 h2
+  obtain ⟨n3, h3N⟩ := (LTS.sTr_sTrN lts).1 h3
+  have concN := LTS.STrN.comp lts h1N h2N h3N
+  apply (LTS.sTr_sTrN lts).2 ⟨n1 + n2 + n3, concN⟩
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-theorem LTS.saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label)
-  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+@[scoped grind _=_]
+theorem LTS.saturate_sTr_tr [hHasTau : HasTau Label] (lts : LTS State Label)
+    (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
   apply Iff.intro <;> intro h
   case mp =>
@@ -814,9 +860,9 @@ def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
 /-- If a trace is divergent, then any 'suffix' is also divergent. -/
 @[scoped grind ⇒]
 theorem LTS.divergentTrace_drop
-  [HasTau Label] {μs : ωSequence Label}
-  (h : DivergentTrace μs) (n : ℕ) :
-  DivergentTrace (μs.drop n) := by
+    [HasTau Label] {μs : ωSequence Label}
+    (h : DivergentTrace μs) (n : ℕ) :
+    DivergentTrace (μs.drop n) := by
   intro m
   simp only [DivergentTrace] at h
   simp only [ωSequence.get_fun, ωSequence.drop]
