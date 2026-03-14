@@ -99,7 +99,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
     refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.ωTr], by simp⟩
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
-    obtain ⟨ss1, _, _, _, _⟩ := LTS.mTr_isExecution h_mtr
+    obtain ⟨ss1, _, _, _, _⟩ := LTS.mTr_extract_isExecution h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
