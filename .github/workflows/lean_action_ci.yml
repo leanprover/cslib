@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set TEST_ARGS manually
+        run: |
+          echo "TEST_ARGS='--wfail --iofail'" >> $GITHUB_ENV
+        shell: bash
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"

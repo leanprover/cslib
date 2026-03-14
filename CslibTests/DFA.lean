@@ -17,6 +17,7 @@ inductive Floor where
 | two
 deriving DecidableEq
 
+@[implicit_reducible]
 def Floor.fintype : Fintype Floor := {
   elems := {.one, .two}
   complete floor := by grind [Floor]
@@ -29,6 +30,7 @@ inductive Direction where
 | down
 deriving DecidableEq
 
+@[implicit_reducible]
 def Direction.fintype : Fintype Direction := {
   elems := {.up, .down}
   complete dir := by grind [Direction]
