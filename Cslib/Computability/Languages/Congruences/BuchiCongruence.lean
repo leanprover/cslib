@@ -88,8 +88,9 @@ lemma buchiCongruence_transfer
     grind
   have := h_eq s t
   have h_yl : yl ∈ na.pairLang s t := by grind
-  have := LTS.mTr_isExecution h_yl
-  grind [LTS.mem_pairViaLang, LTS.IsExecution, → LTS.IsExecution.comp, → LTS.mTr_isExecution]
+  have := LTS.mTr_extract_isExecution h_yl
+  grind [LTS.mem_pairViaLang, LTS.IsExecution, → LTS.IsExecution.comp,
+    → LTS.mTr_extract_isExecution]
 
 /-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
@@ -124,10 +125,10 @@ private lemma frequently_via_accept [Inhabited Symbol]
   split_ands
   · have h : f n ≤ f n + k := by lia
     specialize exec h
-    grind [extract_apppend_right_right]
+    grind [extract_append_right_right]
   · have h : f n + k ≤ f (n + 1) := by lia
     specialize exec h
-    grind [extract_apppend_right_right]
+    grind [extract_append_right_right]
   · grind only [!List.take_append_drop]
 
 /-- `na.buchiFamily` saturates the ω-language accepted by `na`. -/
@@ -150,7 +151,7 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
   have h_xls_e (k : ℕ) : (xls k) ∈ na.pairLang (ts k) (ts (k + 1)) := by
     have := LTS.ωTr_mTr h_exec (show f k ≤ f (k + 1) by grind)
     suffices (xl ++ω xls.flatten).extract (f k) (f (k + 1)) = xls k by grind [LTS.mem_pairLang]
-    simp (disch := grind) [extract_apppend_right_right, f]
+    simp (disch := grind) [extract_append_right_right, f]
   have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
     obtain ⟨sl, h_e, _⟩ := buchiCongruence_transfer h_xl_c h_yl_c h_xl_e
     grind [LTS.mem_pairLang, LTS.isExecution_mTr (lts := na.toLTS) h_e]

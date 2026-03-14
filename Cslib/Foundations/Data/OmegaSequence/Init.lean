@@ -447,7 +447,7 @@ theorem append_extract_drop {xs : ωSequence α} {n : ℕ} :
     (xs.extract 0 n) ++ω (xs.drop n) = xs := by
   simp [extract_eq_take, append_take_drop]
 
-theorem extract_apppend_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
+theorem extract_append_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
     (xl ++ω xs).extract m n = xs.extract (m - xl.length) (n - xl.length) := by
   grind [extract_eq_drop_take, drop_append_of_ge_length]
 
