@@ -132,62 +132,53 @@ private lemma frequently_via_accept [Inhabited Symbol]
   · grind only [!List.take_append_drop]
 
 /-- `na.buchiFamily` saturates the ω-language accepted by `na`. -/
-theorem buchiFamily_saturation [Inhabited Symbol] :
-    Saturates na.buchiFamily (language na) := by
+theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (language na) := by
   rintro ⟨a, b⟩ ⟨xs, h_xs, h_lang⟩ ys h_ys
   obtain ⟨xl, xls, h_xl_c, h_xls_c, rfl⟩ := mem_buchiFamily.mp h_xs
   obtain ⟨yl, yls, h_yl_c, h_yls_c, rfl⟩ := mem_buchiFamily.mp h_ys
   obtain ⟨ss, ⟨h_init, h_exec⟩, h_acc⟩ := h_lang
-  have h_xls_p (k : ℕ) : (xls k).length > 0 := by
-    grind [Language.mem_sub_one, List.ne_nil_iff_length_pos]
-  have h_yls_p (k : ℕ) : (yls k).length > 0 := by
-    grind [Language.mem_sub_one, List.ne_nil_iff_length_pos]
   let f (k : ℕ) := xl.length + xls.cumLen k
   let ts := ωSequence.mk (fun k ↦ ss (f k))
-  have h_xl_l : 0 ≤ xl.length := by grind
-  have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by
-    have := LTS.ωTr_mTr h_exec h_xl_l
-    grind [extract_append_zero_right, LTS.mem_pairLang]
-  have h_xls_e (k : ℕ) : (xls k) ∈ na.pairLang (ts k) (ts (k + 1)) := by
-    have := LTS.ωTr_mTr h_exec (show f k ≤ f (k + 1) by grind)
-    suffices (xl ++ω xls.flatten).extract (f k) (f (k + 1)) = xls k by grind [LTS.mem_pairLang]
-    simp (disch := grind) [extract_append_right_right, f]
-  have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
-    obtain ⟨sl, h_e, _⟩ := buchiCongruence_transfer h_xl_c h_yl_c h_xl_e
-    grind [LTS.mem_pairLang, LTS.isExecution_mTr (lts := na.toLTS) h_e]
-  have h_yls (k : ℕ) : ∃ sl, na.IsExecution (ts k) (yls k) (ts (k + 1)) sl ∧
-      ( (xls k) ∈ na.pairViaLang na.accept (ts k) (ts (k + 1)) → ∃ s ∈ na.accept, s ∈ sl ) := by
-    exact buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
+  have h_xls_p (k : ℕ) : (xls k).length > 0 := by grind [Language.mem_sub_one]
+  have h_xls_e (k : ℕ) : xls k ∈ na.pairLang (ts k) (ts (k + 1)) := by
+    grind [LTS.ωTr_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang, extract_append_right_right,
+      add_tsub_cancel_left]
+  have h_yls (k : ℕ) := buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
   choose sls h_yls_e h_yls_a using h_yls
+  have h_yls_p (k : ℕ) : (yls k).length > 0 := by grind [Language.mem_sub_one]
   obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.IsExecution.flatten h_yls_e h_yls_p
-  have h_ss1_ts : ss1 0 = ts 0 := by
-    have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
-    have : 0 < (sls 0).length := by grind
-    have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
-    have : ts 0 = (sls 0)[0] := by grind [LTS.IsExecution]
-    grind
-  obtain ⟨ss2, _, _, _, _⟩ := LTS.ωTr.append h_yl_e h_ss1_run h_ss1_ts
-  use ss2, by grind [Run.mk]
-  suffices ∃ᶠ (k : ℕ) in Filter.atTop, ss1 k ∈ na.accept by
-    apply (drop_frequently_iff_frequently yl.length).mp
-    grind
-  have h_acc' := frequently_via_accept h_acc h_exec h_xls_p f rfl ts rfl
-  have h_mono : StrictMono yls.cumLen := cumLen_strictMono h_yls_p
+  suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
+    have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by 
+      grind [LTS.ωTr_mTr h_exec (?_ : 0 ≤ xl.length), extract_append_zero_right, LTS.mem_pairLang]
+    have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by 
+      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.isExecution_mTr]
+    have h_ss1_ts : ss1 0 = ts 0 := by
+      have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
+      have : 0 < (sls 0).length := by grind
+      have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
+      -- TODO:: `grind` with `LTS.IsExecution` is problematic
+      have : ts 0 = (sls 0)[0] := by grind [LTS.IsExecution]
+      grind
+    obtain ⟨ss2, _, _, _, _⟩ := LTS.ωTr.append h_yl_e h_ss1_run h_ss1_ts
+    use ss2
+    have := @drop_frequently_iff_frequently _ ss2 na.accept yl.length
+    grind [Run.mk]
   apply frequently_atTop.mpr
   intro n
-  obtain ⟨m, _, s, _, h_mem⟩ := frequently_atTop.mp (Frequently.mono h_acc' h_yls_a) n
-  have : m ≤ yls.cumLen m := by grind [StrictMono.add_le_nat h_mono m 0]
+  obtain ⟨m, _, s, _, h_mem⟩ :=
+    frequently_atTop.mp ((frequently_via_accept h_acc h_exec h_xls_p f rfl ts rfl).mono h_yls_a) n
   obtain ⟨k, _, _⟩ := List.mem_iff_getElem.mp h_mem
-  use yls.cumLen m + k, by grind
-  suffices ss1 (yls.cumLen m + k) = (sls m)[k] by grind
-  by_cases k < (yls m).length
-  · have h1 : k < yls.cumLen (m + 1) - yls.cumLen m := by grind only [= cumLen_succ]
-    simp [← get_extract (xs := ss1) h1, h_ss1_seg m]
-  · obtain ⟨_, _, _, _⟩ := h_yls_e m
-    obtain ⟨_, _, _, _⟩ := h_yls_e (m + 1)
-    have := h_mono (show m + 1 < m + 2 by omega)
-    have h1 : 0 < yls.cumLen (m + 2) - yls.cumLen (m + 1) := by omega
-    have h2 := get_extract (xs := ss1) h1
-    grind only [= cumLen_succ, = get_fun, = List.getElem_take]
+  use yls.cumLen m + k
+  suffices ss1 (yls.cumLen m + k) = (sls m)[k] by
+    have h_mono := cumLen_strictMono h_yls_p
+    have := StrictMono.add_le_nat h_mono m 0
+    lia
+  obtain ⟨_, _, _, _⟩ := h_yls_e m
+  obtain ⟨_, _, _, _⟩ := h_yls_e (m + 1)
+  grind =>
+   have := @get_extract (xs := ss1)
+   have : k < (yls m).length ∨ ¬ k < (yls m).length
+   have : k < yls.cumLen (m + 1) - yls.cumLen m ∨ 0 < yls.cumLen (m + 2) - yls.cumLen (m + 1)
+   finish
 
 end Cslib.Automata.NA.Buchi
