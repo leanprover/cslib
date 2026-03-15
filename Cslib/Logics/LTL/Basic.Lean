@@ -81,7 +81,7 @@ notation:50 φ₁ " ≈ " φ₂ => Proposition.valid (Proposition.iff φ₁ φ�
 
 /-- Negation can be brought inside the `next` operator. -/
 @[scoped grind .]
-theorem next_self_dual {T} : ∀ (φ : Proposition T), φ.next.not ≈ φ.not.next :=by
+theorem next_self_dual {T} : ∀ (φ : Proposition T), φ.next.not ≈ φ.not.next := by
 simp
 
 /-- The `eventually` operator distributes on disjunction. -/
@@ -96,8 +96,7 @@ grind
 /-- Expansion rule for the `until` operator. -/
 @[scoped grind .]
 theorem expansion_until {T} : ∀ (φ : Proposition T) (ψ : Proposition T) ,
-Proposition.until_op φ ψ ≈ Proposition.or ψ (Proposition.and φ ((Proposition.until_op φ ψ).next)) :=
-by
+φ.until_op ψ ≈ ψ.or (φ.and ((φ.until_op ψ).next)) := by
 intros
 unfold Proposition.valid
 intro
