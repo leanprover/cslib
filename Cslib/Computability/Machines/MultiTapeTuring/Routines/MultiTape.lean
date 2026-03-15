@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 
 namespace Turing
 namespace Routines
@@ -30,6 +31,14 @@ public def eqEnc {k : ℕ} (i j : Fin k)
 public def isEq {k : ℕ} (i j : Fin k) (result : Fin k) :
     MultiTapeTM k Char :=
   eqEnc i j (put (StrEnc.toData true) result) (put (StrEnc.toData false) result)
+
+@[grind =>]
+public lemma isEq.computes_fun {k : ℕ} (i j result : Fin k)
+    (h_neq : [i, j, result].get.Injective) :
+    computes_function_read_read_push
+      (isEq i j result)
+      (fun d₁ d₂ => decide (d₁ = d₂)) i j result h_neq := by
+  sorry
 
 /-- `copyEnc i j` copies the `Data` element at the current path position
     of tape `i` and writes it to tape `j` (which must be empty).

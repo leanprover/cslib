@@ -64,6 +64,18 @@ public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
       i j h_neq := by
   sorry
 
+@[simp, grind =>]
+public theorem any_list.computes_fun' {k : ℕ} {i j r : Fin k}
+    (h_neq : [i, j, r].get.Injective)
+    {tm : MultiTapeTM k Char}
+    {f : Data → Data → Bool}
+    (h_comp : computes_function_read_read_push tm f i j r h_neq) :
+    computes_function_readList_read_push
+      (any_list tm i j (by sorry))
+      (fun ls y => ls.any (fun d => f d y))
+      i j r h_neq := by
+  sorry
+
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
     value to tape `tmp`, and compute the logical AND of the results across the list.
     Uses tape `tmp` for intermediate results and accumulates on tape `j`. -/
@@ -72,7 +84,7 @@ public def all_list {k : ℕ}
     (i j : Fin k) (h_neq : i ≠ j) : MultiTapeTM k Char :=
   any_list (tm ;ₜ negateBool j) i j h_neq ;ₜ negateBool j
 
-@[simp]
+@[simp, grind =>]
 public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
     (h_neq : i ≠ j)
     {tm : MultiTapeTM k Char}
@@ -82,8 +94,7 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
       (all_list tm i j h_neq)
       (fun ls => ls.all f)
       i j h_neq := by
-  unfold all_list
-  grind
+  grind [all_list]
 
 
 /-- Check if the value on tape `j` is contained in the list on tape `i`
@@ -101,6 +112,23 @@ public lemma contains_eval_struct {k : ℕ} {i j result : Fin k}
     let item <- (views j).current
     return (views result).pushList (StrEnc.toData (ls.contains item))
   ).getD (views result))) := by
+  sorry
+
+@[simp, grind =>]
+public lemma contains.computes_fun {k : ℕ} {i j result : Fin k}
+    (h_inj : [i, j, result].get.Injective) :
+  computes_function_readList_read_push
+    (contains i j result h_inj)
+    (fun ls item => ls.contains item)
+    i j result h_inj := by
+  -- TODO prove this next
+  unfold contains
+  let x := isEq.computes_fun i j result h_inj
+  let y := any_list.computes_fun' h_inj x
+  exact y
+
+
+  grind
   sorry
 
 

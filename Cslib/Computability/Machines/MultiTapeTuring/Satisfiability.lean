@@ -92,9 +92,9 @@ public def sat : MultiTapeTM 5 Char :=
   -- Navigate to formula (arg 0)
   toArg 0 0 ;ₜ
   -- For all clauses in the formula…
-  all_list 0
+  all_list
     -- …there is some literal…
-    (any_list 0
+    (any_list
       -- …that is satisfied by the assignment.
       -- Navigate to ctor index of literal (first element of Data.list)
       (toArg 0 0 ;ₜ

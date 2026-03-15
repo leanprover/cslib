@@ -21,6 +21,15 @@ public def computes_function_read_update {k : ℕ}
   ∀ views, tm.eval_struct views = some (Function.update views j
     (((views i).current.map (f · (views j))).getD (views j)))
 
+@[expose]
+public def computes_function_read_read_update {k : ℕ}
+  (tm : MultiTapeTM k Char) (f : Data → Data → TapeView → TapeView)
+  (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
+  ∀ views, tm.eval_struct views = some (Function.update views r ((do
+    let x ← (views i).current
+    let y ← (views j).current
+    return f x y (views r)).getD (views r)))
+
 -- TODO could generalize this to `f` having a preimage β.
 /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 list on tape `j`. -/
@@ -31,6 +40,27 @@ public def computes_function_read_push {k : ℕ}
   (f : Data → α)
   (i j : Fin k) (h_neq : i ≠ j) :=
   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j h_neq
+
+@[expose]
+public def computes_function_read_read_push {k : ℕ}
+  {α : Type} [StrEnc α]
+  (tm : MultiTapeTM k Char)
+  (f : Data → Data → α)
+  (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
+  computes_function_read_read_update tm
+    (fun x y tv => tv.pushList (StrEnc.toData (f x y))) i j s h_neq
+
+-- TODO solve this using types
+@[expose]
+public def computes_function_readList_read_push {k : ℕ}
+  {α : Type} [StrEnc α]
+  (tm : MultiTapeTM k Char)
+  (f : (List Data) → Data → α)
+  (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
+  computes_function_read_read_update tm
+    (fun x y tv => match x with
+     | Data.list ls => tv.pushList (StrEnc.toData (f ls y))
+     | Data.num _ => tv) i j s h_neq
 
 -- TODO maybe we don't need this any more if we generalize the input type, so if the
 -- input does not decode to a list, we do nothing.
