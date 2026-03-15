@@ -119,44 +119,34 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN (M ^ 
       1. N is locally closed,
       1. M ^ N P₁ … Pₙ is locally closed -/
 lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
-  (sn_N : SN N) (sn_MNPs : SN (multiApp (M ^ N) Ps))
-  (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
-    SN (multiApp ((Term.abs M).app N) Ps) := by
-  induction Ps
-  · case nil =>
-      apply sn_app
-      · grind [sn_abs]
-      · exact sn_N
-      · grind [→ steps_open_cong_abs, open_abs_lc, sn_steps]
-  · case cons P Ps ih =>
-      cases lc_MNPs
-      apply sn_app
-      · grind [sn_app_left]
-      · grind [sn_app_right]
-      · intro Q' P' hstep1 hstep2
-        match invert_abs_multiApp_mst hstep1 with
-        | ⟨ M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases ⟩ =>
-          match h_cases with
-          | Or.inl h_P => cases Ps' <;> rw[multiApp] at h_cases <;> contradiction
-          | Or.inr ⟨ h_st1, h_st2 ⟩ =>
-            have innerSteps :=
-              calc
-                (M ^ N).multiApp Ps ↠βᶠ (multiApp (M ^ N) Ps') := by
-                  grind [steps_multiApp_r, steps_open_cong_abs, open_abs_lc]
-                _                   ↠βᶠ (M' ^ N').multiApp Ps' := by
-                  grind [steps_multiApp_l,
-                         multiApp_steps_lc,
-                         multiApp_lc,
-                         steps_open_cong_abs,
-                         open_abs_lc]
-                _                   ↠βᶠ Q'.abs := by
-                  grind [steps_multiApp_l]
-            have lc_abs_Q' : LC (Q'.abs) := by grind [steps_lc_or_rfl]
-            apply sn_steps _ sn_MNPs
-            calc
-              (multiApp (M ^ N) Ps).app P ↠βᶠ Q'.abs.app P  := by grind
-              _                           ↠βᶠ Q'.abs.app P' := by grind
-              _                           ↠βᶠ Q' ^ P'       := by grind [FullBeta.beta]
+    (sn_N : SN N) (sn_MNPs : SN (multiApp (M ^ N) Ps))
+    (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) : SN (multiApp (M.abs.app N) Ps) := by
+  induction Ps with
+  | nil =>
+    apply sn_app
+    · grind [sn_abs]
+    · exact sn_N
+    · grind [→ steps_open_cong_abs, open_abs_lc, sn_steps]
+  | cons P Ps ih =>
+    apply sn_app
+    · cases lc_MNPs with grind [sn_app_left]
+    · grind [sn_app_right]
+    · intro Q' P' hstep1 hstep2
+      have ⟨M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases⟩ := invert_abs_multiApp_mst hstep1
+      rcases h_cases with h_P | ⟨h_st1, h_st2⟩
+      · cases Ps' with grind
+      · have innerSteps : (M ^ N).multiApp Ps ↠βᶠ (M' ^ N').multiApp Ps' := by
+          trans
+          · exact steps_multiApp_r h_Ps_red (by grind)
+          · apply steps_multiApp_l
+            · apply steps_open_cong_abs M M' N N' <;> grind [open_abs_lc]
+            · grind [multiApp_steps_lc]
+        apply sn_steps
+        · calc ((M ^ N).multiApp Ps).app P
+            _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
+            _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
+            _ ↠βᶠ Q' ^ P' := by grind [beta]
+        · grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
