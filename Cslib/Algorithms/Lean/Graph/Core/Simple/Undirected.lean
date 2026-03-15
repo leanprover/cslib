@@ -42,6 +42,7 @@ classical combinatorial arguments.
 
 variable {α : Type*} [DecidableEq α]
 
+
 /-- An undirected edge, represented as an unordered pair via `Sym2`. -/
 abbrev Edge := Sym2
 
@@ -60,7 +61,7 @@ structure SimpleGraph (α : Type*) where
 
 open Finset
 
-namespace SimpleGraphs
+namespace Cslib.Algorithms.Lean.Graph.Core.Simple
 
 /-- `V(G)` denotes the `vertexSet` of a graph `G`. -/
 scoped notation "V(" G ")" => SimpleGraph.vertexSet G
@@ -93,4 +94,4 @@ abbrev subgraphOf (H G : SimpleGraph α) : Prop :=
 /-- Notation for the subgraph relation -/
 scoped infix:50 " ⊆ᴳ " => SimpleGraph.subgraphOf
 
-end SimpleGraphs
+end Cslib.Algorithms.Lean.Graph.Core.Simple
