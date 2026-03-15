@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Fabrizio Montesi. All rights reserved.
+Copyright (c) 2026 Fabrizio Montesi, Lorenzo Pace. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lorenzo Pace
 -/
@@ -14,7 +14,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Defs
 /-! # Linear Temporal Logic
 
 Linear Temporal Logic (LTL) is a logic for reasoning about the validity of propositional atoms
-in non-branching time.
+in linear time.
 
 ## Main definitions
 
@@ -36,12 +36,14 @@ Course slides, University of Pisa: https://pages.di.unipi.it/gadducci/SVV-24/sli
 namespace Cslib.Logic.LTL
 
 /-- Propositions, where `T` is the type of atoms. -/
-inductive Proposition (T : Type) : Type u where
+inductive Proposition (T : Type u) : Type u where
   | true
   | false
   | not (φ₁ : Proposition T)
   | and (φ₁ φ₂ : Proposition T)
   | or (φ₁ φ₂ : Proposition T)
+  | implies (φ₁ φ₂ : Proposition T)
+  | iff (φ₁ φ₂ : Proposition T)
   | next (φ : Proposition T)
   | eventually (φ : Proposition T)
   | always (φ : Proposition T)
@@ -50,14 +52,16 @@ inductive Proposition (T : Type) : Type u where
 
 /-- Satisfaction relation for ω-sequences of atom valuations. -/
 @[simp, scoped grind =]
-def Satisfies (ls : ωSequence (Set T)) (φ : Proposition T) := match φ with
+def Satisfies (ls : ωSequence (Set T)) : Proposition T → Prop
   | .true => True
   | .false => False
   | .and φ₁ φ₂ => Satisfies ls φ₁ ∧ Satisfies ls φ₂
   | .or φ₁ φ₂ => Satisfies ls φ₁ ∨ Satisfies ls φ₂
+  | .implies φ₁ φ₂ => Satisfies ls φ₁ → Satisfies ls φ₂
+  | .iff φ₁ φ₂ => Satisfies ls φ₁ ↔ Satisfies ls φ₂
   | .atom (p) => p ∈ ls 0
   | .not φ => ¬ (Satisfies ls φ)
-  | .next φ => Satisfies (ωSequence.drop 1 ls) φ
+  | .next φ => Satisfies (ls.drop 1) φ
   | .eventually φ => ∃ k : ℕ, Satisfies (ωSequence.drop k ls) φ
   | .always φ => ∀ k : ℕ , Satisfies (ωSequence.drop k ls) φ
   | .until_op φ₁ φ₂ => ∃ k : ℕ,
@@ -67,20 +71,21 @@ def Satisfies (ls : ωSequence (Set T)) (φ : Proposition T) := match φ with
 
 notation:50 ls " ⊧ " φ => Satisfies ls φ
 
-/-- Equivalence of LTL propositions on ω-sequences. -/
+/-- Validity of LTL propositions on ω-sequences. -/
 @[simp, scoped grind =]
-def Proposition.equiv (φ₁ : Proposition T) (φ₂ : Proposition T) :=
-  ∀ (ls : ωSequence (Set T)) , (ls ⊧ φ₁) ↔ ls ⊧ φ₂
+def Proposition.valid (φ₁ : Proposition T) : Prop :=
+  ∀ (ls : ωSequence (Set T)) , ls ⊧ φ₁
 
-notation:50 φ₁ " ≈ " φ₂ => Proposition.equiv φ₁ φ₂
+
+notation:50 φ₁ " ≈ " φ₂ => Proposition.valid (Proposition.iff φ₁ φ₂)
 
 /-- Negation can be brought inside the `next` operator. -/
-@[scoped grind =]
-theorem next_self_dual {T} : ∀ (φ : Proposition T), φ.next.not ≈ φ.not.next :=
-by simp
+@[scoped grind .]
+theorem next_self_dual {T} : ∀ (φ : Proposition T), φ.next.not ≈ φ.not.next :=by
+simp
 
 /-- The `eventually` operator distributes on disjunction. -/
-@[scoped grind =]
+@[scoped grind .]
 theorem distrib_eventually_or {T} :
 ∀ (φ : Proposition T) (ψ : Proposition T) ,
 Proposition.eventually (φ.or ψ) ≈ (Proposition.or (φ.eventually) (ψ.eventually))
@@ -89,12 +94,12 @@ simp
 grind
 
 /-- Expansion rule for the `until` operator. -/
-@[scoped grind =]
+@[scoped grind .]
 theorem expansion_until {T} : ∀ (φ : Proposition T) (ψ : Proposition T) ,
 Proposition.until_op φ ψ ≈ Proposition.or ψ (Proposition.and φ ((Proposition.until_op φ ψ).next)) :=
 by
 intros
-unfold Proposition.equiv
+unfold Proposition.valid
 intro
 apply Iff.intro
 · intro h
@@ -140,11 +145,10 @@ apply Iff.intro
 
 
 /-- Expansion rule for the `eventually` operator. -/
-@[scoped grind =]
+@[scoped grind .]
 theorem expansion_eventually {T} : ∀ (ψ : Proposition T) ,
-Proposition.eventually ψ ≈ ψ.or (ψ.eventually.next) :=
-by
-simp only [Proposition.equiv, Satisfies, ωSequence.drop_drop]
+Proposition.eventually ψ ≈ ψ.or (ψ.eventually.next) := by
+simp only [Proposition.valid, Satisfies, ωSequence.drop_drop]
 intros
 apply Iff.intro
 · intro h
