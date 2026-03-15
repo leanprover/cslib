@@ -156,8 +156,7 @@ theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (la
       have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
       have : 0 < (sls 0).length := by grind
       have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
-      -- TODO:: `grind` with `LTS.IsExecution` is problematic
-      have : ts 0 = (sls 0)[0] := by grind [LTS.IsExecution]
+      have : (sls 0)[0] = ts 0 := h_yls_e 0 |>.choose_spec |>.1
       grind
     obtain ⟨ss2, _, _, _, _⟩ := LTS.ωTr.append h_yl_e h_ss1_run h_ss1_ts
     use ss2
