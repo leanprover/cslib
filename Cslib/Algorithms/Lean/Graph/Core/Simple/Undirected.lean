@@ -40,6 +40,8 @@ we prioritise representations that support algorithmic reasoning over those desi
 classical combinatorial arguments.
 -/
 
+namespace Cslib.Algorithms.Lean.Graph.Core.Simple
+
 variable {α : Type*} [DecidableEq α]
 
 
@@ -61,7 +63,6 @@ structure SimpleGraph (α : Type*) where
 
 open Finset
 
-namespace Cslib.Algorithms.Lean.Graph.Core.Simple
 
 /-- `V(G)` denotes the `vertexSet` of a graph `G`. -/
 scoped notation "V(" G ")" => SimpleGraph.vertexSet G
