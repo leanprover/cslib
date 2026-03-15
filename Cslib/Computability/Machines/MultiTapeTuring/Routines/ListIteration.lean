@@ -52,16 +52,15 @@ public theorem any_list_eval_struct {k : ℕ} (i j : Fin k)
         fun ls => (views j).pushList (StrEnc.toData (ls.any f))).getD (views j))) := by
   sorry
 
-@[simp]
-public theorem any_list.computes_fun {k : ℕ} (i j : Fin k)
+@[simp, grind =>]
+public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
     (h_neq : i ≠ j)
     {tm : MultiTapeTM k Char}
     {f : Data → Bool}
-    (h_comp : computes_function_read_push tm f i j h_neq)
-    (views : Fin k → TapeView) :
+    (h_comp : computes_function_read_push tm f i j h_neq) :
     computes_function_readList_push
       (any_list tm i j h_neq)
-      (fun ls => StrEnc.toData (ls.any f))
+      (fun ls => ls.any f)
       i j h_neq := by
   sorry
 
@@ -78,15 +77,14 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
     (h_neq : i ≠ j)
     {tm : MultiTapeTM k Char}
     {f : Data → Bool}
-    (h_comp : computes_function_read_push tm f i j h_neq)
-    (views : Fin k → TapeView) :
+    (h_comp : computes_function_read_push tm f i j h_neq) :
     computes_function_readList_push
       (all_list tm i j h_neq)
-      (fun ls => StrEnc.toData (ls.all f))
+      (fun ls => ls.all f)
       i j h_neq := by
   unfold all_list
-  -- refine computes_function_seq₂ h_neq ?_ (negateBool.computes_head_update)
-  sorry
+  grind
+
 
 /-- Check if the value on tape `j` is contained in the list on tape `i`
     and store the boolean result on tape `result`. -/

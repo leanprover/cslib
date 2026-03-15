@@ -14,6 +14,7 @@ namespace Routines
 
 /-- Turing machine `tm` computes a function on data from tape `i` and updates tape `j`. -/
 -- TODO move this somewhere else
+@[expose]
 public def computes_function_read_update {k : ℕ}
   (tm : MultiTapeTM k Char) (f : Data → TapeView → TapeView)
   (i j : Fin k) (_h_neq : i ≠ j) :=
@@ -23,6 +24,7 @@ public def computes_function_read_update {k : ℕ}
 -- TODO could generalize this to `f` having a preimage β.
 /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 list on tape `j`. -/
+@[expose]
 public def computes_function_read_push {k : ℕ}
   {α : Type} [StrEnc α]
   (tm : MultiTapeTM k Char)
@@ -34,6 +36,7 @@ public def computes_function_read_push {k : ℕ}
 -- input does not decode to a list, we do nothing.
 /-- Turing machine `tm` computes a function on a list from tape `i` and pushes data to the
 lsit on tape `j`. -/
+@[expose]
 public def computes_function_readList_push {k : ℕ}
   {α : Type} [StrEnc α]
   (tm : MultiTapeTM k Char)
@@ -52,23 +55,23 @@ public def computes_function_head_update {k : ℕ}
   ∀ views, tm.eval_struct views =
     some (Function.update views i ((views i).updateListHeadTyped f))
 
-@[simp]
+@[simp, grind =>]
 public theorem computes_function_seq₁ {k : ℕ}
   {β γ : Type} [StrEnc β] [StrEnc γ]
-  (tm₁ tm₂ : MultiTapeTM k Char) (f₁ : Data → β) (f₂ : β → γ)
-  (i j : Fin k) (h_neq : i ≠ j)
+  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : Data → β} {f₂ : β → γ}
+  {i j : Fin k} (h_neq : i ≠ j)
   (h_comp₁ : computes_function_read_push tm₁ f₁ i j h_neq)
-  (h_comp₂ : computes_function_head_update tm₂ f₂ i) :
+  (h_comp₂ : computes_function_head_update tm₂ f₂ j) :
   computes_function_read_push (tm₁ ;ₜ tm₂) (f₂ ∘ f₁) i j h_neq := by sorry
 
-@[simp]
+@[simp, grind =>]
 public theorem computes_function_seq₂ {k : ℕ}
   {β γ : Type} [StrEnc β] [StrEnc γ]
-  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : List Data → β} {f₂ : β → γ}
+  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : (List Data) → β} {f₂ : β → γ}
   {i j : Fin k} (h_neq : i ≠ j)
   (h_comp₁ : computes_function_readList_push tm₁ f₁ i j h_neq)
-  (h_comp₂ : computes_function_head_update tm₂ f₂ i) :
-  computes_function_readList_push (tm₁ ;ₜ tm₂) (f₂ ∘ f₁) i j h_neq := by sorry
+  (h_comp₂ : computes_function_head_update tm₂ f₂ j) :
+  computes_function_readList_push (tm₁ ;ₜ tm₂) (fun x => f₂ (f₁ x)) i j h_neq := by sorry
 
 inductive TapeEffects where
   | read

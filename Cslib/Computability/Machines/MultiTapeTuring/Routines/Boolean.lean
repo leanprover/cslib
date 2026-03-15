@@ -50,10 +50,12 @@ public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
      -- true (1) → push false (0)
      pushList (StrEnc.toData false) j]
 
-@[simp]
+@[simp, grind <=]
 public lemma negateBool.computes_head_update {k : ℕ} {i : Fin k} :
   computes_function_head_update (negateBool i) (fun b : Bool => !b) i := by
   sorry
+
+grind_pattern negateBool.computes_head_update => negateBool i
 
 -- TODO from here below the simp lemmas are nice. Let us try to find a similarly nice
 -- simpe lemma for case_popList_num. Maybe the array is the problem?
