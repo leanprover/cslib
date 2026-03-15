@@ -146,12 +146,14 @@ noncomputable instance HasFresh.of_infinite (α : Type u) [Infinite α] : HasFre
 
 open Finset in
 /-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/
+@[implicit_reducible]
 def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFresh α where
   fresh s := e (Nat.find (p := fun n ↦ e n ∉ s) ⟨(s.preimage e e.2.injOn).max.succ,
     fun h ↦ not_lt_of_ge (le_max <| mem_preimage.2 h) (WithBot.lt_succ _)⟩)
   fresh_notMem s := Nat.find_spec (p := fun n ↦ e n ∉ s) _
 
 /-- Construct a fresh element given a function `f` with `x < f x`. -/
+@[implicit_reducible]
 def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α → α) (hf : ∀ x, x < f x) :
     HasFresh α where
   fresh s := if hs : s.Nonempty then f (s.sup' hs id) else default
