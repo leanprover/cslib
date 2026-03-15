@@ -148,9 +148,9 @@ theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (la
   have h_yls_p (k : ℕ) : (yls k).length > 0 := by grind [Language.mem_sub_one]
   obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.IsExecution.flatten h_yls_e h_yls_p
   suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
-    have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by 
+    have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by
       grind [LTS.ωTr_mTr h_exec (?_ : 0 ≤ xl.length), extract_append_zero_right, LTS.mem_pairLang]
-    have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by 
+    have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
       grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.isExecution_mTr]
     have h_ss1_ts : ss1 0 = ts 0 := by
       have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
