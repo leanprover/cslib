@@ -71,7 +71,7 @@ public theorem any_list.computes_fun' {k : ℕ} {i j r : Fin k}
     {f : Data → Data → Bool}
     (h_comp : computes_function_read_read_push tm f i j r h_neq) :
     computes_function_readList_read_push
-      (any_list tm i j (by sorry))
+      (any_list tm i r (by sorry))
       (fun ls y => ls.any (fun d => f d y))
       i j r h_neq := by
   sorry
@@ -100,8 +100,19 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
 /-- Check if the value on tape `j` is contained in the list on tape `i`
     and store the boolean result on tape `result`. -/
 public def contains {k : ℕ}
-    (i j result : Fin k) (h_inj : [i, j, result].get.Injective) : MultiTapeTM k Char :=
+    (i j result : Fin k) (_inj : [i, j, result].get.Injective) : MultiTapeTM k Char :=
   any_list (isEq i j result) i result (by sorry)
+
+
+@[simp, grind =>]
+public lemma contains.computes_fun {k : ℕ} {i j result : Fin k}
+    (h_inj : [i, j, result].get.Injective) :
+  computes_function_readList_read_push
+    (contains i j result h_inj)
+    List.contains
+    i j result h_inj := by
+  unfold contains
+  grind
 
 @[simp]
 public lemma contains_eval_struct {k : ℕ} {i j result : Fin k}
@@ -112,23 +123,8 @@ public lemma contains_eval_struct {k : ℕ} {i j result : Fin k}
     let item <- (views j).current
     return (views result).pushList (StrEnc.toData (ls.contains item))
   ).getD (views result))) := by
-  sorry
-
-@[simp, grind =>]
-public lemma contains.computes_fun {k : ℕ} {i j result : Fin k}
-    (h_inj : [i, j, result].get.Injective) :
-  computes_function_readList_read_push
-    (contains i j result h_inj)
-    (fun ls item => ls.contains item)
-    i j result h_inj := by
-  -- TODO prove this next
-  unfold contains
-  let x := isEq.computes_fun i j result h_inj
-  let y := any_list.computes_fun' h_inj x
-  exact y
-
-
-  grind
+  have x := contains.computes_fun h_inj views
+  simp at x
   sorry
 
 

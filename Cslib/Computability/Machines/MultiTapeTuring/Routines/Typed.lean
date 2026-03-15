@@ -15,14 +15,24 @@ namespace Routines
 /-- Turing machine `tm` computes a function on data from tape `i` and updates tape `j`. -/
 -- TODO move this somewhere else
 @[expose]
-public def computes_function_read_update {k : ℕ}
+public def computes_function_read_update' {k : ℕ}
   (tm : MultiTapeTM k Char) (f : Data → TapeView → TapeView)
   (i j : Fin k) (_h_neq : i ≠ j) :=
   ∀ views, tm.eval_struct views = some (Function.update views j
     (((views i).current.map (f · (views j))).getD (views j)))
 
 @[expose]
-public def computes_function_read_read_update {k : ℕ}
+public def computes_function_read_update {k : ℕ}
+  {α : Type} [StrEnc α]
+  (tm : MultiTapeTM k Char) (f : α → TapeView → TapeView)
+  (i j : Fin k) (_h_neq : i ≠ j) :=
+  ∀ views,
+    let x : Option α := (views i).current.bind StrEnc.fromData
+    (Option.isSome x) →
+    tm.eval_struct views = some (Function.update views j (f (x.get (sorry)) (views j)))
+
+@[expose]
+public def computes_function_read_read_update' {k : ℕ}
   (tm : MultiTapeTM k Char) (f : Data → Data → TapeView → TapeView)
   (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
   ∀ views, tm.eval_struct views = some (Function.update views r ((do
@@ -30,27 +40,39 @@ public def computes_function_read_read_update {k : ℕ}
     let y ← (views j).current
     return f x y (views r)).getD (views r)))
 
+@[expose]
+public def computes_function_read_read_update {k : ℕ}
+  {α β : Type} [StrEnc α] [StrEnc β]
+  (tm : MultiTapeTM k Char) (f : α → β → TapeView → TapeView)
+  (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
+  ∀ views,
+    let x : Option α := (views i).current.bind StrEnc.fromData
+    let y : Option β := (views j).current.bind StrEnc.fromData
+    ((Option.isSome x) ∧ (Option.isSome y)) →
+    tm.eval_struct views = some (Function.update views r (
+      f (x.get (sorry)) (y.get (sorry)) (views r)))
+
 -- TODO could generalize this to `f` having a preimage β.
 /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 list on tape `j`. -/
 @[expose]
 public def computes_function_read_push {k : ℕ}
-  {α : Type} [StrEnc α]
+  {α β : Type} [StrEnc α] [StrEnc β]
   (tm : MultiTapeTM k Char)
-  (f : Data → α)
+  (f : α → β)
   (i j : Fin k) (h_neq : i ≠ j) :=
   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j h_neq
 
 @[expose]
 public def computes_function_read_read_push {k : ℕ}
-  {α : Type} [StrEnc α]
+  {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
   (tm : MultiTapeTM k Char)
-  (f : Data → Data → α)
+  (f : α → β → γ)
   (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
   computes_function_read_read_update tm
     (fun x y tv => tv.pushList (StrEnc.toData (f x y))) i j s h_neq
 
--- TODO solve this using types
+-- TODO try to use `read_read_push` instead of this, with `α` being a List.
 @[expose]
 public def computes_function_readList_read_push {k : ℕ}
   {α : Type} [StrEnc α]

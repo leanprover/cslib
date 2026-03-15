@@ -257,6 +257,7 @@ public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sor
     If the path is `[]` and `data` is `Data.list ds`,
     returns `⟨Data.list (d :: ds), []⟩`.
     Otherwise, returns the `TapeView` unchanged. -/
+@[expose]
 public def pushList (d : Data) (tv : TapeView) : TapeView :=
   match tv with
   | ⟨Data.list ds, []⟩ => ⟨Data.list (d :: ds), []⟩

@@ -15,47 +15,38 @@ namespace Routines
 -- Argument navigation (for Data.list values)
 -- ═══════════════════════════════════════════════════════════════════════════
 
-/-- Navigate to the `argIdx`-th element of a `Data.list` encoding on tape `i`.
-    Moves past `(` and then skips `argIdx` Data elements. -/
-public def toArg {k : ℕ} (argIdx : ℕ) (i : Fin k) : MultiTapeTM k Char := sorry
+/-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
+Moves past `(` and then skips `idx` Data elements.
+If `i` is larger than the length of the list, does nothing. -/
+public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char := sorry
 
-/-- Navigate back from the `argIdx`-th element (inverse of `toArg`). -/
-public def outOfArg {k : ℕ} (argIdx : ℕ) (i : Fin k) : MultiTapeTM k Char := sorry
+/-- If positioned on the element of a list, navigates to the list containing it. -/
+public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
-/-- `toArg argIdx i` descends into the `argIdx`-th element of the topmost
-    `Data.list` on tape `i`, appending `argIdx` to the path.
-    Only descends if the current element is a `Data.list` with a valid index;
-    otherwise, the `TapeView` is unchanged. -/
+/-- `toElem idx i` moves to the `idx`th element of the `Data.list` currently pointed to
+on tape `i`. Only descends if the current element is a `Data.list` with at least `idx` elements,
+otherwise, the `TapeView` is unchanged. -/
 @[simp]
-public lemma toArg_eval_struct {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView} :
-    (toArg argIdx i).eval_struct views = some
-      (Function.update views i
-        (match (views i).current with
-        | some (Data.list ds) =>
-          if argIdx < ds.length then
-            ⟨(views i).data, (views i).path ++ [argIdx]⟩
-          else views i
-        | _ => views i)) := by sorry
+public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+  (toElem idx i).eval_struct views = some
+    (Function.update views i
+      (match (views i).current with
+      | some (Data.list ds) =>
+        if idx < ds.length then
+          ⟨(views i).data, (views i).path ++ [idx]⟩
+        else views i
+      | _ => views i)) := by sorry
 
 /-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
     removing it from the end of the path. If the path ends with `argIdx`,
     strips it. If the path is empty or the tape is empty, does not change
     the `TapeView`. -/
 @[simp]
-public lemma outOfArg_eval_struct_valid {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    {rest : List ℕ}
-    (h_path : (views i).path = rest ++ [argIdx]) :
-    (outOfArg argIdx i).eval_struct views = some
+public lemma outOfList_eval_struct_valid {k : ℕ} {argIdx : ℕ} {i : Fin k}
+    {views : Fin k → TapeView} :
+    (outOfList i).eval_struct views = some
       (Function.update views i
-        ⟨(views i).data, rest⟩) := by sorry
-
-@[simp]
-public lemma outOfArg_eval_struct_empty_path {k : ℕ} {argIdx : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    (h_path : (views i).path = []) :
-    (outOfArg argIdx i).eval_struct views = some views := by sorry
+        ⟨(views i).data, (views i).path.dropLast⟩) := by sorry
 
 end Routines
 end Turing

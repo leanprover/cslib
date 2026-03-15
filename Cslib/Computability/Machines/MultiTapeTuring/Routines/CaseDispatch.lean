@@ -53,6 +53,16 @@ public lemma case_num_eval_struct {k : ℕ} {i : Fin k}
       | some n => if h : n < branches.length then branches[n].eval_struct views else some views
       | none => some views := by sorry
 
+/-- Performs pattern-matching on an inductive type where each constructor has exactly one argument:
+Dispatches on the numeric value (`n`) of the first item of a `Data.list` (i.e. the constructor ID)
+and positions the head on the next item in the list and runs `branches[n]`.
+If `n` is out of range, or the tape is empty or not a list with at least two elements, does nothing.
+Moves the head back to the original position after running the branch.
+TODO these semantics seem rather complicated. -/
+public def case_ind_num_unary {k : ℕ} (i : Fin k)
+    (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
+
+
 /-- `case_num` on `false` (= `Data.num 0`) dispatches to the first branch. -/
 @[simp]
 public lemma case_num_false_eval_struct {k : ℕ} {i : Fin k}

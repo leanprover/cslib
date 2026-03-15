@@ -13,6 +13,7 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListIteration
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 
 namespace Turing
 
@@ -71,45 +72,63 @@ public def evalClause (a : Assignments) (c : Clause) : Bool :=
 public def evalFormula (a : Assignments) (f : Formula) : Bool :=
   f.all (evalClause a)
 
-open Routines in
+open Routines
+
+
 /--
 A Turing machine that decides satisfiability given a `SATInput` value on tape 0.
 Uses 5 tapes:
 - Tape 0: the input (formula and assignment)
 - Tape 1: the assignment (copied from input)
 - Tape 2: intermediate boolean results
-- Tape 3: temporary tape for inner list iteration (any_list)
-- Tape 4: temporary tape for outer list iteration (all_list)
 
 The algorithm:
 1. Copy the assignment to tape 1
 2. For all clauses, check that there exists some literal that is satisfied
 3. Clean up and leave the result on tape 2
 -/
-public def sat : MultiTapeTM 5 Char :=
-  -- Navigate to assignments (arg 1) and copy to tape 1
-  toArg 1 0 ;ₜ copyEnc 0 1 ;ₜ outOfArg 1 0 ;ₜ
-  -- Navigate to formula (arg 0)
-  toArg 0 0 ;ₜ
-  -- For all clauses in the formula…
+def sat_verify_core : MultiTapeTM 5 Char :=
   all_list
     -- …there is some literal…
     (any_list
       -- …that is satisfied by the assignment.
       -- Navigate to ctor index of literal (first element of Data.list)
-      (toArg 0 0 ;ₜ
+      (toElem 0 0 ;ₜ
         -- Dispatch on ctor index
         case_num 0
           [ -- positive literal (ctorIdx=0): skip to var, check membership
-            skipRight 0 ;ₜ contains 0 1 3 4 ;ₜ skipLeft 0 ;ₜ outOfArg 0 0,
+            toElem 1 0 ;ₜ contains 1 0 2 (by decide) ;ₜ outOfList 0,
             -- negative literal (ctorIdx=1): skip to var, check membership, negate
-            skipRight 0 ;ₜ contains 0 1 3 4 ;ₜ skipLeft 0 ;ₜ outOfArg 0 0 ;ₜ negateBool 3
+            toElem 1 0 ;ₜ contains 1 0 2 (by decide) ;ₜ outOfList 0 ;ₜ negateBool 2
           ])
-      2 3)
-    2 4 ;ₜ
+      0 2 (by decide))
+    0 2 (by decide)
+
+
+public def sat : MultiTapeTM 5 Char :=
+  -- Navigate to assignments (arg 1) and copy to tape 1
+  toElem 1 0 ;ₜ copyEnc 0 1 ;ₜ outOfList 0 ;ₜ
+  -- Navigate to formula (arg 0)
+  toElem 0 0 ;ₜ
+  sat_verify_core ;ₜ
   -- Cleanup
-  outOfArg 0 0 ;ₜ
+  outOfList 0 ;ₜ
   erase 1
+
+
+-- TODO continue here:
+-- We would like the function below to be typed.
+-- What happens if the input is not a valid encoding? We cannot check that at runtime (at least
+-- it would create additional cost), so we have to put that as a precondition of
+-- "computes_function_read_read_push". Is that fine?
+
+
+lemma sat_verify_core_semantics :
+  computes_function_read_read_push
+    sat_verify_core
+    (fun formula assignments => evalFormula assignments formula)
+    0 1 2 (by decide) := by
+  sorry
 
 end Satisfiability
 
