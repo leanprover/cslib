@@ -89,6 +89,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Typing
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.WellFormed
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Safety
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.StrongNorm
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
@@ -98,6 +99,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.HML.LogicalEquivalence
