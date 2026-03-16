@@ -222,6 +222,10 @@ public def current (tv : TapeView) : Option Data :=
 public lemma current_append {data : Data} {path : List ℕ} :
   (TapeView.mk data path).current = data.atPath path := by rfl
 
+@[simp]
+public lemma current_rev (tv : TapeView) :
+  tv.data.atPath tv.path = tv.current := rfl
+
 /-- The current value as a natural number, if it is a `Data.num`.
     Returns `none` if the tape is empty, the path is invalid,
     or the value at the path is a `Data.list`. -/
@@ -237,6 +241,15 @@ public def currentNum (tv : TapeView) : Option ℕ :=
 public def currentList (tv : TapeView) : Option (List Data) :=
   match tv.current with
   | some (Data.list ls) => some ls
+  | _ => none
+
+@[expose, simp]
+public def toElem? (tv : TapeView) (i : ℕ) : Option TapeView :=
+  match tv.current with
+  | some (Data.list ls) => if i < ls.length then
+      some ⟨tv.data, tv.path ++ [i]⟩
+    else
+      none
   | _ => none
 
 /-- Attempt to decode the current value as a typed value of type `α`.

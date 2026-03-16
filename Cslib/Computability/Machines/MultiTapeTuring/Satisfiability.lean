@@ -175,10 +175,7 @@ public theorem sat_verify.computes_fun
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
   have h_line1 : (toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0).eval_struct views =
       Function.update views 1 ⟨StrEnc.toData assignments, []⟩ := by
-    have h : (views 0).currentList = some [StrEnc.toData formula, StrEnc.toData assignments] := by
-      simp [TapeView.currentList, h_input]
-    simp [TapeView.current] at h_input
-    simp [h, h_input]
+    simp [h_input]
     rfl
   sorry
 

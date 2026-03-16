@@ -44,13 +44,7 @@ otherwise, the `TapeView` is unchanged. -/
 @[simp]
 public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView} :
   (toElem idx i).eval_struct views = some
-    (Function.update views i
-      (if h_l : (views i).currentList.isSome then
-        if h_i : idx < ((views i).currentList.get h_l).length then
-          ⟨(views i).data, (views i).path ++ [idx]⟩
-        else views i
-      else views i)) := by sorry
-
+    (Function.update views i (((views i).toElem? idx).getD (views i))) := by sorry
 
 /-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
     removing it from the end of the path. If the path ends with `argIdx`,
