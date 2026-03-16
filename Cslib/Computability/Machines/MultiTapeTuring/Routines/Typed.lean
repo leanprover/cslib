@@ -88,6 +88,15 @@ public theorem computes_function_seq₁ {k : ℕ}
   (h_comp₂ : computes_function_head_update tm₂ f₂ j) :
   computes_function_read_push (tm₁ ;ₜ tm₂) (fun x => f₂ (f₁ x)) i j h_neq := by sorry
 
+@[simp, grind =>]
+public theorem computes_function_seq₂ {k : ℕ}
+  {α β γ δ : Type} [StrEnc α] [StrEnc β] [StrEnc γ] [StrEnc δ]
+  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : α → β → γ} {f₂ : γ → δ}
+  {i j r : Fin k} (h_neq : [i, j, r].get.Injective)
+  (h_comp₁ : computes_function_read_read_push tm₁ f₁ i j r h_neq)
+  (h_comp₂ : computes_function_head_update tm₂ f₂ r) :
+  computes_function_read_read_push (tm₁ ;ₜ tm₂) (fun x y => f₂ (f₁ x y)) i j r h_neq := by sorry
+
 inductive TapeEffects where
   | read
   | consume

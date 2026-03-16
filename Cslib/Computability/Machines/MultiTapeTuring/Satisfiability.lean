@@ -148,8 +148,9 @@ lemma sat_verify_eval_literal.computes_fun :
     specialize h_pos views
     grind
   · intro views cond1 cond2 cond3 cond4
-    specialize h_pos views
-    sorry -- same as above but with negation
+    have h_neg := computes_function_seq₂ (by decide) h_pos negateBool.computes_head_update
+    specialize h_neg views
+    grind
 
 def sat_verify_core : MultiTapeTM 5 Char :=
   all_list
