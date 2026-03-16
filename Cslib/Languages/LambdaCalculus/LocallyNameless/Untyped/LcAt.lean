@@ -46,14 +46,10 @@ protected lemma ind_on_depth (P : Term Var → Prop) (bvar : ∀ i, P (bvar i)) 
     (app : ∀ M N, P M → P N → P (app M N))
     (abs : ∀ M, P M → (∀ N, N.depth ≤ M.depth → P N) → P M.abs)
     (M : Term Var) : P M := by
-  have h {d : ℕ} {M : Term Var} (p : M.depth ≤ d) : P M := by
-    induction d generalizing M with
-    | zero => induction M <;> grind
-    | succ =>
-      induction M with
-      | abs M' => apply abs M' <;> grind
-      | _ => grind [sup_le_iff]
-  exact h M.depth.le_refl
+  induction h : M.depth using Nat.strong_induction_on generalizing M with | _ n ih
+  induction M with
+  | abs M' => apply abs M' <;> grind
+  | _ => grind [sup_le_iff]
 
 /-- The depth of the lambda expression doesn't change by opening at i-th bound variable
  for some free variable. -/
