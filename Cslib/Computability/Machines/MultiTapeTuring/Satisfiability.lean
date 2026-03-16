@@ -75,7 +75,7 @@ public def evalFormula (a : Assignments) (f : Formula) : Bool :=
 open Routines
 
 
-/--
+/-
 A Turing machine that decides satisfiability given a `SATInput` value on tape 0.
 Uses 5 tapes:
 - Tape 0: the input (formula and assignment)
@@ -87,21 +87,74 @@ The algorithm:
 2. For all clauses, check that there exists some literal that is satisfied
 3. Clean up and leave the result on tape 2
 -/
+
+-- TODO extend this to any inductive type
+public def case_literal {k : ℕ}
+    (pos neg : MultiTapeTM k Char)
+    (i : Fin k) :
+  MultiTapeTM k Char :=
+    -- Navigate to ctor index of literal (first element of Data.list)
+  toElem 0 i ;ₜ
+  -- Dispatch on ctor index
+  case_num i
+    [ -- positive literal (ctorIdx=0): skip to var, run `pos`
+      toElem 1 i ;ₜ pos ;ₜ outOfList i,
+      -- negative literal (ctorIdx=1): skip to var, run `neg`
+      toElem 1 i ;ₜ neg ;ₜ outOfList i
+    ]
+
+@[simp]
+public lemma case_literal.computes_fun {k : ℕ}
+    {β γ : Type} [StrEnc β] [StrEnc γ]
+    (pos neg : MultiTapeTM k Char)
+    {i j r : Fin k}
+    (h_inj : [i, j, r].get.Injective)
+    {f_pos f_neg : Var → β → γ}
+    (h_comp_pos : computes_function_read_read_push pos f_pos i j r h_inj)
+    (h_comp_neg : computes_function_read_read_push neg f_neg i j r h_inj) :
+  computes_function_read_read_push
+    (case_literal pos neg i)
+    (fun lit x => match lit with
+    | Literal.pos v => f_pos v x
+    | Literal.neg v => f_neg v x)
+    i j r h_inj := by
+  sorry
+
+
+/-- Check if literal on tape 0 is satisfied by assignment on tape 1 and store result
+on tape 2. -/
+def sat_verify_eval_literal : MultiTapeTM 5 Char :=
+  case_literal
+    (contains 1 0 2 (by decide))
+    (contains 1 0 2 (by decide) ;ₜ negateBool 2)
+    0
+
+lemma sat_verify_eval_literal.computes_fun :
+  computes_function_read_read_push
+    sat_verify_eval_literal
+    (fun lit ass => evalLiteral ass lit)
+    0 1 2 (by decide) := by
+  let h_pos := contains.computes_fun (α := Var) (k := 5) (i := 1) (j := 0) (result := 2) (by decide)
+  refine case_literal.computes_fun
+        (β := Assignments) (γ := Bool)
+        (f_pos := fun v ass => ass.contains v)
+        (f_neg := fun v ass => !ass.contains v)
+        (contains 1 0 2 (by decide))
+        (contains 1 0 2 (by decide) ;ₜ negateBool 2)
+        _
+        ?_
+        ?_
+  · intro views cond1 cond2 cond3 cond4
+    specialize h_pos views
+    grind
+  · intro views cond1 cond2 cond3 cond4
+    specialize h_pos views
+    sorry -- same as above but with negation
+
 def sat_verify_core : MultiTapeTM 5 Char :=
   all_list
     -- …there is some literal…
-    (any_list
-      -- …that is satisfied by the assignment.
-      -- Navigate to ctor index of literal (first element of Data.list)
-      (toElem 0 0 ;ₜ
-        -- Dispatch on ctor index
-        case_num 0
-          [ -- positive literal (ctorIdx=0): skip to var, check membership
-            toElem 1 0 ;ₜ contains 1 0 2 (by decide) ;ₜ outOfList 0,
-            -- negative literal (ctorIdx=1): skip to var, check membership, negate
-            toElem 1 0 ;ₜ contains 1 0 2 (by decide) ;ₜ outOfList 0 ;ₜ negateBool 2
-          ])
-      0 2 (by decide))
+      (any_list sat_verify_eval_literal 0 2 (by decide))
     0 2 (by decide)
 
 
@@ -115,12 +168,6 @@ public def sat : MultiTapeTM 5 Char :=
   outOfList 0 ;ₜ
   erase 1
 
-
--- TODO continue here:
--- We would like the function below to be typed.
--- What happens if the input is not a valid encoding? We cannot check that at runtime (at least
--- it would create additional cost), so we have to put that as a precondition of
--- "computes_function_read_read_push". Is that fine?
 
 
 lemma sat_verify_core_semantics :

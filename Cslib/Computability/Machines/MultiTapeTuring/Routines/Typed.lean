@@ -28,8 +28,8 @@ public def computes_function_read_update {k : ℕ}
   (i j : Fin k) (_h_neq : i ≠ j) :=
   ∀ views,
     let x : Option α := (views i).current.bind StrEnc.fromData
-    (Option.isSome x) →
-    tm.eval_struct views = some (Function.update views j (f (x.get (sorry)) (views j)))
+    (h : (Option.isSome x)) →
+    tm.eval_struct views = some (Function.update views j (f (x.get h) (views j)))
 
 @[expose]
 public def computes_function_read_read_update' {k : ℕ}
@@ -48,11 +48,10 @@ public def computes_function_read_read_update {k : ℕ}
   ∀ views,
     let x : Option α := (views i).current.bind StrEnc.fromData
     let y : Option β := (views j).current.bind StrEnc.fromData
-    ((Option.isSome x) ∧ (Option.isSome y)) →
-    tm.eval_struct views = some (Function.update views r (
-      f (x.get (sorry)) (y.get (sorry)) (views r)))
+    (h_x : Option.isSome x) →
+    (h_y : Option.isSome y) →
+    tm.eval_struct views = some (Function.update views r (f (x.get h_x) (y.get h_y) (views r)))
 
--- TODO could generalize this to `f` having a preimage β.
 /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 list on tape `j`. -/
 @[expose]
@@ -72,33 +71,6 @@ public def computes_function_read_read_push {k : ℕ}
   computes_function_read_read_update tm
     (fun x y tv => tv.pushList (StrEnc.toData (f x y))) i j s h_neq
 
--- TODO try to use `read_read_push` instead of this, with `α` being a List.
-@[expose]
-public def computes_function_readList_read_push {k : ℕ}
-  {α : Type} [StrEnc α]
-  (tm : MultiTapeTM k Char)
-  (f : (List Data) → Data → α)
-  (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
-  computes_function_read_read_update tm
-    (fun x y tv => match x with
-     | Data.list ls => tv.pushList (StrEnc.toData (f ls y))
-     | Data.num _ => tv) i j s h_neq
-
--- TODO maybe we don't need this any more if we generalize the input type, so if the
--- input does not decode to a list, we do nothing.
-/-- Turing machine `tm` computes a function on a list from tape `i` and pushes data to the
-lsit on tape `j`. -/
-@[expose]
-public def computes_function_readList_push {k : ℕ}
-  {α : Type} [StrEnc α]
-  (tm : MultiTapeTM k Char)
-  (f : List Data → α)
-  (i j : Fin k) (h_neq : i ≠ j) :=
-  computes_function_read_update tm (fun d tv => match d with
-   | Data.list ls => tv.pushList (StrEnc.toData (f ls))
-   | Data.num _ => tv) i j h_neq
-
-
 /-- Turing machine `tm` updates the head of tape `i`. -/
 public def computes_function_head_update {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
@@ -109,21 +81,12 @@ public def computes_function_head_update {k : ℕ}
 
 @[simp, grind =>]
 public theorem computes_function_seq₁ {k : ℕ}
-  {β γ : Type} [StrEnc β] [StrEnc γ]
-  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : Data → β} {f₂ : β → γ}
+  {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
+  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : α → β} {f₂ : β → γ}
   {i j : Fin k} (h_neq : i ≠ j)
   (h_comp₁ : computes_function_read_push tm₁ f₁ i j h_neq)
   (h_comp₂ : computes_function_head_update tm₂ f₂ j) :
-  computes_function_read_push (tm₁ ;ₜ tm₂) (f₂ ∘ f₁) i j h_neq := by sorry
-
-@[simp, grind =>]
-public theorem computes_function_seq₂ {k : ℕ}
-  {β γ : Type} [StrEnc β] [StrEnc γ]
-  {tm₁ tm₂ : MultiTapeTM k Char} {f₁ : (List Data) → β} {f₂ : β → γ}
-  {i j : Fin k} (h_neq : i ≠ j)
-  (h_comp₁ : computes_function_readList_push tm₁ f₁ i j h_neq)
-  (h_comp₂ : computes_function_head_update tm₂ f₂ j) :
-  computes_function_readList_push (tm₁ ;ₜ tm₂) (fun x => f₂ (f₁ x)) i j h_neq := by sorry
+  computes_function_read_push (tm₁ ;ₜ tm₂) (fun x => f₂ (f₁ x)) i j h_neq := by sorry
 
 inductive TapeEffects where
   | read

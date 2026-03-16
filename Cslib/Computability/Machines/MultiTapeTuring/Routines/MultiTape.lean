@@ -32,6 +32,7 @@ public def isEq {k : ℕ} (i j : Fin k) (result : Fin k) :
     MultiTapeTM k Char :=
   eqEnc i j (put (StrEnc.toData true) result) (put (StrEnc.toData false) result)
 
+-- TODo `DecidableEq` should be a consequence of `StrEnc`.
 @[grind =>]
 public lemma isEq.computes_fun {k : ℕ} (i j result : Fin k)
     {α : Type} [StrEnc α] [DecidableEq α]

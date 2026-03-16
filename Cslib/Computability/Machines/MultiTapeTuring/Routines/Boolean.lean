@@ -52,7 +52,7 @@ public def negateBool {k : ℕ} (j : Fin k) : MultiTapeTM k Char :=
 
 @[simp, grind <=]
 public lemma negateBool.computes_head_update {k : ℕ} {i : Fin k} :
-  computes_function_head_update (negateBool i) (fun b : Bool => !b) i := by
+  computes_function_head_update (negateBool i) Bool.not i := by
   sorry
 
 grind_pattern negateBool.computes_head_update => negateBool i

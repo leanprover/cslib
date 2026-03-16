@@ -55,10 +55,11 @@ public theorem any_list_eval_struct {k : ℕ} (i j : Fin k)
 @[simp, grind =>]
 public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
     (h_neq : i ≠ j)
+    {α : Type} [StrEnc α]
     {tm : MultiTapeTM k Char}
-    {f : Data → Bool}
+    {f : α → Bool}
     (h_comp : computes_function_read_push tm f i j h_neq) :
-    computes_function_readList_push
+    computes_function_read_push (α := List α)
       (any_list tm i j h_neq)
       (fun ls => ls.any f)
       i j h_neq := by
@@ -66,11 +67,12 @@ public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
 
 @[simp, grind =>]
 public theorem any_list.computes_fun' {k : ℕ} {i j r : Fin k}
+    {α β : Type} [StrEnc α] [StrEnc β]
     (h_neq : [i, j, r].get.Injective)
     {tm : MultiTapeTM k Char}
-    {f : Data → Data → Bool}
+    {f : α → β → Bool}
     (h_comp : computes_function_read_read_push tm f i j r h_neq) :
-    computes_function_readList_read_push
+    computes_function_read_read_push (α := List α)
       (any_list tm i r (by sorry))
       (fun ls y => ls.any (fun d => f d y))
       i j r h_neq := by
@@ -87,15 +89,20 @@ public def all_list {k : ℕ}
 @[simp, grind =>]
 public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
     (h_neq : i ≠ j)
+    {α : Type} [StrEnc α]
     {tm : MultiTapeTM k Char}
-    {f : Data → Bool}
+    {f : α → Bool}
     (h_comp : computes_function_read_push tm f i j h_neq) :
-    computes_function_readList_push
+    computes_function_read_push
       (all_list tm i j h_neq)
-      (fun ls => ls.all f)
+      (List.all · f)
       i j h_neq := by
-  grind [all_list]
-
+  unfold all_list
+  -- This is needed because of the any/all transition.
+  have h : computes_function_read_push
+    (any_list (tm ;ₜ negateBool j) i j h_neq)
+    (!List.all · f) i j h_neq := by grind
+  grind
 
 /-- Check if the value on tape `j` is contained in the list on tape `i`
     and store the boolean result on tape `result`. -/
@@ -103,29 +110,34 @@ public def contains {k : ℕ}
     (i j result : Fin k) (_inj : [i, j, result].get.Injective) : MultiTapeTM k Char :=
   any_list (isEq i j result) i result (by sorry)
 
-
 @[simp, grind =>]
-public lemma contains.computes_fun {k : ℕ} {i j result : Fin k}
+public lemma contains.computes_fun {k : ℕ}
+    {α : Type} [DecidableEq α] [StrEnc α]
+    {i j result : Fin k}
     (h_inj : [i, j, result].get.Injective) :
-  computes_function_readList_read_push
+  computes_function_read_read_push
     (contains i j result h_inj)
-    List.contains
+    (fun (ls : List α) x => ls.contains x)
     i j result h_inj := by
-  unfold contains
-  grind
+  have h : computes_function_read_read_push (contains i j result h_inj)
+    (fun (ls : List α) y => ls.any fun d => d = y) i j result h_inj := by
+    let a := isEq.computes_fun (α := α) i j result h_inj
+    grind [contains]
+  grind [contains]
 
-@[simp]
-public lemma contains_eval_struct {k : ℕ} {i j result : Fin k}
-    (h_inj : [i, j, result].get.Injective)
-    {views : Fin k → TapeView} :
-  (contains i j result h_inj).eval_struct views = some (Function.update views result ((do
-    let ls <- (views i).currentList
-    let item <- (views j).current
-    return (views result).pushList (StrEnc.toData (ls.contains item))
-  ).getD (views result))) := by
-  have x := contains.computes_fun h_inj views
-  simp at x
-  sorry
+
+-- @[simp]
+-- public lemma contains_eval_struct {k : ℕ} {i j result : Fin k}
+--     (h_inj : [i, j, result].get.Injective)
+--     {views : Fin k → TapeView} :
+--   (contains i j result h_inj).eval_struct views = some (Function.update views result ((do
+--     let ls <- (views i).currentList
+--     let item <- (views j).current
+--     return (views result).pushList (StrEnc.toData (ls.contains item))
+--   ).getD (views result))) := by
+--   have x := contains.computes_fun h_inj views
+--   simp at x
+--   sorry
 
 
 end Routines
