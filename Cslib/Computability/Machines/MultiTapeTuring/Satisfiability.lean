@@ -134,29 +134,26 @@ lemma sat_verify_eval_literal.computes_fun :
     sat_verify_eval_literal
     (fun lit ass => evalLiteral ass lit)
     0 1 2 (by decide) := by
-  let h_pos := contains.computes_fun (α := Var) (k := 5) (i := 1) (j := 0) (result := 2) (by decide)
-  refine case_literal.computes_fun
-        (β := Assignments) (γ := Bool)
-        (f_pos := fun v ass => ass.contains v)
-        (f_neg := fun v ass => !ass.contains v)
-        (contains 1 0 2 (by decide))
-        (contains 1 0 2 (by decide) ;ₜ negateBool 2)
-        _
-        ?_
-        ?_
-  · intro views cond1 cond2 cond3 cond4
-    specialize h_pos views
-    grind
-  · intro views cond1 cond2 cond3 cond4
-    have h_neg := computes_function_seq₂ (by decide) h_pos negateBool.computes_head_update
-    specialize h_neg views
-    grind
+  let h_pos := computes_function_read_read_push_swap
+    (contains.computes_fun (α := Var) (k := 5) (i := 1) (j := 0) (result := 2) (by decide))
+  let h_neg := computes_function_seq₂ (by decide) h_pos negateBool.computes_head_update
+  exact case_literal.computes_fun (β := Assignments) (γ := Bool) _ _ _ h_pos h_neg
+
 
 def sat_verify_core : MultiTapeTM 5 Char :=
   all_list
     -- …there is some literal…
       (any_list sat_verify_eval_literal 0 2 (by decide))
     0 2 (by decide)
+
+lemma sat_verify_core_semantics :
+  computes_function_read_read_push
+    sat_verify_core
+    (fun formula assignments => evalFormula assignments formula)
+    0 1 2 (by decide) := by
+  unfold sat_verify_core evalFormula evalClause
+  exact all_list.computes_fun' (by decide)
+    (any_list.computes_fun' (by decide) sat_verify_eval_literal.computes_fun)
 
 
 public def sat : MultiTapeTM 5 Char :=
@@ -171,12 +168,6 @@ public def sat : MultiTapeTM 5 Char :=
 
 
 
-lemma sat_verify_core_semantics :
-  computes_function_read_read_push
-    sat_verify_core
-    (fun formula assignments => evalFormula assignments formula)
-    0 1 2 (by decide) := by
-  sorry
 
 end Satisfiability
 

@@ -100,6 +100,20 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
   simp only [all_list, List.all_eq_not_any_not]
   grind
 
+@[simp, grind =>]
+public theorem all_list.computes_fun' {k : ℕ} {i j r : Fin k}
+    {α β : Type} [StrEnc α] [StrEnc β]
+    (h_neq : [i, j, r].get.Injective)
+    {tm : MultiTapeTM k Char}
+    {f : α → β → Bool}
+    (h_comp : computes_function_read_read_push tm f i j r h_neq) :
+    computes_function_read_read_push (α := List α)
+      (all_list tm i r (by sorry))
+      (fun ls y => ls.all (fun d => f d y))
+      i j r h_neq := by
+  simp only [all_list, List.all_eq_not_any_not]
+  grind
+
 /-- Check if the value on tape `j` is contained in the list on tape `i`
     and store the boolean result on tape `result`. -/
 public def contains {k : ℕ}
