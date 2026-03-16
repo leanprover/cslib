@@ -97,11 +97,7 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
       (all_list tm i j h_neq)
       (List.all · f)
       i j h_neq := by
-  unfold all_list
-  -- This is needed because of the any/all transition.
-  have h : computes_function_read_push
-    (any_list (tm ;ₜ negateBool j) i j h_neq)
-    (!List.all · f) i j h_neq := by grind
+  simp only [all_list, List.all_eq_not_any_not]
   grind
 
 /-- Check if the value on tape `j` is contained in the list on tape `i`
@@ -112,17 +108,15 @@ public def contains {k : ℕ}
 
 @[simp, grind =>]
 public lemma contains.computes_fun {k : ℕ}
-    {α : Type} [DecidableEq α] [StrEnc α]
+    {α : Type} [BEq α] [StrEnc α]
     {i j result : Fin k}
     (h_inj : [i, j, result].get.Injective) :
   computes_function_read_read_push
     (contains i j result h_inj)
     (fun (ls : List α) x => ls.contains x)
     i j result h_inj := by
-  have h : computes_function_read_read_push (contains i j result h_inj)
-    (fun (ls : List α) y => ls.any fun d => d = y) i j result h_inj := by
-    let a := isEq.computes_fun (α := α) i j result h_inj
-    grind [contains]
+  simp only [List.contains_eq_any_beq]
+  let a := isEq.computes_fun (α := α) i j result h_inj
   grind [contains]
 
 

@@ -35,11 +35,11 @@ public def isEq {k : ℕ} (i j : Fin k) (result : Fin k) :
 -- TODo `DecidableEq` should be a consequence of `StrEnc`.
 @[grind =>]
 public lemma isEq.computes_fun {k : ℕ} (i j result : Fin k)
-    {α : Type} [StrEnc α] [DecidableEq α]
+    {α : Type} [StrEnc α] [BEq α]
     (h_neq : [i, j, result].get.Injective) :
     computes_function_read_read_push
       (isEq i j result)
-      (fun (d₁ : α) (d₂ : α) => decide (d₁ = d₂)) i j result h_neq := by
+      (fun (d₁ : α) (d₂ : α) => d₂ == d₁) i j result h_neq := by
   sorry
 
 /-- `copyEnc i j` copies the `Data` element at the current path position
