@@ -156,7 +156,7 @@ lemma sat_verify_core_semantics :
     (any_list.computes_fun' (by decide) sat_verify_eval_literal.computes_fun)
 
 
-public def sat : MultiTapeTM 5 Char :=
+public def sat_verify : MultiTapeTM 5 Char :=
   -- Navigate to assignments (arg 1) and copy to tape 1
   toElem 1 0 ;ₜ copyEnc 0 1 ;ₜ outOfList 0 ;ₜ
   -- Navigate to formula (arg 0)
@@ -167,6 +167,14 @@ public def sat : MultiTapeTM 5 Char :=
   erase 1
 
 
+public theorem sat_verify.computes_fun
+  {views : Fin 5 → TapeView}
+  (h_input : (views 0).current = some (StrEnc.toData (SATInput.mk formula assignments)))
+  (h_second_empty : views 1 = TapeView.empty)
+  (h_third_empty_list : views 2 = TapeView.ofList []) :
+   sat_verify.eval_struct views = some (Function.update views 2
+     ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
+  sorry
 
 
 end Satisfiability

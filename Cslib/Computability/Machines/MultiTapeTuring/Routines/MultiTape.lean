@@ -43,15 +43,14 @@ public lemma isEq.computes_fun {k : ℕ} (i j result : Fin k)
   sorry
 
 /-- `copyEnc i j` copies the `Data` element at the current path position
-    of tape `i` and writes it to tape `j` (which must be empty).
+    of tape `i` and writes it to tape `j` (overwrites everything).
     Tape `i` is not modified. -/
 @[simp]
 public lemma copyEnc_eval_struct {k : ℕ} {i j : Fin k}
     {views : Fin k → TapeView}
     {d : Data}
     (h_ne : i ≠ j)
-    (h_current : (views i).current = some d)
-    (h_empty_j : (views j).data = Data.list []) :
+    (h_current : (views i).current = some d) :
     (copyEnc i j).eval_struct views = some
       (Function.update views j ⟨d, []⟩) := by sorry
 
