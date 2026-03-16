@@ -57,7 +57,7 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
     strips it. If the path is empty or the tape is empty, does not change
     the `TapeView`. -/
 @[simp]
-public lemma outOfList_eval_struct_valid {k : ℕ} {argIdx : ℕ} {i : Fin k}
+public lemma outOfList_eval_struct_valid {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (outOfList i).eval_struct views = some
       (Function.update views i

@@ -150,6 +150,7 @@ public instance (α : Type*) [StrEnc α] : StrEnc (List α) where
 /-- Navigate into a `Data` value at the given path.
     Returns the sub-`Data` element at the path, or `none` if the path is invalid
     (e.g., indexing into a `num` or out-of-bounds on a `list`). -/
+@[expose]
 public def Data.atPath : Data → List ℕ → Option Data
   | d, [] => some d
   | Data.list ds, k :: rest =>
@@ -165,6 +166,11 @@ public lemma Data.atPath_list_cons (ds : List Data) (k : ℕ) (rest : List ℕ)
     (h : k < ds.length) :
     (Data.list ds).atPath (k :: rest) = (ds[k]).atPath rest := by
   simp [Data.atPath, h]
+
+@[simp]
+public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
+    d.atPath (path₁ ++ path₂) = d.atPath path₁ >>= fun d => d.atPath path₂ := by
+  sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TapeView
@@ -208,8 +214,13 @@ public def ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
 
 /-- The Data element currently pointed to by the head (at the path position).
     Returns `none` if the path is invalid. -/
+@[expose]
 public def current (tv : TapeView) : Option Data :=
   tv.data.atPath tv.path
+
+@[simp]
+public lemma current_append {data : Data} {path : List ℕ} :
+  (TapeView.mk data path).current = data.atPath path := by rfl
 
 /-- The current value as a natural number, if it is a `Data.num`.
     Returns `none` if the tape is empty, the path is invalid,
@@ -222,6 +233,7 @@ public def currentNum (tv : TapeView) : Option ℕ :=
 /-- The current value as a list, if it is a `List`.
     Returns `none` if the tape is empty, the path is invalid,
     or the value at the path is not a `Data.list`. -/
+@[expose]
 public def currentList (tv : TapeView) : Option (List Data) :=
   match tv.current with
   | some (Data.list ls) => some ls
