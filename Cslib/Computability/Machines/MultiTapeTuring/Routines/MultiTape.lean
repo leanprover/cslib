@@ -19,7 +19,7 @@ namespace Routines
 
 /-- Copy a Data-encoded value from tape `i` to tape `j`
     (prepending the encoding to tape `j`). -/
-public def copyEnc {k : ℕ} (i j : Fin k) : MultiTapeTM k Char := sorry
+public def copyEnc {k : ℕ} (i j : Fin k) (h_eq : i ≠ j) : MultiTapeTM k Char := sorry
 
 /-- Compare Data-encoded values on tapes `i` and `j`.
     Runs `tm_eq` if values are equal, `tm_neq` if not.
@@ -48,11 +48,9 @@ public lemma isEq.computes_fun {k : ℕ} (i j result : Fin k)
 @[simp]
 public lemma copyEnc_eval_struct {k : ℕ} {i j : Fin k}
     {views : Fin k → TapeView}
-    {d : Data}
-    (h_ne : i ≠ j)
-    (h_current : (views i).current = some d) :
-    (copyEnc i j).eval_struct views = some
-      (Function.update views j ⟨d, []⟩) := by sorry
+    {h_ne : i ≠ j} :
+    (copyEnc i j h_ne).eval_struct views = some (Function.update views j
+      (((views i).current.map fun d => ⟨d, []⟩).getD (views j))) := by sorry
 
 /-- `isEq i j result` compares the `Data` elements at the current positions
     of tapes `i` and `j`, and writes the boolean result to tape `result`

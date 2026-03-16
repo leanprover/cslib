@@ -158,7 +158,7 @@ lemma sat_verify_core_semantics :
 
 public def sat_verify : MultiTapeTM 5 Char :=
   -- Navigate to assignments (arg 1) and copy to tape 1
-  toElem 1 0 ;ₜ copyEnc 0 1 ;ₜ outOfList 0 ;ₜ
+  toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0 ;ₜ
   -- Navigate to formula (arg 0)
   toElem 0 0 ;ₜ
   sat_verify_core ;ₜ
@@ -173,14 +173,13 @@ public theorem sat_verify.computes_fun
   (h_third_empty_list : views 2 = TapeView.ofList []) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  have h_line1 : (toElem 1 0 ;ₜ copyEnc 0 1 ;ₜ outOfList 0).eval_struct views =
+  have h_line1 : (toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0).eval_struct views =
       Function.update views 1 ⟨StrEnc.toData assignments, []⟩ := by
     have h : (views 0).currentList = some [StrEnc.toData formula, StrEnc.toData assignments] := by
       simp [TapeView.currentList, h_input]
-    simp [h]
-    rw [copyEnc_eval_struct (d := StrEnc.toData assignments) (by decide)
-      (by unfold TapeView.current at h_input; simp [h_input]; rfl)]
-    simp
+    simp [TapeView.current] at h_input
+    simp [h, h_input]
+    rfl
   sorry
 
 
