@@ -20,14 +20,14 @@ in linear time.
 
 - `Proposition`: the language of propositions, parametrized on the type of atoms.
 - `Satisfies ls φ`: the ω-sequence `ls` satisfies proposition `p`.
-- `Proposition.equiv`: equivalence of two propositions modulo `Satisfies`.
+- `Proposition.Valid φ`: the proposition φ holds for all ω-sequences.
 
 ## Main statements
 
 - `next_self_dual`: Negation can be brought inside the `next` operator.
 - `distrib_eventually_or`: the `eventually` operator distributes on disjunction.
-- `expansion_until`: expansion rule for the `until` operator
-- `expansion_eventually`: expansion rule for the `eventually` operator
+- `expansion_until`: expansion rule for the `until` operator.
+- `expansion_eventually`: expansion rule for the `eventually` operator.
 
 ## References
 Course slides, University of Pisa: https://pages.di.unipi.it/gadducci/SVV-24/slideB/svv_b_01.pdf
