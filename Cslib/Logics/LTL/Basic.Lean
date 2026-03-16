@@ -73,32 +73,30 @@ notation:50 ls " ⊧ " φ => Satisfies ls φ
 
 /-- Validity of LTL propositions on ω-sequences. -/
 @[simp, scoped grind =]
-def Proposition.valid (φ₁ : Proposition T) : Prop :=
+def Proposition.Valid (φ₁ : Proposition T) : Prop :=
   ∀ (ls : ωSequence (Set T)) , ls ⊧ φ₁
 
 
-notation:50 φ₁ " ≈ " φ₂ => Proposition.valid (Proposition.iff φ₁ φ₂)
+notation:50 φ₁ " ≈ " φ₂ => Proposition.Valid (Proposition.iff φ₁ φ₂)
 
 /-- Negation can be brought inside the `next` operator. -/
 @[scoped grind .]
 theorem next_self_dual {T} : ∀ (φ : Proposition T), φ.next.not ≈ φ.not.next := by
-simp
+  simp
 
 /-- The `eventually` operator distributes on disjunction. -/
 @[scoped grind .]
-theorem distrib_eventually_or {T} :
-∀ (φ : Proposition T) (ψ : Proposition T) ,
-Proposition.eventually (φ.or ψ) ≈ (Proposition.or (φ.eventually) (ψ.eventually))
-:= by
-simp
-grind
+theorem distrib_eventually_or {T} : ∀ (φ : Proposition T) (ψ : Proposition T) ,
+Proposition.eventually (φ.or ψ) ≈ (Proposition.or (φ.eventually) (ψ.eventually)) := by
+  simp
+  grind
 
 /-- Expansion rule for the `until` operator. -/
 @[scoped grind .]
 theorem expansion_until {T} : ∀ (φ : Proposition T) (ψ : Proposition T) ,
 φ.until_op ψ ≈ ψ.or (φ.and ((φ.until_op ψ).next)) := by
 intros
-unfold Proposition.valid
+unfold Proposition.Valid
 intro
 apply Iff.intro
 · intro h
@@ -147,7 +145,7 @@ apply Iff.intro
 @[scoped grind .]
 theorem expansion_eventually {T} : ∀ (ψ : Proposition T) ,
 Proposition.eventually ψ ≈ ψ.or (ψ.eventually.next) := by
-simp only [Proposition.valid, Satisfies, ωSequence.drop_drop]
+simp only [Proposition.Valid, Satisfies, ωSequence.drop_drop]
 intros
 apply Iff.intro
 · intro h
