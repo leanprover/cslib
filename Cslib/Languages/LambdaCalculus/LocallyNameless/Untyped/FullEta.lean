@@ -48,12 +48,9 @@ lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' :=
 @[scoped grind →]
 lemma invert_step_app_fvar (step : (app M (fvar x)) ⭢ηᶠ N) :
     ∃ M', N = app M' (fvar x) ∧ M ⭢ηᶠ M' := by
-  cases step
-  case base h => cases h
-  case appR step_M _ => exact ⟨_, rfl, step_M⟩
-  case appL lc_M step_x =>
-    cases step_x
-    case base h => cases h
+  cases step with
+  | appR _ step_M => exact ⟨_, rfl, step_M⟩
+  | _ => grind [cases BaseEta, cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
