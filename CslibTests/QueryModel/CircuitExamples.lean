@@ -95,6 +95,25 @@ def CircAnd (n : ℕ) (x : Fin n → Circuit Bool Bool) : Circuit Bool Bool :=
 def execCircAnd (x : Fin n → Circuit Bool Bool) : Prog (Circuit Bool) Bool := do
   CircAnd n x
 
+theorem CircAnd_size : ∀ n : ℕ, ∀ x : Fin n → Circuit Bool Bool,
+    (CircAnd n x).circuitSize ≤ 1 + 2 * n + (Fin.sum (FinVec.map Circuit.circuitSize x)) := by
+  intro n x
+  induction n with
+  | zero =>
+      simp [CircAnd]
+  | succ m ih =>
+      specialize ih (Fin.tail x)
+      have hsum : Fin.sum (FinVec.map Circuit.circuitSize x)
+          = (x 0).circuitSize + Fin.sum (FinVec.map Circuit.circuitSize (Fin.tail x)) := by
+        simpa [FinVec.map] using
+          (Fin.sum_univ_succ (f := fun i : Fin (m + 1) => Circuit.circuitSize (x i)))
+      have hmul : (CircAnd (m + 1) x).circuitSize
+          ≤ 1 + (x 0).circuitSize + (CircAnd m (Fin.tail x)).circuitSize := by
+        grind [CircAnd, Circuit.circuitSize, Circuit.subcircuits,
+          Finset.card_insert_le, Finset.card_union_le, circuitSize_eq_subcircuits_card]
+      grind
+
+
 -- /--
 -- info: true
 -- -/

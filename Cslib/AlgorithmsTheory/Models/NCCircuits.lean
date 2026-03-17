@@ -58,6 +58,7 @@ instance : Add CircuitCosts where
 instance : AddZero CircuitCosts where
 
 /-- Evaluate a circuit -/
+@[simp, grind]
 def Circuit.circEval {α : Type u} [Add α] [Mul α] [Neg α] (c : Circuit α ι) : ι :=
   match c with
   | .const x => x
@@ -66,6 +67,7 @@ def Circuit.circEval {α : Type u} [Add α] [Mul α] [Neg α] (c : Circuit α ι
   | .neg c => - circEval c
 
 /-- Compute the depth of a circuit -/
+@[simp, grind]
 def Circuit.depthOf (q : Circuit α β) :=
   match q with
   | .const c => 0
@@ -74,6 +76,7 @@ def Circuit.depthOf (q : Circuit α β) :=
   | .neg c => 1 + depthOf c
 
 /-- Compute the formula size of a circuit -/
+@[simp, grind]
 def Circuit.formulaSize (q : Circuit α β) :=
   match q with
   | .const c => 1
@@ -82,6 +85,7 @@ def Circuit.formulaSize (q : Circuit α β) :=
   | .neg c => 1 + (formulaSize c)
 
 /-- Compute the set of subcircuits -/
+@[simp, grind]
 def Circuit.subcircuits {α} [DecidableEq α] (c : Circuit α α) : Finset (Circuit α α) :=
   insert c (
     match c with
@@ -92,16 +96,23 @@ def Circuit.subcircuits {α} [DecidableEq α] (c : Circuit α α) : Finset (Circ
 )
 
 /-- Compute circuit size, that is size of the circuit without double counting identical nodes -/
+@[simp, grind]
 def Circuit.circuitSize [DecidableEq α] (c : Circuit α β) :=
   match c with
   | .const x => (subcircuits (.const x)).card
   | .add c₁ c₂ => (subcircuits (.add c₁ c₂)).card
   | .mul c₁ c₂ => (subcircuits (.mul c₁ c₂)).card
-  | .neg c' => (subcircuits c').card
+  | .neg c' => (subcircuits (.neg c')).card
+
+@[simp]
+lemma circuitSize_eq_subcircuits_card (c : Circuit Bool Bool) :
+    c.subcircuits.card = c.circuitSize := by
+  cases c <;> simp [Circuit.circuitSize, Circuit.subcircuits]
 
 /--
 A model for the circuit query
 -/
+@[simps, grind]
 def circModel [Add α] [Mul α] [Neg α] [DecidableEq α] : Model (Circuit α) CircuitCosts where
   evalQuery q := q.circEval
   cost q := ⟨q.depthOf, q.circuitSize, q.formulaSize⟩
