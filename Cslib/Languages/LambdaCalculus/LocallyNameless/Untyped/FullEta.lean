@@ -27,6 +27,7 @@ inductive BaseEta : Term Var → Term Var → Prop
 /-- The eta rule: λx. M x ⟶ M, provided x is not free in M. -/
 | eta : LC M → BaseEta (abs (app M (bvar 0))) M
 
+/-- Full η-reduction, defined as the congruence closure of the base η-rule. -/
 @[reduction_sys "ηᶠ"]
 abbrev FullEta : Term Var → Term Var → Prop := Xi BaseEta
 
