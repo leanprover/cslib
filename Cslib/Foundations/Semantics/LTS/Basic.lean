@@ -945,6 +945,7 @@ open Lean Elab Meta Command Term
 elab "create_lts" lt:ident name:ident : command => do
   liftTermElabM do
     let lt ← realizeGlobalConstNoOverloadWithInfo lt
+    let (declName, _) ← mkDeclName (← getCurrNamespace) default name.getId
     let ci ← getConstInfo lt
     forallTelescope ci.type fun args ty => do
       let throwNotLT := throwError m!"type{indentExpr ci.type}\nis not a labelled transition"
@@ -960,15 +961,15 @@ elab "create_lts" lt:ident name:ident : command => do
       let value ← mkLambdaFVars args[0:args.size-3] bundle
       let type ← inferType value
       addAndCompile <| .defnDecl {
-        name := name.getId
+        name := declName
         levelParams := ci.levelParams
         type
         value
         safety := .safe
         hints := Lean.ReducibilityHints.abbrev
       }
-      addTermInfo' name (.const name.getId params) (isBinder := true)
-      addDeclarationRangesFromSyntax name.getId name
+      addTermInfo' name (.const declName params) (isBinder := true)
+      addDeclarationRangesFromSyntax declName name
 
 /--
   This command adds transition notations for an `LTS`. This should not usually be called directly,
@@ -1004,22 +1005,21 @@ initialize Lean.registerBuiltinAttribute {
   name := `lts_attr
   descr := "Register notation for an LTS"
   add := fun decl stx _ => MetaM.run' do
+    let currNamespace ← getCurrNamespace
     match stx with
     | `(attr | lts $lts $sym) =>
         let mut sym := sym
         unless sym.getString.endsWith " " do
           sym := Syntax.mkStrLit (sym.getString ++ " ")
-        let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
-        liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-        liftCommandElabM <| (do
-          modifyScope ({ · with currNamespace := decl.getPrefix })
-          Command.elabCommand (← `(scoped lts_transition_notation $lts $sym)))
+        liftCommandElabM <| do
+          modifyScope ({ · with currNamespace })
+          Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
+          Command.elabCommand (← `(scoped lts_transition_notation $lts $sym))
     | `(attr | lts $lts) =>
-        let lts := lts.getId.updatePrefix decl.getPrefix |> Lean.mkIdent
-        liftCommandElabM <| Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
-        liftCommandElabM <| (do
-          modifyScope ({ · with currNamespace := decl.getPrefix })
-          Command.elabCommand (← `(scoped lts_transition_notation $lts)))
+        liftCommandElabM <| do
+          modifyScope ({ · with currNamespace })
+          Command.elabCommand (← `(create_lts $(mkIdent decl) $lts))
+          Command.elabCommand (← `(scoped lts_transition_notation $lts))
     | _ => throwError "invalid syntax for 'lts' attribute"
 }
 
