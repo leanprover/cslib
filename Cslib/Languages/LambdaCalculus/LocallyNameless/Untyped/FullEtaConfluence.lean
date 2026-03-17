@@ -41,9 +41,7 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
     cases h1_b
     case eta M _ =>
       cases h₂
-      case base h2_b =>
-        cases h2_b
-        use M
+      case base => use (disch := grind) M
       case abs _ _ st_body =>
         have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
         have ⟨M', _, _⟩ := invert_step_app_fvar <| st_body w <| by grind
