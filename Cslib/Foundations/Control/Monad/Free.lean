@@ -223,7 +223,7 @@ lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op 
 @[simp]
 lemma liftM_bind [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (f : α → FreeM F β) :
-    (x.bind f : FreeM F β).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
+    (x.bind f).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
   induction x generalizing f with
   | pure a => simp only [pure_bind, liftM_pure, LawfulMonad.pure_bind]
   | liftBind op cont ih =>
