@@ -254,9 +254,6 @@ lemma liftM_seqRight [LawfulMonad m]
     (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
   simp [seqRight_eq_bind]
 
-instance {Q α} : CoeOut (Q α) (FreeM Q α) where
-  coe := FreeM.lift
-
 /--
 A predicate stating that `interp : FreeM F α → m α` is an interpreter for the effect
 handler `handler : ∀ {α}, F α → m α`.
