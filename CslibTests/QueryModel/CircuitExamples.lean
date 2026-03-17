@@ -22,11 +22,11 @@ open Cslib Algorithms Prog
 
 open Circuit in
 def exCircuit1 : Prog (Circuit Bool) Bool := do
-  let x := const 0 true
-  let y := const 1 true
-  let z := add 2 x y
-  let w := mul 3 x y
-  add 4 z w
+  let x := const true
+  let y := const true
+  let z := add x y
+  let w := mul x y
+  add z w
 
 -- /--
 -- info: true
@@ -35,17 +35,17 @@ def exCircuit1 : Prog (Circuit Bool) Bool := do
 -- #eval exCircuit1.eval circModel
 
 -- /--
--- info: { depth := 2, size := 5 }
+-- info: { depth := 2, size := 4 }
 -- -/
 -- #guard_msgs in
 -- #eval exCircuit1.time circModel
 
 open Circuit in
 def exCircuit2 : Prog (Circuit ℚ) ℚ := do
-  let x := const 0 (1 : ℚ)
-  let y := const 1 (2 : ℚ)
-  let z := add 2 x y
-  mul 4 z z
+  let x := const (1 : ℚ)
+  let y := const (2 : ℚ)
+  let z := add x y
+  mul z z
 
 -- /--
 -- info: 9
@@ -61,31 +61,31 @@ def exCircuit2 : Prog (Circuit ℚ) ℚ := do
 
 open Circuit in
 def exCircuit3 (x y : Circuit ℚ ℚ) : Prog (Circuit ℚ) ℚ := do
-  let z := add 2 x y
-  let w := mul 3 x y
-  mul 4 z w
+  let z := add x y
+  let w := mul x y
+  mul z w
 
 -- /--
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (exCircuit3 (.const 0 (1 : ℚ)) (.const 1 (21 : ℚ))).eval circModel == 462
+-- #eval (exCircuit3 (.const (1 : ℚ)) (.const (21 : ℚ))).eval circModel == 462
 
 -- /--
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (exCircuit3 (.const 0 (1 : ℚ)) (.const 1 (21 : ℚ))).time circModel == ⟨2,5⟩
+-- #eval (exCircuit3 (.const (1 : ℚ)) (.const (21 : ℚ))).time circModel == ⟨2,5⟩
 
 
 open Circuit in
 def CircAnd (n : ℕ) (x : Fin n → Circuit Bool Bool) : Circuit Bool Bool :=
   match n with
-  | 0 => const n true
+  | 0 => const true
   | m + 1 =>
       let x_head := x 0
       let x_cons := CircAnd m (Fin.tail x)
-      mul (n + m + 1) x_head x_cons
+      mul x_head x_cons
 
 def execCircAnd (x : Fin n → Circuit Bool Bool) : Prog (Circuit Bool) Bool := do
   CircAnd n x
@@ -94,13 +94,13 @@ def execCircAnd (x : Fin n → Circuit Bool Bool) : Prog (Circuit Bool) Bool := 
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (execCircAnd ![.const 0 true, .const 1 true, .const 2 true]).eval circModel == true
+-- #eval (execCircAnd ![.const true, .const true, .const true]).eval circModel == true
 
 -- /--
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (execCircAnd ![.const 0 true, .const 1 true, .const 2 true]).time circModel == ⟨3,5⟩
+-- #eval (execCircAnd ![.const true, .const true, .const true]).time circModel == ⟨3,4⟩
 
 
 end CslibTests

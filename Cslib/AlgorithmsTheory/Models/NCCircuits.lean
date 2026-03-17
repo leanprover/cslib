@@ -17,10 +17,11 @@ namespace Algorithms
 
 namespace Prog
 inductive Circuit (α : Type u) : Type u → Type u where
-  | const (id : ℕ) (x : α) : Circuit α α
-  | add (id : ℕ) (c₁ c₂ : Circuit α α) : Circuit α α
-  | mul (id : ℕ) (c₁ c₂ : Circuit α α) : Circuit α α
-  | neg (id : ℕ) (c : Circuit α α) : Circuit α α
+  | const (x : α) : Circuit α α
+  | add (c₁ c₂ : Circuit α α) : Circuit α α
+  | mul (c₁ c₂ : Circuit α α) : Circuit α α
+  | neg (c : Circuit α α) : Circuit α α
+deriving DecidableEq
 
 structure CircuitCosts where
   depth : ℕ
@@ -37,40 +38,54 @@ instance : AddZero CircuitCosts where
 
 def circEval {α : Type u} [Add α] [Mul α] [Neg α] (c : Circuit α ι) : ι :=
   match c with
-  | .const _ x => x
-  | .add _ c₁ c₂ => circEval c₁ + circEval c₂
-  | .mul _ c₁ c₂ => circEval c₁ * circEval c₂
-  | .neg _ c => - circEval c
+  | .const x => x
+  | .add c₁ c₂ => circEval c₁ + circEval c₂
+  | .mul c₁ c₂ => circEval c₁ * circEval c₂
+  | .neg c => - circEval c
 
 def depthOf (q : Circuit α β) :=
   match q with
-  | .const _ c => 0
-  | .add _ c₁ c₂ => 1 + max (depthOf c₁) (depthOf c₂)
-  | .mul _ c₁ c₂ => 1 + max (depthOf c₁) (depthOf c₂)
-  | .neg _ c => 1 + depthOf c
+  | .const c => 0
+  | .add c₁ c₂ => 1 + max (depthOf c₁) (depthOf c₂)
+  | .mul c₁ c₂ => 1 + max (depthOf c₁) (depthOf c₂)
+  | .neg c => 1 + depthOf c
 
-def uniqueIDs (q : Circuit α β) (countedIDs : Finset ℕ) : Finset ℕ :=
-  match q with
-  | .const id _ =>
-      insert id countedIDs
-  | .add id x y =>
-      let s₁ := uniqueIDs x countedIDs
-      let s₂ := uniqueIDs y s₁
-      insert id s₂
-  | .mul id x y =>
-      let s₁ := uniqueIDs x countedIDs
-      let s₂ := uniqueIDs y s₁
-      insert id s₂
-  | .neg id x =>
-      let s := uniqueIDs x countedIDs
-      insert id s
+-- def uniqueIDs (q : Circuit α β) (countedIDs : Finset ℕ) : Finset ℕ :=
+--   match q with
+--   | .const id _ =>
+--       insert id countedIDs
+--   | .add id x y =>
+--       let s₁ := uniqueIDs x countedIDs
+--       let s₂ := uniqueIDs y s₁
+--       insert id s₂
+--   | .mul id x y =>
+--       let s₁ := uniqueIDs x countedIDs
+--       let s₂ := uniqueIDs y s₁
+--       insert id s₂
+--   | .neg id x =>
+--       let s := uniqueIDs x countedIDs
+--       insert id s
+
+def Circuit.subcircuits {α} [DecidableEq α] (c : Circuit α α) : Finset (Circuit α α) :=
+  insert c (
+    match c with
+    | .const _ => {}
+    | .add c₁ c₂ => c₁.subcircuits ∪ c₂.subcircuits
+    | .mul c₁ c₂ => c₁.subcircuits ∪ c₂.subcircuits
+    | .neg c' => c'.subcircuits
+)
+
+def Circuit.sizeOf [DecidableEq α] (c : Circuit α β) :=
+  match c with
+  | .const x => (subcircuits (.const x)).card
+  | .add c₁ c₂ => (subcircuits (.add c₁ c₂)).card
+  | .mul c₁ c₂ => (subcircuits (.mul c₁ c₂)).card
+  | .neg c' => (subcircuits c').card
 
 
-def sizeOf (q : Circuit α β) := (uniqueIDs q {}).card
-
-def circModel [Add α] [Mul α] [Neg α] : Model (Circuit α) CircuitCosts where
+def circModel [Add α] [Mul α] [Neg α] [DecidableEq α] : Model (Circuit α) CircuitCosts where
   evalQuery q := circEval q
-  cost q := ⟨depthOf q, sizeOf q⟩
+  cost q := ⟨depthOf q, q.sizeOf⟩
 
 end Prog
 
