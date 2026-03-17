@@ -35,7 +35,7 @@ instance : Add CircuitCosts where
 
 instance : AddZero CircuitCosts where
 
-def circEval {α : Type u} [Ring α] (c : Circuit α ι) : ι :=
+def circEval {α : Type u} [Add α] [Mul α] [Neg α] (c : Circuit α ι) : ι :=
   match c with
   | .const _ x => x
   | .add _ c₁ c₂ => circEval c₁ + circEval c₂
@@ -68,7 +68,7 @@ def uniqueIDs (q : Circuit α β) (countedIDs : Finset ℕ) : Finset ℕ :=
 
 def sizeOf (q : Circuit α β) := (uniqueIDs q {}).card
 
-def circModel [Ring α] : Model (Circuit α) CircuitCosts where
+def circModel [Add α] [Mul α] [Neg α] : Model (Circuit α) CircuitCosts where
   evalQuery q := circEval q
   cost q := ⟨depthOf q, sizeOf q⟩
 

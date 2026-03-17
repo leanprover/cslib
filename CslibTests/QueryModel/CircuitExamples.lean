@@ -7,7 +7,7 @@ Authors: Shreyas Srinivas
 module
 
 public import Cslib.AlgorithmsTheory.Models.NCCircuits
-
+public import Mathlib
 
 @[expose] public section
 
