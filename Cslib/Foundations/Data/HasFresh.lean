@@ -8,6 +8,7 @@ module -- shake: keep-downstream
 
 public import Cslib.Init
 public import Mathlib.Analysis.Normed.Field.Lemmas
+import Qq
 
 @[expose] public section
 
@@ -58,13 +59,13 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
   def f (_ : String) : Finset ℕ := {1, 2, 3}
   def g (_ : String) : Finset ℕ := {4, 5, 6}
 
-  -- info: ∅ ∪ {x} ∪ id xs : Finset ℕ
+  -- info: ∅ ∪ {x} ∪ xs : Finset ℕ
   #check free_union ℕ
 
-  -- info: ∅ ∪ {x} ∪ id xs ∪ f var ∪ g var : Finset ℕ
+  -- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ
   #check free_union [f, g] ℕ
 
-  info: ∅ ∪ id xs : Finset ℕ
+  info: ∅ ∪ xs : Finset ℕ
   #check free_union (singleton := false) ℕ
 
   -- info: ∅ ∪ {x} : Finset ℕ
@@ -76,6 +77,8 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
+open Qq
+
 set_option linter.style.emptyLine false in
 /-- Elaborator for `free_union`. -/
 @[term_elab freeUnion]
@@ -86,44 +89,33 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     -- the type of our variables
     let var ← elabType var
+    let dl ← getDecLevel var
+    have α : Q(Type dl) := var
 
     -- maps to variables
     let maps := maps.map (·.getElems) |>.getD #[]
-    let mut maps ← maps.mapM (flip elabTerm none)
-
-    -- construct ∅
-    let dl ← getDecLevel var
-    let FinsetType := mkApp (mkConst ``Finset [dl]) var
-    let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
-    let empty :=
-      mkAppN (mkConst ``EmptyCollection.emptyCollection [dl]) #[FinsetType, EmptyCollectionInst]
+    let mut maps ← maps.mapM (elabTerm · none)
 
     -- singleton variables
     if cfg.singleton then
-      let SingletonInst ← synthInstance <| mkAppN (mkConst ``Singleton [dl, dl]) #[var, FinsetType]
-      let singleton_map :=
-        mkAppN (mkConst ``Singleton.singleton [dl, dl]) #[var, FinsetType, SingletonInst]
-      maps := maps.push singleton_map
+      maps := maps.push q(Singleton.singleton : $α → Finset $α)
 
     -- any finite sets
     if cfg.finset then
-      let id_map := mkApp (mkConst ``id [← getLevel var]) FinsetType
-      maps := maps.push id_map
+      maps := maps.push q((·) : Finset $α → Finset $α)
 
-    let mut finsets := #[]
+    let mut finsets : Array Q(Finset $α) := #[]
 
-    for ldecl in (← getLCtx) do
+    for ldecl in ← getLCtx do
       if !ldecl.isImplementationDetail then
         let local_type ← ldecl.toExpr |> inferType >=> whnf
         for map in maps do
           if let Expr.forallE _ dom _ _ := ← inferType map then
-            if (←isDefEq local_type dom) then
-              finsets := finsets.push (mkApp map ldecl.toExpr)
+            if ← isDefEq local_type dom then
+              finsets := finsets.push (map.betaRev #[ldecl.toExpr])
 
-    -- construct a union fold
-    let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
-    let UnionFinset := mkAppN (mkConst ``Union.union [dl]) #[FinsetType, UnionInst]
-    let union := finsets.foldl (mkApp2 UnionFinset) empty
+    let _dec : Q(DecidableEq $α) ← synthInstanceQ q(DecidableEq $α)
+    let union := finsets.foldl (fun a b : Q(Finset $α) => q($a ∪ $b)) q(∅)
 
     return union
   | _ => throwUnsupportedSyntax
