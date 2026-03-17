@@ -183,36 +183,13 @@ public theorem sat_verify.computes_fun
   (h_second_empty : views 1 = TapeView.empty) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  let line₁ : MultiTapeTM 5 Char := toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0
-  have h_line₁ : line₁.eval_struct views =
-      Function.update views 1 (TapeView.ofEnc assignments) := by
-    simp [line₁, h_input, TapeView.current_rev, Function.update_sort]
-  let line₂ := toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0
-  have h_line₂ (views' : Fin 5 → TapeView) :
-      (views' 0).current = some (StrEnc.toData (SATInput.mk formula assignments)) →
-      (views' 1) = TapeView.ofEnc assignments →
-      line₂.eval_struct views' = .some (Function.update views'
-        2 ((views' 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-    intro h_v1 h_v2
-    simp only [seq_eval_struct, toElem_eval_struct, TapeView.toElem?, Option.bind_some,
-      outOfList_eval_struct_valid, line₂]
-    rw [sat_verify_core_semantics _ (by simp [TapeView.current_rev, h_v1]) (by simp [h_v2])]
-    simp [h_v1, h_v2, TapeView.current_rev, Function.update_sort]
-  -- Main composition
-  have h_pre₁ : (Function.update views 1 (TapeView.ofEnc assignments) 0).current =
-      some (StrEnc.toData (SATInput.mk formula assignments)) := by
-    simp [h_input]
-  have h_pre₂ : Function.update views 1 (TapeView.ofEnc assignments) 1 =
-      TapeView.ofEnc assignments := by simp
-  have h₂ := h_line₂ _ h_pre₁ h_pre₂
-  unfold sat_verify
-  change (line₁ ;ₜ toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0 ;ₜ erase 1).eval_struct views = _
-  simp only [seq_eval_struct, h_line₁, Option.bind_some]
-  rw [← seq_eval_struct, ← seq_eval_struct, h₂]
-  simp only [Option.bind_some, erase_eval_struct]
-  simp [Function.update_sort]
+  let views' := (Function.update (Function.update views
+    0 { data := (views 0).data, path := (views 0).path ++ [0] })
+    1 (TapeView.ofEnc assignments))
+  let core_semantics := sat_verify_core_semantics views'
+    (by simp [views', h_input, TapeView.current_rev]) (by simp [views'])
+  simp [sat_verify, h_input, TapeView.current_rev, Function.update_sort, core_semantics, views']
   grind
-
 
 
 end Satisfiability
