@@ -447,17 +447,22 @@ structure ModelLawsFamily {ι α : Type*}
   unitCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1
   cmpLaws : ComparatorLawsFamily (fun i => modelLE (models i))
 
-lemma modelLawsFamily_sortModelNat
+/--
+sortModelNats obey the model family laws and can therefore be instantiated
+to the modelLawsFamily structure.
+-/
+def modelLawsFamily_sortModelNat
     {ι α : Type*} {le : ι → α → α → Bool}
     (hLaws : ComparatorLawsFamily le) :
-    ModelLawsFamily (fun i => sortModelNat (le i)) := by
-  refine ⟨?_, ⟨?_, ?_⟩⟩
-  · intro i x y
+    ModelLawsFamily (fun i => sortModelNat (le i)) where
+  unitCost := fun i x y => by
     grind [sortModelNat]
-  · intro i
-    simpa [modelLE, sortModelNat] using hLaws.total i
-  · intro i
-    simpa [modelLE, sortModelNat] using hLaws.trans i
+  cmpLaws := {
+      total := fun i => by
+        simpa [modelLE, sortModelNat] using hLaws.total i
+      trans := fun i => by
+        simpa [modelLE, sortModelNat] using hLaws.trans i
+    }
 
 lemma eval_eq_eval_sortModelNat_modelLE
     (P : Prog (SortOps α) β) (M : Model (SortOps α) ℕ) :
@@ -515,42 +520,30 @@ lemma traceCodeModel_injective
     (hCorrect : ∀ i, P.eval (models i) = output i) :
     Function.Injective (traceCodeModel models P) := by
   intro i j hCode
-  have hTimei :
-      P.time (models i) ≤
-        (Finset.univ : Finset ι).sup (fun k => P.time (models k)) := by
-    exact Finset.le_sup
-      (s := (Finset.univ : Finset ι))
-      (f := fun k => P.time (models k))
-      (Finset.mem_univ i)
-  have hTimej :
-      P.time (models j) ≤
-        (Finset.univ : Finset ι).sup (fun k => P.time (models k)) := by
-    exact Finset.le_sup
-      (s := (Finset.univ : Finset ι))
-      (f := fun k => P.time (models k))
-      (Finset.mem_univ j)
-  have hLeni : (traceSort P (modelLE (models i))).length ≤ worstTimeModel models P := by
-    simpa [worstTimeModel, traceSort_length_eq_time_model, hCost i] using hTimei
-  have hLenj : (traceSort P (modelLE (models j))).length ≤ worstTimeModel models P := by
-    simpa [worstTimeModel, traceSort_length_eq_time_model, hCost j] using hTimej
+  have hLen (ρ : ι) :
+      (traceSort P (modelLE (models ρ))).length ≤ worstTimeModel models P := by
+    have hTimeρ :
+        P.time (models ρ) ≤
+          (Finset.univ : Finset ι).sup (fun k => P.time (models k)) := by
+      exact Finset.le_sup
+        (s := (Finset.univ : Finset ι))
+        (f := fun k => P.time (models k))
+        (Finset.mem_univ ρ)
+    grind [worstTimeModel, traceSort_length_eq_time_model, hCost ρ]
   have hTrace :
       traceSort P (modelLE (models i)) = traceSort P (modelLE (models j)) := by
-    exact traceSort_eq_of_padTrace_eq P hLeni hLenj hCode
-  have hEvalSortModel :
-      P.eval (sortModelNat (modelLE (models i))) =
-        P.eval (sortModelNat (modelLE (models j))) :=
-    eval_eq_of_traceSort_eq P hTrace
+    exact traceSort_eq_of_padTrace_eq P (hLen i) (hLen j) hCode
   have hEval :
       P.eval (models i) = P.eval (models j) := by
     calc
       P.eval (models i) = P.eval (sortModelNat (modelLE (models i))) :=
         eval_eq_eval_sortModelNat_modelLE P (models i)
-      _ = P.eval (sortModelNat (modelLE (models j))) := hEvalSortModel
+      _ = P.eval (sortModelNat (modelLE (models j))) :=
+        eval_eq_of_traceSort_eq P hTrace
       _ = P.eval (models j) :=
         (eval_eq_eval_sortModelNat_modelLE P (models j)).symm
-  have hOut : output i = output j := by
-    simpa [hCorrect i, hCorrect j] using hEval
-  exact hOutputInj hOut
+  exact hOutputInj <| by
+    aesop (add simp [hCorrect, hEval])
 
 /--
 Decision-tree lower bound over an arbitrary finite hidden family of unit-cost
@@ -569,12 +562,13 @@ lemma hDecisionTreeLowerModel
     (traceCodeModel_injective models hLaws.unitCost P output hOutputInj hCorrect)
 
 /--
-`Ω(n log n)` lower bound from any hidden model family of size at least `n!`.
+We prove the cardinality assumption used in this lemma in
+`factorial_le_card_of_orderEmbedding` below.
 
 This formulation is model-parametric: the hidden instances are full `SortOps`
 models, not only permutation-induced comparators.
 -/
-theorem cmpSort_lower_bound_model
+lemma cmpSort_lower_bound_model
     {ι : Type*} [Fintype ι]
     (n : ℕ)
     (models : ι → Model (SortOps α) ℕ)
@@ -609,12 +603,21 @@ lemma output_injective_of_eval_injective
 
 /-- Correctness witness for a hidden family of comparators used in the lower bound. -/
 structure LeFamilyCorrectness {ι α : Type*}
-    (evalF : ι → List α) where
+    (n : ℕ) (evalF : ι → List α) where
   output : ι → List α
   correct : ∀ i : ι, evalF i = output i
   evalInj : Function.Injective evalF
+  orderEmbedding : Equiv.Perm (Fin n) ↪ ι
+
+lemma factorial_le_card_of_orderEmbedding
+    {ι : Type*} [Fintype ι] (n : ℕ) (emb : Equiv.Perm (Fin n) ↪ ι) :
+    Nat.factorial n ≤ Fintype.card ι := by
+  have hCardPerm : Fintype.card (Equiv.Perm (Fin n)) ≤ Fintype.card ι :=
+    Fintype.card_le_of_injective emb emb.injective
+  simpa [Fintype.card_perm] using hCardPerm
 
 /--
+`Ω(n log n)` lower bound from any hidden model family.
 Comparator-family formulation: hidden instances are given directly as `le i`.
 -/
 theorem cmpSort_lower_bound_le_family
@@ -623,10 +626,11 @@ theorem cmpSort_lower_bound_le_family
     (le : ι → α → α → Bool)
     (hLaws : ComparatorLawsFamily le)
     (P : Prog (SortOps α) (List α))
-    (hSpec : LeFamilyCorrectness (fun i => P.eval (sortModelNat (le i))))
-    (hCard : Nat.factorial n ≤ Fintype.card ι) :
+    (hSpec : LeFamilyCorrectness n (fun i => P.eval (sortModelNat (le i)))) :
     worstTimeModel (fun i => sortModelNat (le i)) P ≥
       (n / 2) * Nat.log 2 (n / 2) := by
+  have hCard : Nat.factorial n ≤ Fintype.card ι :=
+    factorial_le_card_of_orderEmbedding n hSpec.orderEmbedding
   have hOutputInj : Function.Injective hSpec.output := by
     exact output_injective_of_eval_injective le P hSpec.output hSpec.correct hSpec.evalInj
   refine cmpSort_lower_bound_model (n := n) (models := fun i => sortModelNat (le i))
