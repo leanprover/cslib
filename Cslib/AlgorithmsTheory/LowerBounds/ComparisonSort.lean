@@ -582,9 +582,11 @@ lemma output_injective_of_eval_injective
 /-- Correctness witness for a hidden family of comparators used in the lower bound. -/
 structure LeFamilyCorrectness {ι α : Type*}
     (n : ℕ) (evalF : ι → List α) where
+  /-- The output list -/
   output : ι → List α
   correct : ∀ i : ι, evalF i = output i
   evalInj : Function.Injective evalF
+  /-- The embedding of a permutation on n elements into ι -/
   orderEmbedding : Equiv.Perm (Fin n) ↪ ι
 
 lemma factorial_le_card_of_orderEmbedding
