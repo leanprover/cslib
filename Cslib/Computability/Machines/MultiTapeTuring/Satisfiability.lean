@@ -59,6 +59,20 @@ public instance : StrEnc SATInput where
   fromData_toData
     | SATInput.mk f a => by simp [StrEnc.fromData_toData f, StrEnc.fromData_toData a]
 
+-- TODO generic theorem about encoding data as a list?
+
+@[simp]
+lemma SATInput_toData_atPath_zero (formula : Formula) (assignments : Assignments) (path : List ℕ) :
+  (StrEnc.toData (SATInput.mk formula assignments)).atPath (0 :: path) =
+    (StrEnc.toData formula).atPath path := by
+  simp [StrEnc.toData, Data.atPath]
+
+@[simp]
+lemma SATInput_toData_atPath_one (formula : Formula) (assignments : Assignments) (path : List ℕ) :
+  (StrEnc.toData (SATInput.mk formula assignments)).atPath (1 :: path) =
+    (StrEnc.toData assignments).atPath path := by
+  simp [StrEnc.toData, Data.atPath]
+
 /-- Evaluate a literal given a list of positive-variable assignments. -/
 public def evalLiteral (a : Assignments) : Literal → Bool
   | Literal.pos v => a.contains v
@@ -174,20 +188,20 @@ public theorem sat_verify.computes_fun
   have h_line₁ : line₁.eval_struct views =
       Function.update views 1 (TapeView.ofEnc assignments) := by
     simp [line₁, h_input, TapeView.current_rev, Function.update_sort]
-    rfl
   let line₂ := toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0
   have h_line₂ (views' : Fin 5 → TapeView) :
       (views' 0).current = some (StrEnc.toData (SATInput.mk formula assignments)) →
       (views' 1) = TapeView.ofEnc assignments →
-      line₂.eval_struct views' = .some (Function.update views
-        2 ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
+      line₂.eval_struct views' = .some (Function.update views'
+        2 ((views' 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
     intro h_v1 h_v2
     simp only [seq_eval_struct, toElem_eval_struct, TapeView.toElem?, Option.bind_some,
       outOfList_eval_struct_valid, line₂]
-    rw [sat_verify_core_semantics]
-    · sorry
-    · sorry
-    · sorry
+    rw [sat_verify_core_semantics _ (by simp [TapeView.current_rev, h_v1]) (by simp [h_v2])]
+    simp [h_v1, h_v2, TapeView.current_rev, Function.update_sort]
+  -- simp [sat_verify, line₁, h_line₁, line₂, h_line₂, h_input]
+  -- rw [sat_verify_core_semantics _ (by sorry) (by sorry)]
+  -- simp [TapeView.current_rev]
   sorry
 
 

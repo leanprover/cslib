@@ -70,6 +70,11 @@ public class StrEnc (α : Type*) where
   /-- Decoding after encoding always succeeds and returns the original value. -/
   fromData_toData : ∀ x : α, fromData (toData x) = some x
 
+@[simp]
+public lemma StrEnc.fromData_toData_apply (α : Type*) [StrEnc α] (x : α) :
+    StrEnc.fromData (StrEnc.toData x) = some x := by
+  apply StrEnc.fromData_toData
+
 /-- Encoding of a value of type `α` via its `Data` representation. -/
 public abbrev StrEnc.enc {α : Type*} [StrEnc α] (w : α) : List Char :=
   Data.enc (StrEnc.toData w)
