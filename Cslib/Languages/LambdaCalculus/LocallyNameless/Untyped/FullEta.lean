@@ -23,6 +23,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-- A single η-reduction step. -/
+@[scoped grind]
 inductive BaseEta : Term Var → Term Var → Prop
 /-- The eta rule: λx. M x ⟶ M, provided x is not free in M. -/
 | eta : LC M → BaseEta (abs (app M (bvar 0))) M
