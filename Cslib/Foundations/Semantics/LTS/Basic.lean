@@ -175,7 +175,8 @@ theorem LTS.isExecution_cons_invert (h : lts.IsExecution s1 (μ :: μs) s2 (s1 :
 open scoped LTS.IsExecution in
 /-- A multistep transition implies the existence of an execution. -/
 @[scoped grind →]
-theorem LTS.mTr_isExecution {lts : LTS State Label} {s1 : State} {μs : List Label} {s2 : State}
+theorem LTS.mTr_extract_isExecution {lts : LTS State Label}
+    {s1 : State} {μs : List Label} {s2 : State}
     (h : lts.MTr s1 μs s2) : ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   induction h
   case refl t =>
@@ -208,9 +209,39 @@ theorem LTS.isExecution_mTr (hexec : lts.IsExecution s1 μs s2 ss) :
 
 /-- Correspondence of multistep transitions and executions. -/
 @[scoped grind =]
-theorem LTS.mTr_isExecution_iff : lts.MTr s1 μs s2 ↔
+theorem LTS.mTr_extract_isExecution_iff : lts.MTr s1 μs s2 ↔
     ∃ ss : List State, lts.IsExecution s1 μs s2 ss := by
   grind
+
+lemma LTS.IsExecution.comp_helper
+    {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
+    (h1 : lts.IsExecution s μs1 r ss1) (h2 : lts.IsExecution r μs2 t ss2)
+    (k : ℕ) (h_k : k < ss2.length) :
+    (ss1 ++ ss2.tail)[μs1.length + k]'(by grind) = ss2[k] := by
+  by_cases h : k = 0
+  · simp (disch := grind) only [h, add_zero, List.getElem_append_left]
+    grind
+  · simp (disch := grind) only [List.getElem_append_right, List.getElem_tail]
+    have : μs1.length + k - ss1.length + 1 = k := by grind
+    grind
+
+/-- The composition of two executions is an execution. -/
+theorem LTS.IsExecution.comp
+    {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
+    (h1 : lts.IsExecution s μs1 r ss1) (h2 : lts.IsExecution r μs2 t ss2) :
+    lts.IsExecution s (μs1 ++ μs2) t (ss1 ++ ss2.tail) := by
+  have h0 : (ss1 ++ ss2.tail).length = (μs1 ++ μs2).length + 1 := by grind
+  use h0
+  split_ands
+  · grind
+  · have := LTS.IsExecution.comp_helper h1 h2 μs2.length
+    grind only [IsExecution, = List.length_append]
+  · intro k h_k
+    by_cases k < μs1.length
+    · grind only [IsExecution, = List.getElem_append]
+    · have := LTS.IsExecution.comp_helper h1 h2 (k - μs1.length)
+      have := LTS.IsExecution.comp_helper h1 h2 (k - μs1.length + 1)
+      grind
 
 /-- An execution can be split at any intermediate state into two executions. -/
 theorem LTS.IsExecution.split
@@ -225,7 +256,7 @@ theorem LTS.IsExecution.split
 /-- A multistep transition over a concatenation can be split into two multistep transitions. -/
 theorem LTS.MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
     (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
-  obtain ⟨ss, h_ss⟩ := LTS.mTr_isExecution h
+  obtain ⟨ss, h_ss⟩ := LTS.mTr_extract_isExecution h
   have := LTS.IsExecution.split h_ss μs1.length
   grind
 
@@ -313,20 +344,17 @@ def LTS.ωTr (lts : LTS State Label) (ss : ωSequence State) (μs : ωSequence L
 
 variable {lts : LTS State Label}
 
-open scoped ωSequence in
+open ωSequence
+
 /-- Any finite execution extracted from an infinite execution is valid. -/
+theorem LTS.ωTr_isExecution (h : lts.ωTr ss μs) {n m : ℕ} (hnm : n ≤ m) :
+    lts.IsExecution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
+  grind
+
+/-- Any multistep transition extracted from an infinite execution is valid. -/
 theorem LTS.ωTr_mTr (h : lts.ωTr ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.MTr (ss n) (μs.extract n m) (ss m) := by
-  by_cases heq : n = m
-  case pos => grind
-  case neg =>
-    cases m
-    case zero => grind
-    case succ m =>
-      have : lts.MTr (ss n) (μs.extract n m) (ss m) := ωTr_mTr (hnm := by grind) h
-      grind [MTr.comp]
-
-open ωSequence
+  grind [LTS.ωTr_isExecution h hnm]
 
 /-- Prepends an infinite execution with a transition. -/
 theorem LTS.ωTr.cons (htr : lts.Tr s μ t) (hωtr : lts.ωTr ss μs) (hm : ss 0 = t) :
@@ -338,7 +366,7 @@ theorem LTS.ωTr.cons (htr : lts.Tr s μ t) (hωtr : lts.ωTr ss μs) (hm : ss 0
 theorem LTS.ωTr.append
     (hmtr : lts.MTr s μl t) (hωtr : lts.ωTr ss μs) (hm : ss 0 = t) :
     ∃ ss', lts.ωTr ss' (μl ++ω μs) ∧ ss' 0 = s ∧ ss' μl.length = t ∧ ss'.drop μl.length = ss := by
-  obtain ⟨sl, _, _, _, _⟩ := LTS.mTr_isExecution hmtr
+  obtain ⟨sl, _, _, _, _⟩ := LTS.mTr_extract_isExecution hmtr
   use sl.take μl.length ++ω ss
   split_ands
   · intro n
@@ -394,7 +422,7 @@ theorem LTS.IsExecution.flatten [Inhabited Label]
 theorem LTS.ωTr.flatten [Inhabited Label] {ts : ωSequence State} {μls : ωSequence (List Label)}
     (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
     ∃ ss, lts.ωTr ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
-  choose sls h_sls using fun k ↦ LTS.mTr_isExecution (hmtr k)
+  choose sls h_sls using fun k ↦ LTS.mTr_extract_isExecution (hmtr k)
   obtain ⟨ss, h_ss, h_seg⟩ := LTS.IsExecution.flatten h_sls hpos
   use ss, h_ss
   intro k
