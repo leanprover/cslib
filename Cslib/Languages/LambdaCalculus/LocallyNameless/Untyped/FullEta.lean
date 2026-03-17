@@ -40,7 +40,8 @@ variable {M M' N N' : Term Var}
 /-- The right side of an η-reduction is locally closed. -/
 @[scoped grind →]
 lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' :=
-  Xi.step_lc_r (fun h => by cases h; assumption) step
+  refine Xi.step_lc_r ?_ step
+  grind [cases BaseEta]
 
 /- Single reduction `app M (fvar x) ⭢ηᶠ N` implies `N = app M' (fvar x)` for some M' -/
 @[scoped grind →]
