@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 
 public section
 
@@ -22,43 +23,41 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-- A single η-reduction step. -/
-@[reduction_sys "ηᶠ"]
-inductive FullEta : Term Var → Term Var → Prop
+inductive BaseEta : Term Var → Term Var → Prop
 /-- The eta rule: λx. M x ⟶ M, provided x is not free in M. -/
-| eta : LC M → FullEta (abs (app M (bvar 0))) M
-/-- Left congruence rule for application. -/
-| appL: LC Z → FullEta M N → FullEta (app Z M) (app Z N)
-/-- Right congruence rule for application. -/
-| appR : LC Z → FullEta M N → FullEta (app M Z) (app N Z)
-/-- Congruence rule for lambda terms. -/
-| abs (xs : Finset Var) : (∀ x ∉ xs, FullEta (M ^ fvar x) (N ^ fvar x)) → FullEta (abs M) (abs N)
+| eta : LC M → BaseEta (abs (app M (bvar 0))) M
+
+@[reduction_sys "ηᶠ"]
+abbrev FullEta : Term Var → Term Var → Prop := Xi BaseEta
 
 namespace FullEta
 
-attribute [scoped grind .] appL appR
+attribute [scoped grind .] Xi.appL Xi.appR Xi.base
 
 variable {M M' N N' : Term Var}
 
 /-- The right side of an η-reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
-  induction step
-  case abs => constructor; assumption
-  all_goals grind
+lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' :=
+  Xi.step_lc_r (fun h => by cases h; assumption) step
 
 /- Single reduction `app M (fvar x) ⭢ηᶠ N` implies `N = app M' (fvar x)` for some M' -/
 @[scoped grind →]
 lemma invert_step_app_fvar (step : (app M (fvar x)) ⭢ηᶠ N) :
     ∃ M', N = app M' (fvar x) ∧ M ⭢ηᶠ M' := by
-  cases step with
-  | appR _ step_M => exact ⟨_, rfl, step_M⟩
-  | appL _ step_x => cases step_x
+  cases step
+  case base h => cases h
+  case appR step_M _ => exact ⟨_, rfl, step_M⟩
+  case appL lc_M step_x =>
+    cases step_x
+    case base h => cases h
 
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- An η-reduction step does not introduce new free variables. -/
 lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
   induction step with
+  | base h => cases h; grind
   | abs =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
@@ -70,12 +69,18 @@ lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
 lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢ηᶠ M' [ x := fvar y ] := by
   have lc_fy : LC (fvar y) := by constructor
   induction step with
-  | eta lc_M => exact eta (subst_lc lc_M lc_fy)
-  | appL lc_Z _ ih => exact appL (subst_lc lc_Z lc_fy) ih
-  | appR lc_Z _ ih => exact appR (subst_lc lc_Z lc_fy) ih
+  | base h =>
+    cases h
+    case eta lc_M => exact .base (.eta (subst_lc lc_M lc_fy))
+  | appL lc_Z _ ih => exact .appL (subst_lc lc_Z lc_fy) ih
+  | appR lc_Z _ ih => exact .appR (subst_lc lc_Z lc_fy) ih
   | abs xs _ ih =>
-    apply abs (xs ∪ {x, y})
-    grind
+    apply Xi.abs (xs ∪ {x, y})
+    intro z hz
+    have ih_z := ih z (by grind)
+    have comm e := subst_open_var z x (fvar y) e (by grind) lc_fy
+    simp only [comm] at ih_z
+    exact ih_z
 
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
@@ -84,7 +89,15 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
   cases st_M with
   | refl => rw [←open_close_var x M hx_M]
   | single st =>
-    exact .single (.abs {x} fun _ _ => by grind)
+    apply ReflGen.single
+    apply Xi.abs {x}
+    intro z _
+    have lc_fz : LC (fvar z) := by constructor
+    have lc_N : LC N := step_lc_r st
+    have h_subst := eta_subst_fvar (x := x) (y := z) st
+    rw [subst_intro x (fvar z) M hx_M lc_fz]
+    rw [← open_close_to_subst N x z 0 lc_N] at h_subst
+    exact h_subst
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullEta
 
