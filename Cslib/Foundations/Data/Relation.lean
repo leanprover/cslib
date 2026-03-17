@@ -473,17 +473,18 @@ initialize Lean.registerBuiltinAttribute {
   name := `reduction_sys
   descr := "Register notation for a relation and its closures."
   add := fun decl stx _ => MetaM.run' do
+    let currNamespace ← getCurrNamespace
     match stx with
     | `(attr | reduction_sys $sym) =>
         let mut sym := sym
         unless sym.getString.endsWith " " do
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         liftCommandElabM <| do
-          modifyScope ({ · with currNamespace := decl.getPrefix })
+          modifyScope ({ · with currNamespace })
           elabCommand (← `(scoped reduction_notation $(mkIdent decl) $sym))
     | `(attr | reduction_sys) =>
         liftCommandElabM <| do
-          modifyScope ({ · with currNamespace := decl.getPrefix })
+          modifyScope ({ · with currNamespace })
           elabCommand (← `(scoped reduction_notation $(mkIdent decl)))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
