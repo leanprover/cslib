@@ -421,7 +421,7 @@ structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) 
 
 /-- Laws required for a finite hidden family of `SortOps` models. -/
 structure ModelLawsFamily {ι α : Type*}
-    (models : ι → Model (SortOps α) ℕ) : Prop where
+    (models : ι → Model (SortOps α) ℕ) where
   unitCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1
   cmpLaws : ComparatorLawsFamily (fun i => modelLE (models i))
 
