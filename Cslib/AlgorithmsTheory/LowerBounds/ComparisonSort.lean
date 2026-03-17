@@ -415,7 +415,7 @@ def modelLE (M : Model (SortOps α) ℕ) : α → α → Bool :=
   fun x y => M.evalQuery (SortOps.cmpLE x y)
 
 /-- Order laws for a finite family of Boolean comparators. -/
-structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) : Prop where
+structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) where
   total : ∀ i, Std.Total (fun x y => le i x y = true)
   trans : ∀ i, IsTrans α (fun x y => le i x y = true)
 
