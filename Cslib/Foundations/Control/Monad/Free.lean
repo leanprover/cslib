@@ -230,6 +230,30 @@ lemma liftM_bind [LawfulMonad m]
     rw [FreeM.bind, liftM_liftBind, liftM_liftBind, bind_assoc]
     simp_rw [ih]
 
+@[simp]
+lemma liftM_map [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
+    (x.map f).liftM interp = f <$> x.liftM interp := by
+  simp_rw [← bind_pure_comp, ← LawfulMonad.bind_pure_comp, liftM_bind, Function.comp, liftM_pure]
+
+@[simp]
+lemma liftM_seq [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F (α → β)) (y : FreeM F α) :
+    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp := by
+  simp [seq_eq_bind_map]
+
+@[simp]
+lemma liftM_seqLeft [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
+    (x <* y).liftM interp = x.liftM interp <* y.liftM interp := by
+  simp [seqLeft_eq_bind]
+
+@[simp]
+lemma liftM_seqRight [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
+    (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
+  simp [seqRight_eq_bind]
+
 instance {Q α} : CoeOut (Q α) (FreeM Q α) where
   coe := FreeM.lift
 
