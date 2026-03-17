@@ -206,7 +206,8 @@ instance : Inhabited TapeView := ⟨⟨Data.list [], []⟩⟩
 namespace TapeView
 
 /-- An empty tape (represented as an empty list). -/
-public def empty : TapeView := ⟨Data.list [], []⟩
+@[expose]
+public abbrev empty : TapeView := ⟨Data.list [], []⟩
 
 /-- A tape containing a single Data value with the head at the start. -/
 @[expose]
