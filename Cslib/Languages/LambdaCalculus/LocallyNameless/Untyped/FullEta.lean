@@ -40,9 +40,9 @@ variable {M M' N N' : Term Var}
 
 /-- The right side of an η-reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' :=
+lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
   refine Xi.step_lc_r ?_ step
-  grind [cases BaseEta]
+  grind
 
 /- Single reduction `app M (fvar x) ⭢ηᶠ N` implies `N = app M' (fvar x)` for some M' -/
 @[scoped grind →]
@@ -50,14 +50,14 @@ lemma invert_step_app_fvar (step : (app M (fvar x)) ⭢ηᶠ N) :
     ∃ M', N = app M' (fvar x) ∧ M ⭢ηᶠ M' := by
   cases step with
   | appR _ step_M => exact ⟨_, rfl, step_M⟩
-  | _ => grind [cases BaseEta, cases Xi]
+  | _ => grind [cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- An η-reduction step does not introduce new free variables. -/
 lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
   induction step with
-  | base => grind [cases BaseEta]
+  | base => grind
   | abs =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
@@ -67,20 +67,9 @@ lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
 /-- Substitution of a fresh variable preserves an η-reduction step. -/
 @[scoped grind ←]
 lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢ηᶠ M' [ x := fvar y ] := by
-  have lc_fy : LC (fvar y) := by constructor
   induction step with
-  | base h =>
-    cases h
-    case eta lc_M => exact .base (.eta (subst_lc lc_M lc_fy))
-  | appL lc_Z _ ih => exact .appL (subst_lc lc_Z lc_fy) ih
-  | appR lc_Z _ ih => exact .appR (subst_lc lc_Z lc_fy) ih
-  | abs xs _ ih =>
-    apply Xi.abs (xs ∪ {x, y})
-    intro z hz
-    have ih_z := ih z (by grind)
-    have comm e := subst_open_var z x (fvar y) e (by grind) lc_fy
-    simp only [comm] at ih_z
-    exact ih_z
+  | abs => grind [Xi.abs <| free_union Var]
+  | _ => grind
 
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
