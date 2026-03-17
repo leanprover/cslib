@@ -689,14 +689,14 @@ def LTS.outgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
 
 /-- An LTS is finitely branching if it is image-finite and all states have finite sets of
 outgoing labels. -/
-class LTS.FinitelyBranching
+class LTS.FinitelyBranching where
   [image_finite : ∀ s μ, Finite (lts.image s μ)]
   [finite_state : ∀ s, Finite (lts.outgoingLabels s)]
 
+attribute [instance] LTS.FinitelyBranching.image_finite LTS.FinitelyBranching.finite_state
+
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
-@[scoped grind .]
-instance LTS.finiteState_finitelyBranching [Finite State] [Finite Label] : lts.FinitelyBranching :=
-  {}
+instance LTS.FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
 /-- An LTS is acyclic if there are no infinite multistep transitions. -/
 class LTS.Acyclic (lts : LTS State Label) where
