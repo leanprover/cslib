@@ -17,11 +17,9 @@ inductive Floor where
 | two
 deriving DecidableEq
 
-@[implicit_reducible]
-def Floor.fintype : Fintype Floor := {
+instance Floor.fintype : Fintype Floor where
   elems := {.one, .two}
   complete floor := by grind [Floor]
-}
 
 theorem Floor.finite : Finite Floor := Floor.fintype.finite
 
@@ -30,11 +28,9 @@ inductive Direction where
 | down
 deriving DecidableEq
 
-@[implicit_reducible]
-def Direction.fintype : Fintype Direction := {
+instance Direction.fintype : Fintype Direction where
   elems := {.up, .down}
   complete dir := by grind [Direction]
-}
 
 theorem Direction.finite : Finite Direction := Direction.fintype.finite
 
