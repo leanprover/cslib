@@ -82,7 +82,7 @@ def exCircuit3 (x y : Circuit ℚ ℚ) : Prog (Circuit ℚ) ℚ := do
 
 
 open Circuit in
-/-- An example circuit with `n` input parameters -/
+/-- An example circuit with `n` input parameters which are arbitrary circuits -/
 def CircAnd (n : ℕ) (x : Fin n → Circuit Bool Bool) : Circuit Bool Bool :=
   match n with
   | 0 => const true
@@ -112,6 +112,32 @@ theorem CircAnd_size : ∀ n : ℕ, ∀ x : Fin n → Circuit Bool Bool,
         grind [CircAnd, Circuit.circuitSize, Circuit.subcircuits,
           Finset.card_insert_le, Finset.card_union_le, circuitSize_eq_subcircuits_card]
       grind
+
+open Circuit in
+/-- An example circuit with `n` input parameters which are constants -/
+def CircAndSimple (n : ℕ) (x : Fin n → Bool) : Circuit Bool Bool :=
+  match n with
+  | 0 => const true
+  | m + 1 =>
+      let x_head := .const (x 0)
+      let x_cons := CircAndSimple m (Fin.tail x)
+      mul x_head x_cons
+
+/-- An execution of the circuit for a given input boolean vector -/
+def execCircAndSimple (x : Fin n → Bool) : Prog (Circuit Bool) Bool := do
+  CircAndSimple n x
+
+theorem CircAndSimple_size : ∀ n : ℕ, ∀ x : Fin n → Bool,
+    (CircAndSimple n x).circuitSize ≤ 1 + 2 * n + 2 := by
+  intro n x
+  induction n with
+  | zero =>
+      simp [CircAndSimple]
+  | succ m ih =>
+      specialize ih (Fin.tail x)
+      simp only [Circuit.circuitSize, CircAndSimple, Circuit.subcircuits.eq_3,
+        Circuit.subcircuits.eq_1, insert_empty_eq, Finset.singleton_union]
+      grind[Finset.card_insert_le, circuitSize_eq_subcircuits_card]
 
 
 -- /--
