@@ -91,15 +91,7 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
   cases st_M with
   | refl => rw [←open_close_var x M hx_M]
   | single st =>
-    apply ReflGen.single
-    apply Xi.abs {x}
-    intro z _
-    have lc_fz : LC (fvar z) := by constructor
-    have lc_N : LC N := step_lc_r st
-    have h_subst := eta_subst_fvar (x := x) (y := z) st
-    rw [subst_intro x (fvar z) M hx_M lc_fz]
-    rw [← open_close_to_subst N x z 0 lc_N] at h_subst
-    exact h_subst
+    exact .single (Xi.abs {x} (by grind))
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullEta
 
