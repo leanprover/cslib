@@ -9,6 +9,7 @@ public import Cslib.AlgorithmsTheory.Lean.TimeM
 public import Cslib.AlgorithmsTheory.LowerBounds.ComparisonSort
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
+public import Cslib.AlgorithmsTheory.Models.NCCircuits
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
