@@ -15,35 +15,19 @@ open Cslib.Automata
 inductive Floor where
 | one
 | two
-deriving DecidableEq
-
-instance Floor.fintype : Fintype Floor where
-  elems := {.one, .two}
-  complete floor := by grind [Floor]
-
-theorem Floor.finite : Finite Floor := Floor.fintype.finite
+deriving DecidableEq, Fintype
 
 inductive Direction where
 | up
 | down
-deriving DecidableEq
+deriving DecidableEq, Fintype
 
-instance Direction.fintype : Fintype Direction where
-  elems := {.up, .down}
-  complete dir := by grind [Direction]
-
-theorem Direction.finite : Finite Direction := Direction.fintype.finite
-
-def tr (floor : Floor) (dir : Direction) : Floor :=
-  match floor, dir with
+def elevator : DA Floor Direction where
+  tr
   | .one, .up => .two
   | .one, .down => .one
   | .two, .up => .two
   | .two, .down => .one
-
-def elevator : DA Floor Direction := {
-  tr := tr
   start := .one
-}
 
 end CslibTests
