@@ -62,28 +62,6 @@ TODO these semantics seem rather complicated. -/
 public def case_ind_num_unary {k : ℕ} (i : Fin k)
     (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
 
-
-/-- `case_num` on `false` (= `Data.num 0`) dispatches to the first branch. -/
-@[simp]
-public lemma case_num_false_eval_struct {k : ℕ} {i : Fin k}
-    {tm₀ : MultiTapeTM k Char} {tms : List (MultiTapeTM k Char)}
-    {views : Fin k → TapeView}
-    (h_data : (views i).currentNum = some 0) :
-    (case_num i (tm₀ :: tms)).eval_struct views =
-      tm₀.eval_struct views := by
-  simp [h_data]
-
-/-- `case_num` on `true` (= `Data.num 1`) dispatches to the second branch. -/
-@[simp]
-public lemma case_num_true_eval_struct {k : ℕ} {i : Fin k}
-    {tm₀ tm₁ : MultiTapeTM k Char}
-    {tms : List (MultiTapeTM k Char)}
-    {views : Fin k → TapeView}
-    (h_data : (views i).currentNum = some 1) :
-    (case_num i (tm₀ :: tm₁ :: tms)).eval_struct views =
-      tm₁.eval_struct views := by
-  simp [h_data]
-
 /-- Dispatch on the numeric value of the first element of a list.
     Pops the first element from the list on tape `i`. If it is `Data.num n`
     and `n < branches.length`, runs `branches[n]` on the updated views

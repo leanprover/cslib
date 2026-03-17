@@ -24,7 +24,6 @@ public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
 /-- `skipRight i` moves to the next sibling element within a list,
     incrementing the last path index. -/
-@[simp]
 public lemma skipRight_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {rest : List ℕ} {idx : ℕ}
@@ -35,7 +34,6 @@ public lemma skipRight_eval_struct {k : ℕ} {i : Fin k}
 
 /-- `skipLeft i` moves to the previous sibling element within a list,
     decrementing the last path index. -/
-@[simp]
 public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {rest : List ℕ} {idx : ℕ}

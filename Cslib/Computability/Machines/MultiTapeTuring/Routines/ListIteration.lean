@@ -26,7 +26,6 @@ public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
 
 /-- If `tm` computes a function `f` that acts like a folding function, the result of using
 `run_list` is a fold with accumulator on tape `j`. -/
-@[simp]
 public lemma run_list_fold {k : ℕ} (i j : Fin k) (h_neq : i ≠ j) {tm : MultiTapeTM k Char}
   (f : Data → TapeView → TapeView)
   (h_comp : computes_function_read_update tm f i j h_neq)
@@ -40,7 +39,6 @@ public def any_list {k : ℕ}
     (tm : MultiTapeTM k Char) (i j : Fin k) (_h_neq : i ≠ j) : MultiTapeTM k Char :=
   pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOrUpdate j)
 
-@[simp]
 public theorem any_list_eval_struct {k : ℕ} (i j : Fin k)
     (h_neq : i ≠ j)
     {tm : MultiTapeTM k Char}

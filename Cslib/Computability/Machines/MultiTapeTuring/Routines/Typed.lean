@@ -97,7 +97,7 @@ public theorem computes_function_seq₂ {k : ℕ}
   (h_comp₂ : computes_function_head_update tm₂ f₂ r) :
   computes_function_read_read_push (tm₁ ;ₜ tm₂) (fun x y => f₂ (f₁ x y)) i j r h_neq := by sorry
 
-@[simp, grind =>]
+@[grind =>]
 public theorem computes_function_read_read_push_swap {k : ℕ}
   {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
   {tm : MultiTapeTM k Char} {f : α → β → γ}

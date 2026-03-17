@@ -163,8 +163,6 @@ public def sat_verify : MultiTapeTM 5 Char :=
   toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0 ;ₜ
   erase 1
 
-set_option diagnostics true
-
 public theorem sat_verify.computes_fun
   {views : Fin 5 → TapeView}
   (h_input : (views 0).current = some (StrEnc.toData (SATInput.mk formula assignments)))
@@ -175,7 +173,7 @@ public theorem sat_verify.computes_fun
   let line₁ : MultiTapeTM 5 Char := toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0
   have h_line₁ : line₁.eval_struct views =
       Function.update views 1 (TapeView.ofEnc assignments) := by
-    simp [line₁, h_input, TapeView.current_rev]
+    simp [line₁, h_input, TapeView.current_rev, Function.update_sort]
     rfl
   let line₂ := toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0
   have h_line₂ (views' : Fin 5 → TapeView) :
@@ -183,11 +181,11 @@ public theorem sat_verify.computes_fun
       (views' 1) = TapeView.ofEnc assignments →
       line₂.eval_struct views' = .some (Function.update views
         2 ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-    intro h_v1
-    intro h_v2
-    simp [line₂]
+    intro h_v1 h_v2
+    simp only [seq_eval_struct, toElem_eval_struct, TapeView.toElem?, Option.bind_some,
+      outOfList_eval_struct_valid, line₂]
     rw [sat_verify_core_semantics]
-    · simp;  sorry
+    · sorry
     · sorry
     · sorry
   sorry

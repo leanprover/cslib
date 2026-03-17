@@ -27,21 +27,6 @@ public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 on tape `i`. Only descends if the current element is a `Data.list` with at least `idx` elements,
 otherwise, the `TapeView` is unchanged. -/
 @[simp]
-public lemma toElem_eval_struct_list {k : ℕ} {idx : ℕ} {i : Fin k}
-  {α : Type} [StrEnc α]
-  {views : Fin k → TapeView}
-  (h_some : ((views i).current.bind (StrEnc.fromData : _ → Option (List α))).isSome) :
-  let ds : List α := ((views i).current.bind StrEnc.fromData).get h_some
-  (toElem idx i).eval_struct views = some
-    (Function.update views i
-        (if idx < ds.length then
-          ⟨(views i).data, (views i).path ++ [idx]⟩
-        else views i)) := by sorry
-
-/-- `toElem idx i` moves to the `idx`th element of the `Data.list` currently pointed to
-on tape `i`. Only descends if the current element is a `Data.list` with at least `idx` elements,
-otherwise, the `TapeView` is unchanged. -/
-@[simp]
 public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView} :
   (toElem idx i).eval_struct views = some
     (Function.update views i (((views i).toElem? idx).getD (views i))) := by sorry
