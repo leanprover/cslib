@@ -204,12 +204,15 @@ namespace TapeView
 public def empty : TapeView := ⟨Data.list [], []⟩
 
 /-- A tape containing a single Data value with the head at the start. -/
-public def ofData (d : Data) : TapeView := ⟨d, []⟩
+@[expose]
+public abbrev ofData (d : Data) : TapeView := ⟨d, []⟩
 
-public def ofList (ls : List Data) : TapeView := ofData (Data.list ls)
+@[expose]
+public abbrev ofList (ls : List Data) : TapeView := ofData (Data.list ls)
 
 /-- A tape containing a single typed value with the head at the start. -/
-public def ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
+@[expose]
+public abbrev ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
   ofData (StrEnc.toData x)
 
 /-- The Data element currently pointed to by the head (at the path position).
@@ -222,7 +225,6 @@ public def current (tv : TapeView) : Option Data :=
 public lemma current_append {data : Data} {path : List ℕ} :
   (TapeView.mk data path).current = data.atPath path := by rfl
 
-@[simp]
 public lemma current_rev (tv : TapeView) :
   tv.data.atPath tv.path = tv.current := rfl
 

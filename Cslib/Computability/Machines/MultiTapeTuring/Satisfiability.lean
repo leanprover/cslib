@@ -160,11 +160,10 @@ public def sat_verify : MultiTapeTM 5 Char :=
   -- Navigate to assignments (arg 1) and copy to tape 1
   toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0 ;ₜ
   -- Navigate to formula (arg 0)
-  toElem 0 0 ;ₜ
-  sat_verify_core ;ₜ
-  -- Cleanup
-  outOfList 0 ;ₜ
+  toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0 ;ₜ
   erase 1
+
+set_option diagnostics true
 
 public theorem sat_verify.computes_fun
   {views : Fin 5 → TapeView}
@@ -173,10 +172,24 @@ public theorem sat_verify.computes_fun
   (h_third_empty_list : views 2 = TapeView.ofList []) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  have h_line1 : (toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0).eval_struct views =
-      Function.update views 1 ⟨StrEnc.toData assignments, []⟩ := by
-    simp [h_input]
+  let line₁ : MultiTapeTM 5 Char := toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0
+  have h_line₁ : line₁.eval_struct views =
+      Function.update views 1 (TapeView.ofEnc assignments) := by
+    simp [line₁, h_input, TapeView.current_rev]
     rfl
+  let line₂ := toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0
+  have h_line₂ (views' : Fin 5 → TapeView) :
+      (views' 0).current = some (StrEnc.toData (SATInput.mk formula assignments)) →
+      (views' 1) = TapeView.ofEnc assignments →
+      line₂.eval_struct views' = .some (Function.update views
+        2 ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
+    intro h_v1
+    intro h_v2
+    simp [line₂]
+    rw [sat_verify_core_semantics]
+    · simp;  sorry
+    · sorry
+    · sorry
   sorry
 
 
