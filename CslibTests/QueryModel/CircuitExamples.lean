@@ -21,6 +21,7 @@ namespace CslibTests
 open Cslib Algorithms Prog
 
 open Circuit in
+/-- An example circuit with only 4 distinct nodes and no input parameters -/
 def exCircuit1 : Prog (Circuit Bool) Bool := do
   let x := const true
   let y := const true
@@ -41,6 +42,7 @@ def exCircuit1 : Prog (Circuit Bool) Bool := do
 -- #eval exCircuit1.time circModel
 
 open Circuit in
+/-- An example circuit with only 4 distinct nodes, no redundant nodes, and no input parameters -/
 def exCircuit2 : Prog (Circuit ℚ) ℚ := do
   let x := const (1 : ℚ)
   let y := const (2 : ℚ)
@@ -60,6 +62,7 @@ def exCircuit2 : Prog (Circuit ℚ) ℚ := do
 -- #eval exCircuit2.time circModel == ⟨2,4⟩
 
 open Circuit in
+/-- An example circuit with two input parameters occurring redundantly -/
 def exCircuit3 (x y : Circuit ℚ ℚ) : Prog (Circuit ℚ) ℚ := do
   let z := add x y
   let w := mul x y
@@ -75,10 +78,11 @@ def exCircuit3 (x y : Circuit ℚ ℚ) : Prog (Circuit ℚ) ℚ := do
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (exCircuit3 (.const (1 : ℚ)) (.const (21 : ℚ))).time circModel == ⟨2,5⟩
+-- #eval (exCircuit3 (.const (1 : ℚ)) (.const (2 : ℚ))).time circModel
 
 
 open Circuit in
+/-- An example circuit with `n` input parameters -/
 def CircAnd (n : ℕ) (x : Fin n → Circuit Bool Bool) : Circuit Bool Bool :=
   match n with
   | 0 => const true
@@ -87,6 +91,7 @@ def CircAnd (n : ℕ) (x : Fin n → Circuit Bool Bool) : Circuit Bool Bool :=
       let x_cons := CircAnd m (Fin.tail x)
       mul x_head x_cons
 
+/-- An execution of the circuit for a given input circuit vector -/
 def execCircAnd (x : Fin n → Circuit Bool Bool) : Prog (Circuit Bool) Bool := do
   CircAnd n x
 
@@ -94,13 +99,13 @@ def execCircAnd (x : Fin n → Circuit Bool Bool) : Prog (Circuit Bool) Bool := 
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (execCircAnd ![.const true, .const true, .const true]).eval circModel == true
+--#eval (execCircAnd ![.const false, .const true, .const true]).eval circModel == true
 
 -- /--
 -- info: true
 -- -/
 -- #guard_msgs in
--- #eval (execCircAnd ![.const true, .const true, .const true]).time circModel == ⟨3,4⟩
+-- #eval (execCircAnd ![.const true, .const false, .const true]).time circModel
 
 
 end CslibTests
