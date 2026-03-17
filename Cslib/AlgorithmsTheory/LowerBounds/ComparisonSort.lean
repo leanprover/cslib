@@ -15,8 +15,6 @@ public import Mathlib.Data.Nat.Lattice
 public import Mathlib.Data.Nat.Log
 import all Init.Data.List.Sort.Basic
 
-public import Mathlib
-
 @[expose] public section
 
 namespace Cslib
