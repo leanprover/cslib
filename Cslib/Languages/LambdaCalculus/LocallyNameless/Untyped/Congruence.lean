@@ -31,9 +31,9 @@ inductive Xi (R : Term Var → Term Var → Prop) : Term Var → Term Var → Pr
 /-- The ξ (xi) rule for lambda terms. -/
 | abs (xs : Finset Var) : (∀ x ∉ xs, Xi R (M ^ fvar x) (N ^ fvar x)) → Xi R (abs M) (abs N)
 
-namespace Xi
+attribute [scoped grind .] Xi.appL Xi.appR Xi.base
 
-attribute [scoped grind .] appL appR base
+namespace Xi
 
 variable {R : Term Var → Term Var → Prop} {M N : Term Var}
 
