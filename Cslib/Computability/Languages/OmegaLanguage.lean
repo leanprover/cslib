@@ -322,7 +322,6 @@ theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : 
   intro s h_s
   have h_nxt m (hm : s.drop m ∈ p) : ∃ n > m, s.extract m n ∈ l ∧ s.drop n ∈ p := by
     obtain ⟨k, _⟩ := hmul_seq_prop ▸ h_le hm
-    use m + k
     grind [extract_eq_drop_take]
   choose nxt_n nxt_p using h_nxt
   let f := iter_helper (fun n ↦ s.drop n ∈ p) nxt_n

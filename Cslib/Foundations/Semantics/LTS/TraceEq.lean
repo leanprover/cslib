@@ -76,11 +76,10 @@ theorem TraceEq.trans {s1 s2 s3 : State} (h1 : s1 ~tr[lts] s2) (h2 : s2 ~tr[lts]
   rw [h1, h2]
 
 /-- Trace equivalence is an equivalence relation. -/
-theorem TraceEq.eqv (lts : LTS State Label) : Equivalence (TraceEq lts) := {
-    refl := TraceEq.refl lts
-    symm := TraceEq.symm lts
-    trans := TraceEq.trans lts
-  }
+theorem TraceEq.eqv (lts : LTS State Label) : Equivalence (TraceEq lts) where
+  refl := TraceEq.refl lts
+  symm := TraceEq.symm lts
+  trans := TraceEq.trans lts
 
 /-- `calc` support for simulation equivalence. -/
 instance : Trans (TraceEq lts) (TraceEq lts) (TraceEq lts) where
@@ -88,8 +87,8 @@ instance : Trans (TraceEq lts) (TraceEq lts) (TraceEq lts) where
 
 /-- In a deterministic LTS, trace equivalence is a simulation. -/
 theorem TraceEq.deterministic_sim
-  (lts : LTS State Label) [hdet : lts.Deterministic] (s1 s2 : State) (h : s1 ~tr[lts] s2) :
-  ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ s1' ~tr[lts] s2' := by
+    (lts : LTS State Label) [hdet : lts.Deterministic] (s1 s2 : State) (h : s1 ~tr[lts] s2) :
+    ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ s1' ~tr[lts] s2' := by
   intro μ s1' htr1
   have hmtr1 := LTS.MTr.single lts htr1
   have hin := LTS.traces_in lts s1 [μ] s1' hmtr1
