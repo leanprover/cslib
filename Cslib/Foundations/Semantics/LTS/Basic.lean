@@ -669,8 +669,7 @@ theorem LTS.mem_foldl_setImage (lts : LTS State Label) :
   exact LTS.mem_setImageMultistep
 
 /-- An lts is image-finite if all images of its states are finite. -/
-@[scoped grind]
-class LTS.ImageFinite [image_finite : ∀ s μ, Finite (lts.image s μ)]
+abbrev LTS.ImageFinite := ∀ s μ, Finite (lts.image s μ)
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
@@ -702,11 +701,11 @@ instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) 
     apply Set.finite_empty
 
 /-- Every deterministic LTS is also image-finite. -/
-instance LTS.deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := {}
+instance LTS.deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := inferInstance
 
 /-- Every finite-state LTS is also image-finite. -/
 @[scoped grind .]
-instance LTS.finiteState_imageFinite [Finite State] : lts.ImageFinite := {}
+instance LTS.finiteState_imageFinite [Finite State] : lts.ImageFinite := inferInstance
 
 /-- A state has an outgoing label `μ` if it has a `μ`-derivative. -/
 def LTS.HasOutLabel (s : State) (μ : Label) : Prop :=
@@ -717,14 +716,14 @@ def LTS.outgoingLabels (s : State) := { μ | lts.HasOutLabel s μ }
 
 /-- An LTS is finitely branching if it is image-finite and all states have finite sets of
 outgoing labels. -/
-class LTS.FinitelyBranching
-  [image_finite : ∀ s μ, Finite (lts.image s μ)]
+class LTS.FinitelyBranching where
+  [image_finite : lts.ImageFinite]
   [finite_state : ∀ s, Finite (lts.outgoingLabels s)]
 
+attribute [instance] LTS.FinitelyBranching.image_finite LTS.FinitelyBranching.finite_state
+
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
-@[scoped grind .]
-instance LTS.finiteState_finitelyBranching [Finite State] [Finite Label] : lts.FinitelyBranching :=
-  {}
+instance LTS.FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
 /-- An LTS is acyclic if there are no infinite multistep transitions. -/
 class LTS.Acyclic (lts : LTS State Label) where
