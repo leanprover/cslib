@@ -94,7 +94,8 @@ public theorem Function.update_update_update_of_ne {α β : Type*} [DecidableEq 
     {f : α → β}
     {i j : α} (h : i ≠ j) (x y z : β) :
   Function.update (Function.update (Function.update f i x) j y) i z =
-    Function.update (Function.update f j y) i z := by sorry
+    Function.update (Function.update f j y) i z := by
+  simp [Function.update_comm h, Function.update_idem]
 
 
 end Routines

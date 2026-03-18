@@ -175,7 +175,12 @@ public lemma Data.atPath_list_cons (ds : List Data) (k : ℕ) (rest : List ℕ)
 @[simp]
 public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
     d.atPath (path₁ ++ path₂) = d.atPath path₁ >>= fun d => d.atPath path₂ := by
-  sorry
+  induction path₁ generalizing d with
+  | nil => simp [Data.atPath]
+  | cons k rest ih =>
+    cases d with
+    | num n => grind [Data.atPath]
+    | list ds => grind [Data.atPath]
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TapeView

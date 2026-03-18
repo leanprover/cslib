@@ -154,8 +154,10 @@ public lemma case_literal.computes_fun {k : ℕ}
     | Literal.neg v => f_neg v x)
     i j r h_inj := by
   intro lit x views h_lit h_x
-  let h_neq : i ≠ r := by sorry
-  let h_ne' : i ≠ j := by sorry
+  have h_neq : i ≠ r := by
+    exact Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 2 by decide)
+  have h_ne' : i ≠ j := by
+    exact Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 1 by decide)
   match h : lit with
   | Literal.pos v =>
     simp [h_comp_pos v x,
