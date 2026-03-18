@@ -29,6 +29,7 @@ the `SortOps` model.
 - `mergeSort_sorted` :  `mergeSort` outputs a sorted list.
 - `mergeSort_perm` : The output of `mergeSort` is a permutation of the input list
 - `mergeSort_complexity` : `mergeSort` takes at most n * ⌈log n⌉ comparisons.
+- `mergeSort_stable` : `mergeSort` is a stable sorting algorithm.
 -/
 namespace Cslib.Algorithms
 
@@ -179,5 +180,98 @@ theorem mergeSort_complexity (xs : List α) (le : α → α → Bool) :
   grind [some_algebra (x.length - 2), mergeSort_eval, merge_timeComplexity, mergeSortNaive_length]
 
 end TimeComplexity
+
+section Stability
+
+private lemma sorted_head_not_le_filter_equiv_nil
+    (l : List α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y = true)]
+    [IsTrans _ (fun x y => le x y = true)]
+    (k : α) (x : α)
+    (hx_head : le x k = false)
+    (hl : (x :: l).Pairwise (fun a b => le a b = true)) :
+    (x :: l).filter (fun b => le b k && le k b) = [] := by
+  simp only [List.filter_eq_nil_iff, Bool.and_eq_true, List.mem_cons]
+  intro a ha
+  rcases ha with rfl | hmem
+  · simp [hx_head]
+  · intro hak
+    have hxa : le x a = true := (List.pairwise_cons.mp hl).1 a hmem
+    have hxk : le x k = true := IsTrans.trans (r := fun x y => le x y = true) x a k hxa hak.1
+    grind
+
+private lemma merge_filter_stable_equiv
+    (l r : List α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y = true)]
+    [IsTrans _ (fun x y => le x y = true)]
+    (k : α)
+    (hl : l.Pairwise (fun a b => le a b = true))
+    (hr : r.Pairwise (fun a b => le a b = true)) :
+    (List.merge l r (le · ·)).filter (fun x => le x k && le k x) =
+    l.filter (fun x => le x k && le k x) ++ r.filter (fun x => le x k && le k x) := by
+  fun_induction List.merge l r (le · ·) with
+  | case1 => simp
+  | case2 => simp
+  | case3 x xs y ys hxy ih =>
+    simp only [List.filter_cons]
+    rw [ih (List.Pairwise.tail hl) hr]
+    split <;> simp [List.filter_cons, *]
+  | case4 x xs y ys hxy ih =>
+    simp only [List.filter_cons]
+    rw [ih hl (List.Pairwise.tail hr)]
+    by_cases hyk : (le y k && le k y) = true
+    · have hky : le k y = true := by
+        have hyk' : le y k = true ∧ le k y = true := by
+          simpa only [Bool.and_eq_true] using hyk
+        exact hyk'.2
+      have hxk : le x k = false := by
+        cases hx : le x k with
+        | false =>
+          simp
+        | true =>
+          have hxtrue : le x k = true := by
+            simp [hx]
+          have hxy' : le x y = true :=
+            IsTrans.trans (r := fun x y => le x y = true) x k y hxtrue hky
+          exact False.elim (hxy hxy')
+      have hfilter : (x :: xs).filter (fun b => le b k && le k b) = [] :=
+        sorted_head_not_le_filter_equiv_nil xs le k x hxk hl
+      have hfilterx : xs.filter (fun b => le b k && le k b) = [] := by
+        have := List.filter_eq_nil_iff.mp hfilter
+        rw [List.filter_eq_nil_iff]
+        intro a ha
+        exact this a (List.mem_cons_of_mem x ha)
+      simp [hxk, hfilterx]
+    · have hyk' : ¬(le y k = true ∧ le k y = true) := by
+        intro ⟨h1, h2⟩
+        simp [h1, h2] at hyk
+      simp [hyk', List.filter_cons]
+
+private lemma mergeSortNaive_stable_equiv
+    (xs : List α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y = true)]
+    [IsTrans _ (fun x y => le x y = true)] :
+    ∀ k : α, (mergeSortNaive xs le).filter (fun x => le x k && le k x) =
+              xs.filter (fun x => le x k && le k x) := by
+  intro k
+  fun_induction mergeSortNaive with
+  | case1 xs h => simp
+  | case2 xs h left right ihl ihr =>
+    rw [merge_filter_stable_equiv _ _ le k
+      (mergeSortNaive_sorted _ _)
+      (mergeSortNaive_sorted _ _)]
+    rw [ihl, ihr]
+    rw [← List.filter_append]
+    rw [List.take_append_drop]
+
+theorem mergeSort_stable
+    (xs : List α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y = true)]
+    [IsTrans _ (fun x y => le x y = true)] :
+    let ys := (mergeSort xs).eval (sortModelNat le)
+    ∀ k : α, ys.filter (fun x => le x k && le k x) = xs.filter (fun x => le x k && le k x) := by
+  simpa [mergeSort_eval] using (mergeSortNaive_stable_equiv xs le)
+
+end Stability
 
 end Cslib.Algorithms
