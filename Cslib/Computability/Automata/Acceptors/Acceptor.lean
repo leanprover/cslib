@@ -32,6 +32,10 @@ def language [Acceptor A Symbol] (a : A) : Language Symbol :=
 theorem mem_language [Acceptor A Symbol] (a : A) (xs : List Symbol) :
   xs ∈ language a ↔ Accepts a xs := Iff.rfl
 
+/-- The language of an `Acceptor` is empty iff it does not accept any string. -/
+def language.IsEmpty [Acceptor A Symbol] (a : A) : Prop :=
+  ¬∃ xs, xs ∈ language a
+
 end Acceptor
 
 end Cslib.Automata
