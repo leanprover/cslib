@@ -26,31 +26,19 @@ public def computes_function_read_update {k : ℕ}
   {α : Type} [StrEnc α]
   (tm : MultiTapeTM k Char) (f : α → TapeView → TapeView)
   (i j : Fin k) (_h_neq : i ≠ j) :=
-  ∀ views,
-    let x : Option α := (views i).current.bind StrEnc.fromData
-    (h : (Option.isSome x)) →
-    tm.eval_struct views = some (Function.update views j (f (x.get h) (views j)))
-
-@[expose]
-public def computes_function_read_read_update' {k : ℕ}
-  (tm : MultiTapeTM k Char) (f : Data → Data → TapeView → TapeView)
-  (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
-  ∀ views, tm.eval_struct views = some (Function.update views r ((do
-    let x ← (views i).current
-    let y ← (views j).current
-    return f x y (views r)).getD (views r)))
+  ∀ (x : α) (views : Fin k → TapeView),
+    ((views i).current = StrEnc.toData x) →
+    tm.eval_struct views = some (Function.update views j (f x (views j)))
 
 @[expose]
 public def computes_function_read_read_update {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
   (tm : MultiTapeTM k Char) (f : α → β → TapeView → TapeView)
   (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
-  ∀ views,
-    let x : Option α := (views i).current.bind StrEnc.fromData
-    let y : Option β := (views j).current.bind StrEnc.fromData
-    (h_x : Option.isSome x) →
-    (h_y : Option.isSome y) →
-    tm.eval_struct views = some (Function.update views r (f (x.get h_x) (y.get h_y) (views r)))
+  ∀ (x : α) (y: β) (views : Fin k → TapeView),
+    ((views i).current = StrEnc.toData x) →
+    ((views j).current = StrEnc.toData y) →
+    tm.eval_struct views = some (Function.update views r (f x y (views r)))
 
 /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 list on tape `j`. -/

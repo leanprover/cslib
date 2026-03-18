@@ -73,6 +73,27 @@ lemma SATInput_toData_atPath_one (formula : Formula) (assignments : Assignments)
     (StrEnc.toData assignments).atPath path := by
   simp [StrEnc.toData, Data.atPath]
 
+@[simp]
+lemma Literal_toData_atPath_zero (lit : Literal) (path : List ℕ) :
+  (StrEnc.toData lit).atPath (0 :: path) =
+    match lit with
+    | Literal.pos _ => (Data.num 0).atPath path
+    | Literal.neg _ => (Data.num 1).atPath path := by
+  match lit with
+  | Literal.pos v => rfl
+  | Literal.neg v => rfl
+
+@[simp]
+lemma Literal_toData_atPath_one (lit : Literal) :
+  (StrEnc.toData lit).atPath [1] =
+    match lit with
+    | Literal.pos v => StrEnc.toData v
+    | Literal.neg v => StrEnc.toData v := by
+  match lit with
+  | Literal.pos v => rfl
+  | Literal.neg v => rfl
+
+
 /-- Evaluate a literal given a list of positive-variable assignments. -/
 public def evalLiteral (a : Assignments) : Literal → Bool
   | Literal.pos v => a.contains v
@@ -112,9 +133,9 @@ public def case_literal {k : ℕ}
   -- Dispatch on ctor index
   case_num i
     [ -- positive literal (ctorIdx=0): skip to var, run `pos`
-      toElem 1 i ;ₜ pos ;ₜ outOfList i,
+      outOfList i ;ₜ toElem 1 i ;ₜ pos ;ₜ outOfList i,
       -- negative literal (ctorIdx=1): skip to var, run `neg`
-      toElem 1 i ;ₜ neg ;ₜ outOfList i
+      outOfList i ;ₜ toElem 1 i ;ₜ neg ;ₜ outOfList i
     ]
 
 @[simp]
@@ -132,7 +153,16 @@ public lemma case_literal.computes_fun {k : ℕ}
     | Literal.pos v => f_pos v x
     | Literal.neg v => f_neg v x)
     i j r h_inj := by
-  sorry
+  intro lit x views h_lit h_x
+  let h_neq : i ≠ r := by sorry
+  let h_ne' : i ≠ j := by sorry
+  match h : lit with
+  | Literal.pos v =>
+    simp [h_comp_pos v x,
+      case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, TapeView.current_rev]
+  | Literal.neg v =>
+    simp [h_comp_neg v x,
+      case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, TapeView.current_rev]
 
 
 /-- Check if literal on tape 0 is satisfied by assignment on tape 1 and store result
@@ -183,12 +213,8 @@ public theorem sat_verify.computes_fun
   (h_second_empty : views 1 = TapeView.empty) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  let views' := (Function.update (Function.update views
-    0 { data := (views 0).data, path := (views 0).path ++ [0] })
-    1 (TapeView.ofEnc assignments))
-  let core_semantics := sat_verify_core_semantics views'
-    (by simp [views', h_input, TapeView.current_rev]) (by simp [views'])
-  simp [sat_verify, h_input, TapeView.current_rev, Function.update_sort, core_semantics, views']
+  simp [sat_verify, h_input, TapeView.current_rev, Function.update_sort,
+    sat_verify_core_semantics formula assignments]
   grind
 
 

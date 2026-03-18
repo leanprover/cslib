@@ -269,10 +269,8 @@ public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
 public def toBiTape (tv : TapeView) : BiTape Char := sorry
 
-@[simp]
 public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by sorry
 
-@[simp]
 public lemma toBiTape_ofData (d : Data) :
     (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by sorry
 

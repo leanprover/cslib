@@ -49,9 +49,9 @@ public lemma case_num_eval_struct {k : ℕ} {i : Fin k}
     {branches : List (MultiTapeTM k Char)}
     {views : Fin k → TapeView} :
     (case_num i branches).eval_struct views =
-      match (views i).currentNum with
-      | some n => if h : n < branches.length then branches[n].eval_struct views else some views
-      | none => some views := by sorry
+      match (views i).current with
+      | some (Data.num n) => if h : n < branches.length then branches[n].eval_struct views else some views
+      | _ => some views := by sorry
 
 /-- Performs pattern-matching on an inductive type where each constructor has exactly one argument:
 Dispatches on the numeric value (`n`) of the first item of a `Data.list` (i.e. the constructor ID)

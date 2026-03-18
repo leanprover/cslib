@@ -89,6 +89,14 @@ public theorem Function.update_sort {α : Type*} [DecidableEq α] [LinearOrder �
     Function.update (Function.update f b w) a v :=
   Function.update_comm (ne_of_gt h) v w f
 
+@[simp]
+public theorem Function.update_update_update_of_ne {α β : Type*} [DecidableEq α]
+    {f : α → β}
+    {i j : α} (h : i ≠ j) (x y z : β) :
+  Function.update (Function.update (Function.update f i x) j y) i z =
+    Function.update (Function.update f j y) i z := by sorry
+
+
 end Routines
 
 end Turing
