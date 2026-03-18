@@ -415,13 +415,13 @@ def modelLE (M : Model (SortOps α) ℕ) : α → α → Bool :=
   fun x y => M.evalQuery (SortOps.cmpLE x y)
 
 /-- Order laws for a finite family of Boolean comparators. -/
-structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) : Type where
+structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) where
   total : ∀ i, Std.Total (fun x y => le i x y = true)
   trans : ∀ i, IsTrans α (fun x y => le i x y = true)
 
 /-- Laws required for a finite hidden family of `SortOps` models. -/
 structure ModelLawsFamily {ι α : Type*}
-    (models : ι → Model (SortOps α) ℕ) : Type where
+    (models : ι → Model (SortOps α) ℕ) where
   unitCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1
   cmpLaws : ComparatorLawsFamily (fun i => modelLE (models i))
 
@@ -429,18 +429,17 @@ structure ModelLawsFamily {ι α : Type*}
 sortModelNats obey the model family laws and can therefore be instantiated
 to the modelLawsFamily structure.
 -/
-def modelLawsFamily_sortModelNat
+lemma modelLawsFamily_sortModelNat
     {ι α : Type*} {le : ι → α → α → Bool}
     (hLaws : ComparatorLawsFamily le) :
-    ModelLawsFamily (fun i => sortModelNat (le i)) where
-  unitCost := fun i x y => by
-    grind [sortModelNat]
-  cmpLaws := {
-      total := fun i => by
+    ModelLawsFamily (fun i => sortModelNat (le i)) := by
+      refine ⟨?_, ⟨?_, ?_⟩⟩
+      · intro i x y
+        grind [sortModelNat]
+      · intro i
         simpa [modelLE, sortModelNat] using hLaws.total i
-      trans := fun i => by
+      · intro i
         simpa [modelLE, sortModelNat] using hLaws.trans i
-    }
 
 lemma eval_eq_eval_sortModelNat_modelLE
     (P : Prog (SortOps α) β) (M : Model (SortOps α) ℕ) :
