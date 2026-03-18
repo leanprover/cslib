@@ -140,7 +140,9 @@ lemma liftBind_eq (op : F ι) :
   rfl
 
 set_option linter.unusedVariables false in
-/-- An override for the default induction principle that is in simp-normal form. -/
+/-- An override for the default induction principle that is in simp-normal form.
+
+Note that when `α` and `ι` are in the same universe, this simplifies slightly further. -/
 @[induction_eliminator]
 protected theorem induction {motive : FreeM F α → Prop}
     (pure : ∀ a, motive (pure a))
@@ -225,6 +227,7 @@ lemma liftM_lift_bind (interp : {ι : Type u} → F ι → m ι) (op : F β) (co
     ((lift op) >>= cont).liftM interp = (do let b ← interp op; (cont b).liftM interp) := by
   rfl
 
+@[simp]
 lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op : F β) :
     (lift op).liftM interp = interp op := by
   simp_rw [lift, FreeM.liftM, _root_.bind_pure]
@@ -232,16 +235,16 @@ lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op 
 @[simp]
 lemma liftM_bind [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (f : α → FreeM F β) :
-    (x.bind f).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
+    (x >>= f).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
   induction x generalizing f with
-  | pure a => simp only [pure_bind, liftM_pure, LawfulMonad.pure_bind]
+  | pure a => simp only [liftM_pure, LawfulMonad.pure_bind]
   | lift_bind op cont ih => simp [← ih]
 
 @[simp]
 lemma liftM_map [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
-    (x.map f).liftM interp = f <$> x.liftM interp := by
-  simp_rw [← bind_pure_comp, ← LawfulMonad.bind_pure_comp, liftM_bind, Function.comp, liftM_pure]
+    (f <$> x).liftM interp = f <$> x.liftM interp := by
+  simp_rw [← LawfulMonad.bind_pure_comp, liftM_bind, liftM_pure]
 
 @[simp]
 lemma liftM_seq [LawfulMonad m]
