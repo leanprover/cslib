@@ -34,8 +34,6 @@ abbrev FullEta : Term Var → Term Var → Prop := Xi BaseEta
 
 namespace FullEta
 
-attribute [scoped grind .] Xi.appL Xi.appR Xi.base
-
 variable {M M' N N' : Term Var}
 
 /-- The right side of an η-reduction is locally closed. -/
