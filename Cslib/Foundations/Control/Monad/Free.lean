@@ -232,10 +232,34 @@ lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op 
 @[simp]
 lemma liftM_bind [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (f : α → FreeM F β) :
-    (x.bind f : FreeM F β).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
+    (x.bind f).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
   induction x generalizing f with
   | pure a => simp only [pure_bind, liftM_pure, LawfulMonad.pure_bind]
   | lift_bind op cont ih => simp [← ih]
+
+@[simp]
+lemma liftM_map [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
+    (x.map f).liftM interp = f <$> x.liftM interp := by
+  simp_rw [← bind_pure_comp, ← LawfulMonad.bind_pure_comp, liftM_bind, Function.comp, liftM_pure]
+
+@[simp]
+lemma liftM_seq [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F (α → β)) (y : FreeM F α) :
+    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp := by
+  simp [seq_eq_bind_map]
+
+@[simp]
+lemma liftM_seqLeft [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
+    (x <* y).liftM interp = x.liftM interp <* y.liftM interp := by
+  simp [seqLeft_eq_bind]
+
+@[simp]
+lemma liftM_seqRight [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
+    (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
+  simp [seqRight_eq_bind]
 
 /--
 A predicate stating that `interp : FreeM F α → m α` is an interpreter for the effect
