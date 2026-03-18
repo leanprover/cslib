@@ -175,16 +175,6 @@ theorem toWriterT_unique {α : Type u} [Monoid ω] (g : FreeWriter ω α → Wri
     (h : Interprets writerInterp g) : g = toWriterT := h.eq
 
 /--
-Writes a log entry. This creates an effectful node in the computation tree.
--/
-abbrev tell (w : ω) : FreeWriter ω PUnit :=
-  lift (.tell w)
-
-@[simp]
-lemma tell_def (w : ω) :
-    tell w = .lift (.tell w) := rfl
-
-/--
 Interprets a `FreeWriter` computation by recursively traversing the tree, accumulating
 log entries with the monoid operation, and returns the final value paired with the accumulated log.
 -/
@@ -237,16 +227,23 @@ theorem run_toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) :
     rw [ ← ih]
     simp [WriterT.run_bind, writerInterp]
 
-/--
-`listen` captures the log produced by a subcomputation incrementally. It traverses the computation,
-emitting log entries as encountered, and returns the accumulated log as a result.
--/
-def listen [Monoid ω] : FreeWriter ω α → FreeWriter ω (α × ω)
+/-- Implementation of `MonadWriter.listen`. -/
+protected def listen [Monoid ω] : FreeWriter ω α → FreeWriter ω (α × ω)
   | .pure a => .pure (a, 1)
   | .liftBind (.tell w) k =>
       liftBind (.tell w) fun _ =>
-        listen (k .unit) >>= fun (a, w') =>
+        FreeWriter.listen (k .unit) >>= fun (a, w') =>
           pure (a, w * w')
+
+/-- Implementation of `MonadWriter.pass`. -/
+protected def pass [Monoid ω] (m : FreeWriter ω (α × (ω → ω))) : FreeWriter ω α :=
+  let ((a, f), w) := run m
+  liftBind (.tell (f w)) (fun _ => .pure a)
+
+instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
+  tell w := lift (.tell w)
+  listen := FreeWriter.listen
+  pass := FreeWriter.pass
 
 @[simp]
 lemma listen_pure [Monoid ω] (a : α) :
@@ -261,23 +258,13 @@ lemma listen_liftBind_tell [Monoid ω] (w : ω)
           pure (a, w * w')) := by
   rfl
 
-/--
-`pass` allows a subcomputation to modify its own log. After traversing the computation and
-accumulating its log, the resulting function is applied to rewrite the accumulated log
-before re-emission.
--/
-def pass [Monoid ω] (m : FreeWriter ω (α × (ω → ω))) : FreeWriter ω α :=
-  let ((a, f), w) := run m
-  liftBind (.tell (f w)) (fun _ => .pure a)
+@[simp]
+lemma tell_def [Monoid ω] (w : ω) :
+    (tell w : FreeWriter ω _) = .lift (.tell w) := rfl
 
 @[simp]
 lemma pass_def [Monoid ω] (m : FreeWriter ω (α × (ω → ω))) :
     pass m = let ((a, f), w) := run m; liftBind (.tell (f w)) fun _ => .pure a := rfl
-
-instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
-  tell := tell
-  listen := listen
-  pass := pass
 
 end FreeWriter
 
@@ -341,7 +328,7 @@ lemma run_liftBind_callCC (g : (α → r) → r)
     (cont : α → FreeCont r β) (k : β → r) :
     run (liftBind (.callCC g) cont) k = g (fun a => run (cont a) k) := rfl
 
-/-- Call with current continuation for the Free continuation monad. -/
+/-- Universe-generic version of `MonadCont.callCC` -/
 def callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) :
     FreeCont r α :=
   liftBind (.callCC fun k => run (f ⟨fun x => liftBind (.callCC fun _ => k x) pure⟩) k) pure
@@ -352,14 +339,14 @@ lemma callCC_def (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) :
       liftBind (.callCC fun k => run (f ⟨fun x => liftBind (.callCC fun _ => k x) pure⟩) k) pure :=
   rfl
 
-instance : MonadCont (FreeCont r) where
-  callCC := .callCC
-
 /-- `run` of a `callCC` node simplifies to running the handler with the current continuation. -/
 @[simp]
 lemma run_callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) (k : α → r) :
     run (callCC f) k = run (f ⟨fun x => liftBind (.callCC fun _ => k x) pure⟩) k := by
   simp [callCC, run_liftBind_callCC]
+
+instance : MonadCont (FreeCont r) where
+  callCC := .callCC
 
 end FreeCont
 
@@ -388,7 +375,7 @@ def readInterp {α : Type u} : ReaderF σ α → ReaderM σ α
 
 /-- Convert a `FreeReader` computation into a `ReaderM` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
+abbrev toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
   comp.liftM readInterp
 
 /-- `toReaderM` is the unique interpreter extending `readInterp`. -/
