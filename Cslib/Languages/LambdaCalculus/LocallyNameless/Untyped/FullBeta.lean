@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 
 public section
 
@@ -32,29 +33,25 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-- A single β-reduction step. -/
-@[reduction_sys "βᶠ"]
-inductive FullBeta : Term Var → Term Var → Prop
+@[scoped grind]
+inductive Beta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
-| beta : LC (abs M)→ LC N → FullBeta (app (abs M) N) (M ^ N)
-/-- Left congruence rule for application. -/
-| appL: LC Z → FullBeta M N → FullBeta (app Z M) (app Z N)
-/-- Right congruence rule for application. -/
-| appR : LC Z → FullBeta M N → FullBeta (app M Z) (app N Z)
-/-- Congruence rule for lambda terms. -/
-| abs (xs : Finset Var) : (∀ x ∉ xs, FullBeta (M ^ fvar x) (N ^ fvar x)) → FullBeta (abs M) (abs N)
+| beta : LC (abs M)→ LC N → Beta (app (abs M) N) (M ^ N)
+
+@[reduction_sys "βᶠ"]
+abbrev FullBeta : Term Var → Term Var → Prop := Xi Beta
 
 namespace FullBeta
-
-attribute [scoped grind .] appL appR
 
 variable {M M' N N' : Term Var}
 
 /-- The left side of a reduction is locally closed. -/
 @[scoped grind →]
 lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
-  induction step <;> constructor
-  all_goals assumption
-
+  induction step with
+  | abs => constructor; assumption
+  | _ => grind
+  
 /-- Left congruence rule for application in multiple reduction. -/
 @[scoped grind ←]
 theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠βᶠ app M' N := by
@@ -81,8 +78,8 @@ lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s [ x := t ] ⭢βᶠ s' [ x := t ] := by
   induction step with
-  | beta => grind [subst_open, beta]
-  | abs  => grind [abs <| free_union Var]
+  | base => grind [subst_open]
+  | abs  => grind [Xi.abs <| free_union Var]
   | _ => grind
 
 /-- Substitution respects a single reduction step of a free variable. -/
@@ -92,7 +89,7 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
 
 /-- Abstracting then closing preserves a single reduction. -/
 lemma step_abs_close {x : Var} (step : M ⭢βᶠ M') : M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs := by
-  grind [abs ∅, redex_subst_cong]
+  grind [Xi.abs ∅, redex_subst_cong]
 
 /-- Abstracting then closing preserves multiple reductions. -/
 lemma redex_abs_close {x : Var} (step : M ↠βᶠ M') : (M⟦0 ↜ x⟧.abs ↠βᶠ M'⟦0 ↜ x⟧.abs) :=  by
