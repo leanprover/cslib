@@ -405,7 +405,7 @@ def readInterp {α : Type u} : ReaderF σ α → ReaderM σ α
 
 /-- Convert a `FreeReader` computation into a `ReaderM` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
+abbrev toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
   comp.liftM readInterp
 
 /-- `toReaderM` is the unique interpreter extending `readInterp`. -/
@@ -423,7 +423,7 @@ The canonical interpreter `toReaderM` derived from `liftM` agrees with the hand-
 recursive interpreter `run` for `FreeReader` -/
 @[simp]
 theorem run_toReaderM {α : Type u} (comp : FreeReader σ α) (s : σ) :
-    (toReaderM comp).run s = run comp s := by
+    (toReaderM comp).run s = pure (run comp s) := by
   induction comp generalizing s with
   | pure a => rfl
   | liftBind op cont ih =>
@@ -434,8 +434,14 @@ lemma run_pure (a : α) (s₀ : σ) :
     run (pure a : FreeReader σ α) s₀ = a := rfl
 
 @[simp]
-lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
-    run (lift .read >>= k) s₀ = run (k s₀) s₀ := rfl
+lemma run_read (s₀ : σ) :
+    run read s₀ = s₀ := rfl
+
+@[simp]
+lemma run_bind (x : FreeReader σ α) (f : α → FreeReader σ β) (s₀ : σ) :
+    run (x >>= f) s₀ = run (f <| run x s₀) s₀ := by
+  rw [← Id.run_pure (run _ _), ← run_toReaderM, toReaderM, liftM_bind, ReaderT.run_bind,
+    Id.run_bind, run_toReaderM, run_toReaderM, Id.run_pure, Id.run_pure]
 
 instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
   withReader {α} f m :=

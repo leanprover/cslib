@@ -74,7 +74,7 @@ theorem foldFreeM_lift_bind' {F : Type w → Type v} {ι : Type w}
     (onValue : α → β)
     (onEffect : {ι : Type w} → F ι → (ι → β) → β)
     (op : F ι) (k : ι → FreeM F α) :
-      foldFreeM onValue onEffect ((lift op) >>= k)
+      foldFreeM onValue onEffect (lift op >>= k)
       = onEffect op (fun x => foldFreeM onValue onEffect (k x)) := rfl
 
 @[simp]
