@@ -15,6 +15,12 @@ namespace Routines
 -- Skip right / left across a Data-encoded value
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- TODO If we do not specify a max nesting depth when constructing the skip
+-- machine, it requires an additional tape to count the nesting depth.
+-- if the nesting depth is bounded by a constant, this is still fine,
+-- but we need to account for it - so maybe it's better to just do it
+-- when constructing it?
+
 /-- Skip to the right across a Data-encoded value.
     Works for both `[...]` (num) and `(...)` (list) encodings. -/
 public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry

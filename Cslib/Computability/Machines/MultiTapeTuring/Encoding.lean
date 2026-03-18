@@ -279,6 +279,8 @@ public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] 
 public lemma toBiTape_ofData (d : Data) :
     (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by sorry
 
+public def ofBiTape? (t : BiTape Char) : TapeView := sorry
+
 public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sorry
 
 /-- Prepend a `Data` value to the front of a list on tape.

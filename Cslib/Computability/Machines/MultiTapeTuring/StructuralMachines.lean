@@ -22,27 +22,10 @@ namespace Turing
 
     This is defined as a noncomputable opaque function; its behavior
     is specified by the `@[simp]` lemmas for each TM routine. -/
-public noncomputable def MultiTapeTM.eval_struct
+public def MultiTapeTM.eval_struct
     (tm : MultiTapeTM k Char) (views : Fin k → TapeView) :
-    Option (Fin k → TapeView) := sorry
-
-/-- `eval_struct` is sound: if it returns `some views'`, then `eval` on
-    the corresponding `BiTape`s returns the `BiTape` representations of `views'`. -/
-public lemma MultiTapeTM.eval_struct_sound
-    {tm : MultiTapeTM k Char}
-    {views views' : Fin k → TapeView}
-    (h : tm.eval_struct views = some views') :
-    tm.eval (fun i => (views i).toBiTape) =
-      some (fun i => (views' i).toBiTape) := by sorry
-
-
-/-- The Turing machine `tm` always outputs a single value of type `α` on tape `i`
-(if that tape is a list) and leaves all other tapes unmodified. -/
-public def outputsType {k : ℕ}
-    (tm : MultiTapeTM k Char) (α : Type*) [StrEnc α] (i : Fin k) : Prop :=
-    ∀ views rs, (views i = ⟨Data.list rs, []⟩) →
-      ∃ x : α, tm.eval_struct views = some (Function.update views i
-        ⟨Data.list (StrEnc.toData x :: rs), []⟩)
+    Part (Fin k → TapeView) :=
+  tm.eval (TapeView.toBiTape ∘ views) >>= (TapeView.ofBiTape? ∘ ·)
 
 namespace Routines
 
@@ -50,13 +33,13 @@ namespace Routines
 -- Primitives
 -- ═══════════════════════════════════════════════════════════════════════════
 
+public def noop : MultiTapeTM k Char := sorry
+
 public def right (i : Fin k) : MultiTapeTM k Char := sorry
 
 public def left (i : Fin k) : MultiTapeTM k Char := sorry
 
 public def write (c : Char) (i : Fin k) : MultiTapeTM k Char := sorry
-
-public def noop : MultiTapeTM k Char := sorry
 
 public def while_eq (c : Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
@@ -67,10 +50,6 @@ public def while_neq (c : Char) (i : Fin k) (tm : MultiTapeTM k Char) :
 -- ═══════════════════════════════════════════════════════════════════════════
 -- eval_struct lemmas: Compositionality
 -- ═══════════════════════════════════════════════════════════════════════════
-
-@[simp]
-public lemma noop_eval_struct {views : Fin k → TapeView} :
-    (noop (k := k)).eval_struct views = some views := by sorry
 
 @[simp]
 public lemma seq_eval_struct {tm₁ tm₂ : MultiTapeTM k Char}

@@ -7,6 +7,8 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
+
 
 namespace Turing
 namespace Routines
@@ -21,7 +23,13 @@ If `i` is larger than the length of the list, does nothing. -/
 public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char := sorry
 
 /-- If positioned on the element of a list, navigates to the list containing it. -/
-public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
+public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
+  -- TOOD what about "not a list"?
+  -- left i ;ₜ while_eq ')' i (right i ;ₜ skipLeft i ;ₜ left i)
+  sorry
+
+-- ((x)()()())
+--       ^
 
 /-- `toElem idx i` moves to the `idx`th element of the `Data.list` currently pointed to
 on tape `i`. Only descends if the current element is a `Data.list` with at least `idx` elements,
