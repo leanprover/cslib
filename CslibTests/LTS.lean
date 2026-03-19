@@ -108,8 +108,8 @@ example (a b : Term) (μ : Label) : a [μ]⭢β b := by
   change labelled_transition a μ b
   simp
 
--- check that a "cannonical" notation works
-attribute [lts cannonical_lts] labelled_transition
+-- check that a "canonical" notation works
+attribute [lts _root_.CslibTests.canonical_lts] labelled_transition
 
 example (a b : Term) (μ : Label) : a [μ]⭢ b := by
   change labelled_transition a μ b
@@ -119,11 +119,11 @@ example (a b : Term) (μ : Label) : a [μ]⭢ b := by
 
 /-- info: CslibTests.labelled_transition {Term Label : Type} : Term → Label → Term → Prop -/
 #guard_msgs in
-#check CslibTests.labelled_transition
+#check labelled_transition
 
-/-- info: CslibTests.cannonical_lts {Term Label : Type} : LTS Term Label -/
+/-- info: CslibTests.canonical_lts {Term Label : Type} : LTS Term Label -/
 #guard_msgs in
-#check CslibTests.cannonical_lts
+#check canonical_lts
 
 -- check that delaborators work, including with variables
 

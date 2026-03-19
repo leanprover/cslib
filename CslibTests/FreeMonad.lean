@@ -283,8 +283,8 @@ This captures the expected error propagation behavior in effectful computations.
 theorem runEff_bind_err {α β}
     {p : FreeM Eff α} {k : α → FreeM Eff β}
     {env : Env} {tr : Trace} {msg : String} :
-  runEff p env tr = .error msg →
-  runEff (p >>= k) env tr = .error msg := by
+    runEff p env tr = .error msg →
+    runEff (p >>= k) env tr = .error msg := by
   induction p generalizing env tr msg <;> simp only [runEff, bind, foldFreeM] <;> intro h
   · case pure => simp [effPure] at h
   · case liftBind _ op _ ih =>
@@ -307,41 +307,41 @@ theorem runEff_eval_correct (e : Expr) (env : Env) (trace : Trace)
     (res : Except String (Int × Env × Trace))
     (h : EvalRel e env trace res) :
     runEff (eval e) env trace = res := by
-    induction h
-    · case val z env trace =>
-      simp [eval, pure_eq_pure, runEff, effPure]
-    · case var_found x env trace v h =>
-      simp [runEff, eval, getEnv, lift_def, effStep, h, effPure]
-    · case var_missing x env trace h =>
-      simp [runEff, eval, bind, getEnv, fail, lift_def, effStep, h]
-    · case add e₁ e₂ env trace₁ trace₂ trace₃ v1 v2 env₂ env₃ h₁ h₂ ih₁ ih₂ =>
-      simp [eval, bind]
-      have step₁ := runEff_bind_ok (p := eval e₁ ) (k := fun v1 => do
-        let v2 ← eval e₂
-        pure (v1 + v2)) ih₁
-      simp [bind] at step₁; simp [step₁]
-      have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v2 => pure (v1 + v2)) ih₂
-      simp [bind] at step₂; simp [step₂]; rfl
-    · case div_ok e₁ e₂ env trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_ne_0 h₁ h₂ ih₁ ih₂  =>
-      simp [eval, bind]
-      have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v1 => do
-        let v2 ← eval e₂
-        if v2 = 0 then do fail "divide by zero"; pure 0 else pure (v1 / v2)) ih₁
-      simp [bind] at step₁; simp [step₁]
-      have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
-        if v₂ = 0 then do fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₂
-      simp [bind] at step₂; simp [step₂, v₂_ne_0]
-      rfl
-    · case div_zero e₁ e₂ env' trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_eq_0 h₁ h₂ ih₁ ih₂ =>
-      simp [eval, bind]
-      have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v₁ => do
-        let v₂ ← eval e₂
-        if v₂ = 0 then fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₁
-      simp [bind] at step₁; simp [step₁]
-      have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
-        if v₂ = 0 then (do fail "divide by zero"; pure 0) else pure (v₁ / v₂)) ih₂
-      simp [bind] at step₂; simp [step₂, v₂_eq_0]
-      simp [fail, lift, runEff]
-      rfl
+  induction h
+  · case val z env trace =>
+    simp [eval, pure_eq_pure, runEff, effPure]
+  · case var_found x env trace v h =>
+    simp [runEff, eval, getEnv, lift_def, effStep, h, effPure]
+  · case var_missing x env trace h =>
+    simp [runEff, eval, bind, getEnv, fail, lift_def, effStep, h]
+  · case add e₁ e₂ env trace₁ trace₂ trace₃ v1 v2 env₂ env₃ h₁ h₂ ih₁ ih₂ =>
+    simp [eval, bind]
+    have step₁ := runEff_bind_ok (p := eval e₁ ) (k := fun v1 => do
+      let v2 ← eval e₂
+      pure (v1 + v2)) ih₁
+    simp [bind] at step₁; simp [step₁]
+    have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v2 => pure (v1 + v2)) ih₂
+    simp [bind] at step₂; simp [step₂]; rfl
+  · case div_ok e₁ e₂ env trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_ne_0 h₁ h₂ ih₁ ih₂  =>
+    simp [eval, bind]
+    have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v1 => do
+      let v2 ← eval e₂
+      if v2 = 0 then do fail "divide by zero"; pure 0 else pure (v1 / v2)) ih₁
+    simp [bind] at step₁; simp [step₁]
+    have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
+      if v₂ = 0 then do fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₂
+    simp [bind] at step₂; simp [step₂, v₂_ne_0]
+    rfl
+  · case div_zero e₁ e₂ env' trace₁ trace₂ trace₃ v₁ v₂ env₂ env₃ v₂_eq_0 h₁ h₂ ih₁ ih₂ =>
+    simp [eval, bind]
+    have step₁ := runEff_bind_ok (p := eval e₁) (k := fun v₁ => do
+      let v₂ ← eval e₂
+      if v₂ = 0 then fail "divide by zero"; pure 0 else pure (v₁ / v₂)) ih₁
+    simp [bind] at step₁; simp [step₁]
+    have step₂ := runEff_bind_ok (p := eval e₂) (k := fun v₂ =>
+      if v₂ = 0 then (do fail "divide by zero"; pure 0) else pure (v₁ / v₂)) ih₂
+    simp [bind] at step₂; simp [step₂, v₂_eq_0]
+    simp [fail, lift, runEff]
+    rfl
 
 end CslibTests
