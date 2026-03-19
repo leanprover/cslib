@@ -29,6 +29,7 @@ the `SortOpsInsertHead` model. This insertionSort evaluates identically to the u
 - `insertionSort_sorted` : `insertionSort` outputs a sorted list.
 - `insertionSort_complexity` : `insertionSort` takes at most n * (n + 1) comparisons and
   (n + 1) * (n + 2) list head-insertions.
+- `insertionSort_stable` : `insertionSort` is a stable sorting algorithm.
 -/
 
 namespace Cslib
@@ -87,6 +88,67 @@ theorem insertionSort_complexity (l : List α) (le : α → α → Bool) :
   | cons head tail ih =>
     grind [insertOrd_complexity_upper_bound, List.length_insertionSort, SortOpsCost.le_def,
       insertionSort_time_compares, insertionSort_time_inserts]
+
+section Stability
+
+private lemma filter_orderedInsert_of_neg {r : α → α → Prop} [DecidableRel r]
+    (a : α) (l : List α) (p : α → Bool) (ha : p a = false) :
+    (l.orderedInsert r a).filter p = l.filter p := by
+  induction l with
+  | nil => rw [List.orderedInsert_nil]; simp [ha]
+  | cons b l ih =>
+    rw [List.orderedInsert_cons]
+    split
+    · simp [List.filter, ha]
+    · simp only [List.filter]; split <;> simp [ih]
+
+private lemma filter_orderedInsert_of_pos {r : α → α → Prop} [DecidableRel r]
+    (a : α) (l : List α) (p : α → Bool)
+    (ha : p a = true)
+    (hcompat : ∀ b, p b = true → r a b)
+    (hsorted : l.Pairwise r) :
+    (l.orderedInsert r a).filter p = a :: l.filter p := by
+  induction l with
+  | nil => rw [List.orderedInsert_nil]; simp [ha]
+  | cons b l ih =>
+    rw [List.orderedInsert_cons]
+    rw [List.pairwise_cons] at hsorted
+    split
+    · simp [List.filter, ha]
+    · rename_i hnr
+      have hnpb : p b = false := by
+        by_contra h; push_neg at h
+        cases hpb : p b with
+        | false => simp [hpb] at h
+        | true => exact hnr (hcompat b hpb)
+      simp only [List.filter, hnpb]
+      exact ih hsorted.2
+
+theorem insertionSort_stable
+    (xs : List α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y = true)]
+    [IsTrans α (fun x y => le x y = true)] :
+    let ys := (insertionSort xs).eval (sortModel le)
+    ∀ k : α, ys.filter (fun x => le x k && le k x) = xs.filter (fun x => le x k && le k x) := by
+  simp only [insertionSort_eval]
+  intro k
+  induction xs with
+  | nil => simp
+  | cons a rest ih =>
+    rw [List.insertionSort_cons]
+    have hsorted : (rest.insertionSort (fun x y => le x y = true)).Pairwise
+        (fun x y => le x y = true) :=
+      List.pairwise_insertionSort _ rest
+    rcases hab : (le a k && le k a) with _ | _
+    · rw [filter_orderedInsert_of_neg a _ (fun x => le x k && le k x) hab]
+      simp [hab, ih]
+    · rw [filter_orderedInsert_of_pos a _ (fun x => le x k && le k x) hab _ hsorted]
+      · simp [hab, ih]
+      · intro b hb
+        simp only [Bool.and_eq_true] at hab hb
+        exact IsTrans.trans (r := fun x y => le x y = true) a k b hab.1 hb.2
+
+end Stability
 
 end Algorithms
 
