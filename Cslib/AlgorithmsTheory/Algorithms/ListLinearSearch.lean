@@ -27,7 +27,7 @@ the `ListSearch` model.
 
 ## Main results
 
-- `listLinearSearch_eval`: `insertOrd` evaluates identically to `List.contains`.
+- `listLinearSearch_eval`: `listLinearSearch` evaluates identically to `List.contains`.
 - `listLinearSearchM_time_complexity_upper_bound` : `linearSearch` takes at most `n`
   comparison operations
 - `listLinearSearchM_time_complexity_lower_bound` : There exist lists on which `linearSearch` needs
