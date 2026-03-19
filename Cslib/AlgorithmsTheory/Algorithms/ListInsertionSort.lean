@@ -125,16 +125,19 @@ private lemma filter_orderedInsert_of_pos {r : α → α → Prop} [DecidableRel
       exact ih hsorted.2
 
 theorem insertionSort_stable
-    (xs : List α) (le : α → α → Bool)
+    (xs : List α)
+    (le : α → α → Bool)
     [Std.Total (fun x y => le x y = true)]
     [IsTrans α (fun x y => le x y = true)] :
-    let ys := (insertionSort xs).eval (sortModel le)
-    ∀ k : α, ys.filter (fun x => le x k && le k x) = xs.filter (fun x => le x k && le k x) := by
+    IsStableSort (fun xs => (insertionSort xs).eval (sortModel le)) xs le := by
   simp only [insertionSort_eval]
   intro k
   induction xs with
   | nil => simp
   | cons a rest ih =>
+    change List.filter (fun x => le x k && le k x)
+      (List.insertionSort (fun x y => le x y = true) (a :: rest)) =
+      List.filter (fun x => le x k && le k x) (a :: rest)
     rw [List.insertionSort_cons]
     have hsorted : (rest.insertionSort (fun x y => le x y = true)).Pairwise
         (fun x y => le x y = true) :=
