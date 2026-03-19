@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Waring
+Authors: Thomas Waring, Jesse Alama
 -/
 
 module
@@ -31,6 +31,13 @@ implies `Rec ⬝ x ⬝ g ⬝ a ↠ x`.
 - Unbounded root finding (μ-recursion) : given a term  `f` representing a function `fℕ: Nat → Nat`,
 which takes on the value 0 a term `RFind` such that (`rFind_correct`) `RFind ⬝ f ↠ a` such that
 `IsChurch n a` for `n` the smallest root of `fℕ`.
+- Integer square root : a term `Sqrt` so that (`sqrt_correct`)
+`IsChurch n a → IsChurch n.sqrt (Sqrt ⬝ a)`.
+- Nat pairing : a term `NatPair` so that (`natPair_correct`)
+`IsChurch a x → IsChurch b y → IsChurch (Nat.pair a b) (NatPair ⬝ x ⬝ y)`.
+- Nat unpairing : terms `NatUnpairLeft` and `NatUnpairRight` so that (`natUnpairLeft_correct`)
+`IsChurch n a → IsChurch n.unpair.1 (NatUnpairLeft ⬝ a)` and (`natUnpairRight_correct`)
+`IsChurch n a → IsChurch n.unpair.2 (NatUnpairRight ⬝ a)`.
 
 ## References
 
@@ -413,8 +420,10 @@ theorem le_correct (n m : Nat) (a b : SKI) (ha : IsChurch n a) (hb : IsChurch m 
 def SqrtCondPoly : SKI.Polynomial 2 :=
   SKI.Cond ⬝' SKI.Zero ⬝' SKI.One
            ⬝' (SKI.Neg ⬝' (SKI.LE ⬝' (SKI.Mul ⬝' (SKI.Succ ⬝' &1) ⬝' (SKI.Succ ⬝' &1)) ⬝' &0))
+
 /-- SKI term for the inner condition of Sqrt -/
 def SqrtCond : SKI := SqrtCondPoly.toSKI
+
 theorem sqrtCond_def (cn ck : SKI) :
     (SqrtCond ⬝ cn ⬝ ck) ↠
       SKI.Cond ⬝ SKI.Zero ⬝ SKI.One ⬝
@@ -424,8 +433,10 @@ theorem sqrtCond_def (cn ck : SKI) :
 /-- Sqrt n = smallest k such that (k+1)² > n, i.e., the integer square root.
     Defined as `λ n. RFind (SqrtCond n)`. -/
 def SqrtPoly : SKI.Polynomial 1 := RFind ⬝' (SqrtCond ⬝' &0)
+
 /-- SKI term for integer square root -/
 def Sqrt : SKI := SqrtPoly.toSKI
+
 theorem sqrt_def (cn : SKI) : (Sqrt ⬝ cn) ↠ RFind ⬝ (SqrtCond ⬝ cn) :=
   SqrtPoly.toSKI_correct [cn] (by simp)
 
@@ -457,8 +468,10 @@ def NatPairPoly : SKI.Polynomial 2 :=
   SKI.Cond ⬝' (SKI.Add ⬝' (SKI.Mul ⬝' &1 ⬝' &1) ⬝' &0)
            ⬝' (SKI.Add ⬝' (SKI.Add ⬝' (SKI.Mul ⬝' &0 ⬝' &0) ⬝' &0) ⬝' &1)
            ⬝' (SKI.Neg ⬝' (SKI.LE ⬝' &1 ⬝' &0))
+
 /-- SKI term for Nat pairing -/
 def NatPair : SKI := NatPairPoly.toSKI
+
 theorem natPair_def (ca cb : SKI) :
     (NatPair ⬝ ca ⬝ cb) ↠
       SKI.Cond ⬝ (SKI.Add ⬝ (SKI.Mul ⬝ cb ⬝ cb) ⬝ ca)
@@ -492,6 +505,7 @@ def NatUnpairLeftPoly : SKI.Polynomial 1 :=
   let diff := SKI.Sub ⬝' &0 ⬝' s2
   let cond := SKI.Neg ⬝' (SKI.LE ⬝' s ⬝' diff)
   SKI.Cond ⬝' diff ⬝' s ⬝' cond
+
 /-- SKI term for left projection of Nat.unpair -/
 def NatUnpairLeft : SKI := NatUnpairLeftPoly.toSKI
 
@@ -527,6 +541,7 @@ def NatUnpairRightPoly : SKI.Polynomial 1 :=
   let diff := SKI.Sub ⬝' &0 ⬝' s2
   let cond := SKI.Neg ⬝' (SKI.LE ⬝' s ⬝' diff)
   SKI.Cond ⬝' s ⬝' (SKI.Sub ⬝' diff ⬝' s) ⬝' cond
+
 /-- SKI term for right projection of Nat.unpair -/
 def NatUnpairRight : SKI := NatUnpairRightPoly.toSKI
 
