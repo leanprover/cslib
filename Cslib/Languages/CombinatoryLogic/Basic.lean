@@ -288,7 +288,6 @@ theorem cond_correct (a x y : SKI) (u : Bool) (h : IsBool u a) :
 
 /-- Neg := λ a. Cond FF TT a -/
 protected def Neg : SKI := SKI.Cond ⬝ FF ⬝ TT
-@[scoped grind →]
 theorem neg_correct (a : SKI) (ua : Bool) (h : IsBool ua a) : IsBool (¬ ua) (SKI.Neg ⬝ a) := by
   apply isBool_trans (a' := if ua then FF else TT)
   · apply cond_correct (h := h)
