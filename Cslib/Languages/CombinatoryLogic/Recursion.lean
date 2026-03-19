@@ -424,6 +424,8 @@ def SqrtCondPoly : SKI.Polynomial 2 :=
 /-- SKI term for the inner condition of Sqrt -/
 def SqrtCond : SKI := SqrtCondPoly.toSKI
 
+/-- `SqrtCond ⬝ n ⬝ k` reduces to: return 0 if `(k+1)² > n`, else 1.
+    Used by `RFind` to locate the smallest such `k`, which is `√n`. -/
 theorem sqrtCond_def (cn ck : SKI) :
     (SqrtCond ⬝ cn ⬝ ck) ↠
       SKI.Cond ⬝ SKI.Zero ⬝ SKI.One ⬝
@@ -437,6 +439,7 @@ def SqrtPoly : SKI.Polynomial 1 := RFind ⬝' (SqrtCond ⬝' &0)
 /-- SKI term for integer square root -/
 def Sqrt : SKI := SqrtPoly.toSKI
 
+/-- `Sqrt ⬝ n` reduces to an `RFind` search for the smallest `k` with `(k+1)² > n`. -/
 theorem sqrt_def (cn : SKI) : (Sqrt ⬝ cn) ↠ RFind ⬝ (SqrtCond ⬝ cn) :=
   SqrtPoly.toSKI_correct [cn] (by simp)
 
@@ -472,6 +475,7 @@ def NatPairPoly : SKI.Polynomial 2 :=
 /-- SKI term for Nat pairing -/
 def NatPair : SKI := NatPairPoly.toSKI
 
+/-- `NatPair ⬝ a ⬝ b` reduces to: if `a < b` then `b² + a`, else `a² + a + b`. -/
 theorem natPair_def (ca cb : SKI) :
     (NatPair ⬝ ca ⬝ cb) ↠
       SKI.Cond ⬝ (SKI.Add ⬝ (SKI.Mul ⬝ cb ⬝ cb) ⬝ ca)
@@ -509,6 +513,8 @@ def NatUnpairLeftPoly : SKI.Polynomial 1 :=
 /-- SKI term for left projection of Nat.unpair -/
 def NatUnpairLeft : SKI := NatUnpairLeftPoly.toSKI
 
+/-- `NatUnpairLeft ⬝ n` reduces to: let `s = √n` and `d = n - s²`;
+    return `d` if `d < s`, else `s`. -/
 theorem natUnpairLeft_def (cn : SKI) :
     (NatUnpairLeft ⬝ cn) ↠
       SKI.Cond ⬝ (SKI.Sub ⬝ cn ⬝ (SKI.Mul ⬝ (Sqrt ⬝ cn) ⬝ (Sqrt ⬝ cn)))
@@ -545,6 +551,8 @@ def NatUnpairRightPoly : SKI.Polynomial 1 :=
 /-- SKI term for right projection of Nat.unpair -/
 def NatUnpairRight : SKI := NatUnpairRightPoly.toSKI
 
+/-- `NatUnpairRight ⬝ n` reduces to: let `s = √n` and `d = n - s²`;
+    return `s` if `d < s`, else `d - s`. -/
 theorem natUnpairRight_def (cn : SKI) :
     (NatUnpairRight ⬝ cn) ↠
       SKI.Cond ⬝ (Sqrt ⬝ cn)
