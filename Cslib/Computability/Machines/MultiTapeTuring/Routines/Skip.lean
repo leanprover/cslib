@@ -33,10 +33,9 @@ public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 public lemma skipRight_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {rest : List ℕ} {idx : ℕ}
-    (h_path : (views i).path = rest ++ [idx]) :
+    (h_hasNext : (views i).next.isSome) :
     (skipRight i).eval_struct views = some
-      (Function.update views i
-        ⟨(views i).data, rest ++ [idx + 1]⟩) := by sorry
+      (Function.update views i ((views i).next.get h_hasNext)) := by sorry
 
 /-- `skipLeft i` moves to the previous sibling element within a list,
     decrementing the last path index. -/

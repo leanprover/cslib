@@ -182,6 +182,12 @@ public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
     | num n => grind [Data.atPath]
     | list ds => grind [Data.atPath]
 
+@[simp]
+public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
+  (h_succ_is_some : (d.atPath [idx + 1]).isSome) :
+  (d.atPath [idx]).isSome := by
+  sorry
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TapeView
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -200,6 +206,7 @@ public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
     - `⟨Data.list [a, b], [1]⟩` — tape contains `(enc(a) enc(b))`,
       head at start of `enc(b)`
     - `⟨Data.list [], []⟩` — tape is empty -/
+@[ext]
 public structure TapeView where
   /-- The `Data` value on the tape. -/
   data : Data
@@ -255,6 +262,24 @@ public def currentList (tv : TapeView) : Option (List Data) :=
   match tv.current with
   | some (Data.list ls) => some ls
   | _ => none
+
+@[expose, simp]
+public def parent (tv : TapeView) : Option TapeView :=
+  match tv.path with
+  | [] => none
+  | _ => some ⟨tv.data, tv.path.dropLast⟩
+
+@[expose, simp]
+public def next (tv : TapeView) : Option TapeView :=
+  do
+    let idx ← tv.path.getLast?
+    let parent ← tv.parent
+    let siblings ← parent.currentList
+    if idx + 1 < siblings.length then
+      some ⟨tv.data, tv.path.dropLast ++ [idx + 1]⟩
+    else
+      none
+
 
 @[expose, simp]
 public def toElem? (tv : TapeView) (i : ℕ) : Option TapeView :=
