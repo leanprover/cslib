@@ -25,7 +25,7 @@ This file defines a notion of computability for SKI terms on natural numbers
 ## Main results
 
 - `codeToSKINat_correct`: each translated code computes the corresponding `Code.eval`.
-- `nat_partrec_ski_computable`: every `Nat.Partrec` function is SKI-computable.
+- `natPartrec_skiComputable`: every `Nat.Partrec` function is SKI-computable.
 
 -/
 
@@ -46,11 +46,7 @@ def Computes (t : SKI) (f : ℕ →. ℕ) : Prop :=
     ∀ m : ℕ, f n = Part.some m →
       IsChurch m (t ⬝ cn)
 
-/-! ### Helper terms for prec and rfind' translations
-
-These helpers adapt the `Rec` combinator from `Recursion.lean` for the paired encoding
-used by `Nat.Partrec.Code.prec`, which passes arguments as `Nat.pair a (Nat.pair counter prev)`.
--/
+/-! ### Helper terms for `Code.prec` and `Code.rfind'` -/
 
 /-- Step function for primitive recursion:
     `λ a cn prev. tg ⬝ (NatPair ⬝ a ⬝ (NatPair ⬝ (Pred ⬝ cn) ⬝ prev))`
@@ -58,9 +54,7 @@ used by `Nat.Partrec.Code.prec`, which passes arguments as `Nat.pair a (Nat.pair
 def PrecStepPoly (tg : SKI) : SKI.Polynomial 3 :=
   tg ⬝' (NatPair ⬝' &0 ⬝' (NatPair ⬝' (Pred ⬝' &1) ⬝' &2))
 
-/-- SKI term for the primitive recursion step function. Adapts `Rec`'s step argument
-to `Code.prec`'s calling convention by repacking `(a, counter, prev_result)` into the
-`Nat.pair a (Nat.pair (counter - 1) prev_result)` format expected by `tg`. -/
+/-- SKI term for the primitive recursion step function. -/
 def PrecStep (tg : SKI) : SKI := (PrecStepPoly tg).toSKI
 
 theorem precStep_def (tg a cn prev : SKI) :
@@ -75,9 +69,7 @@ def PrecTransPoly (tf tg : SKI) : SKI.Polynomial 1 :=
       ⬝' (PrecStep tg ⬝' (NatUnpairLeft ⬝' &0))
       ⬝' (NatUnpairRight ⬝' &0)
 
-/-- SKI term for primitive recursion. Delegates to the `Rec` combinator from `Recursion.lean`,
-using pair/unpair plumbing to translate between `Nat.Partrec.Code.prec`'s paired input
-convention (`Nat.pair a n`) and `Rec`'s direct arguments `(base, step, n)`. -/
+/-- SKI term for primitive recursion via `Rec` with pair/unpair plumbing. -/
 def PrecTrans (tf tg : SKI) : SKI := (PrecTransPoly tf tg).toSKI
 
 theorem precTrans_def (tf tg cn : SKI) :
@@ -128,9 +120,7 @@ theorem zero_computes : Computes (K ⬝ SKI.Zero) (Code.eval .zero) := by
   intro n cn hcn m hm
   have h0 : Code.eval .zero n = Part.some 0 := by
     rw [show Code.zero = Code.const 0 from rfl, Code.eval_const]
-  rw [h0] at hm
-  have heq : (0 : ℕ) = m := Part.some_injective hm
-  subst heq
+  rw [h0] at hm; obtain rfl := Part.some_injective hm
   exact isChurch_trans 0 (MRed.K SKI.Zero cn) zero_correct
 
 /-- `Code.succ` computes the successor function. -/
@@ -138,9 +128,7 @@ theorem succ_computes : Computes SKI.Succ (Code.eval .succ) := by
   intro n cn hcn m hm
   have h0 : Code.eval .succ n = Part.some (n + 1) := by
     simp only [Code.eval, PFun.coe_val]
-  rw [h0] at hm
-  have heq : n + 1 = m := Part.some_injective hm
-  subst heq
+  rw [h0] at hm; obtain rfl := Part.some_injective hm
   exact succ_correct n cn hcn
 
 /-- `Code.left` computes the left projection of `Nat.unpair`. -/
@@ -148,9 +136,7 @@ theorem left_computes : Computes NatUnpairLeft (Code.eval .left) := by
   intro n cn hcn m hm
   have h0 : Code.eval .left n = Part.some (Nat.unpair n).1 := by
     simp only [Code.eval, PFun.coe_val]
-  rw [h0] at hm
-  have heq := Part.some_injective hm
-  subst heq
+  rw [h0] at hm; obtain rfl := Part.some_injective hm
   exact natUnpairLeft_correct n cn hcn
 
 /-- `Code.right` computes the right projection of `Nat.unpair`. -/
@@ -158,9 +144,7 @@ theorem right_computes : Computes NatUnpairRight (Code.eval .right) := by
   intro n cn hcn m hm
   have h0 : Code.eval .right n = Part.some (Nat.unpair n).2 := by
     simp only [Code.eval, PFun.coe_val]
-  rw [h0] at hm
-  have heq := Part.some_injective hm
-  subst heq
+  rw [h0] at hm; obtain rfl := Part.some_injective hm
   exact natUnpairRight_correct n cn hcn
 
 /-- Composition of computable functions is computable. -/
@@ -197,10 +181,11 @@ theorem pair_computes {f g : ℕ →. ℕ} {tf tg : SKI}
   have hca := hf n cn hcn a hfn
   have hcb := hg n cn hcn b hgn
   subst hm_eq
-  exact isChurch_trans _ (calc (S ⬝ (B ⬝ NatPair ⬝ tf) ⬝ tg ⬝ cn)
-      ↠ ((B ⬝ NatPair ⬝ tf) ⬝ cn ⬝ (tg ⬝ cn)) := MRed.S _ _ _
-    _ ↠ (NatPair ⬝ (tf ⬝ cn) ⬝ (tg ⬝ cn)) := MRed.head _ (B_def _ _ _))
-    (natPair_correct a b (tf ⬝ cn) (tg ⬝ cn) hca hcb)
+  have hred : (S ⬝ (B ⬝ NatPair ⬝ tf) ⬝ tg ⬝ cn) ↠
+      (NatPair ⬝ (tf ⬝ cn) ⬝ (tg ⬝ cn)) := calc
+    _ ↠ (B ⬝ NatPair ⬝ tf) ⬝ cn ⬝ (tg ⬝ cn) := MRed.S _ _ _
+    _ ↠ NatPair ⬝ (tf ⬝ cn) ⬝ (tg ⬝ cn) := MRed.head _ (B_def _ _ _)
+  exact isChurch_trans _ hred (natPair_correct a b _ _ hca hcb)
 
 /-- Helper: `Rec` correctly implements primitive recursion from `Code.prec`. -/
 private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
@@ -239,11 +224,11 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
     -- By ihg, tg computes the result
     have hcm := ihg _ _ hpair_full m hm_eq
     -- Chain the reductions
-    exact isChurch_trans _ (Trans.trans (rec_succ k base step cb hcb)
-      (precStep_def tg ca cb (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)))) hcm
+    have hred := (rec_succ k base step cb hcb).trans
+      (precStep_def tg ca cb (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)))
+    exact isChurch_trans _ hred hcm
 
-/-- Helper: extract eval facts from rfind membership, with `m₀ +` order
-    matching `rfind_above_induction`. -/
+/-- Extract eval facts from `Nat.rfind` membership. -/
 private theorem rfind_eval_facts {f : Code} {a₀ m₀ k : ℕ}
     (hk : k ∈ Nat.rfind (fun n =>
       (fun m => decide (m = 0)) <$> f.eval (Nat.pair a₀ (n + m₀)))) :
@@ -264,7 +249,7 @@ private theorem rfind_eval_facts {f : Code} {a₀ m₀ k : ℕ}
 
 /-- Helper: `RFindAbove` correctly implements `Code.rfind'` by induction on
     the number of steps until the root. -/
-private theorem rfind_above_induction (f : Code) (tf : SKI)
+private theorem rfindAbove_induction (f : Code) (tf : SKI)
     (ihf : Computes tf f.eval) (a₀ : ℕ) (ca : SKI) (hca : IsChurch a₀ ca)
     (g : SKI) (hg : g = B ⬝ tf ⬝ (NatPair ⬝ ca)) :
     ∀ n m : ℕ, ∀ x : SKI, IsChurch m x →
@@ -357,7 +342,7 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
     subst hresult_eq
     obtain ⟨heval_root, heval_below⟩ := rfind_eval_facts hk_mem
     set g := B ⬝ tf ⬝ (NatPair ⬝ (NatUnpairLeft ⬝ cn))
-    have hind := rfind_above_induction f tf ihf a₀
+    have hind := rfindAbove_induction f tf ihf a₀
       (NatUnpairLeft ⬝ cn) hca g rfl k m₀
       (NatUnpairRight ⬝ cn) hcm₀ heval_root heval_below
     rw [Nat.add_comm] at hind
@@ -365,12 +350,8 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
 
 /-! ### Main equivalence theorem -/
 
-/-- Every partial recursive function `f : ℕ →. ℕ` is SKI-computable.
-
-This establishes that SKI combinatory logic can compute all partial recursive
-functions on ℕ.
--/
-theorem nat_partrec_ski_computable (f : ℕ →. ℕ) (hf : Nat.Partrec f) :
+/-- Every partial recursive function on `ℕ` is SKI-computable. -/
+theorem natPartrec_skiComputable (f : ℕ →. ℕ) (hf : Nat.Partrec f) :
     ∃ t : SKI, Computes t f := by
   obtain ⟨c, hc⟩ := Code.exists_code.mp hf
   exact ⟨codeToSKINat c, hc ▸ codeToSKINat_correct c⟩
