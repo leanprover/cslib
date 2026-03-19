@@ -316,11 +316,11 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
     IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
   induction n generalizing m x
-  all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
-  case zero.a =>
+  all_goals apply isChurch_trans _ (RFindAbove_unfold x f)
+  case zero =>
     apply isChurch_trans (a' := x) <;>
       grind [rfindAboveAux_base]
-  case succ.a n ih =>
+  case succ n ih =>
     apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
     · let y := (fNat m).pred
       have : IsChurch (y + 1) (f ⬝ x) := by
@@ -330,8 +330,6 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
       assumption
     · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
       grind
-  -- close the `h` goals of the above `apply isChurch_trans`
-  all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
 
 
 /-- Ordinary root finding is root finding above zero -/
