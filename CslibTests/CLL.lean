@@ -71,6 +71,8 @@ example : (a⫠ = b⫠) ↔ (a = b) := Proposition.dual_inj a b
 
 /-! ## Basic proof tests -/
 
+open scoped Cslib.Logic.InferenceSystem
+
 -- Axiom: ⊢ a, a⫠
 example : ⇓({a, a⫠} : Sequent Nat) := Proof.ax
 example : ⇓({a⫠, a} : Sequent Nat) := Proof.ax'

@@ -103,14 +103,13 @@ parenthetical containing what area of the library the PR is working on.
 
 ## Testing
 
-There is a [series of tests](/scripts/RunTests.lean) that runs for each PR. The components of this
-are
+There is a series of tests that runs for each PR. The components of this are
 
 - running the tests found in [CslibTests](/CslibTests)
 - checking that all files import [Cslib.Init](/Cslib/Init.lean), which sets up some default linting
   and tactics
 
-You can run these locally with `lake test`.
+You can run these locally with `lake test` and `lake exe checkInitImports` respectively.
 
 ## Linting
 
@@ -124,6 +123,9 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 
 There is a also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
 running `lake exe mk_all --module` locally, which will make the required changes.
+
+CSLib tests for minimized imports using `lake shake --add-public --keep-implied --keep-prefix`, which also comes with a `--fix` option.
+See `lake shake --help` for the special comment syntax used to preserve imports required for tactics or typeclasses.
 
 # Getting started
 
