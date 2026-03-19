@@ -531,6 +531,7 @@ private theorem natUnpair_church (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
   have hs := sqrt_correct n cn hcn
   exact ⟨hs, sub_correct n _ cn _ hcn (mul_correct hs hs)⟩
 
+/-- `NatUnpairLeft` correctly computes the first component of `Nat.unpair`. -/
 theorem natUnpairLeft_correct (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
     IsChurch (Nat.unpair n).1 (NatUnpairLeft ⬝ cn) := by
   apply isChurch_trans _ (natUnpairLeft_def cn)
@@ -562,6 +563,7 @@ theorem natUnpairRight_def (cn : SKI) :
                     ⬝ (SKI.Sub ⬝ cn ⬝ (SKI.Mul ⬝ (Sqrt ⬝ cn) ⬝ (Sqrt ⬝ cn))))) :=
   NatUnpairRightPoly.toSKI_correct [cn] (by simp)
 
+/-- `NatUnpairRight` correctly computes the second component of `Nat.unpair`. -/
 theorem natUnpairRight_correct (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
     IsChurch (Nat.unpair n).2 (NatUnpairRight ⬝ cn) := by
   apply isChurch_trans _ (natUnpairRight_def cn)
