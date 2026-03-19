@@ -6,7 +6,7 @@ Authors: Bolton Bailey, Pim Spelier, Daan van Gent
 
 module
 
-public import Mathlib.Computability.Tape
+public import Mathlib.Computability.TuringMachine.Tape
 
 @[expose] public section
 
