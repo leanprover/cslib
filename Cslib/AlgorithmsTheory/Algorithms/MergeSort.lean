@@ -265,12 +265,13 @@ private lemma mergeSortNaive_stable_equiv
     rw [List.take_append_drop]
 
 theorem mergeSort_stable
-    (xs : List α) (le : α → α → Bool)
+    (xs : List α)
+    (le : α → α → Bool)
     [Std.Total (fun x y => le x y = true)]
     [IsTrans _ (fun x y => le x y = true)] :
-    let ys := (mergeSort xs).eval (sortModelNat le)
-    ∀ k : α, ys.filter (fun x => le x k && le k x) = xs.filter (fun x => le x k && le k x) := by
-  simpa [mergeSort_eval] using (mergeSortNaive_stable_equiv xs le)
+    IsStableSort (fun xs => (mergeSort xs).eval (sortModelNat le)) xs le := by
+  intro k
+  simpa [mergeSort_eval] using (mergeSortNaive_stable_equiv xs le k)
 
 end Stability
 
