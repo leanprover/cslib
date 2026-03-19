@@ -348,7 +348,7 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
     rw [Nat.add_comm] at hind
     exact isChurch_trans _ hred hind
 
-/-! ### Main equivalence theorem -/
+/-! ### Main result -/
 
 /-- Every partial recursive function on `ℕ` is SKI-computable. -/
 theorem natPartrec_skiComputable (f : ℕ →. ℕ) (hf : Nat.Partrec f) :
