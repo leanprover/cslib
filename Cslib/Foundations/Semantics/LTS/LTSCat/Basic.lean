@@ -14,9 +14,7 @@ public import Mathlib.Control.Basic
 
 namespace Cslib
 
-universe u v
-
-variable {State : Type u} {Label : Type v}
+variable {State Label : Type*}
 
 /-! # Category of Labelled Transition Systems
 
@@ -41,6 +39,7 @@ def lift (trans : State → Label → State → Prop) : State → (Option Label)
 The definition of labelled transition system (with the type of states and the
 type of labels as part of the structure).
 -/
+@[nolint checkUnivs]
 structure LTSCat : Type (max u v + 1) where
   /-- Type of states of an LTS -/
   State : Type u
