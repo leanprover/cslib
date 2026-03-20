@@ -189,6 +189,13 @@ public lemma Data.atPath_dropLast_isSome_of_isSome {d : Data} {path : List ℕ}
   sorry
 
 @[simp]
+public lemma Data.atPath_isSome_of_le_isSome {d : Data} {i₁ i₂ : ℕ} (h_le : i₁ ≤ i₂)
+  (h_is_some : (d.atPath [i₂]).isSome) :
+  (d.atPath [i₁]).isSome := by
+  sorry
+
+-- TODO redundant?
+@[simp]
 public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
   (h_succ_is_some : (d.atPath [idx + 1]).isSome) :
   (d.atPath [idx]).isSome := by

@@ -31,11 +31,14 @@ public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 /-- `skipRight i` moves to the next sibling element within a list,
     incrementing the last path index. -/
 @[simp]
-public lemma skipRight_eval_struct {k : ℕ} {i : Fin k}
+public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
-    (h_hasNext : (views i).next.isSome) :
+    {parent : TapeView}
+    (h_valid : (parent.current.atPath [j + 1]).isSome)
+    (h_parent : (views i) = parent.appendPath j
+         (Data.atPath_isSome_of_le_isSome (by simp) h_valid)) :
     (skipRight i).eval_struct views = some
-      (Function.update views i ((views i).next.get h_hasNext)) := by sorry
+      (Function.update views i (parent.appendPath j.succ h_valid)) := by sorry
 
 /-- `skipLeft i` moves to the previous sibling element within a list,
     decrementing the last path index. -/
