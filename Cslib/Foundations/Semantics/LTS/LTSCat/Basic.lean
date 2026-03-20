@@ -84,7 +84,7 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
 instance : CategoryTheory.Category LTSCat where
   Hom lts₁ lts₂ := LTS.Morphism lts₁ lts₂
   id lts := LTS.Morphism.id lts
-  comp {lts₁} {lts₂} {lts₃} f g := @LTS.Morphism.comp lts₁ lts₂ lts₃ f g
+  comp {lts₁} {lts₂} {lts₃} := @LTS.Morphism.comp lts₁ lts₂ lts₃
   id_comp := by
     intro _ _ f
     cases f
