@@ -29,8 +29,7 @@ as defined in Winskel and Nielsen's handbook chapter [WinskelNielsen1995].
 We first define what is denoted Tran* in [WinskelNielsen1995]: the extension of
 a transition relation with idle transitions.
 -/
-def lift (trans : State → Label → State → Prop) :
-  State → (Option Label) → State → Prop :=
+def lift (trans : State → Label → State → Prop) : State → (Option Label) → State → Prop :=
   fun s l s' => l.elim (s = s') (trans s · s')
 
 /-! ## LTSs and LTS morphisms form a category -/
