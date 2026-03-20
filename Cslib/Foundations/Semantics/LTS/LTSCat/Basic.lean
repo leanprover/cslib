@@ -8,6 +8,7 @@ module
 
 public import Mathlib.CategoryTheory.Category.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
+public import Mathlib.Control.Basic
 
 @[expose] public section
 
@@ -84,26 +85,16 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g
 
 /-- Finally, we prove that these form a category. -/
 instance : CategoryTheory.Category LTSCat where
-  Hom lts₁ lts₂ := LTS.Morphism lts₁ lts₂
-  id lts := LTS.Morphism.id lts
-  comp {lts₁} {lts₂} {lts₃} := @LTS.Morphism.comp lts₁ lts₂ lts₃
-  id_comp := by
-    intros
-    unfold LTS.Morphism.id
-    congr
-  comp_id := by
-    intro _ _ ⟨f, μ, p⟩
+  Hom := LTS.Morphism
+  id := LTS.Morphism.id
+  comp := LTS.Morphism.comp
+  comp_id _ := by
     simp only [LTS.Morphism.comp, LTS.Morphism.id]
     congr 1
-    funext x
-    change (μ x).bind pure = μ x
-    cases μ x <;> rfl
-  assoc := by
-    intro _ _ _ _ ⟨f₁, μ₁, p₁⟩ ⟨f₂, μ₂, p₂⟩ ⟨f₃, μ₃, p₃⟩
+    rw [fish_pure]
+  assoc _ _ _ := by
     simp only [LTS.Morphism.comp]
     congr 1
-    funext x
-    change ((μ₁ x).bind μ₂).bind μ₃ = (μ₁ x).bind fun a => (μ₂ a).bind μ₃
-    cases μ₁ x <;> rfl
+    rw [fish_assoc]
 
 end Cslib
