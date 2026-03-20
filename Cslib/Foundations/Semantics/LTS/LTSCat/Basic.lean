@@ -67,7 +67,7 @@ structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
 def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
   stateMap := _root_.id
   labelMap := pure
-  labelMap_tr := fun _ _ _ h => h
+  labelMap_tr _ _ _ := _root_.id
 
 /-- Composition of LTS morphisms.
 
