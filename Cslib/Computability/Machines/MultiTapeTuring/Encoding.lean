@@ -188,7 +188,6 @@ public lemma Data.atPath_dropLast_isSome_of_isSome {d : Data} {path : List ℕ}
   (d.atPath path.dropLast).isSome := by
   sorry
 
-@[simp]
 public lemma Data.atPath_isSome_of_le_isSome {d : Data} {i₁ i₂ : ℕ} (h_le : i₁ ≤ i₂)
   (h_is_some : (d.atPath [i₂]).isSome) :
   (d.atPath [i₁]).isSome := by
@@ -232,16 +231,16 @@ instance : Inhabited TapeView := ⟨⟨Data.list [], [], by rfl⟩⟩
 
 namespace TapeView
 
-/-- An empty tape (represented as an empty list). -/
-@[expose]
-public abbrev empty : TapeView := ⟨Data.list [], [], by rfl⟩
-
 /-- A tape containing a single Data value with the head at the start. -/
 @[expose]
 public abbrev ofData (d : Data) : TapeView := ⟨d, [], by rfl⟩
 
 @[expose]
 public abbrev ofList (ls : List Data) : TapeView := ofData (Data.list ls)
+
+/-- An empty tape (represented as an empty list). -/
+@[expose]
+public abbrev empty : TapeView := ofList []
 
 /-- A tape containing a single typed value with the head at the start. -/
 @[expose]
@@ -301,24 +300,6 @@ public def parent (tv : TapeView) : TapeView :=
 public def appendPath (tv : TapeView) (idx : ℕ) (h : (tv.current.atPath [idx]).isSome) : TapeView :=
   ⟨tv.data, tv.path ++ [idx], by simpa using h⟩
 
-@[expose, simp]
-public def next (tv : TapeView) : Option TapeView :=
-  do
-    let idx ← tv.path.getLast?
-    let siblings ← tv.parent.currentList
-    if idx + 1 < siblings.length then
-      some ⟨tv.data, tv.path.dropLast ++ [idx + 1], sorry⟩
-    else
-      none
-
-
-@[expose, simp]
-public def toElem? (tv : TapeView) (idx : ℕ) : Option TapeView :=
-  if h : (tv.current.atPath [idx]).isSome then
-    some (tv.appendPath idx h)
-  else
-    none
-
 /-- Attempt to decode the current value as a typed value of type `α`.
     Returns `none` if the tape is empty, the path is invalid,
     or the `Data` at the path does not represent a valid value of type `α`. -/
@@ -326,7 +307,15 @@ public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
   StrEnc.fromData tv.current
 
 /-- The position of the head in the encoded version of the `TapeView`. -/
-public def encodedPos (tv : TapeView) : ℕ := sorry
+public def encodedPos : (tv : TapeView) → ℕ
+  | ⟨_, [], _⟩ => 0
+  | ⟨Data.num _, _ :: _, _⟩ => 0 -- unreachable
+  | ⟨Data.list ds, p :: path, h_valid⟩ =>
+      have h : p < ds.length := by grind [Data.atPath]
+      1 +
+        ((ds.take p).map fun d => d.enc.length).sum +
+        encodedPos ⟨ds[p], path, by grind [Data.atPath]⟩
+  termination_by tv => tv.path.length
 
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
 public def toBiTape (tv : TapeView) : BiTape Char :=

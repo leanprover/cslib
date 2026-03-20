@@ -28,9 +28,10 @@ public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 /-- Skip to the left across a Data-encoded value (inverse of `skipRight`). -/
 public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
+-- TODO would be nice to make this a simp lemma.
+
 /-- `skipRight i` moves to the next sibling element within a list,
     incrementing the last path index. -/
-@[simp]
 public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {parent : TapeView}
