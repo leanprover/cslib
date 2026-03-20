@@ -455,7 +455,7 @@ theorem sqrt_correct (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
     have hle := le_correct _ n _ cn (mul_correct hsucc hsucc) hcn
     have hneg := neg_correct _ _ hle
     apply isChurch_trans _ (cond_correct _ _ _ _ hneg)
-    by_cases h : n < (i + 1) * (i + 1) <;> grind
+    grind
   · -- fNat (Nat.sqrt n) = 0
     simp [Nat.lt_succ_sqrt]
   · -- ∀ i < Nat.sqrt n, fNat i ≠ 0
