@@ -64,21 +64,15 @@ def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
 
 We use Kleisli composition to define this.
 -/
-def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat} :
-    LTS.Morphism lts₁ lts₂ → LTS.Morphism lts₂ lts₃ → LTS.Morphism lts₁ lts₃ :=
-  fun ⟨f, μ, p⟩ ⟨g, ν, q⟩ =>
-    let r := by
-      intro s s' l h
-      have hp := p s s' l h
-      change ((μ l).bind ν).elim (g (f s) = g (f s')) _
-      cases hμ : μ l with
-      | none =>
-        rw [hμ] at hp
-        exact congrArg g hp
-      | some m =>
-        rw [hμ] at hp
-        exact q (f s) (f s') m hp
-    ⟨g ∘ f, μ >=> ν, r⟩
+def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g : LTS.Morphism lts₂ lts₃) :
+    LTS.Morphism lts₁ lts₃ where
+  stateMap := g.stateMap ∘ f.stateMap
+  labelMap := f.labelMap >=> g.labelMap
+  labelMap_tr s s' l h := by
+    obtain ⟨f, μ, p⟩ := f
+    obtain ⟨g, ν, q⟩ := g
+    change ((μ l).bind ν).elim (g (f s) = g (f s')) _
+    cases hμ : μ l with grind [lift]
 
 /-- Finally, we prove that these form a category. -/
 instance : CategoryTheory.Category LTSCat where
