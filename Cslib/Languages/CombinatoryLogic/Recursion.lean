@@ -562,11 +562,7 @@ theorem natUnpairRight_correct (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
   obtain ⟨hs, hdiff⟩ := natUnpair_church n cn hcn
   have hcond := neg_correct _ _ (le_correct _ _ _ _ hs hdiff)
   apply isChurch_trans _ (cond_correct _ _ _ _ hcond)
-  simp only [Nat.unpair]
-  by_cases h : n - Nat.sqrt n * Nat.sqrt n < Nat.sqrt n
-  · simp only [decide_eq_true_eq, h, Nat.not_le.mpr h, ↓reduceIte]; exact hs
-  · simp only [decide_eq_true_eq, h, Nat.le_of_not_lt h, ↓reduceIte]
-    exact sub_correct _ _ _ _ hdiff hs
+  grind [Nat.unpair, sub_correct _ _ _ _ hdiff hs]
 
 end SKI
 
