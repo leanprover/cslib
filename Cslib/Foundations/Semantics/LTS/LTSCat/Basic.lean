@@ -7,11 +7,12 @@ module
 
 public import Mathlib.CategoryTheory.Category.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
-open Cslib
-
-universe u v
 
 @[expose] public section
+
+namespace Cslib
+
+universe u v
 
 variable {State : Type u} {Label : Type v}
 
@@ -104,4 +105,4 @@ instance : CategoryTheory.Category LTSCat where
     change ((μ₁ x).bind μ₂).bind μ₃ = (μ₁ x).bind fun a => (μ₂ a).bind μ₃
     cases μ₁ x <;> rfl
 
-end
+end Cslib
