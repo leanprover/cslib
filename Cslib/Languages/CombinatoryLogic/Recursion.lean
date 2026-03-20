@@ -490,13 +490,8 @@ theorem natPair_correct (a b : Nat) (ca cb : SKI)
   have hcond := neg_correct _ _ (le_correct b a cb ca hb ha)
   apply isChurch_trans _ (cond_correct _ _ _ _ hcond)
   by_cases hab : a < b
-  · have hle : ¬(b ≤ a) := Nat.not_le.mpr hab
-    simp only [decide_eq_true_eq, hab, hle, ↓reduceIte]
-    exact add_correct (b * b) a _ ca (mul_correct hb hb) ha
-  · have hle : b ≤ a := Nat.le_of_not_lt hab
-    simp only [decide_eq_true_eq, hab, hle, ↓reduceIte]
-    exact add_correct (a * a + a) b _ cb
-      (add_correct (a * a) a _ ca (mul_correct ha ha) ha) hb
+  · grind [add_correct _ _ _ _ (mul_correct hb hb) ha]
+  · grind [add_correct _ _ _ _ (add_correct _ _ _ _ (mul_correct ha ha) ha) hb]
 
 /-! ### Nat unpairing (matching Mathlib's `Nat.unpair`) -/
 
