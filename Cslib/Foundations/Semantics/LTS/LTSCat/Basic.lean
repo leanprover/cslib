@@ -86,10 +86,9 @@ instance : CategoryTheory.Category LTSCat where
   id lts := LTS.Morphism.id lts
   comp {lts₁} {lts₂} {lts₃} := @LTS.Morphism.comp lts₁ lts₂ lts₃
   id_comp := by
-    intro _ _ f
-    cases f
+    intros
     simp only [LTS.Morphism.comp, LTS.Morphism.id, Function.comp_id]
-    congr 1
+    congr
   comp_id := by
     intro _ _ ⟨f, μ, p⟩
     simp only [LTS.Morphism.comp, LTS.Morphism.id]
