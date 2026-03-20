@@ -301,8 +301,12 @@ public def toElem? (tv : TapeView) (i : ℕ) : Option TapeView :=
 public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
   tv.current.bind StrEnc.fromData
 
+/-- The position of the head in the encoded version of the `TapeView`. -/
+public def encodedPos (tv : TapeView) : ℕ := sorry
+
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
-public def toBiTape (tv : TapeView) : BiTape Char := sorry
+public def toBiTape (tv : TapeView) : BiTape Char :=
+  BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
 
 public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by sorry
 

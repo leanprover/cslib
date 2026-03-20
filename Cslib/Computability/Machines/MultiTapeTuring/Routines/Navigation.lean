@@ -14,21 +14,6 @@ namespace Turing
 namespace Routines
 
 
-public def onNonemptyList {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
-    MultiTapeTM k Char :=
-  if_eq '(' i
-    (right i ;ₜ if_eq '(' i (left i ;ₜ tm) (left i ;ₜ left i))
-    (noop)
-
-/-- Execute `tm` if the current element is a non-empty list. Otherwise, do nothing. -/
-@[simp]
-public lemma onNonemptylist.eval_struct {k : ℕ} {i : Fin k} (tm : MultiTapeTM k Char)
-    {views : Fin k → TapeView} :
-  (onNonemptyList i tm).eval_struct views =
-    if (views i).currentList.isSome then tm.eval_struct views else Part.some views := by
-  simp [onNonemptyList]
-  sorry
-
 @[simp]
 public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
@@ -36,7 +21,7 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     (h_list : (views i).current = some (Data.list ls))
     (h_nonempty : 0 < ls.length) :
     (right i).eval_struct views = some
-      (Function.update views i (((views i).toElem? 0).get (by simp [h_list, h_nonempty]))) := by
+      (Function.update views i ⟨(views i).data, (views i).path ++ [0]⟩) := by
   sorry
 
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
@@ -55,15 +40,13 @@ lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k �
   induction n with
   | zero => simp [skipRight_n, h_list]
   | succ n ih =>
-     simp [skipRight_n, h_list]
+     simp only [skipRight_n, seq_eval_struct, Part.coe_some]
      rw [ih (by omega)]
-     simp
-     have h_next : (TapeView.mk parent.data (parent.path ++ [j + n])).next.isSome := by sorry
+     simp only [Part.coe_some, Part.bind_some]
+     have h_next : (TapeView.mk parent.data (parent.path ++ [j + n])).next.isSome := by
+       simp [TapeView.currentList, h_parent, h_len, Nat.add_assoc]
      rw [skipRight_eval_struct (by grind)]
-     · simp [Nat.add_assoc]
-     · sorry
-     · sorry
-
+     simp [Nat.add_assoc]
 
 /-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
 Moves past `(` and then skips `idx` Data elements.

@@ -59,26 +59,11 @@ public instance : StrEnc SATInput where
   fromData_toData
     | SATInput.mk f a => by simp [StrEnc.fromData_toData f, StrEnc.fromData_toData a]
 
--- TODO generic theorem about encoding data as a list?
-
-
 @[simp]
 lemma SatInput_toData (formula : Formula) (assignments : Assignments) :
   StrEnc.toData (SATInput.mk formula assignments) =
     Data.list [StrEnc.toData formula, StrEnc.toData assignments] := by
   simp [StrEnc.toData]
-
-@[simp]
-lemma SATInput_toData_atPath_zero (formula : Formula) (assignments : Assignments) (path : List ℕ) :
-  (StrEnc.toData (SATInput.mk formula assignments)).atPath (0 :: path) =
-    (StrEnc.toData formula).atPath path := by
-  simp [StrEnc.toData, Data.atPath]
-
-@[simp]
-lemma SATInput_toData_atPath_one (formula : Formula) (assignments : Assignments) (path : List ℕ) :
-  (StrEnc.toData (SATInput.mk formula assignments)).atPath (1 :: path) =
-    (StrEnc.toData assignments).atPath path := by
-  simp [StrEnc.toData, Data.atPath]
 
 @[simp]
 lemma Literal_toData (lit : Literal) :
@@ -89,27 +74,6 @@ lemma Literal_toData (lit : Literal) :
   match lit with
   | Literal.pos v => rfl
   | Literal.neg v => rfl
-
-@[simp]
-lemma Literal_toData_atPath_zero (lit : Literal) (path : List ℕ) :
-  (StrEnc.toData lit).atPath (0 :: path) =
-    match lit with
-    | Literal.pos _ => (Data.num 0).atPath path
-    | Literal.neg _ => (Data.num 1).atPath path := by
-  match lit with
-  | Literal.pos v => rfl
-  | Literal.neg v => rfl
-
-@[simp]
-lemma Literal_toData_atPath_one (lit : Literal) :
-  (StrEnc.toData lit).atPath [1] =
-    match lit with
-    | Literal.pos v => StrEnc.toData v
-    | Literal.neg v => StrEnc.toData v := by
-  match lit with
-  | Literal.pos v => rfl
-  | Literal.neg v => rfl
-
 
 /-- Evaluate a literal given a list of positive-variable assignments. -/
 public def evalLiteral (a : Assignments) : Literal → Bool
