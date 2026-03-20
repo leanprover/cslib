@@ -11,7 +11,7 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListIteration
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 
@@ -187,17 +187,18 @@ public def sat_verify : MultiTapeTM 5 Char :=
   toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0 ;ₜ
   -- Navigate to formula (arg 0)
   toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0 ;ₜ
-  erase 1
+  put (Data.list []) 1
 
 public theorem sat_verify.computes_fun
   {views : Fin 5 → TapeView}
-  (h_input : (views 0).current = some (StrEnc.toData (SATInput.mk formula assignments)))
+  (h_input : (views 0).current = StrEnc.toData (SATInput.mk formula assignments))
   (h_second_empty : views 1 = TapeView.empty) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  simp [sat_verify, h_input, TapeView.current_rev, Function.update_sort,
+  simp [sat_verify, h_input, TapeView.current_rev,
     sat_verify_core_semantics formula assignments]
-  grind
+  -- the only problem now is that redundant Function.update calls are not processed
+  sorry
 
 
 end Satisfiability

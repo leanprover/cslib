@@ -18,8 +18,7 @@ namespace Routines
 public def computes_function_read_update' {k : ℕ}
   (tm : MultiTapeTM k Char) (f : Data → TapeView → TapeView)
   (i j : Fin k) (_h_neq : i ≠ j) :=
-  ∀ views, tm.eval_struct views = some (Function.update views j
-    (((views i).current.map (f · (views j))).getD (views j)))
+  ∀ views, tm.eval_struct views = some (Function.update views j (f (views i).current (views j)))
 
 @[expose]
 public def computes_function_read_update {k : ℕ}

@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
@@ -64,22 +63,22 @@ public lemma negateBool_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (negateBool i).eval_struct views = some
       (Function.update views i (match views i with
-      | ⟨Data.list (Data.num 0 :: rest), []⟩ => ⟨Data.list (Data.num 1 :: rest), []⟩
-      | ⟨Data.list (Data.num 1 :: rest), []⟩ => ⟨Data.list (Data.num 0 :: rest), []⟩
+      | ⟨Data.list (Data.num 0 :: rest), [], h⟩ => ⟨Data.list (Data.num 1 :: rest), [], h⟩
+      | ⟨Data.list (Data.num 1 :: rest), [], h⟩ => ⟨Data.list (Data.num 0 :: rest), [], h⟩
       | _ => views i)) := by
   match h_v : views i with
-  | ⟨Data.list (Data.num 0 :: rest), []⟩ => simp [negateBool, h_v]
-  | ⟨Data.list (Data.num 1 :: rest), []⟩ => simp [negateBool, h_v]
+  | ⟨Data.list (Data.num 0 :: rest), [], h⟩ => simp [negateBool, h_v]
+  | ⟨Data.list (Data.num 1 :: rest), [], h⟩ => simp [negateBool, h_v]
   | v => sorry
 
 public def test : MultiTapeTM 1 Char := pushList (StrEnc.toData true) 0 ;ₜ negateBool 0
 
 public lemma test_eval_struct
     {views : Fin 1 → TapeView}
-    (h_data : (views 0) = ⟨Data.list [], []⟩)
+    (h_data : (views 0) = .ofList [])
       :
     test.eval_struct views = some
-      (Function.update views 0 ⟨Data.list [StrEnc.toData false], []⟩) := by
+      (Function.update views 0 (.ofList [StrEnc.toData false])) := by
   simp [test, h_data]
 
 end Routines

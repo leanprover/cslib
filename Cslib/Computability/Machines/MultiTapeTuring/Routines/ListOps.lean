@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 
 namespace Turing
 namespace Routines

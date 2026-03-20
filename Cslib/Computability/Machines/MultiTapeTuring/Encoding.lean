@@ -183,6 +183,12 @@ public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
     | list ds => grind [Data.atPath]
 
 @[simp]
+public lemma Data.atPath_dropLast_isSome_of_isSome {d : Data} {path : List ℕ}
+    (h_is_some : (d.atPath path).isSome) :
+  (d.atPath path.dropLast).isSome := by
+  sorry
+
+@[simp]
 public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
   (h_succ_is_some : (d.atPath [idx + 1]).isSome) :
   (d.atPath [idx]).isSome := by
@@ -212,18 +218,20 @@ public structure TapeView where
   data : Data
   /-- Navigation path into the `Data` value. -/
   path : List ℕ
+  /-- The path is valid. -/
+  h_path : (data.atPath path).isSome
 
-instance : Inhabited TapeView := ⟨⟨Data.list [], []⟩⟩
+instance : Inhabited TapeView := ⟨⟨Data.list [], [], by rfl⟩⟩
 
 namespace TapeView
 
 /-- An empty tape (represented as an empty list). -/
 @[expose]
-public abbrev empty : TapeView := ⟨Data.list [], []⟩
+public abbrev empty : TapeView := ⟨Data.list [], [], by rfl⟩
 
 /-- A tape containing a single Data value with the head at the start. -/
 @[expose]
-public abbrev ofData (d : Data) : TapeView := ⟨d, []⟩
+public abbrev ofData (d : Data) : TapeView := ⟨d, [], by rfl⟩
 
 @[expose]
 public abbrev ofList (ls : List Data) : TapeView := ofData (Data.list ls)
@@ -236,22 +244,22 @@ public abbrev ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
 /-- The Data element currently pointed to by the head (at the path position).
     Returns `none` if the path is invalid. -/
 @[expose]
-public def current (tv : TapeView) : Option Data :=
-  tv.data.atPath tv.path
+public def current (tv : TapeView) : Data :=
+  (tv.data.atPath tv.path).get tv.h_path
 
 @[simp]
-public lemma current_append {data : Data} {path : List ℕ} :
-  (TapeView.mk data path).current = data.atPath path := by rfl
+public lemma current_append {data : Data} {path : List ℕ} {h : (data.atPath path).isSome} :
+  (TapeView.mk data path h).current = (data.atPath path).get h := by sorry
 
 public lemma current_rev (tv : TapeView) :
-  tv.data.atPath tv.path = tv.current := rfl
+  tv.data.atPath tv.path = tv.current := sorry
 
 /-- The current value as a natural number, if it is a `Data.num`.
     Returns `none` if the tape is empty, the path is invalid,
     or the value at the path is a `Data.list`. -/
 public def currentNum (tv : TapeView) : Option ℕ :=
   match tv.current with
-  | some (Data.num n) => some n
+  | Data.num n => some n
   | _ => none
 
 /-- The current value as a list, if it is a `List`.
@@ -260,7 +268,7 @@ public def currentNum (tv : TapeView) : Option ℕ :=
 @[expose]
 public abbrev currentList (tv : TapeView) : Option (List Data) :=
   match tv.current with
-  | some (Data.list ls) => some ls
+  | Data.list ls => some ls
   | _ => none
 
 @[simp]
@@ -272,7 +280,7 @@ public lemma current_of_currentList (tv : TapeView) (ls : List Data)
 public def parent (tv : TapeView) : Option TapeView :=
   match tv.path with
   | [] => none
-  | _ => some ⟨tv.data, tv.path.dropLast⟩
+  | _ => some ⟨tv.data, tv.path.dropLast, by simp [tv.h_path]⟩
 
 @[expose, simp]
 public def next (tv : TapeView) : Option TapeView :=
@@ -281,7 +289,7 @@ public def next (tv : TapeView) : Option TapeView :=
     let parent ← tv.parent
     let siblings ← parent.currentList
     if idx + 1 < siblings.length then
-      some ⟨tv.data, tv.path.dropLast ++ [idx + 1]⟩
+      some ⟨tv.data, tv.path.dropLast ++ [idx + 1], sorry⟩
     else
       none
 
@@ -289,8 +297,8 @@ public def next (tv : TapeView) : Option TapeView :=
 @[expose, simp]
 public def toElem? (tv : TapeView) (i : ℕ) : Option TapeView :=
   match tv.current with
-  | some (Data.list ls) => if i < ls.length then
-      some ⟨tv.data, tv.path ++ [i]⟩
+  | Data.list ls => if i < ls.length then
+      some ⟨tv.data, tv.path ++ [i], sorry⟩
     else
       none
   | _ => none
@@ -299,7 +307,7 @@ public def toElem? (tv : TapeView) (i : ℕ) : Option TapeView :=
     Returns `none` if the tape is empty, the path is invalid,
     or the `Data` at the path does not represent a valid value of type `α`. -/
 public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
-  tv.current.bind StrEnc.fromData
+  StrEnc.fromData tv.current
 
 /-- The position of the head in the encoded version of the `TapeView`. -/
 public def encodedPos (tv : TapeView) : ℕ := sorry
@@ -319,38 +327,38 @@ public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sor
 
 /-- Prepend a `Data` value to the front of a list on tape.
     If the path is `[]` and `data` is `Data.list ds`,
-    returns `⟨Data.list (d :: ds), []⟩`.
+    returns `⟨Data.list (d :: ds), [], _⟩`.
     Otherwise, returns the `TapeView` unchanged. -/
 @[expose]
 public def pushList (d : Data) (tv : TapeView) : TapeView :=
   match tv with
-  | ⟨Data.list ds, []⟩ => ⟨Data.list (d :: ds), []⟩
+  | ⟨Data.list ds, [], _⟩ => ⟨Data.list (d :: ds), [], rfl⟩
   | other => other
 
 @[simp]
 public lemma pushList_list {d : Data} {ds : List Data} :
-    (TapeView.mk (Data.list ds) []).pushList d =
-      TapeView.mk (Data.list (d :: ds)) [] := by
+    (TapeView.mk (Data.list ds) [] sorry).pushList d =
+      TapeView.mk (Data.list (d :: ds)) [] rfl := by
   unfold pushList; rfl
 
 @[simp]
 public lemma pushList_num {d : Data} {n : ℕ} {p : List ℕ} :
-    (TapeView.mk (Data.num n) p).pushList d =
-      TapeView.mk (Data.num n) p := by
+    (TapeView.mk (Data.num n) p sorry).pushList d =
+      TapeView.mk (Data.num n) p sorry := by
   unfold pushList; rfl
 
 @[simp]
 public lemma pushList_nonempty_path {d : Data} {dat : Data}
     {k : ℕ} {rest : List ℕ} :
-    (TapeView.mk dat (k :: rest)).pushList d =
-      TapeView.mk dat (k :: rest) := by
+    (TapeView.mk dat (k :: rest) sorry).pushList d =
+      TapeView.mk dat (k :: rest) sorry := by
   unfold pushList; cases dat with
   | num _ => rfl
   | list _ => rfl
 
 public def asWritableList (tv : TapeView) : Option (List Data) :=
   match tv with
-  | ⟨Data.list l, []⟩ => some l
+  | ⟨Data.list l, [], _⟩ => some l
   | _ => none
 
 /-- Remove the first element from a list on tape. -/
@@ -365,7 +373,7 @@ public def currentListHead (tv : TapeView) : Option Data :=
 
 public def updateListHead (tv : TapeView) (f : Data → Data) : TapeView :=
   match tv with
-  | ⟨Data.list (d :: ds), []⟩ => ⟨Data.list (f d :: ds), []⟩
+  | ⟨Data.list (d :: ds), [], _⟩ => ⟨Data.list (f d :: ds), [], rfl⟩
   | other => other
 
 public def updateListHeadTyped

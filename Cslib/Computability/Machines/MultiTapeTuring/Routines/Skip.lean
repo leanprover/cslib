@@ -45,7 +45,7 @@ public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
     (h_path : (views i).path = rest ++ [idx + 1]) :
     (skipLeft i).eval_struct views = some
       (Function.update views i
-        ⟨(views i).data, rest ++ [idx]⟩) := by sorry
+        ⟨(views i).data, rest ++ [idx], sorry⟩) := by sorry
 
 end Routines
 end Turing

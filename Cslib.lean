@@ -48,7 +48,6 @@ public import Cslib.Computability.Machines.MultiTapeTuring.PopRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.PushRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListIteration
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape

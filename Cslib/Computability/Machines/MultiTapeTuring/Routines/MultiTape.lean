@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Erase
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 
 namespace Turing
@@ -50,7 +49,7 @@ public lemma copyEnc_eval_struct {k : ℕ} {i j : Fin k}
     {views : Fin k → TapeView}
     {h_ne : i ≠ j} :
     (copyEnc i j h_ne).eval_struct views = some (Function.update views j
-      (((views i).current.map fun d => ⟨d, []⟩).getD (views j))) := by sorry
+      (.ofData (views i).current)) := by sorry
 
 /-- `isEq i j result` compares the `Data` elements at the current positions
     of tapes `i` and `j`, and writes the boolean result to tape `result`
@@ -64,7 +63,7 @@ public lemma isEq_eval_struct {k : ℕ} {i j result : Fin k}
     (h_empty_r : (views result).data = Data.list []) :
     (isEq i j result).eval_struct views = some
       (Function.update views result
-        ⟨StrEnc.toData (decide (d₁ = d₂)), []⟩) := by sorry
+        (.ofEnc (decide ((views i).current = (views j).current)))) := by sorry
 
 end Routines
 end Turing

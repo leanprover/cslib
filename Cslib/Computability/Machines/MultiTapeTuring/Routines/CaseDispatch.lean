@@ -50,7 +50,7 @@ public lemma case_num_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (case_num i branches).eval_struct views =
       match (views i).current with
-      | some (Data.num n) => if h : n < branches.length then branches[n].eval_struct views else some views
+      | Data.num n => if h : n < branches.length then branches[n].eval_struct views else some views
       | _ => some views := by sorry
 
 /-- Performs pattern-matching on an inductive type where each constructor has exactly one argument:
@@ -75,9 +75,9 @@ public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
     {branches : List (MultiTapeTM k Char)}
     {views : Fin k → TapeView} :
     (case_popList_num i branches).eval_struct views = match views i with
-      | ⟨Data.list ((Data.num n) :: ds), []⟩ =>
+      | ⟨Data.list ((Data.num n) :: ds), [], _⟩ =>
         if h : n < branches.length then
-          branches[n].eval_struct (Function.update views i (⟨Data.list ds, []⟩))
+          branches[n].eval_struct (Function.update views i (.ofList ds))
         else
           views
       | _ => views := by sorry
