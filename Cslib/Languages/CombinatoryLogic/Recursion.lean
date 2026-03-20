@@ -459,9 +459,7 @@ theorem sqrt_correct (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
   · -- fNat (Nat.sqrt n) = 0
     simp [Nat.lt_succ_sqrt]
   · -- ∀ i < Nat.sqrt n, fNat i ≠ 0
-    intro i hi
-    have : (i + 1) * (i + 1) ≤ n := Nat.le_sqrt.mp (by omega)
-    simp [show ¬(n < (i + 1) * (i + 1)) from by omega]
+    grind [Nat.le_sqrt]
 
 /-! ### Nat pairing (matching Mathlib's `Nat.pair`) -/
 
