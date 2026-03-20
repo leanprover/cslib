@@ -80,11 +80,8 @@ theorem frequently_in_strictMono {p : ℕ → Prop} {f : ℕ → ℕ}
 open Nat in
 /-- Every infinite subset of ℕ is the range of a strictly monotonic function from ℕ to ℕ. -/
 theorem strictMono_of_infinite {ns : Set ℕ} (h : ns.Infinite) :
-    ∃ φ : ℕ → ℕ, StrictMono φ ∧ range φ = ns := by
-  use (nth (· ∈ ns))
-  split_ands
-  · exact nth_strictMono h
-  · exact range_nth_of_infinite h
+    ∃ φ : ℕ → ℕ, StrictMono φ ∧ range φ = ns :=
+  ⟨nth (· ∈ ns), nth_strictMono h, range_nth_of_infinite h⟩
 
 end ωSequence
 
