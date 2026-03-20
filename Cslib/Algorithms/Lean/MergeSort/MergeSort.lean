@@ -198,8 +198,8 @@ theorem mergeSort_time_le (xs : List α) :
 
 /-- Time complexity of mergeSort -/
 theorem mergeSort_time (xs : List α) :
-  let n := xs.length
-  (mergeSort xs).time ≤ n * clog 2 n := by
+    let n := xs.length
+    (mergeSort xs).time ≤ n * clog 2 n := by
   grind [mergeSort_time_le, timeMergeSortRec_le]
 
 end TimeComplexity
