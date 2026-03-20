@@ -531,8 +531,7 @@ theorem natUnpairLeft_correct (n : Nat) (cn : SKI) (hcn : IsChurch n cn) :
   obtain ⟨hs, hdiff⟩ := natUnpair_church n cn hcn
   have hcond := neg_correct _ _ (le_correct _ _ _ _ hs hdiff)
   apply isChurch_trans _ (cond_correct _ _ _ _ hcond)
-  simp only [Nat.unpair]
-  by_cases h : n - Nat.sqrt n * Nat.sqrt n < Nat.sqrt n <;> grind
+  by_cases h : n - n.sqrt ^ 2 < n.sqrt <;> grind [Nat.unpair]
 
 /-- NatUnpairRight n = let s = sqrt n in if n - s² < s then s else n - s² - s. -/
 def NatUnpairRightPoly : SKI.Polynomial 1 :=
