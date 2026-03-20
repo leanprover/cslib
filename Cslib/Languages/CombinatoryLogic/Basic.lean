@@ -187,6 +187,13 @@ theorem C_def (f x y : SKI) : (C ⬝ f ⬝ x ⬝ y) ↠ f ⬝ y ⬝ x :=
 lemma C_head_mred (f x y z : SKI) (h : (f ⬝ y) ↠ z) : (C ⬝ f ⬝ x ⬝ y) ↠ z ⬝ x :=
   Trans.trans (C_def f x y) (MRed.head x h)
 
+/-- W := λ f x. f x x -/
+def WPoly : SKI.Polynomial 2 := &0 ⬝' &1 ⬝' &1
+/-- A SKI term representing W -/
+def W : SKI := WPoly.toSKI
+theorem W_def (f x : SKI) : (W ⬝ f ⬝ x) ↠ f ⬝ x ⬝ x :=
+  WPoly.toSKI_correct [f, x] (by simp)
+
 /-- Rotate right: RotR := λ x y z. z x y -/
 def RotRPoly : SKI.Polynomial 3 := &2 ⬝' &0 ⬝' &1
 /-- A SKI term representing RotR -/

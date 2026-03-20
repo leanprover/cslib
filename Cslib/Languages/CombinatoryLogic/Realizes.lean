@@ -8,13 +8,20 @@ module
 
 public import Cslib.Languages.CombinatoryLogic.Basic
 public import Cslib.Foundations.Semantics.Realizes
-public import Mathlib.Data.Part
+public import Mathlib.Data.PFun
 
 @[expose] public section
 
 namespace Cslib.SKI
 
 open Red MRed Relation HasRealizer Realizes
+
+/-! ### Function types
+
+Realizers for a function type `α → β` are defined by a logical relation: `xf ⊩ f` if for every
+`xa ⊩ a`, `xf ⬝ xa ⊩ f a`. We provide realizer interpretations for the primitive combinators
+`S`,`K` and `I` as well as those from the `BCKW` basis.
+-/
 
 /-- A term `xf` encodes a function `f : α → β` if for every `xa ⊩ a : α`, `xf ⬝ a ⊩ f a`. -/
 instance instHasRealizerPi (α β : Type*) [hα : HasRealizer α SKI] [hβ : HasRealizer β SKI] :
@@ -35,6 +42,28 @@ instance instHasRealizerDescPi (α β : Type*) [hα : HasRealizer α SKI] [hβ :
     apply HasRealizerDesc.realizes_right_of_red (hy hz)
     exact red_head _ _ _ h
 
+lemma realizes_id {α : Type*} [HasRealizerLift α Red] : I ⊩ (id : α → α) :=
+  fun ha => ha.left_of_red <| red_I _
+
+lemma realizes_const {α β : Type*} [HasRealizerLift α Red] [HasRealizer β SKI] :
+    K ⊩ (Function.const β : α → β → α) := fun ha _ _ _ => ha.left_of_red <| red_K ..
+
+lemma realizes_S {α β γ : Type*} [HasRealizer α SKI] [HasRealizer β SKI]
+    [HasRealizerLift γ Red] : S ⊩ (fun (f : α → β → γ) (g : α → β) (a : α) => f a (g a)) :=
+  fun hf _ _ hg _ _ ha => (hf ha (hg ha)).left_of_red <| red_S ..
+
+lemma realizes_comp {α β γ : Type*} [HasRealizer α SKI] [HasRealizer β SKI]
+    [HasRealizerLift γ Red] : B ⊩ (Function.comp : (β → γ) → (α → β) → α → γ) :=
+  fun hf _ _ hg _ _ ha => (hf <| hg ha).left_of_mRed <| B_def ..
+
+lemma realizes_swap {α β γ : Type*} [HasRealizer α SKI] [HasRealizer β SKI]
+    [HasRealizerLift γ Red] : C ⊩ (Function.swap : (α → β → γ) → β → α → γ) :=
+  fun hf _ _ hb _ _ ha => (hf ha hb).left_of_mRed <| C_def ..
+
+lemma realizes_diagonal_app {α β : Type*} [HasRealizer α SKI] [HasRealizerLift β Red] :
+    W ⊩ (fun (f : α → α → β) (a : α) => f a a) :=
+  fun hf _ _ ha => (hf ha ha).left_of_mRed <| W_def ..
+
 /-!
 ### Booleans
 
@@ -46,7 +75,7 @@ instance instHasRealizerLiftBool : HasRealizerLift Bool Red where
   realizes_left_of_red := by
     intro u x y hu h a b
     trans y ⬝ a ⬝ b
-    · apply MRed.head; apply MRed.head; exact Relation.ReflTransGen.single h
+    · apply MRed.head; apply MRed.head; exact ReflTransGen.single h
     · exact hu a b
 
 
@@ -62,8 +91,8 @@ def FF : SKI := K ⬝ I
 @[scoped grind .]
 theorem realizes_false : FF ⊩ false :=
   fun x y ↦ calc
-    (FF ⬝ x ⬝ y) ↠ I ⬝ y := by apply Relation.ReflTransGen.single; apply red_head; exact red_K I x
-    _         ⭢ y := red_I y
+    (FF ⬝ x ⬝ y) ↠ I ⬝ y := by apply ReflTransGen.single; apply red_head; exact red_K I x
+    _ ⭢ y := red_I y
 
 /-- Conditional: Cond x y b := if b then x else y -/
 protected def Cond : SKI := RotR
@@ -125,9 +154,9 @@ instance instHasRealizerLiftProd {α β : Type*} [HasRealizerLift α Red] [HasRe
     intro p x y ⟨hp₁, hp₂⟩ h
     constructor
     · apply hp₁.left_of_mRed
-      exact Relation.ReflTransGen.single <| red_tail Fst _ _ h
+      exact ReflTransGen.single <| red_tail Fst _ _ h
     · apply hp₂.left_of_mRed
-      exact Relation.ReflTransGen.single <| red_tail Snd _ _ h
+      exact ReflTransGen.single <| red_tail Snd _ _ h
 
 instance instHasRealizerDescProd {α β : Type*} [HasRealizerDesc α Red] [HasRealizerDesc β Red] :
     HasRealizerDesc (α × β) Red where
@@ -135,9 +164,9 @@ instance instHasRealizerDescProd {α β : Type*} [HasRealizerDesc α Red] [HasRe
     intro p x y ⟨hp₁, hp₂⟩ h
     constructor
     · apply hp₁.right_of_mRed
-      exact Relation.ReflTransGen.single <| red_tail Fst _ _ h
+      exact ReflTransGen.single <| red_tail Fst _ _ h
     · apply hp₂.right_of_mRed
-      exact Relation.ReflTransGen.single <| red_tail Snd _ _ h
+      exact ReflTransGen.single <| red_tail Snd _ _ h
 
 /-- The pairing term `SKI.MkPair` indeed encodes `Prod.Mk`. -/
 lemma realizes_mkPair {α β : Type*} [HasRealizerLift α Red] [HasRealizerLift β Red] :
@@ -192,12 +221,12 @@ instance instHasRealizerLiftSum {α β : Type*} [HasRealizerLift α Red] [HasRea
       intro f g
       obtain ⟨xa, ha, hred⟩ := hy f g
       use xa, ha
-      exact Relation.ReflTransGen.head (red_head _ _ g <| red_head _ _ f h) hred
+      exact ReflTransGen.head (red_head _ _ g <| red_head _ _ f h) hred
     case inr b =>
       intro f g
       obtain ⟨xb, hb, hred⟩ := hy f g
       use xb, hb
-      exact Relation.ReflTransGen.head (red_head _ _ g <| red_head _ _ f h) hred
+      exact ReflTransGen.head (red_head _ _ g <| red_head _ _ f h) hred
 
 def inlPoly : SKI.Polynomial 3 := &1 ⬝' &0
 protected def Inl : SKI := inlPoly.toSKI
@@ -235,7 +264,8 @@ theorem realizes_sum_rec {α β γ : Type*} [HasRealizer α SKI] [HasRealizer β
 /-!
 ### Partial values
 
-A term `x` encodes a partial value `o` if `o = Part.none`, or `o = Part.some a` and `x ⊩ a`.
+A term `x` encodes a partial value `o` if `o = Part.none`, or `o = Part.some a` and `x ⊩ a`. We
+specialize the definition of realizers for function types to partial functions `a →. β`.
 -/
 
 instance instHasRealizerPart {α : Type*} [HasRealizer α SKI] : HasRealizer (Part α) SKI where
@@ -255,6 +285,11 @@ lemma realizes_some_iff {α : Type*} [HasRealizer α SKI] {a : α} {x : SKI} :
 lemma realizes_none {α : Type*} [HasRealizer α SKI] (x : SKI) : x ⊩ (Part.none : Part α) :=
   fun h => False.elim (Part.not_none_dom h)
 
+lemma realizes_some {α : Type*} [HasRealizerLift α Red] : I ⊩ (Part.some : α → Part α) := by
+  intro a xa ha
+  rw [realizes_some_iff]
+  exact ha.left_of_red (red_I xa)
+
 instance instHasRealizerLiftPart {α : Type*} [HasRealizerLift α Red] :
     HasRealizerLift (Part α) Red where
   realizes_left_of_red := by
@@ -266,5 +301,25 @@ instance instHasRealizerDescPart {α : Type*} [HasRealizerDesc α Red] :
   realizes_right_of_red := by
     intro o x y ho h hdom
     exact (ho hdom).right_of_red h
+
+instance instHasRealizerPFun (α β : Type*) [HasRealizer α SKI] [HasRealizer β SKI] :
+  HasRealizer (α →. β) SKI := inferInstanceAs <| HasRealizer (α → Part β) SKI
+
+instance instHasRealizerLiftPFun (α β : Type*) [hα : HasRealizer α SKI]
+    [hβ : HasRealizerLift β Red] : HasRealizerLift (α →. β) Red :=
+    inferInstanceAs <| HasRealizerLift (α → Part β) Red
+
+instance instHasRealizerDescPFun (α β : Type*) [hα : HasRealizer α SKI]
+    [hβ : HasRealizerDesc β Red] : HasRealizerDesc (α →. β) Red :=
+    inferInstanceAs <| HasRealizerDesc (α → Part β) Red
+
+lemma realizes_pfun_iff {α β : Type*} [HasRealizer α SKI] [HasRealizer β SKI] (xf : SKI)
+    (f : α →. β) :
+    (xf ⊩ f) ↔ ∀ {a : α} (ha : a ∈ f.Dom) {xa : SKI}, (xa ⊩ a) → (xf ⬝ xa) ⊩ f.fn a ha := by
+  constructor
+  · intro h a ha xa hxa
+    exact h hxa ha
+  · intro h a xa ha hdom
+    exact h hdom ha
 
 end Cslib.SKI
