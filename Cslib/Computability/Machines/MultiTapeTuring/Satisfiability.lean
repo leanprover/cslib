@@ -194,11 +194,7 @@ public theorem sat_verify.computes_fun
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
   simp [sat_verify, h_input, sat_verify_core_semantics formula assignments]
-  have h₁ : (1 : Fin 5) ≠ 2 := by decide
-  rw [Function.update_comm h₁ _ _ _]
-  simp
-  -- the only problem now is that redundant Function.update calls are not processed
-  sorry
+  grind
 
 
 end Satisfiability

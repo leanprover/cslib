@@ -112,6 +112,13 @@ public theorem Function.update_update_update_of_ne {α β : Type*} [DecidableEq 
     Function.update (Function.update f j y) i z := by
   simp [Function.update_comm h, Function.update_idem]
 
+@[simp]
+public theorem Function.update_redundant {α : Type*} [DecidableEq α]
+    {β : Type*} {f : α → β} {i j : α} {v : β} (h : i ≠ j) :
+    Function.update (Function.update f i v) j (f j) =
+    Function.update f i v := by
+  grind
+
 
 end Routines
 

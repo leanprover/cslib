@@ -252,6 +252,11 @@ public def current (tv : TapeView) : Data :=
 public lemma current_append {data : Data} {path : List ℕ} {h : (data.atPath path).isSome} :
   (TapeView.mk data path h).current = (data.atPath path).get h := by simp [current]
 
+@[simp]
+public lemma mk_data_path (tv : TapeView) (h : (tv.data.atPath tv.path).isSome) :
+    TapeView.mk tv.data tv.path h = tv := by
+  cases tv; rfl
+
 -- TODO it looks weird to make that a simp. is it OK?
 @[simp]
 public lemma current_rev (tv : TapeView) :
