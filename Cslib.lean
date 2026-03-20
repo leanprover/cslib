@@ -1,7 +1,19 @@
 module  -- shake: keep-all
 
+public import Cslib.Algorithms.DynamicProgramming.EditDistance
+public import Cslib.Algorithms.DynamicProgramming.LCS
+public import Cslib.Algorithms.Graph.BFS
+public import Cslib.Algorithms.Graph.DFS
+public import Cslib.Algorithms.Graph.Dijkstra
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.Algorithms.Search.BinarySearch
+public import Cslib.Algorithms.Sorting.BubbleSort
+public import Cslib.Algorithms.Sorting.CountingSort
+public import Cslib.Algorithms.Sorting.HeapSort
+public import Cslib.Algorithms.Sorting.InsertionSort
+public import Cslib.Algorithms.Sorting.QuickSort
+public import Cslib.Algorithms.Sorting.SelectionSort
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
