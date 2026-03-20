@@ -59,11 +59,9 @@ public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char :=
 on tape `i`. -/
 @[simp]
 public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView}
-  {list : List Data}
-  {h_isList : (views i).current = some (Data.list list)}
-  {h_len : idx < list.length} :
+  (h_valid : ((views i).current.atPath [idx]).isSome) :
   (toElem idx i).eval_struct views = some
-    (Function.update views i ⟨(views i).data, (views i).path ++ [idx], sorry⟩) := by
+    (Function.update views i ((views i).appendPath idx h_valid)) := by
   sorry
   -- have h_nonempty : 0 < list.length := by omega
   -- simp only [toElem, seq_eval_struct, h_isList, Option.some.injEq, Data.list.injEq, h_nonempty,
@@ -95,8 +93,7 @@ public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
 public lemma outOfList_eval_struct_valid {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (outOfList i).eval_struct views = some
-      (Function.update views i
-        ⟨(views i).data, (views i).path.dropLast, sorry⟩) := by sorry
+      (Function.update views i (views i).parent) := by sorry
 
 end Routines
 end Turing

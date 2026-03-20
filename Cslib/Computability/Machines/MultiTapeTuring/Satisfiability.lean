@@ -141,11 +141,9 @@ public lemma case_literal.computes_fun {k : ℕ}
     exact Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 1 by decide)
   match h : lit with
   | Literal.pos v =>
-    simp [h_comp_pos v x,
-      case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, TapeView.current_rev]
+    simp [h_comp_pos v x, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x]
   | Literal.neg v =>
-    simp [h_comp_neg v x,
-      case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, TapeView.current_rev]
+    simp [h_comp_neg v x, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x]
 
 /-- Check if literal on tape 0 is satisfied by assignment on tape 1 and store result
 on tape 2. -/
@@ -195,8 +193,10 @@ public theorem sat_verify.computes_fun
   (h_second_empty : views 1 = TapeView.empty) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  simp [sat_verify, h_input, TapeView.current_rev,
-    sat_verify_core_semantics formula assignments]
+  simp [sat_verify, h_input, sat_verify_core_semantics formula assignments]
+  have h₁ : (1 : Fin 5) ≠ 2 := by decide
+  rw [Function.update_comm h₁ _ _ _]
+  simp
   -- the only problem now is that redundant Function.update calls are not processed
   sorry
 

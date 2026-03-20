@@ -242,17 +242,20 @@ public abbrev ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
   ofData (StrEnc.toData x)
 
 /-- The Data element currently pointed to by the head (at the path position).
-    Returns `none` if the path is invalid. -/
+Note that this is not tagged `@[simp]` because many preconditions on simp lemmas
+use `(views i).current = ...`. -/
 @[expose]
 public def current (tv : TapeView) : Data :=
   (tv.data.atPath tv.path).get tv.h_path
 
 @[simp]
 public lemma current_append {data : Data} {path : List ℕ} {h : (data.atPath path).isSome} :
-  (TapeView.mk data path h).current = (data.atPath path).get h := by sorry
+  (TapeView.mk data path h).current = (data.atPath path).get h := by simp [current]
 
+-- TODO it looks weird to make that a simp. is it OK?
+@[simp]
 public lemma current_rev (tv : TapeView) :
-  tv.data.atPath tv.path = tv.current := sorry
+  tv.data.atPath tv.path = tv.current := by simp [current]
 
 /-- The current value as a natural number, if it is a `Data.num`.
     Returns `none` if the tape is empty, the path is invalid,
@@ -277,17 +280,20 @@ public lemma current_of_currentList (tv : TapeView) (ls : List Data)
   tv.current = Data.list ls := by grind
 
 @[expose, simp]
-public def parent (tv : TapeView) : Option TapeView :=
+public def parent (tv : TapeView) : TapeView :=
   match tv.path with
-  | [] => none
-  | _ => some ⟨tv.data, tv.path.dropLast, by simp [tv.h_path]⟩
+  | [] => tv
+  | _ => ⟨tv.data, tv.path.dropLast, by simp⟩
+
+@[expose, simp]
+public def appendPath (tv : TapeView) (idx : ℕ) (h : (tv.current.atPath [idx]).isSome) : TapeView :=
+  ⟨tv.data, tv.path ++ [idx], by simpa using h⟩
 
 @[expose, simp]
 public def next (tv : TapeView) : Option TapeView :=
   do
     let idx ← tv.path.getLast?
-    let parent ← tv.parent
-    let siblings ← parent.currentList
+    let siblings ← tv.parent.currentList
     if idx + 1 < siblings.length then
       some ⟨tv.data, tv.path.dropLast ++ [idx + 1], sorry⟩
     else
@@ -295,13 +301,11 @@ public def next (tv : TapeView) : Option TapeView :=
 
 
 @[expose, simp]
-public def toElem? (tv : TapeView) (i : ℕ) : Option TapeView :=
-  match tv.current with
-  | Data.list ls => if i < ls.length then
-      some ⟨tv.data, tv.path ++ [i], sorry⟩
-    else
-      none
-  | _ => none
+public def toElem? (tv : TapeView) (idx : ℕ) : Option TapeView :=
+  if h : (tv.current.atPath [idx]).isSome then
+    some (tv.appendPath idx h)
+  else
+    none
 
 /-- Attempt to decode the current value as a typed value of type `α`.
     Returns `none` if the tape is empty, the path is invalid,
