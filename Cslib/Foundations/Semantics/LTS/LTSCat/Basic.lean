@@ -40,8 +40,11 @@ The definition of labelled transition system (with the type of states and the
 type of labels as part of the structure).
 -/
 structure LTSCat : Type (max u v + 1) where
+  /-- Type of states of an LTS -/
   State : Type u
+  /-- Type of labels of an LTS -/
   Label : Type v
+  /-- Transition relation of an LTS -/
   lts : LTS State Label
 
 /--
