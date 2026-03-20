@@ -258,10 +258,15 @@ public def currentNum (tv : TapeView) : Option ℕ :=
     Returns `none` if the tape is empty, the path is invalid,
     or the value at the path is not a `Data.list`. -/
 @[expose]
-public def currentList (tv : TapeView) : Option (List Data) :=
+public abbrev currentList (tv : TapeView) : Option (List Data) :=
   match tv.current with
   | some (Data.list ls) => some ls
   | _ => none
+
+@[simp]
+public lemma current_of_currentList (tv : TapeView) (ls : List Data)
+  (h_currentList : tv.currentList = some ls) :
+  tv.current = Data.list ls := by grind
 
 @[expose, simp]
 public def parent (tv : TapeView) : Option TapeView :=

@@ -61,6 +61,13 @@ public instance : StrEnc SATInput where
 
 -- TODO generic theorem about encoding data as a list?
 
+
+@[simp]
+lemma SatInput_toData (formula : Formula) (assignments : Assignments) :
+  StrEnc.toData (SATInput.mk formula assignments) =
+    Data.list [StrEnc.toData formula, StrEnc.toData assignments] := by
+  simp [StrEnc.toData]
+
 @[simp]
 lemma SATInput_toData_atPath_zero (formula : Formula) (assignments : Assignments) (path : List ℕ) :
   (StrEnc.toData (SATInput.mk formula assignments)).atPath (0 :: path) =
@@ -72,6 +79,16 @@ lemma SATInput_toData_atPath_one (formula : Formula) (assignments : Assignments)
   (StrEnc.toData (SATInput.mk formula assignments)).atPath (1 :: path) =
     (StrEnc.toData assignments).atPath path := by
   simp [StrEnc.toData, Data.atPath]
+
+@[simp]
+lemma Literal_toData (lit : Literal) :
+  StrEnc.toData lit = Data.list (
+    match lit with
+    | Literal.pos v => [Data.num 0, StrEnc.toData v]
+    | Literal.neg v => [Data.num 1, StrEnc.toData v]) := by
+  match lit with
+  | Literal.pos v => rfl
+  | Literal.neg v => rfl
 
 @[simp]
 lemma Literal_toData_atPath_zero (lit : Literal) (path : List ℕ) :
@@ -165,7 +182,6 @@ public lemma case_literal.computes_fun {k : ℕ}
   | Literal.neg v =>
     simp [h_comp_neg v x,
       case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, TapeView.current_rev]
-
 
 /-- Check if literal on tape 0 is satisfied by assignment on tape 1 and store result
 on tape 2. -/
