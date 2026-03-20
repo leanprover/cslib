@@ -8,14 +8,13 @@ module
 
 public import Mathlib.CategoryTheory.Category.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
+public import Mathlib.Control.Basic
 
 @[expose] public section
 
 namespace Cslib
 
-universe u v
-
-variable {State : Type u} {Label : Type v}
+variable {State Label : Type*}
 
 /-! # Category of Labelled Transition Systems
 
@@ -40,6 +39,7 @@ def LTS.lift (trans : State → Label → State → Prop) : State → (Option La
 The definition of labelled transition system (with the type of states and the
 type of labels as part of the structure).
 -/
+@[nolint checkUnivs]
 structure LTSCat : Type (max u v + 1) where
   /-- Type of states of an LTS -/
   State : Type u
@@ -66,7 +66,7 @@ structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
 def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
   stateMap := _root_.id
   labelMap := pure
-  labelMap_tr := fun _ _ _ h => h
+  labelMap_tr _ _ _ := _root_.id
 
 /-- Composition of LTS morphisms.
 
@@ -84,26 +84,16 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g
 
 /-- Finally, we prove that these form a category. -/
 instance : CategoryTheory.Category LTSCat where
-  Hom lts₁ lts₂ := LTS.Morphism lts₁ lts₂
-  id lts := LTS.Morphism.id lts
-  comp {lts₁} {lts₂} {lts₃} := @LTS.Morphism.comp lts₁ lts₂ lts₃
-  id_comp := by
-    intros
-    unfold LTS.Morphism.id
-    congr
-  comp_id := by
-    intro _ _ ⟨f, μ, p⟩
+  Hom := LTS.Morphism
+  id := LTS.Morphism.id
+  comp := LTS.Morphism.comp
+  comp_id _ := by
     simp only [LTS.Morphism.comp, LTS.Morphism.id]
     congr 1
-    funext x
-    change (μ x).bind pure = μ x
-    cases μ x <;> rfl
-  assoc := by
-    intro _ _ _ _ ⟨f₁, μ₁, p₁⟩ ⟨f₂, μ₂, p₂⟩ ⟨f₃, μ₃, p₃⟩
+    rw [fish_pure]
+  assoc _ _ _ := by
     simp only [LTS.Morphism.comp]
     congr 1
-    funext x
-    change ((μ₁ x).bind μ₂).bind μ₃ = (μ₁ x).bind fun a => (μ₂ a).bind μ₃
-    cases μ₁ x <;> rfl
+    rw [fish_assoc]
 
 end Cslib
