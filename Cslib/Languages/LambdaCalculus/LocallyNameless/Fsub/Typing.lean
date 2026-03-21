@@ -162,22 +162,14 @@ lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) 
   ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var),
     Typing (⟨x, Binding.ty γ'⟩ :: Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
   generalize eq : Term.abs γ' t = e at der
-  induction der generalizing t γ' γ δ
-  case abs τ L _ _ =>
+  induction der generalizing t γ' γ δ with
+  | @abs _ _ _ τ L _ =>
     cases eq
-    cases sub
-    split_ands
-    · assumption
-    · exists τ, L
-      grind
-  case sub Γ _ τ τ' _ _ ih =>
-    subst eq
-    have sub' : Sub Γ τ (γ.arrow δ) := by grind
-    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
-    split_ands
-    · assumption
-    · exists δ', L
-  all_goals grind
+    cases sub with | arrow sub_γ =>
+    use sub_γ, τ, L
+    grind
+  | sub _ sub_τ ih => exact ih (sub_τ.trans sub) eq
+  | _ => grind only
 
 variable [HasFresh Var] in
 /-- Invert the typing of a type abstraction. -/
