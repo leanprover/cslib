@@ -152,7 +152,7 @@ lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub :
       · expose_names
         subst eq
         have := h_1.to_ok
-        have : Δ = map_val (fun x => x[X:=δ]) Δ := by 
+        have : Δ = map_val (fun x => x[X:=δ]) Δ := by
           apply map_subst_nmem Δ X δ
           · grind only
           · grind only [= haswellformed_def, = dom,
