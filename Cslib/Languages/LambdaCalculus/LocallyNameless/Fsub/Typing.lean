@@ -11,6 +11,8 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Subtype
 
 @[expose] public section
 
+--set_option trace.profiler.useHeartbeats true
+
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -234,7 +236,9 @@ lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
     ∃ t', t = .inl t' ∨ t = .inr t' := by
   generalize eq  : σ.sum τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
+  | _ => grind only [= Option.mem_def, = dlookup_nil]
 
 end Typing
 
