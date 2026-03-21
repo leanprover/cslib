@@ -99,7 +99,7 @@ lemma AlphaEquiv.refl [DecidableEq Var] [HasFresh Var] (m : Term Var) : m =α m 
   | var x => apply AlphaEquiv.var
   | abs x m =>
     obtain ⟨z, hz⟩ := HasFresh.fresh_exists (m.vars ∪ {x})
-    apply AlphaEquiv.abs (y := z) (x1 := x) (x2 := x) (m1 := m) (m2 := m)
+    apply AlphaEquiv.abs (y := z)
     <;> try grind [rename_unused, rename_vars, rename_concat]
     · apply ih
       change sizeOf (m.rename x z) < sizeOf (abs x m)
@@ -120,9 +120,7 @@ lemma AlphaEquiv.symm [DecidableEq Var] [HasFresh Var] {m n : Term Var} :
   induction h with
   | @var x => apply AlphaEquiv.var
   | @abs y x1 x2 m1 m2 hy h ih =>
-    apply AlphaEquiv.abs (y := y) (x1 := x2) (x2 := x1) (m1 := m2) (m2 := m1)
-    <;> try grind [rename_unused, rename_vars, rename_concat]
-    · apply ih
+    apply AlphaEquiv.abs (y := y) <;> grind [rename_unused, rename_vars, rename_concat]
   | @app m1 n1 m2 n2 hwm1 hwn1 hwm2 hwn2 =>
     apply AlphaEquiv.app <;> assumption
 
@@ -159,18 +157,15 @@ lemma AlphaEquiv.rename_preserve [DecidableEq Var] [HasFresh Var]
         apply ih <;> try grind [vars, rename_vars]
         · change sizeOf (m1.rename x1 z) < sizeOf (abs x1 m1)
           grind [rename.eq_sizeOf, abs.sizeOf_spec]
-        · assumption
       grind [rename_concat]
   | @app m1 n1 m2 n2 hm hn =>
     apply AlphaEquiv.app
     · apply ih m1 <;> try grind [vars]
       · change sizeOf m1 < sizeOf (app m1 m2)
         grind [app.sizeOf_spec]
-      · assumption
     · apply ih m2 <;> try grind [vars]
       · change sizeOf m2 < sizeOf (app m1 m2)
         grind [app.sizeOf_spec]
-      · assumption
 
 /-- Elimination rule for α-equivalence of abstractions.
     It states that if two abstractions are α-equivalent,
@@ -184,11 +179,9 @@ lemma AlphaEquiv.abs_elim [DecidableEq Var] [HasFresh Var] {m1 m2 : Term Var} {x
   cases h with
   | @abs z _ _ _ _ hz h1 =>
     by_cases hzy : z = y
-    · subst z
-      assumption
+    · grind
     · have hxzy : ((m1.rename x1 z).rename z y) =α ((m2.rename x2 z).rename z y) := by
-        apply AlphaEquiv.rename_preserve <;> try grind [AlphaEquiv.rename_preserve, rename_vars]
-        assumption
+        apply AlphaEquiv.rename_preserve <;> grind [AlphaEquiv.rename_preserve, rename_vars]
       grind [rename_concat, rename_vars]
 
 /-- Transitivity of α-equivalence. -/
@@ -221,10 +214,10 @@ lemma AlphaEquiv.trans [DecidableEq Var] [HasFresh Var] {m n p : Term Var} :
       cases hnp with
       | @app n1 p1 n2 p2 hnp1 hnp2 =>
         apply AlphaEquiv.app
-        · apply ih _ ?_ n1 <;> try assumption; try grind [vars, rename_vars]
+        · apply ih _ ?_ n1 <;> try grind [vars, rename_vars]
           change sizeOf m1 < sizeOf (app m1 m2)
           grind [app.sizeOf_spec]
-        · apply ih _ ?_ n2 <;> try assumption; try grind [vars, rename_vars]
+        · apply ih _ ?_ n2 <;> try grind [vars, rename_vars]
           change sizeOf m2 < sizeOf (app m1 m2)
           grind [app.sizeOf_spec]
 

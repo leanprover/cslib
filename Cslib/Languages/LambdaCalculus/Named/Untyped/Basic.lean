@@ -83,6 +83,11 @@ inductive Term.AlphaEquiv [DecidableEq Var] : Term Var → Term Var → Prop whe
 instance instHasAlphaEquivTerm [DecidableEq Var] : HasAlphaEquiv (Term Var) where
   AlphaEquiv := Term.AlphaEquiv
 
+/-- Allow grind to recognise the notation of α-equivalence. -/
+@[grind ←]
+theorem Term.AlphaEquiv_def [DecidableEq Var] (m n : Term Var) :
+  AlphaEquiv m n ↔ m =α n := by rfl
+
 /-- Capture-avoiding substitution, as an inference system. -/
 inductive Term.Subst [DecidableEq Var] : Term Var → Var → Term Var → Term Var → Prop where
   | varHit {x r} : (var x).Subst x r r
