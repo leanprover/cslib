@@ -138,9 +138,24 @@ lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub :
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
   induction der generalizing Γ X
   case var σ _ X' _ mem =>
+    expose_names
     have := map_subst_nmem Δ X δ
     have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
-    grind [Env.Wf.map_subst, → notMem_keys_of_nodupKeys_cons]
+    have := sub.wf
+    -- could split this interactively??
+    by_cases h : X = X'
+    · have : (Term.fvar X')[X:=δ] = Term.fvar X' := rfl
+      rw [this]
+      constructor
+      · grind only [!Env.Wf.map_subst]
+      · grind only [= Option.mem_def, = Binding.subst_ty, = dlookup_append, = Option.or_eq_some_iff,
+          = dlookup_cons_eq]
+    · constructor
+      · grind only [!Env.Wf.map_subst]
+      · grind only [→ to_ok, = dom, = map_val, = Binding.subst_ty,
+        = haswellformed_def, = mem_toFinset, = dlookup_append, = map_append,
+        = nodupKeys_middle, → notMem_keys_of_nodupKeys_cons,
+        = map_cons, = dlookup_cons_ne, = keys_append, = mem_append]
   case abs => grind [abs (free_union [Ty.fv] Var), Ty.subst_fresh, open_tm_subst_ty_var]
   case tabs => grind [tabs (free_union Var), open_ty_subst_ty_var, open_subst_var]
   case let' der _ =>
