@@ -91,11 +91,10 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, <= sublist_dlookup]
 
 /-- Weakening of typings (at the front). -/
-lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) :
-    Typing (Γ ++ Δ) t τ := by
-  have eq : Δ = [] ++ Δ := by rfl
+lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) : Typing (Γ ++ Δ) t τ := by
+  have eq : Δ = [] ++ Δ := rfl
   rw [eq] at der
-  grind [Typing.weaken der wf]
+  exact der.weaken wf
 
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
