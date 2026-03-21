@@ -215,24 +215,28 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
       (precStep_def tg ca cb (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)))
     exact isChurch_trans _ hred hcm
 
-/-- Extract eval facts from `Nat.rfind` membership. -/
-private theorem rfind_eval_facts {f : Code} {a₀ m₀ k : ℕ}
+/-- If `k ∈ Nat.rfind …`, then `f` evaluates to 0 at the root. -/
+private theorem rfind_eval_root {f : Code} {a₀ m₀ k : ℕ}
     (hk : k ∈ Nat.rfind (fun n =>
       (fun m => decide (m = 0)) <$> f.eval (Nat.pair a₀ (n + m₀)))) :
-    f.eval (Nat.pair a₀ (m₀ + k)) = Part.some 0 ∧
+    f.eval (Nat.pair a₀ (m₀ + k)) = Part.some 0 := by
+  have hspec := Nat.rfind_spec hk
+  obtain ⟨val, hval_mem, hval_eq⟩ := (Part.mem_map_iff _).mp hspec
+  have : val = 0 := by simpa using hval_eq
+  subst this; rw [Nat.add_comm] at hval_mem
+  exact Part.eq_some_iff.mpr hval_mem
+
+/-- If `k ∈ Nat.rfind …`, then `f` evaluates to a nonzero value below `k`. -/
+private theorem rfind_eval_pos_below {f : Code} {a₀ m₀ k : ℕ}
+    (hk : k ∈ Nat.rfind (fun n =>
+      (fun m => decide (m = 0)) <$> f.eval (Nat.pair a₀ (n + m₀)))) :
     ∀ i < k, ∃ vi, vi ≠ 0 ∧ f.eval (Nat.pair a₀ (m₀ + i)) = Part.some vi := by
-  constructor
-  · have hspec := Nat.rfind_spec hk
-    obtain ⟨val, hval_mem, hval_eq⟩ := (Part.mem_map_iff _).mp hspec
-    have : val = 0 := by simpa using hval_eq
-    subst this; rw [Nat.add_comm] at hval_mem
-    exact Part.eq_some_iff.mpr hval_mem
-  · intro i hi
-    have hmin := Nat.rfind_min hk hi
-    obtain ⟨val, hval_mem, hval_eq⟩ := (Part.mem_map_iff _).mp hmin
-    have hval_ne : val ≠ 0 := by simpa using hval_eq
-    rw [Nat.add_comm] at hval_mem
-    exact ⟨val, hval_ne, Part.eq_some_iff.mpr hval_mem⟩
+  intro i hi
+  have hmin := Nat.rfind_min hk hi
+  obtain ⟨val, hval_mem, hval_eq⟩ := (Part.mem_map_iff _).mp hmin
+  have hval_ne : val ≠ 0 := by simpa using hval_eq
+  rw [Nat.add_comm] at hval_mem
+  exact ⟨val, hval_ne, Part.eq_some_iff.mpr hval_mem⟩
 
 /-- Helper: `RFindAbove` correctly implements `Code.rfind'` by induction on
     the number of steps until the root. -/
@@ -321,7 +325,8 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
       show (Nat.unpair n).2 = m₀ from rfl] at hresult'
     obtain ⟨k, hk_mem, hresult_eq⟩ := (Part.mem_map_iff _).mp hresult'
     subst hresult_eq
-    obtain ⟨heval_root, heval_below⟩ := rfind_eval_facts hk_mem
+    have heval_root := rfind_eval_root hk_mem
+    have heval_below := rfind_eval_pos_below hk_mem
     set g := B ⬝ tf ⬝ (NatPair ⬝ (NatUnpairLeft ⬝ cn))
     have hind := rfindAbove_induction f tf ihf a₀
       (NatUnpairLeft ⬝ cn) hca g rfl k m₀
