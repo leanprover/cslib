@@ -187,23 +187,23 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
      Typing (⟨X, Binding.sub γ⟩ :: Γ) (t ^ᵗᵞ fvar X) (δ' ^ᵞ fvar X)
      ∧ Sub (⟨X, Binding.sub γ⟩ :: Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := by
   generalize eq : Term.tabs γ' t = e at der
-  induction der generalizing γ δ t γ'
-  case tabs σ Γ _ τ L der _ =>
+  induction der generalizing γ δ t γ' with
+  | @tabs _ Γ _ τ L der _ =>
     cases sub with | all L' sub =>
-    split_ands
-    · grind
-    · exists τ, L ∪ L'
-      intro X _
-      have eq : ⟨X, Binding.sub γ⟩ :: Γ = [] ++ ⟨X, Binding.sub γ⟩ :: Γ := by rfl
-      grind [narrow]
-  case sub Γ _ τ τ' _ _ ih =>
-    subst eq
-    have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
-    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
-    split_ands
-    · assumption
-    · exists δ', L
-  all_goals grind
+    cases eq
+    use sub, τ, L ∪ L'
+    intro X _
+    have eq : ⟨X, .sub γ⟩ :: Γ = [] ++ ⟨X, .sub γ⟩ :: Γ := rfl
+    grind only [= Finset.mem_union, narrow]
+  | sub _ sub_τ ih => exact ih (sub_τ.trans sub) eq
+  | var => grind only
+  | abs => grind only
+  | app => grind only
+  | tapp => grind only
+  | let' => grind only
+  | inl => grind only
+  | inr => grind only
+  | case => grind only
 
 /-- Invert the typing of a left case. -/
 lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
@@ -217,7 +217,7 @@ lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
 /-- Invert the typing of a right case. -/
 lemma inr_inv (der : Typing Γ (.inr t) T) (sub : Sub Γ T (sum γ δ)) :
     ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
-  generalize eq : t.inr =t at der
+  generalize eq : t.inr = t at der
   induction der generalizing γ δ with
   | inr => cases sub; grind only
   | sub => grind only [→ Sub.trans]
