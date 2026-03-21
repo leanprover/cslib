@@ -209,27 +209,39 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
 lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
     ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := by
   generalize eq : t.inl =t at der
-  induction der generalizing γ δ <;> grind [cases Sub]
+  induction der generalizing γ δ with
+  | inl => cases sub; grind only
+  | sub => grind only [→ Sub.trans]
+  | _ => grind only
 
 /-- Invert the typing of a right case. -/
 lemma inr_inv (der : Typing Γ (.inr t) T) (sub : Sub Γ T (sum γ δ)) :
     ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
   generalize eq : t.inr =t at der
-  induction der generalizing γ δ <;> grind [cases Sub]
+  induction der generalizing γ δ with
+  | inr => cases sub; grind only
+  | sub => grind only [→ Sub.trans]
+  | _ => grind only
 
 /-- A value that types as a function is an abstraction. -/
 lemma canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
     ∃ δ t', t = .abs δ t' := by
   generalize eq  : σ.arrow τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
+  | var => grind only [= Option.mem_def, = dlookup_nil]
+  | _ => grind only
 
 /-- A value that types as a quantifier is a type abstraction. -/
 lemma canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
     ∃ δ t', t = .tabs δ t' := by
   generalize eq  : σ.all τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
+  | var => grind only [= Option.mem_def, = dlookup_nil]
+  | _ => grind only
 
 /-- A value that types as a sum is a left or right case. -/
 lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
@@ -238,7 +250,8 @@ lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ with
   | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
-  | _ => grind only [= Option.mem_def, = dlookup_nil]
+  | var => grind only [= Option.mem_def, = dlookup_nil]
+  | _ => grind only
 
 end Typing
 
