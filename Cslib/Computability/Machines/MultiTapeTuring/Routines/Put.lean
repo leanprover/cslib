@@ -74,31 +74,22 @@ theorem clear.eval {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char}
 
 /-- Prepend the encoding of a `Data` value to tape `i`. -/
 public def put {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
-  clear i ;ₜ putChars (Data.enc d) i
+  putChars (Data.enc d) i
 
 /-- Prepend the encoding of a value of type `α` (via its `StrEnc` instance) to tape `i`. -/
 public def putEnc {k : ℕ} {α : Type*} [StrEnc α] (x : α) (i : Fin k) :
     MultiTapeTM k Char :=
   put (StrEnc.toData x) i
 
-/-- `put d i` writes a `Data` value to tape `i` if positioned at the start of the tape. -/
+/-- `put d i` writes a `Data` value to tape `i` if the tape is empty.
+    If the tape already has data, `put` is a no-op.
+    Resets the path to `[]`. -/
 @[simp]
 public lemma put_eval_struct_empty {k : ℕ} {d : Data} {i : Fin k}
     {views : Fin k → TapeView}
     (h_empty : (views i).path = []) :
     (put d i).eval_struct views = some
-      (Function.update views i (.ofData d)) := by
-  let old := (views i).data.enc
-  have h_tape : (views i).toBiTape = BiTape.mk₁ old := by
-    simp [TapeView.toBiTape, h_empty, TapeView.encodedPos]
-    sorry
-  simp [put]
-  unfold MultiTapeTM.eval_struct
-  rw [clear.eval h_tape]
-  simp
-  rw [← TapeView.toBiTape_ofData]
-  -- TODO this needs a lemma for TapeView.ofBiTapes?
-  sorry
+      (Function.update views i (.ofData d)) := by sorry
 
 
 
