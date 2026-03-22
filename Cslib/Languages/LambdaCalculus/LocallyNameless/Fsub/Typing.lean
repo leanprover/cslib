@@ -82,13 +82,28 @@ lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) : Γ
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     Typing (Γ ++ Θ ++ Δ) t τ := by
   generalize eq : Γ ++ Δ = ΓΔ at der
-  induction der generalizing Γ
-  case' abs => apply abs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
-  case' tabs => apply tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
-  case' let' der _ => apply let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
-  case' case der _ _ => apply case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
-  all_goals
-    grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, <= sublist_dlookup]
+  induction der generalizing Γ with
+  | abs =>
+    apply abs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+    grind [Wf.weaken, Wf.of_env_ty]
+  | tabs => 
+    apply tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
+    grind [Wf.weaken, Wf.of_env_sub]
+  | let' _ _ _ der =>
+    apply let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
+    grind
+  | case _ _ _ _ der => 
+    apply case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
+    · grind [Wf.weaken, Wf.of_env_ty]
+    · grind [Wf.weaken, Wf.of_env_ty]
+  | var => grind [<= sublist_dlookup]
+  | app => grind
+  | tapp => grind [Sub.weaken]
+  | inl => 
+    -- TODO: break this and look at the way it's extending the context in the middle
+    grind [Sub.weaken, Sub.refl]
+  | inr => grind [Sub.weaken, Sub.refl]
+  | sub => grind [Sub.weaken]
 
 /-- Weakening of typings (at the front). -/
 lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) : Typing (Γ ++ Δ) t τ := by
@@ -99,14 +114,28 @@ lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) : Typing (Γ ++ Δ
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
     Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
-  induction der generalizing Γ
-  case var X' _ _ =>
-    grind [Env.Wf.narrow, List.perm_nodupKeys, => List.perm_dlookup]
-  case' abs  => apply abs (free_union Var)
-  case' tabs => apply tabs (free_union Var)
-  case' let' der _ => apply let' (free_union Var) (der eq)
-  case' case der _ _ => apply case (free_union Var) (der eq)
-  all_goals grind [Ty.Wf.narrow, Env.Wf.narrow, Sub.narrow]
+  induction der generalizing Γ with
+  | var =>
+    -- TODO: split manually??
+    grind [Env.Wf.narrow]
+  | abs  => 
+    apply abs (free_union Var)
+    grind
+  | tabs => 
+    apply tabs (free_union Var)
+    grind
+  | let' _ _ _ der => 
+    apply let' (free_union Var) (der eq)
+    grind
+  | case _ _ _ _ der => 
+    apply case (free_union Var) (der eq)
+    · grind
+    · grind
+  | app => grind
+  | tapp => grind [Sub.narrow]
+  | inl => grind [Ty.Wf.narrow]
+  | inr => grind [Ty.Wf.narrow]
+  | sub => grind [Sub.narrow]
 
 /-- Term substitution within a typing. -/
 lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
