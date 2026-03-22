@@ -31,7 +31,7 @@ public lemma run_list_fold {k : ℕ} (i j : Fin k) (h_neq : i ≠ j) {tm : Multi
   (h_comp : computes_function_read_update tm f i j h_neq)
   (views : Fin k → TapeView) :
   (run_list i tm).eval_struct views = some (Function.update views j
-      (((views i).currentList.map
+      (((views i).currentList?.map
         (fun ls => ls.foldl (fun acc d => f d acc) (views j))).getD (views j))) := by
   sorry
 
@@ -46,7 +46,7 @@ public theorem any_list_eval_struct {k : ℕ} (i j : Fin k)
     (h_comp : computes_function_read_push tm f i j h_neq)
     (views : Fin k → TapeView) :
     (any_list tm i j h_neq).eval_struct views = some (Function.update views j
-      (((views i).currentList.map
+      (((views i).currentList?.map
         fun ls => (views j).pushList (StrEnc.toData (ls.any f))).getD (views j))) := by
   sorry
 

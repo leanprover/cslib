@@ -23,10 +23,11 @@ namespace Turing
 
     This is defined as a noncomputable opaque function; its behavior
     is specified by the `@[simp]` lemmas for each TM routine. -/
+@[expose]
 public def MultiTapeTM.eval_struct
     (tm : MultiTapeTM k Char) (views : Fin k → TapeView) :
     Part (Fin k → TapeView) :=
-  tm.eval (TapeView.toBiTape ∘ views) >>= (TapeView.ofBiTape? ∘ ·)
+  tm.eval (TapeView.toBiTape ∘ views) >>= fun views => (TapeView.ofBiTape? ∘ ·)
 
 namespace Routines
 

@@ -41,6 +41,18 @@ public inductive Data where
 
 public instance : DecidableEq Data := sorry
 
+/-- The children of a `Data` value: the elements of a `list`, or empty for a `num`. -/
+@[expose]
+public def Data.children : Data → List Data
+  | Data.list ds => ds
+  | Data.num _ => []
+
+@[simp]
+public lemma Data.children_list (ds : List Data) : (Data.list ds).children = ds := rfl
+
+@[simp]
+public lemma Data.children_num (n : ℕ) : (Data.num n).children = [] := rfl
+
 /-- Encoding of `Data` into a list of characters.
     - `Data.num n` is encoded as `[dyadic(n)]`
     - `Data.list ds` is encoded as `(enc(d₁) ++ … ++ enc(dₙ))` -/
@@ -200,6 +212,13 @@ public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
   (d.atPath [idx]).isSome := by
   sorry
 
+public lemma Data.isList_of_atPath_singleton_isSome {d : Data} {idx : ℕ}
+    (h : (d.atPath [idx]).isSome) :
+    ∃ ds, d = Data.list ds ∧ idx < ds.length := by
+  cases d with
+  | num n => simp [Data.atPath] at h
+  | list ds => exact ⟨ds, rfl, by simp [Data.atPath] at h; exact h⟩
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TapeView
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -280,14 +299,14 @@ public def currentNum (tv : TapeView) : Option ℕ :=
     Returns `none` if the tape is empty, the path is invalid,
     or the value at the path is not a `Data.list`. -/
 @[expose]
-public abbrev currentList (tv : TapeView) : Option (List Data) :=
+public abbrev currentList? (tv : TapeView) : Option (List Data) :=
   match tv.current with
   | Data.list ls => some ls
   | _ => none
 
 @[simp]
 public lemma current_of_currentList (tv : TapeView) (ls : List Data)
-  (h_currentList : tv.currentList = some ls) :
+  (h_currentList : tv.currentList? = some ls) :
   tv.current = Data.list ls := by grind
 
 @[expose, simp]
@@ -307,6 +326,7 @@ public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
   StrEnc.fromData tv.current
 
 /-- The position of the head in the encoded version of the `TapeView`. -/
+@[expose]
 public def encodedPos : (tv : TapeView) → ℕ
   | ⟨_, [], _⟩ => 0
   | ⟨Data.num _, _ :: _, _⟩ => 0 -- unreachable
@@ -317,52 +337,70 @@ public def encodedPos : (tv : TapeView) → ℕ
         encodedPos ⟨ds[p], path, by grind [Data.atPath]⟩
   termination_by tv => tv.path.length
 
--- TODO change the statemnt to not use `ds` but instead derive that it must be a list
--- from `h`.
+@[simp]
 public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
-    (h : (tv.current.atPath [idx]).isSome)
-    {ds : List Data} (h_current : tv.current = Data.list ds) :
-    (tv.appendPath idx h).encodedPos =
-      tv.encodedPos + 1 + ((ds.take idx).map fun d => d.enc.length).sum := by
-  have h_idx : idx < ds.length := by grind [Data.atPath]
-  obtain ⟨data, path, h_valid⟩ := tv
-  induction path generalizing data ds with
-  | nil =>
-    simp only [current, Data.atPath_nil, Option.get_some] at h_current
-    simp [h_current, appendPath, encodedPos]
-  | cons p rest ih =>
-    match data with
-    | Data.num _ =>
-      exfalso; simp [Data.atPath] at h_valid
-    | Data.list ds' =>
-      have h_p : p < ds'.length := by
-        simp only [Data.atPath] at h_valid
-        split at h_valid <;> simp_all
-      simp only [appendPath, encodedPos, List.cons_append, h_p, Nat.add_assoc]
-      have h_valid' : (ds'[p].atPath rest).isSome := by
-        simp [Data.atPath, h_p] at h_valid; exact h_valid
-      have h_curr : (TapeView.mk ds'[p] rest h_valid').current = Data.list ds := by
-        simp only [current, current_append]
-        simp only [current, Data.atPath, h_p] at h_current
-        exact h_current
-      have h' : ((TapeView.mk ds'[p] rest h_valid').current.atPath [idx]).isSome := by
-        rw [h_curr]; simp [Data.atPath, h_idx]
-      have := ih h_idx _ h_valid' h' h_curr
-      simp only [appendPath] at this
-      grind
+    (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
+  (TapeView.mk tv.data (tv.path ++ [idx]) h).encodedPos =
+      tv.encodedPos + 1 + (((tv.currentList?.getD []).take idx).map fun d => d.enc.length).sum := by
+  sorry
+  -- obtain ⟨ds, h_current, h_idx⟩ := Data.isList_of_atPath_singleton_isSome h
+  -- obtain ⟨data, path, h_valid⟩ := tv
+  -- simp only [current, current_append] at h_current
+  -- induction path generalizing data ds with
+  -- | nil =>
+  --   simp only [current, Data.atPath_nil, Option.get_some] at h_current
+  --   subst h_current
+  --   simp [appendPath, encodedPos, current]
+  -- | cons p rest ih =>
+  --   match data with
+  --   | Data.num _ =>
+  --     exfalso; simp [Data.atPath] at h_valid
+  --   | Data.list ds' =>
+  --     have h_p : p < ds'.length := by
+  --       simp only [Data.atPath] at h_valid
+  --       split at h_valid <;> simp_all
+  --     simp only [current, current_append, Data.atPath_list_cons, h_p] at h_current
+  --     have h_children : (TapeView.mk (Data.list ds') (p :: rest) h_valid).current.children = ds := by
+  --       simp only [current, current_append, Data.atPath_list_cons, h_p]
+  --       rw [show ((ds'[p].atPath rest).get h_valid).children =
+  --         (Data.list ds).children from by rw [h_current]]
+  --       simp [Data.children]
+  --     rw [h_children]
+  --     simp only [appendPath, encodedPos, List.cons_append, h_p, Nat.add_assoc]
+  --     have h_valid' : (ds'[p].atPath rest).isSome := by
+  --       simp [Data.atPath, h_p] at h_valid; exact h_valid
+  --     have h_curr : (TapeView.mk ds'[p] rest h_valid').current = Data.list ds := by
+  --       simp only [current, current_append]; exact h_current
+  --     have h' : ((TapeView.mk ds'[p] rest h_valid').current.atPath [idx]).isSome := by
+  --       rw [h_curr]; simp [Data.atPath, h_idx]
+  --     have := ih ds h_idx _ h_valid' h' h_curr
+  --     simp only [appendPath] at this
+  --     omega
 
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
+@[expose]
 public def toBiTape (tv : TapeView) : BiTape Char :=
   BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
 
+@[simp]
 public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by sorry
 
+@[simp]
 public lemma toBiTape_ofData (d : Data) :
     (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by sorry
 
-public def ofBiTape? (t : BiTape Char) : TapeView := sorry
+public def ofBiTape? (t : BiTape Char) : Option TapeView := sorry
 
+@[simp]
 public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sorry
+
+@[simp]
+public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
+    (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
+  (TapeView.mk tv.data (tv.path ++ [idx]) h).toBiTape =
+    BiTape.move_right^[1 + (((tv.currentList?.getD []).take idx).map fun d => d.enc.length).sum]
+      tv.toBiTape := by
+  sorry
 
 /-- Prepend a `Data` value to the front of a list on tape.
     If the path is `[]` and `data` is `Data.list ds`,
