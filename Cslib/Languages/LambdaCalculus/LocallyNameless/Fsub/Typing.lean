@@ -86,20 +86,20 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
   | abs =>
     apply abs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
     grind [Wf.weaken, Wf.of_env_ty]
-  | tabs => 
+  | tabs =>
     apply tabs ((Γ ++ Θ ++ Δ).dom ∪ free_union Var)
     grind [Wf.weaken, Wf.of_env_sub]
   | let' _ _ _ der =>
     apply let' ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
     grind
-  | case _ _ _ _ der => 
+  | case _ _ _ _ der =>
     apply case ((Γ ++ Θ ++ Δ).dom ∪ free_union Var) (der wf eq)
     · grind [Wf.weaken, Wf.of_env_ty]
     · grind [Wf.weaken, Wf.of_env_ty]
   | var => grind [<= sublist_dlookup]
   | app => grind
   | tapp => grind [Sub.weaken]
-  | inl => 
+  | inl =>
     -- TODO: break this and look at the way it's extending the context in the middle
     grind [Sub.weaken, Sub.refl]
   | inr => grind [Sub.weaken, Sub.refl]
@@ -118,16 +118,16 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
   | var =>
     -- TODO: split manually??
     grind [Env.Wf.narrow]
-  | abs  => 
+  | abs  =>
     apply abs (free_union Var)
     grind
-  | tabs => 
+  | tabs =>
     apply tabs (free_union Var)
     grind
-  | let' _ _ _ der => 
+  | let' _ _ _ der =>
     apply let' (free_union Var) (der eq)
     grind
-  | case _ _ _ _ der => 
+  | case _ _ _ _ der =>
     apply case (free_union Var) (der eq)
     · grind
     · grind
