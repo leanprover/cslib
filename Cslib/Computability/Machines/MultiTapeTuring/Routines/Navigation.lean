@@ -20,17 +20,17 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     (h_valid : ((views i).current.atPath [0]).isSome) :
     (right i).eval_struct views = .some
       (Function.update views i ((views i).appendPath 0 h_valid)) := by
-  simp [MultiTapeTM.eval_struct]
-  ext1 j
-  by_cases h_ij : i = j
-  · subst h_ij
-    simp
-    apply (Function.Injective.eq_iff TapeView.toBiTape_injective).mp
-    sorry
-  · have h : j ≠ i := by aesop
-    simp [h]
-    -- TODO should be easy since toBitape is injective.
-    sorry
+  simp only [MultiTapeTM.eval_struct]
+  simp
+  have h : Function.update (TapeView.toBiTape ∘ views) i (views i).toBiTape.move_right =
+      fun j => ((Function.update views i ((views i).appendPath 0 h_valid)) j).toBiTape := by
+    ext1 j
+    by_cases h_ij : i = j
+    · subst h_ij
+      simp
+    · have : j ≠ i := by aesop
+      simp [this]
+  simp [h, TapeView.ofBiTapes?]
 
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
   match n with

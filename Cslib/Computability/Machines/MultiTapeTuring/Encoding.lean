@@ -41,17 +41,7 @@ public inductive Data where
 
 public instance : DecidableEq Data := sorry
 
-/-- The children of a `Data` value: the elements of a `list`, or empty for a `num`. -/
-@[expose]
-public def Data.children : Data → List Data
-  | Data.list ds => ds
-  | Data.num _ => []
 
-@[simp]
-public lemma Data.children_list (ds : List Data) : (Data.list ds).children = ds := rfl
-
-@[simp]
-public lemma Data.children_num (n : ℕ) : (Data.num n).children = [] := rfl
 
 /-- Encoding of `Data` into a list of characters.
     - `Data.num n` is encoded as `[dyadic(n)]`
@@ -212,12 +202,7 @@ public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
   (d.atPath [idx]).isSome := by
   sorry
 
-public lemma Data.isList_of_atPath_singleton_isSome {d : Data} {idx : ℕ}
-    (h : (d.atPath [idx]).isSome) :
-    ∃ ds, d = Data.list ds ∧ idx < ds.length := by
-  cases d with
-  | num n => simp [Data.atPath] at h
-  | list ds => exact ⟨ds, rfl, by simp [Data.atPath] at h; exact h⟩
+
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TapeView
@@ -342,6 +327,7 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) h).encodedPos =
       tv.encodedPos + 1 + (((tv.currentList?.getD []).take idx).map fun d => d.enc.length).sum := by
+  unfold encodedPos
   sorry
   -- obtain ⟨ds, h_current, h_idx⟩ := Data.isList_of_atPath_singleton_isSome h
   -- obtain ⟨data, path, h_valid⟩ := tv
@@ -383,16 +369,31 @@ public def toBiTape (tv : TapeView) : BiTape Char :=
   BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
 
 @[simp]
-public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by sorry
+public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by
+  simp [toBiTape, encodedPos]
 
 @[simp]
 public lemma toBiTape_ofData (d : Data) :
-    (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by sorry
+  (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by simp [toBiTape, encodedPos]
 
 public def ofBiTape? (t : BiTape Char) : Option TapeView := sorry
 
+@[expose]
+public def ofBiTapes? {k : ℕ} (tapes : Fin k → BiTape Char) : Option (Fin k → TapeView) :=
+  if h: ∀ i, (ofBiTape? (tapes i)).isSome then
+    some (fun i => (ofBiTape? (tapes i)).get (h i))
+  else none
+
 @[simp]
-public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sorry
+public lemma toBiTape_ofBiTape (tv : TapeView) :
+  (ofBiTape? tv.toBiTape) = tv := by sorry
+
+@[simp]
+public lemma ofBiTape_get_toBiTape (tape : BiTape Char) (h : (ofBiTape? tape).isSome) :
+  ((ofBiTape? tape).get h).toBiTape = tape := by sorry
+
+@[simp]
+public lemma toBiTape_injective : Function.Injective TapeView.toBiTape := by sorry -- use the above
 
 @[simp]
 public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)

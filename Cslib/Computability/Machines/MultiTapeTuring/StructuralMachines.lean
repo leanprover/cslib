@@ -27,7 +27,7 @@ namespace Turing
 public def MultiTapeTM.eval_struct
     (tm : MultiTapeTM k Char) (views : Fin k → TapeView) :
     Part (Fin k → TapeView) :=
-  tm.eval (TapeView.toBiTape ∘ views) >>= fun views => (TapeView.ofBiTape? ∘ ·)
+  tm.eval (TapeView.toBiTape ∘ views) >>= (TapeView.ofBiTapes? ·)
 
 namespace Routines
 
