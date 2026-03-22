@@ -48,17 +48,22 @@ public def right (i : Fin k) : MultiTapeTM k Char := sorry
 
 @[simp]
 public theorem right.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
-  (right i).eval tapes = some
+  (right i).eval tapes = .some
     (Function.update tapes i (tapes i).move_right) := by sorry
 
 public def left (i : Fin k) : MultiTapeTM k Char := sorry
 
 @[simp]
 public theorem left.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
-  (left i).eval tapes = some
+  (left i).eval tapes = .some
     (Function.update tapes i (tapes i).move_left) := by sorry
 
-public def write (c : Char) (i : Fin k) : MultiTapeTM k Char := sorry
+public def write (c : Option Char) (i : Fin k) : MultiTapeTM k Char := sorry
+
+@[simp]
+public theorem write.eval {c : Option Char} {i : Fin k} {tapes : Fin k → BiTape Char} :
+  (write c i).eval tapes = .some
+    (Function.update tapes i ((tapes i).write c)) := by sorry
 
 public def if_eq (c : Char) (i : Fin k) (tm₁ tm₂ : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
@@ -69,20 +74,53 @@ public theorem if_eq.eval {c : Char} {i : Fin k} {tm₁ tm₂ : MultiTapeTM k Ch
   (if_eq c i tm₁ tm₂).eval tapes =
     if (tapes i).head = some c then (tm₁.eval tapes) else (tm₂.eval tapes) := by sorry
 
-public def while_eq (c : Char) (i : Fin k) (tm : MultiTapeTM k Char) :
+public def while_eq (c : Option Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
 
--- @[simp]
--- public theorem while_eq.eval
---   (c : Char) (i : Fin k)
---   (tm : MultiTapeTM k Char)
---   (tapes : Fin k → BiTape Char) :
---   (while_eq c i tm).eval tapes =
---     ⟨∃ n, (((tm.eval)^[n] (.some tapes)) >>= fun tapes => (tapes i).head) = Part.some (some c),
---     sorry ⟩ := by sorry
+@[simp]
+public theorem while_eq.eval
+  (c : Option Char) (i : Fin k)
+  (tm : MultiTapeTM k Char)
+  (h_halts : ∀ t, tm.HaltsOn t)
+  (tapes : Fin k → BiTape Char) :
+  (while_eq c i tm).eval tapes =
+    ⟨∃ n, (((tm.eval_tot h_halts)^[n] tapes) i).head != c,
+     fun h => ((tm.eval_tot h_halts)^[Nat.find h] tapes)⟩ := by sorry
 
-public def while_neq (c : Char) (i : Fin k) (tm : MultiTapeTM k Char) :
+@[simp]
+public theorem while_eq.eval'
+  {c : Option Char} {i : Fin k}
+  {tm : MultiTapeTM k Char}
+  {h_halts : ∀ t, tm.HaltsOn t}
+  {tapes : Fin k → BiTape Char}
+  (n : ℕ)
+  (h_exists : (((tm.eval_tot h_halts)^[n] tapes) i).head ≠ c)
+  (h_min : ∀ n' < n, (((tm.eval_tot h_halts)^[n'] tapes) i).head = c) :
+  (while_eq c i tm).eval tapes = ((tm.eval_tot h_halts)^[n] tapes) := by sorry
+
+public def while_neq (c : Option Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
+
+@[simp]
+public theorem while_neq.eval
+  (c : Option Char) (i : Fin k)
+  (tm : MultiTapeTM k Char)
+  (h_halts : ∀ t, tm.HaltsOn t)
+  (tapes : Fin k → BiTape Char) :
+  (while_neq c i tm).eval tapes =
+    ⟨∃ n, (((tm.eval_tot h_halts)^[n] tapes) i).head == c,
+     fun h => ((tm.eval_tot h_halts)^[Nat.find h] tapes)⟩ := by sorry
+
+@[simp]
+public theorem while_neq.eval'
+  {c : Option Char} {i : Fin k}
+  {tm : MultiTapeTM k Char}
+  {h_halts : ∀ t, tm.HaltsOn t}
+  {tapes : Fin k → BiTape Char}
+  (n : ℕ)
+  (h_exists : (((tm.eval_tot h_halts)^[n] tapes) i).head == c)
+  (h_min : ∀ n' < n, (((tm.eval_tot h_halts)^[n'] tapes) i).head ≠ c) :
+  (while_neq c i tm).eval tapes = ((tm.eval_tot h_halts)^[n] tapes) := by sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- eval_struct lemmas: Compositionality

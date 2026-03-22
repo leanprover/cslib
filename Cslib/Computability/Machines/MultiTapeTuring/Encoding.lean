@@ -116,10 +116,8 @@ public instance : StrEnc Bool where
     | true => rfl
 
 @[simp]
-public lemma StrEnc.toData_false : StrEnc.toData false = Data.num 0 := rfl
-
-@[simp]
-public lemma StrEnc.toData_true : StrEnc.toData true = Data.num 1 := rfl
+public lemma Bool.toData (d : Bool) :
+  StrEnc.toData d = match d with | false => Data.num 0 | true => Data.num 1  := rfl
 
 @[simp]
 public lemma StrEnc.fromData_num_nat (n : ℕ) : StrEnc.fromData (Data.num n) = some n := rfl
@@ -369,10 +367,6 @@ public def toBiTape (tv : TapeView) : BiTape Char :=
   BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
 
 @[simp]
-public lemma toBiTape_empty : TapeView.empty.toBiTape = BiTape.mk₁ ['(', ')'] := by
-  simp [toBiTape, encodedPos]
-
-@[simp]
 public lemma toBiTape_ofData (d : Data) :
   (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by simp [toBiTape, encodedPos]
 
@@ -383,6 +377,15 @@ public def ofBiTapes? {k : ℕ} (tapes : Fin k → BiTape Char) : Option (Fin k 
   if h: ∀ i, (ofBiTape? (tapes i)).isSome then
     some (fun i => (ofBiTape? (tapes i)).get (h i))
   else none
+
+-- TODO split this into
+-- 1. pull out 'toBiTape' across Function.update
+-- 2. neutralize ofBiTapes? ∘ toBiTape
+@[simp]
+public lemma ofBiTapes?_of_Function.update {k : ℕ} {i : Fin k}
+    {views : Fin k → TapeView} {tv : TapeView} :
+  TapeView.ofBiTapes? (Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape) =
+    some (Function.update views i tv) := by sorry
 
 @[simp]
 public lemma toBiTape_ofBiTape (tv : TapeView) :

@@ -20,8 +20,6 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     (h_valid : ((views i).current.atPath [0]).isSome) :
     (right i).eval_struct views = .some
       (Function.update views i ((views i).appendPath 0 h_valid)) := by
-  simp only [MultiTapeTM.eval_struct]
-  simp
   have h : Function.update (TapeView.toBiTape ∘ views) i (views i).toBiTape.move_right =
       fun j => ((Function.update views i ((views i).appendPath 0 h_valid)) j).toBiTape := by
     ext1 j
@@ -30,7 +28,7 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
       simp
     · have : j ≠ i := by aesop
       simp [this]
-  simp [h, TapeView.ofBiTapes?]
+  simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct]
 
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
   match n with
@@ -73,29 +71,26 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
   rw [skipRight_n.eval_struct (j := 0) (parent := views i) (by simp [h_valid]) (by simp)]
   simp
 
--- lemma outOfList_inner {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
---   (right i ;ₜ skipLeft i ;ₜ left i).eval (toBiTape ∘ views) =
---     if (views i).current = some (Data.num 0) then some views else
---       if (views i).current = some (Data.list []) then some views else
---         if (views i).current = some (Data.list (_ :: _)) then
---           some (Function.update views i ⟨(views i).data, (views i).path.dropLast⟩)
---         else some views := by sorry
-
 /-- If positioned on the element of a list, navigates to the list containing it. -/
 public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
-  left i ;ₜ while_eq ')' i (right i ;ₜ skipLeft i ;ₜ left i) ;ₜ
-    -- This part handles the case where we started out with a number on the tape or
-    -- an empty tape.
-    if_eq '(' i noop (right i)
+  left i ;ₜ while_eq ')' i (right i ;ₜ skipLeft i ;ₜ left i)
 
+lemma outOfList_inner {k : ℕ} {i : Fin k}
+    (views : Fin k → TapeView)
+    {tv : TapeView}
+    (idx : ℕ)
+    (path : List ℕ)
+    (h_path : tv.path = path ++ [idx.succ]) :
+  (right i ;ₜ skipLeft i ;ₜ left i).eval_tot sorry
+    (Function.update (toBiTape ∘ views) i tv.toBiTape.move_left) =
+     Function.update (toBiTape ∘ views) i (TapeView.mk tv.data (path ++ [idx]) sorry).toBiTape.move_left := by
+  sorry
 
-/-- `outOfArg argIdx i` ascends back from the `argIdx`-th element,
-    removing it from the end of the path. If the path ends with `argIdx`,
-    strips it. If the path is empty or the tape is empty, does not change
-    the `TapeView`. -/
+/-- `outOfArg i` ascends back from within a list to the list itself. -/
 @[simp]
 public lemma outOfList_eval_struct_valid {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView} :
+    {views : Fin k → TapeView}
+    {h_valid : !(views i).path.isEmpty} :
     (outOfList i).eval_struct views = some
       (Function.update views i (views i).parent) := by sorry
 
