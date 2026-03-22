@@ -6,7 +6,7 @@ open Lean Elab.Command
 
 elab "open_scoped_all" pre:ident : command => do
   let env ← getEnv
-  let nss := env.getNamespaceSet.toList.filter (fun name => name.getRoot = pre.getId)
+  let nss := env.getNamespaces.filter (fun name => name.getRoot = pre.getId)
   for ns in nss do
     let cmd ← `(open scoped $(mkIdent ns))
     elabCommand cmd
