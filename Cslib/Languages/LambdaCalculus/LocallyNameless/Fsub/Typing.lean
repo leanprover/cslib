@@ -11,6 +11,8 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Subtype
 
 @[expose] public section
 
+--set_option trace.profiler.useHeartbeats true
+
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -89,11 +91,9 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     grind [Wf.weaken, Sub.weaken, Wf.of_env_ty, Wf.of_env_sub, Sub.refl, <= sublist_dlookup]
 
 /-- Weakening of typings (at the front). -/
-lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) :
-    Typing (Γ ++ Δ) t τ := by
-  have eq : Δ = [] ++ Δ := by rfl
-  rw [eq] at der
-  grind [Typing.weaken der wf]
+lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) : Typing (Γ ++ Δ) t τ := by
+  change Typing ([] ++ Δ) t τ at der
+  exact der.weaken wf
 
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
@@ -111,24 +111,29 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
 /-- Term substitution within a typing. -/
 lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
     Typing (Γ ++ Δ) (t[X := s]) τ := by
-  generalize eq : Γ ++ ⟨X, .ty σ⟩ :: Δ = Θ at der
+  generalize eq₁ : Γ ++ ⟨X, .ty σ⟩ :: Δ = Θ at der
   induction der generalizing Γ X
-  case var σ' _ X' _ _ =>
-    have : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
-    by_cases eq : X = X'
-    · #adaptation_note
-      /--
-      Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
-      I've had to remove the `append_assoc` lemma from grind;
-      without this `grind` is exploding. This requires further investigation.
-      -/
-      grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen, -append_assoc]
+  case var σ' _ X' wf _ =>
+    by_cases eq₂ : X = X'
+    · subst eq₁ eq₂
+      have := weaken_head der_sub wf.strengthen
+      have := List.perm_dlookup X wf.to_ok perm_middle
+      grind =>
+        have : .ty σ' ∈ dlookup X (⟨X, .ty σ⟩ :: (Γ ++ Δ))
+        have : σ = σ'
+        finish
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
-  case abs => grind [abs (free_union Var), open_tm_subst_tm_var]
-  case tabs => grind [tabs (free_union Var), open_ty_subst_tm_var]
-  case let' der _ => grind [let' (free_union Var) (der eq), open_tm_subst_tm_var]
+  case abs =>
+    apply abs (free_union Var)
+    grind [open_tm_subst_tm_var]
+  case tabs =>
+    apply tabs (free_union Var)
+    grind [open_ty_subst_tm_var]
+  case let' der _ =>
+    apply let' (free_union Var) (der eq₁)
+    grind [open_tm_subst_tm_var]
   case case der _ _ =>
-    apply case (free_union Var) (der eq) <;> grind [open_tm_subst_tm_var]
+    apply case (free_union Var) (der eq₁) <;> grind [open_tm_subst_tm_var]
   all_goals grind [Env.Wf.strengthen, Ty.Wf.strengthen, Sub.strengthen]
 
 /-- Type substitution within a typing. -/
@@ -137,9 +142,28 @@ lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub :
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
   induction der generalizing Γ X
   case var σ _ X' _ mem =>
-    have := map_subst_nmem Δ X δ
     have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
-    grind [Env.Wf.map_subst, → notMem_keys_of_nodupKeys_cons]
+    have : X = X' ∨ ¬ X = X' := Decidable.eq_or_ne X X'
+    have := sub.wf
+    -- could split this interactively??
+    by_cases h : X = X'
+    · constructor
+      · grind only [!Env.Wf.map_subst]
+      · grind only [= Option.mem_def, = Binding.subst_ty, = dlookup_append, = Option.or_eq_some_iff,
+          = dlookup_cons_eq]
+    · constructor
+      · grind only [!Env.Wf.map_subst]
+      · expose_names
+        subst eq
+        have := h_1.to_ok
+        have : Δ = map_val (fun x => x[X:=δ]) Δ := by
+          apply map_subst_nmem Δ X δ
+          · grind only
+          · grind only [= haswellformed_def, = dom,
+            = NodupKeys, = mem_toFinset, = keys_append, = keys_cons,
+            = nodup_append, = nodup_cons]
+        grind only [= map_val, = Binding.subst_ty, = dlookup_append, = map_append, = map_cons,
+          = dlookup_cons_ne]
   case abs => grind [abs (free_union [Ty.fv] Var), Ty.subst_fresh, open_tm_subst_ty_var]
   case tabs => grind [tabs (free_union Var), open_ty_subst_ty_var, open_subst_var]
   case let' der _ =>
@@ -160,22 +184,14 @@ lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) 
   ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var),
     Typing (⟨x, Binding.ty γ'⟩ :: Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
   generalize eq : Term.abs γ' t = e at der
-  induction der generalizing t γ' γ δ
-  case abs τ L _ _ =>
+  induction der generalizing t γ' γ δ with
+  | @abs _ _ _ τ L _ =>
     cases eq
-    cases sub
-    split_ands
-    · assumption
-    · exists τ, L
-      grind
-  case sub Γ _ τ τ' _ _ ih =>
-    subst eq
-    have sub' : Sub Γ τ (γ.arrow δ) := by grind
-    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
-    split_ands
-    · assumption
-    · exists δ', L
-  all_goals grind
+    cases sub with | arrow sub_γ =>
+    use sub_γ, τ, L
+    grind
+  | sub _ sub_τ ih => exact ih (sub_τ.trans sub) eq
+  | _ => grind
 
 variable [HasFresh Var] in
 /-- Invert the typing of a type abstraction. -/
@@ -185,56 +201,61 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
      Typing (⟨X, Binding.sub γ⟩ :: Γ) (t ^ᵗᵞ fvar X) (δ' ^ᵞ fvar X)
      ∧ Sub (⟨X, Binding.sub γ⟩ :: Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := by
   generalize eq : Term.tabs γ' t = e at der
-  induction der generalizing γ δ t γ'
-  case tabs σ Γ _ τ L der _ =>
+  induction der generalizing γ δ t γ' with
+  | @tabs _ Γ _ τ L der _ =>
     cases sub with | all L' sub =>
+    cases eq
+    use sub, τ, L ∪ L'
+    intro X _
     split_ands
+    · have eq : ⟨X, .sub γ⟩ :: Γ = [] ++ ⟨X, .sub γ⟩ :: Γ := rfl
+      grind only [= Finset.mem_union, narrow]
     · grind
-    · exists τ, L ∪ L'
-      intro X _
-      have eq : ⟨X, Binding.sub γ⟩ :: Γ = [] ++ ⟨X, Binding.sub γ⟩ :: Γ := by rfl
-      grind [narrow]
-  case sub Γ _ τ τ' _ _ ih =>
-    subst eq
-    have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
-    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
-    split_ands
-    · assumption
-    · exists δ', L
-  all_goals grind
+  | sub _ sub_τ ih => exact ih (sub_τ.trans sub) eq
+  | _ => grind
 
 /-- Invert the typing of a left case. -/
 lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
     ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := by
   generalize eq : t.inl =t at der
-  induction der generalizing γ δ <;> grind [cases Sub]
+  induction der generalizing γ δ with
+  | inl => cases sub; grind
+  | _ => grind
 
 /-- Invert the typing of a right case. -/
 lemma inr_inv (der : Typing Γ (.inr t) T) (sub : Sub Γ T (sum γ δ)) :
     ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
-  generalize eq : t.inr =t at der
-  induction der generalizing γ δ <;> grind [cases Sub]
+  generalize eq : t.inr = t at der
+  induction der generalizing γ δ with
+  | inr => cases sub; grind
+  | _ => grind
 
 /-- A value that types as a function is an abstraction. -/
 lemma canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
     ∃ δ t', t = .abs δ t' := by
   generalize eq  : σ.arrow τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ s => cases s <;> grind
+  | _ => grind
 
 /-- A value that types as a quantifier is a type abstraction. -/
 lemma canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
     ∃ δ t', t = .tabs δ t' := by
   generalize eq  : σ.all τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ s => cases s <;> grind
+  | _ => grind
 
 /-- A value that types as a sum is a left or right case. -/
 lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
     ∃ t', t = .inl t' ∨ t = .inr t' := by
   generalize eq  : σ.sum τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ s => cases s <;> grind
+  | _ => grind
 
 end Typing
 
