@@ -317,6 +317,40 @@ public def encodedPos : (tv : TapeView) → ℕ
         encodedPos ⟨ds[p], path, by grind [Data.atPath]⟩
   termination_by tv => tv.path.length
 
+-- TODO change the statemnt to not use `ds` but instead derive that it must be a list
+-- from `h`.
+public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
+    (h : (tv.current.atPath [idx]).isSome)
+    {ds : List Data} (h_current : tv.current = Data.list ds) :
+    (tv.appendPath idx h).encodedPos =
+      tv.encodedPos + 1 + ((ds.take idx).map fun d => d.enc.length).sum := by
+  have h_idx : idx < ds.length := by grind [Data.atPath]
+  obtain ⟨data, path, h_valid⟩ := tv
+  induction path generalizing data ds with
+  | nil =>
+    simp only [current, Data.atPath_nil, Option.get_some] at h_current
+    simp [h_current, appendPath, encodedPos]
+  | cons p rest ih =>
+    match data with
+    | Data.num _ =>
+      exfalso; simp [Data.atPath] at h_valid
+    | Data.list ds' =>
+      have h_p : p < ds'.length := by
+        simp only [Data.atPath] at h_valid
+        split at h_valid <;> simp_all
+      simp only [appendPath, encodedPos, List.cons_append, h_p, Nat.add_assoc]
+      have h_valid' : (ds'[p].atPath rest).isSome := by
+        simp [Data.atPath, h_p] at h_valid; exact h_valid
+      have h_curr : (TapeView.mk ds'[p] rest h_valid').current = Data.list ds := by
+        simp only [current, current_append]
+        simp only [current, Data.atPath, h_p] at h_current
+        exact h_current
+      have h' : ((TapeView.mk ds'[p] rest h_valid').current.atPath [idx]).isSome := by
+        rw [h_curr]; simp [Data.atPath, h_idx]
+      have := ih h_idx _ h_valid' h' h_curr
+      simp only [appendPath] at this
+      grind
+
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
 public def toBiTape (tv : TapeView) : BiTape Char :=
   BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
