@@ -112,27 +112,24 @@ lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩
 /-- Term substitution within a typing. -/
 lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typing Δ s σ) :
     Typing (Γ ++ Δ) (t[X := s]) τ := by
-  generalize eq : Γ ++ ⟨X, .ty σ⟩ :: Δ = Θ at der
+  generalize eq₁ : Γ ++ ⟨X, .ty σ⟩ :: Δ = Θ at der
   induction der generalizing Γ X
   case var σ' _ X' wf _ =>
-    by_cases eq : X = X'
-    · subst eq
-      subst eq
-      have : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
-      have := List.perm_dlookup X wf.to_ok this
-      have : Binding.ty σ' ∈ dlookup X (⟨X, Binding.ty σ⟩ :: (Γ ++ Δ)) := by grind only
-      have : σ = σ' := by grind only [= Option.mem_def, = dlookup_cons_eq]
-      subst this
-      have : (Term.fvar X)[X:=s] = s := by grind only [=_ subst_tm_def, = subst_tm.eq_2]
-      rw [this]
-      apply weaken_head der_sub
-      grind only [!Env.Wf.strengthen]
+    by_cases eq₂ : X = X'
+    · subst eq₁ eq₂
+      have := weaken_head der_sub wf.strengthen
+      have perm : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
+      grind =>
+        have := List.perm_dlookup X wf.to_ok perm
+        have : .ty σ' ∈ dlookup X (⟨X, .ty σ⟩ :: (Γ ++ Δ))
+        have : σ = σ'
+        finish
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
   case abs => grind [abs (free_union Var), open_tm_subst_tm_var]
   case tabs => grind [tabs (free_union Var), open_ty_subst_tm_var]
-  case let' der _ => grind [let' (free_union Var) (der eq), open_tm_subst_tm_var]
+  case let' der _ => grind [let' (free_union Var) (der eq₁), open_tm_subst_tm_var]
   case case der _ _ =>
-    apply case (free_union Var) (der eq) <;> grind [open_tm_subst_tm_var]
+    apply case (free_union Var) (der eq₁) <;> grind [open_tm_subst_tm_var]
   all_goals grind [Env.Wf.strengthen, Ty.Wf.strengthen, Sub.strengthen]
 
 /-- Type substitution within a typing. -/
