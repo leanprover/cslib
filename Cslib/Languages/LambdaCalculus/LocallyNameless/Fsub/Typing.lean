@@ -114,16 +114,19 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typi
     Typing (Γ ++ Δ) (t[X := s]) τ := by
   generalize eq : Γ ++ ⟨X, .ty σ⟩ :: Δ = Θ at der
   induction der generalizing Γ X
-  case var σ' _ X' _ _ =>
-    have : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
+  case var σ' _ X' wf _ =>
     by_cases eq : X = X'
-    · #adaptation_note
-      /--
-      Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
-      I've had to remove the `append_assoc` lemma from grind;
-      without this `grind` is exploding. This requires further investigation.
-      -/
-      grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen, -append_assoc]
+    · subst eq
+      subst eq
+      have : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
+      have := List.perm_dlookup X wf.to_ok this
+      have : Binding.ty σ' ∈ dlookup X (⟨X, Binding.ty σ⟩ :: (Γ ++ Δ)) := by grind only
+      have : σ = σ' := by grind only [= Option.mem_def, = dlookup_cons_eq]
+      subst this
+      have : (Term.fvar X)[X:=s] = s := by grind only [=_ subst_tm_def, = subst_tm.eq_2]
+      rw [this]
+      apply weaken_head der_sub
+      grind only [!Env.Wf.strengthen]
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
   case abs => grind [abs (free_union Var), open_tm_subst_tm_var]
   case tabs => grind [tabs (free_union Var), open_ty_subst_tm_var]
