@@ -92,8 +92,7 @@ lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
 
 /-- Weakening of typings (at the front). -/
 lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) : Typing (Γ ++ Δ) t τ := by
-  have eq : Δ = [] ++ Δ := rfl
-  rw [eq] at der
+  change Typing ([] ++ Δ) t τ at der
   exact der.weaken wf
 
 /-- Narrowing of typings. -/
@@ -118,8 +117,7 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typi
     by_cases eq₂ : X = X'
     · subst eq₁ eq₂
       have := weaken_head der_sub wf.strengthen
-      have perm : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
-      have := List.perm_dlookup X wf.to_ok perm
+      have := List.perm_dlookup X wf.to_ok perm_middle
       grind =>
         have : .ty σ' ∈ dlookup X (⟨X, .ty σ⟩ :: (Γ ++ Δ))
         have : σ = σ'
@@ -193,7 +191,7 @@ lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) 
     use sub_γ, τ, L
     grind
   | sub _ sub_τ ih => exact ih (sub_τ.trans sub) eq
-  | _ => grind only
+  | _ => grind
 
 variable [HasFresh Var] in
 /-- Invert the typing of a type abstraction. -/
@@ -209,35 +207,28 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
     cases eq
     use sub, τ, L ∪ L'
     intro X _
-    have eq : ⟨X, .sub γ⟩ :: Γ = [] ++ ⟨X, .sub γ⟩ :: Γ := rfl
-    grind only [= Finset.mem_union, narrow]
+    split_ands
+    · have eq : ⟨X, .sub γ⟩ :: Γ = [] ++ ⟨X, .sub γ⟩ :: Γ := rfl
+      grind only [= Finset.mem_union, narrow]
+    · grind
   | sub _ sub_τ ih => exact ih (sub_τ.trans sub) eq
-  | var => grind only
-  | abs => grind only
-  | app => grind only
-  | tapp => grind only
-  | let' => grind only
-  | inl => grind only
-  | inr => grind only
-  | case => grind only
+  | _ => grind
 
 /-- Invert the typing of a left case. -/
 lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
     ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := by
   generalize eq : t.inl =t at der
   induction der generalizing γ δ with
-  | inl => cases sub; grind only
-  | sub => grind only [→ Sub.trans]
-  | _ => grind only
+  | inl => cases sub; grind
+  | _ => grind
 
 /-- Invert the typing of a right case. -/
 lemma inr_inv (der : Typing Γ (.inr t) T) (sub : Sub Γ T (sum γ δ)) :
     ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
   generalize eq : t.inr = t at der
   induction der generalizing γ δ with
-  | inr => cases sub; grind only
-  | sub => grind only [→ Sub.trans]
-  | _ => grind only
+  | inr => cases sub; grind
+  | _ => grind
 
 /-- A value that types as a function is an abstraction. -/
 lemma canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
@@ -245,9 +236,8 @@ lemma canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
   generalize eq  : σ.arrow τ = γ at der
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ with
-  | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
-  | var => grind only [= Option.mem_def, = dlookup_nil]
-  | _ => grind only
+  | sub _ s => cases s <;> grind
+  | _ => grind
 
 /-- A value that types as a quantifier is a type abstraction. -/
 lemma canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
@@ -255,9 +245,8 @@ lemma canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
   generalize eq  : σ.all τ = γ at der
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ with
-  | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
-  | var => grind only [= Option.mem_def, = dlookup_nil]
-  | _ => grind only
+  | sub _ s => cases s <;> grind
+  | _ => grind
 
 /-- A value that types as a sum is a left or right case. -/
 lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
@@ -265,9 +254,8 @@ lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
   generalize eq  : σ.sum τ = γ at der
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ with
-  | sub _ s => cases s <;> grind only [= Option.mem_def, = dlookup_nil]
-  | var => grind only [= Option.mem_def, = dlookup_nil]
-  | _ => grind only
+  | sub _ s => cases s <;> grind
+  | _ => grind
 
 end Typing
 
