@@ -119,15 +119,21 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typi
     · subst eq₁ eq₂
       have := weaken_head der_sub wf.strengthen
       have perm : Γ ++ ⟨X, .ty σ⟩ :: Δ ~ ⟨X, .ty σ⟩ :: (Γ ++ Δ) := perm_middle
+      have := List.perm_dlookup X wf.to_ok perm
       grind =>
-        have := List.perm_dlookup X wf.to_ok perm
         have : .ty σ' ∈ dlookup X (⟨X, .ty σ⟩ :: (Γ ++ Δ))
         have : σ = σ'
         finish
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
-  case abs => grind [abs (free_union Var), open_tm_subst_tm_var]
-  case tabs => grind [tabs (free_union Var), open_ty_subst_tm_var]
-  case let' der _ => grind [let' (free_union Var) (der eq₁), open_tm_subst_tm_var]
+  case abs =>
+    apply abs (free_union Var)
+    grind [open_tm_subst_tm_var]
+  case tabs =>
+    apply tabs (free_union Var)
+    grind [open_ty_subst_tm_var]
+  case let' der _ =>
+    apply let' (free_union Var) (der eq₁)
+    grind [open_tm_subst_tm_var]
   case case der _ _ =>
     apply case (free_union Var) (der eq₁) <;> grind [open_tm_subst_tm_var]
   all_goals grind [Env.Wf.strengthen, Ty.Wf.strengthen, Sub.strengthen]
