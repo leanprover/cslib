@@ -55,13 +55,13 @@ public theorem noop.eval_struct {views : Fin k → TapeView} :
 
 public def right (i : Fin k) : MultiTapeTM k Char := sorry
 
-@[simp, grind =>]
-public lemma right.haltsOn {i : Fin k} : ∀ t, (right i).HaltsOn t := by sorry
-
 @[simp]
 public theorem right.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
   (right i).eval tapes = .some
     (Function.update tapes i (tapes i).move_right) := by sorry
+
+@[grind =>]
+public lemma right.haltsOn {i : Fin k} : ∀ t, (right i).HaltsOn t := by simp
 
 public def left (i : Fin k) : MultiTapeTM k Char := sorry
 
@@ -70,7 +70,7 @@ public theorem left.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
   (left i).eval tapes = .some
     (Function.update tapes i (tapes i).move_left) := by sorry
 
-@[simp, grind =>]
+@[grind =>]
 public lemma left.haltsOn {i : Fin k} : ∀ t, (left i).HaltsOn t := by simp
 
 public def write (c : Option Char) (i : Fin k) : MultiTapeTM k Char := sorry

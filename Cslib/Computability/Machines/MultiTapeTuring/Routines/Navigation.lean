@@ -96,17 +96,13 @@ lemma outOfList_inner {k : ℕ} {i : Fin k}
           apply Data.atPath_isSome_of_succ_isSome
           simpa [h_path] using tv.h_path
         )).toBiTape) := by
-    have h_struct := skipLeft_eval_struct (rest := path) (idx := idx) (i := i) (views := (Function.update views i tv))
-        (by simp [h_path])
-    rw [MultiTapeTM.eval_of_eval_struct h_struct]
-    simp
-    ext1 j
-    by_cases h_ij : i = j
-    · subst h_ij
-      simp [TapeView.toBiTape, h_path]
-      rw [TapeView.encodedPos_appendPath tv idx]
-    · have : j ≠ i := by omega
-      simp [this, TapeView.toBiTape, h_path]
+    rw [MultiTapeTM.eval_of_eval_struct
+          (skipLeft_eval_struct (rest := path) (idx := idx) (by simp [h_path]))]
+    simp only [Function.update_self, Function.update_idem,
+               TapeView.appendPath, TapeView.toBiTape_comp_update]
+    have h₁ : tv.parent.data = tv.data := by aesop
+    have h₂ : tv.parent.path = path := by aesop
+    simp only [h₁, h₂]
   simp [h_skip]
 
 /-- `outOfArg i` ascends back from within a list to the list itself. -/
