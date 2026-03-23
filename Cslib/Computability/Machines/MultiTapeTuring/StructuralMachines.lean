@@ -29,6 +29,11 @@ public def MultiTapeTM.eval_struct
     Part (Fin k → TapeView) :=
   tm.eval (TapeView.toBiTape ∘ views) >>= (TapeView.ofBiTapes? ·)
 
+public theorem MultiTapeTM.eval_of_eval_struct
+    {tm : MultiTapeTM k Char} {views views' : Fin k → TapeView}
+    (h_eval_struct : tm.eval_struct views = .some views') :
+  tm.eval (TapeView.toBiTape ∘ views) = .some (TapeView.toBiTape ∘ views') := by sorry
+
 namespace Routines
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -50,6 +55,9 @@ public theorem noop.eval_struct {views : Fin k → TapeView} :
 
 public def right (i : Fin k) : MultiTapeTM k Char := sorry
 
+@[simp, grind =>]
+public lemma right.haltsOn {i : Fin k} : ∀ t, (right i).HaltsOn t := by sorry
+
 @[simp]
 public theorem right.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
   (right i).eval tapes = .some
@@ -61,6 +69,9 @@ public def left (i : Fin k) : MultiTapeTM k Char := sorry
 public theorem left.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
   (left i).eval tapes = .some
     (Function.update tapes i (tapes i).move_left) := by sorry
+
+@[simp, grind =>]
+public lemma left.haltsOn {i : Fin k} : ∀ t, (left i).HaltsOn t := by simp
 
 public def write (c : Option Char) (i : Fin k) : MultiTapeTM k Char := sorry
 
@@ -133,6 +144,13 @@ public lemma seq_eval_struct {tm₁ tm₂ : MultiTapeTM k Char}
     {views : Fin k → TapeView} :
     (tm₁ ;ₜ tm₂).eval_struct views =
       (tm₁.eval_struct views).bind tm₂.eval_struct := by sorry
+
+public theorem eval_of_eval_struct {tm : MultiTapeTM k Char}
+    {views views' : Fin k → TapeView}
+    (h : tm.eval_struct views = Part.some views') :
+    tm.eval (TapeView.toBiTape ∘ views) =
+      Part.some (TapeView.toBiTape ∘ views') := by
+  sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Function.update utilities

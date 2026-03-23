@@ -83,10 +83,31 @@ lemma outOfList_inner {k : ℕ} {i : Fin k}
     (idx : ℕ)
     (path : List ℕ)
     (h_path : tv.path = path ++ [idx.succ]) :
-  (right i ;ₜ skipLeft i ;ₜ left i).eval_tot sorry
-    (Function.update (toBiTape ∘ views) i tv.toBiTape.move_left) =
-     Function.update (toBiTape ∘ views) i (tv.parent.appendPath idx sorry).toBiTape.move_left := by
-  sorry
+  (right i ;ₜ skipLeft i ;ₜ left i).eval_tot (by grind)
+    (Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape.move_left) =
+     Function.update (TapeView.toBiTape ∘ views) i
+       (tv.parent.appendPath idx (by
+           apply Data.atPath_isSome_of_succ_isSome
+           simpa [h_path] using tv.h_path
+         )).toBiTape.move_left := by
+  have h_skip : (skipLeft i).eval (TapeView.toBiTape ∘ (Function.update views i tv)) =
+      Part.some (Function.update (TapeView.toBiTape ∘ views) i
+        (tv.parent.appendPath idx (by
+          apply Data.atPath_isSome_of_succ_isSome
+          simpa [h_path] using tv.h_path
+        )).toBiTape) := by
+    have h_struct := skipLeft_eval_struct (rest := path) (idx := idx) (i := i) (views := (Function.update views i tv))
+        (by simp [h_path])
+    rw [MultiTapeTM.eval_of_eval_struct h_struct]
+    simp
+    ext1 j
+    by_cases h_ij : i = j
+    · subst h_ij
+      simp [TapeView.toBiTape, h_path]
+      rw [TapeView.encodedPos_appendPath tv idx]
+    · have : j ≠ i := by omega
+      simp [this, TapeView.toBiTape, h_path]
+  simp [h_skip]
 
 /-- `outOfArg i` ascends back from within a list to the list itself. -/
 @[simp]

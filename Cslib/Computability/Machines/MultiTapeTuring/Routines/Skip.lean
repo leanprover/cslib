@@ -28,6 +28,15 @@ public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 /-- Skip to the left across a Data-encoded value (inverse of `skipRight`). -/
 public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
+
+@[simp, grind =>]
+public lemma skipLeft_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipLeft i).HaltsOn t := by
+  sorry
+
+@[simp, grind =>]
+public lemma skipRight_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipRight i).HaltsOn t := by
+  sorry
+
 -- TODO would be nice to make this a simp lemma.
 
 /-- `skipRight i` moves to the next sibling element within a list,
@@ -38,7 +47,7 @@ public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
     (h_valid : (parent.current.atPath [j + 1]).isSome)
     (h_parent : (views i) = parent.appendPath j
          (Data.atPath_isSome_of_le_isSome (by simp) h_valid)) :
-    (skipRight i).eval_struct views = some
+    (skipRight i).eval_struct views = .some
       (Function.update views i (parent.appendPath j.succ h_valid)) := by sorry
 
 /-- `skipLeft i` moves to the previous sibling element within a list,
@@ -47,7 +56,7 @@ public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     {rest : List ℕ} {idx : ℕ}
     (h_path : (views i).path = rest ++ [idx + 1]) :
-    (skipLeft i).eval_struct views = some
+    (skipLeft i).eval_struct views = .some
       (Function.update views i
         ⟨(views i).data, rest ++ [idx], sorry⟩) := by sorry
 

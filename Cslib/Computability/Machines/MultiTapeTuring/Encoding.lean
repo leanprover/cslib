@@ -183,6 +183,12 @@ public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
     | list ds => grind [Data.atPath]
 
 @[simp]
+public lemma Data.atPath_get_atPath {d : Data} {path₁ path₂ : List ℕ} (h_valid : (d.atPath path₁).isSome) :
+    ((d.atPath path₁).get h_valid).atPath path₂ = d.atPath (path₁ ++ path₂) := by
+  simp [Data.atPath_append]
+  sorry
+
+@[simp]
 public lemma Data.atPath_dropLast_isSome_of_isSome {d : Data} {path : List ℕ}
     (h_is_some : (d.atPath path).isSome) :
   (d.atPath path.dropLast).isSome := by
@@ -391,8 +397,7 @@ public lemma toBiTape_ofBiTape (tv : TapeView) :
 @[simp]
 public lemma toBiTape_comp_update {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} {tv : TapeView} :
-  Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape =
-    TapeView.toBiTape ∘ (Function.update views i tv) := by
+  Function.update (toBiTape ∘ views) i tv.toBiTape = toBiTape ∘ (Function.update views i tv) := by
   ext j
   by_cases h : i = j
   · subst h; simp

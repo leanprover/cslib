@@ -47,6 +47,12 @@ public theorem seq_associative
   (seq (seq tm₁ tm₂) tm₃).eval = (seq tm₁ (seq tm₂ tm₃)).eval := by
   sorry
 
+@[simp, grind =>]
+public theorem seq_haltsOn_of_haltsOn
+  (tm₁ tm₂ : MultiTapeTM k Symbol) (h_halts₁ : ∀ t, tm₁.HaltsOn t) (h_halts₂ : ∀ t, tm₂.HaltsOn t) :
+  ∀ t, (seq tm₁ tm₂).HaltsOn t := by
+  sorry
+
 /--
 Sequential combination of Turing machines.
 -/
