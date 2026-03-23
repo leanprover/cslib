@@ -321,6 +321,12 @@ public def encodedPos : (tv : TapeView) → ℕ
   termination_by tv => tv.path.length
 
 @[simp]
+public lemma encodedPos_of_path_eq_nil (tv : TapeView) (h_path : tv.path = []) :
+  tv.encodedPos = 0 := by
+  unfold encodedPos
+  split <;> simp_all
+
+@[simp]
 public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) h).encodedPos =
@@ -378,18 +384,25 @@ public def ofBiTapes? {k : ℕ} (tapes : Fin k → BiTape Char) : Option (Fin k 
     some (fun i => (ofBiTape? (tapes i)).get (h i))
   else none
 
--- TODO split this into
--- 1. pull out 'toBiTape' across Function.update
--- 2. neutralize ofBiTapes? ∘ toBiTape
-@[simp]
-public lemma ofBiTapes?_of_Function.update {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView} {tv : TapeView} :
-  TapeView.ofBiTapes? (Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape) =
-    some (Function.update views i tv) := by sorry
-
 @[simp]
 public lemma toBiTape_ofBiTape (tv : TapeView) :
   (ofBiTape? tv.toBiTape) = tv := by sorry
+
+@[simp]
+public lemma toBiTape_comp_update {k : ℕ} {i : Fin k}
+    {views : Fin k → TapeView} {tv : TapeView} :
+  Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape =
+    TapeView.toBiTape ∘ (Function.update views i tv) := by
+  ext j
+  by_cases h : i = j
+  · subst h; simp
+  · simp only [Function.comp_apply, Function.update_apply]
+    split <;> simp_all
+
+@[simp]
+public lemma ofBiTapes?_toBiTape {k : ℕ} {views : Fin k → TapeView} :
+    TapeView.ofBiTapes? (TapeView.toBiTape ∘ views) = some views := by
+  simp [ofBiTapes?]
 
 @[simp]
 public lemma ofBiTape_get_toBiTape (tape : BiTape Char) (h : (ofBiTape? tape).isSome) :

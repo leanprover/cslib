@@ -25,7 +25,6 @@ public def putChars : List Char → Fin k → MultiTapeTM k Char
 public def put {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   putChars (Data.enc d) i
 
-@[simp]
 public lemma put_eval {k : ℕ} {d : Data} {i : Fin k}
     {tapes : Fin k → BiTape Char}
     {old : List Char}
@@ -90,22 +89,12 @@ public def replace {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
 
 @[simp]
 public lemma replace.eval_struct {k : ℕ} {d : Data} {i : Fin k} {views : Fin k → TapeView}
-  (h_data : views i = TapeView.ofData d) :
+  (h_data : (views i).path = []) :
   (replace d i).eval_struct views = some
     (Function.update views i (.ofData d)) := by
-  simp [replace, MultiTapeTM.eval_struct]
-  rw [clear.eval (ls := d.enc) (by simp [TapeView.toBiTape, TapeView.encodedPos, h_data])]
-  simp
-  rw [put_eval (old := []) (by simp [TapeView.toBiTape, TapeView.encodedPos, h_data])]
-  simp
-
-
-
-
-
-
-  sorry
-
+  simp only [MultiTapeTM.eval_struct, replace, MultiTapeTM.seq_eval]
+  rw [clear.eval (ls := (views i).data.enc) (by simp [TapeView.toBiTape, h_data])]
+  simp [put_eval (old := []), ← TapeView.toBiTape_ofData]
 
 
 end Routines

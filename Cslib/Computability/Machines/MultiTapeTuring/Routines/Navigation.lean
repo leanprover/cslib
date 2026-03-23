@@ -75,6 +75,8 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
 public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
   left i ;ₜ while_eq ')' i (right i ;ₜ skipLeft i ;ₜ left i)
 
+-- ((1)(2)(3))
+
 lemma outOfList_inner {k : ℕ} {i : Fin k}
     (views : Fin k → TapeView)
     {tv : TapeView}
@@ -83,7 +85,7 @@ lemma outOfList_inner {k : ℕ} {i : Fin k}
     (h_path : tv.path = path ++ [idx.succ]) :
   (right i ;ₜ skipLeft i ;ₜ left i).eval_tot sorry
     (Function.update (toBiTape ∘ views) i tv.toBiTape.move_left) =
-     Function.update (toBiTape ∘ views) i (TapeView.mk tv.data (path ++ [idx]) sorry).toBiTape.move_left := by
+     Function.update (toBiTape ∘ views) i (tv.parent.appendPath idx sorry).toBiTape.move_left := by
   sorry
 
 /-- `outOfArg i` ascends back from within a list to the list itself. -/
