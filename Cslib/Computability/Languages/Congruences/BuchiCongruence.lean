@@ -88,9 +88,9 @@ lemma buchiCongruence_transfer
     grind
   have := h_eq s t
   have h_yl : yl ∈ na.pairLang s t := by grind
-  have := LTS.execution_of_mTr h_yl
+  have := LTS.Execution.of_mTr h_yl
   grind [LTS.mem_pairViaLang, LTS.Execution, → LTS.Execution.comp,
-    → LTS.execution_of_mTr]
+    → LTS.Execution.of_mTr]
 
 /-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
@@ -123,7 +123,7 @@ private lemma frequently_via_accept [Inhabited Symbol]
   use ss (f n + k), by grind, (xls n).take k, (xls n).drop k
   have := extract_flatten h_xls_p n
   have exec {m n} (h : m ≤ n) :=
-    LTS.mTr_of_execution na.toLTS <| LTS.OmegaExecution.extract_execution h_exec h
+    LTS.Execution.to_mTr <| LTS.OmegaExecution.extract_execution h_exec h
   split_ands
   · have h : f n ≤ f n + k := by lia
     specialize exec h
@@ -154,7 +154,7 @@ theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (la
       grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : 0 ≤ xl.length),
         extract_append_zero_right, LTS.mem_pairLang]
     have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
-      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.mTr_of_execution]
+      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.Execution.to_mTr]
     have h_ss1_ts : ss1 0 = ts 0 := by
       have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
       have : 0 < (sls 0).length := by grind

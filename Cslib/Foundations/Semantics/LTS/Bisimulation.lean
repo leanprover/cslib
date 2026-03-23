@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 

@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Languages.CCS.Basic
 
 @[expose] public section
