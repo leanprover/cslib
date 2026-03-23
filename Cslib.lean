@@ -32,8 +32,10 @@ public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Machines.MultiTapeTuring.AddRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 public import Cslib.Computability.Machines.MultiTapeTuring.CopyRoutine
+public import Cslib.Computability.Machines.MultiTapeTuring.Data
 public import Cslib.Computability.Machines.MultiTapeTuring.DecRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.DuplicateRoutine
+public import Cslib.Computability.Machines.MultiTapeTuring.Dyadic
 public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
 public import Cslib.Computability.Machines.MultiTapeTuring.EqualRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.GraphReachability
@@ -54,11 +56,13 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 public import Cslib.Computability.Machines.MultiTapeTuring.Satisfiability
 public import Cslib.Computability.Machines.MultiTapeTuring.SequentialCombinator
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.SuccRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeExtension
+public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
 public import Cslib.Computability.Machines.MultiTapeTuring.WhileCombinator
 public import Cslib.Computability.Machines.MultiTapeTuring.WithTapes
 public import Cslib.Computability.Machines.SingleTapeTuring.Basic

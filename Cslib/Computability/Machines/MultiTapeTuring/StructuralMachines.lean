@@ -32,7 +32,22 @@ public def MultiTapeTM.eval_struct
 public theorem MultiTapeTM.eval_of_eval_struct
     {tm : MultiTapeTM k Char} {views views' : Fin k → TapeView}
     (h_eval_struct : tm.eval_struct views = .some views') :
-  tm.eval (TapeView.toBiTape ∘ views) = .some (TapeView.toBiTape ∘ views') := by sorry
+  tm.eval (TapeView.toBiTape ∘ views) = .some (TapeView.toBiTape ∘ views') := by
+  unfold eval_struct at h_eval_struct
+  simp only [Part.bind_eq_bind, Part.mem_bind_iff] at h_eval_struct
+  have h_mem := h_eval_struct ▸ Part.mem_some _
+  rw [Part.mem_bind_iff] at h_mem
+  obtain ⟨tapes, h_eval, h_of⟩ := h_mem
+  rw [Part.eq_some_iff.mpr h_eval]; congr 1
+  have h_of' : TapeView.ofBiTapes? tapes = some views' := by
+    rwa [Part.mem_coe] at h_of
+  simp only [TapeView.ofBiTapes?] at h_of'
+  split at h_of'
+  · rename_i h_all
+    simp only [Option.some.injEq] at h_of'
+    ext i; simp only [Function.comp_apply]
+    rw [← congr_fun h_of' i, TapeView.ofBiTape_get_toBiTape]
+  · simp at h_of'
 
 namespace Routines
 
@@ -145,12 +160,6 @@ public lemma seq_eval_struct {tm₁ tm₂ : MultiTapeTM k Char}
     (tm₁ ;ₜ tm₂).eval_struct views =
       (tm₁.eval_struct views).bind tm₂.eval_struct := by sorry
 
-public theorem eval_of_eval_struct {tm : MultiTapeTM k Char}
-    {views views' : Fin k → TapeView}
-    (h : tm.eval_struct views = Part.some views') :
-    tm.eval (TapeView.toBiTape ∘ views) =
-      Part.some (TapeView.toBiTape ∘ views') := by
-  sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Function.update utilities
