@@ -112,7 +112,8 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     use ss 0, by grind [NA.Run], t, h_acc
     obtain ⟨f, h_mono, h_f⟩ := frequently_iff_strictMono.mp h_t
     refine ⟨xs.take (f 0), ?_, xs.drop (f 0), ?_, by grind⟩
-    · have : na.MTr (ss 0) (xs.extract 0 (f 0)) (ss (f 0)) := by grind [LTS.ωTr_mTr, NA.Run]
+    · have : na.MTr (ss 0) (xs.extract 0 (f 0)) (ss (f 0)) := by
+        grind [LTS.OmegaExecution.extract_mTr, NA.Run]
       grind [extract_eq_drop_take]
     · simp only [omegaPow_seq_prop, LTS.mem_pairLang]
       use (f · - f 0)
@@ -121,7 +122,8 @@ theorem language_eq_fin_iSup_hmul_omegaPow
       · simp
       · intro n
         have mono_f (k : ℕ) : f 0 ≤ f (n + k) := h_mono.monotone (by grind)
-        grind [extract_drop, mono_f 0, LTS.ωTr_mTr h_run.trans <| h_mono.monotone (?_ : n ≤ n + 1)]
+        grind [extract_drop, mono_f 0,
+          LTS.OmegaExecution.extract_mTr h_run.trans <| h_mono.monotone (?_ : n ≤ n + 1)]
   · rintro ⟨s, _, t, _, yl, h_yl, zs, h_zs, rfl⟩
     obtain ⟨zls, rfl, h_zls⟩ := mem_omegaPow.mp h_zs
     let ts := ωSequence.const t
@@ -129,9 +131,10 @@ theorem language_eq_fin_iSup_hmul_omegaPow
       grind [Language.mem_sub_one, LTS.mem_pairLang]
     have h_pos (n : ℕ) : (zls n).length > 0 := by
       grind [Language.mem_sub_one, List.eq_nil_iff_length_eq_zero]
-    obtain ⟨zss, h_zss, _⟩ := LTS.ωTr.flatten h_mtr h_pos
+    obtain ⟨zss, h_zss, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
     have (n : ℕ) : zss (zls.cumLen n) = t := by grind
-    obtain ⟨xss, _, _, _, _⟩ := LTS.ωTr.append h_yl h_zss (by grind [cumLen_zero (ls := zls)])
+    obtain ⟨xss, _, _, _, _⟩ := LTS.OmegaExecution.append h_yl h_zss
+      (by grind [cumLen_zero (ls := zls)])
     use xss, by grind [NA.Run]
     apply (drop_frequently_iff_frequently yl.length).mp
     apply frequently_iff_strictMono.mpr
