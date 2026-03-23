@@ -122,7 +122,7 @@ lemma run_set (s' : σ) (k : PUnit → FreeState σ α) (s₀ : σ) :
 /-- Run a state computation, returning only the result. -/
 def run' (c : FreeState σ α) (s₀ : σ) : α := (run c s₀).1
 
-@[simp]
+-- not `simp` since `StateT.run'` is unfolded by `simp`
 theorem run'_toStateM {α : Type u} (comp : FreeState σ α) (s₀ : σ) :
     (toStateM comp).run' s₀ = pure (run' comp s₀) := by
   rw [run', StateT.run'_eq, run_toStateM]
