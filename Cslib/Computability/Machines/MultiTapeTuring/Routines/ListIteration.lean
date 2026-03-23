@@ -106,7 +106,7 @@ public theorem all_list.computes_fun' {k : ℕ} {i j r : Fin k}
     {f : α → β → Bool}
     (h_comp : computes_function_read_read_push tm f i j r h_neq) :
     computes_function_read_read_push (α := List α)
-      (all_list tm i r (by sorry))
+      (all_list tm i r (by intro h; grind))
       (fun ls y => ls.all (fun d => f d y))
       i j r h_neq := by
   simp only [all_list, List.all_eq_not_any_not]

@@ -74,9 +74,7 @@ and laying them out to the right side,
 with the head under the first element of the list if it exists.
 -/
 def mk₁ (l : List Symbol) : BiTape Symbol :=
-  match l with
-  | [] => ∅
-  | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
+  { head := l.head?, left := ∅, right := StackTape.map_some l.tail }
 
 def mk₂ (l r : List Symbol) : BiTape Symbol :=
   ⟨r.head?, StackTape.map_some l, StackTape.map_some r.tail ⟩

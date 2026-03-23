@@ -38,12 +38,13 @@ theorem clear.eval_inner {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List 
   ext1 j
   by_cases h_ij : i = j
   · subst h_ij
-    sorry -- TODO this needs lemmas in BiTape.
+    simp only [Function.update_self]
+    cases ls with | nil | cons _ _ <;>
+      simp [BiTape.mk₁, BiTape.write, BiTape.move_right]
   · have h : i ≠ j := by omega
     grind
 
-@[simp]
-theorem clear.eval_inner_iter {i : Fin k} {tapes : Fin k → BiTape Char} (ls : List Char)
+lemma clear.eval_inner_iter {i : Fin k} {tapes : Fin k → BiTape Char} (ls : List Char)
     (h_tape_i : tapes i = BiTape.mk₁ ls)
     (n : ℕ)
     (h_n : n ≤ ls.length) :
@@ -55,7 +56,8 @@ theorem clear.eval_inner_iter {i : Fin k} {tapes : Fin k → BiTape Char} (ls : 
     rw [Function.iterate_succ_apply', ih (by omega)]
     simp
 
-@[simp]
+-- TODO change this so that it does not need `ls` but works with a tape and a condition that
+-- the left side is empty
 theorem clear.eval {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char}
     (h_tape_i : tapes i = BiTape.mk₁ ls) :
   (clear i).eval tapes = .some (Function.update tapes i (BiTape.mk₁ [])) := by
@@ -63,11 +65,10 @@ theorem clear.eval {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char}
       (((write none i ;ₜ right i).eval_tot (by simp))^[n'] tapes i).head ≠ none := by
     intro n' h_n'
     rw [clear.eval_inner_iter ls h_tape_i n' (by omega)]
-    simp
-    sorry
+    simp [Function.update_self, BiTape.mk₁, h_n']
   unfold clear
   rw [while_neq.eval' ls.length
-    (by rw [clear.eval_inner_iter ls h_tape_i ls.length (by omega)]; simp [BiTape.mk₁, BiTape.nil])
+    (by rw [clear.eval_inner_iter ls h_tape_i ls.length (by omega)]; simp [BiTape.mk₁])
     h_min]
   rw [clear.eval_inner_iter ls h_tape_i ls.length (by omega)]
   simp
