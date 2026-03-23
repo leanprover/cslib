@@ -21,7 +21,7 @@ def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : Mul
     | [] => then_branch
     | c :: cs => if_eq c i
         (right i ;ₜ ite_enc cs i (left i ;ₜ then_branch) (left i ;ₜ else_branch))
-        (left i ;ₜ else_branch)
+        else_branch
 
 @[simp]
 lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
@@ -32,12 +32,32 @@ lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
         then_branch.eval tapes
       else
         else_branch.eval tapes := by
-  sorry
+  induction v generalizing tapes then_branch else_branch with
+  | nil => simp [ite_enc]
+  | cons c cs ih =>
+    simp only [ite_enc, if_eq.eval]
+    by_cases h : (tapes i).head = some c
+    · simp only [h, ↓reduceIte, MultiTapeTM.seq_eval, right.eval, Part.bind_some, Part.bind_eq_bind]
+      rw [ih]
+      simp only [MultiTapeTM.seq_eval, left.eval, Part.bind_some, Part.bind_eq_bind,
+        Function.update_self, Function.update_idem,
+        BiTape.move_right_move_left, Function.update_eq_self]
+      congr 1
+      ext
+      constructor <;> intro h' n hn
+      · match n with
+        | 0 => simpa using h
+        | n + 1 => simpa [Function.iterate_succ] using h' n (by simp_all)
+      · simpa [Function.iterate_succ] using h' (n + 1) (by simp_all)
+    · simp only [h, ↓reduceIte]
+      have : ¬∀ n, (hn : n < (c :: cs).length) →
+          (BiTape.move_right^[n] (tapes i)).head = some (c :: cs)[n] := by
+        intro h'; exact h (by simpa using h' 0 (by simp))
+      exact (if_neg this).symm
 
 /-- Runs `then_branch` if `(views i).current = v`, otherwise `else_branch`. -/
 public def ite {k : ℕ} (v : Data) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
-  MultiTapeTM k Char := sorry
-
+  MultiTapeTM k Char := ite_enc v.enc i then_branch else_branch
 
 @[simp]
 public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
