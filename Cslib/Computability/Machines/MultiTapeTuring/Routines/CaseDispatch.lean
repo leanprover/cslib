@@ -7,7 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
-public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
+public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
 
 namespace Turing
 namespace Routines
@@ -15,6 +15,39 @@ namespace Routines
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Case dispatch
 -- ═══════════════════════════════════════════════════════════════════════════
+
+def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
+  MultiTapeTM k Char := match v with
+    | [] => then_branch
+    | c :: cs => if_eq c i
+        (right i ;ₜ ite_enc cs i (left i ;ₜ then_branch) (left i ;ₜ else_branch))
+        (left i ;ₜ else_branch)
+
+@[simp]
+lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
+    {then_branch else_branch : MultiTapeTM k Char}
+    {tapes : Fin k → BiTape Char} :
+    (ite_enc v i then_branch else_branch).eval tapes =
+      if ∀ n, (h : n < v.length) → (BiTape.move_right^[n] (tapes i)).head = some v[n] then
+        then_branch.eval tapes
+      else
+        else_branch.eval tapes := by
+  sorry
+
+/-- Runs `then_branch` if `(views i).current = v`, otherwise `else_branch`. -/
+public def ite {k : ℕ} (v : Data) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
+  MultiTapeTM k Char := sorry
+
+
+@[simp]
+public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
+    {then_branch else_branch : MultiTapeTM k Char}
+    {views : Fin k → TapeView} :
+    (ite v i then_branch else_branch).eval_struct views =
+      if (views i).current = v then
+        then_branch.eval_struct views
+      else
+        else_branch.eval_struct views := by sorry
 
 /-- Branch on the `Data` constructor: `num_branch` if the value is a number,
     `list_branch` if it is a list. The head stays at the start of the encoding. -/

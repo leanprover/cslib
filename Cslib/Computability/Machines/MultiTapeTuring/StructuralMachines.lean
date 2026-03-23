@@ -7,7 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Basic
-public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
+public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
 public import Cslib.Computability.Machines.MultiTapeTuring.SequentialCombinator
 public import Mathlib.Data.PFun
 

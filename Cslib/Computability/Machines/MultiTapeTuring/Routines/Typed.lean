@@ -6,7 +6,7 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
+public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 
 namespace Turing

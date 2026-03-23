@@ -36,7 +36,6 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Data
 public import Cslib.Computability.Machines.MultiTapeTuring.DecRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.DuplicateRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.Dyadic
-public import Cslib.Computability.Machines.MultiTapeTuring.Encoding
 public import Cslib.Computability.Machines.MultiTapeTuring.EqualRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.GraphReachability
 public import Cslib.Computability.Machines.MultiTapeTuring.HeadStats
