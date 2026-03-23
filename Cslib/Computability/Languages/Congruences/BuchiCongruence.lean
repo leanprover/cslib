@@ -81,16 +81,16 @@ if `xl` makes `na` go through an accepting state of `na`, then so can `yl`. -/
 lemma buchiCongruence_transfer
     {a : Quotient na.BuchiCongruence.eq} {xl yl : List Symbol} {s t : State}
     (hc : xl ∈ na.BuchiCongruence.eqvCls a) (hc' : yl ∈ na.BuchiCongruence.eqvCls a)
-    (hp : xl ∈ na.pairLang s t) : ∃ sl, na.IsExecution s yl t sl ∧
+    (hp : xl ∈ na.pairLang s t) : ∃ sl, na.Execution s yl t sl ∧
       ( xl ∈ na.pairViaLang na.accept s t → ∃ r ∈ na.accept, r ∈ sl ) := by
   have h_eq : na.BuchiCongruence.eq xl yl := by
     apply Quotient.exact
     grind
   have := h_eq s t
   have h_yl : yl ∈ na.pairLang s t := by grind
-  have := LTS.mTr_extract_isExecution h_yl
-  grind [LTS.mem_pairViaLang, LTS.IsExecution, → LTS.IsExecution.comp,
-    → LTS.mTr_extract_isExecution]
+  have := LTS.execution_of_mTr h_yl
+  grind [LTS.mem_pairViaLang, LTS.Execution, → LTS.Execution.comp,
+    → LTS.execution_of_mTr]
 
 /-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
@@ -110,7 +110,8 @@ theorem mem_buchiFamily [Inhabited Symbol]
 -- because that proof was too big and kept exceeding the default `maxHeartbeats`.
 private lemma frequently_via_accept [Inhabited Symbol]
     {xl : List Symbol} {xls : ωSequence (List Symbol)} {ss : ωSequence State}
-    (h_acc : ∃ᶠ (k : ℕ) in atTop, ss k ∈ na.accept) (h_exec : na.ωTr ss (xl ++ω xls.flatten))
+    (h_acc : ∃ᶠ (k : ℕ) in atTop, ss k ∈ na.accept)
+    (h_exec : na.OmegaExecution ss (xl ++ω xls.flatten))
     (h_xls_p : ∀ (k : ℕ), (xls k).length > 0)
     (f : ℕ → ℕ) (h_f : f = fun k => xl.length + xls.cumLen k)
     (ts : ωSequence State) (h_ts : ts = ωSequence.mk (fun k ↦ ss (f k))) :
@@ -121,7 +122,8 @@ private lemma frequently_via_accept [Inhabited Symbol]
   apply LTS.mem_pairViaLang.mpr
   use ss (f n + k), by grind, (xls n).take k, (xls n).drop k
   have := extract_flatten h_xls_p n
-  have exec {m n} (h : m ≤ n) := LTS.isExecution_mTr na.toLTS <| LTS.ωTr_isExecution h_exec h
+  have exec {m n} (h : m ≤ n) :=
+    LTS.mTr_of_execution na.toLTS <| LTS.OmegaExecution.extract_execution h_exec h
   split_ands
   · have h : f n ≤ f n + k := by lia
     specialize exec h
@@ -141,24 +143,25 @@ theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (la
   let ts := ωSequence.mk (fun k ↦ ss (f k))
   have h_xls_p (k : ℕ) : (xls k).length > 0 := by grind [Language.mem_sub_one]
   have h_xls_e (k : ℕ) : xls k ∈ na.pairLang (ts k) (ts (k + 1)) := by
-    grind [LTS.ωTr_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang, extract_append_right_right,
-      add_tsub_cancel_left]
+    grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang,
+      extract_append_right_right, add_tsub_cancel_left]
   have h_yls (k : ℕ) := buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
   choose sls h_yls_e h_yls_a using h_yls
   have h_yls_p (k : ℕ) : (yls k).length > 0 := by grind [Language.mem_sub_one]
-  obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.IsExecution.flatten h_yls_e h_yls_p
+  obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.OmegaExecution.flatten_execution h_yls_e h_yls_p
   suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
     have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by
-      grind [LTS.ωTr_mTr h_exec (?_ : 0 ≤ xl.length), extract_append_zero_right, LTS.mem_pairLang]
+      grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : 0 ≤ xl.length),
+        extract_append_zero_right, LTS.mem_pairLang]
     have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
-      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.isExecution_mTr]
+      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.mTr_of_execution]
     have h_ss1_ts : ss1 0 = ts 0 := by
       have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
       have : 0 < (sls 0).length := by grind
       have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
       have : (sls 0)[0] = ts 0 := h_yls_e 0 |>.choose_spec |>.1
       grind
-    obtain ⟨ss2, _, _, _, _⟩ := LTS.ωTr.append h_yl_e h_ss1_run h_ss1_ts
+    obtain ⟨ss2, _, _, _, _⟩ := LTS.OmegaExecution.append h_yl_e h_ss1_run h_ss1_ts
     use ss2
     have := @drop_frequently_iff_frequently _ ss2 na.accept yl.length
     grind [Run.mk]
