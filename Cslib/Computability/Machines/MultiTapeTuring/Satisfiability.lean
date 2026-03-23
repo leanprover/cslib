@@ -185,7 +185,7 @@ public def sat_verify : MultiTapeTM 5 Char :=
   toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0 ;ₜ
   -- Navigate to formula (arg 0)
   toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0 ;ₜ
-  put (Data.list []) 1
+  replace (Data.list []) 1
 
 public theorem sat_verify.computes_fun
   {views : Fin 5 → TapeView}

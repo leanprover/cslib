@@ -41,6 +41,10 @@ variable {k : ℕ}
 public def noop : MultiTapeTM k Symbol := sorry
 
 @[simp]
+public theorem noop.eval {tapes : Fin k → BiTape Char} :
+  noop.eval tapes = some tapes := by sorry
+
+@[simp]
 public theorem noop.eval_struct {views : Fin k → TapeView} :
   noop.eval_struct views = some views := by sorry
 

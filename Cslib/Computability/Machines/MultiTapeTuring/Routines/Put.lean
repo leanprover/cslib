@@ -21,13 +21,23 @@ public def putChars : List Char → Fin k → MultiTapeTM k Char
   | [], _ => noop
   | c :: rest, i => putChars rest i ;ₜ left i ;ₜ write c i
 
-@[simp]
-public theorem putChars.eval {i : Fin k} {tapes : Fin k → BiTape Char}
-    {h_empty : (tapes i) = Ø}
-    {ls : List Char} :
-  (putChars ls i).eval tapes = .some (Function.update tapes i (BiTape.mk₁ ls)) := by
-  sorry
+/-- Prepend the encoding of a `Data` value to tape `i`. -/
+public def put {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
+  putChars (Data.enc d) i
 
+@[simp]
+public lemma put_eval {k : ℕ} {d : Data} {i : Fin k}
+    {tapes : Fin k → BiTape Char}
+    {old : List Char}
+    (h_tape : (tapes i) = BiTape.mk₁ old) :
+    (put d i).eval tapes = some
+      (Function.update tapes i (BiTape.mk₁ (d.enc ++ old))) := by
+  unfold put
+  induction d.enc with
+  | nil => simp [putChars, h_tape]
+  | cons c rest ih =>
+    simp [putChars, ih, BiTape.mk₁, BiTape.move_left, BiTape.write]
+    cases rest <;> cases old <;> simp [StackTape.map_some, StackTape.cons, StackTape.nil]
 
 def clear (i : Fin k) : MultiTapeTM k Char := while_neq none i (write none i ;ₜ right i)
 
@@ -73,24 +83,28 @@ theorem clear.eval {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char}
   rw [clear.eval_inner_iter ls h_tape_i ls.length (by omega)]
   simp
 
-/-- Prepend the encoding of a `Data` value to tape `i`. -/
-public def put {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
-  putChars (Data.enc d) i
 
-/-- Prepend the encoding of a value of type `α` (via its `StrEnc` instance) to tape `i`. -/
-public def putEnc {k : ℕ} {α : Type*} [StrEnc α] (x : α) (i : Fin k) :
-    MultiTapeTM k Char :=
-  put (StrEnc.toData x) i
+/-- Replace the contents of tape `i` by the encoding of `d`. -/
+public def replace {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
+  clear i ;ₜ put d i
 
-/-- `put d i` writes a `Data` value to tape `i` if the tape is empty.
-    If the tape already has data, `put` is a no-op.
-    Resets the path to `[]`. -/
 @[simp]
-public lemma put_eval_struct_empty {k : ℕ} {d : Data} {i : Fin k}
-    {views : Fin k → TapeView}
-    (h_empty : (views i).path = []) :
-    (put d i).eval_struct views = some
-      (Function.update views i (.ofData d)) := by sorry
+public lemma replace.eval_struct {k : ℕ} {d : Data} {i : Fin k} {views : Fin k → TapeView}
+  (h_data : views i = TapeView.ofData d) :
+  (replace d i).eval_struct views = some
+    (Function.update views i (.ofData d)) := by
+  simp [replace, MultiTapeTM.eval_struct]
+  rw [clear.eval (ls := d.enc) (by simp [TapeView.toBiTape, TapeView.encodedPos, h_data])]
+  simp
+  rw [put_eval (old := []) (by simp [TapeView.toBiTape, TapeView.encodedPos, h_data])]
+  simp
+
+
+
+
+
+
+  sorry
 
 
 
