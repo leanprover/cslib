@@ -62,6 +62,15 @@ theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠β�
 theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
   induction redex <;> grind
 
+/- Single reduction `app M (fvar x) ⭢βᶠ N` implies reduction on `M` or a root beta step. -/
+@[scoped grind →]
+lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
+    (∃ M', N = app M' (fvar x) ∧ M ⭢βᶠ M') ∨ (∃ M1, M = abs M1 ∧ N = M1 ^ fvar x) := by
+  cases step
+  case' base h => cases h with | beta => exact .inr ⟨_, rfl, rfl⟩
+  case' appR step_M _ => exact .inl ⟨_, rfl, step_M⟩
+  all_goals grind [cases Xi]
+
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
