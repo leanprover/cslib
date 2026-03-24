@@ -38,6 +38,7 @@ inductive Beta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
 | beta : LC (abs M)→ LC N → Beta (app (abs M) N) (M ^ N)
 
+/-- Full β-reduction. -/
 @[reduction_sys "βᶠ"]
 abbrev FullBeta : Term Var → Term Var → Prop := Xi Beta
 
@@ -51,7 +52,7 @@ lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
   induction step with
   | abs => constructor; assumption
   | _ => grind
-  
+
 /-- Left congruence rule for application in multiple reduction. -/
 @[scoped grind ←]
 theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠βᶠ app M' N := by
