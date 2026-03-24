@@ -32,6 +32,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 open Relation
 
+/-- Full βη-reduction. -/
 @[reduction_sys "βηᶠ"]
 abbrev FullBetaEta (M N : Term Var) : Prop := FullBeta M N ∨ FullEta M N
 
