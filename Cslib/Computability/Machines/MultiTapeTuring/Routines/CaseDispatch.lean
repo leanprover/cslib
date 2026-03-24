@@ -67,7 +67,10 @@ public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
       if (views i).current = v then
         then_branch.eval_struct views
       else
-        else_branch.eval_struct views := by sorry
+        else_branch.eval_struct views := by -- TODO clean up (ai)
+  simp only [ite, MultiTapeTM.eval_struct, ite_enc.eval, Function.comp_apply,
+    TapeView.ite_enc_condition_iff]
+  split <;> rfl
 
 /-- Branch on the `Data` constructor: `num_branch` if the value is a number,
     `list_branch` if it is a list. The head stays at the start of the encoding. -/

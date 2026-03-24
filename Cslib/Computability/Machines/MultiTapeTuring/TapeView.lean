@@ -154,15 +154,111 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
   unfold encodedPos
   sorry
 
+-- TODO clean up (ai)
+/-- The encoding starting at `encodedPos` begins with `current.enc`. -/
+private lemma enc_drop_prefix (tv : TapeView) :
+    tv.current.enc <+: tv.data.enc.drop tv.encodedPos := by
+  match tv with
+  | ⟨_, [], h_path⟩ =>
+    simp [current, Data.atPath]
+  | ⟨Data.num _, _ :: _, h_path⟩ =>
+    simp [Data.atPath] at h_path
+  | ⟨Data.list ds, p :: path, h_valid⟩ =>
+    have hp : p < ds.length := by grind [Data.atPath]
+    have h_path_valid : (ds[p].atPath path).isSome := by grind [Data.atPath]
+    have ih := enc_drop_prefix ⟨ds[p], path, h_path_valid⟩
+    have h_current : (⟨Data.list ds, p :: path, h_valid⟩ : TapeView).current =
+        (⟨ds[p], path, h_path_valid⟩ : TapeView).current := by
+      unfold current; simp [Data.atPath, hp]
+    rw [h_current]; simp only [encodedPos, Data.enc_list]
+    -- Strip the leading '('
+    change _ <+: (['('] ++ (ds.map Data.enc).flatten ++ [')']).drop _
+    rw [show ['('] ++ (ds.map Data.enc).flatten ++ [')'] =
+        '(' :: ((ds.map Data.enc).flatten ++ [')']) from by simp,
+      show 1 + ((ds.take p).map fun d => d.enc.length).sum +
+        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos =
+        (((ds.take p).map fun d => d.enc.length).sum +
+        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos) + 1 from by omega,
+      List.drop_succ_cons]
+    -- Split flatten at position p
+    have h_flatten_eq : (ds.map Data.enc).flatten =
+        ((ds.take p).map Data.enc).flatten ++ ((ds.drop p).map Data.enc).flatten := by
+      conv_lhs => rw [← List.take_append_drop p ds]
+      simp only [List.map_append, List.flatten_append]
+    have h_sum_eq : ((ds.take p).map fun d => d.enc.length).sum =
+        ((ds.take p).map Data.enc).flatten.length := by
+      rw [List.length_flatten, List.map_map]; rfl
+    rw [h_flatten_eq, List.append_assoc]
+    rw [show ((ds.take p).map fun d => d.enc.length).sum +
+        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos =
+        ((ds.take p).map Data.enc).flatten.length +
+        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos from by omega]
+    rw [List.drop_length_add_append,
+      List.drop_eq_getElem_cons hp, List.map_cons, List.flatten_cons, List.append_assoc]
+    rw [List.drop_append_of_le_length (by
+        rcases ih with ⟨t, ht⟩
+        have h_len := congrArg List.length ht
+        simp only [List.length_drop, List.length_append] at h_len
+        have := Data.enc_length_pos (⟨ds[p], path, h_path_valid⟩ : TapeView).current
+        omega)]
+    exact ih.trans (List.prefix_append ..)
+  termination_by tv.path.length
+
+-- TODO clean up (ai)
+/-- `current.enc` is a slice of `data.enc` starting at `encodedPos`. -/
+public lemma enc_current_slice (tv : TapeView) (n : ℕ) (hn : n < tv.current.enc.length) :
+    tv.data.enc[tv.encodedPos + n]? = some tv.current.enc[n] := by
+  obtain ⟨suffix, h_suffix⟩ := enc_drop_prefix tv
+  have h1 : tv.data.enc[tv.encodedPos + n]? = (tv.current.enc ++ suffix)[n]? := by
+    have := congrArg (·[n]?) h_suffix
+    simp only [List.getElem?_drop] at this
+    exact this.symm
+  rw [h1, List.getElem?_append_left hn, List.getElem?_eq_getElem]
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
 @[expose]
 public def toBiTape (tv : TapeView) : BiTape Char :=
   BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
 
+-- TODO clean up (ai)
+/-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
+    to `tv.current = v`. -/
+public lemma ite_enc_condition_iff (tv : TapeView) (v : Data) :
+    (∀ n, (h : n < v.enc.length) →
+      (BiTape.move_right^[n] tv.toBiTape).head = some v.enc[n]) ↔
+    tv.current = v := by
+  have key : ∀ n, (BiTape.move_right^[n] tv.toBiTape).head =
+      tv.data.enc[tv.encodedPos + n]? := by
+    intro n
+    unfold toBiTape
+    simp [← Function.iterate_add_apply, Nat.add_comm]
+  simp only [key]
+  constructor
+  · intro h_match
+    have h_eq_chars : ∀ n, (hn_c : n < tv.current.enc.length) → (hn_v : n < v.enc.length) →
+        tv.current.enc[n] = v.enc[n] := by
+      intro n hn_c hn_v
+      have h1 := enc_current_slice tv n hn_c
+      have h2 := h_match n hn_v
+      rw [h1] at h2; exact Option.some_injective _ h2
+    suffices h : tv.current.enc <+: v.enc ∨ v.enc <+: tv.current.enc by
+      rcases h with h | h
+      · exact Data.enc_prefix_free h
+      · exact (Data.enc_prefix_free h).symm
+    have h_prefix : ∀ {a b : List Char}, a.length ≤ b.length →
+        (∀ n, (hn_a : n < a.length) → (hn_b : n < b.length) → a[n] = b[n]) → a <+: b := by
+      intro a b h_len h_eq
+      rw [List.prefix_iff_eq_take]
+      exact List.ext_getElem (by simp; omega) fun n h1 h2 => by
+        simp only [List.getElem_take]; exact h_eq n (by omega) (by omega)
+    by_cases h_len : tv.current.enc.length ≤ v.enc.length
+    · exact Or.inl (h_prefix h_len h_eq_chars)
+    · exact Or.inr (h_prefix (by omega) fun n h1 h2 => (h_eq_chars n h2 h1).symm)
+  · intro h_eq; subst h_eq; exact fun n hn => enc_current_slice tv n hn
+
 @[simp]
 public lemma toBiTape_ofData (d : Data) :
   (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by
-  simp [toBiTape, encodedPos]
+  simp [toBiTape]
 
 public def ofBiTape? (t : BiTape Char) : Option TapeView := sorry
 
@@ -278,6 +374,27 @@ public def updateListHeadTyped
   let d <- ls.head?
   let x <- StrEnc.fromData d
   return TapeView.ofList ((StrEnc.toData (f x)) :: ls.tail)).getD tv
+
+/-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
+    to `tv.current = v`. -/
+public lemma ite_enc_condition_iff' (tv : TapeView) (v : Data) :
+  (∀ n, (h : n < v.enc.length) → (BiTape.move_right^[n] tv.toBiTape).head = some v.enc[n]) ↔
+    tv.current = v := by
+  have key : ∀ n, (BiTape.move_right^[n] tv.toBiTape).head = tv.data.enc[tv.encodedPos + n]? := by
+    intro n
+    unfold toBiTape
+    simp [← Function.iterate_add_apply, Nat.add_comm]
+  constructor
+  · intro h
+    simp [key] at h
+
+
+
+
+
+
+    sorry
+  · sorry
 
 
 end TapeView

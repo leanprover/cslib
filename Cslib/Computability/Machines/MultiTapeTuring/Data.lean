@@ -65,8 +65,19 @@ public lemma Data.enc_list (ds : List Data) :
     Data.enc (Data.list ds) = ['('] ++ (ds.map Data.enc).flatten ++ [')'] := by
   unfold Data.enc; rfl
 
+-- TODO clean up (ai)
+public lemma Data.enc_length_pos (d : Data) : 0 < d.enc.length := by
+  cases d with
+  | num n => simp [Data.enc_num]
+  | list ds => simp [Data.enc_list]
+
 -- TOOD prove by copilot
 public lemma Data.enc_injective : Function.Injective Data.enc := by sorry
+
+/-- No `Data.enc` is a proper prefix of another. Together with injectivity,
+    this means the encoding is uniquely decodable. -/
+public lemma Data.enc_prefix_free {d₁ d₂ : Data}
+    (h : d₁.enc <+: d₂.enc) : d₁ = d₂ := by sorry
 
 /-- Typeclass for types that can be encoded as `Data` for TM computation. -/
 public class StrEnc (α : Type*) where
@@ -153,6 +164,16 @@ public instance (α : Type*) [StrEnc α] : StrEnc (List α) where
     | cons a as ih =>
       simp only [List.map, List.mapM_cons]
       simp [StrEnc.fromData_toData a, ih]
+
+public instance (α : Type) [StrEnc α] : StrEnc (Option α) where
+  toData o := StrEnc.toData o.toList
+  fromData
+    | Data.list [x] => some (StrEnc.fromData x)
+    | Data.list [] => some none
+    | _ => none
+  fromData_toData := by
+    intro o
+    cases o with | some _ | none <;> simp [StrEnc.toData]
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Data.atPath
