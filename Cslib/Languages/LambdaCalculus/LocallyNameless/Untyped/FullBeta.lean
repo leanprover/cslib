@@ -51,7 +51,7 @@ lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
   induction step with
   | abs => constructor; assumption
   | _ => grind
-  
+
 /-- Left congruence rule for application in multiple reduction. -/
 @[scoped grind ←]
 theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠βᶠ app M' N := by
@@ -86,6 +86,16 @@ lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (
 lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
     s [ x := fvar y ] ⭢βᶠ s' [ x := fvar y ] :=
   redex_subst_cong_lc _ _ _ _ step (.fvar y)
+
+/-- An β-reduction step does not introduce new free variables. -/
+lemma step_not_fv (step : M ⭢βᶠ N) (hw : w ∉ M.fv) : w ∉ N.fv := by
+  induction step with
+  | base h => cases h with | beta => grind [open_preserve_not_fvar]
+  | abs =>
+    have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+    have := open_close x
+    grind [close_preserve_not_fvar, open_fresh_preserve_not_fvar]
+  | _ => grind
 
 /-- Abstracting then closing preserves a single reduction. -/
 lemma step_abs_close {x : Var} (step : M ⭢βᶠ M') : M⟦0 ↜ x⟧.abs ⭢βᶠ M'⟦0 ↜ x⟧.abs := by
