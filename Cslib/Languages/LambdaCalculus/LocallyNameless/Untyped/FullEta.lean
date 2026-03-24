@@ -88,6 +88,21 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
   | single st =>
     exact .single (Xi.abs {x} (by grind))
 
+/- `s ⭢ηᶠ s'` implies `s [ x := N ] ⭢ηᶠ s' [ x := N ]`. -/
+lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc_N : LC N) :
+    s [ x := N ] ⭢ηᶠ s' [ x := N ] := by
+  induction step
+  case' base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
+  case' abs => grind [Xi.abs <| free_union Var, subst_open_var]
+  all_goals grind
+
+/- `steps_subst_cong_l` generalizes `step_subst_cong_l` to multiple reductions `s ↠ηᶠ s'`. -/
+lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (lc_N : LC N) :
+    s [ x := N ] ↠ηᶠ s' [ x := N ] := by
+  induction steps with
+  | refl => rfl
+  | tail _ step ih => grind [step_subst_cong_l]
+
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullEta
 
 end Cslib
