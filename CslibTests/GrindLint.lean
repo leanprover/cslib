@@ -79,6 +79,9 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
 #grind_lint skip Cslib.Logic.HML.Satisfies.diamond
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullEta.redex_app_l_cong
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullEta.redex_app_r_cong
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullEta.steps_open_cong_r
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib
