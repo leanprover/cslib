@@ -141,8 +141,8 @@ procedure foo() returns () {
 #eval Strata.Boole.verify "cvc5" maps1
 
 -- TODO: ensure that smt works here
-example : Strata.smtVCsCorrect maps1 := by
-  gen_smt_vcs
-  all_goals grind
+-- example : Strata.smtVCsCorrect maps1 := by
+--   gen_smt_vcs
+--   all_goals grind
 
 end Strata

@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -13,7 +14,8 @@ procedure SimpleLoop () returns ()
   i := 0;
 
   while (i < 10)
-    invariant 0 <= i && i <= 10
+    invariant 0 <= i
+    invariant i <= 10
   {
     i := i + 1;
   }
@@ -23,19 +25,23 @@ procedure SimpleLoop () returns ()
 
 
 procedure VariableBoundLoop (n : int) returns ()
+spec {
+  requires 0 <= n;
+}
 {
   var i: int;
 
   i := 0;
 
   while (i < n)
-    invariant 0 <= i && i <= n
+    invariant 0 <= i
+    invariant i <= n
   {
     i := i + 1;
   }
   // when loop exits, !(i < n) holds
   assume !(i < n);
-}  ;
+};
 
 procedure Foo () returns ()
 {
@@ -77,6 +83,6 @@ procedure FooTooStepByStep () returns ()
 
 example : Strata.smtVCsCorrect ineq := by
   gen_smt_vcs
-  all_goals grind
+  all_goals smt +mono
 
 end Strata

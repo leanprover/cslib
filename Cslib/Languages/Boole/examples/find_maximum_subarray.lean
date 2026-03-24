@@ -1,6 +1,4 @@
 import Strata.MetaVerifier
-import Smt
-
 namespace Strata
 
 -- CLRS Chapter 4: FIND-MAXIMUM-SUBARRAY
@@ -36,11 +34,11 @@ var A : Array;
 function SumRange(A: Map int int, i:int, j:int) : int;
 
 // Base case: if i > j, the sum of an empty range is 0
-axiom (forall A: Map int int, i:int, j:int ::
+axiom (∀ A: Map int int, i:int, j:int .
     i > j ==> SumRange(A, i, j) == 0);
 
 // Recursive case: sum of range i..j is A[i] + sum of i+1..j
-axiom (forall A: Map int int, i:int, j:int ::
+axiom (∀ A: Map int int, i:int, j:int .
     i <= j ==> SumRange(A, i, j) == A[i] + SumRange(A, i+1, j));
 
 // Procedure: FIND_MAXIMUM_SUBARRAY
@@ -121,13 +119,14 @@ spec
     free ensures crossSum == SumRange(A, crossLow, crossHigh);
 
     // 3. crossSum is greater than or equal to sum of any subarray in the range
-    free ensures forall i:int,j:int :: low <= i && i <= j && j <= high ==> SumRange(A,i,j) <= crossSum;
+    free ensures ∀ i:int,j:int . low <= i && i <= j && j <= high ==> SumRange(A,i,j) <= crossSum;
 }
 {};
 
 #end
 
 #eval Strata.Boole.verify "cvc5" findMaxSubArray
+
 example : Strata.smtVCsCorrect findMaxSubArray := by
   gen_smt_vcs
   all_goals grind

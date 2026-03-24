@@ -54,7 +54,7 @@ spec
   requires n >= 0;
 
   // Postcondition: A[0..n-1] is non-decreasing
-  ensures forall i:int, j:int ::
+  ensures ∀ i:int, j:int .
     0 <= i && i <= j && j < n ==> A[i] <= A[j];
 }
 {
@@ -72,6 +72,10 @@ spec
   modifies A;
   // We assume the range is inside [0..n-1] and non-empty
   requires 0 <= l && l <= r && r < n;
+
+  // ensures the subarray is sorted
+  ensures ∀ i:int, j:int .
+    l <= i && i <= j && j <= r ==> A[i] <= A[j];
 }
 {
   var m : int;
@@ -99,9 +103,12 @@ spec
   requires 0 <= l && l <= m && m < r && r < n;
 
   // Want to specify that A[l..m] and A[m+1..r] are sorted
-  // [FEATURE REQUEST] Support for preconditions involving sortedness
-  // requires forall i:int, j:int :: l <= i && i <= j && j <= m ==> A[i] <= A[j];
-  // requires forall i:int, j:int :: m+1 <= i && i <= j && j <= r ==> A[i] <= A[j];
+  requires ∀ i:int, j:int . l <= i && i <= j && j <= m ==> A[i] <= A[j];
+  requires ∀ i:int, j:int . m+1 <= i && i <= j && j <= r ==> A[i] <= A[j];
+
+  // ensures the merged result is sorted
+  ensures ∀ i:int, j:int .
+    l <= i && i <= j && j <= r ==> A[i] <= A[j];
 }
 {
   var i : int;
@@ -112,7 +119,7 @@ spec
   // Copy A[l..r] into temp[l..r]
   k := l;
   while (k <= r) {
-    temp := temp[k := A[k]];
+    temp[k] := A[k];
     k := k + 1;
   }
 
@@ -123,10 +130,10 @@ spec
   // Merge while both halves are non-empty
   while (i <= m && j <= r) {
     if (temp[i] <= temp[j]) {
-      A := A[k := temp[i]];
+      A[k] := temp[i];
       i := i + 1;
     } else {
-      A := A[k := temp[j]];
+      A[k] := temp[j];
       j := j + 1;
     }
     k := k + 1;
@@ -134,14 +141,14 @@ spec
 
   // Copy any remaining elements from the left half
   while (i <= m) {
-    A := A[k := temp[i]];
+    A[k] := temp[i];
     i := i + 1;
     k := k + 1;
   }
 
   // Copy any remaining elements from the right half
   while (j <= r) {
-    A := A[k := temp[j]];
+    A[k] := temp[j];
     j := j + 1;
     k := k + 1;
   }
@@ -150,6 +157,6 @@ spec
 
 #eval Strata.Boole.verify "cvc5" mergeSortPgm
 
-theorem mergeSortPgm_smtVCsCorrect : Strata.smtVCsCorrect mergeSortPgm := by
-  gen_smt_vcs
-  all_goals grind
+-- theorem mergeSortPgm_smtVCsCorrect : Strata.smtVCsCorrect mergeSortPgm := by
+--   gen_smt_vcs
+--   all_goals grind

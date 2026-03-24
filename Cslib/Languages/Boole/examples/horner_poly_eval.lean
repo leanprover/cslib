@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -31,19 +32,17 @@ spec
   // have importable power/summation definitions.
 }
 {
-  var i : int;
-
   y := 0;
-  i := n;
 
-  // [FEATURE REQUEST] for loop construct with downto
-  // for i = n downto 0
-  while (i >= 0)
+  for i:int := n downto 0
   {
     y := A[i] + x * y;
-    i := i - 1;
   }
 };
 #end
 
 #eval Strata.Boole.verify "cvc5" hornerPgm
+
+example : Strata.smtVCsCorrect hornerPgm := by
+  gen_smt_vcs
+  all_goals smt +mono

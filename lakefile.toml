@@ -20,8 +20,8 @@ rev = "v4.27.0"
 
 [[require]]
 name = "Strata"
-git = "https://github.com/abdoo8080/Strata"
-rev = "boole-clean"
+git = "https://github.com/strata-org/Strata"
+rev = "main"
 
 [[require]]
 name = "smt"

@@ -16,8 +16,8 @@ function xxf1(x:int, y:bool) : int
   x + 1
 }
 
-axiom (forall z:int :: z > 12 ==> xxgz(z));
-axiom (forall y:int, x:bool :: xxf1(y, x) > 1 ==> y > 0);
+axiom (∀ z:int . z > 12 ==> xxgz(z));
+axiom (∀ y:int, x:bool . xxf1(y, x) > 1 ==> y > 0);
 
 procedure foo() returns ()
 {

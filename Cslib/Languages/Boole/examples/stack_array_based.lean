@@ -80,7 +80,7 @@ spec
 
   // Older elements are preserved
   ensures (
-    forall i:int ::
+    ∀ i:int .
       1 <= i && i <= old(top) ==> S[i] == old(S[i])
   );
 }
@@ -107,8 +107,9 @@ spec
 
 #end
 
-#eval Strata.Boole.verify "cvc5" stackArrayPgm
+-- will verify once pr in Strata is merged
+-- #eval Strata.Boole.verify "cvc5" stackArrayPgm
 
-example : Strata.smtVCsCorrect stackArrayPgm := by
-  gen_smt_vcs
-  all_goals smt +mono
+-- example : Strata.smtVCsCorrect stackArrayPgm := by
+--   gen_smt_vcs
+--   all_goals smt +mono

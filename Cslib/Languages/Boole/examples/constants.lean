@@ -53,7 +53,8 @@ procedure Loop () returns ()
   i := 0;
 
   while (i < 10)
-    invariant 0 <= i && i <= 10
+    invariant 0 <= i
+    invariant i <= 10
   {
     i := i + 1;
   }

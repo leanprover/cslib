@@ -34,29 +34,29 @@ spec
   modifies C;
 }
 {
-  var i: int;
   var j: int;
   var k: int;
 
-  i := 1;
-  while (i <= n)
-    invariant 1 <= i && i <= n + 1
-  {
+  for i:int := 1 to n
+    invariant 1 <= i
+    invariant i <= n + 1
+  { // [FEUTURE REQUEST]: add support for nested for-loops to Boole, which would allow us to write this more cleanly
     j := 1;
     while (j <= n)
-      invariant 1 <= j && j <= n + 1
+      invariant 1 <= j
+      invariant j <= n + 1
     {
-      C := (C[i := (C[i])[j := 0]]);
+      C[i][j] := 0;
       k := 1;
       while (k <= n)
-        invariant 1 <= k && k <= n + 1
+        invariant 1 <= k
+        invariant k <= n + 1
       {
-        C := (C[i := (C[i])[j := ((C[i])[j] + ((A[i])[k] * (B[k])[j]))]]);
+        C[i][j] := (C[i])[j] + ((A[i])[k] * (B[k])[j]);
         k := k + 1;
       }
       j := j + 1;
     }
-    i := i + 1;
   }
 };
 

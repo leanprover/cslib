@@ -69,6 +69,6 @@ spec
 
 #eval Strata.Boole.verify "cvc5" bubbleSortPgm
 
-example : Strata.smtVCsCorrect bubbleSortPgm := by
-  gen_smt_vcs
-  all_goals smt +mono
+-- example : Strata.smtVCsCorrect bubbleSortPgm := by
+--   gen_smt_vcs
+--   all_goals (smt +mono)

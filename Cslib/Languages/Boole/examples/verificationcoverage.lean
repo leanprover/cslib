@@ -34,7 +34,9 @@ spec
   s := 0;
   foo := 27;
   while (i < n)
-    invariant (0 <= i && i <= n) && (s == (i * (i + 1)) div 2) && (n >= 0)
+    invariant 0 <= i && i <= n
+    invariant s == (i * (i + 1)) div 2
+    invariant n >= 0
   {
     i := i + 1;
     s := s + i;
@@ -143,7 +145,7 @@ function someInteger(i: int) : int
   3
 }
 
-axiom (forall i: int :: someInteger(i) == 3); // {:id "someInteger_value_axiom"}
+axiom (∀ i: int . someInteger(i) == 3); // {:id "someInteger_value_axiom"}
 
 procedure usesSomeInteger() returns (r: bool)
 spec

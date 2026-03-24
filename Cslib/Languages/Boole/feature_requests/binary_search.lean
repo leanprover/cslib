@@ -34,8 +34,8 @@ var A : Array;
 procedure IntervalEmptyImpliesNoX(low: int, high: int, n: int, A: Map int int, x: int) returns ()
 spec {
     requires low > high;
-    requires forall k:int :: 0 <= k && k < n && A[k] == x ==> low <= k && k <= high;
-    ensures forall k:int :: 0 <= k && k < n ==> A[k] != x;
+    requires ∀ k:int . 0 <= k && k < n && A[k] == x ==> low <= k && k <= high;
+    ensures ∀ k:int . 0 <= k && k < n ==> A[k] != x;
 }
 {};
 
@@ -48,10 +48,10 @@ spec
 {
     // preconditions: array is sorted and size is non-negative
     requires n >= 0;
-    requires forall i:int, j:int :: (0 <= i && i < j && j < n) ==> A[i] <= A[j];
+    requires ∀ i:int, j:int . (0 <= i && i < j && j < n) ==> A[i] <= A[j];
 
     // postconditions
-    ensures (idx == -1 ==> forall k:int :: 0 <= k && k < n ==> A[k] != x);
+    ensures (idx == -1 ==> ∀ k:int . 0 <= k && k < n ==> A[k] != x);
         // if search fails, x does not exist
     ensures (idx != -1 ==> 0 <= idx && idx < n && A[idx] == x);
         // if search succeeds, idx points to x
@@ -73,14 +73,14 @@ spec
     // loop invariants:
     // 1. 0 <= low <= n and -1 <= high < n: bounds for low and high
     // 2. if idx != -1, then A[idx] == x (tracks correctness of idx)
-    // 3. forall k: if A[k] == x, then k must lie within [low..high]
+    // 3. ∀ k: if A[k] == x, then k must lie within [low..high]
     //    this ensures the search interval always contains all possible x's.
     while (low <= high && !found)
         invariant 0 <= low && low <= n
             && -1 <= high && high < n
             && (idx != -1 ==> 0 <= idx && idx < n && A[idx] == x)
             // any x must be in the current search interval
-            && forall k:int :: 0 <= k && k < n && A[k] == x ==> low <= k && k <= high
+            && ∀ k:int . 0 <= k && k < n && A[k] == x ==> low <= k && k <= high
     {
         mid := (low + high) div 2;
 
