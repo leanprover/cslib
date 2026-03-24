@@ -175,6 +175,13 @@ public instance (α : Type) [StrEnc α] : StrEnc (Option α) where
     intro o
     cases o with | some _ | none <;> simp [StrEnc.toData]
 
+public instance : StrEnc Char where
+  toData o := StrEnc.toData o.toNat
+  fromData
+    | Data.num n => some (Char.ofNat n)
+    | _ => none
+  fromData_toData := by simp
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Data.atPath
 -- ═══════════════════════════════════════════════════════════════════════════
