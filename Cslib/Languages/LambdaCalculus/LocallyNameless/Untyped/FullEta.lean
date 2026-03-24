@@ -12,6 +12,8 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 
 public section
 
+set_option linter.unusedDecidableInType false
+
 /-! # η-reduction for the λ-calculus -/
 
 namespace Cslib
@@ -79,6 +81,82 @@ lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢�
   | abs => grind [Xi.abs <| free_union Var]
   | _ => grind
 
+/-- Abstracting then closing preserves a single η-reduction step. -/
+lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) :
+    M⟦0 ↜ x⟧.abs ⭢ηᶠ M'⟦0 ↜ x⟧.abs := by
+  grind [Xi.abs ∅]
+
+/-- Abstracting then closing preserves multiple reductions. -/
+lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) :
+    M⟦0 ↜ x⟧.abs ↠ηᶠ M'⟦0 ↜ x⟧.abs := by
+  induction steps using Relation.ReflTransGen.head_induction_on
+  case refl => exact .refl
+  case head b c st_bc _ ih =>
+    exact .head (step_abs_close st_bc lc_M) (ih (step_lc_r st_bc))
+
+/-- Multiple reduction of opening implies multiple reduction of abstraction. -/
+theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
+    (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ηᶠ M' ^ fvar x) (lc_M : LC M.abs) :
+    M.abs ↠ηᶠ M'.abs := by
+  cases lc_M
+  case' abs L hL =>
+    have ⟨x, hx⟩ := fresh_exists (xs ∪ M.fv ∪ M'.fv ∪ L)
+    simp only [Finset.mem_union, not_or] at hx
+    have := redex_abs_close (x := x) (cofin x hx.1.1.1) (hL x hx.2)
+    grind [open_close x M 0 hx.1.1.2, open_close x M' 0 hx.1.2]
+
+/- `t ⭢ηᶠ t'` implies `s [ x := t ] ↠ηᶠ s [ x := t' ]`. -/
+lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
+    s [ x := t ] ↠ηᶠ s [ x := t' ] := by
+  induction lc_s generalizing x t t'
+  case fvar y =>
+    by_cases h : y = x <;> grind
+  case app l r hl hr ih_l ih_r =>
+    exact .trans (redex_app_l_cong (ih_l t t' st lc_t) (subst_lc hr lc_t))
+                 (redex_app_r_cong (ih_r t t' st lc_t) (subst_lc hl (step_lc_r st)))
+  case abs L body h_lc_body ih =>
+    apply redex_abs_cong (L ∪ {x})
+    · intro z hz
+      simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hz
+      have hz_x : z ≠ x := hz.2
+      have steps_body : (body ^ fvar z)[x:=t] ↠ηᶠ (body ^ fvar z)[x:=t'] :=
+        ih z hz.1 t t' st lc_t
+      have eq1 := subst_open_var z x t body hz_x.symm lc_t
+      have eq2 := subst_open_var z x t' body hz_x.symm (step_lc_r st)
+      rw [eq1, eq2] at steps_body
+      exact steps_body
+    · exact subst_lc (LC.abs L body h_lc_body) lc_t
+
+/- `steps_subst_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
+lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
+    s [ x := t ] ↠ηᶠ s [ x := t' ] := by
+  induction st using Relation.ReflTransGen.head_induction_on
+  case refl => rfl
+  case head _ _ st _ ih =>
+    exact .trans (step_subst_cong_r s _ _ st lc_s lc_t) (ih (step_lc_r st))
+
+/- `t ⭢ηᶠ t'` implies `s ^ t ↠ηᶠ s ^ t'`. -/
+lemma step_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (step : t ⭢ηᶠ t') :
+    (s ^ t) ↠ηᶠ s ^ t' := by
+  cases lc_s
+  case' abs L hL =>
+    have ⟨x, hx⟩ := fresh_exists (L ∪ s.fv)
+    simp only [Finset.mem_union, not_or] at hx
+    have eq1 := subst_intro x t s hx.2 lc_t
+    have eq2 := subst_intro x t' s hx.2 (step_lc_r step)
+    have subst_step := step_subst_cong_r (x := x) (s ^ fvar x) t t' step (hL x hx.1) lc_t
+    rw [eq1, eq2]
+    exact subst_step
+
+/- `steps_open_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
+@[scoped grind ←]
+lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (steps : t ↠ηᶠ t') :
+    (s ^ t) ↠ηᶠ s ^ t' := by
+  induction steps using Relation.ReflTransGen.head_induction_on
+  case refl => rfl
+  case head _ _ st _ ih =>
+    exact .trans (step_open_cong_r lc_s lc_t st) (ih (step_lc_r st))
+
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
 lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
@@ -96,7 +174,7 @@ lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc
   case' abs => grind [Xi.abs <| free_union Var, subst_open_var]
   all_goals grind
 
-/- `steps_subst_cong_l` generalizes `step_subst_cong_l` to multiple reductions `s ↠ηᶠ s'`. -/
+/- `steps_subst_cong_l` can be generalized to multiple reductions `s ↠ηᶠ s'`. -/
 lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (lc_N : LC N) :
     s [ x := N ] ↠ηᶠ s' [ x := N ] := by
   induction steps with
