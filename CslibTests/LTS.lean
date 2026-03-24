@@ -8,7 +8,7 @@ import Cslib.Foundations.Semantics.LTS.Divergence
 import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
-
+import Cslib.Foundations.Semantics.LTS.Notation
 
 namespace CslibTests
 

@@ -8,15 +8,13 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
-@[expose] public section
-
 /-!
 # Notations about LTS
 -/
 
 namespace Cslib
 
-meta section
+public meta section
 
 open Lean Elab Meta Command Term
 
