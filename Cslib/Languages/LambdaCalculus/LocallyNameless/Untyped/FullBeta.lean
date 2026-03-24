@@ -38,6 +38,7 @@ inductive Beta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
 | beta : LC (abs M)→ LC N → Beta (app (abs M) N) (M ^ N)
 
+/-- Full β-reduction. -/
 @[reduction_sys "βᶠ"]
 abbrev FullBeta : Term Var → Term Var → Prop := Xi Beta
 
