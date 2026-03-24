@@ -211,22 +211,6 @@ instance (lts : LTS State Label) :
 
 end MultiStep
 
-section Termination
-/-! ## Definitions about termination -/
-
-variable {State} {Label} (lts : LTS State Label) {Terminated : State → Prop}
-
-/-- A state 'may terminate' if it can reach a terminated state. The definition of `Terminated`
-is a parameter. -/
-def LTS.MayTerminate (s : State) : Prop := ∃ s', Terminated s' ∧ lts.CanReach s s'
-
-/-- A state 'is stuck' if it is not terminated and cannot go forward. The definition of `Terminated`
-is a parameter. -/
-def LTS.Stuck (s : State) : Prop :=
-  ¬Terminated s ∧ ¬∃ μ s', lts.Tr s μ s'
-
-end Termination
-
 section Classes
 /-!
 ### Classes of LTSs
