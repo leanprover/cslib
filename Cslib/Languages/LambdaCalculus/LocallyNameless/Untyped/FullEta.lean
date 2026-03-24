@@ -42,6 +42,16 @@ lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
   refine Xi.step_lc_r ?_ step
   grind
 
+/-- Left congruence rule for application in multiple reduction. -/
+@[scoped grind ←]
+theorem redex_app_l_cong (redex : M ↠ηᶠ M') (lc_N : LC N) : app M N ↠ηᶠ app M' N := by
+  induction redex <;> grind
+
+/-- Right congruence rule for application in multiple reduction. -/
+@[scoped grind ←]
+theorem redex_app_r_cong (redex : M ↠ηᶠ M') (lc_N : LC N) : app N M ↠ηᶠ app N M' := by
+  induction redex <;> grind
+
 /- Single reduction `app M (fvar x) ⭢ηᶠ N` implies `N = app M' (fvar x)` for some M' -/
 @[scoped grind →]
 lemma invert_step_app_fvar (step : (app M (fvar x)) ⭢ηᶠ N) :
