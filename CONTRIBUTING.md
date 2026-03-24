@@ -2,6 +2,7 @@
 
 - [Contributing to CSLib](#contributing-to-cslib)
 - [Contribution model](#contribution-model)
+- [Copyright and professional norms](#copyright-and-professional-norms)
 - [Style and documentation](#style-and-documentation)
   - [Variable names](#variable-names)
   - [Proof style and golfing :golf:](#proof-style-and-golfing-golf)
@@ -56,6 +57,15 @@ Each PR needs to be approved by at least one relevant maintainer. You can read t
 If you are adding something new to CSLib and are in doubt about it, you are very welcome to contact us on the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
+
+# Copyright and professional norms
+
+All files must have a copyright header that follows [mathlib's guidelines](https://leanprover-community.github.io/contribute/style.html#header-and-imports).
+
+Authors must follow professional norms when any part of their contribution is not their own work. In particular:
+
+- Code copied from another source (including AI-generated code) must acknowledge the source; in addition, you must have permission to use it, either directly from the author or via a license or terms of use agreement.
+- If a contribution is the work of more than one author, all co-authors should be acknowledged using GitHub's co-author mechanism (see <https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors>).
 
 # Style and documentation
 
