@@ -82,12 +82,14 @@ private def bw (c : Char) : Int :=
 
 private def bal (l : List Char) : Int := (l.map bw).sum
 
-private lemma bal_append (l₁ l₂ : List Char) :
+@[simp] private lemma bal_nil : bal [] = 0 := rfl
+
+@[simp] private lemma bal_cons (c : Char) (l : List Char) :
+    bal (c :: l) = bw c + bal l := by simp [bal]
+
+@[simp] private lemma bal_append (l₁ l₂ : List Char) :
     bal (l₁ ++ l₂) = bal l₁ + bal l₂ := by
   simp [bal, List.map_append, List.sum_append]
-
-private lemma bal_cons (c : Char) (l : List Char) :
-    bal (c :: l) = bw c + bal l := by simp [bal]
 
 private lemma bw_dyadic {c : Char} {n : ℕ} (h : c ∈ dyadic n) : bw c = 0 := by
   rcases dyadic_mem_chars h with rfl | rfl <;> decide
@@ -96,10 +98,7 @@ private lemma bal_of_all_bw_zero {l : List Char} (h : ∀ c ∈ l, bw c = 0) :
     bal l = 0 := by
   induction l with
   | nil => rfl
-  | cons c cs ih =>
-    rw [bal_cons, h c List.mem_cons_self,
-        ih (fun x hx => h x (List.mem_cons_of_mem _ hx))]
-    simp
+  | cons c cs ih => simp [h c (.head ..), ih (fun x hx => h x (.tail _ hx))]
 
 private lemma bal_dyadic_take (n : ℕ) (i : ℕ) : bal ((dyadic n).take i) = 0 :=
   bal_of_all_bw_zero (fun _ hc => bw_dyadic (List.mem_of_mem_take hc))
@@ -118,10 +117,10 @@ private lemma bal_flatten_take_nonneg
     by_cases hle : j ≤ s.length
     · rw [List.take_append_of_le_length hle]
       rcases Nat.eq_or_lt_of_le hle with rfl | hjlt
-      · rw [List.take_length]; linarith [h_bal s List.mem_cons_self]
+      · rw [List.take_length]; linarith [h_bal s (.head ..)]
       · rcases j with _ | j
         · simp [bal]
-        · linarith [h_pos s List.mem_cons_self (j + 1) (by omega) hjlt]
+        · linarith [h_pos s (.head ..) (j + 1) (by omega) hjlt]
     · push_neg at hle
       rw [List.take_append, List.take_of_length_le (by omega), bal_append,
           h_bal s List.mem_cons_self]
@@ -138,51 +137,42 @@ private lemma Data.enc_bal (d : Data) :
     simp only [Data.enc_num]
     constructor
     · rw [show ['['] ++ dyadic n ++ [']'] = ['['] ++ (dyadic n ++ [']']) from by simp]
-      rw [bal_append, bal_append,
-          bal_of_all_bw_zero (fun _ h => bw_dyadic h)]; decide
+      rw [bal_append, bal_append, bal_of_all_bw_zero (fun _ h => bw_dyadic h)]; decide
     · intro i hi hlt
       simp only [List.length_append, List.length_cons, List.length_nil] at hlt
-      rw [show ['['] ++ dyadic n ++ [']'] = '[' :: (dyadic n ++ [']']) from rfl]
+      change 0 < bal (('[' :: (dyadic n ++ [']'])).take i)
       match i, hi with
       | i + 1, _ =>
-        simp only [List.take_succ_cons]
-        rw [bal_cons, List.take_append_of_le_length (show i ≤ (dyadic n).length by omega),
-            bal_dyadic_take]
+        simp only [List.take_succ_cons, bal_cons,
+            List.take_append_of_le_length (show i ≤ (dyadic n).length by omega), bal_dyadic_take]
         decide
   | .list ds =>
     simp only [Data.enc_list]
-    have ih : ∀ d' ∈ ds, bal d'.enc = 0 ∧
-        ∀ i, 0 < i → i < d'.enc.length → 0 < bal (d'.enc.take i) :=
-      fun d' _ => Data.enc_bal d'
+    have ih d' (_ : d' ∈ ds) := Data.enc_bal d'
     have bal_flat : bal (ds.map Data.enc).flatten = 0 := by
       induction ds with
       | nil => simp [bal]
       | cons d ds' ihds =>
-        simp only [List.map_cons, List.flatten_cons]
-        rw [bal_append, (ih d List.mem_cons_self).1]
-        simp only [zero_add]
-        exact ihds (fun d' hd' => ih d' (List.mem_cons_of_mem d hd'))
-    have bal_flat_nonneg : ∀ j, j ≤ (ds.map Data.enc).flatten.length →
-        0 ≤ bal ((ds.map Data.enc).flatten.take j) :=
+        simp only [List.map_cons, List.flatten_cons, bal_append,
+            (ih d (.head ..)).1, ihds (fun d' hd' => ih d' (.tail _ hd')), zero_add]
+    have bal_flat_nonneg j (hj : j ≤ (ds.map Data.enc).flatten.length) :=
       bal_flatten_take_nonneg (ds.map Data.enc)
-        (fun s hs => by
-          obtain ⟨d', hd', rfl⟩ := List.mem_map.mp hs; exact (ih d' hd').1)
+        (fun s hs => by obtain ⟨d', hd', rfl⟩ := List.mem_map.mp hs; exact (ih d' hd').1)
         (fun s hs k hk hkl => by
           obtain ⟨d', hd', rfl⟩ := List.mem_map.mp hs; exact (ih d' hd').2 k hk hkl)
+        j hj
     set flat := (ds.map Data.enc).flatten
     constructor
     · rw [show ['('] ++ flat ++ [')'] = ['('] ++ (flat ++ [')']) from by simp]
       rw [bal_append, bal_append, bal_flat]; decide
     · intro i hi hlt
       simp only [List.length_append, List.length_cons, List.length_nil] at hlt
-      rw [show ['('] ++ flat ++ [')'] = '(' :: (flat ++ [')']) from rfl]
+      change 0 < bal (('(' :: (flat ++ [')'])).take i)
       match i, hi with
       | i + 1, _ =>
-        simp only [List.take_succ_cons]
-        rw [bal_cons, List.take_append_of_le_length (show i ≤ flat.length by omega)]
-        have : 0 ≤ bal (flat.take i) := bal_flat_nonneg i (by omega)
-        have : bw '(' = 1 := by decide
-        linarith
+        simp only [List.take_succ_cons, bal_cons,
+            List.take_append_of_le_length (show i ≤ flat.length by omega)]
+        linarith [bal_flat_nonneg i (by omega), show bw '(' = (1 : Int) from by decide]
   termination_by sizeOf d
 
 /-- A proper prefix of any encoding leads to a balance contradiction. -/
