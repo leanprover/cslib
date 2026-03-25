@@ -147,7 +147,7 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
         · calc ((M ^ N).multiApp Ps).app P
             _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
-            _ ↠βᶠ Q' ^ P' := by 
+            _ ↠βᶠ Q' ^ P' := by
               rw [Relation.reflTransGen_iff_eq_or_transGen] at ⊢ innerSteps h_st2
               right
               cases lc_MNPs
