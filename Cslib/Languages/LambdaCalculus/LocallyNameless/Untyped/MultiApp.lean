@@ -55,7 +55,7 @@ lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
 @[scoped grind ←]
 lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ⭢βᶠ M'.multiApp Ns := by
-  induction Ns <;> grind [FullBeta.appR]
+  induction Ns <;> grind
 
 /-- Congruence lemma for multi reduction of the left most term of a multi-application -/
 lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
@@ -65,11 +65,11 @@ lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
 /-- Congruence lemma for single reduction of one of the arguments of a multi-application -/
 @[scoped grind ←]
 lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
-  induction steps <;> grind [FullBeta.appL, FullBeta.appR]
+  induction steps <;> grind
 
 /-- Congruence lemma for multiple reduction of one of the arguments of a multi-application -/
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
-  induction steps <;> grind [FullBeta.appL, FullBeta.appR]
+  induction steps <;> grind
 
 /-- If a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
     Q must be one of the following forms:
@@ -85,13 +85,13 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     (∃ Ps', Ps ⭢lβᶠ Ps' ∧ Q = multiApp (M.abs.app N) Ps') ∨
     (Q = multiApp (M ^ N) Ps) := by
   induction Ps generalizing M N Q with
-  | nil => grind [cases FullBeta]
+  | nil => grind [cases Xi]
   | cons P Ps ih =>
     generalize Heq : (M.abs.app N).multiApp Ps = Q'
     have : ∀ P', Q'.app P' = (M.abs.app N).multiApp (P' :: Ps) := by grind
     rw [multiApp, Heq] at h_red
     cases h_red with
-    | beta => cases Ps <;> contradiction
+    | base => cases Ps <;> grind
     | appR => grind [→ ListFullBeta.cons]
     | appL => grind
 
