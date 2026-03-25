@@ -1,4 +1,5 @@
 import Strata.MetaVerifier
+import Smt
 
 namespace Strata
 
@@ -34,4 +35,4 @@ spec {
 
 example : Strata.smtVCsCorrect bitVec := by
   gen_smt_vcs
-  all_goals grind
+  all_goals (smt +mono)

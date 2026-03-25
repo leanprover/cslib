@@ -77,4 +77,4 @@ procedure Evaluate () returns ()
 
 example : Strata.smtVCsCorrect constants := by
   gen_smt_vcs
-  all_goals smt
+  all_goals (smt +mono)

@@ -93,4 +93,4 @@ spec
 
 example : Strata.smtVCsCorrect quickSort := by
   gen_smt_vcs
-  all_goals smt +mono
+  all_goals (smt +mono)

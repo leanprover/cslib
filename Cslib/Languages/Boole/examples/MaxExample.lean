@@ -29,4 +29,4 @@ spec {
 -- Approach 2: Using Lean tactics to verify the VCs.
 theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrect maxExample := by
   gen_smt_vcs
-  all_goals smt
+  all_goals (smt +mono)
