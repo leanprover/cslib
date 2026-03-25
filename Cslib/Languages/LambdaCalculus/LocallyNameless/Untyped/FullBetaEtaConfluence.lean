@@ -76,22 +76,18 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
         · use abs u1
           grind [open_injective w N u1]
     case abs S ys st_body_eta =>
-      have ⟨w, hw⟩ := fresh_exists (xs ∪ ys ∪ M.fv ∪ N.fv ∪ S.fv)
-      simp only [Finset.mem_union, not_or] at hw
-      have st_beta_w := st_body_beta w hw.1.1.1.1
-      obtain ⟨K, h_beta, _⟩ := ih w hw.1.1.1.1 (st_body_eta w hw.1.1.1.2)
-      use abs (K⟦0 ↜ w⟧)
+      have ⟨w, hw⟩ := fresh_exists <| free_union [fv] Var
+      obtain ⟨K, h_beta, _⟩ := ih w (by grind) (st_body_eta w (by grind))
+      use abs (K ^* w)
       constructor
       · cases h_beta with
         | refl => grind [open_close]
-        | single st_w =>
+        | single =>
           apply ReflGen.single
           apply Xi.abs {w}
-          intro z hz
-          have eq_uz := subst_intro w (fvar z) S hw.2 (by constructor)
-          have eq_wz := open_close_to_subst K w z 0 (step_lc_r st_w)
           grind [FullBeta.redex_subst_cong]
-      · grind [FullEta.redex_abs_close, open_close w N 0 hw.1.2]
+      · rw [open_close w N 0]
+        all_goals grind [FullEta.redex_abs_close]
 
 open Commute in
 /-- βη-reduction is confluent. -/
