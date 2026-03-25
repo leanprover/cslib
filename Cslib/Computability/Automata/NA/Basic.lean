@@ -47,7 +47,7 @@ variable {State Symbol : Type*}
 /-- Infinite run. -/
 structure Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) where
   start : ss 0 ∈ na.start
-  trans : na.ωTr ss xs
+  trans : na.OmegaExecution ss xs
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where

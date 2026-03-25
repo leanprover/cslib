@@ -99,7 +99,7 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
     ∀ k, (_ : k < xl.length) → na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
-  obtain ⟨sl, _, _, _, _⟩ := LTS.mTr_extract_isExecution h_mtr
+  obtain ⟨sl, _, _, _, _⟩ := LTS.execution_of_mTr h_mtr
   by_cases xl.length = 0
   · use [inl ()]
     grind
@@ -128,7 +128,7 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
   let ts := ωSequence.const (inl () : Unit ⊕ State)
   have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
   have h_pos (k : ℕ) : (xls k).length > 0 := by grind
-  obtain ⟨ss, _, _⟩ := LTS.ωTr.flatten h_mtr h_pos
+  obtain ⟨ss, _, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
   use ss
   grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]
 
@@ -186,7 +186,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
     · have : Nonempty na.start := by
         obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
         use s0
-      obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_ωTr h_mtr
+      obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
       obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
         simp only [mem_singleton_iff] at h_acc
@@ -195,7 +195,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
       · grind [totalize_language_eq, take_append_of_le_length]
       · refine ⟨ss n, by grind, ss xl.length, by grind, ?_⟩
-        have := LTS.ωTr_mTr h_ωtr' (show 0 ≤ xl.length - n by grind)
+        have := LTS.OmegaExecution.extract_mTr h_ωtr' (show 0 ≤ xl.length - n by grind)
         have : n + (xl.length - n) = xl.length := by grind
         have : ((xl ++ω xs).drop n).extract 0 (xl.length - n) = xl.drop n := by
           grind [extract_eq_take, drop_append_of_le_length, take_append_of_le_length]
