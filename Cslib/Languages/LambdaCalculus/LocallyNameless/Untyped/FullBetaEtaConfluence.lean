@@ -50,7 +50,7 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
       case appR u st_eta_absM _ =>
         have := step_lc_r st_eta_absM
         cases st_eta_absM
-        case base h => cases h with | eta => use (disch := grind) app u N
+        case base h => use (disch := grind) app u N
         case abs M_eta xs _ =>
           have ⟨_, hz⟩ := fresh_exists (xs ∪ N.fv ∪ M.fv ∪ M_eta.fv)
           simp only [Finset.mem_union, not_or] at hz
