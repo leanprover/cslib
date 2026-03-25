@@ -43,7 +43,7 @@ lemma sn_steps (t_st_t' : t ↠βᶠ t') (sn_t : SN t) : SN t' := by
 
 /-- Free variables are strongly normalizing. -/
 lemma sn_fvar {x : Var} : SN (fvar x) := by
-  grind [cases Xi]
+  grind only [cases Xi, cases Beta, SN]
 
 /-- An application is strongly normalizing if the left and right terms are strongly normalizing,
     as well as all possible future top level abstraction application beta reductions -/
@@ -91,7 +91,7 @@ inductive Neutral : Term Var → Prop
 
 /-- Neutral terms only reduce to other neutral terms in a single step -/
 lemma neutral_step (Hneut : Neutral t) (Hstep : t ⭢βᶠ t') : Neutral t' := by
-  induction Hneut generalizing t' with grind [cases Xi, sn_step]
+  induction Hneut generalizing t' with grind only [Neutral, cases Xi, sn_step]
 
 /-- Neutral terms only reduce to other neutral terms in multiple steps -/
 lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' := by
@@ -101,7 +101,7 @@ lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' :=
 lemma sn_neutral (Hneut : Neutral t) : SN t := by
   induction Hneut with
   | app => grind [→ neutral_steps, sn_app]
-  | _ => grind [cases Xi]
+  | _ => grind only [SN, cases Xi]
 
 /-- A lambda abstraction is strongly normalizing if its body is strongly normalizing. -/
 lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN (M ^ N)) (lc_N : LC N) :
