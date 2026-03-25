@@ -93,6 +93,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaCon
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination

@@ -124,7 +124,7 @@ instance instHasSubstitutionTerm :
   subst := subst
 
 /-- Allow grind to recognise the notation of substitution. -/
-@[grind ←, simp← ]
+@[grind ←]
 theorem subst_def (m r : Term Var) (x : Var) : m.subst x r = m[x := r] := by
   rfl
 

@@ -221,7 +221,7 @@ theorem AlphaEquiv.trans {m n p : Term Var} :
         · apply ih _ ?_ n1 <;> grind [vars, rename_vars]
         · apply ih _ ?_ n2 <;> grind [vars, rename_vars]
 
-/-- Renaming a non-free variable result in an α-equivalent term -/
+/-- Renaming a non-free variable results in an α-equivalent term -/
 theorem AlphaEquiv.rename_non_fv {m : Term Var} {x y : Var} :
     x ∉ m.fv → y ∉ m.vars → m =α (m.rename x y) := by
   intro hx hy
@@ -316,7 +316,7 @@ theorem Subst.function_to_relation {m r : Term Var} {x : Var} :
     · subst y
       simp only [← subst_def, subst.eq_1, ↓reduceIte]
       apply Subst.varHit
-    · simp [hyx]
+    · simp [hyx, ← subst_def]
       grind [Subst.varMiss]
   | abs y m =>
     by_cases hyx : y = x
@@ -390,9 +390,10 @@ lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
     ∧ (y ∉ r.fv ∪ {x} → (Term.abs y (m[x := r])) =α (Term.abs z ((m.rename y z)[x := r]))) := by
   refine (WellFounded.induction sizeOfWFRel.wf m
     (C := fun m => ∀ (r : Term Var) (x y z : Var),
-      z ∉ m.vars ∪ r.vars ∪ {x, y} →
-  ((Term.abs y m)[x := r]) =α (Term.abs z ((m.rename y z)[x := r]))
-  ∧ (y ∉ r.fv ∪ {x} → (Term.abs y (m[x := r])) =α (Term.abs z ((m.rename y z)[x := r])))) ?_) r x y z
+    z ∉ m.vars ∪ r.vars ∪ {x, y} →
+    ((Term.abs y m)[x := r]) =α (Term.abs z ((m.rename y z)[x := r]))
+    ∧ (y ∉ r.fv ∪ {x} → (Term.abs y (m[x := r])) =α (Term.abs z ((m.rename y z)[x := r])))) ?_)
+    r x y z
   intro m ih r x y z hz
   have hright : ∀ (m' : Term Var) (y' : Var), sizeOf m' = sizeOf m → z ∉ m'.vars ∪ r.vars ∪ {x, y'}
     → y' ∉ r.fv ∪ {x} → (Term.abs y' (m'[x:=r])) =α (Term.abs z ((m'.rename y' z)[x:=r])) := by
@@ -549,7 +550,8 @@ theorem subst.preserve_AlphaEquiv {m m' r r' : Term Var} {x : Var} :
       grind [subst.abs_fresh]
     have hbody : (m.rename y w) =α (m'.rename y' w) := by
       apply AlphaEquiv.abs_elim <;> grind
-    have h3 : (Term.abs w ((m.rename y w)[x := r])) =α (Term.abs w ((m'.rename y' w)[x := r'])) := by
+    have h3 :
+        (Term.abs w ((m.rename y w)[x := r])) =α (Term.abs w ((m'.rename y' w)[x := r'])) := by
       apply AlphaEquiv.context (c := Context.abs w Context.hole)
       apply ih <;> grind [rename_eq_sizeOf]
     apply AlphaEquiv.trans (n := (Term.abs w ((m.rename y w)[x := r]))) <;> try assumption
