@@ -82,8 +82,7 @@ lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢�
   | _ => grind
 
 /-- Abstracting then closing preserves a single η-reduction step. -/
-lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) :
-    M⟦0 ↜ x⟧.abs ⭢ηᶠ M'⟦0 ↜ x⟧.abs := by
+lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢ηᶠ (M' ^* x).abs := by
   grind [Xi.abs ∅]
 
 /-- Abstracting then closing preserves multiple reductions. -/
