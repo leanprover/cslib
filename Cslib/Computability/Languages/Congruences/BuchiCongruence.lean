@@ -7,8 +7,7 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Pair
-public import Cslib.Computability.Languages.Congruences.RightCongruence
-public import Cslib.Computability.Languages.OmegaLanguage
+public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Data.Set.Saturation
 
 @[expose] public section
@@ -105,6 +104,32 @@ theorem mem_buchiFamily [Inhabited Symbol]
       xl ∈ na.BuchiCongruence.eqvCls a ∧ (∀ k, xls k ∈ na.BuchiCongruence.eqvCls b - 1) ∧
       xl ++ω xls.flatten = xs := by
   grind [buchiFamily]
+
+open Finset in
+/-- `na.buchiFamily` is a cover if `na` has only finitely many states.
+This theorem uses the Ramsey theorem for infinite graphs and does not depend on any details
+of `na.BuchiCongruence` other than that it is of finite index. -/
+theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
+    ⨆ i, na.buchiFamily i = ⊤ := by
+  ext xs
+  have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
+  let color (t : Finset ℕ) : Quotient na.BuchiCongruence.eq :=
+    if h : t.Nonempty then ⟦ xs.extract (t.min' h) (t.max' h) ⟧ else ⟦ [] ⟧
+  obtain ⟨b, ns, h_ns, h_color⟩ := infinite_graph_ramsey color
+  obtain ⟨f, h_mono, rfl⟩ := strictMono_of_infinite h_ns
+  simp only [ωLanguage.mem_iSup, Prod.exists, ωLanguage.mem_top, iff_true]
+  use ⟦ xs.take (f 0) ⟧, b
+  apply mem_buchiFamily.mpr
+  use xs.take (f 0), xs.drop (f 0) |>.toSegs (f · - f 0)
+  split_ands
+  · grind
+  · intro k
+    specialize h_color {f k, f (k + 1)}
+    have := @h_mono 0 k
+    have := @h_mono k (k + 1)
+    grind [extract_drop, Finset.insert_nonempty, Finset.singleton_nonempty, min'_insert,
+      min'_singleton, max'_insert, max'_singleton, toSegs_def, Language.mem_sub_one]
+  · grind [Nat.base_zero_strictMono h_mono]
 
 -- This intermediate result is split out of the proof of `buchiCongruence_saturation` below
 -- because that proof was too big and kept exceeding the default `maxHeartbeats`.
