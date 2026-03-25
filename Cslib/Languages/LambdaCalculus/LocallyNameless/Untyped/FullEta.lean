@@ -149,7 +149,6 @@ lemma step_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (step
     exact subst_step
 
 /- `steps_open_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
-@[scoped grind ←]
 lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (steps : t ↠ηᶠ t') :
     (s ^ t) ↠ηᶠ s ^ t' := by
   induction steps using Relation.ReflTransGen.head_induction_on
