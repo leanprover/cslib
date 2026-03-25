@@ -15,44 +15,44 @@ public import Cslib.Foundations.Semantics.LTS.Execution
 # Infinite executions of LTS
 -/
 
-namespace Cslib
+namespace Cslib.LTS
 
 open ωSequence
 
 /-- An infinite execution is conceptually an infinite sequence of transitions. But it is
 technically more convenient to separate the states and the labels into two ω-sequences. -/
 @[scoped grind]
-def LTS.OmegaExecution (lts : LTS State Label)
+def OmegaExecution (lts : LTS State Label)
     (ss : ωSequence State) (μs : ωSequence Label) : Prop :=
   ∀ i, lts.Tr (ss i) (μs i) (ss (i + 1))
 
 variable {State Label : Type*} {lts : LTS State Label}
 
 /-- Any finite execution extracted from an infinite execution is valid. -/
-theorem LTS.OmegaExecution.extract_execution
+theorem OmegaExecution.extract_execution
     (h : lts.OmegaExecution ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
   grind
 
 /-- Any multistep transition extracted from an infinite execution is valid. -/
-theorem LTS.OmegaExecution.extract_mTr
+theorem OmegaExecution.extract_mTr
     (h : lts.OmegaExecution ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.MTr (ss n) (μs.extract n m) (ss m) := by
-  grind [LTS.OmegaExecution.extract_execution h hnm]
+  grind [OmegaExecution.extract_execution h hnm]
 
 /-- Prepends an infinite execution with a transition. -/
-theorem LTS.OmegaExecution.cons (htr : lts.Tr s μ t)
+theorem OmegaExecution.cons (htr : lts.Tr s μ t)
     (hωtr : lts.OmegaExecution ss μs) (hm : ss 0 = t) :
     lts.OmegaExecution (s ::ω ss) (μ ::ω μs) := by
   intro i
   induction i <;> grind
 
 /-- Prepends an infinite execution with a finite execution. -/
-theorem LTS.OmegaExecution.append
+theorem OmegaExecution.append
     (hmtr : lts.MTr s μl t) (hωtr : lts.OmegaExecution ss μs) (hm : ss 0 = t) :
     ∃ ss', lts.OmegaExecution ss' (μl ++ω μs) ∧
       ss' 0 = s ∧ ss' μl.length = t ∧ ss'.drop μl.length = ss := by
-  obtain ⟨sl, _, _, _, _⟩ := LTS.Execution.of_mTr hmtr
+  obtain ⟨sl, _, _, _, _⟩ := Execution.of_mTr hmtr
   use sl.take μl.length ++ω ss
   split_ands
   · intro n
@@ -67,7 +67,7 @@ theorem LTS.OmegaExecution.append
 
 open Nat in
 /-- Concatenating an infinite sequence of finite executions. -/
-theorem LTS.OmegaExecution.flatten_execution [Inhabited Label]
+theorem OmegaExecution.flatten_execution [Inhabited Label]
     {ts : ωSequence State} {μls : ωSequence (List Label)} {sls : ωSequence (List State)}
     (hexec : ∀ k, lts.Execution (ts k) (μls k) (ts (k + 1)) (sls k))
     (hpos : ∀ k, (μls k).length > 0) :
@@ -84,7 +84,7 @@ theorem LTS.OmegaExecution.flatten_execution [Inhabited Label]
   split_ands
   · intro n
     simp only [h_len, flatten_def]
-    simp only [LTS.Execution] at hexec
+    simp only [Execution] at hexec
     have := segment_lower_bound h_mono h_zero n
     by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
     · have := segment_range_val h_mono (by grind) h_n
@@ -105,15 +105,15 @@ theorem LTS.OmegaExecution.flatten_execution [Inhabited Label]
   · simp [h_len, extract_flatten h_pos, segs]
 
 /-- Concatenating an infinite sequence of multistep transitions. -/
-theorem LTS.OmegaExecution.flatten_mTr [Inhabited Label]
+theorem OmegaExecution.flatten_mTr [Inhabited Label]
     {ts : ωSequence State} {μls : ωSequence (List Label)}
     (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
     ∃ ss, lts.OmegaExecution ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
-  choose sls h_sls using fun k ↦ LTS.Execution.of_mTr (hmtr k)
-  obtain ⟨ss, h_ss, h_seg⟩ := LTS.OmegaExecution.flatten_execution h_sls hpos
+  choose sls h_sls using fun k ↦ Execution.of_mTr (hmtr k)
+  obtain ⟨ss, h_ss, h_seg⟩ := OmegaExecution.flatten_execution h_sls hpos
   use ss, h_ss
   intro k
   have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length := by grind
   grind [List.getElem_of_eq (h_seg k) h1]
 
-end Cslib
+end Cslib.LTS

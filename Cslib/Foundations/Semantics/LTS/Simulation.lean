@@ -40,7 +40,7 @@ similar to each other.
 
 -/
 
-namespace Cslib
+namespace Cslib.LTS
 
 universe u v
 
@@ -143,4 +143,4 @@ instance :
 
 end Simulation
 
-end Cslib
+end Cslib.LTS

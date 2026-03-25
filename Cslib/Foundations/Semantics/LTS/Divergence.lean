@@ -15,20 +15,20 @@ public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 # Divergence of LTS
 -/
 
-namespace Cslib
+namespace Cslib.LTS
 
 universe u v
 
 /-- An infinite trace is divergent if every label within it is τ. -/
-def LTS.DivergentTrace [HasTau Label] (μs : ωSequence Label) := ∀ i, μs i = HasTau.τ
+def DivergentTrace [HasTau Label] (μs : ωSequence Label) := ∀ i, μs i = HasTau.τ
 
 /-- A state is divergent if there is a divergent execution from it. -/
-def LTS.Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
+def Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
   ∃ ss μs, lts.OmegaExecution ss μs ∧ ss 0 = s ∧ DivergentTrace μs
 
 /-- If a trace is divergent, then any 'suffix' is also divergent. -/
 @[scoped grind ⇒]
-theorem LTS.divergentTrace_drop
+theorem divergentTrace_drop
     [HasTau Label] {μs : ωSequence Label}
     (h : DivergentTrace μs) (n : ℕ) :
     DivergentTrace (μs.drop n) := by
@@ -38,7 +38,7 @@ theorem LTS.divergentTrace_drop
   grind
 
 /-- An LTS is divergence-free if it has no divergent state. -/
-class LTS.DivergenceFree [HasTau Label] (lts : LTS State Label) where
+class DivergenceFree [HasTau Label] (lts : LTS State Label) where
   divergence_free : ¬∃ s, lts.Divergent s
 
-end Cslib
+end Cslib.LTS

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi
+Authors: Fabrizio Montesi, Chris Henson
 -/
 
 module
@@ -12,7 +12,7 @@ public import Cslib.Foundations.Semantics.LTS.Relation
 # Notations about LTS
 -/
 
-namespace Cslib
+namespace Cslib.LTS
 
 public meta section
 
@@ -64,16 +64,16 @@ macro_rules
   | `($kind:attrKind lts_transition_notation $lts $sym) =>
     `(
       @[nolint docBlame]
-      $kind:attrKind notation3 t:39 "["μ"]⭢" $sym:str t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      $kind:attrKind notation3 t:39 "["μ"]⭢" $sym:str t':39 => (Tr.toRelation $lts μ) t t'
       @[nolint docBlame]
-      $kind:attrKind notation3 t:39 "["μs"]↠" $sym:str t':39 => (LTS.MTr.toRelation $lts μs) t t'
+      $kind:attrKind notation3 t:39 "["μs"]↠" $sym:str t':39 => (MTr.toRelation $lts μs) t t'
      )
   | `($kind:attrKind lts_transition_notation $lts) =>
     `(
       @[nolint docBlame]
-      $kind:attrKind notation3 t:39 "["μ"]⭢" t':39 => (LTS.Tr.toRelation $lts μ) t t'
+      $kind:attrKind notation3 t:39 "["μ"]⭢" t':39 => (Tr.toRelation $lts μ) t t'
       @[nolint docBlame]
-      $kind:attrKind notation3 t:39 "["μs"]↠" t':39 => (LTS.MTr.toRelation $lts μs) t t'
+      $kind:attrKind notation3 t:39 "["μs"]↠" t':39 => (MTr.toRelation $lts μs) t t'
      )
 
 /-- This attribute calls the `lts_transition_notation` command for the annotated declaration. -/
@@ -103,4 +103,4 @@ initialize Lean.registerBuiltinAttribute {
 
 end
 
-end Cslib
+end Cslib.LTS

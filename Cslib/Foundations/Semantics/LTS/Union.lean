@@ -17,18 +17,18 @@ Note: there is a nontrivial balance between ergonomics and generality here. Thes
 change in the future.
 -/
 
-namespace Cslib
+namespace Cslib.LTS
 
 universe u v
 
 variable {State : Type u} {Label : Type v}
 
 /-- The union of two LTSs defined on the same types. -/
-def LTS.union (lts1 lts2 : LTS State Label) : LTS State Label where
+def union (lts1 lts2 : LTS State Label) : LTS State Label where
   Tr := lts1.Tr ⊔ lts2.Tr
 
 /-- The union of two LTSs that have common supertypes for states and labels. -/
-def LTS.unionSubtype
+def unionSubtype
 {S1 : State → Prop} {L1 : Label → Prop} {S2 : State → Prop} {L2 : Label → Prop}
 [DecidablePred S1] [DecidablePred L1] [DecidablePred S2] [DecidablePred L2]
 (lts1 : LTS (@Subtype State S1) (@Subtype Label L1))
@@ -43,7 +43,7 @@ def LTS.unionSubtype
       False
 
 /-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
-def LTS.inl (lts : LTS State Label) :
+def inl (lts : LTS State Label) :
     LTS { x : State ⊕ State' // x.isLeft } { _label : Label // True } where
   Tr s μ s' :=
     match s, s' with
@@ -51,7 +51,7 @@ def LTS.inl (lts : LTS State Label) :
     | _, _ => False
 
 /-- Lifting of an `LTS State Label` to `LTS (State' ⊕ State) Label`. -/
-def LTS.inr (lts : LTS State Label) :
+def inr (lts : LTS State Label) :
     LTS { x : State' ⊕ State // x.isRight } { _label : Label // True } where
   Tr s μ s' :=
     match s, s' with
@@ -60,8 +60,8 @@ def LTS.inr (lts : LTS State Label) :
 
 /-- Union of two LTSs with the same `Label` type. The result combines the original respective
 state types `State1` and `State2` into `(State1 ⊕ State2)`. -/
-def LTS.unionSum (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
+def unionSum (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
     LTS (State1 ⊕ State2) Label :=
-  LTS.unionSubtype lts1.inl lts2.inr
+  unionSubtype lts1.inl lts2.inr
 
-end Cslib
+end Cslib.LTS
