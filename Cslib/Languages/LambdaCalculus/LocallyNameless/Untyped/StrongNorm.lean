@@ -143,12 +143,16 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
           · apply steps_multiApp_l
             · apply steps_open_cong_abs M M' N N' <;> grind [open_abs_lc]
             · grind [multiApp_steps_lc]
-        apply sn_steps
+        refine sn_steps ?_ sn_MNPs
         · calc ((M ^ N).multiApp Ps).app P
             _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
-            _ ↠βᶠ Q' ^ P' := by grind
-        · grind
+            _ ↠βᶠ Q' ^ P' := by 
+              rw [Relation.reflTransGen_iff_eq_or_transGen] at ⊢ innerSteps h_st2
+              right
+              cases lc_MNPs
+              refine Relation.TransGen.single (Xi.base (Beta.beta ?_ ?_))
+              all_goals grind only [→ step_lc_r]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
