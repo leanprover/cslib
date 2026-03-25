@@ -62,7 +62,6 @@ public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.SuccRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeExtension
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
-public import Cslib.Computability.Machines.MultiTapeTuring.UniversalTM
 public import Cslib.Computability.Machines.MultiTapeTuring.WhileCombinator
 public import Cslib.Computability.Machines.MultiTapeTuring.WithTapes
 public import Cslib.Computability.Machines.SingleTapeTuring.Basic

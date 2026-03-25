@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Dyadic
+public import Mathlib.Logic.Encodable.Basic
 import Mathlib.Tactic.Linarith
 
 namespace Turing
@@ -397,6 +398,91 @@ public instance : StrEnc Char where
     | Data.num n => some (Char.ofNat n)
     | _ => none
   fromData_toData := by simp
+
+-- TODO clean up (ai)
+public instance (k : ℕ) : StrEnc (Fin k) where
+  toData i := StrEnc.toData i.val
+  fromData d := do
+    let n ← StrEnc.fromData (α := ℕ) d
+    if h : n < k then some ⟨n, h⟩ else none
+  fromData_toData i := by simp [i.isLt]
+
+-- TODO clean up (ai)
+public instance (k : ℕ) (α : Type*) [StrEnc α] : StrEnc (Fin k → α) where
+  toData f := StrEnc.toData (List.ofFn f)
+  fromData d := do
+    let l ← StrEnc.fromData (α := List α) d
+    if h : l.length = k then
+      some (fun i => l[i.val]'(h ▸ i.isLt))
+    else
+      none
+  fromData_toData f := by
+    simp only [StrEnc.fromData_toData_apply]
+    ext i
+    simp [List.getElem_ofFn]
+
+-- TODO clean up (ai)
+public instance (α : Type*) (β : Type*) [StrEnc α] [StrEnc β] : StrEnc (α × β) where
+  toData p := Data.list [StrEnc.toData p.1, StrEnc.toData p.2]
+  fromData
+    | Data.list [a, b] =>
+      match StrEnc.fromData a, StrEnc.fromData b with
+      | some a', some b' => some (a', b')
+      | _, _ => none
+    | _ => none
+  fromData_toData p := by simp
+
+/-- `StrEnc` for functions `α → β` where `α` is finite, encoded as the function's
+    graph: a list of `(a, f a)` pairs.
+    Not registered as an instance to avoid overlap with `Fin k → α`.
+    Activate with `letI := StrEnc.ofFunction α β`. -/
+-- TODO clean up (ai)
+@[reducible]
+public noncomputable def StrEnc.ofFunction (α : Type) (β : Type*)
+    [Fintype α] [DecidableEq α] [StrEnc α] [StrEnc β] : StrEnc (α → β) where
+  toData f := StrEnc.toData (Finset.univ.val.toList.map fun a => (a, f a))
+  fromData d :=
+    match StrEnc.fromData (α := List (α × β)) d with
+    | none => none
+    | some pairs =>
+      let f := fun a => pairs.lookup a
+      if h : ∀ a, (f a).isSome then
+        some (fun a => (f a).get (h a))
+      else
+        none
+  fromData_toData f := by
+    simp only [StrEnc.fromData_toData_apply]
+    have h_mem : ∀ a : α, a ∈ Finset.univ.val.toList := fun a =>
+      Multiset.mem_toList.mpr (Finset.mem_univ a)
+    have h_lookup : ∀ a, (Finset.univ.val.toList.map (fun a => (a, f a))).lookup a
+        = some (f a) :=
+      fun a => List.lookup_graph f (h_mem a)
+    have h_forall : ∀ a,
+        ((Finset.univ.val.toList.map (fun a => (a, f a))).lookup a).isSome := by
+      intro a; simp [h_lookup a]
+    rw [dif_pos h_forall]
+    congr 1; ext a
+    have := h_lookup a
+    simp_all
+
+/-- `StrEnc` instance for any `Encodable` type via its encoding to `ℕ`.
+    Not registered as an instance to avoid overlap with specific encodings
+    (e.g., `Bool`). Use `attribute [local instance] StrEnc.ofEncodable` or
+    `letI := StrEnc.ofEncodable α` to activate. -/
+-- TODO clean up (ai)
+@[reducible]
+public def StrEnc.ofEncodable (α : Type) [Encodable α] : StrEnc α where
+  toData a := StrEnc.toData (Encodable.encode a)
+  fromData d := do
+    let n ← StrEnc.fromData (α := ℕ) d
+    Encodable.decode n
+  fromData_toData a := by simp [Encodable.encodek]
+
+/-- Example: encoding the addition function on `Fin 4 × Fin 4 → ℕ`. -/
+-- TODO clean up (ai)
+noncomputable example : Data :=
+  letI := StrEnc.ofFunction (Fin 4 × Fin 4) ℕ
+  StrEnc.toData (fun (p : Fin 4 × Fin 4) => p.1.val + p.2.val)
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Data.atPath
