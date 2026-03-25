@@ -57,20 +57,9 @@ public lemma dyadic_inv_dyadic (n : ℕ) : dyadic_inv (dyadic n) = n := by
       · obtain ⟨m, hm⟩ := h_parity; omega
       · obtain ⟨m, hm⟩ := Nat.not_even_iff_odd.mp h_parity; omega
 
--- TODO clean up (ai)
 public lemma dyadic_mem_chars {c : Char} {n : ℕ} (h : c ∈ dyadic n) :
     c = '1' ∨ c = '2' := by
   induction n using Nat.strongRecOn with
-  | _ n ih =>
-    unfold dyadic at h
-    split at h
-    · simp at h
-    · next h_nz =>
-      split at h <;> simp only [List.mem_append, List.mem_singleton] at h <;>
-        rcases h with h | h
-      · exact ih _ (by omega) h
-      · right; exact h
-      · exact ih _ (by omega) h
-      · left; exact h
+  | _ n ih => grind [dyadic]
 
 end Turing
