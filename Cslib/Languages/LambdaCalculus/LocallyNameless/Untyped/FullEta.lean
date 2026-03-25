@@ -86,8 +86,7 @@ lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢
   grind [Xi.abs ∅]
 
 /-- Abstracting then closing preserves multiple reductions. -/
-lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) :
-    M⟦0 ↜ x⟧.abs ↠ηᶠ M'⟦0 ↜ x⟧.abs := by
+lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
   induction steps using Relation.ReflTransGen.head_induction_on
   case refl => exact .refl
   case head b c st_bc _ ih =>
