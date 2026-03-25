@@ -61,15 +61,13 @@ spec
 {
   var x: int;
   var i: int;
-  var j: int;
   var temp: int;
   var temp2: int;
 
   x := A[r];
   i := p - 1;
-  j := p;
 
-  while (j <= r - 1)
+  for j:int := p to r - 1
     invariant p - 1 <= i
     invariant i < j
     invariant j <= r
@@ -80,12 +78,11 @@ spec
       A := A[i := A[j]];
       A := A[j := temp];
     }
-    j := j + 1;
   }
 
   temp2 := A[i + 1];
-  A := A[i + 1 := A[r]];
-  A := A[r := temp2];
+  A[i+1] := A[r];
+  A[r] := temp2;
 
   q := i + 1;
 };

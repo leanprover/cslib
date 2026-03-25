@@ -1,6 +1,5 @@
 import Strata.MetaVerifier
 import Smt
-
 namespace Strata
 
 private def codeExpr :=
@@ -67,5 +66,3 @@ procedure D(a : (Map int T), n : int) returns ()
 example : Strata.smtVCsCorrect codeExpr := by
   gen_smt_vcs
   all_goals smt +mono
-
-end Strata

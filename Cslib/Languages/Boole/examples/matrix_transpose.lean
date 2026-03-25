@@ -20,10 +20,7 @@ procedure matrix_transpose (A: Matrix, m: int, n: int) returns (B: Matrix)
     j := 0;
     while (j < n)
     {
-      // New map assignment syntax.
       B[i][j] := (A[j])[i];
-      // Previously would have been:
-      // B := B[i := (B[i])[j := (A[j])[i]]];
       j := j + 1;
     }
     i := i + 1;

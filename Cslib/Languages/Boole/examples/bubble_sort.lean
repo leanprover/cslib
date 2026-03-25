@@ -27,7 +27,7 @@ spec
   modifies A;
   modifies n;
 
-  ensures forall i:int, j:int ::
+  ensures ∀ i:int, j:int .
     0 <= i && i <= j && j < n ==> A[i] <= A[j];
 }
 {
@@ -40,23 +40,27 @@ spec
   i := 0;
 
   while (i < n - 1)
-    invariant forall p:int, q:int ::
-      n - i <= p && p <= q && q < n ==> A[p] <= A[q]
+    // After each outer pass, A[0..i-1] is sorted and <= all of A[i..n-1].
+    // Combined into one quantifier: ∀ p≤q<n, p<i ⇒ A[p]≤A[q].
+    invariant 0 <= i
+    invariant ∀ p:int, q:int .
+      0 <= p && p <= q && q < n && p < i ==> A[p] <= A[q]
   {
     // inner loop: j = n-1 downto i+1
     j := n - 1;
 
     while (j > i)
-      invariant forall p:int, q:int ::
-        n - i <= p && p <= q && q < n ==> A[p] <= A[q]
+      // A[j] is the running minimum of A[j..n-1], bubbling leftward.
+      invariant i <= j && j < n
+      invariant ∀ k:int . j <= k && k < n ==> A[j] <= A[k]
+      invariant ∀ p:int, q:int .
+        0 <= p && p <= q && q < n && p < i ==> A[p] <= A[q]
     {
       if (A[j] < A[j - 1])
       {
         tmp := A[j];
-        // [FEATURE REQUEST] clean array assignment syntax
-        // A[j] := A[j - 1]
-        A := A[j := A[j - 1]];
-        A := A[j - 1 := tmp];
+        A[j] := A[j - 1];
+        A[j - 1] := tmp;
       }
 
       j := j - 1;
@@ -69,6 +73,6 @@ spec
 
 #eval Strata.Boole.verify "cvc5" bubbleSortPgm
 
--- example : Strata.smtVCsCorrect bubbleSortPgm := by
---   gen_smt_vcs
---   all_goals (smt +mono)
+example : Strata.smtVCsCorrect bubbleSortPgm := by
+  gen_smt_vcs
+  all_goals (smt +mono)

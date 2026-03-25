@@ -84,5 +84,3 @@ procedure FooTooStepByStep () returns ()
 example : Strata.smtVCsCorrect ineq := by
   gen_smt_vcs
   all_goals smt +mono
-
-end Strata

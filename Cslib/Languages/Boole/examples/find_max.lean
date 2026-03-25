@@ -17,18 +17,15 @@ spec
   ensures (∀ i:int . 0 <= i && i < n ==> A[i] <= max);
 }
 {
-  var i : int;
 
   max := A[0];
-  i := 1;
 
-  while (i < n)
+  for i:int := 1 to n
     invariant ∀ j:int . 0 <= j && j < i ==> A[j] <= max
   {
     if (A[i] > max) {
       max := A[i];
     }
-    i := i + 1;
   }
 };
 #end

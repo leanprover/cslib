@@ -35,5 +35,3 @@ spec {
 example : Strata.smtVCsCorrect bitVec := by
   gen_smt_vcs
   all_goals grind
-
-end Strata

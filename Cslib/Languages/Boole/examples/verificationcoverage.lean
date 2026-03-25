@@ -163,5 +163,3 @@ spec
 example : Strata.smtVCsCorrect verificationCov := by
   gen_smt_vcs
   all_goals grind
-
-end Strata

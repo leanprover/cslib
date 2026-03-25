@@ -51,5 +51,3 @@ procedure bar() returns () {
 example : Strata.smtVCsCorrect maps2 := by
   gen_smt_vcs
   all_goals grind
-
-end Strata
