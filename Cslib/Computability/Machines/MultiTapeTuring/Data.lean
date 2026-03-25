@@ -135,8 +135,7 @@ private lemma Data.enc_bal (d : Data) :
   | .num n =>
     simp only [Data.enc_num]
     constructor
-    · rw [show ['['] ++ dyadic n ++ [']'] = ['['] ++ (dyadic n ++ [']']) from by simp]
-      rw [bal_append, bal_append, bal_of_all_bw_zero (fun _ h => bw_dyadic h)]; decide
+    · simp only [bal_append, bal_cons, bal_of_all_bw_zero (fun _ h => bw_dyadic h)]; decide
     · intro i hi hlt
       simp only [List.length_append, List.length_cons, List.length_nil] at hlt
       change 0 < bal (('[' :: (dyadic n ++ [']'])).take i)
@@ -162,8 +161,7 @@ private lemma Data.enc_bal (d : Data) :
         j hj
     set flat := (ds.map Data.enc).flatten
     constructor
-    · rw [show ['('] ++ flat ++ [')'] = ['('] ++ (flat ++ [')']) from by simp]
-      rw [bal_append, bal_append, bal_flat]; decide
+    · simp only [bal_append, bal_cons, bal_flat]; decide
     · intro i hi hlt
       simp only [List.length_append, List.length_cons, List.length_nil] at hlt
       change 0 < bal (('(' :: (flat ++ [')'])).take i)
