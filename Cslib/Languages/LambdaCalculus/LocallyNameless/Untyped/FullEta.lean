@@ -89,8 +89,7 @@ lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢
 lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
   induction steps using Relation.ReflTransGen.head_induction_on
   case refl => exact .refl
-  case head b c st_bc _ ih =>
-    exact .head (step_abs_close st_bc lc_M) (ih (step_lc_r st_bc))
+  case head b c st_bc _ ih => exact .head (step_abs_close st_bc lc_M) (ih (step_lc_r st_bc))
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
 theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
