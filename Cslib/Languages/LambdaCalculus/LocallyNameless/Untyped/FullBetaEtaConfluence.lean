@@ -34,7 +34,7 @@ open Relation
 
 /-- Full βη-reduction. -/
 @[reduction_sys "βηᶠ"]
-abbrev FullBetaEta (M N : Term Var) : Prop := FullBeta M N ∨ FullEta M N
+abbrev FullBetaEta : Term Var → Term Var → Prop := FullBeta ⊔ FullEta
 
 open FullEta FullBeta in
 /-- η-reduction and β-reduction strongly commute. -/
@@ -79,7 +79,7 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
         rcases invert_step_app_fvar st_beta_w with ⟨u', eq_N_open, st_u⟩ | ⟨u1, _, eq_N_open⟩
         · have eq_N : N = app u' (bvar 0) :=
             open_eq_app hw.2 (step_not_fv st_u hw.1.2) (step_lc_r st_u) eq_N_open
-          use (disch := grind [BaseEta.eta]) u'
+          use (disch := grind [Eta.eta]) u'
         · have eq_N : N = u1 := open_injective w N u1 hw.2 (by grind) eq_N_open
           use (disch := grind) abs u1
     case abs S ys st_body_eta =>
