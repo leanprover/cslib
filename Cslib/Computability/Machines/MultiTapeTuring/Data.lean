@@ -67,7 +67,6 @@ public lemma Data.enc_list (ds : List Data) :
     Data.enc (Data.list ds) = ['('] ++ (ds.map Data.enc).flatten ++ [')'] := by
   unfold Data.enc; rfl
 
--- TODO clean up (ai)
 public lemma Data.enc_length_pos (d : Data) : 0 < d.enc.length := by
   cases d with
   | num n => simp [Data.enc_num]
@@ -277,13 +276,8 @@ public abbrev StrEnc.enc {α : Type*} [StrEnc α] (w : α) : List Char :=
 
 /-- `toData` is injective, since `fromData` is a left inverse. -/
 public lemma StrEnc.toData_injective (α : Type*) [StrEnc α] :
-    Function.Injective (StrEnc.toData (α := α)) := by
-  intro a b h
-  have ha := StrEnc.fromData_toData a
-  have hb := StrEnc.fromData_toData b
-  rw [h] at ha
-  rw [ha] at hb
-  exact Option.some_injective _ hb
+    Function.Injective (StrEnc.toData (α := α)) := fun a b h =>
+  Option.some_injective _ (by rw [← StrEnc.fromData_toData a, h, StrEnc.fromData_toData])
 
 public instance : StrEnc Data where
   toData := id
@@ -335,12 +329,9 @@ public instance (α : Type*) [StrEnc α] : StrEnc (List α) where
     | Data.list ds => ds.mapM StrEnc.fromData
     | _ => none
   fromData_toData l := by
-    simp only
     induction l with
     | nil => rfl
-    | cons a as ih =>
-      simp only [List.map, List.mapM_cons]
-      simp [StrEnc.fromData_toData a, ih]
+    | cons a as ih => simp [List.mapM_cons, StrEnc.fromData_toData a, ih]
 
 public instance (α : Type) [StrEnc α] : StrEnc (Option α) where
   toData o := StrEnc.toData o.toList
@@ -359,7 +350,6 @@ public instance : StrEnc Char where
     | _ => none
   fromData_toData := by simp
 
--- TODO clean up (ai)
 public instance (k : ℕ) : StrEnc (Fin k) where
   toData i := StrEnc.toData i.val
   fromData d := do
@@ -367,7 +357,6 @@ public instance (k : ℕ) : StrEnc (Fin k) where
     if h : n < k then some ⟨n, h⟩ else none
   fromData_toData i := by simp [i.isLt]
 
--- TODO clean up (ai)
 public instance (k : ℕ) (α : Type*) [StrEnc α] : StrEnc (Fin k → α) where
   toData f := StrEnc.toData (List.ofFn f)
   fromData d := do
@@ -381,7 +370,6 @@ public instance (k : ℕ) (α : Type*) [StrEnc α] : StrEnc (Fin k → α) where
     ext i
     simp [List.getElem_ofFn]
 
--- TODO clean up (ai)
 public instance (α : Type*) (β : Type*) [StrEnc α] [StrEnc β] : StrEnc (α × β) where
   toData p := Data.list [StrEnc.toData p.1, StrEnc.toData p.2]
   fromData
@@ -396,7 +384,6 @@ public instance (α : Type*) (β : Type*) [StrEnc α] [StrEnc β] : StrEnc (α �
     graph: a list of `(a, f a)` pairs.
     Not registered as an instance to avoid overlap with `Fin k → α`.
     Activate with `letI := StrEnc.ofFunction α β`. -/
--- TODO clean up (ai)
 @[reducible]
 public noncomputable def StrEnc.ofFunction (α : Type) (β : Type*)
     [Fintype α] [DecidableEq α] [StrEnc α] [StrEnc β] : StrEnc (α → β) where
@@ -429,7 +416,6 @@ public noncomputable def StrEnc.ofFunction (α : Type) (β : Type*)
     Not registered as an instance to avoid overlap with specific encodings
     (e.g., `Bool`). Use `attribute [local instance] StrEnc.ofEncodable` or
     `letI := StrEnc.ofEncodable α` to activate. -/
--- TODO clean up (ai)
 @[reducible]
 public def StrEnc.ofEncodable (α : Type) [Encodable α] : StrEnc α where
   toData a := StrEnc.toData (Encodable.encode a)
@@ -439,7 +425,6 @@ public def StrEnc.ofEncodable (α : Type) [Encodable α] : StrEnc α where
   fromData_toData a := by simp [Encodable.encodek]
 
 /-- Example: encoding the addition function on `Fin 4 × Fin 4 → ℕ`. -/
--- TODO clean up (ai)
 noncomputable example : Data :=
   letI := StrEnc.ofFunction (Fin 4 × Fin 4) ℕ
   StrEnc.toData (fun (p : Fin 4 × Fin 4) => p.1.val + p.2.val)
