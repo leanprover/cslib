@@ -595,6 +595,65 @@ theorem Subst.relation_function_iff [DecidableEq Var] [HasFresh Var] {m n r : Te
     apply Subst.alpha (m := m) (r := r) (n := m[x := r]) <;> grind [AlphaEquiv.symm,
       AlphaEquiv.refl, Subst.function_to_relation]
 
+/-- Commutativity of substitution (a.k.a. the substitution lemma) -/
+theorem subst.commutativity [DecidableEq Var] [HasFresh Var] {m r1 r2 : Term Var} {x y : Var} :
+  x ∉ r2.fv ∪ {y} →
+  ((m[x := r1])[y := r2]) =α ((m[y := r2])[x := (r1[y := r2])]) := by
+  refine WellFounded.induction sizeOfWFRel.wf m
+    (C := fun m => ∀ (r1 r2 : Term Var) (x y : Var),
+      x ∉ r2.fv ∪ {y} →
+      ((m[x := r1])[y := r2]) =α ((m[y := r2])[x := (r1[y := r2])])) ?_ r1 r2 x y
+  intro m ih r1 r2 x y hxy
+  cases m with
+  | var z =>
+    by_cases hzx : z = x
+    · subst z
+      have hxy' : x ≠ y := by grind
+      simp only [← subst_def, subst.eq_1, ↓reduceIte, hxy']
+      apply AlphaEquiv.refl
+    · by_cases hzy : z = y
+      · subst z
+        simp only [← subst_def, subst.eq_1, hzx, ↓reduceIte]
+        apply AlphaEquiv.symm
+        apply subst.non_free
+        grind
+      · simp only [← subst_def, subst.eq_1, hzx, hzy, ↓reduceIte]
+        apply AlphaEquiv.refl
+  | abs z m =>
+    obtain ⟨w, hw⟩ := HasFresh.fresh_exists
+      (m.vars ∪ r1.vars ∪ r2.vars ∪ (r1[y := r2]).vars ∪ {x, y, z})
+    have hl : (((Term.abs z m)[x := r1])[y := r2]) =α
+      (Term.abs w (((m.rename z w)[x := r1])[y := r2])) := by
+      apply AlphaEquiv.trans (n := (((Term.abs w ((m.rename z w)[x := r1]))[y := r2])))
+      · apply subst.preserve_AlphaEquiv
+        · apply AlphaEquiv.subst_abs_fresh
+          grind
+        · apply AlphaEquiv.refl
+      · have hwy : w ≠ y := by grind
+        have hwr2 : w ∉ r2.fv := by grind [vars_either_fv_or_bv]
+        simp only [← subst_def, subst.eq_2, hwy, ↓reduceIte, hwr2, not_false_eq_true]
+        apply AlphaEquiv.refl
+    have hr : (Term.abs w (((m.rename z w)[y := r2])[x := (r1[y := r2])]))
+      =α (((Term.abs z m)[y := r2])[x := (r1[y := r2])]) := by
+      apply AlphaEquiv.symm
+      apply AlphaEquiv.trans (n := ((Term.abs w ((m.rename z w)[y := r2]))[x := (r1[y := r2])]))
+      · apply subst.preserve_AlphaEquiv
+        · apply AlphaEquiv.subst_abs_fresh
+          grind
+        · apply AlphaEquiv.refl
+      · have hwx : w ≠ x := by grind
+        have hwr : w ∉ (r1.subst y r2).fv := by grind [vars_either_fv_or_bv]
+        simp only [← subst_def, subst.eq_2, hwx, ↓reduceIte, hwr, not_false_eq_true]
+        apply AlphaEquiv.refl
+    have hmid : (Term.abs w (((m.rename z w)[x := r1])[y := r2])) =α
+      (Term.abs w (((m.rename z w)[y := r2])[x := (r1[y := r2])])) := by
+      apply AlphaEquiv.context (c := Context.abs w Context.hole)
+      apply ih <;> grind [rename.eq_sizeOf]
+    exact AlphaEquiv.trans hl <| AlphaEquiv.trans hmid hr
+  | app m1 m2 =>
+    simp only [← subst_def, subst.eq_3]
+    apply AlphaEquiv.app <;> apply ih <;> grind
+
 end LambdaCalculus.Named
 
 end Cslib
