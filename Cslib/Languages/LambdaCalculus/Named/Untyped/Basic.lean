@@ -19,7 +19,8 @@ The untyped λ-calculus.
 ## References
 
 * [H. Barendregt, *Introduction to Lambda Calculus*][Barendregt1984]
-* Definition of α-equivalence [A. Pitts, *Nominal Techniques*][Pitts2015]
+* Definition of α-equivalence [M. Gabbay and A. Pitts, *A New Approach to Abstract Syntax with
+Variable Binding*][Gabbay2002]
 
 -/
 
@@ -41,13 +42,13 @@ deriving DecidableEq
 /-- Free variables. -/
 def Term.fv [DecidableEq Var] : Term Var → Finset Var
   | var x => {x}
-  | abs x m => m.fv.erase x
+  | abs x m => m.fv \ {x}
   | app m n => m.fv ∪ n.fv
 
 /-- Bound variables. -/
 def Term.bv [DecidableEq Var] : Term Var → Finset Var
   | var _ => ∅
-  | abs x m => m.bv ∪ {x} -- Could also be `insert x m.bv`
+  | abs x m => m.bv ∪ {x}
   | app m n => m.bv ∪ n.bv
 
 /-- Variable names (free and bound) in a term. -/
@@ -91,7 +92,7 @@ theorem Term.AlphaEquiv_def [DecidableEq Var] (m n : Term Var) :
 /-- Capture-avoiding substitution, as an inference system. -/
 inductive Term.Subst [DecidableEq Var] : Term Var → Var → Term Var → Term Var → Prop where
   | varHit {x r} : (var x).Subst x r r
-  | varMiss {x y r} : x ≠ y → (var y).Subst x r (var y)
+  | varMiss {x y r} : y ≠ x → (var y).Subst x r (var y)
   | absShadow {x m r} : (abs x m).Subst x r (abs x m)
   | absIn {x y m r m'} : y ∉ r.fv ∪ {x} → m.Subst x r m' → (abs y m).Subst x r (abs y m')
   | app {m n x r m' n'} : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
@@ -99,6 +100,7 @@ inductive Term.Subst [DecidableEq Var] : Term Var → Var → Term Var → Term 
 
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
+@[grind, simp]
 def Term.subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Term Var) :
   Term Var :=
   match m with
@@ -109,7 +111,7 @@ def Term.subst [DecidableEq Var] [HasFresh Var] (m : Term Var) (x : Var) (r : Te
     else if y ∉ r.fv then
       abs y (m'.subst x r)
     else
-      let z := HasFresh.fresh (m'.vars ∪ r.vars ∪ {x})
+      let z := HasFresh.fresh (m'.vars ∪ r.vars ∪ {x, y})
       abs z ((m'.rename y z).subst x r)
   | app m1 m2 => app (m1.subst x r) (m2.subst x r)
 termination_by m
@@ -119,6 +121,11 @@ decreasing_by all_goals grind [rename.eq_sizeOf, abs.sizeOf_spec, app.sizeOf_spe
 instance instHasSubstitutionTerm [DecidableEq Var] [HasFresh Var] :
     HasSubstitution (Term Var) Var (Term Var) where
   subst := Term.subst
+
+/-- Allow grind to recognise the notation of substitution. -/
+@[grind ←, simp← ]
+theorem Term.subst_def [DecidableEq Var] (m r : Term Var) (x : Var) [HasFresh Var] :
+  m.subst x r = m[x := r] := by rfl
 
 /-- Contexts. -/
 inductive Context (Var : Type u) : Type u where
@@ -135,6 +142,12 @@ def Context.fill (c : Context Var) (m : Term Var) : Term Var :=
   | abs x c => Term.abs x (c.fill m)
   | appL c n => Term.app (c.fill m) n
   | appR n c => Term.app n (c.fill m)
+
+def Context.vars [DecidableEq Var] : Context Var → Finset Var
+  | hole => ∅
+  | abs x c => c.vars ∪ {x}
+  | appL c m => c.vars ∪ m.vars
+  | appR m c => m.vars ∪ c.vars
 
 end LambdaCalculus.Named
 
