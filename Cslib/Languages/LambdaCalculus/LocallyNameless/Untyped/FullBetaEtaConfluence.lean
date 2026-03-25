@@ -53,7 +53,6 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
         case base h => use (disch := grind) app u N
         case abs M_eta xs _ =>
           have ⟨_, hz⟩ := fresh_exists (xs ∪ N.fv ∪ M.fv ∪ M_eta.fv)
-          simp only [Finset.mem_union, not_or] at hz
           use (disch := grind [step_subst_cong_l]) M_eta ^ N
   case appL Z _ N _ _ ih =>
     cases h₁
