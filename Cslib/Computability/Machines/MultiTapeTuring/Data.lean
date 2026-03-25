@@ -48,8 +48,6 @@ end
 
 public instance : DecidableEq Data := Data.decEq
 
-
-
 /-- Encoding of `Data` into a list of characters.
     - `Data.num n` is encoded as `[dyadic(n)]`
     - `Data.list ds` is encoded as `(enc(d₁) ++ … ++ enc(dₙ))` -/
@@ -113,19 +111,17 @@ private lemma bal_flatten_take_nonneg
   | nil => simp [bal]
   | cons s ss ih =>
     simp only [List.flatten_cons] at hj ⊢
-    by_cases hle : j ≤ s.length
+    rcases le_or_gt j s.length with hle | hgt
     · rw [List.take_append_of_le_length hle]
       rcases Nat.eq_or_lt_of_le hle with rfl | hjlt
       · rw [List.take_length]; linarith [h_bal s (.head ..)]
       · rcases j with _ | j
         · simp [bal]
         · linarith [h_pos s (.head ..) (j + 1) (by omega) hjlt]
-    · push_neg at hle
-      rw [List.take_append, List.take_of_length_le (by omega), bal_append,
-          h_bal s List.mem_cons_self]
-      simp only [zero_add]
-      exact ih (fun t ht => h_bal t (List.mem_cons_of_mem s ht))
-              (fun t ht => h_pos t (List.mem_cons_of_mem s ht))
+    · rw [List.take_append, List.take_of_length_le (by omega)]
+      simp only [bal_append, h_bal s (.head ..), zero_add]
+      exact ih (fun t ht => h_bal t (.tail _ ht))
+              (fun t ht => h_pos t (.tail _ ht))
               _ (by simp only [List.length_append] at hj; omega)
 
 /-- Balance of each encoding is 0 and positive at every interior position. -/
@@ -224,11 +220,9 @@ private def enc_flatten_injective_mut
   match ds₁, ds₂ with
   | [], [] => rfl
   | [], d :: _ | d :: _, [] =>
-    exfalso
     simp only [List.map_nil, List.flatten_nil, List.map_cons, List.flatten_cons] at h
-    have := congrArg List.length h
-    simp only [List.length_nil, List.length_append] at this
-    have := Data.enc_length_pos d; omega
+    exact absurd (congrArg List.length h) (by
+      simp only [List.length_nil, List.length_append]; have := Data.enc_length_pos d; omega)
   | d₁ :: ds₁, d₂ :: ds₂ =>
     simp only [List.map_cons, List.flatten_cons] at h
     have heq : d₁.enc = d₂.enc := by
