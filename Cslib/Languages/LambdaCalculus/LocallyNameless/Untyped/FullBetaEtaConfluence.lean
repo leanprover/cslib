@@ -57,17 +57,13 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
   case appL Z _ N _ _ ih =>
     cases h₁
     case base h => cases h
-    case appL _ _ st =>
-      use (disch := grind) app Z (ih st).choose
-    case appR z_red _ _ =>
-      use (disch := grind) app z_red N
+    case appL _ _ st => use (disch := grind) app Z (ih st).choose
+    case appR z_red _ _ => use (disch := grind) app z_red N
   case appR M _ Z _ _ ih =>
     cases h₁
     case base h => cases h
-    case appL z_red _ _ =>
-      use (disch := grind) app Z z_red
-    case appR _ st _ =>
-      use (disch := grind) app (ih st).choose M
+    case appL z_red _ _ => use (disch := grind) app Z z_red
+    case appR _ st _ => use (disch := grind) app (ih st).choose M
   case abs M N xs st_body_beta ih =>
     cases h₁
     case base h_eta =>
