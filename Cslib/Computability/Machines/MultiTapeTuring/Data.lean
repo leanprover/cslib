@@ -101,15 +101,8 @@ private lemma bal_of_all_bw_zero {l : List Char} (h : ∀ c ∈ l, bw c = 0) :
         ih (fun x hx => h x (List.mem_cons_of_mem _ hx))]
     simp
 
-private lemma bal_take_of_all_bw_zero {l : List Char}
-    (h : ∀ c ∈ l, bw c = 0) (i : ℕ) : bal (l.take i) = 0 :=
-  bal_of_all_bw_zero (fun c hc => h c (List.mem_of_mem_take hc))
-
-private lemma bal_dyadic (n : ℕ) : bal (dyadic n) = 0 :=
-  bal_of_all_bw_zero (fun _ h => bw_dyadic h)
-
 private lemma bal_dyadic_take (n : ℕ) (i : ℕ) : bal ((dyadic n).take i) = 0 :=
-  bal_take_of_all_bw_zero (fun _ h => bw_dyadic h) i
+  bal_of_all_bw_zero (fun _ hc => bw_dyadic (List.mem_of_mem_take hc))
 
 /-- Balance at interior positions of a flatten of balanced segments is non-negative. -/
 private lemma bal_flatten_take_nonneg
@@ -145,7 +138,8 @@ private lemma Data.enc_bal (d : Data) :
     simp only [Data.enc_num]
     constructor
     · rw [show ['['] ++ dyadic n ++ [']'] = ['['] ++ (dyadic n ++ [']']) from by simp]
-      rw [bal_append, bal_append, bal_dyadic]; decide
+      rw [bal_append, bal_append,
+          bal_of_all_bw_zero (fun _ h => bw_dyadic h)]; decide
     · intro i hi hlt
       simp only [List.length_append, List.length_cons, List.length_nil] at hlt
       rw [show ['['] ++ dyadic n ++ [']'] = '[' :: (dyadic n ++ [']']) from rfl]
@@ -195,20 +189,29 @@ private lemma Data.enc_bal (d : Data) :
 private lemma Data.enc_no_proper_prefix {d₁ d₂ : Data}
     (hpfx : d₁.enc <+: d₂.enc) (hne : d₁.enc ≠ d₂.enc) : False := by
   obtain ⟨t, ht⟩ := hpfx
-  -- ht : d₁.enc ++ t = d₂.enc
-  have htne : t ≠ [] := fun h => hne (by rw [← ht, h, List.append_nil])
   have hlt : d₁.enc.length < d₂.enc.length := by
+    have htne : t ≠ [] := fun h => hne (by rw [← ht, h, List.append_nil])
     rw [← ht, List.length_append]
-    have : 0 < t.length := by cases t with | nil => exact absurd rfl htne | cons _ _ => simp
-    omega
-  have hpos := (Data.enc_bal d₂).2 d₁.enc.length (Data.enc_length_pos d₁) hlt
-  have hzero : bal (d₂.enc.take d₁.enc.length) = 0 := by
-    conv_lhs => rw [← ht]
-    rw [List.take_append_of_le_length (Nat.le_refl _), List.take_length]
-    exact (Data.enc_bal d₁).1
-  linarith
+    exact Nat.lt_add_of_pos_right (List.length_pos_of_ne_nil htne)
+  linarith [(Data.enc_bal d₂).2 d₁.enc.length (Data.enc_length_pos d₁) hlt,
+    show bal (d₂.enc.take d₁.enc.length) = 0 from by
+      rw [← ht, List.take_append_of_le_length le_rfl, List.take_length]
+      exact (Data.enc_bal d₁).1]
 
 -- ─── Injectivity ─────────────────────────────────────────────────────────
+
+/-- Extract inner content from bracket-delimited encodings. -/
+private lemma cons_append_inj {a : α} {l₁ l₂ : List α} {b : α}
+    (h : [a] ++ l₁ ++ [b] = [a] ++ l₂ ++ [b]) : l₁ = l₂ :=
+  List.append_cancel_right (List.cons.inj h).2
+
+/-- Extract a prefix from an append equality. -/
+private lemma prefix_of_append_eq {l₁ l₂ r₁ r₂ : List α}
+    (h : l₁ ++ r₁ = l₂ ++ r₂) (hle : l₁.length ≤ l₂.length) : l₁ <+: l₂ := by
+  have h1 := congrArg (List.take l₁.length) h
+  rw [List.take_append_of_le_length le_rfl, List.take_length,
+      List.take_append_of_le_length hle] at h1
+  exact h1 ▸ List.take_prefix l₁.length l₂
 
 mutual
 
@@ -218,18 +221,13 @@ private def Data.enc_injective_mut (d₁ d₂ : Data) (h : d₁.enc = d₂.enc) 
   match d₁, d₂ with
   | .num n₁, .num n₂ => by
     simp only [Data.enc_num] at h
-    have h₂ : dyadic n₁ = dyadic n₂ := by
-      have := List.cons.inj h; exact List.append_cancel_right this.2
-    have h₃ := congrArg dyadic_inv h₂
-    simp only [dyadic_inv_dyadic] at h₃
-    exact congrArg Data.num (Option.some_injective _ h₃)
-  | .num _, .list _ => by simp [Data.enc_num, Data.enc_list] at h
-  | .list _, .num _ => by simp [Data.enc_num, Data.enc_list] at h
+    have := congrArg dyadic_inv (cons_append_inj h)
+    rw [dyadic_inv_dyadic, dyadic_inv_dyadic] at this
+    exact congrArg Data.num (Option.some_injective _ this)
+  | .num _, .list _ | .list _, .num _ => by simp [Data.enc_num, Data.enc_list] at h
   | .list ds₁, .list ds₂ => by
     simp only [Data.enc_list] at h
-    have hflat : (ds₁.map Data.enc).flatten = (ds₂.map Data.enc).flatten := by
-      have := List.cons.inj h; exact List.append_cancel_right this.2
-    exact congrArg Data.list (enc_flatten_injective_mut ds₁ ds₂ hflat)
+    exact congrArg Data.list (enc_flatten_injective_mut ds₁ ds₂ (cons_append_inj h))
 
 /-- Flatten of encodings is injective. -/
 private def enc_flatten_injective_mut
@@ -238,63 +236,35 @@ private def enc_flatten_injective_mut
     ds₁ = ds₂ := by
   match ds₁, ds₂ with
   | [], [] => rfl
-  | [], d :: ds =>
+  | [], d :: _ | d :: _, [] =>
     exfalso
     simp only [List.map_nil, List.flatten_nil, List.map_cons, List.flatten_cons] at h
-    have hlen := Data.enc_length_pos d
-    have : 0 = (d.enc ++ (ds.map Data.enc).flatten).length := congrArg List.length h
-    simp only [List.length_append] at this
-    omega
-  | d :: ds, [] =>
-    exfalso
-    simp only [List.map_cons, List.flatten_cons, List.map_nil, List.flatten_nil] at h
-    have hlen := Data.enc_length_pos d
-    have : (d.enc ++ (ds.map Data.enc).flatten).length = 0 := congrArg List.length h
-    simp only [List.length_append] at this
-    omega
+    have := congrArg List.length h
+    simp only [List.length_nil, List.length_append] at this
+    have := Data.enc_length_pos d; omega
   | d₁ :: ds₁, d₂ :: ds₂ =>
     simp only [List.map_cons, List.flatten_cons] at h
-    -- h : d₁.enc ++ flat₁ = d₂.enc ++ flat₂
-    -- Show d₁.enc = d₂.enc using enc_no_proper_prefix
-    have heq_enc : d₁.enc = d₂.enc := by
+    have heq : d₁.enc = d₂.enc := by
       by_contra hne
-      by_cases hle : d₁.enc.length ≤ d₂.enc.length
-      · have hpfx : d₁.enc <+: d₂.enc := by
-          have h1 := congrArg (List.take d₁.enc.length) h
-          rw [List.take_append_of_le_length (Nat.le_refl _),
-              List.take_length] at h1
-          rw [List.take_append_of_le_length hle] at h1
-          -- h1 : d₁.enc = d₂.enc.take d₁.enc.length
-          have := List.take_prefix d₁.enc.length d₂.enc
-          rwa [← h1] at this
-        exact Data.enc_no_proper_prefix hpfx hne
-      · push_neg at hle
-        have hpfx : d₂.enc <+: d₁.enc := by
-          have h1 := congrArg (List.take d₂.enc.length) h
-          rw [List.take_append_of_le_length (by omega)] at h1
-          rw [List.take_append_of_le_length (Nat.le_refl _),
-              List.take_length] at h1
-          -- h1 : d₁.enc.take d₂.enc.length = d₂.enc
-          have := List.take_prefix d₂.enc.length d₁.enc
-          rwa [h1] at this
-        exact Data.enc_no_proper_prefix hpfx (Ne.symm hne)
-    have hd := Data.enc_injective_mut d₁ d₂ heq_enc
-    subst hd
-    exact congrArg (d₁ :: ·) (enc_flatten_injective_mut ds₁ ds₂
-      (List.append_cancel_left h))
+      rcases le_or_gt d₁.enc.length d₂.enc.length with hle | hlt
+      · exact Data.enc_no_proper_prefix (prefix_of_append_eq h hle) hne
+      · exact Data.enc_no_proper_prefix (prefix_of_append_eq h.symm hlt.le) (Ne.symm hne)
+    rw [Data.enc_injective_mut d₁ d₂ heq] at h ⊢
+    exact congrArg (d₂ :: ·) (enc_flatten_injective_mut ds₁ ds₂ (List.append_cancel_left h))
 
 end
 
 public lemma Data.enc_injective : Function.Injective Data.enc :=
   fun d₁ d₂ h => Data.enc_injective_mut d₁ d₂ h
 
-/-- No `Data.enc` is a proper prefix of another. Together with injectivity,
-    this means the encoding is uniquely decodable. -/
+/-- No `Data.enc` is a proper prefix of another. -/
 public lemma Data.enc_prefix_free {d₁ d₂ : Data}
     (h : d₁.enc <+: d₂.enc) : d₁ = d₂ := by
-  by_cases heq : d₁.enc = d₂.enc
-  · exact Data.enc_injective_mut d₁ d₂ heq
-  · exact False.elim (Data.enc_no_proper_prefix h heq)
+  rcases h with ⟨t, ht⟩
+  have : t = [] := by
+    by_contra htne
+    exact Data.enc_no_proper_prefix ⟨t, ht⟩ (by rw [← ht]; simp [htne])
+  exact Data.enc_injective_mut d₁ d₂ (by rwa [this, List.append_nil] at ht)
 
 /-- Typeclass for types that can be encoded as `Data` for TM computation. -/
 public class StrEnc (α : Type*) where
