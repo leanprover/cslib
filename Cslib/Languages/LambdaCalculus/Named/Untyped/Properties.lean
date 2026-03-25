@@ -14,32 +14,30 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u}
+variable {Var : Type u} [DecidableEq Var]
 
-namespace LambdaCalculus.Named
-
-open Term
+namespace LambdaCalculus.Named.Untyped.Term
 
 /-- A variable in a term is either free or bound. -/
-theorem vars_either_fv_or_bv [DecidableEq Var] {m : Term Var} :
+theorem vars_either_fv_or_bv {m : Term Var} :
     m.vars = m.fv ∪ m.bv := by
   induction m <;> grind [fv, bv, vars]
 
 /-- Renaming an unused variable has no effect. -/
 @[simp]
-theorem rename_unused [DecidableEq Var] {m : Term Var} {x y : Var} :
+theorem rename_unused {m : Term Var} {x y : Var} :
   x ∉ m.vars → m.rename x y = m := by
   induction m <;> grind [vars, rename]
 
 /-- Renaming a variable to itself has no effect. -/
 @[simp]
-theorem rename_same [DecidableEq Var] {m : Term Var} {x : Var} :
+theorem rename_same {m : Term Var} {x : Var} :
   m.rename x x = m := by
   induction m <;> grind [vars, rename]
 
 /-- Renaming a used variable changes the set of variables. -/
 @[simp]
-theorem rename_vars_used [DecidableEq Var] {m : Term Var} {x y : Var} :
+theorem rename_vars_used {m : Term Var} {x y : Var} :
   x ∈ m.vars → (m.rename x y).vars = m.vars.erase x ∪ {y} := by
   induction m with
   | var z => grind [vars, rename]
@@ -54,42 +52,49 @@ theorem rename_vars_used [DecidableEq Var] {m : Term Var} {x y : Var} :
       grind [vars, rename, rename_unused]
 
 /-- Renaming removes the variable. -/
-theorem rename_remove [DecidableEq Var] {m : Term Var} {x y : Var} :
+theorem rename_remove {m : Term Var} {x y : Var} :
   x ≠ y → x ∉ (m.rename x y).vars := by
   intro hxy
   by_cases hx : x ∈ m.vars <;> grind [rename_vars_used, rename_unused]
 
 /-- The set of variables after renaming. -/
-theorem rename_vars [DecidableEq Var] {m : Term Var} {x y : Var} :
+theorem rename_vars {m : Term Var} {x y : Var} :
   (m.rename x y).vars = m.vars \ {x} ∪ (if x ∈ m.vars then {y} else ∅) := by
   by_cases x ∈ m.vars <;> grind [vars, rename, rename_unused, rename_vars_used]
 
 /-- The set of free variables after renaming. -/
-theorem rename_fv [DecidableEq Var] {m : Term Var} {x y : Var} :
+theorem rename_fv {m : Term Var} {x y : Var} :
   y ∉ m.vars → (m.rename x y).fv = m.fv \ {x} ∪ (if x ∈ m.fv then {y} else ∅) := by
   induction m <;> grind [fv, vars, rename, vars_either_fv_or_bv]
 
 /-- Concatenation of renaming. -/
 @[simp]
-theorem rename_concat [DecidableEq Var] {m : Term Var} {x y z : Var} :
+theorem rename_concat {m : Term Var} {x y z : Var} :
   y ∉ m.vars → (m.rename x y).rename y z = m.rename x z := by
   induction m <;> grind [vars, rename]
 
-/-- Commutativity of renaming. -/
-theorem rename_comm [DecidableEq Var] {m : Term Var} {x y z w : Var} :
+/-- Commutativity of renaming, simpler version. -/
+theorem rename_comm {m : Term Var} {x y z w : Var} :
   x ≠ z → y ∉ m.vars ∪ {x, z} → w ∉ m.vars ∪ {x, z} →
   (m.rename x y).rename z w = (m.rename z w).rename x y := by
   induction m <;> grind [vars, rename]
 
+/-- Commutativity of renaming, more general version. -/
+theorem rename_comm2 {m : Term Var} {x y z w : Var} :
+    y ∉ m.vars ∪ {x, z} → w ∉ m.vars ∪ {x, y, z} →
+    (m.rename x y).rename (if z = x then y else z) w = (m.rename z w).rename x y := by
+  intro hy hw
+  by_cases hzx : z = x
+  · grind [rename_same, rename_unused, rename_concat, rename_vars]
+  · grind [rename_comm]
+
+omit [DecidableEq Var] in
 @[grind ←]
-lemma induction_by_sizeOf {m n : Term Var} :
-  WellFoundedRelation.rel m n ↔
-  sizeOf m < sizeOf n := by
+lemma induction_by_sizeOf {m n : Term Var} : WellFoundedRelation.rel m n ↔ sizeOf m < sizeOf n := by
   rfl
 
 /-- α-equivalent terms have the same size. -/
-theorem AlphaEquiv.eq_sizeOf [DecidableEq Var] {m n : Term Var} :
-  m =α n → sizeOf m = sizeOf n := by
+theorem AlphaEquiv.eq_sizeOf {m n : Term Var} : m =α n → sizeOf m = sizeOf n := by
   intro h
   induction h with
   | @var x => rfl
@@ -99,8 +104,7 @@ theorem AlphaEquiv.eq_sizeOf [DecidableEq Var] {m n : Term Var} :
     grind
 
 /-- α-equivalent terms have the same free variables. -/
-theorem AlphaEquiv.same_fv [DecidableEq Var] {m n : Term Var} :
-  m =α n → m.fv = n.fv := by
+theorem AlphaEquiv.same_fv {m n : Term Var} : m =α n → m.fv = n.fv := by
   intro h
   induction h with
   | @var x => rfl
@@ -113,8 +117,10 @@ theorem AlphaEquiv.same_fv [DecidableEq Var] {m n : Term Var} :
     grind
   | @app m1 n1 m2 n2 h1 h2 ih1 ih2 => grind [Term.fv]
 
+variable [HasFresh Var]
+
 /-- Reflexivity of α-equivalence. -/
-theorem AlphaEquiv.refl [DecidableEq Var] [HasFresh Var] (m : Term Var) : m =α m := by
+theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
   refine WellFounded.induction (C := fun m => m =α m) sizeOfWFRel.wf m ?_
   simp only; intro m ih
   cases m with
@@ -124,13 +130,13 @@ theorem AlphaEquiv.refl [DecidableEq Var] [HasFresh Var] (m : Term Var) : m =α 
     apply AlphaEquiv.abs (y := z)
     · grind [rename_vars]
     apply ih
-    grind [rename.eq_sizeOf]
+    grind [rename_eq_sizeOf]
   | app m n =>
     apply AlphaEquiv.app <;> apply ih <;> grind
 
+omit [HasFresh Var] in
 /-- Symmetry of α-equivalence. -/
-theorem AlphaEquiv.symm [DecidableEq Var] [HasFresh Var] {m n : Term Var} :
-  m =α n → n =α m := by
+theorem AlphaEquiv.symm {m n : Term Var} : m =α n → n =α m := by
   intro h
   induction h with
   | @var x => apply AlphaEquiv.var
@@ -139,19 +145,9 @@ theorem AlphaEquiv.symm [DecidableEq Var] [HasFresh Var] {m n : Term Var} :
   | @app m1 n1 m2 n2 hwm1 hwn1 hwm2 hwn2 =>
     apply AlphaEquiv.app <;> assumption
 
-/-- Commutativity of renaming, more general version. -/
-theorem rename_comm2 [DecidableEq Var] {m : Term Var} {x y z w : Var} :
-  y ∉ m.vars ∪ {x, z} → w ∉ m.vars ∪ {x, y, z} →
-  (m.rename x y).rename (if z = x then y else z) w = (m.rename z w).rename x y := by
-  intro hy hw
-  by_cases hzx : z = x
-  · grind [rename_same, rename_unused, rename_concat, rename_vars]
-  · grind [rename_comm]
-
 /-- Renaming α-equivalent terms produces α-equivalent terms. -/
-theorem AlphaEquiv.rename_preserve [DecidableEq Var] [HasFresh Var]
-  (m n : Term Var) (x y : Var) :
-  y ∉ m.vars ∪ n.vars → m =α n → (m.rename x y) =α (n.rename x y) := by
+theorem AlphaEquiv.rename_preserve (m n : Term Var) (x y : Var) :
+    y ∉ m.vars ∪ n.vars → m =α n → (m.rename x y) =α (n.rename x y) := by
   refine (WellFounded.induction sizeOfWFRel.wf m
     (C := fun m => ∀ (n : Term Var) (x y : Var), y ∉ m.vars ∪ n.vars →
       m =α n → (m.rename x y) =α (n.rename x y)) ?_) n x y
@@ -167,10 +163,10 @@ theorem AlphaEquiv.rename_preserve [DecidableEq Var] [HasFresh Var]
     rw [rename_comm2, rename_comm2]
     case neg.abs.a =>
       apply ih
-      · grind [rename.eq_sizeOf]
+      · grind [rename_eq_sizeOf]
       · grind [vars, rename_vars]
       · have hxzw : ((m1.rename x1 z).rename z w) =α ((m2.rename x2 z).rename z w) := by
-          apply ih <;> grind [vars, rename_vars, rename.eq_sizeOf]
+          apply ih <;> grind [vars, rename_vars, rename_eq_sizeOf]
         grind [rename_concat]
     all_goals grind [vars]
   | @app m1 n1 m2 n2 hm hn =>
@@ -181,9 +177,9 @@ theorem AlphaEquiv.rename_preserve [DecidableEq Var] [HasFresh Var]
     then their bodies can be renamed to ``any'' fresh variable y and remain α-equivalent.
     This is sometimes easier to use than using by_cases on the equivalence,
     which can only produce the claim for ``some'' fresh y. -/
-theorem AlphaEquiv.abs_elim [DecidableEq Var] [HasFresh Var] {m1 m2 : Term Var} {x1 x2 y : Var} :
-  y ∉ m1.vars ∪ m2.vars ∪ {x1, x2} → (abs x1 m1) =α (abs x2 m2) →
-  (m1.rename x1 y) =α (m2.rename x2 y) := by
+theorem AlphaEquiv.abs_elim {m1 m2 : Term Var} {x1 x2 y : Var} :
+    y ∉ m1.vars ∪ m2.vars ∪ {x1, x2} → (Term.abs x1 m1) =α (Term.abs x2 m2) →
+    (m1.rename x1 y) =α (m2.rename x2 y) := by
   intro hy h
   cases h with
   | @abs z _ _ _ _ hz h1 =>
@@ -194,8 +190,8 @@ theorem AlphaEquiv.abs_elim [DecidableEq Var] [HasFresh Var] {m1 m2 : Term Var} 
       grind [rename_concat, rename_vars]
 
 /-- Transitivity of α-equivalence. -/
-theorem AlphaEquiv.trans [DecidableEq Var] [HasFresh Var] {m n p : Term Var} :
-  m =α n → n =α p → m =α p := by
+theorem AlphaEquiv.trans {m n p : Term Var} :
+    m =α n → n =α p → m =α p := by
   refine (WellFounded.induction sizeOfWFRel.wf m
     (C := fun m => ∀ (n p : Term Var),
       m =α n → n =α p → m =α p) ?_) n p
@@ -215,7 +211,7 @@ theorem AlphaEquiv.trans [DecidableEq Var] [HasFresh Var] {m n p : Term Var} :
         apply AlphaEquiv.abs (y := w)
         · grind [vars, rename_unused, rename_vars, rename_concat]
         apply ih _ ?_ (m2.rename x2 w) <;>
-        grind [AlphaEquiv.abs_elim, vars, rename_vars, rename.eq_sizeOf]
+        grind [AlphaEquiv.abs_elim, vars, rename_vars, rename_eq_sizeOf]
   | app m1 m2 =>
     cases hmn with
     | @app m1 n1 m2 n2 hmn1 hmn2 =>
@@ -226,8 +222,9 @@ theorem AlphaEquiv.trans [DecidableEq Var] [HasFresh Var] {m n p : Term Var} :
         · apply ih _ ?_ n2 <;> grind [vars, rename_vars]
 
 /-- Renaming a non-free variable result in an α-equivalent term -/
-theorem AlphaEquiv.rename_non_fv [DecidableEq Var] [HasFresh Var] (m : Term Var) (x y : Var)
-  (hxm : x ∉ m.fv) (hym : y ∉ m.vars) : m =α (m.rename x y) := by
+theorem AlphaEquiv.rename_non_fv {m : Term Var} {x y : Var} :
+    x ∉ m.fv → y ∉ m.vars → m =α (m.rename x y) := by
+  intro hx hy
   induction m with
   | var z =>
     have hzx : z ≠ x := by
@@ -251,9 +248,10 @@ theorem AlphaEquiv.rename_non_fv [DecidableEq Var] [HasFresh Var] (m : Term Var)
     · apply ih1 <;> grind [vars, fv]
     · apply ih2 <;> grind [vars, fv]
 
-/-- Abstracting over an arbitrary non-free variable results in the same term, modulo α-equivalence. -/
-theorem AlphaEquiv.abs_non_fv [DecidableEq Var] [HasFresh Var] {m1 m2 : Term Var} {x1 x2 : Var} :
-  m1 =α m2 → x1 ∉ m1.fv → x2 ∉ m2.fv → (abs x1 m1) =α (abs x2 m2) := by
+/-- Abstracting over an arbitrary non-free variable results in the same term,
+    modulo α-equivalence. -/
+theorem AlphaEquiv.abs_non_fv {m1 m2 : Term Var} {x1 x2 : Var} :
+    m1 =α m2 → x1 ∉ m1.fv → x2 ∉ m2.fv → (Term.abs x1 m1) =α (Term.abs x2 m2) := by
   intro hm hx1 hx2
   obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m1.vars ∪ m2.vars ∪ {x1, x2})
   apply AlphaEquiv.abs (y := y)
@@ -262,6 +260,14 @@ theorem AlphaEquiv.abs_non_fv [DecidableEq Var] [HasFresh Var] {m1 m2 : Term Var
   · grind [rename_non_fv, AlphaEquiv.symm]
   apply AlphaEquiv.trans (n := m2) <;> grind [rename_non_fv]
 
+/-- Renaming an abstraction leads to an α-equivalent term. -/
+theorem AlphaEquiv.abs_rename {m : Term Var} {x y : Var} :
+    y ∉ m.vars ∪ {x} → (Term.abs x m) =α (Term.abs y (m.rename x y)) := by
+  intro hy
+  obtain ⟨z, hz⟩ := HasFresh.fresh_exists (m.vars ∪ {x, y})
+  apply AlphaEquiv.abs (y := z) <;> grind [vars, rename_vars, rename_concat, AlphaEquiv.refl]
+
+omit [DecidableEq Var] [HasFresh Var] in
 /-- Any `Term` can be obtained by filling a `Context` with a variable. This proves that `Context`
 completely captures the syntax of terms. -/
 theorem Context.complete (m : Term Var) :
@@ -277,14 +283,15 @@ theorem Context.complete (m : Term Var) :
     exists Context.appL c₁ n₂, x₁
     rw [ih₁, fill]
 
+omit [HasFresh Var] in
 /-- The set of variables after filling a context. -/
-theorem Context.fill_vars [DecidableEq Var] {c : Context Var} {m : Term Var} :
-  (c.fill m).vars = c.vars ∪ m.vars := by
+theorem Context.fill_vars {c : Context Var} {m : Term Var} :
+    (c.fill m).vars = c.vars ∪ m.vars := by
   induction c <;> grind [Context.fill, Context.vars, Term.vars]
 
 /-- α-equivalence is preserved under context filling. -/
-theorem AlphaEquiv.context [DecidableEq Var] [HasFresh Var] {m n : Term Var} {c : Context Var} :
-  m =α n → (c.fill m) =α (c.fill n) := by
+theorem AlphaEquiv.context {m n : Term Var} {c : Context Var} :
+    m =α n → (c.fill m) =α (c.fill n) := by
   intro h
   induction c with
   | hole => assumption
@@ -297,9 +304,10 @@ theorem AlphaEquiv.context [DecidableEq Var] [HasFresh Var] {m n : Term Var} {c 
   | appR m c ih =>
     apply AlphaEquiv.app <;> grind [AlphaEquiv.app, AlphaEquiv.refl, vars]
 
-/-- The functional definition of substitution satisfies the relational definition of substitution. -/
-theorem Subst.function_to_relation [DecidableEq Var] [HasFresh Var] {m r : Term Var} {x : Var} :
-  m.Subst x r (m[x := r]) := by
+/-- The functional definition of substitution satisfies the relational definition of substitution.
+-/
+theorem Subst.function_to_relation {m r : Term Var} {x : Var} :
+    m.Subst x r (m[x := r]) := by
   refine WellFounded.induction (C := fun m => m.Subst x r (m[x := r])) sizeOfWFRel.wf m ?_
   simp only; intro m ih
   cases m with
@@ -329,7 +337,7 @@ theorem Subst.function_to_relation [DecidableEq Var] [HasFresh Var] {m r : Term 
         · apply Subst.absIn
           · grind [vars, fv, vars_either_fv_or_bv]
           apply ih
-          grind [rename.eq_sizeOf]
+          grind [rename_eq_sizeOf]
       · simp only [hyr]
         apply Subst.absIn
         · grind [vars, fv, vars_either_fv_or_bv]
@@ -339,9 +347,9 @@ theorem Subst.function_to_relation [DecidableEq Var] [HasFresh Var] {m r : Term 
     simp only [← subst_def, subst.eq_3]
     apply Subst.app <;> apply ih <;> grind
 
-/-- substituting a non-free variable has no effect. -/
-theorem subst.non_free [DecidableEq Var] [HasFresh Var] {m r : Term Var} {x : Var} :
-  x ∉ m.fv → (m[x := r]) =α m := by
+/-- Substituting a non-free variable has no effect. -/
+theorem subst.non_free {m r : Term Var} {x : Var} :
+    x ∉ m.fv → (m[x := r]) =α m := by
   refine WellFounded.induction (C := fun m => x ∉ m.fv → (m[x := r]) =α m) sizeOfWFRel.wf m ?_
   simp only; intro m ih hx
   cases m with
@@ -367,7 +375,7 @@ theorem subst.non_free [DecidableEq Var] [HasFresh Var] {m r : Term Var} {x : Va
         apply AlphaEquiv.trans (n := ((m.rename y z).rename z w))
         · apply AlphaEquiv.rename_preserve
           · grind [vars, rename_vars, fv]
-          apply ih <;> grind [fv, rename_fv, rename.eq_sizeOf]
+          apply ih <;> grind [fv, rename_fv, rename_eq_sizeOf]
         · grind [rename_concat, AlphaEquiv.refl]
       · simp only [← subst_def, subst.eq_2, hyx, ↓reduceIte, hyr, not_false_eq_true]
         apply AlphaEquiv.context (c := Context.abs y Context.hole)
@@ -376,23 +384,15 @@ theorem subst.non_free [DecidableEq Var] [HasFresh Var] {m r : Term Var} {x : Va
     simp only [← subst_def, subst.eq_3]
     apply AlphaEquiv.app <;> apply ih <;> grind [fv]
 
-/-- Renaming an abstraction leads to an α-equivalent term. -/
-theorem AlphaEquiv.abs_rename [DecidableEq Var] [HasFresh Var] {m : Term Var} {x y : Var} :
-  y ∉ m.vars ∪ {x} → (abs x m) =α (abs y (m.rename x y)) := by
-  intro hy
-  obtain ⟨z, hz⟩ := HasFresh.fresh_exists (m.vars ∪ {x, y})
-  apply AlphaEquiv.abs (y := z) <;> grind [vars, rename_vars, rename_concat, AlphaEquiv.refl]
-
-lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
-  {m r : Term Var} {x y z : Var} :
-  z ∉ m.vars ∪ r.vars ∪ {x, y} →
-  ((abs y m)[x := r]) =α (abs z ((m.rename y z)[x := r]))
-  ∧ (y ∉ r.fv ∪ {x} → (abs y (m[x := r])) =α (abs z ((m.rename y z)[x := r]))) := by
+lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
+    z ∉ m.vars ∪ r.vars ∪ {x, y} →
+    ((Term.abs y m)[x := r]) =α (Term.abs z ((m.rename y z)[x := r]))
+    ∧ (y ∉ r.fv ∪ {x} → (Term.abs y (m[x := r])) =α (Term.abs z ((m.rename y z)[x := r]))) := by
   refine (WellFounded.induction sizeOfWFRel.wf m
     (C := fun m => ∀ (r : Term Var) (x y z : Var),
       z ∉ m.vars ∪ r.vars ∪ {x, y} →
-  ((abs y m)[x := r]) =α (abs z ((m.rename y z)[x := r]))
-  ∧ (y ∉ r.fv ∪ {x} → (abs y (m[x := r])) =α (abs z ((m.rename y z)[x := r])))) ?_) r x y z
+  ((Term.abs y m)[x := r]) =α (Term.abs z ((m.rename y z)[x := r]))
+  ∧ (y ∉ r.fv ∪ {x} → (Term.abs y (m[x := r])) =α (Term.abs z ((m.rename y z)[x := r])))) ?_) r x y z
   intro m ih r x y z hz
   have hright : ∀ (m' : Term Var) (y' : Var), sizeOf m' = sizeOf m → z ∉ m'.vars ∪ r.vars ∪ {x, y'}
     → y' ∉ r.fv ∪ {x} → (Term.abs y' (m'[x:=r])) =α (Term.abs z ((m'.rename y' z)[x:=r])) := by
@@ -404,7 +404,7 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
         have hxy' : x ≠ y' := by grind
         rw [rename]
         simp only [← subst_def, subst.eq_1, ↓reduceIte, hxy']
-        apply abs_non_fv <;> grind [vars_either_fv_or_bv, AlphaEquiv.refl]
+        apply AlphaEquiv.abs_non_fv <;> grind [vars_either_fv_or_bv, AlphaEquiv.refl]
       · simp only [← subst_def, subst.eq_1, hwx, ↓reduceIte]
         rw [rename]
         by_cases hwy' : w = y'
@@ -414,7 +414,7 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
           obtain ⟨v, hv⟩ := HasFresh.fresh_exists ({y', z})
           apply AlphaEquiv.abs (y := v) <;> grind [vars, rename, AlphaEquiv.var]
         · simp only [hwy', ↓reduceIte, subst.eq_1, hwx]
-          apply abs_non_fv <;> grind [vars_either_fv_or_bv, AlphaEquiv.refl, Term.fv]
+          apply AlphaEquiv.abs_non_fv <;> grind [vars_either_fv_or_bv, AlphaEquiv.refl, Term.fv]
     | app m1 m2 =>
       obtain ⟨w, hw⟩ := HasFresh.fresh_exists
         ((m1.app m2)[x := r].vars ∪ (((m1.app m2).rename y' z)[x := r]).vars
@@ -433,7 +433,7 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
         have hzx : z ≠ x := by grind
         have hzr : z ∉ r.fv := by grind [vars_either_fv_or_bv]
         simp only [← subst_def, subst.eq_2, hy'x, ↓reduceIte, hy'r, not_false_eq_true, hzx, hzr]
-        apply abs_non_fv
+        apply AlphaEquiv.abs_non_fv
         · apply (ih _ _ _ _ _ _ _).right <;> grind [vars]
         · grind [fv]
         · grind [fv]
@@ -455,9 +455,9 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
               =α (Term.abs z ((Term.abs w (m1.rename y' z))[x := r])) := by
               apply AlphaEquiv.context (c := Context.abs z Context.hole)
               apply AlphaEquiv.symm
-              apply (ih _ _ _ _ _ _ _).left <;> grind [rename_vars, rename.eq_sizeOf]
-            have hmid : (abs y' (abs v ((m1.rename w v)[x := r]))) =α
-                (abs z (abs v (((m1.rename y' z).rename w v)[x := r]))) := by
+              apply (ih _ _ _ _ _ _ _).left <;> grind [rename_vars, rename_eq_sizeOf]
+            have hmid : (Term.abs y' (Term.abs v ((m1.rename w v)[x := r]))) =α
+                (Term.abs z (Term.abs v (((m1.rename y' z).rename w v)[x := r]))) := by
               obtain ⟨u, hu⟩ := HasFresh.fresh_exists
                 ((Term.abs v ((m1.rename w v)[x := r])).vars ∪
                 (Term.abs v (((m1.rename y' z).rename w v)[x := r])).vars ∪
@@ -471,8 +471,8 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
                 apply AlphaEquiv.trans (n := (((m1.rename w v).rename y' z)[x := r]).rename z u)
                 · apply AlphaEquiv.abs_elim
                   · grind  [vars]
-                  · apply (ih _ _ _ _ _ _ _).right <;> grind [vars, rename_vars, rename.eq_sizeOf]
-                · apply rename_preserve
+                  · apply (ih _ _ _ _ _ _ _).right <;> grind [vars, rename_vars, rename_eq_sizeOf]
+                · apply AlphaEquiv.rename_preserve
                   · grind [vars]
                   · rw [rename_comm] <;> grind [vars, AlphaEquiv.refl]
             exact AlphaEquiv.trans hl <| AlphaEquiv.trans hmid hr
@@ -500,7 +500,7 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
           · grind [rename_vars]
           · apply AlphaEquiv.symm
             apply subst.non_free
-            grind [fv, rename_fv, rename.eq_sizeOf]
+            grind [fv, rename_fv, rename_eq_sizeOf]
     · by_cases hyr : y ∈ r.fv
       · simp only [← subst_def, subst.eq_2, hyx, ↓reduceIte, hyr, not_true_eq_false,
           Finset.union_insert, Finset.union_singleton]
@@ -509,9 +509,9 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
         by_cases hzw' : z = w
         · subst z
           apply AlphaEquiv.refl
-        · apply AlphaEquiv.trans (n := (abs z (((m.rename y w).rename w z)[x := r])))
+        · apply AlphaEquiv.trans (n := (Term.abs z (((m.rename y w).rename w z)[x := r])))
           · apply hright <;>
-              grind [rename.eq_sizeOf, vars_either_fv_or_bv, rename_vars]
+              grind [rename_eq_sizeOf, vars_either_fv_or_bv, rename_vars]
           · rw [rename_concat] <;> grind [AlphaEquiv.refl]
       · simp only [← subst_def, subst.eq_2, hyx, ↓reduceIte, hyr, not_false_eq_true]
         apply hright <;> grind
@@ -520,16 +520,14 @@ lemma AlphaEquiv.subst_abs_fresh_helper [DecidableEq Var] [HasFresh Var]
 /-- Modulo α-equivalence, substituting an abstraction falls back to the fresh variable case only.
     With this lemma, the three cases in the definition of subst can be reduced to one.
 -/
-theorem AlphaEquiv.subst_abs_fresh [DecidableEq Var] [HasFresh Var]
-  {m r : Term Var} {x y z : Var} :
-  z ∉ m.vars ∪ r.vars ∪ {x, y} →
-  ((abs y m)[x := r]) =α (abs z ((m.rename y z)[x := r])) := by
-  grind [AlphaEquiv.subst_abs_fresh_helper]
+theorem subst.abs_fresh {m r : Term Var} {x y z : Var} :
+    z ∉ m.vars ∪ r.vars ∪ {x, y} →
+    ((Term.abs y m)[x := r]) =α (Term.abs z ((m.rename y z)[x := r])) := by
+  grind [subst.abs_fresh_helper]
 
 /-- Substituting α-equivalent terms produces α-equivalent terms. -/
-theorem subst.preserve_AlphaEquiv [DecidableEq Var] [HasFresh Var]
-  {m m' r r' : Term Var} {x : Var} :
-  m =α m' → r =α r' → (m[x := r]) =α (m'[x := r']) := by
+theorem subst.preserve_AlphaEquiv {m m' r r' : Term Var} {x : Var} :
+    m =α m' → r =α r' → (m[x := r]) =α (m'[x := r']) := by
   refine (WellFounded.induction sizeOfWFRel.wf m
     (C := fun m => ∀ (m' r r' : Term Var) (x : Var),
       m =α m' → r =α r' → (m[x := r]) =α (m'[x := r'])) ?_) m' r r' x
@@ -544,18 +542,18 @@ theorem subst.preserve_AlphaEquiv [DecidableEq Var] [HasFresh Var]
       apply AlphaEquiv.refl
   | @abs z y y' m m' hz h1 =>
     obtain ⟨w, hw⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ r.vars ∪ r'.vars ∪ {x, y, y'})
-    have h2 : ((abs y m)[x := r]) =α (abs w ((m.rename y w)[x := r])) := by
-      grind [AlphaEquiv.subst_abs_fresh]
-    have h2' : ((abs y' m')[x := r']) =α
-        (abs w ((m'.rename y' w)[x := r'])) := by
-      grind [AlphaEquiv.subst_abs_fresh]
+    have h2 : ((Term.abs y m)[x := r]) =α (Term.abs w ((m.rename y w)[x := r])) := by
+      grind [subst.abs_fresh]
+    have h2' : ((Term.abs y' m')[x := r']) =α
+        (Term.abs w ((m'.rename y' w)[x := r'])) := by
+      grind [subst.abs_fresh]
     have hbody : (m.rename y w) =α (m'.rename y' w) := by
       apply AlphaEquiv.abs_elim <;> grind
-    have h3 : (abs w ((m.rename y w)[x := r])) =α (abs w ((m'.rename y' w)[x := r'])) := by
+    have h3 : (Term.abs w ((m.rename y w)[x := r])) =α (Term.abs w ((m'.rename y' w)[x := r'])) := by
       apply AlphaEquiv.context (c := Context.abs w Context.hole)
-      apply ih <;> grind [rename.eq_sizeOf]
-    apply AlphaEquiv.trans (n := (abs w ((m.rename y w)[x := r]))) <;> try assumption
-    apply AlphaEquiv.trans (n := (abs w ((m'.rename y' w)[x := r']))) <;> try assumption
+      apply ih <;> grind [rename_eq_sizeOf]
+    apply AlphaEquiv.trans (n := (Term.abs w ((m.rename y w)[x := r]))) <;> try assumption
+    apply AlphaEquiv.trans (n := (Term.abs w ((m'.rename y' w)[x := r']))) <;> try assumption
     apply AlphaEquiv.symm
     assumption
   | @app m m' n n' hm hn =>
@@ -564,8 +562,8 @@ theorem subst.preserve_AlphaEquiv [DecidableEq Var] [HasFresh Var]
 
 /-- The relational definition of substitution coincides with the functional definition of
     substitution, modulo α-equivalence. -/
-theorem Subst.relation_function_iff [DecidableEq Var] [HasFresh Var] {m n r : Term Var} {x : Var} :
-  m.Subst x r n ↔ n =α (m[x := r]) := by
+theorem Subst.relation_iff_function {m n r : Term Var} {x : Var} :
+    m.Subst x r n ↔ n =α (m[x := r]) := by
   constructor
   · intro h
     induction h with
@@ -596,9 +594,8 @@ theorem Subst.relation_function_iff [DecidableEq Var] [HasFresh Var] {m n r : Te
       AlphaEquiv.refl, Subst.function_to_relation]
 
 /-- Commutativity of substitution (a.k.a. the substitution lemma) -/
-theorem subst.commutativity [DecidableEq Var] [HasFresh Var] {m r1 r2 : Term Var} {x y : Var} :
-  x ∉ r2.fv ∪ {y} →
-  ((m[x := r1])[y := r2]) =α ((m[y := r2])[x := (r1[y := r2])]) := by
+theorem subst.commutativity {m r1 r2 : Term Var} {x y : Var} :
+    x ∉ r2.fv ∪ {y} → ((m[x := r1])[y := r2]) =α ((m[y := r2])[x := (r1[y := r2])]) := by
   refine WellFounded.induction sizeOfWFRel.wf m
     (C := fun m => ∀ (r1 r2 : Term Var) (x y : Var),
       x ∉ r2.fv ∪ {y} →
@@ -626,7 +623,7 @@ theorem subst.commutativity [DecidableEq Var] [HasFresh Var] {m r1 r2 : Term Var
       (Term.abs w (((m.rename z w)[x := r1])[y := r2])) := by
       apply AlphaEquiv.trans (n := (((Term.abs w ((m.rename z w)[x := r1]))[y := r2])))
       · apply subst.preserve_AlphaEquiv
-        · apply AlphaEquiv.subst_abs_fresh
+        · apply subst.abs_fresh
           grind
         · apply AlphaEquiv.refl
       · have hwy : w ≠ y := by grind
@@ -638,7 +635,7 @@ theorem subst.commutativity [DecidableEq Var] [HasFresh Var] {m r1 r2 : Term Var
       apply AlphaEquiv.symm
       apply AlphaEquiv.trans (n := ((Term.abs w ((m.rename z w)[y := r2]))[x := (r1[y := r2])]))
       · apply subst.preserve_AlphaEquiv
-        · apply AlphaEquiv.subst_abs_fresh
+        · apply subst.abs_fresh
           grind
         · apply AlphaEquiv.refl
       · have hwx : w ≠ x := by grind
@@ -648,12 +645,12 @@ theorem subst.commutativity [DecidableEq Var] [HasFresh Var] {m r1 r2 : Term Var
     have hmid : (Term.abs w (((m.rename z w)[x := r1])[y := r2])) =α
       (Term.abs w (((m.rename z w)[y := r2])[x := (r1[y := r2])])) := by
       apply AlphaEquiv.context (c := Context.abs w Context.hole)
-      apply ih <;> grind [rename.eq_sizeOf]
+      apply ih <;> grind [rename_eq_sizeOf]
     exact AlphaEquiv.trans hl <| AlphaEquiv.trans hmid hr
   | app m1 m2 =>
     simp only [← subst_def, subst.eq_3]
     apply AlphaEquiv.app <;> apply ih <;> grind
 
-end LambdaCalculus.Named
+end LambdaCalculus.Named.Untyped.Term
 
 end Cslib
