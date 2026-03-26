@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Basic
+import Cslib.Foundations.Semantics.LTS.Divergence
 import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
-
+import Cslib.Foundations.Semantics.LTS.Notation
 
 namespace CslibTests
 

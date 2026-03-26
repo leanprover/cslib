@@ -9,7 +9,7 @@ module
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
-public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
 @[expose] public section
 

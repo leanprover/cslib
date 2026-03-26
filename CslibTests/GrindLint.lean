@@ -26,7 +26,7 @@ open_scoped_all Cslib
   See https://lean-lang.org/doc/reference/latest/The--grind--tactic/E___matching/ for details.
 -/
 
-#grind_lint skip Cslib.Bisimilarity.trans
+#grind_lint skip Cslib.LTS.Bisimilarity.trans
 #grind_lint skip Cslib.FLTS.toLTS_tr
 #grind_lint skip Cslib.FinFun.coe_fromFun_id
 #grind_lint skip Cslib.FinFun.fromFun_comm

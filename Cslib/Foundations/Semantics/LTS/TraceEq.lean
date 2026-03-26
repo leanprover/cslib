@@ -31,7 +31,7 @@ Definitions and results on trace equivalence for `LTS`s.
 
 -/
 
-namespace Cslib
+namespace Cslib.LTS
 
 universe u v
 
@@ -39,11 +39,11 @@ variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 
 /-- The traces of a state `s` is the set of all lists of labels `μs` such that there is a multi-step
 transition labelled by `μs` originating from `s`. -/
-def LTS.traces (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
+def traces (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
 
 /-- If there is a multi-step transition from `s` labelled by `μs`, then `μs` is in the traces of
 `s`. -/
-theorem LTS.traces_in (s : State) (μs : List Label) (s' : State) (h : lts.MTr s μs s') :
+theorem traces_in (s : State) (μs : List Label) (s' : State) (h : lts.MTr s μs s') :
     μs ∈ lts.traces s := by
   exists s'
 
@@ -90,14 +90,14 @@ theorem TraceEq.deterministic_sim
     (lts : LTS State Label) [hdet : lts.Deterministic] (s1 s2 : State) (h : s1 ~tr[lts] s2) :
     ∀ μ s1', lts.Tr s1 μ s1' → ∃ s2', lts.Tr s2 μ s2' ∧ s1' ~tr[lts] s2' := by
   intro μ s1' htr1
-  have hmtr1 := LTS.MTr.single lts htr1
-  have hin := LTS.traces_in lts s1 [μ] s1' hmtr1
+  have hmtr1 := MTr.single lts htr1
+  have hin := traces_in lts s1 [μ] s1' hmtr1
   rw [h] at hin
   obtain ⟨s2', hmtr2⟩ := hin
   exists s2'
   constructor
-  · apply LTS.MTr.single_invert lts _ _ _ hmtr2
-  · simp only [TraceEq, LTS.traces]
+  · apply MTr.single_invert lts _ _ _ hmtr2
+  · simp only [TraceEq, traces]
     funext μs'
     simp only [eq_iff_iff]
     simp only [setOf]
@@ -105,30 +105,30 @@ theorem TraceEq.deterministic_sim
     case mp =>
       intro hmtr1'
       obtain ⟨s1'', hmtr1'⟩ := hmtr1'
-      have hmtr1comp := LTS.MTr.comp lts hmtr1 hmtr1'
-      have hin := LTS.traces_in lts s1 ([μ] ++ μs') s1'' hmtr1comp
+      have hmtr1comp := MTr.comp lts hmtr1 hmtr1'
+      have hin := traces_in lts s1 ([μ] ++ μs') s1'' hmtr1comp
       rw [h] at hin
       obtain ⟨s', hmtr2'⟩ := hin
       cases hmtr2'
       case stepL s2'' htr2 hmtr2' =>
         exists s'
-        have htr2' := LTS.MTr.single_invert lts _ _ _ hmtr2
+        have htr2' := MTr.single_invert lts _ _ _ hmtr2
         have hdets2 := hdet.deterministic s2 μ s2' s2'' htr2' htr2
         rw [hdets2]
         exact hmtr2'
     case mpr =>
       intro hmtr2'
       obtain ⟨s2'', hmtr2'⟩ := hmtr2'
-      have hmtr2comp := LTS.MTr.comp lts hmtr2 hmtr2'
-      have hin := LTS.traces_in lts s2 ([μ] ++ μs') s2'' hmtr2comp
+      have hmtr2comp := MTr.comp lts hmtr2 hmtr2'
+      have hin := traces_in lts s2 ([μ] ++ μs') s2'' hmtr2comp
       rw [← h] at hin
       obtain ⟨s', hmtr1'⟩ := hin
       cases hmtr1'
       case stepL s1'' htr1 hmtr1' =>
         exists s'
-        have htr1' := LTS.MTr.single_invert lts _ _ _ hmtr1
+        have htr1' := MTr.single_invert lts _ _ _ hmtr1
         have hdets1 := hdet.deterministic s1 μ s1' s1'' htr1' htr1
         rw [hdets1]
         exact hmtr1'
 
-end Cslib
+end Cslib.LTS

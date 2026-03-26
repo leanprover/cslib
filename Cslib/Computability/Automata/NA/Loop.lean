@@ -99,7 +99,7 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
     ∀ k, (_ : k < xl.length) → na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
-  obtain ⟨sl, _, _, _, _⟩ := LTS.execution_of_mTr h_mtr
+  obtain ⟨sl, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
   by_cases xl.length = 0
   · use [inl ()]
     grind
@@ -186,7 +186,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
     · have : Nonempty na.start := by
         obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
         use s0
-      obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_omegaExecution h_mtr
+      obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
       obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
         simp only [mem_singleton_iff] at h_acc
