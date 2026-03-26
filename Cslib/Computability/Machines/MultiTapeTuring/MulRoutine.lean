@@ -22,7 +22,7 @@ namespace Routines
 
 -- Multiplies the heads of 0 and 1 and stores the result in 2.
 def mul₀ : MultiTapeTM 9 (WithSep OneTwo) :=
-  push 2 [] ;ₜ loop 0 (add_assign 1 2 3)
+  push 2 [];ₜ loop 0 (add_assign 1 2 3)
 
 @[simp]
 lemma add_assign_iter {i j aux : Fin (k + 6)} {r : ℕ}

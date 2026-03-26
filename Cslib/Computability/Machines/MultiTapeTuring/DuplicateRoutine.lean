@@ -19,7 +19,7 @@ namespace Routines
 
 variable [Inhabited α] [Fintype α]
 
-def duplicate₀ : MultiTapeTM 2 (WithSep α) := copy 0 1 ;ₜ copy 1 0 ;ₜ pop 1
+def duplicate₀ : MultiTapeTM 2 (WithSep α) := copy 0 1;ₜ copy 1 0;ₜ pop 1
 
 @[simp]
 lemma duplicate₀_eval_list {tapes : Fin 2 → List (List α)} :

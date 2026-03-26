@@ -20,7 +20,7 @@ def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : Mul
   MultiTapeTM k Char := match v with
     | [] => then_branch
     | c :: cs => if_eq c i
-        (right i ;ₜ ite_enc cs i (left i ;ₜ then_branch) (left i ;ₜ else_branch))
+        (right i;ₜ ite_enc cs i (left i;ₜ then_branch) (left i;ₜ else_branch))
         else_branch
 
 @[simp]

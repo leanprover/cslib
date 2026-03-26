@@ -21,17 +21,17 @@ namespace Turing
 namespace Routines
 
 def dec₀ : MultiTapeTM 6 (WithSep OneTwo) :=
-  push 1 [] ;ₜ push 2 [] ;ₜ
-  loop 0 (pop 2 ;ₜ copy 1 2 ;ₜ succ 1) ;ₜ
-  pop 0 ;ₜ
-  copy 2 0 ;ₜ
-  pop 2 ;ₜ
+  push 1 [];ₜ push 2 [];ₜ
+  loop 0 (pop 2;ₜ copy 1 2;ₜ succ 1);ₜ
+  pop 0;ₜ
+  copy 2 0;ₜ
+  pop 2;ₜ
   pop 1
 
 
 @[simp]
 lemma inner_eval_iter {r : ℕ} {tapes : Fin 3 → List (List OneTwo)} :
-  (Part.bind · (pop 2 ;ₜ copy 1 2 ;ₜ succ 1).eval_list)^[r] (.some tapes) = Part.some (
+  (Part.bind · (pop 2;ₜ copy 1 2;ₜ succ 1).eval_list)^[r] (.some tapes) = Part.some (
     if r = 0 then
       tapes
     else

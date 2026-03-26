@@ -33,7 +33,7 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
   match n with
   | 0 => noop
-  | n + 1 => skipRight_n n i ;ₜ skipRight i
+  | n + 1 => skipRight_n n i;ₜ skipRight i
 
 lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k → TapeView}
     {parent : TapeView}
@@ -56,7 +56,7 @@ lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k �
 Moves past `(` and then skips `idx` Data elements.
 If `i` is larger than the length of the list, does nothing. -/
 public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char :=
-  right i ;ₜ skipRight_n idx i
+  right i;ₜ skipRight_n idx i
 
 /-- `toElem idx i` moves to the `idx`th element of the `Data.list` currently pointed to
 on tape `i`. -/
@@ -75,7 +75,7 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
 
 /-- If positioned on the element of a list, navigates to the list containing it. -/
 public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
-  left i ;ₜ while_eq ')' i (right i ;ₜ skipLeft i ;ₜ left i)
+  left i;ₜ while_eq ')' i (right i;ₜ skipLeft i;ₜ left i)
 
 -- ((1)(2)(3))
 
@@ -85,7 +85,7 @@ lemma outOfList_inner {k : ℕ} {i : Fin k}
     (idx : ℕ)
     (path : List ℕ)
     (h_path : tv.path = path ++ [idx.succ]) :
-  (right i ;ₜ skipLeft i ;ₜ left i).eval_tot (by grind)
+  (right i;ₜ skipLeft i;ₜ left i).eval_tot (by grind)
     (Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape.move_left) =
      Function.update (TapeView.toBiTape ∘ views) i
        (tv.parent.appendPath idx (by

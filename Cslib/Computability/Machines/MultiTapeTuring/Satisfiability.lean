@@ -116,13 +116,13 @@ public def case_literal {k : ℕ}
     (i : Fin k) :
   MultiTapeTM k Char :=
     -- Navigate to ctor index of literal (first element of Data.list)
-  toElem 0 i ;ₜ
+  toElem 0 i;ₜ
   -- Dispatch on ctor index
   case_num i
     [ -- positive literal (ctorIdx=0): skip to var, run `pos`
-      outOfList i ;ₜ toElem 1 i ;ₜ pos ;ₜ outOfList i,
+      outOfList i;ₜ toElem 1 i;ₜ pos;ₜ outOfList i,
       -- negative literal (ctorIdx=1): skip to var, run `neg`
-      outOfList i ;ₜ toElem 1 i ;ₜ neg ;ₜ outOfList i
+      outOfList i;ₜ toElem 1 i;ₜ neg;ₜ outOfList i
     ]
 
 -- TODO why does the simp linter complain here?
@@ -182,7 +182,7 @@ on tape 2. -/
 def sat_verify_eval_literal : MultiTapeTM 5 Char :=
   case_literal
     (contains 1 0 2)
-    (contains 1 0 2 ;ₜ negateBool 2)
+    (contains 1 0 2;ₜ negateBool 2)
     0
 
 lemma sat_verify_eval_literal.computes_fun :
@@ -211,9 +211,9 @@ lemma sat_verify_core_semantics :
 /-- TODO document -/
 public def sat_verify : MultiTapeTM 5 Char :=
   -- Navigate to assignments (arg 1) and copy to tape 1
-  toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0 ;ₜ
+  toElem 1 0;ₜ copyEnc 0 1 (by decide);ₜ outOfList 0;ₜ
   -- Navigate to formula (arg 0)
-  toElem 0 0 ;ₜ sat_verify_core ;ₜ outOfList 0 ;ₜ
+  toElem 0 0;ₜ sat_verify_core;ₜ outOfList 0;ₜ
   replace (Data.list []) 1
 
 public theorem sat_verify.computes_fun

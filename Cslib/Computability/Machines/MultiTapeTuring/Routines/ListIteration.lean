@@ -25,12 +25,12 @@ namespace Routines
     assuming the state of tape `i` is reset by `tm`. -/
 public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
     MultiTapeTM k Char :=
-  right i ;ₜ while_neq ')' i (tm ;ₜ skipRight i) ;ₜ outOfList i
+  right i;ₜ while_neq ')' i (tm;ₜ skipRight i);ₜ outOfList i
 
 -- TODO: clean up (ai) - we probably need lemmas about what skipRight on the last element means,
 -- and that outOfList works when we are at the `)` of the list.
 
-/-- Helper: the forward loop `while_neq ')' i (tm ;ₜ skipRight i)` iterates `tm`
+/-- Helper: the forward loop `while_neq ')' i (tm;ₜ skipRight i)` iterates `tm`
     over the remaining list elements and folds the result onto tape `j`.
     Tape `i` has path `[idx]` into `StrEnc.toData ls`. -/
 private lemma run_list_forward {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
@@ -43,7 +43,7 @@ private lemma run_list_forward {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
     (h_data : (views i).data = StrEnc.toData ls)
     (h_path : (views i).path = [idx])
     (h_j : views j = TapeView.ofEnc acc) :
-    (while_neq ')' i (tm ;ₜ skipRight i)).eval_struct views = .some
+    (while_neq ')' i (tm;ₜ skipRight i)).eval_struct views = .some
       (Function.update
         (Function.update views j
           (TapeView.ofEnc (ls.drop idx |>.foldl (fun a d => f d a) acc)))
@@ -71,7 +71,7 @@ public lemma run_list_fold {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
 /-- TODO document -/
 public def any_list {k : ℕ}
     (tm : MultiTapeTM k Char) (i j : Fin k) : MultiTapeTM k Char :=
-  pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOrUpdate j)
+  pushList (StrEnc.toData false) j;ₜ run_list i (tm;ₜ combineOrUpdate j)
 
 @[simp, grind =>]
 public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
@@ -85,7 +85,7 @@ public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
       (fun ls => ls.any f)
       i j := by
   -- intro ls views h_ls
-  -- have h_inner : computes_function_read_update (tm ;ₜ combineOrUpdate j) (fun d tv =>
+  -- have h_inner : computes_function_read_update (tm;ₜ combineOrUpdate j) (fun d tv =>
   --   let b := f d
   --   let acc := (tv.current.at? 0).map (fun d => d = StrEnc.toData true) = some true
   --   if b then tv.pushList (StrEnc.toData true)
@@ -119,7 +119,7 @@ public theorem any_list.computes_fun' {k : ℕ} {i j : Fin k}
       (fun ls : List α => ls.any f)
       i j := by
   intro ls out_ls views h_ls h_out_ls
-  have h_inner : computes_function_read_update' (tm ;ₜ combineOrUpdate j)
+  have h_inner : computes_function_read_update' (tm;ₜ combineOrUpdate j)
       (fun x out_ls => (f x || out_ls.head? == some true) :: out_ls.tail) i j := by
     intro x out_ls views h_acc h_out_ls
     simp [h_comp x out_ls views h_acc h_out_ls,
@@ -145,7 +145,7 @@ public theorem any_list.computes_fun' {k : ℕ} {i j : Fin k}
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
     value to tape `tmp`, and compute the logical AND of the results across the list. -/
 public def all_list {k : ℕ} (tm : MultiTapeTM k Char) (i j : Fin k) : MultiTapeTM k Char :=
-  any_list (tm ;ₜ negateBool j) i j ;ₜ negateBool j
+  any_list (tm;ₜ negateBool j) i j;ₜ negateBool j
 
 @[simp, grind =>]
 public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)

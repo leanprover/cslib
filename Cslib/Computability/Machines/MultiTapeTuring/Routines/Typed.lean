@@ -133,7 +133,7 @@ public theorem computes_function_seq₁ {k : ℕ}
   {i j : Fin k}
   (h_comp₁ : computes_function_read_push tm₁ f₁ i j)
   (h_comp₂ : computes_function_head_update tm₂ f₂ j) :
-  computes_function_read_push (tm₁ ;ₜ tm₂) (fun x => f₂ (f₁ x)) i j := by sorry
+  computes_function_read_push (tm₁;ₜ tm₂) (fun x => f₂ (f₁ x)) i j := by sorry
 
 @[simp, grind =>]
 public theorem computes_function_seq₂ {k : ℕ}
@@ -142,7 +142,7 @@ public theorem computes_function_seq₂ {k : ℕ}
   {i j r : Fin k}
   (h_comp₁ : computes_function_read_read_push tm₁ f₁ i j r)
   (h_comp₂ : computes_function_head_update tm₂ f₂ r) :
-  computes_function_read_read_push (tm₁ ;ₜ tm₂) (fun x y => f₂ (f₁ x y)) i j r := by sorry
+  computes_function_read_read_push (tm₁;ₜ tm₂) (fun x y => f₂ (f₁ x y)) i j r := by sorry
 
 
 @[grind =>]

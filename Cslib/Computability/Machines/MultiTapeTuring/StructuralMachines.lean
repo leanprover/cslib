@@ -165,7 +165,7 @@ public theorem while_neq.eval'
 @[simp]
 public lemma seq_eval_struct {tm₁ tm₂ : MultiTapeTM k Char}
     {views : Fin k → TapeView} :
-    (tm₁ ;ₜ tm₂).eval_struct views =
+    (tm₁;ₜ tm₂).eval_struct views =
       (tm₁.eval_struct views).bind tm₂.eval_struct := by sorry
 
 

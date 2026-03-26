@@ -22,7 +22,7 @@ namespace Routines
 /-- TODO document -/
 public def combineOrUpdate {k : ℕ} (j : Fin k) :
   MultiTapeTM k Char := ite_list_head j true
-      (popList j ;ₜ popList j ;ₜ pushList (StrEnc.toData true) j)
+      (popList j;ₜ popList j;ₜ pushList (StrEnc.toData true) j)
       noop
 
 @[simp]
@@ -81,7 +81,7 @@ public lemma negateBool_eval_struct {k : ℕ} {i : Fin k}
   | v => sorry
 
 /-- TODO document -/
-public def test : MultiTapeTM 1 Char := pushList (StrEnc.toData true) 0 ;ₜ negateBool 0
+public def test : MultiTapeTM 1 Char := pushList (StrEnc.toData true) 0;ₜ negateBool 0
 
 public lemma test_eval_struct
     {views : Fin 1 → TapeView}

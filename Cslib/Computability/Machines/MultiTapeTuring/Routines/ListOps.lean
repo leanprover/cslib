@@ -19,7 +19,7 @@ namespace Routines
 /-- Prepend a Data element to a list encoding on tape `i`. -/
 @[expose]
 public def pushList {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
-  write none i ;ₜ right i ;ₜ put d i ;ₜ left i ;ₜ write '(' i
+  write none i;ₜ right i;ₜ put d i;ₜ left i;ₜ write '(' i
 
 @[simp]
 public lemma pushList.computes_fun {k : ℕ} {d : Data} {i : Fin k} :
