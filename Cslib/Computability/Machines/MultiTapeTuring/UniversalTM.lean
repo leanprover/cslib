@@ -36,13 +36,18 @@ public instance : StrEnc TapeCell where
   toData cell := Data.list [StrEnc.toData cell.c, StrEnc.toData cell.containsHead]
   fromData
     | Data.list [c, containsHead] => do
-        let c' ← StrEnc.fromData c
-        let containsHead' ← StrEnc.fromData containsHead
-        pure { c := c', containsHead := containsHead' }
+        pure { c := ← StrEnc.fromData c, containsHead := ← StrEnc.fromData containsHead }
     | _ => none
   fromData_toData := by
     intro c
     sorry
+
+/- Layout of the tapes:
+Tape 1: Encoding of the tapes
+Tape 2: current state
+Tape 3: builds up input for transition function and stores output of transition function
+-/
+
 
 
 end UniversalTM

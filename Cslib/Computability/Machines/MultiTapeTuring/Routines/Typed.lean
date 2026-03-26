@@ -18,7 +18,7 @@ namespace Routines
 public def computes_function_read_update' {k : ℕ}
   (tm : MultiTapeTM k Char) (f : Data → TapeView → TapeView)
   (i j : Fin k) (_h_neq : i ≠ j) :=
-  ∀ views, tm.eval_struct views = some (Function.update views j (f (views i).current (views j)))
+  ∀ views, tm.eval_struct views = .some (Function.update views j (f (views i).current (views j)))
 
 @[expose]
 public def computes_function_read_update {k : ℕ}
@@ -27,7 +27,7 @@ public def computes_function_read_update {k : ℕ}
   (i j : Fin k) (_h_neq : i ≠ j) :=
   ∀ (x : α) (views : Fin k → TapeView),
     ((views i).current = StrEnc.toData x) →
-    tm.eval_struct views = some (Function.update views j (f x (views j)))
+    tm.eval_struct views = .some (Function.update views j (f x (views j)))
 
 @[expose]
 public def computes_function_read_read_update {k : ℕ}
@@ -37,7 +37,7 @@ public def computes_function_read_read_update {k : ℕ}
   ∀ (x : α) (y: β) (views : Fin k → TapeView),
     ((views i).current = StrEnc.toData x) →
     ((views j).current = StrEnc.toData y) →
-    tm.eval_struct views = some (Function.update views r (f x y (views r)))
+    tm.eval_struct views = .some (Function.update views r (f x y (views r)))
 
 /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 list on tape `j`. -/
@@ -64,7 +64,7 @@ public def computes_function_head_update {k : ℕ}
   (tm : MultiTapeTM k Char) (f : α → β)
   (i : Fin k) :=
   ∀ views, tm.eval_struct views =
-    some (Function.update views i ((views i).updateListHeadTyped f))
+    .some (Function.update views i ((views i).updateListHeadTyped f))
 
 @[simp, grind =>]
 public theorem computes_function_seq₁ {k : ℕ}
