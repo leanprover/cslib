@@ -153,8 +153,8 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
 lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc_N : LC N) :
     s [ x := N ] ⭢ηᶠ s' [ x := N ] := by
   induction step
-  case' base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
-  case' abs => grind [Xi.abs <| free_union Var, subst_open_var]
+  case base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
+  case abs => grind [Xi.abs <| free_union Var, subst_open_var]
   all_goals grind
 
 /- `steps_subst_cong_l` can be generalized to multiple reductions `s ↠ηᶠ s'`. -/
