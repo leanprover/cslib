@@ -93,7 +93,7 @@ public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
   --  grind [combineOrUpdate]
   sorry
 
-@[simp, grind =>]
+@[grind =>]
 public theorem any_list.computes_fun_twoary {k : ℕ} {i j r : Fin k}
     {α β : Type} [StrEnc α] [StrEnc β]
     (h_neq : [i, j, r].get.Injective)
@@ -160,7 +160,8 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
   simp only [all_list, List.all_eq_not_any_not]
   grind
 
-@[simp, grind =>]
+-- TODO why does the simp linter complain here?
+@[grind =>]
 public theorem all_list.computes_fun_twoary {k : ℕ} {i j r : Fin k}
     {α β : Type} [StrEnc α] [StrEnc β]
     (h_neq : [i, j, r].get.Injective)
@@ -179,7 +180,8 @@ public theorem all_list.computes_fun_twoary {k : ℕ} {i j r : Fin k}
 public def contains {k : ℕ} (i j result : Fin k) : MultiTapeTM k Char :=
   any_list (isEq i j result) i result
 
-@[simp, grind =>]
+-- TODO why does the simp linter complain here?
+@[grind =>]
 public lemma contains.computes_fun {k : ℕ}
     {α : Type} [BEq α] [StrEnc α]
     {i j result : Fin k}

@@ -29,12 +29,13 @@ public def MultiTapeTM.eval_struct
     Part (Fin k → TapeView) :=
   tm.eval (TapeView.toBiTape ∘ views) >>= (TapeView.ofBiTapes? ·)
 
+-- TODO clean up (AI)
 public theorem MultiTapeTM.eval_of_eval_struct
     {tm : MultiTapeTM k Char} {views views' : Fin k → TapeView}
     (h_eval_struct : tm.eval_struct views = .some views') :
   tm.eval (TapeView.toBiTape ∘ views) = .some (TapeView.toBiTape ∘ views') := by
   unfold eval_struct at h_eval_struct
-  simp only [Part.bind_eq_bind, Part.mem_bind_iff] at h_eval_struct
+  simp only [Part.bind_eq_bind] at h_eval_struct
   have h_mem := h_eval_struct ▸ Part.mem_some _
   rw [Part.mem_bind_iff] at h_mem
   obtain ⟨tapes, h_eval, h_of⟩ := h_mem

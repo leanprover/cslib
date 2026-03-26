@@ -76,6 +76,7 @@ with the head under the first element of the list if it exists.
 def mk₁ (l : List Symbol) : BiTape Symbol :=
   { head := l.head?, left := ∅, right := StackTape.map_some l.tail }
 
+/-- Construct a BiTape from the left (reversed) and right part. -/
 def mk₂ (l r : List Symbol) : BiTape Symbol :=
   ⟨r.head?, StackTape.map_some l, StackTape.map_some r.tail ⟩
 

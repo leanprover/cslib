@@ -119,7 +119,7 @@ public def case_literal {k : ℕ}
       outOfList i ;ₜ toElem 1 i ;ₜ neg ;ₜ outOfList i
     ]
 
-@[simp]
+-- TODO why does the simp linter complain here?
 public lemma case_literal.computes_fun {k : ℕ}
     {β γ : Type} [StrEnc β] [StrEnc γ]
     (pos neg : MultiTapeTM k Char)
@@ -146,7 +146,7 @@ public lemma case_literal.computes_fun {k : ℕ}
     simp [h_comp_neg v x, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x]
 
 
-@[simp]
+-- TODO why does the simp linter complain here?
 public lemma case_literal.computes_fun' {k : ℕ}
     {β γ : Type} [StrEnc β] [StrEnc γ]
     (pos neg : MultiTapeTM k Char)
