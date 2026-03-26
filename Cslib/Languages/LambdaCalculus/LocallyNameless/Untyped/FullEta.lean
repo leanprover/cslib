@@ -129,14 +129,9 @@ lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_
 lemma step_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (step : t ⭢ηᶠ t') :
     (s ^ t) ↠ηᶠ s ^ t' := by
   cases lc_s
-  case' abs L hL =>
-    have ⟨x, hx⟩ := fresh_exists (L ∪ s.fv)
-    simp only [Finset.mem_union, not_or] at hx
-    have eq1 := subst_intro x t s hx.2 lc_t
-    have eq2 := subst_intro x t' s hx.2 (step_lc_r step)
-    have subst_step := step_subst_cong_r (x := x) (s ^ fvar x) t t' step (hL x hx.1) lc_t
-    rw [eq1, eq2]
-    exact subst_step
+  case abs L hL =>
+    have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+    grind [step_subst_cong_r (x := x) (s ^ fvar x) t t' step (hL x ?_) lc_t]
 
 /- `steps_open_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
 lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (steps : t ↠ηᶠ t') :
