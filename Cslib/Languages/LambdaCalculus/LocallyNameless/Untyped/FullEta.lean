@@ -123,8 +123,7 @@ lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_
     s [ x := t ] ↠ηᶠ s [ x := t' ] := by
   induction st using Relation.ReflTransGen.head_induction_on
   case refl => rfl
-  case head _ _ st _ ih =>
-    exact .trans (step_subst_cong_r s _ _ st lc_s lc_t) (ih (step_lc_r st))
+  case head _ _ st _ ih => exact .trans (step_subst_cong_r s _ _ st lc_s lc_t) (ih (step_lc_r st))
 
 /- `t ⭢ηᶠ t'` implies `s ^ t ↠ηᶠ s ^ t'`. -/
 lemma step_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (step : t ⭢ηᶠ t') :
