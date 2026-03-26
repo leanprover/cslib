@@ -104,23 +104,18 @@ theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
 /- `t ⭢ηᶠ t'` implies `s [ x := t ] ↠ηᶠ s [ x := t' ]`. -/
 lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
     s [ x := t ] ↠ηᶠ s [ x := t' ] := by
-  induction lc_s generalizing x t t'
-  case fvar y =>
-    by_cases h : y = x <;> grind
-  case app l r hl hr ih_l ih_r =>
-    exact .trans (redex_app_l_cong (ih_l t t' st lc_t) (subst_lc hr lc_t))
-                 (redex_app_r_cong (ih_r t t' st lc_t) (subst_lc hl (step_lc_r st)))
-  case abs L body h_lc_body ih =>
+  induction lc_s generalizing t t' with
+  | fvar => grind
+  | app hl hr ih_l ih_r =>
+    trans
+    · exact redex_app_l_cong (ih_l t t' st lc_t) (subst_lc hr lc_t)
+    · exact redex_app_r_cong (ih_r t t' st lc_t) (subst_lc hl (step_lc_r st))
+  | abs L body h_lc_body ih =>
     apply redex_abs_cong (L ∪ {x})
-    · intro z hz
-      simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hz
-      have hz_x : z ≠ x := hz.2
-      have steps_body : (body ^ fvar z)[x:=t] ↠ηᶠ (body ^ fvar z)[x:=t'] :=
-        ih z hz.1 t t' st lc_t
-      have eq1 := subst_open_var z x t body hz_x.symm lc_t
-      have eq2 := subst_open_var z x t' body hz_x.symm (step_lc_r st)
-      rw [eq1, eq2] at steps_body
-      exact steps_body
+    · intro z
+      grind =>
+        have : (body ^ fvar z)[x := t] ↠ηᶠ (body ^ fvar z)[x := t']
+        finish
     · exact subst_lc (LC.abs L body h_lc_body) lc_t
 
 /- `steps_subst_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
