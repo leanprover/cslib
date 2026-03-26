@@ -71,6 +71,8 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
   rw [skipRight_n.eval_struct (j := 0) (parent := views i) (by simp [h_valid]) (by simp)]
   simp
 
+-- TODO for this to work, we need to encode numbers using `()`
+
 /-- If positioned on the element of a list, navigates to the list containing it. -/
 public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
   left i ;ₜ while_eq ')' i (right i ;ₜ skipLeft i ;ₜ left i)
