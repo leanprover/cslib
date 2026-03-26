@@ -145,6 +145,32 @@ public lemma case_literal.computes_fun {k : ℕ}
   | Literal.neg v =>
     simp [h_comp_neg v x, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x]
 
+
+@[simp]
+public lemma case_literal.computes_fun' {k : ℕ}
+    {β γ : Type} [StrEnc β] [StrEnc γ]
+    (pos neg : MultiTapeTM k Char)
+    {i j r : Fin k}
+    (h_inj : [i, j, r].get.Injective)
+    {f_pos f_neg : Var → β → γ}
+    (h_comp_pos : computes_function_read_read_push' pos f_pos i j r h_inj)
+    (h_comp_neg : computes_function_read_read_push' neg f_neg i j r h_inj) :
+  computes_function_read_read_push'
+    (case_literal pos neg i)
+    (fun lit x => match lit with
+    | Literal.pos v => f_pos v x
+    | Literal.neg v => f_neg v x)
+    i j r h_inj := by
+  intro lit x ls views h_lit h_x h_ls
+  have h_neq : i ≠ r := Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 2 by decide)
+  have h_ne' : i ≠ j := Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 1 by decide)
+  have h_ner : r ≠ i := by grind
+  match h : lit with
+  | Literal.pos v =>
+    simp [h_comp_pos v x ls, case_literal, h_neq, h_neq.symm, h_lit, h_x, h_ne'.symm, h_ls]
+  | Literal.neg v =>
+    simp [h_comp_neg v x ls, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, h_ls]
+
 /-- Check if literal on tape 0 is satisfied by assignment on tape 1 and store result
 on tape 2. -/
 def sat_verify_eval_literal : MultiTapeTM 5 Char :=
@@ -177,7 +203,7 @@ lemma sat_verify_core_semantics :
     0 1 2 (by decide) := by
   unfold sat_verify_core evalFormula evalClause
   exact all_list.computes_fun' (by decide)
-    (any_list.computes_fun' (by decide) sat_verify_eval_literal.computes_fun)
+    (any_list.computes_fun_twoary (by decide) sat_verify_eval_literal.computes_fun)
 
 
 public def sat_verify : MultiTapeTM 5 Char :=

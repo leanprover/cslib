@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 
 namespace Turing
 namespace Routines
@@ -19,6 +20,11 @@ namespace Routines
 @[expose]
 public def pushList {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   write none i ;ₜ right i ;ₜ put d i ;ₜ left i ;ₜ write '(' i
+
+@[simp]
+public lemma pushList.computes_fun {k : ℕ} {d : Data} {i : Fin k} :
+    computes_function_update (pushList d i) (fun (ls : List Data) => d :: ls) i := by
+  sorry
 
 /-- Remove the first element from a list encoding on tape `i`.
     Running `popEnc` on an empty list does not modify the tape. -/

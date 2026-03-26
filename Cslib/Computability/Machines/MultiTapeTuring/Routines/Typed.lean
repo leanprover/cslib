@@ -60,7 +60,7 @@ public def computes_function_read_read_update' {k : ℕ}
   ∀ (x : α) (y : β) (z : γ) (views : Fin k → TapeView),
     ((views i).current = StrEnc.toData x) →
     ((views j).current = StrEnc.toData y) →
-    views j = TapeView.ofEnc z →
+    views r = TapeView.ofEnc z →
     tm.eval_struct views = .some (Function.update views r (TapeView.ofEnc (f x y z)))
 
 
@@ -82,13 +82,16 @@ public def computes_function_read_push {k : ℕ}
   (i j : Fin k) (h_neq : i ≠ j) :=
   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j h_neq
 
+-- This does not require the target to be (List β) because it could be heterogeneous.
+-- Maybe we should have two versions of this?
 @[expose]
 public def computes_function_read_push' {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
   (tm : MultiTapeTM k Char)
   (f : α → β)
   (i j : Fin k) (h_neq : i ≠ j) :=
-  computes_function_read_update' (β := List β) tm (fun d ls => (f d) :: ls) i j h_neq
+  computes_function_read_update' tm
+      (fun d (ls : List Data) => (StrEnc.toData (f d)) :: ls) i j h_neq
 
 @[expose]
 public def computes_function_read_read_push {k : ℕ}
@@ -106,7 +109,7 @@ public def computes_function_read_read_push' {k : ℕ}
   (f : α → β → γ)
   (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
   computes_function_read_read_update' tm
-    (fun x y ls => (f x y) :: ls) i j s h_neq
+    (fun x y (ls : List Data) => StrEnc.toData (f x y) :: ls) i j s h_neq
 
 
 /-- Turing machine `tm` updates the head of tape `i`. -/

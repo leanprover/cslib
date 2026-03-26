@@ -48,6 +48,9 @@ Tape 2: current state
 Tape 3: builds up input for transition function and stores output of transition function
 -/
 
+-- def findTapeSymbol (k : ℕ) (tapes : Fin k → BiTape Char) (i : Fin k) : TapeCell :=
+--   { c := (tapes i).head, containsHead := true }
+
 
 
 end UniversalTM

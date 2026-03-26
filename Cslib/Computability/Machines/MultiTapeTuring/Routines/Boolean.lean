@@ -20,7 +20,15 @@ namespace Routines
 -- ═══════════════════════════════════════════════════════════════════════════
 
 public def combineOrUpdate {k : ℕ} (j : Fin k) :
-  MultiTapeTM k Char := sorry
+  MultiTapeTM k Char := ite_list_head j true
+      (popList j ;ₜ popList j ;ₜ pushList (StrEnc.toData true) j)
+      noop
+
+public lemma combineOrUpdate.computes_fun {k : ℕ} {j : Fin k} :
+  computes_function_update (combineOrUpdate j) (fun (ls : List Data) =>
+    (StrEnc.toData (ls.head? == some (StrEnc.toData true) ||
+      ls.tail.head? == some (StrEnc.toData true))) :: ls.tail.tail) j := by
+  sorry
 
 -- @[simp]
 -- public lemma combineOr_eval_struct {k : ℕ}

@@ -140,16 +140,17 @@ public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
 
 /-- Runs `then_branch` if tape `i` points at a list whose head is `v`, otherwise
 runs `else_branch`. -/
-public def ite_list_head {k : ℕ} (i : Fin k)
-    (v : Data) (then_branch else_branch : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
+public def ite_list_head {k : ℕ} {α : Type} [StrEnc α] (i : Fin k)
+    (v : α) (then_branch else_branch : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
 
 @[simp]
-public lemma ite_list_head_eval_struct {k : ℕ} {i : Fin k}
-    (v : Data)
-    (then_branch else_branch : MultiTapeTM k Char)
-    {views : Fin k → TapeView} :
+public lemma ite_list_head_eval_struct {k : ℕ} {α : Type} [StrEnc α] {i : Fin k}
+    (v : α)
+    (then_branch else_branch : MultiTapeTM k Char) :
+    ∀ (ls : List Data) (views : Fin k → TapeView),
+    (views i = TapeView.ofList ls) →
     (ite_list_head i v then_branch else_branch).eval_struct views =
-      if (views i).currentListHead = some v then
+      if ls.head? = some (StrEnc.toData v) then
         then_branch.eval_struct views
       else
         else_branch.eval_struct views := by sorry
