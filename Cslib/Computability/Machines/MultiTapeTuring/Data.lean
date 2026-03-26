@@ -22,6 +22,7 @@ public inductive Data where
   | list : List Data → Data
 
 mutual
+  /-- TODO document -/
   public def Data.decEq : (a b : Data) → Decidable (a = b)
     | .num n₁, .num n₂ =>
       if h : n₁ = n₂ then isTrue (h ▸ rfl)
@@ -33,6 +34,7 @@ mutual
     | .num _, .list _ => isFalse Data.noConfusion
     | .list _, .num _ => isFalse Data.noConfusion
 
+  /-- TODO document -/
   public def Data.decEqList : (l₁ l₂ : List Data) → Decidable (l₁ = l₂)
     | [], [] => isTrue rfl
     | [], _ :: _ => isFalse nofun

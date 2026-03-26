@@ -19,17 +19,23 @@ namespace Turing
 
 namespace UniversalTM
 
+/-- TODO document -/
 public abbrev Var := ℕ
 
 /-- The cell of a single Turing tape. -/
 public structure TapeCell where
+  /-- TODO document -/
   c : Option Char
+  /-- TODO document -/
   containsHead : Bool
 
 /-- Cells from `k` Turing tapes combined into one cell. -/
 public structure MultiCell (k : ℕ) where
+  /-- TODO document -/
   cells : Vector TapeCell k
+  /-- TODO document -/
   isLeftEnd : Bool
+  /-- TODO document -/
   isRightEnd : Bool
 
 public instance : StrEnc TapeCell where

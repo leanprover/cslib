@@ -19,8 +19,10 @@ namespace Turing
 
 namespace Satisfiability
 
+/-- TODO document -/
 public abbrev Var := ℕ
 
+/-- TODO document -/
 public inductive Literal where
   | pos (v : Var)
   | neg (v : Var)
@@ -37,13 +39,16 @@ public instance : StrEnc Literal where
     | Literal.pos _ => rfl
     | Literal.neg _ => rfl
 
+/-- TODO document -/
 public abbrev Clause := List Literal
 
+/-- TODO document -/
 public abbrev Formula := List Clause
 
---- The list of all positive variables.
+/-- TODO document -/
 public abbrev Assignments := List Var
 
+/-- TODO document -/
 public inductive SATInput where
   | mk (formula : Formula) (assignment : Assignments)
 
@@ -105,6 +110,7 @@ The algorithm:
 -/
 
 -- TODO extend this to any inductive type
+/-- TODO document -/
 public def case_literal {k : ℕ}
     (pos neg : MultiTapeTM k Char)
     (i : Fin k) :
@@ -202,6 +208,7 @@ lemma sat_verify_core_semantics :
     (any_list.computes_fun_twoary (by decide) sat_verify_eval_literal.computes_fun)
 
 
+/-- TODO document -/
 public def sat_verify : MultiTapeTM 5 Char :=
   -- Navigate to assignments (arg 1) and copy to tape 1
   toElem 1 0 ;ₜ copyEnc 0 1 (by decide) ;ₜ outOfList 0 ;ₜ

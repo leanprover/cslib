@@ -23,6 +23,7 @@ public def computes_function_update {k : ℕ}
     (views j = TapeView.ofEnc x) →
     tm.eval_struct views = .some (Function.update views j (TapeView.ofEnc (f x)))
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_update {k : ℕ}
   {α : Type} [StrEnc α]
@@ -32,6 +33,7 @@ public def computes_function_read_update {k : ℕ}
     ((views i).current = StrEnc.toData x) →
     tm.eval_struct views = .some (Function.update views j (f x (views j)))
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_update' {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
@@ -42,6 +44,7 @@ public def computes_function_read_update' {k : ℕ}
     views j = TapeView.ofEnc y →
     tm.eval_struct views = .some (Function.update views j (TapeView.ofEnc (f x y)))
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_read_update {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
@@ -52,6 +55,7 @@ public def computes_function_read_read_update {k : ℕ}
     ((views j).current = StrEnc.toData y) →
     tm.eval_struct views = .some (Function.update views r (f x y (views r)))
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_read_update' {k : ℕ}
   {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
@@ -74,6 +78,7 @@ public def computes_function_read_read_update' {k : ℕ}
 --   (i j : Fin k) :=
 --   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_push {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
@@ -83,6 +88,7 @@ public def computes_function_read_push {k : ℕ}
   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j
 
 -- If the list is heterogeneous, use β = Data
+/-- TODO document -/
 @[expose]
 public def computes_function_read_push' {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
@@ -91,6 +97,7 @@ public def computes_function_read_push' {k : ℕ}
   (i j : Fin k) :=
   computes_function_read_update' tm (fun d ls => (f d) :: ls) i j
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_read_push {k : ℕ}
   {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
@@ -100,6 +107,7 @@ public def computes_function_read_read_push {k : ℕ}
   computes_function_read_read_update tm
     (fun x y tv => tv.pushList (StrEnc.toData (f x y))) i j s
 
+/-- TODO document -/
 @[expose]
 public def computes_function_read_read_push' {k : ℕ}
   {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]

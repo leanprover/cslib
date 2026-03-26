@@ -59,6 +59,7 @@ namespace Routines
 variable {Symbol : Type} [Inhabited Symbol] [Fintype Symbol]
 variable {k : ℕ}
 
+/-- TODO document -/
 public def noop : MultiTapeTM k Symbol := sorry
 
 @[simp]
@@ -69,6 +70,7 @@ public theorem noop.eval {tapes : Fin k → BiTape Char} :
 public theorem noop.eval_struct {views : Fin k → TapeView} :
   noop.eval_struct views = some views := by sorry
 
+/-- TODO document -/
 public def right (i : Fin k) : MultiTapeTM k Char := sorry
 
 @[simp]
@@ -79,6 +81,7 @@ public theorem right.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
 @[grind =>]
 public lemma right.haltsOn {i : Fin k} : ∀ t, (right i).HaltsOn t := by simp
 
+/-- TODO document -/
 public def left (i : Fin k) : MultiTapeTM k Char := sorry
 
 @[simp]
@@ -89,6 +92,7 @@ public theorem left.eval {i : Fin k} {tapes : Fin k → BiTape Char} :
 @[grind =>]
 public lemma left.haltsOn {i : Fin k} : ∀ t, (left i).HaltsOn t := by simp
 
+/-- TODO document -/
 public def write (c : Option Char) (i : Fin k) : MultiTapeTM k Char := sorry
 
 @[simp]
@@ -96,6 +100,7 @@ public theorem write.eval {c : Option Char} {i : Fin k} {tapes : Fin k → BiTap
   (write c i).eval tapes = .some
     (Function.update tapes i ((tapes i).write c)) := by sorry
 
+/-- TODO document -/
 public def if_eq (c : Char) (i : Fin k) (tm₁ tm₂ : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
 
@@ -105,6 +110,7 @@ public theorem if_eq.eval {c : Char} {i : Fin k} {tm₁ tm₂ : MultiTapeTM k Ch
   (if_eq c i tm₁ tm₂).eval tapes =
     if (tapes i).head = some c then (tm₁.eval tapes) else (tm₂.eval tapes) := by sorry
 
+/-- TODO document -/
 public def while_eq (c : Option Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
 
@@ -128,6 +134,7 @@ public theorem while_eq.eval
   (h_min : ∀ n' < n, ((tm.eval_tot h_halts)^[n'] tapes i).head = c) :
   (while_eq c i tm).eval tapes = (tm.eval_tot h_halts)^[n] tapes := by sorry
 
+/-- TODO document -/
 public def while_neq (c : Option Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry
 

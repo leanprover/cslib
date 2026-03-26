@@ -47,6 +47,7 @@ namespace TapeView
 @[expose]
 public abbrev ofData (d : Data) : TapeView := ⟨d, [], by rfl⟩
 
+/-- TODO document -/
 @[expose]
 public abbrev ofList (ls : List Data) : TapeView := ofData (Data.list ls)
 
@@ -105,12 +106,14 @@ public lemma current_of_currentList (tv : TapeView) (ls : List Data)
     (h_currentList : tv.currentList? = some ls) :
   tv.current = Data.list ls := by grind
 
+/-- TODO document -/
 @[expose, simp]
 public def parent (tv : TapeView) : TapeView :=
   match tv.path with
   | [] => tv
   | _ => ⟨tv.data, tv.path.dropLast, by simp⟩
 
+/-- TODO document -/
 @[expose, simp]
 public def appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
@@ -260,8 +263,10 @@ public lemma toBiTape_ofData (d : Data) :
   (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by
   simp [toBiTape]
 
+/-- TODO document -/
 public def ofBiTape? (t : BiTape Char) : Option TapeView := sorry
 
+/-- TODO document -/
 @[expose]
 public def ofBiTapes? {k : ℕ}
     (tapes : Fin k → BiTape Char) :
@@ -343,6 +348,7 @@ public lemma pushList_nonempty_path {d : Data} {dat : Data}
   | num _ => rfl
   | list _ => rfl
 
+/-- TODO document -/
 public def asWritableList (tv : TapeView) : Option (List Data) :=
   match tv with
   | ⟨Data.list l, [], _⟩ => some l
@@ -360,6 +366,7 @@ public def currentListHead (tv : TapeView) : Option Data :=
   | Data.list (d :: _) => some d
   | _ => none
 
+/-- TODO document -/
 public def updateListHead (tv : TapeView)
     (f : Data → Data) : TapeView :=
   match tv with
@@ -367,6 +374,7 @@ public def updateListHead (tv : TapeView)
     ⟨Data.list (f d :: ds), [], rfl⟩
   | other => other
 
+/-- TODO document -/
 public def updateListHeadTyped
     {α β : Type} [StrEnc α] [StrEnc β]
     (tv : TapeView) (f : α → β) : TapeView := (do

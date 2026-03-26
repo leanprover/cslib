@@ -68,6 +68,7 @@ public lemma run_list_fold {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
     (fun ls => ls.foldl (fun acc d => f d acc)) i j := by
   sorry
 
+/-- TODO document -/
 public def any_list {k : ℕ}
     (tm : MultiTapeTM k Char) (i j : Fin k) : MultiTapeTM k Char :=
   pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOrUpdate j)
