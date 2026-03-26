@@ -99,7 +99,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
     refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.OmegaExecution], by simp⟩
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
-    obtain ⟨ss1, _, _, _, _⟩ := LTS.execution_of_mTr h_mtr
+    obtain ⟨ss1, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
@@ -156,7 +156,7 @@ theorem finConcat_language_eq [Inhabited Symbol] :
   ext xl
   constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
-    obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.mTr_omegaExecution h_mtr
+    obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
     have hc : (finConcat na1 na2).Run (xl ++ω xs) ss := by grind [Run]
     have hr : (ss xl.length).isRight := by grind
     obtain ⟨n, _⟩ := concat_run_proj hc hr

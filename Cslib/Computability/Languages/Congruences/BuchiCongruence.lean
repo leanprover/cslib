@@ -7,8 +7,7 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Pair
-public import Cslib.Computability.Languages.Congruences.RightCongruence
-public import Cslib.Computability.Languages.OmegaLanguage
+public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Data.Set.Saturation
 
 @[expose] public section
@@ -88,9 +87,9 @@ lemma buchiCongruence_transfer
     grind
   have := h_eq s t
   have h_yl : yl ∈ na.pairLang s t := by grind
-  have := LTS.execution_of_mTr h_yl
+  have := LTS.Execution.of_mTr h_yl
   grind [LTS.mem_pairViaLang, LTS.Execution, → LTS.Execution.comp,
-    → LTS.execution_of_mTr]
+    → LTS.Execution.of_mTr]
 
 /-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
@@ -105,6 +104,32 @@ theorem mem_buchiFamily [Inhabited Symbol]
       xl ∈ na.BuchiCongruence.eqvCls a ∧ (∀ k, xls k ∈ na.BuchiCongruence.eqvCls b - 1) ∧
       xl ++ω xls.flatten = xs := by
   grind [buchiFamily]
+
+open Finset in
+/-- `na.buchiFamily` is a cover if `na` has only finitely many states.
+This theorem uses the Ramsey theorem for infinite graphs and does not depend on any details
+of `na.BuchiCongruence` other than that it is of finite index. -/
+theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
+    ⨆ i, na.buchiFamily i = ⊤ := by
+  ext xs
+  have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
+  let color (t : Finset ℕ) : Quotient na.BuchiCongruence.eq :=
+    if h : t.Nonempty then ⟦ xs.extract (t.min' h) (t.max' h) ⟧ else ⟦ [] ⟧
+  obtain ⟨b, ns, h_ns, h_color⟩ := infinite_graph_ramsey color
+  obtain ⟨f, h_mono, rfl⟩ := strictMono_of_infinite h_ns
+  simp only [ωLanguage.mem_iSup, Prod.exists, ωLanguage.mem_top, iff_true]
+  use ⟦ xs.take (f 0) ⟧, b
+  apply mem_buchiFamily.mpr
+  use xs.take (f 0), xs.drop (f 0) |>.toSegs (f · - f 0)
+  split_ands
+  · grind
+  · intro k
+    specialize h_color {f k, f (k + 1)}
+    have := @h_mono 0 k
+    have := @h_mono k (k + 1)
+    grind [extract_drop, Finset.insert_nonempty, Finset.singleton_nonempty, min'_insert,
+      min'_singleton, max'_insert, max'_singleton, toSegs_def, Language.mem_sub_one]
+  · grind [Nat.base_zero_strictMono h_mono]
 
 -- This intermediate result is split out of the proof of `buchiCongruence_saturation` below
 -- because that proof was too big and kept exceeding the default `maxHeartbeats`.
@@ -123,7 +148,7 @@ private lemma frequently_via_accept [Inhabited Symbol]
   use ss (f n + k), by grind, (xls n).take k, (xls n).drop k
   have := extract_flatten h_xls_p n
   have exec {m n} (h : m ≤ n) :=
-    LTS.mTr_of_execution na.toLTS <| LTS.OmegaExecution.extract_execution h_exec h
+    LTS.Execution.to_mTr <| LTS.OmegaExecution.extract_execution h_exec h
   split_ands
   · have h : f n ≤ f n + k := by lia
     specialize exec h
@@ -154,7 +179,7 @@ theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (la
       grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : 0 ≤ xl.length),
         extract_append_zero_right, LTS.mem_pairLang]
     have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
-      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.mTr_of_execution]
+      grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.Execution.to_mTr]
     have h_ss1_ts : ss1 0 = ts 0 := by
       have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
       have : 0 < (sls 0).length := by grind

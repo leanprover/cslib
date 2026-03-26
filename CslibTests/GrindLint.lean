@@ -26,7 +26,7 @@ open_scoped_all Cslib
   See https://lean-lang.org/doc/reference/latest/The--grind--tactic/E___matching/ for details.
 -/
 
-#grind_lint skip Cslib.Bisimilarity.trans
+#grind_lint skip Cslib.LTS.Bisimilarity.trans
 #grind_lint skip Cslib.FLTS.toLTS_tr
 #grind_lint skip Cslib.FinFun.coe_fromFun_id
 #grind_lint skip Cslib.FinFun.fromFun_comm
@@ -78,6 +78,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
 #grind_lint skip Cslib.Logic.HML.Satisfies.diamond
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

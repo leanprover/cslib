@@ -46,7 +46,7 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
         have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
         have ⟨M', _, _⟩ := invert_step_app_fvar <| st_body w <| by grind
         use M'
-        grind [→ BaseEta.eta, step_not_fv, open_eq_app]
+        grind [→ Eta.eta, step_not_fv, open_eq_app]
   case appL Z _ N _ _ ih =>
     cases h₂
     case base h => cases h
@@ -64,7 +64,7 @@ lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
       have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
       have ⟨M', _, _⟩ := invert_step_app_fvar <| st_M_N w (by grind)
       use M'
-      grind [→ BaseEta.eta, step_not_fv, open_eq_app]
+      grind [→ Eta.eta, step_not_fv, open_eq_app]
     case abs N _ st_M_N =>
       have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
       have ⟨w, _⟩ := ih x (by grind) (z := N ^ fvar x) (st_M_N x (by grind))
