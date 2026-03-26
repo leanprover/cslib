@@ -46,24 +46,31 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
     case beta M N _ _ =>
       cases h₁
       case base h => cases h
-      case appL v _ _ => use (disch := grind [step_open_cong_r]) M ^ v
+      case appL v _ _ =>
+        use M ^ v
+        grind [step_open_cong_r]
       case appR u st_eta_absM _ =>
         have := step_lc_r st_eta_absM
         cases st_eta_absM
         case base h => use (disch := grind) app u N
         case abs M_eta xs _ =>
           have ⟨_, hz⟩ := fresh_exists (xs ∪ N.fv ∪ M.fv ∪ M_eta.fv)
-          use (disch := grind [step_subst_cong_l]) M_eta ^ N
+          use M_eta ^ N
+          grind [step_subst_cong_l]
   case appL Z _ N _ _ ih =>
     cases h₁
     case base h => cases h
-    case appL _ _ st => use (disch := grind) app Z (ih st).choose
+    case appL _ _ st =>
+      use app Z (ih st).choose
+      grind [FullEta.redex_app_r_cong]
     case appR z_red _ _ => use (disch := grind) app z_red N
   case appR M _ Z _ _ ih =>
     cases h₁
     case base h => cases h
     case appL z_red _ _ => use (disch := grind) app Z z_red
-    case appR _ st _ => use (disch := grind) app (ih st).choose M
+    case appR _ st _ =>
+      use app (ih st).choose M
+      grind [FullEta.redex_app_l_cong]
   case abs M N xs st_body_beta ih =>
     cases h₁
     case base h_eta =>
@@ -76,18 +83,15 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
         · use abs u1
           grind [open_injective w N u1]
     case abs S ys st_body_eta =>
-      have ⟨w, hw⟩ := fresh_exists <| free_union [fv] Var
-      obtain ⟨K, h_beta, _⟩ := ih w (by grind) (st_body_eta w (by grind))
+      have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
+      obtain ⟨K, h_beta, h_eta⟩ := ih w (by grind) (st_body_eta w (by grind))
       use abs (K ^* w)
       constructor
       · cases h_beta with
         | refl => grind [open_close]
-        | single =>
-          apply ReflGen.single
-          apply Xi.abs {w}
-          grind [FullBeta.redex_subst_cong]
-      · rw [open_close w N 0]
-        all_goals grind [FullEta.redex_abs_close]
+        | single => exact .single (Xi.abs {w} (by grind [FullBeta.redex_subst_cong]))
+      · rw [open_close w N 0 (by grind)]
+        exact FullEta.redex_abs_close h_eta (FullBeta.step_lc_r (st_body_beta w (by grind)))
 
 open Commute in
 /-- βη-reduction is confluent. -/
