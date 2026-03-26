@@ -37,7 +37,7 @@ private lemma run_list_forward {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
     {α β : Type} [StrEnc α] [StrEnc β]
     {tm : MultiTapeTM k Char}
     {f : α → β → β}
-    (h_comp : computes_function_read_update' tm f i j h_neq)
+    (h_comp : computes_function_read_update' tm f i j)
     (ls : List α) (idx : ℕ) (h_idx : idx ≤ ls.length)
     (acc : β) (views : Fin k → TapeView)
     (h_data : (views i).data = StrEnc.toData ls)
@@ -59,17 +59,17 @@ private lemma run_list_forward {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
 /-- If `tm` computes a function `f` that acts like a folding function, the result of using
 `run_list` is a fold with accumulator on tape `j`. -/
 @[simp, grind =>]
-public lemma run_list_fold {k : ℕ} {i j : Fin k} {h_neq : i ≠ j}
+public lemma run_list_fold {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
   {α β : Type} [StrEnc α] [StrEnc β]
   {tm : MultiTapeTM k Char}
   (f : α → β → β)
-  (h_comp : computes_function_read_update' tm f i j h_neq) :
+  (h_comp : computes_function_read_update' tm f i j) :
   computes_function_read_update' (α := List α) (run_list i tm)
-    (fun ls => ls.foldl (fun acc d => f d acc)) i j h_neq := by
+    (fun ls => ls.foldl (fun acc d => f d acc)) i j := by
   sorry
 
 public def any_list {k : ℕ}
-    (tm : MultiTapeTM k Char) (i j : Fin k) (_h_neq : i ≠ j) : MultiTapeTM k Char :=
+    (tm : MultiTapeTM k Char) (i j : Fin k) : MultiTapeTM k Char :=
   pushList (StrEnc.toData false) j ;ₜ run_list i (tm ;ₜ combineOrUpdate j)
 
 @[simp, grind =>]
@@ -78,11 +78,11 @@ public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
     {α : Type} [StrEnc α]
     {tm : MultiTapeTM k Char}
     {f : α → Bool}
-    (h_comp : computes_function_read_push tm f i j h_neq) :
+    (h_comp : computes_function_read_push tm f i j) :
     computes_function_read_push (α := List α)
-      (any_list tm i j h_neq)
+      (any_list tm i j)
       (fun ls => ls.any f)
-      i j h_neq := by
+      i j := by
   -- intro ls views h_ls
   -- have h_inner : computes_function_read_update (tm ;ₜ combineOrUpdate j) (fun d tv =>
   --   let b := f d
@@ -99,11 +99,11 @@ public theorem any_list.computes_fun_twoary {k : ℕ} {i j r : Fin k}
     (h_neq : [i, j, r].get.Injective)
     {tm : MultiTapeTM k Char}
     {f : α → β → Bool}
-    (h_comp : computes_function_read_read_push tm f i j r h_neq) :
+    (h_comp : computes_function_read_read_push tm f i j r) :
     computes_function_read_read_push (α := List α)
-      (any_list tm i r (by sorry))
+      (any_list tm i r)
       (fun ls y => ls.any (fun d => f d y))
-      i j r h_neq := by
+      i j r := by
   sorry
 
 @[simp, grind =>]
@@ -112,20 +112,20 @@ public theorem any_list.computes_fun' {k : ℕ} {i j : Fin k}
     {α : Type} [StrEnc α]
     {tm : MultiTapeTM k Char}
     {f : α → Bool}
-    (h_comp : computes_function_read_push' tm f i j h_neq) :
+    (h_comp : computes_function_read_push' tm f i j) :
     computes_function_read_push'
-      (any_list tm i j h_neq)
+      (any_list tm i j)
       (fun ls : List α => ls.any f)
-      i j h_neq := by
+      i j := by
   intro ls out_ls views h_ls h_out_ls
   have h_inner : computes_function_read_update' (tm ;ₜ combineOrUpdate j)
-      (fun x out_ls => (f x || out_ls.head? == some true) :: out_ls.tail) i j h_neq := by
+      (fun x out_ls => (f x || out_ls.head? == some true) :: out_ls.tail) i j := by
     intro x out_ls views h_acc h_out_ls
     simp [h_comp x out_ls views h_acc h_out_ls,
       combineOrUpdate.computes_fun ((f x) :: out_ls), List.head?_eq_getElem?]
   simp only [any_list, Bool.toData, seq_eval_struct, pushList_eval_struct, Part.coe_some,
     Part.bind_some]
-  rw [(run_list_fold _ h_inner ls (false :: out_ls) _ (by simp [h_neq, h_ls])
+  rw [(run_list_fold h_neq _ h_inner ls (false :: out_ls) _ (by simp [h_neq, h_ls])
       (by simp [StrEnc.toData, h_out_ls, TapeView.pushList]))]
   have h_any_fold : ∀ ls : List α, ∀ first,
     ls.foldl (fun acc d => ((f d) || acc.head? == some true) :: acc.tail) (first :: out_ls) =
@@ -142,12 +142,9 @@ public theorem any_list.computes_fun' {k : ℕ} {i j : Fin k}
 
 
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
-    value to tape `tmp`, and compute the logical AND of the results across the list.
-    Uses tape `tmp` for intermediate results and accumulates on tape `j`. -/
-public def all_list {k : ℕ}
-    (tm : MultiTapeTM k Char)
-    (i j : Fin k) (h_neq : i ≠ j) : MultiTapeTM k Char :=
-  any_list (tm ;ₜ negateBool j) i j h_neq ;ₜ negateBool j
+    value to tape `tmp`, and compute the logical AND of the results across the list. -/
+public def all_list {k : ℕ} (tm : MultiTapeTM k Char) (i j : Fin k) : MultiTapeTM k Char :=
+  any_list (tm ;ₜ negateBool j) i j ;ₜ negateBool j
 
 @[simp, grind =>]
 public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
@@ -155,33 +152,32 @@ public theorem all_list.computes_fun {k : ℕ} (i j : Fin k)
     {α : Type} [StrEnc α]
     {tm : MultiTapeTM k Char}
     {f : α → Bool}
-    (h_comp : computes_function_read_push tm f i j h_neq) :
+    (h_comp : computes_function_read_push tm f i j) :
     computes_function_read_push
-      (all_list tm i j h_neq)
+      (all_list tm i j)
       (List.all · f)
-      i j h_neq := by
+      i j := by
   simp only [all_list, List.all_eq_not_any_not]
   grind
 
 @[simp, grind =>]
-public theorem all_list.computes_fun' {k : ℕ} {i j r : Fin k}
+public theorem all_list.computes_fun_twoary {k : ℕ} {i j r : Fin k}
     {α β : Type} [StrEnc α] [StrEnc β]
     (h_neq : [i, j, r].get.Injective)
     {tm : MultiTapeTM k Char}
     {f : α → β → Bool}
-    (h_comp : computes_function_read_read_push tm f i j r h_neq) :
+    (h_comp : computes_function_read_read_push tm f i j r) :
     computes_function_read_read_push (α := List α)
-      (all_list tm i r (by intro h; grind))
+      (all_list tm i r)
       (fun ls y => ls.all (fun d => f d y))
-      i j r h_neq := by
+      i j r := by
   simp only [all_list, List.all_eq_not_any_not]
   grind
 
 /-- Check if the value on tape `j` is contained in the list on tape `i`
     and store the boolean result on tape `result`. -/
-public def contains {k : ℕ}
-    (i j result : Fin k) (_inj : [i, j, result].get.Injective) : MultiTapeTM k Char :=
-  any_list (isEq i j result) i result (by sorry)
+public def contains {k : ℕ} (i j result : Fin k) : MultiTapeTM k Char :=
+  any_list (isEq i j result) i result
 
 @[simp, grind =>]
 public lemma contains.computes_fun {k : ℕ}
@@ -189,11 +185,11 @@ public lemma contains.computes_fun {k : ℕ}
     {i j result : Fin k}
     (h_inj : [i, j, result].get.Injective) :
   computes_function_read_read_push
-    (contains i j result h_inj)
+    (contains i j result)
     (fun (ls : List α) x => ls.contains x)
-    i j result h_inj := by
+    i j result := by
   simp only [List.contains_eq_any_beq]
-  let a := isEq.computes_fun (α := α) i j result h_inj
+  have := isEq.computes_fun (α := α) i j result h_inj
   grind [contains]
 
 

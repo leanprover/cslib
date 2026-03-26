@@ -126,14 +126,14 @@ public lemma case_literal.computes_fun {k : ℕ}
     {i j r : Fin k}
     (h_inj : [i, j, r].get.Injective)
     {f_pos f_neg : Var → β → γ}
-    (h_comp_pos : computes_function_read_read_push pos f_pos i j r h_inj)
-    (h_comp_neg : computes_function_read_read_push neg f_neg i j r h_inj) :
+    (h_comp_pos : computes_function_read_read_push pos f_pos i j r)
+    (h_comp_neg : computes_function_read_read_push neg f_neg i j r) :
   computes_function_read_read_push
     (case_literal pos neg i)
     (fun lit x => match lit with
     | Literal.pos v => f_pos v x
     | Literal.neg v => f_neg v x)
-    i j r h_inj := by
+    i j r := by
   intro lit x views h_lit h_x
   have h_neq : i ≠ r := by
     exact Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 2 by decide)
@@ -153,14 +153,14 @@ public lemma case_literal.computes_fun' {k : ℕ}
     {i j r : Fin k}
     (h_inj : [i, j, r].get.Injective)
     {f_pos f_neg : Var → β → γ}
-    (h_comp_pos : computes_function_read_read_push' pos f_pos i j r h_inj)
-    (h_comp_neg : computes_function_read_read_push' neg f_neg i j r h_inj) :
+    (h_comp_pos : computes_function_read_read_push' pos f_pos i j r)
+    (h_comp_neg : computes_function_read_read_push' neg f_neg i j r) :
   computes_function_read_read_push'
     (case_literal pos neg i)
     (fun lit x => match lit with
     | Literal.pos v => f_pos v x
     | Literal.neg v => f_neg v x)
-    i j r h_inj := by
+    i j r := by
   intro lit x ls views h_lit h_x h_ls
   have h_neq : i ≠ r := Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 2 by decide)
   have h_ne' : i ≠ j := Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 1 by decide)
@@ -175,34 +175,30 @@ public lemma case_literal.computes_fun' {k : ℕ}
 on tape 2. -/
 def sat_verify_eval_literal : MultiTapeTM 5 Char :=
   case_literal
-    (contains 1 0 2 (by decide))
-    (contains 1 0 2 (by decide) ;ₜ negateBool 2)
+    (contains 1 0 2)
+    (contains 1 0 2 ;ₜ negateBool 2)
     0
 
 lemma sat_verify_eval_literal.computes_fun :
   computes_function_read_read_push
     sat_verify_eval_literal
     (fun lit ass => evalLiteral ass lit)
-    0 1 2 (by decide) := by
+    0 1 2 := by
   let h_pos := computes_function_read_read_push_swap
     (contains.computes_fun (α := Var) (k := 5) (i := 1) (j := 0) (result := 2) (by decide))
-  let h_neg := computes_function_seq₂ (by decide) h_pos negateBool.computes_head_update
-  exact case_literal.computes_fun (β := Assignments) (γ := Bool) _ _ _ h_pos h_neg
-
+  let h_neg := computes_function_seq₂ h_pos negateBool.computes_head_update
+  exact case_literal.computes_fun (β := Assignments) (γ := Bool) _ _ (by decide) h_pos h_neg
 
 def sat_verify_core : MultiTapeTM 5 Char :=
-  all_list
-    -- …there is some literal…
-      (any_list sat_verify_eval_literal 0 2 (by decide))
-    0 2 (by decide)
+  all_list (any_list sat_verify_eval_literal 0 2) 0 2
 
 lemma sat_verify_core_semantics :
   computes_function_read_read_push
     sat_verify_core
     (fun formula assignments => evalFormula assignments formula)
-    0 1 2 (by decide) := by
-  unfold sat_verify_core evalFormula evalClause
-  exact all_list.computes_fun' (by decide)
+    0 1 2 := by
+  unfold sat_verify_core evalFormula evalClause evalLiteral
+  exact all_list.computes_fun_twoary (by decide)
     (any_list.computes_fun_twoary (by decide) sat_verify_eval_literal.computes_fun)
 
 
