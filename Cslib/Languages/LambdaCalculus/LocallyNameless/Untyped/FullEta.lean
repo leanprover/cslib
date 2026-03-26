@@ -138,8 +138,7 @@ lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (ste
     (s ^ t) ↠ηᶠ s ^ t' := by
   induction steps using Relation.ReflTransGen.head_induction_on
   case refl => rfl
-  case head _ _ st _ ih =>
-    exact .trans (step_open_cong_r lc_s lc_t st) (ih (step_lc_r st))
+  case head _ _ st _ ih => exact .trans (step_open_cong_r lc_s lc_t st) (ih (step_lc_r st))
 
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
