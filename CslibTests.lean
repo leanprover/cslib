@@ -11,4 +11,6 @@ public import CslibTests.HasFresh
 public import CslibTests.ImportWithMathlib
 public import CslibTests.LTS
 public import CslibTests.LambdaCalculus
+public import CslibTests.QueryModel.ProgExamples
+public import CslibTests.QueryModel.QueryExamples
 public import CslibTests.Reduction
