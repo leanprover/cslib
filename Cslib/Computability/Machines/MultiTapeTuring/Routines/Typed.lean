@@ -82,16 +82,14 @@ public def computes_function_read_push {k : ℕ}
   (i j : Fin k) (h_neq : i ≠ j) :=
   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j h_neq
 
--- This does not require the target to be (List β) because it could be heterogeneous.
--- Maybe we should have two versions of this?
+-- If the list is heterogeneous, use β = Data
 @[expose]
 public def computes_function_read_push' {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
   (tm : MultiTapeTM k Char)
   (f : α → β)
   (i j : Fin k) (h_neq : i ≠ j) :=
-  computes_function_read_update' tm
-      (fun d (ls : List Data) => (StrEnc.toData (f d)) :: ls) i j h_neq
+  computes_function_read_update' tm (fun d ls => (f d) :: ls) i j h_neq
 
 @[expose]
 public def computes_function_read_read_push {k : ℕ}

@@ -24,10 +24,10 @@ public def combineOrUpdate {k : ℕ} (j : Fin k) :
       (popList j ;ₜ popList j ;ₜ pushList (StrEnc.toData true) j)
       noop
 
+@[simp]
 public lemma combineOrUpdate.computes_fun {k : ℕ} {j : Fin k} :
-  computes_function_update (combineOrUpdate j) (fun (ls : List Data) =>
-    (StrEnc.toData (ls.head? == some (StrEnc.toData true) ||
-      ls.tail.head? == some (StrEnc.toData true))) :: ls.tail.tail) j := by
+  computes_function_update (combineOrUpdate j) (fun (ls : List Bool) =>
+    (ls.head? == some true || ls[1]? == some true) :: ls.tail.tail) j := by
   sorry
 
 -- @[simp]

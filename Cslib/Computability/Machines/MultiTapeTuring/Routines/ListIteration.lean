@@ -10,6 +10,8 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
 
+set_option autoImplicit false
+
 namespace Turing
 namespace Routines
 
@@ -81,36 +83,33 @@ public theorem any_list.computes_fun' {k : ℕ} {i j : Fin k}
     {tm : MultiTapeTM k Char}
     {f : α → Bool}
     (h_comp : computes_function_read_push' tm f i j h_neq) :
-    computes_function_read_push' (α := List α)
+    computes_function_read_push'
       (any_list tm i j h_neq)
-      (fun ls => ls.any f)
+      (fun ls : List α => ls.any f)
       i j h_neq := by
   intro ls out_ls views h_ls h_out_ls
   have h_inner : computes_function_read_update' (tm ;ₜ combineOrUpdate j)
-      (fun x (out_ls : List Data) =>
-        (StrEnc.toData ((f x) || out_ls.head? == some (StrEnc.toData true))) :: out_ls.tail
-       ) i j h_neq := by
+      (fun x out_ls => (f x || out_ls.head? == some true) :: out_ls.tail) i j h_neq := by
     intro x out_ls views h_acc h_out_ls
-    simp [h_comp x out_ls views h_acc h_out_ls]
-    simp [combineOrUpdate.computes_fun (StrEnc.toData (f x) :: out_ls)]
-    grind
-  simp [any_list]
-  rw [run_list_fold (i := i) (j := j) _ h_inner ls ((StrEnc.toData false) :: out_ls) _
-    (by simp [h_neq, h_ls]) (by simp [StrEnc.toData, h_out_ls, TapeView.pushList])]
-  simp
-  -- We have to prove equivalence between any and fold
-  have h_any_fold : (List.foldl
-        (fun acc d =>
-          (match (f d || acc.head? == some (Data.num 1)) with
-            | false => Data.num 0
-            | true => Data.num 1) ::
-            acc.tail)
-        (Data.num 0 :: out_ls) ls) = ((match ls.any f with
-        | false => Data.num 0
-        | true => Data.num 1) ::
-        out_ls) := by sorry
-  rw [h_any_fold]
-  sorry
+    simp [h_comp x out_ls views h_acc h_out_ls,
+      combineOrUpdate.computes_fun ((f x) :: out_ls), List.head?_eq_getElem?]
+  simp only [any_list, Bool.toData, seq_eval_struct, pushList_eval_struct, Part.coe_some,
+    Part.bind_some]
+  rw [(run_list_fold _ h_inner ls (false :: out_ls) _ (by simp [h_neq, h_ls])
+      (by simp [StrEnc.toData, h_out_ls, TapeView.pushList]))]
+  have h_any_fold : ∀ ls : List α, ∀ first,
+    ls.foldl (fun acc d => ((f d) || acc.head? == some true) :: acc.tail) (first :: out_ls) =
+      (first || ls.any f) :: out_ls := by
+    intro ls
+    induction ls with
+    | nil => simp
+    | cons d rest ih =>
+      unfold List.foldl
+      intro first
+      simp [ih (f d || first)]
+      grind
+  simp [h_any_fold]
+
 
 /-- Run `tm` on every item of the list on tape `i`, assuming `tm` outputs a boolean
     value to tape `tmp`, and compute the logical AND of the results across the list.
