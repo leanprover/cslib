@@ -28,11 +28,11 @@ public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
 `run_list` is a fold with accumulator on tape `j`. -/
 @[simp, grind =>]
 public lemma run_list_fold {k : ℕ} (i j : Fin k) (h_neq : i ≠ j)
-  {α : Type} [StrEnc α]
+  {α β : Type} [StrEnc α] [StrEnc β]
   {tm : MultiTapeTM k Char}
-  (f : α → TapeView → TapeView)
-  (h_comp : computes_function_read_update tm f i j h_neq) :
-  computes_function_read_update (α := List α) (run_list i tm)
+  (f : α → β → β)
+  (h_comp : computes_function_read_update' tm f i j h_neq) :
+  computes_function_read_update' (α := List α) (run_list i tm)
     (fun ls => ls.foldl (fun acc d => f d acc)) i j h_neq := by
   sorry
 
@@ -51,6 +51,14 @@ public theorem any_list.computes_fun {k : ℕ} {i j : Fin k}
       (any_list tm i j h_neq)
       (fun ls => ls.any f)
       i j h_neq := by
+  -- intro ls views h_ls
+  -- have h_inner : computes_function_read_update (tm ;ₜ combineOrUpdate j) (fun d tv =>
+  --   let b := f d
+  --   let acc := (tv.current.at? 0).map (fun d => d = StrEnc.toData true) = some true
+  --   if b then tv.pushList (StrEnc.toData true)
+  --   else if acc then tv
+  --   else tv.pushList (StrEnc.toData false)) i j h_neq := by
+  --  grind [combineOrUpdate]
   sorry
 
 @[simp, grind =>]

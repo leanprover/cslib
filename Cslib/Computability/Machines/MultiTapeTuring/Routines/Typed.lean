@@ -15,10 +15,13 @@ namespace Routines
 /-- Turing machine `tm` computes a function on data from tape `i` and updates tape `j`. -/
 -- TODO move this somewhere else
 @[expose]
-public def computes_function_read_update' {k : ℕ}
-  (tm : MultiTapeTM k Char) (f : Data → TapeView → TapeView)
-  (i j : Fin k) (_h_neq : i ≠ j) :=
-  ∀ views, tm.eval_struct views = .some (Function.update views j (f (views i).current (views j)))
+public def computes_function_update {k : ℕ}
+  {α : Type} [StrEnc α]
+  (tm : MultiTapeTM k Char) (f : α → α)
+  (j : Fin k) :=
+  ∀ (x : α) (views : Fin k → TapeView),
+    (views j = TapeView.ofEnc x) →
+    tm.eval_struct views = .some (Function.update views j (TapeView.ofEnc (f x)))
 
 @[expose]
 public def computes_function_read_update {k : ℕ}
@@ -30,17 +33,47 @@ public def computes_function_read_update {k : ℕ}
     tm.eval_struct views = .some (Function.update views j (f x (views j)))
 
 @[expose]
+public def computes_function_read_update' {k : ℕ}
+  {α β : Type} [StrEnc α] [StrEnc β]
+  (tm : MultiTapeTM k Char) (f : α → β → β)
+  (i j : Fin k) (_h_neq : i ≠ j) :=
+  ∀ (x : α) (y : β) (views : Fin k → TapeView),
+    ((views i).current = StrEnc.toData x) →
+    views j = TapeView.ofEnc y →
+    tm.eval_struct views = .some (Function.update views j (TapeView.ofEnc (f x y)))
+
+@[expose]
 public def computes_function_read_read_update {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
   (tm : MultiTapeTM k Char) (f : α → β → TapeView → TapeView)
   (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
-  ∀ (x : α) (y: β) (views : Fin k → TapeView),
+  ∀ (x : α) (y : β) (views : Fin k → TapeView),
     ((views i).current = StrEnc.toData x) →
     ((views j).current = StrEnc.toData y) →
     tm.eval_struct views = .some (Function.update views r (f x y (views r)))
 
-/-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
-list on tape `j`. -/
+@[expose]
+public def computes_function_read_read_update' {k : ℕ}
+  {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
+  (tm : MultiTapeTM k Char) (f : α → β → γ → γ)
+  (i j r : Fin k) (_h_neq : [i, j, r].get.Injective) :=
+  ∀ (x : α) (y : β) (z : γ) (views : Fin k → TapeView),
+    ((views i).current = StrEnc.toData x) →
+    ((views j).current = StrEnc.toData y) →
+    views j = TapeView.ofEnc z →
+    tm.eval_struct views = .some (Function.update views r (TapeView.ofEnc (f x y z)))
+
+
+-- /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
+-- list on tape `j`. -/
+-- @[expose]
+-- public def computes_function_read_push {k : ℕ}
+--   {α β : Type} [StrEnc α] [StrEnc β]
+--   (tm : MultiTapeTM k Char)
+--   (f : α → β)
+--   (i j : Fin k) (h_neq : i ≠ j) :=
+--   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j h_neq
+
 @[expose]
 public def computes_function_read_push {k : ℕ}
   {α β : Type} [StrEnc α] [StrEnc β]
@@ -50,6 +83,14 @@ public def computes_function_read_push {k : ℕ}
   computes_function_read_update tm (fun d tv => tv.pushList (StrEnc.toData (f d))) i j h_neq
 
 @[expose]
+public def computes_function_read_push' {k : ℕ}
+  {α β : Type} [StrEnc α] [StrEnc β]
+  (tm : MultiTapeTM k Char)
+  (f : α → β)
+  (i j : Fin k) (h_neq : i ≠ j) :=
+  computes_function_read_update' (β := List β) tm (fun d ls => (f d) :: ls) i j h_neq
+
+@[expose]
 public def computes_function_read_read_push {k : ℕ}
   {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
   (tm : MultiTapeTM k Char)
@@ -57,6 +98,16 @@ public def computes_function_read_read_push {k : ℕ}
   (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
   computes_function_read_read_update tm
     (fun x y tv => tv.pushList (StrEnc.toData (f x y))) i j s h_neq
+
+@[expose]
+public def computes_function_read_read_push' {k : ℕ}
+  {α β γ : Type} [StrEnc α] [StrEnc β] [StrEnc γ]
+  (tm : MultiTapeTM k Char)
+  (f : α → β → γ)
+  (i j s : Fin k) (h_neq : [i, j, s].get.Injective) :=
+  computes_function_read_read_update' tm
+    (fun x y ls => (f x y) :: ls) i j s h_neq
+
 
 /-- Turing machine `tm` updates the head of tape `i`. -/
 public def computes_function_head_update {k : ℕ}
@@ -83,6 +134,7 @@ public theorem computes_function_seq₂ {k : ℕ}
   (h_comp₁ : computes_function_read_read_push tm₁ f₁ i j r h_neq)
   (h_comp₂ : computes_function_head_update tm₂ f₂ r) :
   computes_function_read_read_push (tm₁ ;ₜ tm₂) (fun x y => f₂ (f₁ x y)) i j r h_neq := by sorry
+
 
 @[grind =>]
 public theorem computes_function_read_read_push_swap {k : ℕ}
