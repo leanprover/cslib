@@ -96,11 +96,10 @@ theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
     (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ηᶠ M' ^ fvar x) (lc_M : LC M.abs) :
     M.abs ↠ηᶠ M'.abs := by
   cases lc_M
-  case' abs L hL =>
-    have ⟨x, hx⟩ := fresh_exists (xs ∪ M.fv ∪ M'.fv ∪ L)
-    simp only [Finset.mem_union, not_or] at hx
-    have := redex_abs_close (x := x) (cofin x hx.1.1.1) (hL x hx.2)
-    grind [open_close x M 0 hx.1.1.2, open_close x M' 0 hx.1.2]
+  case abs L hL =>
+    have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+    rw [open_close x M 0, open_close x M' 0]
+    all_goals grind [redex_abs_close (x := x) (cofin x ?_) (hL x ?_)]
 
 /- `t ⭢ηᶠ t'` implies `s [ x := t ] ↠ηᶠ s [ x := t' ]`. -/
 lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
