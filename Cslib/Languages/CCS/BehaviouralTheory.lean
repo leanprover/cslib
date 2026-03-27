@@ -28,6 +28,8 @@ namespace Cslib
 
 section CCS.BehaviouralTheory
 
+open LTS
+
 variable {Name : Type u} {Constant : Type v} {defs : Constant → CCS.Process Name Constant → Prop}
 
 namespace CCS
@@ -187,7 +189,7 @@ private inductive ChoiceComm : Process Name Constant → Process Name Constant �
   | choiceComm : ChoiceComm (choice p q) (choice q p)
   | bisim : (p ~[lts (defs := defs)] q) → ChoiceComm p q
 
-open Bisimilarity LTS in
+open Bisimilarity in
 /-- P + Q ~ Q + P -/
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
   exists @ChoiceComm Name Constant defs
@@ -248,7 +250,6 @@ private inductive PreBisim : Process Name Constant → Process Name Constant →
 | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
 | bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
 
-open scoped LTS in
 /-- P ~ Q → μ.P ~ μ.Q -/
 theorem bisimilarity_congr_pre :
     (p ~[lts (defs := defs)] q) → (pre μ p) ~[lts (defs := defs)] (pre μ q) := by
