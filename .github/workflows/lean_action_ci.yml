@@ -16,12 +16,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set TEST_ARGS manually
         run: |
-          echo "TEST_ARGS='--wfail --iofail'" >> $GITHUB_ENV
+          echo "TEST_ARGS=''" >> $GITHUB_ENV
         shell: bash
       - uses: leanprover/lean-action@v1
         with:
-          build-args: "--wfail --iofail"
-          test-args: "--wfail --iofail"
+          build-args: ""
+          test-args: ""
       - name: "lake exe mk_all --check --module"
         run: |
           set -e

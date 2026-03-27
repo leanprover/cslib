@@ -74,9 +74,11 @@ and laying them out to the right side,
 with the head under the first element of the list if it exists.
 -/
 def mk₁ (l : List Symbol) : BiTape Symbol :=
-  match l with
-  | [] => ∅
-  | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
+  { head := l.head?, left := ∅, right := StackTape.map_some l.tail }
+
+/-- Construct a BiTape from the left (reversed) and right part. -/
+def mk₂ (l r : List Symbol) : BiTape Symbol :=
+  ⟨r.head?, StackTape.map_some l, StackTape.map_some r.tail ⟩
 
 section Move
 
@@ -113,6 +115,24 @@ lemma move_left_move_right (t : BiTape Symbol) : t.move_left.move_right = t := b
 @[simp]
 lemma move_right_move_left (t : BiTape Symbol) : t.move_right.move_left = t := by
   simp [move_left, move_right]
+
+-- TODO clean up (ai)
+@[simp]
+lemma head_iterate_move_right_mk₁ (l : List Symbol) (n : ℕ) :
+    (move_right^[n] (mk₁ l)).head = l[n]? := by
+  suffices ∀ (t : BiTape Symbol) (r : List Symbol),
+      t.head = r.head? → t.right = StackTape.map_some r.tail →
+      ∀ m, (move_right^[m] t).head = r[m]? from
+    this (mk₁ l) l (by simp [mk₁, List.head?_eq_getElem?])
+      (by simp [mk₁]) n
+  intro t r h_head h_right m
+  induction m generalizing t r with
+  | zero => simpa [List.head?_eq_getElem?] using h_head
+  | succ m ih =>
+    simp only [Function.iterate_succ, Function.comp_apply, move_right]
+    cases r with
+    | nil => simp [h_right, ih _ []]
+    | cons h' t' => apply ih <;> simp [h_right]
 
 end Move
 
