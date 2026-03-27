@@ -56,7 +56,7 @@ public theorem seq_haltsOn_of_haltsOn
 /--
 Sequential combination of Turing machines.
 -/
-infixl:90 " ;ₜ " => seq
+infixl:90 ";ₜ" => seq
 
 
 end MultiTapeTM
