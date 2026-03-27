@@ -31,6 +31,9 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 -/
 
+/-- The empty (heterogeneous) relation, which always returns `False`. -/
+def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
+
 namespace Relation
 
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
