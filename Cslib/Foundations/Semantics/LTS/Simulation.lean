@@ -12,8 +12,8 @@ public import Cslib.Foundations.Semantics.LTS.Basic
 
 /-! # IsSimulation and Similarity
 
-A simulation is a binary relation on the states of two `LTS`s: if two states `s1` and `s2` are
-related by a simulation, then `s2` can mimic all transitions of `s1` in their respective LTSs.
+A simulation is a binary relation on the states of two `LTS`s: if two states `s₁` and `s2` are
+related by a simulation, then `s2` can mimic all transitions of `s₁` in their respective LTSs.
 Furthermore, the derivatives reaches through these transitions remain related by the simulation.
 
 Similarity is the largest simulation: given an `LTS`, it relates any two states that are related
@@ -33,8 +33,8 @@ any two states similar to each other.
 
 ## Notations
 
-- `s1 ≤[lts₁, lts₂] s2`: the states `s1` and `s2` are similar under `lts₁` and `lts₂`.
-- `s1 ≤≥[lts₁, lts₂] s2`: the states `s1` and `s2` are simulation equivalent under `lts₁` and
+- `s₁ ≤[lts₁, lts₂] s₂`: the states `s₁` and `s2` are similar under `lts₁` and `lts₂`.
+- `s₁ ≤≥[lts₁, lts₂] s2`: the states `s₁` and `s2` are simulation equivalent under `lts₁` and
 `lts₂`.
 
 ## Main statements
@@ -54,15 +54,15 @@ any transition originating from the first state is mimicked by a transition from
 and the reached derivatives are themselves related. -/
 def IsSimulation (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) (r : State₁ → State₂ → Prop) :
     Prop :=
-  ∀ s1 s2, r s1 s2 → ∀ μ s1', lts₁.Tr s1 μ s1' → ∃ s2', lts₂.Tr s2 μ s2' ∧ r s1' s2'
+  ∀ s₁ s2, r s₁ s2 → ∀ μ s₁', lts₁.Tr s₁ μ s₁' → ∃ s2', lts₂.Tr s2 μ s2' ∧ r s₁' s2'
 
 /-- A homogeneous simulation is a simulation where the underlying LTSs are the same. -/
 abbrev IsHomSimulation (lts : LTS State Label) := IsSimulation lts lts
 
 /-- Two states are similar if they are related by some simulation. -/
 def Similarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) : State₁ → State₂ → Prop :=
-  fun s1 s2 =>
-    ∃ r : State₁ → State₂ → Prop, r s1 s2 ∧ IsSimulation lts₁ lts₂ r
+  fun s₁ s2 =>
+    ∃ r : State₁ → State₂ → Prop, r s₁ s2 ∧ IsSimulation lts₁ lts₂ r
 
 /--
 Notation for similarity.
@@ -90,22 +90,22 @@ theorem IsSimulation.comp
     (h1 : IsSimulation lts₁ lts₂ r1) (h2 : IsSimulation lts₂ lts₃ r2) :
     IsSimulation lts₁ lts₃ (Relation.Comp r1 r2) := by
   simp_all only [IsSimulation]
-  intro s1 s2 hrc μ s1' htr
+  intro s₁ s2 hrc μ s₁' htr
   rcases hrc with ⟨sb, hr1, hr2⟩
-  specialize h1 s1 sb hr1 μ
+  specialize h1 s₁ sb hr1 μ
   specialize h2 sb s2 hr2 μ
-  have h1' := h1 s1' htr
-  obtain ⟨s1'', h1'tr, h1'⟩ := h1'
-  have h2' := h2 s1'' h1'tr
+  have h1' := h1 s₁' htr
+  obtain ⟨s₁'', h1'tr, h1'⟩ := h1'
+  have h2' := h2 s₁'' h1'tr
   obtain ⟨s2'', h2'tr, h2'⟩ := h2'
   exists s2''
   constructor
   · exact h2'tr
-  · exists s1''
+  · exists s₁''
 
 /-- Similarity is transitive. -/
-theorem Similarity.trans (h1 : s1 ≤[lts₁,lts₂] s2) (h2 : s2 ≤[lts₂,lts₃] s3) :
-    s1 ≤[lts₁,lts₃] s3 := by
+theorem Similarity.trans (h1 : s₁ ≤[lts₁,lts₂] s2) (h2 : s2 ≤[lts₂,lts₃] s₃) :
+    s₁ ≤[lts₁,lts₃] s₃ := by
   obtain ⟨r1, hr1, hr1s⟩ := h1
   obtain ⟨r2, hr2, hr2s⟩ := h2
   exists Relation.Comp r1 r2
@@ -115,12 +115,12 @@ theorem Similarity.trans (h1 : s1 ≤[lts₁,lts₂] s2) (h2 : s2 ≤[lts₂,lts
   case right =>
     apply IsSimulation.comp r1 r2 hr1s hr2s
 
-/-- Simulation equivalence relates all states `s1` and `s2` such that `s1 ≤[lts₁ lts₂] s2` and
-`s2 ≤[lts₂ lts₁] s1`. -/
+/-- Simulation equivalence relates all states `s₁` and `s2` such that `s₁ ≤[lts₁ lts₂] s2` and
+`s2 ≤[lts₂ lts₁] s₁`. -/
 def SimulationEquiv (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
     State₁ → State₂ → Prop :=
-  fun s1 s2 =>
-    s1 ≤[lts₁, lts₂] s2 ∧ s2 ≤[lts₂, lts₁] s1
+  fun s₁ s2 =>
+    s₁ ≤[lts₁, lts₂] s2 ∧ s2 ≤[lts₂, lts₁] s₁
 
 /--
 Notation for simulation equivalence.
@@ -138,12 +138,12 @@ theorem HomSimulationEquiv.refl (s : State) : s ≤≥[lts] s := by
   grind [SimulationEquiv, HomSimilarity.refl]
 
 /-- Simulation equivalence is symmetric. -/
-theorem SimulationEquiv.symm {s1 s2 : State} (h : s1 ≤≥[lts₁,lts₂] s2) : s2 ≤≥[lts₂, lts₁] s1 := by
+theorem SimulationEquiv.symm {s₁ s2 : State} (h : s₁ ≤≥[lts₁,lts₂] s2) : s2 ≤≥[lts₂, lts₁] s₁ := by
   grind [SimulationEquiv]
 
 /-- Simulation equivalence is transitive. -/
-theorem SimulationEquiv.trans (h1 : s1 ≤≥[lts₁,lts₂] s2) (h2 : s2 ≤≥[lts₂,lts₃] s3) :
-    s1 ≤≥[lts₁,lts₃] s3 := by
+theorem SimulationEquiv.trans (h1 : s₁ ≤≥[lts₁,lts₂] s2) (h2 : s2 ≤≥[lts₂,lts₃] s₃) :
+    s₁ ≤≥[lts₁,lts₃] s₃ := by
   grind [SimulationEquiv, Similarity.trans]
 
 /-- Homogeneous simulation equivalence is an equivalence relation. -/
