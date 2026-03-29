@@ -33,6 +33,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
+set_option linter.unusedVariables false in
 /-- The empty (heterogeneous) relation, which always returns `False`. -/
 def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
 
