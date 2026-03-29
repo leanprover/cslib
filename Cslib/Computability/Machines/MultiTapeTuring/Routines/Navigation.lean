@@ -115,5 +115,12 @@ public lemma outOfList_eval_struct_valid {k : ℕ} {i : Fin k}
     (outOfList i).eval_struct views = some
       (Function.update views i (views i).parent) := by sorry
 
+/-- Move into the given path, then execute `tm` and then move out again. -/
+public def at_path {k : ℕ} (path : List ℕ) (i : Fin k) (tm : MultiTapeTM k Char) :
+    MultiTapeTM k Char :=
+  match path with
+  | [] => tm
+  | n :: path' => toElem n i;ₜ at_path path' i tm;ₜ outOfList i
+
 end Routines
 end Turing

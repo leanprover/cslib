@@ -210,8 +210,9 @@ lemma sat_verify_core_semantics :
 
 /-- TODO document -/
 public def sat_verify : MultiTapeTM 5 Char :=
+  -- TODO could also use `at_path`
   -- Navigate to assignments (arg 1) and copy to tape 1
-  toElem 1 0;ₜ copyEnc 0 1 (by decide);ₜ outOfList 0;ₜ
+  toElem 1 0;ₜ copyEnc 0 1;ₜ outOfList 0;ₜ
   -- Navigate to formula (arg 0)
   toElem 0 0;ₜ sat_verify_core;ₜ outOfList 0;ₜ
   replace (Data.list []) 1

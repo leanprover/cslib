@@ -68,6 +68,15 @@ public def computes_function_read_read_update' {k : ℕ}
     tm.eval_struct views = .some (Function.update views r (TapeView.ofEnc (f x y z)))
 
 
+/-- TODO document -/
+@[expose]
+public def computes_function_read_replace {k : ℕ}
+  {α β : Type} [StrEnc α] [StrEnc β]
+  (tm : MultiTapeTM k Char)
+  (f : α → β)
+  (i j : Fin k) :=
+  computes_function_read_update' tm (fun d _ => f d) i j
+
 -- /-- Turing machine `tm` computes a function on data from tape `i` and pushes data to the
 -- list on tape `j`. -/
 -- @[expose]

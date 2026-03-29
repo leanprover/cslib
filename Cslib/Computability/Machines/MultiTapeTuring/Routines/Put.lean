@@ -38,7 +38,8 @@ public lemma put_eval {k : ℕ} {d : Data} {i : Fin k}
     simp [putChars, ih, BiTape.mk₁, BiTape.move_left, BiTape.write]
     cases rest <;> cases old <;> simp [StackTape.map_some, StackTape.cons, StackTape.nil]
 
-def clear (i : Fin k) : MultiTapeTM k Char := while_neq none i (write none i;ₜ right i)
+/-- TODO document -/
+public def clear (i : Fin k) : MultiTapeTM k Char := while_neq none i (write none i;ₜ right i)
 
 @[simp]
 theorem clear.eval_inner {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char} :
@@ -67,7 +68,7 @@ lemma clear.eval_inner_iter {i : Fin k} {tapes : Fin k → BiTape Char} (ls : Li
 
 -- TODO change this so that it does not need `ls` but works with a tape and a condition that
 -- the left side is empty
-theorem clear.eval {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char}
+public theorem clear.eval {i : Fin k} {tapes : Fin k → BiTape Char} {ls : List Char}
     (h_tape_i : tapes i = BiTape.mk₁ ls) :
   (clear i).eval tapes = .some (Function.update tapes i (BiTape.mk₁ [])) := by
   have h_min : ∀ n' < ls.length,
