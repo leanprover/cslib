@@ -164,7 +164,7 @@ instance : IsEquiv State (HomBisimilarity lts) where
 
 /-- The union of two bisimulations is a bisimulation. -/
 @[scoped grind .]
-theorem Bisimulation.union (hrb : IsBisimulation lts₁ lts₂ r) (hsb : IsBisimulation lts₁ lts₂ s) :
+theorem IsBisimulation.sup (hrb : IsBisimulation lts₁ lts₂ r) (hsb : IsBisimulation lts₁ lts₂ s) :
   IsBisimulation lts₁ lts₂ (r ⊔ s) := by
   intro s₁ s₂ hrs μ
   cases hrs
@@ -233,7 +233,7 @@ section Order
 /-! ## Order properties -/
 
 instance : Max {r // IsBisimulation lts₁ lts₂ r} where
-  max r s := ⟨r.1 ⊔ s.1, Bisimulation.union r.2 s.2⟩
+  max r s := ⟨r.1 ⊔ s.1, IsBisimulation.sup r.2 s.2⟩
 
 /-- Bisimulations equipped with union form a join-semilattice. -/
 instance : SemilatticeSup {r // IsBisimulation lts₁ lts₂ r} where
@@ -262,9 +262,15 @@ instance : SemilatticeSup {r // IsBisimulation lts₁ lts₂ r} where
 
 /-- The empty (heterogeneous) relation is a bisimulation. -/
 @[scoped grind .]
-theorem Bisimulation.emptyHRelation_bisimulation : IsBisimulation lts₁ lts₂ emptyHRelation := by
+theorem IsBisimulation.bot : IsBisimulation lts₁ lts₂ emptyHRelation := by
   intro s₁ s₂ hr
   cases hr
+
+instance : Bot {r // IsBisimulation lts₁ lts₂ r} :=
+  ⟨emptyHRelation, IsBisimulation.bot⟩
+
+instance : Top {r // IsBisimulation lts₁ lts₂ r} :=
+  ⟨Bisimilarity lts₁ lts₂, Bisimilarity.is_bisimulation⟩
 
 /-- In the inclusion order on bisimulations:
 
@@ -272,11 +278,11 @@ theorem Bisimulation.emptyHRelation_bisimulation : IsBisimulation lts₁ lts₂ 
 - Bisimilarity is the top element.
 -/
 instance : BoundedOrder {r // IsBisimulation lts₁ lts₂ r} where
-  top := ⟨Bisimilarity lts₁ lts₂, Bisimilarity.is_bisimulation⟩
-  bot := ⟨emptyHRelation, Bisimulation.emptyHRelation_bisimulation⟩
+  top := ⊤
+  bot := ⊥
   le_top r := by
     intro s₁ s₂
-    simp only [LE.le]
+    simp only [LE.le, Top.top]
     grind
   bot_le r := by
     intro s₁ s₂
@@ -435,7 +441,7 @@ private inductive BisimMotTr : ℕ → Char → ℕ → Prop where
 
 /-- In general, trace equivalence is not a bisimulation (extra conditions are needed, see for
 example `Bisimulation.deterministic_trace_eq_is_bisim`). -/
-theorem Bisimulation.traceEq_not_bisim :
+theorem IsBisimulation.traceEq_not_bisim :
     ∃ (State : Type) (Label : Type) (lts : LTS State Label),
       ¬(IsHomBisimulation lts (HomTraceEq lts)) := by
   exists ℕ
@@ -706,7 +712,7 @@ theorem Bisimulation.traceEq_not_bisim :
 theorem Bisimilarity.bisimilarity_neq_traceEq :
     ∃ (State : Type) (Label : Type) (lts : LTS State Label),
       HomBisimilarity lts ≠ HomTraceEq lts := by
-  obtain ⟨State, Label, lts, h⟩ := Bisimulation.traceEq_not_bisim
+  obtain ⟨State, Label, lts, h⟩ := IsBisimulation.traceEq_not_bisim
   exists State; exists Label; exists lts
   intro heq
   have hb := Bisimilarity.is_bisimulation (lts₁ := lts) (lts₂ := lts)
@@ -715,7 +721,7 @@ theorem Bisimilarity.bisimilarity_neq_traceEq :
   contradiction
 
 /-- In any deterministic LTS, trace equivalence is a bisimulation. -/
-theorem Bisimulation.deterministic_traceEq_is_bisim
+theorem IsBisimulation.deterministic_traceEq_isBisimulation
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     [lts₁.Deterministic] [lts₂.Deterministic] :
     (IsBisimulation lts₁ lts₂ (TraceEq lts₁ lts₂)) := by
@@ -745,7 +751,7 @@ theorem Bisimilarity.deterministic_traceEq_bisim {lts₁ : LTS State₁ Label} {
   case left =>
     exact h
   case right =>
-    apply Bisimulation.deterministic_traceEq_is_bisim
+    apply IsBisimulation.deterministic_traceEq_isBisimulation
 
 /-- In deterministic LTSs, bisimilarity and trace equivalence coincide. -/
 theorem Bisimilarity.deterministic_bisim_eq_traceEq
@@ -762,11 +768,11 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
 /-! ## Relation to simulation -/
 
 /-- Any bisimulation is also a simulation. -/
-theorem Bisimulation.isSimulation : IsBisimulation lts₁ lts₂ r → IsSimulation lts₁ lts₂ r := by
+theorem IsBisimulation.isSimulation : IsBisimulation lts₁ lts₂ r → IsSimulation lts₁ lts₂ r := by
   grind [IsSimulation]
 
 /-- A relation is a bisimulation iff both it and its inverse are simulations. -/
-theorem Bisimulation.simulation_iff :
+theorem IsBisimulation.isSimulation_iff :
     IsBisimulation lts₁ lts₂ r ↔ (IsSimulation lts₁ lts₂ r ∧ IsSimulation lts₂ lts₁ (flip r)) := by
   have _ (s₁ s₂) : r s₁ s₂ → flip r s₂ s₁ := id
   grind [IsSimulation, flip]
@@ -781,13 +787,13 @@ theorem HomBisimilarity.symm_simulation :
   · intro h
     have bisim : HomBisimilarity lts s₁ s₂ ∧ Std.Symm (HomBisimilarity lts)
         ∧ IsHomSimulation lts (HomBisimilarity lts) := by
-      grind [Std.Symm, Bisimilarity.symm, Bisimulation.isSimulation]
+      grind [Std.Symm, Bisimilarity.symm, IsBisimulation.isSimulation]
     grind
   · intro ⟨r, hr, hsymm, hsim⟩
     have : r = (flip r) := by
       grind [flip, Std.Symm]
     have : IsHomBisimulation lts r := by
-      grind [Bisimulation.simulation_iff]
+      grind [IsBisimulation.isSimulation_iff]
     grind
 
 end Bisimulation
@@ -1006,7 +1012,7 @@ theorem WeakBisimilarity.trans [HasTau Label]
     apply IsWeakBisimulation.comp hr1b hr2b
 
 /-- Homogeneous weak bisimilarity is an equivalence relation. -/
-theorem WeakBisimilarity.eqv [HasTau Label] {lts : LTS State Label} :
+theorem HomWeakBisimilarity.eqv [HasTau Label] {lts : LTS State Label} :
     Equivalence (HomWeakBisimilarity lts) where
   refl := HomWeakBisimilarity.refl
   symm := WeakBisimilarity.symm
