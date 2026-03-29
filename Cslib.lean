@@ -87,6 +87,7 @@ public import Cslib.Languages.CombinatoryLogic.Confluence
 public import Cslib.Languages.CombinatoryLogic.Defs
 public import Cslib.Languages.CombinatoryLogic.Evaluation
 public import Cslib.Languages.CombinatoryLogic.List
+public import Cslib.Languages.CombinatoryLogic.PartrecToSKI
 public import Cslib.Languages.CombinatoryLogic.Recursion
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
