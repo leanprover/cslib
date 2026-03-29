@@ -262,12 +262,12 @@ instance : SemilatticeSup {r // IsBisimulation lts₁ lts₂ r} where
 
 /-- The empty (heterogeneous) relation is a bisimulation. -/
 @[scoped grind .]
-theorem IsBisimulation.bot : IsBisimulation lts₁ lts₂ emptyHRelation := by
+theorem IsBisimulation.bot : IsBisimulation lts₁ lts₂ Relation.emptyHRelation := by
   intro s₁ s₂ hr
   cases hr
 
 instance : Bot {r // IsBisimulation lts₁ lts₂ r} :=
-  ⟨emptyHRelation, IsBisimulation.bot⟩
+  ⟨Relation.emptyHRelation, IsBisimulation.bot⟩
 
 instance : Top {r // IsBisimulation lts₁ lts₂ r} :=
   ⟨Bisimilarity lts₁ lts₂, Bisimilarity.is_bisimulation⟩
