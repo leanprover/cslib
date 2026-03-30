@@ -10,7 +10,6 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.While
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
 
 set_option autoImplicit false
