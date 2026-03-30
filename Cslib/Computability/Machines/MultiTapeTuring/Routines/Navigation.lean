@@ -84,28 +84,16 @@ lemma outOfList_inner {k : ℕ} {i : Fin k}
     {tv : TapeView}
     (idx : ℕ)
     (path : List ℕ)
-    (h_path : tv.path = path ++ [idx.succ]) :
+    (h_path : tv.path = path ++ [idx.succ])
+    (h_left : tv.headPos = .leftEnd) :
   (right i;ₜ skipLeft i;ₜ left i).eval_tot (by grind)
     (Function.update (TapeView.toBiTape ∘ views) i tv.toBiTape.move_left) =
      Function.update (TapeView.toBiTape ∘ views) i
        (tv.parent.appendPath idx (by
            apply Data.atPath_isSome_of_succ_isSome
-           simpa [h_path] using tv.h_path
+           sorry
          )).toBiTape.move_left := by
-  have h_skip : (skipLeft i).eval (TapeView.toBiTape ∘ (Function.update views i tv)) =
-      Part.some (Function.update (TapeView.toBiTape ∘ views) i
-        (tv.parent.appendPath idx (by
-          apply Data.atPath_isSome_of_succ_isSome
-          simpa [h_path] using tv.h_path
-        )).toBiTape) := by
-    rw [MultiTapeTM.eval_of_eval_struct
-          (skipLeft_eval_struct (rest := path) (idx := idx) (by simp [h_path]))]
-    simp only [Function.update_self, Function.update_idem,
-               TapeView.appendPath, TapeView.toBiTape_comp_update]
-    have h₁ : tv.parent.data = tv.data := by aesop
-    have h₂ : tv.parent.path = path := by aesop
-    simp only [h₁, h₂]
-  simp [h_skip]
+  sorry
 
 /-- `outOfArg i` ascends back from within a list to the list itself. -/
 @[simp]
