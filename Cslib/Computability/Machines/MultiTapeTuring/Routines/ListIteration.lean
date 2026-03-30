@@ -32,31 +32,6 @@ public def run_list {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) :
 -- TODO: clean up (ai) - we probably need lemmas about what skipRight on the last element means,
 -- and that outOfList works when we are at the `)` of the list.
 
-/-- Helper: the forward loop `while_neq ')' i (tm;ₜ skipRight i)` iterates `tm`
-    over the remaining list elements and folds the result onto tape `j`.
-    Tape `i` has path `[idx]` into `StrEnc.toData ls`. -/
-private lemma run_list_forward {k : ℕ} {i j : Fin k} (h_neq : i ≠ j)
-    {α β : Type} [StrEnc α] [StrEnc β]
-    {tm : MultiTapeTM k Char}
-    {f : α → β → β}
-    (h_comp : computes_function_read_update' tm f i j)
-    (ls : List α) (idx : ℕ) (h_idx : idx ≤ ls.length)
-    (acc : β) (views : Fin k → TapeView)
-    (h_data : (views i).data = StrEnc.toData ls)
-    (h_path : (views i).path = [idx])
-    (h_j : views j = TapeView.ofEnc acc) :
-    (while_neq ')' i (tm;ₜ skipRight i)).eval_struct views = .some
-      (Function.update
-        (Function.update views j
-          (TapeView.ofEnc (ls.drop idx |>.foldl (fun a d => f d a) acc)))
-        i ⟨(views i).data, [ls.length], sorry⟩) := by
-  -- Induction on the number of remaining elements (ls.length - idx).
-  -- Base case: idx = ls.length → tape i is at `)`, while_neq exits immediately.
-  -- Inductive step: idx < ls.length →
-  --   1. tm reads ls[idx] from tape i, updates tape j to f (ls[idx]) acc
-  --   2. skipRight i moves tape i to path [idx + 1]
-  --   3. IH handles the remaining elements ls.drop (idx + 1)
-  sorry
 
 /-- If `tm` computes a function `f` that acts like a folding function, the result of using
 `run_list` is a fold with accumulator on tape `j`. -/
@@ -229,7 +204,7 @@ instance : StrEnc FindMapState where
       else none
   fromData_toData := by
     intro s
-    cases s <;> simp [StrEnc.toData]
+    cases s <;> simp [StrEnc.toData, dyadic]
 
 /-- Execute `tm₁` on every item in the list on tape `i`. For the first item where it
 writes `true` to tape `j`, execute `tm₂`. If it never writes `true`, execute `tm₃` after

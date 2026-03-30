@@ -76,7 +76,8 @@ on tape `i`. -/
 @[simp]
 public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView}
   (h_valid : ((views i).current.atPath [idx]).isSome)
-  (h_left : (views i).headPos = .leftEnd) :
+  -- (h_left : (views i).headPos = .leftEnd)
+  :
   (toElem idx i).eval_struct views = .some
     (Function.update views i ((views i).appendPath idx h_valid)) := by
   sorry

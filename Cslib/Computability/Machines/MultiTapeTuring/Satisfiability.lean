@@ -29,15 +29,16 @@ public inductive Literal where
 
 public instance : StrEnc Literal where
   toData
-    | Literal.pos v => Data.list [Data.num 0, Data.num v]
-    | Literal.neg v => Data.list [Data.num 1, Data.num v]
-  fromData
-    | Data.list [Data.num 0, Data.num v] => some (Literal.pos v)
-    | Data.list [Data.num 1, Data.num v] => some (Literal.neg v)
+    | Literal.pos v => StrEnc.toData [0, v]
+    | Literal.neg v => StrEnc.toData [1, v]
+  fromData d := do
+    match StrEnc.fromData d with
+    | some [0, v] => some (Literal.pos v)
+    | some [1, v] => some (Literal.neg v)
     | _ => none
   fromData_toData
-    | Literal.pos _ => rfl
-    | Literal.neg _ => rfl
+    | Literal.pos _ => by simp
+    | Literal.neg _ => by simp
 
 /-- TODO document -/
 public abbrev Clause := List Literal
@@ -74,8 +75,8 @@ lemma SatInput_toData (formula : Formula) (assignments : Assignments) :
 lemma Literal_toData (lit : Literal) :
   StrEnc.toData lit = Data.list (
     match lit with
-    | Literal.pos v => [Data.num 0, StrEnc.toData v]
-    | Literal.neg v => [Data.num 1, StrEnc.toData v]) := by
+    | Literal.pos v => [StrEnc.toData 0, StrEnc.toData v]
+    | Literal.neg v => [StrEnc.toData 1, StrEnc.toData v]) := by
   match lit with
   | Literal.pos v => rfl
   | Literal.neg v => rfl

@@ -296,6 +296,39 @@ public instance : StrEnc ℕ where
                ih (fun c hc => hl c (.tail _ hc))⟩
     simp [hroundtrip _ (fun c hc => dyadic_mem_chars hc), dyadic_inv_dyadic]
 
+@[simp]
+public lemma Nat.toData_zero :
+  StrEnc.toData 0 = Data.list [] := by simp [StrEnc.toData, dyadic]
+
+@[simp]
+public lemma Nat.toData_one :
+  StrEnc.toData 1 = StrEnc.toData [false] := by simp [StrEnc.toData, dyadic]
+
+@[simp]
+public lemma Nat.toData_two :
+  StrEnc.toData 2 = StrEnc.toData [true] := by simp [StrEnc.toData, dyadic]
+
+@[simp]
+public lemma Nat.toData_three :
+  StrEnc.toData 3 = StrEnc.toData [false, false] := by simp [StrEnc.toData, dyadic]; grind
+
+@[simp]
+public lemma Nat.fromData_zero :
+  StrEnc.fromData (Data.list []) = some 0 := by simp [StrEnc.fromData, dyadic_inv]
+
+@[simp]
+public lemma Nat.fromData_one :
+  StrEnc.fromData (StrEnc.toData [false]) = some 1 := by simp [StrEnc.fromData, dyadic_inv]
+
+@[simp]
+public lemma Nat.fromData_two :
+  StrEnc.fromData (StrEnc.toData [true]) = some 2 := by simp [StrEnc.fromData, dyadic_inv]
+
+@[simp]
+public lemma Nat.fromData_three :
+  StrEnc.fromData (StrEnc.toData [false, false]) = some 3 := by
+  simp [StrEnc.fromData, dyadic_inv]
+
 /-- Encode `Char` through `ℕ` -/
 public instance : StrEnc Char where
   toData o := StrEnc.toData o.toNat
