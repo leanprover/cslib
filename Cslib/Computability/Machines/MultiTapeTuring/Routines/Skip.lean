@@ -52,32 +52,31 @@ public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
           else
             (views i).parent.toRightEnd)) := by sorry
 
-/-- `skipLeft i` when positioned at the right end of a non-empty list moves to
-    the left end of the last entry in the list.
-    This is the inverse of `skipRight_eval_struct` when `skipRight` reaches
-    the end of the list. -/
-public lemma skipLeft_eval_struct_rightEnd {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    (h_right : (views i).headPos = .rightEnd)
-    (h_nonempty : (views i).currentList.length > 0)
-    (h_last : ((views i).current.atPath [(views i).currentList.length - 1]).isSome) :
-    (skipLeft i).eval_struct views = .some (Function.update views i
-      ((views i).appendPath ((views i).currentList.length - 1) h_last).toLeftEnd) := by sorry
-
-/-- `skipLeft i` when positioned at the left end of a non-first item in a list
-    moves to the left end of the previous item.
-    This is the inverse of `skipRight_eval_struct` when `skipRight` advances
-    to the next sibling. -/
+/-- `skipLeft i` is the inverse of `skipRight i`.
+    When positioned at the right end of a non-empty list, it moves to the
+    left end of the last entry in the list.
+    When positioned at the left end of a non-first item in a list, it moves
+    to the left end of the previous item. -/
 public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    (h_nonempty : (views i).path.getLast?.isSome)
-    (h_left : (views i).headPos = .leftEnd)
-    (h_not_first : (views i).path.getLast?.get h_nonempty > 0)
-    (h_prev : ((views i).parent.current.atPath
-      [(views i).path.getLast?.get h_nonempty - 1]).isSome) :
-    (skipLeft i).eval_struct views = .some (Function.update views i
-      ((views i).parent.appendPath
-        ((views i).path.getLast?.get h_nonempty - 1) h_prev)) := by sorry
+    {views : Fin k → TapeView} :
+    (skipLeft i).eval_struct views = .some (Function.update views i (
+      if h_right : (views i).headPos = .rightEnd then
+        if h_last : ((views i).current.atPath
+            [(views i).currentList.length - 1]).isSome then
+          ((views i).appendPath
+            ((views i).currentList.length - 1) h_last).toLeftEnd
+        else
+          (views i).toLeftEnd
+      else
+        if h_path : (views i).path.getLast?.isSome then
+          let idx : ℕ := (views i).path.getLast?.get h_path
+          if h_prev : idx > 0 ∧
+              ((views i).parent.current.atPath [idx - 1]).isSome then
+            (views i).parent.appendPath (idx - 1) h_prev.2
+          else
+            (views i).parent.toLeftEnd
+        else
+          (views i))) := by sorry
 
 end Routines
 end Turing

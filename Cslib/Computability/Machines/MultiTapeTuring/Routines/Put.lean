@@ -90,11 +90,12 @@ public def replace {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
 
 @[simp]
 public lemma replace.eval_struct {k : ℕ} {d : Data} {i : Fin k} {views : Fin k → TapeView}
-  (h_data : (views i).path = []) :
-  (replace d i).eval_struct views = some
-    (Function.update views i (.ofData d)) := by
+  (h_data : (views i).path = [])
+  -- TODO remove this condition by skipping to the left end if we are on the right end.
+  (h_left : (views i).headPos = .leftEnd) :
+  (replace d i).eval_struct views = some (Function.update views i (.ofData d)) := by
   simp only [MultiTapeTM.eval_struct, replace, MultiTapeTM.seq_eval]
-  rw [clear.eval (ls := (views i).data.enc) (by simp [TapeView.toBiTape, h_data])]
+  rw [clear.eval (ls := (views i).data.enc) (by simp [TapeView.toBiTape, h_data, h_left])]
   simp [put_eval (old := []), ← TapeView.toBiTape_ofData]
 
 

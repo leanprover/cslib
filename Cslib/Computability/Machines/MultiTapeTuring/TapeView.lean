@@ -20,6 +20,7 @@ public inductive HeadPos where
   | leftEnd
   /-- The head is positioned at the closing `)`. -/
   | rightEnd
+  deriving DecidableEq
 
 /-- A structured view of a tape that contains an encoding of `Data`.
 - `data`: the content present on the tape, encoding using `Data.enc`.
@@ -108,6 +109,14 @@ public def appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
   ⟨tv.data, tv.path ++ [idx], tv.headPos, by simpa using h⟩
 
+@[expose]
+public abbrev toLeftEnd (tv : TapeView) : TapeView :=
+  ⟨tv.data, tv.path, .leftEnd, tv.h_path⟩
+
+@[expose]
+public abbrev toRightEnd (tv : TapeView) : TapeView :=
+  ⟨tv.data, tv.path, .rightEnd, tv.h_path⟩
+
 /-- Attempt to decode the current value as a typed value of type `α`.
     Returns `none` if the tape is empty, the path is invalid,
     or the `Data` at the path does not represent a valid value of
@@ -149,9 +158,14 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) .leftEnd h).encodedPos =
       tv.encodedPos + 1 +
-      ((tv.currentList.take idx).map
-        fun d => d.enc.length).sum := by
-  unfold encodedPos
+      ((tv.currentList.take idx).map fun d => d.enc.length).sum := by
+  sorry
+
+public lemma encodedPos_appendPath' (tv : TapeView) (idx : ℕ)
+    (h_last : tv.path.getLast?.isSome)
+    (h_left : tv.headPos = .leftEnd) :
+  tv.encodedPos = tv.parent.encodedPos + 1 +
+      ((tv.currentList.take (tv.path.getLast?.get h_last)).map fun d => d.enc.length).sum := by
   sorry
 
 -- TODO clean up (ai)
@@ -312,10 +326,11 @@ public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).toBiTape =
     BiTape.move_right^[1 +
-      ((tv.currentList.take idx).map
-        fun d => d.enc.length).sum]
+      ((tv.currentList.take idx).map fun d => d.enc.length).sum]
       tv.toBiTape := by
-  sorry
+  unfold toBiTape
+  simp [h_left, ←Function.iterate_add_apply]
+  grind
 
 /-- Prepend a `Data` value to the front of a list on tape.
     If the path is `[]` and `data` is `Data.list ds`,
@@ -329,17 +344,13 @@ public def pushList (d : Data) (tv : TapeView) : TapeView :=
 
 @[simp]
 public lemma pushList_list {d : Data} {ds : List Data} {headPos : HeadPos} :
-    (TapeView.mk (Data.list ds) [] headPos sorry).pushList d =
+    (TapeView.mk (Data.list ds) [] headPos rfl).pushList d =
       TapeView.mk (Data.list (d :: ds)) [] headPos rfl := by
   unfold pushList; rfl
 
 @[simp]
-public lemma pushList_nonempty_path {d : Data} {dat : Data}
-    {k : ℕ} {rest : List ℕ} {headPos : HeadPos} :
-    (TapeView.mk dat (k :: rest) headPos sorry).pushList d =
-      TapeView.mk dat (k :: rest) headPos sorry := by
-  unfold pushList; cases dat with
-  | list _ => rfl
+public lemma pushList_nonempty_path {tv : TapeView} (h_nonempty : tv.path ≠ []) :
+    tv.pushList d = tv := by  unfold pushList; split <;> grind
 
 /-- TODO document -/
 public def asWritableList (tv : TapeView) : Option (List Data) :=
@@ -349,8 +360,7 @@ public def asWritableList (tv : TapeView) : Option (List Data) :=
 
 /-- Remove the first element from a list on tape. -/
 public def popList (tv : TapeView) : TapeView :=
-  (tv.asWritableList.map fun ls =>
-    TapeView.ofList ls.tail).getD tv
+  (tv.asWritableList.map fun ls => TapeView.ofList ls.tail).getD tv
 
 /-- If `tv` currently points at a non-empty list, returns its head,
     otherwise returns none. -/
@@ -376,26 +386,26 @@ public def updateListHeadTyped
   let x <- StrEnc.fromData d
   return TapeView.ofList ((StrEnc.toData (f x)) :: ls.tail)).getD tv
 
-/-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
-    to `tv.current = v`. -/
-public lemma ite_enc_condition_iff' (tv : TapeView) (v : Data) :
-  (∀ n, (h : n < v.enc.length) → (BiTape.move_right^[n] tv.toBiTape).head = some v.enc[n]) ↔
-    tv.current = v := by
-  have key : ∀ n, (BiTape.move_right^[n] tv.toBiTape).head = tv.data.enc[tv.encodedPos + n]? := by
-    intro n
-    unfold toBiTape
-    simp [← Function.iterate_add_apply, Nat.add_comm]
-  constructor
-  · intro h
-    simp [key] at h
+-- /-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
+--     to `tv.current = v`. -/
+-- public lemma ite_enc_condition_iff' (tv : TapeView) (v : Data) :
+--   (∀ n, (h : n < v.enc.length) → (BiTape.move_right^[n] tv.toBiTape).head = some v.enc[n]) ↔
+--     tv.current = v := by
+--   have key : ∀ n, (BiTape.move_right^[n] tv.toBiTape).head = tv.data.enc[tv.encodedPos + n]? := by
+--     intro n
+--     unfold toBiTape
+--     simp [← Function.iterate_add_apply, Nat.add_comm]
+--   constructor
+--   · intro h
+--     simp [key] at h
 
 
 
 
 
 
-    sorry
-  · sorry
+--     sorry
+--   · sorry
 
 
 end TapeView
