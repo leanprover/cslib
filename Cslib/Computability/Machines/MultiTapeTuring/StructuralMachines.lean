@@ -158,11 +158,6 @@ public theorem while_neq.eval'
   (h_min : ∀ n' < n, (((tm.eval_tot h_halts)^[n'] tapes) i).head ≠ c) :
   (while_neq c i tm).eval tapes = ((tm.eval_tot h_halts)^[n] tapes) := by sorry
 
-/-- Execute body `tm`, then repeat while the data on tape `i` equals `d`.
-    This is a do-while variant that checks structural equality of the
-    entire data value, not just the head character. -/
-public def doWhileEq (d : Data) (i : Fin k) (tm : MultiTapeTM k Char) :
-  MultiTapeTM k Char := sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- eval_struct lemmas: Compositionality

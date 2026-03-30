@@ -12,26 +12,6 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
 namespace Turing
 namespace Routines
 
--- ═══════════════════════════════════════════════════════════════════════════
--- Copy and comparison
--- ═══════════════════════════════════════════════════════════════════════════
-
-/-- Copy a Data-encoded value from tape `i` to tape `j`
-    (prepending the encoding to tape `j`). -/
-public def copyEnc {k : ℕ} (i j : Fin k) : MultiTapeTM k Char := sorry
-
-/-- `copyEnc i j` copies the `Data` element at the current path position
-    of tape `i` and writes it to tape `j` (overwrites everything).
-    Tape `i` is not modified. -/
-@[simp]
-public lemma copyEnc_eval_struct {k : ℕ} {i j : Fin k}
-    {views : Fin k → TapeView}
-    {h_ne : i ≠ j} :
-    (copyEnc i j).eval_struct views = some (Function.update views j
-      (.ofData (views i).current)) := by sorry
-
--- TODO is this the same as ite?
-
 /-- Compare Data-encoded values on tapes `i` and `j`.
     Runs `tm_eq` if values are equal, `tm_neq` if not.
     Tapes `i` and `j` are restored to their original positions. -/
@@ -52,7 +32,6 @@ public lemma isEq.computes_fun {k : ℕ} (i j result : Fin k)
       (isEq i j result)
       (fun (d₁ : α) (d₂ : α) => d₂ == d₁) i j result := by
   sorry
-
 
 /-- `isEq i j result` compares the `Data` elements at the current positions
     of tapes `i` and `j`, and writes the boolean result to tape `result`
