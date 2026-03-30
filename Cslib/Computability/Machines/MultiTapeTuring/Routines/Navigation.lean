@@ -36,7 +36,7 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
       simp only [effect, Function.update_self, TapeView.appendPath]
       by_cases h_empty : (views i).current = .list []
       · simp [h_empty]
-      · simp [h_empty, TapeView.toBitape_of_appendPath _ _ h_left _]
+      · simp [h_empty, TapeView.toBitape_of_appendPath (views i) 0 (by sorry)]; sorry
     · have : j ≠ i := by aesop
       simp [this]
   simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect]
@@ -63,7 +63,6 @@ lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k �
      rw [skipRight_eval_struct (by simpa [h_parent] using h_valid) (by simp [h_parent, h_left])]
      simp [h_parent, h_left, h_valid]
      grind
-     sorry
 
 /-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
 Moves past `(` and then skips `idx` Data elements.

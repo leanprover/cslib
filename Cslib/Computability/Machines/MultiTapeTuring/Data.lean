@@ -22,9 +22,6 @@ public inductive Data where
 public abbrev Data.toList : Data → List Data
   | .list ds => ds
 
-@[simp]
-public lemma Data.toList_list (ds : List Data) : (Data.list ds).toList = ds := rfl
-
 mutual
   /-- TODO document -/
   public def Data.decEq : (a b : Data) → Decidable (a = b)
@@ -488,19 +485,6 @@ public lemma Data.atPath_dropLast_bind_getLast {d : Data} {path : List ℕ}
 public lemma Data.atPath_isSome_of_le_isSome {d : Data} {i₁ i₂ : ℕ}
     (h_le : i₁ ≤ i₂)
     (h_is_some : (d.atPath [i₂]).isSome) :
-  (d.atPath [i₁]).isSome := by
-  cases d with
-  | list ds =>
-    unfold Data.atPath at h_is_some ⊢
-    split at h_is_some
-    · split
-      · rfl
-      · rename_i h₂ h₁; exact absurd (by omega : i₁ < ds.length) h₁
-    · simp at h_is_some
-
-@[simp]
-public lemma Data.atPath_isSome_of_add_isSome {d : Data} {i₁ i₂ : ℕ}
-    (h_is_some : (d.atPath [i₁ + i₂]).isSome) :
   (d.atPath [i₁]).isSome := by
   cases d with
   | list ds =>

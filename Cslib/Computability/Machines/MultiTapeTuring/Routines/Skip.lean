@@ -41,7 +41,7 @@ public lemma skipRight_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipRight i).Halt
 /-- `skipRight i` moves to the next sibling element within a list,
     incrementing the last path index, or to the end of the list. -/
 @[simp]
-public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
+public lemma skipRight_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     (h_nonempty : (views i).path.getLast?.isSome)
     (h_left : (views i).headPos = .leftEnd) :

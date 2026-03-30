@@ -333,14 +333,13 @@ public lemma toBiTape_injective :
 
 @[simp]
 public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
-    (h_left : tv.headPos = .leftEnd)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
-  (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).toBiTape =
+  (TapeView.mk tv.data (tv.path ++ [idx]) HeadPos.leftEnd h).toBiTape =
     BiTape.move_right^[1 +
       ((tv.current.toList.take idx).map fun d : Data => d.enc.length).sum]
       tv.toBiTape := by
   unfold toBiTape
-  simp [h_left, ←Function.iterate_add_apply, Data.toList, -List.map_take]
+  simp [←Function.iterate_add_apply, Data.toList, -List.map_take]
   grind
 
 /-- Prepend a `Data` value to the front of a list on tape.
