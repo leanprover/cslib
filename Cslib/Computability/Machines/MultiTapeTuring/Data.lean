@@ -424,6 +424,15 @@ public lemma Data.atPath_dropLast_isSome_of_isSome {d : Data} {path : List ℕ}
     | none => simp [hd, Option.bind] at h_is_some
     | some d' => simp
 
+@[simp]
+public lemma Data.atPath_dropLast_bind_getLast {d : Data} {path : List ℕ}
+    (h_path : path.getLast?.isSome) :
+    ((d.atPath path.dropLast).bind fun d => d.atPath [path.getLast?.get h_path]) =
+      d.atPath path := by
+  conv_rhs => rw [show path = path.dropLast ++ [path.getLast?.get h_path] from by
+    simp [List.dropLast_append_getLast?]]
+  simp [Data.atPath_append]
+
 public lemma Data.atPath_isSome_of_le_isSome {d : Data} {i₁ i₂ : ℕ}
     (h_le : i₁ ≤ i₂)
     (h_is_some : (d.atPath [i₂]).isSome) :
