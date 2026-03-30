@@ -14,44 +14,42 @@ namespace Turing
 -- TapeView
 -- ═══════════════════════════════════════════════════════════════════════════
 
-/-- A structured view of a tape's contents, abstracting away
-    character-level encoding.
+/-- Head positioning. -/
+public inductive HeadPos where
+  /-- The head is positioned an the opening `(` -/
+  | leftEnd
+  /-- The head is positioned at the closing `)`. -/
+  | rightEnd
 
-    - `data`: an optional `Data` value on the tape. `none` means the tape
-      is empty, `some d` means the tape contains exactly `Data.enc d`.
-    - `path`: a navigation path into the `Data` value.
-      `[]` means the head is at the start of the encoding.
-      `[k]` means the head points to the `k`-th element of a `Data.list`.
-      `[k₁, k₂]` means we descended into element `k₁` (a list),
-      then element `k₂`.
-
-    Examples:
-    - `⟨Data.num 5, []⟩` — tape contains `[12]`, head at start
-    - `⟨Data.list [a, b], [1]⟩` — tape contains `(enc(a) enc(b))`,
-      head at start of `enc(b)`
-    - `⟨Data.list [], []⟩` — tape is empty -/
+/-- A structured view of a tape that contains an encoding of `Data`.
+    - `data`: the content present on the tape, encoding using `Data.enc`.
+    - `path`: a navigation path into the `Data` value, pointing to the "current" value.
+    - `headPos`: the position of the head, either at the left or right end of the current value.
+-/
 @[ext]
 public structure TapeView where
   /-- The `Data` value on the tape. -/
   data : Data
   /-- Navigation path into the `Data` value. -/
   path : List ℕ
+  /-- The position of the head, either at the left or right end. -/
+  headPos : HeadPos
   /-- The path is valid. -/
   h_path : (data.atPath path).isSome
 
-instance : Inhabited TapeView := ⟨⟨Data.list [], [], by rfl⟩⟩
+instance : Inhabited TapeView := ⟨⟨Data.list [], [], .leftEnd, by rfl⟩⟩
 
 namespace TapeView
 
 /-- A tape containing a single Data value with the head at the start. -/
 @[expose]
-public abbrev ofData (d : Data) : TapeView := ⟨d, [], by rfl⟩
+public abbrev ofData (d : Data) : TapeView := ⟨d, [], .leftEnd, by rfl⟩
 
 /-- TODO document -/
 @[expose]
 public abbrev ofList (ls : List Data) : TapeView := ofData (Data.list ls)
 
-/-- An empty tape (represented as an empty list). -/
+/-- An "empty" tape (represented as an empty list), so it is actually not really empty. -/
 @[expose]
 public abbrev empty : TapeView := ofList []
 
@@ -62,21 +60,21 @@ public abbrev ofEnc {α : Type*} [StrEnc α] (x : α) : TapeView :=
 
 /-- The Data element currently pointed to by the head (at the path
     position). Note that this is not tagged `@[simp]` because many
-    preconditions on simp lemmas use `(views i).current = ...`. -/
+    preconditions on simp lemmas use `(views i).current = ...`.
+    Also note that the head can be at the left or right end of the current value. -/
 @[expose]
 public def current (tv : TapeView) : Data :=
   (tv.data.atPath tv.path).get tv.h_path
 
 @[simp]
-public lemma current_append {data : Data} {path : List ℕ}
+public lemma current_append {data : Data} {path : List ℕ} {pos : HeadPos}
     {h : (data.atPath path).isSome} :
-  (TapeView.mk data path h).current =
+  (TapeView.mk data path pos h).current =
     (data.atPath path).get h := by simp [current]
 
 @[simp]
-public lemma mk_data_path (tv : TapeView)
-    (h : (tv.data.atPath tv.path).isSome) :
-    TapeView.mk tv.data tv.path h = tv := by
+public lemma mk_data_path (tv : TapeView) (h : (tv.data.atPath tv.path).isSome) :
+    TapeView.mk tv.data tv.path tv.headPos h = tv := by
   cases tv; rfl
 
 -- TODO it looks weird to make that a simp. is it OK?
@@ -84,26 +82,17 @@ public lemma mk_data_path (tv : TapeView)
 public lemma current_rev (tv : TapeView) :
   tv.data.atPath tv.path = tv.current := by simp [current]
 
-/-- The current value as a natural number, if it is a `Data.num`.
-    Returns `none` if the tape is empty, the path is invalid,
-    or the value at the path is a `Data.list`. -/
-public def currentNum (tv : TapeView) : Option ℕ :=
-  match tv.current with
-  | Data.num n => some n
-  | _ => none
-
 /-- The current value as a list, if it is a `List`.
     Returns `none` if the tape is empty, the path is invalid,
     or the value at the path is not a `Data.list`. -/
 @[expose]
-public abbrev currentList? (tv : TapeView) : Option (List Data) :=
-  match tv.current with
-  | Data.list ls => some ls
-  | _ => none
+public abbrev currentList (tv : TapeView) : List Data :=
+  match tv.current with | .list ls => ls
 
+/- Needed? -/
 @[simp]
 public lemma current_of_currentList (tv : TapeView) (ls : List Data)
-    (h_currentList : tv.currentList? = some ls) :
+    (h_currentList : tv.currentList = ls) :
   tv.current = Data.list ls := by grind
 
 /-- TODO document -/
@@ -111,39 +100,47 @@ public lemma current_of_currentList (tv : TapeView) (ls : List Data)
 public def parent (tv : TapeView) : TapeView :=
   match tv.path with
   | [] => tv
-  | _ => ⟨tv.data, tv.path.dropLast, by simp⟩
+  | _ => ⟨tv.data, tv.path.dropLast, tv.headPos, by simp⟩
 
 /-- TODO document -/
 @[expose, simp]
 public def appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
-  ⟨tv.data, tv.path ++ [idx], by simpa using h⟩
+  ⟨tv.data, tv.path ++ [idx], tv.headPos, by simpa using h⟩
 
 /-- Attempt to decode the current value as a typed value of type `α`.
     Returns `none` if the tape is empty, the path is invalid,
     or the `Data` at the path does not represent a valid value of
     type `α`. -/
-public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) :
-    Option α :=
+public def currentAs (α : Type*) [StrEnc α] (tv : TapeView) : Option α :=
   StrEnc.fromData tv.current
 
 /-- The position of the head in the encoded version of the
     `TapeView`. -/
 @[expose]
 public def encodedPos : (tv : TapeView) → ℕ
-  | ⟨_, [], _⟩ => 0
-  | ⟨Data.num _, _ :: _, _⟩ => 0 -- unreachable
-  | ⟨Data.list ds, p :: path, h_valid⟩ =>
+  | ⟨_, [], .leftEnd, _⟩ => 0
+  | ⟨d, [], .rightEnd, _⟩ => d.enc.length - 1
+  | ⟨.list ds, p :: path, headPos, h_valid⟩ =>
       have h : p < ds.length := by grind [Data.atPath]
       1 +
         ((ds.take p).map fun d => d.enc.length).sum +
-        encodedPos ⟨ds[p], path, by grind [Data.atPath]⟩
+        encodedPos ⟨ds[p], path, headPos, by grind [Data.atPath]⟩
   termination_by tv => tv.path.length
 
 @[simp]
-public lemma encodedPos_of_path_eq_nil (tv : TapeView)
-    (h_path : tv.path = []) :
+public lemma encodedPos_of_path_eq_nil_left (tv : TapeView)
+    (h_path : tv.path = [])
+    (h_left : tv.headPos = .leftEnd) :
   tv.encodedPos = 0 := by
+  unfold encodedPos
+  split <;> simp_all
+
+@[simp]
+public lemma encodedPos_of_path_eq_nil_right (tv : TapeView)
+    (h_path : tv.path = [])
+    (h_left : tv.headPos = .rightEnd) :
+  tv.encodedPos = tv.data.enc.length - 1 := by
   unfold encodedPos
   split <;> simp_all
 
@@ -152,7 +149,7 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) h).encodedPos =
       tv.encodedPos + 1 +
-      (((tv.currentList?.getD []).take idx).map
+      ((tv.currentList.take idx).map
         fun d => d.enc.length).sum := by
   unfold encodedPos
   sorry
@@ -217,6 +214,7 @@ public lemma enc_current_slice (tv : TapeView) (n : ℕ) (hn : n < tv.current.en
     simp only [List.getElem?_drop] at this
     exact this.symm
   rw [h1, List.getElem?_append_left hn, List.getElem?_eq_getElem]
+
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
 @[expose]
 public def toBiTape (tv : TapeView) : BiTape Char :=
@@ -312,7 +310,7 @@ public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) h).toBiTape =
     BiTape.move_right^[1 +
-      (((tv.currentList?.getD []).take idx).map
+      ((tv.currentList.take idx).map
         fun d => d.enc.length).sum]
       tv.toBiTape := by
   sorry

@@ -12,33 +12,23 @@ import Mathlib.Tactic.Linarith
 
 namespace Turing
 
-/-- Universal data type for structured TM computation.
-    All types processed by TM routines are first mapped to `Data`.
-    Numbers are encoded with `[dyadic]` and lists with `(elem₁…elemₙ)`. -/
+/-- Universal data type for structured TM computation. -/
 public inductive Data where
-  /-- A natural number. -/
-  | num : ℕ → Data
   /-- A list of data values. -/
   | list : List Data → Data
 
 mutual
   /-- TODO document -/
   public def Data.decEq : (a b : Data) → Decidable (a = b)
-    | .num n₁, .num n₂ =>
-      if h : n₁ = n₂ then isTrue (h ▸ rfl)
-      else isFalse (fun h' => h (Data.num.inj h'))
     | .list l₁, .list l₂ =>
       match Data.decEqList l₁ l₂ with
       | isTrue h => isTrue (h ▸ rfl)
       | isFalse h => isFalse (fun h' => h (Data.list.inj h'))
-    | .num _, .list _ => isFalse Data.noConfusion
-    | .list _, .num _ => isFalse Data.noConfusion
 
   /-- TODO document -/
   public def Data.decEqList : (l₁ l₂ : List Data) → Decidable (l₁ = l₂)
     | [], [] => isTrue rfl
-    | [], _ :: _ => isFalse nofun
-    | _ :: _, [] => isFalse nofun
+    | [], _ :: _ | _ :: _, [] => isFalse nofun
     | a :: as, b :: bs =>
       match Data.decEq a b, Data.decEqList as bs with
       | isTrue h₁, isTrue h₂ => isTrue (by rw [h₁, h₂])
@@ -50,17 +40,9 @@ end
 
 public instance : DecidableEq Data := Data.decEq
 
-/-- Encoding of `Data` into a list of characters.
-    - `Data.num n` is encoded as `[dyadic(n)]`
-    - `Data.list ds` is encoded as `(enc(d₁) ++ … ++ enc(dₙ))` -/
+/-- Encoding of `Data` into a list of characters. -/
 public def Data.enc : Data → List Char
-  | Data.num n => ['['] ++ dyadic n ++ [']']
   | Data.list ds => ['('] ++ (ds.map Data.enc).flatten ++ [')']
-
-@[simp]
-public lemma Data.enc_num (n : ℕ) :
-    Data.enc (Data.num n) = ['['] ++ dyadic n ++ [']'] := by
-  unfold Data.enc; rfl
 
 @[simp]
 public lemma Data.enc_list (ds : List Data) :
@@ -69,14 +51,13 @@ public lemma Data.enc_list (ds : List Data) :
 
 public lemma Data.enc_length_pos (d : Data) : 0 < d.enc.length := by
   cases d with
-  | num n => simp [Data.enc_num]
   | list ds => simp [Data.enc_list]
 
 -- ─── Balance machinery for prefix-freeness ───────────────────────────────
 
 private def bw (c : Char) : Int :=
-  if c = '[' ∨ c = '(' then 1
-  else if c = ']' ∨ c = ')' then -1
+  if c = '(' then 1
+  else if c = ')' then -1
   else 0
 
 private def bal (l : List Char) : Int := (l.map bw).sum
@@ -90,17 +71,6 @@ private def bal (l : List Char) : Int := (l.map bw).sum
     bal (l₁ ++ l₂) = bal l₁ + bal l₂ := by
   simp [bal, List.map_append, List.sum_append]
 
-private lemma bw_dyadic {c : Char} {n : ℕ} (h : c ∈ dyadic n) : bw c = 0 := by
-  rcases dyadic_mem_chars h with rfl | rfl <;> decide
-
-private lemma bal_of_all_bw_zero {l : List Char} (h : ∀ c ∈ l, bw c = 0) :
-    bal l = 0 := by
-  induction l with
-  | nil => rfl
-  | cons c cs ih => simp [h c (.head ..), ih (fun x hx => h x (.tail _ hx))]
-
-private lemma bal_dyadic_take (n : ℕ) (i : ℕ) : bal ((dyadic n).take i) = 0 :=
-  bal_of_all_bw_zero (fun _ hc => bw_dyadic (List.mem_of_mem_take hc))
 
 /-- Balance at interior positions of a flatten of balanced segments is non-negative. -/
 private lemma bal_flatten_take_nonneg
@@ -130,18 +100,6 @@ private lemma bal_flatten_take_nonneg
 private lemma Data.enc_bal (d : Data) :
     bal d.enc = 0 ∧ ∀ i, 0 < i → i < d.enc.length → 0 < bal (d.enc.take i) := by
   match d with
-  | .num n =>
-    simp only [Data.enc_num]
-    constructor
-    · simp only [bal_append, bal_cons, bal_of_all_bw_zero (fun _ h => bw_dyadic h)]; decide
-    · intro i hi hlt
-      simp only [List.length_append, List.length_cons, List.length_nil] at hlt
-      change 0 < bal (('[' :: (dyadic n ++ [']'])).take i)
-      match i, hi with
-      | i + 1, _ =>
-        simp only [List.take_succ_cons, bal_cons,
-            List.take_append_of_le_length (show i ≤ (dyadic n).length by omega), bal_dyadic_take]
-        decide
   | .list ds =>
     simp only [Data.enc_list]
     have ih d' (_ : d' ∈ ds) := Data.enc_bal d'
@@ -204,12 +162,6 @@ mutual
 private def Data.enc_injective_mut (d₁ d₂ : Data) (h : d₁.enc = d₂.enc) :
     d₁ = d₂ :=
   match d₁, d₂ with
-  | .num n₁, .num n₂ => by
-    simp only [Data.enc_num] at h
-    have := congrArg dyadic_inv (cons_append_inj h)
-    rw [dyadic_inv_dyadic, dyadic_inv_dyadic] at this
-    exact congrArg Data.num (Option.some_injective _ this)
-  | .num _, .list _ | .list _, .num _ => by simp [Data.enc_num, Data.enc_list] at h
   | .list ds₁, .list ds₂ => by
     simp only [Data.enc_list] at h
     exact congrArg Data.list (enc_flatten_injective_mut ds₁ ds₂ (cons_append_inj h))
@@ -278,20 +230,15 @@ public instance : StrEnc Data where
   fromData := some
   fromData_toData _ := rfl
 
-public instance : StrEnc ℕ where
-  toData := Data.num
-  fromData
-    | Data.num n => some n
-    | _ => none
-  fromData_toData _ := rfl
-
 public instance : StrEnc Bool where
   toData
-    | false => Data.num 0
-    | true => Data.num 1
+      -- ((()))
+    | false => .list [.list [.list []]]
+      -- (()())
+    | true => .list [.list [], .list []]
   fromData
-    | Data.num 0 => some false
-    | Data.num 1 => some true
+    | .list [.list [.list []]] => some false
+    | .list [.list [], .list []] => some true
     | _ => none
   fromData_toData
     | false => rfl
@@ -299,34 +246,19 @@ public instance : StrEnc Bool where
 
 @[simp]
 public lemma Bool.toData (d : Bool) :
-  StrEnc.toData d = match d with | false => Data.num 0 | true => Data.num 1  := rfl
-
-@[simp]
-public lemma StrEnc.fromData_num_nat (n : ℕ) : StrEnc.fromData (Data.num n) = some n := rfl
-
-@[simp]
-public lemma StrEnc.fromData_list_nat (ds : List Data) :
-    (StrEnc.fromData (Data.list ds) : Option ℕ) = none := rfl
-
-@[simp]
-public lemma StrEnc.fromData_data (d : Data) : StrEnc.fromData d = some d := rfl
-
-@[simp]
-public lemma StrEnc.fromData_false : StrEnc.fromData (Data.num 0) = some false := rfl
-
-@[simp]
-public lemma StrEnc.fromData_true : StrEnc.fromData (Data.num 1) = some true := rfl
+  StrEnc.toData d = match d with
+    | false => .list [.list [.list []]]
+    | true => .list [.list [], .list []] := by rfl
 
 public instance (α : Type*) [StrEnc α] : StrEnc (List α) where
   toData l := Data.list (l.map StrEnc.toData)
-  fromData
-    | Data.list ds => ds.mapM StrEnc.fromData
-    | _ => none
+  fromData := fun ⟨ds⟩ => ds.mapM StrEnc.fromData
   fromData_toData l := by
     induction l with
     | nil => rfl
     | cons a as ih => simp [List.mapM_cons, StrEnc.fromData_toData a, ih]
 
+/-- Encode `Option α` using the empty list for `none` and a singleton list otherwise. -/
 public instance (α : Type) [StrEnc α] : StrEnc (Option α) where
   toData o := StrEnc.toData o.toList
   fromData
@@ -337,13 +269,22 @@ public instance (α : Type) [StrEnc α] : StrEnc (Option α) where
     intro o
     cases o with | some _ | none <;> simp [StrEnc.toData]
 
+/-- Encode `ℕ` in dyadic, using `true` for `2` and `false` for `1`. -/
+public instance : StrEnc ℕ where
+  toData n := StrEnc.toData ((dyadic n).map (·  == '2'))
+  fromData d := do
+    let bits : List Bool ← StrEnc.fromData d
+    dyadic_inv (bits.map (if · then '2' else '1'))
+  fromData_toData _ := sorry
+
+/-- Encode `Char` through `ℕ` -/
 public instance : StrEnc Char where
   toData o := StrEnc.toData o.toNat
-  fromData
-    | Data.num n => some (Char.ofNat n)
-    | _ => none
+  fromData d := StrEnc.fromData d >>= fun n : ℕ => Char.ofNat n
   fromData_toData := by simp
 
+/-- Encode `Fin k` through `ℕ`.
+TODO: We might want to use padded encoding if `k` is a power of two. -/
 public instance (k : ℕ) : StrEnc (Fin k) where
   toData i := StrEnc.toData i.val
   fromData d := do
@@ -418,24 +359,18 @@ public def StrEnc.ofEncodable (α : Type) [Encodable α] : StrEnc α where
     Encodable.decode n
   fromData_toData a := by simp [Encodable.encodek]
 
-/-- Example: encoding the addition function on `Fin 4 × Fin 4 → ℕ`. -/
-noncomputable example : Data :=
-  letI := StrEnc.ofFunction (Fin 4 × Fin 4) ℕ
-  StrEnc.toData (fun (p : Fin 4 × Fin 4) => p.1.val + p.2.val)
-
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Data.atPath
 -- ═══════════════════════════════════════════════════════════════════════════
 
 /-- Navigate into a `Data` value at the given path.
     Returns the sub-`Data` element at the path, or `none` if the path is invalid
-    (e.g., indexing into a `num` or out-of-bounds on a `list`). -/
+    (e.g., through out-of-bounds on a `list`). -/
 @[expose]
 public def Data.atPath : Data → List ℕ → Option Data
   | d, [] => some d
   | Data.list ds, k :: rest =>
     if h : k < ds.length then (ds[k]).atPath rest else none
-  | Data.num _, _ :: _ => none
 
 @[simp]
 public lemma Data.atPath_nil (d : Data) : d.atPath [] = some d := by
@@ -454,7 +389,6 @@ public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
   | nil => simp [Data.atPath]
   | cons k rest ih =>
     cases d with
-    | num n => grind [Data.atPath]
     | list ds => grind [Data.atPath]
 
 @[simp]
