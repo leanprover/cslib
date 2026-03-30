@@ -12,7 +12,7 @@ import Cslib.Foundations.Semantics.LTS.Notation
 
 namespace CslibTests
 
-open Cslib
+open Cslib LTS
 
 -- A simple LTS on natural numbers
 
