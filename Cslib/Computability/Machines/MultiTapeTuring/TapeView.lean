@@ -22,9 +22,9 @@ public inductive HeadPos where
   | rightEnd
 
 /-- A structured view of a tape that contains an encoding of `Data`.
-    - `data`: the content present on the tape, encoding using `Data.enc`.
-    - `path`: a navigation path into the `Data` value, pointing to the "current" value.
-    - `headPos`: the position of the head, either at the left or right end of the current value.
+- `data`: the content present on the tape, encoding using `Data.enc`.
+- `path`: a navigation path into the `Data` value, pointing to the "current" value.
+- `headPos`: the position of the head, either at the left or right end of the current value.
 -/
 @[ext]
 public structure TapeView where

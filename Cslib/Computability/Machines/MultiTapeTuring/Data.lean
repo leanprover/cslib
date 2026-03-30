@@ -275,7 +275,18 @@ public instance : StrEnc ℕ where
   fromData d := do
     let bits : List Bool ← StrEnc.fromData d
     dyadic_inv (bits.map (if · then '2' else '1'))
-  fromData_toData _ := sorry
+  fromData_toData n := by
+    simp only [StrEnc.fromData_toData]
+    have hroundtrip : ∀ l : List Char, (∀ c ∈ l, c = '1' ∨ c = '2') →
+        (l.map (· == '2')).map (if · then '2' else '1') = l := by
+      intro l hl
+      induction l with
+      | nil => rfl
+      | cons c cs ih =>
+        simp only [List.map_cons, List.cons.injEq]
+        exact ⟨by rcases hl c (.head _) with rfl | rfl <;> decide,
+               ih (fun c hc => hl c (.tail _ hc))⟩
+    simp [hroundtrip _ (fun c hc => dyadic_mem_chars hc), dyadic_inv_dyadic]
 
 /-- Encode `Char` through `ℕ` -/
 public instance : StrEnc Char where
