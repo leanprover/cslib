@@ -8,7 +8,7 @@ module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Eq
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 
 set_option autoImplicit false

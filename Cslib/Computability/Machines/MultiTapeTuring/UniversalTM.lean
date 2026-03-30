@@ -10,7 +10,8 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Basic
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Copy
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Eq
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListIteration
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed

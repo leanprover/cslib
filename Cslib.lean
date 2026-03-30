@@ -49,13 +49,15 @@ public import Cslib.Computability.Machines.MultiTapeTuring.PopRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.PushRoutine
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Copy
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Eq
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListIteration
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
-public import Cslib.Computability.Machines.MultiTapeTuring.Routines.MultiTape
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Put
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Typed
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.While
 public import Cslib.Computability.Machines.MultiTapeTuring.Satisfiability
 public import Cslib.Computability.Machines.MultiTapeTuring.SequentialCombinator
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
