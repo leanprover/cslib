@@ -407,26 +407,41 @@ public lemma Data.atPath_get_atPath {d : Data} {path₁ path₂ : List ℕ}
     (h_valid : (d.atPath path₁).isSome) :
     ((d.atPath path₁).get h_valid).atPath path₂ =
       d.atPath (path₁ ++ path₂) := by
-  simp [Data.atPath_append]
-  sorry
+  rw [Data.atPath_append]
+  obtain ⟨d', hd'⟩ := Option.isSome_iff_exists.mp h_valid
+  simp [hd']
 
 @[simp]
 public lemma Data.atPath_dropLast_isSome_of_isSome {d : Data} {path : List ℕ}
     (h_is_some : (d.atPath path).isSome) :
   (d.atPath path.dropLast).isSome := by
-  sorry
+  induction path using List.reverseRecOn with
+  | nil => exact h_is_some
+  | append_singleton l a _ =>
+    rw [List.dropLast_concat]
+    rw [Data.atPath_append] at h_is_some
+    cases hd : d.atPath l with
+    | none => simp [hd, Option.bind] at h_is_some
+    | some d' => simp
 
 public lemma Data.atPath_isSome_of_le_isSome {d : Data} {i₁ i₂ : ℕ}
     (h_le : i₁ ≤ i₂)
     (h_is_some : (d.atPath [i₂]).isSome) :
   (d.atPath [i₁]).isSome := by
-  sorry
+  cases d with
+  | list ds =>
+    unfold Data.atPath at h_is_some ⊢
+    split at h_is_some
+    · split
+      · rfl
+      · rename_i h₂ h₁; exact absurd (by omega : i₁ < ds.length) h₁
+    · simp at h_is_some
 
 -- TODO redundant?
 @[simp]
 public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
     (h_succ_is_some : (d.atPath [idx + 1]).isSome) :
-  (d.atPath [idx]).isSome := by
-  sorry
+  (d.atPath [idx]).isSome :=
+  Data.atPath_isSome_of_le_isSome (by omega) h_succ_is_some
 
 end Turing
