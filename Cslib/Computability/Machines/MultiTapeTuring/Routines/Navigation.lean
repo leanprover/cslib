@@ -17,18 +17,11 @@ namespace Routines
 @[simp]
 public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
-    (h_valid : ((views i).current.atPath [0]).isSome) :
+    (h_valid : ((views i).current.atPath [0]).isSome)
+    (h_left : (views i).headPos = .leftEnd) :
     (right i).eval_struct views = .some
       (Function.update views i ((views i).appendPath 0 h_valid)) := by
-  have h : Function.update (TapeView.toBiTape ∘ views) i (views i).toBiTape.move_right =
-      fun j => ((Function.update views i ((views i).appendPath 0 h_valid)) j).toBiTape := by
-    ext1 j
-    by_cases h_ij : i = j
-    · subst h_ij
-      simp
-    · have : j ≠ i := by aesop
-      simp [this]
-  simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct]
+  sorry
 
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
   match n with
@@ -38,19 +31,12 @@ def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
 lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k → TapeView}
     {parent : TapeView}
     (h_valid : (parent.current.atPath [j + n]).isSome)
+    (h_left : parent.headPos = .leftEnd)
     (h_parent : (views i) = parent.appendPath j
           (Data.atPath_isSome_of_le_isSome (by simp) h_valid)) :
     (skipRight_n n i).eval_struct views = .some (Function.update views i
-      ((views i).parent.appendPath (j + n) (by simp [h_parent, h_valid]))) := by
-  induction n with
-  | zero => simp [skipRight_n, h_parent]
-  | succ n ih =>
-     simp only [skipRight_n, seq_eval_struct]
-     rw [ih (Data.atPath_isSome_of_le_isSome (by simp) h_valid) h_parent]
-     simp only [Part.bind_some]
-     rw [skipRight_eval_struct h_valid (by simp [h_parent])]
-     simp [h_parent]
-     grind
+      ((views i).parent.appendPath (j + n) (by sorry))) := by
+  sorry
 
 /-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
 Moves past `(` and then skips `idx` Data elements.
@@ -62,14 +48,11 @@ public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char :=
 on tape `i`. -/
 @[simp]
 public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView}
-  (h_valid : ((views i).current.atPath [idx]).isSome) :
+  (h_valid : ((views i).current.atPath [idx]).isSome)
+  (h_left : (views i).headPos = .leftEnd) :
   (toElem idx i).eval_struct views = .some
     (Function.update views i ((views i).appendPath idx h_valid)) := by
-  have h : 0 ≤ idx := by omega
-  simp only [toElem, seq_eval_struct, Data.atPath_isSome_of_le_isSome h h_valid,
-    right_on_nonempty_list, TapeView.appendPath, Part.bind_some]
-  rw [skipRight_n.eval_struct (j := 0) (parent := views i) (by simp [h_valid]) (by simp)]
-  simp
+  sorry
 
 -- TODO for this to work, we need to encode numbers using `()`
 

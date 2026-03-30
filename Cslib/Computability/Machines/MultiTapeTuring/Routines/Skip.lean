@@ -36,7 +36,7 @@ public lemma skipLeft_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipLeft i).HaltsO
 public lemma skipRight_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipRight i).HaltsOn t := by
   sorry
 
--- TODO would be nice to make this a simp lemma.
+-- TODO move the two conditions into the body
 
 /-- `skipRight i` moves to the next sibling element within a list,
     incrementing the last path index, or to the end of the list. -/
@@ -57,30 +57,27 @@ public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
     left end of the last entry in the list.
     When positioned at the left end of a non-first item in a list, it moves
     to the left end of the previous item. -/
-public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView} :
+@[simp]
+public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
     (skipLeft i).eval_struct views = .some (Function.update views i (
       if h_right : (views i).headPos = .rightEnd then
         if h_empty : (views i).currentList.isEmpty then
           views i
         else
-          ((views i).appendPath
-            ((views i).currentList.length - 1) (by
+          ((views i).appendPath ((views i).currentList.length - 1) (by
               rw [TapeView.current_atPath_length_sub_one_isSome_of_non_empty _ h_empty])).toLeftEnd
       else
         if h_path : (views i).path.getLast?.isSome then
           let idx := (views i).path.getLast?.get h_path
           if h_prev : 0 < idx then
             (views i).parent.appendPath (idx - 1) (by
-              unfold TapeView.current;
-              have : idx - 1 ≤ idx := by omega
-              apply Data.atPath_isSome_of_le_isSome this
-              simp [idx, (views i).h_path]
-              )
+                unfold TapeView.current;
+                apply Data.atPath_isSome_of_le_isSome (show idx - 1 ≤ idx from by omega)
+                simp [idx])
           else
             views i
         else
-          (views i))) := by sorry
+          views i)) := by sorry
 
 end Routines
 end Turing
