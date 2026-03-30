@@ -147,7 +147,7 @@ public lemma encodedPos_of_path_eq_nil_right (tv : TapeView)
 @[simp]
 public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
-  (TapeView.mk tv.data (tv.path ++ [idx]) h).encodedPos =
+  (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).encodedPos =
       tv.encodedPos + 1 +
       ((tv.currentList.take idx).map
         fun d => d.enc.length).sum := by
@@ -159,16 +159,17 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
 private lemma enc_drop_prefix (tv : TapeView) :
     tv.current.enc <+: tv.data.enc.drop tv.encodedPos := by
   match tv with
-  | ⟨_, [], h_path⟩ =>
+  | ⟨_, [], .leftEnd, h_path⟩ =>
     simp [current, Data.atPath]
-  | ⟨Data.num _, _ :: _, h_path⟩ =>
-    simp [Data.atPath] at h_path
-  | ⟨Data.list ds, p :: path, h_valid⟩ =>
+  | ⟨d, [], .rightEnd, h_path⟩ =>
+    simp [current, Data.atPath, encodedPos]
+    sorry
+  | ⟨Data.list ds, p :: path, headPos, h_valid⟩ =>
     have hp : p < ds.length := by grind [Data.atPath]
     have h_path_valid : (ds[p].atPath path).isSome := by grind [Data.atPath]
-    have ih := enc_drop_prefix ⟨ds[p], path, h_path_valid⟩
-    have h_current : (⟨Data.list ds, p :: path, h_valid⟩ : TapeView).current =
-        (⟨ds[p], path, h_path_valid⟩ : TapeView).current := by
+    have ih := enc_drop_prefix ⟨ds[p], path, headPos, h_path_valid⟩
+    have h_current : (⟨Data.list ds, p :: path, headPos, h_valid⟩ : TapeView).current =
+        (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).current := by
       unfold current; simp [Data.atPath, hp]
     rw [h_current]; simp only [encodedPos, Data.enc_list]
     -- Strip the leading '('
@@ -176,9 +177,9 @@ private lemma enc_drop_prefix (tv : TapeView) :
     rw [show ['('] ++ (ds.map Data.enc).flatten ++ [')'] =
         '(' :: ((ds.map Data.enc).flatten ++ [')']) from by simp,
       show 1 + ((ds.take p).map fun d => d.enc.length).sum +
-        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos =
+        (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).encodedPos =
         (((ds.take p).map fun d => d.enc.length).sum +
-        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos) + 1 from by omega,
+        (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).encodedPos) + 1 from by omega,
       List.drop_succ_cons]
     -- Split flatten at position p
     have h_flatten_eq : (ds.map Data.enc).flatten =
@@ -190,16 +191,16 @@ private lemma enc_drop_prefix (tv : TapeView) :
       rw [List.length_flatten, List.map_map]; rfl
     rw [h_flatten_eq, List.append_assoc]
     rw [show ((ds.take p).map fun d => d.enc.length).sum +
-        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos =
+        (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).encodedPos =
         ((ds.take p).map Data.enc).flatten.length +
-        (⟨ds[p], path, h_path_valid⟩ : TapeView).encodedPos from by omega]
+        (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).encodedPos from by omega]
     rw [List.drop_length_add_append,
       List.drop_eq_getElem_cons hp, List.map_cons, List.flatten_cons, List.append_assoc]
     rw [List.drop_append_of_le_length (by
         rcases ih with ⟨t, ht⟩
         have h_len := congrArg List.length ht
         simp only [List.length_drop, List.length_append] at h_len
-        have := Data.enc_length_pos (⟨ds[p], path, h_path_valid⟩ : TapeView).current
+        have := Data.enc_length_pos (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).current
         omega)]
     exact ih.trans (List.prefix_append ..)
   termination_by tv.path.length
@@ -308,7 +309,7 @@ public lemma toBiTape_injective :
 @[simp]
 public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
-  (TapeView.mk tv.data (tv.path ++ [idx]) h).toBiTape =
+  (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).toBiTape =
     BiTape.move_right^[1 +
       ((tv.currentList.take idx).map
         fun d => d.enc.length).sum]
@@ -322,34 +323,27 @@ public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
 @[expose]
 public def pushList (d : Data) (tv : TapeView) : TapeView :=
   match tv with
-  | ⟨Data.list ds, [], _⟩ => ⟨Data.list (d :: ds), [], rfl⟩
+  | ⟨Data.list ds, [], headPos, _⟩ => ⟨Data.list (d :: ds), [], headPos, rfl⟩
   | other => other
 
 @[simp]
-public lemma pushList_list {d : Data} {ds : List Data} :
-    (TapeView.mk (Data.list ds) [] sorry).pushList d =
-      TapeView.mk (Data.list (d :: ds)) [] rfl := by
-  unfold pushList; rfl
-
-@[simp]
-public lemma pushList_num {d : Data} {n : ℕ} {p : List ℕ} :
-    (TapeView.mk (Data.num n) p sorry).pushList d =
-      TapeView.mk (Data.num n) p sorry := by
+public lemma pushList_list {d : Data} {ds : List Data} {headPos : HeadPos} :
+    (TapeView.mk (Data.list ds) [] headPos sorry).pushList d =
+      TapeView.mk (Data.list (d :: ds)) [] headPos rfl := by
   unfold pushList; rfl
 
 @[simp]
 public lemma pushList_nonempty_path {d : Data} {dat : Data}
-    {k : ℕ} {rest : List ℕ} :
-    (TapeView.mk dat (k :: rest) sorry).pushList d =
-      TapeView.mk dat (k :: rest) sorry := by
+    {k : ℕ} {rest : List ℕ} {headPos : HeadPos} :
+    (TapeView.mk dat (k :: rest) headPos sorry).pushList d =
+      TapeView.mk dat (k :: rest) headPos sorry := by
   unfold pushList; cases dat with
-  | num _ => rfl
   | list _ => rfl
 
 /-- TODO document -/
 public def asWritableList (tv : TapeView) : Option (List Data) :=
   match tv with
-  | ⟨Data.list l, [], _⟩ => some l
+  | ⟨Data.list l, [], _, _⟩ => some l
   | _ => none
 
 /-- Remove the first element from a list on tape. -/
@@ -368,8 +362,8 @@ public def currentListHead (tv : TapeView) : Option Data :=
 public def updateListHead (tv : TapeView)
     (f : Data → Data) : TapeView :=
   match tv with
-  | ⟨Data.list (d :: ds), [], _⟩ =>
-    ⟨Data.list (f d :: ds), [], rfl⟩
+  | ⟨Data.list (d :: ds), [], headPos, _⟩ =>
+    ⟨Data.list (f d :: ds), [], headPos, rfl⟩
   | other => other
 
 /-- TODO document -/
