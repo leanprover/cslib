@@ -147,7 +147,7 @@ public lemma encodedPos_of_path_eq_nil_right (tv : TapeView)
 @[simp]
 public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
-  (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).encodedPos =
+  (TapeView.mk tv.data (tv.path ++ [idx]) .leftEnd h).encodedPos =
       tv.encodedPos + 1 +
       ((tv.currentList.take idx).map
         fun d => d.enc.length).sum := by
@@ -156,18 +156,17 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
 
 -- TODO clean up (ai)
 /-- The encoding starting at `encodedPos` begins with `current.enc`. -/
-private lemma enc_drop_prefix (tv : TapeView) :
+private lemma enc_drop_prefix (tv : TapeView) (h_left : tv.headPos = .leftEnd) :
     tv.current.enc <+: tv.data.enc.drop tv.encodedPos := by
   match tv with
   | ⟨_, [], .leftEnd, h_path⟩ =>
     simp [current, Data.atPath]
   | ⟨d, [], .rightEnd, h_path⟩ =>
-    simp [current, Data.atPath, encodedPos]
-    sorry
+    simp at h_left
   | ⟨Data.list ds, p :: path, headPos, h_valid⟩ =>
     have hp : p < ds.length := by grind [Data.atPath]
     have h_path_valid : (ds[p].atPath path).isSome := by grind [Data.atPath]
-    have ih := enc_drop_prefix ⟨ds[p], path, headPos, h_path_valid⟩
+    have ih := enc_drop_prefix ⟨ds[p], path, headPos, h_path_valid⟩ h_left
     have h_current : (⟨Data.list ds, p :: path, headPos, h_valid⟩ : TapeView).current =
         (⟨ds[p], path, headPos, h_path_valid⟩ : TapeView).current := by
       unfold current; simp [Data.atPath, hp]
@@ -207,9 +206,10 @@ private lemma enc_drop_prefix (tv : TapeView) :
 
 -- TODO clean up (ai)
 /-- `current.enc` is a slice of `data.enc` starting at `encodedPos`. -/
-public lemma enc_current_slice (tv : TapeView) (n : ℕ) (hn : n < tv.current.enc.length) :
+public lemma enc_current_slice (tv : TapeView) (h_left : tv.headPos = .leftEnd)
+    (n : ℕ) (hn : n < tv.current.enc.length) :
     tv.data.enc[tv.encodedPos + n]? = some tv.current.enc[n] := by
-  obtain ⟨suffix, h_suffix⟩ := enc_drop_prefix tv
+  obtain ⟨suffix, h_suffix⟩ := enc_drop_prefix tv h_left
   have h1 : tv.data.enc[tv.encodedPos + n]? = (tv.current.enc ++ suffix)[n]? := by
     have := congrArg (·[n]?) h_suffix
     simp only [List.getElem?_drop] at this
@@ -224,7 +224,7 @@ public def toBiTape (tv : TapeView) : BiTape Char :=
 -- TODO clean up (ai)
 /-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
     to `tv.current = v`. -/
-public lemma ite_enc_condition_iff (tv : TapeView) (v : Data) :
+public lemma ite_enc_condition_iff (tv : TapeView) (h_left : tv.headPos = .leftEnd) (v : Data) :
     (∀ n, (h : n < v.enc.length) →
       (BiTape.move_right^[n] tv.toBiTape).head = some v.enc[n]) ↔
     tv.current = v := by
@@ -239,7 +239,7 @@ public lemma ite_enc_condition_iff (tv : TapeView) (v : Data) :
     have h_eq_chars : ∀ n, (hn_c : n < tv.current.enc.length) → (hn_v : n < v.enc.length) →
         tv.current.enc[n] = v.enc[n] := by
       intro n hn_c hn_v
-      have h1 := enc_current_slice tv n hn_c
+      have h1 := enc_current_slice tv h_left n hn_c
       have h2 := h_match n hn_v
       rw [h1] at h2; exact Option.some_injective _ h2
     suffices h : tv.current.enc <+: v.enc ∨ v.enc <+: tv.current.enc by
@@ -255,7 +255,7 @@ public lemma ite_enc_condition_iff (tv : TapeView) (v : Data) :
     by_cases h_len : tv.current.enc.length ≤ v.enc.length
     · exact Or.inl (h_prefix h_len h_eq_chars)
     · exact Or.inr (h_prefix (by omega) fun n h1 h2 => (h_eq_chars n h2 h1).symm)
-  · intro h_eq; subst h_eq; exact fun n hn => enc_current_slice tv n hn
+  · intro h_eq; subst h_eq; exact fun n hn => enc_current_slice tv h_left n hn
 
 @[simp]
 public lemma toBiTape_ofData (d : Data) :
@@ -308,6 +308,7 @@ public lemma toBiTape_injective :
 
 @[simp]
 public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
+    (h_left : tv.headPos = .leftEnd)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).toBiTape =
     BiTape.move_right^[1 +
