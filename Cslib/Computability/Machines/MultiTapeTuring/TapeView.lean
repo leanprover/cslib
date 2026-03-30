@@ -96,12 +96,30 @@ public lemma current_of_currentList (tv : TapeView) (ls : List Data)
     (h_currentList : tv.currentList = ls) :
   tv.current = Data.list ls := by grind
 
+@[simp]
+public lemma current_atPath_length_sub_one_isSome_of_non_empty (tv : TapeView)
+    (h_nonempty : ¬ tv.currentList.isEmpty) :
+  (tv.current.atPath [tv.currentList.length - 1]).isSome := by
+  sorry
+
 /-- TODO document -/
 @[expose, simp]
-public def parent (tv : TapeView) : TapeView :=
-  match tv.path with
-  | [] => tv
-  | _ => ⟨tv.data, tv.path.dropLast, tv.headPos, by simp⟩
+public def parent (tv : TapeView) : TapeView := ⟨tv.data, tv.path.dropLast, tv.headPos, by simp⟩
+
+-- @[simp]
+-- public lemma parent_data (tv : TapeView) : tv.parent.data = tv.data := by
+--   unfold parent
+--   split <;> simp
+
+-- @[simp]
+-- public lemma parent_path (tv : TapeView) : tv.parent.path = tv.path.dropLast := by
+--   unfold parent
+--   split <;> grind
+
+-- @[simp]
+-- public lemma parent_headPos (tv : TapeView) : tv.parent.headPos = tv.headPos := by
+--   unfold parent
+--   split <;> grind
 
 /-- TODO document -/
 @[expose, simp]

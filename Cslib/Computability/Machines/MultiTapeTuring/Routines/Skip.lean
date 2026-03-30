@@ -61,20 +61,24 @@ public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (skipLeft i).eval_struct views = .some (Function.update views i (
       if h_right : (views i).headPos = .rightEnd then
-        if h_last : ((views i).current.atPath
-            [(views i).currentList.length - 1]).isSome then
-          ((views i).appendPath
-            ((views i).currentList.length - 1) h_last).toLeftEnd
+        if h_empty : (views i).currentList.isEmpty then
+          views i
         else
-          (views i).toLeftEnd
+          ((views i).appendPath
+            ((views i).currentList.length - 1) (by
+              rw [TapeView.current_atPath_length_sub_one_isSome_of_non_empty _ h_empty])).toLeftEnd
       else
         if h_path : (views i).path.getLast?.isSome then
-          let idx : ℕ := (views i).path.getLast?.get h_path
-          if h_prev : idx > 0 ∧
-              ((views i).parent.current.atPath [idx - 1]).isSome then
-            (views i).parent.appendPath (idx - 1) h_prev.2
+          let idx := (views i).path.getLast?.get h_path
+          if h_prev : 0 < idx then
+            (views i).parent.appendPath (idx - 1) (by
+              unfold TapeView.current;
+              have : idx - 1 ≤ idx := by omega
+              apply Data.atPath_isSome_of_le_isSome this
+              simp [idx, (views i).h_path]
+              )
           else
-            (views i).parent.toLeftEnd
+            views i
         else
           (views i))) := by sorry
 
