@@ -17,13 +17,20 @@ namespace Routines
 -- ═══════════════════════════════════════════════════════════════════════════
 
 /-- Prepend a Data element to a list encoding on tape `i`. -/
-@[expose]
 public def pushList {k : ℕ} (d : Data) (i : Fin k) : MultiTapeTM k Char :=
   write none i;ₜ right i;ₜ put d i;ₜ left i;ₜ write '(' i
 
 @[simp]
 public lemma pushList.computes_fun {k : ℕ} {d : Data} {i : Fin k} :
     computes_function_update (pushList d i) (fun (ls : List Data) => d :: ls) i := by
+  sorry
+
+/-- Prepend the Data element from tape `i` to the list at tape `j` (prepends it). -/
+public def copy_to_list {k : ℕ} (i j : Fin k) : MultiTapeTM k Char := sorry
+
+@[simp]
+public lemma copy_to_list.computes_fun {α : Type} [StrEnc α] {k : ℕ} {i j : Fin k} (h_ne : i ≠ j) :
+  computes_function_read_push (α := α) (copy_to_list i j) id i j := by
   sorry
 
 /-- Remove the first element from a list encoding on tape `i`.

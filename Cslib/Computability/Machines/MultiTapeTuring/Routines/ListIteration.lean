@@ -10,6 +10,8 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Eq
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.While
 
 set_option autoImplicit false
 
@@ -209,6 +211,56 @@ public lemma contains.computes_fun {k : ℕ}
 --   simp at x
 --   sorry
 
+inductive FindMapState where
+  | searching
+  | found
+  | notFound
+
+instance : StrEnc FindMapState where
+  toData
+    | FindMapState.searching => StrEnc.toData 0
+    | FindMapState.found => StrEnc.toData 1
+    | FindMapState.notFound => StrEnc.toData 2
+  fromData
+    | d =>
+      if d == StrEnc.toData 0 then some FindMapState.searching
+      else if d == StrEnc.toData 1 then some FindMapState.found
+      else if d == StrEnc.toData 2 then some FindMapState.notFound
+      else none
+  fromData_toData := by
+    intro s
+    cases s <;> simp [StrEnc.toData]
+
+/-- Execute `tm₁` on every item in the list on tape `i`. For the first item where it
+writes `true` to tape `j`, execute `tm₂`. If it never writes `true`, execute `tm₃` after
+returning to the list start. -/
+public def find_list {k : ℕ} (i j : Fin k) (tm₁ tm₂ tm₃ : MultiTapeTM k Char) :
+    MultiTapeTM k Char :=
+  replace (StrEnc.toData FindMapState.searching) j;ₜ
+  right i;ₜ
+  doWhileEq (StrEnc.toData FindMapState.searching) j (
+    if_eq ')' i
+      (replace (StrEnc.toData FindMapState.notFound) j;ₜ outOfList i)
+      (tm₁;ₜ ite_enc (StrEnc.toData true).enc j
+        (replace (StrEnc.toData FindMapState.found) j)
+        (replace (StrEnc.toData FindMapState.searching) j;ₜ skipRight i)));ₜ
+  ite_enc (StrEnc.toData FindMapState.found).enc j
+    (clear j;ₜ tm₂)
+    (clear j;ₜ tm₃)
+
+public theorem find_list.computes_fun {k : ℕ} {i j : Fin k}
+    (h_neq : i ≠ j)
+    {α : Type} [StrEnc α]
+    {tm₁ tm₂ tm₃ : MultiTapeTM k Char}
+    {f : α → Bool}
+    (h_comp₁ : computes_function_read_replace tm₁ f i j)
+    (views : Fin k → TapeView) :
+    ∀ ls : List α, (views i).current = StrEnc.toData ls →
+    views j = TapeView.empty →
+    (find_list i j tm₁ tm₂ tm₃).eval_struct views = match ls.findIdx? f with
+      | some idx => tm₂.eval_struct (Function.update views i ((views i).appendPath idx (by sorry)))
+      | none => tm₃.eval_struct views := by
+  sorry
 
 end Routines
 end Turing

@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 
 namespace Turing
 namespace Routines
@@ -16,7 +17,8 @@ namespace Routines
 -- Case dispatch
 -- ═══════════════════════════════════════════════════════════════════════════
 
-def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
+/-- TODO document -/
+public def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
   MultiTapeTM k Char := match v with
     | [] => then_branch
     | c :: cs => if_eq c i
@@ -24,7 +26,7 @@ def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : Mul
         else_branch
 
 @[simp]
-lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
+public lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
     {then_branch else_branch : MultiTapeTM k Char}
     {tapes : Fin k → BiTape Char} :
     (ite_enc v i then_branch else_branch).eval tapes =

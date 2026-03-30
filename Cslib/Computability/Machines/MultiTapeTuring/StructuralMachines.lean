@@ -158,6 +158,7 @@ public theorem while_neq.eval'
   (h_min : ∀ n' < n, (((tm.eval_tot h_halts)^[n'] tapes) i).head ≠ c) :
   (while_neq c i tm).eval tapes = ((tm.eval_tot h_halts)^[n] tapes) := by sorry
 
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- eval_struct lemmas: Compositionality
 -- ═══════════════════════════════════════════════════════════════════════════

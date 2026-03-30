@@ -14,7 +14,7 @@ namespace Routines
 
 /-- Copy a Data-encoded value from tape `i` to tape `j`
     (prepending the encoding to tape `j`). -/
-public def copyEnc {k : ℕ} (i j : Fin k) (h_eq : i ≠ j) : MultiTapeTM k Char := sorry
+public def copyEnc {k : ℕ} (i j : Fin k) : MultiTapeTM k Char := sorry
 
 /-- `copyEnc i j` copies the `Data` element at the current path position
     of tape `i` and writes it to tape `j` (overwrites everything).
@@ -23,7 +23,7 @@ public def copyEnc {k : ℕ} (i j : Fin k) (h_eq : i ≠ j) : MultiTapeTM k Char
 public lemma copyEnc_eval_struct {k : ℕ} {i j : Fin k}
     {views : Fin k → TapeView}
     {h_ne : i ≠ j} :
-    (copyEnc i j h_ne).eval_struct views = some (Function.update views j
+    (copyEnc i j).eval_struct views = some (Function.update views j
       (.ofData (views i).current)) := by sorry
 
 end Routines
