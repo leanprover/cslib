@@ -12,10 +12,18 @@ import Mathlib.Tactic.Linarith
 
 namespace Turing
 
+
 /-- Universal data type for structured TM computation. -/
 public inductive Data where
   /-- A list of data values. -/
   | list : List Data → Data
+
+@[expose]
+public abbrev Data.toList : Data → List Data
+  | .list ds => ds
+
+@[simp]
+public lemma Data.toList_list (ds : List Data) : (Data.list ds).toList = ds := rfl
 
 mutual
   /-- TODO document -/
@@ -392,6 +400,17 @@ public lemma Data.atPath_list_cons (ds : List Data) (k : ℕ) (rest : List ℕ)
     (h : k < ds.length) :
     (Data.list ds).atPath (k :: rest) = (ds[k]).atPath rest := by
   simp [Data.atPath, h]
+
+@[simp]
+public lemma Data.atPath_zero_isSome_of_nonempty {d : Data} :
+    (d.atPath [0]).isSome ↔ (d ≠ .list []) := by
+  cases d with
+  | list ds =>
+    simp only [Data.atPath, ne_eq, Data.list.injEq]
+    cases ds with
+    | nil => simp
+    | cons d ds => simp
+
 
 @[simp]
 public lemma Data.atPath_append {d : Data} {path₁ path₂ : List ℕ} :
