@@ -70,34 +70,16 @@ public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
         then_branch.eval_struct views
       else
         else_branch.eval_struct views := by -- TODO clean up (ai)
-  simp only [ite, MultiTapeTM.eval_struct, ite_enc.eval, Function.comp_apply,
-    TapeView.ite_enc_condition_iff]
-  split <;> rfl
+  -- simp only [ite, MultiTapeTM.eval_struct, ite_enc.eval, Function.comp_apply,
+  --   TapeView.ite_enc_condition_iff]
+  -- split <;> rfl
+  sorry
 
-/-- Branch on the `Data` constructor: `num_branch` if the value is a number,
-    `list_branch` if it is a list. The head stays at the start of the encoding. -/
-public def case_data {k : ℕ} (i : Fin k)
-    (num_branch list_branch : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
-
-/-- Dispatch on the numeric value of a `Data.num` encoding.
+/-- Dispatch on the numeric value of an encoding.
     Reads the number `n` and runs `branches[n]`.
     The head stays at the start of the encoding. -/
 public def case_num {k : ℕ} (i : Fin k)
     (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
-
-/-- `case_data i nb lb` branches on the constructor of the `Data` value.
-    Runs `nb` if it is a `num`, `lb` if it is a `list`. -/
-@[simp]
-public lemma case_data_eval_struct {k : ℕ} {i : Fin k}
-    {num_branch list_branch : MultiTapeTM k Char}
-    {views : Fin k → TapeView}
-    {d : Data}
-    (h_path : (views i).path = [])
-    (h_data : (views i).data = d) :
-    (case_data i num_branch list_branch).eval_struct views =
-      match d with
-      | Data.num _ => num_branch.eval_struct views
-      | Data.list _ => list_branch.eval_struct views := by sorry
 
 /-- `case_num i branches` dispatches on the numeric value at the current position
     of tape `i`. If `currentNum` is `some n` and `n < branches.length`, runs
@@ -107,18 +89,9 @@ public lemma case_num_eval_struct {k : ℕ} {i : Fin k}
     {branches : List (MultiTapeTM k Char)}
     {views : Fin k → TapeView} :
     (case_num i branches).eval_struct views =
-      match (views i).current with
-      | Data.num n => if h : n < branches.length then branches[n].eval_struct views else some views
+      match StrEnc.fromData (views i).current with
+      | some (n : ℕ) => if h : n < branches.length then branches[n].eval_struct views else some views
       | _ => some views := by sorry
-
-/-- Performs pattern-matching on an inductive type where each constructor has exactly one argument:
-Dispatches on the numeric value (`n`) of the first item of a `Data.list` (i.e. the constructor ID)
-and positions the head on the next item in the list and runs `branches[n]`.
-If `n` is out of range, or the tape is empty or not a list with at least two elements, does nothing.
-Moves the head back to the original position after running the branch.
-TODO these semantics seem rather complicated. -/
-public def case_ind_num_unary {k : ℕ} (i : Fin k)
-    (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
 
 /-- Dispatch on the numeric value of the first element of a list.
     Pops the first element from the list on tape `i`. If it is `Data.num n`
@@ -133,12 +106,13 @@ public lemma case_popList_num_eval_struct {k : ℕ} {i : Fin k}
     {branches : List (MultiTapeTM k Char)}
     {views : Fin k → TapeView} :
     (case_popList_num i branches).eval_struct views = match views i with
-      | ⟨Data.list ((Data.num n) :: ds), [], _⟩ =>
-        if h : n < branches.length then
-          branches[n].eval_struct (Function.update views i (.ofList ds))
-        else
-          views
-      | _ => views := by sorry
+      | ⟨Data.list (n :: ds), [], .leftEnd, _⟩ => match StrEnc.fromData n with
+        | some (n : ℕ) => if h_n : n < branches.length then
+            branches[n].eval_struct (Function.update views i (.ofList ds))
+          else
+            .some views
+        | _ => .some views
+      | _ => .some views := by sorry
 
 /-- Runs `then_branch` if tape `i` points at a list whose head is `v`, otherwise
 runs `else_branch`. -/

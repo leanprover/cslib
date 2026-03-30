@@ -83,23 +83,10 @@ public lemma mk_data_path (tv : TapeView) (h : (tv.data.atPath tv.path).isSome) 
 public lemma current_rev (tv : TapeView) :
   tv.data.atPath tv.path = tv.current := by simp [current]
 
-/-- The current value as a list, if it is a `List`.
-    Returns `none` if the tape is empty, the path is invalid,
-    or the value at the path is not a `Data.list`. -/
-@[expose]
-public abbrev currentList (tv : TapeView) : List Data :=
-  match tv.current with | .list ls => ls
-
-/- Needed? -/
-@[simp]
-public lemma current_of_currentList (tv : TapeView) (ls : List Data)
-    (h_currentList : tv.currentList = ls) :
-  tv.current = Data.list ls := by grind
-
 @[simp]
 public lemma current_atPath_length_sub_one_isSome_of_non_empty (tv : TapeView)
-    (h_nonempty : ¬ tv.currentList.isEmpty) :
-  (tv.current.atPath [tv.currentList.length - 1]).isSome := by
+    (h_nonempty : ¬ tv.current = .list []) :
+  (tv.current.atPath [tv.current.toList.length - 1]).isSome := by
   sorry
 
 /-- TODO document -/
@@ -176,14 +163,15 @@ public lemma encodedPos_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) .leftEnd h).encodedPos =
       tv.encodedPos + 1 +
-      ((tv.currentList.take idx).map fun d => d.enc.length).sum := by
+      ((match tv.current with | .list ls => ls.take idx).map fun d : Data => d.enc.length).sum := by
   sorry
 
 public lemma encodedPos_appendPath' (tv : TapeView) (idx : ℕ)
     (h_last : tv.path.getLast?.isSome)
     (h_left : tv.headPos = .leftEnd) :
   tv.encodedPos = tv.parent.encodedPos + 1 +
-      ((tv.currentList.take (tv.path.getLast?.get h_last)).map fun d => d.enc.length).sum := by
+      ((match tv.current with | .list ls => ls.take (tv.path.getLast?.get h_last)).map
+          fun d : Data => d.enc.length).sum := by
   sorry
 
 -- TODO clean up (ai)
@@ -294,6 +282,11 @@ public lemma toBiTape_ofData (d : Data) :
   (TapeView.ofData d).toBiTape = BiTape.mk₁ (Data.enc d) := by
   simp [toBiTape]
 
+@[simp]
+public lemma toBiTape_toRightEnd (tv : TapeView) :
+  tv.toRightEnd.toBiTape = BiTape.move_right^[tv.current.enc.length - 1] tv.toBiTape := by
+  sorry
+
 /-- TODO document -/
 public def ofBiTape? (t : BiTape Char) : Option TapeView := sorry
 
@@ -344,10 +337,10 @@ public lemma toBitape_of_appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.data.atPath (tv.path ++ [idx])).isSome) :
   (TapeView.mk tv.data (tv.path ++ [idx]) tv.headPos h).toBiTape =
     BiTape.move_right^[1 +
-      ((tv.currentList.take idx).map fun d => d.enc.length).sum]
+      ((tv.current.toList.take idx).map fun d : Data => d.enc.length).sum]
       tv.toBiTape := by
   unfold toBiTape
-  simp [h_left, ←Function.iterate_add_apply]
+  simp [h_left, ←Function.iterate_add_apply, Data.toList, -List.map_take]
   grind
 
 /-- Prepend a `Data` value to the front of a list on tape.

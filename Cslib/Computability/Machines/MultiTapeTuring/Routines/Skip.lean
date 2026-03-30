@@ -61,11 +61,10 @@ public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
 public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
     (skipLeft i).eval_struct views = .some (Function.update views i (
       if h_right : (views i).headPos = .rightEnd then
-        if h_empty : (views i).currentList.isEmpty then
+        if h_empty : (views i).current = .list [] then
           views i
         else
-          ((views i).appendPath ((views i).currentList.length - 1) (by
-              rw [TapeView.current_atPath_length_sub_one_isSome_of_non_empty _ h_empty])).toLeftEnd
+          ((views i).appendPath ((views i).current.toList.length - 1) (by simp [h_empty])).toLeftEnd
       else
         if h_path : (views i).path.getLast?.isSome then
           let idx := (views i).path.getLast?.get h_path

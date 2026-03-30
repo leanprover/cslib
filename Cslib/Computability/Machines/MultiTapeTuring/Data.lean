@@ -465,6 +465,19 @@ public lemma Data.atPath_isSome_of_le_isSome {d : Data} {i₁ i₂ : ℕ}
       · rename_i h₂ h₁; exact absurd (by omega : i₁ < ds.length) h₁
     · simp at h_is_some
 
+@[simp]
+public lemma Data.atPath_isSome_of_add_isSome {d : Data} {i₁ i₂ : ℕ}
+    (h_is_some : (d.atPath [i₁ + i₂]).isSome) :
+  (d.atPath [i₁]).isSome := by
+  cases d with
+  | list ds =>
+    unfold Data.atPath at h_is_some ⊢
+    split at h_is_some
+    · split
+      · rfl
+      · rename_i h₂ h₁; exact absurd (by omega : i₁ < ds.length) h₁
+    · simp at h_is_some
+
 -- TODO redundant?
 @[simp]
 public lemma Data.atPath_isSome_of_succ_isSome {d : Data} {idx : ℕ}
