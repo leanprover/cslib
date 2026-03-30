@@ -3,12 +3,14 @@
 Overview of the notation for common concepts.
 
 ## Equivalences
+
 - Alpha equivalence: `m =α n`
 - Bisimilarity: `p ~[lts] q` (`p` is bisimilar to `q` in the LTS `lts`)
 
 ## Operational semantics
 
 ### Option A
+
 This option uses an extra arrow head to denote reflexive and transitive closure.
 
 When there is only 'one' semantics:
@@ -31,6 +33,7 @@ As Option A, but uses `*` to denote reflexive and transitive closure.
 - Multi-step saturated transitions: `p [μs]⇒* q`.
 
 ### Option C
+
 Like Option A, but with triangle heads (`⭢`) to distinguish arrows from the usual implication in Lean (`→`). E.g., `(m ⭢ n) → (n ⭢ s) → (m ⯮ s)`.
 
 When there is only 'one' semantics:
