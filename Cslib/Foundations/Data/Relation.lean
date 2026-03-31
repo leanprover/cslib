@@ -200,7 +200,8 @@ def trans_of_subrelation_right (s r : α → α → Prop) (hr : IsTrans α r)
 /-- Confluence implies that multi-step joinability is an equivalence. -/
 theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
-  grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
+  apply equivalence_join reflexive_reflTransGen inferInstance
+  grind
 
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/
