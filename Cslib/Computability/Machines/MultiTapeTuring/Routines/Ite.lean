@@ -27,17 +27,13 @@ public def right_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
 public lemma left_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
     (left_n n i).eval tapes = Part.some
       (Function.update tapes i (BiTape.move_left^[n] (tapes i))) := by
-  simp only [left_n]
-  rw [iterate_n_eval_of_total (fun t => left.eval)]
-  simp
+  simp [left_n, iterate_n_eval_of_total (fun t => left.eval)]
 
 @[simp]
 public lemma right_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
     (right_n n i).eval tapes = Part.some
       (Function.update tapes i (BiTape.move_right^[n] (tapes i))) := by
-  simp only [right_n]
-  rw [iterate_n_eval_of_total (fun t => right.eval)]
-  simp
+  simp [right_n, iterate_n_eval_of_total (fun t => right.eval)]
 
 /-- Check characters left-to-right starting from the current (left-end) position.
     After checking, returns the head to the original position before running

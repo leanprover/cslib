@@ -63,8 +63,28 @@ lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k �
        Data.atPath_isSome_of_le_isSome (by omega) h_valid
      rw [skipRight_eval_struct (by simp [h_parent]) (by simp [h_parent, h_left])]
      simp only [Part.bind_some, h_parent]
-     -- Now do n more skipRights: j+1 → j+1+n
-     sorry
+     -- The skipRight result needs simplification.
+     -- Use convert to match with IH, then resolve side goals
+     have h_valid' : (parent.current.atPath [j + 1 + n]).isSome := by
+       have : j + 1 + n = j + (n + 1) := by omega
+       rw [this]; exact h_valid
+     rw [show iterate_n (skipRight i) n = skipRight_n n i from rfl]
+     -- First, show the skipRight output is parent.appendPath (j+1)
+     suffices h_eq :
+       (let idx := (parent.appendPath j _).path.getLast?.get _
+        if h_next : ((parent.appendPath j _).parent.current.atPath [idx.succ]).isSome then
+          (parent.appendPath j _).parent.appendPath idx.succ h_next
+        else
+          (parent.appendPath j _).parent.toRightEnd) =
+       parent.appendPath (j + 1) h_j_valid by
+       rw [h_eq, ih h_valid' (by simp)]
+       simp only [Function.update_idem, Function.update_self,
+         TapeView.appendPath, TapeView.parent, List.dropLast_concat]
+       simp only [show j + 1 + n = j + (n + 1) from by omega]
+     -- Prove h_eq
+     simp only [TapeView.appendPath, TapeView.parent, List.dropLast_concat,
+       List.getLast?_concat, Option.get_some, Nat.succ_eq_add_one]
+     rw [dif_pos h_j_valid]
 
 /-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
 Moves past `(` and then skips `idx` Data elements.
