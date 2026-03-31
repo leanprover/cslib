@@ -53,21 +53,47 @@ public lemma iterate_n_succ' {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     simp only [iterate_n_succ, MultiTapeTM.seq_eval] at this
     exact this
 
+/-- Evaluating `iterate_n tm n` is the same as iterating the monadic bind `(· >>= tm.eval)`. -/
+public lemma iterate_n_eval_bind {k : ℕ} {tm : MultiTapeTM k Char}
+    {n : ℕ} {tapes : Fin k → BiTape Char} :
+    (iterate_n tm n).eval tapes = ((· >>= tm.eval)^[n]) (pure tapes) := by
+  have aux : ∀ (m : ℕ) (p : Part (Fin k → BiTape Char)),
+      p >>= (fun x => ((· >>= tm.eval)^[m]) (pure x)) =
+      ((· >>= tm.eval)^[m]) p := by
+    intro m
+    induction m with
+    | zero => simp
+    | succ m ihm =>
+      intro p
+      simp only [Function.iterate_succ', Function.comp]
+      rw [← ihm, bind_assoc]
+  induction n generalizing tapes with
+  | zero => simp [iterate_n_zero, noop.eval]
+  | succ n ih =>
+    rw [iterate_n_succ, MultiTapeTM.seq_eval]
+    -- Goal: tm.eval tapes >>= (iterate_n tm n).eval =
+    --       ((· >>= tm.eval)^[n+1]) (pure tapes)
+    -- Unfold iterate on RHS: g^[n+1] (pure tapes) = g^[n] (g (pure tapes))
+    --                       = g^[n] (pure tapes >>= tm.eval) = g^[n] (tm.eval tapes)
+    show tm.eval tapes >>= (iterate_n tm n).eval =
+      ((· >>= tm.eval)^[n]) (pure tapes >>= tm.eval)
+    rw [pure_bind]
+    conv_lhs => arg 2; ext t; rw [ih]
+    exact aux n (tm.eval tapes)
+
 /-- If `tm` always produces `f tapes` on input `tapes`, then `iterate_n tm n` produces `f^[n]`. -/
 public lemma iterate_n_eval_of_total {k : ℕ} {tm : MultiTapeTM k Char}
     {f : (Fin k → BiTape Char) → (Fin k → BiTape Char)}
     (h : ∀ tapes, tm.eval tapes = Part.some (f tapes))
     {n : ℕ} {tapes : Fin k → BiTape Char} :
     (iterate_n tm n).eval tapes = Part.some (f^[n] tapes) := by
-  induction n generalizing tapes with
-  | zero => simp [iterate_n_zero, noop.eval]
+  rw [iterate_n_eval_bind]
+  induction n with
+  | zero => simp
   | succ n ih =>
-    simp only [iterate_n_succ]
-    rw [MultiTapeTM.seq_eval]
-    simp only [h]
-    change (Part.some (f tapes)).bind (fun t => (iterate_n tm n).eval t) = _
-    rw [Part.bind_some, ih]
-    simp [Function.iterate_succ']
+    simp only [Function.iterate_succ', Function.comp, ih]
+    show (Part.some (f^[n] tapes)).bind tm.eval = _
+    rw [Part.bind_some, h]
 
 end Routines
 end Turing
