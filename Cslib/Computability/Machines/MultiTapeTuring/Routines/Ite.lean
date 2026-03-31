@@ -9,31 +9,50 @@ module
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 
 namespace Turing
 namespace Routines
 
-/-- TODO document -/
-public def ite_enc {k : ℕ} (v : List Char) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
-  MultiTapeTM k Char := match v with
-    | [] => then_branch
-    | c :: cs => if_eq c i
-        (right i;ₜ ite_enc cs i (left i;ₜ then_branch) (left i;ₜ else_branch))
-        else_branch
+/-- Check characters left-to-right starting from the current (left-end) position.
+    After checking, returns the head to the original position before running
+    the then/else branch. -/
+public def ite_enc_from_left {k : ℕ}
+    (v : List Char) (i : Fin k)
+    (then_branch else_branch : MultiTapeTM k Char) :
+    MultiTapeTM k Char := match v with
+  | [] => then_branch
+  | c :: cs => if_eq c i
+      (right i;ₜ ite_enc_from_left cs i (left i;ₜ then_branch) (left i;ₜ else_branch))
+      else_branch
+
+/-- Check characters right-to-left starting from the current (right-end) position.
+    After checking, returns the head to the original position before running
+    the then/else branch. -/
+public def ite_enc_from_right {k : ℕ}
+    (v : List Char) (i : Fin k)
+    (then_branch else_branch : MultiTapeTM k Char) :
+    MultiTapeTM k Char := match v with
+  | [] => then_branch
+  | c :: cs => if_eq c i
+      (left i;ₜ ite_enc_from_right cs i (right i;ₜ then_branch) (right i;ₜ else_branch))
+      else_branch
 
 @[simp]
-public lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
+public lemma ite_enc_from_left.eval {k : ℕ} {v : List Char} {i : Fin k}
     {then_branch else_branch : MultiTapeTM k Char}
     {tapes : Fin k → BiTape Char} :
-    (ite_enc v i then_branch else_branch).eval tapes =
-      if ∀ n, (h : n < v.length) → (BiTape.move_right^[n] (tapes i)).head = some v[n] then
+    (ite_enc_from_left v i then_branch else_branch).eval tapes =
+      if ∀ n, (h : n < v.length) →
+        (BiTape.move_right^[n] (tapes i)).head = some v[n]
+      then
         then_branch.eval tapes
       else
         else_branch.eval tapes := by
   induction v generalizing tapes then_branch else_branch with
-  | nil => simp [ite_enc]
+  | nil => simp [ite_enc_from_left]
   | cons c cs ih =>
-    simp only [ite_enc, if_eq.eval]
+    simp only [ite_enc_from_left, if_eq.eval]
     by_cases h : (tapes i).head = some c
     · simp only [h, ↓reduceIte, MultiTapeTM.seq_eval, right.eval, Part.bind_some, Part.bind_eq_bind]
       rw [ih]
@@ -53,23 +72,28 @@ public lemma ite_enc.eval {k : ℕ} {v : List Char} {i : Fin k}
         intro h'; exact h (by simpa using h' 0 (by simp))
       exact (if_neg this).symm
 
-/-- Runs `then_branch` if `(views i).current = v`, otherwise `else_branch`. -/
-public def ite {k : ℕ} (v : Data) (i : Fin k) (then_branch else_branch : MultiTapeTM k Char) :
-  MultiTapeTM k Char := ite_enc v.enc i then_branch else_branch
+/-- Runs `then_branch` if `(views i).current = v`, otherwise `else_branch`.
+    Works regardless of whether the head is at the left or right end. -/
+public def ite {k : ℕ} (v : Data) (i : Fin k)
+    (then_branch else_branch : MultiTapeTM k Char) :
+    MultiTapeTM k Char :=
+  if_eq '(' i
+    (ite_enc_from_left v.enc i then_branch else_branch)
+    (ite_enc_from_right v.enc.reverse i then_branch else_branch)
 
 @[simp]
 public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
     {then_branch else_branch : MultiTapeTM k Char}
-    {views : Fin k → TapeView}
-    (h_left : (views i).headPos = .leftEnd) :
+    {views : Fin k → TapeView} :
     (ite v i then_branch else_branch).eval_struct views =
       if (views i).current = v then
         then_branch.eval_struct views
       else
         else_branch.eval_struct views := by
-  simp only [ite, MultiTapeTM.eval_struct, ite_enc.eval, Function.comp_apply,
-    TapeView.ite_enc_condition_iff _ h_left]
-  split <;> rfl
+  -- simp only [ite, MultiTapeTM.eval_struct, ite_enc_from_left.eval, Function.comp_apply,
+  --   TapeView.ite_enc_condition_iff]
+  -- split <;> rfl
+  sorry
 
 end Routines
 end Turing

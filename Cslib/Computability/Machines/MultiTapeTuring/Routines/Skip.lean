@@ -27,6 +27,13 @@ public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 /-- Skip to the left across a Data-encoded value (inverse of `skipRight`). -/
 public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
+public def toLeftEnd {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
+
+public def toRightEnd {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
+
+/-- Run `tm` at the left end of the current item, and return to the original
+position afterwards. -/
+public def atLeftEnd {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
 
 @[simp, grind =>]
 public lemma skipLeft_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipLeft i).HaltsOn t := by
@@ -77,6 +84,22 @@ public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeV
             views i
         else
           views i)) := by sorry
+
+@[simp]
+public lemma toLeftEnd_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+    (toLeftEnd i).eval_struct views = .some (Function.update views i (views i).toLeftEnd) := by
+  sorry
+
+@[simp]
+public lemma toRightEnd_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+    (toRightEnd i).eval_struct views = .some (Function.update views i (views i).toRightEnd) := by
+  sorry
+
+@[simp]
+public lemma atLeftEnd_eval_struct {k : ℕ} {i : Fin k} {tm : MultiTapeTM k Char}
+  {views : Fin k → TapeView} :
+    (atLeftEnd i tm).eval_struct views = .some (Function.update views i (views i).toLeftEnd) := by
+  sorry
 
 end Routines
 end Turing
