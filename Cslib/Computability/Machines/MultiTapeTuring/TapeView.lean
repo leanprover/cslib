@@ -114,10 +114,12 @@ public def appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
   ⟨tv.data, tv.path ++ [idx], tv.headPos, by simpa using h⟩
 
+/-- Return a copy of the `TapeView` with the head positioned at the left end. -/
 @[expose]
 public abbrev toLeftEnd (tv : TapeView) : TapeView :=
   ⟨tv.data, tv.path, .leftEnd, tv.h_path⟩
 
+/-- Return a copy of the `TapeView` with the head positioned at the right end. -/
 @[expose]
 public abbrev toRightEnd (tv : TapeView) : TapeView :=
   ⟨tv.data, tv.path, .rightEnd, tv.h_path⟩

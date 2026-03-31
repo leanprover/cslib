@@ -18,6 +18,7 @@ public inductive Data where
   /-- A list of data values. -/
   | list : List Data → Data
 
+/-- Extract the list of children from a `Data` value. -/
 @[expose]
 public abbrev Data.toList : Data → List Data
   | .list ds => ds
