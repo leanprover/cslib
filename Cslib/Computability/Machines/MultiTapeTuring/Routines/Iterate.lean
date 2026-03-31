@@ -53,5 +53,21 @@ public lemma iterate_n_succ' {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     simp only [iterate_n_succ, MultiTapeTM.seq_eval] at this
     exact this
 
+/-- If `tm` always produces `f tapes` on input `tapes`, then `iterate_n tm n` produces `f^[n]`. -/
+public lemma iterate_n_eval_of_total {k : ℕ} {tm : MultiTapeTM k Char}
+    {f : (Fin k → BiTape Char) → (Fin k → BiTape Char)}
+    (h : ∀ tapes, tm.eval tapes = Part.some (f tapes))
+    {n : ℕ} {tapes : Fin k → BiTape Char} :
+    (iterate_n tm n).eval tapes = Part.some (f^[n] tapes) := by
+  induction n generalizing tapes with
+  | zero => simp [iterate_n_zero, noop.eval]
+  | succ n ih =>
+    simp only [iterate_n_succ]
+    rw [MultiTapeTM.seq_eval]
+    simp only [h]
+    change (Part.some (f tapes)).bind (fun t => (iterate_n tm n).eval t) = _
+    rw [Part.bind_some, ih]
+    simp [Function.iterate_succ']
+
 end Routines
 end Turing
