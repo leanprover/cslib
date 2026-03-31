@@ -181,21 +181,21 @@ theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Nor
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
 @[implicit_reducible]
-def trans_of_subrelation (s s' r : α → α → Prop) (hr : Transitive r)
+def trans_of_subrelation (s s' r : α → α → Prop) (hr : IsTrans α r)
     (h : Subrelation s r) (h' : Subrelation s' r) : Trans s s' r where
-  trans hab hbc := hr (h hab) (h' hbc)
+  trans hab hbc := hr.trans _ _ _ (h hab) (h' hbc)
 
 /-- A subrelation lifts to transitivity on the left of the relation. -/
 @[implicit_reducible]
-def trans_of_subrelation_left (s r : α → α → Prop) (hr : Transitive r)
+def trans_of_subrelation_left (s r : α → α → Prop) (hr : IsTrans α r)
     (h : Subrelation s r) : Trans s r r where
-  trans hab hbc := hr (h hab) hbc
+  trans hab hbc := hr.trans _ _ _ (h hab) hbc
 
 /-- A subrelation lifts to transitivity on the right of the relation. -/
 @[implicit_reducible]
-def trans_of_subrelation_right (s r : α → α → Prop) (hr : Transitive r)
+def trans_of_subrelation_right (s r : α → α → Prop) (hr : IsTrans α r)
     (h : Subrelation s r) : Trans r s r where
-  trans hab hbc := hr hab (h hbc)
+  trans hab hbc := hr.trans _ _ _ hab (h hbc)
 
 /-- Confluence implies that multi-step joinability is an equivalence. -/
 theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
