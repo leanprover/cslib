@@ -59,8 +59,12 @@ theorem nth_succ_gap {p : ℕ → Prop} (hf : (setOf p).Infinite) (n : ℕ) :
 element of the range of `f`. -/
 theorem nth_of_strictMono (hm : StrictMono f) (n : ℕ) :
     f n = nth (· ∈ range f) n := by
-  have (hf : (range f).Finite) : False := hf.not_infinite (strictMono_infinite hm)
-  rw [←nth_comp_of_strictMono hm] <;> first | grind | simp
+  rw [← nth_comp_of_strictMono hm]
+  · simp
+  · simp
+  · intros
+    have : (range f).Infinite := strictMono_infinite hm
+    contradiction
 
 open scoped Classical in
 /-- If `f 0 = 0`, then `0` is below any `n` not in the range of `f`. -/
