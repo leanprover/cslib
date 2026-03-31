@@ -60,16 +60,16 @@ public def ite {k : ℕ} (v : Data) (i : Fin k) (then_branch else_branch : Multi
 @[simp]
 public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
     {then_branch else_branch : MultiTapeTM k Char}
-    {views : Fin k → TapeView} :
+    {views : Fin k → TapeView}
+    (h_left : (views i).headPos = .leftEnd) :
     (ite v i then_branch else_branch).eval_struct views =
       if (views i).current = v then
         then_branch.eval_struct views
       else
-        else_branch.eval_struct views := by -- TODO clean up (ai)
-  -- simp only [ite, MultiTapeTM.eval_struct, ite_enc.eval, Function.comp_apply,
-  --   TapeView.ite_enc_condition_iff]
-  -- split <;> rfl
-  sorry
+        else_branch.eval_struct views := by
+  simp only [ite, MultiTapeTM.eval_struct, ite_enc.eval, Function.comp_apply,
+    TapeView.ite_enc_condition_iff _ h_left]
+  split <;> rfl
 
 end Routines
 end Turing
