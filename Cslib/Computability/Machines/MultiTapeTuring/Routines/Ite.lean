@@ -103,21 +103,8 @@ public lemma ite_enc_from_right.eval {k : ℕ} {v : List Char} {i : Fin k}
         then_branch.eval tapes
       else
         else_branch.eval tapes := by
-  have cancel : BiTape.move_right^[v.length - 1]
-      (BiTape.move_left^[v.length - 1] (tapes i)) = tapes i :=
-    Function.LeftInverse.iterate
-      (f := BiTape.move_left) (g := BiTape.move_right)
-      BiTape.move_left_move_right _ _
-  simp only [ite_enc_from_right, MultiTapeTM.seq_eval, left_n.eval, ite_enc_from_left.eval]
-  change (Part.some _).bind _ = _
-  rw [Part.bind_some]
-  simp only [Function.update_self]
-  split <;> {
-    simp only [right_n.eval]
-    change (Part.some _).bind _ = _
-    rw [Part.bind_some]
-    simp [Function.update_idem, cancel, Function.update_eq_self]
-  }
+  simp [ite_enc_from_right]
+  split <;> simp [Function.LeftInverse.iterate BiTape.move_left_move_right _ _]
 
 /-- Runs `then_branch` if `(views i).current = v`, otherwise `else_branch`.
     Works regardless of whether the head is at the left or right end. -/

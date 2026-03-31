@@ -238,6 +238,26 @@ public lemma enc_current_slice (tv : TapeView) (h_left : tv.headPos = .leftEnd)
     exact this.symm
   rw [h1, List.getElem?_append_left hn, List.getElem?_eq_getElem]
 
+/-- The rightEnd encodedPos is the leftEnd encodedPos plus current.enc.length - 1. -/
+private lemma encodedPos_toRightEnd : (tv : TapeView) →
+    tv.toRightEnd.encodedPos = tv.toLeftEnd.encodedPos + (tv.current.enc.length - 1)
+  | ⟨.list ds, [], _, _⟩ => by
+    simp [toRightEnd, toLeftEnd, encodedPos, current, Data.atPath, Data.enc_list]
+  | ⟨.list ds, p :: path, hp, h_valid⟩ => by
+    have h_p : p < ds.length := by grind [Data.atPath]
+    have h_sub : (ds[p].atPath path).isSome := by grind [Data.atPath]
+    have ih := encodedPos_toRightEnd ⟨ds[p], path, hp, h_sub⟩
+    have h_current : (⟨Data.list ds, p :: path, hp, h_valid⟩ : TapeView).current =
+        (⟨ds[p], path, hp, h_sub⟩ : TapeView).current := by
+      simp [current, Data.atPath, h_p]
+    rw [h_current]
+    simp only [toRightEnd, toLeftEnd] at ih ⊢
+    conv_lhs => unfold encodedPos; simp only [h_p, ↓reduceDIte]
+    conv_rhs =>
+      lhs; unfold encodedPos; simp only [h_p, ↓reduceDIte]
+    omega
+  termination_by tv => tv.path.length
+
 /-- Convert a `TapeView` to the corresponding `BiTape Char`. -/
 @[expose]
 public def toBiTape (tv : TapeView) : BiTape Char :=
@@ -248,14 +268,29 @@ public def toBiTape (tv : TapeView) : BiTape Char :=
 public lemma toBiTape_head_leftEnd (tv : TapeView)
     (h_left : tv.headPos = .leftEnd) :
     tv.toBiTape.head = some '(' := by
-  sorry
+  simp only [toBiTape, BiTape.head_iterate_move_right_mk₁]
+  have h := enc_current_slice tv h_left 0 (Data.enc_length_pos tv.current)
+  simp only [Nat.add_zero] at h
+  rw [h]; simp
 
 /-- At rightEnd, the head of the BiTape reads `')'`. -/
 @[simp]
 public lemma toBiTape_head_rightEnd (tv : TapeView)
     (h_right : tv.headPos = .rightEnd) :
     tv.toBiTape.head = some ')' := by
-  sorry
+  simp only [toBiTape, BiTape.head_iterate_move_right_mk₁]
+  have h_pos := encodedPos_toRightEnd tv
+  have h_right_eq : tv.toRightEnd.encodedPos = tv.encodedPos := by
+    congr 1; cases tv; simp_all [toRightEnd]
+  rw [h_right_eq] at h_pos
+  rw [h_pos]
+  -- Goal should now be: tv.data.enc[tv.toLeftEnd.encodedPos + (tv.current.enc.length - 1)]? = some ')'
+  -- Use enc_current_slice: tv.data.enc[toLeftEnd.encodedPos + n]? = some tv.current.enc[n]
+  -- with n = tv.current.enc.length - 1, gives some tv.current.enc[length - 1] = some ')'
+  exact (enc_current_slice tv.toLeftEnd rfl
+    (tv.toLeftEnd.current.enc.length - 1)
+    (by have := Data.enc_length_pos tv.toLeftEnd.current; omega)).trans
+    (by simp [Data.enc_getElem_last])
 
 -- TODO clean up (ai)
 /-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
@@ -301,7 +336,121 @@ public lemma ite_enc_condition_right_iff (tv : TapeView) (h_right : tv.headPos =
       (BiTape.move_right^[n]
         (BiTape.move_left^[v.enc.length - 1] tv.toBiTape)).head = some v.enc[n]) ↔
     tv.current = v := by
-  sorry
+  -- Key: move_left/move_right cancellation
+  have bi_li : Function.LeftInverse (BiTape.move_left (Symbol := Char)) BiTape.move_right :=
+    fun t => BiTape.move_right_move_left t
+  -- Position info
+  have h_pos := encodedPos_toRightEnd tv
+  have h_re : tv.toRightEnd.encodedPos = tv.encodedPos := by
+    congr 1; cases tv; simp_all [toRightEnd]
+  rw [h_re] at h_pos
+  -- h_pos : tv.encodedPos = tv.toLeftEnd.encodedPos + (tv.current.enc.length - 1)
+  have h_cenc := Data.enc_length_pos tv.current
+  have h_venc := Data.enc_length_pos v
+  -- Unfold toBiTape
+  have h_unfold : tv.toBiTape =
+      BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc) := by
+    simp [toBiTape]
+  rw [h_unfold]
+  -- Cancel helper: when m ≤ ep, iterate cancellation gives getElem?
+  have cancel_head (m ep : ℕ) (hle : m ≤ ep) (l : List Char) (n : ℕ) :
+      (BiTape.move_right^[n] (BiTape.move_left^[m]
+        (BiTape.move_right^[ep] (BiTape.mk₁ l)))).head =
+      l[ep - m + n]? := by
+    rw [show ep = m + (ep - m) from by omega, Function.iterate_add_apply,
+      bi_li.iterate m, ← Function.iterate_add_apply,
+      BiTape.head_iterate_move_right_mk₁]
+    congr 1; omega
+  -- move_left past tape start gives None
+  have move_left_past_start : ∀ (l : List Char) (j : ℕ), 0 < j →
+      (BiTape.move_left^[j] (BiTape.mk₁ l)).head = none := by
+    intro l j hj
+    suffices ∀ j, ∀ (t : BiTape Char), t.left = ∅ → 0 < j →
+        (BiTape.move_left^[j] t).head = none ∧ (BiTape.move_left^[j] t).left = ∅ from
+      (this j _ (by simp [BiTape.mk₁, StackTape.empty_eq_nil]) hj).1
+    intro j
+    induction j with
+    | zero => intro t ht hj; omega
+    | succ j ih =>
+      intro t ht hj
+      rw [Function.iterate_succ, Function.comp_apply]
+      have h1 : t.move_left.head = none := by
+        simp [BiTape.move_left, ht, StackTape.nil_head, StackTape.empty_eq_nil]
+      have h2 : t.move_left.left = ∅ := by
+        simp [BiTape.move_left, ht, StackTape.empty_eq_nil, StackTape.nil_tail]
+      cases j with
+      | zero => exact ⟨h1, h2⟩
+      | succ j => exact ih t.move_left h2 (by omega)
+  constructor
+  · -- Forward: reads match v.enc → current = v
+    intro h_match
+    -- Step 1: v.enc.length - 1 ≤ tv.encodedPos
+    have h_le : v.enc.length - 1 ≤ tv.encodedPos := by
+      by_contra h_gt; push_neg at h_gt
+      have h0 := h_match 0 h_venc
+      simp only [Function.iterate_zero, Function.id_def] at h0
+      rw [show v.enc.length - 1 =
+          (v.enc.length - 1 - tv.encodedPos) + tv.encodedPos from by omega,
+        Function.iterate_add_apply, bi_li.iterate tv.encodedPos] at h0
+      rw [move_left_past_start _ _ (by omega)] at h0
+      exact absurd h0 (by simp)
+    -- Step 2: Simplify h_match
+    have h_match' : ∀ n, (hn : n < v.enc.length) →
+        tv.data.enc[tv.encodedPos - (v.enc.length - 1) + n]? = some v.enc[n] := by
+      intro n hn
+      have := h_match n hn
+      rw [cancel_head _ _ h_le _ _] at this
+      exact this
+    -- Step 3: Build suffix relation
+    suffices h : tv.current.enc <:+ v.enc ∨ v.enc <:+ tv.current.enc by
+      rcases h with h | h
+      · exact Data.enc_suffix_free h
+      · exact (Data.enc_suffix_free h).symm
+    by_cases h_len : v.enc.length ≤ tv.current.enc.length
+    · -- v.enc <:+ current.enc
+      right
+      refine ⟨tv.current.enc.take (tv.current.enc.length - v.enc.length),
+        List.ext_getElem (by simp; omega) fun n h1 h2 => ?_⟩
+      by_cases hn : n < tv.current.enc.length - v.enc.length
+      · rw [List.getElem_append_left (by simp; omega)]
+        exact (List.getElem_take' h2 hn).symm
+      · push_neg at hn
+        rw [List.getElem_append_right (by simp; omega)]
+        simp only [List.length_take_of_le (by omega : tv.current.enc.length - v.enc.length ≤
+            tv.current.enc.length)]
+        have r1 := enc_current_slice tv.toLeftEnd rfl n h2
+        have r2 := h_match' (n - (tv.current.enc.length - v.enc.length)) (by omega)
+        rw [show tv.encodedPos - (v.enc.length - 1) +
+            (n - (tv.current.enc.length - v.enc.length)) =
+            tv.toLeftEnd.encodedPos + n by omega] at r2
+        rw [r1] at r2; exact (Option.some_injective _ r2).symm
+    · -- current.enc <:+ v.enc
+      push_neg at h_len
+      left
+      refine ⟨v.enc.take (v.enc.length - tv.current.enc.length),
+        List.ext_getElem (by simp; omega) fun n h1 h2 => ?_⟩
+      by_cases hn : n < v.enc.length - tv.current.enc.length
+      · rw [List.getElem_append_left (by simp; omega)]
+        exact (List.getElem_take' h2 hn).symm
+      · push_neg at hn
+        rw [List.getElem_append_right (by simp; omega)]
+        simp only [List.length_take_of_le (by omega : v.enc.length - tv.current.enc.length ≤
+            v.enc.length)]
+        have h_idx : n - (v.enc.length - tv.current.enc.length) <
+            tv.current.enc.length := by omega
+        have r1 := enc_current_slice tv.toLeftEnd rfl
+          (n - (v.enc.length - tv.current.enc.length)) h_idx
+        have r2 := h_match' n h2
+        rw [show tv.encodedPos - (v.enc.length - 1) + n =
+            tv.toLeftEnd.encodedPos +
+              (n - (v.enc.length - tv.current.enc.length)) by omega] at r2
+        rw [r1] at r2; exact Option.some_injective _ r2
+  · -- Backward: current = v → reads match
+    intro h_eq; subst h_eq
+    intro n hn
+    rw [cancel_head _ _ (by omega) _ _,
+      show tv.encodedPos - (tv.current.enc.length - 1) = tv.toLeftEnd.encodedPos by omega]
+    exact enc_current_slice tv.toLeftEnd rfl n hn
 
 @[simp]
 public lemma toBiTape_ofData (d : Data) :
@@ -310,8 +459,12 @@ public lemma toBiTape_ofData (d : Data) :
 
 @[simp]
 public lemma toBiTape_toRightEnd (tv : TapeView) :
-  tv.toRightEnd.toBiTape = BiTape.move_right^[tv.current.enc.length - 1] tv.toBiTape := by
-  sorry
+  tv.toRightEnd.toBiTape = BiTape.move_right^[tv.current.enc.length - 1] tv.toLeftEnd.toBiTape := by
+  simp only [toBiTape, toRightEnd, toLeftEnd, ← Function.iterate_add_apply]
+  congr 1
+  have h := encodedPos_toRightEnd tv
+  simp only [toRightEnd, toLeftEnd] at h
+  omega
 
 /-- TODO document -/
 public def ofBiTape? (t : BiTape Char) : Option TapeView := sorry

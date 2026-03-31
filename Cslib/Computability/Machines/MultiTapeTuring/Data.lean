@@ -59,6 +59,38 @@ public lemma Data.enc_length_pos (d : Data) : 0 < d.enc.length := by
   cases d with
   | list ds => simp [Data.enc_list]
 
+@[simp]
+public lemma Data.enc_getElem_zero (d : Data) :
+    d.enc[0]'(Data.enc_length_pos d) = '(' := by
+  cases d with | list ds => simp [Data.enc_list]
+
+@[simp]
+public lemma Data.enc_getElem?_zero (d : Data) :
+    d.enc[0]? = some '(' := by
+  rw [List.getElem?_eq_getElem (Data.enc_length_pos d)]
+  simp
+
+@[simp]
+public lemma Data.enc_getLast (d : Data) :
+    d.enc.getLast (by cases d with | list ds => simp [Data.enc_list]) = ')' := by
+  cases d with | list ds => simp [Data.enc_list]
+
+@[simp]
+public lemma Data.enc_getElem?_last (d : Data) :
+    d.enc[d.enc.length - 1]? = some ')' := by
+  cases d with
+  | list ds =>
+    simp only [Data.enc_list]
+    simp [List.getElem?_eq_getElem]
+
+@[simp]
+public lemma Data.enc_getElem_last (d : Data) (h : d.enc.length - 1 < d.enc.length := by
+    have := Data.enc_length_pos d; omega) :
+    d.enc[d.enc.length - 1] = ')' := by
+  have := Data.enc_getElem?_last d
+  rw [List.getElem?_eq_getElem h] at this
+  exact Option.some_injective _ this
+
 -- ─── Balance machinery for prefix-freeness ───────────────────────────────
 
 private def bw (c : Char) : Int :=
@@ -206,6 +238,25 @@ public lemma Data.enc_prefix_free {d₁ d₂ : Data}
     by_contra htne
     exact Data.enc_no_proper_prefix ⟨t, ht⟩ (by rw [← ht]; simp [htne])
   exact Data.enc_injective_mut d₁ d₂ (by rwa [this, List.append_nil] at ht)
+
+/-- No `Data.enc` is a proper suffix of another (balance argument). -/
+public lemma Data.enc_suffix_free {d₁ d₂ : Data}
+    (h : d₁.enc <:+ d₂.enc) : d₁ = d₂ := by
+  obtain ⟨t, ht⟩ := h
+  rcases t with _ | ⟨a, t⟩
+  · exact Data.enc_injective (by simpa using ht)
+  · exfalso
+    have hlt : (a :: t).length < d₂.enc.length := by
+      have := Data.enc_length_pos d₁; rw [← ht]; simp; omega
+    have h_bal_t : bal (a :: t) = 0 := by
+      have : bal d₂.enc = bal (a :: t) + bal d₁.enc := by
+        rw [← ht]; exact bal_append _ _
+      linarith [(Data.enc_bal d₁).1, (Data.enc_bal d₂).1]
+    have h_take : d₂.enc.take (a :: t).length = (a :: t) := by
+      rw [← ht, List.take_append_of_le_length le_rfl, List.take_length]
+    have h_pos : 0 < bal (d₂.enc.take (a :: t).length) :=
+      (Data.enc_bal d₂).2 (a :: t).length (by simp) hlt
+    linarith [show bal (d₂.enc.take (a :: t).length) = bal (a :: t) from by rw [h_take]]
 
 /-- Typeclass for types that can be encoded as `Data` for TM computation. -/
 public class StrEnc (α : Type*) where
