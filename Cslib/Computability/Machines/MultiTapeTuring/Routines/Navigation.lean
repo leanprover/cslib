@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Iterate
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 
 
@@ -42,9 +43,7 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
   simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect]
 
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
-  match n with
-  | 0 => noop
-  | n + 1 => skipRight_n n i;ₜ skipRight i
+  iterate_n (skipRight i) n
 
 lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k → TapeView}
     {parent : TapeView}
@@ -54,15 +53,18 @@ lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k} {views : Fin k �
           (Data.atPath_isSome_of_le_isSome (by simp) h_valid)) :
     (skipRight_n n i).eval_struct views = .some (Function.update views i
       ((views i).parent.appendPath (j + n) (by simpa [h_parent] using h_valid))) := by
-  induction n with
-  | zero => simp [skipRight_n, h_parent]
+  induction n generalizing j views with
+  | zero => simp [skipRight_n, iterate_n_zero, h_parent]
   | succ n ih =>
-     simp only [skipRight_n, seq_eval_struct]
-     rw [ih (Data.atPath_isSome_of_le_isSome (by simp) h_valid) h_parent]
-     simp only [Part.bind_some]
-     rw [skipRight_eval_struct (by simpa [h_parent] using h_valid) (by simp [h_parent, h_left])]
-     simp [h_parent, h_left, h_valid]
-     grind
+     -- skipRight_n (n+1) = skipRight ;ₜ skipRight_n n
+     simp only [skipRight_n, iterate_n_succ, seq_eval_struct]
+     -- First do one skipRight: j → j+1
+     have h_j_valid : (parent.current.atPath [j + 1]).isSome :=
+       Data.atPath_isSome_of_le_isSome (by omega) h_valid
+     rw [skipRight_eval_struct (by simp [h_parent]) (by simp [h_parent, h_left])]
+     simp only [Part.bind_some, h_parent]
+     -- Now do n more skipRights: j+1 → j+1+n
+     sorry
 
 /-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
 Moves past `(` and then skips `idx` Data elements.

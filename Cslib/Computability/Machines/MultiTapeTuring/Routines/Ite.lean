@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 public import Cslib.Computability.Machines.MultiTapeTuring.TapeView
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Iterate
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Skip
 
@@ -16,29 +17,26 @@ namespace Routines
 
 /-- Move left `n` times on tape `i`. -/
 public def left_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
-  match n with
-  | 0 => noop
-  | n + 1 => left i;ₜ left_n n i
+  iterate_n (left i) n
 
 /-- Move right `n` times on tape `i`. -/
 public def right_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
-  match n with
-  | 0 => noop
-  | n + 1 => right i;ₜ right_n n i
+  iterate_n (right i) n
 
 @[simp]
 public lemma left_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
     (left_n n i).eval tapes = Part.some
       (Function.update tapes i (BiTape.move_left^[n] (tapes i))) := by
   induction n generalizing tapes with
-  | zero => simp [left_n]
+  | zero => simp [left_n, iterate_n_zero]
   | succ n ih =>
-    simp only [left_n]
+    simp only [left_n, iterate_n_succ]
     rw [MultiTapeTM.seq_eval]
     simp only [left.eval]
     change (Part.some (Function.update tapes i (tapes i).move_left)).bind
-      (fun tape₁ => (left_n n i).eval tape₁) = _
+      (fun tape₁ => (iterate_n (left i) n).eval tape₁) = _
     rw [Part.bind_some]
+    simp only [left_n] at ih
     rw [ih]
     simp [Function.update_self, Function.update_idem, Function.iterate_succ]
 
@@ -47,14 +45,15 @@ public lemma right_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiT
     (right_n n i).eval tapes = Part.some
       (Function.update tapes i (BiTape.move_right^[n] (tapes i))) := by
   induction n generalizing tapes with
-  | zero => simp [right_n]
+  | zero => simp [right_n, iterate_n_zero]
   | succ n ih =>
-    simp only [right_n]
+    simp only [right_n, iterate_n_succ]
     rw [MultiTapeTM.seq_eval]
     simp only [right.eval]
     change (Part.some (Function.update tapes i (tapes i).move_right)).bind
-      (fun tape₁ => (right_n n i).eval tape₁) = _
+      (fun tape₁ => (iterate_n (right i) n).eval tape₁) = _
     rw [Part.bind_some]
+    simp only [right_n] at ih
     rw [ih]
     simp [Function.update_self, Function.update_idem, Function.iterate_succ]
 
