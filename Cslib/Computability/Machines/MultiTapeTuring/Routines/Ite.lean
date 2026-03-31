@@ -133,7 +133,7 @@ public def ite {k : ℕ} (v : Data) (i : Fin k)
     MultiTapeTM k Char :=
   if_eq '(' i
     (ite_enc_from_left v.enc i then_branch else_branch)
-    (ite_enc_from_right v.enc.reverse i then_branch else_branch)
+    (ite_enc_from_right v.enc i then_branch else_branch)
 
 @[simp]
 public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
@@ -144,10 +144,29 @@ public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
         then_branch.eval_struct views
       else
         else_branch.eval_struct views := by
-  -- simp only [ite, MultiTapeTM.eval_struct, ite_enc_from_left.eval, Function.comp_apply,
-  --   TapeView.ite_enc_condition_iff]
-  -- split <;> rfl
-  sorry
+  simp only [ite, MultiTapeTM.eval_struct, if_eq.eval, Function.comp_apply]
+  -- Case split on headPos
+  rcases h_hp : (views i).headPos with _ | _
+  case leftEnd =>
+    simp only [TapeView.toBiTape_head_leftEnd _ h_hp, ↓reduceIte]
+    rw [ite_enc_from_left.eval]
+    have h_iff := TapeView.ite_enc_condition_iff (views i) h_hp v
+    split
+    case isTrue h_match =>
+      simp [h_iff.mp h_match]
+    case isFalse h_nomatch =>
+      simp [show ¬(views i).current = v from fun h => h_nomatch (h_iff.mpr h)]
+  case rightEnd =>
+    have h_ne : ¬(views i).toBiTape.head = some '(' := by
+      rw [TapeView.toBiTape_head_rightEnd _ h_hp]; decide
+    simp only [h_ne, ↓reduceIte]
+    rw [ite_enc_from_right.eval]
+    have h_iff := TapeView.ite_enc_condition_right_iff (views i) h_hp v
+    split
+    case isTrue h_match =>
+      simp [h_iff.mp h_match]
+    case isFalse h_nomatch =>
+      simp [show ¬(views i).current = v from fun h => h_nomatch (h_iff.mpr h)]
 
 end Routines
 end Turing

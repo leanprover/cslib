@@ -243,6 +243,20 @@ public lemma enc_current_slice (tv : TapeView) (h_left : tv.headPos = .leftEnd)
 public def toBiTape (tv : TapeView) : BiTape Char :=
   BiTape.move_right^[tv.encodedPos] (BiTape.mk₁ tv.data.enc)
 
+/-- At leftEnd, the head of the BiTape reads `'('`. -/
+@[simp]
+public lemma toBiTape_head_leftEnd (tv : TapeView)
+    (h_left : tv.headPos = .leftEnd) :
+    tv.toBiTape.head = some '(' := by
+  sorry
+
+/-- At rightEnd, the head of the BiTape reads `')'`. -/
+@[simp]
+public lemma toBiTape_head_rightEnd (tv : TapeView)
+    (h_right : tv.headPos = .rightEnd) :
+    tv.toBiTape.head = some ')' := by
+  sorry
+
 -- TODO clean up (ai)
 /-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
     to `tv.current = v`. -/
@@ -278,6 +292,16 @@ public lemma ite_enc_condition_iff (tv : TapeView) (h_left : tv.headPos = .leftE
     · exact Or.inl (h_prefix h_len h_eq_chars)
     · exact Or.inr (h_prefix (by omega) fun n h1 h2 => (h_eq_chars n h2 h1).symm)
   · intro h_eq; subst h_eq; exact fun n hn => enc_current_slice tv h_left n hn
+
+/-- At rightEnd, moving left `current.enc.length - 1` and checking `v.enc` is equivalent
+    to `current = v`. -/
+public lemma ite_enc_condition_right_iff (tv : TapeView) (h_right : tv.headPos = .rightEnd)
+    (v : Data) :
+    (∀ n, (h : n < v.enc.length) →
+      (BiTape.move_right^[n]
+        (BiTape.move_left^[v.enc.length - 1] tv.toBiTape)).head = some v.enc[n]) ↔
+    tv.current = v := by
+  sorry
 
 @[simp]
 public lemma toBiTape_ofData (d : Data) :
