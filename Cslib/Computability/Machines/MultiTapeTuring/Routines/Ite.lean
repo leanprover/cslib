@@ -27,35 +27,27 @@ public def right_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
 public lemma left_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
     (left_n n i).eval tapes = Part.some
       (Function.update tapes i (BiTape.move_left^[n] (tapes i))) := by
-  induction n generalizing tapes with
-  | zero => simp [left_n, iterate_n_zero]
+  simp only [left_n]
+  rw [iterate_n_eval_of_total (fun t => left.eval)]
+  congr 1
+  induction n with
+  | zero => simp
   | succ n ih =>
-    simp only [left_n, iterate_n_succ]
-    rw [MultiTapeTM.seq_eval]
-    simp only [left.eval]
-    change (Part.some (Function.update tapes i (tapes i).move_left)).bind
-      (fun tape₁ => (iterate_n (left i) n).eval tape₁) = _
-    rw [Part.bind_some]
-    simp only [left_n] at ih
-    rw [ih]
-    simp [Function.update_self, Function.update_idem, Function.iterate_succ]
+    simp only [Function.iterate_succ', Function.comp, ih, Function.update_self,
+      Function.update_idem]
 
 @[simp]
 public lemma right_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
     (right_n n i).eval tapes = Part.some
       (Function.update tapes i (BiTape.move_right^[n] (tapes i))) := by
-  induction n generalizing tapes with
-  | zero => simp [right_n, iterate_n_zero]
+  simp only [right_n]
+  rw [iterate_n_eval_of_total (fun t => right.eval)]
+  congr 1
+  induction n with
+  | zero => simp
   | succ n ih =>
-    simp only [right_n, iterate_n_succ]
-    rw [MultiTapeTM.seq_eval]
-    simp only [right.eval]
-    change (Part.some (Function.update tapes i (tapes i).move_right)).bind
-      (fun tape₁ => (iterate_n (right i) n).eval tape₁) = _
-    rw [Part.bind_some]
-    simp only [right_n] at ih
-    rw [ih]
-    simp [Function.update_self, Function.update_idem, Function.iterate_succ]
+    simp only [Function.iterate_succ', Function.comp, ih, Function.update_self,
+      Function.update_idem]
 
 /-- Check characters left-to-right starting from the current (left-end) position.
     After checking, returns the head to the original position before running
