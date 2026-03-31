@@ -6,6 +6,7 @@ Authors: Jesse Alama
 
 module
 
+public import Cslib.Foundations.Data.Part
 public import Cslib.Languages.CombinatoryLogic.Recursion
 public import Mathlib.Computability.PartrecCode
 
@@ -115,13 +116,6 @@ def codeToSKINat : Code → SKI
 
 /-! ### Correctness proofs -/
 
-/-- Extract witnesses from a bind that equals `Part.some`. -/
-private theorem bind_eq_some {a : Part α} {g : α → Part β} {m : β}
-    (h : (a >>= g) = Part.some m) :
-    ∃ x, a = Part.some x ∧ g x = Part.some m := by
-  have hm := Part.mem_bind_iff.mp (h ▸ Part.mem_some m)
-  exact hm.imp fun x ⟨hx, hm⟩ => ⟨Part.eq_some_iff.mpr hx, Part.eq_some_iff.mpr hm⟩
-
 /-- Helper for total functions: if `c.eval` is total with output `g n`, and `t` reduces
     to a Church numeral for `g n`, then `t` computes `c.eval`. -/
 private theorem computes_of_total (t : SKI) (c : Code) (g : ℕ → ℕ)
@@ -160,7 +154,7 @@ theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
     (hf : Computes tf f) (hg : Computes tg g) :
     Computes (B ⬝ tf ⬝ tg) (fun n => g n >>= f) := by
   intro n cn hcn m hm
-  obtain ⟨intermediate, hint_eq, hm_eq⟩ := bind_eq_some hm
+  obtain ⟨intermediate, hint_eq, hm_eq⟩ := Part.eq_some_of_bind_eq_some hm
   exact isChurch_trans _ (B_def tf tg cn)
     (hf intermediate (tg ⬝ cn) (hg n cn hcn intermediate hint_eq) m hm_eq)
 
@@ -196,7 +190,7 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
   | succ k ih =>
     intro m hm cb hcb
     rw [Code.eval_prec_succ] at hm
-    obtain ⟨ih_val, hih_eq, hm_eq⟩ := bind_eq_some hm
+    obtain ⟨ih_val, hih_eq, hm_eq⟩ := Part.eq_some_of_bind_eq_some hm
     -- By IH, Rec computes the intermediate value on Pred ⬝ cb
     have hpred : IsChurch k (Pred ⬝ cb) := pred_correct (k + 1) cb hcb
     set step := PrecStep tg ⬝ ca
