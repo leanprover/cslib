@@ -29,12 +29,7 @@ public lemma left_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTa
       (Function.update tapes i (BiTape.move_left^[n] (tapes i))) := by
   simp only [left_n]
   rw [iterate_n_eval_of_total (fun t => left.eval)]
-  congr 1
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    simp only [Function.iterate_succ', Function.comp, ih, Function.update_self,
-      Function.update_idem]
+  simp
 
 @[simp]
 public lemma right_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiTape Char} :
@@ -42,12 +37,7 @@ public lemma right_n.eval {k : ℕ} {n : ℕ} {i : Fin k} {tapes : Fin k → BiT
       (Function.update tapes i (BiTape.move_right^[n] (tapes i))) := by
   simp only [right_n]
   rw [iterate_n_eval_of_total (fun t => right.eval)]
-  congr 1
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    simp only [Function.iterate_succ', Function.comp, ih, Function.update_self,
-      Function.update_idem]
+  simp
 
 /-- Check characters left-to-right starting from the current (left-end) position.
     After checking, returns the head to the original position before running

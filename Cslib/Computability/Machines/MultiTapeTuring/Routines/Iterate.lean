@@ -11,6 +11,18 @@ public import Cslib.Computability.Machines.MultiTapeTuring.StructuralMachines
 namespace Turing
 namespace Routines
 
+/-- Iterating a pointwise update `fun t => Function.update t i (f (t i))` is the same as
+    iterating `f` on the `i`-th component. -/
+@[simp]
+public lemma Function.iterate_update {α : Type*} {β : Type*} [DecidableEq α]
+    {i : α} {f : β → β} {g : α → β} {n : ℕ} :
+    (fun t => Function.update t i (f (t i)))^[n] g = Function.update g i (f^[n] (g i)) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    simp only [Function.iterate_succ', Function.comp, ih, Function.update_self,
+      Function.update_idem]
+
 /-- Run a Turing machine `tm` sequentially `n` times. -/
 public def iterate_n {k : ℕ} (tm : MultiTapeTM k Char) : ℕ → MultiTapeTM k Char
   | 0 => noop
@@ -54,6 +66,7 @@ public lemma iterate_n_succ' {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     exact this
 
 /-- Evaluating `iterate_n tm n` is the same as iterating the monadic bind `(· >>= tm.eval)`. -/
+@[simp]
 public lemma iterate_n_eval_bind {k : ℕ} {tm : MultiTapeTM k Char}
     {n : ℕ} {tapes : Fin k → BiTape Char} :
     (iterate_n tm n).eval tapes = ((· >>= tm.eval)^[n]) (pure tapes) := by
