@@ -47,6 +47,7 @@ end
 public instance : DecidableEq Data := Data.decEq
 
 /-- Encoding of `Data` into a list of characters. -/
+@[expose]
 public def Data.enc : Data → List Char
   | Data.list ds => ['('] ++ (ds.map Data.enc).flatten ++ [')']
 
@@ -55,6 +56,12 @@ public lemma Data.enc_list (ds : List Data) :
     Data.enc (Data.list ds) = ['('] ++ (ds.map Data.enc).flatten ++ [')'] := by
   unfold Data.enc; rfl
 
+@[simp]
+public lemma Data.enc_ne_nil (d : Data) : d.enc ≠ [] := by
+  cases d with
+  | list ds => simp [Data.enc_list]
+
+@[simp]
 public lemma Data.enc_length_pos (d : Data) : 0 < d.enc.length := by
   cases d with
   | list ds => simp [Data.enc_list]
@@ -65,14 +72,8 @@ public lemma Data.enc_getElem_zero (d : Data) :
   cases d with | list ds => simp [Data.enc_list]
 
 @[simp]
-public lemma Data.enc_getElem?_zero (d : Data) :
-    d.enc[0]? = some '(' := by
-  rw [List.getElem?_eq_getElem (Data.enc_length_pos d)]
-  simp
-
-@[simp]
 public lemma Data.enc_getLast (d : Data) :
-    d.enc.getLast (by cases d with | list ds => simp [Data.enc_list]) = ')' := by
+    d.enc.getLast (by simp) = ')' := by
   cases d with | list ds => simp [Data.enc_list]
 
 @[simp]
@@ -80,16 +81,12 @@ public lemma Data.enc_getElem?_last (d : Data) :
     d.enc[d.enc.length - 1]? = some ')' := by
   cases d with
   | list ds =>
-    simp only [Data.enc_list]
-    simp [List.getElem?_eq_getElem]
+    simp [Data.enc_list]
 
 @[simp]
-public lemma Data.enc_getElem_last (d : Data) (h : d.enc.length - 1 < d.enc.length := by
-    have := Data.enc_length_pos d; omega) :
-    d.enc[d.enc.length - 1] = ')' := by
-  have := Data.enc_getElem?_last d
-  rw [List.getElem?_eq_getElem h] at this
-  exact Option.some_injective _ this
+public lemma Data.enc_getElem_last (d : Data) :
+    d.enc[d.enc.length - 1]'(by simp) = ')' := by
+  simpa using Data.enc_getElem?_last d
 
 -- ─── Balance machinery for prefix-freeness ───────────────────────────────
 

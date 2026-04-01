@@ -58,6 +58,8 @@ public def ite_enc_from_right {k : ℕ}
       (right_n (v.length - 1) i;ₜ then_branch)
       (right_n (v.length - 1) i;ₜ else_branch)
 
+-- TODO simplify
+
 @[simp]
 public lemma ite_enc_from_left.eval {k : ℕ} {v : List Char} {i : Fin k}
     {then_branch else_branch : MultiTapeTM k Char}
@@ -114,6 +116,8 @@ public def ite {k : ℕ} (v : Data) (i : Fin k)
   if_eq '(' i
     (ite_enc_from_left v.enc i then_branch else_branch)
     (ite_enc_from_right v.enc i then_branch else_branch)
+
+-- TODO simplify
 
 @[simp]
 public lemma ite.eval_struct {k : ℕ} {v : Data} {i : Fin k}
