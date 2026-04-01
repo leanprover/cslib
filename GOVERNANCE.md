@@ -31,7 +31,7 @@ The lead maintainer coordinates the overall work of the maintainer team and over
 
 Technical leads guide long-term developments that may span multiple areas of the codebase, offering specialised expertise.
 
-- Alexandre Rademaker (@arademaker), Atlas Computing and Getulio Vargas Foundation.
+- Alexandre Rademaker (@arademaker), Renaissance Philanthropy and Getulio Vargas Foundation.
 - Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich.
 
 ### Area maintainers
