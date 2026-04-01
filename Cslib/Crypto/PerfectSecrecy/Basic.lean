@@ -45,7 +45,7 @@ theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme M K C) :
 
 /-- Perfect secrecy requires `|K| ≥ |M|`
 ([KatzLindell2020], Theorem 2.12). -/
-theorem perfectlySecret_keySpace_ge [Finite M] [Finite K]
+theorem perfectlySecret_keySpace_ge [Finite K]
     (scheme : EncScheme M K C) (h : scheme.PerfectlySecret) :
     Nat.card K ≥ Nat.card M :=
   PerfectSecrecy.shannonKeySpace scheme h

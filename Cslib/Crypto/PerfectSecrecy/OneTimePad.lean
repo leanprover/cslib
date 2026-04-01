@@ -37,15 +37,16 @@ namespace Cslib.Crypto.PerfectSecrecy
 /-- The one-time pad over `l`-bit strings. Encryption and decryption
 are XOR ([KatzLindell2020], Construction 2.9). -/
 noncomputable def otp (l : ℕ) :
-    EncScheme (BitVec l) (BitVec l) (BitVec l) where
-  gen := PMF.uniformOfFintype _
-  enc := fun k m => PMF.pure (k ^^^ m)
-  dec := fun k c => k ^^^ c
-  correct := by
-    intro k _ m c hc
-    rw [PMF.mem_support_pure_iff] at hc
-    subst hc
-    rw [← BitVec.xor_assoc, BitVec.xor_self, BitVec.zero_xor]
+    EncScheme (BitVec l) (BitVec l) (BitVec l) :=
+  haveI := OTP.bitVecFintype l
+  { gen := PMF.uniformOfFintype _
+    enc := fun k m => PMF.pure (k ^^^ m)
+    dec := fun k c => k ^^^ c
+    correct := by
+      intro k _ m c hc
+      rw [PMF.mem_support_pure_iff] at hc
+      subst hc
+      rw [← BitVec.xor_assoc, BitVec.xor_self, BitVec.zero_xor] }
 
 /-- The one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10). -/
 theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret := by

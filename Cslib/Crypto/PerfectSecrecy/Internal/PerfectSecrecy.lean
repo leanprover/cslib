@@ -196,7 +196,7 @@ lemma encrypt_key_injective (scheme : EncScheme M K C)
     rw [heq] at h₁; exact h₁.symm.trans h₂
 
 /-- Perfect secrecy requires `|K| ≥ |M|` (Shannon's theorem). -/
-theorem shannonKeySpace [Finite M] [Finite K]
+theorem shannonKeySpace [Finite K]
     (scheme : EncScheme M K C) (h : scheme.PerfectlySecret) :
     Nat.card K ≥ Nat.card M := by
   classical

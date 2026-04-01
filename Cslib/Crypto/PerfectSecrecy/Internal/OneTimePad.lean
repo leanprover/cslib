@@ -19,7 +19,7 @@ The OTP ciphertext distribution is uniform regardless of message.
 
 namespace Cslib.Crypto.PerfectSecrecy.OTP
 
-noncomputable instance (n : ℕ) : Fintype (BitVec n) :=
+@[reducible] noncomputable def bitVecFintype (n : ℕ) : Fintype (BitVec n) :=
   Fintype.ofEquiv (Fin (2 ^ n))
     ⟨BitVec.ofFin, BitVec.toFin, fun x => by simp, fun x => by simp⟩
 
@@ -34,9 +34,11 @@ lemma xor_right_eq_iff {l : ℕ} (c m k : BitVec l) :
 
 /-- The ciphertext distribution of the OTP is uniform, regardless of the message. -/
 theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
+    haveI := bitVecFintype l
     (PMF.uniformOfFintype (BitVec l)).bind
       (fun k => PMF.pure (k ^^^ m)) =
     PMF.uniformOfFintype (BitVec l) := by
+  haveI := bitVecFintype l
   ext c
   simp only [PMF.bind_apply, PMF.uniformOfFintype_apply, PMF.pure_apply]
   simp_rw [xor_right_eq_iff c m]
