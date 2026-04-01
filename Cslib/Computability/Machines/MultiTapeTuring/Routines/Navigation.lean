@@ -42,7 +42,10 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
           ext <;> simp_all
         rw [h_eq, h_empty]
         simp [Data.enc_list]
-      · simp [h_empty]; sorry
+      · -- h_empty : ¬((views i).current = Data.list [])
+        simp only [h_empty, dite_false, h_left]
+        rw [TapeView.toBitape_of_appendPath]
+        simp [List.take]
     · have : j ≠ i := by aesop
       simp [this]
   simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect]
