@@ -27,8 +27,10 @@ public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 /-- Skip to the left across a Data-encoded value (inverse of `skipRight`). -/
 public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
+/-- Move to the left end of the current item. -/
 public def toLeftEnd {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
+/-- Move to the right end of the current item. -/
 public def toRightEnd {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
 /-- Run `tm` at the left end of the current item, and return to the original
