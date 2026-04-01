@@ -119,7 +119,7 @@ public def case_literal {k : ℕ}
     -- Navigate to ctor index of literal (first element of Data.list)
   toElem 0 i;ₜ
   -- Dispatch on ctor index
-  case_num i
+  case_nat i
     [ -- positive literal (ctorIdx=0): skip to var, run `pos`
       outOfList i;ₜ toElem 1 i;ₜ pos;ₜ outOfList i,
       -- negative literal (ctorIdx=1): skip to var, run `neg`

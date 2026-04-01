@@ -106,7 +106,6 @@ public lemma ite_enc_from_right.eval {k : ℕ} {v : List Char} {i : Fin k}
       else
         else_branch.eval tapes := by
   simp [ite_enc_from_right]
-  split <;> simp [Function.LeftInverse.iterate BiTape.move_left_move_right _ _]
 
 /-- Runs `then_branch` if `(views i).current = v`, otherwise `else_branch`.
     Works regardless of whether the head is at the left or right end. -/

@@ -111,8 +111,7 @@ public lemma iterate_n_eval_struct_of_total {k : ℕ}
     {f : (Fin k → TapeView) → (Fin k → TapeView)}
     (h : ∀ views, tm.eval_struct views = Part.some (f views))
     {n : ℕ} {views : Fin k → TapeView} :
-    (iterate_n tm n).eval_struct views =
-      Part.some (f^[n] views) := by
+    (iterate_n tm n).eval_struct views = Part.some (f^[n] views) := by
   induction n generalizing views with
   | zero => simp [iterate_n_zero, noop.eval_struct]
   | succ n ih =>

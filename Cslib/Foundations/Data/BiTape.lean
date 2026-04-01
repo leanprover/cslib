@@ -116,6 +116,16 @@ lemma move_left_move_right (t : BiTape Symbol) : t.move_left.move_right = t := b
 lemma move_right_move_left (t : BiTape Symbol) : t.move_right.move_left = t := by
   simp [move_left, move_right]
 
+@[simp]
+lemma move_left_move_right_iterate (t : BiTape Symbol) (n : ℕ) :
+    (move_left^[n] (move_right^[n] t)) = t := by
+  exact Function.LeftInverse.iterate BiTape.move_right_move_left _ _
+
+@[simp]
+lemma move_right_move_left_iterate (t : BiTape Symbol) (n : ℕ) :
+    (move_right^[n] (move_left^[n] t)) = t := by
+  exact Function.LeftInverse.iterate BiTape.move_left_move_right _ _
+
 -- TODO clean up (ai)
 @[simp]
 lemma head_iterate_move_right_mk₁ (l : List Symbol) (n : ℕ) :

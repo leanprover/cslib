@@ -22,17 +22,17 @@ namespace Routines
 /-- Dispatch on the numeric value of an encoding.
     Reads the number `n` and runs `branches[n]`.
     The head stays at the start of the encoding. -/
-public def case_num {k : ℕ} (i : Fin k)
+public def case_nat {k : ℕ} (i : Fin k)
     (branches : List (MultiTapeTM k Char)) : MultiTapeTM k Char := sorry
 
-/-- `case_num i branches` dispatches on the numeric value at the current position
-    of tape `i`. If `currentNum` is `some n` and `n < branches.length`, runs
-    `branches[n]`. Otherwise (tape empty, not a num, or out of range), does nothing. -/
+/-- `case_nat i branches` dispatches on the numeric value at the current position
+of tape `i`. If `(views i).current = StrEnc.toData n` and `n < branches.length`, runs
+`branches[n]`. Otherwise (tape empty, not a num, or out of range), does nothing. -/
 @[simp]
-public lemma case_num_eval_struct {k : ℕ} {i : Fin k}
+public lemma case_nat_eval_struct {k : ℕ} {i : Fin k}
     {branches : List (MultiTapeTM k Char)}
     {views : Fin k → TapeView} :
-    (case_num i branches).eval_struct views =
+    (case_nat i branches).eval_struct views =
       match StrEnc.fromData (views i).current with
       | some (n : ℕ) =>
         if h : n < branches.length then branches[n].eval_struct views
