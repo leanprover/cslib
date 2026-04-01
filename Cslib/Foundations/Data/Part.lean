@@ -6,6 +6,7 @@ Authors: Jesse Alama
 
 module
 
+public import Cslib.Init
 public import Mathlib.Data.Part
 
 @[expose] public section
