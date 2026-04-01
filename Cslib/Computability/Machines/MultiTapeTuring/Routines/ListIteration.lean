@@ -216,10 +216,10 @@ public def find_list {k : ℕ} (i j : Fin k) (tm₁ tm₂ tm₃ : MultiTapeTM k 
   doWhileEq (StrEnc.toData FindMapState.searching) j (
     if_eq ')' i
       (replace (StrEnc.toData FindMapState.notFound) j;ₜ outOfList i)
-      (tm₁;ₜ ite_enc (StrEnc.toData true).enc j
+      (tm₁;ₜ Routines.ite (StrEnc.toData true) j
         (replace (StrEnc.toData FindMapState.found) j)
         (replace (StrEnc.toData FindMapState.searching) j;ₜ skipRight i)));ₜ
-  ite_enc (StrEnc.toData FindMapState.found).enc j
+  Routines.ite (StrEnc.toData FindMapState.found) j
     (clear j;ₜ tm₂)
     (clear j;ₜ tm₃)
 

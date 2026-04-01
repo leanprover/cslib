@@ -36,7 +36,7 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     · subst h_ij
       simp only [effect, Function.update_self, TapeView.appendPath]
       by_cases h_empty : (views i).current = .list []
-      · simp [h_empty]
+      · simp [h_empty]; congr 2; ext <;> simp_all [TapeView.toLeftEnd]
       · simp [h_empty, TapeView.toBitape_of_appendPath (views i) 0 (by sorry)]; sorry
     · have : j ≠ i := by aesop
       simp [this]

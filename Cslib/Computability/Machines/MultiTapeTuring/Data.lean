@@ -243,8 +243,7 @@ public lemma Data.enc_suffix_free {d₁ d₂ : Data}
   rcases t with _ | ⟨a, t⟩
   · exact Data.enc_injective (by simpa using ht)
   · exfalso
-    have hlt : (a :: t).length < d₂.enc.length := by
-      have := Data.enc_length_pos d₁; rw [← ht]; simp; omega
+    have hlt : (a :: t).length < d₂.enc.length := by simp [← ht]
     have h_bal_t : bal (a :: t) = 0 := by
       have : bal d₂.enc = bal (a :: t) + bal d₁.enc := by
         rw [← ht]; exact bal_append _ _
