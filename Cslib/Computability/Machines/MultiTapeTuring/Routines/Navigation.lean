@@ -16,7 +16,7 @@ namespace Routines
 
 
 @[simp]
-public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
+public lemma right_of_leftEnd {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
     (h_left : (views i).headPos = .leftEnd) :
     (right i).eval_struct views = .some (Function.update views i (
@@ -37,7 +37,10 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
       simp only [effect, Function.update_self, TapeView.appendPath]
       by_cases h_empty : (views i).current = .list []
       · simp [h_empty, h_left]
-      · simp [h_empty]; sorry
+      · simp only [h_empty, ↓reduceDIte]
+        rw [show (views i).headPos = HeadPos.leftEnd from h_left]
+        rw [TapeView.toBitape_of_appendPath]
+        simp [List.take]
     · have : j ≠ i := by aesop
       simp [this]
   simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect]

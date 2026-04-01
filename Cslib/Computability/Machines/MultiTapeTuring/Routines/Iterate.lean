@@ -35,7 +35,6 @@ public lemma iterate_n_zero {k : ℕ} {tm : MultiTapeTM k Char} :
 public lemma iterate_n_succ {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     iterate_n tm (n + 1) = tm;ₜ iterate_n tm n := by rfl
 
-@[simp]
 public lemma iterate_n_succ' {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     (iterate_n tm (n + 1)).eval = (iterate_n tm n;ₜ tm).eval := by
   induction n with
@@ -47,10 +46,7 @@ public lemma iterate_n_succ' {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
   | succ n ih =>
     funext tapes
     simp only [iterate_n_succ]
-    -- Goal: (tm ;ₜ (tm ;ₜ iterate_n tm n)).eval tapes =
-    --       ((tm ;ₜ iterate_n tm n) ;ₜ tm).eval tapes
     simp only [MultiTapeTM.seq_eval]
-    -- Now everything is >>= form. Convert to Part.bind for Part.bind_assoc
     change (tm.eval tapes).bind (fun t => (tm.eval t).bind fun s => (iterate_n tm n).eval s) =
       ((tm.eval tapes).bind fun t => (iterate_n tm n).eval t).bind fun t => tm.eval t
     rw [Part.bind_assoc]
@@ -79,10 +75,6 @@ public lemma iterate_n_eval_bind {k : ℕ} {tm : MultiTapeTM k Char}
   | zero => simp [iterate_n_zero, noop.eval]
   | succ n ih =>
     rw [iterate_n_succ, MultiTapeTM.seq_eval]
-    -- Goal: tm.eval tapes >>= (iterate_n tm n).eval =
-    --       ((· >>= tm.eval)^[n+1]) (pure tapes)
-    -- Unfold iterate on RHS: g^[n+1] (pure tapes) = g^[n] (g (pure tapes))
-    --                       = g^[n] (pure tapes >>= tm.eval) = g^[n] (tm.eval tapes)
     change tm.eval tapes >>= (iterate_n tm n).eval =
       ((· >>= tm.eval)^[n]) (pure tapes >>= tm.eval)
     rw [pure_bind]
