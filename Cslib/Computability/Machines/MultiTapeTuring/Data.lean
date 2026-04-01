@@ -77,16 +77,11 @@ public lemma Data.enc_getLast (d : Data) :
   cases d with | list ds => simp [Data.enc_list]
 
 @[simp]
-public lemma Data.enc_getElem?_last (d : Data) :
-    d.enc[d.enc.length - 1]? = some ')' := by
+public lemma Data.enc_getElem_last (d : Data) :
+    d.enc[d.enc.length - 1]'(by simp) = ')' := by
   cases d with
   | list ds =>
     simp [Data.enc_list]
-
-@[simp]
-public lemma Data.enc_getElem_last (d : Data) :
-    d.enc[d.enc.length - 1]'(by simp) = ')' := by
-  simpa using Data.enc_getElem?_last d
 
 -- ─── Balance machinery for prefix-freeness ───────────────────────────────
 

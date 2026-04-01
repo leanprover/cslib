@@ -242,7 +242,7 @@ public lemma enc_current_slice (tv : TapeView) (h_left : tv.headPos = .leftEnd)
 private lemma encodedPos_toRightEnd : (tv : TapeView) →
     tv.toRightEnd.encodedPos = tv.toLeftEnd.encodedPos + (tv.current.enc.length - 1)
   | ⟨.list ds, [], _, _⟩ => by
-    simp [toRightEnd, toLeftEnd, encodedPos, current, Data.atPath, Data.enc_list]
+    simp [toRightEnd, toLeftEnd, current, Data.atPath]
   | ⟨.list ds, p :: path, hp, h_valid⟩ => by
     have h_p : p < ds.length := by grind [Data.atPath]
     have h_sub : (ds[p].atPath path).isSome := by grind [Data.atPath]
@@ -284,9 +284,9 @@ public lemma toBiTape_head_rightEnd (tv : TapeView)
     congr 1; cases tv; simp_all [toRightEnd]
   rw [h_right_eq] at h_pos
   rw [h_pos]
-  -- Goal should now be: tv.data.enc[tv.toLeftEnd.encodedPos + (tv.current.enc.length - 1)]? = some ')'
-  -- Use enc_current_slice: tv.data.enc[toLeftEnd.encodedPos + n]? = some tv.current.enc[n]
-  -- with n = tv.current.enc.length - 1, gives some tv.current.enc[length - 1] = some ')'
+  -- Goal: tv.data.enc[tv.toLeftEnd.encodedPos + (tv.current.enc.length - 1)]?
+  --       = some ')'
+  -- Use enc_current_slice with n = tv.current.enc.length - 1
   exact (enc_current_slice tv.toLeftEnd rfl
     (tv.toLeftEnd.current.enc.length - 1)
     (by have := Data.enc_length_pos tv.toLeftEnd.current; omega)).trans
@@ -574,27 +574,6 @@ public def updateListHeadTyped
   let d <- ls.head?
   let x <- StrEnc.fromData d
   return TapeView.ofList ((StrEnc.toData (f x)) :: ls.tail)).getD tv
-
--- /-- Checking all chars of `v.enc` starting from the head of `toBiTape tv` is equivalent
---     to `tv.current = v`. -/
--- public lemma ite_enc_condition_iff' (tv : TapeView) (v : Data) :
---   (∀ n, (h : n < v.enc.length) → (BiTape.move_right^[n] tv.toBiTape).head = some v.enc[n]) ↔
---     tv.current = v := by
---   have key : ∀ n, (BiTape.move_right^[n] tv.toBiTape).head = tv.data.enc[tv.encodedPos + n]? := by
---     intro n
---     unfold toBiTape
---     simp [← Function.iterate_add_apply, Nat.add_comm]
---   constructor
---   · intro h
---     simp [key] at h
-
-
-
-
-
-
---     sorry
---   · sorry
 
 
 end TapeView

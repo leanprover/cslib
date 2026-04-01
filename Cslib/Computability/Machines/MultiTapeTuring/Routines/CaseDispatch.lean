@@ -34,7 +34,9 @@ public lemma case_num_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView} :
     (case_num i branches).eval_struct views =
       match StrEnc.fromData (views i).current with
-      | some (n : ℕ) => if h : n < branches.length then branches[n].eval_struct views else some views
+      | some (n : ℕ) =>
+        if h : n < branches.length then branches[n].eval_struct views
+        else some views
       | _ => some views := by sorry
 
 /-- Dispatch on the numeric value of the first element of a list.

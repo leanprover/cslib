@@ -32,7 +32,6 @@ public def iterate_n {k : ℕ} (tm : MultiTapeTM k Char) : ℕ → MultiTapeTM k
 public lemma iterate_n_zero {k : ℕ} {tm : MultiTapeTM k Char} :
     iterate_n tm 0 = noop := by rfl
 
-@[simp]
 public lemma iterate_n_succ {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     iterate_n tm (n + 1) = tm;ₜ iterate_n tm n := by rfl
 
@@ -57,10 +56,6 @@ public lemma iterate_n_succ' {k : ℕ} {tm : MultiTapeTM k Char} {n : ℕ} :
     rw [Part.bind_assoc]
     congr 1
     funext tapes'
-    -- Goal: (tm.eval tapes').bind (fun s => (iterate_n tm n).eval s) =
-    --       (iterate_n tm n).eval tapes' >>= tm.eval
-    -- By ih: (iterate_n tm (n+1)).eval = (iterate_n tm n ;ₜ tm).eval
-    -- i.e. (tm ;ₜ iterate_n tm n).eval = (iterate_n tm n ;ₜ tm).eval
     have := congr_fun ih tapes'
     simp only [iterate_n_succ, MultiTapeTM.seq_eval] at this
     exact this
@@ -88,7 +83,7 @@ public lemma iterate_n_eval_bind {k : ℕ} {tm : MultiTapeTM k Char}
     --       ((· >>= tm.eval)^[n+1]) (pure tapes)
     -- Unfold iterate on RHS: g^[n+1] (pure tapes) = g^[n] (g (pure tapes))
     --                       = g^[n] (pure tapes >>= tm.eval) = g^[n] (tm.eval tapes)
-    show tm.eval tapes >>= (iterate_n tm n).eval =
+    change tm.eval tapes >>= (iterate_n tm n).eval =
       ((· >>= tm.eval)^[n]) (pure tapes >>= tm.eval)
     rw [pure_bind]
     conv_lhs => arg 2; ext t; rw [ih]
@@ -105,7 +100,7 @@ public lemma iterate_n_eval_of_total {k : ℕ} {tm : MultiTapeTM k Char}
   | zero => simp
   | succ n ih =>
     simp only [Function.iterate_succ', Function.comp, ih]
-    show (Part.some (f^[n] tapes)).bind tm.eval = _
+    change (Part.some (f^[n] tapes)).bind tm.eval = _
     rw [Part.bind_some, h]
 
 end Routines

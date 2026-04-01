@@ -155,7 +155,7 @@ lemma space_used_write (t : BiTape Symbol) (a : Option Symbol) :
 lemma space_used_mk₁ (l : List Symbol) :
     (mk₁ l).space_used = max 1 l.length := by
   cases l with
-  | nil => simp [mk₁, space_used, nil, StackTape.length_nil]
+  | nil => simp [mk₁, space_used, StackTape.length_nil]
   | cons h t => simp [mk₁, space_used, StackTape.length_nil, StackTape.length_map_some]; omega
 
 lemma space_used_move (t : BiTape Symbol) (d : Dir) :

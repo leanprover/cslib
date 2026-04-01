@@ -53,7 +53,8 @@ def seq_combine_stats (stats₁ stats₂ : Fin k → HeadStats) : Fin k → Head
     final₁ + final₂,
     by omega⟩
 
-lemma seq_evalWithStats (tm₁ tm₂ : MultiTapeTM k Symbol) (tapes : Fin k → BiTape Symbol) (i : Fin k) :
+lemma seq_evalWithStats (tm₁ tm₂ : MultiTapeTM k Symbol)
+    (tapes : Fin k → BiTape Symbol) (i : Fin k) :
   (seq tm₁ tm₂).evalWithStats tapes = do
       let (tapes', stats₁) ← tm₁.evalWithStats tapes
       let (tapes'', stats₂) ← tm₂.evalWithStats tapes'

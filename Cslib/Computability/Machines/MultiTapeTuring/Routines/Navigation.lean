@@ -36,8 +36,13 @@ public lemma right_on_nonempty_list {k : ℕ} {i : Fin k}
     · subst h_ij
       simp only [effect, Function.update_self, TapeView.appendPath]
       by_cases h_empty : (views i).current = .list []
-      · simp [h_empty]; congr 2; ext <;> simp_all [TapeView.toLeftEnd]
-      · simp [h_empty, TapeView.toBitape_of_appendPath (views i) 0 (by sorry)]; sorry
+      · simp only [h_empty, dite_true]
+        rw [TapeView.toBiTape_toRightEnd]
+        have h_eq : (views i).toLeftEnd = views i := by
+          ext <;> simp_all
+        rw [h_eq, h_empty]
+        simp [Data.enc_list]
+      · simp [h_empty]; sorry
     · have : j ≠ i := by aesop
       simp [this]
   simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect]
