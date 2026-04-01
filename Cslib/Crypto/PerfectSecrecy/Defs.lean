@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Cryptography.PerfectSecrecy.Encryption
+public import Cslib.Crypto.PerfectSecrecy.Encryption
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 @[expose] public section
@@ -14,23 +14,27 @@ public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 /-!
 # Perfect Secrecy: Definitions
 
-Core definitions for perfect secrecy following [KatzLindell2021], Chapter 2.
+Core definitions for perfect secrecy following [KatzLindell2020], Chapter 2.
 
 ## Main definitions
 
-- `Cslib.Cryptography.PerfectSecrecy.EncScheme.ciphertextDist`:
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.ciphertextDist`:
   ciphertext distribution for a given message
-- `Cslib.Cryptography.PerfectSecrecy.EncScheme.jointDist`:
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.jointDist`:
   joint (message, ciphertext) distribution given a message prior
-- `Cslib.Cryptography.PerfectSecrecy.EncScheme.marginalCiphertextDist`:
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.marginalCiphertextDist`:
   marginal ciphertext distribution given a message prior
-- `Cslib.Cryptography.PerfectSecrecy.EncScheme.posteriorMsgProb`:
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.posteriorMsgProb`:
   posterior probability `Pr[M = m | C = c]`
-- `Cslib.Cryptography.PerfectSecrecy.EncScheme.PerfectlySecret`:
-  perfect secrecy ([KatzLindell2021], Definition 2.3)
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.posteriorMsgDist`:
+  posterior message distribution as a `PMF` (defined in the internal file)
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.PerfectlySecret`:
+  perfect secrecy ([KatzLindell2020], Definition 2.3)
+- `Cslib.Crypto.PerfectSecrecy.EncScheme.CiphertextIndist`:
+  ciphertext indistinguishability ([KatzLindell2020], Lemma 2.5)
 -/
 
-namespace Cslib.Cryptography.PerfectSecrecy.EncScheme
+namespace Cslib.Crypto.PerfectSecrecy.EncScheme
 
 universe u
 variable {M K C : Type u}
@@ -59,10 +63,15 @@ noncomputable def posteriorMsgProb (scheme : EncScheme M K C)
 
 /-- An encryption scheme is perfectly secret if `Pr[M = m | C = c] = Pr[M = m]`
 for every prior, message, and ciphertext with positive probability
-([KatzLindell2021], Definition 2.3). -/
+([KatzLindell2020], Definition 2.3). -/
 def PerfectlySecret (scheme : EncScheme M K C) : Prop :=
   ∀ (msgDist : PMF M) (m : M) (c : C),
     c ∈ (scheme.marginalCiphertextDist msgDist).support →
     scheme.posteriorMsgProb msgDist c m = msgDist m
 
-end Cslib.Cryptography.PerfectSecrecy.EncScheme
+/-- Ciphertext indistinguishability: the ciphertext distribution is the same
+for all messages ([KatzLindell2020], Lemma 2.5). -/
+def CiphertextIndist (scheme : EncScheme M K C) : Prop :=
+  ∀ m₀ m₁ : M, scheme.ciphertextDist m₀ = scheme.ciphertextDist m₁
+
+end Cslib.Crypto.PerfectSecrecy.EncScheme

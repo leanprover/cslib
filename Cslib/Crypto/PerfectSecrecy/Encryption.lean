@@ -15,25 +15,25 @@ public import Mathlib.Probability.ProbabilityMassFunction.Monad
 # Private-Key Encryption Schemes (Information-Theoretic)
 
 An information-theoretic private-key encryption scheme following
-[KatzLindell2021], Definition 2.1. Key generation and encryption are
+[KatzLindell2020], Definition 2.1. Key generation and encryption are
 probability distributions over arbitrary types, with no computational
 constraints.
 
 ## Main definitions
 
-- `Cslib.Cryptography.PerfectSecrecy.EncScheme`:
+- `Cslib.Crypto.PerfectSecrecy.EncScheme`:
   a private-key encryption scheme (Gen, Enc, Dec) with correctness
 
 ## References
 
-* [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2021]
+* [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
 
-namespace Cslib.Cryptography.PerfectSecrecy
+namespace Cslib.Crypto.PerfectSecrecy
 
 /--
 A private-key encryption scheme over message space `M`, key space `K`,
-and ciphertext space `C` ([KatzLindell2021], Definition 2.1).
+and ciphertext space `C` ([KatzLindell2020], Definition 2.1).
 -/
 structure EncScheme.{u} (M K C : Type u) where
   /-- Probabilistic key generation. -/
@@ -45,4 +45,4 @@ structure EncScheme.{u} (M K C : Type u) where
   /-- Decryption inverts encryption for all keys in the support of `gen`. -/
   correct : ∀ k, k ∈ gen.support → ∀ m c, c ∈ (enc k m).support → dec k c = m
 
-end Cslib.Cryptography.PerfectSecrecy
+end Cslib.Crypto.PerfectSecrecy
