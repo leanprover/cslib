@@ -15,6 +15,8 @@ public import Mathlib.Data.Part
 # Auxiliary lemmas for `Part`
 
 Convenience lemmas for working with partial values from `Mathlib.Data.Part`.
+
+Note: this file may go away entirely if leanprover-community/mathlib4#37521 gets merged.
 -/
 
 namespace Part
