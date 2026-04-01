@@ -119,10 +119,20 @@ public def appendPath (tv : TapeView) (idx : ℕ)
 public abbrev toLeftEnd (tv : TapeView) : TapeView :=
   ⟨tv.data, tv.path, .leftEnd, tv.h_path⟩
 
+@[simp]
+public lemma toLeftEnd_of_leftEnd (tv : TapeView)
+    (h : tv.headPos = .leftEnd) : tv.toLeftEnd = tv := by
+  ext <;> simp_all
+
 /-- Return a copy of the `TapeView` with the head positioned at the right end. -/
 @[expose]
 public abbrev toRightEnd (tv : TapeView) : TapeView :=
   ⟨tv.data, tv.path, .rightEnd, tv.h_path⟩
+
+@[simp]
+public lemma toRightEnd_of_rightEnd (tv : TapeView)
+    (h : tv.headPos = .rightEnd) : tv.toRightEnd = tv := by
+  ext <;> simp_all
 
 /-- Attempt to decode the current value as a typed value of type `α`.
     Returns `none` if the tape is empty, the path is invalid,

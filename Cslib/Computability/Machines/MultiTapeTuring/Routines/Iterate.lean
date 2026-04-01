@@ -103,5 +103,21 @@ public lemma iterate_n_eval_of_total {k : ℕ} {tm : MultiTapeTM k Char}
     change (Part.some (f^[n] tapes)).bind tm.eval = _
     rw [Part.bind_some, h]
 
+/-- Structural version: if `tm.eval_struct` always produces `f views`,
+    then `iterate_n tm n` produces `f^[n]`. -/
+@[simp]
+public lemma iterate_n_eval_struct_of_total {k : ℕ}
+    {tm : MultiTapeTM k Char}
+    {f : (Fin k → TapeView) → (Fin k → TapeView)}
+    (h : ∀ views, tm.eval_struct views = Part.some (f views))
+    {n : ℕ} {views : Fin k → TapeView} :
+    (iterate_n tm n).eval_struct views =
+      Part.some (f^[n] views) := by
+  induction n generalizing views with
+  | zero => simp [iterate_n_zero, noop.eval_struct]
+  | succ n ih =>
+    simp only [iterate_n_succ, seq_eval_struct, h, Part.bind_some]
+    exact ih
+
 end Routines
 end Turing
