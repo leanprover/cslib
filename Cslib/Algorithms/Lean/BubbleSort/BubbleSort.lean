@@ -35,7 +35,9 @@ moves a maximum element to the end.
 
 set_option autoImplicit false
 
-namespace Cslib.Algorithms.Lean.TimeM
+namespace Cslib.Algorithms.Lean.BubbleSort
+
+open Cslib.Algorithms.Lean.TimeM
 
 variable {α : Type} [LinearOrder α]
 
@@ -83,7 +85,7 @@ open List
 @[simp]
 theorem bubble_same_length (xs : List α) : ⟪bubble xs⟫.length = xs.length := by
   fun_induction bubble xs with
-  | case1 => simp
+  | case1   => simp
   | case2 x => simp
   | case3 x y xs ihT ihF =>
       simp
@@ -452,4 +454,4 @@ theorem bubbleSort_time (xs : List α) :
 
 end TimeComplexity
 
-end Cslib.Algorithms.Lean.TimeM
+end Cslib.Algorithms.Lean.BubbleSort
