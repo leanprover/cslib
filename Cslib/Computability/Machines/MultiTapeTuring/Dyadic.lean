@@ -23,6 +23,7 @@ public instance : Fintype Char := by
       · simp only [dif_pos c.valid]; ext; simp)
 
 /-- Dyadic encoding of natural numbers. -/
+@[expose]
 public def dyadic (n : ℕ) : List Char :=
   if n = 0 then []
   else if Even n then
@@ -31,6 +32,7 @@ public def dyadic (n : ℕ) : List Char :=
     dyadic ((n - 1) / 2) ++ ['1']
 
 /-- Dyadic decoding of natural numbers. -/
+@[expose]
 public def dyadic_inv (l : List Char) : Option ℕ :=
   l.foldlM (fun acc c =>
     if c = '1' then some (2 * acc + 1)

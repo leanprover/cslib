@@ -29,15 +29,16 @@ public inductive Literal where
 
 public instance : StrEnc Literal where
   toData
-    | Literal.pos v => Data.list [Data.num 0, Data.num v]
-    | Literal.neg v => Data.list [Data.num 1, Data.num v]
-  fromData
-    | Data.list [Data.num 0, Data.num v] => some (Literal.pos v)
-    | Data.list [Data.num 1, Data.num v] => some (Literal.neg v)
+    | Literal.pos v => StrEnc.toData [0, v]
+    | Literal.neg v => StrEnc.toData [1, v]
+  fromData d := do
+    match StrEnc.fromData d with
+    | some [0, v] => some (Literal.pos v)
+    | some [1, v] => some (Literal.neg v)
     | _ => none
   fromData_toData
-    | Literal.pos _ => rfl
-    | Literal.neg _ => rfl
+    | Literal.pos _ => by simp
+    | Literal.neg _ => by simp
 
 /-- TODO document -/
 public abbrev Clause := List Literal
@@ -74,8 +75,8 @@ lemma SatInput_toData (formula : Formula) (assignments : Assignments) :
 lemma Literal_toData (lit : Literal) :
   StrEnc.toData lit = Data.list (
     match lit with
-    | Literal.pos v => [Data.num 0, StrEnc.toData v]
-    | Literal.neg v => [Data.num 1, StrEnc.toData v]) := by
+    | Literal.pos v => [StrEnc.toData 0, StrEnc.toData v]
+    | Literal.neg v => [StrEnc.toData 1, StrEnc.toData v]) := by
   match lit with
   | Literal.pos v => rfl
   | Literal.neg v => rfl
@@ -109,21 +110,26 @@ The algorithm:
 3. Clean up and leave the result on tape 2
 -/
 
+
+-- TODO problem is that we need to leave the tape as we started!
+
+
 -- TODO extend this to any inductive type
 /-- TODO document -/
 public def case_literal {k : ℕ}
     (pos neg : MultiTapeTM k Char)
     (i : Fin k) :
   MultiTapeTM k Char :=
+  atLeft i (
     -- Navigate to ctor index of literal (first element of Data.list)
   toElem 0 i;ₜ
   -- Dispatch on ctor index
-  case_num i
+  case_nat i
     [ -- positive literal (ctorIdx=0): skip to var, run `pos`
       outOfList i;ₜ toElem 1 i;ₜ pos;ₜ outOfList i,
       -- negative literal (ctorIdx=1): skip to var, run `neg`
       outOfList i;ₜ toElem 1 i;ₜ neg;ₜ outOfList i
-    ]
+    ])
 
 -- TODO why does the simp linter complain here?
 public lemma case_literal.computes_fun {k : ℕ}
@@ -140,16 +146,16 @@ public lemma case_literal.computes_fun {k : ℕ}
     | Literal.pos v => f_pos v x
     | Literal.neg v => f_neg v x)
     i j r := by
-  intro lit x views h_lit h_x
+  intro lit x views h_lit h_lit_head
   have h_neq : i ≠ r := by
     exact Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 2 by decide)
   have h_ne' : i ≠ j := by
     exact Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 1 by decide)
   match h : lit with
   | Literal.pos v =>
-    simp [h_comp_pos v x, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x]
+    simp_all [h_comp_pos v x, case_literal, h_neq.symm, h_ne'.symm]
   | Literal.neg v =>
-    simp [h_comp_neg v x, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x]
+    simp_all [h_comp_neg v x, case_literal, h_neq.symm, h_ne'.symm]
 
 
 -- TODO why does the simp linter complain here?
@@ -170,12 +176,11 @@ public lemma case_literal.computes_fun' {k : ℕ}
   intro lit x ls views h_lit h_x h_ls
   have h_neq : i ≠ r := Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 2 by decide)
   have h_ne' : i ≠ j := Function.Injective.ne h_inj (show (0 : Fin 3) ≠ 1 by decide)
-  have h_ner : r ≠ i := by grind
   match h : lit with
   | Literal.pos v =>
-    simp [h_comp_pos v x ls, case_literal, h_neq, h_neq.symm, h_lit, h_x, h_ne'.symm, h_ls]
+    simp_all [h_comp_pos v x ls, case_literal, h_neq.symm, h_ne'.symm]
   | Literal.neg v =>
-    simp [h_comp_neg v x ls, case_literal, h_neq, h_neq.symm, h_lit, h_ne'.symm, h_x, h_ls]
+    simp_all [h_comp_neg v x ls, case_literal, h_neq.symm, h_ne'.symm]
 
 /-- Check if literal on tape 0 is satisfied by assignment on tape 1 and store result
 on tape 2. -/
@@ -210,11 +215,11 @@ lemma sat_verify_core_semantics :
 
 /-- TODO document -/
 public def sat_verify : MultiTapeTM 5 Char :=
-  -- TODO could also use `at_path`
   -- Navigate to assignments (arg 1) and copy to tape 1
-  toElem 1 0;ₜ copyEnc 0 1;ₜ outOfList 0;ₜ
+  -- toElem 1 0;ₜ copyEnc 0 1;ₜ outOfList 0;ₜ
+  atElem 1 0 (copyEnc 0 1);ₜ
   -- Navigate to formula (arg 0)
-  toElem 0 0;ₜ sat_verify_core;ₜ outOfList 0;ₜ
+  atElem 0 0 sat_verify_core;ₜ
   replace (Data.list []) 1
 
 public theorem sat_verify.computes_fun
@@ -223,9 +228,8 @@ public theorem sat_verify.computes_fun
   (h_second_empty : views 1 = TapeView.empty) :
    sat_verify.eval_struct views = some (Function.update views 2
      ((views 2).pushList (StrEnc.toData (evalFormula assignments formula)))) := by
-  simp [sat_verify, h_input, sat_verify_core_semantics formula assignments]
+  simp [sat_verify, h_input, sat_verify_core_semantics formula assignments, TapeView.setHeadPosOf]
   grind
-
 
 end Satisfiability
 

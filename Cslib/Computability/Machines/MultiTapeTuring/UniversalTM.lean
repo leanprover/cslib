@@ -74,13 +74,17 @@ public instance : StrEnc (MultiCell (k : ℕ)) where
 /-
 Outline of UTM:
 while the current state is not None:
-- for each tape, find the head position on the multi-tape and copy the current symbol to an aux tape.
+- for each tape, find the head position on the multi-tape
+  and copy the current symbol to an aux tape.
 - now the aux tape contains the symbols in the correct order.
 - copy the current state to the aux tape.
-- the contents of the aux tape is exactly the input to the transition function
-- "evaluate the transition function" by iterating through its table and storing the result on another tape
+- the contents of the aux tape is exactly the input to the
+  transition function
+- "evaluate the transition function" by iterating through its
+  table and storing the result on another tape
 - execute the actions for each of the tapes:
-  - find the head. update the symbol, update the head marking according to the move action
+  - find the head. update the symbol, update the head marking
+    according to the move action
     (potentially extend the tape to the left or right)
 - update the current state
 -/
@@ -100,9 +104,9 @@ def encodeTapes (k : ℕ) (tapes : Fin k → BiTape Char) (shifts : Fin k → �
 
 def getHeadSymbol (k : ℕ) (tapeIdx : ℕ) (mt out aux : Fin k) : MultiTapeTM k Char :=
   -- Find the cell where the tapeIdx-th tape has the head
-  find_list mt aux (at_path [0, tapeIdx, 1] mt (copyEnc mt aux))
+  find_list mt aux (atPath [0, tapeIdx, 1] mt (copyEnc mt aux))
     -- copy the symbol to out
-    (at_path [0, tapeIdx, 0] mt (copy_to_list mt out))
+    (atPath [0, tapeIdx, 0] mt (copy_to_list mt out))
     -- otherwise do nothing (because we know there is a head marker)
     (noop)
 

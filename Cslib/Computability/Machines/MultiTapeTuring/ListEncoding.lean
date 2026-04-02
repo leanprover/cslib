@@ -43,7 +43,7 @@ of the resulting string (if the list is non-empty). -/
 public def listToString (ls : List (List Symbol)) : List (WithSep Symbol) :=
   (ls.map (fun w : List Symbol => (w.map .ofChar) ++ [.comma])).flatten
 
-/--- Turn an encoded list back to a string, if possible. This is the inverse of
+/-- Turn an encoded list back to a string, if possible. This is the inverse of
 `listToString`. -/
 public def stringToList (s : List (Option (WithSep Symbol))) : Option (List (List Symbol)) :=
   s.foldr (fun c acc =>

@@ -51,6 +51,8 @@ public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Boolean
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.CaseDispatch
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Copy
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Eq
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Ite
+public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Iterate
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListIteration
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.ListOps
 public import Cslib.Computability.Machines.MultiTapeTuring.Routines.Navigation

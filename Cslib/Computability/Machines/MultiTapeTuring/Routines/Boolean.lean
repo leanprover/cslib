@@ -65,31 +65,6 @@ public lemma negateBool.computes_head_update {k : ℕ} {i : Fin k} :
 
 grind_pattern negateBool.computes_head_update => negateBool i
 
--- TODO from here below the simp lemmas are nice. Let us try to find a similarly nice
--- simpe lemma for case_popList_num. Maybe the array is the problem?
-@[simp]
-public lemma negateBool_eval_struct {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView} :
-    (negateBool i).eval_struct views = some
-      (Function.update views i (match views i with
-      | ⟨Data.list (Data.num 0 :: rest), [], h⟩ => ⟨Data.list (Data.num 1 :: rest), [], h⟩
-      | ⟨Data.list (Data.num 1 :: rest), [], h⟩ => ⟨Data.list (Data.num 0 :: rest), [], h⟩
-      | _ => views i)) := by
-  match h_v : views i with
-  | ⟨Data.list (Data.num 0 :: rest), [], h⟩ => simp [negateBool, h_v]
-  | ⟨Data.list (Data.num 1 :: rest), [], h⟩ => simp [negateBool, h_v]
-  | v => sorry
-
-/-- TODO document -/
-public def test : MultiTapeTM 1 Char := pushList (StrEnc.toData true) 0;ₜ negateBool 0
-
-public lemma test_eval_struct
-    {views : Fin 1 → TapeView}
-    (h_data : (views 0) = .ofList [])
-      :
-    test.eval_struct views = some
-      (Function.update views 0 (.ofList [StrEnc.toData false])) := by
-  simp [test, h_data]
 
 end Routines
 end Turing

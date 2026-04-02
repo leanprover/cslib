@@ -21,13 +21,21 @@ namespace Routines
 -- but we need to account for it - so maybe it's better to just do it
 -- when constructing it?
 
-/-- Skip to the right across a Data-encoded value.
-    Works for both `[...]` (num) and `(...)` (list) encodings. -/
+/-- Skip to the right across a Data-encoded value. -/
 public def skipRight {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
 /-- Skip to the left across a Data-encoded value (inverse of `skipRight`). -/
 public def skipLeft {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
 
+/-- Move to the left end of the current item. -/
+public def toLeftEnd {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
+
+/-- Move to the right end of the current item. -/
+public def toRightEnd {k : ℕ} (i : Fin k) : MultiTapeTM k Char := sorry
+
+/-- Run `tm` at the left end of the current item, and return to the original
+position afterwards. -/
+public def atLeftEnd {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) : MultiTapeTM k Char := sorry
 
 @[simp, grind =>]
 public lemma skipLeft_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipLeft i).HaltsOn t := by
@@ -37,28 +45,63 @@ public lemma skipLeft_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipLeft i).HaltsO
 public lemma skipRight_haltsOn {k : ℕ} (i : Fin k) : ∀ t, (skipRight i).HaltsOn t := by
   sorry
 
--- TODO would be nice to make this a simp lemma.
+-- TODO move the two conditions into the body
 
 /-- `skipRight i` moves to the next sibling element within a list,
-    incrementing the last path index. -/
-public lemma skipRight_eval_struct {k j : ℕ} {i : Fin k}
+    incrementing the last path index, or to the end of the list. -/
+@[simp]
+public lemma skipRight_eval_struct {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
-    {parent : TapeView}
-    (h_valid : (parent.current.atPath [j + 1]).isSome)
-    (h_parent : (views i) = parent.appendPath j
-         (Data.atPath_isSome_of_le_isSome (by simp) h_valid)) :
-    (skipRight i).eval_struct views = .some
-      (Function.update views i (parent.appendPath j.succ h_valid)) := by sorry
+    (h_nonempty : (views i).path.getLast?.isSome)
+    (h_left : (views i).headPos = .leftEnd) :
+    (skipRight i).eval_struct views = .some (Function.update views i (
+        let idx : ℕ := (views i).path.getLast?.get h_nonempty
+        if h_next : ((views i).parent.current.atPath [idx.succ]).isSome then
+            (views i).parent.appendPath idx.succ h_next
+          else
+            (views i).parent.toRightEnd)) := by sorry
 
-/-- `skipLeft i` moves to the previous sibling element within a list,
-    decrementing the last path index. -/
-public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k}
-    {views : Fin k → TapeView}
-    {rest : List ℕ} {idx : ℕ}
-    (h_path : (views i).path = rest ++ [idx + 1]) :
-    (skipLeft i).eval_struct views = .some
-      (Function.update views i
-        ⟨(views i).data, rest ++ [idx], sorry⟩) := by sorry
+/-- `skipLeft i` is the inverse of `skipRight i`.
+    When positioned at the right end of a non-empty list, it moves to the
+    left end of the last entry in the list.
+    When positioned at the left end of a non-first item in a list, it moves
+    to the left end of the previous item. -/
+@[simp]
+public lemma skipLeft_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+    (skipLeft i).eval_struct views = .some (Function.update views i (
+      if h_right : (views i).headPos = .rightEnd then
+        if h_empty : (views i).current = .list [] then
+          views i
+        else
+          ((views i).appendPath ((views i).current.toList.length - 1) (by simp [h_empty])).toLeftEnd
+      else
+        if h_path : (views i).path.getLast?.isSome then
+          let idx := (views i).path.getLast?.get h_path
+          if h_prev : 0 < idx then
+            (views i).parent.appendPath (idx - 1) (by
+                unfold TapeView.current;
+                apply Data.atPath_isSome_of_le_isSome (show idx - 1 ≤ idx from by omega)
+                simp [idx])
+          else
+            views i
+        else
+          views i)) := by sorry
+
+@[simp]
+public lemma toLeftEnd_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+    (toLeftEnd i).eval_struct views = .some (Function.update views i (views i).toLeftEnd) := by
+  sorry
+
+@[simp]
+public lemma toRightEnd_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+    (toRightEnd i).eval_struct views = .some (Function.update views i (views i).toRightEnd) := by
+  sorry
+
+@[simp]
+public lemma atLeftEnd_eval_struct {k : ℕ} {i : Fin k} {tm : MultiTapeTM k Char}
+  {views : Fin k → TapeView} :
+    (atLeftEnd i tm).eval_struct views = .some (Function.update views i (views i).toLeftEnd) := by
+  sorry
 
 end Routines
 end Turing
