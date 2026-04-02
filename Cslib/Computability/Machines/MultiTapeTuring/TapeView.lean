@@ -22,6 +22,11 @@ public inductive HeadPos where
   | rightEnd
   deriving DecidableEq
 
+@[simp]
+public lemma HeadPos.eq_rightEnd_of_ne_leftEnd {hp : HeadPos}
+    (h : ¬hp = .leftEnd) : hp = .rightEnd := by
+  cases hp <;> simp_all
+
 /-- A structured view of a tape that contains an encoding of `Data`.
 - `data`: the content present on the tape, encoding using `Data.enc`.
 - `path`: a navigation path into the `Data` value, pointing to the "current" value.
@@ -623,6 +628,15 @@ public lemma toBiTape_comp_update {k : ℕ} {i : Fin k}
   · subst h; simp
   · simp only [Function.comp_apply, Function.update_apply]
     split <;> simp_all
+
+/-- Combined: moving right on tape `i` and updating equals updating with the target TapeView. -/
+public lemma toBiTape_comp_update_move_right {k : ℕ} {i : Fin k}
+    {views : Fin k → TapeView} {target : TapeView}
+    (h_data : (views i).data = target.data)
+    (h_enc : (views i).encodedPos + 1 = target.encodedPos) :
+    Function.update (toBiTape ∘ views) i (views i).toBiTape.move_right =
+      toBiTape ∘ Function.update views i target := by
+  rw [toBiTape_move_right_eq _ _ h_data h_enc, toBiTape_comp_update]
 
 @[simp]
 public lemma ofBiTapes?_toBiTape {k : ℕ}
