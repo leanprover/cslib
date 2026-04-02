@@ -137,18 +137,10 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
   have h_ne : (views i).current ≠ Data.list [] :=
     Data.atPath_zero_isSome_of_nonempty.mp
       (Data.atPath_isSome_of_le_isSome (by omega) h_valid)
-  -- toElem = toLeftEnd ;ₜ right ;ₜ skipRight_n
   simp only [toElem, seq_eval_struct, toLeftEnd_eval_struct, Part.bind_some]
-  -- After toLeftEnd: views i becomes (views i).toLeftEnd which has headPos = .leftEnd
-  have h_left : (Function.update views i (views i).toLeftEnd i).headPos = .leftEnd := by simp
-  rw [right_of_leftEnd h_left]
-  simp only [Part.bind_some, Function.update_idem, Function.update_self]
-  -- The dite reduces since (views i).toLeftEnd.current ≠ .list []
-  -- (toLeftEnd doesn't change current)
-  have h_ne' : ¬ (views i).toLeftEnd.current = Data.list [] := by
-    change ¬ (views i).current = _; exact h_ne
-  simp only [h_ne', ↓reduceDIte]
-  -- Now apply skipRight_n.eval_struct
+  rw [right_of_leftEnd (by simp : (Function.update views i _ i).headPos = .leftEnd)]
+  simp only [Part.bind_some, Function.update_idem, Function.update_self,
+    show ¬(views i).toLeftEnd.current = Data.list [] from h_ne, ↓reduceDIte]
   rw [skipRight_n.eval_struct (j := 0) (parent := (views i).toLeftEnd)
       (by simpa using h_valid) (by simp) (by simp)]
   simp only [Nat.zero_add, Function.update_idem, Function.update_self, TapeView.appendPath,

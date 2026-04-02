@@ -114,11 +114,13 @@ public def appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
   ⟨tv.data, tv.path ++ [idx], tv.headPos, by simpa using h⟩
 
+/-- Like `appendPath` but always sets `headPos` to `.leftEnd`. -/
 @[expose, simp]
 public def appendPath' (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
   ⟨tv.data, tv.path ++ [idx], .leftEnd, by simpa using h⟩
 
+/-- Copy the `headPos` from `tv'` into `tv`, keeping all other fields. -/
 @[expose]
 public abbrev setHeadPosOf (tv tv' : TapeView) : TapeView :=
   ⟨tv.data, tv.path, tv'.headPos, tv.h_path⟩
