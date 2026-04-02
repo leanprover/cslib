@@ -75,6 +75,8 @@ theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
     _ = (l.reverse * l.reverse - 1).reverse := by rw [sub_one_mul]
     _ = _ := by rw [reverse_sub, reverse_one, reverse_mul, reverse_reverse]
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[scoped grind =]
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
   ext x; constructor
@@ -82,8 +84,8 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
     have h3 : ¬ xl = [] := by grind [one_def]
     obtain ⟨x, xl', h_xl'⟩ := exists_cons_of_ne_nil h3
-    have := h_xl x
-    refine ⟨x, ?_, xl'.flatten, ?_, ?_⟩ <;> grind [join_mem_kstar]
+    subst h_xl'
+    refine ⟨x, mem_preimage.mp (h_xl x ?_), xl'.flatten, join_mem_kstar ?_, ?_⟩ <;> grind
   · rintro ⟨y, ⟨h_y, h_1⟩, z, h_z, rfl⟩
     refine ⟨?_, ?_⟩
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
