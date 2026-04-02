@@ -62,7 +62,9 @@ theorem nth_of_strictMono (hm : StrictMono f) (n : ℕ) :
   rw [← nth_comp_of_strictMono hm]
   · simp
   · simp
-  · intros
+  · #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    intros
     have : (range f).Infinite := strictMono_infinite hm
     contradiction
 
