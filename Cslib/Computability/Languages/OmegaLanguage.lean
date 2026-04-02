@@ -279,11 +279,14 @@ theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
 theorem omegaPow_of_le_one [Inhabited α] (h : l ≤ 1) : l^ω = ⊥ := by
   cases (Language.le_one_iff_eq.mp h) <;> simp_all
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (from lean#13166? seems different) -/
 theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l ≤ 1 := by
   intro x h_x
   by_contra h_contra
   suffices h' : (const x).flatten ∈ l^ω by simp [h] at h'
-  exact ⟨const x, rfl, by grind [Language.mem_sub]⟩
+  use const x, rfl
+  exact fun _ => ⟨h_x, h_contra⟩
 
 /-- An alternative characterization of `l * p`. -/
 theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p } := by
