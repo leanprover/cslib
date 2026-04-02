@@ -108,12 +108,44 @@ public lemma right_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView
       have h_head : (views i).headPos = .rightEnd := by
         cases h : (views i).headPos <;> simp_all
       have h_encodedPos := TapeView.encodedPos_of_path_eq_nil_right (views i) h_path h_head
+      -- At root rightEnd, moving right goes past the encoding
+      -- ofBiTape? returns none for tape positioned past encoding
+      -- This depends on ofBiTape? (sorry'd) — leave as sorry for now
       sorry
     | some idx =>
       by_cases h_next : ((views i).parent.current.atPath [idx.succ]).isSome
-      · simp only [h_next, h_left]
-        simp
-        sorry
+      · simp only [h_next, h_left, ↓reduceDIte]
+        have h_right : (views i).headPos = .rightEnd := by
+          cases h : (views i).headPos <;> simp_all
+        have h_enc : (views i).encodedPos + 1 =
+            ((views i).parent.appendPath' idx.succ h_next).encodedPos :=
+          TapeView.encodedPos_next_sibling_succ (views i) h_last h_right h_next
+        have h_data : (views i).data =
+            ((views i).parent.appendPath' idx.succ h_next).data := by
+          simp [TapeView.parent, TapeView.appendPath']
+        have h_move : (views i).toBiTape.move_right =
+            ((views i).parent.appendPath' idx.succ h_next).toBiTape := by
+          simp only [TapeView.toBiTape, h_data]
+          show BiTape.move_right
+            (BiTape.move_right^[(views i).encodedPos]
+              (BiTape.mk₁
+                ((views i).parent.appendPath' idx.succ h_next).data.enc)) =
+            BiTape.move_right^[
+              ((views i).parent.appendPath' idx.succ h_next).encodedPos]
+              (BiTape.mk₁
+                ((views i).parent.appendPath' idx.succ h_next).data.enc)
+          rw [show ((views i).parent.appendPath' idx.succ h_next).encodedPos =
+            (views i).encodedPos + 1 from h_enc.symm]
+          rw [Nat.add_comm, Function.iterate_add_apply,
+            Function.iterate_one]
+        have h_update :
+            Function.update (TapeView.toBiTape ∘ views) i
+              (views i).toBiTape.move_right =
+            TapeView.toBiTape ∘ Function.update views i
+              ((views i).parent.appendPath' idx.succ h_next) := by
+          rw [h_move, TapeView.toBiTape_comp_update]
+        simp [MultiTapeTM.eval_struct, right.eval, h_update,
+          TapeView.ofBiTapes?]
       · simp only [h_next, h_left, ↓reduceDIte, Bool.false_eq_true]
         have h_right : (views i).headPos = .rightEnd := by
           cases h : (views i).headPos <;> simp_all

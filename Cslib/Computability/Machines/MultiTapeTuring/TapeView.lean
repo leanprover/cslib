@@ -270,7 +270,63 @@ public lemma encodedPos_last_child_succ : (tv : TapeView) →
     omega
   termination_by tv => tv.path.length
 
--- TODO clean up (ai)
+/-- At rightEnd of a non-last child, moving right reaches the next sibling's leftEnd. -/
+public lemma encodedPos_next_sibling_succ : (tv : TapeView) →
+    (h_last : tv.path.getLast? = some idx) →
+    (h_right : tv.headPos = .rightEnd) →
+    (h_next : (tv.parent.current.atPath [idx.succ]).isSome) →
+    tv.encodedPos + 1 = (tv.parent.appendPath' idx.succ h_next).encodedPos
+  | ⟨.list ds, [p], .rightEnd, h_valid⟩, h_last, _, h_next => by
+    have h_idx : idx = p := by simp [List.getLast?] at h_last; exact h_last.symm
+    subst h_idx
+    have h_p : idx < ds.length := by grind [Data.atPath]
+    conv_lhs => lhs; unfold encodedPos; simp [h_p]
+    simp only [parent, appendPath']
+    have h_p' : idx + 1 < ds.length := by
+      simp [parent, current, Data.atPath] at h_next; omega
+    conv_rhs => unfold encodedPos; simp [h_p']; unfold encodedPos; simp
+    -- Both sides are: 1 + sum(take n of ds enc) + correction
+    -- Use the same approach as encodedPos_last_child_succ
+    simp only [← List.map_take]
+    -- Need: sum(take idx) + (ds[idx].enc.length - 1) + 1 = sum(take (idx+1))
+    -- Rewrite take (idx+1) using take_append_getElem
+    have h_take_step : ∀ (ds : List Data) (idx : ℕ) (h : idx < ds.length),
+        ((ds.take (idx + 1)).map fun d => d.enc.length).sum =
+        ((ds.take idx).map fun d => d.enc.length).sum + ds[idx].enc.length := by
+      intro ds idx h
+      induction ds generalizing idx with
+      | nil => simp at h
+      | cons d ds ih =>
+        cases idx with
+        | zero => simp
+        | succ n =>
+          simp only [List.take_succ_cons, List.map_cons, List.sum_cons, List.getElem_cons_succ]
+          rw [ih n (by simp at h; omega)]
+          omega
+    rw [h_take_step ds idx h_p]
+    have h_enc_pos : 0 < ds[idx].enc.length := Data.enc_length_pos _
+    omega
+  | ⟨.list ds, p :: r :: rest, .rightEnd, h_valid⟩, h_last, _, h_next => by
+    have h_p : p < ds.length := by grind [Data.atPath]
+    have h_sub : (ds[p].atPath (r :: rest)).isSome := by grind [Data.atPath]
+    have h_last' : (r :: rest).getLast? = some idx := by
+      simp only [List.getLast?_cons_cons] at h_last; exact h_last
+    conv_lhs => lhs; unfold encodedPos; simp [h_p]
+    have h_drop : (p :: r :: rest).dropLast = p :: (r :: rest).dropLast := by
+      simp [List.dropLast_cons_of_ne_nil]
+    simp only [parent, h_drop, appendPath']
+    conv_rhs => unfold encodedPos; simp [h_p]
+    have h_inner_next :
+        ((⟨ds[p], (r :: rest).dropLast, .rightEnd, by
+          exact Data.atPath_dropLast_isSome_of_isSome h_sub⟩ : TapeView).current.atPath
+          [idx.succ]).isSome := by
+      convert h_next using 2
+      simp [parent, current, h_p, h_drop]
+    have ih := encodedPos_next_sibling_succ
+      ⟨ds[p], r :: rest, .rightEnd, h_sub⟩ h_last' rfl h_inner_next
+    -- ih relates the inner encodedPos values — rewrite to close the goal
+    exact ih ▸ rfl
+  termination_by tv => tv.path.length
 /-- The encoding starting at `encodedPos` begins with `current.enc`. -/
 private lemma enc_drop_prefix (tv : TapeView) (h_left : tv.headPos = .leftEnd) :
     tv.current.enc <+: tv.data.enc.drop tv.encodedPos := by
