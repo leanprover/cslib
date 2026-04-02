@@ -60,8 +60,73 @@ public lemma right_of_leftEnd {k : ℕ} {i : Fin k}
       simp [this]
   simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect]
 
+@[simp]
+public lemma right_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+  (right i).eval_struct views =
+    if h_left : (views i).headPos = .leftEnd then
+      Part.some (Function.update views i (
+        if h_empty : (views i).current = Data.list [] then
+          (views i).toRightEnd
+        else
+          (views i).appendPath 0 (by simp [h_empty])))
+    else
+      if let some (idx : ℕ) := (views i).path.getLast? then
+        Part.some (Function.update views i (
+          if h_next : ((views i).parent.current.atPath [idx.succ]).isSome then
+            (views i).parent.appendPath' idx.succ h_next
+          else
+            (views i).parent.toRightEnd))
+      else
+        Part.none -- not an encoding of Data, we are one cell to the right of it.
+    := by
+  by_cases h_left : (views i).headPos = .leftEnd
+  · let effect :=
+      if h_empty : (views i).current = .list [] then
+        (views i).toRightEnd
+      else
+        (views i).appendPath 0 (by simp [h_empty])
+    have h : Function.update (TapeView.toBiTape ∘ views) i (views i).toBiTape.move_right =
+        fun j => ((Function.update views i effect) j).toBiTape := by
+      ext1 j
+      by_cases h_ij : i = j
+      · subst h_ij
+        simp only [effect, Function.update_self, TapeView.appendPath]
+        by_cases h_empty : (views i).current = .list []
+        · simp [h_empty, h_left]
+        · simp only [h_empty, ↓reduceDIte]
+          rw [show (views i).headPos = HeadPos.leftEnd from h_left]
+          rw [TapeView.toBitape_of_appendPath]
+          simp [List.take]
+      · have : j ≠ i := by aesop
+        simp [this]
+    simp [h, TapeView.ofBiTapes?, MultiTapeTM.eval_struct, effect, h_left]
+  · cases h_last : (views i).path.getLast? with
+    | none =>
+      simp [h_left]
+      have h_path : (views i).path = [] := by sorry
+      have h_head : (views i).headPos = .rightEnd := by sorry
+      have h_encodedPos := TapeView.encodedPos_of_path_eq_nil_right (views i) h_path h_head
+      sorry
+    | some idx =>
+      by_cases h_next : ((views i).parent.current.atPath [idx.succ]).isSome
+      · simp only [h_next, h_left]
+        simp
+        sorry
+      · simp only [h_next, h_left]
+        simp
+        sorry
+
 def skipRight_n {k : ℕ} (n : ℕ) (i : Fin k) : MultiTapeTM k Char :=
   iterate_n (skipRight i) n
+
+-- TODO maybe we can change this to
+-- lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k}
+--     {views : Fin k → TapeView}
+--     (h_valid : ((views i).parent.current.atPath [j + n]).isSome)
+--     (h_parent : (views i) = (views i).parent.appendPath j
+--           (Data.atPath_isSome_of_le_isSome (by simp) h_valid))
+--     (h_left : (views i).headPos = .leftEnd) :
+
 
 lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
@@ -137,14 +202,12 @@ public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k
   have h_ne : (views i).current ≠ Data.list [] :=
     Data.atPath_zero_isSome_of_nonempty.mp
       (Data.atPath_isSome_of_le_isSome (by omega) h_valid)
-  simp only [toElem, seq_eval_struct, toLeftEnd_eval_struct, Part.bind_some]
-  rw [right_of_leftEnd (by simp : (Function.update views i _ i).headPos = .leftEnd)]
-  simp only [Part.bind_some, Function.update_idem, Function.update_self,
+  simp only [toElem, seq_eval_struct, toLeftEnd_eval_struct, Part.bind_some, right_eval_struct,
+    Part.bind_some, Function.update_idem, Function.update_self,
     show ¬(views i).toLeftEnd.current = Data.list [] from h_ne, ↓reduceDIte]
   rw [skipRight_n.eval_struct (j := 0) (parent := (views i).toLeftEnd)
       (by simpa using h_valid) (by simp) (by simp)]
-  simp only [Nat.zero_add, Function.update_idem, Function.update_self, TapeView.appendPath,
-    TapeView.parent, List.dropLast_concat, TapeView.appendPath']
+  simp
 
 -- TODO this has a double toLeftEnd which is not needed.
 
