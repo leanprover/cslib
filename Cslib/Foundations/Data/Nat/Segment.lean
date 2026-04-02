@@ -158,11 +158,16 @@ theorem segment_range_val (hm : StrictMono f) {m k : ℕ}
   · obtain ⟨j, h_j, rfl⟩ : ∃ j < f (m + 1) - f m - 1, k = j + f m + 1 := ⟨k - f m - 1, by omega⟩
     induction j
     case zero =>
-      have : count (· ∈ range f) (f m + 1 + 1) = count (· ∈ range f) (f m + 1) := by
-        have := strictMono_range_gap hm (show f m < f m + 1 by grind)
-        grind
+      #adaptation_note
+      /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+      have := strictMono_range_gap hm (show f m < f m + 1 by grind)
+      have : count (· ∈ range f) (f m + 1 + 1) = count (· ∈ range f) (f m + 1) := by grind
       have := nth_of_strictMono hm m
-      grind [count_nth_of_infinite, strictMono_infinite]
+      have := count_succ (· ∈ range f)
+      simp_all only [segment, mem_range]
+      split
+      · grind [count_nth_of_infinite (strictMono_infinite hm) m]
+      · grind
     case succ j _ =>
       have := strictMono_range_gap hm (show f m < j + 1 + f m     by grind)
       have := strictMono_range_gap hm (show f m < j + 1 + f m + 1 by grind)
