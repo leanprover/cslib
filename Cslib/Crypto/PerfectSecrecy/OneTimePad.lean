@@ -1,0 +1,59 @@
+/-
+Copyright (c) 2026 Samuel Schlesinger. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Samuel Schlesinger
+-/
+
+module
+
+public import Cslib.Crypto.PerfectSecrecy.Basic
+public import Cslib.Crypto.PerfectSecrecy.Internal.OneTimePad
+public import Mathlib.Probability.Distributions.Uniform
+
+@[expose] public section
+
+/-!
+# One-Time Pad
+
+The one-time pad (Vernam cipher) over `BitVec l`
+([KatzLindell2020], Construction 2.9).
+
+## Main definitions
+
+- `Cslib.Crypto.PerfectSecrecy.otp`: the one-time pad encryption scheme
+
+## Main results
+
+- `Cslib.Crypto.PerfectSecrecy.otp_perfectlySecret`:
+  the one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10)
+
+## References
+
+* [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
+-/
+
+namespace Cslib.Crypto.PerfectSecrecy
+
+/-- The one-time pad over `l`-bit strings. Encryption and decryption
+are XOR ([KatzLindell2020], Construction 2.9). -/
+noncomputable def otp (l : ℕ) :
+    EncScheme (BitVec l) (BitVec l) (BitVec l) :=
+  haveI := OTP.bitVecFintype l
+  { gen := PMF.uniformOfFintype _
+    enc := fun k m => PMF.pure (k ^^^ m)
+    dec := fun k c => k ^^^ c
+    correct := by
+      intro k _ m c hc
+      rw [PMF.mem_support_pure_iff] at hc
+      subst hc
+      rw [← BitVec.xor_assoc, BitVec.xor_self, BitVec.zero_xor] }
+
+/-- The one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10). -/
+theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret := by
+  rw [EncScheme.perfectlySecret_iff_ciphertextIndist]
+  intro m₀ m₁
+  simp only [EncScheme.ciphertextDist, otp]
+  exact (OTP.otp_ciphertextDist_eq_uniform l m₀).trans
+    (OTP.otp_ciphertextDist_eq_uniform l m₁).symm
+
+end Cslib.Crypto.PerfectSecrecy
