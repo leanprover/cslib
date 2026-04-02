@@ -108,11 +108,25 @@ public def parent (tv : TapeView) : TapeView := ⟨tv.data, tv.path.dropLast, tv
 --   unfold parent
 --   split <;> grind
 
-/-- TODO document -/
+/-- TODO don't use, I think it is unnatural to keep the headPos -/
 @[expose, simp]
 public def appendPath (tv : TapeView) (idx : ℕ)
     (h : (tv.current.atPath [idx]).isSome) : TapeView :=
   ⟨tv.data, tv.path ++ [idx], tv.headPos, by simpa using h⟩
+
+@[expose, simp]
+public def appendPath' (tv : TapeView) (idx : ℕ)
+    (h : (tv.current.atPath [idx]).isSome) : TapeView :=
+  ⟨tv.data, tv.path ++ [idx], .leftEnd, by simpa using h⟩
+
+@[expose]
+public abbrev setHeadPosOf (tv tv' : TapeView) : TapeView :=
+  ⟨tv.data, tv.path, tv'.headPos, tv.h_path⟩
+
+@[simp]
+public lemma setHeadPosOf_of_eq (tv tv' : TapeView) (h_eq : tv'.headPos = tv.headPos) :
+    tv.setHeadPosOf tv' = tv := by
+  simp [setHeadPosOf, h_eq]
 
 /-- Return a copy of the `TapeView` with the head positioned at the left end. -/
 @[expose]
@@ -132,6 +146,16 @@ public abbrev toRightEnd (tv : TapeView) : TapeView :=
 @[simp]
 public lemma toRightEnd_of_rightEnd (tv : TapeView)
     (h : tv.headPos = .rightEnd) : tv.toRightEnd = tv := by
+  ext <;> simp_all
+
+@[simp]
+public lemma toLeftEnd_toRightEnd (tv : TapeView) :
+  tv.toLeftEnd.toRightEnd = tv.toRightEnd := by
+  ext <;> simp_all
+
+@[simp]
+public lemma toRightEnd_toLeftEnd (tv : TapeView) :
+  tv.toRightEnd.toLeftEnd = tv.toLeftEnd := by
   ext <;> simp_all
 
 /-- Attempt to decode the current value as a typed value of type `α`.

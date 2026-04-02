@@ -110,6 +110,20 @@ public theorem if_eq.eval {c : Char} {i : Fin k} {tm₁ tm₂ : MultiTapeTM k Ch
   (if_eq c i tm₁ tm₂).eval tapes =
     if (tapes i).head = some c then (tm₁.eval tapes) else (tm₂.eval tapes) := by sorry
 
+@[simp]
+public theorem if_eq_left_eval_struct {i : Fin k} {tm₁ tm₂ : MultiTapeTM k Char}
+    {views : Fin k → TapeView} :
+  (if_eq '(' i tm₁ tm₂).eval_struct views =
+    if (views i).headPos = .leftEnd then tm₁.eval_struct views else tm₂.eval_struct views := by
+  sorry -- TODO prove by AI
+
+@[simp]
+public theorem if_eq_right_eval_struct {i : Fin k} {tm₁ tm₂ : MultiTapeTM k Char}
+    {views : Fin k → TapeView} :
+  (if_eq ')' i tm₁ tm₂).eval_struct views =
+    if (views i).headPos = .rightEnd then tm₁.eval_struct views else tm₂.eval_struct views := by
+  sorry -- TODO prove by AI
+
 /-- TODO document -/
 public def while_eq (c : Option Char) (i : Fin k) (tm : MultiTapeTM k Char) :
   MultiTapeTM k Char := sorry

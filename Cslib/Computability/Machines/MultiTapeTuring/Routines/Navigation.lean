@@ -15,6 +15,21 @@ namespace Turing
 namespace Routines
 
 
+
+/-- Run `tm` at the left end of the current item, restoring to the original position afterwards. -/
+public def atLeft {k : ℕ} (i : Fin k) (tm : MultiTapeTM k Char) : MultiTapeTM k Char :=
+  if_eq '(' i tm (toLeftEnd i;ₜ tm;ₜ toRightEnd i)
+
+@[simp]
+public lemma atLeft_eval_struct {k : ℕ} {i : Fin k} (tm : MultiTapeTM k Char)
+  {views : Fin k → TapeView} :
+    (atLeft i tm).eval_struct views =
+      (tm.eval_struct (Function.update views i ((views i).toLeftEnd))).map
+        (fun views' => Function.update views' i ((views' i).setHeadPosOf (views i))) := by
+  simp [atLeft]
+  sorry -- TOOD prove by AI
+
+
 @[simp]
 public lemma right_of_leftEnd {k : ℕ} {i : Fin k}
     {views : Fin k → TapeView}
@@ -77,24 +92,6 @@ lemma skipRight_n.eval_struct {j n : ℕ} {k : ℕ} {i : Fin k}
       TapeView.appendPath, TapeView.parent, List.dropLast_concat,
       show j + 1 + n = j + (n + 1) from by omega]
 
-/-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
-Moves past `(` and then skips `idx` Data elements.
-If `i` is larger than the length of the list, does nothing. -/
-public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char :=
-  right i;ₜ skipRight_n idx i
-
-/-- `toElem idx i` moves to the `idx`th element of the `Data.list` currently pointed to
-on tape `i`. -/
-@[simp]
-public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView}
-  (h_valid : ((views i).current.atPath [idx]).isSome)
-  -- (h_left : (views i).headPos = .leftEnd)
-  :
-  (toElem idx i).eval_struct views = .some
-    (Function.update views i ((views i).appendPath idx h_valid)) := by
-  sorry
-
--- TODO for this to work, we need to encode numbers using `()`
 
 /-- If positioned on the element of a list, navigates to the list containing it. -/
 public def outOfList {k : ℕ} (i : Fin k) : MultiTapeTM k Char :=
@@ -120,18 +117,52 @@ lemma outOfList_inner {k : ℕ} {i : Fin k}
 
 /-- `outOfArg i` ascends back from within a list to the list itself. -/
 @[simp]
-public lemma outOfList_eval_struct_valid {k : ℕ} {i : Fin k}
+public lemma outOfList_eval_struct {k : ℕ} {i : Fin k} {views : Fin k → TapeView} :
+  (outOfList i).eval_struct views = some (Function.update views i (views i).parent) := by sorry
+
+
+/-- Navigate to the `idx`-th element of a `Data.list` encoding on tape `i`.
+Moves past `(` and then skips `idx` Data elements.
+If `i` is larger than the length of the list, does nothing. -/
+public def toElem {k : ℕ} (idx : ℕ) (i : Fin k) : MultiTapeTM k Char :=
+  toLeftEnd i;ₜ right i;ₜ skipRight_n idx i
+
+/-- `toElem idx i` moves to the `idx`th element of the `Data.list` currently pointed to
+on tape `i`. -/
+@[simp]
+public lemma toElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {views : Fin k → TapeView}
+  (h_valid : ((views i).current.atPath [idx]).isSome) :
+  (toElem idx i).eval_struct views = .some
+    (Function.update views i ((views i).appendPath' idx h_valid)) := by
+  have h_ne : (views i).current ≠ Data.list [] := by
+    simp [h_valid]
+    sorry
+  simp [toElem]
+  rw [skipRight_n.eval_struct (j := 0) (parent := (views i).toLeftEnd)
+      (by simpa using h_valid) (by simp) (by simp [h_ne])]
+  simp [h_ne]
+
+-- TODO this has a double toLeftEnd which is not needed.
+
+/-- Execute `tm` at a certain element of the list. -/
+public def atElem {k : ℕ} (idx : ℕ) (i : Fin k) (tm : MultiTapeTM k Char) : MultiTapeTM k Char :=
+  atLeft i (toElem idx i;ₜ tm;ₜ outOfList i)
+
+@[simp]
+public lemma atElem_eval_struct {k : ℕ} {idx : ℕ} {i : Fin k} {tm : MultiTapeTM k Char}
     {views : Fin k → TapeView}
-    {h_valid : !(views i).path.isEmpty} :
-    (outOfList i).eval_struct views = some
-      (Function.update views i (views i).parent) := by sorry
+    (h_valid : ((views i).current.atPath [idx]).isSome) :
+    (atElem idx i tm).eval_struct views = (tm.eval_struct
+      (Function.update views i ((views i).appendPath' idx h_valid))).map
+        fun views' => Function.update views' i ((views' i).parent.setHeadPosOf (views i)) := by
+  simp [atElem, h_valid, Part.bind_some_eq_map]
 
 /-- Move into the given path, then execute `tm` and then move out again. -/
-public def at_path {k : ℕ} (path : List ℕ) (i : Fin k) (tm : MultiTapeTM k Char) :
+public def atPath {k : ℕ} (path : List ℕ) (i : Fin k) (tm : MultiTapeTM k Char) :
     MultiTapeTM k Char :=
   match path with
   | [] => tm
-  | n :: path' => toElem n i;ₜ at_path path' i tm;ₜ outOfList i
+  | n :: path' => toElem n i;ₜ atPath path' i tm;ₜ outOfList i
 
 end Routines
 end Turing

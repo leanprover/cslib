@@ -104,9 +104,9 @@ def encodeTapes (k : ℕ) (tapes : Fin k → BiTape Char) (shifts : Fin k → �
 
 def getHeadSymbol (k : ℕ) (tapeIdx : ℕ) (mt out aux : Fin k) : MultiTapeTM k Char :=
   -- Find the cell where the tapeIdx-th tape has the head
-  find_list mt aux (at_path [0, tapeIdx, 1] mt (copyEnc mt aux))
+  find_list mt aux (atPath [0, tapeIdx, 1] mt (copyEnc mt aux))
     -- copy the symbol to out
-    (at_path [0, tapeIdx, 0] mt (copy_to_list mt out))
+    (atPath [0, tapeIdx, 0] mt (copy_to_list mt out))
     -- otherwise do nothing (because we know there is a head marker)
     (noop)
 
