@@ -340,11 +340,13 @@ theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l - 1) * p) : p ≤ l^ω :=
   refine omegaPow_coind' ?_ h_le
   simp
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 theorem omegaPow_le_hmul_omegaPow' [Inhabited α] (l : Language α) :
     l^ω ≤ (l - 1) * l^ω := by
   rintro s ⟨xs, rfl, h_xs⟩
-  refine ⟨xs.head, ?_, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩ <;>
-  grind [Language.mem_sub_one, Language.mem_sub_one, List.ne_nil_iff_length_pos]
+  refine ⟨xs.head, h_xs 0, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩ <;>
+  grind [l.mem_sub_one]
 
 theorem omegaPow_le_hmul_omegaPow [Inhabited α] (l : Language α) : l^ω ≤ l * l^ω := by
   have h1 := omegaPow_le_hmul_omegaPow' l
