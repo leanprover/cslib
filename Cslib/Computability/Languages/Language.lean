@@ -30,14 +30,13 @@ theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) 
     (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
   mem_iInter₂
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[simp]
 theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
-    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i := by
-  constructor <;> intro h
-  · have := mem_iUnion₂.mp h
-    grind
-  · apply mem_iUnion₂.mpr
-    grind
+    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i where
+  mp h := bex_def.mp (mem_iUnion₂.mp h)
+  mpr h :=  mem_iUnion₂.mpr (bex_def.mpr h)
 
 theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq
