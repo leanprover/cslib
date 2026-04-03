@@ -230,7 +230,7 @@ theorem bigO_add {f g a b : ℕ → ℕ} (hf : f ∈ bigO a) (hg : g ∈ bigO b)
   norm_num [Norm.norm]
   rcases hf with ⟨c₁, a₁, h₁⟩
   rcases hg with ⟨c₂, a₂, h₂⟩
-  use Max.max c₁ c₂, Max.max a₁ a₂
+  use c₁ ⊔ c₂, a₁ ⊔ a₂
   intro n hn
   rw [abs_of_nonneg, abs_of_nonneg]
   · nlinarith [h₁ n (le_trans (le_max_left _ _) hn), h₂ n (le_trans (le_max_right _ _) hn),
@@ -368,20 +368,19 @@ theorem linear_comp (hf : f ∈ linear) (hg : g ∈ S) : f ∘ g ∈ S := by
       refine ⟨⌈C⌉₊, N, fun n hn ↦ ?_⟩
       specialize hN n hn; norm_num [Norm.norm] at hN
       exact_mod_cast hN.trans (mul_le_mul_of_nonneg_right (Nat.le_ceil _) <| Nat.cast_nonneg _)
-    refine ⟨Max.max C (Finset.sup (Finset.range N) f), fun n ↦ ?_⟩
-    by_cases hn : n < N
-    · exact Finset.le_sup (Finset.mem_range.mpr hn) |> le_trans <| by
-        nlinarith [le_max_right C (Finset.sup (Finset.range N) f)]
-    · exact le_trans (hC n <| le_of_not_gt hn) <| by
-        nlinarith [le_max_left C (Finset.sup (Finset.range N) f)]
-  have h_linear : ∀ C : ℕ, C * (g + 1) ∈ S := by
-    intro C
+    refine ⟨C ⊔ (Finset.range N).sup f, fun n ↦ ?_⟩
+    rcases lt_or_ge n N with hn | hn
+    · grw [← le_max_right, ← Finset.le_sup (Finset.mem_range.mpr hn)]
+      nlinarith
+    · grw [← le_max_left, hC n hn]
+      linarith
+  have h_linear (C : ℕ) : C * (g + 1) ∈ S := by
     induction C
-    · simp_all only [Nat.cast_zero, zero_mul]
-      exact @zero_mem S ‹_›
-    · simp_all only [Nat.cast_add, Nat.cast_one, add_mul, one_mul]
-      exact (add ‹_› (add hg one_mem))
-  exact mem_dominating (Filter.Eventually.of_forall fun n ↦ by simpa using hC _) (h_linear C)
+    · simp only [Nat.cast_zero, zero_mul]
+      exact zero_mem
+    · simp only [Nat.cast_add, Nat.cast_one, add_mul, one_mul]
+      exact add ‹_› (add hg one_mem)
+  exact mem_dominating (Filter.Eventually.of_forall (by simpa using hC <| g ·)) (h_linear C)
 
 /-- LawfulGrowthRate is closed under linear transformations. -/
 lemma affine_comp {S : GrowthRate} [LawfulGrowthRate S] {f : ℕ → ℕ} {a b : ℕ} (hf : f ∈ S) :
@@ -436,25 +435,20 @@ instance : LawfulGrowthRate const := by
 instance : LawfulGrowthRate log := by
   apply instLawfulBigO (by exact ⟨2, fun _ ↦ Nat.log_pos one_lt_two⟩)
   intro k hk g hg
-  have ⟨C, hC⟩ := hk.exists_nonneg
+  replace hk := hk.exists_nonneg
   simp_all only [Asymptotics.IsBigOWith, norm_natCast, Filter.eventually_atTop]
+  rcases hk with ⟨C, hC, a, ha⟩
   apply Asymptotics.isBigO_iff.mpr
-  have ⟨M, hM⟩ : ∃ M, ∀ b < hC.right.choose, k b ≤ M := by
-    exact ⟨Finset.sup (Finset.range hC.2.choose) k,
-      fun b hb ↦ Finset.le_sup (Finset.mem_range.mpr hb)⟩
-  refine ⟨Max.max C M + 1, Filter.eventually_atTop.mpr ⟨hC.2.choose + 1, fun x hx ↦ ?_⟩⟩
+  have ⟨M, hM⟩ : ∃ M, ∀ b < a, k b ≤ M :=
+    ⟨(Finset.range a).sup k, fun b hb ↦ Finset.le_sup (Finset.mem_range.mpr hb)⟩
+  refine ⟨C ⊔ M + 1, Filter.eventually_atTop.mpr ⟨a + 1, fun x hx ↦ ?_⟩⟩
   norm_cast
   simp_all only [Order.add_one_le_iff, Function.comp_apply, norm_natCast]
-  by_cases hgx : g x < hC.right.choose
-  · refine le_trans ?_ (le_mul_of_one_le_right ?_ ?_)
-    · grw [hM _ hgx, ← le_max_right]
-      simp only [le_add_iff_nonneg_right, zero_le_one]
-    · positivity
-    · exact_mod_cast Nat.le_log_of_pow_le (by norm_num) (by linarith)
-  · apply le_trans (hC.2.choose_spec _ (le_of_not_gt hgx))
-    rcases hC
-    grw [← le_max_left C M, hg x]
-    simp [add_mul]
+  rcases lt_or_ge (g x) a with hgx | hgx
+  · grw [hM _ hgx, ← le_max_right, ← Nat.le_log_of_pow_le one_lt_two (by linarith : 2 ^ 1 ≤ x)]
+    simp
+  · grw [ha _ hgx, ← le_max_left, hg x, add_mul]
+    simp
 
 lemma polylog_mem_dominating {f g : ℕ → ℕ} (h : ∀ᶠ x in .atTop, g x ≤ f x)
     (hf : f ∈ polylog) : g ∈ polylog := by
@@ -567,13 +561,12 @@ instance : LawfulGrowthRate sublinear := by
 
 instance : LawfulGrowthRate linear := by
   apply instLawfulBigO
-  · use 1
-    exact fun _ ↦ id
+  · exact ⟨1, fun _ ↦ id⟩
   intro k hk g hg
-  unfold bigO at *
-  obtain ⟨C, N, hC⟩ : ∃ C N, ∀ x ≥ N, k x ≤ C * x := by
+  unfold bigO at hk ⊢
+  have ⟨C, N, hC⟩ : ∃ C N, ∀ x ≥ N, k x ≤ C * x := by
     norm_num [Asymptotics.isBigO_iff] at hk
-    obtain ⟨c, N, hc⟩ := hk
+    rcases hk with ⟨c, N, hc⟩
     refine ⟨⌈c⌉₊, N, fun n hn ↦ ?_⟩
     exact_mod_cast (hc n hn).trans (mul_le_mul_of_nonneg_right (Nat.le_ceil _) (Nat.cast_nonneg _))
   refine Asymptotics.IsBigO.of_bound (C + ∑ x ∈ .range N, k x + 1)
@@ -634,16 +627,16 @@ lemma isBigO_quasilinear_bound_comp_le_id (C : ℕ) (g : ℕ → ℕ) (hg : g �
 
 lemma isBigO_comp_bound_plus_const {h : ℕ → ℕ} (hf : (f · : ℕ → ℤ) =O[.atTop] (h · : ℕ → ℤ)) :
     (fun n ↦ (f (g n) : ℤ)) =O[.atTop] (fun n ↦ (h (g n) : ℤ) + 1) := by
-  obtain ⟨C, N, hC⟩ : ∃ C N, ∀ n ≥ N, (f n : ℤ) ≤ C * (h n : ℤ) := by
+  have ⟨C, N, hC⟩ : ∃ C N, ∀ n ≥ N, (f n : ℤ) ≤ C * (h n : ℤ) := by
     rw [Asymptotics.isBigO_iff'] at hf
     simp only [gt_iff_lt, norm_natCast, Filter.eventually_atTop] at hf ⊢
     refine ⟨⌈hf.choose⌉₊, hf.choose_spec.2.choose, fun n hn ↦ ?_⟩
     exact_mod_cast le_trans (hf.choose_spec.2.choose_spec n hn)
       (mul_le_mul_of_nonneg_right (Nat.le_ceil _) (Nat.cast_nonneg _))
-  obtain ⟨M, hM⟩ : ∃ M, ∀ x < N, (f x : ℤ) ≤ M := by
+  have ⟨M, hM⟩ : ∃ M, ∀ x < N, (f x : ℤ) ≤ M := by
     refine ⟨∑ x ∈ .range N, (f x : ℤ), fun x hx ↦ ?_⟩
     exact Finset.single_le_sum (fun x _ ↦ Nat.cast_nonneg (f x)) (Finset.mem_range.mpr hx)
-  apply Asymptotics.IsBigO.of_bound (Max.max M (|C|))
+  apply Asymptotics.IsBigO.of_bound (M ⊔ |C|)
   filter_upwards [Filter.eventually_gt_atTop N] with x hx
   by_cases hgx : g x < N
   · norm_num [Norm.norm]
@@ -670,8 +663,8 @@ instance : LawfulGrowthRate quasilinear where
     use 1
     aesop
   mem_add hf hg := by
-    obtain ⟨a, ha⟩ := hf
-    obtain ⟨b, hb⟩ := hg
+    rcases hf with ⟨a, ha⟩
+    rcases hg with ⟨b, hb⟩
     use a + b
     refine Asymptotics.IsBigO.add (ha.trans ?_) (hb.trans ?_)
     all_goals (
@@ -691,7 +684,7 @@ instance : LawfulGrowthRate quasilinear where
     simp [hb]
   comp_le_id := by
     intro f g hf hg
-    obtain ⟨C, hC⟩ := hf
+    rcases hf with ⟨C, hC⟩
     use C
     simp only [Function.comp_apply, Nat.cast_mul, Nat.cast_pow]
     apply (isBigO_comp_bound_plus_const hC).trans
@@ -700,14 +693,14 @@ instance : LawfulGrowthRate quasilinear where
 instance : LawfulGrowthRate poly where
   mem_dominating h hf := by
     simp_rw [poly, Set.mem_setOf, Asymptotics.isBigO_iff] at hf ⊢
-    obtain ⟨p, c, hf⟩ := hf
+    rcases hf with ⟨p, c, hf⟩
     use p, c
     filter_upwards [h, hf] with a h ha
     simp only [norm_natCast, norm_pow] at ha ⊢
     exact le_trans (mod_cast h) ha
   mem_add hf hg := by
-    obtain ⟨a, ha⟩ := hf
-    obtain ⟨b, hb⟩ := hg
+    rcases hf with ⟨a, ha⟩
+    rcases hg with ⟨b, hb⟩
     use a + b
     refine Asymptotics.IsBigO.add (ha.trans ?_) (hb.trans ?_)
     all_goals (
@@ -725,9 +718,9 @@ instance : LawfulGrowthRate poly where
     simp
   comp_le_id := by
     intro f g hf hg
-    obtain ⟨C, hC⟩ := hf
-    have h_bound : ∃ K, ∀ᶠ n in .atTop, f (g n) ≤ K * n ^ C := by
-      obtain ⟨K, N, hK⟩ : ∃ K N, ∀ n ≥ N, f n ≤ K * n ^ C := by
+    rcases hf with ⟨C, hC⟩
+    have ⟨K, hK⟩ : ∃ K, ∀ᶠ n in .atTop, f (g n) ≤ K * n ^ C := by
+      have ⟨K, N, hK⟩ : ∃ K N, ∀ n ≥ N, f n ≤ K * n ^ C := by
         rw [Asymptotics.isBigO_iff'] at hC
         rcases hC with ⟨K, hK₀, hK⟩
         rcases Filter.eventually_atTop.mp hK with ⟨N, hN⟩
@@ -742,7 +735,6 @@ instance : LawfulGrowthRate poly where
           (Nat.le_mul_of_pos_right _ (pow_pos (by linarith) _)))
       · exact le_trans (hK _ (by linarith)) (Nat.mul_le_mul_right _ (Nat.le_add_right _ _) |>
           le_trans (Nat.mul_le_mul_left _ (Nat.pow_le_pow_left (hg n) _)))
-    obtain ⟨K, hK⟩ := h_bound
     use C
     rw [Asymptotics.isBigO_iff]
     exact ⟨K, by filter_upwards [hK] with n hn; simpa using mod_cast hn⟩
@@ -751,14 +743,14 @@ instance : LawfulGrowthRate quasipoly where
   mem_dominating h hf := by
     simp only [quasipoly, Filter.eventually_atTop, Asymptotics.isBigO_iff, norm_natCast,
       Set.mem_setOf] at h hf ⊢
-    choose C c a hC using hf
-    choose a₂ h using h
+    rcases hf with ⟨C, c, a, hC⟩
+    rcases h with ⟨a₂, h⟩
     use C, c, a₂ + a
     intro n hn
     grw [h n (by omega), hC n (by omega)]
   mem_add hf hg := by
-    obtain ⟨a, ha⟩ := hf
-    obtain ⟨b, hb⟩ := hg
+    rcases hf with ⟨a, ha⟩
+    rcases hg with ⟨b, hb⟩
     use a + b
     refine Asymptotics.IsBigO.add (ha.trans ?_) (hb.trans ?_)
     all_goals (
@@ -773,17 +765,17 @@ instance : LawfulGrowthRate quasipoly where
   one_mem := ⟨0, by simp⟩
   comp_le_id := by
     intro f g hf hg
-    have h_log_le : ∀ n, (Nat.log 2 (g n))^hf.choose ≤ (Nat.log 2 n)^hf.choose := by
+    rcases hf with ⟨a, ha⟩
+    have h_log_le : ∀ n, (Nat.log 2 (g n)) ^ a ≤ (Nat.log 2 n) ^ a := by
       exact fun n ↦ Nat.pow_le_pow_left (Nat.log_mono_right <| hg n) _
-    have h_exp_le : ∀ n, 2 ^ ((Nat.log 2 (g n)) ^ hf.choose) ≤ 2 ^ ((Nat.log 2 n) ^ hf.choose) := by
+    have h_exp_le : ∀ n, 2 ^ ((Nat.log 2 (g n)) ^ a) ≤ 2 ^ ((Nat.log 2 n) ^ a) := by
       exact fun n ↦ pow_le_pow_right₀ (by decide) (h_log_le n)
-    use hf.choose
-    obtain ⟨C, hC⟩ : ∃ C, ∀ n, f n ≤ C * 2 ^ ((Nat.log 2 n) ^ hf.choose) := by
-      have := hf.choose_spec
-      obtain ⟨C, N, hC⟩ : ∃ C N, ∀ n ≥ N, f n ≤ C * 2 ^ (Nat.log 2 n) ^ hf.choose := by
-        rw [Asymptotics.isBigO_iff] at this
+    use a
+    have ⟨C, hC⟩ : ∃ C, ∀ n, f n ≤ C * 2 ^ ((Nat.log 2 n) ^ a) := by
+      have ⟨C, N, hC⟩ : ∃ C N, ∀ n ≥ N, f n ≤ C * 2 ^ (Nat.log 2 n) ^ a := by
+        rw [Asymptotics.isBigO_iff] at ha
         norm_num at *
-        obtain ⟨c, N, hN⟩ := this
+        rcases ha with ⟨c, N, hN⟩
         norm_num [Norm.norm] at hN
         refine ⟨⌈c⌉₊, N, fun n hn ↦ ?_⟩
         exact_mod_cast le_trans (hN n hn)
@@ -792,7 +784,7 @@ instance : LawfulGrowthRate quasipoly where
       intros n
       by_cases hn : n < N
       · nlinarith [Finset.single_le_sum (fun x _ ↦ Nat.zero_le (f x)) (Finset.mem_range.mpr hn),
-          Nat.one_le_pow (Nat.log 2 n ^ hf.choose) 2 zero_lt_two]
+          Nat.one_le_pow (Nat.log 2 n ^ a) 2 zero_lt_two]
       · exact le_trans (hC n (le_of_not_gt hn)) (Nat.mul_le_mul_right _ (by
           linarith [Nat.zero_le (∑ n ∈ .range N, f n)]))
     apply Asymptotics.IsBigO.of_bound C
@@ -809,9 +801,8 @@ instance : LawfulGrowthRate two_pow := by
     positivity
   · intros k hk g hg
     obtain ⟨C, hC⟩ : ∃ C, ∀ n, k n ≤ C * 2 ^ n := by
-      have := hk
       obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ n in .atTop, k n ≤ C * 2 ^ n := by
-        obtain ⟨C, hC⟩ := this.exists_pos
+        have ⟨C, hC⟩ := hk.exists_pos
         rw [Asymptotics.isBigOWith_iff] at hC
         norm_num [Norm.norm] at hC
         exact ⟨⌈C⌉₊, Filter.eventually_atTop.mpr ⟨hC.2.choose, fun n hn ↦ by
@@ -821,7 +812,7 @@ instance : LawfulGrowthRate two_pow := by
       obtain ⟨M, hM⟩ : ∃ M, ∀ n < hC.choose, k n ≤ M := by
         exact ⟨Finset.sup (Finset.range hC.choose) k, fun n hn ↦
           Finset.le_sup (Finset.mem_range.mpr hn)⟩
-      refine ⟨Max.max C M, fun n ↦ ?_⟩
+      refine ⟨C ⊔ M, fun n ↦ ?_⟩
       by_cases hn : n < hC.choose
       · exact le_trans (hM n hn) (by
           nlinarith [Nat.le_max_left C M, Nat.le_max_right C M, Nat.one_le_pow n 2 zero_lt_two])
@@ -834,7 +825,8 @@ instance : LawfulGrowthRate two_pow := by
       Filter.eventually_atTop]
     refine ⟨0, fun n hn ↦ ?_⟩
     erw [Real.norm_of_nonneg (by norm_num)]
-    exact_mod_cast le_trans (h_comp n) (by gcongr; linarith)
+    grw [h_comp n, ← zero_lt_one, add_zero]
+    norm_cast
 
 instance : LawfulGrowthRate e_pow := by
   apply instLawfulBigO
@@ -845,23 +837,21 @@ instance : LawfulGrowthRate e_pow := by
     obtain ⟨C, hC⟩ : ∃ C, ∀ n, k n ≤ C * ⌈Real.exp n⌉₊ := by
       obtain ⟨C, N, hC⟩ : ∃ C N, ∀ n ≥ N, k n ≤ C * ⌈Real.exp n⌉₊ := by
         have h_def : ∃ C N, ∀ n ≥ N, k n ≤ C * ⌈Real.exp n⌉₊ := by
-          have h_def : (k · : ℕ → ℤ) =O[.atTop] (fun n : ℕ ↦ ⌈Real.exp n⌉₊ : ℕ → ℤ) := by
-            exact hk
-          rw [Asymptotics.isBigO_iff] at h_def
+          change (k · : ℕ → ℤ) =O[.atTop] (fun n : ℕ ↦ ⌈Real.exp n⌉₊ : ℕ → ℤ) at hk
+          rw [Asymptotics.isBigO_iff] at hk
           norm_num +zetaDelta at *
-          obtain ⟨c, a, h⟩ := h_def
+          obtain ⟨c, a, h⟩ := hk
           refine ⟨⌈c⌉₊, a, fun n hn ↦ ?_⟩
           exact_mod_cast (h n hn).trans
             (mul_le_mul_of_nonneg_right (Nat.le_ceil _) (Nat.cast_nonneg _))
         exact h_def
       obtain ⟨M, hM⟩ : ∃ M, ∀ n < N, k n ≤ M := by
-        exact ⟨Finset.sup (Finset.range N) k, fun n hn ↦ Finset.le_sup (Finset.mem_range.mpr hn)⟩
-      refine ⟨Max.max C M, fun n ↦ ?_⟩
-      by_cases hn : n < N
-      · exact le_trans (hM n hn) (by
-          nlinarith [Nat.ceil_pos.mpr (Real.exp_pos n), le_max_right C M])
-      · exact le_trans (hC n (le_of_not_gt hn)) (by
-          nlinarith [Nat.ceil_pos.mpr (Real.exp_pos n), le_max_left C M])
+        exact ⟨(Finset.range N).sup k, fun n hn ↦ Finset.le_sup (Finset.mem_range.mpr hn)⟩
+      refine ⟨C ⊔ M, fun n ↦ ?_⟩
+      rcases lt_or_ge n N with hn | hn
+      · grw [hM n hn, ← le_max_right]
+        nlinarith [Nat.ceil_pos.mpr (Real.exp_pos n)]
+      · grw [hC n hn, ← le_max_left]
     have h_comp : ∀ n, k (g n) ≤ C * ⌈Real.exp (g n)⌉₊ := by
       exact fun n ↦ hC _
     apply Asymptotics.IsBigO.of_bound C
@@ -879,8 +869,8 @@ instance : LawfulGrowthRate exp where
     intro n hn
     grw [h n (by omega), hC n (by omega)]
   mem_add hf hg := by
-    obtain ⟨a, ha⟩ := hf
-    obtain ⟨b, hb⟩ := hg
+    rcases hf with ⟨a, ha⟩
+    rcases hg with ⟨b, hb⟩
     use a + b
     refine Asymptotics.IsBigO.add (ha.trans ?_) (hb.trans ?_)
     all_goals (
@@ -898,8 +888,7 @@ instance : LawfulGrowthRate exp where
     simp
   comp_le_id {f g} hf hg := by
     obtain ⟨C, hC⟩ : ∃ C, f ∈ bigO (fun n ↦ C ^ n) := by
-      obtain ⟨C, hC⟩ := hf
-      exact ⟨C, mod_cast hC⟩
+      exact hf.imp (mod_cast fun _ ↦ id)
     -- Since g(n) ≤ n, if C ≥ 1, then C^{g(n)} ≤ C^n. If C = 0, then f(n) is eventually 0,
     -- so f(g(n)) is eventually 0, which is O(1^n).
     by_cases hC_ge_1 : C ≥ 1
@@ -909,11 +898,10 @@ instance : LawfulGrowthRate exp where
         refine ⟨1, Filter.Eventually.of_forall fun n ↦ ?_⟩
         simpa using pow_le_pow_right₀ (mod_cast hC_ge_1) (hg n)
       have h_f_g : f ∘ g ∈ bigO (fun n ↦ C ^ g n) := by
-        rw [bigO] at *
-        simp_all only [Nat.cast_pow, Asymptotics.isBigO_iff, norm_natCast, norm_pow,
-          Filter.eventually_atTop, Set.mem_setOf_eq, Function.comp_apply]
-        obtain ⟨c, a, hc⟩ := hC
-        use Max.max c (∑ x ∈ .range (a + 1), (f x : ℝ) / (C ^ x : ℝ)), a + 1
+        simp only [bigO, Nat.cast_pow, Asymptotics.isBigO_iff, norm_natCast, norm_pow,
+          Filter.eventually_atTop, Set.mem_setOf_eq, Function.comp_apply] at *
+        rcases hC with ⟨c, a, hc⟩
+        use c ⊔ (∑ x ∈ .range (a + 1), (f x : ℝ) / (C ^ x : ℝ)), a + 1
         intro b hb
         by_cases hgb : g b ≤ a
         · apply le_trans _ (mul_le_mul_of_nonneg_right (le_max_right _ _) (by positivity))
@@ -951,7 +939,7 @@ section runningMax
 `runningMax f n` is the maximum value of `f k` for all `k ≤ n`. It is defined recursively:
 `runningMax f 0 = f 0`, and `runningMax f (n+1) = max (runningMax f n) (f (n+1))`.
 -/
-def runningMax (f : ℕ → ℕ) (n : ℕ) : ℕ := Nat.rec (f 0) (fun k res ↦ max res (f (k + 1))) n
+def runningMax (f : ℕ → ℕ) (n : ℕ) : ℕ := Nat.rec (f 0) (fun k res ↦ res ⊔ (f (k + 1))) n
 
 lemma runningMax_le (f : ℕ → ℕ) (n : ℕ) : f n ≤ runningMax f n := by
   induction n <;> simp [*, runningMax]
@@ -963,11 +951,11 @@ lemma runningMax_mono (f : ℕ → ℕ) : Monotone (runningMax f) := by
 /-
 The step function for `runningMax` is primitive recursive.
 -/
-def runningMaxStep (f : ℕ → ℕ) (n res : ℕ) : ℕ := max res (f (n + 1))
+def runningMaxStep (f : ℕ → ℕ) (n res : ℕ) : ℕ := res ⊔ (f (n + 1))
 
 lemma runningMaxStep_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
     Nat.Primrec (Nat.unpaired (runningMaxStep f)) := by
-  have h_max : Nat.Primrec (Nat.unpaired (Nat.max)) := by
+  have h_max : Nat.Primrec (Nat.unpaired Nat.max) := by
     have h_max : Nat.Primrec (Nat.unpaired (fun x y ↦ y + (x - y))) := by
       have h_max : Nat.Primrec (Nat.unpaired (fun x y ↦ y + x)) := by
         simpa only [add_comm] using Nat.Primrec.add
@@ -1091,7 +1079,7 @@ lemma exists_monotone_computable_bound' {f : ℕ → ℕ} (hf : Computable f) :
     ∃ g, Computable g ∧ Monotone g ∧ ∀ n, f n ≤ g n := by
   let g := fun n ↦ ((List.range (n+1)).map f).foldl max 0
   have hg : Computable g := by
-    have h_max : ∀ n, g n = Nat.recOn n (f 0) (fun n g ↦ max g (f (n + 1))) := by
+    have h_max : ∀ n, g n = Nat.recOn n (f 0) (fun n g ↦ g ⊔ (f (n + 1))) := by
       intro n
       induction n
       · aesop
@@ -1099,40 +1087,40 @@ lemma exists_monotone_computable_bound' {f : ℕ → ℕ} (hf : Computable f) :
         rw [List.range_succ]
         aesop
     rw [show g = _ from funext h_max]
-    have h_rec : Computable (fun p : ℕ × ℕ ↦ (p.1 + 1, max p.2 (f (p.1 + 1)))) := by
+    have h_rec : Computable (fun p : ℕ × ℕ ↦ (p.1 + 1, p.2 ⊔ (f (p.1 + 1)))) := by
       apply Computable.pair
       · exact Computable.succ.comp Computable.fst
-      · apply Computable.of_eq (f := fun p ↦ Max.max p.2 (f (p.1 + 1)))
+      · apply Computable.of_eq (f := fun p ↦ p.2 ⊔ f (p.1 + 1))
         · have h_max1 : Computable (fun (p : ℕ × ℕ) ↦ (p.2, f (p.1 + 1))) := by
             exact Computable.pair (Computable.snd) (hf.comp (Computable.succ.comp (Computable.fst)))
-          have h_max : Computable (fun (p : ℕ × ℕ) ↦ max p.1 p.2) := by
+          have h_max : Computable (fun (p : ℕ × ℕ) ↦ p.1 ⊔ p.2) := by
             -- The max function is primitive recursive, hence computable.
-            have h_max_primrec : Primrec (fun (p : ℕ × ℕ) ↦ max p.1 p.2) := by
+            have h_max_primrec : Primrec (fun (p : ℕ × ℕ) ↦ p.1 ⊔ p.2) := by
               exact Primrec.nat_max
             exact Primrec.to_comp h_max_primrec
           exact h_max.comp h_max1
         · exact fun n ↦ rfl
-    have h_iter : ∀ n, (Nat.recOn n (f 0) fun n g ↦ max g (f (n + 1))) = (Nat.iterate
-        (fun p : ℕ × ℕ ↦ (p.1 + 1, max p.2 (f (p.1 + 1)))) n (0, f 0)).2 := by
+    have h_iter : ∀ n, (Nat.recOn n (f 0) fun n g ↦ g ⊔ (f (n + 1))) = (Nat.iterate
+        (fun p : ℕ × ℕ ↦ (p.1 + 1, p.2 ⊔ (f (p.1 + 1)))) n (0, f 0)).2 := by
       intro n
       induction n
       · simp
       simp_all only [Function.iterate_succ_apply']
       rename_i n ih
-      erw [show (Nat.iterate (fun p : ℕ × ℕ ↦ (p.1 + 1, Max.max p.2 (f (p.1 + 1)))) n
+      erw [show (Nat.iterate (fun p : ℕ × ℕ ↦ (p.1 + 1, p.2 ⊔ f (p.1 + 1))) n
         (0, f 0)).1 = n from
         Nat.recOn n rfl fun n ihn ↦ by simp [*, Function.iterate_succ_apply']]
-    have h_eq : (fun x ↦ Nat.recOn x (f 0) fun n g ↦ Max.max g (f (n + 1))) =
-        fun n ↦ ((fun p : ℕ × ℕ ↦ (p.1 + 1, Max.max p.2 (f (p.1 + 1)))) ^[n] (0, f 0)).2 :=
+    have h_eq : (fun x ↦ Nat.recOn x (f 0) fun n g ↦ g ⊔ f (n + 1)) =
+        fun n ↦ ((fun p : ℕ × ℕ ↦ (p.1 + 1, p.2 ⊔ f (p.1 + 1))) ^[n] (0, f 0)).2 :=
       funext h_iter
     rw [h_eq]
     have h_iter : Computable (fun n ↦ (Nat.iterate
-        (fun p : ℕ × ℕ ↦ (p.1 + 1, max p.2 (f (p.1 + 1)))) n (0, f 0))) := by
-      have h_iter : ∀ n, (Nat.iterate (fun p : ℕ × ℕ ↦ (p.1 + 1, max p.2 (f (p.1 + 1))))
-          n (0, f 0)) = Nat.recOn n (0, f 0) (fun n p ↦ (p.1 + 1, max p.2 (f (p.1 + 1)))) := by
+        (fun p : ℕ × ℕ ↦ (p.1 + 1, p.2 ⊔ (f (p.1 + 1)))) n (0, f 0))) := by
+      have h_iter : ∀ n, (Nat.iterate (fun p : ℕ × ℕ ↦ (p.1 + 1, p.2 ⊔ (f (p.1 + 1))))
+          n (0, f 0)) = Nat.recOn n (0, f 0) (fun n p ↦ (p.1 + 1, p.2 ⊔ (f (p.1 + 1)))) := by
         exact fun n ↦ by induction n <;> simp [*, Function.iterate_succ_apply']
       apply Computable.of_eq
-      · apply Computable.nat_rec (h := fun n p ↦ (p.2.1 + 1, Max.max p.2.2 (f (p.2.1 + 1))))
+      · apply Computable.nat_rec (h := fun n p ↦ (p.2.1 + 1, p.2.2 ⊔ f (p.2.1 + 1)))
         · exact Computable.id
         · exact Computable.const (0, f 0)
         · exact h_rec.comp (Computable.snd.comp (Computable.snd))
@@ -1693,16 +1681,16 @@ theorem e_pow_of_two_pow_mul_quasipoly (hf : f ∈ two_pow) (hg : g ∈ quasipol
     rw [mul_sub, mul_div_cancel₀ _ (by positivity)]))
 
 theorem exp_mul (hf : f ∈ exp) (hg : g ∈ exp) : (f * g) ∈ exp := by
-  obtain ⟨a, ha⟩ := hf
-  obtain ⟨b, hb⟩ := hg
+  rcases hf with ⟨a, ha⟩
+  rcases hg with ⟨b, hb⟩
   use a * b
   simp only [Nat.cast_mul, mul_pow]
   exact ha.mul hb
 
 theorem primitiveRecursive_mul (hf : f ∈ primitiveRecursive) (hg : g ∈ primitiveRecursive) :
     (f * g) ∈ primitiveRecursive := by
-  obtain ⟨a, ha₁, ha₂⟩ := hf
-  obtain ⟨b, hb₁, hb₂⟩ := hg
+  rcases hf with ⟨a, ha₁, ha₂⟩
+  rcases hg with ⟨b, hb₁, hb₂⟩
   use a * b
   rw [← Primrec.nat_iff] at *
   use Primrec.nat_mul.comp ha₁ hb₁
@@ -1710,8 +1698,8 @@ theorem primitiveRecursive_mul (hf : f ∈ primitiveRecursive) (hg : g ∈ primi
 
 theorem computable_mul (hf : f ∈ computable) (hg : g ∈ computable) :
     (f * g) ∈ computable := by
-  obtain ⟨a, ha₁, ha₂⟩ := hf
-  obtain ⟨b, hb₁, hb₂⟩ := hg
+  rcases hf with ⟨a, ha₁, ha₂⟩
+  rcases hg with ⟨b, hb₁, hb₂⟩
   use a * b
   use Primrec.nat_mul.to_comp.comp ha₁ hb₁
   exact ha₂.mul hb₂
@@ -1767,7 +1755,7 @@ theorem polylog_subset_sqrt : polylog ⊆ sqrt := by
     obtain ⟨N, hN⟩ := h
     simp_rw [sqrt, bigO, Set.mem_setOf, Asymptotics.isBigO_iff, Filter.eventually_atTop]
     exact ⟨1, N, (by simpa using hN · ·)⟩
-  obtain ⟨C, hC⟩ := hf
+  rcases hf with ⟨C, hC⟩
   have h_bound : Filter.Tendsto (fun n : ℕ ↦ (Nat.log 2 n : ℝ) ^ C / √n) .atTop (𝓝 0) := by
     -- We can convert this statement into a form that allows us to apply the squeeze theorem.
     suffices h_convert : Filter.atTop.Tendsto (fun n : ℕ ↦ (Real.logb 2 n) ^ C / √n) (𝓝 0) by
@@ -1801,7 +1789,7 @@ theorem polylog_subset_sqrt : polylog ⊆ sqrt := by
     simpa [mul_div_assoc] using (h_bound.const_mul k).eventually (ge_mem_nhds <| by simp)
   obtain ⟨N, hN⟩ := h_combined
   obtain ⟨M, hM⟩ := Filter.eventually_atTop.mp hk
-  use Max.max N M + 1
+  use N ⊔ M + 1
   intro n hn
   specialize hN n (by linarith [le_max_left N M, le_max_right N M])
   specialize hM n (by linarith [le_max_left N M, le_max_right N M])
@@ -1809,7 +1797,6 @@ theorem polylog_subset_sqrt : polylog ⊆ sqrt := by
   · rw [Nat.cast_le, Nat.le_sqrt, ← @Nat.cast_le ℝ, Nat.cast_mul]
     nlinarith [Real.mul_self_sqrt (Nat.cast_nonneg n)]
   · grind [Real.sqrt_pos, Nat.cast_pos]
-
 
 theorem polylog_ssubset_sqrt : polylog ⊂ sqrt := by
   use polylog_subset_sqrt
@@ -1941,7 +1928,7 @@ theorem sqrt_ssubset_sublinear : sqrt ⊂ sublinear := by
     have h_log_growth : Filter.atTop.Tendsto (fun n : ℕ ↦ (Nat.log 2 n : ℝ) - x) .atTop := by
       refine Filter.tendsto_atTop_add_const_right _ _ <| tendsto_natCast_atTop_atTop.comp ?_
       rw [Filter.tendsto_atTop_atTop]
-      exact (⟨2 ^ ·, fun _ h ↦ Nat.le_log_of_pow_le one_lt_two h⟩)
+      exact (⟨2 ^ ·, fun _ ↦ Nat.le_log_of_pow_le one_lt_two⟩)
     obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp (h_log_growth.eventually_gt_atTop 0)
     use x₁ + N + 1, by linarith
     have _ : (Nat.sqrt (x₁ + N + 1) : ℝ) ≥ 1 := mod_cast Nat.sqrt_pos.mpr (by linarith)
@@ -1973,7 +1960,7 @@ theorem linear_ssubset_linearithmic : linear ⊂ linearithmic := by
   use mod_cast Asymptotics.isBigO_refl ..
   norm_num [Asymptotics.isBigO_iff]
   intro x k
-  obtain ⟨n, hn⟩ := exists_nat_gt (|x| + 1)
+  have ⟨n, hn⟩ := exists_nat_gt (|x| + 1)
   use 2 ^ (k + n)
   norm_num [Nat.log_pow]
   constructor
@@ -1990,7 +1977,7 @@ theorem linearithmic_ssubset_quasilinear : linearithmic ⊂ quasilinear := by
   use ⟨2, mod_cast Asymptotics.isBigO_refl ..⟩
   norm_num [Asymptotics.isBigO_iff', ← mul_assoc]
   intro x _ y
-  obtain ⟨n, _⟩ := exists_nat_gt x
+  have ⟨n, _⟩ := exists_nat_gt x
   refine ⟨2 ^ (y + n + 1), le_trans (by linarith) Nat.lt_two_pow_self.le, ?_⟩
   rw [Nat.log_pow Nat.one_lt_ofNat]
   push_cast
@@ -2040,7 +2027,7 @@ theorem quasilinear_ssubset_poly : quasilinear ⊂ poly := by
     simpa [Real.exp_neg] using Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero x
   have h := h_exp.eventually (gt_mem_nhds <| show 0 < y⁻¹ by positivity)
   rw [Filter.eventually_atTop] at h
-  obtain ⟨N, hN⟩ := h
+  rcases h with ⟨N, hN⟩
   use N + z + 1, by linarith
   specialize hN (N + z + 1) (by linarith)
   rw [div_lt_iff₀ (by positivity)] at hN
@@ -2082,16 +2069,15 @@ theorem poly_ssubset_quasipoly : poly ⊂ quasipoly := by
   use ⟨2, mod_cast Asymptotics.isBigO_refl ..⟩
   intro k hk
   rw [Asymptotics.isBigO_iff'] at hk
-  norm_num +zetaDelta at *
-  obtain ⟨c, hc₀, a, ha⟩ := hk
+  simp only [Nat.cast_pow, Nat.cast_ofNat, norm_pow, norm_natCast, Filter.eventually_atTop] at hk
+  rcases hk with ⟨c, hc₀, a, ha⟩
   -- Choose `b = 2^m` for some `m` large enough such that `2^(m^2) > c * (2^m)^k`.
-  obtain ⟨m, hm⟩ : ∃ m : ℕ, m > a ∧ 2 ^ (m ^ 2) > c * (2 ^ m) ^ k := by
+  have ⟨m, hm⟩ : ∃ m : ℕ, m > a ∧ 2 ^ (m ^ 2) > c * (2 ^ m) ^ k := by
     -- We choose `m` large enough such that `2^(m^2) > c * 2^(mk)`
-    have hm_exists : ∃ m : ℕ, m > a ∧ m^2 > m * k + Real.logb 2 c := by
+    have ⟨m, hm₁, hm₂⟩ : ∃ m : ℕ, m > a ∧ m^2 > m * k + Real.logb 2 c := by
       use a + k + ⌊Real.logb 2 c⌋₊ + 1, by linarith
       push_cast
       nlinarith [Nat.lt_floor_add_one (Real.logb 2 c)]
-    obtain ⟨m, hm₁, hm₂⟩ := hm_exists
     use m
     rw [gt_iff_lt, Real.logb, add_div', div_lt_iff₀] at hm₂ <;> norm_num at *
     · use hm₁
@@ -2187,7 +2173,7 @@ theorem quasipoly_ssubset_two_pow : quasipoly ⊂ two_pow := by
   use (2 ^ ·), mod_cast Asymptotics.isBigO_refl ..
   -- Assume for contradiction that there exists a constant `C` such that `2^n = O(2^((log n)^C))`.
   by_contra h_contra
-  obtain ⟨C, hC⟩ := h_contra
+  have ⟨C, hC⟩ := h_contra
   have h_exp : Filter.atTop.Tendsto (fun n ↦ (2 : ℝ) ^ (Nat.log 2 n ^ C) / 2 ^ n) (𝓝 0) := by
     -- We rewrite `2^((log n)^C) / 2^n = 2^((log n)^C - n)`.
     suffices h_exp : Filter.atTop.Tendsto (fun n ↦ (2 : ℝ) ^ ((Nat.log 2 n) ^ C - n : ℝ)) (𝓝 0) by
@@ -2272,16 +2258,16 @@ theorem two_pow_ssubset_e_pow : two_pow ⊂ e_pow := by
   rw [Asymptotics.isBigO_iff']
   norm_num [Norm.norm]
   have h_exp : Filter.Tendsto (fun n : ℕ ↦ (Real.exp n : ℝ) / 2 ^ n) .atTop .atTop := by
-    suffices h_exp_growth : Filter.Tendsto (fun n : ℕ ↦ (Real.exp 1 / 2 : ℝ) ^ n) .atTop .atTop by
-      simpa [Real.exp_nat_mul, div_pow] using h_exp_growth
+    suffices h : Filter.Tendsto (fun n : ℕ ↦ (Real.exp 1 / 2 : ℝ) ^ n) .atTop .atTop by
+      simpa [Real.exp_nat_mul, div_pow] using h
     exact tendsto_pow_atTop_atTop_of_one_lt <| by linarith [Real.exp_one_gt_two]
   intro x hx n
   replace h_exp := h_exp.eventually_gt_atTop (x + 1)
-  replace h_exp := h_exp.and (Filter.eventually_ge_atTop n)
-  obtain ⟨m, hm⟩ := Filter.eventually_atTop.mp h_exp
-  specialize hm m (by norm_num)
-  refine ⟨m, hm.2, ?_⟩
-  have hm₁ := hm.1
+  replace h_exp := (Filter.eventually_ge_atTop n).and h_exp
+  have ⟨m, hm⟩ := Filter.eventually_atTop.mp h_exp
+  specialize hm m le_rfl
+  refine ⟨m, hm.1, ?_⟩
+  have hm₁ := hm.2
   rw [lt_div_iff₀ (by positivity)] at hm₁
   nlinarith [Nat.le_ceil (Real.exp m), show (2 : ℝ) ^ m > 0 by positivity]
 
@@ -2345,7 +2331,7 @@ theorem factorial_not_mem_exp : Nat.factorial ∉ exp := by
   have hf_growth : Filter.Tendsto (fun n ↦ (y * (c ^ n) : ℝ) / n.factorial) .atTop (𝓝 0) := by
     have h := FloorSemiring.tendsto_pow_div_factorial_atTop (c : ℝ)
     simpa [mul_div_assoc] using h.const_mul y
-  obtain ⟨w, h⟩ := Filter.eventually_atTop.mp <| hf_growth.eventually (gt_mem_nhds zero_lt_one)
+  have ⟨w, h⟩ := Filter.eventually_atTop.mp <| hf_growth.eventually (gt_mem_nhds zero_lt_one)
   refine ⟨_, le_max_left z w, ?_⟩
   specialize h _ (le_max_right z w)
   rw [div_lt_one (by positivity)] at h
@@ -2465,7 +2451,7 @@ theorem log_comp_poly (hf : f ∈ log) (hg : g ∈ poly) : f ∘ g ∈ log := by
         cases abs_cases c <;>
         cases abs_cases (Real.log x) <;>
         nlinarith [show 0 ≤ ∑ i ∈ .range (a + 1), (f i : ℝ) by positivity]
-    refine ⟨Max.max A (f 0), Max.max B 0, fun n ↦ ?_⟩
+    refine ⟨A ⊔ (f 0), B ⊔ 0, fun n ↦ ?_⟩
     by_cases hn : 1 ≤ g n
     · exact hAB _ hn |> le_trans <| by gcongr <;> norm_num
     · simp at hn; simp [hn]
@@ -3085,7 +3071,7 @@ private lemma isBigO_poly_comp_exp {k C : ℕ}
   have h_bound : ∀ n ≥ N_g, (g n) ^ k ≤ c_g ^ k * (C ^ k) ^ n := by
     intro n hn; convert Nat.pow_le_pow_left (hM_g n hn) k using 1; ring
   -- Let `K = max(2, C^k)`. We claim `f(g(n)) = O(K^n)`.
-  use max 2 (C ^ k)
+  use 2 ⊔ C ^ k
   -- Thus `f(g(n)) ≤ M_f + c_f * c_g^k * (C^k)^n`.
   have h_final_bound : ∀ n ≥ N_g, f (g n) ≤ M_f + c_f * c_g ^ k * (C ^ k) ^ n :=
     fun n hn ↦ (hM_f _).trans (by nlinarith [h_bound n hn])
@@ -3279,10 +3265,9 @@ theorem exp_comp_log (hf : f ∈ exp) (hg : g ∈ log) : f ∘ g ∈ poly := by
       refine ⟨2, one_lt_two, b, a, fun n hn ↦ ?_⟩
       grw [hb n hn, ← one_le_pow₀ (by simp), mul_one]
       grw [← hb a le_rfl, Nat.cast_nonneg']
-    · refine ⟨C + 1 + 1, ?_, ?_⟩
-      · linarith
-      · norm_cast at *
-        rwa [Asymptotics.isBigO_iff] at hC ⊢
+    · refine ⟨C + 1 + 1, by linarith, ?_⟩
+      norm_cast at *
+      rwa [Asymptotics.isBigO_iff] at hC ⊢
 
 lemma exp_bound_nat {f : ℕ → ℕ} (hf : f ∈ exp) :
     ∃ (C : ℕ) (M : ℕ), 1 < C ∧ ∀ n, f n ≤ M * C ^ n := by
@@ -3295,8 +3280,8 @@ lemma exp_bound_nat {f : ℕ → ℕ} (hf : f ∈ exp) :
     exact_mod_cast (by nlinarith [Nat.le_ceil c, show (C₀ ^ n : ℝ) ≥ 0 by positivity] :
       (f n : ℝ) ≤ ⌈c⌉₊ * C₀ ^ n)
   -- Choose `C = max(C₀, 2)` to ensure `C > 1`.
-  set C := max C₀ 2
-  have hC : 1 < C := lt_max_of_lt_right (by decide)
+  set C := C₀ ⊔ 2
+  have hC : 1 < C := lt_max_of_lt_right one_lt_two
   refine ⟨C, hC₀ + ∑ n ∈ .range N, f n + 1, hC, fun n ↦ ?_⟩
   by_cases hn : n < N
   · nlinarith [Nat.zero_le (∑ n ∈ .range N, f n),
@@ -3306,7 +3291,7 @@ lemma exp_bound_nat {f : ℕ → ℕ} (hf : f ∈ exp) :
       (Nat.mul_le_mul (by nlinarith [Nat.zero_le (∑ n ∈ .range N, f n)])
         (Nat.pow_le_pow_left (le_max_left _ _) _))
 
-lemma polylog_bound_nat {g : ℕ → ℕ} (hg : g ∈ polylog) :
+lemma polylog_bound_nat (hg : g ∈ polylog) :
     ∃ (k : ℕ) (K : ℕ), ∀ᶠ n in .atTop, g n ≤ K * (Nat.log 2 n) ^ k := by
   rcases hg with ⟨k, hk⟩
   have ⟨K, hK⟩ := hk.exists_pos
@@ -3318,18 +3303,18 @@ lemma polylog_bound_nat {g : ℕ → ℕ} (hg : g ∈ polylog) :
   suffices h : (g n : ℝ) ≤ ⌈K⌉₊ * Nat.log 2 n ^ k from mod_cast h
   nlinarith [Nat.le_ceil K, ha n hn, show (Nat.log 2 n : ℝ) ^ k ≥ 0 by positivity]
 
-lemma quasipoly_of_bound_nat {h : ℕ → ℕ} {A k M : ℕ} (hA : 1 < A)
-    (hh : ∀ᶠ n in .atTop, h n ≤ M * A ^ ((Nat.log 2 n) ^ k)) : h ∈ quasipoly := by
+lemma quasipoly_of_bound_nat {A k M : ℕ}
+    (hf : ∀ᶠ n in .atTop, f n ≤ M * A ^ ((Nat.log 2 n) ^ k)) : f ∈ quasipoly := by
   -- Let `L = log₂ A`. Then `A < 2^(L+1)`
   set L := Nat.log 2 A
-  have h_bound : ∀ᶠ n in .atTop, (h n : ℝ) ≤ M * 2 ^ ((L + 1) * (Nat.log 2 n) ^ k) := by
-    filter_upwards [hh] with n hn
+  have h_bound : ∀ᶠ n in .atTop, (f n : ℝ) ≤ M * 2 ^ ((L + 1) * (Nat.log 2 n) ^ k) := by
+    filter_upwards [hf] with n hn
     have hA_le : (A : ℝ) ≤ 2 ^ (L + 1) := by
       exact_mod_cast Nat.le_of_lt (Nat.lt_pow_succ_log_self (by decide) _)
     grw [pow_mul, ← hA_le, hn]
     exact_mod_cast le_rfl
   -- We want to bound this by `2 ^ ((log n)^(k+1))`.
-  replace h_bound : ∀ᶠ n in .atTop, (h n : ℝ) ≤ M * 2 ^ ((Nat.log 2 n) ^ (k + 1)) := by
+  replace h_bound : ∀ᶠ n in .atTop, (f n : ℝ) ≤ M * 2 ^ ((Nat.log 2 n) ^ (k + 1)) := by
     have h_ineq : ∀ᶠ n in .atTop, (L + 1) * (Nat.log 2 n) ^ k ≤ (Nat.log 2 n) ^ (k + 1) := by
       have h_ineq : ∀ᶠ n in .atTop, (L + 1) ≤ Nat.log 2 n := by
         rw [Filter.eventually_atTop]
@@ -3347,14 +3332,13 @@ lemma quasipoly_of_bound_nat {h : ℕ → ℕ} {A k M : ℕ} (hA : 1 < A)
 theorem exp_comp_polylog (hf : f ∈ exp) (hg : g ∈ polylog) : f ∘ g ∈ quasipoly := by
   have ⟨C, M_f, hC, hf⟩ := exp_bound_nat hf
   have ⟨k, K, hg⟩ := polylog_bound_nat hg
-  set K' := max 1 K
+  set K' := 1 ⊔ K
   apply quasipoly_of_bound_nat (A := C ^ K') (k := k) (M := M_f)
-  · exact one_lt_pow₀ hC (by positivity)
-  · simp +zetaDelta only [Filter.eventually_atTop, Function.comp_apply] at hg ⊢
-    refine ⟨hg.choose, fun n hn ↦ le_trans (hf _) ?_⟩
-    simpa only [← pow_mul] using Nat.mul_le_mul_left _ (pow_le_pow_right₀ hC.le <| by
-      nlinarith [hg.choose_spec n hn, Nat.le_max_left 1 K, Nat.le_max_right 1 K,
-        pow_nonneg (Nat.zero_le (Nat.log 2 n)) k])
+  simp +zetaDelta only [Filter.eventually_atTop, Function.comp_apply] at hg ⊢
+  refine ⟨hg.choose, fun n hn ↦ le_trans (hf _) ?_⟩
+  simpa only [← pow_mul] using Nat.mul_le_mul_left _ (pow_le_pow_right₀ hC.le <| by
+    nlinarith [hg.choose_spec n hn, Nat.le_max_left 1 K, Nat.le_max_right 1 K,
+      pow_nonneg (Nat.zero_le (Nat.log 2 n)) k])
 
 theorem exp_comp_linear (hf : f ∈ exp) (hg : g ∈ linear) : f ∘ g ∈ exp := by
   -- From `hf`, we have some `C` such that `f n = O(C^n)`. We can assume `C ≥ 2` WLOG.
@@ -3366,7 +3350,7 @@ theorem exp_comp_linear (hf : f ∈ exp) (hg : g ∈ linear) : f ∘ g ∈ exp :
       apply hC.trans
       simpa using Asymptotics.isBigO_of_le _ fun n ↦ by cases n <;> norm_num [pow_succ']
     · refine ⟨2, ?_, ?_⟩ <;> norm_num [Asymptotics.isBigO_iff]
-      obtain ⟨c, hc⟩ := hC
+      rcases hC with ⟨c, hc⟩
       norm_num [Norm.norm] at *
       refine ⟨c, hc.choose, fun n hn ↦ ?_⟩
       exact le_trans (hc.choose_spec n hn)
