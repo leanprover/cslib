@@ -328,8 +328,18 @@ theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : 
     grind [extract_eq_drop_take]
   choose nxt_n nxt_p using h_nxt
   let f := iter_helper (fun n ↦ s.drop n ∈ p) nxt_n
-  have h_f (n) : f n < f (n + 1) ∧ s.extract (f n) (f (n + 1)) ∈ l ∧ s.drop (f (n + 1)) ∈ p := by
-    induction n <;> grind [iter_helper]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  have _ (n) : f n < f (n + 1) := by
+    induction n
+    · simp only [f, iter_helper]
+      split_ifs with h
+      · simp_all
+      · simp [drop_zero] at h
+        contradiction
+    · grind [iter_helper]
+  have _ (n) : s.extract (f n) (f (n + 1)) ∈ l ∧ s.drop (f (n + 1)) ∈ p := by
+   induction n <;> grind [iter_helper]
   rw [omegaPow_seq_prop]
   use f
   grind [strictMono_nat_of_lt_succ, iter_helper]
