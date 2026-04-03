@@ -42,7 +42,7 @@ open scoped DA.FinAcc LTS in
 theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
   language na.toDAFinAcc = language na := by
   ext xs
-  grind
+  grind [Accepts]
 
 end FinAcc
 
