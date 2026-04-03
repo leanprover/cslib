@@ -446,7 +446,9 @@ lemma tensor_of_par {G H : Fact P} : (G ⊗ H) = (Gᗮ ⅋ Hᗮ)ᗮ :=
   SetLike.coe_injective <| by
     simp only [tensor, parr, dualFact, mk_dual, mk_subset, coe_mk]
     rw [G.eq, H.eq]
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    rfl
 
 lemma par_of_tensor {G H : Fact P} : (G ⅋ H) = (Gᗮ ⊗ Hᗮ)ᗮ := by
   simp [tensor_of_par]
