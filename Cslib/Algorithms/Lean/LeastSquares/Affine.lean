@@ -10,40 +10,9 @@ public import Mathlib.Tactic
 @[expose] public section
 set_option autoImplicit false
 
-/-!
-# Least-Squares Linear Regression (General Affine Case)
-
-Linear regression `y ≈ a * x + b` for a dataset
-`{(xᵢ, yᵢ)}`, without any constraint that the line passes through the origin.
-
-The optimal slope and intercept are
-
-  `aStar = (n * Sxy - Sx * Sy) / Stt`
-  `bStar = (Sy - aStar * Sx) / n`
-
-## Main results
-
-* `Stt_nonneg`      : `0 ≤ Stt x`
-* `Stt_eq`          : `Stt x = n * Sxx x - (Sx x) ^ 2`   (computational identity)
-* `aStar_minimizes` : `∀ a b, loss x y (aStar x y) (bStar x y) ≤ loss x y a b`
-                      (currently `sorry`-ed; proof follows the origin case via a
-                       two-variable loss decomposition)
-
-
-`Cslib.Algorithms.Lean.LeastSquares.Origin` is the special case where the
-intercept is forced to zero. The proof strategy here is identical:
-1. Expand `loss a b` around `(aStar, bStar)`.
-2. Show the two cross terms vanish via the normal equations.
-3. Conclude the residual is nonneg.
--/
-
 namespace Cslib.Algorithms.Lean.LeastSquares.General
 
 variable {n : ℕ}
-
--- ---------------------------------------------------------------------------
--- Summary statistics
--- ---------------------------------------------------------------------------
 
 /-- `Sx = ∑ xᵢ`. -/
 noncomputable def Sx (x : Fin n → ℝ) : ℝ :=
@@ -67,10 +36,6 @@ noncomputable def Stt (x : Fin n → ℝ) : ℝ :=
   (Finset.univ : Finset (Fin n)).sum
     (fun i => (x i - Sx x / n) ^ 2)
 
--- ---------------------------------------------------------------------------
--- Optimal coefficients (normal equations)
--- ---------------------------------------------------------------------------
-
 /-- Least-squares slope: `aStar = (n * Sxy - Sx * Sy) / Stt`. -/
 noncomputable def aStar (x y : Fin n → ℝ) : ℝ :=
   (n * Sxy x y - Sx x * Sy y) / Stt x
@@ -79,49 +44,26 @@ noncomputable def aStar (x y : Fin n → ℝ) : ℝ :=
 noncomputable def bStar (x y : Fin n → ℝ) : ℝ :=
   (Sy y - aStar x y * Sx x) / n
 
--- ---------------------------------------------------------------------------
--- Loss function
--- ---------------------------------------------------------------------------
-
-/-- Squared loss for the affine model:
-    `loss(a, b) = ∑ (a * xᵢ + b - yᵢ)²`. -/
+/-- Squared loss for the affine model: `loss(a, b) = ∑ (a * xᵢ + b - yᵢ)²`. -/
 noncomputable def loss (x y : Fin n → ℝ) (a b : ℝ) : ℝ :=
   (Finset.univ : Finset (Fin n)).sum (fun i => (a * x i + b - y i) ^ 2)
 
--- ---------------------------------------------------------------------------
--- Basic nonnegativity lemmas
--- ---------------------------------------------------------------------------
-
-/-- `Stt x` is nonneg, since it is a sum of squares. -/
 lemma Stt_nonneg (x : Fin n → ℝ) : 0 ≤ Stt x := by
   unfold Stt
   apply Finset.sum_nonneg
   intro i _
   exact sq_nonneg _
 
-/-- `Sxx x` is nonneg. -/
 lemma Sxx_nonneg (x : Fin n → ℝ) : 0 ≤ Sxx x := by
   unfold Sxx
   apply Finset.sum_nonneg
   intro i _
   exact sq_nonneg _
 
--- ---------------------------------------------------------------------------
--- Key algebraic identity: Stt = n * Sxx - Sx²
--- ---------------------------------------------------------------------------
-
-/-- `Stt x = n * Sxx x - (Sx x) ^ 2`.
-
-This identity is the bridge between the centered and uncentered formulations.
-It shows `Stt` is well-defined for any `n : ℕ` (cast to `ℝ`), and that
-`Stt x = 0 ↔ all xᵢ are equal` (Cauchy-Schwarz equality case). -/
+/-- `Stt x = n * Sxx x - (Sx x) ^ 2`. -/
 lemma Stt_eq (x : Fin n → ℝ) :
     Stt x = n * Sxx x - (Sx x) ^ 2 := by
   sorry
-
--- ---------------------------------------------------------------------------
--- Normal equations (cross terms vanish at the optimum)
--- ---------------------------------------------------------------------------
 
 /-- First normal equation: the slope cross term vanishes at `(aStar, bStar)`. -/
 lemma crossTerm_slope_eq_zero (x y : Fin n → ℝ) (h : Stt x ≠ 0) :
@@ -135,28 +77,14 @@ lemma crossTerm_intercept_eq_zero (x y : Fin n → ℝ) (h : Stt x ≠ 0) :
         (fun i => aStar x y * x i + bStar x y - y i) = 0 := by
   sorry
 
--- ---------------------------------------------------------------------------
--- Loss decomposition
--- ---------------------------------------------------------------------------
-
 /-- Loss decomposition around `(aStar, bStar)`:
-
-    `loss a b = loss aStar bStar + Stt * (a - aStar)² + n * (b - bStar)²`
-
-This is the two-parameter analogue of `loss_decomp` in the origin file.
-The proof expands the square termwise, collects the three groups (residual,
-slope-deviation, intercept-deviation), and uses both normal equations to
-kill the cross terms. -/
+    `loss a b = loss aStar bStar + Stt * (a - aStar)² + n * (b - bStar)²`. -/
 lemma loss_decomp (x y : Fin n → ℝ) (h : Stt x ≠ 0) (a b : ℝ) :
     loss x y a b =
       loss x y (aStar x y) (bStar x y)
         + Stt x * (a - aStar x y) ^ 2
         + n * (b - bStar x y) ^ 2 := by
   sorry
-
--- ---------------------------------------------------------------------------
--- Main theorem
--- ---------------------------------------------------------------------------
 
 /-- `(aStar, bStar)` jointly minimize the squared loss over all affine fits. -/
 theorem aStar_minimizes (x y : Fin n → ℝ) (h : Stt x ≠ 0) :
