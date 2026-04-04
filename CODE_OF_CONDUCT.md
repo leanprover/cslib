@@ -79,7 +79,7 @@ This enforcement ladder is intended as a guideline. It does not limit the abilit
 
 ## Scope
 
-This Code of Conduct applies within all community spaces, and also applies when an individual is officially representing the community in public or other spaces. Examples of representing our community include using an official email address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
+This Code of Conduct applies within all community spaces managed directly by the CSLib maintainers (like the CSLib GitHub space and the CSLib channel on the Lean community Zulip) or in collaboration with the Lean FRO or the Lean community, and also applies when an individual is officially representing the CSLib community in public or other spaces. Examples of representing our community include using an official email address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
 
 
 ## Attribution
