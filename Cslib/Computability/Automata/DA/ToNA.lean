@@ -54,11 +54,13 @@ open scoped FLTS NA.FinAcc in
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
     language a.toNAFinAcc = language a := by
   ext xs
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   constructor
-  · grind
+  · simp_all [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
   · intro _
     use a.start
-    grind
+    simp_all [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
 
 end FinAcc
 
