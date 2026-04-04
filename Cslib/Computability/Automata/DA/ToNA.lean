@@ -72,16 +72,19 @@ def toNABuchi (a : DA.Buchi State Symbol) : NA.Buchi State Symbol :=
   { a.toNA with accept := a.accept }
 
 open ωAcceptor in
-open scoped NA.Buchi in
 /-- The `NA.Buchi` constructed from a `DA.Buchi` has the same ω-language. -/
 @[simp, scoped grind _=_]
 theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
     language a.toNABuchi = language a := by
   ext xs; constructor
-  · grind
-  · intro _
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  · simp_all [Accepts, language, toNABuchi]
+  · intro h
     use (a.run xs)
-    grind
+    split_ands
+    · grind
+    · exact Filter.frequently_map.mp h
 
 end Buchi
 
