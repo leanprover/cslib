@@ -145,8 +145,10 @@ theorem loop_language_eq [Inhabited Symbol] :
     rintro xs ⟨ss, h_run, h_acc⟩
     obtain ⟨k, h1, h2⟩ : ∃ k > 0, (ss k).isLeft :=
       by grind [FinAcc.loop, frequently_atTop'.mp h_acc 0]
-    obtain ⟨n, _⟩ := loop_run_one_iter h_run h1 h2
-    refine ⟨xs.take n, by grind, xs.drop n, ?_, by simp⟩
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    obtain ⟨n, _, h, _⟩ := loop_run_one_iter h_run h1 h2
+    refine ⟨xs.take n, h, xs.drop n, ?_, by simp⟩
     refine ⟨ss.drop n, by grind, ?_⟩
     apply (drop_frequently_iff_frequently n).mpr
     grind
