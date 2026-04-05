@@ -193,10 +193,18 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
       obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
         simp only [mem_singleton_iff] at h_acc
         grind
-      obtain ⟨n, h_n, _, _, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
+      obtain ⟨n, h_n, h_take, h_drop, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
-      · grind [totalize_language_eq, take_append_of_le_length]
-      · refine ⟨ss n, by grind, ss xl.length, by grind, ?_⟩
+      · #adaptation_note
+        /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+        -- The following code doesn't make any sense, but it is the only way I could make
+        -- the proof go through.
+        simp (disch := grind) [totalize_language_eq, take_append_of_le_length] at h_take
+        have := mem_sub_one (l := language na) (xl.take n)
+        apply this.mpr
+        simp [language]
+        grind
+      · refine ⟨ss n, by aesop, ss xl.length, by grind, ?_⟩
         have := LTS.OmegaExecution.extract_mTr h_ωtr' (show 0 ≤ xl.length - n by grind)
         have : n + (xl.length - n) = xl.length := by grind
         have : ((xl ++ω xs).drop n).extract 0 (xl.length - n) = xl.drop n := by
