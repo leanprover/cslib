@@ -304,6 +304,7 @@ public lemma encodedPos_next_sibling_succ : (tv : TapeView) →
       ⟨ds[p], r :: rest, .rightEnd, h_sub⟩ h_last' rfl (by
         convert h_next using 2; simp [parent, current, h_p, h_drop])) ▸ rfl
   termination_by tv => tv.path.length
+
 /-- The encoding starting at `encodedPos` begins with `current.enc`. -/
 private lemma enc_drop_prefix (tv : TapeView) (h_left : tv.headPos = .leftEnd) :
     tv.current.enc <+: tv.data.enc.drop tv.encodedPos := by
