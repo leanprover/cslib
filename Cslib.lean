@@ -62,9 +62,17 @@ public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
-public import Cslib.Foundations.Semantics.LTS.LTSCat.Basic
+public import Cslib.Foundations.Semantics.LTS.Divergence
+public import Cslib.Foundations.Semantics.LTS.Execution
+public import Cslib.Foundations.Semantics.LTS.HasTau
+public import Cslib.Foundations.Semantics.LTS.Notation
+public import Cslib.Foundations.Semantics.LTS.OmegaExecution
+public import Cslib.Foundations.Semantics.LTS.Relation
 public import Cslib.Foundations.Semantics.LTS.Simulation
+public import Cslib.Foundations.Semantics.LTS.Termination
+public import Cslib.Foundations.Semantics.LTS.Total
 public import Cslib.Foundations.Semantics.LTS.TraceEq
+public import Cslib.Foundations.Semantics.LTS.Union
 public import Cslib.Foundations.Syntax.Congruence
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
@@ -95,6 +103,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaEtaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEtaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
