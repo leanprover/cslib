@@ -3,9 +3,15 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
-import Mathlib.Data.FunLike.Basic
-import Mathlib.Data.Set.Image
-import Mathlib.Order.TypeTags
+
+module
+
+public import Cslib.Init
+public import Mathlib.Data.FunLike.Basic
+public import Mathlib.Data.Set.Image
+public import Mathlib.Order.TypeTags
+
+@[expose] public section
 
 /-! # Propositions and theories
 
@@ -32,16 +38,16 @@ universe u
 
 variable {Atom : Type u} [DecidableEq Atom]
 
-namespace PL
+namespace Cslib.Logic.PL
 
 /-- Propositions. -/
 inductive Proposition (Atom : Type u) : Type u where
   /-- Propositional atoms -/
   | atom (x : Atom)
   /-- Conjunction -/
-  | conj (a b : Proposition Atom)
+  | and (a b : Proposition Atom)
   /-- Disjunction -/
-  | disj (a b : Proposition Atom)
+  | or (a b : Proposition Atom)
   /-- Implication -/
   | impl (a b : Proposition Atom)
 deriving DecidableEq, BEq
@@ -59,17 +65,17 @@ instance instTopProposition [Inhabited Atom] : Top (Proposition Atom) := ⟨.top
 
 example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.impl ⊥ ⊥ := rfl
 
-@[inherit_doc] scoped infix:35 " ⋏ " => Proposition.conj
-@[inherit_doc] scoped infix:35 " ⋎ " => Proposition.disj
-@[inherit_doc] scoped infix:30 " ⟶ " => Proposition.impl
-@[inherit_doc] scoped prefix:40 " ~ " => Proposition.neg
+@[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
+@[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
+@[inherit_doc] scoped infix:30 " → " => Proposition.impl
+@[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
 
 /-- A function on atoms induces a function on propositions. -/
 def Proposition.map {Atom Atom' : Type u} (f : Atom → Atom') : Proposition Atom → Proposition Atom'
   | atom x => atom (f x)
-  | conj A B => conj (A.map f) (B.map f)
-  | disj A B => disj (A.map f) (B.map f)
-  | impl A B => impl (A.map f) (B.map f)
+  | and A B => (A.map f) ∧ (B.map f)
+  | or A B => (A.map f) ∨ (B.map f)
+  | impl A B => (A.map f) → (B.map f)
 
 instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Proposition Atom) (Proposition Atom') where
   coe := Proposition.map
@@ -82,8 +88,10 @@ instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Proposition Atom) (Pr
 /-- Theories are arbitrary sets of propositions. -/
 abbrev Theory (Atom) := Set (Proposition Atom)
 
+namespace Theory
+
 /-- Extend `Proposition.map` to theories. -/
-def Theory.map {Atom Atom' : Type u} (f : Atom → Atom') : Theory Atom → Theory Atom' :=
+def map {Atom Atom' : Type u} (f : Atom → Atom') : Theory Atom → Theory Atom' :=
   Set.image (Proposition.map f)
 
 instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory Atom') where
@@ -94,62 +102,57 @@ instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory 
       congrFun h {Proposition.atom x}
     simpa [Theory.map, Proposition.map] using this
 
-/-- The base theory is minimal propositional logic. -/
-abbrev MPL : Theory (Atom) := ∅
+/-- The empty theory corresponds to minimal propositional logic. -/
+abbrev MPL : Theory (Atom) := ∅Expand commentComment on line R106Resolved
 
 /-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
 abbrev IPL [Bot Atom] : Theory Atom :=
-  Set.range (⊥ ⟶ ·)
+  Set.range (⊥ → ·)
 
 /-- Classical logic further adds double negation elimination. -/
 abbrev CPL [Bot Atom] : Theory Atom :=
-  IPL ∪ Set.range (fun (A : Proposition Atom) ↦ ~~A ⟶ A)
+  Set.range (fun (A : Proposition Atom) ↦ ¬¬A → A)
 
+/-- A theory is intuitionistic if it validates ex falso quodlibet. -/
 @[scoped grind]
 class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
-  efq (A : Proposition Atom) : (⊥ ⟶ A) ∈ T
+  efq (A : Proposition Atom) : (⊥ → A) ∈ T
 
 omit [DecidableEq Atom] in
-@[scoped grind]
+@[scoped grind =]
 theorem isIntuitionisticIff [Bot Atom] (T : Theory Atom) : IsIntuitionistic T ↔ IPL ⊆ T := by grind
 
+/-- A theory is classical if it validates double-negation elimination. -/
 @[scoped grind]
-class IsClassical [Bot Atom] (T : Theory Atom) extends IsIntuitionistic T where
-  dne (A : Proposition Atom) : (~~A ⟶ A) ∈ T
+class IsClassical [Bot Atom] (T : Theory Atom) where
+  dne (A : Proposition Atom) : (¬¬A → A) ∈ T
 
 omit [DecidableEq Atom] in
-@[scoped grind]
-theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by
-  constructor
-  · grind
-  · intro _
-    have : IsIntuitionistic T := by grind
-    refine ⟨?_⟩
-    grind
+@[scoped grind =]
+theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by grind
 
 instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
   efq A := Set.mem_range.mpr ⟨A, rfl⟩
 
 instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
-  efq A := Set.mem_union_left _ <| Set.mem_range.mpr ⟨A, rfl⟩
-  dne A := Set.mem_union_right _ <| Set.mem_range.mpr ⟨A, rfl⟩
+  dne A := Set.mem_range.mpr ⟨A, rfl⟩
 
 omit [DecidableEq Atom] in
-@[scoped grind]
+@[scoped grind →]
 theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
     (h : T ⊆ T') : IsIntuitionistic T' := by grind
 
 omit [DecidableEq Atom] in
-@[scoped grind]
+@[scoped grind →]
 theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
-    IsClassical T' := by have :_ := instIsIntuitionisticExtention h; grind
+    IsClassical T' := by grind
 
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]
-def Theory.intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
+def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
   T.map (WithBot.some) ∪ IPL
 
 instance instIsIntuitionisticIntuitionisticCompletion (T : Theory Atom) :
     IsIntuitionistic T.intuitionisticCompletion := by grind
 
-end PL
+end Cslib.Logic.PL.Theory
