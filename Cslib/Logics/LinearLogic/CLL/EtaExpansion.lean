@@ -110,9 +110,9 @@ private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
     a.expand.onlyAtomicAxioms → a⫠.expand.onlyAtomicAxioms := by
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  induction a with 
+  induction a with
   | one => simp +contextual [dual, expand, onlyAtomicAxioms]
-  | bot => 
+  | bot =>
     intro h
     rw [←h]
     congr 1
