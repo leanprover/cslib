@@ -197,13 +197,8 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
       · #adaptation_note
         /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-        -- The following code doesn't make any sense, but it is the only way I could make
-        -- the proof go through.
-        simp (disch := grind) [totalize_language_eq, take_append_of_le_length] at h_take
-        have := mem_sub_one (l := language na) (xl.take n)
-        apply this.mpr
-        simp [language]
-        grind
+        change List.take n xl ∈ language na - 1 -- canonicalize membership instance
+        grind [totalize_language_eq, take_append_of_le_length]
       · refine ⟨ss n, by aesop, ss xl.length, by grind, ?_⟩
         have := LTS.OmegaExecution.extract_mTr h_ωtr' (show 0 ≤ xl.length - n by grind)
         have : n + (xl.length - n) = xl.length := by grind
