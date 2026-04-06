@@ -27,13 +27,12 @@ def update [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)] (f : α �
   mem_support_fn := by grind
 
 /-- `FinFun.update` is consistent with `Function.update`. -/
-@[scoped grind =, simp]
+@[simp]
 theorem update_coe [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)] (f : α →₀ β) :
     ((f.update a b) : α → β) = Function.update f a b := by
   grind [update]
 
 /-- Conditional characterisation of the functional interface of `FinFun.update`. -/
-@[scoped grind =, simp]
 theorem update_apply [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)] (f : α →₀ β) :
     ((f.update a' b) a) = if a = a' then b else f a := by
   simp only [update_coe, Function.update_apply]
@@ -72,7 +71,6 @@ theorem update_neq_zero_support_eq_union [Zero β] [DecidableEq α] [∀ b : β,
     (f.update a b).support = f.support ∪ {a} := by grind
 
 /-- Updating a key in the support with a nonempty element preserves the support. -/
-@[scoped grind .]
 theorem update_neq_zero_support_eq [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)]
     (f : α →₀ β) (h₁ : f a ≠ 0) (h₂ : b ≠ 0) : (f.update a b).support = f.support := by grind
 
