@@ -120,3 +120,4 @@ public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Completeness
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Soundness
+public import Cslib.Logics.Propositional.Defs
