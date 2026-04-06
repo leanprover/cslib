@@ -108,11 +108,33 @@ open Proposition Proof in
 @[local grind →]
 private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
     a.expand.onlyAtomicAxioms → a⫠.expand.onlyAtomicAxioms := by
-  induction a <;> grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  induction a with
+  | one => simp +contextual [dual, expand, onlyAtomicAxioms]
+  | bot =>
+    intro h
+    rw [←h]
+    congr 1
+    · grind
+    · simp [dual, expand, rwConclusion, Logic.InferenceSystem.rwConclusion]
+  | _ => grind
 
 open Proposition Proof in
 /-- η-expansion is correct: the proof returned by η-expansion contains only atomic axioms. -/
 theorem Proof.expand_onlyAtomicAxioms (a : Proposition Atom) : a.expand.onlyAtomicAxioms := by
-  induction a <;> grind [onlyAtomicAxioms_rwConclusion]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  induction a with
+  | one =>
+    rw [←dual_involution .one]
+    apply expand_onlyAtomicAxioms_dual
+    simp [expand, onlyAtomicAxioms, dual]
+  | zero =>
+    rw [←dual_involution .zero]
+    apply expand_onlyAtomicAxioms_dual
+    simp [expand, onlyAtomicAxioms, dual]
+  | top | bot => simp [expand, onlyAtomicAxioms]
+  | _ => grind
 
 end Cslib.CLL

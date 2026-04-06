@@ -283,17 +283,25 @@ theorem bisimilarity_congr_res :
   case left =>
     intro s1' htr
     cases htr with | res _ _ htr =>
-    obtain ⟨q', _⟩ := Bisimilarity.is_bisimulation.follow_fst h htr
+    obtain ⟨q', _, bisim⟩ := Bisimilarity.is_bisimulation.follow_fst h htr
     exists res a q'
     unfold lts at *
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    split_ands
+    · grind
+    · exact ResBisim.res bisim
   case right =>
     intro s2' htr
     cases htr with | res _ _ htr =>
-    obtain ⟨p', _⟩ := Bisimilarity.is_bisimulation.follow_snd h htr
+    obtain ⟨p', _, bisim⟩ := Bisimilarity.is_bisimulation.follow_snd h htr
     exists res a p'
     unfold lts at *
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    split_ands
+    · grind
+    · exact ResBisim.res bisim
 
 private inductive ChoiceBisim : Process Name Constant → Process Name Constant → Prop where
 | choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
