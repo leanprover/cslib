@@ -30,7 +30,7 @@ A Sigma Protocol for R is a pair (P, V).
 
 Reference:
 
-* [D. Boneh and V. Shoup,V., *A Graduate Course in Applied Cryptography*, One-time pad][BonehShoup],
+* [D. Boneh and V. Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup],
   Section 19.4.
 
 Note: The notion of an _effective relation_ is implicit in the definition of a Sigma protocol.
