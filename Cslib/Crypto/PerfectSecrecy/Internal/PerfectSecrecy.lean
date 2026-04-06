@@ -157,31 +157,17 @@ theorem ciphertextIndist_of_perfectlySecret (scheme : EncScheme M K C)
     scheme.CiphertextIndist := by
   classical
   rw [perfectlySecret_iff_indep] at h
-  intro m₀ m₁
-  ext c
-  set s : Finset M := {m₀, m₁}
-  have hs : s.Nonempty := ⟨m₀, Finset.mem_insert_self m₀ {m₁}⟩
-  set μ := PMF.uniformOfFinset s hs
-  have key : ∀ m, μ m * scheme.ciphertextDist m c =
-      μ m * scheme.marginalCiphertextDist μ c := by
-    intro m
-    have := h μ m c
-    rw [jointDist_eq] at this
-    exact this
-  have hm₀ : μ m₀ ≠ 0 :=
-    (PMF.mem_support_uniformOfFinset_iff hs m₀).mpr (Finset.mem_insert_self m₀ {m₁})
-  have hm₁ : μ m₁ ≠ 0 :=
-    (PMF.mem_support_uniformOfFinset_iff hs m₁).mpr
-      (Finset.mem_insert_of_mem (Finset.mem_singleton_self m₁))
-  have hm₀_top : μ m₀ ≠ ⊤ := ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one μ m₀)
-  have hm₁_top : μ m₁ ≠ ⊤ := ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one μ m₁)
-  have h₀ : scheme.ciphertextDist m₀ c = scheme.marginalCiphertextDist μ c := by
-    have := key m₀; rw [mul_comm, mul_comm (μ m₀)] at this
-    exact (ENNReal.mul_left_inj hm₀ hm₀_top).mp this
-  have h₁ : scheme.ciphertextDist m₁ c = scheme.marginalCiphertextDist μ c := by
-    have := key m₁; rw [mul_comm, mul_comm (μ m₁)] at this
-    exact (ENNReal.mul_left_inj hm₁ hm₁_top).mp this
-  exact h₀.trans h₁.symm
+  intro m₀ m₁; ext c
+  have hs : ({m₀, m₁} : Finset M).Nonempty := ⟨m₀, Finset.mem_insert_self ..⟩
+  set μ := PMF.uniformOfFinset _ hs
+  suffices key : ∀ m ∈ ({m₀, m₁} : Finset M),
+      scheme.ciphertextDist m c = scheme.marginalCiphertextDist μ c by
+    exact (key m₀ (by simp)).trans (key m₁ (by simp)).symm
+  intro m hm
+  have hne := (PMF.mem_support_uniformOfFinset_iff hs m).mpr hm
+  have hne_top := ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one μ m)
+  have := h μ m c; rw [jointDist_eq] at this
+  exact (ENNReal.mul_right_inj hne hne_top).mp this
 
 /-- If each message maps to a key that encrypts it to a common ciphertext,
 then the key assignment is injective (by correctness of decryption). -/

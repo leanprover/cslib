@@ -25,23 +25,13 @@ namespace Cslib.Crypto.PerfectSecrecy.OTP
 
 /-- XOR by a fixed mask is self-inverse on `BitVec`: `c = k ^^^ m ↔ k = c ^^^ m`. -/
 lemma xor_right_eq_iff {l : ℕ} (c m k : BitVec l) :
-    (c = k ^^^ m) ↔ (k = c ^^^ m) := by
-  constructor
-  · rintro rfl
-    rw [BitVec.xor_assoc, BitVec.xor_self, BitVec.xor_zero]
-  · rintro rfl
-    rw [BitVec.xor_assoc, BitVec.xor_self, BitVec.xor_zero]
+    (c = k ^^^ m) ↔ (k = c ^^^ m) := by grind
 
 /-- The ciphertext distribution of the OTP is uniform, regardless of the message. -/
 theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
     haveI := bitVecFintype l
     (PMF.uniformOfFintype (BitVec l)).bind
       (fun k => PMF.pure (k ^^^ m)) =
-    PMF.uniformOfFintype (BitVec l) := by
-  haveI := bitVecFintype l
-  ext c
-  simp only [PMF.bind_apply, PMF.uniformOfFintype_apply, PMF.pure_apply]
-  simp_rw [xor_right_eq_iff c m]
-  simp
+    PMF.uniformOfFintype (BitVec l) := by simp [PMF.ext_iff, xor_right_eq_iff]
 
 end Cslib.Crypto.PerfectSecrecy.OTP
