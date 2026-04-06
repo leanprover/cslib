@@ -30,8 +30,8 @@ as defined in Winskel and Nielsen's handbook chapter [WinskelNielsen1995].
 We first define what is denoted Tran* in [WinskelNielsen1995]: the extension of
 a transition relation with idle transitions.
 -/
-def LTS.withIdle (trans : State → Label → State → Prop) : State → (Option Label) → State → Prop :=
-  fun s l s' => l.elim (s = s') (trans s · s')
+def LTS.withIdle (lts : LTS State Label) : LTS State (Option Label) :=
+  ⟨fun s l s' => l.elim (s = s') (lts.Tr s · s')⟩
 
 /-! ## LTSs and LTS morphisms form a category -/
 
