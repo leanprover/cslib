@@ -204,14 +204,14 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
       constructor
       · unfold lts
         cases htr with grind
-      · grind [ChoiceComm]
+      · grind [HomBisimilarity.refl, ChoiceComm]
     case right =>
       intro s1' htr
       exists s1'
       constructor
       · unfold lts
         cases htr with grind
-      · grind [ChoiceComm]
+      · grind [HomBisimilarity.refl, ChoiceComm]
   case bisim h =>
     grind [ChoiceComm]
 
@@ -326,7 +326,7 @@ theorem bisimilarity_congr_choice :
         constructor
         · apply Tr.choiceR htr
         · constructor
-          apply Bisimilarity.refl
+          apply HomBisimilarity.refl
     case bisim hbisim =>
       obtain ⟨rel, hr, hb⟩ := hbisim
       obtain ⟨s2', htr2, hr2⟩ := hb.follow_fst hr htr
@@ -353,7 +353,7 @@ theorem bisimilarity_congr_choice :
         constructor
         · apply Tr.choiceR htr
         · constructor
-          apply Bisimilarity.refl
+          apply HomBisimilarity.refl
     case bisim hbisim =>
       obtain ⟨rel, hr, hb⟩ := hbisim
       obtain ⟨s1', htr1, hr1⟩ := hb.follow_snd hr htr
@@ -435,7 +435,7 @@ theorem bisimilarity_is_congruence
 
 /-- Bisimilarity is a congruence in CCS. -/
 instance bisimilarityCongruence :
-    Congruence (Process Name Constant) (Bisimilarity (lts (defs := defs))) where
+    Congruence (Process Name Constant) (HomBisimilarity (lts (defs := defs))) where
   covariant := ⟨by grind [Covariant, bisimilarity_is_congruence]⟩
 
 end CCS
