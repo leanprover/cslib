@@ -56,6 +56,9 @@ noncomputable def marginalCiphertextDist (scheme : EncScheme M K C)
   let m ← msgDist
   scheme.ciphertextDist m
 
+-- TODO: posteriorMsgProb is itself a distribution — define it as a PMF
+-- (see posteriorMsgDist in Internal/PerfectSecrecy.lean) and express
+-- PerfectlySecret in terms of equality of distributions.
 /-- Posterior probability `Pr[M = m | C = c]`. -/
 noncomputable def posteriorMsgProb (scheme : EncScheme M K C)
     (msgDist : PMF M) (c : C) (m : M) : ENNReal :=

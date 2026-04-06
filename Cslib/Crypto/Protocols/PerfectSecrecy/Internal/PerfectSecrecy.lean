@@ -29,6 +29,8 @@ universe u
 variable {M K C : Type u}
 
 /-- The joint distribution at `(m, c)` equals `msgDist m * ciphertextDist m c`. -/
+-- TODO: upstream to Mathlib — this is a general PMF bind/pure lemma,
+-- nothing here depends on encryption scheme structure.
 theorem jointDist_eq (scheme : EncScheme M K C) (msgDist : PMF M)
     (m : M) (c : C) :
     scheme.jointDist msgDist (m, c) = msgDist m * scheme.ciphertextDist m c := by
