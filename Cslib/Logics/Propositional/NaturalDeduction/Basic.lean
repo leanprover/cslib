@@ -29,7 +29,6 @@ it has a derivation.
 - `Theory.Equiv` : `Prop`-valued equivalence of propositions.
 - The unconditional versions `Derivable`, `SDerivable` and `Equiv` are abbreviations for the
 relevant concept relative to the empty theory `MPL`.
-- `Theory.WeakerThan` : a theory `T` is weaker than `T'` if every axiom in `T` is `T'`-derivable.
 
 ## Main results
 
@@ -37,7 +36,6 @@ relevant concept relative to the empty theory `MPL`.
 - `Derivation.cut`, `Derivation.subs` : replace a hypothesis in a derivation — the two versions
 differ in the construction of the relevant derivation.
 - `Theory.equiv_equivalence` : equivalence of propositions is an equivalence relation.
-- `instPreorderTheory` : the relation `Theory.WeakerThan` is a preorder.
 
 ## Notation
 
@@ -48,8 +46,9 @@ For `T`-derivability, -sequent-derivability and -equivalence we introduce the no
 
 - Dag Prawitz, *Natural Deduction: a proof-theoretical study*.
 - The sequent-style natural deduction I present here doesn't seem to be common, but it is tersely
-presented in §10.4 of Troelstra & van Dalen's *Constructivism in Mathematics: an introduction*.
-(Suggestions of better references welcome!)
+presented in §10.4 of Troelstra & van Dalen's *Constructivism in Mathematics: an introduction*, and
+in §2.2 of Sorensen & Urzyczyn's *Lectures on the Curry-Howard Isomorphism*. (Suggestions of better
+references welcome!)
 -/
 
 
