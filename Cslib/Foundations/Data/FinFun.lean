@@ -133,6 +133,14 @@ theorem fromFun_comm [Zero β] [DecidableEq α]
     (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by
   grind only [= coe_eq_fn, = fromFun_fn, ←= ext]
 
+/-- Decidable equality -/
+instance instDecidableEq [Zero β] [DecidableEq α] [DecidableEq β] : DecidableEq (α →₀ β) :=
+  fun f g =>
+    if h : ∀ a ∈ f.support ∪ g.support, f a = g a then
+      isTrue <| ext fun a => by grind
+    else
+      isFalse <| by grind
+
 end FinFun
 
 end Cslib

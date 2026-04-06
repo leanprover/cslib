@@ -253,7 +253,13 @@ lemma biorth_least_fact (G : Set P) :
   have h_min :
       ∀ {F : Set P}, isFact F → G ⊆ F → G⫠⫠ ⊆ F := by
     intro F hF hGF
-    have : F = c F := by grind [isFact]
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    have : F = c F := by
+      simp only [isFact] at hF
+      rw [hF]
+      symm at hF ⊢
+      apply ClosureOperator.IsClosed.closure_eq (congrArg orthogonal (congrArg orthogonal hF))
     have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
     simpa [c] using ClosureOperator.closure_min hGF hF_closed
   apply h_min
@@ -436,7 +442,9 @@ lemma tensor_of_par {G H : Fact P} : (G ⊗ H) = (Gᗮ ⅋ Hᗮ)ᗮ :=
   SetLike.coe_injective <| by
     simp only [tensor, parr, dualFact, mk_dual, mk_subset, coe_mk]
     rw [G.eq, H.eq]
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    rfl
 
 lemma par_of_tensor {G H : Fact P} : (G ⅋ H) = (Gᗮ ⊗ Hᗮ)ᗮ := by
   simp [tensor_of_par]

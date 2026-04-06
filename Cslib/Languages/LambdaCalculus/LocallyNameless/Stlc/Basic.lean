@@ -88,6 +88,7 @@ lemma weaken (der : Γ ⊢ t ∶ τ) (ok : (Γ ++ Δ)✓) : Γ ++ Δ ⊢ t ∶ �
 
 omit [DecidableEq Var] in
 /-- Typing derivations exist only for locally closed terms. -/
+@[scoped grind →]
 lemma lc (der : Γ ⊢ t ∶ τ) : t.LC := by
   induction der <;> constructor
   case abs ih => exact ih
