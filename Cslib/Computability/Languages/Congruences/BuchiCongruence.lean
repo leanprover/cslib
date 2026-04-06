@@ -84,6 +84,10 @@ lemma buchiCongruence_transfer
       ( xl ∈ na.pairViaLang na.accept s t → ∃ r ∈ na.accept, r ∈ sl ) := by
   have h_eq : na.BuchiCongruence.eq xl yl := by
     apply Quotient.exact
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    have : ⟦xl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc
+    have : ⟦yl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc'
     grind
   have := h_eq s t
   have h_yl : yl ∈ na.pairLang s t := by grind
