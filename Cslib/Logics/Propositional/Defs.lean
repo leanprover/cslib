@@ -39,6 +39,7 @@ universe u
 variable {Atom : Type u} [DecidableEq Atom]
 
 namespace Cslib.Logic.PL
+namespace Cslib.Logic.PL
 
 /-- Propositions. -/
 inductive Proposition (Atom : Type u) : Type u where
