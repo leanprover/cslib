@@ -118,3 +118,4 @@ public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
+public import Cslib.Logics.Propositional.Defs
