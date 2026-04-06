@@ -21,7 +21,7 @@ constraints.
 
 ## Main definitions
 
-- `Cslib.Crypto.PerfectSecrecy.EncScheme`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme`:
   a private-key encryption scheme (Gen, Enc, Dec) with correctness
 
 ## References
@@ -29,7 +29,7 @@ constraints.
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
 
-namespace Cslib.Crypto.PerfectSecrecy
+namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
 /--
 A private-key encryption scheme over message space `M`, key space `K`,
@@ -45,4 +45,4 @@ structure EncScheme.{u} (M K C : Type u) where
   /-- Decryption inverts encryption for all keys in the support of `gen`. -/
   correct : ∀ k, k ∈ gen.support → ∀ m c, c ∈ (enc k m).support → dec k c = m
 
-end Cslib.Crypto.PerfectSecrecy
+end Cslib.Crypto.Protocols.PerfectSecrecy

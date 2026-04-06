@@ -17,7 +17,7 @@ public import Mathlib.Probability.Distributions.Uniform
 The OTP ciphertext distribution is uniform regardless of message.
 -/
 
-namespace Cslib.Crypto.PerfectSecrecy.OTP
+namespace Cslib.Crypto.Protocols.PerfectSecrecy.OTP
 
 @[reducible] noncomputable def bitVecFintype (n : ℕ) : Fintype (BitVec n) :=
   Fintype.ofEquiv (Fin (2 ^ n))
@@ -34,4 +34,4 @@ theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
       (fun k => PMF.pure (k ^^^ m)) =
     PMF.uniformOfFintype (BitVec l) := by simp [PMF.ext_iff, xor_right_eq_iff]
 
-end Cslib.Crypto.PerfectSecrecy.OTP
+end Cslib.Crypto.Protocols.PerfectSecrecy.OTP

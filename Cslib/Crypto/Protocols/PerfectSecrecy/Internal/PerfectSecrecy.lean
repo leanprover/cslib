@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.PerfectSecrecy.Defs
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Mathlib.Probability.Distributions.Uniform
 
 @[expose] public section
@@ -21,7 +21,7 @@ Auxiliary lemmas for perfect secrecy:
 - Shannon's key-space bound ([KatzLindell2020], Theorem 2.12)
 -/
 
-namespace Cslib.Crypto.PerfectSecrecy
+namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
 open PMF ENNReal
 
@@ -200,4 +200,4 @@ theorem shannonKeySpace [Finite K]
     exact Nat.card_le_card_of_injective f
       (encrypt_key_injective scheme f c₀ hf_mem hf_enc)
 
-end Cslib.Crypto.PerfectSecrecy
+end Cslib.Crypto.Protocols.PerfectSecrecy

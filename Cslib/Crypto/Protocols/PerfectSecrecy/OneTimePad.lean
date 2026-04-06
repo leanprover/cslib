@@ -6,8 +6,8 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.PerfectSecrecy.Basic
-public import Cslib.Crypto.PerfectSecrecy.Internal.OneTimePad
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.OneTimePad
 public import Mathlib.Probability.Distributions.Uniform
 
 @[expose] public section
@@ -20,11 +20,11 @@ The one-time pad (Vernam cipher) over `BitVec l`
 
 ## Main definitions
 
-- `Cslib.Crypto.PerfectSecrecy.otp`: the one-time pad encryption scheme
+- `Cslib.Crypto.Protocols.PerfectSecrecy.otp`: the one-time pad encryption scheme
 
 ## Main results
 
-- `Cslib.Crypto.PerfectSecrecy.otp_perfectlySecret`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.otp_perfectlySecret`:
   the one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10)
 
 ## References
@@ -32,7 +32,7 @@ The one-time pad (Vernam cipher) over `BitVec l`
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
 
-namespace Cslib.Crypto.PerfectSecrecy
+namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
 /-- The one-time pad over `l`-bit strings. Encryption and decryption
 are XOR ([KatzLindell2020], Construction 2.9). -/
@@ -56,4 +56,4 @@ theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret := by
   exact (OTP.otp_ciphertextDist_eq_uniform l m₀).trans
     (OTP.otp_ciphertextDist_eq_uniform l m₁).symm
 
-end Cslib.Crypto.PerfectSecrecy
+end Cslib.Crypto.Protocols.PerfectSecrecy

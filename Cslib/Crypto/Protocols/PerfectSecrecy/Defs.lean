@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.PerfectSecrecy.Encryption
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 @[expose] public section
@@ -18,23 +18,23 @@ Core definitions for perfect secrecy following [KatzLindell2020], Chapter 2.
 
 ## Main definitions
 
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.ciphertextDist`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.ciphertextDist`:
   ciphertext distribution for a given message
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.jointDist`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.jointDist`:
   joint (message, ciphertext) distribution given a message prior
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.marginalCiphertextDist`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.marginalCiphertextDist`:
   marginal ciphertext distribution given a message prior
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.posteriorMsgProb`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.posteriorMsgProb`:
   posterior probability `Pr[M = m | C = c]`
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.posteriorMsgDist`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.posteriorMsgDist`:
   posterior message distribution as a `PMF` (defined in the internal file)
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.PerfectlySecret`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.PerfectlySecret`:
   perfect secrecy ([KatzLindell2020], Definition 2.3)
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.CiphertextIndist`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.CiphertextIndist`:
   ciphertext indistinguishability ([KatzLindell2020], Lemma 2.5)
 -/
 
-namespace Cslib.Crypto.PerfectSecrecy.EncScheme
+namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
 universe u
 variable {M K C : Type u}
@@ -74,4 +74,4 @@ for all messages ([KatzLindell2020], Lemma 2.5). -/
 def CiphertextIndist (scheme : EncScheme M K C) : Prop :=
   ∀ m₀ m₁ : M, scheme.ciphertextDist m₀ = scheme.ciphertextDist m₁
 
-end Cslib.Crypto.PerfectSecrecy.EncScheme
+end Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme

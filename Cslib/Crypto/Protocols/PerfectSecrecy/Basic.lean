@@ -6,8 +6,8 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.PerfectSecrecy.Defs
-public import Cslib.Crypto.PerfectSecrecy.Internal.PerfectSecrecy
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.PerfectSecrecy
 
 @[expose] public section
 
@@ -19,11 +19,11 @@ Characterisation theorems for perfect secrecy following
 
 ## Main results
 
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.perfectlySecret_iff_ciphertextIndist`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.perfectlySecret_iff_ciphertextIndist`:
   ciphertext indistinguishability characterization ([KatzLindell2020], Lemma 2.5)
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.perfectlySecret_iff_posteriorEq`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.perfectlySecret_iff_posteriorEq`:
   perfect secrecy as equality of posterior and prior distributions
-- `Cslib.Crypto.PerfectSecrecy.EncScheme.perfectlySecret_keySpace_ge`:
+- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.perfectlySecret_keySpace_ge`:
   Shannon's theorem, `|K| ≥ |M|` ([KatzLindell2020], Theorem 2.12)
 
 ## References
@@ -31,7 +31,7 @@ Characterisation theorems for perfect secrecy following
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
 
-namespace Cslib.Crypto.PerfectSecrecy.EncScheme
+namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
 universe u
 variable {M K C : Type u}
@@ -50,4 +50,4 @@ theorem perfectlySecret_keySpace_ge [Finite K]
     Nat.card K ≥ Nat.card M :=
   PerfectSecrecy.shannonKeySpace scheme h
 
-end Cslib.Crypto.PerfectSecrecy.EncScheme
+end Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
