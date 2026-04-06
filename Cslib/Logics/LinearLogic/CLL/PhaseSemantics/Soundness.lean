@@ -45,8 +45,10 @@ universe u
 
 variable {Atom : Type u}
 
-theorem isValid_monotone {M : Type*} [PhaseSpace M]
+theorem Fact.isValid_monotone {M : Type*} [PhaseSpace M]
     {G H : Fact M} (hGH : G ≤ H) (hG : G.IsValid) : H.IsValid := hGH hG
+
+open Fact
 
 @[simp] theorem interpProp_atomDual {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (a : Atom) :
