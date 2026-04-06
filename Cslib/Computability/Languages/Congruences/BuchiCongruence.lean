@@ -125,14 +125,26 @@ theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
   use ⟦ xs.take (f 0) ⟧, b
   apply mem_buchiFamily.mpr
   use xs.take (f 0), xs.drop (f 0) |>.toSegs (f · - f 0)
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   split_ands
-  · grind
+  · rfl
   · intro k
     specialize h_color {f k, f (k + 1)}
     have := @h_mono 0 k
     have := @h_mono k (k + 1)
-    grind [extract_drop, Finset.insert_nonempty, Finset.singleton_nonempty, min'_insert,
-      min'_singleton, max'_insert, max'_singleton, toSegs_def, Language.mem_sub_one]
+    simp only [Language.mem_sub_one, toSegs_def]
+    split_ands
+    · have : b = color {f k, f (k + 1)} := by grind
+      simp_all only [extract_drop, color]
+      split_ifs with h
+      · have : f k ≤ f (k + 1) := by lia
+        have : f 0 + (f k - f 0) = f k := by lia
+        have : f 0 + (f (k + 1) - f 0) = f (k + 1) := by lia
+        simp_all
+        rfl
+      · simp at h
+    · grind
   · grind [Nat.base_zero_strictMono h_mono]
 
 -- This intermediate result is split out of the proof of `buchiCongruence_saturation` below
