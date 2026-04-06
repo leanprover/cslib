@@ -40,7 +40,7 @@ differ in the construction of the relevant derivation.
 ## Notation
 
 For `T`-derivability, -sequent-derivability and -equivalence we introduce the notations `⊢[T] A`,
-`Γ ⊢[T] A` and `A ≡[T] B`, respectively. `T.WeakerThan T'` is denoted `T ≤ T'`.
+`Γ ⊢[T] A` and `A ≡[T] B`, respectively.
 
 ## References
 
