@@ -60,7 +60,7 @@ structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
   labelMap : lts₁.Label → Option lts₂.Label
   /-- Stipulation that `stateMap` preserve transitions -/
   labelMap_tr (s s' : lts₁.State) (l : lts₁.Label) :
-    lts₁.lts.Tr s l s' → lift lts₂.lts.Tr (stateMap s) (labelMap l) (stateMap s')
+    lts₁.lts.Tr s l s' → withIdle lts₂.lts.Tr (stateMap s) (labelMap l) (stateMap s')
 
 /-- The identity LTS morphism. -/
 def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
@@ -80,7 +80,7 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g
     obtain ⟨f, μ, p⟩ := f
     obtain ⟨g, ν, q⟩ := g
     change ((μ l).bind ν).elim (g (f s) = g (f s')) _
-    cases hμ : μ l with grind [lift]
+    cases hμ : μ l with grind [withIdle]
 
 /-- Finally, we prove that these form a category. -/
 instance : CategoryTheory.Category LTSCat where
