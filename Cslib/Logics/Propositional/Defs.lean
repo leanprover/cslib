@@ -132,10 +132,6 @@ omit [DecidableEq Atom] in
 @[scoped grind =]
 theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by grind
 
-omit [DecidableEq Atom] in
-@[scoped grind]
-theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by grind
-
 instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
   efq A := Set.mem_range.mpr ⟨A, rfl⟩
 
@@ -143,6 +139,7 @@ instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
   dne A := Set.mem_range.mpr ⟨A, rfl⟩
 
 omit [DecidableEq Atom] in
+@[scoped grind →]
 @[scoped grind →]
 theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
     (h : T ⊆ T') : IsIntuitionistic T' := by grind
