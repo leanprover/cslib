@@ -96,7 +96,7 @@ instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory 
       congrFun h {Proposition.atom x}
     simpa [Theory.map, Proposition.map] using this
 
-/-- The base theory is minimal propositional logic. -/
+/-- The empty theory corresponds to minimal propositional logic. -/
 abbrev MPL : Theory (Atom) := ∅
 
 /-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
