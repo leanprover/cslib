@@ -32,6 +32,9 @@ Reference:
   Schnorr Identification Protocol][BonehShoup], Section 19.1.
 -/
 
+-- TODO: The helpers `pow_mod_q`, `pow_val_mul`, and `pow_val_sub` are general lemmas
+-- about exponentiation in groups of finite order over `ZMod q`. They should eventually
+-- be moved to a module near `ZMod` (e.g., `Mathlib.Data.ZMod.Basic` or a dedicated file).
 section SchnorrHelpers
 
 variable {G : Type u} [CommGroup G] {q : ℕ} [Fact q.Prime]
@@ -78,6 +81,8 @@ instance SchnorrProtocol {G : Type u} [CommGroup G] (g : G) (q : ℕ) [Fact q.Pr
   respond  := fun _ rw _ e => rw.1 + e * rw.2
   verify   := fun x a e z => g ^ z.val = a * x ^ e.val
   extract  := fun _ _ e z e' z' => (0, (z - z') * (e - e')⁻¹)
+  simulate := fun x e => (g ^ (0 : ZMod q).val * (x ^ e.val)⁻¹, 0)
+  nonDegenerate := ⟨g ^ (0 : ZMod q).val, (0, 0), by simp⟩
   complete := by
     intro s w e hrel
     subst hrel
@@ -100,8 +105,7 @@ instance SchnorrProtocol {G : Type u} [CommGroup G] (g : G) (q : ℕ) [Fact q.Pr
       _ = (x ^ (e - e').val) ^ (e - e')⁻¹.val := pow_val_mul hG x _ _
       _ = (g ^ (z - z').val) ^ (e - e')⁻¹.val := by rw [hdiff]
       _ = g ^ ((z - z') * (e - e')⁻¹).val := (pow_val_mul hG g _ _).symm
-  shvzk :=
-    ⟨fun x e => (g ^ (0 : ZMod q).val * (x ^ e.val)⁻¹, 0), by
-      intro x e; simp only; group⟩
+  shvzk := by
+    intro x e; simp only; group
 
 end

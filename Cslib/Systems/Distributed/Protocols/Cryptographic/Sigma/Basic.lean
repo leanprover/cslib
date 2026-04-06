@@ -54,6 +54,10 @@ class SigmaProtocol
   extract : Statement → Commitment →
             Challenge → Response →
             Challenge → Response → Witness
+  simulate : Statement → Challenge → Commitment × Response
+  -- Non-degeneracy: the relation is inhabited for some statement-witness pair,
+  -- ensuring that completeness is not vacuously true.
+  nonDegenerate : ∃ (s : Statement) (w : Witness), rel s w
   -- Properties that every instance must satisfy
   complete : ∀ (s : Statement) (w : Witness) (e : Challenge),
                rel s w →
@@ -63,7 +67,6 @@ class SigmaProtocol
                verify s a e z →
                verify s a e' z' →
                rel s (extract s a e z e' z')
-  shvzk    : ∃ (simulate : Statement → Challenge → Commitment × Response),
-               ∀ (s : Statement) (e : Challenge),
-                 let (a, z) := simulate s e
-                 verify s a e z
+  shvzk    : ∀ (s : Statement) (e : Challenge),
+               let (a, z) := simulate s e
+               verify s a e z
