@@ -21,14 +21,15 @@ open scoped FinAcc Buchi
 
 variable {State Symbol : Type*}
 
-open Acceptor ωAcceptor in
+open Acceptor ωAcceptor ωLanguage in
 /-- The ω-language accepted by a deterministic Buchi automaton is the ω-limit
-of the language accepted by the same automaton.
--/
+of the language accepted by the same automaton. -/
 @[scoped grind =]
 theorem buchi_eq_finAcc_omegaLim {da : DA State Symbol} {acc : Set State} :
     language (Buchi.mk da acc) = (language (FinAcc.mk da acc))↗ω := by
-  ext xs
-  simp +instances
+  apply mem_ext
+  intro xs
+  simp only [ωAcceptor.mem_language, Acceptor.mem_language, mem_omegaLim]
+  grind [ωAcceptor.Accepts, Acceptor.Accepts]
 
 end Cslib.Automata.DA
