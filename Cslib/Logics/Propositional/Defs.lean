@@ -39,7 +39,6 @@ universe u
 variable {Atom : Type u} [DecidableEq Atom]
 
 namespace Cslib.Logic.PL
-namespace Cslib.Logic.PL
 
 /-- Propositions. -/
 inductive Proposition (Atom : Type u) : Type u where
@@ -104,7 +103,7 @@ instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory 
     simpa [Theory.map, Proposition.map] using this
 
 /-- The empty theory corresponds to minimal propositional logic. -/
-abbrev MPL : Theory (Atom) := ∅Expand commentComment on line R106Resolved
+abbrev MPL : Theory (Atom) := ∅
 
 /-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
 abbrev IPL [Bot Atom] : Theory Atom :=
@@ -139,7 +138,6 @@ instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
   dne A := Set.mem_range.mpr ⟨A, rfl⟩
 
 omit [DecidableEq Atom] in
-@[scoped grind →]
 @[scoped grind →]
 theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
     (h : T ⊆ T') : IsIntuitionistic T' := by grind

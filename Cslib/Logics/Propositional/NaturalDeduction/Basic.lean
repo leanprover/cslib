@@ -3,10 +3,14 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
-import Cslib.Logics.Propositional.Defs
-import Mathlib.Data.Finset.Insert
-import Mathlib.Data.Finset.SDiff
-import Mathlib.Data.Finset.Image
+module
+
+public import Cslib.Logics.Propositional.Defs
+public import Mathlib.Data.Finset.Insert
+public import Mathlib.Data.Finset.SDiff
+public import Mathlib.Data.Finset.Image
+
+@[expose] public section
 
 /-! # Natural deduction for propositional logic
 
@@ -51,7 +55,7 @@ presented in §10.4 of Troelstra & van Dalen's *Constructivism in Mathematics: a
 
 universe u
 
-namespace PL
+namespace Cslib.Logic.PL
 
 open Proposition Theory
 
@@ -75,24 +79,24 @@ inductive Theory.Derivation : Sequent Atom → Type _ where
   | ass {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ Γ) : Derivation ⟨Γ, A⟩
   /-- Conjunction introduction -/
   | conjI {Γ : Ctx Atom} {A B : Proposition Atom} :
-      Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, A ⋏ B⟩
+      Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, A ∧ B⟩
   /-- Conjunction elimination left -/
-  | conjE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A ⋏ B⟩ → Derivation ⟨Γ, A⟩
+  | conjE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A ∧ B⟩ → Derivation ⟨Γ, A⟩
   /-- Conjunction elimination right -/
-  | conjE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A ⋏ B⟩ → Derivation ⟨Γ, B⟩
+  | conjE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A ∧ B⟩ → Derivation ⟨Γ, B⟩
   /-- Disjunction introduction left -/
-  | disjI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, A ⋎ B⟩
+  | disjI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, A ∨ B⟩
   /-- Disjunction introduction right -/
-  | disjI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, A ⋎ B⟩
+  | disjI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, A ∨ B⟩
   /-- Disjunction elimination -/
-  | disjE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation ⟨Γ, A ⋎ B⟩ →
+  | disjE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation ⟨Γ, A ∨ B⟩ →
       Derivation ⟨insert A Γ, C⟩ → Derivation ⟨insert B Γ, C⟩ → Derivation ⟨Γ, C⟩
   /-- Implication introduction -/
   | implI {A B : Proposition Atom} (Γ : Ctx Atom) :
-      Derivation ⟨insert A Γ, B⟩ → Derivation ⟨Γ, A ⟶ B⟩
+      Derivation ⟨insert A Γ, B⟩ → Derivation ⟨Γ, A → B⟩
   /-- Implication elimination -/
   | implE {Γ : Ctx Atom} {A B : Proposition Atom} :
-      Derivation ⟨Γ, A ⟶ B⟩ → Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩
+      Derivation ⟨Γ, A → B⟩ → Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩
 
 /-- A sequent is derivable if it has a derivation. -/
 def Theory.SDerivable (S : Sequent Atom) := Nonempty (T.Derivation S)
@@ -363,11 +367,11 @@ theorem equivalent_refl {T : Theory Atom} (A : Proposition Atom) : A ≡[T] A :=
   exact ⟨reflEquiv A⟩
 
 theorem equivalent_comm {T : Theory Atom} {A B : Proposition Atom} :
-    A ≡[T] B → B ≡[T] A
+    (A ≡[T] B) → B ≡[T] A
   | ⟨e⟩ => ⟨commEquiv e⟩
 
 theorem equivalent_trans {T : Theory Atom} {A B C : Proposition Atom} :
-    A ≡[T] B → B ≡[T] C → A ≡[T] C
+    (A ≡[T] B) → (B ≡[T] C) → A ≡[T] C
   | ⟨e⟩, ⟨e'⟩ => ⟨transEquiv e e'⟩
 
 /-- Equivalence is indeed an equivalence relation. -/
@@ -438,4 +442,4 @@ def IsConservative {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom'] 
     (T' : Theory Atom') : Extension T T' → Prop
   | ⟨f, _⟩ => ∀ (A : Proposition Atom), ⊢[T'] (A.map f) → ⊢[T] A
 
-end PL
+end Cslib.Logic.PL
