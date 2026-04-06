@@ -3,9 +3,14 @@ Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring
 -/
-import Mathlib.Data.FunLike.Basic
-import Mathlib.Data.Set.Image
-import Mathlib.Order.TypeTags
+
+module
+
+public import Mathlib.Data.FunLike.Basic
+public import Mathlib.Data.Set.Image
+public import Mathlib.Order.TypeTags
+
+@[expose] public section
 
 /-! # Propositions and theories
 
