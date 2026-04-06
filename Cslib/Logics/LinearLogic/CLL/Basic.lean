@@ -736,18 +736,18 @@ end Proposition
 end LogicalEquiv
 
 /-- Folds a sequent into a single formula by taking the par of all its members. -/
-noncomputable def foldPar {Atom : Type u} (Γ : Sequent Atom) : Proposition Atom :=
+noncomputable def foldParr {Atom : Type u} (Γ : Sequent Atom) : Proposition Atom :=
   Γ.toList.foldr (· ⅋ ·) ⊥
 
-theorem foldPar_isMALL {Atom : Type u} (Γ : Sequent Atom)
+theorem foldParr_isMALL {Atom : Type u} (Γ : Sequent Atom)
     (h : Sequent.IsMALL Γ) :
-    Proposition.IsMALL (foldPar Γ) := by
+    Proposition.IsMALL (foldParr Γ) := by
   suffices ∀ l : List (Proposition Atom), (∀ A ∈ l, A.IsMALL) →
       (List.foldr (· ⅋ ·) ⊥ l).IsMALL by
     exact this _ (fun A hA => h A (by aesop))
   intro l hl; induction l <;> simp [Proposition.IsMALL]; grind [Proposition.IsMALL]
 
-theorem provable_of_list_foldr_parr {Atom : Type u}
+theorem derivable_of_list_foldr_parr {Atom : Type u}
     (l : List (Proposition Atom)) (Δ : Sequent Atom) :
     Derivable ((List.foldr (· ⅋ ·) ⊥ l) ::ₘ Δ) →
     Derivable ((l : Sequent Atom) + Δ) := by
@@ -762,9 +762,9 @@ theorem provable_of_list_foldr_parr {Atom : Type u}
       simp_all
     exact ⟨q.rwConclusion hEq⟩
 
-theorem provable_of_foldPar {Atom : Type u} (Γ : Sequent Atom) :
-    Derivable ({foldPar Γ} : Sequent Atom) → Derivable Γ := by
-  intro h; have := provable_of_list_foldr_parr Γ.toList 0 (by aesop); aesop
+theorem derivable_of_foldParr {Atom : Type u} (Γ : Sequent Atom) :
+    Derivable ({foldParr Γ} : Sequent Atom) → Derivable Γ := by
+  intro h; have := derivable_of_list_foldr_parr Γ.toList 0 (by aesop); aesop
 
 end CLL
 

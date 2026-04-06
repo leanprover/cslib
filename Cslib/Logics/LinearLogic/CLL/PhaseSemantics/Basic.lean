@@ -706,27 +706,27 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
 @[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interpProp v P
 
 /-- Semantic interpretation of a sequent as the par-fold of its members. -/
-def interpSequent (M : Type*) [PhaseSpace M]
+def Sequent.toFact (M : Type*) [PhaseSpace M]
     (v : Atom → Fact M) (Γ : Sequent Atom) : Fact M :=
   (Γ.map (fun A => (interpProp v A : Fact M))).fold (· ⅋ ·) ⊥
 
-theorem interpSequent_nil {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
-    interpSequent M v (0 : Sequent Atom) = ⊥ := by simp [interpSequent]
+theorem Sequent.toFact_nil {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
+    Sequent.toFact M v (0 : Sequent Atom) = ⊥ := by simp [Sequent.toFact]
 
-theorem interpSequent_add {M : Type*} [PhaseSpace M]
+theorem Sequent.toFact_add {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (Γ Δ : Sequent Atom) :
-    interpSequent M v (Γ + Δ) = interpSequent M v Γ ⅋ interpSequent M v Δ := by
-  simp only [interpSequent]
+    Sequent.toFact M v (Γ + Δ) = Sequent.toFact M v Γ ⅋ Sequent.toFact M v Δ := by
+  simp only [Sequent.toFact]
   rw [Multiset.map_add]
   have := Multiset.fold_add
     (fun (x y : Fact M) => x ⅋ y) ⊥ ⊥ (Γ.map fun A => interpProp v A)
     ( Δ.map fun A => interpProp v A)
   rwa [bot_par] at this
 
-@[simp] theorem interpSequent_cons {M : Type*} [PhaseSpace M]
+@[simp] theorem Sequent.toFact_cons {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A : Proposition Atom) (Γ : Sequent Atom) :
-    interpSequent M v (A ::ₘ Γ) = interpProp v A ⅋ interpSequent M v Γ := by
-  simp [interpSequent]
+    Sequent.toFact M v (A ::ₘ Γ) = interpProp v A ⅋ Sequent.toFact M v Γ := by
+  simp [Sequent.toFact]
 
 end PhaseSpace
 

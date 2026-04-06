@@ -45,7 +45,7 @@ universe u
 
 variable {Atom : Type u}
 
-theorem IsValid_monotone {M : Type*} [PhaseSpace M]
+theorem isValid_monotone {M : Type*} [PhaseSpace M]
     {G H : Fact M} (hGH : G ≤ H) (hG : G.IsValid) : H.IsValid := hGH hG
 
 @[simp] theorem interpProp_atomDual {M : Type*} [PhaseSpace M]
@@ -168,9 +168,9 @@ theorem quest_par_le {M : Type*} [PhaseSpace M] {G H : Fact M} :
 
 /-! ## Quest-stability of all-quest contexts -/
 
-theorem interpSequent_allQuest_quest_stable {M : Type*} [PhaseSpace M]
+theorem Sequent.toFact_allQuest_quest_stable {M : Type*} [PhaseSpace M]
     {v : Atom → Fact M} {Γ : Sequent Atom} (hQuest : Γ.allQuest) :
-    ʔ(interpSequent M v Γ) ≤ interpSequent M v Γ := by
+    ʔ(Sequent.toFact M v Γ) ≤ Sequent.toFact M v Γ := by
   induction Γ using Multiset.induction_on with
   | empty =>
     intro m hm
@@ -179,7 +179,7 @@ theorem interpSequent_allQuest_quest_stable {M : Type*} [PhaseSpace M]
   | @cons A Γ ih =>
     cases A <;> simp only [Sequent.allQuest, Multiset.map_cons,
       Multiset.fold_cons_left, Bool.false_and, Bool.false_eq_true] at hQuest ⊢
-    simp only [interpSequent_cons, interpProp_quest]
+    simp only [Sequent.toFact_cons, interpProp_quest]
     exact le_trans quest_par_le (par_le_par quest_idem_le (ih hQuest))
 
 /-! ## Validity helpers -/
@@ -202,9 +202,9 @@ theorem bang_valid_of_stable_context {M : Type*} [PhaseSpace M] {G H : Fact M}
 
 theorem bang_valid_of_allQuest {M : Type*} [PhaseSpace M]
     {v : Atom → Fact M} {a : Proposition Atom} {Γ : Sequent Atom}
-    (hΓ : Γ.allQuest) (hall : (interpProp v a ⅋ interpSequent M v Γ).IsValid) :
-    ((bang (interpProp v a)) ⅋ interpSequent M v Γ).IsValid :=
-  bang_valid_of_stable_context (interpSequent_allQuest_quest_stable hΓ) hall
+    (hΓ : Γ.allQuest) (hall : (interpProp v a ⅋ Sequent.toFact M v Γ).IsValid) :
+    ((bang (interpProp v a)) ⅋ Sequent.toFact M v Γ).IsValid :=
+  bang_valid_of_stable_context (Sequent.toFact_allQuest_quest_stable hΓ) hall
 
 theorem interpProp_dual {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A : Proposition Atom) :
@@ -227,13 +227,13 @@ theorem ax_valid {M : Type*} [PhaseSpace M] (v : Atom → Fact M) (A : Propositi
 
 theorem cut_valid {M : Type*} [PhaseSpace M] {v : Atom → Fact M}
     {A : Proposition Atom} {Γ Δ : Sequent Atom}
-    (hΓ : (interpProp v A ⅋ interpSequent M v Γ).IsValid)
-    (hΔ : ((interpProp v A)ᗮ ⅋ interpSequent M v Δ).IsValid) :
-    (interpSequent M v Γ ⅋ interpSequent M v Δ).IsValid := by
-  set G := interpSequent M v Γ
-  set H := interpSequent M v Δ
+    (hΓ : (interpProp v A ⅋ Sequent.toFact M v Γ).IsValid)
+    (hΔ : ((interpProp v A)ᗮ ⅋ Sequent.toFact M v Δ).IsValid) :
+    (Sequent.toFact M v Γ ⅋ Sequent.toFact M v Δ).IsValid := by
+  set G := Sequent.toFact M v Γ
+  set H := Sequent.toFact M v Δ
   set F := interpProp v A
-  exact IsValid_monotone
+  exact isValid_monotone
     (par_le_par le_rfl (le_trans (orth_antitone (valid_par_implies_neg_le hΓ))
     (valid_par_implies_neg_le hΔ)))
     (by change (1 : M) ∈ G ⅋ Gᗮ; rw [par_of_linImpl]
@@ -241,34 +241,34 @@ theorem cut_valid {M : Type*} [PhaseSpace M] {v : Atom → Fact M}
 
 theorem quest_valid_of_valid {M : Type*} [PhaseSpace M] {G : Fact M}
     (hG : G.IsValid) : (ʔG).IsValid :=
-  IsValid_monotone (quest_le G) hG
+  isValid_monotone (quest_le G) hG
 
 /-! ## Soundness -/
 
 theorem soundness (Γ : Sequent Atom) :
     Derivable Γ → ∀ (M : Type*) [PhaseSpace M] (v : Atom → Fact M),
-    (interpSequent M v Γ).IsValid := by
+    (Sequent.toFact M v Γ).IsValid := by
   intro ⟨p⟩ M _ v
   induction p with
   | ax =>
     rename_i a
     simp only [show ({a, a⫠} : Sequent Atom) = a ::ₘ (a⫠ ::ₘ 0) from by simp,
-      interpSequent_cons, interpSequent_nil, par_bot, interpProp_dual]
+      Sequent.toFact_cons, Sequent.toFact_nil, par_bot, interpProp_dual]
     exact ax_valid v a
   | cut _ _ ihp ihq =>
-    simp only [interpSequent_add]
+    simp only [Sequent.toFact_add]
     exact cut_valid (by aesop)
-      (by grind [interpSequent_cons, interpProp_dual])
+      (by grind [Sequent.toFact_cons, interpProp_dual])
   | one =>
     simp only [show ({1} : Sequent Atom) = 1 ::ₘ 0
-      from by simp, interpSequent_cons, interpSequent_nil, interpProp_one, par_bot]
+      from by simp, Sequent.toFact_cons, Sequent.toFact_nil, interpProp_one, par_bot]
     exact one_mem_one
   | bot _ ih => aesop
   | parr _ ih => aesop
   | tensor p q ihp ihq =>
     rename_i a Γ b Δ
     let A := interpProp v a; let B := interpProp v b
-    let G := interpSequent M v Γ; let H := interpSequent M v Δ
+    let G := Sequent.toFact M v Γ; let H := Sequent.toFact M v Δ
     have hAG : (A ⅋ G).IsValid := by aesop
     have hBH : (B ⅋ H).IsValid := by aesop
     have hA := valid_par_implies_neg_le hAG
@@ -278,38 +278,38 @@ theorem soundness (Γ : Sequent Atom) :
       simp only [par_of_linImpl, neg_tensor]
       exact (@linImpl_iff_implies _ _ 1 (Aᗮ ⅋ Bᗮ) (G ⅋ H)).2
         (fun x hx => by rw [one_mul]; exact par_le_par hA hB hx)
-    grind [interpSequent_cons, interpSequent_add, interpProp_tensor, par_assoc]
+    grind [Sequent.toFact_cons, Sequent.toFact_add, interpProp_tensor, par_assoc]
   | oplus₁ _ ih =>
-    simp only [interpSequent_cons, interpProp_oplus] at ih ⊢
-    exact IsValid_monotone (par_le_par le_plus_left le_rfl) ih
+    simp only [Sequent.toFact_cons, interpProp_oplus] at ih ⊢
+    exact isValid_monotone (par_le_par le_plus_left le_rfl) ih
   | oplus₂ _ ih =>
-    simp only [interpSequent_cons, interpProp_oplus] at ih ⊢
-    exact IsValid_monotone (par_le_par le_plus_right le_rfl) ih
+    simp only [Sequent.toFact_cons, interpProp_oplus] at ih ⊢
+    exact isValid_monotone (par_le_par le_plus_right le_rfl) ih
   | «with» _ _ ihp ihq =>
-    simp only [interpSequent_cons, interpProp_with, with_par_distrib]
+    simp only [Sequent.toFact_cons, interpProp_with, with_par_distrib]
     constructor
-    · simp only [interpSequent_cons] at ihp; exact ihp
-    · simp only [interpSequent_cons] at ihq; exact ihq
-  | top => simp only [interpSequent_cons, interpProp_top, top_par]; trivial
+    · simp only [Sequent.toFact_cons] at ihp; exact ihp
+    · simp only [Sequent.toFact_cons] at ihq; exact ihq
+  | top => simp only [Sequent.toFact_cons, interpProp_top, top_par]; trivial
   | quest _ ih =>
-    simp only [interpSequent_cons, interpProp_quest] at ih ⊢
-    exact IsValid_monotone (par_le_par (quest_le _) le_rfl) ih
+    simp only [Sequent.toFact_cons, interpProp_quest] at ih ⊢
+    exact isValid_monotone (par_le_par (quest_le _) le_rfl) ih
   | weaken p ih =>
     rename_i Γ a
-    simp only [interpSequent_cons, interpProp_quest]
-    have hle : interpSequent M v Γ ≤
-        (quest (interpProp v a) ⅋ interpSequent M v Γ) := by
+    simp only [Sequent.toFact_cons, interpProp_quest]
+    have hle : Sequent.toFact M v Γ ≤
+        (quest (interpProp v a) ⅋ Sequent.toFact M v Γ) := by
       have := (par_le_par (bot_le_quest (interpProp v a)) le_rfl :
-        (⊥ ⅋ interpSequent M v Γ) ≤ _)
+        (⊥ ⅋ Sequent.toFact M v Γ) ≤ _)
       simp only [bot_par] at this; exact this
-    exact IsValid_monotone hle ih
+    exact isValid_monotone hle ih
   | contract _ ih =>
-    simp only [interpSequent_cons, interpProp_quest] at ih ⊢
+    simp only [Sequent.toFact_cons, interpProp_quest] at ih ⊢
     rw [← par_assoc] at ih
-    exact IsValid_monotone (par_le_par (quest_contract_le _) le_rfl) ih
+    exact isValid_monotone (par_le_par (quest_contract_le _) le_rfl) ih
   | bang hQuestCtx _ ih =>
-    simp only [interpSequent_cons, interpProp_bang]
-    simp only [interpSequent_cons] at ih
+    simp only [Sequent.toFact_cons, interpProp_bang]
+    simp only [Sequent.toFact_cons] at ih
     exact bang_valid_of_allQuest hQuestCtx ih
 
 end CLL
