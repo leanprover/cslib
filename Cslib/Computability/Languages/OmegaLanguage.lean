@@ -279,11 +279,14 @@ theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
 theorem omegaPow_of_le_one [Inhabited α] (h : l ≤ 1) : l^ω = ⊥ := by
   cases (Language.le_one_iff_eq.mp h) <;> simp_all
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (from lean#13166? seems different) -/
 theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l ≤ 1 := by
   intro x h_x
   by_contra h_contra
   suffices h' : (const x).flatten ∈ l^ω by simp [h] at h'
-  exact ⟨const x, rfl, by grind [Language.mem_sub]⟩
+  use const x, rfl
+  exact fun _ => ⟨h_x, h_contra⟩
 
 /-- An alternative characterization of `l * p`. -/
 theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p } := by
@@ -325,8 +328,18 @@ theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : 
     grind [extract_eq_drop_take]
   choose nxt_n nxt_p using h_nxt
   let f := iter_helper (fun n ↦ s.drop n ∈ p) nxt_n
-  have h_f (n) : f n < f (n + 1) ∧ s.extract (f n) (f (n + 1)) ∈ l ∧ s.drop (f (n + 1)) ∈ p := by
-    induction n <;> grind [iter_helper]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  have _ (n) : f n < f (n + 1) := by
+    induction n
+    · simp only [f, iter_helper]
+      split_ifs with h
+      · simp_all
+      · simp [drop_zero] at h
+        contradiction
+    · grind [iter_helper]
+  have _ (n) : s.extract (f n) (f (n + 1)) ∈ l ∧ s.drop (f (n + 1)) ∈ p := by
+   induction n <;> grind [iter_helper]
   rw [omegaPow_seq_prop]
   use f
   grind [strictMono_nat_of_lt_succ, iter_helper]
@@ -337,11 +350,13 @@ theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l - 1) * p) : p ≤ l^ω :=
   refine omegaPow_coind' ?_ h_le
   simp
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 theorem omegaPow_le_hmul_omegaPow' [Inhabited α] (l : Language α) :
     l^ω ≤ (l - 1) * l^ω := by
   rintro s ⟨xs, rfl, h_xs⟩
-  refine ⟨xs.head, ?_, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩ <;>
-  grind [Language.mem_sub_one, Language.mem_sub_one, List.ne_nil_iff_length_pos]
+  refine ⟨xs.head, h_xs 0, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩ <;>
+  grind [l.mem_sub_one]
 
 theorem omegaPow_le_hmul_omegaPow [Inhabited α] (l : Language α) : l^ω ≤ l * l^ω := by
   have h1 := omegaPow_le_hmul_omegaPow' l
