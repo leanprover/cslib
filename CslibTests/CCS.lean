@@ -6,6 +6,10 @@ Authors: Fabrizio Montesi
 
 import Cslib.Languages.CCS.Semantics
 
+namespace CslibTests
+
+open Cslib
+
 open CCS Process
 
 @[lts ltsNat "ₙ"]
@@ -19,3 +23,5 @@ example : p [[Act.τ, Act.name 1]]↠ₙ nil :=
   calc
     (p [Act.τ]⭢ₙ (pre (Act.name 1) nil)) := by constructor
     _ [Act.name 1]⭢ₙ nil := by constructor
+
+end CslibTests

@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi, Kenny Lau
 -/
 
-import Mathlib.Algebra.Field.Rat
-import Mathlib.Algebra.Ring.CharZero
-import Mathlib.Algebra.Ring.Int.Defs
-import Mathlib.Data.Finset.Max
-import Mathlib.Data.Finset.Preimage
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Nat.SuccPred
-import Mathlib.Order.SuccPred.WithBot
+module -- shake: keep-downstream
+
+public import Cslib.Init
+public import Mathlib.Analysis.Normed.Field.Lemmas
+import Qq
+
+@[expose] public section
 
 universe u
+
+namespace Cslib
 
 /-- A type `α` has a computable `fresh` function if it is always possible, for any finite set
 of `α`, to compute a fresh element not in the set. -/
@@ -30,6 +31,8 @@ in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
+public meta section
+
 open Lean Elab Term Meta Parser Tactic
 
 /-- Configuration for the `free_union` term elaborator. -/
@@ -42,7 +45,7 @@ structure FreeUnionConfig where
 /-- Elaborate a FreeUnionConfig. -/
 declare_config_elab elabFreeUnionConfig FreeUnionConfig
 
-/-- 
+/--
   Given a `DecidableEq Var` instance, this elaborator automatically constructs
   the union of any variables, finite sets of variables, and optionally the
   results of provided functions mapping to variables. This is configurable with
@@ -52,28 +55,31 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
 
   ```
   variable (x : ℕ) (xs : Finset ℕ) (var : String)
-  
+
   def f (_ : String) : Finset ℕ := {1, 2, 3}
   def g (_ : String) : Finset ℕ := {4, 5, 6}
-  
-  -- info: ∅ ∪ {x} ∪ id xs : Finset ℕ
+
+  -- info: ∅ ∪ {x} ∪ xs : Finset ℕ
   #check free_union ℕ
-  
-  -- info: ∅ ∪ {x} ∪ id xs ∪ f var ∪ g var : Finset ℕ
+
+  -- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ
   #check free_union [f, g] ℕ
-  
-  info: ∅ ∪ id xs : Finset ℕ
+
+  info: ∅ ∪ xs : Finset ℕ
   #check free_union (singleton := false) ℕ
-  
+
   -- info: ∅ ∪ {x} : Finset ℕ
   #check free_union (finset := false) ℕ
-  
+
   -- info: ∅ : Finset ℕ
   #check free_union (singleton := false) (finset := false) ℕ
   ```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 
+open Qq
+
+set_option linter.style.emptyLine false in
 /-- Elaborator for `free_union`. -/
 @[term_elab freeUnion]
 def HasFresh.freeUnion : TermElab := fun stx _ => do
@@ -83,67 +89,63 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     -- the type of our variables
     let var ← elabType var
+    let dl ← getDecLevel var
+    have α : Q(Type dl) := var
 
     -- maps to variables
     let maps := maps.map (·.getElems) |>.getD #[]
-    let mut maps ← maps.mapM (flip elabTerm none)
-
-    -- construct ∅
-    let dl ← getDecLevel var
-    let FinsetType := mkApp (mkConst ``Finset [dl]) var
-    let EmptyCollectionInst ← synthInstance (mkApp (mkConst ``EmptyCollection [dl]) FinsetType)
-    let empty := 
-      mkAppN (mkConst ``EmptyCollection.emptyCollection [dl]) #[FinsetType, EmptyCollectionInst]
+    let mut maps ← maps.mapM (elabTerm · none)
 
     -- singleton variables
     if cfg.singleton then
-      let SingletonInst ← synthInstance <| mkAppN (mkConst ``Singleton [dl, dl]) #[var, FinsetType]
-      let singleton_map := 
-        mkAppN (mkConst ``Singleton.singleton [dl, dl]) #[var, FinsetType, SingletonInst]
-      maps := maps.push singleton_map
+      maps := maps.push q(Singleton.singleton : $α → Finset $α)
 
     -- any finite sets
     if cfg.finset then
-      let id_map := mkApp (mkConst ``id [← getLevel var]) FinsetType
-      maps := maps.push id_map
+      maps := maps.push q((·) : Finset $α → Finset $α)
 
-    let mut finsets := #[]
+    let mut finsets : Array Q(Finset $α) := #[]
 
-    for ldecl in (← getLCtx) do
+    for ldecl in ← getLCtx do
       if !ldecl.isImplementationDetail then
         let local_type ← ldecl.toExpr |> inferType >=> whnf
         for map in maps do
           if let Expr.forallE _ dom _ _ := ← inferType map then
-            if (←isDefEq local_type dom) then
-              finsets := finsets.push (mkApp map ldecl.toExpr)
+            if ← isDefEq local_type dom then
+              finsets := finsets.push (map.betaRev #[ldecl.toExpr])
 
-    -- construct a union fold
-    let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
-    let UnionFinset := mkAppN (mkConst ``Union.union [dl]) #[FinsetType, UnionInst]
-    let union := finsets.foldl (mkApp2 UnionFinset) empty
-      
+    let _dec : Q(DecidableEq $α) ← synthInstanceQ q(DecidableEq $α)
+    let union := finsets.foldl (fun a b : Q(Finset $α) => q($a ∪ $b)) q(∅)
+
     return union
   | _ => throwUnsupportedSyntax
 
+end
+
 export HasFresh (fresh fresh_notMem fresh_exists)
 
-lemma HasFresh.not_of_finite (α : Type u) [Fintype α] : IsEmpty (HasFresh α) :=
-  ⟨fun f ↦ (f.fresh_notMem .univ).elim (Finset.mem_univ _)⟩
+/-- `HasFresh α` implies a computably infinite type. -/
+instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
+  apply Infinite.of_not_fintype
+  rintro ⟨elems, _⟩
+  grind [fresh_notMem elems]
 
 /-- All infinite types have an associated (at least noncomputable) fresh function.
-This, in conjunction with `HasFresh.not_of_finite`, characterizes `HasFresh`. -/
-noncomputable def HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
-  fresh s := s.finite_toSet.infinite_compl.nonempty.choose
-  fresh_notMem s := s.finite_toSet.infinite_compl.nonempty.choose_spec
+This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
+noncomputable instance HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
+  fresh s := Infinite.exists_notMem_finset s |>.choose
+  fresh_notMem s := by grind
 
 open Finset in
 /-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/
+@[implicit_reducible]
 def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFresh α where
   fresh s := e (Nat.find (p := fun n ↦ e n ∉ s) ⟨(s.preimage e e.2.injOn).max.succ,
     fun h ↦ not_lt_of_ge (le_max <| mem_preimage.2 h) (WithBot.lt_succ _)⟩)
   fresh_notMem s := Nat.find_spec (p := fun n ↦ e n ∉ s) _
 
 /-- Construct a fresh element given a function `f` with `x < f x`. -/
+@[implicit_reducible]
 def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α → α) (hf : ∀ x, x < f x) :
     HasFresh α where
   fresh s := if hs : s.Nonempty then f (s.sup' hs id) else default
@@ -174,3 +176,5 @@ instance {α : Type u} [DecidableEq α] [Inhabited α] : HasFresh (Multiset α) 
 /-- `ℕ → ℕ` has a computable fresh function. -/
 instance : HasFresh (ℕ → ℕ) :=
   .ofSucc (fun f x ↦ f x + 1) fun _ ↦ Pi.lt_def.2 ⟨fun _ ↦ Nat.le_succ _, 0, Nat.lt_succ_self _⟩
+
+end Cslib

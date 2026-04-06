@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Data.HasFresh
-import Cslib.Foundations.Syntax.HasAlphaEquiv
-import Cslib.Foundations.Syntax.HasSubstitution
-import Mathlib.Data.Finset.Basic
+module
+
+public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Syntax.HasAlphaEquiv
+public import Cslib.Foundations.Syntax.HasSubstitution
+
+@[expose] public section
 
 /-! # λ-calculus
 
@@ -18,6 +21,8 @@ The untyped λ-calculus.
 * [H. Barendregt, *Introduction to Lambda Calculus*][Barendregt1984]
 
 -/
+
+namespace Cslib
 
 universe u
 
@@ -156,3 +161,5 @@ instance instHasAlphaEquivTerm [DecidableEq Var] : HasAlphaEquiv (Term Var) wher
   AlphaEquiv := Term.AlphaEquiv
 
 end LambdaCalculus.Named
+
+end Cslib

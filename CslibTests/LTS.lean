@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Basic
+import Cslib.Foundations.Semantics.LTS.Divergence
 import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
+import Cslib.Foundations.Semantics.LTS.Notation
+
+namespace CslibTests
+
+open Cslib LTS
 
 -- A simple LTS on natural numbers
 
@@ -52,31 +57,47 @@ inductive NatDivergentTr : ℕ → TLabel → ℕ → Prop where
 
 def natDivLTS : LTS ℕ TLabel := ⟨NatDivergentTr⟩
 
-def natInfiniteExecution : Stream' ℕ := fun n => n
+def natInfiniteExecution : ωSequence ℕ := ⟨fun n => n⟩
+def τSequence : ωSequence TLabel := ⟨fun _ => .τ⟩
 
-theorem natInfiniteExecution.infiniteExecution : 
-    natDivLTS.DivergentExecution natInfiniteExecution := by
-  intro n
-  constructor
+theorem τSequence_divergentTrace : LTS.DivergentTrace τSequence := by
+  simp [LTS.DivergentTrace]
 
 example : natDivLTS.Divergent 0 := by
-  exists natInfiniteExecution
-  constructor; constructor
-  exact natInfiniteExecution.infiniteExecution
+  use natInfiniteExecution, τSequence
+  refine ⟨?_, rfl, τSequence_divergentTrace⟩
+  intro i
+  constructor
 
 example : natDivLTS.Divergent 3 := by
-  exists natInfiniteExecution.drop 3
+  use natInfiniteExecution.drop 3, τSequence
+  refine ⟨?_, rfl, τSequence_divergentTrace⟩
+  intro i
   constructor
-  · constructor
-  · intro; constructor
 
 example : natDivLTS.Divergent n := by
-  exists natInfiniteExecution.drop n
-  simp only [Stream'.drop, zero_add]
-  constructor
-  · constructor
-  · apply LTS.divergent_drop
-    exact natInfiniteExecution.infiniteExecution
+  use natInfiniteExecution.drop n, τSequence.drop n
+  refine ⟨?_, ?_, τSequence_divergentTrace⟩
+  · intro i
+    simp only [ωSequence.get_drop]
+    constructor
+  · simp [natInfiniteExecution]
+
+-- Examples on decidable LTSs
+def natTrF (n : ℕ) (μ : ℕ) (m : ℕ) : Bool :=
+  match n, μ, m with
+  | 1, 2, 2 => true
+  | 1, 1, 1 => true
+  | 2, 1, 1 => true
+  | 2, 2, 2 => true
+  | _, _, _ => false
+
+def natLTSF : LTS ℕ ℕ := ⟨fun n μ m => natTrF n μ m⟩
+
+example : natLTSF.MTr 1 [1, 2] 2 := by
+  calc
+    LTS.Tr.toRelation natLTSF 1 1 1 := by constructor
+    LTS.Tr.toRelation natLTSF 2 1 2 := by constructor
 
 -- check that notation works
 variable {Term : Type} {Label : Type}
@@ -87,26 +108,22 @@ example (a b : Term) (μ : Label) : a [μ]⭢β b := by
   change labelled_transition a μ b
   simp
 
--- check that a "cannonical" notation works
-attribute [lts cannonical_lts] labelled_transition
+-- check that a "canonical" notation works
+attribute [lts _root_.CslibTests.canonical_lts] labelled_transition
 
 example (a b : Term) (μ : Label) : a [μ]⭢ b := by
   change labelled_transition a μ b
   simp
 
 --check that namespaces are respected
-namespace foo
-@[lts namespaced_lts]
-def bar (_ _ _ : ℕ) : Prop := True
-end foo
 
-/-- info: foo.bar : ℕ → ℕ → ℕ → Prop -/
+/-- info: CslibTests.labelled_transition {Term Label : Type} : Term → Label → Term → Prop -/
 #guard_msgs in
-#check foo.bar
+#check labelled_transition
 
-/-- info: foo.namespaced_lts : LTS ℕ ℕ -/
+/-- info: CslibTests.canonical_lts {Term Label : Type} : LTS Term Label -/
 #guard_msgs in
-#check foo.namespaced_lts
+#check canonical_lts
 
 -- check that delaborators work, including with variables
 
@@ -117,3 +134,5 @@ end foo
 /-- info: ∀ (a b : Term) (μ : Label), a[[μ]]↠β b : Prop -/
 #guard_msgs in
 #check ∀ (a b : Term) (μ : Label), a [[μ]]↠β b
+
+end CslibTests

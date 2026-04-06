@@ -4,8 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Semantics.LTS.Basic
-import Cslib.Languages.CCS.Basic
+module
+
+public import Cslib.Foundations.Semantics.LTS.HasTau
+public meta import Cslib.Foundations.Semantics.LTS.Notation
+public import Cslib.Languages.CCS.Basic
+
+@[expose] public section
 
 /-! # Semantics of CCS
 
@@ -14,6 +19,8 @@ import Cslib.Languages.CCS.Basic
 - `CCS.lts`: the `LTS` of CCS.
 
 -/
+
+namespace Cslib
 
 variable
   {Name : Type u}
@@ -26,7 +33,7 @@ open Process
 
 /-- The transition relation for CCS. This is a direct formalisation of the one found in
 [Sangiorgi2011]. -/
-@[lts CCS.lts]
+@[lts lts]
 inductive Tr : Process Name Constant → Act Name → Process Name Constant → Prop where
   | pre : Tr (pre μ p) μ p
   | parL : Tr p μ p' → Tr (par p q) μ (par p' q)
@@ -49,3 +56,5 @@ inductive Terminated : Process Name Constant → Prop where
   | res : Terminated p → Terminated (res a p)
 
 end CCS
+
+end Cslib

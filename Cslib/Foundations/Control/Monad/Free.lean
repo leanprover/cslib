@@ -3,8 +3,12 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve, Eric Wieser
 -/
-import Mathlib.Tactic.Lemma
-import Mathlib.Tactic.SimpRw
+
+module
+
+public import Cslib.Init
+
+@[expose] public section
 
 /-!
 # Free Monad
@@ -64,6 +68,8 @@ The file `Free/Fold.lean` provides the theory of the fold operation for free mon
 
 Free monad, state monad
 -/
+
+namespace Cslib
 
 /-- The Free monad over a type constructor `F`.
 
@@ -210,12 +216,36 @@ lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op 
 @[simp]
 lemma liftM_bind [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (f : α → FreeM F β) :
-    (x.bind f : FreeM F β).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
+    (x.bind f).liftM interp = (do let a ← x.liftM interp; (f a).liftM interp) := by
   induction x generalizing f with
   | pure a => simp only [pure_bind, liftM_pure, LawfulMonad.pure_bind]
   | liftBind op cont ih =>
     rw [FreeM.bind, liftM_liftBind, liftM_liftBind, bind_assoc]
     simp_rw [ih]
+
+@[simp]
+lemma liftM_map [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
+    (x.map f).liftM interp = f <$> x.liftM interp := by
+  simp_rw [← bind_pure_comp, ← LawfulMonad.bind_pure_comp, liftM_bind, Function.comp, liftM_pure]
+
+@[simp]
+lemma liftM_seq [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F (α → β)) (y : FreeM F α) :
+    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp := by
+  simp [seq_eq_bind_map]
+
+@[simp]
+lemma liftM_seqLeft [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
+    (x <* y).liftM interp = x.liftM interp <* y.liftM interp := by
+  simp [seqLeft_eq_bind]
+
+@[simp]
+lemma liftM_seqRight [LawfulMonad m]
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
+    (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
+  simp [seqRight_eq_bind]
 
 /--
 A predicate stating that `interp : FreeM F α → m α` is an interpreter for the effect
@@ -262,3 +292,5 @@ theorem Interprets.iff (handler : {ι : Type u} → F ι → m ι) (interp : Fre
 end liftM
 
 end FreeM
+
+end Cslib

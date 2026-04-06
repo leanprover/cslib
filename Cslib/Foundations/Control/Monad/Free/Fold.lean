@@ -3,7 +3,12 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
-import Cslib.Foundations.Control.Monad.Free
+
+module
+
+public import Cslib.Foundations.Control.Monad.Free
+
+@[expose] public section
 
 /-!
 # Free Monad Catamorphism
@@ -35,32 +40,34 @@ For any such algebra, `foldFreeM onValue onEffect` is the unique algebra morphis
 from the initial algebra `FreeM F α` to `(β, onValue, onEffect)`.
 -/
 
+namespace Cslib
+
 universe u v w w'
 
 namespace FreeM
 variable {F : Type u → Type v} {ι : Type u} {α : Type w} {β : Type w'}
 
 /-- Fold function for the `FreeM` monad -/
-def foldFreeM {F : Type u → Type v} {α β : Type w}
-  (onValue : α → β)
-  (onEffect : {ι : Type u} → F ι → (ι → β) → β)
-  : FreeM F α → β
+def foldFreeM
+    (onValue : α → β)
+    (onEffect : {ι : Type u} → F ι → (ι → β) → β) :
+    FreeM F α → β
   | .pure a => onValue a
   | .liftBind op k => onEffect op (fun x => foldFreeM onValue onEffect (k x))
 
 @[simp]
-theorem foldFreeM_pure {F : Type u → Type v} {α β : Type w}
-  (onValue : α → β)
-  (onEffect : {ι : Type u} → F ι → (ι → β) → β)
-  (a : α) : foldFreeM onValue onEffect (.pure a) = onValue a := rfl
+theorem foldFreeM_pure
+    (onValue : α → β)
+    (onEffect : {ι : Type u} → F ι → (ι → β) → β)
+    (a : α) : foldFreeM onValue onEffect (.pure a) = onValue a := rfl
 
 @[simp]
-theorem foldFreeM_liftBind {F : Type u → Type v} {α β : Type w}
-  (onValue : α → β)
-  (onEffect : {ι : Type u} → F ι → (ι → β) → β)
-  (op : F ι) (k : ι → FreeM F α) :
+theorem foldFreeM_liftBind
+    (onValue : α → β)
+    (onEffect : {ι : Type u} → F ι → (ι → β) → β)
+    (op : F ι) (k : ι → FreeM F α) :
     foldFreeM onValue onEffect (.liftBind op k)
-    = onEffect op (fun x => foldFreeM onValue onEffect (k x)) := rfl
+      = onEffect op (fun x => foldFreeM onValue onEffect (k x)) := rfl
 
 /--
 **Universal Property**: If `h : FreeM F α → β` satisfies:
@@ -70,15 +77,13 @@ theorem foldFreeM_liftBind {F : Type u → Type v} {α β : Type w}
 then `h` is equal to `foldFreeM onValue onEffect`.
 -/
 theorem foldFreeM_unique
-  {F : Type u → Type v} {α : Type w} {β : Type w}
-  (onValue : α → β)
-  (onEffect : {ι : Type u} → F ι → (ι → β) → β)
-  (h : FreeM F α → β)
-  (h_pure : ∀ a, h (.pure a) = onValue a)
-  (h_liftBind : ∀ {ι} (op : F ι) (k : ι → FreeM F α),
-    h (.liftBind op k) = onEffect op (fun x => h (k x))) :
-  h = foldFreeM onValue onEffect :=
-by
+    (onValue : α → β)
+    (onEffect : {ι : Type u} → F ι → (ι → β) → β)
+    (h : FreeM F α → β)
+    (h_pure : ∀ a, h (.pure a) = onValue a)
+    (h_liftBind : ∀ {ι} (op : F ι) (k : ι → FreeM F α),
+      h (.liftBind op k) = onEffect op (fun x => h (k x))) :
+    h = foldFreeM onValue onEffect := by
   funext x
   induction x with
   | pure a =>
@@ -88,3 +93,5 @@ by
     grind
 
 end FreeM
+
+end Cslib
