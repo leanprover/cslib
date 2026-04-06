@@ -112,6 +112,7 @@ abbrev IPL [Bot Atom] : Theory Atom :=
 abbrev CPL [Bot Atom] : Theory Atom :=
   Set.range (fun (A : Proposition Atom) ↦ ¬¬A → A)
 
+/-- A theory is intuitionistic if it validates ex falso quodlibet. -/
 @[scoped grind]
 class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
   efq (A : Proposition Atom) : (⊥ → A) ∈ T
@@ -120,6 +121,7 @@ omit [DecidableEq Atom] in
 @[scoped grind =]
 theorem isIntuitionisticIff [Bot Atom] (T : Theory Atom) : IsIntuitionistic T ↔ IPL ⊆ T := by grind
 
+/-- A theory is classical if it validates double-negation elimination. -/
 @[scoped grind]
 class IsClassical [Bot Atom] (T : Theory Atom) where
   dne (A : Proposition Atom) : (¬¬A → A) ∈ T
