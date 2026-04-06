@@ -64,7 +64,8 @@ variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
 /-- Contexts are finsets of propositions. -/
 abbrev Ctx (Atom) := Finset (Proposition Atom)
 
-def Ctx.map {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom'] (f : Atom → Atom') :
+/-- Map a context along a change of `Atom`. -/
+def Ctx.map {Atom Atom' : Type u} [DecidableEq Atom'] (f : Atom → Atom') :
     Ctx Atom → Ctx Atom' := Finset.image (Proposition.map f)
 
 /-- Sequents {A₁, ..., Aₙ} ⊢ B. -/
@@ -113,12 +114,16 @@ scoped notation "⊢[" T' "] " A:90 => Theory.PDerivable (T := T') A
 theorem Theory.Derivable.iff_sDerivable_empty {A : Proposition Atom} :
     ⊢[T] A ↔ ∅ ⊢[T] A := by rfl
 
+/-- Minimally derivable sequent. -/
 abbrev SDerivable (S : Sequent Atom) := MPL.SDerivable S
 
+/-- Minimally derivable proposition. -/
 abbrev PDerivable (A : Proposition Atom) := MPL.PDerivable A
 
+@[inherit_doc]
 scoped notation Γ " ⊢ " A:90 => SDerivable ⟨Γ,A⟩
 
+@[inherit_doc]
 scoped notation "⊢ " A:90 => PDerivable A
 
 /-- An equivalence between A and B is a derivation of B from A and vice-versa. -/
@@ -143,8 +148,10 @@ theorem Theory.equiv_iff {A B : Proposition Atom} : A ≡[T] B ↔ {A} ⊢[T] B 
   · intro ⟨⟨D⟩,⟨E⟩⟩
     exact ⟨D,E⟩
 
+/-- Minimally equivalent propositions. -/
 abbrev Equiv : Proposition Atom → Proposition Atom → Prop := MPL.Equiv
 
+@[inherit_doc]
 scoped infix:29 " ≡ " => Equiv
 
 open Derivation
@@ -288,7 +295,7 @@ def Theory.Derivation.map {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq 
   | implI _ D => implI _ <| (Finset.image_insert (Proposition.map f) _ _) ▸ (D.map f)
   | implE D E => implE (D.map f) (E.map f)
 
-theorem Theory.Derivable.image {Atom' : Type u} [DecidableEq Atom'] {T : Theory Atom}
+theorem Theory.Derivable.map {Atom' : Type u} [DecidableEq Atom'] {T : Theory Atom}
     (f : Atom → Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
     Γ ⊢[T] B → (Γ.map f) ⊢[T.map f] (B.map f) := by
   intro ⟨D⟩
@@ -296,6 +303,7 @@ theorem Theory.Derivable.image {Atom' : Type u} [DecidableEq Atom'] {T : Theory 
 
 /-! ### Properties of equivalence -/
 
+/-- A derivation of the canonical tautology. -/
 def Theory.derivationTop [Inhabited Atom] : T.Derivation ⟨∅, ⊤⟩ :=
   implI ∅ <| ass <| by grind
 
@@ -351,13 +359,16 @@ theorem Theory.equiv_iff_equiv_hypothesis {A B : Proposition Atom} :
     · exact (h ∅ B).mpr ⟨ass <| by grind⟩
     · exact (h ∅ A).mp ⟨ass <| by grind⟩
 
+/-- An equivalence of a proposition with itself. -/
 def reflEquiv (A : Proposition Atom) : T.equiv A A :=
   let D : Derivation ⟨{A},A⟩ := ass <| by grind;
   ⟨D,D⟩
 
+/-- Reverse an equivalence. -/
 def commEquiv {A B : Proposition Atom} (e : T.equiv A B) : T.equiv B A :=
   ⟨e.2, e.1⟩
 
+/-- Compose two equivalences. -/
 def transEquiv {A B C : Proposition Atom} (eAB : T.equiv A B)
     (eBC : T.equiv B C) : T.equiv A C :=
   ⟨mapEquivConclusion _ eBC eAB.1, mapEquivConclusion _ (commEquiv eAB) eBC.2⟩
@@ -378,6 +389,7 @@ theorem equivalent_trans {T : Theory Atom} {A B C : Proposition Atom} :
 theorem Theory.equiv_equivalence (T : Theory Atom) : Equivalence (T.Equiv (Atom := Atom)) :=
   ⟨equivalent_refl, equivalent_comm, equivalent_trans⟩
 
+/-- The setoid of propositions under equivalence. -/
 protected def Theory.propositionSetoid (T : Theory Atom) : Setoid (Proposition Atom) :=
   ⟨T.Equiv, T.equiv_equivalence⟩
 
