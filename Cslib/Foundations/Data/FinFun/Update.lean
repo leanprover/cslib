@@ -46,17 +46,18 @@ theorem update_support [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)
 /-- Updating a finite function on the same key is the same as doing the last update. -/
 @[scoped grind =, simp]
 theorem update_idem [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)] (f : α →₀ β) :
-    (f.update a b).update a b' = f.update a b' := by grind
+    (f.update a b).update a b' = f.update a b' := by grind [update_apply]
 
 /-- Updates on different keys commute. -/
 @[scoped grind =]
 theorem update_comm [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)] (f : α →₀ β)
-    (h : a ≠ a') : (f.update a b).update a' b' = (f.update a' b').update a b := by grind
+    (h : a ≠ a') : (f.update a b).update a' b' = (f.update a' b').update a b := by
+  grind [update_apply]
 
 /-- Updates that do not change mappings are redundant. -/
 @[scoped grind =]
 theorem update_self [Zero β] [DecidableEq α] [∀ b : β, Decidable (b = 0)] (f : α →₀ β) :
-    (f.update a (f a)) = f := by grind
+    (f.update a (f a)) = f := by grind [update_apply]
 
 /-- Updating a function never grows its support more than adding the key. -/
 @[scoped grind .]
