@@ -61,7 +61,11 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   rw [IsRegular.iff_dfa] at h ⊢
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
   use State, inferInstance, ⟨da, accᶜ⟩
-  grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  ext
+  simp only [language, Accepts]
+  rfl
 
 /-- The empty language is regular. -/
 @[simp]
@@ -69,7 +73,11 @@ theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
   let flts := FLTS.mk (fun () (_ : Symbol) ↦ ())
   use Unit, inferInstance, ⟨DA.mk flts (), ∅⟩
-  grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  ext
+  simp only [language, Accepts]
+  rfl
 
 /-- The language containing only the empty word is regular. -/
 @[simp]
