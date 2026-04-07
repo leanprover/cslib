@@ -17,7 +17,7 @@ We define the free monad on a **polynomial functor** (`PFunctor`), and prove som
 The free monad `PFunctor.FreeM P` extends the W-type construction with an extra `pure`
 constructor, yielding a monad that is free over the polynomial functor `P`.
 
-This construction is ported from the [VCV-io](https://github.com/Verified-zkEVM/VCV-io) library.
+This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) library.
 
 ## Main Definitions
 
@@ -39,7 +39,7 @@ namespace PFunctor
 This extends the `W`-type construction with an extra `pure` constructor. -/
 inductive FreeM (P : PFunctor.{uA, uB}) : Type v → Type (max uA uB v)
   /-- A leaf node wrapping a pure value. -/
-  | pure {α} (a : α) : FreeM P α
+  | protected pure {α} (a : α) : FreeM P α
   /-- A node with shape `a : P.A` and subtrees given by the continuation
   `cont : P.B a → FreeM P α`. -/
   | roll {α} (a : P.A) (cont : P.B a → FreeM P α) : FreeM P α
@@ -49,12 +49,15 @@ namespace FreeM
 
 variable {P : PFunctor.{uA, uB}} {α β γ : Type v}
 
+instance : Pure (FreeM P) where pure := .pure
+
+@[simp]
+theorem pure_eq_pure : (pure : α → FreeM P α) = FreeM.pure := rfl
+
 /-- Lift an object of the base polynomial functor into the free monad. -/
-@[always_inline, inline, reducible]
 def lift (x : P.Obj α) : FreeM P α := FreeM.roll x.1 (fun y ↦ FreeM.pure (x.2 y))
 
 /-- Lift a position of the base polynomial functor into the free monad. -/
-@[always_inline, inline, reducible]
 def liftA (a : P.A) : FreeM P (P.B a) := lift ⟨a, id⟩
 
 instance : MonadLift P (FreeM P) where
@@ -69,51 +72,90 @@ instance : MonadLift P (FreeM P) where
 lemma monadLift_eq_lift (x : P.Obj α) : (x : FreeM P α) = FreeM.lift x := rfl
 
 /-- Bind operator on `FreeM P` used in the monad definition. -/
-@[always_inline, inline]
 protected def bind : FreeM P α → (α → FreeM P β) → FreeM P β
   | FreeM.pure a, f => f a
   | FreeM.roll a cont, f => FreeM.roll a (fun u ↦ FreeM.bind (cont u) f)
 
-@[simp]
-lemma bind_pure (a : α) (f : α → FreeM P β) :
-    FreeM.bind (FreeM.pure a) f = f a := rfl
+protected theorem bind_assoc (x : FreeM P α) (f : α → FreeM P β) (g : β → FreeM P γ) :
+    (x.bind f).bind g = x.bind (fun a => (f a).bind g) := by
+  induction x with
+  | pure a => rfl
+  | roll a cont ih =>
+    simp [FreeM.bind] at *
+    simp [ih]
+
+instance : Bind (FreeM P) where bind := .bind
 
 @[simp]
-lemma bind_roll (a : P.A) (cont : P.B a → FreeM P β) (f : β → FreeM P γ) :
-    FreeM.bind (FreeM.roll a cont) f = FreeM.roll a (fun u ↦ FreeM.bind (cont u) f) := rfl
+theorem bind_eq_bind {α β : Type v} :
+    Bind.bind = (FreeM.bind : FreeM P α → _ → FreeM P β) := rfl
+
+/-- Map a function over a `FreeM` computation. -/
+@[simp]
+def map (f : α → β) : FreeM P α → FreeM P β
+  | .pure a => .pure (f a)
+  | .roll a cont => .roll a fun u => FreeM.map f (cont u)
 
 @[simp]
-lemma bind_lift (x : P.Obj α) (f : α → FreeM P β) :
-    FreeM.bind (FreeM.lift x) f = FreeM.roll x.1 (fun a ↦ f (x.2 a)) := rfl
+theorem id_map : ∀ x : FreeM P α, map id x = x
+  | .pure a => rfl
+  | .roll a cont => by simp_all [map, id_map]
+
+theorem comp_map (h : β → γ) (g : α → β) :
+    ∀ x : FreeM P α, map (h ∘ g) x = map h (map g x)
+  | .pure a => rfl
+  | .roll a cont => by simp_all [map, comp_map]
+
+instance : Functor (FreeM P) where
+  map := .map
+
+@[simp]
+theorem map_eq_map {α β : Type v} :
+    Functor.map = FreeM.map (P := P) (α := α) (β := β) := rfl
+
+/-- `.pure a` followed by `bind` collapses immediately. -/
+@[simp]
+lemma pure_bind (a : α) (f : α → FreeM P β) :
+    (FreeM.pure a).bind f = f a := rfl
+
+@[simp]
+lemma bind_pure : ∀ x : FreeM P α, x.bind (.pure) = x
+  | .pure a => rfl
+  | .roll a cont => by simp [FreeM.bind, bind_pure]
+
+@[simp]
+lemma bind_pure_comp (f : α → β) : ∀ x : FreeM P α, x.bind (.pure ∘ f) = map f x
+  | .pure a => rfl
+  | .roll a cont => by simp only [FreeM.bind, map, bind_pure_comp]
+
+@[simp]
+lemma roll_bind (a : P.A) (cont : P.B a → FreeM P β) (f : β → FreeM P γ) :
+    (FreeM.roll a cont).bind f = FreeM.roll a (fun u ↦ (cont u).bind f) := rfl
+
+@[simp]
+lemma lift_bind (x : P.Obj α) (f : α → FreeM P β) :
+    (FreeM.lift x).bind f = FreeM.roll x.1 (fun a ↦ f (x.2 a)) := rfl
 
 @[simp] lemma bind_eq_pure_iff (x : FreeM P α) (f : α → FreeM P β) (b : β) :
-    FreeM.bind x f = FreeM.pure b ↔ ∃ a, x = pure a ∧ f a = pure b := by
+    x.bind f = FreeM.pure b ↔ ∃ a, x = pure a ∧ f a = pure b := by
   cases x <;> simp
 
 @[simp] lemma pure_eq_bind_iff (x : FreeM P α) (f : α → FreeM P β) (b : β) :
-    FreeM.pure b = FreeM.bind x f ↔ ∃ a, x = pure a ∧ pure b = f a := by
+    FreeM.pure b = x.bind f ↔ ∃ a, x = pure a ∧ pure b = f a := by
   cases x <;> simp
 
+instance : LawfulFunctor (FreeM P) where
+  map_const := rfl
+  id_map := id_map
+  comp_map _ _ := comp_map _ _
+
 instance : Monad (FreeM P) where
-  pure := FreeM.pure
-  bind := FreeM.bind
 
-lemma monad_pure_def (a : α) : (pure a : FreeM P α) = FreeM.pure a := rfl
-
-lemma monad_bind_def (x : FreeM P α) (f : α → FreeM P β) :
-    x >>= f = FreeM.bind x f := rfl
-
-instance : LawfulMonad (FreeM P) :=
-  LawfulMonad.mk' (FreeM P)
-    (fun x ↦ by
-      induction x with
-      | pure _ => rfl
-      | roll a _ h => refine congr_arg (FreeM.roll a) (funext fun i ↦ h i))
-    (fun x f ↦ rfl)
-    (fun x f g ↦ by
-      induction x with
-      | pure _ => rfl
-      | roll a _ h => refine congr_arg (FreeM.roll a) (funext fun i ↦ h i))
+instance : LawfulMonad (FreeM P) := LawfulMonad.mk'
+  (bind_pure_comp := bind_pure_comp)
+  (id_map := id_map)
+  (pure_bind := pure_bind)
+  (bind_assoc := FreeM.bind_assoc)
 
 lemma pure_inj (a b : α) : FreeM.pure (P := P) a = FreeM.pure b ↔ a = b := by simp
 
@@ -168,56 +210,71 @@ section mapM
 
 variable {m : Type uB → Type v} {α : Type uB}
 
-/-- Canonical mapping of `FreeM P` into any other monad, given a map `s : (a : P.A) → m (P.B a)`.
--/
-protected def mapM [Pure m] [Bind m] (s : (a : P.A) → m (P.B a)) : FreeM P α → m α
+/-- Canonical mapping of `FreeM P` into any other monad, given an interpretation
+`interp : (a : P.A) → m (P.B a)`. -/
+protected def mapM [Pure m] [Bind m] (interp : (a : P.A) → m (P.B a)) : FreeM P α → m α
   | .pure a => Pure.pure a
-  | .roll a cont => (s a) >>= (fun u ↦ (cont u).mapM s)
+  | .roll a cont => (interp a) >>= (fun u ↦ (cont u).mapM interp)
 
-variable [Monad m] (s : (a : P.A) → m (P.B a))
+variable [Monad m] (interp : (a : P.A) → m (P.B a))
 
 @[simp]
-lemma mapM_pure' (a : α) : (FreeM.pure a : FreeM P α).mapM s = Pure.pure a := rfl
+lemma mapM_pure' (a : α) : (FreeM.pure a : FreeM P α).mapM interp = Pure.pure a := rfl
 
 @[simp]
 lemma mapM_roll (a : P.A) (cont : P.B a → FreeM P α) :
-    (FreeM.roll a cont).mapM s = s a >>= fun u => (cont u).mapM s := rfl
+    (FreeM.roll a cont).mapM interp = interp a >>= fun u => (cont u).mapM interp := rfl
 
-@[simp] lemma mapM_pure (a : α) : (Pure.pure a : FreeM P α).mapM s = Pure.pure a := rfl
+@[simp]
+lemma mapM_pure (a : α) : (Pure.pure a : FreeM P α).mapM interp = Pure.pure a := rfl
 
 variable [LawfulMonad m]
 
 @[simp]
 lemma mapM_bind {α β : Type uB} (x : FreeM P α) (f : α → FreeM P β) :
-    (FreeM.bind x f).mapM s = x.mapM s >>= fun u => (f u).mapM s := by
+    (x.bind f).mapM interp = x.mapM interp >>= fun u => (f u).mapM interp := by
   induction x using FreeM.inductionOn with
   | pure _ => simp
   | roll a cont h => simp [h]
 
 @[simp]
 lemma mapM_bind' {α β : Type uB} (x : FreeM P α) (f : α → FreeM P β) :
-    (x >>= f).mapM s = x.mapM s >>= fun u => (f u).mapM s :=
+    (x >>= f).mapM interp = x.mapM interp >>= fun u => (f u).mapM interp :=
   mapM_bind _ _ _
 
 @[simp]
 lemma mapM_map {α β : Type uB} (x : FreeM P α) (f : α → β) :
-    FreeM.mapM s (f <$> x) = f <$> FreeM.mapM s x := by
-  simp [← bind_pure_comp]
+    FreeM.mapM interp (map f x) = f <$> FreeM.mapM interp x := by
+  induction x using FreeM.inductionOn with
+  | pure _ => simp
+  | roll a cont h => simp [h]
 
 @[simp]
 lemma mapM_seq {α β : Type uB}
-    (s : (a : P.A) → m (P.B a)) (x : FreeM P (α → β)) (y : FreeM P α) :
-    FreeM.mapM s (x <*> y) = (FreeM.mapM s x) <*> (FreeM.mapM s y) := by
-  simp [seq_eq_bind_map]
+    (interp : (a : P.A) → m (P.B a)) (x : FreeM P (α → β)) (y : FreeM P α) :
+    FreeM.mapM interp (x <*> y) = (FreeM.mapM interp x) <*> (FreeM.mapM interp y) := by
+  simp only [seq_eq_bind_map, mapM_bind', map_eq_map, mapM_map]
 
 @[simp]
-lemma mapM_lift (s : (a : P.A) → m (P.B a)) (x : P.Obj α) :
-    FreeM.mapM s (FreeM.lift x) = s x.1 >>= (fun u ↦ (pure (x.2 u)).mapM s) := by
-  simp [FreeM.mapM]
+lemma mapM_seqLeft {α β : Type uB}
+    (interp : (a : P.A) → m (P.B a)) (x : FreeM P α) (y : FreeM P β) :
+    FreeM.mapM interp (x <* y) = FreeM.mapM interp x <* FreeM.mapM interp y := by
+  simp only [seqLeft_eq_bind, mapM_bind', mapM_pure]
 
 @[simp]
-lemma mapM_liftA (s : (a : P.A) → m (P.B a)) (a : P.A) :
-    FreeM.mapM s (FreeM.liftA a) = s a := by simp [liftA]
+lemma mapM_seqRight {α β : Type uB}
+    (interp : (a : P.A) → m (P.B a)) (x : FreeM P α) (y : FreeM P β) :
+    FreeM.mapM interp (x *> y) = FreeM.mapM interp x *> FreeM.mapM interp y := by
+  simp only [seqRight_eq_bind, mapM_bind']
+
+@[simp]
+lemma mapM_lift (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
+    FreeM.mapM interp (FreeM.lift x) = x.2 <$> interp x.1 := by
+  simp [lift]
+
+@[simp]
+lemma mapM_liftA (interp : (a : P.A) → m (P.B a)) (a : P.A) :
+    FreeM.mapM interp (FreeM.liftA a) = interp a := by simp [liftA]
 
 end mapM
 
