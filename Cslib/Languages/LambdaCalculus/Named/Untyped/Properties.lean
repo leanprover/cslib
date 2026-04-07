@@ -130,7 +130,6 @@ theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
     apply AlphaEquiv.abs (y := z)
     · grind [rename_vars]
     apply ih
-    -- rw [← induction_by_sizeOf]
     grind [rename_eq_sizeOf]
   | app m n =>
     apply AlphaEquiv.app <;> apply ih <;> grind
