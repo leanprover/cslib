@@ -35,7 +35,7 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 A private-key encryption scheme over message space `M`, key space `K`,
 and ciphertext space `C` ([KatzLindell2020], Definition 2.1).
 -/
-structure EncScheme.{u} (Message Key Ciphertext : Type u) where
+structure EncScheme (Message Key Ciphertext : Type*) where
   /-- Probabilistic key generation. -/
   gen : PMF Key
   /-- (Possibly randomized) encryption. -/
