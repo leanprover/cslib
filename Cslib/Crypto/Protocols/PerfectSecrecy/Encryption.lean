@@ -35,14 +35,29 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 A private-key encryption scheme over message space `M`, key space `K`,
 and ciphertext space `C` ([KatzLindell2020], Definition 2.1).
 -/
-structure EncScheme.{u} (M K C : Type u) where
+structure EncScheme.{u} (Message Key Ciphertext : Type u) where
   /-- Probabilistic key generation. -/
-  gen : PMF K
+  gen : PMF Key
   /-- (Possibly randomized) encryption. -/
-  enc : K → M → PMF C
+  enc (key : Key) (message : Message) : PMF Ciphertext
   /-- Deterministic decryption. -/
-  dec : K → C → M
+  dec (key : Key) (ciphertext : Ciphertext) : Message
   /-- Decryption inverts encryption for all keys in the support of `gen`. -/
-  correct : ∀ k, k ∈ gen.support → ∀ m c, c ∈ (enc k m).support → dec k c = m
+  correct : ∀ key, key ∈ gen.support → ∀ message ciphertext,
+    ciphertext ∈ (enc key message).support → dec key ciphertext = message
+
+/-- Build an encryption scheme from deterministic pure encryption/decryption
+where decryption is a left inverse of encryption for every key. -/
+noncomputable def EncScheme.ofPure.{u} {Message Key Ciphertext : Type u} (gen : PMF Key)
+    (enc : Key → Message → Ciphertext) (dec : Key → Ciphertext → Message)
+    (h : ∀ key, Function.LeftInverse (dec key) (enc key)) :
+    EncScheme Message Key Ciphertext where
+  gen := gen
+  enc key message := PMF.pure (enc key message)
+  dec := dec
+  correct key _ message ciphertext hc := by
+    rw [PMF.mem_support_pure_iff] at hc
+    subst hc
+    exact h key message
 
 end Cslib.Crypto.Protocols.PerfectSecrecy

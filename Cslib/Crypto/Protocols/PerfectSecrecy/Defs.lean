@@ -41,20 +41,17 @@ variable {M K C : Type u}
 
 /-- The distribution of `Enc_K(m)` when `K ← Gen`. -/
 noncomputable def ciphertextDist (scheme : EncScheme M K C) (m : M) : PMF C := do
-  let k ← scheme.gen
-  scheme.enc k m
+  scheme.enc (← scheme.gen) m
 
 /-- Joint distribution of `(M, C)` given a message prior. -/
 noncomputable def jointDist (scheme : EncScheme M K C) (msgDist : PMF M) : PMF (M × C) := do
   let m ← msgDist
-  let c ← scheme.ciphertextDist m
-  pure (m, c)
+  return (m, ← scheme.ciphertextDist m)
 
 /-- Marginal ciphertext distribution given a message prior. -/
 noncomputable def marginalCiphertextDist (scheme : EncScheme M K C)
     (msgDist : PMF M) : PMF C := do
-  let m ← msgDist
-  scheme.ciphertextDist m
+  scheme.ciphertextDist (← msgDist)
 
 -- TODO: posteriorMsgProb is itself a distribution — define it as a PMF
 -- (see posteriorMsgDist in Internal/PerfectSecrecy.lean) and express
