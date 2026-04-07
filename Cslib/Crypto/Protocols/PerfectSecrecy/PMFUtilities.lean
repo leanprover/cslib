@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
+public import Cslib.Init
 public import Mathlib.Probability.ProbabilityMassFunction.Monad
 
 @[expose] public section
