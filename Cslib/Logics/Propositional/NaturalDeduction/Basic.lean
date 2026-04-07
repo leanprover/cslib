@@ -277,7 +277,7 @@ def Derivation.subs {Γ Δ : Ctx Atom} {A B : Proposition Atom}
 /-- Transport a derivation along a map of atoms. -/
 def Derivation.map {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
     {T : Theory Atom} (f : Atom → Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
-    Derivation (Γ ⊢[T] B) → Derivation (Γ.map f ⊢[T.map f] B.map f)
+    Derivation (Γ ⊢[T] B) → Derivation (Γ.map f ⊢[f <$> T] f <$> B)
   | ax h => ax <| Set.mem_image_of_mem (Proposition.map f) h
   | ass h => ass <| Finset.mem_image_of_mem (Proposition.map f) h
   | conjI D E => conjI (D.map f) (E.map f)
@@ -293,7 +293,7 @@ def Derivation.map {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
 
 theorem Theory.Derivable.map {Atom' : Type u} [DecidableEq Atom'] {T : Theory Atom}
     (f : Atom → Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
-    Derivable (Γ ⊢[T] B) → Derivable ((Γ.map f) ⊢[T.map f] (B.map f))
+    Derivable (Γ ⊢[T] B) → Derivable ((Γ.map f) ⊢[f <$> T] (f <$> B))
   | ⟨D⟩ => ⟨D.map f⟩
 
 /-! ### Properties of equivalence -/

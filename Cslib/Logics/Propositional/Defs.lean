@@ -77,30 +77,16 @@ def Proposition.map {Atom Atom' : Type u} (f : Atom → Atom') : Proposition Ato
   | or A B => (A.map f) ∨ (B.map f)
   | impl A B => (A.map f) → (B.map f)
 
-instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Proposition Atom) (Proposition Atom') where
-  coe := Proposition.map
-  coe_injective' f f' h := by
-    ext x
-    have : (Proposition.atom x).map f = (Proposition.atom x).map f' :=
-      congrFun h (Proposition.atom x)
-    grind [Proposition.map]
+instance : Functor Proposition where
+  map := Proposition.map
 
 /-- Theories are arbitrary sets of propositions. -/
 abbrev Theory (Atom) := Set (Proposition Atom)
 
 namespace Theory
 
-/-- Extend `Proposition.map` to theories. -/
-def map {Atom Atom' : Type u} (f : Atom → Atom') : Theory Atom → Theory Atom' :=
-  Set.image (Proposition.map f)
-
-instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory Atom') where
-  coe := Theory.map
-  coe_injective' f f' h := by
-    ext x
-    have : Theory.map f {Proposition.atom x} = Theory.map f' {Proposition.atom x} :=
-      congrFun h {Proposition.atom x}
-    simpa [Theory.map, Proposition.map] using this
+instance : Functor Theory where
+  map f := Set.image (Proposition.map f)
 
 /-- The empty theory corresponds to minimal propositional logic. -/
 abbrev MPL : Theory (Atom) := ∅
@@ -150,7 +136,7 @@ theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T]
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]
 def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
-  T.map (WithBot.some) ∪ IPL
+  (WithBot.some <$> T) ∪ IPL
 
 instance instIsIntuitionisticIntuitionisticCompletion (T : Theory Atom) :
     IsIntuitionistic T.intuitionisticCompletion := by grind
