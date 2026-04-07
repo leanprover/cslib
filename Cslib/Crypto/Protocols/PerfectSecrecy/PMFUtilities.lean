@@ -30,7 +30,7 @@ the Mathlib module instead.
 - `PMFUtilities.posteriorDist`: the posterior as a `PMF`
 -/
 
-namespace PMFUtilities
+namespace Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
 
 open PMF ENNReal
 
@@ -86,4 +86,4 @@ theorem posteriorDist_apply (p : PMF α) (f : α → PMF β) (b : β)
         (p.bind f) b :=
   rfl
 
-end PMFUtilities
+end Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
