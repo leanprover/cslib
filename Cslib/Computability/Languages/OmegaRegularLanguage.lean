@@ -9,10 +9,9 @@ module
 public import Cslib.Computability.Automata.DA.Buchi
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
-public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Computability.Automata.NA.Sum
+public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
-public import Cslib.Foundations.Data.Set.Saturation
 public import Mathlib.Data.Finite.Card
 public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Logic.Equiv.Fin.Basic
@@ -120,7 +119,7 @@ theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
   ext xs
   simp only [NA.Buchi.iSum_language_eq, mem_sup, mem_language]
   rw [mem_iUnion, Fin.exists_fin_two]
-  grind
+  rfl
 
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
@@ -142,7 +141,7 @@ theorem IsRegular.inf {p1 p2 : ωLanguage Symbol}
   ext xs
   simp only [inter_language_eq, mem_inf, mem_language]
   rw [mem_iInter, Bool.forall_bool]
-  grind
+  rfl
 
 /-- The union of any finite number of ω-regular languages is ω-regular. -/
 @[simp]
@@ -233,6 +232,19 @@ theorem IsRegular.fin_cover_saturates_compl {I : Type*} [Finite I]
     {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
     (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular :=
   IsRegular.fin_cover_saturates (saturates_compl hs) hc hr
+
+open NA.Buchi in
+/-- The complementation of an ω-regular language is ω-regular. -/
+@[simp]
+theorem IsRegular.compl {Symbol : Type} [Inhabited Symbol] {p : ωLanguage Symbol}
+    (h : p.IsRegular) : (pᶜ).IsRegular := by
+  obtain ⟨State, h_fin, na, rfl⟩ := h
+  have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
+  have h_sat := buchiFamily_saturation (na := na)
+  have h_cov := buchiFamily_cover (na := na)
+  apply IsRegular.fin_cover_saturates_compl h_sat h_cov
+  have := Language.IsRegular.congr_fin_index (c := na.BuchiCongruence)
+  grind [buchiFamily, IsRegular.hmul, IsRegular.omegaPow]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :

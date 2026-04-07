@@ -6,7 +6,7 @@ open Lean Elab.Command
 
 elab "open_scoped_all" pre:ident : command => do
   let env ← getEnv
-  let nss := env.getNamespaceSet.toList.filter (fun name => name.getRoot = pre.getId)
+  let nss := env.getNamespaces.filter (fun name => name.getRoot = pre.getId)
   for ns in nss do
     let cmd ← `(open scoped $(mkIdent ns))
     elabCommand cmd
@@ -26,7 +26,7 @@ open_scoped_all Cslib
   See https://lean-lang.org/doc/reference/latest/The--grind--tactic/E___matching/ for details.
 -/
 
-#grind_lint skip Cslib.Bisimilarity.trans
+#grind_lint skip Cslib.LTS.Bisimilarity.trans
 #grind_lint skip Cslib.FLTS.toLTS_tr
 #grind_lint skip Cslib.FinFun.coe_fromFun_id
 #grind_lint skip Cslib.FinFun.fromFun_comm
@@ -35,7 +35,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.FinFun.fromFun_inter
 #grind_lint skip Cslib.LTS.deterministic_not_lto
 #grind_lint skip Cslib.LTS.deterministic_tr_image_singleton
-#grind_lint skip Cslib.LTS.IsExecution.refl
+#grind_lint skip Cslib.LTS.Execution.refl
 #grind_lint skip Cslib.LTS.mem_saturate_image_τ
 #grind_lint skip Cslib.ωSequence.drop_const
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
@@ -72,10 +72,26 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta.redex_app_l_cong
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.FullBeta.redex_app_r_cong
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.subst_intro
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.ListFullBeta.cons
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.ListFullBeta.step
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
 #grind_lint skip Cslib.Logic.HML.Satisfies.diamond
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
+#adaptation_note
+/-- (changes from lean#13166) -/
+#grind_lint skip Cslib.ωLanguage.map_id
+#grind_lint skip Cslib.LTS.Bisimilarity.gfp
+#grind_lint skip Cslib.LTS.Bisimilarity.is_bisimulation
+#grind_lint skip Cslib.LTS.Bisimilarity.largest_bisimulation
+#grind_lint skip Cslib.LTS.IsBisimulation.bot
+#grind_lint skip Cslib.LTS.IsBisimulation.comp
+#grind_lint skip Cslib.LTS.IsBisimulation.inv
+#grind_lint skip Cslib.LTS.IsBisimulation.sup
+#grind_lint skip Cslib.LTS.IsBisimulation.traceEq
+#grind_lint skip Cslib.LTS.IsBisimulationUpTo.is_bisimulation
+#grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

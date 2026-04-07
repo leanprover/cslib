@@ -13,8 +13,8 @@ public import Mathlib.Algebra.Order.Monoid.Unbundled.Defs
 
 namespace Cslib
 
-/-- An equivalence relation preserved by all contexts. -/
+/-- An equivalence relation on `α` preserved by all contexts `Ctx`. -/
 class Congruence (α : Type*) [HasContext α] (r : α → α → Prop) extends
-  IsEquiv α r, covariant : CovariantClass (HasContext.Context α) α (·[·]) r
+  IsEquiv α r, covariant : CovariantClass (HasContext.Context α) α (·<[·]) r
 
 end Cslib

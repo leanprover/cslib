@@ -33,6 +33,10 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
+/-- The empty (heterogeneous) relation, which always returns `False`. -/
+@[nolint unusedArguments]
+def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
+
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
@@ -176,24 +180,28 @@ theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Nor
   grind
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
-def trans_of_subrelation (s s' r : α → α → Prop) (hr : Transitive r)
+@[implicit_reducible]
+def trans_of_subrelation (s s' r : α → α → Prop) (hr : IsTrans α r)
     (h : Subrelation s r) (h' : Subrelation s' r) : Trans s s' r where
-  trans hab hbc := hr (h hab) (h' hbc)
+  trans hab hbc := hr.trans _ _ _ (h hab) (h' hbc)
 
 /-- A subrelation lifts to transitivity on the left of the relation. -/
-def trans_of_subrelation_left (s r : α → α → Prop) (hr : Transitive r)
+@[implicit_reducible]
+def trans_of_subrelation_left (s r : α → α → Prop) (hr : IsTrans α r)
     (h : Subrelation s r) : Trans s r r where
-  trans hab hbc := hr (h hab) hbc
+  trans hab hbc := hr.trans _ _ _ (h hab) hbc
 
 /-- A subrelation lifts to transitivity on the right of the relation. -/
-def trans_of_subrelation_right (s r : α → α → Prop) (hr : Transitive r)
+@[implicit_reducible]
+def trans_of_subrelation_right (s r : α → α → Prop) (hr : IsTrans α r)
     (h : Subrelation s r) : Trans r s r where
-  trans hab hbc := hr hab (h hbc)
+  trans hab hbc := hr.trans _ _ _ hab (h hbc)
 
 /-- Confluence implies that multi-step joinability is an equivalence. -/
 theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
-  grind [equivalence_join, reflexive_reflTransGen, transitive_reflTransGen]
+  apply equivalence_join reflexive_reflTransGen inferInstance
+  grind
 
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/
@@ -470,17 +478,18 @@ initialize Lean.registerBuiltinAttribute {
   name := `reduction_sys
   descr := "Register notation for a relation and its closures."
   add := fun decl stx _ => MetaM.run' do
+    let currNamespace ← getCurrNamespace
     match stx with
     | `(attr | reduction_sys $sym) =>
         let mut sym := sym
         unless sym.getString.endsWith " " do
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         liftCommandElabM <| do
-          modifyScope ({ · with currNamespace := decl.getPrefix })
+          modifyScope ({ · with currNamespace })
           elabCommand (← `(scoped reduction_notation $(mkIdent decl) $sym))
     | `(attr | reduction_sys) =>
         liftCommandElabM <| do
-          modifyScope ({ · with currNamespace := decl.getPrefix })
+          modifyScope ({ · with currNamespace })
           elabCommand (← `(scoped reduction_notation $(mkIdent decl)))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
