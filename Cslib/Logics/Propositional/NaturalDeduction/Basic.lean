@@ -20,16 +20,14 @@ We define, for minimal logic, deduction trees (a `Type`) and derivability (a `Pr
 
 ## Main definitions
 
-- `Theory.Derivation` :  natural deduction derivation, done in "sequent style", ie with explicit
+- `Sequent` : a triple of `Theory Atom`, `Ctx Atom`, `Proposition Atom`.
+- `Derivation` : natural deduction derivation, done in "sequent style", ie with explicit
 hypotheses at each step. Contexts are `Finset`'s of propositions, which avoids explicit contraction
 and exchange, and the axiom rule derives `{A} ∪ Γ ⊢ A` for any context `Γ`, allowing weakening to
-be a derived rule.
-- `Theory.PDerivable`, `Theory.SDerivable` : a proposition `A` (resp sequent `S`) is derivable if
-it has a derivation.
+be a derived rule. The derivation may appeal to hypotheses from the `Theory T`. This defines an
+instance of `InferenceSystem` for `Sequent`.
 - `Theory.equiv` : `Type`-valued equivalence of propositions.
 - `Theory.Equiv` : `Prop`-valued equivalence of propositions.
-- The unconditional versions `Derivable`, `SDerivable` and `Equiv` are abbreviations for the
-relevant concept relative to the empty theory `MPL`.
 
 ## Main results
 
@@ -40,8 +38,7 @@ differ in the construction of the relevant derivation.
 
 ## Notation
 
-For `T`-derivability, -sequent-derivability and -equivalence we introduce the notations `⊢[T] A`,
-`Γ ⊢[T] A` and `A ≡[T] B`, respectively.
+The sequent `⟨T, Γ, A⟩` is notated `Γ ⊢[T] A`, and `⊢[T] A` abbreviates `∅ ⊢[T] A`.
 
 ## References
 
@@ -67,13 +64,16 @@ abbrev Ctx (Atom) := Finset (Proposition Atom)
 def Ctx.map {Atom Atom' : Type u} [DecidableEq Atom'] (f : Atom → Atom') :
     Ctx Atom → Ctx Atom' := Finset.image (Proposition.map f)
 
-/-- Sequents {A₁, ..., Aₙ} ⊢ B. -/
+/-- Sequents {A₁, ..., Aₙ} ⊢ B, considered within a theory `T`. -/
 abbrev Sequent {Atom} := Theory Atom × Ctx Atom × Proposition Atom
 
+@[inherit_doc Sequent]
 scoped notation Γ:60 " ⊢[" T "] " A => (⟨T, Γ, A⟩ : Sequent)
 
+/-- A sequent with empty context. -/
 abbrev Sequent₁ {Atom} := Theory Atom × Proposition Atom
 
+@[inherit_doc Sequent₁]
 scoped notation "⊢[" T "] " A => (⟨T, A⟩ : Sequent₁)
 
 /-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
@@ -119,8 +119,10 @@ theorem Derivable.iff_derivable_empty {A : Proposition Atom} :
 def Theory.equiv (A B : Proposition Atom) :=
   ⇓({A} ⊢[T] B) × ⇓({B} ⊢[T] A)
 
+/-- Forward direction of an equivalence. -/
 def Theory.equiv.mp {A B : Proposition Atom} (e : T.equiv A B) : (⇓({A} ⊢[T] B)) := e.1
 
+/-- Reverse direction of an equivalence. -/
 def Theory.equiv.mpr {A B : Proposition Atom} (e : T.equiv A B) : (⇓({B} ⊢[T] A)) := e.2
 
 /-- `A` and `B` are T-equivalent if `T.equiv A B` is nonempty. -/

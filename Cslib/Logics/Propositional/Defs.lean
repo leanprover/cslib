@@ -30,7 +30,7 @@ theory.
 
 ## Notation
 
-We introduce notation for the logical connectives: `⊥ ⊤ ⋏ ⋎ ⟶ ~` for, respectively, falsum, verum,
+We introduce notation for the logical connectives: `⊥ ⊤ ∧ ∨ → ¬` for, respectively, falsum, verum,
 conjunction, disjunction, implication and negation.
 -/
 
