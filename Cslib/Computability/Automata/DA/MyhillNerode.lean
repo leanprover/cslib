@@ -11,6 +11,8 @@ public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Mathlib.Computability.Language
+public import Mathlib.Data.Fintype.Card
+public import Mathlib.CategoryTheory.Iso
 
 @[expose] public section
 
@@ -31,15 +33,9 @@ public import Mathlib.Computability.Language
 
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman,
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
+* [T. Malkin, *COMS W3261: Computer Science Theory, Handout 3: The Myhill-Nerode Theorem
+   and Implications*][Malkin2024]
 -/
-
-namespace Language
-
-variable {α : Type} {l m : Language α}
-
-def RightQuotient (L : Language α) (y : List α) : Language α := { x | x ++ y ∈ L }
-
-end Language
 
 namespace Cslib
 
@@ -74,7 +70,7 @@ theorem nerodecongruence_to_finacc_acc (l : Language α) :
       simp [NerodeCongruence.toFinAcc, language, Acceptor.Accepts]
       exact Iff.of_eq rfl
 
-theorem nerodeCongruence_accepts_apply
+theorem nerodecongruence_accepts_apply
     (M : DA.FinAcc State α) (x y : List α) :
     (NerodeCongruence (language M)).r x y ↔
       ∀ z,
@@ -95,13 +91,14 @@ theorem IsRegular.finite_range_nerode_quotient (h : l.IsRegular) :
   | h x =>
     exact ⟨M.mtr M.start x, Quotient.sound (by
       change (NerodeCongruence (language M)).r _ x
-      rw [nerodeCongruence_accepts_apply]
+      rw [nerodecongruence_accepts_apply]
       intro z
       have heps : M.mtr M.start (Classical.epsilon
           (fun y => M.mtr M.start y = M.mtr M.start x)) = M.mtr M.start x :=
         @Classical.epsilon_spec _ (fun y => M.mtr M.start y = M.mtr M.start x) ⟨x, rfl⟩
       rw [heps])⟩
 
+-- Myhill-Nerode (1)
 @[simp, scoped grind =]
 theorem IsRegular_iff_finite_eqv_cls_wrt_nerode {l : Language α} :
     l.IsRegular ↔ Finite (Quotient (NerodeCongruence l).eq) := by
@@ -111,6 +108,56 @@ theorem IsRegular_iff_finite_eqv_cls_wrt_nerode {l : Language α} :
     · intro h
       refine IsRegular.iff_dfa.mpr ⟨Quotient (NerodeCongruence l).eq, h,
           NerodeCongruence.toFinAcc l, nerodecongruence_to_finacc_acc l⟩
+--
+
+@[simp]
+theorem lower_bound_num_states_dfa_acc {l : Language α} {M : DA.FinAcc States α}
+  {ws : Finset (List α)} (hws : ∀ x ∈ ws, ∀ y ∈ ws, x ≠ y → ¬(NerodeCongruence l).r x y)
+  (hM : language M = l) [Fintype States] :
+    Fintype.card States ≥ ws.card := by
+    classical
+    by_contra h
+    simp only [ge_iff_le, not_le] at h
+    by_cases h_card : ws.card ≤ 1
+    · exact (lt_of_lt_of_le h (le_trans h_card
+      (Nat.succ_le_of_lt (Fintype.card_pos_iff.mpr ⟨M.start⟩)))).false
+    · obtain ⟨x, hx, y, hy, hne, heq⟩ := Finset.exists_ne_map_eq_of_card_lt_of_maps_to h
+        (fun x _ => Finset.mem_univ (M.mtr M.start x))
+      rw [← hM] at hws
+      exact hws x hx y hy hne
+        ((nerodecongruence_accepts_apply M x y).mpr (fun z => heq ▸ Iff.rfl))
+
+-- Myhill-Nerode (2)
+@[simp]
+theorem minimum_dfa_states_eq_num_eqv_clss_nerode {M : DA.FinAcc States α}
+  [Fintype States] [Fintype (Quotient (NerodeCongruence (language M)).eq)] :
+    Fintype.card States ≥ Fintype.card (Quotient (NerodeCongruence (language M)).eq) := by
+      classical
+      let ws : Finset (List α) := Finset.univ.image
+                (Quotient.out : Quotient (NerodeCongruence (language M)).eq → List α)
+      have hws : ∀ x ∈ ws, ∀ y ∈ ws, x ≠ y → ¬(NerodeCongruence (language M)).r x y := by
+        simp only [ws, Finset.mem_image, Finset.mem_univ, true_and]
+        rintro _ ⟨qx, rfl⟩ _ ⟨qy, rfl⟩ hne h
+        exact hne (by simpa using Quotient.sound h)
+      have card_hws_eq_num_eqv_clss : ws.card = Fintype.card
+                (Quotient (NerodeCongruence (language M)).eq) := by
+        simp [ws, Finset.card_image_of_injective _ Quotient.out_injective]
+      exact card_hws_eq_num_eqv_clss ▸ lower_bound_num_states_dfa_acc hws rfl
+--
+
+def IsMinimalAutomaton (M : DA.FinAcc States α)
+  [Fintype States] [Fintype (Quotient (NerodeCongruence (language M)).eq)] :=
+    Fintype.card States = Fintype.card (Quotient (NerodeCongruence (language M)).eq)
+
+-- Myhill-Nerode (3)
+/- L and two minimal DFAs M and N accepting L ~> Iso M N -/
+@[simp]
+theorem unique_minimal_dfa (M : DA.FinAcc States_M α) [Fintype States_M]
+  [Fintype (Quotient (NerodeCongruence (language M)).eq)] (hMin : IsMinimalAutomaton M) :
+    ∃! φ : States_M ≃ Quotient (NerodeCongruence (language M)).eq,
+      ∀ x, φ (M.mtr M.start x) = ⟦x⟧ := by
+  sorry
+--
 
 end Automata.DA
 end Cslib
