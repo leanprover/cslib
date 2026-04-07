@@ -5,7 +5,7 @@ Authors: Fabrizio Montesi, Haoxuan Yin
 -/
 
 import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-import CsLib.Languages.LambdaCalculus.Named.Untyped.Properties
+import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 
 namespace CslibTests
 
