@@ -42,11 +42,10 @@ noncomputable def otp (l : ℕ) :
     simp [← BitVec.xor_assoc]
 
 /-- The one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10). -/
-theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret := by
-  rw [EncScheme.perfectlySecret_iff_ciphertextIndist]
-  intro m₀ m₁
-  simp only [EncScheme.ciphertextDist, otp]
-  exact (OTP.otp_ciphertextDist_eq_uniform l m₀).trans
-    (OTP.otp_ciphertextDist_eq_uniform l m₁).symm
+theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret :=
+  (EncScheme.perfectlySecret_iff_ciphertextIndist _).mpr fun m₀ m₁ => by
+    simp only [EncScheme.ciphertextDist, otp]
+    exact (OTP.otp_ciphertextDist_eq_uniform l m₀).trans
+      (OTP.otp_ciphertextDist_eq_uniform l m₁).symm
 
 end Cslib.Crypto.Protocols.PerfectSecrecy

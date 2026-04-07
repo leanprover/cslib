@@ -55,9 +55,7 @@ noncomputable def EncScheme.ofPure.{u} {Message Key Ciphertext : Type u} (gen : 
   gen := gen
   enc key message := PMF.pure (enc key message)
   dec := dec
-  correct key _ message ciphertext hc := by
-    rw [PMF.mem_support_pure_iff] at hc
-    subst hc
-    exact h key message
+  correct key _ message _ hc := by
+    rw [PMF.mem_support_pure_iff] at hc; subst hc; exact h key message
 
 end Cslib.Crypto.Protocols.PerfectSecrecy

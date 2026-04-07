@@ -7,6 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
+public import Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 @[expose] public section
@@ -24,10 +25,8 @@ Core definitions for perfect secrecy following [KatzLindell2020], Chapter 2.
   joint (message, ciphertext) distribution given a message prior
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.marginalCiphertextDist`:
   marginal ciphertext distribution given a message prior
-- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.posteriorMsgProb`:
-  posterior probability `Pr[M = m | C = c]`
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.posteriorMsgDist`:
-  posterior message distribution as a `PMF` (defined in the internal file)
+  posterior message distribution `Pr[M | C = c]` as a `PMF`
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.PerfectlySecret`:
   perfect secrecy ([KatzLindell2020], Definition 2.3)
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.CiphertextIndist`:
@@ -53,21 +52,29 @@ noncomputable def marginalCiphertextDist (scheme : EncScheme M K C)
     (msgDist : PMF M) : PMF C := do
   scheme.ciphertextDist (← msgDist)
 
--- TODO: posteriorMsgProb is itself a distribution — define it as a PMF
--- (see posteriorMsgDist in Internal/PerfectSecrecy.lean) and express
--- PerfectlySecret in terms of equality of distributions.
-/-- Posterior probability `Pr[M = m | C = c]`. -/
-noncomputable def posteriorMsgProb (scheme : EncScheme M K C)
-    (msgDist : PMF M) (c : C) (m : M) : ENNReal :=
-  scheme.jointDist msgDist (m, c) / scheme.marginalCiphertextDist msgDist c
+/-- The posterior message distribution `Pr[M | C = c]` as a probability
+distribution, given a message prior and a ciphertext in the support of
+the marginal distribution. -/
+noncomputable def posteriorMsgDist (scheme : EncScheme M K C)
+    (msgDist : PMF M) (c : C)
+    (hc : c ∈ (scheme.marginalCiphertextDist msgDist).support) : PMF M :=
+  PMFUtilities.posteriorDist msgDist scheme.ciphertextDist c hc
 
-/-- An encryption scheme is perfectly secret if `Pr[M = m | C = c] = Pr[M = m]`
-for every prior, message, and ciphertext with positive probability
+@[simp]
+theorem posteriorMsgDist_apply (scheme : EncScheme M K C)
+    (msgDist : PMF M) (c : C)
+    (hc : c ∈ (scheme.marginalCiphertextDist msgDist).support) (m : M) :
+    scheme.posteriorMsgDist msgDist c hc m =
+      scheme.jointDist msgDist (m, c) / scheme.marginalCiphertextDist msgDist c :=
+  rfl
+
+/-- An encryption scheme is perfectly secret if the posterior message
+distribution equals the prior for every ciphertext with positive probability
 ([KatzLindell2020], Definition 2.3). -/
 def PerfectlySecret (scheme : EncScheme M K C) : Prop :=
-  ∀ (msgDist : PMF M) (m : M) (c : C),
-    c ∈ (scheme.marginalCiphertextDist msgDist).support →
-    scheme.posteriorMsgProb msgDist c m = msgDist m
+  ∀ (msgDist : PMF M) (c : C)
+    (hc : c ∈ (scheme.marginalCiphertextDist msgDist).support),
+    scheme.posteriorMsgDist msgDist c hc = msgDist
 
 /-- Ciphertext indistinguishability: the ciphertext distribution is the same
 for all messages ([KatzLindell2020], Lemma 2.5). -/

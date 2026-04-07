@@ -21,8 +21,6 @@ Characterisation theorems for perfect secrecy following
 
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.perfectlySecret_iff_ciphertextIndist`:
   ciphertext indistinguishability characterization ([KatzLindell2020], Lemma 2.5)
-- `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.perfectlySecret_iff_posteriorEq`:
-  perfect secrecy as equality of posterior and prior distributions
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.perfectlySecret_keySpace_ge`:
   Shannon's theorem, `|K| ≥ |M|` ([KatzLindell2020], Theorem 2.12)
 
