@@ -89,8 +89,8 @@ theorem rename_comm2 {m : Term Var} {x y z w : Var} :
   · grind [rename_comm]
 
 omit [DecidableEq Var] in
-@[grind ←]
-lemma induction_by_sizeOf {m n : Term Var} : WellFoundedRelation.rel m n ↔ sizeOf m < sizeOf n := by
+@[grind norm↓← ]
+lemma induction_by_sizeOf {m n : Term Var} : sizeOf m < sizeOf n ↔ WellFoundedRelation.rel m n := by
   rfl
 
 /-- α-equivalent terms have the same size. -/
@@ -130,6 +130,7 @@ theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
     apply AlphaEquiv.abs (y := z)
     · grind [rename_vars]
     apply ih
+    -- rw [← induction_by_sizeOf]
     grind [rename_eq_sizeOf]
   | app m n =>
     apply AlphaEquiv.app <;> apply ih <;> grind
