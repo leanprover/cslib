@@ -46,8 +46,6 @@ This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) 
 - `PFunctor.FreeM.lift`: Lift an object of the base polynomial functor into the free monad.
 - `PFunctor.FreeM.liftA`: Lift a position of the base polynomial functor into the free monad.
 - `PFunctor.FreeM.mapM`: Canonical mapping of `FreeM P` into any other monad.
-- `PFunctor.FreeM.inductionOn`: Induction principle for `FreeM P`.
-- `PFunctor.FreeM.construct`: Dependent eliminator for `FreeM P`.
 -/
 
 @[expose] public section
@@ -195,49 +193,6 @@ lemma pure_inj (a b : α) : (pure a : FreeM P α) = pure b ↔ a = b := by
   · cases ha
     simp
   · simp [ha]
-
-/-- Proving a predicate `C` of `FreeM P α` requires two cases:
-* `pure a` for some `a : α`
-* `liftBind a cont h` for some `a : P.A`, `cont : P.B a → FreeM P α`,
-  and `h : ∀ y, C (cont y)` -/
-@[elab_as_elim]
-protected def inductionOn {C : FreeM P α → Prop}
-    (pure : ∀ a, C (pure a))
-    (liftBind : (a : P.A) → (cont : P.B a → FreeM P α) → (∀ y, C (cont y)) →
-      C (FreeM.liftBind a cont)) :
-    (x : FreeM P α) → C x
-  | FreeM.pure a => pure a
-  | FreeM.liftBind a cont =>
-    liftBind a _ (fun u ↦ FreeM.inductionOn pure liftBind (cont u))
-
-section construct
-
-/-- Dependent eliminator for `FreeM P`. -/
-@[elab_as_elim]
-protected def construct {C : FreeM P α → Type*}
-    (pure : (a : α) → C (pure a))
-    (liftBind : (a : P.A) → (cont : P.B a → FreeM P α) → ((y : P.B a) → C (cont y)) →
-      C (FreeM.liftBind a cont)) :
-    (x : FreeM P α) → C x
-  | .pure a => pure a
-  | .liftBind a cont =>
-    liftBind a _ (fun u ↦ FreeM.construct pure liftBind (cont u))
-
-variable {C : FreeM P α → Type*} (h_pure : (a : α) → C (pure a))
-  (h_liftBind : (a : P.A) → (cont : P.B a → FreeM P α) → ((y : P.B a) → C (cont y)) →
-    C (FreeM.liftBind a cont))
-
-@[simp]
-lemma construct_pure (a : α) :
-    FreeM.construct h_pure h_liftBind (pure a) = h_pure a := rfl
-
-@[simp]
-lemma construct_liftBind (a : P.A) (cont : P.B a → FreeM P α) :
-    (FreeM.construct h_pure h_liftBind (FreeM.liftBind a cont) :
-      C (FreeM.liftBind a cont)) =
-      (h_liftBind a cont (fun u => FreeM.construct h_pure h_liftBind (cont u))) := rfl
-
-end construct
 
 section mapM
 
