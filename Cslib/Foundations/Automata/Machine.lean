@@ -48,7 +48,7 @@ instance : LargeCategory Machine where
 def tensorObj (X Y : Machine.{u}) : Machine := X × Y
 
 def tensorHom
-    {X₁ Y₁ X₂ Y₂ : Machine}
+    {X₁ Y₁ X₂ Y₂ : Machine.{u}}
     (f : X₁ ⟶ Y₁)
     (g : X₂ ⟶ Y₂)
     (v : Stream' (X₁ × X₂)) :
@@ -58,11 +58,11 @@ def tensorHom
   Stream'.zip Prod.mk x₁s x₂s
 
 def whiskerLeft
-    (X : Machine.{u}) {Y₁ Y₂ : Machine} : (Y₁ ⟶ Y₂) → (tensorObj X Y₁ ⟶ tensorObj X Y₂) :=
+    (X : Machine.{u}) {Y₁ Y₂ : Machine.{u}} : (Y₁ ⟶ Y₂) → (tensorObj X Y₁ ⟶ tensorObj X Y₂) :=
   tensorHom (𝟙 X)
 
 def whiskerRight
-    {X₁ X₂ : Machine} (f : X₁ ⟶ X₂) (Y : Machine.{u}) : tensorObj X₁ Y ⟶ tensorObj X₂ Y :=
+    {X₁ X₂ : Machine.{u}} (f : X₁ ⟶ X₂) (Y : Machine.{u}) : tensorObj X₁ Y ⟶ tensorObj X₂ Y :=
   tensorHom f (𝟙 Y)
 
 def tensorUnit : Machine := PUnit
@@ -108,8 +108,8 @@ def rightUnitor_hom : Stream' (X × PUnit) → Stream' X := Stream'.map Prod.fst
 
 def rightUnitor_inv : Stream' X → Stream' (X × PUnit) := Stream'.map fun x => (x, PUnit.unit)
 
-theorem rightUnitor_hom_inv_id :
-    rightUnitor_hom ≫ rightUnitor_inv = 𝟙 (tensorObj X tensorUnit) := rfl
+theorem rightUnitor_hom_inv_id : rightUnitor_hom ≫ rightUnitor_inv = 𝟙 (tensorObj X tensorUnit) :=
+  rfl
 
 theorem rightUnitor_inv_hom_id : rightUnitor_inv ≫ rightUnitor_hom = 𝟙 X := rfl
 
@@ -145,7 +145,7 @@ def braiding (X Y : Machine.{u}) : X ⊗ Y ≅ Y ⊗ X where
 instance : SymmetricCategory Machine where
   braiding
 
-def rightAdj {X : Machine} : Machine ⥤ Machine where
+def rightAdj {X : Machine.{u}} : Machine ⥤ Machine where
   obj Y := Stream' X → Y
   map f s n xs := f (fun m => s m xs) n
 
@@ -155,9 +155,7 @@ def toFun (f : (tensorLeft X).obj A ⟶ Y) (a : Stream' A) (n : ℕ) (xs : Strea
 def invFun (g : Z ⟶ X.rightAdj.obj Y) (xas : Stream' (X × Z)) (n : ℕ) : Y :=
   g (Stream'.map Prod.snd xas) n (Stream'.map Prod.fst xas)
 
-theorem left_inv (f : (tensorLeft X).obj A ⟶ Y) : invFun (toFun f) = f := by
-  funext xas n
-  congr 1
+theorem left_inv (f : (tensorLeft X).obj A ⟶ Y) : invFun (toFun f) = f := rfl
 
 theorem right_inv (g : A ⟶ X.rightAdj.obj Y) : toFun (invFun g) = g := rfl
 
