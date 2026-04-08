@@ -96,8 +96,8 @@ theorem IsRegular.finite_range_nerode_quotient (h : l.IsRegular) :
   rcases IsRegular.iff_dfa.mp h with ⟨State, hFin, M, hM⟩
   rw [← hM]
   apply Finite.of_surjective
-    (fun s : State => Quotient.mk (NerodeCongruence (language M)).eq
-      (Classical.epsilon (fun x => M.mtr M.start x = s)))
+    (fun s : State =>
+      ⟦ Classical.epsilon (fun x => M.mtr M.start x = s) ⟧)
   intro q
   induction q using Quotient.inductionOn with
   | h x =>
@@ -197,19 +197,19 @@ theorem statecongruence_refines_nerodecongruence {M : DA.FinAcc States α} :
 /-- Every equivalence class of `l` under a Nerode congruence is a union of one or more equivalence
 classes from the state congruence of a DFA accepting `l`. -/
 @[simp]
-lemma nerodecongruence_eqv_cls_eq_union_statecongruence_eqv_clss
+theorem nerodecongruence_eqv_cls_eq_union_statecongruence_eqv_clss
     {M : DA.FinAcc States α} (Q : Quotient (NerodeCongruence (language M)).eq) :
-    {x : List α | Quotient.mk (NerodeCongruence (language M)).eq x = Q} =
+    {x : List α | (⟦ x ⟧ : Quotient (NerodeCongruence (language M)).eq) = Q} =
       ⋃ (R : Quotient (StateCongruence M).eq)
-        (_ : Quotient.mk (NerodeCongruence (language M)).eq (Quotient.out R) = Q),
-        {x | Quotient.mk (StateCongruence M).eq x = R} := by
+        (_ : (⟦ Quotient.out R ⟧ : Quotient (NerodeCongruence (language M)).eq) = Q),
+        {x | (⟦ x ⟧ : Quotient (StateCongruence M).eq) = R} := by
   let NC := NerodeCongruence (language M); let SC := StateCongruence M
   ext x; simp only [Set.mem_setOf_eq, Set.mem_iUnion]
   constructor
   · intro hx
-    exact ⟨Quotient.mk SC.eq x,
+    exact ⟨(⟦ x ⟧ : Quotient SC.eq),
       (Quotient.sound (statecongruence_refines_nerodecongruence _ _
-        (Quotient.eq.mp (Quotient.out_eq (Quotient.mk SC.eq x))))).trans hx,
+        (Quotient.eq.mp (Quotient.out_eq (⟦ x ⟧ : Quotient SC.eq))))).trans hx,
       rfl⟩
   · intro ⟨R, hRQ, hxR⟩
     exact (Quotient.out_eq Q) ▸ Quotient.sound (NC.iseqv.trans
@@ -227,8 +227,8 @@ theorem unique_minimal_dfa (M : DA.FinAcc States α) [Fintype States]
       ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := by
   haveI : Finite States := @Fintype.finite States ‹Fintype States›
   let φ : States → Quotient (NerodeCongruence (language M)).eq :=
-    fun s => ⟦Classical.epsilon (fun x : List α => M.mtr M.start x = s)⟧
-  have hφ : ∀ x, φ (M.mtr M.start x) = ⟦x⟧ := fun x => by
+    fun s => ⟦ Classical.epsilon (fun x : List α => M.mtr M.start x = s) ⟧
+  have hφ : ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := fun x => by
     apply Quotient.sound
     apply statecongruence_refines_nerodecongruence
     intro z
