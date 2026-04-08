@@ -45,7 +45,7 @@ This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) 
 - `PFunctor.FreeM`: The free monad on a polynomial functor.
 - `PFunctor.FreeM.lift`: Lift an object of the base polynomial functor into the free monad.
 - `PFunctor.FreeM.liftA`: Lift a position of the base polynomial functor into the free monad.
-- `PFunctor.FreeM.mapM`: Canonical mapping of `FreeM P` into any other monad.
+- `PFunctor.FreeM.liftM`: Interpret `FreeM P` into any other monad.
 -/
 
 @[expose] public section
@@ -194,77 +194,77 @@ lemma pure_inj (a b : α) : (pure a : FreeM P α) = pure b ↔ a = b := by
     simp
   · simp [ha]
 
-section mapM
+section liftM
 
 variable {m : Type uB → Type v} {α : Type uB}
 
-/-- Canonical mapping of `FreeM P` into any other monad, given an interpretation
-`interp : (a : P.A) → m (P.B a)`. -/
-protected def mapM [Pure m] [Bind m] (interp : (a : P.A) → m (P.B a)) : FreeM P α → m α
+/-- Interpret a `FreeM P` computation into any monad `m` by providing an interpretation
+`interp : (a : P.A) → m (P.B a)` for each operation. -/
+protected def liftM [Pure m] [Bind m] (interp : (a : P.A) → m (P.B a)) : FreeM P α → m α
   | .pure a => Pure.pure a
-  | .liftBind a cont => (interp a) >>= (fun u ↦ (cont u).mapM interp)
+  | .liftBind a cont => (interp a) >>= (fun u ↦ (cont u).liftM interp)
 
 variable [Monad m] (interp : (a : P.A) → m (P.B a))
 
 @[simp]
-lemma mapM_pure' (a : α) : (FreeM.pure a : FreeM P α).mapM interp = Pure.pure a := rfl
+lemma liftM_pure' (a : α) : (FreeM.pure a : FreeM P α).liftM interp = Pure.pure a := rfl
 
 @[simp]
-lemma mapM_liftBind (a : P.A) (cont : P.B a → FreeM P α) :
-    (FreeM.liftBind a cont).mapM interp = interp a >>= fun u => (cont u).mapM interp := rfl
+lemma liftM_liftBind (a : P.A) (cont : P.B a → FreeM P α) :
+    (FreeM.liftBind a cont).liftM interp = interp a >>= fun u => (cont u).liftM interp := rfl
 
 @[simp]
-lemma mapM_pure (a : α) : (Pure.pure a : FreeM P α).mapM interp = Pure.pure a := rfl
+lemma liftM_pure (a : α) : (Pure.pure a : FreeM P α).liftM interp = Pure.pure a := rfl
 
 variable [LawfulMonad m]
 
 @[simp]
-lemma mapM_bind {α β : Type uB} (x : FreeM P α) (f : α → FreeM P β) :
-    (x.bind f).mapM interp = x.mapM interp >>= fun u => (f u).mapM interp := by
+lemma liftM_bind {α β : Type uB} (x : FreeM P α) (f : α → FreeM P β) :
+    (x.bind f).liftM interp = x.liftM interp >>= fun u => (f u).liftM interp := by
   induction x with
-  | pure _ => simp [FreeM.bind, FreeM.mapM]
+  | pure _ => simp [FreeM.bind, FreeM.liftM]
   | liftBind a cont h => simp [h]
 
 @[simp]
-lemma mapM_bind' {α β : Type uB} (x : FreeM P α) (f : α → FreeM P β) :
-    (x >>= f).mapM interp = x.mapM interp >>= fun u => (f u).mapM interp :=
-  mapM_bind _ _ _
+lemma liftM_bind' {α β : Type uB} (x : FreeM P α) (f : α → FreeM P β) :
+    (x >>= f).liftM interp = x.liftM interp >>= fun u => (f u).liftM interp :=
+  liftM_bind _ _ _
 
 @[simp]
-lemma mapM_map {α β : Type uB} (x : FreeM P α) (f : α → β) :
-    FreeM.mapM interp (map f x) = f <$> FreeM.mapM interp x := by
+lemma liftM_map {α β : Type uB} (x : FreeM P α) (f : α → β) :
+    FreeM.liftM interp (map f x) = f <$> FreeM.liftM interp x := by
   induction x with
-  | pure _ => simp [map, FreeM.mapM]
+  | pure _ => simp [map, FreeM.liftM]
   | liftBind a cont h => simp [h]
 
 @[simp]
-lemma mapM_seq {α β : Type uB}
+lemma liftM_seq {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : FreeM P (α → β)) (y : FreeM P α) :
-    FreeM.mapM interp (x <*> y) = (FreeM.mapM interp x) <*> (FreeM.mapM interp y) := by
-  simp only [seq_eq_bind_map, mapM_bind', map_eq_map, mapM_map]
+    FreeM.liftM interp (x <*> y) = (FreeM.liftM interp x) <*> (FreeM.liftM interp y) := by
+  simp only [seq_eq_bind_map, liftM_bind', map_eq_map, liftM_map]
 
 @[simp]
-lemma mapM_seqLeft {α β : Type uB}
+lemma liftM_seqLeft {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : FreeM P α) (y : FreeM P β) :
-    FreeM.mapM interp (x <* y) = FreeM.mapM interp x <* FreeM.mapM interp y := by
-  simp only [seqLeft_eq_bind, mapM_bind', mapM_pure]
+    FreeM.liftM interp (x <* y) = FreeM.liftM interp x <* FreeM.liftM interp y := by
+  simp only [seqLeft_eq_bind, liftM_bind', liftM_pure]
 
 @[simp]
-lemma mapM_seqRight {α β : Type uB}
+lemma liftM_seqRight {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : FreeM P α) (y : FreeM P β) :
-    FreeM.mapM interp (x *> y) = FreeM.mapM interp x *> FreeM.mapM interp y := by
-  simp only [seqRight_eq_bind, mapM_bind']
+    FreeM.liftM interp (x *> y) = FreeM.liftM interp x *> FreeM.liftM interp y := by
+  simp only [seqRight_eq_bind, liftM_bind']
 
 @[simp]
-lemma mapM_lift (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
-    FreeM.mapM interp (FreeM.lift x) = x.2 <$> interp x.1 := by
+lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
+    FreeM.liftM interp (FreeM.lift x) = x.2 <$> interp x.1 := by
   simp [lift]
 
 @[simp]
-lemma mapM_liftA (interp : (a : P.A) → m (P.B a)) (a : P.A) :
-    FreeM.mapM interp (FreeM.liftA a) = interp a := by simp [liftA]
+lemma liftM_liftA (interp : (a : P.A) → m (P.B a)) (a : P.A) :
+    FreeM.liftM interp (FreeM.liftA a) = interp a := by simp [liftA]
 
-end mapM
+end liftM
 
 end FreeM
 
