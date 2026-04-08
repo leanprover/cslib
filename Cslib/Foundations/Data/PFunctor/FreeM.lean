@@ -17,6 +17,27 @@ We define the free monad on a **polynomial functor** (`PFunctor`), and prove som
 The free monad `PFunctor.FreeM P` extends the W-type construction with an extra `pure`
 constructor, yielding a monad that is free over the polynomial functor `P`.
 
+## Comparison with `Cslib.FreeM`
+
+`Cslib.FreeM F` (in `Cslib.Foundations.Control.Monad.Free`) builds a free monad over an
+arbitrary type constructor `F : Type u → Type v`, using a single `liftBind` constructor that
+existentially quantifies the intermediate type:
+```
+| liftBind {ι : Type u} (op : F ι) (cont : ι → FreeM F α) : FreeM F α
+```
+Here the intermediate type `ι` is hidden, so `F` need not be a `Functor`.
+
+`PFunctor.FreeM P` instead takes a polynomial functor `P : PFunctor`, where the shapes
+`P.A` and children `P.B a` are given explicitly.
+Its `liftBind` constructor carries the shape and continuation without existential quantification:
+```
+| liftBind (a : P.A) (cont : P.B a → FreeM P α) : FreeM P α
+```
+
+When the effect signature is naturally polynomial (a fixed set of operations, each with a
+known return type), `PFunctor.FreeM` gives stronger eliminators and avoids the universe
+bump that the existential in `Cslib.FreeM` introduces.
+
 This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) library.
 
 ## Main Definitions
