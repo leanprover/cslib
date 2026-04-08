@@ -144,6 +144,7 @@ def Context.fill (c : Context Var) (m : Term Var) : Term Var :=
   | appL c n => Term.app (c.fill m) n
   | appR n c => Term.app n (c.fill m)
 
+/-- Variables (both free and bound) in a context. -/
 def Context.vars : Context Var → Finset Var
   | hole => ∅
   | abs x c => c.vars ∪ {x}
