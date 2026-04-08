@@ -40,6 +40,10 @@ theorem subst_fresh (x : Var) (t sub : Term Var) (nmem : x ∉ t.fv) : t [x := s
 lemma open_close (x : Var) (t : Term Var) (k : ℕ) (nmem : x ∉ t.fv) : t = t⟦k ↝ fvar x⟧⟦k ↜ x⟧ := by
   induction t generalizing k <;> grind
 
+/-- Specializes `open_close` to the first closing. -/
+lemma open_close_var (x : Var) (t : Term Var) (nmem : x ∉ t.fv) : t = (t ^ fvar x) ^* x :=
+  open_close x t 0 nmem
+
 /-- Opening is injective. -/
 lemma open_injective (x : Var) (M M') (free_M : x ∉ M.fv) (free_M' : x ∉ M'.fv)
     (eq : M ^ fvar x = M' ^ fvar x) : M = M' := by
@@ -57,6 +61,11 @@ lemma close_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) : x ∉
 /-- Opening to a fresh free variable preserves free variables. -/
 lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) (neq : x ≠ y) :
     x ∉ (m⟦k ↝ fvar y⟧).fv := by
+  induction m generalizing k <;> grind
+
+/-- Opening preserves free variables. -/
+lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_n : x ∉ n.fv) :
+    x ∉ (m⟦k ↝ n⟧).fv := by
   induction m generalizing k <;> grind
 
 /-- Substitution preserves free variables. -/
@@ -81,6 +90,12 @@ lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
   induction e_lc generalizing k with
   | abs xs e _ _ => grind [open_lc_aux e 0 (fvar (fresh xs)) (k+1) t]
   | _ => grind
+
+/- If opening yields `app m x`, the original term was `app m (bvar 0)`. -/
+lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m.fv) (lc_m : LC m)
+    (h : n ^ fvar x = app m (fvar x)) : n = app m (bvar 0) := by
+  apply open_injective x n _ hw_n (by grind)
+  grind [open_lc 0 (fvar x) m lc_m]
 
 /-- Substitution of a locally closed term distributes with opening. -/
 @[scoped grind =]

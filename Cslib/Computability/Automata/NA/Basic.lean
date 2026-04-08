@@ -9,7 +9,7 @@ module
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
-public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
 @[expose] public section
 
@@ -47,7 +47,7 @@ variable {State Symbol : Type*}
 /-- Infinite run. -/
 structure Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) where
   start : ss 0 ∈ na.start
-  trans : na.ωTr ss xs
+  trans : na.OmegaExecution ss xs
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where

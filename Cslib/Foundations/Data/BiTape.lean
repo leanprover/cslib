@@ -7,7 +7,7 @@ Authors: Bolton Bailey
 module
 
 public import Cslib.Foundations.Data.StackTape
-public import Mathlib.Computability.Tape
+public import Mathlib.Computability.TuringMachine.Tape
 public import Mathlib.Data.Finset.Attr
 public import Mathlib.Tactic.SetLike
 public import Mathlib.Algebra.Order.Group.Nat
