@@ -49,12 +49,19 @@ open Acceptor
 
 variable {α : Type} {l m : Language α}
 
+/-- The Nerode congruence of a language `l` is a right congruence on strings where two
+strings are related iff. all their right extensions are either both in the language
+or both not in it. -/
 def NerodeCongruence (l : Language α) : RightCongruence α where
   r x y := ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l
   iseqv := ⟨fun _ _ => Iff.rfl, fun h z => (h z).symm, fun h_1 h_2 z => (h_1 z).trans (h_2 z)⟩
   right_cov := ⟨fun a {x y} (h : ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l) z =>
     List.append_assoc x a z ▸ List.append_assoc y a z ▸ h (a ++ z)⟩
 
+/-- The Nerode congruence of a language `l` gives rise to a DFA where each state corresponds to an
+equivalence class of the language under the Nerode congruence. Note that this is simply the DFA
+given rise to by the underlying right congruence with only the accept states specified here as
+`{⟦ x ⟧ | x ∈ l}`. -/
 def NerodeCongruence.toFinAcc (l : Language α) : 
     DA.FinAcc (Quotient (NerodeCongruence l).eq) α :=
   letI c := NerodeCongruence l
@@ -63,6 +70,7 @@ def NerodeCongruence.toFinAcc (l : Language α) :
       intro x y hxy
       simpa using hxy []) q} }
 
+/-- The DFA constructed from the Nerode congruence on `l` accepts `l`. -/
 @[simp, scoped grind =]
 theorem nerodecongruence_to_finacc_acc (l : Language α) :
     language (NerodeCongruence.toFinAcc l) = l := by
@@ -70,6 +78,9 @@ theorem nerodecongruence_to_finacc_acc (l : Language α) :
       simp [NerodeCongruence.toFinAcc, language, Acceptor.Accepts]
       exact Iff.of_eq rfl
 
+/-- The statement that two strings are related by the Nerode congruence `c` iff. all their right
+extensions are either both in the language or both not in it is equivalent to saying that all their
+right extensions are either both accepted or rejected by the DFA given rise to by `c`. -/
 theorem nerodecongruence_accepts_apply
     (M : DA.FinAcc State α) (x y : List α) :
     (NerodeCongruence (language M)).r x y ↔
@@ -79,6 +90,7 @@ theorem nerodecongruence_accepts_apply
   simp only [FLTS.mtr, ← List.foldl_append]
   rfl
 
+/-- If `l` is regular, then `l/c` is finite. -/
 theorem IsRegular.finite_range_nerode_quotient (h : l.IsRegular) :
     Finite (Quotient (NerodeCongruence l).eq) := by
   rcases IsRegular.iff_dfa.mp h with ⟨State, hFin, M, hM⟩
@@ -99,6 +111,8 @@ theorem IsRegular.finite_range_nerode_quotient (h : l.IsRegular) :
       rw [heps])⟩
 
 -- Myhill-Nerode (1)
+
+/-- `l` is regular if and only if `l/c` is finite. -/
 @[simp, scoped grind =]
 theorem IsRegular_iff_finite_eqv_cls_wrt_nerode {l : Language α} :
     l.IsRegular ↔ Finite (Quotient (NerodeCongruence l).eq) := by
@@ -110,6 +124,8 @@ theorem IsRegular_iff_finite_eqv_cls_wrt_nerode {l : Language α} :
           NerodeCongruence.toFinAcc l, nerodecongruence_to_finacc_acc l⟩
 --
 
+/-- Given a set of strings all distinguishable by `l` (i.e., not related to each other by `c`),
+the number of states in the DFA accepting `l` is at least the number of strings in the set. -/
 @[simp]
 theorem lower_bound_num_states_dfa_acc {l : Language α} {M : DA.FinAcc States α}
   {ws : Finset (List α)} (hws : ∀ x ∈ ws, ∀ y ∈ ws, x ≠ y → ¬(NerodeCongruence l).r x y)
@@ -128,6 +144,9 @@ theorem lower_bound_num_states_dfa_acc {l : Language α} {M : DA.FinAcc States �
         ((nerodecongruence_accepts_apply M x y).mpr (fun z => heq ▸ Iff.rfl))
 
 -- Myhill-Nerode (2)
+
+/-- All DFAs accepting `l` must have at least as many states as the number of equivalence classes
+of `l` under `c` (i.e., `|l/c|`). -/
 @[simp]
 theorem minimum_dfa_states_eq_num_eqv_clss_nerode {M : DA.FinAcc States α}
   [Fintype States] [Fintype (Quotient (NerodeCongruence (language M)).eq)] :
@@ -145,18 +164,88 @@ theorem minimum_dfa_states_eq_num_eqv_clss_nerode {M : DA.FinAcc States α}
       exact card_hws_eq_num_eqv_clss ▸ lower_bound_num_states_dfa_acc hws rfl
 --
 
+/-- The minimal DFA accepting `l` has `|l/c|` states. -/
 def IsMinimalAutomaton (M : DA.FinAcc States α)
   [Fintype States] [Fintype (Quotient (NerodeCongruence (language M)).eq)] :=
     Fintype.card States = Fintype.card (Quotient (NerodeCongruence (language M)).eq)
 
--- Myhill-Nerode (3)
-/- L and two minimal DFAs M and N accepting L ~> Iso M N -/
+/-- Given a DFA `M`, two strings are related iff. they reach the same state under when run through
+`M`. The Nerode congruence is the state congruence wrt. the minimal DFA accepting `l`. -/
+def StateCongruence (M : DA.FinAcc States α) : RightCongruence α where
+  r x y := ∀ z, M.mtr M.start (x ++ z) = M.mtr M.start (y ++ z)
+  iseqv := ⟨by intro x z; rfl, by intro x y h z; symm; exact h z,
+      by intro x y z h_1 h_2 w; exact (h_1 w).trans (h_2 w)⟩
+  right_cov := ⟨by
+        intro a x y h z
+        simpa [List.append_assoc, FLTS.mtr_concat_eq] using h (a ++ z)⟩
+
+/-- The Nerode congruence is the most coarse state congruence given a language. -/
 @[simp]
-theorem unique_minimal_dfa (M : DA.FinAcc States_M α) [Fintype States_M]
-  [Fintype (Quotient (NerodeCongruence (language M)).eq)] (hMin : IsMinimalAutomaton M) :
-    ∃! φ : States_M ≃ Quotient (NerodeCongruence (language M)).eq,
-      ∀ x, φ (M.mtr M.start x) = ⟦x⟧ := by
-  sorry
+theorem statecongruence_refines_nerodecongruence {M : DA.FinAcc States α} :
+    ∀ x y, (StateCongruence M).r x y → (NerodeCongruence (language M)).r x y := by
+  intro x y h z
+  constructor
+  · intro hx
+    have := h z
+    simpa [language, Acceptor.Accepts, FLTS.mtr_concat_eq] using
+      congrArg (fun s => s ∈ M.accept) this ▸ hx
+  · intro hy
+    have := h z
+    simpa [language, Acceptor.Accepts, FLTS.mtr_concat_eq] using
+      congrArg (fun s => s ∈ M.accept) this ▸ hy
+
+/-- Every equivalence class of `l` under a Nerode congruence is a union of one or more equivalence
+classes from the state congruence of a DFA accepting `l`. -/
+@[simp]
+lemma nerodecongruence_eqv_cls_eq_union_statecongruence_eqv_clss
+    {M : DA.FinAcc States α} (Q : Quotient (NerodeCongruence (language M)).eq) :
+    {x : List α | Quotient.mk (NerodeCongruence (language M)).eq x = Q} =
+      ⋃ (R : Quotient (StateCongruence M).eq)
+        (_ : Quotient.mk (NerodeCongruence (language M)).eq (Quotient.out R) = Q),
+        {x | Quotient.mk (StateCongruence M).eq x = R} := by
+  let NC := NerodeCongruence (language M); let SC := StateCongruence M
+  ext x; simp only [Set.mem_setOf_eq, Set.mem_iUnion]
+  constructor
+  · intro hx
+    exact ⟨Quotient.mk SC.eq x,
+      (Quotient.sound (statecongruence_refines_nerodecongruence _ _
+        (Quotient.eq.mp (Quotient.out_eq (Quotient.mk SC.eq x))))).trans hx,
+      rfl⟩
+  · intro ⟨R, hRQ, hxR⟩
+    exact (Quotient.out_eq Q) ▸ Quotient.sound (NC.iseqv.trans
+      (statecongruence_refines_nerodecongruence _ _
+        (Quotient.eq.mp (hxR.trans (Quotient.out_eq R).symm)))
+      (Quotient.eq.mp (hRQ.trans (Quotient.out_eq Q).symm)))
+
+-- Myhill-Nerode (3)
+
+/-- The minimal DFA `M` accepting `l` is unique up to unique isomorphism. -/
+@[simp]
+theorem unique_minimal_dfa (M : DA.FinAcc States α) [Fintype States]
+    [Fintype (Quotient (NerodeCongruence (language M)).eq)] (hMin : IsMinimalAutomaton M) :
+    ∃! φ : States ≃ Quotient (NerodeCongruence (language M)).eq,
+      ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := by
+  haveI : Finite States := @Fintype.finite States ‹Fintype States›
+  let φ : States → Quotient (NerodeCongruence (language M)).eq :=
+    fun s => ⟦Classical.epsilon (fun x : List α => M.mtr M.start x = s)⟧
+  have hφ : ∀ x, φ (M.mtr M.start x) = ⟦x⟧ := fun x => by
+    apply Quotient.sound
+    apply statecongruence_refines_nerodecongruence
+    intro z
+    have := @Classical.epsilon_spec _ (fun y : List α => M.mtr M.start y = M.mtr M.start x) ⟨x, rfl⟩
+    simp only [FLTS.mtr, List.foldl_append] at this ⊢; rw [this]
+  have hφ_surj : Function.Surjective φ := fun q =>
+    q.inductionOn (fun x => ⟨M.mtr M.start x, hφ x⟩)
+  have hφ_inj : Function.Injective φ :=
+    hφ_surj.injective_of_finite (Fintype.equivOfCardEq hMin)
+  let φ_equiv := Equiv.ofBijective φ ⟨hφ_inj, hφ_surj⟩
+  refine ⟨φ_equiv, hφ, fun ψ hψ => ?_⟩
+  ext s
+  obtain ⟨x, rfl⟩ : ∃ x, M.mtr M.start x = s := by
+    induction h : φ s using Quotient.inductionOn with
+    | h x => exact ⟨x, hφ_inj ((hφ x).trans h.symm)⟩
+  simp [φ_equiv, Equiv.ofBijective, hφ, hψ]
+
 --
 
 end Automata.DA
