@@ -58,16 +58,11 @@ def tensorHom
   Stream'.zip Prod.mk x₁s x₂s
 
 def whiskerLeft
-    (X : Machine.{u})
-    {Y₁ Y₂ : Machine} :
-    (Y₁ ⟶ Y₂) →
-    (tensorObj X Y₁ ⟶ tensorObj X Y₂) :=
+    (X : Machine.{u}) {Y₁ Y₂ : Machine} : (Y₁ ⟶ Y₂) → (tensorObj X Y₁ ⟶ tensorObj X Y₂) :=
   tensorHom (𝟙 X)
 
 def whiskerRight
-    {X₁ X₂ : Machine}
-    (f : X₁ ⟶ X₂)
-    (Y : Machine.{u}) : tensorObj X₁ Y ⟶ tensorObj X₂ Y :=
+    {X₁ X₂ : Machine} (f : X₁ ⟶ X₂) (Y : Machine.{u}) : tensorObj X₁ Y ⟶ tensorObj X₂ Y :=
   tensorHom f (𝟙 Y)
 
 def tensorUnit : Machine := PUnit
@@ -97,11 +92,9 @@ end associators
 
 def leftUnitor_hom : Stream' (PUnit × X) → Stream' X := Stream'.map Prod.snd
 
-def leftUnitor_inv : Stream' X → Stream' (PUnit × X) :=
-  Stream'.map fun x => (PUnit.unit, x)
+def leftUnitor_inv : Stream' X → Stream' (PUnit × X) := Stream'.map fun x => (PUnit.unit, x)
 
-theorem leftUnitor_hom_inv_id :
-    leftUnitor_hom ≫ leftUnitor_inv = 𝟙 (tensorObj tensorUnit X) := rfl
+theorem leftUnitor_hom_inv_id : leftUnitor_hom ≫ leftUnitor_inv = 𝟙 (tensorObj tensorUnit X) := rfl
 
 theorem leftUnitor_inv_hom_id : leftUnitor_inv ≫ leftUnitor_hom = 𝟙 X := rfl
 
@@ -143,11 +136,11 @@ def braiding_hom (X Y : Machine.{u}) : Stream' (X × Y) → Stream' (Y × X) := 
 theorem braiding_hom_inv_id (X Y : Machine.{u}) : braiding_hom X Y ≫ braiding_hom Y X = 𝟙 (X ⊗ Y) :=
   rfl
 
-def braiding (X Y : Machine.{u}) : X ⊗ Y ≅ Y ⊗ X :=
-  { hom := braiding_hom X Y
-    inv := braiding_hom Y X
-    hom_inv_id := braiding_hom_inv_id X Y
-    inv_hom_id := braiding_hom_inv_id Y X }
+def braiding (X Y : Machine.{u}) : X ⊗ Y ≅ Y ⊗ X where
+  hom := braiding_hom X Y
+  inv := braiding_hom Y X
+  hom_inv_id := braiding_hom_inv_id X Y
+  inv_hom_id := braiding_hom_inv_id Y X
 
 instance : SymmetricCategory Machine where
   braiding
