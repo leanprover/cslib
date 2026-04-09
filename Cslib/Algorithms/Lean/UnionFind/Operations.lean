@@ -31,6 +31,20 @@ open Cslib.Algorithms.Lean.TimeM
 
 variable {n : ℕ}
 
+/-- Rank of any non-root x is less than rank of its rootOf. -/
+theorem rank_lt_rootOf (uf : UF n) (x : Fin n) (h : ¬uf.parent x = x) :
+    uf.rank x < uf.rank (uf.rootOf x) := by
+  unfold UF.rootOf; simp [h]
+  have h_lt := uf.rank_lt x h
+  by_cases hp : uf.parent (uf.parent x) = uf.parent x
+  · rw [UF.rootOf_root uf (uf.parent x) hp]; exact h_lt
+  · exact Nat.lt_trans h_lt (rank_lt_rootOf uf (uf.parent x) hp)
+termination_by uf.rankMax - uf.rank x
+decreasing_by
+  have := uf.rank_lt x h
+  have := uf.rank_le_max (uf.parent x)
+  omega
+
 /-- Find the root of `x` with path compression, counting parent-pointer traversals.
 Returns `(root, compressed_uf)`. -/
 def find (uf : UF n) (x : Fin n) : TimeM ℕ (Fin n × UF n) :=
@@ -80,27 +94,18 @@ def link (uf : UF n) (rx ry : Fin n)
       rankMax := uf.rankMax + 1
       rank_lt := by
         intro z hz
-        -- new_parent z = if z = ry then rx else uf.parent z
-        -- new_rank z = if z = rx then uf.rank rx + 1 else uf.rank z
-        -- hz : new_parent z ≠ z
-        -- Goal: new_rank z < new_rank (new_parent z)
         simp only [ne_eq] at hz ⊢
         by_cases h_zy : z = ry
-        · -- z = ry: new_parent z = rx
-          simp only [h_zy, ite_true] at hz ⊢
-          -- need: (if ry = rx then rank rx + 1 else rank ry) < (if rx = rx then rank rx + 1 else rank rx)
+        · simp only [h_zy, ite_true] at hz ⊢
           have hne' : (ry : Fin n) ≠ rx := hne.symm
           simp only [hne', ite_false]
           omega
-        · -- z ≠ ry: new_parent z = uf.parent z
-          simp only [h_zy, ite_false] at hz ⊢
+        · simp only [h_zy, ite_false] at hz ⊢
           have h_rank_lt := uf.rank_lt z hz
           by_cases h_zx : z = rx
-          · -- z = rx: uf.parent rx = rx (root), so hz gives contradiction
-            subst h_zx
+          · subst h_zx
             exact absurd hx hz
-          · -- z ≠ rx: new_rank z = uf.rank z
-            simp only [h_zx, ite_false]
+          · simp only [h_zx, ite_false]
             by_cases h_px : uf.parent z = rx
             · rw [if_pos h_px]; rw [h_px] at h_rank_lt; omega
             · rw [if_neg h_px]; exact h_rank_lt
