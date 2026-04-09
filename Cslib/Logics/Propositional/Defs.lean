@@ -23,8 +23,10 @@ instance whenever `Atom` does, and a `Top` whenever `Atom` is inhabited.
 - `IsIntuitionistic` : a theory is intuitionistic if it contains the principle of explosion.
 - `IsClassical` : an intuitionistic theory is classical if it further contains double negation
 elimination.
-- `Proposition.map`, `Theory.map` : a map between `Atom` types extends to a map between
-propositions and theories.
+- `Proposition.subst` : replace `atom x` in a `A : Proposition Atom` with `f x`, for a function
+  `f : Atom → Proposition Atom'`. This induces a monad structure on `Proposition`, with
+  `pure := Proposition.atom`. `Theory` is a functor, by mapping each proposition `A ∈ T` to
+  `f <$> A`.
 - `Theory.intuitionisticCompletion` : the freely generated intuitionistic theory extending a given
 theory.
 
@@ -70,23 +72,31 @@ example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.impl ⊥ ⊥ := rfl
 @[inherit_doc] scoped infix:30 " → " => Proposition.impl
 @[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
 
-/-- A function on atoms induces a function on propositions. -/
-def Proposition.map {Atom Atom' : Type u} (f : Atom → Atom') : Proposition Atom → Proposition Atom'
-  | atom x => atom (f x)
-  | and A B => (A.map f) ∧ (B.map f)
-  | or A B => (A.map f) ∨ (B.map f)
-  | impl A B => (A.map f) → (B.map f)
+/-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
+language. -/
+def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
+    Proposition Atom → Proposition Atom'
+  | atom x => f x
+  | and A B => (A.subst f) ∧ (B.subst f)
+  | or A B => (A.subst f) ∨ (B.subst f)
+  | impl A B => (A.subst f) → (B.subst f)
 
-instance : Functor Proposition where
-  map := Proposition.map
+-- This is a lawful monad (I believe), but that doesn't seem to be important.
+instance : Monad Proposition where
+  pure := .atom
+  bind A f := A.subst f
 
 /-- Theories are arbitrary sets of propositions. -/
 abbrev Theory (Atom) := Set (Proposition Atom)
 
 namespace Theory
 
+/-- Extend a substitution from `Proposition` to `Theory`. -/
+protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Proposition Atom') :
+    Theory Atom' := T.image (· >>= f)
+
 instance : Functor Theory where
-  map f := Set.image (Proposition.map f)
+  map f := Set.image (f <$> ·)
 
 /-- The empty theory corresponds to minimal propositional logic. -/
 abbrev MPL : Theory (Atom) := ∅
