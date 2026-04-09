@@ -113,9 +113,10 @@ def UF.setParent (uf : UF n) (x r : Fin n)
     (uf.setParent x r h).rankMax = uf.rankMax := rfl
 
 /-- `rootOf` steps through parents: for a non-root `x`, `rootOf (parent x) = rootOf x`. -/
-theorem UF.rootOf_parent (uf : UF n) (x : Fin n) (h : uf.parent x ≠ x) :
+theorem UF.rootOf_parent (uf : UF n) (x : Fin n) (h : ¬uf.isRoot x) :
     uf.rootOf (uf.parent x) = uf.rootOf x := by
   conv_rhs => unfold rootOf
+  simp [UF.isRoot] at h
   simp [h]
 
 /-- `setParent` does not change the parent of nodes other than `x`. -/

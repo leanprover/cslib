@@ -161,10 +161,11 @@ theorem phi_le_of_parent_rank_le (uf uf' : UF n) (z : Fin n)
     (hp : uf'.parent z = uf.parent z)
     (hr : uf'.rank z = uf.rank z)
     (hrp : uf.rank (uf.parent z) ≤ uf'.rank (uf'.parent z))
-    (hroot_iff : uf'.isRoot z ↔ uf.isRoot z)
     (hroot : ¬uf.isRoot z)
     (hn : uf.rank (uf.parent z) < n) :
     phi uf' z ≤ phi uf z := by
+  have hroot_iff : uf'.isRoot z ↔ uf.isRoot z := by
+    simp [UF.isRoot, hp]
   have hroot' : ¬uf'.isRoot z := mt hroot_iff.mp hroot
   unfold phi
   simp only [hroot, hroot', dite_false]
@@ -271,9 +272,10 @@ theorem phi_le_of_parent_rank_le (uf uf' : UF n) (z : Fin n)
 theorem phi_eq_of_same_data (uf uf' : UF n) (z : Fin n)
     (hp : uf'.parent z = uf.parent z)
     (hr : uf'.rank z = uf.rank z)
-    (hrp : uf'.rank (uf'.parent z) = uf.rank (uf.parent z))
-    (hroot : uf'.isRoot z ↔ uf.isRoot z) :
+    (hrp : uf'.rank (uf'.parent z) = uf.rank (uf.parent z)) :
     phi uf' z = phi uf z := by
+  have hroot : uf'.isRoot z ↔ uf.isRoot z := by
+    simp [UF.isRoot, hp]
   unfold phi
   by_cases hz : uf.isRoot z
   · -- z is root in both
@@ -363,9 +365,7 @@ theorem link_Phi_le (uf : UF n) (rx ry : Fin n)
         simp [huf', link, h1]
       have hrp : uf'.rank (uf'.parent z) = uf.rank (uf.parent z) := by
         rw [hp]; simp [huf', link, h1]
-      have hroot : uf'.isRoot z ↔ uf.isRoot z := by
-        simp [huf', link, h1, UF.isRoot, hzrx]
-      exact le_of_eq (phi_eq_of_same_data uf uf' z hp hr hrp hroot)
+      exact le_of_eq (phi_eq_of_same_data uf uf' z hp hr hrp)
   · by_cases h2 : uf.rank ry < uf.rank rx
     · -- Case 2: rank ry < rank rx. ry attaches under rx. Phi doesn't increase.
       suffices h : ∑ x : Fin n, phi uf' x ≤ ∑ x : Fin n, phi uf x by omega
@@ -386,9 +386,7 @@ theorem link_Phi_le (uf : UF n) (rx ry : Fin n)
           simp [huf', link, h1, h2]
         have hrp : uf'.rank (uf'.parent z) = uf.rank (uf.parent z) := by
           rw [hp]; simp [huf', link, h1, h2]
-        have hroot : uf'.isRoot z ↔ uf.isRoot z := by
-          simp [huf', link, h1, h2, UF.isRoot, hzry]
-        exact le_of_eq (phi_eq_of_same_data uf uf' z hp hr hrp hroot)
+        exact le_of_eq (phi_eq_of_same_data uf uf' z hp hr hrp)
     · -- Case 3: rank rx = rank ry. ry attaches under rx, rx rank increases by 1.
       have heq : uf.rank rx = uf.rank ry := by omega
       -- Strategy: ∑ phi(uf',z) = phi(uf',rx) + ∑_{z≠rx} phi(uf',z)
@@ -448,17 +446,16 @@ theorem link_Phi_le (uf : UF n) (rx ry : Fin n)
           have hroot_z' : ¬uf'.isRoot z := by
             simp [huf', link, h1, h2, UF.isRoot, hzry]
             exact hroot_z
-          have hroot_iff : uf'.isRoot z ↔ uf.isRoot z := ⟨fun h => absurd h hroot_z', fun h => absurd h hroot_z⟩
           by_cases hprx : uf.parent z = rx
           · -- parent(z) = rx: parent-rank increases, use phi_le_of_parent_rank_le
             have hn_par : uf.rank (uf.parent z) < n := hn (uf.parent z)
-            exact phi_le_of_parent_rank_le uf uf' z hp hr hrp_ge hroot_iff hroot_z hn_par
+            exact phi_le_of_parent_rank_le uf uf' z hp hr hrp_ge hroot_z hn_par
           · -- parent(z) ≠ rx: parent-rank unchanged, use phi_eq_of_same_data
             have hrp : uf'.rank (uf'.parent z) = uf.rank (uf.parent z) := by
               rw [hp]
               simp only [huf', link, h1, h2]
               simp [hprx]
-            exact le_of_eq (phi_eq_of_same_data uf uf' z hp hr hrp hroot_iff)
+            exact le_of_eq (phi_eq_of_same_data uf uf' z hp hr hrp)
 
 /-! ### Amortized cost of union -/
 

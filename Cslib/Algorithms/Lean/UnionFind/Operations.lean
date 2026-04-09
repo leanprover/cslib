@@ -45,18 +45,17 @@ decreasing_by
   have := uf.rank_le_max (uf.parent x)
   omega
 
-/-- Internal find that carries rank-preservation, rankMax-preservation, and rootOf
+/-- Internal find that carries rank-preservation and rootOf
     proofs through the recursion, avoiding circular dependencies with Correctness.lean. -/
 def findAux (uf : UF n) (x : Fin n) :
     { tm : TimeM ℕ (Fin n × UF n) //
       tm.ret.2.rank = uf.rank ∧
-      tm.ret.2.rankMax = uf.rankMax ∧
       tm.ret.1 = uf.rootOf x ∧
       (∀ y : Fin n, uf.isRoot y → tm.ret.2.isRoot y) ∧
       (∀ y : Fin n, tm.ret.2.rootOf y = uf.rootOf y) } :=
   if h : uf.parent x = x then
     ⟨pure (x, uf),
-     rfl, rfl,
+     rfl,
      by simp [UF.rootOf, h],
      fun _ hy => hy,
      fun _ => rfl⟩
@@ -65,10 +64,9 @@ def findAux (uf : UF n) (x : Fin n) :
     let root := ih.val.ret.1
     let uf' := ih.val.ret.2
     let h_rank_eq : uf'.rank = uf.rank := ih.property.1
-    let h_max_eq : uf'.rankMax = uf.rankMax := ih.property.2.1
-    let h_root_eq : root = uf.rootOf (uf.parent x) := ih.property.2.2.1
-    let h_pres := ih.property.2.2.2.1
-    let h_rootOf := ih.property.2.2.2.2
+    let h_root_eq : root = uf.rootOf (uf.parent x) := ih.property.2.1
+    let h_pres := ih.property.2.2.1
+    let h_rootOf := ih.property.2.2.2
     have h_rank : uf'.rank x < uf'.rank root := by
       rw [h_rank_eq]
       conv => rhs; rw [h_root_eq]
@@ -86,8 +84,6 @@ def findAux (uf : UF n) (x : Fin n) :
     ⟨⟨(root, uf'.setParent x root h_rank), 1 + ih.val.time⟩,
      by show (uf'.setParent x root h_rank).rank = uf.rank
         rw [UF.setParent_rank]; exact h_rank_eq,
-     by show (uf'.setParent x root h_rank).rankMax = uf.rankMax
-        rw [UF.setParent_rankMax]; exact h_max_eq,
      by show root = uf.rootOf x
         rw [h_root_eq, UF.rootOf_parent uf x h],
      fun y hy => by
@@ -115,21 +111,16 @@ theorem find_ret_rank_eq (uf : UF n) (x : Fin n) :
     (⟪find uf x⟫).2.rank = uf.rank :=
   (findAux uf x).property.1
 
-/-- `find` does not change rankMax. -/
-theorem find_ret_rankMax_eq (uf : UF n) (x : Fin n) :
-    (⟪find uf x⟫).2.rankMax = uf.rankMax :=
-  (findAux uf x).property.2.1
-
 /-- `find` returns the same root as the pure `rootOf`. -/
 theorem find_ret_rootOf_eq (uf : UF n) (x : Fin n) :
     (⟪find uf x⟫).1 = uf.rootOf x :=
-  (findAux uf x).property.2.2.1
+  (findAux uf x).property.2.1
 
 /-- `find` returns a root of the (possibly compressed) UF. -/
 theorem find_ret_isRoot (uf : UF n) (x : Fin n) :
     (⟪find uf x⟫).2.isRoot (⟪find uf x⟫).1 := by
-  have h3 := (findAux uf x).property.2.2.1  -- ret.1 = rootOf x
-  have h5 := (findAux uf x).property.2.2.2.2  -- preserves rootOf
+  have h3 := (findAux uf x).property.2.1  -- ret.1 = rootOf x
+  have h5 := (findAux uf x).property.2.2.2  -- preserves rootOf
   -- (compressed).isRoot ((compressed).rootOf x)
   have hir := UF.rootOf_isRoot (findAux uf x).val.ret.2 x
   -- (compressed).rootOf x = uf.rootOf x
@@ -140,12 +131,12 @@ theorem find_ret_isRoot (uf : UF n) (x : Fin n) :
 /-- `find` preserves root status of other nodes. -/
 theorem find_preserves_roots (uf : UF n) (x y : Fin n)
     (hy : uf.isRoot y) : (⟪find uf x⟫).2.isRoot y :=
-  (findAux uf x).property.2.2.2.1 y hy
+  (findAux uf x).property.2.2.1 y hy
 
 /-- `find` preserves `rootOf` for all nodes. -/
 theorem find_preserves_rootOf (uf : UF n) (x y : Fin n) :
     (⟪find uf x⟫.2).rootOf y = uf.rootOf y :=
-  (findAux uf x).property.2.2.2.2 y
+  (findAux uf x).property.2.2.2 y
 
 /-- Link two distinct roots by rank. Does not cost any ticks.
 Attaches the lower-ranked root under the higher-ranked one.
