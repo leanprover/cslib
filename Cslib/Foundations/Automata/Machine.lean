@@ -24,7 +24,7 @@ namespace CsLib.Automata
 
 universe u
 
-/-- Category of machines with objects as types and morphisms as causal stream functions. -/
+/-- Category of machines with objects as types and morphisms as stream functions. -/
 def Machine := Type u
 
 namespace Machine
