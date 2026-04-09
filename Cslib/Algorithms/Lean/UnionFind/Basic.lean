@@ -82,7 +82,16 @@ theorem UF.rootOf_root (uf : UF n) (x : Fin n) (h : uf.isRoot x) :
   simp [h]
 
 theorem UF.rootOf_isRoot (uf : UF n) (x : Fin n) : uf.isRoot (uf.rootOf x) := by
-  sorry
+  unfold rootOf
+  split
+  · assumption
+  · rename_i h
+    exact UF.rootOf_isRoot uf (uf.parent x)
+termination_by uf.rankMax - uf.rank x
+decreasing_by
+  have h1 := uf.rank_lt x ‹_›
+  have h2 := uf.rank_le_max (uf.parent x)
+  omega
 
 /-- Update the parent of node `x` to `r`, preserving invariants.
 Precondition: `rank x < rank r`. -/
