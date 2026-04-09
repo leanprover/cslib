@@ -510,6 +510,108 @@ theorem union_amortized (uf : UF n) (x y : Fin n)
     have := Nat.add_le_add hf₁ hf₂
     omega
 
+/-! ### Helpers for the main theorem -/
+
+/-- `runOps` distributes over list append: running `ops₁ ++ ops₂` is the same as
+running `ops₁` then running `ops₂` from the resulting state. -/
+private theorem runOps_append (uf : UF n) (ops₁ ops₂ : List (Op n)) :
+    ⟪runOps uf (ops₁ ++ ops₂)⟫ = ⟪runOps ⟪runOps uf ops₁⟫ ops₂⟫ := by
+  induction ops₁ generalizing uf with
+  | nil => simp [runOps]
+  | cons op rest ih =>
+    simp only [List.cons_append, runOps_cons, ret_bind]
+    exact ih ⟪runOp uf op⟫
+
+/-- Time of `runOps` distributes over list append. -/
+private theorem runOps_time_append (uf : UF n) (ops₁ ops₂ : List (Op n)) :
+    (runOps uf (ops₁ ++ ops₂)).time =
+      (runOps uf ops₁).time + (runOps ⟪runOps uf ops₁⟫ ops₂).time := by
+  induction ops₁ generalizing uf with
+  | nil => simp [runOps]
+  | cons op rest ih =>
+    simp only [List.cons_append, runOps_cons, time_bind, ret_bind]
+    rw [ih ⟪runOp uf op⟫]
+    omega
+
+/-- The amortized cost of a single `runOp` is at most `3 * alpha n + 4`. -/
+private theorem runOp_amortized (uf : UF n) (op : Op n)
+    (hn : ∀ z, uf.rank z < n) :
+    (runOp uf op).time + Phi ⟪runOp uf op⟫ ≤ Phi uf + (3 * alpha n + 4) := by
+  cases op with
+  | find x =>
+    -- runOp uf (.find x) = (find uf x) >>= fun (_, uf') => pure uf'
+    -- time = (find uf x).time, ret = ⟪find uf x⟫.2
+    show (find uf x >>= fun p => pure p.2).time +
+         Phi (find uf x >>= fun p => pure p.2).ret ≤ Phi uf + (3 * alpha n + 4)
+    simp only [time_bind, time_pure, Nat.add_zero, ret_bind, ret_pure]
+    have := find_amortized uf x hn
+    omega
+  | union x y =>
+    -- runOp uf (.union x y) = union uf x y
+    show (union uf x y).time + Phi ⟪union uf x y⟫ ≤ Phi uf + (3 * alpha n + 4)
+    have := union_amortized uf x y hn
+    omega
+
+/-- The amortized telescoping lemma: for any state reachable from `init` via `done`,
+the total time of the remaining operations `todo` plus the final potential is bounded
+by the current potential plus `todo.length * (3 * alpha n + 4)`. -/
+private theorem runOps_amortized_from_init (n : ℕ) (hn : 2 ≤ n)
+    (done : List (Op n)) (todo : List (Op n)) :
+    let uf := ⟪runOps (UF.init n) done⟫
+    (runOps uf todo).time + Phi ⟪runOps uf todo⟫ ≤
+      Phi uf + todo.length * (3 * alpha n + 4) := by
+  induction todo generalizing done with
+  | nil =>
+    simp [runOps]
+  | cons op rest ih =>
+    set uf := ⟪runOps (UF.init n) done⟫ with huf_def
+    -- rank bound for the current state
+    have hrank : ∀ z, uf.rank z < n := fun z => by
+      rw [huf_def]; exact rank_lt_of_runOps n hn done z
+    -- Unfold one step
+    show (runOps uf (op :: rest)).time + Phi ⟪runOps uf (op :: rest)⟫ ≤
+         Phi uf + (rest.length + 1) * (3 * alpha n + 4)
+    simp only [runOps_cons, time_bind, ret_bind]
+    set uf' := ⟪runOp uf op⟫ with huf'_def
+    -- uf' is reachable from init via (done ++ [op])
+    have huf'_reach : uf' = ⟪runOps (UF.init n) (done ++ [op])⟫ := by
+      rw [huf'_def, runOps_append]
+      simp only [runOps_cons, ret_bind, runOps_nil, ret_pure]
+      rfl
+    -- Apply IH with done' = done ++ [op]
+    have ih_inst := ih (done ++ [op])
+    rw [← huf'_reach] at ih_inst
+    -- ih_inst : (runOps uf' rest).time + Phi ⟪runOps uf' rest⟫ ≤
+    --           Phi uf' + rest.length * (3 * alpha n + 4)
+    -- Single step bound
+    have hstep := runOp_amortized uf op hrank
+    -- hstep : (runOp uf op).time + Phi ⟪runOp uf op⟫ ≤ Phi uf + (3 * alpha n + 4)
+    -- Rewrite to use uf'
+    change (runOp uf op).time + Phi uf' ≤ Phi uf + (3 * alpha n + 4) at hstep
+    -- Now combine the two inequalities:
+    -- ih_inst: (runOps uf' rest).time + Phi ⟪runOps uf' rest⟫ ≤ Phi uf' + rest.length * bound
+    -- hstep:   (runOp uf op).time + Phi uf' ≤ Phi uf + bound
+    -- Goal:    (runOp uf op).time + (runOps uf' rest).time + Phi ⟪runOps uf' rest⟫ ≤
+    --          Phi uf + (rest.length + 1) * bound
+    -- From ih_inst: time_rest + Phi_final ≤ Phi_uf' + rest.length * bound
+    -- So: time_op + time_rest + Phi_final ≤ time_op + Phi_uf' + rest.length * bound
+    -- From hstep: time_op + Phi_uf' ≤ Phi_uf + bound
+    -- So: time_op + time_rest + Phi_final ≤ Phi_uf + bound + rest.length * bound
+    --                                     = Phi_uf + (rest.length + 1) * bound
+    -- Simplify the `let` in ih_inst
+    simp only at ih_inst
+    -- Rewrite the (rest.length + 1) * B in the goal using Nat.add_mul
+    have hexpand : (rest.length + 1) * (3 * alpha n + 4) =
+        rest.length * (3 * alpha n + 4) + (3 * alpha n + 4) := by
+      rw [Nat.add_mul, Nat.one_mul]
+    rw [hexpand]
+    -- Goal: time_op + time_rest + Phi_final ≤ Phi_uf + rest.length * B + B
+    -- hstep:   time_op + Phi_uf' ≤ Phi_uf + B
+    -- ih_inst: time_rest + Phi_final ≤ Phi_uf' + rest.length * B
+    -- Combine via Nat.add_le_add then omega for linear cancellation
+    have combined := Nat.add_le_add hstep ih_inst
+    omega
+
 /-! ### Main theorem -/
 
 /-- **Main theorem**: m operations on n elements cost at most m * (3 * alpha(n) + 4).
@@ -518,6 +620,15 @@ This is O(m * alpha(n)), the inverse-Ackermann amortized bound for union-find
 with path compression and union by rank. -/
 theorem union_find_amortized (n : ℕ) (hn : 2 ≤ n) (ops : List (Op n)) :
     (runOps (UF.init n) ops).time ≤ ops.length * (3 * alpha n + 4) := by
-  sorry
+  -- Use the amortized lemma with empty prefix (done = [])
+  have h := runOps_amortized_from_init n hn [] ops
+  simp only [runOps_nil, ret_pure] at h
+  -- h : (runOps (init n) ops).time + Phi ⟪runOps (init n) ops⟫ ≤
+  --      Phi (init n) + ops.length * (3 * alpha n + 4)
+  have h_init : Phi (UF.init n) = 0 := Phi_init
+  rw [h_init] at h
+  -- h : time + Phi_final ≤ 0 + ops.length * bound
+  -- Since Phi_final ≥ 0 (ℕ): time ≤ ops.length * bound
+  omega
 
 end Cslib.Algorithms.Lean.UnionFind
