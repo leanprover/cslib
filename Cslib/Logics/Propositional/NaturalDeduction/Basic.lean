@@ -153,7 +153,7 @@ abbrev Equiv : Proposition Atom → Proposition Atom → Prop := MPL.Equiv
 @[inherit_doc]
 scoped infix:29 " ≡ " => Equiv
 
-open Derivation
+open Derivation Derivable
 
 /-! ### Operations on derivations -/
 
@@ -216,10 +216,10 @@ theorem Derivable.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom} :
 
 /-- Remove unnecessary hypotheses. This can't be computable because it requires picking an order
 on the finset `Δ`. -/
-theorem Theory.Derivable.cut_away {Γ Δ : Ctx Atom} {B : Proposition Atom}
-    (hΔ : ∀ A ∈ Δ, Derivable (Γ ⊢[T] A)) (hDer : Derivable ((Γ ∪ Δ) ⊢[T] B)) :
+theorem Derivable.cut_away {Γ Γ' : Ctx Atom} {B : Proposition Atom}
+    (hΔ : ∀ A ∈ Γ', Derivable (Γ ⊢[T] A)) (hDer : Derivable ((Γ ∪ Γ') ⊢[T] B)) :
     Derivable (Γ ⊢[T] B) := by
-  induction Δ using Finset.induction with
+  induction Γ' using Finset.induction with
   | empty => exact Derivable.weak_ctx (by grind) hDer
   | insert A Δ hA ih =>
     apply ih
@@ -229,7 +229,8 @@ theorem Theory.Derivable.cut_away {Γ Δ : Ctx Atom} {B : Proposition Atom}
       · exact hΔ A <| Finset.mem_insert_self A Δ
       · rwa [← Finset.union_insert A Γ Δ]
 
-/-- Substitution of a family of derivations `D` for hypotheses in the context `Γ` of `E`. -/
+/-- Substitution of a family of derivations `D` for hypotheses in the context `Γ` of `E`. TODO:
+this implementation is not capture avoiding. -/
 def Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
     (Ds : ∀ A ∈ Γ', Derivation (Δ ⊢[T] A)) :
       Derivation (Γ ⊢[T] B) → Derivation ((Γ \ Γ' ∪ Δ) ⊢[T] B)
@@ -274,7 +275,7 @@ def Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq A
   | implI _ D => implI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
   | implE D E => implE (D.substAtom f) (E.substAtom f)
 
-theorem Theory.Derivable.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
+theorem Derivable.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
     {T : Theory Atom}
     (f : Atom → Proposition Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
     Derivable (Γ ⊢[T] B) → Derivable ((Γ.subst f) ⊢[T.subst f] (B >>= f))
@@ -298,6 +299,8 @@ theorem derivable_iff_equiv_top [Inhabited Atom] (A : Proposition Atom) :
     rw [←show (∅ : Ctx Atom) = ∅ ∪ ∅ by rfl] at this
     exact this h.mpr
 
+namespace Theory
+
 /-- Change the conclusion along an equivalence. -/
 def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B)
     (D : ⇓(Γ ⊢[T] A)) : ⇓(Γ ⊢[T] B) :=
@@ -310,33 +313,33 @@ def mapEquivHypothesis (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B
   exact this ▸ Derivation.cut e.2 D
 
 /-- An equivalence of a proposition with itself. -/
-def Theory.equiv.refl (A : Proposition Atom) : T.equiv A A :=
+def equiv.refl (A : Proposition Atom) : T.equiv A A :=
   let D : ⇓({A} ⊢[T] A) := ass <| by grind;
   ⟨D, D⟩
 
 /-- Reverse an equivalence. -/
-def Theory.equiv.symm {A B : Proposition Atom} (e : T.equiv A B) : T.equiv B A :=
-  ⟨e.2, e.1⟩
+def equiv.symm {A B : Proposition Atom} (e : T.equiv A B) : T.equiv B A :=
+  ⟨e.mpr, e.mp⟩
 
 /-- Compose two equivalences. -/
-def Theory.equiv.trans {A B C : Proposition Atom} (eAB : T.equiv A B)
+def equiv.trans {A B C : Proposition Atom} (eAB : T.equiv A B)
     (eBC : T.equiv B C) : T.equiv A C :=
-  ⟨mapEquivConclusion _ eBC eAB.1, mapEquivConclusion _ eAB.symm eBC.2⟩
+  ⟨mapEquivConclusion _ eBC eAB.mp, mapEquivConclusion _ eAB.symm eBC.mpr⟩
 
 /-- `A` and `B` are equivalent (in `T`) iff they are provable from the same contexts. -/
-theorem Theory.equiv_iff_equiv_derivable {A B : Proposition Atom} :
+theorem equiv_iff_equiv_derivable {A B : Proposition Atom} :
     A ≡[T] B ↔ ∀ Γ : Ctx Atom, Derivable (Γ ⊢[T] A) ↔ Derivable (Γ ⊢[T] B) := by
   constructor
   · intro ⟨e⟩ Γ
     exact ⟨fun D => mapEquivConclusion Γ e D.some, fun D => mapEquivConclusion Γ e.symm D.some⟩
   · intro h
-    rw [Theory.equiv_iff]
+    rw [equiv_iff]
     constructor
     · exact (h {A}).mp ⟨ass <| by grind⟩
     · exact (h {B}).mpr ⟨ass <| by grind⟩
 
 /-- `A` and `B` are equivalent (in `T`) iff they have the same strength as hypotheses. -/
-theorem Theory.equiv_iff_equiv_derivable_hypothesis {A B : Proposition Atom} :
+theorem equiv_iff_equiv_derivable_hypothesis {A B : Proposition Atom} :
     A ≡[T] B ↔
       ∀ (Γ : Ctx Atom) (C : Proposition Atom),
       Derivable ((insert A Γ) ⊢[T] C) ↔ Derivable ((insert B Γ) ⊢[T] C) := by
@@ -344,29 +347,29 @@ theorem Theory.equiv_iff_equiv_derivable_hypothesis {A B : Proposition Atom} :
   · intro ⟨e⟩ Γ C
     exact ⟨fun D => mapEquivHypothesis Γ e C D.some, fun E => mapEquivHypothesis Γ e.symm C E.some⟩
   · intro h
-    rw [Theory.equiv_iff]
+    rw [equiv_iff]
     constructor
     · exact (h ∅ B).mpr ⟨ass <| by grind⟩
     · exact (h ∅ A).mp ⟨ass <| by grind⟩
 
 @[refl]
-theorem Theory.Equiv.refl {T : Theory Atom} (A : Proposition Atom) : A ≡[T] A := by
-  exact ⟨Theory.equiv.refl A⟩
+theorem Equiv.refl {T : Theory Atom} (A : Proposition Atom) : A ≡[T] A := by
+  exact ⟨equiv.refl A⟩
 
-theorem Theory.Equiv.symm {T : Theory Atom} {A B : Proposition Atom} :
+theorem Equiv.symm {T : Theory Atom} {A B : Proposition Atom} :
     (A ≡[T] B) → B ≡[T] A
   | ⟨e⟩ => ⟨e.symm⟩
 
-theorem Theory.Equiv.trans {T : Theory Atom} {A B C : Proposition Atom} :
+theorem Equiv.trans {T : Theory Atom} {A B C : Proposition Atom} :
     (A ≡[T] B) → (B ≡[T] C) → A ≡[T] C
   | ⟨e⟩, ⟨e'⟩ => ⟨e.trans e'⟩
 
 /-- Equivalence is indeed an equivalence relation. -/
-theorem Theory.equiv_equivalence (T : Theory Atom) : Equivalence (T.Equiv (Atom := Atom)) :=
+theorem equiv_equivalence (T : Theory Atom) : Equivalence (T.Equiv (Atom := Atom)) :=
   ⟨Equiv.refl, Equiv.symm, Equiv.trans⟩
 
 /-- The setoid of propositions under equivalence. -/
-protected def Theory.propositionSetoid (T : Theory Atom) : Setoid (Proposition Atom) :=
+protected def propositionSetoid (T : Theory Atom) : Setoid (Proposition Atom) :=
   ⟨T.Equiv, T.equiv_equivalence⟩
 
-end Cslib.Logic.PL
+end Cslib.Logic.PL.Theory
