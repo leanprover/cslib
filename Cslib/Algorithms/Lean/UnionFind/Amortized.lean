@@ -41,9 +41,8 @@ variable {n : ℕ}
 
 /-- **Key lemma**: The amortized cost of find is at most alpha(n) + 2. -/
 theorem find_amortized (uf : UF n) (x : Fin n)
-    (hn : ∀ y, uf.rank y < n)
-    (hn' : ∀ y, (⟪find uf x⟫.2).rank y < n) :
-    (find uf x).time + Phi ⟪find uf x⟫.2 hn' ≤ Phi uf hn + alpha n + 2 := by
+    (hn : ∀ y, uf.rank y < n) :
+    (find uf x).time + Phi ⟪find uf x⟫.2 ≤ Phi uf + alpha n + 2 := by
   sorry
 
 /-! ### Potential increase of link -/
@@ -51,18 +50,16 @@ theorem find_amortized (uf : UF n) (x : Fin n)
 /-- The potential increase from linking two roots is at most alpha(n). -/
 theorem link_Phi_le (uf : UF n) (rx ry : Fin n)
     (hx : uf.isRoot rx) (hy : uf.isRoot ry) (hne : rx ≠ ry)
-    (hn : ∀ y, uf.rank y < n)
-    (hn' : ∀ y, (link uf rx ry hx hy hne).rank y < n) :
-    Phi (link uf rx ry hx hy hne) hn' ≤ Phi uf hn + alpha n := by
+    (hn : ∀ y, uf.rank y < n) :
+    Phi (link uf rx ry hx hy hne) ≤ Phi uf + alpha n := by
   sorry
 
 /-! ### Amortized cost of union -/
 
 /-- The amortized cost of union is at most 3 * alpha(n) + 4. -/
 theorem union_amortized (uf : UF n) (x y : Fin n)
-    (hn : ∀ z, uf.rank z < n)
-    (hn' : ∀ z, (⟪union uf x y⟫).rank z < n) :
-    (union uf x y).time + Phi ⟪union uf x y⟫ hn' ≤ Phi uf hn + 3 * alpha n + 4 := by
+    (hn : ∀ z, uf.rank z < n) :
+    (union uf x y).time + Phi ⟪union uf x y⟫ ≤ Phi uf + 3 * alpha n + 4 := by
   sorry
 
 /-! ### Main theorem -/
