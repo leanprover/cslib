@@ -120,3 +120,10 @@ public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Propositional.Defs
+public import Cslib.MachineLearning.PACLearning.Defs
+public import Cslib.MachineLearning.PACLearning.SampleComplexityLower
+public import Cslib.MachineLearning.PACLearning.SampleComplexityLower.AdversarialMeasure
+public import Cslib.MachineLearning.PACLearning.SampleComplexityLower.EHKVProof
+public import Cslib.MachineLearning.PACLearning.SampleComplexityLower.Helpers
+public import Cslib.MachineLearning.PACLearning.SampleComplexityLower.InvolutionPairing
+public import Cslib.MachineLearning.PACLearning.VCDimension
