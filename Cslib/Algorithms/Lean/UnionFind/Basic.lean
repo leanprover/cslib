@@ -112,4 +112,71 @@ def UF.setParent (uf : UF n) (x r : Fin n)
 @[simp] theorem UF.setParent_rankMax (uf : UF n) (x r : Fin n) (h : uf.rank x < uf.rank r) :
     (uf.setParent x r h).rankMax = uf.rankMax := rfl
 
+/-- `rootOf` steps through parents: for a non-root `x`, `rootOf (parent x) = rootOf x`. -/
+theorem UF.rootOf_parent (uf : UF n) (x : Fin n) (h : uf.parent x ≠ x) :
+    uf.rootOf (uf.parent x) = uf.rootOf x := by
+  conv_rhs => unfold rootOf
+  simp [h]
+
+/-- `setParent` does not change the parent of nodes other than `x`. -/
+@[simp] theorem UF.setParent_parent_ne (uf : UF n) (x r : Fin n) (h : uf.rank x < uf.rank r)
+    (y : Fin n) (hyx : y ≠ x) :
+    (uf.setParent x r h).parent y = uf.parent y := by
+  simp [setParent, hyx]
+
+/-- `setParent x r` sets the parent of `x` to `r`. -/
+@[simp] theorem UF.setParent_parent_eq (uf : UF n) (x r : Fin n) (h : uf.rank x < uf.rank r) :
+    (uf.setParent x r h).parent x = r := by
+  simp [setParent]
+
+/-- If `y` is a root and `y ≠ x`, then `y` is still a root after `setParent x r`. -/
+theorem UF.setParent_isRoot_of_ne (uf : UF n) (x r : Fin n) (h : uf.rank x < uf.rank r)
+    (y : Fin n) (hy : uf.isRoot y) (hyx : y ≠ x) :
+    (uf.setParent x r h).isRoot y := by
+  simp [isRoot, setParent, hyx]
+  exact hy
+
+/-- If `r` is the root of `x` in `uf`, then `setParent x r` preserves `rootOf` for all nodes. -/
+theorem UF.setParent_preserves_rootOf (uf : UF n) (x r : Fin n)
+    (h_rank : uf.rank x < uf.rank r)
+    (h_root : uf.rootOf x = r) (y : Fin n) :
+    (uf.setParent x r h_rank).rootOf y = uf.rootOf y := by
+  have h_isRoot : uf.isRoot r := h_root ▸ UF.rootOf_isRoot uf x
+  set uf' := uf.setParent x r h_rank with huf'
+  have h_ne : x ≠ r := by intro heq; subst heq; omega
+  by_cases hyx : y = x
+  · rw [hyx]
+    have h_px : uf'.parent x = r := by simp [huf', UF.setParent]
+    have h_root_r : uf'.isRoot r := by
+      rw [UF.isRoot, huf']
+      show (if r = x then r else uf.parent r) = r
+      rw [if_neg (Ne.symm h_ne)]
+      exact h_isRoot
+    have h_not_root' : ¬(uf'.parent x = x) := by
+      rw [h_px]; exact Ne.symm h_ne
+    have step1 : uf'.rootOf x = uf'.rootOf (uf'.parent x) := by
+      conv_lhs => unfold UF.rootOf
+      rw [dif_neg h_not_root']
+    rw [step1, h_px, UF.rootOf_root _ r h_root_r, h_root.symm]
+  · have h_par_eq : uf'.parent y = uf.parent y := by
+      simp [huf', UF.setParent, hyx]
+    by_cases h_par : uf.parent y = y
+    · have h_root_new : uf'.isRoot y := by
+        rw [UF.isRoot, h_par_eq, h_par]
+      rw [UF.rootOf_root _ y h_root_new, UF.rootOf_root _ y h_par]
+    · have h_not_root_new : ¬(uf'.parent y = y) := by
+        rw [h_par_eq]; exact h_par
+      have step_lhs : uf'.rootOf y = uf'.rootOf (uf.parent y) := by
+        conv_lhs => unfold UF.rootOf; rw [dif_neg h_not_root_new]
+        rw [h_par_eq]
+      have step_rhs : uf.rootOf y = uf.rootOf (uf.parent y) := by
+        conv_lhs => unfold UF.rootOf; rw [dif_neg h_par]
+      rw [step_lhs, step_rhs]
+      exact UF.setParent_preserves_rootOf uf x r h_rank h_root (uf.parent y)
+termination_by uf.rankMax - uf.rank y
+decreasing_by
+  have h1 := uf.rank_lt y h_par
+  have h2 := uf.rank_le_max (uf.parent y)
+  omega
+
 end Cslib.Algorithms.Lean.UnionFind

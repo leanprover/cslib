@@ -58,13 +58,13 @@ private theorem iterFn_succ_add (n j : ℕ) : iterFn (· + 1) n j = j + n := by
   | zero => simp [iterFn]
   | succ n ih => simp [iterFn, ih]; omega
 
-private theorem iterFn_A_zero (n j : ℕ) : iterFn (A 0) n j = j + n := by
-  induction n with
-  | zero => simp
-  | succ n ih => simp [iterFn_succ, ih]; omega
-
 theorem A_one (j : ℕ) : A 1 j = 2 * j + 1 := by
-  simp [A_succ, iterFn_A_zero]; omega
+  show iterFn (A 0) (j + 1) j = 2 * j + 1
+  have : ∀ n m, iterFn (A 0) n m = iterFn (· + 1) n m := by
+    intro n m; induction n with
+    | zero => simp
+    | succ n ih => simp [iterFn_succ, ih]
+  rw [this]; rw [iterFn_succ_add]; omega
 
 private theorem iterFn_A_one_aux (n j : ℕ) : iterFn (A 1) n j + 1 = 2 ^ n * (j + 1) := by
   induction n generalizing j with
@@ -90,7 +90,7 @@ theorem A_two (j : ℕ) : A 2 j = 2 ^ (j + 1) * (j + 1) - 1 := by
 /-! ### Monotonicity and growth -/
 
 /-- `iterFn` of a strictly monotone function is monotone in the iteration count. -/
-theorem iterFn_mono_left {f : ℕ → ℕ} (hf : StrictMono f) (hfj : ∀ j, j < f j) (j : ℕ) :
+theorem iterFn_mono_left {f : ℕ → ℕ} (hfj : ∀ j, j < f j) (j : ℕ) :
     ∀ i₁ i₂, i₁ ≤ i₂ → iterFn f i₁ j ≤ iterFn f i₂ j := by
   intro i₁ i₂ h
   induction i₂ with
@@ -132,13 +132,13 @@ private theorem A_strictMono_and_gt (k : ℕ) : StrictMono (A k) ∧ ∀ j, j < 
           < iterFn (A k) (a + 1) b :=
             iterFn_strictMono_right hm (a + 1) hab
         _ ≤ iterFn (A k) (b + 1) b :=
-            iterFn_mono_left hm hgt b (a + 1) (b + 1) (by omega)
+            iterFn_mono_left hgt b (a + 1) (b + 1) (by omega)
     · intro j
       show j < iterFn (A k) (j + 1) j
       calc j < A k j := hgt j
         _ = iterFn (A k) 1 j := by simp
         _ ≤ iterFn (A k) (j + 1) j :=
-            iterFn_mono_left hm hgt j 1 (j + 1) (by omega)
+            iterFn_mono_left hgt j 1 (j + 1) (by omega)
 
 /-- `A k` is strictly monotone in `j`. -/
 theorem A_strictMono_right (k : ℕ) : StrictMono (A k) :=
@@ -152,14 +152,14 @@ theorem A_gt (k j : ℕ) : j < A k j :=
 theorem A_ge_succ (k j : ℕ) : j + 1 ≤ A k j :=
   A_gt k j
 
-/-- `A` is monotone in `k` for `j ≥ 1`. -/
-private theorem A_succ_ge (k j : ℕ) (hj : 1 ≤ j) : A k j ≤ A (k + 1) j := by
+/-- `A` is monotone in `k`: `A k j ≤ A (k+1) j`. -/
+private theorem A_succ_ge (k j : ℕ) : A k j ≤ A (k + 1) j := by
   show A k j ≤ iterFn (A k) (j + 1) j
   calc A k j = iterFn (A k) 1 j := by simp
     _ ≤ iterFn (A k) (j + 1) j :=
-        iterFn_mono_left (A_strictMono_right k) (fun j => A_gt k j) j 1 (j + 1) (by omega)
+        iterFn_mono_left (fun j => A_gt k j) j 1 (j + 1) (by omega)
 
-theorem A_mono_left (j : ℕ) (hj : 1 ≤ j) : ∀ k₁ k₂, k₁ ≤ k₂ → A k₁ j ≤ A k₂ j := by
+theorem A_mono_left (j : ℕ) : ∀ k₁ k₂, k₁ ≤ k₂ → A k₁ j ≤ A k₂ j := by
   intro k₁ k₂ h
   induction k₂ with
   | zero =>
@@ -170,7 +170,7 @@ theorem A_mono_left (j : ℕ) (hj : 1 ≤ j) : ∀ k₁ k₂, k₁ ≤ k₂ → 
     rcases Nat.eq_or_lt_of_le h with rfl | h'
     · exact le_refl _
     · have h'' : k₁ ≤ k₂ := Nat.lt_succ_iff.mp h'
-      exact le_trans (ih h'') (A_succ_ge k₂ j hj)
+      exact le_trans (ih h'') (A_succ_ge k₂ j)
 
 /-- `A k 1 ≥ k + 2` — used to prove `alpha` is well-defined. -/
 theorem A_one_ge (k : ℕ) : k + 2 ≤ A k 1 := by
