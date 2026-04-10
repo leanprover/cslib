@@ -39,6 +39,7 @@ namespace Lambda
 open Term
 
 /-- One-step β-reduction (compatible closure). -/
+@[reduction_sys "β"]
 public inductive Beta : Term → Term → Prop
   | abs  {t t'}        : Beta t t' → Beta (λ.t) (λ.t')
   | appL {t t' u}      : Beta t t' → Beta (t·u) (t'·u)
