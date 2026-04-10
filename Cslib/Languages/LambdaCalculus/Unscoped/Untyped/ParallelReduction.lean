@@ -109,9 +109,7 @@ private lemma par_subst {t t' u u'} (ht : Par t t') (hu : Par u u')
                     decre.eq_1, par_refl]
               | inr h' =>
                   simp_all only [not_lt, sub, subst, 
-                  ↓reduceIte, decre.eq_1, 
-                  (Nat.lt_of_le_of_ne (Nat.le_of_not_gt h') 
-                  (Ne.symm h)), par_refl]
+                  ↓reduceIte, decre.eq_1, par_refl]
   | abs t, abs t' => match ht with
       | Par.abs ht' =>
           have hp := Par.abs
