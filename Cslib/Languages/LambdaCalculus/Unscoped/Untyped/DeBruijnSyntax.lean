@@ -69,7 +69,11 @@ infixl:77 "·" => Term.app
   | abs t   => abs (subst (j + 1) (incre 1 0 s) t)
   | app t u => app (subst j s t) (subst j s u)
 
-/-- `decre c t` decrements free vars `> c` by `i`. -/
+/-- `decre i l t` decrements `i` for all free vars `≥ l + i`.
+    the reason using `l + i` is that it is more explicit for
+    free variable elimination. For example, after eliminating
+    `var k` for Term `t` from the most outside, `decre 1 k t`
+    will close the gap caused by `k` elimination. -/
 @[expose] public def decre (i : Nat) (l : Nat) : Term → Term
   | var k   => if l + i ≤ k then var (k - i) else var k
   | abs t   => abs (decre i (l + 1) t)
