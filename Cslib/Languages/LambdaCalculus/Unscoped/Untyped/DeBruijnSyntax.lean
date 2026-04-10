@@ -6,6 +6,7 @@ Authors: Zayn Wang, Maksym Radziwill
 module
 
 public import Mathlib.Data.Nat.Basic
+public import Cslib.Foundations.Syntax.HasSubstitution
 
 /-!
 # Untyped lambda calculus with de Bruijn indices
@@ -76,6 +77,10 @@ infixl:77 "·" => Term.app
 
 /-- Substitute into the body of a lambda: `(λ.t) s` -/
 @[expose] public def sub (t : Term) (n : Nat) (s : Term) := decre 1 n (subst n (incre 1 n s) t)
+
+@[expose] public instance : 
+    Cslib.HasSubstitution Term Nat Term where
+  subst t n s := t.sub n s
 
 /-- Increment of 0 is identity -/
 @[simp] public theorem incre_rfl {l t} : incre 0 l t = t := by
