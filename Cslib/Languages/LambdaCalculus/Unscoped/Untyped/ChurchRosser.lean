@@ -5,7 +5,7 @@ Authors: Zayn Wang
 -/
 module
 
-public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ConfluentReduction
+public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ParallelReduction
 
 /-!
@@ -31,7 +31,7 @@ the complete-development machinery from `ParallelReduction`.
 -/
 
 namespace Lambda
-open Term
+open Relation
 
 /-- Parallel Reduction is Diamond. -/
 private lemma diamond_par : Diamond Par := by
@@ -42,10 +42,10 @@ private lemma diamond_par : Diamond Par := by
 public theorem churchRosser_beta : Confluent Beta := by
   -- Confluence of Par from diamond
   have hPar : Confluent Par :=
-    confluent_of_diamond (r := Par) diamond_par
+    Diamond.toConfluent (r := Par) diamond_par
   -- Identify BetaStar and ParStar via sandwich
   have hEq {a b : Term} : BetaStar a b ↔ ParStar a b :=
-      rtc_eq_of_sandwich (r := Beta) (p := Par)
+      ReflTransGen.sandwich_to_eq (r := Beta) (p := Par)
     (by intro a b h; exact beta_subset_par h)
     (by intro a b h; exact par_subset_betaStar h)
   -- Transport confluence
