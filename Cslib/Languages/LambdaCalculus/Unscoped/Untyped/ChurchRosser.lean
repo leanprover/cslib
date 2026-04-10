@@ -5,8 +5,8 @@ Authors: Zayn Wang
 -/
 module
 
-public import Cslib.Computability.LambdaCalculus.ConfluentReduction
-public import Cslib.Computability.LambdaCalculus.ParallelReduction
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ConfluentReduction
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ParallelReduction
 
 /-!
 # The Church–Rosser theorem for β-reduction
