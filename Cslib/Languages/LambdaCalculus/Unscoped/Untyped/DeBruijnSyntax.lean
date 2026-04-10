@@ -68,14 +68,14 @@ infixl:77 "·" => Term.app
   | abs t   => abs (subst (j + 1) (incre 1 0 s) t)
   | app t u => app (subst j s t) (subst j s u)
 
-/-- `decre c t` decrements free vars `> c` by 1. -/
-@[expose] public def decre (l : Nat) : Term → Term
-  | var k   => if l < k then var (k - 1) else var k
-  | abs t   => abs (decre (l + 1) t)
-  | app t u => app (decre l t) (decre l u)
+/-- `decre c t` decrements free vars `> c` by `i`. -/
+@[expose] public def decre (i : Nat) (l : Nat) : Term → Term
+  | var k   => if l + i ≤ k then var (k - i) else var k
+  | abs t   => abs (decre i (l + 1) t)
+  | app t u => app (decre i l t) (decre i l u)
 
 /-- Substitute into the body of a lambda: `(λ.t) s` -/
-@[expose] public def sub (t : Term) (n : Nat) (s : Term) := decre n (subst n (incre 1 n s) t)
+@[expose] public def sub (t : Term) (n : Nat) (s : Term) := decre 1 n (subst n (incre 1 n s) t)
 
 /-- Increment of 0 is identity -/
 @[simp] public theorem incre_rfl {l t} : incre 0 l t = t := by
@@ -86,15 +86,15 @@ infixl:77 "·" => Term.app
 
 /-- Decrement of increment with same bound is the same.
 Lemma for `var_sub` -/
-@[simp] public theorem decre_incre_elim {l t} : decre l (incre 1 l t) = t := by
+@[simp] public theorem decre_incre_elim {l t} : decre 1 l (incre 1 l t) = t := by
   induction t generalizing l with
   | var k =>
       unfold decre incre
       cases em (l ≤ k) with
       | inl h => simp_all only [↓reduceIte, 
-          Nat.lt_succ_of_le h, Nat.add_one_sub_one]
+          Nat.add_le_add_iff_right, Nat.add_one_sub_one]
       | inr h =>
-          have : ¬(l < k) := by omega
+          have : ¬(l + 1 ≤ k) := by omega
           simp only [if_neg h, if_neg this]
   | abs t ih => simp_all only [incre, decre]
   | app t u iht ihu => simp_all only [incre, decre]
@@ -106,11 +106,14 @@ Lemma for `var_sub` -/
 /-- Vacuously Substitution of var k to var k. -/
 @[simp] public theorem var_lt_sub {k n s} (hk : k < n) :
     ((𝕧 k).sub) n s = 𝕧 k := by
-  simp_all only [sub, subst, Nat.ne_of_lt hk, ↓reduceIte, decre, Nat.not_lt_of_gt hk]
+  have : ¬(n + 1 ≤ k) := by omega
+  simp_all only [sub, subst, Nat.ne_of_lt hk, 
+    ↓reduceIte, decre]
 
 /-- Vacuously Substitution of var k to var k - 1. -/
 @[simp] public theorem var_gt_sub {k n s} (hk : k > n) :
     ((𝕧 k).sub) n s = 𝕧 (k - 1) := by
+  have : n + 1 ≤ k := by omega
   simp_all only [gt_iff_lt, sub, subst, 
     Nat.ne_of_gt hk, ↓reduceIte, decre]
 
@@ -184,25 +187,31 @@ private lemma incre_sub_var {i l n k s} :
   | inr h =>
       cases em (l + n + 1 ≤ k) with
       | inl h' =>
-          have : k + i ≠ n := by omega
-          have : n < k := by omega
+          have : ¬(k + i = n) := by omega
+          have : n + 1 ≤ k + i := by omega
+          have : n + 1 ≤ k := by omega
           have : l + n ≤ k - 1 := by omega
-          have : n < k + i := by omega
           have : k + i - 1 = k - 1 + i := by omega
-          simp_all only [ne_eq, sub, incre,
-            ↓reduceIte, subst, decre]
+          simp_all only [sub, incre, ↓reduceIte, 
+            subst, decre]
       | inr h' =>
           simp_all only [not_le, sub, incre, if_neg h',
             subst, ↓reduceIte, decre]
           cases em (n < k) with
           | inl h'' =>
-              simp_all only [↓reduceIte, incre,
+              have : (n + 1 ≤ k) := by omega
+              simp_all only [↓reduceIte, incre, 
                 right_eq_ite_iff, var.injEq, Nat.left_eq_add]
-              intro; omega
+              intro h
+              have : ¬(l + n ≤ k - 1) := by omega
+              exact (this h).elim
           | inr h'' =>
-              simp_all only [not_lt, if_neg h'', incre,
+              have : ¬(n + 1 ≤ k) := by omega
+              simp_all only [not_lt, not_le, if_neg, incre, 
                 right_eq_ite_iff, var.injEq, Nat.left_eq_add]
-              intro; omega
+              intro h
+              have : ¬(l + n ≤ k) := by omega
+              exact (this h).elim
 
 /-- The communitivity between sub and incre for free var. -/
 @[simp] public theorem incre_sub {i l n t s} :
@@ -248,30 +257,33 @@ private lemma sub_incre_same {u r m} :
         cases em (k < n + i) with
           | inl hlt =>
               have hlt' : k + 1 < n + i + 1 := by omega
-              have hnlt : ¬(n + i < k) := by omega
+              have hnlt : ¬(n + i + 1 ≤ k) := by omega
               simp only [sub, incre, subst]
               cases em (i ≤ k) with
               | inl hlt' => 
                   simp_all only [Nat.add_lt_add_iff_right, 
-                    not_lt, ↓reduceIte, subst, 
+                    not_le, ↓reduceIte, subst, 
                     Nat.add_right_cancel_iff, decre,
-                    Nat.add_one_sub_one, if_neg hnlt, incre]
+                    Nat.add_le_add_iff_right, 
+                    Nat.add_one_sub_one, if_neg, incre]
               | inr hlt' =>
                   have h' : ¬(k = n + i + 1) := by omega
-                  have : ¬(n + i + 1 < k) := by omega
                   simp_all only [Nat.add_lt_add_iff_right, 
-                    not_lt, not_le, if_neg hlt', subst, 
-                    ↓reduceIte, decre, if_neg this,
-                    if_neg hnlt, incre]
+                    not_le, if_neg, subst, ↓reduceIte, 
+                    decre, incre, ite_eq_right_iff, 
+                    var.injEq]
+                  intro h
+                  have : ¬(n + i + 1 + 1 ≤ k) := by omega
+                  exact (this h).elim
           | inr hlt =>
               have hle : i ≤ k := by omega
-              have hgt : n + i < k := by omega
+              have hgt : n + i + 1 ≤ k := by omega
               have hlt : i ≤ k - 1 := by omega
               simp_all only [not_lt, sub, incre, ↓reduceIte, 
                 subst, Nat.add_right_cancel_iff, decre, 
-                Nat.add_lt_add_iff_right, 
+                Nat.add_le_add_iff_right, 
                 Nat.add_one_sub_one, var.injEq]
-              omega
+              exact by omega
   | abs t ih =>
       simpa only [sub, incre, subst, 
         ← incre_comm_zero, decre, abs.injEq] 
@@ -284,33 +296,31 @@ private lemma sub_comm_var {k n m u s} :
   cases em (k = n + m + 1) with
   | inl hk =>
       have : ¬(n + m + 1 = m) := by omega
-      have : m < n + m + 1 := by omega
+      have : m + 1 ≤ n + m + 1 := by omega
       simp_all only [sub, subst, ↓reduceIte, 
         decre_incre_elim, subst_zero_incre, decre,
         Nat.add_one_sub_one]
   | inr hk =>
       cases em (k = m) with
       | inl hkm =>
-          have : ¬(n + m + 1 < m) := by omega
-          simp_all only [not_lt, sub, subst, ↓reduceIte, 
-            decre, if_neg this, decre_incre_elim]
+          have : ¬(n + m + 1 + 1 ≤ m) := by omega
+          simp_all only [sub, subst, ↓reduceIte, 
+            decre, decre_incre_elim]
       | inr hkm =>
           have : ¬(k - 1 = n + m) := by omega
-          cases em (n + m + 1 < k) with
+          cases em (n + m + 1 + 1 ≤ k) with
           | inl hlt =>
               have : ¬(k - 1 = m) := by omega
-              have : m < k := by omega
-              have : m < k - 1 := by omega
+              have : m + 1 ≤ k := by omega
+              have : m + 1 ≤ k - 1 := by omega
               simp_all only [sub, subst, ↓reduceIte, decre,
-                left_eq_ite_iff, not_lt, Nat.sub_le_iff_le_add, var.injEq]
-              intro h
-              exact (Nat.not_lt_of_ge h hlt).elim
+                left_eq_ite_iff, var.injEq]
+              exact by omega
           | inr hlt =>
-              simp_all only [not_lt, sub, subst,
-                ↓reduceIte, decre, if_neg hlt]
-              cases em (m < k) with
+              cases em (m + 1 ≤ k) with
               | inl hlt =>
-                  simp_all only [↓reduceIte, subst, decre,
+                  simp_all only [not_le, sub, subst, 
+                    ↓reduceIte, decre, if_neg, 
                     right_eq_ite_iff, var.injEq]
                   intro h
                   have nh : ¬(n + m < k - 1) := by omega
@@ -318,8 +328,9 @@ private lemma sub_comm_var {k n m u s} :
               | inr hlt =>
                   have hneq : ¬(k = n + m) := by omega
                   have hnlt : ¬(m < k) := by omega
-                  simp_all only [not_false_eq_true, not_lt, if_neg hnlt, subst,
-                    ↓reduceIte, decre, right_eq_ite_iff, var.injEq]
+                  simp_all only [sub, subst, not_lt, subst,
+                    ↓reduceIte, decre, right_eq_ite_iff, 
+                    var.injEq]
                   intro h
                   have nh : ¬(n + m < k) := by omega
                   exact (nh h).elim
@@ -330,8 +341,8 @@ public theorem sub_comm {t : Term} {n m s u} :
   induction t generalizing n m s u with
   | var k => exact sub_comm_var
   | abs t' ih =>
-      have : ∀ k, (incre 1 0 (decre k (subst k (incre 1 k u) s))) =
-          (decre (k + 1) (subst (k + 1) (incre 1 (k + 1)
+      have : ∀ k, (incre 1 0 (decre 1 k (subst k (incre 1 k u) s))) =
+          (decre 1 (k + 1) (subst (k + 1) (incre 1 (k + 1)
           (incre 1 0 u)) (incre 1 0 s))) := by
         intro k
         simpa only [sub, Nat.add_zero] 
