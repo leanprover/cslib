@@ -87,8 +87,9 @@ public theorem par_subset_betaStar {a b} (h : Par a b) :
       have hsub {t s : Term} :
           (incre i (l + 1) t).sub 0 (incre i l s) =
           incre i l (t.sub 0 s) := by
-        simpa using
-          (incre_sub (i := i) (l := l) (n := 0) (t := t) (s := s))
+        simpa only [sub, Nat.add_zero] 
+          using (incre_sub (i := i) (l := l) (n := 0) 
+            (t := t) (s := s))
       rw [← hsub]
       exact Par.red iht ihs
 
@@ -99,17 +100,24 @@ private lemma par_subst {t t' u u'} (ht : Par t t') (hu : Par u u')
   match t, t' with
   | var t, var t' => match ht with
       | Par.var t => cases em (t = n) with
-          | inl h => simp_all
+          | inl h => 
+              simp_all only [sub, subst, ↓reduceIte, 
+                decre_incre_elim, incre_par]
           | inr h => cases em (t < n) with
-              | inl h' => simp_all
+              | inl h' => 
+                  simp_all only [sub, subst, ↓reduceIte, 
+                    decre.eq_1, par_refl]
               | inr h' =>
-                  simp_all [ (Nat.lt_of_le_of_ne
-                      (Nat.le_of_not_gt h') (Ne.symm h))]
+                  simp_all only [not_lt, sub, subst, 
+                  ↓reduceIte, decre.eq_1, 
+                  (Nat.lt_of_le_of_ne (Nat.le_of_not_gt h') 
+                  (Ne.symm h)), par_refl]
   | abs t, abs t' => match ht with
       | Par.abs ht' =>
           have hp := Par.abs
             (par_subst ht' hu (1 + k) (n + 1))
-          simp_all [← incre_comm_zero]
+          simp_all only [sub, subst, ← incre_comm_zero, 
+            incre_same_bound_elim, decre.eq_2]
   | app t₁ t₂, t' => match t₁ with
       | abs t₁ => match ht with
           | Par.app ht₁ ht₂ =>
@@ -120,7 +128,8 @@ private lemma par_subst {t t' u u'} (ht : Par t t') (hu : Par u u')
                 (par_subst ht₁ hu (1 + k) (n + 1))
                 (par_subst ht₂ hu k n)
               rw [sub_sub_incre] at hp
-              simp_all [← incre_comm_zero]
+              simp_all only [sub, subst, ← incre_comm_zero, 
+                incre_same_bound_elim, decre.eq_3, decre]
       | var t₁ => match ht with
           | Par.app ht₁ ht₂ =>
               exact Par.app
