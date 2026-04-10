@@ -7,6 +7,7 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Foundations.Semantics.LTS.Total
 
 @[expose] public section
 
@@ -37,15 +38,15 @@ theorem totalize_run_mtr {xs : ωSequence Symbol} {ss : ωSequence (State ⊕ Un
   use s, t
   refine ⟨?_, by grind⟩
   -- TODO: `grind` does not use congruence relations with `na.totalize.MTr`
-  rw [← LTS.totalize.mtr_left_iff, ← extract_eq_take, eq₁, ← eq₂]
-  exact LTS.ωTr_mTr h.trans (by grind)
+  rw [← LTS.totalize.nonsink_mtr_iff, ← extract_eq_take, eq₁, ← eq₂]
+  exact LTS.OmegaExecution.extract_mTr h.trans (by grind)
 
 /-- Any finite execution of the original NA can be extended to an infinite execution of
 `NA.totalize`, provided that the alphabet is inbabited. -/
 theorem totalize_mtr_run [Inhabited Symbol] {xl : List Symbol} {s t : State}
     (hs : s ∈ na.start) (hm : na.MTr s xl t) :
     ∃ xs ss, na.totalize.Run (xl ++ω xs) ss ∧ ss 0 = inl s ∧ ss xl.length = inl t := by
-  grind [totalize, Run, LTS.Total.mTr_ωTr <| LTS.totalize.mtr_left_iff.mpr hm]
+  grind [totalize, Run, LTS.Total.extend_omegaExecution <| LTS.totalize.nonsink_mtr_iff.mpr hm]
 
 namespace FinAcc
 

@@ -63,6 +63,11 @@ lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) (n
     x ∉ (m⟦k ↝ fvar y⟧).fv := by
   induction m generalizing k <;> grind
 
+/-- Opening preserves free variables. -/
+lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_n : x ∉ n.fv) :
+    x ∉ (m⟦k ↝ n⟧).fv := by
+  induction m generalizing k <;> grind
+
 /-- Substitution preserves free variables. -/
 lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) (nmem : x ∉ m.fv ∪ n.fv) :
     x ∉ (m [y := n]).fv := by
