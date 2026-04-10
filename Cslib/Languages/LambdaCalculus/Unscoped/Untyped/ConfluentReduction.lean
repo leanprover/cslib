@@ -33,10 +33,10 @@ open Relation
 
 namespace Lambda
 
-@[simp, expose] public def Diamond {α} (r : α → α → Prop) : Prop :=
+@[expose] public def Diamond {α} (r : α → α → Prop) : Prop :=
   ∀ ⦃a b c⦄, r a b → r a c → ∃ d, r b d ∧ r c d
 
-@[simp, expose] public def Confluent {α} (r : α → α → Prop) : Prop :=
+@[expose] public def Confluent {α} (r : α → α → Prop) : Prop :=
   ∀ ⦃a b c⦄,
     ReflTransGen r a b →
     ReflTransGen r a c →
