@@ -5,7 +5,7 @@ Authors: Zayn Wang
 -/
 module
 
-public import Mathlib.Logic.Relation
+public import Cslib.Foundations.Data.Relation 
 
 /-!
 # Confluent Reduction
