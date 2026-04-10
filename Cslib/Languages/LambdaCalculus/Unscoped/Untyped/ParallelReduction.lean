@@ -41,6 +41,7 @@ namespace Lambda
 open Term
 
 /-- Parallel β-reduction (syntax-directed). -/
+@[reduction_sys "∥"]
 public inductive Par : Term → Term → Prop
   | var (n) : Par (𝕧 n) (𝕧 n)
   | abs {t t'} : Par t t' → Par (λ.t) (λ.t')
