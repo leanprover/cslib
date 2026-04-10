@@ -57,32 +57,32 @@ notation:max "λ." t => Term.abs t
 infixl:77 "·" => Term.app
 
 /-- `incre i l t` increments `i` for all free vars `≥ l`. -/
-@[simp, expose] public def incre (i : Nat) (l : Nat) : Term → Term
+@[expose] public def incre (i : Nat) (l : Nat) : Term → Term
   | var k   => if l ≤ k then var (k + i) else var k
   | abs t   => abs (incre i (l + 1) t)
   | app t u => app (incre i l t) (incre i l u)
 
 /-- `subst j s t` substitutes `j` with term `s` in `t`. -/
-@[simp, expose] public def subst (j : Nat) (s : Term) : Term → Term
+@[expose] public def subst (j : Nat) (s : Term) : Term → Term
   | var k   => if k = j then s else var k
   | abs t   => abs (subst (j + 1) (incre 1 0 s) t)
   | app t u => app (subst j s t) (subst j s u)
 
 /-- `decre c t` decrements free vars `> c` by 1. -/
-@[simp, expose] public def decre (l : Nat) : Term → Term
+@[expose] public def decre (l : Nat) : Term → Term
   | var k   => if l < k then var (k - 1) else var k
   | abs t   => abs (decre (l + 1) t)
   | app t u => app (decre l t) (decre l u)
 
 /-- Substitute into the body of a lambda: `(λ.t) s` -/
-@[simp, expose] public def sub (t : Term) (n : Nat) (s : Term) := decre n (subst n (incre 1 n s) t)
+@[expose] public def sub (t : Term) (n : Nat) (s : Term) := decre n (subst n (incre 1 n s) t)
 
 /-- Increment of 0 is identity -/
 @[simp] public theorem incre_rfl {l t} : incre 0 l t = t := by
   induction t generalizing l with
-  | var k => simp_all
-  | abs t ih => simp_all
-  | app t u iht ihu => simp_all
+  | var k => simp_all only [incre, Nat.add_zero, ite_self]
+  | abs t ih => simp_all only [incre]
+  | app t u iht ihu => simp_all only [incre]
 
 /-- Decrement of increment with same bound is the same.
 Lemma for `var_sub` -/
@@ -91,12 +91,13 @@ Lemma for `var_sub` -/
   | var k =>
       unfold decre incre
       cases em (l ≤ k) with
-      | inl h => simp_all [Nat.lt_succ_of_le h]
+      | inl h => simp_all only [↓reduceIte, 
+          Nat.lt_succ_of_le h, Nat.add_one_sub_one]
       | inr h =>
           have : ¬(l < k) := by omega
           simp only [if_neg h, if_neg this]
-  | abs t ih => simp_all
-  | app t u iht ihu => simp_all
+  | abs t ih => simp_all only [incre, decre]
+  | app t u iht ihu => simp_all only [incre, decre]
 
 /-- Substitution of var n. -/
 @[simp] public theorem var_sub_elim {n s} : ((𝕧 n).sub) n s = s := by
@@ -110,7 +111,8 @@ Lemma for `var_sub` -/
 /-- Vacuously Substitution of var k to var k - 1. -/
 @[simp] public theorem var_gt_sub {k n s} (hk : k > n) :
     ((𝕧 k).sub) n s = 𝕧 (k - 1) := by
-  simp_all [Nat.ne_of_gt hk]
+  simp_all only [gt_iff_lt, sub, subst, 
+    Nat.ne_of_gt hk, ↓reduceIte, decre]
 
 /-- Increments elimination for same lower bound.
 Special thanks to professor Radziwill @maksym-radziwill about
@@ -121,11 +123,12 @@ his idea of generalizing proper variable. -/
   | var k =>
       cases em (n ≤ k) with
       | inl h =>
-          simp_all [le_trans h (Nat.le_add_right k j)]
-          simp_all [Nat.add_comm, Nat.add_left_comm]
-      | inr h => simp_all [if_neg h]
-  | abs t' ih => simp_all
-  | app t₁ t₂ ih₁ ih₂ => simp_all
+          simp_all only [incre, ↓reduceIte, 
+            le_trans h (Nat.le_add_right k j), var.injEq]
+          simp_all only [Nat.add_comm, Nat.add_left_comm]
+      | inr h => simp_all only [not_le, incre, if_neg h]
+  | abs t' ih => simp_all only [incre]
+  | app t₁ t₂ ih₁ ih₂ => simp_all only [incre]
 
 /-- Communitivity of incre. -/
 public theorem incre_comm {i j k l t} :
@@ -136,8 +139,10 @@ public theorem incre_comm {i j k l t} :
       cases em (k + l ≤ n) with
       | inl h =>
           have : l ≤ n := le_trans (Nat.le_add_left _ _) h
-          simp_all [le_trans this (Nat.le_add_right _ _)]
-          simp [Nat.add_comm, Nat.add_left_comm]
+          simp_all only [incre, ↓reduceIte, 
+            Nat.add_le_add_iff_right, 
+            le_trans this (Nat.le_add_right _ _), var.injEq]
+          simp only [Nat.add_comm, Nat.add_left_comm]
       | inr h =>
           simp only [incre, if_neg h]
           cases em (l ≤ n) with
@@ -154,18 +159,19 @@ public theorem incre_comm {i j k l t} :
               have hl : l ≤ n := by omega
               exact (Nat.lt_irrefl n
                 (Nat.lt_of_lt_of_le h' hl)).elim
-  | abs t' ih => simp_all [Nat.add_assoc, Nat.add_comm]
-  | app t₁ t₂ ih₁ ih₂ => simp_all
+  | abs t' ih => 
+      simp_all only [Nat.add_comm, incre, Nat.add_assoc]
+  | app t₁ t₂ ih₁ ih₂ => simp_all only [incre]
 
 public theorem incre_comm_zero {n s} :
     incre 1 (n + 1) (incre 1 0 s) =
       incre 1 0 (incre 1 n s) := by
-  simpa using
-      (incre_comm (i := 1) (l := 0) (j := 1) (k := n) (t := s))
+  simpa only [Nat.add_zero] 
+    using (incre_comm (i := 1) (l := 0) (j := 1) (k := n) (t := s))
 
 @[simp] public theorem abs_sub_zero {t n s} :
     ((λ.t).sub n s) = λ.(t.sub (n + 1) (incre 1 0 s)) := by
-  simp_all [incre_comm_zero]
+  simp_all only [sub, subst, decre, incre_comm_zero]
 
 private lemma incre_sub_var {i l n k s} :
     (incre i (l + n + 1) 𝕧 k).sub n (incre i (l + n) s) =
@@ -173,7 +179,8 @@ private lemma incre_sub_var {i l n k s} :
   cases em (k = n) with
   | inl h =>
       have : ¬ (l + n + 1 ≤ n) := by omega
-      simp_all [if_neg this]
+      simp_all only [not_le, sub, incre, if_neg this, subst, 
+        ↓reduceIte, decre_incre_elim]
   | inr h =>
       cases em (l + n + 1 ≤ k) with
       | inl h' =>
@@ -204,8 +211,10 @@ private lemma incre_sub_var {i l n k s} :
   induction t generalizing l n s with
   | var k => exact incre_sub_var
   | abs t' ih =>
-      simpa [← incre_comm_zero, ← incre_comm] using ih
-  | app t₁ t₂ ih₁ ih₂ => simp_all
+      simpa only [sub, ← incre_comm, incre, subst, 
+        Nat.add_zero, ← incre_comm_zero, decre, abs.injEq] 
+        using ih
+  | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, incre, subst, decre]
 
 private lemma subst_zero_incre {n t u} :
     subst n t (incre 1 n u) = incre 1 n u := by
@@ -219,12 +228,12 @@ private lemma subst_zero_incre {n t u} :
           simp_all only [not_le, incre, if_neg h,
             subst, ite_eq_right_iff]
           intro; omega
-  | abs t ih => simp_all
-  | app t v iht ihv => simp_all
+  | abs t ih => simp_all only [incre, subst]
+  | app t v iht ihv => simp_all only [incre, subst]
 
 private lemma sub_incre_same {u r m} :
     ((incre 1 m u).sub m r) = u := by
-  simp_all [subst_zero_incre]
+  simp_all only [sub, subst_zero_incre, decre_incre_elim]
 
 @[simp] public theorem sub_lift_zero {i t n u} :
     ((incre 1 i t).sub (n + i + 1) (incre 1 i u)) =
@@ -232,7 +241,9 @@ private lemma sub_incre_same {u r m} :
   induction t generalizing n u i with
   | var k =>
       cases em (k = n + i) with
-      | inl hk => simp_all
+      | inl hk => 
+          simp_all only [sub, incre, Nat.le_add_left, 
+            ↓reduceIte, subst, decre_incre_elim]
       | inr hk =>
         cases em (k < n + i) with
           | inl hlt =>
@@ -240,21 +251,32 @@ private lemma sub_incre_same {u r m} :
               have hnlt : ¬(n + i < k) := by omega
               simp only [sub, incre, subst]
               cases em (i ≤ k) with
-              | inl hlt' => simp_all [if_neg hnlt]
+              | inl hlt' => 
+                  simp_all only [Nat.add_lt_add_iff_right, 
+                    not_lt, ↓reduceIte, subst, 
+                    Nat.add_right_cancel_iff, decre,
+                    Nat.add_one_sub_one, if_neg hnlt, incre]
               | inr hlt' =>
                   have h' : ¬(k = n + i + 1) := by omega
                   have : ¬(n + i + 1 < k) := by omega
-                  simp_all [if_neg hlt', if_neg this, if_neg hnlt]
+                  simp_all only [Nat.add_lt_add_iff_right, 
+                    not_lt, not_le, if_neg hlt', subst, 
+                    ↓reduceIte, decre, if_neg this,
+                    if_neg hnlt, incre]
           | inr hlt =>
               have hle : i ≤ k := by omega
               have hgt : n + i < k := by omega
               have hlt : i ≤ k - 1 := by omega
-              simp_all
+              simp_all only [not_lt, sub, incre, ↓reduceIte, 
+                subst, Nat.add_right_cancel_iff, decre, 
+                Nat.add_lt_add_iff_right, 
+                Nat.add_one_sub_one, var.injEq]
               omega
   | abs t ih =>
-      simpa [← incre_comm_zero] using
-        (ih (i := i + 1) (n := n) (u := incre 1 0 u))
-  | app t₁ t₂ ih₁ ih₂ => simp_all
+      simpa only [sub, incre, subst, 
+        ← incre_comm_zero, decre, abs.injEq] 
+        using (ih (i := i + 1) (n := n) (u := incre 1 0 u))
+  | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, incre, subst, decre]
 
 private lemma sub_comm_var {k n m u s} :
     (((𝕧 k).sub ((n + m) + 1) (incre 1 m u)).sub m (s.sub (n + m) u))
@@ -263,12 +285,15 @@ private lemma sub_comm_var {k n m u s} :
   | inl hk =>
       have : ¬(n + m + 1 = m) := by omega
       have : m < n + m + 1 := by omega
-      simp_all [subst_zero_incre]
+      simp_all only [sub, subst, ↓reduceIte, 
+        decre_incre_elim, subst_zero_incre, decre,
+        Nat.add_one_sub_one]
   | inr hk =>
       cases em (k = m) with
       | inl hkm =>
           have : ¬(n + m + 1 < m) := by omega
-          simp_all [if_neg this]
+          simp_all only [not_lt, sub, subst, ↓reduceIte, 
+            decre, if_neg this, decre_incre_elim]
       | inr hkm =>
           have : ¬(k - 1 = n + m) := by omega
           cases em (n + m + 1 < k) with
@@ -309,11 +334,14 @@ public theorem sub_comm {t : Term} {n m s u} :
           (decre (k + 1) (subst (k + 1) (incre 1 (k + 1)
           (incre 1 0 u)) (incre 1 0 s))) := by
         intro k
-        simpa using
-        (sub_lift_zero (t := s) (n := k) (u := u) (i := 0)).symm
-      simpa [← incre_comm_zero, this] using
-        (ih (n := n) (m := m + 1) (u := incre 1 0 u) (s := incre 1 0 s))
-  | app t₁ t₂ ih₁ ih₂ => simp_all
+        simpa only [sub, Nat.add_zero] 
+          using (sub_lift_zero (t := s) (n := k) (u := u) 
+                  (i := 0)).symm
+      simpa only [sub, subst, ← incre_comm_zero, 
+        decre, this, abs.injEq] 
+        using (ih (n := n) 
+          (m := m + 1) (u := incre 1 0 u) (s := incre 1 0 s))
+  | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, subst, decre]
 
 public theorem sub_sub_incre {t : Term} {n k u s} :
     ((t.sub (n + 1) (incre (1 + k) 0 u)).sub 0 (s.sub n (incre k 0 u)))
@@ -322,8 +350,10 @@ public theorem sub_sub_incre {t : Term} {n k u s} :
       ((t.sub (n + 1) (incre 1 0 (incre k 0 u))).sub 0
           ((s.sub n (incre k 0 u)))) =
         ((t.sub 0 s).sub n (incre k 0 u)) := by
-    simpa using (sub_comm (t := t) (u := incre k 0 u) (s := s) (n := n) (m := 0))
-  simpa using h'
+    simpa only [sub, incre_same_bound_elim, Nat.add_zero] 
+      using (sub_comm (t := t) (u := incre k 0 u) (s := s) 
+        (n := n) (m := 0))
+  simpa only [sub, incre_same_bound_elim] using h'
 
 
 end Term
