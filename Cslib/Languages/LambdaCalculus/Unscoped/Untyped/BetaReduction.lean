@@ -50,12 +50,15 @@ namespace BetaStar
 
 public theorem refl (t : Term) : BetaStar t t :=
   Relation.ReflTransGen.refl
+
 public theorem head {a b c} (hab : Beta a b) (hbc : BetaStar b c) :
     BetaStar a c :=
   Relation.ReflTransGen.head hab hbc
+
 public theorem tail {a b c} (hab : BetaStar a b) (hbc : Beta b c) :
     BetaStar a c :=
   Relation.ReflTransGen.tail hab hbc
+
 public theorem trans {a b c}
     (hab : BetaStar a b) (hbc : BetaStar b c) :
     BetaStar a c :=
@@ -66,11 +69,13 @@ public theorem appL {t t' u : Term} (h : BetaStar t t') :
   induction h with
   | refl => exact BetaStar.refl (t·u)
   | tail hab hbc ih => exact BetaStar.tail ih (Beta.appL hbc)
+
 public theorem appR {t u u' : Term} (h : BetaStar u u') :
     BetaStar (t·u) (t·u') := by
   induction h with
   | refl => exact BetaStar.refl (t·u)
   | tail hab hbc ih => exact BetaStar.tail ih (Beta.appR hbc)
+
 public theorem app {t t' u u'}
     (ht : BetaStar t t')
     (hu : BetaStar u u') :
