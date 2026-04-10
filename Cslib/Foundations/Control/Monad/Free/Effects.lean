@@ -202,25 +202,6 @@ lemma run_pure [Monoid ω] (a : α) :
 lemma run_liftBind_tell [Monoid ω] (w : ω) (k : PUnit → FreeWriter ω α) :
     run (liftBind (.tell w) k) = (let (a, w') := run (k .unit); (a, w * w')) := rfl
 
-
--- https://github.com/leanprover-community/mathlib4/pull/36497
-section missing_from_mathlib
-
-@[simp]
-theorem _root_.WriterT.run_pure [Monoid ω] [Monad M] (a : α) :
-    WriterT.run (pure a : WriterT ω M α) = pure (a, 1) := rfl
-
-@[simp]
-theorem _root_.WriterT.run_bind [Monoid ω] [Monad M] (x : WriterT ω M α) (f : α → WriterT ω M β) :
-    WriterT.run (x >>= f) = x.run >>= fun (a, w₁) => (fun (b, w₂) => (b, w₁ * w₂)) <$> (f a).run :=
-  rfl
-
-@[simp]
-theorem _root_.WriterT.run_tell [Monad M] (w : ω) :
-    WriterT.run (MonadWriter.tell w : WriterT ω M PUnit) = pure (.unit, w) := rfl
-
-end missing_from_mathlib
-
 /--
 The canonical interpreter `toWriterT` derived from `liftM` agrees with the hand-written
 recursive interpreter `run` for `FreeWriter`.
