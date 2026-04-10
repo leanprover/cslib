@@ -5,7 +5,7 @@ Authors: Zayn Wang
 -/
 module
 
-public import Cslib.Computability.LambdaCalculus.BetaReduction
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.BetaReduction
 
 /-!
 # Parallel β-reduction and complete developments
