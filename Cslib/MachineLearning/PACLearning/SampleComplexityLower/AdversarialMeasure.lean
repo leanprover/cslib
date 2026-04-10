@@ -66,7 +66,7 @@ theorem adversarialMeasure_isProbabilityMeasure
     Set.indicator_univ, Pi.one_apply, mul_one,
     Measure.finset_sum_apply, Finset.sum_const, nsmul_eq_mul]
   have hd_pos : (0 : ℝ) < d := Nat.cast_pos.mpr (by omega)
-  rw [show (d : ℝ≥0∞) = ENNReal.ofReal (d : ℝ) from by rw [ENNReal.ofReal_natCast]]
+  rw [← ENNReal.ofReal_natCast (n := d)]
   rw [← ENNReal.ofReal_mul (by exact_mod_cast hd_pos.le)]
   rw [mul_div_cancel₀ _ (ne_of_gt hd_pos)]
   rw [← ENNReal.ofReal_add (by linarith) (by linarith)]
@@ -82,8 +82,7 @@ theorem adversarialMeasure_singleton [MeasurableSingletonClass α]
   simp only [adversarialMeasure, Measure.coe_add, Pi.add_apply, Measure.smul_apply, smul_eq_mul,
     Measure.finset_sum_apply, Measure.dirac_apply, Set.indicator_apply, Set.mem_singleton_iff]
   rw [if_neg hw_ne, mul_zero, zero_add]
-  simp_rw [show ∀ x : α, (if x = w then (1 : α → ℝ≥0∞) x else 0) =
-    if x = w then 1 else 0 from fun x => by split <;> simp]
+  simp_rw [Pi.one_apply]
   simp_rw [mul_ite, mul_one, mul_zero]
   rw [Finset.sum_ite_eq' _ _ _, if_pos hw]
 

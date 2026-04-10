@@ -63,19 +63,13 @@ theorem SetShatters.subset {C : ConceptClass α} {W V : Set α}
     union_subset hV'W diff_subset
   obtain ⟨c, hc, hc_eq⟩ := hW (V' ∪ (W \ V)) hsub
   refine ⟨c, hc, ?_⟩
-  ext x
-  simp only [mem_inter_iff]
+  ext x; simp only [mem_inter_iff]
   constructor
-  · intro ⟨hxc, hxV⟩
-    have hxW : x ∈ W := hVW hxV
-    have : x ∈ c ∩ W := ⟨hxc, hxW⟩
-    rw [hc_eq] at this
-    exact this.elim (fun h => h) (fun ⟨_, hxnV⟩ => absurd hxV hxnV)
+  · rintro ⟨hxc, hxV⟩
+    have := (hc_eq ▸ (⟨hxc, hVW hxV⟩ : x ∈ c ∩ W) : x ∈ V' ∪ (W \ V))
+    exact this.elim id (fun ⟨_, h⟩ => absurd hxV h)
   · intro hxV'
-    have hxV : x ∈ V := hV'V hxV'
-    have : x ∈ V' ∪ (W \ V) := Or.inl hxV'
-    rw [← hc_eq] at this
-    exact ⟨this.1, hxV⟩
+    exact ⟨(hc_eq ▸ (Or.inl hxV' : x ∈ V' ∪ (W \ V)) : x ∈ c ∩ W).1, hV'V hxV'⟩
 
 /-- Shattering is monotone in the concept class: if `C` shatters
 `W` and `C ⊆ C'`, then `C'` shatters `W`. -/

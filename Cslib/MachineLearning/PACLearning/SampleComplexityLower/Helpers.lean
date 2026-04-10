@@ -55,11 +55,7 @@ sample. -/
 theorem sampleOf_eq_of_agree {α : Type*} {m : ℕ} {c₁ c₂ : Set α}
     {xs : Fin m → α} (h : ∀ i, xs i ∈ c₁ ↔ xs i ∈ c₂) :
     sampleOf c₁ xs = sampleOf c₂ xs := by
-  funext i
-  unfold sampleOf
-  congr 1
-  have := h i
-  aesop
+  funext i; simp [sampleOf, h i]
 
 /-- Two concepts with the same intersection with `W` have the same hypothesis
 error when the measure `P` is supported on `W`. -/
@@ -83,11 +79,7 @@ theorem hypothesisError_eq_of_inter_eq {α : Type*} [MeasurableSpace α]
     have hc_iff : x ∈ c₁ ↔ x ∈ c₂ :=
       ⟨fun h => ((Set.ext_iff.mp hinter x).mp ⟨h, hxW⟩).1,
        fun h => ((Set.ext_iff.mp hinter x).mpr ⟨h, hxW⟩).1⟩
-    constructor <;> rintro (⟨h1, h2⟩ | ⟨h1, h2⟩)
-    · exact Or.inl ⟨h1, fun h => h2 (hc_iff.mpr h)⟩
-    · exact Or.inr ⟨hc_iff.mp h1, h2⟩
-    · exact Or.inl ⟨h1, fun h => h2 (hc_iff.mp h)⟩
-    · exact Or.inr ⟨hc_iff.mpr h1, h2⟩
+    tauto
   rw [this]
 
 /-- If a measure `P` on `α` gives zero mass to the complement of a finite set `W`, then
@@ -204,16 +196,14 @@ theorem expected_seenElements_le
           rw [compl_compl] at h2; rw [h2, hcompl_eq]
         have hPwc : P {w}ᶜ = ENNReal.ofReal (1 - p) := by
           rw [prob_compl_eq_one_sub (MeasurableSet.singleton w), hP_w w hw,
-            show (1 : ℝ≥0∞) = ENNReal.ofReal 1 from ENNReal.ofReal_one.symm]
+            ← ENNReal.ofReal_one]
           exact (ENNReal.ofReal_sub 1 hp_nonneg).symm
         rw [hseen, hPwc, ← ENNReal.ofReal_pow h1p_nonneg,
-          show (1 : ℝ≥0∞) = ENNReal.ofReal 1 from ENNReal.ofReal_one.symm,
-          ← ENNReal.ofReal_sub 1 (pow_nonneg h1p_nonneg _)]
+          ← ENNReal.ofReal_one, ← ENNReal.ofReal_sub 1 (pow_nonneg h1p_nonneg _)]
         exact ENNReal.ofReal_le_ofReal (one_sub_pow_le_mul hp_nonneg hp_le_one m)
     _ = ENNReal.ofReal (↑W'.card * (↑m * p)) := by
         rw [Finset.sum_const, nsmul_eq_mul,
-          show (W'.card : ℝ≥0∞) = ENNReal.ofReal (W'.card : ℝ) from
-            by rw [ENNReal.ofReal_natCast],
+          ← ENNReal.ofReal_natCast (n := W'.card),
           ← ENNReal.ofReal_mul (by exact_mod_cast Nat.zero_le W'.card)]
 
 end Cslib.MachineLearning

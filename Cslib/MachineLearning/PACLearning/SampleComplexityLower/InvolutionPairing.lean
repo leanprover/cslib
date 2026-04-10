@@ -130,7 +130,7 @@ theorem unseen_measure_ge {U : Finset α} {d : ℕ} {ε' : ℝ} {P : Measure α}
     (fun w _ w' _ hww' => Set.disjoint_singleton.mpr hww')
     (fun w _ => MeasurableSet.singleton w)]
   rw [Finset.sum_congr rfl hP_each, Finset.sum_const, nsmul_eq_mul,
-    show (U.card : ℝ≥0∞) = ENNReal.ofReal (U.card : ℝ) from by rw [ENNReal.ofReal_natCast],
+    ← ENNReal.ofReal_natCast (n := U.card),
     ← ENNReal.ofReal_mul (by positivity)]
   apply ENNReal.ofReal_le_ofReal
   have hd_cast : (0 : ℝ) < d := Nat.cast_pos.mpr hd_pos
@@ -156,7 +156,7 @@ theorem complementary_error_contradiction {P : Measure α} {h c₁ c₂ : Set α
       _ ≤ P (symmDiff h c₁) + P (symmDiff h c₂) := measure_union_le _ _
       _ ≤ ENNReal.ofReal ε' + ENNReal.ofReal ε' := add_le_add herr₁ herr₂
       _ = ENNReal.ofReal (2 * ε') := by
-          rw [← ENNReal.ofReal_add (le_of_lt hε'_pos) (le_of_lt hε'_pos)]; ring_nf
+          rw [← ENNReal.ofReal_add hε'_pos.le hε'_pos.le]; ring_nf
   rw [ENNReal.ofReal_le_ofReal_iff (by linarith)] at h_contra
   linarith
 

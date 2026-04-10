@@ -71,9 +71,7 @@ theorem markov_bad_samples
   have hp_nonneg : (0 : ℝ) ≤ 8 * ε' / d := by positivity
   have hp_le_one : 8 * ε' / d ≤ 1 := by
     rw [div_le_one hd_cast]
-    calc 8 * ε' ≤ 8 * (1 / 8) := by linarith
-      _ = 1 := by ring
-      _ ≤ d := by exact_mod_cast hd_pos
+    linarith [show (1 : ℝ) ≤ d from by exact_mod_cast hd_pos]
   have hf_meas : Measurable (fun xs : Fin m → α => ((seenElements W' xs).card : ℝ≥0∞)) :=
     measurable_seenElements_card W'
   -- Define "good" and "bad" sets
@@ -111,19 +109,17 @@ theorem markov_bad_samples
           (ENNReal.ofReal_div_of_pos hk_pos).symm
   -- Step 3: Show 8*m*ε'/k < 1/2 via arithmetic
   have harith : 8 * ↑m * ε' / ↑k < 1 / 2 := by
-    have h8mε : 8 * (m : ℝ) * ε' < (d : ℝ) / 4 := by
-      have : 8 * (m : ℝ) * ε' < 8 * ((d : ℝ) / (32 * ε')) * ε' :=
-        mul_lt_mul_of_pos_right (by linarith) hε'_pos
-      calc 8 * ↑m * ε' < 8 * (↑d / (32 * ε')) * ε' := this
+    have h8mε : 8 * (m : ℝ) * ε' < (↑d : ℝ) / 4 := by
+      calc 8 * (m : ℝ) * ε' < 8 * ((↑d : ℝ) / (32 * ε')) * ε' :=
+            mul_lt_mul_of_pos_right (by linarith) hε'_pos
         _ = ↑d / 4 := by field_simp; ring
+    have h2k : (d : ℝ) < 2 * ↑k := by
+      exact_mod_cast (show d < 2 * k from by omega)
     calc 8 * ↑m * ε' / ↑k
         < (↑d / 4) / ↑k := div_lt_div_of_pos_right h8mε hk_pos
       _ = ↑d / (4 * ↑k) := by ring
       _ < 1 / 2 := by
-          rw [div_lt_iff₀ (by positivity : (0 : ℝ) < 4 * ↑k)]
-          have h2k : (d : ℝ) < 2 * ↑k := by
-            exact_mod_cast (show d < 2 * k from by omega)
-          linarith
+          rw [div_lt_iff₀ (by positivity : (0 : ℝ) < 4 * ↑k)]; linarith
   -- Step 4: μ(bad) < ENNReal.ofReal(1/2)
   have hbad_lt : μ bad < ENNReal.ofReal (1 / 2) := calc
     μ bad ≤ ENNReal.ofReal (8 * ↑m * ε' / ↑k) := hbad_bound
@@ -198,30 +194,13 @@ theorem ehkv_sum_lower_bound
     let σ : Finset α → Finset α := fun S => (S ∩ T) ∪ (U \ S)
     have hσ_self : ∀ S, S ∈ W'.powerset → σ (σ S) = S := by
       intro S hS; rw [Finset.mem_powerset] at hS
-      ext x; simp only [σ, U, Finset.mem_union, Finset.mem_inter, Finset.mem_sdiff]
-      constructor
-      · rintro (⟨h1, h2⟩ | ⟨⟨h1, h2⟩, h3⟩)
-        · exact h1.elim And.left (fun ⟨⟨_, h⟩, _⟩ => absurd h2 h)
-        · by_contra hxnS; exact h3 (Or.inr ⟨⟨h1, h2⟩, hxnS⟩)
-      · intro hxS
-        by_cases hxT : x ∈ T
-        · left; exact ⟨Or.inl ⟨hxS, hxT⟩, hxT⟩
-        · right; constructor
-          · exact ⟨hS hxS, hxT⟩
-          · rintro (⟨_, hxT'⟩ | ⟨_, hxnS⟩)
-            · exact hxT hxT'
-            · exact hxnS hxS
+      ext x; simp only [σ, U, Finset.mem_union, Finset.mem_inter, Finset.mem_sdiff]; tauto
     have hσ_mem : ∀ S ∈ W'.powerset, σ S ∈ W'.powerset := by
       intro S hS; rw [Finset.mem_powerset] at hS ⊢
       exact union_subset (inter_subset_left.trans hS) (sdiff_subset.trans sdiff_subset)
     have hσ_agree_T : ∀ S, σ S ∩ T = S ∩ T := by
       intro S; ext x
-      simp only [σ, U, Finset.mem_inter, Finset.mem_union, Finset.mem_sdiff]
-      constructor
-      · rintro ⟨h1 | ⟨⟨_, h2⟩, _⟩, h3⟩
-        · exact h1
-        · exact absurd h3 h2
-      · exact fun ⟨h1, h2⟩ => ⟨Or.inl ⟨h1, h2⟩, h2⟩
+      simp only [σ, U, Finset.mem_inter, Finset.mem_union, Finset.mem_sdiff]; tauto
     -- Pairing: for each S, xs ∈ fail(concepts S) ∨ xs ∈ fail(concepts(σ S))
     have hpairing : ∀ S ∈ W'.powerset,
         xs ∈ fail (concepts S) ∨ xs ∈ fail (concepts (σ S)) := by
@@ -236,14 +215,10 @@ theorem ehkv_sum_lower_bound
       set h₀_local := A' (sampleOf (concepts S) xs)
       have hU_in_S : ∀ w ∈ U, w ∈ S → w ∉ σ S := by
         intro w hwU hwS
-        change w ∉ (S ∩ T) ∪ (U \ S)
-        rw [Finset.mem_union, not_or]
-        exact ⟨fun h => (Finset.mem_sdiff.mp hwU).2 (Finset.mem_inter.mp h).2,
-               fun h => (Finset.mem_sdiff.mp h).2 hwS⟩
+        simp only [σ, U, Finset.mem_union, Finset.mem_inter, Finset.mem_sdiff] at *; tauto
       have hU_not_S : ∀ w ∈ U, w ∉ S → w ∈ σ S := by
         intro w hwU hwnS
-        change w ∈ (S ∩ T) ∪ (U \ S)
-        exact Finset.mem_union.mpr (Or.inr (Finset.mem_sdiff.mpr ⟨hwU, hwnS⟩))
+        simp only [σ, Finset.mem_union, Finset.mem_sdiff]; exact Or.inr ⟨hwU, hwnS⟩
       have hU_sub_symmDiff : (↑U : Set α) ⊆
           symmDiff h₀_local (concepts S) ∪ symmDiff h₀_local (concepts (σ S)) := by
         intro w hwU
@@ -334,7 +309,7 @@ theorem ehkv_final_contradiction
     have h2d_nat : (2 ^ d : ℕ) = 2 * (2 ^ d / 2) :=
       Nat.eq_mul_of_div_eq_right (dvd_pow_self 2 (by omega : d ≠ 0)) rfl
     have hpow_half_pos : 0 < (2 ^ d / 2 : ℕ) := Nat.div_pos
-      (le_of_eq (show 2 = 2 ^ 1 from by ring) |>.trans (Nat.pow_le_pow_right (by omega) hd_pos))
+      (le_of_eq (pow_one 2).symm |>.trans (Nat.pow_le_pow_right (by omega) hd_pos))
       (by norm_num)
     rw [nsmul_eq_mul, nsmul_eq_mul] at h_combined
     have h_rhs : (↑(2 ^ d : ℕ) : ℝ≥0∞) * ENNReal.ofReal (1 / 14) =
@@ -349,11 +324,9 @@ theorem ehkv_final_contradiction
               ← ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 2)]
             congr 1; norm_num
     rw [h_rhs] at h_combined
-    exact le_of_lt (lt_of_mul_lt_mul_left' h_combined)
-  have h17_lt_12 : ENNReal.ofReal (1 / 7) < ENNReal.ofReal (1 / 2) := by
-    rw [ENNReal.ofReal_lt_ofReal_iff (by norm_num : (0 : ℝ) < 1 / 2)]
-    norm_num
-  exact absurd hB_prob (not_lt.mpr (le_trans hB_upper (le_of_lt h17_lt_12)))
+    exact (lt_of_mul_lt_mul_left' h_combined).le
+  exact absurd hB_prob
+    (not_lt.mpr (hB_upper.trans (ENNReal.ofReal_le_ofReal (by norm_num : (1:ℝ)/7 ≤ 1/2))))
 
 open Classical in
 /-- **Randomized variant of Lemmas 2 + 3** [EHKV1989]: If the sample
@@ -401,8 +374,8 @@ theorem exists_bad_distribution_and_concept_randomized
   set P := adversarialMeasure W w₀ ε' with hP_def
   have hP_prob : IsProbabilityMeasure P :=
     adversarialMeasure_isProbabilityMeasure hε'_pos hε'_le hd
-  have hP_w : ∀ w ∈ W', P {w} = ENNReal.ofReal (8 * ε' / W'.card) := by
-    intro w hw; exact adversarialMeasure_singleton hw
+  have hP_w : ∀ w ∈ W', P {w} = ENNReal.ofReal (8 * ε' / W'.card) :=
+    fun w hw => adversarialMeasure_singleton hw
   have hP_supp : P (↑W : Set α)ᶜ = 0 := adversarialMeasure_support hw₀
   -- Sample size bound in ℝ
   have hm_real : (m : ℝ) < (W'.card : ℝ) / (32 * ε') := by
@@ -411,10 +384,9 @@ theorem exists_bad_distribution_and_concept_randomized
       simp [Nat.cast_sub (by omega : 1 ≤ W.card)]
     rw [hW'_eq]
     have h32ε_pos : (0 : ℝ) < 32 * ε' := by positivity
-    rw [show (↑m : ℝ≥0∞) = ENNReal.ofReal (m : ℝ) from by rw [ENNReal.ofReal_natCast]] at hm
+    rw [← ENNReal.ofReal_natCast (n := m)] at hm
     have hW_pos : (0 : ℝ) < (W.card : ℝ) - 1 := by
-      have : (2 : ℝ) ≤ (W.card : ℝ) := by exact_mod_cast hW_card
-      linarith
+      linarith [show (2 : ℝ) ≤ W.card from by exact_mod_cast hW_card]
     rwa [ENNReal.ofReal_lt_ofReal_iff (div_pos hW_pos h32ε_pos)] at hm
   haveI := hP_prob
   set μ := Measure.pi (fun _ : Fin m => P) with hμ_def
@@ -448,10 +420,8 @@ theorem exists_bad_distribution_and_concept_randomized
   have hlower_ω : ∀ ω : Ω, (2 ^ d / 2 : ℕ) • μ B ≤
       ∑ S ∈ W'.powerset, μ {xs : Fin m → α |
         hypothesisError P ((A ω) (sampleOf (concepts S) xs)) (concepts S) > ε} := by
-    intro ω
-    have := ehkv_sum_lower_bound hW_card hw₀ hε'_pos (A ω) P hP_w hP_supp concepts hconcepts_eq
-    simp_rw [hε_eq] at this
-    exact this
+    intro ω; simpa only [hε_eq] using
+      ehkv_sum_lower_bound hW_card hw₀ hε'_pos (A ω) P hP_w hP_supp concepts hconcepts_eq
   -- Integrate over ω and swap sum/integral
   have hintegrate : (2 ^ d / 2 : ℕ) • μ B ≤
       ∑ S ∈ W'.powerset, ∫⁻ ω, μ {xs : Fin m → α |

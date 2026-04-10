@@ -89,7 +89,7 @@ theorem sample_complexity_lower_bound_randomized
     linarith
   have hm_ennreal : (↑m : ℝ≥0∞) < ENNReal.ofReal
       ((W.card - 1 : ℝ) / (32 * ε.toReal)) := by
-    rw [show (↑m : ℝ≥0∞) = ENNReal.ofReal (m : ℝ) from by rw [ENNReal.ofReal_natCast]]
+    rw [← ENNReal.ofReal_natCast (n := m)]
     exact ENNReal.ofReal_lt_ofReal_iff (div_pos hW_sub h32ε_pos) |>.mpr h
   obtain ⟨Ω, mΩ, Q, hQ, A, hA⟩ := hlearn
   have hA_aem : ∀ (P : Measure α) [IsProbabilityMeasure P], ∀ c ∈ C,
@@ -148,7 +148,7 @@ theorem sample_complexity_lower_bound_vcDim
   obtain ⟨W, hWcard, hW⟩ := Nat.sSup_mem hne hbdd
   have hW_card : 2 ≤ W.card := hWcard ▸ hvc
   have hvc_eq : vcDim C = W.card := hWcard.symm
-  rw [show (vcDim C : ℝ) = (W.card : ℝ) from by exact_mod_cast hvc_eq]
+  simp only [hvc_eq]
   exact sample_complexity_lower_bound_randomized hW hε_pos hε_le hδ_lt hW_card hlearn
 
 /-- Lower bound on deterministic sample complexity in terms of `vcDim`.
