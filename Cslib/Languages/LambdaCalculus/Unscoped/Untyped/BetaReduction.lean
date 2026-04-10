@@ -6,7 +6,7 @@ Authors: Zayn Wang
 module
 
 public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.DeBruijnSyntax
-public import Mathlib.Logic.Relation
+public import Cslib.Foundations.Data.Relation
 
 /-!
 # One-step β-reduction and its reflexive-transitive closure
