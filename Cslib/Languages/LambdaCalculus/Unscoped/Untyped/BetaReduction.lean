@@ -5,7 +5,7 @@ Authors: Zayn Wang
 -/
 module
 
-public import Cslib.Computability.LambdaCalculus.DeBruijnSyntax
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.DeBruijnSyntax
 public import Mathlib.Logic.Relation
 
 /-!
