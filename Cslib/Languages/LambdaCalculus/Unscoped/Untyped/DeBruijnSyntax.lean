@@ -80,11 +80,13 @@ infixl:77 "·" => Term.app
   | app t u => app (decre i l t) (decre i l u)
 
 /-- Substitute into the body of a lambda: `(λ.t) s` -/
-@[expose] public def sub (t : Term) (n : Nat) (s : Term) := decre 1 n (subst n (incre 1 n s) t)
+@[expose] public def sub (t : Term) (n : Nat) (s : Term) := 
+  decre 1 n (subst n (incre 1 n s) t)
 
-@[expose] public instance : 
-    Cslib.HasSubstitution Term Nat Term where
-  subst t n s := t.sub n s
+/-- Notation typeclass for substitution, t[n := s] ≃ t.sub n s 
+    which substitute nth variable in t with s. -/
+@[expose] public instance : Cslib.HasSubstitution Term Nat Term 
+  where subst := sub
 
 /-- Increment of 0 is identity -/
 @[simp] public theorem incre_rfl {l t} : incre 0 l t = t := by
@@ -95,7 +97,8 @@ infixl:77 "·" => Term.app
 
 /-- Decrement of increment with same bound is the same.
 Lemma for `var_sub` -/
-@[simp] public theorem decre_incre_elim {l t} : decre 1 l (incre 1 l t) = t := by
+@[simp] public theorem decre_incre_elim {l t} : 
+    decre 1 l (incre 1 l t) = t := by
   induction t generalizing l with
   | var k =>
       unfold decre incre
