@@ -9,7 +9,7 @@ public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.DeBruijnSyntax
 public import Cslib.Foundations.Data.Relation
 
 /-!
-# One-step β-reduction and its reflexive-transitive closure
+# One-step β-reduction and its reflexive-transitive closure (Star)
 
 This file defines the usual compatible one-step β-reduction on de Bruijn lambda terms.
 It also introduces its reflexive-transitive closure and proves basic closure lemmas for
@@ -18,18 +18,12 @@ application and abstraction.
 ## Main definitions
 
 * `Lambda.Beta`: one-step β-reduction.
-* `Lambda.BetaStar`: the reflexive-transitive closure of `Beta`.
 
 ## Main lemmas
 
 Inside `namespace BetaStar` we provide the standard constructors and congruence lemmas:
 
-* `BetaStar.refl`
-* `BetaStar.head`
-* `BetaStar.tail`
-* `BetaStar.trans`
-* `BetaStar.appL`, `BetaStar.appR`, `BetaStar.app`
-* `BetaStar.abs`
+* `BetaStar.appL`, `BetaStar.appR`, `BetaStar.app`, `BetaStar.abs`
 
 These lemmas are used later to compare β-reduction with parallel reduction.
 -/
@@ -37,6 +31,7 @@ These lemmas are used later to compare β-reduction with parallel reduction.
 
 namespace Lambda
 open Term
+open Relation.ReflTransGen
 
 /-- One-step β-reduction (compatible closure). -/
 @[reduction_sys "β"]
@@ -45,51 +40,33 @@ public inductive Beta : Term → Term → Prop
   | appL {t t' u}      : Beta t t' → Beta (t·u) (t'·u)
   | appR {t u u'}      : Beta u u' → Beta (t·u) (t·u')
   | red  (t' s : Term) : Beta ((λ.t')·s) (t'.sub 0 s)
-public abbrev BetaStar := Relation.ReflTransGen Beta
 
 namespace BetaStar
 
-public theorem refl (t : Term) : BetaStar t t :=
-  Relation.ReflTransGen.refl
-
-public theorem head {a b c} (hab : Beta a b) (hbc : BetaStar b c) :
-    BetaStar a c :=
-  Relation.ReflTransGen.head hab hbc
-
-public theorem tail {a b c} (hab : BetaStar a b) (hbc : Beta b c) :
-    BetaStar a c :=
-  Relation.ReflTransGen.tail hab hbc
-
-public theorem trans {a b c}
-    (hab : BetaStar a b) (hbc : BetaStar b c) :
-    BetaStar a c :=
-  Relation.ReflTransGen.trans hab hbc
-
-public theorem appL {t t' u : Term} (h : BetaStar t t') :
-    BetaStar (t·u) (t'·u) := by
+public theorem appL {t t' u : Term} (h : t ↠β t') :
+    (t·u) ↠β (t'·u) := by
   induction h with
-  | refl => exact BetaStar.refl (t·u)
-  | tail hab hbc ih => exact BetaStar.tail ih (Beta.appL hbc)
+  | refl => exact refl (t·u)
+  | tail hab hbc ih => exact tail ih (Beta.appL hbc)
 
-public theorem appR {t u u' : Term} (h : BetaStar u u') :
-    BetaStar (t·u) (t·u') := by
+public theorem appR {t u u' : Term} (h : u ↠β u') :
+    (t·u) ↠β (t·u') := by
   induction h with
-  | refl => exact BetaStar.refl (t·u)
-  | tail hab hbc ih => exact BetaStar.tail ih (Beta.appR hbc)
+  | refl => exact refl (t·u)
+  | tail hab hbc ih => exact tail ih (Beta.appR hbc)
 
 public theorem app {t t' u u'}
-    (ht : BetaStar t t')
-    (hu : BetaStar u u') :
-    BetaStar (t·u) (t'·u') := by
+    (ht : t ↠β t') (hu : u ↠β u') :
+    (t·u) ↠β (t'·u') := by
   induction ht with
-  | refl => exact BetaStar.appR hu
-  | tail hab hbc ih => exact BetaStar.tail ih (Beta.appL hbc)
+  | refl => exact appR hu
+  | tail hab hbc ih => exact tail ih (Beta.appL hbc)
 
-public theorem abs {t t' : Term} (h : BetaStar t t') :
-    BetaStar (λ.t) (λ.t') := by
+public theorem abs {t t' : Term} (h : t ↠β t') :
+    (λ.t) ↠β (λ.t') := by
   induction h with
-  | refl => exact BetaStar.refl (λ.t)
-  | tail hab hbc ih => exact BetaStar.tail ih (Beta.abs hbc)
+  | refl => exact refl (λ.t)
+  | tail hab hbc ih => exact tail ih (Beta.abs hbc)
 
 end BetaStar
 end Lambda
