@@ -22,7 +22,7 @@ time monad over the list `TimeM Nat Nat`. The time complexity of
 
 -/
 
-namespace Cslib.Foundations.Data
+namespace Cslib.Algorithms.Lean.ListLength
 
 open Cslib.Algorithms.Lean
 open Cslib.Algorithms.Lean.TimeM
@@ -49,4 +49,4 @@ public theorem List.length_time (xs : List α) : (List.length xs).time = _root_.
 
 end TimeComplexity
 
-end Cslib.Foundations.Data
+end Cslib.Algorithms.Lean.ListLength
