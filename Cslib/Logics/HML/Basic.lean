@@ -116,7 +116,7 @@ abbrev theory (lts : LTS State Label) (s : State) : Set (Proposition Label) :=
 abbrev TheoryEq (lts : LTS State Label) (s1 s2 : State) :=
   theory lts s1 = theory lts s2
 
-open Proposition LTS Bisimulation Simulation
+open Proposition LTS
 
 /-- Characterisation theorem for the denotational semantics. -/
 @[scoped grind =]
@@ -201,7 +201,7 @@ end ImageToPropositions
 @[scoped grind ⇒]
 theorem theoryEq_isBisimulation (lts : LTS State Label)
     [image_finite : ∀ s μ, Finite (lts.image s μ)] :
-    lts.IsBisimulation (TheoryEq lts) := by
+    lts.IsHomBisimulation (TheoryEq lts) := by
   intro s1 s2 h μ
   let (s : State) := @Fintype.ofFinite (lts.image s μ) (image_finite s μ)
   constructor
@@ -237,7 +237,7 @@ theorem theoryEq_isBisimulation (lts : LTS State Label)
 well. -/
 @[scoped grind ⇒]
 lemma bisimulation_satisfies {lts : LTS State Label}
-    {hrb : lts.IsBisimulation r}
+    {hrb : lts.IsHomBisimulation r}
     (hr : r s1 s2) (a : Proposition Label) (hs : Satisfies lts s1 a) :
     Satisfies lts s2 a := by
   induction a generalizing s1 s2 with
@@ -245,7 +245,7 @@ lemma bisimulation_satisfies {lts : LTS State Label}
   | _ => grind
 
 lemma bisimulation_TheoryEq {lts : LTS State Label}
-    {hrb : lts.IsBisimulation r}
+    {hrb : lts.IsHomBisimulation r}
     (hr : r s1 s2) :
     TheoryEq lts s1 s2 := by
   have : s2 ~[lts] s1 := by grind [Bisimilarity.symm]
@@ -254,7 +254,7 @@ lemma bisimulation_TheoryEq {lts : LTS State Label}
 /-- Theory equivalence and bisimilarity coincide for image-finite LTSs. -/
 theorem theoryEq_eq_bisimilarity (lts : LTS State Label)
     [image_finite : ∀ s μ, Finite (lts.image s μ)] :
-    TheoryEq lts = Bisimilarity lts := by
+    TheoryEq lts = HomBisimilarity lts := by
   ext s1 s2
   apply Iff.intro <;> intro h
   · exists TheoryEq lts

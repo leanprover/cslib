@@ -60,7 +60,10 @@ theorem reindex_language_eq {f : State ≃ State'} {nba : Buchi State Symbol} :
   ext xs
   constructor
   · rintro ⟨ss', h_run', h_acc'⟩
-    grind [reindex_run_iff]
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    simp only [mem_language, Accepts]
+    exact frequently_principal.mp (· (reindex_run_iff.mp h_run') h_acc')
   · rintro ⟨ss, h_run, h_acc⟩
     use ss.map f
     constructor <;> grind [reindex_run_iff']

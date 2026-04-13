@@ -61,7 +61,11 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   rw [IsRegular.iff_dfa] at h ⊢
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := h
   use State, inferInstance, ⟨da, accᶜ⟩
-  grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  ext
+  simp only [language, Accepts]
+  rfl
 
 /-- The empty language is regular. -/
 @[simp]
@@ -69,7 +73,11 @@ theorem IsRegular.zero : (0 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
   let flts := FLTS.mk (fun () (_ : Symbol) ↦ ())
   use Unit, inferInstance, ⟨DA.mk flts (), ∅⟩
-  grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  ext
+  simp only [language, Accepts]
+  rfl
 
 /-- The language containing only the empty word is regular. -/
 @[simp]
@@ -78,10 +86,12 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   let flts := FLTS.mk (fun (_ : Fin 2) (_ : Symbol) ↦ 1)
   use Fin 2, inferInstance, ⟨DA.mk flts 0, {0}⟩
   ext; constructor
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   · intro h; by_contra h'
     have := dropLast_append_getLast h'
-    grind
-  · grind [Language.mem_one]
+    grind [Accepts]
+  · grind [Accepts, Language.mem_one]
 
 /-- The language of all finite words is regular. -/
 @[simp]
@@ -97,7 +107,9 @@ theorem IsRegular.inf {l1 l2 : Language Symbol}
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2⟩
-  ext; grind [Language.mem_inf]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  ext; grind [Accepts, Language.mem_inf]
 
 /-- The union of two regular languages is regular. -/
 @[simp]
@@ -107,7 +119,9 @@ theorem IsRegular.add {l1 l2 : Language Symbol}
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
-  ext; grind [Language.mem_add]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  ext; grind [Accepts, Language.mem_add]
 
 /-- The intersection of any finite number of regular languages is regular. -/
 @[simp]
