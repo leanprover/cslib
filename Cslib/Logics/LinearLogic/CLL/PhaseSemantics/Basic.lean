@@ -728,6 +728,19 @@ theorem Sequent.toFact_add {M : Type*} [PhaseSpace M]
     Sequent.toFact M v (A ::ₘ Γ) = interpProp v A ⅋ Sequent.toFact M v Γ := by
   simp [Sequent.toFact]
 
+@[simp] theorem Sequent.toFact_singleton {M : Type*} [PhaseSpace M]
+    (v : Atom → Fact M) (A : Proposition Atom) :
+    Sequent.toFact M v ({A} : Sequent Atom) = interpProp v A ⅋ ⊥ := by
+  rw [show ({A} : Sequent Atom) = A ::ₘ 0 from rfl, Sequent.toFact_cons, Sequent.toFact_nil]
+
+theorem Sequent.singleton_eq_cons_zero (A : Proposition Atom) :
+    ({A} : Sequent Atom) = A ::ₘ 0 := rfl
+
+theorem Sequent.pair_eq_cons_cons (A B : Proposition Atom) :
+    ({A, B} : Sequent Atom) = A ::ₘ B ::ₘ 0 := by
+  rw [show ({A, B} : Sequent Atom) = insert A {B} from rfl, Multiset.insert_eq_cons,
+    Sequent.singleton_eq_cons_zero]
+
 end PhaseSpace
 
 end CLL

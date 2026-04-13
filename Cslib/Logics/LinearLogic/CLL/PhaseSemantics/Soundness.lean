@@ -241,6 +241,46 @@ theorem quest_valid_of_valid {G : Fact M}
     (hG : G.IsValid) : (ʔG).IsValid :=
   isValid_monotone (quest_le G) hG
 
+/-! ### Semantic counterparts of the inference rules -/
+
+theorem one_valid : (1 : Fact M).IsValid := one_mem_one
+
+theorem bot_valid {G : Fact M} (hG : G.IsValid) : (⊥ ⅋ G).IsValid := by rwa [bot_par]
+
+theorem parr_valid {A B G : Fact M} (h : (A ⅋ B ⅋ G).IsValid) : ((A ⅋ B) ⅋ G).IsValid := by
+  rwa [par_assoc]
+
+theorem tensor_valid {A B G H : Fact M}
+    (hAG : (A ⅋ G).IsValid) (hBH : (B ⅋ H).IsValid) :
+    ((A ⊗ B) ⅋ (G ⅋ H)).IsValid := by
+  rw [isValid_par_iff, neg_tensor]
+  exact par_le_par (isValid_par_iff.mp hAG) (isValid_par_iff.mp hBH)
+
+theorem oplus₁_valid {A B G : Fact M} (h : (A ⅋ G).IsValid) : ((A ⊕ B) ⅋ G).IsValid :=
+  isValid_monotone (par_le_par le_plus_left le_rfl) h
+
+theorem oplus₂_valid {A B G : Fact M} (h : (B ⅋ G).IsValid) : ((A ⊕ B) ⅋ G).IsValid :=
+  isValid_monotone (par_le_par le_plus_right le_rfl) h
+
+theorem with_valid {A B G : Fact M}
+    (hA : (A ⅋ G).IsValid) (hB : (B ⅋ G).IsValid) : ((A & B) ⅋ G).IsValid := by
+  rw [Fact.IsValid, with_par_distrib]; exact ⟨hA, hB⟩
+
+theorem top_valid {G : Fact M} : ((⊤ : Fact M) ⅋ G).IsValid := by
+  simp [Fact.IsValid]
+
+theorem quest_valid {A G : Fact M} (h : (A ⅋ G).IsValid) : ((ʔA) ⅋ G).IsValid :=
+  isValid_monotone (par_le_par (quest_le _) le_rfl) h
+
+theorem weaken_valid {A G : Fact M} (hG : G.IsValid) : ((ʔA) ⅋ G).IsValid := by
+  have : (⊥ ⅋ G) ≤ (ʔA) ⅋ G := par_le_par (bot_le_quest A) le_rfl
+  rw [bot_par] at this
+  exact isValid_monotone this hG
+
+theorem contract_valid {A G : Fact M} (h : ((ʔA) ⅋ (ʔA) ⅋ G).IsValid) : ((ʔA) ⅋ G).IsValid := by
+  rw [← par_assoc] at h
+  exact isValid_monotone (par_le_par (quest_contract_le _) le_rfl) h
+
 /-! ## Soundness -/
 
 theorem soundness (Γ : Sequent Atom) :
@@ -249,62 +289,41 @@ theorem soundness (Γ : Sequent Atom) :
   intro ⟨p⟩ M _ v
   induction p with
   | @ax a =>
-    have : ({a, a⫠} : Sequent Atom) = a ::ₘ (a⫠ ::ₘ 0) := by simp
-    simp only [this, Sequent.toFact_cons, Sequent.toFact_nil, par_bot, interpProp_dual]
+    simp only [Sequent.pair_eq_cons_cons, Sequent.toFact_cons, Sequent.toFact_nil, par_bot,
+      interpProp_dual]
     exact ax_valid v a
   | cut _ _ ihp ihq =>
     simp only [Sequent.toFact_add]
-    exact cut_valid (by aesop)
-      (by grind [Sequent.toFact_cons, interpProp_dual])
-  | one =>
-    have : ({1} : Sequent Atom) = 1 ::ₘ 0 := by simp
-    simp only [this, Sequent.toFact_cons, Sequent.toFact_nil, interpProp_one, par_bot]
-    exact one_mem_one
-  | bot _ ih => aesop
-  | parr _ ih => aesop
-  | @tensor a Γ b Δ p q ihp ihq =>
-    let A := interpProp v a; let B := interpProp v b
-    let G := Sequent.toFact M v Γ; let H := Sequent.toFact M v Δ
-    have hAG : (A ⅋ G).IsValid := by aesop
-    have hBH : (B ⅋ H).IsValid := by aesop
-    have hgoal : ((A ⊗ B) ⅋ (G ⅋ H)).IsValid := by
-      rw [isValid_par_iff, neg_tensor]
-      exact par_le_par (isValid_par_iff.mp hAG) (isValid_par_iff.mp hBH)
-    grind [Sequent.toFact_cons, Sequent.toFact_add, interpProp_tensor, par_assoc]
+    exact cut_valid (by aesop) (by grind [Sequent.toFact_cons, interpProp_dual])
+  | one => simp only [Sequent.toFact_singleton, interpProp_one, par_bot]; exact one_valid
+  | bot _ ih => simp only [Sequent.toFact_cons, interpProp_bot]; exact bot_valid ih
+  | parr _ ih =>
+    simp only [Sequent.toFact_cons, interpProp_parr] at ih ⊢
+    exact parr_valid ih
+  | tensor _ _ ihp ihq =>
+    simp only [Sequent.toFact_cons, Sequent.toFact_add, interpProp_tensor] at ihp ihq ⊢
+    exact tensor_valid ihp ihq
   | oplus₁ _ ih =>
     simp only [Sequent.toFact_cons, interpProp_oplus] at ih ⊢
-    exact isValid_monotone (par_le_par le_plus_left le_rfl) ih
+    exact oplus₁_valid ih
   | oplus₂ _ ih =>
     simp only [Sequent.toFact_cons, interpProp_oplus] at ih ⊢
-    exact isValid_monotone (par_le_par le_plus_right le_rfl) ih
+    exact oplus₂_valid ih
   | «with» _ _ ihp ihq =>
-    simp only [Sequent.toFact_cons, interpProp_with, with_par_distrib]
-    constructor
-    · simp only [Sequent.toFact_cons] at ihp
-      exact ihp
-    · simp only [Sequent.toFact_cons] at ihq
-      exact ihq
-  | top => simp only [Sequent.toFact_cons, interpProp_top, top_par]; trivial
+    simp only [Sequent.toFact_cons, interpProp_with] at ihp ihq ⊢
+    exact with_valid ihp ihq
+  | top => simp only [Sequent.toFact_cons, interpProp_top]; exact top_valid
   | quest _ ih =>
     simp only [Sequent.toFact_cons, interpProp_quest] at ih ⊢
-    exact isValid_monotone (par_le_par (quest_le _) le_rfl) ih
-  | weaken p ih =>
-    rename_i Γ a
+    exact quest_valid ih
+  | weaken _ ih =>
     simp only [Sequent.toFact_cons, interpProp_quest]
-    have hle : Sequent.toFact M v Γ ≤
-        (quest (interpProp v a) ⅋ Sequent.toFact M v Γ) := by
-      have := (par_le_par (bot_le_quest (interpProp v a)) le_rfl :
-        (⊥ ⅋ Sequent.toFact M v Γ) ≤ _)
-      simp only [bot_par] at this
-      exact this
-    exact isValid_monotone hle ih
+    exact weaken_valid ih
   | contract _ ih =>
     simp only [Sequent.toFact_cons, interpProp_quest] at ih ⊢
-    rw [← par_assoc] at ih
-    exact isValid_monotone (par_le_par (quest_contract_le _) le_rfl) ih
+    exact contract_valid ih
   | bang hQuestCtx _ ih =>
-    simp only [Sequent.toFact_cons, interpProp_bang]
-    simp only [Sequent.toFact_cons] at ih
+    simp only [Sequent.toFact_cons, interpProp_bang] at ih ⊢
     exact bang_valid_of_allQuest hQuestCtx ih
 
 end CLL
