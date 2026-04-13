@@ -119,17 +119,14 @@ lemma run_get (s₀ : σ) :
 lemma run_set (s' : σ) (s₀ : σ) :
     run (lift (.set s')) s₀ = (.unit, s') := rfl
 
-lemma run_lift_bind (f : ι → FreeState σ β) (s₀ : σ) :
-    run ((lift op).bind f) s₀ = let p := run (lift op) s₀; (f p.1).run p.2 := by
-  cases op <;> simp [← liftBind_eq, run]
-
 @[simp]
 lemma run_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
     run (x.bind f) s₀ = let p := x.run s₀; (f p.1).run p.2 := by
   induction x using FreeM.induction generalizing f s₀ with
   | pure => simp
   | lift_bind op cont ih =>
-    simp_rw [FreeM.bind_assoc, run_lift_bind, ih]
+    simp_rw [FreeM.bind_assoc]
+    cases op <;> simp [← liftBind_eq, run, ih]
 
 /-- Run a state computation, returning only the result. -/
 def run' (c : FreeState σ α) (s₀ : σ) : α := (run c s₀).1
@@ -171,7 +168,7 @@ abbrev FreeWriter (ω : Type u) := FreeM (WriterF ω)
 namespace FreeWriter
 
 open WriterF
-variable {ω : Type u} {α : Type u}
+variable {ω : Type u} {α β : Type*}
 
 /-- Interpret `WriterF` operations into `WriterT`. -/
 @[simp]
@@ -216,9 +213,14 @@ lemma run_lift_tell [Monoid ω] (w : ω) :
     run (lift (.tell w)) = (.unit, w) := Prod.ext rfl <| mul_one _
 
 @[simp]
-lemma run_lift_bind [Monoid ω] (op) (f : ι → FreeWriter ω β) :
-    run (lift op >>= f) = let p := run (lift op); ((f p.1).run.1, p.2 * (f p.1).run.2) := by
-  cases op; simp [← bind_eq_bind, ← liftBind_eq, run]
+lemma run_bind [Monoid ω] (x : FreeWriter ω α) (f : α → FreeWriter ω β) :
+    run (x.bind f) = let p := run x; ((f p.1).run.1, p.2 * (f p.1).run.2) := by
+  induction x using FreeM.induction generalizing f with
+  | pure => simp
+  | lift_bind op cont ih =>
+    simp_rw [FreeM.bind_assoc]
+    cases op
+    simp [← liftBind_eq, run, ih, mul_assoc]
 
 /--
 The canonical interpreter `toWriterT` derived from `liftM` agrees with the hand-written
@@ -230,9 +232,9 @@ theorem run_toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) :
   induction comp using FreeM.induction with
   | pure _ => simp [toWriterT]
   | lift_bind op cont ih =>
+    simp only [toWriterT, run_bind] at *
     ext : 1
     cases op
-    simp only [toWriterT] at *
     simp [ih]
 
 /--
