@@ -59,6 +59,10 @@ variable {Atom : Type u} {M : Type*} [PhaseSpace M]
 def PrSet (Atom : Type u) (a : Proposition Atom) : Set (CanonM Atom) :=
   {m | Derivable (a ::ₘ m.toAdd)}
 
+theorem one_mem_PrSet_iff {Atom : Type u} (a : Proposition Atom) :
+    (1 : CanonM Atom) ∈ PrSet Atom a ↔ Derivable ({a} : Sequent Atom) := by
+  simp [PrSet]
+
 theorem PrSet_top {Atom : Type u} : PrSet Atom ⊤ = .univ := by
   ext m
   exact ⟨fun _ => trivial, fun _ => ⟨Proof.top⟩⟩
@@ -139,6 +143,18 @@ theorem PrSet_tensor {Atom : Type u} (a b : Proposition Atom) :
 def canonVal {Atom : Type u} (a : Atom) : Fact (CanonM Atom) :=
   dualFact (PrSet Atom (Proposition.atomDual a))
 
+theorem interpProp_list_foldr_parr
+    (v : Atom → Fact M) (l : List (Proposition Atom)) :
+    interpProp v (List.foldr (fun A B => A ⅋ B) ⊥ l) =
+    List.foldr (fun A acc => (interpProp v A) ⅋ acc) ⊥ l := by
+  induction l <;> aesop
+
+theorem Sequent.toFact_eq_interpProp_foldParr
+    (v : Atom → Fact M) (Γ : Sequent Atom) :
+    Sequent.toFact M v Γ = interpProp v (foldParr Γ) := by
+  rw [Sequent.toFact, foldParr, interpProp_list_foldr_parr, ← List.foldr_map,
+      ← Multiset.coe_fold_r, ← Multiset.map_coe, Γ.coe_toList]
+
 theorem interpProp_canon_carrier {Atom : Type u} (a : Proposition Atom)
     (ha : Proposition.IsMALL a) :
     ((@interpProp (CanonM Atom) Atom _ canonVal a) :
@@ -174,27 +190,20 @@ theorem interpProp_canon_carrier {Atom : Type u} (a : Proposition Atom)
   | bang _ _ => exact False.elim ha
   | quest _ _ => exact False.elim ha
 
-theorem interpProp_list_foldr_parr
-    (v : Atom → Fact M) (l : List (Proposition Atom)) :
-    interpProp v (List.foldr (fun A B => A ⅋ B) ⊥ l) =
-    List.foldr (fun A acc => (interpProp v A) ⅋ acc) ⊥ l := by
-  induction l <;> aesop
-
-theorem Sequent.toFact_eq_interpProp_foldParr
-    (v : Atom → Fact M) (Γ : Sequent Atom) :
-    Sequent.toFact M v Γ = interpProp v (foldParr Γ) := by
-  rw [Sequent.toFact, foldParr, interpProp_list_foldr_parr, ← List.foldr_map,
-      ← Multiset.coe_fold_r, ← Multiset.map_coe, Γ.coe_toList]
+/-- In the canonical model, the interpretation of a MALL sequent is the truth set of
+its par-fold. -/
+theorem Sequent.toFact_canon_eq_PrSet_foldParr {Atom : Type u} (Γ : Sequent Atom)
+    (hMALL : IsMALL Γ) :
+    (Sequent.toFact (CanonM Atom) canonVal Γ : Set (CanonM Atom)) =
+      PrSet Atom (foldParr Γ) := by
+  rw [Sequent.toFact_eq_interpProp_foldParr, interpProp_canon_carrier _ (foldParr_isMALL Γ hMALL)]
 
 theorem completeness {Atom : Type u} (Γ : Sequent Atom)
     (hMALL : IsMALL Γ) :
     (∀ (M : Type u) [PhaseSpace M] (v : Atom → Fact M),
-        (Sequent.toFact M v Γ).IsValid) → Derivable Γ := by
-  intro h
-  have h₁ : 1 ∈ PrSet Atom (foldParr Γ) := by
-    rw [← interpProp_canon_carrier _ (foldParr_isMALL Γ hMALL)]
-    simp_all only [SetLike.mem_coe, ← Sequent.toFact_eq_interpProp_foldParr]
-  exact derivable_of_foldParr Γ (by aesop)
+        (Sequent.toFact M v Γ).IsValid) → Derivable Γ := fun h =>
+  derivable_of_foldParr Γ <| (one_mem_PrSet_iff _).mp <|
+    Sequent.toFact_canon_eq_PrSet_foldParr Γ hMALL ▸ h _ canonVal
 
 end CLL
 end Cslib
