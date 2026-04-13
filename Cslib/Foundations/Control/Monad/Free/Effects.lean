@@ -437,7 +437,7 @@ lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
 
 @[simp]
 lemma run_bind (x : FreeReader σ α) (f : α → FreeReader σ β) (s₀ : σ) :
-    run (x >>= f) s₀ = run (f <| run x s₀) s₀ := by
+    run (x.bind f) s₀ = run (f <| run x s₀) s₀ := by
   induction x generalizing s₀ with
   | pure a => rfl
   | liftBind op cont ih =>
