@@ -26,8 +26,10 @@ with high probability, has low error with respect to the true concept.
 - `ConceptClass`: a concept class over domain `α`, i.e., a set of subsets.
 - `LabeledSample`: a finite sequence of (point, label) pairs.
 - `sampleOf`: constructs a labeled sample from a sequence of points and a concept.
-- `hypothesisError`: the error of a hypothesis with respect to a concept under a
+- `hypothesisError`: the total error of a hypothesis with respect to a concept under a
   distribution, defined as the measure of the symmetric difference.
+- `falsePositiveError`: the false positive error `P(h \ c)`.
+- `falseNegativeError`: the false negative error `P(c \ h)`.
 - `Learner`: a function from labeled samples to hypotheses.
 - `IsPACLearner`: the property that a deterministic learner produces a hypothesis
   with error at most `ε` with probability at least `1 - δ`, for every distribution
@@ -41,6 +43,8 @@ with high probability, has low error with respect to the true concept.
 
 - `IsPACLearner.toIsRPACLearner`: every deterministic PAC learner is in particular
   a randomized PAC learner (with the trivial randomness space `PUnit`).
+- `hypothesisError_eq_add`: total error decomposes as the sum of false positive and
+  false negative errors.
 
 ## References
 
@@ -73,6 +77,28 @@ defined as the measure of their symmetric difference `h ∆ c`. -/
 noncomputable def hypothesisError {α : Type*} [MeasurableSpace α] (P : Measure α)
     (h c : Set α) : ℝ≥0∞ :=
   P (symmDiff h c)
+
+/-- The *false positive error* of a hypothesis `h` with respect to a target concept `c`
+under distribution `P`, defined as the measure of `h \ c` — points classified positive
+but not in the concept. -/
+noncomputable def falsePositiveError {α : Type*} [MeasurableSpace α] (P : Measure α)
+    (h c : Set α) : ℝ≥0∞ :=
+  P (h \ c)
+
+/-- The *false negative error* of a hypothesis `h` with respect to a target concept `c`
+under distribution `P`, defined as the measure of `c \ h` — points in the concept but
+classified negative. -/
+noncomputable def falseNegativeError {α : Type*} [MeasurableSpace α] (P : Measure α)
+    (h c : Set α) : ℝ≥0∞ :=
+  P (c \ h)
+
+/-- The total hypothesis error decomposes as the sum of false positive and false negative
+errors, since `h ∆ c = (h \ c) ∪ (c \ h)` is a disjoint union. -/
+theorem hypothesisError_eq_add {α : Type*} [MeasurableSpace α] {P : Measure α}
+    {h c : Set α} (hh : MeasurableSet h) (hc : MeasurableSet c) :
+    hypothesisError P h c = falsePositiveError P h c + falseNegativeError P h c := by
+  simp only [hypothesisError, falsePositiveError, falseNegativeError, symmDiff_def, sup_eq_union]
+  exact measure_union disjoint_sdiff_sdiff (hc.diff hh)
 
 /-- A learner using `m` samples is a function that takes a labeled sample of size `m` and produces
 a hypothesis (a subset of the domain). -/
