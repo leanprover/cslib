@@ -86,7 +86,6 @@ theorem IsRegular.bot : (⊥ : ωLanguage Symbol).IsRegular := by
   use Unit, inferInstance, na
   apply mem_ext
   intro xs
-  simp only [mem_language, notMem_bot]
   simp [na, Accepts]
 
 /-- The language of all ω-sequences is ω-regular. -/
@@ -215,8 +214,8 @@ theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage S
     refine ⟨?_, by grind⟩
     rintro ⟨s, h_s, t, h_t, h_mem⟩
     use eq.invFun (⟨s, h_s⟩, ⟨t, h_t⟩)
-    simp only [Nat.card_coe_set_eq, Equiv.invFun_as_coe, Equiv.apply_symm_apply, mem_def]
-    exact h_mem
+    -- The following `simp` is where the `set_option` above is needed.
+    simpa [mem_def]
   · rintro ⟨n, l, m, _, rfl⟩
     rw [← iSup_univ]
     apply IsRegular.iSup
@@ -234,7 +233,7 @@ theorem IsRegular.fin_cover_saturates {I : Type*} [Finite I]
     grind
   have hc' : ⋃ i, (p i).toSet = univ := by grind [iSup_def, top_def]
   have hq := saturates_eq_biUnion hs hc'
-  ext1
+  ext : 1
   rw [hq]
   simp [iSup_def, inf_def]
 

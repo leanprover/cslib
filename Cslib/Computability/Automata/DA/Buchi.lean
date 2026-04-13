@@ -28,8 +28,6 @@ of the language accepted by the same automaton. -/
 theorem buchi_eq_finAcc_omegaLim {da : DA State Symbol} {acc : Set State} :
     language (Buchi.mk da acc) = (language (FinAcc.mk da acc))↗ω := by
   apply mem_ext
-  intro xs
-  simp only [ωAcceptor.mem_language, Acceptor.mem_language, mem_omegaLim]
   grind [ωAcceptor.Accepts, Acceptor.Accepts]
 
 end Cslib.Automata.DA

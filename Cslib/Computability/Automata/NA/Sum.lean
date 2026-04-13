@@ -70,6 +70,8 @@ theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) �
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
     simp only [mem_iUnion] at h_acc
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
     grind [Accepts]
   · rintro ⟨i, ss_i, _⟩
     use ss_i.map (Sigma.mk i)

@@ -56,13 +56,13 @@ denote languages (namely, sets of finite sequences of type `List α`).
 * Prove more theorems about omegaLim and map.
 -/
 
+variable {α β γ : Type*}
+
 -- This section is to be removed after mathlib#36934 is merged into mathlib.
 section Mathlib_36934
 
-variable {α β γ : Type*}
-
 /-- The set of lists in a language. -/
-def Language.toSet (l : Language α) := (l : Set (List α))
+def Language.toSet (l : Language α) : Set (List α) := l
 
 end Mathlib_36934
 
@@ -70,8 +70,6 @@ namespace Cslib
 
 open Set Filter ωSequence
 open scoped Computability
-
-variable {α β γ : Type*}
 
 /-- An ω-language is a set of ω-sequences over an alphabet. -/
 @[ext]
@@ -100,9 +98,10 @@ def equiv : ωLanguage α ≃ Set (ωSequence α) where
 instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
   equiv.completeAtomicBooleanAlgebra
 
-instance : Membership (ωSequence α) (ωLanguage α) := ⟨fun p xs ↦ xs ∈ p.toSet⟩
-instance : Singleton (ωSequence α) (ωLanguage α) := ⟨fun xs ↦ ⟨{xs}⟩⟩
-instance : Insert (ωSequence α) (ωLanguage α) := ⟨fun xs p ↦ ⟨p.toSet.insert xs⟩⟩
+instance : SetLike (ωLanguage α) (ωSequence α) where
+  coe := ωLanguage.toSet
+  coe_injective' := by grind [Function.Injective, ωLanguage]
+
 instance : HasSubset (ωLanguage α) := ⟨(· ≤ ·)⟩
 
 variable {l m : Language α} {p q : ωLanguage α} {a b x : List α} {s t : ωSequence α}
@@ -263,17 +262,17 @@ theorem mem_omegaLim :
   Iff.rfl
 
 theorem mul_hmul : (l * m) * p = l * (m * p) := by
-  ext1
+  ext : 1
   exact image2_assoc append_append_ωSequence
 
 @[simp, scoped grind =]
 theorem zero_hmul : (0 : Language α) * p = ⊥ := by
-  ext1
+  ext : 1
   exact image2_empty_left
 
 @[simp, scoped grind =]
 theorem hmul_bot : l * (⊥ : ωLanguage α) = ⊥ := by
-  ext1
+  ext : 1
   exact image2_empty_right
 
 @[simp, scoped grind =]
@@ -281,22 +280,22 @@ theorem one_hmul : (1 : Language α) * p = p := by
   simp [hmul_def, Language.one_def, Language.toSet]
 
 theorem hmul_sup : l * (p ⊔ q) = l * p ⊔ l * q := by
-  ext1
+  ext : 1
   exact image2_union_right
 
 theorem add_hmul : (l + m) * p = l * p ⊔ m * p := by
-  ext1
+  ext : 1
   exact image2_union_left
 
 theorem iSup_hmul {ι : Sort v} (l : ι → Language α) (p : ωLanguage α) :
     (⨆ i, l i) * p = ⨆ i, l i * p := by
-  ext1
+  ext : 1
   simp only [hmul_def, iSup_def]
   apply image2_iUnion_left
 
 theorem hmul_iSup {ι : Sort v} (p : ι → ωLanguage α) (l : Language α) :
     (l * ⨆ i, p i) = ⨆ i, l * p i := by
-  ext1
+  ext : 1
   simp only [hmul_def, iSup_def]
   apply image2_iUnion_right
 
