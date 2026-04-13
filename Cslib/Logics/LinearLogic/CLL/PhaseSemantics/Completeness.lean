@@ -133,10 +133,7 @@ theorem PrSet_tensor {Atom : Type u} (a b : Proposition Atom) :
     PrSet Atom (a ⊗ b) =
     orthogonal (orthogonal (PrSet Atom a * PrSet Atom b)) := by
   rw [PrSet_eq_orth (a ⊗ b)]
-  congr 1
-  have := PrSet_parr (Proposition.dual a) (Proposition.dual b)
-  simp only [Proposition.dual_involution, orthogonal_def, Multiplicative.forall] at this
-  exact this
+  simp_rw [Proposition.dual, PrSet_parr, Proposition.dual_involution]
 
 /-- The canonical valuation: interprets each atom via its dual's truth set. -/
 def canonVal {Atom : Type u} (a : Atom) : Fact (CanonM Atom) :=
@@ -164,12 +161,8 @@ theorem interpProp_canon_carrier {Atom : Type u} (a : Proposition Atom)
     simp only [interpProp, coe_zero, PrSet_eq_orth .zero, Proposition.dual]
     congr 1
     exact PrSet_top.symm
-  | top =>
-    simp [interpProp, PrSet_top.symm]
-    rfl
-  | bot =>
-    simp only [interpProp]
-    exact PrSet_bot.symm
+  | top => exact PrSet_top.symm
+  | bot => exact PrSet_bot.symm
   | tensor _ _ iha ihb =>
     simp [interpProp, iha ha.1, ihb ha.2, tensor, dualFact, PrSet_tensor, -orthogonal_def]
   | parr _ _ iha ihb =>
@@ -190,24 +183,8 @@ theorem interpProp_list_foldr_parr
 theorem Sequent.toFact_eq_interpProp_foldParr
     (v : Atom → Fact M) (Γ : Sequent Atom) :
     Sequent.toFact M v Γ = interpProp v (foldParr Γ) := by
-  simp only [Sequent.toFact, foldParr]
-  rw [interpProp_list_foldr_parr v Γ.toList]
-  have hfold : ∀ l : List (Proposition Atom),
-      List.foldr (fun A acc => interpProp v A ⅋ acc) ⊥ l =
-      List.foldr (fun x y : Fact M => x ⅋ y) ⊥ (l.map (interpProp v)) := by
-    intro l
-    induction l <;> aesop
-  rw [hfold]
-  calc
-    (Γ.map (fun A => (interpProp v A))).fold (fun x y : Fact M => x ⅋ y) ⊥
-        = ((Γ.toList : Multiset (Proposition Atom)).map (fun A =>
-        (interpProp v A))).fold (fun x y : Fact M => x ⅋ y) ⊥ := by simp
-    _ = (((Γ.toList).map (fun A => interpProp v A)) :
-            Multiset (Fact M)).fold (fun x y : Fact M => x ⅋ y) ⊥ := by
-      grind [congrArg (fun s => s.fold (fun x y : Fact M => x ⅋ y) ⊥)
-        (@Multiset.map_coe _ _ (fun A => (interpProp v A)) (Γ.toList))]
-    _ = List.foldr (fun x y : Fact M => x ⅋ y) ⊥
-            ((Γ.toList).map (fun A => interpProp v A)) := by simp
+  rw [Sequent.toFact, foldParr, interpProp_list_foldr_parr, ← List.foldr_map,
+      ← Multiset.coe_fold_r, ← Multiset.map_coe, Γ.coe_toList]
 
 theorem completeness {Atom : Type u} (Γ : Sequent Atom)
     (hMALL : IsMALL Γ) :

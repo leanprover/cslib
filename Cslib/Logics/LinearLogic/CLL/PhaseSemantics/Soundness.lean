@@ -192,16 +192,8 @@ theorem Sequent.toFact_allQuest_quest_stable
 /-! ## Validity helpers -/
 
 theorem isValid_par_iff {G H : Fact M} : (G ⅋ H).IsValid ↔ Gᗮ ≤ H := by
-  constructor
-  · intro hvalid x hx
-    rw [par_of_linImpl] at hvalid
-    have := linImpl_iff_implies.mp hvalid x hx
-    rwa [one_mul] at this
-  · intro h
-    rw [Fact.IsValid, par_of_linImpl]
-    exact linImpl_iff_implies.mpr fun x hx => by
-      rw [one_mul]
-      exact h hx
+  rw [Fact.IsValid, par_of_linImpl, linImpl_iff_implies]
+  exact ⟨fun h x hx => one_mul x ▸ h x hx, fun h x hx => one_mul x ▸ h (by aesop)⟩
 
 theorem bang_valid_of_stable_context {G H : Fact M}
     (hstable : ʔH ≤ H) (hvalid : (G ⅋ H).IsValid) :
