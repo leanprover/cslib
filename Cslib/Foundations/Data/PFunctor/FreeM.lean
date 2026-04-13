@@ -20,12 +20,13 @@ constructor, yielding a monad that is free over the polynomial functor `P`.
 ## Comparison with `Cslib.FreeM`
 
 `Cslib.FreeM F` (in `Cslib.Foundations.Control.Monad.Free`) builds a free monad over an
-arbitrary type constructor `F : Type u → Type v`, using a single `liftBind` constructor that
-existentially quantifies the intermediate type:
+arbitrary type constructor `F : Type u → Type v`.
+Its `liftBind` constructor existentially quantifies the intermediate type:
 ```
 | liftBind {ι : Type u} (op : F ι) (cont : ι → FreeM F α) : FreeM F α
 ```
-Here the intermediate type `ι` is hidden, so `F` need not be a `Functor`.
+Because `ι` is an implicit (existentially bound) argument, the caller need not name it,
+so `F` need not be a `Functor`.
 
 `PFunctor.FreeM P` instead takes a polynomial functor `P : PFunctor`, where the shapes
 `P.A` and children `P.B a` are given explicitly.
