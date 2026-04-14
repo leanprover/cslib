@@ -96,7 +96,7 @@ variable {F : Type u → Type v} {ι : Type u} {α : Type w} {β : Type w'} {γ 
 
 instance : Pure (FreeM F) where pure := .pure
 
-@[simp]
+@[simp, grind =]
 theorem pure_eq_pure : (pure : α → FreeM F α) = FreeM.pure := rfl
 
 /-- Bind operation for the `FreeM` monad. -/
@@ -115,7 +115,7 @@ protected theorem bind_assoc (x : FreeM F α) (f : α → FreeM F β) (g : β �
 
 instance : Bind (FreeM F) where bind := .bind
 
-@[simp]
+@[simp, grind =]
 theorem bind_eq_bind {α β : Type w} : Bind.bind = (FreeM.bind : FreeM F α → _ → FreeM F β) := rfl
 
 /-- Map a function over a `FreeM` monad. -/
@@ -154,13 +154,20 @@ lemma map_lift (f : ι → α) (op : F ι) :
     map f (lift op : FreeM F ι) = liftBind op (fun z => (.pure (f z) : FreeM F α)) := rfl
 
 /-- `.pure a` followed by `bind` collapses immediately. -/
-@[simp]
+@[simp, grind =]
 lemma pure_bind (a : α) (f : α → FreeM F β) : (.pure a : FreeM F α).bind f = f a := rfl
 
-@[simp]
+@[simp, grind =]
+lemma pure_bind' {α β} (a : α) (f : α → FreeM F β) : (.pure a : FreeM F α) >>= f = f a :=
+  pure_bind a f
+
+@[simp, grind =]
 lemma bind_pure : ∀ x : FreeM F α, x.bind (.pure) = x
   | .pure a => rfl
   | liftBind op k => by simp [FreeM.bind, bind_pure]
+
+@[simp, grind =]
+lemma bind_pure' : ∀ x : FreeM F α, x >>= .pure = x := bind_pure
 
 @[simp]
 lemma bind_pure_comp (f : α → β) : ∀ x : FreeM F α, x.bind (.pure ∘ f) = map f x
