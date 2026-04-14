@@ -21,21 +21,21 @@ constructor, yielding a monad that is free over the polynomial functor `P`.
 
 `Cslib.FreeM F` (in `Cslib.Foundations.Control.Monad.Free`) builds a free monad over an
 arbitrary type constructor `F : Type u → Type v`, which need not be functorial.
-Its `liftBind` constructor existentially quantifies the intermediate type:
+Its `liftBind` constructor abstracts over the intermediate type `ι`:
 ```
 | liftBind {ι : Type u} (op : F ι) (cont : ι → FreeM F α) : FreeM F α
 ```
 
 `PFunctor.FreeM P` instead takes a polynomial functor `P : PFunctor`, where the shapes
-`P.A` and children `P.B a` are given explicitly.
-Its `liftBind` constructor carries the shape and continuation without existential quantification:
+`P.A` and positions `P.B a` are given explicitly.
+Its `liftBind` constructor uses the shape and continuation directly:
 ```
 | liftBind (a : P.A) (cont : P.B a → P.FreeM α) : P.FreeM α
 ```
 
 When the effect signature is naturally polynomial (a fixed set of operations, each with a
 known return type), `PFunctor.FreeM` gives stronger eliminators and avoids the universe
-bump that the existential in `Cslib.FreeM` introduces.
+bump that the abstract `ι` in `Cslib.FreeM` introduces.
 
 This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) library.
 
