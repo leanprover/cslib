@@ -36,7 +36,7 @@ theorem update_coe [Zero β] [DecidableEq α] [DecidableEqZero β] (f : α →�
 /-- Conditional characterisation of the functional interface of `FinFun.update`. -/
 theorem update_apply [Zero β] [DecidableEq α] [DecidableEqZero β] (f : α →₀ β) :
     ((f.update a' b) a) = if a = a' then b else f a := by
-  simp only [update_coe, Function.update_apply]
+  simp [Function.update_apply]
 
 /-- Conditional characterisation of the support of an updated `FinFun`. -/
 @[scoped grind =]
