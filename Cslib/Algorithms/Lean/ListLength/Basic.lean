@@ -30,7 +30,7 @@ open Cslib.Algorithms.Lean.TimeM
 /-- List.Length with TimeM Monad. -/
 public def List.length : List α → TimeM Nat Nat
   | .nil => return 0
-  | .cons _ as => do ✓ (Functor.map (fun x => x + 1) (List.length as))
+  | .cons _ as => do ✓ ((fun x => x + 1) <$> (List.length as))
 
 section Correctness
 
