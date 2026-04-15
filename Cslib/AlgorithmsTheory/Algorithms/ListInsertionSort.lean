@@ -91,38 +91,28 @@ theorem insertionSort_complexity (l : List α) (le : α → α → Bool) :
 
 section Stability
 
-private lemma filter_orderedInsert_of_neg {r : α → α → Prop} [DecidableRel r]
-    (a : α) (l : List α) (p : α → Bool) (ha : p a = false) :
-    (l.orderedInsert r a).filter p = l.filter p := by
-  induction l with
-  | nil => rw [List.orderedInsert_nil]; simp [ha]
-  | cons b l ih =>
-    rw [List.orderedInsert_cons]
-    split
-    · simp [List.filter, ha]
-    · simp only [List.filter]; split <;> simp [ih]
-
-private lemma filter_orderedInsert_of_pos {r : α → α → Prop} [DecidableRel r]
+private lemma filter_orderedInsert {r : α → α → Prop} [DecidableRel r]
     (a : α) (l : List α) (p : α → Bool)
-    (ha : p a = true)
-    (hcompat : ∀ b, p b = true → r a b)
+    (hcompat : p a = true → ∀ b, p b = true → r a b)
     (hsorted : l.Pairwise r) :
-    (l.orderedInsert r a).filter p = a :: l.filter p := by
+    (l.orderedInsert r a).filter p =
+      if p a then a :: l.filter p else l.filter p := by
   induction l with
-  | nil => rw [List.orderedInsert_nil]; simp [ha]
+  | nil =>
+    by_cases hpa : p a = true <;>
+      simp [hpa]
   | cons b l ih =>
-    rw [List.orderedInsert_cons]
     rw [List.pairwise_cons] at hsorted
-    split
-    · simp [List.filter, ha]
-    · rename_i hnr
-      have hnpb : p b = false := by
-        by_contra h; push_neg at h
-        cases hpb : p b with
-        | false => simp [hpb] at h
-        | true => exact hnr (hcompat b hpb)
-      simp only [List.filter, hnpb]
-      exact ih hsorted.2
+    by_cases hab : r a b
+    · by_cases hpa : p a = true <;>
+        simp [List.orderedInsert_cons, hab, hpa]
+    · by_cases hpa : p a = true
+      · by_cases hpb : p b = true
+        · exfalso
+          exact hab (hcompat hpa b hpb)
+        · simp [List.orderedInsert_cons, hab, hpa, hpb, ih hsorted.2]
+      · by_cases hpb : p b = true <;>
+          simp [List.orderedInsert_cons, hab, hpa, hpb, ih hsorted.2]
 
 theorem insertionSort_stable
     (xs : List α)
@@ -135,21 +125,17 @@ theorem insertionSort_stable
   induction xs with
   | nil => simp
   | cons a rest ih =>
-    change List.filter (fun x => le x k && le k x)
-      (List.insertionSort (fun x y => le x y = true) (a :: rest)) =
-      List.filter (fun x => le x k && le k x) (a :: rest)
-    rw [List.insertionSort_cons]
-    have hsorted : (rest.insertionSort (fun x y => le x y = true)).Pairwise
-        (fun x y => le x y = true) :=
-      List.pairwise_insertionSort _ rest
-    rcases hab : (le a k && le k a) with _ | _
-    · rw [filter_orderedInsert_of_neg a _ (fun x => le x k && le k x) hab]
-      simp [hab, ih]
-    · rw [filter_orderedInsert_of_pos a _ (fun x => le x k && le k x) hab _ hsorted]
-      · simp [hab, ih]
-      · intro b hb
-        simp only [Bool.and_eq_true] at hab hb
-        exact IsTrans.trans (r := fun x y => le x y = true) a k b hab.1 hb.2
+    change
+      List.filter (fun x => le x k && le k x)
+          ((a :: rest).insertionSort (fun x y => le x y = true)) =
+        List.filter (fun x => le x k && le k x) (a :: rest)
+    rw [List.insertionSort_cons,
+      filter_orderedInsert _ _ _ _ (List.pairwise_insertionSort _ _)]
+    · by_cases hak : le a k = true ∧ le k a = true <;>
+        simp [hak, ih]
+    · intro ha b hb
+      simp only [Bool.and_eq_true] at ha hb
+      exact IsTrans.trans (r := fun x y => le x y = true) a k b ha.1 hb.2
 
 end Stability
 
