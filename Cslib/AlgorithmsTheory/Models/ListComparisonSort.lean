@@ -158,7 +158,7 @@ def IsStableSort
     (xs : List α)
     (le : α → α → Bool) : Prop :=
   let ys := sortAlg xs
-  ∀ (k : α), ys.filter (fun x => le x k && le k x) = xs.filter (fun x => le x k && le k x)
+  ∀ k : α, ys.filter (fun x => le x k && le k x) = xs.filter (fun x => le x k && le k x)
 
 end SortStability
 
