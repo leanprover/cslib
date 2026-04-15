@@ -42,7 +42,7 @@ theorem update_apply [Zero β] [DecidableEq α] [DecidableEqZero β] (f : α →
 @[scoped grind =]
 theorem update_support [Zero β] [DecidableEq α] [DecidableEqZero β] (f : α →₀ β) :
     (f.update a b).support = if b = 0 then f.support \ {a} else f.support ∪ {a} := by
-  simp only [update]
+  simp [update]
 
 /-- Updating a finite function on the same key is the same as doing the last update. -/
 @[scoped grind =, simp]
