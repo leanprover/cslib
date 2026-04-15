@@ -30,7 +30,7 @@ def update [Zero β] [DecidableEq α] [DecidableEqZero β] (f : α →₀ β) (a
 /-- `FinFun.update` is consistent with `Function.update`. -/
 @[simp]
 theorem update_coe [Zero β] [DecidableEq α] [DecidableEqZero β] (f : α →₀ β) :
-    ((f.update a b) : α → β) = Function.update f a b := by
+    (f.update a b : α → β) = Function.update f a b := by
   grind [update]
 
 /-- Conditional characterisation of the functional interface of `FinFun.update`. -/
