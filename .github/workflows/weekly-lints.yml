@@ -5,20 +5,35 @@ on:
     - cron: '0 5 * * 1'  # Run at 05:00 UTC every Monday
   workflow_dispatch:  # Allow manual triggering
 
+env:
+  CSLIB: cslib
+
 jobs:
   weekly-lints:
     name: Weekly Linting
     runs-on: ubuntu-latest
     if: github.repository == 'leanprover/cslib'
     steps:
+    - name: Checkout Mathlib actions
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 1
+        repository: leanprover-community/mathlib4
+        sparse-checkout: .github/actions
+        path: workflow-actions
+
+    - name: Get mathlib-ci
+      uses: ./workflow-actions/.github/actions/get-mathlib-ci
+
     - uses: actions/checkout@v4
       with:
-        ref: main
+        path: ${{ env.CSLIB }}
 
     - name: Enable weekly linters
+      working-directory: ${{ github.workspace }}/${{ env.CSLIB }}
       run: |
         # Add the mergeWithGrind linter back for this run
-        sed -i '/^\[leanOptions\]/a weak.linter.tacticAnalysis.mergeWithGrind = true' lakefile.toml
+        sed -i '/^\[leanOptions\]/a weak.linter.weeklyLintSet = true' lakefile.toml
 
         # Show what changed
         git diff lakefile.toml
@@ -29,17 +44,21 @@ jobs:
         auto-config: false
         use-github-cache: true
         use-mathlib-cache: true
+        lake-package-directory: ${{ env.CSLIB }}
 
     - name: Build with weekly linters
       id: build
+      working-directory: ${{ github.workspace }}/${{ env.CSLIB }}
       continue-on-error: true
       run: |
         lean_outfile=$(mktemp)
         (lake build || true) 2>&1 | tee "${lean_outfile}"
 
-        # Generate report for Zulip
-        bash scripts/weekly_lint_report.sh "${lean_outfile}" \
-          "${{ github.sha }}" "${{ github.repository }}" "${{ github.run_id }}" > "${GITHUB_OUTPUT}"
+        # Process output for posting to Zulip
+        SHA=${{ github.sha }} \
+        REPO=${{ github.repository }} \
+        RUN_ID=${{ github.run_id }} \
+          "${CI_SCRIPTS_DIR}/reporting/zulip_build_report.sh" "${lean_outfile}" > "${GITHUB_OUTPUT}"
 
     - name: Post output to Zulip
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
