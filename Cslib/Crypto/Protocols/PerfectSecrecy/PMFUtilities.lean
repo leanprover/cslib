@@ -14,7 +14,7 @@ public import Mathlib.Probability.ProbabilityMassFunction.Monad
 /-!
 # PMF Utilities
 
-## ⚠️ This module is temporary ⚠️
+## NB: This module is temporary
 
 Everything here is a general PMF bind/pure lemma with no dependence on
 any domain-specific structure. It should be upstreamed to Mathlib
