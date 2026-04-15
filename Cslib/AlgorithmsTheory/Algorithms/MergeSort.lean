@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas, Eric Wieser
+Authors: Shreyas Srinivas, Eric Wieser, Ethan Ermovick
 -/
 
 module
