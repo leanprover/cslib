@@ -119,6 +119,15 @@ lemma run_get (k : σ → FreeState σ α) (s₀ : σ) :
 lemma run_set (s' : σ) (k : PUnit → FreeState σ α) (s₀ : σ) :
     run (liftBind (.set s') k) s₀ = run (k .unit) s' := rfl
 
+@[simp]
+lemma run_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
+    run (x.bind f) s₀ = let p := x.run s₀; (f p.1).run p.2 := by
+  induction x generalizing f s₀ with
+  | pure => simp
+  | liftBind op cont ih =>
+    rw [FreeM.liftBind_bind]
+    cases op <;> simp [run, ih]
+
 /-- Run a state computation, returning only the result. -/
 def run' (c : FreeState σ α) (s₀ : σ) : α := (run c s₀).1
 
@@ -139,6 +148,11 @@ lemma run'_get (k : σ → FreeState σ α) (s₀ : σ) :
 @[simp]
 lemma run'_set (s' : σ) (k : PUnit → FreeState σ α) (s₀ : σ) :
     run' (liftBind (.set s') k) s₀ = run' (k .unit) s' := rfl
+
+@[simp]
+lemma run'_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
+    run' (x.bind f) s₀ = let p := x.run s₀; (f p.1).run' p.2 :=
+  congr_arg Prod.fst <| run_bind _ _ _
 
 end FreeState
 
@@ -197,6 +211,16 @@ def run [Monoid ω] : FreeWriter ω α → α × ω
 @[simp]
 lemma run_pure [Monoid ω] (a : α) :
     run (.pure a : FreeWriter ω α) = (a, 1) := rfl
+
+@[simp]
+lemma run_bind [Monoid ω] (x : FreeWriter ω α) (f : α → FreeWriter ω β) :
+    run (x.bind f) = let p := run x; ((f p.1).run.1, p.2 * (f p.1).run.2) := by
+  induction x generalizing f with
+  | pure => simp
+  | liftBind op cont ih =>
+    rw [FreeM.liftBind_bind]
+    cases op
+    simp [run, ih, mul_assoc]
 
 @[simp]
 lemma run_liftBind_tell [Monoid ω] (w : ω) (k : PUnit → FreeWriter ω α) :
@@ -318,6 +342,16 @@ lemma run_pure (a : α) (k : α → r) :
     run (.pure a : FreeCont r α) k = k a := rfl
 
 @[simp]
+lemma run_bind (x : FreeCont r α) (f : α → FreeCont r β) (k : β → r) :
+    run (x.bind f) k = run x (fun i => run (f i) k) := by
+  induction x generalizing k with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    rw [FreeM.liftBind_bind]
+    cases op
+    simp [run, ih]
+
+@[simp]
 lemma run_liftBind_callCC (g : (α → r) → r)
     (cont : α → FreeCont r β) (k : β → r) :
     run (liftBind (.callCC g) cont) k = g (fun a => run (cont a) k) := rfl
@@ -400,6 +434,14 @@ lemma run_pure (a : α) (s₀ : σ) :
 @[simp]
 lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
     run (liftBind .read k) s₀ = run (k s₀) s₀ := rfl
+
+@[simp]
+lemma run_bind (x : FreeReader σ α) (f : α → FreeReader σ β) (s₀ : σ) :
+    run (x.bind f) s₀ = run (f <| run x s₀) s₀ := by
+  induction x generalizing s₀ with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    cases op; apply ih
 
 instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
   withReader {α} f m :=
