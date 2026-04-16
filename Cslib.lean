@@ -61,6 +61,7 @@ public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
+public import Cslib.Foundations.Logic.Belnap
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Semantics.FLTS.Basic
