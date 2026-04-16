@@ -43,7 +43,7 @@ A model for comparison sorting on lists.
 -/
 inductive SortOpsInsertHead (α : Type) : Type → Type  where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
-  The specific order relation depends on the model provided for this typ. e-/
+  The specific order relation depends on the model provided for this type. -/
   | cmpLE (x : α) (y : α) : SortOpsInsertHead α Bool
   /-- `insertHead l x` is intended to return `x :: l`. -/
   | insertHead (x : α) (l : List α) : SortOpsInsertHead α (List α)
