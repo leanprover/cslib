@@ -10,24 +10,24 @@ public import Cslib.Computability.Languages.RegularLanguage
 
 @[expose] public section
 
-/-! # All three parts of the Myhill-Nerode Theorem for DFAs listed at [WikipediaMyhillNerode2026].
+/-! # Myhill-Nerode Theorem
 
-Let `l` be a language on an alphabet `α`. `c_l` is the Nerode congruence on a language `L`.
+Let `l` be a language on an alphabet `α`. The Nerode congruence (referred to as `c_l`
+in comments below) of a language `l` is a right congruence on strings where two strings are
+related iff all their right extensions are either both in the language or both not in it.
 
-The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
-strings where two strings are related iff all their right extensions are either both in the language
-or both not in it.
+The Myhill-Nerode theorem has three parts [WikipediaMyhillNerode2026]:
 
-(1) `l` is regular iff `c_l` has a finite number of equivalence classes `N`.
-(2) `N` is the number of states in the minimal DFA accepting `l`.
+(1) `l` is regular iff `c_l` has a finite number `N` of equivalence classes.
+
+(2) `N` is the number of states of the minimal DFA accepting `l`.
+
 (3) The minimal DFA is unique up to unique isomorphism. That is, for any
-    minimal DFA acceptor, there exists exactly one isomorphism from it to the
-    following one:
-
-  > Let each equivalence class `⟦ x ⟧` correspond to a state, and let state
-  transitions be `a : ⟦ x ⟧ → ⟦ x a ⟧` for each `a ∈ α`.
-  Let the starting state be `⟦ ϵ ⟧`, and the accepting states be `⟦ x ⟧` where
-  `x ∈ l`.
+    minimal DFA accepting `l`, there exists exactly an isomorphism from it to the
+    canonical DFA whose states are the equivalence classses of `c_l`, whose
+    state transitions are of the form `⟦ x ⟧ → ⟦ x ++ [a] ⟧` (where `a : α`
+    and `x : List α`), whose initial state is `⟦ [] ⟧`, and whose accepting states
+    are `{ ⟦ x ⟧ | x ∈ l }`.
 
 ## References
 
