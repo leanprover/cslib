@@ -12,18 +12,22 @@ public import Cslib.Computability.Languages.RegularLanguage
 
 /-! # All three parts of the Myhill-Nerode Theorem for DFAs listed at [WikipediaMyhillNerode2026].
 
-`~_L` is the Nerode congruence on a language `L`.
+Let `l`` be a language on an alphabet `α`. `c_l` is the Nerode congruence on a language `L`.
 
-(1) `L` regular iff `∼_L` has a finite number of equivalence classes `N`.
-(2) `N` is the number of states in the minimal DFA accepting `L`.
+The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
+strings where two strings are related iff all their right extensions are either both in the language
+or both not in it.
+
+(1) `l` is regular iff `c_l` has a finite number of equivalence classes `N`.
+(2) `N` is the number of states in the minimal DFA accepting `l`.
 (3) The minimal DFA is unique up to unique isomorphism. That is, for any
     minimal DFA acceptor, there exists exactly one isomorphism from it to the
     following one:
 
   > Let each equivalence class `⟦ x ⟧` correspond to a state, and let state
-  transitions be `a : ⟦ x ⟧ → ⟦ x a ⟧` for each `a ∈ Σ`.
+  transitions be `a : ⟦ x ⟧ → ⟦ x a ⟧` for each `a ∈ α`.
   Let the starting state be `⟦ ϵ ⟧`, and the accepting states be `⟦ x ⟧` where
-  `x ∈ L`.
+  `x ∈ l`.
 
 ## References
 
@@ -41,16 +45,16 @@ namespace Language
 open Cslib Language Automata DA FinAcc Acceptor
 open scoped RightCongruence
 
-/-- The Nerode congruence of a language `l` is a right congruence on strings where two
-strings are related iff all their right extensions are either both in the language
+/-- The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
+strings where two strings are related iff all their right extensions are either both in the language
 or both not in it. -/
 instance NerodeCongruence (l : Language α) : RightCongruence α where
   r x y := ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l
   iseqv.refl := fun _ _ => Iff.rfl
   iseqv.symm := fun h z => (h z).symm
   iseqv.trans := fun h_1 h_2 z => (h_1 z).trans (h_2 z)
-  right_cov := ⟨fun a {x y} (h : ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l) z =>
-    List.append_assoc x a z ▸ List.append_assoc y a z ▸ h (a ++ z)⟩
+  right_cov.elim := fun a {x y} (h : ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l) z =>
+    List.append_assoc x a z ▸ List.append_assoc y a z ▸ h (a ++ z)
 
 /-- The quotient type of a Nerode congruence. -/
 abbrev NerodeQuotient (l : Language α) := Quotient (l.NerodeCongruence).eq
@@ -80,7 +84,7 @@ extensions are either both in the language or both not in it) is equivalent to s
 their right extensions are either both accepted or rejected by the DFA given rise to by `c_l`.) -/
 theorem da_nerodeCongruence_iff {State : Type*} (M : DA.FinAcc State α) (x y : List α) :
     ((language M).NerodeCongruence).r x y ↔
-      ∀ z, M.mtr (M.mtr M.start x) z ∈ M.accept ↔ M.mtr (M.mtr M.start y) z ∈ M.accept := by
+    ∀ z, M.mtr (M.mtr M.start x) z ∈ M.accept ↔ M.mtr (M.mtr M.start y) z ∈ M.accept := by
   simp only [FLTS.mtr, ← List.foldl_append]
   rfl
 
@@ -170,9 +174,8 @@ theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State]
   have hws : ws.Pairwise (fun x y => ¬((language M).NerodeCongruence).r x y) := by
     rintro _ ⟨qx, rfl⟩ _ ⟨qy, rfl⟩ hne h
     exact hne (by simpa using Quotient.sound h)
-  have card_hws_eq : Nat.card ws = Nat.card (Quotient ((language M).NerodeCongruence).eq) :=
-    Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm
-  exact card_hws_eq ▸ dfa_num_state_ge hws rfl
+  exact (Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm)
+    ▸ dfa_num_state_ge hws rfl
 --
 
 end Language
@@ -191,11 +194,12 @@ def IsMinimalAutomaton (M : FinAcc State α) (l : Language α) :=
 `M`. The Nerode congruence is the state congruence with respect to the minimal DFA accepting `l`. -/
 instance StateCongruence (M : FinAcc State α) : RightCongruence α where
   r x y := ∀ z, M.mtr M.start (x ++ z) = M.mtr M.start (y ++ z)
-  iseqv := ⟨by intro x z; rfl, by intro x y h z; symm; exact h z,
-      by intro x y z h_1 h_2 w; exact (h_1 w).trans (h_2 w)⟩
-  right_cov := ⟨by
-        intro a x y h z
-        simpa [List.append_assoc, FLTS.mtr_concat_eq] using h (a ++ z)⟩
+  iseqv.refl := by intro x z; rfl
+  iseqv.symm  := by intro x y h z; symm; exact h z
+  iseqv.trans := by intro x y z h_1 h_2 w; exact (h_1 w).trans (h_2 w)
+  right_cov.elim := by
+    intro a x y h z
+    simpa [List.append_assoc, FLTS.mtr_concat_eq] using h (a ++ z)
 
 variable {M : FinAcc State α}
 
