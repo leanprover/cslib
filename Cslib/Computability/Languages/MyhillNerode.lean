@@ -176,7 +176,6 @@ theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State]
     exact hne (by simpa using Quotient.sound h)
   exact (Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm)
     ▸ dfa_num_state_ge hws rfl
---
 
 end Language
 
@@ -251,6 +250,5 @@ theorem unique_minimal [Finite State]
     induction h : φ s using Quotient.inductionOn with
     | h x => exact ⟨x, hφ_inj ((hφ x).trans h.symm)⟩
   simp [φ_equiv, Equiv.ofBijective, hφ, hψ]
---
 
 end Cslib.Automata.DA.FinAcc
