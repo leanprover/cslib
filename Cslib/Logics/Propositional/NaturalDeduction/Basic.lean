@@ -40,6 +40,16 @@ differ in the construction of the relevant derivation.
 
 The sequent `⟨T, Γ, A⟩` is notated `Γ ⊢[T] A`, and `⊢[T] A` abbreviates `∅ ⊢[T] A`.
 
+## Implementation notes
+
+We formalise here a single type of derivations, meaning there is a single collection of inference
+rules (those for minimal logic). The extension to intuitionistic and classical logic are modelled
+by adding *axioms* --- for instance, intuitionistic derivations are allowed to appeal to axioms of
+the form `⊥ → A` for any proposition `A`. This differs from many on-paper presentations, which add
+that principle as a deduction rule: from `Γ ⊢ ⊥` derive `Γ ⊢ A`. Discussion on proper way to
+capture such developments in cslib is ongoing, see the following
+[zulip discussion](https://leanprover.zulipchat.com/#narrow/channel/513188-CSLib/topic/Logic/with/585843520).
+
 ## References
 
 - Dag Prawitz, *Natural Deduction: a proof-theoretical study*.
@@ -134,10 +144,10 @@ def Theory.Equiv (A B : Proposition Atom) := Nonempty (T.equiv A B)
 scoped notation A " ≡[" T' "] " B:29 => Theory.Equiv (T := T') A B
 
 lemma Theory.Equiv.mp {A B : Proposition Atom} (h : A ≡[T] B) : Derivable ({A} ⊢[T] B) :=
-  ⟨h.some.1⟩
+  ⟨h.some.mp⟩
 
 lemma Theory.Equiv.mpr {A B : Proposition Atom} (h : A ≡[T] B) : Derivable ({B} ⊢[T] A) :=
-  ⟨h.some.2⟩
+  ⟨h.some.mpr⟩
 
 theorem Theory.equiv_iff {A B : Proposition Atom} :
   A ≡[T] B ↔ Derivable ({A} ⊢[T] B) ∧ Derivable ({B} ⊢[T] A) := by
