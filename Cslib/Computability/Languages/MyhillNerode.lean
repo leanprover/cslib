@@ -12,7 +12,7 @@ public import Cslib.Computability.Languages.RegularLanguage
 
 /-! # All three parts of the Myhill-Nerode Theorem for DFAs listed at [WikipediaMyhillNerode2026].
 
-Let `l`` be a language on an alphabet `α`. `c_l` is the Nerode congruence on a language `L`.
+Let `l` be a language on an alphabet `α`. `c_l` is the Nerode congruence on a language `L`.
 
 The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
 strings where two strings are related iff all their right extensions are either both in the language
@@ -251,5 +251,6 @@ theorem unique_minimal [Finite State]
     induction h : φ s using Quotient.inductionOn with
     | h x => exact ⟨x, hφ_inj ((hφ x).trans h.symm)⟩
   simp [φ_equiv, Equiv.ofBijective, hφ, hψ]
+--
 
 end Cslib.Automata.DA.FinAcc
