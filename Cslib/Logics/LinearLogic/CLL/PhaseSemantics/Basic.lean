@@ -44,10 +44,6 @@ correspond to specific set-theoretic operations.
 
 Several lemmas about facts and orthogonality useful in the proof of soundness are proven here.
 
-## TODO
-- Soundness theorem
-- Completeness theorem
-
 ## References
 
 * [J.-Y. Girard, *Linear logic*][Girard1987]
@@ -336,7 +332,7 @@ instance : Min (Fact P) where
 def idempotentsIn [Monoid M] (X : Set M) : Set M := {m | IsIdempotentElem m ∧ m ∈ X}
 
 /-- The set I of idempotents that "belong to 1" in the phase semantics. -/
-def I : Set P := idempotentsIn (1 : Set P)
+def I : Set P := idempotentsIn (1 : Fact P)
 
 /-! ## Interpretation of the connectives -/
 
@@ -462,7 +458,13 @@ lemma par_le_par {G H K L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G ⅋ H) 
 
 @[simp] lemma par_assoc {G H K : Fact P} : ((G ⅋ H) ⅋ K) = (G ⅋ H ⅋ K) := by simp [par_of_tensor]
 
+instance parAssociative {M : Type*} [PhaseSpace M] :
+    Std.Associative (α := Fact M) (· ⅋ ·) := ⟨fun _ _ _ => par_assoc⟩
+
 lemma par_comm (G H : Fact P) : (G ⅋ H) = (H ⅋ G) := by simp [par_of_tensor, tensor_comm]
+
+instance parCommutative {M : Type*} [PhaseSpace M] :
+    Std.Commutative (α := Fact M) (· ⅋ ·) := ⟨par_comm⟩
 
 /--
 Linear implication between facts,
@@ -538,14 +540,14 @@ The exponential `!X` (of course) of a fact,
 defined as the dual of the orthogonal of the intersection with the idempotents.
 -/
 def bang (X : Fact P) : Fact P := dualFact (X ∩ I)⫠
-@[inherit_doc] prefix:100 " ! " => bang
+@[inherit_doc] prefix:100 "!" => bang
 
 /--
 The exponential `?X` (why not) of a fact,
 defined as the dual of the intersection of the orthogonal with the idempotents.
 -/
 def quest (X : Fact P) : Fact P := dualFact (X⫠ ∩ I)
-@[inherit_doc] prefix:100 " ʔ " => quest
+@[inherit_doc] prefix:100 "ʔ" => quest
 
 /-! ### Properties of Additives -/
 
@@ -702,6 +704,41 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
   | .quest  A     => ʔ(interpProp v A)
 
 @[inherit_doc] scoped notation:max "⟦" P "⟧" v:90 => interpProp v P
+
+/-- Semantic interpretation of a sequent as the par-fold of its members. -/
+def Sequent.toFact (M : Type*) [PhaseSpace M]
+    (v : Atom → Fact M) (Γ : Sequent Atom) : Fact M :=
+  (Γ.map (fun A => (interpProp v A : Fact M))).fold (· ⅋ ·) ⊥
+
+theorem Sequent.toFact_nil {M : Type*} [PhaseSpace M] (v : Atom → Fact M) :
+    Sequent.toFact M v (0 : Sequent Atom) = ⊥ := by simp [Sequent.toFact]
+
+theorem Sequent.toFact_add {M : Type*} [PhaseSpace M]
+    (v : Atom → Fact M) (Γ Δ : Sequent Atom) :
+    Sequent.toFact M v (Γ + Δ) = Sequent.toFact M v Γ ⅋ Sequent.toFact M v Δ := by
+  simp only [Sequent.toFact]
+  rw [Multiset.map_add]
+  have := Multiset.fold_add
+    (fun (x y : Fact M) => x ⅋ y) ⊥ ⊥ (Γ.map fun A => interpProp v A)
+    (Δ.map fun A => interpProp v A)
+  rwa [bot_par] at this
+
+@[simp] theorem Sequent.toFact_cons {M : Type*} [PhaseSpace M]
+    (v : Atom → Fact M) (A : Proposition Atom) (Γ : Sequent Atom) :
+    Sequent.toFact M v (A ::ₘ Γ) = interpProp v A ⅋ Sequent.toFact M v Γ := by
+  simp [Sequent.toFact]
+
+theorem Sequent.singleton_eq_cons_zero (A : Proposition Atom) :
+    {A} = A ::ₘ 0 := rfl
+
+@[simp] theorem Sequent.toFact_singleton {M : Type*} [PhaseSpace M]
+    (v : Atom → Fact M) (A : Proposition Atom) :
+    Sequent.toFact M v ({A} : Sequent Atom) = interpProp v A ⅋ ⊥ := by
+  rw [Sequent.singleton_eq_cons_zero, Sequent.toFact_cons, Sequent.toFact_nil]
+
+theorem Sequent.pair_eq_cons_cons (A B : Proposition Atom) :
+    ({A, B} : Sequent Atom) = A ::ₘ B ::ₘ 0 := by
+  rw [Multiset.insert_eq_cons, Sequent.singleton_eq_cons_zero]
 
 end PhaseSpace
 

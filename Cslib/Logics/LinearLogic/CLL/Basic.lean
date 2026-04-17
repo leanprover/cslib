@@ -11,6 +11,8 @@ public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Mathlib.Data.Multiset.Fold
+public import Mathlib.Data.Multiset.AddSub
+public import Mathlib.Data.Multiset.Basic
 
 @[expose] public section
 
@@ -129,6 +131,15 @@ def Proposition.negative : Proposition Atom → Bool
   | quest _ => true
   | _ => false
 
+/--
+Whether a proposition is in the multiplicative-additive fragment (MALL), i.e. it
+contains no exponentials.
+-/
+def Proposition.IsMALL : Proposition Atom → Prop
+  | .atom _ | .atomDual _ | .one | .bot | .top | .zero => True
+  | .tensor a b | .parr a b | .oplus a b | .with a b => a.IsMALL ∧ b.IsMALL
+  | .bang _ | .quest _ => False
+
 /-- Whether a `Proposition` is positive is decidable. -/
 instance Proposition.positive_decidable (a : Proposition Atom) : Decidable a.positive :=
   a.positive.decEq true
@@ -187,6 +198,10 @@ def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ 
 
 /-- A sequent in CLL is a multiset of propositions. -/
 abbrev Sequent Atom := Multiset (Proposition Atom)
+
+/-- A sequent is MALL if every proposition in it is MALL. -/
+def Sequent.IsMALL (Γ : Sequent Atom) : Prop :=
+  ∀ A ∈ Γ, (A : Proposition Atom).IsMALL
 
 /-- Checks that all propositions in a sequent `Γ` are question marks. -/
 def Sequent.allQuest (Γ : Sequent Atom) :=
@@ -719,6 +734,37 @@ def with_idem {a : Proposition Atom} : a & a ≡⇓ a :=
 end Proposition
 
 end LogicalEquiv
+
+/-- Folds a sequent into a single formula by taking the par of all its members. -/
+noncomputable def foldParr {Atom : Type u} (Γ : Sequent Atom) : Proposition Atom :=
+  Γ.toList.foldr (· ⅋ ·) ⊥
+
+theorem foldParr_isMALL {Atom : Type u} (Γ : Sequent Atom)
+    (h : Sequent.IsMALL Γ) :
+    Proposition.IsMALL (foldParr Γ) := by
+  suffices ∀ l : List (Proposition Atom), (∀ A ∈ l, A.IsMALL) →
+      (List.foldr (· ⅋ ·) ⊥ l).IsMALL by
+    exact this _ (fun A hA => h A (by aesop))
+  intro l hl; induction l <;> simp [Proposition.IsMALL]; grind [Proposition.IsMALL]
+
+theorem derivable_of_list_foldr_parr {Atom : Type u}
+    (l : List (Proposition Atom)) (Δ : Sequent Atom) :
+    Derivable ((List.foldr (· ⅋ ·) ⊥ l) ::ₘ Δ) →
+    Derivable ((l : Sequent Atom) + Δ) := by
+  induction l generalizing Δ with
+  | nil => intro ⟨p⟩; exact ⟨Proof.rwConclusion (by simp) p.bot_inversion⟩
+  | cons a l ih =>
+    intro ⟨p⟩
+    have p' := Proof.rwConclusion (Multiset.cons_swap ..) (Proof.parr_inversion p)
+    rcases ih (Δ := a ::ₘ Δ) ⟨p'⟩ with ⟨q⟩
+    have hEq : (↑l + (a ::ₘ Δ)) = (↑(a :: l) + Δ) := by
+      have : a ::ₘ (↑l + Δ) = (a ::ₘ ↑l) + Δ := (Multiset.cons_add a ↑l Δ).symm
+      simp_all
+    exact ⟨q.rwConclusion hEq⟩
+
+theorem derivable_of_foldParr {Atom : Type u} (Γ : Sequent Atom) :
+    Derivable ({foldParr Γ} : Sequent Atom) → Derivable Γ := by
+  intro h; have := derivable_of_list_foldr_parr Γ.toList 0 (by aesop); aesop
 
 end CLL
 
