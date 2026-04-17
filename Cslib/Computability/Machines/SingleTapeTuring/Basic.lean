@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 @[expose] public section
 
@@ -453,6 +454,40 @@ def TimeComputable.comp {f g : List Symbol → List Symbol}
       -- Use the lemma about output length being bounded by input length + time
       exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a)
 
+/--
+Monotonize a function `f : ℕ → ℕ` by taking the supremum over all values up to `n`.
+-/
+def monotonizeBound (f : ℕ → ℕ) (n : ℕ) : ℕ :=
+  (Finset.range (n + 1)).sup' ⟨n, Finset.mem_range.mpr (Nat.lt_succ_iff.mpr le_rfl)⟩ f
+
+lemma monotonizeBound_mono (f : ℕ → ℕ) : Monotone (monotonizeBound f) :=
+  fun _ _ hab => Finset.sup'_mono f (fun _ hx => Finset.mem_range.mpr
+    (Nat.lt_of_lt_of_le (Finset.mem_range.mp hx) (Nat.add_le_add_right hab 1))) _
+
+lemma le_monotonizeBound (f : ℕ → ℕ) (n : ℕ) : f n ≤ monotonizeBound f n :=
+  Finset.le_sup' f (Finset.mem_range.mpr (Nat.lt_succ_iff.mpr le_rfl))
+
+lemma monotonizeBound_le_of_le {f : ℕ → ℕ} {g : ℕ → ℕ} (hbound : ∀ n, f n ≤ g n)
+    (hg_mono : Monotone g) (n : ℕ) : monotonizeBound f n ≤ g n :=
+  Finset.sup'_le _ _ fun k hk => (hbound k).trans
+    (hg_mono (Nat.lt_succ_iff.mp (Finset.mem_range.mp hk)))
+
+/--
+Convert a `TimeComputable` to one with a monotone time bound,
+by replacing the time bound with its monotonization.
+-/
+def TimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
+    (hf : TimeComputable f) : TimeComputable f where
+  tm := hf.tm
+  time_bound := monotonizeBound hf.time_bound
+  outputsFunInTime a :=
+    RelatesWithinSteps.of_le (hf.outputsFunInTime a) (le_monotonizeBound _ _)
+
+set_option linter.unusedSectionVars false in
+lemma TimeComputable.withMonotoneBound_monotone {f : List Symbol → List Symbol}
+    (hf : TimeComputable f) : Monotone hf.withMonotoneBound.time_bound :=
+  monotonizeBound_mono _
+
 end TimeComputable
 
 /-!
@@ -486,22 +521,58 @@ noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) 
   poly := 1
   bounds _ := by simp [TimeComputable.id]
 
--- TODO remove `h_mono` assumption
--- by developing function to convert PolyTimeComputable into one with monotone time bound
+private lemma Polynomial.eval_mono_nat {p : Polynomial ℕ} {a b : ℕ} (h : a ≤ b) :
+    p.eval a ≤ p.eval b := by
+  -- Since $p$ is a polynomial with non-negative coefficients, each term $p.coeff i * a^i$ is less
+  -- than or equal to $p.coeff i * b^i$ when $a \leq b$.
+  have h_term_le : ∀ i, p.coeff i * a^i ≤ p.coeff i * b^i := by
+    -- Since $a \leq b$, raising both sides to the power of $i$ preserves the inequality.
+    intros i
+    have h_exp : a^i ≤ b^i := by
+      -- Since $a \leq b$, raising both sides to the power of $i$ preserves the inequality because
+      -- the function $x^i$ is monotonically increasing for non-negative $x$.
+      apply Nat.pow_le_pow_left h;
+    -- Since $a \leq b$, raising both sides to the power of $i$ preserves the inequality, so
+    -- $a^i \leq b^i$.
+    apply Nat.mul_le_mul_left; exact h_exp;
+  -- By summing the inequalities term by term, we can conclude that the entire polynomial evaluated
+  -- at a is less than or equal to the entire polynomial evaluated at b.
+  have h_sum_le : ∑ i ∈ p.support, p.coeff i * a^i ≤ ∑ i ∈ p.support, p.coeff i * b^i := by
+    -- Apply the fact that if each term in a sum is less than or equal to the corresponding term in
+    -- another sum, then the entire sum is less than or equal.
+    apply Finset.sum_le_sum; intro i hi; exact h_term_le i;
+  -- By definition of polynomial evaluation, we can rewrite the goal using the sums of the
+  -- coefficients multiplied by the powers of a and b.
+  simp only [eval_eq_sum, sum_def] at *;
+  -- Apply the hypothesis `h_sum_le` directly to conclude the proof.
+  exact h_sum_le
+
+/--
+Convert a `PolyTimeComputable` to one with a monotone time bound.
+-/
+private noncomputable def PolyTimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
+    (hf : PolyTimeComputable f) : PolyTimeComputable f where
+  toTimeComputable := hf.toTimeComputable.withMonotoneBound
+  poly := hf.poly
+  bounds n := monotonizeBound_le_of_le hf.bounds (fun _ _ h => Polynomial.eval_mono_nat h) n
+
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
 noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
-    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
-    (h_mono : Monotone hg.time_bound) :
+    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g) :
     PolyTimeComputable (g ∘ f) where
-  toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
+  toTimeComputable :=
+    TimeComputable.comp hf.toTimeComputable hg.toTimeComputable.withMonotoneBound
+      hg.toTimeComputable.withMonotoneBound_monotone
   poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
   bounds n := by
     simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (hg.bounds _)
+    · have h_mono := hg.toTimeComputable.withMonotoneBound_monotone
+      have h_bound := hg.withMonotoneBound.bounds
+      exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (h_bound _)
 
 end PolyTimeComputable
 
