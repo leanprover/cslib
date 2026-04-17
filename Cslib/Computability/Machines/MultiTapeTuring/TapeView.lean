@@ -22,7 +22,6 @@ public inductive HeadPos where
   | rightEnd
   deriving DecidableEq
 
-@[simp]
 public lemma HeadPos.eq_rightEnd_of_ne_leftEnd {hp : HeadPos}
     (h : ¬hp = .leftEnd) : hp = .rightEnd := by
   cases hp <;> simp_all
@@ -235,42 +234,48 @@ public lemma encodedPos_last_child_succ : (tv : TapeView) →
     (h_last : tv.path.getLast? = some idx) →
     (h_right : tv.headPos = .rightEnd) →
     (h_no_next : ¬((tv.parent.current.atPath [idx.succ]).isSome)) →
-    tv.encodedPos + 1 = tv.parent.toRightEnd.encodedPos
-  | ⟨.list ds, [p], .rightEnd, h_valid⟩, h_last, _, h_no_next => by
-    have h_idx : idx = p := by simp [List.getLast?] at h_last; exact h_last.symm
-    subst h_idx
-    have h_p : idx < ds.length := by grind [Data.atPath]
-    have h_idx_last : idx + 1 ≥ ds.length := by
-      simp [parent, current, Data.atPath] at h_no_next; omega
-    have h_sum : ((ds.take idx).map fun d => d.enc.length).sum + ds[idx].enc.length =
-        (ds.map fun d => d.enc.length).sum := by
-      have hsplit : ds = ds.take idx ++ ds.drop idx := by simp
-      conv_rhs => rw [hsplit, List.map_append, List.sum_append]
-      congr 1
-      rw [List.drop_eq_getElem_cons h_p, show idx + 1 = ds.length from by omega,
-        List.drop_length, List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Nat.add_zero]
-    simp only [parent, toRightEnd, show [idx].dropLast = ([] : List ℕ) from rfl,
-      encodedPos, Data.enc_list, List.length_append, List.length_singleton,
-      List.length_flatten, List.map_map, List.map_take]
-    conv_rhs => rw [show (List.length ∘ Data.enc) = (fun d => d.enc.length) from rfl]
-    rw [← List.map_take]
-    have := Data.enc_length_pos ds[idx]
-    omega
-  | ⟨.list ds, p :: r :: rest, .rightEnd, h_valid⟩, h_last, _, h_no_next => by
-    have h_p : p < ds.length := by grind [Data.atPath]
-    have h_sub : (ds[p].atPath (r :: rest)).isSome := by grind [Data.atPath]
-    have h_last' : (r :: rest).getLast? = some idx := by
-      simpa [List.getLast?_cons_cons] using h_last
-    have h_drop : (p :: r :: rest).dropLast = p :: (r :: rest).dropLast := by
-      simp [List.dropLast_cons_of_ne_nil]
-    conv_lhs => lhs; unfold encodedPos; simp [h_p]
-    simp only [parent, h_drop]
-    conv_rhs => rw [toRightEnd]; unfold encodedPos; simp [h_p]
-    have ih := encodedPos_last_child_succ
-      ⟨ds[p], r :: rest, .rightEnd, h_sub⟩ h_last' rfl (by
-        convert h_no_next using 2; simp [parent, current, h_p, h_drop])
-    simp only [parent, toRightEnd] at ih; omega
-  termination_by tv => tv.path.length
+    tv.encodedPos + 1 = tv.parent.toRightEnd.encodedPos := by
+  intro ⟨d, path, headPos, h_valid⟩
+  induction path generalizing d headPos with
+  | nil => intro h_last; simp at h_last
+  | cons p tail ih =>
+    intro h_last h_right h_no_next
+    subst h_right
+    let .list ds := d
+    cases tail with
+    | nil =>
+      have h_idx : idx = p := by grind
+      subst h_idx
+      have h_p : idx < ds.length := by grind [Data.atPath]
+      have h_idx_last : idx + 1 ≥ ds.length := by
+        simp [parent, current, Data.atPath] at h_no_next; omega
+      have h_sum : ((ds.take idx).map fun d => d.enc.length).sum + ds[idx].enc.length =
+          (ds.map fun d => d.enc.length).sum := by
+        have hsplit : ds = ds.take idx ++ ds.drop idx := by simp
+        conv_rhs => rw [hsplit, List.map_append, List.sum_append]
+        congr 1
+        rw [List.drop_eq_getElem_cons h_p, show idx + 1 = ds.length from by omega,
+          List.drop_length, List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Nat.add_zero]
+      simp only [parent, toRightEnd, show [idx].dropLast = ([] : List ℕ) from rfl,
+        encodedPos, Data.enc_list, List.length_append, List.length_singleton,
+        List.length_flatten, List.map_map, List.map_take]
+      conv_rhs => rw [show (List.length ∘ Data.enc) = (fun d => d.enc.length) from rfl]
+      rw [← List.map_take]
+      have := Data.enc_length_pos ds[idx]
+      omega
+    | cons r rest =>
+      have h_p : p < ds.length := by grind [Data.atPath]
+      have h_sub : (ds[p].atPath (r :: rest)).isSome := by grind [Data.atPath]
+      have h_last' : (r :: rest).getLast? = some idx := by
+        simpa [List.getLast?_cons_cons] using h_last
+      have h_drop : (p :: r :: rest).dropLast = p :: (r :: rest).dropLast := by
+        simp [List.dropLast_cons_of_ne_nil]
+      conv_lhs => lhs; unfold encodedPos; simp [h_p]
+      simp only [parent, h_drop]
+      conv_rhs => rw [toRightEnd]; unfold encodedPos; simp [h_p]
+      have ih := ih ds[p] .rightEnd h_sub h_last' rfl (by
+          convert h_no_next using 2; simp [parent, current, h_p, h_drop])
+      simp only [parent, toRightEnd] at ih; omega
 
 /-- At rightEnd of a non-last child, moving right reaches the next sibling's leftEnd. -/
 public lemma encodedPos_next_sibling_succ : (tv : TapeView) →
