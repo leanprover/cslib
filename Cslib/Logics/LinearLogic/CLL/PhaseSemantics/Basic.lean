@@ -720,7 +720,7 @@ theorem Sequent.toFact_add {M : Type*} [PhaseSpace M]
   rw [Multiset.map_add]
   have := Multiset.fold_add
     (fun (x y : Fact M) => x ⅋ y) ⊥ ⊥ (Γ.map fun A => interpProp v A)
-    ( Δ.map fun A => interpProp v A)
+    (Δ.map fun A => interpProp v A)
   rwa [bot_par] at this
 
 @[simp] theorem Sequent.toFact_cons {M : Type*} [PhaseSpace M]
@@ -728,18 +728,17 @@ theorem Sequent.toFact_add {M : Type*} [PhaseSpace M]
     Sequent.toFact M v (A ::ₘ Γ) = interpProp v A ⅋ Sequent.toFact M v Γ := by
   simp [Sequent.toFact]
 
+theorem Sequent.singleton_eq_cons_zero (A : Proposition Atom) :
+    {A} = A ::ₘ 0 := rfl
+
 @[simp] theorem Sequent.toFact_singleton {M : Type*} [PhaseSpace M]
     (v : Atom → Fact M) (A : Proposition Atom) :
     Sequent.toFact M v ({A} : Sequent Atom) = interpProp v A ⅋ ⊥ := by
-  rw [show ({A} : Sequent Atom) = A ::ₘ 0 from rfl, Sequent.toFact_cons, Sequent.toFact_nil]
-
-theorem Sequent.singleton_eq_cons_zero (A : Proposition Atom) :
-    ({A} : Sequent Atom) = A ::ₘ 0 := rfl
+  rw [Sequent.singleton_eq_cons_zero, Sequent.toFact_cons, Sequent.toFact_nil]
 
 theorem Sequent.pair_eq_cons_cons (A B : Proposition Atom) :
     ({A, B} : Sequent Atom) = A ::ₘ B ::ₘ 0 := by
-  rw [show ({A, B} : Sequent Atom) = insert A {B} from rfl, Multiset.insert_eq_cons,
-    Sequent.singleton_eq_cons_zero]
+  rw [Multiset.insert_eq_cons, Sequent.singleton_eq_cons_zero]
 
 end PhaseSpace
 
