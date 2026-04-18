@@ -1,8 +1,8 @@
 name: Bump mathlib to LKG
 
 on:
-  schedule:
-    - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
+  #schedule:
+  #  - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
   workflow_dispatch:
 
 permissions:
