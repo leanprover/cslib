@@ -1,5 +1,7 @@
 module  -- shake: keep-all
 
+public import Cslib.Algorithms.Lean.Graph.Graph
+public import Cslib.Algorithms.Lean.Graph.Walk
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
@@ -48,6 +50,7 @@ public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
 public import Cslib.Foundations.Data.BiTape
+public import Cslib.Foundations.Data.FenwickTree.FenwickTree
 public import Cslib.Foundations.Data.FinFun
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.Nat.Segment
