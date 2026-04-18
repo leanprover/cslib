@@ -106,6 +106,25 @@ def head (l : StackTape Symbol) : Option Symbol :=
   | [] => none
   | h :: _ => h
 
+lemma head_eq_getD (s : StackTape Symbol) :
+    s.head = s.toList[0]?.getD none := by
+  unfold head; cases s.toList <;> simp
+
+@[simp]
+lemma tail_getD (s : StackTape Symbol) (n : ℕ) :
+    s.tail.toList[n]?.getD none = s.toList[n + 1]?.getD none := by
+  cases s with | mk l h => cases l <;> simp [tail, nil]
+
+@[simp]
+lemma cons_getD_zero (x : Option Symbol) (s : StackTape Symbol) :
+    (cons x s).toList[0]?.getD none = x := by
+  cases x <;> (cases s with | mk l h => cases l <;> simp [cons])
+
+@[simp]
+lemma cons_getD_succ (x : Option Symbol) (s : StackTape Symbol) (n : ℕ) :
+    (cons x s).toList[n + 1]?.getD none = s.toList[n]?.getD none := by
+  cases x <;> (cases s with | mk l h => cases l <;> simp [cons])
+
 lemma eq_iff (l1 l2 : StackTape Symbol) :
     l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
   constructor
@@ -114,6 +133,23 @@ lemma eq_iff (l1 l2 : StackTape Symbol) :
     cases l1 with | mk as1 h1 =>
     cases l2 with | mk as2 h2 =>
     cases as1 <;> cases as2 <;> grind
+
+lemma ext (t₁ t₂ : StackTape Symbol) (h_toList_eq : t₁.toList = t₂.toList) :
+  t₁ = t₂ := by
+  obtain ⟨t₁, h₁⟩ := t₁
+  obtain ⟨t₂, h₂⟩ := t₂
+  simpa using h_toList_eq
+
+lemma ext_get (t₁ t₂ : StackTape Symbol)
+    (h_get_eq : ∀ p, t₁.toList.getD p none = t₂.toList.getD p none) :
+  t₁ = t₂ := by
+  apply ext
+  obtain ⟨l₁, h₁⟩ := t₁
+  obtain ⟨l₂, h₂⟩ := t₂
+  simp only [List.getD_eq_getElem?_getD] at h_get_eq
+  have hlen : l₁.length = l₂.length := by grind
+  apply List.ext_getElem hlen
+  grind
 
 @[simp]
 lemma head_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).head = o := by
