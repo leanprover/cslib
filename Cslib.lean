@@ -1,7 +1,6 @@
 module  -- shake: keep-all
 
 public import Cslib.Algorithms.Lean.Graph.Graph
-public import Cslib.Algorithms.Lean.Graph.Walk
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
