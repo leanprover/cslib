@@ -139,10 +139,14 @@ instance : Coe (SimpleGraph α) (Graph α (Sym2 α)) := ⟨SimpleGraph.toGraph�
 instance : Coe (SimpleDiGraph α) (DiGraph α (α × α)) := ⟨SimpleDiGraph.toDiGraph⟩
 
 
+/-- Typeclass for graph-like structures that have a vertex set. -/
 class HasVertexSet (G : Type*) (V : outParam Type*) where
+  /-- The vertex set of the graph. -/
   vertexSet : G → V
 
+/-- Typeclass for graph-like structures that have an edge set. -/
 class HasEdgeSet (G : Type*) (E : outParam Type*) where
+  /-- The edge set of the graph. -/
   edgeSet : G → E
 
 @[simp] instance {α ε : Type*} : HasVertexSet (Hypergraph α ε) (Set α) :=
@@ -175,7 +179,9 @@ class HasEdgeSet (G : Type*) (E : outParam Type*) where
 @[simp] instance {α : Type*} : HasEdgeSet (SimpleDiGraph α) (Finset (α × α)) :=
   ⟨SimpleDiGraph.edgeSet⟩
 
+/-- Notation for the vertex set of a graph. -/
 scoped notation "V(" G ")" => HasVertexSet.vertexSet G
+/-- Notation for the edge set of a graph. -/
 scoped notation "E(" G ")" => HasEdgeSet.edgeSet G
 
 end Cslib.Algorithms.Lean
