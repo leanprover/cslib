@@ -39,6 +39,9 @@ The accuracy and confidence parameters `ε` and `δ` are elements of the subtype
 `Set.Ioo (0 : ℝ≥0) 1`, which bundles the value together with the proof that it
 lies in the open interval `(0, 1)`, ensuring the learning condition is non-vacuous.
 
+All declarations live under the `Cslib.MachineLearning.PACLearning` namespace so that
+generic names like `error` and `optimalError` do not pollute the parent namespace.
+
 ## Main definitions
 
 - `ConceptClass`: a set of functions `α → β` (classifiers).
@@ -47,11 +50,16 @@ lies in the open interval `(0, 1)`, ensuring the learning condition is non-vacuo
 - `error`: the 0-1 error of a hypothesis under a joint distribution.
 - `optimalError`: the infimum of `error` over a concept class.
 - `IsPACLearnerFor`: deterministic `(ε, δ)`-PAC learner over a distribution family.
-- `IsRPACLearnerFor`: randomized variant of `IsPACLearnerFor`.
+- `IsRPACLearnerFor`: randomized variant of `IsPACLearnerFor`. Universe-polymorphic in the
+  randomness space `Ω : Type*`.
 - `IsPACLearnable`: a concept class is PAC learnable if `IsPACLearnerFor` holds for
   all `ε, δ : Set.Ioo (0 : ℝ≥0) 1` with some sample size `m`.
-- `IsRPACLearnable`: randomized variant of `IsPACLearnable`.
-- `sampleComplexity`, `rsampleComplexity`: deterministic/randomized sample complexity.
+- `IsRPACLearnable`: randomized variant of `IsPACLearnable`. Pins the randomness space to
+  `Type 0`; `IsRPACLearnerFor` itself remains universe-polymorphic for users who need it.
+- `LearnerModel`: the common predicate shape `ℕ → ε → δ → C → 𝒟 → Prop` abstracting both
+  the deterministic and randomized learners so sample-complexity lemmas can be shared.
+- `sampleComplexity`: sample complexity of a generic learner model.
+- `rsampleComplexity`: randomized sample complexity, i.e. `sampleComplexity IsRPACLearnerFor`.
 
 ## Binary classification
 
@@ -68,9 +76,24 @@ When `β = Bool`, concepts correspond to subsets of `α`. The section
 
 - `IsPACLearnerFor.toIsRPACLearnerFor`: every deterministic PAC learner is a
   randomized one (via the trivial randomness space `PUnit`).
-- `IsPACLearnerFor.mono`: monotonicity in the distribution family `𝒟` — a learner
-  that works for `𝒟'` also works for any `𝒟 ⊆ 𝒟'`.
+- `IsPACLearnerFor.antitone_family`, `.antitone_C`: the deterministic PAC learner
+  predicate is antitone in the distribution family and concept class.
+- `IsPACLearnerFor.mono_δ`, `.mono_ε`: the predicate is monotone in the confidence and
+  accuracy parameters (a weaker bound still holds).
+- `IsRPACLearnerFor.antitone_family`, `.mono_δ`: analogues for the randomized predicate.
+  (`mono_ε` and `antitone_C` are not provided because they change the integrand and
+  would require an extra measurability assumption.)
 - `IsPACLearnable.toIsRPACLearnable`: deterministic learnability implies randomized.
+- `IsPACLearnable.antitone_family`, `.antitone_C`, `IsRPACLearnable.antitone_family`:
+  PAC learnability is antitone in the distribution family and concept class.
+- `sampleComplexity_antitone_δ`, `_antitone_ε`, `_mono_family`, `_mono_C`: variation of
+  deterministic sample complexity in confidence, accuracy, distribution family, and concept
+  class (antitone in the numeric parameters, monotone under `⊆` in the set parameters). The
+  randomized analogues `rsampleComplexity_antitone_δ` and `_mono_family` are provided.
+- `IsPACLearnable.sampleComplexity_*`, `IsRPACLearnable.rsampleComplexity_*`: the same
+  monotonicity facts phrased with a learnability hypothesis in place of the ad-hoc
+  `∃ m, IsPACLearnerFor m …` existence witness, so callers who already know the class is
+  learnable need not thread it through.
 - `hypothesisError_eq_add`: total error = false positive + false negative.
 
 ## References
@@ -88,7 +111,7 @@ When `β = Bool`, concepts correspond to subsets of `α`. The section
 open MeasureTheory Set
 open scoped ENNReal NNReal
 
-namespace Cslib.MachineLearning
+namespace Cslib.MachineLearning.PACLearning
 
 /-! ### Core Definitions -/
 
@@ -105,21 +128,20 @@ abbrev LabeledSample (α β : Type*) (m : ℕ) := Fin m → (α × β)
 a hypothesis (a function from the domain to the label type). -/
 abbrev Learner (α β : Type*) (m : ℕ) := LabeledSample α β m → (α → β)
 
+section
+variable {α : Type*} {β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+
 /-- The *prediction error* (0-1 loss) of a hypothesis `h` under a joint distribution `D`
 on `α × β`, defined as the probability that the prediction disagrees with the label:
 `D({(x, y) | h(x) ≠ y})`. -/
-noncomputable def error {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-    (D : Measure (α × β)) (h : α → β) : ℝ≥0∞ :=
+noncomputable def error (D : Measure (α × β)) (h : α → β) : ℝ≥0∞ :=
   D {p : α × β | h p.1 ≠ p.2}
 
 /-- The *optimal error* of a concept class `C` under a joint distribution `D`, defined as the
 infimum of `error D c` over all concepts `c ∈ C`. When `C` is empty this is `⊤`, making the
 PAC learning condition vacuously true. -/
-noncomputable def optimalError {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-    (D : Measure (α × β)) (C : ConceptClass α β) : ℝ≥0∞ :=
+noncomputable def optimalError (D : Measure (α × β)) (C : ConceptClass α β) : ℝ≥0∞ :=
   ⨅ c ∈ C, error D c
-
-variable {α : Type*} {β : Type*} [MeasurableSpace α] [MeasurableSpace β]
 
 /-! ### PAC Learners -/
 
@@ -150,7 +172,9 @@ For every probability measure `D ∈ 𝒟`, the failure probability function
 `ω ↦ D^m{S | error(A(ω)(S)) > opt_C(D) + ε}` must be `Q`-a.e. measurable, and its
 expectation over `ω` must be at most `δ`.
 
-The parameters `ε` and `δ` are elements of `Set.Ioo (0 : ℝ≥0) 1`.
+The randomness space `Ω : Type*` is universe-polymorphic; the universe is an implicit
+parameter of `IsRPACLearnerFor`, and downstream statements reference it via the pattern
+`IsRPACLearnerFor.{_, _, u}`. Fix `u := 0` for the usual case of a standard randomness space.
 
 A deterministic learner (`IsPACLearnerFor`) is the special case `Ω = PUnit`;
 see `IsPACLearnerFor.toIsRPACLearnerFor`. -/
@@ -175,17 +199,82 @@ theorem IsPACLearnerFor.toIsRPACLearnerFor {m : ℕ} {ε δ : Set.Ioo (0 : ℝ�
   obtain ⟨A, hA⟩ := h
   refine ⟨PUnit, inferInstance, Measure.dirac PUnit.unit, inferInstance, fun _ => A, ?_⟩
   intro D _ hD
-  exact ⟨measurable_const.aemeasurable, by
-    simp only [gt_iff_lt, lintegral_const, measure_univ, mul_one]; exact hA D hD⟩
+  refine ⟨measurable_const.aemeasurable, ?_⟩
+  simp only [gt_iff_lt, lintegral_const, measure_univ, mul_one]
+  exact hA D hD
 
-/-- A PAC learner for a larger distribution family `𝒟'` is also a PAC learner for any
-subfamily `𝒟 ⊆ 𝒟'`. -/
-theorem IsPACLearnerFor.mono {m : ℕ} {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+/-- The deterministic PAC learner predicate is antitone in the distribution family: a
+learner for a larger family `𝒟'` is also a learner for any subfamily `𝒟 ⊆ 𝒟'`. -/
+theorem IsPACLearnerFor.antitone_family {m : ℕ} {ε δ : Set.Ioo (0 : ℝ≥0) 1}
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
     (h𝒟 : 𝒟 ⊆ 𝒟') (h : IsPACLearnerFor m ε δ C 𝒟') :
     IsPACLearnerFor m ε δ C 𝒟 := by
   obtain ⟨A, hA⟩ := h
   exact ⟨A, fun D inst hD => @hA D inst (h𝒟 hD)⟩
+
+/-- A PAC learner with confidence `δ₁` is also a PAC learner with any weaker confidence
+`δ₂ ≥ δ₁`: the failure-probability bound only gets looser. -/
+theorem IsPACLearnerFor.mono_δ {m : ℕ} {ε : Set.Ioo (0 : ℝ≥0) 1}
+    {δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val)
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (h : IsPACLearnerFor m ε δ₁ C 𝒟) :
+    IsPACLearnerFor m ε δ₂ C 𝒟 := by
+  obtain ⟨A, hA⟩ := h
+  refine ⟨A, fun D inst hD => le_trans (@hA D inst hD) ?_⟩
+  exact_mod_cast hδ
+
+/-- A PAC learner with accuracy `ε₁` is also a PAC learner with any weaker accuracy
+`ε₂ ≥ ε₁`: the bad event `{error > opt + ε}` only shrinks. -/
+theorem IsPACLearnerFor.mono_ε {m : ℕ} {δ : Set.Ioo (0 : ℝ≥0) 1}
+    {ε₁ ε₂ : Set.Ioo (0 : ℝ≥0) 1} (hε : ε₁.val ≤ ε₂.val)
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (h : IsPACLearnerFor m ε₁ δ C 𝒟) :
+    IsPACLearnerFor m ε₂ δ C 𝒟 := by
+  obtain ⟨A, hA⟩ := h
+  refine ⟨A, fun D inst hD => le_trans (measure_mono ?_) (@hA D inst hD)⟩
+  intro S hS
+  have hε' : (↑ε₁.val : ℝ≥0∞) ≤ ↑ε₂.val := by exact_mod_cast hε
+  calc optimalError D C + (↑ε₁.val : ℝ≥0∞)
+      ≤ optimalError D C + ↑ε₂.val := by gcongr
+    _ < error D (A S) := hS
+
+/-- The deterministic PAC learner predicate is antitone in the concept class: a learner
+for a larger class `C'` is also a learner for any subclass `C ⊆ C'`, since the agnostic
+benchmark `optimalError _ C ≥ optimalError _ C'` makes the error requirement easier. -/
+theorem IsPACLearnerFor.antitone_C {m : ℕ} {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C C' : ConceptClass α β} (hC : C ⊆ C')
+    {𝒟 : Set (Measure (α × β))} (h : IsPACLearnerFor m ε δ C' 𝒟) :
+    IsPACLearnerFor m ε δ C 𝒟 := by
+  obtain ⟨A, hA⟩ := h
+  refine ⟨A, fun D inst hD => le_trans (measure_mono ?_) (@hA D inst hD)⟩
+  intro S hS
+  have h_opt : optimalError D C' ≤ optimalError D C := iInf_le_iInf_of_subset hC
+  calc optimalError D C' + (↑ε.val : ℝ≥0∞)
+      ≤ optimalError D C + ↑ε.val := by gcongr
+    _ < error D (A S) := hS
+
+/-- The randomized PAC learner predicate is antitone in the distribution family. The
+universe of the randomness space `Ω` is pinned so the hypothesis and conclusion share it. -/
+theorem IsRPACLearnerFor.antitone_family.{u} {m : ℕ} {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
+    (h𝒟 : 𝒟 ⊆ 𝒟') (h : IsRPACLearnerFor.{_, _, u} m ε δ C 𝒟') :
+    IsRPACLearnerFor.{_, _, u} m ε δ C 𝒟 := by
+  obtain ⟨Ω, mΩ, Q, hQ, A, hA⟩ := h
+  exact ⟨Ω, mΩ, Q, hQ, A, fun D inst hD => @hA D inst (h𝒟 hD)⟩
+
+/-- A randomized PAC learner with confidence `δ₁` is also a randomized PAC learner with
+any weaker confidence `δ₂ ≥ δ₁`. Unlike `mono_ε` or `antitone_C`, this does not touch the
+integrand, so it carries the `AEMeasurable` part through unchanged. -/
+theorem IsRPACLearnerFor.mono_δ.{u} {m : ℕ} {ε : Set.Ioo (0 : ℝ≥0) 1}
+    {δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val)
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (h : IsRPACLearnerFor.{_, _, u} m ε δ₁ C 𝒟) :
+    IsRPACLearnerFor.{_, _, u} m ε δ₂ C 𝒟 := by
+  obtain ⟨Ω, mΩ, Q, hQ, A, hA⟩ := h
+  refine ⟨Ω, mΩ, Q, hQ, A, fun D inst hD => ?_⟩
+  obtain ⟨hmeas, hint⟩ := @hA D inst hD
+  refine ⟨hmeas, le_trans hint ?_⟩
+  exact_mod_cast hδ
 
 /-! ### PAC Learnability -/
 
@@ -199,8 +288,8 @@ def IsPACLearnable (C : ConceptClass α β) (𝒟 : Set (Measure (α × β))) : 
 
 /-- A concept class `C` is *randomized PAC learnable* over the distribution family `𝒟` if for
 every accuracy `ε ∈ (0, 1)` and confidence `δ ∈ (0, 1)`, there exists a sample size `m`
-admitting a randomized `(ε, δ)`-PAC learner for `C`. Here `ε` and `δ` are elements of the
-subtype `Set.Ioo (0 : ℝ≥0) 1`. -/
+admitting a randomized `(ε, δ)`-PAC learner for `C`. The randomness space is pinned to
+`Type 0` at the learnability level; `IsRPACLearnerFor` itself remains universe-polymorphic. -/
 def IsRPACLearnable (C : ConceptClass α β) (𝒟 : Set (Measure (α × β))) : Prop :=
   ∀ (ε δ : Set.Ioo (0 : ℝ≥0) 1),
     ∃ m, IsRPACLearnerFor.{_, _, 0} m ε δ C 𝒟
@@ -213,34 +302,177 @@ theorem IsPACLearnable.toIsRPACLearnable {C : ConceptClass α β}
   obtain ⟨m, hm⟩ := h ε δ
   exact ⟨m, hm.toIsRPACLearnerFor⟩
 
+/-- PAC learnability is antitone in the distribution family: a subfamily of a learnable
+family is learnable. -/
+theorem IsPACLearnable.antitone_family {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
+    (h𝒟 : 𝒟 ⊆ 𝒟') (h : IsPACLearnable C 𝒟') : IsPACLearnable C 𝒟 :=
+  fun ε δ => (h ε δ).imp fun _ hm => hm.antitone_family h𝒟
+
+/-- PAC learnability is antitone in the concept class: a subclass of a learnable class is
+learnable. -/
+theorem IsPACLearnable.antitone_C {C C' : ConceptClass α β} (hC : C ⊆ C')
+    {𝒟 : Set (Measure (α × β))} (h : IsPACLearnable C' 𝒟) : IsPACLearnable C 𝒟 :=
+  fun ε δ => (h ε δ).imp fun _ hm => hm.antitone_C hC
+
+/-- Randomized PAC learnability is antitone in the distribution family. -/
+theorem IsRPACLearnable.antitone_family {C : ConceptClass α β}
+    {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟')
+    (h : IsRPACLearnable C 𝒟') : IsRPACLearnable C 𝒟 :=
+  fun ε δ => (h ε δ).imp fun _ hm => hm.antitone_family h𝒟
+
 /-! ### Sample Complexity -/
 
-/-- The *deterministic sample complexity* of a concept class `C` at accuracy `ε ∈ (0, 1)` and
-confidence `δ ∈ (0, 1)` over distribution family `𝒟` is the smallest sample size `m` admitting
-a deterministic `(ε, δ)`-PAC learner for `C`. Here `ε` and `δ` are elements of the subtype
-`Set.Ioo (0 : ℝ≥0) 1`.
+/-- A *learner model* is a predicate on (sample size, accuracy, confidence, concept class,
+distribution family) that classifies which sample sizes admit a learner of the given kind.
+Instantiating with `IsPACLearnerFor` gives the deterministic model; with `IsRPACLearnerFor`
+gives the randomized one. -/
+abbrev LearnerModel (α β : Type*) [MeasurableSpace α] [MeasurableSpace β] :=
+  ℕ → Set.Ioo (0 : ℝ≥0) 1 → Set.Ioo (0 : ℝ≥0) 1 →
+    ConceptClass α β → Set (Measure (α × β)) → Prop
+
+/-- The *sample complexity* of a concept class `C` under a learner model `L`, at accuracy
+`ε ∈ (0, 1)` and confidence `δ ∈ (0, 1)` over distribution family `𝒟`, is the smallest sample
+size `m` with `L m ε δ C 𝒟`. Specialize with `L := IsPACLearnerFor` for the deterministic model
+and `L := IsRPACLearnerFor` for the randomized one.
 
 **Caveat**: because `sInf` on `ℕ` returns `0` for the empty set, this definition returns `0`
-when no deterministic learner exists (e.g., when `C` has infinite VC dimension). It is only
-meaningful when the defining set `{m | IsPACLearnerFor m ε δ C 𝒟}` is nonempty. -/
-noncomputable def sampleComplexity (C : ConceptClass α β) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
-    (𝒟 : Set (Measure (α × β))) : ℕ :=
-  sInf {m : ℕ | IsPACLearnerFor m ε δ C 𝒟}
+when no learner exists (e.g., a concept class of infinite VC dimension). It is only meaningful
+when the defining set `{m | L m ε δ C 𝒟}` is nonempty. The `IsPACLearnable.sampleComplexity_*`
+variants below discharge this nonemptiness from a learnability hypothesis. -/
+noncomputable def sampleComplexity (L : LearnerModel α β) (C : ConceptClass α β)
+    (ε δ : Set.Ioo (0 : ℝ≥0) 1) (𝒟 : Set (Measure (α × β))) : ℕ :=
+  sInf {m : ℕ | L m ε δ C 𝒟}
 
-/-- The *randomized sample complexity* of a concept class `C` at accuracy `ε ∈ (0, 1)` and
-confidence `δ ∈ (0, 1)` over distribution family `𝒟` is the smallest sample size `m` admitting
-a randomized `(ε, δ)`-PAC learner for `C`. Here `ε` and `δ` are elements of the subtype
-`Set.Ioo (0 : ℝ≥0) 1`.
-
-The universe of the randomness space `Ω` is pinned to `Type 0` (via `.{_, _, 0}`) so that the
-`sInf` is taken over a definite set; without the pin the existential quantifier over `Ω : Type*`
-would range over all universe levels, making the set ill-defined.
-
-**Caveat**: because `sInf` on `ℕ` returns `0` for the empty set, this definition returns `0`
-when no randomized learner exists. It is only meaningful when the defining set is nonempty. -/
+/-- The *randomized sample complexity* of `C`, i.e. `sampleComplexity` instantiated at the
+randomized learner model `IsRPACLearnerFor`. The randomness space is pinned to `Type 0`. -/
 noncomputable def rsampleComplexity (C : ConceptClass α β) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
     (𝒟 : Set (Measure (α × β))) : ℕ :=
-  sInf {m : ℕ | IsRPACLearnerFor.{_, _, 0} m ε δ C 𝒟}
+  sampleComplexity IsRPACLearnerFor.{_, _, 0} C ε δ 𝒟
+
+/-! ### Monotonicity of Sample Complexity
+
+These lemmas are all special cases of the following observation: if `{m | L₁ m ε₁ δ₁ C₁ 𝒟₁} ⊆
+{m | L₂ m ε₂ δ₂ C₂ 𝒟₂}` and the first set is nonempty, then the sample complexity under
+`(L₂, ε₂, δ₂, C₂, 𝒟₂)` is at most the sample complexity under `(L₁, ε₁, δ₁, C₁, 𝒟₁)`. The
+nonemptiness hypothesis is essential: `sInf` on `ℕ` returns `0` for an empty set, so without
+it the inequality can fail at the degenerate boundary. The `IsPACLearnable`-flavoured variants
+at the end of this section discharge that witness from a learnability hypothesis. -/
+
+/-- General pointwise monotonicity of `sampleComplexity`: if every witness sample size for
+`(L₁, ε₁, δ₁, C₁, 𝒟₁)` is also a witness for `(L₂, ε₂, δ₂, C₂, 𝒟₂)`, then the latter's
+sample complexity is at most the former's (provided the former is attained). -/
+theorem sampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
+    {ε₁ δ₁ ε₂ δ₂ : Set.Ioo (0 : ℝ≥0) 1} {C₁ C₂ : ConceptClass α β}
+    {𝒟₁ 𝒟₂ : Set (Measure (α × β))}
+    (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂)
+    (h : ∃ m, L₁ m ε₁ δ₁ C₁ 𝒟₁) :
+    sampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ sampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
+  Nat.sInf_le (hL (Nat.sInf_mem h))
+
+/-- Deterministic sample complexity is antitone in the confidence parameter `δ`: weaker
+confidence requires no more samples. -/
+theorem sampleComplexity_antitone_δ {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val)
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (h : ∃ m, IsPACLearnerFor m ε δ₁ C 𝒟) :
+    sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 :=
+  sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) h
+
+/-- Deterministic sample complexity is antitone in the accuracy parameter `ε`: weaker
+accuracy requires no more samples. -/
+theorem sampleComplexity_antitone_ε {ε₁ ε₂ δ : Set.Ioo (0 : ℝ≥0) 1} (hε : ε₁.val ≤ ε₂.val)
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (h : ∃ m, IsPACLearnerFor m ε₁ δ C 𝒟) :
+    sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 :=
+  sampleComplexity_le_of_forall (fun h' => h'.mono_ε hε) h
+
+/-- Deterministic sample complexity is monotone in the distribution family under `⊆`: a
+smaller family (fewer distributions to cover) requires no more samples. -/
+theorem sampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟')
+    (h : ∃ m, IsPACLearnerFor m ε δ C 𝒟') :
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ 𝒟' :=
+  sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) h
+
+/-- Deterministic sample complexity is monotone in the concept class under `⊆`: a smaller
+class (weaker agnostic benchmark) requires no more samples. -/
+theorem sampleComplexity_mono_C {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C C' : ConceptClass α β} (hC : C ⊆ C') {𝒟 : Set (Measure (α × β))}
+    (h : ∃ m, IsPACLearnerFor m ε δ C' 𝒟) :
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C' ε δ 𝒟 :=
+  sampleComplexity_le_of_forall (fun h' => h'.antitone_C hC) h
+
+/-- Randomized sample complexity is antitone in the confidence parameter `δ`. -/
+theorem rsampleComplexity_antitone_δ {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1}
+    (hδ : δ₁.val ≤ δ₂.val) {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (h : ∃ m, IsRPACLearnerFor.{_, _, 0} m ε δ₁ C 𝒟) :
+    rsampleComplexity C ε δ₂ 𝒟 ≤ rsampleComplexity C ε δ₁ 𝒟 :=
+  sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) h
+
+/-- Randomized sample complexity is monotone in the distribution family under `⊆`. -/
+theorem rsampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟')
+    (h : ∃ m, IsRPACLearnerFor.{_, _, 0} m ε δ C 𝒟') :
+    rsampleComplexity C ε δ 𝒟 ≤ rsampleComplexity C ε δ 𝒟' :=
+  sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) h
+
+end
+
+/-! Convenience variants conditional on learnability, which discharge the nonemptiness
+hypothesis `(∃ m, IsPACLearnerFor m …)` from an `IsPACLearnable` / `IsRPACLearnable` witness.
+These are declared outside the main `variable`-bound section so that cross-references to the
+top-level `sampleComplexity_*` lemmas are not resolved as self-recursion. -/
+
+/-- `sampleComplexity_antitone_δ` for a learnable class: the nonemptiness hypothesis comes
+for free from `IsPACLearnable`. -/
+theorem IsPACLearnable.sampleComplexity_antitone_δ
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsPACLearnable C 𝒟)
+    {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val) :
+    sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 :=
+  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_antitone_δ hδ (hL ε δ₁)
+
+/-- `sampleComplexity_antitone_ε` for a learnable class. -/
+theorem IsPACLearnable.sampleComplexity_antitone_ε
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsPACLearnable C 𝒟)
+    {ε₁ ε₂ δ : Set.Ioo (0 : ℝ≥0) 1} (hε : ε₁.val ≤ ε₂.val) :
+    sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 :=
+  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_antitone_ε hε (hL ε₁ δ)
+
+/-- `sampleComplexity_mono_family` for a learnable class (learnability at the *larger*
+family `𝒟'` is the hypothesis). -/
+theorem IsPACLearnable.sampleComplexity_mono_family
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
+    (hL : IsPACLearnable C 𝒟') (h𝒟 : 𝒟 ⊆ 𝒟') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ 𝒟' :=
+  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_mono_family h𝒟 (hL ε δ)
+
+/-- `sampleComplexity_mono_C` for a learnable class (learnability at the *larger* class
+`C'` is the hypothesis). -/
+theorem IsPACLearnable.sampleComplexity_mono_C
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {C C' : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (hL : IsPACLearnable C' 𝒟) (hC : C ⊆ C') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C' ε δ 𝒟 :=
+  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_mono_C hC (hL ε δ)
+
+/-- `rsampleComplexity_antitone_δ` for a randomized-learnable class. -/
+theorem IsRPACLearnable.rsampleComplexity_antitone_δ
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
+    (hL : IsRPACLearnable C 𝒟)
+    {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val) :
+    rsampleComplexity C ε δ₂ 𝒟 ≤ rsampleComplexity C ε δ₁ 𝒟 :=
+  _root_.Cslib.MachineLearning.PACLearning.rsampleComplexity_antitone_δ hδ (hL ε δ₁)
+
+/-- `rsampleComplexity_mono_family` for a randomized-learnable class. -/
+theorem IsRPACLearnable.rsampleComplexity_mono_family
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
+    (hL : IsRPACLearnable C 𝒟') (h𝒟 : 𝒟 ⊆ 𝒟') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
+    rsampleComplexity C ε δ 𝒟 ≤ rsampleComplexity C ε δ 𝒟' :=
+  _root_.Cslib.MachineLearning.PACLearning.rsampleComplexity_mono_family h𝒟 (hL ε δ)
 
 /-! ### Binary Classification
 
@@ -251,27 +483,27 @@ into false positive and false negative components.
 The bridge lemma `error_map_eq_hypothesisError` connects the general `error` on `α × Bool`
 to the binary `hypothesisError` on `α`, showing they coincide for realizable distributions. -/
 
+section Binary
+variable {α : Type*} [MeasurableSpace α]
+
 /-- The *symmetric-difference error* of a hypothesis `h` with respect to a target concept `c`
 (both viewed as subsets of `α`) under distribution `P`, defined as `P(h ∆ c)`. -/
-noncomputable def hypothesisError {α : Type*} [MeasurableSpace α] (P : Measure α)
-    (h c : Set α) : ℝ≥0∞ :=
+noncomputable def hypothesisError (P : Measure α) (h c : Set α) : ℝ≥0∞ :=
   P (symmDiff h c)
 
 /-- The *false positive error* `P(h \ c)` — points classified positive but not in the
 concept. -/
-noncomputable def falsePositiveError {α : Type*} [MeasurableSpace α] (P : Measure α)
-    (h c : Set α) : ℝ≥0∞ :=
+noncomputable def falsePositiveError (P : Measure α) (h c : Set α) : ℝ≥0∞ :=
   P (h \ c)
 
 /-- The *false negative error* `P(c \ h)` — points in the concept but classified negative. -/
-noncomputable def falseNegativeError {α : Type*} [MeasurableSpace α] (P : Measure α)
-    (h c : Set α) : ℝ≥0∞ :=
+noncomputable def falseNegativeError (P : Measure α) (h c : Set α) : ℝ≥0∞ :=
   P (c \ h)
 
 /-- The total hypothesis error decomposes as the sum of false positive and false negative
 errors, since `h ∆ c = (h \ c) ∪ (c \ h)` is a disjoint union. -/
-theorem hypothesisError_eq_add {α : Type*} [MeasurableSpace α] {P : Measure α}
-    {h c : Set α} (hh : MeasurableSet h) (hc : MeasurableSet c) :
+theorem hypothesisError_eq_add {P : Measure α} {h c : Set α}
+    (hh : MeasurableSet h) (hc : MeasurableSet c) :
     hypothesisError P h c = falsePositiveError P h c + falseNegativeError P h c := by
   simp only [hypothesisError, falsePositiveError, falseNegativeError, symmDiff_def, sup_eq_union]
   exact measure_union disjoint_sdiff_sdiff (hc.diff hh)
@@ -280,8 +512,8 @@ open Classical in
 /-- Under a realizable distribution `P.map (x ↦ (x, c(x)))`, the general 0-1 `error`
 coincides with the binary `hypothesisError P h c`, where `h` and `c` are viewed as subsets
 of `α` via the characteristic function `decide (· ∈ ·)`. -/
-theorem error_map_eq_hypothesisError {α : Type*} [MeasurableSpace α] (P : Measure α)
-    (h c : Set α) (hh : MeasurableSet h) (hc : MeasurableSet c) :
+theorem error_map_eq_hypothesisError (P : Measure α) (h c : Set α)
+    (hh : MeasurableSet h) (hc : MeasurableSet c) :
     error (P.map (fun x => (x, decide (x ∈ c)))) (fun x => decide (x ∈ h)) =
     hypothesisError P h c := by
   simp only [error, hypothesisError]
@@ -297,4 +529,6 @@ theorem error_map_eq_hypothesisError {α : Type*} [MeasurableSpace α] (P : Meas
       (hh.compl.prod (measurableSet_singleton true)) using 1
     ext ⟨x, b⟩; cases b <;> simp
 
-end Cslib.MachineLearning
+end Binary
+
+end Cslib.MachineLearning.PACLearning
