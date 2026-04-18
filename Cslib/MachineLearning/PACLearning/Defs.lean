@@ -415,64 +415,58 @@ theorem rsampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
     rsampleComplexity C ε δ 𝒟 ≤ rsampleComplexity C ε δ 𝒟' :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) h
 
-end
-
 /-! Convenience variants conditional on learnability, which discharge the nonemptiness
 hypothesis `(∃ m, IsPACLearnerFor m …)` from an `IsPACLearnable` / `IsRPACLearnable` witness.
-These are declared outside the main `variable`-bound section so that cross-references to the
-top-level `sampleComplexity_*` lemmas are not resolved as self-recursion. -/
+Bodies go through `sampleComplexity_le_of_forall` directly rather than the top-level
+`sampleComplexity_*` lemmas, whose unqualified names would resolve as self-recursion inside
+these theorems' `IsPACLearnable.*` / `IsRPACLearnable.*` namespaces. -/
 
 /-- `sampleComplexity_antitone_δ` for a learnable class: the nonemptiness hypothesis comes
 for free from `IsPACLearnable`. -/
 theorem IsPACLearnable.sampleComplexity_antitone_δ
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsPACLearnable C 𝒟)
     {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val) :
     sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 :=
-  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_antitone_δ hδ (hL ε δ₁)
+  sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) (hL ε δ₁)
 
 /-- `sampleComplexity_antitone_ε` for a learnable class. -/
 theorem IsPACLearnable.sampleComplexity_antitone_ε
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsPACLearnable C 𝒟)
     {ε₁ ε₂ δ : Set.Ioo (0 : ℝ≥0) 1} (hε : ε₁.val ≤ ε₂.val) :
     sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 :=
-  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_antitone_ε hε (hL ε₁ δ)
+  sampleComplexity_le_of_forall (fun h' => h'.mono_ε hε) (hL ε₁ δ)
 
 /-- `sampleComplexity_mono_family` for a learnable class (learnability at the *larger*
 family `𝒟'` is the hypothesis). -/
 theorem IsPACLearnable.sampleComplexity_mono_family
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
     (hL : IsPACLearnable C 𝒟') (h𝒟 : 𝒟 ⊆ 𝒟') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
     sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ 𝒟' :=
-  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_mono_family h𝒟 (hL ε δ)
+  sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) (hL ε δ)
 
 /-- `sampleComplexity_mono_C` for a learnable class (learnability at the *larger* class
 `C'` is the hypothesis). -/
 theorem IsPACLearnable.sampleComplexity_mono_C
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {C C' : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
     (hL : IsPACLearnable C' 𝒟) (hC : C ⊆ C') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
     sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C' ε δ 𝒟 :=
-  _root_.Cslib.MachineLearning.PACLearning.sampleComplexity_mono_C hC (hL ε δ)
+  sampleComplexity_le_of_forall (fun h' => h'.antitone_C hC) (hL ε δ)
 
 /-- `rsampleComplexity_antitone_δ` for a randomized-learnable class. -/
 theorem IsRPACLearnable.rsampleComplexity_antitone_δ
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
-    (hL : IsRPACLearnable C 𝒟)
+    {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsRPACLearnable C 𝒟)
     {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val) :
     rsampleComplexity C ε δ₂ 𝒟 ≤ rsampleComplexity C ε δ₁ 𝒟 :=
-  _root_.Cslib.MachineLearning.PACLearning.rsampleComplexity_antitone_δ hδ (hL ε δ₁)
+  sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) (hL ε δ₁)
 
 /-- `rsampleComplexity_mono_family` for a randomized-learnable class. -/
 theorem IsRPACLearnable.rsampleComplexity_mono_family
-    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
     (hL : IsRPACLearnable C 𝒟') (h𝒟 : 𝒟 ⊆ 𝒟') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
     rsampleComplexity C ε δ 𝒟 ≤ rsampleComplexity C ε δ 𝒟' :=
-  _root_.Cslib.MachineLearning.PACLearning.rsampleComplexity_mono_family h𝒟 (hL ε δ)
+  sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) (hL ε δ)
+
+end
 
 /-! ### Binary Classification
 
