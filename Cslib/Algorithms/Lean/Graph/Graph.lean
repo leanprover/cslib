@@ -90,14 +90,6 @@ structure SimpleDiGraph (α : Type*) where
   /-- No directed edge is a loop. -/
   loopless : ∀ e ∈ edgeSet, e.1 ≠ e.2
 
-/-- Reinterpret a `Graph` as a `Hypergraph` by replacing each `Sym2 α` endpoint pair by
-the corresponding two-element set. -/
-def Graph.toHypergraph (G : Graph α ε) : Hypergraph α ε where
-  vertexSet := G.vertexSet
-  edgeSet := G.edgeSet
-  endpoints e := {v | v ∈ G.endpoints e}
-  incidence e he v hv := G.incidence e he v hv
-
 /-- Forget the finiteness and looplessness axioms of a `SimpleGraph`, viewing it as a
 `Graph` with edges indexed by `Sym2 α` itself and identity endpoint map. -/
 def SimpleGraph.toGraph (G : SimpleGraph α) : Graph α (Sym2 α) where
