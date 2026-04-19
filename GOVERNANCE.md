@@ -43,7 +43,7 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 
 ### Reviewers
 
-Reviewers are trusted contributors who help maintainers with the regular reviewing of PRs to CSLib.
+Reviewers are trusted contributors who provide regular reviewing and technical guidance to PRs to CSLib.
 
 - Ching-Tsun Chou (@ctchou).
 - Eric Wieser (@eric-wieser), Google DeepMind.
