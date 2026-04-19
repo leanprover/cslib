@@ -18,9 +18,6 @@ type `α`. Each structure carries its vertex and edge sets explicitly.
 
 ## Main definitions
 
-* `Hypergraph α ε`: a hypergraph with abstract edge index type `ε`; each edge carries an
-  arbitrary `Set α` of endpoints. Parallel edges and loops are permitted, and the vertex
-  and edge sets may be infinite.
 * `Graph α ε`: a general graph with abstract edge index type `ε`; each edge carries an
   unordered pair of endpoints as a `Sym2 α`. Parallel edges and loops are permitted.
 * `SimpleGraph α`: a finite simple graph, with edges indexed by `Sym2 α` itself, `Finset`
@@ -32,8 +29,6 @@ type `α`. Each structure carries its vertex and edge sets explicitly.
 
 ## Main forgetful maps
 
-* `Graph.toHypergraph`: reinterpret a graph as a hypergraph by viewing each `Sym2 α`
-  endpoint pair as a two-element set.
 * `SimpleGraph.toGraph`: forget the finiteness and looplessness axioms of a simple graph.
 * `SimpleDiGraph.toDiGraph`: forget the finiteness and looplessness axioms of a simple
   directed graph.
@@ -43,19 +38,6 @@ The corresponding `Coe` instances are registered.
 
 namespace Cslib.Algorithms.Lean
 variable {α ε : Type*}
-
-/-- A hypergraph on vertex type `α` with edges indexed by `ε`. The edge set is abstract;
-endpoints are carried by a separate map. Parallel edges and loops are permitted, and both
-the vertex and edge sets may be infinite. -/
-structure Hypergraph (α ε : Type*) where
-  /-- The set of vertices. -/
-  vertexSet : Set α
-  /-- The set of edges. -/
-  edgeSet : Set ε
-  /-- The endpoint map, assigning to each edge its set of incident vertices. -/
-  endpoints : ε → Set α
-  /-- Every endpoint of an edge is a vertex. -/
-  incidence : ∀ e ∈ edgeSet, ∀ v ∈ endpoints e, v ∈ vertexSet
 
 /-- A general graph on vertex type `α` with edges indexed by `ε`. The edge set is abstract;
 endpoints are carried by a separate map. Parallel edges and loops are permitted, and both
@@ -132,8 +114,6 @@ def SimpleDiGraph.toDiGraph (G : SimpleDiGraph α) : DiGraph α (α × α) where
   endpoints := id
   incidence e he := by simpa using G.incidence e (by simpa using he)
 
-instance : Coe (Graph α ε) (Hypergraph α ε) := ⟨Graph.toHypergraph⟩
-
 instance : Coe (SimpleGraph α) (Graph α (Sym2 α)) := ⟨SimpleGraph.toGraph⟩
 
 instance : Coe (SimpleDiGraph α) (DiGraph α (α × α)) := ⟨SimpleDiGraph.toDiGraph⟩
@@ -149,9 +129,6 @@ class HasEdgeSet (G : Type*) (E : outParam Type*) where
   /-- The edge set of the graph. -/
   edgeSet : G → E
 
-@[simp] instance {α ε : Type*} : HasVertexSet (Hypergraph α ε) (Set α) :=
-  ⟨Hypergraph.vertexSet⟩
-
 @[simp] instance {α ε : Type*} : HasVertexSet (Graph α ε) (Set α) :=
   ⟨Graph.vertexSet⟩
 
@@ -163,9 +140,6 @@ class HasEdgeSet (G : Type*) (E : outParam Type*) where
 
 @[simp] instance {α : Type*} : HasVertexSet (SimpleDiGraph α) (Finset α) :=
   ⟨SimpleDiGraph.vertexSet⟩
-
-@[simp] instance {α ε : Type*} : HasEdgeSet (Hypergraph α ε) (Set (Set α)) :=
-  ⟨fun G => G.edgeSet.image G.endpoints⟩
 
 @[simp] instance {α ε : Type*} : HasEdgeSet (Graph α ε) (Set (Sym2 α)) :=
   ⟨fun G => G.edgeSet.image G.endpoints⟩
