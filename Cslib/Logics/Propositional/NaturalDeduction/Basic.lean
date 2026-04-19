@@ -81,14 +81,14 @@ abbrev Sequent {Atom} := Theory Atom × Ctx Atom × Proposition Atom
 scoped notation Γ:60 " ⊢[" T "] " A => (⟨T, Γ, A⟩ : Sequent)
 
 /-- A sequent with empty context. -/
-abbrev Sequent₁ {Atom} := Theory Atom × Proposition Atom
+abbrev EmptySequent {Atom} := Theory Atom × Proposition Atom
 
-@[inherit_doc Sequent₁]
-scoped notation "⊢[" T "] " A => (⟨T, A⟩ : Sequent₁)
+@[inherit_doc EmptySequent]
+scoped notation "⊢[" T "] " A => (⟨T, A⟩ : EmptySequent)
 
 /-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
 possibly appealing to axioms from `T`. -/
-inductive Derivation : Sequent → Type _ where
+inductive Derivation : Sequent.{u} → Type u where
   /-- Axiom -/
   | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation ⟨T, Γ, A⟩
   /-- Assumption -/
@@ -117,12 +117,12 @@ inductive Derivation : Sequent → Type _ where
 instance : InferenceSystem (Sequent (Atom := Atom)) where
   derivation := Derivation
 
-instance : InferenceSystem (Sequent₁ (Atom := Atom)) where
+instance : InferenceSystem (EmptySequent (Atom := Atom)) where
   derivation S₁ := Derivation ⟨S₁.1, ∅, S₁.2⟩
 
 variable {T : Theory Atom}
 
-theorem Derivation.sequent₁_eq {A : Proposition Atom} : ⇓(⊢[T] A) = ⇓(∅ ⊢[T] A) := rfl
+theorem Derivation.EmptySequent_eq {A : Proposition Atom} : ⇓(⊢[T] A) = ⇓(∅ ⊢[T] A) := rfl
 
 theorem Derivable.iff_derivable_empty {A : Proposition Atom} :
     Derivable (⊢[T] A) ↔ Derivable (∅ ⊢[T] A) := by rfl
