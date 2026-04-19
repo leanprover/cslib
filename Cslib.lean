@@ -22,6 +22,10 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Computability.CellularAutomata.Basic
+public import Cslib.Computability.CellularAutomata.Defs
+public import Cslib.Computability.CellularAutomata.Language
+public import Cslib.Computability.CellularAutomata.State
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
