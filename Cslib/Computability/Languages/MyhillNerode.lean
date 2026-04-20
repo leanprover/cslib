@@ -48,7 +48,8 @@ open scoped RightCongruence
 /-- The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
 strings where two strings are related iff all their right extensions are either both in the language
 or both not in it. -/
-instance NerodeCongruence (l : Language α) : RightCongruence α where
+@[implicit_reducible]
+def NerodeCongruence (l : Language α) : RightCongruence α where
   r x y := ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l
   iseqv.refl := fun _ _ => Iff.rfl
   iseqv.symm := fun h z => (h z).symm
@@ -111,7 +112,7 @@ theorem IsRegular.finite_nerodeQuotient (h : l.IsRegular) :
 -- Myhill-Nerode (1)
 
 /-- `l` is regular iff the Nerode congruence on `l` has finitely many equivalence classes. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 theorem IsRegular.iff_finite_nerodeQuotient {l : Language α} :
     l.IsRegular ↔ Finite (l.NerodeQuotient) := by
   constructor
@@ -140,7 +141,6 @@ theorem IsRegular.iff_finite_nerodeQuotient {l : Language α} :
 /-- Given a set of strings all distinguishable by `l` (i.e., not related to each other by the Nerode
 congruence on `l`), the number of states in the DFA accepting `l` is at least the number of strings
 in the set. -/
-@[simp]
 theorem dfa_num_state_ge {State : Type*} [Finite State] {l : Language α}
     {M : DA.FinAcc State α} {ws : Set (List α)} [Finite ws]
     (hws : ws.Pairwise (¬ (l.NerodeCongruence).r · ·)) (hM : language M = l) :
@@ -163,7 +163,6 @@ theorem dfa_num_state_ge {State : Type*} [Finite State] {l : Language α}
 
 /-- All DFAs accepting `l` must have at least as many states as the number of equivalence classes
 of the Nerode congruence on `l`. -/
-@[simp]
 theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State] :
     Nat.card State ≥ Nat.card (language M).NerodeQuotient := by
   let ws : Set (List α) := Set.range
@@ -191,7 +190,8 @@ def IsMinimalAutomaton (M : FinAcc State α) (l : Language α) :=
 
 /-- Given a DFA `M`, two strings are related iff they reach the same state under when run through
 `M`. The Nerode congruence is the state congruence with respect to the minimal DFA accepting `l`. -/
-instance StateCongruence (M : FinAcc State α) : RightCongruence α where
+@[implicit_reducible]
+def StateCongruence (M : FinAcc State α) : RightCongruence α where
   r x y := ∀ z, M.mtr M.start (x ++ z) = M.mtr M.start (y ++ z)
   iseqv.refl := by intro x z; rfl
   iseqv.symm  := by intro x y h z; symm; exact h z
@@ -203,7 +203,6 @@ instance StateCongruence (M : FinAcc State α) : RightCongruence α where
 variable {M : FinAcc State α}
 
 /-- The Nerode congruence is the most coarse state congruence given a language. -/
-@[simp]
 theorem stateCongruence_le_nerodeCongruence :
     ∀ x y, (StateCongruence M).r x y → ((language M).NerodeCongruence).r x y := by
   intro x y h z
@@ -220,7 +219,6 @@ theorem stateCongruence_le_nerodeCongruence :
 -- Myhill-Nerode (3)
 
 /-- The minimal DFA `M` accepting the language `l` is unique up to unique isomorphism. -/
-@[simp]
 theorem unique_minimal [Finite State]
     (l : Language α) (hReg : l.IsRegular) (hMin : M.IsMinimalAutomaton l) :
     ∃! φ : State ≃ l.NerodeQuotient, ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := by
