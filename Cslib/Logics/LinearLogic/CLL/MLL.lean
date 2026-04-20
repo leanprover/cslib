@@ -122,7 +122,6 @@ abbrev Proposition (Atom : Type u) := {a : CLL.Proposition Atom // a.IsMLL}
 /-- MLL propositional contexts. -/
 abbrev Proposition.Context (Atom : Type u) := {c : CLL.Proposition.Context Atom // c.IsMLL}
 
-open scoped CLL.Proposition CLL.Proposition.Context in
 /-- Filling of an MLL propositional context. -/
 def Proposition.Context.fill (c : Proposition.Context Atom) (a : Proposition Atom) :
     Proposition Atom where
