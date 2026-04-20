@@ -138,6 +138,4 @@ abbrev Proof {Atom : Type u} (Γ : Sequent Atom) := {p : CLL.Proof (Atom := Atom
 /-- The sequent calculus of MLL. -/
 instance : Logic.InferenceSystem (Sequent Atom) := ⟨Proof⟩
 
-open scoped Logic.InferenceSystem
-
 end Cslib.Logic.MLL
