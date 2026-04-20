@@ -63,7 +63,9 @@ def Proposition.IsMLL : Proposition Atom → Prop
 /-- Duality in MLL stays in MLL. -/
 @[scoped grind →]
 theorem Proposition.isMLL_dual {a : Proposition Atom} (ha : a.IsMLL) : a⫠.IsMLL := by
-  induction a <;> grind only [Proposition.dual, IsMLL]
+  induction a with
+  | atom | atomDual | one | bot | tensor | parr => grind [dual, IsMLL]
+  | _ => grind [IsMLL]
 
 /-- A multiplicative propositional context. -/
 @[simp]
