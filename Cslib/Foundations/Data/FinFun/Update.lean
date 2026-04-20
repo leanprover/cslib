@@ -22,25 +22,26 @@ namespace Cslib.FinFun
 
 variable [Zero β] [DecidableEq α] [DecidableEqZero β]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- `FinFun` equivalent of `Function.update`. -/
 def update (f : α →₀ β) (a : α) (b : β) :
     α →₀ β where
   fn := Function.update f.fn a b
   support := if b = 0 then f.support \ {a} else f.support ∪ {a}
   mem_support_fn := by
-    by_cases hb : b = 0 <;>
-      grind only [= Finset.mem_union, = Finset.mem_sdiff, = Finset.mem_singleton,
-        = Function.update.eq_1, = not_mem_support_zero, = mem_support_fn, = coe_eq_fn]
+    by_cases b = 0
+    · grind only [= Finset.mem_sdiff, = Finset.mem_singleton, = Function.update, = mem_support_fn]
+    · grind
 
 /-- `FinFun.update` is consistent with `Function.update`. -/
 @[scoped grind =, simp]
 theorem update_coe (f : α →₀ β) :
-    (f.update a b : α → β) = Function.update f a b := by grind only [update, = coe_fn]
+    (f.update a b : α → β) = Function.update f a b := by grind [update]
 
 /-- Conditional characterisation of the functional interface of `FinFun.update`. -/
 @[scoped grind =]
-theorem update_apply (f : α →₀ β) :
-    ((f.update a' b) a) = if a = a' then b else f a := by simp [Function.update_apply]
+theorem update_apply (f : α →₀ β) : ((f.update a' b) a) = if a = a' then b else f a := by
+  simp [Function.update_apply]
 
 /-- Conditional characterisation of the support of an updated `FinFun`. -/
 @[scoped grind =]
@@ -53,8 +54,9 @@ theorem update_idem (f : α →₀ β) : (f.update a b).update a b' = f.update a
 
 /-- Updates on different keys commute. -/
 @[scoped grind =]
-theorem update_comm (f : α →₀ β)
-    (h : a ≠ a') : (f.update a b).update a' b' = (f.update a' b').update a b := by grind
+theorem update_comm (f : α →₀ β) (h : a ≠ a') :
+    (f.update a b).update a' b' = (f.update a' b').update a b := by
+  grind only [←= ext, = update_apply]
 
 /-- Updates that do not change mappings are redundant. -/
 @[scoped grind =]
@@ -62,7 +64,6 @@ theorem update_self (f : α →₀ β) : (f.update a (f a)) = f := by grind
 
 /-- Updating a function never grows its support more than adding the key. -/
 @[scoped grind .]
-theorem update_support_subseteq (f : α →₀ β) :
-    (f.update a b).support ⊆ f.support ∪ {a} := by grind
+theorem update_support_subseteq (f : α →₀ β) : (f.update a b).support ⊆ f.support ∪ {a} := by grind
 
 end Cslib.FinFun
