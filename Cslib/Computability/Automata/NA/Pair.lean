@@ -104,7 +104,8 @@ of the form `L * M^ω`, where all `L`s and `M`s are regular languages. -/
 theorem language_eq_fin_iSup_hmul_omegaPow
     [Inhabited Symbol] [Finite State] (na : Buchi State Symbol) :
     language na = ⨆ s ∈ na.start, ⨆ t ∈ na.accept, (na.pairLang s t) * (na.pairLang t t)^ω := by
-  ext xs
+  apply mem_ext
+  intro xs
   simp only [ωAcceptor.mem_language, ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
   constructor
   · rintro ⟨ss, h_run, h_inf⟩
