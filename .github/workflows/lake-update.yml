@@ -33,7 +33,7 @@ jobs:
         if: steps.bump.outputs.updated == 'true'
         uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
         with:
-          title:          ${{ steps.bump.outputs.pr-title }}
+          title: "chore: ${{ steps.bump.outputs.pr-title }}"
           message:        ${{ steps.bump.outputs.bump-description }}
           commit-message: ${{ steps.bump.outputs.commit-message }}
           token:          ${{ steps.app-token.outputs.token }}
