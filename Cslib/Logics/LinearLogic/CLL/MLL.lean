@@ -108,11 +108,8 @@ theorem Proof.isMLL_sequent {Γ : Sequent Atom} (p : ⇓Γ) (hp : p.IsMLL) : Γ.
     simp [Sequent.IsMLL, Proposition.IsMLL]
   case parr | tensor | cut => grind [Proposition.IsMLL, Proof.IsMLL]
   case bot Γ p ih =>
-    simp only [Proof.IsMLL] at hp
-    simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp]
-    apply And.intro
-    · simp only [Proposition.IsMLL]
-    · grind only [Sequent.IsMLL]
+    simp
+    grind [Proof.IsMLL]
   case oplus₁ | oplus₂ | «with» | top | quest | weaken | contract | bang => contradiction
 
 end Cslib.Logic.CLL
