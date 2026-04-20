@@ -1,8 +1,8 @@
 name: Bump mathlib to LKG
 
 on:
-  #schedule:
-  #  - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
+  schedule:
+    - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,31 @@ permissions:
 
 jobs:
   bump:
-    uses: leanprover-community/downstream-reports/.github/workflows/bump-dependency-to-latest.yml@main
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
+          private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Bump to latest
+        id: bump
+        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
+
+      - name: Open or update PR
+        if: steps.bump.outputs.updated == 'true'
+        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
+        with:
+          title: "chore: ${{ steps.bump.outputs.pr-title }}"
+          message:        ${{ steps.bump.outputs.bump-description }}
+          commit-message: ${{ steps.bump.outputs.commit-message }}
+          token:          ${{ steps.app-token.outputs.token }}
+          git-user-name:  mathlib-nightly-testing[bot]
+          git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
