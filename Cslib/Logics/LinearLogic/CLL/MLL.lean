@@ -76,7 +76,6 @@ def Proposition.Context.IsMLL : Context Atom → Prop
 
 /-- Filling a multiplicative propositional context with a multiplicative proposition stays in MLL.
 -/
-@[scoped grind .]
 theorem Proposition.Context.isMLL_fill {c : CLL.Proposition.Context Atom} {a : CLL.Proposition Atom}
     (hc : c.IsMLL) : (c.fill a).IsMLL ↔ a.IsMLL := by induction c <;>
       grind only [Context.fill, Proposition.IsMLL, Proposition.Context.IsMLL]
