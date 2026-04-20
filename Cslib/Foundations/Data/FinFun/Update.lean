@@ -24,8 +24,7 @@ variable [Zero β] [DecidableEq α] [DecidableEqZero β]
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- `FinFun` equivalent of `Function.update`. -/
-def update (f : α →₀ β) (a : α) (b : β) :
-    α →₀ β where
+def update (f : α →₀ β) (a : α) (b : β) : α →₀ β where
   fn := Function.update f.fn a b
   support := if b = 0 then f.support \ {a} else f.support ∪ {a}
   mem_support_fn := by
@@ -35,8 +34,8 @@ def update (f : α →₀ β) (a : α) (b : β) :
 
 /-- `FinFun.update` is consistent with `Function.update`. -/
 @[scoped grind =, simp]
-theorem update_coe (f : α →₀ β) :
-    (f.update a b : α → β) = Function.update f a b := by grind [update]
+theorem update_coe (f : α →₀ β) : (f.update a b : α → β) = Function.update f a b := by
+  grind [update]
 
 /-- Conditional characterisation of the functional interface of `FinFun.update`. -/
 @[scoped grind =]
