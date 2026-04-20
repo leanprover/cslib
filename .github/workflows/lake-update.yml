@@ -48,7 +48,7 @@ jobs:
           git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
 
       - name: Enable auto-merge
-        if: ${{ steps.open-pr.outputs.pr-number }} != '' && ${{ inputs.auto-merge }}
+        if: steps.open-pr.outputs.pr-number != '' && inputs.auto-merge == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: gh pr merge --auto --merge "${{ steps.open-pr.outputs.pr-number }}"
