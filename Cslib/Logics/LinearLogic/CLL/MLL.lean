@@ -92,10 +92,9 @@ open scoped Logic.InferenceSystem
 /-- A proof is in MLL. -/
 @[simp]
 def Proof.IsMLL {Γ : Sequent Atom} : ⇓Γ → Prop
-  | ax (a := a) => a.IsMLL
+  | ax (a := a) | bot a | parr a => a.IsMLL
   | cut p q | tensor p q => p.IsMLL ∧ q.IsMLL
   | one => True
-  | bot p | parr p => p.IsMLL
   | _ => False
 
 open scoped Sequent Proposition in
