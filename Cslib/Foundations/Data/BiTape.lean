@@ -78,12 +78,13 @@ def mk₁ (l : List Symbol) : BiTape Symbol :=
   | [] => ∅
   | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
 
+open scoped Int in
 /-- Returns the tape symbol at positon `p` relative to the head, where
 positive numbers are right of the head and negative are left of the head. -/
 def get (t : BiTape Symbol) : ℤ → Option Symbol
-  | Int.ofNat 0 => t.head
-  | Int.ofNat (Nat.succ p') => t.right.toList[p']?.getD none
-  | Int.negSucc p' => t.left.toList[p']?.getD none
+  | 0 => t.head
+  | (p' + 1 : Nat) => t.right.toList[p']?.getD none
+  | -[p'+1] => t.left.toList[p']?.getD none
 
 /-- Two tapes are equal if and only if their `get` functions are equal. This allows to view
 tapes as functions `ℤ → Option Symbol`. -/
@@ -95,7 +96,7 @@ lemma ext_get (t₁ t₂ : BiTape Symbol) (h_get_eq : ∀ p, t₁.get p = t₂.g
   have h_right : right₁ = right₂ := by
     apply StackTape.ext_get
     intro p
-    simpa [get] using h_get_eq p.succ
+    simpa [get] using h_get_eq (p + 1)
   have h_left : left₁ = left₂ := by
     apply StackTape.ext_get
     intro p
@@ -157,7 +158,7 @@ lemma get_move_left (t : BiTape Symbol) (p : ℤ) :
     simp [StackTape.head_eq_getD]
   | Int.ofNat 1 => simp
   | Int.ofNat (n + 2) =>
-    rw [show Int.ofNat (n + 2) - 1 = Int.ofNat (n + 1) from by grind]
+    rw [show Int.ofNat (n + 2) - 1 = Int.ofNat (n + 1) by lia]
     simp
   | Int.negSucc n => simp
 
@@ -167,7 +168,7 @@ lemma get_move_right (t : BiTape Symbol) (p : ℤ) :
   unfold move_right get
   match p with
   | Int.ofNat n =>
-    rw [show Int.ofNat n + 1 = Int.ofNat (n + 1) from by grind]
+    rw [show Int.ofNat n + 1 = Int.ofNat (n + 1) by lia]
     cases n <;> simp [StackTape.head_eq_getD]
   | Int.negSucc 0 => simp
   | Int.negSucc (n + 1) =>
@@ -196,7 +197,7 @@ lemma get_move_left_iterate (t : BiTape Symbol) (n : ℕ) (p : ℤ) :
   induction n generalizing t p with
   | zero => simp
   | succ n ih =>
-    have : p - n - 1 = p - (n + 1) := by grind
+    have : p - n - 1 = p - (n + 1) := by lia
     simp [Function.iterate_succ_apply, ih, this]
 
 end Move
@@ -213,7 +214,7 @@ lemma get_write (t : BiTape Symbol) (a : Option Symbol) :
   funext p
   match p with
   | Int.ofNat 0 => simp
-  | Int.ofNat (n + 1) => simp; grind
+  | Int.ofNat (n + 1) => grind
   | Int.negSucc n => simp
 
 /--
