@@ -1,0 +1,17 @@
+name: Bump mathlib to LKG
+
+on:
+  #schedule:
+  #  - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    uses: leanprover-community/downstream-reports/.github/workflows/bump-dependency-to-latest.yml@main
+    permissions:
+      contents: write
+      pull-requests: write

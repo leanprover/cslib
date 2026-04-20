@@ -6,7 +6,7 @@ open Lean Elab.Command
 
 elab "open_scoped_all" pre:ident : command => do
   let env ← getEnv
-  let nss := env.getNamespaceSet.toList.filter (fun name => name.getRoot = pre.getId)
+  let nss := env.getNamespaces.filter (fun name => name.getRoot = pre.getId)
   for ns in nss do
     let cmd ← `(open scoped $(mkIdent ns))
     elabCommand cmd
@@ -79,6 +79,19 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
 #grind_lint skip Cslib.Logic.HML.Satisfies.diamond
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
+#adaptation_note
+/-- (changes from lean#13166) -/
+#grind_lint skip Cslib.ωLanguage.map_id
+#grind_lint skip Cslib.LTS.Bisimilarity.gfp
+#grind_lint skip Cslib.LTS.Bisimilarity.is_bisimulation
+#grind_lint skip Cslib.LTS.Bisimilarity.largest_bisimulation
+#grind_lint skip Cslib.LTS.IsBisimulation.bot
+#grind_lint skip Cslib.LTS.IsBisimulation.comp
+#grind_lint skip Cslib.LTS.IsBisimulation.inv
+#grind_lint skip Cslib.LTS.IsBisimulation.sup
+#grind_lint skip Cslib.LTS.IsBisimulation.traceEq
+#grind_lint skip Cslib.LTS.IsBisimulationUpTo.is_bisimulation
+#grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

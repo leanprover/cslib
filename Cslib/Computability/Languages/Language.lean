@@ -30,14 +30,13 @@ theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) 
     (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
   mem_iInter₂
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[simp]
 theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
-    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i := by
-  constructor <;> intro h
-  · have := mem_iUnion₂.mp h
-    grind
-  · apply mem_iUnion₂.mpr
-    grind
+    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i where
+  mp h := bex_def.mp (mem_iUnion₂.mp h)
+  mpr h :=  mem_iUnion₂.mpr (bex_def.mpr h)
 
 theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq
@@ -50,17 +49,23 @@ theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
 theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.reverse := by
   ext x; simp [mem_sub]
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[scoped grind =]
 theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
   ext x; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     constructor
-    · refine ⟨u, ?_, v, ?_⟩ <;> grind
-    · grind [append_eq_nil_iff, mem_one]
+    · exact ⟨u, Set.mem_of_mem_inter_left h_u, v, h_v, rfl⟩
+    · by_contra h
+      have := mem_sub_one u |>.mp h_u
+      have := mem_one (u ++ v) |>.mp h
+      grind [append_eq_nil_iff]
   · rintro ⟨⟨u, h_u, v, h_v, rfl⟩, h_x⟩
     rcases eq_or_ne u [] with (rfl | h_u')
-    · refine ⟨v, ?_, [], ?_⟩ <;> grind [mem_sub, mem_one]
-    · refine ⟨u, ?_, v, ?_⟩ <;> grind
+    · use v, (mem_sub l 1 v |>.mpr) ⟨h_v, Not.intro h_x⟩, []
+      grind [mem_sub, mem_one]
+    · use u, (mem_sub_one u).mpr ⟨h_u, h_u'⟩, v
 
 @[scoped grind =]
 theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
@@ -70,6 +75,8 @@ theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
     _ = (l.reverse * l.reverse - 1).reverse := by rw [sub_one_mul]
     _ = _ := by rw [reverse_sub, reverse_one, reverse_mul, reverse_reverse]
 
+#adaptation_note
+/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[scoped grind =]
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
   ext x; constructor
@@ -77,8 +84,8 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
     have h3 : ¬ xl = [] := by grind [one_def]
     obtain ⟨x, xl', h_xl'⟩ := exists_cons_of_ne_nil h3
-    have := h_xl x
-    refine ⟨x, ?_, xl'.flatten, ?_, ?_⟩ <;> grind [join_mem_kstar]
+    subst h_xl'
+    refine ⟨x, mem_preimage.mp (h_xl x ?_), xl'.flatten, join_mem_kstar ?_, ?_⟩ <;> grind
   · rintro ⟨y, ⟨h_y, h_1⟩, z, h_z, rfl⟩
     refine ⟨?_, ?_⟩
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
