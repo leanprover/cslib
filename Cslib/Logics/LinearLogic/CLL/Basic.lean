@@ -26,13 +26,7 @@ public import Mathlib.Data.Multiset.Fold
 
 -/
 
-namespace Cslib
-
-universe u
-
-variable {Atom : Type u}
-
-namespace CLL
+namespace Cslib.Logic.CLL
 
 /-- Propositions. -/
 inductive Proposition (Atom : Type u) : Type u where
@@ -111,22 +105,12 @@ theorem Proposition.context_fill_def (c : Context Atom) (a : Proposition Atom) :
 
 /-- Positive propositions. -/
 def Proposition.positive : Proposition Atom → Bool
-  | atom _ => true
-  | one => true
-  | zero => true
-  | tensor _ _ => true
-  | oplus _ _ => true
-  | bang _ => true
+  | atom _ | one | zero | tensor _ _ | oplus _ _ | bang _ => true
   | _ => false
 
 /-- Negative propositions. -/
 def Proposition.negative : Proposition Atom → Bool
-  | atomDual _ => true
-  | bot => true
-  | top => true
-  | parr _ _ => true
-  | .with _ _ => true
-  | quest _ => true
+  | atomDual _ | bot | top | parr _ _ | .with _ _ | quest _ => true
   | _ => false
 
 /-- Whether a `Proposition` is positive is decidable. -/
@@ -720,6 +704,4 @@ end Proposition
 
 end LogicalEquiv
 
-end CLL
-
-end Cslib
+end Cslib.Logic.CLL

@@ -12,11 +12,7 @@ public import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-! # η-expansion for Classical Linear Logic (CLL) -/
 
-namespace Cslib.CLL
-
-universe u
-
-variable {Atom : Type u}
+namespace Cslib.Logic.CLL
 
 attribute [local grind _=_] Multiset.coe_eq_coe
 attribute [local grind _=_] Multiset.cons_coe
@@ -137,4 +133,4 @@ theorem Proof.expand_onlyAtomicAxioms (a : Proposition Atom) : a.expand.onlyAtom
   | top | bot => simp [expand, onlyAtomicAxioms]
   | _ => grind
 
-end Cslib.CLL
+end Cslib.Logic.CLL
