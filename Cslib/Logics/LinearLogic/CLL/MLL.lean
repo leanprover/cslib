@@ -124,9 +124,10 @@ abbrev Proposition.Context (Atom : Type u) := {c : CLL.Proposition.Context Atom 
 
 open scoped CLL.Proposition CLL.Proposition.Context in
 /-- Filling of an MLL propositional context. -/
-def Proposition.Context.fill (c : MLL.Proposition.Context Atom) (a : MLL.Proposition Atom) :
-    MLL.Proposition Atom :=
-  ⟨CLL.Proposition.Context.fill c a, (CLL.Proposition.Context.isMLL_fill c.property).2 a.property⟩
+def Proposition.Context.fill (c : Proposition.Context Atom) (a : Proposition Atom) :
+    Proposition Atom where
+  val := CLL.Proposition.Context.fill c a
+  property := (CLL.Proposition.Context.isMLL_fill c.property).mpr a.property
 
 /-- MLL sequents. -/
 abbrev Sequent (Atom : Type u) := {Γ : CLL.Sequent Atom // Γ.IsMLL}
