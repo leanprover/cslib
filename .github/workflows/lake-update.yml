@@ -4,12 +4,6 @@ on:
   #schedule:
   #  - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
   workflow_dispatch:
-    inputs:
-      auto-merge:
-        description: 'Set auto-merge for the opened PR'
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -48,7 +42,7 @@ jobs:
           git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
 
       - name: Enable auto-merge
-        if: ${{ inputs.auto-merge == 'true' }}
+        if: steps.open-pr.outputs.pr-number != ''
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
