@@ -49,7 +49,7 @@ jobs:
 
       - name: Enable auto-merge
         #if: steps.open-pr.outputs.pr-number != '' && inputs.auto-merge == 'true'
-        if: ${{ ${{ inputs.auto-merge }} == 'true' }}
+        if: ${{ inputs.auto-merge == 'true' }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
