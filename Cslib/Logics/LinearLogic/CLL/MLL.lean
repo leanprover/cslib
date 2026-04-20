@@ -57,10 +57,8 @@ namespace Cslib.Logic.CLL
 @[simp]
 def Proposition.IsMLL : Proposition Atom → Prop
   | atom _ | atomDual _ | one | bot => True
-  | top | zero => False
   | tensor a b | parr a b => a.IsMLL ∧ b.IsMLL
-  | oplus _ _ | .with _ _ => False
-  | bang _ | quest _ => False
+  | _ => False
 
 /-- Duality in MLL stays in MLL. -/
 @[scoped grind →]
