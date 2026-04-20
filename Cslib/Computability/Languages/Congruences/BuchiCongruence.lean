@@ -115,7 +115,8 @@ This theorem uses the Ramsey theorem for infinite graphs and does not depend on 
 of `na.BuchiCongruence` other than that it is of finite index. -/
 theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
     ⨆ i, na.buchiFamily i = ⊤ := by
-  ext xs
+  apply mem_ext
+  intro xs
   have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
   let color (t : Finset ℕ) : Quotient na.BuchiCongruence.eq :=
     if h : t.Nonempty then ⟦ xs.extract (t.min' h) (t.max' h) ⟧ else ⟦ [] ⟧
@@ -175,7 +176,8 @@ private lemma frequently_via_accept [Inhabited Symbol]
   · grind only [!List.take_append_drop]
 
 /-- `na.buchiFamily` saturates the ω-language accepted by `na`. -/
-theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (language na) := by
+theorem buchiFamily_saturation [Inhabited Symbol] :
+    Saturates (fun i ↦ (na.buchiFamily i).toSet) (language na).toSet := by
   rintro ⟨a, b⟩ ⟨xs, h_xs, h_lang⟩ ys h_ys
   obtain ⟨xl, xls, h_xl_c, h_xls_c, rfl⟩ := mem_buchiFamily.mp h_xs
   obtain ⟨yl, yls, h_yl_c, h_yls_c, rfl⟩ := mem_buchiFamily.mp h_ys
