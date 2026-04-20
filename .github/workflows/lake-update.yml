@@ -29,26 +29,28 @@ jobs:
           app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
           private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      #- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Bump to latest
-        id: bump
-        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
+      #- name: Bump to latest
+      #  id: bump
+      #  uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
 
-      - name: Open or update PR
-        id: open-pr
-        if: steps.bump.outputs.updated == 'true'
-        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
-        with:
-          title: "chore: ${{ steps.bump.outputs.pr-title }}"
-          message:        ${{ steps.bump.outputs.bump-description }}
-          commit-message: ${{ steps.bump.outputs.commit-message }}
-          token:          ${{ steps.app-token.outputs.token }}
-          git-user-name:  mathlib-nightly-testing[bot]
-          git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
+      #- name: Open or update PR
+      #  id: open-pr
+      #  if: steps.bump.outputs.updated == 'true'
+      #  uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
+      #  with:
+      #    title: "chore: ${{ steps.bump.outputs.pr-title }}"
+      #    message:        ${{ steps.bump.outputs.bump-description }}
+      #    commit-message: ${{ steps.bump.outputs.commit-message }}
+      #    token:          ${{ steps.app-token.outputs.token }}
+      #    git-user-name:  mathlib-nightly-testing[bot]
+      #    git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
 
       - name: Enable auto-merge
-        if: steps.open-pr.outputs.pr-number != '' && inputs.auto-merge == 'true'
+        #if: steps.open-pr.outputs.pr-number != '' && inputs.auto-merge == 'true'
+        if: inputs.auto-merge == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: gh pr merge --auto --merge "${{ steps.open-pr.outputs.pr-number }}"
+        run: |
+          echo "test"
