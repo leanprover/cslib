@@ -12,11 +12,7 @@ public import Cslib.Logics.LinearLogic.CLL.Basic
 
 /-! # η-expansion for Classical Linear Logic (CLL) -/
 
-namespace Cslib.CLL
-
-universe u
-
-variable {Atom : Type u}
+namespace Cslib.Logic.CLL
 
 attribute [local grind _=_] Multiset.coe_eq_coe
 attribute [local grind _=_] Multiset.cons_coe
@@ -29,7 +25,7 @@ open Cslib.Logic.InferenceSystem
 
 /-- The η-expansion of a proposition `a` is a `Proof` of `{a, a⫠}` that applies the axiom
 only to atomic propositions. -/
-@[scoped grind =]
+@[simp]
 def Proposition.expand (a : Proposition Atom) : ⇓({a, a⫠} : Sequent Atom):=
   match a with
   | atom x
@@ -118,7 +114,7 @@ private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
     congr 1
     · grind
     · simp [dual, expand, rwConclusion, Logic.InferenceSystem.rwConclusion]
-  | _ => grind
+  | _ => grind [Proposition.expand, Proposition.dual_inj]
 
 open Proposition Proof in
 /-- η-expansion is correct: the proof returned by η-expansion contains only atomic axioms. -/
@@ -135,6 +131,6 @@ theorem Proof.expand_onlyAtomicAxioms (a : Proposition Atom) : a.expand.onlyAtom
     apply expand_onlyAtomicAxioms_dual
     simp [expand, onlyAtomicAxioms, dual]
   | top | bot => simp [expand, onlyAtomicAxioms]
-  | _ => grind
+  | _ => grind [Proposition.expand]
 
-end Cslib.CLL
+end Cslib.Logic.CLL

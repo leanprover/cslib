@@ -12,10 +12,10 @@ public import Cslib.Computability.Automata.NA.Basic
 
 /-! # Sum of nondeterministic automata. -/
 
-open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
-
 namespace Cslib.Automata.NA
+
+open Set Function ωSequence ωLanguage
+open scoped Cslib.LTS
 
 variable {Symbol I : Type*} {State : I → Type*}
 
@@ -58,16 +58,15 @@ namespace Buchi
 
 open ωAcceptor
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 /-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
 by its component automata. -/
 @[simp]
 theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) → Set (State i)} :
     language (Buchi.mk (iSum na) (⋃ i, Sigma.mk i '' (acc i))) =
-    ⋃ i, language (Buchi.mk (na i) (acc i)) := by
-  ext xs
-  rw [mem_iUnion]
+    ⨆ i, language (Buchi.mk (na i) (acc i)) := by
+  apply mem_ext
+  intro xs
+  simp only [mem_language, mem_iSup]
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
     simp only [mem_iUnion] at h_acc

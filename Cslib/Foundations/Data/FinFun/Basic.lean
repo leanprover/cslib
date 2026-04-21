@@ -89,8 +89,7 @@ theorem fn_eq_eq [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
   ext (congrFun h)
 
 @[scoped grind =>]
-theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a :=
-  by grind
+theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a := by grind
 
 @[scoped grind =]
 theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]

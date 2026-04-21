@@ -13,7 +13,7 @@ namespace CslibTests
 I use `Proposition Nat` as the concrete instantiation for atoms.
 -/
 
-open Cslib.CLL
+open Cslib.Logic.CLL
 
 /-! ## Proposition construction tests -/
 
