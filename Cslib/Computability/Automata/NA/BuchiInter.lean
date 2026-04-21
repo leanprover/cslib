@@ -26,7 +26,7 @@ simply because toggling can be easily modeled by the boolean operation `not`.
 
 namespace Cslib.Automata.NA.Buchi
 
-open Set Prod Filter ωSequence ωAcceptor
+open Set Prod Filter ωSequence ωLanguage ωAcceptor
 open scoped LTS
 
 variable {Symbol : Type*} {State : Bool → Type*}
@@ -93,16 +93,15 @@ lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((�
   apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false}) <;>
   grind [until_frequently_leadsTo_and, univ_inter]
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 /-- The language accepted by the intersection automaton is the intersection of
 the languages accepted by the two component automata. -/
 @[simp, scoped grind =]
 theorem inter_language_eq :
     language (Buchi.mk (interNA na acc) (interAccept acc)) =
-    ⋂ i, language (Buchi.mk (na i) (acc i)) := by
-  ext xs
-  rw [mem_iInter]
+    ⨅ i, language (Buchi.mk (na i) (acc i)) := by
+  apply mem_ext
+  intro xs
+  simp only [ωLanguage.mem_iInf]
   constructor
   · intro ⟨ss, h_run, h_inf⟩ i
     use ss.map (fun s ↦ s.fst i)
