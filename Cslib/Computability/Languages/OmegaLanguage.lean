@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Mathlib.Computability.Language
+public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
 
 @[expose] public section
@@ -55,64 +56,86 @@ denote languages (namely, sets of finite sequences of type `List α`).
 * Prove more theorems about omegaLim and map.
 -/
 
+variable {α β γ : Type*}
+
+-- This section is to be removed after mathlib#36934 is merged into mathlib.
+section Mathlib_36934
+
+/-- The set of lists in a language. -/
+def Language.toSet (l : Language α) : Set (List α) := l
+
+end Mathlib_36934
+
 namespace Cslib
 
 open Set Filter ωSequence
 open scoped Computability
 
-universe v
+/-- An ω-language is a set of ω-sequences over an alphabet. -/
+@[ext]
+structure ωLanguage (α : Type u) where
+  /-- Construct an ω-language from a set of ω-sequences. -/
+  ofSet ::
+  /-- The set of ω-sequences in an ω-language. -/
+  toSet : Set (ωSequence α)
+deriving Inhabited
 
-variable {α β γ : Type*}
-
-/-- An ω-language is a set of strings over an alphabet. -/
-def ωLanguage (α) :=
-  Set (ωSequence α)
+instance : Coe (Set (ωSequence α)) (ωLanguage α) where
+  coe f := ⟨f⟩
 
 namespace ωLanguage
 
-instance instCompleteAtomicBooleanAlgebra : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
-  Set.instCompleteAtomicBooleanAlgebra
+@[simp]
+lemma ofSet_toSet (l : ωLanguage α) : ofSet l.toSet = l := rfl
 
-instance : Membership (ωSequence α) (ωLanguage α) := ⟨Set.Mem⟩
-instance : Singleton (ωSequence α) (ωLanguage α) := ⟨Set.singleton⟩
-instance : Insert (ωSequence α) (ωLanguage α) := ⟨Set.insert⟩
+lemma toSet_ofSet (s : Set (ωSequence α)) : (ofSet s).toSet = s := rfl
+
+/-- The equivalence between `ωLanguage α` and `Set (ωSequence α)`. -/
+def equiv : ωLanguage α ≃ Set (ωSequence α) where
+  toFun := toSet
+  invFun := ofSet
+
+instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
+  equiv.completeAtomicBooleanAlgebra
+
+instance : SetLike (ωLanguage α) (ωSequence α) where
+  coe := ωLanguage.toSet
+  coe_injective' := by grind [Function.Injective, ωLanguage]
+
 instance : HasSubset (ωLanguage α) := ⟨(· ≤ ·)⟩
 
 variable {l m : Language α} {p q : ωLanguage α} {a b x : List α} {s t : ωSequence α}
 
-instance : Inhabited (ωLanguage α) := ⟨(∅ : Set _)⟩
+lemma le_def (p q : ωLanguage α) : p ≤ q ↔ p.toSet ⊆ q.toSet := Iff.rfl
 
-theorem le_def (p q : ωLanguage α) :
-    p ≤ q ↔ (p : Set (ωSequence α)) ⊆ (q : Set (ωSequence α)) :=
-  Iff.rfl
+lemma top_def : (⊤ : ωLanguage α) = ⟨univ⟩ := rfl
 
-theorem bot_def : (⊥ : ωLanguage α) = (∅ : Set (ωSequence α)) :=
-  rfl
+lemma bot_def : (⊥ : ωLanguage α) = ⟨∅⟩ := rfl
 
-theorem top_def : (⊤ : ωLanguage α) = (univ : Set (ωSequence α)) :=
-  rfl
+lemma sup_def (p q : ωLanguage α) : p ⊔ q = ⟨p.toSet ∪ q.toSet⟩ := rfl
 
-theorem sup_def (p q : ωLanguage α) : p ⊔ q = (p ∪ q : Set (ωSequence α)) :=
-  rfl
+lemma inf_def (p q : ωLanguage α) : p ⊓ q = ⟨p.toSet ∩ q.toSet⟩ := rfl
 
-theorem inf_def (p q : ωLanguage α) : p ⊓ q = (p ∩ q : Set (ωSequence α)) :=
-  rfl
+lemma compl_def (p : ωLanguage α) : pᶜ = ⟨p.toSetᶜ⟩ := rfl
 
-theorem compl_def (p : ωLanguage α) : pᶜ = (pᶜ : Set (ωSequence α)) :=
-  rfl
+lemma sSup_def (s : Set (ωLanguage α)) : sSup s = ⟨⋃ p ∈ s, p.toSet⟩ := rfl
 
-theorem iSup_def {ι : Sort v} {p : ι → ωLanguage α} : ⨆ i, p i = ⋃ i, p i :=
-  rfl
+lemma sInf_def (s : Set (ωLanguage α)) : sInf s = ⟨⋂ p ∈ s, p.toSet⟩ := rfl
 
-theorem iInf_def {ι : Sort v} {p : ι → ωLanguage α} : ⨅ i, p i = ⋂ i, p i :=
-  rfl
+lemma iSup_def {ι : Sort v} {p : ι → ωLanguage α} : ⨆ i, p i = ⟨⋃ i, (p i).toSet⟩ := by
+  ext
+  simp [iSup, sSup_def]
+
+lemma iInf_def {ι : Sort v} {p : ι → ωLanguage α} : ⨅ i, p i = ⟨⋂ i, (p i).toSet⟩ := by
+  ext
+  simp [iInf, sInf_def]
 
 /-- The concatenation of a language l and an ω-language `p` is the ω-language made of
 infinite sequences `x ++ω y` where `x ∈ l` and `y ∈ p`. -/
-instance : HMul (Language α) (ωLanguage α) (ωLanguage α) :=
-  ⟨image2 (· ++ω ·)⟩
+instance : HMul (Language α) (ωLanguage α) (ωLanguage α) where
+  hMul l p := ⟨image2 (· ++ω ·) l.toSet p.toSet⟩
 
-theorem hmul_def (l : Language α) (p : ωLanguage α) : l * p = image2 (· ++ω ·) l p :=
+theorem hmul_def (l : Language α) (p : ωLanguage α) : l * p = image2 (· ++ω ·) l.toSet p.toSet :=
   rfl
 
 /-- Concatenation of infinitely many copies of a languages, resulting in an ω-language.
@@ -140,7 +163,7 @@ theorem omegaPow_def [Inhabited α] (l : Language α) :
 /-- The ω-limit of a language `l` is the ω-language of infinite sequences each of which
 contains infinitely many distinct prefixes in `l`. -/
 def omegaLim (l : Language α) : ωLanguage α :=
-  { s | ∃ᶠ m in atTop, s.extract 0 m ∈ l }
+  { s : ωSequence α | ∃ᶠ m in atTop, s.extract 0 m ∈ l }
 
 /-- Notation class for `omegaLim`. -/
 @[notation_class]
@@ -155,20 +178,25 @@ instance instOmegaLim : OmegaLim (Language α) (ωLanguage α) :=
   ⟨omegaLim⟩
 
 theorem omegaLim_def (l : Language α) :
-    l↗ω = { s | ∃ᶠ m in atTop, s.extract 0 m ∈ l } :=
+    l↗ω = { s : ωSequence α | ∃ᶠ m in atTop, s.extract 0 m ∈ l } :=
   rfl
 
 /-- transform an ω-language `p` over `α` into an ω-language over `β`
 by mapping through `f : α → β`. -/
-def map (f : α → β) : ωLanguage α → ωLanguage β := image (ωSequence.map f)
+def map (f : α → β) : ωLanguage α → ωLanguage β :=
+  fun p ↦ image (ωSequence.map f) p.toSet
 
 theorem map_def (f : α → β) (p : ωLanguage α) :
-    p.map f = image (ωSequence.map f) p :=
+    p.map f = image (ωSequence.map f) p.toSet :=
   rfl
 
-@[ext]
-theorem ext (h : ∀ (s : ωSequence α), s ∈ p ↔ s ∈ q) : p = q :=
-  Set.ext h
+@[scoped grind =]
+theorem mem_def (p : ωLanguage α) (s : ωSequence α) : s ∈ p ↔ s ∈ p.toSet :=
+  Iff.rfl
+
+theorem mem_ext (h : ∀ (s : ωSequence α), s ∈ p ↔ s ∈ q) : p = q := by
+  apply ωLanguage.ext
+  exact Set.ext h
 
 @[simp]
 theorem mem_top (s : ωSequence α) : s ∈ (⊤ : ωLanguage α) := by
@@ -191,14 +219,26 @@ theorem mem_compl (p : ωLanguage α) (s : ωSequence α) : s ∈ pᶜ ↔ ¬ s 
   Iff.rfl
 
 @[simp]
+theorem mem_sSup (ps : Set (ωLanguage α)) {s : ωSequence α} :
+    s ∈ sSup ps ↔ ∃ p ∈ ps, s ∈ p := by
+  simp [sSup_def, mem_def]
+
+@[simp]
+theorem mem_sInf (ps : Set (ωLanguage α)) {s : ωSequence α} :
+    s ∈ sInf ps ↔ ∀ p ∈ ps, s ∈ p := by
+  simp [sInf_def, mem_def]
+
+@[simp]
 theorem mem_iSup {ι : Sort v} {p : ι → ωLanguage α} {s : ωSequence α} :
-    (s ∈ ⨆ i, p i) ↔ ∃ i, s ∈ p i :=
-  mem_iUnion
+    (s ∈ ⨆ i, p i) ↔ ∃ i, s ∈ p i := by
+  simp only [iSup_def]
+  exact mem_iUnion
 
 @[simp]
 theorem mem_iInf {ι : Sort v} {p : ι → ωLanguage α} {s : ωSequence α} :
-    (s ∈ ⨅ i, p i) ↔ ∀ i, s ∈ p i :=
-  mem_iInter
+    (s ∈ ⨅ i, p i) ↔ ∀ i, s ∈ p i := by
+  simp only [iInf_def]
+  exact mem_iInter
 
 @[simp, scoped grind =]
 theorem mem_hmul : s ∈ l * p ↔ ∃ x ∈ l, ∃ t ∈ p, x ++ω t = s :=
@@ -221,37 +261,47 @@ theorem mem_omegaLim :
     s ∈ l↗ω ↔ ∃ᶠ m in atTop, s.extract 0 m ∈ l :=
   Iff.rfl
 
-theorem mul_hmul : (l * m) * p = l * (m * p) :=
-  image2_assoc append_append_ωSequence
+theorem mul_hmul : (l * m) * p = l * (m * p) := by
+  ext : 1
+  exact image2_assoc append_append_ωSequence
 
 @[simp, scoped grind =]
-theorem zero_hmul : (0 : Language α) * p = ⊥ :=
-  image2_empty_left
+theorem zero_hmul : (0 : Language α) * p = ⊥ := by
+  ext : 1
+  exact image2_empty_left
 
 @[simp, scoped grind =]
-theorem hmul_bot : l * (⊥ : ωLanguage α) = ⊥ :=
-  image2_empty_right
+theorem hmul_bot : l * (⊥ : ωLanguage α) = ⊥ := by
+  ext : 1
+  exact image2_empty_right
 
 @[simp, scoped grind =]
 theorem one_hmul : (1 : Language α) * p = p := by
-  simp [hmul_def, Language.one_def]
+  simp [hmul_def, Language.one_def, Language.toSet]
 
-theorem hmul_sup : l * (p ⊔ q) = l * p ⊔ l * q :=
-  image2_union_right
+theorem hmul_sup : l * (p ⊔ q) = l * p ⊔ l * q := by
+  ext : 1
+  exact image2_union_right
 
-theorem add_hmul : (l + m) * p = l * p ⊔ m * p :=
-  image2_union_left
+theorem add_hmul : (l + m) * p = l * p ⊔ m * p := by
+  ext : 1
+  exact image2_union_left
 
 theorem iSup_hmul {ι : Sort v} (l : ι → Language α) (p : ωLanguage α) :
-    (⨆ i, l i) * p = ⨆ i, l i * p :=
-  image2_iUnion_left _ _ _
+    (⨆ i, l i) * p = ⨆ i, l i * p := by
+  ext : 1
+  simp only [hmul_def, iSup_def]
+  apply image2_iUnion_left
 
 theorem hmul_iSup {ι : Sort v} (p : ι → ωLanguage α) (l : Language α) :
-    (l * ⨆ i, p i) = ⨆ i, l * p i :=
-  image2_iUnion_right _ _ _
+    (l * ⨆ i, p i) = ⨆ i, l * p i := by
+  ext : 1
+  simp only [hmul_def, iSup_def]
+  apply image2_iUnion_right
 
 theorem le_hmul_congr {l1 l2 : Language α} {p1 p2 : ωLanguage α} (hl : l1 ≤ l2) (hp : p1 ≤ p2) :
     l1 * p1 ≤ l2 * p2 := by
+  simp only [le_def]
   intros _
   simp_all only [hmul_def, mem_image2]
   tauto
@@ -265,11 +315,13 @@ theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) :
 
 @[simp, scoped grind =]
 theorem omegaPow_of_sub_one [Inhabited α] : (l - 1)^ω = l^ω := by
-  ext s; simp
+  ext
+  simp [omegaPow_def]
 
 @[simp, nolint simpNF]
 theorem zero_omegaPow [Inhabited α] : (0 : Language α)^ω = ⊥ := by
-  ext s; simp
+  ext
+  simp [omegaPow_def, bot_def]
 
 @[simp, nolint simpNF]
 theorem one_omegaPow [Inhabited α] : (1 : Language α)^ω = ⊥ := by
@@ -284,12 +336,13 @@ theorem omegaPow_of_le_one [Inhabited α] (h : l ≤ 1) : l^ω = ⊥ := by
 theorem omegaPow_eq_empty [Inhabited α] (h : l^ω = ⊥) : l ≤ 1 := by
   intro x h_x
   by_contra h_contra
-  suffices h' : (const x).flatten ∈ l^ω by simp [h] at h'
+  suffices h' : (const x).flatten ∈ l^ω by
+    simp [h, mem_def, bot_def] at h'
   use const x, rfl
   exact fun _ => ⟨h_x, h_contra⟩
 
 /-- An alternative characterization of `l * p`. -/
-theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p } := by
+theorem hmul_seq_prop : l * p = { s : ωSequence α | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p } := by
   ext s; constructor
   · rintro ⟨x, h_x, t, h_t, rfl⟩
     refine ⟨x.length, ?_, ?_⟩
@@ -300,7 +353,8 @@ theorem hmul_seq_prop : l * p = { s | ∃ k, s.take k ∈ l ∧ s.drop k ∈ p }
 
 /-- An alternative characterization of `l^ω`. -/
 theorem omegaPow_seq_prop [Inhabited α] :
-    l^ω = { s | ∃ f : ℕ → ℕ, StrictMono f ∧ f 0 = 0 ∧ ∀ m, s.extract (f m) (f (m + 1)) ∈ l } := by
+    l^ω = { s : ωSequence α |
+      ∃ f : ℕ → ℕ, StrictMono f ∧ f 0 = 0 ∧ ∀ m, s.extract (f m) (f (m + 1)) ∈ l } := by
   ext s; constructor
   · rintro ⟨xs, rfl, h_xs⟩
     simp [forall_and, List.ne_nil_iff_length_pos] at h_xs
@@ -322,24 +376,15 @@ private noncomputable def iter_helper (p : ℕ → Prop) (f : (n : ℕ) → p n 
     if h : p m then f m h else 0
 
 theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : p ≤ l^ω := by
+  simp only [le_def]
   intro s h_s
   have h_nxt m (hm : s.drop m ∈ p) : ∃ n > m, s.extract m n ∈ l ∧ s.drop n ∈ p := by
     obtain ⟨k, _⟩ := hmul_seq_prop ▸ h_le hm
     grind [extract_eq_drop_take]
   choose nxt_n nxt_p using h_nxt
   let f := iter_helper (fun n ↦ s.drop n ∈ p) nxt_n
-  #adaptation_note
-  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  have _ (n) : f n < f (n + 1) := by
-    induction n
-    · simp only [f, iter_helper]
-      split_ifs with h
-      · simp_all
-      · simp [drop_zero] at h
-        contradiction
-    · grind [iter_helper]
-  have _ (n) : s.extract (f n) (f (n + 1)) ∈ l ∧ s.drop (f (n + 1)) ∈ p := by
-   induction n <;> grind [iter_helper]
+  have h_f (n) : f n < f (n + 1) ∧ s.extract (f n) (f (n + 1)) ∈ l ∧ s.drop (f (n + 1)) ∈ p := by
+    induction n <;> grind [iter_helper]
   rw [omegaPow_seq_prop]
   use f
   grind [strictMono_nat_of_lt_succ, iter_helper]
@@ -404,7 +449,8 @@ theorem kstar_hmul_omegaPow_eq_omegaPow [Inhabited α] (l : Language α) : l∗ 
 
 @[simp]
 theorem omegaLim_zero : (0 : Language α)↗ω = ⊥ := by
-  ext; simp
+  ext
+  simp [omegaLim_def, bot_def]
 
 @[simp, scoped grind =]
 theorem map_id (p : ωLanguage α) : map id p = p :=

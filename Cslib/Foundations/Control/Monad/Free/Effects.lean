@@ -149,6 +149,11 @@ lemma run'_get (s₀ : σ) :
 lemma run'_set (s' : σ) (s₀ : σ) :
     run' (lift (.set s')) s₀ = .unit := rfl
 
+@[simp]
+lemma run'_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
+    run' (x.bind f) s₀ = let p := x.run s₀; (f p.1).run' p.2 :=
+  congr_arg Prod.fst <| run_bind _ _ _
+
 end FreeState
 
 /-! ### Writer Monad via `FreeM` -/
@@ -281,6 +286,18 @@ instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
 
 end FreeWriter
 
+section ForMathlib
+
+@[simp]
+theorem _root_.ContT.run_pure (a : α) :
+    ContT.run (pure a : ContT r m α) k = k a := rfl
+
+@[simp]
+theorem _root_.ContT.run_bind (x : ContT r m α) (f : α → ContT r m β) :
+    ContT.run (x >>= f) k = ContT.run x fun x => (f x).run k := rfl
+
+end ForMathlib
+
 /-! ### Continuation Monad via `FreeM` -/
 
 /-- Type constructor for continuation operations. -/
@@ -316,6 +333,22 @@ def run : FreeCont r α → (α → r) → r
   | .pure a, k => k a
   | .liftBind (.callCC g) cont, k => g (fun a => run (cont a) k)
 
+@[simp]
+lemma run_pure (a : α) (k : α → r) :
+    run (pure a : FreeCont r α) k = k a := rfl
+
+@[simp]
+lemma run_lift_callCC (g : (α → r) → r) (k : α → r) :
+    run (lift (.callCC g)) k = g k := rfl
+
+@[simp]
+lemma run_bind (x : FreeCont r α) (f : α → FreeCont r β) (k : β → r) :
+    run (x.bind f) k = run x (fun i => run (f i) k) := by
+  induction x using FreeM.induction generalizing k with
+  | pure a => rfl
+  | lift_bind op cont ih =>
+    sorry
+
 /--
 The canonical interpreter `toContT` derived from `liftM` agrees with the hand-written
 recursive interpreter `run` for `FreeCont`.
@@ -323,27 +356,12 @@ recursive interpreter `run` for `FreeCont`.
 @[simp]
 theorem run_toContT {α : Type u} (comp : FreeCont r α) (k : α → r) :
     (toContT comp).run k = pure (run comp k) := by
-  induction comp with
+  simp only [toContT]
+  induction comp using FreeM.induction with
   | pure a => rfl
-  | liftBind op cont ih =>
-    simp only [toContT, FreeM.liftM]
+  | lift_bind op cont ih =>
     cases op
-    simp only [run, bind, ContT.run, id]
-    congr with x
-    apply ih
-
-@[simp]
-lemma run_pure (a : α) (k : α → r) :
-    run (pure a : FreeCont r α) k = k a := rfl
-
-@[simp]
-lemma run_lift_callCC_bind (g : (α → r) → r)
-    (cont : α → FreeCont r β) (k : β → r) :
-    run (lift (.callCC g) |>.bind cont) k = g (fun a => run (cont a) k) := rfl
-
-@[simp]
-lemma run_lift_callCC (g : (α → r) → r) (k : α → r) :
-    run (lift (.callCC g)) k = g k := rfl
+    sorry
 
 /-- Call with current continuation for the Free continuation monad. -/
 def callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) :

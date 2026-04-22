@@ -10,13 +10,7 @@ public import Cslib.Logics.LinearLogic.CLL.Basic
 
 @[expose] public section
 
-namespace Cslib
-
-namespace CLL
-
-universe u
-
-variable {Atom : Type u}
+namespace Cslib.Logic.CLL
 
 open Cslib.Logic.InferenceSystem
 
@@ -53,6 +47,4 @@ cut. -/
 -/
 -- def Proof.cut_elim (p : ⇓Γ) : CutFreeProof Γ
 
-end CLL
-
-end Cslib
+end Cslib.Logic.CLL
