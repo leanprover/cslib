@@ -404,7 +404,6 @@ variable {σ : Type u} {α : Type u}
 instance : MonadReaderOf σ (FreeReader σ) where
   read := .lift .read
 
-@[simp]
 lemma read_def : (read : FreeReader σ σ) = .lift .read := rfl
 
 instance : MonadReader σ (FreeReader σ) := inferInstance
