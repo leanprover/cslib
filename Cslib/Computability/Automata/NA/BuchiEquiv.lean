@@ -12,14 +12,12 @@ public import Cslib.Computability.Automata.NA.Basic
 
 /-! # Equivalence of nondeterministic Buchi automata (NBAs). -/
 
-open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
-
 universe u v w
 
 namespace Cslib.Automata.NA.Buchi
 
-open ωAcceptor
+open Set Function Filter ωSequence ωLanguage ωAcceptor
+open scoped LTS
 
 variable {Symbol : Type u} {State : Type v} {State' : Type w}
 
@@ -57,7 +55,8 @@ theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}
 @[simp, scoped grind =]
 theorem reindex_language_eq {f : State ≃ State'} {nba : Buchi State Symbol} :
     language (nba.reindex f) = language nba := by
-  ext xs
+  apply mem_ext
+  intro xs
   constructor
   · rintro ⟨ss', h_run', h_acc'⟩
     #adaptation_note

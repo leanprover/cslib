@@ -48,7 +48,9 @@ public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
 public import Cslib.Foundations.Data.BiTape
-public import Cslib.Foundations.Data.FinFun
+public import Cslib.Foundations.Data.DecidableEqZero
+public import Cslib.Foundations.Data.FinFun.Basic
+public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
@@ -125,5 +127,6 @@ public import Cslib.Logics.HML.LogicalEquivalence
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
+public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Propositional.Defs
