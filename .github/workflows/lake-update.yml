@@ -1,3 +1,17 @@
+# Keeps cslib's mathlib dependency up to date and tracks compatibility.
+#
+# leanprover-community/downstream-reports publishes a daily snapshot
+# of each downstream's build status against recent mathlib commits, identifying the
+# last-known-good (LKG) and first-known-bad (FKB) mathlib revisions for each project.
+#
+# The provided actions which are used here consume this snapshot, with:
+#
+#   bump      — updates lakefile.lean/lake-manifest to the LKG mathlib commit
+#               and opens (or force-pushes) a PR via the mathlib-nightly-testing bot.
+#   open-issue — opens a persistent issue when an FKB commit is detected (i.e. cslib
+#               can't yet advance to the mathlib tip), and closes it automatically
+#               once the incompatibility is resolved.
+
 name: Bump mathlib to LKG
 
 on:
@@ -5,16 +19,9 @@ on:
     - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   bump:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Generate app token
         id: app-token
@@ -39,3 +46,11 @@ jobs:
           token:          ${{ steps.app-token.outputs.token }}
           git-user-name:  mathlib-nightly-testing[bot]
           git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
+
+  open-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update incompatibility issue
+        uses: leanprover-community/downstream-reports/.github/actions/open-incompatibility-issue@main
