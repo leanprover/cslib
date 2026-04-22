@@ -288,6 +288,13 @@ end FreeWriter
 
 section ForMathlib
 
+/-- Constructor for `ContT`. -/
+def _root_.ContT.mk (f : (α → m r) → m r) : ContT r m α := f
+
+@[simp]
+theorem _root_.ContT.run_mk (f : (α → m r) → m r) :
+    ContT.run (.mk f : ContT r m α) k = f k := rfl
+
 @[simp]
 theorem _root_.ContT.run_pure (a : α) :
     ContT.run (pure a : ContT r m α) k = k a := rfl
@@ -316,8 +323,9 @@ namespace FreeCont
 variable {r : Type u} {α : Type v} {β : Type w}
 
 /-- Interpret `ContF r` operations into `ContT r Id`. -/
+@[simp]
 def contInterp : ContF r α → ContT r Id α
-  | .callCC g => g
+  | .callCC g => .mk fun k => pure <| g fun a => (k a).run
 
 /-- Convert a `FreeCont` computation into a `ContT` computation. This is the canonical
 interpreter derived from `liftM`. -/
@@ -347,7 +355,9 @@ lemma run_bind (x : FreeCont r α) (f : α → FreeCont r β) (k : β → r) :
   induction x using FreeM.induction generalizing k with
   | pure a => rfl
   | lift_bind op cont ih =>
-    sorry
+    rw [FreeM.bind_assoc]
+    cases op
+    simp [← liftBind_eq, run, ih]
 
 /--
 The canonical interpreter `toContT` derived from `liftM` agrees with the hand-written
@@ -361,7 +371,8 @@ theorem run_toContT {α : Type u} (comp : FreeCont r α) (k : α → r) :
   | pure a => rfl
   | lift_bind op cont ih =>
     cases op
-    sorry
+    simp_rw [run_bind]
+    simp [ih]
 
 /-- Call with current continuation for the Free continuation monad. -/
 def callCC (f : MonadCont.Label α (FreeCont r) β → FreeCont r α) :
