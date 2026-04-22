@@ -13,26 +13,26 @@ public import Mathlib.Tactic
 /-!
 # Key Exchange Protocol
 
-A *key exchange protocol* allows two parties (Alice and Bob) to establish a shared secret
-over an insecure channel.
+An abstract typeclass capturing the structure of a two-party key-exchange protocol. A
+protocol is given by three types — `PrivateKey`, `PublicValue`, `SharedSecret` — together
+with:
 
-The protocol proceeds as follows:
+* `pub : PrivateKey → PublicValue`, the value a party publishes;
+* `sharedSecret : PublicValue → PrivateKey → SharedSecret`, what each party computes from
+  the peer's public value and its own private key;
+* `agreement`, the correctness law
+  `sharedSecret (pub β) α = sharedSecret (pub α) β` for all `α, β`.
 
-1. Alice picks a private key α, computes her public value pub(α), and sends it to Bob.
-2. Bob picks a private key β, computes his public value pub(β), and sends it to Alice.
-3. Alice computes the shared secret as sharedSecret(pub(β), α).
-4. Bob computes the shared secret as sharedSecret(pub(α), β).
+Concrete protocols (e.g. Diffie-Hellman) arise by instantiating the three types and
+supplying the three fields. This file captures only the correctness equation; security
+assumptions belong to concrete instances.
 
-The fundamental correctness property (*agreement*) states that both parties compute the same
-shared secret:
+## Reference
 
-  sharedSecret(pub(β), α) = sharedSecret(pub(α), β)
-
-Reference:
-
-* [D. Boneh and V. Shoup,V., *A Graduate Course in Applied Cryptography*][BonehShoup],
-  Section 10.4.
+* [Boneh, Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup], Section 10.4.1
 -/
+
+namespace Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange
 
 universe u v w
 
@@ -46,3 +46,5 @@ class KeyExchangeProtocol
   /-- Agreement: both parties compute the same shared secret. -/
   agreement : ∀ (α β : PrivateKey),
     sharedSecret (pub β) α = sharedSecret (pub α) β
+
+end Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange
