@@ -42,7 +42,6 @@ public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.OneTimePad
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.PerfectSecrecy
 public import Cslib.Crypto.Protocols.PerfectSecrecy.OneTimePad
-public import Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
@@ -131,3 +130,4 @@ public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Probability.PMF
