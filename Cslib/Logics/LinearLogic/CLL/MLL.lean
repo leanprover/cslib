@@ -161,10 +161,8 @@ theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
   case ax => simp_all
   case one => simp
   case bot _ _ ih =>
-    simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp, Proposition.IsMLL,
-      true_and] at hΓ
-    specialize ih hΓ hp
-    grind only [IsMLL]
+    refine ih ?_ hp
+    simpa using hΓ
   case parr a b Γ p ih =>
     refine ih ?_ hp
     simp at hΓ
