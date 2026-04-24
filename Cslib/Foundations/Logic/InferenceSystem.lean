@@ -17,7 +17,7 @@ The notation typeclass for inference systems.
 This enables the notation `S⇓a`, where `S` is a tag for the inference system and `a : α`
 is a derivable value.
 -/
-class InferenceSystem (S : Type) (α : Type*) where
+class InferenceSystem (S : Type*) (α : Type*) where
   /--
   `S⇓a` is a derivation of `a`, that is, a witness that `a` is derivable in the system `S`.
   The meaning of this notation is type-dependent.
