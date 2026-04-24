@@ -16,8 +16,10 @@ public import Cslib.Foundations.Logic.InferenceSystem
 Multiplicative classical linear logic, defined as a fragment of classical linear logic by means of
 `Subtype`.
 
-This file also serves as the reference example of how to define a fragment of an inference system
-through `Subtype`, following the next recipe.
+This file serves as the reference example of how to define a fragment of an inference system
+through tagging of `InferenceSystem` and `Subtype`, following the next recipe. It is a work in
+progress: the recipe will evolve together with how the Lean and CSLib ecosystems can
+deal with this general problem.
 
 1. Define predicates for restricting relevant types to the fragment, here `IsMLL` for propositions
 (`CLL.Proposition`) and proofs (`CLL.Proof`). This part lives under the namespace of the original
@@ -38,8 +40,8 @@ can automatically eliminate irrelevant cases.
 For example, the following definition checks that an MLL proof is cut-free:
 
 ```
-/-- A proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree {Γ : Sequent Atom} (p : ⇓Γ) : Bool :=
+/-- An MLL proof is cut-free if it does not contain any applications of rule cut. -/
+def Proof.cutFree {Γ : Sequent Atom} (p : MLL⇓Γ) : Bool :=
   go p.val p.property
 where go {Γ : CLL.Sequent Atom} (p : ⇓Γ) (hp : p.IsMLL) : Bool :=
   match p, hp with
@@ -161,7 +163,7 @@ def Proof.IsMLL.rec
       (IsMLL.rec ax one bot tensor parr cut h.right)
 
 open scoped Sequent Proposition in
-/-- An MLL proof can only prove MLL sequents. -/
+/-- A proof in the MLL fragment can only prove MLL sequents. -/
 theorem Proof.isMLL_sequent {Γ : Sequent Atom} {p : ⇓Γ} (h : p.IsMLL) : Γ.IsMLL := by
   -- This should be simpler, grind seems to have some trouble.
   induction h
@@ -174,160 +176,86 @@ theorem Proof.isMLL_sequent {Γ : Sequent Atom} {p : ⇓Γ} (h : p.IsMLL) : Γ.I
     simp
     grind [Proof.IsMLL]
 
-end Cslib.Logic.CLL
-
-namespace Cslib.Logic.MLL
-
-/-- MLL propositions. -/
-abbrev Proposition (Atom : Type u) := {a : CLL.Proposition Atom // a.IsMLL}
-
-/-- Propositional duality in MLL. -/
-abbrev Proposition.dual (a : Proposition Atom) : Proposition Atom where
-  val := a.val.dual
-  property := CLL.Proposition.isMLL_dual a.property
-
-@[inherit_doc] scoped postfix:max "⫠" => Proposition.dual
-
-/-- Atom in MLL. -/
-@[match_pattern]
-def Proposition.atom (x : Atom) : Proposition Atom := ⟨.atom x, by simp⟩
-
-/-- Atom dual in MLL. -/
-@[match_pattern]
-def Proposition.atomDual (x : Atom) : Proposition Atom := ⟨.atomDual x, by simp⟩
-
-/-- `1` in MLL. -/
-@[match_pattern]
-def Proposition.one : Proposition Atom := ⟨.one, by simp⟩
-
-/-- `⊥` in MLL. -/
-@[match_pattern]
-def Proposition.bot : Proposition Atom := ⟨.bot, by simp⟩
-
-/-- `a ⊗ b` in MLL. -/
-@[match_pattern]
-def Proposition.tensor (a b : Proposition Atom) : Proposition Atom :=
-  ⟨CLL.Proposition.tensor a b, by simp [a.2, b.2]⟩
-
-/-- `a ⅋ b` in MLL. -/
-@[match_pattern]
-def Proposition.parr (a b : Proposition Atom) : Proposition Atom :=
-  ⟨CLL.Proposition.parr a b, by simp [a.2, b.2]⟩
-
-/-- Recursor for bundled MLL propositions. -/
-@[induction_eliminator, cases_eliminator, elab_as_elim]
-abbrev Proposition.rec (a : Proposition Atom) :=
-  @CLL.Proposition.IsMLL.rec (a := a.val) (h := a.property)
-
-/-- MLL propositional contexts. -/
-abbrev Proposition.Context (Atom : Type u) := {c : CLL.Proposition.Context Atom // c.IsMLL}
-
-/-- Filling of an MLL propositional context. -/
-def Proposition.Context.fill (c : Proposition.Context Atom) (a : Proposition Atom) :
-    Proposition Atom where
-  val := CLL.Proposition.Context.fill c a
-  property := (CLL.Proposition.Context.isMLL_fill c.property).mpr a.property
-
-/-- MLL sequents.
-
-Implementation note: it is important that this is defined as a `Multiset` rather than a `Subtype`
-of `CLL.Sequent` (i.e., `{Γ : CLL.Sequent Atom // Γ.IsMLL}`). Otherwise, we would not get access to
-set notation for MLL sequents.
--/
-abbrev Sequent (Atom : Type u) := Multiset (Proposition Atom)
-
--- {Γ : CLL.Sequent Atom // Γ.IsMLL}
--- Multiset (Proposition Atom)
-
-/-- Upcast of an MLL sequent into a CLL sequent. -/
-instance instCoeSequent : Coe (Sequent Atom) (CLL.Sequent Atom) where
-  coe Γ := Γ.map Subtype.val
-
-/-- Downcast of a CLL sequent into an MLL sequent. -/
-def _root_.Cslib.Logic.CLL.Sequent.toMLL {Γ : CLL.Sequent Atom} (h : Γ.IsMLL) : Sequent Atom :=
-  Γ.attach.map (fun (a : {a : CLL.Proposition Atom // a ∈ Γ}) => ⟨a.val, h a a.property⟩)
-
-def _root_.Cslib.Logic.CLL.Sequent.toMLL_eq {Γ : CLL.Sequent Atom} (h : Γ.IsMLL) :
-    (Γ.toMLL h : CLL.Sequent Atom) = Γ := by simp [CLL.Sequent.toMLL]
+/-- If a CLL derivation is cut-free and concludes an MLL sequent, then it is an MLL derivation. -/
+theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
+    (hp : p.cutFree) : p.IsMLL := by
+  induction p
+  case ax a =>
+    simp only [Sequent.IsMLL, Multiset.insert_eq_cons, Multiset.mem_cons, Multiset.mem_singleton,
+      forall_eq_or_imp, forall_eq] at hΓ
+    simp [hΓ]
+  case one => simp
+  case bot _ _ ih =>
+    simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp, Proposition.IsMLL,
+      true_and] at hΓ
+    specialize ih hΓ hp
+    grind only [IsMLL]
+  case parr a b Γ p ih =>
+    simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp, Proposition.IsMLL] at hΓ
+    specialize ih (by grind [Sequent.IsMLL]) hp
+    grind only [IsMLL]
+  case tensor a b Γ Δ p q ihp ihq =>
+    simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp, Proposition.IsMLL] at hΓ
+    specialize ihp (by grind [Sequent.IsMLL])
+    specialize ihq (by grind [Sequent.IsMLL])
+    grind only [cutFree, IsMLL]
+  case oplus₁ | oplus₂ | «with» | top | quest | contract | weaken | bang => simp at hΓ
+  case cut => simp [cutFree] at hp
 
 /-- MLL derivations. -/
-abbrev Proof {Atom : Type u} (Γ : Sequent Atom) := {p : CLL.Proof (Atom := Atom) Γ // p.IsMLL}
+abbrev MLL.Proof (Γ : CLL.Sequent Atom) := {p : ⇓Γ // p.IsMLL}
 
--- /-- Downcast of a CLL proof into an MLL proof. -/
--- def _root_.Cslib.Logic.CLL.Proof.toMLL {p : CLL.Proof Γ} (h : p.IsMLL) :
---     MLL.Proof (Γ.toMLL (CLL.Proof.isMLL_sequent h)) :=
---   ⟨CLL.Sequent.toMLL_eq (CLL.Proof.isMLL_sequent h) ▸ p, h⟩
+/-- Tag for the MLL inference system. -/
+inductive MLL
 
--- /-- Recursor for bundled MLL derivations. -/
--- @[induction_eliminator, cases_eliminator, elab_as_elim]
--- abbrev Proof.rec
---     {motive : {Γ : Sequent Atom} → (p : Proof Γ) → Sort u}
---     {Γ : Sequent Atom}
---     (p : Proof Γ) :=
---   @CLL.Proof.IsMLL.rec
---     (motive := fun {Γ} {p : CLL.Proof Γ} h => motive
---       ⟨p, h⟩)
---     (p := p.val) (h := p.property)
+/-- MLL inference system. -/
+instance : InferenceSystem MLL (Sequent Atom) := ⟨MLL.Proof⟩
 
+namespace MLL
 
-theorem bot_cons : Multiset.map Subtype.val (Proposition.bot ::ₘ Γ) = ⊥ ::ₘ Multiset.map Subtype.val Γ  := by
-  simp [Proposition.bot]
-  rfl
+open InferenceSystem
 
--- def _root_.Cslib.Logic.CLL.Proof.toMLL (p : CLL.Proof Γ) (hp : p.IsMLL) : Proof (Γ.toMLL (CLL.Proof.isMLL_sequent hp)) :=
---   match p, hp with
---   -- | .ax (a := a), _ => .ax
---   | .one, _ => ⟨.one, by simp⟩
---   | .bot p, hp =>
---     let p' := p.toMLL hp
+@[match_pattern]
+def Proof.ax {a : Proposition Atom} (h : a.IsMLL) : Proof {a, a⫠} :=
+  ⟨CLL.Proof.ax, by simp [h, Proof.IsMLL]⟩
 
---     ⟨CLL.Proof.bot (p.toMLL hp), by grind only [CLL.Proof.IsMLL]⟩
---     let r := p.toMLL hp
+@[match_pattern]
+def Proof.one : Proof (Atom := Atom) {Proposition.one} :=
+  ⟨CLL.Proof.one, by simp [Proof.IsMLL]⟩
 
---     let p' := (Cslib.Logic.CLL.Sequent.toMLL_eq (Cslib.Logic.CLL.Proof.isMLL_sequent hp)) ▸ p.toMLL hp
---     ⟨.bot (toMLL_eq ▸ p.toMLL hp), by simp⟩
+@[match_pattern]
+def Proof.bot {Γ : Sequent Atom} (p : Proof Γ) : Proof (⊥ ::ₘ Γ) :=
+  ⟨CLL.Proof.bot p, by simp [Proof.IsMLL, p.property]⟩
 
-def Proof.one {Atom} : Proof (Atom := Atom) {Proposition.one} := ⟨.one, by simp⟩
+@[match_pattern]
+def Proof.parr {Γ : Sequent Atom} {a b : Proposition Atom} (p : Proof (a ::ₘ b ::ₘ Γ)) :
+    Proof ((a ⅋ b) ::ₘ Γ) :=
+  ⟨CLL.Proof.parr p, by simp [Proof.IsMLL, p.property]⟩
 
+@[match_pattern]
+def Proof.tensor {Γ Δ : Sequent Atom} {a b : Proposition Atom}
+    (p : Proof (a ::ₘ Γ)) (q : Proof (b ::ₘ Δ)) :
+    Proof ((a ⊗ b) ::ₘ (Γ + Δ)) :=
+  ⟨CLL.Proof.tensor p q, by simp [Proof.IsMLL, p.property, q.property]⟩
 
+/-- MLL proofs derive only MLL sequents. -/
+theorem Proof.isMLL_sequent {Γ : Sequent Atom} (p : MLL⇓Γ) : Γ.IsMLL :=
+  CLL.Proof.isMLL_sequent p.property
 
-def Proof.bot {Γ : Sequent Atom} (p : Proof Γ) : Proof (Proposition.bot ::ₘ Γ) :=
-  ⟨bot_cons ▸ CLL.Proof.bot p.val, by grind only [CLL.Proof.IsMLL]⟩
+end MLL
 
--- def Proof.tensor {Γ : Sequent Atom} (p : Proof (a ::ₘ Γ)) (q : Proof (b ::ₘ Δ)) : Proof (a.tensor b ::ₘ Γ) :=
---   ⟨CLL.Proof.tensor p.val q.val, by grind only [CLL.Proof.IsMLL]⟩
+def Proof.cutFreeToMLL {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL) (hp : p.cutFree) : MLL⇓Γ :=
+  ⟨p, CLL.Proof.isMLL_cutFree p hΓ hp⟩
 
-  -- ⟨bot_cons ▸ CLL.Proof.bot p.val, by grind only [CLL.Proof.IsMLL]⟩
+instance {Γ : Sequent Atom} : Coe (MLL⇓Γ) (⇓Γ) where
+  coe p := p.val
 
-/- Recursor for MLL derivations. -/
--- @[induction_eliminator, elab_as_elim]
--- def Proof.rec
---     {motive : (Γ : Sequent Atom) → Proof Γ → Sort u}
---     (ax : ∀ a : Proposition Atom, motive {a, a⫠} ⟨.ax, by simp⟩)
---     (one : motive {Proposition.one} ⟨.one, by simp⟩)
---     (bot : ∀ p : Proof Γ, motive Γ p → motive (.bot ::ₘ Γ) ⟨Proof.bot p, by simp⟩)
---     (tensor : ∀ a b : Proposition Atom, motive a → motive b →
---       motive ⟨.tensor a.1 b.1, ⟨a.2, b.2⟩⟩)
---     (parr : ∀ a b : Proposition Atom, motive a → motive b →
---       motive ⟨.parr a.1 b.1, ⟨a.2, b.2⟩⟩)
---     (p : Proof Γ) : motive p :=
---   match a with
---   | ⟨.atom x, _⟩ => atom x
---   | ⟨.atomDual x, _⟩ => atomDual x
---   | ⟨.one, _⟩ => one
---   | ⟨.bot, _⟩ => bot
---   | ⟨.tensor a b, ⟨ha, hb⟩⟩ =>
---     tensor ⟨a, ha⟩ ⟨b, hb⟩
---       (Proposition.rec atom atomDual one bot tensor parr ⟨a, ha⟩)
---       (Proposition.rec atom atomDual one bot tensor parr ⟨b, hb⟩)
---   | ⟨.parr a b, ⟨ha, hb⟩⟩ =>
---       parr ⟨a, ha⟩ ⟨b, hb⟩
---         (Proposition.rec atom atomDual one bot tensor parr ⟨a, ha⟩)
---         (Proposition.rec atom atomDual one bot tensor parr ⟨b, hb⟩)
---   | ⟨.zero, h⟩ | ⟨.top, h⟩ | ⟨.oplus _ _, h⟩ | ⟨.with _ _, h⟩
---     | ⟨.bang _, h⟩ | ⟨.quest _, h⟩ => nomatch h
+def MLL.Proof.cutFree {Γ : Sequent Atom} (p : MLL⇓Γ) : Bool :=
+  match p with
+  | ax h | one => true
+  | bot p => p.cutFree
+  | parr p => p.cutFree
+  | tensor p q => p.cutFree && q.cutFree
+  | cut => false
 
-/-- The sequent calculus of MLL. -/
-instance : Logic.InferenceSystem (Sequent Atom) := ⟨Proof⟩
-
-end Cslib.Logic.MLL
+end Cslib.Logic.CLL

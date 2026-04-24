@@ -16,18 +16,31 @@ open Proposition Proof Sequent
 
 -- Test the custom Proof.IsMLL recursor with induction.
 example {Γ : Sequent Atom} (p : ⇓Γ) (h : p.IsMLL) : Γ.IsMLL := by
-  induction h
-  case ax =>
+  induction h with
+  | ax =>
     grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
-  case one =>
+  | one =>
     simp [Sequent.IsMLL, Proposition.IsMLL]
-  case parr | tensor | cut => grind [Proposition.IsMLL, Proof.IsMLL]
-  case bot Γ p ih =>
+  | parr | tensor | cut => grind [Proposition.IsMLL, Proof.IsMLL]
+  | bot p h =>
     simp
     grind [Proof.IsMLL]
 
--- Test the custom MLL.Proposition recursor with induction.
-example (a : Cslib.Logic.MLL.Proposition Atom) : a.dual.dual = a := by
-  induction a <;> grind only [= dual_involution]
+-- Induction on a bundled MLL proof.
+example {Γ : Sequent Atom} (p : MLL⇓Γ) : Γ.IsMLL := by
+  rcases p with ⟨p, h⟩
+  induction h with
+  | ax =>
+    grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
+  | one =>
+    simp [Sequent.IsMLL, Proposition.IsMLL]
+  | parr | tensor | cut =>
+    grind [Proposition.IsMLL, Proof.IsMLL]
+  | bot p h =>
+    simp
+    grind [Proof.IsMLL]
+
+-- Test that MLL proofs can be coerced into CLL proofs.
+example {Γ : Sequent Atom} (p : MLL⇓Γ) : ⇓Γ := (p : ⇓Γ)
 
 end CslibTests
