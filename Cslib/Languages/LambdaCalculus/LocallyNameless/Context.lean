@@ -10,13 +10,14 @@ public import Cslib.Foundations.Syntax.HasWellFormed
 public import Mathlib.Data.Finset.Dedup
 public import Mathlib.Data.List.Sigma
 
-@[expose] public section
 
 /-! # λ-calculus
 
 Contexts as pairs of free variables and types.
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

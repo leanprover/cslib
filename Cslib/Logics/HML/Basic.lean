@@ -8,8 +8,6 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
 
-@[expose] public section
-
 /-! # Hennessy-Milner Logic (HML)
 
 Hennessy-Milner Logic (HML) is a logic for reasoning about the behaviour of nondeterministic and
@@ -45,6 +43,8 @@ distinguishing proposition that one state satisfies and the other does not.
 * [L. Aceto, A. Ingólfsdóttir, *Testing Hennessy-Milner Logic with Recursion*][Aceto1999]
 
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.HML
 

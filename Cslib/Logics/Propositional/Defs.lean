@@ -11,8 +11,6 @@ public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
 
-@[expose] public section
-
 /-! # Propositions and theories
 
 ## Main definitions
@@ -33,6 +31,8 @@ theory.
 We introduce notation for the logical connectives: `⊥ ⊤ ⋏ ⋎ ⟶ ~` for, respectively, falsum, verum,
 conjunction, disjunction, implication and negation.
 -/
+
+@[expose] public section
 
 universe u
 

@@ -10,8 +10,6 @@ public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
 public import Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
-@[expose] public section
-
 /-!
 # Perfect Secrecy: Definitions
 
@@ -32,6 +30,8 @@ Core definitions for perfect secrecy following [KatzLindell2020], Chapter 2.
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.CiphertextIndist`:
   ciphertext indistinguishability ([KatzLindell2020], Lemma 2.5)
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 

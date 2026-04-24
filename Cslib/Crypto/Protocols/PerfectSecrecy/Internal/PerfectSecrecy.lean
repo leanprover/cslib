@@ -9,8 +9,6 @@ module
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Mathlib.Probability.Distributions.Uniform
 
-@[expose] public section
-
 /-!
 # Perfect Secrecy: Internal proofs
 
@@ -20,6 +18,8 @@ Auxiliary lemmas for perfect secrecy:
   ([KatzLindell2020], Lemma 2.5)
 - Shannon's key-space bound ([KatzLindell2020], Theorem 2.12)
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy
 

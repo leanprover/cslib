@@ -9,6 +9,8 @@ module
 public import Cslib.Foundations.Syntax.Context
 public import Mathlib.Algebra.Order.Monoid.Unbundled.Defs
 
+/-! Typeclass for congruence over a context. -/
+
 @[expose] public section
 
 namespace Cslib

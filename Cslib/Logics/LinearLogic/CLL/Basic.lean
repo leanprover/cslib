@@ -12,8 +12,6 @@ public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Mathlib.Data.Multiset.Fold
 
-@[expose] public section
-
 /-! # Classical Linear Logic
 
 ## TODO
@@ -25,6 +23,8 @@ public import Mathlib.Data.Multiset.Fold
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.CLL
 

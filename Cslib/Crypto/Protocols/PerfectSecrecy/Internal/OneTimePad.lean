@@ -9,13 +9,13 @@ module
 public import Cslib.Init
 public import Mathlib.Probability.Distributions.Uniform
 
-@[expose] public section
-
 /-!
 # One-Time Pad: Internal proofs
 
 The OTP ciphertext distribution is uniform regardless of message.
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.OTP
 

@@ -11,13 +11,13 @@ public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Algebra.Order.Sub.Basic
 public import Mathlib.Data.Nat.Lattice
 
-@[expose] public section
-
 /-!
 # ω-sequences a.k.a. infinite sequences
 
 Most code below is adapted from Mathlib.Data.Stream.Init.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

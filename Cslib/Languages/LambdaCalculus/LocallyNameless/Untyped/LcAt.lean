@@ -8,8 +8,6 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
-@[expose] public section
-
 /-!
 
 Alternative Definitions for LC:
@@ -18,6 +16,8 @@ This module defines `LcAt k M`, a more general definition of local closure. When
 equivalent to `LC`, as shown in `lcAt_iff_LC`.
 
 -/
+
+@[expose] public section
 
 namespace Cslib.LambdaCalculus.LocallyNameless.Untyped.Term
 

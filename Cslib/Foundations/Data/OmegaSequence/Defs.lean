@@ -10,8 +10,6 @@ public import Cslib.Init
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Logic.Function.Iterate
 
-@[expose] public section
-
 /-!
 # Definition of `ωSequence` and functions on infinite sequences
 
@@ -24,6 +22,8 @@ function application notation `s n`.
 In this file we define `ωSequence` and its API functions.
 Most code below is adapted from Mathlib.Data.Stream.Defs.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
