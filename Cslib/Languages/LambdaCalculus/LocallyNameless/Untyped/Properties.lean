@@ -92,7 +92,6 @@ lemma swap_open (k n : ℕ) (t₁ t₂ m : Term Var) (neq : k ≠ n) (h1 : t₁.
     m⟦n ↝ t₂⟧⟦k ↝ t₁⟧ = m⟦k ↝ t₁⟧⟦n ↝ t₂⟧ := by
   induction m generalizing k n with grind
 
-
 /- If opening yields `app m x`, the original term was `app m (bvar 0)`. -/
 lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m.fv) (lc_m : LC m)
     (h : n ^ fvar x = app m (fvar x)) : n = app m (bvar 0) := by
