@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasSubstitution
 
-@[expose] public section
-
 /-! # λ-calculus
 
 The untyped λ-calculus, with a locally nameless representation of syntax.
@@ -22,6 +20,8 @@ The untyped λ-calculus, with a locally nameless representation of syntax.
   this is partially adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

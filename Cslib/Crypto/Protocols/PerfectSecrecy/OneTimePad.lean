@@ -10,8 +10,6 @@ public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.OneTimePad
 public import Mathlib.Probability.Distributions.Uniform
 
-@[expose] public section
-
 /-!
 # One-Time Pad
 
@@ -31,6 +29,8 @@ The one-time pad (Vernam cipher) over `BitVec l`
 
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy
 

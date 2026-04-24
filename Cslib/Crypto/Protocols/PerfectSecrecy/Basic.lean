@@ -9,8 +9,6 @@ module
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.PerfectSecrecy
 
-@[expose] public section
-
 /-!
 # Perfect Secrecy
 
@@ -28,6 +26,8 @@ Characterisation theorems for perfect secrecy following
 
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 

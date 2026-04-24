@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Data.Relation
 public meta import Mathlib.Tactic.ToDual
 
-@[expose] public section
-
 /-!
 # SKI Combinatory Logic
 
@@ -35,6 +33,8 @@ The setup of SKI combinatory logic is standard, see for example:
 - <https://en.m.wikipedia.org/wiki/SKI_combinator_calculus>
 - <https://en.m.wikipedia.org/wiki/Combinatory_logic>
 -/
+
+@[expose] public section
 
 namespace Cslib
 

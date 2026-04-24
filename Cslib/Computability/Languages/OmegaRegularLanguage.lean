@@ -16,13 +16,13 @@ public import Mathlib.Data.Finite.Card
 public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Logic.Equiv.Fin.Basic
 
-@[expose] public section
-
 /-!
 # ω-Regular languages
 
 This file defines ω-regular languages and proves some properties of them.
 -/
+
+@[expose] public section
 
 namespace Cslib.ωLanguage
 

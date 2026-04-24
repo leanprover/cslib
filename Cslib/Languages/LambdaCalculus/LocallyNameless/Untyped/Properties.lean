@@ -8,6 +8,8 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
+/-! General properties of opening and substitution in untyped lambda calculus terms. -/
+
 public section
 
 namespace Cslib

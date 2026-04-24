@@ -11,8 +11,6 @@ public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 
-@[expose] public section
-
 /-! # Bisimulation and Bisimilarity
 
 A bisimulation is a binary relation on the states of two `LTS`s, which establishes a tight semantic
@@ -65,6 +63,8 @@ equivalence coincide.
 - `WeakBisimilarity.eqv`: weak bisimilarity is an equivalence relation.
 
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 
