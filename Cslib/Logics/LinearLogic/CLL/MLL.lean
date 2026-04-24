@@ -125,7 +125,7 @@ def Proof.IsMLL.rec
       @motive (Γ + Δ) (.cut p q) (by simp [hp, hq]))
     {Γ : Sequent Atom} {p : Proof Γ} (h : p.IsMLL) : @motive Γ p h :=
   match p, h with
-  | .ax (a := a), hp => @ax a (by simp only [IsMLL] at hp; exact hp)
+  | .ax (a := a), hp => @ax a (by simpa)
   | .one, _ => one
   | .bot p (Γ := Γ), hp => @bot Γ p hp (IsMLL.rec ax one bot tensor parr cut (p := p) hp)
   | .tensor (a := a) (b := b) (Γ := Γ) (Δ := Δ) p q, h =>
