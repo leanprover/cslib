@@ -24,6 +24,7 @@ class InferenceSystem (S : Type) (α : Type*) where
   -/
   derivation (a : α) : Sort v
 
+/-- Default tag for inference system instances. `⇓a` is short for `Default⇓a`. -/
 inductive InferenceSystem.Default
 
 /-- Class for types (`α`) that have a canonical inference system. -/
@@ -57,10 +58,6 @@ noncomputable def DerivableIn.toDerivation [InferenceSystem S α] {a : α} (d : 
 
 noncomputable instance [InferenceSystem S α] {a : α} : Coe (DerivableIn S a) (S⇓a) :=
   ⟨DerivableIn.toDerivation⟩
-
--- @[inherit_doc InferenceSystem.derivation]
--- def HasInferenceSystem.derivation (α : Type*) [HasInferenceSystem α] :=
---   (InferenceSystem.derivation Default α) α
 
 @[inherit_doc] scoped notation "⇓" a:90 => InferenceSystem.derivation Default a
 
