@@ -14,7 +14,7 @@ public import Cslib.Foundations.Logic.InferenceSystem
 /-! # Multiplicative Classical Linear Logic (MLL)
 
 Multiplicative classical linear logic, defined as a fragment of classical linear logic by means of
-`Subtype`.
+a predicate (unbundled style) and `Subtype` (bundled style).
 
 This file serves as the reference example of how to define a fragment of an inference system
 through tagging of `InferenceSystem` and `Subtype`, following the next recipe. It is a work in
@@ -23,34 +23,12 @@ deal with this general problem.
 
 1. Define predicates for restricting relevant types to the fragment, here `IsMLL` for propositions
 (`CLL.Proposition`) and proofs (`CLL.Proof`). This part lives under the namespace of the original
-system (here `Cslib.Logic.CLL`).
-2. Define the types in the fragment -- here `MLL.Proposition` and `MLL.Proof` -- as abbreviations of
-subtypes. This part lives under the namespace of the fragment (here `Cslib.Logic.MLL`).
+system (here `Cslib.Logic.CLL`). Custom recursors can be defined for convenient case analysis that
+automatically discharges irrelevant cases (those not in the fragment).
+2. Define the inference system in the fragment -- here `MLL.Proof` -- as an abbreviation of
+a subtype. This part lives under the namespace of the fragment (here `Cslib.Logic.CLL.MLL`).
 
 We also call the first part the 'unbundled part' and the second the 'bundled part'.
-
-This recipe has the advantage that any value (propositions, proofs, etc.) in the fragment is
-coerciable into the original system for free through `Subtype`.
-
-The main disadvantage is that the fragment does not have its own inductives, so case analysis
-requires carrying around the restricting predicate(s) as parameters to discharge irrelevant cases
-from the original system.
-This can be elegantly managed by unbundling the predicate right away, so that `match` (or similar)
-can automatically eliminate irrelevant cases.
-For example, the following definition checks that an MLL proof is cut-free:
-
-```
-/-- An MLL proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree {Γ : Sequent Atom} (p : MLL⇓Γ) : Bool :=
-  go p.val p.property
-where go {Γ : CLL.Sequent Atom} (p : ⇓Γ) (hp : p.IsMLL) : Bool :=
-  match p, hp with
-  | .ax, _ => true
-  | .bot p, hp | .parr p, hp => go p hp
-  | .one, _ => true
-  | .cut _ _, _ => false
-  | .tensor p q, hp => go p hp.left && go q hp.right
-```
 -/
 
 namespace Cslib.Logic.CLL
@@ -215,47 +193,17 @@ namespace MLL
 
 open InferenceSystem
 
-@[match_pattern]
-def Proof.ax {a : Proposition Atom} (h : a.IsMLL) : Proof {a, a⫠} :=
-  ⟨CLL.Proof.ax, by simp [h, Proof.IsMLL]⟩
-
-@[match_pattern]
-def Proof.one : Proof (Atom := Atom) {Proposition.one} :=
-  ⟨CLL.Proof.one, by simp [Proof.IsMLL]⟩
-
-@[match_pattern]
-def Proof.bot {Γ : Sequent Atom} (p : Proof Γ) : Proof (⊥ ::ₘ Γ) :=
-  ⟨CLL.Proof.bot p, by simp [Proof.IsMLL, p.property]⟩
-
-@[match_pattern]
-def Proof.parr {Γ : Sequent Atom} {a b : Proposition Atom} (p : Proof (a ::ₘ b ::ₘ Γ)) :
-    Proof ((a ⅋ b) ::ₘ Γ) :=
-  ⟨CLL.Proof.parr p, by simp [Proof.IsMLL, p.property]⟩
-
-@[match_pattern]
-def Proof.tensor {Γ Δ : Sequent Atom} {a b : Proposition Atom}
-    (p : Proof (a ::ₘ Γ)) (q : Proof (b ::ₘ Δ)) :
-    Proof ((a ⊗ b) ::ₘ (Γ + Δ)) :=
-  ⟨CLL.Proof.tensor p q, by simp [Proof.IsMLL, p.property, q.property]⟩
-
 /-- MLL proofs derive only MLL sequents. -/
 theorem Proof.isMLL_sequent {Γ : Sequent Atom} (p : MLL⇓Γ) : Γ.IsMLL :=
   CLL.Proof.isMLL_sequent p.property
 
 end MLL
 
+/-- Downcasting of cut-free CLL proofs of multiplicative sequents into MLL proofs. -/
 def Proof.cutFreeToMLL {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL) (hp : p.cutFree) : MLL⇓Γ :=
   ⟨p, CLL.Proof.isMLL_cutFree p hΓ hp⟩
 
 instance {Γ : Sequent Atom} : Coe (MLL⇓Γ) (⇓Γ) where
   coe p := p.val
-
-def MLL.Proof.cutFree {Γ : Sequent Atom} (p : MLL⇓Γ) : Bool :=
-  match p with
-  | ax h | one => true
-  | bot p => p.cutFree
-  | parr p => p.cutFree
-  | tensor p q => p.cutFree && q.cutFree
-  | cut => false
 
 end Cslib.Logic.CLL
