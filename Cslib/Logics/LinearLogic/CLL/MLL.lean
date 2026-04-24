@@ -158,10 +158,7 @@ theorem Proof.isMLL_sequent {Γ : Sequent Atom} {p : ⇓Γ} (h : p.IsMLL) : Γ.I
 theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
     (hp : p.cutFree) : p.IsMLL := by
   induction p
-  case ax a =>
-    simp only [Sequent.IsMLL, Multiset.insert_eq_cons, Multiset.mem_cons, Multiset.mem_singleton,
-      forall_eq_or_imp, forall_eq] at hΓ
-    simp [hΓ]
+  case ax => simp_all
   case one => simp
   case bot _ _ ih =>
     simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp, Proposition.IsMLL,
