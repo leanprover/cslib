@@ -166,9 +166,9 @@ theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
     specialize ih hΓ hp
     grind only [IsMLL]
   case parr a b Γ p ih =>
-    simp only [Sequent.IsMLL, Multiset.mem_cons, forall_eq_or_imp, Proposition.IsMLL] at hΓ
-    specialize ih (by grind [Sequent.IsMLL]) hp
-    grind only [IsMLL]
+    refine ih ?_ hp
+    simp at hΓ
+    grind [Sequent.IsMLL]
   case tensor a b Γ Δ p q ihp ihq =>
     simp at hΓ
     refine ⟨ihp ?mll.p ?cut.p, ihq ?mll.q ?cut.q⟩
