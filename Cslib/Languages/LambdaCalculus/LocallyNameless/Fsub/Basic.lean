@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 
-@[expose] public section
-
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -22,6 +20,8 @@ The λ-calculus with polymorphism and subtyping, with a locally nameless represe
   this is adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

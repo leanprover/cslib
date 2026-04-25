@@ -10,8 +10,6 @@ public import Cslib.Init
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Order.SetNotation
 
-@[expose] public section
-
 /-!
 # Labelled Transition System (LTS)
 
@@ -47,6 +45,8 @@ type of labels is finite.
 * [F. Montesi, *Introduction to Choreographies*][Montesi2023]
 * [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
+
+@[expose] public section
 
 namespace Cslib
 

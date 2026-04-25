@@ -8,11 +8,11 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
-@[expose] public section
-
 /-!
 # Conversions between `LTS` and `Relation`.
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

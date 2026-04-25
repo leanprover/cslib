@@ -8,9 +8,9 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
-@[expose] public section
-
 /-! # Product of nondeterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 

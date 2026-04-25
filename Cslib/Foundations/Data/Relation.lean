@@ -12,6 +12,14 @@ public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
 
+/-! # Relations
+
+## References
+
+* [*Term Rewriting and All That*][Baader1998]
+
+-/
+
 @[expose] public section
 
 variable {α : Type*} {r : α → α → Prop}
@@ -22,14 +30,6 @@ theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : 
 @[simp, grind =]
 theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFounded r :=
   ⟨ofTransGen, transGen⟩
-
-/-! # Relations
-
-## References
-
-* [*Term Rewriting and All That*][Baader1998]
-
--/
 
 namespace Relation
 
