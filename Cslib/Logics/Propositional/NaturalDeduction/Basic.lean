@@ -20,12 +20,12 @@ We define, for minimal logic, deduction trees (a `Type`) and derivability (a `Pr
 
 ## Main definitions
 
-- `Sequent` : a triple of `Theory Atom`, `Ctx Atom`, `Proposition Atom`.
+- `Sequent` : a pair of a context and conclusion.
 - `Derivation` : natural deduction derivation, done in "sequent style", ie with explicit
 hypotheses at each step. Contexts are `Finset`'s of propositions, which avoids explicit contraction
-and exchange, and the axiom rule derives `{A} ∪ Γ ⊢ A` for any context `Γ`, allowing weakening to
-be a derived rule. The derivation may appeal to hypotheses from the `Theory T`. This defines an
-instance of `InferenceSystem` for `Sequent`.
+and exchange, and the axiom rule derives `Γ ⊢ A` for any context `Γ` with `A ∈ Γ`, allowing
+weakening to be a derived rule. The derivation may appeal to hypotheses from the `Theory T`. This
+defines an instance of `InferenceSystem T Sequent`.
 - `Theory.equiv` : `Type`-valued equivalence of propositions.
 - `Theory.Equiv` : `Prop`-valued equivalence of propositions.
 
@@ -38,7 +38,9 @@ differ in the construction of the relevant derivation.
 
 ## Notation
 
-The sequent `⟨T, Γ, A⟩` is notated `Γ ⊢ A`, and `⊢ A` abbreviates `∅ ⊢ A`.
+The sequent `⟨Γ, A⟩` is notated `Γ ⊢ A`, so that a derivation using axioms from a theory `T` is
+noted `T⇓(Γ ⊢ A)`. We define also an `InferenceSystem T (Proposition Atom)`, so that `T⇓A`
+abbreviates a derivation of `A` in the empty context: `T⇓(∅ ⊢ A)`.
 
 ## Implementation notes
 
@@ -108,15 +110,17 @@ inductive Theory.Derivation {T : Theory Atom} : Sequent.{u} → Type u where
   | implE {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation ⟨Γ, A → B⟩ → Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩
 
+/-- Inference system for derivations under the theory `T`. -/
 instance (T : Theory Atom) : InferenceSystem T (Sequent (Atom := Atom)) where
   derivation := T.Derivation
 
+/-- Inference system for propositions (using the empty context). -/
 instance (T : Theory Atom) : InferenceSystem T (Proposition Atom) where
   derivation A := T.Derivation ⟨∅, A⟩
 
 variable {T : Theory Atom}
 
-theorem Derivation.emptySequent_eq {A : Proposition Atom} : T⇓A = T⇓(∅ ⊢ A) := rfl
+theorem Theory.Derivation.emptySequent_eq {A : Proposition Atom} : T⇓A = T⇓(∅ ⊢ A) := rfl
 
 theorem DerivableIn.iff_derivableIn_empty {A : Proposition Atom} :
     DerivableIn T A ↔ DerivableIn T (∅ ⊢ A) := by rfl
