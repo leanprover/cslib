@@ -25,7 +25,7 @@ class InferenceSystem (S : Type*) (α : Type*) where
   derivation (a : α) : Sort v
 
 /-- Default tag for inference system instances. `⇓a` is short for `Default⇓a`. -/
-inductive InferenceSystem.Default
+opaque InferenceSystem.Default : Type := Empty
 
 /-- Class for types (`α`) that have a canonical inference system. -/
 abbrev HasInferenceSystem := InferenceSystem InferenceSystem.Default

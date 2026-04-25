@@ -179,7 +179,7 @@ theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
 abbrev MLL.Proof (Γ : CLL.Sequent Atom) := {p : ⇓Γ // p.IsMLL}
 
 /-- Tag for the MLL inference system. -/
-inductive MLL
+opaque MLL : Type := Empty
 
 /-- MLL inference system. -/
 instance : InferenceSystem MLL (Sequent Atom) := ⟨MLL.Proof⟩
