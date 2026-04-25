@@ -84,39 +84,39 @@ scoped notation Γ:60 " ⊢ " A => (⟨Γ, A⟩ : Sequent)
 
 /-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
 possibly appealing to axioms from `T`. -/
-inductive Theory.Derivation {T : Theory Atom} : Sequent.{u} → Type u where
+inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom → Type u where
   /-- Axiom -/
-  | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation ⟨Γ, A⟩
+  | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation Γ A
   /-- Assumption -/
-  | ass {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ Γ) : Derivation ⟨Γ, A⟩
+  | ass {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ Γ) : Derivation Γ A
   /-- Conjunction introduction -/
   | conjI {Γ : Ctx Atom} {A B : Proposition Atom} :
-      Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, A ∧ B⟩
+      Derivation Γ A → Derivation Γ B → Derivation Γ (A ∧ B)
   /-- Conjunction elimination left -/
-  | conjE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A ∧ B⟩ → Derivation ⟨Γ, A⟩
+  | conjE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ A
   /-- Conjunction elimination right -/
-  | conjE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A ∧ B⟩ → Derivation ⟨Γ, B⟩
+  | conjE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ B
   /-- Disjunction introduction left -/
-  | disjI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, A ∨ B⟩
+  | disjI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ A → Derivation Γ (A ∨ B)
   /-- Disjunction introduction right -/
-  | disjI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation ⟨Γ, B⟩ → Derivation ⟨Γ, A ∨ B⟩
+  | disjI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ B → Derivation Γ (A ∨ B)
   /-- Disjunction elimination -/
-  | disjE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation ⟨Γ, A ∨ B⟩ →
-      Derivation ⟨insert A Γ, C⟩ → Derivation ⟨insert B Γ, C⟩ → Derivation ⟨Γ, C⟩
+  | disjE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation Γ (A ∨ B) →
+      Derivation (insert A Γ) C → Derivation (insert B Γ) C → Derivation Γ C
   /-- Implication introduction -/
   | implI {A B : Proposition Atom} (Γ : Ctx Atom) :
-      Derivation ⟨insert A Γ, B⟩ → Derivation ⟨Γ, A → B⟩
+      Derivation (insert A Γ) B → Derivation Γ (A → B)
   /-- Implication elimination -/
   | implE {Γ : Ctx Atom} {A B : Proposition Atom} :
-      Derivation ⟨Γ, A → B⟩ → Derivation ⟨Γ, A⟩ → Derivation ⟨Γ, B⟩
+      Derivation Γ (A → B) → Derivation Γ A → Derivation Γ B
 
 /-- Inference system for derivations under the theory `T`. -/
 instance (T : Theory Atom) : InferenceSystem T (Sequent (Atom := Atom)) where
-  derivation := T.Derivation
+  derivation S := T.Derivation S.1 S.2
 
 /-- Inference system for propositions (using the empty context). -/
 instance (T : Theory Atom) : InferenceSystem T (Proposition Atom) where
-  derivation A := T.Derivation ⟨∅, A⟩
+  derivation A := T.Derivation ∅ A
 
 variable {T : Theory Atom}
 
@@ -167,7 +167,7 @@ open Derivation DerivableIn
 
 /-- Weakening is a derived rule. -/
 def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ) : T.Derivation (Γ ⊢ A) → T'.Derivation (Δ ⊢ A)
+    (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ) : T.Derivation Γ A → T'.Derivation Δ A
   | ax hA => ax <| hTheory hA
   | ass hA => ass <| hCtx hA
   | conjI D D' => conjI (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
@@ -175,7 +175,7 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
   | conjE₂ D => conjE₂ <| D.weak hTheory hCtx
   | disjI₁ D => disjI₁ <| D.weak hTheory hCtx
   | disjI₂ D => disjI₂ <| D.weak hTheory hCtx
-  | @disjE _ _ _ _ A B _ D D' D'' =>
+  | disjE D D' D'' =>
     disjE (D.weak hTheory hCtx)
       (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
       (D''.weak hTheory <| Finset.insert_subset_insert _ hCtx)
@@ -213,7 +213,7 @@ substitution, which would replace appeals to `A` in `E` by the whole derivation 
 -/
 def Theory.Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : T⇓(Γ ⊢ A)) (E : T⇓(insert A Δ ⊢ B)) : T⇓((Γ ∪ Δ) ⊢ B) := by
-  refine implE ?_ (D.weak_ctx Finset.subset_union_left)
+  refine implE (A := A) ?_ (D.weak_ctx Finset.subset_union_left)
   have : insert A Δ ⊆ insert A (Γ ∪ Δ) := by grind
   exact implI (Γ ∪ Δ) <| E.weak_ctx this
 
@@ -241,7 +241,7 @@ theorem DerivableIn.cut_away {Γ Γ' : Ctx Atom} {B : Proposition Atom}
 this implementation is not capture avoiding. -/
 def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
     (Ds : ∀ A ∈ Γ', T⇓(Δ ⊢ A)) :
-      T.Derivation (Γ ⊢ B) → T.Derivation ((Γ \ Γ' ∪ Δ) ⊢ B)
+      T.Derivation Γ B → T.Derivation (Γ \ Γ' ∪ Δ) B
   | ax hB => ax hB
   | @ass _ _ _ _ B hB => by
     by_cases B ∈ Γ'
@@ -269,7 +269,7 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
 /-- Transport a derivation along a substitution of atoms. -/
 def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
     {T : Theory Atom} (f : Atom → Proposition Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
-    T.Derivation (Γ ⊢ B) → (T.subst f).Derivation (Γ.subst f ⊢ B >>= f)
+    T.Derivation Γ B → (T.subst f).Derivation (Γ.subst f) (B >>= f)
   | ax h => ax <| Set.mem_image_of_mem (· >>= f) h
   | ass h => ass <| Finset.mem_image_of_mem (· >>= f) h
   | conjI D E => conjI (D.substAtom f) (E.substAtom f)
