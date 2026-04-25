@@ -9,8 +9,6 @@ module
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
 
-@[expose] public section
-
 /-! # Multiplicative Classical Linear Logic (MLL)
 
 Multiplicative classical linear logic, defined as a fragment of classical linear logic by means of
@@ -50,6 +48,8 @@ where go {Γ : CLL.Sequent Atom} (p : ⇓Γ) (hp : p.IsMLL) : Bool :=
   | .tensor p q, hp => go p hp.left && go q hp.right
 ```
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.CLL
 

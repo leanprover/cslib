@@ -10,8 +10,6 @@ public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
 
-@[expose] public section
-
 /-!
 # Single-Tape Turing Machines
 
@@ -61,6 +59,8 @@ We also provide ways of constructing polynomial-runtime TMs
 - Add `∘` notation for `compComputer`.
 
 -/
+
+@[expose] public section
 
 open Cslib Relation
 

@@ -10,10 +10,6 @@ public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 
-public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # β-reduction for the λ-calculus
 
 ## References
@@ -23,6 +19,10 @@ set_option linter.unusedDecidableInType false
   this is partially adapted
 
 -/
+
+public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 

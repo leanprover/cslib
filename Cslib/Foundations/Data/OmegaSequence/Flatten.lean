@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Init
 
-@[expose] public section
-
 /-!
 # Flattening an infinite sequence of lists
 
@@ -19,6 +17,8 @@ concatenating all members of `ls`.  For this definition to make proper sense,
 we will consistently assume that all lists in `ls` are nonempty.  Furthermore,
 in order to simplify the definition, we will also assume [Inhabited α].
 -/
+
+@[expose] public section
 
 namespace Cslib
 

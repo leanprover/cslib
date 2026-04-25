@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-@[expose] public section
-
 /-! # Loop construction on nondeterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 

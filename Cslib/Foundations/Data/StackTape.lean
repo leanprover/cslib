@@ -8,8 +8,6 @@ module
 
 public import Cslib.Init
 
-@[expose] public section
-
 /-!
 # StackTape: Infinite, eventually-`none` lists of `Option`s
 
@@ -37,6 +35,8 @@ advantages and disadvantages.
 - Make a `::`-like notation.
 
 -/
+
+@[expose] public section
 
 namespace Turing
 

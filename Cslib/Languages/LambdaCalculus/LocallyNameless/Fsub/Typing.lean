@@ -9,8 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Reduction
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Subtype
 
-@[expose] public section
-
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -23,6 +21,8 @@ This file defines the typing relation.
   this is adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

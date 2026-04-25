@@ -9,8 +9,6 @@ module
 public import Cslib.Init
 public import Mathlib.Probability.ProbabilityMassFunction.Monad
 
-@[expose] public section
-
 /-!
 # PMF Utilities
 
@@ -30,6 +28,8 @@ the Mathlib module instead.
 - `PMFUtilities.posterior_hasSum`: posterior probabilities sum to 1
 - `PMFUtilities.posteriorDist`: the posterior as a `PMF`
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
 

@@ -9,14 +9,14 @@ module
 public import Cslib.Init
 public import Mathlib.Computability.Language
 
-@[expose] public section
-
 /-!
 # Language (additional definitions and theorems)
 
 This file contains additional definitions and theorems about `Language`
 as defined and developed in `Mathlib.Computability.Language`.
 -/
+
+@[expose] public section
 
 namespace Language
 

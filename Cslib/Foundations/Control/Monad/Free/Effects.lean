@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Control.Monad.Free
 public import Mathlib.Control.Monad.Cont
 
-@[expose] public section
-
 /-!
 # Free Monad
 
@@ -38,6 +36,8 @@ the universal property.
 
 Free monad, state monad, writer monad, continuation monad
 -/
+
+@[expose] public section
 
 namespace Cslib
 

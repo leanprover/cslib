@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 
-@[expose] public section
-
 /-! # Deterministic automaton corresponding to a right congruence. -/
+
+@[expose] public section
 
 namespace Cslib
 
