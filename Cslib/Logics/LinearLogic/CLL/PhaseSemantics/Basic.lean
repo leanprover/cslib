@@ -11,8 +11,6 @@ public import Mathlib.Algebra.Group.Idempotent
 public import Mathlib.Order.Closure
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
-@[expose] public section
-
 /-!
 # Phase semantics for Classical Linear Logic
 
@@ -54,11 +52,11 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
 
-namespace Cslib
+@[expose] public section
+
+namespace Cslib.Logic.CLL
 
 universe u v
-
-namespace CLL
 
 open scoped Pointwise
 open Set
@@ -705,6 +703,4 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
 
 end PhaseSpace
 
-end CLL
-
-end Cslib
+end Cslib.Logic.CLL

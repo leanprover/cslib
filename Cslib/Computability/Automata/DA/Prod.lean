@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Foundations.Semantics.FLTS.Prod
 
-@[expose] public section
-
 /-! # Product of deterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata
 

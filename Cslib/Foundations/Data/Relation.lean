@@ -12,6 +12,14 @@ public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
 
+/-! # Relations
+
+## References
+
+* [*Term Rewriting and All That*][Baader1998]
+
+-/
+
 @[expose] public section
 
 variable {α : Type*} {r : α → α → Prop}
@@ -22,14 +30,6 @@ theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : 
 @[simp, grind =]
 theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFounded r :=
   ⟨ofTransGen, transGen⟩
-
-/-! # Relations
-
-## References
-
-* [*Term Rewriting and All That*][Baader1998]
-
--/
 
 namespace Relation
 
@@ -200,7 +200,7 @@ def trans_of_subrelation_right (s r : α → α → Prop) (hr : IsTrans α r)
 /-- Confluence implies that multi-step joinability is an equivalence. -/
 theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
-  apply equivalence_join reflexive_reflTransGen inferInstance
+  apply equivalence_join
   grind
 
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.

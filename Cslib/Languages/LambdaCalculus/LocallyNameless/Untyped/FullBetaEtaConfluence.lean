@@ -9,10 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEtaConfluence
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # βη-Confluence for the λ-calculus
 
 ## Reference
@@ -20,6 +16,10 @@ set_option linter.unusedDecidableInType false
 * [T. Nipkow, *More Church-Rosser Proofs (in Isabelle/HOL)*][Nipkow2001]
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 

@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Control.Monad.Free
 public import Mathlib.Control.Monad.Cont
 
-@[expose] public section
-
 /-!
 # Free Monad
 
@@ -38,6 +36,8 @@ the universal property.
 
 Free monad, state monad, writer monad, continuation monad
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -100,9 +100,8 @@ The canonical interpreter `toStateM` derived from `liftM` agrees with the hand-w
 recursive interpreter `run` for `FreeState`.
 -/
 @[simp]
-theorem run_toStateM {α : Type u} (comp : FreeState σ α) :
-    (toStateM comp).run = run comp := by
-  ext s₀ : 1
+theorem run_toStateM {α : Type u} (comp : FreeState σ α) (s₀ : σ) :
+    (toStateM comp).run s₀ = pure (run comp s₀) := by
   induction comp generalizing s₀ with
   | pure a => rfl
   | liftBind op cont ih =>
@@ -120,14 +119,22 @@ lemma run_get (k : σ → FreeState σ α) (s₀ : σ) :
 lemma run_set (s' : σ) (k : PUnit → FreeState σ α) (s₀ : σ) :
     run (liftBind (.set s') k) s₀ = run (k .unit) s' := rfl
 
+@[simp]
+lemma run_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
+    run (x.bind f) s₀ = let p := x.run s₀; (f p.1).run p.2 := by
+  induction x generalizing f s₀ with
+  | pure => simp
+  | liftBind op cont ih =>
+    rw [FreeM.liftBind_bind]
+    cases op <;> simp [run, ih]
+
 /-- Run a state computation, returning only the result. -/
 def run' (c : FreeState σ α) (s₀ : σ) : α := (run c s₀).1
 
-@[simp]
-theorem run'_toStateM {α : Type u} (comp : FreeState σ α) :
-    (toStateM comp).run' = run' comp := by
-  ext s₀ : 1
-  rw [run', ← run_toStateM]
+-- not `simp` since `StateT.run'` is unfolded by `simp`
+theorem run'_toStateM {α : Type u} (comp : FreeState σ α) (s₀ : σ) :
+    (toStateM comp).run' s₀ = pure (run' comp s₀) := by
+  rw [run', StateT.run'_eq, run_toStateM]
   rfl
 
 @[simp]
@@ -141,6 +148,11 @@ lemma run'_get (k : σ → FreeState σ α) (s₀ : σ) :
 @[simp]
 lemma run'_set (s' : σ) (k : PUnit → FreeState σ α) (s₀ : σ) :
     run' (liftBind (.set s') k) s₀ = run' (k .unit) s' := rfl
+
+@[simp]
+lemma run'_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
+    run' (x.bind f) s₀ = let p := x.run s₀; (f p.1).run' p.2 :=
+  congr_arg Prod.fst <| run_bind _ _ _
 
 end FreeState
 
@@ -201,6 +213,16 @@ lemma run_pure [Monoid ω] (a : α) :
     run (.pure a : FreeWriter ω α) = (a, 1) := rfl
 
 @[simp]
+lemma run_bind [Monoid ω] (x : FreeWriter ω α) (f : α → FreeWriter ω β) :
+    run (x.bind f) = let p := run x; ((f p.1).run.1, p.2 * (f p.1).run.2) := by
+  induction x generalizing f with
+  | pure => simp
+  | liftBind op cont ih =>
+    rw [FreeM.liftBind_bind]
+    cases op
+    simp [run, ih, mul_assoc]
+
+@[simp]
 lemma run_liftBind_tell [Monoid ω] (w : ω) (k : PUnit → FreeWriter ω α) :
     run (liftBind (.tell w) k) = (let (a, w') := run (k .unit); (a, w * w')) := rfl
 
@@ -209,13 +231,16 @@ The canonical interpreter `toWriterT` derived from `liftM` agrees with the hand-
 recursive interpreter `run` for `FreeWriter`.
 -/
 @[simp]
-theorem run_toWriterT {α : Type u} [Monoid ω] :
-    ∀ comp : FreeWriter ω α, (toWriterT comp).run = run comp
-  | .pure _ => by simp only [toWriterT, liftM_pure, run_pure, pure, WriterT.run]
-  | liftBind (.tell w) cont => by
-    simp only [toWriterT, liftM_liftBind, run_liftBind_tell] at *
-    rw [← run_toWriterT]
-    congr
+theorem run_toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) :
+    (toWriterT comp).run = pure (run comp) := by
+  ext : 1
+  induction comp with
+  | pure _ => simp only [toWriterT, liftM_pure, run_pure, pure, WriterT.run]
+  | liftBind op cont ih =>
+    cases op
+    simp only [toWriterT, liftM_liftBind, run_liftBind_tell, Id.run_pure] at *
+    rw [ ← ih]
+    simp [WriterT.run_bind, writerInterp]
 
 /--
 `listen` captures the log produced by a subcomputation incrementally. It traverses the computation,
@@ -301,9 +326,8 @@ The canonical interpreter `toContT` derived from `liftM` agrees with the hand-wr
 recursive interpreter `run` for `FreeCont`.
 -/
 @[simp]
-theorem run_toContT {α : Type u} (comp : FreeCont r α) :
-    (toContT comp).run = run comp := by
-  ext k
+theorem run_toContT {α : Type u} (comp : FreeCont r α) (k : α → r) :
+    (toContT comp).run k = pure (run comp k) := by
   induction comp with
   | pure a => rfl
   | liftBind op cont ih =>
@@ -316,6 +340,16 @@ theorem run_toContT {α : Type u} (comp : FreeCont r α) :
 @[simp]
 lemma run_pure (a : α) (k : α → r) :
     run (.pure a : FreeCont r α) k = k a := rfl
+
+@[simp]
+lemma run_bind (x : FreeCont r α) (f : α → FreeCont r β) (k : β → r) :
+    run (x.bind f) k = run x (fun i => run (f i) k) := by
+  induction x generalizing k with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    rw [FreeM.liftBind_bind]
+    cases op
+    simp [run, ih]
 
 @[simp]
 lemma run_liftBind_callCC (g : (α → r) → r)
@@ -387,7 +421,7 @@ The canonical interpreter `toReaderM` derived from `liftM` agrees with the hand-
 recursive interpreter `run` for `FreeReader` -/
 @[simp]
 theorem run_toReaderM {α : Type u} (comp : FreeReader σ α) (s : σ) :
-    (toReaderM comp).run s = run comp s := by
+    (toReaderM comp).run s = pure (run comp s) := by
   induction comp generalizing s with
   | pure a => rfl
   | liftBind op cont ih =>
@@ -400,6 +434,14 @@ lemma run_pure (a : α) (s₀ : σ) :
 @[simp]
 lemma run_read (k : σ → FreeReader σ α) (s₀ : σ) :
     run (liftBind .read k) s₀ = run (k s₀) s₀ := rfl
+
+@[simp]
+lemma run_bind (x : FreeReader σ α) (f : α → FreeReader σ β) (s₀ : σ) :
+    run (x.bind f) s₀ = run (f <| run x s₀) s₀ := by
+  induction x generalizing s₀ with
+  | pure a => rfl
+  | liftBind op cont ih =>
+    cases op; apply ih
 
 instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
   withReader {α} f m :=

@@ -8,11 +8,11 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Relation
 
-@[expose] public section
-
 /-!
 # LTS with a special "internal" transition `τ`.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

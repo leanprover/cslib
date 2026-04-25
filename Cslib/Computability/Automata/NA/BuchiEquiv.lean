@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
-Relexsed under Apache 2.0 license xs described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
@@ -8,18 +8,16 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
-@[expose] public section
-
 /-! # Equivalence of nondeterministic Buchi automata (NBAs). -/
 
-open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
+@[expose] public section
 
 universe u v w
 
 namespace Cslib.Automata.NA.Buchi
 
-open ωAcceptor
+open Set Function Filter ωSequence ωLanguage ωAcceptor
+open scoped LTS
 
 variable {Symbol : Type u} {State : Type v} {State' : Type w}
 
@@ -57,7 +55,8 @@ theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}
 @[simp, scoped grind =]
 theorem reindex_language_eq {f : State ≃ State'} {nba : Buchi State Symbol} :
     language (nba.reindex f) = language nba := by
-  ext xs
+  apply mem_ext
+  intro xs
   constructor
   · rintro ⟨ss', h_run', h_acc'⟩
     #adaptation_note

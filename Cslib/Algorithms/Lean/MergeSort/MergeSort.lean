@@ -11,8 +11,6 @@ public import Mathlib.Data.Nat.Cast.Order.Ring
 public import Mathlib.Data.Nat.Lattice
 public import Mathlib.Data.Nat.Log
 
-@[expose] public section
-
 /-!
 # MergeSort on a list
 
@@ -26,6 +24,8 @@ over the list `TimeM ℕ (List α)`. The time complexity of `mergeSort` is the n
 - `mergeSort_time`:  The number of comparisons of `mergeSort` is at most `n*⌈log₂ n⌉`.
 
 -/
+
+@[expose] public section
 
 set_option autoImplicit false
 

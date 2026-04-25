@@ -12,14 +12,14 @@ public import Mathlib.Data.Fintype.Pigeonhole
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Data.Set.Lattice
 
-@[expose] public section
-
 /-! # Ramsey theorem for infinite graphs
 
 This result really should be in Mathlib, but currently it is not. We do expect
 the Ramsey theorem for infinite hypergraphs to appear in Mathlib eventually and
 this result to be derived as a corollary of the more general result.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
