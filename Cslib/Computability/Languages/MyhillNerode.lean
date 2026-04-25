@@ -8,8 +8,6 @@ module
 
 public import Cslib.Computability.Languages.RegularLanguage
 
-@[expose] public section
-
 /-! # Myhill-Nerode Theorem
 
 Let `l` be a language on an alphabet `α`. The Nerode congruence (referred to as `c_l`
@@ -37,6 +35,8 @@ The Myhill-Nerode theorem has three parts [WikipediaMyhillNerode2026]:
    and Implications*][Malkin2024]
 * [Wikipedia contributors, Myhill–Nerode theorem][WikipediaMyhillNerode2026]
 -/
+
+@[expose] public section
 
 variable {α State : Type*}
 
