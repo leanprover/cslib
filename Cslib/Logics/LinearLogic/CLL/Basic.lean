@@ -205,11 +205,9 @@ inductive Proof : Sequent Atom → Type u where
   | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a ::ₘ Γ) → Proof ((!a) ::ₘ Γ)
   -- No rule for zero.
 
-open Logic
+open Logic InferenceSystem
 
-instance : InferenceSystem (Sequent Atom) := ⟨Proof⟩
-
-open InferenceSystem
+instance : HasInferenceSystem (Sequent Atom) := ⟨Proof⟩
 
 /-- Convenience definition for rewriting conclusions in proofs. -/
 @[scoped grind =]
@@ -681,7 +679,7 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
      (.tensor .ax <| .tensor .ax .ax)⟩
 
 instance {Γ : Sequent Atom} : Std.Symm (fun a b => Derivable ((a ⊗ b) ::ₘ Γ)) where
-  symm _ _ h := Derivable.fromDerivation (subst_eqv_head tensor_symm (Derivable.toDerivation h))
+  symm _ _ h := DerivableIn.fromDerivation (subst_eqv_head tensor_symm (DerivableIn.toDerivation h))
 
 /-- ⊕ is idempotent. -/
 @[scoped grind ←]
@@ -698,5 +696,13 @@ def with_idem {a : Proposition Atom} : a & a ≡⇓ a :=
 end Proposition
 
 end LogicalEquiv
+
+/-- A proof is cut-free if it does not contain any applications of rule cut. -/
+def Proof.cutFree {Γ : Sequent Atom} : ⇓Γ → Bool
+  | ax | one | top => true
+  | bot p | parr p | oplus₁ p | oplus₂ p
+    | quest p | weaken p | contract p | bang _ p => p.cutFree
+  | tensor p q | .with p q => p.cutFree && q.cutFree
+  | cut _ _ => false
 
 end Cslib.Logic.CLL
