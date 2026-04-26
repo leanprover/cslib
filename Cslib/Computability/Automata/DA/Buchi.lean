@@ -8,12 +8,10 @@ module
 
 public import Cslib.Computability.Automata.DA.Basic
 
-public section
-
 /-! # Deterministic Buchi automata.
 -/
 
-open Filter
+public section
 
 namespace Cslib.Automata.DA
 

@@ -10,11 +10,11 @@ public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 
-@[expose] public section
-
 /-! # Translation of Deterministic Automata into Nonodeterministic Automata.
 
 This is the general version of the standard translation of DFAs into NFAs. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.DA
 

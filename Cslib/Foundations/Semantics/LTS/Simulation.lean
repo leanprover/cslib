@@ -8,8 +8,6 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
-@[expose] public section
-
 /-! # IsSimulation and Similarity
 
 A simulation is a binary relation on the states of two `LTS`s: if two states `s₁` and `s2` are
@@ -42,6 +40,8 @@ any two states similar to each other.
 - `HomSimulationEquiv.eqv`: homogeneous simulation equivalence is an equivalence relation.
 
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

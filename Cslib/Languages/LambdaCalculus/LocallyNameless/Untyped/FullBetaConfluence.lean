@@ -8,11 +8,11 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
+/-! # β-confluence for the λ-calculus -/
+
 @[expose] public section
 
 set_option linter.unusedDecidableInType false
-
-/-! # β-confluence for the λ-calculus -/
 
 namespace Cslib
 
