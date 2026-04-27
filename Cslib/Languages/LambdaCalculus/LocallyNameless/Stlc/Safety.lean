@@ -9,8 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
-@[expose] public section
-
 /-! # λ-calculus
 
 Type safety of the simply typed λ-calculus, with a locally nameless representation of syntax.
@@ -23,6 +21,8 @@ Theorems in this file are namespaced by their respective reductions.
   this is partially adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

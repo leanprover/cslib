@@ -9,8 +9,6 @@ module
 public import Cslib.Languages.CombinatoryLogic.Basic
 public import Mathlib.Data.Nat.Pairing
 
-@[expose] public section
-
 /-!
 # General recursion in the SKI calculus
 
@@ -58,6 +56,8 @@ by defining reduction on polynomials.
 sense of `Mathlib.Data.Part` (as used in `Mathlib.Computability.Partrec`).
 - The results of this file should define a surjection `SKI → Nat.Partrec`.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

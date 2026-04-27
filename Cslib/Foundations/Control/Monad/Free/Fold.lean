@@ -8,8 +8,6 @@ module
 
 public import Cslib.Foundations.Control.Monad.Free
 
-@[expose] public section
-
 /-!
 # Free Monad Catamorphism
 
@@ -39,6 +37,8 @@ An algebra of this functor consists of a type `β` and functions:
 For any such algebra, `foldFreeM onValue onEffect` is the unique algebra morphism
 from the initial algebra `FreeM F α` to `(β, onValue, onEffect)`.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

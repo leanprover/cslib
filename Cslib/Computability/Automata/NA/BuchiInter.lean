@@ -10,8 +10,6 @@ public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-@[expose] public section
-
 /-! # Intersection of nondeterministic Buchi automata.
 
 The intersection automaton consists of the product of the two automata to be intersected
@@ -23,6 +21,8 @@ The intersection automaton accepts iff the toggling happens infinitely many time
 The two automata to be intersected are indexed by the type `Bool`.  We choose `Bool`
 simply because toggling can be easily modeled by the boolean operation `not`.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA.Buchi
 

@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Control.Monad.Free
 public import Mathlib.Control.Monad.Cont
 
-@[expose] public section
-
 /-!
 # Free Monad
 
@@ -38,6 +36,8 @@ the universal property.
 
 Free monad, state monad, writer monad, continuation monad
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -285,26 +285,6 @@ instance [Monoid ω] : MonadWriter ω (FreeWriter ω) where
   pass := pass
 
 end FreeWriter
-
-section ForMathlib
-
-/-- Constructor for `ContT`. -/
-@[nolint topNamespace]
-def _root_.ContT.mk (f : (α → m r) → m r) : ContT r m α := f
-
-@[simp, nolint topNamespace]
-theorem _root_.ContT.run_mk (f : (α → m r) → m r) :
-    ContT.run (.mk f : ContT r m α) k = f k := rfl
-
-@[simp, nolint topNamespace]
-theorem _root_.ContT.run_pure (a : α) :
-    ContT.run (pure a : ContT r m α) k = k a := rfl
-
-@[simp, nolint topNamespace]
-theorem _root_.ContT.run_bind (x : ContT r m α) (f : α → ContT r m β) :
-    ContT.run (x >>= f) k = ContT.run x fun x => (f x).run k := rfl
-
-end ForMathlib
 
 /-! ### Continuation Monad via `FreeM` -/
 

@@ -10,13 +10,13 @@ public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.DecidableEqZero
 public import Mathlib.Data.Finset.SDiff
 
-@[expose] public section
-
 /-! # Update for finite functions
 
 This module defines the update operation for finite functions, that is, the equivalent of
 `Function.update` for `FinFun`.
 -/
+
+@[expose] public section
 
 namespace Cslib.FinFun
 
