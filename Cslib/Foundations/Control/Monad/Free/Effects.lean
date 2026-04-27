@@ -308,7 +308,7 @@ variable {r : Type u} {α : Type v} {β : Type w}
 /-- Interpret `ContF r` operations into `ContT r Id`. -/
 @[simp]
 def contInterp : ContF r α → ContT r Id α
-  | .callCC g => g
+  | .callCC g => .mk fun k => pure <| g fun a => (k a).run
 
 /-- Convert a `FreeCont` computation into a `ContT` computation. This is the canonical
 interpreter derived from `liftM`. -/
