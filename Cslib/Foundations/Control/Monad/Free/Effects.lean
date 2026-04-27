@@ -333,7 +333,7 @@ theorem run_toContT {α : Type u} (comp : FreeCont r α) (k : α → r) :
   | liftBind op cont ih =>
     simp only [toContT, FreeM.liftM]
     cases op
-    simp only [run, bind, ContT.run, id]
+    simp only [ContT.run_bind]
     congr with x
     apply ih
 
