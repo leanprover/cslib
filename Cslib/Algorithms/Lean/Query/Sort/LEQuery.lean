@@ -28,6 +28,25 @@ inductive LEQuery (α : Type) : Type → Type where
 @[simp] theorem LEQuery.eval_ask (oracle : {ι : Type} → LEQuery α ι → ι) (a b : α) :
     (LEQuery.ask a b).eval oracle = oracle (.le a b) := rfl
 
+/-- Build an oracle for `LEQuery α` from a binary predicate `α × α → Bool`. -/
+@[expose] def LEQuery.oracleOf (f : α × α → Bool) : {ι : Type} → LEQuery α ι → ι
+  | _, .le a b => f (a, b)
+
+@[simp] theorem LEQuery.oracleOf_le (f : α × α → Bool) (a b : α) :
+    LEQuery.oracleOf f (.le a b) = f (a, b) := rfl
+
+/-- Every `LEQuery α ι` has response type `ι = Bool`, hence a `Fintype` with cardinality 2. -/
+@[reducible] def LEQuery.fintypeResponse : ∀ {ι : Type}, LEQuery α ι → Fintype ι
+  | _, .le _ _ => inferInstanceAs (Fintype Bool)
+
+theorem LEQuery.cardResponse_eq_two : ∀ {ι : Type} (op : LEQuery α ι),
+    @Fintype.card ι (LEQuery.fintypeResponse op) = 2
+  | _, .le _ _ => Fintype.card_bool
+
+theorem LEQuery.cardResponse_le_two {ι : Type} (op : LEQuery α ι) :
+    @Fintype.card ι (LEQuery.fintypeResponse op) ≤ 2 :=
+  (LEQuery.cardResponse_eq_two op).le
+
 end Cslib.Query
 
 end -- public section

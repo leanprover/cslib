@@ -7,7 +7,6 @@ module
 
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
-public import Cslib.Algorithms.Lean.Query.Sort.QueryTree
 public import Mathlib.Data.List.Sort
 public import Mathlib.Data.Nat.Factorial.Basic
 public import Mathlib.Data.Fintype.Perm
@@ -21,67 +20,14 @@ has query complexity at least `⌈log₂(n!)⌉` for every input size `n`.
 
 The proof constructs `n!` distinct total orders on `α` (one per permutation of `n`
 embedded elements), shows they produce distinct sorted outputs, and applies
-`QueryTree.exists_queriesOn_ge_clog`.
-
-## FreeM-to-QueryTree Bridge
-
-Since `FreeM (LEQuery α) β` uses an existentially quantified response type per query
-(via `FreeM.liftBind`), while `QueryTree` has a fixed response type `R`, we provide a
-conversion `FreeM.toQueryTree` that exploits the fact that `LEQuery α` only has one
-constructor returning `Bool`. This lets us apply the combinatorial depth lemma on
-`QueryTree` and transfer results back to `FreeM`.
+`FreeM.exists_queriesOn_ge_clog` with `LEQuery.fintypeResponse` /
+`LEQuery.cardResponse_le_two` witnessing that all responses come from `Bool`
+(cardinality 2).
 -/
 
 open Cslib Cslib.Query
 
 public section
-
--- ## FreeM-to-QueryTree bridge for LEQuery
-
-namespace Cslib.Query
-
-/-- Convert a `FreeM`-oracle to a `QueryTree`-oracle for `LEQuery`. -/
-@[expose] def toQTOracle (oracle : {ι : Type} → LEQuery α ι → ι) : (α × α) → Bool :=
-  fun (a, b) => oracle (.le a b)
-
-/-- Convert a `QueryTree`-oracle to a `FreeM`-oracle for `LEQuery`. -/
-@[expose] def fromQTOracle (f : (α × α) → Bool) : {ι : Type} → LEQuery α ι → ι
-  | _, .le a b => f (a, b)
-
-@[simp] theorem fromQTOracle_le (f : (α × α) → Bool) (a b : α) :
-    fromQTOracle f (.le a b) = f (a, b) := rfl
-
-@[simp] theorem toQTOracle_fromQTOracle (f : (α × α) → Bool) :
-    toQTOracle (fromQTOracle f) = f := rfl
-
-end Cslib.Query
-
-namespace Cslib.FreeM
-
-/-- Convert a `FreeM (LEQuery α)` program to a `QueryTree (α × α) Bool` decision tree. -/
-@[expose] def toQueryTree : FreeM (LEQuery α) β → QueryTree (α × α) Bool β
-  | .pure a => .pure a
-  | .liftBind (.le a b) cont => .query (a, b) (fun r => toQueryTree (cont r))
-
-/-- Evaluation is preserved by the FreeM-to-QueryTree conversion. -/
-@[simp] theorem toQueryTree_eval (oracle : {ι : Type} → LEQuery α ι → ι) :
-    (p : FreeM (LEQuery α) β) →
-    p.toQueryTree.eval (toQTOracle oracle) = p.eval oracle
-  | .pure _ => rfl
-  | .liftBind (.le a b) cont => by
-    simp only [toQueryTree, QueryTree.eval_query, FreeM.eval, toQTOracle]
-    exact toQueryTree_eval oracle (cont (oracle (.le a b)))
-
-/-- Query count is preserved by the FreeM-to-QueryTree conversion. -/
-@[simp] theorem toQueryTree_queriesOn (oracle : {ι : Type} → LEQuery α ι → ι) :
-    (p : FreeM (LEQuery α) β) →
-    p.toQueryTree.queriesOn (toQTOracle oracle) = p.queriesOn oracle
-  | .pure _ => rfl
-  | .liftBind (.le a b) cont => by
-    simp only [toQueryTree, QueryTree.queriesOn_query, FreeM.queriesOn, toQTOracle]
-    exact congrArg (1 + ·) (toQueryTree_queriesOn oracle (cont (oracle (.le a b))))
-
-end Cslib.FreeM
 
 namespace Cslib.Query
 
@@ -187,21 +133,17 @@ theorem IsSort.lowerBound_infinite [Infinite α]
   set ι := Infinite.natEmbedding α
   refine ⟨(List.finRange n).map (fun i => ι i.val), by simp, ?_⟩
   set xs := (List.finRange n).map (fun i => ι i.val)
-  set tree := (sort xs).toQueryTree
   have hcard : Fintype.card (Equiv.Perm (Fin n)) = Nat.factorial n := by
     rw [Fintype.card_perm, Fintype.card_fin]
   let e := Fintype.equivFinOfCardEq hcard
-  -- Define FreeM-level oracles, then derive QueryTree oracles from them
   let progOracles : Fin (Nat.factorial n) → ({ι : Type} → LEQuery α ι → ι) :=
-    fun i => fromQTOracle (fun p => decide (infinitePermOrder n (e.symm i) p.1 p.2))
-  let qtOracles : Fin (Nat.factorial n) → ((α × α) → Bool) :=
-    fun i => toQTOracle (progOracles i)
+    fun i => LEQuery.oracleOf (fun p => decide (infinitePermOrder n (e.symm i) p.1 p.2))
   -- Each oracle produces a unique sorted output
-  have h_inj : Function.Injective (fun i => tree.eval (qtOracles i)) := by
+  have h_inj : Function.Injective (fun i => (sort xs).eval (progOracles i)) := by
     intro i j h_eval
     suffices key : ∀ i, (sort xs).eval (progOracles i) =
         (List.finRange n).map (fun k => ι ((e.symm i) k).val) by
-      simp only [tree, qtOracles, FreeM.toQueryTree_eval] at h_eval
+      dsimp only at h_eval
       rw [key, key] at h_eval
       exact e.symm.injective (map_infinite_embedding_injective h_eval)
     intro i
@@ -211,11 +153,11 @@ theorem IsSort.lowerBound_infinite [Infinite α]
       (fun a b => by simp [progOracles])
     exact h_perm.trans (map_perm_of_infinite_embedding (e.symm i)).symm |>.eq_of_pairwise'
       h_sorted (pairwise_map_infinitePermOrder (e.symm i))
-  -- Apply the depth lemma
-  obtain ⟨i, hi⟩ := QueryTree.exists_queriesOn_ge_clog tree qtOracles (Nat.factorial_pos n) h_inj
-  refine ⟨progOracles i, ?_⟩
-  simp only [tree, qtOracles, FreeM.toQueryTree_queriesOn] at hi
-  exact hi
+  -- Apply the FreeM lower-bound lemma directly
+  obtain ⟨i, hi⟩ := FreeM.exists_queriesOn_ge_clog 2
+    LEQuery.fintypeResponse LEQuery.cardResponse_le_two
+    (sort xs) progOracles (Nat.factorial_pos n) h_inj
+  exact ⟨progOracles i, hi⟩
 
 end Cslib.Query
 

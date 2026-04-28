@@ -5,7 +5,6 @@ public import Cslib.Algorithms.Lean.Query.Arith.Defs
 public import Cslib.Algorithms.Lean.Query.Arith.Lemmas
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.FreeM
-public import Cslib.Algorithms.Lean.Query.QueryTree
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
@@ -13,7 +12,6 @@ public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
 public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
-public import Cslib.Algorithms.Lean.Query.Sort.QueryTree
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
