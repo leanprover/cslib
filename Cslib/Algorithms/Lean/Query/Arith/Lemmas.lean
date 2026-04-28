@@ -55,7 +55,7 @@ theorem complexMulGauss_cost (oracle : {ι : Type} → ArithQuery α ι → ι)
   simp [complexMulGauss, ArithQuery.doMul, ArithQuery.doSub, ArithQuery.doAdd, ArithQuery.weight]
   omega
 
--- ## Crossover: Gauss beats naive when multiplication costs more than 3× addition
+-- ## Crossover: Gauss beats naive when multiplication costs at least 3× addition
 
 theorem gauss_le_naive (c_add c_mul : Nat) (h : 3 * c_add ≤ c_mul) :
     3 * c_mul + 5 * c_add ≤ 4 * c_mul + 2 * c_add := by omega
