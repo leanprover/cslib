@@ -61,7 +61,9 @@ property as the primary abstraction. -/
 /-- Internal accumulator monad: a value paired with a `Nat`-valued running cost.
 Used to define `cost` and `queriesOn` via `liftM`. -/
 structure Tally (α : Type) where
+  /-- Running cost accumulated so far. -/
   cost : Nat
+  /-- The carried value. -/
   val : α
 
 instance : Monad Tally where
