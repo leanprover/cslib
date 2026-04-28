@@ -5,15 +5,13 @@ Authors: Sebastian Graf, Kim Morrison, Shreyas Srinivas
 -/
 module
 
-public import Cslib.Algorithms.Lean.Query.Prog
+public import Cslib.Algorithms.Lean.Query.FreeM
 
 /-! # LEQuery: Comparison Queries for Sorting
 
 `LEQuery α` is the query type for comparison-based sorting algorithms.
 A query `LEQuery.le a b` asks whether `a ≤ b` and returns a `Bool`.
 -/
-
-open Cslib.Query
 
 public section
 
@@ -23,12 +21,12 @@ namespace Cslib.Query
 inductive LEQuery (α : Type) : Type → Type where
   | le (a b : α) : LEQuery α Bool
 
-/-- Lift `LEQuery.le a b` into a `Prog` that returns the comparison result. -/
-@[expose] def LEQuery.ask (a b : α) : Prog (LEQuery α) Bool :=
-  .liftBind (.le a b) .pure
+/-- Lift `LEQuery.le a b` into a `FreeM` that returns the comparison result. -/
+@[expose] def LEQuery.ask (a b : α) : FreeM (LEQuery α) Bool :=
+  FreeM.lift (.le a b)
 
 @[simp] theorem LEQuery.eval_ask (oracle : {ι : Type} → LEQuery α ι → ι) (a b : α) :
-    Prog.eval oracle (LEQuery.ask a b) = oracle (.le a b) := rfl
+    (LEQuery.ask a b).eval oracle = oracle (.le a b) := rfl
 
 end Cslib.Query
 

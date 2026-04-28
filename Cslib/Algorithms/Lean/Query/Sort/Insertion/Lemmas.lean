@@ -15,10 +15,10 @@ public import Mathlib.Algebra.Group.Defs
 /-! # Insertion Sort: Correctness and Upper Bound
 
 Proofs that `insertionSort` is a correct comparison sort and uses at most `n²` queries.
-All proofs are by plain equational reasoning on `Prog.eval` and `Prog.queriesOn`.
+All proofs are by plain equational reasoning on `FreeM.eval` and `FreeM.queriesOn`.
 -/
 
-open Cslib.Query
+open Cslib Cslib.Query
 
 public section
 

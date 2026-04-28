@@ -5,19 +5,17 @@ Authors: Kim Morrison
 -/
 module
 
-public import Cslib.Algorithms.Lean.Query.Prog
+public import Cslib.Algorithms.Lean.Query.FreeM
 
 /-! # Arithmetic Queries and Complex Multiplication
 
-A simple example showing how to use `Prog.cost` with variable/parametrized query costs.
+A simple example showing how to use `FreeM.cost` with variable/parametrized query costs.
 
 `ArithQuery α` supports addition, subtraction, and multiplication, each with
 independently parametrized costs. Complex number multiplication provides a toy example
 where two algorithms (naive and Gauss's trick) trade multiplications for additions,
 and the optimal choice depends on the cost ratio.
 -/
-
-open Cslib.Query
 
 public section
 
@@ -31,12 +29,12 @@ inductive ArithQuery (α : Type) : Type → Type where
 
 namespace ArithQuery
 
-/-- Lift `ArithQuery.add a b` into a `Prog` that returns the sum. -/
-@[expose] def doAdd (a b : α) : Prog (ArithQuery α) α := .liftBind (.add a b) .pure
-/-- Lift `ArithQuery.sub a b` into a `Prog` that returns the difference. -/
-@[expose] def doSub (a b : α) : Prog (ArithQuery α) α := .liftBind (.sub a b) .pure
-/-- Lift `ArithQuery.mul a b` into a `Prog` that returns the product. -/
-@[expose] def doMul (a b : α) : Prog (ArithQuery α) α := .liftBind (.mul a b) .pure
+/-- Lift `ArithQuery.add a b` into a `FreeM` that returns the sum. -/
+@[expose] def doAdd (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.add a b)
+/-- Lift `ArithQuery.sub a b` into a `FreeM` that returns the difference. -/
+@[expose] def doSub (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.sub a b)
+/-- Lift `ArithQuery.mul a b` into a `FreeM` that returns the product. -/
+@[expose] def doMul (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.mul a b)
 
 /-- An honest oracle interprets arithmetic queries using the actual ring operations. -/
 @[expose] def honest [Add α] [Sub α] [Mul α] {ι : Type} : ArithQuery α ι → ι
@@ -55,7 +53,7 @@ end ArithQuery
 
 /-- Naive complex multiplication: `(a + bi)(c + di) = (ac - bd) + (ad + bc)i`.
     Uses 4 multiplications, 1 subtraction, 1 addition. -/
-@[expose] def complexMulNaive (a b c d : α) : Prog (ArithQuery α) (α × α) := do
+@[expose] def complexMulNaive (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
   let ac ← ArithQuery.doMul a c
   let bd ← ArithQuery.doMul b d
   let ad ← ArithQuery.doMul a d
@@ -67,7 +65,7 @@ end ArithQuery
 /-- Gauss's trick for complex multiplication: computes `(a+b)(c+d)` to save one
     multiplication, at the cost of extra additions and subtractions.
     Uses 3 multiplications, 2 subtractions, 2 additions. -/
-@[expose] def complexMulGauss (a b c d : α) : Prog (ArithQuery α) (α × α) := do
+@[expose] def complexMulGauss (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
   let ac ← ArithQuery.doMul a c
   let bd ← ArithQuery.doMul b d
   let apb ← ArithQuery.doAdd a b

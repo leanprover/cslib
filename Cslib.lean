@@ -4,7 +4,7 @@ public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.Query.Arith.Defs
 public import Cslib.Algorithms.Lean.Query.Arith.Lemmas
 public import Cslib.Algorithms.Lean.Query.Bounds
-public import Cslib.Algorithms.Lean.Query.Prog
+public import Cslib.Algorithms.Lean.Query.FreeM
 public import Cslib.Algorithms.Lean.Query.QueryTree
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas

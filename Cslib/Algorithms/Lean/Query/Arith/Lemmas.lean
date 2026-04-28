@@ -11,7 +11,7 @@ public import Mathlib.Algebra.Ring.Defs
 
 /-! # Complex Multiplication: Correctness and Cost Analysis
 
-A simple example showing how to use `Prog.cost` with variable/parametrized query costs.
+A simple example showing how to use `FreeM.cost` with variable/parametrized query costs.
 
 We prove that both `complexMulNaive` and `complexMulGauss` correctly compute
 complex multiplication when given an honest oracle, and compute their exact

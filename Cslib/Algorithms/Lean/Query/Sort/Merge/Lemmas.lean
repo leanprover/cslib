@@ -15,10 +15,10 @@ public import Mathlib.Data.Nat.Log
 /-! # Merge Sort: Correctness and Upper Bound
 
 Proofs that `mergeSort` is a correct comparison sort and uses at most `n * ⌈log₂ n⌉` queries.
-All proofs are by plain equational reasoning on `Prog.eval` and `Prog.queriesOn`.
+All proofs are by plain equational reasoning on `FreeM.eval` and `FreeM.queriesOn`.
 -/
 
-open Cslib.Query
+open Cslib Cslib.Query
 
 public section
 

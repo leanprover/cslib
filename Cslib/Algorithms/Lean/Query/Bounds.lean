@@ -5,7 +5,7 @@ Authors: Sebastian Graf, Kim Morrison, Shreyas Srinivas
 -/
 module
 
-public import Cslib.Algorithms.Lean.Query.Prog
+public import Cslib.Algorithms.Lean.Query.FreeM
 
 /-! # Upper and Lower Bounds for Query Complexity
 
@@ -13,21 +13,19 @@ Definitions of upper and lower bounds on the number of queries a program makes,
 quantified over oracles.
 -/
 
-open Cslib.Query
-
 public section
 
 namespace Cslib.Query
 
 /-- Upper bound: for all oracles, inputs of size ≤ n make at most `bound n` queries. -/
-@[expose] def UpperBound (prog : α → Prog Q β)
+@[expose] def UpperBound (prog : α → FreeM Q β)
     (size : α → Nat) (bound : Nat → Nat) : Prop :=
   ∀ (oracle : {ι : Type} → Q ι → ι) (n : Nat) (x : α),
     size x ≤ n → (prog x).queriesOn oracle ≤ bound n
 
 /-- Lower bound: for every size n, there exists an input and oracle
     making the program perform ≥ `bound n` queries. -/
-@[expose] def LowerBound (prog : α → Prog Q β)
+@[expose] def LowerBound (prog : α → FreeM Q β)
     (size : α → Nat) (bound : Nat → Nat) : Prop :=
   ∀ (n : Nat), ∃ (x : α), size x ≤ n ∧
     ∃ (oracle : {ι : Type} → Q ι → ι), bound n ≤ (prog x).queriesOn oracle

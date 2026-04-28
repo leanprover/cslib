@@ -9,17 +9,17 @@ public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
 
 /-! # Insertion Sort as a Query Program
 
-Insertion sort implemented as a `Prog (LEQuery α)`, making all comparison queries explicit.
+Insertion sort implemented as a `FreeM (LEQuery α)`, making all comparison queries explicit.
 -/
 
-open Cslib.Query
+open Cslib Cslib.Query
 
 public section
 
 namespace Cslib.Query
 
 /-- Insert `x` into a sorted list using comparison queries. -/
-@[expose] def orderedInsert (x : α) : List α → Prog (LEQuery α) (List α)
+@[expose] def orderedInsert (x : α) : List α → FreeM (LEQuery α) (List α)
   | [] => pure [x]
   | y :: ys => do
     let le ← LEQuery.ask x y
@@ -30,7 +30,7 @@ namespace Cslib.Query
       pure (y :: rest)
 
 /-- Sort a list using insertion sort with comparison queries. -/
-@[expose] def insertionSort : List α → Prog (LEQuery α) (List α)
+@[expose] def insertionSort : List α → FreeM (LEQuery α) (List α)
   | [] => pure []
   | x :: xs => do
     let sorted ← insertionSort xs

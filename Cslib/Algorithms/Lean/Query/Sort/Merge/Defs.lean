@@ -9,12 +9,12 @@ public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
 
 /-! # Merge Sort as a Query Program
 
-Merge sort implemented as a `Prog (LEQuery α)`, making all comparison queries explicit.
+Merge sort implemented as a `FreeM (LEQuery α)`, making all comparison queries explicit.
 Uses an alternating split (odds/evens) to avoid needing `List.length` in the termination
 argument.
 -/
 
-open Cslib.Query
+open Cslib Cslib.Query
 
 public section
 
@@ -61,7 +61,7 @@ theorem split_snd_length_lt (x y : α) (zs : List α) :
   simp only [split_snd_length_eq, List.length_cons]; omega
 
 /-- Merge two sorted lists using comparison queries. -/
-@[expose] def merge (xs ys : List α) : Prog (LEQuery α) (List α) :=
+@[expose] def merge (xs ys : List α) : FreeM (LEQuery α) (List α) :=
   match xs, ys with
   | [], ys => pure ys
   | xs, [] => pure xs
@@ -76,7 +76,7 @@ theorem split_snd_length_lt (x y : α) (zs : List α) :
 termination_by xs.length + ys.length
 
 /-- Sort a list using merge sort with comparison queries. -/
-@[expose] def mergeSort (xs : List α) : Prog (LEQuery α) (List α) :=
+@[expose] def mergeSort (xs : List α) : FreeM (LEQuery α) (List α) :=
   match xs with
   | [] => pure []
   | [x] => pure [x]
