@@ -42,15 +42,58 @@ namespace Cslib.FreeM
 
 variable {F : Type → Type} {α β : Type}
 
-/-- Evaluate a program by answering each query using `oracle`. -/
-@[expose] def eval (oracle : {ι : Type} → F ι → ι) : FreeM F α → α
-  | .pure a => a
-  | .liftBind op cont => eval oracle (cont (oracle op))
+/-! ## Interpreters
+
+All three interpreters (`eval`, `cost`, `queriesOn`) are defined as `liftM` interpretations
+into target monads, routing them through the universal property of the free monad rather
+than direct pattern-match on `FreeM`'s constructors:
+
+- `eval` interprets into `Id`.
+- `cost` interprets into a `Tally` accumulator monad (a value paired with a `Nat`-valued
+  running cost).
+- `queriesOn` is `cost` with unit weight.
+
+The constructor-form simp lemmas (`eval_pure`, `eval_liftBind`, `cost_pure`,
+`cost_liftBind`, `queriesOn_pure`, `queriesOn_liftBind`) all reduce by `rfl`, giving the
+same proof ergonomics as direct pattern-match definitions while honouring the universal
+property as the primary abstraction. -/
+
+/-- Internal accumulator monad: a value paired with a `Nat`-valued running cost.
+Used to define `cost` and `queriesOn` via `liftM`. -/
+structure Tally (α : Type) where
+  cost : Nat
+  val : α
+
+instance : Monad Tally where
+  pure a := ⟨0, a⟩
+  bind x f := ⟨x.cost + (f x.val).cost, (f x.val).val⟩
+
+instance : LawfulMonad Tally := LawfulMonad.mk'
+  (id_map := fun ⟨n, _⟩ => by
+    change Tally.mk (n + 0) _ = Tally.mk n _
+    simp)
+  (pure_bind := fun a f => by
+    change Tally.mk (0 + (f a).cost) (f a).val = f a
+    cases f a
+    simp)
+  (bind_assoc := fun ⟨_, _⟩ _ _ => by
+    change Tally.mk _ _ = Tally.mk _ _
+    simp [Bind.bind, Nat.add_assoc])
+
+/-- Evaluate a program by answering each query using `oracle`.
+Defined as `liftM` to `Id`, the canonical interpreter into pure values. -/
+@[expose] def eval (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : α :=
+  p.liftM (m := Id) oracle
+
+/-- Weighted query cost: each query has a cost given by `weight`, accumulated along the
+oracle-determined path. Defined as `liftM` into the accumulator monad `Tally`. -/
+@[expose] def cost (oracle : {ι : Type} → F ι → ι)
+    (weight : {ι : Type} → F ι → Nat) (p : FreeM F α) : Nat :=
+  (p.liftM (m := Tally) (fun op => ⟨weight op, oracle op⟩)).cost
 
 /-- Count the number of queries along the path determined by `oracle`. -/
-@[expose] def queriesOn (oracle : {ι : Type} → F ι → ι) : FreeM F α → Nat
-  | .pure _ => 0
-  | .liftBind op cont => 1 + queriesOn oracle (cont (oracle op))
+@[expose] def queriesOn (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : Nat :=
+  cost oracle (fun _ => 1) p
 
 -- Simp lemmas for eval
 
@@ -67,31 +110,6 @@ variable {F : Type → Type} {α β : Type}
   induction t with
   | pure a => rfl
   | liftBind op cont ih => exact ih (oracle op)
-
--- Simp lemmas for queriesOn
-
-@[simp] theorem queriesOn_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
-    queriesOn oracle (.pure a : FreeM F α) = 0 := rfl
-
-@[simp] theorem queriesOn_liftBind (oracle : {ι : Type} → F ι → ι)
-    {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
-    queriesOn oracle (.liftBind op cont) = 1 + queriesOn oracle (cont (oracle op)) := rfl
-
-@[simp] theorem queriesOn_bind (oracle : {ι : Type} → F ι → ι)
-    (t : FreeM F α) (f : α → FreeM F β) :
-    queriesOn oracle (t.bind f) =
-      queriesOn oracle t + queriesOn oracle (f (eval oracle t)) := by
-  induction t with
-  | pure a => simp [FreeM.bind]
-  | liftBind op cont ih =>
-    simp only [FreeM.bind, queriesOn_liftBind, eval_liftBind, ih (oracle op)]
-    omega
-
-/-- Weighted query cost: each query has a cost given by `weight`. -/
-@[expose] def cost (oracle : {ι : Type} → F ι → ι)
-    (weight : {ι : Type} → F ι → Nat) : FreeM F α → Nat
-  | .pure _ => 0
-  | .liftBind op cont => weight op + cost oracle weight (cont (oracle op))
 
 -- Simp lemmas for cost
 
@@ -114,11 +132,23 @@ variable {F : Type → Type} {α β : Type}
     simp only [FreeM.bind, cost_liftBind, eval_liftBind, ih (oracle op)]
     omega
 
+-- Simp lemmas for queriesOn
+
+@[simp] theorem queriesOn_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
+    queriesOn oracle (.pure a : FreeM F α) = 0 := rfl
+
+@[simp] theorem queriesOn_liftBind (oracle : {ι : Type} → F ι → ι)
+    {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
+    queriesOn oracle (.liftBind op cont) = 1 + queriesOn oracle (cont (oracle op)) := rfl
+
+@[simp] theorem queriesOn_bind (oracle : {ι : Type} → F ι → ι)
+    (t : FreeM F α) (f : α → FreeM F β) :
+    queriesOn oracle (t.bind f) =
+      queriesOn oracle t + queriesOn oracle (f (eval oracle t)) :=
+  cost_bind oracle (fun _ => 1) t f
+
 theorem queriesOn_eq_cost_one (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) :
-    queriesOn oracle p = cost oracle (fun _ => 1) p := by
-  induction p with
-  | pure a => rfl
-  | liftBind op cont ih => simp [ih (oracle op)]
+    queriesOn oracle p = cost oracle (fun _ => 1) p := rfl
 
 -- ## Combinatorial lower bound
 
@@ -176,7 +206,7 @@ private theorem exists_mem_queriesOn_ge_clog (r : Nat)
       have him := Finset.mem_coe.mp hi |> Finset.mem_filter.mp
       have hjm := Finset.mem_coe.mp hj |> Finset.mem_filter.mp
       exact h_inj (Finset.mem_coe.mpr him.1) (Finset.mem_coe.mpr hjm.1)
-        (by simp [eval, him.2, hjm.2, heq])
+        (by simp [him.2, hjm.2, heq])
     obtain ⟨i, hi, hiq⟩ := ih b S' hS' oracles h_inj'
     have him := Finset.mem_filter.mp hi
     refine ⟨i, him.1, ?_⟩
