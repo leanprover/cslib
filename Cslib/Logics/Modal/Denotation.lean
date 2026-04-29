@@ -32,7 +32,7 @@ def Proposition.denotation (m : Model World Atom) :
 /-- Characterisation theorem for the denotational semantics. -/
 @[scoped grind =]
 theorem satisfies_mem_denotation {m : Model World Atom} {φ : Proposition Atom} :
-    w ∈ φ.denotation m ↔ ⇓(m,w ⊨ φ) := by
+    w ∈ φ.denotation m ↔ ⇓Modal[m,w ⊨ φ] := by
   induction φ generalizing w <;> grind
 
 /-- A world is in the denotation of a proposition iff it is not in the denotation of the negation

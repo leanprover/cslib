@@ -62,10 +62,9 @@ def Proposition.impl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ
 @[inherit_doc] scoped infix:30 " → " => Proposition.impl
 
 /-- Bi-implication. -/
-@[simp, scoped grind =]
-def Proposition.biImpl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
+def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
 
-@[inherit_doc] scoped infix:30 " ↔ " => Proposition.biImpl
+@[inherit_doc] scoped infix:30 " ↔ " => Proposition.iff
 
 /-- Necessity. -/
 def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬⋄¬φ
@@ -92,7 +91,7 @@ structure Judgement World Atom where
   /-- The proposition satisfied by the world `w`. -/
   φ : Proposition Atom
 
-@[inherit_doc] scoped notation m "," w " ⊨ " φ => Judgement.mk m w φ
+@[inherit_doc] scoped notation "Modal[" m "," w " ⊨ " φ "]" => Judgement.mk m w φ
 
 /-- Satisfaction for judgements. This just refers to the unbundled `Satisfies`. -/
 @[simp, scoped grind =]
@@ -104,11 +103,11 @@ open scoped InferenceSystem Proposition
 
 @[scoped grind =]
 theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom} :
-  ⇓(m,w ⊨ φ) = Satisfies m w φ := rfl
+  ⇓Modal[m,w ⊨ φ] = Satisfies m w φ := rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
-theorem neg_satisfies : ⇓(m,w ⊨ ¬φ) ↔ ¬⇓(m,w ⊨ φ) := by
+theorem neg_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
   induction φ generalizing w <;> grind
 
 /-- Characterisation of the `∨` connective.
@@ -117,7 +116,7 @@ Disjunction is defined in terms of the more primitive connectives given in `Prop
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.or_char {m : Model World Atom} :
-    ⇓(m,w ⊨ φ₁ ∨ φ₂) ↔ ⇓(m,w ⊨ φ₁) ∨ ⇓(m,w ⊨ φ₂) := by grind [Proposition.or]
+    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by grind [Proposition.or]
 
 /-- Characterisation of the `→` connective.
 
@@ -126,7 +125,7 @@ This result proves that the definition is correct.
 -/
 @[scoped grind =]
 theorem Satisfies.impl_char {m : Model World Atom} :
-    ⇓(m,w ⊨ φ₁ → φ₂) ↔ (⇓(m,w ⊨ φ₁) → ⇓(m,w ⊨ φ₂)) := by grind [Proposition.impl]
+    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
 
 /-- Characterisation of the `□` modality.
 
@@ -134,11 +133,11 @@ Necessity is defined in terms of the more primitive connectives given in `Propos
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.box_char {m : Model World Atom} :
-    ⇓(m,w ⊨ □φ) ↔ ∀ w', m.r w w' → ⇓(m,w' ⊨ φ) := by grind [Proposition.box]
+    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind [Proposition.box]
 
 /-- The theory of a world in a model is the set of all propositions that it satifies. -/
 abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=
-  {φ | ⇓(m,w ⊨ φ)}
+  {φ | ⇓Modal[m,w ⊨ φ]}
 
 /-- Two worlds are theory-equivalent under a model if they have the same theory. -/
 abbrev TheoryEq (m : Model World Atom) (w₁ w₂ : World) :=
@@ -150,33 +149,33 @@ theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := by grind
 
 /-- If two worlds are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
-    ∃ φ, (⇓(m,w₁ ⊨ φ) ∧ ¬⇓(m,w₂ ⊨ φ)) := by grind [=_ neg_satisfies]
+    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ neg_satisfies]
 
 /-- If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
 well. -/
 theorem theoryEq_satisfies {m : Model World Atom} (h : TheoryEq m w₁ w₂)
-    (hs : Satisfies m w₁ φ) : ⇓(m,w₂ ⊨ φ) := by
+    (hs : Satisfies m w₁ φ) : ⇓Modal[m,w₂ ⊨ φ] := by
   unfold TheoryEq theory at h
   rw [Set.ext_iff] at h
   exact (h φ).mp hs
 
 /-- The K axiom, valid for all models. -/
-theorem Satisfies.k : ⇓(m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → □φ₂)) := by grind
+theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → □φ₂)] := by grind
 
 /-- The dual axiom, valid for all models. -/
-theorem Satisfies.dual : ⇓(m,w ⊨ ⋄φ ↔ ¬□¬φ) := by
+theorem Satisfies.dual : ⇓Modal[m,w ⊨ ⋄φ ↔ ¬□¬φ] := by
   constructor <;> grind
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
-    (φ : Proposition Atom) : ⇓(m,w ⊨ φ → ⋄φ) := by grind [instRefl.refl w]
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → ⋄φ] := by grind [instRefl.refl w]
 
 /-- Any model that admits the axiom T is reflexive. -/
 theorem Satisfies.t_refl
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓((Model.mk r v),w ⊨ φ → ⋄φ)) :
+      ⇓Modal[⟨r, v⟩,w ⊨ φ → ⋄φ]) :
     Std.Refl r where
   refl := by
     intro w
@@ -186,12 +185,13 @@ theorem Satisfies.t_refl
     grind
 
 /-- In any reflexive model, `□φ → φ` is equivalent to `φ → ⋄φ`. -/
-theorem Satisfies.t_box_diamond [instRefl : Std.Refl m.r] : ⇓(m,w ⊨ □φ → φ) ↔ ⇓(m,w ⊨ φ → ⋄φ) := by
+theorem Satisfies.t_box_diamond [instRefl : Std.Refl m.r] :
+    ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ⋄φ] := by
   grind [instRefl.refl]
 
 /-- The B axiom, valid for all symmetric models. -/
 theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
-    (φ : Proposition Atom) : ⇓(m,w ⊨ φ → □⋄φ) := by
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → □⋄φ] := by
   grind [instSymm.symm w]
 
 /-- Any model that admits the axiom B is symmetric. -/
@@ -199,7 +199,7 @@ theorem Satisfies.b_symm
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓(Model.mk r v,w ⊨ φ → □⋄φ)) :
+      ⇓Modal[⟨r, v⟩,w ⊨ φ → □⋄φ]) :
     Std.Symm r where
   symm := by
     intro w₁
@@ -210,7 +210,7 @@ theorem Satisfies.b_symm
 
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four {m : Model World Atom} [instTrans : IsTrans World m.r] {w : World}
-    (φ : Proposition Atom) : ⇓(m,w ⊨ ⋄⋄φ → ⋄φ) := by
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ⋄⋄φ → ⋄φ] := by
   simp only [impl_char]
   intro h
   rcases h with ⟨w', h₁, w'', h₂, hs⟩
@@ -222,7 +222,7 @@ theorem Satisfies.four_trans
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓(Model.mk r v,w ⊨ ⋄⋄φ → ⋄φ)) :
+      ⇓Modal[⟨r, v⟩,w ⊨ ⋄⋄φ → ⋄φ]) :
     IsTrans World r where
   trans := by
     intro w₁ w₂ w₃ h₁ h₂
@@ -234,14 +234,14 @@ theorem Satisfies.four_trans
 /-- The 5 axiom, valid for all Euclidean models. -/
 theorem Satisfies.five {m : Model World Atom} [instRightEuclidean : Relation.RightEuclidean m.r]
     {w : World}
-    (φ : Proposition Atom) : ⇓(m,w ⊨ ⋄φ → □⋄φ) := by grind [Relation.RightEuclidean]
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ⋄φ → □⋄φ] := by grind [Relation.RightEuclidean]
 
 /-- Any model that admits 5 is Euclidean. -/
 theorem Satisfies.five_rightEuclidean
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓(Model.mk r v,w ⊨ ⋄φ → □⋄φ)) :
+      ⇓Modal[⟨r, v⟩,w ⊨ ⋄φ → □⋄φ]) :
     Relation.RightEuclidean r where
   rightEuclidean := by
     intro w₁ w₂ w₃ h₁ h₂
@@ -253,7 +253,7 @@ theorem Satisfies.five_rightEuclidean
 /-- The D axiom, valid for all serial models. -/
 theorem Satisfies.d {m : Model World Atom} [instSerial : Relation.Serial m.r]
     {w : World}
-    (φ : Proposition Atom) : ⇓(m,w ⊨ □φ → ⋄φ) := by
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ □φ → ⋄φ] := by
   have : ∃ w', m.r w w' := instSerial.serial w
   grind
 
@@ -262,7 +262,7 @@ theorem Satisfies.d_serial
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓(Model.mk r v,w ⊨ □φ → ⋄φ)) :
+      ⇓Modal[⟨r, v⟩,w ⊨ □φ → ⋄φ]) :
     Relation.Serial r where
   serial := by
     intro w₁
@@ -275,7 +275,7 @@ theorem Satisfies.d_serial
 all models in `S` for all worlds. -/
 @[simp, scoped grind =]
 def Proposition.valid (S : Set (Model World Atom)) (φ : Proposition Atom) : Prop :=
-  ∀ (m : Model World Atom), ∀ (_ : m ∈ S), ∀ (w : World), ⇓(m,w ⊨ φ)
+  ∀ (m : Model World Atom), ∀ (_ : m ∈ S), ∀ (w : World), ⇓Modal[m,w ⊨ φ]
 
 /-- The modal logic of a class of models `S` is the set of all propositions valid in `S`. -/
 @[simp, scoped grind =]
