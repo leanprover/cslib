@@ -156,8 +156,11 @@ abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 class Serial (r : α → α → Prop) where
   serial a : Reducible r a
 
-instance [Std.Refl r] : Relation.Serial r where
-  serial a := ⟨a, Std.Refl.refl a⟩
+@[scoped grind →]
+lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r where
+  serial a := ⟨a, h.refl a⟩
+
+instance [instRefl : Std.Refl r] : Relation.Serial r := refl_serial r instRefl
 
 /-- An element is normal if it is not reducible. -/
 abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
