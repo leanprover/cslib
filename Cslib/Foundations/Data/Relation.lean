@@ -77,13 +77,8 @@ class RightEuclidean (r : α → α → Prop) where
 class Serial (r : α → α → Prop) where
   serial a : Reducible r a
 
-@[scoped grind →]
-lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r := by
-  constructor
-  intro a
-  obtain ⟨h⟩ := h
-  exists a
-  exact h a
+instance [Std.Refl r] : Relation.Serial r where
+  serial a := ⟨a, Std.Refl.refl a⟩
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
