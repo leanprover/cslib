@@ -90,18 +90,18 @@ inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom �
   /-- Assumption -/
   | ass {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ Γ) : Derivation Γ A
   /-- Conjunction introduction -/
-  | conjI {Γ : Ctx Atom} {A B : Proposition Atom} :
+  | andI {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation Γ A → Derivation Γ B → Derivation Γ (A ∧ B)
   /-- Conjunction elimination left -/
-  | conjE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ A
+  | andE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ A
   /-- Conjunction elimination right -/
-  | conjE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ B
+  | andE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ B
   /-- Disjunction introduction left -/
-  | disjI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ A → Derivation Γ (A ∨ B)
+  | orI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ A → Derivation Γ (A ∨ B)
   /-- Disjunction introduction right -/
-  | disjI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ B → Derivation Γ (A ∨ B)
+  | orI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ B → Derivation Γ (A ∨ B)
   /-- Disjunction elimination -/
-  | disjE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation Γ (A ∨ B) →
+  | orE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation Γ (A ∨ B) →
       Derivation (insert A Γ) C → Derivation (insert B Γ) C → Derivation Γ C
   /-- Implication introduction -/
   | implI {A B : Proposition Atom} (Γ : Ctx Atom) :
@@ -170,13 +170,13 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
     (hTheory : T ⊆ T') (hCtx : Γ ⊆ Δ) : T.Derivation Γ A → T'.Derivation Δ A
   | ax hA => ax <| hTheory hA
   | ass hA => ass <| hCtx hA
-  | conjI D D' => conjI (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
-  | conjE₁ D => conjE₁ <| D.weak hTheory hCtx
-  | conjE₂ D => conjE₂ <| D.weak hTheory hCtx
-  | disjI₁ D => disjI₁ <| D.weak hTheory hCtx
-  | disjI₂ D => disjI₂ <| D.weak hTheory hCtx
-  | disjE D D' D'' =>
-    disjE (D.weak hTheory hCtx)
+  | andI D D' => andI (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
+  | andE₁ D => andE₁ <| D.weak hTheory hCtx
+  | andE₂ D => andE₂ <| D.weak hTheory hCtx
+  | orI₁ D => orI₁ <| D.weak hTheory hCtx
+  | orI₂ D => orI₂ <| D.weak hTheory hCtx
+  | orE D D' D'' =>
+    orE (D.weak hTheory hCtx)
       (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
       (D''.weak hTheory <| Finset.insert_subset_insert _ hCtx)
   | @implI _ _ _ A B Γ D => implI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
@@ -249,13 +249,13 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
       exact (Ds B h).weak_ctx <| by grind
     case neg h =>
       exact ass <| by grind
-  | conjI E E' => conjI (E.subs Ds) (E'.subs Ds)
-  | conjE₁ E => conjE₁ <| E.subs Ds
-  | conjE₂ E => conjE₂ <| E.subs Ds
-  | disjI₁ E => disjI₁ <| E.subs Ds
-  | disjI₂ E => disjI₂ <| E.subs Ds
-  | @disjE _ _ _ _ C C' _ E E' E'' .. => by
-    apply disjE (E.subs Ds)
+  | andI E E' => andI (E.subs Ds) (E'.subs Ds)
+  | andE₁ E => andE₁ <| E.subs Ds
+  | andE₂ E => andE₂ <| E.subs Ds
+  | orI₁ E => orI₁ <| E.subs Ds
+  | orI₂ E => orI₂ <| E.subs Ds
+  | @orE _ _ _ _ C C' _ E E' E'' .. => by
+    apply orE (E.subs Ds)
     · rw [show insert C (Γ \ Γ' ∪ Δ) = (insert C Γ \ Γ') ∪ insert C Δ by grind]
       exact E'.subs Ds |>.weak_ctx (by grind)
     · rw [show insert C' (Γ \ Γ' ∪ Δ) = (insert C' Γ \ Γ') ∪ insert C' Δ by grind]
@@ -272,12 +272,12 @@ def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [Decida
     T.Derivation Γ B → (T.subst f).Derivation (Γ.subst f) (B >>= f)
   | ax h => ax <| Set.mem_image_of_mem (· >>= f) h
   | ass h => ass <| Finset.mem_image_of_mem (· >>= f) h
-  | conjI D E => conjI (D.substAtom f) (E.substAtom f)
-  | conjE₁ D => conjE₁ (D.substAtom f)
-  | conjE₂ D => conjE₂ (D.substAtom f)
-  | disjI₁ D => disjI₁ (D.substAtom f)
-  | disjI₂ D => disjI₂ (D.substAtom f)
-  | disjE D E E' => disjE (D.substAtom f)
+  | andI D E => andI (D.substAtom f) (E.substAtom f)
+  | andE₁ D => andE₁ (D.substAtom f)
+  | andE₂ D => andE₂ (D.substAtom f)
+  | orI₁ D => orI₁ (D.substAtom f)
+  | orI₂ D => orI₂ (D.substAtom f)
+  | orE D E E' => orE (D.substAtom f)
     ((Finset.image_insert (· >>= f) _ _) ▸ E.substAtom f)
     ((Finset.image_insert (· >>= f) _ _) ▸ E'.substAtom f)
   | implI _ D => implI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)

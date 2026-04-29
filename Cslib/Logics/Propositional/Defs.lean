@@ -81,7 +81,7 @@ def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
   | or A B => (A.subst f) ∨ (B.subst f)
   | impl A B => (A.subst f) → (B.subst f)
 
--- This is a lawful monad (I believe), but that doesn't seem to be important.
+-- This is probably a lawful monad, but that doesn't seem to be important.
 instance : Monad Proposition where
   pure := .atom
   bind A f := A.subst f
