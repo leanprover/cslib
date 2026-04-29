@@ -11,6 +11,7 @@ public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
 public import Cslib.Foundations.Data.Relation
+public import Mathlib.Logic.Nonempty
 
 /-! # Modal Logic
 
@@ -179,7 +180,7 @@ theorem Satisfies.t_refl
     Std.Refl r where
   refl := by
     intro w
-    rcases instAtomNonempty with ⟨a⟩
+    have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w
     let h' := h (v := v) (w := w) (φ := .atom a)
     grind
@@ -202,7 +203,7 @@ theorem Satisfies.b_symm
     Std.Symm r where
   symm := by
     intro w₁
-    rcases instAtomNonempty with ⟨a⟩
+    have a := Classical.arbitrary Atom
     let v₁ := fun (w' : World) (a : Atom) => w' = w₁
     let h₁ := h (v := v₁) (w := w₁) (φ := .atom a)
     grind
@@ -225,7 +226,7 @@ theorem Satisfies.four_trans
     IsTrans World r where
   trans := by
     intro w₁ w₂ w₃ h₁ h₂
-    rcases instAtomNonempty with ⟨a⟩
+    have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₃
     let h' := h (v := v) (w := w₁) (φ := .atom a)
     grind
@@ -244,7 +245,7 @@ theorem Satisfies.five_rightEuclidean
     Relation.RightEuclidean r where
   rightEuclidean := by
     intro w₁ w₂ w₃ h₁ h₂
-    rcases instAtomNonempty with ⟨a⟩
+    have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₃
     let h' := h (v := v) (w := w₁) (φ := .atom a)
     grind
@@ -265,7 +266,7 @@ theorem Satisfies.d_serial
     Relation.Serial r where
   serial := by
     intro w₁
-    rcases instAtomNonempty with ⟨a⟩
+    have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₁
     let h' := h (v := v) (w := w₁) (φ := .atom a)
     grind

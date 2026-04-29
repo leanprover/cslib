@@ -108,7 +108,7 @@ theorem k_leq_five : (K World Atom ≤ Five World Atom) := by
   intro φ; grind
 
 theorem d_leq_t : (D World Atom ≤ T World Atom) := by
-  intro φ; grind [Relation.refl_serial]
+  intro φ; grind [Relation.instSerialOfRefl]
 
 theorem k_leq_t : (K World Atom ≤ T World Atom) := by
   calc
