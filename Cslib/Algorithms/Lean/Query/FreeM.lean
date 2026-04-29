@@ -6,6 +6,7 @@ Authors: Sebastian Graf, Kim Morrison, Shreyas Srinivas
 module
 
 public import Cslib.Foundations.Control.Monad.Free
+public import Cslib.Algorithms.Lean.TimeM
 public import Mathlib.Combinatorics.Pigeonhole
 public import Mathlib.Data.Fintype.Card
 public import Mathlib.Data.Nat.Log
@@ -38,6 +39,8 @@ and the largest fiber still produces distinct results in the corresponding subtr
 
 public section
 
+open Cslib.Algorithms.Lean (TimeM)
+
 namespace Cslib.FreeM
 
 variable {F : Type → Type} {α β : Type}
@@ -49,7 +52,7 @@ into target monads, routing them through the universal property of the free mona
 than direct pattern-match on `FreeM`'s constructors:
 
 - `eval` interprets into `Id`.
-- `cost` interprets into a `Tally` accumulator monad (a value paired with a `Nat`-valued
+- `cost` interprets into a `TimeM` accumulator monad (a value paired with a `Nat`-valued
   running cost).
 - `queriesOn` is `cost` with unit weight.
 
@@ -58,40 +61,16 @@ The constructor-form simp lemmas (`eval_pure`, `eval_liftBind`, `cost_pure`,
 same proof ergonomics as direct pattern-match definitions while honouring the universal
 property as the primary abstraction. -/
 
-/-- Internal accumulator monad: a value paired with a `Nat`-valued running cost.
-Used to define `cost` and `queriesOn` via `liftM`. -/
-structure Tally (α : Type) where
-  /-- Running cost accumulated so far. -/
-  cost : Nat
-  /-- The carried value. -/
-  val : α
-
-instance : Monad Tally where
-  pure a := ⟨0, a⟩
-  bind x f := ⟨x.cost + (f x.val).cost, (f x.val).val⟩
-
-instance : LawfulMonad Tally := LawfulMonad.mk'
-  (id_map := fun ⟨n, _⟩ => by
-    change Tally.mk (n + 0) _ = Tally.mk n _
-    simp)
-  (pure_bind := fun a f => by
-    change Tally.mk (0 + (f a).cost) (f a).val = f a
-    cases f a
-    simp)
-  (bind_assoc := fun ⟨_, _⟩ _ _ => by
-    change Tally.mk _ _ = Tally.mk _ _
-    simp [Bind.bind, Nat.add_assoc])
-
 /-- Evaluate a program by answering each query using `oracle`.
 Defined as `liftM` to `Id`, the canonical interpreter into pure values. -/
 @[expose] def eval (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : α :=
-  p.liftM (m := Id) oracle
+  Id.run <| p.liftM fun i => pure (oracle i)
 
 /-- Weighted query cost: each query has a cost given by `weight`, accumulated along the
-oracle-determined path. Defined as `liftM` into the accumulator monad `Tally`. -/
+oracle-determined path. Defined as `liftM` into the accumulator monad `TimeM`. -/
 @[expose] def cost (oracle : {ι : Type} → F ι → ι)
     (weight : {ι : Type} → F ι → Nat) (p : FreeM F α) : Nat :=
-  (p.liftM (m := Tally) (fun op => ⟨weight op, oracle op⟩)).cost
+  TimeM.time <| p.liftM fun op => ⟨oracle op, weight op⟩
 
 /-- Count the number of queries along the path determined by `oracle`. -/
 @[expose] def queriesOn (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : Nat :=
