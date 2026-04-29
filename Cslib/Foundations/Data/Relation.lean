@@ -73,13 +73,6 @@ def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 class RightEuclidean (r : α → α → Prop) where
   rightEuclidean : r a b → r a c → r b c
 
-/-- A relation `r` is serial if every element is `Reducible`. -/
-class Serial (r : α → α → Prop) where
-  serial a : Reducible r a
-
-instance [Std.Refl r] : Relation.Serial r where
-  serial a := ⟨a, Std.Refl.refl a⟩
-
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
 
@@ -158,6 +151,13 @@ theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
 
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
+
+/-- A relation `r` is serial if every element is `Reducible`. -/
+class Serial (r : α → α → Prop) where
+  serial a : Reducible r a
+
+instance [Std.Refl r] : Relation.Serial r where
+  serial a := ⟨a, Std.Refl.refl a⟩
 
 /-- An element is normal if it is not reducible. -/
 abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
