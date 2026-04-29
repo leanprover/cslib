@@ -69,6 +69,22 @@ theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 
+/-- A relation `r` is (right) Euclidean if `r a b` and `r a c` guarantee `r b c`. -/
+class RightEuclidean (r : α → α → Prop) where
+  rightEuclidean : r a b → r a c → r b c
+
+/-- A relation `r` is serial if every element is related to some element. -/
+class Serial (r : α → α → Prop) where
+  serial : ∀ a, ∃ b, r a b
+
+@[scoped grind →]
+lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r := by
+  constructor
+  intro a
+  obtain ⟨h⟩ := h
+  exists a
+  exact h a
+
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
 
