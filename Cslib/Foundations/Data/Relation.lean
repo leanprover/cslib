@@ -73,9 +73,9 @@ def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 class RightEuclidean (r : α → α → Prop) where
   rightEuclidean : r a b → r a c → r b c
 
-/-- A relation `r` is serial if every element is related to some element. -/
+/-- A relation `r` is serial if every element is `Reducible`. -/
 class Serial (r : α → α → Prop) where
-  serial : ∀ a, ∃ b, r a b
+  serial a : Reducible r a
 
 @[scoped grind →]
 lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r := by
