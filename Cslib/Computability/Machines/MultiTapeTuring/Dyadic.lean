@@ -7,20 +7,25 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.MultiTapeTuring.Basic
+public import Mathlib.Data.FinEnum
 
 namespace Turing
 
-public instance : Fintype Char := by
-  have h_zero_valid : Nat.isValidChar 0 := by decide
-  exact Fintype.ofSurjective
-    (fun n : Fin 0x110000 =>
-      if h : Nat.isValidChar n.val
-      then (⟨⟨⟨n.val, by omega⟩⟩, h⟩ : Char)
-      else (⟨⟨⟨0, by omega⟩⟩, h_zero_valid⟩ : Char))
-    (fun c => by
-      refine ⟨⟨c.val.toNat, ?_⟩, ?_⟩
-      · have := c.valid; simp at this; omega
-      · simp only [dif_pos c.valid]; ext; simp)
+public instance : Fintype Char where
+  elems := (Finset.range 0x110000).attach.image fun ⟨n, _⟩ =>
+    if h : n.isValidChar then Char.ofNatAux n h else default
+  complete c := by
+    have hN : c.val.toNat < 0x110000 := by
+      rcases c.valid with h | ⟨_, h⟩
+      · exact Nat.lt_trans h (by decide)
+      · exact h
+    rw [Finset.mem_image]
+    refine ⟨⟨c.val.toNat, Finset.mem_range.mpr hN⟩, Finset.mem_attach _ _, ?_⟩
+    have hv : c.val.toNat.isValidChar := c.valid
+    simp only [hv, ↓reduceDIte]
+    apply Char.ext
+    change (Char.ofNatAux c.val.toNat hv).val = c.val
+    cases c with | _ val _ => cases val with | _ bv => simp [Char.ofNatAux]
 
 /-- Dyadic encoding of natural numbers. -/
 @[expose]

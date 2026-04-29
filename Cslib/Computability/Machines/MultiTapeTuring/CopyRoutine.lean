@@ -46,7 +46,6 @@ public lemma copy_eval_list
   (copy i j h_inj).eval_list tapes = Part.some
     (Function.update tapes j (((tapes i).headD []) :: (tapes j))) := by
   simp_all [copy]
-  grind
 
 end Routines
 
