@@ -150,7 +150,7 @@ theorem flatten_drop [Inhabited α]
   (flatten_take_drop h_ls n).2
 
 /-- `ls n` is the segement from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
-of ls.flatten` -/
+of `ls.flatten` -/
 @[simp, scoped grind =]
 theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (n : ℕ) : ls.flatten.extract (ls.cumLen n) (ls.cumLen (n + 1)) = ls n := by
@@ -158,6 +158,23 @@ theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k
   have h_drop := flatten_drop h_ls n
   have h_take := flatten_take h_ls' 1
   grind [extract_eq_drop_take]
+
+/-- Distributivity of "forall" over `flatten`. -/
+theorem forall_flatten_iff [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
+    (p : α → Prop) : (∀ n, p (ls.flatten n)) ↔ ∀ k, (ls k).Forall p := by
+  constructor <;> intro h
+  · intro k
+    rw [← extract_flatten h_ls k]
+    simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem, length_extract]
+    intro i h_i
+    grind [get_extract (xs := ls.flatten) h_i]
+  · intro n
+    let k := segment ls.cumLen n
+    specialize h k
+    simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem] at h
+    have : ls.cumLen k ≤ n := segment_lower_bound (cumLen_strictMono h_ls) cumLen_zero n
+    have : n < ls.cumLen (k + 1) := segment_upper_bound (cumLen_strictMono h_ls) cumLen_zero n
+    grind [flatten_def]
 
 /-- Given an ω-sequence `s` and a function `f : ℕ → ℕ`, `s.toSegs f` is the ω-sequence
 whose `n`-th element is the list `s.extract (f n) (f (n + 1))`.  In all its uses, the
