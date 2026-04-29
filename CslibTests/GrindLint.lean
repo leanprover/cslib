@@ -6,7 +6,7 @@ open Lean Elab.Command
 
 elab "open_scoped_all" pre:ident : command => do
   let env ← getEnv
-  let nss := env.getNamespaceSet.toList.filter (fun name => name.getRoot = pre.getId)
+  let nss := env.getNamespaces.filter (fun name => name.getRoot = pre.getId)
   for ns in nss do
     let cmd ← `(open scoped $(mkIdent ns))
     elabCommand cmd
@@ -47,16 +47,6 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
-#grind_lint skip Cslib.CLL.Proof.parr_inversion.eq_1
-#grind_lint skip Cslib.CLL.Proof.with_inversion₁.eq_1
-#grind_lint skip Cslib.CLL.Proof.with_inversion₂.eq_1
-#grind_lint skip Cslib.CLL.Proposition.Equiv.trans
-#grind_lint skip Cslib.CLL.Proposition.bang_top_eqv_one.eq_1
-#grind_lint skip Cslib.CLL.Proposition.expand.eq_10
-#grind_lint skip Cslib.CLL.Proposition.parr_top_eqv_top.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_assoc.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_distrib_oplus.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_symm.eq_1
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
@@ -79,6 +69,19 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
 #grind_lint skip Cslib.Logic.HML.Satisfies.diamond
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
+#adaptation_note
+/-- (changes from lean#13166) -/
+#grind_lint skip Cslib.ωLanguage.map_id
+#grind_lint skip Cslib.LTS.Bisimilarity.gfp
+#grind_lint skip Cslib.LTS.Bisimilarity.is_bisimulation
+#grind_lint skip Cslib.LTS.Bisimilarity.largest_bisimulation
+#grind_lint skip Cslib.LTS.IsBisimulation.bot
+#grind_lint skip Cslib.LTS.IsBisimulation.comp
+#grind_lint skip Cslib.LTS.IsBisimulation.inv
+#grind_lint skip Cslib.LTS.IsBisimulation.sup
+#grind_lint skip Cslib.LTS.IsBisimulation.traceEq
+#grind_lint skip Cslib.LTS.IsBisimulationUpTo.is_bisimulation
+#grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

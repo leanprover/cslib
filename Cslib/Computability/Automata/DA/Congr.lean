@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 
-@[expose] public section
-
 /-! # Deterministic automaton corresponding to a right congruence. -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -58,7 +58,11 @@ the equivalence class corresponding to `s`. -/
 @[simp]
 theorem congr_language_eq {a : Quotient c.eq} : language (FinAcc.mk c.toDA {a}) = eqvCls a := by
   ext
-  grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  constructor <;>
+  · intro h
+    simpa [mem_language, Accepts, congr_mtr_eq] using h
 
 end FinAcc
 

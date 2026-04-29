@@ -10,14 +10,14 @@ public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Data.Set.Saturation
 
-@[expose] public section
-
 /-!
 # Buchi Congruence
 
 A special type of right congruences used by J.R. Büchi to prove the closure
 of ω-regular languages under complementation.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA.Buchi
 
@@ -84,6 +84,10 @@ lemma buchiCongruence_transfer
       ( xl ∈ na.pairViaLang na.accept s t → ∃ r ∈ na.accept, r ∈ sl ) := by
   have h_eq : na.BuchiCongruence.eq xl yl := by
     apply Quotient.exact
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    have : ⟦xl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc
+    have : ⟦yl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc'
     grind
   have := h_eq s t
   have h_yl : yl ∈ na.pairLang s t := by grind
@@ -111,7 +115,8 @@ This theorem uses the Ramsey theorem for infinite graphs and does not depend on 
 of `na.BuchiCongruence` other than that it is of finite index. -/
 theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
     ⨆ i, na.buchiFamily i = ⊤ := by
-  ext xs
+  apply mem_ext
+  intro xs
   have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
   let color (t : Finset ℕ) : Quotient na.BuchiCongruence.eq :=
     if h : t.Nonempty then ⟦ xs.extract (t.min' h) (t.max' h) ⟧ else ⟦ [] ⟧
@@ -121,14 +126,26 @@ theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
   use ⟦ xs.take (f 0) ⟧, b
   apply mem_buchiFamily.mpr
   use xs.take (f 0), xs.drop (f 0) |>.toSegs (f · - f 0)
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   split_ands
-  · grind
+  · rfl
   · intro k
     specialize h_color {f k, f (k + 1)}
     have := @h_mono 0 k
     have := @h_mono k (k + 1)
-    grind [extract_drop, Finset.insert_nonempty, Finset.singleton_nonempty, min'_insert,
-      min'_singleton, max'_insert, max'_singleton, toSegs_def, Language.mem_sub_one]
+    simp only [Language.mem_sub_one, toSegs_def]
+    split_ands
+    · have : b = color {f k, f (k + 1)} := by grind
+      simp_all only [extract_drop, color]
+      split_ifs with h
+      · have : f k ≤ f (k + 1) := by lia
+        have : f 0 + (f k - f 0) = f k := by lia
+        have : f 0 + (f (k + 1) - f 0) = f (k + 1) := by lia
+        simp_all
+        rfl
+      · simp at h
+    · grind
   · grind [Nat.base_zero_strictMono h_mono]
 
 -- This intermediate result is split out of the proof of `buchiCongruence_saturation` below
@@ -159,7 +176,8 @@ private lemma frequently_via_accept [Inhabited Symbol]
   · grind only [!List.take_append_drop]
 
 /-- `na.buchiFamily` saturates the ω-language accepted by `na`. -/
-theorem buchiFamily_saturation [Inhabited Symbol] : Saturates na.buchiFamily (language na) := by
+theorem buchiFamily_saturation [Inhabited Symbol] :
+    Saturates (fun i ↦ (na.buchiFamily i).toSet) (language na).toSet := by
   rintro ⟨a, b⟩ ⟨xs, h_xs, h_lang⟩ ys h_ys
   obtain ⟨xl, xls, h_xl_c, h_xls_c, rfl⟩ := mem_buchiFamily.mp h_xs
   obtain ⟨yl, yls, h_yl_c, h_yls_c, rfl⟩ := mem_buchiFamily.mp h_ys

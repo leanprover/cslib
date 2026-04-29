@@ -10,11 +10,11 @@ public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 
-@[expose] public section
-
 /-! # Translation of Deterministic Automata into Nonodeterministic Automata.
 
 This is the general version of the standard translation of DFAs into NFAs. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.DA
 
@@ -54,11 +54,13 @@ open scoped FLTS NA.FinAcc in
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
     language a.toNAFinAcc = language a := by
   ext xs
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   constructor
-  · grind
+  · simp_all [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
   · intro _
     use a.start
-    grind
+    simp_all [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
 
 end FinAcc
 
@@ -70,16 +72,19 @@ def toNABuchi (a : DA.Buchi State Symbol) : NA.Buchi State Symbol :=
   { a.toNA with accept := a.accept }
 
 open ωAcceptor in
-open scoped NA.Buchi in
 /-- The `NA.Buchi` constructed from a `DA.Buchi` has the same ω-language. -/
 @[simp, scoped grind _=_]
 theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
     language a.toNABuchi = language a := by
   ext xs; constructor
-  · grind
-  · intro _
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  · simp_all [Accepts, language, toNABuchi]
+  · intro h
     use (a.run xs)
-    grind
+    split_ands
+    · grind
+    · exact Filter.frequently_map.mp h
 
 end Buchi
 
