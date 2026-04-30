@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
+public import Cslib.Computability.Machines.TuringCommon
 
 /-!
 # Single-Tape Turing Machines
@@ -42,7 +43,6 @@ for convenience in composition of machines.
 
 We define a number of structures related to Turing machine computation:
 
-* `Stmt`: the write and movement operations a TM can do in a single step.
 * `SingleTapeTM`: the TM itself.
 * `Cfg`: the configuration of a TM, including internal and tape state.
 * `TimeComputable f`: a TM for computing `f`, packaged with a bound on runtime.
@@ -70,21 +70,6 @@ open BiTape StackTape
 
 variable {Symbol : Type}
 
-namespace SingleTapeTM
-
-/--
-A Turing machine "statement" is just a `Option`al command to move left or right,
-and write a symbol (i.e. an `Option Symbol`, where `none` is the blank symbol) on the `BiTape`
--/
-structure Stmt (Symbol : Type) where
-  /-- The symbol to write at the current head position -/
-  symbol : Option Symbol
-  /-- The direction to move the tape head -/
-  movement : Option Dir
-deriving Inhabited
-
-end SingleTapeTM
-
 /--
 A single-tape Turing machine
 over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
@@ -98,7 +83,7 @@ structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
   (q₀ : State)
   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
   and optionally the new state to transition to afterwards (`none` for halt) -/
-  (tr : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
+  (tr : State → Option Symbol → Stmt Symbol × Option State)
 
 namespace SingleTapeTM
 
@@ -117,8 +102,6 @@ variable [Inhabited Symbol] [Fintype Symbol] (tm : SingleTapeTM Symbol)
 instance : Inhabited tm.State := ⟨tm.q₀⟩
 
 instance : Fintype tm.State := tm.stateFintype
-
-instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
 
 /--
 The configurations of a Turing machine consist of:
