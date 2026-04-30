@@ -6,12 +6,15 @@
 #
 # The provided actions which are used here consume this snapshot, with:
 #
-#   bump      — updates lakefile.lean/lake-manifest to the LKG mathlib commit
-#               and opens (or force-pushes) a PR via the mathlib-nightly-testing bot.
-#   open-issue — opens a persistent issue when an FKB commit is detected (i.e. cslib
-#               can't yet advance to the mathlib tip), and closes it automatically
-#               once the incompatibility is resolved.
-
+#   bump:        
+#      updates lakefile.lean/lake-manifest to the LKG mathlib commit
+#      and opens (or force-pushes) a PR via the mathlib-nightly-testing bot.
+#   track-incompatibility:
+#       opens 
+#         (1) a persistent issue when an FKB commit is detected (i.e. cslib
+#             can't yet advance to the mathlib tip)
+#         (2) a pull request with the dependency pinned to this commit, so issues can be worked on
+#              closes these automatically once the incompatibility is resolved.
 name: Bump mathlib to LKG
 
 on:
@@ -52,5 +55,20 @@ jobs:
     permissions:
       issues: write
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
+          private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+      
+      # We need to check out so the action can open the PR
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
       - name: Open or update incompatibility issue
-        uses: leanprover-community/downstream-reports/.github/actions/open-incompatibility-issue@main
+        uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@main
+        with:
+          open-pr: true
+          token: ${{ steps.app-token.outputs.token }}
+          git-user-name:  mathlib-nightly-testing[bot]
+          git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com

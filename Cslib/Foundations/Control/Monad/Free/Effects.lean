@@ -75,13 +75,14 @@ lemma get_def : (get : FreeState σ σ) = .lift .get := rfl
 lemma set_def (s : σ) : (set s : FreeState σ PUnit) = .lift (.set s) := rfl
 
 /-- Interpret `StateF` operations into `StateM`. -/
+@[simp]
 def stateInterp {α : Type u} : StateF σ α → StateM σ α
   | .get => MonadStateOf.get
   | .set s => MonadStateOf.set s
 
 /-- Convert a `FreeState` computation into a `StateM` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toStateM {α : Type u} (comp : FreeState σ α) : StateM σ α :=
+abbrev toStateM {α : Type u} (comp : FreeState σ α) : StateM σ α :=
   comp.liftM stateInterp
 
 /-- `toStateM` is the unique interpreter extending `stateInterp`. -/
@@ -176,12 +177,13 @@ open WriterF
 variable {ω : Type u} {α : Type u}
 
 /-- Interpret `WriterF` operations into `WriterT`. -/
+@[simp]
 def writerInterp {α : Type u} : WriterF ω α → WriterT ω Id α
   | .tell w => MonadWriter.tell w
 
 /-- Convert a `FreeWriter` computation into a `WriterT` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) : WriterT ω Id α :=
+abbrev toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) : WriterT ω Id α :=
   comp.liftM writerInterp
 
 /-- `toWriterT` is the unique interpreter extending `writerInterp`. -/
@@ -235,12 +237,12 @@ theorem run_toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) :
     (toWriterT comp).run = pure (run comp) := by
   ext : 1
   induction comp with
-  | pure _ => simp only [toWriterT, liftM_pure, run_pure, pure, WriterT.run]
+  | pure _ => simp only [liftM_pure, run_pure, pure, WriterT.run]
   | liftBind op cont ih =>
     cases op
-    simp only [toWriterT, liftM_liftBind, run_liftBind_tell, Id.run_pure] at *
+    simp only [liftM_liftBind, run_liftBind_tell, Id.run_pure] at *
     rw [ ← ih]
-    simp [WriterT.run_bind, writerInterp]
+    simp [WriterT.run_bind]
 
 /--
 `listen` captures the log produced by a subcomputation incrementally. It traverses the computation,
@@ -304,12 +306,13 @@ namespace FreeCont
 variable {r : Type u} {α : Type v} {β : Type w}
 
 /-- Interpret `ContF r` operations into `ContT r Id`. -/
+@[simp]
 def contInterp : ContF r α → ContT r Id α
-  | .callCC g => g
+  | .callCC g => .mk fun k => pure <| g fun a => (k a).run
 
 /-- Convert a `FreeCont` computation into a `ContT` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toContT {α : Type u} (comp : FreeCont r α) : ContT r Id α :=
+abbrev toContT {α : Type u} (comp : FreeCont r α) : ContT r Id α :=
   comp.liftM contInterp
 
 /-- `toContT` is the unique interpreter extending `contInterp`. -/
@@ -331,7 +334,7 @@ theorem run_toContT {α : Type u} (comp : FreeCont r α) (k : α → r) :
   induction comp with
   | pure a => rfl
   | liftBind op cont ih =>
-    simp only [toContT, FreeM.liftM]
+    simp only [FreeM.liftM]
     cases op
     simp only [ContT.run_bind]
     congr with x
@@ -398,12 +401,13 @@ lemma read_def : (read : FreeReader σ σ) = .lift .read := rfl
 instance : MonadReader σ (FreeReader σ) := inferInstance
 
 /-- Interpret `ReaderF` operations into `ReaderM`. -/
+@[simp]
 def readInterp {α : Type u} : ReaderF σ α → ReaderM σ α
   | .read => MonadReaderOf.read
 
 /-- Convert a `FreeReader` computation into a `ReaderM` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
+abbrev toReaderM {α : Type u} (comp : FreeReader σ α) : ReaderM σ α :=
   comp.liftM readInterp
 
 /-- `toReaderM` is the unique interpreter extending `readInterp`. -/
