@@ -8,6 +8,8 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 
+/-! General properties of opening and substitution in untyped lambda calculus terms. -/
+
 public section
 
 namespace Cslib
@@ -24,11 +26,6 @@ attribute [grind =] Finset.union_singleton
 lemma open_lc_aux (e : Term Var) (j v i u) (neq : i ≠ j) (eq : e⟦j ↝ v⟧ = e⟦j ↝ v⟧⟦i ↝ u⟧) :
     e = e ⟦i ↝ u⟧ := by
   induction e generalizing j i <;> grind
-
-/-- Opening is associative for nonclashing free variables. -/
-lemma swap_open_fvars (k n : ℕ) (x y : Var) (m : Term Var) (neq : k ≠ n) :
-    m⟦n ↝ fvar y⟧⟦k ↝ fvar x⟧ = m⟦k ↝ fvar x⟧⟦n ↝ fvar y⟧ := by
-  induction m generalizing k n <;> grind
 
 variable [DecidableEq Var]
 
@@ -63,6 +60,11 @@ lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) (n
     x ∉ (m⟦k ↝ fvar y⟧).fv := by
   induction m generalizing k <;> grind
 
+/-- Opening preserves free variables. -/
+lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_n : x ∉ n.fv) :
+    x ∉ (m⟦k ↝ n⟧).fv := by
+  induction m generalizing k <;> grind
+
 /-- Substitution preserves free variables. -/
 lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) (nmem : x ∉ m.fv ∪ n.fv) :
     x ∉ (m [y := n]).fv := by
@@ -85,6 +87,12 @@ lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
   induction e_lc generalizing k with
   | abs xs e _ _ => grind [open_lc_aux e 0 (fvar (fresh xs)) (k+1) t]
   | _ => grind
+
+omit [DecidableEq Var] in
+/-- Opening is associative for nonclashing locally closed terms. -/
+lemma swap_open (k n : ℕ) (t₁ t₂ m : Term Var) (neq : k ≠ n) (h1 : t₁.LC) (h2 : t₂.LC) :
+    m⟦n ↝ t₂⟧⟦k ↝ t₁⟧ = m⟦k ↝ t₁⟧⟦n ↝ t₂⟧ := by
+  induction m generalizing k n with grind
 
 /- If opening yields `app m x`, the original term was `app m (bvar 0)`. -/
 lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m.fv) (lc_m : LC m)
@@ -134,7 +142,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
   | abs xs t =>
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
     grind [
-      swap_open_fvars, =_ swap_open_fvar_close,
+      swap_open, =_ swap_open_fvar_close,
       open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0, open_close x' (t[x := fvar y]) 0,
       open_fresh_preserve_not_fvar, close_preserve_not_fvar, subst_preserve_not_fvar]
   | _ => grind
@@ -145,7 +153,7 @@ lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x�
   | abs _ t _ ih =>
     let z := t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧
     have ⟨y, _⟩ := fresh_exists <| free_union [fv] Var
-    grind [ih y ?_ (k+1), open_injective, swap_open_fvar_close, swap_open_fvars]
+    grind [ih y ?_ (k+1), open_injective, swap_open_fvar_close, swap_open]
   | _ => grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term

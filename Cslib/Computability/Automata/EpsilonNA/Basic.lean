@@ -7,10 +7,11 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Basic
-
-@[expose] public section
+public import Cslib.Foundations.Semantics.LTS.HasTau
 
 /-! # Nondeterministic automata with ε-transitions. -/
+
+@[expose] public section
 
 namespace Cslib.Automata
 

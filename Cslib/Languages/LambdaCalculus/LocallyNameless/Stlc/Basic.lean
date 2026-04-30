@@ -9,10 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # λ-calculus
 
 The simply typed λ-calculus, with a locally nameless representation of syntax.
@@ -24,6 +20,10 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
   this is partially adapted
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -88,6 +88,7 @@ lemma weaken (der : Γ ⊢ t ∶ τ) (ok : (Γ ++ Δ)✓) : Γ ++ Δ ⊢ t ∶ �
 
 omit [DecidableEq Var] in
 /-- Typing derivations exist only for locally closed terms. -/
+@[scoped grind →]
 lemma lc (der : Γ ⊢ t ∶ τ) : t.LC := by
   induction der <;> constructor
   case abs ih => exact ih

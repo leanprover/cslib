@@ -11,11 +11,11 @@ public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Data.Fintype.Pigeonhole
 public import Mathlib.Order.Filter.Cofinite
 
-@[expose] public section
-
 /-!
 # Infinite occurrences
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -76,6 +76,12 @@ theorem frequently_in_strictMono {p : ℕ → Prop} {f : ℕ → ℕ}
     grind [(StrictMono.le_iff_le hm).mpr h1, segment_upper_bound' hm h0]
   · use k - f (segment f k)
     grind [segment_lower_bound' hm h0, segment_upper_bound' hm h0]
+
+open Nat in
+/-- Every infinite subset of ℕ is the range of a strictly monotonic function from ℕ to ℕ. -/
+theorem strictMono_of_infinite {ns : Set ℕ} (h : ns.Infinite) :
+    ∃ φ : ℕ → ℕ, StrictMono φ ∧ range φ = ns :=
+  ⟨nth (· ∈ ns), nth_strictMono h, range_nth_of_infinite h⟩
 
 end ωSequence
 

@@ -6,10 +6,9 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Semantics.LTS.HasTau
+public meta import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Languages.CCS.Basic
-
-@[expose] public section
 
 /-! # Semantics of CCS
 
@@ -18,6 +17,8 @@ public import Cslib.Languages.CCS.Basic
 - `CCS.lts`: the `LTS` of CCS.
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

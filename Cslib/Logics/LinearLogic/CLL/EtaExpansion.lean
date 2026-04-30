@@ -8,15 +8,11 @@ module
 
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
-@[expose] public section
-
 /-! # η-expansion for Classical Linear Logic (CLL) -/
 
-namespace Cslib.CLL
+@[expose] public section
 
-universe u
-
-variable {Atom : Type u}
+namespace Cslib.Logic.CLL
 
 attribute [local grind _=_] Multiset.coe_eq_coe
 attribute [local grind _=_] Multiset.cons_coe
@@ -29,7 +25,7 @@ open Cslib.Logic.InferenceSystem
 
 /-- The η-expansion of a proposition `a` is a `Proof` of `{a, a⫠}` that applies the axiom
 only to atomic propositions. -/
-@[scoped grind =]
+@[simp]
 def Proposition.expand (a : Proposition Atom) : ⇓({a, a⫠} : Sequent Atom):=
   match a with
   | atom x
@@ -108,11 +104,33 @@ open Proposition Proof in
 @[local grind →]
 private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
     a.expand.onlyAtomicAxioms → a⫠.expand.onlyAtomicAxioms := by
-  induction a <;> grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  induction a with
+  | one => simp +contextual [dual, expand, onlyAtomicAxioms]
+  | bot =>
+    intro h
+    rw [←h]
+    congr 1
+    · grind
+    · simp [dual, expand, rwConclusion, Logic.InferenceSystem.rwConclusion]
+  | _ => grind [Proposition.expand, Proposition.dual_inj]
 
 open Proposition Proof in
 /-- η-expansion is correct: the proof returned by η-expansion contains only atomic axioms. -/
 theorem Proof.expand_onlyAtomicAxioms (a : Proposition Atom) : a.expand.onlyAtomicAxioms := by
-  induction a <;> grind [onlyAtomicAxioms_rwConclusion]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  induction a with
+  | one =>
+    rw [←dual_involution .one]
+    apply expand_onlyAtomicAxioms_dual
+    simp [expand, onlyAtomicAxioms, dual]
+  | zero =>
+    rw [←dual_involution .zero]
+    apply expand_onlyAtomicAxioms_dual
+    simp [expand, onlyAtomicAxioms, dual]
+  | top | bot => simp [expand, onlyAtomicAxioms]
+  | _ => grind [Proposition.expand]
 
-end Cslib.CLL
+end Cslib.Logic.CLL

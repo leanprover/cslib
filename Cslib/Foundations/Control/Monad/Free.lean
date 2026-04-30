@@ -8,8 +8,6 @@ module
 
 public import Cslib.Init
 
-@[expose] public section
-
 /-!
 # Free Monad
 
@@ -68,6 +66,8 @@ The file `Free/Fold.lean` provides the theory of the fold operation for free mon
 
 Free monad, state monad
 -/
+
+@[expose] public section
 
 namespace Cslib
 

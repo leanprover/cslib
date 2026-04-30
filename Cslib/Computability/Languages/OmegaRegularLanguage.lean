@@ -9,21 +9,20 @@ module
 public import Cslib.Computability.Automata.DA.Buchi
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
-public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Computability.Automata.NA.Sum
+public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
-public import Cslib.Foundations.Data.Set.Saturation
 public import Mathlib.Data.Finite.Card
 public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Logic.Equiv.Fin.Basic
-
-@[expose] public section
 
 /-!
 # ω-Regular languages
 
 This file defines ω-regular languages and proves some properties of them.
 -/
+
+@[expose] public section
 
 namespace Cslib.ωLanguage
 
@@ -76,6 +75,7 @@ theorem IsRegular.regular_omegaLim {l : Language Symbol}
   obtain ⟨State, _, ⟨da, acc⟩, rfl⟩ := Language.IsRegular.iff_dfa.mp h
   grind [IsRegular.of_da_buchi, =_ DA.buchi_eq_finAcc_omegaLim]
 
+open ωLanguage in
 /-- The empty language is ω-regular. -/
 @[simp]
 theorem IsRegular.bot : (⊥ : ωLanguage Symbol).IsRegular := by
@@ -84,8 +84,9 @@ theorem IsRegular.bot : (⊥ : ωLanguage Symbol).IsRegular := by
     start := ∅
     accept := ∅ }
   use Unit, inferInstance, na
-  ext xs
-  simp +instances [na]
+  apply mem_ext
+  intro xs
+  simp [na, Accepts]
 
 /-- The language of all ω-sequences is ω-regular. -/
 @[simp]
@@ -95,14 +96,14 @@ theorem IsRegular.top : (⊤ : ωLanguage Symbol).IsRegular := by
     start := univ
     accept := univ }
   use Unit, inferInstance, na
-  ext xs
+  apply mem_ext
+  intro xs
   simp +instances only [na, NA.Buchi.instωAcceptor, mem_language, mem_univ,
     frequently_true_iff_neBot, atTop_neBot, and_true, mem_top, iff_true]
   use const ()
   grind [NA.Run]
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
+open NA.Buchi in
 /-- The union of two ω-regular languages is ω-regular. -/
 @[simp]
 theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
@@ -117,13 +118,12 @@ theorem IsRegular.sup {p1 p2 : ωLanguage Symbol}
     | 0 => acc1 | 1 => acc2
   have : ∀ i, Finite (State i) := by grind
   use (Σ i : Fin 2, State i), inferInstance, ⟨(NA.iSum na), (⋃ i, Sigma.mk i '' (acc i))⟩
-  ext xs
-  simp only [NA.Buchi.iSum_language_eq, mem_sup, mem_language]
-  rw [mem_iUnion, Fin.exists_fin_two]
-  grind
+  apply mem_ext
+  intro xs
+  simp only [iSum_language_eq, mem_sup, mem_language]
+  rw [mem_iSup, Fin.exists_fin_two]
+  rfl
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 open NA.Buchi in
 /-- The intersection of two ω-regular languages is ω-regular. -/
 @[simp]
@@ -139,10 +139,11 @@ theorem IsRegular.inf {p1 p2 : ωLanguage Symbol}
     | false => acc1 | true => acc2
   have : ∀ i, Finite (State i) := by grind
   use (Π i : Bool, State i) × Bool, inferInstance, ⟨(interNA na acc), interAccept acc⟩
-  ext xs
+  apply mem_ext
+  intro xs
   simp only [inter_language_eq, mem_inf, mem_language]
-  rw [mem_iInter, Bool.forall_bool]
-  grind
+  rw [mem_iInf, Bool.forall_bool]
+  rfl
 
 /-- The union of any finite number of ω-regular languages is ω-regular. -/
 @[simp]
@@ -207,12 +208,14 @@ theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage S
       fun i ↦ na.pairLang (eq i).1 (eq i).2,
       fun i ↦ na.pairLang (eq i).2 (eq i).2,
       by grind [LTS.pairLang_regular], ?_⟩
-    ext xs
+    apply mem_ext
+    intro xs
     simp only [mem_iSup]
     refine ⟨?_, by grind⟩
     rintro ⟨s, h_s, t, h_t, h_mem⟩
     use eq.invFun (⟨s, h_s⟩, ⟨t, h_t⟩)
-    simp [h_mem]
+    -- The following `simp` is where the `set_option` above is needed.
+    simpa [mem_def]
   · rintro ⟨n, l, m, _, rfl⟩
     rw [← iSup_univ]
     apply IsRegular.iSup
@@ -222,17 +225,38 @@ theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage S
 then it is an ω-regular language. -/
 theorem IsRegular.fin_cover_saturates {I : Type*} [Finite I]
     {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
-    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : q.IsRegular := by
-  rw [saturates_eq_biUnion hs hc]
-  apply IsRegular.iSup
-  grind
+    (hs : Saturates (fun i ↦ (p i).toSet) q.toSet)
+    (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : q.IsRegular := by
+  suffices hu : q = ⨆ i ∈ {i | ((p i) ⊓ q).toSet.Nonempty}, (p i) by
+    rw [hu]
+    apply IsRegular.iSup
+    grind
+  have hc' : ⋃ i, (p i).toSet = univ := by grind [iSup_def, top_def]
+  have hq := saturates_eq_biUnion hs hc'
+  ext : 1
+  rw [hq]
+  simp [iSup_def, inf_def]
 
 /-- If an ω-language has a finite saturating cover made of ω-regular languages,
 then its complement is an ω-regular language. -/
 theorem IsRegular.fin_cover_saturates_compl {I : Type*} [Finite I]
     {p : I → ωLanguage Symbol} {q : ωLanguage Symbol}
-    (hs : Saturates p q) (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular :=
+    (hs : Saturates (fun i ↦ (p i).toSet) q.toSet)
+    (hc : ⨆ i, p i = ⊤) (hr : ∀ i, (p i).IsRegular) : (qᶜ).IsRegular :=
   IsRegular.fin_cover_saturates (saturates_compl hs) hc hr
+
+open NA.Buchi in
+/-- The complementation of an ω-regular language is ω-regular. -/
+@[simp]
+theorem IsRegular.compl {Symbol : Type} [Inhabited Symbol] {p : ωLanguage Symbol}
+    (h : p.IsRegular) : (pᶜ).IsRegular := by
+  obtain ⟨State, h_fin, na, rfl⟩ := h
+  have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
+  have h_sat := buchiFamily_saturation (na := na)
+  have h_cov := buchiFamily_cover (na := na)
+  apply IsRegular.fin_cover_saturates_compl h_sat h_cov
+  have := Language.IsRegular.congr_fin_index (c := na.BuchiCongruence)
+  grind [buchiFamily, IsRegular.hmul, IsRegular.omegaPow]
 
 /-- McNaughton's Theorem. -/
 proof_wanted IsRegular.iff_da_muller {p : ωLanguage Symbol} :

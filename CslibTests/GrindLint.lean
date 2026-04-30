@@ -6,7 +6,7 @@ open Lean Elab.Command
 
 elab "open_scoped_all" pre:ident : command => do
   let env ← getEnv
-  let nss := env.getNamespaceSet.toList.filter (fun name => name.getRoot = pre.getId)
+  let nss := env.getNamespaces.filter (fun name => name.getRoot = pre.getId)
   for ns in nss do
     let cmd ← `(open scoped $(mkIdent ns))
     elabCommand cmd
@@ -26,7 +26,7 @@ open_scoped_all Cslib
   See https://lean-lang.org/doc/reference/latest/The--grind--tactic/E___matching/ for details.
 -/
 
-#grind_lint skip Cslib.Bisimilarity.trans
+#grind_lint skip Cslib.LTS.Bisimilarity.trans
 #grind_lint skip Cslib.FLTS.toLTS_tr
 #grind_lint skip Cslib.FinFun.coe_fromFun_id
 #grind_lint skip Cslib.FinFun.fromFun_comm
@@ -35,7 +35,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.FinFun.fromFun_inter
 #grind_lint skip Cslib.LTS.deterministic_not_lto
 #grind_lint skip Cslib.LTS.deterministic_tr_image_singleton
-#grind_lint skip Cslib.LTS.IsExecution.refl
+#grind_lint skip Cslib.LTS.Execution.refl
 #grind_lint skip Cslib.LTS.mem_saturate_image_τ
 #grind_lint skip Cslib.ωSequence.drop_const
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
@@ -47,16 +47,6 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
-#grind_lint skip Cslib.CLL.Proof.parr_inversion.eq_1
-#grind_lint skip Cslib.CLL.Proof.with_inversion₁.eq_1
-#grind_lint skip Cslib.CLL.Proof.with_inversion₂.eq_1
-#grind_lint skip Cslib.CLL.Proposition.Equiv.trans
-#grind_lint skip Cslib.CLL.Proposition.bang_top_eqv_one.eq_1
-#grind_lint skip Cslib.CLL.Proposition.expand.eq_10
-#grind_lint skip Cslib.CLL.Proposition.parr_top_eqv_top.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_assoc.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_distrib_oplus.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_symm.eq_1
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
@@ -78,6 +68,20 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
 #grind_lint skip Cslib.Logic.HML.Satisfies.diamond
+#grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
+#adaptation_note
+/-- (changes from lean#13166) -/
+#grind_lint skip Cslib.ωLanguage.map_id
+#grind_lint skip Cslib.LTS.Bisimilarity.gfp
+#grind_lint skip Cslib.LTS.Bisimilarity.is_bisimulation
+#grind_lint skip Cslib.LTS.Bisimilarity.largest_bisimulation
+#grind_lint skip Cslib.LTS.IsBisimulation.bot
+#grind_lint skip Cslib.LTS.IsBisimulation.comp
+#grind_lint skip Cslib.LTS.IsBisimulation.inv
+#grind_lint skip Cslib.LTS.IsBisimulation.sup
+#grind_lint skip Cslib.LTS.IsBisimulation.traceEq
+#grind_lint skip Cslib.LTS.IsBisimulationUpTo.is_bisimulation
+#grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

@@ -8,9 +8,9 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 
-@[expose] public section
-
 /-! # Translation of εNA into NA -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -52,7 +52,9 @@ theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
   ext xs
   have : ∀ s s', ena.saturate.MTr s (xs.map some) s' = ena.saturate.noε.MTr s xs s' := by
     simp [LTS.noε_saturate_mTr]
-  grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+  grind [Accepts]
 
 end Automata.εNA.FinAcc
 

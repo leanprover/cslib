@@ -8,6 +8,8 @@ module
 
 public import Cslib.Init
 
+/-! Notation typeclass for substitution. -/
+
 public section
 
 namespace Cslib

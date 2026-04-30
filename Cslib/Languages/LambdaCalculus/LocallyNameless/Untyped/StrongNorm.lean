@@ -10,6 +10,8 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 
+/-! Strong normalization (termination) for full beta-reduction of untyped lamba calulus. -/
+
 @[expose] public section
 
 set_option linter.unusedDecidableInType false
@@ -43,7 +45,7 @@ lemma sn_steps (t_st_t' : t ↠βᶠ t') (sn_t : SN t) : SN t' := by
 
 /-- Free variables are strongly normalizing. -/
 lemma sn_fvar {x : Var} : SN (fvar x) := by
-  grind [cases FullBeta]
+  grind only [cases Xi, cases Beta, SN]
 
 /-- An application is strongly normalizing if the left and right terms are strongly normalizing,
     as well as all possible future top level abstraction application beta reductions -/
@@ -56,7 +58,7 @@ lemma sn_app (t s : Term Var) (sn_t : SN t) (sn_s : SN s)
       constructor
       intro u hstep
       cases hstep with
-      | beta _ _       => grind
+      | base h => cases h; grind
       | appL _ h_s_red => apply ih_s _ h_s_red
                           grind [Relation.ReflTransGen.head]
       | appR _ h_t_red => apply ih_t _ h_t_red _ (SN.sn s hs)
@@ -91,7 +93,7 @@ inductive Neutral : Term Var → Prop
 
 /-- Neutral terms only reduce to other neutral terms in a single step -/
 lemma neutral_step (Hneut : Neutral t) (Hstep : t ⭢βᶠ t') : Neutral t' := by
-  induction Hneut generalizing t' with grind [cases FullBeta, sn_step]
+  induction Hneut generalizing t' with grind only [Neutral, cases Xi, sn_step]
 
 /-- Neutral terms only reduce to other neutral terms in multiple steps -/
 lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' := by
@@ -101,7 +103,7 @@ lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' :=
 lemma sn_neutral (Hneut : Neutral t) : SN t := by
   induction Hneut with
   | app => grind [→ neutral_steps, sn_app]
-  | _ => grind [cases FullBeta]
+  | _ => grind only [SN, cases Xi]
 
 /-- A lambda abstraction is strongly normalizing if its body is strongly normalizing. -/
 lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN (M ^ N)) (lc_N : LC N) :
@@ -111,7 +113,9 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN (M ^ 
   | sn =>
     constructor
     intro _ h_step
-    cases h_step with | abs _ H => grind [step_open_cong_l _ _ _ _ H]
+    cases h_step with
+    | abs _ H => grind [step_open_cong_l _ _ _ _ H]
+    | base _ => contradiction
 
 /-- A term of the form λ M N P_1 … P_n is strongly normalizing if
       1. N is strongly normalizing,
@@ -141,12 +145,16 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
           · apply steps_multiApp_l
             · apply steps_open_cong_abs M M' N N' <;> grind [open_abs_lc]
             · grind [multiApp_steps_lc]
-        apply sn_steps
+        refine sn_steps ?_ sn_MNPs
         · calc ((M ^ N).multiApp Ps).app P
             _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
-            _ ↠βᶠ Q' ^ P' := by grind [beta]
-        · grind
+            _ ↠βᶠ Q' ^ P' := by
+              rw [Relation.reflTransGen_iff_eq_or_transGen] at ⊢ innerSteps h_st2
+              right
+              cases lc_MNPs
+              refine Relation.TransGen.single (Xi.base (Beta.beta ?_ ?_))
+              all_goals grind only [→ step_lc_r]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

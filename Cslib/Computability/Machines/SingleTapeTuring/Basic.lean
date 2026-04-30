@@ -11,8 +11,6 @@ public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
 public import Cslib.Computability.Machines.TuringCommon
 
-@[expose] public section
-
 /-!
 # Single-Tape Turing Machines
 
@@ -61,6 +59,8 @@ We also provide ways of constructing polynomial-runtime TMs
 - Add `∘` notation for `compComputer`.
 
 -/
+
+@[expose] public section
 
 open Cslib Relation
 
@@ -289,7 +289,9 @@ private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
       simp only [step, toCompCfg_left, compComputer]
       generalize hM : tm1.tr q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
-      cases nextState <;> grind [toCompCfg_left]
+      #adaptation_note
+      /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+      cases nextState <;> (simp_all; rfl)
 
 /-- The right converting function commutes with steps of the machines. -/
 private theorem map_toCompCfg_right_step :
