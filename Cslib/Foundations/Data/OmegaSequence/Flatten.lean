@@ -162,19 +162,11 @@ theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k
 /-- Distributivity of "forall" over `flatten`. -/
 theorem forall_flatten_iff [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (p : α → Prop) : (∀ n, p (ls.flatten n)) ↔ ∀ k, (ls k).Forall p := by
-  constructor <;> intro h
-  · intro k
-    rw [← extract_flatten h_ls k]
-    simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem, length_extract]
-    intro i h_i
-    grind [get_extract (xs := ls.flatten) h_i]
-  · intro n
-    let k := segment ls.cumLen n
-    specialize h k
-    simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem] at h
-    have : ls.cumLen k ≤ n := segment_lower_bound (cumLen_strictMono h_ls) cumLen_zero n
-    have : n < ls.cumLen (k + 1) := segment_upper_bound (cumLen_strictMono h_ls) cumLen_zero n
-    grind [flatten_def]
+  constructor
+  · simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem, ← extract_flatten h_ls]
+    grind
+  · have := segment_upper_bound (cumLen_strictMono h_ls)
+    grind [List.forall_iff_forall_mem, flatten_def]
 
 /-- Given an ω-sequence `s` and a function `f : ℕ → ℕ`, `s.toSegs f` is the ω-sequence
 whose `n`-th element is the list `s.extract (f n) (f (n + 1))`.  In all its uses, the
