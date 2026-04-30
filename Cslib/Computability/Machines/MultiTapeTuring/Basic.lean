@@ -13,8 +13,6 @@ public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Machines.TuringCommon
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
-@[expose] public section
-
 /-!
 # Multi-Tape Turing Machines
 
@@ -62,6 +60,8 @@ There are multiple ways to talk about the behaviour of a multi-tape Turing machi
 * Define the notion of a multi-tape Turing machine computing a function.
 
 -/
+
+@[expose] public section
 
 open Cslib Relation
 
