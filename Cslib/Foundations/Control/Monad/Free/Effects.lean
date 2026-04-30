@@ -75,13 +75,14 @@ lemma get_def : (get : FreeState σ σ) = .lift .get := rfl
 lemma set_def (s : σ) : (set s : FreeState σ PUnit) = .lift (.set s) := rfl
 
 /-- Interpret `StateF` operations into `StateM`. -/
+@[simp]
 def stateInterp {α : Type u} : StateF σ α → StateM σ α
   | .get => MonadStateOf.get
   | .set s => MonadStateOf.set s
 
 /-- Convert a `FreeState` computation into a `StateM` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toStateM {α : Type u} (comp : FreeState σ α) : StateM σ α :=
+abbrev toStateM {α : Type u} (comp : FreeState σ α) : StateM σ α :=
   comp.liftM stateInterp
 
 /-- `toStateM` is the unique interpreter extending `stateInterp`. -/
@@ -182,7 +183,7 @@ def writerInterp {α : Type u} : WriterF ω α → WriterT ω Id α
 
 /-- Convert a `FreeWriter` computation into a `WriterT` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) : WriterT ω Id α :=
+abbrev toWriterT {α : Type u} [Monoid ω] (comp : FreeWriter ω α) : WriterT ω Id α :=
   comp.liftM writerInterp
 
 /-- `toWriterT` is the unique interpreter extending `writerInterp`. -/
@@ -310,7 +311,7 @@ def contInterp : ContF r α → ContT r Id α
 
 /-- Convert a `FreeCont` computation into a `ContT` computation. This is the canonical
 interpreter derived from `liftM`. -/
-def toContT {α : Type u} (comp : FreeCont r α) : ContT r Id α :=
+abbrev toContT {α : Type u} (comp : FreeCont r α) : ContT r Id α :=
   comp.liftM contInterp
 
 /-- `toContT` is the unique interpreter extending `contInterp`. -/
@@ -390,6 +391,7 @@ lemma read_def : (read : FreeReader σ σ) = .lift .read := rfl
 instance : MonadReader σ (FreeReader σ) := inferInstance
 
 /-- Interpret `ReaderF` operations into `ReaderM`. -/
+@[simp]
 def readInterp {α : Type u} : ReaderF σ α → ReaderM σ α
   | .read => MonadReaderOf.read
 
