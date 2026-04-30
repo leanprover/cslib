@@ -45,7 +45,7 @@ def Five World Atom := logic {m : Model World Atom | Relation.RightEuclidean m.r
 
 /-- The modal logic K45. -/
 @[simp, scoped grind =]
-def K45 World Atom := (K World Atom) ⊔ ((Four World Atom) ⊔ (Five World Atom))
+def K45 World Atom := (K World Atom) ⊔ (Four World Atom) ⊔ (Five World Atom)
 
 /-- The modal logic D. -/
 @[simp, scoped grind =]
@@ -53,35 +53,35 @@ def D World Atom := logic {m : Model World Atom | Relation.Serial m.r}
 
 /-- The modal logic D4. -/
 @[simp, scoped grind =]
-def D4 World Atom := (K World Atom) ⊔ ((D World Atom) ⊔ (Four World Atom))
+def D4 World Atom := (K World Atom) ⊔ (D World Atom) ⊔ (Four World Atom)
 
 /-- The modal logic D5. -/
 @[simp, scoped grind =]
-def D5 World Atom := (K World Atom) ⊔ ((D World Atom) ⊔ (Five World Atom))
+def D5 World Atom := (K World Atom) ⊔ (D World Atom) ⊔ (Five World Atom)
 
 /-- The modal logic D45. -/
 @[simp, scoped grind =]
-def D45 World Atom := (K World Atom) ⊔ ((D World Atom) ⊔ ((Four World Atom) ⊔ (Five World Atom)))
+def D45 World Atom := (K World Atom) ⊔ (D World Atom) ⊔ (Four World Atom) ⊔ (Five World Atom)
 
 /-- The modal logic DB. -/
 @[simp, scoped grind =]
-def DB World Atom := (K World Atom) ⊔ ((D World Atom) ⊔ (B World Atom))
+def DB World Atom := (K World Atom) ⊔ (D World Atom) ⊔ (B World Atom)
 
 /-- The modal logic TB. -/
 @[simp, scoped grind =]
-def TB World Atom := (K World Atom) ⊔ ((T World Atom) ⊔ (B World Atom))
+def TB World Atom := (K World Atom) ⊔ (T World Atom) ⊔ (B World Atom)
 
 /-- The modal logic KB5. -/
 @[simp, scoped grind =]
-def KB5 World Atom := (K World Atom) ⊔ ((B World Atom) ⊔ (Five World Atom))
+def KB5 World Atom := (K World Atom) ⊔ (B World Atom) ⊔ (Five World Atom)
 
 /-- The modal logic S4. -/
 @[simp, scoped grind =]
-def S4 World Atom := (K World Atom) ⊔ ((T World Atom) ⊔ (Four World Atom))
+def S4 World Atom := (K World Atom) ⊔ (T World Atom) ⊔ (Four World Atom)
 
 /-- The modal logic S5. -/
 @[simp, scoped grind =]
-def S5 World Atom := (K World Atom) ⊔ ((T World Atom) ⊔ ((Four World Atom) ⊔ (Five World Atom)))
+def S5 World Atom := (K World Atom) ⊔ (T World Atom) ⊔ (Four World Atom) ⊔ (Five World Atom)
 
 section Order
 
@@ -107,8 +107,9 @@ theorem k_leq_four : (K World Atom ≤ Four World Atom) := by
 theorem k_leq_five : (K World Atom ≤ Five World Atom) := by
   intro φ; grind
 
+open scoped Relation in
 theorem d_leq_t : (D World Atom ≤ T World Atom) := by
-  intro φ; grind [Relation.refl_serial]
+  intro φ; grind
 
 theorem k_leq_t : (K World Atom ≤ T World Atom) := by
   calc
