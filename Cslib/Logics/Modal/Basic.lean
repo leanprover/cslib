@@ -115,7 +115,7 @@ theorem neg_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
 Disjunction is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct. -/
 @[scoped grind =]
-theorem Satisfies.or_char {m : Model World Atom} :
+theorem Satisfies.or_iff_or {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by grind [Proposition.or]
 
 /-- Characterisation of the `→` connective.
@@ -124,7 +124,7 @@ Implication is defined in terms of the more primitive connectives given in `Prop
 This result proves that the definition is correct.
 -/
 @[scoped grind =]
-theorem Satisfies.impl_char {m : Model World Atom} :
+theorem Satisfies.impl_iff_impl {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
 
 /-- Characterisation of the `□` modality.
@@ -132,7 +132,7 @@ theorem Satisfies.impl_char {m : Model World Atom} :
 Necessity is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct. -/
 @[scoped grind =]
-theorem Satisfies.box_char {m : Model World Atom} :
+theorem Satisfies.box_iff_forall {m : Model World Atom} :
     ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind [Proposition.box]
 
 /-- The theory of a world in a model is the set of all propositions that it satifies. -/
@@ -211,7 +211,7 @@ theorem Satisfies.b_symm
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four {m : Model World Atom} [instTrans : IsTrans World m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ⋄⋄φ → ⋄φ] := by
-  simp only [impl_char]
+  simp only [impl_iff_impl]
   intro h
   rcases h with ⟨w', h₁, w'', h₂, hs⟩
   exists w''
