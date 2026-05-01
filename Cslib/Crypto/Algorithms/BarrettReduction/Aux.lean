@@ -14,7 +14,7 @@ public import Mathlib.Algebra.Order.Floor.Defs
 public import Mathlib.Data.Int.DivMod
 import Mathlib.Tactic
 
-/-
+/-!
 # Auxiliary definitions and lemmas
 
 - Defines `clog2`, a base 2 upper logarithm and some associated lemmas
@@ -26,23 +26,23 @@ public section
 
 namespace Nat
 
-def clog2 : ℕ → ℕ := Nat.clog 2
+abbrev clog2 : ℕ → ℕ := Nat.clog 2
 
 lemma le_clog2_self (n : ℕ) :
-  n ≤ 2 ^ (n.clog2) := by
+    n ≤ 2 ^ (n.clog2) := by
   apply le_pow_clog (by simp) n
 
 lemma log2_le_clog2 (n : ℕ) :
-  n.log2 ≤ n.clog2 := by
+    n.log2 ≤ n.clog2 := by
   rw [log2_eq_log_two]
   apply Nat.log_le_clog 2 n
 
 lemma le_pow_iff_clog2_le {x y : ℕ} :
-  x ≤ 2 ^ y ↔ clog2 x ≤ y :=
+    x ≤ 2 ^ y ↔ clog2 x ≤ y :=
   by symm; apply Nat.clog_le_iff_le_pow; simp
 
 lemma clog2_le_log2 (n : ℕ) :
-  n.clog2 ≤ n.log2 + 1 := by
+    n.clog2 ≤ n.log2 + 1 := by
   rw [log2_eq_log_two]
   rw [← le_pow_iff_clog2_le]
   apply le_of_lt
@@ -53,7 +53,7 @@ lemma clog2_le_log2 (n : ℕ) :
     simp
 
 lemma clog2_eq (n : ℕ) :
-  n.clog2 = if 2 ^ n.log2 < n then n.log2 + 1 else n.log2 := by
+    n.clog2 = if 2 ^ n.log2 < n then n.log2 + 1 else n.log2 := by
   have H₀ := clog2_le_log2 n
   have H₁ := log2_le_clog2 n
   split_ifs with Hcond <;> rw [← Nat.lt_clog_iff_pow_lt (by simp), ← clog2] at Hcond <;> linarith
@@ -63,7 +63,7 @@ end Nat
 namespace Int
 
 lemma abs_bmod_le (x : ℤ) (m : ℕ) (Hm : 0 < m) :
-  |x.bmod m| ≤ m / 2 := by
+    |x.bmod m| ≤ m / 2 := by
   rw [abs_le]; apply And.intro
   · apply Int.le_bmod Hm
   · transitivity
@@ -71,7 +71,7 @@ lemma abs_bmod_le (x : ℤ) (m : ℕ) (Hm : 0 < m) :
     · omega
 
 lemma bmod_eq' (x : ℤ) (m : ℕ) :
-  x.bmod m = x - m * (round (x / (m: ℚ))) := by
+    x.bmod m = x - m * (round (x / (m: ℚ))) := by
   rw [round_eq, Int.bmod]
   have X: x % m < (m + 1) / 2 ↔ 2 * (x % m) < m := by omega
   cases Nat.eq_zero_or_pos m with
@@ -107,7 +107,7 @@ lemma bmod_eq' (x : ℤ) (m : ℕ) :
         simp only [Int.sub_nonneg]; apply And.intro <;> try linarith
 
 lemma emod_def' (x : ℤ) (m : ℕ) :
-  x % ↑m = if x.bmod m < 0 then m + x.bmod m else x.bmod m := by
+    x % ↑m = if x.bmod m < 0 then m + x.bmod m else x.bmod m := by
   simp [Int.bmod_def]
   split_ifs <;> try omega
   · cases Nat.eq_zero_or_pos m with
@@ -120,18 +120,18 @@ lemma emod_def' (x : ℤ) (m : ℕ) :
       have X := @Int.emod_lt_of_pos x m (by omega); linarith
 
 lemma bmod_eq_of_abs_lt {n : ℤ} {m : ℕ} (hlt : |n| < m / 2) :
-  n.bmod m = n := by
+    n.bmod m = n := by
   rw [abs_lt] at hlt
   apply Int.bmod_eq_of_le <;> omega
 
 lemma bmod_bmod_eq_of_le {x : ℤ} {m1 m2 : ℕ} (h : 0 < m1) (h' : m1 ≤ m2) :
-  (x.bmod m1).bmod m2 = x.bmod m1 := by
+    (x.bmod m1).bmod m2 = x.bmod m1 := by
   have X0 := @Int.le_bmod x m1 h
   have X1 := @Int.bmod_le x m1 h
   rw [@Int.bmod_eq_of_le _ m2] <;> omega
 
 lemma bmod_bmod_eq_of_lt {x : ℤ} {m1 m2 : ℕ} (h : 0 < m1) (h' : m1 < m2) :
-  (x.bmod m1).bmod m2 = x.bmod m1 := by
+    (x.bmod m1).bmod m2 = x.bmod m1 := by
   rw [bmod_bmod_eq_of_le] <;> omega
 end Int
 
@@ -144,7 +144,7 @@ variable {α : Type*}
 variable [Field α] [LinearOrder α] [IsStrictOrderedRing α] [FloorRing α]
 
 lemma floor_sub_abs (a b : α) :
-  |⌊a⌋ - ⌊b⌋| ≤ ⌈|a - b|⌉ := by
+    |⌊a⌋ - ⌊b⌋| ≤ ⌈|a - b|⌉ := by
   wlog Hab: a ≥ b
   · rw [abs_sub_comm ⌊a⌋, abs_sub_comm a]
     apply this; apply le_of_not_ge at Hab; assumption
@@ -163,7 +163,7 @@ lemma floor_sub_abs (a b : α) :
     linarith
 
 lemma floor_lt_iff (a b : α) :
-  ⌊a⌋ < ⌊b⌋ ↔ ∃ (n: ℤ), a < ↑n ∧ ↑n ≤ b := by
+    ⌊a⌋ < ⌊b⌋ ↔ ∃ (n: ℤ), a < ↑n ∧ ↑n ≤ b := by
   apply Iff.intro
   · intro H; cases lt_or_ge a ↑⌊b⌋ with
     | inl Hlt => use ↑⌊b⌋; apply And.intro
@@ -179,13 +179,13 @@ lemma floor_lt_iff (a b : α) :
     · assumption
 
 lemma round_sub_abs (a b : α) :
-  |round a - round b| ≤ ⌈|a - b|⌉ := by
+    |round a - round b| ≤ ⌈|a - b|⌉ := by
   rw [round_eq, round_eq]
   rw [show (a - b = (a + 1/2) - (b + 1/2)) by linarith]
   apply floor_sub_abs
 
 lemma round_lt_iff (a b : α) :
-  round a < round b ↔ ∃ (n: ℤ), a < n + 1/2 ∧ n + 1/2 ≤ b := by
+    round a < round b ↔ ∃ (n: ℤ), a < n + 1/2 ∧ n + 1/2 ≤ b := by
   apply Iff.intro
   · rw [round_eq, round_eq]; intro H
     rw [floor_lt_iff] at H

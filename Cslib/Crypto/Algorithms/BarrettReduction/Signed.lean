@@ -15,18 +15,15 @@ public import Mathlib.Algebra.Order.Round
 import Mathlib.Tactic
 public import Cslib.Crypto.Algorithms.BarrettReduction.Aux
 
-/-
+/-!
 # Signed Barrett Reduction
 
 This file formalizes signed variant of the Barrett reduction algorithm used in many
 schemes such as ML-DSA or ML-KEM.
 
-This formalization is inspired by Section 2.4 of the following paper
-Efficient Multiplication of Somewhat Small Integers Using Number-Theoretic Transforms
-Hanno Becker, Vincent Hwang, Matthias J. Kannwischer, Lorenz Panny, and Bo-Yin Yang
-IWSEC 2022
+This formalization is inspired by Section 2.4 of [BeckerHKPY22]
 
-The main theorem is `barrett_reduce_spec`.
+The main theorem is `barrettReduce_spec`.
 
 See example at the end of file for how to use it.
 -/
@@ -35,24 +32,24 @@ namespace Cslib.Crypto.Algorithms.BarrettReduction.Signed
 
 notation "⌊" x "⌉" => round (x : ℚ)
 
-def is_approx (δ : ℚ) (α : ℚ → ℤ) : Prop :=
+def IsApprox (δ : ℚ) (α : ℚ → ℤ) : Prop :=
   ∀ (x: ℚ), |(x - α x)| ≤ δ
 
-lemma round_is_approx : is_approx (1/2) round := by
+lemma round_isApprox : IsApprox (1/2) round := by
   intro x; apply abs_sub_round
 
-def round_to_even (x : ℚ) : ℤ :=
+def roundToEven (x : ℚ) : ℤ :=
   2 * ⌊(x / 2)⌉
 
-def mod_approx (α : ℚ → ℤ) (x : ℤ) (N : ℕ) : ℤ := x - ↑N * (α (x/N))
+def modApprox (α : ℚ → ℤ) (x : ℤ) (N : ℕ) : ℤ := x - ↑N * (α (x/N))
 
-public def smod (x : ℤ) (N : ℕ) : ℤ := mod_approx round x N
+public def smod (x : ℤ) (N : ℕ) : ℤ := modApprox round x N
 
 notation x "mod±" N => smod x N
 
 lemma smod_is_bmod (x : ℤ) (N : ℕ) :
-  (x mod± N) = (x.bmod N) := by
-  rw [Int.bmod_eq_self_sub_mul_bdiv, smod, mod_approx]
+    (x mod± N) = (x.bmod N) := by
+  rw [Int.bmod_eq_self_sub_mul_bdiv, smod, modApprox]
   rw [Int.bdiv]; split_ifs with HN
   · rw [HN]; simp
   · simp only [mul_ite, sub_right_inj]
@@ -81,22 +78,22 @@ lemma smod_is_bmod (x : ℤ) (N : ℕ) :
                 linarith]
     split <;> simp
 
-def barrett_mul (R : ℕ) (a b : ℤ) (q : ℕ) : ℤ :=
+def barrettMul (R : ℕ) (a b : ℤ) (q : ℕ) : ℤ :=
   a * b - q * ⌊((a * ⌊((b * R) / q)⌉) / R)⌉
 
 -- This is Fact 2 of cited paper above.
 -- M is the bitwidth of the considered integer type, e.g., 16, 32, 64, etc.
-lemma barrett_mul_spec (a b : ℤ) (M R k q : ℕ)
-  (H1_le_k : 1 ≤ k)
-  (Hk : |((b * R) / (q : ℚ)) - ⌊((b * R) / q)⌉| ≤ (1 / (2 ^ k)))
-  (HOddq : Odd q) (HR : R = 2 ^ (M - 1 + q.log2 - |b|.toNat.clog2))
-  (HM : 2 ≤ M)
-  (Hb : |b| ≤ 2 ^ (M - 2))
-  (Ha' : |a| ≤ 2 ^ ((M - 2) - |b|.toNat.clog2 + (k - 1))) :
-  barrett_mul R a b q = (a * b).bmod q := by
+lemma barrettMul_spec (a b : ℤ) (M R k q : ℕ)
+    (H1_le_k : 1 ≤ k)
+    (Hk : |((b * R) / (q : ℚ)) - ⌊((b * R) / q)⌉| ≤ (1 / (2 ^ k)))
+    (HOddq : Odd q) (HR : R = 2 ^ (M - 1 + q.log2 - |b|.toNat.clog2))
+    (HM : 2 ≤ M)
+    (Hb : |b| ≤ 2 ^ (M - 2))
+    (Ha' : |a| ≤ 2 ^ ((M - 2) - |b|.toNat.clog2 + (k - 1))) :
+    barrettMul R a b q = (a * b).bmod q := by
   have Hqpos: q > 0 := by exact Odd.pos HOddq
   have HRpos: R > 0 := by subst R; exact Nat.two_pow_pos _
-  rw [← smod_is_bmod, barrett_mul, smod, mod_approx]
+  rw [← smod_is_bmod, barrettMul, smod, modApprox]
   simp only [Int.cast_mul, sub_right_inj, mul_eq_mul_left_iff, Int.natCast_eq_zero]; left
   let δ := a * (round ((b * R) / (q: ℚ))) / (R: ℚ) - ((a * b) / q)
   rw [show ↑a * ↑(round (↑b * ↑R / (q:ℚ))) / (R: ℚ) = ((a * b) / q) + δ by simp [δ]]
@@ -199,19 +196,19 @@ lemma barrett_mul_spec (a b : ℤ) (M R k q : ℕ)
               · apply abs_nonneg
             ring_nf; omega
 
-public def barrett_reduce (R : ℕ) (a : ℤ) (q : ℕ) : ℤ :=
+public def barrettReduce (R : ℕ) (a : ℤ) (q : ℕ) : ℤ :=
   a - q * ⌊((a * ⌊(R / q)⌉) / R)⌉
 
-public theorem barrett_reduce_spec (a : ℤ) (M R k q : ℕ)
-  (H1_le_k : 1 ≤ k)
-  (Hk : |(R / (q : ℚ)) - ⌊(R / q)⌉| ≤ (1 / (2 ^ k)))
-  (HOddq : Odd q) (HR : R = 2 ^ (M - 1 + q.log2))
-  (HM : 2 ≤ M)
-  (Ha' : |a| ≤ 2 ^ ((M - 2) + (k - 1))) :
-  barrett_reduce R a q = a.bmod q := by
+public theorem barrettReduce_spec (a : ℤ) (M R k q : ℕ)
+    (H1_le_k : 1 ≤ k)
+    (Hk : |(R / (q : ℚ)) - ⌊(R / q)⌉| ≤ (1 / (2 ^ k)))
+    (HOddq : Odd q) (HR : R = 2 ^ (M - 1 + q.log2))
+    (HM : 2 ≤ M)
+    (Ha' : |a| ≤ 2 ^ ((M - 2) + (k - 1))) :
+    barrettReduce R a q = a.bmod q := by
   nth_rw 2 [← mul_one a]
-  rw [← barrett_mul_spec a 1 M R k q] <;> try assumption
-  · rw [barrett_reduce, barrett_mul]
+  rw [← barrettMul_spec a 1 M R k q] <;> try assumption
+  · rw [barrettReduce, barrettMul]
     rw [mul_one]; simp
   · simp only [Int.cast_one, one_mul, one_div]; simp at Hk; assumption
   · simp only [abs_one]; refine one_le_pow₀ (by simp)
@@ -221,9 +218,9 @@ end Cslib.Crypto.Algorithms.BarrettReduction.Signed
 section MLKEMExample
 open Cslib.Crypto.Algorithms.BarrettReduction.Signed
 
-/-
+/-!
 Proof of correctness for the signed Barrett reduction
-used in the reference implementation of Kyber/MLKEM
+used in the reference implementation of Kyber/ML-KEM
 https://github.com/pq-crystals/kyber/blob/main/ref/reduce.c#L25-L42
 -/
 
@@ -233,16 +230,16 @@ def R : ℕ := 2 ^ 26
 def k : ℕ := 2
 
 -- This follows closely the original C code, though in ℤ
-def mlkem_barrett_reduce (a : ℤ) : ℤ :=
+def mlkemBarrettReduce (a : ℤ) : ℤ :=
   let v := 20159
   let t := (v * a + (1 <<< 25)) >>> (26: ℕ)
   let t := t * 3329
   a - t
 
-lemma mlkem_barrett_reduce_correct (a : ℤ) (Ha : |a| ≤ 2 ^ 15) :
-  mlkem_barrett_reduce a = a.bmod q := by
-  rw [← barrett_reduce_spec a M R k q]
-  · rw [mlkem_barrett_reduce, barrett_reduce, R, q]; simp only [Nat.cast_ofNat,
+lemma mlkemBarrettReduce_correct (a : ℤ) (Ha : |a| ≤ 2 ^ 15) :
+    mlkemBarrettReduce a = a.bmod q := by
+  rw [← barrettReduce_spec a M R k q]
+  · rw [mlkemBarrettReduce, barrettReduce, R, q]; simp only [Nat.cast_ofNat,
     Nat.reduceShiftLeft, Nat.reducePow, sub_right_inj]
     rw [show (round (67108864 / (3329:ℚ))) = 20159 by decide +kernel]
     rw [Int.shiftRight_eq_div_pow, round_eq]
@@ -263,16 +260,16 @@ lemma mlkem_barrett_reduce_correct (a : ℤ) (Ha : |a| ≤ 2 ^ 15) :
     · decide
 
 -- This is basically the C code translated manually into Lean
-def mlkem_barrett_reduce_impl (a : Int16) : Int16 :=
+def mlkemBarrettReduceImpl (a : Int16) : Int16 :=
   let v: Int16 := 20159
   let t: Int32 := (v.toInt32 * a.toInt32 + ((1: Int32) <<< 25)) >>> 26
   let t: Int16 := t.toInt16 * 3329
   a - t
 
-lemma mlkem_barrett_reduce_impl_correct (a : Int16) :
-  Int16.toInt (mlkem_barrett_reduce_impl a) = (Int16.toInt a).bmod q := by
-  rw [← mlkem_barrett_reduce_correct]
-  · rw [mlkem_barrett_reduce, mlkem_barrett_reduce_impl]
+lemma mlkemBarrettReduceImpl_correct (a : Int16) :
+    Int16.toInt (mlkemBarrettReduceImpl a) = (Int16.toInt a).bmod q := by
+  rw [← mlkemBarrettReduce_correct]
+  · rw [mlkemBarrettReduce, mlkemBarrettReduceImpl]
     rw [Int16.toInt_sub, Int16.toInt_mul]
     simp only [Nat.reduceLeDiff, Int16.toInt32_ofNat, Int32.toInt_toInt16, Nat.reducePow,
       Int16.reduceToInt, Int.bmod_mul_bmod, Int.sub_bmod_bmod, Nat.cast_ofNat, Nat.reduceShiftLeft]
@@ -287,9 +284,9 @@ lemma mlkem_barrett_reduce_impl_correct (a : Int16) :
     have Hle := Int16.le_toInt a
     have Hlt := Int16.toInt_lt a
     rw [@Int.bmod_eq_of_le _ 4294967296] <;> [skip; (simp; omega); (simp; omega)]
-    rw [show (a.toInt - (20159 * a.toInt + 33554432) >>> 26 * 3329 = mlkem_barrett_reduce a.toInt)
-      by rw [mlkem_barrett_reduce]; simp]
-    rw [mlkem_barrett_reduce_correct, q]
+    rw [show (a.toInt - (20159 * a.toInt + 33554432) >>> 26 * 3329 = mlkemBarrettReduce a.toInt)
+      by rw [mlkemBarrettReduce]; simp]
+    rw [mlkemBarrettReduce_correct, q]
     · rw [Int.bmod_bmod_eq_of_lt] <;> omega
     · rw [abs_le]; omega
   · rw [abs_le']; split_ands
