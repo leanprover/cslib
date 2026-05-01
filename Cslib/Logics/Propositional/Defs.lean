@@ -6,7 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
@@ -99,56 +99,37 @@ instance : Functor Theory where
   map f := Set.image (f <$> ·)
 
 /-- The empty theory corresponds to minimal propositional logic. -/
-abbrev MPL : Theory (Atom) := ∅
+abbrev MPL (Atom : Type u) : Theory (Atom) := ∅
 
 /-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
-abbrev IPL [Bot Atom] : Theory Atom :=
-  Set.range (⊥ → ·)
-
-/-- Classical logic further adds double negation elimination. -/
-abbrev CPL [Bot Atom] : Theory Atom :=
-  Set.range (fun (A : Proposition Atom) ↦ ¬¬A → A)
-
-/-- A theory is intuitionistic if it validates ex falso quodlibet. -/
-@[scoped grind]
-class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
-  efq (A : Proposition Atom) : (⊥ → A) ∈ T
+abbrev IPL (Atom : Type u) [Bot Atom] : Theory Atom := {⊥ → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-@[scoped grind =]
-theorem isIntuitionisticIff [Bot Atom] (T : Theory Atom) : IsIntuitionistic T ↔ IPL ⊆ T := by grind
-
-/-- A theory is classical if it validates double-negation elimination. -/
-@[scoped grind]
-class IsClassical [Bot Atom] (T : Theory Atom) where
-  dne (A : Proposition Atom) : (¬¬A → A) ∈ T
-
-omit [DecidableEq Atom] in
-@[scoped grind =]
-theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by grind
-
-instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
-  efq A := Set.mem_range.mpr ⟨A, rfl⟩
-
-instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
-  dne A := Set.mem_range.mpr ⟨A, rfl⟩
-
-omit [DecidableEq Atom] in
-@[scoped grind →]
-theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
-    (h : T ⊆ T') : IsIntuitionistic T' := by grind
-
-omit [DecidableEq Atom] in
-@[scoped grind →]
-theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
-    IsClassical T' := by grind
+lemma efq_mem_ipl [Bot Atom] (A : Proposition Atom) : (⊥ → A) ∈ IPL Atom := ⟨A, rfl⟩
 
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]
 def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
-  (WithBot.some <$> T) ∪ IPL
+  (WithBot.some <$> T) ∪ IPL (WithBot Atom)
 
-instance instIsIntuitionisticIntuitionisticCompletion (T : Theory Atom) :
-    IsIntuitionistic T.intuitionisticCompletion := by grind
+/-- Classical logic further adds double negation elimination. -/
+abbrev CPL (Atom : Type u) [Bot Atom] : Theory Atom := {¬¬A → A | A : Proposition Atom}
+
+omit [DecidableEq Atom] in
+lemma dne_mem_cpl [Bot Atom] (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
+
+open InferenceSystem
+
+/-- An inference system is intuitionistic if it derives ex falso quodlibet. -/
+@[scoped grind]
+class IsIntuitionistic (Atom : Type u) [Bot Atom] (S : Type*)
+    [InferenceSystem S (Proposition Atom)] where
+  efq (A : Proposition Atom) : S⇓(⊥ → A)
+
+/-- An inference system is classical if it validates double-negation elimination. -/
+@[scoped grind]
+class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
+    [InferenceSystem S (Proposition Atom)] where
+  dne (A : Proposition Atom) : S⇓(¬¬A → A)
 
 end Cslib.Logic.PL.Theory
