@@ -27,6 +27,7 @@ globs = ["Cslib.*"]
 [[lean_lib]]
 name = "CslibTests"
 globs = ["CslibTests.+"]
+moreLeanArgs = ["-Dweak.linter.style.header=false"]
 
 [[lean_exe]]
 name = "checkInitImports"
