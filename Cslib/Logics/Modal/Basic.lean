@@ -41,13 +41,13 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Atomic proposition. -/
   | atom (p : Atom)
   /-- Negation. -/
-  | neg (φ : Proposition Atom)
+  | not (φ : Proposition Atom)
   /-- Conjunction. -/
   | and (φ₁ φ₂ : Proposition Atom)
   /-- Possibility. -/
   | diamond (φ : Proposition Atom)
 
-@[inherit_doc] scoped prefix:40 "¬" => Proposition.neg
+@[inherit_doc] scoped prefix:40 "¬" => Proposition.not
 @[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
 @[inherit_doc] scoped prefix:40 "⋄" => Proposition.diamond
 
@@ -76,7 +76,7 @@ the proposition `φ`. -/
 @[scoped grind]
 def Satisfies (m : Model World Atom) (w : World) : Proposition Atom → Prop
   | .atom p => m.v w p
-  | .neg φ => ¬Satisfies m w φ
+  | .not φ => ¬Satisfies m w φ
   | .and φ₁ φ₂ => Satisfies m w φ₁ ∧ Satisfies m w φ₂
   | .diamond φ => ∃ w', m.r w w' ∧ Satisfies m w' φ
 
@@ -107,7 +107,7 @@ theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
-theorem neg_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
+theorem not_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
   induction φ generalizing w <;> grind
 
 /-- Characterisation of the `∨` connective.
@@ -126,6 +126,16 @@ This result proves that the definition is correct.
 @[scoped grind =]
 theorem Satisfies.impl_iff_impl {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
+
+/-- Characterisation of the `↔` connective.
+
+Bi-implication is defined in terms of the more primitive connectives given in `Proposition`.
+This result proves that the definition is correct. -/
+@[scoped grind =]
+theorem Satisfies.iff_iff_iff {m : Model World Atom} :
+    ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
+  simp only [Proposition.iff]
+  grind [=_ derivation_def]
 
 /-- Characterisation of the `□` modality.
 
@@ -149,7 +159,7 @@ theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := by grind
 
 /-- If two worlds are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
-    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ neg_satisfies]
+    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ not_satisfies]
 
 /-- If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
 well. -/
