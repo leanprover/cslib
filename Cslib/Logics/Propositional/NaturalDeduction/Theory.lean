@@ -17,15 +17,46 @@ namespace Cslib.Logic.PL
 
 open Proposition Theory InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
 
-variable {Atom : Type u} [DecidableEq Atom] [Bot Atom]
+variable {Atom : Type u} [DecidableEq Atom] [Bot Atom] {T : Theory Atom}
 
 namespace Theory
 
 instance instIsIntuitionisticIPL : IsIntuitionistic Atom (IPL Atom) where
   efq A := ax (efq_mem_ipl A)
 
+def IsIntuitionistic.efqCtx [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
+    : T⇓(Γ ⊢ ⊥ → A) := (efq A : T⇓(⊥ → A)).weak_ctx (Finset.empty_subset Γ)
+
+def IsIntuitionistic.efqRule [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
+    (D : T⇓(Γ ⊢ ⊥)) : T⇓(Γ ⊢ A) :=
+  implE (A := ⊥) (efqCtx Γ A) D
+
+def IsIntuitionistic.contra [IsIntuitionistic Atom T] {Γ : Ctx Atom} (A B : Proposition Atom)
+    (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) : T⇓(Γ ⊢ B) :=
+  efqRule Γ B <| implE (ass hΓ') (ass hΓ)
+
 instance instIsClassicalCPL : IsClassical Atom (CPL Atom) where
   dne A := ax (dne_mem_cpl A)
+
+def IsClassical.byContra [IsClassical Atom T] {Γ : Ctx Atom} {A : Proposition Atom}
+    (D : T⇓(insert (¬ A) Γ ⊢ ⊥)) : T⇓(Γ ⊢ A) :=
+  implE (A := ¬¬A) ((dne A : T⇓(¬¬A → A)) |>.weak_ctx <| Finset.empty_subset ..) D.implI
+
+instance instIsIntuitionisticOfIsClassical [IsClassical Atom T] : IsIntuitionistic Atom T where
+  efq A := implI _ <| byContra <| ass (by grind)
+
+def IsClassical.lem [IsClassical Atom T] (A : Proposition Atom) : T⇓(A ∨ ¬ A) := by
+  apply byContra
+  apply implE (ass <| Finset.mem_insert_self ..)
+  apply orI₂; apply implI
+  apply implE (A := A ∨ ¬ A) (ass <| by grind)
+  exact orI₁ <| ass <| Finset.mem_insert_self ..
+
+def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A → B) → A) → A) := by
+  apply implI; apply byContra
+  apply implE (ass <| Finset.mem_insert_self ..)
+  apply implE (A := A → B) (ass <| by grind); apply implI
+  apply contra A B <;> grind
 
 def LEM (Atom : Type u) [Bot Atom] : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
 

@@ -120,13 +120,17 @@ lemma dne_mem_cpl [Bot Atom] (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom
 
 open InferenceSystem
 
-/-- An inference system is intuitionistic if it derives ex falso quodlibet. -/
+/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
+generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
+implication connective. -/
 @[scoped grind]
 class IsIntuitionistic (Atom : Type u) [Bot Atom] (S : Type*)
     [InferenceSystem S (Proposition Atom)] where
   efq (A : Proposition Atom) : S⇓(⊥ → A)
 
-/-- An inference system is classical if it validates double-negation elimination. -/
+/-- An inference system is classical if it validates double-negation elimination. TODO: this should
+be generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
+implication connective. -/
 @[scoped grind]
 class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
     [InferenceSystem S (Proposition Atom)] where
