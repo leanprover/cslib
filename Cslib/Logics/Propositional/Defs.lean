@@ -126,6 +126,7 @@ implication connective. -/
 @[scoped grind]
 class IsIntuitionistic (Atom : Type u) [Bot Atom] (S : Type*)
     [InferenceSystem S (Proposition Atom)] where
+  /-- The principle of explosion (ex falso quolibet). -/
   efq (A : Proposition Atom) : S⇓(⊥ → A)
 
 /-- An inference system is classical if it validates double-negation elimination. TODO: this should
@@ -134,6 +135,7 @@ implication connective. -/
 @[scoped grind]
 class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
     [InferenceSystem S (Proposition Atom)] where
+  /-- Double-negation elimination. -/
   dne (A : Proposition Atom) : S⇓(¬¬A → A)
 
 end Cslib.Logic.PL.Theory
