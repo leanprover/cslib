@@ -69,6 +69,10 @@ theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 
+/-- A relation `r` is (right) Euclidean if `r a b` and `r a c` guarantee `r b c`. -/
+class RightEuclidean (r : α → α → Prop) where
+  rightEuclidean : r a b → r a c → r b c
+
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
 
@@ -147,6 +151,16 @@ theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
 
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
+
+/-- A relation `r` is serial if every element is `Reducible`. -/
+class Serial (r : α → α → Prop) where
+  serial a : Reducible r a
+
+@[scoped grind →]
+lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r where
+  serial a := ⟨a, h.refl a⟩
+
+instance [instRefl : Std.Refl r] : Relation.Serial r := refl_serial r instRefl
 
 /-- An element is normal if it is not reducible. -/
 abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
