@@ -16,7 +16,7 @@ public import Mathlib.Data.Nat.Nth
 Given a strictly monotonic function `f : ℕ → ℕ` and `k : ℕ` with `k ≥ f 0`,
 `Nat.segment f k` is the unique `m : ℕ` such that `f m ≤ k < f (k + 1)`.
 `Nat.segment f k` is defined to be 0 for `k < f 0`.
-This file defines `Nat.segment` and proves various properties aboout it.
+This file defines `Nat.segment` and proves various properties about it.
 -/
 
 @[expose] public section

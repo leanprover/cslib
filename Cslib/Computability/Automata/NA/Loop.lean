@@ -20,7 +20,7 @@ open scoped Run LTS
 
 variable {Symbol State : Type*}
 
-/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifing
+/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifying
 an accepting state of `na` with a starting state of `na`.  This identification is achieved
 via a new dummy state `()`, which is the sole starting state and the sole accepting state
 of `na.loop`. -/

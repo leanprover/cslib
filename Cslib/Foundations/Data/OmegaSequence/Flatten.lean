@@ -149,7 +149,7 @@ theorem flatten_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) :=
   (flatten_take_drop h_ls n).2
 
-/-- `ls n` is the segement from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
+/-- `ls n` is the segment from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
 of `ls.flatten` -/
 @[simp, scoped grind =]
 theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)

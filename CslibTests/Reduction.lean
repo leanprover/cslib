@@ -31,7 +31,7 @@ def term_rel : Term Var → Term Var → Prop := fun _ _ ↦ True
 example (a b : Term Var) : a ⭢β b := by
   simp
 
--- check that a "cannonical" notation also works
+-- check that a "canonical" notation also works
 @[reduction_sys, grind]
 def PredReduction' (a b : ℕ) : Prop := a = b + 1
 

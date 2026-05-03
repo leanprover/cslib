@@ -28,7 +28,7 @@ open scoped Context
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var]
 
-/-- An environment in context of multi substition is a list of pairs of
+/-- An environment in context of multi substitution is a list of pairs of
     variable targets and terms to be substituted for that target -/
 abbrev Env (Var : Type u) := Context Var (Term Var)
 
