@@ -140,7 +140,7 @@ theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
       simp_all only [extract_drop, color]
       split_ifs with h
       · have : f k ≤ f (k + 1) := by lia
-        have : f 0 + (f k - f 0) = f k := by lia
+        have : f 0 + (f k - f 0) = f k := by grind
         have : f 0 + (f (k + 1) - f 0) = f (k + 1) := by lia
         simp_all
         rfl
