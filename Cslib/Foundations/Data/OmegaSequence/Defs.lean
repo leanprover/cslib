@@ -16,7 +16,7 @@ public import Mathlib.Logic.Function.Iterate
 An `ωSequence α` is an infinite sequence of elements of `α`.  It is basically
 a wrapper around the type `ℕ → α` which supports the dot-notation and
 the analogues of many familiar API functions of `List α`.  In particular,
-the element at postion `n : ℕ` of `s : ωSequence α` is obtained using the
+the element at position `n : ℕ` of `s : ωSequence α` is obtained using the
 function application notation `s n`.
 
 In this file we define `ωSequence` and its API functions.

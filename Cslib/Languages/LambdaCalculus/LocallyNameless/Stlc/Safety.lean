@@ -91,7 +91,7 @@ theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ) : t.Value 
     cases ih_l with
     -- if the lhs is a value, beta reduce the application
     | inl val => cases val with | abs M _ => use M ^ N, by grind
-    -- otherwise, propogate the step to the lhs of the application
+    -- otherwise, propagate the step to the lhs of the application
     | inr step =>
       obtain ⟨M', _⟩ := step
       use M'.app N
