@@ -1,5 +1,4 @@
 import Strata.MetaVerifier
-import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -107,9 +106,6 @@ spec
 
 #end
 
--- will verify once pr in Strata is merged
--- #eval Strata.Boole.verify "cvc5" stackArrayPgm
-
--- example : Strata.smtVCsCorrect stackArrayPgm := by
---   gen_smt_vcs
---   all_goals (smt +mono)
+example : Strata.smtVCsCorrect stackArrayPgm := by
+  gen_smt_vcs
+  all_goals grind
