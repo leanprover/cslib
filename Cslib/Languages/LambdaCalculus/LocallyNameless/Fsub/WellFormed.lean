@@ -183,7 +183,7 @@ lemma map_subst (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' 
 
 variable [HasFresh Var]
 
-/-- A well-formed context is unchaged by substituting for a free key. -/
+/-- A well-formed context is unchanged by substituting for a free key. -/
 lemma map_subst_nmem (Γ : Env Var) (X : Var) (σ : Ty Var) (wf : Γ.Wf) (nmem : X ∉ Γ.dom) :
     Γ = Γ.map_val (·[X:=σ]) := by
   induction wf <;> grind [Ty.Wf.nmem_fv, Binding.subst_fresh]

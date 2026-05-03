@@ -130,3 +130,4 @@ public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Propositional.Defs
+public import Cslib.Logics.Propositional.NaturalDeduction.Basic

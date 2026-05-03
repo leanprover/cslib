@@ -149,8 +149,8 @@ theorem flatten_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) :=
   (flatten_take_drop h_ls n).2
 
-/-- `ls n` is the segement from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
-of ls.flatten` -/
+/-- `ls n` is the segment from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
+of `ls.flatten` -/
 @[simp, scoped grind =]
 theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (n : ℕ) : ls.flatten.extract (ls.cumLen n) (ls.cumLen (n + 1)) = ls n := by
@@ -158,6 +158,15 @@ theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k
   have h_drop := flatten_drop h_ls n
   have h_take := flatten_take h_ls' 1
   grind [extract_eq_drop_take]
+
+/-- Distributivity of "forall" over `flatten`. -/
+theorem forall_flatten_iff [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
+    (p : α → Prop) : (∀ n, p (ls.flatten n)) ↔ ∀ k, (ls k).Forall p := by
+  constructor
+  · simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem, ← extract_flatten h_ls]
+    grind
+  · have := segment_upper_bound (cumLen_strictMono h_ls)
+    grind [List.forall_iff_forall_mem, flatten_def]
 
 /-- Given an ω-sequence `s` and a function `f : ℕ → ℕ`, `s.toSegs f` is the ω-sequence
 whose `n`-th element is the list `s.extract (f n) (f (n + 1))`.  In all its uses, the
