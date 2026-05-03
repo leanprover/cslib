@@ -14,7 +14,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
 
-/-! Strong normalization (termination) for full beta-reduction of simply typed lamba calulus. -/
+/-! Strong normalization (termination) for full beta-reduction of simply typed lambda calculus. -/
 
 @[expose] public section
 
