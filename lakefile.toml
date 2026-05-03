@@ -14,11 +14,6 @@ weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false
 
 [[require]]
-name = "mathlib"
-scope = "leanprover-community"
-rev = "v4.27.0"
-
-[[require]]
 name = "Strata"
 git = "https://github.com/strata-org/Strata"
 rev = "main"
@@ -26,7 +21,12 @@ rev = "main"
 [[require]]
 name = "smt"
 git = "https://github.com/ufmg-smite/lean-smt"
-rev = "boole"
+rev = "main"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.29.1"
 
 [[lean_lib]]
 name = "Cslib"
