@@ -177,7 +177,7 @@ theorem finConcat_language_eq [Inhabited Symbol] :
     obtain ⟨ss, ⟨_, h_ωtr⟩, _⟩ := concat_run_exists h_xl1 h_run2
     #adaptation_note
     /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-    have h_mtr := LTS.OmegaExecution.extract_mTr h_ωtr (zero_le (xl1.length + xl2.length))
+    have h_mtr := LTS.OmegaExecution.extract_mTr h_ωtr (zero_le (a := xl1.length + xl2.length))
     simp [← append_append_ωSequence, extract_eq_drop_take,
       take_append_of_le_length, ← List.length_append] at h_mtr
     have : ss (xl1.length + xl2.length) = (ss.drop xl1.length) xl2.length := by grind
