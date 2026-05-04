@@ -16,7 +16,13 @@ program Boole;
 
 type Array := Map int int;
 
-// `NextIndex(i, n)` is `(i + 1) mod n`, axiomatized without using `mod`.
+// `NextIndex(i, n)` is the usual circular-buffer successor:
+// `if i + 1 == n then 0 else i + 1`.
+//
+// It is axiomatized here because both obvious executable encodings currently
+// get in the way of this small example: `mod` is not yet convenient in these
+// VCs, and the direct Boole if/else form triggers an integer-valued `ite`
+// elaboration issue in the generated VCs.
 function NextIndex(i : int, n : int) : int;
 
 axiom (∀ i : int, n : int ::
