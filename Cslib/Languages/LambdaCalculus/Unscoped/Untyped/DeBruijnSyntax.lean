@@ -89,8 +89,8 @@ def sub (t : Term) (n : Nat) (s : Term) : Term :=
 
 /-- Notation typeclass for substitution, t[n := s] ≃ t.sub n s 
     which substitute nth variable in t with s. -/
-instance : Cslib.HasSubstitution Term Nat Term 
-  where subst := sub
+instance : Cslib.HasSubstitution Term Nat Term where 
+  subst := sub
 
 /-- Increment of 0 is identity -/
 @[simp] theorem incre_rfl {l t} : incre 0 l t = t := by
