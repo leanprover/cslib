@@ -43,7 +43,15 @@ parallel reduction, and the Church–Rosser theorem.
 
 namespace Lambda
 
-/-- using de Bruijn syntax avoiding α-conversion -/
+/--
+Terms of the untyped lambda calculus, represented with de Bruijn indices
+(using de Bruijn syntax avoiding α-conversion).
+
+Constructors:
+* `var n`: variable with index `n`
+* `abs t`: abstraction
+* `app t u`: application (apply `u` to `t`)
+-/
 public inductive Term : Type where
   | var : Nat → Term
   | abs : Term → Term
