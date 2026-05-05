@@ -53,10 +53,6 @@ deriving DecidableEq, Repr
 open Term
 namespace Term
 
-notation:max "𝕧" str => Term.var str
-notation:max "λ." t => Term.abs t
-infixl:77 "·" => Term.app
-
 /-- `incre i l t` increments `i` for all free vars `≥ l`. -/
 @[expose] public def incre (i : Nat) (l : Nat) : Term → Term
   | var k   => if l ≤ k then var (k + i) else var k
@@ -79,7 +75,7 @@ infixl:77 "·" => Term.app
   | abs t   => abs (decre i (l + 1) t)
   | app t u => app (decre i l t) (decre i l u)
 
-/-- Substitute into the body of a lambda: `(λ.t) s` -/
+/-- Substitute into the body of a lambda: `(abs t) s` -/
 @[expose] public def sub (t : Term) (n : Nat) (s : Term) := 
   decre 1 n (subst n (incre 1 n s) t)
 
@@ -112,19 +108,19 @@ Lemma for `var_sub` -/
   | app t u iht ihu => simp_all only [incre, decre]
 
 /-- Substitution of var n. -/
-@[simp] public theorem var_sub_elim {n s} : ((𝕧 n).sub) n s = s := by
+@[simp] public theorem var_sub_elim {n s} : ((var n).sub) n s = s := by
   simp_all only [sub, subst, ↓reduceIte, decre_incre_elim]
 
 /-- Vacuously Substitution of var k to var k. -/
 @[simp] public theorem var_lt_sub {k n s} (hk : k < n) :
-    ((𝕧 k).sub) n s = 𝕧 k := by
+    ((var k).sub) n s = var k := by
   have : ¬(n + 1 ≤ k) := by omega
   simp_all only [sub, subst, Nat.ne_of_lt hk, 
     ↓reduceIte, decre]
 
 /-- Vacuously Substitution of var k to var k - 1. -/
 @[simp] public theorem var_gt_sub {k n s} (hk : k > n) :
-    ((𝕧 k).sub) n s = 𝕧 (k - 1) := by
+    ((var k).sub) n s = var (k - 1) := by
   have : n + 1 ≤ k := by omega
   simp_all only [gt_iff_lt, sub, subst, 
     Nat.ne_of_gt hk, ↓reduceIte, decre]
@@ -185,12 +181,12 @@ public theorem incre_comm_zero {n s} :
     using (incre_comm (i := 1) (l := 0) (j := 1) (k := n) (t := s))
 
 @[simp] public theorem abs_sub_zero {t n s} :
-    ((λ.t).sub n s) = λ.(t.sub (n + 1) (incre 1 0 s)) := by
+    ((abs t).sub n s) = abs (t.sub (n + 1) (incre 1 0 s)) := by
   simp_all only [sub, subst, decre, incre_comm_zero]
 
 private lemma incre_sub_var {i l n k s} :
-    (incre i (l + n + 1) 𝕧 k).sub n (incre i (l + n) s) =
-    incre i (l + n) ((𝕧 k).sub n s) := by
+    (incre i (l + n + 1) (var k)).sub n (incre i (l + n) s) =
+    incre i (l + n) ((var k).sub n s) := by
   cases em (k = n) with
   | inl h =>
       have : ¬ (l + n + 1 ≤ n) := by omega
@@ -303,8 +299,8 @@ private lemma sub_incre_same {u r m} :
   | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, incre, subst, decre]
 
 private lemma sub_comm_var {k n m u s} :
-    (((𝕧 k).sub ((n + m) + 1) (incre 1 m u)).sub m (s.sub (n + m) u))
-    = (((𝕧 k).sub m s).sub (n + m) u) := by
+    (((var k).sub ((n + m) + 1) (incre 1 m u)).sub m (s.sub (n + m) u))
+    = (((var k).sub m s).sub (n + m) u) := by
   cases em (k = n + m + 1) with
   | inl hk =>
       have : ¬(n + m + 1 = m) := by omega
