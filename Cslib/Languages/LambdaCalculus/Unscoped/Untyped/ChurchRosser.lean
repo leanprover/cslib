@@ -30,7 +30,10 @@ The proof relies on the generic rewriting lemmas from `ConfluentReduction` toget
 the complete-development machinery from `ParallelReduction`.
 -/
 
+@[expose] public section
+
 namespace Cslib.LambdaCalculus.Unscoped.Untyped
+
 open Relation
 
 /-- Parallel Reduction is Diamond. -/
@@ -39,7 +42,7 @@ private lemma diamond_par : Diamond Par := by
   exact ⟨a.dev, par_to_dev hab, par_to_dev hac⟩
 
 /-- Church–Rosser: β is confluent (on RTC). -/
-public theorem churchRosser_beta : Confluent Beta := by
+theorem churchRosser_beta : Confluent Beta := by
   -- Confluence of Par from diamond
   have hPar : Confluent Par :=
     Diamond.toConfluent (r := Par) diamond_par
