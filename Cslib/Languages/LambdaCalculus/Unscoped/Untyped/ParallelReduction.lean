@@ -99,18 +99,13 @@ private lemma par_subst {t t' u u'} (ht : t ⭢∥ t') (hu : u ⭢∥ u')
   (k : Nat) (n : Nat) :
     (t.sub n (incre k 0 u)) ⭢∥ (t'.sub n (incre k 0 u')) := by
   match t, t' with
-  | var t, var t' => match ht with
-      | Par.var t => cases em (t = n) with
-          | inl h => 
-              simp_all only [sub, subst, ↓reduceIte, 
-                decre_incre_elim, incre_par]
-          | inr h => cases em (t < n) with
-              | inl h' => 
-                  simp_all only [sub, subst, ↓reduceIte, 
-                    decre.eq_1, par_refl]
-              | inr h' =>
-                  simp_all only [not_lt, sub, subst, 
-                  ↓reduceIte, decre.eq_1, par_refl]
+  | var t, var t' =>
+      match ht with
+      | Par.var t =>
+          obtain h | h | h := lt_trichotomy t n
+          repeat simp_all only [var_lt_sub, par_refl, 
+            var_sub_elim, incre_par, 
+            gt_iff_lt, var_gt_sub, par_refl]
   | abs t, abs t' => match ht with
       | Par.abs ht' =>
           have hp := Par.abs
