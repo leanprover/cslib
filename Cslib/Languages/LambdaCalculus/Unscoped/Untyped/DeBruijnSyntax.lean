@@ -58,7 +58,6 @@ public inductive Term : Type where
   | app : Term → Term → Term
 deriving DecidableEq, Repr
 
-open Term
 namespace Term
 
 /-- `incre i l t` increments `i` for all free vars `≥ l`. -/
@@ -382,6 +381,6 @@ public theorem sub_sub_incre {t : Term} {n k u s} :
         (n := n) (m := 0))
   simpa only [sub, incre_same_bound_elim] using h'
 
-
 end Term
+
 end Cslib.LambdaCalculus.Unscoped.Untyped
