@@ -44,10 +44,12 @@ public theorem churchRosser_beta : Confluent Beta := by
   have hPar : Confluent Par :=
     Diamond.toConfluent (r := Par) diamond_par
   -- Identify BetaStar and ParStar via sandwich
-  have hEq {a b : Term} : a ↠β b ↔ a ↠∥ b :=
+  have hEq {a b : Term} : a ↠β b ↔ a ↠∥ b := by
+    have hRel : ReflTransGen Beta = ReflTransGen Par :=
       ReflTransGen.sandwich_to_eq (r := Beta) (p := Par)
-    (by intro a b h; exact beta_subset_par h)
-    (by intro a b h; exact par_subset_betaStar h)
+        (by intro a b h; exact beta_subset_par h)
+        (by intro a b h; exact par_subset_betaStar h)
+    simp only [hRel] 
   -- Transport confluence
   intro a b c hab hac
   have hab' : a ↠∥ b := (hEq).1 hab
