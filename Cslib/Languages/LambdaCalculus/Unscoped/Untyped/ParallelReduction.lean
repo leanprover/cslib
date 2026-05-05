@@ -52,7 +52,7 @@ inductive Par : Term → Term → Prop
       Par (app t u) (app t' u')
   | red {t t' s s'} : Par t t' → Par s s' →
       Par (app (abs t) s) (t'.sub 0 s')
-public abbrev ParStar := Relation.ReflTransGen Par
+abbrev ParStar := Relation.ReflTransGen Par
 
 /-- reflexivity of Par. -/
 @[simp] theorem par_refl {t} : t ⭢∥ t := by
