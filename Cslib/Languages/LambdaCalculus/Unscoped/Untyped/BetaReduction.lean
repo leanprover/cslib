@@ -28,14 +28,17 @@ Inside `namespace BetaStar` we provide the standard constructors and congruence 
 These lemmas are used later to compare β-reduction with parallel reduction.
 -/
 
+@[expose] public section
 
 namespace Cslib.LambdaCalculus.Unscoped.Untyped
+
 open Term
+
 open Relation.ReflTransGen
 
 /-- One-step β-reduction (compatible closure). -/
 @[reduction_sys "β"]
-public inductive Beta : Term → Term → Prop
+inductive Beta : Term → Term → Prop
   | abs  {t t'}        : Beta t t' → Beta (abs t) (abs t')
   | appL {t t' u}      : Beta t t' → Beta (app t u) (app t' u)
   | appR {t u u'}      : Beta u u' → Beta (app t u) (app t u')
@@ -43,30 +46,31 @@ public inductive Beta : Term → Term → Prop
 
 namespace BetaStar
 
-public theorem appL {t t' u : Term} (h : t ↠β t') :
+theorem appL {t t' u : Term} (h : t ↠β t') :
     (app t u) ↠β (app t' u) := by
   induction h with
   | refl => exact refl (app t u)
   | tail hab hbc ih => exact tail ih (Beta.appL hbc)
 
-public theorem appR {t u u' : Term} (h : u ↠β u') :
+theorem appR {t u u' : Term} (h : u ↠β u') :
     (app t u) ↠β (app t u') := by
   induction h with
   | refl => exact refl (app t u)
   | tail hab hbc ih => exact tail ih (Beta.appR hbc)
 
-public theorem app {t t' u u'}
+theorem app {t t' u u'}
     (ht : t ↠β t') (hu : u ↠β u') :
     (app t u) ↠β (app t' u') := by
   induction ht with
   | refl => exact appR hu
   | tail hab hbc ih => exact tail ih (Beta.appL hbc)
 
-public theorem abs {t t' : Term} (h : t ↠β t') :
+theorem abs {t t' : Term} (h : t ↠β t') :
     (abs t) ↠β (abs t') := by
   induction h with
   | refl => exact refl
   | tail hab hbc ih => exact tail ih (Beta.abs hbc)
 
 end BetaStar
+
 end Cslib.LambdaCalculus.Unscoped.Untyped
