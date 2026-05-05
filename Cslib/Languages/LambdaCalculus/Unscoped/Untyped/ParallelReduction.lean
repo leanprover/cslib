@@ -37,7 +37,7 @@ parallel reduct further reduces in parallel to this complete development.
 These results provide the diamond argument used in the final Church–Rosser proof.
 -/
 
-namespace Lambda
+namespace Cslib.LambdaCalculus.Unscoped.Untyped
 open Term
 
 /-- Parallel β-reduction (syntax-directed). -/
@@ -178,4 +178,4 @@ public theorem par_to_dev {t u} (h : t ⭢∥ u) : u ⭢∥ (t.dev) := by
           repeat rw [incre_rfl] at hp
           exact hp
 
-end Lambda
+end Cslib.LambdaCalculus.Unscoped.Untyped
