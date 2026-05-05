@@ -37,12 +37,15 @@ parallel reduct further reduces in parallel to this complete development.
 These results provide the diamond argument used in the final Church–Rosser proof.
 -/
 
+@[expose] public section
+
 namespace Cslib.LambdaCalculus.Unscoped.Untyped
+
 open Term
 
 /-- Parallel β-reduction (syntax-directed). -/
 @[reduction_sys "∥"]
-public inductive Par : Term → Term → Prop
+inductive Par : Term → Term → Prop
   | var (n) : Par (var  n) (var  n)
   | abs {t t'} : Par t t' → Par (abs t) (abs t')
   | app {t t' u u'} : Par t t' → Par u u' → 
@@ -52,14 +55,14 @@ public inductive Par : Term → Term → Prop
 public abbrev ParStar := Relation.ReflTransGen Par
 
 /-- reflexivity of Par. -/
-@[simp] public theorem par_refl {t} : t ⭢∥ t := by
+@[simp] theorem par_refl {t} : t ⭢∥ t := by
   induction t with
   | var n => exact Par.var n
   | app t u iht ihu => exact Par.app iht ihu
   | abs t iht => exact Par.abs iht
 
 /-- `Beta ⊆ Par`. -/
-public theorem beta_subset_par {a b} (h : a ⭢β b) : a ⭢∥ b := by
+theorem beta_subset_par {a b} (h : a ⭢β b) : a ⭢∥ b := by
   induction h with
   | appL h ih => exact Par.app ih par_refl
   | appR h ih => exact Par.app par_refl ih
@@ -67,7 +70,7 @@ public theorem beta_subset_par {a b} (h : a ⭢β b) : a ⭢∥ b := by
   | red t s  => exact Par.red par_refl par_refl
 
 /-- Simulation lemma: `Par ⊆ BetaStar`. -/
-public theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
+theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
     a ↠β b := by
   induction h with
   | var n => exact refl (var  n)
@@ -79,7 +82,7 @@ public theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
       exact .trans (BetaStar.appL (BetaStar.abs iht))
         (.tail (BetaStar.appR ihs) (Beta.red _ _))
 
-@[simp] public theorem incre_par {a b i l} (h : a ⭢∥ b) :
+@[simp] theorem incre_par {a b i l} (h : a ⭢∥ b) :
     (incre i l a) ⭢∥ (incre i l b) := by
   induction h generalizing l with
   | var n => exact par_refl
@@ -135,14 +138,14 @@ private lemma par_subst {t t' u u'} (ht : t ⭢∥ t') (hu : u ⭢∥ u')
                 (par_subst ht₁ hu k n) (par_subst ht₂ hu k n)
 
 /-- Complete development (maximal Par) for a term. -/
-public def Term.dev : Term → Term
+def Term.dev : Term → Term
   | var n => var n
   | abs t => abs (t.dev)
   | app (abs t) s => t.dev.sub 0 s.dev
   | app t u => app t.dev u.dev
 
 /-- t.dev is a par reduction for t. -/
-public theorem par_dev (t : Term) : t ⭢∥ t.dev :=
+theorem par_dev (t : Term) : t ⭢∥ t.dev :=
   match t with
   | var n     => Par.var n
   | abs t     => Par.abs (par_dev t)
@@ -153,7 +156,7 @@ public theorem par_dev (t : Term) : t ⭢∥ t.dev :=
       | app t₁ t₂ => Par.app (par_dev (app t₁ t₂)) (par_dev u)
 
 /-- t.dev is max par reduction for t. -/
-public theorem par_to_dev {t u} (h : t ⭢∥ u) : u ⭢∥ (t.dev) := by
+theorem par_to_dev {t u} (h : t ⭢∥ u) : u ⭢∥ (t.dev) := by
   match t, u with
   | var t', var u' =>
       match h with | Par.var t' => exact Par.var t'
