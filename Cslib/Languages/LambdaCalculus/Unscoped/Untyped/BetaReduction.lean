@@ -29,7 +29,7 @@ These lemmas are used later to compare β-reduction with parallel reduction.
 -/
 
 
-namespace Lambda
+namespace Cslib.LambdaCalculus.Unscoped.Untyped
 open Term
 open Relation.ReflTransGen
 
@@ -69,4 +69,4 @@ public theorem abs {t t' : Term} (h : t ↠β t') :
   | tail hab hbc ih => exact tail ih (Beta.abs hbc)
 
 end BetaStar
-end Lambda
+end Cslib.LambdaCalculus.Unscoped.Untyped
