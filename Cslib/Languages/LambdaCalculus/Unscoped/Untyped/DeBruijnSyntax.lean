@@ -41,7 +41,7 @@ parallel reduction, and the Church–Rosser theorem.
 -/
 
 
-namespace Lambda
+namespace Cslib.LambdaCalculus.Unscoped.Untyped
 
 /--
 Terms of the untyped lambda calculus, represented with de Bruijn indices
@@ -94,7 +94,10 @@ namespace Term
 
 /-- Increment of 0 is identity -/
 @[simp] public theorem incre_rfl {l t} : incre 0 l t = t := by
-  induction t generalizing l with grind [incre] 
+  induction t generalizing l with
+  | var k => simp_all only [incre, Nat.add_zero, ite_self]
+  | abs t ih => simp_all only [incre]
+  | app t u iht ihu => simp_all only [incre]
 
 /-- Decrement of increment with same bound is the same.
 Lemma for `var_sub` -/
@@ -381,4 +384,4 @@ public theorem sub_sub_incre {t : Term} {n k u s} :
 
 
 end Term
-end Lambda
+end Cslib.LambdaCalculus.Unscoped.Untyped
