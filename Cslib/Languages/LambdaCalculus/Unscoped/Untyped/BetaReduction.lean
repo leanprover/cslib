@@ -54,8 +54,7 @@ theorem appR {t u u' : Term} (h : u ↠β u') :
 
 theorem app {t t' u u'}
     (ht : t ↠β t') (hu : u ↠β u') :
-    (app t u) ↠β (app t' u') := 
-  Relation.ReflTransGen.trans (appL ht) (appR hu) 
+    (app t u) ↠β (app t' u') := (appL ht).trans (appR hu) 
 
 theorem abs {t t' : Term} (h : t ↠β t') :
     (abs t) ↠β (abs t') := h.lift Term.abs (fun _ _ => Beta.abs)
