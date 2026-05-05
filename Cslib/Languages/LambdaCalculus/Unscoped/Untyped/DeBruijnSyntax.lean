@@ -76,7 +76,7 @@ namespace Term
   | app t u => app (decre i l t) (decre i l u)
 
 /-- Substitute into the body of a lambda: `(abs t) s` -/
-@[expose] public def sub (t : Term) (n : Nat) (s : Term) := 
+@[expose] public def sub (t : Term) (n : Nat) (s : Term) : Term := 
   decre 1 n (subst n (incre 1 n s) t)
 
 /-- Notation typeclass for substitution, t[n := s] ≃ t.sub n s 
