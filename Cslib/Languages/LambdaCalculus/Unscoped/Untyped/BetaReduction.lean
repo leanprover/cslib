@@ -47,29 +47,18 @@ inductive Beta : Term → Term → Prop
 namespace BetaStar
 
 theorem appL {t t' u : Term} (h : t ↠β t') :
-    (app t u) ↠β (app t' u) := by
-  induction h with
-  | refl => exact refl (app t u)
-  | tail hab hbc ih => exact tail ih (Beta.appL hbc)
+    (app t u) ↠β (app t' u) := h.lift (app · u) (fun _ _ => .appL)
 
 theorem appR {t u u' : Term} (h : u ↠β u') :
-    (app t u) ↠β (app t u') := by
-  induction h with
-  | refl => exact refl (app t u)
-  | tail hab hbc ih => exact tail ih (Beta.appR hbc)
+    (app t u) ↠β (app t u') := h.lift (app t ·) (fun _ _ => .appR)
 
 theorem app {t t' u u'}
     (ht : t ↠β t') (hu : u ↠β u') :
-    (app t u) ↠β (app t' u') := by
-  induction ht with
-  | refl => exact appR hu
-  | tail hab hbc ih => exact tail ih (Beta.appL hbc)
+    (app t u) ↠β (app t' u') := 
+  Relation.ReflTransGen.trans (appL ht) (appR hu) 
 
 theorem abs {t t' : Term} (h : t ↠β t') :
-    (abs t) ↠β (abs t') := by
-  induction h with
-  | refl => exact refl
-  | tail hab hbc ih => exact tail ih (Beta.abs hbc)
+    (abs t) ↠β (abs t') := h.lift Term.abs (fun _ _ => Beta.abs)
 
 end BetaStar
 
