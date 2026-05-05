@@ -30,7 +30,7 @@ The proof relies on the generic rewriting lemmas from `ConfluentReduction` toget
 the complete-development machinery from `ParallelReduction`.
 -/
 
-namespace Lambda
+namespace Cslib.LambdaCalculus.Unscoped.Untyped
 open Relation
 
 /-- Parallel Reduction is Diamond. -/
@@ -57,4 +57,4 @@ public theorem churchRosser_beta : Confluent Beta := by
   rcases hPar hab' hac' with ⟨d, hbd, hcd⟩
   exact ⟨d, (hEq).2 hbd, (hEq).2 hcd⟩
 
-end Lambda
+end Cslib.LambdaCalculus.Unscoped.Untyped
