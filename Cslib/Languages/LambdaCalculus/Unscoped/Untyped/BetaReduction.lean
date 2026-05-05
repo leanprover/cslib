@@ -36,36 +36,36 @@ open Relation.ReflTransGen
 /-- One-step β-reduction (compatible closure). -/
 @[reduction_sys "β"]
 public inductive Beta : Term → Term → Prop
-  | abs  {t t'}        : Beta t t' → Beta (λ.t) (λ.t')
-  | appL {t t' u}      : Beta t t' → Beta (t·u) (t'·u)
-  | appR {t u u'}      : Beta u u' → Beta (t·u) (t·u')
-  | red  (t' s : Term) : Beta ((λ.t')·s) (t'.sub 0 s)
+  | abs  {t t'}        : Beta t t' → Beta (abs t) (abs t')
+  | appL {t t' u}      : Beta t t' → Beta (app t u) (app t' u)
+  | appR {t u u'}      : Beta u u' → Beta (app t u) (app t u')
+  | red  (t' s : Term) : Beta (app (abs t') s) (t'.sub 0 s)
 
 namespace BetaStar
 
 public theorem appL {t t' u : Term} (h : t ↠β t') :
-    (t·u) ↠β (t'·u) := by
+    (app t u) ↠β (app t' u) := by
   induction h with
-  | refl => exact refl (t·u)
+  | refl => exact refl (app t u)
   | tail hab hbc ih => exact tail ih (Beta.appL hbc)
 
 public theorem appR {t u u' : Term} (h : u ↠β u') :
-    (t·u) ↠β (t·u') := by
+    (app t u) ↠β (app t u') := by
   induction h with
-  | refl => exact refl (t·u)
+  | refl => exact refl (app t u)
   | tail hab hbc ih => exact tail ih (Beta.appR hbc)
 
 public theorem app {t t' u u'}
     (ht : t ↠β t') (hu : u ↠β u') :
-    (t·u) ↠β (t'·u') := by
+    (app t u) ↠β (app t' u') := by
   induction ht with
   | refl => exact appR hu
   | tail hab hbc ih => exact tail ih (Beta.appL hbc)
 
 public theorem abs {t t' : Term} (h : t ↠β t') :
-    (λ.t) ↠β (λ.t') := by
+    (abs t) ↠β (abs t') := by
   induction h with
-  | refl => exact refl (λ.t)
+  | refl => exact refl
   | tail hab hbc ih => exact tail ih (Beta.abs hbc)
 
 end BetaStar
