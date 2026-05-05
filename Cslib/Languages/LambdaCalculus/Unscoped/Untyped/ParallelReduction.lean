@@ -43,11 +43,12 @@ open Term
 /-- Parallel β-reduction (syntax-directed). -/
 @[reduction_sys "∥"]
 public inductive Par : Term → Term → Prop
-  | var (n) : Par (𝕧 n) (𝕧 n)
-  | abs {t t'} : Par t t' → Par (λ.t) (λ.t')
-  | app {t t' u u'} : Par t t' → Par u u' → Par (t·u) (t'·u')
+  | var (n) : Par (var  n) (var  n)
+  | abs {t t'} : Par t t' → Par (abs t) (abs t')
+  | app {t t' u u'} : Par t t' → Par u u' → 
+      Par (app t u) (app t' u')
   | red {t t' s s'} : Par t t' → Par s s' →
-      Par ((λ.t)·s) (t'.sub 0 s')
+      Par (app (abs t) s) (t'.sub 0 s')
 public abbrev ParStar := Relation.ReflTransGen Par
 
 /-- reflexivity of Par. -/
@@ -69,7 +70,7 @@ public theorem beta_subset_par {a b} (h : a ⭢β b) : a ⭢∥ b := by
 public theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
     a ↠β b := by
   induction h with
-  | var n => exact refl (𝕧 n)
+  | var n => exact refl (var  n)
   | app hpt hpu hbt hbu =>
       exact .trans
               (BetaStar.appL hbt) (BetaStar.appR hbu)
@@ -103,9 +104,9 @@ private lemma par_subst {t t' u u'} (ht : t ⭢∥ t') (hu : u ⭢∥ u')
       match ht with
       | Par.var t =>
           obtain h | h | h := lt_trichotomy t n
-          repeat simp_all only [var_lt_sub, par_refl, 
-            var_sub_elim, incre_par, 
-            gt_iff_lt, var_gt_sub, par_refl]
+          · simp_all only [var_lt_sub, par_refl]
+          · simp_all only [var_sub_elim, incre_par] 
+          · simp_all only [gt_iff_lt, var_gt_sub, par_refl]
   | abs t, abs t' => match ht with
       | Par.abs ht' =>
           have hp := Par.abs
@@ -135,21 +136,21 @@ private lemma par_subst {t t' u u'} (ht : t ⭢∥ t') (hu : u ⭢∥ u')
 
 /-- Complete development (maximal Par) for a term. -/
 public def Term.dev : Term → Term
-  | 𝕧 n     => 𝕧 n
-  | λ.t     => λ.(t.dev)
-  | (λ.t)·s => t.dev.sub 0 s.dev
-  | t·u     => t.dev·u.dev
+  | var n => var n
+  | abs t => abs (t.dev)
+  | app (abs t) s => t.dev.sub 0 s.dev
+  | app t u => app t.dev u.dev
 
 /-- t.dev is a par reduction for t. -/
 public theorem par_dev (t : Term) : t ⭢∥ t.dev :=
   match t with
-  | 𝕧 n     => Par.var n
-  | λ.t     => Par.abs (par_dev t)
-  | (λ.t)·u => Par.red (par_dev t) (par_dev u)
-  | t·u => match t with
+  | var n     => Par.var n
+  | abs t     => Par.abs (par_dev t)
+  | app (abs t) u => Par.red (par_dev t) (par_dev u)
+  | app t u => match t with
       | var n     => Par.app (Par.var n) (par_dev u)
       | abs t'    => Par.red (par_dev t') (par_dev u)
-      | app t₁ t₂ => Par.app (par_dev (t₁·t₂)) (par_dev u)
+      | app t₁ t₂ => Par.app (par_dev (app t₁ t₂)) (par_dev u)
 
 /-- t.dev is max par reduction for t. -/
 public theorem par_to_dev {t u} (h : t ⭢∥ u) : u ⭢∥ (t.dev) := by
