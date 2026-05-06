@@ -203,38 +203,91 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   apply equivalence_join
   grind
 
+/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accesible under
+the inverse of `r`. -/
+abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
+
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
+
+lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
+
+lemma SN.of_rel (hx : SN r x) (h : r x y) : SN r y := Acc.inv hx h
+
+@[grind →]
+lemma SN.of_rel_reflTransGen (hx : SN r x) (h : ReflTransGen r x y) : SN r y := by
+  induction h with
+  | refl => exact hx
+  | tail _ h ih => exact ih.of_rel h
+
+lemma SN.transGen (hx : SN r x) : SN (TransGen r) x := by
+  have eq : TransGen (Function.swap r) = (fun a b => TransGen r b a) := by
+    ext
+    exact transGen_swap
+  simpa [eq] using Acc.transGen hx
+
+lemma SN.of_le {r' : α → α → Prop} (hx : SN r x) (h : r' ≤ r) : SN r' x := by
+  refine Subrelation.accessible ?_ hx
+  exact subrelation_iff_le.mpr fun {x y} => h y x
+
+@[simp]
+lemma SN.iff_transGen (x : α) : SN (TransGen r) x ↔ SN r x :=
+  ⟨fun hx => hx.of_le <| fun _ _ => TransGen.single, transGen⟩
+
+/-- `SN r x` is equivalent to the more elementary definition, that there is no infinite sequence
+of reductions starting with `x`. -/
+theorem SN.iff_isEmpty_chain :
+    SN r x ↔ IsEmpty {f : ℕ → α | f 0 = x ∧ ∀ n, r (f n) (f (n + 1))} :=
+  acc_iff_isEmpty_descending_chain
+
+lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x)) :
+    SN (Function.onFun r f) x := InvImage.accessible f hx
+
+lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
+
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
+lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
+
+lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
+  ⟨WellFounded.apply, WellFounded.intro⟩
+
 theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
-  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
-  grind [transGen_swap]
+  simp_rw [iff_forall_sn, SN.iff_transGen] at ht ⊢
+  exact ht
 
 theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
-  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
-  grind [transGen_swap]
+  simp_rw [iff_forall_sn, SN.iff_transGen]
+  exact id
 
-theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r :=
-  ⟨ofTransGen, toTransGen⟩
+theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r := by
+  simp_rw [iff_forall_sn, SN.iff_transGen]
 
-theorem Terminating.subrelation {r' : α → α → Prop} (hr : Terminating r) (h : Subrelation r' r) :
+theorem Terminating.iff_isEmpty_chain :
+    Terminating r ↔ IsEmpty {f : ℕ → α // ∀ n, r (f n) (f (n + 1))} :=
+  wellFounded_iff_isEmpty_descending_chain
+
+theorem Terminating.of_le {r' : α → α → Prop} (hr : Terminating r) (h : r' ≤ r) :
     Terminating r' := by
-  rw [Terminating, wellFounded_iff_isEmpty_descending_chain] at hr ⊢
-  rw [isEmpty_subtype]
-  intro f hf
-  exact hr.elim ⟨f, fun n ↦ by exact h (hf n)⟩
+  rw [iff_forall_sn] at hr ⊢
+  exact fun x => (hr x).of_le h
 
-theorem Terminating.isNormalizing (h : Terminating r) : Normalizing r := by
-  unfold Terminating at h
-  intro t
-  apply WellFounded.induction h t
-  intro a ih
-  by_cases ha : Reducible r a
-  · obtain ⟨b, hab⟩ := ha
-    obtain ⟨n, hbn, hn⟩ := ih b hab
-    exact ⟨n, ReflTransGen.head hab hbn, hn⟩
-  · use a
+lemma Terminating.subtype_sn (r : α → α → Prop) :
+    Terminating (α := {x // SN r x}) (fun a b => r a b) :=
+  iff_forall_sn.mpr fun x => x.property.onFun_of_image
+
+theorem SN.isNormalizable (hx : SN r x) : Normalizable r x := by
+  -- restrict to the subtype where all elements are `SN`, so `flip r` is well-founded
+  obtain ⟨⟨y, hsn⟩, hred : ReflTransGen r x y, hnorm⟩ :=
+    (Terminating.subtype_sn r).has_min
+    (s := Subtype.val ⁻¹' ({y | ReflTransGen r x y})) ⟨⟨x, hx⟩, ReflTransGen.refl⟩
+  use y, hred
+  intro ⟨z, hyz⟩
+  exact hnorm ⟨z, hsn.of_rel hyz⟩ (.tail hred hyz) hyz
+
+theorem Terminating.isNormalizing (hr : Terminating r) : Normalizing r :=
+  fun x => (hr.apply x).isNormalizable
 
 theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
