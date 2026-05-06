@@ -90,31 +90,31 @@ section Order
 This section proves the essential inclusions of modal logics.
 
 The other inclusions in the Modal Cube can be derived from the properties of `⊆` and `∪`, as shown
-in `k_leq_t`.
+in `k_subset_t`.
 -/
 
 open scoped Proposition
 
-theorem k_leq_d : (K World Atom ⊆ D World Atom) := by
+theorem k_subset_d : (K World Atom ⊆ D World Atom) := by
   intro φ; grind
 
-theorem k_leq_b : (K World Atom ⊆ B World Atom) := by
+theorem k_subset_b : (K World Atom ⊆ B World Atom) := by
   intro φ; grind
 
-theorem k_leq_four : (K World Atom ⊆ Four World Atom) := by
+theorem k_subset_four : (K World Atom ⊆ Four World Atom) := by
   intro φ; grind
 
-theorem k_leq_five : (K World Atom ⊆ Five World Atom) := by
+theorem k_subset_five : (K World Atom ⊆ Five World Atom) := by
   intro φ; grind
 
 open scoped Relation in
-theorem d_leq_t : (D World Atom ⊆ T World Atom) := by
+theorem d_subset_t : (D World Atom ⊆ T World Atom) := by
   intro φ; grind
 
-theorem k_leq_t : (K World Atom ⊆ T World Atom) := by
+theorem k_subset_t : (K World Atom ⊆ T World Atom) := by
   calc
-    K World Atom ⊆ D World Atom := k_leq_d
-    D World Atom ⊆ T World Atom := d_leq_t
+    K World Atom ⊆ D World Atom := k_subset_d
+    D World Atom ⊆ T World Atom := d_subset_t
 
 end Order
 
