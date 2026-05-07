@@ -195,7 +195,8 @@ theorem Satisfies.t_box_diamond [instRefl : Std.Refl m.r] :
 /-- The B axiom, valid for all symmetric models. -/
 theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → □⋄φ] := by
-  grind [instSymm.symm w]
+  have := instSymm.symm w
+  grind
 
 /-- Any model that admits the axiom B is symmetric. -/
 theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty Atom]
