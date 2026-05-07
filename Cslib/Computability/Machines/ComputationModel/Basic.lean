@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2025 Bolton Bailey. All rights reserved.
+Copyright (c) 2026 Maximilian Keßler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Maximilian Keßler
 -/
@@ -19,36 +19,34 @@ public import Mathlib.Logic.Function.Iterate
 
 namespace Turing
 
-/-- Bundle of a type `σ` with a step function `σ → Option σ`. -/
-class TransitionModel (τ : Type*) where
-  σ (a : τ) : Type
-  step {a : τ} : σ a → Option (σ a)
+/-- Bundle of a type `cfg` with a step function `cfg → Option cfg`. -/
+class TransitionSystem (τ : Type*) where
+  cfg (a : τ) : Type*
+  step {a : τ} : cfg a → Option (cfg a)
 
 /-- An abstract version of a turing machine with input alphabet `Γ₀` and output alphabet `Γ₁`. -/
-class TransitionComputer (τ : Type*) (Γ₀ Γ₁ : Type) extends TransitionModel τ where
-  init {a : τ} : List Γ₀ → σ a
-  output {a : τ} : σ a → List Γ₁
-
-notation "σ[" x "]" => TransitionModel.σ x
+class Transducer (τ : Type*) (Γᵢₙ Γₒᵤₜ : Type) extends TransitionSystem τ where
+  init {a : τ} : List Γᵢₙ → cfg a
+  output {a : τ} : cfg a → List Γₒᵤₜ
 
 
-namespace TransitionModel
+namespace TransitionSystem
 
-variable {τ : Type*} [TransitionModel τ]
+variable {τ : Type*} [TransitionSystem τ]
 
-def stepRelation (tm : τ) : (Option σ[tm]) → (Option σ[tm]) → Prop
+def stepRelation (tm : τ) : (Option (cfg tm)) → (Option (cfg tm)) → Prop
   | a, b => a.bind step = b
 
 /-- A "proof" of the fact that `f` eventually reaches `b` when repeatedly evaluated on `a`,
 remembering the number of steps it takes. -/
-structure EvalsTo (tm : τ) (a b : Option σ[tm]) where
+structure EvalsTo (tm : τ) (a b : Option (cfg tm)) where
   steps : ℕ
   evals : (flip bind step)^[steps] a = b
 
-structure EvalsToInTime (tm : τ) (a b : Option σ[tm]) (n : ℕ) extends EvalsTo tm a b where
+structure EvalsToInTime (tm : τ) (a b : Option (cfg tm)) (n : ℕ) extends EvalsTo tm a b where
   steps_le : steps ≤ n
 
-variable {tm : τ} {a b c : Option σ[tm]} {n n₁ n₂ : ℕ}
+variable {tm : τ} {a b c : Option (cfg tm)} {n n₁ n₂ : ℕ}
 
 def EvalsTo.refl : EvalsTo tm a a where
   steps := 0
@@ -73,32 +71,33 @@ def EvalsToInTime.of_le (h : EvalsToInTime tm a b n₁) (hn : n₁ ≤ n₂) :
   steps_le := le_trans h.steps_le hn
 
 
-end TransitionModel
+end TransitionSystem
 
-namespace TransitionComputer
+namespace Transducer
+open TransitionSystem
 
-variable {τ : Type*} {Γ₀ Γ₁ : Type} [TransitionComputer τ Γ₀ Γ₁]
+variable {τ : Type*} {Γᵢₙ Γₒᵤₜ : Type} [Transducer τ Γᵢₙ Γₒᵤₜ]
 
-structure Outputs (tm : τ) (l : List Γ₀) (l' : List Γ₁) where
-  haltState : σ[tm]
-  haltState_halts : TransitionModel.step haltState = none
-  evalsTo : TransitionModel.EvalsTo tm (some (init l)) (some haltState)
+structure Outputs (tm : τ) (l : List Γᵢₙ) (l' : List Γₒᵤₜ) where
+  haltState : (cfg tm)
+  haltState_halts : TransitionSystem.step haltState = none
+  evalsTo : TransitionSystem.EvalsTo tm (some (init l)) (some haltState)
   output_eq : output haltState =  l'
 
-structure OutputsInTime (tm : τ) (n : ℕ) (l : List Γ₀) (l' : List Γ₁) where
-  haltState : σ[tm]
-  haltState_halts : TransitionModel.step haltState = none
-  evals_to : TransitionModel.EvalsToInTime tm (some (init l)) (some haltState) n
+structure OutputsInTime (tm : τ) (n : ℕ) (l : List Γᵢₙ) (l' : List Γₒᵤₜ) where
+  haltState : (cfg tm)
+  haltState_halts : TransitionSystem.step haltState = none
+  evals_to : TransitionSystem.EvalsToInTime tm (some (init l)) (some haltState) n
   output_eq : output haltState =  l'
 
-def OutputsInTime.of_le {tm : τ} {n m : ℕ} {l : List Γ₀} {l' : List Γ₁} (hnm : n ≤ m)
+def OutputsInTime.of_le {tm : τ} {n m : ℕ} {l : List Γᵢₙ} {l' : List Γₒᵤₜ} (hnm : n ≤ m)
     (hv : OutputsInTime tm n l l') : OutputsInTime tm m l l' where
   haltState := hv.haltState
   haltState_halts := hv.haltState_halts
-  evals_to := TransitionModel.EvalsToInTime.of_le hv.evals_to hnm
+  evals_to := TransitionSystem.EvalsToInTime.of_le hv.evals_to hnm
   output_eq := hv.output_eq
 
-lemma OutputsInTime.output_unique {tm : τ} {n₁ n₂ : ℕ} {l : List Γ₀} {l'₁ l'₂ : List Γ₁}
+lemma OutputsInTime.output_unique {tm : τ} {n₁ n₂ : ℕ} {l : List Γᵢₙ} {l'₁ l'₂ : List Γₒᵤₜ}
     (ho₁ : OutputsInTime tm n₁ l l'₁) (ho₂ : OutputsInTime tm n₂ l l'₂) :
     l'₁ = l'₂ := by
   wlog hle : ho₁.evals_to.steps ≤ ho₂.evals_to.steps
@@ -119,7 +118,7 @@ lemma OutputsInTime.output_unique {tm : τ} {n₁ n₂ : ℕ} {l : List Γ₀} {
       rw [← ho₁.evals_to.evals, ← ho₂.evals_to.evals, this]
     rw [← ho₁.output_eq, ← ho₂.output_eq, this]
 
-end TransitionComputer
+end Transducer
 
 
 end Turing
