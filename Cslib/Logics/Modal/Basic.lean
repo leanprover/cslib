@@ -195,12 +195,8 @@ theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
   grind [instSymm.symm w]
 
 /-- Any model that admits the axiom B is symmetric. -/
-theorem Satisfies.b_symm
-    {r : World → World → Prop}
-    [instAtomNonempty : Nonempty Atom]
-    (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ φ → □⋄φ]) :
-    Std.Symm r where
+theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty Atom]
+    (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ φ → □⋄φ]) : Std.Symm r where
   symm := by
     intro w₁
     have a := Classical.arbitrary Atom
