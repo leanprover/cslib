@@ -164,7 +164,10 @@ theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → �
 
 /-- The dual axiom, valid for all models. -/
 theorem Satisfies.dual : ⇓Modal[m,w ⊨ ⋄φ ↔ ¬□¬φ] := by
-  constructor <;> grind
+  constructor
+  · grind
+  · grind only [→ satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl, = derivation_def,
+    = neg_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
