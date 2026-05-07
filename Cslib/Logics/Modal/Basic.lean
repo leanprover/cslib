@@ -209,13 +209,12 @@ theorem Satisfies.b_symm
     grind
 
 /-- The 4 axiom, valid for all transitive models. -/
-theorem Satisfies.four {m : Model World Atom} [instTrans : IsTrans World m.r] {w : World}
+theorem Satisfies.four {m : Model World Atom} [IsTrans World m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ⋄⋄φ → ⋄φ] := by
   simp only [impl_iff_impl]
   intro h
   rcases h with ⟨w', h₁, w'', h₂, hs⟩
-  exists w''
-  grind [IsTrans]
+  exact ⟨w'', IsTrans.trans _ _ _ h₁ h₂, hs⟩
 
 /-- Any model that admits 4 is transitive. -/
 theorem Satisfies.four_trans
