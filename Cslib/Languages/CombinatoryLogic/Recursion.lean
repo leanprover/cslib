@@ -253,7 +253,7 @@ We define Rec so that
 -/
 def Rec : SKI := fixedPoint RecAux
 theorem rec_def (x g a : SKI) :
-    (Rec ⬝ x ⬝ g ⬝ a) ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := calc
+  (Rec ⬝ x ⬝ g ⬝ a) ↠ SKI.Cond ⬝ x ⬝ (g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))) ⬝ (IsZero ⬝ a) := calc
   _ ↠ RecAux ⬝ Rec ⬝ x ⬝ g ⬝ a := by
       apply MRed.head; apply MRed.head; apply MRed.head
       apply fixedPoint_correct
@@ -305,27 +305,47 @@ theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m + 1) (f
 
 /-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
+
+/-- One unfolding of `RFindAbove`: apply the fixed-point combinator once. -/
+theorem RFindAbove_unfold (x g : SKI) :
+    (RFindAbove ⬝ x ⬝ g) ↠ RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ g := by
+  apply MRed.head; apply MRed.head; exact fixedPoint_correct _
+
+/-- Generalized root-finding that works with pointwise properties rather than a total
+    function. At the root `m + n`, `f` yields Church 0; below, a nonzero Church numeral. -/
+theorem RFindAbove_correct' (f x : SKI) (n m : Nat) (hx : IsChurch m x)
+    (hf_root : ∀ y, IsChurch (m + n) y → IsChurch 0 (f ⬝ y))
+    (hf_below : ∀ i < n, ∀ y, IsChurch (m + i) y →
+      ∃ k, IsChurch (k + 1) (f ⬝ y)) :
+    IsChurch (m + n) (RFindAbove ⬝ x ⬝ f) := by
+  induction n generalizing m x
+  all_goals apply isChurch_trans _ (RFindAbove_unfold x f)
+  case zero =>
+    simp only [Nat.add_zero] at *
+    apply isChurch_trans (a' := x)
+    · exact rfindAboveAux_base _ _ _ (hf_root x hx)
+    · exact hx
+  case succ n ih =>
+    apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
+    · obtain ⟨k, hk⟩ := hf_below 0 (by omega) x (by simpa using hx)
+      exact rfindAboveAux_step _ _ _ hk
+    · rw [show m + (n + 1) = (m + 1) + n from by omega]
+      exact ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
+        (fun y hy => hf_root y (by rw [show m + 1 + n = m + (n + 1) from by omega] at hy; exact hy))
+        (fun i hi y hy => hf_below (i + 1) (by omega) y (by
+          rw [show m + 1 + i = m + (i + 1) from by omega] at hy; exact hy))
+
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
-    (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y →  IsChurch (fNat i) (f ⬝ y))
+    (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y → IsChurch (fNat i) (f ⬝ y))
     (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
     IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
-  induction n generalizing m x
-  all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
-  case zero.a =>
-    apply isChurch_trans (a' := x) <;>
-      grind [rfindAboveAux_base]
-  case succ.a n ih =>
-    apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
-    · let y := (fNat m).pred
-      have : IsChurch (y + 1) (f ⬝ x) := by
-        subst y
-        exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
-      apply rfindAboveAux_step
-      assumption
-    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
-      grind
-  -- close the `h` goals of the above `apply isChurch_trans`
-  all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
+  apply RFindAbove_correct' f x n m hx
+  · intro y hy; exact hroot ▸ hf (m + n) y hy
+  · intro i hi y hy
+    have hne := hpos i hi
+    refine ⟨(fNat (m + i)) - 1, ?_⟩
+    have : fNat (m + i) - 1 + 1 = fNat (m + i) := by omega
+    rw [this]; exact hf (m + i) y hy
 
 
 /-- Ordinary root finding is root finding above zero -/
