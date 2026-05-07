@@ -199,8 +199,7 @@ theorem Satisfies.b {m : Model World Atom} [Std.Symm m.r] {w : World} (φ : Prop
 /-- Any model that admits the axiom B is symmetric. -/
 theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty Atom]
     (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ φ → □◇φ]) : Std.Symm r where
-  symm := by
-    intro w₁
+  symm w₁ := by
     have a := Classical.arbitrary Atom
     let v₁ := fun (w' : World) (a : Atom) => w' = w₁
     let h₁ := h (v := v₁) (w := w₁) (φ := .atom a)
@@ -235,8 +234,7 @@ theorem Satisfies.five {m : Model World Atom} [Relation.RightEuclidean m.r]
 theorem Satisfies.five_rightEuclidean {r : World → World → Prop} [Nonempty Atom]
     (h : ∀ {v} {w : World} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ ◇φ → □◇φ]) :
     Relation.RightEuclidean r where
-  rightEuclidean := by
-    intro w₁ w₂ w₃ h₁ h₂
+  rightEuclidean {w₁ w₂ w₃} h₁ h₂ := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₃
     let h' := h (v := v) (w := w₁) (φ := .atom a)
