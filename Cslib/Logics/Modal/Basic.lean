@@ -16,7 +16,7 @@ public import Mathlib.Logic.Nonempty
 /-! # Modal Logic
 
 Modal logic is a logic for reasoning about relational structures, studying statements about
-necessity (`□φ`) and possibility `⋄φ`.
+necessity (`□φ`) and possibility `◇φ`.
 
 ## References
 
@@ -49,7 +49,7 @@ inductive Proposition (Atom : Type u) : Type u where
 
 @[inherit_doc] scoped prefix:40 "¬" => Proposition.neg
 @[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
-@[inherit_doc] scoped prefix:40 "⋄" => Proposition.diamond
+@[inherit_doc] scoped prefix:40 "◇" => Proposition.diamond
 
 /-- Disjunction. -/
 def Proposition.or (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬(¬φ₁ ∧ ¬φ₂)
@@ -67,7 +67,7 @@ def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ�
 @[inherit_doc] scoped infix:30 " ↔ " => Proposition.iff
 
 /-- Necessity. -/
-def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬⋄¬φ
+def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬◇¬φ
 
 @[inherit_doc] scoped prefix:40 "□" => Proposition.box
 
@@ -143,6 +143,9 @@ abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=
 abbrev TheoryEq (m : Model World Atom) (w₁ w₂ : World) :=
   theory m w₁ = theory m w₂
 
+theorem TheoryEq.ext_iff : TheoryEq m w₁ w₂ ↔ (∀ φ, φ ∈ theory m w₁ ↔ φ ∈ theory m w₂) := by
+  grind
+
 /-- Any proposition satisfied by a world is in the theory of that world. -/
 @[scoped grind →]
 theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := by grind
@@ -155,15 +158,14 @@ lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
 well. -/
 theorem theoryEq_satisfies {m : Model World Atom} (h : TheoryEq m w₁ w₂)
     (hs : Satisfies m w₁ φ) : ⇓Modal[m,w₂ ⊨ φ] := by
-  unfold TheoryEq theory at h
-  rw [Set.ext_iff] at h
+  apply TheoryEq.ext_iff.1 at h
   exact (h φ).mp hs
 
 /-- The K axiom, valid for all models. -/
 theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → □φ₂)] := by grind
 
 /-- The dual axiom, valid for all models. -/
-theorem Satisfies.dual : ⇓Modal[m,w ⊨ ⋄φ ↔ ¬□¬φ] := by
+theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
   constructor
   · grind
   · grind only [→ satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl, = derivation_def,
@@ -171,14 +173,14 @@ theorem Satisfies.dual : ⇓Modal[m,w ⊨ ⋄φ ↔ ¬□¬φ] := by
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → ⋄φ] := by grind [instRefl.refl w]
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → ◇φ] := by grind [instRefl.refl w]
 
 /-- Any model that admits the axiom T is reflexive. -/
 theorem Satisfies.t_refl
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ φ → ⋄φ]) :
+      ⇓Modal[⟨r, v⟩,w ⊨ φ → ◇φ]) :
     Std.Refl r where
   refl := by
     intro w
@@ -187,20 +189,20 @@ theorem Satisfies.t_refl
     let h' := h (v := v) (w := w) (φ := .atom a)
     grind
 
-/-- In any reflexive model, `□φ → φ` is equivalent to `φ → ⋄φ`. -/
+/-- In any reflexive model, `□φ → φ` is equivalent to `φ → ◇φ`. -/
 theorem Satisfies.t_box_diamond [instRefl : Std.Refl m.r] :
-    ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ⋄φ] := by
+    ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ◇φ] := by
   grind [instRefl.refl]
 
 /-- The B axiom, valid for all symmetric models. -/
 theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → □⋄φ] := by
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → □◇φ] := by
   have := instSymm.symm w
   grind
 
 /-- Any model that admits the axiom B is symmetric. -/
 theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty Atom]
-    (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ φ → □⋄φ]) : Std.Symm r where
+    (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ φ → □◇φ]) : Std.Symm r where
   symm := by
     intro w₁
     have a := Classical.arbitrary Atom
@@ -211,7 +213,7 @@ theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty A
 
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four {m : Model World Atom} [IsTrans World m.r] {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ⋄⋄φ → ⋄φ] := by
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇◇φ → ◇φ] := by
   simp only [impl_iff_impl]
   intro h
   rcases h with ⟨w', h₁, w'', h₂, hs⟩
@@ -222,7 +224,7 @@ theorem Satisfies.four_trans
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ ⋄⋄φ → ⋄φ]) :
+      ⇓Modal[⟨r, v⟩,w ⊨ ◇◇φ → ◇φ]) :
     IsTrans World r where
   trans := by
     intro w₁ w₂ w₃ h₁ h₂
@@ -232,16 +234,18 @@ theorem Satisfies.four_trans
     grind
 
 /-- The 5 axiom, valid for all Euclidean models. -/
-theorem Satisfies.five {m : Model World Atom} [instRightEuclidean : Relation.RightEuclidean m.r]
+theorem Satisfies.five {m : Model World Atom} [Relation.RightEuclidean m.r]
     {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ⋄φ → □⋄φ] := by grind [Relation.RightEuclidean]
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇φ → □◇φ] := by
+  have := @Relation.RightEuclidean.rightEuclidean (r := m.r)
+  grind
 
 /-- Any model that admits 5 is Euclidean. -/
 theorem Satisfies.five_rightEuclidean
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ ⋄φ → □⋄φ]) :
+      ⇓Modal[⟨r, v⟩,w ⊨ ◇φ → □◇φ]) :
     Relation.RightEuclidean r where
   rightEuclidean := by
     intro w₁ w₂ w₃ h₁ h₂
@@ -253,7 +257,7 @@ theorem Satisfies.five_rightEuclidean
 /-- The D axiom, valid for all serial models. -/
 theorem Satisfies.d {m : Model World Atom} [instSerial : Relation.Serial m.r]
     {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ □φ → ⋄φ] := by
+    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ □φ → ◇φ] := by
   have : ∃ w', m.r w w' := instSerial.serial w
   grind
 
@@ -262,7 +266,7 @@ theorem Satisfies.d_serial
     {r : World → World → Prop}
     [instAtomNonempty : Nonempty Atom]
     (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ □φ → ⋄φ]) :
+      ⇓Modal[⟨r, v⟩,w ⊨ □φ → ◇φ]) :
     Relation.Serial r where
   serial := by
     intro w₁

@@ -130,7 +130,7 @@ theorem K.k_valid : (□(φ₁ → φ₂) → (□φ₁ → □φ₂) : Proposit
   open scoped Proposition in grind [Satisfies.k]
 
 /-- The axiom T is valid in the logic T. -/
-theorem T.t_valid : (φ → ⋄φ : Proposition Atom) ∈ T World Atom := by
+theorem T.t_valid : (φ → ◇φ : Proposition Atom) ∈ T World Atom := by
   intro _ h
   grind [Satisfies.t (instRefl := (by assumption))]
 
