@@ -177,28 +177,23 @@ theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → ◇φ] := by grind [instRefl.refl w]
 
 /-- Any model that admits the axiom T is reflexive. -/
-theorem Satisfies.t_refl
-    {r : World → World → Prop}
-    [instAtomNonempty : Nonempty Atom]
-    (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ φ → ◇φ]) :
-    Std.Refl r where
-  refl := by
-    intro w
+theorem Satisfies.t_refl {r : World → World → Prop} [Nonempty Atom]
+    (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ φ → ◇φ]) : Std.Refl r where
+  refl w := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w
     let h' := h (v := v) (w := w) (φ := .atom a)
     grind
 
 /-- In any reflexive model, `□φ → φ` is equivalent to `φ → ◇φ`. -/
-theorem Satisfies.t_box_diamond [instRefl : Std.Refl m.r] :
-    ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ◇φ] := by
-  grind [instRefl.refl]
+theorem Satisfies.t_box_diamond [Std.Refl m.r] : ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ◇φ] := by
+  have := Std.Refl.refl (r := m.r) w
+  grind
 
 /-- The B axiom, valid for all symmetric models. -/
-theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → □◇φ] := by
-  have := instSymm.symm w
+theorem Satisfies.b {m : Model World Atom} [Std.Symm m.r] {w : World} (φ : Proposition Atom) :
+    ⇓Modal[m,w ⊨ φ → □◇φ] := by
+  have := Std.Symm.symm (r := m.r) w
   grind
 
 /-- Any model that admits the axiom B is symmetric. -/
@@ -221,14 +216,9 @@ theorem Satisfies.four {m : Model World Atom} [IsTrans World m.r] {w : World}
   exact ⟨w'', IsTrans.trans _ _ _ h₁ h₂, hs⟩
 
 /-- Any model that admits 4 is transitive. -/
-theorem Satisfies.four_trans
-    {r : World → World → Prop}
-    [instAtomNonempty : Nonempty Atom]
-    (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ ◇◇φ → ◇φ]) :
-    IsTrans World r where
-  trans := by
-    intro w₁ w₂ w₃ h₁ h₂
+theorem Satisfies.four_trans {r : World → World → Prop} [Nonempty Atom]
+    (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ ◇◇φ → ◇φ]) : IsTrans World r where
+  trans w₁ w₂ w₃ h₁ h₂ := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₃
     let h' := h (v := v) (w := w₁) (φ := .atom a)
@@ -242,11 +232,8 @@ theorem Satisfies.five {m : Model World Atom} [Relation.RightEuclidean m.r]
   grind
 
 /-- Any model that admits 5 is Euclidean. -/
-theorem Satisfies.five_rightEuclidean
-    {r : World → World → Prop}
-    [instAtomNonempty : Nonempty Atom]
-    (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ ◇φ → □◇φ]) :
+theorem Satisfies.five_rightEuclidean {r : World → World → Prop} [Nonempty Atom]
+    (h : ∀ {v} {w : World} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ ◇φ → □◇φ]) :
     Relation.RightEuclidean r where
   rightEuclidean := by
     intro w₁ w₂ w₃ h₁ h₂
@@ -256,21 +243,15 @@ theorem Satisfies.five_rightEuclidean
     grind
 
 /-- The D axiom, valid for all serial models. -/
-theorem Satisfies.d {m : Model World Atom} [instSerial : Relation.Serial m.r]
-    {w : World}
-    (φ : Proposition Atom) : ⇓Modal[m,w ⊨ □φ → ◇φ] := by
-  have : ∃ w', m.r w w' := instSerial.serial w
+theorem Satisfies.d {m : Model World Atom} [Relation.Serial m.r] {w} (φ : Proposition Atom) :
+    ⇓Modal[m,w ⊨ □φ → ◇φ] := by
+  have : ∃ w', m.r w w' := Relation.Serial.serial w
   grind
 
 /-- Any model that admits D is serial. -/
-theorem Satisfies.d_serial
-    {r : World → World → Prop}
-    [instAtomNonempty : Nonempty Atom]
-    (h : ∀ {v : World → Atom → Prop} {w : World} {φ : Proposition Atom},
-      ⇓Modal[⟨r, v⟩,w ⊨ □φ → ◇φ]) :
-    Relation.Serial r where
-  serial := by
-    intro w₁
+theorem Satisfies.d_serial {r : World → World → Prop} [Nonempty Atom]
+    (h : ∀ {v} {w} {φ : Proposition Atom}, ⇓Modal[⟨r, v⟩,w ⊨ □φ → ◇φ]) : Relation.Serial r where
+  serial w₁ := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₁
     let h' := h (v := v) (w := w₁) (φ := .atom a)
