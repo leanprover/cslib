@@ -26,7 +26,7 @@ universe u v
 
 namespace LambdaCalculus.LocallyNameless.Stlc
 
-open Untyped Typing LambdaCalculus.LocallyNameless.Untyped.Term
+open Untyped Typing LambdaCalculus.LocallyNameless.Untyped.Term Relation
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var] [HasFresh Var]
 
@@ -43,9 +43,9 @@ open scoped Term
 @[scoped grind]
 structure Saturated (S : Set (Term Var)) : Prop where
   lc : ∀ M ∈ S, LC M
-  sn : ∀ M ∈ S, SN M
+  sn : ∀ M ∈ S, SN FullBeta M
   neutal_lc : ∀ M, Neutral M → LC M → M ∈ S
-  multiApp : ∀ M N P, LC N → SN N → multiApp (M ^ N) P ∈ S → multiApp (M.abs.app N) P ∈ S
+  multiApp : ∀ M N P, LC N → SN FullBeta N → multiApp (M ^ N) P ∈ S → multiApp (M.abs.app N) P ∈ S
 
 /-- The semantic map maps each type to a corresponding saturated set of terms.
     For the strong normalization proof to work, we must ensure that
@@ -56,7 +56,7 @@ structure Saturated (S : Set (Term Var)) : Prop where
 -/
 @[simp, scoped grind =]
 def semanticMap : Ty Base → Set (Term Var)
-  | .base _ => { t | SN t ∧ LC t }
+  | .base _ => { t | SN FullBeta t ∧ LC t }
   | .arrow τ₁ τ₂ => { t | ∀ s, s ∈ semanticMap τ₁ → app t s ∈ semanticMap τ₂ }
 
 /-- The sets constructed by semanticMap are saturated -/
@@ -117,7 +117,7 @@ lemma soundness {Γ : Context Var (Ty Base)} (derivation_t : Γ ⊢ t ∶ τ) : 
 /-- Using soundness and the fact that the empty context
     is entailed by any environment, we can conclude that
     a well-typed term is strongly normalizing. -/
-theorem strong_norm {t : Term Var} {τ : Ty Base} (der : Γ ⊢ t ∶ τ) : SN t := by
+theorem strong_norm {t : Term Var} {τ : Ty Base} (der : Γ ⊢ t ∶ τ) : SN FullBeta t := by
   apply (semanticMap_saturated τ).sn
   apply (soundness der [] (by grind) entails_context_empty)
 
