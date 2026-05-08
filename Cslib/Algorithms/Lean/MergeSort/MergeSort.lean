@@ -21,6 +21,7 @@ over the list `TimeM ℕ (List α)`. The time complexity of `mergeSort` is the n
 ## Main results
 
 - `mergeSort_correct`: `mergeSort` permutes the list into a sorted one.
+- `mergeSort_idempotent`: sorting the sorted output does not change it.
 - `mergeSort_time`:  The number of comparisons of `mergeSort` is at most `n*⌈log₂ n⌉`.
 
 -/
@@ -109,6 +110,17 @@ theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
 /-- MergeSort is functionally correct. -/
 theorem mergeSort_correct (xs : List α) : IsSorted ⟪mergeSort xs⟫ ∧ ⟪mergeSort xs⟫ ~ xs :=
   ⟨mergeSort_sorted xs, mergeSort_perm xs⟩
+
+/-- MergeSort is idempotent on values: sorting the sorted output does not change it. -/
+theorem mergeSort_idempotent (xs : List α) :
+    ⟪mergeSort ⟪mergeSort xs⟫⟫ = ⟪mergeSort xs⟫ := by
+  -- Both sides are sorted and permutations of each other.
+  have hperm : ⟪mergeSort ⟪mergeSort xs⟫⟫ ~ ⟪mergeSort xs⟫ := by
+    simpa using (mergeSort_perm (xs := ⟪mergeSort xs⟫))
+  have hsorted₁ : IsSorted ⟪mergeSort ⟪mergeSort xs⟫⟫ := mergeSort_sorted (xs := ⟪mergeSort xs⟫)
+  have hsorted₂ : IsSorted ⟪mergeSort xs⟫ := mergeSort_sorted (xs := xs)
+  -- Mathlib: a sorted permutation is unique.
+  simpa using List.eq_of_perm_of_sorted hperm hsorted₁ hsorted₂
 
 end Correctness
 
