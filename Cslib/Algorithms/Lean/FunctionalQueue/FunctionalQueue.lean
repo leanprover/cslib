@@ -26,6 +26,8 @@ universe u
   front : List α
   back : List α
 
+namespace Raw
+
 /-- Well-formedness: if front is empty, back must be empty too. -/
 def invariant {α : Type u} (q : RawFunctionalQueue α) : Prop :=
   q.front = [] → q.back = []
@@ -35,7 +37,7 @@ def ghostList {α : Type u} (q : RawFunctionalQueue α) : List α :=
   List.append q.front q.back.reverse
 
 /-- The empty queue. -/
-def empty {α : Type u} : RawFunctionalQueue α := ⟨ [], [] ⟩
+def emptyRaw {α : Type u} : RawFunctionalQueue α := ⟨ [], [] ⟩
 
 /-- Internal: rebalance by moving `back.reverse` to `front` when `front` is empty. -/
 def rebalance {α : Type u} (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
@@ -44,10 +46,10 @@ def rebalance {α : Type u} (q : RawFunctionalQueue α) : RawFunctionalQueue α 
   | _ => q
 
 theorem rebalanceInvert {α : Type u} (q : RawFunctionalQueue α) :
-    (rebalance q).front = [] → q = empty := by
+    (rebalance q).front = [] → q = emptyRaw := by
   intro h
   obtain ⟨f, b⟩ := q
-  simp only [rebalance, empty] at h ⊢
+  simp only [rebalance, emptyRaw] at h ⊢
   split at h <;> simp_all
 
 theorem rebalanceInvariant {α : Type u} {q : RawFunctionalQueue α} :
@@ -69,33 +71,33 @@ theorem rebalanceInvariant {α : Type u} {q : RawFunctionalQueue α} :
   split <;> grind [List.reverse_append]
 
 /-- Enqueue an element. -/
-def push {α : Type u} (x : α) (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
+def pushRaw {α : Type u} (x : α) (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
   rebalance ⟨ q.front, x :: q.back ⟩
 
 theorem pushInvariant {α : Type u} (x : α) (q : RawFunctionalQueue α) :
-    invariant q → invariant (push x q) := by
+    invariant q → invariant (pushRaw x q) := by
   intro h
-  rw [push]
+  rw [pushRaw]
   apply rebalanceInvariant
 
 theorem pushGhost {α : Type u} (x : α) (q : RawFunctionalQueue α) :
-    ghostList (push x q) = ghostList q ++ [x] := by
-  rw [push, rebalancePreserveGhost, ghostList]
+    ghostList (pushRaw x q) = ghostList q ++ [x] := by
+  rw [pushRaw, rebalancePreserveGhost, ghostList]
   simp [ghostList, List.append_assoc]
 
 /-- Dequeue: returns `some (head, remaining)` or `none` if empty. -/
-def pop {α : Type u} (q : RawFunctionalQueue α) : Option (α × RawFunctionalQueue α) :=
+def popRaw {α : Type u} (q : RawFunctionalQueue α) : Option (α × RawFunctionalQueue α) :=
   match q.front with
   | [] => none
   | x :: tl =>
     some (x, rebalance ⟨ tl, q.back ⟩)
 
-theorem pop_invariant {α : Type u} (x : α) (q q2 : RawFunctionalQueue α) :
-    invariant q → pop q = some (x, q2) → invariant q2 := by
+theorem popInvariant {α : Type u} (x : α) (q q2 : RawFunctionalQueue α) :
+    invariant q → popRaw q = some (x, q2) → invariant q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
   simp [invariant] at hq
-  unfold pop at hpop
+  unfold popRaw at hpop
   cases f with
   | nil => simp at hpop
   | cons y tl =>
@@ -103,18 +105,18 @@ theorem pop_invariant {α : Type u} (x : α) (q q2 : RawFunctionalQueue α) :
     obtain ⟨rfl, rfl⟩ := hpop
     exact rebalanceInvariant
 
-@[simp] theorem emptyInvariant {α : Type u} : invariant (@empty α) := by
-  simp [invariant, empty]
+@[simp] theorem emptyInvariant {α : Type u} : invariant (@emptyRaw α) := by
+  simp [invariant, emptyRaw]
 
-@[simp] theorem emptyGhost {α : Type u} : ghostList (@empty α) = [] := by
-  simp [ghostList, empty]
+@[simp] theorem emptyGhost {α : Type u} : ghostList (@emptyRaw α) = [] := by
+  simp [ghostList, emptyRaw]
 
-theorem pop_ghost {α : Type u} {x : α} {q q2 : RawFunctionalQueue α} :
-    invariant q → pop q = some (x, q2) → ghostList q = x :: ghostList q2 := by
+theorem popGhost {α : Type u} {x : α} {q q2 : RawFunctionalQueue α} :
+    invariant q → popRaw q = some (x, q2) → ghostList q = x :: ghostList q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
   simp [invariant] at hq
-  unfold pop at hpop
+  unfold popRaw at hpop
   cases f with
   | nil => simp at hpop
   | cons y tl =>
@@ -122,5 +124,39 @@ theorem pop_ghost {α : Type u} {x : α} {q q2 : RawFunctionalQueue α} :
     obtain ⟨rfl, rfl⟩ := hpop
     simp only [rebalancePreserveGhost]
     simp [ghostList]
+
+end Raw
+
+/-- A functional queue with invariant. -/
+structure FunctionalQueue (α : Type u) where
+  q : RawFunctionalQueue α
+  inv : Raw.invariant q
+
+def empty {α : Type u} : FunctionalQueue α := ⟨ @Raw.emptyRaw α, Raw.emptyInvariant ⟩
+
+def push {α : Type u} (x : α) (q : FunctionalQueue α) : FunctionalQueue α :=
+  ⟨ Raw.pushRaw x q.q, Raw.pushInvariant x q.q q.inv ⟩
+
+def pop {α : Type u} (q : FunctionalQueue α) : Option (α × FunctionalQueue α) :=
+  match h : Raw.popRaw q.q with
+  | none => none
+  | some (x, q2) =>
+    some (x, ⟨ q2, Raw.popInvariant x q.q q2 q.inv h ⟩)
+
+@[simp] def ghostList {α : Type u} (q : FunctionalQueue α) : List α := Raw.ghostList q.q
+
+theorem pushGhost {α : Type u} (x : α) (q : FunctionalQueue α) :
+    ghostList (push x q) = ghostList q ++ [x] :=
+  Raw.pushGhost x q.q
+
+theorem popGhost {α : Type u} {x : α} {q q2 : FunctionalQueue α} :
+    pop q = some (x, q2) → ghostList q = x :: ghostList q2 := by
+  intro h
+  simp only [pop, ghostList] at h ⊢
+  split at h
+  · simp only [reduceCtorEq] at h
+  · rename_i x2 q2' heq
+    obtain ⟨ h1, h2 ⟩ := h
+    apply @Raw.popGhost α x q.q q2' q.inv; grind
 
 end Cslib.Algorithms.Lean
