@@ -8,6 +8,7 @@ module
 
 import Cslib.Init
 public import Cslib.Algorithms.Lean.Amortized
+public import Cslib.Algorithms.Lean.TimeM
 
 /-!
 # Functional Queue
@@ -31,78 +32,89 @@ namespace Cslib.Algorithms.Lean
 
 universe u
 
-structure RawFunctionalQueue (α : Type u) where
+namespace Raw
+
+structure FunctionalQueue (α : Type u) where
   front : List α
   back : List α
 
-namespace Raw
-
 /-- Well-formedness: if front is empty, back must be empty too. -/
-def invariant {α : Type u} (q : RawFunctionalQueue α) : Prop :=
+def invariant {α : Type u} (q : Raw.FunctionalQueue α) : Prop :=
   q.front = [] → q.back = []
 
 /-- The logical contents of the queue: `front ++ back.reverse`. -/
-def ghostList {α : Type u} (q : RawFunctionalQueue α) : List α :=
+def ghostList {α : Type u} (q : FunctionalQueue α) : List α :=
   List.append q.front q.back.reverse
 
 /-- The empty queue. -/
-def empty {α : Type u} : RawFunctionalQueue α := ⟨ [], [] ⟩
+def empty {α : Type u} : FunctionalQueue α := ⟨ [], [] ⟩
 
 /-- Internal: rebalance by moving `back.reverse` to `front` when `front` is empty. -/
-def rebalance {α : Type u} (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
+def rebalance {α : Type u} (q : FunctionalQueue α)
+    : TimeM ℕ (FunctionalQueue α) :=
   match q.front with
-  | [] => ⟨ (q.back).reverse, [] ⟩
-  | _ => q
+  | [] => do
+    TimeM.tick q.back.length
+    pure ⟨ (q.back).reverse, [] ⟩
+  | _ => pure q
 
-theorem rebalanceInvert {α : Type u} (q : RawFunctionalQueue α) :
-    (rebalance q).front = [] → q = Raw.empty := by
+theorem rebalanceInvert {α : Type u} (q : FunctionalQueue α) :
+    (rebalance q).ret.front = [] → q = empty := by
   intro h
   obtain ⟨f, b⟩ := q
   simp only [rebalance, Raw.empty] at h ⊢
   split at h <;> simp_all
 
-theorem rebalanceInvariant {α : Type u} {q : RawFunctionalQueue α} :
-    invariant (rebalance q) := by
+theorem rebalanceInvariant {α : Type u} {q : FunctionalQueue α} :
+    invariant (rebalance q).ret := by
   obtain ⟨f, b⟩ := q
   simp [rebalance, invariant]
   split <;> grind
 
-@[simp] theorem rebalanceIdempotent {α : Type u} (q : RawFunctionalQueue α) :
-    rebalance (rebalance q) = rebalance q := by
+@[simp] theorem rebalanceIdempotent {α : Type u} (q : FunctionalQueue α) :
+    (rebalance (rebalance q).ret).ret = (rebalance q).ret := by
   obtain ⟨f, b⟩ := q
   simp [rebalance]
   split <;> grind
 
-@[simp] theorem rebalancePreserveGhost {α : Type u} (q : RawFunctionalQueue α) :
-    ghostList (rebalance q) = ghostList q := by
+@[simp] theorem rebalancePreserveGhost {α : Type u} (q : FunctionalQueue α) :
+    ghostList (rebalance q).ret = ghostList q := by
   obtain ⟨f, b⟩ := q
   simp [rebalance, ghostList]
   split <;> grind [List.reverse_append]
 
 /-- Enqueue an element. -/
-def push {α : Type u} (x : α) (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
+def push {α : Type u} (x : α) (q : FunctionalQueue α)
+    : TimeM ℕ (FunctionalQueue α) := do
+  TimeM.tick 1
   rebalance ⟨ q.front, x :: q.back ⟩
 
-theorem pushInvariant {α : Type u} (x : α) (q : RawFunctionalQueue α) :
-    invariant q → invariant (push x q) := by
+theorem pushInvariant {α : Type u} (x : α) (q : FunctionalQueue α)
+    : invariant q → invariant (push x q).ret := by
   intro h
   rw [push]
   apply rebalanceInvariant
 
-theorem pushGhost {α : Type u} (x : α) (q : RawFunctionalQueue α) :
-    ghostList (push x q) = ghostList q ++ [x] := by
-  rw [push, rebalancePreserveGhost, ghostList]
+theorem pushGhost {α : Type u} (x : α) (q : Raw.FunctionalQueue α)
+    : ghostList (push x q).ret = ghostList q ++ [x] := by
+  rw [push]
+  simp only [TimeM.ret_bind, rebalancePreserveGhost]
+  rw [ghostList]
   simp [ghostList, List.append_assoc]
 
 /-- Dequeue: returns `some (head, remaining)` or `none` if empty. -/
-def pop {α : Type u} (q : RawFunctionalQueue α) : Option (α × RawFunctionalQueue α) :=
+def pop {α : Type u} (q : Raw.FunctionalQueue α)
+    : TimeM ℕ (Option (α × Raw.FunctionalQueue α)) :=
   match q.front with
-  | [] => none
-  | x :: tl =>
-    some (x, rebalance ⟨ tl, q.back ⟩)
+  | [] => pure none
+  | x :: tl => do
+    let q2 ← rebalance ⟨ tl, q.back ⟩
+    pure (some (x, q2))
 
-theorem popInvariant {α : Type u} (x : α) (q q2 : RawFunctionalQueue α) :
-    invariant q → pop q = some (x, q2) → invariant q2 := by
+theorem popInvariant {α : Type u} (x : α) (q q2 : FunctionalQueue α)
+    : invariant q →
+      (pop q).ret = some (x, q2) →
+      invariant q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
   simp [invariant] at hq
@@ -120,8 +132,10 @@ theorem popInvariant {α : Type u} (x : α) (q q2 : RawFunctionalQueue α) :
 @[simp] theorem emptyGhost {α : Type u} : ghostList (@Raw.empty α) = [] := by
   simp [ghostList, Raw.empty]
 
-theorem popGhost {α : Type u} {x : α} {q q2 : RawFunctionalQueue α} :
-    invariant q → pop q = some (x, q2) → ghostList q = x :: ghostList q2 := by
+theorem popGhost {α : Type u} {x : α} {q q2 : Raw.FunctionalQueue α}
+    : invariant q →
+      (pop q).ret = some (x, q2) →
+      ghostList q = x :: ghostList q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
   simp [invariant] at hq
@@ -138,65 +152,106 @@ end Raw
 
 namespace Complexity
 
-def potential {α : Type u} (q : RawFunctionalQueue α) : Nat :=
+def potential {α : Type u} (q : Raw.FunctionalQueue α) : Nat :=
   q.back.length
 
 instance functionalQueuePotential {α : Type u}
-    : Amortized.Potential (RawFunctionalQueue α) :=
+    : Amortized.Potential (Raw.FunctionalQueue α) :=
   ⟨ potential ⟩
 
 inductive queueOp (α : Type u) where
   | push : α → queueOp α
   | pop
 
-def applyOp {α : Type u} (op : queueOp α) (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
+def applyOp {α : Type u} (q : Raw.FunctionalQueue α) (op : queueOp α)
+    : TimeM ℕ (Raw.FunctionalQueue α) :=
   match op with
   | .push x => Raw.push x q
-  | .pop =>
-    match Raw.pop q with
-    | none => q
-    | some (_, q2) => q2
+  | .pop => do
+    match (← Raw.pop q) with
+    | none => pure q
+    | some (_, q2) => pure q2
 
-def applyOps {α : Type u} (ops : List (queueOp α)) (q : RawFunctionalQueue α)
-    : RawFunctionalQueue α :=
-  ops.foldl (fun q op => applyOp op q) q
+instance functionalQueueApplyOp {α : Type u}
+    : Amortized.Op (Raw.FunctionalQueue α) (queueOp α) :=
+  ⟨ applyOp ⟩
+
+theorem costRebalanceEmpty {α : Type u} (q : Raw.FunctionalQueue α)
+    : q.front = [] → (Raw.rebalance q).time = potential q := by
+  intro h
+  simp only [Raw.rebalance]; rw [h]; simp [potential]
+
+grind_pattern costRebalanceEmpty => (Raw.rebalance q).time
+
+theorem costRebalanceNonEmpty {α : Type u} (q : Raw.FunctionalQueue α)
+    : q.front ≠ [] → (Raw.rebalance q).time = 0 := by
+  intro h
+  simp [Raw.rebalance]
+
+grind_pattern costRebalanceNonEmpty => (Raw.rebalance q).time
+
+theorem costPush {α : Type u} (x : α) (q : Raw.FunctionalQueue α)
+    : (Raw.push x q).time ≤ potential q := by
+  simp [Raw.push]
+  sorry
+  /- cases q.front <;> grind -/
+  /-     grind [Raw.push] -/
+
+theorem costApplyOp {α : Type u} (op : queueOp α) (q : Raw.FunctionalQueue α)
+    : (applyOp q op).time ≤ 1 + potential q := by
+  sorry
+  /- cases op with -/
+  /- | .pu -/
+  /- simp [applyOp] -/
+  /- grind -/
 
 theorem constantTimeAmortized {α : Type u} :
-    ∀ (q : RawFunctionalQueue α) (ops:List (queueOp α)),
-    false
- := by
-   sorry
+    ∀ (q : Raw.FunctionalQueue α) (ops : List (queueOp α)),
+    (Amortized.applyOps ops q).time ≤ 2 * potential (Amortized.applyOps ops q).ret
+    := by
+  intro q ops
+  induction ops generalizing q with
+  | nil => simp
+  | cons op otherOps hOps =>
+    simp
+    sorry
 
 end Complexity
 
 /-- A functional queue with invariant. -/
 @[ext]
 structure FunctionalQueue (α : Type u) where
-  raw : RawFunctionalQueue α
+  raw : Raw.FunctionalQueue α
   inv : Raw.invariant raw
 
 def empty {α : Type u} : FunctionalQueue α := ⟨ @Raw.empty α, Raw.emptyInvariant ⟩
 
-def push {α : Type u} (x : α) (q : FunctionalQueue α) : FunctionalQueue α :=
-  ⟨ Raw.push x q.raw, Raw.pushInvariant x q.raw q.inv ⟩
+def push {α : Type u} (x : α) (q : FunctionalQueue α)
+    : TimeM ℕ (FunctionalQueue α) :=
+  let r := Raw.push x q.raw
+  ⟨ ⟨ r.ret, Raw.pushInvariant x q.raw q.inv ⟩, r.time ⟩
 
-def pop {α : Type u} (q : FunctionalQueue α) : Option (α × FunctionalQueue α) :=
-  match h : Raw.pop q.raw with
-  | none => none
+def pop {α : Type u} (q : FunctionalQueue α)
+    : TimeM ℕ (Option (α × FunctionalQueue α)) :=
+  let r := Raw.pop q.raw
+  match h : r.ret with
+  | none => ⟨ none, r.time ⟩
   | some (x, q2) =>
-    some (x, ⟨ q2, Raw.popInvariant x q.raw q2 q.inv h ⟩)
+    ⟨ some (x, ⟨ q2, Raw.popInvariant x q.raw q2 q.inv h ⟩), r.time ⟩
 
 /-- project to a list view, an ordered sequence of elements -/
 def ghostList {α : Type u} (q : FunctionalQueue α) : List α := Raw.ghostList q.raw
 
 theorem pushGhost {α : Type u} (x : α) (q : FunctionalQueue α) :
-    ghostList (push x q) = ghostList q ++ [x] :=
+    ghostList (push x q).ret = ghostList q ++ [x] :=
   Raw.pushGhost x q.raw
 
-theorem popGhost {α : Type u} {x : α} {q q2 : FunctionalQueue α} :
-    pop q = some (x, q2) → ghostList q = x :: ghostList q2 := by
-  intro h
+theorem popGhost {α : Type u} {x : α} {q2 : FunctionalQueue α} :
+    ∀ {q : FunctionalQueue α},
+    (pop q).ret = some (x, q2) → ghostList q = x :: ghostList q2 := by
+  intro q h
   simp only [pop, ghostList] at h ⊢
+  simp only [TimeM.ret] at h
   split at h
   · simp only [reduceCtorEq] at h
   · rename_i x2 q2' heq
