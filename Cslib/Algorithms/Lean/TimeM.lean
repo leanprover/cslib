@@ -85,7 +85,7 @@ instance [Add T] : SeqLeft (TimeM T) where
 instance [Add T] : SeqRight (TimeM T) where
   seqRight x y := ⟨(y ()).ret, x.time + (y ()).time⟩
 
-instance [AddZero T] : Monad (TimeM T) where
+instance [Add T] [Zero T] : Monad (TimeM T) where
   pure := Pure.pure
   bind := Bind.bind
   map := Functor.map
