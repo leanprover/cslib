@@ -69,8 +69,6 @@ theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 
-section euclidean
-
 /-- A relation `r` is (right) Euclidean if `r a b` and `r a c` guarantee `r b c`. -/
 class RightEuclidean (r : α → α → Prop) where
   rightEuclidean : r a b → r a c → r b c
@@ -177,8 +175,6 @@ theorem symm_rightEuclidean_iff_trans : RightEuclidean r ↔ IsTrans α r :=
   List.TFAE.out symm_equivalents 0 2
 
 end euclidean_symm
-
-end euclidean
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
