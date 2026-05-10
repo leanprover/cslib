@@ -7,18 +7,27 @@ Authors: Simon Cruanes
 module
 
 import Cslib.Init
+public import Cslib.Algorithms.Lean.Amortized
 
 /-!
 # Functional Queue
 
 A classic two-list queue with amortized O(1) `push` and `pop`.
--/
 
-@[expose] public section
+The representation uses two lists: a front list (for dequeue) and a back list
+(for enqueue). When the front list becomes empty, the back list is reversed
+and becomes the new front. This yields amortized O(1) operations.
+
+## References
+
+* [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996]
+-/
 
 set_option autoImplicit false
 
 namespace Cslib.Algorithms.Lean
+
+@[expose] public section
 
 universe u
 
@@ -127,6 +136,39 @@ theorem popGhost {α : Type u} {x : α} {q q2 : RawFunctionalQueue α} :
 
 end Raw
 
+namespace Complexity
+
+def potential {α : Type u} (q : RawFunctionalQueue α) : Nat :=
+  q.back.length
+
+instance functionalQueuePotential {α : Type u}
+    : Amortized.Potential (RawFunctionalQueue α) :=
+  ⟨ potential ⟩
+
+inductive queueOp (α : Type u) where
+  | push : α → queueOp α
+  | pop
+
+def applyOp {α : Type u} (op : queueOp α) (q : RawFunctionalQueue α) : RawFunctionalQueue α :=
+  match op with
+  | .push x => Raw.push x q
+  | .pop =>
+    match Raw.pop q with
+    | none => q
+    | some (_, q2) => q2
+
+def applyOps {α : Type u} (ops : List (queueOp α)) (q : RawFunctionalQueue α)
+    : RawFunctionalQueue α :=
+  ops.foldl (fun q op => applyOp op q) q
+
+theorem constantTimeAmortized {α : Type u} :
+    ∀ (q : RawFunctionalQueue α) (ops:List (queueOp α)),
+    false
+ := by
+   sorry
+
+end Complexity
+
 /-- A functional queue with invariant. -/
 @[ext]
 structure FunctionalQueue (α : Type u) where
@@ -160,5 +202,7 @@ theorem popGhost {α : Type u} {x : α} {q q2 : FunctionalQueue α} :
   · rename_i x2 q2' heq
     obtain ⟨h1, h2⟩ := h
     exact @Raw.popGhost α x q.raw q2' q.inv heq
+
+end
 
 end Cslib.Algorithms.Lean
