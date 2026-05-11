@@ -11,8 +11,6 @@ public import Mathlib.MeasureTheory.Measure.MeasureSpace
 public import Mathlib.MeasureTheory.Constructions.Pi
 public import Mathlib.Order.SymmDiff
 
-@[expose] public section
-
 /-! # PAC Learning
 
 This file defines the Probably Approximately Correct (PAC) learning model
@@ -107,6 +105,8 @@ When `β = Bool`, concepts correspond to subsets of `α`. The section
   and Other Learning Applications*][Haussler1992]
 * [D. Angluin, P. Laird, *Learning from Noisy Examples*][AngluinLaird1988]
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal NNReal
