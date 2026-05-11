@@ -10,8 +10,6 @@ public import Cslib.Init
 public import Mathlib.Data.Finset.Basic
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
-@[expose] public section
-
 /-!
 # Secret Sharing Schemes
 
@@ -31,6 +29,8 @@ coalitions.
 * [Adi Shamir, *How to Share a Secret*][Shamir1979]
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.SecretSharing
 
