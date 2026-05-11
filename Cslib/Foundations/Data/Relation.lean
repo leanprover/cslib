@@ -73,6 +73,105 @@ def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 class RightEuclidean (r : α → α → Prop) where
   rightEuclidean : r a b → r a c → r b c
 
+/-- A relation `r` is (left) Euclidean if `r a c` and `r b c` guarantee `r a b`. -/
+class LeftEuclidean (r : α → α → Prop) where
+  leftEuclidean {a b c} : r a c → r b c → r a b
+
+namespace RightEuclidean
+
+variable [RightEuclidean r]
+
+/-- A `RightEuclidean` relation is reflexive on its range -/
+theorem refl_range (ab : r a b) : r b b := rightEuclidean ab ab
+
+/-- The converse of a `RightEuclidean` relation is `LeftEuclidean` -/
+theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
+  leftEuclidean ca cb := rightEuclidean cb ca
+
+instance [Std.Refl r] : Std.Symm r where
+  symm a _ ab := rightEuclidean ab (refl a)
+
+theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
+  trans a b c ab bc := by
+    have := Std.Trichotomous.trichotomous (r := r) a c
+    have cc := refl_range bc
+    have (ca : r c a) := rightEuclidean ca cc
+    grind
+
+theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
+  intros a b c ab ac
+  exact antisymm (rightEuclidean ab ac) (rightEuclidean ac ab)
+
+theorem rightUnique_antisymm (h : Relator.RightUnique r) : Std.Antisymm r where
+  antisymm _ _ ab ba := h ba (refl_range ab)
+
+end RightEuclidean
+
+namespace LeftEuclidean
+
+variable [LeftEuclidean r]
+
+/-- A `LeftEuclidean` relation is reflexive on its domain -/
+theorem refl_dom (ab : r a b) : r a a := leftEuclidean ab ab
+
+/-- The converse of a `LeftEuclidean` relation is `RightEuclidean` -/
+theorem rightEuclidean_swap : RightEuclidean (fun a b => r b a) where
+  rightEuclidean ab ac := leftEuclidean ac ab
+
+instance [Std.Refl r] : Std.Symm r where
+  symm _ b ab := leftEuclidean (refl b) ab
+
+theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
+  trans a b c ab bc := by
+    have := Std.Trichotomous.trichotomous (r := r) a c
+    have aa := refl_dom ab
+    have (ca : r c a) := leftEuclidean aa ca
+    grind
+
+theorem antisymm_leftUnique [Std.Antisymm r] : Relator.LeftUnique r := by
+  intros a b c ac bc
+  exact antisymm (leftEuclidean ac bc) (leftEuclidean bc ac)
+
+theorem leftUnique_antisymm (h : Relator.LeftUnique r) : Std.Antisymm r where
+  antisymm _ _ ab ba := h ab (refl_dom ba)
+
+end LeftEuclidean
+
+section euclidean_symm
+
+variable [Std.Symm r]
+
+private theorem RightEuclidean.symm_leftEuclidean [RightEuclidean r] : LeftEuclidean r where
+  leftEuclidean ac bc := rightEuclidean (symm ac) (symm bc)
+
+private theorem LeftEuclidean.symm_trans [LeftEuclidean r] : IsTrans α r where
+  trans _ _ _ ab bc := leftEuclidean ab (symm bc)
+
+private theorem RightEuclidean.trans_symm [IsTrans α r] : RightEuclidean r where
+  rightEuclidean ab ac := _root_.trans (symm ab) ac
+
+private theorem symm_equivalents : [RightEuclidean r, LeftEuclidean r, IsTrans α r].TFAE := by
+  apply List.tfae_of_cycle
+  · simp only [List.isChain_cons_cons, List.IsChain.singleton, and_true]
+    split_ands
+    · exact @RightEuclidean.symm_leftEuclidean _ _ _
+    · exact @LeftEuclidean.symm_trans _ _ _
+  · exact @RightEuclidean.trans_symm _ _ _
+
+/-- For a symmetric relation, `LeftEuclidean` and `RightEuclidean` are equivalent. -/
+theorem symm_leftEuclidean_iff_rightEuclidean : LeftEuclidean r ↔ RightEuclidean r :=
+  List.TFAE.out symm_equivalents 1 0
+
+/-- For a symmetric relation, `LeftEuclidean` and transitivity are equivalent. -/
+theorem symm_leftEuclidean_iff_trans : LeftEuclidean r ↔  IsTrans α r :=
+  List.TFAE.out symm_equivalents 1 2
+
+/-- For a symmetric relation, `RightEuclidean` and transitivity are equivalent. -/
+theorem symm_rightEuclidean_iff_trans : RightEuclidean r ↔ IsTrans α r :=
+  List.TFAE.out symm_equivalents 0 2
+
+end euclidean_symm
+
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
 
