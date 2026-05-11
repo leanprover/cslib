@@ -9,8 +9,6 @@ module
 public import Cslib.Probability.PMF
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
 
-@[expose] public section
-
 /-!
 # Secret Sharing: Definitions
 
@@ -36,6 +34,8 @@ consequences of the built-in privacy field.
 * [Adi Shamir, *How to Share a Secret*][Shamir1979]
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.SecretSharing
 
