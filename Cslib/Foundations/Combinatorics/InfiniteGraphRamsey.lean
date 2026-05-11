@@ -121,7 +121,7 @@ private lemma good_selections_exist :
 
 /-- If the edges of an infinite complete graph is assigned a finite number of colors,
 then there must exist a color `c` and an infinite set `s` of vertices such that the edge
-beteen any two vertices of `s` is assigned the same color `c`. -/
+between any two vertices of `s` is assigned the same color `c`. -/
 theorem infinite_graph_ramsey :
     ∃ c : Color, ∃ s : Set Vertex, s.Infinite ∧
       ∀ e : Finset Vertex, e.card = 2 → ↑e ⊆ s → color e = c := by

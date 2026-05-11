@@ -18,7 +18,7 @@ open_scoped_all Cslib
   (This documentation and test is adapted from Mathlib.)
 
   Exceptions may be specified here using `#grind_lint skip`. This should be kept minimal, and some
-  of these were added upon the inital commit of this test. PRs removing exceptions are welcome.
+  of these were added upon the initial commit of this test. PRs removing exceptions are welcome.
 
   If this test fails, please modify newly introduced `grind` annotations to use the
   `grind_pattern ... where ...` syntax to add side conditions that will prevent the run-away.
