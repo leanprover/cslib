@@ -94,11 +94,9 @@ instance [Std.Refl r] : Std.Symm r where
 theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
   trans a b c ab bc := by
     have := Std.Trichotomous.trichotomous (r := r) a c
-    have tri : r a c ∨ r c a ∨ a = c := by grind_order
-    rcases tri with ac | ca | eq
-    · exact ac
-    · apply rightEuclidean ca (refl_range bc)
-    · simpa [eq] using refl_range bc
+    have cc := refl_range bc
+    have (ca : r c a) := rightEuclidean ca cc
+    grind
 
 theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
   intros a b c ab ac
@@ -126,11 +124,9 @@ instance [Std.Refl r] : Std.Symm r where
 theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
   trans a b c ab bc := by
     have := Std.Trichotomous.trichotomous (r := r) a c
-    have tri : r a c ∨ r c a ∨ a = c := by grind_order
-    rcases tri with ac | ca | eq
-    · exact ac
-    · exact leftEuclidean (refl_dom ab) ca
-    · simpa [eq] using refl_dom ab
+    have aa := refl_dom ab
+    have (ca : r c a) := leftEuclidean aa ca
+    grind
 
 theorem antisymm_leftUnique [Std.Antisymm r] : Relator.LeftUnique r := by
   intros a b c ac bc
