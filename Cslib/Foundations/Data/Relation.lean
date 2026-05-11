@@ -105,6 +105,10 @@ theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
 theorem rightUnique_antisymm (h : Relator.RightUnique r) : Std.Antisymm r where
   antisymm _ _ ab ba := h ba (refl_range ab)
 
+theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
+  have : Std.Refl r := ⟨fun a => refl_range (h a).choose_spec⟩
+  exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
+
 end RightEuclidean
 
 namespace LeftEuclidean
@@ -134,6 +138,10 @@ theorem antisymm_leftUnique [Std.Antisymm r] : Relator.LeftUnique r := by
 
 theorem leftUnique_antisymm (h : Relator.LeftUnique r) : Std.Antisymm r where
   antisymm _ _ ab ba := h ab (refl_dom ba)
+
+theorem leftTotal_equiv (h : Relator.LeftTotal r) : IsEquiv α r := by
+  have : Std.Refl r := ⟨fun a => refl_dom (h a).choose_spec⟩
+  exact {toIsTrans := ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩}
 
 end LeftEuclidean
 
