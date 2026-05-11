@@ -91,18 +91,15 @@ def get (t : BiTape Symbol) : ℤ → Option Symbol
 tapes as functions `ℤ → Option Symbol`. -/
 @[ext]
 lemma ext_get (t₁ t₂ : BiTape Symbol) (h_get_eq : ∀ p, t₁.get p = t₂.get p) : t₁ = t₂ := by
-  obtain ⟨head₁, left₁, right₁⟩ := t₁
-  obtain ⟨head₂, left₂, right₂⟩ := t₂
-  have h_head : head₁ = head₂ := by simpa [get] using h_get_eq 0
-  have h_right : right₁ = right₂ := by
-    apply StackTape.ext_get
-    intro p
-    simpa [get] using h_get_eq (p + 1)
-  have h_left : left₁ = left₂ := by
-    apply StackTape.ext_get
+  cases t₁
+  congr
+  · simpa [get] using h_get_eq 0
+  · apply StackTape.ext_get
     intro p
     simpa [get] using h_get_eq (Int.negSucc p)
-  grind
+  · apply StackTape.ext_get
+    intro p
+    simpa [get] using h_get_eq (p + 1)
 
 
 section Move
@@ -151,13 +148,12 @@ def optionDirToInt (d : Option Dir) : ℤ :=
   | some .right => 1
 
 @[simp, scoped grind =]
-lemma get_move_left (t : BiTape Symbol) (p : ℤ) :
-    (t.move_left).get p = t.get (p - 1) := by
+lemma get_move_left (t : BiTape Symbol) (p : ℤ) : t.move_left.get p = t.get (p - 1) := by
   unfold move_left get
   match p with
   | Int.ofNat 0 =>
-    rw [show Int.ofNat 0 - 1 = Int.negSucc 0 from rfl]
     simp [StackTape.head_eq_getD]
+    rfl
   | Int.ofNat 1 => simp
   | Int.ofNat (n + 2) =>
     rw [show Int.ofNat (n + 2) - 1 = Int.ofNat (n + 1) by lia]
@@ -165,8 +161,7 @@ lemma get_move_left (t : BiTape Symbol) (p : ℤ) :
   | Int.negSucc n => simp
 
 @[simp, scoped grind =]
-lemma get_move_right (t : BiTape Symbol) (p : ℤ) :
-    (t.move_right).get p = t.get (p + 1) := by
+lemma get_move_right (t : BiTape Symbol) (p : ℤ) : t.move_right.get p = t.get (p + 1) := by
   unfold move_right get
   match p with
   | Int.ofNat n =>
