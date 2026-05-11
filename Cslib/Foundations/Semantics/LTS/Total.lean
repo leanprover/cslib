@@ -9,14 +9,14 @@ module
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
-@[expose] public section
-
 /-!
 # Total LTS
 
 This file defines, and proves some theorems about, the notion of an LTS being "total"
 and a "totalize" construction that converts any LTS into a total LTS.
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

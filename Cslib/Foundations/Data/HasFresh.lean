@@ -10,6 +10,8 @@ public import Cslib.Init
 public import Mathlib.Analysis.Normed.Field.Lemmas
 import Qq
 
+/-! Computable chacterization of infinite types. -/
+
 @[expose] public section
 
 universe u

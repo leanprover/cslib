@@ -10,14 +10,14 @@ public import Cslib.Init
 public import Mathlib.Data.Finset.Filter
 public import Mathlib.Data.Finset.Lattice.Basic
 
-@[expose] public section
-
 /-! # Finite functions
 
 Given types `α` and `β`, and assuming that `β` has a `Zero` element,
 a `FinFun α β` is a function from `α` to `β` where only a finite number of elements
 in `α` are mapped to non-zero elements.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -89,8 +89,7 @@ theorem fn_eq_eq [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
   ext (congrFun h)
 
 @[scoped grind =>]
-theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a :=
-  by grind
+theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a := by grind
 
 @[scoped grind =]
 theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]

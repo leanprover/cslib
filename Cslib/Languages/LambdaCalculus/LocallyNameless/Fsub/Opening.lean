@@ -9,10 +9,6 @@ module
 public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -25,6 +21,10 @@ This file defines opening, local closure, and substitution.
   this is adapted
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 

@@ -9,11 +9,11 @@ module
 public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Mathlib.Order.Filter.AtTopBot.Basic
 
-@[expose] public section
-
 /-!
 # Temporal reasoning over infinite sequences.
 -/
+
+@[expose] public section
 
 open Function Set Filter
 

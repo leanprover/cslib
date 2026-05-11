@@ -16,11 +16,11 @@ public import Mathlib.Computability.DFA
 public import Mathlib.Data.Finite.Sum
 public import Mathlib.Data.Set.Card
 
-@[expose] public section
-
 /-!
 # Regular languages
 -/
+
+@[expose] public section
 
 namespace Cslib.Language
 
