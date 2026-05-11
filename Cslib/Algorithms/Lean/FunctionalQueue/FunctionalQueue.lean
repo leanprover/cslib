@@ -176,45 +176,20 @@ instance functionalQueueApplyOp {α : Type u}
     : Amortized.Op (Raw.FunctionalQueue α) (queueOp α) :=
   ⟨ applyOp ⟩
 
-theorem costRebalanceEmpty {α : Type u} (q : Raw.FunctionalQueue α)
-    : q.front = [] → (Raw.rebalance q).time = potential q := by
-  intro h
-  simp only [Raw.rebalance]; rw [h]; simp [potential]
+theorem potentialEmptyIsZero {α : Type u}
+    : potential (@Raw.empty α) = 0 := by
+  simp [potential, Raw.empty]
 
-grind_pattern costRebalanceEmpty => (Raw.rebalance q).time
-
-theorem costRebalanceNonEmpty {α : Type u} (q : Raw.FunctionalQueue α)
-    : q.front ≠ [] → (Raw.rebalance q).time = 0 := by
-  intro h
-  simp [Raw.rebalance]
-
-grind_pattern costRebalanceNonEmpty => (Raw.rebalance q).time
-
-theorem costPush {α : Type u} (x : α) (q : Raw.FunctionalQueue α)
-    : (Raw.push x q).time ≤ potential q := by
-  simp [Raw.push]
-  sorry
-  /- cases q.front <;> grind -/
-  /-     grind [Raw.push] -/
-
-theorem costApplyOp {α : Type u} (op : queueOp α) (q : Raw.FunctionalQueue α)
-    : (applyOp q op).time ≤ 1 + potential q := by
-  sorry
-  /- cases op with -/
-  /- | .pu -/
-  /- simp [applyOp] -/
-  /- grind -/
-
-theorem constantTimeAmortized {α : Type u} :
-    ∀ (q : Raw.FunctionalQueue α) (ops : List (queueOp α)),
-    (Amortized.applyOps ops q).time ≤ 2 * potential (Amortized.applyOps ops q).ret
-    := by
-  intro q ops
-  induction ops generalizing q with
-  | nil => simp
-  | cons op otherOps hOps =>
-    simp
-    sorry
+theorem amortizedCostQueueOp {α : Type u} (q : Raw.FunctionalQueue α) (op : queueOp α)
+    : Amortized.amortizedCost q op ≤ 2 := by
+  simp only [Amortized.amortizedCost, Amortized.Potential.potential, Nat.sub_le_iff_le_add]
+  cases op with
+  | push x =>
+    simp only [Amortized.Op.applyOp, applyOp, potential]
+    cases h_front : q.front <;> (rw [Raw.push, Raw.rebalance, h_front] at ⊢; grind)
+  | pop =>
+    simp only [Amortized.Op.applyOp, applyOp, potential]
+    cases h_front : q.front <;> (rw [Raw.pop, h_front] at ⊢; grind [Raw.rebalance])
 
 end Complexity
 
@@ -251,7 +226,6 @@ theorem popGhost {α : Type u} {x : α} {q2 : FunctionalQueue α} :
     (pop q).ret = some (x, q2) → ghostList q = x :: ghostList q2 := by
   intro q h
   simp only [pop, ghostList] at h ⊢
-  simp only [TimeM.ret] at h
   split at h
   · simp only [reduceCtorEq] at h
   · rename_i x2 q2' heq
