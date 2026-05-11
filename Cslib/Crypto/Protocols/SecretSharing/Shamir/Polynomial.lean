@@ -9,14 +9,14 @@ module
 public import Cslib.Init
 public import Mathlib.LinearAlgebra.Lagrange
 
-@[expose] public section
-
 /-!
 # Shamir Secret Sharing: Polynomial Utilities
 
 This file contains the Shamir-specific polynomial and interpolation utilities
 used to prove correctness and privacy of the public scheme construction.
 -/
+
+@[expose] public section
 
 noncomputable section
 
