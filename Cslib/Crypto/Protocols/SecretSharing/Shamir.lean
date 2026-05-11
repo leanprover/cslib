@@ -11,8 +11,6 @@ public import Mathlib.Probability.Distributions.Uniform
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
 import Cslib.Probability.PMF
 
-@[expose] public section
-
 /-!
 # Shamir Secret Sharing
 
@@ -58,6 +56,8 @@ The public share type is just the field `F`: the evaluation points are fixed in
 * [Adi Shamir, *How to Share a Secret*][Shamir1979]
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
+
+@[expose] public section
 
 noncomputable section
 
