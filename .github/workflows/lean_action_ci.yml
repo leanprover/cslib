@@ -34,6 +34,6 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
-      - uses: leanprover-community/lint-style-action@main
+      - uses: leanprover-community/lint-style-action@91923b046cc6a468e9ae340f32f8defe586bd08f # 2026-05-12
         with:
           mode: check
