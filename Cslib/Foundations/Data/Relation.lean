@@ -11,6 +11,7 @@ public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
+public import Mathlib.Data.Fintype.Card
 
 /-! # Relations
 
@@ -109,6 +110,17 @@ theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_range (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
 
+theorem fintype_trichotomous_antisymm_card [Fintype α] [Std.Trichotomous r] [Std.Antisymm r] :
+    Fintype.card α ≤ 2 := by
+  by_contra! h
+  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a b
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
+  have := antisymm_rightUnique (r := r) 
+  have := @refl_range (r := r)
+  grind [Relator.RightUnique]
+
 end RightEuclidean
 
 namespace LeftEuclidean
@@ -142,6 +154,17 @@ theorem leftUnique_antisymm (h : Relator.LeftUnique r) : Std.Antisymm r where
 theorem leftTotal_equiv (h : Relator.LeftTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_dom (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩}
+
+theorem fintype_trichotomous_antisymm_card [Fintype α] [Std.Trichotomous r] [Std.Antisymm r] :
+    Fintype.card α ≤ 2 := by
+  by_contra! h
+  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a b
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
+  have := antisymm_leftUnique (r := r) 
+  have := @refl_dom (r := r)
+  grind [Relator.LeftUnique]
 
 end LeftEuclidean
 
