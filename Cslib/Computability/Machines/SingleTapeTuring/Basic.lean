@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
+public import Cslib.Computability.Machines.ComputationModel.Basic
 
 /-!
 # Single-Tape Turing Machines
@@ -157,6 +158,14 @@ def initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨some tm.
 -/
 def haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
 
+open Classical in
+noncomputable def extractOutput {tm : SingleTapeTM Symbol} (c : tm.Cfg) : Option (List Symbol) :=
+  if c = haltCfg tm c.BiTape.extract then c.BiTape.extract else none
+
+lemma haltCfg_extractOutput (tm : SingleTapeTM Symbol) (s : List Symbol) :
+    extractOutput (haltCfg tm s) = s := by
+  simp [haltCfg, extractOutput, mk₁_extract]
+
 /--
 The space used by a configuration is the space used by its tape.
 -/
@@ -183,6 +192,15 @@ lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
         BiTape.space_used_move (tape.write wr) d
 
 end Cfg
+
+open Classical in
+noncomputable instance [Inhabited Symbol] [Fintype Symbol] :
+    Computation.TransitionMachine (SingleTapeTM Symbol) Symbol Symbol where
+  cfg := Cfg
+  step {t} := t.step
+  init {t} := initCfg t
+  output := extractOutput
+
 
 open Cfg
 

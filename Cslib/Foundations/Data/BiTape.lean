@@ -78,6 +78,25 @@ def mk₁ (l : List Symbol) : BiTape Symbol :=
   | [] => ∅
   | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
 
+section Retract
+
+/-! # Retract of `mk₁`
+We want to define a retract of the function `mk₁`.
+-/
+
+/-- Extracts a list of `Symbol` from the right hand side of the tape (including head) by
+dropping `none` entries.
+This is a retract to `BiTape.mk₁`, see `mk₁_extract`
+-/
+def extract (t : BiTape Symbol) : List Symbol := List.reduceOption (t.head :: t.right.toList)
+
+theorem mk₁_extract (l : List Symbol) : (mk₁ l).extract = l := by
+  cases l
+  · rfl
+  · simp [mk₁, extract, StackTape.map_some, List.reduceOption]
+
+end Retract
+
 section Move
 
 /--
