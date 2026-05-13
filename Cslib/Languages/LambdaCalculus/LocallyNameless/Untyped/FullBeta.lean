@@ -174,7 +174,7 @@ lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_
 
 /- `step_subst_cong_r` can be generalized to multiple reductions `t ↠βᶠ t'`.
    This requires s to be locally closed, locally closedness of t and t'
-   can be infered by the fact t reduces to t' -/
+   can be inferred by the fact t reduces to t' -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
     (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
   induction step with
