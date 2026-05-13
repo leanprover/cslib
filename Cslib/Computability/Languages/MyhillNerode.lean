@@ -65,7 +65,7 @@ equivalence class of the language under the Nerode congruence. Note that this is
 given rise to by the underlying right congruence with only the accept states specified here as
 `{⟦ x ⟧ | x ∈ l}`. -/
 def NerodeCongruenceDA (l : Language α) : DA.FinAcc (l.NerodeQuotient) α :=
-  { (l.NerodeCongruence).toDA with accept := (⟦·⟧) '' l }
+  FinAcc.mk (l.NerodeCongruence).toDA ((⟦·⟧) '' l)
 
 variable {l : Language α}
 
