@@ -26,6 +26,7 @@ public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Cslib.Computability.Languages.Language
+public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
