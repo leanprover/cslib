@@ -46,7 +46,7 @@ where the list is eventually `none`.
 
 Represented as a `List (Option Symbol)` that does not end with `none`.
 -/
-structure StackTape (Symbol : Type) where
+structure StackTape (Symbol : Type*) where
   /-- The underlying list representation -/
   toList : List (Option Symbol)
   /--

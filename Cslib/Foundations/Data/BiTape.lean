@@ -44,7 +44,7 @@ namespace Turing
 A structure for bidirectionally-infinite Turing machine tapes
 that eventually take on blank `none` values
 -/
-structure BiTape (Symbol : Type) where
+structure BiTape (Symbol : Type*) where
   /-- The symbol currently under the tape head -/
   head : Option Symbol
   /-- The contents to the left of the head -/
