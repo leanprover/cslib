@@ -8,17 +8,16 @@ module
 
 public import Cslib.Init
 public import Mathlib.Data.Nat.Log
-public import Mathlib.Algebra.Order.Round
 public import Mathlib.Data.Rat.Floor
-public import Mathlib.Algebra.Order.Floor.Defs
-public import Mathlib.Data.Int.DivMod
-import Mathlib.Tactic
+import Mathlib.Tactic.Qify
 
 /-!
 # Auxiliary definitions and lemmas
 
 - Defines `clog2`, a base 2 upper logarithm and some associated lemmas
 - Additional facts about `bmod`, `floor` and `round`
+
+TODO: Some of these could/should be upstreamed to Mathlib
 -/
 
 @[expose]
