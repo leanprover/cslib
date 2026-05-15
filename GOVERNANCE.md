@@ -25,7 +25,7 @@ The maintainer team is responsible for the quality of the codebase, establishing
 
 The lead maintainer coordinates the overall work of the maintainer team and oversees the project's repositories.
 
-- Fabrizio Montesi (@fmontesi), University of Southern Denmark and Danish Institute for Advanced Study.
+- Fabrizio Montesi (@fmontesi), FORM, University of Southern Denmark and Danish Institute for Advanced Study.
 
 ### Technical leads
 
@@ -40,3 +40,11 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 
 - Chris Henson (@chenson2018), Drexel University. Areas: Lambda calculus, metaprogramming.
 - Kim Morrison (@kim-em), Lean FRO. Areas: Continuous Integration and Deployment (CI/CD) with upstream (Lean, mathlib).
+
+### Reviewers
+
+Reviewers are trusted contributors who provide regular reviewing and technical guidance to PRs to CSLib.
+
+- Ching-Tsun Chou (@ctchou).
+- Thomas Waring (@thomaskwaring). 
+- Eric Wieser (@eric-wieser), Google DeepMind.

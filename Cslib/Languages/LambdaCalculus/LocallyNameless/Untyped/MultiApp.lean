@@ -7,8 +7,9 @@ Authors: David Wegmann
 
 module
 
-
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+
+/-! Multiple application for untyped lambda calculus. -/
 
 set_option linter.unusedDecidableInType false
 

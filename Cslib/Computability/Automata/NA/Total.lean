@@ -9,10 +9,10 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.Total
 
-@[expose] public section
-
 /-! # Making a nondeterministic automaton total.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 

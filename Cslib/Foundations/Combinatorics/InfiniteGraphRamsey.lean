@@ -12,14 +12,14 @@ public import Mathlib.Data.Fintype.Pigeonhole
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Data.Set.Lattice
 
-@[expose] public section
-
 /-! # Ramsey theorem for infinite graphs
 
 This result really should be in Mathlib, but currently it is not. We do expect
 the Ramsey theorem for infinite hypergraphs to appear in Mathlib eventually and
 this result to be derived as a corollary of the more general result.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -121,7 +121,7 @@ private lemma good_selections_exist :
 
 /-- If the edges of an infinite complete graph is assigned a finite number of colors,
 then there must exist a color `c` and an infinite set `s` of vertices such that the edge
-beteen any two vertices of `s` is assigned the same color `c`. -/
+between any two vertices of `s` is assigned the same color `c`. -/
 theorem infinite_graph_ramsey :
     ∃ c : Color, ∃ s : Set Vertex, s.Infinite ∧
       ∀ e : Finset Vertex, e.card = 2 → ↑e ⊆ s → color e = c := by

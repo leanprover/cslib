@@ -12,8 +12,6 @@ public import Mathlib.Data.Finset.Attr
 public import Mathlib.Tactic.SetLike
 public import Mathlib.Algebra.Order.Group.Nat
 
-@[expose] public section
-
 /-!
 # BiTape: Bidirectionally infinite TM tape representation using StackTape
 
@@ -37,6 +35,8 @@ will not collide.
 * `BiTape.write`: Write a symbol at the current head position
 * `BiTape.space_used`: The space used by the tape
 -/
+
+@[expose] public section
 
 namespace Turing
 

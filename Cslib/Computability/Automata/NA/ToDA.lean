@@ -10,12 +10,12 @@ public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 
-@[expose] public section
-
 /-! # Translation of Nondeterministic Automata for finite strings into Deterministic Automata
 
 This file implements the standard subset construction.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 

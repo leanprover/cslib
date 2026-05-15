@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.HasTau
 
-@[expose] public section
-
 /-! # Nondeterministic automata with ε-transitions. -/
+
+@[expose] public section
 
 namespace Cslib.Automata
 

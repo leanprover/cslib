@@ -8,11 +8,11 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
-@[expose] public section
-
 /-!
 # Termination of LTS
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 
