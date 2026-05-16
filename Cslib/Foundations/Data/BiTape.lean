@@ -54,7 +54,7 @@ structure BiTape (Symbol : Type*) where
 
 namespace BiTape
 
-variable {Symbol : Type}
+variable {Symbol : Type*}
 
 /-- The empty `BiTape` -/
 def nil : BiTape Symbol := ⟨none, ∅, ∅⟩

@@ -59,7 +59,7 @@ attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 
 namespace StackTape
 
-variable {Symbol : Type}
+variable {Symbol : Type*}
 
 /-- The empty `StackTape` -/
 @[scoped grind]

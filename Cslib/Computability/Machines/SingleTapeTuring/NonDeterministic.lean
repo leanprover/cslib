@@ -14,39 +14,43 @@ public import Cslib.Foundations.Semantics.LTS.HasTau
 
 @[expose] public section
 
-namespace Cslib.Computability.Turing
+namespace Cslib.Computability.Turing.NTM
 
 open Automata Turing
 
-inductive Direction
-  | left | right
+-- inductive Move
+--   | stay | left | right
 
--- # Alternative 1: everything is visible and the tape is kept separate from states,
--- a-la reactive turing machines
+structure Controller.TrLabel (State Symbol : Type*) where
+  read : Option Symbol
+  write : Option Symbol
+  move : Option Turing.Dir -- Might wanna use a larger inductive here (see Move)
 
-structure NA.TM (State Symbol : Type*) [HasTau Symbol]
-    extends NA State (Symbol × Symbol × Direction)
+structure Controller (State Symbol : Type*)
+    extends NA State (Controller.TrLabel State Symbol)
 
-structure SingleTapeNDTM (State Symbol : Type*) [HasTau Symbol] where
-  a : NA.TM State Symbol
+structure Cfg (State Symbol : Type*) where
+  state : State
   tape : Turing.BiTape Symbol
 
-variable {Symbol} [HasTau Symbol]
+structure SingleTapeNTM (State Symbol : Type*) where
+  /-- The controller automaton of the machine. -/
+  controller : Controller State Symbol
+  /-- The set of accepting (halting) states. -/
+  accept : Set State
 
--- Define the effect of a transition on the tape
+-- Transition relation for configurations
+-- Due to the way BiTape is written, Symbol cannot be universe-polymorphic. To be fixed.
+def SingleTapeNTM.Tr {Symbol} (m : SingleTapeNTM State Symbol)
+    (c c' : Cfg State Symbol) : Prop :=
+  c.state ∉ m.accept ∧
+  ∃ μ, m.controller.Tr c.state μ c'.state ∧
+    μ.read = c.tape.head ∧ c'.tape = (c.tape.write μ.write).optionMove μ.move
 
--- Define the semantics of a tape under a fixed TM, or a relation between TMs where the `a` remains
--- unaltered.
+def SingleTapeNTM.MTr {Symbol} (m : SingleTapeNTM State Symbol) := Relation.ReflTransGen m.Tr
 
--- # Alternative 2: states contain the tape, transitions are labelled by the symbol being read
+def SingleTapeNTM.Accepts {Symbol} (m : SingleTapeNTM State Symbol)
+    (xs : List Symbol) : Prop :=
+  ∃ s ∈ m.controller.start, ∃ c', m.MTr (Cfg.mk s (Turing.BiTape.mk₁ xs)) c'
 
-namespace Alternative2
-
-open Automata Turing
-
-structure NA.TM (State Symbol : Type*) [HasTau Symbol]
-    extends NA (State × Turing.BiTape Symbol) Symbol
-
-end Alternative2
-
-end Cslib.Computability.Turing
+end Cslib.Computability.Turing.NTM
