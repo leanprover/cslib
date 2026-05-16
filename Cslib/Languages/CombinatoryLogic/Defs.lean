@@ -40,7 +40,7 @@ namespace Cslib
 
 /-- An SKI expression is built from the primitive combinators `S`, `K` and `I`, and application. -/
 inductive SKI where
-  /-- `S`-combinator, with semantics $λxyz.xz(yz) -/
+  /-- `S`-combinator, with semantics $λxyz.xz(yz)$ -/
   | S
   /-- `K`-combinator, with semantics $λxy.x$ -/
   | K
