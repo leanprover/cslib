@@ -318,9 +318,9 @@ theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 
-/-- A relation `r` is serial if every element is `Reducible`. -/
+/-- A relation `r` is serial if every element is `Reducible`, i.e. `Relator.LeftTotal`. -/
 class Serial (r : α → α → Prop) where
-  serial a : Reducible r a
+  serial : Relator.LeftTotal r
 
 @[scoped grind →]
 lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r where
