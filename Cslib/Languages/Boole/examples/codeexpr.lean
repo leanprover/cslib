@@ -65,4 +65,4 @@ procedure D(a : (Map int T), n : int) returns ()
 
 example : Strata.smtVCsCorrect codeExpr := by
   gen_smt_vcs
-  all_goals smt +mono
+  all_goals smt

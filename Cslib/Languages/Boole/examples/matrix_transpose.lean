@@ -34,4 +34,4 @@ procedure matrix_transpose (A: Matrix, m: int, n: int) returns (B: Matrix)
 -- Approach 2: Using Lean tactics to verify the VCs.
 theorem matrixTranspose_smtVCsCorrect : Strata.smtVCsCorrect matrixTranspose := by
   gen_smt_vcs
-  all_goals smt +mono
+  all_goals smt
