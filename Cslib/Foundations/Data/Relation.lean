@@ -136,10 +136,8 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   use a, b, c
 
 theorem cod_subset_dom : {b | ∃ a, r a b} ⊆ {a | ∃ b, r a b} := by
-  simp only [Set.setOf_subset_setOf, forall_exists_index]
-  intro a b ba
-  use a
-  exact refl_cod ba
+  rintro b ⟨a, ab⟩
+  exact ⟨b, refl_cod ab⟩
 
 end RightEuclidean
 
@@ -201,10 +199,8 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   use a, b, c
 
 theorem dom_subset_cod : {a | ∃ b, r a b} ⊆ {b | ∃ a, r a b} := by
-  simp only [Set.setOf_subset_setOf, forall_exists_index]
-  intro a b ba
-  use a
-  exact refl_dom ba
+  rintro a ⟨b, ab⟩
+  refine ⟨a, refl_dom ab⟩
 
 end LeftEuclidean
 
