@@ -8,9 +8,11 @@ module
 
 public import Cslib.Algorithms.Lean.Sorting
 public import Cslib.Algorithms.Lean.TimeM
-public import Mathlib.Data.List.Count
-public import Mathlib.Data.List.Sort
 public import Mathlib.Data.Nat.Basic
+public import Mathlib.Order.RelClasses
+public import Mathlib.Tactic.Attr.Core
+public import Mathlib.Tactic.Finiteness.Attr
+public import Batteries.Data.List.Lemmas
 
 /-!
 # Counting sort on natural-number lists

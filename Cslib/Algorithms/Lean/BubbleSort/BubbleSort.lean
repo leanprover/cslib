@@ -8,8 +8,11 @@ module
 
 public import Cslib.Algorithms.Lean.Sorting
 public import Cslib.Algorithms.Lean.TimeM
-public import Mathlib.Data.List.Sort
 public import Mathlib.Data.Nat.Basic
+public import Mathlib.Order.Lattice
+public import Mathlib.Tactic.Attr.Core
+public import Mathlib.Tactic.Finiteness.Attr
+public import Batteries.Data.List.Lemmas
 
 /-!
 # Stable bubble sort on lists
@@ -125,7 +128,6 @@ private theorem bubbleMax_perm (candidate : α) (xs : List α) :
 A bubbling pass is stable. Since equal values are never swapped, filtering by any value gives the
 same subsequence before and after the pass.
 -/
-@[simp]
 private theorem bubbleMax_stable (candidate : α) (xs : List α) :
     StableByValue (candidate :: xs)
       ((⟪bubbleMax candidate xs⟫).1 ++ [(⟪bubbleMax candidate xs⟫).2]) := by

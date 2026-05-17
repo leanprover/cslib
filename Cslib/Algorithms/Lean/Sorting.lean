@@ -6,6 +6,8 @@ Authors: Robert Joseph George
 
 module
 
+public import Cslib.Init
+
 /-!
 # Sorting utilities
 

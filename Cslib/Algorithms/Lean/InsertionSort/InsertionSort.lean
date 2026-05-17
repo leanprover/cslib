@@ -73,7 +73,6 @@ theorem ret_insertionSort (xs : List α) :
   | cons x xs ih => simp [insertionSort, ih]
 
 /-- Inserting one value keeps exactly the original values. -/
-@[simp]
 private theorem insert_perm (x : α) (xs : List α) : (⟪insert x xs⟫).Perm (x :: xs) := by
   simpa using List.perm_orderedInsert (· ≤ ·) x xs
 
@@ -82,7 +81,6 @@ theorem insertionSort_perm (xs : List α) : (⟪insertionSort xs⟫).Perm xs := 
   simpa using List.perm_insertionSort (· ≤ ·) xs
 
 /-- Inserting one value is stable with respect to filtering by any fixed value. -/
-@[simp]
 private theorem insert_stable (x : α) (xs : List α) : StableByValue (x :: xs) ⟪insert x xs⟫ := by
   induction xs with
   | nil => simp [StableByValue, insert]
@@ -131,7 +129,6 @@ private theorem insert_time_le (x : α) (xs : List α) : (insert x xs).time ≤ 
       omega
 
 /-- Insertion sort preserves length. -/
-@[simp]
 private theorem insertionSort_length (xs : List α) : ⟪insertionSort xs⟫.length = xs.length := by
   simp
 

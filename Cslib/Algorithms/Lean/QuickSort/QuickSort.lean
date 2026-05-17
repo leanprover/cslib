@@ -180,7 +180,6 @@ private theorem randomizedQuickSortFuel_support_cons {fuel : ℕ} {x : α} {xs :
 section Correctness
 
 /-- Every low-bucket element is below the pivot. -/
-@[simp]
 theorem lt_pivot_of_mem_partition3_left (pivot : α) (xs : List α) :
     ∀ z ∈ (partition3 pivot xs).ret.1, z < pivot := by
   induction xs with
@@ -193,7 +192,6 @@ theorem lt_pivot_of_mem_partition3_left (pivot : α) (xs : List α) :
       <;> grind
 
 /-- Every middle-bucket element is equal to the pivot. -/
-@[simp]
 theorem eq_pivot_of_mem_partition3_middle (pivot : α) (xs : List α) :
     ∀ z ∈ (partition3 pivot xs).ret.2.1, z = pivot := by
   induction xs with
@@ -206,7 +204,6 @@ theorem eq_pivot_of_mem_partition3_middle (pivot : α) (xs : List α) :
       <;> grind
 
 /-- Every high-bucket element is above the pivot. -/
-@[simp]
 theorem pivot_lt_of_mem_partition3_right (pivot : α) (xs : List α) :
     ∀ z ∈ (partition3 pivot xs).ret.2.2, pivot < z := by
   induction xs with
@@ -219,7 +216,6 @@ theorem pivot_lt_of_mem_partition3_right (pivot : α) (xs : List α) :
       <;> grind
 
 /-- Partitioning only rearranges elements into the three buckets. -/
-@[simp]
 theorem partition3_perm (pivot : α) (xs : List α) :
     ((partition3 pivot xs).ret.1 ++ (partition3 pivot xs).ret.2.1 ++
         (partition3 pivot xs).ret.2.2).Perm xs := by
