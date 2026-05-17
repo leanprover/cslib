@@ -39,7 +39,7 @@ namespace Cslib
 
 namespace SKI
 
-open Red
+open Red Relation
 
 /-- The predicate that a term has no reducible sub-terms. -/
 def RedexFree : SKI → Prop
@@ -131,22 +131,25 @@ theorem evalStep_right_correct : (x y : SKI) → (x.evalStep = Sum.inr y) → x 
           rw [←h]
           exact red_head _ _ _ <| evalStep_right_correct _ _ habcd
 
-theorem redexFree_of_no_red {x : SKI} (h : ∀ y, ¬ (x ⭢ y)) : x.RedexFree := by
+theorem redexFree_of_normal_red {x : SKI} (h : Normal Red x) : x.RedexFree := by
   match hx : x.evalStep with
   | Sum.inl h' => exact h'.down
-  | Sum.inr y => cases h _ (evalStep_right_correct x y hx)
+  | Sum.inr y => rw [Normal_iff] at h; cases h _ (evalStep_right_correct x y hx)
 
-theorem RedexFree.no_red : {x : SKI} → x.RedexFree → ∀ y, ¬ (x ⭢ y)
-| S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
-| K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => by rw [RedexFree] at hx; exact hx.no_red y hx'
-| S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => hx.no_red _ h3
-| S ⬝ _ ⬝ _, ⟨_, hy⟩, S ⬝ _ ⬝ _, red_tail _ _ _ h3 => hy.no_red _ h3
-| _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => hx.no_red _ hq
-| _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => hy.no_red _ he
+theorem RedexFree.normal_red {x : SKI} (hx : x.RedexFree) : Normal Red x := by
+  simp_rw [Normal_iff]
+  intro y hy
+  match x, hx, y, hy with
+  | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.normal_red ⟨_, hx'⟩
+  | K ⬝ x, hx, K ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.normal_red ⟨_, hx'⟩
+  | S ⬝ _ ⬝ _, ⟨hx, _⟩, S ⬝ _ ⬝ _, red_head _ _ _ (red_tail _ _ _ h3) => exact hx.normal_red ⟨_, h3⟩
+  | S ⬝ _ ⬝ _, ⟨_, hy⟩, S ⬝ _ ⬝ _, red_tail _ _ _ h3 => exact hy.normal_red ⟨_, h3⟩
+  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => exact hx.normal_red ⟨_, hq⟩
+  | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => exact hy.normal_red ⟨_, he⟩
 
 /-- A term is redex free iff it has no one-step reductions. -/
-theorem redexFree_iff {x : SKI} : x.RedexFree ↔ ∀ y, ¬ (x ⭢ y) :=
-  ⟨RedexFree.no_red, redexFree_of_no_red⟩
+theorem redexFree_iff {x : SKI} : x.RedexFree ↔ Normal Red x :=
+  ⟨RedexFree.normal_red, redexFree_of_normal_red⟩
 
 theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft = true := by
   constructor
@@ -154,7 +157,7 @@ theorem redexFree_iff_evalStep {x : SKI} : x.RedexFree ↔ (x.evalStep).isLeft =
     intro h
     match hx : x.evalStep with
     | Sum.inl h' => exact rfl
-    | Sum.inr y => cases h.no_red _ (evalStep_right_correct _ _ hx)
+    | Sum.inr y => cases h.normal_red ⟨_, (evalStep_right_correct _ _ hx)⟩
   case mpr =>
     intro h
     match hx : x.evalStep with
@@ -166,34 +169,22 @@ instance : DecidablePred RedexFree := fun _ => decidable_of_iff' _ redexFree_iff
 /-- A term is redex free iff its only many-step reduction is itself. -/
 theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x = y := by
   constructor
-  case mp =>
-    intro h y
-    constructor
-    case mp =>
-      intro h'
-      cases h'.cases_head
-      case inl => assumption
-      case inr h' =>
-        obtain ⟨z, hz, _⟩ := h'
-        cases h.no_red _ hz
-    case mpr =>
-      intro h
-      rw [h]
+  case mp => grind [RedexFree.normal_red]
   case mpr =>
     intro h
     rw [redexFree_iff]
-    intro y hy
+    intro ⟨y, hy⟩
     specialize h y
     exact Red.ne hy (h.1 (Relation.ReflTransGen.single hy))
 
 /-- If a term has a common reduct with a normal term, it in fact reduces to that term. -/
-theorem commonReduct_redexFree {x y : SKI} (hy : y.RedexFree) (h : CommonReduct x y) : x ↠ y :=
+theorem mJoin_red_redexFree {x y : SKI} (hy : y.RedexFree) (h : MJoin Red x y) : x ↠ y :=
   let ⟨w, hyw, hzw⟩ := h
   (redexFree_iff_mred_eq.1 hy _ |>.1 hzw : y = w) ▸ hyw
 
 /-- If `x` reduces to both `y` and `z`, and `z` is not reducible, then `y` reduces to `z`. -/
 lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : RedexFree z) : y ↠ z :=
-  let ⟨w, hyw, hzw⟩ := MRed.diamond x y z hxy hxz
+  let ⟨w, hyw, hzw⟩ := MRed.diamond hxy hxz
   (redexFree_iff_mred_eq.1 hz _ |>.1 hzw : z = w) ▸ hyw
 
 /--
@@ -204,13 +195,13 @@ lemma unique_normal_form {x y z : SKI}
   (redexFree_iff_mred_eq.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
-lemma eq_of_commonReduct_redexFree {x y : SKI} (h : CommonReduct x y)
+lemma eq_of_mJoin_red_redexFree {x y : SKI} (h : MJoin Red x y)
     (hx : x.RedexFree) (hy : y.RedexFree) : x = y :=
-  (redexFree_iff_mred_eq.1 hx _).1 (commonReduct_redexFree hy h)
+  (redexFree_iff_mred_eq.1 hx _).1 (mJoin_red_redexFree hy h)
 
 /-! ### Injectivity for datatypes -/
 
-lemma sk_nequiv : ¬ CommonReduct S K := by
+lemma sk_nequiv : ¬ MJoin Red S K := by
   intro ⟨z, hsz, hkz⟩
   have hS : RedexFree S := by simp [RedexFree]
   have hK : RedexFree K := by simp [RedexFree]
@@ -219,33 +210,19 @@ lemma sk_nequiv : ¬ CommonReduct S K := by
 
 /-- Injectivity for booleans. -/
 theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
-    (hxy : CommonReduct x y) : u = v := by
-  have h : CommonReduct (if u then S else K) (if v then S else K) := by
-    apply commonReduct_equivalence.trans (y := x ⬝ S ⬝ K)
-    · apply commonReduct_equivalence.symm
-      apply commonReduct_of_single
+    (hxy : MJoin Red x y) : u = v := by
+  have h : MJoin Red (if u then S else K) (if v then S else K) := by
+    apply mJoin_red_equivalence.trans (y := x ⬝ S ⬝ K)
+    · apply mJoin_red_equivalence.symm
+      apply Relation.MJoin.single
       exact hx S K
-    · apply commonReduct_equivalence.trans (y := y ⬝ S ⬝ K)
-      · exact commonReduct_head K <| commonReduct_head S hxy
-      · apply commonReduct_of_single
+    · apply mJoin_red_equivalence.trans (y := y ⬝ S ⬝ K)
+      · exact mJoin_red_head K <| mJoin_red_head S hxy
+      · apply Relation.MJoin.single
         exact hy S K
-  by_cases u
-  case pos hu =>
-    by_cases v
-    case pos hv =>
-      rw [hu, hv]
-    case neg hv =>
-      simp_rw [hu, hv, Bool.false_eq_true, reduceIte] at h
-      exact False.elim <| sk_nequiv h
-  case neg hu =>
-    by_cases v
-    case pos hv =>
-      simp_rw [hu, hv, Bool.false_eq_true, reduceIte] at h
-      exact False.elim <| sk_nequiv (commonReduct_equivalence.symm h)
-    case neg hv =>
-      simp_rw [hu, hv]
+  grind [sk_nequiv, mJoin_red_equivalence.symm h]
 
-lemma TF_nequiv : ¬ CommonReduct TT FF := fun h =>
+lemma TF_nequiv : ¬ MJoin Red TT FF := fun h =>
   (Bool.eq_not_self true).mp <| isBool_injective TT FF true false TT_correct FF_correct h
 
 /-- A specialisation of `Church : Nat → SKI`. -/
@@ -271,17 +248,17 @@ lemma churchK_injective : Function.Injective churchK :=
 
 /-- Injectivity for Church numerals -/
 theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsChurch m y)
-    (hxy : CommonReduct x y) : n = m := by
-  suffices CommonReduct (churchK n) (churchK m) by
+    (hxy : MJoin Red x y) : n = m := by
+  suffices MJoin Red (churchK n) (churchK m) by
     apply churchK_injective
-    exact eq_of_commonReduct_redexFree this (churchK_redexFree n) (churchK_redexFree m)
-  apply commonReduct_equivalence.trans (y := x ⬝ K ⬝ K)
+    exact eq_of_mJoin_red_redexFree this (churchK_redexFree n) (churchK_redexFree m)
+  apply mJoin_red_equivalence.trans (y := x ⬝ K ⬝ K)
   · simp_rw [churchK_church]
-    exact commonReduct_equivalence.symm <| commonReduct_of_single (hx K K)
-  · apply commonReduct_equivalence.trans (y := y ⬝ K ⬝ K)
-    · apply commonReduct_head; apply commonReduct_head; assumption
+    exact mJoin_red_equivalence.symm <| Relation.MJoin.single (hx K K)
+  · apply mJoin_red_equivalence.trans (y := y ⬝ K ⬝ K)
+    · apply mJoin_red_head; apply mJoin_red_head; assumption
     · simp_rw [churchK_church]
-      exact commonReduct_of_single (hy K K)
+      exact Relation.MJoin.single (hy K K)
 
 /--
 **Rice's theorem**: no SKI term is a non-trivial predicate.
@@ -308,7 +285,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ P ⬝ (TT ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
       _ ↠ P ⬝ b := by apply MRed.tail; apply TT_correct
       _ ↠ FF := hb
-    exact TF_nequiv <| MRed.diamond _ _ _ h this
+    exact TF_nequiv <| MRed.diamond h this
   case inr h =>
     have : (P ⬝ Abs) ↠ TT := calc
       _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
@@ -316,7 +293,7 @@ theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ F
       _ ↠ P ⬝ (FF ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
       _ ↠ P ⬝ a := by apply MRed.tail; apply FF_correct
       _ ↠ TT := ha
-    exact TF_nequiv <| MRed.diamond _ _ _ this h
+    exact TF_nequiv <| MRed.diamond this h
 
 /-- **Rice's theorem**: any SKI predicate is trivial.
 

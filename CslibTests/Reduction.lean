@@ -1,55 +1,48 @@
-import Cslib.Foundations.Semantics.ReductionSystem.Basic
+import Cslib.Foundations.Data.Relation
 
 namespace CslibTests
 
 open Cslib
 
-@[reduction_sys rs "ₙ", simp]
+@[reduction_sys "ₙ", grind]
 def PredReduction (a b : ℕ) : Prop := a = b + 1
 
 lemma single_step : 5 ⭢ₙ 4 := by
-  change PredReduction _ _
-  simp
+  grind
 
 -- `Trans` instances allow us to switch between single and multistep reductions in a `calc` block
 lemma multiple_step : 5 ↠ₙ 1 := by
   -- TODO: can/should this be a `simp` attribute somewhere?
-  have h : rs.Red = PredReduction := by rfl
   calc
-    5 ⭢ₙ 4 := by simp [h]
+    5 ⭢ₙ 4 := by grind
     _ ↠ₙ 2 := by
       calc
-        4 ↠ₙ 3 := by apply ReductionSystem.MRed.single; simp [h]
-        _ ⭢ₙ 2 := by simp [h]
-    _ ⭢ₙ 1 := by simp [h]
+        4 ↠ₙ 3 := by grind
+        _ ⭢ₙ 2 := by grind
+    _ ⭢ₙ 1 := by grind
 
 -- ensure that this still works when there are variables
 inductive Term (Var : Type)
 variable {Var : Type}
 
-@[reduction_sys rs' "β", simp]
+@[reduction_sys "β", simp]
 def term_rel : Term Var → Term Var → Prop := fun _ _ ↦ True
 
 example (a b : Term Var) : a ⭢β b := by
-  change (@term_rel Var) a b
   simp
 
 -- check that a "cannonical" notation also works
-attribute [reduction_sys cannonical_rs] PredReduction
+@[reduction_sys, grind]
+def PredReduction' (a b : ℕ) : Prop := a = b + 1
 
 example : 5 ⭢ 4 := by
-  change PredReduction _ _
-  simp
+  grind
 
 --check that namespaces are respected
 
 /-- info: CslibTests.PredReduction (a b : ℕ) : Prop -/
 #guard_msgs in
 #check CslibTests.PredReduction
-
-/-- info: CslibTests.rs : ReductionSystem ℕ -/
-#guard_msgs in
-#check CslibTests.rs
 
 -- check that delaborators work, including with variables
 

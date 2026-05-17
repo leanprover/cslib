@@ -124,9 +124,8 @@ lemma RelatesInSteps.succ'_iff {a b : α} {n : ℕ} :
 If `h : α → ℕ` increases by at most 1 on each step of `r`,
 then the value of `h` at the output is at most `h` at the input plus the number of steps.
 -/
-lemma RelatesInSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
-    (h_step : ∀ a b, r a b → h b ≤ h a + 1)
-    (m : ℕ) (hevals : RelatesInSteps r a b m) :
+lemma RelatesInSteps.apply_le_apply_add {a b : α} {m : ℕ} (hevals : RelatesInSteps r a b m)
+    (h : α → ℕ) (h_step : ∀ a b, r a b → h b ≤ h a + 1) :
     h b ≤ h a + m := by
   induction hevals with
   | refl => simp
@@ -200,12 +199,12 @@ lemma RelatesWithinSteps.of_le {a b : α} {n₁ n₂ : ℕ}
 
 /-- If `h : α → ℕ` increases by at most 1 on each step of `r`,
 then the value of `h` at the output is at most `h` at the input plus the step bound. -/
-lemma RelatesWithinSteps.apply_le_apply_add {a b : α} (h : α → ℕ)
-    (h_step : ∀ a b, r a b → h b ≤ h a + 1)
-    (n : ℕ) (hevals : RelatesWithinSteps r a b n) :
-    h b ≤ h a + n := by
+lemma RelatesWithinSteps.apply_le_apply_add {a b : α} {m : ℕ} (hevals : RelatesWithinSteps r a b m)
+    (h : α → ℕ) (h_step : ∀ a b, r a b → h b ≤ h a + 1)
+    :
+    h b ≤ h a + m := by
   obtain ⟨m, hm, hevals_m⟩ := hevals
-  have := RelatesInSteps.apply_le_apply_add h h_step m hevals_m
+  have := RelatesInSteps.apply_le_apply_add hevals_m h h_step
   lia
 
 /--

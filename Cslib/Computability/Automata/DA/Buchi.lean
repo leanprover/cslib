@@ -29,6 +29,6 @@ of the language accepted by the same automaton.
 theorem buchi_eq_finAcc_omegaLim {da : DA State Symbol} {acc : Set State} :
     language (Buchi.mk da acc) = (language (FinAcc.mk da acc))↗ω := by
   ext xs
-  simp
+  simp +instances
 
 end Cslib.Automata.DA

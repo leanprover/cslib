@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Foundations.Semantics.LTS.HasTau
 
 @[expose] public section
 

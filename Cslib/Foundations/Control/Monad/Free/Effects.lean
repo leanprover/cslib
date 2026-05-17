@@ -7,9 +7,7 @@ Authors: Tanner Duve
 module
 
 public import Cslib.Foundations.Control.Monad.Free
-public import Mathlib.Algebra.Group.Hom.Defs
 public import Mathlib.Control.Monad.Cont
-public import Mathlib.Control.Monad.Writer
 
 @[expose] public section
 

@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
 @[expose] public section
@@ -26,7 +25,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 open Relation
 
 /-- A parallel β-reduction step. -/
-@[reduction_sys paraRs "ₚ"]
+@[reduction_sys "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -47,11 +46,6 @@ attribute [scoped grind .] Parallel.fvar Parallel.app
 attribute [scoped grind cases] Parallel
 
 variable {M M' N N' : Term Var}
-
---- TODO: I think this could be generated along with the ReductionSystem
-@[scoped grind _=_]
-private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
-  rfl
 
 /-- The left side of a parallel reduction is locally closed. -/
 @[scoped grind →]
@@ -80,10 +74,13 @@ lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
-  induction step
-  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => apply Parallel.beta xs <;> grind
-  case abs xs _ _ => apply Parallel.abs xs; grind
-  all_goals grind
+  induction step with
+  | base h =>
+    cases h with | beta abs_lc _ =>
+    cases abs_lc with | abs xs _ =>
+    apply Parallel.beta xs <;> grind
+  | abs xs _ _ => apply Parallel.abs xs; grind
+  | _ => grind
 
 open FullBeta in
 /-- A single parallel reduction implies a multiple β-reduction. -/
@@ -91,7 +88,8 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
   induction para
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
-    refine .trans (?_ : L.app R ↠βᶠ L'.app R) (?_ : L'.app R ↠βᶠ L'.app R') <;> grind
+    have : L.app R ↠βᶠ L'.app R := by grind
+    grind [ReflTransGen.trans]
   case abs t t' xs _ ih =>
     apply redex_abs_cong xs
     grind
@@ -104,13 +102,13 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
       m'.abs.app n :=
         redex_app_l_cong (redex_abs_cong xs (fun _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
       _           ↠βᶠ m'.abs.app n' := by grind
-      _           ⭢βᶠ m' ^ n'       := beta m'_abs_lc (by grind)
+      _           ⭢βᶠ m' ^ n'       := by grind
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
   refine Iff.intro ?chain_redex ?redex_chain <;> intros h <;> induction h <;> try rfl
-  case redex_chain.tail redex chain => exact ReflTransGen.tail chain (step_to_para redex)
-  case chain_redex.tail para  redex => exact ReflTransGen.trans redex (para_to_redex para)
+  case redex_chain redex chain => exact ReflTransGen.tail chain (step_to_para redex)
+  case chain_redex para  redex => exact ReflTransGen.trans redex (para_to_redex para)
 
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]

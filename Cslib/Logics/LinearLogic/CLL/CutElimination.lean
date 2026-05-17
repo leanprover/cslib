@@ -18,8 +18,10 @@ universe u
 
 variable {Atom : Type u}
 
+open Cslib.Logic.InferenceSystem
+
 /-- A proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree (p : ⇓Γ) : Bool :=
+def Proof.cutFree {Γ : Sequent Atom} (p : ⇓Γ) : Bool :=
   match p with
   | ax => true
   | one => true

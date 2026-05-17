@@ -51,13 +51,15 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
     constructor
     · simp only [iSum, get_map, mem_iUnion]
       grind [NA.Run]
-    · simp only [LTS.ωTr]
+    · simp only [LTS.OmegaExecution]
       grind [NA.Run]
 
 namespace Buchi
 
 open ωAcceptor
 
+-- TODO: fix proof to work with backward.isDefEq.respectTransparency
+set_option backward.isDefEq.respectTransparency false in
 /-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
 by its component automata. -/
 @[simp]

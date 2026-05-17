@@ -16,7 +16,6 @@ This document gives an overview of how the codebase is structured, in terms of d
         - Free. Free monads.
     - Semantics. Operational semantics (reduction and transition systems), program equivalences, etc.
       - Lts.
-      - ReductionSystem.
       - Bisimilarity.
       - TraceEq.
       - …

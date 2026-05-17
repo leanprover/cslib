@@ -25,10 +25,12 @@ attribute [local grind =] Multiset.add_comm
 attribute [local grind =] Multiset.add_assoc
 attribute [local grind =] Multiset.insert_eq_cons
 
+open Cslib.Logic.InferenceSystem
+
 /-- The η-expansion of a proposition `a` is a `Proof` of `{a, a⫠}` that applies the axiom
 only to atomic propositions. -/
 @[scoped grind =]
-def Proposition.expand (a : Proposition Atom) : ⇓{a, a⫠} :=
+def Proposition.expand (a : Proposition Atom) : ⇓({a, a⫠} : Sequent Atom):=
   match a with
   | atom x
     | atomDual x => Proof.ax
@@ -80,7 +82,7 @@ decreasing_by
 
 /-- A `Proof` has only atomic axioms if all its instances of the axiom treat atomic propositions. -/
 @[scoped grind =]
-def Proof.onlyAtomicAxioms (p : ⇓Γ) : Bool :=
+def Proof.onlyAtomicAxioms {Γ : Sequent Atom} (p : ⇓Γ) : Bool :=
   match p with
   | @ax _ a => (a matches Proposition.atom _) || (a matches Proposition.atomDual _)
   | cut p q => p.onlyAtomicAxioms && q.onlyAtomicAxioms
@@ -98,8 +100,9 @@ def Proof.onlyAtomicAxioms (p : ⇓Γ) : Bool :=
   | bang _ p => p.onlyAtomicAxioms
 
 /-- `Proof.onlyAtomicAxioms` is preserved by `Proof.rwConclusion`. -/
-theorem Proof.onlyAtomicAxioms_rwConclusion {heq : Γ = Δ} {p : ⇓Γ} (h : p.onlyAtomicAxioms) :
-  (p.rwConclusion heq).onlyAtomicAxioms := by grind
+theorem Proof.onlyAtomicAxioms_rwConclusion {Γ Δ : Sequent Atom} {heq : Γ = Δ} {p : ⇓Γ}
+    (h : p.onlyAtomicAxioms) :
+  (rwConclusion heq p).onlyAtomicAxioms := by grind
 
 open Proposition Proof in
 @[local grind →]

@@ -16,17 +16,17 @@ weak.linter.allScriptsDocumented = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.27.0"
+rev = "v4.29.0"
 
 [[require]]
 name = "Strata"
 git = "https://github.com/strata-org/Strata"
-rev = "main"
+rev = "25f254373c9993b6a583744f5c1c8684cec86528"
 
 [[require]]
 name = "smt"
 git = "https://github.com/ufmg-smite/lean-smt"
-rev = "boole"
+rev = "7d1d8239e78daa5197f9a71948776c4627049f5f"
 
 [[lean_lib]]
 name = "Cslib"

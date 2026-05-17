@@ -447,7 +447,7 @@ theorem append_extract_drop {xs : ωSequence α} {n : ℕ} :
     (xs.extract 0 n) ++ω (xs.drop n) = xs := by
   simp [extract_eq_take, append_take_drop]
 
-theorem extract_apppend_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
+theorem extract_append_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
     (xl ++ω xs).extract m n = xs.extract (m - xl.length) (n - xl.length) := by
   grind [extract_eq_drop_take, drop_append_of_ge_length]
 
@@ -507,6 +507,17 @@ theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
 theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
   grind
+
+@[simp, scoped grind =]
+theorem take_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
+    (xs.extract m n).take k = xs.extract m (m + k) := by
+  grind [extract_lu_extract_lu (xs := xs) (i := 0) h]
+
+@[simp, scoped grind =]
+theorem drop_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
+    (xs.extract m n).drop k = xs.extract (m + k) n := by
+  have := extract_lu_extract_lu (xs := xs) (m := m) (n := n) (i := k) (j := n - m)
+  grind [length_extract, List.take_length]
 
 end ωSequence
 

@@ -7,7 +7,7 @@ Authors: Jesse Alama, Chris Henson
 import Lean
 import Mathlib.Lean.CoreM
 import Batteries.Data.List.Basic
-import ImportGraph.Imports
+import ImportGraph
 
 open Lean Core Elab Command
 
