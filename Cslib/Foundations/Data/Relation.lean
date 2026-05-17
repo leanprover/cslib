@@ -11,7 +11,7 @@ public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
-public import Mathlib.Data.Fintype.Card
+public import Mathlib.Data.Fintype.EquivFin
 
 /-! # Relations
 
@@ -110,16 +110,30 @@ theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_range (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
 
-theorem fintype_trichotomous_antisymm_card [Fintype α] [Std.Trichotomous r] [Std.Antisymm r] :
-    Fintype.card α ≤ 2 := by
-  by_contra! h
-  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
+private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
+    ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
+  rintro ⟨a, b, c, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a b
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
   have := antisymm_rightUnique (r := r) 
   have := @refl_range (r := r)
   grind [Relator.RightUnique]
+
+theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by
+  classical
+  by_contra! h
+  apply three_contra (r := r)
+  have ⟨_, hcard⟩ := Infinite.exists_subset_card_eq α 3
+  have ⟨a, b, c, _, _, _, _⟩ := Finset.card_eq_three.mp hcard
+  use a, b, c
+
+theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α] :
+    Fintype.card α ≤ 2 := by
+  by_contra! h
+  apply three_contra (r := r)
+  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
+  use a, b, c
 
 end RightEuclidean
 
@@ -155,16 +169,30 @@ theorem leftTotal_equiv (h : Relator.LeftTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_dom (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩}
 
-theorem fintype_trichotomous_antisymm_card [Fintype α] [Std.Trichotomous r] [Std.Antisymm r] :
-    Fintype.card α ≤ 2 := by
-  by_contra! h
-  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
+private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
+    ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
+  rintro ⟨a, b, c, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a b
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
   have := antisymm_leftUnique (r := r) 
   have := @refl_dom (r := r)
   grind [Relator.LeftUnique]
+
+theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by
+  classical
+  by_contra! h
+  apply three_contra (r := r)
+  have ⟨_, hcard⟩ := Infinite.exists_subset_card_eq α 3
+  have ⟨a, b, c, _, _, _, _⟩ := Finset.card_eq_three.mp hcard
+  use a, b, c
+
+theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α] :
+    Fintype.card α ≤ 2 := by
+  by_contra! h
+  apply three_contra (r := r)
+  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
+  use a, b, c
 
 end LeftEuclidean
 
