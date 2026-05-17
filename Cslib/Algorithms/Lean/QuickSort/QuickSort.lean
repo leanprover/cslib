@@ -474,7 +474,8 @@ Expected-time bound for the actual PMF semantics of `randomizedQuickSort`. This 
 pointwise worst-case theorem.
 -/
 theorem randomizedQuickSort_expectedTime_le_quadratic (xs : List α) :
-    RandomTimeM.expectedTime (randomizedQuickSort xs) ≤ (2 * xs.length * xs.length : ℕ) := by
+    RandomTimeM.expectedTime (randomizedQuickSort xs) ≤
+      ((2 * xs.length * xs.length : ℕ) : ℝ) := by
   exact RandomTimeM.expectedTime_le_of_time_le_on_support (randomizedQuickSort_time xs)
 
 /-- The same worst-case expected-time bound, stated for the `ENNReal` expectation algebra. -/

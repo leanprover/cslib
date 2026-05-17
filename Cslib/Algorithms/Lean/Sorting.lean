@@ -22,7 +22,7 @@ set_option autoImplicit false
 namespace Cslib.Algorithms.Lean
 
 /-- `ys` preserves the order of equal values from `xs`. -/
-abbrev StableByValue {α : Type} [DecidableEq α] (xs ys : List α) : Prop :=
+abbrev StableByValue {α : Type*} [DecidableEq α] (xs ys : List α) : Prop :=
   ∀ value, ys.filter (fun x => x = value) = xs.filter (fun x => x = value)
 
 end Cslib.Algorithms.Lean

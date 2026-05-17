@@ -153,7 +153,11 @@ theorem expectedNat_le_of_le_on_support {p : PMF α} {value : α → ℕ} {bound
           rw [ENNReal.tsum_mul_right]
     _ = bound := by simp
 
-/-- Expected running time is the weighted average of the time component of each result. -/
+/--
+Expected running time as a real number. For algebraic work with randomized algorithms,
+`expectedTimeENNReal` is the safer primary view; this real-valued version is mainly convenient after
+a finite pointwise bound has already been proved.
+-/
 noncomputable def expectedTime (p : RandomTimeM ℕ α) : ℝ :=
   expectedValue p fun result => result.time
 
@@ -161,7 +165,10 @@ noncomputable def expectedTime (p : RandomTimeM ℕ α) : ℝ :=
 noncomputable def expectedTimeENNReal (p : RandomTimeM ℕ α) : ENNReal :=
   expectedNat p fun result => result.time
 
-/-- The real and `ENNReal` expected-time views agree after converting back to `ℝ`. -/
+/--
+The real and `ENNReal` expected-time views agree after converting back to `ℝ`. Use this only when
+the extended expectation is known to be finite, since `ENNReal.toReal ⊤ = 0`.
+-/
 theorem expectedTime_eq_toReal_expectedTimeENNReal (p : RandomTimeM ℕ α) :
     p.expectedTime = p.expectedTimeENNReal.toReal := by
   unfold expectedTime expectedTimeENNReal expectedValue expectedNat
@@ -189,7 +196,8 @@ theorem expectedTimeENNReal_bind_pure_add {β : Type} (p : RandomTimeM ℕ α) (
       (base : ENNReal) + p.expectedTimeENNReal := by
   rw [expectedTimeENNReal_bind]
   simp only [expectedTimeENNReal, expectedNat_pure]
-  rw [← expectedNat]
+  change expectedNat p (fun result => base + result.time) =
+    (base : ENNReal) + p.expectedTimeENNReal
   calc
     expectedNat p (fun result => base + result.time)
         = expectedNat p (fun _ => base) + expectedNat p fun result => result.time := by
