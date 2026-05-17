@@ -83,7 +83,7 @@ namespace RightEuclidean
 variable [RightEuclidean r]
 
 /-- A `RightEuclidean` relation is reflexive on its range -/
-theorem refl_range (ab : r a b) : r b b := rightEuclidean ab ab
+theorem refl_cod (ab : r a b) : r b b := rightEuclidean ab ab
 
 /-- The converse of a `RightEuclidean` relation is `LeftEuclidean` -/
 theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
@@ -95,7 +95,7 @@ instance [Std.Refl r] : Std.Symm r where
 theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
   trans a b c ab bc := by
     have := Std.Trichotomous.trichotomous (r := r) a c
-    have cc := refl_range bc
+    have cc := refl_cod bc
     have (ca : r c a) := rightEuclidean ca cc
     grind
 
@@ -104,10 +104,10 @@ theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
   exact antisymm (rightEuclidean ab ac) (rightEuclidean ac ab)
 
 theorem rightUnique_antisymm (h : Relator.RightUnique r) : Std.Antisymm r where
-  antisymm _ _ ab ba := h ba (refl_range ab)
+  antisymm _ _ ab ba := h ba (refl_cod ab)
 
 theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
-  have : Std.Refl r := ⟨fun a => refl_range (h a).choose_spec⟩
+  have : Std.Refl r := ⟨fun a => refl_cod (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
 
 private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
@@ -117,7 +117,7 @@ private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
   have := antisymm_rightUnique (r := r) 
-  have := @refl_range (r := r)
+  have := @refl_cod (r := r)
   grind [Relator.RightUnique]
 
 theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by
@@ -134,6 +134,12 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   apply three_contra (r := r)
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
+
+theorem cod_subset_dom : {b | ∃ a, r a b} ⊆ {a | ∃ b, r a b} := by
+  simp only [Set.setOf_subset_setOf, forall_exists_index]
+  intro a b ba
+  use a
+  exact refl_cod ba
 
 end RightEuclidean
 
@@ -193,6 +199,12 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   apply three_contra (r := r)
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
+
+theorem dom_subset_cod : {a | ∃ b, r a b} ⊆ {b | ∃ a, r a b} := by
+  simp only [Set.setOf_subset_setOf, forall_exists_index]
+  intro a b ba
+  use a
+  exact refl_dom ba
 
 end LeftEuclidean
 
