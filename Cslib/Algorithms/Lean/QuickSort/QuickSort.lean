@@ -9,6 +9,7 @@ module
 public import Cslib.Algorithms.Lean.RandomTimeM
 public import Mathlib.Data.List.Sort
 public import Mathlib.Data.Nat.Basic
+public import Mathlib.NumberTheory.Harmonic.Bounds
 public import Mathlib.Probability.Distributions.Uniform
 public import Mathlib.Tactic.Linarith
 
@@ -20,8 +21,9 @@ items into elements below, equal to, and above the pivot. The equal bucket is no
 sorted, which is the usual duplicate-safe randomized quicksort.
 
 The cost model counts the two order tests used by the three-way partition. The theorems prove a
-quadratic worst-case bound for every random run and the corresponding bound on
-`RandomTimeM.expectedTime`.
+quadratic worst-case bound for every random run, the corresponding bound on
+`RandomTimeM.expectedTime`, and the standard harmonic estimate for the rank recurrence used in the
+all-distinct average-case analysis.
 -/
 
 @[expose] public section
@@ -397,6 +399,25 @@ end Correctness
 
 section TimeComplexity
 
+/--
+One nonempty quicksort step as an expected-time recurrence. The outer sum averages over the sampled
+pivot index; each branch pays the partition cost plus the expected costs of the two recursive calls.
+-/
+theorem randomizedQuickSortFuel_expectedTimeENNReal_cons (fuel : ℕ) (x : α) (xs : List α) :
+    RandomTimeM.expectedTimeENNReal (randomizedQuickSortFuel (fuel + 1) (x :: xs)) =
+      ∑' pivotIndex : Fin (x :: xs).length,
+        randomPivotIndex (x :: xs) (by simp) pivotIndex *
+          (let pivot := (x :: xs)[pivotIndex]
+           let rest := (x :: xs).eraseIdx pivotIndex
+           let parts := partition3 pivot rest
+           ((parts.time : ENNReal) +
+             RandomTimeM.expectedTimeENNReal (randomizedQuickSortFuel fuel parts.ret.1) +
+             RandomTimeM.expectedTimeENNReal (randomizedQuickSortFuel fuel parts.ret.2.2))) := by
+  rw [randomizedQuickSortFuel, RandomTimeM.expectedTimeENNReal_bind]
+  apply tsum_congr
+  intro pivotIndex
+  rw [RandomTimeM.expectedTimeENNReal_bind_pure_add_pair]
+
 /-- Every possible randomized quicksort run obeys a quadratic worst-case comparison bound. -/
 theorem randomizedQuickSortFuel_time (fuel : ℕ) (xs : List α) (hfuel : xs.length ≤ fuel) :
     ∀ result ∈ (randomizedQuickSortFuel fuel xs).support,
@@ -454,11 +475,32 @@ theorem randomizedQuickSort_time (xs : List α) :
 
 /--
 Expected-time bound for the actual PMF semantics of `randomizedQuickSort`. This follows from the
-pointwise worst-case theorem, so it is quadratic rather than the sharper average-case recurrence.
+pointwise worst-case theorem.
 -/
 theorem randomizedQuickSort_expectedTime_le_quadratic (xs : List α) :
     RandomTimeM.expectedTime (randomizedQuickSort xs) ≤ (2 * xs.length * xs.length : ℕ) := by
   exact RandomTimeM.expectedTime_le_of_time_le_on_support (randomizedQuickSort_time xs)
+
+/-- The same worst-case expected-time bound, stated for the `ENNReal` expectation algebra. -/
+theorem randomizedQuickSort_expectedTimeENNReal_le_quadratic (xs : List α) :
+    RandomTimeM.expectedTimeENNReal (randomizedQuickSort xs) ≤ (2 * xs.length * xs.length : ℕ) := by
+  exact RandomTimeM.expectedTimeENNReal_le_of_time_le_on_support (randomizedQuickSort_time xs)
+
+/--
+Closed form for the all-distinct rank recurrence. A subproblem of size `n + 1` pays `2 * n` tests
+to partition, then chooses each pivot rank uniformly; solving that recurrence gives this expression.
+-/
+noncomputable def quickSortRankExpectedTests (n : ℕ) : ℝ :=
+  4 * (n + 1 : ℝ) * (harmonic n : ℝ) - 8 * n
+
+/-- The harmonic closed form is `O(n log n)` with an explicit constant. -/
+theorem quickSortRankExpectedTests_le_log (n : ℕ) :
+    quickSortRankExpectedTests n ≤ 4 * (n + 1 : ℝ) * (1 + Real.log n) := by
+  have hharmonic := harmonic_le_one_add_log n
+  have hcoef : 0 ≤ 4 * (n + 1 : ℝ) := by positivity
+  have hscaled := mul_le_mul_of_nonneg_left hharmonic hcoef
+  unfold quickSortRankExpectedTests
+  nlinarith
 
 end TimeComplexity
 
