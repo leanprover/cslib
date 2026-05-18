@@ -51,6 +51,7 @@ public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
 public import Cslib.Foundations.Data.BiTape
+public import Cslib.Foundations.Data.BinaryTree
 public import Cslib.Foundations.Data.DecidableEqZero
 public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
@@ -64,6 +65,10 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
+public import Cslib.Foundations.Data.SplayTree.BSTAPI
+public import Cslib.Foundations.Data.SplayTree.Basic
+public import Cslib.Foundations.Data.SplayTree.Complexity
+public import Cslib.Foundations.Data.SplayTree.Correctness
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
