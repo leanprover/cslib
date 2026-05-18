@@ -193,6 +193,17 @@ theorem cod_subset_dom : cod r ⊆ dom r := by
   rintro b ⟨a, ab⟩
   exact ⟨b, refl_cod ab⟩
 
+instance : RightEuclidean fun a b : cod r => r a b where
+  rightEuclidean := rightEuclidean
+
+instance : RightEuclidean fun a b : dom r => r a b where
+  rightEuclidean := rightEuclidean
+
+theorem rightTotal_cod : Relator.RightTotal (fun a b : cod r => r a b) :=
+  fun ⟨_, _, h⟩ => ⟨_, refl_cod h⟩
+
+theorem equiv_cod : IsEquiv (cod r) (fun a b => r a b) := rightTotal_equiv rightTotal_cod
+
 end RightEuclidean
 
 namespace LeftEuclidean
@@ -255,6 +266,17 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
 theorem dom_subset_cod : dom r ⊆ cod r := by
   rintro a ⟨b, ab⟩
   refine ⟨a, refl_dom ab⟩
+
+instance : LeftEuclidean fun a b : dom r => r a b where
+  leftEuclidean := leftEuclidean
+
+instance : LeftEuclidean fun a b : dom r => r a b where
+  leftEuclidean := leftEuclidean
+
+theorem leftTotal_dom : Relator.LeftTotal (fun a b : dom r => r a b) :=
+  fun ⟨_, _, h⟩ => ⟨_, refl_dom h⟩
+
+theorem equiv_dom : IsEquiv (dom r) (fun a b => r a b) := leftTotal_equiv leftTotal_dom
 
 end LeftEuclidean
 
