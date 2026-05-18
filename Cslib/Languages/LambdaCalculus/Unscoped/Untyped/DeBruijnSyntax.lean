@@ -54,8 +54,11 @@ Constructors:
 * `app t u`: application (apply `u` to `t`)
 -/
 inductive Term : Type where
+  /-- Term variables bounded by n-th λ, if n exceed the number of λ-s, then considered as free. -/
   | var : Nat → Term
+  /-- Lambda abstraction, the first var with Nat 1 will be bounded. -/
   | abs : Term → Term
+  /-- Term application. -/
   | app : Term → Term → Term
 deriving DecidableEq, Repr
 
