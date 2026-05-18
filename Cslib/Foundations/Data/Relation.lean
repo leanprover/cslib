@@ -166,6 +166,11 @@ theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
 theorem rightUnique_antisymm (h : Relator.RightUnique r) : Std.Antisymm r where
   antisymm _ _ ab ba := h ba (refl_cod ab)
 
+theorem rightUnique_trans (h : Relator.RightUnique r) : IsTrans α r where
+  trans a b c ab bc := by
+    have eq : c = b := h bc (refl_cod ab)
+    simpa [eq]
+
 theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_cod (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
@@ -239,6 +244,11 @@ theorem antisymm_leftUnique [Std.Antisymm r] : Relator.LeftUnique r := by
 
 theorem leftUnique_antisymm (h : Relator.LeftUnique r) : Std.Antisymm r where
   antisymm _ _ ab ba := h ab (refl_dom ba)
+
+theorem leftUnique_trans (h : Relator.LeftUnique r) : IsTrans α r where
+  trans a b c ab bc := by
+    have eq : a = b := h ab (refl_dom bc)
+    simpa [eq]
 
 theorem leftTotal_equiv (h : Relator.LeftTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_dom (h a).choose_spec⟩
