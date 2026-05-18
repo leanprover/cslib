@@ -40,6 +40,12 @@ def dom (r : α → α → Prop) : Set α := {a | ∃ b, r a b}
 /-- Codomain of a relation, aka range. -/
 def cod (r : α → α → Prop) : Set α := {b | ∃ a, r a b}
 
+instance : CoeDep (α → α → Prop) r (dom r → dom r → Prop) where
+  coe a b := r a b
+
+instance : CoeDep (α → α → Prop) r (cod r → cod r → Prop) where
+  coe a b := r a b
+
 @[simp, grind =] lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
 @[simp, grind =] lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
 
@@ -193,16 +199,16 @@ theorem cod_subset_dom : cod r ⊆ dom r := by
   rintro b ⟨a, ab⟩
   exact ⟨b, refl_cod ab⟩
 
-instance : RightEuclidean fun a b : cod r => r a b where
+instance : RightEuclidean (α := cod r) r where
   rightEuclidean := rightEuclidean
 
-instance : RightEuclidean fun a b : dom r => r a b where
+instance : RightEuclidean (α := dom r) r where
   rightEuclidean := rightEuclidean
 
-theorem rightTotal_cod : Relator.RightTotal (fun a b : cod r => r a b) :=
+theorem rightTotal_cod : Relator.RightTotal (α := cod r) (β := cod r) r :=
   fun ⟨_, _, h⟩ => ⟨_, refl_cod h⟩
 
-theorem equiv_cod : IsEquiv (cod r) (fun a b => r a b) := rightTotal_equiv rightTotal_cod
+theorem equiv_cod : IsEquiv (cod r) r := rightTotal_equiv rightTotal_cod
 
 end RightEuclidean
 
@@ -267,16 +273,16 @@ theorem dom_subset_cod : dom r ⊆ cod r := by
   rintro a ⟨b, ab⟩
   refine ⟨a, refl_dom ab⟩
 
-instance : LeftEuclidean fun a b : dom r => r a b where
+instance : LeftEuclidean (α := cod r) r where
   leftEuclidean := leftEuclidean
 
-instance : LeftEuclidean fun a b : dom r => r a b where
+instance : LeftEuclidean (α := dom r) r where
   leftEuclidean := leftEuclidean
 
-theorem leftTotal_dom : Relator.LeftTotal (fun a b : dom r => r a b) :=
+theorem leftTotal_dom : Relator.LeftTotal (α := dom r) (β := dom r) r :=
   fun ⟨_, _, h⟩ => ⟨_, refl_dom h⟩
 
-theorem equiv_dom : IsEquiv (dom r) (fun a b => r a b) := leftTotal_equiv leftTotal_dom
+theorem equiv_dom : IsEquiv (dom r) r := leftTotal_equiv leftTotal_dom
 
 end LeftEuclidean
 
@@ -314,6 +320,31 @@ theorem symm_rightEuclidean_iff_trans : RightEuclidean r ↔ IsTrans α r :=
   List.TFAE.out symm_equivalents 0 2
 
 end euclidean_symm
+
+theorem leftEuclidean_rightEuclidean_dom_cod_eq [LeftEuclidean r] [RightEuclidean r] :
+    dom r = cod r := by
+  have : dom r ⊆ cod r := LeftEuclidean.dom_subset_cod
+  have : cod r ⊆ dom r := RightEuclidean.cod_subset_dom
+  grind
+
+theorem dom_cod_leftEuclidean (eq : dom r = cod r) [equiv_dom : IsEquiv (dom r) r] :
+    LeftEuclidean r where
+  leftEuclidean {a b c} ac bc := by
+    have cb : r c b := equiv_dom.symm ⟨_, _, bc⟩ ⟨c, by grind⟩ bc
+    exact equiv_dom.trans ⟨_, _, ac⟩ ⟨_, _, cb⟩ ⟨_, by grind⟩ ac cb
+
+lemma dom_cod_rightEuclidean (eq : dom r = cod r) [equiv_dom : IsEquiv (dom r) r] :
+    RightEuclidean r where
+  rightEuclidean {a b c} ab ac := by
+    have ba : r b a := equiv_dom.symm ⟨a, _, ab⟩ ⟨b, by grind⟩ ab
+    exact equiv_dom.trans ⟨_, _, ba⟩ ⟨_, _, ac⟩ ⟨c, by grind⟩ ba ac
+
+/-- A relation is both left and right Euclidean if and only if the relation is an equivalence on
+  coinciding domain and codomain. -/
+theorem leftEuclidean_rightEuclidean_iff_dom_cod :
+    LeftEuclidean r ∧ RightEuclidean r ↔ dom r = cod r ∧ IsEquiv (dom r) r where
+  mp := fun ⟨_, _⟩ ↦ ⟨leftEuclidean_rightEuclidean_dom_cod_eq, LeftEuclidean.equiv_dom⟩
+  mpr := fun ⟨eq, _⟩ ↦ ⟨dom_cod_leftEuclidean eq, dom_cod_rightEuclidean eq⟩
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
