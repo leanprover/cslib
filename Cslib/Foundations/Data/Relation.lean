@@ -51,6 +51,15 @@ theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
 theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b := by
   induction h <;> grind
 
+/-- Sandwich: if `r ⊆ p ⊆ r*` then `r* = p*`. -/
+theorem ReflTransGen.sandwich_to_eq {α} {r p : α → α → Prop}
+    (h₁ : r ≤ p)
+    (h₂ : p ≤ ReflTransGen r) :
+    ReflTransGen r = ReflTransGen p := by
+  refine le_antisymm (fun _ _ => ReflTransGen.mono h₁) ?_
+  rw [← Relation.reflTransGen_eq_self (r := ReflTransGen r)]
+  exact fun _ _ ↦ ReflTransGen.mono h₂
+
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
 
