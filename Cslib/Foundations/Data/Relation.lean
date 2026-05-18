@@ -23,7 +23,7 @@ public import Mathlib.Data.Fintype.EquivFin
 
 @[expose] public section
 
-variable {α : Type*} {r : α → α → Prop}
+variable {α : Type*} {r r₁ r₂ : α → α → Prop}
 
 theorem Std.Trichotomous.cod_eq [Std.Trichotomous r] : Subsingleton {b | ∀ a, ¬ r a b} := by
   constructor
@@ -45,6 +45,46 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
   ⟨ofTransGen, transGen⟩
 
 namespace Relation
+
+/-- Domain of a relation. -/
+def dom (r : α → α → Prop) : Set α := {a | ∃ b, r a b}
+
+/-- Codomain of a relation, aka range. -/
+def cod (r : α → α → Prop) : Set α := {b | ∃ a, r a b}
+
+@[simp, grind =] lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
+@[simp, grind =] lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
+
+@[gcongr] lemma dom_mono (h : r₁ ≤ r₂) : dom r₁ ⊆ dom r₂ := fun a ⟨b, hab⟩ => ⟨b, h a b hab⟩
+@[gcongr] lemma cod_mono (h : r₁ ≤ r₂) : cod r₁ ⊆ cod r₂ := fun b ⟨a, hab⟩ => ⟨a, h a b hab⟩
+
+@[simp, grind =]
+lemma dom_empty : dom (emptyRelation : α → α → Prop) = ∅ := by grind [emptyRelation, dom]
+
+@[simp, grind =]
+lemma cod_empty : cod (emptyRelation : α → α → Prop) = ∅ := by grind [emptyRelation, cod]
+
+@[simp, grind =]
+lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyRelation where
+  mp h := by
+    ext a b
+    simp
+    grind => have : a ∈ dom r; finish
+  mpr := by grind
+
+@[simp, grind =]
+lemma cod_eq_empty_iff : cod r = ∅ ↔ r = emptyRelation where
+  mp h := by
+    ext a b
+    simp
+    grind => have : b ∈ cod r; finish
+  mpr h := by grind
+
+@[simp]
+lemma cod_inv : cod (fun a b => r b a) = dom r := rfl
+
+@[simp]
+lemma dom_inv : dom (fun a b => r b a) = cod r := rfl
 
 /-- The empty (heterogeneous) relation, which always returns `False`. -/
 @[nolint unusedArguments]
@@ -147,7 +187,7 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
 
-theorem cod_subset_dom : {b | ∃ a, r a b} ⊆ {a | ∃ b, r a b} := by
+theorem cod_subset_dom : cod r ⊆ dom r := by
   rintro b ⟨a, ab⟩
   exact ⟨b, refl_cod ab⟩
 
@@ -210,7 +250,7 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
 
-theorem dom_subset_cod : {a | ∃ b, r a b} ⊆ {b | ∃ a, r a b} := by
+theorem dom_subset_cod : dom r ⊆ cod r := by
   rintro a ⟨b, ab⟩
   refine ⟨a, refl_dom ab⟩
 
