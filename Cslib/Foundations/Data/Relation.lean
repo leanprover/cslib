@@ -25,18 +25,6 @@ public import Mathlib.Data.Fintype.EquivFin
 
 variable {α : Type*} {r r₁ r₂ : α → α → Prop}
 
-theorem Std.Trichotomous.cod_eq [Std.Trichotomous r] : Subsingleton {b | ∀ a, ¬ r a b} := by
-  constructor
-  rintro ⟨b₁, _⟩ ⟨b₂, _⟩
-  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b₁ b₂
-  grind
-
-theorem Std.Trichotomous.dom_eq [Std.Trichotomous r] : Subsingleton {a | ∀ b, ¬ r a b} := by
-  constructor
-  rintro ⟨a₁, _⟩ ⟨a₂, _⟩
-  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a₁ a₂
-  grind
-
 theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
   grind [WellFounded.wellFounded_iff_has_min, Relation.TransGen]
 
@@ -85,6 +73,20 @@ lemma cod_inv : cod (fun a b => r b a) = dom r := rfl
 
 @[simp]
 lemma dom_inv : dom (fun a b => r b a) = cod r := rfl
+
+theorem _root_.Std.Trichotomous.subsingleton_cod [Std.Trichotomous r] :
+    Subsingleton <| ((cod r)ᶜ : Set α) := by
+  constructor
+  rintro ⟨b₁, _⟩ ⟨b₂, _⟩
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b₁ b₂
+  grind
+
+theorem _root_.Std.Trichotomous.subsingleton_dom [Std.Trichotomous r] :
+    Subsingleton <| ((dom r)ᶜ : Set α) := by
+  constructor
+  rintro ⟨a₁, _⟩ ⟨a₂, _⟩
+  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a₁ a₂
+  grind
 
 /-- The empty (heterogeneous) relation, which always returns `False`. -/
 @[nolint unusedArguments]
