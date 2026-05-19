@@ -23,6 +23,8 @@ public import Mathlib.Data.Fintype.EquivFin
 
 @[expose] public section
 
+open Relator
+
 variable {α : Type*} {r r₁ r₂ : α → α → Prop}
 
 theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
@@ -175,6 +177,16 @@ theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_cod (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
 
+omit [RightEuclidean r] in
+theorem leftTotal_rightUnique_trans (h₁ : LeftTotal r) (h₂ : RightUnique r) [IsTrans α r] :
+    RightEuclidean r where
+  rightEuclidean {a b c} ab ac := by
+    obtain ⟨d, dc⟩ := h₁ c
+    have : r a d := _root_.trans ac dc
+    have : b = c := h₂ ab ac
+    have : d = c := h₂ (_root_.trans ac dc) ac
+    grind
+
 private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
     ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
   rintro ⟨a, b, c, _⟩
@@ -253,6 +265,15 @@ theorem leftUnique_trans (h : Relator.LeftUnique r) : IsTrans α r where
 theorem leftTotal_equiv (h : Relator.LeftTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => refl_dom (h a).choose_spec⟩
   exact {toIsTrans := ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩}
+
+omit [LeftEuclidean r] in
+theorem rightTotal_leftUnique_trans (h₁ : RightTotal r) (h₂ : LeftUnique r) [IsTrans α r] :
+    LeftEuclidean r where
+  leftEuclidean {a b c} ac bc := by
+    obtain ⟨d, da⟩ := h₁ a
+    have : a = b := h₂ ac bc
+    have : a = d := h₂ ac (_root_.trans da ac)
+    grind
 
 private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
     ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
