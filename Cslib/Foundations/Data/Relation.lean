@@ -18,6 +18,7 @@ public import Mathlib.Data.Fintype.EquivFin
 ## References
 
 * [*Term Rewriting and All That*][Baader1998]
+* [*Simple Laws about Nonprominent Properties of Binary Relations*][Burghardt2018]
 
 -/
 
