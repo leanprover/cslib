@@ -11,6 +11,7 @@ public import Cslib.Algorithms.Lean.TimeM
 public import Mathlib.Data.Nat.Basic
 public import Mathlib.Order.RelClasses
 public import Mathlib.Tactic.Attr.Core
+public import Mathlib.Tactic.Basic
 public import Mathlib.Tactic.Finiteness.Attr
 public import Batteries.Data.List.Lemmas
 
