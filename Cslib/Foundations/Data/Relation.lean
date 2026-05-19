@@ -185,7 +185,6 @@ theorem leftTotal_rightUnique_trans (h₁ : LeftTotal r) (h₂ : RightUnique r) 
     RightEuclidean r where
   rightEuclidean {a b c} ab ac := by
     obtain ⟨d, dc⟩ := h₁ c
-    have : r a d := _root_.trans ac dc
     have : b = c := h₂ ab ac
     have : d = c := h₂ (_root_.trans ac dc) ac
     grind
@@ -215,9 +214,7 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
 
-theorem cod_subset_dom : cod r ⊆ dom r := by
-  rintro b ⟨a, ab⟩
-  exact ⟨b, refl_cod ab⟩
+theorem cod_subset_dom : cod r ⊆ dom r := fun b ⟨_, ab⟩ ↦ ⟨b, refl_cod ab⟩
 
 instance : RightEuclidean (α := cod r) r where
   rightEuclidean := rightEuclidean
@@ -305,9 +302,7 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
 
-theorem dom_subset_cod : dom r ⊆ cod r := by
-  rintro a ⟨b, ab⟩
-  refine ⟨a, refl_dom ab⟩
+theorem dom_subset_cod : dom r ⊆ cod r := fun a ⟨_, ab⟩ ↦ ⟨a, refl_dom ab⟩
 
 instance : LeftEuclidean (α := cod r) r where
   leftEuclidean := leftEuclidean
