@@ -11,8 +11,10 @@ public import Cslib.Init
 /-!
 # Sorting utilities
 
-For stable list sorts, filtering the input and output by any value records the relative order of
-the copies of that value.
+For stable list sorts, filtering the input and output by any value gives a compact way to state that
+the output keeps the same per-value subsequence as the input. For plain values this is equivalent to
+preserving the number of copies of each value; for richer element types it can express a stronger
+order-preservation property.
 -/
 
 @[expose] public section
@@ -23,6 +25,6 @@ namespace Cslib.Algorithms.Lean
 
 /-- `ys` preserves the order of equal values from `xs`. -/
 abbrev StableByValue {α : Type*} [DecidableEq α] (xs ys : List α) : Prop :=
-  ∀ value, ys.filter (fun x => x = value) = xs.filter (fun x => x = value)
+  ∀ value, ys.filter (fun x => decide (x = value)) = xs.filter (fun x => decide (x = value))
 
 end Cslib.Algorithms.Lean

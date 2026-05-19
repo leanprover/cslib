@@ -30,7 +30,7 @@ set_option autoImplicit false
 
 namespace Cslib.Algorithms.Lean.TimeM
 
-variable {α : Type} [LinearOrder α]
+variable {α : Type*} [LinearOrder α]
 
 /--
 Inserts one value into a sorted list, counting comparisons as time cost. The test is `x ≤ y`, so
@@ -89,7 +89,18 @@ private theorem insert_stable (x : α) (xs : List α) : StableByValue (x :: xs) 
     by_cases h : x ≤ y
     · simp [insert, h]
     · have ihz := ih z
-      by_cases hyz : y = z <;> by_cases hxz : x = z <;> grind [insert]
+      by_cases hyz : y = z
+      · by_cases hxz : x = z
+        · subst x
+          subst y
+          exact (h le_rfl).elim
+        · have hxlez : ¬x ≤ z := by simpa [hyz] using h
+          simpa [insert, hxlez, hxz, hyz] using ihz
+      · by_cases hxz : x = z
+        · subst x
+          have hzley : ¬z ≤ y := by simpa using h
+          simpa [insert, hzley, hyz] using ihz
+        · simpa [insert, h, hyz, hxz] using ihz
 
 /--
 Insertion sort is stable. The induction uses stability of the recursive tail and then stability of
@@ -142,14 +153,14 @@ theorem insertionSort_time (xs : List α) :
     simp only [List.length_cons]
     simp only [insertionSort, time_bind]
     have hinsert := insert_time_le x ⟪insertionSort xs⟫
-    have hlen : ⟪insertionSort xs⟫.length = xs.length := by simp
+    rw [insertionSort_length xs] at hinsert
     have hsquare : xs.length * xs.length + (xs.length + 1) ≤
         (xs.length + 1) * (xs.length + 1) := by
       exact Nat.le_trans
         (Nat.add_le_add_right
           (Nat.mul_le_mul_right xs.length (Nat.le_succ xs.length)) (xs.length + 1))
         (by rw [Nat.mul_succ])
-    omega
+    exact (Nat.add_le_add ih hinsert).trans hsquare
 
 end TimeComplexity
 
