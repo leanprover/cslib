@@ -23,8 +23,12 @@ each key in `0, ..., bound` and returns a `TimeM ℕ (List ℕ)`.
 The cost model counts one key comparison while scanning an input element. Constructing output
 blocks, appending lists, arithmetic, and pattern matching are free.
 
-Correctness is proved through counts: each generated block contributes exactly the copies for one
-key, and bounded inputs ensure no out-of-range key is missing from the output.
+The raw algorithm intentionally only emits keys in the range `0, ..., bound`; values above `bound`
+are omitted. The correctness theorems therefore assume `BoundedBy bound xs`, which is the contract
+that the supplied bound covers the input.
+
+The definitions live in the `TimeM` namespace, matching the existing timed list algorithms in
+`Cslib.Algorithms.Lean`.
 -/
 
 @[expose] public section
@@ -53,7 +57,11 @@ def buildCountedFrom (start fuel : ℕ) (xs : List ℕ) : TimeM ℕ (List ℕ) :
     let rest ← buildCountedFrom (start + 1) fuel' xs
     return List.replicate count start ++ rest
 
-/-- Sorts natural-number lists by counting all keys from `0` through `bound`. -/
+/--
+Sorts natural-number lists by counting all keys from `0` through `bound`.
+If the input contains values greater than `bound`, this raw version omits them; use the correctness
+theorems with a `BoundedBy bound xs` hypothesis when treating the output as a sort of `xs`.
+-/
 def countingSort (bound : ℕ) (xs : List ℕ) : TimeM ℕ (List ℕ) :=
   buildCountedFrom 0 (bound + 1) xs
 
@@ -169,7 +177,7 @@ theorem countingSort_sorted (bound : ℕ) (xs : List ℕ) :
 
 /-- Filtering a list by one value gives exactly `count` copies of that value. -/
 private theorem filter_eq_replicate_count (key : ℕ) (xs : List ℕ) :
-    xs.filter (fun x => x = key) = List.replicate (xs.count key) key := by
+    xs.filter (fun x => decide (x = key)) = List.replicate (xs.count key) key := by
   induction xs with
   | nil => simp
   | cons x xs ih =>
