@@ -148,6 +148,8 @@ variable [RightEuclidean r]
 /-- A `RightEuclidean` relation is reflexive on its range -/
 theorem refl_cod (ab : r a b) : r b b := rightEuclidean ab ab
 
+theorem refl_cod' : b ∈ cod r → r b b := fun ⟨_, ab⟩ ↦ refl_cod ab
+
 /-- The converse of a `RightEuclidean` relation is `LeftEuclidean` -/
 theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
   leftEuclidean ca cb := rightEuclidean cb ca
@@ -236,6 +238,8 @@ variable [LeftEuclidean r]
 
 /-- A `LeftEuclidean` relation is reflexive on its domain -/
 theorem refl_dom (ab : r a b) : r a a := leftEuclidean ab ab
+
+theorem refl_dom' : a ∈ dom r → r a a := fun ⟨_, ab⟩ ↦ refl_dom ab
 
 /-- The converse of a `LeftEuclidean` relation is `RightEuclidean` -/
 theorem rightEuclidean_swap : RightEuclidean (fun a b => r b a) where
