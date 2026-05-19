@@ -227,29 +227,6 @@ theorem rightTotal_cod : Relator.RightTotal (α := cod r) (β := cod r) r :=
 
 theorem equiv_cod : IsEquiv (cod r) r := rightTotal_equiv rightTotal_cod
 
-def dom_at (r : α → α → Prop) (x : α) : Set α := {y | r x y}
-def cod_at (r : α → α → Prop) (y : α) : Set α := {x | r x y}
-
-omit [RightEuclidean r] in
-theorem foo [Nonempty (cod r)] : RightEuclidean r ↔ IsEquiv (cod r) r ∧ (∀ x ∈ (cod r)ᶜ, ∃ y : cod r, cod_at r x ⊆ cod_at r y) := by
-  constructor
-  · intro _
-    constructor
-    · exact equiv_cod
-    · intro _ _
-      use Classical.arbitrary (cod r)
-      grind [cod_at]
-  · rintro ⟨equiv_cod, h⟩
-    constructor
-    intro x y z xy xz
-    by_cases codₓ : x ∈ cod r
-    · have := @equiv_cod.symm
-      have := @equiv_cod.trans
-      have : y ∈ cod r := by grind
-      have : z ∈ cod r := by grind
-
-    · sorry
-
 end RightEuclidean
 
 namespace LeftEuclidean
