@@ -19,6 +19,8 @@ The representation uses two lists: a front list (for dequeue) and a back list
 (for enqueue). When the front list becomes empty, the back list is reversed
 and becomes the new front. This yields amortized O(1) operations.
 
+Cost model: each list cons is worth one `TimeM` tick.
+
 ## References
 
 * [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996]
@@ -190,6 +192,20 @@ theorem amortizedCostQueueOp {α : Type u} (q : Raw.FunctionalQueue α) (op : qu
   | pop =>
     simp only [Amortized.Op.applyOp, applyOp, potential]
     cases h_front : q.front <;> (rw [Raw.pop, h_front] at ⊢; grind [Raw.rebalance])
+
+/-- cost of applying operations to a queue -/
+theorem costQueueOps {α : Type u}
+    (q : Raw.FunctionalQueue α) (ops : List (queueOp α))
+    : (Amortized.applyOps q ops).time
+        + potential (Amortized.applyOps q ops).ret
+        - potential q
+      ≤ 2 * ops.length
+    := by
+  have useful
+    := Amortized.constantAmortizedCostL 2 amortizedCostQueueOp q ops
+  simp only [Amortized.amortizedCostL, Amortized.Potential.potential]
+    at useful
+  grind only
 
 end Complexity
 
