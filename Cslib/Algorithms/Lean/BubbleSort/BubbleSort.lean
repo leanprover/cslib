@@ -30,7 +30,7 @@ set_option autoImplicit false
 
 namespace Cslib.Algorithms.Lean.TimeM
 
-variable {α : Type} [LinearOrder α]
+variable {α : Type*} [LinearOrder α]
 
 /--
 One stable bubbling pass. `bubbleMax candidate xs` returns a prefix and a final element.
