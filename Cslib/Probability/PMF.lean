@@ -130,4 +130,7 @@ theorem posteriorDist_eq_prior_of_outputIndist (p : PMF α) (f : α → PMF β)
   exact ENNReal.mul_div_cancel_right (hmarg ▸ hb')
     (ne_top_of_le_ne_top ENNReal.one_ne_top (PMF.coe_le_one _ _))
 
+@[simp]
+lemma monad_pure_eq_pure (x : α) : (pure x : PMF α) = PMF.pure x := rfl
+
 end Cslib.Probability.PMF

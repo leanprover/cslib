@@ -1,13 +1,12 @@
 /-
 Copyright (c) 2026 Samuel Schlesinger. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Samuel Schlesinger
+Authors: Samuel Schlesinger, Devon Tuma
 -/
 
 module
 
-public import Cslib.Init
-public import Mathlib.Probability.ProbabilityMassFunction.Monad
+public import Cslib.Probability.PMF
 
 /-!
 # Private-Key Encryption Schemes (Information-Theoretic)
@@ -35,27 +34,31 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 A private-key encryption scheme over message space `M`, key space `K`,
 and ciphertext space `C` ([KatzLindell2020], Definition 2.1).
 -/
-structure EncScheme (Message Key Ciphertext : Type*) where
+structure EncScheme (m : Type u → Type*) [MonadLiftT m PMF]
+    (Message Key Ciphertext : Type u) where
   /-- Probabilistic key generation. -/
-  gen : PMF Key
+  gen : m Key
   /-- (Possibly randomized) encryption. -/
-  enc (key : Key) (message : Message) : PMF Ciphertext
+  enc (key : Key) (message : Message) : m Ciphertext
   /-- Deterministic decryption. -/
   dec (key : Key) (ciphertext : Ciphertext) : Message
   /-- Decryption inverts encryption for all keys in the support of `gen`. -/
-  correct : ∀ key, key ∈ gen.support → ∀ message ciphertext,
-    ciphertext ∈ (enc key message).support → dec key ciphertext = message
+  correct : ∀ key, key ∈ PMF.support gen → ∀ message ciphertext,
+    ciphertext ∈ PMF.support (enc key message) → dec key ciphertext = message
 
 /-- Build an encryption scheme from deterministic pure encryption/decryption
 where decryption is a left inverse of encryption for every key. -/
-noncomputable def EncScheme.ofPure.{u} {Message Key Ciphertext : Type u} (gen : PMF Key)
+noncomputable def EncScheme.ofPure.{u} {m : Type u → Type*}
+    [Monad m] [MonadLiftT m PMF] [LawfulMonadLiftT m PMF]
+    {Message Key Ciphertext : Type u} (gen : m Key)
     (enc : Key → Message → Ciphertext) (dec : Key → Ciphertext → Message)
     (h : ∀ key, Function.LeftInverse (dec key) (enc key)) :
-    EncScheme Message Key Ciphertext where
+    EncScheme m Message Key Ciphertext where
   gen := gen
-  enc key message := PMF.pure (enc key message)
+  enc key message := pure (enc key message)
   dec := dec
-  correct key _ message _ hc := by
-    rw [PMF.mem_support_pure_iff] at hc; subst hc; exact h key message
+  correct key _ message ciphertext hc := by
+    have : ciphertext = enc key message := by simpa using hc
+    subst this; exact h key message
 
 end Cslib.Crypto.Protocols.PerfectSecrecy

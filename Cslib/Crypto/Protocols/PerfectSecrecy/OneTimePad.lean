@@ -37,7 +37,7 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 /-- The one-time pad over `l`-bit strings. Encryption and decryption
 are XOR ([KatzLindell2020], Construction 2.9). -/
 noncomputable def otp (l : ℕ) :
-    EncScheme (BitVec l) (BitVec l) (BitVec l) :=
+    EncScheme PMF (BitVec l) (BitVec l) (BitVec l) :=
   .ofPure (PMF.uniformOfFintype _) (· ^^^ ·) (· ^^^ ·) fun k m => by
     simp [← BitVec.xor_assoc]
 
