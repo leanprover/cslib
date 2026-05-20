@@ -52,7 +52,7 @@ lemma swap_open_fvar_close (k n : ℕ) (x y : Var) (m : Term Var) (neq₁ : k �
   induction m generalizing k n <;> grind
 
 /-- Closing preserves free variables. -/
-lemma close_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) : x ∉ (m⟦k ↜ y⟧).fv := by
+lemma close_preserve_not_fvar {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := by
   induction m generalizing k <;> grind
 
 /-- Opening preserves free variables. -/
