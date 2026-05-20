@@ -84,14 +84,14 @@ lemma cod_inv : cod (fun a b => r b a) = dom r := rfl
 lemma dom_inv : dom (fun a b => r b a) = cod r := rfl
 
 theorem _root_.Std.Trichotomous.subsingleton_cod [Std.Trichotomous r] :
-    Subsingleton <| ((cod r)ᶜ : Set α) := by
+    Subsingleton ((cod r)ᶜ : Set α) := by
   constructor
   rintro ⟨b₁, _⟩ ⟨b₂, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b₁ b₂
   grind
 
 theorem _root_.Std.Trichotomous.subsingleton_dom [Std.Trichotomous r] :
-    Subsingleton <| ((dom r)ᶜ : Set α) := by
+    Subsingleton ((dom r)ᶜ : Set α) := by
   constructor
   rintro ⟨a₁, _⟩ ⟨a₂, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a₁ a₂
