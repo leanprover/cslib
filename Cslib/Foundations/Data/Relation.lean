@@ -37,17 +37,25 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
+/-- The empty (heterogeneous) relation, which always returns `False`. -/
+@[nolint unusedArguments]
+def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
+
+@[simp, grind =]
+theorem emptyHRelation_emptyRelation : (emptyHRelation : α → α → Prop) = emptyRelation := rfl
+
+@[simp, grind =]
+theorem emptyHrelation_apply (a : α) (b : β) : emptyHRelation a b ↔ False := .rfl
+
+section dom_cod
+
+variable {β : Type*} {r : α → β → Prop}
+
 /-- Domain of a relation. -/
-def dom (r : α → α → Prop) : Set α := {a | ∃ b, r a b}
+def dom (r : α → β → Prop) : Set α := {a | ∃ b, r a b}
 
 /-- Codomain of a relation, aka range. -/
-def cod (r : α → α → Prop) : Set α := {b | ∃ a, r a b}
-
-instance : CoeDep (α → α → Prop) r (dom r → dom r → Prop) where
-  coe a b := r a b
-
-instance : CoeDep (α → α → Prop) r (cod r → cod r → Prop) where
-  coe a b := r a b
+def cod (r : α → β → Prop) : Set β := {b | ∃ a, r a b}
 
 @[simp, grind =] lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
 @[simp, grind =] lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
@@ -56,13 +64,13 @@ instance : CoeDep (α → α → Prop) r (cod r → cod r → Prop) where
 @[gcongr] lemma cod_mono (h : r₁ ≤ r₂) : cod r₁ ⊆ cod r₂ := fun b ⟨a, hab⟩ => ⟨a, h a b hab⟩
 
 @[simp, grind =]
-lemma dom_empty : dom (emptyRelation : α → α → Prop) = ∅ := by grind [emptyRelation, dom]
+lemma dom_empty : dom (emptyHRelation : α → β → Prop) = ∅ := by grind
 
 @[simp, grind =]
-lemma cod_empty : cod (emptyRelation : α → α → Prop) = ∅ := by grind [emptyRelation, cod]
+lemma cod_empty : cod (emptyHRelation : α → β → Prop) = ∅ := by grind
 
 @[simp, grind =]
-lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyRelation where
+lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyHRelation where
   mp h := by
     ext a b
     simp
@@ -70,7 +78,7 @@ lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyRelation where
   mpr := by grind
 
 @[simp, grind =]
-lemma cod_eq_empty_iff : cod r = ∅ ↔ r = emptyRelation where
+lemma cod_eq_empty_iff : cod r = ∅ ↔ r = emptyHRelation where
   mp h := by
     ext a b
     simp
@@ -82,6 +90,14 @@ lemma cod_inv : cod (fun a b => r b a) = dom r := rfl
 
 @[simp]
 lemma dom_inv : dom (fun a b => r b a) = cod r := rfl
+
+end dom_cod
+
+instance : CoeDep (α → α → Prop) r (dom r → dom r → Prop) where
+  coe a b := r a b
+
+instance : CoeDep (α → α → Prop) r (cod r → cod r → Prop) where
+  coe a b := r a b
 
 theorem _root_.Std.Trichotomous.subsingleton_cod [Std.Trichotomous r] :
     Subsingleton ((cod r)ᶜ : Set α) := by
@@ -96,10 +112,6 @@ theorem _root_.Std.Trichotomous.subsingleton_dom [Std.Trichotomous r] :
   rintro ⟨a₁, _⟩ ⟨a₂, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a₁ a₂
   grind
-
-/-- The empty (heterogeneous) relation, which always returns `False`. -/
-@[nolint unusedArguments]
-def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
 
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
 
