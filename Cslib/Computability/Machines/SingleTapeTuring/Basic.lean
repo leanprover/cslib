@@ -198,7 +198,7 @@ open Classical in
 noncomputable instance [Inhabited Symbol] [Fintype Symbol] :
     Computation.TransitionMachine (SingleTapeTM Symbol) Symbol Symbol where
   cfg := Cfg
-  step {t} := t.step
+  red {t} c c' := t.step c = some c'
   init {t} := initCfg t
   output := extractOutput
 
@@ -227,7 +227,6 @@ lemma OutputsInTime.haltState_eq_haltCfg {tm : SingleTapeTM Symbol} {l l' : List
   simp [output, extractOutput] at this
   grind
 
-
 /--
 The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
 is defined by the `step` function,
@@ -236,29 +235,23 @@ which maps a configuration to its next configuration, if it exists.
 @[scoped grind =]
 def TransitionRelation (tm : SingleTapeTM Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
-@[simp]
-lemma transitionRelation_eq (tm : SingleTapeTM Symbol) :
-  TransitionSystem.TransitionRelation tm = TransitionRelation tm := by rfl
+@[simp, scoped grind =]
+lemma red_eq_TransitionRelation (tm : SingleTapeTM Symbol) :
+  TransitionSystem.red (t := tm) = TransitionRelation tm := rfl
 
 abbrev TimeComputable (f : List Symbol → List Symbol)
   := TransitionMachine.TimeComputable (SingleTapeTM Symbol) f
 
-abbrev PolyTimeComputable (f : List Symbol → List Symbol)
-  := TransitionMachine.PolyTimeComputable (SingleTapeTM Symbol) f
 
-def OutputsInTime.of_RelatesInSteps {tm : SingleTapeTM Symbol} {l l' : List Symbol} {m n : ℕ}
-    (h : RelatesInSteps (TransitionSystem.TransitionRelation tm) (tm.initCfg l) (tm.haltCfg l') m)
-    (h_le : m ≤ n) :
+def OutputsInTime.of_RelatesInSteps {tm : SingleTapeTM Symbol} {l l' : List Symbol} {n : ℕ}
+    (h : RelatesWithinSteps (TransitionRelation tm) (tm.initCfg l) (tm.haltCfg l') n) :
     OutputsInTime tm n l l' where
   haltState := tm.haltCfg l'
-  haltState_halts := rfl
+  haltState_halts := by
+    simp [haltCfg, TransitionRelation]
   output_eq := by simp
-  evals_to := {
-    toEvalsTo := TransitionSystem.EvalsTo.of_RelatesInSteps h
-    steps_le := h_le
-  }
-
---lemma
+  evals_to := by
+    simp [TransitionSystem.EvalsToInTime, h]
 
 -- A proof of `tm` outputting `l'` on input `l`. -/
 --def Outputs (tm : SingleTapeTM Symbol) (l l' : List Symbol) : Prop :=
@@ -279,9 +272,9 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : 
     (t : ℕ) (h : OutputsInTime tm t l l') :
     l'.length ≤ max 1 l.length + t := by
   have hspace_le := by simpa using
-    h.evals_to.to_RelatesInSteps.apply_le_apply_add (Cfg.space_used tm) (
+    h.evals_to.apply_le_apply_add (Cfg.space_used tm) (
       fun a b hstep  ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep))
-  grind [h.evals_to.steps_le]
+  grind
 
 
 section Computers
@@ -469,14 +462,11 @@ structure TimeComputable (f : List Symbol → List Symbol) where
 def TimeComputable.id : TimeComputable (Symbol := Symbol) id where
   t := idComputer
   time_bound _ := 1
-  outputsFun _ := {
-      haltState := idComputer.haltCfg _
-      haltState_halts := rfl
-      evals_to := {
-        steps := 1
-        evals := rfl
-        steps_le := le_rfl
-      }
+  outputsFun s := {
+      haltState := idComputer.haltCfg s
+      haltState_halts := by
+        simp [TransitionRelation, haltCfg]
+      evals_to := RelatesWithinSteps.single rfl
       output_eq := by simp
     }
 
@@ -502,39 +492,35 @@ private def TimeComputable.comp {f g : List Symbol → List Symbol}
   -- perhaps it would be good to track the blow up separately?
   time_bound l := (hf.time_bound l) + hg.time_bound (max 1 l + hf.time_bound l)
   outputsFun a := by
-
-    have hf_outputsFun := (hf.outputsFun a).evals_to.to_RelatesInSteps
-    have hg_outputsFun := (hg.outputsFun (f a)).evals_to.to_RelatesInSteps
-
     apply OutputsInTime.of_RelatesInSteps
-    · simp [initCfg, compComputer_q₀_eq, Function.comp_apply,
-        haltCfg] at hg_outputsFun hf_outputsFun ⊢
-      -- The computer reduces a to f a in time hf.time_bound a.length
-      have h_a_reducesTo_f_a :
-          RelatesWithinSteps (compComputer hf.t hg.t).TransitionRelation
-            (initialCfg hf.t hg.t a)
-            (intermediateCfg hf.t hg.t (f a))
-            (hf.time_bound a.length) :=
-        comp_left_relatesWithinSteps hf.t hg.t a (f a)
-          (hf.time_bound a.length) hf_outputsFun
-      -- The computer reduces f a to g (f a) in time hg.time_bound (f a).length
-      have h_f_a_reducesTo_g_f_a :
-          RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-            (intermediateCfg hf.tm hg.tm (f a))
-            (finalCfg hf.tm hg.tm (g (f a)))
-            (hg.time_bound (f a).length) :=
-        comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a))
-          (hg.time_bound (f a).length) hg_outputsFun
-      -- Therefore, the computer reduces a to g (f a) in the sum of those times.
-      have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
-      apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
-      refine Nat.add_le_add_left ?_ (hf.time_bound a.length)
-      · apply h_mono
-        -- Use the lemma about output length being bounded by input length + time
-
-        exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a)
-    · sorry
-    · sorry
+    have hf_outputsFun := (hf.outputsFun a).evals_to
+    have hg_outputsFun := (hg.outputsFun (f a)).evals_to
+    simp only [init_eq_initCfg, initCfg, OutputsInTime.haltState_eq_haltCfg, haltCfg,
+      Function.comp_apply] at hg_outputsFun hf_outputsFun ⊢
+    -- The computer reduces a to f a in time hf.time_bound a.length
+    -- The computer reduces a to f a in time hf.time_bound a.length
+    have h_a_reducesTo_f_a :
+        RelatesWithinSteps (compComputer hf.t hg.t).TransitionRelation
+          (initialCfg hf.t hg.t a)
+          (intermediateCfg hf.t hg.t (f a))
+          (hf.time_bound a.length) :=
+      comp_left_relatesWithinSteps hf.t hg.t a (f a)
+        (hf.time_bound a.length) hf_outputsFun
+    -- The computer reduces f a to g (f a) in time hg.time_bound (f a).length
+    have h_f_a_reducesTo_g_f_a :
+        RelatesWithinSteps (compComputer hf.t hg.t).TransitionRelation
+          (intermediateCfg hf.t hg.t (f a))
+          (finalCfg hf.t hg.t (g (f a)))
+          (hg.time_bound (f a).length) :=
+      comp_right_relatesWithinSteps hf.t hg.t (f a) (g (f a))
+        (hg.time_bound (f a).length) hg_outputsFun
+    -- Therefore, the computer reduces a to g (f a) in the sum of those times.
+    have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
+    apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
+    refine Nat.add_le_add_left ?_ (hf.time_bound a.length)
+    · apply h_mono
+      -- Use the lemma about output length being bounded by input length + time
+      exact output_length_le_input_length_add_time hf.t _ _ _ (hf.outputsFun a)
 
 end TimeComputable
 
@@ -555,13 +541,17 @@ open Polynomial
 
 variable [Inhabited Symbol] [Fintype Symbol]
 
-/-- A Turing machine + a polynomial time function +
-a proof it outputs `f` in at most `time(input.length)` steps. -/
+abbrev PolyTimeComputable (f : List Symbol → List Symbol)
+  := TransitionMachine.PolyTimeComputable (SingleTapeTM Symbol) f
+
+/- A Turing machine + a polynomial time function +
+a proof it outputs `f` in at most `time(input.length)` steps.
 structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeComputable f where
   /-- a polynomial time bound -/
   poly : Polynomial ℕ
   /-- proof that this machine outputs `f` in at most `time(input.length)` steps -/
   bounds : ∀ n, time_bound n ≤ poly.eval n
+-/
 
 /-- A proof that the identity map on Symbol is computable in polytime. -/
 noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) id where
@@ -574,7 +564,7 @@ noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) 
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
 -/
-noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
+private noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
     (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     PolyTimeComputable (g ∘ f) where
