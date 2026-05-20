@@ -61,13 +61,13 @@ lemma close_rec_fv {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := 
 lemma close_var_not_fvar (x) (t : Term Var) : (t ^* x).fv = t.fv.erase x := close_rec_fv t
 
 /-- Opening preserves free variables. -/
-lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_n : x ∉ n.fv) :
-    x ∉ (m⟦k ↝ n⟧).fv := by
+theorem open_preserve_not_fvar {k} {m n : Term Var} :
+    m⟦k ↝ n⟧.fv = m.fv ∪ n.fv ∨ m⟦k ↝ n⟧.fv = m.fv := by
   induction m generalizing k <;> grind
 
 /-- Substitution preserves free variables. -/
-lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) (nmem : x ∉ m.fv ∪ n.fv) :
-    x ∉ (m [y := n]).fv := by
+lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
+    (m [y := n]).fv = (m.fv.erase y) \/ (m [y := n]).fv = (m.fv.erase y) ∪ n.fv:= by
   induction m <;> grind
 
 variable [HasFresh Var]
@@ -132,6 +132,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
     m ⟦k ↜ x⟧⟦k ↝ fvar y⟧ = m [x := fvar y] := by
   induction m_lc generalizing k with
   | abs xs t =>
+    unfold closeRec openRec
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
     grind [
       swap_open, =_ swap_open_fvar_close,
