@@ -52,8 +52,13 @@ lemma swap_open_fvar_close (k n : ℕ) (x y : Var) (m : Term Var) (neq₁ : k �
   induction m generalizing k n <;> grind
 
 /-- Closing preserves free variables. -/
-lemma close_preserve_not_fvar {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := by
+@[scoped grind =]
+lemma close_rec_fv {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := by
   induction m generalizing k <;> grind
+
+/-- Specializes `close_var_not_fvar_rec` to first closing. -/
+@[scoped grind =]
+lemma close_var_not_fvar (x) (t : Term Var) : (t ^* x).fv = t.fv.erase x := close_rec_fv t
 
 /-- Opening preserves free variables. -/
 lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_n : x ∉ n.fv) :
@@ -64,14 +69,6 @@ lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_
 lemma subst_preserve_not_fvar {x y : Var} (m n : Term Var) (nmem : x ∉ m.fv ∪ n.fv) :
     x ∉ (m [y := n]).fv := by
   induction m <;> grind
-
-/-- Closing removes a free variable. -/
-@[scoped grind ←]
-lemma close_var_not_fvar_rec (x) (k) (t : Term Var) : x ∉ (t⟦k ↜ x⟧).fv := by
-  induction t generalizing k <;> grind
-
-/-- Specializes `close_var_not_fvar_rec` to first closing. -/
-lemma close_var_not_fvar (x) (t : Term Var) : x ∉ (t ^* x).fv := close_var_not_fvar_rec x 0 t
 
 variable [HasFresh Var]
 
@@ -139,7 +136,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
     grind [
       swap_open, =_ swap_open_fvar_close,
       open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0, open_close x' (t[x := fvar y]) 0,
-       open_preserve_not_fvar, close_preserve_not_fvar, subst_preserve_not_fvar]
+       open_preserve_not_fvar, close_rec_fv, subst_preserve_not_fvar]
   | _ => grind
 
 /-- Closing and opening are inverses. -/
