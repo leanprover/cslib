@@ -85,8 +85,7 @@ theorem perfectlySecret_of_ciphertextIndist (scheme : EncScheme n M K C)
     indep_of_ciphertextIndist scheme h msgDist m c)
 
 /-- Perfect secrecy implies ciphertext indistinguishability.
-Note we need to fix the monad of the encryption scheme to `PMF` to define `μ`,
-this could be avoided with a class to assert a monad has uniform selction. -/
+Note we need `n` to support uniform selection for the proof to work -/
 theorem ciphertextIndist_of_perfectlySecret [Probability.HasUniformSelectFinset n]
     (scheme : EncScheme n M K C) (h : scheme.PerfectlySecret) :
     scheme.CiphertextIndist := by
