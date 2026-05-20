@@ -23,8 +23,7 @@ namespace Cslib.Algorithms.Lean.Amortized
 /-- Physicist method: a potential (lower bound on savings) defined on a
     data structure -/
 class Potential α where
-  /-- Initial potential should be 0.
-      [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
+  /-- [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
   potential : α → Nat
 
 class Op α o where
@@ -33,14 +32,6 @@ class Op α o where
 @[simp] def applyOps {α o : Type*} [Op α o] (x : α) (ops : List o)
     : TimeM ℕ α :=
   List.foldlM (fun x op => Op.applyOp x op) x ops
-
-def triples {α o : Type*} [Op α o] (x : α) (ops : List o) : List (α × o) × α :=
-  match ops with
-  | [] => ([], x)
-  | o :: ops2 =>
-    let ⟨ x2, _cost ⟩ := Op.applyOp x o
-    let ⟨ pairs, final ⟩ := triples x2 ops2
-    ((x2, o) :: pairs, final)
 
 /-- Amortized cost with the physicist's method,
     following Okasaki, chapter 5 -/
