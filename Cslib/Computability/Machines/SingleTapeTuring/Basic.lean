@@ -484,15 +484,14 @@ this is to ensure that if the first machine returns an output
 which is shorter than the maximum possible length of output for that input size,
 then the time bound for the second machine still holds for that shorter input to the second machine.
 -/
-private def TimeComputable.comp {f g : List Symbol → List Symbol}
+def TimeComputable.comp {f g : List Symbol → List Symbol}
     (hf : TimeComputable f) (hg : TimeComputable g)
     (h_mono : Monotone hg.time_bound) :
     (TimeComputable (g ∘ f)) where
   t := compComputer hf.t hg.t
   -- perhaps it would be good to track the blow up separately?
   time_bound l := (hf.time_bound l) + hg.time_bound (max 1 l + hf.time_bound l)
-  outputsFun a := by
-    apply OutputsInTime.of_RelatesInSteps
+  outputsFun a := OutputsInTime.of_RelatesInSteps (by
     have hf_outputsFun := (hf.outputsFun a).evals_to
     have hg_outputsFun := (hg.outputsFun (f a)).evals_to
     simp only [init_eq_initCfg, initCfg, OutputsInTime.haltState_eq_haltCfg, haltCfg,
@@ -521,6 +520,7 @@ private def TimeComputable.comp {f g : List Symbol → List Symbol}
     · apply h_mono
       -- Use the lemma about output length being bounded by input length + time
       exact output_length_le_input_length_add_time hf.t _ _ _ (hf.outputsFun a)
+  )
 
 end TimeComputable
 
