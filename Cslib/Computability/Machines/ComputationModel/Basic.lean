@@ -62,7 +62,7 @@ For each element `(t : τ)`, there is a bundle of a type `cfg t` with a step / t
 -/
 class TransitionSystem (τ : Type u) where
   cfg (t : τ) : Type*
-  step {t : τ} : cfg t → Option (cfg t)
+  red {t : τ} : cfg t → cfg t → Prop
 
 /--
 Bundles a `TransitionSystem` with input and output functions from/to words over an alphabet.
@@ -74,52 +74,35 @@ class TransitionMachine (τ : Type u) (Γᵢ Γₒ : outParam (Type v)) extends 
   init {t : τ} : List Γᵢ → cfg t
   output {t : τ} : cfg t → Option (List Γₒ)
 
-
 namespace TransitionSystem
+
+
 
 variable {τ : Type u} [TransitionSystem τ]
 
-def stepRelation (t : τ) : (Option (cfg t)) → (Option (cfg t)) → Prop
-  | a, b => a.bind step = b
-
-/--
-A "proof" of the fact that `t` eventually reaches `b` when repeatedly evaluated on `a`,
-remembering the number of steps it takes.
--/
-structure EvalsTo (t : τ) (a b : Option (cfg t)) where
-  steps : ℕ
-  evals : (flip bind step)^[steps] a = b
+def EvalsTo (t : τ) (a b : cfg t) := Relation.ReflTransGen red a b
 
 /--
 A "proof" that `t` reaches `b` from `a` in at most `n` steps, remembering the specific number
 of steps.
 -/
-structure EvalsToInTime (t : τ) (a b : Option (cfg t)) (n : ℕ) extends EvalsTo t a b where
-  steps_le : steps ≤ n
+def EvalsToInTime (t : τ) (a b : cfg t) (n : ℕ) := Relation.RelatesWithinSteps red a b n
 
-variable {t : τ} {a b c : Option (cfg t)} {n n₁ n₂ : ℕ}
+variable {t : τ} {a b c : cfg t} {n n₁ n₂ : ℕ}
 
-def EvalsTo.refl : EvalsTo t a a where
-  steps := 0
-  evals := rfl
+lemma EvalsTo.refl : EvalsTo t a a := Relation.ReflTransGen.refl
 
-def EvalsTo.trans (h₁ : EvalsTo t a b) (h₂ : EvalsTo t b c) : EvalsTo t a c where
-  steps := h₂.steps + h₁.steps
-  evals := by rw [Function.iterate_add_apply, h₁.evals, h₂.evals]
+lemma EvalsTo.trans (h₁ : EvalsTo t a b) (h₂ : EvalsTo t b c) : EvalsTo t a c :=
+  Relation.ReflTransGen.trans h₁ h₂
 
-def EvalsToInTime.refl : EvalsToInTime t a a 0 where
-  toEvalsTo := EvalsTo.refl
-  steps_le := by rfl
+lemma EvalsToInTime.refl : EvalsToInTime t a a 0 := Relation.RelatesWithinSteps.refl a
 
-def EvalsToInTime.trans (h₁ : EvalsToInTime t a b n₁) (h₂ : EvalsToInTime t b c n₂) :
-    EvalsToInTime t a c (n₂ + n₁) where
-  toEvalsTo := EvalsTo.trans h₁.toEvalsTo h₂.toEvalsTo
-  steps_le := add_le_add h₂.steps_le h₁.steps_le
+lemma EvalsToInTime.trans (h₁ : EvalsToInTime t a b n₁) (h₂ : EvalsToInTime t b c n₂) :
+    EvalsToInTime t a c (n₁ + n₂) := Relation.RelatesWithinSteps.trans h₁ h₂
 
 def EvalsToInTime.of_le (h : EvalsToInTime t a b n₁) (hn : n₁ ≤ n₂) :
-    EvalsToInTime t a b n₂ where
-  toEvalsTo := h.toEvalsTo
-  steps_le := le_trans h.steps_le hn
+    EvalsToInTime t a b n₂ :=
+  Relation.RelatesWithinSteps.of_le h hn
 
 
 end TransitionSystem
@@ -133,9 +116,9 @@ variable {τ : Type*} {Γᵢ Γₒ : Type} [TransitionMachine τ Γᵢ Γₒ]
 The transition machine `t` outputs `l'` on input `l`.
 -/
 structure Outputs (t : τ) (l : List Γᵢ) (l' : List Γₒ) where
-  haltState : (cfg t)
-  haltState_halts : TransitionSystem.step haltState = none
-  evalsTo : TransitionSystem.EvalsTo t (some (init l)) (some haltState)
+  haltState : cfg t
+  haltState_halts : ¬ ∃ s, red haltState s
+  evalsTo : TransitionSystem.EvalsTo t (init l) haltState
   output_eq : output haltState =  some l'
 
 /--
@@ -143,8 +126,8 @@ The transition machine `t` outputs `l'` on input `l` in at most `n` steps.
 -/
 structure OutputsInTime (t : τ) (n : ℕ) (l : List Γᵢ) (l' : List Γₒ) where
   haltState : (cfg t)
-  haltState_halts : TransitionSystem.step haltState = none
-  evals_to : TransitionSystem.EvalsToInTime t (some (init l)) (some haltState) n
+  haltState_halts : ¬ ∃ s, red haltState s
+  evals_to : TransitionSystem.EvalsToInTime t (init l) haltState n
   output_eq : output haltState = some l'
 
 /--
@@ -157,16 +140,17 @@ def OutputsInTime.of_le {t : τ} {n m : ℕ} {l : List Γᵢ} {l' : List Γₒ} 
   evals_to := TransitionSystem.EvalsToInTime.of_le hv.evals_to hnm
   output_eq := hv.output_eq
 
-/--
+
+/-
 The output of any computation of transition machines is unique.
--/
 lemma OutputsInTime.output_unique {t : τ} {n₁ n₂ : ℕ} {l : List Γᵢ} {l'₁ l'₂ : List Γₒ}
     (ho₁ : OutputsInTime t n₁ l l'₁) (ho₂ : OutputsInTime t n₂ l l'₂) :
     l'₁ = l'₂ := by
-  wlog hle : ho₁.evals_to.steps ≤ ho₂.evals_to.steps
-  · symm
-    exact this ho₂ ho₁ (Nat.le_of_not_le hle)
-  · have : ho₁.evals_to.steps = ho₂.evals_to.steps := by
+  obtain ⟨steps₁, hle₁, hr₁⟩ := ho₁.evals_to
+  obtain ⟨steps₂, hle₂, hr₂⟩ := ho₂.evals_to
+  wlog hle : steps₁ ≤ steps₂
+  · grind
+  · have : steps₁ = steps₂ := by
       obtain ⟨d, hd⟩ := Nat.exists_eq_add_of_le' hle
       cases d with
       | zero => symm; simpa using hd
@@ -180,6 +164,7 @@ lemma OutputsInTime.output_unique {t : τ} {n₁ n₂ : ℕ} {l : List Γᵢ} {l
       apply Option.some.inj
       rw [← ho₁.evals_to.evals, ← ho₂.evals_to.evals, this]
     rw [← Option.some_inj, ← ho₁.output_eq, ← ho₂.output_eq, this]
+-/
 
 /--
 "Proof" that the transition system `t` computes the function `f` in polynomial time.
