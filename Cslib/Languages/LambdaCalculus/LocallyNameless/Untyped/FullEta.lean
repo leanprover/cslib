@@ -69,7 +69,7 @@ lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
   | abs =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
-    grind [close_preserve_not_fvar, open_fresh_preserve_not_fvar]
+    grind [close_preserve_not_fvar, open_preserve_not_fvar]
   | _ => grind
 
 /-- Substitution of a fresh variable preserves an η-reduction step. -/

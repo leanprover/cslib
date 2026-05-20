@@ -55,11 +55,6 @@ lemma swap_open_fvar_close (k n : ℕ) (x y : Var) (m : Term Var) (neq₁ : k �
 lemma close_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) : x ∉ (m⟦k ↜ y⟧).fv := by
   induction m generalizing k <;> grind
 
-/-- Opening to a fresh free variable preserves free variables. -/
-lemma open_fresh_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) (neq : x ≠ y) :
-    x ∉ (m⟦k ↝ fvar y⟧).fv := by
-  induction m generalizing k <;> grind
-
 /-- Opening preserves free variables. -/
 lemma open_preserve_not_fvar {k x} (m n : Term Var) (nmem_m : x ∉ m.fv) (nmem_n : x ∉ n.fv) :
     x ∉ (m⟦k ↝ n⟧).fv := by
@@ -144,7 +139,7 @@ lemma open_close_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
     grind [
       swap_open, =_ swap_open_fvar_close,
       open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0, open_close x' (t[x := fvar y]) 0,
-      open_fresh_preserve_not_fvar, close_preserve_not_fvar, subst_preserve_not_fvar]
+       open_preserve_not_fvar, close_preserve_not_fvar, subst_preserve_not_fvar]
   | _ => grind
 
 /-- Closing and opening are inverses. -/

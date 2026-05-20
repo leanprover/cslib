@@ -27,10 +27,10 @@ variable {Var : Type u}
 
 /-- `LcAt k M` is satisfied when all bound indices of M are smaller than `k`. -/
 @[simp, scoped grind =]
-def LcAt (k : ℕ) : Term Var → Prop
+def LcAt (k : ℕ) : Term Var → Bool
 | bvar i => i < k
-| fvar _ => True
-| app t₁ t₂ => LcAt k t₁ ∧ LcAt k t₂
+| fvar _ => true
+| app t₁ t₂ => LcAt k t₁ && LcAt k t₂
 | abs t => LcAt (k + 1) t
 
 /-- `depth` counts the maximum number of the lambdas that are enclosing variables. -/
@@ -82,6 +82,10 @@ theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
         rcases h2 with ⟨⟩|⟨L,_,_⟩
         grind [fresh_exists L]
     | _ => grind [cases LC]
+
+instance [HasFresh Var] (t : Term Var) : Decidable t.LC := by
+  rw [← lcAt_iff_LC]
+  infer_instance
 
 /- Opening for some term at i-th bound variable increments `LcAt` by one -/
 lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
