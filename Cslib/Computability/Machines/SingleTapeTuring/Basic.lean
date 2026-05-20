@@ -194,7 +194,6 @@ lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
 
 end Cfg
 
-open Classical in
 noncomputable instance [Inhabited Symbol] [Fintype Symbol] :
     Computation.TransitionMachine (SingleTapeTM Symbol) Symbol Symbol where
   cfg := Cfg
