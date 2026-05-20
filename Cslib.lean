@@ -89,6 +89,7 @@ public import Cslib.Foundations.Semantics.LTS.Union
 public import Cslib.Foundations.Syntax.Congruence
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
+public import Cslib.Foundations.Syntax.HasParallelSubstitution
 public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Foundations.Syntax.HasWellFormed
 public import Cslib.Init
@@ -122,9 +123,10 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEtaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.ParallelSubst
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.SubstEnv
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.HML.LogicalEquivalence
