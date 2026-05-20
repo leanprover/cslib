@@ -98,7 +98,7 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
   redex_subst_cong_lc _ _ _ _ step (.fvar y)
 
 /-- An β-reduction step does not introduce new free variables. -/
-lemma step_not_fv (step : M ⭢βᶠ N) (hw : w ∉ M.fv) : w ∉ N.fv := by
+lemma step_not_fv (step : M ⭢βᶠ N) : N.fv ⊆ M.fv := by
   induction step with
   | base h => cases h with | beta => grind [open_preserve_not_fvar]
   | abs =>
