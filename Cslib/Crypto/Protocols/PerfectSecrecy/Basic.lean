@@ -32,11 +32,12 @@ Characterisation theorems for perfect secrecy following
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
 universe u
-variable {M K C : Type u}
+variable {n : Type u → Type*} [MonadLiftT n PMF] [Probability.HasUniformSelectFinset n]
+  {M K C : Type u}
 
 /-- A scheme is perfectly secret iff the ciphertext distribution is
 independent of the plaintext ([KatzLindell2020], Lemma 2.5). -/
-theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme PMF M K C) :
+theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme n M K C) :
     scheme.PerfectlySecret ↔ scheme.CiphertextIndist :=
   ⟨PerfectSecrecy.ciphertextIndist_of_perfectlySecret scheme,
    PerfectSecrecy.perfectlySecret_of_ciphertextIndist scheme⟩
@@ -44,7 +45,7 @@ theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme PMF M K C) :
 /-- Perfect secrecy requires `|K| ≥ |M|`
 ([KatzLindell2020], Theorem 2.12). -/
 theorem perfectlySecret_keySpace_ge [Finite K]
-    (scheme : EncScheme PMF M K C) (h : scheme.PerfectlySecret) :
+    (scheme : EncScheme n M K C) (h : scheme.PerfectlySecret) :
     Nat.card K ≥ Nat.card M :=
   PerfectSecrecy.shannonKeySpace scheme h
 
