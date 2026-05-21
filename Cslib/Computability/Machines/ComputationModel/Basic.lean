@@ -75,6 +75,7 @@ and taking output from this computation context.
 -/
 class TransitionMachine (τ : Type u) (Γᵢ Γₒ : outParam (Type v)) extends TransitionSystem τ where
   init {t : τ} : List Γᵢ → cfg t
+  -- TODO: Potentially work with a partial function here instead of `Option`?
   output {t : τ} : cfg t → Option (List Γₒ)
 
 namespace TransitionSystem
@@ -84,13 +85,16 @@ namespace TransitionSystem
 variable {τ : Type u} [TransitionSystem τ]
 
 def EvalsTo (t : τ) (a b : cfg t) := Relation.ReflTransGen red a b
+
 /--
-A "proof" that `t` reaches `b` from `a` in at most `n` steps, remembering the specific number
-of steps.
+The machine `t` reaches `b` from `a` in at most `n` steps.
 -/
 def EvalsToInTime (t : τ) (a b : cfg t) (n : ℕ) := Relation.RelatesWithinSteps red a b n
 
 variable {t : τ} {a b c : cfg t} {n n₁ n₂ : ℕ}
+
+-- TODO: Potentially get rid of these definitions and work with `RelatesWithinSteps` directly
+-- in proof contexts?
 
 lemma EvalsTo.refl : EvalsTo t a a := Relation.ReflTransGen.refl
 
@@ -143,6 +147,8 @@ def OutputsInTime.of_le {t : τ} {n m : ℕ} {l : List Γᵢ} {l' : List Γₒ} 
   output_eq := hv.output_eq
 
 
+-- TODO: This is only true for deterministic machines.
+-- Add the corresponding typeclass and then proof this statement
 /-
 The output of any computation of transition machines is unique.
 lemma OutputsInTime.output_unique {t : τ} {n₁ n₂ : ℕ} {l : List Γᵢ} {l'₁ l'₂ : List Γₒ}
@@ -171,7 +177,8 @@ lemma OutputsInTime.output_unique {t : τ} {n₁ n₂ : ℕ} {l : List Γᵢ} {l
 variable (τ) in
 /--
 "Proof" that `f` is computable by the system `τ`.
-A witness machine is bundled as part of this structure.
+A witness machine is bundled as part of this structure,
+as well as a function bounding execution time.
 -/
 structure TimeComputable (f : List Γᵢ → List Γₒ) where
   t : τ
@@ -181,7 +188,7 @@ structure TimeComputable (f : List Γᵢ → List Γₒ) where
 variable (τ) in
 /--
 "Proof" that `f` is computable in polynomial time by the system `τ`.
-A witness machine and polynomial are bundled as part of this structure.
+A witness machine and polynomial which bounds runtime are bundled as part of this structure.
 -/
 structure PolyTimeComputable (f : List Γᵢ → List Γₒ) extends TimeComputable τ f where
   poly : Polynomial ℕ

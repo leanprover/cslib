@@ -159,6 +159,10 @@ def initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨some tm.
 def haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
 
 open Classical in
+/--
+Returns the word `s` such that `c = tm.haltCfg s` if it exists, otherwise `none`.
+See `haltCfg_extractOutput` for the statement that this is a retract to `tm.haltCfg`.
+-/
 noncomputable def extractOutput {tm : SingleTapeTM Symbol} (c : tm.Cfg) : Option (List Symbol) :=
   if c = haltCfg tm c.BiTape.extract then c.BiTape.extract else none
 
@@ -194,37 +198,9 @@ lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
 
 end Cfg
 
-noncomputable instance [Inhabited Symbol] [Fintype Symbol] :
-    Computation.TransitionMachine (SingleTapeTM Symbol) Symbol Symbol where
-  cfg := Cfg
-  red {t} c c' := t.step c = some c'
-  init {t} := initCfg t
-  output := extractOutput
-
-
 open Cfg
-open Computation
 
 variable [Inhabited Symbol] [Fintype Symbol]
-
-
-open TransitionMachine
-
-@[simp, scoped grind =]
-lemma init_eq_initCfg (tm : SingleTapeTM Symbol) (l : List Symbol) :
-    init (t := tm) l = tm.initCfg l := rfl
-
-@[simp, scoped grind =]
-lemma output_eq_extractOutput (tm : SingleTapeTM Symbol) (c : tm.Cfg) :
-  output (t := tm) c = extractOutput c := rfl
-
-@[simp, scoped grind =]
-lemma OutputsInTime.haltState_eq_haltCfg {tm : SingleTapeTM Symbol} {l l' : List Symbol} {m : ℕ}
-    (ho : OutputsInTime tm m l l') :
-    ho.haltState = tm.haltCfg l' := by
-  have := ho.output_eq
-  simp [output, extractOutput] at this
-  grind
 
 /--
 The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
@@ -234,16 +210,52 @@ which maps a configuration to its next configuration, if it exists.
 @[scoped grind =]
 def TransitionRelation (tm : SingleTapeTM Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
-@[simp, scoped grind =]
-lemma red_eq_TransitionRelation (tm : SingleTapeTM Symbol) :
-  TransitionSystem.red (t := tm) = TransitionRelation tm := rfl
+section
+open Computation
+open TransitionMachine
+
+noncomputable instance [Inhabited Symbol] [Fintype Symbol] :
+    TransitionMachine (SingleTapeTM Symbol) Symbol Symbol where
+  cfg := Cfg
+  red {t} c c' := t.step c = some c'
+  init {t} := initCfg t
+  output := extractOutput
 
 abbrev TimeComputable (f : List Symbol → List Symbol)
   := TransitionMachine.TimeComputable (SingleTapeTM Symbol) f
 
+abbrev PolyTimeComputable (f : List Symbol → List Symbol)
+  := TransitionMachine.PolyTimeComputable (SingleTapeTM Symbol) f
 
+@[simp, scoped grind =]
+lemma init_eq_initCfg (tm : SingleTapeTM Symbol) (l : List Symbol) :
+    init (t := tm) l = tm.initCfg l := rfl
+
+@[simp, scoped grind =]
+lemma output_eq_extractOutput (tm : SingleTapeTM Symbol) (c : tm.Cfg) :
+  output (t := tm) c = extractOutput c := rfl
+
+/--
+The halt state of a `SingleTapeTM` is uniquele determined by its output as `tm.haltCfg l'`.
+-/
+@[simp, scoped grind =]
+lemma OutputsInTime.haltState_eq_haltCfg {tm : SingleTapeTM Symbol} {l l' : List Symbol} {m : ℕ}
+    (ho : OutputsInTime tm m l l') :
+    ho.haltState = tm.haltCfg l' := by
+  have := ho.output_eq
+  simp [output, extractOutput] at this
+  grind
+
+
+@[simp, scoped grind =]
+lemma red_eq_TransitionRelation (tm : SingleTapeTM Symbol) :
+  TransitionSystem.red (t := tm) = TransitionRelation tm := rfl
+
+/--
+To show that `tm` outputs `l'` from `l` in time `n`, it is enough to relate
+`tm.initCfg l` and `tm.haltCfg l'` in `n` steps by `tm.TransitionRelation`. -/
 def OutputsInTime.of_RelatesInSteps {tm : SingleTapeTM Symbol} {l l' : List Symbol} {n : ℕ}
-    (h : RelatesWithinSteps (TransitionRelation tm) (tm.initCfg l) (tm.haltCfg l') n) :
+    (h : RelatesWithinSteps tm.TransitionRelation (tm.initCfg l) (tm.haltCfg l') n) :
     OutputsInTime tm n l l' where
   haltState := tm.haltCfg l'
   haltState_halts := by
@@ -251,14 +263,6 @@ def OutputsInTime.of_RelatesInSteps {tm : SingleTapeTM Symbol} {l l' : List Symb
   output_eq := by simp
   evals_to := by
     simp [TransitionSystem.EvalsToInTime, h]
-
--- A proof of `tm` outputting `l'` on input `l`. -/
---def Outputs (tm : SingleTapeTM Symbol) (l l' : List Symbol) : Prop :=
---  ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
-
--- A proof of `tm` outputting `l'` on input `l` in at most `m` steps. -/
---def OutputsWithinTime (tm : SingleTapeTM Symbol) (l l' : List Symbol) (m : ℕ) :=
---  RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
 
 /--
 This lemma bounds the size blow-up of the output of a Turing machine.
@@ -275,9 +279,9 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : 
       fun a b hstep  ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep))
   grind
 
+end
 
 section Computers
-
 
 /-- A Turing machine computing the identity. -/
 def idComputer : SingleTapeTM Symbol where
@@ -445,29 +449,11 @@ section TimeComputable
 
 variable [Inhabited Symbol] [Fintype Symbol]
 
-/-
-/-- A Turing machine + a time function +
-a proof it outputs `f` in at most `time(input.length)` steps. -/
-structure TimeComputable (f : List Symbol → List Symbol) where
-  /-- the underlying bundled SingleTapeTM -/
-  tm : SingleTapeTM Symbol
-  /-- a bound on runtime -/
-  time_bound : ℕ → ℕ
-  /-- proof this machine outputs `f` in at most `time_bound(input.length)` steps -/
-  outputsFunInTime (a) : tm.OutputsWithinTime a (f a) (time_bound a.length)
--/
-
 /-- The identity map on Symbol is computable in constant time. -/
 def TimeComputable.id : TimeComputable (Symbol := Symbol) id where
   t := idComputer
   time_bound _ := 1
-  outputsFun s := {
-      haltState := idComputer.haltCfg s
-      haltState_halts := by
-        simp [TransitionRelation, haltCfg]
-      evals_to := RelatesWithinSteps.single rfl
-      output_eq := by simp
-    }
+  outputsFun _ := OutputsInTime.of_RelatesInSteps (RelatesWithinSteps.single rfl)
 
 /--
 Time bounds for `compComputer`.
@@ -539,18 +525,6 @@ section PolyTimeComputable
 open Polynomial
 
 variable [Inhabited Symbol] [Fintype Symbol]
-
-abbrev PolyTimeComputable (f : List Symbol → List Symbol)
-  := TransitionMachine.PolyTimeComputable (SingleTapeTM Symbol) f
-
-/- A Turing machine + a polynomial time function +
-a proof it outputs `f` in at most `time(input.length)` steps.
-structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeComputable f where
-  /-- a polynomial time bound -/
-  poly : Polynomial ℕ
-  /-- proof that this machine outputs `f` in at most `time(input.length)` steps -/
-  bounds : ∀ n, time_bound n ≤ poly.eval n
--/
 
 /-- A proof that the identity map on Symbol is computable in polytime. -/
 noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) id where
