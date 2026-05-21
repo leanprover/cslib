@@ -64,6 +64,9 @@ class TransitionSystem (τ : Type u) where
   cfg (t : τ) : Type*
   red {t : τ} : cfg t → cfg t → Prop
 
+class SpaceSize (τ : Type u) [TransitionSystem τ] where
+  space_used {t : τ} : TransitionSystem.cfg t → ℕ
+
 /--
 Bundles a `TransitionSystem` with input and output functions from/to words over an alphabet.
 This way, we can think of elements of `τ` as allowing computations `List Γᵢ → List Γₒ`
@@ -81,7 +84,6 @@ namespace TransitionSystem
 variable {τ : Type u} [TransitionSystem τ]
 
 def EvalsTo (t : τ) (a b : cfg t) := Relation.ReflTransGen red a b
-
 /--
 A "proof" that `t` reaches `b` from `a` in at most `n` steps, remembering the specific number
 of steps.
@@ -166,13 +168,24 @@ lemma OutputsInTime.output_unique {t : τ} {n₁ n₂ : ℕ} {l : List Γᵢ} {l
     rw [← Option.some_inj, ← ho₁.output_eq, ← ho₂.output_eq, this]
 -/
 
+variable (τ) in
 /--
-"Proof" that the transition system `t` computes the function `f` in polynomial time.
-The witness polynomial is bundled as part of this structure.
+"Proof" that `f` is computable by the system `τ`.
+A witness machine is bundled as part of this structure.
 -/
-structure ComputesInPolyTime (t : τ) (f : List Γᵢ → List Γₒ) where
-  time : Polynomial ℕ
-  outputsFun : ∀ w, OutputsInTime t (time.eval w.length) w (f w)
+structure TimeComputable (f : List Γᵢ → List Γₒ) where
+  t : τ
+  time_bound : ℕ → ℕ
+  outputsFun : ∀ w, OutputsInTime t (time_bound w.length) w (f w)
+
+variable (τ) in
+/--
+"Proof" that `f` is computable in polynomial time by the system `τ`.
+A witness machine and polynomial are bundled as part of this structure.
+-/
+structure PolyTimeComputable (f : List Γᵢ → List Γₒ) extends TimeComputable τ f where
+  poly : Polynomial ℕ
+  bounds : ∀ n, time_bound n ≤ poly.eval n
 
 end TransitionMachine
 
