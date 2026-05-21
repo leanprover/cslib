@@ -98,4 +98,7 @@ lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs
   rw [← lcAt_iff_LC] at *
   exact lcAt_openRec_lcAt _ _ _ hlc
 
+lemma lcAt_openRec_above_lcAt (M N : Term Var) (i j : ℕ) : j >= i -> LcAt i M  → M⟦j ↝ N⟧ = M := by
+  induction M generalizing i j <;> grind
+
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term

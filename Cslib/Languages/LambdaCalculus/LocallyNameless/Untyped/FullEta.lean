@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 
 /-! # η-reduction for the λ-calculus -/
@@ -43,6 +44,22 @@ variable {M M' N N' : Term Var}
 lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
   refine Xi.step_lc_r ?_ step
   grind
+
+/-- The left side of an η-reduction is locally closed. -/
+lemma step_lc_l [HasFresh Var] (step : M ⭢ηᶠ M') : LC M := by
+  induction step with
+  | base h_e => cases h_e with
+                | eta lc_A => apply LC.abs ∅
+                              intros _ _
+                              refine LC.app (?_) (LC.fvar _)
+                              rw [lcAt_openRec_above_lcAt _ _ 0 0]
+                              · assumption
+                              · omega
+                              · rw [lcAt_iff_LC]
+                                assumption
+  | appL lc_Z _ ih => exact LC.app lc_Z ih
+  | appR lc_Z _ ih => exact LC.app ih lc_Z
+  | @abs M' _ xs _ ih => exact LC.abs xs M' ih
 
 /-- Left congruence rule for application in multiple reduction. -/
 theorem redex_app_l_cong (redex : M ↠ηᶠ M') (lc_N : LC N) : app M N ↠ηᶠ app M' N := by
