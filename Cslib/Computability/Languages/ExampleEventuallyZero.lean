@@ -8,8 +8,6 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
-@[expose] public section
-
 /-!
 # An ω-regular language that is not accepted by any deterministic Buchi automaton
 
@@ -18,6 +16,8 @@ This example is adapted from Example 4.2 of [Thomas1990].
 ## References
 * [W. Thomas, "Automata on infinite objects"][Thomas1990]
 -/
+
+@[expose] public section
 
 open Set Function Filter Cslib.ωSequence Cslib.Automata ωAcceptor
 open scoped Computability

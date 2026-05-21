@@ -10,12 +10,6 @@ public import Mathlib.CategoryTheory.Category.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Mathlib.Control.Basic
 
-@[expose] public section
-
-namespace Cslib
-
-variable {State Label : Type*}
-
 /-! # Category of Labelled Transition Systems
 
 This file contains the definition of the category of labelled transition systems
@@ -25,6 +19,12 @@ as defined in Winskel and Nielsen's handbook chapter [WinskelNielsen1995].
 
 * [N. Winskel and M. Nielsen, *Models for concurrency*][WinskelNielsen1995]
 -/
+
+@[expose] public section
+
+namespace Cslib
+
+variable {State Label : Type*}
 
 /--
 We first define what is denoted Tran* in [WinskelNielsen1995]: the extension of

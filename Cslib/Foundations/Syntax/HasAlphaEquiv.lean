@@ -8,6 +8,8 @@ module
 
 public import Cslib.Init
 
+/-! Notation typeclass for α-equivalence. -/
+
 public section
 
 namespace Cslib

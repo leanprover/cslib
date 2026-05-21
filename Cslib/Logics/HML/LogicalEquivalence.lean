@@ -9,12 +9,12 @@ module
 public import Cslib.Logics.HML.Basic
 public import Cslib.Foundations.Logic.LogicalEquivalence
 
-@[expose] public section
-
 /-! # Logical Equivalence in HML
 
 This module defines logical equivalence for HML propositions and instantiates `LogicalEquivalence`.
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.HML
 

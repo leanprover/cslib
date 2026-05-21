@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Languages.OmegaLanguage
 
+/-! -/
+
 @[expose] public section
 
 namespace Cslib.Automata

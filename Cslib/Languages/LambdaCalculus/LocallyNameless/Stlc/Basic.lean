@@ -9,10 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # λ-calculus
 
 The simply typed λ-calculus, with a locally nameless representation of syntax.
@@ -24,6 +20,10 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
   this is partially adapted
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 

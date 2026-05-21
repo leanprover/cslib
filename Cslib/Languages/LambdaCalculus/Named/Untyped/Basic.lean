@@ -10,8 +10,6 @@ public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
 public import Cslib.Foundations.Syntax.HasSubstitution
 
-@[expose] public section
-
 /-! # λ-calculus
 
 The untyped λ-calculus, with a named representation of variables.
@@ -23,6 +21,8 @@ The untyped λ-calculus, with a named representation of variables.
 Variable Binding*][Gabbay2002]
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

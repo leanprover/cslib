@@ -8,14 +8,14 @@ module
 
 public import Cslib.Languages.CombinatoryLogic.Recursion
 
-@[expose] public section
-
 /-!
 # Church-Encoded Lists in SKI Combinatory Logic
 
 Church-encoded lists for proving SKI ≃ TM equivalence. A list is encoded as
 `λ c n. c a₀ (c a₁ (... (c aₖ n)...))` where each `aᵢ` is a Church numeral.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
