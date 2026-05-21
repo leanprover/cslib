@@ -68,6 +68,11 @@ public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
+public import Cslib.Foundations.Logic.Operators.And
+public import Cslib.Foundations.Logic.Operators.Box
+public import Cslib.Foundations.Logic.Operators.Diamond
+public import Cslib.Foundations.Logic.Operators.Not
+public import Cslib.Foundations.Logic.Operators.Tensor
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
