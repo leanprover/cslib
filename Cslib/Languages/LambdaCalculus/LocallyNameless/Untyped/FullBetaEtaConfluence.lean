@@ -8,6 +8,7 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEtaConfluence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaEta
 
 /-! # βη-Confluence for the λ-calculus
 
@@ -31,10 +32,6 @@ variable [HasFresh Var] [DecidableEq Var]
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 open Relation
-
-/-- Full βη-reduction. -/
-@[reduction_sys "βηᶠ"]
-abbrev FullBetaEta : Term Var → Term Var → Prop := FullBeta ⊔ FullEta
 
 open FullEta FullBeta in
 /-- η-reduction and β-reduction strongly commute. -/
