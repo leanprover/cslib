@@ -1,20 +1,21 @@
 /-
 Copyright (c) 2026 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bolton Bailey, Pim Spelier, Daan van Gent
+Authors: Bolton Bailey, Pim Spelier, Daan van Gent, Fabrizio Montesi
 -/
 
 module
 
+public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
+public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 
 /-!
-# Single-Tape Turing Machines
+# Single-Tape Deterministic Turing Machines
 
-Defines a single-tape Turing machine for computing functions on `List Symbol`
-for finite alphabet `Symbol`.
+Defines a single-tape Turing machine for computing functions on `List Symbol`.
 
 ## Design
 
@@ -62,147 +63,163 @@ We also provide ways of constructing polynomial-runtime TMs
 
 @[expose] public section
 
-open Cslib Relation
+namespace Cslib.Computability.Turing.SingleTape
 
-namespace Turing
+open Cslib Relation Automata Turing.BiTape Turing.StackTape
 
-open BiTape StackTape
+-- /--
+-- A single-tape Turing machine
+-- over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
+-- -/
+-- structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
+--   /-- type of state labels -/
+--   (State : Type)
+--   /-- finiteness of the state type -/
+--   [stateFintype : Fintype State]
+--   /-- Initial state -/
+--   (q₀ : State)
+--   /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
+--   and optionally the new state to transition to afterwards (`none` for halt) -/
+--   (tr : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
 
-variable {Symbol : Type}
-
-namespace SingleTapeTM
-
-/--
-A Turing machine "statement" is just a `Option`al command to move left or right,
-and write a symbol (i.e. an `Option Symbol`, where `none` is the blank symbol) on the `BiTape`
--/
-structure Stmt (Symbol : Type) where
-  /-- The symbol to write at the current head position -/
-  symbol : Option Symbol
-  /-- The direction to move the tape head -/
-  movement : Option Dir
-deriving Inhabited
-
-end SingleTapeTM
-
-/--
-A single-tape Turing machine
-over the alphabet of `Option Symbol` (where `none` is the blank `BiTape` symbol).
--/
-structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
-  /-- type of state labels -/
-  (State : Type)
-  /-- finiteness of the state type -/
-  [stateFintype : Fintype State]
-  /-- Initial state -/
-  (q₀ : State)
-  /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
-  and optionally the new state to transition to afterwards (`none` for halt) -/
-  (tr : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
+/-- Single-tape Deterministic Turing Machine (DTM, or just TM for short) over the alphabet of
+`Option Symbol` (where `none` is the blank `BiTape` symbol). -/
+structure SingleTapeTM (State Symbol : Type*)
+    extends LTS State (SingleTape.TrLabel State Symbol) where
+  [is_deterministic : LTS.Deterministic {Tr := Tr}]
+  /-- The start state. -/
+  start : State
+  /-- The set of accepting states. -/
+  accept : Set State
+  /-- Proof that all accepting states are halting states. -/
+  accept_halting (hmem : s ∈ accept) : ¬∃ μ s', Tr s μ s'
 
 namespace SingleTapeTM
+
+variable {State Symbol : Type*}
 
 section Cfg
 
-/-!
-## Configurations of a Turing Machine
+/-- An NTM yields a small-step operational semantics on configurations, which codifies an execution
+step. -/
+@[scoped grind =]
+def Red (m : SingleTapeTM State Symbol)
+    (c c' : Cfg State Symbol) : Prop :=
+  ∃ μ, m.tr c.state μ = c'.state ∧ -- The controller can perform the move
+    μ.read = c.tape.head ∧ -- The tape has the expected symbol to be read
+    c'.tape = (c.tape.write μ.write).optionMove μ.move -- Write effect on the tape
 
-This section defines the configurations of a Turing machine,
-the step function that lets the machine transition from one configuration to the next,
-and the intended initial and final configurations.
+/-- Multistep execution of an NTM, defined as the reflexive and transitive closure of one-step
+execution.
 -/
-
-variable [Inhabited Symbol] [Fintype Symbol] (tm : SingleTapeTM Symbol)
-
-instance : Inhabited tm.State := ⟨tm.q₀⟩
-
-instance : Fintype tm.State := tm.stateFintype
-
-instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
+@[scoped grind =]
+def MRed (m : SingleTapeTM State Symbol) := Relation.ReflTransGen m.Red
 
 /--
-The configurations of a Turing machine consist of:
-an `Option`al state (or none for the halting state),
-and a `BiTape` representing the tape contents.
--/
-structure Cfg : Type where
-  /-- the state of the TM (or none for the halting state) -/
-  state : Option tm.State
-  /-- the BiTape contents -/
-  BiTape : BiTape Symbol
-deriving Inhabited
+The initial configuration of a deterministic Turing Machine, which consists of the start state of
+the machine and the input list of symbols.
 
-/-- The step function corresponding to a `SingleTapeTM`. -/
-@[simp]
-def step : tm.Cfg → Option tm.Cfg
-  | ⟨none, _⟩ =>
-    -- If in the halting state, there is no next configuration
-    none
-  | ⟨some q', t⟩ =>
-    -- If in state q', perform look up in the transition function
-    match tm.tr q' t.head with
-    -- and enter a new configuration with state q'' (or none for halting)
-    -- and tape updated according to the Stmt
-    | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
-
-/--
-The initial configuration corresponding to a list in the input alphabet.
 Note that the entries of the tape constructed by `BiTape.mk₁` are all `some` values.
 This is to ensure that distinct lists map to distinct initial configurations.
 -/
-def initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
+def initCfg (m : SingleTapeTM State Symbol) (xs : List Symbol) : Cfg State Symbol :=
+  Cfg.mk₁ m.start xs
 
-/-- The final configuration corresponding to a list in the output alphabet.
-(We demand that the head halts at the leftmost position of the output.)
--/
-def haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
+/-- A TM is an acceptor of finite lists of symbols. -/
+@[simp, scoped grind =]
+instance : Acceptor (SingleTapeTM State Symbol) Symbol where
+  Accepts (m : SingleTapeTM State Symbol) (xs : List Symbol) :=
+    ∃ c', c'.state ∈ m.accept ∧ m.MRed (m.initCfg xs) c'
 
-/--
-The space used by a configuration is the space used by its tape.
--/
-def Cfg.space_used (tm : SingleTapeTM Symbol) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
+-- /-!
+-- ## Configurations of a Turing Machine
+
+-- This section defines the configurations of a Turing machine,
+-- the step function that lets the machine transition from one configuration to the next,
+-- and the intended initial and final configurations.
+-- -/
+
+-- variable [Inhabited Symbol] [Fintype Symbol] (m : SingleTapeTM State Symbol)
+
+-- instance : Inhabited tm.State := ⟨tm.q₀⟩
+
+-- instance : Fintype tm.State := tm.stateFintype
+
+-- instance inhabitedStmt : Inhabited (Stmt Symbol) := inferInstance
+
+-- /--
+-- The configurations of a Turing machine consist of:
+-- an `Option`al state (or none for the halting state),
+-- and a `BiTape` representing the tape contents.
+-- -/
+-- structure Cfg : Type where
+--   /-- the state of the TM (or none for the halting state) -/
+--   state : Option tm.State
+--   /-- the BiTape contents -/
+--   BiTape : BiTape Symbol
+-- deriving Inhabited
+
+-- /-- The step function corresponding to a `SingleTapeTM`. -/
+-- @[simp]
+-- def step : tm.Cfg → Option tm.Cfg
+--   | ⟨none, _⟩ =>
+--     -- If in the halting state, there is no next configuration
+--     none
+--   | ⟨some q', t⟩ =>
+--     -- If in state q', perform look up in the transition function
+--     match tm.tr q' t.head with
+--     -- and enter a new configuration with state q'' (or none for halting)
+--     -- and tape updated according to the Stmt
+--     | ⟨⟨wr, dir⟩, q''⟩ => some ⟨q'', (t.write wr).optionMove dir⟩
+
+
+
+-- /-- The final configuration corresponding to a list in the output alphabet.
+-- (We demand that the head halts at the leftmost position of the output.)
+-- -/
+-- def haltCfg (m : SingleTapeTM State Symbol) (xs : List Symbol) : Cfg State Symbol :=
+--   ⟨none, Turing.BiTape.mk₁ xs⟩
 
 @[scoped grind =]
-lemma Cfg.space_used_initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
-    (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
+lemma spaceUsed_initCfg (m : SingleTapeTM State Symbol) (xs : List Symbol) :
+    (m.initCfg xs).spaceUsed = max 1 xs.length := Turing.BiTape.spaceUsed_mk₁ xs
 
-@[scoped grind =]
-lemma Cfg.space_used_haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
-    (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
+-- @[scoped grind =]
+-- lemma Cfg.spaceUsed_haltCfg (m : SingleTapeTM State Symbol) (xs : List Symbol) :
+--     (m.haltCfg s).spaceUsed = max 1 xs.length := Turing.BiTape.spaceUsed_mk₁ xs
 
-lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
-    (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
-  obtain ⟨_ | q, tape⟩ := cfg
-  · simp [step] at hstep
-  · simp only [step] at hstep
-    generalize hM : tm.tr q tape.head = result at hstep
-    obtain ⟨⟨wr, dir⟩, q''⟩ := result
-    cases hstep; cases dir with
-    | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM]
-    | some d => simpa [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM] using
-        BiTape.space_used_move (tape.write wr) d
+lemma spaceUsed_red {m : SingleTapeTM State Symbol} (c c' : Cfg State Symbol)
+    (hstep : m.Red c c') : c'.spaceUsed ≤ c.spaceUsed + 1 := by
+  rcases hstep with ⟨μ, hstep₁, hstep₂, hstep₃⟩
+  rcases c' with ⟨s', tape'⟩
+  simp only at hstep₁ hstep₂ hstep₃
+  cases hm : μ.move with
+  | none => grind [write, optionMove, = Cfg.spaceUsed]
+  | some dir =>
+    simpa [hstep₃, Cfg.spaceUsed, Turing.BiTape.optionMove, Turing.BiTape.spaceUsed_write, hm] using
+      Turing.BiTape.spaceUsed_move (c.tape.write μ.write) dir
 
 end Cfg
 
 open Cfg
 
-variable [Inhabited Symbol] [Fintype Symbol]
+-- variable [Inhabited Symbol] [Fintype Symbol]
 
-/--
-The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
-is defined by the `step` function,
-which maps a configuration to its next configuration, if it exists.
--/
-@[scoped grind =]
-def TransitionRelation (tm : SingleTapeTM Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
+-- /--
+-- The `TransitionRelation` corresponding to a `SingleTapeTM Symbol`
+-- is defined by the `step` function,
+-- which maps a configuration to its next configuration, if it exists.
+-- -/
+-- @[scoped grind =]
+-- def TransitionRelation (m : SingleTapeTM State Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = some c₂
 
 /-- A proof of `tm` outputting `l'` on input `l`. -/
-def Outputs (tm : SingleTapeTM Symbol) (l l' : List Symbol) : Prop :=
-  ReflTransGen tm.TransitionRelation (initCfg tm l) (haltCfg tm l')
+def Outputs (m : SingleTapeTM State Symbol) (l l' : List Symbol) : Prop :=
+  ∃ s ∈ m.accept, m.MRed (initCfg m l) (Cfg.mk₁ s l')
 
-/-- A proof of `tm` outputting `l'` on input `l` in at most `m` steps. -/
-def OutputsWithinTime (tm : SingleTapeTM Symbol) (l l' : List Symbol) (m : ℕ) :=
-  RelatesWithinSteps tm.TransitionRelation (initCfg tm l) (haltCfg tm l') m
+/-- A proof of `tm` outputting `l'` on input `l` in at most `n` steps. -/
+def OutputsWithinTime (m : SingleTapeTM State Symbol) (l l' : List Symbol) (n : ℕ) :=
+  ∃ s ∈ m.accept, RelatesWithinSteps m.Red (initCfg m l) (Cfg.mk₁ s l') n
 
 /--
 This lemma bounds the size blow-up of the output of a Turing machine.
@@ -211,20 +228,30 @@ This is important for guaranteeing that composition of polynomial time Turing ma
 remains polynomial time, as the input to the second machine
 is bounded by the output length of the first machine.
 -/
-lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : List Symbol) (t : ℕ)
-    (h : tm.OutputsWithinTime l l' t) :
+lemma output_length_le_input_length_add_time (m : SingleTapeTM State Symbol) (l l' : List Symbol) (t : ℕ)
+    (h : m.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
-  obtain ⟨steps, hsteps_le, hevals⟩ := h
-  grind [hevals.apply_le_apply_add (Cfg.space_used tm)
-      fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
+  obtain ⟨s, hs, steps, hsteps_le, hevals⟩ := h
+
+  -- have := fun a b hstep ↦ spaceUsed_red a b hevals
+  grind [fun a b hstep ↦ Cfg.spaceUsed_step a b (Option.mem_def.mp hstep)]
+  grind [hevals.apply_le_apply_add (Cfg.spaceUsed m)
+      fun a b hstep ↦ Cfg.spaceUsed_step a b (Option.mem_def.mp hstep)]
 
 section Computers
 
+inductive id.IdState
+| read | accept | reject
+
 /-- A Turing machine computing the identity. -/
-def idComputer : SingleTapeTM Symbol where
-  State := PUnit
-  q₀ := PUnit.unit
-  tr _ b := ⟨⟨b, none⟩, none⟩
+def id : SingleTapeTM id.IdState Symbol where
+  start := .read
+  tr s μ := match s, μ with
+    | .read, ⟨some x, none, some .right⟩ => .read
+    | .read, ⟨none, none, none⟩ => .accept
+    | _, _ => .reject
+  -- accept
+  -- tr _ b := ⟨⟨b, none⟩, none⟩
 
 /--
 A Turing machine computing the composition of two other Turing machines.
@@ -233,7 +260,7 @@ If f and g are computed by Turing machines `tm1` and `tm2`
 then we can construct a Turing machine which computes g ∘ f by first running `tm1`
 and then, when `tm1` halts, transitioning to the start state of `tm2` and running `tm2`.
 -/
-def compComputer (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
+def comp (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
   -- The states of the composed machine are the disjoint union of the states of the input machines.
   State := tm1.State ⊕ tm2.State
   -- The start state is the start state of the first input machine.
@@ -390,7 +417,7 @@ variable [Inhabited Symbol] [Fintype Symbol]
 a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure TimeComputable (f : List Symbol → List Symbol) where
   /-- the underlying bundled SingleTapeTM -/
-  tm : SingleTapeTM Symbol
+  m : SingleTapeTM State Symbol
   /-- a bound on runtime -/
   time_bound : ℕ → ℕ
   /-- proof this machine outputs `f` in at most `time_bound(input.length)` steps -/
@@ -507,4 +534,4 @@ end PolyTimeComputable
 
 end SingleTapeTM
 
-end Turing
+end Cslib.Computability.Turing.SingleTape
