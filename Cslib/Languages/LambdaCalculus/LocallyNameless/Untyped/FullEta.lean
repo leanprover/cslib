@@ -47,15 +47,7 @@ lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
 /-- The left side of an η-reduction is locally closed. -/
 lemma step_lc_l [HasFresh Var] (step : M ⭢ηᶠ M') : LC M := by
   induction step with
-  | base h_e => cases h_e with
-                | eta lc_A => apply LC.abs ∅
-                              intros _ _
-                              refine LC.app (?_) (LC.fvar _)
-                              rw [lcAt_openRec_above_lcAt _ _ 0 0]
-                              · assumption
-                              · omega
-                              · rw [lcAt_iff_LC]
-                                assumption
+  | base h_e => cases h_e with | eta => apply LC.abs ∅; grind
   | appL lc_Z _ ih => exact LC.app lc_Z ih
   | appR lc_Z _ ih => exact LC.app ih lc_Z
   | @abs M' _ xs _ ih => exact LC.abs xs M' ih
