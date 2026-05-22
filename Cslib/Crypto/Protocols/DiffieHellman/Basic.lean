@@ -33,11 +33,10 @@ DDH) and concrete instantiations (X25519, X448) live in separate files.
 ## Main declarations
 
 * `dh a B` — the primitive `a • B`.
-* `agreement` — `b • (a • B) = a • (b • B)`: the two parties agree on the
-  shared point regardless of which side performs the final scalar action.
-* `dh_add_left`, `dh_add_right` — scalar- and base-additivity of `dh`,
-  cited by protocols that combine secrets or transcripts additively
-  (X3DH/PQXDH).
+* `shared_eq_mul` — the shared point in canonical form:
+  `b • (a • B) = (a * b) • B`.
+* `agreement` — the two parties compute the same shared point; corollary
+  of `shared_eq_mul`.
 
 ## References
 
@@ -59,24 +58,19 @@ variable {G : Type*} [AddCommGroup G] [Module F G]
 so that every Mathlib `Module` lemma applies definitionally. -/
 abbrev dh (a : F) (B : G) : G := a • B
 
+/-- **Shared secret in canonical form.** Either party's computation lands
+on `(a * b) • B` — a single closed expression independent of which side
+performs the final scalar action. -/
+theorem shared_eq_mul (a b : F) (B : G) :
+    dh b (dh a B) = (a * b) • B := by
+  change b • (a • B) = (a * b) • B
+  rw [← mul_smul, mul_comm b a]
+
 /-- **Agreement.** Two parties starting from a common base point `B`, with
-private scalars `a` and `b`, compute the same shared point regardless of
-which side performs the final scalar action. Both sides equal `(a * b) • B`. -/
+private scalars `a` and `b`, compute the same shared point. Corollary of
+`shared_eq_mul` by commutativity of multiplication in `F`. -/
 theorem agreement (a b : F) (B : G) :
     dh b (dh a B) = dh a (dh b B) := by
-  change b • (a • B) = a • (b • B)
-  rw [← mul_smul, ← mul_smul, mul_comm]
-
-/-- Scalar-additivity. Cited by protocols that combine secrets additively,
-e.g. a long-term scalar added to an ephemeral one. -/
-theorem dh_add_left (a b : F) (B : G) :
-    dh (a + b) B = dh a B + dh b B :=
-  add_smul a b B
-
-/-- Base-additivity. Cited by protocols whose peer public values decompose
-as sums of component public values, as in X3DH/PQXDH transcripts. -/
-theorem dh_add_right (a : F) (B C : G) :
-    dh a (B + C) = dh a B + dh a C :=
-  smul_add a B C
+  rw [shared_eq_mul, mul_comm a b, ← shared_eq_mul]
 
 end Cslib.Crypto.Protocols.DiffieHellman
