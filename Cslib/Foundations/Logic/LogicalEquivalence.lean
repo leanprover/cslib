@@ -9,6 +9,8 @@ module
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.Congruence
 
+/-! Typeclass and notation for logical equivalence. -/
+
 @[expose] public section
 
 namespace Cslib.Logic

@@ -9,11 +9,11 @@ module
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Semantics.LTS.Execution
 
-@[expose] public section
-
 /-!
 # Infinite executions of LTS
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

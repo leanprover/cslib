@@ -12,6 +12,14 @@ public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
 
+/-! # Relations
+
+## References
+
+* [*Term Rewriting and All That*][Baader1998]
+
+-/
+
 @[expose] public section
 
 variable {α : Type*} {r : α → α → Prop}
@@ -22,14 +30,6 @@ theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : 
 @[simp, grind =]
 theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFounded r :=
   ⟨ofTransGen, transGen⟩
-
-/-! # Relations
-
-## References
-
-* [*Term Rewriting and All That*][Baader1998]
-
--/
 
 namespace Relation
 
@@ -68,6 +68,109 @@ theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
+
+/-- A relation `r` is (right) Euclidean if `r a b` and `r a c` guarantee `r b c`. -/
+class RightEuclidean (r : α → α → Prop) where
+  rightEuclidean : r a b → r a c → r b c
+
+/-- A relation `r` is (left) Euclidean if `r a c` and `r b c` guarantee `r a b`. -/
+class LeftEuclidean (r : α → α → Prop) where
+  leftEuclidean {a b c} : r a c → r b c → r a b
+
+namespace RightEuclidean
+
+variable [RightEuclidean r]
+
+/-- A `RightEuclidean` relation is reflexive on its range -/
+theorem refl_range (ab : r a b) : r b b := rightEuclidean ab ab
+
+/-- The converse of a `RightEuclidean` relation is `LeftEuclidean` -/
+theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
+  leftEuclidean ca cb := rightEuclidean cb ca
+
+instance [Std.Refl r] : Std.Symm r where
+  symm a _ ab := rightEuclidean ab (refl a)
+
+theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
+  trans a b c ab bc := by
+    have := Std.Trichotomous.trichotomous (r := r) a c
+    have cc := refl_range bc
+    have (ca : r c a) := rightEuclidean ca cc
+    grind
+
+theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
+  intros a b c ab ac
+  exact antisymm (rightEuclidean ab ac) (rightEuclidean ac ab)
+
+theorem rightUnique_antisymm (h : Relator.RightUnique r) : Std.Antisymm r where
+  antisymm _ _ ab ba := h ba (refl_range ab)
+
+end RightEuclidean
+
+namespace LeftEuclidean
+
+variable [LeftEuclidean r]
+
+/-- A `LeftEuclidean` relation is reflexive on its domain -/
+theorem refl_dom (ab : r a b) : r a a := leftEuclidean ab ab
+
+/-- The converse of a `LeftEuclidean` relation is `RightEuclidean` -/
+theorem rightEuclidean_swap : RightEuclidean (fun a b => r b a) where
+  rightEuclidean ab ac := leftEuclidean ac ab
+
+instance [Std.Refl r] : Std.Symm r where
+  symm _ b ab := leftEuclidean (refl b) ab
+
+theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
+  trans a b c ab bc := by
+    have := Std.Trichotomous.trichotomous (r := r) a c
+    have aa := refl_dom ab
+    have (ca : r c a) := leftEuclidean aa ca
+    grind
+
+theorem antisymm_leftUnique [Std.Antisymm r] : Relator.LeftUnique r := by
+  intros a b c ac bc
+  exact antisymm (leftEuclidean ac bc) (leftEuclidean bc ac)
+
+theorem leftUnique_antisymm (h : Relator.LeftUnique r) : Std.Antisymm r where
+  antisymm _ _ ab ba := h ab (refl_dom ba)
+
+end LeftEuclidean
+
+section euclidean_symm
+
+variable [Std.Symm r]
+
+private theorem RightEuclidean.symm_leftEuclidean [RightEuclidean r] : LeftEuclidean r where
+  leftEuclidean ac bc := rightEuclidean (symm ac) (symm bc)
+
+private theorem LeftEuclidean.symm_trans [LeftEuclidean r] : IsTrans α r where
+  trans _ _ _ ab bc := leftEuclidean ab (symm bc)
+
+private theorem RightEuclidean.trans_symm [IsTrans α r] : RightEuclidean r where
+  rightEuclidean ab ac := _root_.trans (symm ab) ac
+
+private theorem symm_equivalents : [RightEuclidean r, LeftEuclidean r, IsTrans α r].TFAE := by
+  apply List.tfae_of_cycle
+  · simp only [List.isChain_cons_cons, List.IsChain.singleton, and_true]
+    split_ands
+    · exact @RightEuclidean.symm_leftEuclidean _ _ _
+    · exact @LeftEuclidean.symm_trans _ _ _
+  · exact @RightEuclidean.trans_symm _ _ _
+
+/-- For a symmetric relation, `LeftEuclidean` and `RightEuclidean` are equivalent. -/
+theorem symm_leftEuclidean_iff_rightEuclidean : LeftEuclidean r ↔ RightEuclidean r :=
+  List.TFAE.out symm_equivalents 1 0
+
+/-- For a symmetric relation, `LeftEuclidean` and transitivity are equivalent. -/
+theorem symm_leftEuclidean_iff_trans : LeftEuclidean r ↔  IsTrans α r :=
+  List.TFAE.out symm_equivalents 1 2
+
+/-- For a symmetric relation, `RightEuclidean` and transitivity are equivalent. -/
+theorem symm_rightEuclidean_iff_trans : RightEuclidean r ↔ IsTrans α r :=
+  List.TFAE.out symm_equivalents 0 2
+
+end euclidean_symm
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
@@ -148,6 +251,16 @@ theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 
+/-- A relation `r` is serial if every element is `Reducible`. -/
+class Serial (r : α → α → Prop) where
+  serial a : Reducible r a
+
+@[scoped grind →]
+lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r where
+  serial a := ⟨a, h.refl a⟩
+
+instance [instRefl : Std.Refl r] : Relation.Serial r := refl_serial r instRefl
+
 /-- An element is normal if it is not reducible. -/
 abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
 
@@ -203,38 +316,91 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   apply equivalence_join
   grind
 
+/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accesible under
+the inverse of `r`. -/
+abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
+
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
+
+lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
+
+lemma SN.of_rel (hx : SN r x) (h : r x y) : SN r y := Acc.inv hx h
+
+@[grind →]
+lemma SN.of_rel_reflTransGen (hx : SN r x) (h : ReflTransGen r x y) : SN r y := by
+  induction h with
+  | refl => exact hx
+  | tail _ h ih => exact ih.of_rel h
+
+lemma SN.transGen (hx : SN r x) : SN (TransGen r) x := by
+  have eq : TransGen (Function.swap r) = (fun a b => TransGen r b a) := by
+    ext
+    exact transGen_swap
+  simpa [eq] using Acc.transGen hx
+
+lemma SN.of_le {r' : α → α → Prop} (hx : SN r x) (h : r' ≤ r) : SN r' x := by
+  refine Subrelation.accessible ?_ hx
+  exact subrelation_iff_le.mpr fun {x y} => h y x
+
+@[simp]
+lemma SN.iff_transGen (x : α) : SN (TransGen r) x ↔ SN r x :=
+  ⟨fun hx => hx.of_le <| fun _ _ => TransGen.single, transGen⟩
+
+/-- `SN r x` is equivalent to the more elementary definition, that there is no infinite sequence
+of reductions starting with `x`. -/
+theorem SN.iff_isEmpty_chain :
+    SN r x ↔ IsEmpty {f : ℕ → α | f 0 = x ∧ ∀ n, r (f n) (f (n + 1))} :=
+  acc_iff_isEmpty_descending_chain
+
+lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x)) :
+    SN (Function.onFun r f) x := InvImage.accessible f hx
+
+lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
+
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
+lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
+
+lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
+  ⟨WellFounded.apply, WellFounded.intro⟩
+
 theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
-  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
-  grind [transGen_swap]
+  simp_rw [iff_forall_sn, SN.iff_transGen] at ht ⊢
+  exact ht
 
 theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
-  suffices _ : (fun a b => TransGen r b a) = TransGen (Function.swap r) by grind
-  grind [transGen_swap]
+  simp_rw [iff_forall_sn, SN.iff_transGen]
+  exact id
 
-theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r :=
-  ⟨ofTransGen, toTransGen⟩
+theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r := by
+  simp_rw [iff_forall_sn, SN.iff_transGen]
 
-theorem Terminating.subrelation {r' : α → α → Prop} (hr : Terminating r) (h : Subrelation r' r) :
+theorem Terminating.iff_isEmpty_chain :
+    Terminating r ↔ IsEmpty {f : ℕ → α // ∀ n, r (f n) (f (n + 1))} :=
+  wellFounded_iff_isEmpty_descending_chain
+
+theorem Terminating.of_le {r' : α → α → Prop} (hr : Terminating r) (h : r' ≤ r) :
     Terminating r' := by
-  rw [Terminating, wellFounded_iff_isEmpty_descending_chain] at hr ⊢
-  rw [isEmpty_subtype]
-  intro f hf
-  exact hr.elim ⟨f, fun n ↦ by exact h (hf n)⟩
+  rw [iff_forall_sn] at hr ⊢
+  exact fun x => (hr x).of_le h
 
-theorem Terminating.isNormalizing (h : Terminating r) : Normalizing r := by
-  unfold Terminating at h
-  intro t
-  apply WellFounded.induction h t
-  intro a ih
-  by_cases ha : Reducible r a
-  · obtain ⟨b, hab⟩ := ha
-    obtain ⟨n, hbn, hn⟩ := ih b hab
-    exact ⟨n, ReflTransGen.head hab hbn, hn⟩
-  · use a
+lemma Terminating.subtype_sn (r : α → α → Prop) :
+    Terminating (α := {x // SN r x}) (fun a b => r a b) :=
+  iff_forall_sn.mpr fun x => x.property.onFun_of_image
+
+theorem SN.isNormalizable (hx : SN r x) : Normalizable r x := by
+  -- restrict to the subtype where all elements are `SN`, so `flip r` is well-founded
+  obtain ⟨⟨y, hsn⟩, hred : ReflTransGen r x y, hnorm⟩ :=
+    (Terminating.subtype_sn r).has_min
+    (s := Subtype.val ⁻¹' ({y | ReflTransGen r x y})) ⟨⟨x, hx⟩, ReflTransGen.refl⟩
+  use y, hred
+  intro ⟨z, hyz⟩
+  exact hnorm ⟨z, hsn.of_rel hyz⟩ (.tail hred hyz) hyz
+
+theorem Terminating.isNormalizing (hr : Terminating r) : Normalizing r :=
+  fun x => (hr.apply x).isNormalizable
 
 theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by

@@ -8,13 +8,13 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
-@[expose] public section
-
 /-! # Adding a history states to a nondeterministic automaton.
 
 The evolution of the history state can depend on both the original state and the past history
 state. But the evolution of the original state is not constrained by the history state.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 

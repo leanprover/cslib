@@ -9,8 +9,6 @@ module
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Mathlib.Probability.Distributions.Uniform
 
-@[expose] public section
-
 /-!
 # Perfect Secrecy: Internal proofs
 
@@ -20,6 +18,8 @@ Auxiliary lemmas for perfect secrecy:
   ([KatzLindell2020], Lemma 2.5)
 - Shannon's key-space bound ([KatzLindell2020], Theorem 2.12)
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
@@ -32,12 +32,12 @@ variable {M K C : Type u}
 theorem jointDist_eq (scheme : EncScheme M K C) (msgDist : PMF M)
     (m : M) (c : C) :
     scheme.jointDist msgDist (m, c) = msgDist m * scheme.ciphertextDist m c :=
-  PMFUtilities.bind_pair_apply msgDist scheme.ciphertextDist m c
+  Cslib.Probability.PMF.bind_pair_apply msgDist scheme.ciphertextDist m c
 
 /-- Summing the joint distribution over messages gives the marginal ciphertext distribution. -/
 theorem jointDist_tsum_fst (scheme : EncScheme M K C) (msgDist : PMF M) (c : C) :
     ∑' m, scheme.jointDist msgDist (m, c) = scheme.marginalCiphertextDist msgDist c :=
-  PMFUtilities.bind_pair_tsum_fst msgDist scheme.ciphertextDist c
+  Cslib.Probability.PMF.bind_pair_tsum_fst msgDist scheme.ciphertextDist c
 
 /-- Perfect secrecy is equivalent to message-ciphertext independence.
 The two formulations are related by multiplying/dividing by `marginal(c)`. -/

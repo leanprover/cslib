@@ -12,8 +12,6 @@ public import Mathlib.Computability.Language
 public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
 
-@[expose] public section
-
 /-!
 # ωLanguage
 
@@ -55,6 +53,8 @@ denote languages (namely, sets of finite sequences of type `List α`).
 
 * Prove more theorems about omegaLim and map.
 -/
+
+@[expose] public section
 
 variable {α β γ : Type*}
 

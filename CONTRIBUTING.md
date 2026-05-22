@@ -98,7 +98,7 @@ instructions on how to run these locally.
 ## Pull Request Titles
 
 It is required that pull request titles begun with one of the following categories followed by a
-colon: `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. These may optionally be followed by a 
+colon: `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. These may optionally be followed by a
 parenthetical containing what area of the library the PR is working on.
 
 ## Testing
@@ -234,7 +234,7 @@ Reusable APIs that support many concrete algorithms.
 
 We aim at formalising a number of logics of different kinds, including linear logic, modal logics, etc.
 
-We welcome proofs of logical equivalences and metatheoretical results such as identity expansion, cut elimiation, etc.
+We welcome proofs of logical equivalences and metatheoretical results such as identity expansion, cut elimination, etc.
 
 Examples of interesting logics include:
 - Linear logic

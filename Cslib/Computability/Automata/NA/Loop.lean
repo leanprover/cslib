@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-@[expose] public section
-
 /-! # Loop construction on nondeterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 
@@ -20,7 +20,7 @@ open scoped Run LTS
 
 variable {Symbol State : Type*}
 
-/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifing
+/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifying
 an accepting state of `na` with a starting state of `na`.  This identification is achieved
 via a new dummy state `()`, which is the sole starting state and the sole accepting state
 of `na.loop`. -/
@@ -167,14 +167,14 @@ namespace FinAcc
 open scoped Computability
 
 /-- `finLoop na` is the loop construction applied to the "totalized" version of `na`. -/
-def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ (State ⊕ Unit)) Symbol :=
-  FinAcc.loop ⟨na.totalize, inl '' na.accept⟩
+def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ Option State) Symbol :=
+  FinAcc.loop ⟨na.totalize, some '' na.accept⟩
 
 /-- `finLoop na` is total, assuming that `na` has at least one start state. -/
 instance [h : Nonempty na.start] : na.finLoop.Total where
   total s x := match s with
-    | inl _ => ⟨inr (inr ()), by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
-    | inr _ => ⟨inr (inr ()), by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
+    | inl _ => ⟨inr none, by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
+    | inr _ => ⟨inr none, by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
 
 /-- `finLoop na` accepts the Kleene star of the language of `na`, assuming that
 the latter is nonempty. -/

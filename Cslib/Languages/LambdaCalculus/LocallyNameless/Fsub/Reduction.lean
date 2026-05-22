@@ -9,10 +9,6 @@ module
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -25,6 +21,10 @@ This file defines a call-by-value reduction.
   this is adapted
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 

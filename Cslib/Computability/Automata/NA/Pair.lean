@@ -8,10 +8,10 @@ module
 
 public import Cslib.Computability.Languages.RegularLanguage
 
-@[expose] public section
-
 /-! # Languages determined by pairs of states
 -/
+
+@[expose] public section
 
 namespace Cslib
 

@@ -10,8 +10,6 @@ public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-@[expose] public section
-
 /-! # Intersection of nondeterministic Buchi automata.
 
 The intersection automaton consists of the product of the two automata to be intersected
@@ -23,6 +21,8 @@ The intersection automaton accepts iff the toggling happens infinitely many time
 The two automata to be intersected are indexed by the type `Bool`.  We choose `Bool`
 simply because toggling can be easily modeled by the boolean operation `not`.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA.Buchi
 
@@ -54,14 +54,14 @@ noncomputable def interNA (na : (i : Bool) → NA (State i) Symbol)
     (acc : (i : Bool) → Set (State i)) : NA ((Π i, State i) × Bool) Symbol :=
   (iProd na).addHist histStart (histTrans acc)
 
-/-- The overall accepting conditon of the intersection automaton. -/
+/-- The overall accepting condition of the intersection automaton. -/
 @[scoped grind =]
 def interAccept (acc : (i : Bool) → Set (State i)) : Set ((Π i, State i) × Bool) :=
   interAcc false acc ∪ interAcc true acc
 
 variable {na : (i : Bool) → NA (State i) Symbol} {acc : (i : Bool) → Set (State i)}
 
-/-- If the intersection automaton sees one accepting condtion infinitely many times,
+/-- If the intersection automaton sees one accepting condition infinitely many times,
 then it sees the other accepting condition infinitely many times as well. -/
 lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
     {i : Bool} (h_run : (interNA na acc).Run xs ss) (h_inf : ∃ᶠ k in atTop, ss k ∈ interAcc i acc) :
@@ -76,7 +76,7 @@ lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, 
     · apply Frequently.mono h_inf
       grind
 
-/-- If the intersection automaton sees the accepting condtions of both component automata
+/-- If the intersection automaton sees the accepting conditions of both component automata
 infinitely many times, then its own accepting condition also happens infinitely many times. -/
 lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
     (h_run : (interNA na acc).Run xs ss)

@@ -10,14 +10,14 @@ public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Data.Set.Saturation
 
-@[expose] public section
-
 /-!
 # Buchi Congruence
 
 A special type of right congruences used by J.R. Büchi to prove the closure
 of ω-regular languages under complementation.
 -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA.Buchi
 

@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
-Relexsed under Apache 2.0 license xs described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
@@ -8,9 +8,9 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
-@[expose] public section
-
 /-! # Equivalence of nondeterministic Buchi automata (NBAs). -/
+
+@[expose] public section
 
 universe u v w
 

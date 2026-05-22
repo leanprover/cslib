@@ -8,8 +8,6 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Typing
 
-public section
-
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -22,6 +20,8 @@ This file proves type safety.
   this is adapted
 
 -/
+
+public section
 
 namespace Cslib
 

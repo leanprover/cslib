@@ -11,8 +11,6 @@ public import Mathlib.Algebra.Group.Idempotent
 public import Mathlib.Order.Closure
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
-@[expose] public section
-
 /-!
 # Phase semantics for Classical Linear Logic
 
@@ -53,6 +51,8 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 * [J.-Y. Girard, *Linear logic*][Girard1987]
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.CLL
 
