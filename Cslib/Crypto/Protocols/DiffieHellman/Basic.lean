@@ -50,7 +50,7 @@ DDH) and concrete instantiations (X25519, X448) live in separate files.
 
 @[expose] public section
 
-namespace Cslib.Crypto.Protocols.KeyExchange.DH
+namespace Cslib.Crypto.Protocols.DiffieHellman
 
 variable {F : Type*} [CommRing F]
 variable {G : Type*} [AddCommGroup G] [Module F G]
@@ -79,4 +79,4 @@ theorem dh_add_right (a : F) (B C : G) :
     dh a (B + C) = dh a B + dh a C :=
   smul_add a B C
 
-end Cslib.Crypto.Protocols.KeyExchange.DH
+end Cslib.Crypto.Protocols.DiffieHellman
