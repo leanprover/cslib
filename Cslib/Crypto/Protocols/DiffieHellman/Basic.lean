@@ -37,11 +37,6 @@ DDH) and concrete instantiations (X25519, X448) live in separate files.
   `b • (a • B) = (a * b) • B`.
 * `agreement` — the two parties compute the same shared point; corollary
   of `shared_eq_mul`.
-
-## References
-
-* BAIF, [PostQuantumeXtendedDiffieHellman-model / PQXDHLean/X3DH/DH.lean](https://github.com/Beneficial-AI-Foundation/PostQuantumeXtendedDiffieHellman-model/blob/main/PQXDHLean/X3DH/DH.lean).
-* Verified-zkEVM, [VCV-io / VCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean](https://github.com/Verified-zkEVM/VCV-io/blob/main/VCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean).
 -/
 
 @[expose] public section
