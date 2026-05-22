@@ -46,7 +46,6 @@ public import Cslib.Crypto.Protocols.SecretSharing.Defs
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
-public import Cslib.Crypto.Protocols.KeyExchange.Basic
 public import Cslib.Crypto.Protocols.KeyExchange.DiffieHellman
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free

@@ -6,71 +6,77 @@ Authors: Christiano Braga
 
 module
 
-public import Mathlib.Data.ZMod.Basic
-public import Cslib.Crypto.Protocols.KeyExchange.Basic
+public import Mathlib.Algebra.Module.Basic
 
 /-!
-# Diffie-Hellman protocol
+# Diffie–Hellman primitive, founded on `Module F G`
 
-Diffie-Hellman key exchange as an instance of `KeyExchangeProtocol` in a finite cyclic
-group `G` of cardinality `q` with a generator `g`. Two parties sample private keys
-`α, β : ZMod q`, publish `g ^ α.val` and `g ^ β.val`, and each raises the peer's public
-value to its own private key. Correctness: both arrive at `g ^ (α · β).val`.
+The Diffie–Hellman primitive is the scalar action of a commutative ring `F` on
+an additive abelian group `G`. Writing exponents additively, as Mathlib does
+for elliptic-curve groups, the textbook `gᵃ` becomes `a • g`, and the textbook
+exponent-product `(gᵃ)ᵇ = gᵃᵇ` becomes `b • (a • g) = (b * a) • g`. Every
+Mathlib `Module` lemma applies directly to `dh`.
 
-## Scope
+This file states only the primitive and the laws downstream protocols (X3DH,
+PQXDH, Signal double-ratchet, MLS) cite. Hardness assumptions (DLog, CDH,
+DDH) and concrete instantiations (X25519, X448) live in separate files.
 
-This file formalizes only the *correctness* (agreement) of the exchange.
+## Notation correspondence
+
+| Multiplicative textbook    | Additive (`Module F G`)        |
+|----------------------------|--------------------------------|
+| `gᵃ`                       | `a • g`                        |
+| `(gᵃ)ᵇ = gᵃᵇ`              | `b • (a • g) = (b * a) • g`    |
+| `gᵃ · gᵇ = gᵃ⁺ᵇ`           | `a • g + b • g = (a + b) • g`  |
+| `(g · h)ᵃ = gᵃ · hᵃ`       | `a • (g + h) = a • g + a • h`  |
 
 ## Main declarations
 
-* `DiffieHellman g q hq hg` — the protocol, extending `KeyExchangeProtocol (ZMod q) G G`.
-  Two setup invariants are carried as fields:
-  - `hq : Fintype.card G = q` pins down `q` as the cardinality of `G`. This is what lets
-    private keys live in `ZMod q` faithfully: by Lagrange `x ^ Fintype.card G = 1` for every
-    `x : G`, hence `hq` gives `x ^ q = 1`, so exponents depend only on their residue
-    modulo `q`.
-  - `hg : orderOf g = q` says `g` has order `q`. Combined with `hq`, it means
-    `orderOf g = Fintype.card G`, which in a cyclic group is exactly the statement that `g`
-    is a generator.
-* `secret_eq` — `(g ^ β.val) ^ α.val = g ^ (α * β).val`: the algebraic core of agreement.
+* `dh a B` — the primitive `a • B`.
+* `agreement` — `b • (a • B) = a • (b • B)`: the two parties agree on the
+  shared point regardless of which side performs the final scalar action.
+* `dh_add_left`, `dh_add_right` — scalar- and base-additivity of `dh`,
+  cited by protocols that combine secrets or transcripts additively
+  (X3DH/PQXDH).
 
-## Reference
+## References
 
-* [Boneh, Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup], Section 10.4.2
+* [Boneh, Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup],
+  Section 10.4.
+* BAIF, *PostQuantumeXtendedDiffieHellman-model* (PQXDHLean/X3DH/DH.lean).
+* Verified-zkEVM, *VCV-io*
+  (VCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean).
 -/
 
 @[expose] public section
 
 namespace Cslib.Crypto.Protocols.KeyExchange.DH
 
-open KeyExchange
+variable {F : Type*} [CommRing F]
+variable {G : Type*} [AddCommGroup G] [Module F G]
 
-structure DiffieHellman {G : Type u} [Group G] [Fintype G] [IsCyclic G]
-    (g : G) (q : ℕ) (hq : Fintype.card G = q) (hg : orderOf g = q)
-    extends KeyExchangeProtocol (ZMod q) G G where
-  pub α := g ^ α.val
-  sharedSecret u α := u ^ α.val
-  agreement := by
-    intro α β
-    show (g ^ β.val) ^ α.val = (g ^ α.val) ^ β.val
-    rw [← pow_mul, ← pow_mul, mul_comm]
+/-- Diffie–Hellman primitive: the scalar action `a • B`. Declared as `abbrev`
+so that every Mathlib `Module` lemma applies definitionally. -/
+abbrev dh (a : F) (B : G) : G := a • B
 
-variable {G : Type u} [Group G] [Fintype G]
-variable (g : G) (q : ℕ) (hq : Fintype.card G = q)
-include hq
+/-- **Agreement.** Two parties starting from a common base point `B`, with
+private scalars `a` and `b`, compute the same shared point regardless of
+which side performs the final scalar action. Both sides equal `(a * b) • B`. -/
+theorem agreement (a b : F) (B : G) :
+    dh b (dh a B) = dh a (dh b B) := by
+  change b • (a • B) = a • (b • B)
+  rw [← mul_smul, ← mul_smul, mul_comm]
 
-/-- In a finite group of cardinality `q`, exponents may be reduced modulo `q`. Together with
-`ZMod.val_mul` this lets `ℕ`-valued exponents be treated as living in `ZMod q`. -/
-private lemma pow_mod_q (x : G) (n : ℕ) :
-    x ^ (n % q) = x ^ n := by
-  conv_rhs => rw [← Nat.div_add_mod n q]
-  have hxq : x ^ q = 1 := hq ▸ pow_card_eq_one
-  rw [pow_add, pow_mul, hxq, one_pow, one_mul]
+/-- Scalar-additivity. Cited by protocols that combine secrets additively,
+e.g. a long-term scalar added to an ephemeral one. -/
+theorem dh_add_left (a b : F) (B : G) :
+    dh (a + b) B = dh a B + dh b B :=
+  add_smul a b B
 
-/-- The Diffie-Hellman shared secret `(g ^ β.val) ^ α.val` equals `g ^ (α * β).val`,
-independently of which party computes it. This is the algebraic core of `agreement`. -/
-theorem secret_eq (α β : ZMod q) :
-    (g ^ β.val) ^ α.val = g ^ (α * β).val := by
-  rw [← pow_mul, ZMod.val_mul, mul_comm β.val α.val, pow_mod_q q hq]
+/-- Base-additivity. Cited by protocols whose peer public values decompose
+as sums of component public values, as in X3DH/PQXDH transcripts. -/
+theorem dh_add_right (a : F) (B C : G) :
+    dh a (B + C) = dh a B + dh a C :=
+  smul_add a B C
 
 end Cslib.Crypto.Protocols.KeyExchange.DH
