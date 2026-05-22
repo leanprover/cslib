@@ -6,10 +6,6 @@ Authors: Christiano Braga
 
 module
 
-public import Mathlib.Tactic
-
-@[expose] public section
-
 /-!
 # Key Exchange Protocol
 
@@ -32,7 +28,9 @@ assumptions belong to concrete instances.
 * [Boneh, Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup], Section 10.4.1
 -/
 
-namespace Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange
+@[expose] public section
+
+namespace Cslib.Crypto.Protocols.KeyExchange
 
 universe u v w
 
@@ -47,4 +45,4 @@ class KeyExchangeProtocol
   agreement : ∀ (α β : PrivateKey),
     sharedSecret (pub β) α = sharedSecret (pub α) β
 
-end Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange
+end Cslib.Crypto.Protocols.KeyExchange

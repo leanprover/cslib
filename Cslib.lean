@@ -46,6 +46,8 @@ public import Cslib.Crypto.Protocols.SecretSharing.Defs
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
+public import Cslib.Crypto.Protocols.KeyExchange.Basic
+public import Cslib.Crypto.Protocols.KeyExchange.DiffieHellman
 public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
@@ -126,8 +128,6 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-public import Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange.Basic
-public import Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange.Diffie-Hellman
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.HML.LogicalEquivalence
 public import Cslib.Logics.LinearLogic.CLL.Basic

@@ -6,10 +6,8 @@ Authors: Christiano Braga
 
 module
 
-public import Mathlib.Tactic
-public import Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange.Basic
-
-@[expose] public section
+public import Mathlib.Data.ZMod.Basic
+public import Cslib.Crypto.Protocols.KeyExchange.Basic
 
 /-!
 # Diffie-Hellman protocol
@@ -41,11 +39,13 @@ This file formalizes only the *correctness* (agreement) of the exchange.
 * [Boneh, Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup], Section 10.4.2
 -/
 
-namespace Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange.DH
+@[expose] public section
+
+namespace Cslib.Crypto.Protocols.KeyExchange.DH
 
 open KeyExchange
 
-class DiffieHellman {G : Type u} [Group G] [Fintype G] [IsCyclic G]
+structure DiffieHellman {G : Type u} [Group G] [Fintype G] [IsCyclic G]
     (g : G) (q : ℕ) (hq : Fintype.card G = q) (hg : orderOf g = q)
     extends KeyExchangeProtocol (ZMod q) G G where
   pub α := g ^ α.val
@@ -73,4 +73,4 @@ theorem secret_eq (α β : ZMod q) :
     (g ^ β.val) ^ α.val = g ^ (α * β).val := by
   rw [← pow_mul, ZMod.val_mul, mul_comm β.val α.val, pow_mod_q q hq]
 
-end Cslib.Systems.Distributed.Protocols.Cryptographic.KeyExchange.DH
+end Cslib.Crypto.Protocols.KeyExchange.DH
