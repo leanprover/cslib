@@ -40,11 +40,8 @@ DDH) and concrete instantiations (X25519, X448) live in separate files.
 
 ## References
 
-* [Boneh, Shoup, *A Graduate Course in Applied Cryptography*][BonehShoup],
-  Section 10.4.
-* BAIF, *PostQuantumeXtendedDiffieHellman-model* (PQXDHLean/X3DH/DH.lean).
-* Verified-zkEVM, *VCV-io*
-  (VCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean).
+* BAIF, [PostQuantumeXtendedDiffieHellman-model / PQXDHLean/X3DH/DH.lean](https://github.com/Beneficial-AI-Foundation/PostQuantumeXtendedDiffieHellman-model/blob/main/PQXDHLean/X3DH/DH.lean).
+* Verified-zkEVM, [VCV-io / VCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean](https://github.com/Verified-zkEVM/VCV-io/blob/main/VCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean).
 -/
 
 @[expose] public section
