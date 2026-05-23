@@ -9,6 +9,9 @@ module
 import Cslib.Init
 import Mathlib
 public import Cslib.Algorithms.Lean.TimeM
+public import Mathlib.Algebra.Ring.Defs
+public import Mathlib.Order.Defs.PartialOrder
+public import Mathlib.Algebra.Order.Ring.Defs
 
 /-!
 # Amortized cost analysis
@@ -22,9 +25,11 @@ namespace Cslib.Algorithms.Lean.Amortized
 
 /-- Physicist method: a potential (lower bound on savings) defined on a
     data structure -/
-class Potential α where
+class Potential φ α extends CommRing φ, PartialOrder φ, IsStrictOrderedRing φ where
   /-- [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
-  potential : α → Nat
+  potential : α → φ
+
+  potentialNonNegative : forall (x : α), (potential x : φ) ≥ 0
 
 class Op α o where
   applyOp : α → o → TimeM ℕ α
@@ -35,36 +40,48 @@ class Op α o where
 
 /-- Amortized cost with the physicist's method,
     following Okasaki, chapter 5 -/
-def amortizedCost {α o : Type*} [Op α o] [Potential α]
-    (x : α) (op : o) : ℕ :=
-  (Op.applyOp x op).time
+def amortizedCost {α o φ : Type*}
+    [Op α o] [Add φ] [Sub φ] [NatCast φ] [Potential φ α]
+    (x : α) (op : o) : φ :=
+  Nat.cast (Op.applyOp x op).time
     + Potential.potential (Op.applyOp x op).ret
-    - Potential.potential x
-
-def amortizedCostL {α o : Type*} [Op α o] [Potential α]
-    (x : α) (ops : List o) : ℕ :=
-  (applyOps x ops).time
-    + Potential.potential (applyOps x ops).ret
     - Potential.potential x
 
 /-- If each operation's cost is bounded by `k`, then the amortized
   cost over a series of operations is bounded by `k * ops.length`. -/
-theorem constantAmortizedCostL {α o : Type*}
-    [h_op : Op α o] [h_pot : Potential α]
-    (k : ℕ) (h_bounded : ∀ (x : α) (op : o), amortizedCost x op ≤ k)
+theorem constantAmortizedCostL {α o φ : Type*}
+    [h_op : Op α o] [h_pot : Potential φ α]
+    (k : φ) (h_k_pos : k > 0) (h_bounded : ∀ (x : α) (op : o), amortizedCost x op ≤ k)
     (x : α) (ops : List o)
-    : amortizedCostL x ops ≤ k * ops.length
+    : (applyOps x ops).time
+        + Potential.potential (applyOps x ops).ret - Potential.potential x
+      ≤ k * Nat.cast ops.length
     := by
-  simp only [amortizedCostL, applyOps, tsub_le_iff_right]
+  simp only [applyOps]
   revert x
   induction ops with
-  | nil => simp [List.foldlM]
+  | nil =>
+    intro x
+    simp only [List.foldlM, TimeM.time_pure, CharP.cast_eq_zero,
+      TimeM.ret_pure, zero_add, sub_self,
+      List.length_nil, mul_zero, Std.le_refl]
   | cons op ops2 h_ind =>
     intro x
-    simp only [amortizedCost, tsub_le_iff_right] at h_bounded
-    simp [List.foldlM, List.length_cons]
+    simp only [amortizedCost] at h_bounded
+    simp only [List.foldlM, TimeM.time_bind, Nat.cast_add, TimeM.ret_bind, List.length_cons,
+      Nat.cast_one]
     have bound1 := h_bounded x op
     have bound2 := h_ind (Op.applyOp x op).ret
+    set applyOpX := (Op.applyOp x op : TimeM ℕ α)
+    set applyOps2 := (List.foldlM (fun x op => Op.applyOp x op) (Op.applyOp x op).ret ops2)
+    set potX := (Potential.potential x : φ)
+    set potOpX := (Potential.potential applyOpX.ret : φ)
+    set potOps2 := (Potential.potential applyOps2.ret : φ)
+    have potOpXPos := (Potential.potentialNonNegative (φ := φ) applyOpX.ret)
+    ring_nf
+    have jfdoit := add_le_add bound1 bound2
+    ring_nf at jfdoit
+    exact jfdoit
     linarith
 
 end Cslib.Algorithms.Lean.Amortized
