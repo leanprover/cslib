@@ -240,40 +240,57 @@ theorem Realizable.versionSpace_nonempty {m : ℕ} {C : ConceptClass α β}
 
 /-! ### Probabilistic Realizable -/
 
+/-- Under the pushforward of a probability measure `P` along the graph map
+`x ↦ (x, c x)`, the graph of `c` has measure `1`. -/
+private lemma map_graph_eq_one
+    [MeasurableSpace α] [MeasurableSpace β]
+    {c : α → β} (hcm : Measurable c) (P : Measure α) [IsProbabilityMeasure P]
+    (hG : MeasurableSet {p : α × β | p.2 = c p.1}) :
+    (P.map (fun x => (x, c x))) {p : α × β | p.2 = c p.1} = 1 := by
+  have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
+  rw [Measure.map_apply hφ hG]
+  have hpre : (fun x : α => (x, c x)) ⁻¹' {p : α × β | p.2 = c p.1} = Set.univ := by
+    ext x; simp
+  rw [hpre, measure_univ]
+
+/-- The iid product of the realizable joint distribution assigns measure `1`
+to the set of samples where every coordinate lies on the graph of `c`. -/
+private lemma pi_map_graph_eq_one
+    [MeasurableSpace α] [MeasurableSpace β]
+    {c : α → β} (hcm : Measurable c) (P : Measure α) [IsProbabilityMeasure P]
+    (hG : MeasurableSet {p : α × β | p.2 = c p.1}) {m : ℕ} :
+    (Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x))))
+      (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1})) = 1 := by
+  have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
+  haveI : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
+    Measure.isProbabilityMeasure_map hφ.aemeasurable
+  rw [Measure.pi_pi]
+  simp [map_graph_eq_one hcm P hG]
+
 /-- Under iid sampling from the realizable joint distribution induced by
 `c ∈ C` and a probability measure `P` on `α`, the target concept `c` lies in
-the version space almost surely. The `MeasurableEq β` instance ensures the
-graph of `c` is measurable. -/
+the version space almost surely. -/
 theorem ae_mem_versionSpace_of_realizable
-    [MeasurableSpace α] [MeasurableSpace β] [MeasurableEq β]
+    [MeasurableSpace α] [MeasurableSpace β]
     {C : ConceptClass α β} {c : α → β} (hc : c ∈ C) (hcm : Measurable c)
+    (hG : MeasurableSet {p : α × β | p.2 = c p.1})
     (P : Measure α) [IsProbabilityMeasure P] (m : ℕ) :
     ∀ᵐ S : LabeledSample α β m
       ∂(Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x)))),
       c ∈ VersionSpace C S := by
-  set φ : α → α × β := fun x => (x, c x) with φ_def
-  have hφ : Measurable φ := measurable_id.prodMk hcm
-  haveI : IsProbabilityMeasure (P.map φ) :=
+  have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
+  haveI : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
     Measure.isProbabilityMeasure_map hφ.aemeasurable
-  set G : Set (α × β) := {p | p.2 = c p.1} with G_def
-  have hG_meas : MeasurableSet G :=
-    measurableSet_eq_fun measurable_snd (hcm.comp measurable_fst)
-  have hGμ : (P.map φ) G = 1 := by
-    rw [Measure.map_apply hφ hG_meas]
-    have hpre : φ ⁻¹' G = Set.univ := by ext x; simp [φ_def, G_def]
-    rw [hpre, measure_univ]
-  have hAllG : (Measure.pi (fun _ : Fin m => P.map φ))
-      (Set.univ.pi (fun _ : Fin m => G)) = 1 := by
-    rw [Measure.pi_pi]; simp [hGμ]
   rw [ae_iff]
   have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆
-      (Set.univ.pi (fun _ : Fin m => G))ᶜ := by
+      (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ := by
     intro S hS hcontra
-    simp only [Set.mem_pi, Set.mem_univ, true_implies] at hcontra
+    simp only [Set.mem_pi, Set.mem_univ, true_implies, Set.mem_setOf_eq] at hcontra
     exact hS ⟨hc, fun i => (hcontra i).symm⟩
-  have hcompl : (Measure.pi (fun _ : Fin m => P.map φ))
-      ((Set.univ.pi (fun _ : Fin m => G))ᶜ) = 0 := by
-    rw [prob_compl_eq_one_sub (MeasurableSet.univ_pi fun _ => hG_meas), hAllG, tsub_self]
+  have hcompl : (Measure.pi (fun _ : Fin m => P.map (fun x : α => (x, c x))))
+      ((Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ) = 0 := by
+    rw [prob_compl_eq_one_sub (MeasurableSet.univ_pi fun _ => hG),
+        pi_map_graph_eq_one hcm P hG, tsub_self]
   exact measure_mono_null hsub hcompl
 
 end Cslib.MachineLearning.PACLearning
