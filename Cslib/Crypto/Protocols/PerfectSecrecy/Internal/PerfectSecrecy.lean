@@ -27,7 +27,7 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 open PMF ENNReal
 
 universe u
-variable {n : Type u → Type*} [MonadLiftT n PMF] {M K C : Type u}
+variable {n : Type → Type*} [MonadLiftT n PMF] {M K C : Type}
 
 /-- The joint distribution at `(m, c)` equals `msgDist m * ciphertextDist m c`. -/
 theorem jointDist_eq (scheme : EncScheme n M K C) (msgDist : n M)
@@ -86,39 +86,42 @@ theorem perfectlySecret_of_ciphertextIndist (scheme : EncScheme n M K C)
 
 /-- Perfect secrecy implies ciphertext indistinguishability.
 Note we need `n` to support uniform selection for the proof to work -/
-theorem ciphertextIndist_of_perfectlySecret [Probability.HasUniformSelectFinset n]
+theorem ciphertextIndist_of_perfectlySecret [Monad n] [LawfulMonadLiftT n PMF]
+    [Probability.HasUniformBitVec n]
     (scheme : EncScheme n M K C) (h : scheme.PerfectlySecret) :
     scheme.CiphertextIndist := by
   classical
   rw [perfectlySecret_iff_indep] at h
   intro m₀ m₁; ext c
   have hs : ({m₀, m₁} : Finset M).Nonempty := ⟨m₀, Finset.mem_insert_self ..⟩
-  let μ : n M := Probability.HasUniformSelectFinset.uniformSelectFinset _ hs
-  have hμ : (μ : PMF M) = PMF.uniformOfFinset _ hs := by simp [μ]
+  let μ : n M := do return bif (← Probability.uniformBool) then m₀ else m₁
+  have hμ : (μ : PMF M) = PMF.uniformOfFinset _ hs := by
+    simp only [μ, liftM_bind, liftM_pure, Cslib.Probability.liftM_uniformBool]
+    exact Cslib.Probability.PMF.uniformOfFintype_bool_bind_ite m₀ m₁
   suffices key : ∀ m ∈ ({m₀, m₁} : Finset M),
       scheme.ciphertextDist m c = scheme.marginalCiphertextDist μ c by
     exact (key m₀ (by simp)).trans (key m₁ (by simp)).symm
   intro m hm
   have hne := (PMF.mem_support_uniformOfFinset_iff hs m).mpr hm
   have hne_top := ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one μ m)
-  rw [Probability.HasUniformSelectFinset.liftM_uniformSelectFinset] at hne_top
-  refine (ENNReal.mul_right_inj hne hne_top).mp ?_
+  refine (ENNReal.mul_right_inj hne (hμ ▸ hne_top)).mp ?_
   exact (hμ ▸ jointDist_eq scheme _ m c).symm.trans (hμ ▸ h μ m c)
 
 /-- If each message maps to a key that encrypts it to a common ciphertext,
 then the key assignment is injective (by correctness of decryption). -/
-lemma encrypt_key_injective (scheme : EncScheme n M K C)
+lemma encrypt_key_injective (scheme : EncScheme n M K C) [scheme.Correct]
     (f : M → K) (c₀ : C)
     (hf_mem : ∀ m, f m ∈ PMF.support scheme.gen)
     (hf_enc : ∀ m, c₀ ∈ PMF.support (scheme.enc (f m) m)) :
     Function.Injective f :=
   fun m₁ m₂ heq =>
-    (scheme.correct _ (hf_mem m₁) m₁ c₀ (hf_enc m₁)).symm.trans
-      (heq ▸ scheme.correct _ (hf_mem m₂) m₂ c₀ (hf_enc m₂))
+    (EncScheme.Correct.dec_enc _ (hf_mem m₁) m₁ c₀ (hf_enc m₁)).symm.trans
+      (heq ▸ EncScheme.Correct.dec_enc _ (hf_mem m₂) m₂ c₀ (hf_enc m₂))
 
 /-- Perfect secrecy requires `|K| ≥ |M|` (Shannon's theorem). -/
-theorem shannonKeySpace [Finite K] [Probability.HasUniformSelectFinset n]
-    (scheme : EncScheme n M K C) (h : scheme.PerfectlySecret) :
+theorem shannonKeySpace [Finite K] [Monad n] [LawfulMonadLiftT n PMF]
+    [Probability.HasUniformBitVec n]
+    (scheme : EncScheme n M K C) [scheme.Correct] (h : scheme.PerfectlySecret) :
     Nat.card K ≥ Nat.card M := by
   classical
   have hci := ciphertextIndist_of_perfectlySecret scheme h

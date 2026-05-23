@@ -78,6 +78,41 @@ theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [None
       simpa using congrArg e.symm h.symm
     · simp
 
+/-- Pushing forward a uniform distribution on the subtype `↥s` along `Subtype.val`
+gives the uniform distribution on the underlying finset `s`. -/
+theorem map_subtypeVal_uniformOfFintype (s : Finset α) (hs : s.Nonempty) :
+    haveI : Nonempty {x // x ∈ s} := hs.coe_sort
+    (PMF.uniformOfFintype {x // x ∈ s}).map Subtype.val = PMF.uniformOfFinset s hs := by
+  classical
+  haveI : Nonempty {x // x ∈ s} := hs.coe_sort
+  ext a
+  rw [PMF.map_apply, PMF.uniformOfFinset_apply]
+  by_cases ha : a ∈ s
+  · rw [tsum_eq_single ⟨a, ha⟩, if_pos rfl, PMF.uniformOfFintype_apply,
+      Fintype.card_coe, if_pos ha]
+    intro x hx
+    rw [if_neg (fun h => hx (Subtype.ext h.symm))]
+  · rw [if_neg ha, ENNReal.tsum_eq_zero]
+    intro x
+    rw [if_neg]
+    rintro rfl; exact ha x.2
+
+/-- Binding a uniform distribution on `Bool` against a two-branch `pure` gives the
+uniform distribution on the (possibly singleton) two-element finset. -/
+theorem uniformOfFintype_bool_bind_ite [DecidableEq α] (a b : α) :
+    ((PMF.uniformOfFintype Bool).bind fun x => PMF.pure (bif x then a else b)) =
+      PMF.uniformOfFinset {a, b} (Finset.insert_nonempty a {b}) := by
+  ext m
+  rw [PMF.bind_apply, PMF.uniformOfFinset_apply,
+    tsum_bool, PMF.uniformOfFintype_apply, Fintype.card_bool]
+  by_cases hab : a = b
+  · subst hab
+    by_cases hm : m = a <;>
+      simp [hm, PMF.pure_apply, ENNReal.inv_two_add_inv_two]
+  · by_cases h₀ : m = a <;> by_cases h₁ : m = b
+    all_goals simp_all [Finset.card_pair (Ne.symm fun h => hab h.symm),
+      PMF.pure_apply, ENNReal.inv_two_add_inv_two]
+
 /-- Posterior probabilities `joint(a, b) / marginal(b)` sum to 1
 when `b` is in the support of the marginal. -/
 theorem posterior_hasSum (p : PMF α) (f : α → PMF β) (b : β)
