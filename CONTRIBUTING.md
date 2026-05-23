@@ -2,6 +2,7 @@
 
 - [Contributing to CSLib](#contributing-to-cslib)
 - [Contribution model](#contribution-model)
+- [The role of AI](#the-role-of-ai)
 - [Style and documentation](#style-and-documentation)
   - [Variable names](#variable-names)
   - [Proof style and golfing :golf:](#proof-style-and-golfing-golf)
@@ -38,8 +39,6 @@
       - [Back ends for Boole](#back-ends-for-boole)
       - [Implementing verification paradigms](#implementing-verification-paradigms)
       - [Lean automation](#lean-automation)
-      - [The role of AI](#the-role-of-ai)
-
 
 # Contributing to CSLib
 
