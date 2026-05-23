@@ -33,7 +33,7 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
 universe u
 variable {n : Type → Type*} [Monad n] [MonadLiftT n PMF] [LawfulMonadLiftT n PMF]
-  [Probability.HasUniformBitVec n] {M K C : Type}
+  [Probability.HasUniformBitVec n] [Probability.LawfulUniformBitVec n] {M K C : Type}
 
 /-- A scheme is perfectly secret iff the ciphertext distribution is
 independent of the plaintext ([KatzLindell2020], Lemma 2.5). -/

@@ -168,4 +168,6 @@ theorem posteriorDist_eq_prior_of_outputIndist (p : PMF α) (f : α → PMF β)
 @[simp]
 lemma monad_pure_eq_pure (x : α) : (pure x : PMF α) = PMF.pure x := rfl
 
+lemma monad_bind_eq_bind {α β} (p : PMF α) (q : α → PMF β) : p >>= q = p.bind q := rfl
+
 end Cslib.Probability.PMF

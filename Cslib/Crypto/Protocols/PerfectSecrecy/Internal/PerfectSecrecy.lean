@@ -87,7 +87,7 @@ theorem perfectlySecret_of_ciphertextIndist (scheme : EncScheme n M K C)
 /-- Perfect secrecy implies ciphertext indistinguishability.
 Note we need `n` to support uniform selection for the proof to work -/
 theorem ciphertextIndist_of_perfectlySecret [Monad n] [LawfulMonadLiftT n PMF]
-    [Probability.HasUniformBitVec n]
+    [Probability.HasUniformBitVec n] [Probability.LawfulUniformBitVec n]
     (scheme : EncScheme n M K C) (h : scheme.PerfectlySecret) :
     scheme.CiphertextIndist := by
   classical
@@ -120,7 +120,7 @@ lemma encrypt_key_injective (scheme : EncScheme n M K C) [scheme.Correct]
 
 /-- Perfect secrecy requires `|K| ≥ |M|` (Shannon's theorem). -/
 theorem shannonKeySpace [Finite K] [Monad n] [LawfulMonadLiftT n PMF]
-    [Probability.HasUniformBitVec n]
+    [Probability.HasUniformBitVec n] [Probability.LawfulUniformBitVec n]
     (scheme : EncScheme n M K C) [scheme.Correct] (h : scheme.PerfectlySecret) :
     Nat.card K ≥ Nat.card M := by
   classical
