@@ -25,7 +25,7 @@ namespace Cslib.Algorithms.Lean.Amortized
 
 /-- Physicist method: a potential (lower bound on savings) defined on a
     data structure -/
-class Potential φ α extends CommRing φ, PartialOrder φ, IsStrictOrderedRing φ where
+class Potential φ α extends CommRing φ, LinearOrder φ, IsStrictOrderedRing φ where
   /-- [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
   potential : α → φ
 
@@ -51,7 +51,7 @@ def amortizedCost {α o φ : Type*}
   cost over a series of operations is bounded by `k * ops.length`. -/
 theorem constantAmortizedCostL {α o φ : Type*}
     [h_op : Op α o] [h_pot : Potential φ α]
-    (k : φ) (h_k_pos : k > 0) (h_bounded : ∀ (x : α) (op : o), amortizedCost x op ≤ k)
+    (k : φ) (h_bounded : ∀ (x : α) (op : o), amortizedCost x op ≤ k)
     (x : α) (ops : List o)
     : (applyOps x ops).time
         + Potential.potential (applyOps x ops).ret - Potential.potential x
@@ -81,7 +81,6 @@ theorem constantAmortizedCostL {α o φ : Type*}
     ring_nf
     have jfdoit := add_le_add bound1 bound2
     ring_nf at jfdoit
-    exact jfdoit
     linarith
 
 end Cslib.Algorithms.Lean.Amortized
