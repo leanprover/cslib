@@ -29,8 +29,6 @@ class Potential φ α extends CommRing φ, LinearOrder φ, IsStrictOrderedRing �
   /-- [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
   potential : α → φ
 
-  potentialNonNegative : forall (x : α), (potential x : φ) ≥ 0
-
 class Op α o where
   applyOp : α → o → TimeM ℕ α
 
@@ -77,7 +75,7 @@ theorem constantAmortizedCostL {α o φ : Type*}
     set potX := (Potential.potential x : φ)
     set potOpX := (Potential.potential applyOpX.ret : φ)
     set potOps2 := (Potential.potential applyOps2.ret : φ)
-    have potOpXPos := (Potential.potentialNonNegative (φ := φ) applyOpX.ret)
+    /- have potOpXPos := (Potential.potentialNonNegative (φ := φ) applyOpX.ret) -/
     ring_nf
     have jfdoit := add_le_add bound1 bound2
     ring_nf at jfdoit
