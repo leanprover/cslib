@@ -33,7 +33,7 @@ will be made about `M` and `S`.  In particular, they could be infinite.
 
 namespace Cslib.FLP
 
-open Function Set Sum Multiset
+open Set Sum Multiset
 
 variable {P M S : Type*} [DecidableEq P] [DecidableEq M]
 
@@ -57,7 +57,7 @@ structure ProcState (S : Type*) where
 /-- The global state of the distributed algorithm. -/
 structure State (P M S : Type*) where
   /-- A multiset containing all messages that are in-flight (namely, they have been sent but
-  not yet received. Note that being a multiset implies that the messages are not ordered. -/
+  not yet received). Note that being a multiset implies that the messages are not ordered. -/
   msgs : Multiset (Message P M)
   /-- A map giving the local states of all processes. -/
   proc : P → ProcState S
@@ -81,22 +81,23 @@ structure Algorithm (P M S : Type*) where
 the reception of message `m` and `none` denotes a stuttering step. -/
 abbrev Action (P M : Type*) := Option (Message P M)
 
-/-- `Dest ps x` means that if `x ≠ none`, then `x = some m` with `m.dest ∈ ps`. -/
+/-- `DestIn ps x` means that if `x ≠ none`, then `x = some m` with `m.dest ∈ ps`. -/
 def DestIn (ps : Set P) : Action P M → Prop
   | some m => m.dest ∈ ps
   | none => True
 
 /-- Given `inp : P → Bool`, the initial state of the algorithm `a` contains a single message
 carrying the boolean value `inp p` to each process `p`, where the initial internal state is
-`a.init p` and no decision has been made.  The assumption `[Fintyep P]` is made because
+`a.init p` and no decision has been made.  The assumption `[Fintype P]` is made because
 a multiset may contain only finitely many elements. -/
 def Algorithm.start [Fintype P] (a : Algorithm P M S) (inp : P → Bool) : State P M S where
   msgs := Multiset.map (fun p ↦ ⟨p, inl (inp p)⟩) Finset.univ.val
   proc := fun p ↦ ⟨a.init p, none⟩
 
-/-- The specification of how the global state of the algorithm is changed when one of its
-processes `p` receives a message `m`.  Note that once `p` has made a boolean decision in
-its `out` field, it is not allowed to "change its mind" later. -/
+/-- The specification of how the global state of the algorithm changes when a process `p`
+receives a message `m`.  (This function will be used only when such a message `m` exists.)
+Note that once `p` has made a boolean decision in its `out` field, it is not allowed to
+"change its mind" anymore. -/
 def Algorithm.recvMsg (a : Algorithm P M S) (m : Message P M) (s : State P M S) : State P M S :=
   let p := m.dest
   { msgs := s.msgs.erase m + a.send m (s.proc p)
