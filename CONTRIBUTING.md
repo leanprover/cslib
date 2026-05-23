@@ -58,8 +58,8 @@ If you are unfamiliar with CSLib as a whole and want to understand how to get st
 
 # The role of AI
 
-CSLib in general follows the Mathlb [Use of AI](https://leanprover-community.github.io/contribute/index.html#use-of-ai) policy. In particular, take note of:
-> If you use artificial intelligence ... please explain this in the PR description. Explain which tool(s) you used and how you used it. This provides useful context for reviewers: tools make different mistakes than humans, so knowing this makes it easier to spot common errors.
+CSLib in general follows the Mathlib policy on [use of AI](https://leanprover-community.github.io/contribute/index.html#use-of-ai). In particular, take note of:
+> If you use artificial intelligence [...] please explain this in the PR description. Explain which tool(s) you used and how you used it. This provides useful context for reviewers: tools make different mistakes than humans, so knowing this makes it easier to spot common errors.
 
 # Style and documentation
 
