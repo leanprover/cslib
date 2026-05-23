@@ -12,7 +12,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.SubstEnv
 
 /-! Strong normalization (termination) for full beta-reduction of simply typed lambda calculus. -/
 
@@ -74,10 +74,12 @@ lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := 
 /-- The `entails_context` predicate ensures that each variable in the context
     is mapped to a term in the corresponding semantic map. -/
 abbrev entails_context (E : Term.Env Var) (Γ : Context Var (Ty Base)) :=
-  ∀ {x τ}, ⟨x, τ⟩ ∈ Γ → (multiSubst E (fvar x)) ∈ semanticMap τ
+  ∀ {x τ}, ⟨x, τ⟩ ∈ Γ → (E.toAssignment x) ∈ semanticMap τ
 
 /-- The empty context is entailed by any environment. -/
-lemma entails_context_empty {Γ : Context Var (Ty Base)} : entails_context [] Γ := by
+lemma entails_context_empty {Γ : Context Var (Ty Base)} : entails_context Env.empty Γ := by
+  intro x τ _
+  rw [Env.empty_toAssignment]
   have := semanticMap_saturated (Var := Var) (Base := Base)
   grind
 
@@ -90,36 +92,45 @@ lemma entails_context_cons (E : Term.Env Var) (Γ : Context Var (Ty Base))
     (x : Var) (τ : Ty Base) (sub : Term Var)
     (h_fresh : x ∉ E.dom ∪ E.fv ∪ Γ.dom)
     (h_mem : sub ∈ semanticMap τ) :
-    entails_context E Γ → entails_context (⟨ x, sub ⟩ :: E) (⟨ x, τ ⟩ :: Γ) := by
-  grind [multiSubst_fvar_fresh, subst_fresh, multiSubst_preserves_not_fvar]
+    entails_context E Γ → entails_context (E.update x sub) (⟨ x, τ ⟩ :: Γ) := by
+  intro hE x' τ' hmem
+  rcases List.mem_cons.mp hmem with h | h
+  · simp only [Sigma.mk.injEq, heq_eq_eq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    rw [Env.update_toAssignment, Function.update_self]
+    exact h_mem
+  · have hx' : x' ≠ x := by grind
+    rw [Env.update_toAssignment, Function.update_of_ne hx']
+    exact hE h
 
 /-- The `entails` predicate states that a term `t` is
     semantically valid with respect to a context `Γ` and a type `τ` -/
 abbrev entails (Γ : Context Var (Ty Base)) (t : Term Var) (τ : Ty Base) :=
-    ∀ E, env_LC E → (entails_context E Γ) → (multiSubst E t) ∈ semanticMap τ
+    ∀ E, env_LC E → (entails_context E Γ) → (psubst E.toAssignment t) ∈ semanticMap τ
 
 /-- The `soundness` lemma states that if a term `t` has type `τ` in context `Γ`,
     then `t` is semantically valid with respect to `Γ` and `τ` -/
 lemma soundness {Γ : Context Var (Ty Base)} (derivation_t : Γ ⊢ t ∶ τ) : entails Γ t τ := by
   induction derivation_t with
-  | var Γ xσ_mem_Γ => grind
+  | var Γ xσ_mem_Γ => grind [psubst_fvar]
   | @abs σ Γ t τ L HL IH =>
     intro E _ _ s
     have sat_semMap_σ := semanticMap_saturated (Var := Var) σ
     have sat_semMap_τ := semanticMap_saturated (Var := Var) τ
-    have := sat_semMap_τ.multiApp (multiSubst E t) s []
-    let := multiSubst E t
+    have := sat_semMap_τ.multiApp (psubst E.toAssignment t) s []
+    let := psubst E.toAssignment t
     have ⟨x, _⟩ := fresh_exists <| E.dom ∪ free_union [fv, Context.dom, Env.fv] Var
-    have := IH (x := x) (E := ⟨x,s⟩ :: E)
-    grind [multiSubst_abs, entails_context_cons, multiSubst_open_var]
-  | app => grind [multiSubst_app]
+    have := IH (x := x) (E := E.update x s)
+    grind [psubst_update, entails_context_cons, psubst_open_var, psubst_abs, env_LC_update]
+  | app => grind [psubst_app]
 
 /-- Using soundness and the fact that the empty context
     is entailed by any environment, we can conclude that
     a well-typed term is strongly normalizing. -/
 theorem strong_norm {t : Term Var} {τ : Ty Base} (der : Γ ⊢ t ∶ τ) : SN FullBeta t := by
   apply (semanticMap_saturated τ).sn
-  apply (soundness der [] (by grind) entails_context_empty)
+  have h := soundness der Env.empty env_LC_empty entails_context_empty
+  rwa [Env.empty_toAssignment, psubst_fvar_id] at h
 
 end LambdaCalculus.LocallyNameless.Stlc
 
