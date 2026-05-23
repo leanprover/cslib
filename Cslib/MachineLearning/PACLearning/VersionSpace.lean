@@ -7,14 +7,14 @@ Authors: Dhruv Gupta
 module
 
 public import Cslib.MachineLearning.PACLearning.Defs
-
-@[expose] public section
+public import Mathlib.MeasureTheory.Measure.Dirac
+public import Mathlib.MeasureTheory.Measure.Map
 
 /-! # Version Space
 
 The *version space* of a concept class `C` given a labeled sample `S` is the
 subset of `C` whose concepts agree with `S` on every observed point — the
-classical "concepts still consistent with the data" of Mitchell (1982) and
+classical "concepts still consistent with the data" of Mitchell (1977) and
 Angluin (1980).
 
 ## Main definitions
@@ -23,26 +23,36 @@ Angluin (1980).
   sample point.
 - `IsConsistent A C`: a learner is consistent with `C` if its output always lies
   in the version space at the received sample.
+- `empiricalMiscount h S`: number of sample points where `h` errs (`[DecidableEq β]`).
+- `empiricalMeasure S`: the uniform Dirac mixture over the sample.
+- `empiricalError h S`: the empirical distribution's mass on the disagreement set.
+- `Realizable C S`: some concept in `C` labels every sample point correctly.
 
 ## Main results
 
-- `versionSpace_subset`: the version space is a subset of the original class.
-- `versionSpace_empty_sample`: with no data, the version space is the whole
-  concept class.
-- `versionSpace_antitone`: more data gives a smaller version space.
-- `IsConsistent.output_mem_conceptClass`: consistent learners output concepts
-  in the class.
-- `mem_versionSpace_of_realizable`: under a realizable sample, the version
-  space contains the target concept.
+- `versionSpace_subset`, `versionSpace_empty_sample`, `versionSpace_reindex`,
+  `versionSpace_antitone`, `versionSpace_mono_C`: structural properties.
+- `mem_versionSpace_iff_empiricalMiscount_zero`: combinatorial bridge.
+- `mem_versionSpace_iff_empiricalError_zero`: measure-theoretic bridge.
+- `IsConsistent.empiricalMiscount_eq_zero`, `IsConsistent.empiricalError_eq_zero`:
+  consistent learners achieve zero error / miscount on every sample.
+- `mem_versionSpace_of_realizable`, `Realizable.versionSpace_nonempty`: realizable
+  samples give non-empty version spaces.
+- `ae_mem_versionSpace_of_realizable`: under iid sampling from a realizable
+  joint distribution, the target concept lies in the version space almost surely.
 
 ## References
 
+* [Mitchell1977]
 * [Mitchell1982]
 * [Angluin1980]
 * [Mitchell1997]
 -/
 
-open Set
+@[expose] public section
+
+open MeasureTheory Set
+open scoped ENNReal
 
 namespace Cslib.MachineLearning.PACLearning
 
@@ -67,22 +77,107 @@ theorem versionSpace_subset {m : ℕ} (C : ConceptClass α β)
     (S : LabeledSample α β m) :
     VersionSpace C S ⊆ C := fun _ hh => hh.1
 
-/-- Version space on the empty sample equals the whole concept class: no data,
-no constraint on hypotheses. -/
+/-- Version space on the empty sample equals the whole concept class. -/
 theorem versionSpace_empty_sample (C : ConceptClass α β)
     (S : LabeledSample α β 0) :
     VersionSpace C S = C := by
   ext h
   refine ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
 
+/-- *Version space reindexing.* For any reindexing `f : Fin m → Fin n`, the
+version space on `S` is contained in the version space on the reindexed sample
+`S ∘ f`. -/
+theorem versionSpace_reindex {m n : ℕ} (f : Fin m → Fin n) (C : ConceptClass α β)
+    (S : LabeledSample α β n) :
+    VersionSpace C S ⊆ VersionSpace C (S ∘ f) :=
+  fun _ hh => ⟨hh.1, fun i => hh.2 (f i)⟩
+
 /-- *Version space antitonicity.* Given a sample of size `n` and `m ≤ n`, the
 version space on all `n` observations is a subset of the version space on the
-first `m` observations. More data never enlarges the version space. -/
+first `m` observations. Special case of `versionSpace_reindex` with
+`f := Fin.castLE hmn`. -/
 theorem versionSpace_antitone {m n : ℕ} (hmn : m ≤ n) (C : ConceptClass α β)
     (S : LabeledSample α β n) :
-    VersionSpace C S ⊆ VersionSpace C (fun i => S (Fin.castLE hmn i)) := by
-  intro h hh
-  exact ⟨hh.1, fun i => hh.2 (Fin.castLE hmn i)⟩
+    VersionSpace C S ⊆ VersionSpace C (S ∘ Fin.castLE hmn) :=
+  versionSpace_reindex (Fin.castLE hmn) C S
+
+/-- *Version space is monotone in the concept class.* -/
+theorem versionSpace_mono_C {m : ℕ} {C C' : ConceptClass α β} (hCC' : C ⊆ C')
+    (S : LabeledSample α β m) :
+    VersionSpace C S ⊆ VersionSpace C' S :=
+  fun _ hh => ⟨hCC' hh.1, hh.2⟩
+
+/-! ### Empirical Error -/
+
+/-- The *empirical miscount* of a hypothesis `h` on a labeled sample `S`: the
+number of sample points where `h` predicts incorrectly. -/
+def empiricalMiscount [DecidableEq β] {m : ℕ} (h : α → β)
+    (S : LabeledSample α β m) : ℕ :=
+  (Finset.univ.filter fun i : Fin m => h (S i).1 ≠ (S i).2).card
+
+section EmpiricalMeasure
+variable [MeasurableSpace α] [MeasurableSpace β]
+
+/-- The *empirical distribution* of a labeled sample: the uniform mixture of
+Dirac measures at each sample point. Equals the zero measure when `m = 0`. -/
+noncomputable def empiricalMeasure {m : ℕ} (S : LabeledSample α β m) :
+    Measure (α × β) :=
+  if _hm : m = 0 then 0
+  else (m : ℝ≥0∞)⁻¹ • ∑ i, Measure.dirac (S i)
+
+/-- The *empirical 0-1 error* of `h` on `S`: the empirical distribution's
+mass on the disagreement set. -/
+noncomputable def empiricalError {m : ℕ} (h : α → β) (S : LabeledSample α β m) :
+    ℝ≥0∞ :=
+  error (empiricalMeasure S) h
+
+end EmpiricalMeasure
+
+/-- Version-space membership equals concept-class membership plus zero empirical
+miscount (combinatorial bridge). -/
+theorem mem_versionSpace_iff_empiricalMiscount_zero [DecidableEq β]
+    {m : ℕ} {C : ConceptClass α β} {S : LabeledSample α β m} {h : α → β} :
+    h ∈ VersionSpace C S ↔ h ∈ C ∧ empiricalMiscount h S = 0 := by
+  simp only [empiricalMiscount, Finset.card_eq_zero, Finset.filter_eq_empty_iff,
+             Finset.mem_univ, true_implies, ne_eq, Decidable.not_not]
+  rfl
+
+/-- Version-space membership equals concept-class membership plus zero empirical
+error (measure-theoretic bridge). -/
+theorem mem_versionSpace_iff_empiricalError_zero
+    [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSingletonClass α] [MeasurableSingletonClass β]
+    {m : ℕ} {C : ConceptClass α β} {S : LabeledSample α β m} {h : α → β} :
+    h ∈ VersionSpace C S ↔ h ∈ C ∧ empiricalError h S = 0 := by
+  refine and_congr_right fun _ => ?_
+  unfold empiricalError empiricalMeasure error
+  rcases Nat.eq_zero_or_pos m with hm | hm
+  · subst hm
+    rw [dif_pos rfl]
+    simp only [Measure.coe_zero, Pi.zero_apply]
+    exact iff_of_true (fun i => i.elim0) trivial
+  · have hm_ne : m ≠ 0 := Nat.pos_iff_ne_zero.mp hm
+    have hm_inv_ne : (m : ℝ≥0∞)⁻¹ ≠ 0 :=
+      ENNReal.inv_ne_zero.mpr (ENNReal.natCast_ne_top m)
+    rw [dif_neg hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
+    simp only [Measure.dirac_apply, Set.indicator, Set.mem_setOf_eq, Pi.one_apply,
+               smul_eq_mul]
+    rw [mul_eq_zero]
+    constructor
+    · intro hh
+      right
+      apply Finset.sum_eq_zero
+      intro i _
+      rw [if_neg]
+      intro hne
+      exact hne (hh i)
+    · rintro (h1 | h2)
+      · exact absurd h1 hm_inv_ne
+      · intro i
+        have hi := (Finset.sum_eq_zero_iff.mp h2) i (Finset.mem_univ i)
+        by_contra hne
+        rw [if_pos hne] at hi
+        exact one_ne_zero hi
 
 /-! ### Consistent Learners -/
 
@@ -100,27 +195,85 @@ theorem IsConsistent.output_mem_conceptClass {m : ℕ} {A : Learner α β m}
 
 /-- A consistent learner's output agrees with the sample on every observed
 point. -/
-theorem IsConsistent.output_consistent {m : ℕ} {A : Learner α β m}
+theorem IsConsistent.output_agrees {m : ℕ} {A : Learner α β m}
     {C : ConceptClass α β} (hA : IsConsistent A C) (S : LabeledSample α β m)
     (i : Fin m) :
     A S (S i).1 = (S i).2 := (hA S).2 i
 
+/-- A consistent learner has zero empirical miscount on every sample. -/
+theorem IsConsistent.empiricalMiscount_eq_zero [DecidableEq β]
+    {m : ℕ} {A : Learner α β m} {C : ConceptClass α β} (hA : IsConsistent A C)
+    (S : LabeledSample α β m) :
+    empiricalMiscount (A S) S = 0 :=
+  (mem_versionSpace_iff_empiricalMiscount_zero.mp (hA S)).2
+
+/-- A consistent learner has zero empirical error on every sample. -/
+theorem IsConsistent.empiricalError_eq_zero
+    [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSingletonClass α] [MeasurableSingletonClass β]
+    {m : ℕ} {A : Learner α β m} {C : ConceptClass α β}
+    (hA : IsConsistent A C) (S : LabeledSample α β m) :
+    empiricalError (A S) S = 0 :=
+  (mem_versionSpace_iff_empiricalError_zero.mp (hA S)).2
+
 /-! ### Realizable case -/
+
+/-- A labeled sample `S` is *realizable* by concept class `C` if some concept
+in `C` labels every sample point correctly. -/
+def Realizable {m : ℕ} (C : ConceptClass α β) (S : LabeledSample α β m) : Prop :=
+  ∃ c ∈ C, ∀ i : Fin m, (S i).2 = c (S i).1
 
 /-- *Realizable version-space nonemptiness.* If a target concept `c` lies in
 `C` and the sample `S` is labeled by `c` (i.e. every `(S i).2 = c (S i).1`),
 then `c` itself lies in the version space `VersionSpace C S`. -/
 theorem mem_versionSpace_of_realizable {m : ℕ} {C : ConceptClass α β}
-    (c : α → β) (hc : c ∈ C) (S : LabeledSample α β m)
+    {c : α → β} (hc : c ∈ C) (S : LabeledSample α β m)
     (hS : ∀ i : Fin m, (S i).2 = c (S i).1) :
     c ∈ VersionSpace C S :=
   ⟨hc, fun i => (hS i).symm⟩
 
-/-- Corollary: under realizable data, the version space is nonempty. -/
-theorem versionSpace_nonempty_of_realizable {m : ℕ} {C : ConceptClass α β}
-    {c : α → β} (hc : c ∈ C) (S : LabeledSample α β m)
-    (hS : ∀ i : Fin m, (S i).2 = c (S i).1) :
+/-- A realizable sample has nonempty version space. -/
+theorem Realizable.versionSpace_nonempty {m : ℕ} {C : ConceptClass α β}
+    {S : LabeledSample α β m} (h : Realizable C S) :
     (VersionSpace C S).Nonempty :=
-  ⟨c, mem_versionSpace_of_realizable c hc S hS⟩
+  ⟨h.choose, mem_versionSpace_of_realizable h.choose_spec.1 S h.choose_spec.2⟩
+
+/-! ### Probabilistic Realizable -/
+
+/-- Under iid sampling from the realizable joint distribution induced by
+`c ∈ C` and a probability measure `P` on `α`, the target concept `c` lies in
+the version space almost surely. The `MeasurableEq β` instance ensures the
+graph of `c` is measurable. -/
+theorem ae_mem_versionSpace_of_realizable
+    [MeasurableSpace α] [MeasurableSpace β] [MeasurableEq β]
+    {C : ConceptClass α β} {c : α → β} (hc : c ∈ C) (hcm : Measurable c)
+    (P : Measure α) [IsProbabilityMeasure P] (m : ℕ) :
+    ∀ᵐ S : LabeledSample α β m
+      ∂(Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x)))),
+      c ∈ VersionSpace C S := by
+  set φ : α → α × β := fun x => (x, c x) with φ_def
+  have hφ : Measurable φ := measurable_id.prodMk hcm
+  haveI : IsProbabilityMeasure (P.map φ) :=
+    Measure.isProbabilityMeasure_map hφ.aemeasurable
+  set G : Set (α × β) := {p | p.2 = c p.1} with G_def
+  have hG_meas : MeasurableSet G :=
+    measurableSet_eq_fun measurable_snd (hcm.comp measurable_fst)
+  have hGμ : (P.map φ) G = 1 := by
+    rw [Measure.map_apply hφ hG_meas]
+    have hpre : φ ⁻¹' G = Set.univ := by ext x; simp [φ_def, G_def]
+    rw [hpre, measure_univ]
+  have hAllG : (Measure.pi (fun _ : Fin m => P.map φ))
+      (Set.univ.pi (fun _ : Fin m => G)) = 1 := by
+    rw [Measure.pi_pi]; simp [hGμ]
+  rw [ae_iff]
+  have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆
+      (Set.univ.pi (fun _ : Fin m => G))ᶜ := by
+    intro S hS hcontra
+    simp only [Set.mem_pi, Set.mem_univ, true_implies] at hcontra
+    exact hS ⟨hc, fun i => (hcontra i).symm⟩
+  have hcompl : (Measure.pi (fun _ : Fin m => P.map φ))
+      ((Set.univ.pi (fun _ : Fin m => G))ᶜ) = 0 := by
+    rw [prob_compl_eq_one_sub (MeasurableSet.univ_pi fun _ => hG_meas), hAllG, tsub_self]
+  exact measure_mono_null hsub hcompl
 
 end Cslib.MachineLearning.PACLearning
