@@ -57,6 +57,11 @@ If you are adding something new to CSLib and are in doubt about it, you are very
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
 
+# The role of AI
+
+CSLib in general follows the Mathlb [Use of AI](https://leanprover-community.github.io/contribute/index.html#use-of-ai) policy. In particular, take note of:
+> If you use artificial intelligence ... please explain this in the PR description. Explain which tool(s) you used and how you used it. This provides useful context for reviewers: tools make different mistakes than humans, so knowing this makes it easier to spot common errors.
+
 # Style and documentation
 
 We generally follow the [mathlib style for coding and documentation](https://leanprover-community.github.io/contribute/style.html), so please read that as well. Some things worth mentioning and conventions specific to CSLib are explained next.
@@ -322,12 +327,3 @@ The formal methods community has a wide range of verification techniques that co
 Since Boole back ends reduce correctness questions to Lean conjectures, automation is central.
 
 We already rely on key techniques such as `grind` and `lean-smt`. Additional work on automation for conjectures generated from Boole is welcome, including domain-specific automation that remains performant and readable.
-
-#### The role of AI
-
-There are two primary areas where generative AI can help:
-
-- generating/refining specifications (at the front-end or Boole level)
-- helping to prove Lean conjectures
-
-Other creative uses of AI are welcome, but contributions should remain reviewable and maintainable.
