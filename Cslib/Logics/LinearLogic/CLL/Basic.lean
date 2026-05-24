@@ -372,7 +372,7 @@ open scoped Multiset in
 /-- Any proposition in a proof (regardless of its position) can be substituted by
   an equivalent proposition. -/
 @[scoped grind =]
-def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
+def substEqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
   add_middle_eq_cons ▸ substEqvHead heqv (add_middle_eq_cons ▸ p)
 
 open scoped Context
