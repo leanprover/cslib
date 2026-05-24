@@ -160,27 +160,27 @@ def haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨none, Bi
 /--
 The space used by a configuration is the space used by its tape.
 -/
-def Cfg.space_used (tm : SingleTapeTM Symbol) (cfg : tm.Cfg) : ℕ := cfg.BiTape.space_used
+def Cfg.spaceUsed (tm : SingleTapeTM Symbol) (cfg : tm.Cfg) : ℕ := cfg.BiTape.spaceUsed
 
 @[scoped grind =]
-lemma Cfg.space_used_initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
-    (tm.initCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
+lemma Cfg.spaceUsed_initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
+    (tm.initCfg s).spaceUsed = max 1 s.length := BiTape.spaceUsed_mk₁ s
 
 @[scoped grind =]
-lemma Cfg.space_used_haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
-    (tm.haltCfg s).space_used = max 1 s.length := BiTape.space_used_mk₁ s
+lemma Cfg.spaceUsed_haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
+    (tm.haltCfg s).spaceUsed = max 1 s.length := BiTape.spaceUsed_mk₁ s
 
-lemma Cfg.space_used_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
-    (hstep : tm.step cfg = some cfg') : cfg'.space_used ≤ cfg.space_used + 1 := by
+lemma Cfg.spaceUsed_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
+    (hstep : tm.step cfg = some cfg') : cfg'.spaceUsed ≤ cfg.spaceUsed + 1 := by
   obtain ⟨_ | q, tape⟩ := cfg
   · simp [step] at hstep
   · simp only [step] at hstep
     generalize hM : tm.tr q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
-    | none => simp [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM]
-    | some d => simpa [Cfg.space_used, BiTape.optionMove, BiTape.space_used_write, hM] using
-        BiTape.space_used_move (tape.write wr) d
+    | none => simp [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM]
+    | some d => simpa [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM] using
+        BiTape.spaceUsed_move (tape.write wr) d
 
 end Cfg
 
@@ -215,8 +215,8 @@ lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : 
     (h : tm.OutputsWithinTime l l' t) :
     l'.length ≤ max 1 l.length + t := by
   obtain ⟨steps, hsteps_le, hevals⟩ := h
-  grind [hevals.apply_le_apply_add (Cfg.space_used tm)
-      fun a b hstep ↦ Cfg.space_used_step a b (Option.mem_def.mp hstep)]
+  grind [hevals.apply_le_apply_add (Cfg.spaceUsed tm)
+      fun a b hstep ↦ Cfg.spaceUsed_step a b (Option.mem_def.mp hstep)]
 
 section Computers
 
