@@ -41,6 +41,7 @@ section uniformBitvec
 
 /-- The monad `m` has a way to model uniform selection over `BitVec n`. -/
 class HasUniformBitVec (m : Type → Type*) where
+  /-- Select a random bitvector of length `n`. -/
   uniformBitVec (n : ℕ) : m (BitVec n)
 
 /-- `LawfulUniformBitVec` witnesses that `HasUniformBitVec.uniformBitVec` lifts to the uniform
@@ -70,6 +71,7 @@ section uniformFinset
 
 /-- The monad `m` has a way to model uniform selection over non-empty finsets. -/
 class HasUniformFinset (m : Type u → Type*) where
+  /-- Select a uniform element from the elements of `s : Finset α`. -/
   uniformFinset {α : Type u} (s : Finset α) (hs : s.Nonempty) : m α
 
 /-- `LawfulUniformFinset` witnesses that `HasUniformFinset.uniformFinset` lifts to the uniform
@@ -97,6 +99,7 @@ section uniformFintype
 
 /-- The monad `m` has a way to model uniform selection over inhabited finite types. -/
 class HasUniformFintype (m : Type u → Type*) where
+  /-- Select a random element of the finite and nonempty type `α`. -/
   uniformFintype (α : Type u) [Fintype α] [Nonempty α] : m α
 
 /-- `LawfulUniformFintype` witnesses that `HasUniformFintype.uniformFintype` lifts to the uniform

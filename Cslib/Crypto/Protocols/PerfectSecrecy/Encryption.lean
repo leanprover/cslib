@@ -47,12 +47,11 @@ variable {m : Type u → Type*} [Monad m]
 
 /-- Decryption inverts encryption for all keys in the support of `gen`. -/
 class EncScheme.Correct [MonadLiftT m PMF] {Message Key Ciphertext : Type u}
-    (scheme : EncScheme m Message Key Ciphertext) where
+    (scheme : EncScheme m Message Key Ciphertext) : Prop where
   dec_enc : ∀ key, key ∈ PMF.support scheme.gen → ∀ message ciphertext,
     ciphertext ∈ PMF.support (scheme.enc key message) → scheme.dec key ciphertext = message
 
-/-- Build an encryption scheme from deterministic pure encryption/decryption
-where decryption is a left inverse of encryption for every key. -/
+/-- Build an encryption scheme from deterministic pure encryption/decryption. -/
 def EncScheme.ofPure {Message Key Ciphertext : Type u} (gen : m Key)
     (enc : Key → Message → Ciphertext) (dec : Key → Ciphertext → Message) :
     EncScheme m Message Key Ciphertext where
@@ -60,8 +59,8 @@ def EncScheme.ofPure {Message Key Ciphertext : Type u} (gen : m Key)
   enc key message := pure (enc key message)
   dec := dec
 
-@[reducible]
-def EncScheme.ofPure.Correct [MonadLiftT m PMF] [LawfulMonadLiftT m PMF]
+/-- `EncScheme.ofPure` is correct if decryption is a left inverse of encryption for every key. -/
+lemma EncScheme.ofPure.Correct [MonadLiftT m PMF] [LawfulMonadLiftT m PMF]
     {Message Key Ciphertext : Type u} (gen : m Key)
     (enc : Key → Message → Ciphertext) (dec : Key → Ciphertext → Message)
     (h : ∀ key, Function.LeftInverse (dec key) (enc key)) :
