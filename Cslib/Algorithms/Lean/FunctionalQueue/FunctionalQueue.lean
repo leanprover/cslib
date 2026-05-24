@@ -7,7 +7,9 @@ Authors: Simon Cruanes
 module
 
 import Cslib.Init
+import Mathlib
 public import Mathlib.Algebra.Ring.Int.Defs
+public import Mathlib.Algebra.Order.Ring.Int
 public import Cslib.Algorithms.Lean.Amortized
 public import Cslib.Algorithms.Lean.TimeM
 
@@ -158,9 +160,6 @@ namespace Complexity
 def potential {α : Type u} (q : Raw.FunctionalQueue α) : ℤ :=
   q.back.length
 
-set_option trace.Meta.synthInstance true
-#synth CommRing ℤ
-
 instance functionalQueuePotential {α : Type u}
     : Amortized.Potential ℤ (Raw.FunctionalQueue α) :=
   ⟨ potential ⟩
@@ -187,8 +186,8 @@ theorem potentialEmptyIsZero {α : Type u}
   simp [potential, Raw.empty]
 
 theorem amortizedCostQueueOp {α : Type u} (q : Raw.FunctionalQueue α) (op : queueOp α)
-    : Amortized.amortizedCost q op ≤ 2 := by
-  simp only [Amortized.amortizedCost, Amortized.Potential.potential, Nat.sub_le_iff_le_add]
+    : Amortized.amortizedCost q op ≤ (2 : ℤ) := by
+  simp only [Amortized.amortizedCost, Amortized.Potential.potential, tsub_le_iff_right]
   cases op with
   | push x =>
     simp only [Amortized.Op.applyOp, applyOp, potential]
@@ -203,11 +202,11 @@ theorem costQueueOps {α : Type u}
     : (Amortized.applyOps q ops).time
         + potential (Amortized.applyOps q ops).ret
         - potential q
-      ≤ 2 * ops.length
+      ≤ (2 : ℤ) * ops.length
     := by
   have useful
     := Amortized.constantAmortizedCostL 2 amortizedCostQueueOp q ops
-  simp only [Amortized.amortizedCostL, Amortized.Potential.potential]
+  simp only [Amortized.Potential.potential]
     at useful
   grind only
 
