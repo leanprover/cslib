@@ -652,7 +652,7 @@ instance : Congruence (Proposition Atom) Proposition.Equiv where
 
 noncomputable instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
   eqv := Proposition.Equiv
-  eqv_fill_valid {a b : Proposition Atom} (heqv : a.Equiv b)
+  eqvFillValid {a b : Proposition Atom} (heqv : a.Equiv b)
       (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
       (h : ⇓c<[a]) : ⇓c<[b] := by
     apply substEqvHead (chooseEquiv heqv) h
