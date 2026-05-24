@@ -76,7 +76,7 @@ with the head under the first element of the list if it exists.
 def mk₁ (l : List Symbol) : BiTape Symbol :=
   match l with
   | [] => ∅
-  | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
+  | h :: t => { head := some h, left := ∅, right := StackTape.mapSome t }
 
 section Move
 
@@ -136,7 +136,7 @@ lemma spaceUsed_mk₁ (l : List Symbol) :
     (mk₁ l).spaceUsed = max 1 l.length := by
   cases l with
   | nil => simp [mk₁, spaceUsed, nil, StackTape.length_nil]
-  | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_map_some]; omega
+  | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_mapSome]; omega
 
 lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
     (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
