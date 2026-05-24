@@ -105,24 +105,41 @@ and polynomially time-related, it is generally agreed that they capture the same
 complexity theory.
 
 For some computation models, this is true except for space bounds below linear - we could
-have a special exception for those. -/
+have a special exception for those.
+
+In order to make this consistent relative to encodings, we need to ensure that the encodings
+do not blow up the input too much: -/
+
+/-- The encodings of two machine models are linearly related in size for a type `α`. -/
+def LinearlySizeRelatedEncodings (Machine₁ Machine₂ : Type) [MachineModel Machine₁] [MachineModel Machine₂]
+  (α : Type) [MachineEncodable Machine₁ α] [MachineEncodable Machine₂ α] : Prop :=
+  ∃ k, ∀ x : α,
+      encodedSize (Machine := Machine₁) x ≤ k * encodedSize (Machine := Machine₂) x ∧
+      encodedSize (Machine := Machine₂) x ≤ k * encodedSize (Machine := Machine₁) x
+
 
 /-- Two machine models are linearly space-related, if all functions that are encodable in both
 models are computable in the same space bound. -/
-def LinearlySpaceRelated (Machine₁ Machine₂ : Type)
-  [MachineModel Machine₁] [MachineModel Machine₂] : Prop :=
-  ∀ α β : Type, ∀ [MachineEncodable Machine₁ α] [MachineEncodable Machine₁ β]
-    [MachineEncodable Machine₂ α] [MachineEncodable Machine₂ β],
+def LinearlySpaceRelated
+  (Machine₁ Machine₂ : Type) [MachineModel Machine₁] [MachineModel Machine₂]
+  (α β : Type)
+  [MachineEncodable Machine₁ α] [MachineEncodable Machine₁ β]
+  [MachineEncodable Machine₂ α] [MachineEncodable Machine₂ β] : Prop :=
+  LinearlySizeRelatedEncodings Machine₁ Machine₂ α →
+    LinearlySizeRelatedEncodings Machine₁ Machine₂ β →
     ∀ f : α → β, ∀ s,
       ComputableInOSpace (Machine := Machine₁) f s ↔ ComputableInOSpace (Machine := Machine₂) f s
 
 /-- Two machine models are polynomially time-related if all functions that are encodable in both
 models can be simulated with a polynomial overhead. -/
-def PolynomiallyTimeRelated (Machine₁ Machine₂ : Type)
-  [MachineModel Machine₁] [MachineModel Machine₂] : Prop :=
-  ∃ k₁ k₂,
-  ∀ α β : Type, ∀ [MachineEncodable Machine₁ α] [MachineEncodable Machine₁ β]
-    [MachineEncodable Machine₂ α] [MachineEncodable Machine₂ β],
+def PolynomiallyTimeRelated
+  (Machine₁ Machine₂ : Type) [MachineModel Machine₁] [MachineModel Machine₂]
+  (α β : Type)
+  [MachineEncodable Machine₁ α] [MachineEncodable Machine₁ β]
+  [MachineEncodable Machine₂ α] [MachineEncodable Machine₂ β] : Prop :=
+  LinearlySizeRelatedEncodings Machine₁ Machine₂ α →
+    LinearlySizeRelatedEncodings Machine₁ Machine₂ β →
+    ∃ k₁ k₂,
     ∀ f : α → β, ∀ t,
       ComputableInOTime (Machine := Machine₁) f t →
         ComputableInOTime (Machine := Machine₂) f (fun n => (t n) ^ k₁) ∧
