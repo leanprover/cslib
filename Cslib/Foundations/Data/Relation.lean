@@ -636,10 +636,10 @@ macro_rules
   def PredReduction (a b : ℕ) : Prop := a = b + 1
   ```
 -/
-syntax (name := reduction_sys) "reduction_sys" (ppSpace str)? : attr
+syntax (name := reductionSys) "reduction_sys" (ppSpace str)? : attr
 
 initialize Lean.registerBuiltinAttribute {
-  name := `reduction_sys
+  name := `reductionSys
   descr := "Register notation for a relation and its closures."
   add := fun decl stx _ => MetaM.run' do
     let currNamespace ← getCurrNamespace
