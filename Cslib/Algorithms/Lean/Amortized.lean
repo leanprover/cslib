@@ -12,6 +12,8 @@ public import Cslib.Algorithms.Lean.TimeM
 public import Mathlib.Algebra.Ring.Defs
 public import Mathlib.Order.Defs.PartialOrder
 public import Mathlib.Algebra.Order.Ring.Defs
+public import Mathlib.Algebra.Ring.Int.Defs
+public import Mathlib.Algebra.Order.Ring.Int
 
 /-!
 # Amortized cost analysis
@@ -25,7 +27,7 @@ namespace Cslib.Algorithms.Lean.Amortized
 
 /-- Physicist method: a potential (lower bound on savings) defined on a
     data structure -/
-class Potential φ α extends CommRing φ, LinearOrder φ, IsStrictOrderedRing φ where
+class Potential φ α [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ] where
   /-- [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
   potential : α → φ
 
@@ -39,7 +41,7 @@ class Op α o where
 /-- Amortized cost with the physicist's method,
     following Okasaki, chapter 5 -/
 def amortizedCost {α o φ : Type*}
-    [Op α o] [Add φ] [Sub φ] [NatCast φ] [Potential φ α]
+    [Op α o] [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ] [Potential φ α]
     (x : α) (op : o) : φ :=
   Nat.cast (Op.applyOp x op).time
     + Potential.potential (Op.applyOp x op).ret
@@ -48,6 +50,7 @@ def amortizedCost {α o φ : Type*}
 /-- If each operation's cost is bounded by `k`, then the amortized
   cost over a series of operations is bounded by `k * ops.length`. -/
 theorem constantAmortizedCostL {α o φ : Type*}
+    [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ]
     [h_op : Op α o] [h_pot : Potential φ α]
     (k : φ) (h_bounded : ∀ (x : α) (op : o), amortizedCost x op ≤ k)
     (x : α) (ops : List o)
