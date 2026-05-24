@@ -7,6 +7,7 @@ Authors: Simon Cruanes
 module
 
 import Cslib.Init
+public import Mathlib.Algebra.Ring.Int.Defs
 public import Cslib.Algorithms.Lean.Amortized
 public import Cslib.Algorithms.Lean.TimeM
 
@@ -154,11 +155,14 @@ end Raw
 
 namespace Complexity
 
-def potential {α : Type u} (q : Raw.FunctionalQueue α) : Nat :=
+def potential {α : Type u} (q : Raw.FunctionalQueue α) : ℤ :=
   q.back.length
 
+set_option trace.Meta.synthInstance true
+#synth CommRing ℤ
+
 instance functionalQueuePotential {α : Type u}
-    : Amortized.Potential (Raw.FunctionalQueue α) :=
+    : Amortized.Potential ℤ (Raw.FunctionalQueue α) :=
   ⟨ potential ⟩
 
 inductive queueOp (α : Type u) where
