@@ -62,7 +62,7 @@ theorem IsRegular.not_da_buchi :
   ∃ (Symbol : Type) (p : ωLanguage Symbol), p.IsRegular ∧
     ¬ ∃ (State : Type) (da : DA.Buchi State Symbol), language da = p := by
   refine ⟨Fin 2, Example.eventuallyZero, ?_, ?_⟩
-  · use Fin 2, inferInstance, Example.eventuallyZero_na,
+  · use Fin 2, inferInstance, Example.eventuallyZeroNa,
       Example.eventuallyZero_accepted_by_na_buchi
   · rintro ⟨State, ⟨da, acc⟩, _⟩
     have := Example.eventuallyZero_not_omegaLim

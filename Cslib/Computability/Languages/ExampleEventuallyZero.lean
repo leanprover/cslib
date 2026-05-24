@@ -33,15 +33,15 @@ def eventuallyZero : ωLanguage (Fin 2) :=
 
 /-- `eventuallyZero` is accepted by a 2-state nondeterministic Buchi automaton. -/
 @[scoped grind =]
-def eventuallyZero_na : NA.Buchi (Fin 2) (Fin 2) where
+def eventuallyZeroNa : NA.Buchi (Fin 2) (Fin 2) where
   -- Once state 1 is reached, only symbol 0 is accepted and the next state is still 1
   Tr s x s' := s = 1 → x = 0 ∧ s' = 1
   start := {0}
   accept := {1}
 
 theorem eventuallyZero_accepted_by_na_buchi :
-    language eventuallyZero_na = eventuallyZero := by
-  ext xs; unfold eventuallyZero_na; constructor
+    language eventuallyZeroNa = eventuallyZero := by
+  ext xs; unfold eventuallyZeroNa; constructor
   · rintro ⟨ss, h_run, h_acc⟩
     obtain ⟨m, h_m⟩ := Frequently.exists h_acc
     apply eventually_atTop.mpr
