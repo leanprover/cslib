@@ -183,12 +183,12 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
   | implE D D' => implE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
 
 /-- Weakening the theory only. -/
-def Theory.Derivation.weak_theory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
+def Theory.Derivation.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
     (hTheory : T ⊆ T') : T⇓(Γ ⊢ A) → T'⇓(Γ ⊢ A):=
   Derivation.weak hTheory Finset.Subset.rfl
 
 /-- Weakening the context only. -/
-def Theory.Derivation.weak_ctx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
+def Theory.Derivation.weakCtx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
     (hCtx : Γ ⊆ Δ) : T⇓(Γ ⊢ A) → T⇓(Δ ⊢ A) :=
   Derivation.weak Set.Subset.rfl hCtx
 
@@ -198,14 +198,14 @@ theorem DerivableIn.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Propositio
   | ⟨D⟩ => ⟨D.weak hTheory hCtx⟩
 
 /-- Proof irrelevant weakening of the theory. -/
-theorem DerivableIn.weak_theory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
+theorem DerivableIn.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
     (hTheory : T ⊆ T') : DerivableIn T (Γ ⊢ A) → DerivableIn T' (Γ ⊢ A)
-  | ⟨D⟩ => ⟨D.weak_theory hTheory⟩
+  | ⟨D⟩ => ⟨D.weakTheory hTheory⟩
 
 /-- Proof irrelevant weakening of the context. -/
-theorem DerivableIn.weak_ctx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
+theorem DerivableIn.weakCtx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
     (hCtx : Γ ⊆ Δ) : DerivableIn T (Γ ⊢ A) → DerivableIn T (Δ ⊢ A)
-  | ⟨D⟩ => ⟨D.weak_ctx hCtx⟩
+  | ⟨D⟩ => ⟨D.weakCtx hCtx⟩
 
 /--
 Implement the cut rule, removing a hypothesis `A` from `E` using a derivation `D`. This is *not*
@@ -213,9 +213,9 @@ substitution, which would replace appeals to `A` in `E` by the whole derivation 
 -/
 def Theory.Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : T⇓(Γ ⊢ A)) (E : T⇓(insert A Δ ⊢ B)) : T⇓((Γ ∪ Δ) ⊢ B) := by
-  refine implE (A := A) ?_ (D.weak_ctx Finset.subset_union_left)
+  refine implE (A := A) ?_ (D.weakCtx Finset.subset_union_left)
   have : insert A Δ ⊆ insert A (Γ ∪ Δ) := by grind
-  exact implI (Γ ∪ Δ) <| E.weak_ctx this
+  exact implI (Γ ∪ Δ) <| E.weakCtx this
 
 /-- Proof irrelevant cut rule. -/
 theorem DerivableIn.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom} :
@@ -228,7 +228,7 @@ theorem DerivableIn.cut_away {Γ Γ' : Ctx Atom} {B : Proposition Atom}
     (hΔ : ∀ A ∈ Γ', DerivableIn T (Γ ⊢ A)) (hDer : DerivableIn T ((Γ ∪ Γ') ⊢ B)) :
     DerivableIn T (Γ ⊢ B) := by
   induction Γ' using Finset.induction with
-  | empty => exact DerivableIn.weak_ctx (by grind) hDer
+  | empty => exact DerivableIn.weakCtx (by grind) hDer
   | insert A Δ hA ih =>
     apply ih
     · intro A' hA'
@@ -246,7 +246,7 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
   | @ass _ _ _ _ B hB => by
     by_cases B ∈ Γ'
     case pos h =>
-      exact (Ds B h).weak_ctx <| by grind
+      exact (Ds B h).weakCtx <| by grind
     case neg h =>
       exact ass <| by grind
   | andI E E' => andI (E.subs Ds) (E'.subs Ds)
@@ -257,13 +257,13 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
   | @orE _ _ _ _ C C' _ E E' E'' .. => by
     apply orE (E.subs Ds)
     · rw [show insert C (Γ \ Γ' ∪ Δ) = (insert C Γ \ Γ') ∪ insert C Δ by grind]
-      exact E'.subs Ds |>.weak_ctx (by grind)
+      exact E'.subs Ds |>.weakCtx (by grind)
     · rw [show insert C' (Γ \ Γ' ∪ Δ) = (insert C' Γ \ Γ') ∪ insert C' Δ by grind]
-      exact E''.subs Ds |>.weak_ctx (by grind)
+      exact E''.subs Ds |>.weakCtx (by grind)
   | @implI _ _ _ A' _ _ E .. => by
     apply implI
     rw [show insert A' (Γ \ Γ' ∪ Δ) = (insert A' Γ \ Γ') ∪ insert A' Δ by grind]
-    exact E.subs Ds |>.weak_ctx (by grind)
+    exact E.subs Ds |>.weakCtx (by grind)
   | implE E E' => implE (E.subs Ds) (E'.subs Ds)
 
 /-- Transport a derivation along a substitution of atoms. -/
@@ -300,9 +300,9 @@ theorem derivableIn_top [Inhabited Atom] : DerivableIn T (⊤ : Proposition Atom
 theorem derivable_iff_equiv_top [Inhabited Atom] (A : Proposition Atom) :
     DerivableIn T A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
-  · refine ⟨derivationTop.weak_ctx <| by grind, ?_⟩
+  · refine ⟨derivationTop.weakCtx <| by grind, ?_⟩
     let D := Classical.choice h
-    exact D.weak_ctx <| by grind
+    exact D.weakCtx <| by grind
   · have := DerivableIn.cut (derivableIn_top (T := T)) (B := A) (Δ := ∅)
     rw [←show (∅ : Ctx Atom) = ∅ ∪ ∅ by rfl] at this
     exact this h.mpr

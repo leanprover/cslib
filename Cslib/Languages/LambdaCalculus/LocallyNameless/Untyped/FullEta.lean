@@ -44,6 +44,14 @@ lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
   refine Xi.step_lc_r ?_ step
   grind
 
+/-- The left side of an η-reduction is locally closed. -/
+lemma step_lc_l [HasFresh Var] (step : M ⭢ηᶠ M') : LC M := by
+  induction step with
+  | base h_e => cases h_e with | eta => apply LC.abs ∅; grind
+  | appL lc_Z _ ih => exact LC.app lc_Z ih
+  | appR lc_Z _ ih => exact LC.app ih lc_Z
+  | @abs M' _ xs _ ih => exact LC.abs xs M' ih
+
 /-- Left congruence rule for application in multiple reduction. -/
 theorem redex_app_l_cong (redex : M ↠ηᶠ M') (lc_N : LC N) : app M N ↠ηᶠ app M' N := by
   induction redex <;> grind
@@ -69,7 +77,7 @@ lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
   | abs =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
-    grind [close_preserve_not_fvar, open_fresh_preserve_not_fvar]
+    grind [close_preserve_not_fvar, open_preserve_not_fvar]
   | _ => grind
 
 /-- Substitution of a fresh variable preserves an η-reduction step. -/
