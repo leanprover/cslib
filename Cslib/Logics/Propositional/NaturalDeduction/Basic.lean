@@ -183,7 +183,7 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
   | implE D D' => implE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
 
 /-- Weakening the theory only. -/
-def Theory.Derivation.weak_theory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
+def Theory.Derivation.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
     (hTheory : T ⊆ T') : T⇓(Γ ⊢ A) → T'⇓(Γ ⊢ A):=
   Derivation.weak hTheory Finset.Subset.rfl
 
@@ -198,9 +198,9 @@ theorem DerivableIn.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Propositio
   | ⟨D⟩ => ⟨D.weak hTheory hCtx⟩
 
 /-- Proof irrelevant weakening of the theory. -/
-theorem DerivableIn.weak_theory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
+theorem DerivableIn.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
     (hTheory : T ⊆ T') : DerivableIn T (Γ ⊢ A) → DerivableIn T' (Γ ⊢ A)
-  | ⟨D⟩ => ⟨D.weak_theory hTheory⟩
+  | ⟨D⟩ => ⟨D.weakTheory hTheory⟩
 
 /-- Proof irrelevant weakening of the context. -/
 theorem DerivableIn.weak_ctx {T : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposition Atom}
