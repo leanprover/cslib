@@ -20,7 +20,7 @@ they always halt exactly at their length.
 ## Main results
 
 - `straight_line_halts`: straight-line programs always halt
-- `straightLine_finalState`: final state after running a straight-line program
+- `straightLinefinalState`: final state after running a straight-line program
 -/
 
 @[expose] public section
@@ -100,27 +100,27 @@ theorem straight_line_halts {p : Program} (hsl : p.IsStraightLine) (inputs : Lis
 
 /-- The halting state for a straight-line program starting from registers r.
 Wraps Classical.choose to hide it from the API. -/
-noncomputable def straightLine_finalState {p : Program}
+noncomputable def straightLinefinalState {p : Program}
     (hsl : p.IsStraightLine) (r : Regs) : State :=
   Classical.choose (straight_line_halts_from_regs hsl r)
 
-/-- Specification: the state from straightLine_finalState satisfies Steps, isHalted,
+/-- Specification: the state from straightLinefinalState satisfies Steps, isHalted,
 and has pc = p.length. -/
-theorem straightLine_finalState_spec {p : Program} (hsl : p.IsStraightLine) (r : Regs) :
-    let s := straightLine_finalState hsl r
+theorem straightLinefinalState_spec {p : Program} (hsl : p.IsStraightLine) (r : Regs) :
+    let s := straightLinefinalState hsl r
     Steps p ⟨0, r⟩ s ∧ s.isHalted p ∧ s.pc = p.length :=
   Classical.choose_spec (straight_line_halts_from_regs hsl r)
 
 /-- The final registers after running a straight-line program from given starting registers. -/
-noncomputable def straightLine_finalRegs {p : Program} (hsl : p.IsStraightLine) (r : Regs) : Regs :=
-  (straightLine_finalState hsl r).regs
+noncomputable def straightLineFinalRegs {p : Program} (hsl : p.IsStraightLine) (r : Regs) : Regs :=
+  (straightLinefinalState hsl r).regs
 
-/-- For a straight-line program, s.regs equals straightLine_finalRegs if halted from r. -/
-theorem straightLine_finalRegs_eq_of_halted {p : Program} (hsl : p.IsStraightLine)
+/-- For a straight-line program, s.regs equals straightLineFinalRegs if halted from r. -/
+theorem straightLineFinalRegs_eq_of_halted {p : Program} (hsl : p.IsStraightLine)
     (r : Regs) (s : State) (hsteps : Steps p ⟨0, r⟩ s) (hhalted : s.isHalted p) :
-    s.regs = straightLine_finalRegs hsl r :=
-  Steps.eq_of_halts hsteps hhalted (straightLine_finalState_spec hsl r).1
-    (straightLine_finalState_spec hsl r).2.1 ▸ rfl
+    s.regs = straightLineFinalRegs hsl r :=
+  Steps.eq_of_halts hsteps hhalted (straightLinefinalState_spec hsl r).1
+    (straightLinefinalState_spec hsl r).2.1 ▸ rfl
 
 /-- In a straight-line program, we can characterize the state at any intermediate pc.
 This gives us the state after executing instructions 0..pc-1. -/

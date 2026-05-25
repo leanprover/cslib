@@ -111,18 +111,6 @@ def fv : Term Var → Finset Var
 | abs e1 => e1.fv
 | app l r => l.fv ∪ r.fv
 
-/-- Locally closed terms. -/
-inductive LC : Term Var → Prop
-| fvar (x : Var)  : LC (fvar x)
-| abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
-| app {l r} : l.LC → r.LC → LC (app l r)
-
-attribute [scoped grind .] LC.fvar LC.app
-
-/-- Values are irreducible terms. -/
-inductive Value : Term Var → Prop
-| abs (e : Term Var) : e.abs.LC → e.abs.Value
-
 section
 
 omit [HasFresh Var]

@@ -140,7 +140,7 @@ lemma cons_head_tail (l : StackTape Symbol) :
 
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
-def map_some (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
+def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
 
 section Length
 
@@ -169,7 +169,7 @@ lemma length_cons_le (o : Option Symbol) (l : StackTape Symbol) :
   cases o <;> grind
 
 @[simp, scoped grind =]
-lemma length_map_some (l : List Symbol) : (map_some l).length = l.length := by grind
+lemma length_mapSome (l : List Symbol) : (mapSome l).length = l.length := by grind
 
 @[simp, scoped grind =]
 lemma length_nil : (nil : StackTape Symbol).length = 0 := by grind

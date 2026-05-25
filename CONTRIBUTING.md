@@ -2,6 +2,7 @@
 
 - [Contributing to CSLib](#contributing-to-cslib)
 - [Contribution model](#contribution-model)
+- [The role of AI](#the-role-of-ai)
 - [Style and documentation](#style-and-documentation)
   - [Variable names](#variable-names)
   - [Proof style and golfing :golf:](#proof-style-and-golfing-golf)
@@ -38,8 +39,6 @@
       - [Back ends for Boole](#back-ends-for-boole)
       - [Implementing verification paradigms](#implementing-verification-paradigms)
       - [Lean automation](#lean-automation)
-      - [The role of AI](#the-role-of-ai)
-
 
 # Contributing to CSLib
 
@@ -56,6 +55,11 @@ Each PR needs to be approved by at least one relevant maintainer. You can read t
 If you are adding something new to CSLib and are in doubt about it, you are very welcome to contact us on the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
+
+# The role of AI
+
+CSLib in general follows the Mathlib policy on [use of AI](https://leanprover-community.github.io/contribute/index.html#use-of-ai). In particular, take note of:
+> If you use artificial intelligence [...] please explain this in the PR description. Explain which tool(s) you used and how you used it. This provides useful context for reviewers: tools make different mistakes than humans, so knowing this makes it easier to spot common errors.
 
 # Style and documentation
 
@@ -322,12 +326,3 @@ The formal methods community has a wide range of verification techniques that co
 Since Boole back ends reduce correctness questions to Lean conjectures, automation is central.
 
 We already rely on key techniques such as `grind` and `lean-smt`. Additional work on automation for conjectures generated from Boole is welcome, including domain-specific automation that remains performant and readable.
-
-#### The role of AI
-
-There are two primary areas where generative AI can help:
-
-- generating/refining specifications (at the front-end or Boole level)
-- helping to prove Lean conjectures
-
-Other creative uses of AI are welcome, but contributions should remain reviewable and maintainable.

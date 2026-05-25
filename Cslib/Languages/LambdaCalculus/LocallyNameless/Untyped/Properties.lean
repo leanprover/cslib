@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 
 /-! General properties of opening and substitution in untyped lambda calculus terms. -/
 
@@ -21,11 +21,6 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 attribute [grind =] Finset.union_singleton
-
-/-- An opening appearing in both sides of an equality of terms can be removed. -/
-lemma open_lc_aux (e : Term Var) (j v i u) (neq : i ≠ j) (eq : e⟦j ↝ v⟧ = e⟦j ↝ v⟧⟦i ↝ u⟧) :
-    e = e ⟦i ↝ u⟧ := by
-  induction e generalizing j i <;> grind
 
 variable [DecidableEq Var]
 
@@ -52,7 +47,7 @@ lemma swap_open_fvar_close (k n : ℕ) (x y : Var) (m : Term Var) (neq₁ : k �
   induction m generalizing k n <;> grind
 
 /-- Closing preserves free variables. -/
-lemma close_preserve_not_fvar {k x y} (m : Term Var) (nmem : x ∉ m.fv) : x ∉ (m⟦k ↜ y⟧).fv := by
+lemma close_preserve_not_fvar {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := by
   induction m generalizing k <;> grind
 
 /-- Opening preserves free variables. -/
@@ -77,11 +72,9 @@ variable [HasFresh Var]
 
 omit [DecidableEq Var] in
 /-- A locally closed term is unchanged by opening. -/
-@[scoped grind =_]
-lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e = e⟦k ↝ t⟧ := by
-  induction e_lc generalizing k with
-  | abs xs e _ _ => grind [open_lc_aux e 0 (fvar (fresh xs)) (k+1) t]
-  | _ => grind
+@[scoped grind =]
+lemma open_lc (k t) (e : Term Var) (e_lc : e.LC) : e⟦k ↝ t⟧ = e :=
+  lcAt_openRec_above_lcAt e t 0 k k.zero_le ((lcAt_iff_LC e).mpr e_lc)
 
 omit [DecidableEq Var] in
 /-- Opening is associative for nonclashing locally closed terms. -/
