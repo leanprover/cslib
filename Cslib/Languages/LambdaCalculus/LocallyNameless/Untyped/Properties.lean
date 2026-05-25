@@ -56,7 +56,7 @@ lemma close_rec_fv {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := 
 lemma close_var_not_fvar (x) (t : Term Var) : (t ^* x).fv = t.fv.erase x := close_rec_fv t
 
 /-- Opening preserves free variables. -/
-theorem open_preserve_not_fvar {k} {m n : Term Var} :
+theorem open_preserve_not_fvar (k) (m n : Term Var) :
     m⟦k ↝ n⟧.fv = m.fv ∪ n.fv ∨ m⟦k ↝ n⟧.fv = m.fv := by
   induction m generalizing k <;> grind
 
