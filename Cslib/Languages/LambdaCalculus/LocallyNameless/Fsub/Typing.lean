@@ -124,29 +124,29 @@ lemma subst_tm (der : Typing (Γ ++ ⟨X, .ty σ⟩ :: Δ) t τ) (der_sub : Typi
       -/
       grind [→ List.mem_dlookup, weaken_head, Env.Wf.strengthen, -append_assoc]
     · grind [Env.Wf.strengthen, => List.perm_dlookup]
-  case abs => grind [abs (free_union Var), open_tm_subst_tm_var]
-  case tabs => grind [tabs (free_union Var), open_ty_subst_tm_var]
-  case let' der _ => grind [let' (free_union Var) (der eq), open_tm_subst_tm_var]
+  case abs => grind [abs (free_union Var), openTm_substTm_var]
+  case tabs => grind [tabs (free_union Var), openTy_substTm_var]
+  case let' der _ => grind [let' (free_union Var) (der eq), openTm_substTm_var]
   case case der _ _ =>
-    apply case (free_union Var) (der eq) <;> grind [open_tm_subst_tm_var]
+    apply case (free_union Var) (der eq) <;> grind [openTm_substTm_var]
   all_goals grind [Env.Wf.strengthen, Ty.Wf.strengthen, Sub.strengthen]
 
 /-- Type substitution within a typing. -/
 lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub : Sub Δ δ δ') :
-    Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := by
+    Typing (Γ.mapVal (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at der
   induction der generalizing Γ X
   case var σ _ X' _ mem =>
     have := map_subst_nmem Δ X δ
-    have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
+    have := @mapVal_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
     grind [Env.Wf.map_subst, → notMem_keys_of_nodupKeys_cons]
-  case abs => grind [abs (free_union [Ty.fv] Var), Ty.subst_fresh, open_tm_subst_ty_var]
-  case tabs => grind [tabs (free_union Var), open_ty_subst_ty_var, open_subst_var]
+  case abs => grind [abs (free_union [Ty.fv] Var), Ty.subst_fresh, openTm_substTy_var]
+  case tabs => grind [tabs (free_union Var), openTy_substTy_var, open_subst_var]
   case let' der _ =>
     apply let' (free_union Var) (der eq)
-    grind [open_tm_subst_ty_var]
+    grind [openTm_substTy_var]
   case case der _ _ =>
-    apply case (free_union Var) (der eq) <;> grind [open_tm_subst_ty_var]
+    apply case (free_union Var) (der eq) <;> grind [openTm_substTy_var]
   case tapp => grind [Ty.open_subst, Env.Wf.map_subst, Ty.Wf.map_subst, Sub.map_subst]
   all_goals grind [Env.Wf.map_subst, Ty.Wf.map_subst, Sub.map_subst]
 

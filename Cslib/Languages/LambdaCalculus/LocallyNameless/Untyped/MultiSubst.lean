@@ -51,10 +51,10 @@ def Env.fv (E : Env Var) : Finset Var :=
 attribute [scoped grind =] Env.fv
 
 /-- An environment is locally closed if all terms in the environment are locally closed -/
-abbrev env_LC (E : Env Var) : Prop := ∀ {x M}, ⟨x, M⟩ ∈ E → LC M
+abbrev envLC (E : Env Var) : Prop := ∀ {x M}, ⟨x, M⟩ ∈ E → LC M
 
 /-- Adding a locally closed term to an environment preserves local closure -/
-lemma env_LC_cons (lc_sub : LC sub) (lc_E : env_LC E) : env_LC (⟨ x, sub ⟩ :: E) := by
+lemma envLC_cons (lc_sub : LC sub) (lc_E : envLC E) : envLC (⟨ x, sub ⟩ :: E) := by
   grind
 
 /-- Multi-substitution of a fresh variable does nothing -/
@@ -81,7 +81,7 @@ lemma multiSubst_abs (M : Term Var) (E : Env Var) :
     provided that the variable is not in the domain of the environment
     and the environment is locally closed -/
 lemma multiSubst_open_var [HasFresh Var] (M : Term Var) (E : Env Var) (x : Var)
-  (h_ndom : x ∉ E.dom) (h_lc : env_LC E) :
+  (h_ndom : x ∉ E.dom) (h_lc : envLC E) :
     multiSubst E (M ^ fvar x) = multiSubst E M ^ fvar x := by
   induction E with grind
 

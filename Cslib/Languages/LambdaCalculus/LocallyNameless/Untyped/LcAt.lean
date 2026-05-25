@@ -72,6 +72,18 @@ theorem lcAt_openRec_fvar_iff_lcAt (M : Term Var) (x : Var) (i : ℕ) :
 theorem lcAt_open_fvar_iff_lcAt (M : Term Var) (x : Var) : LcAt 0 (M ^ fvar x) ↔ LcAt 1 M :=
   lcAt_openRec_fvar_iff_lcAt M x 0
 
+/-- Locally closed terms. -/
+inductive LC : Term Var → Prop
+| fvar (x : Var)  : LC (fvar x)
+| abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
+| app {l r} : l.LC → r.LC → LC (app l r)
+
+attribute [scoped grind .] LC.fvar LC.app
+
+/-- Values are irreducible terms. -/
+inductive Value : Term Var → Prop
+| abs (e : Term Var) : e.abs.LC → e.abs.Value
+
 /-- `M` is `LcAt 0` if and only if `M` is locally closed. -/
 theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
   induction M using LambdaCalculus.LocallyNameless.Untyped.Term.ind_on_depth with
@@ -97,5 +109,9 @@ lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
 lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs) := by
   rw [← lcAt_iff_LC] at *
   exact lcAt_openRec_lcAt _ _ _ hlc
+
+lemma lcAt_openRec_above_lcAt (M N : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) :
+    M⟦j ↝ N⟧ = M := by
+  induction M generalizing i j <;> grind
 
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term
