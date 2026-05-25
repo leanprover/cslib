@@ -100,9 +100,11 @@ namespace GrowthRate
 
 section defs
 
+/-- The `GrowthRate` corresponding to `O(f)` in Landau notation. -/
 def bigO (g : ℕ → ℕ) : GrowthRate :=
   setOf <| fun f ↦ (f · : ℕ → ℤ) =O[.atTop] (g · : ℕ → ℤ)
 
+/-- The `GrowthRate` corresponding to `o(f)` in Landau notation. -/
 def littleO (g : ℕ → ℕ) : GrowthRate :=
   setOf <| fun f ↦ (f · : ℕ → ℤ) =o[.atTop] (g · : ℕ → ℤ)
 
@@ -242,6 +244,7 @@ end basic
 
 end GrowthRate
 
+@[nolint topNamespace]
 /-- We call a `GrowthRate` *lawful* if it is closed under dominating sequences, addition, and
 composition with a sublinear function; and is nontrivial (it contains at least one function besides
 zero).
@@ -389,6 +392,8 @@ lemma affine_comp {S : GrowthRate} [LawfulGrowthRate S] {f : ℕ → ℕ} {a b :
 
 section instances
 
+/-- We can show that `GrowthRate.bigO f` is a `LawfulGrowthRate` if it satisfies two mild conditions:
+f is positive at some point, and it's closed under composition with sub-identity functions. -/
 @[implicit_reducible]
 def instLawfulBigO
       (hf : ∃ a, ∀ (b : ℕ), a ≤ b → 0 < f b)
@@ -409,6 +414,8 @@ def instLawfulBigO
     simpa using hf
   comp_le_id hf hg := hf₂ _ hf _ hg
 
+/-- We can show that `GrowthRate.littleO f` is a `LawfulGrowthRate` if it satisfies two mild conditions:
+f dominates the constant function 1, and it's closed under composition with sub-identity functions. -/
 @[implicit_reducible]
 def instLawfulLittleO (hf : 1 ∈ littleO f)
   (hf₂ : ∀ k g, k ∈ littleO f → (∀ x, g x ≤ x) → (k ∘ g) ∈ littleO f) :
@@ -948,10 +955,8 @@ lemma runningMax_mono (f : ℕ → ℕ) : Monotone (runningMax f) := by
   refine monotone_nat_of_le_succ fun n ↦ ?_
   exact le_max_left _ _
 
-/-
-The step function for `runningMax` is primitive recursive.
--/
-def runningMaxStep (f : ℕ → ℕ) (n res : ℕ) : ℕ := res ⊔ (f (n + 1))
+/-- The step function for `runningMax` is primitive recursive. -/
+private def runningMaxStep (f : ℕ → ℕ) (n res : ℕ) : ℕ := res ⊔ (f (n + 1))
 
 lemma runningMaxStep_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
     Nat.Primrec (Nat.unpaired (runningMaxStep f)) := by
@@ -970,9 +975,7 @@ lemma runningMaxStep_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
   unfold runningMaxStep
   aesop
 
-/-
-If `f` is primitive recursive, then `runningMax f` is primitive recursive.
--/
+/-- If `f` is primitive recursive, then `runningMax f` is primitive recursive. -/
 lemma runningMax_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) : Nat.Primrec (runningMax f) := by
   have h (n) : runningMax f n = n.rec (f 0) (Nat.unpaired (runningMaxStep f) <| Nat.pair · ·) := by
     induction n <;> aesop
@@ -1071,7 +1074,7 @@ instance : LawfulGrowthRate primitiveRecursive where
         erw [Real.norm_of_nonneg] <;> norm_cast <;> linarith
     exact ⟨H', hH'_primrec, h_comp⟩
 
-/-
+/--
 For every computable function `f`, there exists a computable monotone function `g` such
 that `f ≤ g`.
 -/
@@ -1135,9 +1138,7 @@ lemma exists_monotone_computable_bound' {f : ℕ → ℕ} (hf : Computable f) :
     induction n <;> simp [g, List.range_succ]
   exact ⟨g, hg, hmono, hle⟩
 
-/-
-If `h` is monotone and `≥ 1`, and `f = O(h)` and `g ≤ id`, then `f ∘ g = O(h)`.
--/
+/-- If `h` is monotone and `≥ 1`, and `f = O(h)` and `g ≤ id`, then `f ∘ g = O(h)`. -/
 lemma bigO_comp_le_id {f g h : ℕ → ℕ} (hh_mono : Monotone h) (hh_pos : ∀ n, 1 ≤ h n)
      (hf : f ∈ bigO h) (hg : g ≤ id) : f ∘ g ∈ bigO h := by
   obtain ⟨C, N, hC⟩ : ∃ C N, ∀ n ≥ N, f n ≤ C * h n := by
@@ -1743,7 +1744,7 @@ theorem log_ssubset_polylog : log ⊂ polylog := by
   · simp only [one_lt_two, Nat.log_pow, Nat.cast_add, Nat.cast_one]
     nlinarith
 
-/-
+/--
 For f ∈ polylog, there exists k with f = O((log n)^k). We need f ∈ sqrt = bigO(Nat.sqrt).
 Since (log n)^k / √n → 0 as n → ∞ (any power of log grows slower than √n), eventually
 (log n)^k ≤ √n. From f(n) ≤ c * (log n)^k and (log n)^k ≤ √n eventually, we get
@@ -2339,6 +2340,7 @@ theorem factorial_not_mem_exp : Nat.factorial ∉ exp := by
 
 --PR'ed in https://github.com/leanprover-community/mathlib4/pull/33864
 /-- The factorial function is primitve recursive. -/
+@[nolint topNamespace]
 theorem _root_.Primrec.factorial : Primrec Nat.factorial := by
   convert Primrec.list_foldl (σ := ℕ) (h := fun n ⟨p, k⟩ ↦ p * (k + 1))
     Primrec.list_range (Primrec.const 1) ?_
@@ -3489,9 +3491,7 @@ theorem primitiveRecursive_comp (hf : f ∈ primitiveRecursive) (hg : g ∈ prim
 
 section computable
 
-/-
-`max_scan f n` computes the maximum value of `f` on `0..n`.
--/
+/-- `max_scan f n` computes the maximum value of `f` on `0..n`. -/
 private def max_scan (f : ℕ → ℕ) (n : ℕ) : ℕ :=
   Nat.rec (f 0) (fun k acc ↦ acc ⊔ (f (k + 1))) n
 
