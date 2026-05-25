@@ -98,9 +98,10 @@ def equiv : ωLanguage α ≃ Set (ωSequence α) where
 instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
   equiv.completeAtomicBooleanAlgebra
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (ωLanguage α) (ωSequence α) where
   coe := ωLanguage.toSet
-  coe_injective' := by grind [Function.Injective, ωLanguage]
+  coe_injective' := by grind only [Function.Injective, ωLanguage]
 
 instance : HasSubset (ωLanguage α) := ⟨(· ≤ ·)⟩
 

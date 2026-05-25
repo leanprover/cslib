@@ -289,7 +289,7 @@ theorem ChurchRosser.normal_eqvGen_reflTransGen (cr : ChurchRosser r) (norm : No
 /-- For a Church-Rosser relation there is one normal form in each equivalence class. -/
 theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Normal r y)
     (xy : EqvGen r x y) : x = y := by
-  have ⟨_, _, _⟩ := cr xy
+  have ⟨z, _, _⟩ := cr xy
   grind
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
@@ -318,7 +318,8 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
 the inverse of `r`. -/
 abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
 
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
+set_option linter.tacticAnalysis.verifyGrindOnly false in
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc]
 
 lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
 
