@@ -19,7 +19,7 @@ public import Mathlib.Tactic.IntervalCases
 public import Mathlib.Tactic.Peel
 public import Mathlib.Tactic.Bound
 
-@[expose] public section
+public import Cslib.Foundations.Lint.Basic
 
 /-!
 # Asymptotic Growth Rates
@@ -86,6 +86,8 @@ Most theorems in this file fall into one of three categories:
    `GrowthRate.exp` is closed under multiplication.
 
 -/
+
+@[expose] public section
 
 open scoped Topology
 
@@ -244,7 +246,6 @@ end basic
 
 end GrowthRate
 
-@[nolint topNamespace]
 /-- We call a `GrowthRate` *lawful* if it is closed under dominating sequences, addition, and
 composition with a sublinear function; and is nontrivial (it contains at least one function besides
 zero).
@@ -252,6 +253,7 @@ zero).
 This last condition is equivalent to containing the constant function 1; or, containing any
 two distinct functions. These conditions are enough to get most desirable properties. For instance,
 all big-O and little-O rates are lawful, as is `poly`. -/
+@[nolint topNamespace]
 class LawfulGrowthRate (S : GrowthRate) : Prop where
   /-- If a function `f` is in S and it dominates `g` (is eventually no less), then `g ∈ S`. -/
   mem_dominating {f g : ℕ → ℕ} : (∀ᶠ x in .atTop, g x ≤ f x) → (f ∈ S) → g ∈ S
@@ -392,7 +394,7 @@ lemma affine_comp {S : GrowthRate} [LawfulGrowthRate S] {f : ℕ → ℕ} {a b :
 
 section instances
 
-/-- We can show that `GrowthRate.bigO f` is a `LawfulGrowthRate` if it satisfies two mild conditions:
+/-- We can show that `bigO f` is a `LawfulGrowthRate` if it satisfies two mild conditions:
 f is positive at some point, and it's closed under composition with sub-identity functions. -/
 @[implicit_reducible]
 def instLawfulBigO
@@ -414,8 +416,9 @@ def instLawfulBigO
     simpa using hf
   comp_le_id hf hg := hf₂ _ hf _ hg
 
-/-- We can show that `GrowthRate.littleO f` is a `LawfulGrowthRate` if it satisfies two mild conditions:
-f dominates the constant function 1, and it's closed under composition with sub-identity functions. -/
+/-- We can show that `littleO f` is a `LawfulGrowthRate` if it satisfies two mild conditions:
+f dominates the constant function 1, and it's closed under composition with
+sub-identity functions. -/
 @[implicit_reducible]
 def instLawfulLittleO (hf : 1 ∈ littleO f)
   (hf₂ : ∀ k g, k ∈ littleO f → (∀ x, g x ≤ x) → (k ∘ g) ∈ littleO f) :
@@ -958,7 +961,7 @@ lemma runningMax_mono (f : ℕ → ℕ) : Monotone (runningMax f) := by
 /-- The step function for `runningMax` is primitive recursive. -/
 private def runningMaxStep (f : ℕ → ℕ) (n res : ℕ) : ℕ := res ⊔ (f (n + 1))
 
-lemma runningMaxStep_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
+private lemma runningMaxStep_primrec {f : ℕ → ℕ} (hf : Nat.Primrec f) :
     Nat.Primrec (Nat.unpaired (runningMaxStep f)) := by
   have h_max : Nat.Primrec (Nat.unpaired Nat.max) := by
     have h_max : Nat.Primrec (Nat.unpaired (fun x y ↦ y + (x - y))) := by
