@@ -71,13 +71,13 @@ lemma invert_step_app_fvar (step : (app M (fvar x)) ⭢ηᶠ N) :
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- An η-reduction step does not introduce new free variables. -/
-lemma step_not_fv (step : M ⭢ηᶠ M') (hw : w ∉ M.fv) : w ∉ M'.fv := by
+lemma step_not_fv (step : M ⭢ηᶠ M') : M.fv = M'.fv := by
   induction step with
   | base => grind
   | abs =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
-    grind [close_preserve_not_fvar, open_preserve_not_fvar]
+    grind [open_preserve_not_fvar]
   | _ => grind
 
 /-- Substitution of a fresh variable preserves an η-reduction step. -/
