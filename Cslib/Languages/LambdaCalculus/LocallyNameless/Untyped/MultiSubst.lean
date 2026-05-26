@@ -63,8 +63,8 @@ lemma multiSubst_fvar_fresh (E : Env Var) : ∀ x ∉ E.dom, multiSubst E (fvar 
 
 /-- If x is neither a free variable of an environment Ns or a term M, then
     x is also not a free variable of the multi-substitution of Ns into M -/
-lemma multiSubst_preserves_not_fvar (M : Term Var) (E : Env Var) (nmem : x ∉ M.fv ∪ E.fv) :
-    x ∉ (multiSubst E M).fv := by
+lemma multiSubst_preserves_not_fvar (M : Term Var) (E : Env Var) :
+    (multiSubst E M).fv ⊆ M.fv ∪ E.fv := by
   induction E with grind [subst_preserve_not_fvar]
 
 /-- Multi-substitution propagates recursively through an application -/
