@@ -121,15 +121,14 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) :=
 
 /-- Closing then opening is equivalent to substitution. -/
 @[scoped grind =]
-lemma close_open_to_subst (m : Term Var) (x y : Var) (k : ℕ) (m_lc : LC m) :
-    m ⟦k ↜ x⟧⟦k ↝ fvar y⟧ = m [x := fvar y] := by
+lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
+    m ⟦k ↜ x⟧⟦k ↝ n⟧ = m [x := n] := by
   induction m_lc generalizing k with
   | abs xs t =>
-    unfold closeRec openRec
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
     grind [
       swap_open, =_ swap_open_fvar_close,
-      open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ fvar y⟧) 0, open_close x' (t[x := fvar y]) 0,
+      open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ n⟧) 0, open_close x' (t[x := n]) 0,
        open_preserve_not_fvar, close_rec_fv, subst_preserve_not_fvar]
   | _ => grind
 
