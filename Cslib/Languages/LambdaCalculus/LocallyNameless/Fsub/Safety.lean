@@ -71,6 +71,7 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
       grind [fresh_exists <| free_union [fvTm] Var, openTm_substTm_intro, subst_tm]
   all_goals grind [cases Red]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Any typable term either has a reduction step or is a value. -/
 lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t' := by
   generalize eq : [] = Γ at der
@@ -146,11 +147,15 @@ lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t'
   case abs σ _ τ L _ _=>
     left
     constructor
-    apply LC.abs L <;> grind [cases Env.Wf, cases Term.LC]
+    apply LC.abs L
+    · grind only [→ wf, cases Term.LC]
+    · grind only [→ wf]
   case tabs L _ _=>
     left
     constructor
-    apply LC.tabs L <;> grind [cases Env.Wf, cases Term.LC]
+    apply LC.tabs L
+    · grind only [→ wf, cases Term.LC]
+    · grind only [→ wf]
 
 end LambdaCalculus.LocallyNameless.Fsub
 

@@ -112,10 +112,10 @@ lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
     induction sub₁ <;> grind [cases Sub]
   case arrow σ' τ' _ _ _ _ =>
     generalize eq : σ'.arrow τ' = γ at sub₁
-    induction sub₁ <;> grind [cases Sub]
+    induction sub₁ <;> cases sub₂ <;> grind
   case sum σ' τ' _ _ _ _ =>
     generalize eq : σ'.sum τ' = γ at sub₁
-    induction sub₁ <;> grind [cases Sub]
+    induction sub₁ <;> cases sub₂ <;> grind
   case all σ' τ' _ _ _ _ _ =>
     generalize eq : σ'.all τ' = γ at sub₁
     induction sub₁

@@ -25,6 +25,7 @@ open Function Set Filter ωAcceptor ωLanguage ωSequence
 
 variable {Symbol : Type*} {State : Type}
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Given a Buchi automaton `na`, two finite words `u` and `v` are Buchi-congruent
 according to `na` iff for every pair of states `s` and `t` of `na`, both of the
 following two conditions hold:
@@ -40,7 +41,7 @@ def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.iseqv.symm := by grind
   eq.iseqv.trans := by grind
   right_cov.elim := by
-    grind [Covariant, → LTS.pairLang_split, <= LTS.pairLang_append, → LTS.pairViaLang_split,
+    grind only [Covariant, → LTS.pairLang_split, <= LTS.pairLang_append, → LTS.pairViaLang_split,
       <= LTS.pairViaLang_append_pairLang, <= LTS.pairLang_append_pairViaLang]
 
 open scoped Classical in
