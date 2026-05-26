@@ -8,6 +8,7 @@ module
 
 public import Cslib.Init
 public import Mathlib.Data.List.TFAE
+public import Mathlib.Tactic.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
@@ -141,22 +142,12 @@ section euclidean_symm
 
 variable [Std.Symm r]
 
-private theorem RightEuclidean.symm_leftEuclidean [RightEuclidean r] : LeftEuclidean r where
-  leftEuclidean ac bc := rightEuclidean (symm ac) (symm bc)
-
-private theorem LeftEuclidean.symm_trans [LeftEuclidean r] : IsTrans α r where
-  trans _ _ _ ab bc := leftEuclidean ab (symm bc)
-
-private theorem RightEuclidean.trans_symm [IsTrans α r] : RightEuclidean r where
-  rightEuclidean ab ac := _root_.trans (symm ab) ac
-
+open RightEuclidean LeftEuclidean in
 private theorem symm_equivalents : [RightEuclidean r, LeftEuclidean r, IsTrans α r].TFAE := by
-  apply List.tfae_of_cycle
-  · simp only [List.isChain_cons_cons, List.IsChain.singleton, and_true]
-    split_ands
-    · exact @RightEuclidean.symm_leftEuclidean _ _ _
-    · exact @LeftEuclidean.symm_trans _ _ _
-  · exact @RightEuclidean.trans_symm _ _ _
+  tfae_have 1 → 2 := fun _ => ⟨fun ac bc => rightEuclidean (symm ac) (symm bc)⟩
+  tfae_have 2 → 3 := fun _ => ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩
+  tfae_have 3 → 1 := fun _ => ⟨fun ab ac => _root_.trans (symm ab) ac⟩
+  tfae_finish
 
 /-- For a symmetric relation, `LeftEuclidean` and `RightEuclidean` are equivalent. -/
 theorem symm_leftEuclidean_iff_rightEuclidean : LeftEuclidean r ↔ RightEuclidean r :=
