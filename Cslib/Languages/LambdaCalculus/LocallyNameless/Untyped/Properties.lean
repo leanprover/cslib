@@ -65,6 +65,9 @@ lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
     m [y := n].fv = m.fv.erase y ∨ m [y := n].fv = m.fv.erase y ∪ n.fv:= by
   induction m <;> grind
 
+lemma subst_refl (m : Term Var) (x : Var) : m[x := fvar x] = m := by
+  induction m <;> grind
+
 variable [HasFresh Var]
 
 omit [DecidableEq Var] in
@@ -134,12 +137,7 @@ lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_
 
 /-- Closing and opening are inverses. -/
 lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by
-  induction t_lc generalizing k with
-  | abs _ t _ ih =>
-    let z := t⟦k + 1 ↜ x⟧⟦k + 1 ↝ fvar x⟧
-    have ⟨y, _⟩ := fresh_exists <| free_union [fv] Var
-    grind [ih y ?_ (k+1), open_injective, swap_open_fvar_close, swap_open]
-  | _ => grind
+  grind [subst_refl]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
