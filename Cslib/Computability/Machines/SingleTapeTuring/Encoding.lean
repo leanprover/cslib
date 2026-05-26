@@ -1,8 +1,3 @@
-Here is the exact code for the new file.
-
-You can create a new file named Encoding.lean in the Cslib/Computability/Turing/ directory and copy-paste this directly into it. I've included the standard copyright header that matches the rest of the files in that folder.
-
-Lean
 /-
 Copyright (c) 2026 Silvère Gangloff. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
