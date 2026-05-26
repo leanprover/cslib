@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Silvère Gangloff. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bolton Bailey, Pim Spelier, Daan van Gent
+Authors: Silvère Gangloff
 -/
 
 import Mathlib.Tactic.Basic
