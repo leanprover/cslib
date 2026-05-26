@@ -144,7 +144,7 @@ lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ ⟨X, Binding.sub
 variable [HasFresh Var] in
 /-- Subtyping of substitutions. -/
 lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ δ') :
-    Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := by
+    Sub (Γ.mapVal (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at sub₁
   induction sub₁ generalizing Γ
   case all => apply Sub.all (free_union Var) <;> grind [open_subst_var]
@@ -152,7 +152,7 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
     have := map_subst_nmem Δ X δ
     have : Γ ++ ⟨X, .sub δ'⟩ :: Δ ~ ⟨X, .sub δ'⟩ :: (Γ ++ Δ) := perm_middle
     have : .sub σ ∈ dlookup X' (⟨X, .sub δ'⟩ :: (Γ ++ Δ)) := by grind [perm_dlookup]
-    have := @map_val_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
+    have := @mapVal_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
     by_cases X = X'
     · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
     · grind
