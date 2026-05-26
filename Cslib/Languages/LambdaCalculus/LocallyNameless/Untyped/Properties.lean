@@ -62,7 +62,7 @@ theorem open_preserve_not_fvar (k) (m n : Term Var) :
 
 /-- Substitution preserves free variables. -/
 lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
-    (m [y := n]).fv = (m.fv.erase y) \/ (m [y := n]).fv = (m.fv.erase y) ∪ n.fv:= by
+    m [y := n].fv = m.fv.erase y ∨ m [y := n].fv = m.fv.erase y ∪ n.fv:= by
   induction m <;> grind
 
 variable [HasFresh Var]
