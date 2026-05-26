@@ -14,7 +14,7 @@ public import Cslib.Init
 
 namespace Cslib.Logic
 
-/-- The type `α` has a box modality (□). -/
+/-- The type `α` has a box modality (`□`). -/
 class HasBox (α : Type*) where
   /-- `a` is valid in all immediately reachable states. -/
   box (a : α) : α

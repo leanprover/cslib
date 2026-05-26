@@ -19,6 +19,6 @@ class HasTensor (α : Type*) where
   /-- `a ⊗ b` is the multiplicative conjunction of `a` and `b`. -/
   tensor (a b : α) : α
 
-@[inherit_doc] scoped infix:35 " ⊗ " => HasTensor.tensor
+@[inherit_doc] scoped infixr:35 " ⊗ " => HasTensor.tensor
 
 end Cslib.Logic

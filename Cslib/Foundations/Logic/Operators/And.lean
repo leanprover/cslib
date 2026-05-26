@@ -14,11 +14,11 @@ public import Cslib.Init
 
 namespace Cslib.Logic
 
-/-- The type `α` has an and connective (∧). -/
+/-- The type `α` has an and connective (`∧`). -/
 class HasAnd (α : Type*) where
   /-- `a ∧ b` is the conjunction of `a` and `b`. -/
   and (a b : α) : α
 
-@[inherit_doc] scoped infix:35 " ∧ " => HasAnd.and
+@[inherit_doc] scoped infixr:36 " ∧ " => HasAnd.and
 
 end Cslib.Logic

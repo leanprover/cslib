@@ -14,7 +14,7 @@ public import Cslib.Init
 
 namespace Cslib.Logic
 
-/-- The type `α` has a diamond modality (◇). -/
+/-- The type `α` has a diamond modality (`◇`). -/
 class HasDiamond (α : Type*) where
   /-- `a` is valid in a reachable state. -/
   diamond (a : α) : α

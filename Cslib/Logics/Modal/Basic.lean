@@ -6,7 +6,12 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Logic.Operators.And
+public import Cslib.Foundations.Logic.Operators.Or
+public import Cslib.Foundations.Logic.Operators.Impl
+public import Cslib.Foundations.Logic.Operators.Not
+public import Cslib.Foundations.Logic.Operators.Box
+public import Cslib.Foundations.Logic.Operators.Diamond
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
@@ -47,19 +52,38 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Possibility. -/
   | diamond (φ : Proposition Atom)
 
-@[inherit_doc] scoped prefix:40 "¬" => Proposition.neg
-@[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
+-- scoped notation:max "¬" p:40 => Proposition.neg p
+instance : HasNot (Proposition Atom) := {not := Proposition.neg}
+-- scoped infixr:35 " ∧ " => Proposition.and
+instance : HasAnd (Proposition Atom) := {and := Proposition.and}
 @[inherit_doc] scoped prefix:40 "◇" => Proposition.diamond
+-- instance : HasDiamond (Proposition Atom) := {diamond := Proposition.diamond}
+
+@[simp, grind =]
+lemma Proposition.neg_def (φ : Proposition Atom) : φ.neg = ¬φ := rfl
+
+@[simp, grind =]
+lemma Proposition.and_def (φ₁ φ₂ : Proposition Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
+
+@[simp, grind =]
+lemma Proposition.diamond_def (φ : Proposition Atom) : φ.diamond = (◇φ) := rfl
 
 /-- Disjunction. -/
 def Proposition.or (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬(¬φ₁ ∧ ¬φ₂)
 
-@[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
+-- scoped infixr:30 " ∨ " => Proposition.or
+instance : HasOr (Proposition Atom) := {or := Proposition.or}
+
+@[grind =]
+lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : (φ₁ ∨ φ₂) = ¬(¬φ₁ ∧ ¬φ₂) := rfl
 
 /-- Implication. -/
 def Proposition.impl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ₁ ∨ φ₂
 
-@[inherit_doc] scoped infix:30 " → " => Proposition.impl
+instance : HasImpl (Proposition Atom) := {impl := Proposition.impl}
+
+@[grind =]
+lemma Proposition.impl_def (φ₁ φ₂ : Proposition Atom) : (φ₁ → φ₂) = (¬φ₁ ∨ φ₂) := rfl
 
 /-- Bi-implication. -/
 def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
@@ -107,8 +131,7 @@ theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
-theorem neg_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
-  induction φ generalizing w <;> grind
+theorem neg_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
 
 /-- Characterisation of the `∨` connective.
 
@@ -116,7 +139,9 @@ Disjunction is defined in terms of the more primitive connectives given in `Prop
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.or_iff_or {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by grind [Proposition.or]
+    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by
+  simp_rw [HasOr.or, Proposition.or, ←Proposition.neg_def, ←Proposition.and_def]
+  grind
 
 /-- Characterisation of the `→` connective.
 
@@ -125,7 +150,9 @@ This result proves that the definition is correct.
 -/
 @[scoped grind =]
 theorem Satisfies.impl_iff_impl {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
+    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by
+  -- simp_rw [HasImpl.impl, Proposition.impl]
+  grind
 
 /-- Characterisation of the `□` modality.
 
@@ -133,7 +160,9 @@ Necessity is defined in terms of the more primitive connectives given in `Propos
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.box_iff_forall {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind [Proposition.box]
+    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by
+  simp_rw [Proposition.box, ←Proposition.neg_def]
+  grind
 
 /-- The theory of a world in a model is the set of all propositions that it satifies. -/
 abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=

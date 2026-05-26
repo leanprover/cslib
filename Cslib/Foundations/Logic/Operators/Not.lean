@@ -14,11 +14,11 @@ public import Cslib.Init
 
 namespace Cslib.Logic
 
-/-- The type `α` has a negation connective (¬). -/
+/-- The type `α` has a negation connective (`¬`). -/
 class HasNot (α : Type*) where
   /-- `¬a` is the negation of `a`. -/
   not (a : α) : α
 
-@[inherit_doc] scoped prefix:40 "¬" => HasNot.not
+@[inherit_doc] scoped notation:max "¬" p:40 => HasNot.not p
 
 end Cslib.Logic

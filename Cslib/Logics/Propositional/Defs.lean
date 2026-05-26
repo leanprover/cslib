@@ -6,7 +6,10 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Logic.Operators.And
+public import Cslib.Foundations.Logic.Operators.Or
+public import Cslib.Foundations.Logic.Operators.Impl
+public import Cslib.Foundations.Logic.Operators.Not
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
@@ -30,8 +33,10 @@ theory.
 
 ## Notation
 
-We introduce notation for the logical connectives: `⊥ ⊤ ∧ ∨ → ¬` for, respectively, falsum, verum,
-conjunction, disjunction, implication and negation.
+We instantiate the notation classes `HasAnd`, `HasOr`, `HasImpl` and `HasNot` for `Proposition Atom`
+to give access to, respectively, the notations `∧, ∨, →` and `¬` for propositional connectives.
+In the case that `Atom` has a bottom element (respectively, is inhabited) we give instances
+`HasBot (Proposition Atom)` and (respectively, `HasTop (Proposition Atom)`).
 -/
 
 @[expose] public section
@@ -67,10 +72,10 @@ instance instTopProposition [Inhabited Atom] : Top (Proposition Atom) := ⟨.top
 
 example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.impl ⊥ ⊥ := rfl
 
-@[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
-@[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
-@[inherit_doc] scoped infix:30 " → " => Proposition.impl
-@[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
+instance : HasAnd (Proposition Atom) := {and := Proposition.and}
+instance : HasOr (Proposition Atom) := {or := Proposition.or}
+instance : HasImpl (Proposition Atom) := {impl := Proposition.impl}
+instance [Bot Atom] : HasNot (Proposition Atom) := {not := Proposition.neg}
 
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
