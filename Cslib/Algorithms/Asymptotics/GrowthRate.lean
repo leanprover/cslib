@@ -49,8 +49,8 @@ with them more cleanly.
  * `GrowthRate.sqrt`: O(sqrt n)
  * `GrowthRate.linear`: O(n)
  * `GrowthRate.linearithmic`: O(n * log n)
- * `GrowthRate.two_pow`: O(2 ^ n)
- * `GrowthRate.e_pow`: O(Real.exp n)
+ * `GrowthRate.twoPow`: O(2 ^ n)
+ * `GrowthRate.ePow`: O(Real.exp n)
 
 Where they involve functions with different definitions on
 distinct types (e.g. `Nat.sqrt` vs. `Real.sqrt`, or `(2 : ℕ) ^ ·` vs. `(2 : ℝ) ^ .`), we
@@ -89,6 +89,8 @@ Most theorems in this file fall into one of three categories:
 
 @[expose] public section
 
+namespace CSLib.Asymptotics
+
 open scoped Topology
 
 /-- A **Growth rate** is just any collection of `ℕ → ℕ`, but as a type alias intended for
@@ -124,8 +126,8 @@ linearithmic := bigO (fun n ↦ n * Nat.log 2 n)
 quasilinear := setOf ...
 poly        := setOf ...
 quasipoly   := setOf ...
-two_pow     := bigO (2 ^ ·)
-e_pow       := bigO (⌈Real.exp ·⌉₊)
+twoPow     := bigO (2 ^ ·)
+ePow       := bigO (⌈Real.exp ·⌉₊)
 exp         := setOf ...
 primitiveRecursive := setOf ...
 computable := setOf ...
@@ -170,10 +172,10 @@ def quasipoly : GrowthRate :=
     (f · : ℕ → ℤ) =O[.atTop] (fun n ↦ 2 ^ (Nat.log 2 n ^ C) : ℕ → ℤ)
 
 /-- `O(2 ^ n)` growth rates, not to be confused with `exp` which is `2 ^ O(n)`. -/
-abbrev two_pow := bigO (2 ^ ·)
+abbrev twoPow := bigO (2 ^ ·)
 
 /-- `O(e ^ n)` growth rates, not to be confused with `exp` which is `e ^ O(n)`. -/
-abbrev e_pow := bigO (⌈Real.exp ·⌉₊)
+abbrev ePow := bigO (⌈Real.exp ·⌉₊)
 
 /-- Exponential growth rates: `O(1) ^ n`, or equivalently `2 ^ O(n)`. Corresponds to the
 complexity class `E`. -/
@@ -253,7 +255,6 @@ zero).
 This last condition is equivalent to containing the constant function 1; or, containing any
 two distinct functions. These conditions are enough to get most desirable properties. For instance,
 all big-O and little-O rates are lawful, as is `poly`. -/
-@[nolint topNamespace]
 class LawfulGrowthRate (S : GrowthRate) : Prop where
   /-- If a function `f` is in S and it dominates `g` (is eventually no less), then `g ∈ S`. -/
   mem_dominating {f g : ℕ → ℕ} : (∀ᶠ x in .atTop, g x ≤ f x) → (f ∈ S) → g ∈ S
@@ -804,7 +805,7 @@ instance : LawfulGrowthRate quasipoly where
     exact_mod_cast le_trans (hC _) (mul_le_mul_of_nonneg_left (mod_cast h_exp_le _)
       (Nat.cast_nonneg _))
 
-instance : LawfulGrowthRate two_pow := by
+instance : LawfulGrowthRate twoPow := by
   apply instLawfulBigO
   · use 0
     intros
@@ -838,7 +839,7 @@ instance : LawfulGrowthRate two_pow := by
     grw [h_comp n, ← zero_lt_one, add_zero]
     norm_cast
 
-instance : LawfulGrowthRate e_pow := by
+instance : LawfulGrowthRate ePow := by
   apply instLawfulBigO
   · use 0
     intros
@@ -1441,7 +1442,7 @@ theorem poly_iff_rpow {f : ℕ → ℕ} : f ∈ poly ↔
   rw [abs_of_nonneg (by positivity)]
   exact (Real.rpow_le_rpow_of_exponent_le (mod_cast by linarith) (Nat.le_ceil C)).trans (by simp)
 
-lemma bigO_const_pow_log_le_two_pow_log (A : ℝ) (C : ℕ) :
+lemma bigO_const_pow_log_le_twoPow_log (A : ℝ) (C : ℕ) :
     ∃ C' : ℕ, (fun n ↦ A ^ (Nat.log2 n ^ C)) =O[.atTop] (fun n ↦ (2 : ℝ) ^ (Nat.log2 n ^ C')) := by
   use C + 1
   -- Let `k = ⌈log₂ |A|⌉`. Then `|A| ≤ 2^k`.
@@ -1480,13 +1481,13 @@ theorem quasipoly_iff_real_const_pow {f : ℕ → ℕ} : f ∈ quasipoly ↔
   rw [quasipoly_iff_real_two_pow]
   use (⟨2, ·⟩)
   rintro ⟨A, C, hC⟩
-  exact (bigO_const_pow_log_le_two_pow_log A C).imp (fun _ ↦ hC.trans)
+  exact (bigO_const_pow_log_le_twoPow_log A C).imp (fun _ ↦ hC.trans)
 
-theorem e_pow_iff_rexp {f : ℕ → ℕ} : f ∈ e_pow ↔
+theorem ePow_iff_rexp {f : ℕ → ℕ} : f ∈ ePow ↔
     (f · : ℕ → ℝ) =O[.atTop] (fun x ↦ Real.exp x) := by
   have h_ceil (n : ℕ) : ⌈(Real.exp n)⌉₊ ≤ 2 * (Real.exp n) := by
     linarith [Nat.ceil_lt_add_one (Real.exp_nonneg n), Real.add_one_le_exp n]
-  rw [e_pow, bigO, Set.mem_setOf]
+  rw [ePow, bigO, Set.mem_setOf]
   constructor
   · intro hf
     rw [Asymptotics.isBigO_iff'] at *
@@ -1584,9 +1585,9 @@ theorem quasipoly_mul (hf : f ∈ quasipoly) (hg : g ∈ quasipoly) : (f * g) �
   apply pow_le_pow_right₀ one_le_two
   nlinarith [pow_pos hl a, pow_pos hl b]
 
-theorem e_pow_of_two_pow_mul_quasipoly (hf : f ∈ two_pow) (hg : g ∈ quasipoly) :
-    (f * g) ∈ e_pow := by
-  simp only [two_pow, bigO, Nat.cast_pow, Nat.cast_ofNat, Set.mem_setOf_eq, quasipoly, e_pow,
+theorem ePow_of_twoPow_mul_quasipoly (hf : f ∈ twoPow) (hg : g ∈ quasipoly) :
+    (f * g) ∈ ePow := by
+  simp only [twoPow, bigO, Nat.cast_pow, Nat.cast_ofNat, Set.mem_setOf_eq, quasipoly, ePow,
     Pi.mul_apply, Nat.cast_mul] at *
   simp only [Asymptotics.isBigO_iff', norm_natCast, norm_pow, Filter.eventually_atTop] at hf hg
   simp only [Asymptotics.isBigO_iff, norm_mul, norm_natCast, Filter.eventually_atTop]
@@ -2132,10 +2133,10 @@ lemma polylog_is_littleO_sqrt {f : ℕ → ℕ} (hf : f ∈ polylog) :
     aesop
   exact h_log_poly.trans_isLittleO (by aesop)
 
-theorem quasipoly_subset_two_pow : quasipoly ⊆ two_pow := by
+theorem quasipoly_subset_twoPow : quasipoly ⊆ twoPow := by
   rintro f ⟨C, hC⟩
   suffices h_exp :(fun n ↦ 2 ^ (Nat.log 2 n ^ C) : ℕ → ℤ) =O[.atTop] (fun n ↦ 2 ^ n : ℕ → ℤ) by
-    simpa [two_pow, bigO] using hC.trans h_exp
+    simpa [twoPow, bigO] using hC.trans h_exp
   suffices h_exp : ∀ᶠ n in .atTop, (Nat.log 2 n ^ C : ℕ) ≤ n by
     rw [Asymptotics.isBigO_iff]
     norm_num +zetaDelta at *
@@ -2170,9 +2171,9 @@ theorem quasipoly_subset_two_pow : quasipoly ⊆ two_pow := by
   exact_mod_cast hn.le
 
 
-theorem quasipoly_ssubset_two_pow : quasipoly ⊂ two_pow := by
-  use quasipoly_subset_two_pow
-  simp only [quasipoly, bigO, two_pow, Nat.cast_pow, Nat.cast_ofNat, Set.setOf_subset_setOf,
+theorem quasipoly_ssubset_twoPow : quasipoly ⊂ twoPow := by
+  use quasipoly_subset_twoPow
+  simp only [quasipoly, bigO, twoPow, Nat.cast_pow, Nat.cast_ofNat, Set.setOf_subset_setOf,
     not_forall, exists_prop]
   use (2 ^ ·), mod_cast Asymptotics.isBigO_refl ..
   -- Assume for contradiction that there exists a constant `C` such that `2^n = O(2^((log n)^C))`.
@@ -2234,13 +2235,13 @@ theorem quasipoly_ssubset_two_pow : quasipoly ⊂ two_pow := by
   rw [Filter.EventuallyLE, Filter.eventually_atTop]
   exact ⟨a, (by simpa [mul_div_assoc] using h_div · ·)⟩
 
-theorem two_pow_subset_e_pow : two_pow ⊆ e_pow := by
+theorem twoPow_subset_ePow : twoPow ⊆ ePow := by
   -- `2^n ≤ e^n` since `2 < e`.
   have h_exp_bound : ∀ n : ℕ, 2 ^ n ≤ Real.exp n := by
     intro n
     rw [← Real.rpow_natCast, Real.rpow_def_of_pos] <;> norm_num
     exact mul_le_of_le_one_left (Nat.cast_nonneg _) (Real.log_two_lt_d9.le.trans (by norm_num))
-  have h_two_pow_e_pow : (2 ^ · : ℕ → ℕ) ∈ bigO (fun n ↦ ⌈Real.exp n⌉₊ : ℕ → ℕ) := by
+  have h_twoPow_ePow : (2 ^ · : ℕ → ℕ) ∈ bigO (fun n ↦ ⌈Real.exp n⌉₊ : ℕ → ℕ) := by
     apply Asymptotics.isBigO_iff.mpr
     use 1
     refine Filter.eventually_atTop.mpr ⟨0, fun n hn ↦ ?_⟩
@@ -2249,14 +2250,14 @@ theorem two_pow_subset_e_pow : two_pow ⊆ e_pow := by
       rw [← @Nat.cast_lt ℝ]
       push_cast
       linarith [Nat.le_ceil (Real.exp n), h_exp_bound n]
-  convert h_two_pow_e_pow using 1
-  constructor <;> intro h <;> unfold two_pow e_pow at *
+  convert h_twoPow_ePow using 1
+  constructor <;> intro h <;> unfold twoPow ePow at *
   · aesop
   · exact fun f hf ↦ hf.trans h
 
-theorem two_pow_ssubset_e_pow : two_pow ⊂ e_pow := by
-  use two_pow_subset_e_pow
-  simp only [e_pow, bigO, two_pow, Nat.cast_pow, Nat.cast_ofNat, Set.setOf_subset_setOf, not_forall,
+theorem twoPow_ssubset_ePow : twoPow ⊂ ePow := by
+  use twoPow_subset_ePow
+  simp only [ePow, bigO, twoPow, Nat.cast_pow, Nat.cast_ofNat, Set.setOf_subset_setOf, not_forall,
     exists_prop]
   use (⌈Real.exp ·⌉₊), Asymptotics.isBigO_refl ..
   rw [Asymptotics.isBigO_iff']
@@ -2275,7 +2276,7 @@ theorem two_pow_ssubset_e_pow : two_pow ⊂ e_pow := by
   rw [lt_div_iff₀ (by positivity)] at hm₁
   nlinarith [Nat.le_ceil (Real.exp m), show (2 : ℝ) ^ m > 0 by positivity]
 
-theorem e_pow_subset_exp : e_pow ⊆ exp := by
+theorem ePow_subset_exp : ePow ⊆ exp := by
   refine fun f h ↦ ⟨⌈Real.exp 1⌉₊, h.trans (Asymptotics.isBigO_iff.mpr ⟨1, ?_⟩)⟩
   have h_exp_growth (x : ℕ) : Real.exp x ≤ ⌈Real.exp 1⌉₊ ^ x := by
     simpa using pow_le_pow_left₀ (by positivity) (Nat.le_ceil (Real.exp 1)) x
@@ -2285,11 +2286,11 @@ theorem e_pow_subset_exp : e_pow ⊆ exp := by
   erw [Real.norm_of_nonneg (by positivity)]
   exact_mod_cast le_trans (Nat.ceil_mono <| h_exp_growth _) (by norm_num)
 
-theorem e_pow_ssubset_exp : e_pow ⊂ exp := by
-  use e_pow_subset_exp
+theorem ePow_ssubset_exp : ePow ⊂ exp := by
+  use ePow_subset_exp
   rw [Set.not_subset]
   use (3 ^ ·), ⟨3, by simpa using Asymptotics.isBigO_refl ..⟩
-  simp only [e_pow, bigO, Set.mem_setOf_eq, Nat.cast_pow, Nat.cast_ofNat]
+  simp only [ePow, bigO, Set.mem_setOf_eq, Nat.cast_pow, Nat.cast_ofNat]
   intro h
   rw [Asymptotics.isBigO_iff'] at h
   contrapose h
@@ -3586,3 +3587,5 @@ end computable
 end closure_comp
 
 end GrowthRate
+
+end CSLib.Asymptotics
