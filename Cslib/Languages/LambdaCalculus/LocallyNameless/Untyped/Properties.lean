@@ -67,7 +67,7 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Substitution preserves free variables. -/
 lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
     m [y := n].fv = m.fv.erase y ∨ m [y := n].fv = m.fv.erase y ∪ n.fv:= by
-  induction m with 
+  induction m with
   | app => grind only [fv, = subst_app, = Finset.mem_union, = Finset.mem_erase]
   | _ => grind
 
