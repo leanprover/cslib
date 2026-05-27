@@ -162,6 +162,8 @@ theorem eq_of_halts {init s₁ s₂ : State}
   -- But s₁ and s₂ are normal forms, so w must equal both
   have hn1 := isHalted_iff_normal.mp hh1
   have hn2 := isHalted_iff_normal.mp hh2
+  obtain ⟨pc₁, regs₁⟩ := s₁
+  obtain ⟨pc₂, regs₂⟩ := s₂
   grind
 
 end Steps

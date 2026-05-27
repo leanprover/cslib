@@ -90,11 +90,12 @@ lemma buchiCongruence_transfer
     have : ⟦xl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc
     have : ⟦yl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc'
     grind
-  have := h_eq s t
-  have h_yl : yl ∈ na.pairLang s t := by grind
-  have := LTS.Execution.of_mTr h_yl
-  grind [LTS.mem_pairViaLang, LTS.Execution, → LTS.Execution.comp,
-    → LTS.Execution.of_mTr]
+  obtain ⟨l, r⟩ := h_eq s t
+  by_cases h_xl : xl ∈ na.pairViaLang na.accept s t
+  · obtain := LTS.mem_pairViaLang.mp (r.mp h_xl)
+    grind [LTS.Execution, → LTS.Execution.comp, → LTS.Execution.of_mTr]
+  · use LTS.Execution.of_mTr (l.mp hp) |>.choose
+    grind
 
 /-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
