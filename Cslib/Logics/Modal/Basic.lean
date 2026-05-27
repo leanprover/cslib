@@ -55,12 +55,14 @@ inductive Proposition (Atom : Type u) : Type u where
 -- scoped notation:max "¬" p:40 => Proposition.neg p
 instance : HasNot (Proposition Atom) := {not := Proposition.neg}
 -- scoped infixr:35 " ∧ " => Proposition.and
+@[scoped grind =]
 instance : HasAnd (Proposition Atom) := {and := Proposition.and}
+
 @[inherit_doc] scoped prefix:40 "◇" => Proposition.diamond
 -- instance : HasDiamond (Proposition Atom) := {diamond := Proposition.diamond}
 
-@[simp, grind =]
-lemma Proposition.neg_def (φ : Proposition Atom) : φ.neg = ¬φ := rfl
+@[simp, scoped grind =]
+lemma Proposition.not_def (φ : Proposition Atom) : (¬φ : Proposition Atom) = φ.neg := rfl
 
 @[simp, grind =]
 lemma Proposition.and_def (φ₁ φ₂ : Proposition Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
@@ -140,7 +142,7 @@ This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.or_iff_or {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by
-  simp_rw [HasOr.or, Proposition.or, ←Proposition.neg_def, ←Proposition.and_def]
+  simp_rw [HasOr.or, Proposition.or, ←Proposition.and_def]
   grind
 
 /-- Characterisation of the `→` connective.
@@ -161,7 +163,7 @@ This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.box_iff_forall {m : Model World Atom} :
     ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by
-  simp_rw [Proposition.box, ←Proposition.neg_def]
+  simp_rw [Proposition.box]
   grind
 
 /-- The theory of a world in a model is the set of all propositions that it satifies. -/
