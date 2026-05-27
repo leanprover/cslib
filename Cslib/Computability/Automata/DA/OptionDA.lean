@@ -95,26 +95,30 @@ lemma DA.FinAcc.toOptionεNA_ε_τSTr_none {a : DA.FinAcc State Symbol}
 lemma DA.FinAcc.toOptionεNA_ε_sTr_none {a : DA.FinAcc State Symbol}
     (h : a.toOptionεNA.STr s none s') : s' = s ∨ s' = none := by cases h <;> grind
 
+open scoped LTS εNA εNA.FinAcc
+
+/-- The ε-closure of the start state in `DA.toOptionεNA` consists of the start state and `none`. -/
+@[scoped grind =]
 lemma DA.FinAcc.toOptionεNA_start_εClosure {a : DA.FinAcc State Symbol} (h : a.start ∈ a.accept) :
     a.toOptionεNA.εClosure a.toOptionεNA.start = {some a.start, none} := by
   rw [show a.toOptionεNA.start = {some a.start} by rfl]
-  simp [εNA.εClosure, LTS.τClosure, LTS.saturate, LTS.setImage, LTS.image, HasTau.τ]
+  simp only [εNA.εClosure, LTS.τClosure, LTS.setImage, Set.mem_singleton_iff, LTS.image,
+    LTS.saturate, HasTau.τ, Set.iUnion_iUnion_eq_left]
   ext s
-  apply Iff.intro <;> intro h
+  apply Iff.intro <;> intro h'
   · grind
   · simp only [Set.mem_setOf_eq]
-    simp at h
-    cases h with
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at h'
+    cases h' with
       | inl h' =>
         rw [h']
         apply LTS.STr.refl
       | inr h' =>
         rw [h']
-        simp [toOptionεNA]
-        sorry
+        have htr : a.toOptionεNA.Tr (some a.start) none none := by grind
+        exact LTS.STr.single htr
 
 open Acceptor in
-open scoped LTS εNA εNA.FinAcc in
 /-- `DA.toOptionεNA` preserves the automaton's language. -/
 theorem DA.FinAcc.toOptionεNA_language_eq {a : DA.FinAcc State Symbol} :
     language a.toOptionεNA = language a := by
@@ -129,10 +133,26 @@ theorem DA.FinAcc.toOptionεNA_language_eq {a : DA.FinAcc State Symbol} :
     case nil =>
       exists a.start
       apply And.intro
-      case left =>
-        grind
+      case left => grind
       case right =>
+        have h' : a.start ∈ a.accept := by grind [FLTS.mtr]
+        exists none
+        constructor
+        · grind
+        · simp
+          have : (s : State) → s ∈ a.accept → a.toOptionεNA.saturate.Tr (some s) none none := by
+            intro s hs
+            sorry
+          -- simp [LTS.saturate]
+          -- apply LTS.MTr.stepL
 
+          simp [LTS.saturate]
+
+
+          simp [toOptionεNA]
+
+
+        grind
         sorry
     case cons x xs =>
       sorry
