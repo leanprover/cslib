@@ -12,7 +12,8 @@ public import Cslib.Foundations.Syntax.HasSubstitution
 
 /-! # λ-calculus
 
-The untyped λ-calculus, with a named representation of variables.
+The untyped λ-calculus, with a named representation of variables. This file contains the definitions
+of α-equivalence and capture-avoiding substitution.
 
 ## References
 
@@ -42,18 +43,21 @@ deriving DecidableEq
 namespace Term
 
 /-- Free variables. -/
+@[simp, scoped grind =]
 def fv : Term Var → Finset Var
   | var x => {x}
   | abs x m => m.fv \ {x}
   | app m n => m.fv ∪ n.fv
 
 /-- Bound variables. -/
+@[simp, scoped grind =]
 def bv : Term Var → Finset Var
   | var _ => ∅
   | abs x m => m.bv ∪ {x}
   | app m n => m.bv ∪ n.bv
 
 /-- Variable names (free and bound) in a term. -/
+@[simp, scoped grind =]
 def vars : Term Var → Finset Var
   | var x => {x}
   | abs x m => m.vars ∪ {x}
@@ -61,6 +65,7 @@ def vars : Term Var → Finset Var
 
 /-- Variable renaming, applying to both free and bound variables.
     `m.rename x y` changes all occurrences of `x` into `y` in `m`. -/
+@[simp, scoped grind =]
 def rename (m : Term Var) (x y : Var) : Term Var :=
   match m with
   | var z => var (if z = x then y else z)
@@ -69,7 +74,7 @@ def rename (m : Term Var) (x y : Var) : Term Var :=
 
 omit [HasFresh Var] in
 /-- Renaming preserves size. -/
-@[simp]
+@[simp, scoped grind =]
 theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
   induction m <;> aesop (add simp [Term.rename])
 
@@ -86,8 +91,8 @@ instance instHasAlphaEquivTerm : HasAlphaEquiv (Term Var) where
 
 omit [HasFresh Var] in
 /-- Allow grind to recognise the notation of α-equivalence. -/
-@[grind ←]
-theorem AlphaEquiv_def (m n : Term Var) : AlphaEquiv m n ↔ m =α n := by
+@[simp, scoped grind _=_]
+theorem AlphaEquiv_def (m n : Term Var) : m =α n ↔ AlphaEquiv m n := by
   rfl
 
 /-- Capture-avoiding substitution, as an inference system. -/
@@ -101,7 +106,7 @@ inductive Subst : Term Var → Var → Term Var → Term Var → Prop where
 
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
-@[grind, simp]
+@[simp, scoped grind =]
 def subst (m : Term Var) (x : Var) (r : Term Var) :
     Term Var :=
   match m with
@@ -116,7 +121,7 @@ def subst (m : Term Var) (x : Var) (r : Term Var) :
       abs z ((m'.rename y z).subst x r)
   | app m1 m2 => app (m1.subst x r) (m2.subst x r)
 termination_by m
-decreasing_by all_goals grind [rename_eq_sizeOf, abs.sizeOf_spec, app.sizeOf_spec]
+decreasing_by all_goals grind
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
 instance instHasSubstitutionTerm :
@@ -124,8 +129,8 @@ instance instHasSubstitutionTerm :
   subst := subst
 
 /-- Allow grind to recognise the notation of substitution. -/
-@[grind ←]
-theorem subst_def (m r : Term Var) (x : Var) : m.subst x r = m[x := r] := by
+@[simp, scoped grind _=_]
+theorem subst_def (m r : Term Var) (x : Var) : m[x := r] = m.subst x r := by
   rfl
 
 /-- Contexts. -/

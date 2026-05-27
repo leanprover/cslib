@@ -7,6 +7,12 @@ Authors: Fabrizio Montesi, Haoxuan Yin
 import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 
+/-! # λ-calculus
+
+Tests for the named untyped λ-calculus.
+
+-/
+
 namespace CslibTests
 
 open Cslib Cslib.LambdaCalculus.Named.Untyped.Term
