@@ -9,7 +9,7 @@ module
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
-public import Cslib.Computability.Turing.Encoding
+public import Cslib.Computability.Encoding
 
 /-!
 # Single-Tape Turing Machines
