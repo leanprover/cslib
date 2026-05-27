@@ -149,7 +149,6 @@ theorem preserves_register {s s' : State} {r : ℕ}
   | refl => rfl
   | head hstep => grind [Step.preserves_register hstep (r := r)]
 
-set_option linter.tacticAnalysis.verifyGrindOnly true in
 /-- If two halted states are reachable from the same start, they are equal.
 
 This follows from confluence: since `Step p` is confluent and both `s₁` and `s₂`
