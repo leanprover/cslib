@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
 
-import Cslib.Foundations.Control.Monad.Free.WP
+import Cslib.Foundations.Control.Monad.Free.Effects
 import Std.Tactic.Do
 
 /-!
@@ -107,8 +107,8 @@ inductive FailF : Type → Type where
 
 /-- Logical handler for `FailF`: `fail` has precondition `⌜False⌝`, so it is only provable in
 unreachable branches. -/
-def FailF.handler {ps : PostShape} : LHandler FailF ps where
-  run {_} op := match op with
+def FailF.handler {ps : PostShape} : LHandler FailF ps :=
+  fun op => match op with
     | .fail => PredTrans.const spred(⌜False⌝)
 
 /-- A combined state + failure signature, sequencing `StateF Nat` with `FailF`. -/
@@ -186,8 +186,8 @@ inductive DemonicF : Type → Type 1 where
 /-- Logical handler for `DemonicF`: the predicate transformer for `choice α` is universal
 quantification over `α`. Conjunctivity of `∀` (i.e. `∀ a, P a ∧ Q a ⊣⊢ (∀ a, P a) ∧ (∀ a, Q a)`)
 is what makes this admissible in `PredTrans`. -/
-def DemonicF.handler {ps : PostShape} : LHandler DemonicF ps where
-  run {_} op := match op with
+def DemonicF.handler {ps : PostShape} : LHandler DemonicF ps :=
+  fun op => match op with
     | .choice _ =>
       { trans := fun Q => SPred.forall (fun a => Q.1 a)
         conjunctiveRaw := by
