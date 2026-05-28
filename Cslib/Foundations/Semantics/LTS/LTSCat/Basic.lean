@@ -53,7 +53,8 @@ A morphism between two labelled transition systems consists of (1) a function on
 states, (2) a partial function on labels, and a proof that (1) preserves each
 transition along (2).
 -/
-structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
+@[ext]
+structure LTS.Morphism (lts₁ lts₂ : LTSCat.{u, v}) : Type (max u v) where
   /-- Mapping of states of `lts₁` to states of `lts₂` -/
   stateMap : lts₁.State → lts₂.State
   /-- Mapping of labels of `lts₁` to labels of `lts₂` -/
@@ -63,7 +64,7 @@ structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
     lts₁.lts.Tr s l s' → (withIdle lts₂.lts).Tr (stateMap s) (labelMap l) (stateMap s')
 
 /-- The identity LTS morphism. -/
-def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
+def LTS.Morphism.id (lts : LTSCat.{u, v}) : LTS.Morphism lts lts where
   stateMap := _root_.id
   labelMap := pure
   labelMap_tr _ _ _ := _root_.id
@@ -72,7 +73,8 @@ def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
 
 We use Kleisli composition to define this.
 -/
-def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g : LTS.Morphism lts₂ lts₃) :
+def LTS.Morphism.comp {lts₁ lts₂ lts₃ : LTSCat.{u, v}}
+    (f : LTS.Morphism lts₁ lts₂) (g : LTS.Morphism lts₂ lts₃) :
     LTS.Morphism lts₁ lts₃ where
   stateMap := g.stateMap ∘ f.stateMap
   labelMap := f.labelMap >=> g.labelMap
@@ -84,7 +86,7 @@ def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g
     cases hμ : μ l with grind
 
 /-- Finally, we prove that these form a category. -/
-instance : CategoryTheory.Category LTSCat where
+instance : CategoryTheory.Category LTSCat.{u, v} where
   Hom := LTS.Morphism
   id := LTS.Morphism.id
   comp := LTS.Morphism.comp
