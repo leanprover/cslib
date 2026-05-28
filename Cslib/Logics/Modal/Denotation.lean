@@ -38,7 +38,7 @@ theorem satisfies_mem_denotation {m : Model World Atom} {φ : Proposition Atom} 
 /-- A world is in the denotation of a proposition iff it is not in the denotation of the negation
 of the proposition. -/
 @[scoped grind =]
-theorem neg_denotation {m : Model World Atom} (φ : Proposition Atom) :
+theorem not_denotation {m : Model World Atom} (φ : Proposition Atom) :
     w ∉ (¬φ).denotation m ↔ w ∈ φ.denotation m := by
   grind [_=_ satisfies_mem_denotation]
 

@@ -21,14 +21,16 @@ instance whenever `Atom` does, and a `Top` whenever `Atom` is inhabited.
 - `IsIntuitionistic` : a theory is intuitionistic if it contains the principle of explosion.
 - `IsClassical` : an intuitionistic theory is classical if it further contains double negation
 elimination.
-- `Proposition.map`, `Theory.map` : a map between `Atom` types extends to a map between
-propositions and theories.
+- `Proposition.subst` : replace `atom x` in a `A : Proposition Atom` with `f x`, for a function
+  `f : Atom → Proposition Atom'`. This induces a monad structure on `Proposition`, with
+  `pure := Proposition.atom`. `Theory` is a functor, by mapping each proposition `A ∈ T` to
+  `f <$> A`.
 - `Theory.intuitionisticCompletion` : the freely generated intuitionistic theory extending a given
 theory.
 
 ## Notation
 
-We introduce notation for the logical connectives: `⊥ ⊤ ⋏ ⋎ ⟶ ~` for, respectively, falsum, verum,
+We introduce notation for the logical connectives: `⊥ ⊤ ∧ ∨ → ¬` for, respectively, falsum, verum,
 conjunction, disjunction, implication and negation.
 -/
 
@@ -70,37 +72,31 @@ example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.impl ⊥ ⊥ := rfl
 @[inherit_doc] scoped infix:30 " → " => Proposition.impl
 @[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
 
-/-- A function on atoms induces a function on propositions. -/
-def Proposition.map {Atom Atom' : Type u} (f : Atom → Atom') : Proposition Atom → Proposition Atom'
-  | atom x => atom (f x)
-  | and A B => (A.map f) ∧ (B.map f)
-  | or A B => (A.map f) ∨ (B.map f)
-  | impl A B => (A.map f) → (B.map f)
+/-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
+language. -/
+def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
+    Proposition Atom → Proposition Atom'
+  | atom x => f x
+  | and A B => (A.subst f) ∧ (B.subst f)
+  | or A B => (A.subst f) ∨ (B.subst f)
+  | impl A B => (A.subst f) → (B.subst f)
 
-instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Proposition Atom) (Proposition Atom') where
-  coe := Proposition.map
-  coe_injective' f f' h := by
-    ext x
-    have : (Proposition.atom x).map f = (Proposition.atom x).map f' :=
-      congrFun h (Proposition.atom x)
-    grind [Proposition.map]
+-- This is probably a lawful monad, but that doesn't seem to be important.
+instance : Monad Proposition where
+  pure := .atom
+  bind A f := A.subst f
 
 /-- Theories are arbitrary sets of propositions. -/
 abbrev Theory (Atom) := Set (Proposition Atom)
 
 namespace Theory
 
-/-- Extend `Proposition.map` to theories. -/
-def map {Atom Atom' : Type u} (f : Atom → Atom') : Theory Atom → Theory Atom' :=
-  Set.image (Proposition.map f)
+/-- Extend a substitution from `Proposition` to `Theory`. -/
+protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Proposition Atom') :
+    Theory Atom' := T.image (· >>= f)
 
-instance {Atom Atom' : Type u} : FunLike (Atom → Atom') (Theory Atom) (Theory Atom') where
-  coe := Theory.map
-  coe_injective' f f' h := by
-    ext x
-    have : Theory.map f {Proposition.atom x} = Theory.map f' {Proposition.atom x} :=
-      congrFun h {Proposition.atom x}
-    simpa [Theory.map, Proposition.map] using this
+instance : Functor Theory where
+  map f := Set.image (f <$> ·)
 
 /-- The empty theory corresponds to minimal propositional logic. -/
 abbrev MPL : Theory (Atom) := ∅
@@ -150,7 +146,7 @@ theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T]
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]
 def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
-  T.map (WithBot.some) ∪ IPL
+  (WithBot.some <$> T) ∪ IPL
 
 instance instIsIntuitionisticIntuitionisticCompletion (T : Theory Atom) :
     IsIntuitionistic T.intuitionisticCompletion := by grind
