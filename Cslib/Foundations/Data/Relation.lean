@@ -294,21 +294,19 @@ theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Nor
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
 @[implicit_reducible]
-def trans_of_subrelation (s s' r : α → α → Prop) (hr : IsTrans α r)
-    (h : Subrelation s r) (h' : Subrelation s' r) : Trans s s' r where
-  trans hab hbc := hr.trans _ _ _ (h hab) (h' hbc)
+def transLeftRight (s s' r : α → α → Prop) [IsTrans α r] (h : s ≤ r) (h' : s' ≤ r) :
+    Trans s s' r where
+  trans hab hbc := _root_.trans (h _ _ hab) (h' _ _ hbc)
 
 /-- A subrelation lifts to transitivity on the left of the relation. -/
 @[implicit_reducible]
-def trans_of_subrelation_left (s r : α → α → Prop) (hr : IsTrans α r)
-    (h : Subrelation s r) : Trans s r r where
-  trans hab hbc := hr.trans _ _ _ (h hab) hbc
+def transLeft (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans s r r where
+  trans hab hbc := _root_.trans (h _ _ hab) hbc
 
 /-- A subrelation lifts to transitivity on the right of the relation. -/
 @[implicit_reducible]
-def trans_of_subrelation_right (s r : α → α → Prop) (hr : IsTrans α r)
-    (h : Subrelation s r) : Trans r s r where
-  trans hab hbc := hr.trans _ _ _ hab (h hbc)
+def transRight (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans r s r where
+  trans hab hbc := _root_.trans hab (h _ _ hbc)
 
 /-- Confluence implies that multi-step joinability is an equivalence. -/
 theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
@@ -559,7 +557,7 @@ theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (
     exact ⟨w, yw, cz.trans zw⟩
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
-theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
+theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTransGen r₁) :
     ReflTransGen r₁ = ReflTransGen r₂ := by
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
@@ -638,10 +636,10 @@ macro_rules
   def PredReduction (a b : ℕ) : Prop := a = b + 1
   ```
 -/
-syntax (name := reduction_sys) "reduction_sys" (ppSpace str)? : attr
+syntax (name := reductionSys) "reduction_sys" (ppSpace str)? : attr
 
 initialize Lean.registerBuiltinAttribute {
-  name := `reduction_sys
+  name := `reductionSys
   descr := "Register notation for a relation and its closures."
   add := fun decl stx _ => MetaM.run' do
     let currNamespace ← getCurrNamespace
