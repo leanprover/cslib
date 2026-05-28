@@ -3,6 +3,7 @@ import CslibTests.CCS
 import CslibTests.CLL
 import CslibTests.DFA
 import CslibTests.FreeMonad
+import CslibTests.FreeMonadWP
 import CslibTests.GrindLint
 import CslibTests.HML
 import CslibTests.HasFresh
