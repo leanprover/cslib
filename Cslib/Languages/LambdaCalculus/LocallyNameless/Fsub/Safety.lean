@@ -71,6 +71,7 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
       grind [fresh_exists <| free_union [fvTm] Var, openTm_substTm_intro, subst_tm]
   all_goals grind [cases Red]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Any typable term either has a reduction step or is a value. -/
 lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t' := by
   generalize eq : [] = Γ at der

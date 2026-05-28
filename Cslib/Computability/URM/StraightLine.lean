@@ -87,10 +87,13 @@ theorem straight_line_halts_from_regs {p : Program} (hsl : p.IsStraightLine) (r 
     exact ⟨s', hsteps, Nat.le_of_eq hpc'.symm, hpc'⟩
   intro s hpc_le
   generalize hrem : p.length - s.pc = remaining
-  induction remaining using Nat.strong_induction_on generalizing s
+  induction remaining using Nat.strong_induction_on generalizing s with
+  | h n ih =>
   by_cases hhalted : s.pc ≥ p.length
   · grind
-  · grind [Program.IsStraightLine, Step.of_nonJump, Relation.ReflTransGen.head]
+  · have jmp : ¬p[s.pc].IsJump := by apply hsl; grind
+    have := Step.of_nonJump (by lia) jmp
+    grind [Relation.ReflTransGen.head]
 
 /-- A straight-line program halts on any input. -/
 theorem straight_line_halts {p : Program} (hsl : p.IsStraightLine) (inputs : List ℕ) :

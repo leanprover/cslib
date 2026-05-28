@@ -149,9 +149,10 @@ structure Fact (P : Type*) [PhaseSpace P] where
   (carrier : Set P)
   (property : isFact carrier)
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
-  coe_injective' _ _ _ := by grind [cases Fact]
+  coe_injective' _ _ _ := by grind only [cases Fact]
 
 instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
 
@@ -174,7 +175,7 @@ lemma subset_dual_dual {G : Set P} :
 lemma of_Fact {G : Fact P} {p : P}
     (hp : ∀ q, (∀ r ∈ G, q * r ∈ PhaseSpace.bot) → p * q ∈ PhaseSpace.bot) : p ∈ G := by
   rw [← SetLike.mem_coe, G.eq]
-  grind
+  simpa
 
 @[scoped grind =, simp] lemma mem_carrier (G : Fact P) : G.carrier = (G : Set P) := rfl
 

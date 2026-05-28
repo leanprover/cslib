@@ -62,19 +62,25 @@ variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
 attribute [grind .] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Typings have well-formed contexts and types. -/
 @[grind →]
 lemma wf {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) : Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
   induction der <;> let L := free_union Var <;> have ⟨x, nmem⟩ := fresh_exists L
   case tabs ih =>
     cases (ih x (by grind)).left
-    grind [LC.tabs L, Ty.Wf.all L]
+    split_ands
+    · grind
+    · apply LC.tabs L <;> grind
+    · apply Ty.Wf.all L <;> grind
   case abs ih =>
     cases (ih x (by grind)).left
     grind [LC.abs L, Wf.strengthen]
   case let' => grind [LC.let' L, Ty.Wf.strengthen]
   case case => refine ⟨?_, LC.case L ?_ ?_ ?_, ?_⟩ <;> grind [Ty.Wf.strengthen]
-  all_goals grind [of_bind_ty, open_lc, cases Ty.Wf]
+  case var => grind [of_bind_ty]
+  case app => grind only [LC.app, cases Ty.Wf]
+  all_goals grind [open_lc]
 
 /-- Weakening of typings. -/
 lemma weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
@@ -203,38 +209,53 @@ lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) 
     · exists δ', L
   all_goals grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Invert the typing of a left case. -/
 lemma inl_inv (der : Typing Γ (.inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
     ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := by
-  generalize eq : t.inl =t at der
-  induction der generalizing γ δ <;> grind [cases Sub]
+  generalize eq : t.inl = t at der
+  induction der generalizing γ δ with
+  | inl => grind only [cases Sub]
+  | _ => grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Invert the typing of a right case. -/
 lemma inr_inv (der : Typing Γ (.inr t) T) (sub : Sub Γ T (sum γ δ)) :
     ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
-  generalize eq : t.inr =t at der
-  induction der generalizing γ δ <;> grind [cases Sub]
+  generalize eq : t.inr = t at der
+  induction der generalizing γ δ with
+  | inr => grind only [cases Sub]
+  | _ => grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- A value that types as a function is an abstraction. -/
 lemma canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
     ∃ δ t', t = .abs δ t' := by
   generalize eq  : σ.arrow τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ _ _ => grind only [= Option.mem_def, = dlookup_nil, cases Sub]
+  | _ => grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- A value that types as a quantifier is a type abstraction. -/
 lemma canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
     ∃ δ t', t = .tabs δ t' := by
   generalize eq  : σ.all τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub _ _ _ => grind only [= Option.mem_def, = dlookup_nil, cases Sub]
+  | _ => grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- A value that types as a sum is a left or right case. -/
 lemma canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
     ∃ t', t = .inl t' ∨ t = .inr t' := by
   generalize eq  : σ.sum τ = γ at der
   generalize eq' : [] = Γ at der
-  induction der generalizing σ τ <;> grind [cases Sub, cases Value]
+  induction der generalizing σ τ with
+  | sub => grind only [= Option.mem_def, = dlookup_nil, cases Sub]
+  |  _ => grind
 
 end Typing
 

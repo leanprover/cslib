@@ -74,6 +74,7 @@ instance (lts : LTS State Label) : lts.totalize.Total where
     use none
     simp [totalize]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- In `totalize`, there is no finite execution from the sink state to any non-sink state. -/
 theorem totalize.no_sink_to_nonsink {μs : List Label} {t : State} :
     ¬ lts.totalize.MTr (none) μs (some t) := by
@@ -81,7 +82,9 @@ theorem totalize.no_sink_to_nonsink {μs : List Label} {t : State} :
   generalize h_s : (none : Option State) = s'
   generalize h_t : (some t : Option State) = t'
   rw [h_s, h_t] at h
-  induction h <;> grind [totalize]
+  induction h
+  · grind
+  · grind only [totalize]
 
 /-- In `totalize`, the transitions between non-sink states correspond exactly to
 the transitions in the original LTS. -/

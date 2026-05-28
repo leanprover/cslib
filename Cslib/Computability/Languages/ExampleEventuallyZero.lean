@@ -39,6 +39,7 @@ def eventuallyZeroNa : NA.Buchi (Fin 2) (Fin 2) where
   start := {0}
   accept := {1}
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 theorem eventuallyZero_accepted_by_na_buchi :
     language eventuallyZeroNa = eventuallyZero := by
   ext xs; unfold eventuallyZeroNa; constructor
@@ -49,7 +50,9 @@ theorem eventuallyZero_accepted_by_na_buchi :
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h_n
     suffices h1 : xs (m + k) = 0 ∧ ss (m + k) = 1 by grind
     have := h_run.trans m
-    induction k <;> grind [NA.Run]
+    induction k
+    · grind
+    · grind only [NA.Run, = LTS.OmegaExecution]
   · intro h
     obtain ⟨m, h_m⟩ := eventually_atTop.mp h
     let ss : ωSequence (Fin 2) := fun k ↦ if k ≤ m then (0 : Fin 2) else 1
@@ -97,7 +100,7 @@ theorem eventuallyZero_not_omegaLim :
   rintro ⟨l, h⟩
   let ls := ωSequence.mk (oneSegs h)
   have h_segs := oneSegs_lemma h
-  have h_pos : ∀ k, (ls k).length > 0 := by grind
+  have h_pos (k : ℕ) : 0 < (ls k).length := List.length_pos_iff.mpr (by grind)
   have h_ev : ls.flatten ∈ eventuallyZero := by
     rw [← h, mem_omegaLim, frequently_iff_strictMono]
     use (fun k ↦ ls.cumLen (k + 1))
