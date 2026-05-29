@@ -109,7 +109,7 @@ def Algorithm.recvMsg (a : Algorithm P M S) (m : Message P M) (s : State P M S) 
 
 /-- The transition relation of the LTS defined by the algorithm `a`.
 Note that the stuttering step is always allowed. -/
-def Algorithm.LTS (a : Algorithm P M S) : LTS (State P M S) (Action P M) where
+def Algorithm.lts (a : Algorithm P M S) : LTS (State P M S) (Action P M) where
   Tr s x s' := match x with
     | some m => m ∈ s.msgs ∧ s' = a.recvMsg m s
     | none => s' = s
@@ -117,7 +117,7 @@ def Algorithm.LTS (a : Algorithm P M S) : LTS (State P M S) (Action P M) where
 /-- `a.Reachable inp s` means that `s` is a reachable state of `a` given the initial `inp`. -/
 def Algorithm.Reachable [Fintype P]
     (a : Algorithm P M S) (inp : P → Bool) (s : State P M S) : Prop :=
-  a.LTS.CanReach (a.start inp) s
+  a.lts.CanReach (a.start inp) s
 
 /-- `s.ProcDecided p b` means that process `p` is decided on the boolean value `b`
 in the state `s`. -/
@@ -145,8 +145,8 @@ namespace Algorithm
 variable {a : Algorithm P M S} {inp : P → Bool}
 
 /-- The stuttering step does not change the global state. -/
-theorem tr_none {s s' : State P M S} (h : a.LTS.Tr s none s') : s = s' := by
-  grind [Algorithm.LTS]
+theorem tr_none {s s' : State P M S} (h : a.lts.Tr s none s') : s = s' := by
+  grind [Algorithm.lts]
 
 /-- The initial state is reachable. -/
 theorem reachable_start [Fintype P] :
@@ -156,7 +156,7 @@ theorem reachable_start [Fintype P] :
 /-- If `s` is reachable from the initial state and `s'` is reachable from `s`,
 then `s'` is reachable from the initial state. -/
 theorem reachable_stable [Fintype P] {s s' : State P M S}
-    (hr : a.Reachable inp s) (hc : a.LTS.CanReach s s') : a.Reachable inp s' := by
+    (hr : a.Reachable inp s) (hc : a.lts.CanReach s s') : a.Reachable inp s' := by
   obtain ⟨xs, _⟩ := hr
   obtain ⟨xs', _⟩ := hc
   use xs ++ xs'
@@ -165,14 +165,14 @@ theorem reachable_stable [Fintype P] {s s' : State P M S}
 /-- If `p` is decided on the boolean value `b` in `s` and `s'` is reachable from `s`,
 then `p` is still decided on `b` in `s'`. -/
 theorem procDecided_stable {s s' : State P M S} {p : P} {b : Bool}
-    (hd : s.ProcDecided p b) (hc : a.LTS.CanReach s s') : s'.ProcDecided p b := by
+    (hd : s.ProcDecided p b) (hc : a.lts.CanReach s s') : s'.ProcDecided p b := by
   obtain ⟨xs, h_mtr⟩ := hc
-  induction h_mtr <;> grind [Algorithm.LTS, Algorithm.recvMsg]
+  induction h_mtr <;> grind [Algorithm.lts, Algorithm.recvMsg]
 
 /-- If at least one process is decided on the boolean value `b` in `s` and `s'` is reachable
 from `s`, then at least one process is still decided on `b` in `s'`. -/
 theorem decided_stable {s s' : State P M S} {b : Bool}
-    (hd : s.Decided b) (hc : a.LTS.CanReach s s') : s'.Decided b := by
+    (hd : s.Decided b) (hc : a.lts.CanReach s s') : s'.Decided b := by
   obtain ⟨p, _⟩ := hd
   use p
   grind [procDecided_stable]
@@ -197,34 +197,34 @@ theorem recvMsg_comm {m1 m2 : Message P M} {s : State P M S}
     by_cases h_p1 : p = m1.dest <;> by_cases h_p2 : p = m2.dest <;>
       simp [Algorithm.recvMsg, h_p1, h_p2, hd, hd.symm]
 
-/-- A diamond property for the transition relation `a.LTS.Tr`. -/
+/-- A diamond property for the transition relation `a.lts.Tr`. -/
 theorem tr_diamond {ps : Set P} {x1 x2 : Action P M} {s s1 s2 : State P M S}
-    (hx1 : DestIn ps x1) (hs1 : a.LTS.Tr s x1 s1)
-    (hx2 : DestIn psᶜ x2) (hs2 : a.LTS.Tr s x2 s2) :
-    ∃ s', a.LTS.Tr s1 x2 s' ∧ a.LTS.Tr s2 x1 s' := by
-  cases x1 <;> cases x2 <;> try grind [Algorithm.LTS]
+    (hx1 : DestIn ps x1) (hs1 : a.lts.Tr s x1 s1)
+    (hx2 : DestIn psᶜ x2) (hs2 : a.lts.Tr s x2 s2) :
+    ∃ s', a.lts.Tr s1 x2 s' ∧ a.lts.Tr s2 x1 s' := by
+  cases x1 <;> cases x2 <;> try grind [Algorithm.lts]
   case some m1 m2 =>
     have hd : m1.dest ≠ m2.dest := by grind [DestIn]
     obtain ⟨h_m1, rfl⟩ := hs1
     obtain ⟨h_m2, rfl⟩ := hs2
-    simp only [Algorithm.LTS, exists_eq_right_right]
+    simp only [Algorithm.lts, exists_eq_right_right]
     grind [recvMsg_comm (a := a) hd h_m1 h_m2]
 
 /-- A message that is in-flight stays in-flight as long as it is not received
 (finite execution version). -/
 theorem mTr_notRcvd_enabled {s t : State P M S} {xl : List (Action P M)} {m : Message P M}
-    (hst : a.LTS.MTr s xl t) (hs : m ∈ s.msgs) (hxl : ¬ some m ∈ xl) : m ∈ t.msgs := by
+    (hst : a.lts.MTr s xl t) (hs : m ∈ s.msgs) (hxl : ¬ some m ∈ xl) : m ∈ t.msgs := by
   induction hst
   case refl _ => assumption
   case stepL s x s1 xl t h_tr h_mtr h_ind =>
     rcases Option.eq_none_or_eq_some x <;>
-      grind [Algorithm.LTS, Algorithm.recvMsg, mem_erase_of_ne]
+      grind [Algorithm.lts, Algorithm.recvMsg, mem_erase_of_ne]
 
 /-- A message that is in-flight stays in-flight as long as it is not received
 (infinite execution version). -/
 theorem omega_notRcvd_enabled
     {ss : ωSequence (State P M S)} {xs : ωSequence (Action P M)} {k : ℕ} {m : Message P M}
-    (he : a.LTS.OmegaExecution ss xs) (hm : m ∈ (ss k).msgs) (hn : ∀ j, k ≤ j → xs j ≠ some m) :
+    (he : a.lts.OmegaExecution ss xs) (hm : m ∈ (ss k).msgs) (hn : ∀ j, k ≤ j → xs j ≠ some m) :
     ∀ j, k ≤ j → m ∈ (ss j).msgs := by
   intro j h_j
   obtain ⟨i, rfl⟩ : ∃ i, j = k + i := by use j - k; grind
@@ -232,7 +232,7 @@ theorem omega_notRcvd_enabled
   case zero => grind
   case succ i _ =>
     rcases Option.eq_none_or_eq_some (xs (k + i)) <;>
-      grind [he (k + i), Algorithm.LTS, Algorithm.recvMsg, mem_erase_of_ne]
+      grind [he (k + i), Algorithm.lts, Algorithm.recvMsg, mem_erase_of_ne]
 
 end Algorithm
 
