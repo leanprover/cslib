@@ -179,6 +179,20 @@ theorem mem_versionSpace_iff_empiricalError_zero
         rw [if_pos hne] at hi
         exact one_ne_zero hi
 
+/-- The empirical 0-1 error equals the empirical miscount divided by the
+sample size. -/
+theorem empiricalError_eq_div [DecidableEq β]
+    [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSingletonClass α] [MeasurableSingletonClass β]
+    {m : ℕ} (hm : 0 < m) (h : α → β) (S : LabeledSample α β m) :
+    empiricalError h S = (empiricalMiscount h S : ℝ≥0∞) / m := by
+  have hm_ne : m ≠ 0 := hm.ne'
+  unfold empiricalError empiricalMeasure error empiricalMiscount
+  rw [dif_neg hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
+  simp only [Measure.dirac_apply, Set.indicator, Set.mem_setOf_eq, Pi.one_apply,
+             smul_eq_mul]
+  rw [Finset.sum_boole, ← ENNReal.div_eq_inv_mul]
+
 /-! ### Consistent Learners -/
 
 /-- A learner is *consistent* with the concept class `C` if, on every labeled
