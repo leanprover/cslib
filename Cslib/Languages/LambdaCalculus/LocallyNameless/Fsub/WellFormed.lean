@@ -155,7 +155,8 @@ variable [HasFresh Var] in
 lemma nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := by
   induction wf with
   | all => grind [fresh_exists <| free_union [dom] Var, nmem_fv_open, openRec_lc]
-  | _ => grind [dlookup_isSome]
+  | @var _ Γ => grind => have : (dlookup X Γ).isSome = true; finish;
+  | _ => grind
 
 end Ty.Wf
 
