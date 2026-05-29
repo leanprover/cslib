@@ -68,7 +68,7 @@ variable [HasFresh Var]
 @[scoped grind <=]
 lemma open_tm_body (body : t₁.body) (lc : t₂.LC) : (t₁ ^ᵗᵗ t₂).LC := by
   cases body
-  grind [fresh_exists <| free_union [fv_tm] Var, subst_tm_lc, open_tm_subst_tm_intro]
+  grind [fresh_exists <| free_union [fvTm] Var, substTm_lc, openTm_substTm_intro]
 
 end
 
@@ -109,8 +109,8 @@ lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
     · grind
     · cases lc
       grind [
-        fresh_exists <| free_union [fv_tm, fv_ty] Var, subst_tm_lc,
-        subst_ty_lc, open_tm_subst_tm_intro, open_ty_subst_ty_intro]
+        fresh_exists <| free_union [fvTm, fvTy] Var, substTm_lc,
+        substTy_lc, openTm_substTm_intro, openTy_substTy_intro]
   all_goals grind
 
 end Term
