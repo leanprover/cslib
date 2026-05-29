@@ -30,6 +30,7 @@ def toNA (a : DA State Symbol) : NA State Symbol :=
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 open scoped FLTS NA NA.Run LTS in
 @[simp, scoped grind =]
 theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State} :
@@ -37,7 +38,9 @@ theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence
   constructor
   · rintro _
     ext n
-    induction n <;> grind [NA.Run]
+    induction n
+    · grind only [NA.Run, toNA, = run_zero, = Set.mem_singleton_iff]
+    · grind only [NA.Run, toNA, = run_succ, = LTS.OmegaExecution, = FLTS.toLTS_tr]
   · grind [NA.Run]
 
 namespace FinAcc

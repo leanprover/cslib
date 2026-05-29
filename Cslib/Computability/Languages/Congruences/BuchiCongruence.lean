@@ -25,6 +25,7 @@ open Function Set Filter ωAcceptor ωLanguage ωSequence
 
 variable {Symbol : Type*} {State : Type}
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Given a Buchi automaton `na`, two finite words `u` and `v` are Buchi-congruent
 according to `na` iff for every pair of states `s` and `t` of `na`, both of the
 following two conditions hold:
@@ -40,7 +41,7 @@ def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.iseqv.symm := by grind
   eq.iseqv.trans := by grind
   right_cov.elim := by
-    grind [Covariant, → LTS.pairLang_split, <= LTS.pairLang_append, → LTS.pairViaLang_split,
+    grind only [Covariant, → LTS.pairLang_split, <= LTS.pairLang_append, → LTS.pairViaLang_split,
       <= LTS.pairViaLang_append_pairLang, <= LTS.pairLang_append_pairViaLang]
 
 open scoped Classical in
@@ -89,11 +90,12 @@ lemma buchiCongruence_transfer
     have : ⟦xl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc
     have : ⟦yl⟧ = a := mem_singleton_iff.mp <| mem_preimage.mp hc'
     grind
-  have := h_eq s t
-  have h_yl : yl ∈ na.pairLang s t := by grind
-  have := LTS.Execution.of_mTr h_yl
-  grind [LTS.mem_pairViaLang, LTS.Execution, → LTS.Execution.comp,
-    → LTS.Execution.of_mTr]
+  obtain ⟨l, r⟩ := h_eq s t
+  by_cases h_xl : xl ∈ na.pairViaLang na.accept s t
+  · obtain := LTS.mem_pairViaLang.mp (r.mp h_xl)
+    grind [LTS.Execution, → LTS.Execution.comp, → LTS.Execution.of_mTr]
+  · use LTS.Execution.of_mTr (l.mp hp) |>.choose
+    grind
 
 /-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
@@ -184,13 +186,15 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
   obtain ⟨ss, ⟨h_init, h_exec⟩, h_acc⟩ := h_lang
   let f (k : ℕ) := xl.length + xls.cumLen k
   let ts := ωSequence.mk (fun k ↦ ss (f k))
-  have h_xls_p (k : ℕ) : (xls k).length > 0 := by grind [Language.mem_sub_one]
+  have (k : ℕ) : xls k ≠ [] := by grind [Language.mem_sub_one]
+  have h_xls_p (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
   have h_xls_e (k : ℕ) : xls k ∈ na.pairLang (ts k) (ts (k + 1)) := by
     grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang,
       extract_append_right_right, add_tsub_cancel_left]
   have h_yls (k : ℕ) := buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
   choose sls h_yls_e h_yls_a using h_yls
-  have h_yls_p (k : ℕ) : (yls k).length > 0 := by grind [Language.mem_sub_one]
+  have (k : ℕ) : yls k ≠ [] := by grind [Language.mem_sub_one]
+  have h_yls_p (k : ℕ) : (yls k).length > 0 := List.length_pos_iff.mpr (this k)
   obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.OmegaExecution.flatten_execution h_yls_e h_yls_p
   suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
     have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by
@@ -200,7 +204,8 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
       grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.Execution.to_mTr]
     have h_ss1_ts : ss1 0 = ts 0 := by
       have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
-      have : 0 < (sls 0).length := by grind
+      have : sls 0 ≠ [] := by grind
+      have : 0 < (sls 0).length := List.length_pos_iff.mpr this
       have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
       have : (sls 0)[0] = ts 0 := h_yls_e 0 |>.choose_spec |>.1
       grind
