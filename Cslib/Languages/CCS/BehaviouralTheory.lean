@@ -10,8 +10,6 @@ public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Syntax.Congruence
 public import Cslib.Languages.CCS.Semantics
 
-@[expose] public section
-
 /-! # Behavioural theory of CCS
 
 ## Main results
@@ -23,6 +21,8 @@ Additionally, some standard laws of bisimilarity for CCS, including:
 - `CCS.bisimilarity_par_comm`: P | Q ~ Q | P
 - `CCS.bisimilarity_choice_comm`: P + Q ~ Q + P
 -/
+
+@[expose] public section
 
 namespace Cslib
 

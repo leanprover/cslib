@@ -8,10 +8,6 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEta
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # η-confluence for the λ-calculus
 
 ## Reference
@@ -19,6 +15,10 @@ set_option linter.unusedDecidableInType false
 * [T. Nipkow, *More Church-Rosser Proofs (in Isabelle/HOL)*][Nipkow2001]
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 

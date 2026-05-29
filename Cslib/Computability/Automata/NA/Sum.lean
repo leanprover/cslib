@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
-Relexsed under Apache 2.0 license xs described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
@@ -8,14 +8,14 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
-@[expose] public section
-
 /-! # Sum of nondeterministic automata. -/
 
-open Set Function Filter Cslib.ωSequence
-open scoped Cslib.LTS
+@[expose] public section
 
 namespace Cslib.Automata.NA
+
+open Set Function ωSequence ωLanguage
+open scoped Cslib.LTS
 
 variable {Symbol I : Type*} {State : I → Type*}
 
@@ -25,6 +25,7 @@ def iSum (na : (i : I) → NA (State i) Symbol) : NA (Σ i, State i) Symbol wher
   start := ⋃ i, Sigma.mk i '' (na i).start
   Tr s x t := ∃ i s_i t_i, (na i).Tr s_i x t_i ∧ ⟨i, s_i⟩ = s ∧ ⟨i, t_i⟩ = t
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- An infinite run of the sum automaton is an infinite run of one of its component automata. -/
 @[simp, scoped grind =]
 theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
@@ -50,24 +51,23 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
   · rintro ⟨i, ss, h_run, rfl⟩
     constructor
     · simp only [iSum, get_map, mem_iUnion]
-      grind [NA.Run]
+      grind only [NA.Run, = mem_image]
     · simp only [LTS.OmegaExecution]
-      grind [NA.Run]
+      grind only [NA.Run, = get_map, iSum, LTS.OmegaExecution]
 
 namespace Buchi
 
 open ωAcceptor
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 /-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
 by its component automata. -/
 @[simp]
 theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) → Set (State i)} :
     language (Buchi.mk (iSum na) (⋃ i, Sigma.mk i '' (acc i))) =
-    ⋃ i, language (Buchi.mk (na i) (acc i)) := by
-  ext xs
-  rw [mem_iUnion]
+    ⨆ i, language (Buchi.mk (na i) (acc i)) := by
+  apply mem_ext
+  intro xs
+  simp only [mem_language, mem_iSup]
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
     simp only [mem_iUnion] at h_acc
@@ -77,7 +77,9 @@ theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) �
   · rintro ⟨i, ss_i, _⟩
     use ss_i.map (Sigma.mk i)
     simp only [mem_iUnion]
-    grind
+    constructor
+    · grind
+    · grind
 
 end Buchi
 

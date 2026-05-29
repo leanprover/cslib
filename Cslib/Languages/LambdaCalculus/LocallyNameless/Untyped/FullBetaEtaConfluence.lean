@@ -8,10 +8,7 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEtaConfluence
-
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaEta
 
 /-! # βη-Confluence for the λ-calculus
 
@@ -20,6 +17,10 @@ set_option linter.unusedDecidableInType false
 * [T. Nipkow, *More Church-Rosser Proofs (in Isabelle/HOL)*][Nipkow2001]
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -31,10 +32,6 @@ variable [HasFresh Var] [DecidableEq Var]
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 open Relation
-
-/-- Full βη-reduction. -/
-@[reduction_sys "βηᶠ"]
-abbrev FullBetaEta : Term Var → Term Var → Prop := FullBeta ⊔ FullEta
 
 open FullEta FullBeta in
 /-- η-reduction and β-reduction strongly commute. -/
@@ -77,9 +74,9 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
       cases h_eta with | eta =>
         have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
         have st_beta_w : app y₁ (fvar w) ⭢βᶠ N ^ fvar w := by grind [st_body_beta w]
-        rcases invert_step_app_fvar st_beta_w with ⟨u', _, st_u⟩ | ⟨u1, _, _⟩
+        rcases invert_step_app_fvar st_beta_w with ⟨u', h, st_u⟩ | ⟨u1, _, _⟩
         · use u'
-          grind [open_eq_app ?_ (step_not_fv st_u ?_)]
+          apply open_eq_app at h <;> grind [FullBeta.step_not_fv st_u]
         · use abs u1
           grind [open_injective w N u1]
     case abs S ys st_body_eta =>

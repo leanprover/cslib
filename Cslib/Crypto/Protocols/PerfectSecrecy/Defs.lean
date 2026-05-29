@@ -7,10 +7,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
-public import Cslib.Crypto.Protocols.PerfectSecrecy.PMFUtilities
+public import Cslib.Probability.PMF
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
-
-@[expose] public section
 
 /-!
 # Perfect Secrecy: Definitions
@@ -32,6 +30,8 @@ Core definitions for perfect secrecy following [KatzLindell2020], Chapter 2.
 - `Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme.CiphertextIndist`:
   ciphertext indistinguishability ([KatzLindell2020], Lemma 2.5)
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
@@ -58,7 +58,7 @@ the marginal distribution. -/
 noncomputable def posteriorMsgDist (scheme : EncScheme M K C)
     (msgDist : PMF M) (c : C)
     (hc : c ∈ (scheme.marginalCiphertextDist msgDist).support) : PMF M :=
-  PMFUtilities.posteriorDist msgDist scheme.ciphertextDist c hc
+  Cslib.Probability.PMF.posteriorDist msgDist scheme.ciphertextDist c hc
 
 @[simp]
 theorem posteriorMsgDist_apply (scheme : EncScheme M K C)
