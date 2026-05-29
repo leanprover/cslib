@@ -60,13 +60,14 @@ theorem redex_app_l_cong (redex : M ↠ηᶠ M') (lc_N : LC N) : app M N ↠η�
 theorem redex_app_r_cong (redex : M ↠ηᶠ M') (lc_N : LC N) : app N M ↠ηᶠ app N M' := by
   induction redex <;> grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /- Single reduction `app M (fvar x) ⭢ηᶠ N` implies `N = app M' (fvar x)` for some M' -/
 @[scoped grind →]
 lemma invert_step_app_fvar (step : (app M (fvar x)) ⭢ηᶠ N) :
     ∃ M', N = app M' (fvar x) ∧ M ⭢ηᶠ M' := by
   cases step with
   | appR _ step_M => exact ⟨_, rfl, step_M⟩
-  | _ => grind [cases Xi]
+  | _ => grind only [cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
@@ -84,7 +85,8 @@ lemma step_not_fv (step : M ⭢ηᶠ M') : M.fv = M'.fv := by
 @[scoped grind ←]
 lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢ηᶠ M' [ x := fvar y ] := by
   induction step with
-  | abs => grind [Xi.abs <| free_union Var]
+  | abs => apply Xi.abs <| free_union Var; grind
+  | @base M N => grind
   | _ => grind
 
 /-- Abstracting then closing preserves a single η-reduction step. -/

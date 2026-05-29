@@ -149,9 +149,10 @@ structure Fact (P : Type*) [PhaseSpace P] where
   (carrier : Set P)
   (property : isFact carrier)
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
-  coe_injective' _ _ _ := by grind [cases Fact]
+  coe_injective' _ _ _ := by grind only [cases Fact]
 
 instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
 
@@ -174,7 +175,7 @@ lemma subset_dual_dual {G : Set P} :
 lemma of_Fact {G : Fact P} {p : P}
     (hp : ∀ q, (∀ r ∈ G, q * r ∈ PhaseSpace.bot) → p * q ∈ PhaseSpace.bot) : p ∈ G := by
   rw [← SetLike.mem_coe, G.eq]
-  grind
+  simpa
 
 @[scoped grind =, simp] lemma mem_carrier (G : Fact P) : G.carrier = (G : Set P) := rfl
 
@@ -263,7 +264,7 @@ lemma biorth_least_fact (G : Set P) :
       symm at hF ⊢
       apply ClosureOperator.IsClosed.closure_eq (congrArg orthogonal (congrArg orthogonal hF))
     have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
-    simpa [c] using ClosureOperator.closure_min hGF hF_closed
+    simpa [c] using! ClosureOperator.closure_min hGF hF_closed
   apply h_min
 
 /-- `0` is the least fact (w.r.t. inclusion). -/
@@ -303,7 +304,7 @@ lemma inter_isFact_of_isFact {A B : Set P}
   let FB : Fact P := ⟨B, hB⟩
   have h := sInf_isFact (S := ({FA, FB} : Set (Fact P)))
   simpa [carriersInf, Set.image_pair, sInf_insert, sInf_singleton, inf_eq_inter]
-    using h
+    using! h
 
 instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩

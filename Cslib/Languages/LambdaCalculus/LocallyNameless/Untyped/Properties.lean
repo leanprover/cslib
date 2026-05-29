@@ -55,15 +55,21 @@ lemma close_rec_fv {k y} (m : Term Var) : (m⟦k ↜ y⟧).fv = m.fv.erase y := 
 @[scoped grind =]
 lemma close_var_not_fvar (x) (t : Term Var) : (t ^* x).fv = t.fv.erase x := close_rec_fv t
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Opening preserves free variables. -/
 theorem open_preserve_not_fvar (k) (m n : Term Var) :
     m⟦k ↝ n⟧.fv = m.fv ∪ n.fv ∨ m⟦k ↝ n⟧.fv = m.fv := by
-  induction m generalizing k <;> grind
+  induction m generalizing k with
+  | app => grind only [= openRec, = fv]
+  | _ => grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Substitution preserves free variables. -/
 lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
     m [y := n].fv = m.fv.erase y ∨ m [y := n].fv = m.fv.erase y ∪ n.fv:= by
-  induction m <;> grind
+  induction m with
+  | app => grind only [fv, = subst_app, = Finset.mem_union, = Finset.mem_erase]
+  | _ => grind
 
 lemma subst_refl (m : Term Var) (x : Var) : m[x := fvar x] = m := by
   induction m <;> grind
@@ -129,10 +135,11 @@ lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_
   induction m_lc generalizing k with
   | abs xs t =>
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
-    grind [
-      swap_open, =_ swap_open_fvar_close,
-      open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ n⟧) 0, open_close x' (t[x := n]) 0,
-       open_preserve_not_fvar, close_rec_fv, subst_preserve_not_fvar]
+    simp only [closeRec_abs, openRec_abs, subst_abs]
+    rw [open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ n⟧) 0, open_close x' (t[x := n]) 0]
+    · grind [swap_open, =_ swap_open_fvar_close]
+    · grind [subst_preserve_not_fvar]
+    · grind [open_preserve_not_fvar]
   | _ => grind
 
 /-- Closing and opening are inverses. -/

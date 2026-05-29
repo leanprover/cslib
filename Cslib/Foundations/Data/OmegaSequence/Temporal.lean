@@ -49,10 +49,11 @@ variable {xs : ωSequence α}
 theorem step_leadsTo {p q : Set α} (h : xs.Step p q) : xs.LeadsTo p q := by
   grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- `LeadsTo` is transitive. -/
 theorem leadsTo_trans {p q r : Set α}
     (h1 : xs.LeadsTo p q) (h2 : xs.LeadsTo q r) : xs.LeadsTo p r := by
-  grind
+  grind only [LeadsTo]
 
 /-- If `p ∩ q` leads to `r` and `p ∩ qᶜ` leads to `s`, then `p` leads to `r ∪ s`. -/
 theorem leadsTo_cases_or {p q r s : Set α}
