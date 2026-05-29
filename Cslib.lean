@@ -71,7 +71,10 @@ public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators.And
 public import Cslib.Foundations.Logic.Operators.Box
 public import Cslib.Foundations.Logic.Operators.Diamond
+public import Cslib.Foundations.Logic.Operators.Iff
+public import Cslib.Foundations.Logic.Operators.Impl
 public import Cslib.Foundations.Logic.Operators.Not
+public import Cslib.Foundations.Logic.Operators.Or
 public import Cslib.Foundations.Logic.Operators.Tensor
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
