@@ -119,7 +119,7 @@ theorem Execution.comp
     · grind only [Execution, = List.getElem_append]
     · have := Execution.comp_helper h1 h2 (k - μs1.length)
       have := Execution.comp_helper h1 h2 (k - μs1.length + 1)
-      grind
+      grind only [Execution, = List.getElem_append]
 
 /-- An execution can be split at any intermediate state into two executions. -/
 theorem Execution.split

@@ -63,6 +63,7 @@ theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠β�
 theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
   induction redex <;> grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /- Single reduction `app M (fvar x) ⭢βᶠ N` implies reduction on `M` or a root beta step. -/
 @[scoped grind →]
 lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
@@ -70,7 +71,7 @@ lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
   cases step
   case base h => cases h with | beta => exact .inr ⟨_, rfl, rfl⟩
   case appR step_M _ => exact .inl ⟨_, rfl, step_M⟩
-  all_goals grind [cases Xi]
+  all_goals grind only [cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
@@ -88,7 +89,7 @@ lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s [ x := t ] ⭢βᶠ s' [ x := t ] := by
   induction step with
-  | base => grind [subst_open]
+  | base beta => cases beta; grind [subst_open]
   | abs  => grind [Xi.abs <| free_union Var]
   | _ => grind
 

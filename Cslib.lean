@@ -1,4 +1,4 @@
-module  -- shake: keep-all
+module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
@@ -140,4 +140,6 @@ public import Cslib.Logics.Modal.Denotation
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.MachineLearning.PACLearning.Defs
+public import Cslib.MachineLearning.PACLearning.VCDimension
+public import Cslib.MachineLearning.PACLearning.VersionSpace
 public import Cslib.Probability.PMF
