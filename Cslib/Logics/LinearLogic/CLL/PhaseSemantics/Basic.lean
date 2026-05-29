@@ -264,7 +264,7 @@ lemma biorth_least_fact (G : Set P) :
       symm at hF ⊢
       apply ClosureOperator.IsClosed.closure_eq (congrArg orthogonal (congrArg orthogonal hF))
     have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
-    simpa [c] using ClosureOperator.closure_min hGF hF_closed
+    simpa [c] using! ClosureOperator.closure_min hGF hF_closed
   apply h_min
 
 /-- `0` is the least fact (w.r.t. inclusion). -/
@@ -304,7 +304,7 @@ lemma inter_isFact_of_isFact {A B : Set P}
   let FB : Fact P := ⟨B, hB⟩
   have h := sInf_isFact (S := ({FA, FB} : Set (Fact P)))
   simpa [carriersInf, Set.image_pair, sInf_insert, sInf_singleton, inf_eq_inter]
-    using h
+    using! h
 
 instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩

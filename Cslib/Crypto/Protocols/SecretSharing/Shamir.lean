@@ -153,7 +153,7 @@ private theorem privacyCorrectionPolynomial_eval
     (privacyCorrectionPolynomial (F := F) params s secret₀ secret₁).eval (params.point i) =
       (secret₀ - secret₁) / params.point i := by
   classical
-  simpa using
+  simpa using!
     (_root_.Lagrange.eval_interpolate_at_node
       (s := s.attach)
       (v := fun j : s => params.point j)
