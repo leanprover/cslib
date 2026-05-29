@@ -11,8 +11,6 @@ public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 
-@[expose] public section
-
 /-! # Bisimulation and Bisimilarity
 
 A bisimulation is a binary relation on the states of two `LTS`s, which establishes a tight semantic
@@ -65,6 +63,8 @@ equivalence coincide.
 - `WeakBisimilarity.eqv`: weak bisimilarity is an equivalence relation.
 
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 
@@ -777,6 +777,7 @@ theorem IsBisimulation.isSimulation_iff :
   have _ (s₁ s₂) : r s₁ s₂ → flip r s₂ s₁ := id
   grind [IsSimulation, flip]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Homogeneous bisimilarity can also be characterized through symmetric simulations. -/
 theorem HomBisimilarity.symm_simulation :
   HomBisimilarity lts =
@@ -790,10 +791,8 @@ theorem HomBisimilarity.symm_simulation :
       grind [Std.Symm, Bisimilarity.symm, IsBisimulation.isSimulation]
     grind
   · intro ⟨r, hr, hsymm, hsim⟩
-    have : r = (flip r) := by
-      grind [flip, Std.Symm]
-    have : IsHomBisimulation lts r := by
-      grind [IsBisimulation.isSimulation_iff]
+    have : r = (flip r) := by grind only [flip, Std.Symm]
+    have : IsHomBisimulation lts r := by grind [IsBisimulation.isSimulation_iff]
     grind
 
 end Bisimulation

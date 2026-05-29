@@ -8,9 +8,9 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 
-@[expose] public section
-
 /-! # Translation of εNA into NA -/
+
+@[expose] public section
 
 namespace Cslib
 
