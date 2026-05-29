@@ -8,8 +8,6 @@ module
 public import Cslib.Init
 public import Mathlib.Data.Sym.Sym2
 
-@[expose] public section
-
 /-!
 # Graph structures
 
@@ -57,6 +55,8 @@ preferred API restates these in terms of `V(G)` and `E(G)`:
 
 The corresponding `Coe` instances are registered.
 -/
+
+@[expose] public section
 
 namespace Cslib.Algorithms.Lean
 variable {α β : Type*}
