@@ -27,11 +27,11 @@ their textbook counterparts.
 ## Main definitions
 
 * `Edge α β`: an undirected edge with a label of type `β` and endpoints as a `Sym2 α`.
-* `DiEdge α β`: a directed edge with a label of type `β` and endpoints as `α × α`.
+* `Arc α β`: a directed edge with a label of type `β` and endpoints as `α × α`.
 * `Graph α β`: a general graph whose edges are `Edge α β` values. Parallel edges and
   loops are permitted.
 * `SimpleGraph α`: a simple graph with edges as `Sym2 α`, no loops.
-* `DiGraph α β`: a directed graph whose edges are `DiEdge α β` values. Parallel edges
+* `DiGraph α β`: a directed graph whose edges are `Arc α β` values. Parallel edges
   and loops are permitted.
 * `SimpleDiGraph α`: a simple directed graph with edges as `α × α`, no loops.
 
@@ -64,15 +64,15 @@ variable {α β : Type*}
 /-- An undirected edge with a label of type `β` and an unordered pair of endpoints. -/
 structure Edge (α β : Type*) where
   /-- The edge label, used to distinguish parallel edges. -/
-  edgeLabel : β
+  endpointsLabel : β
   /-- The unordered pair of endpoints. -/
   endpoints : Sym2 α
 deriving DecidableEq
 
 /-- A directed edge with a label of type `β` and an ordered pair of endpoints. -/
-structure DiEdge (α β : Type*) where
+structure Arc (α β : Type*) where
   /-- The edge label, used to distinguish parallel edges. -/
-  edgeLabel : β
+  endpointsLabel : β
   /-- The ordered pair `(source, target)` of endpoints. -/
   endpoints : α × α
 deriving DecidableEq
@@ -107,7 +107,7 @@ structure DiGraph (α β : Type*) where
   /-- The set of vertices. -/
   vertexSet : Set α
   /-- The set of edges. -/
-  edgeSet : Set (DiEdge α β)
+  edgeSet : Set (Arc α β)
   /-- Both endpoints of every edge are vertices. Prefer `DiGraph.incidence`. -/
   incidence' : ∀ e ∈ edgeSet, e.endpoints.1 ∈ vertexSet ∧ e.endpoints.2 ∈ vertexSet
 
@@ -132,7 +132,7 @@ def SimpleGraph.toGraph (G : SimpleGraph α) : Graph α (Sym2 α) where
     exact G.incidence' e he v hv
 
 /-- Forget the looplessness axiom of a `SimpleDiGraph`, viewing it as a `DiGraph` whose
-edges are `DiEdge α (α × α)` with the pair as both label and endpoints. -/
+edges are `Arc α (α × α)` with the pair as both label and endpoints. -/
 def SimpleDiGraph.toDiGraph (G : SimpleDiGraph α) : DiGraph α (α × α) where
   vertexSet := G.vertexSet
   edgeSet := (fun e => ⟨e, e⟩) '' G.edgeSet
@@ -173,7 +173,7 @@ class HasEdgeSet (G : Type*) (E : outParam Type*) where
   ⟨SimpleGraph.edgeSet⟩
 
 @[simp] instance {α β : Type*} : HasEdgeSet (DiGraph α β) (Set (α × α)) :=
-  ⟨fun G => DiEdge.endpoints '' G.edgeSet⟩
+  ⟨fun G => Arc.endpoints '' G.edgeSet⟩
 
 @[simp] instance {α : Type*} : HasEdgeSet (SimpleDiGraph α) (Set (α × α)) :=
   ⟨SimpleDiGraph.edgeSet⟩
