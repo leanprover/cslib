@@ -72,7 +72,7 @@ def Proposition.or (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬(¬�
 instance : HasOr (Proposition Atom) := {or := Proposition.or}
 
 @[scoped grind =]
-lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : (φ₁ ∨ φ₂) = ¬(¬φ₁ ∧ ¬φ₂) := rfl
+lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : (φ₁ ∨ φ₂) = φ₁.or φ₂ := rfl
 
 /-- Implication. -/
 def Proposition.impl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ₁ ∨ φ₂
@@ -80,7 +80,7 @@ def Proposition.impl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ
 instance : HasImpl (Proposition Atom) := {impl := Proposition.impl}
 
 @[scoped grind =]
-lemma Proposition.impl_def (φ₁ φ₂ : Proposition Atom) : (φ₁ → φ₂) = (¬φ₁ ∨ φ₂) := rfl
+lemma Proposition.impl_def (φ₁ φ₂ : Proposition Atom) : (φ₁ → φ₂) = φ₁.impl φ₂ := rfl
 
 /-- Bi-implication. -/
 def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
@@ -89,7 +89,7 @@ instance : HasIff (Proposition Atom) := {iff := Proposition.iff}
 
 @[scoped grind =]
 lemma Proposition.iff_def (φ₁ φ₂ : Proposition Atom) :
-    (φ₁ ↔ φ₂) = ((φ₁ → φ₂) ∧ (φ₂ → φ₁)) := rfl
+    (φ₁ ↔ φ₂) = φ₁.iff φ₂ := rfl
 
 /-- Necessity. -/
 def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬◇¬φ
@@ -97,7 +97,7 @@ def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬◇¬φ
 instance : HasBox (Proposition Atom) := {box := Proposition.box}
 
 @[scoped grind =]
-lemma Proposition.box_def (φ : Proposition Atom) : (□φ) = ¬◇¬φ := rfl
+lemma Proposition.box_def (φ : Proposition Atom) : (□φ) = φ.box := rfl
 
 /-- Satisfaction relation. `Satisfies m w φ` means that, in the model `m`, the world `w` satisfies
 the proposition `φ`. -/
@@ -143,7 +143,7 @@ Disjunction is defined in terms of the more primitive connectives given in `Prop
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.or_iff_or {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by grind
+    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by grind [Proposition.or]
 
 /-- Characterisation of the `→` connective.
 
@@ -152,7 +152,7 @@ This result proves that the definition is correct.
 -/
 @[scoped grind =]
 theorem Satisfies.impl_iff_impl {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind
+    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
 
 /-- Characterisation of the `□` modality.
 
@@ -160,7 +160,7 @@ Necessity is defined in terms of the more primitive connectives given in `Propos
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.box_iff_forall {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind
+    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind [Proposition.box]
 
 /-- The theory of a world in a model is the set of all propositions that it satifies. -/
 abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=
