@@ -40,6 +40,12 @@ theorem Proposition.equiv_def (S : Set (Model World Atom)) (φ₁ φ₂ : Propos
     (φ₁ ≡[S] φ₂) ↔
     (∀ m ∈ S, ∀ w : World, ⇓Modal[m,w ⊨ φ₁ ↔ φ₂]) := by rfl
 
+@[scoped grind =]
+theorem Proposition.equiv_iff (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition Atom) :
+    (φ₁ ≡[S] φ₂) ↔
+    (∀ m ∈ S, ∀ w : World, ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
+  simp [Proposition.equiv_def, Satisfies.iff_iff_iff]
+
 theorem Proposition.equiv_valid (S : Set (Model World Atom))
     (φ₁ φ₂ : Proposition Atom) (h : φ₁ ≡[S] φ₂) :
     (φ₁.valid S ↔ φ₂.valid S) := by
