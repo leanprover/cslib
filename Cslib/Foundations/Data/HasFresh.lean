@@ -134,7 +134,7 @@ instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
 
 /-- All infinite types have an associated (at least noncomputable) fresh function.
 This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
-noncomputable instance HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
+noncomputable instance (α : Type u) [Infinite α] : HasFresh α where
   fresh s := Infinite.exists_notMem_finset s |>.choose
   fresh_notMem s := by grind
 

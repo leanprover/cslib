@@ -31,8 +31,8 @@ variable {State Label : Type*} {lts : LTS State Label}
 /-- Any finite execution extracted from an infinite execution is valid. -/
 theorem OmegaExecution.extract_execution
     (h : lts.OmegaExecution ss μs) {n m : ℕ} (hnm : n ≤ m) :
-    lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
-  grind
+    lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) :=
+  ⟨by grind, by grind⟩
 
 /-- Any multistep transition extracted from an infinite execution is valid. -/
 theorem OmegaExecution.extract_mTr
@@ -113,7 +113,9 @@ theorem OmegaExecution.flatten_mTr [Inhabited Label]
   obtain ⟨ss, h_ss, h_seg⟩ := OmegaExecution.flatten_execution h_sls hpos
   use ss, h_ss
   intro k
-  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length := by grind
+  have : ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) ≠ [] := by grind
+  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length :=
+    List.length_pos_iff.mpr this
   grind [List.getElem_of_eq (h_seg k) h1]
 
 end Cslib.LTS

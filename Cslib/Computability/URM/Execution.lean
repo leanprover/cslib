@@ -82,8 +82,9 @@ namespace Step
 
 variable {p : Program}
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The step relation is deterministic: each state has at most one successor. -/
-theorem deterministic : Relator.RightUnique (Step p) := by grind [Relator.RightUnique]
+theorem deterministic : Relator.RightUnique (Step p) := by grind only [Relator.RightUnique]
 
 /-- A halted state has no successor in the step relation. -/
 theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬Step p s s' := by
@@ -146,7 +147,7 @@ theorem preserves_register {s s' : State} {r : ℕ}
     s'.regs.read r = s.regs.read r := by
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl => rfl
-  | head => grind [Step.preserves_register]
+  | head hstep => grind [Step.preserves_register hstep (r := r)]
 
 /-- If two halted states are reachable from the same start, they are equal.
 
@@ -160,6 +161,8 @@ theorem eq_of_halts {init s₁ s₂ : State}
   -- But s₁ and s₂ are normal forms, so w must equal both
   have hn1 := isHalted_iff_normal.mp hh1
   have hn2 := isHalted_iff_normal.mp hh2
+  obtain ⟨pc₁, regs₁⟩ := s₁
+  obtain ⟨pc₂, regs₂⟩ := s₂
   grind
 
 end Steps

@@ -110,8 +110,8 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
     case cons =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x'
-    case neg => grind
-    case pos => grind [(weaken der ?_).perm perm]
+    · have := (weaken der ?_).perm perm <;> grind
+    · grind
   case abs =>
     grind [Typing.abs <| free_union Var, subst_open_var _ _ _ _ ?_ der.lc]
 
