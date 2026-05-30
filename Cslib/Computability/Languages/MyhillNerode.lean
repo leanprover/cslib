@@ -77,7 +77,9 @@ theorem nerodeCongruenceDA_language_eq (l : Language α) :
   simp only [NerodeCongruenceDA, language, Acceptor.Accepts, congr_mtr_eq, Set.mem_image]
   constructor
   · rintro ⟨y, hy, heq⟩
-    simpa using (Quotient.eq.mp heq []).mp (by simpa using hy)
+    have h1 := Quotient.eq.mp heq []
+    simp only [List.append_nil] at h1
+    simpa [← h1]
   · exact fun hx => ⟨x, hx, rfl⟩
 
 /-- The statement (two strings are related by the Nerode congruence `c_l` on `l` iff all their right
