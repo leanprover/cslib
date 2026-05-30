@@ -9,10 +9,10 @@ consensus is impossible in the presence of even a single crash fault.
 1. `Algorithm.lean` defines the "syntax" of a distributed algorithm for solving the consensus problem
    and proves some basic properties.
 
-*The following files will appear in future PRs:*
-
 2. `Consensus.lean` defines what it means for a distributed algorithm to solve the consensus problem
    in a fault-tolerant way and proves some basic properties.
+
+*The following files will appear in future PRs:*
 
 3. `FairScheduler.lean` contains a technical machinery for constructing "fair executions", which is used
     in the proof of `PseudoConsensus.of_consensus` in `PseudoConsensus.lean` and in the proof of
