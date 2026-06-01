@@ -68,17 +68,17 @@ variable {Γ Δ : Context α β}
 
 /-- A mapping of values within a context. -/
 @[simp, scoped grind]
-def map_val (f : β → β) (Γ : Context α β) : Context α β :=
+def mapVal (f : β → β) (Γ : Context α β) : Context α β :=
   Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
 @[scoped grind .]
-lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
+lemma mapVal_keys (f) : Γ.keys = (Γ.mapVal f).keys := by
   induction Γ <;> grind
 
 /-- A mapping of values maps lookups. -/
-lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
+lemma mapVal_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.mapVal f).dlookup x := by
   induction Γ <;> grind
 
 end LambdaCalculus.LocallyNameless.Context

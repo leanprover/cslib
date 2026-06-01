@@ -76,28 +76,28 @@ with the head under the first element of the list if it exists.
 def mk₁ (l : List Symbol) : BiTape Symbol :=
   match l with
   | [] => ∅
-  | h :: t => { head := some h, left := ∅, right := StackTape.map_some t }
+  | h :: t => { head := some h, left := ∅, right := StackTape.mapSome t }
 
 section Move
 
 /--
 Move the head left by shifting the left StackTape under the head.
 -/
-def move_left (t : BiTape Symbol) : BiTape Symbol :=
+def moveLeft (t : BiTape Symbol) : BiTape Symbol :=
   ⟨t.left.head, t.left.tail, StackTape.cons t.head t.right⟩
 
 /--
 Move the head right by shifting the right StackTape under the head.
 -/
-def move_right (t : BiTape Symbol) : BiTape Symbol :=
+def moveRight (t : BiTape Symbol) : BiTape Symbol :=
   ⟨t.right.head, StackTape.cons t.head t.left, t.right.tail⟩
 
 /--
 Move the head to the left or right, shifting the tape underneath it.
 -/
 def move (t : BiTape Symbol) : Dir → BiTape Symbol
-  | .left => t.move_left
-  | .right => t.move_right
+  | .left => t.moveLeft
+  | .right => t.moveRight
 
 /--
 Optionally perform a `move`, or do nothing if `none`.
@@ -107,12 +107,12 @@ def optionMove : BiTape Symbol → Option Dir → BiTape Symbol
   | t, some d => t.move d
 
 @[simp]
-lemma move_left_move_right (t : BiTape Symbol) : t.move_left.move_right = t := by
-  simp [move_right, move_left]
+lemma moveLeft_moveRight (t : BiTape Symbol) : t.moveLeft.moveRight = t := by
+  simp [moveRight, moveLeft]
 
 @[simp]
-lemma move_right_move_left (t : BiTape Symbol) : t.move_right.move_left = t := by
-  simp [move_left, move_right]
+lemma moveRight_moveLeft (t : BiTape Symbol) : t.moveRight.moveLeft = t := by
+  simp [moveLeft, moveRight]
 
 end Move
 
@@ -141,6 +141,11 @@ lemma spaceUsed_mk₁ (l : List Symbol) :
 lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
     (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
   cases d <;> grind [move_left, move_right, move,
+  | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_mapSome]; omega
+
+lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
+    (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
+  cases d <;> grind [moveLeft, moveRight, move,
     spaceUsed, StackTape.length_tail_le, StackTape.length_cons_le]
 
 end BiTape
