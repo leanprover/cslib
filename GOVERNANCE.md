@@ -40,6 +40,8 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 
 - Chris Henson (@chenson2018), Drexel University. Areas: Lambda calculus, metaprogramming.
 - Kim Morrison (@kim-em), Lean FRO. Areas: Continuous Integration and Deployment (CI/CD) with upstream (Lean, mathlib).
+- Alexandre Rademaker (@arademaker), Atlas Computing and Getulio Vargas Foundation. Areas: logic.
+- Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich. Areas: algorithms and data structures.
 
 ### Reviewers
 
