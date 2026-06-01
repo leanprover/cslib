@@ -230,7 +230,8 @@ lemma liftM_lift_bind (interp : {ι : Type u} → F ι → m ι) (op : F β) (co
 @[simp]
 lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op : F β) :
     (lift op).liftM interp = interp op := by
-  simp_rw [lift, FreeM.liftM, _root_.bind_pure]
+  rw [lift, FreeM.liftM]
+  simp
 
 @[simp]
 lemma liftM_bind [LawfulMonad m]
