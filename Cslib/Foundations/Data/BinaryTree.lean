@@ -11,13 +11,13 @@ public import Mathlib.Combinatorics.SimpleGraph.Basic
 public import Mathlib.Combinatorics.SimpleGraph.Metric
 public import Mathlib.Data.Tree.Basic
 
-@[expose] public section
-
 /-!
 # Binary Tree
 
 In this file we introduce the `Tree` data structure and its basic operations.
 -/
+
+@[expose] public section
 
 variable {α : Type}
 

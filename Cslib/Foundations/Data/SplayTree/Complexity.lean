@@ -5,9 +5,11 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
   Sorrachai Yingchareonthawornchai
 -/
 
-import Cslib.Foundations.Data.SplayTree.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Analysis.SpecialFunctions.Log.Base
+module
+
+public import Cslib.Foundations.Data.SplayTree.Basic
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
 
 /-!
 # Amortized Complexity of Splay Trees
@@ -20,6 +22,8 @@ the potential Φ as the sum of ranks over all subtrees. It culminates in
 the classical O(m log n + n log n) total cost bound for a sequence of
 splay operations.
 -/
+
+@[expose] public section
 
 variable {α : Type}
 
@@ -34,16 +38,11 @@ section CostAndSearchPath
 Caution: If the search fails, we do not rotate (as currently
 defined in splay) the empty leaf and start to rotate from
 its ancestor, so the cost is path.length - 1. -/
-def splay.cost [LinearOrder α] (t : Tree α) (q : α) : ℝ :=
+def splay.cost [LinearOrder α] (t : Tree α) (q : α) : ℕ :=
   match descend t q with
   | (.nil, []) => 0
   | (.nil, _ :: rest) => rest.length
   | (.node _ _ _, path) => path.length
-
-theorem splay_cost_nonneg [LinearOrder α] (t : Tree α) (q : α) :
-    0 ≤ splay.cost t q := by
-  unfold splay.cost
-  split <;> simp
 
 /-- Subtrees have positive search path length. -/
 lemma search_path_len_node_pos [LinearOrder α] (l : Tree α) (k : α) (r : Tree α)
@@ -242,20 +241,6 @@ theorem φ_descend_subtree_le [LinearOrder α] (t : Tree α) (q : α) :
       ≤ φ (reassemble (descend t q).1 (descend t q).2) :=
         φ_le_reassemble _ _
     _ = φ t := by rw [h]
-
-theorem φ_attach_base_le [LinearOrder α] (t : Tree α) (q : α)
-  (f : Frame α) (rest : List (Frame α))
-  (hd : descend t q = (.nil, f :: rest)) : φ (f.attach .nil) ≤ φ t := by
-  have h := descend_preserves_tree t q
-  rw [hd] at h; simp only at h; rw [← h]
-  exact φ_le_reassemble (f.attach .nil) rest
-
-theorem φ_descend_node_le [LinearOrder α] (t : Tree α) (q : α)
-  (l : Tree α) (k : α) (r : Tree α) (path : List (Frame α))
-  (hd : descend t q = (l △[k] r, path)) : φ (l △[k] r) ≤ φ t := by
-  have h := descend_preserves_tree t q
-  rw [hd] at h; simp_all only [φ_node, ge_iff_le]; rw [← h]
-  exact φ_le_reassemble (l △[k] r) path
 
 /-! #### Splay step potential bounds -/
 
@@ -522,7 +507,7 @@ def splaySeq [LinearOrder α] {m : ℕ} (init : Tree α)
 
 /-- The total cost is defined as the sum of actual rotations
 performed across the generated sequence. -/
-def splay.sequence_cost [LinearOrder α] {m : ℕ} (init : Tree α) (X : Fin m → α) : ℝ :=
+def splay.sequence_cost [LinearOrder α] {m : ℕ} (init : Tree α) (X : Fin m → α) : ℕ :=
   ∑ i : Fin m, splay.cost (splaySeq init X i.castSucc) (X i)
 
 /-- The tree at step `i+1` is exactly the result of splaying the target key
@@ -621,10 +606,10 @@ theorem splay_total_cost [LinearOrder α] (m : ℕ)
     (hsize : ∀ i : Fin (m + 1),
       (t i).num_nodes ≤ n) :
     ∑ i : Fin m,
-      splay.cost (t i.castSucc) (q i) ≤
+      (splay.cost (t i.castSucc) (q i) : ℝ) ≤
       m * (3 * Real.logb 2 n + 1) + φ (t 0) := by
   apply amortized_cost_bound' m t
-    (fun i => splay.cost (t i.castSucc) (q i))
+    (fun i => (splay.cost (t i.castSucc) (q i) : ℝ))
     φ (3 * Real.logb 2 n + 1)
   · intro i
     rw [hseq i]
@@ -657,6 +642,7 @@ theorem nlogn_cost [LinearOrder α] (n m : ℕ) (X : Fin m → α)
     rw [this, ← h_size]
     exact φ_le_n_log_n init
   unfold splay.sequence_cost
+  push_cast
   linarith
 
 end SequenceCost

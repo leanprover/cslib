@@ -5,8 +5,10 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
   Sorrachai Yingchareonthawornchai
 -/
 
-import Cslib.Foundations.Data.BinaryTree
-import Mathlib.Data.List.Sort
+module
+
+public import Cslib.Foundations.Data.BinaryTree
+public import Mathlib.Data.List.Sort
 
 /-!
 # Splay Tree Basic Definitions
@@ -15,6 +17,8 @@ This module defines the core operations of a bottom-up splay tree, including
 rotation primitives, path frames, and the `splay` and `splayUp` functions.
 It also provides fundamental structural lemmas regarding tree size and descent paths.
 -/
+
+@[expose] public section
 
 variable {α : Type}
 
@@ -357,19 +361,6 @@ theorem descend_preserves_tree [LinearOrder α] (t : Tree α) (q : α) :
     reassemble (descend t q).1 (descend t q).2 = t := by
   have := descend_go_preserves_tree t q []
   simpa [descend] using this
-
-lemma descend_go_length_le [LinearOrder α] (q : α) (t : Tree α) (acc : List (Frame α)) :
-    acc.length ≤ (descend.go q t acc).2.length := by
-  induction t generalizing acc with
-  | nil => simp [descend.go]
-  | node k l r ihl ihr =>
-    unfold descend.go
-    split_ifs with h1 h2
-    · simp
-    · exact le_of_lt (lt_of_lt_of_le (by simp)
-        (ihl (acc := ⟨.L, k, r⟩ :: acc)))
-    · exact le_of_lt (lt_of_lt_of_le (by simp)
-        (ihr (acc := ⟨.R, k, l⟩ :: acc)))
 
 end DescendLemmas
 

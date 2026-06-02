@@ -65,7 +65,6 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
-public import Cslib.Foundations.Data.SplayTree.BSTAPI
 public import Cslib.Foundations.Data.SplayTree.Basic
 public import Cslib.Foundations.Data.SplayTree.Complexity
 public import Cslib.Foundations.Data.SplayTree.Correctness
