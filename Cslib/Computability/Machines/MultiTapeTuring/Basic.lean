@@ -6,8 +6,6 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Data.Part
-public import Mathlib.Data.Fintype.Defs
 public import Mathlib.Data.Finset.Max
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Computability.Language
