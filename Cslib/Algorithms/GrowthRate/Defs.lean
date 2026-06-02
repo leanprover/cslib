@@ -33,7 +33,8 @@ classes not directly expressible as `IsBigO`. In rough order of literature frequ
  * `GrowthRate.polylog`: `(log n)^k`, that is, a polynomial in the logarithm.
  * `GrowthRate.exp`: Exponential growth with any rate, often written `exp(O(n))`
  * `GrowthRate.sublinear`: Sublinear growth, typically written `o(n)`.
- * `GrowthRate.quasilinear`: Growth as `O(n * (log n)^k)`
+ * `GrowthRate.nearLinear`: Near-linear growth as `O(n * (log n)^k)`
+ * `GrowthRate.almostLinear`: Almost-linear growth as `O(n ^ {1 + ε})` for every `ε > 0`.
  * `GrowthRate.quasipoly`: Growth as `O(2 ^ (log n)^k)`
  * `GrowthRate.primitiveRecursive`: Growth as a primitive recursive function.
  * `GrowthRate.computable`: Any computable function. This excludes, for instance, the Busy

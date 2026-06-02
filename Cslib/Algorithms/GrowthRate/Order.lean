@@ -280,12 +280,12 @@ theorem linear_ssubset_linearithmic : linear ⊂ linearithmic := by
   · linarith [(k + n).lt_two_pow_self]
   · nlinarith [abs_lt.mp (show |x| < n by linarith), pow_pos (M₀ := ℝ) two_pos (k + n)]
 
-theorem linearithmic_subset_quasilinear : linearithmic ⊆ quasilinear :=
+theorem linearithmic_subset_nearLinear : linearithmic ⊆ nearLinear :=
   fun _ _ ↦ ⟨1, by simpa⟩
 
-theorem linearithmic_ssubset_quasilinear : linearithmic ⊂ quasilinear := by
-  use linearithmic_subset_quasilinear
-  simp only [quasilinear, bigO, Set.setOf_subset_setOf, not_forall, exists_prop]
+theorem linearithmic_ssubset_nearLinear : linearithmic ⊂ nearLinear := by
+  use linearithmic_subset_nearLinear
+  simp only [nearLinear, bigO, Set.setOf_subset_setOf, not_forall, exists_prop]
   use fun n ↦ n * (Nat.log 2 n) ^ 2
   use ⟨2, mod_cast Asymptotics.isBigO_refl ..⟩
   norm_num [Asymptotics.isBigO_iff', ← mul_assoc]
@@ -296,55 +296,186 @@ theorem linearithmic_ssubset_quasilinear : linearithmic ⊂ quasilinear := by
   push_cast
   nlinarith [(by positivity : 0 < (2 : ℝ) ^ (y + n + 1) * (y + n + 1))]
 
-theorem quasilinear_subset_poly : quasilinear ⊆ poly := by
-  simp only [quasilinear, poly, Set.setOf_subset_setOf, forall_exists_index]
-  intro f C h
-  use C + 1
-  apply h.trans
-  norm_num [Asymptotics.isBigO_iff]
-  refine ⟨1, 2, fun n hn ↦ ?_⟩; norm_num
-  suffices h : (Nat.log 2 n : ℝ) ^ C ≤ (n : ℝ) ^ C by
-    simpa [pow_succ'] using mul_le_mul_of_nonneg_left h <| Nat.cast_nonneg _
-  gcongr
-  exact (Nat.log_lt_of_lt_pow (by linarith) (by linarith [n.lt_two_pow_self])).le
+theorem nearLinear_subset_almostLinear : nearLinear ⊆ almostLinear := by
+  intro f hf ε hε
+  obtain ⟨C, hC⟩ := hf
+  have h_log : (fun n => (n : ℝ) * (Real.log n) ^ C) =o[Filter.atTop]
+      (fun n => (n : ℝ) ^ (1 + ε)) := by
+    have h_log : Filter.Tendsto (fun n => (Real.log n) ^ C / (n : ℝ) ^ ε)
+        Filter.atTop (nhds 0) := by
+      suffices h_log : Filter.Tendsto (fun y : ℝ => y ^ C / Real.exp (y * ε))
+          Filter.atTop (nhds 0) by
+        have := h_log.comp Real.tendsto_log_atTop
+        apply this.congr'
+        filter_upwards [Filter.eventually_gt_atTop 0] with x hx
+        simp +decide [Real.rpow_def_of_pos hx, mul_comm]
+      suffices h_z : Filter.Tendsto (fun z : ℝ => z ^ C / Real.exp z)
+          Filter.atTop (nhds 0) by
+        have := h_z.comp (Filter.tendsto_id.atTop_mul_const hε)
+        convert this.div_const (ε ^ C) using 2 <;>
+          norm_num [div_eq_mul_inv, mul_pow, mul_assoc, mul_comm, mul_left_comm, hε.ne']
+      simpa [Real.exp_neg] using Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero C
+    rw [Asymptotics.isLittleO_iff_tendsto']
+    · apply h_log.congr'
+      filter_upwards [Filter.eventually_gt_atTop 0] with x hx
+      rw [Real.rpow_add hx, Real.rpow_one]
+      rw [mul_div_mul_left _ _ hx.ne']
+    · filter_upwards [Filter.eventually_gt_atTop 0] with x hx hx' using absurd hx' <| by positivity
+  have h_bound : ∃ D : ℝ, ∀ᶠ n in Filter.atTop,
+      (n * (Nat.log 2 n) ^ C : ℝ) ≤ D * (n : ℝ) * (Real.log n) ^ C := by
+    use 1 / (Real.log 2) ^ C
+    have h_log_bound : ∀ n ≥ 2, (Nat.log 2 n : ℝ) ≤ (Real.log n) / (Real.log 2) := by
+      intro n hn; rw [le_div_iff₀ (Real.log_pos one_lt_two)]
+      nth_rw 1 [← Real.log_pow]
+      exact Real.log_le_log (by positivity) (mod_cast Nat.pow_log_le_self _ <| by positivity)
+    filter_upwards [Filter.eventually_ge_atTop 2] with n hn
+    convert mul_le_mul_of_nonneg_left
+        (pow_le_pow_left₀ (Nat.cast_nonneg _) (h_log_bound n hn) C) (Nat.cast_nonneg n) using 1
+    ring
+  have h_final : (fun n => (n * (Nat.log 2 n) ^ C : ℝ)) =O[Filter.atTop]
+      (fun n => (n : ℝ) ^ (1 + ε)) := by
+    refine Asymptotics.IsBigO.trans ?_ (h_log.isBigO.comp_tendsto tendsto_natCast_atTop_atTop)
+    change _ =O[Filter.atTop] (fun n => (n : ℝ) * (Real.log n) ^ C : ℕ → ℝ)
+    rw [Asymptotics.isBigO_iff]
+    obtain ⟨D, hD⟩ := h_bound
+    use D
+    filter_upwards [hD] with n hn
+    rw [Real.norm_of_nonneg (by positivity), Real.norm_of_nonneg (by positivity), ← mul_assoc]
+    exact hn
+  refine Asymptotics.IsBigO.trans ?_ h_final
+  simpa [Asymptotics.isBigO_iff] using hC
 
-theorem quasilinear_ssubset_poly : quasilinear ⊂ poly := by
-  use quasilinear_subset_poly
-  simp only [quasilinear, poly, Set.setOf_subset_setOf, not_forall, exists_prop]
-  use (· ^ 2)
-  use ⟨2, mod_cast Asymptotics.isBigO_refl ..⟩
-  norm_num [Asymptotics.isBigO_iff']
-  intro x y hy z
-  have h_exp : Filter.atTop.Tendsto (fun n : ℕ ↦ n * (Nat.log 2 n : ℝ) ^ x / n ^ 2) (𝓝 0) := by
-    -- We can simplify the expression inside the limit.
-    suffices hs : Filter.atTop.Tendsto (fun n : ℕ ↦ (Nat.log 2 n : ℝ) ^ x / n) (𝓝 0) by
-      apply hs.congr'
-      filter_upwards [Filter.eventually_gt_atTop 0] with n hn
-      rw [div_eq_div_iff] <;> ring_nf <;> positivity
-    suffices h_log : Filter.atTop.Tendsto (fun y : ℕ ↦ (y : ℝ) ^ x / (2 ^ y)) (𝓝 0) by
-      have h_subst : Filter.atTop.Tendsto (fun n : ℕ ↦ (Nat.log 2 n : ℝ) ^ x / _) (𝓝 0) :=
-        h_log.comp <| Filter.tendsto_atTop_atTop.mpr <|
-          (⟨2 ^ ·, fun m ↦ Nat.le_log_of_pow_le one_lt_two⟩)
-      refine squeeze_zero_norm' ?_ h_subst
-      filter_upwards [Filter.eventually_gt_atTop 1] with n hn
-      rw [Real.norm_of_nonneg (by positivity)]
-      gcongr
-      norm_cast
-      exact Nat.pow_log_le_self 2 (Nat.ne_zero_of_lt hn)
-    -- We substitute `z = y * log 2` to simplify.
-    suffices h_log : Filter.Tendsto (fun z : ℝ ↦ z ^ x / Real.exp z) .atTop (𝓝 0) by
-      have := h_log.comp (tendsto_natCast_atTop_atTop.atTop_mul_const (Real.log_pos one_lt_two))
-      convert this.div_const (Real.log 2 ^ x) using 2 <;> norm_num [Real.exp_nat_mul, Real.exp_log]
-      ring_nf
-      norm_num [ne_of_gt, Real.log_pos]
-    simpa [Real.exp_neg] using Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero x
-  have h := h_exp.eventually (gt_mem_nhds <| show 0 < y⁻¹ by positivity)
-  rw [Filter.eventually_atTop] at h
-  rcases h with ⟨N, hN⟩
-  use N + z + 1, by linarith
-  specialize hN (N + z + 1) (by linarith)
-  rw [div_lt_iff₀ (by positivity)] at hN
-  nlinarith [inv_mul_cancel₀ hy.ne', pow_pos (a := (N + z + 1 : ℝ)) (by positivity) 2]
+theorem nearLinear_ssubset_almostLinear : nearLinear ⊂ almostLinear := by
+  refine ⟨nearLinear_subset_almostLinear, ?_⟩
+  rw [Set.not_subset]
+  use fun n => n * 2 ^ Nat.sqrt (Nat.log 2 n)
+  constructor
+  · intro ε hε
+    have h_exp : ∃ N : ℕ, ∀ n ≥ N, (2 : ℝ) ^ Nat.sqrt (Nat.log 2 n) ≤ (n : ℝ) ^ ε := by
+      have h_exp : ∃ N : ℕ, ∀ n ≥ N,
+          (Nat.sqrt (Nat.log 2 n) : ℝ) ≤ ε * Real.logb 2 n := by
+        have h_sqrt_log : ∃ N : ℕ, ∀ n ≥ N,
+            (Nat.sqrt (Nat.log 2 n) : ℝ) ≤ ε * (Nat.log 2 n) := by
+          have h_sqrt_log_aux : ∃ N : ℕ, ∀ n ≥ N, (Nat.sqrt n : ℝ) ≤ ε * n := by
+            exact ⟨⌈ε⁻¹ ^ 2⌉₊ + 1, fun n hn => by
+              nlinarith [Nat.le_ceil (ε⁻¹ ^ 2),
+                show (n : ℝ) ≥ ⌈ε⁻¹ ^ 2⌉₊ + 1 by exact_mod_cast hn,
+                inv_pos.2 hε, mul_inv_cancel₀ hε.ne',
+                sq_nonneg (ε⁻¹ - Real.sqrt n),
+                Real.mul_self_sqrt (Nat.cast_nonneg n),
+                show (Nat.sqrt n : ℝ) ≤ Real.sqrt n by
+                  exact Real.le_sqrt_of_sq_le <| mod_cast Nat.sqrt_le' n]⟩
+          exact ⟨2 ^ h_sqrt_log_aux.choose, fun n hn =>
+            h_sqrt_log_aux.choose_spec _ <|
+            Nat.le_log_of_pow_le (by norm_num) hn⟩
+        refine ⟨h_sqrt_log.choose + 2, fun n hn =>
+          le_trans (h_sqrt_log.choose_spec n (by linarith)) ?_⟩
+        gcongr
+        rw [Real.le_logb_iff_rpow_le] <;> norm_cast <;>
+          linarith [Nat.pow_log_le_self 2 (by linarith : n ≠ 0)]
+      obtain ⟨N, hN⟩ := h_exp; use N + 2; intro n hn
+      specialize hN n (by linarith); rw [Real.logb] at hN
+      rw [← Real.log_le_log_iff (by positivity)
+        (by exact Real.rpow_pos_of_pos (Nat.cast_pos.mpr <| by linarith) _), Real.log_pow]
+      ring_nf at *
+      rw [Real.log_rpow (by norm_cast; linarith)]
+      nlinarith [Real.log_pos one_lt_two,
+        mul_inv_cancel_left₀ (ne_of_gt (Real.log_pos one_lt_two)) (ε * Real.log n)]
+    rw [Asymptotics.isBigO_iff]
+    obtain ⟨N, hN⟩ := h_exp; use 1
+    filter_upwards [Filter.eventually_ge_atTop N, Filter.eventually_gt_atTop 0] with n hn hn'
+    rw [Real.norm_of_nonneg (by positivity), Real.norm_of_nonneg (by positivity)]
+    rw [Real.rpow_add <| by positivity, Real.rpow_one]; norm_cast
+    simpa using mul_le_mul_of_nonneg_left (hN n hn) (Nat.cast_nonneg n)
+  · rintro ⟨C, hC⟩
+    have h_exp_growth : Filter.Tendsto
+        (fun n => (2 ^ Nat.sqrt (Nat.log 2 n) : ℝ) / (Nat.log 2 n ^ C))
+        Filter.atTop Filter.atTop := by
+      suffices h_log : Filter.Tendsto (fun y : ℕ => (2 ^ Nat.sqrt y : ℝ) / (y ^ C))
+          Filter.atTop Filter.atTop by
+        exact h_log.comp (Filter.tendsto_atTop_atTop.mpr fun x =>
+          ⟨2 ^ x, fun n hn => Nat.le_log_of_pow_le (by norm_num) hn⟩)
+      suffices h_sqrt : Filter.Tendsto (fun z : ℕ => (2 ^ z : ℝ) / (z ^ (2 * C)))
+          Filter.atTop Filter.atTop by
+        have h_subst : Filter.Tendsto
+            (fun y : ℕ => (2 ^ Nat.sqrt y : ℝ) / (Nat.sqrt y ^ (2 * C)))
+            Filter.atTop Filter.atTop :=
+          h_sqrt.comp <| Filter.tendsto_atTop_atTop.mpr fun x =>
+            ⟨x ^ 2, fun y hy => by nlinarith [Nat.lt_succ_sqrt y]⟩
+        have h_subst2 : ∀ᶠ y in Filter.atTop,
+            (2 ^ Nat.sqrt y : ℝ) / (Nat.sqrt y ^ (2 * C)) ≤
+            (2 ^ Nat.sqrt y : ℝ) / (y ^ C) * 2 ^ (2 * C) := by
+          filter_upwards [Filter.eventually_gt_atTop 0] with y hy
+          rw [div_mul_eq_mul_div, div_le_div_iff₀] <;> norm_cast <;> norm_num [pow_mul]
+          · rw [mul_assoc, ← mul_pow]; gcongr; nlinarith [Nat.lt_succ_sqrt y]
+          · positivity
+          · positivity
+        have h_subst3 : Filter.Tendsto
+            (fun y : ℕ => (2 ^ Nat.sqrt y : ℝ) / (y ^ C) * 2 ^ (2 * C))
+            Filter.atTop Filter.atTop := by
+          rw [Filter.tendsto_atTop_atTop] at *
+          intro b
+          rcases ‹∀ b : ℝ, ∃ i : ℕ, ∀ a : ℕ, i ≤ a →
+            b ≤ 2 ^ a.sqrt / (a.sqrt : ℝ) ^ (2 * C)› b with ⟨i, hi⟩
+          rcases Filter.eventually_atTop.mp h_subst2 with ⟨j, hj⟩
+          exact ⟨Max.max i j, fun n hn => le_trans (hi n (le_trans (le_max_left _ _) hn))
+            (hj n (le_trans (le_max_right _ _) hn))⟩
+        convert h_subst3.atTop_div_const
+          (show (0 : ℝ) < 2 ^ (2 * C) by positivity) using 2
+        norm_num [div_mul_eq_div_div]
+      suffices h_log2 : Filter.Tendsto (fun w : ℝ => Real.exp w / w ^ (2 * C))
+          Filter.atTop Filter.atTop by
+        have h_subst4 : Filter.Tendsto
+            (fun z : ℕ => Real.exp (z * Real.log 2) / (z * Real.log 2) ^ (2 * C))
+            Filter.atTop Filter.atTop :=
+          h_log2.comp <| tendsto_natCast_atTop_atTop.atTop_mul_const <| Real.log_pos one_lt_two
+        convert h_subst4.const_mul_atTop
+          (show 0 < (Real.log 2) ^ (2 * C) by positivity) using 2
+        norm_num [Real.exp_nat_mul, Real.exp_log]
+        ring_nf
+        norm_num [mul_assoc, ne_of_gt, Real.log_pos]
+      exact Real.tendsto_exp_div_pow_atTop _
+    rw [Asymptotics.isBigO_iff] at hC
+    contrapose! hC
+    intro c; refine Filter.Eventually.frequently ?_
+    filter_upwards [h_exp_growth.eventually_gt_atTop c, Filter.eventually_gt_atTop 1]
+      with n hn hn'
+    simp_all only [Nat.cast_mul, Nat.cast_pow, norm_mul, norm_natCast, norm_pow, Nat.cast_ofNat]
+    rw [lt_div_iff₀ (by exact pow_pos (Nat.cast_pos.mpr <| Nat.log_pos one_lt_two hn') _)] at hn
+    erw [Real.norm_of_nonneg] <;> norm_num
+    nlinarith [(by norm_cast : (1 : ℝ) < n)]
+
+theorem almostLinear_subset_poly : almostLinear ⊆ poly := by
+  intro f hf
+  use 2
+  have := hf 1 zero_lt_one
+  convert this using 1; norm_cast
+  norm_num [Asymptotics.isBigO_iff]
+
+attribute [refl] Asymptotics.isBigO_refl
+
+theorem almostLinear_ssubset_poly : almostLinear ⊂ poly := by
+  refine ⟨almostLinear_subset_poly, ?_⟩
+  rw [Set.not_subset]
+  refine ⟨fun n : ℕ => n ^ 2, ⟨2, Asymptotics.isBigO_refl ..⟩, ?_⟩
+  norm_num [almostLinear]
+  refine ⟨1 / 2, by simp, ?_⟩
+  simp only [one_div, Asymptotics.isBigO_iff, norm_pow, RCLike.norm_natCast, Real.norm_eq_abs,
+    Filter.eventually_atTop, not_exists, not_forall]
+  intro x n
+  rcases exists_nat_gt (x ^ 2) with ⟨m, hm⟩
+  refine ⟨n + m + 1, ?_, ?_⟩
+  · grind
+  · rw [abs_of_nonneg (by positivity)]
+    simp only [Nat.cast_add, Nat.cast_one]
+    rw [show ((n : ℝ) + m + 1) ^ (1 + 2⁻¹ : ℝ) =
+      ((n : ℝ) + m + 1) * Real.sqrt ((n : ℝ) + m + 1) by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_one_add'] <;> norm_num; positivity]
+    nlinarith [sq_nonneg (x - Real.sqrt (n + m + 1)),
+      Real.mul_self_sqrt (by positivity : 0 ≤ (n : ℝ) + m + 1),
+      Real.sqrt_nonneg (n + m + 1),
+      mul_self_nonneg (Real.sqrt (n + m + 1) - x),
+      Real.mul_self_sqrt (by positivity : 0 ≤ (n : ℝ) + m + 1)]
 
 theorem poly_subset_quasipoly : poly ⊆ quasipoly := by
   refine fun f ⟨c, hf⟩ ↦ ⟨c + 1, hf.trans ?_⟩

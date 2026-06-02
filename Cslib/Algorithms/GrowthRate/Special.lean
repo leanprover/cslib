@@ -21,7 +21,8 @@ sqrt        := bigO Nat.sqrt
 sublinear   := littleO id
 linear      := bigO id
 linearithmic := bigO (fun n ↦ n * Nat.log 2 n)
-quasilinear := setOf ...
+nearLinear  := setOf ...
+almostLinear := setOf ...
 poly        := setOf ...
 quasipoly   := setOf ...
 twoPow     := bigO (2 ^ ·)
@@ -68,10 +69,18 @@ abbrev sqrt := bigO Nat.sqrt
 /-- linearithmic growth rates: `O(n * log n)` -/
 abbrev linearithmic := bigO (fun n ↦ n * Nat.log 2 n)
 
-/-- Quasilinear growth rates: `n * (log n)^O(1)` -/
-def quasilinear : GrowthRate :=
+/-- Near-linear growth rates: `n * (log n)^O(1)` -/
+def nearLinear : GrowthRate :=
   setOf <| fun f ↦ ∃ C,
     (f · : ℕ → ℤ) =O[.atTop] (fun n ↦ ↑(n * Nat.log 2 n ^ C) : ℕ → ℤ)
+
+/-- Almost-linear growth rates: `O(n ^ {1 + o(1)})`, equivalently `O(n^{1+ε})` for every `ε > 0`.
+
+This is a standard complexity class that sits strictly between near-linear (`n · (log n)^O(1)`) and
+polynomial (`n^O(1)`) growth. Examples include `n · exp(√(log n))`. -/
+def almostLinear : GrowthRate :=
+  setOf <| fun f ↦ ∀ ε : ℝ, ε > 0 →
+    (f · : ℕ → ℝ) =O[Filter.atTop] (fun n ↦ (n : ℝ) ^ (1 + ε))
 
 /-- Polynomial growth rates: `n ^ O(1)` -/
 def poly : GrowthRate :=
@@ -302,10 +311,10 @@ instance : LawfulGrowthRate linearithmic := by
     simpa [mul_assoc] using mul_le_mul_of_nonneg_left (mul_le_mul (Nat.cast_le.mpr (hg n))
       (Nat.cast_le.mpr (Nat.log_mono_right (hg n))) (by positivity) (by positivity)) (by positivity)
 
-lemma quasilinear_bound_mono (C : ℕ) : Monotone (fun n ↦ n * (Nat.log 2 n) ^ C) := by
+lemma nearLinear_bound_mono (C : ℕ) : Monotone (fun n ↦ n * (Nat.log 2 n) ^ C) := by
   exact fun a b hab ↦ Nat.mul_le_mul hab (Nat.pow_le_pow_left (Nat.log_mono_right hab) _)
 
-lemma isBigO_quasilinear_bound_comp_le_id (C : ℕ) (g : ℕ → ℕ) (hg : g ≤ id) :
+lemma isBigO_nearLinear_bound_comp_le_id (C : ℕ) (g : ℕ → ℕ) (hg : g ≤ id) :
     (fun n ↦ (g n * Nat.log 2 (g n) ^ C : ℤ)) =O[.atTop] (fun n ↦ (n * Nat.log 2 n ^ C : ℤ)) := by
   apply Asymptotics.IsBigO.of_bound 1
   simp only [norm_mul, norm_natCast, norm_pow, one_mul, Filter.eventually_atTop]
@@ -335,7 +344,7 @@ lemma isBigO_comp_bound_plus_const {h : ℕ → ℕ} (hf : (f · : ℕ → ℤ) 
     simp only [not_lt, Nat.cast_add, Nat.cast_one] at hC hgx ⊢
     cases abs_cases C <;> nlinarith [hC (g x) hgx, le_max_left M |C|, le_max_right M |C|]
 
-lemma one_isBigO_quasilinear_bound (C : ℕ) :
+lemma one_isBigO_nearLinear_bound (C : ℕ) :
     (fun _ ↦ (1 : ℤ)) =O[.atTop] (fun n ↦ (n * (Nat.log 2 n) ^ C : ℤ)) := by
   rw [Asymptotics.isBigO_iff]
   use 1; norm_num
@@ -343,7 +352,7 @@ lemma one_isBigO_quasilinear_bound (C : ℕ) :
   exact one_le_mul_of_one_le_of_one_le (by norm_cast; linarith)
     (one_le_pow₀ (mod_cast Nat.log_pos one_lt_two (by linarith)))
 
-instance : LawfulGrowthRate quasilinear where
+instance : LawfulGrowthRate nearLinear where
   mem_dominating h hf := by
     rcases hf with ⟨C, hC⟩
     refine ⟨C, Asymptotics.IsBigO.trans ?_ hC⟩
@@ -376,7 +385,89 @@ instance : LawfulGrowthRate quasilinear where
     use C
     simp only [Function.comp_apply, Nat.cast_mul, Nat.cast_pow]
     apply (isBigO_comp_bound_plus_const hC).trans
-    exact (isBigO_quasilinear_bound_comp_le_id C g hg).add (one_isBigO_quasilinear_bound C)
+    exact (isBigO_nearLinear_bound_comp_le_id C g hg).add (one_isBigO_nearLinear_bound C)
+
+private lemma almostLinear_comp_le_id {f g : ℕ → ℕ}
+    (hf : f ∈ almostLinear) (hg : g ≤ id) : f ∘ g ∈ almostLinear := by
+  intro ε hε
+  obtain ⟨C, hC⟩ : ∃ C > 0, ∀ᶠ n in Filter.atTop, f n ≤ C * (n : ℝ) ^ (1 + ε) := by
+    obtain ⟨C, hC⟩ := hf ε hε |> Asymptotics.isBigO_iff.mp
+    use C ⊔ 1, by positivity
+    filter_upwards [hC] with n hn
+    convert hn.trans (mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity)) using 2
+    · simp
+    · rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
+  obtain ⟨N, hN⟩ : ∃ N, ∀ n ≥ N, f n ≤ C * (n : ℝ) ^ (1 + ε) := by simp_all
+  obtain ⟨M, hM⟩ : ∃ M > 0, ∀ n < N, f n ≤ M :=
+    ⟨∑ n ∈ Finset.range N, f n + 1, Nat.succ_pos _, fun n hn =>
+      Nat.le_succ_of_le <| Finset.single_le_sum (fun n _ => Nat.zero_le (f n)) <|
+      Finset.mem_range.mpr hn⟩
+  refine Asymptotics.IsBigO.of_bound (C + M) ?_
+  simp only [Filter.eventually_atTop, RCLike.norm_natCast, Real.norm_eq_abs] at *
+  refine ⟨N, fun n hn => ?_⟩
+  by_cases h : g n < N
+  · simp only [add_mul]
+    apply le_add_of_nonneg_of_le <| mul_nonneg hC.1.le <| abs_nonneg _
+    apply le_trans (Nat.cast_le.mpr (hM.2 _ h))
+    grind only [Real.one_le_rpow, Nat.one_le_cast, le_mul_of_one_le_right, abs_of_nonneg]
+  · simp only [not_lt, add_mul] at h ⊢
+    exact le_add_of_le_of_nonneg (le_trans (hN _ h) (mul_le_mul_of_nonneg_left (by
+      rw [abs_of_nonneg (by positivity)]
+      exact Real.rpow_le_rpow (by positivity) (mod_cast hg n) (by positivity)) hC.1.le))
+      (by positivity)
+
+instance : LawfulGrowthRate almostLinear where
+  mem_dominating {f g} h hf ε hε := by
+    specialize hf ε hε
+    simp only [Filter.eventually_atTop, Asymptotics.isBigO_iff] at h hf ⊢
+    rcases hf with ⟨C, a, ha⟩
+    rcases h with ⟨N, hN⟩
+    refine ⟨C, N ⊔ a, fun n hn => ?_⟩
+    trans (f n : ℝ)
+    · exact mod_cast hN n <| (le_max_left N a).trans hn
+    · exact mod_cast ha n <| (le_max_right N a).trans hn
+  mem_add hf hg ε h := by
+    simpa using (hf ε h).add (hg ε h)
+  one_mem ε hε := by
+    simp_rw [Asymptotics.isBigO_iff, Filter.eventually_atTop]
+    refine ⟨1, 1, fun x hx => ?_⟩
+    rw [Real.norm_of_nonneg (by positivity), Real.norm_of_nonneg (by positivity)]
+    simpa using Real.one_le_rpow (mod_cast hx) (by positivity)
+  comp_le_id := almostLinear_comp_le_id
+
+/-- `almostLinear` is the intersection of `O(n^{1+ε})` over all `ε > 0`. -/
+theorem almostLinear_eq_iInter :
+    (almostLinear : Set (ℕ → ℕ)) =
+      ⋂ (ε : ℝ) (_ : ε > 0), bigO (fun n ↦ ⌈(n : ℝ) ^ (1 + ε)⌉₊) := by
+  ext f
+  constructor
+  · intro hf
+    refine Set.mem_iInter₂.2 fun ε hε => ?_
+    convert hf ε hε using 1
+    constructor <;> intro h <;> rw [Asymptotics.isBigO_iff] at *
+    · convert hf ε hε using 1
+      norm_num [Asymptotics.isBigO_iff]
+    · simp_all only [norm, Nat.abs_cast, Filter.eventually_atTop]
+      obtain ⟨c, a, h⟩ := h
+      refine Asymptotics.isBigO_iff.mpr ⟨⌈c⌉₊, ?_⟩
+      simp only [norm_natCast, Filter.eventually_atTop]
+      exact ⟨a, fun n hn => le_trans (h n hn) (by
+        rw [abs_of_nonneg (by positivity)]
+        exact mul_le_mul (Nat.le_ceil _) (Nat.le_ceil _) (by positivity) (by positivity))⟩
+  · intro hf ε hε_pos
+    have h_f_in_bigO : (f · : ℕ → ℝ) =O[Filter.atTop] (fun n ↦ (n : ℝ) ^ (1 + ε)) := by
+      have h_f_in_bigO : (f · : ℕ → ℝ) =O[Filter.atTop]
+          (fun n ↦ (⌈(n : ℝ) ^ (1 + ε)⌉₊ : ℝ)) := by
+        simp only [bigO, Set.mem_iInter, Set.mem_setOf_eq] at hf
+        convert hf ε hε_pos using 1
+        norm_num [Asymptotics.isBigO_iff]
+      refine h_f_in_bigO.trans ?_
+      norm_num [Asymptotics.isBigO_iff]
+      exact ⟨2, 1, fun n hn => by
+        rw [abs_of_nonneg (by positivity)]
+        linarith [Nat.ceil_lt_add_one (by positivity : 0 ≤ (n : ℝ) ^ (1 + ε)),
+          show (n : ℝ) ^ (1 + ε) ≥ 1 by exact Real.one_le_rpow (by norm_cast) (by positivity)]⟩
+    exact h_f_in_bigO
 
 instance : LawfulGrowthRate poly where
   mem_dominating h hf := by
@@ -394,15 +485,14 @@ instance : LawfulGrowthRate poly where
     all_goals (
       rw [Asymptotics.isBigO_iff]
       use 1
-      norm_num
+      simp only [norm_pow, norm_natCast, one_mul, Filter.eventually_atTop]
       use 1
       intro _ hn
       exact_mod_cast pow_le_pow_right₀ hn (by bound)
    )
   one_mem := by
-    use 0
-    simp only [Asymptotics.isBigO_iff, Filter.eventually_atTop]
-    use 1, 0
+    simp only [poly, Asymptotics.isBigO_iff, Filter.eventually_atTop]
+    use 0, 1, 0
     simp
   comp_le_id := by
     intro f g hf hg
@@ -1068,7 +1158,7 @@ theorem linearithmic_iff_rlog {f : ℕ → ℕ} : f ∈ linearithmic ↔
     simp [bigO]
     norm_num [Asymptotics.isBigO_iff]
 
-theorem quasilinear_iff_rlog {f : ℕ → ℕ} : f ∈ quasilinear ↔
+theorem nearLinear_iff_rlog {f : ℕ → ℕ} : f ∈ nearLinear ↔
     ∃ C, (f · : ℕ → ℝ) =O[.atTop] (fun n ↦ n * (Real.log n) ^ C : ℕ → ℝ) := by
   constructor
   · rintro ⟨C, hC⟩
@@ -1107,7 +1197,7 @@ theorem quasilinear_iff_rlog {f : ℕ → ℕ} : f ∈ quasilinear ↔
         nlinarith [h_log_eq n hn, Real.log_pos one_lt_two,
           show (Nat.log 2 n : ℝ) ≥ 1 from mod_cast Nat.le_log_of_pow_le one_lt_two (by linarith)]
       exact (Asymptotics.isBigO_refl _ _).mul (h_log.pow _)
-    simpa [quasilinear, Asymptotics.isBigO_iff] using h_nat_log
+    simpa [nearLinear, Asymptotics.isBigO_iff] using h_nat_log
 
 theorem poly_iff_rpow {f : ℕ → ℕ} : f ∈ poly ↔
     ∃ (C : ℝ), (f · : ℕ → ℝ) =O[.atTop] (fun n ↦ n ^ C : ℕ → ℝ) := by

@@ -42,8 +42,8 @@ theorem linear_of_sqrt_mul_sqrt (hf : f ∈ sqrt) (hg : g ∈ sqrt) : (f * g) �
 theorem linearithmic_of_linear_mul (hf : f ∈ linear) (hg : g ∈ log) : (f * g) ∈ linearithmic := by
   exact Asymptotics.IsBigO.mul hf hg
 
-theorem quasilinear_mul_polylog (hf : f ∈ quasilinear) (hg : g ∈ polylog) :
-    (f * g) ∈ quasilinear := by
+theorem nearLinear_mul_polylog (hf : f ∈ nearLinear) (hg : g ∈ polylog) :
+    (f * g) ∈ nearLinear := by
   obtain ⟨a, ha⟩ := hf
   obtain ⟨b, hb⟩ := hg
   use a + b
@@ -592,7 +592,7 @@ theorem linearithmic_comp (hf : f ∈ linearithmic) (hg : g ∈ linear) : f ∘ 
     by nlinarith [Nat.le_log_of_pow_le one_lt_two <| show 2 ^ 1 ≤ n by linarith]
   nlinarith
 
-private lemma log_quasilinear_bound (D : ℕ) :
+private lemma log_nearLinear_bound (D : ℕ) :
     (fun n ↦ (Nat.log 2 (n * (Nat.log 2 n)^D) : ℤ)) =O[.atTop] (fun n ↦ (Nat.log 2 n : ℤ)) := by
   -- Using the lemma `Nat.log_mul_le_add`, we bound `log₂(n * log₂(n)^D)`.
   have h_log_mul_le_add : ∀ n ≥ 2, Nat.log 2 (n * Nat.log 2 n ^ D) ≤
@@ -629,7 +629,7 @@ private lemma log_quasilinear_bound (D : ℕ) :
   norm_cast
   nlinarith [h_log_mul_le_add' n hn, Nat.le_log_of_pow_le one_lt_two (show 2 ^ 1 ≤ n by linarith)]
 
-theorem quasilinear_comp (hf : f ∈ quasilinear) (hg : g ∈ quasilinear) : f ∘ g ∈ quasilinear := by
+theorem nearLinear_comp (hf : f ∈ nearLinear) (hg : g ∈ nearLinear) : f ∘ g ∈ nearLinear := by
   obtain ⟨C₁, hC₁⟩ := hf
   obtain ⟨C₂, hC₂⟩ := hg
   obtain ⟨M, hM⟩ : ∃ M, ∀ᶠ n in .atTop, g n ≤ M * n * (Nat.log 2 n)^C₂ := by
@@ -639,11 +639,11 @@ theorem quasilinear_comp (hf : f ∈ quasilinear) (hg : g ∈ quasilinear) : f �
     refine ⟨⌈c⌉₊, a, fun n hn ↦ ?_⟩
     rw [← @Nat.cast_le ℝ]; push_cast
     nlinarith [Nat.le_ceil c, ha n hn, show (0 : ℝ) ≤ n * Nat.log 2 n ^ C₂ by positivity]
-  -- Using `log_quasilinear_bound`, `log(g(n)) = O(log n)`.
+  -- Using `log_nearLinear_bound`, `log(g(n)) = O(log n)`.
   have h_log₀ : (fun n ↦ (Nat.log 2 (g n) : ℤ)) =O[.atTop] (fun n ↦ (Nat.log 2 n : ℤ)) := by
     have h_log₁ : ∀ᶠ n in .atTop, Nat.log 2 (g n) ≤ Nat.log 2 (M * n * (Nat.log 2 n)^C₂) := by
       filter_upwards [hM] with n hn using Nat.log_mono_right hn
-    -- Using `log_quasilinear_bound`, `log(M * n * (log n)^D) = O(log n)`.
+    -- Using `log_nearLinear_bound`, `log(M * n * (log n)^D) = O(log n)`.
     have h_log₂ : (fun n ↦ (Nat.log 2 (M * n * Nat.log 2 n ^ C₂) : ℤ))
         =O[.atTop] (fun n ↦ (Nat.log 2 n : ℤ)) := by
       rcases M with (_ | M)
@@ -660,7 +660,7 @@ theorem quasilinear_comp (hf : f ∈ quasilinear) (hg : g ∈ quasilinear) : f �
           have _ := Nat.lt_pow_succ_log_self one_lt_two (M + 1)
           norm_num [Nat.pow_succ'] at *
           nlinarith [Nat.zero_le (n * Nat.log 2 n ^ C₂)]
-      have hq := log_quasilinear_bound C₂
+      have hq := log_nearLinear_bound C₂
       rw [Asymptotics.isBigO_iff] at *
       obtain ⟨c, hc⟩ := hq
       use c + Nat.log 2 (M + 1) + 1
