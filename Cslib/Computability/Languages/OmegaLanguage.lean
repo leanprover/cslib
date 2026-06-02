@@ -98,9 +98,10 @@ def equiv : ωLanguage α ≃ Set (ωSequence α) where
 instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
   equiv.completeAtomicBooleanAlgebra
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (ωLanguage α) (ωSequence α) where
   coe := ωLanguage.toSet
-  coe_injective' := by grind [Function.Injective, ωLanguage]
+  coe_injective' := by grind only [Function.Injective, ωLanguage]
 
 instance : HasSubset (ωLanguage α) := ⟨(· ≤ ·)⟩
 
@@ -400,8 +401,12 @@ theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l - 1) * p) : p ≤ l^ω :=
 theorem omegaPow_le_hmul_omegaPow' [Inhabited α] (l : Language α) :
     l^ω ≤ (l - 1) * l^ω := by
   rintro s ⟨xs, rfl, h_xs⟩
-  refine ⟨xs.head, h_xs 0, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩ <;>
-  grind [l.mem_sub_one]
+  refine ⟨xs.head, h_xs 0, xs.tail.flatten, ⟨xs.tail, rfl, ?_⟩, ?_⟩
+  · grind
+  · apply cons_flatten
+    intro k
+    apply List.length_pos_iff.mpr
+    exact h_xs k |>.right
 
 theorem omegaPow_le_hmul_omegaPow [Inhabited α] (l : Language α) : l^ω ≤ l * l^ω := by
   have h1 := omegaPow_le_hmul_omegaPow' l

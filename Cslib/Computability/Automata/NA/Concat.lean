@@ -90,6 +90,7 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
     · grind [concat_run_left_right]
   · exact concat_run_right hc n hl (Nat.find_spec hr')
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
 theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : ωSequence State2}
@@ -97,7 +98,11 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
   by_cases h_xs1 : xs1.length = 0
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
-    refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.OmegaExecution], by simp⟩
+    use ss2.map inr
+    split_ands
+    · simp [concat]
+      grind only [LTS.OmegaExecution, = Set.mem_union, = get_map, = Set.mem_image, Run]
+    · simp
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
     obtain ⟨ss1, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
@@ -105,7 +110,9 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     · grind [concat, get_append_left]
     · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
       simp only [concat]
-      grind [Run, LTS.OmegaExecution, get_append_right', get_append_left, LTS.Execution]
+      grind only [Run, LTS.OmegaExecution, get_append_right', get_append_left,
+        = List.length_take, = get_map, = List.length_map, = min_def, = List.getElem_take,
+        = List.getElem_map]
     · grind [drop_append_of_le_length]
 
 namespace Buchi
