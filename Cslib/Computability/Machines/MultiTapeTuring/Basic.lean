@@ -249,7 +249,7 @@ lemma headPositions_succ (cfg : tm.Cfg) (t : ℕ) (i : Fin k) :
 Inserting one new point `a`, adjacent to an existing point `q` of `s`, widens the spanned
 interval `max' - min'` by at most one cell.
 -/
-lemma span_insert_le {s S : Finset ℤ} (hs : s.Nonempty) (hS : S.Nonempty)
+private lemma span_insert_le {s S : Finset ℤ} (hs : s.Nonempty) (hS : S.Nonempty)
     {a q : ℤ} (hSeq : S = insert a s) (hq : q ∈ s) (h1 : a ≤ q + 1) (h2 : q ≤ a + 1) :
     (S.max' hS - S.min' hS).toNat ≤ (s.max' hs - s.min' hs).toNat + 1 := by
   subst hSeq
@@ -319,8 +319,8 @@ def ComputesFunInTimeAndSpace
 
 open Classical in
 /-- The indicator function of a language. -/
-noncomputable def indicator (l : Language Symbol) : List Symbol → List Symbol
-  | x => if x ∈ l then [default] else []
+noncomputable def indicator (L : Language Symbol) : List Symbol → List Symbol
+  | x => if x ∈ L then [default] else []
 
 /-- A proof that a Turing machine `tm` decides a language `l` with time and space bounds. -/
 def DecidesLanguageInTimeAndSpace
