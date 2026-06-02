@@ -108,7 +108,7 @@ def Proposition.denotation (a : Proposition Label) (lts : LTS State Label)
   | .diamond μ a => {s | ∃ s', lts.Tr s μ s' ∧ s' ∈ a.denotation lts}
   | .box μ a => {s | ∀ s', lts.Tr s μ s' → s' ∈ a.denotation lts}
 
-/-- The theory of a state is the set of all propositions that it satifies. -/
+/-- The theory of a state is the set of all propositions that it satisfies. -/
 abbrev theory (lts : LTS State Label) (s : State) : Set (Proposition Label) :=
   {a | Satisfies lts s a}
 

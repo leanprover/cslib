@@ -11,8 +11,6 @@ public import Mathlib.Data.Finset.Insert
 public import Mathlib.Data.Finset.SDiff
 public import Mathlib.Data.Finset.Image
 
-@[expose] public section
-
 /-! # Natural deduction for propositional logic
 
 We define, for minimal logic, deduction trees (a `Type`) and derivability (a `Prop`) relative to a
@@ -60,6 +58,8 @@ presented in §10.4 of Troelstra & van Dalen's *Constructivism in Mathematics: a
 in §2.2 of Sorensen & Urzyczyn's *Lectures on the Curry-Howard Isomorphism*. (Suggestions of better
 references welcome!)
 -/
+
+@[expose] public section
 
 universe u
 
