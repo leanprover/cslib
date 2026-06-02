@@ -29,9 +29,12 @@ open Tree
 /-! ### Definitions -/
 section Definitions
 
+/-- The direction taken from a parent while descending toward a target. -/
 inductive Dir
-  | L -- target descended into the left subtree from this parent
-  | R -- target descended into the right subtree from this parent
+  /-- The target lies in the left subtree of this parent. -/
+  | L
+  /-- The target lies in the right subtree of this parent. -/
+  | R
   deriving DecidableEq, Repr
 
 /-- Flip a direction: `L ↔ R`. -/
@@ -60,8 +63,11 @@ def applyChild (d : Dir) (op : Tree α → Tree α) : Tree α → Tree α
 /-- One frame of the search path: the direction we took from this ancestor,
 its key, and the subtree we did *not* descend into. -/
 structure Frame α where
+  /-- Direction taken from this ancestor. -/
   dir : Dir
+  /-- Key stored at this ancestor. -/
   key : α
+  /-- The subtree we did not descend into. -/
   sibling : Tree α
 
 /-- Re-attach a subtree `c` below the ancestor described by `f`. -/
@@ -100,6 +106,7 @@ of the returned list is the deepest frame (parent of the returned subtree). -/
 def descend [LinearOrder α] (t : Tree α) (q : α) : Tree α × List (Frame α) :=
   go t []
 where
+  /-- Worker for `descend`: accumulates path frames while walking toward `q`. -/
   go : Tree α → List (Frame α) → Tree α × List (Frame α)
   | .nil, acc => (.nil, acc)
   | l △[k] r, acc =>
@@ -147,7 +154,7 @@ def reassemble (c : Tree α) (path : List (Frame α)) : Tree α :=
 
 /-- Number of nodes a single frame contributes when re-attached: the
 ancestor itself plus its sibling subtree. -/
-def Frame.nodes (f : Frame α) : ℕ := 1 + f.sibling.num_nodes
+def Frame.nodes (f : Frame α) : ℕ := 1 + f.sibling.nodeCount
 
 /-- Total number of nodes contributed by a path above a subtree. -/
 def pathNodes : List (Frame α) → ℕ
@@ -215,33 +222,32 @@ section NodeCount
     pathNodes (f :: rest) = f.nodes + pathNodes rest := rfl
 
 @[simp]
-theorem num_nodes_Frame_attach (c : Tree α) (f : Frame α) :
-    (f.attach c).num_nodes = c.num_nodes + f.nodes := by
+theorem nodeCount_Frame_attach (c : Tree α) (f : Frame α) :
+    (f.attach c).nodeCount = c.nodeCount + f.nodes := by
   unfold Frame.attach Frame.nodes
   cases f.dir <;> simp <;> omega
 
 @[simp]
-theorem num_nodes_bringUp (d : Dir) (t : Tree α) :
-    (d.bringUp t).num_nodes = t.num_nodes := by
+theorem nodeCount_bringUp (d : Dir) (t : Tree α) :
+    (d.bringUp t).nodeCount = t.nodeCount := by
   cases d <;> simp [Dir.bringUp]
 
 @[simp]
-theorem num_nodes_applyChild (d : Dir) (op : Tree α → Tree α)
-    (hop : ∀ s, (op s).num_nodes = s.num_nodes) (t : Tree α) :
-    (applyChild d op t).num_nodes = t.num_nodes := by
+theorem nodeCount_applyChild (d : Dir) (op : Tree α → Tree α)
+    (hop : ∀ s, (op s).nodeCount = s.nodeCount) (t : Tree α) :
+    (applyChild d op t).nodeCount = t.nodeCount := by
   cases t with
   | nil => rfl
   | node k l r =>
     cases d <;> simp [applyChild, hop]
 
-@[simp]
-theorem num_nodes_applyChild_bringUp (d₁ d₂ : Dir) (t : Tree α) :
-    (applyChild d₁ d₂.bringUp t).num_nodes = t.num_nodes :=
-  num_nodes_applyChild _ _ (num_nodes_bringUp _) _
+theorem nodeCount_applyChild_bringUp (d₁ d₂ : Dir) (t : Tree α) :
+    (applyChild d₁ d₂.bringUp t).nodeCount = t.nodeCount :=
+  nodeCount_applyChild _ _ (nodeCount_bringUp _) _
 
 @[simp]
-theorem num_nodes_splayUp (c : Tree α) (path : List (Frame α)) :
-    (splayUp c path).num_nodes = c.num_nodes + pathNodes path := by
+theorem nodeCount_splayUp (c : Tree α) (path : List (Frame α)) :
+    (splayUp c path).nodeCount = c.nodeCount + pathNodes path := by
   induction path using List.twoStepInduction generalizing c with
   | nil => simp [splayUp]
   | singleton f => simp [splayUp, Frame.nodes, pathNodes]
@@ -251,9 +257,9 @@ theorem num_nodes_splayUp (c : Tree α) (path : List (Frame α)) :
     · rw [ih]; simp [Frame.nodes, pathNodes_cons]; omega
     · rw [ih]; simp [Frame.nodes, pathNodes_cons]; omega
 
-theorem num_nodes_descend_go [LinearOrder α] (t : Tree α) (q : α) (acc : List (Frame α)) :
+theorem nodeCount_descend_go [LinearOrder α] (t : Tree α) (q : α) (acc : List (Frame α)) :
     let r := descend.go q t acc
-    r.1.num_nodes + pathNodes r.2 = t.num_nodes + pathNodes acc := by
+    r.1.nodeCount + pathNodes r.2 = t.nodeCount + pathNodes acc := by
   induction t generalizing acc with
   | nil => simp [descend.go]
   | node k l r ihl ihr =>
@@ -265,16 +271,16 @@ theorem num_nodes_descend_go [LinearOrder α] (t : Tree α) (q : α) (acc : List
     · have := ihr (acc := ⟨.R, k, l⟩ :: acc)
       simp [Frame.nodes] at this ⊢; omega
 
-theorem num_nodes_descend [LinearOrder α] (t : Tree α) (q : α) :
-    (descend t q).1.num_nodes + pathNodes (descend t q).2 = t.num_nodes := by
-  have := num_nodes_descend_go t q []
+theorem nodeCount_descend [LinearOrder α] (t : Tree α) (q : α) :
+    (descend t q).1.nodeCount + pathNodes (descend t q).2 = t.nodeCount := by
+  have := nodeCount_descend_go t q []
   simpa [descend] using this
 
 @[simp]
-theorem num_nodes_splay [LinearOrder α] (t : Tree α) (q : α) :
-    (splay t q).num_nodes = t.num_nodes := by
+theorem nodeCount_splay [LinearOrder α] (t : Tree α) (q : α) :
+    (splay t q).nodeCount = t.nodeCount := by
   unfold splay
-  have hd := num_nodes_descend t q
+  have hd := nodeCount_descend t q
   match h : descend t q with
   | (.nil, []) =>
       rw [h] at hd
@@ -282,12 +288,12 @@ theorem num_nodes_splay [LinearOrder α] (t : Tree α) (q : α) :
       simp [hd]
   | (.nil, f :: rest) =>
       rw [h] at hd
-      simp only [num_nodes_splayUp, num_nodes_Frame_attach,
-        num_nodes_empty, pathNodes_cons] at hd ⊢
+      simp only [nodeCount_splayUp, nodeCount_Frame_attach,
+        nodeCount_empty, pathNodes_cons] at hd ⊢
       omega
   | (.node k l r, path) =>
       rw [h] at hd
-      simp only [num_nodes_splayUp]
+      simp only [nodeCount_splayUp]
       omega
 
 end NodeCount

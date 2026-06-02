@@ -51,7 +51,6 @@ section ToKeyListPreservation
   | nil => rfl
   | node k l r => cases d <;> simp [applyChild, toKeyList, hop]
 
-@[simp]
 theorem toKeyList_applyChild_bringUp (d₁ d₂ : Dir) (t : Tree α) :
     (applyChild d₁ d₂.bringUp t).toKeyList = t.toKeyList :=
   toKeyList_applyChild _ _ (toKeyList_bringUp _) _
@@ -106,7 +105,7 @@ theorem splay_empty_iff [LinearOrder α] (t : Tree α) (q : α) :
     splay t q = .nil ↔ t = .nil := by
   constructor
   · intro h
-    have hn := num_nodes_splay t q
+    have hn := nodeCount_splay t q
     rw [h] at hn
     cases t with
     | nil => rfl
@@ -179,12 +178,12 @@ section RootOfContainedKey
 /-- If `t.contains q`, the subtree reached by `descend` is a node whose key
 equals `q`. Mirrors how `descend` and `Tree.contains` follow the same
 comparison path. -/
-theorem descend_contains [LinearOrder α] (t : Tree α) (q : α) (h : t.BST_contains q) :
+theorem descend_contains [LinearOrder α] (t : Tree α) (q : α) (h : t.bstContains q) :
     ∃ l r, (descend t q).1 = l △[q] r := by
   induction t with
-  | nil => simp [BST_contains] at h
+  | nil => simp [bstContains] at h
   | node k lt rt ihl ihr =>
-    simp only [BST_contains] at h
+    simp only [bstContains] at h
     by_cases hlt : q < k
     · simp only [hlt, ite_true] at h
       obtain ⟨l', r', hd⟩ := ihl h
@@ -228,7 +227,7 @@ theorem splayUp_root_key_of_node :
 
 /-- If `t.contains q`, the bottom-up splay of `t` at `q` has `q` at the root. -/
 theorem splay_root_of_contains [LinearOrder α] (t : Tree α) (q : α)
-    (hc : t.BST_contains q) : ∃ l r, splay t q = l △[q] r := by
+    (hc : t.bstContains q) : ∃ l r, splay t q = l △[q] r := by
   obtain ⟨lr, rr, hd⟩ := descend_contains t q hc
   unfold splay
   rcases hdecomp : descend t q with ⟨reached, path⟩
