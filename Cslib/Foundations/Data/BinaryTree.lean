@@ -7,6 +7,7 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
 
 module
 
+public import Cslib.Init
 public import Mathlib.Combinatorics.SimpleGraph.Basic
 public import Mathlib.Combinatorics.SimpleGraph.Metric
 public import Mathlib.Data.Tree.Basic
