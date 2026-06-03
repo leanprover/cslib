@@ -158,8 +158,8 @@ theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
   rw [IsRegular.iff_nfa] at h1 h2 ⊢
   obtain ⟨State1, h_fin1, nfa1, rfl⟩ := h1
   obtain ⟨State2, h_fin1, nfa2, rfl⟩ := h2
-  use (State1 ⊕ Unit) ⊕ (State2 ⊕ Unit), inferInstance,
-    ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
+  use Option State1 ⊕ Option State2, inferInstance,
+    ⟨finConcat nfa1 nfa2, inr '' (some '' nfa2.accept)⟩
   exact finConcat_language_eq
 
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
@@ -173,7 +173,7 @@ theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
   · simp [h_l]
   · rw [IsRegular.iff_nfa] at h ⊢
     obtain ⟨State, h_fin, nfa, rfl⟩ := h
-    use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
+    use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]

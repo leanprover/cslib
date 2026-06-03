@@ -62,7 +62,7 @@ theorem congr_language_eq {a : Quotient c.eq} : language (FinAcc.mk c.toDA {a}) 
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   constructor <;>
   · intro h
-    simpa [mem_language, Accepts, congr_mtr_eq] using h
+    simpa [mem_language, Accepts, congr_mtr_eq] using! h
 
 end FinAcc
 
