@@ -435,40 +435,6 @@ instance : LawfulGrowthRate almostLinear where
     simpa using Real.one_le_rpow (mod_cast hx) (by positivity)
   comp_le_id := almostLinear_comp_le_id
 
-/-- `almostLinear` is the intersection of `O(n^{1+ε})` over all `ε > 0`. -/
-theorem almostLinear_eq_iInter :
-    (almostLinear : Set (ℕ → ℕ)) =
-      ⋂ (ε : ℝ) (_ : ε > 0), bigO (fun n ↦ ⌈(n : ℝ) ^ (1 + ε)⌉₊) := by
-  ext f
-  constructor
-  · intro hf
-    refine Set.mem_iInter₂.2 fun ε hε => ?_
-    convert hf ε hε using 1
-    constructor <;> intro h <;> rw [Asymptotics.isBigO_iff] at *
-    · convert hf ε hε using 1
-      norm_num [Asymptotics.isBigO_iff]
-    · simp_all only [norm, Nat.abs_cast, Filter.eventually_atTop]
-      obtain ⟨c, a, h⟩ := h
-      refine Asymptotics.isBigO_iff.mpr ⟨⌈c⌉₊, ?_⟩
-      simp only [norm_natCast, Filter.eventually_atTop]
-      exact ⟨a, fun n hn => le_trans (h n hn) (by
-        rw [abs_of_nonneg (by positivity)]
-        exact mul_le_mul (Nat.le_ceil _) (Nat.le_ceil _) (by positivity) (by positivity))⟩
-  · intro hf ε hε_pos
-    have h_f_in_bigO : (f · : ℕ → ℝ) =O[Filter.atTop] (fun n ↦ (n : ℝ) ^ (1 + ε)) := by
-      have h_f_in_bigO : (f · : ℕ → ℝ) =O[Filter.atTop]
-          (fun n ↦ (⌈(n : ℝ) ^ (1 + ε)⌉₊ : ℝ)) := by
-        simp only [bigO, Set.mem_iInter, Set.mem_setOf_eq] at hf
-        convert hf ε hε_pos using 1
-        norm_num [Asymptotics.isBigO_iff]
-      refine h_f_in_bigO.trans ?_
-      norm_num [Asymptotics.isBigO_iff]
-      exact ⟨2, 1, fun n hn => by
-        rw [abs_of_nonneg (by positivity)]
-        linarith [Nat.ceil_lt_add_one (by positivity : 0 ≤ (n : ℝ) ^ (1 + ε)),
-          show (n : ℝ) ^ (1 + ε) ≥ 1 by exact Real.one_le_rpow (by norm_cast) (by positivity)]⟩
-    exact h_f_in_bigO
-
 instance : LawfulGrowthRate poly where
   mem_dominating h hf := by
     simp_rw [poly, Set.mem_setOf, Asymptotics.isBigO_iff] at hf ⊢
@@ -1008,7 +974,6 @@ theorem clog_mem_log2 : Nat.clog 2 ∈ log := by
   filter_upwards [Filter.eventually_ge_atTop N] with n hn
   simpa using mod_cast hC n hn
 
-
 theorem log_iff_rlog {f : ℕ → ℕ} : f ∈ log ↔ (f · : ℕ → ℝ) =O[.atTop] (Real.log ·) := by
   simp only [log]
   constructor <;> intro H
@@ -1198,6 +1163,40 @@ theorem nearLinear_iff_rlog {f : ℕ → ℕ} : f ∈ nearLinear ↔
           show (Nat.log 2 n : ℝ) ≥ 1 from mod_cast Nat.le_log_of_pow_le one_lt_two (by linarith)]
       exact (Asymptotics.isBigO_refl _ _).mul (h_log.pow _)
     simpa [nearLinear, Asymptotics.isBigO_iff] using h_nat_log
+
+/-- `almostLinear` is the intersection of `O(n^{1+ε})` over all `ε > 0`. -/
+theorem almostLinear_eq_iInter :
+    (almostLinear : Set (ℕ → ℕ)) =
+      ⋂ (ε : ℝ) (_ : ε > 0), bigO (fun n ↦ ⌈(n : ℝ) ^ (1 + ε)⌉₊) := by
+  ext f
+  constructor
+  · intro hf
+    refine Set.mem_iInter₂.2 fun ε hε => ?_
+    convert hf ε hε using 1
+    constructor <;> intro h <;> rw [Asymptotics.isBigO_iff] at *
+    · convert hf ε hε using 1
+      norm_num [Asymptotics.isBigO_iff]
+    · simp_all only [norm, Nat.abs_cast, Filter.eventually_atTop]
+      obtain ⟨c, a, h⟩ := h
+      refine Asymptotics.isBigO_iff.mpr ⟨⌈c⌉₊, ?_⟩
+      simp only [norm_natCast, Filter.eventually_atTop]
+      exact ⟨a, fun n hn => le_trans (h n hn) (by
+        rw [abs_of_nonneg (by positivity)]
+        exact mul_le_mul (Nat.le_ceil _) (Nat.le_ceil _) (by positivity) (by positivity))⟩
+  · intro hf ε hε_pos
+    have h_f_in_bigO : (f · : ℕ → ℝ) =O[Filter.atTop] (fun n ↦ (n : ℝ) ^ (1 + ε)) := by
+      have h_f_in_bigO : (f · : ℕ → ℝ) =O[Filter.atTop]
+          (fun n ↦ (⌈(n : ℝ) ^ (1 + ε)⌉₊ : ℝ)) := by
+        simp only [bigO, Set.mem_iInter, Set.mem_setOf_eq] at hf
+        convert hf ε hε_pos using 1
+        norm_num [Asymptotics.isBigO_iff]
+      refine h_f_in_bigO.trans ?_
+      norm_num [Asymptotics.isBigO_iff]
+      exact ⟨2, 1, fun n hn => by
+        rw [abs_of_nonneg (by positivity)]
+        linarith [Nat.ceil_lt_add_one (by positivity : 0 ≤ (n : ℝ) ^ (1 + ε)),
+          show (n : ℝ) ^ (1 + ε) ≥ 1 by exact Real.one_le_rpow (by norm_cast) (by positivity)]⟩
+    exact h_f_in_bigO
 
 theorem poly_iff_rpow {f : ℕ → ℕ} : f ∈ poly ↔
     ∃ (C : ℝ), (f · : ℕ → ℝ) =O[.atTop] (fun n ↦ n ^ C : ℕ → ℝ) := by
