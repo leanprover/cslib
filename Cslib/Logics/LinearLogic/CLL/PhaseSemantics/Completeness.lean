@@ -14,8 +14,6 @@ import Mathlib.Data.Set.Basic
 import Mathlib.Algebra.Group.Idempotent
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
 
-@[expose] public section
-
 /-!
 # Completeness for MALL via a phase model
 
@@ -70,7 +68,7 @@ theorem PrSet_with {Atom : Type u} (a b : Proposition Atom) :
     PrSet Atom (a & b) = PrSet Atom a ∩ PrSet Atom b := by
   ext m
   simp only [PrSet, Set.mem_setOf_eq, Set.mem_inter_iff]
-  exact ⟨fun ⟨p⟩ => ⟨⟨p.with_inversion₁⟩, ⟨p.with_inversion₂⟩⟩,
+  exact ⟨fun ⟨p⟩ => ⟨⟨p.withInversion₁⟩, ⟨p.withInversion₂⟩⟩,
     fun ⟨⟨p⟩, ⟨q⟩⟩ => ⟨.with p q⟩⟩
 
 /-- The bottom set of the canonical phase space: provable sequents. -/
@@ -79,7 +77,7 @@ def canonBot (Atom : Type u) : Set (CanonM Atom) :=
 
 theorem PrSet_bot {Atom : Type u} : PrSet Atom ⊥ = canonBot Atom := by
   ext m
-  exact ⟨fun ⟨p⟩ => ⟨p.bot_inversion⟩, fun ⟨p⟩ => ⟨p.bot⟩⟩
+  exact ⟨fun ⟨p⟩ => ⟨p.botInversion⟩, fun ⟨p⟩ => ⟨p.bot⟩⟩
 
 instance canonPhaseSpace (Atom : Type u) : PhaseSpace (CanonM Atom) where
   bot := canonBot Atom
@@ -122,7 +120,7 @@ theorem PrSet_parr {Atom : Type u} (a b : Proposition Atom) :
   · intro hm x hx
     rcases Set.mem_mul.mp hx with ⟨s, hs, t, ht, rfl⟩
     simp only [canonPhaseSpace_bot]
-    have hab := Proof.parr_inversion hm.toDerivation
+    have hab := Proof.parrInversion hm.toDerivation
     have hb : ⇓(b ::ₘ (m.toAdd + s.toAdd)) :=
       Proof.rwConclusion (by simp) (Proof.cut hab (hs : Derivable _).toDerivation)
     exact ⟨Proof.rwConclusion (by simp [toAdd_mul, add_assoc])
@@ -163,7 +161,7 @@ theorem interpProp_canon_carrier {Atom : Type u} (a : Proposition Atom)
   | atom a =>
     simp [interpProp, canonVal, PrSet_eq_orth (.atom a), Proposition.dual]
   | atomDual a =>
-    simp only [interpProp, canonVal, dualFact, coe_neg, mk_dual_coe]
+    simp only [interpProp, canonVal, dualFact, coe_neg, mkDual_coe]
     conv_rhs => rw [PrSet_eq_orth (.atomDual a)]
     simp only [Proposition.dual]
     rw [PrSet_eq_orth (.atom a)]

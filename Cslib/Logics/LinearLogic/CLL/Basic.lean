@@ -729,10 +729,10 @@ theorem derivable_of_list_foldr_parr {Atom : Type u}
     Derivable ((List.foldr (· ⅋ ·) ⊥ l) ::ₘ Δ) →
     Derivable ((l : Sequent Atom) + Δ) := by
   induction l generalizing Δ with
-  | nil => intro ⟨p⟩; exact ⟨Proof.rwConclusion (by simp) p.bot_inversion⟩
+  | nil => intro ⟨p⟩; exact ⟨Proof.rwConclusion (by simp) p.botInversion⟩
   | cons a l ih =>
     intro ⟨p⟩
-    have p' := Proof.rwConclusion (Multiset.cons_swap ..) (Proof.parr_inversion p)
+    have p' := Proof.rwConclusion (Multiset.cons_swap ..) (Proof.parrInversion p)
     rcases ih (Δ := a ::ₘ Δ) ⟨p'⟩ with ⟨q⟩
     have hEq : (↑l + (a ::ₘ Δ)) = (↑(a :: l) + Δ) := by
       have : a ::ₘ (↑l + Δ) = (a ::ₘ ↑l) + Δ := (Multiset.cons_add a ↑l Δ).symm

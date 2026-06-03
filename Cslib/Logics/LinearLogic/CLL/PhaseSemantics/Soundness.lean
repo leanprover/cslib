@@ -16,8 +16,6 @@ import Mathlib.Data.Set.Basic
 import Mathlib.Algebra.Group.Idempotent
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
 
-@[expose] public section
-
 /-!
 # Soundness of phase semantics for CLL
 
@@ -137,7 +135,7 @@ theorem bang_tensor_le {G H : Fact M} :
     from dual_dual_subset_Fact_iff]
   have step1 : (bang G : Set M) * bang H ⊆
       (((G : Set M) ∩ I) * ((H : Set M) ∩ I))⫠⫠ := by
-    simp only [bang, dualFact, mk_dual, mk_subset]
+    simp only [bang, dualFact, mkDual, mkSubset]
     exact tensor_assoc_aux
   have step2 : ((G : Set M) ∩ I) * ((H : Set M) ∩ I) ⊆
       (G ⊗ H) ∩ I := mul_inter_I_subset_tensor_inter_I
