@@ -9,8 +9,6 @@ module
 public import Cslib.Init
 public import Mathlib.Probability.ProbabilityMassFunction.Monad
 
-@[expose] public section
-
 /-!
 # Private-Key Encryption Schemes (Information-Theoretic)
 
@@ -28,6 +26,8 @@ constraints.
 
 * [J. Katz, Y. Lindell, *Introduction to Modern Cryptography*][KatzLindell2020]
 -/
+
+@[expose] public section
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy
 

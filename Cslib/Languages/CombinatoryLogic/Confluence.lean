@@ -8,8 +8,6 @@ module
 
 public import Cslib.Languages.CombinatoryLogic.Defs
 
-@[expose] public section
-
 /-!
 # SKI reduction is confluent
 
@@ -38,6 +36,8 @@ confluent in a single step.
 for its reflexive-transitive closure. This closure is exactly `↠`, which implies the
 **Church-Rosser** theorem as sketched above.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Simulation
 
-@[expose] public section
-
 /-!
 # Trace Equivalence
 
@@ -31,6 +29,8 @@ Definitions and results on trace equivalence for `LTS`s.
 - `TraceEq.deterministic_sim`: in any deterministic `LTS`, trace equivalence is a simulation.
 
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

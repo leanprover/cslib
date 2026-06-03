@@ -8,9 +8,9 @@ module
 
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
-@[expose] public section
-
 /-! # η-expansion for Classical Linear Logic (CLL) -/
+
+@[expose] public section
 
 namespace Cslib.Logic.CLL
 
