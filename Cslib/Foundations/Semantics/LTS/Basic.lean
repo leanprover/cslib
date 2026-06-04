@@ -134,6 +134,22 @@ theorem MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
   cases h
   rfl
 
+/-- Single-step invariant. -/
+@[scoped grind =]
+def TrInv (p : State → Prop) : Prop :=
+  ∀ s1 μ s2, lts.Tr s1 μ s2 → p s1 → p s2
+
+/-- Multistep invariant. -/
+@[scoped grind =]
+def MTrInv (p : State → Prop) : Prop :=
+  ∀ s1 μs s2, lts.MTr s1 μs s2 → p s1 → p s2
+
+/-- Any single-step invariant is also a multistep invariant. -/
+theorem mtrInv_of_trInv {lts : LTS State Label} {p : State → Prop}
+    (htr : lts.TrInv p) : lts.MTrInv p := by
+  intro s1 μs s2 h
+  induction h <;> grind
+
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
 @[scoped grind =]
