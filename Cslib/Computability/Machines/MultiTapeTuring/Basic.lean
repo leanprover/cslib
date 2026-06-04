@@ -88,9 +88,10 @@ structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
   [stateFintype : Fintype State]
   /-- initial state -/
   q₀ : State
-  /-- transition function, mapping a state and a tuple of head symbols to a movement for the
-  input head, actions on the work tape, optionally a symbol to output and the successor state -/
-  tr : State → (Fin (k + 1) → Option Symbol) → TransitionOut k Symbol State
+  /-- transition function, mapping a state, the current input symbol and a tuple of head symbols
+  to a movement for the input head, actions on the work tape, optionally a symbol to output and
+  the successor state -/
+  tr : State → (Option Symbol) → (Fin k → Option Symbol) → TransitionOut k Symbol State
 
 namespace MultiTapeTM
 
@@ -116,64 +117,87 @@ The configurations of a Turing machine consist of:
 structure Cfg : Type where
   /-- the state of the TM (or none for the halting state) -/
   state : Option tm.State
-  /-- the tape contents -/
-  tapes : Fin (k + 1) → BiTape Symbol
+  /-- the input -/
+  input : List Symbol
+  /-- the position of the input head, shifted by one -/
+  inputPos : Fin (input.length + 2)
+  /-- the work tape -/
+  workTapes : Fin k → BiTape Symbol
   /-- the output so far -/
   output : List Symbol
 deriving Inhabited
 
-/-- Applies the actions / statements to the tapes.
-The input tape is handled specially: The machine can read one empty cell outside of the input,
-but any attempted movement beyond that results in no movement. -/
-def applyTapeActions
-    (inputMove : Option Dir)
-    (stmts : Fin k → Stmt Symbol)
-    (tapes : Fin (k + 1) → BiTape Symbol) :
-    Fin (k + 1) → BiTape Symbol
-  | ⟨0, _⟩ => match inputMove, tapes ⟨0, by omega⟩ with
-    | none, t => t
-    | some .left, t => if t.left.toList = [] ∧ t.head = none then t else t.move_left
-    | some .right, t => if t.right.toList = [] ∧ t.head = none then t else t.move_right
-  | ⟨i + 1, _⟩ => let s := stmts ⟨i, by omega⟩
-    ((tapes ⟨i + 1, by omega⟩).write s.symbol).optionMove s.movement
+/-- Attempt to move the input tape head.
+The machine can only read one empty cell outside of the input,
+any attempted movement beyond that results in no movement. -/
+@[scoped grind =]
+def moveInputPos {n : ℕ} (pos : Fin (n + 2)) (m : Option Dir) : Fin (n + 2) :=
+  let p := (pos + optionDirToInt m).toNat
+  if h : p < n + 2 then ⟨p, h⟩ else ⟨n + 1, by omega⟩
 
-/-- The output of the transition function applied to a configuration. -/
-def transitionOutput : tm.Cfg → Option (TransitionOut k Symbol tm.State)
-  | ⟨none, _, _⟩ => none -- halting state
-  | ⟨some q, tapes, _⟩ => some (tm.tr q (fun i => (tapes i).head))
+/-- The output of the transition function applied to a state and the set of topes. -/
+def transitionOutput (q : tm.State) (inputSymbol : Option Symbol) (work : Fin k → BiTape Symbol) :
+    TransitionOut k Symbol tm.State :=
+  tm.tr q inputSymbol (fun i => (work i).head)
+
+/-- The symbol currently under the input tape head. -/
+@[scoped grind =]
+def inputSymbol (cfg : tm.Cfg) : Option Symbol :=
+  if h₁ : cfg.inputPos = 0 then none
+  else if h₂ : cfg.inputPos = cfg.input.length + 1 then none
+  else cfg.input[cfg.inputPos.val - 1]'(by grind)
+
+@[simp]
+lemma inputSymbolInner {cfg : tm.Cfg} (p : ℕ)
+    (h₁ : cfg.inputPos.val = 1 + p)
+    (h₂ : p < cfg.input.length) :
+    tm.inputSymbol cfg = some cfg.input[p] := by
+  simp [inputSymbol, h₁]
+  grind
 
 /-- The step function corresponding to a `MultiTapeTM`. -/
 def step (cfg : tm.Cfg) : Option tm.Cfg :=
-  (tm.transitionOutput cfg).map fun {inputMove, stmts, outS, q'} =>
-    let output := match outS with
+  match cfg.state with
+  | none => none
+  | some q =>
+    let {inputMove, stmts, outS, q'} := tm.transitionOutput q (tm.inputSymbol cfg) cfg.workTapes
+    some {
+      state := q',
+      input := cfg.input,
+      inputPos := moveInputPos cfg.inputPos inputMove,
+      workTapes i := cfg.workTapes i |>.write (stmts i).symbol |>.optionMove (stmts i).movement
+      output := match outS with
       | none => cfg.output
       | some s => cfg.output ++ [s]
-    ⟨q', applyTapeActions inputMove stmts cfg.tapes, output⟩
+    }
 
 /-- Any number of positive steps run from a halting configuration lead to `none`. -/
 @[simp, scoped grind =]
-lemma step_iter_none_eq_none (tapes : Fin (k + 1) → BiTape Symbol) (out : List Symbol) (n : ℕ) :
-    (Option.bind · tm.step)^[n + 1] (some ⟨none, tapes, out⟩) = none := by
+lemma step_iter_none_eq_none (cfg : tm.Cfg) (n : ℕ) (h_halt : cfg.state = none) :
+    (Option.bind · tm.step)^[n + 1] (some cfg) = none := by
   rw [Function.iterate_succ_apply]
   induction n with
-  | zero => rfl
+  | zero => simp [step, h_halt]
   | succ n ih => grind [Function.iterate_succ_apply']
-
-/-- A collection of tapes where the first tape contains `s` -/
-def firstTape (s : List Symbol) : Fin k → BiTape Symbol
-  | ⟨0, _⟩ => BiTape.mk₁ s
-  | ⟨_, _⟩ => default
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
 @[simp]
 def initCfg (s : List Symbol) : tm.Cfg :=
-  ⟨some tm.q₀, firstTape s, []⟩
+  ⟨some tm.q₀, s, 1, default, []⟩
 
 /-- The sequence of configurations of the Turing machine starting from `cfg`.
 If the Turing machine halts, it will eventually get and stay `none` after reaching the halting
 configuration. -/
 def configs (cfg : tm.Cfg) (t : ℕ) : Option tm.Cfg :=
   (Option.bind · tm.step)^[t] cfg
+
+lemma configs_succ' (cfg : tm.Cfg) (t : ℕ) :
+    tm.configs cfg (t + 1) = (Option.bind · tm.step) (tm.configs cfg t) := by
+  simp [configs, Function.iterate_succ_apply']
+
+lemma configs_succ (cfg : tm.Cfg) (t : ℕ) :
+    tm.configs cfg (t + 1) = tm.configs cfg t >>= tm.step := by
+  simp [configs, Function.iterate_succ_apply']
 
 end Cfg
 
@@ -191,9 +215,10 @@ def OptionDirToInt : Option Dir → ℤ
 
 /-- The movements of the work tape heads after configuration `cfg`. -/
 def headMovements (cfg : tm.Cfg) : Fin k → ℤ
-  | i => match tm.transitionOutput cfg with
-      | some tro => OptionDirToInt (tro.stmts ⟨i, by omega⟩).movement
-      | none => 0
+  | i => match cfg.state with
+    | none => 0
+    | some q => OptionDirToInt
+      (tm.transitionOutput q (tm.inputSymbol cfg) cfg.workTapes |>.stmts i |>.movement)
 
 /-- The head positions of the work tapes as a function of the number of steps, relative to
 the starting position in `cfg`. -/
@@ -354,7 +379,7 @@ lemma relatesInSteps_iff_step_iter_eq_some
 /-- The Turing machine `tm` halts after exactly `t` steps on input `input`. -/
 def haltsAtStep (tm : MultiTapeTM k Symbol) (input : List Symbol) (t : ℕ) : Bool :=
   match (tm.configs (tm.initCfg input) t) with
-  | some ⟨none, _, _⟩ => true
+  | some ⟨none, _, _, _, _⟩ => true
   | _ => false
 
 /-- If a Turing machine halts, the time step is uniquely determined. -/
