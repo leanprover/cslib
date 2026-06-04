@@ -21,7 +21,7 @@ bidirectional tape (`BiTape`).
 
 namespace Cslib.Computability.Turing.SingleTape
 
-open Automata Turing
+open Automata
 
 /-- A (single-tape) Nondeterministic Turing Machine (NTM) is a nondeterministic automaton equipped
 with a set of accepting halting states. -/

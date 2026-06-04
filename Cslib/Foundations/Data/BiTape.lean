@@ -38,7 +38,7 @@ will not collide.
 
 @[expose] public section
 
-namespace Turing
+namespace Cslib.Turing
 
 /--
 A structure for bidirectionally-infinite Turing machine tapes
@@ -92,6 +92,8 @@ Move the head right by shifting the right StackTape under the head.
 def moveRight (t : BiTape Symbol) : BiTape Symbol :=
   ⟨t.right.head, StackTape.cons t.head t.left, t.right.tail⟩
 
+open _root_.Turing
+
 /--
 Move the head to the left or right, shifting the tape underneath it.
 -/
@@ -102,7 +104,7 @@ def move (t : BiTape Symbol) : Dir → BiTape Symbol
 /--
 Optionally perform a `move`, or do nothing if `none`.
 -/
-def optionMove : BiTape Symbol → Option Dir → BiTape Symbol
+def optionMove : BiTape Symbol → Option Turing.Dir → BiTape Symbol
   | t, none => t
   | t, some d => t.move d
 
@@ -136,18 +138,13 @@ lemma spaceUsed_mk₁ (l : List Symbol) :
     (mk₁ l).spaceUsed = max 1 l.length := by
   cases l with
   | nil => simp [mk₁, spaceUsed, nil, StackTape.length_nil]
-  | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_map_some]; omega
-
-lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
-    (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
-  cases d <;> grind [move_left, move_right, move,
   | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_mapSome]; omega
 
-lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
+lemma spaceUsed_move (t : BiTape Symbol) (d : Turing.Dir) :
     (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
   cases d <;> grind [moveLeft, moveRight, move,
     spaceUsed, StackTape.length_tail_le, StackTape.length_cons_le]
 
 end BiTape
 
-end Turing
+end Cslib.Turing

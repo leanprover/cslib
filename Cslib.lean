@@ -31,7 +31,9 @@ public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
-public import Cslib.Computability.Machines.SingleTapeTuring.Basic
+public import Cslib.Computability.Machines.Turing.SingleTape.Defs
+public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
+public import Cslib.Computability.Machines.Turing.SingleTape.NonDeterministic
 public import Cslib.Computability.URM.Basic
 public import Cslib.Computability.URM.Computable
 public import Cslib.Computability.URM.Defs
@@ -80,6 +82,7 @@ public import Cslib.Foundations.Semantics.LTS.Divergence
 public import Cslib.Foundations.Semantics.LTS.Execution
 public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.LTSCat.Basic
+public import Cslib.Foundations.Semantics.LTS.Map
 public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation

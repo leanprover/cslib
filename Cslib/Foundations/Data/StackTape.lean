@@ -38,7 +38,7 @@ advantages and disadvantages.
 
 @[expose] public section
 
-namespace Turing
+namespace Cslib.Turing
 
 /--
 An infinite tape representation using a list of `Option` values,
@@ -178,4 +178,4 @@ end Length
 
 end StackTape
 
-end Turing
+end Cslib.Turing
