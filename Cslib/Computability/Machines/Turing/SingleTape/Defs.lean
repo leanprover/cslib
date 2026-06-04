@@ -8,9 +8,9 @@ module
 
 public import Cslib.Foundations.Data.BiTape
 
-@[expose] public section
-
 /-! # Basic definitions for Turing Machines (TMs) -/
+
+@[expose] public section
 
 namespace Cslib.Computability.Turing.SingleTape
 
