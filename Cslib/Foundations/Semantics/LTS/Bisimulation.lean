@@ -853,7 +853,7 @@ theorem IsSWBisimulation.follow_internal_fst
     obtain ⟨sb2', htrsb2', hrb'⟩ := h
     exists sb2'
     constructor
-    · simp only [sTr_τSTr] at htrsb htrsb2'
+    · simp only [sTr_τSTr_iff] at htrsb htrsb2'
       exact Relation.ReflTransGen.trans htrsb2 htrsb2'
     · exact hrb'
 
@@ -874,7 +874,7 @@ theorem IsSWBisimulation.follow_internal_snd
     obtain ⟨sb2', htrsb2', hrb'⟩ := h
     exists sb2'
     constructor
-    · simp only [sTr_τSTr] at htrsb htrsb2'
+    · simp only [sTr_τSTr_iff] at htrsb htrsb2'
       exact Relation.ReflTransGen.trans htrsb2 htrsb2'
     · exact hrb'
 
@@ -890,13 +890,13 @@ theorem isWeakBisimulation_iff_isSWBisimulation
     case left =>
       intro s₁' htr
       specialize h hr μ
-      have h' := h.1 s₁' (STr.single lts₁ htr)
+      have h' := h.1 s₁' (STr.single htr)
       obtain ⟨s₂', htr2, hr2⟩ := h'
       exists s₂'
     case right =>
       intro s₂' htr
       specialize h hr μ
-      have h' := h.2 s₂' (STr.single lts₂ htr)
+      have h' := h.2 s₂' (STr.single htr)
       obtain ⟨s₁', htr1, hr1⟩ := h'
       exists s₁'
   case mpr =>
@@ -910,15 +910,15 @@ theorem isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
-        rw [←sTr_τSTr] at hstr1 hstr2
-        simp only [sTr_τSTr] at hstr1 hstr2
+        rw [←sTr_τSTr_iff] at hstr1 hstr2
+        simp only [sTr_τSTr_iff] at hstr1 hstr2
         obtain ⟨sb1, hstr1b, hrb⟩ := IsSWBisimulation.follow_internal_fst h hr hstr1
         obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).left _ htr
         obtain ⟨s₁', hstr1', hrb2⟩ := IsSWBisimulation.follow_internal_fst h hrb' hstr2
-        rw [←sTr_τSTr] at hstr1' hstr1b
+        rw [←sTr_τSTr_iff] at hstr1' hstr1b
         exists s₁'
         constructor
-        · exact STr.comp lts₂ hstr1b hstr1b' hstr1'
+        · exact STr.comp hstr1b hstr1b' hstr1'
         · exact hrb2
     case right =>
       intro s₂' hstr
@@ -928,15 +928,15 @@ theorem isWeakBisimulation_iff_isSWBisimulation
         constructor; constructor
         exact hr
       case tr sb sb' hstr1 htr hstr2 =>
-        rw [←sTr_τSTr] at hstr1 hstr2
-        simp only [sTr_τSTr] at hstr1 hstr2
+        rw [←sTr_τSTr_iff] at hstr1 hstr2
+        simp only [sTr_τSTr_iff] at hstr1 hstr2
         obtain ⟨sb1, hstr1b, hrb⟩ := IsSWBisimulation.follow_internal_snd h hr hstr1
         obtain ⟨sb2', hstr1b', hrb'⟩ := (h hrb μ).right _ htr
         obtain ⟨s₁', hstr1', hrb2⟩ := IsSWBisimulation.follow_internal_snd h hrb' hstr2
-        rw [←sTr_τSTr] at hstr1' hstr1b
+        rw [←sTr_τSTr_iff] at hstr1' hstr1b
         exists s₁'
         constructor
-        · exact STr.comp lts₁ hstr1b hstr1b' hstr1'
+        · exact STr.comp hstr1b hstr1b' hstr1'
         · exact hrb2
 
 theorem IsWeakBisimulation.isSwBisimulation

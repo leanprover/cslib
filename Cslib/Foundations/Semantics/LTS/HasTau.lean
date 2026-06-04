@@ -50,7 +50,7 @@ theorem STr.single [HasTau Label] {lts : LTS State Label} :
   apply STr.tr .refl h .refl
 
 /-- STr transitions labeled by HasTau.τ are exactly the τSTr transitions. -/
-theorem sTr_τSTr [HasTau Label] (lts : LTS State Label) :
+theorem sTr_τSTr_iff [HasTau Label] (lts : LTS State Label) :
     lts.STr s HasTau.τ s' ↔ lts.τSTr s s' := by
   apply Iff.intro <;> intro h
   case mp =>
@@ -64,14 +64,14 @@ theorem sTr_τSTr [HasTau Label] (lts : LTS State Label) :
     case tail _ h1 h2 => exact STr.tr h1 h2 .refl
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-theorem saturate_τSTr_τSTr [hHasTau : HasTau Label] (lts : LTS State Label) :
-    lts.saturate.τSTr s = lts.τSTr s := by
-  ext s''
+theorem saturate_τsTr_τSTr_iff [hHasTau : HasTau Label] (lts : LTS State Label) :
+    lts.saturate.τSTr = lts.τSTr := by
+  ext s s'
   apply Iff.intro <;> intro h
   case mp =>
     induction h
     case refl => constructor
-    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((sTr_τSTr _).mp h2)
+    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((sTr_τSTr_iff _).mp h2)
   case mpr =>
     cases h
     case refl => constructor
@@ -85,8 +85,8 @@ theorem STr.trans_τ
     [HasTau Label] {lts : LTS State Label}
     (h1 : lts.STr s1 HasTau.τ s2) (h2 : lts.STr s2 HasTau.τ s3) :
     lts.STr s1 HasTau.τ s3 := by
-  rw [sTr_τSTr _] at h1 h2
-  rw [sTr_τSTr _]
+  rw [sTr_τSTr_iff _] at h1 h2
+  rw [sTr_τSTr_iff _]
   apply Relation.ReflTransGen.trans h1 h2
 
 /-- Saturated transitions can be composed. -/
@@ -96,17 +96,17 @@ theorem STr.comp
     (h2 : lts.STr s2 μ s3)
     (h3 : lts.STr s3 HasTau.τ s4) :
   lts.STr s1 μ s4 := by
-  rw [sTr_τSTr _] at h1 h3
+  rw [sTr_τSTr_iff _] at h1 h3
   cases h2
   case refl =>
-    rw [sTr_τSTr _]
+    rw [sTr_τSTr_iff _]
     apply Relation.ReflTransGen.trans h1 h3
   case tr _ _ hτ1 htr hτ2 =>
     exact STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
 /-- In a saturated LTS, the transition and saturated transition relations are the same. -/
 theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label)
-  (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+    (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
   apply Iff.intro <;> intro h
   case mp =>
@@ -119,8 +119,8 @@ theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label
     cases h
     case refl => constructor
     case tr hstr1 htr hstr2 =>
-      rw [saturate_τSTr_τSTr lts] at hstr1 hstr2
-      rw [←sTr_τSTr lts] at hstr1 hstr2
+      rw [saturate_τsTr_τSTr_iff lts] at hstr1 hstr2
+      rw [←sTr_τSTr_iff lts] at hstr1 hstr2
       exact STr.comp hstr1 htr hstr2
 
 /-- In a saturated LTS, every state is in its τ-image. -/
@@ -194,7 +194,7 @@ theorem SMTr.comp [HasTau Label] {lts : LTS State Label}
 
 /-- A multistep transition implies a saturated multistep transition. -/
 @[scoped grind .]
-theorem mTr_sMTr [HasTau Label] {lts : LTS State Label}
+theorem SMTr.fromMTr [HasTau Label] {lts : LTS State Label}
     (h : lts.MTr s μs s') : lts.SMTr s μs s' := by
   induction μs generalizing s s'
   case nil => grind [LTS.STr, LTS.SMTr]
@@ -202,24 +202,39 @@ theorem mTr_sMTr [HasTau Label] {lts : LTS State Label}
     cases h
     case stepL sb htr hmtr => exact SMTr.stepL (STr.single htr) (ih hmtr)
 
+@[scoped grind =]
+theorem sMTr_τSTr_iff [HasTau Label] {lts : LTS State Label} :
+    lts.τSTr s s' ↔ lts.SMTr s [] s' := by grind only [=_ sTr_τSTr_iff, SMTr]
+
 /-- A saturated multistep transition with a nonempty label list implies a multistep transition. -/
-@[scoped grind .]
-theorem sMTr_mTr_not_nil [HasTau Label] {lts : LTS State Label}
-    (hμs : μs ≠ []) (h : lts.SMTr s μs s') : lts.saturate.MTr s μs s' := by
+@[scoped grind =]
+theorem saturate_mTr_sMTr_not_nil_iff [HasTau Label] {lts : LTS State Label}
+    (hμs : μs ≠ []) : lts.saturate.MTr s μs s' ↔ lts.SMTr s μs s' := by
   induction μs generalizing s
   case nil => contradiction
   case cons x xs ih =>
-    cases h
-    case stepL sb htr hmtr =>
-      cases xs with
-      | nil =>
-        cases hmtr
-        case τ h_τ =>
-          exact LTS.MTr.stepL
-            (LTS.STr.comp LTS.STr.refl htr h_τ)
-            LTS.MTr.refl
-      | cons y ys =>
-        exact LTS.MTr.stepL htr (ih (by simp) hmtr)
+    apply Iff.intro <;> intro h
+    case mp =>
+      cases h
+      case stepL sb htr hmtr =>
+        cases xs with
+        | nil =>
+          cases hmtr
+          apply LTS.SMTr.stepL htr (by grind only [SMTr.fromMTr, MTr.refl])
+        | cons x' xs' =>
+          exact LTS.SMTr.stepL htr ((ih (by simp)).mp hmtr)
+    case mpr =>
+      cases h
+      case stepL sb htr hmtr =>
+        cases xs with
+        | nil =>
+          cases hmtr
+          case τ h_τ =>
+            exact LTS.MTr.stepL
+              (LTS.STr.comp LTS.STr.refl htr h_τ)
+              LTS.MTr.refl
+        | cons x' xs' =>
+          exact LTS.MTr.stepL htr ((ih (by simp)).mpr hmtr)
 
 end LTS
 

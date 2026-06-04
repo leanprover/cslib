@@ -7,32 +7,13 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Foundations.Semantics.LTS.Map
 
 /-! # Translation of εNA into NA -/
 
 @[expose] public section
 
-namespace Cslib
-
-/-- Converts an `LTS` with Option labels into an `LTS` on the carried label type, by removing all
-ε-transitions. -/
-@[local grind =]
-def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
-  Tr s μ s' := lts.Tr s (some μ) s'
-
-@[local grind .]
-private lemma LTS.noε_saturate_tr
-  {lts : LTS State (Option Label)} {h : μ = some μ'} :
-  lts.saturate.Tr s μ s' ↔ lts.saturate.noε.Tr s μ' s' := by
-  grind
-
-@[scoped grind =]
-lemma LTS.noε_saturate_mTr {lts : LTS State (Option Label)} :
-  lts.saturate.MTr s (μs.map some) = lts.saturate.noε.MTr s μs := by
-  ext s'
-  induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
-
-namespace Automata.εNA.FinAcc
+namespace Cslib.Automata.εNA.FinAcc
 
 variable {State Symbol : Type*}
 
@@ -41,85 +22,39 @@ variable {State Symbol : Type*}
 def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
   start := a.εClosure a.start
   accept := a.accept
-  Tr s μ s' := a.STr s (some μ) s'
+  toLTS := a.saturate.mapLabel Option.some
 
 open Acceptor in
-open scoped NA.FinAcc LTS LTS.STr LTS.SMTr in
+open scoped NA.FinAcc LTS LTS.MTr LTS.STr LTS.SMTr in
 /-- Correctness of `toNAFinAcc`. -/
-@[scoped grind _=_]
-theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
-    language ena.toNAFinAcc = language ena := by
+@[scoped grind =]
+theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol} :
+    language a.toNAFinAcc = language a := by
   ext xs
-  cases xs
-  case nil =>
-    apply Iff.intro <;> intro h
-    case mp =>
-      rcases h with ⟨s, hs, s', hs', h⟩
-      simp only [toNAFinAcc, εClosure, LTS.τClosure, LTS.setImage, LTS.saturate, Set.mem_iUnion,
+  apply Iff.intro <;> intro h <;> rcases h with ⟨s, hs, s', hs', h⟩
+  case mp =>
+    have h_start : ∃ sStart ∈ a.start, a.τSTr sStart s := by
+      simp only [toNAFinAcc, εClosure, LTS.τClosure, LTS.setImage, Set.mem_iUnion,
         exists_prop] at hs
-      rcases hs with ⟨sStart, hStart, hs⟩
+      rcases hs with ⟨sStart, h_sStart, hs⟩
       exists sStart
-      apply And.intro
-      case left => grind
-      case right =>
-        exists s'
-        apply And.intro
-        case left => grind
-        case right =>
-          simp only [List.pure_def, List.bind_eq_flatMap, List.flatMap_nil]
-          grind [LTS.SMTr.τ]
-    case mpr =>
-      rcases h with ⟨s, hs, s', hs', h⟩
-      simp only [List.pure_def, List.bind_eq_flatMap, List.flatMap_nil] at h
-      simp [Accepts]
+      apply And.intro h_sStart
+      simp only [LTS.image, LTS.saturate, Set.mem_setOf_eq] at hs
+      grind only [LTS.sTr_τSTr_iff]
+    rcases h_start with ⟨sStart, h_sStart, h_start⟩
+    exists sStart
+    apply And.intro (by grind)
+    exists s'
+    apply And.intro (by grind)
+    apply LTS.SMTr.comp (μs₁ := []) (s₂ := s) <;> grind
+  case mpr =>
+    cases xs with
+    | nil =>
       exists s'
-      constructor
-      · simp [toNAFinAcc, εClosure, LTS.τClosure, LTS.saturate]
-        simp [LTS.setImage]
-        exists s
-        constructor
-        · grind
-        · simp [LTS.image]
-          cases h
-          grind
-      · exists s'
-        constructor
-        · grind
-        · grind
-  case cons x xs =>
-    have : ∀ {s s'}, ena.toNAFinAcc.MTr s (x :: xs) s' = ena.SMTr s (x :: xs) s' := by
-      intro s s'
-      have := LTS.sMTr_mTr_not_nil (lts := ena.toLTS) (s := s) (s' := s') (μs := some x :: xs.map some) (by simp)
-      ext
-      apply Iff.intro <;> intro h
-      · simp
+      simp only [toNAFinAcc, LTS.saturate, LTS.τClosure]
+      grind [cases LTS.SMTr]
+    | cons x xs =>
+      exists s
+      grind
 
-      · sorry
-    simp [Accepts]
-    apply Iff.intro <;> intro h
-    · rcases h with ⟨s, hs, s', hs', h⟩
-      rw [this] at h
-      simp [toNAFinAcc] at hs
-      have h_start : ∃ sStart ∈ ena.start, ena.τSTr s sStart := by
-        sorry
-      rcases h_start with ⟨sStart, h_sStart, h_start⟩
-      exists sStart
-      apply And.intro
-      · grind
-      · exists s'
-        apply And.intro
-        · grind
-        · grind
-    -- simp [LTS.noε_saturate_mTr]
-    -- #adaptation_note
-    -- /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-    -- grind [Accepts]
-  -- have : ∀ s s', ena.MTr s (xs.map some) s' = ena.εMTr s xs s' := by
-  --   simp [LTS.noε_saturate_mTr]
-  -- #adaptation_note
-  -- /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  -- grind [Accepts]
-
-end Automata.εNA.FinAcc
-
-end Cslib
+end Cslib.Automata.εNA.FinAcc

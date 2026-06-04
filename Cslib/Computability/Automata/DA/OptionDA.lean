@@ -92,10 +92,40 @@ lemma DA.FinAcc.toOptionεNA_ε_τSTr_none {a : DA.FinAcc State Symbol}
 
 /-- The `none` state in `DA.toOptionεNA` has no outgoing transitions. -/
 @[scoped grind .]
-lemma DA.FinAcc.toOptionεNA_ε_sTr_none {a : DA.FinAcc State Symbol}
+lemma DA.FinAcc.toOptionεNA_none_sTr_none {a : DA.FinAcc State Symbol}
     (h : a.toOptionεNA.STr s none s') : s' = s ∨ s' = none := by cases h <;> grind
 
-open scoped LTS εNA εNA.FinAcc
+@[scoped grind =]
+lemma DA.FinAcc.toOptionεNA_mem_accept_tr_iff {a : DA.FinAcc State Symbol} :
+    s ∈ a.accept ↔ a.toOptionεNA.Tr s none none := by grind only [toOptionεNA]
+
+lemma pippo {a : DA.FinAcc State Symbol} :
+    a.toOptionεNA.STr (some s) (some μ) = a.toOptionεNA.Tr (some s) (some μ) := by
+  sorry
+  -- grind
+
+open scoped LTS LTS.STr LTS.SMTr FLTS εNA εNA.FinAcc
+
+@[scoped grind =]
+lemma DA.FinAcc.toOptionεNA_mem_accept_sTr_iff {a : DA.FinAcc State Symbol} :
+    s ∈ a.accept ↔ a.toOptionεNA.STr s none none := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    grind only [toOptionεNA_mem_accept_tr_iff, LTS.STr.single]
+  case mpr =>
+    cases h
+    case tr osb osb' h₁ h₂ h₃ =>
+      rw [show osb' = none by grind only [toOptionεNA]] at h₂
+      induction h₁
+      case refl => grind only [= toOptionεNA_mem_accept_tr_iff]
+      case tail os os' h₁₁ h₁₂ ih =>
+        have h_tr_os: a.toOptionεNA.Tr os none none := by
+          have : a.toOptionεNA.τSTr os os' := by
+            simp only [LTS.τSTr]
+            grind
+          simp only [toOptionεNA]
+          grind
+        exact ih h_tr_os
 
 /-- The ε-closure of the start state in `DA.toOptionεNA` consists of the start state and `none`. -/
 @[scoped grind =]
@@ -107,55 +137,171 @@ lemma DA.FinAcc.toOptionεNA_start_εClosure {a : DA.FinAcc State Symbol} (h : a
   ext s
   apply Iff.intro <;> intro h'
   · grind
-  · simp only [Set.mem_setOf_eq]
-    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at h'
-    cases h' with
+  · cases h' with
       | inl h' =>
         rw [h']
         apply LTS.STr.refl
       | inr h' =>
         rw [h']
-        have htr : a.toOptionεNA.Tr (some a.start) none none := by grind
+        have htr : a.toOptionεNA.Tr (some a.start) none none := by grind only [toOptionεNA]
         exact LTS.STr.single htr
+
+/-- Correspondence of transitions under `toOptionεNA`. -/
+@[scoped grind =]
+theorem DA.FinAcc.toOptionεNA_tr_tr_iff {a : DA.FinAcc State Symbol}
+    : a.toOptionεNA.Tr (some s) (some μ) (some s') ↔ a.tr s μ = s' := by grind only [toOptionεNA]
+
+/-- Correspondence of transitions under `toOptionεNA`. -/
+@[scoped grind =]
+theorem DA.FinAcc.toOptionεNA_sTr_tr_iff {a : DA.FinAcc State Symbol} :
+    a.toOptionεNA.STr (some s) (some μ) (some s') ↔
+    a.toOptionεNA.Tr (some s) (some μ) (some s') := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    cases h
+    grind [toOptionεNA]
+  case mpr =>
+    apply LTS.STr.single h
+
+/-- Correspondence of multistep transitions under `toOptionεNA`. -/
+@[scoped grind =]
+theorem DA.FinAcc.toOptionεNA_mTr_mTr_iff {a : DA.FinAcc State Symbol}
+    : a.toOptionεNA.MTr (some s) (μs.map Option.some) (some s') ↔ a.mtr s μs = s' := by
+  induction μs generalizing s
+  case nil => grind
+  case cons x xs ih =>
+    apply Iff.intro <;> intro h
+    case mp =>
+      cases h
+      case stepL sb htr hmtr =>
+        have h_tr_sb : a.tr s x = sb := by
+          simp only [toOptionεNA] at htr
+          grind only
+        grind only [FLTS.mtr, List.foldl_cons]
+    case mpr =>
+      apply LTS.MTr.stepL (s2 := some (a.tr s x)) (by grind) (by grind)
+
+/-- Correspondence of saturated and normal multistep transitions under `toOptionεNA`. -/
+@[scoped grind =]
+theorem DA.FinAcc.toOptionεNA_sMTr_mTr_iff {a : DA.FinAcc State Symbol} {μs : List Symbol}
+    (h : μs ≠ []) : a.toOptionεNA.SMTr (some s) (μs.map Option.some) (some s') ↔
+    a.toOptionεNA.MTr (some s) (μs.map Option.some) (some s') := by
+  induction μs generalizing s with
+  | nil => contradiction
+  | cons μ μs ih =>
+    simp only [List.map_cons]
+    apply Iff.intro <;> intro h'
+    case mp =>
+      cases h'
+      case stepL os hstr hsmtr =>
+        have hos : ∃ sb, os = some sb := by
+          sorry
+        rcases hos with ⟨sb, hos⟩
+
+        cases μs
+        case nil => grind
+        case cons μ' μs =>
+
+        simp [toOptionεNA]
+
+    case mpr =>
+      exact LTS.SMTr.fromMTr h'
+
+/-- Correspondence of multistep transitions under `toOptionεNA`. -/
+@[scoped grind =]
+theorem DA.FinAcc.toOptionεNA_sMTr_mTr_iff {a : DA.FinAcc State Symbol}
+    : a.toOptionεNA.SMTr (some s) (μs.map Option.some) (some s') ↔ a.mtr s μs = s' := by
+  induction μs generalizing s
+  case nil =>
+    simp [toOptionεNA]
+    grind
+  case cons x xs ih =>
+    apply Iff.intro <;> intro h
+    case mp =>
+      cases h
+      case stepL sb htr hmtr =>
+
+        -- have h_tr_sb : a.tr s x = sb := by
+        --   simp only [toOptionεNA] at htr
+        --   grind only
+        grind only [FLTS.mtr, List.foldl_cons]
+    case mpr =>
+      apply LTS.MTr.stepL (s2 := some (a.tr s x)) (by grind) (by grind)
 
 open Acceptor in
 /-- `DA.toOptionεNA` preserves the automaton's language. -/
+@[scoped grind =]
 theorem DA.FinAcc.toOptionεNA_language_eq {a : DA.FinAcc State Symbol} :
     language a.toOptionεNA = language a := by
   ext xs
-  simp only [Acceptor.mem_language]
-  simp only [Accepts]
+  simp only [Acceptor.mem_language, Accepts]
   apply Iff.intro <;> intro h
   case mp =>
+    rcases h with ⟨s, hs, s', hs', h⟩
+    cases hs' -- s' is none
+    revert hs
+    cases xs
+    case nil =>
+      intro hs; cases hs
+      cases h
+      case refl.τ h =>
+        grind [toOptionεNA_mem_accept_sTr_iff.mpr h]
+    case cons x xs =>
+      intro hs; cases hs
+      cases h
+      case stepL os h_sTr h_sMTr =>
+
+
+    simp only [toOptionεNA_none_accept, Set.mem_singleton_iff] at hs'
+    simp [hs'] at h
+
     sorry
   case mpr =>
     induction xs
     case nil =>
+      simp only [FLTS.mtr_nil_eq] at h
       exists a.start
-      apply And.intro
-      case left => grind
-      case right =>
-        have h' : a.start ∈ a.accept := by grind [FLTS.mtr]
-        exists none
-        constructor
-        · grind
-        · simp
-          have : (s : State) → s ∈ a.accept → a.toOptionεNA.saturate.Tr (some s) none none := by
-            intro s hs
-            sorry
-          -- simp [LTS.saturate]
-          -- apply LTS.MTr.stepL
+      apply And.intro (by grind)
+      exists none
+      apply And.intro (by simp)
+      apply LTS.SMTr.τ
+      apply LTS.STr.tr (s2 := some a.start) (s3 := none) <;> grind
+    case cons x xs ih =>
+      exists a.start
+      apply And.intro (by grind)
+      exists none
+      apply And.intro (by simp)
+      simp only [FLTS.mtr, List.foldl_cons] at h
+      simp only [List.map_cons]
+      rw [← FLTS.mtr] at h
 
-          simp [LTS.saturate]
+      -- rw [← List.foldl_cons] at h
+      grind
+    --   exists a.start
+    --   apply And.intro
+    --   case left => grind
+    --   case right =>
+    --     have h' : a.start ∈ a.accept := by grind [FLTS.mtr]
+    --     exists none
+    --     constructor
+    --     · grind
+    --     · simp
+    --       have : (s : State) → s ∈ a.accept → a.toOptionεNA.saturate.Tr (some s) none none := by
+    --         intro s hs
+    --         sorry
+    --       -- simp [LTS.saturate]
+    --       -- apply LTS.MTr.stepL
+
+    --       simp [LTS.saturate]
 
 
-          simp [toOptionεNA]
+    --       simp [toOptionεNA]
 
 
-        grind
-        sorry
-    case cons x xs =>
-      sorry
+    --     grind
+    --     sorry
+    -- case cons x xs =>
+    --   sorry
 
 namespace NA.FinAcc
 
