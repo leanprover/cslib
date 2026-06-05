@@ -8,8 +8,6 @@ module
 
 public import Cslib.Init
 
-@[expose] public section
-
 /-!
 # StackTape: Infinite, eventually-`none` lists of `Option`s
 
@@ -37,6 +35,8 @@ advantages and disadvantages.
 - Make a `::`-like notation.
 
 -/
+
+@[expose] public section
 
 namespace Turing
 
@@ -144,9 +144,9 @@ lemma ext (t₁ t₂ : StackTape Symbol) (h_toList_eq : t₁.toList = t₂.toLis
 lemma ext_get (t₁ t₂ : StackTape Symbol)
     (h_get_eq : ∀ p : ℕ, t₁.toList[p]?.getD none = t₂.toList[p]?.getD none) :
     t₁ = t₂ := by
-  obtain ⟨l₁, h₁⟩ := t₁
-  obtain ⟨l₂, h₂⟩ := t₂
-  grind [List.ext_getElem]
+  apply ext
+  apply List.ext_getElem?
+  grind
 
 @[simp]
 lemma head_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).head = o := by
@@ -169,7 +169,7 @@ lemma cons_head_tail (l : StackTape Symbol) :
 
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
-def map_some (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
+def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
 
 section Length
 
@@ -198,7 +198,7 @@ lemma length_cons_le (o : Option Symbol) (l : StackTape Symbol) :
   cases o <;> grind
 
 @[simp, scoped grind =]
-lemma length_map_some (l : List Symbol) : (map_some l).length = l.length := by grind
+lemma length_mapSome (l : List Symbol) : (mapSome l).length = l.length := by grind
 
 @[simp, scoped grind =]
 lemma length_nil : (nil : StackTape Symbol).length = 0 := by grind

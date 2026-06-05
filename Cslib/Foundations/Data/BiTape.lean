@@ -12,8 +12,6 @@ public import Mathlib.Data.Finset.Attr
 public import Mathlib.Tactic.SetLike
 public import Mathlib.Algebra.Order.Group.Nat
 
-@[expose] public section
-
 /-!
 # BiTape: Bidirectionally infinite TM tape representation using StackTape
 
@@ -35,8 +33,10 @@ will not collide.
 * `BiTape`: A tape with a head symbol and left/right contents stored as `StackTape`
 * `BiTape.move`: Move the tape head left or right
 * `BiTape.write`: Write a symbol at the current head position
-* `BiTape.space_used`: The space used by the tape
+* `BiTape.spaceUsed`: The space used by the tape
 -/
+
+@[expose] public section
 
 namespace Turing
 
@@ -72,7 +72,7 @@ and laying them out to the right side,
 with the head under the first element of the list if it exists.
 -/
 def mk₁ (l : List Symbol) : BiTape Symbol :=
-  { head := l.head?, left := ∅, right := StackTape.map_some l.tail }
+  { head := l.head?, left := ∅, right := StackTape.mapSome l.tail }
 
 @[simp, scoped grind =]
 lemma mk₁_nil : mk₁ ([] : List Symbol) = ∅ := rfl
@@ -86,8 +86,11 @@ def get (t : BiTape Symbol) : ℤ → Option Symbol
   | (p' + 1 : Nat) => t.right.toList[p']?.getD none
   | -[p'+1] => t.left.toList[p']?.getD none
 
+lemma get_succ (t : BiTape Symbol) (p : ℕ) : t.get (p + 1) = t.right.toList[p]?.getD none := by
+  grind [get]
+
 /-- Two tapes are equal if and only if their `get` functions are equal. This allows to view
-tapes as functions `ℤ → Option Symbol`. -/
+tapes as functions `ℤ → Option Symbol` and composes better across moves. -/
 @[ext]
 lemma ext_get (t₁ t₂ : BiTape Symbol) (h_get_eq : ∀ p, t₁.get p = t₂.get p) : t₁ = t₂ := by
   cases t₁
@@ -98,7 +101,7 @@ lemma ext_get (t₁ t₂ : BiTape Symbol) (h_get_eq : ∀ p, t₁.get p = t₂.g
     simpa [get] using h_get_eq (Int.negSucc p)
   · apply StackTape.ext_get
     intro p
-    simpa [get] using h_get_eq (p + 1)
+    simpa [get_succ] using h_get_eq (p + 1)
 
 /-- Simplification lemma that explains the contents of each of the cells after tape
 construction using mk₁. -/
@@ -116,14 +119,14 @@ section Move
 Move the head left by shifting the left StackTape under the head.
 -/
 @[scoped grind =]
-def move_left (t : BiTape Symbol) : BiTape Symbol :=
+def moveLeft (t : BiTape Symbol) : BiTape Symbol :=
   ⟨t.left.head, t.left.tail, StackTape.cons t.head t.right⟩
 
 /--
 Move the head right by shifting the right StackTape under the head.
 -/
 @[scoped grind =]
-def move_right (t : BiTape Symbol) : BiTape Symbol :=
+def moveRight (t : BiTape Symbol) : BiTape Symbol :=
   ⟨t.right.head, StackTape.cons t.head t.left, t.right.tail⟩
 
 /--
@@ -131,8 +134,8 @@ Move the head to the left or right, shifting the tape underneath it.
 -/
 @[scoped grind =]
 def move (t : BiTape Symbol) : Dir → BiTape Symbol
-  | .left => t.move_left
-  | .right => t.move_right
+  | .left => t.moveLeft
+  | .right => t.moveRight
 
 /--
 Optionally perform a `move`, or do nothing if `none`.
@@ -143,12 +146,12 @@ def optionMove : BiTape Symbol → Option Dir → BiTape Symbol
   | t, some d => t.move d
 
 @[simp]
-lemma move_left_move_right (t : BiTape Symbol) : t.move_left.move_right = t := by
-  simp [move_right, move_left]
+lemma moveLeft_moveRight (t : BiTape Symbol) : t.moveLeft.moveRight = t := by
+  simp [moveRight, moveLeft]
 
 @[simp]
-lemma move_right_move_left (t : BiTape Symbol) : t.move_right.move_left = t := by
-  simp [move_left, move_right]
+lemma moveRight_moveLeft (t : BiTape Symbol) : t.moveRight.moveLeft = t := by
+  simp [moveLeft, moveRight]
 
 /-- Translate an optional direction into a head movement offset, where the positive
 direction is to the right. -/
@@ -160,8 +163,8 @@ def optionDirToInt (d : Option Dir) : ℤ :=
   | some .right => 1
 
 @[simp, scoped grind =]
-lemma get_move_left (t : BiTape Symbol) (p : ℤ) : t.move_left.get p = t.get (p - 1) := by
-  unfold move_left get
+lemma get_moveLeft (t : BiTape Symbol) (p : ℤ) : t.moveLeft.get p = t.get (p - 1) := by
+  unfold moveLeft get
   match p with
   | Int.ofNat 0 =>
     simp [StackTape.head_eq_getD]
@@ -173,8 +176,8 @@ lemma get_move_left (t : BiTape Symbol) (p : ℤ) : t.move_left.get p = t.get (p
   | Int.negSucc n => simp
 
 @[simp, scoped grind =]
-lemma get_move_right (t : BiTape Symbol) (p : ℤ) : t.move_right.get p = t.get (p + 1) := by
-  unfold move_right get
+lemma get_moveRight (t : BiTape Symbol) (p : ℤ) : t.moveRight.get p = t.get (p + 1) := by
+  unfold moveRight get
   match p with
   | Int.ofNat n =>
     rw [show Int.ofNat n + 1 = Int.ofNat (n + 1) by lia]
@@ -190,15 +193,15 @@ lemma get_move (t : BiTape Symbol) (d : Dir) (p : ℤ) :
   cases d <;> grind
 
 @[simp, scoped grind =]
-lemma get_move_right_iterate (t : BiTape Symbol) (n : ℕ) (p : ℤ) :
-    (move_right^[n] t).get p = t.get (p + n):= by
+lemma get_moveRight_iterate (t : BiTape Symbol) (n : ℕ) (p : ℤ) :
+    (moveRight^[n] t).get p = t.get (p + n):= by
   induction n generalizing t p with
   | zero => simp
   | succ n ih => simp [Function.iterate_succ_apply, ih, Int.add_assoc]
 
 @[simp, scoped grind =]
-lemma get_move_left_iterate (t : BiTape Symbol) (n : ℕ) (p : ℤ) :
-    (move_left^[n] t).get p = t.get (p - n):= by
+lemma get_moveLeft_iterate (t : BiTape Symbol) (n : ℕ) (p : ℤ) :
+    (moveLeft^[n] t).get p = t.get (p - n):= by
   induction n generalizing t p with
   | zero => simp
   | succ n ih =>
@@ -209,9 +212,9 @@ lemma get_move_left_iterate (t : BiTape Symbol) (n : ℕ) (p : ℤ) :
 negative to the left. -/
 def moveInt (t : BiTape Symbol) (Δ : ℤ) : BiTape Symbol :=
   if Δ ≥ 0 then
-    .move_right^[Δ.toNat] t
+    .moveRight^[Δ.toNat] t
   else
-    .move_left^[(-Δ).toNat] t
+    .moveLeft^[(-Δ).toNat] t
 
 @[simp, scoped grind =]
 lemma get_moveInt (t : BiTape Symbol) (Δ p : ℤ) :
@@ -219,7 +222,7 @@ lemma get_moveInt (t : BiTape Symbol) (Δ p : ℤ) :
   grind [moveInt]
 
 @[simp, scoped grind =]
-lemma moveInt_head (t : BiTape Symbol) (Δ : ℤ) :
+lemma head_moveInt (t : BiTape Symbol) (Δ : ℤ) :
   (moveInt t Δ).head = t.get Δ := by
   rw [show (moveInt t Δ).head = (moveInt t Δ).get 0 from rfl]
   grind [moveInt]
@@ -246,22 +249,22 @@ The space used by a `BiTape` is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
 -/
 @[scoped grind]
-def space_used (t : BiTape Symbol) : ℕ := 1 + t.left.length + t.right.length
+def spaceUsed (t : BiTape Symbol) : ℕ := 1 + t.left.length + t.right.length
 
 @[simp, grind =]
-lemma space_used_write (t : BiTape Symbol) (a : Option Symbol) :
-    (t.write a).space_used = t.space_used := by rfl
+lemma spaceUsed_write (t : BiTape Symbol) (a : Option Symbol) :
+    (t.write a).spaceUsed = t.spaceUsed := by rfl
 
-lemma space_used_mk₁ (l : List Symbol) :
-    (mk₁ l).space_used = max 1 l.length := by
+lemma spaceUsed_mk₁ (l : List Symbol) :
+    (mk₁ l).spaceUsed = max 1 l.length := by
   cases l with
-  | nil => simp [mk₁, space_used, StackTape.length_nil]
-  | cons h t => simp [mk₁, space_used, StackTape.length_nil, StackTape.length_map_some]; omega
+  | nil => simp [mk₁, spaceUsed, StackTape.length_nil]
+  | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_mapSome]; omega
 
-lemma space_used_move (t : BiTape Symbol) (d : Dir) :
-    (t.move d).space_used ≤ t.space_used + 1 := by
-  cases d <;> grind [move_left, move_right, move,
-    space_used, StackTape.length_tail_le, StackTape.length_cons_le]
+lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
+    (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
+  cases d <;> grind [moveLeft, moveRight, move,
+    spaceUsed, StackTape.length_tail_le, StackTape.length_cons_le]
 
 end BiTape
 

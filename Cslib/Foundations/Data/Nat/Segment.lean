@@ -10,18 +10,18 @@ public import Cslib.Init
 public import Mathlib.Algebra.Order.Sub.Basic
 public import Mathlib.Data.Nat.Nth
 
-@[expose] public section
-
-open Function Set
-
 /-!
 # Segments defined by a strictly monotonic function on Nat
 
 Given a strictly monotonic function `f : ℕ → ℕ` and `k : ℕ` with `k ≥ f 0`,
 `Nat.segment f k` is the unique `m : ℕ` such that `f m ≤ k < f (k + 1)`.
 `Nat.segment f k` is defined to be 0 for `k < f 0`.
-This file defines `Nat.segment` and proves various properties aboout it.
+This file defines `Nat.segment` and proves various properties about it.
 -/
+
+@[expose] public section
+
+open Function Set
 
 /-- The `f`-segment of `k`, where `f : ℕ → ℕ` will be assumed to be at least StrictMono. -/
 @[scoped grind]
