@@ -202,13 +202,16 @@ theorem tr_diamond {ps : Set P} {x1 x2 : Action P M} {s s1 s2 : State P M S}
     (hx1 : DestIn ps x1) (hs1 : a.lts.Tr s x1 s1)
     (hx2 : DestIn psᶜ x2) (hs2 : a.lts.Tr s x2 s2) :
     ∃ s', a.lts.Tr s1 x2 s' ∧ a.lts.Tr s2 x1 s' := by
-  cases x1 <;> cases x2 <;> try grind [Algorithm.lts]
-  case some m1 m2 =>
-    have hd : m1.dest ≠ m2.dest := by grind [DestIn]
-    obtain ⟨h_m1, rfl⟩ := hs1
-    obtain ⟨h_m2, rfl⟩ := hs2
-    simp only [Algorithm.lts, exists_eq_right_right]
-    grind [recvMsg_comm (a := a) hd h_m1 h_m2]
+  cases x1 <;> cases x2
+  · grind [Algorithm.lts]
+  · grind [Algorithm.lts]
+  · grind [Algorithm.lts]
+  · case some m1 m2 =>
+      have hd : m1.dest ≠ m2.dest := by grind [DestIn]
+      obtain ⟨h_m1, rfl⟩ := hs1
+      obtain ⟨h_m2, rfl⟩ := hs2
+      simp only [Algorithm.lts, exists_eq_right_right]
+      grind [recvMsg_comm (a := a) hd h_m1 h_m2]
 
 /-- A message that is in-flight stays in-flight as long as it is not received
 (finite execution version). -/

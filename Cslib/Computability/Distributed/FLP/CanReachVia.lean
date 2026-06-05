@@ -9,6 +9,15 @@ module
 public import Cslib.Computability.Distributed.FLP.Algorithm
 
 /-! # Reachability via a subset of processes
+
+This file develops a theory of reachability via a subset of processes, that is, what happens
+when only a subset of processes can receive messages and take steps.  It culminates with two
+"diamond properties" of this more refined reachability relation.
+
+## References
+
+* [Volzer2004] H. Völzer, A constructive proof for FLP.
+  Information Processing Letters 92(2), (October 2004) 83–87.
 -/
 
 @[expose] public section

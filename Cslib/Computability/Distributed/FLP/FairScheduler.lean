@@ -162,16 +162,16 @@ theorem fairDeliverMsg_scheduleMsgs {d : DeliverMsg P M S} {ps : Set P} {q : Sta
   by_cases h_ms : ms = 0
   · have h1 : xl = [none] ∧ t = s := by grind [DeliverMsg.scheduleMsgs]
     simp [ms, eq_zero_iff_forall_notMem] at h_ms
-    split_ands <;> try grind
-    simp only [h1]
-    apply LTS.MTr.single
-    grind [Algorithm.lts]
+    simp only [h1, hs, List.length_cons, List.length_nil, zero_add, Order.lt_one_iff, true_and]
+    split_ands
+    · apply LTS.MTr.single
+      grind [Algorithm.lts]
+    · grind
   · have : q t ∧ a.lts.MTr s xl t ∧ ∀ m, m ∈ ms.toList → some m ∈ xl := by
       grind [DeliverMsg.scheduleMsgs, fairDeliverMsg_foldList hd s ms.toList ∅ (by simp [ms, hs])]
-    split_ands <;> try grind [mem_toList, mem_filter]
-    obtain ⟨m, h_ms⟩ := exists_mem_of_ne_zero h_ms
-    suffices some m ∈ xl by grind
-    grind [mem_toList]
+    obtain ⟨m, _⟩ := exists_mem_of_ne_zero h_ms
+    have : some m ∈ xl := by grind [mem_toList]
+    split_ands <;> grind [mem_toList, mem_filter]
 
 /-- The correctness of `a.fairSegEnds d ps s0` and `a.fairSegActions d ps s0`
 under the assumption `a.FairDeliverMsg d ps q`. -/
