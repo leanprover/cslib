@@ -114,6 +114,15 @@ lemma moveLeft_moveRight (t : BiTape Symbol) : t.moveLeft.moveRight = t := by
 lemma moveRight_moveLeft (t : BiTape Symbol) : t.moveRight.moveLeft = t := by
   simp [moveLeft, moveRight]
 
+/-- Translate an optional direction into a head movement offset, where the positive
+direction is to the right. -/
+@[scoped grind =]
+def optionDirToInt (d : Option Dir) : ℤ :=
+  match d with
+  | none => 0
+  | some .left => -1
+  | some .right => 1
+
 end Move
 
 /--
