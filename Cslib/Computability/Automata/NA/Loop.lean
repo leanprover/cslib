@@ -92,6 +92,7 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
     exact neq.imp (congrArg List.length)
   · grind [loop_run_from_left]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 open List in
 /-- For any finite word in `language na`, there is a corresponding finite run of `na.loop`. -/
 theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
@@ -127,7 +128,8 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
     ∃ ss, na.loop.Run xls.flatten ss ∧ ∀ k, ss (xls.cumLen k) = inl () := by
   let ts := ωSequence.const (inl () : Unit ⊕ State)
   have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
-  have h_pos (k : ℕ) : (xls k).length > 0 := by grind
+  have (k : ℕ) : xls k ≠ [] := by grind
+  have h_pos (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
   obtain ⟨ss, _, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
   use ss
   grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]
@@ -158,7 +160,10 @@ theorem loop_language_eq [Inhabited Symbol] :
     use ss, h_run
     apply frequently_iff_strictMono.mpr
     use xls.cumLen, ?_, by grind
-    grind [cumLen_strictMono, List.eq_nil_iff_length_eq_zero]
+    apply cumLen_strictMono
+    intro k
+    apply List.length_pos_iff.mpr
+    grind
 
 end Buchi
 

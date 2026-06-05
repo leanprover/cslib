@@ -41,6 +41,7 @@ def depth : Term Var → ℕ
 | app t₁ t₂ => max (depth t₁) (depth t₂)
 | abs t => depth t + 1
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 @[elab_as_elim]
 protected lemma ind_on_depth (P : Term Var → Prop) (bvar : ∀ i, P (bvar i)) (fvar : ∀ x, P (fvar x))
     (app : ∀ M N, P M → P N → P (app M N))
@@ -49,7 +50,8 @@ protected lemma ind_on_depth (P : Term Var → Prop) (bvar : ∀ i, P (bvar i)) 
   induction h : M.depth using Nat.strong_induction_on generalizing M with | _ n ih
   induction M with
   | abs M' => apply abs M' <;> grind
-  | _ => grind [sup_le_iff]
+  | bvar | fvar => grind
+  | app => apply app <;> grind only [depth, = max_def]
 
 /-- The depth of the lambda expression doesn't change by opening at i-th bound variable
  for some free variable. -/
@@ -84,6 +86,7 @@ attribute [scoped grind .] LC.fvar LC.app
 inductive Value : Term Var → Prop
 | abs (e : Term Var) : e.abs.LC → e.abs.Value
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- `M` is `LcAt 0` if and only if `M` is locally closed. -/
 theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
   induction M using LambdaCalculus.LocallyNameless.Untyped.Term.ind_on_depth with
@@ -93,7 +96,15 @@ theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
       · intros h2
         rcases h2 with ⟨⟩|⟨L,_,_⟩
         grind [fresh_exists L]
-    | _ => grind [cases LC]
+    | fvar => grind
+    | bvar =>
+      constructor
+      · grind
+      · grind only [cases LC]
+    | app =>
+      constructor
+      · grind
+      · grind only [cases LC, LcAt]
 
 instance [HasFresh Var] (t : Term Var) : Decidable t.LC := by
   rw [← lcAt_iff_LC]

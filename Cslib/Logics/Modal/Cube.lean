@@ -24,63 +24,63 @@ relationships.
 namespace Cslib.Logic.Modal
 
 /-- The modal logic K. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def K World Atom := logic (Set.univ (α := Model World Atom))
 
 /-- The modal logic T. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def T World Atom := logic {m : Model World Atom | Std.Refl m.r}
 
 /-- The modal logic B. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def B World Atom := logic {m : Model World Atom | Std.Symm m.r}
 
 /-- The modal logic 4. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def Four World Atom := logic {m : Model World Atom | IsTrans World m.r}
 
 /-- The modal logic 5. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def Five World Atom := logic {m : Model World Atom | Relation.RightEuclidean m.r}
 
 /-- The modal logic K45. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def K45 World Atom := (K World Atom) ∪ (Four World Atom) ∪ (Five World Atom)
 
 /-- The modal logic D. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def D World Atom := logic {m : Model World Atom | Relation.Serial m.r}
 
 /-- The modal logic D4. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def D4 World Atom := (K World Atom) ∪ (D World Atom) ∪ (Four World Atom)
 
 /-- The modal logic D5. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def D5 World Atom := (K World Atom) ∪ (D World Atom) ∪ (Five World Atom)
 
 /-- The modal logic D45. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def D45 World Atom := (K World Atom) ∪ (D World Atom) ∪ (Four World Atom) ∪ (Five World Atom)
 
 /-- The modal logic DB. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def DB World Atom := (K World Atom) ∪ (D World Atom) ∪ (B World Atom)
 
 /-- The modal logic TB. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def TB World Atom := (K World Atom) ∪ (T World Atom) ∪ (B World Atom)
 
 /-- The modal logic KB5. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def KB5 World Atom := (K World Atom) ∪ (B World Atom) ∪ (Five World Atom)
 
 /-- The modal logic S4. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def S4 World Atom := (K World Atom) ∪ (T World Atom) ∪ (Four World Atom)
 
 /-- The modal logic S5. -/
-@[simp, scoped grind =]
+@[scoped grind =]
 def S5 World Atom := (K World Atom) ∪ (T World Atom) ∪ (Four World Atom) ∪ (Five World Atom)
 
 section Order
@@ -94,22 +94,23 @@ in `k_subset_t`.
 -/
 
 open scoped Proposition
+open Set
 
-theorem k_subset_d : (K World Atom ⊆ D World Atom) := by
-  intro φ; grind
+theorem k_subset_d : K World Atom ⊆ D World Atom := by
+  grind only [subset_def, D, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
 
-theorem k_subset_b : (K World Atom ⊆ B World Atom) := by
-  intro φ; grind
+theorem k_subset_b : K World Atom ⊆ B World Atom := by
+  grind only [subset_def, B, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
 
-theorem k_subset_four : (K World Atom ⊆ Four World Atom) := by
-  intro φ; grind
+theorem k_subset_four : K World Atom ⊆ Four World Atom := by
+  grind only [subset_def, Four, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
 
-theorem k_subset_five : (K World Atom ⊆ Five World Atom) := by
-  intro φ; grind
+theorem k_subset_five : K World Atom ⊆ Five World Atom := by
+  grind only [subset_def, Five, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
 
 open scoped Relation in
-theorem d_subset_t : (D World Atom ⊆ T World Atom) := by
-  intro φ; grind
+theorem d_subset_t : D World Atom ⊆ T World Atom := by
+  grind
 
 theorem k_subset_t : (K World Atom ⊆ T World Atom) := by
   calc

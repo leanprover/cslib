@@ -36,6 +36,7 @@ lemma sn_step (t_st_t' : t ⭢βᶠ t') (sn_t : SN FullBeta t) : SN FullBeta t' 
 lemma sn_steps (t_st_t' : t ↠βᶠ t') (sn_t : SN FullBeta t) : SN FullBeta t' :=
   sn_t.of_rel_reflTransGen t_st_t'
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Free variables are strongly normalizing. -/
 lemma sn_fvar {x : Var} : SN FullBeta (fvar x) := by
   rw [SN_iff_SN_of_rel]
@@ -92,10 +93,11 @@ lemma neutral_step (Hneut : Neutral t) (Hstep : t ⭢βᶠ t') : Neutral t' := b
 lemma neutral_steps (Hneut : Neutral t) (Hsteps : t ↠βᶠ t') : Neutral t' := by
   induction Hsteps <;> grind [neutral_step]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Neutral terms are strongly normalizing. -/
 lemma sn_neutral (Hneut : Neutral t) : SN FullBeta t := by
   induction Hneut with
-  | app => grind [→ neutral_steps, sn_app]
+  | app => grind only [→ neutral_steps, sn_app]
   | _ =>
     rw [SN_iff_SN_of_rel]
     grind only [cases Xi]
