@@ -126,13 +126,13 @@ declare_term_config_elab elabFreeUnionConfig FreeUnionConfig
   #check free_union [f, g] ℕ
 
   info: ∅ ∪ xs : Finset ℕ
-  #check free_union (singleton := false) ℕ
+  #check free_union -singleton ℕ
 
   -- info: ∅ ∪ {x} : Finset ℕ
-  #check free_union (finset := false) ℕ
+  #check free_union -finset ℕ
 
   -- info: ∅ : Finset ℕ
-  #check free_union (singleton := false) (finset := false) ℕ
+  #check free_union -singleton -finset ℕ
   ```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
