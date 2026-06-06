@@ -44,7 +44,7 @@ structure FunctionalQueue (α : Type u) where
   back : List α
 
 /-- Well-formedness: if front is empty, back must be empty too. -/
-def invariant {α : Type u} (q : Raw.FunctionalQueue α) : Prop :=
+def Invariant {α : Type u} (q : Raw.FunctionalQueue α) : Prop :=
   q.front = [] → q.back = []
 
 /-- The logical contents of the queue: `front ++ back.reverse`. -/
@@ -71,9 +71,9 @@ theorem rebalanceInvert {α : Type u} (q : FunctionalQueue α) :
   split at h <;> simp_all
 
 theorem rebalanceInvariant {α : Type u} {q : FunctionalQueue α} :
-    invariant (rebalance q).ret := by
+    Invariant (rebalance q).ret := by
   obtain ⟨f, b⟩ := q
-  simp [rebalance, invariant]
+  simp [rebalance, Invariant]
   split <;> grind
 
 @[simp] theorem rebalanceIdempotent {α : Type u} (q : FunctionalQueue α) :
@@ -94,10 +94,10 @@ def push {α : Type u} (x : α) (q : FunctionalQueue α)
   TimeM.tick 1
   rebalance ⟨ q.front, x :: q.back ⟩
 
-theorem pushInvariant {α : Type u} (x : α) (q : FunctionalQueue α)
-    : invariant q → invariant (push x q).ret := by
+theorem Invariant.push {α : Type u} (x : α) (q : FunctionalQueue α)
+    : Invariant q → Invariant (push x q).ret := by
   intro h
-  rw [push]
+  rw [Raw.push]
   apply rebalanceInvariant
 
 theorem pushToList {α : Type u} (x : α) (q : Raw.FunctionalQueue α)
@@ -116,14 +116,14 @@ def pop {α : Type u} (q : Raw.FunctionalQueue α)
     let q2 ← rebalance ⟨ tl, q.back ⟩
     pure (some (x, q2))
 
-theorem popInvariant {α : Type u} (x : α) (q q2 : FunctionalQueue α)
-    : invariant q →
+theorem Invariant.pop {α : Type u} (x : α) (q q2 : FunctionalQueue α)
+    : Invariant q →
       (pop q).ret = some (x, q2) →
-      invariant q2 := by
+      Invariant q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
-  simp [invariant] at hq
-  unfold pop at hpop
+  simp [Invariant] at hq
+  unfold Raw.pop at hpop
   cases f with
   | nil => simp at hpop
   | cons y tl =>
@@ -131,19 +131,19 @@ theorem popInvariant {α : Type u} (x : α) (q q2 : FunctionalQueue α)
     obtain ⟨rfl, rfl⟩ := hpop
     exact rebalanceInvariant
 
-@[simp] theorem emptyInvariant {α : Type u} : invariant (@Raw.empty α) := by
-  simp [invariant, Raw.empty]
+@[simp] theorem Invariant.empty {α : Type u} : Invariant (@Raw.empty α) := by
+  simp [Invariant, Raw.empty]
 
 @[simp] theorem emptyToList {α : Type u} : toList (@Raw.empty α) = [] := by
   simp [toList, Raw.empty]
 
 theorem popToList {α : Type u} {x : α} {q q2 : Raw.FunctionalQueue α}
-    : invariant q →
+    : Invariant q →
       (pop q).ret = some (x, q2) →
       toList q = x :: toList q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
-  simp [invariant] at hq
+  simp [Invariant] at hq
   unfold pop at hpop
   cases f with
   | nil => simp at hpop
@@ -216,14 +216,14 @@ end Complexity
 @[ext]
 structure FunctionalQueue (α : Type u) where
   raw : Raw.FunctionalQueue α
-  inv : Raw.invariant raw
+  inv : Raw.Invariant raw
 
-def empty {α : Type u} : FunctionalQueue α := ⟨ @Raw.empty α, Raw.emptyInvariant ⟩
+def empty {α : Type u} : FunctionalQueue α := ⟨ @Raw.empty α, Raw.Invariant.empty ⟩
 
 def push {α : Type u} (x : α) (q : FunctionalQueue α)
     : TimeM ℕ (FunctionalQueue α) :=
   let r := Raw.push x q.raw
-  ⟨ ⟨ r.ret, Raw.pushInvariant x q.raw q.inv ⟩, r.time ⟩
+  ⟨ ⟨ r.ret, Raw.Invariant.push x q.raw q.inv ⟩, r.time ⟩
 
 def pop {α : Type u} (q : FunctionalQueue α)
     : TimeM ℕ (Option (α × FunctionalQueue α)) :=
@@ -231,7 +231,7 @@ def pop {α : Type u} (q : FunctionalQueue α)
   match h : r.ret with
   | none => ⟨ none, r.time ⟩
   | some (x, q2) =>
-    ⟨ some (x, ⟨ q2, Raw.popInvariant x q.raw q2 q.inv h ⟩), r.time ⟩
+    ⟨ some (x, ⟨ q2, Raw.Invariant.pop x q.raw q2 q.inv h ⟩), r.time ⟩
 
 /-- project to a list view, an ordered sequence of elements -/
 def toList {α : Type u} (q : FunctionalQueue α) : List α := Raw.toList q.raw
