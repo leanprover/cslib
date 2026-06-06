@@ -26,9 +26,13 @@ This complements `TimeM` in the cases where amortized costs are necessary.
 namespace Cslib.Algorithms.Lean.Amortized
 
 /-- Physicist method: a potential (lower bound on savings) defined on a
-    data structure -/
-class Potential φ α [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ] where
-  /-- [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
+    data structure.
+    [Okasaki, *Purely Functional Data Structures*, 1996][okasaki1996] -/
+class Potential (φ α : Type*) [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ] where
+  /-- The potential, a representation of savings accumulated (just like
+      potential energy), to be released later. In some functional data
+      structures, amortized costs allow some operations to be more expensive
+      by "using" potential previously accumulated in cheaper operations. -/
   potential : α → φ
 
 class Op α o where
