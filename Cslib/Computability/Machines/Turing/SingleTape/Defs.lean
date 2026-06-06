@@ -15,7 +15,7 @@ public import Cslib.Foundations.Data.BiTape
 namespace Cslib.Computability.Turing.SingleTape
 
 /-- The transition labels used by a single-tape Turing Machine. -/
-structure TrLabel (State Symbol : Type*) where
+structure TrLabel (Symbol : Type*) where
   /-- Symbol to read from the tape. -/
   read : Option Symbol
   /-- Symbol to write on the tape. -/

@@ -29,6 +29,10 @@ namespace LTS
 def τSTr [HasTau Label] (lts : LTS State Label) : State → State → Prop :=
   Relation.ReflTransGen (Tr.toRelation lts HasTau.τ)
 
+@[scoped grind .]
+theorem τSTr.refl [HasTau Label] {lts : LTS State Label} : lts.τSTr s s :=
+  Relation.ReflTransGen.refl
+
 /-- Saturated transition relation. -/
 inductive STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
   | refl : lts.STr s HasTau.τ s
