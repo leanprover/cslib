@@ -48,8 +48,8 @@ def invariant {α : Type u} (q : Raw.FunctionalQueue α) : Prop :=
   q.front = [] → q.back = []
 
 /-- The logical contents of the queue: `front ++ back.reverse`. -/
-def ghostList {α : Type u} (q : FunctionalQueue α) : List α :=
-  List.append q.front q.back.reverse
+def toList {α : Type u} (q : FunctionalQueue α) : List α :=
+  q.front ++ q.back.reverse
 
 /-- The empty queue. -/
 def empty {α : Type u} : FunctionalQueue α := ⟨ [], [] ⟩
@@ -83,9 +83,9 @@ theorem rebalanceInvariant {α : Type u} {q : FunctionalQueue α} :
   split <;> grind
 
 @[simp] theorem rebalancePreserveGhost {α : Type u} (q : FunctionalQueue α) :
-    ghostList (rebalance q).ret = ghostList q := by
+    toList (rebalance q).ret = toList q := by
   obtain ⟨f, b⟩ := q
-  simp [rebalance, ghostList]
+  simp [rebalance, toList]
   split <;> grind [List.reverse_append]
 
 /-- Enqueue an element. -/
@@ -100,12 +100,12 @@ theorem pushInvariant {α : Type u} (x : α) (q : FunctionalQueue α)
   rw [push]
   apply rebalanceInvariant
 
-theorem pushGhost {α : Type u} (x : α) (q : Raw.FunctionalQueue α)
-    : ghostList (push x q).ret = ghostList q ++ [x] := by
+theorem pushToList {α : Type u} (x : α) (q : Raw.FunctionalQueue α)
+    : toList (push x q).ret = toList q ++ [x] := by
   rw [push]
   simp only [TimeM.ret_bind, rebalancePreserveGhost]
-  rw [ghostList]
-  simp [ghostList, List.append_assoc]
+  rw [toList]
+  simp [toList, List.append_assoc]
 
 /-- Dequeue: returns `some (head, remaining)` or `none` if empty. -/
 def pop {α : Type u} (q : Raw.FunctionalQueue α)
@@ -134,13 +134,13 @@ theorem popInvariant {α : Type u} (x : α) (q q2 : FunctionalQueue α)
 @[simp] theorem emptyInvariant {α : Type u} : invariant (@Raw.empty α) := by
   simp [invariant, Raw.empty]
 
-@[simp] theorem emptyGhost {α : Type u} : ghostList (@Raw.empty α) = [] := by
-  simp [ghostList, Raw.empty]
+@[simp] theorem emptyToList {α : Type u} : toList (@Raw.empty α) = [] := by
+  simp [toList, Raw.empty]
 
-theorem popGhost {α : Type u} {x : α} {q q2 : Raw.FunctionalQueue α}
+theorem popToList {α : Type u} {x : α} {q q2 : Raw.FunctionalQueue α}
     : invariant q →
       (pop q).ret = some (x, q2) →
-      ghostList q = x :: ghostList q2 := by
+      toList q = x :: toList q2 := by
   intro hq hpop
   obtain ⟨f, b⟩ := q
   simp [invariant] at hq
@@ -151,7 +151,7 @@ theorem popGhost {α : Type u} {x : α} {q q2 : Raw.FunctionalQueue α}
     simp only at hpop
     obtain ⟨rfl, rfl⟩ := hpop
     simp only [rebalancePreserveGhost]
-    simp [ghostList]
+    simp [toList]
 
 end Raw
 
@@ -234,22 +234,22 @@ def pop {α : Type u} (q : FunctionalQueue α)
     ⟨ some (x, ⟨ q2, Raw.popInvariant x q.raw q2 q.inv h ⟩), r.time ⟩
 
 /-- project to a list view, an ordered sequence of elements -/
-def ghostList {α : Type u} (q : FunctionalQueue α) : List α := Raw.ghostList q.raw
+def toList {α : Type u} (q : FunctionalQueue α) : List α := Raw.toList q.raw
 
 theorem pushGhost {α : Type u} (x : α) (q : FunctionalQueue α) :
-    ghostList (push x q).ret = ghostList q ++ [x] :=
-  Raw.pushGhost x q.raw
+    toList (push x q).ret = toList q ++ [x] :=
+  Raw.pushToList x q.raw
 
 theorem popGhost {α : Type u} {x : α} {q2 : FunctionalQueue α} :
     ∀ {q : FunctionalQueue α},
-    (pop q).ret = some (x, q2) → ghostList q = x :: ghostList q2 := by
+    (pop q).ret = some (x, q2) → toList q = x :: toList q2 := by
   intro q h
-  simp only [pop, ghostList] at h ⊢
+  simp only [pop, toList] at h ⊢
   split at h
   · simp only [reduceCtorEq] at h
   · rename_i x2 q2' heq
     obtain ⟨h1, h2⟩ := h
-    exact @Raw.popGhost α x q.raw q2' q.inv heq
+    exact @Raw.popToList α x q.raw q2' q.inv heq
 
 end
 
