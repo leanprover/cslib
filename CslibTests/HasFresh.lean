@@ -1,7 +1,5 @@
 import Cslib.Foundations.Data.HasFresh
 
-set_option linter.style.header false
-
 namespace CslibTests
 
 open Cslib
