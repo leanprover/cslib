@@ -145,8 +145,7 @@ theorem dfa_num_state_ge
 of the Nerode congruence on `l`. -/
 theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State] :
     Nat.card State ≥ Nat.card (language M).NerodeQuotient := by
-  let ws : Set (List α) := Set.range
-    (Quotient.out : Quotient (language M).NerodeCongruence.eq → List α)
+  let ws : Set (List α) := Set.range (Quotient.out : NerodeQuotient (language M) → List α)
   have : Finite (language M).NerodeQuotient :=
       IsRegular.iff_finite_nerodeQuotient.mp (IsRegular.iff_dfa.mpr ⟨State, inferInstance, M, rfl⟩)
   have : Finite ws := Set.finite_range _ |>.to_subtype
