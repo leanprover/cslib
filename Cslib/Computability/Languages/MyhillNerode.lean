@@ -7,7 +7,7 @@ Authors: Akhilesh Balaji, Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Languages.RegularLanguage
-public import Mathlib.Data.Finite.Card
+public import Mathlib.SetTheory.Cardinal.NatCard
 
 /-! # Myhill-Nerode Theorem
 
