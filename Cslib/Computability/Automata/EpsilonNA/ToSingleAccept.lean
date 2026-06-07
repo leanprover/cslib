@@ -30,9 +30,17 @@ def toSingleAccept (a : εNA.FinAcc State Symbol) : εNA.FinAcc (Option State) S
 
 open scoped LTS LTS.MTr LTS.STr LTS.SMTr
 
-theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} {s s' : State} {x : Symbol} :
-    a.toSingleAccept.Tr (some s) (some x) (some s') ↔ a.Tr s x s' := by
+theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} :
+    a.toSingleAccept.Tr (some s) x (some s') ↔ a.Tr s x s' := by
   simp [toSingleAccept]
+
+theorem toSingleAccept_tr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.Tr os x (some s')) : os.isSome := by
+  cases os with
+  | none => simp only [toSingleAccept] at h
+  | some _ => simp
+
+
 
 open Acceptor in
 theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
