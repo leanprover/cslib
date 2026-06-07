@@ -65,6 +65,14 @@ theorem toSingleAccept_mTr_mTr {a : εNA.FinAcc State Symbol} :
       case stepL sb htr hmtr =>
         apply LTS.MTr.stepL (s2 := some sb) <;> grind
 
+@[scoped grind →]
+theorem toSingleAccept_τSTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
+    (hos' : os'.isSome) (h : a.toSingleAccept.τSTr os os') : os.isSome := by
+  induction h using Relation.ReflTransGen.head_induction_on
+  case refl => exact hos'
+  case head _ _ h₁ h₂ ih =>
+    exact toSingleAccept_tr_antiDerivative_isSome h₁
+
 @[scoped grind =]
 theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol} :
     a.toSingleAccept.τSTr (some s) (some s') ↔ a.τSTr s s' := by
