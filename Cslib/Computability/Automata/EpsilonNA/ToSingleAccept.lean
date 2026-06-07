@@ -30,6 +30,12 @@ def toSingleAccept (a : εNA.FinAcc State Symbol) : εNA.FinAcc (Option State) S
 
 open scoped LTS LTS.MTr LTS.STr LTS.SMTr
 
+theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} {s s' : State} {x : Symbol} :
+    a.toSingleAccept.Tr (some s) (some x) (some s') ↔ a.Tr s x s' := by
+  simp [toSingleAccept]
+
 open Acceptor in
 theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
     language a.toSingleAccept = language a := by sorry
+
+end Cslib.Automata.εNA.FinAcc
