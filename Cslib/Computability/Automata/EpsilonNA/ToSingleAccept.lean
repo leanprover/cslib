@@ -73,10 +73,35 @@ theorem toSingleAccept_τSTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol
   case head _ _ h₁ h₂ ih =>
     exact toSingleAccept_tr_antiDerivative_isSome h₁
 
-@[scoped grind =]
-theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol} :
-    a.toSingleAccept.τSTr (some s) (some s') ↔ a.τSTr s s' := by
-  sorry
+@[scoped grind .]
+theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
+    (hos' : os' = some s') : a.toSingleAccept.τSTr (some s) os' ↔ a.τSTr s s' := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    induction h generalizing s'
+    case refl =>
+      cases hos'
+      constructor
+    case tail osb os' hτstr htr ih =>
+      have hosb := toSingleAccept_τSTr_antiDerivative_isSome
+        (os := osb) (os' := os') (by grind) (Relation.ReflTransGen.single htr)
+      apply Option.isSome_iff_exists.mp at hosb
+      rcases hosb with ⟨sb, hosb⟩
+      apply Relation.ReflTransGen.trans (b := sb) (ih hosb)
+      apply Relation.ReflTransGen.single
+      rw [hosb, hos'] at htr
+      apply htr
+  case mpr =>
+    induction h generalizing os'
+    case refl =>
+      cases hos'
+      constructor
+    case tail sb s' hτstr htr ih =>
+      specialize ih (os' := some sb) rfl
+      apply Relation.ReflTransGen.trans (b := some sb) ih
+      apply Relation.ReflTransGen.single
+      rw [hos']
+      apply toSingleAccept_tr_tr.mpr htr
 
 open Acceptor in
 theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
