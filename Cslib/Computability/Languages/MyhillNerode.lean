@@ -58,14 +58,14 @@ def NerodeCongruence (l : Language α) : RightCongruence α where
   right_cov.elim := by grind [Covariant]
 
 /-- The quotient type of a Nerode congruence. -/
-abbrev NerodeQuotient (l : Language α) := Quotient (l.NerodeCongruence).eq
+abbrev NerodeQuotient (l : Language α) := Quotient l.NerodeCongruence.eq
 
 /-- The Nerode congruence of a language `l` gives rise to a DFA where each state corresponds to an
 equivalence class of the language under the Nerode congruence. Note that this is simply the DFA
 given rise to by the underlying right congruence with only the accept states specified here as
 `{⟦ x ⟧ | x ∈ l}`. -/
 def NerodeCongruenceDA (l : Language α) : DA.FinAcc (l.NerodeQuotient) α :=
-  FinAcc.mk (l.NerodeCongruence).toDA ((⟦·⟧) '' l)
+  FinAcc.mk l.NerodeCongruence.toDA ((⟦·⟧) '' l)
 
 variable {l : Language α}
 
@@ -103,7 +103,6 @@ theorem IsRegular.finite_nerodeQuotient (h : l.IsRegular) :
   | h x =>
     use M.mtr M.start x
     apply Quotient.sound
-    change ((language M).NerodeCongruence).r _ x
     simp [da_nerodeCongruence_iff,
       @Classical.epsilon_spec _ (fun y ↦ M.mtr M.start y = M.mtr M.start x) ⟨x, rfl⟩]
 
@@ -118,8 +117,7 @@ theorem IsRegular.iff_finite_nerodeQuotient {l : Language α} :
     exact IsRegular.finite_nerodeQuotient h
   · intro h
     apply IsRegular.iff_dfa.mpr
-    use l.NerodeQuotient, h, l.NerodeCongruenceDA
-    exact nerodeCongruenceDA_language_eq l
+    use l.NerodeQuotient, h, l.NerodeCongruenceDA, nerodeCongruenceDA_language_eq l
 
 /-- Given a set of strings all distinguishable by `l` (i.e., not related to each other by the Nerode
 congruence on `l`), the number of states in the DFA accepting `l` is at least the number of strings
@@ -148,7 +146,7 @@ of the Nerode congruence on `l`. -/
 theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State] :
     Nat.card State ≥ Nat.card (language M).NerodeQuotient := by
   let ws : Set (List α) := Set.range
-    (Quotient.out : Quotient ((language M).NerodeCongruence).eq → List α)
+    (Quotient.out : Quotient (language M).NerodeCongruence.eq → List α)
   have : Finite (language M).NerodeQuotient :=
       IsRegular.iff_finite_nerodeQuotient.mp (IsRegular.iff_dfa.mpr ⟨State, inferInstance, M, rfl⟩)
   have : Finite ws := Set.finite_range _ |>.to_subtype
@@ -170,7 +168,7 @@ open scoped RightCongruence
 /-- The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
 of the Nerode congruence on `l`. -/
 def IsMinimalAutomaton {State : Type*} (M : FinAcc State α) (l : Language α) :=
-  language M = l ∧ Nat.card State = Nat.card (l.NerodeQuotient)
+  language M = l ∧ Nat.card State = Nat.card l.NerodeQuotient
 
 /-- Given a DFA `M`, two strings are related iff they reach the same state under when run through
 `M`. The Nerode congruence is the state congruence with respect to the minimal DFA accepting `l`. -/
@@ -188,7 +186,7 @@ variable {M : FinAcc State α}
 theorem stateCongruence_le_nerodeCongruence {x y : List α}
     (h : (StateCongruence M).r x y) : ((language M).NerodeCongruence).r x y := by
   intro z
-  constructor <;> grind [h z, language, Acceptor.Accepts, FLTS.mtr_concat_eq]
+  grind [h z, language, Acceptor.Accepts, FLTS.mtr_concat_eq]
 
 -- Myhill-Nerode (3)
 
@@ -200,26 +198,20 @@ theorem unique_minimal [Finite State]
   have := Language.IsRegular.iff_finite_nerodeQuotient.mp hr
   let φ : State → Quotient ((language M).NerodeCongruence).eq :=
     fun s ↦ ⟦ Classical.epsilon (fun x : List α ↦ M.mtr M.start x = s) ⟧
-  have hφ : ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := fun x ↦ by
+  have hφ (x : List α) : φ (M.mtr M.start x) = ⟦ x ⟧ := by
     apply Quotient.sound
     apply stateCongruence_le_nerodeCongruence
     intro z
     have := @Classical.epsilon_spec _ (fun y : List α ↦ M.mtr M.start y = M.mtr M.start x) ⟨x, rfl⟩
     grind [FLTS.mtr]
-  have hφ_surj : Function.Surjective φ := fun q ↦
-    q.inductionOn (fun x ↦ ⟨M.mtr M.start x, hφ x⟩)
+  have hφ_surj : Function.Surjective φ := fun q ↦ q.inductionOn (fun x ↦ ⟨M.mtr M.start x, hφ x⟩)
   have hφ_inj : Function.Injective φ := by
     have eqT := Classical.inhabited_of_nonempty <| Finite.card_eq.mp hc
     apply hφ_surj.injective_of_finite eqT.default
-  let φ_equiv := Equiv.ofBijective φ ⟨hφ_inj, hφ_surj⟩
-  use φ_equiv, hφ
+  use Equiv.ofBijective φ ⟨hφ_inj, hφ_surj⟩, hφ
   intro ψ hψ
   ext s
-  obtain ⟨_, rfl⟩ : ∃ x, M.mtr M.start x = s := by
-    induction h : φ s using Quotient.inductionOn with
-    | h x =>
-      use x
-      exact hφ_inj ((hφ x).trans h.symm)
-  grind
+  induction h : φ s using Quotient.inductionOn with
+  | h x => grind [hφ_inj ((hφ x).trans h.symm)]
 
 end Cslib.Automata.DA.FinAcc
