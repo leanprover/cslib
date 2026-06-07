@@ -9,21 +9,21 @@ module
 public import Cslib.Computability.Distributed.FLP.Consensus
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-/-! # Distributed consensus in the absence of faults
+/-! # Asynchronous distributed consensus in the absence of faults
 
-This file presents a simple distributed consensus algorithm and proves that it does achieve
-consensus if there is no fault.  Assume that there are `n` processes numbered 0, 1, ..., `n - 1`.
+This file presents an asynchronous distributed consensus algorithm and proves that it does achieve
+consensus when there is no fault.  Assume that there are `n` processes numbered 0, 1, ..., `n - 1`.
 The algorithm works as follows:
 (1) Process 0 receives its input value and sends that value to all processes (including itself).
-    All other processes ignore their inputs.
+    All other processes ignore their inputs upon receiving them.
 (2) Upon receiving the value sent by process 0 in the previpus step, every process (including
     process 0) decides on that value.
 Clearly, if there is no fault and all messages are eventually delivered, every process will
 eventually decide on the same value, namely, the input value at process 0.
 
-The contents of this file are not needed for proving the impossibility result, but do show
+The contents of this file are not needed for proving the FLP impossibility result, but do show
 that the notion of an `Algorithm` is not vacuous, in the sense that it allows a working
-consensus algorithm when there is no fault.
+asynchronous consensus algorithm when there is no fault.
 -/
 
 @[expose] public section
@@ -41,7 +41,7 @@ abbrev S := Unit
 
 variable {n : ℕ} (npos : 0 < n)
 
-/-- `alg` is the distributed consensus algorithm described in the main comment above. -/
+/-- `alg` is the asynchronous distributed consensus algorithm described above. -/
 def alg : Algorithm (Fin n) M S where
   init _ := ()
   next _ _ := ()
@@ -158,7 +158,7 @@ theorem right_leadsTo_out (inp : Fin n → Bool)
   have htr : (alg npos).lts.Tr (ss j) (some m) (ss (j + 1)) := by grind [LTS.OmegaExecution]
   grind [inv_tr_right npos inp hj htr]
 
-/-- `alg` is a correct consensus algorithm when there is no fault. -/
+/-- `alg` is a correct asynchronous distributed consensus algorithm when there is no fault. -/
 theorem consensus_zero : (alg npos).Consensus 0 := by
   use safeConsensus npos
   intro inp ss xs ha p
