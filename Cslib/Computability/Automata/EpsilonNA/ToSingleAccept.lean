@@ -50,6 +50,26 @@ theorem toSingleAccept_mTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
   case stepL os x osb xs os' htr hmtr ih =>
     grind only [toSingleAccept_tr_antiDerivative_isSome htr]
 
+@[scoped grind =]
+theorem toSingleAccept_mTr_mTr {a : εNA.FinAcc State Symbol} :
+    a.toSingleAccept.MTr (some s) xs (some s') ↔ a.MTr s xs s' := by
+  induction xs generalizing s
+  case nil => grind
+  case cons x xs ih =>
+    apply Iff.intro <;> intro h
+    case mp =>
+      cases h with
+      | stepL => grind
+    case mpr =>
+      cases h
+      case stepL sb htr hmtr =>
+        apply LTS.MTr.stepL (s2 := some sb) <;> grind
+
+@[scoped grind =]
+theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol} :
+    a.toSingleAccept.τSTr (some s) (some s') ↔ a.τSTr s s' := by
+  sorry
+
 open Acceptor in
 theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
     language a.toSingleAccept = language a := by sorry
