@@ -4,10 +4,29 @@
     {
       "project_number": 19,
       "project_name": "explore_modular_logic_factoring",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-08T23:11:41Z",
-      "last_updated": "2026-06-08T23:11:41Z"
+      "last_updated": "2026-06-08T23:16:43Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/019_explore_modular_logic_factoring/reports/01_propositional-findings.md",
+          "type": "research",
+          "summary": "Propositional factoring: ~2,900 lines of BimodalLogic components that are purely propositional"
+        },
+        {
+          "path": "specs/019_explore_modular_logic_factoring/reports/01_modal-findings.md",
+          "type": "research",
+          "summary": "Modal factoring: ~1,200 lines of BimodalLogic components that are purely modal"
+        },
+        {
+          "path": "specs/019_explore_modular_logic_factoring/reports/01_temporal-findings.md",
+          "type": "research",
+          "summary": "Temporal factoring: ~790 lines purely temporal, plus gap analysis for standalone temporal logic"
+        }
+      ],
+      "researched": "2026-06-08T23:16:43Z"
     },
     {
       "project_number": 12,
