@@ -1,7 +1,7 @@
 # Implementation Plan: Task #1
 
 - **Task**: 1 - Integrate BimodalLogic results into cslib
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 18 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/001_integrate_bimodal_logic_results/reports/01_team-research.md
@@ -74,18 +74,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Create BimodalLogic Preparation Tasks [NOT STARTED]
+### Phase 1: Create BimodalLogic Preparation Tasks [COMPLETED]
 
 **Goal**: Create tasks in the BimodalLogic repo (`/home/benjamin/Projects/BimodalLogic/`) for toolchain upgrade and source preparation before any porting can begin.
 
 **Tasks**:
-- [ ] Create task 291 in BimodalLogic: "Upgrade Lean toolchain from v4.27 to v4.31 and update Mathlib" -- this is the critical prerequisite; all porting work depends on BimodalLogic building on the same toolchain as cslib
-- [ ] Create task 292 in BimodalLogic: "Add copyright headers (Apache 2.0) to all source files under Theories/Bimodal/" -- cslib requires headers on all files; ~160 files need headers added
-- [ ] Create task 293 in BimodalLogic: "Audit and fix Mathlib linter compliance across sorry-free modules" -- run Mathlib-style linters, fix naming conventions, add missing docstrings
-- [ ] Create task 294 in BimodalLogic: "Eliminate sorry in Theorems/ModalS5.lean and Theorems/Perpetuity/Principles.lean" -- these files are needed for PR 4 (Derived Theorems) but have 1-3 sorry each; small enough to resolve
-- [ ] Update BimodalLogic specs/state.json with new tasks (project numbers 291-294)
-- [ ] Update BimodalLogic specs/TODO.md with new task entries
-- [ ] Set dependencies: 292, 293, 294 all depend on 291 (toolchain must upgrade first)
+- [x] Create task 291 in BimodalLogic: "Upgrade Lean toolchain from v4.27 to v4.31 and update Mathlib" -- this is the critical prerequisite; all porting work depends on BimodalLogic building on the same toolchain as cslib *(completed)*
+- [x] Create task 292 in BimodalLogic: "Add copyright headers (Apache 2.0) to all source files under Theories/Bimodal/" -- cslib requires headers on all files; ~160 files need headers added *(completed)*
+- [x] Create task 293 in BimodalLogic: "Audit and fix Mathlib linter compliance across sorry-free modules" -- run Mathlib-style linters, fix naming conventions, add missing docstrings *(completed)*
+- [x] Create task 294 in BimodalLogic: "Eliminate sorry in Theorems/ModalS5.lean and Theorems/Perpetuity/Principles.lean" -- these files are needed for PR 4 (Derived Theorems) but have 1-3 sorry each; small enough to resolve *(completed)*
+- [x] Update BimodalLogic specs/state.json with new tasks (project numbers 291-294) *(completed)*
+- [x] Update BimodalLogic specs/TODO.md with new task entries *(completed)*
+- [x] Set dependencies: 292, 293, 294 all depend on 291 (toolchain must upgrade first) *(completed)*
 
 **Timing**: 1.5 hours
 
@@ -102,19 +102,19 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Create cslib Porting Tasks (PRs 1-5) [NOT STARTED]
+### Phase 2: Create cslib Porting Tasks (PRs 1-5) [COMPLETED]
 
 **Goal**: Create tasks in cslib (this repo) for the first 5 PRs, covering Syntax, Semantics, ProofSystem, Derived Theorems, and Frame Conditions + Soundness. These are the foundational PRs.
 
 **Tasks**:
-- [ ] Create task 2 in cslib: "Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Subformulas" -- ~2,500 lines, 5 files, Mathlib-only dependencies, target `Cslib/Logics/Temporal/Syntax/`
-- [ ] Create task 3 in cslib: "Port Task Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, Truth, Validity" -- ~2,200 lines, 5 files, depends on task 2, target `Cslib/Logics/Temporal/Semantics/`
-- [ ] Create task 4 in cslib: "Port Proof System (PR 3): Axioms, Derivation, Derivable, Substitution, LinearityDerivedFacts" -- ~2,000 lines, 5 files, depends on task 2, target `Cslib/Logics/Temporal/ProofSystem/`
-- [ ] Create task 5 in cslib: "Port Derived Theorems (PR 4): Combinators, Propositional/*, ContextualProofs, GeneralizedNecessitation" -- ~3,000 lines, 6+ files, depends on task 4, target `Cslib/Logics/Temporal/Theorems/`
-- [ ] Create task 6 in cslib: "Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, Soundness, SoundnessLemmas, DenseSoundness, DiscreteSoundness" -- ~3,500 lines, 10+ files, depends on tasks 3 and 4, target `Cslib/Logics/Temporal/FrameConditions/` and `Cslib/Logics/Temporal/Metalogic/Soundness/`
-- [ ] Update cslib specs/state.json with tasks 2-6
-- [ ] Update cslib specs/TODO.md with task descriptions including dependency information
-- [ ] Each task description should include: source files list, target path, line count estimate, PR title, porting checklist (namespace rename, module declarations, import Cslib.Init, copyright headers, lake shake, linter compliance)
+- [x] Create task 2 in cslib: "Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Subformulas" -- ~2,500 lines, 5 files, Mathlib-only dependencies, target `Cslib/Logics/Temporal/Syntax/` *(completed)*
+- [x] Create task 3 in cslib: "Port Task Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, Truth, Validity" -- ~2,200 lines, 5 files, depends on task 2, target `Cslib/Logics/Temporal/Semantics/` *(completed)*
+- [x] Create task 4 in cslib: "Port Proof System (PR 3): Axioms, Derivation, Derivable, Substitution, LinearityDerivedFacts" -- ~2,000 lines, 5 files, depends on task 2, target `Cslib/Logics/Temporal/ProofSystem/` *(completed)*
+- [x] Create task 5 in cslib: "Port Derived Theorems (PR 4): Combinators, Propositional/*, ContextualProofs, GeneralizedNecessitation" -- ~3,000 lines, 6+ files, depends on task 4, target `Cslib/Logics/Temporal/Theorems/` *(completed)*
+- [x] Create task 6 in cslib: "Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, Soundness, SoundnessLemmas, DenseSoundness, DiscreteSoundness" -- ~3,500 lines, 10+ files, depends on tasks 3 and 4, target `Cslib/Logics/Temporal/FrameConditions/` and `Cslib/Logics/Temporal/Metalogic/Soundness/` *(completed)*
+- [x] Update cslib specs/state.json with tasks 2-6 *(completed)*
+- [x] Update cslib specs/TODO.md with task descriptions including dependency information *(completed)*
+- [x] Each task description should include: source files list, target path, line count estimate, PR title, porting checklist (namespace rename, module declarations, import Cslib.Init, copyright headers, lake shake, linter compliance) *(completed)*
 
 **Timing**: 2 hours
 
