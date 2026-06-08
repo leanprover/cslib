@@ -32,7 +32,7 @@
     },
     {
       "project_number": 12,
-      "project_name": "coordinate_cslib_pr_submission_temporal_logic",
+      "project_name": "coordinate_cslib_pr_submission_bimodal_logic",
       "status": "not_started",
       "task_type": "general",
       "created": "2026-06-08T00:45:00Z",
@@ -42,11 +42,11 @@
     },
     {
       "project_number": 13,
-      "project_name": "proof_of_concept_port_syntax_module",
-      "status": "not_started",
+      "project_name": "superseded_by_task_14",
+      "status": "abandoned",
       "task_type": "lean4",
       "created": "2026-06-08T00:45:00Z",
-      "last_updated": "2026-06-08T00:45:00Z",
+      "last_updated": "2026-06-08T20:30:00Z",
       "dependencies": [
         "BimodalLogic:291"
       ],
@@ -54,7 +54,7 @@
     },
     {
       "project_number": 7,
-      "project_name": "port_deduction_mcs_theory_pr6",
+      "project_name": "port_deduction_mcs_theory_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
@@ -67,7 +67,7 @@
     },
     {
       "project_number": 8,
-      "project_name": "port_strong_completeness_pr7",
+      "project_name": "port_completeness_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
@@ -80,7 +80,7 @@
     },
     {
       "project_number": 9,
-      "project_name": "port_decidability_tableau_pr8",
+      "project_name": "port_decidability_tableau_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
@@ -93,7 +93,7 @@
     },
     {
       "project_number": 10,
-      "project_name": "port_separation_theorem_pr9",
+      "project_name": "port_separation_theorem_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
@@ -107,7 +107,7 @@
     },
     {
       "project_number": 11,
-      "project_name": "port_conservative_extension_pr10",
+      "project_name": "port_conservative_extension_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
@@ -119,7 +119,7 @@
     },
     {
       "project_number": 2,
-      "project_name": "port_temporal_syntax_pr1",
+      "project_name": "port_bimodal_syntax_infrastructure",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
@@ -131,7 +131,7 @@
     },
     {
       "project_number": 3,
-      "project_name": "port_frame_semantics_pr2",
+      "project_name": "port_task_frame_semantics_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
@@ -144,7 +144,7 @@
     },
     {
       "project_number": 4,
-      "project_name": "port_proof_system_pr3",
+      "project_name": "port_proof_system_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
@@ -157,7 +157,7 @@
     },
     {
       "project_number": 5,
-      "project_name": "port_derived_theorems_pr4",
+      "project_name": "port_derived_theorems_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
@@ -171,7 +171,7 @@
     },
     {
       "project_number": 6,
-      "project_name": "port_frame_conditions_soundness_pr5",
+      "project_name": "port_frame_conditions_soundness_bimodal",
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
