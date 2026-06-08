@@ -2,35 +2,6 @@
   "next_project_number": 15,
   "active_projects": [
     {
-      "project_number": 14,
-      "project_name": "design_modular_logic_architecture",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T18:17:19Z",
-      "last_updated": "2026-06-08T20:32:25Z",
-      "session_id": "sess_1780944569_6b6bd6",
-      "researched": "2026-06-08T18:30:28Z",
-      "next_artifact_number": 2,
-      "artifacts": [
-        {
-          "path": "specs/014_design_modular_logic_architecture/reports/01_team-research.md",
-          "type": "research",
-          "summary": "Team research with 4 teammates: modular logic architecture design"
-        },
-        {
-          "path": "specs/014_design_modular_logic_architecture/plans/01_modular-logic-arch.md",
-          "type": "plan",
-          "summary": "6-phase implementation plan for modular logic architecture"
-        },
-        {
-          "path": "specs/014_design_modular_logic_architecture/summaries/01_modular-logic-summary.md",
-          "type": "summary",
-          "summary": "Implementation summary: 6 phases, modular logic architecture"
-        }
-      ],
-      "completion_summary": "Implemented modular logic architecture: connective typeclass hierarchy, refactored Propositional and Modal formula types to aligned primitives, created new Temporal and Bimodal formula types, embedding functions with Coe instances, and proof system typeclass hierarchy with polymorphic axioms. All 6 phases completed, lake build passes with zero errors."
-    },
-    {
       "project_number": 12,
       "project_name": "coordinate_cslib_pr_submission_bimodal_logic",
       "status": "not_started",
@@ -39,18 +10,6 @@
       "last_updated": "2026-06-08T00:45:00Z",
       "dependencies": [],
       "description": "Coordinate the cslib PR submission process for the Temporal Logic integration. This is an ongoing coordination task that runs in parallel with the 10 porting tasks (2-11).\n\nCoordination Workflow:\n\n1. Open Zulip Discussion (first step, before any PR submission):\n   - Open a thread on leanprover.zulipchat.com in #mathlib4 or appropriate channel\n   - Propose: integrate bimodal temporal logic TM to cslib under Cslib.Logics.Temporal\n   - Include: overview of TM logic (bimodal: S5 box + temporal Until/Since over task frames), motivation (verified decision procedure, completeness proof, ~30k lines of Lean 4), PR strategy (10 modular PRs in dependency order)\n   - Ask: namespace decision, PR review process, any style requirements\n\n2. Namespace Decision (follow from Zulip discussion):\n   - If maintainers prefer different namespace: update all porting task descriptions via sed-based rename\n   - Confirm before starting task 2 (Syntax port)\n   - Current proposal: Cslib.Logics.Temporal\n\n3. PR Submission Order (follow dependency graph):\n   - PR 1 (Syntax, task 2): submit first, establish review pattern\n   - PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap\n   - PR 10 (ConservativeExtension, task 11): independent, can submit early\n   - PR 4 (Theorems, task 5): after PR 3 merged and BimodalLogic:294 complete\n   - PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged\n   - PR 6 (MCS, task 7): after PRs 3+4 merged\n   - PR 7 (Completeness, task 8): after PRs 5+6 merged\n   - PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)\n   - PR 9 (Separation, task 10): after PRs 3+4+6 merged\n\n4. CI Checks (before each PR submission):\n   - Run: lake build (must pass with zero errors)\n   - Run: lake shake (must show no unused imports)\n   - Run: set_option linter.all true in each file (must show no linter warnings)\n   - Confirm: zero sorry in submitted files\n   - Confirm: all files have Apache 2.0 copyright headers\n\n5. Review Cycle Management:\n   - Keep PRs small and self-contained (max ~3,500 lines per PR except task 9)\n   - Address reviewer feedback within 48 hours\n   - For PR 8 (Decidability, ~10k lines): consider splitting into 8a+8b if requested"
-    },
-    {
-      "project_number": 13,
-      "project_name": "superseded_by_task_14",
-      "status": "abandoned",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:45:00Z",
-      "last_updated": "2026-06-08T20:30:00Z",
-      "dependencies": [
-        "BimodalLogic:291"
-      ],
-      "description": "Proof-of-concept port of the Syntax module to cslib to validate the porting approach and estimate per-file effort before committing to the full 10-PR integration. This derisking task should be done early -- before implementing tasks 2-11 -- to discover any unexpected porting challenges.\n\nObjective: Port the 5 Syntax files from BimodalLogic to cslib using the porting checklist, document any surprises, and produce a per-file effort estimate.\n\nScope: Exactly the same files as task 2 (Syntax PR):\n- Atom.lean (~300 lines): PropAtom type, decidable equality\n- Formula.lean (~800 lines): Formula inductive type with all operators\n- Context.lean (~400 lines): proof context\n- BigConj.lean (~500 lines): finite conjunction\n- Subformulas.lean (~500 lines): subformula closure\n\nWhat to document (in task summary):\n- Which namespace rename patterns are mechanical vs require case-by-case judgment\n- Which Mathlib imports break (API changes from v4.27 to v4.31)\n- Which sorry-free proofs require adjustments due to tactic changes\n- Actual effort per file (minutes/hours per 100 lines)\n- Any style issues non-trivial to fix\n\nPorting Checklist:\n- Rename namespace: Bimodal/Theories -> Cslib.Logics.Temporal\n- Add module declaration: namespace Cslib.Logics.Temporal\n- Replace import Mathlib.* with import Cslib.Init\n- Add Apache 2.0 copyright header\n- Run lake shake and linter\n- Verify lake build passes with zero errors and zero sorry\n\nOutput: A working Cslib/Logics/Temporal/Syntax/ directory plus a written effort estimate for tasks 2-11.\n\nDependencies: BimodalLogic task 291 (toolchain upgrade) must complete first. Should be completed before implementing tasks 2-11."
     },
     {
       "project_number": 7,
@@ -185,7 +144,10 @@
     }
   ],
   "repository_health": {
-    "last_assessed": "2026-06-08T17:43:45Z",
+    "last_assessed": "2026-06-08T22:58:37Z",
+    "todo_count": 21,
+    "fixme_count": 0,
+    "build_errors": 0,
     "status": "healthy"
   }
 }
