@@ -50,10 +50,7 @@ next_project_number: 20
 - **Effort**: Large
 - **Status**: [RESEARCHED]
 - **Task Type**: lean4
-- **Research**:
-  - [019_explore_modular_logic_factoring/reports/01_propositional-findings.md]
-  - [019_explore_modular_logic_factoring/reports/01_modal-findings.md]
-  - [019_explore_modular_logic_factoring/reports/01_temporal-findings.md]
+- **Research**: [019_explore_modular_logic_factoring/reports/01_factoring-synthesis.md]
 
 **Description**: Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly. Analyze the BimodalLogic source to identify components that are purely propositional, purely modal, or purely temporal and can be developed in those standalone theories before being imported by the Bimodal/ theory. Revise the existing porting tasks (2-11) to reflect the proper factoring, ensuring each component lives at the most general level possible.
 
