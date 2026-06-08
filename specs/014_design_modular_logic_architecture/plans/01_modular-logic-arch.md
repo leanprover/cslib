@@ -162,7 +162,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: New Temporal and Bimodal Formula Types [NOT STARTED]
+### Phase 4: New Temporal and Bimodal Formula Types [COMPLETED]
 
 **Goal**: Define standalone `Temporal.Formula` and `Bimodal.Formula` types with typeclass instances and derived connectives.
 
