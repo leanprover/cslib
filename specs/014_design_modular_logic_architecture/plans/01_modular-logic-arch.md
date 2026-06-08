@@ -280,11 +280,4 @@ Phases within the same wave can execute in parallel.
 
 ## Rollback/Contingency
 
-All changes are additive except for Phases 2-3 (refactoring). If the propositional or modal refactor proves too disruptive:
-
-1. **Revert refactoring**: `git checkout` the original `Defs.lean` and `Basic.lean` files
-2. **Keep new types alongside old**: Define `Cslib.Logic.Propositional.Formula` and `Cslib.Logic.Modal.Formula` as NEW types in NEW files, leaving the existing `PL.Proposition` and `Modal.Proposition` untouched
-3. **Adjust embeddings**: Point embeddings from new types only, not from the old ones
-4. **Accept duplication**: Two modal formula types coexist temporarily (existing diamond-primary for Kripke semantics, new box-primary for Hilbert systems)
-
-This fallback trades architectural unity for zero regression risk. The equivalence theorems between old and new can be proved later.
+The refactoring of Propositional and Modal formula types (Phases 2-3) is a committed design decision. There is no fallback to maintaining the old primitives alongside the new ones. If proofs break during refactoring, they must be fixed in place — the architectural unity of a shared `{atom, bot, imp}` propositional core across all four logic levels is a hard requirement. Each phase must compile before proceeding to the next.
