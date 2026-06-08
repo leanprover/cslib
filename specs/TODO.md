@@ -1,10 +1,89 @@
 ---
-next_project_number: 15
+next_project_number: 19
 ---
 
 # Tasks
 
+## Task Order
+
+*Updated 2026-06-08. Generated from state.json dependency graph.*
+
+**Dependency Waves**:
+| Wave | Tasks | Blocked by | Topics |
+|------|-------|------------|--------|
+| 1 | 2,12 | -- | -- |
+| 2 | 3,4 | 2 | -- |
+| 3 | 5,6,11 | 3,4 | -- |
+| 4 | 7 | 4,5 | -- |
+| 5 | 8,9,10 | 4,5,6,7 | -- |
+
+**Grouped by Topic** (indented = depends on parent):
+
+### Uncategorized
+
+2 [NOT STARTED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
+  └─ 3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
+      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
+  └─ 4 [NOT STARTED] — Port Proof System (PR 3): Axioms, Derivation, Derivable, Substitu
+    └─ 5 [NOT STARTED] — Port Derived Theorems (PR 4): Combinators, Propositional/*, Conte
+      └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
+        └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
+        └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
+        └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
+      └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
+    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
+    └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
+    └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
+    └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
+    └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
+12 [NOT STARTED] — Coordinate the cslib PR submission process for the Temporal Logic
+
 ## Tasks
+
+### 18. Generate project-overview.md for this repository
+- **Effort**: Small (1-2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: meta
+
+**Description**: Generate project-overview.md for this repository. The current file contains the generic template placeholder. Run `/project-overview` to interactively scan the repository and create project-specific context.
+
+---
+
+### 17. Populate ROADMAP.md, generate Task Order, clean stale refs
+- **Effort**: Small (1-2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: meta
+
+**Description**: Three project management improvements from code review:
+1. Populate `specs/ROADMAP.md` with the 10-PR porting plan phases and milestones (currently empty default template)
+2. Clean stale task 14 dependency references in TODO.md task descriptions (task 14 is now completed and archived)
+3. Verify Task Order section reflects current dependency graph
+
+---
+
+### 16. Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived
+- **Effort**: Small (<1 hour)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Formula type consistency fixes from code review:
+1. Add `deriving DecidableEq, BEq` to `Modal.Proposition` in `Cslib/Logics/Modal/Basic.lean` for consistency with `Bimodal.Formula` and `Temporal.Formula`
+2. Either instantiate `LukasiewiczDerived` for existing formula types or add docstring noting it's for future use in `Cslib/Foundations/Logic/Connectives.lean`
+
+---
+
+### 15. Complete embedding lattice: atom simp lemmas, PL.toBimodal, triangle-commutes
+- **Effort**: Small (1-2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Embedding completeness fixes from code review:
+1. Add `@[simp]` lemmas for the `atom` case in `ModalEmbedding.lean`, `TemporalEmbedding.lean`, and `Propositional/Embedding.lean`
+2. Add `PL.Proposition.toBimodal` function with `Coe` instance in `Propositional/Embedding.lean`
+3. Add triangle-commutes lemma proving `PL.toModal.toBimodal = PL.toTemporal.toBimodal`
+
+---
 
 ### 12. Coordinate cslib PR submission for Bimodal Logic integration
 - **Effort**: Ongoing (tracked separately)
