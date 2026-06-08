@@ -42,15 +42,17 @@ next_project_number: 20
 16 [NOT STARTED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
 17 [NOT STARTED] — Populate ROADMAP.md with porting plan, generate Task Order sectio
 18 [NOT STARTED] — Generate project-overview.md for this repository
-19 [NOT STARTED] — explore modular logic factoring
+19 [RESEARCHED] — explore modular logic factoring
 
 ## Tasks
 
 ### 19. Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly
 - **Effort**: Large
-- **Status**: [PLANNED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
-- **Research**: [019_explore_modular_logic_factoring/reports/01_factoring-synthesis.md]
+- **Research**:
+  - [019_explore_modular_logic_factoring/reports/01_factoring-synthesis.md]
+  - [019_explore_modular_logic_factoring/reports/02_team-research.md]
 - **Plan**: [019_explore_modular_logic_factoring/plans/01_modular-factoring.md]
 
 **Description**: Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly. Analyze the BimodalLogic source to identify components that are purely propositional, purely modal, or purely temporal and can be developed in those standalone theories before being imported by the Bimodal/ theory. Revise the existing porting tasks (2-11) to reflect the proper factoring, ensuring each component lives at the most general level possible.
