@@ -1,0 +1,36 @@
+{
+  "status": "planned",
+  "agent_type": "planner-agent",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "session_id": "sess_1780960953_a1169d",
+  "task_number": 19,
+  "artifact_path": "specs/019_explore_modular_logic_factoring/plans/01_modular-factoring.md",
+  "next_steps": "Run /implement 19 to execute the plan",
+  "phase_count": 4,
+  "estimated_hours": 4,
+  "dependency_waves": [[1], [2], [3], [4]],
+  "plan_metadata": {
+    "phases": 4,
+    "total_effort_hours": 4,
+    "complexity": "medium",
+    "research_integrated": true,
+    "plan_version": 1,
+    "dependency_waves": [[1], [2], [3], [4]],
+    "reports_integrated": [
+      {
+        "path": "reports/01_factoring-synthesis.md",
+        "integrated_in_plan_version": 1,
+        "integrated_date": "2026-06-08"
+      }
+    ]
+  },
+  "memory_candidates": [
+    {
+      "content": "When porting a monolithic logic library (like BimodalLogic) into cslib's modular architecture, classify each source component by which connective operators it uses (atom/bot/imp only = propositional, adds box = modal, adds untl/snce = temporal, uses all = bimodal). This operator-usage classification maps directly to the typeclass signature the component should carry ([PropositionalHilbert S], [ModalS5Hilbert S], [TemporalBXHilbert S], [BimodalTMHilbert S]) and determines which standalone module it belongs in. Components using only lower-level operators must be extracted to the corresponding standalone module to avoid forcing consumers to import the full bimodal theory.",
+      "category": "PATTERN",
+      "source_artifact": "specs/019_explore_modular_logic_factoring/plans/01_modular-factoring.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["modular-factoring", "typeclass-hierarchy", "operator-classification", "BimodalLogic", "cslib-architecture", "import-hierarchy"]
+    }
+  ]
+}
