@@ -1,4 +1,4 @@
-module  -- shake: keep-all
+module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
@@ -22,10 +22,13 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Computability.Distributed.FLP.Algorithm
+public import Cslib.Computability.Distributed.FLP.Consensus
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Cslib.Computability.Languages.Language
+public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
@@ -139,5 +142,7 @@ public import Cslib.Logics.Modal.Denotation
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.MachineLearning.PACLearning.Defs
+public import Cslib.MachineLearning.PACLearning.VCDimension
+public import Cslib.MachineLearning.PACLearning.VersionSpace
 public import Cslib.Probability.HasUniform
 public import Cslib.Probability.PMF
