@@ -1,6 +1,14 @@
 {
-  "next_project_number": 14,
+  "next_project_number": 15,
   "active_projects": [
+    {
+      "project_number": 14,
+      "project_name": "design_modular_logic_architecture",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T18:17:19Z",
+      "last_updated": "2026-06-08T18:17:19Z"
+    },
     {
       "project_number": 12,
       "project_name": "coordinate_cslib_pr_submission_temporal_logic",
