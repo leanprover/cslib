@@ -33,7 +33,7 @@ def Temporal.Formula.toBimodal : Temporal.Formula Atom → Bimodal.Formula Atom
   | .snce φ₁ φ₂ => .snce (φ₁.toBimodal) (φ₂.toBimodal)
 
 /-- Coercion from temporal to bimodal formulas. -/
-instance : Coe (Temporal.Formula Atom) (Bimodal.Formula Atom) where
+instance instCoeTemporalToBimodal : Coe (Temporal.Formula Atom) (Bimodal.Formula Atom) where
   coe := Temporal.Formula.toBimodal
 
 /-- Embedding preserves bot. -/

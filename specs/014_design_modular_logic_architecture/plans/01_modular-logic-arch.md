@@ -224,7 +224,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: Proof System Typeclass Hierarchy [NOT STARTED]
+### Phase 6: Proof System Typeclass Hierarchy [COMPLETED]
 
 **Goal**: Define polymorphic axiom formulas and the proof system typeclass hierarchy, establishing the foundation for future `InferenceSystem` instances.
 

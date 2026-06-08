@@ -42,11 +42,11 @@ def PL.Proposition.toTemporal : PL.Proposition Atom → Temporal.Formula Atom
   | .imp φ₁ φ₂ => .imp (φ₁.toTemporal) (φ₂.toTemporal)
 
 /-- Coercion from propositional to modal formulas. -/
-instance : Coe (PL.Proposition Atom) (Modal.Proposition Atom) where
+instance instCoePLToModal : Coe (PL.Proposition Atom) (Modal.Proposition Atom) where
   coe := PL.Proposition.toModal
 
 /-- Coercion from propositional to temporal formulas. -/
-instance : Coe (PL.Proposition Atom) (Temporal.Formula Atom) where
+instance instCoePLToTemporal : Coe (PL.Proposition Atom) (Temporal.Formula Atom) where
   coe := PL.Proposition.toTemporal
 
 /-- Embedding preserves bot. -/

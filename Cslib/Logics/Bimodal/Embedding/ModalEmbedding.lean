@@ -31,7 +31,7 @@ def Modal.Proposition.toBimodal : Modal.Proposition Atom → Bimodal.Formula Ato
   | .box φ => .box (φ.toBimodal)
 
 /-- Coercion from modal to bimodal formulas. -/
-instance : Coe (Modal.Proposition Atom) (Bimodal.Formula Atom) where
+instance instCoeModalToBimodal : Coe (Modal.Proposition Atom) (Bimodal.Formula Atom) where
   coe := Modal.Proposition.toBimodal
 
 /-- Embedding preserves bot. -/
