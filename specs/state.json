@@ -4,11 +4,11 @@
     {
       "project_number": 1,
       "project_name": "integrate_bimodal_logic_results",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-08T17:11:10Z",
-      "session_id": "sess_1780938207_e3a0b6",
+      "last_updated": "2026-06-08T17:23:17Z",
+      "session_id": "sess_1780939050_be7c0f",
       "researched": "2026-06-08T17:11:10Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -16,6 +16,11 @@
           "path": "specs/001_integrate_bimodal_logic_results/reports/01_team-research.md",
           "type": "research",
           "summary": "Team research with 4 teammates"
+        },
+        {
+          "path": "specs/001_integrate_bimodal_logic_results/plans/01_integration-plan.md",
+          "type": "plan",
+          "summary": "Integration plan: BimodalLogic prep tasks (291-294), cslib porting tasks (2-11), coordination tasks (12-13)"
         }
       ]
     }
