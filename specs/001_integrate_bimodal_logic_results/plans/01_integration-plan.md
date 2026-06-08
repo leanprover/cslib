@@ -132,18 +132,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Create cslib Porting Tasks (PRs 6-10) [NOT STARTED]
+### Phase 3: Create cslib Porting Tasks (PRs 6-10) [COMPLETED]
 
 **Goal**: Create tasks in cslib for the remaining 5 PRs, covering MCS/Deduction, Completeness, Decidability, Separation, and Conservative Extension.
 
 **Tasks**:
-- [ ] Create task 7 in cslib: "Port Deduction Infrastructure and MCS Theory (PR 6): DeductionTheorem, MaximalConsistent, MCSProperties, RestrictedMCS" -- ~2,500 lines, 6 files, depends on tasks 4 and 5, target `Cslib/Logics/Temporal/Metalogic/Core/`
-- [ ] Create task 8 in cslib: "Port Strong Completeness (PR 7): Completeness.lean" -- ~520 lines, 1 file, depends on tasks 6 and 7, target `Cslib/Logics/Temporal/Metalogic/`
-- [ ] Create task 9 in cslib: "Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Closure, Saturation, ProofExtraction, Correctness, DecisionProcedure, CountermodelExtraction, FMP/*" -- ~10,000 lines, 18+ files, depends on tasks 4 and 7, target `Cslib/Logics/Temporal/Metalogic/Decidability/`
-- [ ] Create task 10 in cslib: "Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 files)" -- ~3,500 lines, 16 files, depends on tasks 4, 5, and 7, target `Cslib/Logics/Temporal/Metalogic/Separation/`
-- [ ] Create task 11 in cslib: "Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, Substitution, Lifting" -- ~1,500 lines, 4 files, depends on task 4, target `Cslib/Logics/Temporal/Metalogic/ConservativeExtension/`
-- [ ] Update cslib specs/state.json with tasks 7-11
-- [ ] Update cslib specs/TODO.md with task descriptions
+- [x] Create task 7 in cslib: "Port Deduction Infrastructure and MCS Theory (PR 6): DeductionTheorem, MaximalConsistent, MCSProperties, RestrictedMCS" -- ~2,500 lines, 6 files, depends on tasks 4 and 5, target `Cslib/Logics/Temporal/Metalogic/Core/` *(completed)*
+- [x] Create task 8 in cslib: "Port Strong Completeness (PR 7): Completeness.lean" -- ~520 lines, 1 file, depends on tasks 6 and 7, target `Cslib/Logics/Temporal/Metalogic/` *(completed)*
+- [x] Create task 9 in cslib: "Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Closure, Saturation, ProofExtraction, Correctness, DecisionProcedure, CountermodelExtraction, FMP/*" -- ~10,000 lines, 18+ files, depends on tasks 4 and 7, target `Cslib/Logics/Temporal/Metalogic/Decidability/` *(completed)*
+- [x] Create task 10 in cslib: "Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 files)" -- ~3,500 lines, 16 files, depends on tasks 4, 5, and 7, target `Cslib/Logics/Temporal/Metalogic/Separation/` *(completed)*
+- [x] Create task 11 in cslib: "Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, Substitution, Lifting" -- ~1,500 lines, 4 files, depends on task 4, target `Cslib/Logics/Temporal/Metalogic/ConservativeExtension/` *(completed)*
+- [x] Update cslib specs/state.json with tasks 7-11 *(completed)*
+- [x] Update cslib specs/TODO.md with task descriptions *(completed)*
 
 **Timing**: 2 hours
 
