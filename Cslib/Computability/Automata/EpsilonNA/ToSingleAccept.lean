@@ -43,6 +43,11 @@ theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} :
   simp [toSingleAccept]
 
 @[scoped grind →]
+theorem toSingleAccept_tr_none_accept {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.Tr os x none) : os = none ∨ ∃ s, os = some s ∧ s ∈ a.accept := by
+  grind
+
+@[scoped grind →]
 theorem toSingleAccept_mTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.MTr os x (some s')) : os.isSome := by
   generalize hos' : some s' = os' at h
@@ -102,6 +107,25 @@ theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
       apply toSingleAccept_tr_tr.mpr htr
 
 @[scoped grind →]
+theorem toSingleAccept_τSTr_none_accept {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.τSTr (some s) none) : ∃ s' ∈ a.accept, a.τSTr s s' := by
+  generalize hos' : none = os' at h
+  induction h
+  case refl => simp at hos'
+  case tail osb os' h₁ h₂ ih =>
+    rw [← hos'] at h₂
+    have hosb : osb = none ∨ ∃ sb, osb = some sb ∧ sb ∈ a.accept := by
+      apply toSingleAccept_tr_none_accept h₂
+    cases hosb
+    case inl =>
+      grind only
+    case inr hosb =>
+      rcases hosb with ⟨sb, hosb, hsb⟩
+      exists sb; apply And.intro hsb
+      rw [hosb] at h₁
+      apply toSingleAccept_τSTr_τSTr.mp h₁
+
+@[scoped grind →]
 theorem toSingleAccept_sTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.STr os x (some s')) : os.isSome := by
   generalize hos' : some s' = os'
@@ -124,6 +148,57 @@ theorem toSingleAccept_sTr_sTr {a : εNA.FinAcc State Symbol}
     case refl => grind only [LTS.STr.refl]
     case tr sb₁ x sb₂ s' h₁ h₂ h₃ =>
       grind [LTS.STr.tr (s2 := some sb₁) (s3 := some sb₂)]
+
+@[scoped grind →]
+theorem toSingleAccept_sTr_none_accept {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.STr (some s) x none) : ∃ s' ∈ a.accept, a.STr s x s' := by
+  cases h
+  case tr osb₁ osb₂ h₁ h₂ h₃ =>
+    have ⟨sb₁, hosb₁⟩ : ∃ sb₁, osb₁ = some sb₁ := by grind
+    rw [hosb₁] at h₂
+    cases hosb₂ : osb₂
+    case none =>
+      rw [hosb₂] at h₂
+      have h₂' := toSingleAccept_tr_none_accept h₂
+      cases h₂' with
+      | inl h₂' => contradiction
+      | inr h₂' =>
+        rcases h₂' with ⟨s', hs', hs'a⟩
+        exists s'; apply And.intro hs'a
+        rw [hs'] at h₂
+        have hx : x = none := by grind
+        rw [hx]
+        rw [hosb₁, hs'] at h₁
+        cases h₁
+        case refl =>
+          apply LTS.STr.refl
+        case tail osb htrb htr =>
+          have ⟨sb, hosb⟩ : ∃ sb, osb = some sb := by
+            grind only [toSingleAccept_tr_antiDerivative_isSome htr, Option.isSome_iff_exists]
+          rw [hosb] at htr
+          apply toSingleAccept_tr_tr.mp at htr
+          rw [hosb] at htrb
+          apply toSingleAccept_τSTr_τSTr.mp at htrb
+          apply LTS.STr.tr htrb htr LTS.τSTr.refl
+    case some sb₂ =>
+      rw [hosb₁] at h₁
+      rw [hosb₂] at h₂ h₃
+      have ⟨s', hs', hsb₂⟩ := toSingleAccept_τSTr_none_accept h₃
+      exists s'; apply And.intro hs'
+      apply LTS.STr.tr
+        (toSingleAccept_τSTr_τSTr.mp h₁)
+        (toSingleAccept_tr_tr.mp h₂)
+        hsb₂
+
+@[scoped grind →]
+theorem toSingleAccept_sTr_none_none {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.STr none x os) : x = none ∧ os = none := by
+  cases h
+  case refl => trivial
+  case tr osb₁ osb₂ h₁ h₂ h₃ =>
+    have hosb₁ : osb₁ = none := by grind
+    rw [hosb₁] at h₂
+    grind
 
 @[scoped grind →]
 theorem toSingleAccept_sMTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
@@ -149,8 +224,61 @@ theorem toSingleAccept_sMTr_sMTr {a : εNA.FinAcc State Symbol}
     case stepL s x sb xs s' h₁ h₂ ih =>
       grind [LTS.SMTr.stepL (s2 := some sb)]
 
+@[scoped grind →]
+theorem toSingleAccept_sMTr_none_accept {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.SMTr (some s) (List.map some xs) none) :
+    ∃ s' ∈ a.accept, a.SMTr s (List.map some xs) s' := by
+  induction xs generalizing s
+  case nil =>
+    rcases h with ⟨h⟩
+    have ⟨s', hs', h'⟩ := toSingleAccept_sTr_none_accept h
+    exists s'; apply And.intro hs'
+    apply LTS.SMTr.τ h'
+  case cons x xs ih =>
+    cases h
+    case stepL osb hstr hsmtr =>
+      cases hosb : osb
+      case none =>
+        rw [hosb] at hstr hsmtr
+        have ⟨s', hs', hstr'⟩ := toSingleAccept_sTr_none_accept hstr
+        exists s'; apply And.intro hs'
+        have hxs : xs = [] := by
+          cases xs
+          case nil => rfl
+          case cons x' xs =>
+            cases hsmtr
+            grind
+        apply LTS.SMTr.stepL hstr' (by grind)
+      case some sb =>
+        rw [hosb] at hstr hsmtr
+        have ⟨s', hs', ih'⟩ := ih hsmtr
+        exists s'; apply And.intro hs'
+        apply LTS.SMTr.stepL (toSingleAccept_sTr_sTr.mp hstr) ih'
+
 open Acceptor in
+@[scoped grind =]
 theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
-    language a.toSingleAccept = language a := by sorry
+    language a.toSingleAccept = language a := by
+  ext xs
+  apply Iff.intro <;> intro h
+  case mp =>
+    rcases h with ⟨os, hos, os', hos', hsmtr⟩
+    rcases hos with ⟨s, hs₁, hs₂⟩
+    exists s
+    grind
+  case mpr =>
+    rcases h with ⟨s, hs, s', hs', hsmtr⟩
+    exists s
+    apply And.intro (by grind)
+    exists none
+    apply And.intro (by grind)
+    have h' : a.toSingleAccept.SMTr (some s) (List.map some xs) (some s') := by grind
+    have hcomp := LTS.SMTr.comp (lts := a.toSingleAccept.toLTS) (s₁ := some s) (s₂ := some s')
+      (s₃ := none) (μs₁ := List.map some xs) (μs₂ := []) h'
+    simp only [List.append_nil] at hcomp
+    apply hcomp
+    constructor
+    apply LTS.STr.single
+    grind [toSingleAccept]
 
 end Cslib.Automata.εNA.FinAcc
