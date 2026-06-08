@@ -4,18 +4,19 @@
     {
       "type": "plan",
       "path": "specs/019_explore_modular_logic_factoring/plans/02_revised-factoring.md",
-      "summary": "Revised 4-phase plan integrating team research: create tasks 20-23, seed reports, revise tasks 2-7/12, verify consistency"
+      "summary": "Revised plan adding ROADMAP.md population and topic-grouped Task Order to the modular factoring restructuring"
     }
   ],
-  "next_steps": "Run /implement 19 to execute the plan",
+  "next_steps": "Run /implement 19 to execute the revised plan",
   "metadata": {
-    "session_id": "sess_1780962439_346afa",
-    "agent_type": "planner-agent",
+    "session_id": "sess_1780963200_rev19a",
+    "agent_type": "reviser-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "delegation_path": ["orchestrator", "revise", "reviser-agent"],
     "phase_count": 4,
-    "estimated_hours": 3,
-    "dependency_waves": [[1], [2, 3], [4]]
-  },
-  "memory_candidates": []
+    "estimated_hours": 3.5,
+    "reports_integrated": [],
+    "plan_version": 3,
+    "revision_reason": "Add ROADMAP.md population and natural topic groupings for Task Order"
+  }
 }
