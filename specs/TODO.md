@@ -8,9 +8,10 @@ next_project_number: 15
 
 ### 14. Design modular logic architecture for composable modal, temporal, and bimodal syntax and proof systems
 - **Effort**: Large
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Research**: [014_design_modular_logic_architecture/reports/01_team-research.md]
+- **Plan**: [014_design_modular_logic_architecture/plans/01_modular-logic-arch.md]
 
 **Description**: Explore how to design a modular architecture so that modal syntax and proof theory, temporal syntax and proof theory, and bimodal syntax and proof theory can each be imported independently and composed together. Currently BimodalLogic defines a monolithic `Formula` type with all six constructors (atom, bot, imp, box, untl, snce), but cslib already has a separate `Cslib.Logics.Modal` module with its own `Proposition` type. The goal is to determine how best to factor the syntax and proof systems so that: (1) the existing modal foundations in cslib can be reused or extended rather than duplicated, (2) a standalone temporal logic module (Until/Since over linear orders) can exist independently, (3) the bimodal TM logic can be defined as a composition of modal and temporal components with any necessary interaction axioms, and (4) the metalogic results (soundness, completeness, decidability) can be stated and proved at the appropriate level of generality. This may require changes to `Cslib.Logics.Modal` to make it more composable (e.g., parameterizing over formula types, using typeclasses for proof systems, or adopting cslib's `InferenceSystem` framework). Research should examine: existing patterns in cslib's `Foundations.Logic.InferenceSystem`, how Mathlib handles composable algebraic structures as a model, approaches to multi-modal logics in the literature, and whether BimodalLogic's monolithic proofs can be cleanly factored or whether the interaction between modalities makes decomposition impractical for certain results
 
