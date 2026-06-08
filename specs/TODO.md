@@ -1,5 +1,5 @@
 ---
-next_project_number: 19
+next_project_number: 20
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 19
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12 | -- | -- |
+| 1 | 2,12,15,16,17,18,19 | -- | -- |
 | 2 | 3,4 | 2 | -- |
 | 3 | 5,6,11 | 3,4 | -- |
 | 4 | 7 | 4,5 | -- |
@@ -38,8 +38,22 @@ next_project_number: 19
     └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
     └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
 12 [NOT STARTED] — Coordinate the cslib PR submission process for the Temporal Logic
+15 [NOT STARTED] — Complete embedding lattice: add atom simp lemmas, PL.toBimodal pa
+16 [NOT STARTED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
+17 [NOT STARTED] — Populate ROADMAP.md with porting plan, generate Task Order sectio
+18 [NOT STARTED] — Generate project-overview.md for this repository
+19 [NOT STARTED] — explore modular logic factoring
 
 ## Tasks
+
+### 19. Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly
+- **Effort**: Large
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly. Analyze the BimodalLogic source to identify components that are purely propositional, purely modal, or purely temporal and can be developed in those standalone theories before being imported by the Bimodal/ theory. Revise the existing porting tasks (2-11) to reflect the proper factoring, ensuring each component lives at the most general level possible.
+
+---
 
 ### 18. Generate project-overview.md for this repository
 - **Effort**: Small (1-2 hours)

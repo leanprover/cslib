@@ -1,6 +1,14 @@
 {
-  "next_project_number": 19,
+  "next_project_number": 20,
   "active_projects": [
+    {
+      "project_number": 19,
+      "project_name": "explore_modular_logic_factoring",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T23:11:41Z",
+      "last_updated": "2026-06-08T23:11:41Z"
+    },
     {
       "project_number": 12,
       "project_name": "coordinate_cslib_pr_submission_bimodal_logic",
