@@ -35,29 +35,28 @@ class Potential (φ α : Type*) [CommRing φ] [LinearOrder φ] [IsStrictOrderedR
       by "using" potential previously accumulated in cheaper operations. -/
   potential : α → φ
 
-class Op α o where
-  applyOp : α → o → TimeM ℕ α
+abbrev Op α := α → TimeM ℕ α
 
-@[simp] def applyOps {α o : Type*} [Op α o] (x : α) (ops : List o)
+@[simp] def applyOps {α : Type*} (x : α) (ops : List (Op α))
     : TimeM ℕ α :=
-  List.foldlM (fun x op => Op.applyOp x op) x ops
+  List.foldlM (fun x op => op x) x ops
 
 /-- Amortized cost with the physicist's method,
     following Okasaki, chapter 5 -/
-def amortizedCost {α o φ : Type*}
-    [Op α o] [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ] [Potential φ α]
-    (x : α) (op : o) : φ :=
-  Nat.cast (Op.applyOp x op).time
-    + Potential.potential (Op.applyOp x op).ret
+def amortizedCost {α φ : Type*}
+    [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ] [Potential φ α]
+    (x : α) (op : Op α) : φ :=
+  Nat.cast (op x).time
+    + Potential.potential (op x).ret
     - Potential.potential x
 
 /-- If each operation's cost is bounded by `k`, then the amortized
   cost over a series of operations is bounded by `k * ops.length`. -/
-theorem constantAmortizedCostL {α o φ : Type*}
+theorem constantAmortizedCostL {α φ : Type*}
     [CommRing φ] [LinearOrder φ] [IsStrictOrderedRing φ]
-    [h_op : Op α o] [h_pot : Potential φ α]
-    (k : φ) (h_bounded : ∀ (x : α) (op : o), amortizedCost x op ≤ k)
-    (x : α) (ops : List o)
+    [h_pot : Potential φ α]
+    (k : φ) (h_bounded : ∀ (x : α) (op : Op α), amortizedCost x op ≤ k)
+    (x : α) (ops : List (Op α))
     : (applyOps x ops).time
         + Potential.potential (applyOps x ops).ret - Potential.potential x
       ≤ k * Nat.cast ops.length
@@ -76,15 +75,15 @@ theorem constantAmortizedCostL {α o φ : Type*}
     simp only [List.foldlM, TimeM.time_bind, Nat.cast_add, TimeM.ret_bind, List.length_cons,
       Nat.cast_one]
     have bound1 := h_bounded x op
-    have bound2 := h_ind (Op.applyOp x op).ret
-    set applyOpX := (Op.applyOp x op : TimeM ℕ α)
-    set applyOps2 := (List.foldlM (fun x op => Op.applyOp x op) (Op.applyOp x op).ret ops2)
+    have bound2 := h_ind (op x).ret
+    set applyOpX := (op x : TimeM ℕ α)
+    set applyOps2 := (List.foldlM (fun x op => op x) (op x).ret ops2)
     set potX := (Potential.potential x : φ)
     set potOpX := (Potential.potential applyOpX.ret : φ)
     set potOps2 := (Potential.potential applyOps2.ret : φ)
     /- have potOpXPos := (Potential.potentialNonNegative (φ := φ) applyOpX.ret) -/
-    ring_nf
     have jfdoit := add_le_add bound1 bound2
+    ring_nf
     ring_nf at jfdoit
     linarith
 
