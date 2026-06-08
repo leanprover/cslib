@@ -436,5 +436,31 @@ next_project_number: 14
 - **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Plan**: [001_integrate_bimodal_logic_results/plans/01_integration-plan.md]
+- **Child Tasks (cslib)**: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+- **Child Tasks (BimodalLogic)**: 291, 292, 293, 294
 
-**Description**: Integrate the results from /home/benjamin/Projects/BimodalLogic/ into the appropriate places in this repo which was forked to submit as PRs. Review both repos and create a plan to do so. The aim is to integrate elements in a modular and standalone way when possible
+**Description**: Integrate the results from /home/benjamin/Projects/BimodalLogic/ into the appropriate places in this repo which was forked to submit as PRs. Review both repos and create a plan to do so. The aim is to integrate elements in a modular and standalone way when possible.
+
+**Cross-Repo Dependency Summary**:
+
+BimodalLogic preparation tasks (complete first):
+- 291 [NOT STARTED] — Upgrade Lean toolchain from v4.27 to v4.31 (blocks all cslib porting tasks)
+  - 292 [NOT STARTED] — Add copyright headers to all source files
+  - 293 [NOT STARTED] — Audit and fix Mathlib linter compliance
+  - 294 [NOT STARTED] — Eliminate sorry in ModalS5.lean and Perpetuity/Principles.lean (needed for task 5)
+
+cslib porting tasks (10 PRs in dependency order):
+- 13 [NOT STARTED] — Proof-of-concept port (derisk first; depends on BimodalLogic:291)
+- 2 [NOT STARTED] — Syntax PR 1 (depends on BimodalLogic:291)
+  - 3 [NOT STARTED] — Semantics PR 2 (depends on 2)
+  - 4 [NOT STARTED] — ProofSystem PR 3 (depends on 2)
+    - 5 [NOT STARTED] — Theorems PR 4 (depends on 4, BimodalLogic:294)
+    - 11 [NOT STARTED] — ConservativeExtension PR 10 (depends on 4; independent of 5-10)
+    - 6 [NOT STARTED] — FrameConditions+Soundness PR 5 (depends on 3, 4)
+    - 7 [NOT STARTED] — MCS/Deduction PR 6 (depends on 4, 5)
+      - 8 [NOT STARTED] — Completeness PR 7 (depends on 6, 7)
+      - 9 [NOT STARTED] — Decidability PR 8 (depends on 4, 7; ~10k lines, may split)
+      - 10 [NOT STARTED] — Separation PR 9 (depends on 4, 5, 7)
+
+cslib coordination task (ongoing):
+- 12 [NOT STARTED] — PR submission coordination (Zulip, namespace decision, review cycles)

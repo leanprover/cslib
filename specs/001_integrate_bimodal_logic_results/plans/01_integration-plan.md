@@ -187,28 +187,28 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Validate Task Graph and Write Cross-Repo Dependency Map [NOT STARTED]
+### Phase 5: Validate Task Graph and Write Cross-Repo Dependency Map [COMPLETED]
 
 **Goal**: Verify consistency of all created tasks across both repos, produce a dependency visualization, and ensure the task graph is sound.
 
 **Tasks**:
-- [ ] Read back all created tasks from cslib state.json and TODO.md -- verify 13 tasks total (1 existing + 12 new)
-- [ ] Read back all created tasks from BimodalLogic state.json and TODO.md -- verify 4 new tasks (291-294)
-- [ ] Verify cross-repo dependencies are documented in task descriptions: cslib tasks 2-11 all depend on BimodalLogic task 291 (toolchain upgrade); cslib task 5 (PR 4 Theorems) depends on BimodalLogic task 294 (sorry elimination in ModalS5/Perpetuity)
-- [ ] Verify intra-cslib dependency graph matches the PR dependency ordering from the research:
-  - Task 2 (Syntax): no cslib dependencies
-  - Task 3 (Semantics): depends on 2
-  - Task 4 (ProofSystem): depends on 2
-  - Task 5 (Theorems): depends on 4
-  - Task 6 (FrameConditions+Soundness): depends on 3, 4
-  - Task 7 (MCS/Deduction): depends on 4, 5
-  - Task 8 (Completeness): depends on 6, 7
-  - Task 9 (Decidability): depends on 4, 7
-  - Task 10 (Separation): depends on 4, 5, 7
-  - Task 11 (ConservativeExtension): depends on 4
-  - Task 12 (Coordination): no hard dependencies (ongoing)
-  - Task 13 (Proof-of-concept): depends on BimodalLogic 291
-- [ ] Add a summary comment to task 1's TODO.md entry listing all child tasks created
+- [x] Read back all created tasks from cslib state.json and TODO.md -- verify 13 tasks total (1 existing + 12 new) *(completed: 13 tasks confirmed, next_project_number=14)*
+- [x] Read back all created tasks from BimodalLogic state.json and TODO.md -- verify 4 new tasks (291-294) *(completed: tasks 291-294 confirmed, next_project_number=295)*
+- [x] Verify cross-repo dependencies are documented in task descriptions: cslib tasks 2-11 all depend on BimodalLogic task 291 (toolchain upgrade); cslib task 5 (PR 4 Theorems) depends on BimodalLogic task 294 (sorry elimination in ModalS5/Perpetuity) *(completed)*
+- [x] Verify intra-cslib dependency graph matches the PR dependency ordering from the research:
+  - Task 2 (Syntax): no cslib dependencies *(verified)*
+  - Task 3 (Semantics): depends on 2 *(verified)*
+  - Task 4 (ProofSystem): depends on 2 *(verified)*
+  - Task 5 (Theorems): depends on 4 *(verified)*
+  - Task 6 (FrameConditions+Soundness): depends on 3, 4 *(verified)*
+  - Task 7 (MCS/Deduction): depends on 4, 5 *(verified)*
+  - Task 8 (Completeness): depends on 6, 7 *(verified)*
+  - Task 9 (Decidability): depends on 4, 7 *(verified)*
+  - Task 10 (Separation): depends on 4, 5, 7 *(verified)*
+  - Task 11 (ConservativeExtension): depends on 4 *(verified)*
+  - Task 12 (Coordination): no hard dependencies (ongoing) *(verified)*
+  - Task 13 (Proof-of-concept): depends on BimodalLogic 291 *(verified)*
+- [x] Add a summary comment to task 1's TODO.md entry listing all child tasks created *(completed)*
 
 **Timing**: 1 hour
 
