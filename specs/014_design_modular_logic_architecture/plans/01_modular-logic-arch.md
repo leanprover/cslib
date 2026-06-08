@@ -131,7 +131,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Refactor Modal Formula, Satisfies, and Cube [NOT STARTED]
+### Phase 3: Refactor Modal Formula, Satisfies, and Cube [COMPLETED]
 
 **Goal**: Refactor `Modal.Proposition` from `{atom, neg, and, diamond}` to `{atom, bot, imp, box}` and update all downstream files.
 
