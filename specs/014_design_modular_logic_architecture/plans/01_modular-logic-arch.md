@@ -76,7 +76,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Connective Typeclass Hierarchy [NOT STARTED]
+### Phase 1: Connective Typeclass Hierarchy [COMPLETED]
 
 **Goal**: Define the shared typeclass infrastructure that all formula types will instantiate.
 
