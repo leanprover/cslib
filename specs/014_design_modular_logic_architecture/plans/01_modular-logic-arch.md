@@ -194,7 +194,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Embedding Functions and Coercions [NOT STARTED]
+### Phase 5: Embedding Functions and Coercions [COMPLETED]
 
 **Goal**: Define structural embedding functions between formula types and register `Coe` instances.
 
