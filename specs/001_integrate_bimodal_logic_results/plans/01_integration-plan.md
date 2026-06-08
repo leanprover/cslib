@@ -160,17 +160,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Create Coordination and PR Submission Task [NOT STARTED]
+### Phase 4: Create Coordination and PR Submission Task [COMPLETED]
 
 **Goal**: Create a coordination task in cslib that tracks the overall PR submission process, maintainer communication, and cross-repo dependency management.
 
 **Tasks**:
-- [ ] Create task 12 in cslib: "Coordinate cslib PR submission for Temporal Logic integration" -- tracks: Zulip discussion with maintainers, namespace decision, PR submission order, review cycles, CI compliance
-- [ ] Task 12 description should include: (a) Open Zulip thread proposing Temporal Logic integration, (b) confirm namespace choice (Cslib.Logics.Temporal vs alternatives), (c) submit PRs in dependency order starting with PR 1 (Syntax), (d) address reviewer feedback per PR, (e) run CI checks (lake build, lake shake, linting) before each submission
-- [ ] Create task 13 in cslib: "Proof-of-concept port of Syntax module to validate porting approach" -- this is the derisking task: actually port the 5 Syntax files before creating the full PR, to discover porting patterns and estimate per-file effort
-- [ ] Task 13 depends on BimodalLogic task 291 (toolchain upgrade) and should be done before implementing tasks 2-11
-- [ ] Update cslib specs/state.json with tasks 12-13
-- [ ] Update cslib specs/TODO.md
+- [x] Create task 12 in cslib: "Coordinate cslib PR submission for Temporal Logic integration" -- tracks: Zulip discussion with maintainers, namespace decision, PR submission order, review cycles, CI compliance *(completed)*
+- [x] Task 12 description should include: (a) Open Zulip thread proposing Temporal Logic integration, (b) confirm namespace choice (Cslib.Logics.Temporal vs alternatives), (c) submit PRs in dependency order starting with PR 1 (Syntax), (d) address reviewer feedback per PR, (e) run CI checks (lake build, lake shake, linting) before each submission *(completed)*
+- [x] Create task 13 in cslib: "Proof-of-concept port of Syntax module to validate porting approach" -- this is the derisking task: actually port the 5 Syntax files before creating the full PR, to discover porting patterns and estimate per-file effort *(completed)*
+- [x] Task 13 depends on BimodalLogic task 291 (toolchain upgrade) and should be done before implementing tasks 2-11 *(completed)*
+- [x] Update cslib specs/state.json with tasks 12-13 *(completed)*
+- [x] Update cslib specs/TODO.md *(completed)*
 
 **Timing**: 1.5 hours
 

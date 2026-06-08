@@ -6,6 +6,89 @@ next_project_number: 14
 
 ## Tasks
 
+### 13. Proof-of-concept port of Syntax module to validate porting approach
+- **Effort**: Medium (4-8 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: none (but should be done before tasks 2-11 to derisk)
+- **External Dependencies**: BimodalLogic task 291 (toolchain upgrade must complete first)
+
+**Description**: Proof-of-concept port of the Syntax module to cslib to validate the porting approach and estimate per-file effort before committing to the full 10-PR integration. This derisking task should be done early -- before implementing tasks 2-11 -- to discover any unexpected porting challenges.
+
+**Scope**: Port the 5 Syntax files from BimodalLogic to Cslib/Logics/Temporal/Syntax/:
+- Atom.lean (~300 lines): PropAtom type, decidable equality
+- Formula.lean (~800 lines): Formula inductive type with all operators
+- Context.lean (~400 lines): proof context
+- BigConj.lean (~500 lines): finite conjunction
+- Subformulas.lean (~500 lines): subformula closure
+
+**What to document** (in task summary):
+- Which namespace rename patterns are mechanical vs require case-by-case judgment
+- Which Mathlib imports break (API changes from v4.27 to v4.31)
+- Which sorry-free proofs require adjustments due to tactic changes
+- Actual effort per file (minutes/hours per 100 lines)
+- Any style issues non-trivial to fix
+
+**Porting Checklist**:
+- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Temporal
+- [ ] Add module declaration at top: namespace Cslib.Logics.Temporal
+- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)
+- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)
+- [ ] Run lake shake to identify unused imports
+- [ ] Run Mathlib linter: set_option linter.all true
+- [ ] Verify lake build passes with zero errors
+- [ ] Confirm zero sorry occurrences (grep -r sorry src/)
+
+**Output**: A working Cslib/Logics/Temporal/Syntax/ directory in cslib that can serve as the actual PR 1 submission, plus a written effort estimate for tasks 2-11.
+
+---
+
+### 12. Coordinate cslib PR submission for Temporal Logic integration
+- **Effort**: Ongoing (tracked separately)
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+- **Dependencies**: none (ongoing coordination; start immediately in parallel with preparation)
+
+**Description**: Coordinate the cslib PR submission process for the Temporal Logic integration. This task runs in parallel with all 10 porting tasks (2-11) and handles maintainer communication, namespace decisions, and CI compliance before each submission.
+
+**Coordination Workflow**:
+
+1. **Open Zulip Discussion** (first step, before any PR submission):
+   - Open a thread on leanprover.zulipchat.com in #mathlib4 or appropriate channel
+   - Propose integrating bimodal temporal logic TM to cslib under Cslib.Logics.Temporal
+   - Include: overview of TM logic (bimodal: S5 box + temporal Until/Since over task frames), motivation (verified decision procedure, completeness proof, ~30k lines Lean 4), PR strategy (10 modular PRs in dependency order)
+   - Ask: namespace decision, PR review process, any style requirements for logic contributions
+
+2. **Namespace Decision** (follow from Zulip discussion):
+   - If maintainers prefer different namespace: update all porting task descriptions via sed-based rename
+   - Confirm before starting task 2 (Syntax port), as all subsequent PRs inherit the namespace decision
+   - Current proposal: Cslib.Logics.Temporal (mirrors Cslib.Logics.Modal, Cslib.Logics.Linear patterns)
+
+3. **PR Submission Order** (follow dependency graph):
+   - PR 1 (Syntax, task 2): submit first, establish review pattern
+   - PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap in review
+   - PR 10 (ConservativeExtension, task 11): independent of PRs 2-9, can submit early
+   - PR 4 (Theorems, task 5): after PR 3 merged and BimodalLogic task 294 complete
+   - PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged
+   - PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged
+   - PR 7 (Completeness, task 8): after PRs 5+6 merged
+   - PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)
+   - PR 9 (Separation, task 10): after PRs 3+4+6 merged
+
+4. **CI Checks** (before each PR submission):
+   - Run: lake build (must pass with zero errors)
+   - Run: lake shake (must show no unused imports)
+   - Run: set_option linter.all true in each file (must show no linter warnings)
+   - Confirm: zero sorry in submitted files (grep -rn sorry Cslib/Logics/Temporal/)
+   - Confirm: all files have Apache 2.0 copyright headers
+
+5. **Review Cycle Management**:
+   - Keep PRs small and self-contained (max ~3,500 lines per PR except task 9)
+   - Address reviewer feedback within 48 hours to maintain momentum
+   - For PR 8 (Decidability, ~10k lines): consider splitting into 8a+8b if reviewer requests
+
+---
+
 ### 11. Port Conservative Extension (PR 10)
 - **Effort**: Medium (6-10 hours)
 - **Status**: [NOT STARTED]
