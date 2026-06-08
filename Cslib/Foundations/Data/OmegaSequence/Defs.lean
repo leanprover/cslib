@@ -38,7 +38,7 @@ structure ωSequence (α : Type u) where
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : FunLike (ωSequence α) ℕ α where
   coe := ωSequence.get
-  coe_injective' := by grind only [ωSequence, Function.Injective]
+  coe_injective := by grind only [ωSequence, Function.Injective]
 
 instance : Coe (ℕ → α) (ωSequence α) where
   coe f := ⟨f⟩
