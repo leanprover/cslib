@@ -101,7 +101,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Refactor Propositional Formula and Natural Deduction [NOT STARTED]
+### Phase 2: Refactor Propositional Formula and Natural Deduction [COMPLETED]
 
 **Goal**: Refactor `PL.Proposition` from `{atom, and, or, impl}` to `{atom, bot, imp}` and update the Natural Deduction module.
 
