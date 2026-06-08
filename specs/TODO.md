@@ -433,11 +433,12 @@ next_project_number: 14
 
 ### 1. Integrate BimodalLogic results into cslib
 - **Effort**: Large
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Plan**: [001_integrate_bimodal_logic_results/plans/01_integration-plan.md]
 - **Child Tasks (cslib)**: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
 - **Child Tasks (BimodalLogic)**: 291, 292, 293, 294
+- **Summary**: [001_integrate_bimodal_logic_results/summaries/01_task-creation-summary.md]
 
 **Description**: Integrate the results from /home/benjamin/Projects/BimodalLogic/ into the appropriate places in this repo which was forked to submit as PRs. Review both repos and create a plan to do so. The aim is to integrate elements in a modular and standalone way when possible.
 
