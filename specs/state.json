@@ -153,39 +153,10 @@
         "BimodalLogic:291"
       ],
       "description": "Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, Soundness, SoundnessLemmas, DenseSoundness, DiscreteSoundness to Cslib/Logics/Temporal/FrameConditions/ and Cslib/Logics/Temporal/Metalogic/Soundness/. This PR establishes the soundness of the BX/TM axiom system with respect to various frame classes.\n\n**Source files** (from BimodalLogic Theories/Bimodal/FrameConditions/ and Metalogic/):\n- FrameConditions/*.lean (~5 files, ~2,000 lines): frame condition predicates (density, discreteness, linearity, convergence), FrameClass type\n- Metalogic/Soundness.lean (~400 lines): main soundness theorem for BX axiom system\n- Metalogic/SoundnessLemmas.lean (~500 lines): supporting lemmas for soundness proof\n- Metalogic/DenseSoundness.lean (~300 lines): soundness for dense frame class\n- Metalogic/DiscreteSoundness.lean (~300 lines): soundness for discrete frame class\n\n**Target paths**:\n- Cslib/Logics/Temporal/FrameConditions/ (frame condition files)\n- Cslib/Logics/Temporal/Metalogic/Soundness/ (soundness proof files)\n\n**Estimated scope**: ~3,500 lines across 10+ files\n\n**PR title**: feat(Logics/Temporal): add FrameConditions and Soundness modules\n\n**Dependencies**: Tasks 3 (Semantics) and 4 (ProofSystem) must both be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Temporal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Temporal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)"
-    },
-    {
-      "project_number": 1,
-      "project_name": "integrate_bimodal_logic_results",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-08T17:38:59Z",
-      "session_id": "sess_1780939610_6e3079",
-      "researched": "2026-06-08T17:11:10Z",
-      "next_artifact_number": 2,
-      "artifacts": [
-        {
-          "path": "specs/001_integrate_bimodal_logic_results/reports/01_team-research.md",
-          "type": "research",
-          "summary": "Team research with 4 teammates"
-        },
-        {
-          "path": "specs/001_integrate_bimodal_logic_results/plans/01_integration-plan.md",
-          "type": "plan",
-          "summary": "Integration plan: BimodalLogic prep tasks (291-294), cslib porting tasks (2-11), coordination tasks (12-13)"
-        },
-        {
-          "path": "specs/001_integrate_bimodal_logic_results/summaries/01_task-creation-summary.md",
-          "type": "summary",
-          "summary": "Task creation summary: 16 tasks across both repos, dependency graph verified"
-        }
-      ],
-      "completion_summary": "Created 16 tasks across two repos: 4 BimodalLogic preparation tasks (291-294) and 12 cslib porting/coordination tasks (2-13) for integrating bimodal temporal logic via 10 modular PRs. Dependency graph verified: toolchain upgrade (291) gates all porting; Syntax (2) gates all downstream PRs; sorry elimination (294) gates Theorems (5)."
     }
   ],
   "repository_health": {
-    "last_assessed": "2026-06-08T00:00:00Z",
+    "last_assessed": "2026-06-08T17:43:45Z",
     "status": "healthy"
   }
 }
