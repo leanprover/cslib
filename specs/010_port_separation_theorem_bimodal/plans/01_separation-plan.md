@@ -351,7 +351,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 11: Hierarchy/HierarchyDefs.lean -- Hierarchy Definitions [NOT STARTED]
+### Phase 11: Hierarchy/HierarchyDefs.lean -- Hierarchy Definitions [COMPLETED]
 
 **Goal**: Port has_single_U_type, U/S-formula abstraction, junction-depth monotonicity, and related definitions.
 
