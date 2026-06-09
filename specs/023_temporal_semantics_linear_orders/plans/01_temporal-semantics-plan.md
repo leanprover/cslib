@@ -99,7 +99,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Satisfies.lean -- Truth evaluation and basic lemmas [IN PROGRESS]
+### Phase 2: Satisfies.lean -- Truth evaluation and basic lemmas [COMPLETED]
 
 **Goal**: Define the recursive satisfaction relation and prove basic truth lemmas for all formula constructors and derived operators.
 
