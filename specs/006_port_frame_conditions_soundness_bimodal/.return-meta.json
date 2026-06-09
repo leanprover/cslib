@@ -1,0 +1,40 @@
+{
+  "status": "partial",
+  "started_at": "2026-06-08T20:00:00Z",
+  "artifacts": [
+    {
+      "path": "Cslib/Logics/Bimodal/FrameConditions/FrameClass.lean",
+      "type": "source",
+      "summary": "Frame condition typeclasses (LinearTemporalFrame, SerialFrame, DenseTemporalFrame, DiscreteTemporalFrame)"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/Metalogic/Soundness/Core.lean",
+      "type": "source",
+      "summary": "Core validity definitions (is_valid, valid_at_triple, truth_at_swap_swap)"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/Metalogic/Soundness/DenseValidity.lean",
+      "type": "source",
+      "summary": "42-case axiom swap validity + local validity + combined soundness (derivable_valid_and_swap_valid)"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/ProofSystem/Derivation.lean",
+      "type": "source",
+      "summary": "Added height function and mp_height_gt_left/right helpers"
+    }
+  ],
+  "partial_progress": {
+    "stage": "phase_4_in_progress",
+    "details": "Phases 1-3 completed. Phase 4 (FrameClassVariants.lean) in progress. Remaining: phases 4-10.",
+    "phases_completed": 3,
+    "phases_total": 10
+  },
+  "requires_user_review": false,
+  "metadata": {
+    "session_id": "sess_1780982747_80da4d_6",
+    "agent_type": "lean-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "handoff_path": "specs/006_port_frame_conditions_soundness_bimodal/handoffs/phase-3-handoff-20260608.md"
+  }
+}

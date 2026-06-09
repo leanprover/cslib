@@ -1,0 +1,13 @@
+{
+  "status": "planned",
+  "summary": "10-phase implementation plan for porting 4,680 lines across 10 files (FrameConditions + Soundness), estimated 12 hours, following bottom-up build order",
+  "blockers": [],
+  "artifacts": [
+    {
+      "path": "specs/006_port_frame_conditions_soundness_bimodal/plans/01_frame-soundness-plan.md",
+      "type": "plan",
+      "summary": "10-phase plan covering FrameClass typeclasses, soundness lemmas (Core/DenseValidity/FrameClassVariants), main soundness theorem, FC validity/soundness/compatibility, thin wrappers, and integration verification"
+    }
+  ],
+  "next_action_hint": "implement"
+}
