@@ -1,5 +1,5 @@
 ---
-next_project_number: 42
+next_project_number: 44
 ---
 
 # Tasks
@@ -11,47 +11,60 @@ next_project_number: 42
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 5,6,11,12,31 | -- | Temporal Logic, Bimodal Porting, Project Management |
-| 2 | 7,38,39 | 5,31 | Bimodal Porting, Temporal Logic |
-| 3 | 9,10,34,40 | 6,7,38 | Bimodal Porting, Temporal Logic |
-| 4 | 35 | 34 | Bimodal Porting |
-| 5 | 41 | 35,38,39 | Foundations (abstraction after concrete proofs) |
-| -- | 36,37,40 | upstream | Blocked on upstream development |
+| 1 | 10,12,31,35,42 | -- | Temporal Logic, Bimodal Porting, Project Management |
+| 2 | 36,37,38,39,43 | 31,35,42 | Temporal Logic, Bimodal Porting |
+| 3 | 40,41 | 35,38,39 | Foundations, Temporal Logic |
 
 **Grouped by Topic** (indented = depends on parent):
 
+### Foundations
+
+41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
+
 ### Temporal Logic
 
-31 [IMPLEMENTING] — Build standalone temporal metalogic (~1,500 lines, new development)
-  └─ 38 [NOT STARTED] — Dense temporal completeness (density axioms + completeness over Rat)
-    └─ 40 [BLOCKED] — Continuous temporal completeness (research needed)
-  └─ 39 [NOT STARTED] — Discrete temporal completeness (discrete axioms + completeness over Int)
+31 [PARTIAL] — Build standalone temporal metalogic (~1,500 lines, new developmen
+  └─ 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
+    └─ 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
+    └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
+  └─ 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
+    └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
 
 ### Bimodal Porting
 
-5 [COMPLETED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetuiity/
-  └─ 7 [RESEARCHED] — Port Deduction Infrastructure and MCS Theory (PR 6)
-    └─ 34 [NOT STARTED] — Port base MCS completeness properties (~520 lines)
-      └─ 35 [NOT STARTED] — Port dense completeness infrastructure (~15k lines)
-        └─ 36 [BLOCKED] — Port discrete completeness (upstream sorry elimination)
-        └─ 37 [BLOCKED] — Port continuous extension completeness (upstream development)
-    └─ 9 [RESEARCHED] — Port Decidability and Tableau (PR 8)
-    └─ 10 [RESEARCHED] — Port Separation Theorem (PR 9)
-  └─ 10 [RESEARCHED] — Port Separation Theorem (PR 9) (see above)
-6 [PLANNED] — Port Frame Conditions and Soundness (PR 5)
-  └─ 34 [NOT STARTED] — Port base MCS completeness properties (see above)
-11 [RESEARCHED] — Port Conservative Extension (PR 10)
-
-### Foundations
-
-41 [NOT STARTED] — Abstract shared completeness infrastructure (temporal + bimodal)
-  (depends on: 35, 38, 39)
+10 [IMPLEMENTING] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
+35 [NOT STARTED] — Port dense completeness infrastructure and completeness_dense the
+  └─ 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
+  └─ 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
+  └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
+42 [NOT STARTED] — Port the core tableau-based decision procedure from BimodalLogic 
+  └─ 43 [NOT STARTED] — Port the Finite Model Property (FMP) infrastructure from BimodalL
 
 ### Project Management
 
-12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic
+12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
 
 ## Tasks
+
+### 42. Port core bimodal tableau and decision procedure
+- **Effort**: Large (12-18 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Tasks 4, 7 (ProofSystem, MCS/Deduction)
+
+**Description**: Port the core tableau-based decision procedure from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Decidability/`. Covers: SignedFormula (~400 lines), Tableau (28 expansion rules + termination, ~1,800 lines), Closure (~600 lines), Saturation (~800 lines), ProofExtraction (~600 lines), Correctness (~400 lines), DecisionProcedure (~500 lines), CountermodelExtraction (~600 lines). Key deliverable: `instance : Decidable (ThDerivable φ)`. Parent task: 9 (expanded).
+
+---
+
+### 43. Port bimodal finite model property (FMP)
+- **Effort**: Medium (8-12 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 42
+
+**Description**: Port the Finite Model Property infrastructure from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/`. Covers: ClosureMCS, BoundedModel, ModelSize, FMP (~3,000-4,000 lines across 4+ files). Key deliverable: if a bimodal formula is satisfiable, it is satisfiable in a finite model of bounded size. Parent task: 9 (expanded).
+
+---
 
 ### 31. Temporal metalogic
 - **Effort**: Large (18 hours)
@@ -222,9 +235,10 @@ next_project_number: 42
 
 ### 9. Port Decidability and Tableau to Bimodal module
 - **Effort**: X-Large (20-30 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [EXPANDED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 7 (ProofSystem, MCS/Deduction)
+- **Subtasks**: 42, 43
 - **Research**: [009_port_decidability_tableau_bimodal/reports/01_team-research.md]
 
 **Description**: Port the tableau-based decision procedure from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Decidability/`. This is the largest port (~10k lines) covering the full decision procedure for TM logic. The tableau operates on `Bimodal.Formula` (all 6 constructors) with rules for both modal and temporal operators. It is inherently bimodal and cannot be factored into separate modal/temporal components.

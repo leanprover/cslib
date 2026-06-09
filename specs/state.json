@@ -1,6 +1,33 @@
 {
-  "next_project_number": 42,
+  "next_project_number": 44,
   "active_projects": [
+    {
+      "project_number": 42,
+      "project_name": "port_bimodal_tableau_core",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-09T12:45:30Z",
+      "last_updated": "2026-06-09T12:45:30Z",
+      "dependencies": [
+        4,
+        7
+      ],
+      "topic": "Bimodal Porting",
+      "description": "Port the core tableau-based decision procedure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/. This covers the main decision procedure pipeline: SignedFormula (signed formula type, ~400 lines), Tableau (28 expansion rules + termination proof, ~1,800 lines), Closure (closure conditions, ~600 lines), Saturation (saturation lemmas + model extraction framework, ~800 lines), ProofExtraction (closed tableau → DerivationTree, ~600 lines), Correctness (tableau soundness + completeness, ~400 lines), DecisionProcedure (decide function + Decidable instance, ~500 lines), CountermodelExtraction (open saturated → countermodel, ~600 lines).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/\n**Estimated scope**: ~5,700 lines across 8 files\n**Parent task**: Task 9 (expanded)\n\n**Key deliverable**: `instance : Decidable (ThDerivable φ)` — executable decision procedure for bimodal TM logic.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry)."
+    },
+    {
+      "project_number": 43,
+      "project_name": "port_bimodal_fmp",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-09T12:45:30Z",
+      "last_updated": "2026-06-09T12:45:30Z",
+      "dependencies": [
+        42
+      ],
+      "topic": "Bimodal Porting",
+      "description": "Port the Finite Model Property (FMP) infrastructure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/. This strengthens the decidability result with finite countermodels: ClosureMCS (closure-based MCS construction), BoundedModel (bounded model size arguments), ModelSize (model size bounds), FMP (finite model property theorem).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/\n**Estimated scope**: ~3,000-4,000 lines across 4+ files\n**Parent task**: Task 9 (expanded)\n**Depends on**: Task 42 (core tableau must exist first)\n\n**Key deliverable**: Finite model property theorem — if a bimodal formula is satisfiable, it is satisfiable in a finite model of bounded size.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry)."
+    },
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
@@ -204,10 +231,10 @@
     {
       "project_number": 9,
       "project_name": "port_decidability_tableau_bimodal",
-      "status": "researched",
+      "status": "expanded",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-09T12:38:51Z",
+      "last_updated": "2026-06-09T12:45:30Z",
       "dependencies": [
         4,
         7
@@ -223,6 +250,10 @@
           "type": "research",
           "summary": "Team research with 4 teammates"
         }
+      ],
+      "subtasks": [
+        42,
+        43
       ]
     },
     {
