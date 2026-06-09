@@ -32,7 +32,7 @@ next_project_number: 51
       └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
         └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
-40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
+40 [NOT STARTED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
 
 ### Bimodal Porting
 
@@ -48,7 +48,7 @@ next_project_number: 51
 
 ### 50. Research Burgess prior art and seed research for tasks 46-49
 - **Effort**: large
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Research**: [specs/050_burgess_prior_art_seed_research/reports/01_team-research.md]
 - **Plan**: [050_burgess_prior_art_seed_research/plans/01_prior-art-plan.md]
@@ -66,24 +66,34 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 ---
 
 ### 46. Temporal R-relation and witness infrastructure
-- **Effort**: Large (10-15 hours)
+- **Effort**: Large (12-18 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Dependencies**: Task 50
 - **Parent**: Task 31 (expanded)
+- **Seed Research**: [specs/046_temporal_r_relation/reports/01_seed-research.md]
 
 **Description**: Define the Burgess R-relation `r(A, beta, C)` and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.
+
+**Phase 0 — Prerequisite Infrastructure (~850-1,000 lines)**: Before porting Chronicle files, create:
+- `g_content`/`h_content` definitions (currently only inline in Completeness.lean) — ~169 lines; source: `Bundle/TemporalContent.lean`
+- Forward/past witness seed consistency proofs — ~607 lines; source: `Bundle/WitnessSeed.lean`
+- `SetDeductivelyClosed` (DCS) type and `mcs_is_dcs` lemma — source: `ChronicleTypes.lean`
+- Propositional combinators (pairing, lce_imp, rce_imp, double_negation, efq, imp_trans) — ~200 lines
+- Temporal derived theorems (temp_k_dist_derived, past_necessitation, past_k_dist) — ~150 lines
 
 **Literature**: Burgess 1982 Section 2 Lemmas 2.2-2.4 (`BimodalLogic/literature/Burgess_1982_Axioms_for_tense_logic_Since_and_Until.md`)
 
 **Bimodal prior art to adapt**:
-- `BXCanonical/Chronicle/RRelation.lean` (1695 lines): r_relation, R_maximal, witness existence
-- `BXCanonical/CanonicalChain.lean` (95 lines): BX12/BX6 at MCS level
-- `BXCanonical/OrderedSeedConsistency.lean` (151 lines): ordered seed consistency
-- `BXCanonical/Frame.lean` (464 lines): BXPoint, bx_le, G/H propagation, eventuality resolution
+- `BXCanonical/Chronicle/RRelation.lean` (1695 lines): r_relation, R_maximal, witness existence — ~95% transfers; remove FrameClass parameter, strip BX modal axiom refs
+- `BXCanonical/CanonicalChain.lean` (95 lines): BX12/BX6 at MCS level — 100% transfers; swap BXPoint→TPoint
+- `BXCanonical/OrderedSeedConsistency.lean` (151 lines): ordered seed consistency — 100% transfers
+- `BXCanonical/Frame.lean` (464 lines): BXPoint, bx_le, G/H propagation — ~60% transfers; remove bx_modal_equiv (bimodal-only)
+- `Bundle/TemporalContent.lean` (169 lines): g_content/h_content definitions — direct source for Phase 0
+- `Bundle/WitnessSeed.lean` (607 lines): seed consistency proofs — direct source for Phase 0
 
 **Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/` (RRelation.lean, Frame.lean, CanonicalChain.lean, OrderedSeedConsistency.lean)
-**Estimated scope**: 800-1500 lines
+**Estimated scope**: 1,200-2,000 lines (revised from 800-1,500; includes Phase 0 prerequisites)
 
 ---
 
@@ -93,17 +103,22 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 - **Task Type**: lean4
 - **Dependencies**: Task 46
 - **Parent**: Task 31 (expanded)
+- **Seed Research**: [specs/047_temporal_point_insertion/reports/01_seed-research.md]
 
-**Description**: Define the labeled frame type (Burgess K-elements) and prove that counterexamples to conditions C5a/C6a/C5b/C6b can be eliminated by point insertion (Burgess Lemmas 2.6-2.7).
+**Description**: Define the labeled frame type (Burgess K-elements/chronicle conditions C0-C5) and prove that counterexamples to conditions C5a/C6a can be eliminated by point insertion (Burgess Lemmas 2.6-2.8).
 
-**Literature**: Burgess 1982 Definition 2.5, Lemmas 2.6-2.7; Xu 1988 Definition 2.5 (`BimodalLogic/literature/`)
+**Note on temporal simplification**: The temporal version eliminates the bimodal C5b/C6b conditions for box (no □ modality). Only C5a/C6a (Until witnesses) and their S-mirror images C5b/C6b (Since witnesses) are present — roughly half the bimodal point insertion cases. Depends on propositional combinators created in Task 46 Phase 0.
+
+**Literature**: Burgess 1982 Definition 2.5, Lemmas 2.6-2.8; Xu 1988 Definition 2.5, Theorem 2.8 (`BimodalLogic/literature/`)
 
 **Bimodal prior art to adapt**:
-- `BXCanonical/Chronicle/ChronicleTypes.lean` (386 lines): Chronicle data types (labeled frames)
-- `BXCanonical/Chronicle/PointInsertion.lean` (3556 lines): Core point-insertion proofs for C5a/C6a defect elimination
+- `BXCanonical/Chronicle/ChronicleTypes.lean` (386 lines): Chronicle data types (labeled frames) — ~85% transfers; remove FrameClass parameter, remove ModalSaturation import
+- `BXCanonical/Chronicle/PointInsertion.lean` (3556 lines): Core point-insertion proofs — ~90% transfers; remove all C5b/C6b-for-box cases (bimodal-specific); use temporal propositional combinators from Task 46 Phase 0
+
+**Xu 1988 reference**: Use Xu's C0-C6 formulation (Definition 2.5) as the cleaner Lean target — separates chronicle conditions more explicitly than Burgess's original presentation. C5a ≡ Burgess C4a, C6a ≡ Burgess C5a.
 
 **Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/ChronicleTypes.lean`, `PointInsertion.lean`
-**Estimated scope**: 1500-2800 lines
+**Estimated scope**: 1,500-2,800 lines (unchanged; reasonable given Task 46 prerequisites are solid)
 
 ---
 
@@ -113,39 +128,53 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 - **Task Type**: lean4
 - **Dependencies**: Task 47
 - **Parent**: Task 31 (expanded)
+- **Seed Research**: [specs/048_temporal_chronicle_construction/reports/01_seed-research.md]
 
-**Description**: Build the omega-step construction that enumerates all C5/C6 counterexamples and iteratively inserts points (Burgess Theorem 2.8, construction part). Assemble the chronicle as the union of all finite stages.
+**Description**: Build the omega-step construction that enumerates all C5/C6 counterexamples and iteratively inserts points to eliminate them (Burgess Theorem 2.8, construction part). Assemble the chronicle as the union of all finite stages.
+
+**Key technical requirement**: The `[Denumerable (Formula Atom)]` instance is required for the omega-chain enumeration (same pattern as bimodal `ChronicleConstruction.lean`). Verify this instance exists for the temporal `Formula Atom` type before starting.
+
+**Note on structure**: The omega-chain enumeration structure is nearly identical to bimodal; the main difference is that the temporal version only enumerates C5a/C6a defects and S-mirror images (no modal defect types). CounterexampleElimination.lean (~95% transfer rate) and ChronicleConstruction.lean (~95% transfer rate) are the cleanest files in the bimodal Chronicle — zero box/modal references.
 
 **Literature**: Burgess 1982 Theorem 2.8 (construction); Xu 1988 Theorem 2.8 (`BimodalLogic/literature/`)
 
 **Bimodal prior art to adapt**:
-- `BXCanonical/Chronicle/CounterexampleElimination.lean` (3529 lines): Defect enumeration and elimination
-- `BXCanonical/Chronicle/ChronicleConstruction.lean` (1531 lines): Chronicle assembly as directed limit
+- `BXCanonical/Chronicle/CounterexampleElimination.lean` (3529 lines): Defect enumeration and elimination — ~95% transfers; remove modal defect types
+- `BXCanonical/Chronicle/ChronicleConstruction.lean` (1531 lines): Chronicle assembly as directed limit — ~95% transfers; mechanical import/namespace rewrite
+
+**Note on sorry stubs**: The bimodal files have sorry stubs for open guard semantics (Task 113 in upstream). Verify whether these stubs appear in the temporal transfer or can be cleanly eliminated.
 
 **Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/CounterexampleElimination.lean`, `ChronicleConstruction.lean`
-**Estimated scope**: 1500-3000 lines
+**Estimated scope**: 1,500-3,000 lines (unchanged; high confidence given clean separation)
 
 ---
 
 ### 49. Temporal truth lemma and completeness assembly
-- **Effort**: Medium (8-12 hours)
+- **Effort**: Medium-Large (10-15 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Dependencies**: Task 48
 - **Parent**: Task 31 (expanded)
+- **Seed Research**: [specs/049_temporal_truth_lemma_completeness/reports/01_seed-research.md]
 
-**Description**: Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry.
+**Description**: Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry in `Completeness.lean`.
 
-**Literature**: Burgess 1982 Theorem 2.8 (truth lemma); Blackburn/de Rijke/Venema 2002 Theorem 7.15 (`BimodalLogic/literature/`)
+**WARNING — Box-Entanglement**: `ChronicleToCountermodelBasic.lean` (1170 lines) and `ChronicleToCountermodel.lean` (229 lines) are NOT directly adaptable. They perform a dense/discrete case split using `Formula.box`, `modal_k_dist`, S5 box-stability reasoning, FMCS/BFMCS structures, and algebraic parametric completeness machinery — all bimodal-specific. Do NOT attempt direct port; build fresh temporal extraction instead.
 
-**Bimodal prior art to adapt**:
-- `BXCanonical/TruthLemma.lean` (223 lines): MCS truth properties (remove box case, keep atom/bot/imp/untl/snce)
-- `BXCanonical/Chronicle/ChronicleToCountermodelBasic.lean` (1170 lines): Extract countermodel from chronicle
-- `BXCanonical/Chronicle/ChronicleToCountermodel.lean` (229 lines): Final countermodel assembly
-- `BXCanonical/CanonicalModel.lean` (771 lines): Z-chain MCS propagation (reference for G/H truth lemma)
+**Recommended approach**: The temporal countermodel is structurally simpler than bimodal. The chronicle frame (X, <) with valuation V(α) := {x | α ∈ f(x)} IS the countermodel — a serial linear order with valuation, no modal accessibility relation needed. Build fresh `TemporalChronicleModel` type and extraction without adapting the bimodal countermodel pipeline.
 
-**Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/TruthLemma.lean`, `ChronicleToCountermodel.lean`, update `Completeness.lean`
-**Estimated scope**: 500-1200 lines
+**Interaction with existing Completeness.lean**: The existing `Temporal/Metalogic/Completeness.lean` (418 lines) already has `CanonicalWorld`, `canonical_acc`, G/H truth lemma, `mcs_g_trans`, `mcs_h_trans`, and the final `completeness` theorem with a single sorry at line 416. Task 49 fills this sorry using the chronicle. Reconcile with existing `CanonicalWorld` infrastructure — the chronicle-based `TPoint` (Task 46) may replace or complement it.
+
+**Literature**: Burgess 1982 Claim 2.11 (truth lemma) and completeness conclusion; Blackburn/de Rijke/Venema 2002 Theorem 7.15 (`BimodalLogic/literature/`)
+
+**Bimodal prior art**:
+- `BXCanonical/TruthLemma.lean` (223 lines): ~70% transfers — keep atom/bot/imp/G/H/Until/Since cases; remove box_iff_mcs (~30 lines)
+- `BXCanonical/CanonicalModel.lean` (771 lines): ~40% transfers — Z-chain MCS propagation for G/H; discard FMCS/BFMCS
+- `ChronicleToCountermodelBasic.lean` (1170 lines): ~0% direct transfer — reference for LimitDomSubtype utilities only
+- `ChronicleToCountermodel.lean` (229 lines): ~0% direct transfer — bimodal-specific throughout
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/TruthLemma.lean`, `ChronicleToCountermodel.lean` (fresh), update `Completeness.lean`
+**Estimated scope**: 800-1,800 lines (revised from 500-1,200; countermodel extraction needs fresh design)
 
 ---
 

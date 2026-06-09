@@ -1,7 +1,7 @@
 # Implementation Plan: Burgess Prior Art Seed Research for Tasks 46-49
 
 - **Task**: 50 - Burgess prior art and seed research for tasks 46-49
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 3 hours
 - **Dependencies**: None (research already completed)
 - **Research Inputs**: specs/050_burgess_prior_art_seed_research/reports/01_team-research.md
@@ -64,7 +64,7 @@ This plan advances the following roadmap items:
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Update Task 46-49 Descriptions [NOT STARTED]
+### Phase 1: Update Task 46-49 Descriptions [COMPLETED]
 
 **Goal**: Incorporate research findings into the TODO.md and state.json descriptions for tasks 46-49 so they reflect the true scope, prerequisites, and implementation strategy.
 
@@ -92,7 +92,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Create Seed Research Report for Task 46 [NOT STARTED]
+### Phase 2: Create Seed Research Report for Task 46 [COMPLETED]
 
 **Goal**: Produce a self-contained seed research report for task 46 (R-relation and witness infrastructure) that covers the literature map, infrastructure audit, and implementation guidance.
 
@@ -120,7 +120,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Create Seed Research Report for Task 47 [NOT STARTED]
+### Phase 3: Create Seed Research Report for Task 47 [COMPLETED]
 
 **Goal**: Produce a self-contained seed research report for task 47 (labeled frame types and point insertion).
 
@@ -147,7 +147,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Create Seed Research Report for Task 48 [NOT STARTED]
+### Phase 4: Create Seed Research Report for Task 48 [COMPLETED]
 
 **Goal**: Produce a self-contained seed research report for task 48 (counterexample elimination and chronicle construction).
 
@@ -174,7 +174,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Create Seed Research Report for Task 49 [NOT STARTED]
+### Phase 5: Create Seed Research Report for Task 49 [COMPLETED]
 
 **Goal**: Produce a self-contained seed research report for task 49 (truth lemma and completeness assembly), with special attention to the box-entanglement warnings.
 
