@@ -115,7 +115,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Temporal Axiom Inductive and FrameClass [IN PROGRESS]
+### Phase 2: Temporal Axiom Inductive and FrameClass [COMPLETED]
 
 **Goal**: Create the concrete Temporal.Axiom inductive type with all axiom constructors and the FrameClass enumeration for frame-class-gated derivations.
 
