@@ -141,7 +141,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Validity.lean -- Validity, consequence, and reduction lemmas [NOT STARTED]
+### Phase 3: Validity.lean -- Validity, consequence, and reduction lemmas [COMPLETED]
 
 **Goal**: Define validity quantified over all linear orders, semantic consequence, satisfiability, and prove reduction/relationship lemmas.
 
