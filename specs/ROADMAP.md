@@ -276,7 +276,7 @@ The 6-wave dependency graph enforces the import hierarchy. Tasks within the same
 
 | Wave | Tasks | Blocked by | Description |
 |------|-------|------------|-------------|
-| 1 | 2, 12, 15, 16, 17, 18, 20, 24, 25 | — | Foundations + independent fixes; start immediately |
+| 1 | 2, 12, 16, 20, 27 | — | Foundations + independent fixes; start immediately |
 | 2 | 3, 21, 22 | 2, 16, 20 | Frame semantics; modal and temporal modules |
 | 3 | 4, 23 | 2, 20, 22 | Bimodal proof system; temporal semantics |
 | 4 | 5, 6, 11 | 3, 4, 21, 22 | Perpetuity; frame conditions + soundness; conservative ext. |

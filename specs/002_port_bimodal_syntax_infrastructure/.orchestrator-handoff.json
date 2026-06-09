@@ -1,0 +1,13 @@
+{
+  "status": "planned",
+  "summary": "5-phase plan to port temporal syntax: extend Formula.lean with ~450 lines, create Context/BigConj/Subformulas, register in Cslib.lean",
+  "blockers": [],
+  "artifacts": [
+    {
+      "path": "specs/002_port_bimodal_syntax_infrastructure/plans/01_syntax-port-plan.md",
+      "type": "plan",
+      "summary": "Implementation plan with 5 phases, 3 dependency waves, ~4 hours estimated effort"
+    }
+  ],
+  "next_action_hint": "implement"
+}

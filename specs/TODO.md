@@ -11,7 +11,7 @@ next_project_number: 28
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12,16,20,25,27 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
+| 1 | 2,12,16,20,27 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
 | 2 | 3,21,22 | 2,16,20 | Modal Logic, Temporal Logic, Bimodal Porting |
 | 3 | 4,23 | 2,20,22 | Temporal Logic, Bimodal Porting |
 | 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
@@ -22,14 +22,14 @@ next_project_number: 28
 
 ### Foundations
 
-20 [NOT STARTED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
+20 [PLANNED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 21 [NOT STARTED] — Port modal proof system and theorems to  (see Modal Logic section)
   └─ 22 [NOT STARTED] — Build temporal proof system infrastructu (see Temporal Logic section)
 
 ### Modal Logic
 
-16 [NOT STARTED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
+16 [PLANNED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
   └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
     └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
 
@@ -42,7 +42,7 @@ next_project_number: 28
 
 ### Bimodal Porting
 
-2 [NOT STARTED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
+2 [PLANNED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
   └─ 3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
     └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
       └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
@@ -61,47 +61,24 @@ next_project_number: 28
 
 ### Project Management
 
-12 [PARTIAL] — Coordinate the cslib PR submission process for the Temporal Logic
-25 [IMPLEMENTING] — revise_task_order_topic_assignments
+12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
 
 ### Uncategorized
 
-27 [NOT STARTED] — review_docs_roadmap_alignment
+27 [PLANNED] — review_docs_roadmap_alignment
 
 ## Tasks
 
 ### 27. Systematically review all documentation and standards, ensuring tasks and ROADMAP.md are in alignment
 - **Effort**: Medium (2-4 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: general
+- **Research**: [specs/027_review_docs_roadmap_alignment/reports/01_docs-roadmap-alignment.md]
+- **Plan**: [specs/027_review_docs_roadmap_alignment/plans/01_alignment-plan.md]
 
 **Description**: Systematically review all documentation and standards in this repo, making sure the tasks and ROADMAP.md are all in alignment, making any changes that are needed while making no unneeded changes.
 
-### 26. Revise ROADMAP.md to focus on porting across all four logic levels
-- **Effort**: Medium (2-4 hours)
-- **Status**: [COMPLETED]
-- **Task Type**: markdown
-- **Research**: [specs/026_revise_roadmap_focus_on_porting/reports/01_roadmap-revision-research.md]
-- **Plan**: [specs/026_revise_roadmap_focus_on_porting/plans/01_revision-plan.md]
-- **Summary**: [specs/026_revise_roadmap_focus_on_porting/summaries/01_revision-summary.md]
-
-**Description**: Revise ROADMAP.md to shift focus from the Bimodal/ theory to the full porting effort from BimodalLogic/ into Propositional/, Modal/, Temporal/, and Bimodal/. Provide background on the bimodal logic TM with links to https://github.com/benbrastmckie/BimodalLogic where more information can be found. Do not include a link to the paper in the ROADMAP.md
-
-### 25. Revise Task Order topic assignments based on ROADMAP.md
-- **Effort**: Small (1-2 hours)
-- **Status**: [NOT STARTED]
-- **Task Type**: meta
-
-**Description**: Research the current topic assignments in state.json and revise them so that each task belongs to exactly one topic. Use specs/ROADMAP.md as the authoritative source for how tasks group into Foundations, Modal, Temporal, and Bimodal categories. The auto-generated Task Order section currently shows tasks appearing under multiple topic headings because cross-topic dependencies pull subtrees into unrelated sections. Fix the topic field values and potentially the generate-task-order.sh rendering logic so that each task appears once under its primary topic
-
-### 24. Improve ROADMAP.md with BimodalLogic porting overview
-- **Effort**: Medium (3-5 hours)
-- **Status**: [COMPLETED]
-- **Task Type**: markdown
-- **Research**: [024_improve_roadmap_bimodal_porting/reports/01_roadmap-research.md]
-- **Summary**: [024_improve_roadmap_bimodal_porting/summaries/01_roadmap-summary.md]
-
-**Description**: Improve specs/ROADMAP.md to clearly introduce and describe the ambition to port BimodalLogic/ over to CSLib, populating Propositional/, Modal/, Temporal/, and Bimodal/ as appropriate, outlining the design decisions, the tasks along with a link to specs/TODO.md, creating a document that is easy for the maintainer of CSLib to take in and understand the current state of the project
+---
 
 ### 23. Temporal semantics on linear orders
 - **Effort**: Medium (4-6 hours)
@@ -135,55 +112,21 @@ next_project_number: 28
 
 ### 20. Propositional Hilbert theorems
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
+- **Research**: [020_propositional_hilbert_theorems/reports/01_hilbert-theorems-research.md]
+- **Plan**: [020_propositional_hilbert_theorems/plans/01_hilbert-theorems-plan.md]
 
 **Description**: Port propositional Hilbert-style theorems to `Cslib/Foundations/Logic/Theorems/` as generic `[PropositionalHilbert S]` lemmas (~2,400 lines from BimodalLogic). Scope: Combinators (I/B/C/S, ~300), Propositional/{Core,Connectives,Reasoning} (~1,100), ContextualProofs (~500), BigConj generic (~500). Note: DeductionTheorem stays per-logic (requires structural induction on DerivationTree, per team research finding).
 
 ---
 
-### 19. Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly
-- **Effort**: Large
-- **Status**: [COMPLETED]
-- **Task Type**: lean4
-- **Research**:
-  - [019_explore_modular_logic_factoring/reports/01_factoring-synthesis.md]
-  - [019_explore_modular_logic_factoring/reports/02_team-research.md]
-- **Plan**:
-  - [019_explore_modular_logic_factoring/plans/01_modular-factoring.md]
-  - [019_explore_modular_logic_factoring/plans/02_revised-factoring.md]
-- **Summary**: [019_explore_modular_logic_factoring/summaries/02_implementation-summary.md]
-
-**Description**: Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly. Analyze the BimodalLogic source to identify components that are purely propositional, purely modal, or purely temporal and can be developed in those standalone theories before being imported by the Bimodal/ theory. Revise the existing porting tasks (2-11) to reflect the proper factoring, ensuring each component lives at the most general level possible.
-
----
-
-### 18. Generate project-overview.md for this repository
-- **Effort**: Small (1-2 hours)
-- **Status**: [RESEARCHING]
-- **Task Type**: meta
-
-**Description**: Generate project-overview.md for this repository. The current file contains the generic template placeholder. Run `/project-overview` to interactively scan the repository and create project-specific context.
-
----
-
-### 17. Clean stale task 14 references and verify Task Order consistency
-- **Effort**: Small (<1 hour)
-- **Status**: [RESEARCHING]
-- **Task Type**: meta
-
-**Description**: Two project management cleanup tasks:
-1. Clean stale task 14 dependency references in TODO.md task descriptions (task 14 is completed and archived)
-2. Verify Task Order section reflects current dependency graph
-
-**Note**: ROADMAP.md population is handled by task 19 (has full research context). This task focuses on cleanup only.
-
----
-
 ### 16. Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived
 - **Effort**: Small (<1 hour)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
+- **Research**: [specs/016_formula_type_consistency/reports/01_formula-type-research.md]
+- **Plan**: [specs/016_formula_type_consistency/plans/01_formula-type-plan.md]
 
 **Description**: Formula type consistency fixes from code review:
 1. Add `deriving DecidableEq, BEq` to `Modal.Proposition` in `Cslib/Logics/Modal/Basic.lean` for consistency with `Bimodal.Formula` and `Temporal.Formula`
@@ -191,21 +134,9 @@ next_project_number: 28
 
 ---
 
-### 15. Complete embedding lattice: atom simp lemmas, PL.toBimodal, triangle-commutes
-- **Effort**: Small (1-2 hours)
-- **Status**: [RESEARCHING]
-- **Task Type**: lean4
-
-**Description**: Embedding completeness fixes from code review:
-1. Add `@[simp]` lemmas for the `atom` case in `ModalEmbedding.lean`, `TemporalEmbedding.lean`, and `Propositional/Embedding.lean`
-2. Add `PL.Proposition.toBimodal` function with `Coe` instance in `Propositional/Embedding.lean`
-3. Add triangle-commutes lemma proving `PL.toModal.toBimodal = PL.toTemporal.toBimodal`
-
----
-
 ### 12. Coordinate cslib PR submission for Bimodal Logic integration
 - **Effort**: Ongoing (tracked separately)
-- **Status**: [RESEARCHING]
+- **Status**: [PARTIAL]
 - **Task Type**: general
 
 **Description**: Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.
@@ -463,9 +394,11 @@ next_project_number: 28
 
 ### 2. Port Bimodal Syntax infrastructure (Context, BigConj, Subformulas)
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: BimodalLogic:291 (toolchain upgrade)
+- **Research**: [specs/002_port_bimodal_syntax_infrastructure/reports/01_syntax-port-research.md]
+- **Plan**: [specs/002_port_bimodal_syntax_infrastructure/plans/01_syntax-port-plan.md]
 
 **Description**: Port the syntax infrastructure from BimodalLogic to `Cslib/Logics/Bimodal/Syntax/`. `Bimodal.Formula` with `{atom, bot, imp, box, untl, snce}` already exists in `Cslib/Logics/Bimodal/Syntax/Basic.lean`. This task ports the remaining syntax components that operate on the full bimodal formula type: Context (proof assumptions), BigConj (finite conjunction), Subformulas, and SubformulaClosure — all using all 6 formula constructors.
 

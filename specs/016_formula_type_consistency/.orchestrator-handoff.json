@@ -1,0 +1,13 @@
+{
+  "status": "planned",
+  "summary": "Two-phase plan: add deriving DecidableEq/BEq to Modal.Proposition (Phase 1) and expand LukasiewiczDerived docstring (Phase 2), both independent and under 15 minutes total.",
+  "blockers": [],
+  "artifacts": [
+    {
+      "path": "specs/016_formula_type_consistency/plans/01_formula-type-plan.md",
+      "type": "plan",
+      "summary": "Implementation plan: 2 parallel phases, 0.25 hours total effort"
+    }
+  ],
+  "next_action_hint": "implement"
+}

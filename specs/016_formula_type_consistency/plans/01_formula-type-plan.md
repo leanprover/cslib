@@ -1,7 +1,7 @@
 # Implementation Plan: Add DecidableEq to Modal.Proposition, Resolve LukasiewiczDerived
 
 - **Task**: 16 - Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived usage
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.25 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/016_formula_type_consistency/reports/01_formula-type-research.md
@@ -96,10 +96,10 @@ Phases within the same wave can execute in parallel.
 
 ## Testing & Validation
 
-- [ ] `lake build Cslib.Logics.Modal.Basic` passes (Phase 1)
-- [ ] `lake build Cslib.Foundations.Logic.Connectives` passes (Phase 2)
-- [ ] Full `lake build` passes with zero errors (final verification)
-- [ ] No new warnings introduced
+- [x] `lake build Cslib.Logics.Modal.Basic` passes (Phase 1)
+- [x] `lake build Cslib.Foundations.Logic.Connectives` passes (Phase 2)
+- [x] Full `lake build` passes with zero errors (final verification)
+- [x] No new warnings introduced
 
 ## Artifacts & Outputs
 

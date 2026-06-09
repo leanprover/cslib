@@ -59,6 +59,163 @@
       ],
       "completion_summary": "Implemented modular logic architecture: connective typeclass hierarchy, refactored Propositional and Modal formula types to aligned primitives, created new Temporal and Bimodal formula types, embedding functions with Coe instances, and proof system typeclass hierarchy with polymorphic axioms. All 6 phases completed, lake build passes with zero errors.",
       "archived": "2026-06-08T22:58:07Z"
+    },
+    {
+      "project_number": 26,
+      "project_name": "revise_roadmap_focus_on_porting",
+      "status": "completed",
+      "task_type": "markdown",
+      "topic": "Project Management",
+      "created": "2026-06-09T00:52:11Z",
+      "last_updated": "2026-06-09T01:01:06Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/026_revise_roadmap_focus_on_porting/reports/01_roadmap-revision-research.md",
+          "type": "research",
+          "summary": "Research for ROADMAP revision: identifies Bimodal-heavy sections to trim, maps BimodalLogic content to all four CSLib levels, recommends revised structure leading with the four-level porting mission"
+        },
+        {
+          "path": "specs/026_revise_roadmap_focus_on_porting/plans/01_revision-plan.md",
+          "type": "plan",
+          "summary": "Single-phase plan for revising ROADMAP.md to lead with four-level porting mission instead of TM bimodal theory"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 1,
+        "total_effort_hours": 1,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_roadmap-revision-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-08"
+          }
+        ]
+      },
+      "completion_summary": "Revised ROADMAP.md to focus on four-level porting effort with brief TM background",
+      "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 25,
+      "project_name": "revise_task_order_topic_assignments",
+      "status": "completed",
+      "task_type": "meta",
+      "topic": "Project Management",
+      "created": "2026-06-09T00:42:17Z",
+      "last_updated": "2026-06-09T01:10:30Z",
+      "completion_summary": "Fixed two DFS rendering bugs in generate-task-order.sh (cross-topic gating and globally-visited fallback guard), corrected Task 15 topic field, and regenerated TODO.md Task Order section so each task appears once under its primary topic.",
+      "artifacts": [
+        {
+          "path": "specs/025_revise_task_order_topic_assignments/reports/01_topic-assignments-research.md",
+          "type": "report",
+          "summary": "Research on topic assignments and rendering bugs"
+        },
+        {
+          "path": "specs/025_revise_task_order_topic_assignments/plans/01_topic-assignment-fixes.md",
+          "type": "plan",
+          "summary": "2-phase plan for rendering bug fixes and topic field correction"
+        },
+        {
+          "path": "specs/025_revise_task_order_topic_assignments/summaries/01_implementation-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: two DFS rendering bugs fixed, Task 15 topic corrected, TODO.md regenerated"
+        }
+      ],
+      "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 24,
+      "project_name": "improve_roadmap_bimodal_porting",
+      "status": "completed",
+      "task_type": "markdown",
+      "created": "2026-06-09T00:31:08Z",
+      "last_updated": "2026-06-09T01:10:00Z",
+      "topic": "Project Management",
+      "completion_summary": "Rewrote specs/ROADMAP.md with comprehensive overview of BimodalLogic porting effort including what TM bimodal logic is, why it belongs in CSLib, modular factoring design decisions, current state of CSLib, porting phases, 6-wave task dependency structure, component accounting, and success metrics",
+      "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 19,
+      "project_name": "explore_modular_logic_factoring",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T23:11:41Z",
+      "last_updated": "2026-06-09T00:12:56Z",
+      "next_artifact_number": 3,
+      "artifacts": [
+        {
+          "path": "specs/019_explore_modular_logic_factoring/reports/01_factoring-synthesis.md",
+          "type": "research",
+          "summary": "Synthesis: ~5,000 lines of BimodalLogic factor into Foundations/, Modal/, and Temporal/ rather than Bimodal/"
+        },
+        {
+          "path": "specs/019_explore_modular_logic_factoring/reports/02_team-research.md",
+          "type": "research",
+          "summary": "Team research: semantic boundaries, soundness/completeness, tableau systems (4 teammates)"
+        },
+        {
+          "path": "specs/019_explore_modular_logic_factoring/plans/02_revised-factoring.md",
+          "type": "plan",
+          "summary": "Revised plan adding ROADMAP.md population and topic-grouped Task Order to the modular factoring restructuring"
+        },
+        {
+          "path": "specs/019_explore_modular_logic_factoring/summaries/02_implementation-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: 4 phases completed, 20 tasks, ROADMAP populated, topic-grouped Task Order"
+        }
+      ],
+      "researched": "2026-06-08T23:44:09Z",
+      "session_id": "sess_1780963216_e830ba",
+      "completion_summary": "Created tasks 20-23 with seed research, revised tasks 2-7/12/17, populated ROADMAP.md with 4-phase porting plan, restructured TODO.md Task Order into topic groupings",
+      "topic": "Project Management",
+      "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 15,
+      "project_name": "complete_embedding_lattice",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T23:05:54Z",
+      "last_updated": "2026-06-09T00:21:36Z",
+      "description": "Complete embedding lattice: add atom simp lemmas, PL.toBimodal path, triangle-commutes lemma",
+      "session_id": "sess_1780964447_c6a4ec",
+      "topic": "Foundations",
+      "completion_summary": "Added 4 atom simp lemmas, created PL.toBimodal direct path with Coe instance, proved triangle-commutation lemma; lake build passes with zero errors.",
+      "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 17,
+      "project_name": "project_management_roadmap_taskorder",
+      "status": "completed",
+      "task_type": "meta",
+      "created": "2026-06-08T23:05:54Z",
+      "last_updated": "2026-06-09T00:21:36Z",
+      "description": "Clean stale task 14 references and verify Task Order consistency. Scope: (1) clean stale task 14 dependency references in TODO.md task descriptions (task 14 is completed and archived), (2) verify Task Order section reflects current dependency graph. Note: ROADMAP.md population is handled by task 19 which has the full research context.",
+      "session_id": "sess_1780964447_c6a4ec",
+      "topic": "Project Management",
+      "completion_summary": "Cleaned 5 stale task 14 dependency fields and 12 prose references in TODO.md; verified Task Order wave table consistency.",
+      "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 18,
+      "project_name": "generate_project_overview",
+      "status": "completed",
+      "task_type": "meta",
+      "created": "2026-06-08T23:05:54Z",
+      "last_updated": "2026-06-09T00:21:36Z",
+      "description": "Generate project-overview.md for this repository",
+      "session_id": "sess_1780964447_c6a4ec",
+      "topic": "Project Management",
+      "completion_summary": "Generated 309-line project-overview.md covering all 8 CSLib namespaces, build system, CI/CD, and design patterns; added .syncprotect.",
+      "archived": "2026-06-09T01:25:32Z"
     }
   ],
   "archived_projects": [
