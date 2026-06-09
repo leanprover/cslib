@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brastmckie
 -/
 import Cslib.Logics.Bimodal.Metalogic.Soundness.DenseValidity
+import Mathlib.Order.SuccPred.Basic
+import Mathlib.Order.SuccPred.Archimedean
 
 /-!
 # Soundness Lemmas for General and Discrete Frame Classes
@@ -569,8 +571,352 @@ private theorem axiom_locally_valid_general [Nontrivial D] {φ : Formula Atom} (
   | prior_SZ _ => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
   | z1 _ => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
 
--- TODO: Continue with remaining content (derivable_valid_and_swap_valid_general,
--- Prior-UZ/SZ/Z1 discrete proofs, discrete combined soundness).
--- See handoff document for porting patterns.
+/-- Combined soundness for base derivations without frame-class constraints:
+derivability implies both validity and swap-validity. Identical to
+`derivable_valid_and_swap_valid` but without `[DenselyOrdered D] [Nontrivial D]`.
+
+This is possible because the BX axiom system has no density or discreteness extension
+axioms, so the proofs never actually use those constraints. -/
+theorem derivable_valid_and_swap_valid_general [Nontrivial D]
+    {φ : Formula Atom} (d : DerivationTree FrameClass.Base [] φ) :
+    is_valid D φ ∧ is_valid D φ.swap_temporal := by
+  match d with
+  | .axiom _ _ h_ax h_fc =>
+    exact ⟨axiom_locally_valid_general h_ax h_fc, axiom_swap_valid_general _ h_ax h_fc⟩
+  | .assumption _ _ h_mem => exact absurd h_mem (Context.not_mem_nil _)
+  | .modus_ponens _ ψ' _ d1 d2 =>
+    obtain ⟨h1_valid, h1_swap⟩ := derivable_valid_and_swap_valid_general d1
+    obtain ⟨h2_valid, h2_swap⟩ := derivable_valid_and_swap_valid_general d2
+    exact ⟨mp_preserves_valid h1_valid h2_valid, mp_preserves_swap_valid ψ' _ h1_swap h2_swap⟩
+  | .necessitation ψ' d' =>
+    obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_general d'
+    exact ⟨necessitation_preserves_local_valid h_valid, modal_k_preserves_swap_valid ψ' h_swap⟩
+  | .temporal_necessitation ψ' d' =>
+    obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_general d'
+    exact ⟨temporal_necessitation_preserves_local_valid h_valid, temporal_k_preserves_swap_valid ψ' h_swap⟩
+  | .temporal_duality ψ' d' =>
+    obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_general d'
+    constructor
+    · exact h_swap
+    · simp only [Formula.swap_temporal_involution]; exact h_valid
+  | .weakening Γ' _ _ d' h_sub =>
+    have h_eq : Γ' = [] := List.eq_nil_of_subset_nil h_sub
+    have h_height_eq : (h_eq ▸ d').height = d'.height := by subst h_eq; rfl
+    have h_term : (h_eq ▸ d').height < (DerivationTree.weakening Γ' [] _ d' h_sub).height := by
+      simp only [h_height_eq, DerivationTree.height]
+      omega
+    exact derivable_valid_and_swap_valid_general (h_eq ▸ d')
+termination_by d.height
+decreasing_by
+  all_goals first
+    | exact DerivationTree.mp_height_gt_left _ _
+    | exact DerivationTree.mp_height_gt_right _ _
+    | simp only [DerivationTree.height]; omega
+
+/-- Derivability implies swap validity for base-compatible derivations.
+This is the theorem needed for the temporal_duality case in base soundness. -/
+theorem derivable_implies_swap_valid_general [Nontrivial D]
+    {φ : Formula Atom} (d : DerivationTree FrameClass.Base [] φ) :
+    is_valid D φ.swap_temporal :=
+  (derivable_valid_and_swap_valid_general d).2
+
+/-! ## Discrete Frame Versions
+
+The following theorems provide validity and swap-validity for all axioms on discrete
+frames. Prior-UZ/SZ have `minFrameClass = .Discrete` and are only valid on discrete orders,
+so these theorems handle all axioms including Prior-UZ/SZ. The discrete frame class
+constraint `h.minFrameClass ≤ .Discrete` structurally excludes the density axiom.
+-/
+
+/-- Prior-UZ is valid on discrete orders: F(φ) → U(φ, ¬φ).
+The nearest future witness where φ holds satisfies Until with ¬φ as guard.
+Uses Nat.find for well-founded descent on the succ chain. -/
+theorem prior_UZ_is_valid
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    (φ : Formula Atom) : is_valid D (φ.some_future.imp (Formula.untl φ φ.neg)) := by
+  intro ℱ M Omega _h_sc τ _h_mem t
+  simp only [Formula.neg, truth_at]
+  intro ⟨s, hts, hs, _⟩
+  obtain ⟨n, hn⟩ := (Order.succ_le_of_lt hts).exists_succ_iterate
+  have hn1 : Order.succ^[n + 1] t = s := by
+    simp; exact hn
+  classical
+  have h_ex : ∃ k, truth_at M Omega τ (Order.succ^[k + 1] t) φ := ⟨n, hn1 ▸ hs⟩
+  let k₀ := Nat.find h_ex
+  have hk₀ : truth_at M Omega τ (Order.succ^[k₀ + 1] t) φ := Nat.find_spec h_ex
+  have hk₀_min : ∀ m < k₀, ¬truth_at M Omega τ (Order.succ^[m + 1] t) φ :=
+    fun m hm => Nat.find_min h_ex hm
+  have h_iter_mono : Monotone (fun i => Order.succ^[i] t) :=
+    Order.succ_mono.monotone_iterate_of_le_map (Order.le_succ t)
+  have h_not_max : ¬IsMax t := hts.not_isMax
+  refine ⟨Order.succ^[k₀ + 1] t, ?_, hk₀, ?_⟩
+  · have h1 := h_iter_mono (Nat.one_le_iff_ne_zero.mpr (Nat.succ_ne_zero k₀))
+    simp only at h1
+    exact lt_of_lt_of_le (Order.lt_succ_of_not_isMax h_not_max) h1
+  · intro r htr hrs
+    obtain ⟨j, hj⟩ := (Order.succ_le_of_lt htr).exists_succ_iterate
+    have hj1 : Order.succ^[j + 1] t = r := by
+      simp; exact hj
+    have hj_lt : j < k₀ := by
+      by_contra h_ge
+      push_neg at h_ge
+      have h_le := h_iter_mono (show k₀ + 1 ≤ j + 1 by omega)
+      simp only at h_le
+      rw [hj1] at h_le
+      exact absurd hrs (not_lt.mpr h_le)
+    rw [← hj1]
+    exact hk₀_min j hj_lt
+
+/-- Prior-SZ is valid on discrete orders: P(φ) → S(φ, ¬φ).
+Mirror of prior_UZ_is_valid using pred chain and IsPredArchimedean. -/
+theorem prior_SZ_is_valid
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    (φ : Formula Atom) : is_valid D (φ.some_past.imp (Formula.snce φ φ.neg)) := by
+  intro ℱ M Omega _h_sc τ _h_mem t
+  simp only [Formula.neg, truth_at]
+  intro ⟨s, hst, hs, _⟩
+  obtain ⟨n, hn⟩ := (Order.le_pred_of_lt hst).exists_pred_iterate
+  have hn1 : Order.pred^[n + 1] t = s := by
+    simp; exact hn
+  classical
+  have h_ex : ∃ k, truth_at M Omega τ (Order.pred^[k + 1] t) φ := ⟨n, hn1 ▸ hs⟩
+  let k₀ := Nat.find h_ex
+  have hk₀ : truth_at M Omega τ (Order.pred^[k₀ + 1] t) φ := Nat.find_spec h_ex
+  have hk₀_min : ∀ m < k₀, ¬truth_at M Omega τ (Order.pred^[m + 1] t) φ :=
+    fun m hm => Nat.find_min h_ex hm
+  have h_iter_anti : Antitone (fun i => Order.pred^[i] t) :=
+    Order.pred_mono.antitone_iterate_of_map_le (Order.pred_le t)
+  have h_not_min : ¬IsMin t := hst.not_isMin
+  refine ⟨Order.pred^[k₀ + 1] t, ?_, hk₀, ?_⟩
+  · have h1 := h_iter_anti (Nat.one_le_iff_ne_zero.mpr (Nat.succ_ne_zero k₀))
+    simp only at h1
+    exact lt_of_le_of_lt h1 (Order.pred_lt_of_not_isMin h_not_min)
+  · intro r hrs hrt
+    obtain ⟨j, hj⟩ := (Order.le_pred_of_lt hrt).exists_pred_iterate
+    have hj1 : Order.pred^[j + 1] t = r := by
+      simp; exact hj
+    have hj_lt : j < k₀ := by
+      by_contra h_ge
+      push_neg at h_ge
+      have h_le := h_iter_anti (show k₀ + 1 ≤ j + 1 by omega)
+      simp only at h_le
+      rw [hj1] at h_le
+      exact absurd hrs (not_lt.mpr h_le)
+    rw [← hj1]
+    exact hk₀_min j hj_lt
+
+/-- Z1 is valid on discrete orders: G(Gφ→φ) → (FGφ→Gφ).
+Backward induction from the Gφ witness using IsSuccArchimedean. -/
+theorem z1_is_valid
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    (φ : Formula Atom) : is_valid D ((φ.all_future.imp φ).all_future.imp
+        (φ.all_future.some_future.imp φ.all_future)) := by
+  intro ℱ M Omega _h_sc τ _h_mem t
+  simp only [Formula.neg, truth_at]
+  intro h_GGpIp ⟨s₀, hts₀, hs₀, _⟩
+  -- Extract: h_GGpIp encodes G(Gφ→φ), hs₀ encodes Gφ(s₀)
+  -- h_GGpIp : (∃ s > t, ((Gφ(s) → φ(s)) → ⊥) ∧ guard) → ⊥
+  -- hs₀ : (∃ s > s₀, (φ(s) → ⊥) ∧ guard) → ⊥
+  -- Helper to extract Gφ→φ at any s > t from h_GGpIp
+  have h_GGpIp_at : ∀ s, t < s →
+      ((∃ r, s < r ∧ (truth_at M Omega τ r φ → False) ∧
+        ∀ q, s < q → q < r → False → False) → False) →
+      truth_at M Omega τ s φ := by
+    intro s hts h_Gφs
+    by_contra h_neg
+    apply h_GGpIp
+    exact ⟨s, hts, fun h_imp => h_neg (h_imp h_Gφs), fun _ _ _ hf => absurd hf not_false⟩
+  obtain ⟨n₀, hn₀⟩ := (Order.succ_le_of_lt hts₀).exists_succ_iterate
+  have hn₀_eq : Order.succ^[n₀ + 1] t = s₀ := by
+    show Order.succ^[n₀] (Order.succ t) = s₀; exact hn₀
+  have h_iter_mono : Monotone (fun i => Order.succ^[i] t) :=
+    Order.succ_mono.monotone_iterate_of_le_map (Order.le_succ t)
+  have h_not_max : ¬IsMax t := hts₀.not_isMax
+  have h_above_s0 : ∀ s, s₀ ≤ s → truth_at M Omega τ s φ := by
+    intro s hs
+    rcases eq_or_lt_of_le hs with rfl | hlt
+    · exact h_GGpIp_at s₀ hts₀ hs₀
+    · exact by by_contra h_neg; apply hs₀; exact ⟨s, hlt, h_neg, fun _ _ _ hf => absurd hf not_false⟩
+  have h_all_iterates : ∀ k, truth_at M Omega τ (Order.succ^[k + 1] t) φ := by
+    suffices h_le : ∀ k, k ≤ n₀ → truth_at M Omega τ (Order.succ^[k + 1] t) φ by
+      intro k
+      by_cases hk : k ≤ n₀
+      · exact h_le k hk
+      · exact h_above_s0 _ (hn₀_eq ▸ h_iter_mono (by omega : n₀ + 1 ≤ k + 1))
+    have : ∀ d, d ≤ n₀ → ∀ k, n₀ - k = d → k ≤ n₀ →
+        truth_at M Omega τ (Order.succ^[k + 1] t) φ := by
+      intro d
+      induction d using Nat.strong_induction_on with
+      | _ d ih =>
+        intro hd k hk hkn
+        have h_lt_t : t < Order.succ^[k + 1] t :=
+          lt_of_lt_of_le (Order.lt_succ_of_not_isMax h_not_max)
+            (h_iter_mono (by omega : 1 ≤ k + 1))
+        apply h_GGpIp_at _ h_lt_t
+        -- Need: Gφ at succ^[k+1](t), i.e. ¬∃ r > succ^[k+1](t), ¬φ(r)
+        intro ⟨r, hr, h_neg_φr, _⟩
+        obtain ⟨j, hj⟩ := (Order.succ_le_of_lt hr).exists_succ_iterate
+        have hj_eq : Order.succ^[j + 1] (Order.succ^[k + 1] t) = r := by
+          show Order.succ^[j] (Order.succ (Order.succ^[k + 1] t)) = r; exact hj
+        rw [← hj_eq, ← Function.iterate_add_apply,
+            show j + 1 + (k + 1) = (k + j + 1) + 1 from by omega] at h_neg_φr
+        by_cases h_le : k + j + 1 ≤ n₀
+        · exact h_neg_φr (ih (n₀ - (k + j + 1)) (by omega) (by omega) (k + j + 1) rfl h_le)
+        · exact h_neg_φr (h_above_s0 _ (hn₀_eq ▸ h_iter_mono (by omega : n₀ + 1 ≤ (k + j + 1) + 1)))
+    intro k hk
+    exact this (n₀ - k) (by omega) k rfl hk
+  intro ⟨s, hts, h_neg_φs, _⟩
+  obtain ⟨m, hm⟩ := (Order.succ_le_of_lt hts).exists_succ_iterate
+  have hm_eq : Order.succ^[m + 1] t = s := by change Order.succ^[m] (Order.succ t) = s; exact hm
+  exact h_neg_φs (hm_eq ▸ h_all_iterates m)
+
+/-- Z1 past dual is valid on discrete orders: H(Hφ→φ) → (PHφ→Hφ).
+Backward induction using IsPredArchimedean. -/
+theorem z1_past_is_valid
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    (φ : Formula Atom) : is_valid D ((φ.all_past.imp φ).all_past.imp
+        (φ.all_past.some_past.imp φ.all_past)) := by
+  intro ℱ M Omega _h_sc τ _h_mem t
+  simp only [Formula.neg, truth_at]
+  intro h_HHpIp ⟨s₀, hs₀t, hs₀, _⟩
+  -- h_HHpIp encodes H(Hφ→φ), hs₀ encodes Hφ(s₀)
+  -- Helper to extract Hφ→φ at any s < t
+  have h_HHpIp_at : ∀ s, s < t →
+      ((∃ r, r < s ∧ (truth_at M Omega τ r φ → False) ∧
+        ∀ q, r < q → q < s → False → False) → False) →
+      truth_at M Omega τ s φ := by
+    intro s hst h_Hφs
+    by_contra h_neg
+    apply h_HHpIp
+    exact ⟨s, hst, fun h_imp => h_neg (h_imp h_Hφs), fun _ _ _ hf => absurd hf not_false⟩
+  obtain ⟨n₀, hn₀⟩ := (Order.le_pred_of_lt hs₀t).exists_pred_iterate
+  have hn₀_eq : Order.pred^[n₀ + 1] t = s₀ := by
+    show Order.pred^[n₀] (Order.pred t) = s₀; exact hn₀
+  have h_iter_anti : Antitone (fun i => Order.pred^[i] t) :=
+    Order.pred_mono.antitone_iterate_of_map_le (Order.pred_le t)
+  have h_not_min : ¬IsMin t := hs₀t.not_isMin
+  have h_below_s0 : ∀ u, u ≤ s₀ → truth_at M Omega τ u φ := by
+    intro u hu
+    rcases eq_or_lt_of_le hu with rfl | hlt
+    · exact h_HHpIp_at _ hs₀t hs₀
+    · exact by by_contra h_neg; apply hs₀; exact ⟨u, hlt, h_neg, fun _ _ _ hf => absurd hf not_false⟩
+  have h_all_iterates : ∀ k, truth_at M Omega τ (Order.pred^[k + 1] t) φ := by
+    suffices h_le : ∀ k, k ≤ n₀ → truth_at M Omega τ (Order.pred^[k + 1] t) φ by
+      intro k
+      by_cases hk : k ≤ n₀
+      · exact h_le k hk
+      · exact h_below_s0 _ (hn₀_eq ▸ h_iter_anti (by omega : n₀ + 1 ≤ k + 1))
+    have : ∀ d, d ≤ n₀ → ∀ k, n₀ - k = d → k ≤ n₀ →
+        truth_at M Omega τ (Order.pred^[k + 1] t) φ := by
+      intro d
+      induction d using Nat.strong_induction_on with
+      | _ d ih =>
+        intro hd k hk hkn
+        have h_lt_t : Order.pred^[k + 1] t < t :=
+          lt_of_le_of_lt (h_iter_anti (by omega : 1 ≤ k + 1))
+            (Order.pred_lt_of_not_isMin h_not_min)
+        apply h_HHpIp_at _ h_lt_t
+        -- Need: Hφ at pred^[k+1](t), i.e. ¬∃ r < pred^[k+1](t), ¬φ(r)
+        intro ⟨r, hr, h_neg_φr, _⟩
+        obtain ⟨j, hj⟩ := (Order.le_pred_of_lt hr).exists_pred_iterate
+        have hj_eq : Order.pred^[j + 1] (Order.pred^[k + 1] t) = r := by
+          show Order.pred^[j] (Order.pred (Order.pred^[k + 1] t)) = r; exact hj
+        rw [← hj_eq, ← Function.iterate_add_apply,
+            show j + 1 + (k + 1) = (k + j + 1) + 1 from by omega] at h_neg_φr
+        by_cases h_le : k + j + 1 ≤ n₀
+        · exact h_neg_φr (ih (n₀ - (k + j + 1)) (by omega) (by omega) (k + j + 1) rfl h_le)
+        · exact h_neg_φr (h_below_s0 _ (hn₀_eq ▸ h_iter_anti (by omega : n₀ + 1 ≤ (k + j + 1) + 1)))
+    intro k hk
+    exact this (n₀ - k) (by omega) k rfl hk
+  intro ⟨s, hst, h_neg_φs, _⟩
+  obtain ⟨m, hm⟩ := (Order.le_pred_of_lt hst).exists_pred_iterate
+  have hm_eq : Order.pred^[m + 1] t = s := by change Order.pred^[m] (Order.pred t) = s; exact hm
+  exact h_neg_φs (hm_eq ▸ h_all_iterates m)
+
+/-- All axiom swaps are valid on discrete orders. For base-compatible axioms,
+delegates to `axiom_swap_valid_general`. For Prior-UZ/SZ, proves directly. -/
+private theorem axiom_swap_valid_discrete
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    (φ : Formula Atom) (h : Axiom φ) (h_fc : h.minFrameClass ≤ FrameClass.Discrete) :
+    is_valid D φ.swap_temporal := by
+  by_cases hbase : h.minFrameClass ≤ FrameClass.Base
+  · exact axiom_swap_valid_general _ h hbase
+  · cases h with
+    | prior_UZ φ =>
+      change is_valid D (φ.swap_temporal.some_past.imp (φ.swap_temporal.snce φ.swap_temporal.neg))
+      exact prior_SZ_is_valid φ.swap_temporal
+    | prior_SZ φ =>
+      change is_valid D (φ.swap_temporal.some_future.imp (φ.swap_temporal.untl φ.swap_temporal.neg))
+      exact prior_UZ_is_valid φ.swap_temporal
+    | z1 φ =>
+      change is_valid D ((φ.swap_temporal.all_past.imp φ.swap_temporal).all_past.imp
+        (φ.swap_temporal.all_past.some_past.imp φ.swap_temporal.all_past))
+      exact z1_past_is_valid φ.swap_temporal
+    | density _ => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
+    | dense_indicator => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
+    | _ => exact absurd trivial hbase
+
+/-- All discrete-compatible axioms are locally valid on discrete orders. For base axioms,
+delegates to `axiom_locally_valid_general`. For others, proves directly. -/
+private theorem axiom_locally_valid_discrete
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    {φ : Formula Atom} (h : Axiom φ) (h_fc : h.minFrameClass ≤ FrameClass.Discrete) :
+    is_valid D φ := by
+  by_cases hbase : h.minFrameClass ≤ FrameClass.Base
+  · exact axiom_locally_valid_general h hbase
+  · cases h with
+    | prior_UZ φ => exact prior_UZ_is_valid φ
+    | prior_SZ φ => exact prior_SZ_is_valid φ
+    | z1 φ => exact z1_is_valid φ
+    | density _ => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
+    | dense_indicator => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
+    | _ => exact absurd trivial hbase
+
+/-- Combined soundness on discrete frames: derivability implies both validity
+and swap-validity on discrete orders. -/
+theorem derivable_valid_and_swap_valid_discrete
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    {φ : Formula Atom} (d : DerivationTree FrameClass.Discrete [] φ) :
+    is_valid D φ ∧ is_valid D φ.swap_temporal := by
+  match d with
+  | .axiom _ _ h_ax h_fc =>
+    exact ⟨axiom_locally_valid_discrete h_ax h_fc, axiom_swap_valid_discrete _ h_ax h_fc⟩
+  | .assumption _ _ h_mem => exact absurd h_mem (Context.not_mem_nil _)
+  | .modus_ponens _ ψ' _ d1 d2 =>
+    obtain ⟨h1_valid, h1_swap⟩ := derivable_valid_and_swap_valid_discrete d1
+    obtain ⟨h2_valid, h2_swap⟩ := derivable_valid_and_swap_valid_discrete d2
+    exact ⟨mp_preserves_valid h1_valid h2_valid, mp_preserves_swap_valid ψ' _ h1_swap h2_swap⟩
+  | .necessitation ψ' d' =>
+    obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_discrete d'
+    exact ⟨necessitation_preserves_local_valid h_valid, modal_k_preserves_swap_valid ψ' h_swap⟩
+  | .temporal_necessitation ψ' d' =>
+    obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_discrete d'
+    exact ⟨temporal_necessitation_preserves_local_valid h_valid, temporal_k_preserves_swap_valid ψ' h_swap⟩
+  | .temporal_duality ψ' d' =>
+    obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_discrete d'
+    constructor
+    · exact h_swap
+    · simp only [Formula.swap_temporal_involution]; exact h_valid
+  | .weakening Γ' _ _ d' h_sub =>
+    have h_eq : Γ' = [] := List.eq_nil_of_subset_nil h_sub
+    have h_height_eq : (h_eq ▸ d').height = d'.height := by subst h_eq; rfl
+    have h_term : (h_eq ▸ d').height < (DerivationTree.weakening Γ' [] _ d' h_sub).height := by
+      simp only [h_height_eq, DerivationTree.height]
+      omega
+    exact derivable_valid_and_swap_valid_discrete (h_eq ▸ d')
+termination_by d.height
+decreasing_by
+  all_goals first
+    | exact DerivationTree.mp_height_gt_left _ _
+    | exact DerivationTree.mp_height_gt_right _ _
+    | simp only [DerivationTree.height]; omega
+
+/-- Derivability implies swap validity on discrete frames.
+Used in soundness_discrete_valid and soundness_discrete temporal_duality cases. -/
+theorem derivable_implies_swap_valid_discrete
+    [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
+    {φ : Formula Atom} (d : DerivationTree FrameClass.Discrete [] φ) :
+    is_valid D φ.swap_temporal :=
+  (derivable_valid_and_swap_valid_discrete d).2
 
 end Cslib.Logic.Bimodal.Metalogic.SoundnessLemmas

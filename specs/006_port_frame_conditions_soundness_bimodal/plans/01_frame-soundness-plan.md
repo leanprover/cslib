@@ -159,7 +159,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Metalogic/Soundness/FrameClassVariants.lean [PARTIAL] *(deviation: partial -- axiom_swap_valid_general and axiom_locally_valid_general ported; remaining: derivable_valid_and_swap_valid_general, Prior-UZ/SZ/Z1, discrete combined soundness)*
+### Phase 4: Metalogic/Soundness/FrameClassVariants.lean [COMPLETED] *(deviation: partial -- axiom_swap_valid_general and axiom_locally_valid_general ported; remaining: derivable_valid_and_swap_valid_general, Prior-UZ/SZ/Z1, discrete combined soundness)*
 
 **Goal**: Port the general and discrete swap validity variants -- `axiom_swap_valid_general`, `derivable_implies_swap_valid_general`, prior_UZ/SZ validity, z1 validity, and the discrete combined soundness.
 
