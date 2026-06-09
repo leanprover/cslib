@@ -1,7 +1,7 @@
 # Implementation Plan: Task #31 -- Standalone Temporal Metalogic
 
 - **Task**: 31 - Build standalone temporal metalogic
-- **Status**: [NOT STARTED]
+- **Status**: [IN PROGRESS]
 - **Effort**: 18 hours
 - **Dependencies**: Task 22 (temporal infrastructure), Task 23 (temporal semantics), Task 29 (generic MCS)
 - **Research Inputs**: specs/031_temporal_metalogic/reports/01_temporal-metalogic-research.md
@@ -173,7 +173,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Soundness [NOT STARTED]
+### Phase 4: Soundness [IN PROGRESS]
 
 **Goal**: Prove that every derivable formula is valid over serial linear temporal orders (models with `LinearOrder D`, `NoMaxOrder D`, `NoMinOrder D`).
 

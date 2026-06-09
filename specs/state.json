@@ -4,7 +4,7 @@
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T18:00:00Z",

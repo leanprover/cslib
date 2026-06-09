@@ -21,7 +21,7 @@ next_project_number: 38
 
 ### Temporal Logic
 
-31 [PLANNED] — Build standalone temporal metalogic (~1,500 lines, new development)
+31 [IMPLEMENTING] — Build standalone temporal metalogic (~1,500 lines, new development)
 
 ### Bimodal Porting
 
@@ -46,7 +46,7 @@ next_project_number: 38
 
 ### 31. Temporal metalogic
 - **Effort**: Large (18 hours)
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Plan**: [specs/031_temporal_metalogic/plans/01_temporal-metalogic-plan.md]
 - **Task Type**: lean4
 - **Dependencies**: Task 22, Task 23, Task 29
