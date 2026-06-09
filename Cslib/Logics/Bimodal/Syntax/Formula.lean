@@ -8,6 +8,7 @@ module
 
 public import Cslib.Init
 public import Cslib.Foundations.Logic.Connectives
+public import Mathlib.Data.Finset.Basic
 
 /-! # Bimodal Logic Formula
 
@@ -97,5 +98,102 @@ instance : BimodalConnectives (Formula Atom) where
   box := .box
   untl := .untl
   snce := .snce
+
+/-! ## Swap Temporal Duality -/
+
+namespace Formula
+
+variable {Atom : Type u}
+
+/--
+Swap temporal operators (past <-> future) in a formula.
+
+This transformation is used in the temporal duality inference rule (TD):
+if `|- phi` then `|- swap_temporal phi`.
+
+The box operator is self-dual under temporal swap: `swap(box(phi)) = box(swap(phi))`.
+-/
+def swap_temporal : Formula Atom -> Formula Atom
+  | .atom s => .atom s
+  | .bot => .bot
+  | .imp phi psi => .imp (swap_temporal phi) (swap_temporal psi)
+  | .box phi => .box (swap_temporal phi)
+  | .untl phi psi => .snce (swap_temporal phi) (swap_temporal psi)
+  | .snce phi psi => .untl (swap_temporal phi) (swap_temporal psi)
+
+/-- swap_temporal is an involution (applying it twice gives identity). -/
+theorem swap_temporal_involution (phi : Formula Atom) :
+    phi.swap_temporal.swap_temporal = phi := by
+  induction phi with
+  | atom _ => rfl
+  | bot => rfl
+  | imp _ _ ihp ihq => simp only [swap_temporal, ihp, ihq]
+  | box _ ih => simp only [swap_temporal, ih]
+  | untl _ _ ih1 ih2 => simp only [swap_temporal, ih1, ih2]
+  | snce _ _ ih1 ih2 => simp only [swap_temporal, ih1, ih2]
+
+/-- swap_temporal distributes over negation: swap(neg phi) = neg(swap phi). -/
+theorem swap_temporal_neg (phi : Formula Atom) :
+    (Formula.neg phi).swap_temporal = Formula.neg phi.swap_temporal := by
+  simp only [Formula.neg, swap_temporal]
+
+/-- swap_temporal distributes over diamond: swap(diamond phi) = diamond(swap phi). -/
+theorem swap_temporal_diamond (phi : Formula Atom) :
+    phi.diamond.swap_temporal = phi.swap_temporal.diamond := by
+  simp only [diamond, neg, swap_temporal]
+
+/-- swap_temporal exchanges some_future and some_past: swap(F phi) = P(swap phi). -/
+@[simp]
+theorem swap_temporal_some_future (phi : Formula Atom) :
+    (Formula.some_future phi).swap_temporal = Formula.some_past phi.swap_temporal := by
+  simp only [Formula.some_past, Formula.top, swap_temporal]
+
+/-- swap_temporal exchanges some_past and some_future: swap(P phi) = F(swap phi). -/
+@[simp]
+theorem swap_temporal_some_past (phi : Formula Atom) :
+    (Formula.some_past phi).swap_temporal = Formula.some_future phi.swap_temporal := by
+  simp only [Formula.some_future, Formula.top, swap_temporal]
+
+/-- swap_temporal exchanges all_future and all_past: swap(G phi) = H(swap phi). -/
+@[simp]
+theorem swap_temporal_all_future (phi : Formula Atom) :
+    (Formula.all_future phi).swap_temporal = Formula.all_past phi.swap_temporal := by
+  simp only [Formula.all_past, swap_temporal]
+
+/-- swap_temporal exchanges all_past and all_future: swap(H phi) = G(swap phi). -/
+@[simp]
+theorem swap_temporal_all_past (phi : Formula Atom) :
+    (Formula.all_past phi).swap_temporal = Formula.all_future phi.swap_temporal := by
+  simp only [Formula.all_future, swap_temporal]
+
+/-! ## Propositional Atoms -/
+
+section Atoms
+
+variable [DecidableEq Atom]
+
+/-- The set of propositional atoms appearing in a formula. -/
+def atoms : Formula Atom -> Finset Atom
+  | .atom s => {s}
+  | .bot => {}
+  | .imp phi psi => atoms phi ∪ atoms psi
+  | .box phi => atoms phi
+  | .untl phi psi => atoms phi ∪ atoms psi
+  | .snce phi psi => atoms phi ∪ atoms psi
+
+/-- swap_temporal preserves atoms: swapping past/future does not change which atoms appear. -/
+theorem atoms_swap_temporal (phi : Formula Atom) :
+    atoms (swap_temporal phi) = atoms phi := by
+  induction phi with
+  | atom _ => rfl
+  | bot => rfl
+  | imp _ _ ih1 ih2 => simp only [swap_temporal, atoms]; rw [ih1, ih2]
+  | box _ ih => simp only [swap_temporal, atoms]; rw [ih]
+  | untl _ _ ih1 ih2 => simp only [swap_temporal, atoms]; rw [ih1, ih2]
+  | snce _ _ ih1 ih2 => simp only [swap_temporal, atoms]; rw [ih1, ih2]
+
+end Atoms
+
+end Formula
 
 end Cslib.Logic.Bimodal
