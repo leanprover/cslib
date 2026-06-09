@@ -4,16 +4,17 @@
     {
       "project_number": 42,
       "project_name": "port_bimodal_tableau_core",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-09T12:45:30Z",
-      "last_updated": "2026-06-09T13:20:00Z",
+      "last_updated": "2026-06-09T14:30:00Z",
       "dependencies": [
         4,
         7
       ],
       "topic": "Bimodal Porting",
-      "description": "Port the core tableau-based decision procedure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/. This covers the main decision procedure pipeline: SignedFormula (signed formula type, ~400 lines), Tableau (28 expansion rules + termination proof, ~1,800 lines), Closure (closure conditions, ~600 lines), Saturation (saturation lemmas + model extraction framework, ~800 lines), ProofExtraction (closed tableau → DerivationTree, ~600 lines), Correctness (tableau soundness + completeness, ~400 lines), DecisionProcedure (decide function + Decidable instance, ~500 lines), CountermodelExtraction (open saturated → countermodel, ~600 lines).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/\n**Estimated scope**: ~5,700 lines across 8 files\n**Parent task**: Task 9 (expanded)\n\n**Key deliverable**: `instance : Decidable (ThDerivable φ)` — executable decision procedure for bimodal TM logic.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry)."
+      "description": "Port the core tableau-based decision procedure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/. This covers the main decision procedure pipeline: SignedFormula (signed formula type, ~400 lines), Tableau (28 expansion rules + termination proof, ~1,800 lines), Closure (closure conditions, ~600 lines), Saturation (saturation lemmas + model extraction framework, ~800 lines), ProofExtraction (closed tableau → DerivationTree, ~600 lines), Correctness (tableau soundness + completeness, ~400 lines), DecisionProcedure (decide function + Decidable instance, ~500 lines), CountermodelExtraction (open saturated → countermodel, ~600 lines).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/\n**Estimated scope**: ~5,700 lines across 8 files\n**Parent task**: Task 9 (expanded)\n\n**Key deliverable**: `instance : Decidable (ThDerivable φ)` — executable decision procedure for bimodal TM logic.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry).",
+      "completion_summary": "Ported 10-file tableau decision procedure (5,957 lines) from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/. Zero sorry. Key theorems: decide_sound, validity_decidable, branchTruthLemma, expandBranchWithFuel_sound. FMP-dependent theorems deferred to Task 43."
     },
     {
       "project_number": 43,
