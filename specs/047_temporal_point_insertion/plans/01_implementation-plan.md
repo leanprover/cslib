@@ -127,7 +127,7 @@ Phases are strictly sequential: each phase builds on definitions and lemmas from
 
 ---
 
-### Phase 2: Xu Lemmas and Enrichment Structures [NOT STARTED]
+### Phase 2: Xu Lemmas and Enrichment Structures [COMPLETED]
 
 **Goal**: Port Xu Lemma 2.3 (top-guard presence), derivation-level monotonicity helpers, enrichment structures, list conjunction helpers, and Xu Lemma 3.2.1 (full guard strengthening).
 
