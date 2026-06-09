@@ -112,7 +112,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Propositional Core [NOT STARTED]
+### Phase 2: Propositional Core [COMPLETED]
 
 **Goal**: Port the core propositional theorems including LEM, double negation elimination, and the critical DT-free proofs of lce_imp and rce_imp.
 
