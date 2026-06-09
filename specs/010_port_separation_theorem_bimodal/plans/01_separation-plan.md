@@ -440,7 +440,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 14: SeparationThm.lean and DualEliminations.lean -- Final Wrappers [NOT STARTED]
+### Phase 14: SeparationThm.lean and DualEliminations.lean -- Final Wrappers [COMPLETED]
 
 **Goal**: Port the separation theorem wrapper (Theorem 10.2.9 corollaries, temporal closure corollaries, atom-preserving separation) and the dual elimination cases.
 
