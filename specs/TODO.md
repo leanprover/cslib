@@ -29,6 +29,7 @@ next_project_number: 51
   └─ 47 [NOT STARTED] — Define the labeled frame type (Burgess K-elements) and prove that
     └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
       └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
+50 [NOT STARTED] — burgess_prior_art_seed_research
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
 
@@ -40,10 +41,6 @@ next_project_number: 51
 ### Project Management
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic  (dep: 41)
-
-### Uncategorized
-
-50 [NOT STARTED] — burgess_prior_art_seed_research
 
 ## Tasks
 
