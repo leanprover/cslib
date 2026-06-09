@@ -148,7 +148,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: IntHelpers.lean -- Integer Arithmetic Lemmas [NOT STARTED]
+### Phase 3: IntHelpers.lean -- Integer Arithmetic Lemmas [COMPLETED]
 
 **Goal**: Port integer-specific helper lemmas for finite intervals and witness constructions needed by the separation proof.
 
@@ -171,7 +171,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Duality.lean -- Temporal Duality [NOT STARTED]
+### Phase 4: Duality.lean -- Temporal Duality [COMPLETED]
 
 **Goal**: Port IntStructure.reverse, swap_temporal_int_truth, and duality preservation lemmas. Leverage cslib's existing `Formula.swap_temporal` and its involution/simp lemmas.
 
@@ -198,7 +198,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Distributivity.lean -- Lemma 10.2.1 [NOT STARTED]
+### Phase 5: Distributivity.lean -- Lemma 10.2.1 [COMPLETED]
 
 **Goal**: Port the four distributivity theorems (U/S distribute over boolean ops).
 
