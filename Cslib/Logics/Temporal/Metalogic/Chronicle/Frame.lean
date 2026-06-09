@@ -6,7 +6,7 @@ Authors: Benjamin Brastmckie
 
 import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
 import Cslib.Logics.Temporal.Metalogic.WitnessSeed
-import Cslib.Logics.Temporal.Metalogic.Completeness
+import Cslib.Logics.Temporal.Metalogic.CompletenessHelpers
 
 /-!
 # Temporal Canonical Frame
