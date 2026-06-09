@@ -25,7 +25,7 @@ next_project_number: 38
 
 ### Bimodal Porting
 
-5 [RESEARCHED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetuity/
+5 [COMPLETED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetuiity/
   └─ 7 [RESEARCHED] — Port Deduction Infrastructure and MCS Theory (PR 6)
     └─ 34 [NOT STARTED] — Port base MCS completeness properties (~520 lines)
       └─ 35 [NOT STARTED] — Port dense completeness infrastructure (~15k lines)
@@ -294,11 +294,12 @@ Expanded into:
 
 ### 5. Port Perpetuity theorems to Bimodal module
 - **Effort**: Small (3-5 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 21, 22 (ProofSystem, Modal Theorems, Temporal Infrastructure)
 - **External Dependencies**: BimodalLogic task 294 (sorry elimination in Perpetuity/)
 - **Plan**: [specs/005_port_derived_theorems_bimodal/plans/01_perpetuity-port-plan.md]
+- **Summary**: [specs/005_port_derived_theorems_bimodal/summaries/01_perpetuity-port-summary.md]
 
 **Description**: Port Perpetuity theorems to `Cslib/Logics/Bimodal/Theorems/Perpetuity/`. Scope reduced to ~800 lines (Perpetuity/ only — inherently bimodal, uses both modal box and temporal until/since operators together).
 
