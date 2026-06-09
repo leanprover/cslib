@@ -296,14 +296,14 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: Chronicle Types and RRelation [IN PROGRESS]
+### Phase 8: Chronicle Types and RRelation [COMPLETED]
 
 **Goal**: Port the Chronicle type definitions and R-relation, which form the foundation of the Burgess chronicle construction. These files import many Mathlib modules (Rat, Archimedean, etc.) so this phase validates Mathlib compatibility.
 
 **Tasks**:
-- [ ] Port `Chronicle/ChronicleTypes.lean` (865 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/ChronicleTypes.lean`. Chronicle type definitions. Layer 5, depends on Bundle/TemporalContent, BXCanonical/Frame, Bundle/ModalSaturation. Imports Mathlib Rat, Archimedean, CountableDenseLinearOrder.
-- [ ] Port `Chronicle/RRelation.lean` (1,686 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/RRelation.lean`. R-relation on chronicle. Layer 5, depends on ChronicleTypes, Bundle/WitnessSeed.
-- [ ] Verify `lake build` passes
+- [x] Port `Chronicle/ChronicleTypes.lean` (865 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/ChronicleTypes.lean`. *(completed -- 0 sorries)*
+- [x] Port `Chronicle/RRelation.lean` (1,686 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/RRelation.lean`. *(deviation: altered -- 0 sorries in port; source had 0 actual sorries despite plan stating 1; renamed S variable to Sig due to Since notation conflict; Axiom.prop_s renamed to Axiom.imp_s, Axiom.prop_k renamed to Axiom.imp_k)*
+- [x] Verify `lake build` passes *(completed)*
 
 **Timing**: 2.5 hours
 
