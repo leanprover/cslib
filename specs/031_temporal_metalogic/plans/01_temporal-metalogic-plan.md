@@ -213,7 +213,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Completeness [PARTIAL]
+### Phase 5: Completeness [IN PROGRESS]
 
 **Goal**: Prove completeness for temporal BX logic via the canonical linear model construction: every formula valid over all serial linear temporal orders is derivable.
 

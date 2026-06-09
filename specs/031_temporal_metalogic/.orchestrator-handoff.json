@@ -1,9 +1,9 @@
 {
   "status": "partial",
-  "summary": "Temporal metalogic: 5/6 phases complete (1,639 lines). DerivationTree, DeductionTheorem, MCS (with G/H-distribution), Soundness (all 26 axioms) fully proven. Completeness has 1 sorry for canonical linear order construction.",
-  "blockers": ["Completeness theorem requires canonical linear order construction (~400 lines) and truth lemma for Until/Since cases"],
+  "summary": "Temporal metalogic: all helper lemmas proved (G/H-transitivity, F/P-idempotency, connect axiom consequences, truth lemma G/H directions). 1 sorry remains in completeness theorem for canonical linear order + Until/Since truth lemma.",
+  "blockers": ["Completeness theorem requires: (1) LinearOrder on CanonicalWorld (totality from BX11), (2) Truth lemma for Until/Since (uses BX5/BX6/BX13), (3) Universe adjustment"],
   "phases_completed": 5,
   "phases_total": 6,
-  "artifacts": [{"path": "specs/031_temporal_metalogic/summaries/01_temporal-metalogic-summary.md", "type": "summary", "summary": "Full implementation summary with deviations and remaining work"}],
-  "next_action_hint": "implement_remaining"
+  "artifacts": [{"path": "specs/031_temporal_metalogic/summaries/01_temporal-metalogic-summary.md", "type": "summary", "summary": "Implementation summary"}, {"path": "specs/031_temporal_metalogic/handoffs/phase-5-completion-handoff-20260609.md", "type": "handoff", "summary": "Detailed handoff with what's done vs what remains"}],
+  "next_action_hint": "research_bimodal_canonical_model_then_implement"
 }

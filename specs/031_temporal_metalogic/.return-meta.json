@@ -1,8 +1,8 @@
 {
   "status": "partial",
-  "started_at": "2026-06-08T23:30:00Z",
+  "started_at": "2026-06-08T12:00:00Z",
   "requires_user_review": true,
-  "review_reason": "1 sorry remains in completeness theorem (canonical model linear order construction). All other phases complete with zero sorry.",
+  "review_reason": "1 sorry remains in completeness theorem. Canonical linear order construction and Until/Since truth lemma need further research (bimodal pattern).",
   "verification": {
     "verification_passed": false,
     "sorry_count": 1,
@@ -11,17 +11,12 @@
     "build_passed": true
   },
   "artifacts": [
-    {"path": "Cslib/Logics/Temporal/Metalogic/DerivationTree.lean", "type": "source", "summary": "Height function, Deriv wrapper, temporalDerivationSystem instance"},
-    {"path": "Cslib/Logics/Temporal/Metalogic/DeductionTheorem.lean", "type": "source", "summary": "Full deduction theorem for 6-constructor temporal DerivationTree"},
-    {"path": "Cslib/Logics/Temporal/Metalogic/MCS.lean", "type": "source", "summary": "MCS instantiation, G/H-distribution, G/H-witnesses (zero sorry)"},
-    {"path": "Cslib/Logics/Temporal/Metalogic/Soundness.lean", "type": "source", "summary": "All 26 axiom cases sound, swap duality, main soundness (zero sorry)"},
-    {"path": "Cslib/Logics/Temporal/Metalogic/Completeness.lean", "type": "source", "summary": "Completeness theorem structure (1 sorry in canonical model)"},
-    {"path": "Cslib/Logics/Temporal/Metalogic.lean", "type": "source", "summary": "Barrel import"},
-    {"path": "specs/031_temporal_metalogic/summaries/01_temporal-metalogic-summary.md", "type": "summary", "summary": "Implementation summary with deviations"}
+    {"path": "Cslib/Logics/Temporal/Metalogic/Completeness.lean", "type": "source", "summary": "Completeness theorem with extensive helper infrastructure (1 sorry in main theorem)"},
+    {"path": "specs/031_temporal_metalogic/handoffs/phase-5-completion-handoff-20260609.md", "type": "handoff", "summary": "Detailed handoff documenting what's done and what remains"}
   ],
   "partial_progress": {
     "stage": "phase_5_partial",
-    "details": "Phases 1-4,6 complete. Phase 5 (Completeness) has 1 sorry: canonical model linear order construction and truth lemma (~400 lines additional work). All MCS infrastructure is in place.",
+    "details": "All MCS helper lemmas proved: G/H-transitivity, F/P-idempotency, DNE, connect axiom consequences, truth lemma G/H directions, successor/predecessor existence. Main completeness theorem has 1 sorry for canonical linear order + Until/Since truth lemma.",
     "phases_completed": 5,
     "phases_total": 6
   },
