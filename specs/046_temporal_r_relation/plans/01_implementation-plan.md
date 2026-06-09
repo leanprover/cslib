@@ -211,7 +211,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Chronicle Frame [NOT STARTED]
+### Phase 5: Chronicle Frame [COMPLETED]
 
 **Goal**: Create `TPoint` structure, temporal ordering `t_le`, g/h-content closure under derivation, set consistency, transitivity, forward/backward witnesses, G/H forward/backward propagation, and eventuality resolution. Port from bimodal `Frame.lean` (464 lines) with ~60% transfer rate (bimodal-only content removed).
 
