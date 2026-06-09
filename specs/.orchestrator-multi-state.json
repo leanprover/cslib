@@ -2,28 +2,13 @@
   "session_id": "sess_1780967265_006c90",
   "task_numbers": [2, 16, 20],
   "waves": [[2, 16, 20]],
-  "cycle_count": 0,
+  "cycle_count": 3,
   "max_cycles": 15,
   "failed_tasks": [],
-  "completed_tasks": [],
+  "completed_tasks": [2, 16, 20],
   "current_statuses": {
-    "2": "not_started",
-    "16": "not_started",
-    "20": "not_started"
-  },
-  "task_types": {
-    "2": "lean4",
-    "16": "lean4",
-    "20": "lean4"
-  },
-  "research_agents": {
-    "2": "lean-research-agent",
-    "16": "lean-research-agent",
-    "20": "lean-research-agent"
-  },
-  "implement_agents": {
-    "2": "lean-implementation-agent",
-    "16": "lean-implementation-agent",
-    "20": "lean-implementation-agent"
+    "2": "completed",
+    "16": "completed",
+    "20": "completed"
   }
 }
