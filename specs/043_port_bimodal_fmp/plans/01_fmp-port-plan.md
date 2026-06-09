@@ -228,7 +228,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: FMP -- Filtration.lean [NOT STARTED]
+### Phase 6: FMP -- Filtration.lean [COMPLETED]
 
 **Goal**: Port filtration equivalence, Setoid, quotient, and filtered frame construction
 
