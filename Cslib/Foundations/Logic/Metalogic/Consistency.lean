@@ -93,4 +93,43 @@ theorem base_mem_consistent_supersets (D : DerivationSystem F) {S : Set F}
     (hS : SetConsistent D S) : S ∈ ConsistentSupersets D S :=
   ⟨Set.Subset.refl S, hS⟩
 
+/-! ## Chain Union Lemmas -/
+
+/-- Any finite list whose elements all belong to `⋃₀ C` (a chain union) has all its
+elements in some single chain member. Proved by induction on the list. -/
+lemma finite_list_in_chain_member {F' : Type*} {C : Set (Set F')}
+    (hchain : IsChain (· ⊆ ·) C) (hCne : C.Nonempty)
+    (L : List F') (h : ∀ φ ∈ L, φ ∈ ⋃₀ C) :
+    ∃ S ∈ C, ∀ φ ∈ L, φ ∈ S := by
+  induction L with
+  | nil =>
+    obtain ⟨S, hS⟩ := hCne
+    exact ⟨S, hS, fun _ h => by simp at h⟩
+  | cons a L ih =>
+    have ha := h a (List.mem_cons.mpr (Or.inl rfl))
+    obtain ⟨S₁, hS₁C, haS₁⟩ := Set.mem_sUnion.mp ha
+    have hL : ∀ φ ∈ L, φ ∈ ⋃₀ C := fun φ hφ => h φ (List.mem_cons.mpr (Or.inr hφ))
+    obtain ⟨S₂, hS₂C, hLS₂⟩ := ih hL
+    rcases hchain.total hS₁C hS₂C with hsub | hsub
+    · exact ⟨S₂, hS₂C, fun φ hφ => by
+        rw [List.mem_cons] at hφ
+        rcases hφ with rfl | hφ
+        · exact hsub haS₁
+        · exact hLS₂ φ hφ⟩
+    · exact ⟨S₁, hS₁C, fun φ hφ => by
+        rw [List.mem_cons] at hφ
+        rcases hφ with rfl | hφ
+        · exact haS₁
+        · exact hsub (hLS₂ φ hφ)⟩
+
+/-- The union of a nonempty chain of set-consistent sets is set-consistent.
+This is the key input to Zorn's lemma in Lindenbaum's lemma. -/
+theorem consistent_chain_union (D : DerivationSystem F)
+    {C : Set (Set F)} (hchain : IsChain (· ⊆ ·) C) (hCne : C.Nonempty)
+    (hcons : ∀ S ∈ C, SetConsistent D S) :
+    SetConsistent D (⋃₀ C) := by
+  intro L hL
+  obtain ⟨S, hSC, hLS⟩ := finite_list_in_chain_member hchain hCne L hL
+  exact hcons S hSC L hLS
+
 end Cslib.Logic.Metalogic

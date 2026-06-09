@@ -155,7 +155,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Chain union lemmas (consistent_chain_union for Zorn) [IN PROGRESS]
+### Phase 3: Chain union lemmas (consistent_chain_union for Zorn) [COMPLETED]
 
 **Goal**: Prove that the union of a chain of consistent sets is consistent, which is the key input to Zorn's lemma.
 
@@ -192,7 +192,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Lindenbaum's lemma (Zorn-based existence of maximal consistent extensions) [NOT STARTED]
+### Phase 4: Lindenbaum's lemma (Zorn-based existence of maximal consistent extensions) [IN PROGRESS]
 
 **Goal**: Prove that every consistent set can be extended to a maximally consistent set, using Zorn's lemma.
 
