@@ -3,7 +3,7 @@
   "started_at": "2026-06-09T15:42:07Z",
   "verification": {
     "verification_passed": true,
-    "sorry_count": 9,
+    "sorry_count": 10,
     "vacuous_count": 0,
     "axiom_count": 0,
     "build_passed": true
@@ -50,14 +50,39 @@
       "summary": "Backward Until/Since coherence (2 sorries)"
     },
     {
+      "type": "code",
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Frame.lean",
+      "summary": "BXPoint, canonical ordering, g/h_content_closed_derivation (1 sorry bx_le_refl)"
+    },
+    {
+      "type": "code",
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/SubformulaClosure.lean",
+      "summary": "Sigma-closure for quasimodel construction"
+    },
+    {
+      "type": "code",
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/HintikkaPoint.lean",
+      "summary": "Hintikka points and sigma signatures"
+    },
+    {
+      "type": "code",
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Filtration/DefectChain.lean",
+      "summary": "Defect count and discharge properties"
+    },
+    {
+      "type": "code",
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/CanonicalChain.lean",
+      "summary": "BX axiom lemmas and delegation bridges"
+    },
+    {
       "type": "handoff",
-      "path": "specs/035_port_dense_completeness_bimodal/handoffs/phase-5-handoff-20260609c.md",
-      "summary": "Continuation handoff with translation patterns and next actions"
+      "path": "specs/035_port_dense_completeness_bimodal/handoffs/phase-5-handoff-20260609d.md",
+      "summary": "Final continuation handoff for Phase 5 completion and Phases 6-12"
     }
   ],
   "partial_progress": {
-    "stage": "phase_5_pending",
-    "details": "Phases 1-4 complete (24 files). Phase 5 pending (BXCanonical core). 9 sorries in ported files, all from source.",
+    "stage": "phase_5_in_progress",
+    "details": "Phases 1-4 complete. Phase 5: 5/7 files done (SubformulaClosure, Frame, HintikkaPoint, DefectChain, CanonicalChain). Remaining: Quasimodel/Construction.lean (841 lines, 1 sorry) and TruthLemma.lean (302 lines). 10 sorries total, all from source.",
     "phases_completed": 4,
     "phases_total": 12
   },
