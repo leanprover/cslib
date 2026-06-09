@@ -105,7 +105,7 @@ Phases are strictly sequential due to file-level import dependencies.
 
 ---
 
-### Phase 2: Port ExtDerivation.lean [NOT STARTED]
+### Phase 2: Port ExtDerivation.lean [COMPLETED]
 
 **Goal**: Create `Cslib/Logics/Bimodal/Metalogic/ConservativeExtension/ExtDerivation.lean` with extended axiom schemas, derivation trees, and embedding functions.
 

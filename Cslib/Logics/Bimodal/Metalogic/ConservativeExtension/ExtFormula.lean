@@ -31,7 +31,7 @@ formula from the original language, enabling the standard Goldblatt/BdRV naming 
 -/
 
 set_option linter.style.emptyLine false
-set_option linter.flexible false
+set_option linter.style.longLine false
 
 namespace Cslib.Logic.Bimodal.Metalogic.ConservativeExtension
 
