@@ -17,14 +17,18 @@
     "21": [],
     "22": []
   },
-  "cycle_count": 2,
+  "cycle_count": 3,
   "max_cycles": 15,
   "failed_tasks": [],
-  "completed_tasks": [],
+  "completed_tasks": [
+    3,
+    21,
+    22
+  ],
   "current_statuses": {
-    "3": "planned",
-    "21": "planned",
-    "22": "planned"
+    "3": "completed",
+    "21": "completed",
+    "22": "completed"
   },
   "task_types": {
     "3": "lean4",

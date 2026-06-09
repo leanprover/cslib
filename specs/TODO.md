@@ -1,5 +1,5 @@
 ---
-next_project_number: 32
+next_project_number: 33
 ---
 
 # Tasks
@@ -28,13 +28,13 @@ next_project_number: 32
 
 ### Modal Logic
 
-21 [PLANNED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
+21 [COMPLETED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
   └─ 30 [NOT STARTED] — Build standalone modal metalogic (~1,500 lines, new development n
 
 ### Temporal Logic
 
-22 [PLANNED] — Build temporal proof system infrastructure and port temporal theo
+22 [COMPLETED] — Build temporal proof system infrastructure and port temporal theo
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
   └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
@@ -43,7 +43,7 @@ next_project_number: 32
 
 ### Bimodal Porting
 
-3 [PLANNED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+3 [COMPLETED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
   └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
     └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
@@ -68,6 +68,14 @@ next_project_number: 32
 28 [IMPLEMENTING] — structure_metalogic_across_systems
 
 ## Tasks
+
+### 32. Fix untl/snce argument order to match standard literature convention
+- **Effort**: Medium (2-4 hours)
+- **Status**: [PLANNED]
+- **Task Type**: lean4
+- **Dependencies**: 22, 3
+
+**Description**: Fix untl/snce argument order across cslib to match standard literature convention (Burgess 1982). Currently cslib uses untl(guard, event) but the literature and BimodalLogic source use untl(event, guard). This causes 6+ temporal axioms to be provably unsound under cslib's semantics, with concrete countermodels. Change all Formula definitions (Temporal and Bimodal), Truth semantics, axiom abbreviations, and derived theorems to use untl(event, guard). Affects ~10 files across Temporal and Bimodal modules. Must be completed before any soundness proofs (Task 6) or further temporal work.
 
 ### 31. Temporal metalogic
 - **Effort**: Large (20-30 hours)

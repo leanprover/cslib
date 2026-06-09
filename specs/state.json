@@ -1,5 +1,5 @@
 {
-  "next_project_number": 32,
+  "next_project_number": 33,
   "active_projects": [
     {
       "project_number": 31,
@@ -138,7 +138,7 @@
     {
       "project_number": 21,
       "project_name": "modal_proof_system_theorems",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -155,12 +155,13 @@
           "summary": "Seed research: ~1,600 lines of modal proof system and theorems. Modal.DerivationTree + ModalS5Hilbert instance + S4/S5 derived theorems + GenNec."
         }
       ],
-      "topic": "Modal Logic"
+      "topic": "Modal Logic",
+      "completion_summary": "Created modal theorem library (Basic.lean + S5.lean) in Cslib/Foundations/Logic/Theorems/Modal/. 786 lines, 21 theorems generic over ModalHilbert/ModalS5Hilbert typeclasses, including axiom 5 derived from B+4. Zero sorries."
     },
     {
       "project_number": 22,
       "project_name": "temporal_infrastructure_theorems",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -176,7 +177,8 @@
           "summary": "Seed research: ~1,500 lines temporal infrastructure. ~20 axiom abbrevs, ~20 HasAxiom* typeclasses, TemporalBXHilbert restructuring, BimodalTMHilbert diamond-avoidance, DerivationTree, TemporalDerived theorems, frame conditions."
         }
       ],
-      "topic": "Temporal Logic"
+      "topic": "Temporal Logic",
+      "completion_summary": "Built temporal proof system infrastructure: 20 axiom abbrevs, 22 HasAxiom* typeclasses, TemporalBXHilbert restructured, concrete DerivationTree + Derivable + instances, 20 derived theorems, frame condition typeclasses. ~1,433 lines across 10 files, zero sorries."
     },
     {
       "project_number": 23,
@@ -339,7 +341,7 @@
     {
       "project_number": 3,
       "project_name": "port_task_frame_semantics_bimodal",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
       "last_updated": "2026-06-08T00:15:00Z",
@@ -348,7 +350,8 @@
         "BimodalLogic:291"
       ],
       "description": "Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, Truth, Validity to Cslib/Logics/Bimodal/Semantics/. Defines the Kripke-style semantic framework for bimodal temporal logic.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Semantics/):\n- TaskFrame.lean (~500 lines): frame record with temporal and modal accessibility relations\n- WorldHistory.lean (~400 lines): world history type, cofinal subsets, orderings\n- TaskModel.lean (~400 lines): model = frame + valuation, canonical naming\n- Truth.lean (~600 lines): inductive truth definition for all formula constructors\n- Validity.lean (~300 lines): validity, satisfiability, frame class validity\n\n**Target path**: Cslib/Logics/Bimodal/Semantics/\n\n**Estimated scope**: ~2,200 lines across 5 files\n\n**PR title**: feat(Logics/Bimodal): add Semantics module (TaskFrame, WorldHistory, TaskModel, Truth, Validity)\n\n**Dependencies**: Task 2 (Syntax) must be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting"
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported bimodal frame semantics (TaskFrame, WorldHistory, TaskModel, Truth, Validity + Context) to Cslib/Logics/Bimodal/Semantics/. 1,649 lines across 6 files, zero sorries."
     },
     {
       "project_number": 4,
@@ -443,6 +446,17 @@
         ]
       },
       "completion_summary": "Added deriving DecidableEq, BEq to Modal.Proposition; expanded LukasiewiczDerived docstring documenting intentionally uninstantiated status"
+    },
+    {
+      "project_number": 32,
+      "project_name": "fix_untl_argument_order_convention",
+      "status": "planned",
+      "task_type": "lean4",
+      "description": "Fix untl/snce argument order across cslib to match standard literature convention (Burgess 1982). Currently cslib uses untl(guard, event) but the literature and BimodalLogic source use untl(event, guard). This causes 6+ axioms to be provably unsound and 6 more likely unsound. Change all Formula definitions, Truth semantics, axiom abbreviations, and derived theorems to use untl(event, guard). Affects ~10 files across Temporal and Bimodal modules.",
+      "dependencies": [
+        22,
+        3
+      ]
     }
   ],
   "repository_health": {
