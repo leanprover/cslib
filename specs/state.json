@@ -2,79 +2,6 @@
   "next_project_number": 44,
   "active_projects": [
     {
-      "project_number": 42,
-      "project_name": "port_bimodal_tableau_core",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-09T12:45:30Z",
-      "last_updated": "2026-06-09T14:30:00Z",
-      "dependencies": [
-        4,
-        7
-      ],
-      "topic": "Bimodal Porting",
-      "description": "Port the core tableau-based decision procedure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/. This covers the main decision procedure pipeline: SignedFormula (signed formula type, ~400 lines), Tableau (28 expansion rules + termination proof, ~1,800 lines), Closure (closure conditions, ~600 lines), Saturation (saturation lemmas + model extraction framework, ~800 lines), ProofExtraction (closed tableau → DerivationTree, ~600 lines), Correctness (tableau soundness + completeness, ~400 lines), DecisionProcedure (decide function + Decidable instance, ~500 lines), CountermodelExtraction (open saturated → countermodel, ~600 lines).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/\n**Estimated scope**: ~5,700 lines across 8 files\n**Parent task**: Task 9 (expanded)\n\n**Key deliverable**: `instance : Decidable (ThDerivable φ)` — executable decision procedure for bimodal TM logic.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry).",
-      "completion_summary": "Ported 10-file tableau decision procedure (5,957 lines) from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/. Zero sorry. Key theorems: decide_sound, validity_decidable, branchTruthLemma, expandBranchWithFuel_sound. FMP-dependent theorems deferred to Task 43."
-    },
-    {
-      "project_number": 43,
-      "project_name": "port_bimodal_fmp",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-09T12:45:30Z",
-      "last_updated": "2026-06-09T18:00:00Z",
-      "completion_summary": "Ported complete FMP infrastructure (12 new files, ~2,500 lines) from BimodalLogic to Cslib with zero sorry. All 10 phases: Subformulas, SubformulaClosure, MCSProperties visibility, RestrictedMCS, ClosureMCS, Filtration, FiniteModel, TruthPreservation, FMP theorem, Dense+Discrete+barrel.",
-      "dependencies": [
-        42
-      ],
-      "topic": "Bimodal Porting",
-      "description": "Port the Finite Model Property (FMP) infrastructure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/. This strengthens the decidability result with finite countermodels: ClosureMCS (closure-based MCS construction), BoundedModel (bounded model size arguments), ModelSize (model size bounds), FMP (finite model property theorem).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/\n**Estimated scope**: ~3,000-4,000 lines across 4+ files\n**Parent task**: Task 9 (expanded)\n**Depends on**: Task 42 (core tableau must exist first)\n\n**Key deliverable**: Finite model property theorem — if a bimodal formula is satisfiable, it is satisfiable in a finite model of bounded size.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry).",
-      "plan_metadata": {
-        "phases": 10,
-        "total_effort_hours": 11,
-        "complexity": "complex",
-        "research_integrated": true,
-        "plan_version": 1,
-        "dependency_waves": [
-          [
-            1
-          ],
-          [
-            2
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            5
-          ],
-          [
-            6
-          ],
-          [
-            7
-          ],
-          [
-            8
-          ],
-          [
-            9
-          ],
-          [
-            10
-          ]
-        ],
-        "reports_integrated": [
-          {
-            "path": "reports/01_fmp-port-research.md",
-            "integrated_in_plan_version": 1,
-            "integrated_date": "2026-06-09"
-          }
-        ]
-      }
-    },
-    {
       "project_number": 31,
       "project_name": "temporal_metalogic",
       "status": "partial",
@@ -85,7 +12,10 @@
         22,
         23,
         29,
-        32
+        32,
+        35,
+        36,
+        37
       ],
       "description": "Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: Cslib/Logics/Temporal/Metalogic/.",
       "topic": "Temporal Logic",
@@ -156,7 +86,8 @@
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [
-        38
+        38,
+        39
       ],
       "description": "Continuous temporal completeness: completeness for temporal logic over Dedekind-complete (continuous) linear orders, e.g. the reals.\n\nScope: Define a Continuous frame class extending Dense, add any required axioms (e.g., Dedekind completeness schema or equivalent), prove soundness over conditionally complete linear orders, prove completeness via canonical model on Real or equivalent.\n\nBlocked: The continuous case has not been developed for either the temporal or bimodal logic upstream. Requires foundational research into which additional axioms (if any) are needed beyond density to characterize continuous time. The standard result (Burgess 1982) is that the Until/Since temporal logic over the reals has the same theorems as over the rationals (density suffices), which would make this task trivial — but this equivalence itself needs to be formalized.\n\nTarget: Cslib/Logics/Temporal/Metalogic/ContinuousCompleteness.lean\nBlocker: Research needed on whether continuous frames require additional axioms beyond density",
       "topic": "Temporal Logic"
@@ -183,26 +114,19 @@
       "task_type": "general",
       "created": "2026-06-08T00:45:00Z",
       "last_updated": "2026-06-09T00:21:36Z",
-      "dependencies": [],
+      "dependencies": [
+        35,
+        36,
+        37,
+        31,
+        38,
+        39,
+        40,
+        41
+      ],
       "description": "Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.\n\n**Standalone Module PRs** (can proceed in parallel with bimodal PRs since they target different directories):\n- PR-Foundations (Task 20): Propositional Hilbert theorems to Cslib/Foundations/Logic/Theorems/ -- Wave 1, no dependencies\n- PR-Modal (Task 21): Modal proof system + theorems to Cslib/Logics/Modal/ProofSystem/ + Theorems/ -- after PR-Foundations\n- PR-Temporal-Infra (Task 22): Temporal infrastructure + theorems to Cslib/Logics/Temporal/ProofSystem/ + Theorems/ -- after PR-Foundations\n- PR-TempSem (Task 23): Temporal semantics to Cslib/Logics/Temporal/Semantics/ -- after PR-Temporal-Infra\n\n**Bimodal PRs** (in dependency order):\n- PR 1 (Bimodal Syntax, task 2): submit first, establish review pattern\n- PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap\n- PR 4 (Perpetuity Theorems, task 5): after PRs 3, PR-Modal, PR-Temporal-Infra merged\n- PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged\n- PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged\n- PR 7 (Completeness, task 8): after PRs 5+6 merged\n- PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)\n- PR 9 (Separation, task 10): after PRs 3+4+6 merged\n- PR 10 (ConservativeExtension, task 11): after PR 3 merged (independent of 5-9)\n\n**Coordination Workflow**:\n\n1. **Open Zulip Discussion** (first step): propose modular architecture (standalone Foundations/Modal/Temporal modules + Bimodal), PR strategy (4 standalone PRs + 10 bimodal PRs)\n2. **Namespace Decision**: confirm before starting task 2\n3. **CI Checks** (before each PR): lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers\n4. **Review Cycle**: keep PRs small (max ~3,500 lines); address feedback within 48 hours",
       "session_id": "sess_1780964447_c6a4ec",
       "topic": "Project Management"
-    },
-    {
-      "project_number": 7,
-      "project_name": "port_deduction_mcs_theory_bimodal",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-09T12:03:40Z",
-      "dependencies": [
-        4,
-        5,
-        29
-      ],
-      "description": "Port Deduction Infrastructure and MCS Theory (PR 6): DeductionTheorem, MaximalConsistent, MCSProperties, RestrictedMCS to Cslib/Logics/Bimodal/Metalogic/Core/. This PR establishes the core metalogical infrastructure for completeness: deduction theorem and maximal consistent set theory.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/Core/):\n- DeductionTheorem.lean (~500 lines): deduction theorem for BX/TM proof system\n- MaximalConsistent.lean (~600 lines): definition and basic properties of maximal consistent sets (MCS)\n- MCSProperties.lean (~700 lines): Lindenbaum lemma, MCS enumeration, key MCS closure properties\n- RestrictedMCS.lean (~400 lines): restricted MCS for density/discreteness frame-specific completeness\n- DualMCS.lean (~300 lines): dual MCS properties (past accessibility reconstruction)\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Core/\n\n**Estimated scope**: ~2,500 lines across 6 files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/Core module (DeductionTheorem, MaximalConsistent, MCS)\n\n**Dependencies**: Tasks 4 (ProofSystem) and 5 (Theorems) must be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting",
-      "completion_summary": "Ported DeductionTheorem, MaximalConsistent, MCSProperties to Cslib/Logics/Bimodal/Metalogic/Core/ (1,112 lines, zero sorry). Phases: DerivationTree bridge with bimodalDerivationSystem instance, deduction theorem by well-founded recursion on 7-constructor DerivationTree, list/set-based MCS with generic framework delegation, temporal 4 future/past closure properties. RestrictedMCS deferred to completeness task."
     },
     {
       "project_number": 8,
@@ -217,21 +141,6 @@
       ],
       "description": "Expanded into tasks 34 (base MCS properties), 35 (dense completeness), 36 (discrete completeness), 37 (continuous extension completeness).",
       "topic": "Bimodal Porting"
-    },
-    {
-      "project_number": 34,
-      "project_name": "port_base_completeness_mcs_properties",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-09T00:30:00Z",
-      "dependencies": [
-        6,
-        7
-      ],
-      "description": "Port base MCS completeness properties from Completeness.lean (~520 lines) to Cslib/Logics/Bimodal/Metalogic/Completeness.lean. Includes: disjunction_intro/elim/iff, conjunction_intro/elim/iff, box_closure (Modal T), box_box (Modal 4), diamond-box duality (neg_box_implies_diamond_neg, diamond_neg_implies_neg_box, diamond_box_duality). All proofs are sorry-free. These are the foundational MCS properties needed by both dense and discrete completeness.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/Completeness.lean (~520 lines)\n**Target**: Cslib/Logics/Bimodal/Metalogic/Completeness.lean\n**Parent task**: 8 (expanded)",
-      "topic": "Bimodal Porting",
-      "completion_summary": "Ported all 11 MCS completeness theorems (478 lines) to Cslib/Logics/Bimodal/Metalogic/Completeness.lean. All sorry-free, verified with lean_verify and lake build. Theorems generalized over frame class. Variable S renamed to Omega to avoid scoped notation conflict."
     },
     {
       "project_number": 35,
@@ -363,74 +272,13 @@
         42,
         43
       ]
-    },
-    {
-      "project_number": 10,
-      "project_name": "port_separation_theorem_bimodal",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-09T01:30:00Z",
-      "dependencies": [
-        4,
-        5,
-        7
-      ],
-      "description": "Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 files) to Cslib/Logics/Bimodal/Metalogic/Separation/. The separation theorem proves that TM is conservative over its temporal and modal fragments separately.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/WeakCanonical/Separation/ and related):\n- Separation/*.lean (~16 files, ~3,500 lines): weak canonical model construction, chronicle structures, separation between temporal and modal components\n- Key files: SeparationTheorem.lean (main result), ChronicleCanonical.lean, WeakCanonicalModel.lean, TemporalSeparation.lean, ModalSeparation.lean\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Separation/\n\n**Estimated scope**: ~3,500 lines across 16 files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/Separation module (Separation Theorem)\n\n**Dependencies**: Tasks 4 (ProofSystem), 5 (Theorems), and 7 (MCS/Deduction) must all be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting",
-      "completion_summary": "Ported complete Separation Theorem (GHR94 Theorem 10.2.9) to Cslib/Logics/Bimodal/Metalogic/Separation/. 17 files, ~6,420 lines, all sorry-free. Proves every {U,S}-formula over integer time is equivalent to a syntactically separated formula. Key transformations: Atom type parameterization with [DecidableEq Atom] and [Infinite Atom], freshness via Mathlib Infinite typeclass, scoped notation conflict resolution."
-    },
-    {
-      "project_number": 11,
-      "project_name": "port_conservative_extension_bimodal",
-      "status": "completed",
-      "completion_summary": "Ported 4 ConservativeExtension files (1,671 lines) with polymorphic Atom, zero sorry, main theorem lift_derivation_qfree verified",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-08T20:30:00Z",
-      "dependencies": [
-        4
-      ],
-      "description": "Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, Substitution, Lifting to Cslib/Logics/Bimodal/Metalogic/ConservativeExtension/. The conservative extension result shows that the BX extension of the temporal base logic preserves all theorems of the base logic.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/ConservativeExtension/):\n- ExtFormula.lean (~400 lines): extended formula type with additional connectives\n- ExtDerivation.lean (~400 lines): derivation rules for extended language\n- Substitution.lean (~350 lines): substitution theorem for conservative extension\n- Lifting.lean (~350 lines): lifting theorems between base and extended language\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/ConservativeExtension/\n\n**Estimated scope**: ~1,500 lines across 4 files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/ConservativeExtension module\n\n**Dependencies**: Task 4 (ProofSystem) must be merged first. This PR is independent of Tasks 5-10 and can be submitted in parallel.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting"
-    },
-    {
-      "project_number": 5,
-      "project_name": "port_derived_theorems_bimodal",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-09T12:00:00Z",
-      "completion_summary": "Ported all 6 perpetuity principles (P1-P6) to Cslib/Logics/Bimodal/Theorems/Perpetuity/ with zero sorry. 549 lines across 3 new files plus Formula.lean modification.",
-      "dependencies": [
-        4,
-        21,
-        22,
-        32
-      ],
-      "description": "Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetuity/. Scope reduced to ~800 lines (Perpetuity/ only -- inherently bimodal, uses both modal and temporal operators). All other derived theorems moved: Combinators/Propositional to Task 20, GeneralizedNecessitation/ModalS4/S5 to Task 21, TemporalDerived to Task 22.\n\nSource files (from BimodalLogic Theories/Bimodal/Theorems/Perpetuity/):\n- Bridge.lean, Helpers.lean, Principles.lean (~800 lines total)\n- Perpetuity fixed-point theorems require both modal (box) and temporal (untl/snce) operators -- inherently bimodal\n\nTarget path: Cslib/Logics/Bimodal/Theorems/Perpetuity/\nEstimated scope: ~800 lines across 3 files\nExternal dependency: BimodalLogic task 294 (sorry elimination in Perpetuity/) must complete before this task.",
-      "topic": "Bimodal Porting"
-    },
-    {
-      "project_number": 6,
-      "project_name": "port_frame_conditions_soundness_bimodal",
-      "status": "completed",
-      "completion_summary": "Ported 10 files from BimodalLogic establishing soundness of the BX/TM axiom system. All proofs sorry-free, full build passes.",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-08T22:00:00Z",
-      "dependencies": [
-        3,
-        4,
-        "BimodalLogic:291",
-        32
-      ],
-      "description": "Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, Soundness, SoundnessLemmas, DenseSoundness, DiscreteSoundness to Cslib/Logics/Bimodal/FrameConditions/ and Cslib/Logics/Bimodal/Metalogic/Soundness/. This PR establishes the soundness of the BX/TM axiom system with respect to various frame classes.\n\n**Source files** (from BimodalLogic Theories/Bimodal/FrameConditions/ and Metalogic/):\n- FrameConditions/*.lean (~5 files, ~2,000 lines): frame condition predicates (density, discreteness, linearity, convergence), FrameClass type\n- Metalogic/Soundness.lean (~400 lines): main soundness theorem for BX axiom system\n- Metalogic/SoundnessLemmas.lean (~500 lines): supporting lemmas for soundness proof\n- Metalogic/DenseSoundness.lean (~300 lines): soundness for dense frame class\n- Metalogic/DiscreteSoundness.lean (~300 lines): soundness for discrete frame class\n\n**Target paths**:\n- Cslib/Logics/Bimodal/FrameConditions/ (frame condition files)\n- Cslib/Logics/Bimodal/Metalogic/Soundness/ (soundness proof files)\n\n**Estimated scope**: ~3,500 lines across 10+ files\n\n**PR title**: feat(Logics/Bimodal): add FrameConditions and Soundness modules\n\n**Dependencies**: Tasks 3 (Semantics) and 4 (ProofSystem) must both be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting"
     }
   ],
   "repository_health": {
-    "last_assessed": "2026-06-09T05:26:09Z",
+    "last_assessed": "2026-06-09T15:32:45Z",
+    "todo_count": 21,
+    "fixme_count": 0,
+    "build_errors": 0,
     "status": "healthy"
   },
   "active_topics": [
