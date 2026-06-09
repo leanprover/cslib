@@ -166,7 +166,7 @@ Phases are fully sequential: each phase depends on the one before it.
 
 ---
 
-### Phase 4: Derivable -- Prop-Valued Wrapper [NOT STARTED]
+### Phase 4: Derivable -- Prop-Valued Wrapper [COMPLETED]
 
 **Goal**: Create the Prop-valued derivability wrapper with constructor-mirroring lemmas.
 
