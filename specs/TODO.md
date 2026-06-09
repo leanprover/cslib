@@ -1,5 +1,5 @@
 ---
-next_project_number: 50
+next_project_number: 51
 ---
 
 # Tasks
@@ -11,42 +11,51 @@ next_project_number: 50
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 46,36,37 | -- | Temporal Logic, Bimodal Porting |
-| 2 | 47 | 46 | Temporal Logic |
-| 3 | 48 | 47 | Temporal Logic |
-| 4 | 49 | 48 | Temporal Logic |
-| 5 | 38,39,40 | 49,36,37 | Temporal Logic |
-| 6 | 41 | 38,39,40 | Foundations |
-| 7 | 12 | 41 | Project Management |
+| 1 | 36,37,38,46,50 | -- | Temporal Logic, Bimodal Porting |
+| 2 | 39,40,47 | 36,37,46 | Temporal Logic |
+| 3 | 41,48 | 38,39,40,47 | Foundations, Temporal Logic |
+| 4 | 12,49 | 41,48 | Temporal Logic, Project Management |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Foundations
 
-41 [NOT STARTED] — Abstract shared completeness infrastructure (dep: 38, 39, 40)
+41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
 
 ### Temporal Logic
 
-31 [EXPANDED] — Build standalone temporal metalogic — split into tasks 46, 47, 48, 49
-  46 [NOT STARTED] — Temporal R-relation and witness infrastructure (Burgess 2.2-2.4)
-    └─ 47 [NOT STARTED] — Temporal labeled frame types and point insertion (Burgess 2.5-2.7)
-      └─ 48 [NOT STARTED] — Temporal counterexample elimination and chronicle construction (Burgess 2.8)
-        └─ 49 [NOT STARTED] — Temporal truth lemma and completeness assembly (Burgess 2.8)
-          └─ 38 [NOT STARTED] — Dense temporal completeness
-          └─ 39 [NOT STARTED] — Discrete temporal completeness (dep: 36)
-          └─ 40 [BLOCKED] — Continuous temporal completeness (dep: 37)
+38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
+46 [NOT STARTED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
+  └─ 47 [NOT STARTED] — Define the labeled frame type (Burgess K-elements) and prove that
+    └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
+      └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
+39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
+40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
 
 ### Bimodal Porting
 
-36 [BLOCKED] — Port discrete completeness
-37 [BLOCKED] — Port continuous extension completeness
+36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
+37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
 
 ### Project Management
 
-12 [PARTIAL] — Coordinate cslib PR submission (dep: 41)
+12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic  (dep: 41)
+
+### Uncategorized
+
+50 [NOT STARTED] — burgess_prior_art_seed_research
 
 ## Tasks
 
+
+### 50. Research Burgess prior art and seed research for tasks 46-49
+- **Effort**: large
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Research the relevant prior art in /home/benjamin/Projects/BimodalLogic/literature/ that can help with the Burgess-style completeness (tasks 46-49, 31) and carefully review what infrastructure exists in the Bimodal/ metalogic in this repo that can either be abstracted or adapted since these elements came from the same literature sources. The aim is to improve the descriptions and create seed research reports with relevant findings for tasks 46-49 in order to streamline their research, planning, and implementation going forward.
+
+---
 
 ### 31. Temporal metalogic [EXPANDED]
 - **Status**: [EXPANDED] — split into tasks 46, 47, 48, 49
