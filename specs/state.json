@@ -4,12 +4,12 @@
     {
       "project_number": 50,
       "project_name": "burgess_prior_art_seed_research",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-09T20:12:31Z",
-      "last_updated": "2026-06-09T20:22:43Z",
+      "last_updated": "2026-06-09T20:28:02Z",
       "topic": "Temporal Logic",
-      "session_id": "sess_1781036129_70af6f",
+      "session_id": "sess_1781036662_833cf5",
       "researched": "2026-06-09T20:22:43Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -17,6 +17,11 @@
           "path": "specs/050_burgess_prior_art_seed_research/reports/01_team-research.md",
           "type": "research",
           "summary": "Team research with 4 teammates"
+        },
+        {
+          "path": "specs/050_burgess_prior_art_seed_research/plans/01_prior-art-plan.md",
+          "type": "plan",
+          "summary": "5-phase plan: update task 46-49 descriptions and create 4 seed research reports"
         }
       ]
     },

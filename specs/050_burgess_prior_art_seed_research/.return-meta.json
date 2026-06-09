@@ -1,0 +1,22 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/050_burgess_prior_art_seed_research/plans/01_prior-art-plan.md",
+      "summary": "5-phase implementation plan: update task 46-49 descriptions and create 4 seed research reports from team research findings"
+    }
+  ],
+  "next_steps": "Run /implement 50 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1781036662_833cf5",
+    "agent_type": "planner-agent",
+    "duration_seconds": 120,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 5,
+    "estimated_hours": 3,
+    "dependency_waves": [[1], [2, 3, 4, 5]]
+  },
+  "memory_candidates": []
+}
