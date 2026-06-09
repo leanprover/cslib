@@ -1,12 +1,29 @@
 {
-  "status": "planned",
-  "summary": "10-phase implementation plan for porting 4,680 lines across 10 files (FrameConditions + Soundness), estimated 12 hours, following bottom-up build order",
+  "status": "implementing",
+  "summary": "Phases 1-3 completed (FrameClass, Core, DenseValidity). Phase 4 (FrameClassVariants) in progress. Remaining: phases 4-10.",
   "blockers": [],
+  "phases_completed": 3,
+  "phases_total": 10,
   "artifacts": [
     {
-      "path": "specs/006_port_frame_conditions_soundness_bimodal/plans/01_frame-soundness-plan.md",
-      "type": "plan",
-      "summary": "10-phase plan covering FrameClass typeclasses, soundness lemmas (Core/DenseValidity/FrameClassVariants), main soundness theorem, FC validity/soundness/compatibility, thin wrappers, and integration verification"
+      "path": "Cslib/Logics/Bimodal/FrameConditions/FrameClass.lean",
+      "type": "source",
+      "summary": "Frame condition typeclasses"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/Metalogic/Soundness/Core.lean",
+      "type": "source",
+      "summary": "Core validity definitions and swap involution"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/Metalogic/Soundness/DenseValidity.lean",
+      "type": "source",
+      "summary": "42-case axiom swap validity + combined soundness (largest file, 1100+ lines)"
+    },
+    {
+      "path": "specs/006_port_frame_conditions_soundness_bimodal/handoffs/phase-3-handoff-20260608.md",
+      "type": "handoff",
+      "summary": "Detailed porting patterns for cslib abbrev encoding differences"
     }
   ],
   "next_action_hint": "implement"
