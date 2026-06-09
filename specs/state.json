@@ -53,7 +53,7 @@
     {
       "project_number": 46,
       "project_name": "temporal_r_relation",
-      "status": "researching",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-09T13:30:00Z",
       "last_updated": "2026-06-09T21:00:00Z",
@@ -61,7 +61,8 @@
         50
       ],
       "description": "Define the Burgess R-relation r(A, beta, C) and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.\n\nPhase 0 — Prerequisite Infrastructure (~850-1000 lines): Create before porting Chronicle files:\n- g_content/h_content definitions (source: Bundle/TemporalContent.lean, 169 lines)\n- Witness seed consistency proofs (source: Bundle/WitnessSeed.lean, 607 lines)\n- SetDeductivelyClosed (DCS) type and mcs_is_dcs lemma\n- Propositional combinators (~200 lines)\n- Temporal derived theorems (~150 lines)\n\nLiterature: Burgess 1982 Section 2 Lemmas 2.2-2.4 at BimodalLogic/literature/Burgess_1982_Axioms_for_tense_logic_Since_and_Until.md\n\nBimodal prior art to adapt:\n- Chronicle/RRelation.lean (1695 lines): ~95% transfers; remove FrameClass parameter\n- CanonicalChain.lean (95 lines): 100% transfers; swap BXPoint to TPoint\n- OrderedSeedConsistency.lean (151 lines): 100% transfers\n- Frame.lean (464 lines): ~60% transfers; remove bx_modal_equiv (bimodal-only)\n- Bundle/TemporalContent.lean (169 lines): direct source for Phase 0\n- Bundle/WitnessSeed.lean (607 lines): direct source for Phase 0\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/ (RRelation.lean, Frame.lean, CanonicalChain.lean, OrderedSeedConsistency.lean)\nEstimated scope: 1200-2000 lines (revised from 800-1500; includes Phase 0 prerequisites)\nSeed research: specs/046_temporal_r_relation/reports/01_seed-research.md\nParent: Task 31 (expanded)",
-      "topic": "Temporal Logic"
+      "topic": "Temporal Logic",
+      "completion_summary": "Ported Burgess R-relation infrastructure from bimodal to temporal: 9 new files (1920 lines), 44 definitions/theorems across 7 phases. Created TemporalContent, GeneralizedNecessitation, PropositionalHelpers, WitnessSeed, Chronicle/ChronicleTypes, Chronicle/Frame, Chronicle/CanonicalChain, Chronicle/OrderedSeedConsistency, Chronicle/RRelation. Only sorry is t_le_refl (known open issue)."
     },
     {
       "project_number": 47,
