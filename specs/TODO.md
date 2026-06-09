@@ -1,5 +1,5 @@
 ---
-next_project_number: 28
+next_project_number: 29
 ---
 
 # Tasks
@@ -11,9 +11,9 @@ next_project_number: 28
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12,20 | -- | Foundations, Bimodal Porting, Project Management |
-| 2 | 3,21,22 | 2,20 | Modal Logic, Temporal Logic, Bimodal Porting |
-| 3 | 4,23 | 2,20,22 | Temporal Logic, Bimodal Porting |
+| 1 | 3,12,20,28 | -- | Foundations, Bimodal Porting, Project Management |
+| 2 | 21,22 | 20 | Modal Logic, Temporal Logic |
+| 3 | 4,23 | 20,22 | Temporal Logic, Bimodal Porting |
 | 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
 | 5 | 7 | 4,5 | Bimodal Porting |
 | 6 | 8,9,10 | 4,5,6,7 | Bimodal Porting |
@@ -41,28 +41,38 @@ next_project_number: 28
 
 ### Bimodal Porting
 
-2 [COMPLETED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
-  └─ 3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
-    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
-      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
-  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
-    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
-      └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
-        └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
-        └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
-        └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
-      └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
-    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
-    └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
-    └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
+3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
+    └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
+4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
+  └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
+    └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
+      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
+      └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
+      └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
     └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
-    └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
+  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
+  └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
+  └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
+  └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
+  └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
 
 ### Project Management
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
 
+### Uncategorized
+
+28 [NOT STARTED] — structure_metalogic_across_systems
+
 ## Tasks
+
+### 28. Structure metalogic across Propositional, Modal, Temporal, and Bimodal systems
+- **Effort**: Large (1-2 days)
+- **Status**: [NOT STARTED]
+- **Task Type**: formal
+
+**Description**: Much of /home/benjamin/Projects/BimodalLogic/ is devoted to metalogic for the bimodal system. When porting over to CSLib, clearly and cleanly include appropriate metalogic for Propositional/, Modal/, Temporal/, and Bimodal/. Although the semantics for each of these logics differs, look for opportunities for importing between them. Revise existing tasks or add additional tasks as appropriate to structure the metalogic for each system correctly.
 
 ### 27. Systematically review all documentation and standards, ensuring tasks and ROADMAP.md are in alignment
 - **Effort**: Medium (2-4 hours)

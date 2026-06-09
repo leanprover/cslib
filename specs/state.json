@@ -1,6 +1,14 @@
 {
-  "next_project_number": 28,
+  "next_project_number": 29,
   "active_projects": [
+    {
+      "project_number": 28,
+      "project_name": "structure_metalogic_across_systems",
+      "status": "not_started",
+      "task_type": "formal",
+      "created": "2026-06-09T01:45:37Z",
+      "last_updated": "2026-06-09T01:45:37Z"
+    },
     {
       "project_number": 27,
       "project_name": "review_docs_roadmap_alignment",
