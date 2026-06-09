@@ -23,7 +23,7 @@
       "task_type": "lean4",
       "created": "2026-06-09T12:45:30Z",
       "last_updated": "2026-06-09T18:00:00Z",
-      "completion_summary": "Ported complete FMP infrastructure (12 new files, ~2,500 lines) from BimodalLogic to Cslib. Zero sorry. Key theorems: mcs_finite_model_property, fmp_contrapositive, FilteredWorld.finite, restricted_lindenbaum. Deduplicated subformulas from SignedFormula.lean.",
+      "completion_summary": "Ported complete FMP infrastructure (12 new files, ~2,500 lines) from BimodalLogic to Cslib with zero sorry. All 10 phases: Subformulas, SubformulaClosure, MCSProperties visibility, RestrictedMCS, ClosureMCS, Filtration, FiniteModel, TruthPreservation, FMP theorem, Dense+Discrete+barrel.",
       "dependencies": [
         42
       ],
