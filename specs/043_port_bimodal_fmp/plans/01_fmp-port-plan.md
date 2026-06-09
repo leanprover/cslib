@@ -199,7 +199,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: FMP -- ClosureMCS.lean [NOT STARTED]
+### Phase 5: FMP -- ClosureMCS.lean [COMPLETED]
 
 **Goal**: Port closure MCS infrastructure (thin wrapper over RestrictedMCS for FMP usage)
 
