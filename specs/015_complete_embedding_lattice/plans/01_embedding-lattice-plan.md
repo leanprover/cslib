@@ -120,19 +120,19 @@ theorem Temporal.Formula.toBimodal_atom (p : Atom) :
 
 ---
 
-### Phase 2: PL.toBimodal and Triangle-Commutes [NOT STARTED]
+### Phase 2: PL.toBimodal and Triangle-Commutes [COMPLETED]
 
 **Goal**: Create the direct PL-to-Bimodal embedding with Coe instance, simp lemmas for all constructors plus `neg`, and three commutation lemmas proving the embedding diamond commutes.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Bimodal/Embedding/PropositionalEmbedding.lean`
-- [ ] Define `PL.Proposition.toBimodal` (3 cases: atom, bot, imp)
-- [ ] Add `Coe` instance `instCoePLToBimodal`
-- [ ] Add 4 simp lemmas: `toBimodal_atom`, `toBimodal_bot`, `toBimodal_imp`, `toBimodal_neg`
-- [ ] Add `@[simp] theorem PL.Proposition.toModal_toBimodal` (structural induction)
-- [ ] Add `@[simp] theorem PL.Proposition.toTemporal_toBimodal` (structural induction)
-- [ ] Add `theorem PL.Proposition.embedding_commutes` (follows from the two simp lemmas)
-- [ ] Run `lake build Cslib.Logics.Bimodal.Embedding.PropositionalEmbedding` to verify
+- [x] Create `Cslib/Logics/Bimodal/Embedding/PropositionalEmbedding.lean`
+- [x] Define `PL.Proposition.toBimodal` (3 cases: atom, bot, imp)
+- [x] Add `Coe` instance `instCoePLToBimodal`
+- [x] Add 4 simp lemmas: `toBimodal_atom`, `toBimodal_bot`, `toBimodal_imp`, `toBimodal_neg`
+- [x] Add `@[simp] theorem PL.Proposition.toModal_toBimodal` (structural induction)
+- [x] Add `@[simp] theorem PL.Proposition.toTemporal_toBimodal` (structural induction)
+- [x] Add `theorem PL.Proposition.embedding_commutes` (follows from the two simp lemmas)
+- [x] Run `lake build Cslib.Logics.Bimodal.Embedding.PropositionalEmbedding` to verify
 
 **Timing**: 30 minutes
 
