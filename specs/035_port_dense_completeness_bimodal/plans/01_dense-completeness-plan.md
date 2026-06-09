@@ -213,14 +213,14 @@ Phases within the same wave can execute in parallel.
 **Goal**: Port the BXCanonical core infrastructure: Frame, TruthLemma, Quasimodel/, Filtration/, and CanonicalChain.
 
 **Tasks**:
-- [ ] Port `BXCanonical/Quasimodel/SubformulaClosure.lean` (112 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/SubformulaClosure.lean`. Finite subformula closure. Layer 1.
-- [ ] Port `BXCanonical/Quasimodel/HintikkaPoint.lean` (144 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/HintikkaPoint.lean`. Hintikka point definition. Layer 3, depends on SubformulaClosure.
-- [ ] Port `BXCanonical/Quasimodel/Construction.lean` (841 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/Construction.lean`. BX axiom lemmas at MCS level. Layer 4, depends on HintikkaPoint.
-- [ ] Port `BXCanonical/Frame.lean` (710 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Frame.lean`. BXPoint, canonical ordering, witnesses. Layer 4, depends on Bundle/TemporalContent, WitnessSeed, CanonicalFrame.
-- [ ] Port `BXCanonical/TruthLemma.lean` (302 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/TruthLemma.lean`. Truth lemma by formula induction. Layer 5, depends on Frame.
-- [ ] Port `BXCanonical/Filtration/DefectChain.lean` (112 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Filtration/DefectChain.lean`. Defect chain for filtration. Layer 5, depends on Frame, Quasimodel/Construction.
-- [ ] Port `BXCanonical/CanonicalChain.lean` (110 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/CanonicalChain.lean`. BX axiom lemmas, delegation bridges. Layer 5, depends on Frame, Quasimodel/Construction, DefectChain.
-- [ ] Verify `lake build` passes
+- [x] Port `BXCanonical/Quasimodel/SubformulaClosure.lean` (112 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/SubformulaClosure.lean`. *(completed)*
+- [x] Port `BXCanonical/Quasimodel/HintikkaPoint.lean` (144 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/HintikkaPoint.lean`. *(completed)*
+- [ ] Port `BXCanonical/Quasimodel/Construction.lean` (841 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/Construction.lean`. BX axiom lemmas at MCS level. Layer 4, depends on HintikkaPoint. *(in progress -- handoff)*
+- [x] Port `BXCanonical/Frame.lean` (710 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Frame.lean`. *(deviation: altered -- 1 sorry for bx_le_refl under irreflexive semantics; second sorry in source was also bx_le_refl)*
+- [ ] Port `BXCanonical/TruthLemma.lean` (302 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/TruthLemma.lean`. *(in progress -- handoff)*
+- [x] Port `BXCanonical/Filtration/DefectChain.lean` (112 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Filtration/DefectChain.lean`. *(completed -- 0 sorries)*
+- [x] Port `BXCanonical/CanonicalChain.lean` (110 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/CanonicalChain.lean`. *(deviation: altered -- 0 sorries in port; source sorry was in removed code)*
+- [ ] Verify `lake build` passes *(partial -- 5/7 files compiling)*
 
 **Timing**: 2.5 hours
 
