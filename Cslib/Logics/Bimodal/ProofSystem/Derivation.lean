@@ -151,6 +151,14 @@ theorem mp_height_gt_right {fc : FrameClass} {Gamma : Context Atom}
   simp [height]
   omega
 
+/-- Weakening height is strictly greater than the subderivation. -/
+theorem subderiv_height_lt {fc : FrameClass} {Gamma Delta : Context Atom}
+    {phi : Formula Atom}
+    (d : DerivationTree fc Gamma phi)
+    (h : Gamma ⊆ Delta) :
+    d.height < (weakening Gamma Delta phi d h).height := by
+  simp [height]
+
 end DerivationTree
 
 end Cslib.Logic.Bimodal
