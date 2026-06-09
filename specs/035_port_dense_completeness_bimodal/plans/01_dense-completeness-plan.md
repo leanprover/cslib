@@ -320,7 +320,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: Chronicle Core -- PointInsertion, CounterexampleElimination, Construction [IN PROGRESS]
+### Phase 9: Chronicle Core -- PointInsertion, CounterexampleElimination, Construction [COMPLETED]
 
 **Goal**: Port the three large Chronicle core files that implement the point insertion and counterexample elimination algorithms.
 
@@ -346,7 +346,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 10: Countermodel Integration [NOT STARTED]
+### Phase 10: Countermodel Integration [IN PROGRESS]
 
 **Goal**: Port the countermodel construction pipeline that converts chronicles to actual countermodels. ChronicleToCountermodelBasic has no WeakCanonical dependency. ChronicleToCountermodel imports WeakCanonical only for the discrete path; sorry-stub those references.
 

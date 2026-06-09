@@ -66,6 +66,12 @@ open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.Metalogic.Core
 open Cslib.Logic.Bimodal.Metalogic.Bundle
 
+/-- Local bridge: derive membership in an MCS from a derivation at `fc` level. -/
+private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
+    (h_mcs : SetMaximalConsistent fc M)
+    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
+  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
+
 /-! ## Singleton Chronicle
 
 The initial chronicle with a single point at rational 0, mapping to a given MCS.
@@ -176,7 +182,7 @@ PotentialCounterexample is countable (all fields are countable) and infinite
 -/
 
 /-- PotentialCounterexample is countable since all its fields are countable. -/
-instance : Countable PotentialCounterexample :=
+instance : Countable (@PotentialCounterexample Atom) :=
   Function.Injective.countable
     (f := fun pc => (pc.x, pc.y, pc.ξ, pc.η, pc.kind))
     (fun a b h => by
@@ -186,13 +192,13 @@ instance : Countable PotentialCounterexample :=
       subst h1; subst h2; subst h3; subst h4; subst h5; rfl)
 
 /-- PotentialCounterexample is infinite since Rat embeds into it. -/
-instance : Infinite PotentialCounterexample :=
+instance : Infinite (@PotentialCounterexample Atom) :=
   Infinite.of_injective
-    (fun (q : ℚ) => PotentialCounterexample.mk q 0 Formula.bot Formula.bot .c5_forward)
+    (fun (q : ℚ) => PotentialCounterexample.mk q 0 (Formula.bot : Formula Atom) (Formula.bot : Formula Atom) .c5_forward)
     (fun a b h => by injection h)
 
 /-- PotentialCounterexample is Denumerable (countable + infinite). -/
-noncomputable instance : Denumerable PotentialCounterexample :=
+noncomputable instance : Denumerable (@PotentialCounterexample Atom) :=
   Classical.choice (nonempty_denumerable _)
 
 /-! ## Omega-Chain Construction
@@ -212,8 +218,8 @@ An enumeration of potential counterexamples. Uses the `Denumerable` instance
 on `PotentialCounterexample` (which is countable and infinite, hence in
 bijection with Nat) to assign a counterexample to each natural number.
 -/
-noncomputable def counterexample_enum : Nat → PotentialCounterexample :=
-  fun n => Denumerable.ofNat PotentialCounterexample n
+noncomputable def counterexample_enum : Nat → @PotentialCounterexample Atom :=
+  fun n => Denumerable.ofNat (@PotentialCounterexample Atom) n
 
 /--
 The enumeration covers all potential counterexamples: for any
@@ -222,7 +228,7 @@ matches that tuple. This follows from the surjectivity of
 `Denumerable.ofNat`.
 -/
 theorem counterexample_enum_surjective :
-    ∀ pc : PotentialCounterexample, ∃ n : Nat, counterexample_enum n = pc := by
+    ∀ pc : @PotentialCounterexample Atom, ∃ n : Nat, counterexample_enum n = pc := by
   intro pc
   exact ⟨Encodable.encode pc, Denumerable.ofNat_encode pc⟩
 
@@ -235,7 +241,7 @@ This is the key property needed for the limit argument: even if a counterexample
 canonical index j is below the step where its domain point enters, there exist
 arbitrarily large steps n where counterexample j is re-processed.
 -/
-theorem counterexample_enum_surjective_above (pc : PotentialCounterexample) (k : Nat) :
+theorem counterexample_enum_surjective_above (pc : @PotentialCounterexample Atom) (k : Nat) :
     ∃ n : Nat, n ≥ k ∧ counterexample_enum (Nat.unpair n).2 = pc := by
   have ⟨j, hj⟩ := counterexample_enum_surjective pc
   exact ⟨Nat.pair k j, Nat.left_le_pair k j,
@@ -712,7 +718,7 @@ theorem limit_F_resolution (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : S
     DerivationTree.axiom [] _ (Axiom.F_until_equiv φ) trivial
   have h_until : Formula.untl φ (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
     SetMaximalConsistent.implication_property h_mcs_x
-      (theorem_in_mcs h_mcs_x h_bx12) h_F
+      (theorem_in_mcs_fc h_mcs_x h_bx12) h_F
   exact limit_satisfies_c5_weak fc A h_mcs x hx _ φ h_until
 
 /--
@@ -733,7 +739,7 @@ theorem limit_P_resolution (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : S
     DerivationTree.axiom [] _ (Axiom.P_since_equiv φ) trivial
   have h_since : Formula.snce φ (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
     SetMaximalConsistent.implication_property h_mcs_x
-      (theorem_in_mcs h_mcs_x h_bx12') h_P
+      (theorem_in_mcs_fc h_mcs_x h_bx12') h_P
   exact limit_satisfies_c5'_weak fc A h_mcs x hx _ φ h_since
 
 /-! ## C4 Satisfaction in the Limit
@@ -964,8 +970,8 @@ theorem g_content_sub_imp_h_content_sub {fc : FrameClass} {A B : Set (Formula At
       (Formula.all_past ψ |>.imp (Formula.all_past ψ.neg.neg))) :=
     Cslib.Logic.Bimodal.Theorems.past_k_dist ψ ψ.neg.neg
   have h_H_nn : Formula.all_past ψ.neg.neg ∈ B := by
-    have h1 := theorem_in_mcs h_mcs_B h_H_dni
-    have h2 := theorem_in_mcs h_mcs_B h_H_dist
+    have h1 := theorem_in_mcs_fc h_mcs_B h_H_dni
+    have h2 := theorem_in_mcs_fc h_mcs_B h_H_dist
     have h3 := SetMaximalConsistent.implication_property h_mcs_B h2 h1
     exact SetMaximalConsistent.implication_property h_mcs_B h3 hψ
   exact some_past_all_past_neg_absurd h_mcs_B ψ.neg h_P_neg_ψ_B h_H_nn
@@ -996,7 +1002,7 @@ theorem h_content_sub_imp_g_content_sub {fc : FrameClass} {A B : Set (Formula At
     DerivationTree.axiom [] _ (Axiom.connect_past ψ.neg) trivial
   have h_HF : Formula.all_past (Formula.some_future ψ.neg) ∈ B :=
     SetMaximalConsistent.implication_property h_mcs_B
-      (theorem_in_mcs h_mcs_B h_ax) h_neg_ψ
+      (theorem_in_mcs_fc h_mcs_B h_ax) h_neg_ψ
   -- F(¬ψ) ∈ h_content(B) ⊆ A
   have h_F_neg_ψ_A : Formula.some_future ψ.neg ∈ A := h_hBA h_HF
   -- G(¬¬ψ) ∈ A from G(ψ) via DNI under G, then contradiction with F(¬ψ)
@@ -1008,8 +1014,8 @@ theorem h_content_sub_imp_g_content_sub {fc : FrameClass} {A B : Set (Formula At
       (Formula.all_future ψ |>.imp (Formula.all_future ψ.neg.neg))) :=
     liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived ψ ψ.neg.neg)
   have h_G_nn : Formula.all_future ψ.neg.neg ∈ A := by
-    have h1 := theorem_in_mcs h_mcs_A h_G_dni
-    have h2 := theorem_in_mcs h_mcs_A h_G_dist
+    have h1 := theorem_in_mcs_fc h_mcs_A h_G_dni
+    have h2 := theorem_in_mcs_fc h_mcs_A h_G_dist
     have h3 := SetMaximalConsistent.implication_property h_mcs_A h2 h1
     exact SetMaximalConsistent.implication_property h_mcs_A h3 hψ
   exact some_future_all_future_neg_absurd h_mcs_A ψ.neg h_F_neg_ψ_A h_G_nn
@@ -1059,8 +1065,8 @@ theorem limit_forward_G (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetM
       (Formula.all_future φ |>.imp (Formula.all_future φ.neg.neg))) :=
     liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived φ φ.neg.neg)
   have h_G_nn : Formula.all_future φ.neg.neg ∈ limit_f fc A h_mcs x := by
-    have h1 := theorem_in_mcs h_mcs_x h_G_dni
-    have h2 := theorem_in_mcs h_mcs_x h_G_dist
+    have h1 := theorem_in_mcs_fc h_mcs_x h_G_dni
+    have h2 := theorem_in_mcs_fc h_mcs_x h_G_dist
     have h3 := SetMaximalConsistent.implication_property h_mcs_x h2 h1
     exact SetMaximalConsistent.implication_property h_mcs_x h3 h_G
   have h_F_not : Formula.some_future φ.neg ∉ limit_f fc A h_mcs x := by
@@ -1072,7 +1078,7 @@ theorem limit_forward_G (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetM
   have h_until_not : Formula.untl φ.neg top ∉ limit_f fc A h_mcs x := by
     intro h_in
     exact h_F_not (SetMaximalConsistent.implication_property h_mcs_x
-      (theorem_in_mcs h_mcs_x h_bx10) h_in)
+      (theorem_in_mcs_fc h_mcs_x h_bx10) h_in)
   have h_neg_until : (Formula.untl φ.neg top).neg ∈ limit_f fc A h_mcs x := by
     rcases SetMaximalConsistent.negation_complete h_mcs_x (Formula.untl φ.neg top) with h | h
     · exact absurd h h_until_not
@@ -1081,7 +1087,7 @@ theorem limit_forward_G (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetM
     limit_satisfies_c4 fc A h_mcs x y hx hy hxy top φ.neg h_neg_until h_neg_phi
   have h_mcs_z := limit_c0 fc A h_mcs z hz_dom
   have h_top_in : top ∈ limit_f fc A h_mcs z := by
-    apply theorem_in_mcs h_mcs_z
+    apply theorem_in_mcs_fc h_mcs_z
     exact DerivationTree.axiom [] _ (Axiom.efq Formula.bot) trivial
   exact set_consistent_not_both h_mcs_z.1 top h_top_in h_top_neg
 
@@ -1112,8 +1118,8 @@ theorem limit_backward_H (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : Set
       (Formula.all_past φ |>.imp (Formula.all_past φ.neg.neg))) :=
     Cslib.Logic.Bimodal.Theorems.past_k_dist φ φ.neg.neg
   have h_H_nn : Formula.all_past φ.neg.neg ∈ limit_f fc A h_mcs x := by
-    have h1 := theorem_in_mcs h_mcs_x h_H_dni
-    have h2 := theorem_in_mcs h_mcs_x h_H_dist
+    have h1 := theorem_in_mcs_fc h_mcs_x h_H_dni
+    have h2 := theorem_in_mcs_fc h_mcs_x h_H_dist
     have h3 := SetMaximalConsistent.implication_property h_mcs_x h2 h1
     exact SetMaximalConsistent.implication_property h_mcs_x h3 h_H
   have h_P_not : Formula.some_past φ.neg ∉ limit_f fc A h_mcs x := by
@@ -1125,7 +1131,7 @@ theorem limit_backward_H (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : Set
   have h_since_not : Formula.snce φ.neg top ∉ limit_f fc A h_mcs x := by
     intro h_in
     exact h_P_not (SetMaximalConsistent.implication_property h_mcs_x
-      (theorem_in_mcs h_mcs_x h_bx10') h_in)
+      (theorem_in_mcs_fc h_mcs_x h_bx10') h_in)
   have h_neg_since : (Formula.snce φ.neg top).neg ∈ limit_f fc A h_mcs x := by
     rcases SetMaximalConsistent.negation_complete h_mcs_x (Formula.snce φ.neg top) with h | h
     · exact absurd h h_since_not
@@ -1134,7 +1140,7 @@ theorem limit_backward_H (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : Set
     limit_satisfies_c4' fc A h_mcs x y hx hy hyx top φ.neg h_neg_since h_neg_phi
   have h_mcs_z := limit_c0 fc A h_mcs z hz_dom
   have h_top_in : top ∈ limit_f fc A h_mcs z := by
-    apply theorem_in_mcs h_mcs_z
+    apply theorem_in_mcs_fc h_mcs_z
     exact DerivationTree.axiom [] _ (Axiom.efq Formula.bot) trivial
   exact set_consistent_not_both h_mcs_z.1 top h_top_in h_top_neg
 
