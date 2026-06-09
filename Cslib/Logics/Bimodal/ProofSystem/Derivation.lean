@@ -114,6 +114,43 @@ scoped notation:50 Gamma " ⊢[" fc "] " phi =>
 scoped notation:50 "⊢ " phi =>
   DerivationTree FrameClass.Base ([] : Context _) phi
 
+/-! ## Height Function -/
+
+/--
+Computable height function via pattern matching.
+
+The height is defined as the maximum depth of the derivation tree:
+- Base cases (axiom, assumption): height 0
+- Compound cases: 1 + max height of subderivations
+-/
+def height {fc : FrameClass} {Gamma : Context Atom} {phi : Formula Atom} :
+    DerivationTree fc Gamma phi → Nat
+  | .axiom _ _ _ _ => 0
+  | .assumption _ _ _ => 0
+  | .modus_ponens _ _ _ d1 d2 => 1 + max d1.height d2.height
+  | .necessitation _ d => 1 + d.height
+  | .temporal_necessitation _ d => 1 + d.height
+  | .temporal_duality _ d => 1 + d.height
+  | .weakening _ _ _ d _ => 1 + d.height
+
+/-- Modus ponens height is strictly greater than the left subderivation. -/
+theorem mp_height_gt_left {fc : FrameClass} {Gamma : Context Atom}
+    {phi psi : Formula Atom}
+    (d1 : DerivationTree fc Gamma (phi.imp psi))
+    (d2 : DerivationTree fc Gamma phi) :
+    d1.height < (modus_ponens Gamma phi psi d1 d2).height := by
+  simp [height]
+  omega
+
+/-- Modus ponens height is strictly greater than the right subderivation. -/
+theorem mp_height_gt_right {fc : FrameClass} {Gamma : Context Atom}
+    {phi psi : Formula Atom}
+    (d1 : DerivationTree fc Gamma (phi.imp psi))
+    (d2 : DerivationTree fc Gamma phi) :
+    d2.height < (modus_ponens Gamma phi psi d1 d2).height := by
+  simp [height]
+  omega
+
 end DerivationTree
 
 end Cslib.Logic.Bimodal

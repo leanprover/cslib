@@ -130,7 +130,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Metalogic/Soundness/DenseValidity.lean [NOT STARTED]
+### Phase 3: Metalogic/Soundness/DenseValidity.lean [COMPLETED]
 
 **Goal**: Port the dense validity proofs -- all swap_axiom_*_valid theorems (42 cases), `axiom_swap_valid`, `axiom_locally_valid`, preservation lemmas, and the combined `derivable_valid_and_swap_valid` theorem with `termination_by d.height`.
 
