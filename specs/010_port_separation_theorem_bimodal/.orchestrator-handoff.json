@@ -1,19 +1,19 @@
 {
   "status": "partial",
-  "summary": "Completed phases 1-6 of 15. Next: phase 7 (Eliminations.lean, 902 lines -- largest file). All 6 completed phases build with zero sorry, zero axioms.",
+  "summary": "Completed phases 1-6 of 15. All 6 files build with zero sorry and zero axioms. Next: phase 7 (Eliminations.lean, 902 lines). Key insight: scoped notation (F,G,H,P,S,U) in Cslib.Logic.Bimodal requires careful handling - use rw with int_truth simp lemmas instead of simp only [int_truth], and avoid single-letter variable names matching notation.",
   "artifacts": [
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Defs.lean", "type": "source", "summary": "Foundation types: IntStructure, int_truth, int_equiv, syntactic predicates, structural measures"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/FormulaOps.lean", "type": "source", "summary": "Substitution, freshness (fresh_atom, fresh_atoms with Infinite typeclass), DNF/CNF"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/IntHelpers.lean", "type": "source", "summary": "Integer arithmetic helpers: well-ordering, witness constructions"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Duality.lean", "type": "source", "summary": "Temporal duality: swap_temporal_int_truth, dual_equiv, dual_separated"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Distributivity.lean", "type": "source", "summary": "GHR94 Lemma 10.2.1: U/S distribute over boolean ops"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/NegationEquiv.lean", "type": "source", "summary": "GHR94 Lemma 10.2.2: negation equivalences for U and S over Z"}
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Defs.lean", "type": "source", "summary": "Phase 1: Foundation types and predicates (553 lines source -> ported)"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/FormulaOps.lean", "type": "source", "summary": "Phase 2: Substitution and freshness with Infinite typeclass (235 lines source -> ported)"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/IntHelpers.lean", "type": "source", "summary": "Phase 3: Integer arithmetic helpers (131 lines source -> ported)"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Duality.lean", "type": "source", "summary": "Phase 4: Temporal duality (342 lines source -> ported)"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Distributivity.lean", "type": "source", "summary": "Phase 5: Distributivity laws (188 lines source -> ported)"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/NegationEquiv.lean", "type": "source", "summary": "Phase 6: Negation equivalences over Z (159 lines source -> ported)"}
   ],
   "blockers": [],
   "continuation_context": {
     "completed_phases": [1, 2, 3, 4, 5, 6],
     "next_phase": 7,
-    "notes": "Phase 7 (Eliminations.lean) is the largest file at 902 lines with 8 elimination cases. KEY PORTING INSIGHT: scoped notation (F, G, H, P, S, U) is active in child namespaces of Cslib.Logic.Bimodal, so (1) avoid these as lambda variable names, (2) use rw with int_truth_neg/int_truth_or/int_truth_and to reduce goals rather than simp only [int_truth] which unfolds everything to raw implications, (3) use fully qualified Formula.neg/Formula.or/Formula.and in type signatures. The source uses int_truth_and_iff/int_truth_or_iff/int_truth_neg_iff which map to our int_truth_and/int_truth_or/int_truth_neg simp lemmas. The source also uses open Classical which should become open Classical in or section-scoped.",
+    "notes": "Phase 7 (Eliminations.lean, 902 lines) is the largest non-hierarchy file with 8 elimination cases (though Cases 5-8 are deferred to NormalForm.lean in the source). KEY PORTING INSIGHTS: (1) Scoped notation F,G,H,P,S,U is active in child namespaces of Cslib.Logic.Bimodal. Avoid these as variable names. Use w,x,r,m,u instead. (2) Use rw [int_truth_neg, int_truth_or, int_truth_and, int_truth_all_future, int_truth_all_past] to reduce goals to clean propositional form. Do NOT use 'simp only [int_truth]' which unfolds Formula abbrevs (neg,and,or) to raw implications, breaking left/right/rcases. (3) The source uses int_truth_and_iff/int_truth_or_iff/int_truth_neg_iff which correspond exactly to our @[simp] lemmas int_truth_and/int_truth_or/int_truth_neg. (4) Freshness uses Finset.exists_notMem from Mathlib.Data.Set.Finite.Basic instead of concrete Atom.mk_fresh_injective. (5) Formula.neg/and/or/all_future/all_past/some_future/some_past are all abbrevs in cslib, not separate constructors.",
     "handoff_file": "specs/010_port_separation_theorem_bimodal/handoffs/phase-6-handoff.md"
   },
   "next_action_hint": "implement",
