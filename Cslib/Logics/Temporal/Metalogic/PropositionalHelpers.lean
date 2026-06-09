@@ -169,6 +169,58 @@ def dni (φ : Formula Atom) :
   have d1 := deduction_theorem [φ] φ.neg Formula.bot d_bot
   exact deduction_theorem [] φ φ.neg.neg d1
 
+/-- Identity combinator: ⊢ A → A. -/
+def identity (A : Formula Atom) :
+    DerivationTree FrameClass.Base [] (A.imp A) := by
+  -- Using Peirce: ((A → ⊥) → A) → A, with K: A → (A → ⊥) → A, then MP.
+  -- Simpler: from A, derive A. DT gives ⊢ A → A.
+  exact deduction_theorem [] A A (DerivationTree.assumption [A] A (by simp))
+
+/-- De Morgan backward: ⊢ (¬A ∧ ¬B) → ¬(A ∨ B).
+    Since A ∨ B = ¬(A → ¬B) = (A → B → ⊥) → ⊥,
+    ¬(A ∨ B) = ((A → B → ⊥) → ⊥) → ⊥ = (A → B → ⊥) → ⊥ → ⊥... no.
+    Actually: A.or B = Formula.neg (A.imp B.neg) = ((A.imp (B.imp ⊥)).imp ⊥)... no.
+    Formula.or A B = Formula.neg (Formula.and A.neg B.neg)... let me check.
+    Actually in this system: Formula.or is probably defined differently.
+    Let me check: Formula.or a b = (a.neg).imp b.
+    So ¬(A ∨ B) = (A.or B).neg = ((A.neg).imp B).neg = ((A.neg).imp B).imp ⊥.
+    ¬A ∧ ¬B = (A.neg.imp (B.neg.imp ⊥)).imp ⊥... no, ∧ is ¬(→ ¬).
+    A.neg ∧ B.neg = Formula.and A.neg B.neg = ((A.neg).imp ((B.neg).imp ⊥)).imp ⊥.
+
+    We need: ⊢ (A.neg ∧ B.neg) → (A.or B).neg
+    i.e., ⊢ (A.neg ∧ B.neg) → ((A.neg).imp B).imp ⊥
+    Assume A.neg ∧ B.neg. Get A.neg and B.neg.
+    Assume (A.neg).imp B. Then from A.neg, get B. But B.neg gives ⊥. -/
+def demorgan_disj_neg_backward (A B : Formula Atom) :
+    DerivationTree FrameClass.Base [] ((Formula.and A.neg B.neg).imp (A.or B).neg) := by
+  -- Goal: ⊢ (A.neg ∧ B.neg) → ¬(A ∨ B)
+  -- Context: [A.or B, A.neg ∧ B.neg]
+  -- A.or B = (A.neg).imp B = (A.imp ⊥).imp B
+  -- A.neg ∧ B.neg = ((A.imp ⊥).imp ((B.imp ⊥).imp ⊥)).imp ⊥
+  let ctx := [A.or B, Formula.and A.neg B.neg]
+  -- Extract A.neg from the conjunction
+  have d_conj : DerivationTree FrameClass.Base ctx (Formula.and A.neg B.neg) :=
+    .assumption ctx _ (by simp [List.mem_cons, ctx])
+  have d_lce : DerivationTree FrameClass.Base ctx ((Formula.and A.neg B.neg).imp A.neg) :=
+    .weakening [] ctx _ (lce_imp A.neg B.neg) (fun _ h => nomatch h)
+  have d_rce : DerivationTree FrameClass.Base ctx ((Formula.and A.neg B.neg).imp B.neg) :=
+    .weakening [] ctx _ (rce_imp A.neg B.neg) (fun _ h => nomatch h)
+  have d_aneg : DerivationTree FrameClass.Base ctx A.neg :=
+    .modus_ponens ctx _ _ d_lce d_conj
+  have d_bneg : DerivationTree FrameClass.Base ctx B.neg :=
+    .modus_ponens ctx _ _ d_rce d_conj
+  -- A.or B = A.neg.imp B, get B from A.neg
+  have d_or : DerivationTree FrameClass.Base ctx (A.or B) :=
+    .assumption ctx _ (by simp [List.mem_cons, ctx])
+  have d_b : DerivationTree FrameClass.Base ctx B :=
+    .modus_ponens ctx _ _ d_or d_aneg
+  -- B.neg and B give ⊥
+  have d_bot : DerivationTree FrameClass.Base ctx Formula.bot :=
+    .modus_ponens ctx _ _ d_bneg d_b
+  -- DT twice
+  have d1 := deduction_theorem [Formula.and A.neg B.neg] (A.or B) Formula.bot d_bot
+  exact deduction_theorem [] (Formula.and A.neg B.neg) (A.or B).neg d1
+
 end -- noncomputable section
 
 end Cslib.Logic.Temporal.Metalogic

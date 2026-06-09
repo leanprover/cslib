@@ -180,6 +180,108 @@ def BurgessR3Maximal (A B C : Set (Formula Atom)) : Prop :=
   burgessR3 A B C ∧
   ∀ D, ClosedUnderDerivation D → B ⊂ D → ¬burgessR3 A D C
 
+/-! ## Adjacency Predicate -/
+
+def Adjacent (dom : Finset Rat) (x y : Rat) : Prop :=
+  x ∈ dom ∧ y ∈ dom ∧ x < y ∧ ∀ z ∈ dom, ¬(x < z ∧ z < y)
+
+/-! ## Chronicle Structure -/
+
+structure Chronicle (Atom : Type*) where
+  f : Rat → Set (Formula Atom)
+  g : Rat → Rat → Set (Formula Atom)
+  dom : Finset Rat
+
+/-! ## Chronicle Conditions -/
+
+def Chronicle.c0 (chi : Chronicle Atom) : Prop :=
+  ∀ x ∈ chi.dom, Temporal.SetMaximalConsistent (chi.f x)
+
+def Chronicle.c1 (chi : Chronicle Atom) : Prop :=
+  ∀ x y : Rat, x ∈ chi.dom → y ∈ chi.dom → x < y → ClosedUnderDerivation (chi.g x y)
+
+def Chronicle.c2 (chi : Chronicle Atom) : Prop :=
+  ∀ x y : Rat, x ∈ chi.dom → y ∈ chi.dom → x < y → r3Relation (chi.f x) (chi.g x y) (chi.f y)
+
+def Chronicle.c2' (chi : Chronicle Atom) : Prop :=
+  ∀ x y : Rat, Adjacent chi.dom x y →
+    BurgessR3Maximal (chi.f x) (chi.g x y) (chi.f y)
+
+def Chronicle.c3 (chi : Chronicle Atom) : Prop :=
+  ∀ x y z : Rat, x ∈ chi.dom → y ∈ chi.dom → z ∈ chi.dom →
+    x < y → y < z → chi.g x z = chi.g x y ∩ chi.f y ∩ chi.g y z
+
+def Chronicle.c4 (chi : Chronicle Atom) : Prop :=
+  ∀ x y : Rat, x ∈ chi.dom → y ∈ chi.dom → x < y →
+    ∀ (gamma delta : Formula Atom),
+      (Formula.untl delta gamma).neg ∈ chi.f x →
+      delta ∈ chi.f y →
+      ∃ z ∈ chi.dom, x < z ∧ z < y ∧ gamma.neg ∈ chi.f z
+
+def Chronicle.c4' (chi : Chronicle Atom) : Prop :=
+  ∀ x y : Rat, x ∈ chi.dom → y ∈ chi.dom → y < x →
+    ∀ (gamma delta : Formula Atom),
+      (Formula.snce delta gamma).neg ∈ chi.f x →
+      delta ∈ chi.f y →
+      ∃ z ∈ chi.dom, y < z ∧ z < x ∧ gamma.neg ∈ chi.f z
+
+def Chronicle.c5 (chi : Chronicle Atom) : Prop :=
+  ∀ x ∈ chi.dom,
+    ∀ (gamma delta : Formula Atom),
+      Formula.untl delta gamma ∈ chi.f x →
+      ∃ y ∈ chi.dom, x < y ∧ delta ∈ chi.f y ∧
+        ∀ z ∈ chi.dom, x < z → z < y →
+          gamma ∈ chi.f z ∧ Formula.untl delta gamma ∈ chi.f z
+
+def Chronicle.c5' (chi : Chronicle Atom) : Prop :=
+  ∀ x ∈ chi.dom,
+    ∀ (gamma delta : Formula Atom),
+      Formula.snce delta gamma ∈ chi.f x →
+      ∃ y ∈ chi.dom, y < x ∧ delta ∈ chi.f y ∧
+        ∀ z ∈ chi.dom, y < z → z < x →
+          gamma ∈ chi.f z ∧ Formula.snce delta gamma ∈ chi.f z
+
+/-! ## Valid Chronicle -/
+
+structure ValidChronicle (Atom : Type*) extends Chronicle Atom where
+  hc0 : toChronicle.c0
+  hc1 : toChronicle.c1
+  hc2 : toChronicle.c2
+  hc2' : toChronicle.c2'
+  hc3 : toChronicle.c3
+  hc4 : toChronicle.c4
+  hc4' : toChronicle.c4'
+  hc5 : toChronicle.c5
+  hc5' : toChronicle.c5'
+
+/-! ## C3 Consequences -/
+
+theorem c3_interval_subset_point (chi : Chronicle Atom) (h_c3 : chi.c3)
+    {x y z : Rat} (hx : x ∈ chi.dom) (hy : y ∈ chi.dom) (hz : z ∈ chi.dom)
+    (hxy : x < y) (hyz : y < z) :
+    chi.g x z ⊆ chi.f y := by
+  intro phi hphi; rw [h_c3 x y z hx hy hz hxy hyz] at hphi; exact hphi.1.2
+
+theorem c3_interval_subset_left (chi : Chronicle Atom) (h_c3 : chi.c3)
+    {x y z : Rat} (hx : x ∈ chi.dom) (hy : y ∈ chi.dom) (hz : z ∈ chi.dom)
+    (hxy : x < y) (hyz : y < z) :
+    chi.g x z ⊆ chi.g x y := by
+  intro phi hphi; rw [h_c3 x y z hx hy hz hxy hyz] at hphi; exact hphi.1.1
+
+theorem c3_interval_subset_right (chi : Chronicle Atom) (h_c3 : chi.c3)
+    {x y z : Rat} (hx : x ∈ chi.dom) (hy : y ∈ chi.dom) (hz : z ∈ chi.dom)
+    (hxy : x < y) (hyz : y < z) :
+    chi.g x z ⊆ chi.g y z := by
+  intro phi hphi; rw [h_c3 x y z hx hy hz hxy hyz] at hphi; exact hphi.2
+
+/-! ## ChronicleInvariant Bundle -/
+
+structure ChronicleInvariant (chi : Chronicle Atom) : Prop where
+  hc0 : chi.c0
+  hc1 : chi.c1
+  hc2' : chi.c2'
+  hc3 : chi.c3
+
 /-! ## Basic Properties -/
 
 theorem rRelation_subset {A B C : Set (Formula Atom)}
