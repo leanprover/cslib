@@ -104,24 +104,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Deduction Theorem [NOT STARTED]
+### Phase 2: Deduction Theorem [COMPLETED]
 
 **Goal**: Prove the deduction theorem for modal logic by structural induction on `DerivationTree`, and provide the `HasDeductionTheorem` instance for the generic MCS framework.
 
 **Tasks**:
-- [ ] Create file `Cslib/Logics/Modal/Metalogic/DeductionTheorem.lean` with imports from DerivationTree.lean and Consistency.lean
-- [ ] Define `DerivationTree.height : DerivationTree Gamma phi -> Nat` by recursion on all 5 constructors
-- [ ] Prove propositional axiom derivability helpers needed for the deduction theorem: `derive_imp_self` (phi -> phi), `derive_imp_intro` (prove `Gamma |- phi -> psi` from `Gamma |- psi`), `derive_imp_trans` (transitivity of implication derivability)
-- [ ] Define the main `deduction_theorem` function by well-founded recursion on `DerivationTree.height`, handling all 5 constructor cases:
-  - `axiom`: `A :: Gamma |- ax_phi` becomes `Gamma |- A -> ax_phi` via imp-intro and axiom
-  - `assumption` with `phi = A`: produces `Gamma |- A -> A` (imp_self)
-  - `assumption` with `phi in Gamma`: produces `Gamma |- A -> phi` via imp-intro and assumption
-  - `modus_ponens`: recursive on both subderivations, then combine via ImplyS axiom
-  - `necessitation`: impossible (requires empty context, but `A :: Gamma` is non-empty)
-  - `weakening`: `deduction_with_mem` helper for the case where `A` is in the weakened context
-- [ ] Define `deduction_with_mem` helper that handles the weakening case where the deduction hypothesis `A` may or may not be in the source context
-- [ ] Prove `modal_has_deduction_theorem : HasDeductionTheorem (@modalDerivationSystem Atom)` wrapping the main theorem
-- [ ] Verify `lake build Cslib.Logics.Modal.Metalogic.DeductionTheorem`
+- [x] Create file `Cslib/Logics/Modal/Metalogic/DeductionTheorem.lean` with imports from DerivationTree.lean and Consistency.lean
+- [x] Define `DerivationTree.height : DerivationTree Gamma phi -> Nat` by recursion on all 5 constructors *(deviation: altered -- height defined in DerivationTree.lean, not DeductionTheorem.lean)*
+- [x] Prove propositional axiom derivability helpers needed for the deduction theorem: `derive_imp_self` (phi -> phi), `derive_imp_intro` (prove `Gamma |- phi -> psi` from `Gamma |- psi`), `derive_imp_trans` (transitivity of implication derivability) *(deviation: altered -- named deduction_axiom, deduction_imp_self, deduction_assumption_other, deduction_mp as helper functions)*
+- [x] Define the main `deduction_theorem` function by well-founded recursion on `DerivationTree.height`, handling all 5 constructor cases
+- [x] Define `deduction_with_mem` helper that handles the weakening case where the deduction hypothesis `A` may or may not be in the source context
+- [x] Prove `modal_has_deduction_theorem : HasDeductionTheorem (@modalDerivationSystem Atom)` wrapping the main theorem
+- [x] Verify `lake build Cslib.Logics.Modal.Metalogic.DeductionTheorem`
 
 **Timing**: 4 hours
 
