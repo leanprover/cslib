@@ -124,7 +124,7 @@ protected abbrev SerialPast : F :=
 protected abbrev LeftMonoUntilG (φ χ ψ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
-  let G_imp := HasImp.imp (HasUntil.untl top (neg (HasImp.imp φ χ))) HasBot.bot
+  let G_imp := HasImp.imp (HasUntil.untl (neg (HasImp.imp φ χ)) top) HasBot.bot
   HasImp.imp G_imp
     (HasImp.imp (HasUntil.untl ψ φ) (HasUntil.untl ψ χ))
 
@@ -134,7 +134,7 @@ protected abbrev LeftMonoUntilG (φ χ ψ : F) : F :=
 protected abbrev LeftMonoSinceH (φ χ ψ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
-  let H_imp := HasImp.imp (HasSince.snce top (neg (HasImp.imp φ χ))) HasBot.bot
+  let H_imp := HasImp.imp (HasSince.snce (neg (HasImp.imp φ χ)) top) HasBot.bot
   HasImp.imp H_imp
     (HasImp.imp (HasSince.snce ψ φ) (HasSince.snce ψ χ))
 
@@ -144,7 +144,7 @@ protected abbrev LeftMonoSinceH (φ χ ψ : F) : F :=
 protected abbrev RightMonoUntil (φ ψ χ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
-  let G_imp := HasImp.imp (HasUntil.untl top (neg (HasImp.imp φ ψ))) HasBot.bot
+  let G_imp := HasImp.imp (HasUntil.untl (neg (HasImp.imp φ ψ)) top) HasBot.bot
   HasImp.imp G_imp
     (HasImp.imp (HasUntil.untl φ χ) (HasUntil.untl ψ χ))
 
@@ -154,7 +154,7 @@ protected abbrev RightMonoUntil (φ ψ χ : F) : F :=
 protected abbrev RightMonoSince (φ ψ χ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
-  let H_imp := HasImp.imp (HasSince.snce top (neg (HasImp.imp φ ψ))) HasBot.bot
+  let H_imp := HasImp.imp (HasSince.snce (neg (HasImp.imp φ ψ)) top) HasBot.bot
   HasImp.imp H_imp
     (HasImp.imp (HasSince.snce φ χ) (HasSince.snce ψ χ))
 
@@ -163,8 +163,8 @@ protected abbrev RightMonoSince (φ ψ χ : F) : F :=
 protected abbrev ConnectFuture (φ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
-  let P_φ := HasSince.snce top φ
-  let G_P_φ := HasImp.imp (HasUntil.untl top (neg P_φ)) HasBot.bot
+  let P_φ := HasSince.snce φ top
+  let G_P_φ := HasImp.imp (HasUntil.untl (neg P_φ) top) HasBot.bot
   HasImp.imp φ G_P_φ
 
 /-- Temporal connectedness past (BX4'): φ → H(F(φ))
@@ -172,8 +172,8 @@ protected abbrev ConnectFuture (φ : F) : F :=
 protected abbrev ConnectPast (φ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
-  let F_φ := HasUntil.untl top φ
-  let H_F_φ := HasImp.imp (HasSince.snce top (neg F_φ)) HasBot.bot
+  let F_φ := HasUntil.untl φ top
+  let H_F_φ := HasImp.imp (HasSince.snce (neg F_φ) top) HasBot.bot
   HasImp.imp φ H_F_φ
 
 /-- Until-Since enrichment (BX13):
@@ -252,14 +252,14 @@ protected abbrev LinearSince (φ ψ χ θ : F) : F :=
     where F(α) = ⊤ U α -/
 protected abbrev UntilF (φ ψ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
-  HasImp.imp (HasUntil.untl ψ φ) (HasUntil.untl top ψ)
+  HasImp.imp (HasUntil.untl ψ φ) (HasUntil.untl ψ top)
 
 /-- Since implies past eventuality (BX10'):
     S(ψ, φ) → P(ψ)
-    where P(α) = ⊤ S α -/
+    where P(α) = α S ⊤ -/
 protected abbrev SinceP (φ ψ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
-  HasImp.imp (HasSince.snce ψ φ) (HasSince.snce top ψ)
+  HasImp.imp (HasSince.snce ψ φ) (HasSince.snce ψ top)
 
 /-- Temporal linearity (BX11):
     F(φ) ∧ F(ψ) → F(φ ∧ ψ) ∨ F(φ ∧ F(ψ)) ∨ F(F(φ) ∧ ψ) -/
@@ -268,7 +268,7 @@ protected abbrev TempLinearity (φ ψ : F) : F :=
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
   let conj := fun (a b : F) => HasImp.imp (HasImp.imp a (neg b)) HasBot.bot
   let disj := fun (a b : F) => HasImp.imp (neg a) b
-  let F' := fun (x : F) => HasUntil.untl top x
+  let F' := fun (x : F) => HasUntil.untl x top
   HasImp.imp (conj (F' φ) (F' ψ))
     (disj (F' (conj φ ψ))
       (disj (F' (conj φ (F' ψ)))
@@ -281,7 +281,7 @@ protected abbrev TempLinearityPast (φ ψ : F) : F :=
   let neg := fun (x : F) => HasImp.imp x HasBot.bot
   let conj := fun (a b : F) => HasImp.imp (HasImp.imp a (neg b)) HasBot.bot
   let disj := fun (a b : F) => HasImp.imp (neg a) b
-  let P' := fun (x : F) => HasSince.snce top x
+  let P' := fun (x : F) => HasSince.snce x top
   HasImp.imp (conj (P' φ) (P' ψ))
     (disj (P' (conj φ ψ))
       (disj (P' (conj φ (P' ψ)))
@@ -292,13 +292,14 @@ protected abbrev TempLinearityPast (φ ψ : F) : F :=
     where F(α) = ⊤ U α -/
 protected abbrev FUntilEquiv (φ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
-  HasImp.imp (HasUntil.untl top φ) (HasUntil.untl φ top)
+  HasImp.imp (HasUntil.untl φ top) (HasUntil.untl φ top)
 
 /-- P-Since equivalence (BX12'):
-    P(φ) → S(φ, ⊤) -/
+    P(φ) → S(φ, ⊤)
+    Note: Under the Burgess 1982 convention, this is trivially P(φ) → P(φ). -/
 protected abbrev PSinceEquiv (φ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
-  HasImp.imp (HasSince.snce top φ) (HasSince.snce φ top)
+  HasImp.imp (HasSince.snce φ top) (HasSince.snce φ top)
 
 end Temporal
 
@@ -313,7 +314,7 @@ variable [HasBot F] [HasImp F] [HasBox F] [HasUntil F]
 protected abbrev ModalFuture (φ : F) : F :=
   let top := HasImp.imp (HasBot.bot : F) HasBot.bot
   let neg_φ := HasImp.imp φ HasBot.bot
-  let G_φ := HasImp.imp (HasUntil.untl top neg_φ) HasBot.bot
+  let G_φ := HasImp.imp (HasUntil.untl neg_φ top) HasBot.bot
   HasImp.imp (HasBox.box φ) (HasBox.box G_φ)
 
 end Interaction

@@ -79,16 +79,16 @@ class TemporalNecessitation (S : Type*) [HasBot F] [HasImp F]
     InferenceSystem.DerivableIn S φ →
     InferenceSystem.DerivableIn S
       (HasImp.imp
-        (HasUntil.untl (HasImp.imp (HasBot.bot : F) HasBot.bot)
-          (HasImp.imp φ HasBot.bot))
+        (HasUntil.untl (HasImp.imp φ HasBot.bot)
+          (HasImp.imp (HasBot.bot : F) HasBot.bot))
         HasBot.bot)
   /-- Past temporal necessitation (H-necessitation): from `S ⊢ φ`, derive `S ⊢ H(φ)`. -/
   tempNecPast {φ : F} :
     InferenceSystem.DerivableIn S φ →
     InferenceSystem.DerivableIn S
       (HasImp.imp
-        (HasSince.snce (HasImp.imp (HasBot.bot : F) HasBot.bot)
-          (HasImp.imp φ HasBot.bot))
+        (HasSince.snce (HasImp.imp φ HasBot.bot)
+          (HasImp.imp (HasBot.bot : F) HasBot.bot))
         HasBot.bot)
 
 /-! ### Individual Axiom Typeclasses -/
