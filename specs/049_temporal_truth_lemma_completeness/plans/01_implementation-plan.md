@@ -104,7 +104,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: TruthLemma.lean [NOT STARTED]
+### Phase 2: TruthLemma.lean [COMPLETED]
 
 **Goal**: Prove the truth lemma: `Satisfies (chronicle_model A h_mcs) t phi <-> phi in limit_f A h_mcs t.val` for all `t : ChronicleSubtype` and all `phi : Formula Atom`, by structural induction on phi.
 
