@@ -321,7 +321,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: FMP -- FMP.lean (Main Theorem) [NOT STARTED]
+### Phase 9: FMP -- FMP.lean (Main Theorem) [COMPLETED]
 
 **Goal**: Port the main FMP theorem, contrapositive, and size bound
 
