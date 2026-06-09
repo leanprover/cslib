@@ -296,7 +296,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: Chronicle Types and RRelation [NOT STARTED]
+### Phase 8: Chronicle Types and RRelation [IN PROGRESS]
 
 **Goal**: Port the Chronicle type definitions and R-relation, which form the foundation of the Burgess chronicle construction. These files import many Mathlib modules (Rat, Archimedean, etc.) so this phase validates Mathlib compatibility.
 

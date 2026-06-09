@@ -11,7 +11,7 @@ next_project_number: 46
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 35,45 | -- | Bimodal Porting |
+| 1 | 35 | -- | Bimodal Porting |
 | 2 | 36,37 | 35 | Bimodal Porting |
 | 3 | 31 | 35,36,37 | Temporal Logic |
 | 4 | 38,39 | 31 | Temporal Logic |
@@ -56,16 +56,15 @@ next_project_number: 46
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
 
-### Uncategorized
-
-45 [NOT STARTED] — improve_roadmap_diagram_and_structure
-
 ## Tasks
 
 ### 45. Improve ROADMAP.md diagram and structure
 - **Effort**: Small (1-2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: markdown
+- specs/045_improve_roadmap_diagram_and_structure/reports/01_roadmap-improvement.md: [Report]
+- specs/045_improve_roadmap_diagram_and_structure/plans/01_roadmap-improvement.md: [Plan]
+- specs/045_improve_roadmap_diagram_and_structure/summaries/01_roadmap-improvement-summary.md: [Summary]
 
 **Description**: Improve ROADMAP.md: replace the Import Hierarchy section with an accurately labeled mermaid diagram, remove all task references throughout the file (readers should see TODO.md for tasks), remove the Phases section entirely, and add a file tree showing the current project structure focused on the aims of the roadmap.
 
@@ -108,7 +107,7 @@ next_project_number: 46
 
 ### 39. Discrete temporal completeness
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 31
 
@@ -126,7 +125,7 @@ next_project_number: 46
 
 ### 38. Dense temporal completeness
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 31
 
@@ -144,7 +143,7 @@ next_project_number: 46
 
 ### 41. Abstract shared completeness infrastructure
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 35, 38, 39
 
