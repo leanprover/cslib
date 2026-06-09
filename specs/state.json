@@ -1,13 +1,13 @@
 {
-  "next_project_number": 34,
+  "next_project_number": 38,
   "active_projects": [
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T18:00:00Z",
       "dependencies": [
         22,
         23,
@@ -15,7 +15,22 @@
         32
       ],
       "description": "Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: Cslib/Logics/Temporal/Metalogic/.",
-      "topic": "Temporal Logic"
+      "topic": "Temporal Logic",
+      "plan_metadata": {
+        "phases": 6,
+        "total_effort_hours": 18,
+        "complexity": "complex",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [[1], [2], [3, 4], [5], [6]],
+        "reports_integrated": [
+          {
+            "path": "reports/01_temporal-metalogic-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-08"
+          }
+        ]
+      }
     },
     {
       "project_number": 12,
@@ -47,15 +62,70 @@
     {
       "project_number": 8,
       "project_name": "port_completeness_bimodal",
-      "status": "not_started",
+      "status": "expanded",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-08T00:30:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [
         6,
         7
       ],
-      "description": "Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logics/Bimodal/Metalogic/. This is the main completeness theorem: every valid formula is derivable in the BX/TM axiom system.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/):\n- Completeness.lean (~520 lines): main completeness theorem for BX logic (bx_completeness), canonical model construction, truth lemma\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/\n\n**Estimated scope**: ~520 lines, 1 file\n\n**PR title**: feat(Logics/Bimodal): add Completeness theorem (bx_completeness)\n\n**Dependencies**: Tasks 6 (FrameConditions+Soundness) and 7 (MCS/Deduction) must both be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
+      "description": "Expanded into tasks 34 (base MCS properties), 35 (dense completeness), 36 (discrete completeness), 37 (continuous extension completeness).",
+      "topic": "Bimodal Porting"
+    },
+    {
+      "project_number": 34,
+      "project_name": "port_base_completeness_mcs_properties",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        6,
+        7
+      ],
+      "description": "Port base MCS completeness properties from Completeness.lean (~520 lines) to Cslib/Logics/Bimodal/Metalogic/Completeness.lean. Includes: disjunction_intro/elim/iff, conjunction_intro/elim/iff, box_closure (Modal T), box_box (Modal 4), diamond-box duality (neg_box_implies_diamond_neg, diamond_neg_implies_neg_box, diamond_box_duality). All proofs are sorry-free. These are the foundational MCS properties needed by both dense and discrete completeness.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/Completeness.lean (~520 lines)\n**Target**: Cslib/Logics/Bimodal/Metalogic/Completeness.lean\n**Parent task**: 8 (expanded)",
+      "topic": "Bimodal Porting"
+    },
+    {
+      "project_number": 35,
+      "project_name": "port_dense_completeness_bimodal",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        34
+      ],
+      "description": "Port dense completeness infrastructure and completeness_dense theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The completeness_dense theorem constructs countermodels on Rat via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/{Algebraic/,Bundle/,BXCanonical/} (~40 files, ~15,000 lines)\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Parent task**: 8 (expanded)",
+      "topic": "Bimodal Porting"
+    },
+    {
+      "project_number": 36,
+      "project_name": "port_discrete_completeness_bimodal",
+      "status": "blocked",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        35,
+        "BimodalLogic:discrete_sorry_elimination"
+      ],
+      "description": "Port discrete completeness (completeness_discrete theorem) and WeakCanonical/IntegerModel/ infrastructure (~6 files). The discrete branch constructs countermodels on Int via the Reynolds pipeline. Currently blocked: upstream BimodalLogic has sorryAx tracing through chronicle_gap_contradiction → succ_cofinal → limitDomSubtype_isSuccArchimedean → succ_embed_surjective. Port after upstream sorry elimination completes.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/WeakCanonical/IntegerModel/ (~6 files), discrete branch of BXCanonical/Completeness.lean\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Blocker**: Upstream BimodalLogic discrete completeness sorry elimination (36 sorries across IntegerModel/)\n**Parent task**: 8 (expanded)",
+      "topic": "Bimodal Porting"
+    },
+    {
+      "project_number": 37,
+      "project_name": "port_continuous_completeness_bimodal",
+      "status": "blocked",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        35,
+        "BimodalLogic:continuous_extension"
+      ],
+      "description": "Port continuous extension completeness once developed upstream. The continuous case (FrameClass for continuous/real-valued time) has not been started in BimodalLogic. This task is blocked pending upstream development of continuous frame completeness.\n\n**Source**: Not yet developed in BimodalLogic\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Blocker**: Upstream BimodalLogic continuous extension development\n**Parent task**: 8 (expanded)",
       "topic": "Bimodal Porting"
     },
     {
@@ -90,10 +160,11 @@
     {
       "project_number": 11,
       "project_name": "port_conservative_extension_bimodal",
-      "status": "not_started",
+      "status": "completed",
+      "completion_summary": "Ported 4 ConservativeExtension files (1,671 lines) with polymorphic Atom, zero sorry, main theorem lift_derivation_qfree verified",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-08T00:30:00Z",
+      "last_updated": "2026-06-08T20:30:00Z",
       "dependencies": [
         4
       ],
@@ -103,10 +174,10 @@
     {
       "project_number": 5,
       "project_name": "port_derived_theorems_bimodal",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-08T00:25:00Z",
+      "last_updated": "2026-06-08T23:10:00Z",
       "dependencies": [
         4,
         21,
@@ -119,10 +190,10 @@
     {
       "project_number": 6,
       "project_name": "port_frame_conditions_soundness_bimodal",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-08T00:15:00Z",
+      "last_updated": "2026-06-08T16:00:00Z",
       "dependencies": [
         3,
         4,

@@ -1,5 +1,5 @@
 ---
-next_project_number: 34
+next_project_number: 38
 ---
 
 # Tasks
@@ -13,24 +13,29 @@ next_project_number: 34
 |------|-------|------------|--------|
 | 1 | 5,6,11,12,31 | -- | Temporal Logic, Bimodal Porting, Project Management |
 | 2 | 7 | 5 | Bimodal Porting |
-| 3 | 8,9,10 | 6,7 | Bimodal Porting |
+| 3 | 9,10,34 | 6,7 | Bimodal Porting |
+| 4 | 35 | 34 | Bimodal Porting |
+| 5 | 36,37 | 35 + upstream | Bimodal Porting (blocked on upstream) |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Temporal Logic
 
-31 [RESEARCHED] — Build standalone temporal metalogic (~1,500 lines, new development)
+31 [PLANNED] — Build standalone temporal metalogic (~1,500 lines, new development)
 
 ### Bimodal Porting
 
-5 [RESEARCHED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
+5 [RESEARCHED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetuity/
   └─ 7 [RESEARCHED] — Port Deduction Infrastructure and MCS Theory (PR 6)
-    └─ 8 [RESEARCHED] — Port Strong Completeness (PR 7)
+    └─ 34 [NOT STARTED] — Port base MCS completeness properties (~520 lines)
+      └─ 35 [NOT STARTED] — Port dense completeness infrastructure (~15k lines)
+        └─ 36 [BLOCKED] — Port discrete completeness (upstream sorry elimination)
+        └─ 37 [BLOCKED] — Port continuous extension completeness (upstream development)
     └─ 9 [RESEARCHED] — Port Decidability and Tableau (PR 8)
     └─ 10 [RESEARCHED] — Port Separation Theorem (PR 9)
   └─ 10 [RESEARCHED] — Port Separation Theorem (PR 9) (see above)
-6 [RESEARCHED] — Port Frame Conditions and Soundness (PR 5)
-  └─ 8 [RESEARCHED] — Port Strong Completeness (PR 7) (see above)
+6 [PLANNED] — Port Frame Conditions and Soundness (PR 5)
+  └─ 34 [NOT STARTED] — Port base MCS completeness properties (see above)
 11 [RESEARCHED] — Port Conservative Extension (PR 10)
 
 ### Project Management
@@ -40,8 +45,9 @@ next_project_number: 34
 ## Tasks
 
 ### 31. Temporal metalogic
-- **Effort**: Large (20-30 hours)
-- **Status**: [RESEARCHED]
+- **Effort**: Large (18 hours)
+- **Status**: [PLANNED]
+- **Plan**: [specs/031_temporal_metalogic/plans/01_temporal-metalogic-plan.md]
 - **Task Type**: lean4
 - **Dependencies**: Task 22, Task 23, Task 29
 
@@ -68,7 +74,7 @@ next_project_number: 34
 - PR 4 (Perpetuity Theorems, task 5): after PRs 3, PR-Modal, PR-Temporal-Infra merged
 - PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged
 - PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged
-- PR 7 (Completeness, task 8): after PRs 5+6 merged
+- PR 7 (Completeness, tasks 34+35): after PRs 5+6 merged; discrete (task 36) and continuous (task 37) follow separately
 - PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)
 - PR 9 (Separation, task 10): after PRs 3+4+6 merged
 - PR 10 (ConservativeExtension, task 11): after PR 3 merged (independent of 5-9)
@@ -84,7 +90,8 @@ next_project_number: 34
 
 ### 11. Port Conservative Extension to Bimodal module
 - **Effort**: Medium (6-10 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
+- **Summary**: [specs/011_port_conservative_extension_bimodal/summaries/01_conservative-extension-summary.md]
 - **Task Type**: lean4
 - **Dependencies**: Task 4 (ProofSystem)
 
@@ -165,25 +172,73 @@ next_project_number: 34
 
 ---
 
-### 8. Port Completeness to Bimodal module
-- **Effort**: Large (10-16 hours)
-- **Status**: [RESEARCHED]
+### 8. Port Completeness to Bimodal module [EXPANDED]
+- **Status**: [EXPANDED] — split into tasks 34, 35, 36, 37
+- **Task Type**: lean4
+
+Expanded into:
+- **34**: Port base MCS completeness properties (~520 lines, sorry-free)
+- **35**: Port dense completeness infrastructure + theorem (~15,000 lines, has leaf sorries)
+- **36**: Port discrete completeness (blocked on upstream sorry elimination)
+- **37**: Port continuous extension completeness (blocked on upstream development)
+
+---
+
+### 37. Port continuous extension completeness
+- **Effort**: TBD
+- **Status**: [BLOCKED]
+- **Task Type**: lean4
+- **Dependencies**: Task 35; upstream BimodalLogic continuous extension development
+- **Parent**: Task 8 (expanded)
+
+**Description**: Port continuous extension completeness once developed upstream. The continuous case (FrameClass for continuous/real-valued time) has not been started in BimodalLogic.
+
+**Blocker**: Upstream BimodalLogic continuous extension development has not begun.
+
+---
+
+### 36. Port discrete completeness
+- **Effort**: Medium (6-8 hours)
+- **Status**: [BLOCKED]
+- **Task Type**: lean4
+- **Dependencies**: Task 35; upstream BimodalLogic discrete sorry elimination
+- **Parent**: Task 8 (expanded)
+
+**Description**: Port discrete completeness (`completeness_discrete` theorem) and `WeakCanonical/IntegerModel/` infrastructure (~6 files). The discrete branch constructs countermodels on `Int` via the Reynolds pipeline.
+
+**Source**: `BimodalLogic/Theories/Bimodal/Metalogic/WeakCanonical/IntegerModel/` (~6 files), discrete branch of `BXCanonical/Completeness.lean`
+
+**Blocker**: Upstream BimodalLogic has `sorryAx` tracing through `chronicle_gap_contradiction` → `succ_cofinal` → `limitDomSubtype_isSuccArchimedean` → `succ_embed_surjective` (36 sorries across IntegerModel/).
+
+---
+
+### 35. Port dense completeness infrastructure
+- **Effort**: Large (10-14 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 34
+- **Parent**: Task 8 (expanded)
+
+**Description**: Port dense completeness infrastructure and `completeness_dense` theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The `completeness_dense` theorem constructs countermodels on `Rat` via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.
+
+**Source**: `BimodalLogic/Theories/Bimodal/Metalogic/{Algebraic/,Bundle/,BXCanonical/}` (~40 files, ~15,000 lines)
+**Target**: `Cslib/Logics/Bimodal/Metalogic/`
+
+---
+
+### 34. Port base MCS completeness properties
+- **Effort**: Small (3-4 hours)
+- **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 6, 7 (FrameConditions+Soundness, MCS/Deduction)
+- **Parent**: Task 8 (expanded)
 
-**Description**: Port completeness results from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/`. This includes the main completeness theorem (every valid formula is derivable in TM), the BXCanonical construction (chronicle-based canonical model), and the algebraic completeness path. The completeness proof is inherently bimodal — the MCS construction closes under all 42 axiom constructors, and the Burgess-Xu chronicle construction requires the interaction axiom MF.
+**Description**: Port base MCS completeness properties from `Completeness.lean` (~520 lines) to `Cslib/Logics/Bimodal/Metalogic/Completeness.lean`. All proofs are sorry-free.
 
-**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/):
-- Completeness.lean (~520 lines): main completeness theorem
-- BXCanonical/ (~15 files): canonical chain, canonical model, chronicle construction, filtration, quasimodel, truth lemma, completeness proof
-- Algebraic/ (~11 files): D-parametric algebraic completeness, Lindenbaum quotient, interior operators, parametric truth lemma
-- Bundle/ (~14 files): BFMCS/FMCS construction, canonical frame, modal saturation, temporal coherence
+**Includes**: `disjunction_intro/elim/iff`, `conjunction_intro/elim/iff`, `box_closure` (Modal T), `box_box` (Modal 4), diamond-box duality (`neg_box_implies_diamond_neg`, `diamond_neg_implies_neg_box`, `diamond_box_duality`).
 
-**Target path**: `Cslib/Logics/Bimodal/Metalogic/`
-
-**Adaptation notes**: All files reference the full 6-constructor formula type. Port to use `Bimodal.Formula` from `Cslib/Logics/Bimodal/Syntax/Basic.lean`. The canonical model construction uses `DerivationTree` from task 4 and MCS theory from task 7. The completeness theorem currently has sorry (chronicle construction); port the sorry as-is and track separately.
-
-**Estimated scope**: ~520 lines for the main theorem, plus ~40 files of supporting infrastructure (~15,000 lines total including BXCanonical, Algebraic, Bundle)
+**Source**: `BimodalLogic/Theories/Bimodal/Metalogic/Completeness.lean` (~520 lines)
+**Target**: `Cslib/Logics/Bimodal/Metalogic/Completeness.lean`
 
 ---
 
@@ -212,8 +267,9 @@ next_project_number: 34
 ---
 
 ### 6. Port Frame Conditions and Soundness to Bimodal module
-- **Effort**: Large (10-14 hours)
-- **Status**: [RESEARCHED]
+- **Effort**: Large (12 hours)
+- **Status**: [PLANNED]
+- **Plan**: [specs/006_port_frame_conditions_soundness_bimodal/plans/01_frame-soundness-plan.md]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 3, 4 (Semantics, ProofSystem)
 
@@ -238,10 +294,11 @@ next_project_number: 34
 
 ### 5. Port Perpetuity theorems to Bimodal module
 - **Effort**: Small (3-5 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 21, 22 (ProofSystem, Modal Theorems, Temporal Infrastructure)
 - **External Dependencies**: BimodalLogic task 294 (sorry elimination in Perpetuity/)
+- **Plan**: [specs/005_port_derived_theorems_bimodal/plans/01_perpetuity-port-plan.md]
 
 **Description**: Port Perpetuity theorems to `Cslib/Logics/Bimodal/Theorems/Perpetuity/`. Scope reduced to ~800 lines (Perpetuity/ only — inherently bimodal, uses both modal box and temporal until/since operators together).
 

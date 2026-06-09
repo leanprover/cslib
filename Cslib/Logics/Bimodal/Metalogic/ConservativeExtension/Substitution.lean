@@ -24,6 +24,7 @@ These are the foundation for proving axiom closure and the lifting theorem.
 -/
 
 set_option linter.style.emptyLine false
+set_option linter.unusedDecidableInType false
 
 namespace Cslib.Logic.Bimodal.Metalogic.ConservativeExtension
 

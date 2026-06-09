@@ -34,6 +34,8 @@ step can be preserved without modification.
 -/
 
 set_option linter.style.emptyLine false
+set_option linter.unusedSectionVars false
+set_option linter.unusedDecidableInType false
 
 namespace Cslib.Logic.Bimodal.Metalogic.ConservativeExtension
 
