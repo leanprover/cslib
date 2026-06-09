@@ -31,7 +31,7 @@ next_project_number: 45
 31 [PARTIAL] — Build standalone temporal metalogic (~1,500 lines, new development)
   └─ 38 [NOT STARTED] — Dense temporal completeness
   └─ 39 [NOT STARTED] — Discrete temporal completeness
-    └─ 40 [BLOCKED] — Continuous temporal completeness (deps: 38, 39)
+    └─ 40 [BLOCKED] — Continuous temporal completeness
 
 ### Foundations
 
