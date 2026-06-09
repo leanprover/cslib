@@ -19,7 +19,7 @@ it to CSLib is a four-level effort: propositional theorems go into
 content into `Logics/Temporal/`, and the inherently bimodal content into
 `Logics/Bimodal/`.
 
-The modular factoring analysis (Task 19) identifies ~6,800 lines of content that
+The modular factoring analysis identifies ~6,800 lines of content that
 are reusable above the bimodal level. These lines benefit any logic built on the
 CSLib foundations — not just the bimodal port. Phases 1–3 (Propositional, Modal,
 Temporal) are complete, self-contained deliverables before any bimodal content is
@@ -29,9 +29,7 @@ introduced.
 
 ## Modular Factoring Design
 
-The central principle from Task 19:
-
-> **Every component lives at the most general level it can compile at.**
+**Design Principle:** Every component lives at the most general level it can compile at.
 
 ### Component Placement
 

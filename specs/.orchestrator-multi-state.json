@@ -1,55 +1,29 @@
 {
-  "session_id": "sess_1780964944_adc2c6",
-  "task_numbers": [
-    12,
-    15,
-    17,
-    18
-  ],
-  "waves": [
-    [
-      12,
-      15,
-      17,
-      18
-    ]
-  ],
-  "dependency_graph": {
-    "12": [],
-    "15": [],
-    "17": [],
-    "18": []
-  },
-  "cycle_count": 3,
-  "max_cycles": 20,
+  "session_id": "sess_1780967265_006c90",
+  "task_numbers": [2, 16, 20],
+  "waves": [[2, 16, 20]],
+  "cycle_count": 0,
+  "max_cycles": 15,
   "failed_tasks": [],
-  "completed_tasks": [
-    15,
-    17,
-    18
-  ],
+  "completed_tasks": [],
   "current_statuses": {
-    "12": "partial",
-    "15": "completed",
-    "17": "completed",
-    "18": "completed"
+    "2": "not_started",
+    "16": "not_started",
+    "20": "not_started"
   },
   "task_types": {
-    "12": "general",
-    "15": "lean4",
-    "17": "meta",
-    "18": "meta"
+    "2": "lean4",
+    "16": "lean4",
+    "20": "lean4"
   },
   "research_agents": {
-    "12": "general-research-agent",
-    "15": "lean-research-agent",
-    "17": "general-research-agent",
-    "18": "general-research-agent"
+    "2": "lean-research-agent",
+    "16": "lean-research-agent",
+    "20": "lean-research-agent"
   },
   "implement_agents": {
-    "12": "general-implementation-agent",
-    "15": "lean-implementation-agent",
-    "17": "general-implementation-agent",
-    "18": "general-implementation-agent"
+    "2": "lean-implementation-agent",
+    "16": "lean-implementation-agent",
+    "20": "lean-implementation-agent"
   }
 }

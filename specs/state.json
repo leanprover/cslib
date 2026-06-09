@@ -54,11 +54,12 @@
     {
       "project_number": 25,
       "project_name": "revise_task_order_topic_assignments",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "meta",
       "topic": "Project Management",
       "created": "2026-06-09T00:42:17Z",
-      "last_updated": "2026-06-09T01:06:45Z"
+      "last_updated": "2026-06-09T01:10:30Z",
+      "completion_summary": "Fixed two DFS rendering bugs in generate-task-order.sh (cross-topic gating and globally-visited fallback guard), corrected Task 15 topic field, and regenerated TODO.md Task Order section so each task appears once under its primary topic."
     },
     {
       "project_number": 24,
@@ -357,12 +358,20 @@
     {
       "project_number": 16,
       "project_name": "formula_type_consistency",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-08T23:05:54Z",
-      "last_updated": "2026-06-08T23:05:54Z",
+      "last_updated": "2026-06-09T02:00:00Z",
       "description": "Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived usage",
-      "topic": "Modal Logic"
+      "topic": "Modal Logic",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/016_formula_type_consistency/reports/01_formula-type-research.md",
+          "type": "research",
+          "summary": "Research: Modal.Proposition needs deriving DecidableEq, BEq; LukasiewiczDerived should get expanded docstring (not instantiation)"
+        }
+      ]
     },
     {
       "project_number": 17,
