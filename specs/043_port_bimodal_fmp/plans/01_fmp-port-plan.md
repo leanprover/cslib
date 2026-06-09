@@ -106,7 +106,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Prerequisite -- SubformulaClosure.lean [NOT STARTED]
+### Phase 2: Prerequisite -- SubformulaClosure.lean [COMPLETED]
 
 **Goal**: Port Finset-based subformula closure, closureWithNeg, and membership lemmas
 
