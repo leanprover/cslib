@@ -219,10 +219,11 @@
     {
       "project_number": 2,
       "project_name": "port_bimodal_syntax_infrastructure",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-08T12:00:00Z",
+      "last_updated": "2026-06-08T14:00:00Z",
+      "completion_summary": "Ported temporal syntax infrastructure: extended Formula.lean (+455 lines with Countable/Infinite/Denumerable, BEq laws, complexity, derived operators, swap_temporal, atoms), created Context.lean (120 lines), BigConj.lean (52 lines), Subformulas.lean (200 lines). All parameterized over generic Atom type, zero sorries, full project build passes.",
       "dependencies": [
         "BimodalLogic:291"
       ],

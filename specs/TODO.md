@@ -41,7 +41,7 @@ next_project_number: 28
 
 ### Bimodal Porting
 
-2 [PLANNED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
+2 [COMPLETED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
   └─ 3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
     └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
       └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
@@ -391,11 +391,12 @@ next_project_number: 28
 
 ### 2. Port Bimodal Syntax infrastructure (Context, BigConj, Subformulas)
 - **Effort**: Medium (6-10 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: BimodalLogic:291 (toolchain upgrade)
 - **Research**: [specs/002_port_bimodal_syntax_infrastructure/reports/01_syntax-port-research.md]
 - **Plan**: [specs/002_port_bimodal_syntax_infrastructure/plans/01_syntax-port-plan.md]
+- **Summary**: [specs/002_port_bimodal_syntax_infrastructure/summaries/01_syntax-port-summary.md]
 
 **Description**: Port the syntax infrastructure from BimodalLogic to `Cslib/Logics/Bimodal/Syntax/`. `Bimodal.Formula` with `{atom, bot, imp, box, untl, snce}` already exists in `Cslib/Logics/Bimodal/Syntax/Basic.lean`. This task ports the remaining syntax components that operate on the full bimodal formula type: Context (proof assumptions), BigConj (finite conjunction), Subformulas, and SubformulaClosure — all using all 6 formula constructors.
 
