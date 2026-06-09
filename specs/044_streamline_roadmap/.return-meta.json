@@ -1,0 +1,30 @@
+{
+  "status": "implemented",
+  "agent_type": "general-implementation-agent",
+  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+  "task_number": 44,
+  "session_id": "sess_1781020257_78897b",
+  "started_at": "2026-06-09T17:00:00Z",
+  "completed_at": "2026-06-09T17:10:00Z",
+  "phases_completed": 1,
+  "phases_total": 1,
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/044_streamline_roadmap/summaries/01_streamline-roadmap-summary.md",
+      "summary": "Implementation summary for task 44 — ROADMAP.md streamlined from 486 to 101 lines"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Rewrote specs/ROADMAP.md from 486 lines to 101 lines. Removed design rationale, directory trees, line-count tables, success metrics, and dependency wave tables. Preserved goal statement, modular factoring principle, import hierarchy diagram, completed/remaining 3-column tables (17 completed tasks, 8 remaining), and brief phase narrative paragraphs."
+  },
+  "memory_candidates": [
+    {
+      "content": "When streamlining roadmap files, the key content to retain is: (1) goal statement, (2) architectural diagram, (3) factual completed/remaining tables with task/component/module columns, (4) brief phase narrative paragraphs. Remove design rationale, line-count annotations, directory tree snapshots, success metrics checklists, and dependency wave tables — these belong in research reports and TODO.md.",
+      "category": "PATTERN",
+      "source_artifact": "specs/044_streamline_roadmap/summaries/01_streamline-roadmap-summary.md",
+      "confidence": 0.75,
+      "suggested_keywords": ["roadmap", "markdown", "streamline", "documentation", "cleanup"]
+    }
+  ]
+}

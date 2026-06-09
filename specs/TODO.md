@@ -45,8 +45,11 @@ next_project_number: 45
 
 ### 44. Streamline ROADMAP.md
 - **Effort**: Small (1-2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: markdown
+- **Report**: [specs/044_streamline_roadmap/reports/01_streamline-roadmap.md]
+- **Plan**: [specs/044_streamline_roadmap/plans/01_streamline-roadmap.md]
+- **Summary**: [specs/044_streamline_roadmap/summaries/01_streamline-roadmap-summary.md]
 
 **Description**: Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed.
 

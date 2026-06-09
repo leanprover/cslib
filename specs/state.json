@@ -4,11 +4,39 @@
     {
       "project_number": 44,
       "project_name": "streamline_roadmap",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "markdown",
       "created": "2026-06-09T15:49:48Z",
-      "last_updated": "2026-06-09T15:49:48Z",
-      "description": "Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed."
+      "last_updated": "2026-06-09T17:10:00Z",
+      "completion_summary": "Rewrote ROADMAP.md from 486 lines to 101 lines. Removed design rationale, directory trees, line-count tables, success metrics, and dependency wave tables. Preserved goal statement, modular factoring principle, import hierarchy diagram, completed/remaining 3-column tables (17 completed tasks, 8 remaining), and brief phase narrative paragraphs.",
+      "description": "Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed.",
+      "artifacts": [
+        {
+          "path": "specs/044_streamline_roadmap/reports/01_streamline-roadmap.md",
+          "type": "research",
+          "summary": "Analysis of current ROADMAP.md content: what to keep, what to remove, proposed new structure"
+        },
+        {
+          "path": "specs/044_streamline_roadmap/plans/01_streamline-roadmap.md",
+          "type": "plan",
+          "summary": "Single-phase plan to rewrite ROADMAP.md from ~486 to ~80-100 lines"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 1,
+        "total_effort_hours": 1,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [[1]],
+        "reports_integrated": [
+          {
+            "path": "reports/01_streamline-roadmap.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-09"
+          }
+        ]
+      }
     },
     {
       "project_number": 31,
