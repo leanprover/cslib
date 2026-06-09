@@ -13,7 +13,7 @@ Task descriptions and current statuses are tracked in [specs/TODO.md](TODO.md).
 
 The **Bimodal Logic of Tense and Modality (TM)** is a formal system combining
 S5 modal operators with Since/Until linear tense operators. It is designed for
-verified reasoning about future contingency in non-deterministic dynamical
+verified reasoning about past and future contingency in non-deterministic dynamical
 systems.
 
 **Paper**: ["The Construction of Possible Worlds"](https://benbrastmckie.com/wp-content/uploads/2026/05/possible_worlds.pdf)
