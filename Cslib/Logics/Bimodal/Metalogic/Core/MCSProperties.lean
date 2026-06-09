@@ -286,7 +286,7 @@ Positive introspection for G, derived from BX3 (right_mono_until), BX6
 The contrapositive `F(not not F(not phi)) -> F(not phi)` is proved by composing
 three F-monotonicity steps, then negated to obtain `G phi -> GG phi`.
 -/
-private def temp_4_derived (phi : Formula Atom) :
+def temp_4_derived (phi : Formula Atom) :
     DerivationTree FrameClass.Base ([] : List (Formula Atom))
       (phi.all_future.imp phi.all_future.all_future) := by
   -- Step 1: F(not not F(not phi)) -> F(F(not phi)) via DNE under F
@@ -345,7 +345,7 @@ Derivation of temporal 4 axiom for past: H phi -> HH phi.
 
 Derived by applying temporal duality to the temp_4 axiom (G phi -> GG phi).
 -/
-private def temp_4_past (phi : Formula Atom) :
+def temp_4_past (phi : Formula Atom) :
     DerivationTree FrameClass.Base ([] : List (Formula Atom))
       (phi.all_past.imp phi.all_past.all_past) := by
   -- By temporal duality from: G psi -> GG psi where psi = swap_temporal phi
