@@ -28,7 +28,7 @@ next_project_number: 51
 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
 50 [COMPLETED] — burgess_prior_art_seed_research
   └─ 46 [COMPLETED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
-    └─ 47 [NOT STARTED] — Define the labeled frame type (Burgess K-elements) and prove that
+    └─ 47 [COMPLETED] — Define the labeled frame type (Burgess K-elements) and prove that
       └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
         └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
@@ -129,11 +129,13 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 
 ### 48. Temporal counterexample elimination and chronicle construction
 - **Effort**: Large (15-20 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 47
 - **Parent**: Task 31 (expanded)
-- **Seed Research**: [specs/048_temporal_chronicle_construction/reports/01_seed-research.md]
+- **Research**: [specs/048_temporal_chronicle_construction/reports/01_research-report.md]
+- **Plan**: [specs/048_temporal_chronicle_construction/plans/01_implementation-plan.md]
+- **Summary**: [specs/048_temporal_chronicle_construction/summaries/01_implementation-summary.md]
 
 **Description**: Build the omega-step construction that enumerates all C5/C6 counterexamples and iteratively inserts points to eliminate them (Burgess Theorem 2.8, construction part). Assemble the chronicle as the union of all finite stages.
 
@@ -217,7 +219,7 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 - **Effort**: Medium (6-10 hours)
 - **Status**: [COMPLETED]
 - **Task Type**: lean4
-- **Dependencies**: Task 31
+- **Dependencies**: Task 31, 49
 
 **Description**: Prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system. New development (not a port).
 
