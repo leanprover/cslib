@@ -132,4 +132,33 @@ theorem consistent_chain_union (D : DerivationSystem F)
   obtain ⟨S, hSC, hLS⟩ := finite_list_in_chain_member hchain hCne L hL
   exact hcons S hSC L hLS
 
+/-! ## Lindenbaum's Lemma -/
+
+/-- **Lindenbaum's Lemma**: Every set-consistent set can be extended to a maximally
+consistent set. The proof applies `zorn_subset_nonempty` to the collection of consistent
+supersets, using `consistent_chain_union` to verify the chain condition. -/
+theorem set_lindenbaum (D : DerivationSystem F) {S : Set F}
+    (hS : SetConsistent D S) :
+    ∃ M : Set F, S ⊆ M ∧ SetMaximalConsistent D M := by
+  -- Apply Zorn's lemma to the consistent supersets of S
+  have ⟨M, hSM, hmax⟩ := zorn_subset_nonempty (ConsistentSupersets D S)
+    (fun C hCsub hchain hCne => by
+      -- The chain union is a consistent superset
+      refine ⟨⋃₀ C, ⟨?_, ?_⟩, fun s hs => Set.subset_sUnion_of_mem hs⟩
+      -- S ⊆ ⋃₀ C: S is contained in every chain member
+      · intro x hx
+        obtain ⟨T, hT⟩ := hCne
+        exact Set.mem_sUnion.mpr ⟨T, hT, (hCsub hT).1 hx⟩
+      -- ⋃₀ C is set-consistent
+      · exact consistent_chain_union D hchain hCne (fun T hT => (hCsub hT).2))
+    S (base_mem_consistent_supersets D hS)
+  refine ⟨M, hSM, hmax.prop.2, fun φ hφ hcons => ?_⟩
+  -- If φ ∉ M, then insert φ M strictly extends M in ConsistentSupersets
+  have hins : insert φ M ∈ ConsistentSupersets D S :=
+    ⟨Set.Subset.trans hSM (Set.subset_insert φ M), hcons⟩
+  -- But M is maximal, so insert φ M = M
+  have := hmax.eq_of_ge hins (Set.subset_insert φ M)
+  -- This contradicts φ ∉ M since φ ∈ insert φ M = M
+  exact hφ (this ▸ Set.mem_insert φ M)
+
 end Cslib.Logic.Metalogic

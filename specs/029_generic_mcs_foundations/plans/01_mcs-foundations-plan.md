@@ -192,7 +192,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Lindenbaum's lemma (Zorn-based existence of maximal consistent extensions) [IN PROGRESS]
+### Phase 4: Lindenbaum's lemma (Zorn-based existence of maximal consistent extensions) [COMPLETED]
 
 **Goal**: Prove that every consistent set can be extended to a maximally consistent set, using Zorn's lemma.
 
@@ -224,7 +224,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: HasDeductionTheorem class + closure properties [NOT STARTED]
+### Phase 5: HasDeductionTheorem class + closure properties [IN PROGRESS]
 
 **Goal**: Define the deduction theorem hypothesis and prove the closure properties that depend on it.
 
