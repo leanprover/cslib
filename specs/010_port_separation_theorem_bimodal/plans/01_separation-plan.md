@@ -326,7 +326,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 10: TemporalClosure.lean -- Temporal Closure Infrastructure [NOT STARTED]
+### Phase 10: TemporalClosure.lean -- Temporal Closure Infrastructure [COMPLETED]
 
 **Goal**: Port temporal closure predicates and infrastructure (replace_box_with_top, no_U/S_nested predicates).
 
