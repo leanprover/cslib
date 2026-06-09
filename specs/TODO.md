@@ -11,9 +11,9 @@ next_project_number: 33
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 3,12,21,22,28,29 | -- | Foundations, Modal Logic, Temporal Logic, ... |
-| 2 | 4,23,30 | 21,22,29 | Modal Logic, Temporal Logic, Bimodal Porting |
-| 3 | 5,6,11,31 | 3,4,21,22,23,29 | Temporal Logic, Bimodal Porting |
+| 1 | 12,29,32 | -- | Foundations, Temporal Logic, Project Management |
+| 2 | 4,23,30 | 29,32 | Modal Logic, Temporal Logic, Bimodal Porting |
+| 3 | 5,6,11,31 | 4,23,29,32 | Temporal Logic, Bimodal Porting |
 | 4 | 7 | 4,5,29 | Bimodal Porting |
 | 5 | 8,9,10 | 4,5,6,7 | Bimodal Porting |
 
@@ -28,32 +28,29 @@ next_project_number: 33
 
 ### Modal Logic
 
-21 [COMPLETED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
-  └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
-  └─ 30 [NOT STARTED] — Build standalone modal metalogic (~1,500 lines, new development n
+30 [NOT STARTED] — Build standalone modal metalogic (~1,500 lines, new development n
 
 ### Temporal Logic
 
-22 [COMPLETED] — Build temporal proof system infrastructure and port temporal theo
+32 [PLANNED] — Fix untl/snce argument order across cslib to match standard liter
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
+  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR  (see Bimodal Porting section)
   └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
     └─ 31 [NOT STARTED] — Build standalone temporal metalogic (~1,500 lines, new developmen
   └─ 31 [NOT STARTED] — Build standalone temporal metalogic (~1,500 lines, new developmen (see above)
 
 ### Bimodal Porting
 
-3 [COMPLETED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
-  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
-    └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
     └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
-      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
+      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
       └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
       └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
     └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
-  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
+  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
+    └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
   └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
   └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
   └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
@@ -62,10 +59,6 @@ next_project_number: 33
 ### Project Management
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
-
-### Uncategorized
-
-28 [IMPLEMENTING] — structure_metalogic_across_systems
 
 ## Tasks
 
