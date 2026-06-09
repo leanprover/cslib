@@ -4,11 +4,21 @@
     {
       "project_number": 50,
       "project_name": "burgess_prior_art_seed_research",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-09T20:12:31Z",
-      "last_updated": "2026-06-09T20:13:40Z",
-      "topic": "Temporal Logic"
+      "last_updated": "2026-06-09T20:22:43Z",
+      "topic": "Temporal Logic",
+      "session_id": "sess_1781036129_70af6f",
+      "researched": "2026-06-09T20:22:43Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/050_burgess_prior_art_seed_research/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research with 4 teammates"
+        }
+      ]
     },
     {
       "project_number": 31,
@@ -35,8 +45,10 @@
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-09T13:30:00Z",
-      "last_updated": "2026-06-09T13:30:00Z",
-      "dependencies": [],
+      "last_updated": "2026-06-09T20:20:59Z",
+      "dependencies": [
+        50
+      ],
       "description": "Define the Burgess R-relation r(A, beta, C) and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.\n\nLiterature: Burgess 1982 Section 2 Lemmas 2.2-2.4 at BimodalLogic/literature/Burgess_1982_Axioms_for_tense_logic_Since_and_Until.md\n\nBimodal prior art to adapt:\n- Chronicle/RRelation.lean (1695 lines): r_relation, R_maximal, witness existence — strip box/modal components, adapt to temporal Formula/MCS types\n- CanonicalChain.lean (95 lines): BX12/BX6 at MCS level, delegation bridges\n- OrderedSeedConsistency.lean (151 lines): ordered seed consistency for point insertion\n- Frame.lean (464 lines): BXPoint, bx_le, G/H forward/backward propagation, eventuality resolution\n\nDeliverables:\n1. r_relation(A, beta, C) definition\n2. R_maximal(A, B, C) definition\n3. r-S duality lemma: r(A, beta, C) iff S(alpha, beta) in C for all alpha in A (Burgess 2.3)\n4. Until witness lemma: U(gamma, beta) in A -> exists B, C with R(A,B,C), gamma in C, beta in B (Burgess 2.4)\n5. Consistency criterion: U(gamma, delta) in A -> gamma is consistent (Burgess 2.2)\n6. Ordered seed consistency and canonical chain MCS lemmas\n7. Temporal frame point definitions and ordering\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/RRelation.lean (+ Frame.lean, CanonicalChain.lean, OrderedSeedConsistency.lean)\nEstimated scope: 800-1500 lines\nParent: Task 31 (expanded)",
       "topic": "Temporal Logic"
     },

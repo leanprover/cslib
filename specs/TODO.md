@@ -11,10 +11,11 @@ next_project_number: 51
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,46,50 | -- | Temporal Logic, Bimodal Porting |
-| 2 | 39,40,47 | 36,37,46 | Temporal Logic |
-| 3 | 41,48 | 38,39,40,47 | Foundations, Temporal Logic |
-| 4 | 12,49 | 41,48 | Temporal Logic, Project Management |
+| 1 | 36,37,38,50 | -- | Temporal Logic, Bimodal Porting |
+| 2 | 39,40,46 | 36,37,50 | Temporal Logic |
+| 3 | 41,47 | 38,39,40,46 | Foundations, Temporal Logic |
+| 4 | 12,48 | 41,47 | Temporal Logic, Project Management |
+| 5 | 49 | 48 | Temporal Logic |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -25,11 +26,11 @@ next_project_number: 51
 ### Temporal Logic
 
 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
-46 [NOT STARTED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
-  └─ 47 [NOT STARTED] — Define the labeled frame type (Burgess K-elements) and prove that
-    └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
-      └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
-50 [NOT STARTED] — burgess_prior_art_seed_research
+50 [RESEARCHED] — burgess_prior_art_seed_research
+  └─ 46 [NOT STARTED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
+    └─ 47 [NOT STARTED] — Define the labeled frame type (Burgess K-elements) and prove that
+      └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
+        └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
 
@@ -47,8 +48,9 @@ next_project_number: 51
 
 ### 50. Research Burgess prior art and seed research for tasks 46-49
 - **Effort**: large
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
+- **Research**: [specs/050_burgess_prior_art_seed_research/reports/01_team-research.md]
 
 **Description**: Research the relevant prior art in /home/benjamin/Projects/BimodalLogic/literature/ that can help with the Burgess-style completeness (tasks 46-49, 31) and carefully review what infrastructure exists in the Bimodal/ metalogic in this repo that can either be abstracted or adapted since these elements came from the same literature sources. The aim is to improve the descriptions and create seed research reports with relevant findings for tasks 46-49 in order to streamline their research, planning, and implementation going forward.
 
@@ -66,7 +68,7 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 - **Effort**: Large (10-15 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: None
+- **Dependencies**: Task 50
 - **Parent**: Task 31 (expanded)
 
 **Description**: Define the Burgess R-relation `r(A, beta, C)` and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.
