@@ -12,9 +12,8 @@ Temporal theorems derived from the BX axiom system, generic over `[TemporalBXHil
 
 ## Convention Note
 
-In cslib, `untl φ₁ φ₂` = `φ₁ U φ₂` with `φ₁` as GUARD and `φ₂` as EVENT.
-`F(φ) = untl(⊤, φ)` and `G(φ) = ¬F(¬φ)`. This differs from BimodalLogic where
-`untl(event, guard)`.
+Convention (Burgess 1982): `untl φ₁ φ₂` = `φ₁ U φ₂` with `φ₁` as EVENT and `φ₂` as GUARD.
+`F(φ) = untl(φ, ⊤)` and `G(φ) = ¬F(¬φ)`. This matches BimodalLogic convention.
 -/
 
 set_option linter.style.longLine false
@@ -36,9 +35,9 @@ noncomputable section
 -- Abbreviations for readability
 private abbrev neg' (φ : F) : F := HasImp.imp φ HasBot.bot
 private abbrev top' : F := HasImp.imp (HasBot.bot : F) HasBot.bot
-private abbrev someFuture (φ : F) : F := HasUntil.untl top' φ
+private abbrev someFuture (φ : F) : F := HasUntil.untl φ top'
 private abbrev allFuture (φ : F) : F := neg' (someFuture (neg' φ))
-private abbrev somePast (φ : F) : F := HasSince.snce top' φ
+private abbrev somePast (φ : F) : F := HasSince.snce φ top'
 private abbrev allPast (φ : F) : F := neg' (somePast (neg' φ))
 
 /-! ### Level 0: Direct Axiom Wrappers -/
@@ -85,26 +84,26 @@ theorem since_implies_some_past {φ ψ : F} :
 
 /-! ### F_mono, P_mono
 
-In cslib convention, F(φ) = untl(⊤, φ) where the EVENT is φ (second arg).
-So F(A) → F(B) = untl(⊤,A) → untl(⊤,B) changes the guard (second arg),
-which is BX2G (LeftMonoUntilG) with ψ := ⊤.
+With Burgess convention, F(φ) = untl(φ, ⊤) where the EVENT is φ (first arg).
+So F(A) → F(B) = untl(A,⊤) → untl(B,⊤) changes the event (first arg),
+which is BX3 (RightMonoUntil) with χ := ⊤.
 -/
 
 /-- F is monotone under G: `⊢ G(φ→ψ) → (Fφ → Fψ)`.
-    BX2G with ψ := ⊤ (guard position changes). -/
+    BX3 with χ := ⊤ (event position changes). -/
 theorem F_mono {φ ψ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (allFuture (HasImp.imp φ ψ))
         (HasImp.imp (someFuture φ) (someFuture ψ))) :=
-  HasAxiomLeftMonoUntilG.leftMonoUntilG (S := S) (φ := φ) (χ := ψ) (ψ := top')
+  HasAxiomRightMonoUntil.rightMonoUntil (S := S) (φ := φ) (ψ := ψ) (χ := top')
 
 /-- P is monotone under H: `⊢ H(φ→ψ) → (Pφ → Pψ)`.
-    BX2H with ψ := ⊤ (guard position changes). -/
+    BX3' with χ := ⊤ (event position changes). -/
 theorem P_mono {φ ψ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (allPast (HasImp.imp φ ψ))
         (HasImp.imp (somePast φ) (somePast ψ))) :=
-  HasAxiomLeftMonoSinceH.leftMonoSinceH (S := S) (φ := φ) (χ := ψ) (ψ := top')
+  HasAxiomRightMonoSince.rightMonoSince (S := S) (φ := φ) (ψ := ψ) (χ := top')
 
 /-! ### Duality Lemmas (DNI-based) -/
 
@@ -128,7 +127,7 @@ private theorem neg_contrapositive_imp_neg {φ ψ : F} :
     (contrapose_imp (S := S) (φ := φ) (ψ := ψ))
 
 /-- **G-distribution**: `⊢ G(φ→ψ) → (Gφ → Gψ)`.
-    Derived from BX2G and propositional contraposition. -/
+    Derived from BX3 and propositional contraposition. -/
 theorem G_distribution {φ ψ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (allFuture (HasImp.imp φ ψ))
@@ -136,43 +135,43 @@ theorem G_distribution {φ ψ : F} :
   -- Step 1: G(neg_contra) via temporal necessitation
   have neg_contra := neg_contrapositive_imp_neg (S := S) (φ := φ) (ψ := ψ)
   have g_nc := TemporalNecessitation.tempNec neg_contra
-  -- Step 2: BX2G: G(¬(¬ψ→¬φ) → ¬(φ→ψ)) → (F(¬(¬ψ→¬φ)) → F(¬(φ→ψ)))
-  -- Using F_mono pattern (BX2G with ψ := ⊤)
-  have bx2g := HasAxiomLeftMonoUntilG.leftMonoUntilG (S := S)
+  -- Step 2: BX3: G(¬(¬ψ→¬φ) → ¬(φ→ψ)) → (F(¬(¬ψ→¬φ)) → F(¬(φ→ψ)))
+  -- Using F_mono pattern (BX3 with χ := ⊤, event monotonicity)
+  have bx3 := HasAxiomRightMonoUntil.rightMonoUntil (S := S)
     (φ := neg' (HasImp.imp (neg' ψ) (neg' φ)))
-    (χ := neg' (HasImp.imp φ ψ))
-    (ψ := top')
-  have F_step := ModusPonens.mp bx2g g_nc
+    (ψ := neg' (HasImp.imp φ ψ))
+    (χ := top')
+  have F_step := ModusPonens.mp bx3 g_nc
   -- Step 3: Contrapose: G(φ→ψ) → G(¬ψ→¬φ)
   have G_contra := contraposition F_step
-  -- Step 4: BX2G: G(¬ψ→¬φ) → (F(¬ψ) → F(¬φ))
-  have bx2g' := HasAxiomLeftMonoUntilG.leftMonoUntilG (S := S)
-    (φ := neg' ψ) (χ := neg' φ) (ψ := top')
+  -- Step 4: BX3: G(¬ψ→¬φ) → (F(¬ψ) → F(¬φ))
+  have bx3' := HasAxiomRightMonoUntil.rightMonoUntil (S := S)
+    (φ := neg' ψ) (ψ := neg' φ) (χ := top')
   -- Step 5: Contrapose to get Gφ → Gψ
   have cp := contrapose_imp (S := S)
     (φ := someFuture (neg' ψ)) (ψ := someFuture (neg' φ))
-  have GK := imp_trans bx2g' cp
+  have GK := imp_trans bx3' cp
   exact imp_trans G_contra GK
 
 /-- **H-distribution**: `⊢ H(φ→ψ) → (Hφ → Hψ)`.
-    Derived from BX2H and propositional contraposition (uses tempNecPast). -/
+    Derived from BX3' and propositional contraposition (uses tempNecPast). -/
 theorem H_distribution {φ ψ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (allPast (HasImp.imp φ ψ))
         (HasImp.imp (allPast φ) (allPast ψ))) := by
   have neg_contra := neg_contrapositive_imp_neg (S := S) (φ := φ) (ψ := ψ)
   have h_nc := TemporalNecessitation.tempNecPast neg_contra
-  have bx2h := HasAxiomLeftMonoSinceH.leftMonoSinceH (S := S)
+  have bx3h := HasAxiomRightMonoSince.rightMonoSince (S := S)
     (φ := neg' (HasImp.imp (neg' ψ) (neg' φ)))
-    (χ := neg' (HasImp.imp φ ψ))
-    (ψ := top')
-  have P_step := ModusPonens.mp bx2h h_nc
+    (ψ := neg' (HasImp.imp φ ψ))
+    (χ := top')
+  have P_step := ModusPonens.mp bx3h h_nc
   have H_contra := contraposition P_step
-  have bx2h' := HasAxiomLeftMonoSinceH.leftMonoSinceH (S := S)
-    (φ := neg' ψ) (χ := neg' φ) (ψ := top')
+  have bx3h' := HasAxiomRightMonoSince.rightMonoSince (S := S)
+    (φ := neg' ψ) (ψ := neg' φ) (χ := top')
   have cp := contrapose_imp (S := S)
     (φ := somePast (neg' ψ)) (ψ := somePast (neg' φ))
-  have HK := imp_trans bx2h' cp
+  have HK := imp_trans bx3h' cp
   exact imp_trans H_contra HK
 
 /-! ### G/H Contraposition -/
@@ -184,11 +183,11 @@ theorem G_contrapose {φ ψ : F} :
         (allFuture (HasImp.imp (neg' ψ) (neg' φ)))) := by
   have neg_contra := neg_contrapositive_imp_neg (S := S) (φ := φ) (ψ := ψ)
   have g_nc := TemporalNecessitation.tempNec neg_contra
-  have bx2g := HasAxiomLeftMonoUntilG.leftMonoUntilG (S := S)
+  have bx3 := HasAxiomRightMonoUntil.rightMonoUntil (S := S)
     (φ := neg' (HasImp.imp (neg' ψ) (neg' φ)))
-    (χ := neg' (HasImp.imp φ ψ))
-    (ψ := top')
-  exact contraposition (ModusPonens.mp bx2g g_nc)
+    (ψ := neg' (HasImp.imp φ ψ))
+    (χ := top')
+  exact contraposition (ModusPonens.mp bx3 g_nc)
 
 /-- `⊢ H(φ→ψ) → H(¬ψ→¬φ)`. -/
 theorem H_contrapose {φ ψ : F} :
@@ -197,11 +196,11 @@ theorem H_contrapose {φ ψ : F} :
         (allPast (HasImp.imp (neg' ψ) (neg' φ)))) := by
   have neg_contra := neg_contrapositive_imp_neg (S := S) (φ := φ) (ψ := ψ)
   have h_nc := TemporalNecessitation.tempNecPast neg_contra
-  have bx2h := HasAxiomLeftMonoSinceH.leftMonoSinceH (S := S)
+  have bx3h := HasAxiomRightMonoSince.rightMonoSince (S := S)
     (φ := neg' (HasImp.imp (neg' ψ) (neg' φ)))
-    (χ := neg' (HasImp.imp φ ψ))
-    (ψ := top')
-  exact contraposition (ModusPonens.mp bx2h h_nc)
+    (ψ := neg' (HasImp.imp φ ψ))
+    (χ := top')
+  exact contraposition (ModusPonens.mp bx3h h_nc)
 
 /-! ### G/H Conjunction Introduction -/
 

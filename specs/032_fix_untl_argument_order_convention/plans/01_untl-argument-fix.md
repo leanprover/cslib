@@ -246,7 +246,7 @@ Phases are strictly sequential because each layer builds on the previous convent
 
 ---
 
-### Phase 5: Derived Theorems (TemporalDerived.lean) [NOT STARTED]
+### Phase 5: Derived Theorems (TemporalDerived.lean) [COMPLETED]
 
 **Goal**: Update private abbreviations and re-verify/fix all derived theorem proofs that may break under the new convention.
 
