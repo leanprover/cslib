@@ -1,0 +1,34 @@
+{
+  "session_id": "sess_1780964944_adc2c6",
+  "task_numbers": [12, 15, 17, 18],
+  "waves": [[12, 15, 17, 18]],
+  "dependency_graph": {"12": [], "15": [], "17": [], "18": []},
+  "cycle_count": 0,
+  "max_cycles": 20,
+  "failed_tasks": [],
+  "completed_tasks": [],
+  "current_statuses": {
+    "12": "researched",
+    "15": "not_started",
+    "17": "researched",
+    "18": "not_started"
+  },
+  "task_types": {
+    "12": "general",
+    "15": "lean4",
+    "17": "meta",
+    "18": "meta"
+  },
+  "research_agents": {
+    "12": "general-research-agent",
+    "15": "lean-research-agent",
+    "17": "general-research-agent",
+    "18": "general-research-agent"
+  },
+  "implement_agents": {
+    "12": "general-implementation-agent",
+    "15": "lean-implementation-agent",
+    "17": "general-implementation-agent",
+    "18": "general-implementation-agent"
+  }
+}

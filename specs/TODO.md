@@ -1,62 +1,67 @@
 ---
-next_project_number: 24
+next_project_number: 25
 ---
 
 # Tasks
 
 ## Task Order
 
-*Updated 2026-06-08. Restructured into topic groupings with 6-wave dependency structure.*
+*Updated 2026-06-09. Generated from state.json dependency graph.*
 
-**Dependency Waves** (Foundations -> Modal/Temporal -> Bimodal import hierarchy):
-| Wave | Tasks | Blocked by |
-|------|-------|------------|
-| 1 | 2, 12, 15, 16, 17, 18, 20 | -- |
-| 2 | 3 (dep 2), 21 (dep 16,20), 22 (dep 20) | Wave 1 |
-| 3 | 4 (dep 2,20,22), 11 (dep 4) | Wave 2 |
-| 4 | 5 (dep 4,21,22), 6 (dep 3,4), 23 (dep 22) | Wave 3 |
-| 5 | 7 (dep 4,5) | Wave 4 |
-| 6 | 8 (dep 6,7), 9 (dep 4,7), 10 (dep 4,5,7) | Wave 5 |
+**Dependency Waves**:
+| Wave | Tasks | Blocked by | Topics |
+|------|-------|------------|--------|
+| 1 | 2,12,15,16,17,18,20,24 | -- | -- |
+| 2 | 3,21,22 | 2,16,20 | -- |
+| 3 | 4,23 | 2,20,22 | -- |
+| 4 | 5,6,11 | 3,4,21,22 | -- |
+| 5 | 7 | 4,5 | -- |
+| 6 | 8,9,10 | 4,5,6,7 | -- |
 
 **Grouped by Topic** (indented = depends on parent):
 
-### Foundations
+### Uncategorized
 
-20 [NOT STARTED] — Propositional Hilbert Theorems: ~2,400 lines to Foundations/Logic/Theorems/
-
-### Modal Logic
-
-16 [NOT STARTED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived
-  └─ 21 [NOT STARTED] — Modal Proof System + Theorems: DerivationTree, S4/S5, GenNec (~1,600 lines)
-
-### Temporal Logic
-
-22 [NOT STARTED] — Temporal Infrastructure + Theorems: axioms, HasAxiom*, TemporalBXHilbert, TemporalDerived (~1,500 lines)
-  └─ 23 [NOT STARTED] — Temporal Semantics on Linear Orders: TemporalModel, Satisfies, Valid (~400-600 lines, new)
-
-### Bimodal Porting
-
-2 [NOT STARTED] — Bimodal Syntax: Context, BigConj, Subformulas (~2,500 lines)
-  └─ 3 [NOT STARTED] — Bimodal Semantics: TaskFrame, WorldHistory, Truth (~2,200 lines)
-    └─ 6 [NOT STARTED] — Frame Conditions + Soundness (~2,370 lines) [also depends on 4]
-      └─ 8 [NOT STARTED] — Completeness (~15,000 lines) [also depends on 7]
-  └─ 4 [NOT STARTED] — Bimodal Proof System: 42-axiom Axiom, DerivationTree (~2,000 lines) [also depends on 20, 22]
-    └─ 5 [NOT STARTED] — Perpetuity Theorems (~800 lines) [also depends on 21, 22]
-      └─ 7 [NOT STARTED] — Deduction + MCS Theory (~2,500 lines) [also depends on 4]
-        └─ 8 [NOT STARTED] — Completeness (~15,000 lines) (see above)
-        └─ 9 [NOT STARTED] — Decidability + Tableau (~10,000 lines) [also depends on 4]
-        └─ 10 [NOT STARTED] — Separation Theorem (~3,500 lines) [also depends on 4, 5]
-    └─ 11 [NOT STARTED] — Conservative Extension (~1,500 lines)
-
-### Project Management
-
-12 [NOT STARTED] — Coordinate cslib PR submission (standalone modules + bimodal)
-15 [NOT STARTED] — Complete embedding lattice: atom simp lemmas, PL.toBimodal, triangle-commutes
-17 [NOT STARTED] — Clean stale task 14 references and verify Task Order consistency
+2 [NOT STARTED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
+  └─ 3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
+      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
+  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
+    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
+      └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
+        └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
+        └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
+        └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
+      └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
+    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
+    └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
+    └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
+    └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
+    └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
+12 [RESEARCHED] — Coordinate the cslib PR submission process for the Temporal Logic
+15 [NOT STARTED] — Complete embedding lattice: add atom simp lemmas, PL.toBimodal pa
+16 [NOT STARTED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
+  └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
+    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu (see above)
+17 [RESEARCHED] — Clean stale task 14 references and verify Task Order consistency.
 18 [NOT STARTED] — Generate project-overview.md for this repository
-19 [COMPLETED] — Explore modular logic factoring (this restructuring task)
+20 [NOT STARTED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
+  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod (see above)
+  └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS (see above)
+  └─ 22 [NOT STARTED] — Build temporal proof system infrastructure and port temporal theo
+    └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod (see above)
+    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu (see above)
+    └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
+24 [NOT STARTED] — improve roadmap bimodal porting
 
 ## Tasks
+
+### 24. Improve ROADMAP.md with BimodalLogic porting overview
+- **Effort**: Medium (3-5 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+
+**Description**: Improve specs/ROADMAP.md to clearly introduce and describe the ambition to port BimodalLogic/ over to CSLib, populating Propositional/, Modal/, Temporal/, and Bimodal/ as appropriate, outlining the design decisions, the tasks along with a link to specs/TODO.md, creating a document that is easy for the maintainer of CSLib to take in and understand the current state of the project
 
 ### 23. Temporal semantics on linear orders
 - **Effort**: Medium (4-6 hours)
@@ -115,7 +120,7 @@ next_project_number: 24
 
 ### 18. Generate project-overview.md for this repository
 - **Effort**: Small (1-2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: meta
 
 **Description**: Generate project-overview.md for this repository. The current file contains the generic template placeholder. Run `/project-overview` to interactively scan the repository and create project-specific context.
@@ -124,7 +129,7 @@ next_project_number: 24
 
 ### 17. Clean stale task 14 references and verify Task Order consistency
 - **Effort**: Small (<1 hour)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: meta
 
 **Description**: Two project management cleanup tasks:
@@ -148,7 +153,7 @@ next_project_number: 24
 
 ### 15. Complete embedding lattice: atom simp lemmas, PL.toBimodal, triangle-commutes
 - **Effort**: Small (1-2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: lean4
 
 **Description**: Embedding completeness fixes from code review:
@@ -160,7 +165,7 @@ next_project_number: 24
 
 ### 12. Coordinate cslib PR submission for Bimodal Logic integration
 - **Effort**: Ongoing (tracked separately)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: general
 
 **Description**: Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.
