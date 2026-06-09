@@ -1,6 +1,14 @@
 {
-  "next_project_number": 27,
+  "next_project_number": 28,
   "active_projects": [
+    {
+      "project_number": 27,
+      "project_name": "review_docs_roadmap_alignment",
+      "status": "not_started",
+      "task_type": "general",
+      "created": "2026-06-09T01:10:36Z",
+      "last_updated": "2026-06-09T01:10:36Z"
+    },
     {
       "project_number": 26,
       "project_name": "revise_roadmap_focus_on_porting",

@@ -1,5 +1,5 @@
 ---
-next_project_number: 27
+next_project_number: 28
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 27
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12,16,20,25,26 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
+| 1 | 2,12,16,20,25,27 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
 | 2 | 3,21,22 | 2,16,20 | Modal Logic, Temporal Logic, Bimodal Porting |
 | 3 | 4,23 | 2,20,22 | Temporal Logic, Bimodal Porting |
 | 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
@@ -23,75 +23,59 @@ next_project_number: 27
 ### Foundations
 
 20 [NOT STARTED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
-  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
-    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
-      └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
-        └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
-        └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
-        └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
-      └─ 10 [NOT STARTED] — (Bimodal Porting: Port Separation Theorem (PR 9): WeakCano) (see above)
-    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
-      └─ 8 [NOT STARTED] — (Bimodal Porting: Port Strong Completeness (PR 7): Complet) (see above)
-    └─ 7 [NOT STARTED] — (Bimodal Porting: Port Deduction Infrastructure and MCS Th) (see above)
-    └─ 9 [NOT STARTED] — (Bimodal Porting: Port Decidability and Tableau (PR 8): Si) (see above)
-    └─ 10 [NOT STARTED] — (Bimodal Porting: Port Separation Theorem (PR 9): WeakCano) (see above)
-    └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
-  └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
-    └─ 5 [NOT STARTED] — (Bimodal Porting: Port Perpetuity theorems to Cslib/Logics) (see above)
-  └─ 22 [NOT STARTED] — Build temporal proof system infrastructure and port temporal theo
-    └─ 4 [NOT STARTED] — (Bimodal Porting: Port the Bimodal Hilbert-style proof sys) (see above)
-    └─ 5 [NOT STARTED] — (Bimodal Porting: Port Perpetuity theorems to Cslib/Logics) (see above)
-    └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
+  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
+  └─ 21 [NOT STARTED] — Port modal proof system and theorems to  (see Modal Logic section)
+  └─ 22 [NOT STARTED] — Build temporal proof system infrastructu (see Temporal Logic section)
 
 ### Modal Logic
 
 16 [NOT STARTED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
-  └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS (see above)
-21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
-  └─ 5 [NOT STARTED] — (Bimodal Porting: Port Perpetuity theorems to Cslib/Logics) (see above)
+  └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
+    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
 
 ### Temporal Logic
 
 22 [NOT STARTED] — Build temporal proof system infrastructure and port temporal theo
-  └─ 4 [NOT STARTED] — (Bimodal Porting: Port the Bimodal Hilbert-style proof sys) (see above)
-  └─ 5 [NOT STARTED] — (Bimodal Porting: Port Perpetuity theorems to Cslib/Logics) (see above)
-  └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l (see above)
-23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
+  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
+  └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
+  └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
 
 ### Bimodal Porting
 
 2 [NOT STARTED] — Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Sub
   └─ 3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+    └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
+      └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
+  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
+    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
+      └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
+        └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
+        └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
+        └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
+      └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
     └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
-  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod (see above)
-4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
-  └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu (see above)
-  └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity, (see above)
-  └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
-  └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
-  └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
-  └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S (see above)
-5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
-  └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
-  └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
-6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
-  └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
-7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
-  └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic (see above)
-  └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
-  └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
-8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
-9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo
-10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
-11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
+    └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe (see above)
+    └─ 9 [NOT STARTED] — Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Clo (see above)
+    └─ 10 [NOT STARTED] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi (see above)
+    └─ 11 [NOT STARTED] — Port Conservative Extension (PR 10): ExtFormula, ExtDerivation, S
 
 ### Project Management
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the Temporal Logic
-25 [NOT STARTED] — revise task order topic assignments
-26 [COMPLETED] — revise roadmap focus on porting
+25 [IMPLEMENTING] — revise_task_order_topic_assignments
+
+### Uncategorized
+
+27 [NOT STARTED] — review_docs_roadmap_alignment
 
 ## Tasks
+
+### 27. Systematically review all documentation and standards, ensuring tasks and ROADMAP.md are in alignment
+- **Effort**: Medium (2-4 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+
+**Description**: Systematically review all documentation and standards in this repo, making sure the tasks and ROADMAP.md are all in alignment, making any changes that are needed while making no unneeded changes.
 
 ### 26. Revise ROADMAP.md to focus on porting across all four logic levels
 - **Effort**: Medium (2-4 hours)
