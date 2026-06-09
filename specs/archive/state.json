@@ -763,6 +763,97 @@
       "task_type": "markdown",
       "archived": "2026-06-09T23:00:00Z",
       "completion_summary": "Restructured ROADMAP.md: replaced ASCII Import Hierarchy with accurate mermaid flowchart, removed all task references, deleted Phases section, added verified Project Structure file tree"
+    },
+    {
+      "project_number": 50,
+      "project_name": "burgess_prior_art_seed_research",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-09T20:12:31Z",
+      "last_updated": "2026-06-09T20:42:21Z",
+      "topic": "Temporal Logic",
+      "session_id": "sess_1781036914_a04ef7",
+      "researched": "2026-06-09T20:22:43Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/050_burgess_prior_art_seed_research/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research with 4 teammates"
+        },
+        {
+          "path": "specs/050_burgess_prior_art_seed_research/plans/01_prior-art-plan.md",
+          "type": "plan",
+          "summary": "5-phase plan: update task 46-49 descriptions and create 4 seed research reports"
+        },
+        {
+          "path": "specs/050_burgess_prior_art_seed_research/summaries/01_prior-art-summary.md",
+          "type": "summary",
+          "summary": "Updated task 46-49 descriptions and created 4 seed research reports"
+        }
+      ],
+      "completion_summary": "Updated task 46-49 descriptions with research findings (revised scope estimates, missing prerequisites, box-entanglement warnings) and created 4 seed research reports containing literature maps, infrastructure audits, and implementation guidance for each task.",
+      "archived": "2026-06-09T23:45:55Z"
+    },
+    {
+      "project_number": 46,
+      "project_name": "temporal_r_relation",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T21:00:00Z",
+      "dependencies": [
+        50
+      ],
+      "description": "Define the Burgess R-relation r(A, beta, C) and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.\n\nPhase 0 — Prerequisite Infrastructure (~850-1000 lines): Create before porting Chronicle files:\n- g_content/h_content definitions (source: Bundle/TemporalContent.lean, 169 lines)\n- Witness seed consistency proofs (source: Bundle/WitnessSeed.lean, 607 lines)\n- SetDeductivelyClosed (DCS) type and mcs_is_dcs lemma\n- Propositional combinators (~200 lines)\n- Temporal derived theorems (~150 lines)\n\nLiterature: Burgess 1982 Section 2 Lemmas 2.2-2.4 at BimodalLogic/literature/Burgess_1982_Axioms_for_tense_logic_Since_and_Until.md\n\nBimodal prior art to adapt:\n- Chronicle/RRelation.lean (1695 lines): ~95% transfers; remove FrameClass parameter\n- CanonicalChain.lean (95 lines): 100% transfers; swap BXPoint to TPoint\n- OrderedSeedConsistency.lean (151 lines): 100% transfers\n- Frame.lean (464 lines): ~60% transfers; remove bx_modal_equiv (bimodal-only)\n- Bundle/TemporalContent.lean (169 lines): direct source for Phase 0\n- Bundle/WitnessSeed.lean (607 lines): direct source for Phase 0\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/ (RRelation.lean, Frame.lean, CanonicalChain.lean, OrderedSeedConsistency.lean)\nEstimated scope: 1200-2000 lines (revised from 800-1500; includes Phase 0 prerequisites)\nSeed research: specs/046_temporal_r_relation/reports/01_seed-research.md\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic",
+      "completion_summary": "Ported Burgess R-relation infrastructure from bimodal to temporal: 9 new files (1920 lines), 44 definitions/theorems across 7 phases. Created TemporalContent, GeneralizedNecessitation, PropositionalHelpers, WitnessSeed, Chronicle/ChronicleTypes, Chronicle/Frame, Chronicle/CanonicalChain, Chronicle/OrderedSeedConsistency, Chronicle/RRelation. Only sorry is t_le_refl (known open issue).",
+      "archived": "2026-06-09T23:45:55Z"
+    },
+    {
+      "project_number": 47,
+      "project_name": "temporal_point_insertion",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T21:00:00Z",
+      "dependencies": [
+        46
+      ],
+      "description": "Define the labeled frame type (Burgess K-elements/chronicle conditions C0-C5) and prove that counterexamples to conditions C5a/C6a can be eliminated by point insertion (Burgess Lemmas 2.6-2.8).\n\nTemporal simplification: Eliminates C5b/C6b for box (no box modality). Only temporal C5a/C6a (Until witnesses) and their S-mirror images remain — roughly half the bimodal point insertion cases. Depends on propositional combinators from Task 46 Phase 0.\n\nLiterature: Burgess 1982 Definition 2.5, Lemmas 2.6-2.8; Xu 1988 Definition 2.5, Theorem 2.8 at BimodalLogic/literature/ (use Xu C0-C6 formulation as cleaner Lean target)\n\nBimodal prior art to adapt:\n- Chronicle/ChronicleTypes.lean (386 lines): ~85% transfers; remove FrameClass, remove ModalSaturation import\n- Chronicle/PointInsertion.lean (3556 lines): ~90% transfers; remove box-specific cases; use temporal propositional combinators from Task 46 Phase 0\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/ChronicleTypes.lean, PointInsertion.lean\nEstimated scope: 1500-2800 lines (unchanged; reasonable given Task 46 prerequisites)\nSeed research: specs/047_temporal_point_insertion/reports/01_seed-research.md\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic",
+      "completion_summary": "Temporal point insertion complete: 2888-line PointInsertion.lean with Burgess Lemmas 2.4-2.8 (Until+Since), Xu Lemmas 2.3/3.2.1, guard conjunction, iterated enrichment. RRelation.lean extended with ~290 lines. Zero sorries.",
+      "archived": "2026-06-09T23:45:55Z"
+    },
+    {
+      "project_number": 48,
+      "project_name": "temporal_chronicle_construction",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T21:00:00Z",
+      "dependencies": [
+        47
+      ],
+      "description": "Build the omega-step construction that enumerates all C5/C6 counterexamples and iteratively inserts points to eliminate them (Burgess Theorem 2.8, construction part). Assemble the chronicle as the union of all finite stages.\n\nKey technical requirement: [Denumerable (Formula Atom)] instance required for omega-chain enumeration — verify it exists for Temporal.Formula Atom before starting (same pattern as bimodal).\n\nNote: Omega-chain enumeration structure is nearly identical to bimodal. Both CounterexampleElimination.lean (~95% transfer) and ChronicleConstruction.lean (~95% transfer) have zero box/modal references — cleanest files in the bimodal Chronicle. Temporal version only enumerates C5a/C6a defects and S-mirrors (no modal defect types).\n\nAlso check: bimodal files have sorry stubs for open guard semantics (Task 113 upstream). Verify whether these transfer or can be cleanly eliminated in temporal version.\n\nLiterature: Burgess 1982 Theorem 2.8 (construction); Xu 1988 Theorem 2.8 at BimodalLogic/literature/\n\nBimodal prior art to adapt:\n- Chronicle/CounterexampleElimination.lean (3529 lines): ~95% transfers; remove modal defect types\n- Chronicle/ChronicleConstruction.lean (1531 lines): ~95% transfers; mechanical import/namespace rewrite\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/CounterexampleElimination.lean, ChronicleConstruction.lean\nEstimated scope: 1500-3000 lines (unchanged; high confidence given clean separation)\nSeed research: specs/048_temporal_chronicle_construction/reports/01_seed-research.md\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic",
+      "completion_summary": "Ported omega-step chronicle construction: CounterexampleElimination.lean (3297 lines) + ChronicleConstruction.lean (1435 lines). Extended ChronicleTypes.lean (+102) and PropositionalHelpers.lean (+52). chronicle_model_exists theorem compiles. Zero sorries.",
+      "archived": "2026-06-09T23:45:55Z"
+    },
+    {
+      "project_number": 49,
+      "project_name": "temporal_truth_lemma_completeness",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T21:00:00Z",
+      "dependencies": [
+        48
+      ],
+      "description": "Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry in Completeness.lean.\n\nWARNING — Box-Entanglement: ChronicleToCountermodelBasic.lean (1170 lines) and ChronicleToCountermodel.lean (229 lines) are NOT directly adaptable. They use Formula.box, FMCS/BFMCS structures, modal_k_dist, S5 box-stability reasoning, and algebraic parametric completeness — all bimodal-specific. Do NOT attempt direct port; build fresh temporal extraction.\n\nRecommended approach: The temporal countermodel is simpler. The chronicle frame (X, <) with valuation V(alpha) := {x | alpha in f(x)} IS the countermodel — a serial linear order with valuation, no modal accessibility. Build fresh TemporalChronicleModel type and extraction.\n\nInteraction with existing Completeness.lean: The file already has CanonicalWorld, canonical_acc, G/H truth lemma infrastructure (lines 60-340), and the completeness theorem with a single sorry at line 416. Task 49 fills this sorry. Reconcile chronicle-based TPoint (Task 46) with existing CanonicalWorld.\n\nDense/discrete interaction: The base chronicle construction produces a dense linear order on Rat. The base completeness sorry in Completeness.lean quantifies over any serial linear order — the chronicle construction fills it via a dense countermodel. Discrete completeness (Task 39) uses different machinery.\n\nLiterature: Burgess 1982 Claim 2.11 (truth lemma) and completeness conclusion; BdRV Theorem 7.15 at BimodalLogic/literature/\n\nBimodal prior art:\n- TruthLemma.lean (223 lines): ~70% transfers; keep atom/bot/imp/G/H/Until/Since; remove box_iff_mcs\n- CanonicalModel.lean (771 lines): ~40% transfers; Z-chain G/H propagation; discard FMCS/BFMCS\n- ChronicleToCountermodelBasic.lean (1170 lines): ~0% direct transfer; reference LimitDomSubtype utilities only\n- ChronicleToCountermodel.lean (229 lines): ~0% direct transfer; bimodal-specific throughout\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/TruthLemma.lean, ChronicleToCountermodel.lean (fresh), update Completeness.lean\nEstimated scope: 800-1800 lines (revised from 500-1200; countermodel extraction needs fresh design)\nSeed research: specs/049_temporal_truth_lemma_completeness/reports/01_seed-research.md\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic",
+      "completion_summary": "Temporal completeness sorry closed. Created ChronicleToCountermodel.lean, TruthLemma.lean, CompletenessHelpers.lean. Rewrote Completeness.lean with actual proof via chronicle countermodel. Zero sorries, full build passes.",
+      "archived": "2026-06-09T23:45:55Z"
     }
   ],
   "archived_projects": [

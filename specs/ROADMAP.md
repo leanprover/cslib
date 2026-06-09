@@ -81,12 +81,12 @@ Imports flow downward: Foundations at top, Modal and Temporal in the middle (ind
 | Tableau decision procedure | `Logics/Bimodal/Metalogic/Decidability/` |
 | Finite model property | `Logics/Bimodal/Metalogic/Decidability/FMP/` |
 | Dense completeness (Algebraic, Bundle, BXCanonical) | `Logics/Bimodal/Metalogic/` |
+| Temporal metalogic: DeductionTheorem, MCS, Soundness, Completeness | `Logics/Temporal/Metalogic/` |
 
 ## Remaining
 
 | Component | Module |
 |-----------|--------|
-| Temporal metalogic: DeductionTheorem, MCS, Soundness, Completeness | `Logics/Temporal/Metalogic/` |
 | Discrete completeness | `Logics/Bimodal/Metalogic/` |
 | Continuous extension completeness | `Logics/Bimodal/Metalogic/` |
 | Dense temporal completeness | `Logics/Temporal/Metalogic/` |
