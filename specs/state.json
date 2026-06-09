@@ -4,7 +4,7 @@
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
-      "status": "implementing",
+      "status": "partial",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T18:00:00Z",
@@ -148,10 +148,10 @@
     {
       "project_number": 34,
       "project_name": "port_base_completeness_mcs_properties",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-09T00:13:00Z",
       "dependencies": [
         6,
         7
@@ -217,10 +217,10 @@
     {
       "project_number": 10,
       "project_name": "port_separation_theorem_bimodal",
-      "status": "not_started",
+      "status": "planning",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-08T00:30:00Z",
+      "last_updated": "2026-06-09T00:12:30Z",
       "dependencies": [
         4,
         5,

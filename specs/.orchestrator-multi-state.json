@@ -1,34 +1,38 @@
 {
-  "session_id": "sess_1780982747_80da4d",
-  "task_numbers": [5, 6, 11, 31],
-  "waves": [[5, 6, 11, 31]],
-  "dependency_graph": {"5": [], "6": [], "11": [], "31": []},
-  "cycle_count": 0,
-  "max_cycles": 20,
-  "failed_tasks": [],
-  "completed_tasks": [],
-  "current_statuses": {
-    "5": "not_started",
-    "6": "not_started",
-    "11": "not_started",
-    "31": "not_started"
-  },
+  "session_id": "sess_1781007220_8b0662",
+  "task_numbers": [
+    10,
+    34
+  ],
   "task_types": {
-    "5": "lean4",
-    "6": "lean4",
-    "11": "lean4",
-    "31": "lean4"
+    "10": "lean4",
+    "34": "lean4"
+  },
+  "task_dirs": {
+    "10": "specs/010_port_separation_theorem_bimodal",
+    "34": "specs/034_port_base_completeness_mcs_properties"
   },
   "research_agents": {
-    "5": "lean-research-agent",
-    "6": "lean-research-agent",
-    "11": "lean-research-agent",
-    "31": "lean-research-agent"
+    "10": "lean-research-agent",
+    "34": "lean-research-agent"
   },
   "implement_agents": {
-    "5": "lean-implementation-agent",
-    "6": "lean-implementation-agent",
-    "11": "lean-implementation-agent",
-    "31": "lean-implementation-agent"
-  }
+    "10": "lean-implementation-agent",
+    "34": "lean-implementation-agent"
+  },
+  "current_statuses": {
+    "10": "planning",
+    "34": "planned",
+    "31": "implementing"
+  },
+  "cycle_count": 7,
+  "max_cycles": 10,
+  "failed_tasks": [],
+  "completed_tasks": [],
+  "waves": [
+    [
+      10,
+      34
+    ]
+  ]
 }
