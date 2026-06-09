@@ -107,7 +107,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Port Helpers.lean [NOT STARTED]
+### Phase 2: Port Helpers.lean [COMPLETED]
 
 **Goal**: Create `Cslib/Logics/Bimodal/Theorems/Perpetuity/Helpers.lean` with the core box-to-temporal lemmas (`box_to_future`, `box_to_past`, `box_to_present`) and a `temp_future_derived` helper.
 
