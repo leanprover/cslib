@@ -110,6 +110,17 @@ theorem Int.exists_least_above'
   haveI : DecidablePred pred := Classical.decPred pred
   exact Int.exists_least_above hex
 
+/-- Non-decidable version of exists_greatest_below.
+    Uses classical logic. -/
+theorem Int.exists_greatest_below'
+    {pred : Int → Prop} {t : Int}
+    (hex : ∃ n, n < t ∧ pred n) :
+    ∃ m, m < t ∧ pred m ∧
+      ∀ k, m < k → k < t → ¬pred k := by
+  haveI : DecidablePred pred :=
+    Classical.decPred pred
+  exact Int.exists_greatest_below hex
+
 /-! ## Direct Witness Constructions -/
 
 /-- Key property: if phi holds at s and psi holds on (t,s),

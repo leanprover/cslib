@@ -222,7 +222,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: NegationEquiv.lean -- Lemma 10.2.2 [NOT STARTED]
+### Phase 6: NegationEquiv.lean -- Lemma 10.2.2 [COMPLETED]
 
 **Goal**: Port the Z-dependent negation equivalences (neg_until_equiv, neg_since_equiv). These are the key integer-specific step using discreteness of Z.
 
