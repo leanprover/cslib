@@ -191,7 +191,7 @@ Phases are fully sequential: each phase depends on the one before it.
 
 ---
 
-### Phase 5: Substitution -- Uniform Substitution Theorem [NOT STARTED]
+### Phase 5: Substitution -- Uniform Substitution Theorem [COMPLETED]
 
 **Goal**: Port the uniform substitution infrastructure including `Formula.subst`, structural lemmas, `axiom_subst` (42 cases), and the main `derivation_subst` theorem.
 
