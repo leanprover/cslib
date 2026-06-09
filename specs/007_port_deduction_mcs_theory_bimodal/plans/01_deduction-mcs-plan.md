@@ -103,7 +103,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: DeductionTheorem [NOT STARTED]
+### Phase 2: DeductionTheorem [COMPLETED]
 
 **Goal**: Port the deduction theorem for the bimodal 7-constructor DerivationTree, providing `deduction_theorem` and `bimodal_has_deduction_theorem` for the generic MCS framework.
 
