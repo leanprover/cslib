@@ -33,12 +33,14 @@ next_project_number: 44
 ### Bimodal Porting
 
 10 [IMPLEMENTING] — Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 fi
-35 [NOT STARTED] — Port dense completeness infrastructure and completeness_dense the
+35 [PLANNED] — Port dense completeness infrastructure and completeness_dense the
+  - **Research**: [specs/035_port_dense_completeness_bimodal/reports/01_dense-completeness-research.md]
+  - **Plan**: [specs/035_port_dense_completeness_bimodal/plans/01_dense-completeness-plan.md]
   └─ 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
   └─ 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
   └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
 42 [NOT STARTED] — Port the core tableau-based decision procedure from BimodalLogic 
-  └─ 43 [NOT STARTED] — Port the Finite Model Property (FMP) infrastructure from BimodalL
+  └─ 43 [COMPLETED] — Port the Finite Model Property (FMP) infrastructure from BimodalL
 
 ### Project Management
 
@@ -58,9 +60,12 @@ next_project_number: 44
 
 ### 43. Port bimodal finite model property (FMP)
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 42
+- **Report**: [specs/043_port_bimodal_fmp/reports/01_fmp-port-research.md]
+- **Plan**: [specs/043_port_bimodal_fmp/plans/01_fmp-port-plan.md]
+- **Summary**: [specs/043_port_bimodal_fmp/summaries/01_fmp-port-summary.md]
 
 **Description**: Port the Finite Model Property infrastructure from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/`. Covers: ClosureMCS, BoundedModel, ModelSize, FMP (~3,000-4,000 lines across 4+ files). Key deliverable: if a bimodal formula is satisfiable, it is satisfiable in a finite model of bounded size. Parent task: 9 (expanded).
 
@@ -306,11 +311,13 @@ Expanded into:
 ---
 
 ### 35. Port dense completeness infrastructure
-- **Effort**: Large (10-14 hours)
-- **Status**: [NOT STARTED]
+- **Effort**: X-Large (28 hours)
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: Task 34
 - **Parent**: Task 8 (expanded)
+- **Research**: [specs/035_port_dense_completeness_bimodal/reports/01_dense-completeness-research.md]
+- **Plan**: [specs/035_port_dense_completeness_bimodal/plans/01_dense-completeness-plan.md]
 
 **Description**: Port dense completeness infrastructure and `completeness_dense` theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The `completeness_dense` theorem constructs countermodels on `Rat` via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.
 

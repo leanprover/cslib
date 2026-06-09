@@ -19,15 +19,60 @@
     {
       "project_number": 43,
       "project_name": "port_bimodal_fmp",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-09T12:45:30Z",
-      "last_updated": "2026-06-09T12:45:30Z",
+      "last_updated": "2026-06-09T18:00:00Z",
+      "completion_summary": "Ported complete FMP infrastructure (12 new files, ~2,500 lines) from BimodalLogic to Cslib. Zero sorry. Key theorems: mcs_finite_model_property, fmp_contrapositive, FilteredWorld.finite, restricted_lindenbaum. Deduplicated subformulas from SignedFormula.lean.",
       "dependencies": [
         42
       ],
       "topic": "Bimodal Porting",
-      "description": "Port the Finite Model Property (FMP) infrastructure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/. This strengthens the decidability result with finite countermodels: ClosureMCS (closure-based MCS construction), BoundedModel (bounded model size arguments), ModelSize (model size bounds), FMP (finite model property theorem).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/\n**Estimated scope**: ~3,000-4,000 lines across 4+ files\n**Parent task**: Task 9 (expanded)\n**Depends on**: Task 42 (core tableau must exist first)\n\n**Key deliverable**: Finite model property theorem — if a bimodal formula is satisfiable, it is satisfiable in a finite model of bounded size.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry)."
+      "description": "Port the Finite Model Property (FMP) infrastructure from BimodalLogic to Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/. This strengthens the decidability result with finite countermodels: ClosureMCS (closure-based MCS construction), BoundedModel (bounded model size arguments), ModelSize (model size bounds), FMP (finite model property theorem).\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/FMP/\n**Estimated scope**: ~3,000-4,000 lines across 4+ files\n**Parent task**: Task 9 (expanded)\n**Depends on**: Task 42 (core tableau must exist first)\n\n**Key deliverable**: Finite model property theorem — if a bimodal formula is satisfiable, it is satisfiable in a finite model of bounded size.\n\n**Porting Checklist**: Same as Task 9 (namespace rename, imports, copyright, linters, lake build, zero sorry).",
+      "plan_metadata": {
+        "phases": 10,
+        "total_effort_hours": 11,
+        "complexity": "complex",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ],
+          [
+            8
+          ],
+          [
+            9
+          ],
+          [
+            10
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_fmp-port-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-09"
+          }
+        ]
+      }
     },
     {
       "project_number": 31,
@@ -191,13 +236,75 @@
     {
       "project_number": 35,
       "project_name": "port_dense_completeness_bimodal",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-09T15:00:00Z",
       "dependencies": [
         34
       ],
+      "session_id": "sess_1781015794_9ad061",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/035_port_dense_completeness_bimodal/reports/01_dense-completeness-research.md",
+          "type": "research",
+          "summary": "Comprehensive research on dense completeness porting scope"
+        },
+        {
+          "path": "specs/035_port_dense_completeness_bimodal/plans/01_dense-completeness-plan.md",
+          "type": "plan",
+          "summary": "12-phase implementation plan for dense completeness port (28 hours, ~46 files)"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 12,
+        "total_effort_hours": 28,
+        "complexity": "complex",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ],
+          [
+            8
+          ],
+          [
+            9
+          ],
+          [
+            10
+          ],
+          [
+            11
+          ],
+          [
+            12
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_dense-completeness-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-09"
+          }
+        ]
+      },
       "description": "Port dense completeness infrastructure and completeness_dense theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The completeness_dense theorem constructs countermodels on Rat via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/{Algebraic/,Bundle/,BXCanonical/} (~40 files, ~15,000 lines)\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Parent task**: 8 (expanded)",
       "topic": "Bimodal Porting"
     },
