@@ -1,15 +1,15 @@
 {
-  "status": "implementing",
-  "summary": "Phases 1-3 completed, phase 4 partial. 4 files created (FrameClass, Core, DenseValidity, FrameClassVariants partial). All code builds with zero sorries. Remaining: complete phase 4 discrete proofs + phases 5-10.",
+  "status": "implemented",
+  "summary": "Ported 10 soundness files from BimodalLogic: frame conditions, axiom validity, and main soundness theorems (base, dense, discrete) with zero sorries",
   "blockers": [],
-  "phases_completed": 3,
+  "phases_completed": 10,
   "phases_total": 10,
   "artifacts": [
     {
-      "path": "specs/006_port_frame_conditions_soundness_bimodal/handoffs/phase-3-handoff-20260608.md",
-      "type": "handoff",
-      "summary": "Detailed porting patterns (abbrev vs def, guard encoding, intro patterns) for continuation"
+      "path": "specs/006_port_frame_conditions_soundness_bimodal/summaries/01_frame-soundness-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary with all ported files and key adaptations"
     }
   ],
-  "next_action_hint": "implement"
+  "next_action_hint": "complete"
 }
