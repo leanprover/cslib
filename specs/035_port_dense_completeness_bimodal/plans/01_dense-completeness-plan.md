@@ -320,7 +320,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: Chronicle Core -- PointInsertion, CounterexampleElimination, Construction [NOT STARTED]
+### Phase 9: Chronicle Core -- PointInsertion, CounterexampleElimination, Construction [IN PROGRESS]
 
 **Goal**: Port the three large Chronicle core files that implement the point insertion and counterexample elimination algorithms.
 
