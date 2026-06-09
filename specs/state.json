@@ -259,17 +259,18 @@
     {
       "project_number": 10,
       "project_name": "port_separation_theorem_bimodal",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-09T00:18:00Z",
+      "last_updated": "2026-06-09T01:30:00Z",
       "dependencies": [
         4,
         5,
         7
       ],
       "description": "Port Separation Theorem (PR 9): WeakCanonical/Separation/* (16 files) to Cslib/Logics/Bimodal/Metalogic/Separation/. The separation theorem proves that TM is conservative over its temporal and modal fragments separately.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/WeakCanonical/Separation/ and related):\n- Separation/*.lean (~16 files, ~3,500 lines): weak canonical model construction, chronicle structures, separation between temporal and modal components\n- Key files: SeparationTheorem.lean (main result), ChronicleCanonical.lean, WeakCanonicalModel.lean, TemporalSeparation.lean, ModalSeparation.lean\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Separation/\n\n**Estimated scope**: ~3,500 lines across 16 files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/Separation module (Separation Theorem)\n\n**Dependencies**: Tasks 4 (ProofSystem), 5 (Theorems), and 7 (MCS/Deduction) must all be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting"
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported complete Separation Theorem (GHR94 Theorem 10.2.9) to Cslib/Logics/Bimodal/Metalogic/Separation/. 17 files, ~6,420 lines, all sorry-free. Proves every {U,S}-formula over integer time is equivalent to a syntactically separated formula. Key transformations: Atom type parameterization with [DecidableEq Atom] and [Infinite Atom], freshness via Mathlib Infinite typeclass, scoped notation conflict resolution."
     },
     {
       "project_number": 11,
