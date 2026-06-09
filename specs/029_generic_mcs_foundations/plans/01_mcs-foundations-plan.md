@@ -112,7 +112,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: SetConsistent and SetMaximalConsistent definitions + basic lemmas [IN PROGRESS]
+### Phase 2: SetConsistent and SetMaximalConsistent definitions + basic lemmas [COMPLETED]
 
 **Goal**: Define the core consistency predicates and basic structural lemmas.
 
@@ -155,7 +155,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Chain union lemmas (consistent_chain_union for Zorn) [NOT STARTED]
+### Phase 3: Chain union lemmas (consistent_chain_union for Zorn) [IN PROGRESS]
 
 **Goal**: Prove that the union of a chain of consistent sets is consistent, which is the key input to Zorn's lemma.
 

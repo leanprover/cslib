@@ -52,4 +52,45 @@ structure DerivationSystem (F : Type*) [HasBot F] [HasImp F] where
   /-- Modus ponens: from `Γ ⊢ φ → ψ` and `Γ ⊢ φ`, derive `Γ ⊢ ψ`. -/
   mp : ∀ {Γ : List F} {φ ψ : F}, Deriv Γ (HasImp.imp φ ψ) → Deriv Γ φ → Deriv Γ ψ
 
+/-! ## Consistency Definitions -/
+
+/-- List-based consistency: `Γ` is consistent iff `Γ` does not derive `⊥`. -/
+def Consistent (D : DerivationSystem F) (Γ : List F) : Prop :=
+  ¬ D.Deriv Γ HasBot.bot
+
+/-- Set-based consistency: `S` is set-consistent iff every finite subset is consistent. -/
+def SetConsistent (D : DerivationSystem F) (S : Set F) : Prop :=
+  ∀ L : List F, (∀ φ ∈ L, φ ∈ S) → Consistent D L
+
+/-- Set-based maximal consistency: `S` is maximally consistent iff it is set-consistent
+and adding any formula not in `S` makes it inconsistent. -/
+def SetMaximalConsistent (D : DerivationSystem F) (S : Set F) : Prop :=
+  SetConsistent D S ∧ ∀ φ : F, φ ∉ S → ¬ SetConsistent D (insert φ S)
+
+/-- The collection of consistent supersets of `S`. Used as the domain for Zorn's lemma
+in Lindenbaum's lemma. -/
+def ConsistentSupersets (D : DerivationSystem F) (S : Set F) : Set (Set F) :=
+  {T | S ⊆ T ∧ SetConsistent D T}
+
+/-- In a set-consistent set, `φ` and `φ → ⊥` cannot both be members. -/
+theorem set_consistent_not_both (D : DerivationSystem F) {S : Set F}
+    (hcons : SetConsistent D S) {φ : F} (hφ : φ ∈ S)
+    (hneg : HasImp.imp φ HasBot.bot ∈ S) : False := by
+  have h := hcons [HasImp.imp φ HasBot.bot, φ] (by
+    intro ψ hψ
+    rw [List.mem_cons] at hψ
+    rcases hψ with rfl | hψ
+    · exact hneg
+    · rw [List.mem_cons] at hψ; rcases hψ with rfl | hψ
+      · exact hφ
+      · simp at hψ)
+  apply h
+  exact D.mp (D.assumption (List.mem_cons.mpr (Or.inl rfl)))
+    (D.assumption (List.mem_cons.mpr (Or.inr (List.mem_cons.mpr (Or.inl rfl)))))
+
+/-- A set-consistent set `S` is in its own collection of consistent supersets. -/
+theorem base_mem_consistent_supersets (D : DerivationSystem F) {S : Set F}
+    (hS : SetConsistent D S) : S ∈ ConsistentSupersets D S :=
+  ⟨Set.Subset.refl S, hS⟩
+
 end Cslib.Logic.Metalogic
