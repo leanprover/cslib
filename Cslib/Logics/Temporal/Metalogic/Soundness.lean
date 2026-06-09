@@ -26,7 +26,6 @@ over all serial linear orders (linear orders with `NoMaxOrder` and `NoMinOrder`)
 * Burgess (1982) — BX axiom system
 -/
 
-set_option linter.flexible false
 set_option linter.style.setOption false
 set_option maxHeartbeats 1600000
 
@@ -41,7 +40,7 @@ variable {Atom : Type*}
 private theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
     (φ ψ : Formula Atom) :
     Satisfies M t (Formula.and φ ψ) ↔ (Satisfies M t φ ∧ Satisfies M t ψ) := by
-  simp only [Formula.and, Formula.neg, Satisfies]
+  simp only [Satisfies]
   constructor
   · intro h
     constructor
@@ -52,11 +51,11 @@ private theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Ato
 private theorem sat_or_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
     (φ ψ : Formula Atom) :
     Satisfies M t (Formula.or φ ψ) ↔ (Satisfies M t φ ∨ Satisfies M t ψ) := by
-  simp only [Formula.or, Formula.neg, Satisfies]
+  simp only [Satisfies]
   constructor
   · intro h
     by_contra h_neg
-    push_neg at h_neg
+    push Not at h_neg
     exact h_neg.2 (h (fun hφ => absurd hφ h_neg.1))
   · intro h hnφ
     rcases h with hφ | hψ
@@ -235,85 +234,100 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     obtain ⟨s₂, h2t, hθ2, hg2⟩ := h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
     · -- s₁ < s₂: third disjunct (φ∧θ) S (φ∧χ), witness s₂
-      exact Or.inr ⟨s₂, h2t,
-        (sat_and_iff M s₂ φ θ).mpr ⟨hg1 s₂ h h2t, hθ2⟩,
-        fun r hr1 hr2 =>
-          (sat_and_iff M r φ χ).mpr ⟨hg1 r (lt_trans h hr1) hr2, hg2 r hr1 hr2⟩⟩
+      exact (sat_or_iff M t _ _).mpr (Or.inr
+        ⟨s₂, h2t,
+         (sat_and_iff M s₂ φ θ).mpr ⟨hg1 s₂ h h2t, hθ2⟩,
+         fun r hr1 hr2 =>
+           (sat_and_iff M r φ χ).mpr ⟨hg1 r (lt_trans h hr1) hr2, hg2 r hr1 hr2⟩⟩)
     · subst h
-      exact Or.inl (Or.inl ⟨s₁, h1t,
-        (sat_and_iff M s₁ ψ θ).mpr ⟨hψ1, hθ2⟩,
-        fun r hr1 hr2 =>
-          (sat_and_iff M r φ χ).mpr ⟨hg1 r hr1 hr2, hg2 r hr1 hr2⟩⟩)
+      exact (sat_or_iff M t _ _).mpr (Or.inl
+        ((sat_or_iff M t _ _).mpr (Or.inl
+          ⟨s₁, h1t,
+           (sat_and_iff M s₁ ψ θ).mpr ⟨hψ1, hθ2⟩,
+           fun r hr1 hr2 =>
+             (sat_and_iff M r φ χ).mpr ⟨hg1 r hr1 hr2, hg2 r hr1 hr2⟩⟩)))
     · -- s₂ < s₁: second disjunct (ψ∧χ) S (φ∧χ), witness s₁
-      exact Or.inl (Or.inr ⟨s₁, h1t,
-        (sat_and_iff M s₁ ψ χ).mpr ⟨hψ1, hg2 s₁ h h1t⟩,
-        fun r hr1 hr2 =>
-          (sat_and_iff M r φ χ).mpr ⟨hg1 r hr1 hr2, hg2 r (lt_trans h hr1) hr2⟩⟩)
+      exact (sat_or_iff M t _ _).mpr (Or.inl
+        ((sat_or_iff M t _ _).mpr (Or.inr
+          ⟨s₁, h1t,
+           (sat_and_iff M s₁ ψ χ).mpr ⟨hψ1, hg2 s₁ h h1t⟩,
+           fun r hr1 hr2 =>
+             (sat_and_iff M r φ χ).mpr ⟨hg1 r hr1 hr2, hg2 r (lt_trans h hr1) hr2⟩⟩)))
   | until_F φ ψ =>
+    -- U(ψ,φ) → F(ψ)
     intro huntl
-    simp only [Satisfies.untl_iff] at huntl
     obtain ⟨s, hlt, hψ, _⟩ := huntl
-    simp only [Satisfies.some_future_iff]
-    exact ⟨s, hlt, hψ⟩
+    exact (Satisfies.some_future_iff M t ψ).mpr ⟨s, hlt, hψ⟩
   | since_P φ ψ =>
+    -- S(ψ,φ) → P(ψ)
     intro hsnce
-    simp only [Satisfies.snce_iff] at hsnce
     obtain ⟨s, hlt, hψ, _⟩ := hsnce
-    simp only [Satisfies.some_past_iff]
-    exact ⟨s, hlt, hψ⟩
+    exact (Satisfies.some_past_iff M t ψ).mpr ⟨s, hlt, hψ⟩
   | temp_linearity φ ψ =>
     -- F(φ) ∧ F(ψ) → F(φ∧ψ) ∨ F(φ∧F(ψ)) ∨ F(F(φ)∧ψ)
     intro hconj
-    simp only [sat_and_iff] at hconj
-    obtain ⟨h1, h2⟩ := hconj
-    simp only [Satisfies.some_future_iff] at h1 h2
-    obtain ⟨s₁, ht1, hφ1⟩ := h1
-    obtain ⟨s₂, ht2, hψ2⟩ := h2
-    simp only [sat_or_iff]
+    have ⟨h1, h2⟩ := (sat_and_iff M t (Formula.some_future φ) (Formula.some_future ψ)).mp hconj
+    obtain ⟨s₁, ht1, hφ1⟩ := (Satisfies.some_future_iff M t φ).mp h1
+    obtain ⟨s₂, ht2, hψ2⟩ := (Satisfies.some_future_iff M t ψ).mp h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
-    · right; left; rw [Satisfies.some_future_iff]
-      exact ⟨s₁, ht1, (sat_and_iff M s₁ φ (Formula.some_future ψ)).mpr
-        ⟨hφ1, (Satisfies.some_future_iff M s₁ ψ).mpr ⟨s₂, h, hψ2⟩⟩⟩
-    · subst h; left; rw [Satisfies.some_future_iff]
-      exact ⟨s₁, ht1, (sat_and_iff M s₁ φ ψ).mpr ⟨hφ1, hψ2⟩⟩
-    · right; right; rw [Satisfies.some_future_iff]
-      exact ⟨s₂, ht2, (sat_and_iff M s₂ (Formula.some_future φ) ψ).mpr
-        ⟨(Satisfies.some_future_iff M s₂ φ).mpr ⟨s₁, h, hφ1⟩, hψ2⟩⟩
+    · -- s₁ < s₂: second disjunct F(φ∧F(ψ)), witness s₁
+      exact (sat_or_iff M t _ _).mpr (Or.inr
+        ((sat_or_iff M t _ _).mpr (Or.inl
+          ((Satisfies.some_future_iff M t _).mpr
+            ⟨s₁, ht1, (sat_and_iff M s₁ φ (Formula.some_future ψ)).mpr
+              ⟨hφ1, (Satisfies.some_future_iff M s₁ ψ).mpr ⟨s₂, h, hψ2⟩⟩⟩))))
+    · subst h
+      -- s₁ = s₂: first disjunct F(φ∧ψ), witness s₁
+      exact (sat_or_iff M t _ _).mpr (Or.inl
+        ((Satisfies.some_future_iff M t _).mpr
+          ⟨s₁, ht1, (sat_and_iff M s₁ φ ψ).mpr ⟨hφ1, hψ2⟩⟩))
+    · -- s₂ < s₁: third disjunct F(F(φ)∧ψ), witness s₂
+      exact (sat_or_iff M t _ _).mpr (Or.inr
+        ((sat_or_iff M t _ _).mpr (Or.inr
+          ((Satisfies.some_future_iff M t _).mpr
+            ⟨s₂, ht2, (sat_and_iff M s₂ (Formula.some_future φ) ψ).mpr
+              ⟨(Satisfies.some_future_iff M s₂ φ).mpr ⟨s₁, h, hφ1⟩, hψ2⟩⟩))))
   | temp_linearity_past φ ψ =>
+    -- P(φ) ∧ P(ψ) → P(φ∧ψ) ∨ P(φ∧P(ψ)) ∨ P(P(φ)∧ψ)
     intro hconj
-    simp only [sat_and_iff] at hconj
-    obtain ⟨h1, h2⟩ := hconj
-    simp only [Satisfies.some_past_iff] at h1 h2
-    obtain ⟨s₁, h1t, hφ1⟩ := h1
-    obtain ⟨s₂, h2t, hψ2⟩ := h2
-    simp only [sat_or_iff]
+    have ⟨h1, h2⟩ := (sat_and_iff M t (Formula.some_past φ) (Formula.some_past ψ)).mp hconj
+    obtain ⟨s₁, h1t, hφ1⟩ := (Satisfies.some_past_iff M t φ).mp h1
+    obtain ⟨s₂, h2t, hψ2⟩ := (Satisfies.some_past_iff M t ψ).mp h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
-    · right; right; rw [Satisfies.some_past_iff]
-      exact ⟨s₁, h1t, (sat_and_iff M s₁ φ (Formula.some_past ψ)).mpr
-        ⟨hφ1, (Satisfies.some_past_iff M s₁ ψ).mpr ⟨s₂, h, hψ2⟩⟩⟩
-    · subst h; left; rw [Satisfies.some_past_iff]
-      exact ⟨s₁, h1t, (sat_and_iff M s₁ φ ψ).mpr ⟨hφ1, hψ2⟩⟩
-    · right; left; rw [Satisfies.some_past_iff]
-      exact ⟨s₂, h2t, (sat_and_iff M s₂ (Formula.some_past φ) ψ).mpr
-        ⟨(Satisfies.some_past_iff M s₂ φ).mpr ⟨s₁, h, hφ1⟩, hψ2⟩⟩
+    · -- s₁ < s₂: third disjunct P(P(φ)∧ψ), witness s₂
+      exact (sat_or_iff M t _ _).mpr (Or.inr
+        ((sat_or_iff M t _ _).mpr (Or.inr
+          ((Satisfies.some_past_iff M t _).mpr
+            ⟨s₂, h2t, (sat_and_iff M s₂ (Formula.some_past φ) ψ).mpr
+              ⟨(Satisfies.some_past_iff M s₂ φ).mpr ⟨s₁, h, hφ1⟩, hψ2⟩⟩))))
+    · subst h
+      -- s₁ = s₂: first disjunct P(φ∧ψ), witness s₁
+      exact (sat_or_iff M t _ _).mpr (Or.inl
+        ((Satisfies.some_past_iff M t _).mpr
+          ⟨s₁, h1t, (sat_and_iff M s₁ φ ψ).mpr ⟨hφ1, hψ2⟩⟩))
+    · -- s₂ < s₁: second disjunct P(φ∧P(ψ)), witness s₁
+      exact (sat_or_iff M t _ _).mpr (Or.inr
+        ((sat_or_iff M t _ _).mpr (Or.inl
+          ((Satisfies.some_past_iff M t _).mpr
+            ⟨s₁, h1t, (sat_and_iff M s₁ φ (Formula.some_past ψ)).mpr
+              ⟨hφ1, (Satisfies.some_past_iff M s₁ ψ).mpr ⟨s₂, h, hψ2⟩⟩⟩))))
   | F_until_equiv φ =>
+    -- F(φ) → U(φ, ⊤)
     intro hF
-    simp only [Satisfies.some_future_iff] at hF
-    simp only [Satisfies.untl_iff]
-    obtain ⟨s, hlt, hφ⟩ := hF
+    obtain ⟨s, hlt, hφ⟩ := (Satisfies.some_future_iff M t φ).mp hF
     exact ⟨s, hlt, hφ, fun _ _ _ => Satisfies.top_true M _⟩
   | P_since_equiv φ =>
+    -- P(φ) → S(φ, ⊤)
     intro hP
-    simp only [Satisfies.some_past_iff] at hP
-    simp only [Satisfies.snce_iff]
-    obtain ⟨s, hlt, hφ⟩ := hP
+    obtain ⟨s, hlt, hφ⟩ := (Satisfies.some_past_iff M t φ).mp hP
     exact ⟨s, hlt, hφ, fun _ _ _ => Satisfies.top_true M _⟩
 
 /-! ## Swap Temporal Duality -/
 
 /-- The dual model: given a model on `D`, produce a model on `OrderDual D`
 with the same valuation. -/
-def dualModel (M : TemporalModel D Atom) : TemporalModel (OrderDual D) Atom where
+def dualModel {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) :
+    TemporalModel (OrderDual D) Atom where
   valuation := fun t p => M.valuation (OrderDual.ofDual t) p
 
 /-- `swap_temporal φ` in model `M` at time `t` is equivalent to `φ` in the dual model. -/
@@ -347,13 +361,21 @@ theorem swap_temporal_dual {D : Type*} [LinearOrder D]
       exact ⟨OrderDual.ofDual s, hts, (ihα (OrderDual.ofDual s)).mpr hα,
         fun r hr1 hr2 => (ihβ r).mpr (hguard (OrderDual.toDual r) hr2 hr1)⟩
 
-/-- If `φ` is valid over serial linear orders, then `swap_temporal φ` is also valid. -/
-theorem swap_valid_of_valid {φ : Formula Atom}
-    (h_valid : ∀ (D : Type*) [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
-      (M : TemporalModel D Atom) (t : D), Satisfies M t φ) :
-    ∀ (D : Type*) [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
-      (M : TemporalModel D Atom) (t : D), Satisfies M t (Formula.swap_temporal φ) := by
-  intro D _ _ _ M t
+end Cslib.Logic.Temporal
+
+universe u_dom
+
+namespace Cslib.Logic.Temporal
+
+/-- If `φ` is satisfied everywhere in all serial linear order models, then
+`swap_temporal φ` is also satisfied. Proved by transferring to the dual model. -/
+theorem swap_valid_of_valid
+    {φ : Formula Atom}
+    (h_valid : ∀ (D : Type u_dom) [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
+      (M : TemporalModel D Atom) (t : D), Satisfies M t φ)
+    (D : Type u_dom) [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
+    (M : TemporalModel D Atom) (t : D) :
+    Satisfies M t (Formula.swap_temporal φ) := by
   rw [swap_temporal_dual]
   exact h_valid (OrderDual D) (dualModel M) (OrderDual.toDual t)
 

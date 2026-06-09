@@ -173,7 +173,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Soundness [IN PROGRESS]
+### Phase 4: Soundness [COMPLETED]
 
 **Goal**: Prove that every derivable formula is valid over serial linear temporal orders (models with `LinearOrder D`, `NoMaxOrder D`, `NoMinOrder D`).
 
