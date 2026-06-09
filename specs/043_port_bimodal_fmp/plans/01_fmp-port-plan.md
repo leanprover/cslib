@@ -260,7 +260,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: FMP -- FiniteModel.lean [NOT STARTED]
+### Phase 7: FMP -- FiniteModel.lean [COMPLETED]
 
 **Goal**: Port finiteness theorem via characteristic set injection
 
