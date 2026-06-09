@@ -1,0 +1,15 @@
+{
+  "status": "in_progress",
+  "started_at": "2026-06-08T01:00:00Z",
+  "artifacts": [],
+  "partial_progress": {
+    "stage": "initializing",
+    "details": "Planner agent started, parsing delegation context"
+  },
+  "metadata": {
+    "session_id": "sess_1780965263_f44efb",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"]
+  }
+}

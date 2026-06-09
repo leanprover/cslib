@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/018_generate_project_overview/plans/01_project-overview-plan.md",
+      "summary": "Implementation plan with 2 phases to replace generic template with CSLib-specific project-overview.md"
+    }
+  ],
+  "next_steps": "Run /implement 18 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1780964944_adc2c6_18",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 2,
+    "estimated_hours": 1,
+    "dependency_waves": [[1], [2]]
+  },
+  "memory_candidates": []
+}

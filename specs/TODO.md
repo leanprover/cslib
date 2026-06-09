@@ -1,5 +1,5 @@
 ---
-next_project_number: 25
+next_project_number: 26
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 25
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12,15,16,17,18,20,24 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
+| 1 | 2,12,15,16,17,18,20,24,25 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
 | 2 | 3,21,22 | 2,16,20 | Modal Logic, Temporal Logic, Bimodal Porting |
 | 3 | 4,23 | 2,20,22 | Temporal Logic, Bimodal Porting |
 | 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
@@ -92,8 +92,16 @@ next_project_number: 25
 17 [PLANNED] — Clean stale task 14 references and verify Task Order consistency.
 18 [RESEARCHED] — Generate project-overview.md for this repository
 24 [RESEARCHED] — improve roadmap bimodal porting
+25 [NOT STARTED] — revise task order topic assignments
 
 ## Tasks
+
+### 25. Revise Task Order topic assignments based on ROADMAP.md
+- **Effort**: Small (1-2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: meta
+
+**Description**: Research the current topic assignments in state.json and revise them so that each task belongs to exactly one topic. Use specs/ROADMAP.md as the authoritative source for how tasks group into Foundations, Modal, Temporal, and Bimodal categories. The auto-generated Task Order section currently shows tasks appearing under multiple topic headings because cross-topic dependencies pull subtrees into unrelated sections. Fix the topic field values and potentially the generate-task-order.sh rendering logic so that each task appears once under its primary topic
 
 ### 24. Improve ROADMAP.md with BimodalLogic porting overview
 - **Effort**: Medium (3-5 hours)
