@@ -98,11 +98,12 @@ next_project_number: 34
 
 ### 30. Modal metalogic
 - **Effort**: Large (20-30 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 21 (Modal Proof System), Task 29 (Generic MCS Foundations)
 - specs/030_modal_metalogic/reports/01_modal-metalogic-research.md: [Research report]
 - specs/030_modal_metalogic/plans/01_modal-metalogic-plan.md: [Implementation plan]
+- specs/030_modal_metalogic/summaries/01_modal-metalogic-summary.md: [Execution summary]
 
 **Description**: Build standalone modal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Modal.DeductionTheorem via structural induction on ~5-constructor Modal.DerivationTree (~300 lines), (b) Modal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding modal-specific witness conditions like box_closure (~400 lines), (c) Modal.Soundness over Kripke frames/models from Modal/Basic.lean (~350 lines), (d) Modal.Completeness via canonical Kripke model construction for S5 (~450 lines). Target: `Cslib/Logics/Modal/Metalogic/`.
 
