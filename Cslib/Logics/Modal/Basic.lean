@@ -52,6 +52,7 @@ inductive Proposition (Atom : Type u) : Type u where
   | imp (φ₁ φ₂ : Proposition Atom)
   /-- Necessity / box. -/
   | box (φ : Proposition Atom)
+  deriving DecidableEq, BEq
 
 /-- Negation as derived connective: ¬φ := φ → ⊥ -/
 abbrev Proposition.neg (φ : Proposition Atom) : Proposition Atom := .imp φ .bot
