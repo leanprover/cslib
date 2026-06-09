@@ -203,7 +203,7 @@ Phases are strictly sequential because each layer builds on the previous convent
 
 ---
 
-### Phase 4: Temporal Proof System Axiom Constructors [NOT STARTED]
+### Phase 4: Temporal Proof System Axiom Constructors [COMPLETED]
 
 **Goal**: Update all axiom constructors in the Temporal proof system to match the new convention. Many of these use `Formula.some_future`, `Formula.some_past`, `Formula.all_future`, `Formula.all_past` which will auto-update from Phase 2. Direct `Formula.untl`/`Formula.snce` calls with explicit args need manual checking.
 
