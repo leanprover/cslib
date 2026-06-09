@@ -174,7 +174,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: TemporalBXHilbert Instance Registration [NOT STARTED]
+### Phase 4: TemporalBXHilbert Instance Registration [COMPLETED]
 
 **Goal**: Register InferenceSystem, PropositionalHilbert, TemporalNecessitation, all 22 HasAxiom*, and TemporalBXHilbert instances for the Temporal.HilbertBX tag type.
 
