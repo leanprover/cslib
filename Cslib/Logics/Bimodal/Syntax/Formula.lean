@@ -63,7 +63,7 @@ abbrev Formula.diamond (φ : Formula Atom) : Formula Atom :=
 
 /-- Some future (eventually): F φ := ⊤ U φ -/
 abbrev Formula.some_future (φ : Formula Atom) : Formula Atom :=
-  .untl .top φ
+  .untl φ .top
 
 /-- All future (globally): G φ := ¬F ¬φ -/
 abbrev Formula.all_future (φ : Formula Atom) : Formula Atom :=
@@ -71,7 +71,7 @@ abbrev Formula.all_future (φ : Formula Atom) : Formula Atom :=
 
 /-- Some past: P φ := ⊤ S φ -/
 abbrev Formula.some_past (φ : Formula Atom) : Formula Atom :=
-  .snce .top φ
+  .snce φ .top
 
 /-- All past (historically): H φ := ¬P ¬φ -/
 abbrev Formula.all_past (φ : Formula Atom) : Formula Atom :=

@@ -61,7 +61,7 @@ abbrev Formula.and (φ₁ φ₂ : Formula Atom) : Formula Atom :=
 
 /-- Some future (eventually): F φ := ⊤ U φ -/
 abbrev Formula.some_future (φ : Formula Atom) : Formula Atom :=
-  .untl .top φ
+  .untl φ .top
 
 /-- All future (globally): G φ := ¬F ¬φ -/
 abbrev Formula.all_future (φ : Formula Atom) : Formula Atom :=
@@ -69,7 +69,7 @@ abbrev Formula.all_future (φ : Formula Atom) : Formula Atom :=
 
 /-- Some past: P φ := ⊤ S φ -/
 abbrev Formula.some_past (φ : Formula Atom) : Formula Atom :=
-  .snce .top φ
+  .snce φ .top
 
 /-- All past (historically): H φ := ¬P ¬φ -/
 abbrev Formula.all_past (φ : Formula Atom) : Formula Atom :=
@@ -308,28 +308,28 @@ Pattern-aware cases for derived temporal operators:
 def complexity : Formula Atom → Nat
   | .atom _ => 1
   | .bot => 1
-  -- G(φ) = imp (untl (imp bot bot) (imp φ bot)) bot
-  | .imp (.untl (.imp .bot .bot) (.imp φ .bot)) .bot => 1 + complexity φ
-  -- H(φ) = imp (snce (imp bot bot) (imp φ bot)) bot
-  | .imp (.snce (.imp .bot .bot) (.imp φ .bot)) .bot => 1 + complexity φ
-  -- R(φ, ψ) = release = imp (untl (imp φ bot) (imp ψ bot)) bot
-  | .imp (.untl (.imp φ .bot) (.imp ψ .bot)) .bot =>
+  -- G(φ) = imp (untl (imp φ bot) (imp bot bot)) bot
+  | .imp (.untl (.imp φ .bot) (.imp .bot .bot)) .bot => 1 + complexity φ
+  -- H(φ) = imp (snce (imp φ bot) (imp bot bot)) bot
+  | .imp (.snce (.imp φ .bot) (.imp .bot .bot)) .bot => 1 + complexity φ
+  -- R(φ, ψ) = release = imp (untl (imp ψ bot) (imp φ bot)) bot
+  | .imp (.untl (.imp ψ .bot) (.imp φ .bot)) .bot =>
     1 + complexity φ + complexity ψ
-  -- T(φ, ψ) = trigger = imp (snce (imp φ bot) (imp ψ bot)) bot
-  | .imp (.snce (.imp φ .bot) (.imp ψ .bot)) .bot =>
+  -- T(φ, ψ) = trigger = imp (snce (imp ψ bot) (imp φ bot)) bot
+  | .imp (.snce (.imp ψ .bot) (.imp φ .bot)) .bot =>
     1 + complexity φ + complexity ψ
   -- generic imp
   | .imp φ ψ => 1 + complexity φ + complexity ψ
-  -- next(φ) = untl bot φ
-  | .untl .bot φ => 1 + complexity φ
-  -- F(φ) = untl (imp bot bot) φ
-  | .untl (.imp .bot .bot) φ => 1 + complexity φ
+  -- F(φ) = untl φ (imp bot bot)
+  | .untl φ (.imp .bot .bot) => 1 + complexity φ
+  -- next(φ) = untl φ bot
+  | .untl φ .bot => 1 + complexity φ
   -- generic untl
   | .untl φ ψ => 1 + complexity φ + complexity ψ
-  -- prev(φ) = snce bot φ
-  | .snce .bot φ => 1 + complexity φ
-  -- P(φ) = snce (imp bot bot) φ
-  | .snce (.imp .bot .bot) φ => 1 + complexity φ
+  -- P(φ) = snce φ (imp bot bot)
+  | .snce φ (.imp .bot .bot) => 1 + complexity φ
+  -- prev(φ) = snce φ bot
+  | .snce φ .bot => 1 + complexity φ
   -- generic snce
   | .snce φ ψ => 1 + complexity φ + complexity ψ
 
@@ -363,11 +363,11 @@ def countImplications : Formula Atom → Nat
 
 /-- Next-step operator: X(φ) = ⊥ U φ.
     X(φ) at t means φ holds at t+1. -/
-def next (φ : Formula Atom) : Formula Atom := .untl .bot φ
+def next (φ : Formula Atom) : Formula Atom := .untl φ .bot
 
 /-- Previous-step operator: Y(φ) = ⊥ S φ.
     Y(φ) at t means φ holds at t-1. -/
-def prev (φ : Formula Atom) : Formula Atom := .snce .bot φ
+def prev (φ : Formula Atom) : Formula Atom := .snce φ .bot
 
 /-- Derived reflexive future operator: G'φ := φ ∧ Gφ. -/
 def weak_future (φ : Formula Atom) : Formula Atom :=
@@ -389,11 +389,11 @@ def sometimes (φ : Formula Atom) : Formula Atom :=
 
 /-- Release operator R(φ, ψ) := ¬(¬φ U ¬ψ). Dual of Until. -/
 def release (φ ψ : Formula Atom) : Formula Atom :=
-  Formula.neg (Formula.untl (Formula.neg φ) (Formula.neg ψ))
+  Formula.neg (Formula.untl (Formula.neg ψ) (Formula.neg φ))
 
 /-- Trigger operator T(φ, ψ) := ¬(¬φ S ¬ψ). Dual of Since (past analog of Release). -/
 def trigger (φ ψ : Formula Atom) : Formula Atom :=
-  Formula.neg (Formula.snce (Formula.neg φ) (Formula.neg ψ))
+  Formula.neg (Formula.snce (Formula.neg ψ) (Formula.neg φ))
 
 /-- Weak Until operator W(φ, ψ) := (φ U ψ) ∨ G(φ). Until without the liveness requirement. -/
 def weak_until (φ ψ : Formula Atom) : Formula Atom :=
@@ -405,11 +405,11 @@ def weak_since (φ ψ : Formula Atom) : Formula Atom :=
 
 /-- Strong Release operator M(φ, ψ) := ψ U (ψ ∧ φ). Dual of weak until. -/
 def strong_release (φ ψ : Formula Atom) : Formula Atom :=
-  Formula.untl ψ (Formula.and ψ φ)
+  Formula.untl (Formula.and ψ φ) ψ
 
 /-- Strong Trigger operator ST(φ, ψ) := ψ S (ψ ∧ φ). Past dual of strong release. -/
 def strong_trigger (φ ψ : Formula Atom) : Formula Atom :=
-  Formula.snce ψ (Formula.and ψ φ)
+  Formula.snce (Formula.and ψ φ) ψ
 
 /-- Notation for temporal 'always' operator using upward triangle. -/
 scoped prefix:80 "△" => Formula.always
