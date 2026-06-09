@@ -1,5 +1,5 @@
 ---
-next_project_number: 29
+next_project_number: 32
 ---
 
 # Tasks
@@ -11,37 +11,39 @@ next_project_number: 29
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 3,12,20,28 | -- | Foundations, Bimodal Porting, Project Management |
-| 2 | 21,22 | 20 | Modal Logic, Temporal Logic |
-| 3 | 4,23 | 20,22 | Temporal Logic, Bimodal Porting |
-| 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
-| 5 | 7 | 4,5 | Bimodal Porting |
-| 6 | 8,9,10 | 4,5,6,7 | Bimodal Porting |
+| 1 | 3,12,21,22,28,29 | -- | Foundations, Modal Logic, Temporal Logic, ... |
+| 2 | 4,23,30 | 21,22,29 | Modal Logic, Temporal Logic, Bimodal Porting |
+| 3 | 5,6,11,31 | 3,4,21,22,23,29 | Temporal Logic, Bimodal Porting |
+| 4 | 7 | 4,5,29 | Bimodal Porting |
+| 5 | 8,9,10 | 4,5,6,7 | Bimodal Porting |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Foundations
 
-20 [COMPLETED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
-  └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
-  └─ 21 [RESEARCHED] — Port modal proof system and theorems to  (see Modal Logic section)
-  └─ 22 [RESEARCHED] — Build temporal proof system infrastructu (see Temporal Logic section)
+29 [NOT STARTED] — Create generic MCS (maximal consistent set) foundations parameter
+  └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Th (see Bimodal Porting section)
+  └─ 30 [NOT STARTED] — Build standalone modal metalogic (~1,500 (see Modal Logic section)
+  └─ 31 [NOT STARTED] — Build standalone temporal metalogic (~1, (see Temporal Logic section)
 
 ### Modal Logic
 
-21 [RESEARCHED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
+21 [PLANNED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
+  └─ 30 [NOT STARTED] — Build standalone modal metalogic (~1,500 lines, new development n
 
 ### Temporal Logic
 
-22 [RESEARCHED] — Build temporal proof system infrastructure and port temporal theo
+22 [PLANNED] — Build temporal proof system infrastructure and port temporal theo
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
-  └─ 23 [RESEARCHED] — Define standalone temporal semantics on linear orders (~400-600 l
+  └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
+    └─ 31 [NOT STARTED] — Build standalone temporal metalogic (~1,500 lines, new developmen
+  └─ 31 [NOT STARTED] — Build standalone temporal metalogic (~1,500 lines, new developmen (see above)
 
 ### Bimodal Porting
 
-3 [RESEARCHED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+3 [PLANNED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
   └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
     └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
@@ -63,13 +65,43 @@ next_project_number: 29
 
 ### Uncategorized
 
-28 [NOT STARTED] — structure_metalogic_across_systems
+28 [IMPLEMENTING] — structure_metalogic_across_systems
 
 ## Tasks
 
+### 31. Temporal metalogic
+- **Effort**: Large (20-30 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 22 (Temporal Infrastructure), Task 23 (Temporal Semantics), Task 29 (Generic MCS Foundations)
+
+**Description**: Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: `Cslib/Logics/Temporal/Metalogic/`.
+
+---
+
+### 30. Modal metalogic
+- **Effort**: Large (20-30 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 21 (Modal Proof System), Task 29 (Generic MCS Foundations)
+
+**Description**: Build standalone modal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Modal.DeductionTheorem via structural induction on ~5-constructor Modal.DerivationTree (~300 lines), (b) Modal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding modal-specific witness conditions like box_closure (~400 lines), (c) Modal.Soundness over Kripke frames/models from Modal/Basic.lean (~350 lines), (d) Modal.Completeness via canonical Kripke model construction for S5 (~450 lines). Target: `Cslib/Logics/Modal/Metalogic/`.
+
+---
+
+### 29. Generic MCS foundations
+- **Effort**: Small (2-4 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: None
+
+**Description**: Create generic MCS (maximal consistent set) foundations parameterized over an abstract derivation relation (~200-300 lines). Scope: SetConsistent definition, SetMaximalConsistent definition, Lindenbaum lemma skeleton (Zorn-based), consistent_chain_union, closed_under_derivation, implication_property. These are the ~60% of MCS theory that do not depend on per-logic deduction theorems. Target: `Cslib/Foundations/Logic/Metalogic/Consistency.lean`. Modal and Temporal metalogic tasks (30, 31) import from here.
+
+---
+
 ### 28. Structure metalogic across Propositional, Modal, Temporal, and Bimodal systems
 - **Effort**: Large (1-2 days)
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: formal
 - **Research**: [specs/028_structure_metalogic_across_systems/reports/01_team-research.md]
 - **Plan**: [028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md]
@@ -286,7 +318,7 @@ next_project_number: 29
 - **Effort**: Large (10-14 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 4, 5 (ProofSystem, Perpetuity Theorems)
+- **Dependencies**: Tasks 4, 5, 29 (ProofSystem, Perpetuity Theorems, Generic MCS Foundations)
 
 **Description**: Port deduction theorem and maximal consistent set theory from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Core/`. This establishes the core metalogical infrastructure for completeness.
 

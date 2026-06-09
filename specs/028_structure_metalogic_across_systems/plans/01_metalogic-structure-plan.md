@@ -1,7 +1,7 @@
 # Implementation Plan: Structure Metalogic Across Systems
 
 - **Task**: 28 - Structure metalogic across Propositional, Modal, Temporal, and Bimodal systems
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2 hours
 - **Dependencies**: None (meta/planning task; does not depend on implementation tasks)
 - **Research Inputs**: specs/028_structure_metalogic_across_systems/reports/01_team-research.md
@@ -79,7 +79,7 @@ Phases are fully sequential because each depends on the prior phase's output.
 
 ---
 
-### Phase 1: Audit Existing Tasks and Consult User on Scope [NOT STARTED]
+### Phase 1: Audit Existing Tasks and Consult User on Scope [COMPLETED]
 
 **Goal**: Confirm that existing tasks 3-11 and 20-23 need no revision, and determine user preference for modal/temporal metalogic scope.
 
@@ -103,37 +103,35 @@ Phases are fully sequential because each depends on the prior phase's output.
 
 ---
 
-### Phase 2: Design New Tasks with Dependencies [NOT STARTED]
+### Phase 2: Design New Tasks with Dependencies [COMPLETED]
 
 **Goal**: Define the exact new tasks, their descriptions, dependencies, effort estimates, and numbering based on user scope decision from Phase 1.
 
 **Tasks**:
-- [ ] Assign task numbers using next_project_number from state.json (currently 29, so new tasks will be 29, 30, 31, ...)
-- [ ] Design Task 29: Generic MCS Foundations
+- [x] **Task 2.1**: Assign task numbers using next_project_number from state.json (currently 29, so new tasks will be 29, 30, 31, ...) *(completed)*
+- [x] **Task 2.2**: Design Task 29: Generic MCS Foundations *(completed)*
   - Scope: `Cslib/Foundations/Logic/Metalogic/Consistency.lean` (~200-300 lines)
   - Content: SetConsistent, SetMaximalConsistent definitions, Lindenbaum skeleton (Zorn-based), consistent_chain_union, closed_under_derivation, implication_property
   - Dependencies: None (builds on existing Foundations infrastructure)
   - Task type: lean4
   - Effort: Small (2-4 hours)
-- [ ] Design Task 30: Modal Metalogic (scope per user decision)
+- [x] **Task 2.3**: Design Task 30: Modal Metalogic — FULL standalone scope per user decision *(completed)*
   - Full scope: DeductionTheorem, MCS (importing generic from 29), Soundness over Kripke, Completeness via canonical Kripke model (~1,500 lines)
-  - Light scope: DeductionTheorem, MCS only (~500-700 lines)
   - Dependencies: Task 21 (modal proof system), Task 29 (generic MCS foundations)
   - Task type: lean4
-  - Effort: Large (full) or Medium (light)
-- [ ] Design Task 31: Temporal Metalogic (scope per user decision)
+  - Effort: Large (20-30 hours, new formalization not ported from BimodalLogic)
+- [x] **Task 2.4**: Design Task 31: Temporal Metalogic — FULL standalone scope per user decision *(completed)*
   - Full scope: DeductionTheorem, MCS (importing generic from 29), Soundness over LinearOrder, Completeness (~1,500 lines)
-  - Light scope: DeductionTheorem, MCS only (~500-700 lines)
   - Dependencies: Tasks 22+23 (temporal proof system + semantics), Task 29 (generic MCS foundations)
   - Task type: lean4
-  - Effort: Large (full) or Medium (light)
-- [ ] Verify BimodalTMHilbert compatibility instance is already scoped in task 22 (item (e) in description: "BimodalTMHilbert compatibility instance (diamond-avoidance pattern)") -- if so, no new task needed for this gap
-- [ ] Map new tasks into the dependency wave structure:
+  - Effort: Large (20-30 hours, new formalization not ported from BimodalLogic)
+- [x] **Task 2.5**: Verify BimodalTMHilbert compatibility instance is already scoped in task 22 (item (e) in description: "BimodalTMHilbert compatibility instance (diamond-avoidance pattern)") -- confirmed, no new task needed *(completed)*
+- [x] **Task 2.6**: Map new tasks into the dependency wave structure *(completed)*
   - Task 29 goes into Wave 1 (no dependencies beyond existing Foundations)
-  - Task 30 goes after Task 21 + 29 (Wave 2-3 depending on 21's wave)
-  - Task 31 goes after Tasks 22+23+29 (Wave 3-4 depending on 22/23 waves)
+  - Task 30 goes after Task 21 + 29 (new Wave 3)
+  - Task 31 goes after Tasks 22+23+29 (new Wave 4)
   - Bimodal task 7 (MCS) should add dependency on Task 29 (imports generic definitions)
-- [ ] Determine whether task 7 needs a dependency update to include Task 29
+- [x] **Task 2.7**: Determined task 7 needs a dependency update to include Task 29 *(completed)*
 
 **Timing**: 30 minutes
 
@@ -149,7 +147,7 @@ Phases are fully sequential because each depends on the prior phase's output.
 
 ---
 
-### Phase 3: Create Tasks in state.json and TODO.md [NOT STARTED]
+### Phase 3: Create Tasks in state.json and TODO.md [IN PROGRESS]
 
 **Goal**: Atomically create the new tasks in state.json and TODO.md, updating next_project_number and dependency structures.
 

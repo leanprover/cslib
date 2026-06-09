@@ -1,14 +1,54 @@
 {
-  "next_project_number": 29,
+  "next_project_number": 32,
   "active_projects": [
+    {
+      "project_number": 31,
+      "project_name": "temporal_metalogic",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        22,
+        23,
+        29
+      ],
+      "description": "Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: Cslib/Logics/Temporal/Metalogic/.",
+      "topic": "Temporal Logic"
+    },
+    {
+      "project_number": 30,
+      "project_name": "modal_metalogic",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        21,
+        29
+      ],
+      "description": "Build standalone modal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Modal.DeductionTheorem via structural induction on ~5-constructor Modal.DerivationTree (~300 lines), (b) Modal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding modal-specific witness conditions like box_closure (~400 lines), (c) Modal.Soundness over Kripke frames/models from Modal/Basic.lean (~350 lines), (d) Modal.Completeness via canonical Kripke model construction for S5 (~450 lines). Target: Cslib/Logics/Modal/Metalogic/.",
+      "topic": "Modal Logic"
+    },
+    {
+      "project_number": 29,
+      "project_name": "generic_mcs_foundations",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [],
+      "description": "Create generic MCS (maximal consistent set) foundations parameterized over an abstract derivation relation (~200-300 lines). Scope: SetConsistent definition, SetMaximalConsistent definition, Lindenbaum lemma skeleton (Zorn-based), consistent_chain_union, closed_under_derivation, implication_property. These are the ~60% of MCS theory that do not depend on per-logic deduction theorems. Target: Cslib/Foundations/Logic/Metalogic/Consistency.lean. Modal and Temporal metalogic tasks (30, 31) import from here.",
+      "topic": "Foundations"
+    },
     {
       "project_number": 28,
       "project_name": "structure_metalogic_across_systems",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "formal",
       "created": "2026-06-09T01:45:37Z",
-      "last_updated": "2026-06-09T02:05:32Z",
-      "session_id": "sess_1780970498_d35707",
+      "last_updated": "2026-06-09T02:07:31Z",
+      "session_id": "sess_1780970833_786a47",
       "researched": "2026-06-09T01:59:47Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -92,7 +132,7 @@
     {
       "project_number": 21,
       "project_name": "modal_proof_system_theorems",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -114,7 +154,7 @@
     {
       "project_number": 22,
       "project_name": "temporal_infrastructure_theorems",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -174,7 +214,8 @@
       "last_updated": "2026-06-08T00:30:00Z",
       "dependencies": [
         4,
-        5
+        5,
+        29
       ],
       "description": "Port Deduction Infrastructure and MCS Theory (PR 6): DeductionTheorem, MaximalConsistent, MCSProperties, RestrictedMCS to Cslib/Logics/Bimodal/Metalogic/Core/. This PR establishes the core metalogical infrastructure for completeness: deduction theorem and maximal consistent set theory.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/Core/):\n- DeductionTheorem.lean (~500 lines): deduction theorem for BX/TM proof system\n- MaximalConsistent.lean (~600 lines): definition and basic properties of maximal consistent sets (MCS)\n- MCSProperties.lean (~700 lines): Lindenbaum lemma, MCS enumeration, key MCS closure properties\n- RestrictedMCS.lean (~400 lines): restricted MCS for density/discreteness frame-specific completeness\n- DualMCS.lean (~300 lines): dual MCS properties (past accessibility reconstruction)\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Core/\n\n**Estimated scope**: ~2,500 lines across 6 files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/Core module (DeductionTheorem, MaximalConsistent, MCS)\n\n**Dependencies**: Tasks 4 (ProofSystem) and 5 (Theorems) must be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
       "topic": "Bimodal Porting"
@@ -292,7 +333,7 @@
     {
       "project_number": 3,
       "project_name": "port_task_frame_semantics_bimodal",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
       "last_updated": "2026-06-08T00:15:00Z",
