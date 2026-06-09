@@ -5,6 +5,7 @@ Authors: Benjamin Brastmckie
 -/
 
 import Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction
+import Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction
 import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
 
 /-!
@@ -44,12 +45,8 @@ The procedure decides whether a formula is valid, returning either:
 Ported from BimodalLogic/Metalogic/Decidability/DecisionProcedure.lean with
 adaptations for universe-polymorphic `Formula Atom`.
 
-## Note on ProofExtraction
-
-The full proof extraction pipeline (extractProof, buildCompositionalProof) is
-ported in ProofExtraction.lean (Phase 6). This file includes local stubs for
-those functions so it compiles independently. Once ProofExtraction.lean is
-available, these stubs can be replaced with imports from that module.
+Proof extraction functions (`tryAxiomProof`, `buildCompositionalProof`,
+`extractProof`, `ProofExtractionResult`) are imported from ProofExtraction.lean.
 -/
 
 set_option linter.style.longLine false
@@ -60,128 +57,6 @@ open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.DerivationTree
 
 variable {Atom : Type u} [DecidableEq Atom] [Hashable Atom]
-
-/-!
-## Local Proof Extraction Stubs
-
-These functions provide minimal proof extraction capability for the decision
-procedure. They are self-contained stubs that will be superseded once
-ProofExtraction.lean is available.
--/
-
-/--
-Result of proof extraction from a closed tableau.
-
-- `success`: Proof term successfully extracted
-- `incomplete`: Extraction failed despite validity (resource limitation)
--/
-inductive ProofExtractionResult (Atom : Type u) [DecidableEq Atom]
-    (φ : Formula Atom) : Type u where
-  /-- Successfully extracted a proof. -/
-  | success (proof : DerivationTree FrameClass.Base ([] : Context Atom) φ)
-  /-- Could not extract proof (extraction method limitation). -/
-  | incomplete (reason : String)
-
-/--
-Try to build a direct proof of a formula if it is an axiom instance.
-Uses `matchAxiom` from AxiomMatcher.
--/
-def tryAxiomProof (φ : Formula Atom) :
-    Option (DerivationTree FrameClass.Base ([] : Context Atom) φ) :=
-  match matchAxiom φ with
-  | some ⟨ψ, ax⟩ =>
-      if h : φ = ψ then
-        if h_fc : ax.minFrameClass ≤ FrameClass.Base then
-          some (h ▸ DerivationTree.axiom ([] : Context Atom) ψ ax h_fc)
-        else
-          none
-      else
-        none
-  | none => none
-
-/--
-Try to build a proof of φ compositionally from its structure.
-Uses fuel to prevent infinite recursion.
-
-This is a stub that handles common patterns:
-- Direct axiom instances (via matchAxiom)
-- Derived theorem instances (via matchDerived)
-- `A → A` (identity combinator)
-
-The full implementation in ProofExtraction.lean handles additional patterns
-including weakening, ex falso, Peirce's law, and recursive decomposition.
--/
-def buildCompositionalProof (φ : Formula Atom) (fuel : Nat) :
-    Option (DerivationTree FrameClass.Base ([] : Context Atom) φ) :=
-  if fuel = 0 then none
-  else
-    -- Strategy 1: Direct axiom match
-    match tryAxiomProof φ with
-    | some proof => some proof
-    | none =>
-    -- Strategy 2: Derived theorem match
-    match matchDerived φ with
-    | some d =>
-        some (DerivationTree.weakening [] [] φ d (List.nil_subset []))
-    | none =>
-    -- Strategy 3: Identity pattern A → A
-    match φ with
-    | .imp a b =>
-        if h : a = b then
-          some (h ▸ identity a)
-        else none
-    | _ => none
-
-/--
-Extract a proof from an expanded tableau that shows validity.
-
-When the tableau is `allClosed`, attempts to construct a `DerivationTree`
-proof using axiom matching and compositional building.
-
-This is a stub implementation. The full version in ProofExtraction.lean
-uses additional strategies including closure-based extraction and enhanced
-proof search.
--/
-def extractProof (φ : Formula Atom) (tableau : ExpandedTableau Atom)
-    (_fc : FrameClass := .Base) : ProofExtractionResult Atom φ :=
-  match tableau with
-  | .hasOpen _ _ _ _ =>
-      -- Tableau shows formula is invalid, no proof exists
-      .incomplete "Formula is invalid (open branch found)"
-  | .allClosed closedBranches =>
-      -- Formula is valid, try to extract proof
-
-      -- Strategy 1: Direct axiom proof
-      match tryAxiomProof φ with
-      | some proof => .success proof
-      | none =>
-      -- Strategy 2: Derived theorem match
-      match matchDerived φ with
-      | some d =>
-          .success (DerivationTree.weakening [] [] φ d (List.nil_subset []))
-      | none =>
-      -- Strategy 3: Closure-based extraction
-      let axiomProofs := closedBranches.filterMap fun cb =>
-        match cb.reason with
-        | .axiomNeg ψ ax _ =>
-            if h : φ = ψ then
-              if h_fc : ax.minFrameClass ≤ FrameClass.Base then
-                some (h ▸ DerivationTree.axiom ([] : Context Atom) ψ ax h_fc)
-              else none
-            else none
-        | _ => none
-      match axiomProofs.head? with
-      | some proof => .success proof
-      | none =>
-      -- Strategy 4: Compositional proof builder
-      match buildCompositionalProof φ 20 with
-      | some proof => .success proof
-      | none =>
-      -- Strategy 5: Bounded search stub (deferred)
-      match (bounded_search_with_proof_stub ([] : Context Atom) φ 30).1 with
-      | some proof => .success proof
-      | none =>
-          .incomplete "All extraction strategies exhausted (formula is valid but proof term could not be constructed)"
 
 /-!
 ## Decision Result Type

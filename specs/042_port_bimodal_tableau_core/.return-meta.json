@@ -1,5 +1,5 @@
 {
-  "status": "partial",
+  "status": "implemented",
   "started_at": "2026-06-09T15:00:00Z",
   "verification": {
     "verification_passed": true,
@@ -9,12 +9,15 @@
     "build_passed": true
   },
   "artifacts": [
-    "Cslib/Logics/Bimodal/Metalogic/Decidability/DecisionProcedure.lean"
+    "Cslib/Logics/Bimodal/Metalogic/Decidability/Correctness.lean",
+    "Cslib/Logics/Bimodal/Metalogic/Decidability/DecisionProcedure.lean",
+    "Cslib/Logics/Bimodal/Metalogic/Decidability.lean",
+    "specs/042_port_bimodal_tableau_core/summaries/01_execution-summary.md"
   ],
   "partial_progress": {
-    "stage": "phase_7_completed",
-    "details": "Phase 7 DecisionProcedure completed. DecisionProcedure.lean compiles with zero sorry.",
-    "phases_completed": 7,
+    "stage": "phase_8_completed",
+    "details": "All 8 phases completed. 10 files + barrel file ported, zero sorry, full lake build passes.",
+    "phases_completed": 8,
     "phases_total": 8
   },
   "metadata": {

@@ -329,23 +329,24 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: Correctness + Module Integration [NOT STARTED]
+### Phase 8: Correctness + Module Integration [COMPLETED]
 
 **Goal**: Port the non-FMP correctness theorems (`decide_sound`, `validity_decidable`, `decide_result_exclusive`) and integrate all modules into the Cslib build.
 
 **Tasks**:
-- [ ] Create `Correctness.lean` with copyright header
-- [ ] Port `decide_sound` theorem -- `(phi : Formula Atom) -> (d : Deriv phi) -> Valid phi` using Soundness module
-- [ ] Port `decide_sound'` variant (extracts proof from DecisionResult.valid)
-- [ ] Port `validity_decidable` theorem using `Classical.em`
-- [ ] Port `validity_has_decision_procedure` theorem
-- [ ] Port `decide_result_exclusive` theorem
-- [ ] Add comment block marking FMP-dependent theorems as deferred to Task 43: `fmp_completeness`, `fmp_incompleteness_witness`, `countermodel_size_bound`
-- [ ] Create `Decidability.lean` barrel file importing all sub-modules
-- [ ] Update parent module imports (add Decidability to Metalogic module tree)
-- [ ] Run full `lake build` to verify all modules compile together
-- [ ] Verify zero sorry across all 10 new files (SignedFormula, TraceCertificate, Tableau, AxiomMatcher, Closure, Saturation, CountermodelExtraction, ProofExtraction, DecisionProcedure, Correctness)
-- [ ] Verify namespace consistency: all definitions under `Cslib.Logic.Bimodal.Metalogic.Decidability`
+- [x] Create `Correctness.lean` with copyright header *(completed)*
+- [x] Port `decide_sound` theorem -- `(phi : Formula Atom) -> (d : Deriv phi) -> Valid phi` using Soundness module *(completed)*
+- [x] Port `decide_sound'` variant (extracts proof from DecisionResult.valid) *(completed)*
+- [x] Port `validity_decidable` theorem using `Classical.em` *(completed)*
+- [x] Port `validity_has_decision_procedure` theorem *(completed)*
+- [x] Port `decide_result_exclusive` theorem *(completed)*
+- [x] Add comment block marking FMP-dependent theorems as deferred to Task 43: `fmp_completeness`, `fmp_incompleteness_witness`, `countermodel_size_bound` *(completed)*
+- [x] Create `Decidability.lean` barrel file importing all sub-modules *(completed)*
+- [x] Update parent module imports (add Decidability to Metalogic module tree) *(deviation: skipped -- no existing Metalogic barrel file to update; Decidability.lean barrel is self-contained)*
+- [x] Run full `lake build` to verify all modules compile together *(completed -- 2830 jobs, zero errors)*
+- [x] Verify zero sorry across all 10 new files *(completed -- zero sorry)*
+- [x] Verify namespace consistency: all definitions under `Cslib.Logic.Bimodal.Metalogic.Decidability` *(completed)*
+- [x] Fix DecisionProcedure.lean: replace local ProofExtraction stubs with real imports *(completed -- removed ~120 lines of stubs, added ProofExtraction import)*
 
 **Timing**: 2 hours
 
