@@ -208,19 +208,19 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: BXCanonical Core -- Frame, Quasimodel, Filtration [IN PROGRESS]
+### Phase 5: BXCanonical Core -- Frame, Quasimodel, Filtration [COMPLETED]
 
 **Goal**: Port the BXCanonical core infrastructure: Frame, TruthLemma, Quasimodel/, Filtration/, and CanonicalChain.
 
 **Tasks**:
 - [x] Port `BXCanonical/Quasimodel/SubformulaClosure.lean` (112 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/SubformulaClosure.lean`. *(completed)*
 - [x] Port `BXCanonical/Quasimodel/HintikkaPoint.lean` (144 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/HintikkaPoint.lean`. *(completed)*
-- [ ] Port `BXCanonical/Quasimodel/Construction.lean` (841 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/Construction.lean`. BX axiom lemmas at MCS level. Layer 4, depends on HintikkaPoint. *(in progress -- handoff)*
+- [x] Port `BXCanonical/Quasimodel/Construction.lean` (841 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Quasimodel/Construction.lean`. *(deviation: altered -- 0 sorries in port; source sorry was in removed code; renamed S to Omega for scoped Since notation conflict; added Finset.Card import)*
 - [x] Port `BXCanonical/Frame.lean` (710 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Frame.lean`. *(deviation: altered -- 1 sorry for bx_le_refl under irreflexive semantics; second sorry in source was also bx_le_refl)*
-- [ ] Port `BXCanonical/TruthLemma.lean` (302 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/TruthLemma.lean`. *(in progress -- handoff)*
+- [x] Port `BXCanonical/TruthLemma.lean` (302 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/TruthLemma.lean`. *(completed -- 0 sorries; Axiom.prop_s renamed to Axiom.imp_s; Axiom.ex_falso renamed to Axiom.efq)*
 - [x] Port `BXCanonical/Filtration/DefectChain.lean` (112 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/Filtration/DefectChain.lean`. *(completed -- 0 sorries)*
 - [x] Port `BXCanonical/CanonicalChain.lean` (110 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/CanonicalChain.lean`. *(deviation: altered -- 0 sorries in port; source sorry was in removed code)*
-- [ ] Verify `lake build` passes *(partial -- 5/7 files compiling)*
+- [x] Verify `lake build` passes *(completed -- all 7 files compiling)*
 
 **Timing**: 2.5 hours
 
