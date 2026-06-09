@@ -303,7 +303,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: NormalForm.lean -- Lemma 10.2.4 [NOT STARTED]
+### Phase 9: NormalForm.lean -- Lemma 10.2.4 [COMPLETED]
 
 **Goal**: Port normal form reduction using the 8 elimination cases and DedekindZ Cases.
 
