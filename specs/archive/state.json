@@ -216,6 +216,353 @@
       "topic": "Project Management",
       "completion_summary": "Generated 309-line project-overview.md covering all 8 CSLib namespaces, build system, CI/CD, and design patterns; added .syncprotect.",
       "archived": "2026-06-09T01:25:32Z"
+    },
+    {
+      "project_number": 30,
+      "project_name": "modal_metalogic",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        21,
+        29
+      ],
+      "description": "Build standalone modal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Modal.DeductionTheorem via structural induction on ~5-constructor Modal.DerivationTree (~300 lines), (b) Modal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding modal-specific witness conditions like box_closure (~400 lines), (c) Modal.Soundness over Kripke frames/models from Modal/Basic.lean (~350 lines), (d) Modal.Completeness via canonical Kripke model construction for S5 (~450 lines). Target: Cslib/Logics/Modal/Metalogic/.",
+      "topic": "Modal Logic",
+      "completion_summary": "Built standalone modal metalogic (1449 lines, 6 files): DerivationTree, DeductionTheorem, MCS (instantiating Task 29 generic framework), Soundness, and Completeness for S5. Zero sorries, full lake build passes."
+    },
+    {
+      "project_number": 29,
+      "project_name": "generic_mcs_foundations",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [],
+      "description": "Create generic MCS (maximal consistent set) foundations parameterized over an abstract derivation relation (~200-300 lines). Scope: SetConsistent definition, SetMaximalConsistent definition, Lindenbaum lemma skeleton (Zorn-based), consistent_chain_union, closed_under_derivation, implication_property. These are the ~60% of MCS theory that do not depend on per-logic deduction theorems. Target: Cslib/Foundations/Logic/Metalogic/Consistency.lean. Modal and Temporal metalogic tasks (30, 31) import from here.",
+      "topic": "Foundations",
+      "completion_summary": "Created Cslib/Foundations/Logic/Metalogic/Consistency.lean (273 lines) with generic MCS foundations: DerivationSystem structure, SetConsistent/SetMaximalConsistent, Lindenbaum lemma via Zorn, HasDeductionTheorem + closure properties. Zero sorries, full lake build passes."
+    },
+    {
+      "project_number": 28,
+      "project_name": "structure_metalogic_across_systems",
+      "status": "completed",
+      "task_type": "formal",
+      "created": "2026-06-09T01:45:37Z",
+      "last_updated": "2026-06-09T02:17:01Z",
+      "session_id": "sess_1780970833_786a47",
+      "researched": "2026-06-09T01:59:47Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md",
+          "type": "plan",
+          "summary": "4-phase plan to create 3 new tasks (generic MCS foundations, modal metalogic, temporal metalogic) with dependency analysis and ROADMAP.md updates"
+        },
+        {
+          "path": "specs/028_structure_metalogic_across_systems/summaries/01_metalogic-structure-summary.md",
+          "type": "summary",
+          "summary": "Created 3 new metalogic tasks with correct dependencies, confirmed existing tasks need no revision, updated ROADMAP.md"
+        }
+      ],
+      "completion_summary": "Created 3 new tasks (29: Generic MCS Foundations, 30: Modal Metalogic, 31: Temporal Metalogic) with full standalone scope (DT + MCS + Soundness + Completeness) and correct dependencies. Updated task 7 to depend on task 29. Updated ROADMAP.md with Phase 4 (Standalone Metalogic), revised import hierarchy, component accounting, and success metrics."
+    },
+    {
+      "project_number": 27,
+      "project_name": "review_docs_roadmap_alignment",
+      "status": "completed",
+      "task_type": "general",
+      "created": "2026-06-09T01:10:36Z",
+      "last_updated": "2026-06-09T01:30:52Z",
+      "completion_summary": "Fixed 4 TODO.md status mismatches, updated 9 stale state.json descriptions (Temporal->Bimodal paths for tasks 2/3/6-11 + task 12 PR strategy), and updated ROADMAP.md Wave 1 to remove completed tasks and add task 27"
+    },
+    {
+      "project_number": 20,
+      "project_name": "propositional_hilbert_theorems",
+      "status": "completed",
+      "completion_summary": "Ported 34 propositional Hilbert-style theorems to Cslib/Foundations/Logic/Theorems/ as generic [PropositionalHilbert S] lemmas, including DT-free proofs of lce_imp, rce_imp, and classical_merge",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T12:00:00Z",
+      "dependencies": [],
+      "description": "Port propositional Hilbert-style theorems to Cslib/Foundations/Logic/Theorems/ as generic [PropositionalHilbert S] lemmas. Scope (~2,400 lines from BimodalLogic): Combinators (I/B/C/S, ~300), Propositional/{Core,Connectives,Reasoning} (~1,100), ContextualProofs (weakening, cut, ~500), BigConj generic (~500). Note: DeductionTheorem stays per-logic (requires structural induction on DerivationTree). Typeclass infrastructure (PropositionalHilbert) already exists from task 14.",
+      "next_artifact_number": 3,
+      "artifacts": [
+        {
+          "path": "specs/020_propositional_hilbert_theorems/reports/01_seed-research.md",
+          "type": "research",
+          "summary": "Seed research: ~2,400 lines of propositional theorems from BimodalLogic to Foundations/Logic/Theorems/ as [PropositionalHilbert S] lemmas. DeductionTheorem stays per-logic."
+        },
+        {
+          "path": "specs/020_propositional_hilbert_theorems/reports/01_hilbert-theorems-research.md",
+          "type": "research",
+          "summary": "Comprehensive research: per-theorem portability analysis, naming inversion (prop_s<->ImplyK), DT-free proof strategies for lce_imp/rce_imp/classical_merge, scope revised to ~1,000-1,200 portable lines, ContextualProofs skipped (per-logic)"
+        },
+        {
+          "path": "specs/020_propositional_hilbert_theorems/plans/01_hilbert-theorems-plan.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan: Combinators, Core (with DT-free lce_imp/rce_imp), Connectives, Reasoning+BigConj, final verification (8 hours)"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 5,
+        "total_effort_hours": 8,
+        "complexity": "complex",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_hilbert-theorems-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-08"
+          }
+        ]
+      },
+      "topic": "Foundations"
+    },
+    {
+      "project_number": 21,
+      "project_name": "modal_proof_system_theorems",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        16,
+        20
+      ],
+      "description": "Port modal proof system and theorems to Cslib/Logics/Modal/ProofSystem/ and Cslib/Logics/Modal/Theorems/. Scope (~1,600 lines from BimodalLogic): (a) Modal.DerivationTree with ModalHilbert/ModalS5Hilbert instances (~400), (b) S4/S5 derived theorems + GeneralizedNecessitation as [ModalS5Hilbert S] lemmas (~1,200). Depends on Task 16 (DecidableEq on Modal.Proposition) and Task 20 (propositional theorems).",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/021_modal_proof_system_theorems/reports/01_seed-research.md",
+          "type": "research",
+          "summary": "Seed research: ~1,600 lines of modal proof system and theorems. Modal.DerivationTree + ModalS5Hilbert instance + S4/S5 derived theorems + GenNec."
+        }
+      ],
+      "topic": "Modal Logic",
+      "completion_summary": "Created modal theorem library (Basic.lean + S5.lean) in Cslib/Foundations/Logic/Theorems/Modal/. 786 lines, 21 theorems generic over ModalHilbert/ModalS5Hilbert typeclasses, including axiom 5 derived from B+4. Zero sorries."
+    },
+    {
+      "project_number": 22,
+      "project_name": "temporal_infrastructure_theorems",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        20
+      ],
+      "description": "Build temporal proof system infrastructure and port temporal theorems. Scope (~1,500 lines): (a) ~20 temporal axiom abbrevs in Axioms.lean, (b) ~20 HasAxiom* typeclasses in ProofSystem.lean, (c) restructure TemporalBXHilbert to extend all temporal HasAxiom* classes, (d) make TemporalNecessitation non-empty with derivation rule, (e) BimodalTMHilbert compatibility instance (diamond-avoidance pattern mirroring BimodalConnectives), (f) Temporal.DerivationTree + TemporalBXHilbert instance, (g) TemporalDerived theorems (~790 lines), (h) frame condition typeclasses (~130 lines). Target: Axioms.lean/ProofSystem.lean additions + Cslib/Logics/Temporal/ProofSystem/ + Cslib/Logics/Temporal/Theorems/.",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/022_temporal_infrastructure_theorems/reports/01_seed-research.md",
+          "type": "research",
+          "summary": "Seed research: ~1,500 lines temporal infrastructure. ~20 axiom abbrevs, ~20 HasAxiom* typeclasses, TemporalBXHilbert restructuring, BimodalTMHilbert diamond-avoidance, DerivationTree, TemporalDerived theorems, frame conditions."
+        }
+      ],
+      "topic": "Temporal Logic",
+      "completion_summary": "Built temporal proof system infrastructure: 20 axiom abbrevs, 22 HasAxiom* typeclasses, TemporalBXHilbert restructured, concrete DerivationTree + Derivable + instances, 20 derived theorems, frame condition typeclasses. ~1,433 lines across 10 files, zero sorries."
+    },
+    {
+      "project_number": 23,
+      "project_name": "temporal_semantics_linear_orders",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        22,
+        32
+      ],
+      "description": "Define standalone temporal semantics on linear orders (~400-600 lines, new infrastructure not ported from BimodalLogic). Define Temporal.Model on LinearOrder, Temporal.Satisfies for {atom, bot, imp, untl, snce}, basic validity, frame conditions on linear orders. Enables standalone temporal soundness proofs. Target: Cslib/Logics/Temporal/Semantics/. References: LeanLTL (ITP 2025), FormalizedFormalLogic/Foundation patterns.",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/023_temporal_semantics_linear_orders/reports/01_seed-research.md",
+          "type": "research",
+          "summary": "Seed research: ~400-600 lines new temporal semantics on LinearOrder. TemporalModel, Temporal.Satisfies, Temporal.Valid. New infrastructure, not ported from BimodalLogic."
+        }
+      ],
+      "topic": "Temporal Logic",
+      "completion_summary": "Defined standalone temporal semantics on linear orders: TemporalModel, Satisfies (5 constructors + 11 truth lemmas), Validity hierarchy (Valid/ValidSerial/ValidDense/ValidDiscrete), SemanticConsequence, Satisfiable. 440 lines across 3 files, zero sorries."
+    },
+    {
+      "project_number": 2,
+      "project_name": "port_bimodal_syntax_infrastructure",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:15:00Z",
+      "last_updated": "2026-06-08T14:00:00Z",
+      "completion_summary": "Ported temporal syntax infrastructure: extended Formula.lean (+455 lines with Countable/Infinite/Denumerable, BEq laws, complexity, derived operators, swap_temporal, atoms), created Context.lean (120 lines), BigConj.lean (52 lines), Subformulas.lean (200 lines). All parameterized over generic Atom type, zero sorries, full project build passes.",
+      "dependencies": [
+        "BimodalLogic:291"
+      ],
+      "description": "Port Temporal Syntax (PR 1): Atom, Formula, Context, BigConj, Subformulas to Cslib/Logics/Bimodal/Syntax/. This is the foundational PR -- all subsequent PRs depend on it.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Syntax/):\n- Atom.lean (~300 lines): PropAtom type, decidable equality, atom manipulation\n- Formula.lean (~800 lines): Formula inductive type, complexity, connectives, derived operators\n- Context.lean (~400 lines): proof context (list of formulas), context operations\n- BigConj.lean (~500 lines): finite conjunction folding, BigConj properties\n- Subformulas.lean (~500 lines): subformula closure, subformula lemmas\n\n**Target path**: Cslib/Logics/Bimodal/Syntax/\n\n**Estimated scope**: ~2,500 lines across 5 files\n\n**PR title**: feat(Logics/Bimodal): add Syntax module (Atom, Formula, Context, BigConj, Subformulas)\n\n**Dependencies**: BimodalLogic task 291 (toolchain upgrade) must be completed first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/002_port_bimodal_syntax_infrastructure/reports/01_syntax-port-research.md",
+          "type": "research",
+          "summary": "Comprehensive research: source file analysis, dependency graph, Mathlib API verification, risk assessment"
+        },
+        {
+          "path": "specs/002_port_bimodal_syntax_infrastructure/plans/01_syntax-port-plan.md",
+          "type": "plan",
+          "summary": "5-phase plan: extend Formula.lean, create Context/BigConj/Subformulas, integration"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 5,
+        "total_effort_hours": 4,
+        "complexity": "medium",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_syntax-port-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-08"
+          }
+        ]
+      },
+      "topic": "Bimodal Porting"
+    },
+    {
+      "project_number": 3,
+      "project_name": "port_task_frame_semantics_bimodal",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:15:00Z",
+      "last_updated": "2026-06-08T00:15:00Z",
+      "dependencies": [
+        2,
+        "BimodalLogic:291"
+      ],
+      "description": "Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, Truth, Validity to Cslib/Logics/Bimodal/Semantics/. Defines the Kripke-style semantic framework for bimodal temporal logic.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Semantics/):\n- TaskFrame.lean (~500 lines): frame record with temporal and modal accessibility relations\n- WorldHistory.lean (~400 lines): world history type, cofinal subsets, orderings\n- TaskModel.lean (~400 lines): model = frame + valuation, canonical naming\n- Truth.lean (~600 lines): inductive truth definition for all formula constructors\n- Validity.lean (~300 lines): validity, satisfiability, frame class validity\n\n**Target path**: Cslib/Logics/Bimodal/Semantics/\n\n**Estimated scope**: ~2,200 lines across 5 files\n\n**PR title**: feat(Logics/Bimodal): add Semantics module (TaskFrame, WorldHistory, TaskModel, Truth, Validity)\n\n**Dependencies**: Task 2 (Syntax) must be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported bimodal frame semantics (TaskFrame, WorldHistory, TaskModel, Truth, Validity + Context) to Cslib/Logics/Bimodal/Semantics/. 1,649 lines across 6 files, zero sorries."
+    },
+    {
+      "project_number": 4,
+      "project_name": "port_proof_system_bimodal",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:15:00Z",
+      "last_updated": "2026-06-08T00:25:00Z",
+      "dependencies": [
+        2,
+        20,
+        22,
+        32
+      ],
+      "description": "Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimodal/ProofSystem/. Scope: concrete 42-axiom Axiom inductive, DerivationTree (7 rules), Derivable, Substitution, BimodalTMHilbert instance registration. Imports propositional theorems from Task 20 and temporal axiom infrastructure from Task 22.\n\nNote: temporal axiom abbrevs and HasAxiom* typeclasses are completed in Task 22 (not this task). This task focuses on the concrete bimodal Axiom inductive (all 42 constructors including interaction axioms MF/TF) and DerivationTree.\n\nSource files (from BimodalLogic Theories/Bimodal/ProofSystem/):\n- Axioms.lean (~400 lines): 42 axiom schemata with minFrameClass gating\n- Derivation.lean (~600 lines): DerivationTree inductive (7 rules), FrameClass parameterization\n- Derivable.lean (~300 lines): Derivable predicate, basic properties\n- Substitution.lean (~500 lines): uniform substitution theorem\n- LinearityDerivedFacts.lean (~200 lines): linearity-specific derived facts\n\nTarget path: Cslib/Logics/Bimodal/ProofSystem/\nEstimated scope: ~2,000 lines across 5 files\nDependencies: Task 2 (Syntax), Task 20 (Propositional theorems available), Task 22 (temporal HasAxiom* infrastructure)",
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported bimodal Hilbert-style proof system: 42-axiom Axiom inductive with FrameClass gating, DerivationTree (7 rules including modal necessitation), Derivable wrapper, 42-case substitution theorem, BimodalTMHilbert instance registration, LinearityDerivedFacts. Zero sorries across 7 files."
+    },
+    {
+      "project_number": 16,
+      "project_name": "formula_type_consistency",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-08T23:05:54Z",
+      "last_updated": "2026-06-09T03:10:00Z",
+      "description": "Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived usage",
+      "topic": "Modal Logic",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/016_formula_type_consistency/reports/01_formula-type-research.md",
+          "type": "research",
+          "summary": "Research: Modal.Proposition needs deriving DecidableEq, BEq; LukasiewiczDerived should get expanded docstring (not instantiation)"
+        },
+        {
+          "path": "specs/016_formula_type_consistency/plans/01_formula-type-plan.md",
+          "type": "plan",
+          "summary": "2-phase plan: add DecidableEq/BEq to Modal.Proposition, expand LukasiewiczDerived docstring"
+        },
+        {
+          "path": "specs/016_formula_type_consistency/summaries/01_formula-type-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: added DecidableEq/BEq to Modal.Proposition, expanded LukasiewiczDerived docstring"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 2,
+        "total_effort_hours": 0.25,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1,
+            2
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_formula-type-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-08"
+          }
+        ]
+      },
+      "completion_summary": "Added deriving DecidableEq, BEq to Modal.Proposition; expanded LukasiewiczDerived docstring documenting intentionally uninstantiated status"
+    },
+    {
+      "project_number": 32,
+      "project_name": "fix_untl_argument_order_convention",
+      "status": "completed",
+      "task_type": "lean4",
+      "description": "Fix untl/snce argument order across cslib to match standard literature convention (Burgess 1982). Currently cslib uses untl(guard, event) but the literature and BimodalLogic source use untl(event, guard). This causes 6+ axioms to be provably unsound and 6 more likely unsound. Change all Formula definitions, Truth semantics, axiom abbreviations, and derived theorems to use untl(event, guard). Affects ~10 files across Temporal and Bimodal modules.",
+      "topic": "Temporal Logic",
+      "dependencies": [
+        22,
+        3
+      ],
+      "completion_summary": "Fixed untl/snce argument order convention across cslib to match Burgess 1982 (arg1=EVENT, arg2=GUARD). Changed semantics in Truth.lean, updated derived operators in both Formula files, axiom abbreviations, ProofSystem.lean, axiom constructors, and re-derived TemporalDerived proofs. Lake build passes clean."
+    },
+    {
+      "project_number": 33,
+      "project_name": "audit_noncomputable_temporal_instances",
+      "status": "completed",
+      "task_type": "lean4",
+      "description": "Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.",
+      "topic": "Temporal Logic",
+      "dependencies": [],
+      "completion_summary": "Removed 39 unnecessary noncomputable markers across 9 files (31 from Instances.lean, 8 noncomputable section blocks from theorem layer). Full lake build passes."
     }
   ],
   "archived_projects": [

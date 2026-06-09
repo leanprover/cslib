@@ -226,17 +226,21 @@ Total CSLib Lean lines (all modules): ~31,723
 |-----------|------|-------|--------|
 | `Foundations/Logic/Theorems/` — propositional Hilbert theorems | 20 | ~2,400 | COMPLETED |
 | `Foundations/Logic/Theorems/Modal/` — S4/S5 theorems, GenNec | 21 | ~786 | COMPLETED |
+| `Foundations/Logic/Metalogic/` — generic MCS foundations | 29 | ~273 | COMPLETED |
 | `Temporal/ProofSystem/` + `Temporal/Theorems/` — temporal proof system and theorems | 22 | ~1,433 | COMPLETED |
+| `Temporal/Semantics/` — standalone temporal semantics on LinearOrder | 23 | ~440 | COMPLETED |
+| `Modal/Metalogic/` — DerivationTree, DeductionTheorem, MCS, Soundness, Completeness | 30 | ~1,449 | COMPLETED |
 | `Bimodal/Syntax/` — Context, BigConj, Subformulas | 2 | ~827 | COMPLETED |
 | `Bimodal/Semantics/` — TaskFrame, WorldHistory, Truth, Validity | 3 | ~1,649 | COMPLETED |
+| `Bimodal/ProofSystem/` — 42-axiom Hilbert, DerivationTree, Substitution | 4 | ~2,000 | COMPLETED |
 
 ### What Does Not Yet Exist
 
 | Missing Component | Task | Lines |
 |-------------------|------|-------|
-| `Foundations/Logic/Metalogic/` — generic MCS foundations | 29 | ~200–300 (new) |
-| `Modal/Metalogic/` — modal deduction theorem, MCS, soundness, completeness | 30 | ~1,500 (new) |
-| `Temporal/Semantics/` — standalone temporal semantics on LinearOrder | 23 | ~400–600 (new) |
+| ~~`Foundations/Logic/Metalogic/`~~ — generic MCS foundations | 29 | ~273 | **COMPLETED** |
+| ~~`Modal/Metalogic/`~~ — modal metalogic | 30 | ~1,449 | **COMPLETED** |
+| ~~`Temporal/Semantics/`~~ — standalone temporal semantics | 23 | ~440 | **COMPLETED** |
 | `Temporal/Metalogic/` — temporal deduction theorem, MCS, soundness, completeness | 31 | ~1,500 (new) |
 | `Bimodal/ProofSystem/` — 42-axiom Hilbert, DerivationTree | 4 | ~2,000 |
 | `Bimodal/Theorems/` — Perpetuity theorems | 5 | ~800 |
@@ -244,7 +248,7 @@ Total CSLib Lean lines (all modules): ~31,723
 | `Bimodal/Metalogic/Core/` — Deduction theorem, MCS theory | 7 | ~2,500 |
 | `Bimodal/Metalogic/` — Completeness, Decidability, Separation, ConservativeExtension | 8–11 | ~30,000+ |
 
-**~7,095 lines of proof code completed.** Critical path: Task 32 (argument order fix) → Tasks 4–11.
+**~11,257 lines of proof code completed.** Critical path: Tasks 5–11 (bimodal porting) and Task 31 (temporal metalogic).
 
 ---
 
@@ -453,14 +457,14 @@ Every extractable component maps to exactly one task (no double-counting):
 - [x] Temporal module complete: proof system + theorems in `Logics/Temporal/` (Task 22) *(Completed: Task 22, 2026-06-08)*
 
 **Phase 3 (Temporal Semantics)**
-- [ ] Temporal semantics defined standalone on LinearOrder (Task 23: ~400–600 new lines)
+- [x] Temporal semantics defined standalone on LinearOrder (Task 23: ~400–600 new lines) *(Completed: Task 23, 2026-06-08)*
 
 **Phase 4 (Standalone Metalogic)**
-- [ ] Generic MCS foundations in `Foundations/Logic/Metalogic/Consistency.lean` (Task 29: ~200–300 new lines)
-- [ ] Modal deduction theorem proved for ~5-constructor `Modal.DerivationTree` (Task 30)
-- [ ] Modal MCS theory with box_closure witness condition in `Logics/Modal/Metalogic/` (Task 30)
-- [ ] Modal soundness theorem: `ModalS5Hilbert S → S ⊢ φ → Modal.Valid φ` (Task 30)
-- [ ] Modal completeness theorem via canonical Kripke model for S5 (Task 30)
+- [x] Generic MCS foundations in `Foundations/Logic/Metalogic/Consistency.lean` (Task 29: ~200–300 new lines) *(Completed: Task 29, 2026-06-08)*
+- [x] Modal deduction theorem proved for ~5-constructor `Modal.DerivationTree` (Task 30) *(Completed: Task 30, 2026-06-08)*
+- [x] Modal MCS theory with box_closure witness condition in `Logics/Modal/Metalogic/` (Task 30) *(Completed: Task 30, 2026-06-08)*
+- [x] Modal soundness theorem: `ModalS5Hilbert S → S ⊢ φ → Modal.Valid φ` (Task 30) *(Completed: Task 30, 2026-06-08)*
+- [x] Modal completeness theorem via canonical Kripke model for S5 (Task 30) *(Completed: Task 30, 2026-06-08)*
 - [ ] Temporal deduction theorem proved for ~6-constructor `Temporal.DerivationTree` (Task 31)
 - [ ] Temporal MCS theory with Until/Since witness conditions in `Logics/Temporal/Metalogic/` (Task 31)
 - [ ] Temporal soundness theorem: `TemporalBXHilbert S → S ⊢ φ → Temporal.Valid φ` (Task 31)

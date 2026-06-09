@@ -1,40 +1,34 @@
 {
-  "session_id": "sess_1780980276_702f7c",
-  "task_numbers": [
-    4,
-    23
-  ],
-  "waves": [
-    [
-      4,
-      23
-    ]
-  ],
-  "max_cycles": 10,
-  "cycle_count": 3,
+  "session_id": "sess_1780982747_80da4d",
+  "task_numbers": [5, 6, 11, 31],
+  "waves": [[5, 6, 11, 31]],
+  "dependency_graph": {"5": [], "6": [], "11": [], "31": []},
+  "cycle_count": 0,
+  "max_cycles": 20,
   "failed_tasks": [],
-  "completed_tasks": [
-    4,
-    23
-  ],
+  "completed_tasks": [],
   "current_statuses": {
-    "4": "completed",
-    "23": "completed"
+    "5": "not_started",
+    "6": "not_started",
+    "11": "not_started",
+    "31": "not_started"
   },
   "task_types": {
-    "4": "lean4",
-    "23": "lean4"
-  },
-  "task_dirs": {
-    "4": "specs/004_port_proof_system_bimodal",
-    "23": "specs/023_temporal_semantics_linear_orders"
+    "5": "lean4",
+    "6": "lean4",
+    "11": "lean4",
+    "31": "lean4"
   },
   "research_agents": {
-    "4": "lean-research-agent",
-    "23": "lean-research-agent"
+    "5": "lean-research-agent",
+    "6": "lean-research-agent",
+    "11": "lean-research-agent",
+    "31": "lean-research-agent"
   },
   "implement_agents": {
-    "4": "lean-implementation-agent",
-    "23": "lean-implementation-agent"
+    "5": "lean-implementation-agent",
+    "6": "lean-implementation-agent",
+    "11": "lean-implementation-agent",
+    "31": "lean-implementation-agent"
   }
 }
