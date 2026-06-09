@@ -1,5 +1,5 @@
 ---
-next_project_number: 51
+next_project_number: 55
 ---
 
 # Tasks
@@ -11,34 +11,79 @@ next_project_number: 51
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37 | -- | Bimodal Porting |
-| 2 | 38,39,40 | 36,37 | Temporal Logic |
-| 3 | 41 | 38,39,40 | Foundations |
-| 4 | 12 | 41 | Project Management |
+| 1 | 36,37,38,51 | -- | Temporal Logic, Bimodal Porting |
+| 2 | 39,40,52 | 36,37,51 | Temporal Logic |
+| 3 | 41,53,54 | 38,39,40,52 | Foundations |
 
 **Grouped by Topic** (indented = depends on parent):
 
-### Temporal Logic
-
-38 [NOT STARTED] — Dense temporal completeness (dep: 49)
-39 [NOT STARTED] — Discrete temporal completeness (dep: 36)
-40 [BLOCKED] — Continuous temporal completeness (dep: 37)
-
 ### Foundations
 
-41 [NOT STARTED] — Abstract shared completeness infrastructure (dep: 38, 39, 40)
+41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
+
+### Temporal Logic
+
+38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
+39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
+40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
 
 ### Bimodal Porting
 
-36 [BLOCKED] — Port discrete completeness
-37 [BLOCKED] — Port continuous extension completeness
+36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
+37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
 
-### Project Management
+### Uncategorized
 
-12 [PARTIAL] — Coordinate cslib PR submission (dep: 41)
+51 [NOT STARTED] — Review tense logic progress against ROADMAP and assess PR readine
+  └─ 52 [NOT STARTED] — Audit tense logic code for compliance with Mathlib style guide (h
+    └─ 53 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Infrastructure 
+    └─ 54 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Semantics PR wi
 
 ## Tasks
 
+
+### 54. Prepare Temporal Semantics PR
+- **Effort**: Medium (6-10 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 52
+- **Parent**: Task 12
+
+**Description**: Apply style compliance fixes and prepare Temporal Semantics PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)
+
+---
+
+### 53. Prepare Temporal Infrastructure PR
+- **Effort**: Medium (6-10 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 52
+- **Parent**: Task 12
+
+**Description**: Apply style compliance fixes and prepare Temporal Infrastructure PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)
+
+---
+
+### 52. Audit tense logic code for style compliance
+- **Effort**: Medium (4-8 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 51
+- **Parent**: Task 12
+
+**Description**: Audit tense logic code for compliance with Mathlib style guide (https://leanprover-community.github.io/contribute/style.html) and CSLib standards, documenting all required changes
+
+---
+
+### 51. Review tense logic PR readiness
+- **Effort**: Small (2-4 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+- **Parent**: Task 12
+
+**Description**: Review tense logic progress against ROADMAP and assess PR readiness, identifying which components are complete and what work remains before PR submission
+
+---
 
 ### 40. Continuous temporal completeness
 - **Effort**: TBD
@@ -111,9 +156,10 @@ next_project_number: 51
 
 ### 12. Coordinate cslib PR submission for Bimodal Logic integration
 - **Effort**: Ongoing (tracked separately)
-- **Status**: [PARTIAL]
+- **Status**: [EXPANDED]
 - **Task Type**: general
 - **Dependencies**: Task 41
+- **Subtasks**: 51, 52, 53, 54
 
 **Description**: Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.
 

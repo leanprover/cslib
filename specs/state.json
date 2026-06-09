@@ -1,6 +1,55 @@
 {
-  "next_project_number": 51,
+  "next_project_number": 55,
   "active_projects": [
+    {
+      "project_number": 51,
+      "project_name": "review_tense_logic_pr_readiness",
+      "status": "not_started",
+      "task_type": "general",
+      "description": "Review tense logic progress against ROADMAP and assess PR readiness, identifying which components are complete and what work remains before PR submission",
+      "parent_task": 12,
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z"
+    },
+    {
+      "project_number": 52,
+      "project_name": "audit_tense_logic_style_compliance",
+      "status": "not_started",
+      "task_type": "lean4",
+      "description": "Audit tense logic code for compliance with Mathlib style guide (https://leanprover-community.github.io/contribute/style.html) and CSLib standards, documenting all required changes",
+      "parent_task": 12,
+      "dependencies": [
+        51
+      ],
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z"
+    },
+    {
+      "project_number": 53,
+      "project_name": "prepare_temporal_infra_pr",
+      "status": "not_started",
+      "task_type": "lean4",
+      "description": "Apply style compliance fixes and prepare Temporal Infrastructure PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)",
+      "parent_task": 12,
+      "dependencies": [
+        52
+      ],
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z"
+    },
+    {
+      "project_number": 54,
+      "project_name": "prepare_temporal_semantics_pr",
+      "status": "not_started",
+      "task_type": "lean4",
+      "description": "Apply style compliance fixes and prepare Temporal Semantics PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)",
+      "parent_task": 12,
+      "dependencies": [
+        52
+      ],
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z"
+    },
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
@@ -80,16 +129,22 @@
     {
       "project_number": 12,
       "project_name": "coordinate_cslib_pr_submission_bimodal_logic",
-      "status": "partial",
+      "status": "expanded",
       "task_type": "general",
       "created": "2026-06-08T00:45:00Z",
-      "last_updated": "2026-06-09T00:21:36Z",
+      "last_updated": "2026-06-09T23:52:20Z",
       "dependencies": [
         41
       ],
       "description": "Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.\n\n**Standalone Module PRs** (can proceed in parallel with bimodal PRs since they target different directories):\n- PR-Foundations (Task 20): Propositional Hilbert theorems to Cslib/Foundations/Logic/Theorems/ -- Wave 1, no dependencies\n- PR-Modal (Task 21): Modal proof system + theorems to Cslib/Logics/Modal/ProofSystem/ + Theorems/ -- after PR-Foundations\n- PR-Temporal-Infra (Task 22): Temporal infrastructure + theorems to Cslib/Logics/Temporal/ProofSystem/ + Theorems/ -- after PR-Foundations\n- PR-TempSem (Task 23): Temporal semantics to Cslib/Logics/Temporal/Semantics/ -- after PR-Temporal-Infra\n\n**Bimodal PRs** (in dependency order):\n- PR 1 (Bimodal Syntax, task 2): submit first, establish review pattern\n- PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap\n- PR 4 (Perpetuity Theorems, task 5): after PRs 3, PR-Modal, PR-Temporal-Infra merged\n- PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged\n- PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged\n- PR 7 (Completeness, task 8): after PRs 5+6 merged\n- PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)\n- PR 9 (Separation, task 10): after PRs 3+4+6 merged\n- PR 10 (ConservativeExtension, task 11): after PR 3 merged (independent of 5-9)\n\n**Coordination Workflow**:\n\n1. **Open Zulip Discussion** (first step): propose modular architecture (standalone Foundations/Modal/Temporal modules + Bimodal), PR strategy (4 standalone PRs + 10 bimodal PRs)\n2. **Namespace Decision**: confirm before starting task 2\n3. **CI Checks** (before each PR): lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers\n4. **Review Cycle**: keep PRs small (max ~3,500 lines); address feedback within 48 hours",
       "session_id": "sess_1780964447_c6a4ec",
-      "topic": "Project Management"
+      "topic": "Project Management",
+      "subtasks": [
+        51,
+        52,
+        53,
+        54
+      ]
     },
     {
       "project_number": 36,
