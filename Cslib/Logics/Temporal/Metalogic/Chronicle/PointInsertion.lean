@@ -1181,4 +1181,52 @@ theorem g_content_sub_imp_h_content_sub' {A B : Set (Formula Atom)}
     exact temporal_implication_property h_mcs_B h1 hψ
   exact some_past_all_past_neg_absurd h_mcs_B ψ.neg h_P_neg_ψ_B h_H_nn
 
+/-! ## Lemma 2.6 Splitting: BurgessR3Maximal Interval Insertion -/
+
+/-- **Lemma 2.6 Splitting**: Given BurgessR3Maximal(A, B, C) with β ∉ B,
+construct MCS D with β.neg ∈ D and decomposed BurgessR3Maximal relations. -/
+theorem lemma_2_6_splitting {A B C : Set (Formula Atom)}
+    (h_mcs_A : Temporal.SetMaximalConsistent A)
+    (h_mcs_C : Temporal.SetMaximalConsistent C)
+    (h_r3m : BurgessR3Maximal A B C)
+    (β : Formula Atom)
+    (h_β_not_B : β ∉ B) :
+    ∃ B' D B'', BurgessR3Maximal A B' D ∧ BurgessR3Maximal D B'' C ∧
+      Temporal.SetMaximalConsistent D ∧ β.neg ∈ D ∧ B ⊆ D ∧ B ⊆ B' ∧ B ⊆ B'' := by
+  have h_B_dcs : ClosedUnderDerivation B := h_r3m.1
+  have h_r3 : burgessR3 A B C := h_r3m.2.1
+  -- Step 1: Trivial seed {β.neg} ∪ B is consistent
+  have h_sdc : SetDeductivelyClosed B := cud_not_mem_is_sdc h_B_dcs h_β_not_B
+  have h_seed_cons : Temporal.SetConsistent ({β.neg} ∪ B) := dcs_neg_insert_consistent h_B_dcs h_β_not_B
+  -- Step 2: Lindenbaum-extend to MCS D
+  obtain ⟨D, h_sup, h_D_mcs⟩ := temporal_lindenbaum h_seed_cons
+  -- Step 3: Extract seed memberships
+  have h_β_neg_D : β.neg ∈ D := h_sup (Set.mem_union_left _ (Set.mem_singleton β.neg))
+  have h_B_sub_D : B ⊆ D := fun φ hφ => h_sup (Set.mem_union_right _ hφ)
+  -- Step 4: Until/Since formulas in D via Xu 3.2.1 + B ⊆ D
+  have h_untl_D : ∀ β' ∈ B, ∀ γ ∈ C, Formula.untl γ β' ∈ D := by
+    intro β' hβ' γ hγ
+    exact h_B_sub_D (xu_lemma_3_2_1_until h_mcs_A h_mcs_C h_r3m hβ' hγ)
+  have h_snce_D : ∀ β' ∈ B, ∀ α ∈ A, Formula.snce α β' ∈ D := by
+    intro β' hβ' α hα
+    exact h_B_sub_D (xu_lemma_3_2_1_since h_mcs_A h_mcs_C h_r3m hβ' hα)
+  -- Step 5: Establish burgessR3(D, B, C)
+  have h_rSet_D : burgessRSet D B C := fun β' hβ' γ hγ => h_untl_D β' hβ' γ hγ
+  have h_rSetSince_D : burgessRSetSince C B D := by
+    intro β' hβ'
+    exact burgessR_implies_burgessRSince h_D_mcs h_mcs_C (h_rSet_D β' hβ')
+  have h_r3_DBC : burgessR3 D B C := ⟨h_rSet_D, h_rSetSince_D⟩
+  -- Step 6: Establish burgessR3(A, B, D)
+  have h_rSetSince_A : burgessRSetSince D B A := fun β' hβ' α hα => h_snce_D β' hβ' α hα
+  have h_rSet_A : burgessRSet A B D := by
+    intro β' hβ'
+    exact burgessRSince_implies_burgessR h_mcs_A h_D_mcs (h_rSetSince_A β' hβ')
+  have h_r3_ABD : burgessR3 A B D := ⟨h_rSet_A, h_rSetSince_A⟩
+  -- Step 7: BurgessR3Maximal via Zorn
+  obtain ⟨B', h_B_sub_B', h_B'_max⟩ := burgessR3Maximal_extension_exists h_mcs_A h_D_mcs
+    h_B_dcs h_r3_ABD
+  obtain ⟨B'', h_B_sub_B'', h_B''_max⟩ := burgessR3Maximal_extension_exists h_D_mcs h_mcs_C
+    h_B_dcs h_r3_DBC
+  exact ⟨B', D, B'', h_B'_max, h_B''_max, h_D_mcs, h_β_neg_D, h_B_sub_D, h_B_sub_B', h_B_sub_B''⟩
+
 end Cslib.Logic.Temporal.Metalogic.Chronicle

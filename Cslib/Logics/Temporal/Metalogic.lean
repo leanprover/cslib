@@ -12,3 +12,4 @@ import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
 import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
 import Cslib.Logics.Temporal.Metalogic.Chronicle.OrderedSeedConsistency
 import Cslib.Logics.Temporal.Metalogic.Chronicle.RRelation
+import Cslib.Logics.Temporal.Metalogic.Chronicle.PointInsertion

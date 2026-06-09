@@ -158,7 +158,7 @@ Phases are strictly sequential: each phase builds on definitions and lemmas from
 
 ---
 
-### Phase 3: Burgess Lemmas 2.6 Splitting and 2.7 Until [NOT STARTED]
+### Phase 3: Burgess Lemmas 2.6 Splitting and 2.7 Until [PARTIAL]
 
 **Goal**: Port Lemma 2.6 splitting (BurgessR3Maximal interval insertion) and Lemma 2.7 (Until-formula splitting) including the seed consistency proof and all helper infrastructure.
 
