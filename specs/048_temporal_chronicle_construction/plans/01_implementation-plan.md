@@ -101,7 +101,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: CounterexampleElimination -- Helpers and Structures (lines 1-700) [NOT STARTED]
+### Phase 2: CounterexampleElimination -- Helpers and Structures (lines 1-700) [COMPLETED]
 
 **Goal**: Port the first section of CounterexampleElimination.lean: counterexample structures, rational helpers, BurgessR3Maximal helpers, and type definitions.
 
