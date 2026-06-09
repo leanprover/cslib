@@ -178,17 +178,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Bundle Layer 4-5 -- ModalSaturation through UntilSinceCoherence [IN PROGRESS]
+### Phase 4: Bundle Layer 4-5 -- ModalSaturation through UntilSinceCoherence [COMPLETED]
 
 **Goal**: Port the mid-layer Bundle/ files for modal saturation, successor relation, temporal coherence, construction, and until/since coherence.
 
 **Tasks**:
-- [ ] Port `Bundle/ModalSaturation.lean` (521 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/Bundle/ModalSaturation.lean`. Modal saturation for MCS. Layer 4, depends on BFMCS.
-- [ ] Port `Bundle/SuccRelation.lean` (655 lines, 7 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/SuccRelation.lean`. Successor relation on canonical frame. Layer 4, depends on TemporalContent, CanonicalFrame, WitnessSeed.
-- [ ] Port `Bundle/TemporalCoherence.lean` (621 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/TemporalCoherence.lean`. G/H propagation proofs. Layer 4, depends on BFMCS, ModalSaturation.
-- [ ] Port `Bundle/Construction.lean` (260 lines, 3 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/Construction.lean`. BFMCS construction. Layer 4, depends on BFMCS, ModalSaturation.
-- [ ] Port `Bundle/UntilSinceCoherence.lean` (211 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/UntilSinceCoherence.lean`. Until/Since coherence. Layer 5, depends on TemporalCoherence, SuccRelation.
-- [ ] Verify `lake build` passes
+- [x] Port `Bundle/ModalSaturation.lean` (521 lines, 1 sorry) to `Cslib/Logics/Bimodal/Metalogic/Bundle/ModalSaturation.lean`. *(deviation: altered -- 0 sorries in port; source sorry was in removed constant witness family code)*
+- [x] Port `Bundle/SuccRelation.lean` (655 lines, 7 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/SuccRelation.lean`. *(completed -- 7 sorries preserved)*
+- [x] Port `Bundle/TemporalCoherence.lean` (621 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/TemporalCoherence.lean`. *(deviation: altered -- added DecidableAtom sections for deferralClosure/subformulaClosure; 0 sorries in TemporalCoherence itself, 2 from source are in SuccRelation)*
+- [x] Port `Bundle/Construction.lean` (260 lines, 3 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/Construction.lean`. *(deviation: altered -- 0 sorries in port; source sorries were in removed singleFamilyBFMCS code)*
+- [x] Port `Bundle/UntilSinceCoherence.lean` (211 lines, 2 sorries) to `Cslib/Logics/Bimodal/Metalogic/Bundle/UntilSinceCoherence.lean`. *(completed -- 2 sorries preserved)*
+- [x] Verify `lake build` passes *(completed)*
 
 **Timing**: 2.5 hours
 
