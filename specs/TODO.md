@@ -11,8 +11,8 @@ next_project_number: 28
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12,16,20,27 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
-| 2 | 3,21,22 | 2,16,20 | Modal Logic, Temporal Logic, Bimodal Porting |
+| 1 | 2,12,20 | -- | Foundations, Bimodal Porting, Project Management |
+| 2 | 3,21,22 | 2,20 | Modal Logic, Temporal Logic, Bimodal Porting |
 | 3 | 4,23 | 2,20,22 | Temporal Logic, Bimodal Porting |
 | 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
 | 5 | 7 | 4,5 | Bimodal Porting |
@@ -29,9 +29,8 @@ next_project_number: 28
 
 ### Modal Logic
 
-16 [COMPLETED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
-  └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
-    └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
+21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
+  └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
 
 ### Temporal Logic
 
@@ -63,18 +62,15 @@ next_project_number: 28
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
 
-### Uncategorized
-
-27 [PLANNED] — review_docs_roadmap_alignment
-
 ## Tasks
 
 ### 27. Systematically review all documentation and standards, ensuring tasks and ROADMAP.md are in alignment
 - **Effort**: Medium (2-4 hours)
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Research**: [specs/027_review_docs_roadmap_alignment/reports/01_docs-roadmap-alignment.md]
 - **Plan**: [specs/027_review_docs_roadmap_alignment/plans/01_alignment-plan.md]
+- **Summary**: [specs/027_review_docs_roadmap_alignment/summaries/01_alignment-summary.md]
 
 **Description**: Systematically review all documentation and standards in this repo, making sure the tasks and ROADMAP.md are all in alignment, making any changes that are needed while making no unneeded changes.
 

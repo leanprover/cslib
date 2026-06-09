@@ -1,29 +1,7 @@
 {
   "status": "implemented",
-  "agent_type": "general-implementation-agent",
-  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
-  "session_id": "sess_1780967523_cdb46d",
-  "task_number": 27,
-  "phases_completed": 3,
-  "phases_total": 3,
-  "artifacts": [
-    {
-      "type": "summary",
-      "path": "specs/027_review_docs_roadmap_alignment/summaries/01_alignment-summary.md",
-      "summary": "Implementation summary for task 27: 3 phases completed, 9 documentation misalignments resolved across TODO.md, state.json, and ROADMAP.md"
-    }
-  ],
-  "completion_data": {
-    "completion_summary": "Fixed 4 critical TODO.md status markers (tasks 12, 15, 17, 18), updated state.json descriptions for tasks 2/3/6-11 replacing stale Temporal paths with Bimodal, updated task 12 description to reflect current PR strategy, and updated ROADMAP.md Wave 1 to remove completed tasks and add task 27.",
-    "roadmap_items": []
-  },
-  "memory_candidates": [
-    {
-      "content": "After large multi-task restructuring sprints (e.g., modular factoring), TODO.md status markers can drift from state.json. Pattern: grep for [RESEARCHING] in TODO.md and compare against state.json statuses to detect bulk mismatches. Fix order: state.json is source of truth, update TODO.md to match. Also check state.json description fields for stale path references that weren't updated during restructuring.",
-      "category": "PATTERN",
-      "source_artifact": "specs/027_review_docs_roadmap_alignment/summaries/01_alignment-summary.md",
-      "confidence": 0.85,
-      "suggested_keywords": ["status-sync", "todo-state-alignment", "bulk-mismatch", "restructuring", "documentation-audit"]
-    }
-  ]
+  "metadata": {
+    "cycles_used": 3,
+    "final_state": "completed"
+  }
 }
