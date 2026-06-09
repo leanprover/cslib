@@ -147,7 +147,7 @@ Phases are fully sequential because each depends on the prior phase's output.
 
 ---
 
-### Phase 3: Create Tasks in state.json and TODO.md [IN PROGRESS]
+### Phase 3: Create Tasks in state.json and TODO.md [COMPLETED]
 
 **Goal**: Atomically create the new tasks in state.json and TODO.md, updating next_project_number and dependency structures.
 
@@ -177,7 +177,7 @@ Phases are fully sequential because each depends on the prior phase's output.
 
 ---
 
-### Phase 4: Update ROADMAP.md [NOT STARTED]
+### Phase 4: Update ROADMAP.md [COMPLETED]
 
 **Goal**: Update ROADMAP.md to reflect the expanded metalogic layer, adding a new section for standalone metalogic and updating the dependency structure and success metrics.
 

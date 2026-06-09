@@ -37,31 +37,47 @@ introduced.
 |-----------|---------------|-----------|
 | Combinators (I,B,C,S), Propositional/{Core,Connectives,Reasoning}, ContextualProofs, BigConj | `Foundations/Logic/Theorems/` | Pure `[PropositionalHilbert S]`; reusable by all four logics |
 | Temporal axiom abbreviations, HasAxiom* typeclasses, TemporalBXHilbert restructuring | `Foundations/Logic/ProofSystem.lean` additions | Infrastructure layer shared by Temporal and Bimodal |
+| **Generic MCS foundations** (SetConsistent, SetMaximalConsistent, Lindenbaum skeleton) | `Foundations/Logic/Metalogic/Consistency.lean` | **~60% of MCS theory is generic**; parameterized over abstract derivation relation |
 | Modal.DerivationTree + ModalHilbert/ModalS5Hilbert instances | `Logics/Modal/ProofSystem/` | Modal standalone; concrete proof system |
 | GeneralizedNecessitation + S4/S5 theorems | `Logics/Modal/Theorems/` | Pure `[ModalHilbert S]` / `[ModalS5Hilbert S]` |
+| **Modal metalogic** (DeductionTheorem + MCS + Soundness + Completeness) | `Logics/Modal/Metalogic/` | Standalone; per-logic DT + modal-specific MCS + Kripke soundness/completeness |
 | Temporal.DerivationTree + TemporalBXHilbert instance | `Logics/Temporal/ProofSystem/` | Temporal standalone; concrete proof system |
 | TemporalDerived theorems + frame condition typeclasses | `Logics/Temporal/Theorems/` | Pure `[TemporalBXHilbert S]` |
 | Temporal semantics on LinearOrder | `Logics/Temporal/Semantics/` | New infrastructure; enables standalone soundness |
-| DeductionTheorem | `Logics/Bimodal/Metalogic/Core/` (per-logic) | Requires structural induction on concrete DerivationTree |
+| **Temporal metalogic** (DeductionTheorem + MCS + Soundness + Completeness) | `Logics/Temporal/Metalogic/` | Standalone; per-logic DT + temporal-specific MCS + linear order soundness/completeness |
+| **Bimodal DeductionTheorem** | `Logics/Bimodal/Metalogic/Core/` (per-logic) | Requires structural induction on concrete bimodal DerivationTree; imports generic MCS from Foundations |
 | Perpetuity theorems + all bimodal content | `Logics/Bimodal/` | Uses both box and until/since; inherently bimodal |
 
 ### Key Design Decisions
 
-1. **DeductionTheorem stays per-logic** (Task 7, not Task 20): The deduction
+1. **DeductionTheorem stays per-logic** (Tasks 7, 30, 31; not Task 20): The deduction
    theorem requires structural induction on the concrete `DerivationTree`
    inductive. It cannot be ported generically to Foundations because
-   `DerivationTree` is concrete, not typeclass-polymorphic.
+   `DerivationTree` is concrete, not typeclass-polymorphic. Each logic (modal ~5
+   constructors, temporal ~6, bimodal 7) needs its own deduction theorem.
 
-2. **BimodalTMHilbert diamond-avoidance** (Task 22): The `BimodalTMHilbert`
+2. **MCS theory ~60% generic** (Task 29): Definitions — `SetConsistent`,
+   `SetMaximalConsistent`, Lindenbaum skeleton, `consistent_chain_union` — live
+   in `Foundations/Logic/Metalogic/`. The `negation_complete` predicate and
+   witness conditions depend on the per-logic deduction theorem and stay in
+   Modal/Metalogic/ (Task 30), Temporal/Metalogic/ (Task 31), and
+   Bimodal/Metalogic/Core/ (Task 7).
+
+3. **BimodalTMHilbert diamond-avoidance** (Task 22): The `BimodalTMHilbert`
    typeclass extends individual temporal `HasAxiom*` classes directly (mirroring
    the `BimodalConnectives` pattern), providing a manual `TemporalBXHilbert`
    instance. This avoids the typeclass diamond that would arise from extending
    both `ModalHilbert` and `TemporalBXHilbert`.
 
-3. **Temporal semantics is new infrastructure** (Task 23): The standalone
+4. **Temporal semantics is new infrastructure** (Task 23): The standalone
    temporal semantics on `LinearOrder` does not exist in BimodalLogic (which
    only has task frame semantics). It is new development enabling temporal
    soundness/completeness proofs without bimodal machinery.
+
+5. **No generic metalogic typeclass** (`HasDeductionTheorem` would be premature):
+   Team research explicitly discourages abstracting metalogic with typeclasses
+   at this stage. Each logic's metalogic is standalone and imports only
+   Foundations definitions, not a shared proof strategy.
 
 ---
 
@@ -86,10 +102,27 @@ for the next level.
   any bimodal dependency. Task 23 (semantics) is new development with no
   BimodalLogic counterpart.
 
+- **Generic Metalogic (Task 29)**: ~200–300 lines of generic MCS foundations
+  parameterized over an abstract derivation relation. Any logic in CSLib can
+  import these generic definitions and add per-logic witness conditions.
+
+- **Modal Metalogic (Task 30)**: ~1,500 lines of standalone modal metalogic —
+  deduction theorem, MCS theory (using Task 29 generic definitions + modal
+  witness conditions), soundness over Kripke frames, and completeness via
+  canonical Kripke model construction for S5. All new development; no
+  BimodalLogic counterpart.
+
+- **Temporal Metalogic (Task 31)**: ~1,500 lines of standalone temporal metalogic —
+  deduction theorem, MCS theory (using Task 29 generic definitions + temporal
+  witness conditions), soundness over linear orders, and completeness via
+  canonical linear model construction. All new development; no BimodalLogic
+  counterpart.
+
 - **Bimodal (Tasks 2–11)**: ~30,000+ lines comprising the full bimodal Hilbert
-  system, task frame semantics, metalogic (MCS theory, completeness, decidability,
-  separation, conservative extension), and perpetuity theorems. Phase 4 is the
-  largest by volume but depends on the three preceding phases being complete.
+  system, task frame semantics, metalogic (MCS theory importing Task 29 generic
+  foundations, completeness, decidability, separation, conservative extension),
+  and perpetuity theorems. Phase 4 is the largest by volume but depends on the
+  three preceding phases being complete.
 
 ---
 
@@ -113,16 +146,21 @@ metalogical results — see
 ## Import Hierarchy
 
 ```
-Foundations/Logic/Theorems/   (Task 20 — propositional lemmas)
+Foundations/Logic/Theorems/      (Task 20 — propositional lemmas)
+Foundations/Logic/Metalogic/     (Task 29 — generic MCS foundations)
        ↓                ↓
 Modal/ProofSystem/   Temporal/ProofSystem/   (Tasks 21, 22 — parallel)
 Modal/Theorems/      Temporal/Theorems/
-                     Temporal/Semantics/     (Task 23 — depends on 22)
+Modal/Metalogic/     Temporal/Semantics/     (Tasks 30, 23)
+                     Temporal/Metalogic/     (Task 31 — depends on 22, 23, 29)
                             ↓
                     Bimodal/                 (Tasks 2–11)
 ```
 
-This hierarchy enforces: Foundations → Modal/Temporal → Bimodal.
+This hierarchy enforces: Foundations → Modal/Temporal (incl. Metalogic) → Bimodal.
+Modal and Temporal metalogic are fully standalone — they do not import from each
+other, only from Foundations. Bimodal metalogic (Task 7) imports generic MCS
+definitions from Foundations/Logic/Metalogic/ (Task 29).
 
 ---
 
@@ -167,9 +205,12 @@ Total CSLib Lean lines (all modules): ~25,588
 | Missing Component | Task | Lines |
 |-------------------|------|-------|
 | `Foundations/Logic/Theorems/` — propositional Hilbert theorems | 20 | ~2,400 |
+| `Foundations/Logic/Metalogic/` — generic MCS foundations | 29 | ~200–300 (new) |
 | `Modal/ProofSystem/` + `Modal/Theorems/` — proof system and S4/S5 theorems | 21 | ~1,600 |
+| `Modal/Metalogic/` — modal deduction theorem, MCS, soundness, completeness | 30 | ~1,500 (new) |
 | `Temporal/ProofSystem/` + `Temporal/Theorems/` — temporal proof system and theorems | 22 | ~1,500 |
 | `Temporal/Semantics/` — standalone temporal semantics on LinearOrder | 23 | ~400–600 (new) |
+| `Temporal/Metalogic/` — temporal deduction theorem, MCS, soundness, completeness | 31 | ~1,500 (new) |
 | `Bimodal/` (beyond Formula + Embedding) — full bimodal library | 2–11 | ~30,000+ |
 
 **0 lines of proof code ported so far.** All porting tasks are [NOT STARTED].
@@ -238,18 +279,72 @@ connectives, and frame conditions for dense/discrete/linear orders. This
 enables standalone temporal soundness and completeness proofs entirely
 independent of bimodal machinery.
 
-**Milestone**: Temporal/ is a fully standalone module with syntax, proof system, theorems, and semantics — the first CSLib logic with a complete verified proof theory.
+**Milestone**: Temporal/ is a fully standalone module with syntax, proof system, theorems, and semantics.
 
 ---
 
-### Phase 4: Bimodal Porting (Tasks 2–11)
+### Phase 4: Standalone Metalogic (Tasks 29, 30, 31)
+
+**Targets**:
+- `Cslib/Foundations/Logic/Metalogic/` (Task 29)
+- `Cslib/Logics/Modal/Metalogic/` (Task 30)
+- `Cslib/Logics/Temporal/Metalogic/` (Task 31)
+
+**Scope**: ~3,200–3,300 lines total (new development, no BimodalLogic counterpart)
+
+This phase adds the full metalogic layer to each standalone module. Task 29
+provides generic MCS foundations that Tasks 30 and 31 import. Each logic gets
+its own complete proof-theoretic development (deduction theorem + MCS theory +
+soundness + completeness).
+
+#### Task 29: Generic MCS Foundations
+**Scope**: ~200–300 lines (new; Wave 1, no dependencies)
+
+| Component | Lines |
+|-----------|-------|
+| `SetConsistent` definition | ~50 |
+| `SetMaximalConsistent` definition | ~50 |
+| Lindenbaum lemma skeleton (Zorn-based) | ~100 |
+| `consistent_chain_union`, `closed_under_derivation`, `implication_property` | ~100 |
+
+**Design**: Parameterized over an abstract derivation relation (`⊢`). Does not
+depend on any per-logic `DerivationTree`. Bimodal task 7 also imports from here.
+
+#### Task 30: Modal Metalogic
+**Scope**: ~1,500 lines (new; after Tasks 21 + 29)
+
+| Component | Lines |
+|-----------|-------|
+| `Modal.DeductionTheorem` (structural induction on ~5-constructor DerivationTree) | ~300 |
+| `Modal.MCS` (generic definitions + box_closure witness condition) | ~400 |
+| `Modal.Soundness` (over Kripke frames/models from Modal/Basic.lean) | ~350 |
+| `Modal.Completeness` (canonical Kripke model construction for S5) | ~450 |
+
+#### Task 31: Temporal Metalogic
+**Scope**: ~1,500 lines (new; after Tasks 22 + 23 + 29)
+
+| Component | Lines |
+|-----------|-------|
+| `Temporal.DeductionTheorem` (structural induction on ~6-constructor DerivationTree) | ~300 |
+| `Temporal.MCS` (generic definitions + Until/Since witness conditions) | ~400 |
+| `Temporal.Soundness` (over linear orders from Task 23 semantics) | ~350 |
+| `Temporal.Completeness` (canonical linear model construction) | ~450 |
+
+**Milestone**: Modal/ and Temporal/ are complete standalone modules with full verified
+proof theories — syntax, proof system, theorems, semantics, and metalogic. All
+four phases produce independently useful, standalone libraries.
+
+---
+
+### Phase 5: Bimodal Porting (Tasks 2–11)
 
 **Target**: `Cslib/Logics/Bimodal/`
 **Scope**: ~30,000+ lines (inherently bimodal content)
 
-Phase 4 is the largest by volume and depends on Phases 1–3 being complete. It
+Phase 5 is the largest by volume and depends on Phases 1–4 being complete. It
 ports the full TM bimodal logic into CSLib, including the task frame semantics,
-the 42-axiom Hilbert system, and all metalogical results.
+the 42-axiom Hilbert system, and all metalogical results. Bimodal MCS theory
+(Task 7) imports the generic MCS foundations from Task 29 (Phase 4).
 
 | Task | Component | Lines | Depends On |
 |------|-----------|-------|------------|
@@ -258,7 +353,7 @@ the 42-axiom Hilbert system, and all metalogical results.
 | 4 | Bimodal Proof System (42-axiom Hilbert, DerivationTree) | ~2,000 | 2, 20, 22 |
 | 5 | Perpetuity Theorems (bimodal fixed-point principles) | ~800 | 4, 21, 22 |
 | 6 | Frame Conditions + Soundness | ~2,370 | 3, 4 |
-| 7 | Deduction Theorem + MCS Theory | ~2,500 | 4, 5 |
+| 7 | Deduction Theorem + MCS Theory | ~2,500 | 4, 5, **29** |
 | 8 | Strong Completeness | ~15,000 | 6, 7 |
 | 9 | Decidability + Tableau | ~10,000 | 4, 7 |
 | 10 | Separation Theorem | ~3,500 | 4, 5, 7 |
@@ -272,18 +367,19 @@ the 42-axiom Hilbert system, and all metalogical results.
 
 ## Task Dependency Structure
 
-The 6-wave dependency graph enforces the import hierarchy. Tasks within the same wave can execute in parallel.
+The dependency graph enforces the import hierarchy. Tasks within the same wave can execute in parallel.
 
 | Wave | Tasks | Blocked by | Description |
 |------|-------|------------|-------------|
-| 1 | 2, 12, 16, 20, 27 | — | Foundations + independent fixes; start immediately |
-| 2 | 3, 21, 22 | 2, 16, 20 | Frame semantics; modal and temporal modules |
-| 3 | 4, 23 | 2, 20, 22 | Bimodal proof system; temporal semantics |
-| 4 | 5, 6, 11 | 3, 4, 21, 22 | Perpetuity; frame conditions + soundness; conservative ext. |
-| 5 | 7 | 4, 5 | Deduction theorem + MCS theory |
-| 6 | 8, 9, 10 | 4, 5, 6, 7 | Completeness; decidability; separation |
+| 1 | 3, 12, 21, 22, 28, 29 | — | Foundations (incl. generic MCS) + frame semantics + standalone modules |
+| 2 | 4, 23, 30 | 21, 22, 29 | Bimodal proof system; temporal semantics; modal metalogic |
+| 3 | 5, 6, 11, 31 | 3, 4, 21, 22, 23, 29 | Perpetuity; frame conds + soundness; cons. ext.; temporal metalogic |
+| 4 | 7 | 4, 5, 29 | Bimodal deduction theorem + MCS theory (imports generic from 29) |
+| 5 | 8, 9, 10 | 4, 5, 6, 7 | Completeness; decidability; separation |
 
-**Foundations-first invariant**: Task 20 (Foundations) is Wave 1. Tasks 21 and 22 depend on Task 20. All bimodal proof tasks (Wave 3+) depend on Foundations and the standalone modules. This enforces: Foundations → Modal/Temporal → Bimodal.
+**Foundations-first invariant**: Task 29 (generic MCS) is Wave 1. Tasks 30 and 31 depend on Task 29. Bimodal Task 7 also depends on Task 29. This enforces: Foundations/Logic/Metalogic → Modal/Metalogic, Temporal/Metalogic, Bimodal/Metalogic.
+
+**Metalogic invariant**: Modal/Metalogic (Task 30) and Temporal/Metalogic (Task 31) do not import from each other — only from Foundations. The import direction is strictly top-down.
 
 **External dependency**: Task 2 (Wave 1) additionally requires a toolchain upgrade in the BimodalLogic source repository (issue #291) before porting can begin.
 
@@ -303,11 +399,14 @@ Every extractable component maps to exactly one task (no double-counting):
 | Modal DerivationTree + S4/S5 theorems + GenNec | 21 | ~1,600 |
 | Temporal infra + HasAxiom* + TemporalDerived + FrameConditions | 22 | ~1,500 |
 | Temporal semantics on LinearOrder (new) | 23 | ~400–600 |
+| Generic MCS foundations (SetConsistent, SetMaximalConsistent, Lindenbaum) | 29 | ~200–300 (new) |
+| Modal metalogic (DT + MCS + Soundness + Completeness) | 30 | ~1,500 (new) |
+| Temporal metalogic (DT + MCS + Soundness + Completeness) | 31 | ~1,500 (new) |
 | Perpetuity theorems | 5 | ~800 |
-| DeductionTheorem (stays per-logic) | 7 | ~500 |
+| Bimodal DeductionTheorem (per-logic; imports generic MCS from Task 29) | 7 | ~500 |
 | All remaining bimodal content | 2–11 | ~30,000+ |
 
-**Total extractable to reusable modules**: ~6,800 lines (Tasks 20–22) plus ~400–600 new lines (Task 23).
+**Total extractable to reusable modules**: ~6,800 lines (Tasks 20–22) plus ~400–600 new lines (Task 23) plus ~3,200–3,300 new metalogic lines (Tasks 29–31).
 **Inherently bimodal**: ~30,000+ lines (Tasks 2–11).
 **BimodalLogic total**: ~84,547 lines (including ~51,332 in WeakCanonical/ discrete pipeline).
 
@@ -315,14 +414,34 @@ Every extractable component maps to exactly one task (no double-counting):
 
 ## Success Metrics
 
+**Phase 1 (Propositional)**
 - [ ] Propositional theorems ported: all ~2,400 lines in `Foundations/Logic/Theorems/` (Task 20)
+
+**Phase 2 (Modal + Temporal Modules)**
 - [ ] Modal module complete: proof system + S4/S5 theorems in `Logics/Modal/` (Task 21)
 - [ ] Temporal module complete: proof system + theorems in `Logics/Temporal/` (Task 22)
+
+**Phase 3 (Temporal Semantics)**
 - [ ] Temporal semantics defined standalone on LinearOrder (Task 23: ~400–600 new lines)
-- [ ] Temporal soundness theorem proved: `TemporalBXHilbert S → S ⊢ φ → Temporal.Valid φ`
+
+**Phase 4 (Standalone Metalogic)**
+- [ ] Generic MCS foundations in `Foundations/Logic/Metalogic/Consistency.lean` (Task 29: ~200–300 new lines)
+- [ ] Modal deduction theorem proved for ~5-constructor `Modal.DerivationTree` (Task 30)
+- [ ] Modal MCS theory with box_closure witness condition in `Logics/Modal/Metalogic/` (Task 30)
+- [ ] Modal soundness theorem: `ModalS5Hilbert S → S ⊢ φ → Modal.Valid φ` (Task 30)
+- [ ] Modal completeness theorem via canonical Kripke model for S5 (Task 30)
+- [ ] Temporal deduction theorem proved for ~6-constructor `Temporal.DerivationTree` (Task 31)
+- [ ] Temporal MCS theory with Until/Since witness conditions in `Logics/Temporal/Metalogic/` (Task 31)
+- [ ] Temporal soundness theorem: `TemporalBXHilbert S → S ⊢ φ → Temporal.Valid φ` (Task 31)
+- [ ] Temporal completeness theorem via canonical linear model construction (Task 31)
 - [ ] All standalone modules self-contained: Modal/ and Temporal/ import only Foundations
-- [ ] Zero sorry in Phases 1–3 (Tasks 20–23)
+- [ ] Zero sorry in Phases 1–4 (Tasks 20–23, 29–31)
+
+**Phase 5 (Bimodal Porting)**
 - [ ] All bimodal tasks (2–11) ported to `Cslib/Logics/Bimodal/`
+- [ ] Bimodal MCS theory imports generic foundations from Task 29
+
+**Cross-cutting**
 - [ ] `lake build` passes with zero errors after each task
 - [ ] PR pipeline complete: all PRs merged to CSLib main (Task 12)
 - [ ] No component double-counted: each theorem belongs to exactly one task
