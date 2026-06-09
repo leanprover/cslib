@@ -4,10 +4,13 @@
     {
       "project_number": 28,
       "project_name": "structure_metalogic_across_systems",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "formal",
       "created": "2026-06-09T01:45:37Z",
-      "last_updated": "2026-06-09T01:45:37Z"
+      "last_updated": "2026-06-09T01:59:47Z",
+      "session_id": "sess_1780969906_265f34",
+      "researched": "2026-06-09T01:59:47Z",
+      "next_artifact_number": 2
     },
     {
       "project_number": 27,
