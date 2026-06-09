@@ -133,7 +133,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: CounterexampleElimination -- Recursive Walks (lines 700-1850) [NOT STARTED]
+### Phase 3: CounterexampleElimination -- Recursive Walks (lines 700-1850) [COMPLETED]
 
 **Goal**: Port the recursive forward and backward walks that insert points to satisfy C5/C5' conditions.
 
