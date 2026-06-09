@@ -32,7 +32,7 @@ next_project_number: 34
 
 ### Temporal Logic
 
-32 [PLANNED] — Fix untl/snce argument order across cslib to match standard liter
+32 [COMPLETED] — Fix untl/snce argument order across cslib to match standard liter
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
   └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR  (see Bimodal Porting section)
@@ -64,9 +64,11 @@ next_project_number: 34
 
 ### 33. Audit noncomputable instances in Temporal module
 - **Effort**: Small (<1 hour)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: None
+- specs/033_audit_noncomputable_temporal_instances/reports/01_audit-noncomputable-research.md: [Research report]
+- specs/033_audit_noncomputable_temporal_instances/plans/01_audit-noncomputable-plan.md: [Implementation plan]
 
 **Description**: Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.
 
@@ -74,11 +76,12 @@ next_project_number: 34
 
 ### 32. Fix untl/snce argument order to match standard literature convention
 - **Effort**: Medium (2-4 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: 22, 3
 - **Research**: [specs/032_fix_untl_argument_order_convention/reports/01_untl-argument-order.md]
 - **Plan**: [specs/032_fix_untl_argument_order_convention/plans/01_untl-argument-fix.md]
+- **Summary**: [specs/032_fix_untl_argument_order_convention/summaries/01_untl-argument-fix-summary.md]
 
 **Description**: Fix untl/snce argument order across cslib to match standard literature convention (Burgess 1982). Currently cslib uses untl(guard, event) but the literature and BimodalLogic source use untl(event, guard). This causes 6+ temporal axioms to be provably unsound under cslib's semantics, with concrete countermodels. Change all Formula definitions (Temporal and Bimodal), Truth semantics, axiom abbreviations, and derived theorems to use untl(event, guard). Affects ~10 files across Temporal and Bimodal modules. Must be completed before any soundness proofs (Task 6) or further temporal work.
 
@@ -97,6 +100,7 @@ next_project_number: 34
 - **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 21 (Modal Proof System), Task 29 (Generic MCS Foundations)
+- specs/030_modal_metalogic/reports/01_modal-metalogic-research.md: [Research report]
 
 **Description**: Build standalone modal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Modal.DeductionTheorem via structural induction on ~5-constructor Modal.DerivationTree (~300 lines), (b) Modal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding modal-specific witness conditions like box_closure (~400 lines), (c) Modal.Soundness over Kripke frames/models from Modal/Basic.lean (~350 lines), (d) Modal.Completeness via canonical Kripke model construction for S5 (~450 lines). Target: `Cslib/Logics/Modal/Metalogic/`.
 

@@ -20,7 +20,7 @@
     {
       "project_number": 30,
       "project_name": "modal_metalogic",
-      "status": "not_started",
+      "status": "planning",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -456,19 +456,20 @@
     {
       "project_number": 32,
       "project_name": "fix_untl_argument_order_convention",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "description": "Fix untl/snce argument order across cslib to match standard literature convention (Burgess 1982). Currently cslib uses untl(guard, event) but the literature and BimodalLogic source use untl(event, guard). This causes 6+ axioms to be provably unsound and 6 more likely unsound. Change all Formula definitions, Truth semantics, axiom abbreviations, and derived theorems to use untl(event, guard). Affects ~10 files across Temporal and Bimodal modules.",
       "topic": "Temporal Logic",
       "dependencies": [
         22,
         3
-      ]
+      ],
+      "completion_summary": "Fixed untl/snce argument order convention across cslib to match Burgess 1982 (arg1=EVENT, arg2=GUARD). Changed semantics in Truth.lean, updated derived operators in both Formula files, axiom abbreviations, ProofSystem.lean, axiom constructors, and re-derived TemporalDerived proofs. Lake build passes clean."
     },
     {
       "project_number": 33,
       "project_name": "audit_noncomputable_temporal_instances",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "description": "Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.",
       "topic": "Temporal Logic",
