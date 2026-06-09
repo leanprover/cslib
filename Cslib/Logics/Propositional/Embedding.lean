@@ -49,6 +49,16 @@ instance instCoePLToModal : Coe (PL.Proposition Atom) (Modal.Proposition Atom) w
 instance instCoePLToTemporal : Coe (PL.Proposition Atom) (Temporal.Formula Atom) where
   coe := PL.Proposition.toTemporal
 
+/-- Embedding preserves atom. -/
+@[simp]
+theorem PL.Proposition.toModal_atom (p : Atom) :
+    (PL.Proposition.atom p : PL.Proposition Atom).toModal = Modal.Proposition.atom p := rfl
+
+/-- Embedding preserves atom (temporal). -/
+@[simp]
+theorem PL.Proposition.toTemporal_atom (p : Atom) :
+    (PL.Proposition.atom p : PL.Proposition Atom).toTemporal = Temporal.Formula.atom p := rfl
+
 /-- Embedding preserves bot. -/
 @[simp]
 theorem PL.Proposition.toModal_bot :

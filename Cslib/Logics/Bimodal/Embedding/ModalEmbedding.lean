@@ -34,6 +34,11 @@ def Modal.Proposition.toBimodal : Modal.Proposition Atom → Bimodal.Formula Ato
 instance instCoeModalToBimodal : Coe (Modal.Proposition Atom) (Bimodal.Formula Atom) where
   coe := Modal.Proposition.toBimodal
 
+/-- Embedding preserves atom. -/
+@[simp]
+theorem Modal.Proposition.toBimodal_atom (p : Atom) :
+    (Modal.Proposition.atom p : Modal.Proposition Atom).toBimodal = Bimodal.Formula.atom p := rfl
+
 /-- Embedding preserves bot. -/
 @[simp]
 theorem Modal.Proposition.toBimodal_bot :

@@ -62,16 +62,16 @@ No ROADMAP.md consultation required for this task.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Add Atom Simp Lemmas [NOT STARTED]
+### Phase 1: Add Atom Simp Lemmas [COMPLETED]
 
 **Goal**: Add `@[simp]` lemmas for the `atom` case to all four existing embedding functions, completing simp coverage for every constructor.
 
 **Tasks**:
-- [ ] Add `PL.Proposition.toModal_atom` to `Cslib/Logics/Propositional/Embedding.lean`
-- [ ] Add `PL.Proposition.toTemporal_atom` to `Cslib/Logics/Propositional/Embedding.lean`
-- [ ] Add `Modal.Proposition.toBimodal_atom` to `Cslib/Logics/Bimodal/Embedding/ModalEmbedding.lean`
-- [ ] Add `Temporal.Formula.toBimodal_atom` to `Cslib/Logics/Bimodal/Embedding/TemporalEmbedding.lean`
-- [ ] Run `lake build` to verify zero errors
+- [x] Add `PL.Proposition.toModal_atom` to `Cslib/Logics/Propositional/Embedding.lean`
+- [x] Add `PL.Proposition.toTemporal_atom` to `Cslib/Logics/Propositional/Embedding.lean`
+- [x] Add `Modal.Proposition.toBimodal_atom` to `Cslib/Logics/Bimodal/Embedding/ModalEmbedding.lean`
+- [x] Add `Temporal.Formula.toBimodal_atom` to `Cslib/Logics/Bimodal/Embedding/TemporalEmbedding.lean`
+- [x] Run `lake build` to verify zero errors
 
 **Timing**: 15 minutes
 

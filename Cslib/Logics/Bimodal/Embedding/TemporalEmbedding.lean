@@ -36,6 +36,11 @@ def Temporal.Formula.toBimodal : Temporal.Formula Atom → Bimodal.Formula Atom
 instance instCoeTemporalToBimodal : Coe (Temporal.Formula Atom) (Bimodal.Formula Atom) where
   coe := Temporal.Formula.toBimodal
 
+/-- Embedding preserves atom. -/
+@[simp]
+theorem Temporal.Formula.toBimodal_atom (p : Atom) :
+    (Temporal.Formula.atom p : Temporal.Formula Atom).toBimodal = Bimodal.Formula.atom p := rfl
+
 /-- Embedding preserves bot. -/
 @[simp]
 theorem Temporal.Formula.toBimodal_bot :
