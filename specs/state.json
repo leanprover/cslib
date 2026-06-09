@@ -34,13 +34,14 @@
     {
       "project_number": 29,
       "project_name": "generic_mcs_foundations",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [],
       "description": "Create generic MCS (maximal consistent set) foundations parameterized over an abstract derivation relation (~200-300 lines). Scope: SetConsistent definition, SetMaximalConsistent definition, Lindenbaum lemma skeleton (Zorn-based), consistent_chain_union, closed_under_derivation, implication_property. These are the ~60% of MCS theory that do not depend on per-logic deduction theorems. Target: Cslib/Foundations/Logic/Metalogic/Consistency.lean. Modal and Temporal metalogic tasks (30, 31) import from here.",
-      "topic": "Foundations"
+      "topic": "Foundations",
+      "completion_summary": "Created Cslib/Foundations/Logic/Metalogic/Consistency.lean (273 lines) with generic MCS foundations: DerivationSystem structure, SetConsistent/SetMaximalConsistent, Lindenbaum lemma via Zorn, HasDeductionTheorem + closure properties. Zero sorries, full lake build passes."
     },
     {
       "project_number": 28,

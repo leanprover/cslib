@@ -64,7 +64,7 @@ next_project_number: 34
 
 ### 33. Audit noncomputable instances in Temporal module
 - **Effort**: Small (<1 hour)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: None
 
@@ -77,12 +77,14 @@ next_project_number: 34
 - **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: 22, 3
+- **Research**: [specs/032_fix_untl_argument_order_convention/reports/01_untl-argument-order.md]
+- **Plan**: [specs/032_fix_untl_argument_order_convention/plans/01_untl-argument-fix.md]
 
 **Description**: Fix untl/snce argument order across cslib to match standard literature convention (Burgess 1982). Currently cslib uses untl(guard, event) but the literature and BimodalLogic source use untl(event, guard). This causes 6+ temporal axioms to be provably unsound under cslib's semantics, with concrete countermodels. Change all Formula definitions (Temporal and Bimodal), Truth semantics, axiom abbreviations, and derived theorems to use untl(event, guard). Affects ~10 files across Temporal and Bimodal modules. Must be completed before any soundness proofs (Task 6) or further temporal work.
 
 ### 31. Temporal metalogic
 - **Effort**: Large (20-30 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 22 (Temporal Infrastructure), Task 23 (Temporal Semantics), Task 29 (Generic MCS Foundations)
 
@@ -92,7 +94,7 @@ next_project_number: 34
 
 ### 30. Modal metalogic
 - **Effort**: Large (20-30 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 21 (Modal Proof System), Task 29 (Generic MCS Foundations)
 
@@ -102,9 +104,12 @@ next_project_number: 34
 
 ### 29. Generic MCS foundations
 - **Effort**: Small (2-4 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: None
+- specs/029_generic_mcs_foundations/reports/01_mcs-foundations-research.md: [Research report]
+- specs/029_generic_mcs_foundations/plans/01_mcs-foundations-plan.md: [Implementation plan]
+- specs/029_generic_mcs_foundations/summaries/01_mcs-foundations-summary.md: [Execution summary]
 
 **Description**: Create generic MCS (maximal consistent set) foundations parameterized over an abstract derivation relation (~200-300 lines). Scope: SetConsistent definition, SetMaximalConsistent definition, Lindenbaum lemma skeleton (Zorn-based), consistent_chain_union, closed_under_derivation, implication_property. These are the ~60% of MCS theory that do not depend on per-logic deduction theorems. Target: `Cslib/Foundations/Logic/Metalogic/Consistency.lean`. Modal and Temporal metalogic tasks (30, 31) import from here.
 
@@ -134,7 +139,7 @@ next_project_number: 34
 
 ### 23. Temporal semantics on linear orders
 - **Effort**: Medium (4-6 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 22 (Temporal Infrastructure)
 
@@ -144,7 +149,7 @@ next_project_number: 34
 
 ### 22. Temporal infrastructure and theorems
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 20 (Propositional Hilbert Theorems)
 
@@ -154,7 +159,7 @@ next_project_number: 34
 
 ### 21. Modal proof system and theorems
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 16 (DecidableEq), 20 (Propositional Theorems)
 
@@ -223,7 +228,7 @@ next_project_number: 34
 
 ### 11. Port Conservative Extension to Bimodal module
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 4 (ProofSystem)
 
@@ -253,7 +258,7 @@ next_project_number: 34
 
 ### 10. Port Separation Theorem to Bimodal module
 - **Effort**: Large (10-14 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 5, 7 (ProofSystem, Perpetuity Theorems, MCS/Deduction)
 
@@ -276,7 +281,7 @@ next_project_number: 34
 
 ### 9. Port Decidability and Tableau to Bimodal module
 - **Effort**: X-Large (20-30 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 7 (ProofSystem, MCS/Deduction)
 
@@ -306,7 +311,7 @@ next_project_number: 34
 
 ### 8. Port Completeness to Bimodal module
 - **Effort**: Large (10-16 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 6, 7 (FrameConditions+Soundness, MCS/Deduction)
 
@@ -328,7 +333,7 @@ next_project_number: 34
 
 ### 7. Port Deduction Infrastructure and MCS Theory to Bimodal module
 - **Effort**: Large (10-14 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 5, 29 (ProofSystem, Perpetuity Theorems, Generic MCS Foundations)
 
@@ -352,7 +357,7 @@ next_project_number: 34
 
 ### 6. Port Frame Conditions and Soundness to Bimodal module
 - **Effort**: Large (10-14 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 3, 4 (Semantics, ProofSystem)
 
@@ -377,7 +382,7 @@ next_project_number: 34
 
 ### 5. Port Perpetuity theorems to Bimodal module
 - **Effort**: Small (3-5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 21, 22 (ProofSystem, Modal Theorems, Temporal Infrastructure)
 - **External Dependencies**: BimodalLogic task 294 (sorry elimination in Perpetuity/)
@@ -402,7 +407,7 @@ next_project_number: 34
 
 ### 4. Port Proof System to Bimodal module
 - **Effort**: Large (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 2, 20, 22 (Syntax, Propositional Theorems, Temporal Infrastructure)
 
@@ -425,7 +430,7 @@ next_project_number: 34
 
 ### 3. Port Task Frame Semantics to Bimodal module
 - **Effort**: Large (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 2 (Bimodal Syntax)
 
