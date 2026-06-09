@@ -224,7 +224,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: HasDeductionTheorem class + closure properties [IN PROGRESS]
+### Phase 5: HasDeductionTheorem class + closure properties [COMPLETED]
 
 **Goal**: Define the deduction theorem hypothesis and prove the closure properties that depend on it.
 
@@ -277,7 +277,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: Build verification [NOT STARTED]
+### Phase 6: Build verification [IN PROGRESS]
 
 **Goal**: Full project build verification, zero-sorry scan, and linter compliance.
 

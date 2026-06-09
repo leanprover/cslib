@@ -161,4 +161,113 @@ theorem set_lindenbaum (D : DerivationSystem F) {S : Set F}
   -- This contradicts φ ∉ M since φ ∈ insert φ M = M
   exact hφ (this ▸ Set.mem_insert φ M)
 
+/-! ## Deduction Theorem and Closure Properties -/
+
+/-- The deduction theorem hypothesis for a derivation system. States that if
+`φ :: Γ ⊢ ψ` then `Γ ⊢ φ → ψ`. This is NOT bundled into `DerivationSystem` because
+the base MCS theory (consistency, chain union, Lindenbaum) does not require it.
+Each logic supplies its own proof of this property. -/
+def HasDeductionTheorem (D : DerivationSystem F) : Prop :=
+  ∀ {Γ : List F} {φ ψ : F}, D.Deriv (φ :: Γ) ψ → D.Deriv Γ (HasImp.imp φ ψ)
+
+/-- Helper: given a derivation `L ⊢ ψ` where `L ⊆ insert φ S`, produce a derivation
+from `φ :: L_S ⊢ ψ` where `L_S` contains only elements of `S`. Uses classical
+decidability for list filtering. -/
+private lemma derives_from_insert_to_cons (D : DerivationSystem F)
+    {S : Set F} {φ : F} {L : List F} {ψ : F}
+    (hL : ∀ x ∈ L, x ∈ insert φ S) (hd : D.Deriv L ψ) :
+    ∃ L_S : List F, (∀ x ∈ L_S, x ∈ S) ∧ D.Deriv (φ :: L_S) ψ := by
+  classical
+  let L_S := L.filter (fun x => decide (x ≠ φ) = true)
+  refine ⟨L_S, ?_, ?_⟩
+  · intro x hx
+    simp only [L_S, List.mem_filter, decide_eq_true_eq] at hx
+    rcases Set.mem_insert_iff.mp (hL x hx.1) with rfl | hxS
+    · exact absurd rfl hx.2
+    · exact hxS
+  · exact D.weakening hd (fun x hx => by
+      by_cases hxφ : x = φ
+      · exact List.mem_cons.mpr (Or.inl hxφ)
+      · exact List.mem_cons.mpr (Or.inr (by
+          simp only [L_S, List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxφ⟩)))
+
+/-- A maximally consistent set is closed under derivation, given the deduction theorem.
+
+If `L ⊆ S` and `L ⊢ φ`, then `φ ∈ S`. Proof: assume `φ ∉ S`. By maximality,
+`insert φ S` is inconsistent, so some `L' ⊆ insert φ S` derives `⊥`. Extract a
+derivation `φ :: L_S ⊢ ⊥` where `L_S ⊆ S`, apply the deduction theorem to get
+`L_S ⊢ φ → ⊥`. Combined with the weakened `L_S ++ L ⊢ φ` and `L_S ++ L ⊢ φ → ⊥`,
+we get `L_S ++ L ⊢ ⊥` from `S`, contradicting set-consistency. -/
+theorem SetMaximalConsistent.closed_under_derivation
+    (D : DerivationSystem F) (hdt : HasDeductionTheorem D)
+    {S : Set F} (h_mcs : SetMaximalConsistent D S)
+    {L : List F} (h_sub : ∀ ψ ∈ L, ψ ∈ S)
+    {φ : F} (h_deriv : D.Deriv L φ) : φ ∈ S := by
+  by_contra hφ
+  -- By maximality, insert φ S is inconsistent
+  have hinc := h_mcs.2 φ hφ
+  unfold SetConsistent Consistent at hinc
+  push Not at hinc
+  obtain ⟨L', hL'sub, hL'bot⟩ := hinc
+  -- Extract derivation from φ :: L_S where L_S ⊆ S
+  obtain ⟨L_S, hL_S_sub, hcons_deriv⟩ := derives_from_insert_to_cons D hL'sub hL'bot
+  -- Apply DT: L_S ⊢ φ → ⊥
+  have h_neg : D.Deriv L_S (HasImp.imp φ HasBot.bot) := hdt hcons_deriv
+  -- Weaken both to L_S ++ L
+  have h_neg' : D.Deriv (L_S ++ L) (HasImp.imp φ HasBot.bot) :=
+    D.weakening h_neg (fun x hx => List.mem_append.mpr (Or.inl hx))
+  have h_phi : D.Deriv (L_S ++ L) φ :=
+    D.weakening h_deriv (fun x hx => List.mem_append.mpr (Or.inr hx))
+  -- MP: L_S ++ L ⊢ ⊥
+  have h_bot : D.Deriv (L_S ++ L) HasBot.bot := D.mp h_neg' h_phi
+  -- All elements of L_S ++ L are in S
+  have h_all_S : ∀ ψ ∈ L_S ++ L, ψ ∈ S := by
+    intro ψ hψ
+    rcases List.mem_append.mp hψ with h | h
+    · exact hL_S_sub ψ h
+    · exact h_sub ψ h
+  -- Contradiction with set-consistency
+  exact h_mcs.1 (L_S ++ L) h_all_S h_bot
+
+/-- Implication property: if `φ → ψ ∈ S` and `φ ∈ S`, then `ψ ∈ S`.
+Follows directly from `closed_under_derivation` via modus ponens. -/
+theorem SetMaximalConsistent.implication_property
+    (D : DerivationSystem F) (hdt : HasDeductionTheorem D)
+    {S : Set F} (h_mcs : SetMaximalConsistent D S)
+    {φ ψ : F} (h_imp : HasImp.imp φ ψ ∈ S) (h_phi : φ ∈ S) : ψ ∈ S :=
+  closed_under_derivation D hdt h_mcs
+    (L := [HasImp.imp φ ψ, φ])
+    (fun x hx => by
+      rw [List.mem_cons] at hx
+      rcases hx with rfl | hx
+      · exact h_imp
+      · rw [List.mem_cons] at hx; rcases hx with rfl | hx
+        · exact h_phi
+        · simp at hx)
+    (D.mp (D.assumption (List.mem_cons.mpr (Or.inl rfl)))
+      (D.assumption (List.mem_cons.mpr (Or.inr (List.mem_cons.mpr (Or.inl rfl))))))
+
+/-- Negation completeness: for any formula `φ`, either `φ ∈ S` or `(φ → ⊥) ∈ S`.
+Uses the deduction theorem and maximality. -/
+theorem SetMaximalConsistent.negation_complete
+    (D : DerivationSystem F) (hdt : HasDeductionTheorem D)
+    {S : Set F} (h_mcs : SetMaximalConsistent D S)
+    (φ : F) : φ ∈ S ∨ HasImp.imp φ HasBot.bot ∈ S := by
+  by_contra h
+  push Not at h
+  obtain ⟨hφ, hneg⟩ := h
+  -- φ ∉ S, so insert φ S is inconsistent
+  have hinc := h_mcs.2 φ hφ
+  unfold SetConsistent Consistent at hinc
+  push Not at hinc
+  obtain ⟨L', hL'sub, hL'bot⟩ := hinc
+  -- Extract derivation from φ :: L_S where L_S ⊆ S
+  obtain ⟨L_S, hL_S_sub, hcons_deriv⟩ := derives_from_insert_to_cons D hL'sub hL'bot
+  -- Apply DT: L_S ⊢ φ → ⊥
+  have h_neg : D.Deriv L_S (HasImp.imp φ HasBot.bot) := hdt hcons_deriv
+  -- (φ → ⊥) ∈ S by closed_under_derivation
+  have : HasImp.imp φ HasBot.bot ∈ S :=
+    closed_under_derivation D hdt h_mcs hL_S_sub h_neg
+  exact hneg this
+
 end Cslib.Logic.Metalogic
