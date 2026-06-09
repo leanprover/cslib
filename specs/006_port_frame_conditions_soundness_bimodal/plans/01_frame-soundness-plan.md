@@ -186,7 +186,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Metalogic/Soundness/Soundness.lean [NOT STARTED]
+### Phase 5: Metalogic/Soundness/Soundness.lean [COMPLETED]
 
 **Goal**: Port the main soundness theorem -- all individual axiom validity theorems (prop_k_valid through z1_valid), `axiom_valid`, `axiom_dense_valid`, `axiom_discrete_valid`, and the main `soundness` theorem. This is the central file connecting swap validity to semantic validity.
 
