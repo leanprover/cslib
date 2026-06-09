@@ -208,7 +208,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: BXCanonical Core -- Frame, Quasimodel, Filtration [NOT STARTED]
+### Phase 5: BXCanonical Core -- Frame, Quasimodel, Filtration [IN PROGRESS]
 
 **Goal**: Port the BXCanonical core infrastructure: Frame, TruthLemma, Quasimodel/, Filtration/, and CanonicalChain.
 
