@@ -101,20 +101,20 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: (Stretch) Audit theorem layer noncomputable sections [NOT STARTED]
+### Phase 3: (Stretch) Audit theorem layer noncomputable sections [COMPLETED]
 
 **Goal**: Remove unnecessary `noncomputable section` blocks from 8 additional files in the theorem layer, if safe.
 
 **Tasks**:
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Combinators.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Propositional/Core.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Propositional/Connectives.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Propositional/Reasoning.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Modal/Basic.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Modal/S5.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/BigConj.lean`
-- [ ] Remove `noncomputable section` from `Cslib/Logics/Temporal/Theorems/TemporalDerived.lean`
-- [ ] Run `lake build` after all removals to verify no breakage
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Combinators.lean`
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Propositional/Core.lean`
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Propositional/Connectives.lean`
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Propositional/Reasoning.lean`
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Modal/Basic.lean`
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/Modal/S5.lean`
+- [x] Remove `noncomputable section` from `Cslib/Foundations/Logic/Theorems/BigConj.lean`
+- [x] Remove `noncomputable section` from `Cslib/Logics/Temporal/Theorems/TemporalDerived.lean`
+- [x] Run `lake build` after all removals to verify no breakage
 
 **Timing**: 15 minutes
 
@@ -136,9 +136,9 @@ Phases within the same wave can execute in parallel.
 
 ## Testing & Validation
 
-- [ ] `lake build` passes with zero errors after Phase 1+2
-- [ ] No `noncomputable` keywords remain in Instances.lean
-- [ ] (Stretch) `lake build` passes after Phase 3
+- [x] `lake build` passes with zero errors after Phase 1+2
+- [x] No `noncomputable` keywords remain in Instances.lean
+- [x] (Stretch) `lake build` passes after Phase 3
 
 ## Artifacts & Outputs
 

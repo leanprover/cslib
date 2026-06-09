@@ -30,7 +30,7 @@ variable {F : Type*} [HasBot F] [HasImp F] [HasUntil F] [HasSince F]
 variable {S : Type*} [InferenceSystem S F]
 variable [TemporalBXHilbert S (F := F)]
 
-noncomputable section
+section
 
 -- Abbreviations for readability
 private abbrev neg' (φ : F) : F := HasImp.imp φ HasBot.bot
@@ -265,6 +265,6 @@ theorem connect_past_H {φ : F} :
   have h_conn := TemporalNecessitation.tempNecPast (@connect_past_thm F _ _ _ _ S _ _ (φ := φ))
   exact ModusPonens.mp (H_distribution (S := S)) h_conn
 
-end -- noncomputable section
+end -- section
 
 end Cslib.Logic.Theorems.Temporal.TemporalDerived

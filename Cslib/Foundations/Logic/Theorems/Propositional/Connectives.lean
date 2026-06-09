@@ -45,7 +45,7 @@ variable {F : Type*} [HasBot F] [HasImp F]
 variable {S : Type*} [InferenceSystem S F]
 variable [PropositionalHilbert S (F := F)]
 
-noncomputable section
+section
 
 /-- Contraposition (implication form):
     `⊢ (φ → ψ) → (¬ψ → ¬φ)`. -/
@@ -541,6 +541,6 @@ theorem demorgan_disj_neg {φ ψ : F} :
   iff_intro demorgan_disj_neg_forward
     demorgan_disj_neg_backward
 
-end -- noncomputable section
+end -- section
 
 end Cslib.Logic.Theorems.Propositional.Connectives

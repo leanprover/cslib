@@ -71,7 +71,7 @@ variable [ModalS5Hilbert S (F := F)]
 -- or φ ψ    = HasImp.imp (HasImp.imp φ HasBot.bot) ψ
 -- iff φ ψ   = and (imp φ ψ) (imp ψ φ)
 
-noncomputable section
+section
 
 /-! ## Axiom 5 Derivation Block -/
 
@@ -580,6 +580,6 @@ theorem s5_diamond_conj_diamond {A B : F} :
   have backward := ModusPonens.mp step1 lce_conj
   exact iff_intro forward backward
 
-end -- noncomputable section
+end -- section
 
 end Cslib.Logic.Theorems.Modal.S5

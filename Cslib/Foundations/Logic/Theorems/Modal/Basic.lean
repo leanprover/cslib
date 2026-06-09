@@ -49,7 +49,7 @@ variable {F : Type*} [HasBot F] [HasImp F] [HasBox F]
 variable {S : Type*} [InferenceSystem S F]
 variable [ModalHilbert S (F := F)]
 
-noncomputable section
+section
 
 /-- Box monotonicity (meta-rule): from `⊢ φ → ψ`, derive `⊢ □φ → □ψ`.
 
@@ -196,6 +196,6 @@ theorem box_iff_intro {φ ψ : F}
   -- Combine into biconditional
   exact iff_intro box_ab box_ba
 
-end -- noncomputable section
+end -- section
 
 end Cslib.Logic.Theorems.Modal.Basic

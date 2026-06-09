@@ -85,7 +85,7 @@ variable [PropositionalHilbert S (F := F)]
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core
 
-noncomputable section
+section
 
 /-- If `φ ∈ L` and `⊢ bigconj L`, then `⊢ φ`. -/
 theorem bigconj_mem_derivable {L : List F} {φ : F}
@@ -133,6 +133,6 @@ theorem bigconj_derivable_intro {L : List F}
       exact ModusPonens.mp
         (ModusPonens.mp pair ha) ih_result
 
-end -- noncomputable section
+end -- section
 
 end Cslib.Logic.Theorems.BigConj

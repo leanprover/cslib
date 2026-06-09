@@ -25,7 +25,7 @@ variable {F : Type*} [HasBot F] [HasImp F]
 variable {S : Type*} [InferenceSystem S F]
 variable [PropositionalHilbert S (F := F)]
 
-noncomputable section
+section
 
 /-- Biconditional introduction (implication form):
     `⊢ (φ → ψ) → ((ψ → φ) → (φ ↔ ψ))`
@@ -40,6 +40,6 @@ theorem bi_imp {φ ψ : F} :
             HasBot.bot))) :=
   pairing (S := S) (HasImp.imp φ ψ) (HasImp.imp ψ φ)
 
-end -- noncomputable section
+end -- section
 
 end Cslib.Logic.Theorems.Propositional.Reasoning
