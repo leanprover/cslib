@@ -146,7 +146,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Bundle Layer 1-3 -- FMCS through CanonicalFrame [IN PROGRESS]
+### Phase 3: Bundle Layer 1-3 -- FMCS through CanonicalFrame [COMPLETED]
 
 **Goal**: Port the foundational Bundle/ files establishing FMCS definitions, temporal content, witness seeds, and canonical frame construction.
 
@@ -154,10 +154,10 @@ Phases within the same wave can execute in parallel.
 - [x] Port `Bundle/FMCSDef.lean` (125 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/FMCSDef.lean`. *(completed)*
 - [x] Port `Bundle/FMCS.lean` (17 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/FMCS.lean`. *(completed)*
 - [x] Port `Bundle/TemporalContent.lean` (244 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/TemporalContent.lean`. *(completed -- used theorem_in_mcs_fc helper instead of theorem_in_mcs)*
-- [ ] Port `Bundle/WitnessSeed.lean` (648 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/WitnessSeed.lean`. Forward/backward witness seeds. Layer 2, depends on TemporalContent.
-- [ ] Port `Bundle/BFMCS.lean` (229 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/BFMCS.lean`. Bundle of FMCS families. Layer 3, depends on FMCS.
-- [ ] Port `Bundle/CanonicalFrame.lean` (297 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/CanonicalFrame.lean`. Canonical frame construction. Layer 3, depends on TemporalContent, WitnessSeed.
-- [ ] Verify `lake build` passes
+- [x] Port `Bundle/WitnessSeed.lean` (648 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/WitnessSeed.lean`. Forward/backward witness seeds. Layer 2, depends on TemporalContent. *(completed)*
+- [x] Port `Bundle/BFMCS.lean` (229 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/BFMCS.lean`. Bundle of FMCS families. Layer 3, depends on FMCS. *(completed)*
+- [x] Port `Bundle/CanonicalFrame.lean` (297 lines) to `Cslib/Logics/Bimodal/Metalogic/Bundle/CanonicalFrame.lean`. Canonical frame construction. Layer 3, depends on TemporalContent, WitnessSeed. *(deviation: altered -- added bridge lemmas setConsistent_to_bimodalSetConsistent and bimodalSetMCS_to_setMCS for Lindenbaum bridging; renamed set_lindenbaum to set_lindenbaum_base)*
+- [x] Verify `lake build` passes *(completed)*
 
 **Timing**: 1.5 hours
 
@@ -178,7 +178,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Bundle Layer 4-5 -- ModalSaturation through UntilSinceCoherence [NOT STARTED]
+### Phase 4: Bundle Layer 4-5 -- ModalSaturation through UntilSinceCoherence [IN PROGRESS]
 
 **Goal**: Port the mid-layer Bundle/ files for modal saturation, successor relation, temporal coherence, construction, and until/since coherence.
 
