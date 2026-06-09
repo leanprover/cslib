@@ -11,76 +11,36 @@ next_project_number: 46
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 35 | -- | Bimodal Porting |
-| 2 | 36,37 | 35 | Bimodal Porting |
-| 3 | 31 | 35,36,37 | Temporal Logic |
-| 4 | 38,39 | 31 | Temporal Logic |
-| 5 | 40,41 | 35,38,39 | Foundations, Temporal Logic |
-| 6 | 12 | 31,35,36,37,38,39,40,41 | Project Management |
+| 1 | 36,37 | -- | Bimodal Porting |
+| 2 | 31 | 36,37 | Temporal Logic |
+| 3 | 38,39 | 31 | Temporal Logic |
+| 4 | 40,41 | 38,39 | Foundations, Temporal Logic |
+| 5 | 12 | 31,36,37,38,39,40,41 | Project Management |
 
-**Grouped by Topic** (indented = depends on parent):
-
-### Foundations
-
-41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
-  └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-
-### Temporal Logic
-
-31 [PARTIAL] — Build standalone temporal metalogic (~1,500 lines, new developmen
-  └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-  └─ 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
-    └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-    └─ 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
-      └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-    └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
-  └─ 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
-    └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-    └─ 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (see above)
-    └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
+**Grouped by Topic** (each task listed once; cross-topic deps noted inline):
 
 ### Bimodal Porting
 
-35 [COMPLETED] — Port dense completeness infrastructure and completeness_dense the
-  └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-  └─ 31 [PARTIAL] — Build standalone temporal metalogic (~1, (see Temporal Logic section)
-  └─ 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
-    └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-    └─ 31 [PARTIAL] — Build standalone temporal metalogic (~1, (see Temporal Logic section)
-  └─ 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
-    └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
-    └─ 31 [PARTIAL] — Build standalone temporal metalogic (~1, (see Temporal Logic section)
-  └─ 41 [NOT STARTED] — Abstract shared completeness infrastruct (see Foundations section)
+36 [BLOCKED] — Port discrete completeness
+37 [BLOCKED] — Port continuous extension completeness
+
+### Temporal Logic
+
+31 [PARTIAL] — Build standalone temporal metalogic (depends on 36, 37)
+38 [NOT STARTED] — Dense temporal completeness (depends on 31)
+39 [NOT STARTED] — Discrete temporal completeness (depends on 31)
+40 [BLOCKED] — Continuous temporal completeness (depends on 38, 39)
+
+### Foundations
+
+41 [NOT STARTED] — Abstract shared completeness infrastructure (depends on 38, 39)
 
 ### Project Management
 
-12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
+12 [PARTIAL] — Coordinate the cslib PR submission process (depends on 31, 36–41)
 
 ## Tasks
 
-### 45. Improve ROADMAP.md diagram and structure
-- **Effort**: Small (1-2 hours)
-- **Status**: [COMPLETED]
-- **Task Type**: markdown
-- specs/045_improve_roadmap_diagram_and_structure/reports/01_roadmap-improvement.md: [Report]
-- specs/045_improve_roadmap_diagram_and_structure/plans/01_roadmap-improvement.md: [Plan]
-- specs/045_improve_roadmap_diagram_and_structure/summaries/01_roadmap-improvement-summary.md: [Summary]
-
-**Description**: Improve ROADMAP.md: replace the Import Hierarchy section with an accurately labeled mermaid diagram, remove all task references throughout the file (readers should see TODO.md for tasks), remove the Phases section entirely, and add a file tree showing the current project structure focused on the aims of the roadmap.
-
----
-
-### 44. Streamline ROADMAP.md
-- **Effort**: Small (1-2 hours)
-- **Status**: [COMPLETED]
-- **Task Type**: markdown
-- **Report**: [specs/044_streamline_roadmap/reports/01_streamline-roadmap.md]
-- **Plan**: [specs/044_streamline_roadmap/plans/01_streamline-roadmap.md]
-- **Summary**: [specs/044_streamline_roadmap/summaries/01_streamline-roadmap-summary.md]
-
-**Description**: Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed.
-
----
 
 ### 31. Temporal metalogic
 - **Effort**: Large (18 hours)
@@ -229,20 +189,5 @@ next_project_number: 46
 
 ---
 
-### 35. Port dense completeness infrastructure
-- **Effort**: X-Large (28 hours)
-- **Status**: [IMPLEMENTING]
-- **Task Type**: lean4
-- **Dependencies**: Task 34
-- **Parent**: Task 8 (expanded)
-- **Research**: [specs/035_port_dense_completeness_bimodal/reports/01_dense-completeness-research.md]
-- **Plan**: [specs/035_port_dense_completeness_bimodal/plans/01_dense-completeness-plan.md]
-
-**Description**: Port dense completeness infrastructure and `completeness_dense` theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The `completeness_dense` theorem constructs countermodels on `Rat` via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.
-
-**Source**: `BimodalLogic/Theories/Bimodal/Metalogic/{Algebraic/,Bundle/,BXCanonical/}` (~40 files, ~15,000 lines)
-**Target**: `Cslib/Logics/Bimodal/Metalogic/`
-
----
 
 

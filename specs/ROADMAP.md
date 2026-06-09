@@ -80,13 +80,13 @@ Imports flow downward: Foundations at top, Modal and Temporal in the middle (ind
 | BX conservative extension | `Logics/Bimodal/Metalogic/ConservativeExtension/` |
 | Tableau decision procedure | `Logics/Bimodal/Metalogic/Decidability/` |
 | Finite model property | `Logics/Bimodal/Metalogic/Decidability/FMP/` |
+| Dense completeness (Algebraic, Bundle, BXCanonical) | `Logics/Bimodal/Metalogic/` |
 
 ## Remaining
 
 | Component | Module |
 |-----------|--------|
 | Temporal metalogic: DeductionTheorem, MCS, Soundness, Completeness | `Logics/Temporal/Metalogic/` |
-| Dense completeness (Algebraic, Bundle, BXCanonical) | `Logics/Bimodal/Metalogic/` |
 | Discrete completeness | `Logics/Bimodal/Metalogic/` |
 | Continuous extension completeness | `Logics/Bimodal/Metalogic/` |
 | Dense temporal completeness | `Logics/Temporal/Metalogic/` |

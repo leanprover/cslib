@@ -2,56 +2,6 @@
   "next_project_number": 46,
   "active_projects": [
     {
-      "project_number": 45,
-      "project_name": "improve_roadmap_diagram_and_structure",
-      "status": "completed",
-      "task_type": "markdown",
-      "created": "2026-06-09T17:32:58Z",
-      "last_updated": "2026-06-09T17:46:29Z",
-      "completion_summary": "Restructured ROADMAP.md: replaced ASCII Import Hierarchy with accurate mermaid flowchart, removed all task references, deleted Phases section, added verified Project Structure file tree"
-    },
-    {
-      "project_number": 44,
-      "project_name": "streamline_roadmap",
-      "status": "completed",
-      "task_type": "markdown",
-      "created": "2026-06-09T15:49:48Z",
-      "last_updated": "2026-06-09T17:10:00Z",
-      "completion_summary": "Rewrote ROADMAP.md from 486 lines to 101 lines. Removed design rationale, directory trees, line-count tables, success metrics, and dependency wave tables. Preserved goal statement, modular factoring principle, import hierarchy diagram, completed/remaining 3-column tables (17 completed tasks, 8 remaining), and brief phase narrative paragraphs.",
-      "description": "Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed.",
-      "artifacts": [
-        {
-          "path": "specs/044_streamline_roadmap/reports/01_streamline-roadmap.md",
-          "type": "research",
-          "summary": "Analysis of current ROADMAP.md content: what to keep, what to remove, proposed new structure"
-        },
-        {
-          "path": "specs/044_streamline_roadmap/plans/01_streamline-roadmap.md",
-          "type": "plan",
-          "summary": "Single-phase plan to rewrite ROADMAP.md from ~486 to ~80-100 lines"
-        }
-      ],
-      "plan_metadata": {
-        "phases": 1,
-        "total_effort_hours": 1,
-        "complexity": "simple",
-        "research_integrated": true,
-        "plan_version": 1,
-        "dependency_waves": [
-          [
-            1
-          ]
-        ],
-        "reports_integrated": [
-          {
-            "path": "reports/01_streamline-roadmap.md",
-            "integrated_in_plan_version": 1,
-            "integrated_date": "2026-06-09"
-          }
-        ]
-      }
-    },
-    {
       "project_number": 31,
       "project_name": "temporal_metalogic",
       "status": "partial",
@@ -193,82 +143,6 @@
       "topic": "Bimodal Porting"
     },
     {
-      "project_number": 35,
-      "project_name": "port_dense_completeness_bimodal",
-      "status": "completed",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-09T22:00:00Z",
-      "dependencies": [
-        34
-      ],
-      "session_id": "sess_1781015794_9ad061",
-      "next_artifact_number": 2,
-      "artifacts": [
-        {
-          "path": "specs/035_port_dense_completeness_bimodal/reports/01_dense-completeness-research.md",
-          "type": "research",
-          "summary": "Comprehensive research on dense completeness porting scope"
-        },
-        {
-          "path": "specs/035_port_dense_completeness_bimodal/plans/01_dense-completeness-plan.md",
-          "type": "plan",
-          "summary": "12-phase implementation plan for dense completeness port (28 hours, ~46 files)"
-        }
-      ],
-      "plan_metadata": {
-        "phases": 12,
-        "total_effort_hours": 28,
-        "complexity": "complex",
-        "research_integrated": true,
-        "plan_version": 1,
-        "dependency_waves": [
-          [
-            1
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            6
-          ],
-          [
-            7
-          ],
-          [
-            8
-          ],
-          [
-            9
-          ],
-          [
-            10
-          ],
-          [
-            11
-          ],
-          [
-            12
-          ]
-        ],
-        "reports_integrated": [
-          {
-            "path": "reports/01_dense-completeness-research.md",
-            "integrated_in_plan_version": 1,
-            "integrated_date": "2026-06-09"
-          }
-        ]
-      },
-      "description": "Port dense completeness infrastructure and completeness_dense theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The completeness_dense theorem constructs countermodels on Rat via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/{Algebraic/,Bundle/,BXCanonical/} (~40 files, ~15,000 lines)\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Parent task**: 8 (expanded)",
-      "topic": "Bimodal Porting",
-      "completion_summary": "Ported complete dense completeness infrastructure (12 phases, ~50 files). completeness_dense theorem in Completeness/Dense.lean. Full lake build passes. 38 sorries (source had ~50). WeakCanonical discrete pipeline sorry-stubbed (task 36). Barrel imports for Algebraic/, Bundle/, BXCanonical/ created."
-    },
-    {
       "project_number": 36,
       "project_name": "port_discrete_completeness_bimodal",
       "status": "blocked",
@@ -326,8 +200,8 @@
     }
   ],
   "repository_health": {
-    "last_assessed": "2026-06-09T15:32:45Z",
-    "todo_count": 21,
+    "last_assessed": "2026-06-09T19:28:24Z",
+    "todo_count": 24,
     "fixme_count": 0,
     "build_errors": 0,
     "status": "healthy"
