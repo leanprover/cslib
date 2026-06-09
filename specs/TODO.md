@@ -1,5 +1,5 @@
 ---
-next_project_number: 26
+next_project_number: 27
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 26
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 2,12,15,16,17,18,20,24,25 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
+| 1 | 2,12,16,20,25,26 | -- | Foundations, Modal Logic, Bimodal Porting, ... |
 | 2 | 3,21,22 | 2,16,20 | Modal Logic, Temporal Logic, Bimodal Porting |
 | 3 | 4,23 | 2,20,22 | Temporal Logic, Bimodal Porting |
 | 4 | 5,6,11 | 3,4,21,22 | Bimodal Porting |
@@ -87,14 +87,18 @@ next_project_number: 26
 
 ### Project Management
 
-12 [PLANNED] — Coordinate the cslib PR submission process for the Temporal Logic
-15 [RESEARCHED] — Complete embedding lattice: add atom simp lemmas, PL.toBimodal pa
-17 [PLANNED] — Clean stale task 14 references and verify Task Order consistency.
-18 [RESEARCHED] — Generate project-overview.md for this repository
-24 [COMPLETED] — improve roadmap bimodal porting
+12 [PARTIAL] — Coordinate the cslib PR submission process for the Temporal Logic
 25 [NOT STARTED] — revise task order topic assignments
+26 [NOT STARTED] — revise roadmap focus on porting
 
 ## Tasks
+
+### 26. Revise ROADMAP.md to focus on porting across all four logic levels
+- **Effort**: Medium (2-4 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+
+**Description**: Revise ROADMAP.md to shift focus from the Bimodal/ theory to the full porting effort from BimodalLogic/ into Propositional/, Modal/, Temporal/, and Bimodal/. Provide background on the bimodal logic TM with links to https://github.com/benbrastmckie/BimodalLogic where more information can be found. Do not include a link to the paper in the ROADMAP.md
 
 ### 25. Revise Task Order topic assignments based on ROADMAP.md
 - **Effort**: Small (1-2 hours)

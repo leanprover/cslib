@@ -1,6 +1,15 @@
 {
-  "next_project_number": 26,
+  "next_project_number": 27,
   "active_projects": [
+    {
+      "project_number": 26,
+      "project_name": "revise_roadmap_focus_on_porting",
+      "status": "not_started",
+      "task_type": "markdown",
+      "topic": "Project Management",
+      "created": "2026-06-09T00:52:11Z",
+      "last_updated": "2026-06-09T00:52:11Z"
+    },
     {
       "project_number": 25,
       "project_name": "revise_task_order_topic_assignments",
