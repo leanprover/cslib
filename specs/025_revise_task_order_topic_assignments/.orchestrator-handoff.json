@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Fixed two DFS rendering bugs in generate-task-order.sh: (1) cross-topic gating in _print_topic_node to emit annotations instead of recursing into other topic subtrees, (2) globally-visited guard in fallback loop to prevent tasks from re-appearing as root entries after being rendered as children. Also corrected Task 15 topic field from 'Project Management' to 'Foundations' in state.json. Regenerated TODO.md Task Order section with correct topic grouping.",
+  "artifacts": [
+    {
+      "path": "specs/025_revise_task_order_topic_assignments/summaries/01_implementation-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for task 25: two rendering bugs fixed, Task 15 topic corrected, TODO.md regenerated"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "complete",
+  "phases_completed": 2,
+  "phases_total": 2
+}

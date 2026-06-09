@@ -88,14 +88,14 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Regenerate TODO.md and Validate [NOT STARTED]
+### Phase 2: Regenerate TODO.md and Validate [COMPLETED]
 
 **Goal**: Apply the fixed rendering to TODO.md and verify the output is correct.
 
 **Tasks**:
-- [ ] Run `bash .claude/scripts/generate-task-order.sh --update-todo specs/TODO.md specs/state.json` to regenerate the Task Order section in TODO.md
-- [ ] Verify the updated Task Order section in TODO.md matches expected structure: each topic section contains only its own tasks, cross-topic dependencies shown as annotations
-- [ ] Spot-check that the wave table still renders correctly (it should be unchanged since it uses a separate code path)
+- [x] Run `bash .claude/scripts/generate-task-order.sh --update-todo specs/TODO.md specs/state.json` to regenerate the Task Order section in TODO.md *(completed)*
+- [x] Verify the updated Task Order section in TODO.md matches expected structure: each topic section contains only its own tasks, cross-topic dependencies shown as annotations *(completed)*
+- [x] Spot-check that the wave table still renders correctly (it should be unchanged since it uses a separate code path) *(completed)*
 
 **Timing**: 15 minutes
 

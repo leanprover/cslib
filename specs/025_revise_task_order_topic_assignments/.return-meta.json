@@ -1,0 +1,28 @@
+{
+  "status": "implemented",
+  "agent_type": "general-implementation-agent",
+  "session_id": "sess_1780966923_8443f0",
+  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+  "task_number": 25,
+  "phases_completed": 2,
+  "phases_total": 2,
+  "completion_data": {
+    "completion_summary": "Fixed two DFS rendering bugs in generate-task-order.sh (cross-topic gating and globally-visited fallback guard), corrected Task 15's topic field in state.json from 'Project Management' to 'Foundations', and regenerated TODO.md Task Order section with correct topic grouping and cross-reference annotations."
+  },
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/025_revise_task_order_topic_assignments/summaries/01_implementation-summary.md",
+      "summary": "Implementation summary for task 25: rendering bugs fixed, TODO.md regenerated with correct topic grouping"
+    }
+  ],
+  "memory_candidates": [
+    {
+      "content": "When DFS tree rendering traverses cross-topic successors in generate-task-order.sh, gate recursion by checking if the successor's topic differs from _current_section_topic. If different, emit a short cross-reference annotation like '(see {topic} section)' instead of recursing. Critically: do NOT mark cross-topic successors as _globally_visited when emitting annotations, so they can still render fully in their own section.",
+      "category": "PATTERN",
+      "source_artifact": "specs/025_revise_task_order_topic_assignments/summaries/01_implementation-summary.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["generate-task-order", "cross-topic", "DFS", "rendering", "topic-grouping", "globally-visited"]
+    }
+  ]
+}
