@@ -1,5 +1,5 @@
 {
-  "status": "in_progress",
+  "status": "partial",
   "started_at": "2026-06-09T00:00:00Z",
   "artifacts": [
     {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Defs.lean", "type": "source"},
@@ -7,16 +7,29 @@
     {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/IntHelpers.lean", "type": "source"},
     {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Duality.lean", "type": "source"},
     {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Distributivity.lean", "type": "source"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/NegationEquiv.lean", "type": "source"}
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/NegationEquiv.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Eliminations.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/DedekindZ/QLemma.lean", "type": "source"}
   ],
   "partial_progress": {
-    "stage": "phase_7_starting",
-    "details": "Cycle 2 agent started, resuming from phase 7 (Eliminations.lean)"
+    "stage": "phase_8_partial",
+    "details": "Phases 1-7 completed. Phase 8 partial: QLemma.lean done, Cases.lean (1768 lines) not yet ported. Phases 9-15 not started.",
+    "phases_completed": 7,
+    "phases_total": 15
+  },
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
   },
   "metadata": {
     "session_id": "sess_1781007220_8b0662_10",
     "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"]
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "skipped",
+    "handoff_path": "specs/010_port_separation_theorem_bimodal/handoffs/phase-8-handoff-20260609.md"
   }
 }

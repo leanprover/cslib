@@ -1,22 +1,25 @@
 {
   "status": "partial",
-  "summary": "Completed phases 1-6 of 15. All 6 files build with zero sorry and zero axioms. Next: phase 7 (Eliminations.lean, 902 lines). Key insight: scoped notation (F,G,H,P,S,U) in Cslib.Logic.Bimodal requires careful handling - use rw with int_truth simp lemmas instead of simp only [int_truth], and avoid single-letter variable names matching notation.",
+  "summary": "Completed phases 1-7 of 15 plus QLemma.lean from phase 8. Eliminations.lean (902 lines) and QLemma.lean (459 lines) ported with zero sorry, zero axioms, verified build. Cases.lean (1768 lines) and 7 more phases remain.",
   "artifacts": [
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Defs.lean", "type": "source", "summary": "Phase 1: Foundation types and predicates (553 lines source -> ported)"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/FormulaOps.lean", "type": "source", "summary": "Phase 2: Substitution and freshness with Infinite typeclass (235 lines source -> ported)"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/IntHelpers.lean", "type": "source", "summary": "Phase 3: Integer arithmetic helpers (131 lines source -> ported)"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Duality.lean", "type": "source", "summary": "Phase 4: Temporal duality (342 lines source -> ported)"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Distributivity.lean", "type": "source", "summary": "Phase 5: Distributivity laws (188 lines source -> ported)"},
-    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/NegationEquiv.lean", "type": "source", "summary": "Phase 6: Negation equivalences over Z (159 lines source -> ported)"}
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Defs.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/FormulaOps.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/IntHelpers.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Duality.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Distributivity.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/NegationEquiv.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/Eliminations.lean", "type": "source"},
+    {"path": "Cslib/Logics/Bimodal/Metalogic/Separation/DedekindZ/QLemma.lean", "type": "source"}
   ],
   "blockers": [],
   "continuation_context": {
-    "completed_phases": [1, 2, 3, 4, 5, 6],
-    "next_phase": 7,
-    "notes": "Phase 7 (Eliminations.lean, 902 lines) is the largest non-hierarchy file with 8 elimination cases (though Cases 5-8 are deferred to NormalForm.lean in the source). KEY PORTING INSIGHTS: (1) Scoped notation F,G,H,P,S,U is active in child namespaces of Cslib.Logic.Bimodal. Avoid these as variable names. Use w,x,r,m,u instead. (2) Use rw [int_truth_neg, int_truth_or, int_truth_and, int_truth_all_future, int_truth_all_past] to reduce goals to clean propositional form. Do NOT use 'simp only [int_truth]' which unfolds Formula abbrevs (neg,and,or) to raw implications, breaking left/right/rcases. (3) The source uses int_truth_and_iff/int_truth_or_iff/int_truth_neg_iff which correspond exactly to our @[simp] lemmas int_truth_and/int_truth_or/int_truth_neg. (4) Freshness uses Finset.exists_notMem from Mathlib.Data.Set.Finite.Basic instead of concrete Atom.mk_fresh_injective. (5) Formula.neg/and/or/all_future/all_past/some_future/some_past are all abbrevs in cslib, not separate constructors.",
-    "handoff_file": "specs/010_port_separation_theorem_bimodal/handoffs/phase-6-handoff.md"
+    "completed_phases": [1, 2, 3, 4, 5, 6, 7],
+    "partially_completed": [8],
+    "next_phase": 8,
+    "notes": "Phase 8 has QLemma.lean done. Cases.lean (1768 lines) is the remaining file. KEY PORTING PATTERNS (cycle 2 discoveries): (1) int_truth_and_iff -> (int_truth_and M t _ _) with explicit M t args. (2) After subst, the RHS variable of the equality is eliminated (e.g., subst hut where hut : u = t eliminates t, replaced by u). Use the surviving variable name in subsequent references. (3) simp with int_truth_neg fires before int_truth_and when both present, breaking the and-pattern. Use rw for sequential control: rw [int_truth_and] first, then rw [int_truth_neg]. Or construct proof terms directly: (int_truth_and M t _ _).mpr <...>. (4) Formula.and/neg/or are abbrevs that auto-unfold. Don't include them in simp calls. (5) For all_past handling in backward proofs: use have ... := (int_truth_and M t _ _).mp hand then (int_truth_neg M t _).mp on each component.",
+    "handoff_file": "specs/010_port_separation_theorem_bimodal/handoffs/phase-8-handoff-20260609.md"
   },
   "next_action_hint": "implement",
-  "phases_completed": 6,
+  "phases_completed": 7,
   "phases_total": 15
 }
