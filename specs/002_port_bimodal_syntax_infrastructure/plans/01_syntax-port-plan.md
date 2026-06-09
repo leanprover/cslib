@@ -108,19 +108,19 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Create Context.lean [NOT STARTED]
+### Phase 2: Create Context.lean [COMPLETED]
 
 **Goal**: Create parameterized Context type with operations and theorems
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Temporal/Syntax/Context.lean` with Apache 2.0 header
-- [ ] Add `module` declaration and `public import Cslib.Logics.Temporal.Syntax.Formula`
-- [ ] Define `abbrev Context (Atom : Type u) := List (Formula Atom)` in `Cslib.Logic.Temporal` namespace
-- [ ] Port `Context.map`, `Context.isEmpty`, `Context.singleton` (parameterized over Atom)
-- [ ] Port `map_length`, `map_comp`, `map_id`, `map_nil`, `map_cons`, `map_append` theorems
-- [ ] Port `mem_map_iff`, `mem_map_of_mem`, `not_mem_nil`, `mem_singleton_iff` membership theorems
-- [ ] Port `isEmpty_iff_eq_nil`, `exists_mem_of_ne_nil` theorems
-- [ ] Verify `lake build Cslib.Logics.Temporal.Syntax.Context` passes
+- [x] Create `Cslib/Logics/Temporal/Syntax/Context.lean` with Apache 2.0 header *(completed)*
+- [x] Add `module` declaration and `public import Cslib.Logics.Temporal.Syntax.Formula` *(completed)*
+- [x] Define `abbrev Context (Atom : Type u) := List (Formula Atom)` *(completed)*
+- [x] Port `Context.map`, `Context.isEmpty`, `Context.singleton` *(completed)*
+- [x] Port `map_length`, `map_comp`, `map_id`, `map_nil`, `map_cons`, `map_append` theorems *(completed)*
+- [x] Port `mem_map_iff`, `mem_map_of_mem`, `not_mem_nil`, `mem_singleton_iff` theorems *(completed)*
+- [x] Port `isEmpty_iff_eq_nil`, `exists_mem_of_ne_nil` theorems *(completed)*
+- [x] Verify `lake build Cslib.Logics.Temporal.Syntax.Context` passes *(completed)*
 
 **Timing**: 45 minutes
 
@@ -135,17 +135,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Create BigConj.lean [NOT STARTED]
+### Phase 3: Create BigConj.lean [COMPLETED]
 
 **Goal**: Create finite conjunction folding function with simp lemmas
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Temporal/Syntax/BigConj.lean` with Apache 2.0 header
-- [ ] Add `module` declaration and `public import Cslib.Logics.Temporal.Syntax.Formula`
-- [ ] Define `bigconj : List (Formula Atom) -> Formula Atom` (parameterized)
-- [ ] Define `neg_bigconj` derived function
-- [ ] Add `@[simp]` lemmas: `bigconj_nil`, `bigconj_singleton`, `bigconj_cons_cons`, `neg_bigconj_def`
-- [ ] Verify `lake build Cslib.Logics.Temporal.Syntax.BigConj` passes
+- [x] Create `Cslib/Logics/Temporal/Syntax/BigConj.lean` with Apache 2.0 header *(completed)*
+- [x] Add `module` declaration and `public import Cslib.Logics.Temporal.Syntax.Formula` *(completed)*
+- [x] Define `bigconj : List (Formula Atom) -> Formula Atom` (parameterized) *(completed)*
+- [x] Define `neg_bigconj` derived function *(completed)*
+- [x] Add `@[simp]` lemmas: `bigconj_nil`, `bigconj_singleton`, `bigconj_cons_cons`, `neg_bigconj_def` *(completed)*
+- [x] Verify `lake build Cslib.Logics.Temporal.Syntax.BigConj` passes *(completed)*
 
 **Timing**: 30 minutes
 
@@ -160,21 +160,21 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Create Subformulas.lean [NOT STARTED]
+### Phase 4: Create Subformulas.lean [COMPLETED]
 
 **Goal**: Create subformula closure function with membership and transitivity lemmas
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Temporal/Syntax/Subformulas.lean` with Apache 2.0 header
-- [ ] Add `module` declaration and `public import Cslib.Logics.Temporal.Syntax.Formula`
-- [ ] Define `Formula.subformulas : Formula Atom -> List (Formula Atom)` (5 cases, no box)
-- [ ] Define `Formula.subformulaCount` using `eraseDups.length`
-- [ ] Port `self_mem_subformulas` theorem
-- [ ] Port per-constructor membership: `imp_left_mem_subformulas`, `imp_right_mem_subformulas`, `all_past_inner_mem_subformulas`, `all_future_inner_mem_subformulas`, `untl_left_mem_subformulas`, `untl_right_mem_subformulas`, `snce_left_mem_subformulas`, `snce_right_mem_subformulas`
-- [ ] Port `subformulas_trans` (transitivity, 5-case induction, no box case)
-- [ ] Port direct membership lemmas: `mem_subformulas_of_imp_left`, `_imp_right`, `_all_past`, `_all_future`, `_untl_left`, `_untl_right`, `_snce_left`, `_snce_right`
-- [ ] Skip `mem_subformulas_of_box` and `box_inner_mem_subformulas` (box-dependent)
-- [ ] Verify `lake build Cslib.Logics.Temporal.Syntax.Subformulas` passes
+- [x] Create `Cslib/Logics/Temporal/Syntax/Subformulas.lean` with Apache 2.0 header *(completed)*
+- [x] Add `module` declaration and `public import Cslib.Logics.Temporal.Syntax.Formula` *(completed)*
+- [x] Define `Formula.subformulas : Formula Atom -> List (Formula Atom)` (5 cases, no box) *(completed)*
+- [x] Define `Formula.subformulaCount` using `eraseDups.length` *(completed)*
+- [x] Port `self_mem_subformulas` theorem *(completed)*
+- [x] Port per-constructor membership lemmas *(completed)*
+- [x] Port `subformulas_trans` (transitivity, 5-case induction, no box case) *(completed)*
+- [x] Port direct membership lemmas *(completed)*
+- [x] Skip `mem_subformulas_of_box` and `box_inner_mem_subformulas` (box-dependent) *(completed -- skipped as planned)*
+- [x] Verify `lake build Cslib.Logics.Temporal.Syntax.Subformulas` passes *(completed)*
 
 **Timing**: 1 hour
 
