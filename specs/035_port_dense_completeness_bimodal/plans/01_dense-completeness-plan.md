@@ -146,7 +146,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Bundle Layer 1-3 -- FMCS through CanonicalFrame [NOT STARTED]
+### Phase 3: Bundle Layer 1-3 -- FMCS through CanonicalFrame [IN PROGRESS]
 
 **Goal**: Port the foundational Bundle/ files establishing FMCS definitions, temporal content, witness seeds, and canonical frame construction.
 
