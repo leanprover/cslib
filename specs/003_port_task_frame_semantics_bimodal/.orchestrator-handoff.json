@@ -1,0 +1,23 @@
+{
+  "task_number": 3,
+  "task_name": "Port Frame Semantics (PR 2)",
+  "status": "implemented",
+  "session_id": "sess_1780970224_ba1435_3",
+  "completion_summary": "Ported 5 source files plus created Context.lean (1,649 lines total) from BimodalLogic to Cslib. All definitions, theorems, and proofs compile with zero sorries, zero vacuous definitions, and zero new axioms. Key adaptations: Atom parametrization, variable naming (F -> ℱ due to scoped notation), and Until/Since semantics swap to match cslib's standard convention.",
+  "artifacts_created": [
+    "Cslib/Logics/Bimodal/Semantics/TaskFrame.lean",
+    "Cslib/Logics/Bimodal/Semantics/WorldHistory.lean",
+    "Cslib/Logics/Bimodal/Semantics/TaskModel.lean",
+    "Cslib/Logics/Bimodal/Semantics/Truth.lean",
+    "Cslib/Logics/Bimodal/Semantics/Validity.lean",
+    "Cslib/Logics/Bimodal/Syntax/Context.lean",
+    "specs/003_port_task_frame_semantics_bimodal/summaries/01_frame-semantics-summary.md"
+  ],
+  "verification": {
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true,
+    "compliance_check": "passed"
+  }
+}
