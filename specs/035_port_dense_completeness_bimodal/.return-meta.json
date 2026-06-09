@@ -10,17 +10,27 @@
     {
       "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/PointInsertion.lean",
       "type": "implementation",
-      "summary": "Phase 9: PointInsertion.lean partially ported (~93 errors remaining)"
+      "summary": "Phase 9: PointInsertion.lean complete (3549 lines, 0 sorries)"
     },
     {
-      "path": "specs/035_port_dense_completeness_bimodal/handoffs/phase-9-handoff-20260609g.md",
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/CounterexampleElimination.lean",
+      "type": "implementation",
+      "summary": "Phase 9: CounterexampleElimination.lean complete (3511 lines, 0 sorries)"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/ChronicleConstruction.lean",
+      "type": "implementation",
+      "summary": "Phase 9: ChronicleConstruction.lean WIP (1524 lines, ~84 errors)"
+    },
+    {
+      "path": "specs/035_port_dense_completeness_bimodal/handoffs/phase-9-handoff-20260609h.md",
       "type": "handoff",
-      "summary": "Handoff with translation patterns and error analysis"
+      "summary": "Final handoff with complete translation patterns and blocker analysis"
     }
   ],
   "partial_progress": {
     "stage": "phase_9_in_progress",
-    "details": "Phase 8 completed (RRelation.lean). Phase 9 PointInsertion.lean mechanically translated with ~93 errors. CounterexampleElimination and ChronicleConstruction not started.",
+    "details": "Phase 8 complete. Phase 9: 2/3 files complete (PointInsertion, CounterexampleElimination). ChronicleConstruction has ~84 errors, mainly from Denumerable/Countable instance chain.",
     "phases_completed": 8,
     "phases_total": 12
   },
