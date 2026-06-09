@@ -246,7 +246,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: Eliminations.lean -- Lemma 10.2.3 [NOT STARTED]
+### Phase 7: Eliminations.lean -- Lemma 10.2.3 [COMPLETED]
 
 **Goal**: Port the 8 elimination cases that form the core of the separation proof (pulling U out from under S).
 
