@@ -76,6 +76,19 @@ noncomputable instance :
   tempNec := fun h => by
     obtain ⟨d⟩ := h
     exact ⟨Temporal.DerivationTree.temporal_necessitation _ d⟩
+  tempNecPast := fun {φ} (h : InferenceSystem.DerivableIn Temporal.HilbertBX φ) => by
+    obtain ⟨d⟩ := h
+    let d_swap := Temporal.DerivationTree.temporal_duality _ d
+    let g_swap := Temporal.DerivationTree.temporal_necessitation _ d_swap
+    let d_final := Temporal.DerivationTree.temporal_duality _ g_swap
+    -- d_final : DerivationTree .Base [] (swap(G(swap(φ))))
+    -- We need to cast this to the InferenceSystem goal type
+    have h_eq : φ.swap_temporal.all_future.swap_temporal = φ.all_past := by
+      simp only [Temporal.Formula.all_past, Temporal.Formula.some_past,
+                 Temporal.Formula.neg, Temporal.Formula.top,
+                 Temporal.Formula.swap_temporal,
+                 Temporal.Formula.swap_temporal_involution]
+    exact ⟨InferenceSystem.rwConclusion h_eq d_final⟩
 
 /-! ## Temporal Axiom Instances (22) -/
 

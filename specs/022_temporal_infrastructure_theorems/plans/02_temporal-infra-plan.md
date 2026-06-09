@@ -204,7 +204,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: TemporalDerived Theorems and Frame Conditions [NOT STARTED]
+### Phase 5: TemporalDerived Theorems and Frame Conditions [COMPLETED]
 
 **Goal**: Port the TemporalDerived theorem library to generic typeclass style and adapt the frame condition typeclasses from BimodalLogic.
 

@@ -68,8 +68,10 @@ class Necessitation (S : Type*) [HasBox F] [InferenceSystem S F] where
     InferenceSystem.DerivableIn S φ →
     InferenceSystem.DerivableIn S (HasBox.box φ)
 
-/-- The proof system has temporal necessitation: from `S ⊢ φ`, derive `S ⊢ G(φ)`.
-    G(φ) = ¬F(¬φ) = (⊤ U (φ → ⊥)) → ⊥ -/
+/-- The proof system has temporal necessitation: from `S ⊢ φ`, derive `S ⊢ G(φ)`
+    and `S ⊢ H(φ)`.
+    G(φ) = ¬F(¬φ) = (⊤ U (φ → ⊥)) → ⊥
+    H(φ) = ¬P(¬φ) = (⊤ S (φ → ⊥)) → ⊥ -/
 class TemporalNecessitation (S : Type*) [HasBot F] [HasImp F]
     [HasUntil F] [HasSince F] [InferenceSystem S F] where
   /-- Temporal necessitation (G-necessitation): from `S ⊢ φ`, derive `S ⊢ G(φ)`. -/
@@ -78,6 +80,14 @@ class TemporalNecessitation (S : Type*) [HasBot F] [HasImp F]
     InferenceSystem.DerivableIn S
       (HasImp.imp
         (HasUntil.untl (HasImp.imp (HasBot.bot : F) HasBot.bot)
+          (HasImp.imp φ HasBot.bot))
+        HasBot.bot)
+  /-- Past temporal necessitation (H-necessitation): from `S ⊢ φ`, derive `S ⊢ H(φ)`. -/
+  tempNecPast {φ : F} :
+    InferenceSystem.DerivableIn S φ →
+    InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasSince.snce (HasImp.imp (HasBot.bot : F) HasBot.bot)
           (HasImp.imp φ HasBot.bot))
         HasBot.bot)
 
