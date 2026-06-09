@@ -1,21 +1,14 @@
 {
-  "status": "planned",
-  "summary": "Created 3-phase implementation plan for completing the embedding lattice: atom simp lemmas, PL.toBimodal direct path with Coe instance and simp lemmas, and triangle-commutation lemma; estimated 1 hour total.",
+  "status": "implemented",
+  "summary": "Added 4 atom simp lemmas to existing embedding files, created PropositionalEmbedding.lean with direct PL-to-Bimodal path and 3 commutation lemmas, registered root import; full lake build passes with zero errors and zero sorries",
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "implement",
-  "phases_completed": 0,
+  "next_action_hint": "none",
+  "phases_completed": 3,
   "phases_total": 3,
-  "artifacts": [
-    {
-      "path": "specs/015_complete_embedding_lattice/reports/01_embedding-lattice.md",
-      "type": "report",
-      "summary": "Complete analysis of embedding lattice gaps: atom simp lemmas, PL.toBimodal path, and triangle-commutes lemma with code patterns and placement recommendations"
-    },
-    {
-      "path": "specs/015_complete_embedding_lattice/plans/01_embedding-lattice-plan.md",
-      "type": "plan",
-      "summary": "3-phase implementation plan covering atom simp lemmas (4 lemmas, 3 files), PropositionalEmbedding.lean (toBimodal + commutation), and root import with build verification"
-    }
-  ]
+  "artifacts": [{
+    "path": "specs/015_complete_embedding_lattice/summaries/01_embedding-lattice-summary.md",
+    "type": "summary",
+    "summary": "Implementation summary for embedding lattice completion"
+  }]
 }

@@ -1,21 +1,30 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "started_at": "2026-06-08T12:00:00Z",
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
+  },
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/015_complete_embedding_lattice/plans/01_embedding-lattice-plan.md",
-      "summary": "3-phase implementation plan for completing embedding lattice: atom simp lemmas, PL.toBimodal path, and triangle-commutation lemma"
+      "path": "specs/015_complete_embedding_lattice/summaries/01_embedding-lattice-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for embedding lattice completion"
+    },
+    {
+      "path": "Cslib/Logics/Bimodal/Embedding/PropositionalEmbedding.lean",
+      "type": "source",
+      "summary": "New file: direct PL-to-Bimodal embedding with commutation lemmas"
     }
   ],
-  "next_steps": "Run /implement 15 to execute the plan",
   "metadata": {
     "session_id": "sess_1780964944_adc2c6_15",
-    "agent_type": "planner-agent",
+    "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 3,
-    "estimated_hours": 1,
-    "dependency_waves": [[1], [2], [3]]
-  },
-  "memory_candidates": []
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed"
+  }
 }

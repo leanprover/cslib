@@ -1,0 +1,5 @@
+# Files that should not be overwritten during sync operations.
+# Paths are relative to the .claude/ base directory.
+# Lines starting with # are comments; blank lines are ignored.
+
+context/repo/project-overview.md

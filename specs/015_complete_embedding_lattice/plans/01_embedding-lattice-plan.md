@@ -234,14 +234,14 @@ end Cslib.Logic
 
 ---
 
-### Phase 3: Root Import and Full Build [NOT STARTED]
+### Phase 3: Root Import and Full Build [COMPLETED]
 
 **Goal**: Register the new file in the root import list and verify the full project builds cleanly.
 
 **Tasks**:
-- [ ] Add `public import Cslib.Logics.Bimodal.Embedding.PropositionalEmbedding` to `Cslib.lean`
-- [ ] Run `lake build` to verify zero errors across entire project
-- [ ] Verify zero `sorry` occurrences in modified/created files
+- [x] Add `public import Cslib.Logics.Bimodal.Embedding.PropositionalEmbedding` to `Cslib.lean`
+- [x] Run `lake build` to verify zero errors across entire project
+- [x] Verify zero `sorry` occurrences in modified/created files
 
 **Timing**: 15 minutes
 
@@ -262,15 +262,15 @@ public import Cslib.Logics.Bimodal.Embedding.PropositionalEmbedding
 
 ## Testing & Validation
 
-- [ ] All 4 atom simp lemmas compile as `rfl`
-- [ ] `PL.Proposition.toBimodal` function compiles and covers all 3 PL constructors
-- [ ] Coe instance `instCoePLToBimodal` registers without conflict
-- [ ] All 4 new simp lemmas (atom, bot, imp, neg) for `toBimodal` compile as `rfl`
-- [ ] `toModal_toBimodal` closes by `induction ... <;> simp [*]`
-- [ ] `toTemporal_toBimodal` closes by `induction ... <;> simp [*]`
-- [ ] `embedding_commutes` closes by `simp` (using the two preceding simp lemmas)
-- [ ] `lake build` passes with zero errors
-- [ ] Zero `sorry` occurrences in all modified/created files
+- [x] All 4 atom simp lemmas compile as `rfl`
+- [x] `PL.Proposition.toBimodal` function compiles and covers all 3 PL constructors
+- [x] Coe instance `instCoePLToBimodal` registers without conflict
+- [x] All 4 new simp lemmas (atom, bot, imp, neg) for `toBimodal` compile as `rfl`
+- [x] `toModal_toBimodal` closes by `induction ... <;> simp [*]`
+- [x] `toTemporal_toBimodal` closes by `induction ... <;> simp [*]`
+- [x] `embedding_commutes` closes by `simp` (using the two preceding simp lemmas)
+- [x] `lake build` passes with zero errors
+- [x] Zero `sorry` occurrences in all modified/created files
 
 ## Artifacts & Outputs
 

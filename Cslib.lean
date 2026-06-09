@@ -141,6 +141,7 @@ public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Bimodal.Embedding.ModalEmbedding
 public import Cslib.Logics.Bimodal.Embedding.TemporalEmbedding
+public import Cslib.Logics.Bimodal.Embedding.PropositionalEmbedding
 public import Cslib.Logics.Bimodal.Syntax.Formula
 public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.Cube
