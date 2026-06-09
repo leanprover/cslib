@@ -370,7 +370,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 11: completeness_dense Theorem [IN PROGRESS]
+### Phase 11: completeness_dense Theorem [COMPLETED]
 
 **Goal**: Port the completeness_dense theorem, splitting BXCanonical/Completeness.lean to isolate the dense path from the WeakCanonical-dependent discrete path.
 
@@ -397,7 +397,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 12: Barrel Imports and Final Verification [NOT STARTED]
+### Phase 12: Barrel Imports and Final Verification [IN PROGRESS]
 
 **Goal**: Create barrel import files, verify the full build, and ensure all files are properly connected.
 
