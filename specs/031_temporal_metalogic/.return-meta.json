@@ -1,24 +1,35 @@
 {
   "status": "partial",
-  "started_at": "2026-06-08T12:00:00Z",
-  "requires_user_review": false,
-  "partial_progress": {
-    "stage": "phase_4_in_progress",
-    "details": "Phases 1-2 complete (DerivationTree, DeductionTheorem). Phase 4 (Soundness) in progress with ~10 remaining compilation errors in axiom cases. Phase 3 (MCS) not started.",
-    "phases_completed": 2,
-    "phases_total": 6
+  "started_at": "2026-06-08T23:30:00Z",
+  "requires_user_review": true,
+  "review_reason": "1 sorry remains in completeness theorem (canonical model linear order construction). All other phases complete with zero sorry.",
+  "verification": {
+    "verification_passed": false,
+    "sorry_count": 1,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
   },
   "artifacts": [
     {"path": "Cslib/Logics/Temporal/Metalogic/DerivationTree.lean", "type": "source", "summary": "Height function, Deriv wrapper, temporalDerivationSystem instance"},
-    {"path": "Cslib/Logics/Temporal/Metalogic/DeductionTheorem.lean", "type": "source", "summary": "Deduction theorem for 6-constructor temporal DerivationTree"},
-    {"path": "Cslib/Logics/Temporal/Metalogic/Soundness.lean", "type": "source", "summary": "Soundness proof (IN PROGRESS - has compilation errors)"},
-    {"path": "specs/031_temporal_metalogic/handoffs/phase-4-handoff-20260608.md", "type": "handoff", "summary": "Detailed handoff for resuming Phase 4"}
+    {"path": "Cslib/Logics/Temporal/Metalogic/DeductionTheorem.lean", "type": "source", "summary": "Full deduction theorem for 6-constructor temporal DerivationTree"},
+    {"path": "Cslib/Logics/Temporal/Metalogic/MCS.lean", "type": "source", "summary": "MCS instantiation, G/H-distribution, G/H-witnesses (zero sorry)"},
+    {"path": "Cslib/Logics/Temporal/Metalogic/Soundness.lean", "type": "source", "summary": "All 26 axiom cases sound, swap duality, main soundness (zero sorry)"},
+    {"path": "Cslib/Logics/Temporal/Metalogic/Completeness.lean", "type": "source", "summary": "Completeness theorem structure (1 sorry in canonical model)"},
+    {"path": "Cslib/Logics/Temporal/Metalogic.lean", "type": "source", "summary": "Barrel import"},
+    {"path": "specs/031_temporal_metalogic/summaries/01_temporal-metalogic-summary.md", "type": "summary", "summary": "Implementation summary with deviations"}
   ],
+  "partial_progress": {
+    "stage": "phase_5_partial",
+    "details": "Phases 1-4,6 complete. Phase 5 (Completeness) has 1 sorry: canonical model linear order construction and truth lemma (~400 lines additional work). All MCS infrastructure is in place.",
+    "phases_completed": 5,
+    "phases_total": 6
+  },
   "metadata": {
     "session_id": "sess_1780982747_80da4d_31",
     "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
-    "handoff_path": "specs/031_temporal_metalogic/handoffs/phase-4-handoff-20260608.md"
+    "compliance_check": "passed"
   }
 }
