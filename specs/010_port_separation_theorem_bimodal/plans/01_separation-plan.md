@@ -116,7 +116,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: FormulaOps.lean -- Substitution and Freshness [NOT STARTED]
+### Phase 2: FormulaOps.lean -- Substitution and Freshness [COMPLETED]
 
 **Goal**: Port substitution infrastructure, IntStructure.withAtom, subst_correctness, freshness infrastructure (fresh_atom, fresh_atoms), and multi-substitution.
 
