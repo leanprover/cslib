@@ -303,7 +303,7 @@ structure SignedFormula : Type _ where
   formula : Formula Atom
   /-- The world/time label for this assertion. -/
   label : Label
-  deriving DecidableEq, BEq, Hashable
+  deriving DecidableEq, Hashable
 
 variable {Atom}
 

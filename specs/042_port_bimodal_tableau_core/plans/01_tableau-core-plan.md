@@ -159,26 +159,26 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: AxiomMatcher + Closure [NOT STARTED]
+### Phase 3: AxiomMatcher + Closure [COMPLETED]
 
 **Goal**: Create the minimal AxiomMatcher prerequisite (extracting `matchAxiom` from ProofSearch.Core) and port Closure.lean which depends on it.
 
 **Tasks**:
-- [ ] Create `AxiomMatcher.lean` with copyright header
-- [ ] Extract `matchAxiom` function from source ProofSearch/Core.lean (lines 314-660 approx) -- this is a pure pattern-matching function that checks all 42 axiom schemata
-- [ ] Adapt `matchAxiom` to universe-polymorphic `Formula Atom` -- requires `[DecidableEq Atom]` for structural equality checks
-- [ ] Create stub `matchDerived` function that returns `none` (full derived theorem matching deferred)
-- [ ] Create stub `bounded_search_with_proof` that returns `(none, 0, 0)` (full proof search deferred)
-- [ ] Create `identity` combinator (`A -> A` proof from prop_k + prop_s axioms) -- needed by ProofExtraction
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher`
-- [ ] Create `Closure.lean` with copyright header
-- [ ] Port `ClosureReason` inductive (contradiction, botPos, axiomNeg)
-- [ ] Port `checkBotPos`, `checkContradiction`, `checkAxiomNeg` functions
-- [ ] Port `findClosure` and `isClosed`/`isOpen` functions
-- [ ] Port `ClosedBranch` structure (if not already in Tableau)
-- [ ] Port monotonicity lemmas (findClosure subset lemmas)
-- [ ] Port `axiomNegCount` helper
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.Closure`
+- [x] Create `AxiomMatcher.lean` with copyright header
+- [x] Extract `matchAxiom` function from source ProofSearch/Core.lean (lines 314-660 approx) -- this is a pure pattern-matching function that checks all 42 axiom schemata
+- [x] Adapt `matchAxiom` to universe-polymorphic `Formula Atom` -- requires `[DecidableEq Atom]` for structural equality checks *(deviation: altered -- renamed source axiom constructors prop_k->imp_k, prop_s->imp_s, ex_falso->efq to match Cslib naming)*
+- [x] Create stub `matchDerived` function that returns `none` (full derived theorem matching deferred)
+- [x] Create stub `bounded_search_with_proof` that returns `(none, 0, 0)` (full proof search deferred) *(deviation: altered -- named `bounded_search_with_proof_stub` to avoid name collision with source)*
+- [x] Create `identity` combinator (`A -> A` proof from prop_k + prop_s axioms) -- needed by ProofExtraction
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher`
+- [x] Create `Closure.lean` with copyright header
+- [x] Port `ClosureReason` inductive (contradiction, botPos, axiomNeg) *(deviation: altered -- imported from TraceCertificate.lean instead of redefining, as already ported in Phase 2)*
+- [x] Port `checkBotPos`, `checkContradiction`, `checkAxiomNeg` functions
+- [x] Port `findClosure` and `isClosed`/`isOpen` functions
+- [x] Port `ClosedBranch` structure (if not already in Tableau)
+- [x] Port monotonicity lemmas (findClosure subset lemmas)
+- [x] Port `axiomNegCount` helper *(deviation: altered -- named `countNegatedAxioms` matching source; also ported `countPotentialContradictions`)*
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.Closure`
 
 **Timing**: 2.5 hours
 
