@@ -27,6 +27,7 @@ establish fundamental connections between modal necessity (□) and temporal ope
 -/
 
 set_option linter.style.longLine false
+set_option linter.style.emptyLine false
 
 namespace Cslib.Logic.Bimodal.Theorems.Perpetuity
 
