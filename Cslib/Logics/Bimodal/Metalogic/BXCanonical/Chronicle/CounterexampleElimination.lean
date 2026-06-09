@@ -553,6 +553,24 @@ inductive PotentialCounterexampleKind : Type where
   | c5_backward   : PotentialCounterexampleKind  -- C5': Since forward witness
   deriving DecidableEq
 
+instance : Fintype PotentialCounterexampleKind where
+  elems := {.c4_forward, .c4_backward, .c5_forward, .c5_backward}
+  complete := by intro x; cases x <;> simp
+
+instance : Encodable PotentialCounterexampleKind where
+  encode
+    | .c4_forward => 0
+    | .c4_backward => 1
+    | .c5_forward => 2
+    | .c5_backward => 3
+  decode
+    | 0 => some .c4_forward
+    | 1 => some .c4_backward
+    | 2 => some .c5_forward
+    | 3 => some .c5_backward
+    | _ => none
+  encodek := by intro x; cases x <;> simp
+
 /--
 A **potential counterexample** encodes a tuple (x, y, xi, eta, kind) that MIGHT
 be a C4/C4'/C5/C5' counterexample depending on the current chronicle state.
