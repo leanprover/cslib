@@ -41,7 +41,7 @@ next_project_number: 46
 
 ### Bimodal Porting
 
-35 [IMPLEMENTING] — Port dense completeness infrastructure and completeness_dense the
+35 [COMPLETED] — Port dense completeness infrastructure and completeness_dense the
   └─ 12 [PARTIAL] — Coordinate the cslib PR submission proce (see Project Management section)
   └─ 31 [PARTIAL] — Build standalone temporal metalogic (~1, (see Temporal Logic section)
   └─ 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We

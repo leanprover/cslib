@@ -195,10 +195,10 @@
     {
       "project_number": 35,
       "project_name": "port_dense_completeness_bimodal",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-09T15:00:00Z",
+      "last_updated": "2026-06-09T22:00:00Z",
       "dependencies": [
         34
       ],
@@ -265,7 +265,8 @@
         ]
       },
       "description": "Port dense completeness infrastructure and completeness_dense theorem. Includes shared infrastructure (Algebraic/ ~11 files, Bundle/ ~14 files, BXCanonical/ non-Chronicle files) and dense-specific Chronicle/ pipeline (~7 files). The completeness_dense theorem constructs countermodels on Rat via the Burgess 1982 chronicle construction. Has leaf sorries in Chronicle modules (FMCS coherence, chronicle construction) — port with sorries as-is.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/{Algebraic/,Bundle/,BXCanonical/} (~40 files, ~15,000 lines)\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Parent task**: 8 (expanded)",
-      "topic": "Bimodal Porting"
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported complete dense completeness infrastructure (12 phases, ~50 files). completeness_dense theorem in Completeness/Dense.lean. Full lake build passes. 38 sorries (source had ~50). WeakCanonical discrete pipeline sorry-stubbed (task 36). Barrel imports for Algebraic/, Bundle/, BXCanonical/ created."
     },
     {
       "project_number": 36,
