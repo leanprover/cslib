@@ -232,22 +232,22 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: CountermodelExtraction [NOT STARTED]
+### Phase 5: CountermodelExtraction [COMPLETED]
 
 **Goal**: Port the countermodel extraction module that builds finite countermodels from open (saturated) tableau branches, including the `branchTruthLemma` correctness theorem.
 
 **Tasks**:
-- [ ] Create `CountermodelExtraction.lean` with copyright header
-- [ ] Port `SimpleCountermodel` structure (atom truth/false tracking)
-- [ ] Port `extractCountermodelSimple` / `extractSimpleCountermodel` function
-- [ ] Port `SemanticCountermodel` structure (full finite model with worlds, times, ordering, valuation)
-- [ ] Port `branchTruth` recursive truth evaluation function
-- [ ] Port `extractSemanticCountermodel` function
-- [ ] Port saturation invariants (`sat_no_bot_pos`, `sat_no_contradiction`, `sat_and_pos`, `sat_or_neg`, `sat_imp_neg`, `sat_neg_pos`, `sat_neg_neg`, `sat_box_pos`, `sat_box_neg`, `sat_all_future_pos`, `sat_all_future_neg`, `sat_all_past_pos`, `sat_all_past_neg`, `sat_untl_pos`, `sat_untl_neg`, `sat_snce_pos`, `sat_snce_neg`)
-- [ ] Port `branchTruthLemma` -- the main correctness theorem proving semantic correctness of extracted countermodel
-- [ ] Handle `maxHeartbeats` for structural induction proofs
-- [ ] Adapt all to universe-polymorphic `Formula Atom`
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction`
+- [x] Create `CountermodelExtraction.lean` with copyright header *(completed)*
+- [x] Port `SimpleCountermodel` structure (atom truth/false tracking) *(completed)*
+- [x] Port `extractCountermodelSimple` / `extractSimpleCountermodel` function *(completed)*
+- [x] Port `SemanticCountermodel` structure (full finite model with worlds, times, ordering, valuation) *(completed)*
+- [x] Port `branchTruth` recursive truth evaluation function *(completed)*
+- [x] Port `extractSemanticCountermodel` function *(completed)*
+- [x] Port saturation invariants (`sat_no_bot_pos`, `sat_no_contradiction`, `sat_and_pos`, `sat_or_neg`, `sat_imp_neg`, `sat_neg_pos`, `sat_neg_neg`, `sat_box_pos`, `sat_box_neg`, `sat_all_future_pos`, `sat_all_future_neg`, `sat_all_past_pos`, `sat_all_past_neg`, `sat_untl_pos`, `sat_untl_neg`, `sat_snce_pos`, `sat_snce_neg`) *(deviation: altered -- ported the subset of invariants actually present in the source: sat_no_bot_pos, sat_no_contradiction, sat_atom_consistent, sat_imp_neg, sat_box_pos, sat_box_neg, sat_untl_pos, sat_snce_pos, sat_some_future_neg, sat_some_past_neg, sat_untl_neg, sat_snce_neg; the plan listed some invariants (sat_and_pos, sat_or_neg, etc.) that do not exist in the source file)*
+- [x] Port `branchTruthLemma` -- the main correctness theorem proving semantic correctness of extracted countermodel *(completed)*
+- [x] Handle `maxHeartbeats` for structural induction proofs *(completed -- same maxHeartbeats as source: 1600000 for sat_box_pos, 800000 for untlPos/sncePos not_expanded, 3200000 for sat_some_future_neg/sat_some_past_neg/sat_untl_neg/sat_snce_neg)*
+- [x] Adapt all to universe-polymorphic `Formula Atom` *(completed -- required proving Formula.beq_top_false_of_ne helper for BEq lawfulness since auto-derived BEq on Formula Atom lacks LawfulBEq instance)*
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction` *(completed -- zero sorry, zero axioms, builds clean)*
 
 **Timing**: 3 hours
 
