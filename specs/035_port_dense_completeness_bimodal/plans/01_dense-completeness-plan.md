@@ -272,12 +272,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: BXCanonical Secondary -- OrderedSeedConsistency and CanonicalModel [NOT STARTED]
+### Phase 7: BXCanonical Secondary -- OrderedSeedConsistency and CanonicalModel [IN PROGRESS]
 
 **Goal**: Port the ordered seed consistency and canonical model construction that bridges Bundle/ and BXCanonical/.
 
 **Tasks**:
-- [ ] Port `BXCanonical/OrderedSeedConsistency.lean` (254 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/OrderedSeedConsistency.lean`. Ordered seed consistency. Layer 6, depends on Frame, CanonicalChain.
+- [x] Port `BXCanonical/OrderedSeedConsistency.lean` (254 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/OrderedSeedConsistency.lean`. *(completed -- 0 sorries)*
 - [ ] Port `BXCanonical/CanonicalModel.lean` (794 lines) to `Cslib/Logics/Bimodal/Metalogic/BXCanonical/CanonicalModel.lean`. BFMCS Int construction from BX witnesses. Layer 8, depends on CanonicalChain, TruthLemma, FMCSDef, ChronicleTypes (forward ref), BFMCS. Note: this file uses `Denumerable.ofNat Formula` which requires `Denumerable (Formula Atom)` in the polymorphic target. May need a sorry-stub or instance construction for `Denumerable`.
 - [ ] Verify `lake build` passes
 
