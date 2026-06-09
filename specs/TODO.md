@@ -11,7 +11,7 @@ next_project_number: 56
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,51,55 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,51,55 | -- | Temporal Logic, Bimodal Porting, Documentation, ... |
 | 2 | 39,40,52 | 36,37,51 | Temporal Logic, Submit PRs |
 | 3 | 41,53,54 | 38,39,40,52 | Foundations, Submit PRs |
 
@@ -32,16 +32,16 @@ next_project_number: 56
 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
 
+### Documentation
+
+55 [NOT STARTED] — update_roadmap_completions_and_diagram
+
 ### Submit PRs
 
 51 [NOT STARTED] — Review tense logic progress against ROADMAP and assess PR readine
   └─ 52 [NOT STARTED] — Audit tense logic code for compliance with Mathlib style guide (h
     └─ 53 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Infrastructure 
     └─ 54 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Semantics PR wi
-
-### Uncategorized
-
-55 [NOT STARTED] — update_roadmap_completions_and_diagram
 
 ## Tasks
 
