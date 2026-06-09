@@ -169,7 +169,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Port Bridge.lean (P6 + Supporting Lemmas) [NOT STARTED]
+### Phase 4: Port Bridge.lean (P6 + Supporting Lemmas) [COMPLETED]
 
 **Goal**: Create `Cslib/Logics/Bimodal/Theorems/Perpetuity/Bridge.lean` with P6, bridge lemmas, monotonicity lemmas, and always decomposition/recomposition lemmas.
 
