@@ -4,10 +4,10 @@
     {
       "project_number": 42,
       "project_name": "port_bimodal_tableau_core",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-09T12:45:30Z",
-      "last_updated": "2026-06-09T12:45:30Z",
+      "last_updated": "2026-06-09T13:20:00Z",
       "dependencies": [
         4,
         7
