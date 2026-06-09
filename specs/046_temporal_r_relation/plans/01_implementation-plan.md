@@ -180,7 +180,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: ChronicleTypes (DCS and R-Relation Definitions) [NOT STARTED]
+### Phase 4: ChronicleTypes (DCS and R-Relation Definitions) [COMPLETED]
 
 **Goal**: Create the DCS (deductively closed set) infrastructure and all r-relation/Burgess relation definitions. Port from bimodal `Chronicle/ChronicleTypes.lean` (lines 67-218 only -- NOT the Chronicle structure, conditions, or Adjacent predicate which are Task 48).
 
