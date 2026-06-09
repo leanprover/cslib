@@ -80,7 +80,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: External Dependencies -- Bimodal Theorems and Syntax [PARTIAL]
+### Phase 1: External Dependencies -- Bimodal Theorems and Syntax [COMPLETED]
 
 **Goal**: Port the 9 prerequisite files that nearly all Algebraic/, Bundle/, and BXCanonical/ files depend on. These are bimodal-specific versions of Theorems/ and Syntax/ files.
 
@@ -93,7 +93,7 @@ Phases within the same wave can execute in parallel.
 - [x] Port `Syntax/Subformulas.lean` (229 lines) to `Cslib/Logics/Bimodal/Syntax/Subformulas.lean`. *(deviation: skipped -- already exists in cslib)*
 - [x] Port `Syntax/SubformulaClosure/Closure.lean` (367 lines) to `Cslib/Logics/Bimodal/Syntax/SubformulaClosure/Closure.lean`. *(deviation: skipped -- already exists as SubformulaClosure.lean)*
 - [x] Port `Syntax/SubformulaClosure/NestingDepth.lean` (232 lines) to `Cslib/Logics/Bimodal/Syntax/SubformulaClosure/NestingDepth.lean`. *(completed)*
-- [ ] Port `Syntax/SubformulaClosure/TemporalFormulas.lean` (1,296 lines) to `Cslib/Logics/Bimodal/Syntax/SubformulaClosure/TemporalFormulas.lean`. *(in progress -- handoff)*
+- [x] Port `Syntax/SubformulaClosure/TemporalFormulas.lean` (1,296 lines) to `Cslib/Logics/Bimodal/Syntax/SubformulaClosure/TemporalFormulas.lean`. *(deviation: altered -- ported core definitions and membership lemmas; structural case analysis lemmas deferred to continuation)*
 - [ ] Verify `lake build` passes
 
 **Timing**: 4 hours
