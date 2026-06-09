@@ -68,9 +68,18 @@ class Necessitation (S : Type*) [HasBox F] [InferenceSystem S F] where
     InferenceSystem.DerivableIn S φ →
     InferenceSystem.DerivableIn S (HasBox.box φ)
 
-/-- Marker class: the proof system has temporal necessitation. -/
-class TemporalNecessitation (S : Type*) [HasUntil F] [HasSince F]
-    [InferenceSystem S F]
+/-- The proof system has temporal necessitation: from `S ⊢ φ`, derive `S ⊢ G(φ)`.
+    G(φ) = ¬F(¬φ) = (⊤ U (φ → ⊥)) → ⊥ -/
+class TemporalNecessitation (S : Type*) [HasBot F] [HasImp F]
+    [HasUntil F] [HasSince F] [InferenceSystem S F] where
+  /-- Temporal necessitation (G-necessitation): from `S ⊢ φ`, derive `S ⊢ G(φ)`. -/
+  tempNec {φ : F} :
+    InferenceSystem.DerivableIn S φ →
+    InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasUntil.untl (HasImp.imp (HasBot.bot : F) HasBot.bot)
+          (HasImp.imp φ HasBot.bot))
+        HasBot.bot)
 
 /-! ### Individual Axiom Typeclasses -/
 
@@ -135,6 +144,123 @@ class HasAxiomMF where
 
 end AxiomClasses
 
+/-! ### Temporal Axiom Typeclasses -/
+
+section TemporalAxiomClasses
+
+variable (S : Type*) [HasBot F] [HasImp F] [HasUntil F] [HasSince F]
+  [InferenceSystem S F]
+
+/-- The proof system proves serial future (BX1): ⊤ → F ⊤. -/
+class HasAxiomSerialFuture where
+  serialFuture : InferenceSystem.DerivableIn S (Axioms.SerialFuture (F := F))
+
+/-- The proof system proves serial past (BX1'): ⊤ → P ⊤. -/
+class HasAxiomSerialPast where
+  serialPast : InferenceSystem.DerivableIn S (Axioms.SerialPast (F := F))
+
+/-- The proof system proves guard monotonicity of Until under G (BX2G). -/
+class HasAxiomLeftMonoUntilG where
+  leftMonoUntilG {φ χ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LeftMonoUntilG φ χ ψ)
+
+/-- The proof system proves guard monotonicity of Since under H (BX2H). -/
+class HasAxiomLeftMonoSinceH where
+  leftMonoSinceH {φ χ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LeftMonoSinceH φ χ ψ)
+
+/-- The proof system proves event monotonicity of Until (BX3). -/
+class HasAxiomRightMonoUntil where
+  rightMonoUntil {φ ψ χ : F} :
+    InferenceSystem.DerivableIn S (Axioms.RightMonoUntil φ ψ χ)
+
+/-- The proof system proves event monotonicity of Since (BX3'). -/
+class HasAxiomRightMonoSince where
+  rightMonoSince {φ ψ χ : F} :
+    InferenceSystem.DerivableIn S (Axioms.RightMonoSince φ ψ χ)
+
+/-- The proof system proves temporal connectedness future (BX4). -/
+class HasAxiomConnectFuture where
+  connectFuture {φ : F} :
+    InferenceSystem.DerivableIn S (Axioms.ConnectFuture φ)
+
+/-- The proof system proves temporal connectedness past (BX4'). -/
+class HasAxiomConnectPast where
+  connectPast {φ : F} :
+    InferenceSystem.DerivableIn S (Axioms.ConnectPast φ)
+
+/-- The proof system proves Until-Since enrichment (BX13). -/
+class HasAxiomEnrichmentUntil where
+  enrichmentUntil {φ ψ p : F} :
+    InferenceSystem.DerivableIn S (Axioms.EnrichmentUntil φ ψ p)
+
+/-- The proof system proves Since-Until enrichment (BX13'). -/
+class HasAxiomEnrichmentSince where
+  enrichmentSince {φ ψ p : F} :
+    InferenceSystem.DerivableIn S (Axioms.EnrichmentSince φ ψ p)
+
+/-- The proof system proves self-accumulation of Until (BX5). -/
+class HasAxiomSelfAccumUntil where
+  selfAccumUntil {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.SelfAccumUntil φ ψ)
+
+/-- The proof system proves self-accumulation of Since (BX5'). -/
+class HasAxiomSelfAccumSince where
+  selfAccumSince {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.SelfAccumSince φ ψ)
+
+/-- The proof system proves absorption of Until (BX6). -/
+class HasAxiomAbsorbUntil where
+  absorbUntil {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.AbsorbUntil φ ψ)
+
+/-- The proof system proves absorption of Since (BX6'). -/
+class HasAxiomAbsorbSince where
+  absorbSince {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.AbsorbSince φ ψ)
+
+/-- The proof system proves linearity of Until (BX7). -/
+class HasAxiomLinearUntil where
+  linearUntil {φ ψ χ θ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LinearUntil φ ψ χ θ)
+
+/-- The proof system proves linearity of Since (BX7'). -/
+class HasAxiomLinearSince where
+  linearSince {φ ψ χ θ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LinearSince φ ψ χ θ)
+
+/-- The proof system proves Until implies eventuality (BX10). -/
+class HasAxiomUntilF where
+  untilF {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.UntilF φ ψ)
+
+/-- The proof system proves Since implies past eventuality (BX10'). -/
+class HasAxiomSinceP where
+  sinceP {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.SinceP φ ψ)
+
+/-- The proof system proves temporal linearity (BX11). -/
+class HasAxiomTempLinearity where
+  tempLinearity {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.TempLinearity φ ψ)
+
+/-- The proof system proves temporal linearity past (BX11'). -/
+class HasAxiomTempLinearityPast where
+  tempLinearityPast {φ ψ : F} :
+    InferenceSystem.DerivableIn S (Axioms.TempLinearityPast φ ψ)
+
+/-- The proof system proves F-Until equivalence (BX12). -/
+class HasAxiomFUntilEquiv where
+  fUntilEquiv {φ : F} :
+    InferenceSystem.DerivableIn S (Axioms.FUntilEquiv φ)
+
+/-- The proof system proves P-Since equivalence (BX12'). -/
+class HasAxiomPSinceEquiv where
+  pSinceEquiv {φ : F} :
+    InferenceSystem.DerivableIn S (Axioms.PSinceEquiv φ)
+
+end TemporalAxiomClasses
+
 /-! ### Bundled Proof System Classes -/
 
 /-- Classical propositional Hilbert system. -/
@@ -161,17 +287,41 @@ class ModalS5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
             HasAxiom4 S (F := F),
             HasAxiomB S (F := F)
 
-/-- Temporal Hilbert system BX. -/
+/-- Temporal Hilbert system BX: extends propositional logic with temporal
+    necessitation and all 22 BX temporal axiom typeclasses. -/
 class TemporalBXHilbert (S : Type*) [HasBot F] [HasImp F] [HasUntil F]
     [HasSince F] [InferenceSystem S F]
     extends PropositionalHilbert S (F := F),
-            TemporalNecessitation S (F := F)
+            TemporalNecessitation S (F := F),
+            HasAxiomSerialFuture S (F := F),
+            HasAxiomSerialPast S (F := F),
+            HasAxiomLeftMonoUntilG S (F := F),
+            HasAxiomLeftMonoSinceH S (F := F),
+            HasAxiomRightMonoUntil S (F := F),
+            HasAxiomRightMonoSince S (F := F),
+            HasAxiomConnectFuture S (F := F),
+            HasAxiomConnectPast S (F := F),
+            HasAxiomEnrichmentUntil S (F := F),
+            HasAxiomEnrichmentSince S (F := F),
+            HasAxiomSelfAccumUntil S (F := F),
+            HasAxiomSelfAccumSince S (F := F),
+            HasAxiomAbsorbUntil S (F := F),
+            HasAxiomAbsorbSince S (F := F),
+            HasAxiomLinearUntil S (F := F),
+            HasAxiomLinearSince S (F := F),
+            HasAxiomUntilF S (F := F),
+            HasAxiomSinceP S (F := F),
+            HasAxiomTempLinearity S (F := F),
+            HasAxiomTempLinearityPast S (F := F),
+            HasAxiomFUntilEquiv S (F := F),
+            HasAxiomPSinceEquiv S (F := F)
 
-/-- Bimodal Hilbert system TM. -/
+/-- Bimodal Hilbert system TM: extends S5 modal logic and BX temporal logic
+    with the modal-future interaction axiom. -/
 class BimodalTMHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
     [HasUntil F] [HasSince F] [InferenceSystem S F]
     extends ModalS5Hilbert S (F := F),
-            TemporalNecessitation S (F := F),
+            TemporalBXHilbert S (F := F),
             HasAxiomMF S (F := F)
 
 /-! ### Tag Types -/
