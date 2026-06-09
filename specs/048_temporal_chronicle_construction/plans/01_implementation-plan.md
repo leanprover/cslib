@@ -160,7 +160,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: CounterexampleElimination -- Main Elimination Function (lines 1850-3529) [NOT STARTED]
+### Phase 4: CounterexampleElimination -- Main Elimination Function (lines 1850-3529) [COMPLETED]
 
 **Goal**: Port the main `eliminate_potential_counterexample` function that dispatches on the 4 counterexample kinds and orchestrates the walks.
 
