@@ -379,7 +379,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 12: Hierarchy/HierarchyCaseSep.lean -- Case-Specific Separability [NOT STARTED]
+### Phase 12: Hierarchy/HierarchyCaseSep.lean -- Case-Specific Separability [COMPLETED]
 
 **Goal**: Port case-specific is_separable_with_U_type theorems (extracted to break circular dependency).
 
