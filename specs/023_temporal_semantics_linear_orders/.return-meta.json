@@ -1,0 +1,50 @@
+{
+  "status": "implemented",
+  "started_at": "2026-06-08T12:00:00Z",
+  "completed_at": "2026-06-08T13:00:00Z",
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
+  },
+  "artifacts": [
+    {
+      "path": "Cslib/Logics/Temporal/Semantics/Model.lean",
+      "type": "source",
+      "summary": "TemporalModel structure with valuation on LinearOrder D (60 lines)"
+    },
+    {
+      "path": "Cslib/Logics/Temporal/Semantics/Satisfies.lean",
+      "type": "source",
+      "summary": "Recursive Satisfies definition + 11 truth lemmas (182 lines)"
+    },
+    {
+      "path": "Cslib/Logics/Temporal/Semantics/Validity.lean",
+      "type": "source",
+      "summary": "Validity hierarchy + consequence + 10 relationship lemmas (198 lines)"
+    },
+    {
+      "path": "specs/023_temporal_semantics_linear_orders/summaries/01_temporal-semantics-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for temporal semantics on linear orders"
+    }
+  ],
+  "partial_progress": {
+    "stage": "complete",
+    "details": "All 3 phases completed successfully",
+    "phases_completed": 3,
+    "phases_total": 3
+  },
+  "metadata": {
+    "session_id": "sess_1780980276_702f7c_23",
+    "agent_type": "lean-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed",
+    "total_lines": 440,
+    "definitions_count": 9,
+    "theorems_count": 21
+  }
+}

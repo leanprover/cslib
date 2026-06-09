@@ -1,0 +1,10 @@
+{
+  "status": "implemented",
+  "summary": "Defined standalone temporal semantics on linear orders: TemporalModel, Satisfies (recursive on 5 formula constructors), Valid/ValidSerial/ValidDense/ValidDiscrete, SemanticConsequence, Satisfiable. 440 lines across 3 files with 21 theorems, zero sorry, full build pass.",
+  "artifacts": [{"path": "specs/023_temporal_semantics_linear_orders/summaries/01_temporal-semantics-summary.md", "type": "summary", "summary": "Implementation summary for temporal semantics on linear orders"}],
+  "blockers": [],
+  "phases_completed": 3,
+  "phases_total": 3,
+  "next_action_hint": "complete",
+  "continuation_context": null
+}
