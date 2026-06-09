@@ -96,7 +96,7 @@ Phases are strictly sequential: each phase builds on definitions and lemmas from
 
 ---
 
-### Phase 1: PointInsertion Core Helpers [NOT STARTED]
+### Phase 1: PointInsertion Core Helpers [COMPLETED]
 
 **Goal**: Create `PointInsertion.lean` with MCS-level axiom wrappers, Lemmas 2.4-2.6, DCS/R3Maximal properties, and BurgessR3Maximal infrastructure.
 
