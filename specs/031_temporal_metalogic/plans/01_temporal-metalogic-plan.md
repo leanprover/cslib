@@ -135,7 +135,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: MCS Theory [NOT STARTED]
+### Phase 3: MCS Theory [COMPLETED]
 
 **Goal**: Instantiate the generic MCS framework for temporal logic and prove temporal-specific MCS properties including Until/Since witness conditions needed for the canonical model truth lemma.
 
