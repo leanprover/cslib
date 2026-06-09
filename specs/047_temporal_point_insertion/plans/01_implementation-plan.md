@@ -158,7 +158,7 @@ Phases are strictly sequential: each phase builds on definitions and lemmas from
 
 ---
 
-### Phase 3: Burgess Lemmas 2.6 Splitting and 2.7 Until [PARTIAL]
+### Phase 3: Burgess Lemmas 2.6 Splitting and 2.7 Until [COMPLETED]
 
 **Goal**: Port Lemma 2.6 splitting (BurgessR3Maximal interval insertion) and Lemma 2.7 (Until-formula splitting) including the seed consistency proof and all helper infrastructure.
 
@@ -186,7 +186,7 @@ Phases are strictly sequential: each phase builds on definitions and lemmas from
 
 ---
 
-### Phase 4: Since-Direction Mirrors [NOT STARTED]
+### Phase 4: Since-Direction Mirrors [COMPLETED]
 
 **Goal**: Port the Since-direction mirrors of Lemmas 2.7 and 2.8, plus `lemma_2_4_since_with_guard`, completing the full point insertion machinery.
 
