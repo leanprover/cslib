@@ -29,7 +29,7 @@ next_project_number: 28
 
 ### Modal Logic
 
-16 [PLANNED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
+16 [COMPLETED] — Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived 
   └─ 21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
     └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
 
@@ -123,10 +123,11 @@ next_project_number: 28
 
 ### 16. Add DecidableEq to Modal.Proposition, resolve LukasiewiczDerived
 - **Effort**: Small (<1 hour)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Research**: [specs/016_formula_type_consistency/reports/01_formula-type-research.md]
 - **Plan**: [specs/016_formula_type_consistency/plans/01_formula-type-plan.md]
+- **Summary**: [specs/016_formula_type_consistency/summaries/01_formula-type-summary.md]
 
 **Description**: Formula type consistency fixes from code review:
 1. Add `deriving DecidableEq, BEq` to `Modal.Proposition` in `Cslib/Logics/Modal/Basic.lean` for consistency with `Bimodal.Formula` and `Temporal.Formula`

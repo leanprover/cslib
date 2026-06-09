@@ -1,15 +1,25 @@
 {
-  "status": "in_progress",
+  "status": "implemented",
   "started_at": "2026-06-08T20:43:38Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, parsing delegation context"
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
   },
+  "artifacts": [
+    {
+      "path": "specs/016_formula_type_consistency/summaries/01_formula-type-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary: added DecidableEq/BEq to Modal.Proposition, expanded LukasiewiczDerived docstring"
+    }
+  ],
   "metadata": {
     "session_id": "sess_1780968218_90e68f",
     "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"]
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "skipped"
   }
 }

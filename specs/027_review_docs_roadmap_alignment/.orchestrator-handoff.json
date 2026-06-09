@@ -1,14 +1,16 @@
 {
-  "status": "planned",
-  "summary": "3-phase plan to fix 9 documentation misalignments: TODO.md status sync (5 critical), state.json description updates (8 tasks), ROADMAP.md wave table correction",
+  "status": "implemented",
+  "summary": "Fixed 4 TODO.md status mismatches, updated 9 stale state.json descriptions (Temporal->Bimodal paths for tasks 2/3/6-11 + task 12 PR strategy), and updated ROADMAP.md Wave 1 to remove completed tasks and add task 27",
   "artifacts": [
     {
-      "path": "specs/027_review_docs_roadmap_alignment/plans/01_alignment-plan.md",
-      "type": "plan",
-      "summary": "3-phase implementation plan addressing 5 critical status mismatches and 4 moderate documentation misalignments across state.json, TODO.md, and ROADMAP.md"
+      "path": "specs/027_review_docs_roadmap_alignment/summaries/01_alignment-summary.md",
+      "type": "summary",
+      "summary": "3-phase implementation summary: status marker fixes, state.json description updates, ROADMAP.md wave table update"
     }
   ],
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "implement"
+  "next_action_hint": "complete",
+  "phases_completed": 3,
+  "phases_total": 3
 }
