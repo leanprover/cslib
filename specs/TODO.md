@@ -1,5 +1,5 @@
 ---
-next_project_number: 20
+next_project_number: 24
 ---
 
 # Tasks
@@ -45,6 +45,45 @@ next_project_number: 20
 19 [RESEARCHED] — explore modular logic factoring
 
 ## Tasks
+
+### 23. Temporal semantics on linear orders
+- **Effort**: Medium (4-6 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 22 (Temporal Infrastructure)
+
+**Description**: Define standalone temporal semantics on linear orders (~400-600 lines, new infrastructure not ported from BimodalLogic). Define `Temporal.Model` on `LinearOrder`, `Temporal.Satisfies` for `{atom, bot, imp, untl, snce}`, basic validity, and frame conditions on linear orders. Enables standalone temporal soundness proofs. Target: `Cslib/Logics/Temporal/Semantics/`.
+
+---
+
+### 22. Temporal infrastructure and theorems
+- **Effort**: Medium (6-10 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 20 (Propositional Hilbert Theorems)
+
+**Description**: Build temporal proof system infrastructure and port temporal theorems (~1,500 lines). Scope: ~20 temporal axiom abbrevs, ~20 HasAxiom* typeclasses, restructure TemporalBXHilbert, make TemporalNecessitation non-empty, BimodalTMHilbert compatibility instance (diamond-avoidance pattern), Temporal.DerivationTree, TemporalDerived theorems (~790 lines), frame condition typeclasses (~130 lines). Target: Axioms.lean/ProofSystem.lean additions + `Cslib/Logics/Temporal/ProofSystem/` + `Cslib/Logics/Temporal/Theorems/`.
+
+---
+
+### 21. Modal proof system and theorems
+- **Effort**: Medium (6-10 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Tasks 16 (DecidableEq), 20 (Propositional Theorems)
+
+**Description**: Port modal proof system and theorems (~1,600 lines from BimodalLogic). Scope: (a) Modal.DerivationTree with ModalHilbert/ModalS5Hilbert instances (~400), (b) S4/S5 derived theorems + GeneralizedNecessitation as `[ModalS5Hilbert S]` lemmas (~1,200). Target: `Cslib/Logics/Modal/ProofSystem/` + `Cslib/Logics/Modal/Theorems/`.
+
+---
+
+### 20. Propositional Hilbert theorems
+- **Effort**: Medium (6-10 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Port propositional Hilbert-style theorems to `Cslib/Foundations/Logic/Theorems/` as generic `[PropositionalHilbert S]` lemmas (~2,400 lines from BimodalLogic). Scope: Combinators (I/B/C/S, ~300), Propositional/{Core,Connectives,Reasoning} (~1,100), ContextualProofs (~500), BigConj generic (~500). Note: DeductionTheorem stays per-logic (requires structural induction on DerivationTree, per team research finding).
+
+---
 
 ### 19. Explore modular logic factoring: determine which BimodalLogic components belong in Propositional/, Modal/, and Temporal/ rather than Bimodal/, and revise tasks 2-11 accordingly
 - **Effort**: Large
