@@ -289,7 +289,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: FMP -- TruthPreservation.lean [NOT STARTED]
+### Phase 8: FMP -- TruthPreservation.lean [COMPLETED]
 
 **Goal**: Port MCS truth definition, filtration lemma, and truth preservation for all operators
 
