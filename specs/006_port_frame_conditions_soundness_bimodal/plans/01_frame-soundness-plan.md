@@ -102,7 +102,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Metalogic/Soundness/Core.lean [IN PROGRESS]
+### Phase 2: Metalogic/Soundness/Core.lean [COMPLETED]
 
 **Goal**: Port the core soundness definitions (`is_valid`, `valid_at_triple`, `truth_at_swap_swap` involution lemma). This establishes the local validity definition used by all subsequent soundness files.
 
