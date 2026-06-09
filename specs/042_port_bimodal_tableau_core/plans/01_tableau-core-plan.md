@@ -196,25 +196,25 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Saturation [NOT STARTED]
+### Phase 4: Saturation [COMPLETED]
 
 **Goal**: Port the saturation process -- the core tableau expansion algorithm with fuel-bounded termination, including `expandBranchWithFuel`, `buildTableau`, and the `expandBranchWithFuel_sound` soundness theorem. Skip `#eval` test sections and traced implementations.
 
 **Tasks**:
-- [ ] Create `Saturation.lean` with copyright header
-- [ ] Port `ExpandedTableau` inductive (allClosed, hasOpen) with applied-set-aware saturation check
-- [ ] Port `ExpansionResult` type (if separate from Tableau.lean)
-- [ ] Port `allocateFuelProportionally` function and its `allocate_sum_le` termination lemma
-- [ ] Port `expandBranchWithFuel` function -- the main recursive expansion with `termination_by fuel`
-- [ ] Port `expandBranchWithFuel_sound` soundness theorem (the largest proof in the file)
-- [ ] Port `buildTableau` wrapper function
-- [ ] Port `soundFuel` function (computes adequate fuel from subformula closure size) -- use List-based closure from SignedFormula instead of Finset
-- [ ] Port `blocking_sound` theorem (if present and non-FMP)
-- [ ] Skip `#eval` test sections (lines ~687-930) -- require concrete atoms
-- [ ] Skip traced implementations (`expandBranchWithFuel_tracedImpl`, `expandOneStep_tracedImpl`) -- parallel implementations not needed for correctness
-- [ ] Handle `maxHeartbeats` for large proofs -- use `set_option maxHeartbeats 4000000` as needed
-- [ ] Adapt all to universe-polymorphic `Formula Atom`
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation`
+- [x] Create `Saturation.lean` with copyright header *(completed)*
+- [x] Port `ExpandedTableau` inductive (allClosed, hasOpen) with applied-set-aware saturation check *(completed)*
+- [x] Port `ExpansionResult` type (if separate from Tableau.lean) *(deviation: skipped -- ExpansionResult already defined in Tableau.lean, not duplicated)*
+- [x] Port `allocateFuelProportionally` function and its `allocate_sum_le` termination lemma *(completed)*
+- [x] Port `expandBranchWithFuel` function -- the main recursive expansion with `termination_by fuel` *(completed)*
+- [x] Port `expandBranchWithFuel_sound` soundness theorem (the largest proof in the file) *(completed)*
+- [x] Port `buildTableau` wrapper function *(completed)*
+- [x] Port `soundFuel` function (computes adequate fuel from subformula closure size) -- use List-based closure from SignedFormula instead of Finset *(deviation: altered -- uses Formula.subformulaCount instead of Finset.card)*
+- [x] Port `blocking_sound` theorem (if present and non-FMP) *(completed)*
+- [x] Skip `#eval` test sections (lines ~687-930) -- require concrete atoms *(completed -- skipped as planned)*
+- [x] Skip traced implementations (`expandBranchWithFuel_tracedImpl`, `expandOneStep_tracedImpl`) -- parallel implementations not needed for correctness *(completed -- skipped as planned)*
+- [x] Handle `maxHeartbeats` for large proofs -- use `set_option maxHeartbeats 4000000` as needed *(deviation: altered -- 3200000 was sufficient, same as source)*
+- [x] Adapt all to universe-polymorphic `Formula Atom` *(completed)*
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation` *(completed -- zero sorry, build passes)*
 
 **Timing**: 3.5 hours
 
