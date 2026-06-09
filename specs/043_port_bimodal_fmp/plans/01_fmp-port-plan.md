@@ -163,7 +163,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Prerequisite -- RestrictedMCS.lean [NOT STARTED]
+### Phase 4: Prerequisite -- RestrictedMCS.lean [COMPLETED]
 
 **Goal**: Port closure-restricted MCS definitions, restricted Lindenbaum, and formula construction (lines 1-440 of source)
 
