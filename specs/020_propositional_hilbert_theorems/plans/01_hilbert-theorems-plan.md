@@ -78,7 +78,7 @@ This plan advances the following ROADMAP.md items:
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Combinators [IN PROGRESS]
+### Phase 1: Combinators [COMPLETED]
 
 **Goal**: Port the fundamental I/B/C/S combinators that form the foundation for all subsequent propositional theorems.
 
