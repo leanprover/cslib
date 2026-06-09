@@ -1,6 +1,6 @@
 {
-  "status": "partial",
-  "started_at": "2026-06-09T21:31:31Z",
+  "status": "implemented",
+  "started_at": "2026-06-09T22:00:00Z",
   "verification": {
     "verification_passed": true,
     "sorry_count": 0,
@@ -8,13 +8,11 @@
     "axiom_count": 0,
     "build_passed": true
   },
-  "requires_user_review": true,
-  "review_reason": "Phases 3-4 incomplete: Lemma 2.7 Until-formula splitting and Phase 4 Since mirrors require ~700 additional lines of complex proof porting from bimodal source",
   "artifacts": [
     {
       "path": "Cslib/Logics/Temporal/Metalogic/Chronicle/PointInsertion.lean",
       "type": "implementation",
-      "summary": "1232-line new file with Burgess 2.4-2.6 splitting, Xu 2.3/3.2.1, g_content_sub"
+      "summary": "2888-line file with complete point insertion machinery (Burgess 2.4-2.8 + Xu 2.3/3.2.1)"
     },
     {
       "path": "Cslib/Logics/Temporal/Metalogic/Chronicle/RRelation.lean",
@@ -24,13 +22,13 @@
     {
       "path": "specs/047_temporal_point_insertion/summaries/01_implementation-summary.md",
       "type": "summary",
-      "summary": "Implementation summary"
+      "summary": "Complete implementation summary with all phases documented"
     }
   ],
   "partial_progress": {
-    "stage": "phase_3_partial",
-    "details": "Phases 0-2 fully complete. Phase 3 has Lemma 2.6 splitting done but Lemma 2.7 (Until-formula splitting with BX5+BX7+BX13 chain) deferred. Phase 4 (Since mirrors) deferred.",
-    "phases_completed": 3,
+    "stage": "complete",
+    "details": "All 5 phases complete. Phases 3-4 added 1656 lines.",
+    "phases_completed": 5,
     "phases_total": 5
   },
   "metadata": {
