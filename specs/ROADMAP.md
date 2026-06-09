@@ -171,15 +171,18 @@ definitions from Foundations/Logic/Metalogic/ (Task 29).
 ```
 Cslib/
 ├── Foundations/Logic/
-│   ├── Connectives.lean      # HasBot/HasImp/HasBox/HasUntil/HasSince typeclasses;
-│   │                         # PropositionalConnectives, ModalConnectives,
-│   │                         # TemporalConnectives, BimodalConnectives; LukasiewiczDerived
+│   ├── Connectives.lean      # HasBot/HasImp/HasBox/HasUntil/HasSince typeclasses
 │   ├── ProofSystem.lean      # ModusPonens, Necessitation, HasAxiom* typeclasses;
 │   │                         # PropositionalHilbert, ModalHilbert, ModalS5Hilbert,
 │   │                         # TemporalBXHilbert; tag types
-│   ├── Axioms.lean           # Axiom abbreviations (K, T, B, S4, S5, ...)
+│   ├── Axioms.lean           # Axiom abbreviations (K, T, B, S4, S5, BX temporal)
 │   ├── InferenceSystem.lean  # InferenceSystem typeclass, DerivableIn
-│   └── LogicalEquivalence.lean
+│   ├── LogicalEquivalence.lean
+│   └── Theorems/             # ★ Task 20, 21 (COMPLETED)
+│       ├── Combinators.lean  # I, B, C, S combinators (~332 lines)
+│       ├── BigConj.lean      # Big conjunction (~138 lines)
+│       ├── Propositional/    # Core, Connectives, Reasoning (~877 lines)
+│       └── Modal/            # Basic + S5 theorems (~786 lines)
 ├── Logics/
 │   ├── Propositional/
 │   │   ├── Defs.lean         # PL.Proposition, derived connectives, Theory
@@ -190,30 +193,58 @@ Cslib/
 │   │   ├── Cube.lean         # Modal logic cube
 │   │   └── Denotation.lean
 │   ├── Temporal/
-│   │   └── Syntax/Formula.lean   # Temporal.Formula, TemporalConnectives instance
+│   │   ├── Syntax/           # Formula, BigConj, Subformulas, Context
+│   │   ├── ProofSystem/      # ★ Task 22 (COMPLETED)
+│   │   │   ├── Axioms.lean   # 26-axiom BX system (~216 lines)
+│   │   │   ├── Derivation.lean # DerivationTree (~94 lines)
+│   │   │   ├── Derivable.lean  # Derivable + HilbertBX tag (~95 lines)
+│   │   │   └── Instances.lean  # InferenceSystem instances (~209 lines)
+│   │   └── Theorems/         # ★ Task 22 (COMPLETED)
+│   │       ├── TemporalDerived.lean  # 20 derived theorems (~271 lines)
+│   │       └── FrameConditions.lean  # Frame typeclasses (~84 lines)
 │   └── Bimodal/
-│       ├── Syntax/Formula.lean   # Bimodal.Formula, BimodalConnectives instance
+│       ├── Syntax/           # ★ Task 2 (COMPLETED)
+│       │   ├── Formula.lean  # Bimodal.Formula, BimodalConnectives
+│       │   └── Context.lean  # Context type (~140 lines)
+│       ├── Semantics/        # ★ Task 3 (COMPLETED)
+│       │   ├── TaskFrame.lean    # TaskFrame structure (~191 lines)
+│       │   ├── WorldHistory.lean # WorldHistory type (~309 lines)
+│       │   ├── TaskModel.lean    # TaskModel structure (~83 lines)
+│       │   ├── Truth.lean        # Truth evaluation (~651 lines)
+│       │   └── Validity.lean     # Validity definitions (~275 lines)
 │       └── Embedding/
 │           ├── ModalEmbedding.lean    # Modal.Proposition.toBimodal
-│           └── TemporalEmbedding.lean # Temporal.Formula.toBimodal
+│           ├── TemporalEmbedding.lean # Temporal.Formula.toBimodal
+│           └── PropositionalEmbedding.lean # PL.Proposition.toBimodal
 ```
 
-Total CSLib Lean lines (all modules): ~25,588
+Total CSLib Lean lines (all modules): ~31,723
+
+### What Has Been Completed
+
+| Component | Task | Lines | Status |
+|-----------|------|-------|--------|
+| `Foundations/Logic/Theorems/` — propositional Hilbert theorems | 20 | ~2,400 | COMPLETED |
+| `Foundations/Logic/Theorems/Modal/` — S4/S5 theorems, GenNec | 21 | ~786 | COMPLETED |
+| `Temporal/ProofSystem/` + `Temporal/Theorems/` — temporal proof system and theorems | 22 | ~1,433 | COMPLETED |
+| `Bimodal/Syntax/` — Context, BigConj, Subformulas | 2 | ~827 | COMPLETED |
+| `Bimodal/Semantics/` — TaskFrame, WorldHistory, Truth, Validity | 3 | ~1,649 | COMPLETED |
 
 ### What Does Not Yet Exist
 
 | Missing Component | Task | Lines |
 |-------------------|------|-------|
-| `Foundations/Logic/Theorems/` — propositional Hilbert theorems | 20 | ~2,400 |
 | `Foundations/Logic/Metalogic/` — generic MCS foundations | 29 | ~200–300 (new) |
-| `Modal/ProofSystem/` + `Modal/Theorems/` — proof system and S4/S5 theorems | 21 | ~1,600 |
 | `Modal/Metalogic/` — modal deduction theorem, MCS, soundness, completeness | 30 | ~1,500 (new) |
-| `Temporal/ProofSystem/` + `Temporal/Theorems/` — temporal proof system and theorems | 22 | ~1,500 |
 | `Temporal/Semantics/` — standalone temporal semantics on LinearOrder | 23 | ~400–600 (new) |
 | `Temporal/Metalogic/` — temporal deduction theorem, MCS, soundness, completeness | 31 | ~1,500 (new) |
-| `Bimodal/` (beyond Formula + Embedding) — full bimodal library | 2–11 | ~30,000+ |
+| `Bimodal/ProofSystem/` — 42-axiom Hilbert, DerivationTree | 4 | ~2,000 |
+| `Bimodal/Theorems/` — Perpetuity theorems | 5 | ~800 |
+| `Bimodal/FrameConditions/` + `Bimodal/Metalogic/Soundness/` | 6 | ~2,370 |
+| `Bimodal/Metalogic/Core/` — Deduction theorem, MCS theory | 7 | ~2,500 |
+| `Bimodal/Metalogic/` — Completeness, Decidability, Separation, ConservativeExtension | 8–11 | ~30,000+ |
 
-**0 lines of proof code ported so far.** All porting tasks are [NOT STARTED].
+**~7,095 lines of proof code completed.** Critical path: Task 32 (argument order fix) → Tasks 4–11.
 
 ---
 
@@ -415,11 +446,11 @@ Every extractable component maps to exactly one task (no double-counting):
 ## Success Metrics
 
 **Phase 1 (Propositional)**
-- [ ] Propositional theorems ported: all ~2,400 lines in `Foundations/Logic/Theorems/` (Task 20)
+- [x] Propositional theorems ported: all ~2,400 lines in `Foundations/Logic/Theorems/` (Task 20) *(Completed: Task 20, 2026-06-08)*
 
 **Phase 2 (Modal + Temporal Modules)**
-- [ ] Modal module complete: proof system + S4/S5 theorems in `Logics/Modal/` (Task 21)
-- [ ] Temporal module complete: proof system + theorems in `Logics/Temporal/` (Task 22)
+- [x] Modal module complete: proof system + S4/S5 theorems in `Foundations/Logic/Theorems/Modal/` (Task 21) *(Completed: Task 21, 2026-06-08)*
+- [x] Temporal module complete: proof system + theorems in `Logics/Temporal/` (Task 22) *(Completed: Task 22, 2026-06-08)*
 
 **Phase 3 (Temporal Semantics)**
 - [ ] Temporal semantics defined standalone on LinearOrder (Task 23: ~400–600 new lines)

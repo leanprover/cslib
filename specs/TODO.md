@@ -1,5 +1,5 @@
 ---
-next_project_number: 33
+next_project_number: 34
 ---
 
 # Tasks
@@ -61,6 +61,16 @@ next_project_number: 33
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic 
 
 ## Tasks
+
+### 33. Audit noncomputable instances in Temporal module
+- **Effort**: Small (<1 hour)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: None
+
+**Description**: Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.
+
+---
 
 ### 32. Fix untl/snce argument order to match standard literature convention
 - **Effort**: Medium (2-4 hours)

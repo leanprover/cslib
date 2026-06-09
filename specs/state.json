@@ -1,5 +1,5 @@
 {
-  "next_project_number": 33,
+  "next_project_number": 34,
   "active_projects": [
     {
       "project_number": 31,
@@ -463,6 +463,15 @@
         22,
         3
       ]
+    },
+    {
+      "project_number": 33,
+      "project_name": "audit_noncomputable_temporal_instances",
+      "status": "not_started",
+      "task_type": "lean4",
+      "description": "Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.",
+      "topic": "Temporal Logic",
+      "dependencies": []
     }
   ],
   "repository_health": {
