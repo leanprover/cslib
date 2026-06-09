@@ -1,13 +1,15 @@
 {
-  "status": "planned",
-  "summary": "5-phase plan to port ~1,000-1,200 lines of propositional Hilbert theorems from BimodalLogic to Cslib/Foundations/Logic/Theorems/ as generic [PropositionalHilbert S] lemmas (8 hours estimated)",
+  "status": "implemented",
+  "summary": "Ported 34 propositional Hilbert-style theorems to Cslib/Foundations/Logic/Theorems/ as generic [PropositionalHilbert S] lemmas with DT-free proofs of lce_imp, rce_imp, and classical_merge",
   "blockers": [],
+  "phases_completed": 5,
+  "phases_total": 5,
   "artifacts": [
     {
-      "path": "specs/020_propositional_hilbert_theorems/plans/01_hilbert-theorems-plan.md",
-      "type": "plan",
-      "summary": "Implementation plan: 5 phases covering Combinators, Core, Connectives, Reasoning+BigConj, and final verification"
+      "path": "specs/020_propositional_hilbert_theorems/summaries/01_hilbert-theorems-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary: 5 phases, 34 theorems, zero sorry, full build passes"
     }
   ],
-  "next_action_hint": "implement"
+  "next_action_hint": "complete"
 }

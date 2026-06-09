@@ -1,15 +1,56 @@
 {
-  "status": "in_progress",
+  "status": "implemented",
   "started_at": "2026-06-08T18:44:24Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, parsing delegation context"
+  "completed_at": "2026-06-08T19:30:00Z",
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
   },
+  "artifacts": [
+    {
+      "path": "Cslib/Foundations/Logic/Theorems/Combinators.lean",
+      "type": "source",
+      "summary": "I/B/C/S combinators, imp_trans, pairing, dni"
+    },
+    {
+      "path": "Cslib/Foundations/Logic/Theorems/Propositional/Core.lean",
+      "type": "source",
+      "summary": "LEM, DNE, raa, efq_neg, rcp, lce_imp, rce_imp (DT-free)"
+    },
+    {
+      "path": "Cslib/Foundations/Logic/Theorems/Propositional/Connectives.lean",
+      "type": "source",
+      "summary": "classical_merge (DT-free), iff ops, contraposition, De Morgan laws"
+    },
+    {
+      "path": "Cslib/Foundations/Logic/Theorems/Propositional/Reasoning.lean",
+      "type": "source",
+      "summary": "bi_imp (biconditional introduction)"
+    },
+    {
+      "path": "Cslib/Foundations/Logic/Theorems/BigConj.lean",
+      "type": "source",
+      "summary": "bigconj syntax + derivability lemmas"
+    },
+    {
+      "path": "Cslib/Foundations/Logic/Theorems.lean",
+      "type": "source",
+      "summary": "Module aggregator"
+    },
+    {
+      "path": "specs/020_propositional_hilbert_theorems/summaries/01_hilbert-theorems-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary"
+    }
+  ],
   "metadata": {
     "session_id": "sess_1780968264_f709a2",
     "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"]
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed"
   }
 }

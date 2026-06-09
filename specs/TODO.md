@@ -22,7 +22,7 @@ next_project_number: 29
 
 ### Foundations
 
-20 [PLANNED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
+20 [COMPLETED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 21 [NOT STARTED] — Port modal proof system and theorems to  (see Modal Logic section)
   └─ 22 [NOT STARTED] — Build temporal proof system infrastructu (see Temporal Logic section)
@@ -118,10 +118,11 @@ next_project_number: 29
 
 ### 20. Propositional Hilbert theorems
 - **Effort**: Medium (6-10 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Research**: [020_propositional_hilbert_theorems/reports/01_hilbert-theorems-research.md]
 - **Plan**: [020_propositional_hilbert_theorems/plans/01_hilbert-theorems-plan.md]
+- **Summary**: [020_propositional_hilbert_theorems/summaries/01_hilbert-theorems-summary.md]
 
 **Description**: Port propositional Hilbert-style theorems to `Cslib/Foundations/Logic/Theorems/` as generic `[PropositionalHilbert S]` lemmas (~2,400 lines from BimodalLogic). Scope: Combinators (I/B/C/S, ~300), Propositional/{Core,Connectives,Reasoning} (~1,100), ContextualProofs (~500), BigConj generic (~500). Note: DeductionTheorem stays per-logic (requires structural induction on DerivationTree, per team research finding).
 
