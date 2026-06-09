@@ -264,23 +264,23 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: ProofExtraction [NOT STARTED]
+### Phase 6: ProofExtraction [COMPLETED]
 
 **Goal**: Port the proof extraction module that builds `DerivationTree` proof terms from closed tableaux, using the AxiomMatcher stubs for unavailable automation functions.
 
 **Tasks**:
-- [ ] Create `ProofExtraction.lean` with copyright header
-- [ ] Port `proofFromBot` and `proofFromAxiom` helper functions
-- [ ] Port `extractFromClosureReason` function
-- [ ] Port `tryAxiomProof` function (uses `matchAxiom`)
-- [ ] Port `buildCompositionalProof` function -- uses `matchAxiom`, `matchDerived` (stubbed), and the `identity` combinator
-- [ ] Port `ExtractionResult` type (success/incomplete)
-- [ ] Port `extractProof` entry point -- the multi-strategy proof extraction using tableau + compositional + search
-- [ ] Port `findProofCombined` function -- uses `bounded_search_with_proof` (stubbed) + tableau
-- [ ] Replace `open Bimodal.Theorems.Combinators` with inline `identity` construction or import from AxiomMatcher
-- [ ] Replace `open Bimodal.Automation` with import of AxiomMatcher
-- [ ] Adapt all to universe-polymorphic `Formula Atom`
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction`
+- [x] Create `ProofExtraction.lean` with copyright header *(completed)*
+- [x] Port `proofFromBot` and `proofFromAxiom` helper functions *(completed)*
+- [x] Port `extractFromClosureReason` function *(completed)*
+- [x] Port `tryAxiomProof` function (uses `matchAxiom`) *(completed)*
+- [x] Port `buildCompositionalProof` function -- uses `matchAxiom`, `matchDerived` (stubbed), and the `identity` combinator *(completed)*
+- [x] Port `ExtractionResult` type (success/incomplete) *(deviation: altered -- named `ProofExtractionResult` matching source)*
+- [x] Port `extractProof` entry point -- the multi-strategy proof extraction using tableau + compositional + search *(completed)*
+- [x] Port `findProofCombined` function -- uses `bounded_search_with_proof` (stubbed) + tableau *(deviation: altered -- uses `bounded_search_with_proof_stub` from AxiomMatcher.lean)*
+- [x] Replace `open Bimodal.Theorems.Combinators` with inline `identity` construction or import from AxiomMatcher *(completed -- identity imported from AxiomMatcher via Saturation import chain)*
+- [x] Replace `open Bimodal.Automation` with import of AxiomMatcher *(completed -- matchAxiom, matchDerived, bounded_search_with_proof_stub imported via Saturation -> Closure -> AxiomMatcher chain)*
+- [x] Adapt all to universe-polymorphic `Formula Atom` *(completed)*
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction` *(completed -- zero sorry, zero warnings, zero new axioms)*
 
 **Timing**: 1.5 hours
 
@@ -297,7 +297,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: DecisionProcedure [NOT STARTED]
+### Phase 7: DecisionProcedure [IN PROGRESS]
 
 **Goal**: Port the main decision procedure that ties together tableau construction, proof extraction, and countermodel extraction into a single `decide` function.
 
