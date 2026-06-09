@@ -346,7 +346,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 10: Countermodel Integration [IN PROGRESS]
+### Phase 10: Countermodel Integration [COMPLETED]
 
 **Goal**: Port the countermodel construction pipeline that converts chronicles to actual countermodels. ChronicleToCountermodelBasic has no WeakCanonical dependency. ChronicleToCountermodel imports WeakCanonical only for the discrete path; sorry-stub those references.
 
@@ -370,7 +370,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 11: completeness_dense Theorem [NOT STARTED]
+### Phase 11: completeness_dense Theorem [IN PROGRESS]
 
 **Goal**: Port the completeness_dense theorem, splitting BXCanonical/Completeness.lean to isolate the dense path from the WeakCanonical-dependent discrete path.
 
