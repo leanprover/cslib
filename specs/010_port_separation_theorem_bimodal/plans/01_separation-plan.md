@@ -271,7 +271,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: DedekindZ -- QLemma and Cases [NOT STARTED]
+### Phase 8: DedekindZ -- QLemma and Cases [IN PROGRESS]
 
 **Goal**: Port the DedekindZ subdirectory: K+/K- operators, Q-lemma, and Cases 5-8 separability proofs.
 
