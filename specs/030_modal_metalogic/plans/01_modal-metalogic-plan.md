@@ -132,22 +132,22 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Modal MCS [NOT STARTED]
+### Phase 3: Modal MCS [COMPLETED]
 
 **Goal**: Instantiate the generic MCS framework for modal logic and prove modal-specific MCS properties needed for the canonical model construction (box_closure, box_box, box_witness).
 
 **Tasks**:
-- [ ] Create file `Cslib/Logics/Modal/Metalogic/MCS.lean` with imports from DeductionTheorem.lean and Consistency.lean
-- [ ] Define type aliases for readability: `Modal.SetConsistent S := Metalogic.SetConsistent modalDerivationSystem S`, `Modal.SetMaximalConsistent S := Metalogic.SetMaximalConsistent modalDerivationSystem S`
-- [ ] Instantiate generic Lindenbaum lemma: `modal_lindenbaum : Modal.SetConsistent S -> exists M, S subset M and Modal.SetMaximalConsistent M` (direct application of `set_lindenbaum`)
-- [ ] Prove `modal_closed_under_derivation` by instantiating generic `closed_under_derivation` with `modal_has_deduction_theorem`
-- [ ] Prove `modal_implication_property` by instantiating generic `implication_property`
-- [ ] Prove `modal_negation_complete` by instantiating generic `negation_complete`
-- [ ] Prove `SetMaximalConsistent.box_closure`: if `box phi in S` and S is MCS, then `phi in S` (using axiom T and `closed_under_derivation`: derive `phi` from `box phi` via T axiom `box phi -> phi` and MP)
-- [ ] Prove `SetMaximalConsistent.box_box`: if `box phi in S` and S is MCS, then `box(box phi) in S` (using axiom 4 and `closed_under_derivation`: derive `box(box phi)` from `box phi` via 4 axiom `box phi -> box(box phi)` and MP)
-- [ ] Prove `SetMaximalConsistent.diamond_box_duality`: `diamond phi in S iff not (box (neg phi) in S)` (diamond is defined as `neg(box(neg phi))`, so this follows from negation completeness)
-- [ ] Prove `SetMaximalConsistent.box_witness`: if `box phi notin S` and S is MCS, then there exists an MCS T such that (forall psi, box psi in S -> psi in T) and phi notin T. Proof: show `{psi | box psi in S} union {neg phi}` is consistent (otherwise derive `box phi` using necessitation + weakening, contradicting `box phi notin S`), then extend to MCS via Lindenbaum.
-- [ ] Verify `lake build Cslib.Logics.Modal.Metalogic.MCS`
+- [x] Create file `Cslib/Logics/Modal/Metalogic/MCS.lean` with imports from DeductionTheorem.lean and Consistency.lean
+- [x] Define type aliases for readability: `Modal.SetConsistent`, `Modal.SetMaximalConsistent`
+- [x] Instantiate generic Lindenbaum lemma: `modal_lindenbaum`
+- [x] Prove `modal_closed_under_derivation` by instantiating generic `closed_under_derivation` with `modal_has_deduction_theorem`
+- [x] Prove `modal_implication_property` by instantiating generic `implication_property`
+- [x] Prove `modal_negation_complete` by instantiating generic `negation_complete`
+- [x] Prove `mcs_box_closure`: if `□φ ∈ S` and S is MCS, then `φ ∈ S`
+- [x] Prove `mcs_box_box`: if `□φ ∈ S` and S is MCS, then `□□φ ∈ S`
+- [ ] Prove `SetMaximalConsistent.diamond_box_duality` *(deviation: skipped -- diamond/box duality follows directly from negation completeness and is handled inline in completeness proof where needed)*
+- [x] Prove `mcs_box_witness`: if `□φ ∉ S` and S is MCS, then exists MCS T with box-accessibility and φ ∉ T *(deviation: altered -- proof uses iterated_deduction with sigma type bundling the K-distribution property, rather than separate k_distribution function)*
+- [x] Verify `lake build Cslib.Logics.Modal.Metalogic.MCS`
 
 **Timing**: 3.5 hours
 
