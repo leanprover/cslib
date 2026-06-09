@@ -74,25 +74,25 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Extend Formula.lean [IN PROGRESS]
+### Phase 1: Extend Formula.lean [COMPLETED]
 
 **Goal**: Add structural properties, derived operators, and utility functions to the existing Formula.lean
 
 **Tasks**:
-- [ ] Add `Countable`, `Infinite`, `Denumerable` instances for `Formula Atom` (requires `[Countable Atom]` and `[Infinite Atom]` constraints; use `variable` block)
-- [ ] Add `Formula.atom_injective` theorem
-- [ ] Add BEq helper theorems (`beq_imp_eq`, `beq_untl_eq`, `beq_snce_eq`)
-- [ ] Add `Formula.beq_refl` and `Formula.eq_of_beq` theorems (5 cases, no box)
-- [ ] Add `ReflBEq Formula` and `LawfulBEq Formula` instances
-- [ ] Add `Formula.complexity` function (strip all box patterns from BimodalLogic; remove diamond, modalDepth patterns)
-- [ ] Add `Formula.temporalDepth` function (5 cases, no box)
-- [ ] Add `Formula.countImplications` function (5 cases, no box)
-- [ ] Add derived temporal operators: `always`, `sometimes`, `next`, `prev`, `weak_future`, `weak_past`, `release`, `trigger`, `weak_until`, `weak_since`, `strong_release`, `strong_trigger`
-- [ ] Add notation for `always` and `sometimes` operators
-- [ ] Add `Formula.swap_temporal` function and all swap theorems (involution, distributes over neg/some_future/some_past/all_future/all_past/next/prev/strong_release/strong_trigger)
-- [ ] Add `Formula.needsPositiveHypotheses` function and simp lemmas (5 cases, no box)
-- [ ] Add `Formula.atoms` function (5 cases, no box) and `atoms_swap_temporal` theorem
-- [ ] Verify `lake build Cslib.Logics.Temporal.Syntax.Formula` passes
+- [x] Add `Countable`, `Infinite`, `Denumerable` instances for `Formula Atom` *(completed — via Nat.pair encoding injection)*
+- [x] Add `Formula.atom_injective` theorem *(completed)*
+- [x] Add BEq helper theorems (`beq_imp_eq`, `beq_untl_eq`, `beq_snce_eq`) *(completed)*
+- [x] Add `Formula.beq_refl` and `Formula.eq_of_beq` theorems (5 cases, no box) *(completed)*
+- [x] Add `ReflBEq Formula` and `LawfulBEq Formula` instances *(completed)*
+- [x] Add `Formula.complexity` function *(deviation: altered — complexity patterns adapted for cslib abbrev conventions; always/sometimes/weak_future/weak_past/strong_release/strong_trigger/diamond special patterns omitted since deeply nested abbrev expansions make them fragile; G/H/F/P/next/prev/release/trigger patterns preserved)*
+- [x] Add `Formula.temporalDepth` function (5 cases, no box) *(completed)*
+- [x] Add `Formula.countImplications` function (5 cases, no box) *(completed)*
+- [x] Add derived temporal operators: `always`, `sometimes`, `next`, `prev`, `weak_future`, `weak_past`, `release`, `trigger`, `weak_until`, `weak_since`, `strong_release`, `strong_trigger` *(completed)*
+- [x] Add notation for `always` and `sometimes` operators *(completed)*
+- [x] Add `Formula.swap_temporal` function and all swap theorems *(completed)*
+- [x] Add `Formula.needsPositiveHypotheses` function and simp lemmas (5 cases, no box) *(completed)*
+- [x] Add `Formula.atoms` function (5 cases, no box) and `atoms_swap_temporal` theorem *(completed)*
+- [x] Verify `lake build Cslib.Logics.Temporal.Syntax.Formula` passes *(completed)*
 
 **Timing**: 2 hours
 
