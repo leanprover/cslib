@@ -1,5 +1,5 @@
 ---
-next_project_number: 38
+next_project_number: 42
 ---
 
 # Tasks
@@ -12,16 +12,20 @@ next_project_number: 38
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
 | 1 | 5,6,11,12,31 | -- | Temporal Logic, Bimodal Porting, Project Management |
-| 2 | 7 | 5 | Bimodal Porting |
-| 3 | 9,10,34 | 6,7 | Bimodal Porting |
+| 2 | 7,38,39 | 5,31 | Bimodal Porting, Temporal Logic |
+| 3 | 9,10,34,40 | 6,7,38 | Bimodal Porting, Temporal Logic |
 | 4 | 35 | 34 | Bimodal Porting |
-| 5 | 36,37 | 35 + upstream | Bimodal Porting (blocked on upstream) |
+| 5 | 41 | 35,38,39 | Foundations (abstraction after concrete proofs) |
+| -- | 36,37,40 | upstream | Blocked on upstream development |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Temporal Logic
 
 31 [IMPLEMENTING] — Build standalone temporal metalogic (~1,500 lines, new development)
+  └─ 38 [NOT STARTED] — Dense temporal completeness (density axioms + completeness over Rat)
+    └─ 40 [BLOCKED] — Continuous temporal completeness (research needed)
+  └─ 39 [NOT STARTED] — Discrete temporal completeness (discrete axioms + completeness over Int)
 
 ### Bimodal Porting
 
@@ -38,6 +42,11 @@ next_project_number: 38
   └─ 34 [NOT STARTED] — Port base MCS completeness properties (see above)
 11 [RESEARCHED] — Port Conservative Extension (PR 10)
 
+### Foundations
+
+41 [NOT STARTED] — Abstract shared completeness infrastructure (temporal + bimodal)
+  (depends on: 35, 38, 39)
+
 ### Project Management
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the modular logic
@@ -52,6 +61,75 @@ next_project_number: 38
 - **Dependencies**: Task 22, Task 23, Task 29
 
 **Description**: Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: `Cslib/Logics/Temporal/Metalogic/`.
+
+---
+
+### 40. Continuous temporal completeness
+- **Effort**: TBD
+- **Status**: [BLOCKED]
+- **Task Type**: lean4
+- **Dependencies**: Task 38
+
+**Description**: Completeness for temporal logic over Dedekind-complete (continuous) linear orders (e.g., the reals). Define a Continuous frame class extending Dense, add any required axioms, prove soundness and completeness.
+
+**Blocker**: Research needed on whether continuous frames require additional axioms beyond density. The standard result (Burgess 1982) is that Until/Since temporal logic over the reals has the same theorems as over the rationals — density suffices — which would make this a transfer theorem rather than a new completeness proof. But this equivalence itself needs to be formalized.
+
+---
+
+### 39. Discrete temporal completeness
+- **Effort**: Medium (8-12 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 31
+
+**Description**: Prove that every formula valid on all discrete serial linear orders is derivable in the Discrete temporal proof system. New development (not a port).
+
+**Scope**:
+1. Add discrete-specific axioms to `Temporal.Axiom`: `prior_UZ` (F(φ) → U(φ,¬φ)), `prior_SZ` (P(φ) → S(φ,¬φ)), `z1` (G(Gφ→φ) → (F(Gφ)→Gφ)), and discrete uniformity axioms (`discrete_symm_fwd/bwd`, `discrete_propagate_fwd/bwd`), gated to `FrameClass.Discrete` via `minFrameClass`.
+2. Prove discrete soundness: each discrete axiom valid on `SuccOrder + PredOrder + IsSuccArchimedean`.
+3. Prove discrete completeness via contrapositive + MCS + canonical model on `Int`. The non-discrete branch is eliminated by deriving `U(⊤,⊥)` as a Discrete theorem.
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/DiscreteCompleteness.lean` + axiom additions to `Axioms.lean`
+**Estimated scope**: ~500-700 lines
+
+---
+
+### 38. Dense temporal completeness
+- **Effort**: Medium (6-10 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 31
+
+**Description**: Prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system. New development (not a port).
+
+**Scope**:
+1. Add dense-specific axioms to `Temporal.Axiom`: `density` (G(Gφ) → Gφ) and `dense_indicator` (¬U(⊤,⊥)), gated to `FrameClass.Dense` via `minFrameClass`.
+2. Prove dense soundness: density axiom valid on `DenselyOrdered` (between any two points there's another, so G(Gφ) → Gφ); `dense_indicator` valid on `DenselyOrdered` (no immediate successor, so U(⊤,⊥) is false).
+3. Prove dense completeness via contrapositive + MCS + canonical model on `Rat`. The non-dense branch is eliminated by deriving `¬U(⊤,⊥)` as a Dense theorem, so its necessitation is in every Dense-MCS.
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/DenseCompleteness.lean` + axiom additions to `Axioms.lean`
+**Estimated scope**: ~400-600 lines
+
+---
+
+### 41. Abstract shared completeness infrastructure
+- **Effort**: Medium (8-12 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Tasks 35, 38, 39
+
+**Description**: Abstract shared completeness infrastructure between temporal and bimodal logic, extending the generic MCS framework (Task 29) in `Cslib/Foundations/Logic/Metalogic/`. To be done after concrete completeness proofs are finished for both logics.
+
+**Candidate abstractions** (to be confirmed once concrete implementations exist):
+1. **Generic `neg_consistent_of_not_derivable`**: if φ is not derivable then {¬φ} is consistent — identical structure in both logics, parameterized over `DerivationSystem`
+2. **Completeness contrapositive skeleton**: not derivable → consistent → Lindenbaum → MCS → canonical model → countermodel — shared proof shape
+3. **Dense/discrete case split pattern**: the three-way split on indicator formulas (□(F'T) / □(U(T,⊥)) bimodal, G(F'T) / G(U(T,⊥)) temporal) follows the same structure
+4. **Dense indicator elimination**: both dense completeness proofs eliminate the non-dense branch by showing the dense indicator axiom is a theorem — identical pattern
+5. **Canonical order construction patterns**: both define canonical_lt via G-sets (temporal) or box-sets (bimodal); linearity/irreflexivity/transitivity proofs follow parallel structures
+
+**Scope**: Identify which abstractions yield genuine code savings vs. premature generalization, implement those that do, refactor both temporal and bimodal completeness to use the shared infrastructure.
+
+**Target**: `Cslib/Foundations/Logic/Metalogic/Completeness.lean` (or similar)
 
 ---
 
@@ -244,7 +322,10 @@ Expanded into:
 
 ### 7. Port Deduction Infrastructure and MCS Theory to Bimodal module
 - **Effort**: Large (10-14 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
+- **Research**: [specs/007_port_deduction_mcs_theory_bimodal/reports/01_deduction-mcs-research.md]
+- **Plan**: [specs/007_port_deduction_mcs_theory_bimodal/plans/01_deduction-mcs-plan.md]
+- **Summary**: [specs/007_port_deduction_mcs_theory_bimodal/summaries/01_deduction-mcs-summary.md]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 5, 29 (ProofSystem, Perpetuity Theorems, Generic MCS Foundations)
 

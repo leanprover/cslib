@@ -1,5 +1,5 @@
 {
-  "next_project_number": 41,
+  "next_project_number": 42,
   "active_projects": [
     {
       "project_number": 31,
@@ -89,6 +89,21 @@
       "topic": "Temporal Logic"
     },
     {
+      "project_number": 41,
+      "project_name": "abstract_completeness_infrastructure",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-08T00:00:00Z",
+      "dependencies": [
+        35,
+        38,
+        39
+      ],
+      "description": "Abstract shared completeness infrastructure between temporal and bimodal logic once concrete completeness proofs are finished for both.\n\nThe temporal (tasks 31, 38, 39) and bimodal (tasks 34, 35) completeness proofs share structural patterns that can be factored into a generic completeness scaffold in Cslib/Foundations/Logic/Metalogic/, extending the existing generic MCS framework (Task 29).\n\nCandidate abstractions (to be confirmed once concrete implementations exist):\n1. Generic neg_consistent_of_not_derivable: if φ is not derivable then {¬φ} is consistent — identical structure in both logics, parameterized over DerivationSystem\n2. Generic completeness contrapositive skeleton: not derivable → consistent → Lindenbaum → MCS → canonical model → countermodel — the overall proof shape is shared\n3. Dense/discrete case split pattern: the three-way case split on □(F'T) / □(U(T,⊥)) / mixed is structurally similar (temporal uses G/H instead of □)\n4. Canonical order construction patterns: both define canonical_lt via G-sets (temporal) or box-sets (bimodal); the linearity/irreflexivity/transitivity proofs follow parallel structures\n5. Dense indicator elimination: both dense completeness proofs eliminate the non-dense branch by showing the dense indicator axiom is a theorem — identical pattern\n\nScope: Identify which abstractions yield genuine code savings vs. premature generalization, implement those that do, and refactor both temporal and bimodal completeness to use the shared infrastructure.\n\nTarget: Cslib/Foundations/Logic/Metalogic/Completeness.lean (or similar)\nDepends on: Tasks 35 (dense bimodal), 38 (dense temporal), 39 (discrete temporal) — transitively includes 31 (base temporal) and 34 (base bimodal MCS)",
+      "topic": "Foundations"
+    },
+    {
       "project_number": 12,
       "project_name": "coordinate_cslib_pr_submission_bimodal_logic",
       "status": "partial",
@@ -103,17 +118,18 @@
     {
       "project_number": 7,
       "project_name": "port_deduction_mcs_theory_bimodal",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-08T00:30:00Z",
+      "last_updated": "2026-06-09T12:03:40Z",
       "dependencies": [
         4,
         5,
         29
       ],
       "description": "Port Deduction Infrastructure and MCS Theory (PR 6): DeductionTheorem, MaximalConsistent, MCSProperties, RestrictedMCS to Cslib/Logics/Bimodal/Metalogic/Core/. This PR establishes the core metalogical infrastructure for completeness: deduction theorem and maximal consistent set theory.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/Core/):\n- DeductionTheorem.lean (~500 lines): deduction theorem for BX/TM proof system\n- MaximalConsistent.lean (~600 lines): definition and basic properties of maximal consistent sets (MCS)\n- MCSProperties.lean (~700 lines): Lindenbaum lemma, MCS enumeration, key MCS closure properties\n- RestrictedMCS.lean (~400 lines): restricted MCS for density/discreteness frame-specific completeness\n- DualMCS.lean (~300 lines): dual MCS properties (past accessibility reconstruction)\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Core/\n\n**Estimated scope**: ~2,500 lines across 6 files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/Core module (DeductionTheorem, MaximalConsistent, MCS)\n\n**Dependencies**: Tasks 4 (ProofSystem) and 5 (Theorems) must be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
-      "topic": "Bimodal Porting"
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported DeductionTheorem, MaximalConsistent, MCSProperties to Cslib/Logics/Bimodal/Metalogic/Core/ (1,112 lines, zero sorry). Phases: DerivationTree bridge with bimodalDerivationSystem instance, deduction theorem by well-founded recursion on 7-constructor DerivationTree, list/set-based MCS with generic framework delegation, temporal 4 future/past closure properties. RestrictedMCS deferred to completeness task."
     },
     {
       "project_number": 8,
