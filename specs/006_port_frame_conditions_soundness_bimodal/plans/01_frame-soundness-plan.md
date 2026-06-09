@@ -215,7 +215,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: FrameConditions/Validity.lean [NOT STARTED]
+### Phase 6: FrameConditions/Validity.lean [COMPLETED]
 
 **Goal**: Port the parameterized validity definitions -- `valid_over`, `valid_linear`, `valid_dense_fc`, `valid_discrete_fc` -- and equivalence lemmas connecting these to the existing `valid_dense`/`valid_discrete` from `Cslib.Logics.Bimodal.Semantics.Validity`.
 
@@ -243,7 +243,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: FrameConditions/Soundness.lean [NOT STARTED]
+### Phase 7: FrameConditions/Soundness.lean [COMPLETED]
 
 **Goal**: Port the frame-condition-parameterized soundness theorems -- `soundness_over`, `soundness_linear`, `soundness_dense`, `soundness_discrete`, and `soundness_Int`. These bridge the FrameConditions layer to the Metalogic/Soundness layer.
 
@@ -270,7 +270,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: FrameConditions/Compatibility.lean [NOT STARTED]
+### Phase 8: FrameConditions/Compatibility.lean [COMPLETED]
 
 **Goal**: Port the axiom compatibility typeclasses (`AxiomLinearCompatible`, `AxiomDenseCompatible`, `AxiomDiscreteCompatible`) and all per-axiom instances (13+ monotonicity instances).
 
@@ -298,7 +298,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: DenseSoundness.lean and DiscreteSoundness.lean [NOT STARTED]
+### Phase 9: DenseSoundness.lean and DiscreteSoundness.lean [COMPLETED]
 
 **Goal**: Port the two thin wrapper files that re-export soundness results for dense and discrete frame classes. These are minimal files (51 + 53 lines) that provide convenient entry points.
 
