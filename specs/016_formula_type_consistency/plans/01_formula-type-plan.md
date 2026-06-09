@@ -76,13 +76,13 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Expand LukasiewiczDerived Docstring [NOT STARTED]
+### Phase 2: Expand LukasiewiczDerived Docstring [COMPLETED]
 
 **Goal**: Replace the current one-line docstring on `LukasiewiczDerived` with an expanded version that documents its intentionally uninstantiated status and explains why.
 
 **Tasks**:
-- [ ] Replace docstring on `LukasiewiczDerived` (lines 73-74 of `Cslib/Foundations/Logic/Connectives.lean`) with expanded version explaining: (a) what it provides, (b) that each formula type uses its own `abbrev` definitions instead, (c) that instantiation would add typeclass overhead for no benefit, (d) that it is retained for potential future polymorphic proof system abstractions
-- [ ] Run `lake build Cslib.Foundations.Logic.Connectives` to verify the change compiles
+- [x] Replace docstring on `LukasiewiczDerived` (lines 73-74 of `Cslib/Foundations/Logic/Connectives.lean`) with expanded version explaining: (a) what it provides, (b) that each formula type uses its own `abbrev` definitions instead, (c) that instantiation would add typeclass overhead for no benefit, (d) that it is retained for potential future polymorphic proof system abstractions
+- [x] Run `lake build Cslib.Foundations.Logic.Connectives` to verify the change compiles
 
 **Timing**: 5 minutes
 

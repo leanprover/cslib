@@ -71,7 +71,19 @@ class TemporalConnectives (F : Type*) extends PropositionalConnectives F, HasUnt
 class BimodalConnectives (F : Type*) extends ModalConnectives F, HasUntil F, HasSince F
 
 /-- Lukasiewicz-style derived connectives from `bot` and `imp`.
-    Provides `neg`, `top`, `or`, `and` as abbreviations. -/
+
+Provides `neg`, `top`, `or`, `and` as abbreviations following the standard Lukasiewicz
+encoding: negation is implication to falsum, verum is `bot → bot`, disjunction is
+`¬φ → ψ`, and conjunction is `¬(φ → ¬ψ)`.
+
+**Status**: This class is intentionally uninstantiated. Each concrete formula type
+(PL.Proposition, Modal.Proposition, Temporal.Formula, Bimodal.Formula) defines its
+own `abbrev` connectives directly on the inductive constructors, which are
+definitionally equal to these defaults. Registering typeclass instances would add
+resolution overhead at every use site with no benefit, since the `abbrev` definitions
+already compute. The class is retained as a specification artifact and for potential
+future use in polymorphic proof-system abstractions that need to quantify over derived
+connectives generically. -/
 class LukasiewiczDerived (F : Type*) [HasBot F] [HasImp F] where
   /-- Negation: `neg φ := imp φ bot` -/
   neg : F → F := fun φ => HasImp.imp φ HasBot.bot
