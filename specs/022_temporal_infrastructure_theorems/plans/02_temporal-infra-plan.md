@@ -141,7 +141,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Temporal DerivationTree and Derivable [NOT STARTED]
+### Phase 3: Temporal DerivationTree and Derivable [COMPLETED]
 
 **Goal**: Create the concrete derivation tree inductive with 6 inference rules and the Prop-valued Derivable wrapper, mirroring BimodalLogic's architecture but for temporal-only logic (no box/necessitation).
 
