@@ -108,7 +108,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Generalized Necessitation and Propositional Helpers [NOT STARTED]
+### Phase 2: Generalized Necessitation and Propositional Helpers [COMPLETED]
 
 **Goal**: Create the temporal versions of `generalized_temporal_k`, `generalized_past_k`, `past_necessitation`, `past_k_dist`, and `temp_k_dist_derived` at the DerivationTree level. Also create propositional helpers (`double_negation`, `efq_axiom`, `lce_imp`, `rce_imp`, `pairing`, `imp_trans`, `dni`, `contraposition`) needed by later phases.
 
