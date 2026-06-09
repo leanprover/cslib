@@ -233,22 +233,25 @@ Total CSLib Lean lines (all modules): ~31,723
 | `Bimodal/Syntax/` — Context, BigConj, Subformulas | 2 | ~827 | COMPLETED |
 | `Bimodal/Semantics/` — TaskFrame, WorldHistory, Truth, Validity | 3 | ~1,649 | COMPLETED |
 | `Bimodal/ProofSystem/` — 42-axiom Hilbert, DerivationTree, Substitution | 4 | ~2,000 | COMPLETED |
+| `Bimodal/Theorems/Perpetuity/` — bimodal fixed-point principles | 5 | ~549 | COMPLETED |
+| `Bimodal/FrameConditions/` + `Bimodal/Metalogic/Soundness/` | 6 | ~2,370 | COMPLETED |
+| `Bimodal/Metalogic/Core/` — Deduction theorem, MCS theory | 7 | ~1,112 | COMPLETED |
+| `Bimodal/Metalogic/Completeness.lean` — base MCS completeness properties | 34 | ~478 | COMPLETED |
+| `Bimodal/Metalogic/Separation/` — Separation theorem (GHR94 10.2.9) | 10 | ~6,420 | COMPLETED |
+| `Bimodal/Metalogic/ConservativeExtension/` — BX conservative extension | 11 | ~1,671 | COMPLETED |
+| `Bimodal/Metalogic/Decidability/` — Tableau decision procedure | 42 | ~5,957 | COMPLETED |
+| `Bimodal/Metalogic/Decidability/FMP/` — Finite model property | 43 | ~2,500 | COMPLETED |
 
-### What Does Not Yet Exist
+### What Remains
 
 | Missing Component | Task | Lines |
 |-------------------|------|-------|
-| ~~`Foundations/Logic/Metalogic/`~~ — generic MCS foundations | 29 | ~273 | **COMPLETED** |
-| ~~`Modal/Metalogic/`~~ — modal metalogic | 30 | ~1,449 | **COMPLETED** |
-| ~~`Temporal/Semantics/`~~ — standalone temporal semantics | 23 | ~440 | **COMPLETED** |
 | `Temporal/Metalogic/` — temporal deduction theorem, MCS, soundness, completeness | 31 | ~1,500 (new) |
-| `Bimodal/ProofSystem/` — 42-axiom Hilbert, DerivationTree | 4 | ~2,000 |
-| `Bimodal/Theorems/` — Perpetuity theorems | 5 | ~800 |
-| `Bimodal/FrameConditions/` + `Bimodal/Metalogic/Soundness/` | 6 | ~2,370 |
-| `Bimodal/Metalogic/Core/` — Deduction theorem, MCS theory | 7 | ~2,500 |
-| `Bimodal/Metalogic/` — Completeness, Decidability, Separation, ConservativeExtension | 8–11 | ~30,000+ |
+| `Bimodal/Metalogic/{Algebraic,Bundle,BXCanonical}/` — dense completeness | 35 | ~15,000 |
+| `Bimodal/Metalogic/` — discrete completeness | 36 | ~TBD |
+| `Bimodal/Metalogic/` — continuous extension completeness | 37 | ~TBD |
 
-**~11,257 lines of proof code completed.** Critical path: Tasks 5–11 (bimodal porting) and Task 31 (temporal metalogic).
+**~50,000+ lines of proof code completed.** Critical path: Task 35 (dense completeness) → 36/37 → 31 (temporal metalogic) → 38/39 (temporal completeness).
 
 ---
 
@@ -469,12 +472,12 @@ Every extractable component maps to exactly one task (no double-counting):
 - [ ] Temporal MCS theory with Until/Since witness conditions in `Logics/Temporal/Metalogic/` (Task 31)
 - [ ] Temporal soundness theorem: `TemporalBXHilbert S → S ⊢ φ → Temporal.Valid φ` (Task 31)
 - [ ] Temporal completeness theorem via canonical linear model construction (Task 31)
-- [ ] All standalone modules self-contained: Modal/ and Temporal/ import only Foundations
+- [x] All standalone modules self-contained: Modal/ and Temporal/ import only Foundations *(Completed: Tasks 21-23, 30, 2026-06-09)*
 - [ ] Zero sorry in Phases 1–4 (Tasks 20–23, 29–31)
 
 **Phase 5 (Bimodal Porting)**
 - [ ] All bimodal tasks (2–11) ported to `Cslib/Logics/Bimodal/`
-- [ ] Bimodal MCS theory imports generic foundations from Task 29
+- [x] Bimodal MCS theory imports generic foundations from Task 29 *(Completed: Task 7, 2026-06-09)*
 
 **Cross-cutting**
 - [ ] `lake build` passes with zero errors after each task
