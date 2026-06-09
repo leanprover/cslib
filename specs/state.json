@@ -92,20 +92,6 @@
       "topic": "Project Management"
     },
     {
-      "project_number": 8,
-      "project_name": "port_completeness_bimodal",
-      "status": "expanded",
-      "task_type": "lean4",
-      "created": "2026-06-08T00:30:00Z",
-      "last_updated": "2026-06-08T00:00:00Z",
-      "dependencies": [
-        6,
-        7
-      ],
-      "description": "Expanded into tasks 34 (base MCS properties), 35 (dense completeness), 36 (discrete completeness), 37 (continuous extension completeness).",
-      "topic": "Bimodal Porting"
-    },
-    {
       "project_number": 36,
       "project_name": "port_discrete_completeness_bimodal",
       "status": "blocked",

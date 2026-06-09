@@ -143,11 +143,6 @@ next_project_number: 51
 
 ---
 
-### 8. Port Completeness to Bimodal module [EXPANDED]
-- **Status**: [EXPANDED] — split into tasks 34, 35, 36, 37
-
----
-
 ### 37. Port continuous extension completeness
 - **Effort**: TBD
 - **Status**: [BLOCKED]
