@@ -134,7 +134,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: MaximalConsistent [NOT STARTED]
+### Phase 3: MaximalConsistent [COMPLETED]
 
 **Goal**: Port list-based and set-based consistency definitions, Lindenbaum's lemma, and basic MCS closure properties. Delegate generic properties to the foundations layer via `bimodalDerivationSystem`.
 
@@ -172,20 +172,20 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: MCSProperties [NOT STARTED]
+### Phase 4: MCSProperties [COMPLETED]
 
 **Goal**: Port set-based MCS closure properties, context exchange helpers, and temporal 4 future/past properties needed for completeness.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Bimodal/Metalogic/Core/MCSProperties.lean`
-- [ ] Port `cons_filter_neq_perm` and `derivation_exchange` helpers
-- [ ] Port `SetMaximalConsistent.closed_under_derivation` (bimodal-specific version that works at any `fc`, or verify the delegation wrapper from Phase 3 suffices)
-- [ ] Port `SetMaximalConsistent.implication_property` and `SetMaximalConsistent.negation_complete` (bimodal-specific versions or verify delegation wrappers suffice)
-- [ ] Port `SetMaximalConsistent.all_future_all_future` (Gφ in S implies GGφ in S) using `temp_4_derived` from `Bimodal.Theorems.TemporalDerived`
-- [ ] Port `temp_4_past` (Hφ -> HHφ derived via temporal duality on temp_4_derived)
-- [ ] Port `SetMaximalConsistent.all_past_all_past` (Hφ in S implies HHφ in S) using `temp_4_past`
-- [ ] Port `set_consistent_not_both` and `SetMaximalConsistent.neg_excludes`
-- [ ] Run `lake build Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties` -- verify zero errors
+- [x] **Task 4.1**: Create `Cslib/Logics/Bimodal/Metalogic/Core/MCSProperties.lean` *(completed)*
+- [x] **Task 4.2**: Port `cons_filter_neq_perm` and `derivation_exchange` helpers *(completed)*
+- [x] **Task 4.3**: Port `SetMaximalConsistent.closed_under_derivation` *(completed — defined fc-parameterized SetConsistent/SetMaximalConsistent locally since generic framework wrappers are Base-only)*
+- [x] **Task 4.4**: Port `SetMaximalConsistent.implication_property` and `SetMaximalConsistent.negation_complete` *(completed — fc-parameterized bimodal-specific versions)*
+- [x] **Task 4.5**: Port `SetMaximalConsistent.all_future_all_future` *(deviation: altered — temp_4_derived derived inline from BX3+BX6 since Bimodal.Theorems.TemporalDerived does not exist in cslib)*
+- [x] **Task 4.6**: Port `temp_4_past` (Hphi -> HHphi derived via temporal duality on temp_4_derived) *(completed)*
+- [x] **Task 4.7**: Port `SetMaximalConsistent.all_past_all_past` (Hphi in S implies HHphi in S) using `temp_4_past` *(completed)*
+- [x] **Task 4.8**: Port `set_consistent_not_both` and `SetMaximalConsistent.neg_excludes` *(completed)*
+- [x] **Task 4.9**: Run `lake build Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties` -- verify zero errors *(completed)*
 
 **Timing**: 1 hour
 
