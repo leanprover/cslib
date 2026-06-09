@@ -1,5 +1,5 @@
 ---
-next_project_number: 44
+next_project_number: 45
 ---
 
 # Tasks
@@ -42,6 +42,15 @@ next_project_number: 44
 12 [PARTIAL] — Coordinate cslib PR submission (deps: all above) 
 
 ## Tasks
+
+### 44. Streamline ROADMAP.md
+- **Effort**: Small (1-2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+
+**Description**: Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed.
+
+---
 
 ### 31. Temporal metalogic
 - **Effort**: Large (18 hours)

@@ -1,6 +1,15 @@
 {
-  "next_project_number": 44,
+  "next_project_number": 45,
   "active_projects": [
+    {
+      "project_number": 44,
+      "project_name": "streamline_roadmap",
+      "status": "not_started",
+      "task_type": "markdown",
+      "created": "2026-06-09T15:49:48Z",
+      "last_updated": "2026-06-09T15:49:48Z",
+      "description": "Streamline ROADMAP.md to focus on goal, completed work, remaining work, and broad approach. Remove historical commentary, detailed planning content, and design rationale that belongs in TODO.md or research artifacts. The roadmap should record what the goal is, what has been done, what remains, and the broad approach — leaving details to TODO.md with no historical commentary besides the list of what is completed."
+    },
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
