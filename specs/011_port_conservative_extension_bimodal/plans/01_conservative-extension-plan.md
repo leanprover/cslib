@@ -134,7 +134,7 @@ Phases are strictly sequential due to file-level import dependencies.
 
 ---
 
-### Phase 3: Port Substitution.lean [NOT STARTED]
+### Phase 3: Port Substitution.lean [COMPLETED]
 
 **Goal**: Create `Cslib/Logics/Bimodal/Metalogic/ConservativeExtension/Substitution.lean` with the substitution `sigma[q -> bot]` and closure properties.
 
