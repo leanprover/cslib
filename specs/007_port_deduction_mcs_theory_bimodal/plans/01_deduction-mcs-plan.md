@@ -203,22 +203,16 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Barrel Import and Full Verification [NOT STARTED]
+### Phase 5: Barrel Import and Full Verification [COMPLETED]
 
 **Goal**: Create the barrel import file, verify the full project build, and confirm zero sorry occurrences across all new files.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Bimodal/Metalogic/Core.lean` barrel file importing all Core modules:
-  ```
-  import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
-  import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
-  import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
-  import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-  ```
-- [ ] Run `lake build` -- full project build, verify zero errors
-- [ ] Run `grep -rn 'sorry' Cslib/Logics/Bimodal/Metalogic/Core/` -- verify zero sorry
-- [ ] Run `grep -rn 'sorry' Cslib/Logics/Bimodal/Metalogic/Core.lean` -- verify zero sorry
-- [ ] Verify the Cslib.lean barrel (if it exists) or the main project file includes the new Core module
+- [x] **Task 5.1**: Create `Cslib/Logics/Bimodal/Metalogic/Core.lean` barrel file importing all Core modules *(completed)*
+- [x] **Task 5.2**: Run `lake build` -- full project build, verify zero errors *(completed -- 2799 jobs, zero errors)*
+- [x] **Task 5.3**: Run `grep -rn 'sorry' Cslib/Logics/Bimodal/Metalogic/Core/` -- verify zero sorry *(completed -- zero matches)*
+- [x] **Task 5.4**: Run `grep -rn 'sorry' Cslib/Logics/Bimodal/Metalogic/Core.lean` -- verify zero sorry *(completed -- zero matches)*
+- [x] **Task 5.5**: Verify the Cslib.lean barrel includes the new Core module *(deviation: skipped -- Cslib.lean uses `module` keyword which requires `module` imports; Core barrel is non-module like Soundness barrel. Downstream consumers import Core.lean directly.)*
 
 **Timing**: 0.5 hours
 
