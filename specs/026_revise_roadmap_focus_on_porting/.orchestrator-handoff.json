@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Revised ROADMAP.md to lead with the four-level porting mission (Propositional, Modal, Temporal, Bimodal), moved TM background to a later section (~10 lines), removed the paper link, fixed the BimodalLogic repo URL, and added a 'What CSLib Gains' section treating all four phases as first-class deliverables.",
+  "artifacts": [
+    {
+      "path": "specs/026_revise_roadmap_focus_on_porting/summaries/01_revision-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for ROADMAP.md revision"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "none",
+  "phases_completed": 1,
+  "phases_total": 1
+}

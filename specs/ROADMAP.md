@@ -1,82 +1,35 @@
 # Project Roadmap: Porting BimodalLogic to CSLib
 
-This document describes the ongoing effort to port the
-[BimodalLogic](https://github.com/benbrastmckie/ProofChecker) repository into
-CSLib, organized as modular standalone libraries for propositional, modal,
-temporal, and bimodal logics. The porting is guided by a modular factoring
-principle: every component lives at the most general level it can compile at.
-Task descriptions and current statuses are tracked in [specs/TODO.md](TODO.md).
+This document describes the ongoing effort to extract and organize content from
+the [BimodalLogic](https://github.com/benbrastmckie/BimodalLogic) repository
+into four standalone CSLib modules: **Propositional**, **Modal**, **Temporal**,
+and **Bimodal**. The porting is guided by a modular factoring principle: every
+component lives at the most general level it can compile at. Task descriptions
+and current statuses are tracked in [specs/TODO.md](TODO.md).
 
 ---
 
-## What is TM Bimodal Logic?
+## Overview
 
-The **Bimodal Logic of Tense and Modality (TM)** is a formal system combining
-S5 modal operators with Since/Until linear tense operators. It is designed for
-verified reasoning about past and future contingency in non-deterministic dynamical
-systems.
+[BimodalLogic](https://github.com/benbrastmckie/BimodalLogic) is a standalone
+Lean 4 repository (~84,547 lines, 246 files) implementing a verified bimodal
+logic with soundness, completeness, decidability, and separation results. Porting
+it to CSLib is a four-level effort: propositional theorems go into
+`Foundations/Logic/Theorems/`, modal content into `Logics/Modal/`, temporal
+content into `Logics/Temporal/`, and the inherently bimodal content into
+`Logics/Bimodal/`.
 
-**Paper**: ["The Construction of Possible Worlds"](https://benbrastmckie.com/wp-content/uploads/2026/05/possible_worlds.pdf)
-(Brast-McKie, 2025) — compositional semantics grounded in non-deterministic
-dynamical systems (under review).
-
-### Primitive Connectives (5 total)
-
-| Symbol | Lean | Reading |
-|--------|------|---------|
-| `⊥` | `bot` | falsum |
-| `φ → ψ` | `imp φ ψ` | material conditional |
-| `□φ` | `box φ` | necessity |
-| `U(φ,ψ)` | `untl φ ψ` | "ψ until φ" |
-| `S(φ,ψ)` | `snce φ ψ` | "ψ since φ" |
-
-All other operators (negation, conjunction, disjunction, possibility, F/G/H/P,
-always/sometimes, next/previous) are derived.
-
-### Task Semantics
-
-Truth is evaluated at a world-history `τ` and a time `x` inside a **task
-model** `M = (F, I)` built from a task frame `F = (W, D, R)` where `R : W →
-D → W → Prop` is the task relation encoding possible transitions between
-world-states over durations. This enables reasoning about future contingency
-even with incomplete information about which world-history is realized.
-
-### Axiom Systems
-
-| System | Axioms | Standard Model | Soundness | Completeness |
-|--------|--------|----------------|-----------|--------------|
-| Base | 37 | — | Sorry-free | Sorry-free |
-| Dense | 38 | ℚ | Sorry-free | Sorry-free |
-| Continuous | 39 | ℝ | — | — |
-| Discrete | 40 | ℤ | Sorry-free | Pending (Doets 1989) |
-
-**Metalogical results** (BimodalLogic): soundness, completeness (base, dense),
-decidability, separation, conservative extension.
+The modular factoring analysis (Task 19) identifies ~6,800 lines of content that
+are reusable above the bimodal level. These lines benefit any logic built on the
+CSLib foundations — not just the bimodal port. Phases 1–3 (Propositional, Modal,
+Temporal) are complete, self-contained deliverables before any bimodal content is
+introduced.
 
 ---
 
-## Why Port to CSLib?
+## Modular Factoring Design
 
-BimodalLogic is a standalone Lean 4 repository (~84,547 lines, 246 files).
-Porting it to CSLib makes its theorems available as a reusable, importable
-library. The modular factoring design amplifies this value: propositional
-theorems become usable by _any_ Hilbert system, modal theorems become usable
-standalone, and temporal theorems become usable standalone — before the bimodal
-machinery is even introduced.
-
-Concretely, this port contributes to CSLib:
-- Generic propositional Hilbert-style theorems (reusable by all four logics)
-- A standalone modal proof system and S4/S5 theorem library
-- A standalone temporal proof system, theorem library, and semantics
-- The full bimodal Hilbert system, task semantics, and metalogic including a
-  verified decision procedure and completeness proof
-
----
-
-## Design Decisions (Modular Factoring)
-
-Task 19 (completed 2026-06-08) produced the architectural design through team
-research. The central principle:
+The central principle from Task 19:
 
 > **Every component lives at the most general level it can compile at.**
 
@@ -111,6 +64,51 @@ research. The central principle:
    temporal semantics on `LinearOrder` does not exist in BimodalLogic (which
    only has task frame semantics). It is new development enabling temporal
    soundness/completeness proofs without bimodal machinery.
+
+---
+
+## What CSLib Gains
+
+Each of the four levels is a standalone, importable library — not scaffolding
+for the next level.
+
+- **Propositional (Task 20)**: ~2,400 lines of generic Hilbert-style theorems
+  (combinators, propositional core, weakening, cut, big-conjunction) usable by
+  any propositional or higher logic in CSLib. Any logic that instantiates
+  `PropositionalHilbert` gets these for free.
+
+- **Modal (Task 21)**: ~1,600 lines adding a standalone modal proof system with
+  S4 and S5 theorem libraries and generalized necessitation. Modal/ imports only
+  Foundations — it is fully self-contained and usable independently of temporal
+  or bimodal machinery.
+
+- **Temporal (Tasks 22–23)**: ~1,900–2,100 lines adding a standalone temporal
+  proof system, a derived theorem library, and new semantics on `LinearOrder`
+  enabling soundness and completeness proofs for linear temporal logic without
+  any bimodal dependency. Task 23 (semantics) is new development with no
+  BimodalLogic counterpart.
+
+- **Bimodal (Tasks 2–11)**: ~30,000+ lines comprising the full bimodal Hilbert
+  system, task frame semantics, metalogic (MCS theory, completeness, decidability,
+  separation, conservative extension), and perpetuity theorems. Phase 4 is the
+  largest by volume but depends on the three preceding phases being complete.
+
+---
+
+## Background: TM Bimodal Logic
+
+The **Bimodal Logic of Tense and Modality (TM)** is a formal system combining
+S5 modal operators (necessity `□`) with Since/Until linear tense operators. It is
+designed for verified reasoning about past and future contingency in
+non-deterministic dynamical systems. Truth is evaluated at world-history pairs
+inside a task model built from a task frame encoding possible transitions over
+durations.
+
+BimodalLogic implements soundness and completeness for four axiom systems (Base,
+Dense, Continuous, Discrete) plus decidability and separation results. For the
+full formal specification — connectives, semantics, axiom tables, and
+metalogical results — see
+[github.com/benbrastmckie/BimodalLogic](https://github.com/benbrastmckie/BimodalLogic).
 
 ---
 
@@ -182,7 +180,10 @@ Total CSLib Lean lines (all modules): ~25,588
 
 ## Porting Phases
 
-### Phase 1: Foundations — Propositional Hilbert Theorems (Task 20)
+Phases 1–3 complete first and unlock Phase 4. Each phase produces a self-contained,
+independently useful CSLib module.
+
+### Phase 1: Propositional — Hilbert Theorems (Task 20)
 
 **Target**: `Cslib/Foundations/Logic/Theorems/`
 **Scope**: ~2,400 lines ported from BimodalLogic
@@ -209,6 +210,8 @@ Total CSLib Lean lines (all modules): ~25,588
 | Modal.DerivationTree + ModalHilbert/ModalS5Hilbert instances | ~400 |
 | S4/S5 derived theorems | ~800 |
 | GeneralizedNecessitation | ~400 |
+
+**Milestone**: A standalone modal proof system and S4/S5 theorem library, importable independently of temporal or bimodal content.
 
 #### Task 22: Temporal Infrastructure and Theorems
 **Target**: Axioms.lean/ProofSystem.lean additions + `Cslib/Logics/Temporal/ProofSystem/` + `Temporal/Theorems/`
@@ -237,7 +240,7 @@ connectives, and frame conditions for dense/discrete/linear orders. This
 enables standalone temporal soundness and completeness proofs entirely
 independent of bimodal machinery.
 
-**Milestone**: Temporal/ is a fully standalone module with syntax, proof system, theorems, and semantics.
+**Milestone**: Temporal/ is a fully standalone module with syntax, proof system, theorems, and semantics — the first CSLib logic with a complete verified proof theory.
 
 ---
 
@@ -245,6 +248,10 @@ independent of bimodal machinery.
 
 **Target**: `Cslib/Logics/Bimodal/`
 **Scope**: ~30,000+ lines (inherently bimodal content)
+
+Phase 4 is the largest by volume and depends on Phases 1–3 being complete. It
+ports the full TM bimodal logic into CSLib, including the task frame semantics,
+the 42-axiom Hilbert system, and all metalogical results.
 
 | Task | Component | Lines | Depends On |
 |------|-----------|-------|------------|
@@ -310,12 +317,14 @@ Every extractable component maps to exactly one task (no double-counting):
 
 ## Success Metrics
 
-- [ ] All ~6,800 extractable lines ported to correct modules (Tasks 20, 21, 22)
+- [ ] Propositional theorems ported: all ~2,400 lines in `Foundations/Logic/Theorems/` (Task 20)
+- [ ] Modal module complete: proof system + S4/S5 theorems in `Logics/Modal/` (Task 21)
+- [ ] Temporal module complete: proof system + theorems in `Logics/Temporal/` (Task 22)
 - [ ] Temporal semantics defined standalone on LinearOrder (Task 23: ~400–600 new lines)
-- [ ] Zero sorry in new code (Tasks 20–23)
-- [ ] `lake build` passes with zero errors after each task
 - [ ] Temporal soundness theorem proved: `TemporalBXHilbert S → S ⊢ φ → Temporal.Valid φ`
-- [ ] All standalone modules self-contained (Modal/ and Temporal/ import only Foundations)
+- [ ] All standalone modules self-contained: Modal/ and Temporal/ import only Foundations
+- [ ] Zero sorry in Phases 1–3 (Tasks 20–23)
 - [ ] All bimodal tasks (2–11) ported to `Cslib/Logics/Bimodal/`
+- [ ] `lake build` passes with zero errors after each task
 - [ ] PR pipeline complete: all PRs merged to CSLib main (Task 12)
 - [ ] No component double-counted: each theorem belongs to exactly one task

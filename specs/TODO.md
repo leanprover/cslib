@@ -89,14 +89,17 @@ next_project_number: 27
 
 12 [PARTIAL] — Coordinate the cslib PR submission process for the Temporal Logic
 25 [NOT STARTED] — revise task order topic assignments
-26 [NOT STARTED] — revise roadmap focus on porting
+26 [COMPLETED] — revise roadmap focus on porting
 
 ## Tasks
 
 ### 26. Revise ROADMAP.md to focus on porting across all four logic levels
 - **Effort**: Medium (2-4 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: markdown
+- **Research**: [specs/026_revise_roadmap_focus_on_porting/reports/01_roadmap-revision-research.md]
+- **Plan**: [specs/026_revise_roadmap_focus_on_porting/plans/01_revision-plan.md]
+- **Summary**: [specs/026_revise_roadmap_focus_on_porting/summaries/01_revision-summary.md]
 
 **Description**: Revise ROADMAP.md to shift focus from the Bimodal/ theory to the full porting effort from BimodalLogic/ into Propositional/, Modal/, Temporal/, and Bimodal/. Provide background on the bimodal logic TM with links to https://github.com/benbrastmckie/BimodalLogic where more information can be found. Do not include a link to the paper in the ROADMAP.md
 
