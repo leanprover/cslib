@@ -100,7 +100,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Port WorldHistory.lean [NOT STARTED]
+### Phase 2: Port WorldHistory.lean [COMPLETED]
 
 **Goal**: Port world history structure with time-shift construction and all supporting lemmas. No Formula/Atom dependency.
 
