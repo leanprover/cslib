@@ -1951,13 +1951,19 @@ private theorem l27_guard_snce_xi_val (fc : FrameClass) {A B C : Set (Formula At
   unfold l27_guard; simp [h_not_B]
   split
   · next h =>
-    have h_spec := Classical.choose_spec h
-    obtain ⟨α'', hα'', h_eq⟩ := h_spec.2
+    -- h : β' ∈ B ∧ α' ∈ A (after simp simplified the existential)
+    -- The Classical.choose was applied to the original ∃ form.
+    -- After simp, the ∃ was resolved. We need to recover the original spec.
+    have h_exists : ∃ β'' ∈ B, ∃ α'' ∈ A,
+        Formula.snce α' (Formula.and β' xi) = Formula.snce α'' (Formula.and β'' xi) :=
+      ⟨β', h.1, α', h.2, rfl⟩
+    have h_spec := Classical.choose_spec h_exists
+    obtain ⟨hβ_B, α'', hα'', h_eq⟩ := h_spec
     rw [Formula.snce.injEq] at h_eq
     have h_β_eq := (formula_and_left_cancel fc h_eq.2).symm
     convert h_β_eq using 1; simp
   · next h =>
-    exfalso; exact h ⟨β', hβ', α', hα', rfl⟩
+    exfalso; exact h ⟨hβ', hα'⟩
 
 /-- If snce(β'∧xi,α') ∈ L with β'∈B, α'∈A, snce(β'∧xi,α') ∉ B,
 then β' is in the guard list. -/
@@ -2119,7 +2125,7 @@ private theorem lemma_2_7_seed_consistent (fc : FrameClass) {A B C : Set (Formul
                 (DerivationTree.weakening [] _ _ h_ev_imp (List.nil_subset _))
                 (DerivationTree.assumption _ _ (by exact List.mem_singleton.mpr rfl))
             · -- Not in B: use monotonicity
-              have h_α'_in_a := @l27_a_event_list_α_mem_xi fc A B C xi eta L hL β' α' h_φ_eq_snce5 hβ' hα'
+              have h_α'_in_a := @l27_a_event_list_α_mem_xi _ fc A B C xi eta L hL β' α' h_φ_eq_snce5 hβ' hα'
               have h_ev_snce_α' := h_ev_snce α' h_α'_in_a
               have h_β'_in_raw := l27_collect_guards_mem_of_snce_xi fc h_B_dcs xi eta L hL β' α' h_φ_eq_snce5 hβ' hα' h_snce5_B
               have h_β'_in_b : β' ∈ b_list := List.mem_cons.mpr (Or.inr h_β'_in_raw)
@@ -2392,7 +2398,7 @@ private theorem lemma_2_8_seed_consistent (fc : FrameClass) {A B C : Set (Formul
               exact DerivationTree.modus_ponens _ _ _
                 (DerivationTree.weakening [] _ _ h_ev_imp (List.nil_subset _))
                 (DerivationTree.assumption _ _ (by exact List.mem_singleton.mpr rfl))
-            · have h_α'_in_a := @l27_a_event_list_α_mem_xi fc A B C xi eta L hL β' α' h_φ_eq_snce5 hβ' hα'
+            · have h_α'_in_a := @l27_a_event_list_α_mem_xi _ fc A B C xi eta L hL β' α' h_φ_eq_snce5 hβ' hα'
               have h_ev_snce_α' := h_ev_snce α' h_α'_in_a
               have h_β'_in_raw := l27_collect_guards_mem_of_snce_xi fc h_B_dcs xi eta L hL β' α' h_φ_eq_snce5 hβ' hα' h_snce5_B
               have h_β'_in_b : β' ∈ b_list_full := List.mem_cons.mpr (Or.inr h_β'_in_raw)
@@ -2452,7 +2458,7 @@ private theorem lemma_2_8_seed_consistent (fc : FrameClass) {A B C : Set (Formul
         have d2 : DerivationTree fc [PConj] χ_gen := DerivationTree.modus_ponens _ _ _
           (DerivationTree.weakening [] _ _ h2 (List.nil_subset _))
           (DerivationTree.assumption _ PConj (by simp))
-        exact deduction_theorem [] P Formula.bot (DerivationTree.modus_ponens _ _ _ d1 d2)
+        exact deduction_theorem [] PConj Formula.bot (DerivationTree.modus_ponens _ _ _ d1 d2)
       have h_F_bot := F_mono_mcs fc h_mcs_A h_event_to_bot
         (until_implies_F_mcs fc h_mcs_A h_D2)
       have h_G_top : Formula.all_future (Formula.bot.imp Formula.bot) ∈ A :=
@@ -3099,11 +3105,11 @@ private theorem lemma_2_8_since_seed_consistent (fc : FrameClass) {A B C : Set (
         let PConj := Formula.and α_hat eta
         have d1 : DerivationTree fc [PConj] eta.neg := DerivationTree.modus_ponens _ _ _
           (DerivationTree.weakening [] _ _ h1 (List.nil_subset _))
-          (DerivationTree.assumption _PConj (by simp))
+          (DerivationTree.assumption _ PConj (by simp))
         have d2 : DerivationTree fc [PConj] eta := DerivationTree.modus_ponens _ _ _
           (DerivationTree.weakening [] _ _ h2 (List.nil_subset _))
-          (DerivationTree.assumption _PConj (by simp))
-        exact deduction_theorem []PConj Formula.bot (DerivationTree.modus_ponens _ _ _ d1 d2)
+          (DerivationTree.assumption _ PConj (by simp))
+        exact deduction_theorem [] PConj Formula.bot (DerivationTree.modus_ponens _ _ _ d1 d2)
       have h_P_bot := P_mono_mcs fc h_mcs_C h_event_to_bot
         (since_implies_P_mcs fc h_mcs_C h_D1)
       have h_H_top : Formula.all_past (Formula.bot.imp Formula.bot) ∈ C :=
@@ -3118,11 +3124,11 @@ private theorem lemma_2_8_since_seed_consistent (fc : FrameClass) {A B C : Set (
         let PConj := Formula.and α_hat χ_gen
         have d1 : DerivationTree fc [PConj] χ_gen.neg := DerivationTree.modus_ponens _ _ _
           (DerivationTree.weakening [] _ _ h1 (List.nil_subset _))
-          (DerivationTree.assumption _ P (by simp))
-        have d2 : DerivationTree fc [P] χ_gen := DerivationTree.modus_ponens _ _ _
+          (DerivationTree.assumption _ PConj (by simp))
+        have d2 : DerivationTree fc [PConj] χ_gen := DerivationTree.modus_ponens _ _ _
           (DerivationTree.weakening [] _ _ h2 (List.nil_subset _))
-          (DerivationTree.assumption _ P (by simp))
-        exact deduction_theorem [] P Formula.bot (DerivationTree.modus_ponens _ _ _ d1 d2)
+          (DerivationTree.assumption _ PConj (by simp))
+        exact deduction_theorem [] PConj Formula.bot (DerivationTree.modus_ponens _ _ _ d1 d2)
       have h_P_bot := P_mono_mcs fc h_mcs_C h_event_to_bot
         (since_implies_P_mcs fc h_mcs_C h_D2)
       have h_H_top : Formula.all_past (Formula.bot.imp Formula.bot) ∈ C :=
