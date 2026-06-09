@@ -297,22 +297,22 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: DecisionProcedure [IN PROGRESS]
+### Phase 7: DecisionProcedure [COMPLETED]
 
 **Goal**: Port the main decision procedure that ties together tableau construction, proof extraction, and countermodel extraction into a single `decide` function.
 
 **Tasks**:
-- [ ] Create `DecisionProcedure.lean` with copyright header
-- [ ] Port `DecisionResult` inductive (valid, invalid, timeout) parameterized by formula
-- [ ] Port `DecisionResult` namespace helpers (isValid, isInvalid, isTimeout, getProof?, getCountermodel?)
-- [ ] Port `decide` function -- replace `Automation.Normalization.normalizeFormula` with identity (since Cslib also uses `abbrev` for derived connectives, normalization is definitionally id)
-- [ ] Inline the normalization identity: replace `have h_norm : normalizeFormula phi = phi` with `rfl` or equivalent
-- [ ] Replace `bounded_search_with_proof` call with stub that returns `(none, 0, 0)` (fast-path search deferred)
-- [ ] Port `isValid` and `isSatisfiable` convenience functions
-- [ ] Skip `decideOptimized` (depends on `Strategies.search`) and `decideWithTrace` (traced variant)
-- [ ] Skip `#eval` test sections
-- [ ] Adapt all to universe-polymorphic `Formula Atom`
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.DecisionProcedure`
+- [x] Create `DecisionProcedure.lean` with copyright header *(completed)*
+- [x] Port `DecisionResult` inductive (valid, invalid, timeout) parameterized by formula *(completed)*
+- [x] Port `DecisionResult` namespace helpers (isValid, isInvalid, isTimeout, getProof?, getCountermodel?) *(completed -- also added display helper)*
+- [x] Port `decide` function -- replace `Automation.Normalization.normalizeFormula` with identity (since Cslib also uses `abbrev` for derived connectives, normalization is definitionally id) *(completed -- normalization removed entirely)*
+- [x] Inline the normalization identity: replace `have h_norm : normalizeFormula phi = phi` with `rfl` or equivalent *(deviation: altered -- removed normalization entirely rather than inlining; Cslib abbrevs make it unnecessary)*
+- [x] Replace `bounded_search_with_proof` call with stub that returns `(none, 0, 0)` (fast-path search deferred) *(completed -- uses bounded_search_with_proof_stub from AxiomMatcher)*
+- [x] Port `isValid` and `isSatisfiable` convenience functions *(completed -- also ported decideAuto, isTautology, isContradiction, isContingent)*
+- [x] Skip `decideOptimized` (depends on `Strategies.search`) and `decideWithTrace` (traced variant) *(completed -- skipped as planned)*
+- [x] Skip `#eval` test sections *(completed -- skipped as planned)*
+- [x] Adapt all to universe-polymorphic `Formula Atom` *(completed -- DecisionResult and all functions parameterized by Atom)*
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.DecisionProcedure` *(completed -- zero sorry, zero axioms, builds clean)*
 
 **Timing**: 1.5 hours
 
