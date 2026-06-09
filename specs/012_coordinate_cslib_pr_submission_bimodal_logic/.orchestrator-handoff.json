@@ -1,0 +1,72 @@
+{
+  "status": "partial",
+  "summary": "Created all coordination artifacts (Zulip proposal draft, coordination log, CI checklist template, PR description template, CI validation script, and wave-by-wave submission workflow) for the 14-PR cslib PR submission process; phases 3-5 require human action to post to Zulip, await namespace confirmation, and submit actual GitHub PRs.",
+  "blockers": [
+    {
+      "phase": 1,
+      "description": "Zulip proposal must be posted by human — see coordination/zulip-proposal-draft.md. Requires: (1) Zulip account at leanprover.zulipchat.com, (2) access to #CSLib stream, (3) await response from @fmontesi, @kim-em, or @eric-wieser confirming namespace and working group.",
+      "type": "human_action_required"
+    },
+    {
+      "phase": 2,
+      "description": "Namespace confirmation requires Zulip response (blocks Phase 2). CI validation run requires human to run validate-pr-ci.sh from cslib repo root. Namespace update to state.json/TODO.md (tasks 2-11, 20-23) requires human action after namespace is confirmed.",
+      "type": "human_action_required"
+    },
+    {
+      "phase": 3,
+      "description": "Standalone module PR submissions (tasks 20-23) require: porting tasks to complete first, then human to run CI validation and submit PRs via GitHub. Cannot be automated.",
+      "type": "human_action_required"
+    },
+    {
+      "phase": 4,
+      "description": "Bimodal PR submissions (tasks 2-11) require: all upstream tasks and dependency PRs to complete and merge first, then human to run CI validation and submit PRs wave-by-wave.",
+      "type": "human_action_required"
+    },
+    {
+      "phase": 5,
+      "description": "Review cycle management and completion (Zulip completion post, ROADMAP.md update) requires all 14 PRs merged — months away.",
+      "type": "human_action_required"
+    }
+  ],
+  "continuation_context": null,
+  "next_action_hint": "Post the Zulip working group proposal at specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/zulip-proposal-draft.md to leanprover.zulipchat.com #CSLib stream, then await namespace confirmation before starting task 2.",
+  "phases_completed": 0,
+  "phases_total": 5,
+  "artifacts": [
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/summaries/01_pr-coordination-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary covering all 6 coordination artifacts created and the blocker status for phases requiring human action"
+    },
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/zulip-proposal-draft.md",
+      "type": "coordination",
+      "summary": "Draft Zulip working group proposal ready to post — includes pre-post checklist, message draft with 3 critical questions, and key maintainer contacts"
+    },
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/coordination-log.md",
+      "type": "coordination",
+      "summary": "PR status tracking table for all 14 PRs with wave dependency map and open issues tracker"
+    },
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/ci-checklist-template.md",
+      "type": "coordination",
+      "summary": "Per-PR CI checklist template covering all 8 required checks with per-file verification table"
+    },
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/pr-description-template.md",
+      "type": "coordination",
+      "summary": "Standard PR description template with AI disclosure section, CI checklist, sorry disclosure for PR 8, and title reference for all 14 PRs"
+    },
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/validate-pr-ci.sh",
+      "type": "script",
+      "summary": "Executable bash script to run all 8 CI checks locally before PR submission; run from cslib repo root"
+    },
+    {
+      "path": "specs/012_coordinate_cslib_pr_submission_bimodal_logic/coordination/pr-submission-workflow.md",
+      "type": "coordination",
+      "summary": "Complete wave-by-wave PR submission guide with per-PR branch names, target paths, size estimates, and review cycle management"
+    }
+  ]
+}

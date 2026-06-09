@@ -1,15 +1,31 @@
 {
-  "status": "in_progress",
+  "agent_type": "general-implementation-agent",
+  "task_number": 17,
+  "session_id": "sess_1780964944_adc2c6_17",
+  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+  "status": "implemented",
   "started_at": "2026-06-08T00:00:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Planner agent started, parsing delegation context"
+  "completed_at": "2026-06-08T00:00:00Z",
+  "phases_completed": 3,
+  "phases_total": 3,
+  "completion_data": {
+    "completion_summary": "Removed task 14 from all 5 formal dependency fields (tasks 3, 8, 9, 10, 11) and 12 stale prose references in specs/TODO.md; verified wave table was already correct with task 11 in Wave 4.",
+    "roadmap_items": []
   },
-  "metadata": {
-    "session_id": "sess_1780964944_adc2c6_17",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
-  }
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/017_project_management_roadmap_taskorder/summaries/01_stale-refs-summary.md",
+      "summary": "Execution summary for task 17: stale task 14 reference cleanup"
+    }
+  ],
+  "memory_candidates": [
+    {
+      "content": "When cleaning stale task references in TODO.md, verify that the wave table and dependency fields reported in research may have been corrected between research and implementation phases. Always re-read the current state of the file before applying changes from a research report.",
+      "category": "INSIGHT",
+      "source_artifact": "specs/017_project_management_roadmap_taskorder/summaries/01_stale-refs-summary.md",
+      "confidence": 0.75,
+      "suggested_keywords": ["stale-references", "TODO.md", "meta-cleanup", "dependency-fields", "research-lag"]
+    }
+  ]
 }
