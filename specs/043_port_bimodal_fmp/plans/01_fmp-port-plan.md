@@ -350,7 +350,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 10: FMP -- DenseFMP + DiscreteFMP + Barrel Imports [NOT STARTED]
+### Phase 10: FMP -- DenseFMP + DiscreteFMP + Barrel Imports [COMPLETED]
 
 **Goal**: Port Dense/Discrete FMP specializations and wire up barrel imports
 

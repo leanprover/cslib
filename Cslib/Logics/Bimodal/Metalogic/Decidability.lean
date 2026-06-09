@@ -13,6 +13,7 @@ import Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation
 import Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction
 import Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction
 import Cslib.Logics.Bimodal.Metalogic.Decidability.DecisionProcedure
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP
 import Cslib.Logics.Bimodal.Metalogic.Decidability.Correctness
 
 /-!

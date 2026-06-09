@@ -5,6 +5,7 @@ Authors: Benjamin Brastmckie
 -/
 
 import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Logics.Bimodal.Syntax.Subformulas
 
 /-!
 # Signed Formula and Branch Types for Tableau Decidability
@@ -78,94 +79,8 @@ def Formula.complexity : Formula Atom → Nat
   | .untl φ ψ => 1 + φ.complexity + ψ.complexity
   | .snce φ ψ => 1 + φ.complexity + ψ.complexity
 
-/--
-Collect all subformulas of a formula (including the formula itself).
-
-This is used to bound the size of the tableau and ensure termination.
-The subformula property ensures that tableau expansion only produces
-formulas from the subformula closure.
--/
-def Formula.subformulas : Formula Atom → List (Formula Atom)
-  | φ@(.atom _) => [φ]
-  | φ@.bot => [φ]
-  | φ@(.imp ψ χ) => φ :: (ψ.subformulas ++ χ.subformulas)
-  | φ@(.box ψ) => φ :: ψ.subformulas
-  | φ@(.untl ψ χ) => φ :: (ψ.subformulas ++ χ.subformulas)
-  | φ@(.snce ψ χ) => φ :: (ψ.subformulas ++ χ.subformulas)
-
-/-- Count of distinct subformulas (used for termination). -/
-def Formula.subformulaCount (φ : Formula Atom) : Nat :=
-  φ.subformulas.eraseDups.length
-
-section SubformulaTheorems
-
-variable {Atom : Type*}
-
-/-- Subformulas include the formula itself. -/
-theorem Formula.self_mem_subformulas (φ : Formula Atom) : φ ∈ φ.subformulas := by
-  cases φ <;> simp [Formula.subformulas]
-
-/-- Subformulas of imp include both components. -/
-theorem Formula.imp_left_mem_subformulas (ψ χ : Formula Atom) :
-    ψ ∈ (Formula.imp ψ χ).subformulas := by
-  simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-  right; left
-  exact Formula.self_mem_subformulas ψ
-
-theorem Formula.imp_right_mem_subformulas (ψ χ : Formula Atom) :
-    χ ∈ (Formula.imp ψ χ).subformulas := by
-  simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-  right; right
-  exact Formula.self_mem_subformulas χ
-
-/--
-Transitivity of the subformula relation.
-
-If chi is a subformula of psi, and psi is a subformula of phi,
-then chi is a subformula of phi.
--/
-theorem Formula.subformulas_trans {chi psi phi : Formula Atom}
-    (h1 : chi ∈ psi.subformulas) (h2 : psi ∈ phi.subformulas) :
-    chi ∈ phi.subformulas := by
-  induction phi with
-  | atom p =>
-    simp only [Formula.subformulas, List.mem_singleton] at h2
-    subst h2; exact h1
-  | bot =>
-    simp only [Formula.subformulas, List.mem_singleton] at h2
-    subst h2; exact h1
-  | imp a b iha ihb =>
-    simp only [Formula.subformulas, List.mem_cons, List.mem_append] at h2
-    rcases h2 with rfl | ha | hb
-    · exact h1
-    · simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-      right; left; exact iha ha
-    · simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-      right; right; exact ihb hb
-  | box a iha =>
-    simp only [Formula.subformulas, List.mem_cons] at h2
-    rcases h2 with rfl | h2
-    · exact h1
-    · simp only [Formula.subformulas, List.mem_cons]
-      right; exact iha h2
-  | untl a b iha ihb =>
-    simp only [Formula.subformulas, List.mem_cons, List.mem_append] at h2
-    rcases h2 with rfl | ha | hb
-    · exact h1
-    · simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-      right; left; exact iha ha
-    · simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-      right; right; exact ihb hb
-  | snce a b iha ihb =>
-    simp only [Formula.subformulas, List.mem_cons, List.mem_append] at h2
-    rcases h2 with rfl | ha | hb
-    · exact h1
-    · simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-      right; left; exact iha ha
-    · simp only [Formula.subformulas, List.mem_cons, List.mem_append]
-      right; right; exact ihb hb
-
-end SubformulaTheorems
+-- Subformulas, subformulaCount, and associated theorems are now defined in
+-- Cslib.Logics.Bimodal.Syntax.Subformulas (imported above)
 
 end Cslib.Logic.Bimodal
 

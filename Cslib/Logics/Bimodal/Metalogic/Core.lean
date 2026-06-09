@@ -8,6 +8,7 @@ import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
 import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
 import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
 import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Metalogic.Core.RestrictedMCS
 
 /-!
 # Bimodal Metalogic Core -- Barrel Import
