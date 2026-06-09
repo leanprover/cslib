@@ -42,7 +42,7 @@ next_project_number: 34
 
 ### Bimodal Porting
 
-4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
+4 [COMPLETED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetu
     └─ 7 [NOT STARTED] — Port Deduction Infrastructure and MCS Theory (PR 6): DeductionThe
       └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
@@ -64,11 +64,12 @@ next_project_number: 34
 
 ### 33. Audit noncomputable instances in Temporal module
 - **Effort**: Small (<1 hour)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: None
 - specs/033_audit_noncomputable_temporal_instances/reports/01_audit-noncomputable-research.md: [Research report]
 - specs/033_audit_noncomputable_temporal_instances/plans/01_audit-noncomputable-plan.md: [Implementation plan]
+- specs/033_audit_noncomputable_temporal_instances/summaries/01_audit-noncomputable-summary.md: [Execution summary]
 
 **Description**: Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.
 
@@ -97,10 +98,11 @@ next_project_number: 34
 
 ### 30. Modal metalogic
 - **Effort**: Large (20-30 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: Task 21 (Modal Proof System), Task 29 (Generic MCS Foundations)
 - specs/030_modal_metalogic/reports/01_modal-metalogic-research.md: [Research report]
+- specs/030_modal_metalogic/plans/01_modal-metalogic-plan.md: [Implementation plan]
 
 **Description**: Build standalone modal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Modal.DeductionTheorem via structural induction on ~5-constructor Modal.DerivationTree (~300 lines), (b) Modal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding modal-specific witness conditions like box_closure (~400 lines), (c) Modal.Soundness over Kripke frames/models from Modal/Basic.lean (~350 lines), (d) Modal.Completeness via canonical Kripke model construction for S5 (~450 lines). Target: `Cslib/Logics/Modal/Metalogic/`.
 

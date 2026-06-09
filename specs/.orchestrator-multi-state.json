@@ -1,48 +1,40 @@
 {
-  "session_id": "sess_1780970224_ba1435",
+  "session_id": "sess_1780980276_702f7c",
   "task_numbers": [
-    3,
-    21,
-    22
+    4,
+    23
   ],
   "waves": [
     [
-      3,
-      21,
-      22
+      4,
+      23
     ]
   ],
-  "dependency_graph": {
-    "3": [],
-    "21": [],
-    "22": []
-  },
+  "max_cycles": 10,
   "cycle_count": 3,
-  "max_cycles": 15,
   "failed_tasks": [],
   "completed_tasks": [
-    3,
-    21,
-    22
+    4,
+    23
   ],
   "current_statuses": {
-    "3": "completed",
-    "21": "completed",
-    "22": "completed"
+    "4": "completed",
+    "23": "completed"
   },
   "task_types": {
-    "3": "lean4",
-    "21": "lean4",
-    "22": "lean4"
+    "4": "lean4",
+    "23": "lean4"
+  },
+  "task_dirs": {
+    "4": "specs/004_port_proof_system_bimodal",
+    "23": "specs/023_temporal_semantics_linear_orders"
   },
   "research_agents": {
-    "3": "lean-research-agent",
-    "21": "lean-research-agent",
-    "22": "lean-research-agent"
+    "4": "lean-research-agent",
+    "23": "lean-research-agent"
   },
   "implement_agents": {
-    "3": "lean-implementation-agent",
-    "21": "lean-implementation-agent",
-    "22": "lean-implementation-agent"
+    "4": "lean-implementation-agent",
+    "23": "lean-implementation-agent"
   }
 }

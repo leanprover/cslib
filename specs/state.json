@@ -20,7 +20,7 @@
     {
       "project_number": 30,
       "project_name": "modal_metalogic",
-      "status": "planning",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -185,7 +185,7 @@
     {
       "project_number": 23,
       "project_name": "temporal_semantics_linear_orders",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -202,7 +202,8 @@
           "summary": "Seed research: ~400-600 lines new temporal semantics on LinearOrder. TemporalModel, Temporal.Satisfies, Temporal.Valid. New infrastructure, not ported from BimodalLogic."
         }
       ],
-      "topic": "Temporal Logic"
+      "topic": "Temporal Logic",
+      "completion_summary": "Defined standalone temporal semantics on linear orders: TemporalModel, Satisfies (5 constructors + 11 truth lemmas), Validity hierarchy (Valid/ValidSerial/ValidDense/ValidDiscrete), SemanticConsequence, Satisfiable. 440 lines across 3 files, zero sorries."
     },
     {
       "project_number": 12,
@@ -359,7 +360,7 @@
     {
       "project_number": 4,
       "project_name": "port_proof_system_bimodal",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
       "last_updated": "2026-06-08T00:25:00Z",
@@ -370,7 +371,8 @@
         32
       ],
       "description": "Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimodal/ProofSystem/. Scope: concrete 42-axiom Axiom inductive, DerivationTree (7 rules), Derivable, Substitution, BimodalTMHilbert instance registration. Imports propositional theorems from Task 20 and temporal axiom infrastructure from Task 22.\n\nNote: temporal axiom abbrevs and HasAxiom* typeclasses are completed in Task 22 (not this task). This task focuses on the concrete bimodal Axiom inductive (all 42 constructors including interaction axioms MF/TF) and DerivationTree.\n\nSource files (from BimodalLogic Theories/Bimodal/ProofSystem/):\n- Axioms.lean (~400 lines): 42 axiom schemata with minFrameClass gating\n- Derivation.lean (~600 lines): DerivationTree inductive (7 rules), FrameClass parameterization\n- Derivable.lean (~300 lines): Derivable predicate, basic properties\n- Substitution.lean (~500 lines): uniform substitution theorem\n- LinearityDerivedFacts.lean (~200 lines): linearity-specific derived facts\n\nTarget path: Cslib/Logics/Bimodal/ProofSystem/\nEstimated scope: ~2,000 lines across 5 files\nDependencies: Task 2 (Syntax), Task 20 (Propositional theorems available), Task 22 (temporal HasAxiom* infrastructure)",
-      "topic": "Bimodal Porting"
+      "topic": "Bimodal Porting",
+      "completion_summary": "Ported bimodal Hilbert-style proof system: 42-axiom Axiom inductive with FrameClass gating, DerivationTree (7 rules including modal necessitation), Derivable wrapper, 42-case substitution theorem, BimodalTMHilbert instance registration, LinearityDerivedFacts. Zero sorries across 7 files."
     },
     {
       "project_number": 5,
@@ -469,11 +471,12 @@
     {
       "project_number": 33,
       "project_name": "audit_noncomputable_temporal_instances",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "description": "Audit 35 noncomputable instances in Temporal/ProofSystem/Instances.lean. Verify all are necessary (Nonempty-based DerivableIn likely requires noncomputable). Document rationale or remove unnecessary noncomputable markers.",
       "topic": "Temporal Logic",
-      "dependencies": []
+      "dependencies": [],
+      "completion_summary": "Removed 39 unnecessary noncomputable markers across 9 files (31 from Instances.lean, 8 noncomputable section blocks from theorem layer). Full lake build passes."
     }
   ],
   "repository_health": {
