@@ -214,12 +214,13 @@
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-08T00:15:00Z",
+      "last_updated": "2026-06-08T00:25:00Z",
       "dependencies": [
         2,
-        "BimodalLogic:291"
+        20,
+        22
       ],
-      "description": "Port Proof System (PR 3): Axioms, Derivation, Derivable, Substitution, LinearityDerivedFacts to Cslib/Logics/Temporal/ProofSystem/. Defines the Hilbert-style axiom system for TM bimodal logic.\n\n**Source files** (from BimodalLogic Theories/Bimodal/ProofSystem/):\n- Axioms.lean (~400 lines): all 42 axiom schemata for BX/TM (including temporal Until/Since axioms, S5 box axioms, Barcan formula variants)\n- Derivation.lean (~600 lines): DerivationTree inductive type with 7 rules (assumption, modus ponens, necessitation, temporal necessitation, temporal duality, axiom instantiation, weakening)\n- Derivable.lean (~300 lines): Derivable predicate, basic properties\n- Substitution.lean (~500 lines): uniform substitution theorem, substitution lemmas\n- LinearityDerivedFacts.lean (~200 lines): derived theorems specific to linear temporal frames\n\n**Target path**: Cslib/Logics/Temporal/ProofSystem/\n\n**Estimated scope**: ~2,000 lines across 5 files\n\n**PR title**: feat(Logics/Temporal): add ProofSystem module (Axioms, Derivation, Derivable, Substitution)\n\n**Dependencies**: Task 2 (Syntax) must be merged first. Can proceed in parallel with Task 3 (Semantics).\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Temporal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Temporal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)"
+      "description": "Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimodal/ProofSystem/. Scope: concrete 42-axiom Axiom inductive, DerivationTree (7 rules), Derivable, Substitution, BimodalTMHilbert instance registration. Imports propositional theorems from Task 20 and temporal axiom infrastructure from Task 22.\n\nNote: temporal axiom abbrevs and HasAxiom* typeclasses are completed in Task 22 (not this task). This task focuses on the concrete bimodal Axiom inductive (all 42 constructors including interaction axioms MF/TF) and DerivationTree.\n\nSource files (from BimodalLogic Theories/Bimodal/ProofSystem/):\n- Axioms.lean (~400 lines): 42 axiom schemata with minFrameClass gating\n- Derivation.lean (~600 lines): DerivationTree inductive (7 rules), FrameClass parameterization\n- Derivable.lean (~300 lines): Derivable predicate, basic properties\n- Substitution.lean (~500 lines): uniform substitution theorem\n- LinearityDerivedFacts.lean (~200 lines): linearity-specific derived facts\n\nTarget path: Cslib/Logics/Bimodal/ProofSystem/\nEstimated scope: ~2,000 lines across 5 files\nDependencies: Task 2 (Syntax), Task 20 (Propositional theorems available), Task 22 (temporal HasAxiom* infrastructure)"
     },
     {
       "project_number": 5,
@@ -227,13 +228,13 @@
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
-      "last_updated": "2026-06-08T00:15:00Z",
+      "last_updated": "2026-06-08T00:25:00Z",
       "dependencies": [
         4,
-        "BimodalLogic:291",
-        "BimodalLogic:294"
+        21,
+        22
       ],
-      "description": "Port Derived Theorems (PR 4): Combinators, Propositional/*, ContextualProofs, GeneralizedNecessitation to Cslib/Logics/Temporal/Theorems/. This PR ports the derived theorem library built on top of the Hilbert-style proof system.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Theorems/):\n- Combinators.lean (~300 lines): fundamental combinators (identity, composition, flip, pair)\n- Propositional/Basic.lean (~400 lines): propositional derived theorems (ex falso, disjunction introduction, etc.)\n- Propositional/Extras.lean (~300 lines): additional propositional laws\n- ContextualProofs.lean (~500 lines): proof rules in context, weakening, cut\n- GeneralizedNecessitation.lean (~400 lines): necessitation generalization for modal operators\n- ModalS5.lean (requires BimodalLogic task 294: sorry elimination) -- S5 derived theorems\n- Perpetuity/Principles.lean (requires BimodalLogic task 294: sorry elimination) -- perpetuity fixed-point theorems\n\n**Target path**: Cslib/Logics/Temporal/Theorems/\n\n**Estimated scope**: ~3,000 lines across 6+ files\n\n**PR title**: feat(Logics/Temporal): add Theorems module (Combinators, Propositional, ContextualProofs, GeneralizedNecessitation)\n\n**Dependencies**: Task 4 (ProofSystem) must be merged first. BimodalLogic task 294 (sorry elimination) must complete before ModalS5.lean and Perpetuity/ can be ported.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Temporal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Temporal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)"
+      "description": "Port Perpetuity theorems to Cslib/Logics/Bimodal/Theorems/Perpetuity/. Scope reduced to ~800 lines (Perpetuity/ only -- inherently bimodal, uses both modal and temporal operators). All other derived theorems moved: Combinators/Propositional to Task 20, GeneralizedNecessitation/ModalS4/S5 to Task 21, TemporalDerived to Task 22.\n\nSource files (from BimodalLogic Theories/Bimodal/Theorems/Perpetuity/):\n- Bridge.lean, Helpers.lean, Principles.lean (~800 lines total)\n- Perpetuity fixed-point theorems require both modal (box) and temporal (untl/snce) operators -- inherently bimodal\n\nTarget path: Cslib/Logics/Bimodal/Theorems/Perpetuity/\nEstimated scope: ~800 lines across 3 files\nExternal dependency: BimodalLogic task 294 (sorry elimination in Perpetuity/) must complete before this task."
     },
     {
       "project_number": 6,
@@ -273,8 +274,8 @@
       "status": "not_started",
       "task_type": "meta",
       "created": "2026-06-08T23:05:54Z",
-      "last_updated": "2026-06-08T23:05:54Z",
-      "description": "Populate ROADMAP.md with porting plan, generate Task Order section, clean stale task 14 dependency refs"
+      "last_updated": "2026-06-08T00:25:00Z",
+      "description": "Clean stale task 14 references and verify Task Order consistency. Scope: (1) clean stale task 14 dependency references in TODO.md task descriptions (task 14 is completed and archived), (2) verify Task Order section reflects current dependency graph. Note: ROADMAP.md population is handled by task 19 which has the full research context."
     },
     {
       "project_number": 18,

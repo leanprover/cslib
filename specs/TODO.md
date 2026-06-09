@@ -109,15 +109,16 @@ next_project_number: 24
 
 ---
 
-### 17. Populate ROADMAP.md, generate Task Order, clean stale refs
-- **Effort**: Small (1-2 hours)
+### 17. Clean stale task 14 references and verify Task Order consistency
+- **Effort**: Small (<1 hour)
 - **Status**: [NOT STARTED]
 - **Task Type**: meta
 
-**Description**: Three project management improvements from code review:
-1. Populate `specs/ROADMAP.md` with the 10-PR porting plan phases and milestones (currently empty default template)
-2. Clean stale task 14 dependency references in TODO.md task descriptions (task 14 is now completed and archived)
-3. Verify Task Order section reflects current dependency graph
+**Description**: Two project management cleanup tasks:
+1. Clean stale task 14 dependency references in TODO.md task descriptions (task 14 is completed and archived)
+2. Verify Task Order section reflects current dependency graph
+
+**Note**: ROADMAP.md population is handled by task 19 (has full research context). This task focuses on cleanup only.
 
 ---
 
@@ -148,46 +149,32 @@ next_project_number: 24
 - **Effort**: Ongoing (tracked separately)
 - **Status**: [NOT STARTED]
 - **Task Type**: general
-- **Dependencies**: Task 14 (modular architecture must be complete first)
 
-**Description**: Coordinate the cslib PR submission process for the Bimodal Logic integration. This task runs in parallel with porting tasks (2-11) and handles maintainer communication, namespace decisions, and CI compliance before each submission. Updated to reflect the modular architecture from task 14: content now spans `Cslib.Logics.Bimodal/` (primary, for the combined TM system) and `Cslib.Logics.Temporal/` (standalone temporal logic).
+**Description**: Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.
+
+**Standalone Module PRs** (can proceed in parallel with bimodal PRs since they target different directories):
+- PR-Foundations (Task 20): Propositional Hilbert theorems to `Cslib/Foundations/Logic/Theorems/` -- Wave 1, no dependencies
+- PR-Modal (Task 21): Modal proof system + theorems to `Cslib/Logics/Modal/ProofSystem/` + `Theorems/` -- after PR-Foundations
+- PR-Temporal-Infra (Task 22): Temporal infrastructure + theorems to `Cslib/Logics/Temporal/ProofSystem/` + `Theorems/` -- after PR-Foundations
+- PR-TempSem (Task 23): Temporal semantics to `Cslib/Logics/Temporal/Semantics/` -- after PR-Temporal-Infra
+
+**Bimodal PRs** (in dependency order):
+- PR 1 (Bimodal Syntax, task 2): submit first, establish review pattern
+- PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap
+- PR 4 (Perpetuity Theorems, task 5): after PRs 3, PR-Modal, PR-Temporal-Infra merged
+- PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged
+- PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged
+- PR 7 (Completeness, task 8): after PRs 5+6 merged
+- PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)
+- PR 9 (Separation, task 10): after PRs 3+4+6 merged
+- PR 10 (ConservativeExtension, task 11): after PR 3 merged (independent of 5-9)
 
 **Coordination Workflow**:
 
-1. **Open Zulip Discussion** (first step, before any PR submission):
-   - Open a thread on leanprover.zulipchat.com in the appropriate cslib channel
-   - Propose integrating bimodal temporal logic TM to cslib under `Cslib.Logics.Bimodal/` with standalone temporal logic under `Cslib.Logics.Temporal/`
-   - Include: overview of TM logic (bimodal: S5 box + temporal Until/Since over task frames), modular architecture (separate formula types per logic with typeclass hierarchy), motivation (verified decision procedure, completeness proof, ~30k lines Lean 4), PR strategy (10 modular PRs in dependency order)
-   - Ask: namespace decision, PR review process, any style requirements for logic contributions
-   - Note: `Cslib.Logics.Modal/` and `Cslib.Logics.Propositional/` have already been refactored to align primitives (task 14)
-
-2. **Namespace Decision** (follow from Zulip discussion):
-   - If maintainers prefer different namespaces: update all porting task descriptions accordingly
-   - Confirm before starting task 2, as all subsequent PRs inherit the namespace decision
-   - Current proposal: `Cslib.Logics.Bimodal` (combined TM) + `Cslib.Logics.Temporal` (standalone)
-
-3. **PR Submission Order** (follow dependency graph):
-   - PR 1 (Bimodal Syntax, task 2): submit first, establish review pattern
-   - PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap
-   - PR 4 (Theorems, task 5): after PR 3 merged
-   - PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged
-   - PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged
-   - PR 7 (Completeness, task 8): after PRs 5+6 merged
-   - PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)
-   - PR 9 (Separation, task 10): after PRs 3+4+6 merged
-   - PR 10 (ConservativeExtension, task 11): after PR 3 merged (independent of 5-9)
-
-4. **CI Checks** (before each PR submission):
-   - Run: lake build (must pass with zero errors)
-   - Run: lake shake (must show no unused imports)
-   - Run: set_option linter.all true in each file (must show no linter warnings)
-   - Confirm: zero sorry in submitted files
-   - Confirm: all files have Apache 2.0 copyright headers
-
-5. **Review Cycle Management**:
-   - Keep PRs small and self-contained (max ~3,500 lines per PR except task 9)
-   - Address reviewer feedback within 48 hours to maintain momentum
-   - For PR 8 (Decidability, ~10k lines): consider splitting into 8a+8b if reviewer requests
+1. **Open Zulip Discussion** (first step): propose modular architecture (standalone Foundations/Modal/Temporal modules + Bimodal), PR strategy (4 standalone PRs + 10 bimodal PRs)
+2. **Namespace Decision**: confirm before starting task 2
+3. **CI Checks** (before each PR): lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers
+4. **Review Cycle**: keep PRs small (max ~3,500 lines); address feedback within 48 hours
 
 ---
 
@@ -300,21 +287,21 @@ next_project_number: 24
 - **Effort**: Large (10-14 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 4, 5, 14 (ProofSystem, Theorems, and modular architecture)
+- **Dependencies**: Tasks 4, 5 (ProofSystem, Perpetuity Theorems)
 
-**Description**: Port deduction theorem and maximal consistent set theory from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Core/`. This establishes the core metalogical infrastructure for completeness. The deduction theorem and MCS construction operate on the full bimodal proof system (all 42 axioms) and cannot be factored into separate modal/temporal components.
+**Description**: Port deduction theorem and maximal consistent set theory from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Core/`. This establishes the core metalogical infrastructure for completeness.
+
+**Note on DeductionTheorem**: The DeductionTheorem stays in this task (bimodal-specific). Per team research finding #7, it requires structural induction on the bimodal `DerivationTree` and cannot be ported generically to Foundations. Scope is unchanged at ~2,500 lines.
 
 **Source files** (from BimodalLogic Theories/Bimodal/Metalogic/Core/):
 - Core.lean: module aggregator
-- DeductionTheorem.lean (~500 lines): deduction theorem for TM proof system
+- DeductionTheorem.lean (~500 lines): deduction theorem for TM proof system (structural induction on bimodal DerivationTree)
 - MaximalConsistent.lean (~600 lines): MCS definition and basic properties
 - MCSProperties.lean (~700 lines): Lindenbaum lemma, MCS enumeration, closure properties
 - RestrictedMCS/Basic.lean (~400 lines): restricted MCS for frame-specific completeness
 - RestrictedMCS/Deferral.lean: MCS deferral properties
 
 **Target path**: `Cslib/Logics/Bimodal/Metalogic/Core/`
-
-**Adaptation notes**: MCS construction references Context and DerivationTree which must use `Bimodal.Formula`. The deduction theorem depends on the full axiom set from task 4.
 
 **Estimated scope**: ~2,500 lines across 6 files
 
@@ -324,9 +311,11 @@ next_project_number: 24
 - **Effort**: Large (10-14 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 3, 4, 14 (Semantics, ProofSystem, and modular architecture)
+- **Dependencies**: Tasks 3, 4 (Semantics, ProofSystem)
 
-**Description**: Port frame conditions and soundness from BimodalLogic to `Cslib/Logics/Bimodal/FrameConditions/` and `Cslib/Logics/Bimodal/Metalogic/Soundness/`. The soundness proof is inherently bimodal — the interaction axiom MF's soundness requires both task frame semantics and modal quantification over world histories simultaneously. The `FrameClass` type (Base/Dense/Discrete) and `minFrameClass` gating pattern should be preserved.
+**Description**: Port bimodal frame conditions and soundness to `Cslib/Logics/Bimodal/FrameConditions/` and `Cslib/Logics/Bimodal/Metalogic/Soundness/`. The soundness proof is inherently bimodal — the interaction axiom MF requires both task frame semantics and modal quantification over world histories. The `FrameClass` type (Base/Dense/Discrete) and `minFrameClass` gating pattern should be preserved.
+
+**Modular factoring note**: Standalone temporal frame condition typeclasses (LinearTemporalFrame, DenseTemporalFrame, DiscreteTemporalFrame as abstract typeclasses) moved to Task 22. This task ports the bimodal-specific frame conditions and soundness proofs (~2,370 lines).
 
 **Source files**:
 - FrameConditions/ (4 files, ~790 lines): FrameClass.lean, Validity.lean, Soundness.lean, Compatibility.lean
@@ -339,35 +328,32 @@ next_project_number: 24
 - `Cslib/Logics/Bimodal/FrameConditions/`
 - `Cslib/Logics/Bimodal/Metalogic/Soundness/`
 
-**Adaptation notes**: FrameClass typeclass hierarchy (`LinearTemporalFrame`, `DenseTemporalFrame`, `DiscreteTemporalFrame`) should integrate with task 14's proof system typeclasses. Consider providing `HasAxiomDensity` and `HasAxiomDiscreteness` instances gated by frame class.
-
-**Estimated scope**: ~2,500 lines across 10 files
+**Estimated scope**: ~2,370 lines across 10 files
 
 ---
 
-### 5. Port Derived Theorems to Bimodal module
-- **Effort**: Large (10-14 hours)
+### 5. Port Perpetuity theorems to Bimodal module
+- **Effort**: Small (3-5 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 4, 14 (ProofSystem and modular architecture)
-- **External Dependencies**: BimodalLogic task 294 (sorry elimination in ModalS5/Perpetuity)
+- **Dependencies**: Tasks 4, 21, 22 (ProofSystem, Modal Theorems, Temporal Infrastructure)
+- **External Dependencies**: BimodalLogic task 294 (sorry elimination in Perpetuity/)
 
-**Description**: Port derived theorem library from BimodalLogic to `Cslib/Logics/Bimodal/Theorems/`. These theorems are proved using the full TM proof system (DerivationTree) and include propositional, modal S5, temporal, and perpetuity results. The propositional and modal-only theorems (Combinators, Propositional/) could in principle be stated at the typeclass level (`[PropositionalHilbert S]`, `[ModalS5Hilbert S]`) for reuse, but the pragmatic approach is to port them first and generalize later.
+**Description**: Port Perpetuity theorems to `Cslib/Logics/Bimodal/Theorems/Perpetuity/`. Scope reduced to ~800 lines (Perpetuity/ only — inherently bimodal, uses both modal box and temporal until/since operators together).
 
-**Source files** (from BimodalLogic Theories/Bimodal/Theorems/):
-- Combinators.lean (~300 lines): identity, composition, flip, pair
-- Propositional/Core.lean, Propositional/Connectives.lean, Propositional/Reasoning.lean (~1,100 lines total)
-- ContextualProofs.lean (~500 lines): weakening, cut, contextual rules
-- GeneralizedNecessitation.lean (~400 lines): necessitation generalization
-- ModalS4.lean, ModalS5.lean (~800 lines): S4/S5 derived theorems
-- TemporalDerived.lean: temporal-specific derived theorems
-- Perpetuity/ (Bridge.lean, Helpers.lean, Principles.lean, ~800 lines): perpetuity fixed-point theorems
+**Modular factoring note**: Components moved to standalone modules:
+- Combinators (~300 lines) -> Task 20 (Foundations/Logic/Theorems/)
+- Propositional/{Core,Connectives,Reasoning} (~1,100 lines) -> Task 20
+- ContextualProofs (~500 lines) -> Task 20
+- GeneralizedNecessitation + ModalS4/S5 (~1,200 lines) -> Task 21 (Modal/Theorems/)
+- TemporalDerived (~790 lines) -> Task 22 (Temporal/Theorems/)
 
-**Target path**: `Cslib/Logics/Bimodal/Theorems/`
+**Source files** (from BimodalLogic Theories/Bimodal/Theorems/Perpetuity/):
+- Bridge.lean, Helpers.lean, Principles.lean (~800 lines total): perpetuity fixed-point theorems using both modal and temporal operators
 
-**Adaptation notes**: All theorems reference `DerivationTree` and `Bimodal.Formula`. Port to use cslib's formula type. Where possible, also provide typeclass-level versions (e.g., `[PropositionalHilbert S] → S ⊢ ImplyK φ ψ`) but this is optional and can be a follow-up.
+**Target path**: `Cslib/Logics/Bimodal/Theorems/Perpetuity/`
 
-**Estimated scope**: ~7,300 lines across 13 files
+**Estimated scope**: ~800 lines across 3 files
 
 ---
 
@@ -375,9 +361,11 @@ next_project_number: 24
 - **Effort**: Large (8-12 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 2, 14 (Syntax and modular architecture)
+- **Dependencies**: Tasks 2, 20, 22 (Syntax, Propositional Theorems, Temporal Infrastructure)
 
-**Description**: Port the Hilbert-style axiom system from BimodalLogic to `Cslib/Logics/Bimodal/ProofSystem/`. This is the concrete proof system with all 42 axiom schemata (propositional + S5 modal + BX temporal + interaction MF/TF) and the FrameClass-parameterized DerivationTree with 7 inference rules. Task 14 already defined the polymorphic axiom `abbrev`s and `HasAxiom*` typeclasses in `Cslib.Foundations.Logic.Axioms` and `Cslib.Foundations.Logic.ProofSystem`; this task provides the concrete `Axiom` inductive, `DerivationTree`, and `Derivable` predicate, then registers `InferenceSystem` and `BimodalTMHilbert` instances for the `Bimodal.HilbertTM` tag.
+**Description**: Port the Bimodal Hilbert-style proof system to `Cslib/Logics/Bimodal/ProofSystem/`. Scope: concrete 42-axiom Axiom inductive (propositional + S5 modal + BX temporal + interaction MF/TF), DerivationTree (7 rules), Derivable, Substitution, and BimodalTMHilbert instance registration.
+
+**Note**: Temporal axiom abbrevs and HasAxiom* typeclasses are completed in Task 22 (not this task). Task 20 provides propositional theorems. This task focuses on the concrete bimodal 42-constructor Axiom inductive and the full DerivationTree.
 
 **Source files** (from BimodalLogic Theories/Bimodal/ProofSystem/):
 - Axioms.lean (~400 lines): 42 axiom schemata with `minFrameClass` gating
@@ -388,13 +376,7 @@ next_project_number: 24
 
 **Target path**: `Cslib/Logics/Bimodal/ProofSystem/`
 
-**Integration with task 14 infrastructure**:
-- Complete the temporal axiom `abbrev`s in `Cslib.Foundations.Logic.Axioms` (currently only `SerialFuture` and `SerialPast`; need TK, T4, TT-F/P, TA, TL, Lin, and all BX axioms)
-- Register `InferenceSystem Bimodal.HilbertTM (Bimodal.Judgement)` instance mapping to `DerivationTree`
-- Register `BimodalTMHilbert Bimodal.HilbertTM` instance providing all `HasAxiom*` instances from the concrete `Axiom` inductive
-- Align `Derivable` with `InferenceSystem.DerivableIn` via the tag type
-
-**Estimated scope**: ~2,000 lines across 5 files plus ~200 lines of axiom `abbrev` additions to Axioms.lean
+**Estimated scope**: ~2,000 lines across 5 files
 
 ---
 
@@ -425,9 +407,11 @@ next_project_number: 24
 - **Effort**: Medium (6-10 hours)
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
-- **Dependencies**: Task 14 (modular architecture — formula types already exist)
+- **Dependencies**: BimodalLogic:291 (toolchain upgrade)
 
-**Description**: Port the syntax infrastructure from BimodalLogic to `Cslib/Logics/Bimodal/Syntax/`. Task 14 already created `Bimodal.Formula` with `{atom, bot, imp, box, untl, snce}` and `Temporal.Formula` with `{atom, bot, imp, untl, snce}`. This task ports the remaining syntax components that operate on the formula type: Context (proof assumptions), BigConj (finite conjunction), Subformulas, and SubformulaClosure. These are ported against `Bimodal.Formula` since BimodalLogic's originals use all 6 constructors.
+**Description**: Port the syntax infrastructure from BimodalLogic to `Cslib/Logics/Bimodal/Syntax/`. Task 14 already created `Bimodal.Formula` with `{atom, bot, imp, box, untl, snce}`. This task ports the remaining syntax components that operate on the full bimodal formula type: Context (proof assumptions), BigConj (finite conjunction), Subformulas, and SubformulaClosure — all using all 6 formula constructors.
+
+**Note on modular factoring**: Generic `BigConj` and `Context` at the typeclass level (`[PropositionalHilbert S]`) live in Task 20 (Foundations). This task ports the bimodal-specific versions that use all 6 formula constructors and cannot be generalized.
 
 **Note on Formula.lean**: BimodalLogic's `Syntax/Formula.lean` (~800 lines) contains not just the inductive type but also `complexity`, `atomSet`, `swap_temporal`, `Countable`/`Denumerable`/`Infinite` instances, and many structural lemmas. The inductive type already exists from task 14, but these additional properties need porting.
 

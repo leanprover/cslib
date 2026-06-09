@@ -174,7 +174,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Revise Existing Tasks 2-7, 12, 17 [NOT STARTED]
+### Phase 3: Revise Existing Tasks 2-7, 12, 17 [COMPLETED]
 
 **Goal**: Update task descriptions and dependencies for existing tasks to reflect the modular factoring, incorporating team research refinements. Revise task 17 to remove ROADMAP.md population from its scope since task 19 handles it.
 
