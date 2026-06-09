@@ -91,7 +91,7 @@ next_project_number: 26
 15 [RESEARCHED] — Complete embedding lattice: add atom simp lemmas, PL.toBimodal pa
 17 [PLANNED] — Clean stale task 14 references and verify Task Order consistency.
 18 [RESEARCHED] — Generate project-overview.md for this repository
-24 [RESEARCHED] — improve roadmap bimodal porting
+24 [COMPLETED] — improve roadmap bimodal porting
 25 [NOT STARTED] — revise task order topic assignments
 
 ## Tasks
@@ -105,9 +105,10 @@ next_project_number: 26
 
 ### 24. Improve ROADMAP.md with BimodalLogic porting overview
 - **Effort**: Medium (3-5 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: markdown
 - **Research**: [024_improve_roadmap_bimodal_porting/reports/01_roadmap-research.md]
+- **Summary**: [024_improve_roadmap_bimodal_porting/summaries/01_roadmap-summary.md]
 
 **Description**: Improve specs/ROADMAP.md to clearly introduce and describe the ambition to port BimodalLogic/ over to CSLib, populating Propositional/, Modal/, Temporal/, and Bimodal/ as appropriate, outlining the design decisions, the tasks along with a link to specs/TODO.md, creating a document that is easy for the maintainer of CSLib to take in and understand the current state of the project
 

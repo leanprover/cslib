@@ -13,11 +13,12 @@
     {
       "project_number": 24,
       "project_name": "improve_roadmap_bimodal_porting",
-      "status": "researched",
+      "status": "completed",
       "task_type": "markdown",
       "created": "2026-06-09T00:31:08Z",
-      "last_updated": "2026-06-09T00:37:55Z",
-      "topic": "Project Management"
+      "last_updated": "2026-06-09T01:10:00Z",
+      "topic": "Project Management",
+      "completion_summary": "Rewrote specs/ROADMAP.md with comprehensive overview of BimodalLogic porting effort including what TM bimodal logic is, why it belongs in CSLib, modular factoring design decisions, current state of CSLib, porting phases, 6-wave task dependency structure, component accounting, and success metrics"
     },
     {
       "project_number": 20,
@@ -140,7 +141,7 @@
     {
       "project_number": 12,
       "project_name": "coordinate_cslib_pr_submission_bimodal_logic",
-      "status": "planned",
+      "status": "partial",
       "task_type": "general",
       "created": "2026-06-08T00:45:00Z",
       "last_updated": "2026-06-09T00:21:36Z",
@@ -294,7 +295,7 @@
     {
       "project_number": 15,
       "project_name": "complete_embedding_lattice",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-08T23:05:54Z",
       "last_updated": "2026-06-09T00:21:36Z",
@@ -315,18 +316,19 @@
     {
       "project_number": 17,
       "project_name": "project_management_roadmap_taskorder",
-      "status": "planned",
+      "status": "completed",
       "task_type": "meta",
       "created": "2026-06-08T23:05:54Z",
       "last_updated": "2026-06-09T00:21:36Z",
       "description": "Clean stale task 14 references and verify Task Order consistency. Scope: (1) clean stale task 14 dependency references in TODO.md task descriptions (task 14 is completed and archived), (2) verify Task Order section reflects current dependency graph. Note: ROADMAP.md population is handled by task 19 which has the full research context.",
       "session_id": "sess_1780964447_c6a4ec",
-      "topic": "Project Management"
+      "topic": "Project Management",
+      "completion_summary": "Cleaned 5 stale task 14 dependency fields and 12 prose references in TODO.md; verified Task Order wave table consistency."
     },
     {
       "project_number": 18,
       "project_name": "generate_project_overview",
-      "status": "researched",
+      "status": "planned",
       "task_type": "meta",
       "created": "2026-06-08T23:05:54Z",
       "last_updated": "2026-06-09T00:21:36Z",

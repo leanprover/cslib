@@ -1,15 +1,22 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-06-08T01:00:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Planner agent started, parsing delegation context"
-  },
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/024_improve_roadmap_bimodal_porting/plans/01_roadmap-plan.md",
+      "summary": "Implementation plan for ROADMAP.md improvement with 1 phase, 1 hour effort"
+    }
+  ],
+  "next_steps": "Run /implement 24 to execute the plan",
   "metadata": {
     "session_id": "sess_1780965263_f44efb",
     "agent_type": "planner-agent",
+    "duration_seconds": 120,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
-  }
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 1,
+    "estimated_hours": 1,
+    "dependency_waves": [[1]]
+  },
+  "memory_candidates": []
 }

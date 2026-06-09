@@ -20,15 +20,17 @@
     "17": [],
     "18": []
   },
-  "cycle_count": 1,
+  "cycle_count": 2,
   "max_cycles": 20,
   "failed_tasks": [],
-  "completed_tasks": [],
+  "completed_tasks": [
+    17
+  ],
   "current_statuses": {
-    "12": "planned",
-    "15": "researched",
-    "17": "planned",
-    "18": "researched"
+    "12": "partial",
+    "15": "planned",
+    "17": "completed",
+    "18": "planned"
   },
   "task_types": {
     "12": "general",
