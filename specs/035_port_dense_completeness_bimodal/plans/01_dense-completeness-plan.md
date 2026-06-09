@@ -118,7 +118,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Algebraic Layer 1-3 -- Lindenbaum through UltrafilterMCS [NOT STARTED]
+### Phase 2: Algebraic Layer 1-3 -- Lindenbaum through UltrafilterMCS [IN PROGRESS]
 
 **Goal**: Port the first four Algebraic/ files establishing the Lindenbaum-Tarski algebra and ultrafilter-MCS bijection.
 
