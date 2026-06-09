@@ -143,7 +143,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Propositional Connectives [NOT STARTED]
+### Phase 3: Propositional Connectives [COMPLETED]
 
 **Goal**: Port theorems about derived connectives: classical_merge, iff operations, contraposition, and De Morgan laws.
 
