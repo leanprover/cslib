@@ -49,11 +49,11 @@ we can convert freely between the two representations.
 noncomputable section
 
 /-- Convert a derivation tree to a Nonempty (for typeclass functions). -/
-private def wrap {φ : Bimodal.Formula Atom}
+def wrap {φ : Bimodal.Formula Atom}
     (d : ⊢ φ) : InferenceSystem.DerivableIn Bimodal.HilbertTM φ := ⟨d⟩
 
 /-- Extract a derivation tree from Nonempty (from typeclass functions). -/
-private def unwrap {φ : Bimodal.Formula Atom}
+def unwrap {φ : Bimodal.Formula Atom}
     (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) : ⊢ φ := h.some
 
 /-- Transitivity: from `⊢ φ → ψ` and `⊢ ψ → χ`, derive `⊢ φ → χ`. -/

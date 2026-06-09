@@ -135,7 +135,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Port Principles.lean (P1--P5) [NOT STARTED]
+### Phase 3: Port Principles.lean (P1--P5) [COMPLETED]
 
 **Goal**: Create `Cslib/Logics/Bimodal/Theorems/Perpetuity/Principles.lean` with perpetuity principles P1 through P5, reusing cslib Foundations theorems for propositional, modal, and temporal reasoning.
 
