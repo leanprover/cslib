@@ -1,5 +1,5 @@
 ---
-next_project_number: 55
+next_project_number: 56
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 55
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,51 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,51,55 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,52 | 36,37,51 | Temporal Logic, Submit PRs |
 | 3 | 41,53,54 | 38,39,40,52 | Foundations, Submit PRs |
 
@@ -39,8 +39,21 @@ next_project_number: 55
     └─ 53 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Infrastructure 
     └─ 54 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Semantics PR wi
 
+### Uncategorized
+
+55 [NOT STARTED] — update_roadmap_completions_and_diagram
+
 ## Tasks
 
+
+### 55. Review and update ROADMAP.md with completions and mermaid diagram
+- **Effort**: Small (1-2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+
+**Description**: Review and update the ROADMAP.md given all that has been completed, making sure the mermaid diagram is complete and accurate
+
+---
 
 ### 54. Prepare Temporal Semantics PR
 - **Effort**: Medium (6-10 hours)
