@@ -116,31 +116,32 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Tableau Rules + TraceCertificate [NOT STARTED]
+### Phase 2: Tableau Rules + TraceCertificate [COMPLETED]
 
 **Goal**: Port the 28 tableau expansion rules, the rule application engine, and the TraceCertificate types needed by Saturation/DecisionProcedure.
 
 **Tasks**:
-- [ ] Create `TraceCertificate.lean` with copyright header
-- [ ] Port `TraceEntry` inductive type (ruleFired, branchCreated, branchClosed, fuelExhausted, blocked)
-- [ ] Port `CertOutcome` inductive type
-- [ ] Port `ProofCertificate` structure and `ProofCertificate.empty`
-- [ ] Port `TraceFailure` and `TraceResult` types
-- [ ] Port `TraceM` monad abbreviation (`StateM ProofCertificate`)
-- [ ] Port `TraceM.record`, `TraceM.getCert`, `TraceM.recordRuleFired` helpers
-- [ ] Adapt all types for universe-polymorphic `Formula Atom`
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.TraceCertificate`
-- [ ] Create `Tableau.lean` with copyright header
-- [ ] Port `TableauRule` inductive (28 rules: andPos, andNeg, orPos, orNeg, impPos, impNeg, negPos, negNeg, boxPos, boxNeg, allFuturePos, allFutureNeg, allPastPos, allPastNeg, untlPos, untlNeg, sncePos, snceNeg, etc.)
-- [ ] Port `RuleResult` inductive (linear, branching)
-- [ ] Port formula decomposition helpers used by `applyRule`
-- [ ] Port `applyRule` function (large match expression ~950 lines) -- use `set_option maxHeartbeats` if needed for elaboration
-- [ ] Port `expandOnce` / `expandOnceWithApplied` functions
-- [ ] Port `findUnexpanded` / `findUnexpandedWithApplied` functions
-- [ ] Port `findApplicableRule` / `findApplicableRuleWithApplied` functions
-- [ ] Port `ClosedBranch` type
-- [ ] Adapt all to universe-polymorphic `Formula Atom`
-- [ ] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.Tableau`
+- [x] Create `TraceCertificate.lean` with copyright header
+- [x] Port `TraceEntry` inductive type (ruleFired, branchCreated, branchClosed, fuelExhausted, blocked)
+- [x] Port `CertOutcome` inductive type
+- [x] Port `ProofCertificate` structure and `ProofCertificate.empty`
+- [x] Port `TraceFailure` and `TraceResult` types
+- [x] Port `TraceM` monad abbreviation (`StateM ProofCertificate`)
+- [x] Port `TraceM.record`, `TraceM.getCert`, `TraceM.recordRuleFired` helpers
+- [x] Adapt all types for universe-polymorphic `Formula Atom`
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.TraceCertificate`
+- [x] Create `Tableau.lean` with copyright header
+- [x] Port `TableauRule` inductive (30 rules including diamondPos/diamondNeg) *(deviation: altered -- 30 rules not 28; source has diamond rules as separate constructors)*
+- [x] Port `RuleResult` inductive (linear, branching)
+- [x] Port formula decomposition helpers used by `applyRule`
+- [x] Port `applyRule` function (large match expression ~950 lines) -- no maxHeartbeats needed
+- [x] Port `expandOnce` / `expandOnceWithApplied` functions
+- [x] Port `findUnexpanded` / `findUnexpandedWithApplied` functions
+- [x] Port `findApplicableRule` / `findApplicableRuleWithApplied` functions
+- [ ] Port `ClosedBranch` type *(deviation: skipped -- ClosedBranch is defined in Closure.lean in source, not Tableau.lean; deferred to Phase 3)*
+- [x] Adapt all to universe-polymorphic `Formula Atom`
+- [x] Verify `lake build Cslib.Logics.Bimodal.Metalogic.Decidability.Tableau`
+- [x] Port `ClosureReason` inductive type in TraceCertificate.lean *(deviation: altered -- moved from Closure.lean to TraceCertificate.lean since TraceCertificate needs it and Closure is Phase 3)*
 
 **Timing**: 3.5 hours
 
