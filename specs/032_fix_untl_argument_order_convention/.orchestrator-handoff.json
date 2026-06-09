@@ -1,0 +1,20 @@
+{
+  "status": "planned",
+  "summary": "Created 6-phase sequential plan to fix untl/snce argument order convention across cslib (7 files). Phases: (1) semantic root fix in Truth.lean, (2) derived operators in both Formula.lean files, (3) axiom abbreviations + ProofSystem.lean, (4) Temporal axiom constructors, (5) TemporalDerived proof re-derivation, (6) full build verification. Key insight: F_mono/P_mono/G_distribution proofs need BX3 instead of BX2G under new convention. Estimated 4 hours total.",
+  "artifacts": [
+    {
+      "path": "specs/032_fix_untl_argument_order_convention/reports/01_untl-argument-order.md",
+      "type": "report",
+      "summary": "Comprehensive file-by-file change list with risk analysis and semantic verification of each axiom"
+    },
+    {
+      "path": "specs/032_fix_untl_argument_order_convention/plans/01_untl-argument-fix.md",
+      "type": "plan",
+      "summary": "6-phase plan to swap untl/snce args from (guard,event) to (event,guard) across Truth.lean, both Formula.lean files, Axioms.lean, ProofSystem.lean, Temporal Axioms.lean, and TemporalDerived.lean"
+    }
+  ],
+  "blockers": [],
+  "phases_total": 6,
+  "phases_completed": 0,
+  "next_action_hint": "implement"
+}

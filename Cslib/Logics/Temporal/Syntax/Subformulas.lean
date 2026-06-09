@@ -77,17 +77,17 @@ theorem imp_right_mem_subformulas (ψ χ : Formula Atom) :
 /-- Subformulas of all_past include the inner formula. -/
 theorem all_past_inner_mem_subformulas (ψ : Formula Atom) :
     ψ ∈ subformulas (Formula.all_past ψ) := by
-  -- all_past ψ = imp (snce (imp bot bot) (imp ψ bot)) bot
+  -- all_past ψ = imp (snce (imp ψ bot) (imp bot bot)) bot
   simp only [subformulas, List.mem_cons, List.mem_append]
-  right; left; right; right; right; left
+  right; left; right; left; right; left
   exact self_mem_subformulas ψ
 
 /-- Subformulas of all_future include the inner formula. -/
 theorem all_future_inner_mem_subformulas (ψ : Formula Atom) :
     ψ ∈ subformulas (Formula.all_future ψ) := by
-  -- all_future ψ = imp (untl (imp bot bot) (imp ψ bot)) bot
+  -- all_future ψ = imp (untl (imp ψ bot) (imp bot bot)) bot
   simp only [subformulas, List.mem_cons, List.mem_append]
-  right; left; right; right; right; left
+  right; left; right; left; right; left
   exact self_mem_subformulas ψ
 
 /--
