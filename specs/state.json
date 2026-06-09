@@ -1,6 +1,14 @@
 {
-  "next_project_number": 45,
+  "next_project_number": 46,
   "active_projects": [
+    {
+      "project_number": 45,
+      "project_name": "improve_roadmap_diagram_and_structure",
+      "status": "not_started",
+      "task_type": "markdown",
+      "created": "2026-06-09T17:32:58Z",
+      "last_updated": "2026-06-09T17:32:58Z"
+    },
     {
       "project_number": 44,
       "project_name": "streamline_roadmap",
@@ -28,7 +36,11 @@
         "complexity": "simple",
         "research_integrated": true,
         "plan_version": 1,
-        "dependency_waves": [[1]],
+        "dependency_waves": [
+          [
+            1
+          ]
+        ],
         "reports_integrated": [
           {
             "path": "reports/01_streamline-roadmap.md",
