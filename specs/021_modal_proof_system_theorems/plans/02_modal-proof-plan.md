@@ -98,7 +98,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Modal/S5.lean -- S5-Level Theorems [NOT STARTED]
+### Phase 2: Modal/S5.lean -- S5-Level Theorems [IN PROGRESS]
 
 **Goal**: Create `Cslib/Foundations/Logic/Theorems/Modal/S5.lean` with all theorems generic over `[ModalS5Hilbert S]`, including the derived axiom 5, core S5 results, and the S4-level nested modality theorems (which require S5 axioms).
 

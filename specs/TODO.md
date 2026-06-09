@@ -101,10 +101,11 @@ next_project_number: 32
 
 ### 28. Structure metalogic across Propositional, Modal, Temporal, and Bimodal systems
 - **Effort**: Large (1-2 days)
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: formal
 - **Research**: [specs/028_structure_metalogic_across_systems/reports/01_team-research.md]
 - **Plan**: [028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md]
+- **Summary**: [028_structure_metalogic_across_systems/summaries/01_metalogic-structure-summary.md]
 
 **Description**: Much of /home/benjamin/Projects/BimodalLogic/ is devoted to metalogic for the bimodal system. When porting over to CSLib, clearly and cleanly include appropriate metalogic for Propositional/, Modal/, Temporal/, and Bimodal/. Although the semantics for each of these logics differs, look for opportunities for importing between them. Revise existing tasks or add additional tasks as appropriate to structure the metalogic for each system correctly.
 

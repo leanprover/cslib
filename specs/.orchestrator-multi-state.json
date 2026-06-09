@@ -1,14 +1,44 @@
 {
-  "session_id": "sess_1780967265_006c90",
-  "task_numbers": [2, 16, 20],
-  "waves": [[2, 16, 20]],
-  "cycle_count": 3,
+  "session_id": "sess_1780970224_ba1435",
+  "task_numbers": [
+    3,
+    21,
+    22
+  ],
+  "waves": [
+    [
+      3,
+      21,
+      22
+    ]
+  ],
+  "dependency_graph": {
+    "3": [],
+    "21": [],
+    "22": []
+  },
+  "cycle_count": 2,
   "max_cycles": 15,
   "failed_tasks": [],
-  "completed_tasks": [2, 16, 20],
+  "completed_tasks": [],
   "current_statuses": {
-    "2": "completed",
-    "16": "completed",
-    "20": "completed"
+    "3": "planned",
+    "21": "planned",
+    "22": "planned"
+  },
+  "task_types": {
+    "3": "lean4",
+    "21": "lean4",
+    "22": "lean4"
+  },
+  "research_agents": {
+    "3": "lean-research-agent",
+    "21": "lean-research-agent",
+    "22": "lean-research-agent"
+  },
+  "implement_agents": {
+    "3": "lean-implementation-agent",
+    "21": "lean-implementation-agent",
+    "22": "lean-implementation-agent"
   }
 }

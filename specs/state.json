@@ -44,10 +44,10 @@
     {
       "project_number": 28,
       "project_name": "structure_metalogic_across_systems",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "formal",
       "created": "2026-06-09T01:45:37Z",
-      "last_updated": "2026-06-09T02:07:31Z",
+      "last_updated": "2026-06-09T02:17:01Z",
       "session_id": "sess_1780970833_786a47",
       "researched": "2026-06-09T01:59:47Z",
       "next_artifact_number": 2,
@@ -56,8 +56,14 @@
           "path": "specs/028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md",
           "type": "plan",
           "summary": "4-phase plan to create 3 new tasks (generic MCS foundations, modal metalogic, temporal metalogic) with dependency analysis and ROADMAP.md updates"
+        },
+        {
+          "path": "specs/028_structure_metalogic_across_systems/summaries/01_metalogic-structure-summary.md",
+          "type": "summary",
+          "summary": "Created 3 new metalogic tasks with correct dependencies, confirmed existing tasks need no revision, updated ROADMAP.md"
         }
-      ]
+      ],
+      "completion_summary": "Created 3 new tasks (29: Generic MCS Foundations, 30: Modal Metalogic, 31: Temporal Metalogic) with full standalone scope (DT + MCS + Soundness + Completeness) and correct dependencies. Updated task 7 to depend on task 29. Updated ROADMAP.md with Phase 4 (Standalone Metalogic), revised import hierarchy, component accounting, and success metrics."
     },
     {
       "project_number": 27,
