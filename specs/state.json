@@ -9,7 +9,8 @@
       "description": "Review tense logic progress against ROADMAP and assess PR readiness, identifying which components are complete and what work remains before PR submission",
       "parent_task": 12,
       "created": "2026-06-09T23:52:20Z",
-      "last_updated": "2026-06-09T23:52:20Z"
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs"
     },
     {
       "project_number": 52,
@@ -22,7 +23,8 @@
         51
       ],
       "created": "2026-06-09T23:52:20Z",
-      "last_updated": "2026-06-09T23:52:20Z"
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs"
     },
     {
       "project_number": 53,
@@ -35,7 +37,8 @@
         52
       ],
       "created": "2026-06-09T23:52:20Z",
-      "last_updated": "2026-06-09T23:52:20Z"
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs"
     },
     {
       "project_number": 54,
@@ -48,7 +51,8 @@
         52
       ],
       "created": "2026-06-09T23:52:20Z",
-      "last_updated": "2026-06-09T23:52:20Z"
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs"
     },
     {
       "project_number": 31,
