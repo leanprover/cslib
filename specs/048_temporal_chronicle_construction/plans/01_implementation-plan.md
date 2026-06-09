@@ -186,7 +186,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: ChronicleConstruction.lean -- Full Port [NOT STARTED]
+### Phase 5: ChronicleConstruction.lean -- Full Port [COMPLETED]
 
 **Goal**: Port ChronicleConstruction.lean in full: singleton chronicle, omega chain, limit chronicle, and all satisfaction proofs.
 
