@@ -402,7 +402,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 13: Hierarchy/HierarchyInduction.lean and HierarchyCompletion.lean [NOT STARTED]
+### Phase 13: Hierarchy/HierarchyInduction.lean and HierarchyCompletion.lean [COMPLETED]
 
 **Goal**: Port the substitution-based induction engine (Steps 1-5b) and the hierarchy completion (Steps 5c-5d, all_formulas_separable).
 
