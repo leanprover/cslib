@@ -46,11 +46,11 @@
     {
       "project_number": 25,
       "project_name": "revise_task_order_topic_assignments",
-      "status": "researching",
+      "status": "implementing",
       "task_type": "meta",
       "topic": "Project Management",
       "created": "2026-06-09T00:42:17Z",
-      "last_updated": "2026-06-09T01:02:20Z"
+      "last_updated": "2026-06-09T01:06:45Z"
     },
     {
       "project_number": 24,
@@ -343,7 +343,7 @@
       "last_updated": "2026-06-09T00:21:36Z",
       "description": "Complete embedding lattice: add atom simp lemmas, PL.toBimodal path, triangle-commutes lemma",
       "session_id": "sess_1780964447_c6a4ec",
-      "topic": "Project Management",
+      "topic": "Foundations",
       "completion_summary": "Added 4 atom simp lemmas, created PL.toBimodal direct path with Coe instance, proved triangle-commutation lemma; lake build passes with zero errors."
     },
     {
