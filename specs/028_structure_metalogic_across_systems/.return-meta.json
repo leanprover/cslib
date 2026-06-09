@@ -1,0 +1,30 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md",
+      "summary": "4-phase plan to create 3 new tasks (generic MCS foundations, modal metalogic, temporal metalogic) with dependency analysis and ROADMAP.md updates"
+    }
+  ],
+  "next_steps": "Run /implement 28 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1780970498_d35707",
+    "agent_type": "planner-agent",
+    "duration_seconds": 180,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 4,
+    "estimated_hours": 2,
+    "dependency_waves": [[1], [2], [3], [4]]
+  },
+  "memory_candidates": [
+    {
+      "content": "When structuring metalogic across multiple logic systems (propositional, modal, temporal, bimodal), the validated pattern is 'share definitions, not proofs'. Generic definitions (Consistent, SetMaximalConsistent, Lindenbaum skeleton) belong in a shared Foundations/Logic/Metalogic/ directory (~200-300 lines). Deduction theorems, soundness, and completeness remain per-logic because they require structural induction on concrete DerivationTree inductives and quantify over logic-specific semantic models. This matches the FormalizedFormalLogic/Foundation project's approach and avoids over-abstraction via typeclasses like HasDeductionTheorem.",
+      "category": "PATTERN",
+      "source_artifact": "specs/028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["metalogic", "share-definitions-not-proofs", "MCS", "deduction-theorem", "per-logic", "multi-system"]
+    }
+  ]
+}

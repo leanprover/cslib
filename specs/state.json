@@ -4,13 +4,20 @@
     {
       "project_number": 28,
       "project_name": "structure_metalogic_across_systems",
-      "status": "researched",
+      "status": "planned",
       "task_type": "formal",
       "created": "2026-06-09T01:45:37Z",
-      "last_updated": "2026-06-09T01:59:47Z",
-      "session_id": "sess_1780969906_265f34",
+      "last_updated": "2026-06-09T02:05:32Z",
+      "session_id": "sess_1780970498_d35707",
       "researched": "2026-06-09T01:59:47Z",
-      "next_artifact_number": 2
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md",
+          "type": "plan",
+          "summary": "4-phase plan to create 3 new tasks (generic MCS foundations, modal metalogic, temporal metalogic) with dependency analysis and ROADMAP.md updates"
+        }
+      ]
     },
     {
       "project_number": 27,
@@ -85,7 +92,7 @@
     {
       "project_number": 21,
       "project_name": "modal_proof_system_theorems",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -107,7 +114,7 @@
     {
       "project_number": 22,
       "project_name": "temporal_infrastructure_theorems",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
@@ -285,7 +292,7 @@
     {
       "project_number": 3,
       "project_name": "port_task_frame_semantics_bimodal",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-08T00:15:00Z",
       "last_updated": "2026-06-08T00:15:00Z",

@@ -24,24 +24,24 @@ next_project_number: 29
 
 20 [COMPLETED] — Port propositional Hilbert-style theorems to Cslib/Foundations/Lo
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
-  └─ 21 [NOT STARTED] — Port modal proof system and theorems to  (see Modal Logic section)
-  └─ 22 [NOT STARTED] — Build temporal proof system infrastructu (see Temporal Logic section)
+  └─ 21 [RESEARCHED] — Port modal proof system and theorems to  (see Modal Logic section)
+  └─ 22 [RESEARCHED] — Build temporal proof system infrastructu (see Temporal Logic section)
 
 ### Modal Logic
 
-21 [NOT STARTED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
+21 [RESEARCHED] — Port modal proof system and theorems to Cslib/Logics/Modal/ProofS
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
 
 ### Temporal Logic
 
-22 [NOT STARTED] — Build temporal proof system infrastructure and port temporal theo
+22 [RESEARCHED] — Build temporal proof system infrastructure and port temporal theo
   └─ 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof sys (see Bimodal Porting section)
   └─ 5 [NOT STARTED] — Port Perpetuity theorems to Cslib/Logics (see Bimodal Porting section)
-  └─ 23 [NOT STARTED] — Define standalone temporal semantics on linear orders (~400-600 l
+  └─ 23 [RESEARCHED] — Define standalone temporal semantics on linear orders (~400-600 l
 
 ### Bimodal Porting
 
-3 [NOT STARTED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
+3 [RESEARCHED] — Port Frame Semantics (PR 2): TaskFrame, WorldHistory, TaskModel, 
   └─ 6 [NOT STARTED] — Port Frame Conditions and Soundness (PR 5): FrameClass, Validity,
     └─ 8 [NOT STARTED] — Port Strong Completeness (PR 7): Completeness.lean to Cslib/Logic
 4 [NOT STARTED] — Port the Bimodal Hilbert-style proof system to Cslib/Logics/Bimod
@@ -69,9 +69,10 @@ next_project_number: 29
 
 ### 28. Structure metalogic across Propositional, Modal, Temporal, and Bimodal systems
 - **Effort**: Large (1-2 days)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: formal
 - **Research**: [specs/028_structure_metalogic_across_systems/reports/01_team-research.md]
+- **Plan**: [028_structure_metalogic_across_systems/plans/01_metalogic-structure-plan.md]
 
 **Description**: Much of /home/benjamin/Projects/BimodalLogic/ is devoted to metalogic for the bimodal system. When porting over to CSLib, clearly and cleanly include appropriate metalogic for Propositional/, Modal/, Temporal/, and Bimodal/. Although the semantics for each of these logics differs, look for opportunities for importing between them. Revise existing tasks or add additional tasks as appropriate to structure the metalogic for each system correctly.
 
