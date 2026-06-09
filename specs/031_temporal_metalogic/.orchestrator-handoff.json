@@ -1,9 +1,20 @@
 {
-  "status": "partial",
-  "summary": "Temporal metalogic: all helper lemmas proved (G/H-transitivity, F/P-idempotency, connect axiom consequences, truth lemma G/H directions). 1 sorry remains in completeness theorem for canonical linear order + Until/Since truth lemma.",
-  "blockers": ["Completeness theorem requires: (1) LinearOrder on CanonicalWorld (totality from BX11), (2) Truth lemma for Until/Since (uses BX5/BX6/BX13), (3) Universe adjustment"],
+  "status": "expanded",
+  "summary": "Task 31 expanded into 4 sub-tasks (46-49) following Burgess point-insertion method, adapted from bimodal Chronicle infrastructure (14.9K lines in BXCanonical/)",
+  "blockers": [],
   "phases_completed": 5,
   "phases_total": 6,
-  "artifacts": [{"path": "specs/031_temporal_metalogic/summaries/01_temporal-metalogic-summary.md", "type": "summary", "summary": "Implementation summary"}, {"path": "specs/031_temporal_metalogic/handoffs/phase-5-completion-handoff-20260609.md", "type": "handoff", "summary": "Detailed handoff with what's done vs what remains"}],
-  "next_action_hint": "research_bimodal_canonical_model_then_implement"
+  "artifacts": [
+    {
+      "path": "specs/031_temporal_metalogic/reports/03_completeness-blockers.md",
+      "type": "report",
+      "summary": "Literature analysis (Burgess 1982, Xu 1988, BdRV 2002), bimodal infrastructure inventory, and task decomposition proposal"
+    }
+  ],
+  "next_action_hint": "orchestrate_subtasks_sequentially",
+  "expansion": {
+    "subtasks": [46, 47, 48, 49],
+    "dependency_chain": "46 -> 47 -> 48 -> 49",
+    "total_estimate_lines": "4300-8500"
+  }
 }

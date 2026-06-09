@@ -1,56 +1,61 @@
 {
-  "next_project_number": 46,
+  "next_project_number": 50,
   "active_projects": [
     {
       "project_number": 31,
       "project_name": "temporal_metalogic",
-      "status": "partial",
+      "status": "expanded",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-08T18:00:00Z",
-      "dependencies": [
-        22,
-        23,
-        29,
-        32,
-        35,
-        36,
-        37
-      ],
-      "description": "Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: Cslib/Logics/Temporal/Metalogic/.",
+      "last_updated": "2026-06-09T13:30:00Z",
+      "dependencies": [],
+      "description": "Expanded into tasks 46 (R-relation), 47 (point insertion), 48 (chronicle construction), 49 (truth lemma + completeness). Phases 1-5 completed: DeductionTheorem, MCS, Soundness, helper lemmas. Phase 6 (Completeness) requires Burgess point-insertion method (~4K-7K lines), too large for a single task.",
       "topic": "Temporal Logic",
-      "plan_metadata": {
-        "phases": 6,
-        "total_effort_hours": 18,
-        "complexity": "complex",
-        "research_integrated": true,
-        "plan_version": 1,
-        "dependency_waves": [
-          [
-            1
-          ],
-          [
-            2
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            5
-          ],
-          [
-            6
-          ]
-        ],
-        "reports_integrated": [
-          {
-            "path": "reports/01_temporal-metalogic-research.md",
-            "integrated_in_plan_version": 1,
-            "integrated_date": "2026-06-08"
-          }
-        ]
-      }
+      "subtasks": [46, 47, 48, 49]
+    },
+    {
+      "project_number": 46,
+      "project_name": "temporal_r_relation",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T13:30:00Z",
+      "dependencies": [],
+      "description": "Define the Burgess R-relation r(A, beta, C) and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.\n\nLiterature: Burgess 1982 Section 2 Lemmas 2.2-2.4 at BimodalLogic/literature/Burgess_1982_Axioms_for_tense_logic_Since_and_Until.md\n\nBimodal prior art to adapt:\n- Chronicle/RRelation.lean (1695 lines): r_relation, R_maximal, witness existence — strip box/modal components, adapt to temporal Formula/MCS types\n- CanonicalChain.lean (95 lines): BX12/BX6 at MCS level, delegation bridges\n- OrderedSeedConsistency.lean (151 lines): ordered seed consistency for point insertion\n- Frame.lean (464 lines): BXPoint, bx_le, G/H forward/backward propagation, eventuality resolution\n\nDeliverables:\n1. r_relation(A, beta, C) definition\n2. R_maximal(A, B, C) definition\n3. r-S duality lemma: r(A, beta, C) iff S(alpha, beta) in C for all alpha in A (Burgess 2.3)\n4. Until witness lemma: U(gamma, beta) in A -> exists B, C with R(A,B,C), gamma in C, beta in B (Burgess 2.4)\n5. Consistency criterion: U(gamma, delta) in A -> gamma is consistent (Burgess 2.2)\n6. Ordered seed consistency and canonical chain MCS lemmas\n7. Temporal frame point definitions and ordering\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/RRelation.lean (+ Frame.lean, CanonicalChain.lean, OrderedSeedConsistency.lean)\nEstimated scope: 800-1500 lines\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic"
+    },
+    {
+      "project_number": 47,
+      "project_name": "temporal_point_insertion",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T13:30:00Z",
+      "dependencies": [46],
+      "description": "Define the labeled frame type (Burgess K-elements) and prove that counterexamples to conditions C5a/C6a/C5b/C6b can be eliminated by point insertion (Burgess Lemmas 2.6-2.7).\n\nLiterature: Burgess 1982 Definition 2.5, Lemmas 2.6-2.7; Xu 1988 Definition 2.5, Lemmas 2.6-2.7 at BimodalLogic/literature/\n\nBimodal prior art to adapt:\n- Chronicle/ChronicleTypes.lean (386 lines): Chronicle data types (labeled frames with f : T -> MCS, g : edges -> DCS) — adapt to temporal types, remove box-related fields\n- Chronicle/PointInsertion.lean (3556 lines): Core point-insertion proofs for C5a/C6a defect elimination — the central construction, strip modal components\n\nDeliverables:\n1. TemporalChronicle type: (T : Finset, lt : T -> T -> Prop, f : T -> MCS, g : edges -> DCS)\n2. Conditions C1-C6 as predicates\n3. Point insertion for C5a defects (Burgess Lemma 2.6): if not-U(gamma,beta) in f(t) and gamma in f(t'), insert t'' between with not-beta in f(t'')\n4. Point insertion for C6a defects (Burgess Lemma 2.7): if U(gamma,beta) in f(t) with no witness, insert witness t' with gamma in f(t') and beta in g(t,t')\n5. Mirror versions for C5b/C6b (Since direction)\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/ChronicleTypes.lean, PointInsertion.lean\nEstimated scope: 1500-2800 lines\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic"
+    },
+    {
+      "project_number": 48,
+      "project_name": "temporal_chronicle_construction",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T13:30:00Z",
+      "dependencies": [47],
+      "description": "Build the omega-step construction that enumerates all C5/C6 counterexamples and iteratively inserts points to eliminate them (Burgess Theorem 2.8, construction part). Assemble the chronicle as the union of all finite stages.\n\nLiterature: Burgess 1982 Theorem 2.8 (construction); Xu 1988 Theorem 2.8 at BimodalLogic/literature/\n\nBimodal prior art to adapt:\n- Chronicle/CounterexampleElimination.lean (3529 lines): Enumerate all defects (C5a/C6a/C5b/C6b counterexamples), eliminate each by calling point-insertion — strip modal defect types, adapt enumeration to temporal formula set\n- Chronicle/ChronicleConstruction.lean (1531 lines): Build the full chronicle as a directed limit of finite approximations, prove the limit satisfies all conditions C1-C6 — adapt to temporal chronicle type\n\nDeliverables:\n1. Defect enumeration strategy using Denumerable (Formula Atom)\n2. Single-step extension: given a chronicle with one counterexample, produce a larger chronicle with that counterexample eliminated\n3. Omega-chain construction: iterate single-step over all defects\n4. Proof that the limit chronicle satisfies C1-C6\n5. Seriality: the limit frame has no maximum or minimum element\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/CounterexampleElimination.lean, ChronicleConstruction.lean\nEstimated scope: 1500-3000 lines\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic"
+    },
+    {
+      "project_number": 49,
+      "project_name": "temporal_truth_lemma_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-09T13:30:00Z",
+      "last_updated": "2026-06-09T13:30:00Z",
+      "dependencies": [48],
+      "description": "Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry.\n\nLiterature: Burgess 1982 Theorem 2.8 (truth lemma part); Blackburn/de Rijke/Venema 2002 Theorem 7.15 at BimodalLogic/literature/\n\nBimodal prior art to adapt:\n- TruthLemma.lean (223 lines): MCS truth properties for atom/bot/imp/box/G/H/Until/Since — adapt to temporal (remove box case, keep 5 cases: atom, bot, imp, untl, snce)\n- Chronicle/ChronicleToCountermodelBasic.lean (1170 lines): Extract countermodel from chronicle, define valuation — simplify for temporal (just LinearOrder model, no S5 accessibility)\n- Chronicle/ChronicleToCountermodel.lean (229 lines): Final countermodel assembly, prove required order properties — adapt for temporal TemporalModel\n- CanonicalModel.lean (771 lines, relevant sections): Z-chain MCS propagation properties used by truth lemma — reference for G/H truth lemma cases\n\nDeliverables:\n1. Truth lemma by structural induction on formula: Satisfies M n phi iff phi in f(n)\n   - atom, bot, imp: standard MCS reasoning\n   - G, H: from chronicle conditions C3/C4 (guard propagation)\n   - Until: from C6a (witness existence) and C5a (guard interpolation)\n   - Since: mirror from C6b/C5b\n2. Extract TemporalModel from chronicle frame\n3. Prove frame is a serial linear order (NoMaxOrder, NoMinOrder, Nontrivial)\n4. Close completeness theorem: contrapositive + Lindenbaum + chronicle + truth lemma + contradiction\n5. Remove the sorry in Completeness.lean\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/TruthLemma.lean, ChronicleToCountermodel.lean, update Completeness.lean\nEstimated scope: 500-1200 lines\nParent: Task 31 (expanded)",
+      "topic": "Temporal Logic"
     },
     {
       "project_number": 38,
@@ -60,7 +65,7 @@
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [
-        31
+        49
       ],
       "description": "Dense temporal completeness: prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system.\n\nScope:\n1. Add dense-specific axioms to Temporal.Axiom: `density` (G(G φ) → G φ) and `dense_indicator` (¬U(⊤,⊥)), gated to FrameClass.Dense via minFrameClass.\n2. Prove dense soundness: density axiom valid on DenselyOrdered, dense_indicator valid on DenselyOrdered (no immediate successor).\n3. Prove dense completeness via contrapositive + MCS + canonical model on Rat. The dense case eliminates the non-dense branch by deriving ¬U(⊤,⊥) as a Dense theorem, so □(¬U(⊤,⊥)) is in every Dense-MCS.\n\nNew development (not a port), following the pattern established by bimodal completeness_dense. The canonical model construction reuses the base temporal canonical order from task 31, specialized to Rat (DenselyOrdered).\n\nTarget: Cslib/Logics/Temporal/Metalogic/DenseCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~400-600 lines (new axioms + dense soundness + dense completeness)",
       "topic": "Temporal Logic"
@@ -73,7 +78,8 @@
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [
-        31
+        49,
+        36
       ],
       "description": "Discrete temporal completeness: prove that every formula valid on all discrete serial linear orders is derivable in the Discrete temporal proof system.\n\nScope:\n1. Add discrete-specific axioms to Temporal.Axiom: `prior_UZ` (F(φ) → U(φ,¬φ)), `prior_SZ` (P(φ) → S(φ,¬φ)), `z1` (G(Gφ→φ) → (F(Gφ)→Gφ)), and discrete uniformity axioms (discrete_symm_fwd/bwd, discrete_propagate_fwd/bwd), gated to FrameClass.Discrete via minFrameClass.\n2. Prove discrete soundness: each discrete axiom valid on SuccOrder+PredOrder+IsSuccArchimedean.\n3. Prove discrete completeness via contrapositive + MCS + canonical model on Int. The non-discrete branch is eliminated by deriving U(⊤,⊥) as a Discrete theorem.\n\nNew development (not a port). The canonical model specializes the base temporal canonical order to Int. The discrete uniformity axioms (minus discrete_box_necessity which is bimodal-only) ensure U(⊤,⊥) propagates uniformly.\n\nTarget: Cslib/Logics/Temporal/Metalogic/DiscreteCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~500-700 lines (new axioms + discrete soundness + discrete completeness)",
       "topic": "Temporal Logic"
@@ -86,8 +92,8 @@
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [
-        38,
-        39
+        49,
+        37
       ],
       "description": "Continuous temporal completeness: completeness for temporal logic over Dedekind-complete (continuous) linear orders, e.g. the reals.\n\nScope: Define a Continuous frame class extending Dense, add any required axioms (e.g., Dedekind completeness schema or equivalent), prove soundness over conditionally complete linear orders, prove completeness via canonical model on Real or equivalent.\n\nBlocked: The continuous case has not been developed for either the temporal or bimodal logic upstream. Requires foundational research into which additional axioms (if any) are needed beyond density to characterize continuous time. The standard result (Burgess 1982) is that the Until/Since temporal logic over the reals has the same theorems as over the rationals (density suffices), which would make this task trivial — but this equivalence itself needs to be formalized.\n\nTarget: Cslib/Logics/Temporal/Metalogic/ContinuousCompleteness.lean\nBlocker: Research needed on whether continuous frames require additional axioms beyond density",
       "topic": "Temporal Logic"
@@ -100,9 +106,9 @@
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-08T00:00:00Z",
       "dependencies": [
-        35,
         38,
-        39
+        39,
+        40
       ],
       "description": "Abstract shared completeness infrastructure between temporal and bimodal logic once concrete completeness proofs are finished for both.\n\nThe temporal (tasks 31, 38, 39) and bimodal (tasks 34, 35) completeness proofs share structural patterns that can be factored into a generic completeness scaffold in Cslib/Foundations/Logic/Metalogic/, extending the existing generic MCS framework (Task 29).\n\nCandidate abstractions (to be confirmed once concrete implementations exist):\n1. Generic neg_consistent_of_not_derivable: if φ is not derivable then {¬φ} is consistent — identical structure in both logics, parameterized over DerivationSystem\n2. Generic completeness contrapositive skeleton: not derivable → consistent → Lindenbaum → MCS → canonical model → countermodel — the overall proof shape is shared\n3. Dense/discrete case split pattern: the three-way case split on □(F'T) / □(U(T,⊥)) / mixed is structurally similar (temporal uses G/H instead of □)\n4. Canonical order construction patterns: both define canonical_lt via G-sets (temporal) or box-sets (bimodal); the linearity/irreflexivity/transitivity proofs follow parallel structures\n5. Dense indicator elimination: both dense completeness proofs eliminate the non-dense branch by showing the dense indicator axiom is a theorem — identical pattern\n\nScope: Identify which abstractions yield genuine code savings vs. premature generalization, implement those that do, and refactor both temporal and bimodal completeness to use the shared infrastructure.\n\nTarget: Cslib/Foundations/Logic/Metalogic/Completeness.lean (or similar)\nDepends on: Tasks 35 (dense bimodal), 38 (dense temporal), 39 (discrete temporal) — transitively includes 31 (base temporal) and 34 (base bimodal MCS)",
       "topic": "Foundations"
@@ -115,13 +121,6 @@
       "created": "2026-06-08T00:45:00Z",
       "last_updated": "2026-06-09T00:21:36Z",
       "dependencies": [
-        35,
-        36,
-        37,
-        31,
-        38,
-        39,
-        40,
         41
       ],
       "description": "Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.\n\n**Standalone Module PRs** (can proceed in parallel with bimodal PRs since they target different directories):\n- PR-Foundations (Task 20): Propositional Hilbert theorems to Cslib/Foundations/Logic/Theorems/ -- Wave 1, no dependencies\n- PR-Modal (Task 21): Modal proof system + theorems to Cslib/Logics/Modal/ProofSystem/ + Theorems/ -- after PR-Foundations\n- PR-Temporal-Infra (Task 22): Temporal infrastructure + theorems to Cslib/Logics/Temporal/ProofSystem/ + Theorems/ -- after PR-Foundations\n- PR-TempSem (Task 23): Temporal semantics to Cslib/Logics/Temporal/Semantics/ -- after PR-Temporal-Infra\n\n**Bimodal PRs** (in dependency order):\n- PR 1 (Bimodal Syntax, task 2): submit first, establish review pattern\n- PR 2 (Semantics, task 3) and PR 3 (ProofSystem, task 4): after PR 1 merged, can overlap\n- PR 4 (Perpetuity Theorems, task 5): after PRs 3, PR-Modal, PR-Temporal-Infra merged\n- PR 5 (FrameConditions+Soundness, task 6): after PRs 2+3 merged\n- PR 6 (MCS/Deduction, task 7): after PRs 3+4 merged\n- PR 7 (Completeness, task 8): after PRs 5+6 merged\n- PR 8 (Decidability, task 9): after PRs 3+6 merged (largest PR, ~10k lines)\n- PR 9 (Separation, task 10): after PRs 3+4+6 merged\n- PR 10 (ConservativeExtension, task 11): after PR 3 merged (independent of 5-9)\n\n**Coordination Workflow**:\n\n1. **Open Zulip Discussion** (first step): propose modular architecture (standalone Foundations/Modal/Temporal modules + Bimodal), PR strategy (4 standalone PRs + 10 bimodal PRs)\n2. **Namespace Decision**: confirm before starting task 2\n3. **CI Checks** (before each PR): lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers\n4. **Review Cycle**: keep PRs small (max ~3,500 lines); address feedback within 48 hours",

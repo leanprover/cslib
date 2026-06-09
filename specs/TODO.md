@@ -1,5 +1,5 @@
 ---
-next_project_number: 46
+next_project_number: 50
 ---
 
 # Tasks
@@ -11,45 +11,132 @@ next_project_number: 46
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37 | -- | Bimodal Porting |
-| 2 | 31 | 36,37 | Temporal Logic |
-| 3 | 38,39 | 31 | Temporal Logic |
-| 4 | 40,41 | 38,39 | Foundations, Temporal Logic |
-| 5 | 12 | 31,36,37,38,39,40,41 | Project Management |
+| 1 | 46,36,37 | -- | Temporal Logic, Bimodal Porting |
+| 2 | 47 | 46 | Temporal Logic |
+| 3 | 48 | 47 | Temporal Logic |
+| 4 | 49 | 48 | Temporal Logic |
+| 5 | 38,39,40 | 49,36,37 | Temporal Logic |
+| 6 | 41 | 38,39,40 | Foundations |
+| 7 | 12 | 41 | Project Management |
 
-**Grouped by Topic** (each task listed once; cross-topic deps noted inline):
+**Grouped by Topic** (indented = depends on parent):
+
+### Foundations
+
+41 [NOT STARTED] — Abstract shared completeness infrastructure (dep: 38, 39, 40)
+
+### Temporal Logic
+
+31 [EXPANDED] — Build standalone temporal metalogic — split into tasks 46, 47, 48, 49
+  46 [NOT STARTED] — Temporal R-relation and witness infrastructure (Burgess 2.2-2.4)
+    └─ 47 [NOT STARTED] — Temporal labeled frame types and point insertion (Burgess 2.5-2.7)
+      └─ 48 [NOT STARTED] — Temporal counterexample elimination and chronicle construction (Burgess 2.8)
+        └─ 49 [NOT STARTED] — Temporal truth lemma and completeness assembly (Burgess 2.8)
+          └─ 38 [NOT STARTED] — Dense temporal completeness
+          └─ 39 [NOT STARTED] — Discrete temporal completeness (dep: 36)
+          └─ 40 [BLOCKED] — Continuous temporal completeness (dep: 37)
 
 ### Bimodal Porting
 
 36 [BLOCKED] — Port discrete completeness
 37 [BLOCKED] — Port continuous extension completeness
 
-### Temporal Logic
-
-31 [PARTIAL] — Build standalone temporal metalogic (depends on 36, 37)
-38 [NOT STARTED] — Dense temporal completeness (depends on 31)
-39 [NOT STARTED] — Discrete temporal completeness (depends on 31)
-40 [BLOCKED] — Continuous temporal completeness (depends on 38, 39)
-
-### Foundations
-
-41 [NOT STARTED] — Abstract shared completeness infrastructure (depends on 38, 39)
-
 ### Project Management
 
-12 [PARTIAL] — Coordinate the cslib PR submission process (depends on 31, 36–41)
+12 [PARTIAL] — Coordinate cslib PR submission (dep: 41)
 
 ## Tasks
 
 
-### 31. Temporal metalogic
-- **Effort**: Large (18 hours)
-- **Status**: [IMPLEMENTING]
-- **Plan**: [specs/031_temporal_metalogic/plans/01_temporal-metalogic-plan.md]
-- **Task Type**: lean4
-- **Dependencies**: Tasks 22, 23, 29, 35, 36, 37
+### 31. Temporal metalogic [EXPANDED]
+- **Status**: [EXPANDED] — split into tasks 46, 47, 48, 49
+- **Research**: [specs/031_temporal_metalogic/reports/03_completeness-blockers.md]
 
-**Description**: Build standalone temporal metalogic (~1,500 lines, new development not ported from BimodalLogic). Scope: (a) Temporal.DeductionTheorem via structural induction on ~6-constructor Temporal.DerivationTree (~300 lines), (b) Temporal.MCS importing generic SetConsistent/SetMaximalConsistent from Task 29 and adding temporal-specific witness conditions for Until/Since operators (~400 lines), (c) Temporal.Soundness over linear orders from Task 23 semantics (~350 lines), (d) Temporal.Completeness via canonical linear model construction (~450 lines). Target: `Cslib/Logics/Temporal/Metalogic/`.
+Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 (Completeness) requires the Burgess point-insertion method (~4K-7K lines), expanded into 4 sub-tasks following the bimodal Chronicle template (14,944 lines in BXCanonical/).
+
+---
+
+### 46. Temporal R-relation and witness infrastructure
+- **Effort**: Large (10-15 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: None
+- **Parent**: Task 31 (expanded)
+
+**Description**: Define the Burgess R-relation `r(A, beta, C)` and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.
+
+**Literature**: Burgess 1982 Section 2 Lemmas 2.2-2.4 (`BimodalLogic/literature/Burgess_1982_Axioms_for_tense_logic_Since_and_Until.md`)
+
+**Bimodal prior art to adapt**:
+- `BXCanonical/Chronicle/RRelation.lean` (1695 lines): r_relation, R_maximal, witness existence
+- `BXCanonical/CanonicalChain.lean` (95 lines): BX12/BX6 at MCS level
+- `BXCanonical/OrderedSeedConsistency.lean` (151 lines): ordered seed consistency
+- `BXCanonical/Frame.lean` (464 lines): BXPoint, bx_le, G/H propagation, eventuality resolution
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/` (RRelation.lean, Frame.lean, CanonicalChain.lean, OrderedSeedConsistency.lean)
+**Estimated scope**: 800-1500 lines
+
+---
+
+### 47. Temporal labeled frame types and point insertion
+- **Effort**: Large (15-20 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 46
+- **Parent**: Task 31 (expanded)
+
+**Description**: Define the labeled frame type (Burgess K-elements) and prove that counterexamples to conditions C5a/C6a/C5b/C6b can be eliminated by point insertion (Burgess Lemmas 2.6-2.7).
+
+**Literature**: Burgess 1982 Definition 2.5, Lemmas 2.6-2.7; Xu 1988 Definition 2.5 (`BimodalLogic/literature/`)
+
+**Bimodal prior art to adapt**:
+- `BXCanonical/Chronicle/ChronicleTypes.lean` (386 lines): Chronicle data types (labeled frames)
+- `BXCanonical/Chronicle/PointInsertion.lean` (3556 lines): Core point-insertion proofs for C5a/C6a defect elimination
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/ChronicleTypes.lean`, `PointInsertion.lean`
+**Estimated scope**: 1500-2800 lines
+
+---
+
+### 48. Temporal counterexample elimination and chronicle construction
+- **Effort**: Large (15-20 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 47
+- **Parent**: Task 31 (expanded)
+
+**Description**: Build the omega-step construction that enumerates all C5/C6 counterexamples and iteratively inserts points (Burgess Theorem 2.8, construction part). Assemble the chronicle as the union of all finite stages.
+
+**Literature**: Burgess 1982 Theorem 2.8 (construction); Xu 1988 Theorem 2.8 (`BimodalLogic/literature/`)
+
+**Bimodal prior art to adapt**:
+- `BXCanonical/Chronicle/CounterexampleElimination.lean` (3529 lines): Defect enumeration and elimination
+- `BXCanonical/Chronicle/ChronicleConstruction.lean` (1531 lines): Chronicle assembly as directed limit
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/CounterexampleElimination.lean`, `ChronicleConstruction.lean`
+**Estimated scope**: 1500-3000 lines
+
+---
+
+### 49. Temporal truth lemma and completeness assembly
+- **Effort**: Medium (8-12 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 48
+- **Parent**: Task 31 (expanded)
+
+**Description**: Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry.
+
+**Literature**: Burgess 1982 Theorem 2.8 (truth lemma); Blackburn/de Rijke/Venema 2002 Theorem 7.15 (`BimodalLogic/literature/`)
+
+**Bimodal prior art to adapt**:
+- `BXCanonical/TruthLemma.lean` (223 lines): MCS truth properties (remove box case, keep atom/bot/imp/untl/snce)
+- `BXCanonical/Chronicle/ChronicleToCountermodelBasic.lean` (1170 lines): Extract countermodel from chronicle
+- `BXCanonical/Chronicle/ChronicleToCountermodel.lean` (229 lines): Final countermodel assembly
+- `BXCanonical/CanonicalModel.lean` (771 lines): Z-chain MCS propagation (reference for G/H truth lemma)
+
+**Target**: `Cslib/Logics/Temporal/Metalogic/Chronicle/TruthLemma.lean`, `ChronicleToCountermodel.lean`, update `Completeness.lean`
+**Estimated scope**: 500-1200 lines
 
 ---
 
@@ -57,7 +144,7 @@ next_project_number: 46
 - **Effort**: TBD
 - **Status**: [BLOCKED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 38, 39
+- **Dependencies**: Tasks 31, 37
 
 **Description**: Completeness for temporal logic over Dedekind-complete (continuous) linear orders (e.g., the reals). Define a Continuous frame class extending Dense, add any required axioms, prove soundness and completeness.
 
@@ -69,7 +156,7 @@ next_project_number: 46
 - **Effort**: Medium (8-12 hours)
 - **Status**: [COMPLETED]
 - **Task Type**: lean4
-- **Dependencies**: Task 31
+- **Dependencies**: Tasks 31, 36
 
 **Description**: Prove that every formula valid on all discrete serial linear orders is derivable in the Discrete temporal proof system. New development (not a port).
 
@@ -105,7 +192,7 @@ next_project_number: 46
 - **Effort**: Medium (8-12 hours)
 - **Status**: [COMPLETED]
 - **Task Type**: lean4
-- **Dependencies**: Tasks 35, 38, 39
+- **Dependencies**: Tasks 38, 39, 40
 
 **Description**: Abstract shared completeness infrastructure between temporal and bimodal logic, extending the generic MCS framework (Task 29) in `Cslib/Foundations/Logic/Metalogic/`. To be done after concrete completeness proofs are finished for both logics.
 
@@ -126,7 +213,7 @@ next_project_number: 46
 - **Effort**: Ongoing (tracked separately)
 - **Status**: [PARTIAL]
 - **Task Type**: general
-- **Dependencies**: Tasks 35, 36, 37, 31, 38, 39, 40, 41
+- **Dependencies**: Task 41
 
 **Description**: Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.
 
@@ -165,7 +252,7 @@ next_project_number: 46
 - **Effort**: TBD
 - **Status**: [BLOCKED]
 - **Task Type**: lean4
-- **Dependencies**: Task 35; upstream BimodalLogic continuous extension development
+- **Dependencies**: Upstream BimodalLogic continuous extension development
 - **Parent**: Task 8 (expanded)
 
 **Description**: Port continuous extension completeness once developed upstream. The continuous case (FrameClass for continuous/real-valued time) has not been started in BimodalLogic.
@@ -178,7 +265,7 @@ next_project_number: 46
 - **Effort**: Medium (6-8 hours)
 - **Status**: [BLOCKED]
 - **Task Type**: lean4
-- **Dependencies**: Task 35; upstream BimodalLogic discrete sorry elimination
+- **Dependencies**: Upstream BimodalLogic discrete sorry elimination
 - **Parent**: Task 8 (expanded)
 
 **Description**: Port discrete completeness (`completeness_discrete` theorem) and `WeakCanonical/IntegerModel/` infrastructure (~6 files). The discrete branch constructs countermodels on `Int` via the Reynolds pipeline.
