@@ -91,6 +91,17 @@ abbrev Formula.all_past (φ : Formula Atom) : Formula Atom :=
 @[inherit_doc] scoped prefix:40 "P" => Formula.some_past
 @[inherit_doc] scoped prefix:40 "H" => Formula.all_past
 
+/-- Temporal 'always' operator: △φ := Hφ ∧ (φ ∧ Gφ). -/
+abbrev Formula.always (φ : Formula Atom) : Formula Atom :=
+  .and (.all_past φ) (.and φ (.all_future φ))
+
+/-- Temporal 'sometimes' operator: ▽φ := ¬△¬φ. -/
+abbrev Formula.sometimes (φ : Formula Atom) : Formula Atom :=
+  .neg (.always (.neg φ))
+
+@[inherit_doc] scoped prefix:40 "△" => Formula.always
+@[inherit_doc] scoped prefix:40 "▽" => Formula.sometimes
+
 /-- Register `Bimodal.Formula` as an instance of `BimodalConnectives`. -/
 instance : BimodalConnectives (Formula Atom) where
   bot := .bot
