@@ -8,13 +8,16 @@ import Cslib.Foundations.Logic.Theorems.Propositional.Core
 import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
 import Cslib.Foundations.Logic.Theorems.Propositional.Reasoning
 import Cslib.Foundations.Logic.Theorems.BigConj
+import Cslib.Foundations.Logic.Theorems.Modal.Basic
+import Cslib.Foundations.Logic.Theorems.Modal.S5
 
-/-! # Propositional Hilbert-Style Theorems
+/-! # Hilbert-Style Theorems
 
-Module aggregator for all propositional theorems derived in the
-generic `[PropositionalHilbert S]` framework.
+Module aggregator for all theorems derived in the generic typeclass framework.
 
 ## Submodules
+
+### Propositional (`[PropositionalHilbert S]`)
 
 - `Combinators`: I/B/C/S combinators, imp_trans, pairing, dni
 - `Propositional.Core`: LEM, DNE, raa, efq_neg, rcp, lce_imp, rce_imp
@@ -22,4 +25,12 @@ generic `[PropositionalHilbert S]` framework.
   De Morgan laws
 - `Propositional.Reasoning`: bi_imp
 - `BigConj`: bigconj syntax and derivability lemmas
+
+### Modal (`[ModalHilbert S]` / `[ModalS5Hilbert S]`)
+
+- `Modal.Basic`: K-level theorems (box_mono, diamond_mono, k_dist_diamond,
+  box_contrapose, modal duality, box_iff_intro)
+- `Modal.S5`: S5-level theorems (axiom 5 derivation, t_box_to_diamond,
+  box_conj_iff, diamond_disj_iff, s5_diamond_box collapse, nested
+  modality theorems)
 -/
