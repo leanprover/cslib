@@ -100,7 +100,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Deduction Theorem [NOT STARTED]
+### Phase 2: Deduction Theorem [COMPLETED]
 
 **Goal**: Prove the deduction theorem for the temporal proof system by well-founded recursion on DerivationTree height, handling all 6 constructors.
 
