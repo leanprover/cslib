@@ -177,7 +177,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Reasoning and BigConj [NOT STARTED]
+### Phase 4: Reasoning and BigConj [COMPLETED]
 
 **Goal**: Port the remaining Reasoning theorem (bi_imp) and create the generic BigConj definition with basic derivability lemmas.
 
