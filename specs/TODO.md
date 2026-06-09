@@ -71,7 +71,7 @@ next_project_number: 28
 
 ### 27. Systematically review all documentation and standards, ensuring tasks and ROADMAP.md are in alignment
 - **Effort**: Medium (2-4 hours)
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: general
 - **Research**: [specs/027_review_docs_roadmap_alignment/reports/01_docs-roadmap-alignment.md]
 - **Plan**: [specs/027_review_docs_roadmap_alignment/plans/01_alignment-plan.md]
