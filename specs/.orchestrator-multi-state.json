@@ -58,14 +58,15 @@
   },
   "current_statuses": {
     "46": "completed",
-    "47": "not_started",
+    "47": "completed",
     "48": "not_started",
     "49": "not_started"
   },
-  "cycle_count": 3,
+  "cycle_count": 7,
   "max_cycles": 20,
   "completed_tasks": [
-    46
+    46,
+    47
   ],
   "failed_tasks": []
 }

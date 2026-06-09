@@ -26,8 +26,8 @@ next_project_number: 51
 ### Temporal Logic
 
 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
-50 [RESEARCHED] — burgess_prior_art_seed_research
-  └─ 46 [NOT STARTED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
+50 [COMPLETED] — burgess_prior_art_seed_research
+  └─ 46 [COMPLETED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
     └─ 47 [NOT STARTED] — Define the labeled frame type (Burgess K-elements) and prove that
       └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
         └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
@@ -68,11 +68,13 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 
 ### 46. Temporal R-relation and witness infrastructure
 - **Effort**: Large (12-18 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 50
 - **Parent**: Task 31 (expanded)
-- **Seed Research**: [specs/046_temporal_r_relation/reports/01_seed-research.md]
+- **Research**: [specs/046_temporal_r_relation/reports/02_research-report.md]
+- **Plan**: [specs/046_temporal_r_relation/plans/01_implementation-plan.md]
+- **Summary**: [specs/046_temporal_r_relation/summaries/01_implementation-summary.md]
 
 **Description**: Define the Burgess R-relation `r(A, beta, C)` and prove its key properties (Lemmas 2.2-2.4) for temporal MCS, plus ordered seed consistency and canonical chain lemmas.
 
@@ -100,11 +102,13 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 
 ### 47. Temporal labeled frame types and point insertion
 - **Effort**: Large (15-20 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 46
 - **Parent**: Task 31 (expanded)
-- **Seed Research**: [specs/047_temporal_point_insertion/reports/01_seed-research.md]
+- **Research**: [specs/047_temporal_point_insertion/reports/01_research-report.md]
+- **Plan**: [specs/047_temporal_point_insertion/plans/01_implementation-plan.md]
+- **Summary**: [specs/047_temporal_point_insertion/summaries/01_implementation-summary.md]
 
 **Description**: Define the labeled frame type (Burgess K-elements/chronicle conditions C0-C5) and prove that counterexamples to conditions C5a/C6a can be eliminated by point insertion (Burgess Lemmas 2.6-2.8).
 

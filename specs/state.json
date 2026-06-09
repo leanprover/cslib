@@ -67,7 +67,7 @@
     {
       "project_number": 47,
       "project_name": "temporal_point_insertion",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-09T13:30:00Z",
       "last_updated": "2026-06-09T21:00:00Z",
@@ -75,7 +75,8 @@
         46
       ],
       "description": "Define the labeled frame type (Burgess K-elements/chronicle conditions C0-C5) and prove that counterexamples to conditions C5a/C6a can be eliminated by point insertion (Burgess Lemmas 2.6-2.8).\n\nTemporal simplification: Eliminates C5b/C6b for box (no box modality). Only temporal C5a/C6a (Until witnesses) and their S-mirror images remain — roughly half the bimodal point insertion cases. Depends on propositional combinators from Task 46 Phase 0.\n\nLiterature: Burgess 1982 Definition 2.5, Lemmas 2.6-2.8; Xu 1988 Definition 2.5, Theorem 2.8 at BimodalLogic/literature/ (use Xu C0-C6 formulation as cleaner Lean target)\n\nBimodal prior art to adapt:\n- Chronicle/ChronicleTypes.lean (386 lines): ~85% transfers; remove FrameClass, remove ModalSaturation import\n- Chronicle/PointInsertion.lean (3556 lines): ~90% transfers; remove box-specific cases; use temporal propositional combinators from Task 46 Phase 0\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/ChronicleTypes.lean, PointInsertion.lean\nEstimated scope: 1500-2800 lines (unchanged; reasonable given Task 46 prerequisites)\nSeed research: specs/047_temporal_point_insertion/reports/01_seed-research.md\nParent: Task 31 (expanded)",
-      "topic": "Temporal Logic"
+      "topic": "Temporal Logic",
+      "completion_summary": "Temporal point insertion complete: 2888-line PointInsertion.lean with Burgess Lemmas 2.4-2.8 (Until+Since), Xu Lemmas 2.3/3.2.1, guard conjunction, iterated enrichment. RRelation.lean extended with ~290 lines. Zero sorries."
     },
     {
       "project_number": 48,
