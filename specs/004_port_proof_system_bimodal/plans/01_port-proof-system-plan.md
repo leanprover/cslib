@@ -223,7 +223,7 @@ Phases are fully sequential: each phase depends on the one before it.
 
 ---
 
-### Phase 6: Instance Registration and LinearityDerivedFacts [NOT STARTED]
+### Phase 6: Instance Registration and LinearityDerivedFacts [COMPLETED]
 
 **Goal**: Register all typeclass instances connecting the concrete DerivationTree to the abstract `BimodalTMHilbert` typeclass, and port the linearity derived facts.
 
