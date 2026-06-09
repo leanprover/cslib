@@ -101,7 +101,7 @@ Phases are fully sequential: each phase depends on the one before it.
 
 ---
 
-### Phase 2: Axioms -- 42-Constructor Inductive and FrameClass [NOT STARTED]
+### Phase 2: Axioms -- 42-Constructor Inductive and FrameClass [COMPLETED]
 
 **Goal**: Create the concrete Axiom inductive type with all 42 constructors organized in 8 layers, plus FrameClass type with ordering instances.
 
