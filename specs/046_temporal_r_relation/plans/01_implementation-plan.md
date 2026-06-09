@@ -250,7 +250,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: CanonicalChain and OrderedSeedConsistency [NOT STARTED]
+### Phase 6: CanonicalChain and OrderedSeedConsistency [COMPLETED]
 
 **Goal**: Port the two small files that provide MCS-level axiom applications and seed consistency lemmas for the chronicle construction. Both are near-100% transfer with mechanical changes.
 
