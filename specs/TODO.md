@@ -225,6 +225,7 @@ next_project_number: 42
 - **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 4, 7 (ProofSystem, MCS/Deduction)
+- **Research**: [009_port_decidability_tableau_bimodal/reports/01_team-research.md]
 
 **Description**: Port the tableau-based decision procedure from BimodalLogic to `Cslib/Logics/Bimodal/Metalogic/Decidability/`. This is the largest port (~10k lines) covering the full decision procedure for TM logic. The tableau operates on `Bimodal.Formula` (all 6 constructors) with rules for both modal and temporal operators. It is inherently bimodal and cannot be factored into separate modal/temporal components.
 

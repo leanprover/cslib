@@ -1,0 +1,36 @@
+{
+  "status": "researched",
+  "summary": "Team research completed with 4 teammates",
+  "artifacts": [
+    {
+      "type": "research",
+      "path": "specs/009_port_decidability_tableau_bimodal/reports/01_team-research.md",
+      "summary": "Synthesized research from 4 teammates"
+    }
+  ],
+  "team_execution": {
+    "enabled": true,
+    "wave_count": 1,
+    "teammates_spawned": 4,
+    "teammates_completed": 4,
+    "teammates_failed": 0,
+    "token_usage_multiplier": 5.0,
+    "degraded_to_single": false
+  },
+  "teammate_results": [
+    {"letter": "a", "angle": "Primary approach", "status": "completed", "confidence": "medium-high"},
+    {"letter": "b", "angle": "Alternative approaches", "status": "completed", "confidence": "medium-high"},
+    {"letter": "c", "angle": "Critic", "status": "completed", "confidence": "high"},
+    {"letter": "d", "angle": "Horizons", "status": "completed", "confidence": "medium-high"}
+  ],
+  "synthesis": {
+    "conflicts_found": 4,
+    "conflicts_resolved": 4,
+    "gaps_identified": 5,
+    "wave_2_triggered": false
+  },
+  "metadata": {
+    "session_id": "sess_1781008307_e3b17b",
+    "agent_type": "skill-team-research"
+  }
+}
