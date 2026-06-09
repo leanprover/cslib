@@ -250,7 +250,7 @@ Phases within the same wave can execute in parallel.
 - [x] Port `Algebraic/ParametricCanonical.lean` (246 lines) to `Cslib/Logics/Bimodal/Metalogic/Algebraic/ParametricCanonical.lean`. *(deviation: altered -- ParametricCanonicalWorldState takes explicit Atom: Type param; variable U renamed to W; omit annotations for unused section vars)*
 - [x] Port `Algebraic/ParametricHistory.lean` (174 lines) to `Cslib/Logics/Bimodal/Metalogic/Algebraic/ParametricHistory.lean`. *(completed -- 0 sorries)*
 - [x] Port `Algebraic/ParametricTruthLemma.lean` (472 lines) to `Cslib/Logics/Bimodal/Metalogic/Algebraic/ParametricTruthLemma.lean`. *(deviation: altered -- imp backward case uses theorem_in_mcs_fc + implication_property instead of closed_under_derivation with Base-level tautologies; Axiom.prop_s renamed to Axiom.imp_s)*
-- [x] Port `Algebraic/RestrictedParametricTruthLemma.lean` (410 lines) to `Cslib/Logics/Bimodal/Metalogic/Algebraic/RestrictedParametricTruthLemma.lean`. *(deviation: altered -- omitted fully_restricted variant due to restricted_forward/backward_until_since_coherent API differences; same imp-case fix as ParametricTruthLemma)*
+- [x] Port `Algebraic/RestrictedParametricTruthLemma.lean` (410 lines) to `Cslib/Logics/Bimodal/Metalogic/Algebraic/RestrictedParametricTruthLemma.lean`. *(deviation: altered -- same imp-case fix as ParametricTruthLemma; fully_restricted variants added in fix pass)*
 - [x] Port `Algebraic/ParametricCompleteness.lean` (301 lines) to `Cslib/Logics/Bimodal/Metalogic/Algebraic/ParametricCompleteness.lean`. *(completed -- 0 sorries; Axiom.ex_falso renamed to Axiom.efq)*
 - [x] Verify `lake build` passes
 
