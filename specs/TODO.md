@@ -29,7 +29,7 @@ next_project_number: 51
 50 [COMPLETED] — burgess_prior_art_seed_research
   └─ 46 [COMPLETED] — Define the Burgess R-relation r(A, beta, C) and prove its key pro
     └─ 47 [COMPLETED] — Define the labeled frame type (Burgess K-elements) and prove that
-      └─ 48 [NOT STARTED] — Build the omega-step construction that enumerates all C5/C6 count
+      └─ 48 [COMPLETED] — Build the omega-step construction that enumerates all C5/C6 count
         └─ 49 [NOT STARTED] — Prove the truth lemma on the constructed chronicle frame and clos
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
 40 [NOT STARTED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
@@ -158,11 +158,13 @@ Phases 1-5 completed (DeductionTheorem, MCS, Soundness, helper lemmas). Phase 6 
 
 ### 49. Temporal truth lemma and completeness assembly
 - **Effort**: Medium-Large (10-15 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 48
 - **Parent**: Task 31 (expanded)
-- **Seed Research**: [specs/049_temporal_truth_lemma_completeness/reports/01_seed-research.md]
+- **Research**: [specs/049_temporal_truth_lemma_completeness/reports/01_research-report.md]
+- **Plan**: [specs/049_temporal_truth_lemma_completeness/plans/01_implementation-plan.md]
+- **Summary**: [specs/049_temporal_truth_lemma_completeness/summaries/01_implementation-summary.md]
 
 **Description**: Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry in `Completeness.lean`.
 

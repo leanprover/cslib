@@ -95,7 +95,7 @@
     {
       "project_number": 49,
       "project_name": "temporal_truth_lemma_completeness",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-09T13:30:00Z",
       "last_updated": "2026-06-09T21:00:00Z",
@@ -103,7 +103,8 @@
         48
       ],
       "description": "Prove the truth lemma on the constructed chronicle frame and close the temporal completeness theorem, removing the final sorry in Completeness.lean.\n\nWARNING — Box-Entanglement: ChronicleToCountermodelBasic.lean (1170 lines) and ChronicleToCountermodel.lean (229 lines) are NOT directly adaptable. They use Formula.box, FMCS/BFMCS structures, modal_k_dist, S5 box-stability reasoning, and algebraic parametric completeness — all bimodal-specific. Do NOT attempt direct port; build fresh temporal extraction.\n\nRecommended approach: The temporal countermodel is simpler. The chronicle frame (X, <) with valuation V(alpha) := {x | alpha in f(x)} IS the countermodel — a serial linear order with valuation, no modal accessibility. Build fresh TemporalChronicleModel type and extraction.\n\nInteraction with existing Completeness.lean: The file already has CanonicalWorld, canonical_acc, G/H truth lemma infrastructure (lines 60-340), and the completeness theorem with a single sorry at line 416. Task 49 fills this sorry. Reconcile chronicle-based TPoint (Task 46) with existing CanonicalWorld.\n\nDense/discrete interaction: The base chronicle construction produces a dense linear order on Rat. The base completeness sorry in Completeness.lean quantifies over any serial linear order — the chronicle construction fills it via a dense countermodel. Discrete completeness (Task 39) uses different machinery.\n\nLiterature: Burgess 1982 Claim 2.11 (truth lemma) and completeness conclusion; BdRV Theorem 7.15 at BimodalLogic/literature/\n\nBimodal prior art:\n- TruthLemma.lean (223 lines): ~70% transfers; keep atom/bot/imp/G/H/Until/Since; remove box_iff_mcs\n- CanonicalModel.lean (771 lines): ~40% transfers; Z-chain G/H propagation; discard FMCS/BFMCS\n- ChronicleToCountermodelBasic.lean (1170 lines): ~0% direct transfer; reference LimitDomSubtype utilities only\n- ChronicleToCountermodel.lean (229 lines): ~0% direct transfer; bimodal-specific throughout\n\nTarget: Cslib/Logics/Temporal/Metalogic/Chronicle/TruthLemma.lean, ChronicleToCountermodel.lean (fresh), update Completeness.lean\nEstimated scope: 800-1800 lines (revised from 500-1200; countermodel extraction needs fresh design)\nSeed research: specs/049_temporal_truth_lemma_completeness/reports/01_seed-research.md\nParent: Task 31 (expanded)",
-      "topic": "Temporal Logic"
+      "topic": "Temporal Logic",
+      "completion_summary": "Temporal completeness sorry closed. Created ChronicleToCountermodel.lean, TruthLemma.lean, CompletenessHelpers.lean. Rewrote Completeness.lean with actual proof via chronicle countermodel. Zero sorries, full build passes."
     },
     {
       "project_number": 38,
