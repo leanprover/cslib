@@ -1,5 +1,5 @@
 ---
-next_project_number: 72
+next_project_number: 73
 ---
 
 # Tasks
@@ -47,6 +47,15 @@ next_project_number: 72
 
 ## Tasks
 
+### 72. Relocate Propositional/Embedding to fix dependency inversion
+- **Effort**: Medium (2-4 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Currently Logics/Propositional/Embedding.lean imports from Modal.Basic and Temporal.Syntax.Formula, creating a backwards dependency where the simpler logic imports from more complex ones. Restructure so that each logic's embedding lives in the appropriate place — either in the target logic (Modal/, Temporal/) or in the consumer (Bimodal/Embedding/) — so that Logics/Propositional/ only imports from Foundations/. This should maintain a consistent pattern across the codebase where imports flow downward: Foundations → {Propositional, Modal, Temporal} → Bimodal. Update the ROADMAP.md flowchart after restructuring.
+
+---
+
 ### 71. Polish documentation in Theorems.lean and Axioms.lean
 - **Effort**: Small (0.5 hours)
 - **Status**: [NOT STARTED]
@@ -86,6 +95,8 @@ next_project_number: 72
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
+- specs/068_add_module_keyword_theorem_files/reports/01_module-keyword-research.md: [Research]
+- specs/068_add_module_keyword_theorem_files/plans/01_module-keyword-plan.md: [Plan]
 
 **Description**: MUST-FIX from quality audit. 10 of 15 files in Cslib/Foundations/Logic/ are missing the `module` keyword, preventing them from being imported from `Cslib.lean` (which is a `module` file). Affected files: Theorems/Combinators.lean, Theorems/Propositional/Core.lean, Theorems/Propositional/Connectives.lean, Theorems/BigConj.lean, Theorems/Modal/Basic.lean, Theorems/Modal/S5.lean, Theorems/Temporal/TemporalDerived.lean, Theorems/Temporal/FrameConditions.lean, Metalogic/Consistency.lean, Theorems.lean. For each file: add `module` after copyright header, change `import` to `public import`, follow the pattern used by the 5 core definition files (InferenceSystem, Connectives, Axioms, ProofSystem, LogicalEquivalence). Run `lake build` and `lake exe mk_all` to update Cslib.lean after all changes.
 

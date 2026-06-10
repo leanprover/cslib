@@ -1,17 +1,25 @@
 {
-  "next_project_number": 72,
+  "next_project_number": 73,
   "active_projects": [
+    {
+      "project_number": 72,
+      "project_name": "relocate_propositional_embedding",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T05:34:10Z",
+      "last_updated": "2026-06-10T05:34:10Z"
+    },
     {
       "project_number": 68,
       "project_name": "add_module_keyword_theorem_files",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         59
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-10T05:15:39Z"
+      "last_updated": "2026-06-09T20:11:00Z"
     },
     {
       "project_number": 69,
