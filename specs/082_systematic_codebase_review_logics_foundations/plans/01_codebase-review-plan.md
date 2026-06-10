@@ -178,7 +178,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: camelCase rename -- Foundations and small modules [NOT STARTED]
+### Phase 4: camelCase rename -- Foundations and small modules [COMPLETED]
 
 **Goal**: Rename snake_case `def`/`abbrev` names to lowerCamelCase in Foundations/ (4 defs), Logics/Modal/ (3 defs), and Logics/Propositional/ (12 defs), plus propagate all downstream references.
 

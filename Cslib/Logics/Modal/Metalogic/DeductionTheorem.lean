@@ -17,8 +17,8 @@ if `A :: Γ ⊢ B` then `Γ ⊢ A → B`.
 
 ## Main Results
 
-- `deduction_theorem`: The core metatheorem, by well-founded recursion on derivation height.
-- `deduction_with_mem`: Helper for the weakening case where the deduction hypothesis
+- `deductionTheorem`: The core metatheorem, by well-founded recursion on derivation height.
+- `deductionWithMem`: Helper for the weakening case where the deduction hypothesis
   appears in the middle of the context.
 - `modal_has_deduction_theorem`: The `HasDeductionTheorem` instance for the generic MCS
   framework.
@@ -26,7 +26,7 @@ if `A :: Γ ⊢ B` then `Γ ⊢ A → B`.
 ## Implementation
 
 The proof follows the BimodalLogic pattern with well-founded recursion on
-`DerivationTree.height`. The key insight is the `deduction_with_mem` helper that
+`DerivationTree.height`. The key insight is the `deductionWithMem` helper that
 handles the weakening case without introducing non-terminating exchange patterns.
 
 The modal version is simpler than the bimodal one because there are only 5 constructors
@@ -62,37 +62,37 @@ noncomputable instance : HasHilbertTree (Proposition Atom) where
   mp := fun d₁ d₂ => .modus_ponens _ _ _ d₁ d₂
   weakening := fun d h => .weakening _ _ _ d h
 
-/-! ## Core: deduction_with_mem -/
+/-! ## Core: deductionWithMem -/
 
 /-- The key helper for the weakening case: if `Γ' ⊢ φ` and `A ∈ Γ'`, then
 `removeAll Γ' A ⊢ A → φ`.
 
 This recurses on the derivation structure. All recursive calls are on derivations
 with strictly smaller height, ensuring termination. -/
-noncomputable def deduction_with_mem
+noncomputable def deductionWithMem
     (Γ' : List (Proposition Atom)) (A φ : Proposition Atom)
     (d : DerivationTree Γ' φ) (hA : A ∈ Γ') :
     DerivationTree (removeAll Γ' A) (A.imp φ) := by
   match d with
   | .ax _ ψ h_ax =>
-    exact deduction_axiom (removeAll Γ' A) A (.ax [] ψ h_ax)
+    exact deductionAxiom (removeAll Γ' A) A (.ax [] ψ h_ax)
   | .assumption _ ψ h_mem =>
     by_cases h_eq : ψ = A
     · subst h_eq
-      exact deduction_imp_self (removeAll Γ' ψ) ψ
+      exact deductionImpSelf (removeAll Γ' ψ) ψ
     · have h_mem' : ψ ∈ removeAll Γ' A := mem_removeAll_of_mem_of_ne h_mem h_eq
-      exact deduction_assumption_other (removeAll Γ' A) A ψ h_mem'
+      exact deductionAssumptionOther (removeAll Γ' A) A ψ h_mem'
   | .modus_ponens _ ψ χ d₁ d₂ =>
-    have ih₁ := deduction_with_mem Γ' A (ψ.imp χ) d₁ hA
-    have ih₂ := deduction_with_mem Γ' A ψ d₂ hA
-    exact deduction_mp_under_imp (removeAll Γ' A) A ψ χ ih₁ ih₂
+    have ih₁ := deductionWithMem Γ' A (ψ.imp χ) d₁ hA
+    have ih₂ := deductionWithMem Γ' A ψ d₂ hA
+    exact deductionMpUnderImp (removeAll Γ' A) A ψ χ ih₁ ih₂
   | .necessitation ψ _d' =>
     -- Γ' = [], but A ∈ Γ' = [] is impossible
     simp at hA
   | .weakening Γ'' _ ψ d' h_sub =>
     by_cases hA' : A ∈ Γ''
     · -- A ∈ Γ'', recurse on d'
-      have ih := deduction_with_mem Γ'' A ψ d' hA'
+      have ih := deductionWithMem Γ'' A ψ d' hA'
       have h_sub' : ∀ x ∈ removeAll Γ'' A, x ∈ removeAll Γ' A :=
         removeAll_subset_removeAll h_sub
       exact .weakening (removeAll Γ'' A) (removeAll Γ' A) (A.imp ψ) ih h_sub'
@@ -119,37 +119,37 @@ decreasing_by
 
 Proof by well-founded recursion on derivation tree height. Handles all 5 constructors:
 - `ax`: Use `implyK` to weaken the axiom under implication.
-- `assumption` (same): Produce `A → A` via `deduction_imp_self`.
+- `assumption` (same): Produce `A → A` via `deductionImpSelf`.
 - `assumption` (other): Use `implyK` with the other assumption.
 - `modus_ponens`: Recurse on both subderivations, combine via `implyS`.
 - `necessitation`: Impossible (requires empty context, but `A :: Γ` is non-empty).
-- `weakening`: Three subcases -- context equality, `A ∈ Γ'` (uses `deduction_with_mem`),
+- `weakening`: Three subcases -- context equality, `A ∈ Γ'` (uses `deductionWithMem`),
   or `A ∉ Γ'` (uses `implyK`). -/
-noncomputable def deduction_theorem (Γ : List (Proposition Atom)) (A B : Proposition Atom)
+noncomputable def deductionTheorem (Γ : List (Proposition Atom)) (A B : Proposition Atom)
     (d : DerivationTree (A :: Γ) B) :
     DerivationTree Γ (A.imp B) := by
   match d with
   | .ax _ φ h_ax =>
-    exact deduction_axiom Γ A (.ax [] φ h_ax)
+    exact deductionAxiom Γ A (.ax [] φ h_ax)
   | .assumption _ φ h_mem =>
     by_cases h_eq : φ = A
     · subst h_eq
-      exact deduction_imp_self Γ φ
+      exact deductionImpSelf Γ φ
     · have h_tail : φ ∈ Γ := by
         cases h_mem with
         | head => exact absurd rfl h_eq
         | tail _ h => exact h
-      exact deduction_assumption_other Γ A φ h_tail
+      exact deductionAssumptionOther Γ A φ h_tail
   | .modus_ponens _ φ ψ d₁ d₂ =>
-    have ih₁ := deduction_theorem Γ A (φ.imp ψ) d₁
-    have ih₂ := deduction_theorem Γ A φ d₂
-    exact deduction_mp_under_imp Γ A φ ψ ih₁ ih₂
+    have ih₁ := deductionTheorem Γ A (φ.imp ψ) d₁
+    have ih₂ := deductionTheorem Γ A φ d₂
+    exact deductionMpUnderImp Γ A φ ψ ih₁ ih₂
   | .weakening Γ' _ φ d' h_sub =>
     by_cases h_eq : Γ' = A :: Γ
-    · exact deduction_theorem Γ A φ (h_eq ▸ d')
+    · exact deductionTheorem Γ A φ (h_eq ▸ d')
     · by_cases hA : A ∈ Γ'
-      · -- A ∈ Γ' but Γ' ≠ A :: Γ -- use deduction_with_mem
-        have ih := deduction_with_mem Γ' A φ d' hA
+      · -- A ∈ Γ' but Γ' ≠ A :: Γ -- use deductionWithMem
+        have ih := deductionWithMem Γ' A φ d' hA
         have h_sub' : ∀ x ∈ removeAll Γ' A, x ∈ Γ :=
           removeAll_subset_of_subset h_sub hA
         exact .weakening (removeAll Γ' A) Γ (A.imp φ) ih h_sub'
@@ -187,6 +187,6 @@ theorem modal_has_deduction_theorem :
   unfold modalDerivationSystem Deriv at h ⊢
   simp at h ⊢
   obtain ⟨d⟩ := h
-  exact ⟨deduction_theorem Γ φ ψ d⟩
+  exact ⟨deductionTheorem Γ φ ψ d⟩
 
 end Cslib.Logic.Modal

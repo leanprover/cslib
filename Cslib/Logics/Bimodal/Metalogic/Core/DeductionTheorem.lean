@@ -18,8 +18,8 @@ This module proves the deduction theorem for the bimodal TM logic Hilbert system
 ## Main Results
 
 - `bimodalHilbertTree`: `HasHilbertTree` for bimodal logic (fc-parameterized)
-- Generic helpers via `DeductionHelpers`: `deduction_axiom`, `deduction_imp_self`,
-  `deduction_assumption_other`, `deduction_mp_under_imp`
+- Generic helpers via `DeductionHelpers`: `deductionAxiom`, `deductionImpSelf`,
+  `deductionAssumptionOther`, `deductionMpUnderImp`
 - `deduction_theorem`: If `A :: Γ ⊢ B` then `Γ ⊢ A → B`
 - `bimodal_has_deduction_theorem`: Instance connecting to generic MCS framework
 
@@ -87,21 +87,21 @@ def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
   haveI : Decidable (A ∈ Γ') := Classical.propDecidable _
   match h with
   | DerivationTree.axiom _ ψ h_ax h_fc =>
-      exact deduction_axiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
+      exact deductionAxiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
 
   | DerivationTree.assumption _ ψ h_mem =>
       by_cases h_eq : ψ = A
       · rw [← h_eq]
-        exact deduction_imp_self (removeAll Γ' ψ) ψ
+        exact deductionImpSelf (removeAll Γ' ψ) ψ
       · have h_mem' : ψ ∈ removeAll Γ' A := by
           simp only [removeAll, List.mem_filter, decide_eq_true_eq]
           exact ⟨h_mem, h_eq⟩
-        exact deduction_assumption_other (removeAll Γ' A) A ψ h_mem'
+        exact deductionAssumptionOther (removeAll Γ' A) A ψ h_mem'
 
   | DerivationTree.modus_ponens _ ψ χ h1 h2 =>
       have ih1 := deduction_with_mem Γ' A (ψ.imp χ) h1 hA
       have ih2 := deduction_with_mem Γ' A ψ h2 hA
-      exact deduction_mp_under_imp (removeAll Γ' A) A ψ χ ih1 ih2
+      exact deductionMpUnderImp (removeAll Γ' A) A ψ χ ih1 ih2
 
   | DerivationTree.necessitation ψ h_deriv =>
       simp at hA
@@ -164,22 +164,22 @@ def deduction_theorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
   haveI : Decidable (A ∈ Γ) := Classical.propDecidable _
   match h with
   | DerivationTree.axiom _ φ h_ax h_fc =>
-      exact deduction_axiom Γ A (.axiom [] φ h_ax h_fc)
+      exact deductionAxiom Γ A (.axiom [] φ h_ax h_fc)
 
   | DerivationTree.assumption _ φ h_mem =>
       by_cases h_eq : φ = A
       · subst h_eq
-        exact deduction_imp_self Γ φ
+        exact deductionImpSelf Γ φ
       · have h_tail : φ ∈ Γ := by
           cases h_mem with
           | head => exact absurd rfl h_eq
           | tail _ h => exact h
-        exact deduction_assumption_other Γ A φ h_tail
+        exact deductionAssumptionOther Γ A φ h_tail
 
   | DerivationTree.modus_ponens _ φ ψ h1 h2 =>
       have ih1 := deduction_theorem Γ A (φ.imp ψ) h1
       have ih2 := deduction_theorem Γ A φ h2
-      exact deduction_mp_under_imp Γ A φ ψ ih1 ih2
+      exact deductionMpUnderImp Γ A φ ψ ih1 ih2
 
   | DerivationTree.weakening Γ' _ φ h1 h2 =>
       by_cases h_eq : Γ' = A :: Γ

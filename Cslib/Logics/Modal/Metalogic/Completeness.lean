@@ -116,8 +116,8 @@ theorem canonical_eucl (S T U : CanonicalWorld Atom) :
     .modus_ponens [bp.imp .bot, bp] bp .bot
       (.assumption _ (bp.imp .bot) (by simp [List.mem_cons]))
       (.assumption _ bp (by simp [List.mem_cons]))
-  have d_dne := deduction_theorem [bp] (bp.imp .bot) .bot d_bot
-  have d_dni := deduction_theorem [] bp ((bp.imp .bot).imp .bot) d_dne
+  have d_dne := deductionTheorem [bp] (bp.imp .bot) .bot d_bot
+  have d_dni := deductionTheorem [] bp ((bp.imp .bot).imp .bot) d_dne
   -- Necessitation: ⊢ □(□φ → ¬¬□φ)
   have d_nec := DerivationTree.necessitation _ d_dni
   -- □(□φ → ¬¬□φ) ∈ T via closed_under_derivation
@@ -174,7 +174,7 @@ theorem truth_lemma (S : CanonicalWorld Atom) :
             .modus_ponens _ .bot φ
               (.weakening [] _ _ (.ax [] _ (.efq φ)) (fun _ h => nomatch h))
               d_bot'
-          have d_dt := deduction_theorem [(φ.imp ψ).imp .bot] (φ.imp ψ) φ d_efq
+          have d_dt := deductionTheorem [(φ.imp ψ).imp .bot] (φ.imp ψ) φ d_efq
           have d_peirce : DerivationTree [(φ.imp ψ).imp .bot] (((φ.imp ψ).imp φ).imp φ) :=
             .weakening [] _ _ (.ax [] _ (.peirce φ ψ)) (fun _ h => nomatch h)
           exact ⟨.modus_ponens _ _ _ d_peirce d_dt⟩
@@ -193,7 +193,7 @@ theorem truth_lemma (S : CanonicalWorld Atom) :
             .modus_ponens _ (φ.imp ψ) .bot
               (.assumption _ _ (by simp [List.mem_cons]))
               d_imp
-          exact ⟨deduction_theorem [(φ.imp ψ).imp .bot] ψ .bot d_bot''⟩
+          exact ⟨deductionTheorem [(φ.imp ψ).imp .bot] ψ .bot d_bot''⟩
         exact mcs_bot_not_mem S.property (modal_implication_property S.property h_neg_psi_S h_psi_S)
     · intro h_mem h_sat_phi
       exact (truth_lemma S ψ).mpr (modal_implication_property S.property h_mem
@@ -237,7 +237,7 @@ theorem completeness (φ : Proposition Atom)
     have d_weak : DerivationTree [Proposition.neg φ] Proposition.bot :=
       .weakening L [Proposition.neg φ] .bot d (fun x hx => by
         have := hL x hx; simp at this; exact List.mem_cons.mpr (Or.inl this))
-    have d_dne := deduction_theorem [] (Proposition.neg φ) .bot d_weak
+    have d_dne := deductionTheorem [] (Proposition.neg φ) .bot d_weak
     let neg_phi := Proposition.neg φ
     have efq : DerivationTree (Atom := Atom) [] (Proposition.bot.imp φ) :=
       .ax [] _ (.efq φ)

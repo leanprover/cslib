@@ -166,7 +166,7 @@ theorem mcs_mem_iff_neg_not_mem
 /-- Iterated deduction theorem: from `L ⊢ φ`, derive `[] ⊢ chain L φ` where
 `chain` builds a right-nested implication. Processes by repeatedly applying
 the deduction theorem to the head element. -/
-noncomputable def iterated_deduction :
+noncomputable def iteratedDeduction :
     (L : List (Proposition Atom)) → (φ : Proposition Atom) →
     DerivationTree L φ → (ψ : Proposition Atom) ×' DerivationTree [] ψ ×'
       (∀ (S : Set (Proposition Atom)),
@@ -178,9 +178,9 @@ noncomputable def iterated_deduction :
   | A :: L', φ, d => by
     -- d : (A :: L') ⊢ φ
     -- Deduction theorem: L' ⊢ A → φ
-    have dt := deduction_theorem L' A φ d
+    have dt := deductionTheorem L' A φ d
     -- IH on L' with (A → φ): get chain and property
-    have ⟨ψ, d_empty, h_prop⟩ := iterated_deduction L' (A.imp φ) dt
+    have ⟨ψ, d_empty, h_prop⟩ := iteratedDeduction L' (A.imp φ) dt
     exact ⟨ψ, d_empty, fun S h_mcs h_box_psi h_all_box => by
       -- h_prop gives: □(A → φ) ∈ S from □ψ and □-versions of L'
       have h_box_imp := h_prop S h_mcs h_box_psi
@@ -201,7 +201,7 @@ theorem derive_box_from_box_context
     (h_all_box : ∀ ψ ∈ L, Proposition.box ψ ∈ S) :
     Proposition.box φ ∈ S := by
   -- Get the empty-context derivation and the box-distribution property
-  have ⟨ψ, d_empty, h_prop⟩ := iterated_deduction L φ d
+  have ⟨ψ, d_empty, h_prop⟩ := iteratedDeduction L φ d
   -- Necessitation: ⊢ □ψ
   have d_box := DerivationTree.necessitation ψ d_empty
   -- □ψ ∈ S (from empty derivation)
@@ -248,7 +248,7 @@ theorem derive_box_from_inconsistency
     have d_reord := DerivationTree.weakening L (Proposition.neg φ :: L') Proposition.bot
       d_bot h_perm
     -- Deduction theorem: L' ⊢ ¬φ → ⊥ = L' ⊢ (φ → ⊥) → ⊥
-    have d_dne := deduction_theorem L' (Proposition.neg φ) Proposition.bot d_reord
+    have d_dne := deductionTheorem L' (Proposition.neg φ) Proposition.bot d_reord
     -- Derive φ from double negation using Peirce's law and EFQ
     let neg_phi := Proposition.neg φ
     -- EFQ: ⊥ → φ

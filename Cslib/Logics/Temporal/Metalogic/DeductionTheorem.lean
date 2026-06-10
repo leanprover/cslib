@@ -75,17 +75,17 @@ noncomputable def deduction_with_mem
     DerivationTree FrameClass.Base (removeAll Γ' A) (A.imp φ) := by
   match d with
   | .axiom _ ψ h_ax h_fc =>
-    exact deduction_axiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
+    exact deductionAxiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
   | .assumption _ ψ h_mem =>
     by_cases h_eq : ψ = A
     · subst h_eq
-      exact deduction_imp_self (removeAll Γ' ψ) ψ
+      exact deductionImpSelf (removeAll Γ' ψ) ψ
     · have h_mem' : ψ ∈ removeAll Γ' A := mem_removeAll_of_mem_of_ne h_mem h_eq
-      exact deduction_assumption_other (removeAll Γ' A) A ψ h_mem'
+      exact deductionAssumptionOther (removeAll Γ' A) A ψ h_mem'
   | .modus_ponens _ ψ χ d₁ d₂ =>
     have ih₁ := deduction_with_mem Γ' A (ψ.imp χ) d₁ hA
     have ih₂ := deduction_with_mem Γ' A ψ d₂ hA
-    exact deduction_mp_under_imp (removeAll Γ' A) A ψ χ ih₁ ih₂
+    exact deductionMpUnderImp (removeAll Γ' A) A ψ χ ih₁ ih₂
   | .temporal_necessitation ψ _d' =>
     simp at hA
   | .temporal_duality ψ _d' =>
@@ -121,20 +121,20 @@ noncomputable def deduction_theorem (Γ : Context Atom) (A B : Formula Atom)
     DerivationTree FrameClass.Base Γ (A.imp B) := by
   match d with
   | .axiom _ φ h_ax h_fc =>
-    exact deduction_axiom Γ A (.axiom [] φ h_ax h_fc)
+    exact deductionAxiom Γ A (.axiom [] φ h_ax h_fc)
   | .assumption _ φ h_mem =>
     by_cases h_eq : φ = A
     · subst h_eq
-      exact deduction_imp_self Γ φ
+      exact deductionImpSelf Γ φ
     · have h_tail : φ ∈ Γ := by
         cases h_mem with
         | head => exact absurd rfl h_eq
         | tail _ h => exact h
-      exact deduction_assumption_other Γ A φ h_tail
+      exact deductionAssumptionOther Γ A φ h_tail
   | .modus_ponens _ φ ψ d₁ d₂ =>
     have ih₁ := deduction_theorem Γ A (φ.imp ψ) d₁
     have ih₂ := deduction_theorem Γ A φ d₂
-    exact deduction_mp_under_imp Γ A φ ψ ih₁ ih₂
+    exact deductionMpUnderImp Γ A φ ψ ih₁ ih₂
   | .weakening Γ' _ φ d' h_sub =>
     by_cases h_eq : Γ' = A :: Γ
     · exact deduction_theorem Γ A φ (h_eq ▸ d')

@@ -22,15 +22,15 @@ Hilbert framework.
 - `impE`: Implication elimination (modus ponens wrapper)
 - `botE`: Ex falso quodlibet (EFQ axiom + modus ponens)
 - `assume`: Assumption (context membership wrapper)
-- `axiom_rule`: Theory axiom (axiom schema wrapper)
+- `axiomRule`: Theory axiom (axiom schema wrapper)
 
 ### Derived Rules (Type-level)
-- `hilbert_cut`: Cut rule within the Hilbert framework
-- `hilbert_weakening`: Explicit weakening
+- `hilbertCut`: Cut rule within the Hilbert framework
+- `hilbertWeakening`: Explicit weakening
 
 ### Prop-level Versions
-- `impI_deriv`, `impE_deriv`, `botE_deriv`, `hilbert_cut_deriv`,
-  `hilbert_weakening_deriv`: `Deriv`-level versions of the above
+- `impIDeriv`, `impEDeriv`, `botEDeriv`, `hilbertCutDeriv`,
+  `hilbertWeakeningDeriv`: `Deriv`-level versions of the above
 
 ## Design
 
@@ -61,7 +61,7 @@ noncomputable def impI {Γ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (d : DerivationTree (A :: Γ) B) :
     DerivationTree Γ (A.imp B) :=
-  deduction_theorem Γ A B d
+  deductionTheorem Γ A B d
 
 /-- **Implication Elimination** (→E / Modus Ponens):
 From `Γ ⊢ A → B` and `Γ ⊢ A`, derive `Γ ⊢ B`. -/
@@ -93,7 +93,7 @@ def assume {Γ : List (PL.Proposition Atom)}
   DerivationTree.assumption Γ φ h
 
 /-- **Axiom Rule**: If `φ` is an axiom schema, then `Γ ⊢ φ`. -/
-def axiom_rule {Γ : List (PL.Proposition Atom)}
+def axiomRule {Γ : List (PL.Proposition Atom)}
     {φ : PL.Proposition Atom}
     (h : PropositionalAxiom φ) :
     DerivationTree Γ φ :=
@@ -105,13 +105,13 @@ def axiom_rule {Γ : List (PL.Proposition Atom)}
 
 Uses the deduction theorem to discharge `A` from the second derivation,
 then modus ponens with the first, combined via weakening. -/
-noncomputable def hilbert_cut {Γ Δ : List (PL.Proposition Atom)}
+noncomputable def hilbertCut {Γ Δ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (d₁ : DerivationTree Γ A)
     (d₂ : DerivationTree (A :: Δ) B) :
     DerivationTree (Γ ++ Δ) B := by
   -- Deduction theorem: Δ ⊢ A → B
-  have h_dt := deduction_theorem Δ A B d₂
+  have h_dt := deductionTheorem Δ A B d₂
   -- Weaken d₁ to Γ ++ Δ
   have h_d₁ := DerivationTree.weakening Γ (Γ ++ Δ) A d₁
     (fun x hx => List.mem_append.mpr (Or.inl hx))
@@ -124,7 +124,7 @@ noncomputable def hilbert_cut {Γ Δ : List (PL.Proposition Atom)}
 /-- **Weakening**: From `Γ ⊢ φ` and `Γ ⊆ Δ`, derive `Δ ⊢ φ`.
 
 Direct wrapper around the `DerivationTree.weakening` constructor. -/
-def hilbert_weakening {Γ Δ : List (PL.Proposition Atom)}
+def hilbertWeakening {Γ Δ : List (PL.Proposition Atom)}
     {φ : PL.Proposition Atom}
     (d : DerivationTree Γ φ)
     (h : ∀ x ∈ Γ, x ∈ Δ) :
@@ -134,14 +134,14 @@ def hilbert_weakening {Γ Δ : List (PL.Proposition Atom)}
 /-! ## Prop-level (`Deriv`) Versions -/
 
 /-- Implication introduction at the `Deriv` level. -/
-noncomputable def impI_deriv {Γ : List (PL.Proposition Atom)}
+noncomputable def impIDeriv {Γ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (h : Deriv (A :: Γ) B) : Deriv Γ (A.imp B) := by
   obtain ⟨d⟩ := h
   exact ⟨impI d⟩
 
 /-- Implication elimination at the `Deriv` level. -/
-def impE_deriv {Γ : List (PL.Proposition Atom)}
+def impEDeriv {Γ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (h₁ : Deriv Γ (A.imp B)) (h₂ : Deriv Γ A) :
     Deriv Γ B := by
@@ -149,29 +149,29 @@ def impE_deriv {Γ : List (PL.Proposition Atom)}
   exact ⟨impE d₁ d₂⟩
 
 /-- Ex falso quodlibet at the `Deriv` level. -/
-def botE_deriv {Γ : List (PL.Proposition Atom)}
+def botEDeriv {Γ : List (PL.Proposition Atom)}
     {A : PL.Proposition Atom}
     (h : Deriv Γ Proposition.bot) : Deriv Γ A := by
   obtain ⟨d⟩ := h
   exact ⟨botE d⟩
 
 /-- Cut rule at the `Deriv` level. -/
-noncomputable def hilbert_cut_deriv
+noncomputable def hilbertCutDeriv
     {Γ Δ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (h₁ : Deriv Γ A) (h₂ : Deriv (A :: Δ) B) :
     Deriv (Γ ++ Δ) B := by
   obtain ⟨d₁⟩ := h₁; obtain ⟨d₂⟩ := h₂
-  exact ⟨hilbert_cut d₁ d₂⟩
+  exact ⟨hilbertCut d₁ d₂⟩
 
 /-- Weakening at the `Deriv` level. -/
-def hilbert_weakening_deriv
+def hilbertWeakeningDeriv
     {Γ Δ : List (PL.Proposition Atom)}
     {φ : PL.Proposition Atom}
     (h : Deriv Γ φ) (hsub : ∀ x ∈ Γ, x ∈ Δ) :
     Deriv Δ φ := by
   obtain ⟨d⟩ := h
-  exact ⟨hilbert_weakening d hsub⟩
+  exact ⟨hilbertWeakening d hsub⟩
 
 /-! ## Substitution -/
 
@@ -190,7 +190,7 @@ theorem subst_preserves_axiom
 /-- Transport a derivation tree along an atom substitution.
 
 If `Γ ⊢ φ` then `Γ.map (·.subst f) ⊢ φ.subst f`. -/
-def hilbert_substitution
+def hilbertSubstitution
     {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
     {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
     (d : DerivationTree Γ φ) (f : Atom → PL.Proposition Atom') :
@@ -201,19 +201,19 @@ def hilbert_substitution
   | .assumption _ ψ h_mem =>
     .assumption _ _ (List.mem_map.mpr ⟨ψ, h_mem, rfl⟩)
   | .modus_ponens _ _ _ d₁ d₂ =>
-    .modus_ponens _ _ _ (hilbert_substitution d₁ f) (hilbert_substitution d₂ f)
+    .modus_ponens _ _ _ (hilbertSubstitution d₁ f) (hilbertSubstitution d₂ f)
   | .weakening _ _ _ d' h_sub =>
-    .weakening _ _ _ (hilbert_substitution d' f) (fun _ hx =>
+    .weakening _ _ _ (hilbertSubstitution d' f) (fun _ hx =>
       let ⟨y, hy_mem, hy_eq⟩ := List.mem_map.mp hx
       List.mem_map.mpr ⟨y, h_sub y hy_mem, hy_eq⟩)
 
 /-- Substitution at the `Deriv` level. -/
-def hilbert_substitution_deriv
+def hilbertSubstitutionDeriv
     {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
     {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
     (h : Deriv Γ φ) (f : Atom → PL.Proposition Atom') :
     Deriv (Γ.map (·.subst f)) (φ.subst f) := by
   obtain ⟨d⟩ := h
-  exact ⟨hilbert_substitution d f⟩
+  exact ⟨hilbertSubstitution d f⟩
 
 end Cslib.Logic.PL

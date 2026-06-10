@@ -13,8 +13,8 @@ public import Cslib.Foundations.Logic.Connectives
 This module defines a `HasHilbertTree` typeclass abstracting the common structure
 needed by the 4 deduction theorem helper lemmas across PL, Modal, Temporal, and
 Bimodal logics. Each logic instantiates this typeclass, and the 4 generic helpers
-(`deduction_axiom`, `deduction_imp_self`, `deduction_assumption_other`,
-`deduction_mp_under_imp`) are proven once here.
+(`deductionAxiom`, `deductionImpSelf`, `deductionAssumptionOther`,
+`deductionMpUnderImp`) are proven once here.
 
 The per-logic `deduction_with_mem` and `deduction_theorem` remain concrete in each
 logic because they require pattern matching on concrete `DerivationTree` constructors
@@ -79,7 +79,7 @@ variable [HasHilbertTree F]
 
 /-- If `d` is a derivation of `φ` from empty context, then `Γ ⊢ A → φ`.
 This is the axiom case of the deduction theorem. -/
-noncomputable def deduction_axiom (Γ : List F) (A : F)
+noncomputable def deductionAxiom (Γ : List F) (A : F)
     (d_empty : HasHilbertTree.Tree (F := F) [] φ) :
     HasHilbertTree.Tree Γ (HasImp.imp A φ) :=
   let k := HasHilbertTree.implyK (F := F) φ A
@@ -88,7 +88,7 @@ noncomputable def deduction_axiom (Γ : List F) (A : F)
 
 /-- `Γ ⊢ A → A` (identity / self-implication).
 Built from S, K, K axioms. -/
-noncomputable def deduction_imp_self (Γ : List F) (A : F) :
+noncomputable def deductionImpSelf (Γ : List F) (A : F) :
     HasHilbertTree.Tree Γ (HasImp.imp A A) :=
   let s := HasHilbertTree.implyS (F := F) A (HasImp.imp A A) A
   let k1 := HasHilbertTree.implyK (F := F) A (HasImp.imp A A)
@@ -98,7 +98,7 @@ noncomputable def deduction_imp_self (Γ : List F) (A : F) :
   HasHilbertTree.weakening result (fun _ h => nomatch h)
 
 /-- If `B ∈ Γ`, then `Γ ⊢ A → B`. Uses the K axiom. -/
-noncomputable def deduction_assumption_other (Γ : List F) (A B : F)
+noncomputable def deductionAssumptionOther (Γ : List F) (A B : F)
     (h_mem : B ∈ Γ) : HasHilbertTree.Tree Γ (HasImp.imp A B) :=
   let b_deriv := HasHilbertTree.assumption (F := F) h_mem
   let k := HasHilbertTree.implyK (F := F) B A
@@ -107,7 +107,7 @@ noncomputable def deduction_assumption_other (Γ : List F) (A B : F)
 
 /-- Modus ponens under implication: from `Γ ⊢ A → (C → D)` and `Γ ⊢ A → C`,
 derive `Γ ⊢ A → D`. Uses the S axiom. -/
-noncomputable def deduction_mp_under_imp (Γ : List F) (A C D : F)
+noncomputable def deductionMpUnderImp (Γ : List F) (A C D : F)
     (h₁ : HasHilbertTree.Tree Γ (HasImp.imp A (HasImp.imp C D)))
     (h₂ : HasHilbertTree.Tree Γ (HasImp.imp A C)) :
     HasHilbertTree.Tree Γ (HasImp.imp A D) :=
