@@ -154,7 +154,6 @@ This was required for Lean 4 module system compliance and ensures that the Found
 ## References
 
 - Church, A. (1956). *Introduction to Mathematical Logic, Vol. I*. Princeton University Press.
-- Gentzen, G. (1935). "Untersuchungen uber das logische Schliessen". *Mathematische Zeitschrift* 39.
 - Curry, H.B. and Feys, R. (1958). *Combinatory Logic, Vol. I*. North-Holland.
 - Howard, W.A. (1969/1980). "The Formulae-as-Types Notion of Construction".
 - Griffin, T.G. (1990). "A Formulae-as-Types Notion of Control". *POPL 1990*.
