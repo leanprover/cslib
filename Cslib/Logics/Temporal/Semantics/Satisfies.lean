@@ -109,7 +109,6 @@ theorem snce_iff (M : TemporalModel D Atom) (t : D)
 /-! ## Derived Connective Lemmas -/
 
 /-- Negation: ¬φ holds iff φ does not hold. -/
-@[simp]
 theorem neg_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
     Satisfies M t (Formula.neg φ) ↔ ¬ Satisfies M t φ := by
@@ -124,7 +123,6 @@ theorem top_true (M : TemporalModel D Atom) (t : D) :
 /-! ## Temporal Operator Lemmas -/
 
 /-- Some future (F φ): there exists a future time where φ holds. -/
-@[simp]
 theorem some_future_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
     Satisfies M t (Formula.some_future φ) ↔
@@ -137,7 +135,6 @@ theorem some_future_iff (M : TemporalModel D Atom) (t : D)
     exact ⟨s, hlt, hs, fun _ _ _ h => h⟩
 
 /-- Some past (P φ): there exists a past time where φ holds. -/
-@[simp]
 theorem some_past_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
     Satisfies M t (Formula.some_past φ) ↔
@@ -150,7 +147,6 @@ theorem some_past_iff (M : TemporalModel D Atom) (t : D)
     exact ⟨s, hlt, hs, fun _ _ _ h => h⟩
 
 /-- All future (G φ): φ holds at all future times. -/
-@[simp]
 theorem all_future_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
     Satisfies M t (Formula.all_future φ) ↔
@@ -164,7 +160,6 @@ theorem all_future_iff (M : TemporalModel D Atom) (t : D)
     exact hevent (h s hlt)
 
 /-- All past (H φ): φ holds at all past times. -/
-@[simp]
 theorem all_past_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
     Satisfies M t (Formula.all_past φ) ↔

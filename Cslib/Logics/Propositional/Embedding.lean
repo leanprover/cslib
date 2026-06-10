@@ -70,7 +70,6 @@ theorem PL.Proposition.toModal_imp (φ₁ φ₂ : PL.Proposition Atom) :
     (PL.Proposition.imp φ₁ φ₂).toModal = Modal.Proposition.imp φ₁.toModal φ₂.toModal := rfl
 
 /-- Embedding preserves neg. -/
-@[simp]
 theorem PL.Proposition.toModal_neg (φ : PL.Proposition Atom) :
     (PL.Proposition.neg φ).toModal = Modal.Proposition.neg φ.toModal := rfl
 
@@ -85,7 +84,6 @@ theorem PL.Proposition.toTemporal_imp (φ₁ φ₂ : PL.Proposition Atom) :
     (PL.Proposition.imp φ₁ φ₂).toTemporal = Temporal.Formula.imp φ₁.toTemporal φ₂.toTemporal := rfl
 
 /-- Embedding preserves neg (temporal). -/
-@[simp]
 theorem PL.Proposition.toTemporal_neg (φ : PL.Proposition Atom) :
     (PL.Proposition.neg φ).toTemporal = Temporal.Formula.neg φ.toTemporal := rfl
 

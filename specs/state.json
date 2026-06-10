@@ -23,12 +23,43 @@
     {
       "project_number": 67,
       "project_name": "fix_simp_linter_warnings",
-      "status": "not_started",
+      "status": "completed",
+      "completion_summary": "Removed @[simp] from 7 lemmas across 2 files (neg_iff, some_future_iff, some_past_iff, all_future_iff, all_past_iff in Satisfies.lean; toModal_neg, toTemporal_neg in Embedding.lean). Full lake build passes with zero errors.",
       "task_type": "lean4",
       "created": "2026-06-09T00:00:00Z",
-      "last_updated": "2026-06-09T00:00:00Z",
+      "last_updated": "2026-06-10T04:30:00Z",
       "topic": "Submit PRs",
-      "description": "Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Semantics/Satisfies.lean (neg_iff, some_future_iff, some_past_iff, all_future_iff, all_past_iff - LHS simplifies from / simp can prove). 2 in Propositional/Embedding.lean (toModal_neg, toTemporal_neg - LHS simplifies from). Either remove @[simp] attribute or restructure the lemma so LHS is in canonical simp form."
+      "description": "Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Semantics/Satisfies.lean (neg_iff, some_future_iff, some_past_iff, all_future_iff, all_past_iff - LHS simplifies from / simp can prove). 2 in Propositional/Embedding.lean (toModal_neg, toTemporal_neg - LHS simplifies from). Either remove @[simp] attribute or restructure the lemma so LHS is in canonical simp form.",
+      "session_id": "sess_1781063701_dc65b7",
+      "next_artifact_number": 2,
+      "planned": "2026-06-10T04:30:00Z",
+      "artifacts": [
+        {
+          "path": "specs/067_fix_simp_linter_warnings/reports/01_simp-linter-research.md",
+          "type": "research",
+          "summary": "Root cause analysis and fix recommendation for 7 simp linter warnings"
+        },
+        {
+          "path": "specs/067_fix_simp_linter_warnings/plans/01_fix-simp-warnings.md",
+          "type": "plan",
+          "summary": "2-phase plan: remove 7 @[simp] annotations and verify lake build"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 2,
+        "total_effort_hours": 0.5,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [[1], [2]],
+        "reports_integrated": [
+          {
+            "path": "reports/01_simp-linter-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-09"
+          }
+        ]
+      }
     },
     {
       "project_number": 59,

@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Removed @[simp] from 7 lemmas across 2 files (5 in Satisfies.lean, 2 in Embedding.lean). Full lake build passes with zero errors and zero simpNF warnings for target files.",
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "none",
+  "phases_completed": 2,
+  "phases_total": 2,
+  "artifacts": [
+    {
+      "path": "specs/067_fix_simp_linter_warnings/summaries/01_execution-summary.md",
+      "type": "summary",
+      "summary": "Execution summary for simp linter fixes"
+    }
+  ]
+}

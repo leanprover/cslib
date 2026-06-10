@@ -45,14 +45,17 @@ next_project_number: 68
         └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
           └─ 64 [NOT STARTED] — pr6_completeness_theorem
     └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
-67 [NOT STARTED] — Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Se
+67 [COMPLETED] — Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Se
   └─ 59 [PLANNED] — pr1_foundations_logic (see above)
 
 ## Tasks
 
 ### 67. Fix simp linter warnings in PR-scope files
-- **Effort**: Small (1 hour)
-- **Status**: [NOT STARTED]
+- **Effort**: Small (0.5 hours)
+- **Status**: [COMPLETED]
+- **Research**: [067_fix_simp_linter_warnings/reports/01_simp-linter-research.md]
+- **Plan**: [067_fix_simp_linter_warnings/plans/01_fix-simp-warnings.md]
+- **Summary**: [067_fix_simp_linter_warnings/summaries/01_execution-summary.md]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 
