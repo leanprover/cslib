@@ -134,14 +134,14 @@ def hilbertWeakening {Γ Δ : List (PL.Proposition Atom)}
 /-! ## Prop-level (`Deriv`) Versions -/
 
 /-- Implication introduction at the `Deriv` level. -/
-noncomputable def impIDeriv {Γ : List (PL.Proposition Atom)}
+theorem impIDeriv {Γ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (h : Deriv (A :: Γ) B) : Deriv Γ (A.imp B) := by
   obtain ⟨d⟩ := h
   exact ⟨impI d⟩
 
 /-- Implication elimination at the `Deriv` level. -/
-def impEDeriv {Γ : List (PL.Proposition Atom)}
+theorem impEDeriv {Γ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (h₁ : Deriv Γ (A.imp B)) (h₂ : Deriv Γ A) :
     Deriv Γ B := by
@@ -149,14 +149,14 @@ def impEDeriv {Γ : List (PL.Proposition Atom)}
   exact ⟨impE d₁ d₂⟩
 
 /-- Ex falso quodlibet at the `Deriv` level. -/
-def botEDeriv {Γ : List (PL.Proposition Atom)}
+theorem botEDeriv {Γ : List (PL.Proposition Atom)}
     {A : PL.Proposition Atom}
     (h : Deriv Γ Proposition.bot) : Deriv Γ A := by
   obtain ⟨d⟩ := h
   exact ⟨botE d⟩
 
 /-- Cut rule at the `Deriv` level. -/
-noncomputable def hilbertCutDeriv
+theorem hilbertCutDeriv
     {Γ Δ : List (PL.Proposition Atom)}
     {A B : PL.Proposition Atom}
     (h₁ : Deriv Γ A) (h₂ : Deriv (A :: Δ) B) :
@@ -165,7 +165,7 @@ noncomputable def hilbertCutDeriv
   exact ⟨hilbertCut d₁ d₂⟩
 
 /-- Weakening at the `Deriv` level. -/
-def hilbertWeakeningDeriv
+theorem hilbertWeakeningDeriv
     {Γ Δ : List (PL.Proposition Atom)}
     {φ : PL.Proposition Atom}
     (h : Deriv Γ φ) (hsub : ∀ x ∈ Γ, x ∈ Δ) :
@@ -208,7 +208,7 @@ def hilbertSubstitution
       List.mem_map.mpr ⟨y, h_sub y hy_mem, hy_eq⟩)
 
 /-- Substitution at the `Deriv` level. -/
-def hilbertSubstitutionDeriv
+theorem hilbertSubstitutionDeriv
     {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
     {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
     (h : Deriv Γ φ) (f : Atom → PL.Proposition Atom') :

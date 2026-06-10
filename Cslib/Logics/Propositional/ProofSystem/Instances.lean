@@ -37,6 +37,8 @@ open Cslib.Logic
 
 variable {Atom : Type*} [DecidableEq Atom]
 
+namespace Cslib.Logic.PL
+
 section PropositionalInstances
 
 /-! ## InferenceSystem Instance -/
@@ -84,3 +86,5 @@ instance :
       (F := PL.Proposition Atom) where
 
 end PropositionalInstances
+
+end Cslib.Logic.PL

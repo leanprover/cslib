@@ -9,7 +9,7 @@ module
 public import Cslib.Init
 public import Cslib.Foundations.Logic.Connectives
 public import Mathlib.Data.FunLike.Basic
-public import Mathlib.Data.Set.Image
+public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.TypeTags
 
 /-! # Propositions and theories
