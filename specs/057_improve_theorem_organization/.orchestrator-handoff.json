@@ -1,11 +1,13 @@
 {
-  "status": "planned",
-  "summary": "3-phase plan to move 2 generic temporal files to Foundations and replace 32 redundant Bimodal theorems with wrap/unwrap bridge wrappers",
+  "status": "implemented",
+  "summary": "Moved 2 generic temporal files to Foundations and replaced 30 redundant bimodal theorem proofs with wrap/unwrap bridge wrappers, eliminating ~308 lines of duplicated proofs",
+  "phases_completed": 3,
+  "phases_total": 3,
   "artifacts": [
     {
-      "path": "specs/057_improve_theorem_organization/plans/01_theorem-organization-plan.md",
-      "type": "plan",
-      "summary": "Implementation plan with 3 phases: (1) move TemporalDerived.lean and FrameConditions.lean to Foundations/Logic/Theorems/Temporal/, (2) replace 32 redundant concrete theorems in 3 Bimodal files with bridge wrappers preserving API signatures, (3) full build verification. Estimated 4 hours."
+      "path": "specs/057_improve_theorem_organization/summaries/01_implementation-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary documenting file moves, bridge wrappers, and verification results"
     }
   ],
   "blockers": [],
