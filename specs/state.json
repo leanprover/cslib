@@ -1,5 +1,5 @@
 {
-  "next_project_number": 79,
+  "next_project_number": 80,
   "active_projects": [
     {
       "project_number": 77,
@@ -466,12 +466,24 @@
     {
       "project_number": 78,
       "project_name": "module_keyword_and_private_audit",
-      "status": "researched",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T15:36:29Z",
-      "last_updated": "2026-06-10T16:00:06Z",
+      "last_updated": "2026-06-10T16:20:40Z",
       "dependencies": [
         76
+      ],
+      "completion_summary": "Migrated all 187 Logics/ files to module keyword. Removed private from 307 declarations, added module + public import + @[expose] public section to 155 files. Full lake build passes (2913 jobs)."
+    },
+    {
+      "project_number": 79,
+      "project_name": "deduplicate_shared_helpers",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T16:12:16Z",
+      "last_updated": "2026-06-10T16:12:16Z",
+      "dependencies": [
+        78
       ]
     }
   ],

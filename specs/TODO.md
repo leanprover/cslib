@@ -1,5 +1,5 @@
 ---
-next_project_number: 78
+next_project_number: 80
 ---
 
 # Tasks
@@ -47,6 +47,43 @@ next_project_number: 78
 
 ## Tasks
 
+### 79. Systematic deduplication audit and consolidation across Logics/
+- **Effort**: Large (8-16 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 78
+
+**Description**: Conduct a systematic survey of all code duplication across the Logics/ directory tree (Propositional, Modal, Temporal, Bimodal) and Foundations/Logic/, then consolidate duplicated definitions into shared locations. Task 78 removed `private` from definitions to enable the `module` keyword migration, but left duplication in place. This task aims for highest code quality by eliminating all unnecessary repetition.
+
+**Phase 1 — Comprehensive duplication survey**: Systematically scan all Logics/ and Foundations/Logic/ files to identify every instance of duplicated or near-duplicated code. This includes but is not limited to: identical definitions, structurally parallel proofs that differ only in type parameters, duplicated helper lemmas, repeated proof patterns, and similar namespace structures across logic domains. The survey should produce a categorized inventory with: (a) exact duplicates (identical code), (b) structural duplicates (same proof shape, different types), (c) near-duplicates (minor variations that could be generalized), and (d) intentional parallels (structurally similar but genuinely domain-specific). For each finding, assess whether deduplication is feasible and beneficial, or whether the duplication is justified by domain-specific differences.
+
+**Phase 2 — Consolidation**: Based on the survey findings, consolidate duplicated code into shared locations following the existing Foundations → Propositional → {Modal, Temporal} → Bimodal import hierarchy. Prioritize deduplication opportunities by impact (number of duplicate sites × lines saved) and safety (pure extractions before refactors that change proof structure).
+
+**Known duplication targets** (from task 78 research — survey should confirm and extend these):
+
+**(A) DeductionTheorem infrastructure** — 4 files with near-identical structure:
+- `Propositional/Metalogic/DeductionTheorem.lean`
+- `Modal/Metalogic/DeductionTheorem.lean`
+- `Temporal/Metalogic/DeductionTheorem.lean`
+- `Bimodal/Metalogic/Core/DeductionTheorem.lean`
+
+Each contains: `removeAll` (identical one-liner: `l.filter (· ≠ a)`), `removeAll_subset_of_subset` / `mem_removeAll_of_mem_of_ne` / `removeAll_subset_removeAll` (identical list lemmas), `deduction_axiom`, `deduction_imp_self`, `deduction_assumption_other`, `deduction_mp`, `deduction_with_mem`, `deduction_theorem` (structurally identical proofs parameterized over different formula/axiom types). The Bimodal variant additionally has `weaken_under_imp` and `weaken_under_imp_ctx`. Investigate whether a generic proof can be written once over the `HasDeductionTheorem` typeclass or the `DerivationSystem` abstraction already in `Foundations/Logic/`, with each logic domain providing only the instance.
+
+**(B) PointInsertion helpers** — 2 files with duplicated seed definitions:
+- `Temporal/Metalogic/Chronicle/PointInsertion.lean`: `lemma_2_7_seed`, `lemma_2_7_since_seed`
+- `Bimodal/Metalogic/BXCanonical/Chronicle/PointInsertion.lean`: same names, nearly identical bodies (Bimodal adds a `FrameClass` parameter)
+
+**(C) Theorem helper abbreviations** — within Bimodal only, not cross-domain:
+- `unwrap` in `Theorems/Combinators.lean` and `Theorems/Propositional/Core.lean`
+- `wrap`/`unwrap` in `Theorems/Perpetuity/Helpers.lean`
+- `wrap'`/`unwrap'` in `Theorems/Propositional/Connectives.lean`
+
+These are Bimodal-internal and may have different type signatures despite similar names. Audit whether consolidation is warranted.
+
+**Quality criteria**: The survey should be exhaustive — no category of duplication should be missed. After consolidation, each shared definition should exist in exactly one location. Domain-specific files should import the shared definition rather than redefining it. The full `lake build` must pass with zero errors. No behavioral changes — this is purely structural cleanup.
+
+---
+
 ### 77. Audit and clean up noncomputable usage across logic files
 - **Effort**: Medium (2-4 hours)
 - **Status**: [NOT STARTED]
@@ -58,10 +95,12 @@ next_project_number: 78
 
 ### 78. Systematic module keyword and private declaration audit across Logics/
 - **Effort**: Large (16-24 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 76
 - **Research**: [specs/078_module_keyword_and_private_audit/reports/01_module-keyword-audit.md]
+- **Plan**: [specs/078_module_keyword_and_private_audit/plans/01_module-keyword-audit.md]
+- **Summary**: [specs/078_module_keyword_and_private_audit/summaries/01_module-keyword-audit-summary.md]
 
 **Description**: Systematically audit and fix all Logics/ files (Modal, Temporal, Bimodal, Propositional) to properly support the Lean 4 `module` keyword. Task 76 added `module` + `public import` + `@[expose] public section` to 145 files but broke the build because `private` declarations inside `@[expose] public section` in `module` files become invisible to later code in the same file. The fix requires a holistic approach: (1) Inventory all `private` declarations across every `module` file. (2) For each one, determine if `private` is needed for name-collision avoidance (e.g., `theorem_in_mcs_fc` is defined identically in 18+ files) or is merely conventional. (3) Where `private` was only conventional (helpers used within a single proof), rename to unique namespace-qualified names (e.g., `deduction_axiom` → `DeductionTheorem.axiom_case`) and remove `private`. (4) Where `private` prevents genuine name collisions across files that import each other, either deduplicate into a shared utility module or use unique names per file. (5) Verify the full `lake build` passes with zero errors after all changes. (6) Re-apply task 76's `module` + `public import` + `@[expose] public section` migration on top of the cleaned codebase. This supersedes task 76 which has been reverted.
 
