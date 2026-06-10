@@ -4,11 +4,21 @@
     {
       "project_number": 65,
       "project_name": "pre_pr_cleanup_audit",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "general",
       "topic": "Submit PRs",
       "created": "2026-06-10T00:49:48Z",
-      "last_updated": "2026-06-10T00:49:48Z"
+      "last_updated": "2026-06-10T01:02:16Z",
+      "session_id": "sess_1749513600_a3b2c1",
+      "researched": "2026-06-10T01:02:16Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/065_pre_pr_cleanup_audit/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research with 4 teammates"
+        }
+      ]
     },
     {
       "project_number": 58,
