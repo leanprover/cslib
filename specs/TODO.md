@@ -1,5 +1,5 @@
 ---
-next_project_number: 80
+next_project_number: 82
 ---
 
 # Tasks
@@ -11,8 +11,8 @@ next_project_number: 80
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,77 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
-| 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
+| 1 | 36,37,38,60,61,76,79,81 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,62,80 | 36,37,61,79 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
 
@@ -43,15 +43,27 @@ next_project_number: 80
 
 ### Uncategorized
 
-77 [COMPLETED] — audit_noncomputable_usage
+76 [NOT STARTED] — module_keyword_migration
+79 [PLANNED] — deduplicate_shared_helpers
+  └─ 80 [RESEARCHING] — generic_deduction_theorem
+81 [NOT STARTED] — pr1_foundations_logic_code_review
 
 ## Tasks
 
-### 79. Systematic deduplication audit and consolidation across Logics/
-- **Effort**: Large (8-16 hours)
+### 81. Review PR 1 Foundations Logic code quality for infrastructure, organization, naming, and proof improvements
+- **Effort**: large
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
+
+**Description**: Review the files covered by specs/059_pr1_foundations_logic/pr-description.md for PR 1, examining code quality across infrastructure, organization, naming conventions (aligned with CSLib norms), comments, and proofs to identify systematic improvements for the highest quality results before submission
+
+### 79. Systematic deduplication audit and consolidation across Logics/
+- **Effort**: Large (8-16 hours)
+- **Status**: [PLANNED]
+- **Task Type**: lean4
 - **Dependencies**: Task 78
+- **Research**: [specs/079_deduplicate_shared_helpers/reports/01_deduplication-survey.md]
+- **Plan**: [specs/079_deduplicate_shared_helpers/plans/01_deduplication-plan.md]
 
 **Description**: Conduct a systematic survey of all code duplication across the Logics/ directory tree (Propositional, Modal, Temporal, Bimodal) and Foundations/Logic/, then consolidate duplicated definitions into shared locations. Task 78 removed `private` from definitions to enable the `module` keyword migration, but left duplication in place. This task aims for highest code quality by eliminating all unnecessary repetition.
 
@@ -81,6 +93,16 @@ Each contains: `removeAll` (identical one-liner: `l.filter (· ≠ a)`), `remove
 These are Bimodal-internal and may have different type signatures despite similar names. Audit whether consolidation is warranted.
 
 **Quality criteria**: The survey should be exhaustive — no category of duplication should be missed. After consolidation, each shared definition should exist in exactly one location. Domain-specific files should import the shared definition rather than redefining it. The full `lake build` must pass with zero errors. No behavioral changes — this is purely structural cleanup.
+
+---
+
+### 80. Generic DeductionTheorem interface across all logic domains
+- **Effort**: Medium (3-4 hours)
+- **Status**: [RESEARCHING]
+- **Task Type**: lean4
+- **Dependencies**: Task 79
+
+**Description**: Design and implement a shared `HasDerivationTree` typeclass in Foundations/Logic/ that exposes `height`, constructor accessors (`ax`, `assumption`, `mp`, `weakening`), and height-related lemmas, enabling a single generic deduction theorem proof to serve all 4 logic domains (Propositional, Modal, Temporal, Bimodal). Currently each domain has its own ~200-line deduction theorem proof in its `DeductionTheorem.lean` file, all following identical structure: base cases for axiom and assumption (split into same vs. other), inductive case for modus ponens, weakening reduction, and domain-specific "empty-context-only" constructors (e.g., necessitation, temporal_necessity, temporal_duality) which are all discharged by `simp at hA`. The generic proof should handle the 4 common constructors, with each logic providing a dispatch mechanism for its extra constructors. After implementation, each domain's `DeductionTheorem.lean` should contain only a `HasDerivationTree` instance and a one-line invocation of the generic proof, eliminating ~600 lines of duplicated proof code across the 3 non-canonical domains.
 
 ---
 

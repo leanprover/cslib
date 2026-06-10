@@ -1,6 +1,14 @@
 {
-  "next_project_number": 80,
+  "next_project_number": 82,
   "active_projects": [
+    {
+      "project_number": 81,
+      "project_name": "pr1_foundations_logic_code_review",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T16:55:54Z",
+      "last_updated": "2026-06-10T16:55:54Z"
+    },
     {
       "project_number": 77,
       "project_name": "audit_noncomputable_usage",
@@ -478,13 +486,25 @@
     {
       "project_number": 79,
       "project_name": "deduplicate_shared_helpers",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-10T16:12:16Z",
-      "last_updated": "2026-06-10T16:12:16Z",
+      "last_updated": "2026-06-10T16:43:02Z",
       "dependencies": [
         78
       ]
+    },
+    {
+      "project_number": 80,
+      "project_name": "generic_deduction_theorem",
+      "status": "researching",
+      "task_type": "lean4",
+      "created": "2026-06-10T16:44:52Z",
+      "last_updated": "2026-06-10T16:50:38Z",
+      "dependencies": [
+        79
+      ],
+      "session_id": "sess_1781110226_a7ba85"
     }
   ],
   "repository_health": {

@@ -112,7 +112,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Replace Temporal PropositionalHelpers with Foundations Delegation [NOT STARTED]
+### Phase 2: Replace Temporal PropositionalHelpers with Foundations Delegation [IN PROGRESS]
 
 **Goal**: Replace the 11 re-proved propositional theorems in `Temporal/Metalogic/PropositionalHelpers.lean` with thin delegation wrappers that call the generic Foundations versions, following the pattern already established in `Bimodal/Theorems/Perpetuity/Helpers.lean`.
 
