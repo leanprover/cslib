@@ -652,10 +652,10 @@
     {
       "project_number": 86,
       "project_name": "pr1_lint_quality_audit",
-      "status": "not_started",
+      "status": "partial",
       "task_type": "lean4",
       "created": "2026-06-10T21:39:57Z",
-      "last_updated": "2026-06-10T21:39:57Z"
+      "last_updated": "2026-06-10T22:30:00Z"
     },
     {
       "project_number": 87,

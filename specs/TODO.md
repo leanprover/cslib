@@ -71,8 +71,10 @@ next_project_number: 86
 
 ### 86. Systematic lint and quality audit of all pr1/foundations-logic additions
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [PARTIAL]
 - **Task Type**: lean4
+- **Research**: [specs/086_pr1_lint_quality_audit/reports/01_lint-quality-audit.md]
+- **Plan**: [specs/086_pr1_lint_quality_audit/plans/01_lint-quality-audit.md]
 
 **Description**: Run the full CSLib CI lint suite (`lake lint`, `lake shake`, `lake exe lint-style`, `lake exe checkInitImports`, `lake exe mk_all --module --check`) across all 25 files changed on the `pr1/foundations-logic` branch and fix every issue found. Known recurring patterns to check systematically:
 
