@@ -1,5 +1,5 @@
 ---
-next_project_number: 68
+next_project_number: 72
 ---
 
 # Tasks
@@ -11,12 +11,10 @@ next_project_number: 68
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,66,67 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
-| 2 | 39,40,59 | 36,37,66,67 | Temporal Logic, Submit PRs |
-| 3 | 41,60,61 | 38,39,40,59 | Foundations, Submit PRs |
-| 4 | 62 | 59,61 | Submit PRs |
-| 5 | 63 | 62 | Submit PRs |
-| 6 | 64 | 63 | Submit PRs |
+| 1 | 36,37,38,60,61,68 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,62,69,70,71 | 36,37,61,68 | Temporal Logic, Submit PRs |
+| 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
+| 4 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -37,18 +35,61 @@ next_project_number: 68
 
 ### Submit PRs
 
-66 [RESEARCHED] — Rename 19 snake_case identifiers to lowerCamelCase in PR-scope fi
-  └─ 59 [PLANNED] — pr1_foundations_logic
-    └─ 60 [NOT STARTED] — pr2_modal_metalogic
-    └─ 61 [NOT STARTED] — pr3_temporal_proof_system
-      └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
-        └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
-          └─ 64 [NOT STARTED] — pr6_completeness_theorem
-    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
-67 [COMPLETED] — Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Se
-  └─ 59 [PLANNED] — pr1_foundations_logic (see above)
+60 [NOT STARTED] — pr2_modal_metalogic
+61 [NOT STARTED] — pr3_temporal_proof_system
+  └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
+    └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
+      └─ 64 [NOT STARTED] — pr6_completeness_theorem
+68 [NOT STARTED] — add_module_keyword_theorem_files
+  └─ 69 [NOT STARTED] — fix_linter_warnings_foundations
+  └─ 70 [NOT STARTED] — remove_unused_cslib_init_imports
+  └─ 71 [NOT STARTED] — polish_docs_theorems_axioms
 
 ## Tasks
+
+### 71. Polish documentation in Theorems.lean and Axioms.lean
+- **Effort**: Small (0.5 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 68
+- **Topic**: Submit PRs
+
+**Description**: NICE-TO-HAVE quality audit fixes. (a) Theorems.lean aggregator docstring is missing the Temporal subsection -- add entries for Temporal.TemporalDerived and Temporal.FrameConditions. (b) Axioms.lean temporal section (lines 112-295) has repeated `let top` and `let neg` blocks in nearly every temporal axiom definition -- extract as section-scoped `private abbrev top'` and `private abbrev neg'` to reduce visual noise. Purely cosmetic; verify `lake build` passes after changes.
+
+---
+
+### 70. Remove unused public import Cslib.Init from 4 core definition files
+- **Effort**: Small (0.5 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 68
+- **Topic**: Submit PRs
+
+**Description**: `lake shake` flags unused `public import Cslib.Init` in Connectives.lean, Axioms.lean, InferenceSystem.lean, and ProofSystem.lean. Remove the unused imports, then run `lake build` and `lake shake` to confirm clean output. Should be done after task 68 (module keyword addition) since changing import declarations may affect what `lake shake` reports.
+
+---
+
+### 69. Fix linter warnings in Foundations/Logic theorem files
+- **Effort**: Medium (2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 68
+- **Topic**: Submit PRs
+
+**Description**: SHOULD-FIX quality audit items. Four sub-issues: (a) BigConj.lean has 6 flexible `simp` warnings -- replace bare `simp [bigconj]` with `simp only [...]` using compiler-suggested replacements. (b) Propositional/Connectives.lean has 2 empty-line-in-command style warnings at lines 357 and 368 -- remove blank lines or replace with comment lines. (c) 5 files (Combinators, Core, Prop/Connectives, Modal/Basic, S5) suppress `set_option linter.unreachableTactic false` at file scope -- scope to specific proofs using `set_option ... in theorem ...`. (d) S5.lean and TemporalDerived.lean suppress `set_option linter.style.longLine false` at file scope -- use `let` abbreviations in theorem statements and scope suppression to specific theorems only.
+
+---
+
+### 68. Add module keyword to 10 Foundations/Logic theorem files
+- **Effort**: Medium (1.5 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 59
+- **Topic**: Submit PRs
+
+**Description**: MUST-FIX from quality audit. 10 of 15 files in Cslib/Foundations/Logic/ are missing the `module` keyword, preventing them from being imported from `Cslib.lean` (which is a `module` file). Affected files: Theorems/Combinators.lean, Theorems/Propositional/Core.lean, Theorems/Propositional/Connectives.lean, Theorems/BigConj.lean, Theorems/Modal/Basic.lean, Theorems/Modal/S5.lean, Theorems/Temporal/TemporalDerived.lean, Theorems/Temporal/FrameConditions.lean, Metalogic/Consistency.lean, Theorems.lean. For each file: add `module` after copyright header, change `import` to `public import`, follow the pattern used by the 5 core definition files (InferenceSystem, Connectives, Axioms, ProofSystem, LogicalEquivalence). Run `lake build` and `lake exe mk_all` to update Cslib.lean after all changes.
+
+---
 
 ### 67. Fix simp linter warnings in PR-scope files
 - **Effort**: Small (0.5 hours)

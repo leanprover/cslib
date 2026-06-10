@@ -1,6 +1,54 @@
 {
-  "next_project_number": 68,
+  "next_project_number": 72,
   "active_projects": [
+    {
+      "project_number": 68,
+      "project_name": "add_module_keyword_theorem_files",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        59
+      ],
+      "created": "2026-06-10T05:15:39Z",
+      "last_updated": "2026-06-10T05:15:39Z"
+    },
+    {
+      "project_number": 69,
+      "project_name": "fix_linter_warnings_foundations",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        68
+      ],
+      "created": "2026-06-10T05:15:39Z",
+      "last_updated": "2026-06-10T05:15:39Z"
+    },
+    {
+      "project_number": 70,
+      "project_name": "remove_unused_cslib_init_imports",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        68
+      ],
+      "created": "2026-06-10T05:15:39Z",
+      "last_updated": "2026-06-10T05:15:39Z"
+    },
+    {
+      "project_number": 71,
+      "project_name": "polish_docs_theorems_axioms",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        68
+      ],
+      "created": "2026-06-10T05:15:39Z",
+      "last_updated": "2026-06-10T05:15:39Z"
+    },
     {
       "project_number": 66,
       "project_name": "fix_lint_naming_conventions",
