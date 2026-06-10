@@ -169,13 +169,13 @@ class HasAxiomSerialPast where
 
 /-- The proof system proves guard monotonicity of Until under G (BX2G). -/
 class HasAxiomLeftMonoUntilG where
-  leftMonoUntilG {φ χ ψ : F} :
-    InferenceSystem.DerivableIn S (Axioms.LeftMonoUntilG φ χ ψ)
+  leftMonoUntilG {φ ψ χ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LeftMonoUntilG φ ψ χ)
 
 /-- The proof system proves guard monotonicity of Since under H (BX2H). -/
 class HasAxiomLeftMonoSinceH where
-  leftMonoSinceH {φ χ ψ : F} :
-    InferenceSystem.DerivableIn S (Axioms.LeftMonoSinceH φ χ ψ)
+  leftMonoSinceH {φ ψ χ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LeftMonoSinceH φ ψ χ)
 
 /-- The proof system proves event monotonicity of Until (BX3). -/
 class HasAxiomRightMonoUntil where

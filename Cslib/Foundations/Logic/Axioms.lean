@@ -137,20 +137,20 @@ protected abbrev SerialPast : F :=
   HasImp.imp top' (HasSince.snce top' top')
 
 /-- Guard monotonicity of Until under G (BX2G):
-    G(φ → χ) → (ψ U φ → ψ U χ)
+    G(φ → ψ) → (χ U φ → χ U ψ)
     where G(α) = ¬(⊤ U ¬α) -/
-protected abbrev LeftMonoUntilG (φ χ ψ : F) : F :=
-  let G_imp := HasImp.imp (HasUntil.untl (neg' (HasImp.imp φ χ)) top') HasBot.bot
+protected abbrev LeftMonoUntilG (φ ψ χ : F) : F :=
+  let G_imp := HasImp.imp (HasUntil.untl (neg' (HasImp.imp φ ψ)) top') HasBot.bot
   HasImp.imp G_imp
-    (HasImp.imp (HasUntil.untl ψ φ) (HasUntil.untl ψ χ))
+    (HasImp.imp (HasUntil.untl χ φ) (HasUntil.untl χ ψ))
 
 /-- Guard monotonicity of Since under H (BX2H):
-    H(φ → χ) → (ψ S φ → ψ S χ)
+    H(φ → ψ) → (χ S φ → χ S ψ)
     where H(α) = ¬(⊤ S ¬α) -/
-protected abbrev LeftMonoSinceH (φ χ ψ : F) : F :=
-  let H_imp := HasImp.imp (HasSince.snce (neg' (HasImp.imp φ χ)) top') HasBot.bot
+protected abbrev LeftMonoSinceH (φ ψ χ : F) : F :=
+  let H_imp := HasImp.imp (HasSince.snce (neg' (HasImp.imp φ ψ)) top') HasBot.bot
   HasImp.imp H_imp
-    (HasImp.imp (HasSince.snce ψ φ) (HasSince.snce ψ χ))
+    (HasImp.imp (HasSince.snce χ φ) (HasSince.snce χ ψ))
 
 /-- Event monotonicity of Until (BX3):
     G(φ → ψ) → (φ U χ → ψ U χ)

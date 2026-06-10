@@ -93,24 +93,24 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
       simp only [Satisfies.somePast_iff]
       obtain ⟨s, hs⟩ := exists_lt t; exact ⟨s, hs, Satisfies.top_true M s⟩
     exact this
-  | left_mono_until_G φ χ ψ =>
-    -- G(φ→χ) → (ψ U φ → ψ U χ). Guard monotonicity.
-    -- Goal: G(φ→χ) → (ψ U φ → ψ U χ). All terms are formula constructors.
+  | left_mono_until_G φ ψ χ =>
+    -- G(φ→ψ) → (χ U φ → χ U ψ). Guard monotonicity.
+    -- Goal: G(φ→ψ) → (χ U φ → χ U ψ). All terms are formula constructors.
     intro hGimp huntl
-    -- hGimp unfolds to: ¬(∃ s > t, ¬(φ s → χ s) ∧ ...) which is G(φ→χ)
-    -- Let's work semantically: extract ∀ s > t, φ→χ from G(φ→χ)
-    have hG : ∀ s, t < s → Satisfies M s φ → Satisfies M s χ := by
+    -- hGimp unfolds to: ¬(∃ s > t, ¬(φ s → ψ s) ∧ ...) which is G(φ→ψ)
+    -- Let's work semantically: extract ∀ s > t, φ→ψ from G(φ→ψ)
+    have hG : ∀ s, t < s → Satisfies M s φ → Satisfies M s ψ := by
       intro s hs hφ
-      by_contra hχ
-      exact hGimp ⟨s, hs, (fun h => hχ (h hφ)), fun _ _ _ h => h⟩
+      by_contra hψ
+      exact hGimp ⟨s, hs, (fun h => hψ (h hφ)), fun _ _ _ h => h⟩
     obtain ⟨s, hlt, hev, hg⟩ := huntl
     exact ⟨s, hlt, hev, fun r hr1 hr2 => hG r hr1 (hg r hr1 hr2)⟩
-  | left_mono_since_H φ χ ψ =>
+  | left_mono_since_H φ ψ χ =>
     intro hHimp hsnce
-    have hH : ∀ s, s < t → Satisfies M s φ → Satisfies M s χ := by
+    have hH : ∀ s, s < t → Satisfies M s φ → Satisfies M s ψ := by
       intro s hs hφ
-      by_contra hχ
-      exact hHimp ⟨s, hs, (fun h => hχ (h hφ)), fun _ _ _ h => h⟩
+      by_contra hψ
+      exact hHimp ⟨s, hs, (fun h => hψ (h hφ)), fun _ _ _ h => h⟩
     obtain ⟨s, hlt, hev, hg⟩ := hsnce
     exact ⟨s, hlt, hev, fun r hr1 hr2 => hH r hr2 (hg r hr1 hr2)⟩
   | right_mono_until φ ψ χ =>

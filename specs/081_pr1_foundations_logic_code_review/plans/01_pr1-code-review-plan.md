@@ -201,7 +201,7 @@ Phases are fully sequential because each rename/refactor may affect files touche
 
 ---
 
-### Phase 5: Align LeftMono/RightMono variable ordering and standardize S5.lean variables (Items 9, 7) [NOT STARTED]
+### Phase 5: Align LeftMono/RightMono variable ordering and standardize S5.lean variables (Items 9, 7) [COMPLETED]
 
 **Goal**: Align `LeftMonoUntilG` and `LeftMonoSinceH` variable ordering from `(φ χ ψ)` to `(φ ψ χ)` for consistency with `RightMonoUntil`/`RightMonoSince`. Also rename `A B` to `φ ψ` in 4 S5.lean theorem signatures.
 

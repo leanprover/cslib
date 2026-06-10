@@ -97,14 +97,14 @@ inductive Axiom : Formula Atom → Type u where
       Axiom (Formula.top.imp (Formula.somePast Formula.top))
 
   /-- BX2G: Guard monotonicity of Until under G:
-      G(φ → χ) → (ψ U φ → ψ U χ) -/
-  | left_mono_until_G (φ χ ψ : Formula Atom) :
-      Axiom ((φ.imp χ).allFuture.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ)))
+      G(φ → ψ) → (χ U φ → χ U ψ) -/
+  | left_mono_until_G (φ ψ χ : Formula Atom) :
+      Axiom ((φ.imp ψ).allFuture.imp ((Formula.untl χ φ).imp (Formula.untl χ ψ)))
 
   /-- BX2H: Guard monotonicity of Since under H:
-      H(φ → χ) → (ψ S φ → ψ S χ) -/
-  | left_mono_since_H (φ χ ψ : Formula Atom) :
-      Axiom ((φ.imp χ).allPast.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ)))
+      H(φ → ψ) → (χ S φ → χ S ψ) -/
+  | left_mono_since_H (φ ψ χ : Formula Atom) :
+      Axiom ((φ.imp ψ).allPast.imp ((Formula.snce χ φ).imp (Formula.snce χ ψ)))
 
   /-- BX3: Event monotonicity of Until:
       G(φ → ψ) → (φ U χ → ψ U χ) -/

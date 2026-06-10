@@ -43,14 +43,14 @@ abbrev allPast (φ : F) : F := neg' (somePast (neg' φ))
 
 /-! ### Level 0: Direct Axiom Wrappers -/
 
-/-- Guard monotonicity of Until under G (BX2G): `⊢ G(φ→χ) → (ψ U φ → ψ U χ)`. -/
-theorem until_mono_guard {φ χ ψ : F} :
-    InferenceSystem.DerivableIn S (Axioms.LeftMonoUntilG φ χ ψ) :=
+/-- Guard monotonicity of Until under G (BX2G): `⊢ G(φ→ψ) → (χ U φ → χ U ψ)`. -/
+theorem until_mono_guard {φ ψ χ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LeftMonoUntilG φ ψ χ) :=
   HasAxiomLeftMonoUntilG.leftMonoUntilG
 
-/-- Guard monotonicity of Since under H (BX2H): `⊢ H(φ→χ) → (ψ S φ → ψ S χ)`. -/
-theorem since_mono_guard {φ χ ψ : F} :
-    InferenceSystem.DerivableIn S (Axioms.LeftMonoSinceH φ χ ψ) :=
+/-- Guard monotonicity of Since under H (BX2H): `⊢ H(φ→ψ) → (χ S φ → χ S ψ)`. -/
+theorem since_mono_guard {φ ψ χ : F} :
+    InferenceSystem.DerivableIn S (Axioms.LeftMonoSinceH φ ψ χ) :=
   HasAxiomLeftMonoSinceH.leftMonoSinceH
 
 /-- Event monotonicity of Until (BX3): `⊢ G(φ→ψ) → (φ U χ → ψ U χ)`. -/
