@@ -1,36 +1,10 @@
 {
-  "status": "researched",
-  "summary": "Team research completed with 4 teammates. Key findings: only 1 sorry in PR scope (Frame.lean), scope should narrow to 47 PR-target files, ~740 lines commented-out code to remove, 2 missing copyright headers, 61 linter suppressions in PR modules, lake shake disabled in CI, ~21K lines code duplication (defer to task 41).",
-  "artifacts": [
-    {
-      "type": "research",
-      "path": "specs/065_pre_pr_cleanup_audit/reports/01_team-research.md",
-      "summary": "Synthesized research from 4 teammates"
-    }
-  ],
-  "team_execution": {
-    "enabled": true,
-    "wave_count": 1,
-    "teammates_spawned": 4,
-    "teammates_completed": 4,
-    "teammates_failed": 0,
-    "token_usage_multiplier": 5.0,
-    "degraded_to_single": false
-  },
-  "teammate_results": [
-    {"teammate": "A", "angle": "Implementation quality", "status": "completed", "confidence": "high"},
-    {"teammate": "B", "angle": "Structure & organization", "status": "completed", "confidence": "high"},
-    {"teammate": "C", "angle": "Blind spots & PR feasibility", "status": "completed", "confidence": "high"},
-    {"teammate": "D", "angle": "Strategic alignment", "status": "completed", "confidence": "high"}
-  ],
-  "synthesis": {
-    "conflicts_found": 4,
-    "conflicts_resolved": 4,
-    "gaps_identified": 4,
-    "wave_2_triggered": false
-  },
-  "metadata": {
-    "session_id": "sess_1749513600_a3b2c1",
-    "agent_type": "skill-team-research"
-  }
+  "status": "in_progress",
+  "agent_type": "general-implementation-agent",
+  "session_id": "sess_1781053475_1ba0c6",
+  "task_number": 65,
+  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+  "started_at": "2026-06-09T00:00:00Z",
+  "phases_completed": 0,
+  "phases_total": 6
 }

@@ -1,7 +1,7 @@
 # Implementation Plan: Pre-PR Cleanup Audit
 
 - **Task**: 65 - Audit repo for pre-PR cleanup and create refactoring tasks
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 8 hours
 - **Dependencies**: None (gates tasks 58-64)
 - **Research Inputs**: specs/065_pre_pr_cleanup_audit/reports/01_team-research.md
@@ -67,17 +67,17 @@ This plan advances the "Submit PRs" topic from the roadmap. Tasks 58-64 define t
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Import Cleanup via lake shake [NOT STARTED]
+### Phase 1: Import Cleanup via lake shake [COMPLETED]
 
 **Goal**: Remove unused imports from all PR-scope files to pre-empt reviewer feedback and prepare for CI enforcement.
 
 **Tasks**:
-- [ ] Run `lake shake` on all files in `Cslib/Foundations/Logic/` (16 files)
-- [ ] Run `lake shake` on all files in `Cslib/Logics/Modal/` (11 files)
-- [ ] Run `lake shake` on all files in `Cslib/Logics/Temporal/` (~32 files)
-- [ ] Apply fixes from `lake shake --fix` output
-- [ ] Run `lake build` to verify no regressions
-- [ ] Document any imports that had to be restored (transitive dependencies)
+- [x] **Task 1.1**: Run `lake shake` on all files in `Cslib/Foundations/Logic/` (16 files) *(completed)*
+- [x] **Task 1.2**: Run `lake shake` on all files in `Cslib/Logics/Modal/` (11 files) *(completed)*
+- [x] **Task 1.3**: Run `lake shake` on all files in `Cslib/Logics/Temporal/` (~32 files) *(completed)*
+- [x] **Task 1.4**: Apply fixes from `lake shake --fix` output *(deviation: altered — no imports removed; shake found PR-scope files already clean)*
+- [x] **Task 1.5**: Run `lake build` to verify no regressions *(completed)*
+- [x] **Task 1.6**: Document any imports that had to be restored (transitive dependencies) *(completed: none needed — no imports were removed)*
 
 **Timing**: 1.5 hours
 
