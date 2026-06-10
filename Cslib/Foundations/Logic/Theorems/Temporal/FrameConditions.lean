@@ -3,10 +3,13 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Mathlib.Algebra.Order.Group.Defs
-import Mathlib.Algebra.Order.Group.Int
-import Mathlib.Data.Int.SuccPred
-import Mathlib.Order.SuccPred.LinearLocallyFinite
+
+module
+
+public import Mathlib.Algebra.Order.Group.Defs
+public import Mathlib.Algebra.Order.Group.Int
+public import Mathlib.Data.Int.SuccPred
+public import Mathlib.Order.SuccPred.LinearLocallyFinite
 
 /-! # Frame Condition Typeclasses for Temporal Logic
 

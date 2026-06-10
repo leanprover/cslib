@@ -3,14 +3,17 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Foundations.Logic.Theorems.Combinators
-import Cslib.Foundations.Logic.Theorems.Propositional.Core
-import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
-import Cslib.Foundations.Logic.Theorems.BigConj
-import Cslib.Foundations.Logic.Theorems.Modal.Basic
-import Cslib.Foundations.Logic.Theorems.Modal.S5
-import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
-import Cslib.Foundations.Logic.Theorems.Temporal.FrameConditions
+
+module
+
+public import Cslib.Foundations.Logic.Theorems.Combinators
+public import Cslib.Foundations.Logic.Theorems.Propositional.Core
+public import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
+public import Cslib.Foundations.Logic.Theorems.BigConj
+public import Cslib.Foundations.Logic.Theorems.Modal.Basic
+public import Cslib.Foundations.Logic.Theorems.Modal.S5
+public import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
+public import Cslib.Foundations.Logic.Theorems.Temporal.FrameConditions
 
 /-! # Hilbert-Style Theorems
 

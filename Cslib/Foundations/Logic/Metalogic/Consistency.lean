@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Mathlib.Order.Zorn
-import Cslib.Foundations.Logic.Connectives
+module
+
+public import Mathlib.Order.Zorn
+public import Cslib.Foundations.Logic.Connectives
 
 /-! # Generic Maximal Consistent Set (MCS) Foundations
 
