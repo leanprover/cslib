@@ -8,60 +8,58 @@ and **Bimodal**. See `specs/TODO.md` for task tracking.
 ## Approach
 
 Every component lives at the most general level it can compile at. Content is
-distributed across four module levels — Foundations/Logic/Theorems/,
-Logics/Modal/, Logics/Temporal/, and Logics/Bimodal/ — with imports flowing
-strictly downward: Foundations → Modal/Temporal (including their Metalogic) →
-Bimodal. Modal and Temporal metalogic are fully standalone and do not import
-from each other.
+distributed across four module levels — Foundations/Logic/, Logics/Modal/,
+Logics/Temporal/, and Logics/Bimodal/. Foundations provides shared
+infrastructure (connectives, proof systems, propositional theorems, MCS theory)
+that all three logic modules import directly. Modal and Temporal are independent
+peers that do not import from each other. Bimodal imports from Modal and
+Temporal for cross-logic results (embedding, conservative extension) and also
+imports Foundations infrastructure directly.
 
-## Existing Module Dependency Structure
+## Module Dependency Structure
 
-The dependencies will evolve as progress is made.
+Foundations feeds all three logic modules directly. Modal and Temporal
+are independent peers in the middle layer. Bimodal additionally imports
+from Modal and Temporal for embedding and conservative extension results.
 
 ```mermaid
-flowchart TD
-    subgraph F ["Foundations/Logic"]
-        FC["Connectives\nProofSystem"]
-        FT["Theorems/\nPropositional + Modal"]
-        FM["Metalogic/\nConsistency"]
+flowchart TB
+    subgraph F ["Foundations / Logic"]
+        direction LR
+        F1["Connectives · ProofSystem"]
+        F2["Theorems"]
+        F3["Metalogic"]
     end
 
-    subgraph M ["Logics/Modal"]
-        MB["Basic\n(Syntax + Kripke Semantics)"]
-        MM["Metalogic\n(DeductionThm + MCS + Soundness + Completeness)"]
+    subgraph M ["Logics / Modal"]
+        direction LR
+        M1["Syntax · Semantics"]
+        M2["Metalogic"]
     end
 
-    subgraph T ["Logics/Temporal"]
-        TS["Syntax + Semantics\nProofSystem"]
-        TT["Theorems"]
-        TM["Metalogic\n(DeductionThm + MCS + Soundness + Completeness)"]
+    subgraph T ["Logics / Temporal"]
+        direction LR
+        T1["Syntax · Semantics · ProofSystem"]
+        T2["Theorems"]
+        T3["Metalogic"]
     end
 
-    subgraph B ["Logics/Bimodal"]
-        BS["Syntax + Semantics\nProofSystem"]
-        BT["Theorems\n(incl. Perpetuity)"]
-        BM["Metalogic\n(Core + Soundness + Bundle + Algebraic\nBXCanonical + Separation + ConservativeExt + Decidability)"]
+    subgraph B ["Logics / Bimodal"]
+        direction LR
+        B1["Syntax · Semantics · ProofSystem"]
+        B2["Theorems · Embedding"]
+        B3["Metalogic"]
     end
 
-    FC --> MB
-    FC --> BS
-    FC --> TS
-    FT --> MM
-    FT --> TT
-    FT --> TM
-    FT --> BT
-    FM --> MM
-    FM --> TM
-    FM --> BM
-    MB --> MM
-    TS --> TM
-    TT -.->|theorem reuse| BT
-    BS --> BT
-    BS --> BM
-    BT --> BM
+    F1 --> M1 & T1 & B1
+    F2 --> M2 & T2 & B2
+    F3 --> M2 & T3 & B3
+
+    M1 --> B2
+    M2 --> B3
+    T2 --> B2
+    T3 --> B3
 ```
-
-Imports flow downward: Foundations at top, Modal and Temporal in the middle (independent of each other), Bimodal at the bottom. The dashed edge from Temporal Theorems to Bimodal Theorems represents the only cross-logic import (`Bimodal.Theorems.Perpetuity.Principles` imports `Temporal.Theorems.TemporalDerived`). FC feeds both Bimodal Syntax (FC→BS) and Temporal Syntax (FC→TS); FT feeds both Modal Metalogic (FT→MM) and Temporal Metalogic (FT→TM).
 
 ## Completed
 
