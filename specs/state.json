@@ -4,10 +4,13 @@
     {
       "project_number": 82,
       "project_name": "systematic_codebase_review_logics_foundations",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-10T17:46:37Z",
-      "last_updated": "2026-06-10T17:46:37Z"
+      "last_updated": "2026-06-10T17:59:27Z",
+      "session_id": "sess_1781113824_a0979d",
+      "researched": "2026-06-10T17:59:27Z",
+      "next_artifact_number": 2
     },
     {
       "project_number": 81,
