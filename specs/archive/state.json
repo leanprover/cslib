@@ -926,6 +926,103 @@
       "description": "Expanded into tasks 34 (base MCS properties), 35 (dense completeness), 36 (discrete completeness), 37 (continuous extension completeness).",
       "topic": "Bimodal Porting",
       "archived": "2026-06-09T23:48:19Z"
+    },
+    {
+      "project_number": 55,
+      "project_name": "update_roadmap_completions_and_diagram",
+      "status": "completed",
+      "task_type": "markdown",
+      "created": "2026-06-09T23:55:25Z",
+      "last_updated": "2026-06-10T00:05:58Z",
+      "topic": "Documentation",
+      "completion_summary": "Updated ROADMAP.md with completed items, fixed mermaid diagram edges, expanded project structure tree, and corrected TODO.md status inconsistencies",
+      "archived": "2026-06-10T02:28:50Z"
+    },
+    {
+      "project_number": 56,
+      "project_name": "plan_pr_submission_strategy",
+      "status": "completed",
+      "task_type": "general",
+      "created": "2026-06-09T23:59:36Z",
+      "last_updated": "2026-06-10T00:19:56Z",
+      "completion_summary": "Researched and planned PR submission strategy: 6 PRs in dependency order (Foundations/Logic -> Modal Metalogic -> Temporal ProofSystem -> Temporal Metalogic Core -> Chronicle Infrastructure -> Completeness Theorem). Supersedes tasks 51-54.",
+      "archived": "2026-06-10T02:28:50Z"
+    },
+    {
+      "project_number": 57,
+      "project_name": "improve_theorem_organization",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-10T00:20:38Z",
+      "last_updated": "2026-06-10T00:52:52Z",
+      "topic": "Foundations",
+      "session_id": "sess_1781050904_b91db3",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/057_improve_theorem_organization/reports/01_theorem-organization-research.md",
+          "type": "report",
+          "summary": "Theorem organization research: 32/40 redundant, 8 concrete-only, wrap/unwrap bridge pattern"
+        }
+      ],
+      "completion_summary": "Moved 2 generic temporal theorem files to Foundations/Logic/Theorems/Temporal/ and replaced 30 redundant concrete Bimodal theorem proofs with wrap/unwrap bridge wrappers delegating to Foundations generics, eliminating ~308 lines of duplicated proofs",
+      "archived": "2026-06-10T02:28:50Z"
+    },
+    {
+      "project_number": 58,
+      "project_name": "ci_prep_sorry_fix_baseline",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-10T00:22:30Z",
+      "last_updated": "2026-06-09T00:00:00Z",
+      "topic": "Submit PRs",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/058_ci_prep_sorry_fix_baseline/reports/01_ci-prep-research.md",
+          "type": "research",
+          "summary": "CI prep research: sorry audit, name corrections, lint-style errors, CI tool availability"
+        },
+        {
+          "path": "specs/058_ci_prep_sorry_fix_baseline/plans/01_ci-prep-plan.md",
+          "type": "plan",
+          "summary": "4-phase implementation plan for CI prep baseline"
+        }
+      ],
+      "session_id": "sess_1749512949_a3b2c1",
+      "completion_summary": "Removed sorry from Chronicle/Frame.lean, fixed author name across 166 files, fixed Cslib.lean module import error (removed 161 non-module imports), resolved checkInitImports violation, verified full CI suite passes (lake build zero errors, lint-style zero errors, checkInitImports zero violations)",
+      "archived": "2026-06-10T02:28:50Z"
+    },
+    {
+      "project_number": 65,
+      "project_name": "pre_pr_cleanup_audit",
+      "status": "completed",
+      "task_type": "general",
+      "topic": "Submit PRs",
+      "created": "2026-06-10T00:49:48Z",
+      "last_updated": "2026-06-10T01:52:52Z",
+      "session_id": "sess_1781053475_1ba0c6",
+      "researched": "2026-06-10T01:02:16Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/065_pre_pr_cleanup_audit/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research with 4 teammates"
+        },
+        {
+          "path": "specs/065_pre_pr_cleanup_audit/plans/01_cleanup-plan.md",
+          "type": "plan",
+          "summary": "Implementation plan with 6 phases defining cleanup subtasks for pre-PR work"
+        },
+        {
+          "path": "specs/065_pre_pr_cleanup_audit/summaries/01_cleanup-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary for pre-PR cleanup"
+        }
+      ],
+      "completion_summary": "Executed 6-phase pre-PR cleanup across ~47 PR-scope files: ran lake shake for import cleanup, removed ~700 lines of commented-out dead code, added copyright headers to barrel files, removed longLine linter suppressions from 12 files (fixing actual long lines in 5 of them), corrected task 59 PR description to list all 16 Foundations/Logic files, and created scripts/pre-pr-check.sh verification script.",
+      "archived": "2026-06-10T02:28:50Z"
     }
   ],
   "archived_projects": [

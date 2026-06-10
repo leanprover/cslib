@@ -11,18 +11,16 @@ next_project_number: 66
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,57,58,65 | -- | Foundations, Temporal Logic, Bimodal Porting, ... |
-| 2 | 39,40,59 | 36,37,58 | Temporal Logic, Submit PRs |
-| 3 | 41,60,61 | 38,39,40,59 | Foundations, Submit PRs |
-| 4 | 62 | 59,61 | Submit PRs |
-| 5 | 63 | 62 | Submit PRs |
-| 6 | 64 | 63 | Submit PRs |
+| 1 | 36,37,38,59 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,60,61 | 36,37,59 | Temporal Logic, Submit PRs |
+| 3 | 41,62 | 38,39,40,59,61 | Foundations, Submit PRs |
+| 4 | 63 | 62 | Submit PRs |
+| 5 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Foundations
 
-57 [PLANNED] — improve_theorem_organization
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
 
 ### Temporal Logic
@@ -38,30 +36,15 @@ next_project_number: 66
 
 ### Submit PRs
 
-58 [COMPLETED] — ci_prep_sorry_fix_baseline
-  └─ 59 [NOT STARTED] — pr1_foundations_logic
-    └─ 60 [NOT STARTED] — pr2_modal_metalogic
-    └─ 61 [NOT STARTED] — pr3_temporal_proof_system
-      └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
-        └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
-          └─ 64 [NOT STARTED] — pr6_completeness_theorem
-    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
-65 [RESEARCHED] — pre_pr_cleanup_audit
+59 [RESEARCHED] — pr1_foundations_logic
+  └─ 60 [NOT STARTED] — pr2_modal_metalogic
+  └─ 61 [NOT STARTED] — pr3_temporal_proof_system
+    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
+      └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
+        └─ 64 [NOT STARTED] — pr6_completeness_theorem
+  └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
 
 ## Tasks
-
-### 65. Audit repo for pre-PR cleanup and create refactoring tasks
-- **Effort**: Medium
-- **Status**: [COMPLETED]
-- **Task Type**: general
-- **Topic**: Submit PRs
-- **Research**: [specs/065_pre_pr_cleanup_audit/reports/01_team-research.md]
-- **Plan**: [065_pre_pr_cleanup_audit/plans/01_cleanup-plan.md]
-- **Summary**: [065_pre_pr_cleanup_audit/summaries/01_cleanup-summary.md]
-
-**Description**: Audit the entire repo for cleanup and refactoring work needed before submitting PRs. Research should cover: dead code, unused imports, sorry instances, misplaced files (e.g. generic theorems in logic-specific directories), duplicate code across modules, naming inconsistencies, missing or incorrect module docstrings, style guide violations, and any structural issues that would cause PR review friction. The plan should produce a prioritized list of concrete cleanup tasks to be created via --expand. This task gates PR submission tasks 58-64.
-
----
 
 ### 64. PR 6: Submit Temporal completeness theorem
 - **Effort**: Small (2 hours)
@@ -120,7 +103,7 @@ next_project_number: 66
 
 ### 59. PR 1: Submit Foundations/Logic theorems and MCS foundations
 - **Effort**: Small (2 hours)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNING]
 - **Task Type**: lean4
 - **Dependencies**: Task 58
 - **Topic**: Submit PRs
@@ -129,51 +112,6 @@ next_project_number: 66
 **Description**: Create feature branch and submit PR containing all 16 Foundations/Logic files: core definitions (ProofSystem, InferenceSystem, Connectives, LogicalEquivalence, Axioms), Theorems (Combinators, BigConj, barrel), Propositional (Core, Connectives, Reasoning), Modal (Basic, S5), Temporal (TemporalDerived, FrameConditions), Metalogic/Consistency (~3,666 lines). This must be the first PR because Temporal and Modal metalogic import Consistency. PR title: `feat(Foundations/Logic): propositional theorems, modal S5 theorems, and MCS consistency foundations`. Run CI checks. See task 56 plan Phase 3.
 
 ---
-
-### 58. CI prep: sorry fix and global CI baseline
-- **Effort**: Small (2 hours)
-- **Status**: [COMPLETED]
-- **Task Type**: lean4
-- **Topic**: Submit PRs
-- **Research**: [specs/058_ci_prep_sorry_fix_baseline/reports/01_ci-prep-research.md]
-- **Plan**: [specs/058_ci_prep_sorry_fix_baseline/plans/01_ci-prep-plan.md]
-- **Summary**: [specs/058_ci_prep_sorry_fix_baseline/summaries/01_ci-prep-summary.md]
-
-**Description**: Remove unused `t_le_refl` sorry from Chronicle/Frame.lean, then run full CI baseline: lake build (zero errors), grep for sorry (zero in Temporal/Modal/Foundations), lake shake, lake lint, lake exe lint-style, lake exe checkInitImports, verify Apache 2.0 headers on all files to be submitted and that my name appears 'Benjamin Brast-McKie' rather than 'Benjamin Brastmckie' as it does currently (fix this everywhere systematically). Fix any issues found. This establishes the clean baseline before any PR branches are created.
-
----
-
-### 57. Improve theorem organization: move misplaced generic theorems to Foundations and eliminate concrete duplicates in Bimodal
-- **Effort**: Large
-- **Status**: [COMPLETED]
-- **Task Type**: lean4
-
-**Description**: The theorem files have two organizational issues: (1) `Logics/Temporal/Theorems/TemporalDerived.lean` is generic over `[TemporalBXHilbert S]` typeclasses with no concrete types — it belongs in `Foundations/Logic/Theorems/Temporal/` alongside the Modal and Propositional foundations theorems. `FrameConditions.lean` is similarly generic (borderline). (2) Three files in `Bimodal/Theorems/` (`Combinators.lean`, `Propositional/Core.lean`, `Propositional/Connectives.lean`) re-prove ~600 lines of propositional/combinator theorems over concrete `DerivationTree` that already exist generically in `Foundations/Logic/Theorems/`. The `wrap`/`unwrap` bridge pattern in `Perpetuity/Helpers.lean` already shows how to call Foundations theorems from concrete bimodal context — the redundant files should be refactored to use this pattern. Actions: move misplaced generic files to Foundations, refactor concrete duplicates to use unwrap bridge, update all downstream imports, verify with `lake build`.
-
----
-
-### 56. Plan PR submission strategy for systematic repo contributions
-- **Effort**: Medium
-- **Status**: [COMPLETED]
-- **Task Type**: general
-- **Research**: [specs/056_plan_pr_submission_strategy/reports/01_pr-submission-research.md]
-- **Plan**: [specs/056_plan_pr_submission_strategy/plans/01_pr-submission-plan.md]
-
-**Description**: Read all documentation and standards in this repo to plan a PR submission strategy that divides all work into PRs that can be systematically submitted. Cover Temporal/ first, then Modal/, then Propositional/ unless there is good reason to proceed in a different order. Supersedes tasks 51-54.
-
----
-
-### 55. Review and update ROADMAP.md with completions and mermaid diagram
-- **Effort**: Small (1-2 hours)
-- **Status**: [COMPLETED]
-- **Task Type**: markdown
-- **Report**: [specs/055_update_roadmap_completions_and_diagram/reports/01_roadmap-review.md]
-- **Plan**: [specs/055_update_roadmap_completions_and_diagram/plans/01_roadmap-update-plan.md]
-
-**Description**: Review and update the ROADMAP.md given all that has been completed, making sure the mermaid diagram is complete and accurate
-
----
-
 
 ### 40. Continuous temporal completeness
 - **Effort**: TBD
