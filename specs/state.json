@@ -1,6 +1,14 @@
 {
-  "next_project_number": 82,
+  "next_project_number": 83,
   "active_projects": [
+    {
+      "project_number": 82,
+      "project_name": "systematic_codebase_review_logics_foundations",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T17:46:37Z",
+      "last_updated": "2026-06-10T17:46:37Z"
+    },
     {
       "project_number": 81,
       "project_name": "pr1_foundations_logic_code_review",

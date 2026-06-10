@@ -1,8 +1,15 @@
 ---
-next_project_number: 82
+next_project_number: 83
 ---
 
 # Tasks
+
+### 82. Systematic codebase review of Logics/ and Foundations/ for publication quality
+- **Effort**: large
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Whereas task 81's plan is focused on preparing PR 1, review all files touched in Logics/ and Foundations/ for other systematic improvements to the codebase including infrastructure, organization, quality of the proofs, comments, conventions (matching CSLib norms), camelCase instead of snake_case, imports, sections, etc., in order to produce the highest quality most consistent and uniform result for publication
 
 ## Task Order
 
@@ -11,7 +18,7 @@ next_project_number: 82
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,76,80,81 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,76,81,82 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
@@ -33,6 +40,11 @@ next_project_number: 82
 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
 
+### Clean Up
+
+76 [NOT STARTED] — module_keyword_migration
+81 [PLANNED] — pr1_foundations_logic_code_review
+
 ### Submit PRs
 
 60 [NOT STARTED] — pr2_modal_metalogic
@@ -41,11 +53,9 @@ next_project_number: 82
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
-### Clean Up
+### Uncategorized
 
-76 [NOT STARTED] — module_keyword_migration
-80 [RESEARCHED] — generic_deduction_theorem
-81 [NOT STARTED] — pr1_foundations_logic_code_review
+82 [NOT STARTED] — systematic_codebase_review_logics_foundations
 
 ## Tasks
 
