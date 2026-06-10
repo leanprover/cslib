@@ -6,9 +6,9 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+import Cslib.Init
 
-/-! -/
+/-! # Inference System Typeclass -/
 
 @[expose] public section
 
