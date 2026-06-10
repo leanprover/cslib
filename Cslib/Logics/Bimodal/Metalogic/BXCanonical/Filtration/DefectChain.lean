@@ -57,14 +57,14 @@ private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Form
 
 theorem defect_step_F_psi {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h_until : Formula.untl ψ φ ∈ w.formulas) :
-    Formula.some_future ψ ∈ w.formulas := by
+    Formula.someFuture ψ ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.until_F φ ψ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h_until
 
 theorem defect_step_connect {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h_until : Formula.untl ψ φ ∈ w.formulas) :
-    Formula.all_future (Formula.some_past (Formula.untl ψ φ)) ∈ w.formulas := by
+    Formula.allFuture (Formula.somePast (Formula.untl ψ φ)) ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.connect_future (Formula.untl ψ φ)) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h_until
@@ -85,14 +85,14 @@ noncomputable def sigma_since_defect_count (w : BXPoint Atom) (Sigma : Finset (F
 
 theorem since_defect_step_P_psi {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h_since : Formula.snce ψ φ ∈ w.formulas) :
-    Formula.some_past ψ ∈ w.formulas := by
+    Formula.somePast ψ ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.since_P φ ψ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h_since
 
 theorem since_defect_step_connect {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h_since : Formula.snce ψ φ ∈ w.formulas) :
-    Formula.all_past (Formula.some_future (Formula.snce ψ φ)) ∈ w.formulas := by
+    Formula.allPast (Formula.someFuture (Formula.snce ψ φ)) ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.connect_past (Formula.snce ψ φ)) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h_since

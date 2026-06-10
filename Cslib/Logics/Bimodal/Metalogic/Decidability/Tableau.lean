@@ -222,45 +222,45 @@ def asDiamond? : Formula Atom → Option (Formula Atom)
   | _ => none
 
 /--
-Try to decompose a formula as some_past (PA = S(A, top)).
-Note: some_past A = snce A top = snce A (imp bot bot)
+Try to decompose a formula as somePast (PA = S(A, top)).
+Note: somePast A = snce A top = snce A (imp bot bot)
 Returns `some A` if it matches the pattern, otherwise `none`.
 -/
 def asSomePast? : Formula Atom → Option (Formula Atom)
-  | .some_past φ => some φ
+  | .somePast φ => some φ
   | _ => none
 
 /--
-Try to decompose a formula as some_future (FA = U(A, top)).
-Note: some_future A = untl A top = untl A (imp bot bot)
+Try to decompose a formula as someFuture (FA = U(A, top)).
+Note: someFuture A = untl A top = untl A (imp bot bot)
 Returns `some A` if it matches the pattern, otherwise `none`.
 -/
 def asSomeFuture? : Formula Atom → Option (Formula Atom)
-  | .some_future φ => some φ
+  | .someFuture φ => some φ
   | _ => none
 
 /--
-Try to decompose a formula as all_future (GA = neg F neg A = neg(U(neg A, top))).
-Note: all_future A = (some_future A.neg).neg
+Try to decompose a formula as allFuture (GA = neg F neg A = neg(U(neg A, top))).
+Note: allFuture A = (someFuture A.neg).neg
 Returns `some A` if it matches the pattern, otherwise `none`.
 -/
 def asAllFuture? : Formula Atom → Option (Formula Atom)
-  | .all_future φ => some φ
+  | .allFuture φ => some φ
   | _ => none
 
 /--
-Try to decompose a formula as all_past (HA = neg P neg A = neg(S(neg A, top))).
-Note: all_past A = (some_past A.neg).neg
+Try to decompose a formula as allPast (HA = neg P neg A = neg(S(neg A, top))).
+Note: allPast A = (somePast A.neg).neg
 Returns `some A` if it matches the pattern, otherwise `none`.
 -/
 def asAllPast? : Formula Atom → Option (Formula Atom)
-  | .all_past φ => some φ
+  | .allPast φ => some φ
   | _ => none
 
 /--
-Try to decompose a formula as a genuine Until (not some_future).
+Try to decompose a formula as a genuine Until (not someFuture).
 Returns `some (event, guard)` if the formula is `untl event guard` with `guard != top`.
-This filters out `some_future phi = untl phi top` which is handled by someFuturePos/someFutureNeg.
+This filters out `someFuture phi = untl phi top` which is handled by someFuturePos/someFutureNeg.
 Burgess convention: first component = event, second = guard.
 -/
 def asUntil? : Formula Atom → Option (Formula Atom × Formula Atom)
@@ -270,9 +270,9 @@ def asUntil? : Formula Atom → Option (Formula Atom × Formula Atom)
   | _ => none
 
 /--
-Try to decompose a formula as a genuine Since (not some_past).
+Try to decompose a formula as a genuine Since (not somePast).
 Returns `some (event, guard)` if the formula is `snce event guard` with `guard != top`.
-This filters out `some_past phi = snce phi top` which is handled by somePastPos/somePastNeg.
+This filters out `somePast phi = snce phi top` which is handled by somePastPos/somePastNeg.
 Burgess convention: first component = event, second = guard.
 -/
 def asSince? : Formula Atom → Option (Formula Atom × Formula Atom)
@@ -308,16 +308,16 @@ def isApplicable (rule : TableauRule) (sf : SignedFormula Atom)
   -- Modal-temporal interaction
   | .boxTemporal, .pos, .box _ => true
   -- Temporal rules (G/H universal)
-  | .allFuturePos, .pos, .all_future _ => true
-  | .allFutureNeg, .neg, .all_future _ => true
-  | .allPastPos, .pos, .all_past _ => true
-  | .allPastNeg, .neg, .all_past _ => true
+  | .allFuturePos, .pos, .allFuture _ => true
+  | .allFutureNeg, .neg, .allFuture _ => true
+  | .allPastPos, .pos, .allPast _ => true
+  | .allPastNeg, .neg, .allPast _ => true
   -- Temporal rules (F/P existential)
   | .someFuturePos, .pos, φ => (asSomeFuture? φ).isSome
   | .someFutureNeg, .neg, φ => (asSomeFuture? φ).isSome
   | .somePastPos, .pos, φ => (asSomePast? φ).isSome
   | .somePastNeg, .neg, φ => (asSomePast? φ).isSome
-  -- Until/Since rules (genuine, not some_future/some_past)
+  -- Until/Since rules (genuine, not someFuture/somePast)
   | .untlPos, .pos, φ => (asUntil? φ).isSome
   | .untlNeg, .neg, φ => (asUntil? φ).isSome
   | .sncePos, .pos, φ => (asSince? φ).isSome
@@ -325,12 +325,12 @@ def isApplicable (rule : TableauRule) (sf : SignedFormula Atom)
   -- Dense-specific rules (gated by fc >= .Dense)
   | .denseIndicatorClosure, .pos, .untl (.imp .bot .bot) .bot =>
       decide (FrameClass.Dense ≤ fc)
-  | .densityRule, .pos, .all_future _ =>
+  | .densityRule, .pos, .allFuture _ =>
       decide (FrameClass.Dense ≤ fc)
   -- Discrete-specific rules (gated by fc >= .Discrete)
   | .priorUZ, .pos, φ => decide (FrameClass.Discrete ≤ fc) && (asSomeFuture? φ).isSome
   | .priorSZ, .pos, φ => decide (FrameClass.Discrete ≤ fc) && (asSomePast? φ).isSome
-  | .z1Rule, .pos, .all_future _ => decide (FrameClass.Discrete ≤ fc)
+  | .z1Rule, .pos, .allFuture _ => decide (FrameClass.Discrete ≤ fc)
   | _, _, _ => false
 
 /--
@@ -504,14 +504,14 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
   -- T(box A) -> derive T(GA) and T(HA) at the same label (modal-temporal interaction)
   -- Sound by box_to_future (box phi -> G phi) and box_to_past (box phi -> H phi)
   | .boxTemporal, .pos, .box ψ =>
-      let gFormula := SignedFormula.pos (Formula.all_future ψ) l
-      let hFormula := SignedFormula.pos (Formula.all_past ψ) l
+      let gFormula := SignedFormula.pos (Formula.allFuture ψ) l
+      let hFormula := SignedFormula.pos (Formula.allPast ψ) l
       let newFormulas := [gFormula, hFormula].filter fun sf => !branch.contains sf
       if newFormulas.isEmpty then (.notApplicable, timeOrd)
       else (.persistent newFormulas, timeOrd)
   -- T(GA) @ (w,t) -> propagate T(A) to all known future times (universal, persistent)
   -- Strict inequality: G(A) at t means A holds at all t' > t
-  | .allFuturePos, .pos, .all_future ψ =>
+  | .allFuturePos, .pos, .allFuture ψ =>
       let futureTimes := timeOrd.futureOf l.time
       let newFormulas := futureTimes.filterMap fun t' =>
         let newSf := SignedFormula.pos ψ { world := l.world, time := t' }
@@ -520,7 +520,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       else (.persistent newFormulas, timeOrd)
   -- F(GA) @ (w,t) -> F(A) at fresh future time (existential, consumable)
   -- neg G(A) at t means there exists t' > t where neg A
-  | .allFutureNeg, .neg, .all_future ψ =>
+  | .allFutureNeg, .neg, .allFuture ψ =>
       let freshTime := branch.nextTime
       let freshLabel : Label := { world := l.world, time := freshTime }
       let newOrd := timeOrd.addFuture l.time freshTime
@@ -529,7 +529,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       -- Auto-propagate all T(GA) formulas from time t to freshTime
       let gProps := branch.allFuturePosFormulas.filterMap fun gsf =>
         match gsf.formula with
-        | .all_future inner =>
+        | .allFuture inner =>
           -- Only propagate if freshTime is future of gsf's time
           -- Since we only added (l.time, freshTime), check gsf is at time l.time
           if gsf.label.time == l.time then
@@ -540,7 +540,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       -- Auto-propagate all F(FA) formulas from time t to freshTime
       let fNegProps := branch.someFutureNegFormulas.filterMap fun fsf =>
         match fsf.formula with
-        | .some_future inner =>
+        | .someFuture inner =>
           if fsf.label.time == l.time then
             let prop := SignedFormula.neg inner { world := fsf.label.world, time := freshTime }
             if branch.contains prop then none else some prop
@@ -551,7 +551,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       (.linear (witness :: gProps ++ fNegProps ++ modalProps), newOrd)
   -- T(HA) @ (w,t) -> propagate T(A) to all known past times (universal, persistent)
   -- Strict inequality: H(A) at t means A holds at all t' < t
-  | .allPastPos, .pos, .all_past ψ =>
+  | .allPastPos, .pos, .allPast ψ =>
       let pastTimes := timeOrd.pastOf l.time
       let newFormulas := pastTimes.filterMap fun t' =>
         let newSf := SignedFormula.pos ψ { world := l.world, time := t' }
@@ -560,7 +560,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       else (.persistent newFormulas, timeOrd)
   -- F(HA) @ (w,t) -> F(A) at fresh past time (existential, consumable)
   -- neg H(A) at t means there exists t' < t where neg A
-  | .allPastNeg, .neg, .all_past ψ =>
+  | .allPastNeg, .neg, .allPast ψ =>
       let freshTime := branch.nextTime
       let freshLabel : Label := { world := l.world, time := freshTime }
       let newOrd := timeOrd.addPast l.time freshTime
@@ -569,7 +569,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       -- Auto-propagate all T(HA) formulas from time t to freshTime
       let hProps := branch.allPastPosFormulas.filterMap fun hsf =>
         match hsf.formula with
-        | .all_past inner =>
+        | .allPast inner =>
           -- Only propagate if freshTime is past of hsf's time
           -- Since we added (freshTime, l.time), check hsf is at time l.time
           if hsf.label.time == l.time then
@@ -580,7 +580,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       -- Auto-propagate all F(PA) formulas from time t to freshTime
       let pNegProps := branch.somePastNegFormulas.filterMap fun psf =>
         match psf.formula with
-        | .some_past inner =>
+        | .somePast inner =>
           if psf.label.time == l.time then
             let prop := SignedFormula.neg inner { world := psf.label.world, time := freshTime }
             if branch.contains prop then none else some prop
@@ -602,7 +602,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all T(GA) formulas from time t to freshTime
         let gProps := branch.allFuturePosFormulas.filterMap fun gsf =>
           match gsf.formula with
-          | .all_future inner =>
+          | .allFuture inner =>
             if gsf.label.time == l.time then
               let prop := SignedFormula.pos inner { world := gsf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -611,7 +611,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all F(FA) formulas from time t to freshTime
         let fNegProps := branch.someFutureNegFormulas.filterMap fun fsf =>
           match fsf.formula with
-          | .some_future inner =>
+          | .someFuture inner =>
             if fsf.label.time == l.time then
               let prop := SignedFormula.neg inner { world := fsf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -646,7 +646,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all T(HA) formulas from time t to freshTime
         let hProps := branch.allPastPosFormulas.filterMap fun hsf =>
           match hsf.formula with
-          | .all_past inner =>
+          | .allPast inner =>
             if hsf.label.time == l.time then
               let prop := SignedFormula.pos inner { world := hsf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -655,7 +655,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all F(PA) formulas from time t to freshTime
         let pNegProps := branch.somePastNegFormulas.filterMap fun psf =>
           match psf.formula with
-          | .some_past inner =>
+          | .somePast inner =>
             if psf.label.time == l.time then
               let prop := SignedFormula.neg inner { world := psf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -695,7 +695,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all T(GA) formulas to freshTime
         let gProps := branch.allFuturePosFormulas.filterMap fun gsf =>
           match gsf.formula with
-          | .all_future inner =>
+          | .allFuture inner =>
             if gsf.label.time == l.time then
               let prop := SignedFormula.pos inner { world := gsf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -704,7 +704,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all F(FA) formulas to freshTime
         let fNegProps := branch.someFutureNegFormulas.filterMap fun fsf =>
           match fsf.formula with
-          | .some_future inner =>
+          | .someFuture inner =>
             if fsf.label.time == l.time then
               let prop := SignedFormula.neg inner { world := fsf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -739,7 +739,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all T(HA) formulas to freshTime
         let hProps := branch.allPastPosFormulas.filterMap fun hsf =>
           match hsf.formula with
-          | .all_past inner =>
+          | .allPast inner =>
             if hsf.label.time == l.time then
               let prop := SignedFormula.pos inner { world := hsf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -748,7 +748,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         -- Auto-propagate all F(PA) formulas to freshTime
         let pNegProps := branch.somePastNegFormulas.filterMap fun psf =>
           match psf.formula with
-          | .some_past inner =>
+          | .somePast inner =>
             if psf.label.time == l.time then
               let prop := SignedFormula.neg inner { world := psf.label.world, time := freshTime }
               if branch.contains prop then none else some prop
@@ -786,7 +786,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
             -- Auto-propagate T(GA) formulas from time t to freshTime
             let gProps := branch.allFuturePosFormulas.filterMap fun gsf =>
               match gsf.formula with
-              | .all_future inner =>
+              | .allFuture inner =>
                 if gsf.label.time == l.time then
                   let prop := SignedFormula.pos inner { world := gsf.label.world, time := freshTime }
                   if branch.contains prop then none else some prop
@@ -795,7 +795,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
             -- Auto-propagate F(FA) formulas from time t to freshTime
             let fNegProps := branch.someFutureNegFormulas.filterMap fun fsf =>
               match fsf.formula with
-              | .some_future inner =>
+              | .someFuture inner =>
                 if fsf.label.time == l.time then
                   let prop := SignedFormula.neg inner { world := fsf.label.world, time := freshTime }
                   if branch.contains prop then none else some prop
@@ -848,7 +848,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
             -- Auto-propagate T(HA) formulas from time t to freshTime
             let hProps := branch.allPastPosFormulas.filterMap fun hsf =>
               match hsf.formula with
-              | .all_past inner =>
+              | .allPast inner =>
                 if hsf.label.time == l.time then
                   let prop := SignedFormula.pos inner { world := hsf.label.world, time := freshTime }
                   if branch.contains prop then none else some prop
@@ -857,7 +857,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
             -- Auto-propagate F(PA) formulas from time t to freshTime
             let pNegProps := branch.somePastNegFormulas.filterMap fun psf =>
               match psf.formula with
-              | .some_past inner =>
+              | .somePast inner =>
                 if psf.label.time == l.time then
                   let prop := SignedFormula.neg inner { world := psf.label.world, time := freshTime }
                   if branch.contains prop then none else some prop
@@ -894,7 +894,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       -- Close branch: T(U(top, bot)) contradicts density
       (.linear [], timeOrd)
   -- Dense: T(G(phi)) at (w,t) with known future time -> introduce intermediate point
-  | .densityRule, .pos, .all_future ψ =>
+  | .densityRule, .pos, .allFuture ψ =>
       let futureTimes := timeOrd.futureOf l.time
       match futureTimes with
       | [] => (.notApplicable, timeOrd)
@@ -912,8 +912,8 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
           -- Also propagate all T(G(A)) from l.time to the intermediate
           let gProps := branch.allFuturePosFormulas.filterMap fun gsf =>
             match gsf.formula with
-            | .all_future inner =>
-              if gsf.label.time == l.time && gsf.formula != .all_future ψ then
+            | .allFuture inner =>
+              if gsf.label.time == l.time && gsf.formula != .allFuture ψ then
                 let prop := SignedFormula.pos inner { world := gsf.label.world, time := freshTime }
                 if branch.contains prop then none else some prop
               else none
@@ -941,15 +941,15 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
       | none => (.notApplicable, timeOrd)
   -- Discrete: Z1 backward induction
   -- When T(G(G(phi) -> phi)) and T(F(G(phi))) both at same label, add T(G(phi))
-  | .z1Rule, .pos, .all_future φ_inner =>
+  | .z1Rule, .pos, .allFuture φ_inner =>
       -- Check if sf matches T(G(G(phi) -> phi)) pattern
       match φ_inner with
       | .imp (.imp (.untl (.imp inner .bot) (.imp .bot .bot)) .bot) rhs =>
         -- This is G(G(inner) -> rhs) -- verify rhs = inner
         if inner == rhs then
           -- Look for T(F(G(inner))) on the branch at the same label
-          let gInner := Formula.all_future inner
-          let fgFormula := Formula.some_future gInner
+          let gInner := Formula.allFuture inner
+          let fgFormula := Formula.someFuture gInner
           let fgSf := SignedFormula.pos fgFormula l
           if branch.contains fgSf then
             let newSf := SignedFormula.pos gInner l
@@ -1020,8 +1020,8 @@ def allRules : List TableauRule := [
   .allPastPos, .allPastNeg,
   .someFuturePos, .someFutureNeg,  -- Temporal F/P
   .somePastPos, .somePastNeg,
-  .untlPos, .untlNeg,             -- Until (genuine, not some_future)
-  .sncePos, .snceNeg,             -- Since (genuine, not some_past)
+  .untlPos, .untlNeg,             -- Until (genuine, not someFuture)
+  .sncePos, .snceNeg,             -- Since (genuine, not somePast)
   .impPos,               -- Branching implication
   .andNeg, .orPos        -- Branching compound
 ]

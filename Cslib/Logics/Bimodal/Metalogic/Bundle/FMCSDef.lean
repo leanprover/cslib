@@ -41,7 +41,7 @@ A family of maximal consistent sets indexed by time, with temporal coherence.
 structure FMCS (Atom : Type*) (D : Type*) [Preorder D] (fc : FrameClass := FrameClass.Base) where
   mcs : D → Set (Formula Atom)
   is_mcs : ∀ t, SetMaximalConsistent fc (mcs t)
-  forward_G : ∀ t t' phi, t < t' → Formula.all_future phi ∈ mcs t → phi ∈ mcs t'
-  backward_H : ∀ t t' phi, t' < t → Formula.all_past phi ∈ mcs t → phi ∈ mcs t'
+  forward_G : ∀ t t' phi, t < t' → Formula.allFuture phi ∈ mcs t → phi ∈ mcs t'
+  backward_H : ∀ t t' phi, t' < t → Formula.allPast phi ∈ mcs t → phi ∈ mcs t'
 
 end Cslib.Logic.Bimodal.Metalogic.Bundle

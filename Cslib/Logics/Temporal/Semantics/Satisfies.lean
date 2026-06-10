@@ -24,8 +24,8 @@ argument is the EVENT (holds at the witness point) and the second is the GUARD
 - `snce φ ψ` at `t`: there exists `s < t` such that `φ` holds at `s` (event)
   and `ψ` holds at all `r` strictly between `s` and `t` (guard).
 
-This matches the bimodal `truth_at` convention and the `Formula.some_future`
-definition (`some_future φ = untl φ top`).
+This matches the bimodal `truth_at` convention and the `Formula.someFuture`
+definition (`someFuture φ = untl φ top`).
 
 ## Main Definitions
 
@@ -35,8 +35,8 @@ definition (`some_future φ = untl φ top`).
 
 - `bot_false`, `atom_iff`, `imp_iff`, `untl_iff`, `snce_iff`: Constructor lemmas.
 - `neg_iff`, `top_true`: Derived connective lemmas.
-- `some_future_iff`, `some_past_iff`: Existential temporal operator characterizations.
-- `all_future_iff`, `all_past_iff`: Universal temporal operator characterizations.
+- `someFuture_iff`, `somePast_iff`: Existential temporal operator characterizations.
+- `allFuture_iff`, `allPast_iff`: Universal temporal operator characterizations.
 -/
 
 @[expose] public section
@@ -123,9 +123,9 @@ theorem top_true (M : TemporalModel D Atom) (t : D) :
 /-! ## Temporal Operator Lemmas -/
 
 /-- Some future (F φ): there exists a future time where φ holds. -/
-theorem some_future_iff (M : TemporalModel D Atom) (t : D)
+theorem someFuture_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.some_future φ) ↔
+    Satisfies M t (Formula.someFuture φ) ↔
       ∃ s, t < s ∧ Satisfies M s φ := by
   simp only [Satisfies]
   constructor
@@ -135,9 +135,9 @@ theorem some_future_iff (M : TemporalModel D Atom) (t : D)
     exact ⟨s, hlt, hs, fun _ _ _ h => h⟩
 
 /-- Some past (P φ): there exists a past time where φ holds. -/
-theorem some_past_iff (M : TemporalModel D Atom) (t : D)
+theorem somePast_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.some_past φ) ↔
+    Satisfies M t (Formula.somePast φ) ↔
       ∃ s, s < t ∧ Satisfies M s φ := by
   simp only [Satisfies]
   constructor
@@ -147,9 +147,9 @@ theorem some_past_iff (M : TemporalModel D Atom) (t : D)
     exact ⟨s, hlt, hs, fun _ _ _ h => h⟩
 
 /-- All future (G φ): φ holds at all future times. -/
-theorem all_future_iff (M : TemporalModel D Atom) (t : D)
+theorem allFuture_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.all_future φ) ↔
+    Satisfies M t (Formula.allFuture φ) ↔
       ∀ s, t < s → Satisfies M s φ := by
   simp only [Satisfies]
   constructor
@@ -160,9 +160,9 @@ theorem all_future_iff (M : TemporalModel D Atom) (t : D)
     exact hevent (h s hlt)
 
 /-- All past (H φ): φ holds at all past times. -/
-theorem all_past_iff (M : TemporalModel D Atom) (t : D)
+theorem allPast_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.all_past φ) ↔
+    Satisfies M t (Formula.allPast φ) ↔
       ∀ s, s < t → Satisfies M s φ := by
   simp only [Satisfies]
   constructor

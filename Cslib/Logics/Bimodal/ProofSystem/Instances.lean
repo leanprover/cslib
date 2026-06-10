@@ -152,13 +152,13 @@ instance :
     let d_final :=
       Bimodal.DerivationTree.temporal_duality _ g_swap
     have h_eq :
-        phi.swap_temporal.all_future.swap_temporal =
-          phi.all_past := by
-      simp only [Bimodal.Formula.all_past,
-        Bimodal.Formula.some_past,
+        phi.swapTemporal.allFuture.swapTemporal =
+          phi.allPast := by
+      simp only [Bimodal.Formula.allPast,
+        Bimodal.Formula.somePast,
         Bimodal.Formula.neg,
         Bimodal.Formula.top,
-        Bimodal.Formula.swap_temporal,
+        Bimodal.Formula.swapTemporal,
         Bimodal.Formula.swapTemporal_involution]
     exact ⟨InferenceSystem.rwConclusion h_eq d_final⟩
 

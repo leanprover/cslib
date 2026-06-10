@@ -152,24 +152,24 @@ theorem closure_box (phi psi : Formula Atom)
   exact Formula.mem_subformulas_of_box h
 
 /--
-Inner formula of all_past is in closure.
+Inner formula of allPast is in closure.
 -/
-theorem closure_all_past (phi psi : Formula Atom)
-    (h : Formula.all_past psi ∈ subformulaClosure phi) :
+theorem closure_allPast (phi psi : Formula Atom)
+    (h : Formula.allPast psi ∈ subformulaClosure phi) :
     psi ∈ subformulaClosure phi := by
   unfold subformulaClosure at h ⊢
   simp only [List.mem_toFinset] at h ⊢
-  exact Formula.mem_subformulas_of_all_past h
+  exact Formula.mem_subformulas_of_allPast h
 
 /--
-Inner formula of all_future is in closure.
+Inner formula of allFuture is in closure.
 -/
-theorem closure_all_future (phi psi : Formula Atom)
-    (h : Formula.all_future psi ∈ subformulaClosure phi) :
+theorem closure_allFuture (phi psi : Formula Atom)
+    (h : Formula.allFuture psi ∈ subformulaClosure phi) :
     psi ∈ subformulaClosure phi := by
   unfold subformulaClosure at h ⊢
   simp only [List.mem_toFinset] at h ⊢
-  exact Formula.mem_subformulas_of_all_future h
+  exact Formula.mem_subformulas_of_allFuture h
 
 /--
 Left component of Until is in closure.
@@ -218,30 +218,30 @@ P(chi) = neg(H(neg chi)) = (H(neg chi)).imp bot.
 If P(chi) is in subformulaClosure, we extract chi via closure_snce_left.
 If P(chi) = psi.neg for psi in subformulaClosure, constructor mismatch (snce vs imp).
 -/
-theorem some_past_in_closureWithNeg_inner_in_subformulaClosure (phi chi : Formula Atom)
-    (h : Formula.some_past chi ∈ closureWithNeg phi) :
+theorem somePast_in_closureWithNeg_inner_in_subformulaClosure (phi chi : Formula Atom)
+    (h : Formula.somePast chi ∈ closureWithNeg phi) :
     chi ∈ subformulaClosure phi := by
   unfold closureWithNeg at h
   simp only [Finset.mem_union, Finset.mem_image] at h
   rcases h with h_sub | ⟨psi, _, h_psi_neg_eq⟩
   · exact closure_snce_left phi _ _ h_sub
-  · unfold Formula.some_past Formula.top at h_psi_neg_eq
+  · unfold Formula.somePast Formula.top at h_psi_neg_eq
     exact absurd h_psi_neg_eq (by intro h; cases h)
 
 /--
 If F(chi) is in closureWithNeg phi, then chi is in subformulaClosure phi.
 
-Symmetric to some_past_in_closureWithNeg_inner_in_subformulaClosure.
+Symmetric to somePast_in_closureWithNeg_inner_in_subformulaClosure.
 F(chi) = neg(G(neg chi)) = (G(neg chi)).imp bot.
 -/
-theorem some_future_in_closureWithNeg_inner_in_subformulaClosure (phi chi : Formula Atom)
-    (h : Formula.some_future chi ∈ closureWithNeg phi) :
+theorem someFuture_in_closureWithNeg_inner_in_subformulaClosure (phi chi : Formula Atom)
+    (h : Formula.someFuture chi ∈ closureWithNeg phi) :
     chi ∈ subformulaClosure phi := by
   unfold closureWithNeg at h
   simp only [Finset.mem_union, Finset.mem_image] at h
   rcases h with h_sub | ⟨psi, _, h_psi_neg_eq⟩
   · exact closure_untl_left phi _ _ h_sub
-  · unfold Formula.some_future Formula.top at h_psi_neg_eq
+  · unfold Formula.someFuture Formula.top at h_psi_neg_eq
     exact absurd h_psi_neg_eq (by intro h; cases h)
 
 end Cslib.Logic.Bimodal

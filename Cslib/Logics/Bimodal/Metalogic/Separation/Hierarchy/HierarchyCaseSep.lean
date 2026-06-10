@@ -484,23 +484,23 @@ private theorem snce_Ufree_event_qNotU_guard_sep_with_U_type (ev q x y : Formula
     (Formula.and (Formula.neg ev) (Formula.neg q)) (Formula.neg ev) x y
     hanq_uf hna_uf hx hy
   let psi1 := case1_psi (Formula.and (Formula.neg ev) (Formula.neg q)) (Formula.neg ev) x y
-  have hsep_H : is_syntactically_separated (.all_past (Formula.neg ev)) = true := by
+  have hsep_H : is_syntactically_separated (.allPast (Formula.neg ev)) = true := by
     simp [is_syntactically_separated, Formula.neg, is_U_free, hev_uf]
-  have h_allpast_uf : is_U_free (.all_past (Formula.neg ev)) = true := by
-    simp only [Formula.all_past, Formula.some_past]
+  have h_allpast_uf : is_U_free (.allPast (Formula.neg ev)) = true := by
+    simp only [Formula.allPast, Formula.somePast]
     simp only [Formula.neg, is_U_free]
     simp only [hev_uf]
     decide
   refine is_separable_with_U_type_of_equiv ?equiv_
     (and_separable_with_U_type
-      (neg_separable_with_U_type ⟨.all_past (Formula.neg ev), hsep_H, int_equiv_refl _,
+      (neg_separable_with_U_type ⟨.allPast (Formula.neg ev), hsep_H, int_equiv_refl _,
         u_free_has_single_U_type h_allpast_uf⟩)
       (neg_separable_with_U_type ⟨psi1, hsep1, hequiv1, hsingle1⟩))
   intro m t; constructor
   · intro hS
     apply int_truth_and_iff.mpr; constructor
     · rw [int_truth_neg_iff]; intro hall
-      rw [int_truth_all_past] at hall
+      rw [int_truth_allPast] at hall
       obtain ⟨s, hst, hev_s, _⟩ := hS; exact hall s hst hev_s
     · intro hpsi1
       obtain ⟨s1, hs1t, hevent1, hguard1⟩ := hpsi1

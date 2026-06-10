@@ -73,12 +73,12 @@ theorem connect_past_thm {φ : F} :
   HasAxiomConnectPast.connectPast
 
 /-- Until implies F (BX10): `⊢ U(ψ,φ) → F(ψ)`. -/
-theorem until_implies_some_future {φ ψ : F} :
+theorem until_implies_someFuture {φ ψ : F} :
     InferenceSystem.DerivableIn S (Axioms.UntilF φ ψ) :=
   HasAxiomUntilF.untilF
 
 /-- Since implies P (BX10'): `⊢ S(ψ,φ) → P(ψ)`. -/
-theorem since_implies_some_past {φ ψ : F} :
+theorem since_implies_somePast {φ ψ : F} :
     InferenceSystem.DerivableIn S (Axioms.SinceP φ ψ) :=
   HasAxiomSinceP.sinceP
 

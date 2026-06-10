@@ -93,13 +93,13 @@ private noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) 
 
 /-- Past analog of TF axiom: Box phi -> H(Box phi). -/
 private noncomputable def past_tf_deriv (φ : Formula Atom) :
-    DerivationTree fc [] ((Formula.box φ).imp (Formula.box φ).all_past) := by
-  have h_tf_swap : DerivationTree fc [] _ := Theorems.Combinators.temp_future_derived (Formula.swap_temporal φ)
+    DerivationTree fc [] ((Formula.box φ).imp (Formula.box φ).allPast) := by
+  have h_tf_swap : DerivationTree fc [] _ := Theorems.Combinators.temp_future_derived (Formula.swapTemporal φ)
   have h_dual := DerivationTree.temporal_duality _ h_tf_swap
-  have h_eq : Formula.swap_temporal ((Formula.box (Formula.swap_temporal φ)).imp
-      (Formula.box (Formula.swap_temporal φ)).all_future) =
-    (Formula.box φ).imp (Formula.box φ).all_past := by
-    simp [Formula.swap_temporal, Formula.swapTemporal_involution]
+  have h_eq : Formula.swapTemporal ((Formula.box (Formula.swapTemporal φ)).imp
+      (Formula.box (Formula.swapTemporal φ)).allFuture) =
+    (Formula.box φ).imp (Formula.box φ).allPast := by
+    simp [Formula.swapTemporal, Formula.swapTemporal_involution]
   rw [h_eq] at h_dual
   exact h_dual
 
@@ -110,13 +110,13 @@ theorem parametric_box_persistent
     (φ : Formula Atom) (t s : D)
     (h_box : Formula.box φ ∈ fam.mcs t) :
     Formula.box φ ∈ fam.mcs s := by
-  have h_tf : (Formula.box φ).imp (Formula.box φ).all_future ∈ fam.mcs t :=
+  have h_tf : (Formula.box φ).imp (Formula.box φ).allFuture ∈ fam.mcs t :=
     theorem_in_mcs_fc (fam.is_mcs t) (Theorems.Combinators.temp_future_derived φ)
-  have h_G_box : (Formula.box φ).all_future ∈ fam.mcs t :=
+  have h_G_box : (Formula.box φ).allFuture ∈ fam.mcs t :=
     SetMaximalConsistent.implication_property (fam.is_mcs t) h_tf h_box
-  have h_past_tf : (Formula.box φ).imp (Formula.box φ).all_past ∈ fam.mcs t :=
+  have h_past_tf : (Formula.box φ).imp (Formula.box φ).allPast ∈ fam.mcs t :=
     theorem_in_mcs_fc (fam.is_mcs t) (past_tf_deriv φ)
-  have h_H_box : (Formula.box φ).all_past ∈ fam.mcs t :=
+  have h_H_box : (Formula.box φ).allPast ∈ fam.mcs t :=
     SetMaximalConsistent.implication_property (fam.is_mcs t) h_past_tf h_box
   rcases lt_trichotomy t s with h_lt | h_eq | h_gt
   · exact fam.forward_G t s (Formula.box φ) h_lt h_G_box

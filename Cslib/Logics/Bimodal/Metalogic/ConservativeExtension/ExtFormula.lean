@@ -80,31 +80,31 @@ def or (φ ψ : ExtFormula Atom) : ExtFormula Atom := φ.neg.imp ψ
 def diamond (φ : ExtFormula Atom) : ExtFormula Atom := φ.neg.box.neg
 
 /-- Existential future: Fφ := U(φ, ⊤) -/
-def some_future (φ : ExtFormula Atom) : ExtFormula Atom := ExtFormula.untl φ top
+def someFuture (φ : ExtFormula Atom) : ExtFormula Atom := ExtFormula.untl φ top
 
 /-- Existential past: Pφ := S(φ, ⊤) -/
-def some_past (φ : ExtFormula Atom) : ExtFormula Atom := ExtFormula.snce φ top
+def somePast (φ : ExtFormula Atom) : ExtFormula Atom := ExtFormula.snce φ top
 
 /-- Universal future: Gφ := ¬F(¬φ) -/
-def all_future (φ : ExtFormula Atom) : ExtFormula Atom := (some_future φ.neg).neg
+def allFuture (φ : ExtFormula Atom) : ExtFormula Atom := (someFuture φ.neg).neg
 
 /-- Universal past: Hφ := ¬P(¬φ) -/
-def all_past (φ : ExtFormula Atom) : ExtFormula Atom := (some_past φ.neg).neg
+def allPast (φ : ExtFormula Atom) : ExtFormula Atom := (somePast φ.neg).neg
 
 /-- Always: △φ := Hφ ∧ φ ∧ Gφ -/
-def always (φ : ExtFormula Atom) : ExtFormula Atom := all_past φ |>.and (φ.and (all_future φ))
+def always (φ : ExtFormula Atom) : ExtFormula Atom := allPast φ |>.and (φ.and (allFuture φ))
 
 /-- Sometimes: ▽φ := ¬△¬φ -/
 def sometimes (φ : ExtFormula Atom) : ExtFormula Atom := φ.neg.always.neg
 
 /-- Swap temporal operators (past ↔ future). -/
-def swap_temporal : ExtFormula Atom → ExtFormula Atom
+def swapTemporal : ExtFormula Atom → ExtFormula Atom
   | atom s => atom s
   | bot => bot
-  | imp φ ψ => imp φ.swap_temporal ψ.swap_temporal
-  | box φ => box φ.swap_temporal
-  | untl φ ψ => snce φ.swap_temporal ψ.swap_temporal
-  | snce φ ψ => untl φ.swap_temporal ψ.swap_temporal
+  | imp φ ψ => imp φ.swapTemporal ψ.swapTemporal
+  | box φ => box φ.swapTemporal
+  | untl φ ψ => snce φ.swapTemporal ψ.swapTemporal
+  | snce φ ψ => untl φ.swapTemporal ψ.swapTemporal
 
 section DecEq
 
@@ -187,20 +187,20 @@ theorem embedFormula_diamond (φ : Formula Atom) :
     embedFormula (Formula.diamond φ) = ExtFormula.diamond (embedFormula φ) := rfl
 
 @[simp]
-theorem embedFormula_some_future (φ : Formula Atom) :
-    embedFormula (Formula.some_future φ) = ExtFormula.some_future (embedFormula φ) := rfl
+theorem embedFormula_someFuture (φ : Formula Atom) :
+    embedFormula (Formula.someFuture φ) = ExtFormula.someFuture (embedFormula φ) := rfl
 
 @[simp]
-theorem embedFormula_some_past (φ : Formula Atom) :
-    embedFormula (Formula.some_past φ) = ExtFormula.some_past (embedFormula φ) := rfl
+theorem embedFormula_somePast (φ : Formula Atom) :
+    embedFormula (Formula.somePast φ) = ExtFormula.somePast (embedFormula φ) := rfl
 
 @[simp]
-theorem embedFormula_all_future (φ : Formula Atom) :
-    embedFormula (Formula.all_future φ) = ExtFormula.all_future (embedFormula φ) := rfl
+theorem embedFormula_allFuture (φ : Formula Atom) :
+    embedFormula (Formula.allFuture φ) = ExtFormula.allFuture (embedFormula φ) := rfl
 
 @[simp]
-theorem embedFormula_all_past (φ : Formula Atom) :
-    embedFormula (Formula.all_past φ) = ExtFormula.all_past (embedFormula φ) := rfl
+theorem embedFormula_allPast (φ : Formula Atom) :
+    embedFormula (Formula.allPast φ) = ExtFormula.allPast (embedFormula φ) := rfl
 
 @[simp]
 theorem embedFormula_always (φ : Formula Atom) :
@@ -208,16 +208,16 @@ theorem embedFormula_always (φ : Formula Atom) :
 
 @[simp]
 theorem embedFormula_swapTemporal (φ : Formula Atom) :
-    embedFormula (Formula.swap_temporal φ) = ExtFormula.swap_temporal (embedFormula φ) := by
+    embedFormula (Formula.swapTemporal φ) = ExtFormula.swapTemporal (embedFormula φ) := by
   induction φ with
   | atom _ => rfl
   | bot => rfl
-  | imp _ _ ih1 ih2 => simp [Formula.swap_temporal, ExtFormula.swap_temporal, embedFormula, ih1, ih2]
-  | box _ ih => simp [Formula.swap_temporal, ExtFormula.swap_temporal, embedFormula, ih]
+  | imp _ _ ih1 ih2 => simp [Formula.swapTemporal, ExtFormula.swapTemporal, embedFormula, ih1, ih2]
+  | box _ ih => simp [Formula.swapTemporal, ExtFormula.swapTemporal, embedFormula, ih]
   | untl _ _ ih1 ih2 =>
-    simp [Formula.swap_temporal, ExtFormula.swap_temporal, embedFormula, ih1, ih2]
+    simp [Formula.swapTemporal, ExtFormula.swapTemporal, embedFormula, ih1, ih2]
   | snce _ _ ih1 ih2 =>
-    simp [Formula.swap_temporal, ExtFormula.swap_temporal, embedFormula, ih1, ih2]
+    simp [Formula.swapTemporal, ExtFormula.swapTemporal, embedFormula, ih1, ih2]
 
 /-!
 ## Injectivity

@@ -189,17 +189,17 @@ def substFreshWith (a : Atom) : ExtFormula Atom → ExtFormula Atom
   | ExtFormula.snce φ ψ => ExtFormula.snce (substFreshWith a φ) (substFreshWith a ψ)
 
 theorem substFreshWith_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
-    substFreshWith a φ.swap_temporal = (substFreshWith a φ).swap_temporal := by
+    substFreshWith a φ.swapTemporal = (substFreshWith a φ).swapTemporal := by
   induction φ with
   | atom x =>
     cases x with
-    | inl t => simp [ExtFormula.swap_temporal, substFreshWith]
-    | inr u => cases u; simp [ExtFormula.swap_temporal, substFreshWith]
+    | inl t => simp [ExtFormula.swapTemporal, substFreshWith]
+    | inr u => cases u; simp [ExtFormula.swapTemporal, substFreshWith]
   | bot => rfl
-  | imp _ _ ih1 ih2 => simp [ExtFormula.swap_temporal, substFreshWith, ih1, ih2]
-  | box _ ih => simp [ExtFormula.swap_temporal, substFreshWith, ih]
-  | untl _ _ ih1 ih2 => simp [ExtFormula.swap_temporal, substFreshWith, ih1, ih2]
-  | snce _ _ ih1 ih2 => simp [ExtFormula.swap_temporal, substFreshWith, ih1, ih2]
+  | imp _ _ ih1 ih2 => simp [ExtFormula.swapTemporal, substFreshWith, ih1, ih2]
+  | box _ ih => simp [ExtFormula.swapTemporal, substFreshWith, ih]
+  | untl _ _ ih1 ih2 => simp [ExtFormula.swapTemporal, substFreshWith, ih1, ih2]
+  | snce _ _ ih1 ih2 => simp [ExtFormula.swapTemporal, substFreshWith, ih1, ih2]
 
 section DecEq
 
@@ -333,20 +333,20 @@ def unembedAxiom {φ : ExtFormula Atom} (h : ExtAxiom φ) : Axiom (unembedFormul
   | density a => exact .density _
   | dense_indicator => exact .dense_indicator
 
-/-- unembedFormula commutes with swap_temporal. -/
+/-- unembedFormula commutes with swapTemporal. -/
 theorem unembed_swapTemporal (φ : ExtFormula Atom) :
-    unembedFormula φ.swap_temporal = (unembedFormula φ).swap_temporal := by
+    unembedFormula φ.swapTemporal = (unembedFormula φ).swapTemporal := by
   induction φ with
   | atom a => cases a with | inl s => rfl | inr u => cases u; rfl
   | bot => rfl
   | imp _ _ ih1 ih2 =>
-    simp [ExtFormula.swap_temporal, Formula.swap_temporal, unembedFormula, ih1, ih2]
+    simp [ExtFormula.swapTemporal, Formula.swapTemporal, unembedFormula, ih1, ih2]
   | box _ ih =>
-    simp [ExtFormula.swap_temporal, Formula.swap_temporal, unembedFormula, ih]
+    simp [ExtFormula.swapTemporal, Formula.swapTemporal, unembedFormula, ih]
   | untl _ _ ih1 ih2 =>
-    simp [ExtFormula.swap_temporal, Formula.swap_temporal, unembedFormula, ih1, ih2]
+    simp [ExtFormula.swapTemporal, Formula.swapTemporal, unembedFormula, ih1, ih2]
   | snce _ _ ih1 ih2 =>
-    simp [ExtFormula.swap_temporal, Formula.swap_temporal, unembedFormula, ih1, ih2]
+    simp [ExtFormula.swapTemporal, Formula.swapTemporal, unembedFormula, ih1, ih2]
 
 /-- Membership preserved under unembedFormula map. -/
 private theorem mem_map_unembedFormula {Gamma : ExtContext Atom} {phi : ExtFormula Atom}
@@ -565,9 +565,9 @@ private theorem liftFormula_imp (a : Atom) (x y : ExtFormula Atom) :
     liftFormula a (x.imp y) = (liftFormula a x).imp (liftFormula a y) := by
   simp [liftFormula, substFreshWith, unembedFormula]
 
-/-- liftFormula distributes over swap_temporal. -/
+/-- liftFormula distributes over swapTemporal. -/
 private theorem liftFormula_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
-    liftFormula a φ.swap_temporal = (liftFormula a φ).swap_temporal := by
+    liftFormula a φ.swapTemporal = (liftFormula a φ).swapTemporal := by
   simp [liftFormula, substFreshWith_swapTemporal, unembed_swapTemporal]
 
 /-- Lift an ExtAxiom to a base Axiom via liftFormula. -/

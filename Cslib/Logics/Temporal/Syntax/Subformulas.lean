@@ -74,18 +74,18 @@ theorem imp_right_mem_subformulas (ψ χ : Formula Atom) :
   right
   exact self_mem_subformulas χ
 
-/-- Subformulas of all_past include the inner formula. -/
-theorem all_past_inner_mem_subformulas (ψ : Formula Atom) :
-    ψ ∈ subformulas (Formula.all_past ψ) := by
-  -- all_past ψ = imp (snce (imp ψ bot) (imp bot bot)) bot
+/-- Subformulas of allPast include the inner formula. -/
+theorem allPast_inner_mem_subformulas (ψ : Formula Atom) :
+    ψ ∈ subformulas (Formula.allPast ψ) := by
+  -- allPast ψ = imp (snce (imp ψ bot) (imp bot bot)) bot
   simp only [subformulas, List.mem_cons, List.mem_append]
   right; left; right; left; right; left
   exact self_mem_subformulas ψ
 
-/-- Subformulas of all_future include the inner formula. -/
-theorem all_future_inner_mem_subformulas (ψ : Formula Atom) :
-    ψ ∈ subformulas (Formula.all_future ψ) := by
-  -- all_future ψ = imp (untl (imp ψ bot) (imp bot bot)) bot
+/-- Subformulas of allFuture include the inner formula. -/
+theorem allFuture_inner_mem_subformulas (ψ : Formula Atom) :
+    ψ ∈ subformulas (Formula.allFuture ψ) := by
+  -- allFuture ψ = imp (untl (imp ψ bot) (imp bot bot)) bot
   simp only [subformulas, List.mem_cons, List.mem_append]
   right; left; right; left; right; left
   exact self_mem_subformulas ψ
@@ -151,18 +151,18 @@ theorem mem_subformulas_of_imp_right {ψ χ phi : Formula Atom}
   have h_right : χ ∈ subformulas (Formula.imp ψ χ) := imp_right_mem_subformulas ψ χ
   exact subformulas_trans h_right h
 
-/-- Inner formula of all_past is in subformulas. -/
-theorem mem_subformulas_of_all_past {ψ phi : Formula Atom}
-    (h : (Formula.all_past ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_inner : ψ ∈ subformulas (Formula.all_past ψ) :=
-    all_past_inner_mem_subformulas ψ
+/-- Inner formula of allPast is in subformulas. -/
+theorem mem_subformulas_of_allPast {ψ phi : Formula Atom}
+    (h : (Formula.allPast ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_inner : ψ ∈ subformulas (Formula.allPast ψ) :=
+    allPast_inner_mem_subformulas ψ
   exact subformulas_trans h_inner h
 
-/-- Inner formula of all_future is in subformulas. -/
-theorem mem_subformulas_of_all_future {ψ phi : Formula Atom}
-    (h : (Formula.all_future ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_inner : ψ ∈ subformulas (Formula.all_future ψ) :=
-    all_future_inner_mem_subformulas ψ
+/-- Inner formula of allFuture is in subformulas. -/
+theorem mem_subformulas_of_allFuture {ψ phi : Formula Atom}
+    (h : (Formula.allFuture ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_inner : ψ ∈ subformulas (Formula.allFuture ψ) :=
+    allFuture_inner_mem_subformulas ψ
   exact subformulas_trans h_inner h
 
 /-- Subformulas of untl include the left component. -/

@@ -58,16 +58,16 @@ orders), so it is available at any frame class via `trivial`.
 noncomputable def temp_linearity_derivation
     (phi psi : Formula Atom) :
     ([] : Context Atom) ⊢
-      (Formula.and (Formula.some_future phi)
-        (Formula.some_future psi) |>.imp
+      (Formula.and (Formula.someFuture phi)
+        (Formula.someFuture psi) |>.imp
       (Formula.or
-        (Formula.some_future (Formula.and phi psi))
+        (Formula.someFuture (Formula.and phi psi))
         (Formula.or
-          (Formula.some_future
-            (Formula.and phi (Formula.some_future psi)))
-          (Formula.some_future
+          (Formula.someFuture
+            (Formula.and phi (Formula.someFuture psi)))
+          (Formula.someFuture
             (Formula.and
-              (Formula.some_future phi) psi))))) :=
+              (Formula.someFuture phi) psi))))) :=
   DerivationTree.axiom [] _
     (Axiom.temp_linearity phi psi) trivial
 

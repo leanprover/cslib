@@ -44,119 +44,119 @@ private def top_and_intro (X : Formula Atom) :
 
 private noncomputable def F_neg_contra_imp_F_neg (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.some_future (ψ.neg.imp φ.neg).neg).imp
-       (Formula.some_future (φ.imp ψ).neg)) :=
+      ((Formula.someFuture (ψ.neg.imp φ.neg).neg).imp
+       (Formula.someFuture (φ.imp ψ).neg)) :=
   mp (DerivationTree.temporal_necessitation _ (neg_contrapositive_imp_neg φ ψ))
      (DerivationTree.axiom [] _
        (Axiom.right_mono_until (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg Formula.top) trivial)
 
 private noncomputable def G_imp_to_G_contra (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (ψ.neg.imp φ.neg).all_future) :=
+      ((φ.imp ψ).allFuture.imp (ψ.neg.imp φ.neg).allFuture) :=
   contraposition (F_neg_contra_imp_F_neg φ ψ)
 
 private noncomputable def G_contra_to_GK (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((ψ.neg.imp φ.neg).all_future.imp (φ.all_future.imp ψ.all_future)) :=
+      ((ψ.neg.imp φ.neg).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   imp_trans
     (DerivationTree.axiom [] _ (Axiom.right_mono_until ψ.neg φ.neg Formula.top) trivial)
-    (contrapose_imp (Formula.some_future ψ.neg) (Formula.some_future φ.neg))
+    (contrapose_imp (Formula.someFuture ψ.neg) (Formula.someFuture φ.neg))
 
 noncomputable def temp_k_dist_derived (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (φ.all_future.imp ψ.all_future)) :=
+      ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   imp_trans (G_imp_to_G_contra φ ψ) (G_contra_to_GK φ ψ)
 
 private noncomputable def dne_lift_F (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.some_future (Formula.some_future φ.neg).neg.neg).imp
-       (Formula.some_future (Formula.some_future φ.neg))) :=
-  mp (DerivationTree.temporal_necessitation _ (double_negation (Formula.some_future φ.neg)))
+      ((Formula.someFuture (Formula.someFuture φ.neg).neg.neg).imp
+       (Formula.someFuture (Formula.someFuture φ.neg))) :=
+  mp (DerivationTree.temporal_necessitation _ (double_negation (Formula.someFuture φ.neg)))
      (DerivationTree.axiom [] _
        (Axiom.right_mono_until
-         (Formula.some_future φ.neg).neg.neg (Formula.some_future φ.neg) Formula.top) trivial)
+         (Formula.someFuture φ.neg).neg.neg (Formula.someFuture φ.neg) Formula.top) trivial)
 
 private noncomputable def FF_to_F_top_and (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.some_future (Formula.some_future φ.neg)).imp
-       (Formula.some_future (Formula.top.and (Formula.some_future φ.neg)))) :=
-  mp (DerivationTree.temporal_necessitation _ (top_and_intro (Formula.some_future φ.neg)))
+      ((Formula.someFuture (Formula.someFuture φ.neg)).imp
+       (Formula.someFuture (Formula.top.and (Formula.someFuture φ.neg)))) :=
+  mp (DerivationTree.temporal_necessitation _ (top_and_intro (Formula.someFuture φ.neg)))
      (DerivationTree.axiom [] _
        (Axiom.right_mono_until
-         (Formula.some_future φ.neg)
-         (Formula.top.and (Formula.some_future φ.neg)) Formula.top) trivial)
+         (Formula.someFuture φ.neg)
+         (Formula.top.and (Formula.someFuture φ.neg)) Formula.top) trivial)
 
 private def F_top_and_absorb (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.some_future (Formula.top.and (Formula.some_future φ.neg))).imp
-       (Formula.some_future φ.neg)) :=
+      ((Formula.someFuture (Formula.top.and (Formula.someFuture φ.neg))).imp
+       (Formula.someFuture φ.neg)) :=
   DerivationTree.axiom [] _ (Axiom.absorb_until Formula.top φ.neg) trivial
 
 noncomputable def temp_4_derived (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_future.imp φ.all_future.all_future) :=
+      (φ.allFuture.imp φ.allFuture.allFuture) :=
   contraposition (imp_trans (imp_trans (dne_lift_F φ) (FF_to_F_top_and φ)) (F_top_and_absorb φ))
 
 end DerivedAxioms
 
 noncomputable def G_distribution (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (φ.all_future.imp ψ.all_future)) :=
+      ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   temp_k_dist_derived φ ψ
 
 noncomputable def H_distribution (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_past.imp (φ.all_past.imp ψ.all_past)) :=
+      ((φ.imp ψ).allPast.imp (φ.allPast.imp ψ.allPast)) :=
   past_k_dist φ ψ
 
 noncomputable def G_transitivity (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_future.imp φ.all_future.all_future) :=
+      (φ.allFuture.imp φ.allFuture.allFuture) :=
   temp_4_derived φ
 
 noncomputable def H_transitivity (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_past.imp φ.all_past.all_past) := by
-  let ψ := φ.swap_temporal
+      (φ.allPast.imp φ.allPast.allPast) := by
+  let ψ := φ.swapTemporal
   have h1 := temp_4_derived ψ
   have h2 := DerivationTree.temporal_duality _ h1
-  simp only [Formula.swapTemporal_allFuture, Formula.swap_temporal] at h2
-  have h_inv : ψ.swap_temporal = φ := Formula.swapTemporal_involution φ
+  simp only [Formula.swapTemporal_allFuture, Formula.swapTemporal] at h2
+  have h_inv : ψ.swapTemporal = φ := Formula.swapTemporal_involution φ
   rw [h_inv] at h2
   exact h2
 
 def connect_future_thm (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (φ.imp (φ.some_past.all_future)) :=
+    DerivationTree FrameClass.Base [] (φ.imp (φ.somePast.allFuture)) :=
   DerivationTree.axiom [] _ (Axiom.connect_future φ) trivial
 
 def connect_past_thm (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (φ.imp (φ.some_future.all_past)) :=
+    DerivationTree FrameClass.Base [] (φ.imp (φ.someFuture.allPast)) :=
   DerivationTree.axiom [] _ (Axiom.connect_past φ) trivial
 
 def G_implies_G_id (a : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (a.all_future.imp (a.imp a).all_future) :=
+      (a.allFuture.imp (a.imp a).allFuture) :=
   mp (DerivationTree.temporal_necessitation _ (identity a))
-     (DerivationTree.axiom [] _ (Axiom.imp_s (a.imp a).all_future a.all_future) trivial)
+     (DerivationTree.axiom [] _ (Axiom.imp_s (a.imp a).allFuture a.allFuture) trivial)
 
-def until_implies_some_future (φ ψ : Formula Atom) :
+def until_implies_someFuture (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.untl ψ φ).imp (Formula.some_future ψ)) :=
+      ((Formula.untl ψ φ).imp (Formula.someFuture ψ)) :=
   DerivationTree.axiom [] _ (Axiom.until_F φ ψ) trivial
 
-def since_implies_some_past (φ ψ : Formula Atom) :
+def since_implies_somePast (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.snce ψ φ).imp (Formula.some_past ψ)) :=
+      ((Formula.snce ψ φ).imp (Formula.somePast ψ)) :=
   DerivationTree.axiom [] _ (Axiom.since_P φ ψ) trivial
 
 def until_imp_F (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.untl ψ φ).imp (Formula.some_future ψ)) :=
+      ((Formula.untl ψ φ).imp (Formula.someFuture ψ)) :=
   DerivationTree.axiom [] _ (Axiom.until_F φ ψ) trivial
 
 def since_imp_P (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((Formula.snce ψ φ).imp (Formula.some_past ψ)) :=
+      ((Formula.snce ψ φ).imp (Formula.somePast ψ)) :=
   DerivationTree.axiom [] _ (Axiom.since_P φ ψ) trivial
 
 noncomputable def contrapositive_thm (A B : Formula Atom) :
@@ -189,22 +189,22 @@ section TemporalMonotonicity
 
 def F_mono (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (φ.some_future.imp ψ.some_future)) :=
+      ((φ.imp ψ).allFuture.imp (φ.someFuture.imp ψ.someFuture)) :=
   DerivationTree.axiom [] _ (Axiom.right_mono_until φ ψ Formula.top) trivial
 
 def P_mono (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_past.imp (φ.some_past.imp ψ.some_past)) :=
+      ((φ.imp ψ).allPast.imp (φ.somePast.imp ψ.somePast)) :=
   DerivationTree.axiom [] _ (Axiom.right_mono_since φ ψ Formula.top) trivial
 
 noncomputable abbrev G_mono (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (φ.all_future.imp ψ.all_future)) :=
+      ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   G_distribution φ ψ
 
 noncomputable abbrev H_mono (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_past.imp (φ.all_past.imp ψ.all_past)) :=
+      ((φ.imp ψ).allPast.imp (φ.allPast.imp ψ.allPast)) :=
   H_distribution φ ψ
 
 end TemporalMonotonicity
@@ -213,22 +213,22 @@ section UntilSinceStructural
 
 def until_mono_guard (φ χ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp χ).all_future.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ))) :=
+      ((φ.imp χ).allFuture.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ))) :=
   DerivationTree.axiom [] _ (Axiom.left_mono_until_G φ χ ψ) trivial
 
 def since_mono_guard (φ χ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp χ).all_past.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ))) :=
+      ((φ.imp χ).allPast.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ))) :=
   DerivationTree.axiom [] _ (Axiom.left_mono_since_H φ χ ψ) trivial
 
 def until_mono_event (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp ((Formula.untl φ χ).imp (Formula.untl ψ χ))) :=
+      ((φ.imp ψ).allFuture.imp ((Formula.untl φ χ).imp (Formula.untl ψ χ))) :=
   DerivationTree.axiom [] _ (Axiom.right_mono_until φ ψ χ) trivial
 
 def since_mono_event (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_past.imp ((Formula.snce φ χ).imp (Formula.snce ψ χ))) :=
+      ((φ.imp ψ).allPast.imp ((Formula.snce φ χ).imp (Formula.snce ψ χ))) :=
   DerivationTree.axiom [] _ (Axiom.right_mono_since φ ψ χ) trivial
 
 end UntilSinceStructural
@@ -237,13 +237,13 @@ section TemporalDuality
 
 def F_neg_G (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.neg.some_future).imp φ.all_future.neg) :=
-  dni (φ.neg.some_future)
+      ((φ.neg.someFuture).imp φ.allFuture.neg) :=
+  dni (φ.neg.someFuture)
 
 def P_neg_H (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.neg.some_past).imp φ.all_past.neg) :=
-  dni (φ.neg.some_past)
+      ((φ.neg.somePast).imp φ.allPast.neg) :=
+  dni (φ.neg.somePast)
 
 end TemporalDuality
 
@@ -251,41 +251,41 @@ section DistributionVariants
 
 noncomputable def G_and_intro (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_future.imp (ψ.all_future.imp (φ.and ψ).all_future)) :=
+      (φ.allFuture.imp (ψ.allFuture.imp (φ.and ψ).allFuture)) :=
   let g_pair := DerivationTree.temporal_necessitation _ (pairing (fc := FrameClass.Base) φ ψ)
   let step1 := mp g_pair (G_distribution φ (ψ.imp (φ.and ψ)))
   imp_trans step1 (G_distribution ψ (φ.and ψ))
 
 noncomputable def H_and_intro (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_past.imp (ψ.all_past.imp (φ.and ψ).all_past)) :=
+      (φ.allPast.imp (ψ.allPast.imp (φ.and ψ).allPast)) :=
   let h_pair := past_necessitation _ (pairing (fc := FrameClass.Base) φ ψ)
   let step1 := mp h_pair (H_distribution φ (ψ.imp (φ.and ψ)))
   imp_trans step1 (H_distribution ψ (φ.and ψ))
 
 noncomputable def G_imp_trans (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp ((ψ.imp χ).all_future.imp (φ.imp χ).all_future)) :=
+      ((φ.imp ψ).allFuture.imp ((ψ.imp χ).allFuture.imp (φ.imp χ).allFuture)) :=
   let g_b := DerivationTree.temporal_necessitation _
     (@b_combinator Atom .Base (A := φ) (B := ψ) (C := χ))
   let step1 := mp g_b (G_distribution (ψ.imp χ) ((φ.imp ψ).imp (φ.imp χ)))
   let step2 := imp_trans step1 (G_distribution (φ.imp ψ) (φ.imp χ))
   mp step2 (@theorem_flip Atom .Base
-    (A := (ψ.imp χ).all_future)
-    (B := (φ.imp ψ).all_future)
-    (C := (φ.imp χ).all_future))
+    (A := (ψ.imp χ).allFuture)
+    (B := (φ.imp ψ).allFuture)
+    (C := (φ.imp χ).allFuture))
 
 noncomputable def H_imp_trans (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_past.imp ((ψ.imp χ).all_past.imp (φ.imp χ).all_past)) :=
+      ((φ.imp ψ).allPast.imp ((ψ.imp χ).allPast.imp (φ.imp χ).allPast)) :=
   let h_b := past_necessitation _
     (@b_combinator Atom .Base (A := φ) (B := ψ) (C := χ))
   let step1 := mp h_b (H_distribution (ψ.imp χ) ((φ.imp ψ).imp (φ.imp χ)))
   let step2 := imp_trans step1 (H_distribution (φ.imp ψ) (φ.imp χ))
   mp step2 (@theorem_flip Atom .Base
-    (A := (ψ.imp χ).all_past)
-    (B := (φ.imp ψ).all_past)
-    (C := (φ.imp χ).all_past))
+    (A := (ψ.imp χ).allPast)
+    (B := (φ.imp ψ).allPast)
+    (C := (φ.imp χ).allPast))
 
 end DistributionVariants
 
@@ -293,13 +293,13 @@ section TemporalContraposition
 
 noncomputable def G_contrapose (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (ψ.neg.imp φ.neg).all_future) :=
+      ((φ.imp ψ).allFuture.imp (ψ.neg.imp φ.neg).allFuture) :=
   let g_cp := DerivationTree.temporal_necessitation _ (contrapose_imp φ ψ)
   mp g_cp (G_distribution (φ.imp ψ) (ψ.neg.imp φ.neg))
 
 noncomputable def H_contrapose (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_past.imp (ψ.neg.imp φ.neg).all_past) :=
+      ((φ.imp ψ).allPast.imp (ψ.neg.imp φ.neg).allPast) :=
   let h_cp := past_necessitation _ (contrapose_imp φ ψ)
   mp h_cp (H_distribution (φ.imp ψ) (ψ.neg.imp φ.neg))
 
@@ -309,28 +309,28 @@ section FuturePastChains
 
 noncomputable def connect_future_G (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_future.imp (φ.some_past.all_future).all_future) :=
+      (φ.allFuture.imp (φ.somePast.allFuture).allFuture) :=
   let g_cf := DerivationTree.temporal_necessitation _ (connect_future_thm φ)
-  mp g_cf (G_distribution φ (φ.some_past.all_future))
+  mp g_cf (G_distribution φ (φ.somePast.allFuture))
 
 noncomputable def connect_past_H (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.all_past.imp (φ.some_future.all_past).all_past) :=
+      (φ.allPast.imp (φ.someFuture.allPast).allPast) :=
   let h_cp := past_necessitation _ (connect_past_thm φ)
-  mp h_cp (H_distribution φ (φ.some_future.all_past))
+  mp h_cp (H_distribution φ (φ.someFuture.allPast))
 
 noncomputable def connect_future_chain (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.imp ((φ.some_past.some_future.all_past).all_future)) :=
-  let step1 := DerivationTree.temporal_necessitation _ (connect_past_thm φ.some_past)
-  let step2 := mp step1 (G_distribution φ.some_past (φ.some_past.some_future.all_past))
+      (φ.imp ((φ.somePast.someFuture.allPast).allFuture)) :=
+  let step1 := DerivationTree.temporal_necessitation _ (connect_past_thm φ.somePast)
+  let step2 := mp step1 (G_distribution φ.somePast (φ.somePast.someFuture.allPast))
   imp_trans (connect_future_thm φ) step2
 
 noncomputable def connect_past_chain (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      (φ.imp ((φ.some_future.some_past.all_future).all_past)) :=
-  let step1 := past_necessitation _ (connect_future_thm φ.some_future)
-  let step2 := mp step1 (H_distribution φ.some_future (φ.some_future.some_past.all_future))
+      (φ.imp ((φ.someFuture.somePast.allFuture).allPast)) :=
+  let step1 := past_necessitation _ (connect_future_thm φ.someFuture)
+  let step2 := mp step1 (H_distribution φ.someFuture (φ.someFuture.somePast.allFuture))
   imp_trans (connect_past_thm φ) step2
 
 end FuturePastChains
@@ -339,35 +339,35 @@ section ConjunctionElimination
 
 noncomputable def always_to_present (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.always.imp φ) :=
-  imp_trans (rce_imp φ.all_past (φ.and φ.all_future)) (lce_imp φ φ.all_future)
+  imp_trans (rce_imp φ.allPast (φ.and φ.allFuture)) (lce_imp φ φ.allFuture)
 
 noncomputable def present_to_sometimes (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp φ.sometimes) := by
   exact imp_trans (dni φ) (contraposition (always_to_present φ.neg))
 
 noncomputable def weakFutureLeft (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((φ.and φ.all_future).imp φ) :=
-  lce_imp φ φ.all_future
+    DerivationTree FrameClass.Base [] ((φ.and φ.allFuture).imp φ) :=
+  lce_imp φ φ.allFuture
 
 noncomputable def weakFutureRight (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((φ.and φ.all_future).imp φ.all_future) :=
-  rce_imp φ φ.all_future
+    DerivationTree FrameClass.Base [] ((φ.and φ.allFuture).imp φ.allFuture) :=
+  rce_imp φ φ.allFuture
 
 noncomputable def weakPastLeft (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((φ.and φ.all_past).imp φ) :=
-  lce_imp φ φ.all_past
+    DerivationTree FrameClass.Base [] ((φ.and φ.allPast).imp φ) :=
+  lce_imp φ φ.allPast
 
 noncomputable def weakPastRight (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((φ.and φ.all_past).imp φ.all_past) :=
-  rce_imp φ φ.all_past
+    DerivationTree FrameClass.Base [] ((φ.and φ.allPast).imp φ.allPast) :=
+  rce_imp φ φ.allPast
 
-noncomputable def always_imp_all_future (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (φ.always.imp φ.all_future) :=
-  imp_trans (rce_imp φ.all_past (φ.and φ.all_future)) (rce_imp φ φ.all_future)
+noncomputable def always_imp_allFuture (φ : Formula Atom) :
+    DerivationTree FrameClass.Base [] (φ.always.imp φ.allFuture) :=
+  imp_trans (rce_imp φ.allPast (φ.and φ.allFuture)) (rce_imp φ φ.allFuture)
 
-noncomputable def always_imp_all_past (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (φ.always.imp φ.all_past) :=
-  lce_imp φ.all_past (φ.and φ.all_future)
+noncomputable def always_imp_allPast (φ : Formula Atom) :
+    DerivationTree FrameClass.Base [] (φ.always.imp φ.allPast) :=
+  lce_imp φ.allPast (φ.and φ.allFuture)
 
 end ConjunctionElimination
 

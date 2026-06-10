@@ -151,16 +151,16 @@ Then BX3 on `G(¬ψ→¬φ) → F(¬ψ) → F(¬φ)` yields `F(¬φ) ∈ S`, con
 theorem mcs_g_mp
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {φ ψ : Formula Atom}
-    (h_g_imp : Formula.all_future (φ.imp ψ) ∈ Ω)
-    (h_g_phi : Formula.all_future φ ∈ Ω) : Formula.all_future ψ ∈ Ω := by
+    (h_g_imp : Formula.allFuture (φ.imp ψ) ∈ Ω)
+    (h_g_phi : Formula.allFuture φ ∈ Ω) : Formula.allFuture ψ ∈ Ω := by
   -- Assume G(ψ) ∉ Ω, giving F(¬ψ) ∈ Ω
   by_contra h_not_g_psi
-  have h_f_neg_psi : Formula.some_future (Formula.neg ψ) ∈ Ω :=
+  have h_f_neg_psi : Formula.someFuture (Formula.neg ψ) ∈ Ω :=
     (mcs_mem_iff_neg_not_mem h_mcs).mpr h_not_g_psi
   -- Derive ⊢ (φ→ψ) → (¬ψ → ¬φ) (contrapositive)
   have d_contra := derive_contrapositive φ ψ
   -- Necessitation: ⊢ G((φ→ψ) → (¬ψ → ¬φ))
-  have h_g_contra : Formula.all_future ((φ.imp ψ).imp (ψ.neg.imp φ.neg)) ∈ Ω := by
+  have h_g_contra : Formula.allFuture ((φ.imp ψ).imp (ψ.neg.imp φ.neg)) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.temporal_necessitation _ d_contra⟩
@@ -180,7 +180,7 @@ theorem mcs_g_mp
     exact deduction_theorem [] (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg d1
   -- Necessitation: ⊢ G(¬(¬ψ→¬φ) → ¬(φ→ψ))
   have h_g_neg_equiv_S :
-      Formula.all_future ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) ∈ Ω := by
+      Formula.allFuture ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.temporal_necessitation _ d_neg_equiv⟩
@@ -191,13 +191,13 @@ theorem mcs_g_mp
   -- BX3 axiom instance:
   -- right_mono_until (¬(¬ψ→¬φ)) (¬(φ→ψ)) ⊤
   -- gives: G(¬(¬ψ→¬φ)→¬(φ→ψ)) → (¬(¬ψ→¬φ) U ⊤ → ¬(φ→ψ) U ⊤)
-  have h_bx3_imp : Formula.imp (Formula.some_future (ψ.neg.imp φ.neg).neg)
-      (Formula.some_future (φ.imp ψ).neg) ∈ Ω :=
+  have h_bx3_imp : Formula.imp (Formula.someFuture (ψ.neg.imp φ.neg).neg)
+      (Formula.someFuture (φ.imp ψ).neg) ∈ Ω :=
     mcs_mp_axiom h_mcs h_g_neg_equiv_S
       (.right_mono_until (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg Formula.top)
   -- G(φ→ψ) → G(¬ψ→¬φ): if G(¬ψ→¬φ) ∉ S, then F(¬(¬ψ→¬φ)) ∈ S, then F(¬(φ→ψ)) ∈ S
   -- via h_bx3_imp; but G(φ→ψ) ∈ S. Contradiction.
-  have h_g_contra_psi_phi : Formula.all_future (ψ.neg.imp φ.neg) ∈ Ω := by
+  have h_g_contra_psi_phi : Formula.allFuture (ψ.neg.imp φ.neg) ∈ Ω := by
     by_contra h_not
     exact mcs_not_mem_of_neg h_mcs h_g_imp
       (temporal_implication_property h_mcs h_bx3_imp ((mcs_mem_iff_neg_not_mem h_mcs).mpr h_not))
@@ -207,15 +207,15 @@ theorem mcs_g_mp
       (mcs_mp_axiom h_mcs h_g_contra_psi_phi (.right_mono_until ψ.neg φ.neg Formula.top))
       h_f_neg_psi)
 
-/-- Symmetric version for H (all_past). -/
+/-- Symmetric version for H (allPast). -/
 theorem mcs_h_mp
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {φ ψ : Formula Atom}
-    (h_h_imp : Formula.all_past (φ.imp ψ) ∈ Ω)
-    (h_h_phi : Formula.all_past φ ∈ Ω) : Formula.all_past ψ ∈ Ω := by
+    (h_h_imp : Formula.allPast (φ.imp ψ) ∈ Ω)
+    (h_h_phi : Formula.allPast φ ∈ Ω) : Formula.allPast ψ ∈ Ω := by
   -- Same structure as mcs_g_mp but using BX3' (right_mono_since) and temporal_duality.
   by_contra h_not_h_psi
-  have h_p_neg_psi : Formula.some_past (Formula.neg ψ) ∈ Ω :=
+  have h_p_neg_psi : Formula.somePast (Formula.neg ψ) ∈ Ω :=
     (mcs_mem_iff_neg_not_mem h_mcs).mpr h_not_h_psi
   -- Derive ¬(¬ψ→¬φ) → ¬(φ→ψ) same as before
   have d_neg_equiv : DerivationTree FrameClass.Base []
@@ -234,30 +234,30 @@ theorem mcs_h_mp
   -- Use double-swap: duality(d_neg_equiv) gives ⊢ swap(X); necessitation gives ⊢ G(swap(X));
   -- duality again gives ⊢ swap(G(swap(X))) = H(swap(swap(X))) = H(X) by involution.
   have h_h_neg_equiv_S :
-      Formula.all_past ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) ∈ Ω := by
+      Formula.allPast ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     let X := (ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg
     have d_swap_X := DerivationTree.temporal_duality X d_neg_equiv
     have d_g_swap := DerivationTree.temporal_necessitation _ d_swap_X
     have d_h_swap2 := DerivationTree.temporal_duality _ d_g_swap
-    have h_eq : (Formula.all_future X.swap_temporal).swap_temporal =
-        Formula.all_past (X.swap_temporal.swap_temporal) := by
-      simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
-        Formula.neg, Formula.top, Formula.swap_temporal]
+    have h_eq : (Formula.allFuture X.swapTemporal).swapTemporal =
+        Formula.allPast (X.swapTemporal.swapTemporal) := by
+      simp only [Formula.allFuture, Formula.allPast, Formula.someFuture, Formula.somePast,
+        Formula.neg, Formula.top, Formula.swapTemporal]
     rw [Formula.swapTemporal_involution] at h_eq
     exact ⟨h_eq ▸ d_h_swap2⟩
   -- BX3' (right_mono_since): H(α→β) → P(α) → P(β)
-  have h_bx3_imp : Formula.imp (Formula.some_past (ψ.neg.imp φ.neg).neg)
-      (Formula.some_past (φ.imp ψ).neg) ∈ Ω :=
+  have h_bx3_imp : Formula.imp (Formula.somePast (ψ.neg.imp φ.neg).neg)
+      (Formula.somePast (φ.imp ψ).neg) ∈ Ω :=
     mcs_mp_axiom h_mcs h_h_neg_equiv_S
       (.right_mono_since (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg Formula.top)
-  have h_h_contra : Formula.all_past (ψ.neg.imp φ.neg) ∈ Ω := by
+  have h_h_contra : Formula.allPast (ψ.neg.imp φ.neg) ∈ Ω := by
     by_contra h_not
     have h_p := (mcs_mem_iff_neg_not_mem h_mcs).mpr h_not
     have h_p2 := temporal_implication_property h_mcs h_bx3_imp h_p
     exact mcs_not_mem_of_neg h_mcs h_h_imp h_p2
-  have h_bx3_2 : Formula.imp (Formula.some_past ψ.neg) (Formula.some_past φ.neg) ∈ Ω :=
+  have h_bx3_2 : Formula.imp (Formula.somePast ψ.neg) (Formula.somePast φ.neg) ∈ Ω :=
     mcs_mp_axiom h_mcs h_h_contra
       (.right_mono_since ψ.neg φ.neg Formula.top)
   have h_p_neg_phi := temporal_implication_property h_mcs h_bx3_2 h_p_neg_psi
@@ -267,11 +267,11 @@ theorem mcs_h_mp
 
 /-- The "future set" of an MCS: all formulas whose G-closure is in Ω. -/
 def futureSet (Ω : Set (Formula Atom)) : Set (Formula Atom) :=
-  {φ | Formula.all_future φ ∈ Ω}
+  {φ | Formula.allFuture φ ∈ Ω}
 
 /-- The "past set" of an MCS: all formulas whose H-closure is in Ω. -/
 def pastSet (Ω : Set (Formula Atom)) : Set (Formula Atom) :=
-  {φ | Formula.all_past φ ∈ Ω}
+  {φ | Formula.allPast φ ∈ Ω}
 
 /-- Derive ⊥ from G-context: if all G(lᵢ) ∈ S and L ⊢ ⊥, then S is inconsistent
 via iterated G-distribution.
@@ -283,8 +283,8 @@ Contradiction. -/
 private theorem derive_g_contradiction
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {L : List (Formula Atom)} {φ : Formula Atom}
-    (hL : ∀ x ∈ L, Formula.all_future x ∈ Ω)
-    (d : DerivationTree FrameClass.Base L φ) : Formula.all_future φ ∈ Ω := by
+    (hL : ∀ x ∈ L, Formula.allFuture x ∈ Ω)
+    (d : DerivationTree FrameClass.Base L φ) : Formula.allFuture φ ∈ Ω := by
   induction L generalizing φ with
   | nil =>
     -- L = [], d : [] ⊢ φ. Necessitation: ⊢ G(φ). So G(φ) ∈ S.
@@ -299,9 +299,9 @@ private theorem derive_g_contradiction
 /-- If `G(φ) ∉ S`, then there exists an MCS `T` with `futureSet Ω ⊆ T` and `φ ∉ T`. -/
 theorem mcs_g_witness
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} (h_not_g : Formula.all_future φ ∉ Ω) :
+    {φ : Formula Atom} (h_not_g : Formula.allFuture φ ∉ Ω) :
     ∃ T : Set (Formula Atom), Temporal.SetMaximalConsistent T ∧
-      (∀ ψ, Formula.all_future ψ ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
+      (∀ ψ, Formula.allFuture ψ ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
   let W := futureSet Ω ∪ {Formula.neg φ}
   have hW : Temporal.SetConsistent W := by
     intro L hL
@@ -309,7 +309,7 @@ theorem mcs_g_witness
     intro ⟨d_bot⟩
     -- Separate L into elements with G-versions in Ω and possibly ¬φ.
     let L' := L.filter (· ≠ Formula.neg φ)
-    have h_L'_g : ∀ x ∈ L', Formula.all_future x ∈ Ω := by
+    have h_L'_g : ∀ x ∈ L', Formula.allFuture x ∈ Ω := by
       intro x hx
       simp only [L', List.mem_filter, decide_eq_true_eq] at hx
       rcases hL x hx.1 with h | h
@@ -348,7 +348,7 @@ theorem mcs_g_witness
       exact h_not_g (derive_g_contradiction h_mcs h_L'_g
         (DerivationTree.modus_ponens L' _ _ peirce_ax step3))
     · -- ¬φ ∉ L. All elements have G-versions in Ω; derive_g_contradiction gives G(⊥) ∈ S.
-      have h_all_g : ∀ x ∈ L, Formula.all_future x ∈ Ω := by
+      have h_all_g : ∀ x ∈ L, Formula.allFuture x ∈ Ω := by
         intro x hx
         rcases hL x hx with h | h
         · exact h
@@ -370,25 +370,25 @@ theorem mcs_g_witness
 private theorem derive_h_contradiction
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {L : List (Formula Atom)} {φ : Formula Atom}
-    (hL : ∀ x ∈ L, Formula.all_past x ∈ Ω)
-    (d : DerivationTree FrameClass.Base L φ) : Formula.all_past φ ∈ Ω := by
+    (hL : ∀ x ∈ L, Formula.allPast x ∈ Ω)
+    (d : DerivationTree FrameClass.Base L φ) : Formula.allPast φ ∈ Ω := by
   induction L generalizing φ with
   | nil =>
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     have d_g := DerivationTree.temporal_necessitation _ d
     have d_swap := DerivationTree.temporal_duality _ d_g
-    have h_eq : (Formula.all_future φ).swap_temporal = Formula.all_past φ.swap_temporal := by
-      simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
-        Formula.neg, Formula.top, Formula.swap_temporal]
+    have h_eq : (Formula.allFuture φ).swapTemporal = Formula.allPast φ.swapTemporal := by
+      simp only [Formula.allFuture, Formula.allPast, Formula.someFuture, Formula.somePast,
+        Formula.neg, Formula.top, Formula.swapTemporal]
     -- Double-swap: duality(d) gives ⊢ swap(φ); necessitation; duality gives H(φ) by involution.
     have d_swap_phi := DerivationTree.temporal_duality φ d
     have d_g_swap := DerivationTree.temporal_necessitation _ d_swap_phi
     have d_h := DerivationTree.temporal_duality _ d_g_swap
-    have h_eq2 : (Formula.all_future φ.swap_temporal).swap_temporal =
-        Formula.all_past (φ.swap_temporal.swap_temporal) := by
-      simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
-        Formula.neg, Formula.top, Formula.swap_temporal]
+    have h_eq2 : (Formula.allFuture φ.swapTemporal).swapTemporal =
+        Formula.allPast (φ.swapTemporal.swapTemporal) := by
+      simp only [Formula.allFuture, Formula.allPast, Formula.someFuture, Formula.somePast,
+        Formula.neg, Formula.top, Formula.swapTemporal]
     rw [Formula.swapTemporal_involution] at h_eq2
     exact ⟨h_eq2 ▸ d_h⟩
   | cons a L' ih =>
@@ -399,16 +399,16 @@ private theorem derive_h_contradiction
 
 theorem mcs_h_witness
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} (h_not_h : Formula.all_past φ ∉ Ω) :
+    {φ : Formula Atom} (h_not_h : Formula.allPast φ ∉ Ω) :
     ∃ T : Set (Formula Atom), Temporal.SetMaximalConsistent T ∧
-      (∀ ψ, Formula.all_past ψ ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
+      (∀ ψ, Formula.allPast ψ ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
   let W := pastSet Ω ∪ {Formula.neg φ}
   have hW : Temporal.SetConsistent W := by
     intro L hL
     unfold Metalogic.Consistent
     intro ⟨d_bot⟩
     let L' := L.filter (· ≠ Formula.neg φ)
-    have h_L'_h : ∀ x ∈ L', Formula.all_past x ∈ Ω := by
+    have h_L'_h : ∀ x ∈ L', Formula.allPast x ∈ Ω := by
       intro x hx
       simp only [L', List.mem_filter, decide_eq_true_eq] at hx
       rcases hL x hx.1 with h | h
@@ -445,7 +445,7 @@ theorem mcs_h_witness
           (fun _ h => nomatch h)
       have d_phi := DerivationTree.modus_ponens L' _ _ peirce_ax step3
       exact h_not_h (derive_h_contradiction h_mcs h_L'_h d_phi)
-    · have h_all_h : ∀ x ∈ L, Formula.all_past x ∈ Ω := by
+    · have h_all_h : ∀ x ∈ L, Formula.allPast x ∈ Ω := by
         intro x hx
         rcases hL x hx with h | h
         · exact h
@@ -455,7 +455,7 @@ theorem mcs_h_witness
         apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
         unfold temporalDerivationSystem Temporal.Deriv
         exact ⟨.axiom [] _ (.efq Formula.bot) trivial⟩
-      have h_p_top : Formula.some_past Formula.top ∈ Ω :=
+      have h_p_top : Formula.somePast Formula.top ∈ Ω :=
         mcs_mp_axiom h_mcs h_top .serial_past
       exact mcs_not_mem_of_neg h_mcs h_h_bot h_p_top
   obtain ⟨T, hWT, hT_mcs⟩ := temporal_lindenbaum hW

@@ -113,7 +113,7 @@ theorem limit_dom_no_max (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : Set
   have h_mcs_x := limit_c0 fc A h_mcs x hx
   have h_top : (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
     theorem_in_mcs_fc h_mcs_x (Cslib.Logic.Bimodal.Theorems.Combinators.identity (Formula.bot : Formula Atom))
-  have h_F_top : Formula.some_future (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
+  have h_F_top : Formula.someFuture (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
     SetMaximalConsistent.implication_property h_mcs_x
       (theorem_in_mcs_fc h_mcs_x (DerivationTree.axiom [] _ Axiom.serial_future trivial)) h_top
   obtain ⟨y, hy, hxy, _⟩ := limit_F_resolution fc A h_mcs x hx _ h_F_top
@@ -132,7 +132,7 @@ theorem limit_dom_no_min (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : Set
   have h_mcs_x := limit_c0 fc A h_mcs x hx
   have h_top : (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
     theorem_in_mcs_fc h_mcs_x (Cslib.Logic.Bimodal.Theorems.Combinators.identity (Formula.bot : Formula Atom))
-  have h_P_top : Formula.some_past (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
+  have h_P_top : Formula.somePast (Formula.bot.imp Formula.bot) ∈ limit_f fc A h_mcs x :=
     SetMaximalConsistent.implication_property h_mcs_x
       (theorem_in_mcs_fc h_mcs_x (DerivationTree.axiom [] _ Axiom.serial_past trivial)) h_top
   obtain ⟨y, hy, hyx, _⟩ := limit_P_resolution fc A h_mcs x hx _ h_P_top
@@ -432,7 +432,7 @@ theorem box_dense_gives_density (fc : FrameClass) (N : Set (Formula Atom)) (h_N 
       (theorem_in_mcs_fc h_N (DerivationTree.axiom [] _ (Axiom.modal_t next_top.neg) trivial))
       h_box_dense
   -- G(□(F'T)) ∈ N (from □(F'T) by temp_future_derived)
-  have h_G_box : Formula.all_future (Formula.box next_top.neg) ∈ N :=
+  have h_G_box : Formula.allFuture (Formula.box next_top.neg) ∈ N :=
     SetMaximalConsistent.implication_property h_N
       (theorem_in_mcs_fc h_N (Cslib.Logic.Bimodal.Theorems.Combinators.temp_future_derived next_top.neg))
       h_box_dense
@@ -441,7 +441,7 @@ theorem box_dense_gives_density (fc : FrameClass) (N : Set (Formula Atom)) (h_N 
     SetMaximalConsistent.implication_property h_N
       (theorem_in_mcs_fc h_N (DerivationTree.axiom [] _ (Axiom.modal_4 next_top.neg) trivial))
       h_box_dense
-  have h_H_box : Formula.all_past (Formula.box next_top.neg) ∈ N :=
+  have h_H_box : Formula.allPast (Formula.box next_top.neg) ∈ N :=
     SetMaximalConsistent.implication_property h_N
       (theorem_in_mcs_fc h_N (liftBase fc (box_to_past (Formula.box next_top.neg)))) h_box_box
   -- Now propagate to x ∈ limit_dom
@@ -624,7 +624,7 @@ theorem cantor_bfmcs_dense_restricted_tc (fc : FrameClass) (A : Set (Formula Ato
     intro t φ _ h_F
     simp only [rooted_cantor_fmcs_dense, shifted_cantor_fmcs_dense'] at h_F ⊢
     have h_mem := (iso.symm (t + offset)).property
-    have h_F' : φ.some_future ∈ limit_f fc N h_N (iso.symm (t + offset)).val := h_F
+    have h_F' : φ.someFuture ∈ limit_f fc N h_N (iso.symm (t + offset)).val := h_F
     obtain ⟨y, hy, hlt, hφy⟩ := limit_F_resolution fc N h_N (iso.symm (t + offset)).val h_mem φ h_F'
     refine ⟨iso ⟨y, hy⟩ - offset, ?_, ?_⟩
     · have h1 : iso (iso.symm (t + offset)) < iso ⟨y, hy⟩ := iso.strictMono hlt
@@ -640,7 +640,7 @@ theorem cantor_bfmcs_dense_restricted_tc (fc : FrameClass) (A : Set (Formula Ato
     intro t φ _ h_P
     simp only [rooted_cantor_fmcs_dense, shifted_cantor_fmcs_dense'] at h_P ⊢
     have h_mem := (iso.symm (t + offset)).property
-    have h_P' : φ.some_past ∈ limit_f fc N h_N (iso.symm (t + offset)).val := h_P
+    have h_P' : φ.somePast ∈ limit_f fc N h_N (iso.symm (t + offset)).val := h_P
     obtain ⟨y, hy, hlt, hφy⟩ := limit_P_resolution fc N h_N (iso.symm (t + offset)).val h_mem φ h_P'
     refine ⟨iso ⟨y, hy⟩ - offset, ?_, ?_⟩
     · have h1 : iso ⟨y, hy⟩ < iso (iso.symm (t + offset)) := iso.strictMono hlt
@@ -1136,7 +1136,7 @@ theorem box_discrete_gives_discreteness (fc : FrameClass) (N : Set (Formula Atom
       (theorem_in_mcs_fc h_N (DerivationTree.axiom [] _ (Axiom.modal_t next_top) trivial))
       h_box_discrete
   -- G(□(U(T,bot))) ∈ N (from □(U(T,bot)) by temp_future_derived)
-  have h_G_box : Formula.all_future (Formula.box next_top) ∈ N :=
+  have h_G_box : Formula.allFuture (Formula.box next_top) ∈ N :=
     SetMaximalConsistent.implication_property h_N
       (theorem_in_mcs_fc h_N (Cslib.Logic.Bimodal.Theorems.Combinators.temp_future_derived next_top))
       h_box_discrete
@@ -1145,7 +1145,7 @@ theorem box_discrete_gives_discreteness (fc : FrameClass) (N : Set (Formula Atom
     SetMaximalConsistent.implication_property h_N
       (theorem_in_mcs_fc h_N (DerivationTree.axiom [] _ (Axiom.modal_4 next_top) trivial))
       h_box_discrete
-  have h_H_box : Formula.all_past (Formula.box next_top) ∈ N :=
+  have h_H_box : Formula.allPast (Formula.box next_top) ∈ N :=
     SetMaximalConsistent.implication_property h_N
       (theorem_in_mcs_fc h_N (liftBase fc (box_to_past (Formula.box next_top)))) h_box_box
   -- Now propagate to x ∈ limit_dom

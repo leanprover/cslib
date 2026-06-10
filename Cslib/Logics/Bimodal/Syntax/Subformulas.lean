@@ -75,17 +75,17 @@ theorem box_inner_mem_subformulas (ψ : Formula Atom) : ψ ∈ subformulas (.box
   right
   exact self_mem_subformulas ψ
 
-/-- Subformulas of all_past include the inner formula. -/
-theorem all_past_inner_mem_subformulas (ψ : Formula Atom) :
-    ψ ∈ subformulas (all_past ψ) := by
-  simp only [some_past, neg, top, subformulas, List.mem_cons, List.mem_append]
+/-- Subformulas of allPast include the inner formula. -/
+theorem allPast_inner_mem_subformulas (ψ : Formula Atom) :
+    ψ ∈ subformulas (allPast ψ) := by
+  simp only [somePast, neg, top, subformulas, List.mem_cons, List.mem_append]
   right; left; right; left; right; left
   exact self_mem_subformulas ψ
 
-/-- Subformulas of all_future include the inner formula. -/
-theorem all_future_inner_mem_subformulas (ψ : Formula Atom) :
-    ψ ∈ subformulas (all_future ψ) := by
-  simp only [some_future, neg, top, subformulas, List.mem_cons, List.mem_append]
+/-- Subformulas of allFuture include the inner formula. -/
+theorem allFuture_inner_mem_subformulas (ψ : Formula Atom) :
+    ψ ∈ subformulas (allFuture ψ) := by
+  simp only [someFuture, neg, top, subformulas, List.mem_cons, List.mem_append]
   right; left; right; left; right; left
   exact self_mem_subformulas ψ
 
@@ -172,19 +172,19 @@ theorem mem_subformulas_of_box {ψ phi : Formula Atom}
   exact subformulas_trans h_inner h
 
 /--
-Direct membership: inner formula of all_past is in subformulas.
+Direct membership: inner formula of allPast is in subformulas.
 -/
-theorem mem_subformulas_of_all_past {ψ phi : Formula Atom}
-    (h : (all_past ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_inner : ψ ∈ subformulas (all_past ψ) := all_past_inner_mem_subformulas ψ
+theorem mem_subformulas_of_allPast {ψ phi : Formula Atom}
+    (h : (allPast ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_inner : ψ ∈ subformulas (allPast ψ) := allPast_inner_mem_subformulas ψ
   exact subformulas_trans h_inner h
 
 /--
-Direct membership: inner formula of all_future is in subformulas.
+Direct membership: inner formula of allFuture is in subformulas.
 -/
-theorem mem_subformulas_of_all_future {ψ phi : Formula Atom}
-    (h : (all_future ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_inner : ψ ∈ subformulas (all_future ψ) := all_future_inner_mem_subformulas ψ
+theorem mem_subformulas_of_allFuture {ψ phi : Formula Atom}
+    (h : (allFuture ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_inner : ψ ∈ subformulas (allFuture ψ) := allFuture_inner_mem_subformulas ψ
   exact subformulas_trans h_inner h
 
 /-- Subformulas of untl include the left component. -/

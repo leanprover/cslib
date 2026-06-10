@@ -84,10 +84,10 @@ theorem G_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : G_quot a ≤ G_quo
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
-  show Derives φ.all_future ψ.all_future
+  show Derives φ.allFuture ψ.allFuture
   have h' : Derives φ ψ := h
   obtain ⟨d⟩ := h'
-  have d_temp : DerivationTree FrameClass.Base [] (Formula.all_future (φ.imp ψ)) :=
+  have d_temp : DerivationTree FrameClass.Base [] (Formula.allFuture (φ.imp ψ)) :=
     DerivationTree.temporal_necessitation (φ.imp ψ) d
   have d_k := Theorems.TemporalDerived.temp_k_dist_derived φ ψ
   exact ⟨DerivationTree.modus_ponens [] _ _ d_k d_temp⟩
@@ -106,7 +106,7 @@ theorem H_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : H_quot a ≤ H_quo
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
-  show Derives φ.all_past ψ.all_past
+  show Derives φ.allPast ψ.allPast
   have h' : Derives φ ψ := h
   obtain ⟨d⟩ := h'
   exact ⟨Theorems.Perpetuity.past_mono d⟩

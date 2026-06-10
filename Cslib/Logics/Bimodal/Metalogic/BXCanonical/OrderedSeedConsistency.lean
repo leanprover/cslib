@@ -42,7 +42,7 @@ def enriched_resolving_seed (M : Set (Formula Atom)) (ψ α : Formula Atom) : Se
 /-- If F(psi and alpha) in M for MCS M, then {psi, alpha} union g_content(M) is consistent. -/
 theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (ψ α : Formula Atom)
-    (h_F : Formula.some_future (Formula.and ψ α) ∈ M) :
+    (h_F : Formula.someFuture (Formula.and ψ α) ∈ M) :
     SetConsistent (fc := FrameClass.Base) (enriched_resolving_seed M ψ α) := by
   have h_seed_cons := forward_temporal_witness_seed_consistent M h_mcs
     (Formula.and ψ α) h_F
@@ -71,41 +71,41 @@ theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
 /-- Special case for two defects. -/
 theorem ordered_two_defect_seed_consistent {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (ψ₁ ψ₂ : Formula Atom)
-    (h_F : Formula.some_future (Formula.and ψ₁ (Formula.some_future ψ₂)) ∈ M) :
-    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.some_future ψ₂} ∪ g_content M) :=
-  enriched_resolving_seed_consistent h_mcs ψ₁ (Formula.some_future ψ₂) h_F
+    (h_F : Formula.someFuture (Formula.and ψ₁ (Formula.someFuture ψ₂)) ∈ M) :
+    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.someFuture ψ₂} ∪ g_content M) :=
+  enriched_resolving_seed_consistent h_mcs ψ₁ (Formula.someFuture ψ₂) h_F
 
 /-- BX11 at MCS level. -/
 theorem temp_linearity_mcs {M : Set (Formula Atom)} (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M)
     (A B : Formula Atom)
-    (h_FA : Formula.some_future A ∈ M) (h_FB : Formula.some_future B ∈ M) :
-    Formula.some_future (Formula.and A B) ∈ M ∨
-    Formula.some_future (Formula.and A (Formula.some_future B)) ∈ M ∨
-    Formula.some_future (Formula.and (Formula.some_future A) B) ∈ M := by
-  have h_conj : Formula.and (Formula.some_future A) (Formula.some_future B) ∈ M := by
-    have h_pair : DerivationTree FrameClass.Base [] ((Formula.some_future A).imp
-        ((Formula.some_future B).imp
-          (Formula.and (Formula.some_future A) (Formula.some_future B)))) :=
-      pairing (Formula.some_future A) (Formula.some_future B)
+    (h_FA : Formula.someFuture A ∈ M) (h_FB : Formula.someFuture B ∈ M) :
+    Formula.someFuture (Formula.and A B) ∈ M ∨
+    Formula.someFuture (Formula.and A (Formula.someFuture B)) ∈ M ∨
+    Formula.someFuture (Formula.and (Formula.someFuture A) B) ∈ M := by
+  have h_conj : Formula.and (Formula.someFuture A) (Formula.someFuture B) ∈ M := by
+    have h_pair : DerivationTree FrameClass.Base [] ((Formula.someFuture A).imp
+        ((Formula.someFuture B).imp
+          (Formula.and (Formula.someFuture A) (Formula.someFuture B)))) :=
+      pairing (Formula.someFuture A) (Formula.someFuture B)
     exact SetMaximalConsistent.implication_property h_mcs
       (SetMaximalConsistent.implication_property h_mcs
         (theorem_in_mcs_fc h_mcs h_pair) h_FA) h_FB
-  have h_ax : DerivationTree FrameClass.Base [] ((Formula.and (Formula.some_future A) (Formula.some_future B)).imp
-      (Formula.or (Formula.some_future (Formula.and A B))
-        (Formula.or (Formula.some_future (Formula.and A (Formula.some_future B)))
-          (Formula.some_future (Formula.and (Formula.some_future A) B))))) :=
+  have h_ax : DerivationTree FrameClass.Base [] ((Formula.and (Formula.someFuture A) (Formula.someFuture B)).imp
+      (Formula.or (Formula.someFuture (Formula.and A B))
+        (Formula.or (Formula.someFuture (Formula.and A (Formula.someFuture B)))
+          (Formula.someFuture (Formula.and (Formula.someFuture A) B))))) :=
     DerivationTree.axiom [] _ (Axiom.temp_linearity A B) trivial
   have h_disj := SetMaximalConsistent.implication_property h_mcs
     (theorem_in_mcs_fc h_mcs h_ax) h_conj
   rcases SetMaximalConsistent.negation_complete h_mcs
-    (Formula.some_future (Formula.and A B)) with h_l | h_neg_l
+    (Formula.someFuture (Formula.and A B)) with h_l | h_neg_l
   · exact Or.inl h_l
   · right
-    have h_right : Formula.or (Formula.some_future (Formula.and A (Formula.some_future B)))
-        (Formula.some_future (Formula.and (Formula.some_future A) B)) ∈ M :=
+    have h_right : Formula.or (Formula.someFuture (Formula.and A (Formula.someFuture B)))
+        (Formula.someFuture (Formula.and (Formula.someFuture A) B)) ∈ M :=
       SetMaximalConsistent.implication_property h_mcs h_disj h_neg_l
     rcases SetMaximalConsistent.negation_complete h_mcs
-      (Formula.some_future (Formula.and A (Formula.some_future B))) with h_m | h_neg_m
+      (Formula.someFuture (Formula.and A (Formula.someFuture B))) with h_m | h_neg_m
     · exact Or.inl h_m
     · right
       exact SetMaximalConsistent.implication_property h_mcs h_right h_neg_m
@@ -113,34 +113,34 @@ theorem temp_linearity_mcs {M : Set (Formula Atom)} (h_mcs : SetMaximalConsisten
 /-- Two defect consistent seed. -/
 theorem two_defect_consistent_seed {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (ψ₁ ψ₂ : Formula Atom)
-    (h_F1 : Formula.some_future ψ₁ ∈ M)
-    (h_F2 : Formula.some_future ψ₂ ∈ M) :
+    (h_F1 : Formula.someFuture ψ₁ ∈ M)
+    (h_F2 : Formula.someFuture ψ₂ ∈ M) :
     SetConsistent (fc := FrameClass.Base) ({ψ₁, ψ₂} ∪ g_content M) ∨
-    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.some_future ψ₂} ∪ g_content M) ∨
-    SetConsistent (fc := FrameClass.Base) ({ψ₂, Formula.some_future ψ₁} ∪ g_content M) := by
+    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.someFuture ψ₂} ∪ g_content M) ∨
+    SetConsistent (fc := FrameClass.Base) ({ψ₂, Formula.someFuture ψ₁} ∪ g_content M) := by
   rcases temp_linearity_mcs h_mcs ψ₁ ψ₂ h_F1 h_F2 with h_both | h_1first | h_2first
   · exact Or.inl (enriched_resolving_seed_consistent h_mcs ψ₁ ψ₂ h_both)
   · exact Or.inr (Or.inl (enriched_resolving_seed_consistent h_mcs ψ₁
-      (Formula.some_future ψ₂) h_1first))
+      (Formula.someFuture ψ₂) h_1first))
   · have h_seed := enriched_resolving_seed_consistent h_mcs
-      (Formula.some_future ψ₁) ψ₂ h_2first
+      (Formula.someFuture ψ₁) ψ₂ h_2first
     exact Or.inr (Or.inr (by
       unfold enriched_resolving_seed at h_seed
-      have h_eq : ({ψ₂, Formula.some_future ψ₁} : Set (Formula Atom)) =
-          ({Formula.some_future ψ₁, ψ₂} : Set (Formula Atom)) := Set.pair_comm _ _
+      have h_eq : ({ψ₂, Formula.someFuture ψ₁} : Set (Formula Atom)) =
+          ({Formula.someFuture ψ₁, ψ₂} : Set (Formula Atom)) := Set.pair_comm _ _
       rw [h_eq]; exact h_seed))
 
 /-- No new F-defects in successor. -/
 theorem no_new_f_defects {M M' : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (h_mcs' : SetMaximalConsistent (fc := FrameClass.Base) M')
     (h_g_sub : g_content M ⊆ M')
-    (α : Formula Atom) (h_neg : Formula.all_future (Formula.neg α) ∈ M) :
-    Formula.some_future α ∉ M' := by
-  have h_GG : Formula.all_future (Formula.all_future (Formula.neg α)) ∈ M :=
-    SetMaximalConsistent.all_future_all_future h_mcs h_neg
-  have h_G_neg_in' : Formula.all_future (Formula.neg α) ∈ M' := h_g_sub h_GG
+    (α : Formula Atom) (h_neg : Formula.allFuture (Formula.neg α) ∈ M) :
+    Formula.someFuture α ∉ M' := by
+  have h_GG : Formula.allFuture (Formula.allFuture (Formula.neg α)) ∈ M :=
+    SetMaximalConsistent.allFuture_allFuture h_mcs h_neg
+  have h_G_neg_in' : Formula.allFuture (Formula.neg α) ∈ M' := h_g_sub h_GG
   intro h_F
-  exact some_future_all_future_neg_absurd h_mcs' α h_F h_G_neg_in'
+  exact someFuture_allFuture_neg_absurd h_mcs' α h_F h_G_neg_in'
 
 /-- Resolved target is in successor. -/
 theorem resolved_target_in_successor {M M' : Set (Formula Atom)}

@@ -191,8 +191,8 @@ theorem BurgessR3Maximal_g_content_sub {fc : FrameClass} {A B C : Set (Formula A
     (h_mcs_A : SetMaximalConsistent fc A) (h_mcs_C : SetMaximalConsistent fc C) :
     g_content A ⊆ C := by
   intro φ hφ
-  -- hφ : G(φ) ∈ A, i.e., all_future(φ) ∈ A
-  change Formula.all_future φ ∈ A at hφ
+  -- hφ : G(φ) ∈ A, i.e., allFuture(φ) ∈ A
+  change Formula.allFuture φ ∈ A at hφ
   -- Suppose φ ∉ C, derive contradiction
   by_contra h_not_C
   have h_neg_C : φ.neg ∈ C := by
@@ -207,10 +207,10 @@ theorem BurgessR3Maximal_g_content_sub {fc : FrameClass} {A B C : Set (Formula A
   have h_untl : Formula.untl φ.neg top ∈ A :=
     h_r3m.2.1.1 top h_top_B φ.neg h_neg_C
   -- BX10: untl(γ, δ) ∈ A → F(δ) ∈ A, here F(φ.neg) ∈ A
-  have h_F_neg : Formula.some_future φ.neg ∈ A :=
+  have h_F_neg : Formula.someFuture φ.neg ∈ A :=
     until_F_mcs fc h_mcs_A top φ.neg h_untl
   -- G(φ) ∈ A implies F(φ.neg) ∉ A
-  -- F(φ.neg) = some_future(φ.neg) = (all_future(φ.neg.neg)).neg
+  -- F(φ.neg) = someFuture(φ.neg) = (allFuture(φ.neg.neg)).neg
   -- G(φ) ∈ A → G(φ.neg.neg) ∈ A (by φ → ¬¬φ inside G) → F(φ.neg) ∉ A
   -- Derive ⊢ φ → ¬¬φ, i.e., ⊢ φ → (φ.neg → ⊥)
   -- This is ⊢ φ → ((φ → ⊥) → ⊥), which follows from prop_s, prop_k, identity
@@ -226,18 +226,18 @@ theorem BurgessR3Maximal_g_content_sub {fc : FrameClass} {A B C : Set (Formula A
       deduction_theorem [φ] φ.neg Formula.bot h1
     exact deduction_theorem [] φ φ.neg.neg h2
   -- G(φ → ¬¬φ) and temp_k_dist give G(φ) → G(¬¬φ)
-  have h_G_dni : DerivationTree fc [] (Formula.all_future (φ.imp φ.neg.neg)) :=
+  have h_G_dni : DerivationTree fc [] (Formula.allFuture (φ.imp φ.neg.neg)) :=
     DerivationTree.temporal_necessitation _ h_dni
-  have h_kd : DerivationTree fc [] ((φ.imp φ.neg.neg).all_future.imp
-      (φ.all_future.imp φ.neg.neg.all_future)) :=
+  have h_kd : DerivationTree fc [] ((φ.imp φ.neg.neg).allFuture.imp
+      (φ.allFuture.imp φ.neg.neg.allFuture)) :=
     liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived φ φ.neg.neg)
   have h1 := theorem_in_mcs h_mcs_A h_G_dni
   have h2 := theorem_in_mcs h_mcs_A h_kd
   have h3 := SetMaximalConsistent.implication_property h_mcs_A h2 h1
-  have h_G_nn : Formula.all_future φ.neg.neg ∈ A :=
+  have h_G_nn : Formula.allFuture φ.neg.neg ∈ A :=
     SetMaximalConsistent.implication_property h_mcs_A h3 hφ
   -- F(¬φ) and G(¬¬φ) = G(neg(φ.neg)) are contradictory in MCS A
-  exact some_future_all_future_neg_absurd h_mcs_A φ.neg h_F_neg h_G_nn
+  exact someFuture_allFuture_neg_absurd h_mcs_A φ.neg h_F_neg h_G_nn
 
 /--
 **BurgessR3Maximal fc implies SetDeductivelyClosed** when some formula is not in B.
@@ -316,15 +316,15 @@ theorem burgessR3Maximal_from_h_content_sub {fc : FrameClass} {A C : Set (Formul
   have h_bR : burgessR A top C := by
     intro γ hγ
     -- BX4': γ → H(F(γ))
-    have h_ax_cp : DerivationTree fc [] (γ.imp (Formula.all_past (Formula.some_future γ))) :=
+    have h_ax_cp : DerivationTree fc [] (γ.imp (Formula.allPast (Formula.someFuture γ))) :=
       DerivationTree.axiom [] _ (Axiom.connect_past γ) trivial
-    have h_HF : Formula.all_past (Formula.some_future γ) ∈ C :=
+    have h_HF : Formula.allPast (Formula.someFuture γ) ∈ C :=
       SetMaximalConsistent.implication_property h_mcs_C
         (theorem_in_mcs h_mcs_C h_ax_cp) hγ
     -- H(F(γ)) ∈ C → F(γ) ∈ h_content(C) ⊆ A
-    have h_F : Formula.some_future γ ∈ A := h_hc h_HF
+    have h_F : Formula.someFuture γ ∈ A := h_hc h_HF
     -- F(γ) → U(⊤, γ) by F_until_equiv
-    have h_bx12 : DerivationTree fc [] ((Formula.some_future γ).imp (Formula.untl γ top)) :=
+    have h_bx12 : DerivationTree fc [] ((Formula.someFuture γ).imp (Formula.untl γ top)) :=
       DerivationTree.axiom [] _ (Axiom.F_until_equiv γ) trivial
     exact SetMaximalConsistent.implication_property h_mcs_A
       (theorem_in_mcs h_mcs_A h_bx12) h_F
@@ -332,16 +332,16 @@ theorem burgessR3Maximal_from_h_content_sub {fc : FrameClass} {A C : Set (Formul
   have h_bRS : burgessRSince C top A := by
     intro α hα
     -- If H(α.neg) ∈ C, then α.neg ∈ h_content(C) ⊆ A, contradicting α ∈ A
-    have h_P : Formula.some_past α ∈ C := by
+    have h_P : Formula.somePast α ∈ C := by
       by_contra h_not_P
-      have h_neg_P : (Formula.some_past α).neg ∈ C :=
+      have h_neg_P : (Formula.somePast α).neg ∈ C :=
         (SetMaximalConsistent.negation_complete h_mcs_C _).resolve_left h_not_P
-      have h_H_neg : Formula.all_past α.neg ∈ C :=
-        neg_some_past_to_all_past_neg h_mcs_C α h_neg_P
+      have h_H_neg : Formula.allPast α.neg ∈ C :=
+        neg_somePast_to_allPast_neg h_mcs_C α h_neg_P
       have h_neg_A : α.neg ∈ A := h_hc h_H_neg
       exact SetMaximalConsistent.neg_excludes h_mcs_A α h_neg_A hα
     -- P(α) → S(⊤, α) by P_since_equiv
-    have h_bx12' : DerivationTree fc [] ((Formula.some_past α).imp (Formula.snce α top)) :=
+    have h_bx12' : DerivationTree fc [] ((Formula.somePast α).imp (Formula.snce α top)) :=
       DerivationTree.axiom [] _ (Axiom.P_since_equiv α) trivial
     exact SetMaximalConsistent.implication_property h_mcs_C
       (theorem_in_mcs h_mcs_C h_bx12') h_P
@@ -420,8 +420,8 @@ noncomputable def eliminate_C5'_counterexample {fc : FrameClass} {χ : Chronicle
   obtain ⟨y, hy_lt, hy_notin⟩ := exists_rat_lt_finset χ.dom
   -- Step 2: Construct MCS with eta via BX10' (since_P)
   have h_mcs_x := h_c0 ce.x ce.x_mem
-  have h_P_η : Formula.some_past ce.η ∈ χ.f ce.x := by
-    have h_ax : DerivationTree fc [] ((Formula.snce ce.η ce.ξ).imp (Formula.some_past ce.η)) :=
+  have h_P_η : Formula.somePast ce.η ∈ χ.f ce.x := by
+    have h_ax : DerivationTree fc [] ((Formula.snce ce.η ce.ξ).imp (Formula.somePast ce.η)) :=
       DerivationTree.axiom [] _ (Axiom.since_P ce.ξ ce.η) trivial
     exact SetMaximalConsistent.implication_property h_mcs_x
       (theorem_in_mcs h_mcs_x h_ax) ce.since_mem
@@ -465,7 +465,7 @@ noncomputable def eliminate_g_prop_counterexample {fc : FrameClass} {χ : Chroni
     (x y : Rat) (α : Formula Atom)
     (h_x_mem : x ∈ χ.dom) (h_y_mem : y ∈ χ.dom)
     (h_adj : Adjacent χ.dom x y)
-    (h_G : Formula.all_future α ∈ χ.f x)
+    (h_G : Formula.allFuture α ∈ χ.f x)
     (h_not : α ∉ χ.f y) :
     ∃ χ' : Chronicle Atom,
       χ.dom ⊆ χ'.dom ∧
@@ -505,7 +505,7 @@ noncomputable def eliminate_h_prop_counterexample {fc : FrameClass} {χ : Chroni
     (x y : Rat) (α : Formula Atom)
     (h_x_mem : x ∈ χ.dom) (h_y_mem : y ∈ χ.dom)
     (h_adj : Adjacent χ.dom y x)
-    (h_H : Formula.all_past α ∈ χ.f x)
+    (h_H : Formula.allPast α ∈ χ.f x)
     (h_not : α ∉ χ.f y) :
     ∃ χ' : Chronicle Atom,
       χ.dom ⊆ χ'.dom ∧

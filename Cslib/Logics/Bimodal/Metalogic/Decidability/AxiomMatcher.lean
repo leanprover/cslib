@@ -134,7 +134,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- modal_future: □φ → □(Gφ)
       <|> (match lhs, rhs with
-           | .box phi, .box (.all_future phi') =>
+           | .box phi, .box (.allFuture phi') =>
                if phi = phi' then
                  some ⟨_, Axiom.modal_future phi⟩
                else none
@@ -162,13 +162,13 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- serial_future: ⊤ → F(⊤)
       <|> (match lhs, rhs with
-           | .imp .bot .bot, .some_future (.imp .bot .bot) =>
+           | .imp .bot .bot, .someFuture (.imp .bot .bot) =>
                some ⟨_, Axiom.serial_future⟩
            | _, _ => none)
 
       -- serial_past: ⊤ → P(⊤)
       <|> (match lhs, rhs with
-           | .imp .bot .bot, .some_past (.imp .bot .bot) =>
+           | .imp .bot .bot, .somePast (.imp .bot .bot) =>
                some ⟨_, Axiom.serial_past⟩
            | _, _ => none)
 
@@ -186,13 +186,13 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- discrete_propagate_fwd: U(⊤,⊥) → G(U(⊤,⊥))
       <|> (match lhs, rhs with
-           | .untl (.imp .bot .bot) .bot, .all_future (.untl (.imp .bot .bot) .bot) =>
+           | .untl (.imp .bot .bot) .bot, .allFuture (.untl (.imp .bot .bot) .bot) =>
                some ⟨_, Axiom.discrete_propagate_fwd⟩
            | _, _ => none)
 
       -- discrete_propagate_bwd: U(⊤,⊥) → H(U(⊤,⊥))
       <|> (match lhs, rhs with
-           | .untl (.imp .bot .bot) .bot, .all_past (.untl (.imp .bot .bot) .bot) =>
+           | .untl (.imp .bot .bot) .bot, .allPast (.untl (.imp .bot .bot) .bot) =>
                some ⟨_, Axiom.discrete_propagate_bwd⟩
            | _, _ => none)
 
@@ -214,7 +214,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- connect_future (BX4): φ → G(P(φ))
       <|> (match lhs, rhs with
-           | phi, .all_future (.some_past phi') =>
+           | phi, .allFuture (.somePast phi') =>
                if phi = phi' then
                  some ⟨_, Axiom.connect_future phi⟩
                else none
@@ -222,7 +222,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- connect_past (BX4'): φ → H(F(φ))
       <|> (match lhs, rhs with
-           | phi, .all_past (.some_future phi') =>
+           | phi, .allPast (.someFuture phi') =>
                if phi = phi' then
                  some ⟨_, Axiom.connect_past phi⟩
                else none
@@ -230,7 +230,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- F_until_equiv (BX12): F(φ) → U(φ, ⊤)
       <|> (match lhs, rhs with
-           | .some_future phi, .untl phi' (.imp .bot .bot) =>
+           | .someFuture phi, .untl phi' (.imp .bot .bot) =>
                if phi = phi' then
                  some ⟨_, Axiom.F_until_equiv phi⟩
                else none
@@ -238,7 +238,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- P_since_equiv (BX12'): P(φ) → S(φ, ⊤)
       <|> (match lhs, rhs with
-           | .some_past phi, .snce phi' (.imp .bot .bot) =>
+           | .somePast phi, .snce phi' (.imp .bot .bot) =>
                if phi = phi' then
                  some ⟨_, Axiom.P_since_equiv phi⟩
                else none
@@ -246,8 +246,8 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- z1: G(Gφ→φ) → (F(Gφ)→Gφ)
       <|> (match lhs, rhs with
-           | .all_future (.imp (.all_future phi) phi'),
-             .imp (.some_future (.all_future phi'')) (.all_future phi''') =>
+           | .allFuture (.imp (.allFuture phi) phi'),
+             .imp (.someFuture (.allFuture phi'')) (.allFuture phi''') =>
                if phi = phi' ∧ phi' = phi'' ∧ phi'' = phi''' then
                  some ⟨_, Axiom.z1 phi⟩
                else none
@@ -255,7 +255,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- density: GGφ → Gφ
       <|> (match lhs, rhs with
-           | .all_future (.all_future phi), .all_future phi' =>
+           | .allFuture (.allFuture phi), .allFuture phi' =>
                if phi = phi' then
                  some ⟨_, Axiom.density phi⟩
                else none
@@ -299,7 +299,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- until_F (BX10): U(ψ,φ) → F(ψ)
       <|> (match lhs, rhs with
-           | .untl psi _phi, .some_future psi' =>
+           | .untl psi _phi, .someFuture psi' =>
                if psi = psi' then
                  some ⟨_, Axiom.until_F _phi psi⟩
                else none
@@ -307,7 +307,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- since_P (BX10'): S(ψ,φ) → P(ψ)
       <|> (match lhs, rhs with
-           | .snce psi _phi, .some_past psi' =>
+           | .snce psi _phi, .somePast psi' =>
                if psi = psi' then
                  some ⟨_, Axiom.since_P _phi psi⟩
                else none
@@ -315,10 +315,10 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- temp_linearity (BX11): F(φ)∧F(ψ) → F(φ∧ψ) ∨ F(φ∧F(ψ)) ∨ F(F(φ)∧ψ)
       <|> (match lhs, rhs with
-           | .and (.some_future phi) (.some_future psi),
-             .or (.some_future (.and phi' psi'))
-               (.or (.some_future (.and phi'' (.some_future psi'')))
-                 (.some_future (.and (.some_future phi''') psi'''))) =>
+           | .and (.someFuture phi) (.someFuture psi),
+             .or (.someFuture (.and phi' psi'))
+               (.or (.someFuture (.and phi'' (.someFuture psi'')))
+                 (.someFuture (.and (.someFuture phi''') psi'''))) =>
                if phi = phi' ∧ phi' = phi'' ∧ phi'' = phi''' ∧
                   psi = psi' ∧ psi' = psi'' ∧ psi'' = psi''' then
                  some ⟨_, Axiom.temp_linearity phi psi⟩
@@ -327,10 +327,10 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- temp_linearity_past (BX11'): P(φ)∧P(ψ) → P(φ∧ψ) ∨ P(φ∧P(ψ)) ∨ P(P(φ)∧ψ)
       <|> (match lhs, rhs with
-           | .and (.some_past phi) (.some_past psi),
-             .or (.some_past (.and phi' psi'))
-               (.or (.some_past (.and phi'' (.some_past psi'')))
-                 (.some_past (.and (.some_past phi''') psi'''))) =>
+           | .and (.somePast phi) (.somePast psi),
+             .or (.somePast (.and phi' psi'))
+               (.or (.somePast (.and phi'' (.somePast psi'')))
+                 (.somePast (.and (.somePast phi''') psi'''))) =>
                if phi = phi' ∧ phi' = phi'' ∧ phi'' = phi''' ∧
                   psi = psi' ∧ psi' = psi'' ∧ psi'' = psi''' then
                  some ⟨_, Axiom.temp_linearity_past phi psi⟩
@@ -339,7 +339,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- prior_UZ: F(φ) → U(φ, ¬φ)
       <|> (match lhs, rhs with
-           | .some_future phi1, .untl phi2 (.neg phi3) =>
+           | .someFuture phi1, .untl phi2 (.neg phi3) =>
                if phi1 = phi2 ∧ phi2 = phi3 then
                  some ⟨_, Axiom.prior_UZ phi1⟩
                else none
@@ -347,7 +347,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- prior_SZ: P(φ) → S(φ, ¬φ)
       <|> (match lhs, rhs with
-           | .some_past phi1, .snce phi2 (.neg phi3) =>
+           | .somePast phi1, .snce phi2 (.neg phi3) =>
                if phi1 = phi2 ∧ phi2 = phi3 then
                  some ⟨_, Axiom.prior_SZ phi1⟩
                else none
@@ -359,7 +359,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- left_mono_until_G (BX2G): G(φ→χ) → (U(ψ,φ) → U(ψ,χ))
       <|> (match lhs, rhs with
-           | .all_future (.imp phi chi),
+           | .allFuture (.imp phi chi),
              .imp (.untl psi phi') (.untl psi' chi') =>
                if phi = phi' ∧ chi = chi' ∧ psi = psi' then
                  some ⟨_, Axiom.left_mono_until_G phi chi psi⟩
@@ -368,7 +368,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- left_mono_since_H (BX2H): H(φ→χ) → (S(ψ,φ) → S(ψ,χ))
       <|> (match lhs, rhs with
-           | .all_past (.imp phi chi),
+           | .allPast (.imp phi chi),
              .imp (.snce psi phi') (.snce psi' chi') =>
                if phi = phi' ∧ chi = chi' ∧ psi = psi' then
                  some ⟨_, Axiom.left_mono_since_H phi chi psi⟩
@@ -377,7 +377,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- right_mono_until (BX3): G(φ→ψ) → (U(φ,χ) → U(ψ,χ))
       <|> (match lhs, rhs with
-           | .all_future (.imp phi psi),
+           | .allFuture (.imp phi psi),
              .imp (.untl phi' chi) (.untl psi' chi') =>
                if phi = phi' ∧ psi = psi' ∧ chi = chi' then
                  some ⟨_, Axiom.right_mono_until phi psi chi⟩
@@ -386,7 +386,7 @@ def matchAxiom (φ : Formula Atom) : Option (AxiomWitness Atom) :=
 
       -- right_mono_since (BX3'): H(φ→ψ) → (S(φ,χ) → S(ψ,χ))
       <|> (match lhs, rhs with
-           | .all_past (.imp phi psi),
+           | .allPast (.imp phi psi),
              .imp (.snce phi' chi) (.snce psi' chi') =>
                if phi = phi' ∧ psi = psi' ∧ chi = chi' then
                  some ⟨_, Axiom.right_mono_since phi psi chi⟩

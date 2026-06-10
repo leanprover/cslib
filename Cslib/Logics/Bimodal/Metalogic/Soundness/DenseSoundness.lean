@@ -20,7 +20,7 @@ variable {Atom : Type*}
 
 /-- The density axiom GGφ → Gφ is valid over all densely ordered temporal types. -/
 theorem density_sound_dense (φ : Formula Atom) :
-    valid_dense ((φ.all_future.all_future).imp φ.all_future) :=
+    valid_dense ((φ.allFuture.allFuture).imp φ.allFuture) :=
   density_valid φ
 
 /-- All axioms with `minFrameClass ≤ .Dense` are valid over dense temporal orders. -/

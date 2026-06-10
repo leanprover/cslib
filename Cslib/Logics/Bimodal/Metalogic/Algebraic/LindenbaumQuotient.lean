@@ -17,7 +17,7 @@ import Cslib.Logics.Bimodal.Theorems.TemporalDerived
 Quotient of formulas by provable equivalence forming the Lindenbaum-Tarski algebra.
 
 Ported from BimodalLogic/Theories/Bimodal/Metalogic/Algebraic/LindenbaumQuotient.lean
-(2 sorries: temp_k_dist in provEquiv_all_future_congr -- now resolved using derived theorem)
+(2 sorries: temp_k_dist in provEquiv_allFuture_congr -- now resolved using derived theorem)
 -/
 
 set_option linter.style.emptyLine false
@@ -90,8 +90,8 @@ theorem provEquiv_box_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) : φ.box �
     have d_k := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.modal_k_dist ψ φ) trivial
     exact ⟨DerivationTree.modus_ponens [] _ _ d_k d_box⟩
 
-theorem provEquiv_all_future_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
-    φ.all_future ≈ₚ ψ.all_future := by
+theorem provEquiv_allFuture_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
+    φ.allFuture ≈ₚ ψ.allFuture := by
   unfold ProvEquiv Derives at *
   obtain ⟨⟨d_fwd⟩, ⟨d_bwd⟩⟩ := h
   constructor
@@ -102,8 +102,8 @@ theorem provEquiv_all_future_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
     have d_k := Theorems.TemporalDerived.temp_k_dist_derived ψ φ
     exact ⟨DerivationTree.modus_ponens [] _ _ d_k d_temp⟩
 
-theorem provEquiv_all_past_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
-    φ.all_past ≈ₚ ψ.all_past := by
+theorem provEquiv_allPast_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
+    φ.allPast ≈ₚ ψ.allPast := by
   unfold ProvEquiv Derives at *
   obtain ⟨⟨d_fwd⟩, ⟨d_bwd⟩⟩ := h
   constructor
@@ -173,44 +173,44 @@ noncomputable def box_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
     (fun _ _ h => Quotient.sound (provEquiv_box_congr h))
 
 noncomputable def G_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
-  Quotient.lift (fun φ => toQuot φ.all_future)
-    (fun _ _ h => Quotient.sound (provEquiv_all_future_congr h))
+  Quotient.lift (fun φ => toQuot φ.allFuture)
+    (fun _ _ h => Quotient.sound (provEquiv_allFuture_congr h))
 
 noncomputable def H_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
-  Quotient.lift (fun φ => toQuot φ.all_past)
-    (fun _ _ h => Quotient.sound (provEquiv_all_past_congr h))
+  Quotient.lift (fun φ => toQuot φ.allPast)
+    (fun _ _ h => Quotient.sound (provEquiv_allPast_congr h))
 
 def top_quot : LindenbaumAlg Atom := toQuot (Formula.bot.imp Formula.bot)
 def bot_quot : LindenbaumAlg Atom := toQuot Formula.bot
 
 theorem swapTemporal_derives {φ ψ : Formula Atom} (h : Derives φ ψ) :
-    Derives φ.swap_temporal ψ.swap_temporal := by
+    Derives φ.swapTemporal ψ.swapTemporal := by
   unfold Derives at *
   obtain ⟨d⟩ := h
   have d_swap := DerivationTree.temporal_duality (φ.imp ψ) d
-  simp only [Formula.swap_temporal] at d_swap
+  simp only [Formula.swapTemporal] at d_swap
   exact ⟨d_swap⟩
 
 theorem provEquiv_swapTemporal_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
-    φ.swap_temporal ≈ₚ ψ.swap_temporal :=
+    φ.swapTemporal ≈ₚ ψ.swapTemporal :=
   ⟨swapTemporal_derives h.1, swapTemporal_derives h.2⟩
 
 noncomputable def sigma_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
-  Quotient.lift (fun φ => toQuot φ.swap_temporal)
+  Quotient.lift (fun φ => toQuot φ.swapTemporal)
     (fun _ _ h => Quotient.sound (provEquiv_swapTemporal_congr h))
 
 theorem sigma_quot_involution (a : LindenbaumAlg Atom) : sigma_quot (sigma_quot a) = a := by
   induction a using Quotient.ind
   rename_i φ
-  show toQuot (φ.swap_temporal.swap_temporal) = toQuot φ
+  show toQuot (φ.swapTemporal.swapTemporal) = toQuot φ
   rw [Formula.swapTemporal_involution]
 
 theorem sigma_quot_neg (a : LindenbaumAlg Atom) :
     sigma_quot (neg_quot a) = neg_quot (sigma_quot a) := by
   induction a using Quotient.ind
   rename_i φ
-  show toQuot (φ.neg.swap_temporal) = neg_quot (toQuot (φ.swap_temporal))
-  simp only [Formula.neg, Formula.swap_temporal]
+  show toQuot (φ.neg.swapTemporal) = neg_quot (toQuot (φ.swapTemporal))
+  simp only [Formula.neg, Formula.swapTemporal]
   rfl
 
 theorem sigma_quot_sup (a b : LindenbaumAlg Atom) :
@@ -218,15 +218,15 @@ theorem sigma_quot_sup (a b : LindenbaumAlg Atom) :
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
-  show toQuot ((φ.or ψ).swap_temporal) = or_quot (toQuot φ.swap_temporal) (toQuot ψ.swap_temporal)
-  simp only [Formula.or, Formula.neg, Formula.swap_temporal]
+  show toQuot ((φ.or ψ).swapTemporal) = or_quot (toQuot φ.swapTemporal) (toQuot ψ.swapTemporal)
+  simp only [Formula.or, Formula.neg, Formula.swapTemporal]
   rfl
 
 theorem sigma_quot_G_H (a : LindenbaumAlg Atom) :
     sigma_quot (G_quot a) = H_quot (sigma_quot a) := by
   induction a using Quotient.ind
   rename_i φ
-  show toQuot (φ.all_future.swap_temporal) = H_quot (toQuot φ.swap_temporal)
+  show toQuot (φ.allFuture.swapTemporal) = H_quot (toQuot φ.swapTemporal)
   simp only [Formula.swapTemporal_allFuture]
   rfl
 
@@ -234,7 +234,7 @@ theorem sigma_quot_H_G (a : LindenbaumAlg Atom) :
     sigma_quot (H_quot a) = G_quot (sigma_quot a) := by
   induction a using Quotient.ind
   rename_i φ
-  show toQuot (φ.all_past.swap_temporal) = G_quot (toQuot φ.swap_temporal)
+  show toQuot (φ.allPast.swapTemporal) = G_quot (toQuot φ.swapTemporal)
   simp only [Formula.swapTemporal_allPast]
   rfl
 
@@ -242,8 +242,8 @@ theorem sigma_quot_box (a : LindenbaumAlg Atom) :
     sigma_quot (box_quot a) = box_quot (sigma_quot a) := by
   induction a using Quotient.ind
   rename_i φ
-  show toQuot (φ.box.swap_temporal) = box_quot (toQuot φ.swap_temporal)
-  simp only [Formula.swap_temporal]
+  show toQuot (φ.box.swapTemporal) = box_quot (toQuot φ.swapTemporal)
+  simp only [Formula.swapTemporal]
   rfl
 
 end Cslib.Logic.Bimodal.Metalogic.Algebraic.LindenbaumQuotient

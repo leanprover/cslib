@@ -110,39 +110,39 @@ inductive Axiom : Formula Atom -> Type u where
 
   /-- BX1: Serial future: top -> F(top) -/
   | serial_future :
-      Axiom (Formula.top.imp (Formula.some_future Formula.top))
+      Axiom (Formula.top.imp (Formula.someFuture Formula.top))
 
   /-- BX1': Serial past: top -> P(top) -/
   | serial_past :
-      Axiom (Formula.top.imp (Formula.some_past Formula.top))
+      Axiom (Formula.top.imp (Formula.somePast Formula.top))
 
   /-- BX2G: Guard monotonicity of Until under G:
       G(phi -> chi) -> (psi U phi -> psi U chi) -/
   | left_mono_until_G (phi chi psi : Formula Atom) :
-      Axiom ((phi.imp chi).all_future.imp ((Formula.untl psi phi).imp (Formula.untl psi chi)))
+      Axiom ((phi.imp chi).allFuture.imp ((Formula.untl psi phi).imp (Formula.untl psi chi)))
 
   /-- BX2H: Guard monotonicity of Since under H:
       H(phi -> chi) -> (psi S phi -> psi S chi) -/
   | left_mono_since_H (phi chi psi : Formula Atom) :
-      Axiom ((phi.imp chi).all_past.imp ((Formula.snce psi phi).imp (Formula.snce psi chi)))
+      Axiom ((phi.imp chi).allPast.imp ((Formula.snce psi phi).imp (Formula.snce psi chi)))
 
   /-- BX3: Event monotonicity of Until:
       G(phi -> psi) -> (phi U chi -> psi U chi) -/
   | right_mono_until (phi psi chi : Formula Atom) :
-      Axiom ((phi.imp psi).all_future.imp ((Formula.untl phi chi).imp (Formula.untl psi chi)))
+      Axiom ((phi.imp psi).allFuture.imp ((Formula.untl phi chi).imp (Formula.untl psi chi)))
 
   /-- BX3': Event monotonicity of Since:
       H(phi -> psi) -> (phi S chi -> psi S chi) -/
   | right_mono_since (phi psi chi : Formula Atom) :
-      Axiom ((phi.imp psi).all_past.imp ((Formula.snce phi chi).imp (Formula.snce psi chi)))
+      Axiom ((phi.imp psi).allPast.imp ((Formula.snce phi chi).imp (Formula.snce psi chi)))
 
   /-- BX4: Temporal connectedness future: phi -> G(P(phi)) -/
   | connect_future (phi : Formula Atom) :
-      Axiom (phi.imp (phi.some_past.all_future))
+      Axiom (phi.imp (phi.somePast.allFuture))
 
   /-- BX4': Temporal connectedness past: phi -> H(F(phi)) -/
   | connect_past (phi : Formula Atom) :
-      Axiom (phi.imp (phi.some_future.all_past))
+      Axiom (phi.imp (phi.someFuture.allPast))
 
   /-- BX13: Until-Since enrichment:
       p and (psi U phi) -> (psi and S(p, phi)) U phi -/
@@ -205,41 +205,41 @@ inductive Axiom : Formula Atom -> Type u where
 
   /-- BX10: Until implies eventuality: U(psi, phi) -> F(psi) -/
   | until_F (phi psi : Formula Atom) :
-      Axiom ((Formula.untl psi phi).imp (Formula.some_future psi))
+      Axiom ((Formula.untl psi phi).imp (Formula.someFuture psi))
 
   /-- BX10': Since implies past eventuality: S(psi, phi) -> P(psi) -/
   | since_P (phi psi : Formula Atom) :
-      Axiom ((Formula.snce psi phi).imp (Formula.some_past psi))
+      Axiom ((Formula.snce psi phi).imp (Formula.somePast psi))
 
   /-- BX11: Temporal linearity:
       F(phi) and F(psi) -> F(phi and psi) or F(phi and F(psi)) or F(F(phi) and psi) -/
   | temp_linearity (phi psi : Formula Atom) :
-      Axiom (Formula.and (Formula.some_future phi) (Formula.some_future psi) |>.imp
-        (Formula.or (Formula.some_future (Formula.and phi psi))
-          (Formula.or (Formula.some_future (Formula.and phi (Formula.some_future psi)))
-            (Formula.some_future (Formula.and (Formula.some_future phi) psi)))))
+      Axiom (Formula.and (Formula.someFuture phi) (Formula.someFuture psi) |>.imp
+        (Formula.or (Formula.someFuture (Formula.and phi psi))
+          (Formula.or (Formula.someFuture (Formula.and phi (Formula.someFuture psi)))
+            (Formula.someFuture (Formula.and (Formula.someFuture phi) psi)))))
 
   /-- BX11': Temporal linearity past:
       P(phi) and P(psi) -> P(phi and psi) or P(phi and P(psi)) or P(P(phi) and psi) -/
   | temp_linearity_past (phi psi : Formula Atom) :
-      Axiom (Formula.and (Formula.some_past phi) (Formula.some_past psi) |>.imp
-        (Formula.or (Formula.some_past (Formula.and phi psi))
-          (Formula.or (Formula.some_past (Formula.and phi (Formula.some_past psi)))
-            (Formula.some_past (Formula.and (Formula.some_past phi) psi)))))
+      Axiom (Formula.and (Formula.somePast phi) (Formula.somePast psi) |>.imp
+        (Formula.or (Formula.somePast (Formula.and phi psi))
+          (Formula.or (Formula.somePast (Formula.and phi (Formula.somePast psi)))
+            (Formula.somePast (Formula.and (Formula.somePast phi) psi)))))
 
   /-- BX12: F-Until equivalence: F(phi) -> U(phi, top) -/
   | F_until_equiv (phi : Formula Atom) :
-      Axiom ((Formula.some_future phi).imp (Formula.untl phi Formula.top))
+      Axiom ((Formula.someFuture phi).imp (Formula.untl phi Formula.top))
 
   /-- BX12': P-Since equivalence: P(phi) -> S(phi, top) -/
   | P_since_equiv (phi : Formula Atom) :
-      Axiom ((Formula.some_past phi).imp (Formula.snce phi Formula.top))
+      Axiom ((Formula.somePast phi).imp (Formula.snce phi Formula.top))
 
   -- Layer 4: Modal-Temporal Interaction (1)
 
   /-- Modal-Future: box phi -> box(G phi). Necessary truths remain necessary in the future. -/
   | modal_future (phi : Formula Atom) :
-      Axiom ((Formula.box phi).imp (Formula.box (Formula.all_future phi)))
+      Axiom ((Formula.box phi).imp (Formula.box (Formula.allFuture phi)))
 
   -- Layer 5: Uniformity Axioms (5)
 
@@ -256,12 +256,12 @@ inductive Axiom : Formula Atom -> Type u where
   /-- Discrete propagation forward: U(top,bot) -> G(U(top,bot)). -/
   | discrete_propagate_fwd :
       Axiom ((Formula.untl (Formula.top) Formula.bot).imp
-        (Formula.all_future (Formula.untl (Formula.top) Formula.bot)))
+        (Formula.allFuture (Formula.untl (Formula.top) Formula.bot)))
 
   /-- Discrete propagation backward: U(top,bot) -> H(U(top,bot)). -/
   | discrete_propagate_bwd :
       Axiom ((Formula.untl (Formula.top) Formula.bot).imp
-        (Formula.all_past (Formula.untl (Formula.top) Formula.bot)))
+        (Formula.allPast (Formula.untl (Formula.top) Formula.bot)))
 
   /-- Discrete box necessity: U(top,bot) -> box(U(top,bot)). -/
   | discrete_box_necessity :
@@ -272,24 +272,24 @@ inductive Axiom : Formula Atom -> Type u where
 
   /-- Prior-UZ: F(phi) -> U(phi, neg phi). -/
   | prior_UZ (phi : Formula Atom) :
-      Axiom (phi.some_future.imp (Formula.untl phi phi.neg))
+      Axiom (phi.someFuture.imp (Formula.untl phi phi.neg))
 
   /-- Prior-SZ: P(phi) -> S(phi, neg phi). -/
   | prior_SZ (phi : Formula Atom) :
-      Axiom (phi.some_past.imp (Formula.snce phi phi.neg))
+      Axiom (phi.somePast.imp (Formula.snce phi phi.neg))
 
   -- Layer 7: Z1 Axiom (1)
 
   /-- Z1: G(G phi -> phi) -> (F(G phi) -> G phi). -/
   | z1 (phi : Formula Atom) :
-      Axiom ((phi.all_future.imp phi).all_future.imp
-        (phi.all_future.some_future.imp phi.all_future))
+      Axiom ((phi.allFuture.imp phi).allFuture.imp
+        (phi.allFuture.someFuture.imp phi.allFuture))
 
   -- Layer 8: Density Axioms (2)
 
   /-- Density: G(G phi) -> G phi. -/
   | density (phi : Formula Atom) :
-      Axiom (phi.all_future.all_future.imp phi.all_future)
+      Axiom (phi.allFuture.allFuture.imp phi.allFuture)
 
   /-- Dense indicator: neg U(top, bot). -/
   | dense_indicator :

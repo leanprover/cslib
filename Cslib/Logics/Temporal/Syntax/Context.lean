@@ -52,7 +52,7 @@ variable {Atom : Type u}
 Apply a transformation to all formulas in a context.
 
 This is used in inference rules like:
-- Temporal K: If `Γ.map all_future ⊢ φ` then `Γ ⊢ all_future φ`
+- Temporal K: If `Γ.map allFuture ⊢ φ` then `Γ ⊢ allFuture φ`
 -/
 def map (f : Formula Atom → Formula Atom) : Context Atom → Context Atom := List.map f
 

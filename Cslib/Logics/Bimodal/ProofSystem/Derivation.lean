@@ -26,7 +26,7 @@ The derivation tree includes 7 inference rules:
    then `Gamma |-[fc] psi`
 4. **necessitation**: If `|-[fc] phi` then `|-[fc] box phi`
 5. **temporal_necessitation**: If `|-[fc] phi` then `|-[fc] G phi`
-6. **temporal_duality**: If `|-[fc] phi` then `|-[fc] swap_temporal phi`
+6. **temporal_duality**: If `|-[fc] phi` then `|-[fc] swapTemporal phi`
 7. **weakening**: If `Gamma |-[fc] phi` and `Gamma <= Delta`
    then `Delta |-[fc] phi`
 -/
@@ -69,12 +69,12 @@ inductive DerivationTree (fc : FrameClass) :
   /-- Temporal necessitation: If `|-[fc] phi` then `|-[fc] G phi`. -/
   | temporal_necessitation (phi : Formula Atom)
       (d : DerivationTree fc [] phi) :
-      DerivationTree fc [] phi.all_future
+      DerivationTree fc [] phi.allFuture
   /-- Temporal duality: If `|-[fc] phi` then
-      `|-[fc] swap_temporal phi`. -/
+      `|-[fc] swapTemporal phi`. -/
   | temporal_duality (phi : Formula Atom)
       (d : DerivationTree fc [] phi) :
-      DerivationTree fc [] phi.swap_temporal
+      DerivationTree fc [] phi.swapTemporal
   /-- Weakening: If `Gamma |-[fc] phi` and `Gamma <= Delta` then
       `Delta |-[fc] phi`. -/
   | weakening (Gamma Delta : Context Atom) (phi : Formula Atom)

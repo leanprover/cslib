@@ -28,7 +28,7 @@ theorem neg_until_equiv
     int_equiv
       (Cslib.Logic.Bimodal.Formula.neg (.untl A B))
       (Cslib.Logic.Bimodal.Formula.or
-        (Cslib.Logic.Bimodal.Formula.all_future
+        (Cslib.Logic.Bimodal.Formula.allFuture
           (Cslib.Logic.Bimodal.Formula.neg A))
         (.untl
           (Cslib.Logic.Bimodal.Formula.and
@@ -37,7 +37,7 @@ theorem neg_until_equiv
           (Cslib.Logic.Bimodal.Formula.neg A))) := by
   intro M t
   rw [int_truth_neg, int_truth_or,
-    int_truth_all_future]
+    int_truth_allFuture]
   -- Goal: ¬ int_truth M t (untl A B) ↔
   --   (∀ w > t, ¬int_truth M w A) ∨
   --   int_truth M t (untl (and (neg A) (neg B))
@@ -105,7 +105,7 @@ theorem neg_since_equiv
     int_equiv
       (Cslib.Logic.Bimodal.Formula.neg (.snce A B))
       (Cslib.Logic.Bimodal.Formula.or
-        (Cslib.Logic.Bimodal.Formula.all_past
+        (Cslib.Logic.Bimodal.Formula.allPast
           (Cslib.Logic.Bimodal.Formula.neg A))
         (.snce
           (Cslib.Logic.Bimodal.Formula.and
@@ -114,7 +114,7 @@ theorem neg_since_equiv
           (Cslib.Logic.Bimodal.Formula.neg A))) := by
   intro M t
   rw [int_truth_neg, int_truth_or,
-    int_truth_all_past]
+    int_truth_allPast]
   constructor
   · intro hnotS
     by_cases hH : ∀ w : ℤ, w < t →

@@ -153,16 +153,16 @@ theorem neg_bot_true
     int_truth M t (Formula.neg (Atom := Atom) .bot) := by
   simp [int_truth]
 
-/-- S(a, neg bot) iff some_past a. -/
+/-- S(a, neg bot) iff somePast a. -/
 theorem since_top_is_past (a : Formula Atom) :
     int_equiv (.snce a (Formula.neg .bot))
-      (Formula.some_past a) :=
+      (Formula.somePast a) :=
   int_equiv_refl _
 
-/-- U(a, neg bot) iff some_future a. -/
+/-- U(a, neg bot) iff someFuture a. -/
 theorem until_top_is_future (a : Formula Atom) :
     int_equiv (.untl a (Formula.neg .bot))
-      (Formula.some_future a) :=
+      (Formula.someFuture a) :=
   int_equiv_refl _
 
 end Cslib.Logic.Bimodal.Metalogic.Separation

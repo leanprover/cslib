@@ -156,22 +156,22 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Core Identifier Renames (Tier 1) [NOT STARTED]
+### Phase 3: Core Identifier Renames (Tier 1) [COMPLETED]
 
 **Goal**: Rename the 5 high-impact Tier 1 identifiers (`swap_temporal`, `some_future`, `all_future`, `some_past`, `all_past`) and update all notation bindings. After this phase, every target identifier has been renamed.
 
 **Tasks**:
-- [ ] Rename the 5 core identifiers across all 95 affected files:
+- [x] Rename the 5 core identifiers across all 95 affected files:
   - `swap_temporal` -> `swapTemporal` (~515 references across 33 files)
   - `some_future` -> `someFuture` (~581 references across 63 files)
   - `all_future` -> `allFuture` (~701 references across 78 files)
   - `some_past` -> `somePast` (~495 references across 56 files)
   - `all_past` -> `allPast` (~611 references across 70 files)
-- [ ] Verify notation bindings were updated (these are handled by the sed since they reference `Formula.some_future` etc.):
+- [x] Verify notation bindings were updated (these are handled by the sed since they reference `Formula.some_future` etc.):
   - `Cslib/Logics/Temporal/Syntax/Formula.lean` lines 84-87
   - `Cslib/Logics/Bimodal/Syntax/Formula.lean` lines 89-92
-- [ ] Verify no residual snake_case references for any of the 16 target identifiers: `grep -rn 'some_future\|all_future\|some_past\|all_past\|swap_temporal' Cslib/ --include="*.lean"`
-- [ ] Run `lake build` and confirm zero new errors
+- [x] Verify no residual snake_case references for any of the 16 target identifiers: `grep -rn 'some_future\|all_future\|some_past\|all_past\|swap_temporal' Cslib/ --include="*.lean"`
+- [x] Run `lake build` and confirm zero new errors
 
 **Timing**: 45 minutes
 

@@ -32,7 +32,7 @@ functions.
 ## Note on Variable Naming
 
 Frame variables use `ℱ` (Unicode U+2131) rather than `F` because
-`F` is a scoped notation for `Formula.some_future` within the
+`F` is a scoped notation for `Formula.someFuture` within the
 `Cslib.Logic.Bimodal` namespace.
 -/
 

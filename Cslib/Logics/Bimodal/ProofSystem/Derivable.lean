@@ -96,17 +96,17 @@ theorem Bimodal.Derivable.nec {fc : FrameClass}
 theorem Bimodal.Derivable.temp_nec {fc : FrameClass}
     {p : Formula Atom}
     (h : Bimodal.Derivable fc [] p) :
-    Bimodal.Derivable fc [] p.all_future := by
+    Bimodal.Derivable fc [] p.allFuture := by
   obtain ⟨d⟩ := h
   exact Nonempty.intro
     (DerivationTree.temporal_necessitation p d)
 
-/-- Temporal duality: If `|-! p` then `|-! swap_temporal p`
+/-- Temporal duality: If `|-! p` then `|-! swapTemporal p`
     (Prop-valued). -/
 theorem Bimodal.Derivable.temp_dual {fc : FrameClass}
     {p : Formula Atom}
     (h : Bimodal.Derivable fc [] p) :
-    Bimodal.Derivable fc [] p.swap_temporal := by
+    Bimodal.Derivable fc [] p.swapTemporal := by
   obtain ⟨d⟩ := h
   exact Nonempty.intro
     (DerivationTree.temporal_duality p d)

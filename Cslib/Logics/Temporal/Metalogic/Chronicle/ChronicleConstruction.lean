@@ -709,10 +709,10 @@ Then limit_satisfies_c5_weak gives y > x with phi in limit_f(y).
 theorem limit_F_resolution (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (x : Rat) (hx : x ∈ limit_dom A h_mcs)
     (φ : Formula Atom)
-    (h_F : Formula.some_future φ ∈ limit_f A h_mcs x) :
+    (h_F : Formula.someFuture φ ∈ limit_f A h_mcs x) :
     ∃ y ∈ limit_dom A h_mcs, x < y ∧ φ ∈ limit_f A h_mcs y := by
   have h_mcs_x := limit_c0 A h_mcs x hx
-  have h_bx12 : DerivationTree FrameClass.Base [] ((Formula.some_future φ).imp
+  have h_bx12 : DerivationTree FrameClass.Base [] ((Formula.someFuture φ).imp
       (Formula.untl φ (Formula.bot.imp Formula.bot))) :=
     DerivationTree.axiom [] _ (Axiom.F_until_equiv φ) trivial
   have h_until : Formula.untl φ (Formula.bot.imp Formula.bot) ∈ limit_f A h_mcs x :=
@@ -730,10 +730,10 @@ Then limit_satisfies_c5'_weak gives y < x with phi in limit_f(y).
 theorem limit_P_resolution (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (x : Rat) (hx : x ∈ limit_dom A h_mcs)
     (φ : Formula Atom)
-    (h_P : Formula.some_past φ ∈ limit_f A h_mcs x) :
+    (h_P : Formula.somePast φ ∈ limit_f A h_mcs x) :
     ∃ y ∈ limit_dom A h_mcs, y < x ∧ φ ∈ limit_f A h_mcs y := by
   have h_mcs_x := limit_c0 A h_mcs x hx
-  have h_bx12' : DerivationTree FrameClass.Base [] ((Formula.some_past φ).imp
+  have h_bx12' : DerivationTree FrameClass.Base [] ((Formula.somePast φ).imp
       (Formula.snce φ (Formula.bot.imp Formula.bot))) :=
     DerivationTree.axiom [] _ (Axiom.P_since_equiv φ) trivial
   have h_since : Formula.snce φ (Formula.bot.imp Formula.bot) ∈ limit_f A h_mcs x :=
@@ -932,7 +932,7 @@ truth lemma, not a consequence).
 
 **Proof** (plan v12, Phase 4): Uses the generalized C4 + C0 argument.
 
-G(φ) = all_future(φ). In an MCS, G(φ) implies G(φ^{nn}) (by DNI + temporal
+G(φ) = allFuture(φ). In an MCS, G(φ) implies G(φ^{nn}) (by DNI + temporal
 necessitation + K distribution). Then F(neg φ) = neg(G(φ^{nn})) ∉ MCS. By
 BX10 contrapositive, (⊤ U neg φ) ∉ MCS. By MCS negation completeness,
 neg(⊤ U neg φ) ∈ MCS. Applying generalized C4 (for ALL pairs x < y, not just
@@ -951,7 +951,7 @@ Forward_G for domain points: G(φ) ∈ limit_f(x) and x < y implies φ ∈ limit
 -/
 theorem limit_forward_G (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (x y : Rat) (hx : x ∈ limit_dom A h_mcs) (hy : y ∈ limit_dom A h_mcs)
-    (hxy : x < y) (φ : Formula Atom) (h_G : Formula.all_future φ ∈ limit_f A h_mcs x) :
+    (hxy : x < y) (φ : Formula Atom) (h_G : Formula.allFuture φ ∈ limit_f A h_mcs x) :
     φ ∈ limit_f A h_mcs y := by
   by_contra h_not
   have h_mcs_x := limit_c0 A h_mcs x hx
@@ -963,21 +963,21 @@ theorem limit_forward_G (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
   -- Step 1: G(φ) ∈ f(x) implies G(φ^{nn}) ∈ f(x) by DNI + temporal necessitation + K
   have h_dni : DerivationTree FrameClass.Base [] (φ.imp φ.neg.neg) :=
     dni φ
-  have h_G_dni : DerivationTree FrameClass.Base [] (Formula.all_future (φ.imp φ.neg.neg)) :=
+  have h_G_dni : DerivationTree FrameClass.Base [] (Formula.allFuture (φ.imp φ.neg.neg)) :=
     DerivationTree.temporal_necessitation _ h_dni
-  have h_G_dist : DerivationTree FrameClass.Base [] ((Formula.all_future (φ.imp φ.neg.neg)).imp
-      (Formula.all_future φ |>.imp (Formula.all_future φ.neg.neg))) :=
+  have h_G_dist : DerivationTree FrameClass.Base [] ((Formula.allFuture (φ.imp φ.neg.neg)).imp
+      (Formula.allFuture φ |>.imp (Formula.allFuture φ.neg.neg))) :=
     temp_k_dist_derived φ φ.neg.neg
-  have h_G_nn : Formula.all_future φ.neg.neg ∈ limit_f A h_mcs x := by
+  have h_G_nn : Formula.allFuture φ.neg.neg ∈ limit_f A h_mcs x := by
     have h1 := theorem_in_mcs' h_mcs_x h_G_dni
     have h2 := theorem_in_mcs' h_mcs_x h_G_dist
     have h3 := temporal_implication_property h_mcs_x h2 h1
     exact temporal_implication_property h_mcs_x h3 h_G
-  have h_F_not : Formula.some_future φ.neg ∉ limit_f A h_mcs x := by
+  have h_F_not : Formula.someFuture φ.neg ∉ limit_f A h_mcs x := by
     intro h_abs
-    exact some_future_all_future_neg_absurd h_mcs_x φ.neg h_abs h_G_nn
+    exact someFuture_allFuture_neg_absurd h_mcs_x φ.neg h_abs h_G_nn
   set top := Formula.bot.imp Formula.bot with htop_def
-  have h_bx10 : DerivationTree FrameClass.Base [] ((Formula.untl φ.neg top).imp (Formula.some_future φ.neg)) :=
+  have h_bx10 : DerivationTree FrameClass.Base [] ((Formula.untl φ.neg top).imp (Formula.someFuture φ.neg)) :=
     DerivationTree.axiom [] _ (Axiom.until_F top φ.neg) trivial
   have h_until_not : Formula.untl φ.neg top ∉ limit_f A h_mcs x := by
     intro h_in
@@ -1004,7 +1004,7 @@ and past temporal necessitation.
 -/
 theorem limit_backward_H (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (x y : Rat) (hx : x ∈ limit_dom A h_mcs) (hy : y ∈ limit_dom A h_mcs)
-    (hyx : y < x) (φ : Formula Atom) (h_H : Formula.all_past φ ∈ limit_f A h_mcs x) :
+    (hyx : y < x) (φ : Formula Atom) (h_H : Formula.allPast φ ∈ limit_f A h_mcs x) :
     φ ∈ limit_f A h_mcs y := by
   by_contra h_not
   have h_mcs_x := limit_c0 A h_mcs x hx
@@ -1016,21 +1016,21 @@ theorem limit_backward_H (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCo
   -- H(φ) → H(φ^{nn}) by DNI + past necessitation + past K
   have h_dni : DerivationTree FrameClass.Base [] (φ.imp φ.neg.neg) :=
     dni φ
-  have h_H_dni : DerivationTree FrameClass.Base [] (Formula.all_past (φ.imp φ.neg.neg)) :=
+  have h_H_dni : DerivationTree FrameClass.Base [] (Formula.allPast (φ.imp φ.neg.neg)) :=
     past_necessitation _ h_dni
-  have h_H_dist : DerivationTree FrameClass.Base [] ((Formula.all_past (φ.imp φ.neg.neg)).imp
-      (Formula.all_past φ |>.imp (Formula.all_past φ.neg.neg))) :=
+  have h_H_dist : DerivationTree FrameClass.Base [] ((Formula.allPast (φ.imp φ.neg.neg)).imp
+      (Formula.allPast φ |>.imp (Formula.allPast φ.neg.neg))) :=
     past_k_dist φ φ.neg.neg
-  have h_H_nn : Formula.all_past φ.neg.neg ∈ limit_f A h_mcs x := by
+  have h_H_nn : Formula.allPast φ.neg.neg ∈ limit_f A h_mcs x := by
     have h1 := theorem_in_mcs' h_mcs_x h_H_dni
     have h2 := theorem_in_mcs' h_mcs_x h_H_dist
     have h3 := temporal_implication_property h_mcs_x h2 h1
     exact temporal_implication_property h_mcs_x h3 h_H
-  have h_P_not : Formula.some_past φ.neg ∉ limit_f A h_mcs x := by
+  have h_P_not : Formula.somePast φ.neg ∉ limit_f A h_mcs x := by
     intro h_abs
-    exact some_past_all_past_neg_absurd h_mcs_x φ.neg h_abs h_H_nn
+    exact somePast_allPast_neg_absurd h_mcs_x φ.neg h_abs h_H_nn
   set top := Formula.bot.imp Formula.bot with htop_def
-  have h_bx10' : DerivationTree FrameClass.Base [] ((Formula.snce φ.neg top).imp (Formula.some_past φ.neg)) :=
+  have h_bx10' : DerivationTree FrameClass.Base [] ((Formula.snce φ.neg top).imp (Formula.somePast φ.neg)) :=
     DerivationTree.axiom [] _ (Axiom.since_P top φ.neg) trivial
   have h_since_not : Formula.snce φ.neg top ∉ limit_f A h_mcs x := by
     intro h_in

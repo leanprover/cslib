@@ -393,7 +393,7 @@ theorem case2_psi_properties (a q A B : Formula Atom)
       -- Apply neg_until_equiv at s: ¬U(A,B) ↔ G(¬A) ∨ U(¬A∧¬B, ¬A)
       rcases (int_truth_or M s _ _).mp ((neg_until_equiv A B M s).mp hnotU_s) with hGA | hU'
       · -- G branch: G_s(¬A) → d1
-        have hGA_unf := (int_truth_all_future M s (Formula.neg A)).mp hGA
+        have hGA_unf := (int_truth_allFuture M s (Formula.neg A)).mp hGA
         have hA_t : ¬ int_truth M t A := (int_truth_neg M t A).mp (hGA_unf t hst)
         have hnotU_t : ¬ int_truth M t (.untl A B) := by
           intro ⟨u, htu, hAu, _⟩; exact ((int_truth_neg M u A).mp (hGA_unf u (lt_trans hst htu))) hAu
@@ -537,14 +537,14 @@ theorem elim_case_3 (a q A B : Formula Atom)
   obtain ⟨psi2, hequiv2, hsep2⟩ := elim_case_2
     (Formula.and (Formula.neg a) (Formula.neg q)) (Formula.neg a) A B
     haq_Uf ha_neg_Uf hA hB haq_Sf ha_neg_Sf hA' hB'
-  have hsep_H : is_syntactically_separated (.all_past (Formula.neg a)) = true := by
-    simp only [is_syntactically_separated_all_past, Formula.neg, is_U_free, ha, Bool.and_true]
-  refine ⟨Formula.and (Formula.neg (.all_past (Formula.neg a))) (Formula.neg psi2), ?_, ?_⟩
+  have hsep_H : is_syntactically_separated (.allPast (Formula.neg a)) = true := by
+    simp only [is_syntactically_separated_allPast, Formula.neg, is_U_free, ha, Bool.and_true]
+  refine ⟨Formula.and (Formula.neg (.allPast (Formula.neg a))) (Formula.neg psi2), ?_, ?_⟩
   · intro M t; constructor
     · intro hS
       obtain ⟨s, hst, ha_s, hqU_guard⟩ := hS
       refine (int_truth_and M t _ _).mpr ⟨(int_truth_neg M t _).mpr
-        (fun hH => (int_truth_all_past M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
+        (fun hH => (int_truth_allPast M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
       intro hpsi2
       obtain ⟨s2, hs2t, hand2, hguard2⟩ := (hequiv2 M t).mpr hpsi2
       have ⟨haq2, hnotU2⟩ := (int_truth_and M s2 _ _).mp hand2
@@ -595,14 +595,14 @@ theorem elim_case_4 (a q A B : Formula Atom)
   obtain ⟨psi1, hequiv1, hsep1⟩ := elim_case_1
     (Formula.and (Formula.neg a) (Formula.neg q)) (Formula.neg a) A B
     haq_Uf ha_neg_Uf hA hB haq_Sf ha_neg_Sf hA' hB'
-  have hsep_H : is_syntactically_separated (.all_past (Formula.neg a)) = true := by
-    simp only [is_syntactically_separated_all_past, Formula.neg, is_U_free, ha, Bool.and_true]
-  refine ⟨Formula.and (Formula.neg (.all_past (Formula.neg a))) (Formula.neg psi1), ?_, ?_⟩
+  have hsep_H : is_syntactically_separated (.allPast (Formula.neg a)) = true := by
+    simp only [is_syntactically_separated_allPast, Formula.neg, is_U_free, ha, Bool.and_true]
+  refine ⟨Formula.and (Formula.neg (.allPast (Formula.neg a))) (Formula.neg psi1), ?_, ?_⟩
   · intro M t; constructor
     · intro hS
       obtain ⟨s, hst, ha_s, hguard_S⟩ := hS
       refine (int_truth_and M t _ _).mpr ⟨(int_truth_neg M t _).mpr
-        (fun hH => (int_truth_all_past M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
+        (fun hH => (int_truth_allPast M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
       intro hpsi1
       obtain ⟨s1, hs1t, hevent1, hguard1⟩ := (hequiv1 M t).mpr hpsi1
       have ⟨haq1, hU1⟩ := (int_truth_and M s1 _ _).mp hevent1
@@ -650,14 +650,14 @@ theorem elim_case_3_gen (a q A B : Formula Atom)
   obtain ⟨psi2, hequiv2, hsep2⟩ := elim_case_2_gen
     (Formula.and (Formula.neg a) (Formula.neg q)) (Formula.neg a) A B
     haq_Uf ha_neg_Uf hA hB hA' hB'
-  have hsep_H : is_syntactically_separated (.all_past (Formula.neg a)) = true := by
-    simp only [is_syntactically_separated_all_past, Formula.neg, is_U_free, ha, Bool.and_true]
-  refine ⟨Formula.and (Formula.neg (.all_past (Formula.neg a))) (Formula.neg psi2), ?_, ?_⟩
+  have hsep_H : is_syntactically_separated (.allPast (Formula.neg a)) = true := by
+    simp only [is_syntactically_separated_allPast, Formula.neg, is_U_free, ha, Bool.and_true]
+  refine ⟨Formula.and (Formula.neg (.allPast (Formula.neg a))) (Formula.neg psi2), ?_, ?_⟩
   · intro M t; constructor
     · intro hS
       obtain ⟨s, hst, ha_s, hqU_guard⟩ := hS
       refine (int_truth_and M t _ _).mpr ⟨(int_truth_neg M t _).mpr
-        (fun hH => (int_truth_all_past M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
+        (fun hH => (int_truth_allPast M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
       intro hpsi2
       obtain ⟨s2, hs2t, hand2, hguard2⟩ := (hequiv2 M t).mpr hpsi2
       have ⟨haq2, hnotU2⟩ := (int_truth_and M s2 _ _).mp hand2
@@ -704,14 +704,14 @@ theorem elim_case_4_gen (a q A B : Formula Atom)
   obtain ⟨psi1, hequiv1, hsep1⟩ := elim_case_1_gen
     (Formula.and (Formula.neg a) (Formula.neg q)) (Formula.neg a) A B
     haq_Uf ha_neg_Uf hA hB hA' hB'
-  have hsep_H : is_syntactically_separated (.all_past (Formula.neg a)) = true := by
-    simp only [is_syntactically_separated_all_past, Formula.neg, is_U_free, ha, Bool.and_true]
-  refine ⟨Formula.and (Formula.neg (.all_past (Formula.neg a))) (Formula.neg psi1), ?_, ?_⟩
+  have hsep_H : is_syntactically_separated (.allPast (Formula.neg a)) = true := by
+    simp only [is_syntactically_separated_allPast, Formula.neg, is_U_free, ha, Bool.and_true]
+  refine ⟨Formula.and (Formula.neg (.allPast (Formula.neg a))) (Formula.neg psi1), ?_, ?_⟩
   · intro M t; constructor
     · intro hS
       obtain ⟨s, hst, ha_s, hguard_S⟩ := hS
       refine (int_truth_and M t _ _).mpr ⟨(int_truth_neg M t _).mpr
-        (fun hH => (int_truth_all_past M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
+        (fun hH => (int_truth_allPast M t _).mp hH s hst ha_s), (int_truth_neg M t _).mpr ?_⟩
       intro hpsi1
       obtain ⟨s1, hs1t, hevent1, hguard1⟩ := (hequiv1 M t).mpr hpsi1
       have ⟨haq1, hU1⟩ := (int_truth_and M s1 _ _).mp hevent1

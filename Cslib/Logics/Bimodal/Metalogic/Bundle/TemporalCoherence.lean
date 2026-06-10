@@ -41,47 +41,47 @@ private noncomputable def theorem_in_mcs_fc'' {fc : FrameClass} {M : Set (Formul
   SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
 
 noncomputable def G_dne_theorem (phi : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((Formula.all_future (Formula.neg (Formula.neg phi))).imp (Formula.all_future phi)) := by
+    DerivationTree FrameClass.Base [] ((Formula.allFuture (Formula.neg (Formula.neg phi))).imp (Formula.allFuture phi)) := by
   have h_dne : DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg phi)).imp phi) :=
     dne_theorem phi
-  have h_G_dne : DerivationTree FrameClass.Base [] (Formula.all_future ((Formula.neg (Formula.neg phi)).imp phi)) :=
+  have h_G_dne : DerivationTree FrameClass.Base [] (Formula.allFuture ((Formula.neg (Formula.neg phi)).imp phi)) :=
     DerivationTree.temporal_necessitation _ h_dne
-  have h_K : DerivationTree FrameClass.Base [] ((Formula.all_future ((Formula.neg (Formula.neg phi)).imp phi)).imp
-               ((Formula.all_future (Formula.neg (Formula.neg phi))).imp (Formula.all_future phi))) :=
+  have h_K : DerivationTree FrameClass.Base [] ((Formula.allFuture ((Formula.neg (Formula.neg phi)).imp phi)).imp
+               ((Formula.allFuture (Formula.neg (Formula.neg phi))).imp (Formula.allFuture phi))) :=
     Theorems.TemporalDerived.temp_k_dist_derived (Formula.neg (Formula.neg phi)) phi
   exact DerivationTree.modus_ponens [] _ _ h_K h_G_dne
 
 noncomputable def H_dne_theorem (phi : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((Formula.all_past (Formula.neg (Formula.neg phi))).imp (Formula.all_past phi)) := by
+    DerivationTree FrameClass.Base [] ((Formula.allPast (Formula.neg (Formula.neg phi))).imp (Formula.allPast phi)) := by
   have h_dne : DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg phi)).imp phi) :=
     dne_theorem phi
-  have h_H_dne : DerivationTree FrameClass.Base [] (Formula.all_past ((Formula.neg (Formula.neg phi)).imp phi)) :=
+  have h_H_dne : DerivationTree FrameClass.Base [] (Formula.allPast ((Formula.neg (Formula.neg phi)).imp phi)) :=
     Theorems.past_necessitation _ h_dne
-  have h_K : DerivationTree FrameClass.Base [] ((Formula.all_past ((Formula.neg (Formula.neg phi)).imp phi)).imp
-               ((Formula.all_past (Formula.neg (Formula.neg phi))).imp (Formula.all_past phi))) :=
+  have h_K : DerivationTree FrameClass.Base [] ((Formula.allPast ((Formula.neg (Formula.neg phi)).imp phi)).imp
+               ((Formula.allPast (Formula.neg (Formula.neg phi))).imp (Formula.allPast phi))) :=
     Theorems.past_k_dist _ _
   exact DerivationTree.modus_ponens [] _ _ h_K h_H_dne
 
-lemma neg_all_future_to_some_future_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
-    (phi : Formula Atom) (h_neg_G : Formula.neg (Formula.all_future phi) ∈ M) :
-    Formula.some_future (Formula.neg phi) ∈ M := by
-  have h_eq : Formula.neg (Formula.all_future phi) =
-              Formula.neg (Formula.neg (Formula.some_future (Formula.neg phi))) := rfl
+lemma neg_allFuture_to_someFuture_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
+    (phi : Formula Atom) (h_neg_G : Formula.neg (Formula.allFuture phi) ∈ M) :
+    Formula.someFuture (Formula.neg phi) ∈ M := by
+  have h_eq : Formula.neg (Formula.allFuture phi) =
+              Formula.neg (Formula.neg (Formula.someFuture (Formula.neg phi))) := rfl
   rw [h_eq] at h_neg_G
-  have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.some_future (Formula.neg phi)))).imp
-                     (Formula.some_future (Formula.neg phi))) :=
-    (dne_theorem (Formula.some_future (Formula.neg phi))).lift (FrameClass.base_le fc)
+  have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.someFuture (Formula.neg phi)))).imp
+                     (Formula.someFuture (Formula.neg phi))) :=
+    (dne_theorem (Formula.someFuture (Formula.neg phi))).lift (FrameClass.base_le fc)
   exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc'' h_mcs h_dne) h_neg_G
 
-lemma neg_all_past_to_some_past_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
-    (phi : Formula Atom) (h_neg_H : Formula.neg (Formula.all_past phi) ∈ M) :
-    Formula.some_past (Formula.neg phi) ∈ M := by
-  have h_eq : Formula.neg (Formula.all_past phi) =
-              Formula.neg (Formula.neg (Formula.some_past (Formula.neg phi))) := rfl
+lemma neg_allPast_to_somePast_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
+    (phi : Formula Atom) (h_neg_H : Formula.neg (Formula.allPast phi) ∈ M) :
+    Formula.somePast (Formula.neg phi) ∈ M := by
+  have h_eq : Formula.neg (Formula.allPast phi) =
+              Formula.neg (Formula.neg (Formula.somePast (Formula.neg phi))) := rfl
   rw [h_eq] at h_neg_H
-  have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.some_past (Formula.neg phi)))).imp
-                     (Formula.some_past (Formula.neg phi))) :=
-    (dne_theorem (Formula.some_past (Formula.neg phi))).lift (FrameClass.base_le fc)
+  have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.somePast (Formula.neg phi)))).imp
+                     (Formula.somePast (Formula.neg phi))) :=
+    (dne_theorem (Formula.somePast (Formula.neg phi))).lift (FrameClass.base_le fc)
   exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc'' h_mcs h_dne) h_neg_H
 
 lemma SetMaximalConsistent.double_neg_elim {M : Set (Formula Atom)} (h_mcs : SetMaximalConsistent fc M)
@@ -95,72 +95,72 @@ lemma SetMaximalConsistent.double_neg_elim {M : Set (Formula Atom)} (h_mcs : Set
 
 structure TemporalCoherentFamily (Atom : Type*) (fc : FrameClass := FrameClass.Base) (D : Type*) [Preorder D] [Zero D] extends FMCS Atom D fc where
   forward_F : ∀ t : D, ∀ φ : Formula Atom,
-    Formula.some_future φ ∈ mcs t → ∃ s : D, t < s ∧ φ ∈ mcs s
+    Formula.someFuture φ ∈ mcs t → ∃ s : D, t < s ∧ φ ∈ mcs s
   backward_P : ∀ t : D, ∀ φ : Formula Atom,
-    Formula.some_past φ ∈ mcs t → ∃ s : D, s < t ∧ φ ∈ mcs s
+    Formula.somePast φ ∈ mcs t → ∃ s : D, s < t ∧ φ ∈ mcs s
 
 theorem temporal_backward_G (fam : TemporalCoherentFamily Atom fc D) (t : D) (φ : Formula Atom)
     (h_all : ∀ s : D, t ≤ s → φ ∈ fam.mcs s) :
-    Formula.all_future φ ∈ fam.mcs t := by
+    Formula.allFuture φ ∈ fam.mcs t := by
   by_contra h_not_G
   have h_mcs := fam.is_mcs t
-  have h_neg_G : Formula.neg (Formula.all_future φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_future φ) with h_G | h_neg
+  have h_neg_G : Formula.neg (Formula.allFuture φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allFuture φ) with h_G | h_neg
     · exact absurd h_G h_not_G
     · exact h_neg
-  have h_F_neg : Formula.some_future (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_future_to_some_future_neg (fam.mcs t) h_mcs φ h_neg_G
+  have h_F_neg : Formula.someFuture (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allFuture_to_someFuture_neg (fam.mcs t) h_mcs φ h_neg_G
   obtain ⟨s, h_lt, h_neg_phi_s⟩ := fam.forward_F t (Formula.neg φ) h_F_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s (le_of_lt h_lt)
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
 
 theorem temporal_backward_H (fam : TemporalCoherentFamily Atom fc D) (t : D) (φ : Formula Atom)
     (h_all : ∀ s : D, s ≤ t → φ ∈ fam.mcs s) :
-    Formula.all_past φ ∈ fam.mcs t := by
+    Formula.allPast φ ∈ fam.mcs t := by
   by_contra h_not_H
   have h_mcs := fam.is_mcs t
-  have h_neg_H : Formula.neg (Formula.all_past φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_past φ) with h_H | h_neg
+  have h_neg_H : Formula.neg (Formula.allPast φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allPast φ) with h_H | h_neg
     · exact absurd h_H h_not_H
     · exact h_neg
-  have h_P_neg : Formula.some_past (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_past_to_some_past_neg (fam.mcs t) h_mcs φ h_neg_H
+  have h_P_neg : Formula.somePast (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allPast_to_somePast_neg (fam.mcs t) h_mcs φ h_neg_H
   obtain ⟨s, h_lt, h_neg_phi_s⟩ := fam.backward_P t (Formula.neg φ) h_P_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s (le_of_lt h_lt)
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
 
 theorem temporal_backward_G_with_fwd_F {D : Type*} [Preorder D]
     (fam : FMCS Atom D fc) (t : D) (φ : Formula Atom)
-    (h_forward_F_neg : Formula.some_future (Formula.neg φ) ∈ fam.mcs t →
+    (h_forward_F_neg : Formula.someFuture (Formula.neg φ) ∈ fam.mcs t →
       ∃ s : D, t < s ∧ (Formula.neg φ) ∈ fam.mcs s)
     (h_all : ∀ s : D, t < s → φ ∈ fam.mcs s) :
-    Formula.all_future φ ∈ fam.mcs t := by
+    Formula.allFuture φ ∈ fam.mcs t := by
   by_contra h_not_G
   have h_mcs := fam.is_mcs t
-  have h_neg_G : Formula.neg (Formula.all_future φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_future φ) with h_G | h_neg
+  have h_neg_G : Formula.neg (Formula.allFuture φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allFuture φ) with h_G | h_neg
     · exact absurd h_G h_not_G
     · exact h_neg
-  have h_F_neg : Formula.some_future (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_future_to_some_future_neg (fam.mcs t) h_mcs φ h_neg_G
+  have h_F_neg : Formula.someFuture (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allFuture_to_someFuture_neg (fam.mcs t) h_mcs φ h_neg_G
   obtain ⟨s, h_le, h_neg_phi_s⟩ := h_forward_F_neg h_F_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s h_le
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
 
 theorem temporal_backward_H_with_bwd_P {D : Type*} [Preorder D]
     (fam : FMCS Atom D fc) (t : D) (φ : Formula Atom)
-    (h_backward_P_neg : Formula.some_past (Formula.neg φ) ∈ fam.mcs t →
+    (h_backward_P_neg : Formula.somePast (Formula.neg φ) ∈ fam.mcs t →
       ∃ s : D, s < t ∧ (Formula.neg φ) ∈ fam.mcs s)
     (h_all : ∀ s : D, s < t → φ ∈ fam.mcs s) :
-    Formula.all_past φ ∈ fam.mcs t := by
+    Formula.allPast φ ∈ fam.mcs t := by
   by_contra h_not_H
   have h_mcs := fam.is_mcs t
-  have h_neg_H : Formula.neg (Formula.all_past φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_past φ) with h_H | h_neg
+  have h_neg_H : Formula.neg (Formula.allPast φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allPast φ) with h_H | h_neg
     · exact absurd h_H h_not_H
     · exact h_neg
-  have h_P_neg : Formula.some_past (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_past_to_some_past_neg (fam.mcs t) h_mcs φ h_neg_H
+  have h_P_neg : Formula.somePast (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allPast_to_somePast_neg (fam.mcs t) h_mcs φ h_neg_H
   obtain ⟨s, h_le, h_neg_phi_s⟩ := h_backward_P_neg h_P_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s h_le
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
@@ -169,8 +169,8 @@ theorem temporal_backward_H_with_bwd_P {D : Type*} [Preorder D]
 
 def BFMCS.temporally_coherent (B : BFMCS Atom D fc) : Prop :=
   ∀ fam ∈ B.families,
-    (∀ t : D, ∀ φ : Formula Atom, Formula.some_future φ ∈ fam.mcs t → ∃ s : D, t < s ∧ φ ∈ fam.mcs s) ∧
-    (∀ t : D, ∀ φ : Formula Atom, Formula.some_past φ ∈ fam.mcs t → ∃ s : D, s < t ∧ φ ∈ fam.mcs s)
+    (∀ t : D, ∀ φ : Formula Atom, Formula.someFuture φ ∈ fam.mcs t → ∃ s : D, t < s ∧ φ ∈ fam.mcs s) ∧
+    (∀ t : D, ∀ φ : Formula Atom, Formula.somePast φ ∈ fam.mcs t → ∃ s : D, s < t ∧ φ ∈ fam.mcs s)
 
 /-! ## Restricted Temporal Coherence -/
 
@@ -180,9 +180,9 @@ variable [DecidableEq Atom]
 def BFMCS.restricted_temporally_coherent (B : BFMCS Atom D fc) (root : Formula Atom) : Prop :=
   ∀ fam ∈ B.families,
     (∀ t : D, ∀ φ : Formula Atom, φ ∈ deferralClosure root →
-      Formula.some_future φ ∈ fam.mcs t → ∃ s : D, t < s ∧ φ ∈ fam.mcs s) ∧
+      Formula.someFuture φ ∈ fam.mcs t → ∃ s : D, t < s ∧ φ ∈ fam.mcs s) ∧
     (∀ t : D, ∀ φ : Formula Atom, φ ∈ deferralClosure root →
-      Formula.some_past φ ∈ fam.mcs t → ∃ s : D, s < t ∧ φ ∈ fam.mcs s)
+      Formula.somePast φ ∈ fam.mcs t → ∃ s : D, s < t ∧ φ ∈ fam.mcs s)
 
 omit [Zero D] in
 theorem BFMCS.temporally_coherent_implies_restricted (B : BFMCS Atom D fc) (root : Formula Atom)
@@ -197,19 +197,19 @@ omit [Zero D] in
 theorem restricted_temporal_backward_G
     (fam : FMCS Atom D fc) (root : Formula Atom)
     (h_forward_F : ∀ t : D, ∀ φ : Formula Atom, φ ∈ deferralClosure root →
-      Formula.some_future φ ∈ fam.mcs t → ∃ s : D, t ≤ s ∧ φ ∈ fam.mcs s)
+      Formula.someFuture φ ∈ fam.mcs t → ∃ s : D, t ≤ s ∧ φ ∈ fam.mcs s)
     (t : D) (φ : Formula Atom)
     (h_neg_phi_dc : Formula.neg φ ∈ deferralClosure root)
     (h_all : ∀ s : D, t ≤ s → φ ∈ fam.mcs s) :
-    Formula.all_future φ ∈ fam.mcs t := by
+    Formula.allFuture φ ∈ fam.mcs t := by
   by_contra h_not_G
   have h_mcs := fam.is_mcs t
-  have h_neg_G : Formula.neg (Formula.all_future φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_future φ) with h_G | h_neg
+  have h_neg_G : Formula.neg (Formula.allFuture φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allFuture φ) with h_G | h_neg
     · exact absurd h_G h_not_G
     · exact h_neg
-  have h_F_neg : Formula.some_future (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_future_to_some_future_neg (fam.mcs t) h_mcs φ h_neg_G
+  have h_F_neg : Formula.someFuture (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allFuture_to_someFuture_neg (fam.mcs t) h_mcs φ h_neg_G
   obtain ⟨s, h_le, h_neg_phi_s⟩ := h_forward_F t (Formula.neg φ) h_neg_phi_dc h_F_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s h_le
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
@@ -218,19 +218,19 @@ omit [Zero D] in
 theorem restricted_temporal_backward_H
     (fam : FMCS Atom D fc) (root : Formula Atom)
     (h_backward_P : ∀ t : D, ∀ φ : Formula Atom, φ ∈ deferralClosure root →
-      Formula.some_past φ ∈ fam.mcs t → ∃ s : D, s ≤ t ∧ φ ∈ fam.mcs s)
+      Formula.somePast φ ∈ fam.mcs t → ∃ s : D, s ≤ t ∧ φ ∈ fam.mcs s)
     (t : D) (φ : Formula Atom)
     (h_neg_phi_dc : Formula.neg φ ∈ deferralClosure root)
     (h_all : ∀ s : D, s ≤ t → φ ∈ fam.mcs s) :
-    Formula.all_past φ ∈ fam.mcs t := by
+    Formula.allPast φ ∈ fam.mcs t := by
   by_contra h_not_H
   have h_mcs := fam.is_mcs t
-  have h_neg_H : Formula.neg (Formula.all_past φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_past φ) with h_H | h_neg
+  have h_neg_H : Formula.neg (Formula.allPast φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allPast φ) with h_H | h_neg
     · exact absurd h_H h_not_H
     · exact h_neg
-  have h_P_neg : Formula.some_past (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_past_to_some_past_neg (fam.mcs t) h_mcs φ h_neg_H
+  have h_P_neg : Formula.somePast (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allPast_to_somePast_neg (fam.mcs t) h_mcs φ h_neg_H
   obtain ⟨s, h_le, h_neg_phi_s⟩ := h_backward_P t (Formula.neg φ) h_neg_phi_dc h_P_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s h_le
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
@@ -239,19 +239,19 @@ omit [Zero D] in
 theorem restricted_temporal_backward_G_strict
     (fam : FMCS Atom D fc) (root : Formula Atom)
     (h_forward_F : ∀ t : D, ∀ φ : Formula Atom, φ ∈ deferralClosure root →
-      Formula.some_future φ ∈ fam.mcs t → ∃ s : D, t < s ∧ φ ∈ fam.mcs s)
+      Formula.someFuture φ ∈ fam.mcs t → ∃ s : D, t < s ∧ φ ∈ fam.mcs s)
     (t : D) (φ : Formula Atom)
     (h_neg_phi_dc : Formula.neg φ ∈ deferralClosure root)
     (h_all : ∀ s : D, t < s → φ ∈ fam.mcs s) :
-    Formula.all_future φ ∈ fam.mcs t := by
+    Formula.allFuture φ ∈ fam.mcs t := by
   by_contra h_not_G
   have h_mcs := fam.is_mcs t
-  have h_neg_G : Formula.neg (Formula.all_future φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_future φ) with h_G | h_neg
+  have h_neg_G : Formula.neg (Formula.allFuture φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allFuture φ) with h_G | h_neg
     · exact absurd h_G h_not_G
     · exact h_neg
-  have h_F_neg : Formula.some_future (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_future_to_some_future_neg (fam.mcs t) h_mcs φ h_neg_G
+  have h_F_neg : Formula.someFuture (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allFuture_to_someFuture_neg (fam.mcs t) h_mcs φ h_neg_G
   obtain ⟨s, h_lt, h_neg_phi_s⟩ := h_forward_F t (Formula.neg φ) h_neg_phi_dc h_F_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s h_lt
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s
@@ -260,19 +260,19 @@ omit [Zero D] in
 theorem restricted_temporal_backward_H_strict
     (fam : FMCS Atom D fc) (root : Formula Atom)
     (h_backward_P : ∀ t : D, ∀ φ : Formula Atom, φ ∈ deferralClosure root →
-      Formula.some_past φ ∈ fam.mcs t → ∃ s : D, s < t ∧ φ ∈ fam.mcs s)
+      Formula.somePast φ ∈ fam.mcs t → ∃ s : D, s < t ∧ φ ∈ fam.mcs s)
     (t : D) (φ : Formula Atom)
     (h_neg_phi_dc : Formula.neg φ ∈ deferralClosure root)
     (h_all : ∀ s : D, s < t → φ ∈ fam.mcs s) :
-    Formula.all_past φ ∈ fam.mcs t := by
+    Formula.allPast φ ∈ fam.mcs t := by
   by_contra h_not_H
   have h_mcs := fam.is_mcs t
-  have h_neg_H : Formula.neg (Formula.all_past φ) ∈ fam.mcs t := by
-    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_past φ) with h_H | h_neg
+  have h_neg_H : Formula.neg (Formula.allPast φ) ∈ fam.mcs t := by
+    rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allPast φ) with h_H | h_neg
     · exact absurd h_H h_not_H
     · exact h_neg
-  have h_P_neg : Formula.some_past (Formula.neg φ) ∈ fam.mcs t :=
-    neg_all_past_to_some_past_neg (fam.mcs t) h_mcs φ h_neg_H
+  have h_P_neg : Formula.somePast (Formula.neg φ) ∈ fam.mcs t :=
+    neg_allPast_to_somePast_neg (fam.mcs t) h_mcs φ h_neg_H
   obtain ⟨s, h_lt, h_neg_phi_s⟩ := h_backward_P t (Formula.neg φ) h_neg_phi_dc h_P_neg
   have h_phi_s : φ ∈ fam.mcs s := h_all s h_lt
   exact set_consistent_not_both (fam.is_mcs s).1 φ h_phi_s h_neg_phi_s

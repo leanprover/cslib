@@ -39,18 +39,18 @@ private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Form
 /-! ## BX12 at MCS level: F(ψ) → ⊤ U ψ -/
 
 theorem F_imp_top_until_mcs {w : BXPoint Atom} {ψ : Formula Atom}
-    (h : Formula.some_future ψ ∈ w.formulas) :
+    (h : Formula.someFuture ψ ∈ w.formulas) :
     Formula.untl ψ ((Formula.bot : Formula Atom).imp (Formula.bot : Formula Atom)) ∈ w.formulas := by
-  have h_ax : DerivationTree FrameClass.Base [] ((Formula.some_future ψ).imp
+  have h_ax : DerivationTree FrameClass.Base [] ((Formula.someFuture ψ).imp
     (Formula.untl ψ ((Formula.bot : Formula Atom).imp (Formula.bot : Formula Atom)))) :=
     DerivationTree.axiom [] _ (Axiom.F_until_equiv ψ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h
 
 theorem P_imp_top_since_mcs {w : BXPoint Atom} {ψ : Formula Atom}
-    (h : Formula.some_past ψ ∈ w.formulas) :
+    (h : Formula.somePast ψ ∈ w.formulas) :
     Formula.snce ψ ((Formula.bot : Formula Atom).imp (Formula.bot : Formula Atom)) ∈ w.formulas := by
-  have h_ax : DerivationTree FrameClass.Base [] ((Formula.some_past ψ).imp
+  have h_ax : DerivationTree FrameClass.Base [] ((Formula.somePast ψ).imp
     (Formula.snce ψ ((Formula.bot : Formula Atom).imp (Formula.bot : Formula Atom)))) :=
     DerivationTree.axiom [] _ (Axiom.P_since_equiv ψ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs

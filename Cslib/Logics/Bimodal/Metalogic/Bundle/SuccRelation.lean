@@ -71,66 +71,66 @@ theorem Succ_implies_h_content_reverse
 /-! ## Auxiliary Lemmas for Single-Step Forcing -/
 
 lemma G_neg_implies_not_F (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M) (phi : Formula Atom)
-    (h_G_neg : Formula.all_future phi.neg ∈ M) :
-    Formula.some_future phi ∉ M := by
+    (h_G_neg : Formula.allFuture phi.neg ∈ M) :
+    Formula.someFuture phi ∉ M := by
   intro h_F
-  exact some_future_all_future_neg_absurd h_mcs phi h_F h_G_neg
+  exact someFuture_allFuture_neg_absurd h_mcs phi h_F h_G_neg
 
 lemma neg_FF_implies_GG_neg_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M) (phi : Formula Atom)
-    (h_neg_FF : (Formula.some_future (Formula.some_future phi)).neg ∈ M) :
-    Formula.all_future (Formula.all_future phi.neg) ∈ M := by
-  rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_future (Formula.all_future phi.neg)) with
+    (h_neg_FF : (Formula.someFuture (Formula.someFuture phi)).neg ∈ M) :
+    Formula.allFuture (Formula.allFuture phi.neg) ∈ M := by
+  rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allFuture (Formula.allFuture phi.neg)) with
     h_goal | h_neg_goal
   · exact h_goal
   · exfalso
-    have h_dne1 : DerivationTree FrameClass.Base [] ((Formula.all_future (Formula.all_future phi.neg)).neg.imp
-        (Formula.some_future (Formula.all_future phi.neg).neg)) :=
+    have h_dne1 : DerivationTree FrameClass.Base [] ((Formula.allFuture (Formula.allFuture phi.neg)).neg.imp
+        (Formula.someFuture (Formula.allFuture phi.neg).neg)) :=
       Theorems.Propositional.double_negation _
-    have h_F_neg_G : Formula.some_future (Formula.all_future phi.neg).neg ∈ M :=
+    have h_F_neg_G : Formula.someFuture (Formula.allFuture phi.neg).neg ∈ M :=
       SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs h_mcs h_dne1) h_neg_goal
-    have h_dne2_base : DerivationTree FrameClass.Base [] ((Formula.some_future phi.neg.neg).neg.neg.imp
-        (Formula.some_future phi.neg.neg)) :=
+    have h_dne2_base : DerivationTree FrameClass.Base [] ((Formula.someFuture phi.neg.neg).neg.neg.imp
+        (Formula.someFuture phi.neg.neg)) :=
       Theorems.Propositional.double_negation _
-    have h_dne2_nec : DerivationTree FrameClass.Base [] (((Formula.some_future phi.neg.neg).neg.neg.imp
-        (Formula.some_future phi.neg.neg)).all_future) :=
+    have h_dne2_nec : DerivationTree FrameClass.Base [] (((Formula.someFuture phi.neg.neg).neg.neg.imp
+        (Formula.someFuture phi.neg.neg)).allFuture) :=
       DerivationTree.temporal_necessitation _ h_dne2_base
-    have h_dne2_bx3 : DerivationTree FrameClass.Base [] (((Formula.some_future phi.neg.neg).neg.neg.imp
-        (Formula.some_future phi.neg.neg)).all_future.imp
-        ((Formula.untl (Formula.some_future phi.neg.neg).neg.neg Formula.top).imp
-         (Formula.untl (Formula.some_future phi.neg.neg) Formula.top))) :=
+    have h_dne2_bx3 : DerivationTree FrameClass.Base [] (((Formula.someFuture phi.neg.neg).neg.neg.imp
+        (Formula.someFuture phi.neg.neg)).allFuture.imp
+        ((Formula.untl (Formula.someFuture phi.neg.neg).neg.neg Formula.top).imp
+         (Formula.untl (Formula.someFuture phi.neg.neg) Formula.top))) :=
       DerivationTree.axiom [] _
         (Axiom.right_mono_until
-          (Formula.some_future phi.neg.neg).neg.neg
-          (Formula.some_future phi.neg.neg) Formula.top) trivial
-    have h_F_dne2 : DerivationTree FrameClass.Base [] ((Formula.some_future (Formula.some_future phi.neg.neg).neg.neg).imp
-        (Formula.some_future (Formula.some_future phi.neg.neg))) :=
+          (Formula.someFuture phi.neg.neg).neg.neg
+          (Formula.someFuture phi.neg.neg) Formula.top) trivial
+    have h_F_dne2 : DerivationTree FrameClass.Base [] ((Formula.someFuture (Formula.someFuture phi.neg.neg).neg.neg).imp
+        (Formula.someFuture (Formula.someFuture phi.neg.neg))) :=
       DerivationTree.modus_ponens [] _ _ h_dne2_bx3 h_dne2_nec
-    have h_FF_negneg : Formula.some_future (Formula.some_future phi.neg.neg) ∈ M :=
+    have h_FF_negneg : Formula.someFuture (Formula.someFuture phi.neg.neg) ∈ M :=
       SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs h_mcs h_F_dne2) h_F_neg_G
     have h_dne3_base : DerivationTree FrameClass.Base [] (phi.neg.neg.imp phi) :=
       Theorems.Propositional.double_negation _
-    have h_dne3_nec : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_future) :=
+    have h_dne3_nec : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allFuture) :=
       DerivationTree.temporal_necessitation _ h_dne3_base
-    have h_dne3_bx3 : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_future.imp
+    have h_dne3_bx3 : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allFuture.imp
         ((Formula.untl phi.neg.neg Formula.top).imp (Formula.untl phi Formula.top))) :=
       DerivationTree.axiom [] _
         (Axiom.right_mono_until phi.neg.neg phi Formula.top) trivial
-    have h_F_dne3 : DerivationTree FrameClass.Base [] ((Formula.some_future phi.neg.neg).imp (Formula.some_future phi)) :=
+    have h_F_dne3 : DerivationTree FrameClass.Base [] ((Formula.someFuture phi.neg.neg).imp (Formula.someFuture phi)) :=
       DerivationTree.modus_ponens [] _ _ h_dne3_bx3 h_dne3_nec
-    have h_lift_nec : DerivationTree FrameClass.Base [] (((Formula.some_future phi.neg.neg).imp (Formula.some_future phi)).all_future) :=
+    have h_lift_nec : DerivationTree FrameClass.Base [] (((Formula.someFuture phi.neg.neg).imp (Formula.someFuture phi)).allFuture) :=
       DerivationTree.temporal_necessitation _ h_F_dne3
-    have h_lift_bx3 : DerivationTree FrameClass.Base [] (((Formula.some_future phi.neg.neg).imp (Formula.some_future phi)).all_future.imp
-        ((Formula.untl (Formula.some_future phi.neg.neg) Formula.top).imp
-         (Formula.untl (Formula.some_future phi) Formula.top))) :=
+    have h_lift_bx3 : DerivationTree FrameClass.Base [] (((Formula.someFuture phi.neg.neg).imp (Formula.someFuture phi)).allFuture.imp
+        ((Formula.untl (Formula.someFuture phi.neg.neg) Formula.top).imp
+         (Formula.untl (Formula.someFuture phi) Formula.top))) :=
       DerivationTree.axiom [] _
         (Axiom.right_mono_until
-          (Formula.some_future phi.neg.neg) (Formula.some_future phi) Formula.top) trivial
-    have h_FF_lift : DerivationTree FrameClass.Base [] ((Formula.some_future (Formula.some_future phi.neg.neg)).imp
-        (Formula.some_future (Formula.some_future phi))) :=
+          (Formula.someFuture phi.neg.neg) (Formula.someFuture phi) Formula.top) trivial
+    have h_FF_lift : DerivationTree FrameClass.Base [] ((Formula.someFuture (Formula.someFuture phi.neg.neg)).imp
+        (Formula.someFuture (Formula.someFuture phi))) :=
       DerivationTree.modus_ponens [] _ _ h_lift_bx3 h_lift_nec
-    have h_FF_phi : Formula.some_future (Formula.some_future phi) ∈ M :=
+    have h_FF_phi : Formula.someFuture (Formula.someFuture phi) ∈ M :=
       SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs h_mcs h_FF_lift) h_FF_negneg
-    exact set_consistent_not_both h_mcs.1 (Formula.some_future (Formula.some_future phi))
+    exact set_consistent_not_both h_mcs.1 (Formula.someFuture (Formula.someFuture phi))
       h_FF_phi h_neg_FF
 
 /-! ## Single-Step Forcing Theorem -/
@@ -138,19 +138,19 @@ lemma neg_FF_implies_GG_neg_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalC
 theorem single_step_forcing
     (u v : Set (Formula Atom)) (h_mcs_u : SetMaximalConsistent (FrameClass.Base : FrameClass) u) (h_mcs_v : SetMaximalConsistent (FrameClass.Base : FrameClass) v)
     (phi : Formula Atom)
-    (h_F : Formula.some_future phi ∈ u)
-    (h_FF_not : Formula.some_future (Formula.some_future phi) ∉ u)
+    (h_F : Formula.someFuture phi ∈ u)
+    (h_FF_not : Formula.someFuture (Formula.someFuture phi) ∉ u)
     (h_succ : Succ u v) :
     phi ∈ v := by
-  have h_neg_FF : (Formula.some_future (Formula.some_future phi)).neg ∈ u := by
-    cases SetMaximalConsistent.negation_complete h_mcs_u (Formula.some_future (Formula.some_future phi)) with
+  have h_neg_FF : (Formula.someFuture (Formula.someFuture phi)).neg ∈ u := by
+    cases SetMaximalConsistent.negation_complete h_mcs_u (Formula.someFuture (Formula.someFuture phi)) with
     | inl h_in => exact absurd h_in h_FF_not
     | inr h_neg => exact h_neg
-  have h_GG_neg : Formula.all_future (Formula.all_future phi.neg) ∈ u :=
+  have h_GG_neg : Formula.allFuture (Formula.allFuture phi.neg) ∈ u :=
     neg_FF_implies_GG_neg_in_mcs u h_mcs_u phi h_neg_FF
-  have h_G_neg_in_g : Formula.all_future phi.neg ∈ g_content u := h_GG_neg
-  have h_G_neg_in_v : Formula.all_future phi.neg ∈ v := h_succ.1 h_G_neg_in_g
-  have h_F_not_v : Formula.some_future phi ∉ v :=
+  have h_G_neg_in_g : Formula.allFuture phi.neg ∈ g_content u := h_GG_neg
+  have h_G_neg_in_v : Formula.allFuture phi.neg ∈ v := h_succ.1 h_G_neg_in_g
+  have h_F_not_v : Formula.someFuture phi ∉ v :=
     G_neg_implies_not_F v h_mcs_v phi h_G_neg_in_v
   have h_phi_in_f_content_u : phi ∈ f_content u := h_F
   have h_union : phi ∈ v ∪ f_content v := h_succ.2 h_phi_in_f_content_u
@@ -161,86 +161,86 @@ theorem single_step_forcing
 /-! ## Past Direction Lemmas -/
 
 lemma H_neg_implies_not_P (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M) (phi : Formula Atom)
-    (h_H_neg : Formula.all_past phi.neg ∈ M) :
-    Formula.some_past phi ∉ M := by
+    (h_H_neg : Formula.allPast phi.neg ∈ M) :
+    Formula.somePast phi ∉ M := by
   intro h_P
-  exact some_past_all_past_neg_absurd h_mcs phi h_P h_H_neg
+  exact somePast_allPast_neg_absurd h_mcs phi h_P h_H_neg
 
 lemma neg_PP_implies_HH_neg_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M) (phi : Formula Atom)
-    (h_neg_PP : (Formula.some_past (Formula.some_past phi)).neg ∈ M) :
-    Formula.all_past (Formula.all_past phi.neg) ∈ M := by
-  rcases SetMaximalConsistent.negation_complete h_mcs (Formula.all_past (Formula.all_past phi.neg)) with
+    (h_neg_PP : (Formula.somePast (Formula.somePast phi)).neg ∈ M) :
+    Formula.allPast (Formula.allPast phi.neg) ∈ M := by
+  rcases SetMaximalConsistent.negation_complete h_mcs (Formula.allPast (Formula.allPast phi.neg)) with
     h_goal | h_neg_goal
   · exact h_goal
   · exfalso
-    have h_dne1 : DerivationTree FrameClass.Base [] ((Formula.all_past (Formula.all_past phi.neg)).neg.imp
-        (Formula.some_past (Formula.all_past phi.neg).neg)) :=
+    have h_dne1 : DerivationTree FrameClass.Base [] ((Formula.allPast (Formula.allPast phi.neg)).neg.imp
+        (Formula.somePast (Formula.allPast phi.neg).neg)) :=
       Theorems.Propositional.double_negation _
-    have h_P_neg_H : Formula.some_past (Formula.all_past phi.neg).neg ∈ M :=
+    have h_P_neg_H : Formula.somePast (Formula.allPast phi.neg).neg ∈ M :=
       SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs h_mcs h_dne1) h_neg_goal
-    have h_dne2_base : DerivationTree FrameClass.Base [] ((Formula.some_past phi.neg.neg).neg.neg.imp
-        (Formula.some_past phi.neg.neg)) :=
+    have h_dne2_base : DerivationTree FrameClass.Base [] ((Formula.somePast phi.neg.neg).neg.neg.imp
+        (Formula.somePast phi.neg.neg)) :=
       Theorems.Propositional.double_negation _
-    have h_dne2_nec : DerivationTree FrameClass.Base [] (((Formula.some_past phi.neg.neg).neg.neg.imp
-        (Formula.some_past phi.neg.neg)).all_past) :=
+    have h_dne2_nec : DerivationTree FrameClass.Base [] (((Formula.somePast phi.neg.neg).neg.neg.imp
+        (Formula.somePast phi.neg.neg)).allPast) :=
       Theorems.past_necessitation _ h_dne2_base
-    have h_dne2_bx3 : DerivationTree FrameClass.Base [] (((Formula.some_past phi.neg.neg).neg.neg.imp
-        (Formula.some_past phi.neg.neg)).all_past.imp
-        ((Formula.snce (Formula.some_past phi.neg.neg).neg.neg Formula.top).imp
-         (Formula.snce (Formula.some_past phi.neg.neg) Formula.top))) :=
+    have h_dne2_bx3 : DerivationTree FrameClass.Base [] (((Formula.somePast phi.neg.neg).neg.neg.imp
+        (Formula.somePast phi.neg.neg)).allPast.imp
+        ((Formula.snce (Formula.somePast phi.neg.neg).neg.neg Formula.top).imp
+         (Formula.snce (Formula.somePast phi.neg.neg) Formula.top))) :=
       DerivationTree.axiom [] _
         (Axiom.right_mono_since
-          (Formula.some_past phi.neg.neg).neg.neg
-          (Formula.some_past phi.neg.neg) Formula.top) trivial
-    have h_P_dne2 : DerivationTree FrameClass.Base [] ((Formula.some_past (Formula.some_past phi.neg.neg).neg.neg).imp
-        (Formula.some_past (Formula.some_past phi.neg.neg))) :=
+          (Formula.somePast phi.neg.neg).neg.neg
+          (Formula.somePast phi.neg.neg) Formula.top) trivial
+    have h_P_dne2 : DerivationTree FrameClass.Base [] ((Formula.somePast (Formula.somePast phi.neg.neg).neg.neg).imp
+        (Formula.somePast (Formula.somePast phi.neg.neg))) :=
       DerivationTree.modus_ponens [] _ _ h_dne2_bx3 h_dne2_nec
-    have h_PP_negneg : Formula.some_past (Formula.some_past phi.neg.neg) ∈ M :=
+    have h_PP_negneg : Formula.somePast (Formula.somePast phi.neg.neg) ∈ M :=
       SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs h_mcs h_P_dne2) h_P_neg_H
     have h_dne3_base : DerivationTree FrameClass.Base [] (phi.neg.neg.imp phi) :=
       Theorems.Propositional.double_negation _
-    have h_dne3_nec : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_past) :=
+    have h_dne3_nec : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allPast) :=
       Theorems.past_necessitation _ h_dne3_base
-    have h_dne3_bx3 : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_past.imp
+    have h_dne3_bx3 : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allPast.imp
         ((Formula.snce phi.neg.neg Formula.top).imp (Formula.snce phi Formula.top))) :=
       DerivationTree.axiom [] _
         (Axiom.right_mono_since phi.neg.neg phi Formula.top) trivial
-    have h_P_dne3 : DerivationTree FrameClass.Base [] ((Formula.some_past phi.neg.neg).imp (Formula.some_past phi)) :=
+    have h_P_dne3 : DerivationTree FrameClass.Base [] ((Formula.somePast phi.neg.neg).imp (Formula.somePast phi)) :=
       DerivationTree.modus_ponens [] _ _ h_dne3_bx3 h_dne3_nec
-    have h_lift_nec : DerivationTree FrameClass.Base [] (((Formula.some_past phi.neg.neg).imp (Formula.some_past phi)).all_past) :=
+    have h_lift_nec : DerivationTree FrameClass.Base [] (((Formula.somePast phi.neg.neg).imp (Formula.somePast phi)).allPast) :=
       Theorems.past_necessitation _ h_P_dne3
-    have h_lift_bx3 : DerivationTree FrameClass.Base [] (((Formula.some_past phi.neg.neg).imp (Formula.some_past phi)).all_past.imp
-        ((Formula.snce (Formula.some_past phi.neg.neg) Formula.top).imp
-         (Formula.snce (Formula.some_past phi) Formula.top))) :=
+    have h_lift_bx3 : DerivationTree FrameClass.Base [] (((Formula.somePast phi.neg.neg).imp (Formula.somePast phi)).allPast.imp
+        ((Formula.snce (Formula.somePast phi.neg.neg) Formula.top).imp
+         (Formula.snce (Formula.somePast phi) Formula.top))) :=
       DerivationTree.axiom [] _
         (Axiom.right_mono_since
-          (Formula.some_past phi.neg.neg) (Formula.some_past phi) Formula.top) trivial
-    have h_PP_lift : DerivationTree FrameClass.Base [] ((Formula.some_past (Formula.some_past phi.neg.neg)).imp
-        (Formula.some_past (Formula.some_past phi))) :=
+          (Formula.somePast phi.neg.neg) (Formula.somePast phi) Formula.top) trivial
+    have h_PP_lift : DerivationTree FrameClass.Base [] ((Formula.somePast (Formula.somePast phi.neg.neg)).imp
+        (Formula.somePast (Formula.somePast phi))) :=
       DerivationTree.modus_ponens [] _ _ h_lift_bx3 h_lift_nec
-    have h_PP_phi : Formula.some_past (Formula.some_past phi) ∈ M :=
+    have h_PP_phi : Formula.somePast (Formula.somePast phi) ∈ M :=
       SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs h_mcs h_PP_lift) h_PP_negneg
-    exact set_consistent_not_both h_mcs.1 (Formula.some_past (Formula.some_past phi))
+    exact set_consistent_not_both h_mcs.1 (Formula.somePast (Formula.somePast phi))
       h_PP_phi h_neg_PP
 
 theorem single_step_forcing_past
     (u v : Set (Formula Atom)) (h_mcs_u : SetMaximalConsistent (FrameClass.Base : FrameClass) u) (h_mcs_v : SetMaximalConsistent (FrameClass.Base : FrameClass) v)
     (phi : Formula Atom)
-    (h_P : Formula.some_past phi ∈ v)
-    (h_PP_not : Formula.some_past (Formula.some_past phi) ∉ v)
+    (h_P : Formula.somePast phi ∈ v)
+    (h_PP_not : Formula.somePast (Formula.somePast phi) ∉ v)
     (h_succ : Succ u v)
     (h_p_step : p_content v ⊆ u ∪ p_content u) :
     phi ∈ u := by
-  have h_neg_PP : (Formula.some_past (Formula.some_past phi)).neg ∈ v := by
-    cases SetMaximalConsistent.negation_complete h_mcs_v (Formula.some_past (Formula.some_past phi)) with
+  have h_neg_PP : (Formula.somePast (Formula.somePast phi)).neg ∈ v := by
+    cases SetMaximalConsistent.negation_complete h_mcs_v (Formula.somePast (Formula.somePast phi)) with
     | inl h_in => exact absurd h_in h_PP_not
     | inr h_neg => exact h_neg
-  have h_HH_neg : Formula.all_past (Formula.all_past phi.neg) ∈ v :=
+  have h_HH_neg : Formula.allPast (Formula.allPast phi.neg) ∈ v :=
     neg_PP_implies_HH_neg_in_mcs v h_mcs_v phi h_neg_PP
-  have h_H_neg_in_h : Formula.all_past phi.neg ∈ h_content v := h_HH_neg
-  have h_H_neg_in_u : Formula.all_past phi.neg ∈ u :=
+  have h_H_neg_in_h : Formula.allPast phi.neg ∈ h_content v := h_HH_neg
+  have h_H_neg_in_u : Formula.allPast phi.neg ∈ u :=
     Succ_implies_h_content_reverse u v h_mcs_u h_mcs_v h_succ h_H_neg_in_h
-  have h_P_not_u : Formula.some_past phi ∉ u :=
+  have h_P_not_u : Formula.somePast phi ∉ u :=
     H_neg_implies_not_P u h_mcs_u phi h_H_neg_in_u
   have h_phi_in_p_content_v : phi ∈ p_content v := h_P
   have h_in_union := h_p_step h_phi_in_p_content_v

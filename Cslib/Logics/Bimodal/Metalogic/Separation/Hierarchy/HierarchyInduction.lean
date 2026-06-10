@@ -125,7 +125,7 @@ theorem subst_U_free_gives_no_S_nested (ψ : Formula Atom) (p : Atom) (A B : For
     simp [is_U_free] at hψ
     exact ⟨ih1 hψ.1, ih2 hψ.2⟩
 
-/-- Substituting has_no_allpast_allfuture preservation: if ψ has no all_past/all_future
+/-- Substituting has_no_allpast_allfuture preservation: if ψ has no allPast/allFuture
     and the replacement has none either, the result has none. -/
 theorem subst_preserves_no_allpast_allfuture (ψ : Formula Atom) (p : Atom) (r : Formula Atom)
     (hψ : has_no_allpast_allfuture ψ = true) (hr : has_no_allpast_allfuture r = true) :
@@ -468,11 +468,11 @@ theorem abstract_untl_preserves_no_allpast_allfuture (phi A B : Formula Atom) (p
 The "constituent substitution" technique from GHR94 Lemma 10.2.6.
 Given a separated formula ψ, substituting `.untl A B` (with S-free A, B)
 for atom p yields a separable formula, provided we have a callback
-for handling the `.snce` and `.all_past` constituents. -/
+for handling the `.snce` and `.allPast` constituents. -/
 
 /-- Substituting `.untl A B` (S-free args) for atom p in a separated formula
     produces a separable formula, using `ih_snce` for constituents where
-    substitution breaks separation (`.snce` and `.all_past` positions). -/
+    substitution breaks separation (`.snce` and `.allPast` positions). -/
 theorem subst_in_separated_separable (ψ : Formula Atom) (p : Atom) (A B : Formula Atom)
     (hA_sf : is_S_free A = true) (hB_sf : is_S_free B = true)
     (hsep : is_syntactically_separated ψ = true)
@@ -1032,7 +1032,7 @@ theorem replace_untl_identity_U_free (C A B r : Formula Atom) (h : is_U_free C =
 /-- When U(A,B) holds at a point and C has single U-type with snce_depth_of_U = 0
     and has_no_allpast_allfuture, C evaluates identically to replace_untl C A B (¬⊥).
     This is because every .untl A B in C is evaluated at the SAME point t
-    (not shifted by .snce or .all_past/.all_future). -/
+    (not shifted by .snce or .allPast/.allFuture). -/
 theorem single_U_eval_when_U_true (C A B : Formula Atom)
     (hsingle : has_single_U_type C A B)
     (hexp : has_no_allpast_allfuture C = true)

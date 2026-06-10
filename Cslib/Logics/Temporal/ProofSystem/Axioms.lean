@@ -86,39 +86,39 @@ inductive Axiom : Formula Atom → Type u where
 
   /-- BX1: Serial future: ⊤ → F(⊤) -/
   | serial_future :
-      Axiom (Formula.top.imp (Formula.some_future Formula.top))
+      Axiom (Formula.top.imp (Formula.someFuture Formula.top))
 
   /-- BX1': Serial past: ⊤ → P(⊤) -/
   | serial_past :
-      Axiom (Formula.top.imp (Formula.some_past Formula.top))
+      Axiom (Formula.top.imp (Formula.somePast Formula.top))
 
   /-- BX2G: Guard monotonicity of Until under G:
       G(φ → χ) → (ψ U φ → ψ U χ) -/
   | left_mono_until_G (φ χ ψ : Formula Atom) :
-      Axiom ((φ.imp χ).all_future.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ)))
+      Axiom ((φ.imp χ).allFuture.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ)))
 
   /-- BX2H: Guard monotonicity of Since under H:
       H(φ → χ) → (ψ S φ → ψ S χ) -/
   | left_mono_since_H (φ χ ψ : Formula Atom) :
-      Axiom ((φ.imp χ).all_past.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ)))
+      Axiom ((φ.imp χ).allPast.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ)))
 
   /-- BX3: Event monotonicity of Until:
       G(φ → ψ) → (φ U χ → ψ U χ) -/
   | right_mono_until (φ ψ χ : Formula Atom) :
-      Axiom ((φ.imp ψ).all_future.imp ((Formula.untl φ χ).imp (Formula.untl ψ χ)))
+      Axiom ((φ.imp ψ).allFuture.imp ((Formula.untl φ χ).imp (Formula.untl ψ χ)))
 
   /-- BX3': Event monotonicity of Since:
       H(φ → ψ) → (φ S χ → ψ S χ) -/
   | right_mono_since (φ ψ χ : Formula Atom) :
-      Axiom ((φ.imp ψ).all_past.imp ((Formula.snce φ χ).imp (Formula.snce ψ χ)))
+      Axiom ((φ.imp ψ).allPast.imp ((Formula.snce φ χ).imp (Formula.snce ψ χ)))
 
   /-- BX4: Temporal connectedness future: φ → G(P(φ)) -/
   | connect_future (φ : Formula Atom) :
-      Axiom (φ.imp (φ.some_past.all_future))
+      Axiom (φ.imp (φ.somePast.allFuture))
 
   /-- BX4': Temporal connectedness past: φ → H(F(φ)) -/
   | connect_past (φ : Formula Atom) :
-      Axiom (φ.imp (φ.some_future.all_past))
+      Axiom (φ.imp (φ.someFuture.allPast))
 
   /-- BX13: Until-Since enrichment:
       p ∧ (ψ U φ) → (ψ ∧ S(p, φ)) U φ -/
@@ -176,35 +176,35 @@ inductive Axiom : Formula Atom → Type u where
 
   /-- BX10: Until implies eventuality: U(ψ, φ) → F(ψ) -/
   | until_F (φ ψ : Formula Atom) :
-      Axiom ((Formula.untl ψ φ).imp (Formula.some_future ψ))
+      Axiom ((Formula.untl ψ φ).imp (Formula.someFuture ψ))
 
   /-- BX10': Since implies past eventuality: S(ψ, φ) → P(ψ) -/
   | since_P (φ ψ : Formula Atom) :
-      Axiom ((Formula.snce ψ φ).imp (Formula.some_past ψ))
+      Axiom ((Formula.snce ψ φ).imp (Formula.somePast ψ))
 
   /-- BX11: Temporal linearity:
       F(φ) ∧ F(ψ) → F(φ ∧ ψ) ∨ F(φ ∧ F(ψ)) ∨ F(F(φ) ∧ ψ) -/
   | temp_linearity (φ ψ : Formula Atom) :
-      Axiom (Formula.and (Formula.some_future φ) (Formula.some_future ψ) |>.imp
-        (Formula.or (Formula.some_future (Formula.and φ ψ))
-          (Formula.or (Formula.some_future (Formula.and φ (Formula.some_future ψ)))
-            (Formula.some_future (Formula.and (Formula.some_future φ) ψ)))))
+      Axiom (Formula.and (Formula.someFuture φ) (Formula.someFuture ψ) |>.imp
+        (Formula.or (Formula.someFuture (Formula.and φ ψ))
+          (Formula.or (Formula.someFuture (Formula.and φ (Formula.someFuture ψ)))
+            (Formula.someFuture (Formula.and (Formula.someFuture φ) ψ)))))
 
   /-- BX11': Temporal linearity past:
       P(φ) ∧ P(ψ) → P(φ ∧ ψ) ∨ P(φ ∧ P(ψ)) ∨ P(P(φ) ∧ ψ) -/
   | temp_linearity_past (φ ψ : Formula Atom) :
-      Axiom (Formula.and (Formula.some_past φ) (Formula.some_past ψ) |>.imp
-        (Formula.or (Formula.some_past (Formula.and φ ψ))
-          (Formula.or (Formula.some_past (Formula.and φ (Formula.some_past ψ)))
-            (Formula.some_past (Formula.and (Formula.some_past φ) ψ)))))
+      Axiom (Formula.and (Formula.somePast φ) (Formula.somePast ψ) |>.imp
+        (Formula.or (Formula.somePast (Formula.and φ ψ))
+          (Formula.or (Formula.somePast (Formula.and φ (Formula.somePast ψ)))
+            (Formula.somePast (Formula.and (Formula.somePast φ) ψ)))))
 
   /-- BX12: F-Until equivalence: F(φ) → U(φ, ⊤) -/
   | F_until_equiv (φ : Formula Atom) :
-      Axiom ((Formula.some_future φ).imp (Formula.untl φ Formula.top))
+      Axiom ((Formula.someFuture φ).imp (Formula.untl φ Formula.top))
 
   /-- BX12': P-Since equivalence: P(φ) → S(φ, ⊤) -/
   | P_since_equiv (φ : Formula Atom) :
-      Axiom ((Formula.some_past φ).imp (Formula.snce φ Formula.top))
+      Axiom ((Formula.somePast φ).imp (Formula.snce φ Formula.top))
 
 set_option linter.dupNamespace false in
 /-- Minimum frame class for each axiom constructor. All base BX axioms

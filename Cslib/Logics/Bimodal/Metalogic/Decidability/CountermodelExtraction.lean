@@ -632,7 +632,7 @@ private theorem sncePos_not_expanded (b : Branch Atom) (event guard : Formula At
   by_cases hg : guard = Formula.top
   · subst hg
     have := h (.somePastPos) (by simp [allRulesForFC, allRules, denseRules, discreteRules])
-    simp [isApplicable, asSomePast?, Formula.top, applyRule, Formula.some_past] at this
+    simp [isApplicable, asSomePast?, Formula.top, applyRule, Formula.somePast] at this
   · have h1 := h (.sncePos) (by simp [allRulesForFC, allRules, denseRules, discreteRules])
     have hg' : (guard == Formula.top) = false := Formula.beq_top_false_of_ne guard hg
     simp only [isApplicable, asSince?] at h1
@@ -656,7 +656,7 @@ set_option maxHeartbeats 3200000 in
 branch, then `F(A)` is at `(w, t')` for every known future time `t'`.
 Here `F(FA) = F(U(A, top))`.
 -/
-theorem sat_some_future_neg (b : Branch Atom) (timeOrd : TimeOrdering)
+theorem sat_someFuture_neg (b : Branch Atom) (timeOrd : TimeOrdering)
     (hSat : findUnexpanded b (timeOrd := timeOrd) = none)
     (event : Formula Atom) (w : WorldIndex) (t : TimeIndex)
     (hmem : ⟨.neg, .untl event (.imp .bot .bot), ⟨w, t⟩⟩ ∈ b) :
@@ -710,7 +710,7 @@ set_option maxHeartbeats 3200000 in
 branch, then `F(A)` is at `(w, t')` for every known past time `t'`.
 Here `F(PA) = F(S(A, top))`.
 -/
-theorem sat_some_past_neg (b : Branch Atom) (timeOrd : TimeOrdering)
+theorem sat_somePast_neg (b : Branch Atom) (timeOrd : TimeOrdering)
     (hSat : findUnexpanded b (timeOrd := timeOrd) = none)
     (event : Formula Atom) (w : WorldIndex) (t : TimeIndex)
     (hmem : ⟨.neg, .snce event (.imp .bot .bot), ⟨w, t⟩⟩ ∈ b) :
@@ -952,7 +952,7 @@ private theorem truthLemma_neg (b : Branch Atom) (timeOrd : TimeOrdering)
     by_cases hg : guard = Formula.imp Formula.bot Formula.bot
     · subst hg
       have hmem' : ⟨.neg, .untl event (.imp .bot .bot), ⟨w, t⟩⟩ ∈ b := hmem
-      have hfe := sat_some_future_neg b timeOrd hSat event w t hmem' t' ht'
+      have hfe := sat_someFuture_neg b timeOrd hSat event w t hmem' t' ht'
       exact ih_event w t' hfe he
     · have hguard : guard ≠ Formula.top := by
         simp only [Formula.top]; exact hg
@@ -967,7 +967,7 @@ private theorem truthLemma_neg (b : Branch Atom) (timeOrd : TimeOrdering)
     by_cases hg : guard = Formula.imp Formula.bot Formula.bot
     · subst hg
       have hmem' : ⟨.neg, .snce event (.imp .bot .bot), ⟨w, t⟩⟩ ∈ b := hmem
-      have hfe := sat_some_past_neg b timeOrd hSat event w t hmem' t' ht'
+      have hfe := sat_somePast_neg b timeOrd hSat event w t hmem' t' ht'
       exact ih_event w t' hfe he
     · have hguard : guard ≠ Formula.top := by
         simp only [Formula.top]; exact hg

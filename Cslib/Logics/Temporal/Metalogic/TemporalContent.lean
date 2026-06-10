@@ -29,16 +29,16 @@ variable {Atom : Type*}
 /-! ## Content Definitions -/
 
 def g_content (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.all_future phi ∈ M}
+  {phi | Formula.allFuture phi ∈ M}
 
 def h_content (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.all_past phi ∈ M}
+  {phi | Formula.allPast phi ∈ M}
 
 def f_content (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.some_future phi ∈ M}
+  {phi | Formula.someFuture phi ∈ M}
 
 def p_content (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.some_past phi ∈ M}
+  {phi | Formula.somePast phi ∈ M}
 
 def u_content (M : Set (Formula Atom)) : Set (Formula Atom × Formula Atom) :=
   { p | Formula.untl p.1 p.2 ∈ M }
@@ -50,19 +50,19 @@ def s_content (M : Set (Formula Atom)) : Set (Formula Atom × Formula Atom) :=
 
 @[simp]
 lemma mem_g_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ g_content M ↔ Formula.all_future phi ∈ M := Iff.rfl
+    phi ∈ g_content M ↔ Formula.allFuture phi ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_h_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ h_content M ↔ Formula.all_past phi ∈ M := Iff.rfl
+    phi ∈ h_content M ↔ Formula.allPast phi ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_f_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ f_content M ↔ Formula.some_future phi ∈ M := Iff.rfl
+    phi ∈ f_content M ↔ Formula.someFuture phi ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_p_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ p_content M ↔ Formula.some_past phi ∈ M := Iff.rfl
+    phi ∈ p_content M ↔ Formula.somePast phi ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_u_content_iff {M : Set (Formula Atom)} {p : Formula Atom × Formula Atom} :
@@ -101,14 +101,14 @@ theorem f_content_iff_not_neg_in_g_content {M : Set (Formula Atom)}
             (.assumption [phi.neg, phi] phi (by simp [List.mem_cons]))
         exact deduction_theorem [phi] phi.neg Formula.bot d_neg_phi_assum
       exact deduction_theorem [] phi phi.neg.neg d_dn
-    have h_G_dni : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).all_future) :=
+    have h_G_dni : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).allFuture) :=
       DerivationTree.temporal_necessitation _ h_dni
-    have h_bx3 : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).all_future.imp
+    have h_bx3 : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).allFuture.imp
         ((Formula.untl phi Formula.top).imp (Formula.untl phi.neg.neg Formula.top))) :=
       DerivationTree.axiom [] _ (Axiom.right_mono_until phi phi.neg.neg Formula.top) trivial
-    have h_sf_impl : DerivationTree FrameClass.Base [] ((Formula.some_future phi).imp (Formula.some_future phi.neg.neg)) :=
+    have h_sf_impl : DerivationTree FrameClass.Base [] ((Formula.someFuture phi).imp (Formula.someFuture phi.neg.neg)) :=
       DerivationTree.modus_ponens [] _ _ h_bx3 h_G_dni
-    have h_sf_nn_in : Formula.some_future phi.neg.neg ∈ M :=
+    have h_sf_nn_in : Formula.someFuture phi.neg.neg ∈ M :=
       temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_sf_impl) h_sf_in
     -- G(¬φ) = ¬F(¬¬φ). So ¬F(¬¬φ) ∈ M and F(¬¬φ) ∈ M. Contradiction.
     exact mcs_not_mem_of_neg h_mcs h_af_in h_sf_nn_in
@@ -116,7 +116,7 @@ theorem f_content_iff_not_neg_in_g_content {M : Set (Formula Atom)}
     -- ¬φ ∉ g_content(M) means G(¬φ) ∉ M.
     -- G(¬φ) = ¬F(¬¬φ). So ¬F(¬¬φ) ∉ M. By negation completeness, F(¬¬φ) ∈ M.
     -- Then derive F(φ) from F(¬¬φ) via BX3 + DNE.
-    have h_F_nn : Formula.some_future phi.neg.neg ∈ M :=
+    have h_F_nn : Formula.someFuture phi.neg.neg ∈ M :=
       (mcs_mem_iff_neg_not_mem h_mcs).mpr h_af_not_in
     have h_dne : DerivationTree FrameClass.Base [] (phi.neg.neg.imp phi) := by
       let ctx := [Formula.neg (Formula.neg phi)]
@@ -134,12 +134,12 @@ theorem f_content_iff_not_neg_in_g_content {M : Set (Formula Atom)}
       have d_imp := deduction_theorem [Formula.neg (Formula.neg phi)] (phi.imp Formula.bot) phi d_efq
       exact deduction_theorem [] (Formula.neg (Formula.neg phi)) phi
         (DerivationTree.modus_ponens ctx _ _ d_peirce d_imp)
-    have h_G_dne : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_future) :=
+    have h_G_dne : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allFuture) :=
       DerivationTree.temporal_necessitation _ h_dne
-    have h_bx3 : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_future.imp
+    have h_bx3 : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allFuture.imp
         ((Formula.untl phi.neg.neg Formula.top).imp (Formula.untl phi Formula.top))) :=
       DerivationTree.axiom [] _ (Axiom.right_mono_until phi.neg.neg phi Formula.top) trivial
-    have h_sf_impl : DerivationTree FrameClass.Base [] ((Formula.some_future phi.neg.neg).imp (Formula.some_future phi)) :=
+    have h_sf_impl : DerivationTree FrameClass.Base [] ((Formula.someFuture phi.neg.neg).imp (Formula.someFuture phi)) :=
       DerivationTree.modus_ponens [] _ _ h_bx3 h_G_dne
     exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_sf_impl) h_F_nn
 
@@ -164,26 +164,26 @@ theorem p_content_iff_not_neg_in_h_content {M : Set (Formula Atom)}
         exact deduction_theorem [phi] phi.neg Formula.bot d_neg_phi_assum
       exact deduction_theorem [] phi phi.neg.neg d_dn
     -- H-necessitation of DNI via duality
-    have h_H_dni : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).all_past) := by
+    have h_H_dni : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).allPast) := by
       have d_swap := DerivationTree.temporal_duality _ h_dni
       have d_g_swap := DerivationTree.temporal_necessitation _ d_swap
       have d_h := DerivationTree.temporal_duality _ d_g_swap
-      have h_eq : (Formula.all_future (phi.imp phi.neg.neg).swap_temporal).swap_temporal =
-          Formula.all_past ((phi.imp phi.neg.neg).swap_temporal.swap_temporal) := by
-        simp only [Formula.all_past, Formula.some_past, Formula.neg,
-          Formula.top, Formula.swap_temporal]
+      have h_eq : (Formula.allFuture (phi.imp phi.neg.neg).swapTemporal).swapTemporal =
+          Formula.allPast ((phi.imp phi.neg.neg).swapTemporal.swapTemporal) := by
+        simp only [Formula.allPast, Formula.somePast, Formula.neg,
+          Formula.top, Formula.swapTemporal]
       rw [Formula.swapTemporal_involution] at h_eq
       exact h_eq ▸ d_h
-    have h_bx3p : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).all_past.imp
+    have h_bx3p : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).allPast.imp
         ((Formula.snce phi Formula.top).imp (Formula.snce phi.neg.neg Formula.top))) :=
       DerivationTree.axiom [] _ (Axiom.right_mono_since phi phi.neg.neg Formula.top) trivial
-    have h_sp_impl : DerivationTree FrameClass.Base [] ((Formula.some_past phi).imp (Formula.some_past phi.neg.neg)) :=
+    have h_sp_impl : DerivationTree FrameClass.Base [] ((Formula.somePast phi).imp (Formula.somePast phi.neg.neg)) :=
       DerivationTree.modus_ponens [] _ _ h_bx3p h_H_dni
-    have h_sp_nn_in : Formula.some_past phi.neg.neg ∈ M :=
+    have h_sp_nn_in : Formula.somePast phi.neg.neg ∈ M :=
       temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_sp_impl) h_sp_in
     exact mcs_not_mem_of_neg h_mcs h_ap_in h_sp_nn_in
   · intro h_ap_not_in
-    have h_P_nn : Formula.some_past phi.neg.neg ∈ M :=
+    have h_P_nn : Formula.somePast phi.neg.neg ∈ M :=
       (mcs_mem_iff_neg_not_mem h_mcs).mpr h_ap_not_in
     have h_dne : DerivationTree FrameClass.Base [] (phi.neg.neg.imp phi) := by
       let ctx := [Formula.neg (Formula.neg phi)]
@@ -202,20 +202,20 @@ theorem p_content_iff_not_neg_in_h_content {M : Set (Formula Atom)}
       exact deduction_theorem [] (Formula.neg (Formula.neg phi)) phi
         (DerivationTree.modus_ponens ctx _ _ d_peirce d_imp)
     -- H-necessitation of DNE via duality
-    have h_H_dne : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_past) := by
+    have h_H_dne : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allPast) := by
       have d_swap := DerivationTree.temporal_duality _ h_dne
       have d_g_swap := DerivationTree.temporal_necessitation _ d_swap
       have d_h := DerivationTree.temporal_duality _ d_g_swap
-      have h_eq : (Formula.all_future (phi.neg.neg.imp phi).swap_temporal).swap_temporal =
-          Formula.all_past ((phi.neg.neg.imp phi).swap_temporal.swap_temporal) := by
-        simp only [Formula.all_past, Formula.some_past, Formula.neg,
-          Formula.top, Formula.swap_temporal]
+      have h_eq : (Formula.allFuture (phi.neg.neg.imp phi).swapTemporal).swapTemporal =
+          Formula.allPast ((phi.neg.neg.imp phi).swapTemporal.swapTemporal) := by
+        simp only [Formula.allPast, Formula.somePast, Formula.neg,
+          Formula.top, Formula.swapTemporal]
       rw [Formula.swapTemporal_involution] at h_eq
       exact h_eq ▸ d_h
-    have h_bx3p : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_past.imp
+    have h_bx3p : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).allPast.imp
         ((Formula.snce phi.neg.neg Formula.top).imp (Formula.snce phi Formula.top))) :=
       DerivationTree.axiom [] _ (Axiom.right_mono_since phi.neg.neg phi Formula.top) trivial
-    have h_sp_impl : DerivationTree FrameClass.Base [] ((Formula.some_past phi.neg.neg).imp (Formula.some_past phi)) :=
+    have h_sp_impl : DerivationTree FrameClass.Base [] ((Formula.somePast phi.neg.neg).imp (Formula.somePast phi)) :=
       DerivationTree.modus_ponens [] _ _ h_bx3p h_H_dne
     exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_sp_impl) h_P_nn
 

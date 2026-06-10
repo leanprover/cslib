@@ -195,7 +195,7 @@ theorem schedule_surjective_above (psi : Formula Atom) (k : Nat) :
 
 noncomputable def fwd_succ (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent FrameClass.Base M) (psi : Formula Atom) :
     Set (Formula Atom) := by
-  by_cases h_F : Formula.some_future psi ∈ M
+  by_cases h_F : Formula.someFuture psi ∈ M
   · exact (set_lindenbaum_base (forward_temporal_witness_seed_consistent M h_mcs psi h_F)).choose
   · exact (set_lindenbaum_base (g_content_set_consistent h_mcs)).choose
 
@@ -213,7 +213,7 @@ theorem fwd_succ_g_content (M : Set (Formula Atom)) (h_mcs : SetMaximalConsisten
   · exact fun chi hchi => (set_lindenbaum_base (g_content_set_consistent h_mcs)).choose_spec.1 hchi
 
 theorem fwd_succ_resolves (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent FrameClass.Base M) (psi : Formula Atom)
-    (h_F : Formula.some_future psi ∈ M) : psi ∈ fwd_succ M h_mcs psi := by
+    (h_F : Formula.someFuture psi ∈ M) : psi ∈ fwd_succ M h_mcs psi := by
   unfold fwd_succ; rw [dif_pos h_F]
   exact (set_lindenbaum_base (forward_temporal_witness_seed_consistent M h_mcs psi h_F)).choose_spec.1
     (Set.mem_union_left _ (Set.mem_singleton psi))
@@ -222,7 +222,7 @@ theorem fwd_succ_resolves (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent
 
 noncomputable def bwd_pred (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent FrameClass.Base M) (psi : Formula Atom) :
     Set (Formula Atom) := by
-  by_cases h_P : Formula.some_past psi ∈ M
+  by_cases h_P : Formula.somePast psi ∈ M
   · exact (set_lindenbaum_base (past_temporal_witness_seed_consistent M h_mcs psi h_P)).choose
   · exact (set_lindenbaum_base (h_content_set_consistent h_mcs)).choose
 
@@ -240,7 +240,7 @@ theorem bwd_pred_h_content (M : Set (Formula Atom)) (h_mcs : SetMaximalConsisten
   · exact fun chi hchi => (set_lindenbaum_base (h_content_set_consistent h_mcs)).choose_spec.1 hchi
 
 theorem bwd_pred_resolves (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent FrameClass.Base M) (psi : Formula Atom)
-    (h_P : Formula.some_past psi ∈ M) : psi ∈ bwd_pred M h_mcs psi := by
+    (h_P : Formula.somePast psi ∈ M) : psi ∈ bwd_pred M h_mcs psi := by
   unfold bwd_pred; rw [dif_pos h_P]
   exact (set_lindenbaum_base (past_temporal_witness_seed_consistent M h_mcs psi h_P)).choose_spec.1
     (Set.mem_union_left _ (Set.mem_singleton psi))
@@ -294,7 +294,7 @@ theorem fwd_chain_g_content_trans (M0 : Set (Formula Atom)) (h0 : SetMaximalCons
     rcases Nat.eq_or_lt_of_le (Nat.lt_succ_iff.mp h) with rfl | h_lt
     · exact fwd_chain_g_content_step M0 h0 m
     · intro phi hphi
-      exact fwd_chain_g_content_step M0 h0 n (ih h_lt (SetMaximalConsistent.all_future_all_future (fwd_chain M0 h0 m).property hphi))
+      exact fwd_chain_g_content_step M0 h0 n (ih h_lt (SetMaximalConsistent.allFuture_allFuture (fwd_chain M0 h0 m).property hphi))
 
 theorem bwd_chain_h_content_step (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent FrameClass.Base M0) (n : Nat) :
     h_content (bwd_chain M0 h0 n).val ⊆ (bwd_chain M0 h0 (n + 1)).val := by
@@ -311,7 +311,7 @@ theorem bwd_chain_h_content_trans (M0 : Set (Formula Atom)) (h0 : SetMaximalCons
     rcases Nat.eq_or_lt_of_le (Nat.lt_succ_iff.mp h) with rfl | h_lt
     · exact bwd_chain_h_content_step M0 h0 m
     · intro phi hphi
-      exact bwd_chain_h_content_step M0 h0 n (ih h_lt (SetMaximalConsistent.all_past_all_past (bwd_chain M0 h0 m).property hphi))
+      exact bwd_chain_h_content_step M0 h0 n (ih h_lt (SetMaximalConsistent.allPast_allPast (bwd_chain M0 h0 m).property hphi))
 
 theorem fwd_chain_reverse_h (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent FrameClass.Base M0)
     {m n : Nat} (h : m < n) :
@@ -337,7 +337,7 @@ theorem int_chain_g_content (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent
     · have h_in_bwd0 := bwd_chain_reverse_g M0 h0 (show 0 < ((-t).toNat) by omega) hchi
       simp only [bwd_chain] at h_in_bwd0
       simp only [h_zero, fwd_chain]; exact h_in_bwd0
-    · have h_GG := SetMaximalConsistent.all_future_all_future (bwd_chain M0 h0 ((-t).toNat)).property hchi
+    · have h_GG := SetMaximalConsistent.allFuture_allFuture (bwd_chain M0 h0 ((-t).toNat)).property hchi
       have h_in_bwd0 := bwd_chain_reverse_g M0 h0 (show 0 < ((-t).toNat) by omega) h_GG
       simp only [bwd_chain] at h_in_bwd0
       exact fwd_chain_g_content_trans M0 h0 h_pos h_in_bwd0
@@ -345,7 +345,7 @@ theorem int_chain_g_content (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent
 
 theorem int_chain_forward_G (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent FrameClass.Base M0)
     (t t' : Int) (phi : Formula Atom) (h_lt : t < t')
-    (h_G : Formula.all_future phi ∈ int_chain M0 h0 t) :
+    (h_G : Formula.allFuture phi ∈ int_chain M0 h0 t) :
     phi ∈ int_chain M0 h0 t' :=
   int_chain_g_content M0 h0 h_lt h_G
 
@@ -357,7 +357,7 @@ theorem int_chain_h_content (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent
 
 theorem int_chain_backward_H (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent FrameClass.Base M0)
     (t t' : Int) (phi : Formula Atom) (h_lt : t' < t)
-    (h_H : Formula.all_past phi ∈ int_chain M0 h0 t) :
+    (h_H : Formula.allPast phi ∈ int_chain M0 h0 t) :
     phi ∈ int_chain M0 h0 t' :=
   int_chain_h_content M0 h0 h_lt h_H
 
@@ -439,7 +439,7 @@ theorem g_content_fc_consistent {fc : FrameClass} {M : Set (Formula Atom)}
     SetConsistent fc (g_content M) := by
   have h_top : (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
     theorem_in_mcs_fc' h_mcs (identity (Formula.bot : Formula Atom))
-  have h_F_top : Formula.some_future (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
+  have h_F_top : Formula.someFuture (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
     SetMaximalConsistent.implication_property h_mcs
       (theorem_in_mcs_fc' h_mcs (DerivationTree.axiom [] _ Axiom.serial_future trivial)) h_top
   have h_seed := forward_temporal_witness_seed_consistent M h_mcs _ h_F_top
@@ -451,7 +451,7 @@ theorem h_content_fc_consistent {fc : FrameClass} {M : Set (Formula Atom)}
     SetConsistent fc (h_content M) := by
   have h_top : (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
     theorem_in_mcs_fc' h_mcs (identity (Formula.bot : Formula Atom))
-  have h_P_top : Formula.some_past (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
+  have h_P_top : Formula.somePast (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
     SetMaximalConsistent.implication_property h_mcs
       (theorem_in_mcs_fc' h_mcs (DerivationTree.axiom [] _ Axiom.serial_past trivial)) h_top
   have h_seed := past_temporal_witness_seed_consistent M h_mcs _ h_P_top
@@ -463,7 +463,7 @@ theorem h_content_fc_consistent {fc : FrameClass} {M : Set (Formula Atom)}
 noncomputable def fwd_succ_fc {fc : FrameClass}
     (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M) (psi : Formula Atom) :
     Set (Formula Atom) := by
-  by_cases h_F : Formula.some_future psi ∈ M
+  by_cases h_F : Formula.someFuture psi ∈ M
   · exact (set_lindenbaum_fc (forward_temporal_witness_seed_consistent M h_mcs psi h_F)).choose
   · exact (set_lindenbaum_fc (g_content_fc_consistent h_mcs)).choose
 
@@ -484,7 +484,7 @@ theorem fwd_succ_fc_g_content {fc : FrameClass}
 
 theorem fwd_succ_fc_resolves {fc : FrameClass}
     (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M) (psi : Formula Atom)
-    (h_F : Formula.some_future psi ∈ M) : psi ∈ fwd_succ_fc M h_mcs psi := by
+    (h_F : Formula.someFuture psi ∈ M) : psi ∈ fwd_succ_fc M h_mcs psi := by
   unfold fwd_succ_fc; rw [dif_pos h_F]
   exact (set_lindenbaum_fc (forward_temporal_witness_seed_consistent M h_mcs psi h_F)).choose_spec.1
     (Set.mem_union_left _ (Set.mem_singleton psi))
@@ -492,7 +492,7 @@ theorem fwd_succ_fc_resolves {fc : FrameClass}
 noncomputable def bwd_pred_fc {fc : FrameClass}
     (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M) (psi : Formula Atom) :
     Set (Formula Atom) := by
-  by_cases h_P : Formula.some_past psi ∈ M
+  by_cases h_P : Formula.somePast psi ∈ M
   · exact (set_lindenbaum_fc (past_temporal_witness_seed_consistent M h_mcs psi h_P)).choose
   · exact (set_lindenbaum_fc (h_content_fc_consistent h_mcs)).choose
 
@@ -513,7 +513,7 @@ theorem bwd_pred_fc_h_content {fc : FrameClass}
 
 theorem bwd_pred_fc_resolves {fc : FrameClass}
     (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M) (psi : Formula Atom)
-    (h_P : Formula.some_past psi ∈ M) : psi ∈ bwd_pred_fc M h_mcs psi := by
+    (h_P : Formula.somePast psi ∈ M) : psi ∈ bwd_pred_fc M h_mcs psi := by
   unfold bwd_pred_fc; rw [dif_pos h_P]
   exact (set_lindenbaum_fc (past_temporal_witness_seed_consistent M h_mcs psi h_P)).choose_spec.1
     (Set.mem_union_left _ (Set.mem_singleton psi))
@@ -571,7 +571,7 @@ theorem fwd_chain_fc_g_content_trans {fc : FrameClass}
     · exact fwd_chain_fc_g_content_step M0 h0 m
     · intro phi hphi
       exact fwd_chain_fc_g_content_step M0 h0 n
-        (ih h_lt (SetMaximalConsistent.all_future_all_future (fwd_chain_fc (fc := fc) M0 h0 m).property hphi))
+        (ih h_lt (SetMaximalConsistent.allFuture_allFuture (fwd_chain_fc (fc := fc) M0 h0 m).property hphi))
 
 theorem bwd_chain_fc_h_content_step {fc : FrameClass}
     (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent fc M0) (n : Nat) :
@@ -589,7 +589,7 @@ theorem bwd_chain_fc_h_content_trans {fc : FrameClass}
     · exact bwd_chain_fc_h_content_step M0 h0 m
     · intro phi hphi
       exact bwd_chain_fc_h_content_step M0 h0 n
-        (ih h_lt (SetMaximalConsistent.all_past_all_past (bwd_chain_fc (fc := fc) M0 h0 m).property hphi))
+        (ih h_lt (SetMaximalConsistent.allPast_allPast (bwd_chain_fc (fc := fc) M0 h0 m).property hphi))
 
 theorem fwd_chain_fc_reverse_h {fc : FrameClass}
     (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent fc M0)
@@ -621,7 +621,7 @@ theorem int_chain_fc_g_content {fc : FrameClass}
     rcases Nat.eq_zero_or_pos t'.toNat with h_zero | h_pos
     · have h_in := bwd_chain_fc_reverse_g M0 h0 (show 0 < ((-t).toNat) by omega) hchi
       simp only [bwd_chain_fc] at h_in; simp only [h_zero, fwd_chain_fc]; exact h_in
-    · have h_GG := SetMaximalConsistent.all_future_all_future (bwd_chain_fc (fc := fc) M0 h0 ((-t).toNat)).property hchi
+    · have h_GG := SetMaximalConsistent.allFuture_allFuture (bwd_chain_fc (fc := fc) M0 h0 ((-t).toNat)).property hchi
       have h_in := bwd_chain_fc_reverse_g M0 h0 (show 0 < ((-t).toNat) by omega) h_GG
       simp only [bwd_chain_fc] at h_in
       exact fwd_chain_fc_g_content_trans M0 h0 h_pos h_in
@@ -630,7 +630,7 @@ theorem int_chain_fc_g_content {fc : FrameClass}
 theorem int_chain_fc_forward_G {fc : FrameClass}
     (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent fc M0)
     (t t' : Int) (phi : Formula Atom) (h_lt : t < t')
-    (h_G : Formula.all_future phi ∈ int_chain_fc (fc := fc) M0 h0 t) :
+    (h_G : Formula.allFuture phi ∈ int_chain_fc (fc := fc) M0 h0 t) :
     phi ∈ int_chain_fc M0 h0 t' :=
   int_chain_fc_g_content M0 h0 h_lt h_G
 
@@ -646,7 +646,7 @@ theorem int_chain_fc_h_content {fc : FrameClass}
 theorem int_chain_fc_backward_H {fc : FrameClass}
     (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent fc M0)
     (t t' : Int) (phi : Formula Atom) (h_lt : t' < t)
-    (h_H : Formula.all_past phi ∈ int_chain_fc (fc := fc) M0 h0 t) :
+    (h_H : Formula.allPast phi ∈ int_chain_fc (fc := fc) M0 h0 t) :
     phi ∈ int_chain_fc M0 h0 t' :=
   int_chain_fc_h_content M0 h0 h_lt h_H
 

@@ -21,10 +21,10 @@ are the basic temporal modalities from which all other temporal operators
 
 ## Derived Temporal Operators
 
-- `some_future φ` (F φ): `⊤ U φ` — eventually in the future
-- `all_future φ` (G φ): `¬F ¬φ` — always in the future
-- `some_past φ` (P φ): `⊤ S φ` — at some point in the past
-- `all_past φ` (H φ): `¬P ¬φ` — always in the past
+- `someFuture φ` (F φ): `⊤ U φ` — eventually in the future
+- `allFuture φ` (G φ): `¬F ¬φ` — always in the future
+- `somePast φ` (P φ): `⊤ S φ` — at some point in the past
+- `allPast φ` (H φ): `¬P ¬φ` — always in the past
 -/
 
 @[expose] public section
@@ -60,20 +60,20 @@ abbrev Formula.and (φ₁ φ₂ : Formula Atom) : Formula Atom :=
   .imp (.imp φ₁ (.imp φ₂ .bot)) .bot
 
 /-- Some future (eventually): F φ := ⊤ U φ -/
-abbrev Formula.some_future (φ : Formula Atom) : Formula Atom :=
+abbrev Formula.someFuture (φ : Formula Atom) : Formula Atom :=
   .untl φ .top
 
 /-- All future (globally): G φ := ¬F ¬φ -/
-abbrev Formula.all_future (φ : Formula Atom) : Formula Atom :=
-  .neg (.some_future (.neg φ))
+abbrev Formula.allFuture (φ : Formula Atom) : Formula Atom :=
+  .neg (.someFuture (.neg φ))
 
 /-- Some past: P φ := ⊤ S φ -/
-abbrev Formula.some_past (φ : Formula Atom) : Formula Atom :=
+abbrev Formula.somePast (φ : Formula Atom) : Formula Atom :=
   .snce φ .top
 
 /-- All past (historically): H φ := ¬P ¬φ -/
-abbrev Formula.all_past (φ : Formula Atom) : Formula Atom :=
-  .neg (.some_past (.neg φ))
+abbrev Formula.allPast (φ : Formula Atom) : Formula Atom :=
+  .neg (.somePast (.neg φ))
 
 @[inherit_doc] scoped prefix:40 "¬" => Formula.neg
 @[inherit_doc] scoped infix:36 " ∧ " => Formula.and
@@ -81,10 +81,10 @@ abbrev Formula.all_past (φ : Formula Atom) : Formula Atom :=
 @[inherit_doc] scoped infix:30 " → " => Formula.imp
 @[inherit_doc] scoped infix:40 " U " => Formula.untl
 @[inherit_doc] scoped infix:40 " S " => Formula.snce
-@[inherit_doc] scoped prefix:40 "F" => Formula.some_future
-@[inherit_doc] scoped prefix:40 "G" => Formula.all_future
-@[inherit_doc] scoped prefix:40 "P" => Formula.some_past
-@[inherit_doc] scoped prefix:40 "H" => Formula.all_past
+@[inherit_doc] scoped prefix:40 "F" => Formula.someFuture
+@[inherit_doc] scoped prefix:40 "G" => Formula.allFuture
+@[inherit_doc] scoped prefix:40 "P" => Formula.somePast
+@[inherit_doc] scoped prefix:40 "H" => Formula.allPast
 
 /-- Register `Temporal.Formula` as an instance of `TemporalConnectives`. -/
 instance : TemporalConnectives (Formula Atom) where
@@ -371,16 +371,16 @@ def prev (φ : Formula Atom) : Formula Atom := .snce φ .bot
 
 /-- Derived reflexive future operator: G'φ := φ ∧ Gφ. -/
 def weakFuture (φ : Formula Atom) : Formula Atom :=
-  Formula.and φ (Formula.all_future φ)
+  Formula.and φ (Formula.allFuture φ)
 
 /-- Derived reflexive past operator: H'φ := φ ∧ Hφ. -/
 def weakPast (φ : Formula Atom) : Formula Atom :=
-  Formula.and φ (Formula.all_past φ)
+  Formula.and φ (Formula.allPast φ)
 
 /-- Temporal 'always' operator (△φ): Hφ ∧ φ ∧ Gφ.
     φ holds at all times (past, present, and future). -/
 def always (φ : Formula Atom) : Formula Atom :=
-  Formula.and (Formula.all_past φ) (Formula.and φ (Formula.all_future φ))
+  Formula.and (Formula.allPast φ) (Formula.and φ (Formula.allFuture φ))
 
 /-- Temporal 'sometimes' operator (▽φ): ¬△¬φ.
     φ holds at some time (past, present, or future). -/
@@ -397,11 +397,11 @@ def trigger (φ ψ : Formula Atom) : Formula Atom :=
 
 /-- Weak Until operator W(φ, ψ) := (φ U ψ) ∨ G(φ). Until without the liveness requirement. -/
 def weakUntil (φ ψ : Formula Atom) : Formula Atom :=
-  Formula.or (Formula.untl φ ψ) (Formula.all_future φ)
+  Formula.or (Formula.untl φ ψ) (Formula.allFuture φ)
 
 /-- Weak Since operator WS(φ, ψ) := (φ S ψ) ∨ H(φ). Since without the liveness requirement. -/
 def weakSince (φ ψ : Formula Atom) : Formula Atom :=
-  Formula.or (Formula.snce φ ψ) (Formula.all_past φ)
+  Formula.or (Formula.snce φ ψ) (Formula.allPast φ)
 
 /-- Strong Release operator M(φ, ψ) := ψ U (ψ ∧ φ). Dual of weak until. -/
 def strongRelease (φ ψ : Formula Atom) : Formula Atom :=
@@ -423,75 +423,75 @@ scoped prefix:80 "▽" => Formula.sometimes
 Swap temporal operators (past ↔ future) in a formula.
 
 This transformation is used in the temporal duality inference rule (TD):
-if `⊢ φ` then `⊢ swap_temporal φ`.
+if `⊢ φ` then `⊢ swapTemporal φ`.
 -/
-def swap_temporal : Formula Atom → Formula Atom
+def swapTemporal : Formula Atom → Formula Atom
   | .atom s => .atom s
   | .bot => .bot
-  | .imp φ ψ => .imp (swap_temporal φ) (swap_temporal ψ)
-  | .untl φ ψ => .snce (swap_temporal φ) (swap_temporal ψ)
-  | .snce φ ψ => .untl (swap_temporal φ) (swap_temporal ψ)
+  | .imp φ ψ => .imp (swapTemporal φ) (swapTemporal ψ)
+  | .untl φ ψ => .snce (swapTemporal φ) (swapTemporal ψ)
+  | .snce φ ψ => .untl (swapTemporal φ) (swapTemporal ψ)
 
-/-- swap_temporal is an involution (applying it twice gives identity). -/
+/-- swapTemporal is an involution (applying it twice gives identity). -/
 theorem swapTemporal_involution (φ : Formula Atom) :
-    φ.swap_temporal.swap_temporal = φ := by
+    φ.swapTemporal.swapTemporal = φ := by
   induction φ with
   | atom _ => rfl
   | bot => rfl
-  | imp _ _ ihp ihq => simp only [swap_temporal, ihp, ihq]
-  | untl _ _ ih1 ih2 => simp only [swap_temporal, ih1, ih2]
-  | snce _ _ ih1 ih2 => simp only [swap_temporal, ih1, ih2]
+  | imp _ _ ihp ihq => simp only [swapTemporal, ihp, ihq]
+  | untl _ _ ih1 ih2 => simp only [swapTemporal, ih1, ih2]
+  | snce _ _ ih1 ih2 => simp only [swapTemporal, ih1, ih2]
 
-/-- swap_temporal distributes over negation: swap(¬φ) = ¬(swap φ). -/
+/-- swapTemporal distributes over negation: swap(¬φ) = ¬(swap φ). -/
 theorem swapTemporal_neg (φ : Formula Atom) :
-    (Formula.neg φ).swap_temporal = Formula.neg φ.swap_temporal := by
-  simp only [Formula.neg, swap_temporal]
+    (Formula.neg φ).swapTemporal = Formula.neg φ.swapTemporal := by
+  simp only [Formula.neg, swapTemporal]
 
-/-- swap_temporal exchanges some_future and some_past: swap(Fφ) = P(swap φ). -/
+/-- swapTemporal exchanges someFuture and somePast: swap(Fφ) = P(swap φ). -/
 @[simp]
 theorem swapTemporal_someFuture (φ : Formula Atom) :
-    (Formula.some_future φ).swap_temporal = Formula.some_past φ.swap_temporal := by
-  simp only [Formula.some_past, Formula.top, swap_temporal]
+    (Formula.someFuture φ).swapTemporal = Formula.somePast φ.swapTemporal := by
+  simp only [Formula.somePast, Formula.top, swapTemporal]
 
-/-- swap_temporal exchanges some_past and some_future: swap(Pφ) = F(swap φ). -/
+/-- swapTemporal exchanges somePast and someFuture: swap(Pφ) = F(swap φ). -/
 @[simp]
 theorem swapTemporal_somePast (φ : Formula Atom) :
-    (Formula.some_past φ).swap_temporal = Formula.some_future φ.swap_temporal := by
-  simp only [Formula.some_future, Formula.top, swap_temporal]
+    (Formula.somePast φ).swapTemporal = Formula.someFuture φ.swapTemporal := by
+  simp only [Formula.someFuture, Formula.top, swapTemporal]
 
-/-- swap_temporal exchanges all_future and all_past: swap(Gφ) = H(swap φ). -/
+/-- swapTemporal exchanges allFuture and allPast: swap(Gφ) = H(swap φ). -/
 @[simp]
 theorem swapTemporal_allFuture (φ : Formula Atom) :
-    (Formula.all_future φ).swap_temporal = Formula.all_past φ.swap_temporal := by
-  simp only [Formula.all_past, swap_temporal]
+    (Formula.allFuture φ).swapTemporal = Formula.allPast φ.swapTemporal := by
+  simp only [Formula.allPast, swapTemporal]
 
-/-- swap_temporal exchanges all_past and all_future: swap(Hφ) = G(swap φ). -/
+/-- swapTemporal exchanges allPast and allFuture: swap(Hφ) = G(swap φ). -/
 @[simp]
 theorem swapTemporal_allPast (φ : Formula Atom) :
-    (Formula.all_past φ).swap_temporal = Formula.all_future φ.swap_temporal := by
-  simp only [Formula.all_future, swap_temporal]
+    (Formula.allPast φ).swapTemporal = Formula.allFuture φ.swapTemporal := by
+  simp only [Formula.allFuture, swapTemporal]
 
-/-- swap_temporal distributes over next/prev: swap(X(φ)) = Y(swap(φ)). -/
+/-- swapTemporal distributes over next/prev: swap(X(φ)) = Y(swap(φ)). -/
 theorem swapTemporal_next (φ : Formula Atom) :
-    (next φ).swap_temporal = prev φ.swap_temporal := by
-  simp [next, prev, swap_temporal]
+    (next φ).swapTemporal = prev φ.swapTemporal := by
+  simp [next, prev, swapTemporal]
 
-/-- swap_temporal distributes over prev/next: swap(Y(φ)) = X(swap(φ)). -/
+/-- swapTemporal distributes over prev/next: swap(Y(φ)) = X(swap(φ)). -/
 theorem swapTemporal_prev (φ : Formula Atom) :
-    (prev φ).swap_temporal = next φ.swap_temporal := by
-  simp [prev, next, swap_temporal]
+    (prev φ).swapTemporal = next φ.swapTemporal := by
+  simp [prev, next, swapTemporal]
 
-/-- swap_temporal distributes over strongRelease: swap(M(φ,ψ)) = ST(swap φ, swap ψ). -/
+/-- swapTemporal distributes over strongRelease: swap(M(φ,ψ)) = ST(swap φ, swap ψ). -/
 theorem swapTemporal_strongRelease (φ ψ : Formula Atom) :
-    (strongRelease φ ψ).swap_temporal =
-      strongTrigger φ.swap_temporal ψ.swap_temporal := by
-  simp [strongRelease, strongTrigger, Formula.and, swap_temporal]
+    (strongRelease φ ψ).swapTemporal =
+      strongTrigger φ.swapTemporal ψ.swapTemporal := by
+  simp [strongRelease, strongTrigger, Formula.and, swapTemporal]
 
-/-- swap_temporal distributes over strongTrigger: swap(ST(φ,ψ)) = M(swap φ, swap ψ). -/
+/-- swapTemporal distributes over strongTrigger: swap(ST(φ,ψ)) = M(swap φ, swap ψ). -/
 theorem swapTemporal_strongTrigger (φ ψ : Formula Atom) :
-    (strongTrigger φ ψ).swap_temporal =
-      strongRelease φ.swap_temporal ψ.swap_temporal := by
-  simp [strongRelease, strongTrigger, Formula.and, swap_temporal]
+    (strongTrigger φ ψ).swapTemporal =
+      strongRelease φ.swapTemporal ψ.swapTemporal := by
+  simp [strongRelease, strongTrigger, Formula.and, swapTemporal]
 
 /-! ### Positive Hypothesis Predicate -/
 
@@ -532,15 +532,15 @@ def atoms : Formula Atom → Finset Atom
   | .untl φ ψ => atoms φ ∪ atoms ψ
   | .snce φ ψ => atoms φ ∪ atoms ψ
 
-/-- swap_temporal preserves atoms: swapping past/future does not change which atoms appear. -/
+/-- swapTemporal preserves atoms: swapping past/future does not change which atoms appear. -/
 theorem atoms_swapTemporal (φ : Formula Atom) :
-    atoms (swap_temporal φ) = atoms φ := by
+    atoms (swapTemporal φ) = atoms φ := by
   induction φ with
   | atom _ => rfl
   | bot => rfl
-  | imp _ _ ih1 ih2 => simp only [swap_temporal, atoms]; rw [ih1, ih2]
-  | untl _ _ ih1 ih2 => simp only [swap_temporal, atoms]; rw [ih1, ih2]
-  | snce _ _ ih1 ih2 => simp only [swap_temporal, atoms]; rw [ih1, ih2]
+  | imp _ _ ih1 ih2 => simp only [swapTemporal, atoms]; rw [ih1, ih2]
+  | untl _ _ ih1 ih2 => simp only [swapTemporal, atoms]; rw [ih1, ih2]
+  | snce _ _ ih1 ih2 => simp only [swapTemporal, atoms]; rw [ih1, ih2]
 
 end Atoms
 

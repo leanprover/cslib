@@ -72,11 +72,11 @@ def perpetuity_2 (φ : Bimodal.Formula Atom) : ⊢ φ.sometimes.imp φ.diamond :
 /-! ## P3: Necessity of Perpetuity -/
 
 /-- Box implies boxed past: `⊢ □φ → □Hφ`. Via temporal duality on MF. -/
-def box_to_box_past (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp (φ.all_past.box) := by
-  have mf : ⊢ φ.swap_temporal.box.imp (φ.swap_temporal.all_future.box) :=
-    ax [] _ (Bimodal.Axiom.modal_future φ.swap_temporal)
+def box_to_box_past (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp (φ.allPast.box) := by
+  have mf : ⊢ φ.swapTemporal.box.imp (φ.swapTemporal.allFuture.box) :=
+    ax [] _ (Bimodal.Axiom.modal_future φ.swapTemporal)
   have mf_swap := Bimodal.DerivationTree.temporal_duality _ mf
-  simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at mf_swap
+  simp only [Bimodal.Formula.swapTemporal, Bimodal.Formula.swapTemporal_involution] at mf_swap
   exact mf_swap
 
 /-- Boxed conjunction intro from implications: from `⊢ Q → □A` and `⊢ Q → □B`,
@@ -129,13 +129,13 @@ def perpetuity_4 (φ : Bimodal.Formula Atom) : ⊢ φ.sometimes.diamond.imp φ.d
 
 /-- G-distribution: `⊢ G(φ → ψ) → (Gφ → Gψ)`. Wraps generic typeclass theorem. -/
 def future_k_dist (φ₁ φ₂ : Bimodal.Formula Atom) :
-    ⊢ (φ₁.imp φ₂).all_future.imp (φ₁.all_future.imp φ₂.all_future) := by
+    ⊢ (φ₁.imp φ₂).allFuture.imp (φ₁.allFuture.imp φ₂.allFuture) := by
   exact unwrap (@Theorems.Temporal.TemporalDerived.G_distribution
     (Bimodal.Formula Atom) _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ₁) (ψ := φ₂))
 
 /-- H-distribution: `⊢ H(φ → ψ) → (Hφ → Hψ)`. Wraps generic typeclass theorem. -/
 def past_k_dist (φ₁ φ₂ : Bimodal.Formula Atom) :
-    ⊢ (φ₁.imp φ₂).all_past.imp (φ₁.all_past.imp φ₂.all_past) := by
+    ⊢ (φ₁.imp φ₂).allPast.imp (φ₁.allPast.imp φ₂.allPast) := by
   exact unwrap (@Theorems.Temporal.TemporalDerived.H_distribution
     (Bimodal.Formula Atom) _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ₁) (ψ := φ₂))
 
@@ -152,24 +152,24 @@ def persistence (φ : Bimodal.Formula Atom) : ⊢ φ.diamond.imp φ.diamond.alwa
   have tf := temp_future_derived φ.diamond
 
   -- TD for □◇φ: □◇φ → H□◇φ
-  have td : ⊢ φ.diamond.box.imp φ.diamond.box.all_past := by
-    have tf_swap : ⊢ φ.diamond.swap_temporal.box.imp φ.diamond.swap_temporal.box.all_future :=
-      temp_future_derived φ.diamond.swap_temporal
+  have td : ⊢ φ.diamond.box.imp φ.diamond.box.allPast := by
+    have tf_swap : ⊢ φ.diamond.swapTemporal.box.imp φ.diamond.swapTemporal.box.allFuture :=
+      temp_future_derived φ.diamond.swapTemporal
     have td_result := Bimodal.DerivationTree.temporal_duality _ tf_swap
-    simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at td_result
+    simp only [Bimodal.Formula.swapTemporal, Bimodal.Formula.swapTemporal_involution] at td_result
     exact td_result
 
   -- Step 1: ◇φ → H◇φ
-  have past_comp : ⊢ φ.diamond.imp φ.diamond.all_past := by
+  have past_comp : ⊢ φ.diamond.imp φ.diamond.allPast := by
     have chain1 := imp_trans m5 td
     have mt := box_to_present φ.diamond
     -- Build H(□◇φ → ◇φ) via temporal duality
-    have mt_swap : ⊢ φ.diamond.swap_temporal.box.imp φ.diamond.swap_temporal :=
-      box_to_present φ.diamond.swap_temporal
+    have mt_swap : ⊢ φ.diamond.swapTemporal.box.imp φ.diamond.swapTemporal :=
+      box_to_present φ.diamond.swapTemporal
     have future_mt_swap := Bimodal.DerivationTree.temporal_necessitation _ mt_swap
     have past_mt_raw := Bimodal.DerivationTree.temporal_duality _ future_mt_swap
-    have past_mt : ⊢ (φ.diamond.box.imp φ.diamond).all_past := by
-      simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at past_mt_raw
+    have past_mt : ⊢ (φ.diamond.box.imp φ.diamond).allPast := by
+      simp only [Bimodal.Formula.swapTemporal, Bimodal.Formula.swapTemporal_involution] at past_mt_raw
       exact past_mt_raw
     have pk := past_k_dist φ.diamond.box φ.diamond
     have past_bridge := Bimodal.DerivationTree.modus_ponens [] _ _ pk past_mt
@@ -179,7 +179,7 @@ def persistence (φ : Bimodal.Formula Atom) : ⊢ φ.diamond.imp φ.diamond.alwa
   have present_comp := identity φ.diamond
 
   -- Step 3: ◇φ → G◇φ
-  have future_comp : ⊢ φ.diamond.imp φ.diamond.all_future := by
+  have future_comp : ⊢ φ.diamond.imp φ.diamond.allFuture := by
     have chain2 := imp_trans m5 tf
     have mt := box_to_present φ.diamond
     have future_mt := Bimodal.DerivationTree.temporal_necessitation _ mt

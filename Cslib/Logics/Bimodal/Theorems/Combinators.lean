@@ -179,9 +179,9 @@ def combine_imp_conj_3 {fc : FrameClass} {R A B C : Formula Atom}
 Derived TF theorem: `□φ → G(□φ)`.
 -/
 def temp_future_derived {fc : FrameClass} (φ : Formula Atom) :
-    DerivationTree fc [] ((Formula.box φ).imp (Formula.all_future (Formula.box φ))) :=
+    DerivationTree fc [] ((Formula.box φ).imp (Formula.allFuture (Formula.box φ))) :=
   let mf_box := DerivationTree.axiom [] _ (Axiom.modal_future (Formula.box φ)) (FrameClass.base_le fc)
-  let t_G_box := DerivationTree.axiom [] _ (Axiom.modal_t (Formula.all_future (Formula.box φ))) (FrameClass.base_le fc)
+  let t_G_box := DerivationTree.axiom [] _ (Axiom.modal_t (Formula.allFuture (Formula.box φ))) (FrameClass.base_le fc)
   let chain1 := imp_trans mf_box t_G_box
   let m4 := DerivationTree.axiom [] _ (Axiom.modal_4 φ) (FrameClass.base_le fc)
   imp_trans m4 chain1

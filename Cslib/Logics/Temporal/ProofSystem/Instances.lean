@@ -83,10 +83,10 @@ instance :
     let d_final := Temporal.DerivationTree.temporal_duality _ g_swap
     -- d_final : DerivationTree .Base [] (swap(G(swap(φ))))
     -- We need to cast this to the InferenceSystem goal type
-    have h_eq : φ.swap_temporal.all_future.swap_temporal = φ.all_past := by
-      simp only [Temporal.Formula.all_past, Temporal.Formula.some_past,
+    have h_eq : φ.swapTemporal.allFuture.swapTemporal = φ.allPast := by
+      simp only [Temporal.Formula.allPast, Temporal.Formula.somePast,
                  Temporal.Formula.neg, Temporal.Formula.top,
-                 Temporal.Formula.swap_temporal,
+                 Temporal.Formula.swapTemporal,
                  Temporal.Formula.swapTemporal_involution]
     exact ⟨InferenceSystem.rwConclusion h_eq d_final⟩
 

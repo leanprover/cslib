@@ -171,9 +171,9 @@ def no_U_nested_in_S : Formula Atom -> Prop
   | .untl phi psi => no_U_nested_in_S phi ∧ no_U_nested_in_S psi
   | .snce phi psi => is_U_free phi = true ∧ is_U_free psi = true
 
-/-- swap_temporal converts no_U_nested_in_S to no_S_nested_in_U. -/
+/-- swapTemporal converts no_U_nested_in_S to no_S_nested_in_U. -/
 theorem swap_no_U_nested_gives_no_S_nested (phi : Formula Atom)
-    (h : no_U_nested_in_S phi) : no_S_nested_in_U phi.swap_temporal := by
+    (h : no_U_nested_in_S phi) : no_S_nested_in_U phi.swapTemporal := by
   induction phi with
   | atom _ => trivial
   | bot => trivial
@@ -187,9 +187,9 @@ theorem swap_no_U_nested_gives_no_S_nested (phi : Formula Atom)
     · rw [dual_S_free_iff_U_free]; exact ha
     · rw [dual_S_free_iff_U_free]; exact hb
 
-/-- swap_temporal converts no_S_nested_in_U to no_U_nested_in_S. -/
+/-- swapTemporal converts no_S_nested_in_U to no_U_nested_in_S. -/
 theorem swap_no_S_nested_gives_no_U_nested (phi : Formula Atom)
-    (h : no_S_nested_in_U phi) : no_U_nested_in_S phi.swap_temporal := by
+    (h : no_S_nested_in_U phi) : no_U_nested_in_S phi.swapTemporal := by
   induction phi with
   | atom _ => trivial
   | bot => trivial
@@ -254,11 +254,11 @@ theorem snce_of_boxfree_sep_no_S_nested (phi psi : Formula Atom)
   exact ⟨replace_box_separated_no_S_nested phi h1,
          replace_box_separated_no_S_nested psi h2⟩
 
-/-- all_past of box-normalized separated formula satisfies no_S_nested_in_U. -/
-theorem all_past_of_boxfree_sep_no_S_nested (phi : Formula Atom)
+/-- allPast of box-normalized separated formula satisfies no_S_nested_in_U. -/
+theorem allPast_of_boxfree_sep_no_S_nested (phi : Formula Atom)
     (h : is_syntactically_separated phi = true) :
-    no_S_nested_in_U (.all_past (replace_box_with_top phi)) := by
-  simp only [no_S_nested_in_U_all_past]
+    no_S_nested_in_U (.allPast (replace_box_with_top phi)) := by
+  simp only [no_S_nested_in_U_allPast]
   exact replace_box_separated_no_S_nested phi h
 
 /-- untl of box-normalized separated formulas satisfies no_U_nested_in_S. -/
@@ -270,11 +270,11 @@ theorem untl_of_boxfree_sep_no_U_nested (phi psi : Formula Atom)
   exact ⟨replace_box_separated_no_U_nested phi h1,
          replace_box_separated_no_U_nested psi h2⟩
 
-/-- all_future of box-normalized separated formula satisfies no_U_nested_in_S. -/
-theorem all_future_of_boxfree_sep_no_U_nested (phi : Formula Atom)
+/-- allFuture of box-normalized separated formula satisfies no_U_nested_in_S. -/
+theorem allFuture_of_boxfree_sep_no_U_nested (phi : Formula Atom)
     (h : is_syntactically_separated phi = true) :
-    no_U_nested_in_S (.all_future (replace_box_with_top phi)) := by
-  simp only [Formula.all_future, Formula.neg, Formula.some_future, Formula.top,
+    no_U_nested_in_S (.allFuture (replace_box_with_top phi)) := by
+  simp only [Formula.allFuture, Formula.neg, Formula.someFuture, Formula.top,
     no_U_nested_in_S, and_true]
   exact replace_box_separated_no_U_nested phi h
 
@@ -292,10 +292,10 @@ theorem snce_replace_box_equiv (phi psi : Formula Atom) :
     exact ⟨s, hst, (replace_box_equiv phi M s).mpr h1,
            fun r hr1 hr2 => (replace_box_equiv psi M r).mpr (h2 r hr1 hr2)⟩
 
-/-- all_past preserves int_equiv under box normalization. -/
-theorem all_past_replace_box_equiv (phi : Formula Atom) :
-    int_equiv (.all_past phi) (.all_past (replace_box_with_top phi)) := by
-  intro M t; simp only [int_truth_all_past]; constructor
+/-- allPast preserves int_equiv under box normalization. -/
+theorem allPast_replace_box_equiv (phi : Formula Atom) :
+    int_equiv (.allPast phi) (.allPast (replace_box_with_top phi)) := by
+  intro M t; simp only [int_truth_allPast]; constructor
   · intro h s hs; exact (replace_box_equiv phi M s).mp (h s hs)
   · intro h s hs; exact (replace_box_equiv phi M s).mpr (h s hs)
 
@@ -311,10 +311,10 @@ theorem untl_replace_box_equiv (phi psi : Formula Atom) :
     exact ⟨s, hts, (replace_box_equiv phi M s).mpr h1,
            fun r hr1 hr2 => (replace_box_equiv psi M r).mpr (h2 r hr1 hr2)⟩
 
-/-- all_future preserves int_equiv under box normalization. -/
-theorem all_future_replace_box_equiv (phi : Formula Atom) :
-    int_equiv (.all_future phi) (.all_future (replace_box_with_top phi)) := by
-  intro M t; simp only [int_truth_all_future]; constructor
+/-- allFuture preserves int_equiv under box normalization. -/
+theorem allFuture_replace_box_equiv (phi : Formula Atom) :
+    int_equiv (.allFuture phi) (.allFuture (replace_box_with_top phi)) := by
+  intro M t; simp only [int_truth_allFuture]; constructor
   · intro h s hs; exact (replace_box_equiv phi M s).mp (h s hs)
   · intro h s hs; exact (replace_box_equiv phi M s).mpr (h s hs)
 
@@ -442,7 +442,7 @@ where
 
 /-! ## Expand Temporal -/
 
-/-- Replace all `all_past` and `all_future` with their definitions.
+/-- Replace all `allPast` and `allFuture` with their definitions.
     With 6-constructor Formula, this is the identity function. -/
 def expand_temporal : Formula Atom → Formula Atom
   | .atom a => .atom a
@@ -466,7 +466,7 @@ def expand_temporal : Formula Atom → Formula Atom
 theorem expand_temporal_equiv (φ : Formula Atom) : int_equiv φ (expand_temporal φ) := by
   rw [expand_temporal_id]; exact int_equiv_refl _
 
-/-- Predicate: formula contains no `all_past` or `all_future` constructors. -/
+/-- Predicate: formula contains no `allPast` or `allFuture` constructors. -/
 def has_no_allpast_allfuture : Formula Atom → Bool
   | .atom _ => true
   | .bot => true

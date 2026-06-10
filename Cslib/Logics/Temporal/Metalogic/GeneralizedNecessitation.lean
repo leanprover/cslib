@@ -80,14 +80,14 @@ noncomputable def contraposition {A B : Formula Atom}
 /-- Past necessitation: from ⊢ φ derive ⊢ H(φ). -/
 noncomputable def past_necessitation (φ : Formula Atom)
     (d : DerivationTree FrameClass.Base [] φ) :
-    DerivationTree FrameClass.Base [] (Formula.all_past φ) := by
-  have h_swap : DerivationTree FrameClass.Base [] φ.swap_temporal :=
+    DerivationTree FrameClass.Base [] (Formula.allPast φ) := by
+  have h_swap : DerivationTree FrameClass.Base [] φ.swapTemporal :=
     DerivationTree.temporal_duality _ d
-  have g_swap : DerivationTree FrameClass.Base [] φ.swap_temporal.all_future :=
+  have g_swap : DerivationTree FrameClass.Base [] φ.swapTemporal.allFuture :=
     DerivationTree.temporal_necessitation _ h_swap
-  have final : DerivationTree FrameClass.Base [] φ.swap_temporal.all_future.swap_temporal :=
+  have final : DerivationTree FrameClass.Base [] φ.swapTemporal.allFuture.swapTemporal :=
     DerivationTree.temporal_duality _ g_swap
-  simp only [Formula.swapTemporal_allFuture, Formula.swap_temporal,
+  simp only [Formula.swapTemporal_allFuture, Formula.swapTemporal,
     Formula.swapTemporal_involution] at final
   exact final
 
@@ -96,12 +96,12 @@ noncomputable def past_necessitation (φ : Formula Atom)
 /-- G-distribution at DerivationTree level: ⊢ G(φ→ψ) → (G(φ) → G(ψ)). -/
 noncomputable def temp_k_dist_derived (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
-      ((φ.imp ψ).all_future.imp (φ.all_future.imp ψ.all_future)) := by
+      ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) := by
   have neg_contra : DerivationTree FrameClass.Base [] ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) :=
     DerivationTree.modus_ponens [] _ _ (contrapose_imp (φ.imp ψ) (ψ.neg.imp φ.neg))
       (contrapose_imp φ ψ)
   have F_step : DerivationTree FrameClass.Base []
-      ((Formula.some_future (ψ.neg.imp φ.neg).neg).imp (Formula.some_future (φ.imp ψ).neg)) :=
+      ((Formula.someFuture (ψ.neg.imp φ.neg).neg).imp (Formula.someFuture (φ.imp ψ).neg)) :=
     DerivationTree.modus_ponens [] _ _
       (DerivationTree.axiom [] _
         (Axiom.right_mono_until (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg Formula.top) trivial)
@@ -109,22 +109,22 @@ noncomputable def temp_k_dist_derived (φ ψ : Formula Atom) :
   have G_contra := contraposition F_step
   have G_to_GK := imp_trans_base
     (DerivationTree.axiom [] _ (Axiom.right_mono_until ψ.neg φ.neg Formula.top) trivial)
-    (contrapose_imp (Formula.some_future ψ.neg) (Formula.some_future φ.neg))
+    (contrapose_imp (Formula.someFuture ψ.neg) (Formula.someFuture φ.neg))
   exact imp_trans_base G_contra G_to_GK
 
 /-- H-distribution at DerivationTree level: ⊢ H(φ→ψ) → (H(φ) → H(ψ)). -/
 noncomputable def past_k_dist (A B : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((A.imp B).all_past.imp (A.all_past.imp B.all_past)) := by
+    DerivationTree FrameClass.Base [] ((A.imp B).allPast.imp (A.allPast.imp B.allPast)) := by
   have fk : DerivationTree FrameClass.Base []
-      ((A.swap_temporal.imp B.swap_temporal).all_future.imp
-       (A.swap_temporal.all_future.imp B.swap_temporal.all_future)) :=
-    temp_k_dist_derived A.swap_temporal B.swap_temporal
+      ((A.swapTemporal.imp B.swapTemporal).allFuture.imp
+       (A.swapTemporal.allFuture.imp B.swapTemporal.allFuture)) :=
+    temp_k_dist_derived A.swapTemporal B.swapTemporal
   have td : DerivationTree FrameClass.Base []
-      ((A.swap_temporal.imp B.swap_temporal).all_future.imp
-       (A.swap_temporal.all_future.imp B.swap_temporal.all_future)).swap_temporal :=
+      ((A.swapTemporal.imp B.swapTemporal).allFuture.imp
+       (A.swapTemporal.allFuture.imp B.swapTemporal.allFuture)).swapTemporal :=
     DerivationTree.temporal_duality _ fk
   simp only [Formula.swapTemporal_allFuture,
-    Formula.swap_temporal, Formula.swapTemporal_involution] at td
+    Formula.swapTemporal, Formula.swapTemporal_involution] at td
   exact td
 
 /-! ## Generalized K -/
@@ -133,14 +133,14 @@ noncomputable def past_k_dist (A B : Formula Atom) :
 noncomputable def generalized_temporal_k :
     (Γ : Context Atom) → (φ : Formula Atom) →
     (h : DerivationTree FrameClass.Base Γ φ) →
-    (DerivationTree FrameClass.Base (Context.map Formula.all_future Γ) (Formula.all_future φ))
+    (DerivationTree FrameClass.Base (Context.map Formula.allFuture Γ) (Formula.allFuture φ))
   | [], φ, h => DerivationTree.temporal_necessitation φ h
   | A :: Γ', φ, h =>
     let h_deduction := deduction_theorem Γ' A φ h
     let ih_res := generalized_temporal_k Γ' (A.imp φ) h_deduction
     let k_dist := temp_k_dist_derived A φ
     let k_dist_weak :=
-      DerivationTree.weakening [] (Context.map Formula.all_future Γ') _ k_dist (List.nil_subset _)
+      DerivationTree.weakening [] (Context.map Formula.allFuture Γ') _ k_dist (List.nil_subset _)
     let h_mp :=
       DerivationTree.modus_ponens _ _ _ k_dist_weak ih_res
     reverse_deduction h_mp
@@ -149,14 +149,14 @@ noncomputable def generalized_temporal_k :
 noncomputable def generalized_past_k :
     (Γ : Context Atom) → (φ : Formula Atom) →
     (h : DerivationTree FrameClass.Base Γ φ) →
-    (DerivationTree FrameClass.Base (Context.map Formula.all_past Γ) (Formula.all_past φ))
+    (DerivationTree FrameClass.Base (Context.map Formula.allPast Γ) (Formula.allPast φ))
   | [], φ, h => past_necessitation φ h
   | A :: Γ', φ, h =>
     let h_deduction := deduction_theorem Γ' A φ h
     let ih_res := generalized_past_k Γ' (A.imp φ) h_deduction
     let k_dist := past_k_dist A φ
     let k_dist_weak :=
-      DerivationTree.weakening [] (Context.map Formula.all_past Γ') _ k_dist (List.nil_subset _)
+      DerivationTree.weakening [] (Context.map Formula.allPast Γ') _ k_dist (List.nil_subset _)
     let h_mp :=
       DerivationTree.modus_ponens _ _ _ k_dist_weak ih_res
     reverse_deduction h_mp

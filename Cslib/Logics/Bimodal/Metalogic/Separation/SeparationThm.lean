@@ -43,15 +43,15 @@ open Cslib.Logic.Bimodal
 
 /-! ## Congruence and Separability Helpers -/
 
-private theorem all_past_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
-    int_equiv (.all_past φ) (.all_past ψ) := by
-  intro M t; simp only [int_truth_all_past]; constructor
+private theorem allPast_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
+    int_equiv (.allPast φ) (.allPast ψ) := by
+  intro M t; simp only [int_truth_allPast]; constructor
   · intro hall s hst; exact (h M s).mp (hall s hst)
   · intro hall s hst; exact (h M s).mpr (hall s hst)
 
-private theorem all_future_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
-    int_equiv (.all_future φ) (.all_future ψ) := by
-  intro M t; simp only [int_truth_all_future]; constructor
+private theorem allFuture_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
+    int_equiv (.allFuture φ) (.allFuture ψ) := by
+  intro M t; simp only [int_truth_allFuture]; constructor
   · intro hall s hts; exact (h M s).mp (hall s hts)
   · intro hall s hts; exact (h M s).mpr (hall s hts)
 
@@ -66,18 +66,18 @@ The temporal closure theorems state that temporal operators preserve separabilit
 These are corollaries of `all_formulas_separable` (proved in Hierarchy.lean via
 the full GHR94 junction-depth induction). -/
 
-/-- Temporal closure: all_past of a separable formula is separable.
-    When the separated equivalent φ' is U-free, all_past φ' is directly
+/-- Temporal closure: allPast of a separable formula is separable.
+    When the separated equivalent φ' is U-free, allPast φ' is directly
     separated. When φ' has U-subterms, the GHR94 substitution bridge
     (Lemmas 10.2.4-10.2.8) is needed, which depends on the axiomatized
     elimination Cases 5-8. -/
-theorem all_past_separable (φ : Formula Atom) (_h : is_separable φ) :
-    is_separable (.all_past φ) :=
+theorem allPast_separable (φ : Formula Atom) (_h : is_separable φ) :
+    is_separable (.allPast φ) :=
   all_formulas_separable _
 
-/-- Temporal closure: all_future of a separable formula is separable. -/
-theorem all_future_separable (φ : Formula Atom) (_h : is_separable φ) :
-    is_separable (.all_future φ) :=
+/-- Temporal closure: allFuture of a separable formula is separable. -/
+theorem allFuture_separable (φ : Formula Atom) (_h : is_separable φ) :
+    is_separable (.allFuture φ) :=
   all_formulas_separable _
 
 /-- Temporal closure: untl of separable formulas is separable. -/
@@ -184,16 +184,16 @@ corollaries, not axioms. -/
 theorem all_formulas_properly_separable (φ : Formula Atom) : is_properly_separable φ :=
   (separable_iff_properly_separable φ).mp (all_formulas_separable φ)
 
-/-- Temporal closure for proper separability: all_past of a properly separable
+/-- Temporal closure for proper separability: allPast of a properly separable
     formula is properly separable. -/
-theorem all_past_properly_separable (φ : Formula Atom) (_h : is_properly_separable φ) :
-    is_properly_separable (.all_past φ) :=
+theorem allPast_properly_separable (φ : Formula Atom) (_h : is_properly_separable φ) :
+    is_properly_separable (.allPast φ) :=
   all_formulas_properly_separable _
 
-/-- Temporal closure for proper separability: all_future of a properly separable
+/-- Temporal closure for proper separability: allFuture of a properly separable
     formula is properly separable. -/
-theorem all_future_properly_separable (φ : Formula Atom) (_h : is_properly_separable φ) :
-    is_properly_separable (.all_future φ) :=
+theorem allFuture_properly_separable (φ : Formula Atom) (_h : is_properly_separable φ) :
+    is_properly_separable (.allFuture φ) :=
   all_formulas_properly_separable _
 
 /-- Temporal closure for proper separability: untl of properly separable

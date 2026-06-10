@@ -43,7 +43,7 @@ theorem self_mem_subformulas (f : Formula Atom) : f ∈ subformulas f := by
 /-! ## G/H Enrichment -/
 
 def ghEnrichment (Omega : Finset (Formula Atom)) : Finset (Formula Atom) :=
-  Omega ∪ Omega.image Formula.all_future ∪ Omega.image Formula.all_past
+  Omega ∪ Omega.image Formula.allFuture ∪ Omega.image Formula.allPast
 
 /-! ## Full Subformula Closure -/
 
@@ -68,14 +68,14 @@ theorem subformula_mem {target f : Formula Atom} (h : f ∈ subformulas target) 
   exact Finset.mem_union_left _ (Finset.mem_union_left _ h)
 
 theorem g_enrichment_mem {target f : Formula Atom} (h : f ∈ subformulas target) :
-    Formula.all_future f ∈ SubformulaClosure target := by
+    Formula.allFuture f ∈ SubformulaClosure target := by
   apply Finset.mem_union_left
   apply Finset.mem_union_left
   apply Finset.mem_union_right
   exact Finset.mem_image.mpr ⟨f, h, rfl⟩
 
 theorem h_enrichment_mem {target f : Formula Atom} (h : f ∈ subformulas target) :
-    Formula.all_past f ∈ SubformulaClosure target := by
+    Formula.allPast f ∈ SubformulaClosure target := by
   apply Finset.mem_union_left
   apply Finset.mem_union_right
   exact Finset.mem_image.mpr ⟨f, h, rfl⟩

@@ -73,14 +73,14 @@ theorem Temporal.Derivable.mp {fc : FrameClass} {Γ : Context Atom}
 /-- Temporal necessitation: If `|-! p` then `|-! Gp` (Prop-valued). -/
 theorem Temporal.Derivable.temp_nec {fc : FrameClass} {p : Formula Atom}
     (h : Temporal.Derivable fc [] p) :
-    Temporal.Derivable fc [] p.all_future := by
+    Temporal.Derivable fc [] p.allFuture := by
   obtain ⟨d⟩ := h
   exact Nonempty.intro (DerivationTree.temporal_necessitation p d)
 
-/-- Temporal duality: If `|-! p` then `|-! swap_temporal p` (Prop-valued). -/
+/-- Temporal duality: If `|-! p` then `|-! swapTemporal p` (Prop-valued). -/
 theorem Temporal.Derivable.temp_dual {fc : FrameClass} {p : Formula Atom}
     (h : Temporal.Derivable fc [] p) :
-    Temporal.Derivable fc [] p.swap_temporal := by
+    Temporal.Derivable fc [] p.swapTemporal := by
   obtain ⟨d⟩ := h
   exact Nonempty.intro (DerivationTree.temporal_duality p d)
 

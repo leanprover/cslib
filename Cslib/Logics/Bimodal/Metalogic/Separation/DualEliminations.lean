@@ -21,7 +21,7 @@ Each theorem concludes `is_separable`, which follows directly from
 ## References
 
 - GHR94, Lemma 10.2.3 (dual)
-- These are obtained by temporal duality (swap_temporal)
+- These are obtained by temporal duality (swapTemporal)
 -/
 
 set_option linter.style.emptyLine false
@@ -34,7 +34,7 @@ variable {Atom : Type*} [DecidableEq Atom] [Infinite Atom]
 open Cslib.Logic.Bimodal
 
 /-- CASE 1 DUAL: U(a ^ S(A,B), q) where a, q, A, B are U-free and S-free.
-    Derived from elim_case_1 via swap_temporal. -/
+    Derived from elim_case_1 via swapTemporal. -/
 theorem elim_case_1_dual (a q A B : Formula Atom)
     (_ha : is_U_free a = true) (_hq : is_U_free q = true)
     (_hA : is_U_free A = true) (_hB : is_U_free B = true)

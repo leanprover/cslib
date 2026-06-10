@@ -120,7 +120,7 @@ def ExistsTask_past (M M' : Set (Formula Atom)) : Prop :=
 G-forward property: If `G phi ∈ M` and `ExistsTask M M'`, then `phi ∈ M'`.
 -/
 theorem canonical_forward_G (M M' : Set (Formula Atom))
-    (h_R : ExistsTask M M') (phi : Formula Atom) (h_G : Formula.all_future phi ∈ M) :
+    (h_R : ExistsTask M M') (phi : Formula Atom) (h_G : Formula.allFuture phi ∈ M) :
     phi ∈ M' := by
   exact h_R h_G
 
@@ -128,7 +128,7 @@ theorem canonical_forward_G (M M' : Set (Formula Atom))
 H-backward property: If `H phi ∈ M` and `ExistsTask_past M M'`, then `phi ∈ M'`.
 -/
 theorem canonical_backward_H (M M' : Set (Formula Atom))
-    (h_R : ExistsTask_past M M') (phi : Formula Atom) (h_H : Formula.all_past phi ∈ M) :
+    (h_R : ExistsTask_past M M') (phi : Formula Atom) (h_H : Formula.allPast phi ∈ M) :
     phi ∈ M' := by
   exact h_R h_H
 
@@ -141,7 +141,7 @@ F-forward property: If `F(psi) ∈ M` and `M` is MCS, then there exists an MCS `
 such that `ExistsTask M W` and `psi ∈ W`.
 -/
 theorem canonical_forward_F (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
-    (psi : Formula Atom) (h_F : Formula.some_future psi ∈ M) :
+    (psi : Formula Atom) (h_F : Formula.someFuture psi ∈ M) :
     ∃ W : Set (Formula Atom), SetMaximalConsistent FrameClass.Base W ∧ ExistsTask M W ∧ psi ∈ W := by
   -- Step 1: {psi} ∪ g_content(M) is consistent
   have h_seed_cons : SetConsistent FrameClass.Base (forward_temporal_witness_seed M psi) :=
@@ -165,7 +165,7 @@ P-backward property: If `P(psi) ∈ M` and `M` is MCS, then there exists an MCS 
 such that `ExistsTask_past M W` and `psi ∈ W`.
 -/
 theorem canonical_backward_P (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
-    (psi : Formula Atom) (h_P : Formula.some_past psi ∈ M) :
+    (psi : Formula Atom) (h_P : Formula.somePast psi ∈ M) :
     ∃ W : Set (Formula Atom), SetMaximalConsistent FrameClass.Base W ∧ ExistsTask_past M W ∧ psi ∈ W := by
   -- Step 1: {psi} ∪ h_content(M) is consistent
   have h_seed_cons : SetConsistent (FrameClass.Base : FrameClass) (past_temporal_witness_seed M psi) :=
@@ -238,12 +238,12 @@ theorem existsTask_transitive {fc : FrameClass} (M M' M'' : Set (Formula Atom))
   intro phi h_G_phi
   -- phi ∈ g_content M means G phi ∈ M
   -- By Temporal 4: ⊢ G phi → G(G phi), so G(G phi) ∈ M
-  have h_T4 : DerivationTree fc [] ((Formula.all_future phi).imp (Formula.all_future (Formula.all_future phi))) :=
+  have h_T4 : DerivationTree fc [] ((Formula.allFuture phi).imp (Formula.allFuture (Formula.allFuture phi))) :=
     (temp_4_derived phi).lift (FrameClass.base_le fc)
-  have h_GG : Formula.all_future (Formula.all_future phi) ∈ M :=
+  have h_GG : Formula.allFuture (Formula.allFuture phi) ∈ M :=
     SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc h_mcs h_T4) h_G_phi
   -- G phi ∈ g_content M, and g_content M ⊆ M' by h_R1
-  have h_G_in_M' : Formula.all_future phi ∈ M' := h_R1 h_GG
+  have h_G_in_M' : Formula.allFuture phi ∈ M' := h_R1 h_GG
   -- phi ∈ g_content M', and g_content M' ⊆ M'' by h_R2
   exact h_R2 h_G_in_M'
 
@@ -260,7 +260,7 @@ theorem h_content_chain_transitive {fc : FrameClass} (M N V : Set (Formula Atom)
   intro phi h_H_phi
   -- h_H_phi : phi ∈ h_content V, i.e., H phi ∈ V
   -- By Temporal 4 for H: H phi → H(H phi), so H(H phi) ∈ V
-  have h_H4 : DerivationTree fc [] (phi.all_past.imp phi.all_past.all_past) :=
+  have h_H4 : DerivationTree fc [] (phi.allPast.imp phi.allPast.allPast) :=
     (temp_4_past phi).lift (FrameClass.base_le fc)
   have h_HH_in_V := SetMaximalConsistent.implication_property h_mcs_V (theorem_in_mcs_fc h_mcs_V h_H4) h_H_phi
   -- H phi ∈ h_content V, and h_content V ⊆ N, so H phi ∈ N

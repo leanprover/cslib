@@ -100,20 +100,20 @@ theorem substFormula_diamond (φ : ExtFormula Atom) :
 theorem substFormula_top : substFormula (Atom := Atom) ExtFormula.top = ExtFormula.top := rfl
 
 @[simp]
-theorem substFormula_some_future (φ : ExtFormula Atom) :
-    substFormula φ.some_future = (substFormula φ).some_future := rfl
+theorem substFormula_someFuture (φ : ExtFormula Atom) :
+    substFormula φ.someFuture = (substFormula φ).someFuture := rfl
 
 @[simp]
-theorem substFormula_some_past (φ : ExtFormula Atom) :
-    substFormula φ.some_past = (substFormula φ).some_past := rfl
+theorem substFormula_somePast (φ : ExtFormula Atom) :
+    substFormula φ.somePast = (substFormula φ).somePast := rfl
 
 @[simp]
-theorem substFormula_all_future (φ : ExtFormula Atom) :
-    substFormula φ.all_future = (substFormula φ).all_future := rfl
+theorem substFormula_allFuture (φ : ExtFormula Atom) :
+    substFormula φ.allFuture = (substFormula φ).allFuture := rfl
 
 @[simp]
-theorem substFormula_all_past (φ : ExtFormula Atom) :
-    substFormula φ.all_past = (substFormula φ).all_past := rfl
+theorem substFormula_allPast (φ : ExtFormula Atom) :
+    substFormula φ.allPast = (substFormula φ).allPast := rfl
 
 @[simp]
 theorem substFormula_always (φ : ExtFormula Atom) :
@@ -124,21 +124,21 @@ theorem substFormula_always (φ : ExtFormula Atom) :
 -/
 
 theorem substFormula_swapTemporal (φ : ExtFormula Atom) :
-    substFormula φ.swap_temporal = (substFormula φ).swap_temporal := by
+    substFormula φ.swapTemporal = (substFormula φ).swapTemporal := by
   induction φ with
   | atom a =>
     cases a with
-    | inl s => simp [ExtFormula.swap_temporal, substFormula]
-    | inr u => cases u; simp [ExtFormula.swap_temporal, substFormula]
+    | inl s => simp [ExtFormula.swapTemporal, substFormula]
+    | inr u => cases u; simp [ExtFormula.swapTemporal, substFormula]
   | bot => rfl
   | imp _ _ ih1 ih2 =>
-    simp [ExtFormula.swap_temporal, substFormula, ih1, ih2]
+    simp [ExtFormula.swapTemporal, substFormula, ih1, ih2]
   | box _ ih =>
-    simp [ExtFormula.swap_temporal, substFormula, ih]
+    simp [ExtFormula.swapTemporal, substFormula, ih]
   | untl _ _ ih1 ih2 =>
-    simp [ExtFormula.swap_temporal, substFormula, ih1, ih2]
+    simp [ExtFormula.swapTemporal, substFormula, ih1, ih2]
   | snce _ _ ih1 ih2 =>
-    simp [ExtFormula.swap_temporal, substFormula, ih1, ih2]
+    simp [ExtFormula.swapTemporal, substFormula, ih1, ih2]
 
 /-!
 ## Key Preservation Lemma: q-free formulas are fixed points

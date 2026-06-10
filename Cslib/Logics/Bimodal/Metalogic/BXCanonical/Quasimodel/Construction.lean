@@ -61,9 +61,9 @@ private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Form
       φ ∈ h1 and φ U ψ ∈ h2 -/
 def hintikka_step {Sigma : Finset (Formula Atom)} (h1 h2 : HintikkaPoint Sigma) : Prop :=
   -- G-propagation
-  (∀ χ : Formula Atom, Formula.all_future χ ∈ h1.formulas → χ ∈ h2.formulas) ∧
+  (∀ χ : Formula Atom, Formula.allFuture χ ∈ h1.formulas → χ ∈ h2.formulas) ∧
   -- H-backward
-  (∀ χ : Formula Atom, Formula.all_past χ ∈ h2.formulas → χ ∈ h1.formulas) ∧
+  (∀ χ : Formula Atom, Formula.allPast χ ∈ h2.formulas → χ ∈ h1.formulas) ∧
   -- Until defect propagation
   (∀ φ ψ : Formula Atom, Formula.untl φ ψ ∈ h1.formulas → ψ ∉ h1.formulas →
     φ ∈ h1.formulas ∧ Formula.untl φ ψ ∈ h2.formulas)
@@ -166,7 +166,7 @@ theorem self_accum_mcs {w : BXPoint Atom} {φ ψ : Formula Atom}
     If φ U ψ ∈ w.formulas, then F(ψ) ∈ w.formulas. -/
 theorem until_F_mcs {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h : Formula.untl φ ψ ∈ w.formulas) :
-    Formula.some_future φ ∈ w.formulas := by
+    Formula.someFuture φ ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.until_F ψ φ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h
@@ -175,7 +175,7 @@ theorem until_F_mcs {w : BXPoint Atom} {φ ψ : Formula Atom}
     If φ ∈ w.formulas, then G(P(φ)) ∈ w.formulas. -/
 theorem connect_future_mcs {w : BXPoint Atom} {φ : Formula Atom}
     (h : φ ∈ w.formulas) :
-    Formula.all_future (Formula.some_past φ) ∈ w.formulas := by
+    Formula.allFuture (Formula.somePast φ) ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.connect_future φ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h
@@ -193,7 +193,7 @@ theorem self_accum_since_mcs {w : BXPoint Atom} {φ ψ : Formula Atom}
 /-- BX10' at MCS level. -/
 theorem since_P_mcs {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h : Formula.snce φ ψ ∈ w.formulas) :
-    Formula.some_past φ ∈ w.formulas := by
+    Formula.somePast φ ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.since_P ψ φ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h
@@ -201,7 +201,7 @@ theorem since_P_mcs {w : BXPoint Atom} {φ ψ : Formula Atom}
 /-- BX4' at MCS level. -/
 theorem connect_past_mcs {w : BXPoint Atom} {φ : Formula Atom}
     (h : φ ∈ w.formulas) :
-    Formula.all_past (Formula.some_future φ) ∈ w.formulas := by
+    Formula.allPast (Formula.someFuture φ) ∈ w.formulas := by
   have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.connect_past φ) trivial
   exact SetMaximalConsistent.implication_property w.is_mcs
     (theorem_in_mcs_fc w.is_mcs h_ax) h

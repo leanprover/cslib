@@ -80,21 +80,21 @@ def diamond_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) 
   contraposition (box_mono (contraposition h))
 
 /-- Future monotonicity: from `⊢ A → B`, derive `⊢ GA → GB`. -/
-def future_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) : ⊢ φ₁.all_future.imp φ₂.all_future := by
+def future_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) : ⊢ φ₁.allFuture.imp φ₂.allFuture := by
   have g_h := Bimodal.DerivationTree.temporal_necessitation _ h
   have fk := future_k_dist φ₁ φ₂
   exact Bimodal.DerivationTree.modus_ponens [] _ _ fk g_h
 
 /-- Past monotonicity: from `⊢ A → B`, derive `⊢ HA → HB`. -/
-def past_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) : ⊢ φ₁.all_past.imp φ₂.all_past := by
+def past_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) : ⊢ φ₁.allPast.imp φ₂.allPast := by
   -- Apply temporal duality to get swap(A → B)
   have h_swap := Bimodal.DerivationTree.temporal_duality _ h
   -- Temporal necessitate the swapped implication
   have g_swap := Bimodal.DerivationTree.temporal_necessitation _ h_swap
   -- Apply temporal duality again to get H(A → B)
   have past_raw := Bimodal.DerivationTree.temporal_duality _ g_swap
-  have h_past : ⊢ (φ₁.imp φ₂).all_past := by
-    simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at past_raw
+  have h_past : ⊢ (φ₁.imp φ₂).allPast := by
+    simp only [Bimodal.Formula.swapTemporal, Bimodal.Formula.swapTemporal_involution] at past_raw
     exact past_raw
   have pk := past_k_dist φ₁ φ₂
   exact Bimodal.DerivationTree.modus_ponens [] _ _ pk h_past
@@ -102,21 +102,21 @@ def past_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) : �
 /-! ## Always Decomposition/Recomposition -/
 
 /-- Decomposition: `⊢ △φ → Hφ`. -/
-def always_to_past (φ : Bimodal.Formula Atom) : ⊢ φ.always.imp φ.all_past :=
-  lce_imp φ.all_past (φ.and φ.all_future)
+def always_to_past (φ : Bimodal.Formula Atom) : ⊢ φ.always.imp φ.allPast :=
+  lce_imp φ.allPast (φ.and φ.allFuture)
 
 /-- Decomposition: `⊢ △φ → φ`. -/
 def always_to_present (φ : Bimodal.Formula Atom) : ⊢ φ.always.imp φ :=
-  imp_trans (rce_imp φ.all_past (φ.and φ.all_future)) (lce_imp φ φ.all_future)
+  imp_trans (rce_imp φ.allPast (φ.and φ.allFuture)) (lce_imp φ φ.allFuture)
 
 /-- Decomposition: `⊢ △φ → Gφ`. -/
-def always_to_future (φ : Bimodal.Formula Atom) : ⊢ φ.always.imp φ.all_future :=
-  imp_trans (rce_imp φ.all_past (φ.and φ.all_future)) (rce_imp φ φ.all_future)
+def always_to_future (φ : Bimodal.Formula Atom) : ⊢ φ.always.imp φ.allFuture :=
+  imp_trans (rce_imp φ.allPast (φ.and φ.allFuture)) (rce_imp φ φ.allFuture)
 
 /-- Composition: `⊢ (Hφ ∧ (φ ∧ Gφ)) → △φ`. Definitional equality. -/
 def past_present_future_to_always (φ : Bimodal.Formula Atom) :
-    ⊢ (φ.all_past.and (φ.and φ.all_future)).imp φ.always :=
-  identity (φ.all_past.and (φ.and φ.all_future))
+    ⊢ (φ.allPast.and (φ.and φ.allFuture)).imp φ.always :=
+  identity (φ.allPast.and (φ.and φ.allFuture))
 
 /-! ## DNI/DNE over Always -/
 

@@ -33,13 +33,13 @@ private noncomputable def theorem_in_mcs' {M : Set (Formula Atom)} {phi : Formul
 /-! ## BX12 at MCS level -/
 
 theorem F_imp_top_until_mcs {w : TPoint Atom} {ψ : Formula Atom}
-    (h : Formula.some_future ψ ∈ w.formulas) :
+    (h : Formula.someFuture ψ ∈ w.formulas) :
     Formula.untl ψ Formula.top ∈ w.formulas :=
   temporal_implication_property w.is_mcs
     (theorem_in_mcs' w.is_mcs (DerivationTree.axiom [] _ (Axiom.F_until_equiv ψ) trivial)) h
 
 theorem P_imp_top_since_mcs {w : TPoint Atom} {ψ : Formula Atom}
-    (h : Formula.some_past ψ ∈ w.formulas) :
+    (h : Formula.somePast ψ ∈ w.formulas) :
     Formula.snce ψ Formula.top ∈ w.formulas :=
   temporal_implication_property w.is_mcs
     (theorem_in_mcs' w.is_mcs (DerivationTree.axiom [] _ (Axiom.P_since_equiv ψ) trivial)) h

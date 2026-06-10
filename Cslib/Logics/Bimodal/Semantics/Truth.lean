@@ -28,7 +28,7 @@ This module defines truth evaluation for TM formulas in task models.
 ## Note on Variable Naming
 
 Frame variables use `ℱ` rather than `F` because `F` is a scoped
-notation for `Formula.some_future` within `Cslib.Logic.Bimodal`.
+notation for `Formula.someFuture` within `Cslib.Logic.Bimodal`.
 Similarly, `G`, `H`, `P` are scoped notations. Gamma uses `Γ`.
 -/
 
@@ -153,9 +153,9 @@ theorem box_iff
   rfl
 
 /--
-Truth of some_future: existential future operator.
+Truth of someFuture: existential future operator.
 -/
-@[simp] theorem some_future_iff
+@[simp] theorem someFuture_iff
     {D : Type*} [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D]
     {ℱ : TaskFrame D} {M : TaskModel Atom ℱ}
@@ -163,7 +163,7 @@ Truth of some_future: existential future operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t (Formula.some_future φ) ↔
+    truth_at M Omega τ t (Formula.someFuture φ) ↔
       ∃ s, t < s ∧ truth_at M Omega τ s φ := by
   simp only [truth_at]
   constructor
@@ -173,9 +173,9 @@ Truth of some_future: existential future operator.
     exact ⟨s, hlt, hs, fun _ _ _ h => h⟩
 
 /--
-Truth of some_past: existential past operator.
+Truth of somePast: existential past operator.
 -/
-@[simp] theorem some_past_iff
+@[simp] theorem somePast_iff
     {D : Type*} [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D]
     {ℱ : TaskFrame D} {M : TaskModel Atom ℱ}
@@ -183,7 +183,7 @@ Truth of some_past: existential past operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t (Formula.some_past φ) ↔
+    truth_at M Omega τ t (Formula.somePast φ) ↔
       ∃ s, s < t ∧ truth_at M Omega τ s φ := by
   simp only [truth_at]
   constructor
@@ -193,7 +193,7 @@ Truth of some_past: existential past operator.
     exact ⟨s, hlt, hs, fun _ _ _ h => h⟩
 
 /--
-Truth of all_future: universal future operator.
+Truth of allFuture: universal future operator.
 -/
 @[simp] theorem future_iff
     {D : Type*} [AddCommGroup D] [LinearOrder D]
@@ -203,7 +203,7 @@ Truth of all_future: universal future operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t φ.all_future ↔
+    truth_at M Omega τ t φ.allFuture ↔
       ∀ (s : D), t < s →
         truth_at M Omega τ s φ := by
   simp only [truth_at]
@@ -216,7 +216,7 @@ Truth of all_future: universal future operator.
     exact hevent (h s hlt)
 
 /--
-Truth of all_past: universal past operator.
+Truth of allPast: universal past operator.
 -/
 @[simp] theorem past_iff
     {D : Type*} [AddCommGroup D] [LinearOrder D]
@@ -226,7 +226,7 @@ Truth of all_past: universal past operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t φ.all_past ↔
+    truth_at M Omega τ t φ.allPast ↔
       ∀ (s : D), s < t →
         truth_at M Omega τ s φ := by
   simp only [truth_at]

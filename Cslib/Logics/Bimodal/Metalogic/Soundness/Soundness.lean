@@ -88,40 +88,40 @@ theorem modal_k_dist_valid (φ ψ : Formula Atom) :
   exact h_box_imp σ h_σ_mem (h_box_phi σ h_σ_mem)
 
 theorem serial_future_axiom_valid :
-    ⊨ ((Formula.bot.imp (Formula.bot : Formula Atom)).imp (Formula.some_future (Formula.bot.imp Formula.bot))) := by
+    ⊨ ((Formula.bot.imp (Formula.bot : Formula Atom)).imp (Formula.someFuture (Formula.bot.imp Formula.bot))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro _; obtain ⟨s, hts⟩ := exists_gt t
   exact ⟨s, hts, fun h => h, fun _ _ _ hf => absurd hf not_false⟩
 
 theorem serial_past_axiom_valid :
-    ⊨ ((Formula.bot.imp (Formula.bot : Formula Atom)).imp (Formula.some_past (Formula.bot.imp Formula.bot))) := by
+    ⊨ ((Formula.bot.imp (Formula.bot : Formula Atom)).imp (Formula.somePast (Formula.bot.imp Formula.bot))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro _; obtain ⟨s, hst⟩ := exists_lt t
   exact ⟨s, hst, fun h => h, fun _ _ _ hf => absurd hf not_false⟩
 
-theorem temp_4_valid (φ : Formula Atom) : ⊨ ((φ.all_future).imp (φ.all_future.all_future)) := by
+theorem temp_4_valid (φ : Formula Atom) : ⊨ ((φ.allFuture).imp (φ.allFuture.allFuture)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_Gφ ⟨s, hts, h_neg_Gφs, _⟩
   apply h_neg_Gφs; intro ⟨r, hsr, h_neg_φr, _⟩
   apply h_Gφ; exact ⟨r, lt_trans hts hsr, h_neg_φr, fun _ _ _ hf => absurd hf not_false⟩
 
-theorem temp_a_valid (φ : Formula Atom) : ⊨ (φ.imp (Formula.all_future φ.some_past)) := by
+theorem temp_a_valid (φ : Formula Atom) : ⊨ (φ.imp (Formula.allFuture φ.somePast)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_phi ⟨s, hts, h_neg, _⟩
   apply h_neg; exact ⟨t, hts, h_phi, fun _ _ _ hf => absurd hf not_false⟩
 
-theorem temp_a_dual_valid (φ : Formula Atom) : ⊨ (φ.imp (Formula.all_past φ.some_future)) := by
+theorem temp_a_dual_valid (φ : Formula Atom) : ⊨ (φ.imp (Formula.allPast φ.someFuture)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_phi ⟨s, hst, h_neg, _⟩
   apply h_neg; exact ⟨t, hst, h_phi, fun _ _ _ hf => absurd hf not_false⟩
 
 theorem temp_l_valid (φ : Formula Atom) :
-    ⊨ (φ.always.imp (Formula.all_future (Formula.all_past φ))) := by
+    ⊨ (φ.always.imp (Formula.allFuture (Formula.allPast φ))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   -- Always encodes: Hφ ∧ φ ∧ Gφ (conjunction via double negation)
@@ -141,7 +141,7 @@ theorem temp_l_valid (φ : Formula Atom) :
   · exact h_neg_φr (h_eq ▸ h_now)
   · exact h_neg_φr (by by_contra h_neg; apply h_future; exact ⟨r, h_gt, h_neg, fun _ _ _ hf => absurd hf not_false⟩)
 
-theorem modal_future_valid (φ : Formula Atom) : ⊨ ((φ.box).imp ((φ.all_future).box)) := by
+theorem modal_future_valid (φ : Formula Atom) : ⊨ ((φ.box).imp ((φ.allFuture).box)) := by
   intro D _ _ _ _ ℱ M Omega h_sc τ _h_mem t
   simp only [truth_at]
   intro h_box σ h_σ_mem ⟨s, hts, h_neg_φs, _⟩
@@ -149,7 +149,7 @@ theorem modal_future_valid (φ : Formula Atom) : ⊨ ((φ.box).imp ((φ.all_futu
   exact h_neg_φs ((TimeShift.time_shift_preserves_truth M Omega h_sc σ t s φ).mp h_phi)
 
 theorem left_mono_until_G_valid (φ χ ψ : Formula Atom) :
-    ⊨ ((φ.imp χ).all_future.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ))) := by
+    ⊨ ((φ.imp χ).allFuture.imp ((Formula.untl ψ φ).imp (Formula.untl ψ χ))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_G ⟨s, hts, h_event, h_guard⟩
@@ -159,7 +159,7 @@ theorem left_mono_until_G_valid (φ χ ψ : Formula Atom) :
     fun _ _ _ hf => absurd hf not_false⟩
 
 theorem left_mono_since_H_valid (φ χ ψ : Formula Atom) :
-    ⊨ ((φ.imp χ).all_past.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ))) := by
+    ⊨ ((φ.imp χ).allPast.imp ((Formula.snce ψ φ).imp (Formula.snce ψ χ))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_H ⟨s, hst, h_event, h_guard⟩
@@ -169,7 +169,7 @@ theorem left_mono_since_H_valid (φ χ ψ : Formula Atom) :
     fun _ _ _ hf => absurd hf not_false⟩
 
 theorem right_mono_until_valid (φ ψ χ : Formula Atom) :
-    ⊨ ((φ.imp ψ).all_future.imp ((Formula.untl φ χ).imp (Formula.untl ψ χ))) := by
+    ⊨ ((φ.imp ψ).allFuture.imp ((Formula.untl φ χ).imp (Formula.untl ψ χ))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_G ⟨s, hts, h_φs, h_guard⟩
@@ -180,7 +180,7 @@ theorem right_mono_until_valid (φ ψ χ : Formula Atom) :
   exact ⟨s, hts, h_ψs, h_guard⟩
 
 theorem right_mono_since_valid (φ ψ χ : Formula Atom) :
-    ⊨ ((φ.imp ψ).all_past.imp ((Formula.snce φ χ).imp (Formula.snce ψ χ))) := by
+    ⊨ ((φ.imp ψ).allPast.imp ((Formula.snce φ χ).imp (Formula.snce ψ χ))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_H ⟨s, hst, h_φs, h_guard⟩
@@ -190,13 +190,13 @@ theorem right_mono_since_valid (φ ψ χ : Formula Atom) :
       fun _ _ _ hf => absurd hf not_false⟩
   exact ⟨s, hst, h_ψs, h_guard⟩
 
-theorem connect_future_valid (φ : Formula Atom) : ⊨ (φ.imp (φ.some_past.all_future)) := by
+theorem connect_future_valid (φ : Formula Atom) : ⊨ (φ.imp (φ.somePast.allFuture)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_φt ⟨s, hts, h_neg, _⟩
   apply h_neg; exact ⟨t, hts, h_φt, fun _ _ _ hf => absurd hf not_false⟩
 
-theorem connect_past_valid (φ : Formula Atom) : ⊨ (φ.imp (φ.some_future.all_past)) := by
+theorem connect_past_valid (φ : Formula Atom) : ⊨ (φ.imp (φ.someFuture.allPast)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_φt ⟨s, hst, h_neg, _⟩
@@ -341,24 +341,24 @@ theorem linear_since_valid (φ ψ χ θ : Formula Atom) :
     · exact h_imp (h_guard₁ r hs₁r hrt) (h_guard₂ r (lt_trans h_gt hs₁r) hrt)
 
 theorem until_F_valid (φ ψ : Formula Atom) :
-    ⊨ ((Formula.untl ψ φ).imp (Formula.some_future ψ)) := by
+    ⊨ ((Formula.untl ψ φ).imp (Formula.someFuture ψ)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro ⟨s, hts, h_ψs, _⟩
   exact ⟨s, hts, h_ψs, fun _ _ _ hf => absurd hf not_false⟩
 
 theorem since_P_valid (φ ψ : Formula Atom) :
-    ⊨ ((Formula.snce ψ φ).imp (Formula.some_past ψ)) := by
+    ⊨ ((Formula.snce ψ φ).imp (Formula.somePast ψ)) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro ⟨s, hst, h_ψs, _⟩
   exact ⟨s, hst, h_ψs, fun _ _ _ hf => absurd hf not_false⟩
 
 theorem temp_linearity_valid (φ ψ : Formula Atom) :
-    ⊨ (Formula.and (Formula.some_future φ) (Formula.some_future ψ) |>.imp
-      (Formula.or (Formula.some_future (Formula.and φ ψ))
-        (Formula.or (Formula.some_future (Formula.and φ (Formula.some_future ψ)))
-          (Formula.some_future (Formula.and (Formula.some_future φ) ψ))))) := by
+    ⊨ (Formula.and (Formula.someFuture φ) (Formula.someFuture ψ) |>.imp
+      (Formula.or (Formula.someFuture (Formula.and φ ψ))
+        (Formula.or (Formula.someFuture (Formula.and φ (Formula.someFuture ψ)))
+          (Formula.someFuture (Formula.and (Formula.someFuture φ) ψ))))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [Formula.and, Formula.or, Formula.neg, truth_at]
   intro h_conj
@@ -382,10 +382,10 @@ theorem temp_linearity_valid (φ ψ : Formula Atom) :
       fun _ _ _ hf => absurd hf not_false⟩
 
 theorem temp_linearity_past_valid (φ ψ : Formula Atom) :
-    ⊨ (Formula.and (Formula.some_past φ) (Formula.some_past ψ) |>.imp
-      (Formula.or (Formula.some_past (Formula.and φ ψ))
-        (Formula.or (Formula.some_past (Formula.and φ (Formula.some_past ψ)))
-          (Formula.some_past (Formula.and (Formula.some_past φ) ψ))))) := by
+    ⊨ (Formula.and (Formula.somePast φ) (Formula.somePast ψ) |>.imp
+      (Formula.or (Formula.somePast (Formula.and φ ψ))
+        (Formula.or (Formula.somePast (Formula.and φ (Formula.somePast ψ)))
+          (Formula.somePast (Formula.and (Formula.somePast φ) ψ))))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [Formula.and, Formula.or, Formula.neg, truth_at]
   intro h_conj
@@ -409,13 +409,13 @@ theorem temp_linearity_past_valid (φ ψ : Formula Atom) :
       fun _ _ _ hf => absurd hf not_false⟩
 
 theorem F_until_equiv_valid (φ : Formula Atom) :
-    ⊨ ((Formula.some_future φ).imp (Formula.untl φ (Formula.bot.imp Formula.bot))) := by
+    ⊨ ((Formula.someFuture φ).imp (Formula.untl φ (Formula.bot.imp Formula.bot))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro ⟨s, hts, h_φs, _⟩; exact ⟨s, hts, h_φs, fun _ _ _ => id⟩
 
 theorem P_since_equiv_valid (φ : Formula Atom) :
-    ⊨ ((Formula.some_past φ).imp (Formula.snce φ (Formula.bot.imp Formula.bot))) := by
+    ⊨ ((Formula.somePast φ).imp (Formula.snce φ (Formula.bot.imp Formula.bot))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro ⟨s, hst, h_φs, _⟩; exact ⟨s, hst, h_φs, fun _ _ _ => id⟩
@@ -431,7 +431,7 @@ theorem dense_indicator_valid :
   exact h_guard r htr hrs
 
 theorem density_valid (φ : Formula Atom) :
-    valid_dense ((φ.all_future.all_future).imp φ.all_future) := by
+    valid_dense ((φ.allFuture.allFuture).imp φ.allFuture) := by
   intro D _ _ _ h_dense _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro h_GG ⟨s, hts, h_neg_φs, _⟩
@@ -475,7 +475,7 @@ theorem discrete_symm_bwd_valid :
 
 theorem discrete_propagate_fwd_valid :
     ⊨ ((Formula.untl (Formula.bot.imp (Formula.bot : Formula Atom)) Formula.bot).imp
-      (Formula.all_future (Formula.untl (Formula.bot.imp Formula.bot) Formula.bot))) := by
+      (Formula.allFuture (Formula.untl (Formula.bot.imp Formula.bot) Formula.bot))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro ⟨s, hts, _h_top, h_guard⟩ ⟨u, _htu, h_neg, _⟩
@@ -491,7 +491,7 @@ theorem discrete_propagate_fwd_valid :
 
 theorem discrete_propagate_bwd_valid :
     ⊨ ((Formula.untl (Formula.bot.imp (Formula.bot : Formula Atom)) Formula.bot).imp
-      (Formula.all_past (Formula.untl (Formula.bot.imp Formula.bot) Formula.bot))) := by
+      (Formula.allPast (Formula.untl (Formula.bot.imp Formula.bot) Formula.bot))) := by
   intro D _ _ _ _ ℱ M Omega _h_sc τ _h_mem t
   simp only [truth_at]
   intro ⟨s, hts, _h_top, h_guard⟩ ⟨u, _hut, h_neg, _⟩
@@ -513,16 +513,16 @@ theorem discrete_box_necessity_valid :
   intro ⟨s, hts, _h_top, h_guard⟩ σ _h_σ_mem
   exact ⟨s, hts, fun h => h, h_guard⟩
 
-theorem prior_UZ_valid (φ : Formula Atom) : valid_discrete (φ.some_future.imp (Formula.untl φ φ.neg)) := by
+theorem prior_UZ_valid (φ : Formula Atom) : valid_discrete (φ.someFuture.imp (Formula.untl φ φ.neg)) := by
   intro D _ _ _ _ _ _ _ _ ℱ M Omega h_sc τ h_mem t
   exact SoundnessLemmas.prior_UZ_is_valid φ ℱ M Omega h_sc τ h_mem t
 
-theorem prior_SZ_valid (φ : Formula Atom) : valid_discrete (φ.some_past.imp (Formula.snce φ φ.neg)) := by
+theorem prior_SZ_valid (φ : Formula Atom) : valid_discrete (φ.somePast.imp (Formula.snce φ φ.neg)) := by
   intro D _ _ _ _ _ _ _ _ ℱ M Omega h_sc τ h_mem t
   exact SoundnessLemmas.prior_SZ_is_valid φ ℱ M Omega h_sc τ h_mem t
 
 theorem z1_valid (φ : Formula Atom) : valid_discrete
-    ((φ.all_future.imp φ).all_future.imp (φ.all_future.some_future.imp φ.all_future)) := by
+    ((φ.allFuture.imp φ).allFuture.imp (φ.allFuture.someFuture.imp φ.allFuture)) := by
   intro D _ _ _ _ _ _ _ _ ℱ M Omega h_sc τ h_mem t
   exact SoundnessLemmas.z1_is_valid φ ℱ M Omega h_sc τ h_mem t
 

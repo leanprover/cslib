@@ -57,32 +57,32 @@ def bx_modal_equiv (w v : BXPoint Atom) : Prop :=
 noncomputable def g_content_closed_derivation {Omega : Set (Formula Atom)} {φ : Formula Atom}
     (h_mcs : SetMaximalConsistent FrameClass.Base Omega)
     (L : List (Formula Atom)) (h_sub : ∀ ψ ∈ L, ψ ∈ g_content Omega)
-    (h_deriv : DerivationTree FrameClass.Base L φ) : Formula.all_future φ ∈ Omega := by
-  have d_G : DerivationTree FrameClass.Base (Context.map Formula.all_future L) (Formula.all_future φ) :=
+    (h_deriv : DerivationTree FrameClass.Base L φ) : Formula.allFuture φ ∈ Omega := by
+  have d_G : DerivationTree FrameClass.Base (Context.map Formula.allFuture L) (Formula.allFuture φ) :=
     Theorems.generalized_temporal_k L φ h_deriv
-  have h_GL_in : ∀ f ∈ Context.map Formula.all_future L, f ∈ Omega := by
+  have h_GL_in : ∀ f ∈ Context.map Formula.allFuture L, f ∈ Omega := by
     intro f hf
     rw [Context.mem_map_iff] at hf
     obtain ⟨ψ, hψ_in, hψ_eq⟩ := hf
     rw [← hψ_eq]
     exact h_sub ψ hψ_in
   exact SetMaximalConsistent.closed_under_derivation h_mcs
-    (Context.map Formula.all_future L) h_GL_in d_G
+    (Context.map Formula.allFuture L) h_GL_in d_G
 
 noncomputable def h_content_closed_derivation {Omega : Set (Formula Atom)} {φ : Formula Atom}
     (h_mcs : SetMaximalConsistent FrameClass.Base Omega)
     (L : List (Formula Atom)) (h_sub : ∀ ψ ∈ L, ψ ∈ h_content Omega)
-    (h_deriv : DerivationTree FrameClass.Base L φ) : Formula.all_past φ ∈ Omega := by
-  have d_H : DerivationTree FrameClass.Base (Context.map Formula.all_past L) (Formula.all_past φ) :=
+    (h_deriv : DerivationTree FrameClass.Base L φ) : Formula.allPast φ ∈ Omega := by
+  have d_H : DerivationTree FrameClass.Base (Context.map Formula.allPast L) (Formula.allPast φ) :=
     Theorems.generalized_past_k L φ h_deriv
-  have h_HL_in : ∀ f ∈ Context.map Formula.all_past L, f ∈ Omega := by
+  have h_HL_in : ∀ f ∈ Context.map Formula.allPast L, f ∈ Omega := by
     intro f hf
     rw [Context.mem_map_iff] at hf
     obtain ⟨ψ, hψ_in, hψ_eq⟩ := hf
     rw [← hψ_eq]
     exact h_sub ψ hψ_in
   exact SetMaximalConsistent.closed_under_derivation h_mcs
-    (Context.map Formula.all_past L) h_HL_in d_H
+    (Context.map Formula.allPast L) h_HL_in d_H
 
 /-! ## g_content / h_content Set Consistent -/
 
@@ -94,60 +94,60 @@ private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Form
 theorem g_content_set_consistent {Omega : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Omega) :
     SetConsistent FrameClass.Base (g_content Omega) := by
   intro L hL ⟨d⟩
-  have h_G_bot : Formula.all_future (Formula.bot : Formula Atom) ∈ Omega :=
+  have h_G_bot : Formula.allFuture (Formula.bot : Formula Atom) ∈ Omega :=
     g_content_closed_derivation h_mcs L hL d
   let neg_top : Formula Atom := ((Formula.bot : Formula Atom).imp (Formula.bot : Formula Atom)).imp (Formula.bot : Formula Atom)
   have h_ef : DerivationTree FrameClass.Base [] ((Formula.bot : Formula Atom).imp neg_top) :=
     DerivationTree.axiom [] _ (Axiom.efq neg_top) trivial
-  have h_G_ef : DerivationTree FrameClass.Base [] (Formula.all_future ((Formula.bot : Formula Atom).imp neg_top)) :=
+  have h_G_ef : DerivationTree FrameClass.Base [] (Formula.allFuture ((Formula.bot : Formula Atom).imp neg_top)) :=
     DerivationTree.temporal_necessitation _ h_ef
-  have h_kd : DerivationTree FrameClass.Base [] (((Formula.bot : Formula Atom).imp neg_top).all_future.imp
-    ((Formula.bot : Formula Atom).all_future.imp neg_top.all_future)) :=
+  have h_kd : DerivationTree FrameClass.Base [] (((Formula.bot : Formula Atom).imp neg_top).allFuture.imp
+    ((Formula.bot : Formula Atom).allFuture.imp neg_top.allFuture)) :=
     Theorems.TemporalDerived.temp_k_dist_derived (Formula.bot : Formula Atom) neg_top
   have h1 := theorem_in_mcs_fc h_mcs h_G_ef
   have h2 := theorem_in_mcs_fc h_mcs h_kd
   have h3 := SetMaximalConsistent.implication_property h_mcs h2 h1
-  have h_G_neg_top : neg_top.all_future ∈ Omega :=
+  have h_G_neg_top : neg_top.allFuture ∈ Omega :=
     SetMaximalConsistent.implication_property h_mcs h3 h_G_bot
   have h_serial : DerivationTree FrameClass.Base [] ((Formula.top : Formula Atom).imp
-    (Formula.some_future (Formula.top : Formula Atom))) :=
+    (Formula.someFuture (Formula.top : Formula Atom))) :=
     DerivationTree.axiom [] _ Axiom.serial_future trivial
   have h_serial_in := theorem_in_mcs_fc h_mcs h_serial
   have h_top : DerivationTree FrameClass.Base [] (Formula.top : Formula Atom) :=
     DerivationTree.axiom [] _ (Axiom.efq (Formula.bot : Formula Atom)) trivial
   have h_top_in := theorem_in_mcs_fc h_mcs h_top
-  have h_F_top : Formula.some_future (Formula.top : Formula Atom) ∈ Omega :=
+  have h_F_top : Formula.someFuture (Formula.top : Formula Atom) ∈ Omega :=
     SetMaximalConsistent.implication_property h_mcs h_serial_in h_top_in
-  exact some_future_all_future_neg_absurd h_mcs (Formula.top : Formula Atom) h_F_top h_G_neg_top
+  exact someFuture_allFuture_neg_absurd h_mcs (Formula.top : Formula Atom) h_F_top h_G_neg_top
 
 theorem h_content_set_consistent {Omega : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Omega) :
     SetConsistent FrameClass.Base (h_content Omega) := by
   intro L hL ⟨d⟩
-  have h_H_bot : Formula.all_past (Formula.bot : Formula Atom) ∈ Omega :=
+  have h_H_bot : Formula.allPast (Formula.bot : Formula Atom) ∈ Omega :=
     h_content_closed_derivation h_mcs L hL d
   let neg_top : Formula Atom := ((Formula.bot : Formula Atom).imp (Formula.bot : Formula Atom)).imp (Formula.bot : Formula Atom)
   have h_ef : DerivationTree FrameClass.Base [] ((Formula.bot : Formula Atom).imp neg_top) :=
     DerivationTree.axiom [] _ (Axiom.efq neg_top) trivial
-  have h_H_ef : DerivationTree FrameClass.Base [] (Formula.all_past ((Formula.bot : Formula Atom).imp neg_top)) :=
+  have h_H_ef : DerivationTree FrameClass.Base [] (Formula.allPast ((Formula.bot : Formula Atom).imp neg_top)) :=
     Theorems.past_necessitation _ h_ef
-  have h_kd : DerivationTree FrameClass.Base [] (((Formula.bot : Formula Atom).imp neg_top).all_past.imp
-    ((Formula.bot : Formula Atom).all_past.imp neg_top.all_past)) :=
+  have h_kd : DerivationTree FrameClass.Base [] (((Formula.bot : Formula Atom).imp neg_top).allPast.imp
+    ((Formula.bot : Formula Atom).allPast.imp neg_top.allPast)) :=
     Theorems.past_k_dist (Formula.bot : Formula Atom) neg_top
   have h1 := theorem_in_mcs_fc h_mcs h_H_ef
   have h2 := theorem_in_mcs_fc h_mcs h_kd
   have h3 := SetMaximalConsistent.implication_property h_mcs h2 h1
-  have h_H_neg_top : neg_top.all_past ∈ Omega :=
+  have h_H_neg_top : neg_top.allPast ∈ Omega :=
     SetMaximalConsistent.implication_property h_mcs h3 h_H_bot
   have h_serial : DerivationTree FrameClass.Base [] ((Formula.top : Formula Atom).imp
-    (Formula.some_past (Formula.top : Formula Atom))) :=
+    (Formula.somePast (Formula.top : Formula Atom))) :=
     DerivationTree.axiom [] _ Axiom.serial_past trivial
   have h_serial_in := theorem_in_mcs_fc h_mcs h_serial
   have h_top : DerivationTree FrameClass.Base [] (Formula.top : Formula Atom) :=
     DerivationTree.axiom [] _ (Axiom.efq (Formula.bot : Formula Atom)) trivial
   have h_top_in := theorem_in_mcs_fc h_mcs h_top
-  have h_P_top : Formula.some_past (Formula.top : Formula Atom) ∈ Omega :=
+  have h_P_top : Formula.somePast (Formula.top : Formula Atom) ∈ Omega :=
     SetMaximalConsistent.implication_property h_mcs h_serial_in h_top_in
-  exact some_past_all_past_neg_absurd h_mcs (Formula.top : Formula Atom) h_P_top h_H_neg_top
+  exact somePast_allPast_neg_absurd h_mcs (Formula.top : Formula Atom) h_P_top h_H_neg_top
 
 /-! ## Reflexivity (sorry'd under irreflexive semantics) -/
 
@@ -159,13 +159,13 @@ theorem bx_le_refl (w : BXPoint Atom) : bx_le w w := by
 theorem bx_le_trans {w u v : BXPoint Atom} (hwu : bx_le w u) (huv : bx_le u v) :
     bx_le w v := by
   intro φ hφ
-  have h_GGφ := SetMaximalConsistent.all_future_all_future w.is_mcs hφ
+  have h_GGφ := SetMaximalConsistent.allFuture_allFuture w.is_mcs hφ
   exact huv (hwu h_GGφ)
 
 /-! ## Forward/Backward Temporal Witnesses -/
 
 noncomputable def bx_forward_witness (w : BXPoint Atom) (ψ : Formula Atom)
-    (h_F : Formula.some_future ψ ∈ w.formulas) :
+    (h_F : Formula.someFuture ψ ∈ w.formulas) :
     ∃ v : BXPoint Atom, bx_le w v ∧ ψ ∈ v.formulas := by
   have h_seed_cons := forward_temporal_witness_seed_consistent w.formulas w.is_mcs ψ h_F
   obtain ⟨M, hM_sup, hM_mcs⟩ := set_lindenbaum_base h_seed_cons
@@ -174,7 +174,7 @@ noncomputable def bx_forward_witness (w : BXPoint Atom) (ψ : Formula Atom)
     hM_sup (Set.mem_union_left _ (Set.mem_singleton ψ))⟩
 
 noncomputable def bx_backward_witness (w : BXPoint Atom) (ψ : Formula Atom)
-    (h_P : Formula.some_past ψ ∈ w.formulas) :
+    (h_P : Formula.somePast ψ ∈ w.formulas) :
     ∃ v : BXPoint Atom, bx_le v w ∧ ψ ∈ v.formulas := by
   have h_seed_cons := past_temporal_witness_seed_consistent w.formulas w.is_mcs ψ h_P
   obtain ⟨M, hM_sup, hM_mcs⟩ := set_lindenbaum_base h_seed_cons
@@ -187,12 +187,12 @@ noncomputable def bx_backward_witness (w : BXPoint Atom) (ψ : Formula Atom)
 /-! ## G-content Forward and Backward -/
 
 theorem bx_G_forward {w v : BXPoint Atom} {φ : Formula Atom}
-    (h_le : bx_le w v) (h_G : Formula.all_future φ ∈ w.formulas) :
+    (h_le : bx_le w v) (h_G : Formula.allFuture φ ∈ w.formulas) :
     φ ∈ v.formulas :=
   h_le h_G
 
 noncomputable def bx_G_backward (w : BXPoint Atom) (φ : Formula Atom)
-    (h_not_G : Formula.all_future φ ∉ w.formulas) :
+    (h_not_G : Formula.allFuture φ ∉ w.formulas) :
     ∃ v : BXPoint Atom, bx_le w v ∧ φ ∉ v.formulas := by
   have h_seed_cons : SetConsistent FrameClass.Base ({Formula.neg φ} ∪ g_content w.formulas : Set (Formula Atom)) := by
     intro L hL ⟨d⟩
@@ -236,13 +236,13 @@ noncomputable def bx_G_backward (w : BXPoint Atom) (φ : Formula Atom)
 /-! ## H-content Forward and Backward -/
 
 theorem bx_H_forward {w v : BXPoint Atom} {φ : Formula Atom}
-    (h_le : bx_le v w) (h_H : Formula.all_past φ ∈ w.formulas) :
+    (h_le : bx_le v w) (h_H : Formula.allPast φ ∈ w.formulas) :
     φ ∈ v.formulas :=
   g_content_subset_implies_h_content_reverse v.formulas w.formulas
     v.is_mcs w.is_mcs h_le h_H
 
 noncomputable def bx_H_backward (w : BXPoint Atom) (φ : Formula Atom)
-    (h_not_H : Formula.all_past φ ∉ w.formulas) :
+    (h_not_H : Formula.allPast φ ∉ w.formulas) :
     ∃ v : BXPoint Atom, bx_le v w ∧ φ ∉ v.formulas := by
   have h_seed_cons : SetConsistent FrameClass.Base ({Formula.neg φ} ∪ h_content w.formulas : Set (Formula Atom)) := by
     intro L hL ⟨d⟩
@@ -408,7 +408,7 @@ theorem box_preserved_along_bx_le {w v : BXPoint Atom} (h_le : bx_le w v) (φ : 
     Formula.box φ ∈ w.formulas ↔ Formula.box φ ∈ v.formulas := by
   constructor
   · intro h_box
-    have h_tf : DerivationTree FrameClass.Base [] ((Formula.box φ).imp (Formula.all_future (Formula.box φ))) :=
+    have h_tf : DerivationTree FrameClass.Base [] ((Formula.box φ).imp (Formula.allFuture (Formula.box φ))) :=
       Theorems.Combinators.temp_future_derived φ
     have h_G_box := SetMaximalConsistent.implication_property w.is_mcs
       (theorem_in_mcs_fc w.is_mcs h_tf) h_box
@@ -422,7 +422,7 @@ theorem box_preserved_along_bx_le {w v : BXPoint Atom} (h_le : bx_le w v) (φ : 
     have h_box_neg := SetMaximalConsistent.implication_property w.is_mcs
       (theorem_in_mcs_fc w.is_mcs (neg_box_to_box_neg_box' φ)) h_neg_box
     have h_tf2 : DerivationTree FrameClass.Base [] ((Formula.box (Formula.box φ).neg).imp
-        (Formula.all_future (Formula.box (Formula.box φ).neg))) :=
+        (Formula.allFuture (Formula.box (Formula.box φ).neg))) :=
       Theorems.Combinators.temp_future_derived (Formula.box φ).neg
     have h_G_box_neg := SetMaximalConsistent.implication_property w.is_mcs
       (theorem_in_mcs_fc w.is_mcs h_tf2) h_box_neg
@@ -444,7 +444,7 @@ noncomputable def bx_until_eventuality_resolution
     (h_until : Formula.untl ψ φ ∈ w.formulas)
     (h_not_psi : ψ ∉ w.formulas) :
     ∃ v : BXPoint Atom, bx_le w v ∧ ψ ∈ v.formulas := by
-  have h_F_psi : Formula.some_future ψ ∈ w.formulas := by
+  have h_F_psi : Formula.someFuture ψ ∈ w.formulas := by
     have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.until_F φ ψ) trivial
     exact SetMaximalConsistent.implication_property w.is_mcs
       (theorem_in_mcs_fc w.is_mcs h_ax) h_until
@@ -455,7 +455,7 @@ noncomputable def bx_since_eventuality_resolution
     (h_since : Formula.snce ψ φ ∈ w.formulas)
     (h_not_psi : ψ ∉ w.formulas) :
     ∃ v : BXPoint Atom, bx_le v w ∧ ψ ∈ v.formulas := by
-  have h_P_psi : Formula.some_past ψ ∈ w.formulas := by
+  have h_P_psi : Formula.somePast ψ ∈ w.formulas := by
     have h_ax : DerivationTree FrameClass.Base [] _ := DerivationTree.axiom [] _ (Axiom.since_P φ ψ) trivial
     exact SetMaximalConsistent.implication_property w.is_mcs
       (theorem_in_mcs_fc w.is_mcs h_ax) h_since

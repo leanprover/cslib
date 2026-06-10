@@ -32,7 +32,7 @@ This module defines semantic validity and consequence for TM formulas.
 ## Note on Variable Naming
 
 Frame variables use `ℱ` rather than `F` because `F` is a scoped
-notation for `Formula.some_future` within `Cslib.Logic.Bimodal`.
+notation for `Formula.someFuture` within `Cslib.Logic.Bimodal`.
 -/
 
 @[expose] public section
@@ -238,8 +238,8 @@ theorem unsatisfiable_implies_all_fixed
 /--
 If G(φ) is valid, then φ is valid.
 -/
-theorem valid_of_valid_all_future {φ : Formula Atom}
-    (h : valid (Formula.all_future φ)) :
+theorem valid_of_valid_allFuture {φ : Formula Atom}
+    (h : valid (Formula.allFuture φ)) :
     valid φ := by
   intro D _ _ _ _ ℱ M Omega h_sc τ h_mem t
   have h_all := h D ℱ M Omega h_sc τ h_mem
@@ -251,8 +251,8 @@ theorem valid_of_valid_all_future {φ : Formula Atom}
 /--
 If H(φ) is valid, then φ is valid.
 -/
-theorem valid_of_valid_all_past {φ : Formula Atom}
-    (h : valid (Formula.all_past φ)) :
+theorem valid_of_valid_allPast {φ : Formula Atom}
+    (h : valid (Formula.allPast φ)) :
     valid φ := by
   intro D _ _ _ _ ℱ M Omega h_sc τ h_mem t
   have h_past := h D ℱ M Omega h_sc τ h_mem

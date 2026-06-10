@@ -11,7 +11,7 @@ set_option linter.style.emptyLine false
 /-!
 # Temporal Duality for Integer Semantics
 
-Establishes the `swap_temporal` duality principle for integer semantics,
+Establishes the `swapTemporal` duality principle for integer semantics,
 enabling automatic derivation of "S out of U" cases from "U out of S"
 cases.
 
@@ -52,25 +52,25 @@ theorem IntStructure.reverse_reverse
 
 /-! ## Duality Theorem -/
 
-/-- The core duality theorem: truth of swap_temporal phi in M
+/-- The core duality theorem: truth of swapTemporal phi in M
     at t is equivalent to truth of phi in M.reverse at -t. -/
 theorem swapTemporal_int_truth
     (M : IntStructure Atom) (t : Int)
     (phi : Formula Atom) :
-    int_truth M t phi.swap_temporal ↔
+    int_truth M t phi.swapTemporal ↔
       int_truth M.reverse (-t) phi := by
   induction phi generalizing t with
   | atom a =>
-    simp [Formula.swap_temporal, int_truth,
+    simp [Formula.swapTemporal, int_truth,
       IntStructure.reverse, Set.mem_setOf_eq, neg_neg]
-  | bot => simp [Formula.swap_temporal, int_truth]
+  | bot => simp [Formula.swapTemporal, int_truth]
   | imp phi psi ih1 ih2 =>
-    simp only [Formula.swap_temporal, int_truth]
+    simp only [Formula.swapTemporal, int_truth]
     rw [ih1, ih2]
   | box phi _ih =>
-    simp [Formula.swap_temporal, int_truth]
+    simp [Formula.swapTemporal, int_truth]
   | untl phi psi ih1 ih2 =>
-    simp only [Formula.swap_temporal, int_truth]
+    simp only [Formula.swapTemporal, int_truth]
     constructor
     · rintro ⟨s, hst, h1, h2⟩
       refine ⟨-s, by omega, ?_, ?_⟩
@@ -87,7 +87,7 @@ theorem swapTemporal_int_truth
         have := h2 (-r) (by omega) (by omega)
         simpa [neg_neg] using this
   | snce phi psi ih1 ih2 =>
-    simp only [Formula.swap_temporal, int_truth]
+    simp only [Formula.swapTemporal, int_truth]
     constructor
     · rintro ⟨s, hts, h1, h2⟩
       refine ⟨-s, by omega, ?_, ?_⟩
@@ -109,7 +109,7 @@ theorem swapTemporal_int_truth
 /-- If phi equiv psi over Z, then swap(phi) equiv swap(psi). -/
 theorem dual_equiv (phi psi : Formula Atom)
     (h : int_equiv phi psi) :
-    int_equiv phi.swap_temporal psi.swap_temporal := by
+    int_equiv phi.swapTemporal psi.swapTemporal := by
   intro M t
   constructor
   · intro h1
@@ -123,60 +123,60 @@ theorem dual_equiv (phi psi : Formula Atom)
 
 /-- U-free after swap is the same as S-free before swap. -/
 theorem dual_U_free_iff_S_free (phi : Formula Atom) :
-    is_U_free phi.swap_temporal = is_S_free phi := by
+    is_U_free phi.swapTemporal = is_S_free phi := by
   induction phi with
   | atom _ => rfl
   | bot => rfl
   | imp a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_U_free,
+    simp [Formula.swapTemporal, is_U_free,
       is_S_free, ih1, ih2]
   | box a ih =>
-    simp [Formula.swap_temporal, is_U_free,
+    simp [Formula.swapTemporal, is_U_free,
       is_S_free, ih]
   | untl a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_U_free,
+    simp [Formula.swapTemporal, is_U_free,
       is_S_free, ih1, ih2]
   | snce a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal, is_U_free, is_S_free]
+    simp [Formula.swapTemporal, is_U_free, is_S_free]
 
 /-- S-free after swap is the same as U-free before swap. -/
 theorem dual_S_free_iff_U_free (phi : Formula Atom) :
-    is_S_free phi.swap_temporal = is_U_free phi := by
+    is_S_free phi.swapTemporal = is_U_free phi := by
   induction phi with
   | atom _ => rfl
   | bot => rfl
   | imp a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_U_free,
+    simp [Formula.swapTemporal, is_U_free,
       is_S_free, ih1, ih2]
   | box a ih =>
-    simp [Formula.swap_temporal, is_U_free,
+    simp [Formula.swapTemporal, is_U_free,
       is_S_free, ih]
   | untl a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal, is_U_free, is_S_free]
+    simp [Formula.swapTemporal, is_U_free, is_S_free]
   | snce a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_U_free,
+    simp [Formula.swapTemporal, is_U_free,
       is_S_free, ih1, ih2]
 
-/-- Syntactic separation is preserved by swap_temporal. -/
+/-- Syntactic separation is preserved by swapTemporal. -/
 theorem dual_separated (phi : Formula Atom) :
-    is_syntactically_separated phi.swap_temporal =
+    is_syntactically_separated phi.swapTemporal =
       is_syntactically_separated phi := by
   induction phi with
   | atom _ => rfl
   | bot => rfl
   | imp a b ih1 ih2 =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_syntactically_separated, ih1, ih2]
   | box _a =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_syntactically_separated]
   | untl a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_syntactically_separated]
     rw [dual_U_free_iff_S_free a,
       dual_U_free_iff_S_free b]
   | snce a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_syntactically_separated]
     rw [dual_S_free_iff_U_free a,
       dual_S_free_iff_U_free b]
@@ -184,9 +184,9 @@ theorem dual_separated (phi : Formula Atom) :
 /-- If phi is separable, then swap(phi) is also separable. -/
 theorem dual_separable (phi : Formula Atom)
     (h : is_separable phi) :
-    is_separable phi.swap_temporal := by
+    is_separable phi.swapTemporal := by
   obtain ⟨psi, hsep, hequiv⟩ := h
-  refine ⟨psi.swap_temporal, ?_,
+  refine ⟨psi.swapTemporal, ?_,
     dual_equiv phi psi hequiv⟩
   rw [dual_separated]; exact hsep
 
@@ -195,65 +195,65 @@ theorem dual_separable (phi : Formula Atom)
 /-- future_only after swap = past_only before swap. -/
 theorem dual_future_only_iff_past_only
     (phi : Formula Atom) :
-    is_future_only phi.swap_temporal =
+    is_future_only phi.swapTemporal =
       is_past_only phi := by
   induction phi with
   | atom _ => rfl
   | bot => rfl
   | imp a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only, ih1, ih2]
   | box a ih =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only, ih]
   | untl a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only]
   | snce a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only, ih1, ih2]
 
 /-- past_only after swap = future_only before swap. -/
 theorem dual_past_only_iff_future_only
     (phi : Formula Atom) :
-    is_past_only phi.swap_temporal =
+    is_past_only phi.swapTemporal =
       is_future_only phi := by
   induction phi with
   | atom _ => rfl
   | bot => rfl
   | imp a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only, ih1, ih2]
   | box a ih =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only, ih]
   | untl a b ih1 ih2 =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only, ih1, ih2]
   | snce a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal, is_future_only,
+    simp [Formula.swapTemporal, is_future_only,
       is_past_only]
 
-/-- Proper separation is preserved by swap_temporal. -/
+/-- Proper separation is preserved by swapTemporal. -/
 theorem dual_properly_separated (phi : Formula Atom) :
-    is_properly_separated phi.swap_temporal =
+    is_properly_separated phi.swapTemporal =
       is_properly_separated phi := by
   induction phi with
   | atom _ => rfl
   | bot => rfl
   | imp a b ih1 ih2 =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_properly_separated, ih1, ih2]
   | box _a =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_properly_separated]
   | untl a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_properly_separated]
     rw [dual_past_only_iff_future_only a,
       dual_past_only_iff_future_only b]
   | snce a b _ih1 _ih2 =>
-    simp [Formula.swap_temporal,
+    simp [Formula.swapTemporal,
       is_properly_separated]
     rw [dual_future_only_iff_past_only a,
       dual_future_only_iff_past_only b]
@@ -262,9 +262,9 @@ theorem dual_properly_separated (phi : Formula Atom) :
 theorem dual_properly_separable
     (phi : Formula Atom)
     (h : is_properly_separable phi) :
-    is_properly_separable phi.swap_temporal := by
+    is_properly_separable phi.swapTemporal := by
   obtain ⟨psi, hsep, hequiv⟩ := h
-  refine ⟨psi.swap_temporal, ?_,
+  refine ⟨psi.swapTemporal, ?_,
     dual_equiv phi psi hequiv⟩
   rw [dual_properly_separated]; exact hsep
 

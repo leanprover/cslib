@@ -116,7 +116,7 @@ theorem replace_id_of_U_free (phi A B : Formula Atom) (h : is_U_free phi = true)
   | snce p q ihp ihq => simp [is_U_free] at h; simp [replace_untl_with_top, ihp h.1, ihq h.2]
 
 /-- U(A,B) appears only under boolean connectives (imp), not under
-    temporal operators (.snce, .untl, .all_past, .all_future, .box).
+    temporal operators (.snce, .untl, .allPast, .allFuture, .box).
     At any time where U(A,B) holds, replacing U(A,B) with True preserves truth. -/
 def untl_under_bool_only : Formula Atom → Formula Atom → Formula Atom → Prop
   | .atom _, _, _ => True
@@ -666,7 +666,7 @@ private theorem untl_neguntl_contradictory (A B : Formula Atom) (M : IntStructur
 /-- Negation equivalence specialized: ¬U → G(¬A) ∨ U', as an int_equiv on the event. -/
 private theorem neg_untl_event_equiv (a A B : Formula Atom) :
     int_equiv (Formula.and a (Formula.neg (.untl A B)))
-      (Formula.or (Formula.and a (.all_future (Formula.neg A)))
+      (Formula.or (Formula.and a (.allFuture (Formula.neg A)))
         (Formula.and a (.untl (Formula.and (Formula.neg A) (Formula.neg B)) (Formula.neg A)))) := by
   intro M t; constructor
   · intro h
@@ -1428,16 +1428,16 @@ private theorem snce_Ufree_event_qNotU_guard_separable (ev q A B : Formula Atom)
     (Formula.and (Formula.neg ev) (Formula.neg q)) (Formula.neg ev) A B
     hanq_uf hna_uf hA hB hA' hB'
   -- S(ev, q∨¬U) ↔ ¬H(¬ev) ∧ ¬psi1
-  have hsep_H : is_syntactically_separated (.all_past (Formula.neg ev)) = true := by
+  have hsep_H : is_syntactically_separated (.allPast (Formula.neg ev)) = true := by
     simp [is_syntactically_separated, Formula.neg, is_U_free, hev_uf]
   refine is_separable_of_equiv ?_ (and_separable
-    (neg_separable ⟨.all_past (Formula.neg ev), hsep_H, int_equiv_refl _⟩)
+    (neg_separable ⟨.allPast (Formula.neg ev), hsep_H, int_equiv_refl _⟩)
     (neg_separable ⟨psi1, hsep1, hequiv1⟩))
   intro M t; constructor
   · intro hS
     apply (int_truth_and M t _ _).mpr; constructor
     · -- ¬H(¬ev): ∃ s < t with ev(s)
-      rw [int_truth_neg, int_truth_all_past]
+      rw [int_truth_neg, int_truth_allPast]
       push_neg
       obtain ⟨s, hst, hev_s, _⟩ := hS
       exact ⟨s, hst, fun h => h hev_s⟩

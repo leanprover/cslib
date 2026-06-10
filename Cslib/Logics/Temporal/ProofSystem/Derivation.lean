@@ -24,7 +24,7 @@ The derivation tree includes 6 inference rules:
 2. **assumption**: Formulas in context are derivable
 3. **modus_ponens**: If `Γ ⊢[fc] φ → ψ` and `Γ ⊢[fc] φ` then `Γ ⊢[fc] ψ`
 4. **temporal_necessitation**: If `⊢[fc] φ` then `⊢[fc] Gφ`
-5. **temporal_duality**: If `⊢[fc] φ` then `⊢[fc] swap_temporal φ`
+5. **temporal_duality**: If `⊢[fc] φ` then `⊢[fc] swapTemporal φ`
 6. **weakening**: If `Γ ⊢[fc] φ` and `Γ ⊆ Δ` then `Δ ⊢[fc] φ`
 -/
 
@@ -58,10 +58,10 @@ inductive DerivationTree (fc : FrameClass) :
       (d2 : DerivationTree fc Γ φ) : DerivationTree fc Γ ψ
   /-- Temporal necessitation: If `⊢[fc] φ` then `⊢[fc] Gφ`. -/
   | temporal_necessitation (φ : Formula Atom)
-      (d : DerivationTree fc [] φ) : DerivationTree fc [] φ.all_future
-  /-- Temporal duality: If `⊢[fc] φ` then `⊢[fc] swap_temporal φ`. -/
+      (d : DerivationTree fc [] φ) : DerivationTree fc [] φ.allFuture
+  /-- Temporal duality: If `⊢[fc] φ` then `⊢[fc] swapTemporal φ`. -/
   | temporal_duality (φ : Formula Atom)
-      (d : DerivationTree fc [] φ) : DerivationTree fc [] φ.swap_temporal
+      (d : DerivationTree fc [] φ) : DerivationTree fc [] φ.swapTemporal
   /-- Weakening: If `Γ ⊢[fc] φ` and `Γ ⊆ Δ` then `Δ ⊢[fc] φ`. -/
   | weakening (Γ Δ : Context Atom) (φ : Formula Atom)
       (d : DerivationTree fc Γ φ)

@@ -58,26 +58,26 @@ private theorem mcs_top_mem
 /-- F(⊤) ∈ every MCS (from serial_future). -/
 theorem mcs_f_top_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
-    Formula.some_future Formula.top ∈ Ω :=
+    Formula.someFuture Formula.top ∈ Ω :=
   mcs_mp_axiom h_mcs (mcs_top_mem h_mcs) .serial_future
 
 /-- P(⊤) ∈ every MCS (from serial_past). -/
 theorem mcs_p_top_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
-    Formula.some_past Formula.top ∈ Ω :=
+    Formula.somePast Formula.top ∈ Ω :=
   mcs_mp_axiom h_mcs (mcs_top_mem h_mcs) .serial_past
 
 /-- G(⊥) ∉ any MCS. G(⊥) = ¬F(⊤) and F(⊤) ∈ Ω. -/
 private theorem mcs_g_bot_not_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
-    Formula.all_future Formula.bot ∉ Ω := by
+    Formula.allFuture Formula.bot ∉ Ω := by
   intro h_g_bot
   exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs h_g_bot (mcs_f_top_mem h_mcs))
 
 /-- H(⊥) ∉ any MCS. H(⊥) = ¬P(⊤) and P(⊤) ∈ Ω. -/
 private theorem mcs_h_bot_not_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
-    Formula.all_past Formula.bot ∉ Ω := by
+    Formula.allPast Formula.bot ∉ Ω := by
   intro h_h_bot
   exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs h_h_bot (mcs_p_top_mem h_mcs))
 
@@ -103,14 +103,14 @@ private noncomputable def derive_dne (X : Formula Atom) :
 /-- H-necessitation: from ⊢ φ derive ⊢ H(φ). -/
 private noncomputable def derive_h_nec (φ : Formula Atom)
     (d : DerivationTree FrameClass.Base [] φ) :
-    DerivationTree FrameClass.Base [] (Formula.all_past φ) := by
+    DerivationTree FrameClass.Base [] (Formula.allPast φ) := by
   have d_swap := DerivationTree.temporal_duality _ d
   have d_g_swap := DerivationTree.temporal_necessitation _ d_swap
   have d_h := DerivationTree.temporal_duality _ d_g_swap
-  have h_eq : (Formula.all_future φ.swap_temporal).swap_temporal =
-      Formula.all_past (φ.swap_temporal.swap_temporal) := by
-    simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
-      Formula.neg, Formula.top, Formula.swap_temporal]
+  have h_eq : (Formula.allFuture φ.swapTemporal).swapTemporal =
+      Formula.allPast (φ.swapTemporal.swapTemporal) := by
+    simp only [Formula.allFuture, Formula.allPast, Formula.someFuture, Formula.somePast,
+      Formula.neg, Formula.top, Formula.swapTemporal]
   rw [Formula.swapTemporal_involution] at h_eq
   exact h_eq ▸ d_h
 
@@ -152,19 +152,19 @@ private theorem mcs_dne
 private theorem mcs_ff_imp_f
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {ψ : Formula Atom}
-    (h_ff : Formula.some_future (Formula.some_future ψ) ∈ Ω) :
-    Formula.some_future ψ ∈ Ω := by
-  let fψ := Formula.some_future ψ
-  have h_g_intro : Formula.all_future (fψ.imp (Formula.and Formula.top fψ)) ∈ Ω := by
+    (h_ff : Formula.someFuture (Formula.someFuture ψ) ∈ Ω) :
+    Formula.someFuture ψ ∈ Ω := by
+  let fψ := Formula.someFuture ψ
+  have h_g_intro : Formula.allFuture (fψ.imp (Formula.and Formula.top fψ)) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.temporal_necessitation _ (derive_and_top_intro fψ)⟩
-  have h_bx3 : (Formula.some_future fψ).imp
-      (Formula.some_future (Formula.and Formula.top fψ)) ∈ Ω :=
+  have h_bx3 : (Formula.someFuture fψ).imp
+      (Formula.someFuture (Formula.and Formula.top fψ)) ∈ Ω :=
     mcs_mp_axiom h_mcs h_g_intro
       (.right_mono_until fψ (Formula.and Formula.top fψ) Formula.top)
   have h_f_and := temporal_implication_property h_mcs h_bx3 h_ff
-  have h_absorb : (Formula.some_future (Formula.and Formula.top fψ)).imp fψ ∈ Ω := by
+  have h_absorb : (Formula.someFuture (Formula.and Formula.top fψ)).imp fψ ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.axiom [] _ (.absorb_until Formula.top ψ) trivial⟩
@@ -174,19 +174,19 @@ private theorem mcs_ff_imp_f
 private theorem mcs_pp_imp_p
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {ψ : Formula Atom}
-    (h_pp : Formula.some_past (Formula.some_past ψ) ∈ Ω) :
-    Formula.some_past ψ ∈ Ω := by
-  let pψ := Formula.some_past ψ
-  have h_h_intro : Formula.all_past (pψ.imp (Formula.and Formula.top pψ)) ∈ Ω := by
+    (h_pp : Formula.somePast (Formula.somePast ψ) ∈ Ω) :
+    Formula.somePast ψ ∈ Ω := by
+  let pψ := Formula.somePast ψ
+  have h_h_intro : Formula.allPast (pψ.imp (Formula.and Formula.top pψ)) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨derive_h_nec _ (derive_and_top_intro pψ)⟩
-  have h_bx3 : (Formula.some_past pψ).imp
-      (Formula.some_past (Formula.and Formula.top pψ)) ∈ Ω :=
+  have h_bx3 : (Formula.somePast pψ).imp
+      (Formula.somePast (Formula.and Formula.top pψ)) ∈ Ω :=
     mcs_mp_axiom h_mcs h_h_intro
       (.right_mono_since pψ (Formula.and Formula.top pψ) Formula.top)
   have h_p_and := temporal_implication_property h_mcs h_bx3 h_pp
-  have h_absorb : (Formula.some_past (Formula.and Formula.top pψ)).imp pψ ∈ Ω := by
+  have h_absorb : (Formula.somePast (Formula.and Formula.top pψ)).imp pψ ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.axiom [] _ (.absorb_since Formula.top ψ) trivial⟩
@@ -196,19 +196,19 @@ private theorem mcs_pp_imp_p
 theorem mcs_g_trans
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {ψ : Formula Atom}
-    (h_g : Formula.all_future ψ ∈ Ω) : Formula.all_future (Formula.all_future ψ) ∈ Ω := by
+    (h_g : Formula.allFuture ψ ∈ Ω) : Formula.allFuture (Formula.allFuture ψ) ∈ Ω := by
   by_contra h_not_gg
-  let X := Formula.some_future (Formula.neg ψ)
-  have h_neg_gg : Formula.neg (Formula.all_future (Formula.all_future ψ)) ∈ Ω :=
+  let X := Formula.someFuture (Formula.neg ψ)
+  have h_neg_gg : Formula.neg (Formula.allFuture (Formula.allFuture ψ)) ∈ Ω :=
     mcs_neg_of_not_mem h_mcs h_not_gg
-  have h_f_neg_g : Formula.some_future (Formula.neg (Formula.all_future ψ)) ∈ Ω :=
+  have h_f_neg_g : Formula.someFuture (Formula.neg (Formula.allFuture ψ)) ∈ Ω :=
     (mcs_dne h_mcs).mp h_neg_gg
-  have h_g_dne : Formula.all_future ((Formula.neg (Formula.neg X)).imp X) ∈ Ω := by
+  have h_g_dne : Formula.allFuture ((Formula.neg (Formula.neg X)).imp X) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.temporal_necessitation _ (derive_dne X)⟩
-  have h_bx3 : (Formula.some_future (Formula.neg (Formula.neg X))).imp
-      (Formula.some_future X) ∈ Ω :=
+  have h_bx3 : (Formula.someFuture (Formula.neg (Formula.neg X))).imp
+      (Formula.someFuture X) ∈ Ω :=
     mcs_mp_axiom h_mcs h_g_dne
       (.right_mono_until (Formula.neg (Formula.neg X)) X Formula.top)
   have h_ff := temporal_implication_property h_mcs h_bx3 h_f_neg_g
@@ -218,19 +218,19 @@ theorem mcs_g_trans
 theorem mcs_h_trans
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {ψ : Formula Atom}
-    (h_h : Formula.all_past ψ ∈ Ω) : Formula.all_past (Formula.all_past ψ) ∈ Ω := by
+    (h_h : Formula.allPast ψ ∈ Ω) : Formula.allPast (Formula.allPast ψ) ∈ Ω := by
   by_contra h_not_hh
-  let X := Formula.some_past (Formula.neg ψ)
-  have h_neg_hh : Formula.neg (Formula.all_past (Formula.all_past ψ)) ∈ Ω :=
+  let X := Formula.somePast (Formula.neg ψ)
+  have h_neg_hh : Formula.neg (Formula.allPast (Formula.allPast ψ)) ∈ Ω :=
     mcs_neg_of_not_mem h_mcs h_not_hh
-  have h_p_neg_h : Formula.some_past (Formula.neg (Formula.all_past ψ)) ∈ Ω :=
+  have h_p_neg_h : Formula.somePast (Formula.neg (Formula.allPast ψ)) ∈ Ω :=
     (mcs_dne h_mcs).mp h_neg_hh
-  have h_h_dne : Formula.all_past ((Formula.neg (Formula.neg X)).imp X) ∈ Ω := by
+  have h_h_dne : Formula.allPast ((Formula.neg (Formula.neg X)).imp X) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨derive_h_nec _ (derive_dne X)⟩
-  have h_bx3 : (Formula.some_past (Formula.neg (Formula.neg X))).imp
-      (Formula.some_past X) ∈ Ω :=
+  have h_bx3 : (Formula.somePast (Formula.neg (Formula.neg X))).imp
+      (Formula.somePast X) ∈ Ω :=
     mcs_mp_axiom h_mcs h_h_dne
       (.right_mono_since (Formula.neg (Formula.neg X)) X Formula.top)
   have h_pp := temporal_implication_property h_mcs h_bx3 h_p_neg_h
@@ -241,8 +241,8 @@ theorem past_of_future_subset
     {Ω₁ Ω₂ : Set (Formula Atom)}
     (h_mcs₁ : Temporal.SetMaximalConsistent Ω₁)
     (h_mcs₂ : Temporal.SetMaximalConsistent Ω₂)
-    (h_future : ∀ ψ, Formula.all_future ψ ∈ Ω₁ → ψ ∈ Ω₂) :
-    ∀ ψ, Formula.all_past ψ ∈ Ω₂ → ψ ∈ Ω₁ := by
+    (h_future : ∀ ψ, Formula.allFuture ψ ∈ Ω₁ → ψ ∈ Ω₂) :
+    ∀ ψ, Formula.allPast ψ ∈ Ω₂ → ψ ∈ Ω₁ := by
   intro ψ h_h
   by_contra h_not
   exact mcs_not_mem_of_neg h_mcs₂ h_h
@@ -254,8 +254,8 @@ theorem future_of_past_subset
     {Ω₁ Ω₂ : Set (Formula Atom)}
     (h_mcs₁ : Temporal.SetMaximalConsistent Ω₁)
     (h_mcs₂ : Temporal.SetMaximalConsistent Ω₂)
-    (h_past : ∀ ψ, Formula.all_past ψ ∈ Ω₁ → ψ ∈ Ω₂) :
-    ∀ ψ, Formula.all_future ψ ∈ Ω₂ → ψ ∈ Ω₁ := by
+    (h_past : ∀ ψ, Formula.allPast ψ ∈ Ω₁ → ψ ∈ Ω₂) :
+    ∀ ψ, Formula.allFuture ψ ∈ Ω₂ → ψ ∈ Ω₁ := by
   intro ψ h_g
   by_contra h_not
   exact mcs_not_mem_of_neg h_mcs₂ h_g
@@ -270,11 +270,11 @@ def CanonicalWorld (Atom : Type*) :=
 
 /-- Canonical accessibility: futureSet inclusion. -/
 def canonical_acc (W₁ W₂ : CanonicalWorld Atom) : Prop :=
-  ∀ ψ, Formula.all_future ψ ∈ W₁.val → ψ ∈ W₂.val
+  ∀ ψ, Formula.allFuture ψ ∈ W₁.val → ψ ∈ W₂.val
 
 /-- Forward G-direction for truth lemma. -/
 theorem truth_lemma_g_forward (W : CanonicalWorld Atom)
-    {ψ : Formula Atom} (h_g : Formula.all_future ψ ∈ W.val) :
+    {ψ : Formula Atom} (h_g : Formula.allFuture ψ ∈ W.val) :
     ∀ T : CanonicalWorld Atom, canonical_acc W T → ψ ∈ T.val :=
   fun T hWT => hWT ψ h_g
 
@@ -282,7 +282,7 @@ theorem truth_lemma_g_forward (W : CanonicalWorld Atom)
 theorem truth_lemma_g_reverse (W : CanonicalWorld Atom)
     {ψ : Formula Atom}
     (h_all : ∀ T : CanonicalWorld Atom, canonical_acc W T → ψ ∈ T.val) :
-    Formula.all_future ψ ∈ W.val := by
+    Formula.allFuture ψ ∈ W.val := by
   by_contra h_not_g
   obtain ⟨T, hT_mcs, hT_future, hT_not⟩ := mcs_g_witness W.property h_not_g
   exact hT_not (h_all ⟨T, hT_mcs⟩ hT_future)
@@ -291,8 +291,8 @@ theorem truth_lemma_g_reverse (W : CanonicalWorld Atom)
 theorem exists_future_successor
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
     ∃ Ω' : Set (Formula Atom), Temporal.SetMaximalConsistent Ω' ∧
-      (∀ ψ, Formula.all_future ψ ∈ Ω → ψ ∈ Ω') ∧
-      (∀ ψ, Formula.all_past ψ ∈ Ω' → ψ ∈ Ω) := by
+      (∀ ψ, Formula.allFuture ψ ∈ Ω → ψ ∈ Ω') ∧
+      (∀ ψ, Formula.allPast ψ ∈ Ω' → ψ ∈ Ω) := by
   obtain ⟨T, hT_mcs, hT_future, _⟩ := mcs_g_witness h_mcs (mcs_g_bot_not_mem h_mcs)
   exact ⟨T, hT_mcs, hT_future, past_of_future_subset h_mcs hT_mcs hT_future⟩
 
@@ -300,8 +300,8 @@ theorem exists_future_successor
 theorem exists_past_predecessor
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
     ∃ Ω' : Set (Formula Atom), Temporal.SetMaximalConsistent Ω' ∧
-      (∀ ψ, Formula.all_past ψ ∈ Ω → ψ ∈ Ω') ∧
-      (∀ ψ, Formula.all_future ψ ∈ Ω' → ψ ∈ Ω) := by
+      (∀ ψ, Formula.allPast ψ ∈ Ω → ψ ∈ Ω') ∧
+      (∀ ψ, Formula.allFuture ψ ∈ Ω' → ψ ∈ Ω) := by
   obtain ⟨T, hT_mcs, hT_past, _⟩ := mcs_h_witness h_mcs (mcs_h_bot_not_mem h_mcs)
   exact ⟨T, hT_mcs, hT_past, future_of_past_subset h_mcs hT_mcs hT_past⟩
 
@@ -309,7 +309,7 @@ theorem exists_past_predecessor
 theorem truth_lemma_h_reverse (W : CanonicalWorld Atom)
     {ψ : Formula Atom}
     (h_all : ∀ T : CanonicalWorld Atom, canonical_acc T W → ψ ∈ T.val) :
-    Formula.all_past ψ ∈ W.val := by
+    Formula.allPast ψ ∈ W.val := by
   by_contra h_not_h
   obtain ⟨T, hT_mcs, hT_past, hT_not⟩ := mcs_h_witness W.property h_not_h
   exact hT_not (h_all ⟨T, hT_mcs⟩ (future_of_past_subset W.property hT_mcs hT_past))

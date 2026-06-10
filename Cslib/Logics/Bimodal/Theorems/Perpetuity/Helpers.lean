@@ -101,16 +101,16 @@ def rce_imp (φ₁ φ₂ : Bimodal.Formula Atom) : ⊢ (φ₁.and φ₂).imp φ�
 /-! ## Helper Lemmas: Temporal Components -/
 
 /-- Box implies future: `⊢ □φ → Gφ`. MF + MT composed. -/
-def box_to_future (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ.all_future :=
+def box_to_future (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ.allFuture :=
   imp_trans
     (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_future φ) trivial)
-    (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_t φ.all_future) trivial)
+    (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_t φ.allFuture) trivial)
 
 /-- Box implies past: `⊢ □φ → Hφ`. Via temporal duality on box_to_future. -/
-def box_to_past (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ.all_past := by
-  have h1 := box_to_future φ.swap_temporal
+def box_to_past (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ.allPast := by
+  have h1 := box_to_future φ.swapTemporal
   have h2 := Bimodal.DerivationTree.temporal_duality _ h1
-  simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at h2
+  simp only [Bimodal.Formula.swapTemporal, Bimodal.Formula.swapTemporal_involution] at h2
   exact h2
 
 /-- Box implies present: `⊢ □φ → φ` (MT axiom). -/
@@ -118,12 +118,12 @@ def box_to_present (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ :=
   Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_t φ) trivial
 
 /-- `temp_future_derived`: `⊢ □φ → G(□φ)`. M4 + MF + MT composed. -/
-def temp_future_derived (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ.box.all_future :=
+def temp_future_derived (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp φ.box.allFuture :=
   imp_trans
     (imp_trans
       (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_4 φ) trivial)
       (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_future φ.box) trivial))
-    (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_t φ.box.all_future) trivial)
+    (Bimodal.DerivationTree.axiom [] _ (Bimodal.Axiom.modal_t φ.box.allFuture) trivial)
 
 end -- noncomputable section
 

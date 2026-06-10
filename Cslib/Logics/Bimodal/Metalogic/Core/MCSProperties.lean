@@ -26,8 +26,8 @@ framework wrappers in `MaximalConsistent.lean` which are specialized to `FrameCl
 - `SetMaximalConsistent.negation_complete`: Either phi or neg phi in MCS
 - `temp_4_derived`: Derived temporal 4 axiom for future (G phi -> GG phi)
 - `temp_4_past`: Derived temporal 4 axiom for past (H phi -> HH phi)
-- `SetMaximalConsistent.all_future_all_future`: G phi in Omega implies GG phi in Omega
-- `SetMaximalConsistent.all_past_all_past`: H phi in Omega implies HH phi in Omega
+- `SetMaximalConsistent.allFuture_allFuture`: G phi in Omega implies GG phi in Omega
+- `SetMaximalConsistent.allPast_allPast`: H phi in Omega implies HH phi in Omega
 - `set_consistent_not_both`: phi and neg phi cannot both be in a consistent set
 - `SetMaximalConsistent.neg_excludes`: neg phi in MCS implies phi not in MCS
 
@@ -288,27 +288,27 @@ three F-monotonicity steps, then negated to obtain `G phi -> GG phi`.
 -/
 def temp_4_derived (phi : Formula Atom) :
     DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      (phi.all_future.imp phi.all_future.all_future) := by
+      (phi.allFuture.imp phi.allFuture.allFuture) := by
   -- Step 1: F(not not F(not phi)) -> F(F(not phi)) via DNE under F
   have dne_lift_F : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      ((Formula.some_future (Formula.some_future phi.neg).neg.neg).imp
-       (Formula.some_future (Formula.some_future phi.neg))) :=
+      ((Formula.someFuture (Formula.someFuture phi.neg).neg.neg).imp
+       (Formula.someFuture (Formula.someFuture phi.neg))) :=
     DerivationTree.modus_ponens [] _ _
       (DerivationTree.axiom [] _
         (Axiom.right_mono_until
-          (Formula.some_future phi.neg).neg.neg (Formula.some_future phi.neg) Formula.top) trivial)
-      (DerivationTree.temporal_necessitation _ (double_negation (Formula.some_future phi.neg)))
+          (Formula.someFuture phi.neg).neg.neg (Formula.someFuture phi.neg) Formula.top) trivial)
+      (DerivationTree.temporal_necessitation _ (double_negation (Formula.someFuture phi.neg)))
   -- Step 2: F(F(not phi)) -> F(top and F(not phi)) via top_and_intro under F
   -- top_and_intro: X -> top and X
   -- Derived as: mp (pairing top X) (identity bot) where identity bot : |- top
   have top_and_intro : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      ((Formula.some_future phi.neg).imp
-       (Formula.top.and (Formula.some_future phi.neg))) := by
+      ((Formula.someFuture phi.neg).imp
+       (Formula.top.and (Formula.someFuture phi.neg))) := by
     -- We need: X -> top and X where top = bot -> bot and and is conjunction
     -- pairing gives: top -> (X -> top and X) (at typeclass level)
     -- identity gives: |- top (i.e., |- bot -> bot)
     -- mp gives: |- X -> top and X
-    let X := Formula.some_future phi.neg
+    let X := Formula.someFuture phi.neg
     -- Derive |- top (bot -> bot) using identity
     have h_top : DerivationTree FrameClass.Base ([] : List (Formula Atom))
         (Formula.top (Atom := Atom)) :=
@@ -322,18 +322,18 @@ def temp_4_derived (phi : Formula Atom) :
     -- mp: |- X -> top and X
     exact DerivationTree.modus_ponens [] _ _ h_pair h_top
   have ff_to_f_top_and : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      ((Formula.some_future (Formula.some_future phi.neg)).imp
-       (Formula.some_future (Formula.top.and (Formula.some_future phi.neg)))) :=
+      ((Formula.someFuture (Formula.someFuture phi.neg)).imp
+       (Formula.someFuture (Formula.top.and (Formula.someFuture phi.neg)))) :=
     DerivationTree.modus_ponens [] _ _
       (DerivationTree.axiom [] _
         (Axiom.right_mono_until
-          (Formula.some_future phi.neg)
-          (Formula.top.and (Formula.some_future phi.neg)) Formula.top) trivial)
+          (Formula.someFuture phi.neg)
+          (Formula.top.and (Formula.someFuture phi.neg)) Formula.top) trivial)
       (DerivationTree.temporal_necessitation _ top_and_intro)
   -- Step 3: F(top and F(not phi)) -> F(not phi) via BX6 (absorption)
   have f_top_and_absorb : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      ((Formula.some_future (Formula.top.and (Formula.some_future phi.neg))).imp
-       (Formula.some_future phi.neg)) :=
+      ((Formula.someFuture (Formula.top.and (Formula.someFuture phi.neg))).imp
+       (Formula.someFuture phi.neg)) :=
     DerivationTree.axiom [] _ (Axiom.absorb_until Formula.top phi.neg) trivial
   -- Compose: F(not not F(not phi)) -> F(not phi)
   have composed := imp_trans (imp_trans dne_lift_F ff_to_f_top_and) f_top_and_absorb
@@ -347,87 +347,87 @@ Derived by applying temporal duality to the temp_4 axiom (G phi -> GG phi).
 -/
 def temp_4_past (phi : Formula Atom) :
     DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      (phi.all_past.imp phi.all_past.all_past) := by
-  -- By temporal duality from: G psi -> GG psi where psi = swap_temporal phi
-  let psi := phi.swap_temporal
+      (phi.allPast.imp phi.allPast.allPast) := by
+  -- By temporal duality from: G psi -> GG psi where psi = swapTemporal phi
+  let psi := phi.swapTemporal
   -- Step 1: Get T4 derived theorem for psi: G psi -> GG psi
   have h1 : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      (psi.all_future.imp psi.all_future.all_future) :=
+      (psi.allFuture.imp psi.allFuture.allFuture) :=
     temp_4_derived psi
   -- Step 2: Apply temporal duality
   have h2 : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-      ((psi.all_future.imp psi.all_future.all_future).swap_temporal) :=
+      ((psi.allFuture.imp psi.allFuture.allFuture).swapTemporal) :=
     DerivationTree.temporal_duality _ h1
-  -- Step 3: Simplify via swap_temporal involution
-  have h3 : (psi.all_future.imp psi.all_future.all_future).swap_temporal =
-      phi.all_past.imp phi.all_past.all_past := by
-    simp only [Formula.swap_temporal]
-    have h_inv : psi.swap_temporal = phi := Formula.swapTemporal_involution phi
+  -- Step 3: Simplify via swapTemporal involution
+  have h3 : (psi.allFuture.imp psi.allFuture.allFuture).swapTemporal =
+      phi.allPast.imp phi.allPast.allPast := by
+    simp only [Formula.swapTemporal]
+    have h_inv : psi.swapTemporal = phi := Formula.swapTemporal_involution phi
     rw [h_inv]
   rw [h3] at h2
   exact h2
 
 /--
-Set-based MCS: temporal 4 axiom property for all_future.
+Set-based MCS: temporal 4 axiom property for allFuture.
 
 If G phi in Omega for a SetMaximalConsistent Omega, then GG phi in Omega.
 -/
-theorem SetMaximalConsistent.all_future_all_future {fc : FrameClass}
+theorem SetMaximalConsistent.allFuture_allFuture {fc : FrameClass}
     {Omega : Set (Formula Atom)} {phi : Formula Atom}
     (h_mcs : SetMaximalConsistent fc Omega)
-    (h_all_future : Formula.all_future phi ∈ Omega) :
-    (Formula.all_future phi).all_future ∈ Omega := by
+    (h_allFuture : Formula.allFuture phi ∈ Omega) :
+    (Formula.allFuture phi).allFuture ∈ Omega := by
   -- Temporal 4 axiom: G phi -> GG phi (derived from BX3 + BX6, at Base, then lifted)
   have h_temp_4_base := temp_4_derived (Atom := Atom) phi
   have h_temp_4_thm : DerivationTree fc ([] : List (Formula Atom))
-      ((Formula.all_future phi).imp (Formula.all_future (Formula.all_future phi))) :=
+      ((Formula.allFuture phi).imp (Formula.allFuture (Formula.allFuture phi))) :=
     DerivationTree.lift (FrameClass.base_le fc) h_temp_4_base
   -- Weaken to context [G phi]
-  have h_temp_4 : DerivationTree fc [Formula.all_future phi]
-      ((Formula.all_future phi).imp (Formula.all_future (Formula.all_future phi))) :=
+  have h_temp_4 : DerivationTree fc [Formula.allFuture phi]
+      ((Formula.allFuture phi).imp (Formula.allFuture (Formula.allFuture phi))) :=
     DerivationTree.weakening [] _ _ h_temp_4_thm (List.nil_subset _)
   -- Assume G phi in context
-  have h_all_future_assume : DerivationTree fc [Formula.all_future phi]
-      (Formula.all_future phi) :=
+  have h_allFuture_assume : DerivationTree fc [Formula.allFuture phi]
+      (Formula.allFuture phi) :=
     DerivationTree.assumption _ _ (by simp)
   -- Apply modus ponens to get GG phi
-  have h_deriv : DerivationTree fc [Formula.all_future phi]
-      ((Formula.all_future phi).all_future) :=
-    DerivationTree.modus_ponens _ _ _ h_temp_4 h_all_future_assume
+  have h_deriv : DerivationTree fc [Formula.allFuture phi]
+      ((Formula.allFuture phi).allFuture) :=
+    DerivationTree.modus_ponens _ _ _ h_temp_4 h_allFuture_assume
   -- By closure: GG phi in Omega
-  have h_sub : ∀ chi ∈ [Formula.all_future phi], chi ∈ Omega := by simp [h_all_future]
-  exact SetMaximalConsistent.closed_under_derivation h_mcs [Formula.all_future phi] h_sub h_deriv
+  have h_sub : ∀ chi ∈ [Formula.allFuture phi], chi ∈ Omega := by simp [h_allFuture]
+  exact SetMaximalConsistent.closed_under_derivation h_mcs [Formula.allFuture phi] h_sub h_deriv
 
 /--
-Set-based MCS: temporal 4 axiom property for all_past.
+Set-based MCS: temporal 4 axiom property for allPast.
 
 If H phi in Omega for a SetMaximalConsistent Omega, then HH phi in Omega.
 -/
-theorem SetMaximalConsistent.all_past_all_past {fc : FrameClass}
+theorem SetMaximalConsistent.allPast_allPast {fc : FrameClass}
     {Omega : Set (Formula Atom)} {phi : Formula Atom}
     (h_mcs : SetMaximalConsistent fc Omega)
-    (h_all_past : Formula.all_past phi ∈ Omega) :
-    (Formula.all_past phi).all_past ∈ Omega := by
+    (h_allPast : Formula.allPast phi ∈ Omega) :
+    (Formula.allPast phi).allPast ∈ Omega := by
   -- Derived temporal 4 for past: H phi -> HH phi (at Base, then lifted)
   have h_temp_4_past_base := temp_4_past (Atom := Atom) phi
   have h_temp_4_past_thm : DerivationTree fc ([] : List (Formula Atom))
-      ((Formula.all_past phi).imp (Formula.all_past (Formula.all_past phi))) :=
+      ((Formula.allPast phi).imp (Formula.allPast (Formula.allPast phi))) :=
     DerivationTree.lift (FrameClass.base_le fc) h_temp_4_past_base
   -- Weaken to context [H phi]
-  have h_temp_4 : DerivationTree fc [Formula.all_past phi]
-      ((Formula.all_past phi).imp (Formula.all_past (Formula.all_past phi))) :=
+  have h_temp_4 : DerivationTree fc [Formula.allPast phi]
+      ((Formula.allPast phi).imp (Formula.allPast (Formula.allPast phi))) :=
     DerivationTree.weakening [] _ _ h_temp_4_past_thm (List.nil_subset _)
   -- Assume H phi in context
-  have h_all_past_assume : DerivationTree fc [Formula.all_past phi]
-      (Formula.all_past phi) :=
+  have h_allPast_assume : DerivationTree fc [Formula.allPast phi]
+      (Formula.allPast phi) :=
     DerivationTree.assumption _ _ (by simp)
   -- Apply modus ponens to get HH phi
-  have h_deriv : DerivationTree fc [Formula.all_past phi]
-      ((Formula.all_past phi).all_past) :=
-    DerivationTree.modus_ponens _ _ _ h_temp_4 h_all_past_assume
+  have h_deriv : DerivationTree fc [Formula.allPast phi]
+      ((Formula.allPast phi).allPast) :=
+    DerivationTree.modus_ponens _ _ _ h_temp_4 h_allPast_assume
   -- By closure: HH phi in Omega
-  have h_sub : ∀ chi ∈ [Formula.all_past phi], chi ∈ Omega := by simp [h_all_past]
-  exact SetMaximalConsistent.closed_under_derivation h_mcs [Formula.all_past phi] h_sub h_deriv
+  have h_sub : ∀ chi ∈ [Formula.allPast phi], chi ∈ Omega := by simp [h_allPast]
+  exact SetMaximalConsistent.closed_under_derivation h_mcs [Formula.allPast phi] h_sub h_deriv
 
 end -- noncomputable section
 

@@ -29,7 +29,7 @@ open Cslib.Logic.Bimodal
 
 /-- GHR94 Lemma 10.2.6 (parameterized): A formula with `no_S_nested_in_U` and
     `has_no_allpast_allfuture` is separable, given a callback for handling
-    the `.snce`/`.all_past` constituents produced by substitution.
+    the `.snce`/`.allPast` constituents produced by substitution.
 
     The callback receives formulas with `no_S_nested_in_U` that arise from
     substituting `.untl A B` (S-free args) into U-free positions of a
@@ -958,12 +958,12 @@ theorem all_formulas_separable_aux (φ : Formula Atom)
         have hns_U : no_U_nested_in_S (.untl χa χb) :=
           untl_of_boxfree_sep_no_U_nested ψa ψb hψa_sep hψb_sep
         -- Step 4: swap(.untl χa χb) has no_S_nested_in_U
-        have hns_S : no_S_nested_in_U (Formula.swap_temporal (.untl χa χb)) :=
+        have hns_S : no_S_nested_in_U (Formula.swapTemporal (.untl χa χb)) :=
           swap_no_U_nested_gives_no_S_nested (.untl χa χb) hns_U
         -- Step 5: swap is separable.
         -- For n ≥ 2: use _param variant with oracle from JD IH.
         -- For n = 1: fall back to existing path.
-        have h_swap_sep : is_separable (Formula.swap_temporal (.untl χa χb)) := by
+        have h_swap_sep : is_separable (Formula.swapTemporal (.untl χa χb)) := by
           have hn_pos : n ≥ 1 := by
             have : junction_depth (.untl a b) ≥ 1 := by omega
             omega

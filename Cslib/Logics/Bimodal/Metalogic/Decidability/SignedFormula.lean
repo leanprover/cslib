@@ -400,7 +400,7 @@ G(A) = ¬F(¬A) = ¬(¬A U ⊤) = imp (untl (imp A bot) (imp bot bot)) bot
 def allFuturePosFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .pos, .all_future _ => true
+    | .pos, .allFuture _ => true
     | _, _ => false
 
 /--
@@ -410,7 +410,7 @@ F(A) = A U ⊤ = untl A (imp bot bot)
 def someFutureNegFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .neg, .some_future _ => true
+    | .neg, .someFuture _ => true
     | _, _ => false
 
 /--
@@ -420,7 +420,7 @@ H(A) = ¬P(¬A) = ¬(¬A S ⊤) = imp (snce (imp A bot) (imp bot bot)) bot
 def allPastPosFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .pos, .all_past _ => true
+    | .pos, .allPast _ => true
     | _, _ => false
 
 /--
@@ -430,12 +430,12 @@ P(A) = A S ⊤ = snce A (imp bot bot)
 def somePastNegFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .neg, .some_past _ => true
+    | .neg, .somePast _ => true
     | _, _ => false
 
 /--
 Collect all F(U(event, guard)) formulas in the branch (negative Until
-formulas) where guard is NOT Formula.top (i.e., not some_future).
+formulas) where guard is NOT Formula.top (i.e., not someFuture).
 -/
 def untlNegFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
@@ -445,7 +445,7 @@ def untlNegFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
 
 /--
 Collect all F(S(event, guard)) formulas in the branch (negative Since
-formulas) where guard is NOT Formula.top (i.e., not some_past).
+formulas) where guard is NOT Formula.top (i.e., not somePast).
 -/
 def snceNegFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
@@ -455,7 +455,7 @@ def snceNegFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
 
 /--
 Collect all T(U(event, guard)) formulas in the branch (positive Until
-formulas) where guard is NOT Formula.top (i.e., not some_future).
+formulas) where guard is NOT Formula.top (i.e., not someFuture).
 -/
 def untlPosFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
@@ -465,7 +465,7 @@ def untlPosFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
 
 /--
 Collect all T(S(event, guard)) formulas in the branch (positive Since
-formulas) where guard is NOT Formula.top (i.e., not some_past).
+formulas) where guard is NOT Formula.top (i.e., not somePast).
 -/
 def sncePosFormulas (b : Branch Atom) : List (SignedFormula Atom) :=
   b.filter fun sf =>
@@ -481,7 +481,7 @@ def allFuturePosAtTime (b : Branch Atom) (t : TimeIndex) :
     List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .pos, .all_future _ => sf.label.time == t
+    | .pos, .allFuture _ => sf.label.time == t
     | _, _ => false
 
 /--
@@ -491,7 +491,7 @@ def allPastPosAtTime (b : Branch Atom) (t : TimeIndex) :
     List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .pos, .all_past _ => sf.label.time == t
+    | .pos, .allPast _ => sf.label.time == t
     | _, _ => false
 
 /--
@@ -501,7 +501,7 @@ def someFutureNegAtTime (b : Branch Atom) (t : TimeIndex) :
     List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .neg, .some_future _ => sf.label.time == t
+    | .neg, .someFuture _ => sf.label.time == t
     | _, _ => false
 
 /--
@@ -511,7 +511,7 @@ def somePastNegAtTime (b : Branch Atom) (t : TimeIndex) :
     List (SignedFormula Atom) :=
   b.filter fun sf =>
     match sf.sign, sf.formula with
-    | .neg, .some_past _ => sf.label.time == t
+    | .neg, .somePast _ => sf.label.time == t
     | _, _ => false
 
 /--

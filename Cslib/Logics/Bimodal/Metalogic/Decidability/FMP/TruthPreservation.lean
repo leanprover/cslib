@@ -260,25 +260,25 @@ All-future transitivity for closure MCS: Gψ ∈ Omega implies GGψ ∈ Omega.
 
 This uses the temporal 4 axiom (Gφ → GGφ).
 -/
-theorem mcs_all_future_all_future {phi : Formula Atom}
+theorem mcs_allFuture_allFuture {phi : Formula Atom}
     {Omega : ClosureMCSBundle phi}
     {ψ : Formula Atom}
-    (h_future : ψ.all_future ∈ Omega.carrier)
-    (h_future_future_clos : ψ.all_future.all_future ∈ closureWithNeg phi) :
-    ψ.all_future.all_future ∈ Omega.carrier := by
+    (h_future : ψ.allFuture ∈ Omega.carrier)
+    (h_future_future_clos : ψ.allFuture.allFuture ∈ closureWithNeg phi) :
+    ψ.allFuture.allFuture ∈ Omega.carrier := by
   have h_temp_4_thm : DerivationTree FrameClass.Base
       ([] : List (Formula Atom))
-      ((ψ.all_future).imp (ψ.all_future.all_future)) :=
+      ((ψ.allFuture).imp (ψ.allFuture.allFuture)) :=
     temp_4_derived ψ
   have h_deriv : DerivationTree FrameClass.Base
-      [ψ.all_future] ψ.all_future.all_future := by
+      [ψ.allFuture] ψ.allFuture.allFuture := by
     have h_axiom : DerivationTree FrameClass.Base
-        [ψ.all_future] ((ψ.all_future).imp (ψ.all_future.all_future)) :=
+        [ψ.allFuture] ((ψ.allFuture).imp (ψ.allFuture.allFuture)) :=
       DerivationTree.weakening [] _ _ h_temp_4_thm (by intro; simp)
-    have h_assume : DerivationTree FrameClass.Base [ψ.all_future] ψ.all_future :=
+    have h_assume : DerivationTree FrameClass.Base [ψ.allFuture] ψ.allFuture :=
       DerivationTree.assumption _ _ (by simp)
     exact DerivationTree.modus_ponens _ _ _ h_axiom h_assume
-  have h_sub : ∀ x ∈ [ψ.all_future], x ∈ Omega.carrier := by simp [h_future]
+  have h_sub : ∀ x ∈ [ψ.allFuture], x ∈ Omega.carrier := by simp [h_future]
   exact closure_mcs_deductively_closed Omega.is_mcs h_sub h_deriv h_future_future_clos
 
 /--
@@ -286,25 +286,25 @@ All-past transitivity for closure MCS: Hψ ∈ Omega implies HHψ ∈ Omega.
 
 This uses the derived temporal 4 axiom for past (Hφ → HHφ).
 -/
-theorem mcs_all_past_all_past {phi : Formula Atom}
+theorem mcs_allPast_allPast {phi : Formula Atom}
     {Omega : ClosureMCSBundle phi}
     {ψ : Formula Atom}
-    (h_past : ψ.all_past ∈ Omega.carrier)
-    (h_past_past_clos : ψ.all_past.all_past ∈ closureWithNeg phi) :
-    ψ.all_past.all_past ∈ Omega.carrier := by
+    (h_past : ψ.allPast ∈ Omega.carrier)
+    (h_past_past_clos : ψ.allPast.allPast ∈ closureWithNeg phi) :
+    ψ.allPast.allPast ∈ Omega.carrier := by
   have h_temp_4_past_thm : DerivationTree FrameClass.Base
       ([] : List (Formula Atom))
-      ((ψ.all_past).imp (ψ.all_past.all_past)) :=
+      ((ψ.allPast).imp (ψ.allPast.allPast)) :=
     temp_4_past ψ
   have h_deriv : DerivationTree FrameClass.Base
-      [ψ.all_past] ψ.all_past.all_past := by
+      [ψ.allPast] ψ.allPast.allPast := by
     have h_axiom : DerivationTree FrameClass.Base
-        [ψ.all_past] ((ψ.all_past).imp (ψ.all_past.all_past)) :=
+        [ψ.allPast] ((ψ.allPast).imp (ψ.allPast.allPast)) :=
       DerivationTree.weakening [] _ _ h_temp_4_past_thm (by intro; simp)
-    have h_assume : DerivationTree FrameClass.Base [ψ.all_past] ψ.all_past :=
+    have h_assume : DerivationTree FrameClass.Base [ψ.allPast] ψ.allPast :=
       DerivationTree.assumption _ _ (by simp)
     exact DerivationTree.modus_ponens _ _ _ h_axiom h_assume
-  have h_sub : ∀ x ∈ [ψ.all_past], x ∈ Omega.carrier := by simp [h_past]
+  have h_sub : ∀ x ∈ [ψ.allPast], x ∈ Omega.carrier := by simp [h_past]
   exact closure_mcs_deductively_closed Omega.is_mcs h_sub h_deriv h_past_past_clos
 
 /-!
