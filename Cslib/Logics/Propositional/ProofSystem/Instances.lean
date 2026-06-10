@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Propositional.ProofSystem.Derivation
-import Cslib.Foundations.Logic.ProofSystem
+module
+
+public import Cslib.Logics.Propositional.ProofSystem.Derivation
+public import Cslib.Foundations.Logic.ProofSystem
 
 /-! # Instance Registration for Propositional.HilbertCl
 
@@ -27,6 +29,9 @@ equal to the concrete formulas used in `PropositionalAxiom`.
 * Cslib/Logics/Bimodal/ProofSystem/Instances.lean -- bimodal instance pattern
 * Cslib/Foundations/Logic/ProofSystem.lean -- typeclass hierarchy
 -/
+
+@[expose] public section
+
 
 open Cslib.Logic
 

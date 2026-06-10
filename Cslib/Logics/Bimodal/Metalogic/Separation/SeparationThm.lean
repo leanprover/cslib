@@ -43,13 +43,13 @@ open Cslib.Logic.Bimodal
 
 /-! ## Congruence and Separability Helpers -/
 
-private theorem allPast_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
+theorem allPast_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
     int_equiv (.allPast φ) (.allPast ψ) := by
   intro M t; simp only [int_truth_allPast]; constructor
   · intro hall s hst; exact (h M s).mp (hall s hst)
   · intro hall s hst; exact (h M s).mpr (hall s hst)
 
-private theorem allFuture_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
+theorem allFuture_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
     int_equiv (.allFuture φ) (.allFuture ψ) := by
   intro M t; simp only [int_truth_allFuture]; constructor
   · intro hall s hts; exact (h M s).mp (hall s hts)
@@ -260,7 +260,7 @@ theorem formula_atoms_restrict_subset (φ : Formula Atom) (allowed : Set Atom) :
   | untl ψ₁ ψ₂ ih1 ih2 => unfold restrict_atoms; simp only [formula_atoms]; exact Set.union_subset ih1 ih2
   | snce ψ₁ ψ₂ ih1 ih2 => unfold restrict_atoms; simp only [formula_atoms]; exact Set.union_subset ih1 ih2
 
-private theorem restrict_atoms_S_free (φ : Formula Atom) (allowed : Set Atom)
+theorem restrict_atoms_S_free (φ : Formula Atom) (allowed : Set Atom)
     (h : is_S_free φ = true) : is_S_free (restrict_atoms φ allowed) = true := by
   induction φ with
   | atom _ =>
@@ -274,7 +274,7 @@ private theorem restrict_atoms_S_free (φ : Formula Atom) (allowed : Set Atom)
     simp [is_S_free] at h; unfold restrict_atoms; simp [is_S_free, ih1 h.1, ih2 h.2]
   | snce _ _ => simp [is_S_free] at h
 
-private theorem restrict_atoms_U_free (φ : Formula Atom) (allowed : Set Atom)
+theorem restrict_atoms_U_free (φ : Formula Atom) (allowed : Set Atom)
     (h : is_U_free φ = true) : is_U_free (restrict_atoms φ allowed) = true := by
   induction φ with
   | atom _ =>
@@ -315,7 +315,7 @@ theorem restrict_atoms_preserves_properly_separated (φ : Formula Atom) (allowed
 
 /-- In a model where all non-allowed atoms are universally true,
     `restrict_atoms` agrees semantically with the original formula. -/
-private theorem restrict_atoms_truth (ψ : Formula Atom) (allowed : Set Atom)
+theorem restrict_atoms_truth (ψ : Formula Atom) (allowed : Set Atom)
     (M : IntStructure Atom) (t : ℤ) (h_true : ∀ a, a ∉ allowed → M.val a = Set.univ) :
     int_truth M t (restrict_atoms ψ allowed) ↔ int_truth M t ψ := by
   induction ψ generalizing t with

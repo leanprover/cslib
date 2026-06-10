@@ -78,8 +78,9 @@ Phases are sequential because each builds on the previous: private removal must 
 - [ ] Run `find` + `sed` to replace `private def ` with `def ` across all Logics/ `.lean` files
 - [ ] Run `find` + `sed` to replace `private noncomputable def ` with `noncomputable def ` across all Logics/ `.lean` files
 - [ ] Run `find` + `sed` to replace `private abbrev ` with `abbrev ` across all Logics/ `.lean` files
-- [ ] Verify no `private def` or `private abbrev` remain in Logics/ (excluding LinearLogic `private lemma` which is fine)
-- [ ] Spot-check 3-5 modified files to confirm replacements are correct and no content was corrupted
+- [x] Verify no `private def` or `private abbrev` remain in Logics/ (excluding LinearLogic `private lemma` which is fine)
+- [x] Spot-check 3-5 modified files to confirm replacements are correct and no content was corrupted
+- [x] **Additional**: Remove `private` from `theorem`/`lemma` declarations outside LinearLogic *(deviation: altered -- research report incorrectly stated private theorem works in @[expose] public section; it only works when not referenced by name, e.g., via @[local grind .] attributes. All 202 private theorem/lemma declarations had private removed.)*
 
 **Timing**: 30 minutes
 
@@ -94,7 +95,7 @@ Phases are sequential because each builds on the previous: private removal must 
 
 ---
 
-### Phase 2: Add module keyword to Propositional, Modal, and HML files (21 files) [NOT STARTED]
+### Phase 2: Add module keyword to Propositional, Modal, and HML files (21 files) [COMPLETED]
 
 **Goal**: Apply the `module` + `public import` + `@[expose] public section` transformation to the smaller directories first (Propositional: 5 files, Modal: 6 files, HML: 0 files already done) and verify with `lake build`.
 

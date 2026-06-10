@@ -28,7 +28,7 @@ variable {Atom : Type*}
 /-! ## Classical Logic Helper -/
 
 /-- Helper lemma for extracting conjunction from negated implication encoding. -/
-private theorem and_of_not_imp_not {p q : Prop} (h : (p → q → False) → False) : p ∧ q :=
+theorem and_of_not_imp_not {p q : Prop} (h : (p → q → False) → False) : p ∧ q :=
   ⟨Classical.byContradiction (fun hp => h (fun a _ => hp a)),
    Classical.byContradiction (fun hq => h (fun _ b => hq b))⟩
 

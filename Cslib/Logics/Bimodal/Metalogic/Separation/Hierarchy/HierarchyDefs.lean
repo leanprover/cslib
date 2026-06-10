@@ -525,7 +525,7 @@ theorem abstract_snce_makes_S_free (phi x y : Formula Atom) (p : Atom)
 /-! ### Junction-Depth Monotonicity Lemmas -/
 
 /-- joint 4-way bound relating junction_depth, junction_depth_U, junction_depth_S. -/
-private theorem junction_depth_bounds (φ : Formula Atom) :
+theorem junction_depth_bounds (φ : Formula Atom) :
     junction_depth φ ≤ junction_depth_U φ ∧
     junction_depth φ ≤ junction_depth_S φ ∧
     junction_depth_U φ ≤ 1 + junction_depth φ ∧
@@ -625,7 +625,7 @@ theorem abstract_untl_preserves_separated (phi x y : Formula Atom) (p : Atom)
 /-! ### junction_depth decrease lemmas for abstract_snce -/
 
 /-- abstract_snce does not increase junction_depth, junction_depth_U, or junction_depth_S. -/
-private theorem abstract_snce_jd_le_all (phi x y : Formula Atom) (p : Atom) :
+theorem abstract_snce_jd_le_all (phi x y : Formula Atom) (p : Atom) :
     junction_depth (abstract_snce phi x y p) ≤ junction_depth phi ∧
     junction_depth_U (abstract_snce phi x y p) ≤ junction_depth_U phi ∧
     junction_depth_S (abstract_snce phi x y p) ≤ junction_depth_S phi := by
@@ -893,7 +893,7 @@ theorem replace_untl_args_u_free_eq (ψ x_new y_new : Formula Atom)
     simp [replace_untl_args, ih1 h.1, ih2 h.2]
 
 /-- `replace_untl_args` preserves `is_S_free` when the new arguments are S-free. -/
-private theorem replace_untl_args_preserves_S_free (ψ x_new y_new : Formula Atom)
+theorem replace_untl_args_preserves_S_free (ψ x_new y_new : Formula Atom)
     (h : is_S_free ψ = true) (hx : is_S_free x_new = true) (hy : is_S_free y_new = true) :
     is_S_free (replace_untl_args ψ x_new y_new) = true := by
   induction ψ with

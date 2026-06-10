@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Modal.Metalogic.DeductionTheorem
+module
+
+public import Cslib.Logics.Modal.Metalogic.DeductionTheorem
 
 /-! # Maximal Consistent Sets for S5 Modal Logic
 
@@ -32,6 +34,8 @@ model construction in the completeness theorem.
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean — generic MCS framework
 * BimodalLogic/Theories/Bimodal/Metalogic/Core/MCSProperties.lean — reference pattern
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Modal
 
@@ -82,7 +86,7 @@ theorem modal_negation_complete
 /-! ## Modal-Specific MCS Properties -/
 
 /-- Helper: derive a formula from membership in an MCS using an axiom and MP. -/
-private theorem mcs_mp_axiom
+theorem mcs_mp_axiom
     {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent S)
     {φ ψ : Proposition Atom} (h_mem : φ ∈ S) (h_ax : ModalAxiom (φ.imp ψ)) : ψ ∈ S := by
   apply modal_closed_under_derivation h_mcs (L := [φ]) (fun x hx => by
@@ -190,7 +194,7 @@ derive `□φ ∈ S`.
 
 Uses iterated deduction theorem to get `⊢ ψ` (empty context), necessitation to
 get `⊢ □ψ`, then the chain property to distribute K and get `□φ ∈ S`. -/
-private theorem derive_box_from_box_context
+theorem derive_box_from_box_context
     {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent S)
     {L : List (Proposition Atom)} {φ : Proposition Atom}
     (d : DerivationTree L φ)
@@ -216,7 +220,7 @@ Handles two cases:
   S consistent since L ⊢ ⊥.
 - `¬φ ∈ L`: use deduction theorem to extract φ from the inconsistency via double
   negation, then necessitation + K distribution to get □φ ∈ S. -/
-private theorem derive_box_from_inconsistency
+theorem derive_box_from_inconsistency
     {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent S)
     {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S)
     {L : List (Proposition Atom)}

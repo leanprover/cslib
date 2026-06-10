@@ -111,7 +111,7 @@ section DecEq
 variable [DecidableEq Atom]
 
 /-- Sum.inl atoms are preserved by substitution. -/
-private theorem inl_not_in_substFormula_atoms {a : Atom} {phi : ExtFormula Atom}
+theorem inl_not_in_substFormula_atoms {a : Atom} {phi : ExtFormula Atom}
     (h : Sum.inl a ∉ phi.atoms) : Sum.inl a ∉ (substFormula phi).atoms := by
   induction phi with
   | atom x =>
@@ -137,7 +137,7 @@ private theorem inl_not_in_substFormula_atoms {a : Atom} {phi : ExtFormula Atom}
 end DecEq
 
 /-- Subset preserved under substFormula map. -/
-private theorem map_substFormula_subset {Gamma Delta : ExtContext Atom}
+theorem map_substFormula_subset {Gamma Delta : ExtContext Atom}
     (h : Gamma ⊆ Delta) : Gamma.map substFormula ⊆ Delta.map substFormula := by
   intro x hx
   rw [List.mem_map] at hx ⊢
@@ -279,7 +279,7 @@ def substAxiomFresh (a : Atom) {φ : ExtFormula Atom} (h : ExtAxiom φ) :
   | dense_indicator => exact .dense_indicator
 
 /-- substFreshWith preserves minFrameClass. -/
-private theorem substAxiomFresh_preserves_minFrameClass (a : Atom) {φ : ExtFormula Atom}
+theorem substAxiomFresh_preserves_minFrameClass (a : Atom) {φ : ExtFormula Atom}
     (h : ExtAxiom φ) : (substAxiomFresh a h).minFrameClass = h.minFrameClass := by
   cases h <;> rfl
 
@@ -349,12 +349,12 @@ theorem unembed_swapTemporal (φ : ExtFormula Atom) :
     simp [ExtFormula.swapTemporal, Formula.swapTemporal, unembedFormula, ih1, ih2]
 
 /-- Membership preserved under unembedFormula map. -/
-private theorem mem_map_unembedFormula {Gamma : ExtContext Atom} {phi : ExtFormula Atom}
+theorem mem_map_unembedFormula {Gamma : ExtContext Atom} {phi : ExtFormula Atom}
     (h : phi ∈ Gamma) : unembedFormula phi ∈ Gamma.map unembedFormula :=
   List.mem_map_of_mem (f := unembedFormula) h
 
 /-- Subset preserved under unembedFormula map. -/
-private theorem map_unembed_subset {Gamma Delta : ExtContext Atom}
+theorem map_unembed_subset {Gamma Delta : ExtContext Atom}
     (h : Gamma ⊆ Delta) : Gamma.map unembedFormula ⊆ Delta.map unembedFormula := by
   intro x hx
   rw [List.mem_map] at hx ⊢
@@ -420,7 +420,7 @@ def collectInl : ExtFormula Atom → Finset Atom
   | ExtFormula.untl φ ψ => collectInl φ ∪ collectInl ψ
   | ExtFormula.snce φ ψ => collectInl φ ∪ collectInl ψ
 
-private theorem inl_mem_implies_collectInl {a : Atom} {φ : ExtFormula Atom}
+theorem inl_mem_implies_collectInl {a : Atom} {φ : ExtFormula Atom}
     (h : Sum.inl a ∈ φ.atoms) : a ∈ collectInl φ := by
   induction φ with
   | atom x => cases x with
@@ -457,7 +457,7 @@ noncomputable def collectDerivInl {fc : FrameClass} :
     collectInl φ ∪ collectDerivInl d ∪ Δ.foldl (fun acc ψ => acc ∪ collectInl ψ) ∅
 
 /-- Subderivation atoms are included in parent atoms (monotonicity lemmas). -/
-private theorem collectDerivInl_sub_modus_ponens_left {fc : FrameClass}
+theorem collectDerivInl_sub_modus_ponens_left {fc : FrameClass}
     {Γ : ExtContext Atom} {a b : ExtFormula Atom}
     {d1 : ExtDerivationTree fc Γ (a.imp b)}
     {d2 : ExtDerivationTree fc Γ a} :
@@ -465,7 +465,7 @@ private theorem collectDerivInl_sub_modus_ponens_left {fc : FrameClass}
       collectDerivInl (ExtDerivationTree.modus_ponens Γ a b d1 d2) := by
   intro x hx; simp only [collectDerivInl, Finset.mem_union]; tauto
 
-private theorem collectDerivInl_sub_modus_ponens_right {fc : FrameClass}
+theorem collectDerivInl_sub_modus_ponens_right {fc : FrameClass}
     {Γ : ExtContext Atom} {a b : ExtFormula Atom}
     {d1 : ExtDerivationTree fc Γ (a.imp b)}
     {d2 : ExtDerivationTree fc Γ a} :
@@ -473,25 +473,25 @@ private theorem collectDerivInl_sub_modus_ponens_right {fc : FrameClass}
       collectDerivInl (ExtDerivationTree.modus_ponens Γ a b d1 d2) := by
   intro x hx; simp only [collectDerivInl, Finset.mem_union]; tauto
 
-private theorem collectDerivInl_sub_nec {fc : FrameClass}
+theorem collectDerivInl_sub_nec {fc : FrameClass}
     {φ : ExtFormula Atom} {d : ExtDerivationTree fc [] φ} :
     collectDerivInl d ⊆
       collectDerivInl (ExtDerivationTree.necessitation φ d) := by
   intro x hx; simp only [collectDerivInl, Finset.mem_union]; tauto
 
-private theorem collectDerivInl_sub_tnec {fc : FrameClass}
+theorem collectDerivInl_sub_tnec {fc : FrameClass}
     {φ : ExtFormula Atom} {d : ExtDerivationTree fc [] φ} :
     collectDerivInl d ⊆
       collectDerivInl (ExtDerivationTree.temporal_necessitation φ d) := by
   intro x hx; simp only [collectDerivInl, Finset.mem_union]; tauto
 
-private theorem collectDerivInl_sub_tdual {fc : FrameClass}
+theorem collectDerivInl_sub_tdual {fc : FrameClass}
     {φ : ExtFormula Atom} {d : ExtDerivationTree fc [] φ} :
     collectDerivInl d ⊆
       collectDerivInl (ExtDerivationTree.temporal_duality φ d) := by
   intro x hx; simp only [collectDerivInl, Finset.mem_union]; tauto
 
-private theorem collectDerivInl_sub_weak {fc : FrameClass}
+theorem collectDerivInl_sub_weak {fc : FrameClass}
     {Γ Δ : ExtContext Atom} {φ : ExtFormula Atom}
     {d : ExtDerivationTree fc Γ φ} {h : Γ ⊆ Δ} :
     collectDerivInl d ⊆
@@ -500,7 +500,7 @@ private theorem collectDerivInl_sub_weak {fc : FrameClass}
 
 /-- For any Finset of atoms, there exists an atom not in it.
 Requires `[Infinite Atom]`. -/
-private theorem exists_fresh_atom [Infinite Atom]
+theorem exists_fresh_atom [Infinite Atom]
     (s : Finset Atom) : ∃ a : Atom, a ∉ s :=
   Infinite.exists_notMem_finset s
 
@@ -511,7 +511,7 @@ Key lemma: if `t ≠ a` and `Sum.inl t ∉ phi.atoms`,
 then `Sum.inl t ∉ (substFreshWith a phi).atoms`.
 -/
 
-private theorem substFreshWith_preserves_irr_fresh {a t : Atom}
+theorem substFreshWith_preserves_irr_fresh {a t : Atom}
     {phi : ExtFormula Atom}
     (h : Sum.inl t ∉ phi.atoms) (h_ne : t ≠ a) :
     Sum.inl t ∉ (substFreshWith a phi).atoms := by
@@ -537,7 +537,7 @@ private theorem substFreshWith_preserves_irr_fresh {a t : Atom}
     exact ⟨iha h.1, ihb h.2⟩
 
 /-- Subset preserved under substFreshWith map. -/
-private theorem map_substFreshWith_subset (a : Atom) {Gamma Delta : ExtContext Atom}
+theorem map_substFreshWith_subset (a : Atom) {Gamma Delta : ExtContext Atom}
     (h : Gamma ⊆ Delta) :
     Gamma.map (substFreshWith a) ⊆ Delta.map (substFreshWith a) := by
   intro x hx; rw [List.mem_map] at hx ⊢
@@ -556,17 +556,17 @@ def liftFormula (a : Atom) (φ : ExtFormula Atom) : Formula Atom :=
   unembedFormula (substFreshWith a φ)
 
 /-- liftFormula preserves embedFormula (embedded formulas are q-free). -/
-private theorem liftFormula_embed (a : Atom) (φ : Formula Atom) :
+theorem liftFormula_embed (a : Atom) (φ : Formula Atom) :
     liftFormula a (embedFormula φ) = φ := by
   simp [liftFormula, substFreshWith_of_embedded, unembed_embed]
 
 /-- liftFormula distributes over imp. -/
-private theorem liftFormula_imp (a : Atom) (x y : ExtFormula Atom) :
+theorem liftFormula_imp (a : Atom) (x y : ExtFormula Atom) :
     liftFormula a (x.imp y) = (liftFormula a x).imp (liftFormula a y) := by
   simp [liftFormula, substFreshWith, unembedFormula]
 
 /-- liftFormula distributes over swapTemporal. -/
-private theorem liftFormula_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
+theorem liftFormula_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
     liftFormula a φ.swapTemporal = (liftFormula a φ).swapTemporal := by
   simp [liftFormula, substFreshWith_swapTemporal, unembed_swapTemporal]
 
@@ -618,7 +618,7 @@ def liftAxiom (a : Atom) {φ : ExtFormula Atom} (h : ExtAxiom φ) :
   | dense_indicator => exact .dense_indicator
 
 /-- liftAxiom preserves minFrameClass. -/
-private theorem liftAxiom_preserves_minFrameClass (a : Atom) {φ : ExtFormula Atom}
+theorem liftAxiom_preserves_minFrameClass (a : Atom) {φ : ExtFormula Atom}
     (h : ExtAxiom φ) : (liftAxiom a h).minFrameClass = h.minFrameClass := by
   cases h <;> rfl
 

@@ -163,7 +163,7 @@ theorem temporal_k_preserves_swap_valid (φ : Formula Atom)
   exact h_neg (h ℱ M Omega h_sc τ h_mem s)
 
 /-- Helper: extract conjunction from double-negation-of-implication encoding. -/
-private theorem and_extract {p q : Prop} (h : (p → q → False) → False) : p ∧ q :=
+theorem and_extract {p q : Prop} (h : (p → q → False) → False) : p ∧ q :=
   ⟨Classical.byContradiction (fun hp => h (fun a _ => hp a)),
    Classical.byContradiction (fun hq => h (fun _ b => hq b))⟩
 
@@ -736,7 +736,7 @@ theorem axiom_modal_future_valid (φ : Formula Atom) :
   exact h_neg_φ_s ((TimeShift.time_shift_preserves_truth M Omega h_sc σ t s φ).mp h_phi_at_shifted)
 
 /-- All dense-compatible axioms are locally valid on dense orders. -/
-private theorem axiom_locally_valid [DenselyOrdered D] [Nontrivial D] {φ : Formula Atom} (h : Axiom φ)
+theorem axiom_locally_valid [DenselyOrdered D] [Nontrivial D] {φ : Formula Atom} (h : Axiom φ)
     (h_fc : h.minFrameClass ≤ FrameClass.Dense) : is_valid D φ := by
   cases h with
   | imp_k φ ψ χ => exact axiom_prop_k_valid φ ψ χ

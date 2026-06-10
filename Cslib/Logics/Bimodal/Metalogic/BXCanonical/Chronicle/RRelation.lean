@@ -712,7 +712,7 @@ If D is `ClosedUnderDerivation` and not `SetConsistent`, then D = Set.univ.
 Proof: ¬SetConsistent gives ∃ L ⊆ D, DerivationTree L ⊥. By closure, ⊥ ∈ D.
 Then for any φ, DerivationTree [⊥] φ (ex falso), so φ ∈ D.
 -/
-private theorem closed_under_derivation_inconsistent_eq_univ (fc : FrameClass)
+theorem closed_under_derivation_inconsistent_eq_univ (fc : FrameClass)
     {D : Set (Formula Atom)} (h_cud : ClosedUnderDerivation fc D) (h_not_cons : ¬SetConsistent fc D) :
     D = Set.univ := by
   -- ¬SetConsistent fc D means ∃ L ⊆ D with Nonempty (DerivationTree fc L ⊥).
@@ -1231,7 +1231,7 @@ we need proof-theoretic bridges for the structural identities used in the Burges
 
 /-- In an MCS, `neg (allPast (neg α)) ∈ M` implies `somePast α ∈ M`.
     Derives `P(α)` from `¬H(¬α)` via BX3' (right_mono_since) + DNE. -/
-private theorem neg_allPast_neg_to_somePast (fc : FrameClass) {M : Set (Formula Atom)}
+theorem neg_allPast_neg_to_somePast (fc : FrameClass) {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc M) (α : Formula Atom)
     (h : Formula.neg (Formula.allPast (Formula.neg α)) ∈ M) :
     Formula.somePast α ∈ M := by
@@ -1257,7 +1257,7 @@ private theorem neg_allPast_neg_to_somePast (fc : FrameClass) {M : Set (Formula 
 
 /-- In an MCS, `neg (allFuture (neg γ)) ∈ M` implies `someFuture γ ∈ M`.
     Derives `F(γ)` from `¬G(¬γ)` via BX3 (right_mono_until) + DNE. -/
-private theorem neg_allFuture_neg_to_someFuture (fc : FrameClass) {M : Set (Formula Atom)}
+theorem neg_allFuture_neg_to_someFuture (fc : FrameClass) {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc M) (γ : Formula Atom)
     (h : Formula.neg (Formula.allFuture (Formula.neg γ)) ∈ M) :
     Formula.someFuture γ ∈ M := by
@@ -1279,7 +1279,7 @@ private theorem neg_allFuture_neg_to_someFuture (fc : FrameClass) {M : Set (Form
 
 /-- F(H(¬α)) ∈ M and G(P(α)) ∈ M are contradictory in an MCS.
     Derives `G(¬H(¬α))` from `G(P(α))` via `⊢ P(α) → ¬H(¬α)`. -/
-private theorem someFuture_H_neg_G_P_absurd (fc : FrameClass) {M : Set (Formula Atom)}
+theorem someFuture_H_neg_G_P_absurd (fc : FrameClass) {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc M) (α : Formula Atom)
     (h_F : Formula.someFuture (Formula.allPast (Formula.neg α)) ∈ M)
     (h_GP : Formula.allFuture (Formula.somePast α) ∈ M) : False := by
@@ -1315,7 +1315,7 @@ private theorem someFuture_H_neg_G_P_absurd (fc : FrameClass) {M : Set (Formula 
 
 /-- P(G(¬γ)) ∈ M and H(F(γ)) ∈ M are contradictory in an MCS.
     Derives `H(¬G(¬γ))` from `H(F(γ))` via `⊢ F(γ) → ¬G(¬γ)`. -/
-private theorem somePast_G_neg_H_F_absurd (fc : FrameClass) {M : Set (Formula Atom)}
+theorem somePast_G_neg_H_F_absurd (fc : FrameClass) {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc M) (γ : Formula Atom)
     (h_P : Formula.somePast (Formula.allFuture (Formula.neg γ)) ∈ M)
     (h_HF : Formula.allPast (Formula.someFuture γ) ∈ M) : False := by

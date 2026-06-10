@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
+module
+
+public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
 
 /-! # Natural Deduction Rules as Hilbert Wrappers
 
@@ -41,6 +43,8 @@ the standalone `NaturalDeduction/Basic.lean`.
 * Cslib/Logics/Propositional/NaturalDeduction/Basic.lean -- standalone ND system
 * Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean -- deduction theorem
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.PL
 
@@ -172,7 +176,7 @@ def hilbert_weakening_deriv
 /-! ## Substitution -/
 
 /-- Helper: axiom schemata are preserved under substitution. -/
-private theorem subst_preserves_axiom
+theorem subst_preserves_axiom
     {Atom : Type u} {Atom' : Type u}
     {φ : PL.Proposition Atom}
     (h : PropositionalAxiom φ) (f : Atom → PL.Proposition Atom') :

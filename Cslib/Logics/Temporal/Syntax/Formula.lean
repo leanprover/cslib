@@ -134,14 +134,14 @@ noncomputable def encodeNat [Encodable Atom] : Formula Atom → ℕ
   | .untl φ ψ => Nat.pair 3 (Nat.pair φ.encodeNat ψ.encodeNat)
   | .snce φ ψ => Nat.pair 4 (Nat.pair φ.encodeNat ψ.encodeNat)
 
-private theorem nat_pair_inj {a b c d : ℕ} (h : Nat.pair a b = Nat.pair c d) :
+theorem nat_pair_inj {a b c d : ℕ} (h : Nat.pair a b = Nat.pair c d) :
     a = c ∧ b = d := by
   have := congr_arg Nat.unpair h
   simp only [Nat.unpair_pair] at this
   exact Prod.mk.inj this
 
 /-- The encoding is injective. -/
-private theorem encodeNat_injective [Encodable Atom] :
+theorem encodeNat_injective [Encodable Atom] :
     Function.Injective (encodeNat (Atom := Atom)) := by
   intro φ ψ h
   induction φ generalizing ψ with
@@ -219,15 +219,15 @@ variable {Atom : Type*} [BEq Atom]
 namespace Formula
 
 /-- Helper: BEq on imp reduces to component BEq. -/
-private theorem beq_imp_eq (a b c d : Formula Atom) :
+theorem beq_imp_eq (a b c d : Formula Atom) :
     (imp a b == imp c d) = ((a == c) && (b == d)) := rfl
 
 /-- Helper: BEq on untl reduces to component BEq. -/
-private theorem beq_untl_eq (a b c d : Formula Atom) :
+theorem beq_untl_eq (a b c d : Formula Atom) :
     (untl a b == untl c d) = ((a == c) && (b == d)) := rfl
 
 /-- Helper: BEq on snce reduces to component BEq. -/
-private theorem beq_snce_eq (a b c d : Formula Atom) :
+theorem beq_snce_eq (a b c d : Formula Atom) :
     (snce a b == snce c d) = ((a == c) && (b == d)) := rfl
 
 /-- BEq on Formula is reflexive. -/

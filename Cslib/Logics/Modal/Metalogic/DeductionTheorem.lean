@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Modal.Metalogic.DerivationTree
+module
+
+public import Cslib.Logics.Modal.Metalogic.DerivationTree
 
 /-! # Deduction Theorem for S5 Modal Logic
 
@@ -35,6 +37,8 @@ impossible when the context is non-empty.
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Modal
 
 open Cslib.Logic
@@ -49,7 +53,7 @@ attribute [local instance] Classical.propDecidable
 def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
   l.filter (· ≠ a)
 
-private theorem removeAll_subset_of_subset [DecidableEq α] {A : α} {Γ' Δ : List α}
+theorem removeAll_subset_of_subset [DecidableEq α] {A : α} {Γ' Δ : List α}
     (h_sub : ∀ x ∈ Γ', x ∈ A :: Δ) (h_mem : A ∈ Γ') :
     ∀ x ∈ removeAll Γ' A, x ∈ Δ := by
   intro x hx
@@ -61,12 +65,12 @@ private theorem removeAll_subset_of_subset [DecidableEq α] {A : α} {Γ' Δ : L
   · exact absurd rfl hx_ne
   · exact h
 
-private theorem mem_removeAll_of_mem_of_ne [DecidableEq α] {a x : α} {l : List α}
+theorem mem_removeAll_of_mem_of_ne [DecidableEq α] {a x : α} {l : List α}
     (h_mem : x ∈ l) (h_ne : x ≠ a) : x ∈ removeAll l a := by
   simp [removeAll, List.mem_filter]
   exact ⟨h_mem, h_ne⟩
 
-private theorem removeAll_subset_removeAll [DecidableEq α] {a : α} {l₁ l₂ : List α}
+theorem removeAll_subset_removeAll [DecidableEq α] {a : α} {l₁ l₂ : List α}
     (h : ∀ x ∈ l₁, x ∈ l₂) : ∀ x ∈ removeAll l₁ a, x ∈ removeAll l₂ a := by
   intro x hx
   simp [removeAll, List.mem_filter] at hx ⊢

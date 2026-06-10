@@ -246,7 +246,7 @@ theorem conj_mcs (fc : FrameClass) {A : Set (Formula Atom)}
 
 /-- MCS disjunction elimination (local version): If (φ ∨ ψ) ∈ A then φ ∈ A ∨ ψ ∈ A.
 Recall φ.or ψ = φ.neg.imp ψ. -/
-private theorem or_elim_mcs (fc : FrameClass) {A : Set (Formula Atom)}
+theorem or_elim_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A) {φ ψ : Formula Atom}
     (h : (φ.or ψ) ∈ A) : φ ∈ A ∨ ψ ∈ A := by
   rcases SetMaximalConsistent.negation_complete h_mcs φ with h_φ | h_neg_φ
@@ -859,7 +859,7 @@ noncomputable def ex_falso_from_assumption (fc : FrameClass) (φ ψ : Formula At
   exact deduction_theorem [] φ _ (deduction_theorem [φ] φ.neg ψ h2)
 
 /-- Helper: G(φ.neg → ψ) ∈ A from G(φ) ∈ A, using ex_falso_from_assumption + TG + temp_k_dist. -/
-private theorem G_ex_falso_strengthen (fc : FrameClass) {A : Set (Formula Atom)}
+theorem G_ex_falso_strengthen (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A) (φ ψ : Formula Atom)
     (h_Gφ : Formula.allFuture φ ∈ A) :
     (φ.neg.imp ψ).allFuture ∈ A := by
@@ -871,7 +871,7 @@ private theorem G_ex_falso_strengthen (fc : FrameClass) {A : Set (Formula Atom)}
     h_Gφ
 
 /-- Helper: H(ψ.neg → χ) ∈ C from H(ψ) ∈ C, using ex_falso_from_assumption + past_necessitation + past_k_dist. -/
-private theorem H_ex_falso_strengthen (fc : FrameClass) {C : Set (Formula Atom)}
+theorem H_ex_falso_strengthen (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs_C : SetMaximalConsistent fc C) (ψ χ : Formula Atom)
     (h_Hψ : Formula.allPast ψ ∈ C) :
     (ψ.neg.imp χ).allPast ∈ C := by
@@ -885,7 +885,7 @@ private theorem H_ex_falso_strengthen (fc : FrameClass) {C : Set (Formula Atom)}
 /-- When {φ} ∪ B is inconsistent with DCS B, we have φ.neg ∈ B.
 Proof: ¬SetConsistent means ∃ derivation of ⊥ from {φ} ∪ B.
 By deduction theorem: derivation of φ.neg from B. By closure: φ.neg ∈ B. -/
-private theorem neg_mem_of_inconsistent_union (fc : FrameClass) {B : Set (Formula Atom)}
+theorem neg_mem_of_inconsistent_union (fc : FrameClass) {B : Set (Formula Atom)}
     (h_cud : ClosedUnderDerivation fc B)
     {φ : Formula Atom} (h_not_cons : ¬SetConsistent fc ({φ} ∪ B)) :
     φ.neg ∈ B := by
@@ -946,7 +946,7 @@ then burgessR3(A, Set.univ, C). The argument: from φ.neg ∈ B and G(φ) ∈ A,
 for any ψ: G(φ.neg → ψ) ∈ A (ex falso), then untl_left_mono_G fc gives
 untl(ψ, γ) ∈ A from untl(φ.neg, γ) ∈ A. This gives burgessRSet for Set.univ.
 burgessR_implies_burgessRSince fc gives the Since direction. -/
-private theorem burgessR3_univ_of_inconsistent_ext (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem burgessR3_univ_of_inconsistent_ext (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A) (h_mcs_C : SetMaximalConsistent fc C)
     (h_r3 : burgessR3 A B C)
     {φ : Formula Atom} (h_Gφ : Formula.allFuture φ ∈ A)
@@ -1010,7 +1010,7 @@ Proof: Suppose G(ψ) ∈ A and ψ ∉ B. Then ¬ψ ∈ B (MCS). By BX4' (connect
 ¬ψ → H(F(¬ψ)), so H(F(¬ψ)) ∈ B, hence F(¬ψ) ∈ h_content(B) ⊆ A.
 But F(¬ψ) = ¬G(ψ^{nn}), so G(ψ^{nn}) ∉ A. Yet G(ψ) → G(ψ^{nn}) by DNI
 + temporal necessitation + K distribution, contradiction. -/
-private theorem h_content_sub_imp_g_content_sub' (fc : FrameClass) {A B : Set (Formula Atom)}
+theorem h_content_sub_imp_g_content_sub' (fc : FrameClass) {A B : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A) (h_mcs_B : SetMaximalConsistent fc B)
     (h_hBA : h_content B ⊆ A) :
     g_content A ⊆ B := by
@@ -1043,7 +1043,7 @@ private theorem h_content_sub_imp_g_content_sub' (fc : FrameClass) {A B : Set (F
   exact someFuture_allFuture_neg_absurd h_mcs_A ψ.neg h_F_neg_ψ_A h_G_nn
 
 /-- g_content(A) ⊆ B implies h_content(B) ⊆ A for MCS A, B. Dual of above. -/
-private theorem g_content_sub_imp_h_content_sub' (fc : FrameClass) {A B : Set (Formula Atom)}
+theorem g_content_sub_imp_h_content_sub' (fc : FrameClass) {A B : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A) (h_mcs_B : SetMaximalConsistent fc B)
     (h_gAB : g_content A ⊆ B) :
     h_content B ⊆ A := by
@@ -1118,7 +1118,7 @@ So we obtain `beta₀ ∈ B`, `gamma₀ ∈ C` with `¬U(beta₀∧eta, gamma₀
 
 /-- Helper: BX3 (right_mono_until) at MCS level. If ⊢ ψ → χ and
 U(φ, ψ) ∈ A, then U(φ, χ) ∈ A. -/
-private theorem right_mono_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
+theorem right_mono_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A) {φ ψ χ : Formula Atom}
     (h_impl : DerivationTree fc [] (ψ.imp χ))
     (h_untl : Formula.untl ψ φ ∈ A) :
@@ -1133,7 +1133,7 @@ private theorem right_mono_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
       (theorem_in_mcs_fc h_mcs h_bx3) h_G_impl) h_untl
 
 /-- Right monotonicity for Since at MCS level: if ⊢ ψ→χ and S(φ,ψ) ∈ C, then S(φ,χ) ∈ C. -/
-private theorem right_mono_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
+theorem right_mono_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc C) {φ ψ χ : Formula Atom}
     (h_impl : DerivationTree fc [] (ψ.imp χ))
     (h_snce : Formula.snce ψ φ ∈ C) :
@@ -1149,7 +1149,7 @@ private theorem right_mono_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
 
 /-- BX13 (enrichment_until) at MCS level: If p ∈ A and untl(phi, psi) ∈ A,
 then untl(phi, psi ∧ snce(phi, p)) ∈ A. -/
-private theorem enrichment_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
+theorem enrichment_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A) {phi psi p : Formula Atom}
     (h_p : p ∈ A)
     (h_untl : Formula.untl psi phi ∈ A) :
@@ -1161,7 +1161,7 @@ private theorem enrichment_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
 
 /-- BX10 (until_F) at MCS level: If untl(phi, psi) ∈ A, then F(psi) ∈ A.
 Alias for `until_F_mcs` for local use. -/
-private theorem until_implies_F_mcs (fc : FrameClass) {A : Set (Formula Atom)}
+theorem until_implies_F_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A) {phi psi : Formula Atom}
     (h_untl : Formula.untl psi phi ∈ A) :
     Formula.someFuture psi ∈ A :=
@@ -1170,7 +1170,7 @@ private theorem until_implies_F_mcs (fc : FrameClass) {A : Set (Formula Atom)}
 /-- F-monotonicity at MCS level: If ⊢ phi → psi and F(phi) ∈ A, then F(psi) ∈ A.
 F(phi) = ¬G(¬phi). From ⊢ phi → psi we get ⊢ ¬psi → ¬phi, then G(¬psi) → G(¬phi),
 so ¬G(¬phi) → ¬G(¬psi), i.e., F(phi) → F(psi). -/
-private theorem F_mono_mcs (fc : FrameClass) {A : Set (Formula Atom)}
+theorem F_mono_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A) {phi psi : Formula Atom}
     (h_impl : DerivationTree fc [] (phi.imp psi))
     (h_F : Formula.someFuture phi ∈ A) :
@@ -1243,7 +1243,7 @@ noncomputable def derivation_from_implied (fc : FrameClass) (Γ : Context Atom) 
 there exist premises in S deriving φ), and L ⊢ ⊥, then S is inconsistent.
 Contrapositive: if S is consistent, then no L derived from S can derive ⊥,
 hence the set of formulas implied by S is consistent. -/
-private theorem inconsistent_from_implied (fc : FrameClass) {Sig : Set (Formula Atom)}
+theorem inconsistent_from_implied (fc : FrameClass) {Sig : Set (Formula Atom)}
     (h_cons : SetConsistent fc Sig)
     (L : List (Formula Atom)) (hL : ∀ φ ∈ L, φ ∈ Sig)
     (d : Nonempty (DerivationTree fc L Formula.bot)) : False :=
@@ -1284,7 +1284,7 @@ noncomputable def list_conj_implies_elem (fc : FrameClass) :
       exact imp_trans h_right h_rec
 
 /-- If B is DCS and all elements of L are in B, then list_conj L ∈ B. -/
-private theorem list_conj_mem_dcs (fc : FrameClass) {B : Set (Formula Atom)} (h_dcs : ClosedUnderDerivation fc B) :
+theorem list_conj_mem_dcs (fc : FrameClass) {B : Set (Formula Atom)} (h_dcs : ClosedUnderDerivation fc B) :
     (L : List (Formula Atom)) → (h : ∀ φ ∈ L, φ ∈ B) → list_conj fc L ∈ B
   | [], _ => cud_contains_theorems h_dcs (identity (Formula.bot : Formula Atom))
   | [φ], h => by simp [list_conj]; exact h φ (List.mem_singleton.mpr rfl)
@@ -1297,7 +1297,7 @@ private theorem list_conj_mem_dcs (fc : FrameClass) {B : Set (Formula Atom)} (h_
     exact cud_conj_closed h_dcs h1 h2
 
 /-- If A is MCS and all elements of L are in A, then list_conj L ∈ A. -/
-private theorem list_conj_mem_mcs (fc : FrameClass) {A : Set (Formula Atom)} (h_mcs : SetMaximalConsistent fc A) :
+theorem list_conj_mem_mcs (fc : FrameClass) {A : Set (Formula Atom)} (h_mcs : SetMaximalConsistent fc A) :
     (L : List (Formula Atom)) → (h : ∀ φ ∈ L, φ ∈ A) → list_conj fc L ∈ A
   | [], _ => theorem_in_mcs_fc h_mcs (identity (Formula.bot : Formula Atom))
   | [φ], h => by simp [list_conj]; exact h φ (List.mem_singleton.mpr rfl)
@@ -1310,7 +1310,7 @@ private theorem list_conj_mem_mcs (fc : FrameClass) {A : Set (Formula Atom)} (h_
     exact conj_mcs fc h_mcs φ₁ (list_conj fc (φ₂ :: rest)) h1 h2
 
 /-- If F(φ)∈A (MCS), then {φ} is consistent. -/
-private theorem consistent_of_F_mem (fc : FrameClass) {A : Set (Formula Atom)}
+theorem consistent_of_F_mem (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A)
     (φ : Formula Atom) (h_F : Formula.someFuture φ ∈ A) :
     SetConsistent fc ({φ} : Set (Formula Atom)) := by
@@ -1319,7 +1319,7 @@ private theorem consistent_of_F_mem (fc : FrameClass) {A : Set (Formula Atom)}
   exact SetConsistent_of_subset (Set.subset_union_left) h_seed
 
 /-- If {φ} is consistent and [φ] ⊢ ⊥, then False. -/
-private theorem inconsistent_singleton_false (fc : FrameClass) {φ : Formula Atom}
+theorem inconsistent_singleton_false (fc : FrameClass) {φ : Formula Atom}
     (h_cons : SetConsistent fc ({φ} : Set (Formula Atom)))
     (d : DerivationTree fc [φ] Formula.bot) : False :=
   h_cons [φ] (fun ψ hψ => by simp [List.mem_singleton] at hψ; subst hψ; exact Set.mem_singleton _) ⟨d⟩
@@ -1363,7 +1363,7 @@ noncomputable def snce_right_mono_deriv (fc : FrameClass) (φ ψ χ : Formula At
 
 /-- BX13' (enrichment_since) at MCS level: If p ∈ C and snce(phi, psi) ∈ C,
 then snce(phi, psi ∧ untl(phi, p)) ∈ C. -/
-private theorem enrichment_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
+theorem enrichment_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc C) {phi psi p : Formula Atom}
     (h_p : p ∈ C)
     (h_snce : Formula.snce psi phi ∈ C) :
@@ -1374,14 +1374,14 @@ private theorem enrichment_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
     (theorem_in_mcs_fc h_mcs h_bx13) h_conj
 
 /-- BX10' (since_P) at MCS level: If snce(phi, psi) ∈ C, then P(psi) ∈ C. -/
-private theorem since_implies_P_mcs (fc : FrameClass) {C : Set (Formula Atom)}
+theorem since_implies_P_mcs (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc C) {phi psi : Formula Atom}
     (h_snce : Formula.snce psi phi ∈ C) :
     Formula.somePast psi ∈ C :=
   since_implies_P_in_mcs fc h_mcs h_snce
 
 /-- If P(φ)∈C (MCS), then {φ} is consistent. -/
-private theorem consistent_of_P_mem (fc : FrameClass) {C : Set (Formula Atom)}
+theorem consistent_of_P_mem (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc C)
     (φ : Formula Atom) (h_P : Formula.somePast φ ∈ C) :
     SetConsistent fc ({φ} : Set (Formula Atom)) := by
@@ -1390,7 +1390,7 @@ private theorem consistent_of_P_mem (fc : FrameClass) {C : Set (Formula Atom)}
 
 /-- P-monotonicity at MCS level: If ⊢ phi → psi and P(phi) ∈ C, then P(psi) ∈ C.
 Mirror of F_mono_mcs fc using H instead of G. -/
-private theorem P_mono_mcs (fc : FrameClass) {C : Set (Formula Atom)}
+theorem P_mono_mcs (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc C) {phi psi : Formula Atom}
     (h_impl : DerivationTree fc [] (phi.imp psi))
     (h_P : Formula.somePast phi ∈ C) :
@@ -1901,7 +1901,7 @@ noncomputable def l27_a_event_list (fc : FrameClass) {A B C : Set (Formula Atom)
     else none)
 
 /-- Elements of l27_a_event_list are in A. -/
-private theorem l27_a_event_list_mem (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem l27_a_event_list_mem (fc : FrameClass) {A B C : Set (Formula Atom)}
     {xi eta : Formula Atom} {L : List (Formula Atom)}
     {hL : ∀ φ ∈ L, φ ∈ lemma_2_7_seed fc A B C xi eta}
     {α : Formula Atom} (hα : α ∈ l27_a_event_list fc xi eta L hL) : α ∈ A := by
@@ -1915,7 +1915,7 @@ private theorem l27_a_event_list_mem (fc : FrameClass) {A B C : Set (Formula Ato
   · simp at h_eq
 
 /-- If φ ∈ L ∩ B then φ is in l27_collect_guards output. -/
-private theorem l27_collect_guards_mem_of_B (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem l27_collect_guards_mem_of_B (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation fc B) (xi eta : Formula Atom) :
     (L : List (Formula Atom)) →
     (hL : ∀ φ ∈ L, φ ∈ lemma_2_7_seed fc A B C xi eta) →
@@ -1929,13 +1929,13 @@ private theorem l27_collect_guards_mem_of_B (fc : FrameClass) {A B C : Set (Form
     · right; exact l27_collect_guards_mem_of_B fc h_dcs xi eta rest _ φ h_rest h_B
 
 /-- Formula.and is injective in the first argument. -/
-private theorem formula_and_left_cancel (fc : FrameClass) {a b c : Formula Atom}
+theorem formula_and_left_cancel (fc : FrameClass) {a b c : Formula Atom}
     (h : Formula.and a c = Formula.and b c) : a = b := by
   simp only [Formula.and, Formula.neg] at h
   exact (Formula.imp.injEq _ _ _ _ |>.mp (Formula.imp.injEq _ _ _ _ |>.mp h).1).1
 
 /-- l27_guard for snce(β'∧xi,α') when snce(β'∧xi,α') ∉ B returns β'. -/
-private theorem l27_guard_snce_xi_val (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem l27_guard_snce_xi_val (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation fc B) (xi eta β' α' : Formula Atom)
     (h_seed : Formula.snce α' (Formula.and β' xi) ∈ lemma_2_7_seed fc A B C xi eta)
     (h_not_B : Formula.snce α' (Formula.and β' xi) ∉ B)
@@ -1960,7 +1960,7 @@ private theorem l27_guard_snce_xi_val (fc : FrameClass) {A B C : Set (Formula At
 
 /-- If snce(β'∧xi,α') ∈ L with β'∈B, α'∈A, snce(β'∧xi,α') ∉ B,
 then β' is in the guard list. -/
-private theorem l27_collect_guards_mem_of_snce_xi (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem l27_collect_guards_mem_of_snce_xi (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation fc B) (xi eta : Formula Atom) :
     (L : List (Formula Atom)) →
     (hL : ∀ φ ∈ L, φ ∈ lemma_2_7_seed fc A B C xi eta) →
@@ -1980,7 +1980,7 @@ private theorem l27_collect_guards_mem_of_snce_xi (fc : FrameClass) {A B C : Set
 
 /-- If snce(β'∧xi,α') ∈ L with β'∈B, α'∈A, and appropriate conditions,
 then α' ∈ l27_a_event_list. -/
-private theorem l27_a_event_list_α_mem_xi (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem l27_a_event_list_α_mem_xi (fc : FrameClass) {A B C : Set (Formula Atom)}
     {xi eta : Formula Atom} {L : List (Formula Atom)}
     {hL : ∀ φ ∈ L, φ ∈ lemma_2_7_seed fc A B C xi eta}
     {β' α' : Formula Atom} (hφ : Formula.snce α' (Formula.and β' xi) ∈ L)
@@ -2003,7 +2003,7 @@ private theorem l27_a_event_list_α_mem_xi (fc : FrameClass) {A B C : Set (Formu
 The simplified seed has 3 components: B ∪ {eta} ∪ {snce(α, β∧xi)}.
 Uses BX5 (self-accumulation) + BX7 (linearity) + BX13 (enrichment) to derive
 F(event) ∈ A, which ensures the seed is consistent. -/
-private theorem lemma_2_7_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem lemma_2_7_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A)
     (h_mcs_C : SetMaximalConsistent fc C)
     (h_r3m : BurgessR3Maximal fc A B C)
@@ -2309,7 +2309,7 @@ theorem lemma_2_7 (fc : FrameClass) {A B C : Set (Formula Atom)}
 /-- **Lemma 2.8 seed consistency** (Burgess 1982 p.372):
 The same seed as Lemma 2.7 (3 components after Xu 3.2.1 simplification), but
 consistency proved using ¬(eta ∨ (xi ∧ untl(xi, eta))) ∈ C instead of xi ∉ B. -/
-private theorem lemma_2_8_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem lemma_2_8_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A)
     (h_mcs_C : SetMaximalConsistent fc C)
     (h_r3m : BurgessR3Maximal fc A B C)
@@ -2610,7 +2610,7 @@ noncomputable def l27s_c5_event_list (B C : Set (Formula Atom)) (xi : Formula At
     else none)
 
 /-- Elements of l27s_c5_event_list are in C. -/
-private theorem l27s_c5_event_list_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
+theorem l27s_c5_event_list_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
     {L : List (Formula Atom)} {γ : Formula Atom} (hγ : γ ∈ l27s_c5_event_list B C xi L) : γ ∈ C := by
   unfold l27s_c5_event_list at hγ
   simp [List.mem_filterMap] at hγ
@@ -2630,7 +2630,7 @@ noncomputable def l27s_b5_guard_list (B C : Set (Formula Atom)) (xi : Formula At
     else none)
 
 /-- Elements of l27s_b5_guard_list are in B. -/
-private theorem l27s_b5_guard_list_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
+theorem l27s_b5_guard_list_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
     {L : List (Formula Atom)} {β : Formula Atom} (hβ : β ∈ l27s_b5_guard_list B C xi L) : β ∈ B := by
   unfold l27s_b5_guard_list at hβ
   simp [List.mem_filterMap] at hβ
@@ -2641,7 +2641,7 @@ private theorem l27s_b5_guard_list_mem {B C : Set (Formula Atom)} {xi : Formula 
   · simp [h] at hβ_eq
 
 /-- For a component 3 element untl(γ', β'∧xi) in L, the extracted γ' is in c5_event_list. -/
-private theorem l27s_c5_γ_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
+theorem l27s_c5_γ_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
     {L : List (Formula Atom)} {β' γ' : Formula Atom}
     (hφ : Formula.untl γ' (Formula.and β' xi) ∈ L)
     (hβ' : β' ∈ B) (hγ' : γ' ∈ C) :
@@ -2656,7 +2656,7 @@ private theorem l27s_c5_γ_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
   exact congr_arg some (Formula.untl.inj h_spec.2).1.symm
 
 /-- For a component 3 element untl(γ', β'∧xi) in L, the extracted β' is in b5_guard_list. -/
-private theorem l27s_b5_β_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
+theorem l27s_b5_β_mem {B C : Set (Formula Atom)} {xi : Formula Atom}
     {L : List (Formula Atom)} {β' γ' : Formula Atom}
     (hφ : Formula.untl γ' (Formula.and β' xi) ∈ L)
     (hβ' : β' ∈ B) (hγ' : γ' ∈ C) :
@@ -2678,7 +2678,7 @@ Given BurgessR3Maximal(A, B, C) with snce(xi, eta) ∈ C and xi ∉ B,
 the 3-component seed B ∪ {eta} ∪ {untl(γ, β∧xi)} is consistent.
 
 Uses BX5'+BX7'+BX13' chain operating on C. -/
-private theorem lemma_2_7_since_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem lemma_2_7_since_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A)
     (h_mcs_C : SetMaximalConsistent fc C)
     (h_r3m : BurgessR3Maximal fc A B C)
@@ -2965,7 +2965,7 @@ theorem lemma_2_7_since (fc : FrameClass) {A B C : Set (Formula Atom)}
 
 /-- **Lemma 2.8' seed consistency** (Since direction): Same seed as lemma_2_7_since,
 but consistency proved using ¬(eta ∨ (xi ∧ snce(xi,eta))) ∈ A instead of xi ∉ B. -/
-private theorem lemma_2_8_since_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
+theorem lemma_2_8_since_seed_consistent (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A)
     (h_mcs_C : SetMaximalConsistent fc C)
     (h_r3m : BurgessR3Maximal fc A B C)

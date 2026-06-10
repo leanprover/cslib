@@ -37,7 +37,7 @@ variable {Atom : Type*}
 
 /-! ## Semantic helpers -/
 
-private theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
+theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
     (φ ψ : Formula Atom) :
     Satisfies M t (Formula.and φ ψ) ↔ (Satisfies M t φ ∧ Satisfies M t ψ) := by
   simp only [Satisfies]
@@ -48,7 +48,7 @@ private theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Ato
     · by_contra hψ; exact h (fun _ hψ' => absurd hψ' hψ)
   · intro ⟨hφ, hψ⟩ h; exact h hφ hψ
 
-private theorem sat_or_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
+theorem sat_or_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
     (φ ψ : Formula Atom) :
     Satisfies M t (Formula.or φ ψ) ↔ (Satisfies M t φ ∨ Satisfies M t ψ) := by
   simp only [Satisfies]

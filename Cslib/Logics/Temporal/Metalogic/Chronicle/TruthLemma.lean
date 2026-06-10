@@ -51,14 +51,14 @@ variable [Denumerable (Formula Atom)]
 /-! ## Truth Lemma: Individual Cases -/
 
 /-- Atom case: by definition of chronicle_model valuation. -/
-private theorem truth_lemma_atom (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_atom (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) (p : Atom) :
     Satisfies (chronicle_model A h_mcs) t (Formula.atom p) ↔
       Formula.atom p ∈ limit_f A h_mcs t.val := by
   simp only [Satisfies, chronicle_model]
 
 /-- Bot case: bot is never satisfied and never in an MCS. -/
-private theorem truth_lemma_bot (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_bot (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) :
     Satisfies (chronicle_model A h_mcs) t Formula.bot ↔
       Formula.bot ∈ limit_f A h_mcs t.val := by
@@ -67,7 +67,7 @@ private theorem truth_lemma_bot (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
   · intro h; exact absurd h (mcs_bot_not_mem (limit_c0 A h_mcs t.val t.property))
 
 /-- Imp case: by MCS implication property and induction hypotheses. -/
-private theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) (φ ψ : Formula Atom)
     (ih_φ : Satisfies (chronicle_model A h_mcs) t φ ↔ φ ∈ limit_f A h_mcs t.val)
     (ih_ψ : Satisfies (chronicle_model A h_mcs) t ψ ↔ ψ ∈ limit_f A h_mcs t.val) :
@@ -112,7 +112,7 @@ private theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
     exact ih_ψ.mpr (temporal_implication_property h_mcs_t h_imp_mem h_phi_mem)
 
 /-- Until forward case: untl φ ψ ∈ f(t) implies Satisfies model t (untl φ ψ). -/
-private theorem truth_lemma_untl_forward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_untl_forward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) (φ ψ : Formula Atom)
     (ih_φ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicle_model A h_mcs) s φ ↔ φ ∈ limit_f A h_mcs s.val)
@@ -133,7 +133,7 @@ private theorem truth_lemma_untl_forward (A : Set (Formula Atom)) (h_mcs : Tempo
   exact (ih_ψ ⟨r, hr_dom⟩).mpr (hy_guard r hr_dom htr hrs)
 
 /-- Until backward case: Satisfies model t (untl φ ψ) implies untl φ ψ ∈ f(t). -/
-private theorem truth_lemma_untl_backward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_untl_backward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) (φ ψ : Formula Atom)
     (ih_φ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicle_model A h_mcs) s φ ↔ φ ∈ limit_f A h_mcs s.val)
@@ -164,7 +164,7 @@ private theorem truth_lemma_untl_backward (A : Set (Formula Atom)) (h_mcs : Temp
   exact mcs_not_mem_of_neg (limit_c0 A h_mcs z hz_dom) h_psi_neg h_psi_z
 
 /-- Since forward case: snce φ ψ ∈ f(t) implies Satisfies model t (snce φ ψ). -/
-private theorem truth_lemma_snce_forward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_snce_forward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) (φ ψ : Formula Atom)
     (ih_φ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicle_model A h_mcs) s φ ↔ φ ∈ limit_f A h_mcs s.val)
@@ -181,7 +181,7 @@ private theorem truth_lemma_snce_forward (A : Set (Formula Atom)) (h_mcs : Tempo
   exact (ih_ψ ⟨r, hr_dom⟩).mpr (hy_guard r hr_dom hsr hrt)
 
 /-- Since backward case: Satisfies model t (snce φ ψ) implies snce φ ψ ∈ f(t). -/
-private theorem truth_lemma_snce_backward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
+theorem truth_lemma_snce_backward (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) (φ ψ : Formula Atom)
     (ih_φ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicle_model A h_mcs) s φ ↔ φ ∈ limit_f A h_mcs s.val)

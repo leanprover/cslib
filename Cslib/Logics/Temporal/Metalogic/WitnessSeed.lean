@@ -60,7 +60,7 @@ lemma somePast_allPast_neg_absurd {M : Set (Formula Atom)}
 /-! ## Shared helper for G(¬X) extraction from seed inconsistency -/
 
 /-- From L ⊢ ⊥ where L ⊆ {X} ∪ g_content(M), extract G(¬X) ∈ M. -/
-private theorem extract_g_neg_from_seed {M : Set (Formula Atom)}
+theorem extract_g_neg_from_seed {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M)
     (X : Formula Atom)
     {L : List (Formula Atom)}
@@ -110,7 +110,7 @@ private theorem extract_g_neg_from_seed {M : Set (Formula Atom)}
     exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_G_imp) h_G_bot
 
 /-- From L ⊢ ⊥ where L ⊆ {X} ∪ h_content(M), extract H(¬X) ∈ M. -/
-private theorem extract_h_neg_from_seed {M : Set (Formula Atom)}
+theorem extract_h_neg_from_seed {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M)
     (X : Formula Atom)
     {L : List (Formula Atom)}

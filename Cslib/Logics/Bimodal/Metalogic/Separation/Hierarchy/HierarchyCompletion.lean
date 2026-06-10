@@ -376,7 +376,7 @@ Lemma 10.2.7: `no_S_nested_in_U phi` implies separable (by U_nesting_depth induc
 /-- Helper: `extract_U_type` returns U-free arguments when `U_nesting_depth phi <= 1`.
     At depth <= 1, every `.untl a b` has `U_nesting_depth (.untl a b) <= 1`,
     so `U_nesting_depth a = 0` and `U_nesting_depth b = 0`, meaning a and b are U-free. -/
-private theorem extract_U_type_U_free (φ : Formula Atom) (h : is_U_free φ = false)
+theorem extract_U_type_U_free (φ : Formula Atom) (h : is_U_free φ = false)
     (hns : no_S_nested_in_U φ) (hdepth : U_nesting_depth φ ≤ 1) :
     is_U_free (extract_U_type φ h hns).1 = true ∧
     is_U_free (extract_U_type φ h hns).2 = true := by
@@ -518,7 +518,7 @@ theorem lemma_10_2_6_self_contained (phi : Formula Atom)
     `U_nesting_depth <= 1`. Since the base formula has no `.untl` nodes, the only
     `.untl` in the result comes from substituting `.untl A B` for atoms. Each such
     occurrence has depth 1 (U-free args), and they don't nest inside each other. -/
-private theorem subst_U_free_U_nesting_depth_le_one (ψ : Formula Atom) (p : Atom) (A B : Formula Atom)
+theorem subst_U_free_U_nesting_depth_le_one (ψ : Formula Atom) (p : Atom) (A B : Formula Atom)
     (hψ_uf : is_U_free ψ = true) (hA_uf : is_U_free A = true) (hB_uf : is_U_free B = true) :
     U_nesting_depth (subst_formula ψ p (.untl A B)) ≤ 1 := by
   induction ψ with
@@ -548,7 +548,7 @@ private theorem subst_U_free_U_nesting_depth_le_one (ψ : Formula Atom) (p : Ato
 /-- Callback formulas from `subst_in_separated_separable_typed` have `U_nesting_depth ≤ 1`
     when A, B are U-free. The callback formula is `.snce (subst c p (.untl A B)) (subst d p (.untl A B))`
     where c, d are U-free. -/
-private theorem callback_U_nesting_depth_le_one (c d : Formula Atom) (p : Atom) (A B : Formula Atom)
+theorem callback_U_nesting_depth_le_one (c d : Formula Atom) (p : Atom) (A B : Formula Atom)
     (hc_uf : is_U_free c = true) (hd_uf : is_U_free d = true)
     (hA_uf : is_U_free A = true) (hB_uf : is_U_free B = true) :
     U_nesting_depth (.snce (subst_formula c p (.untl A B))
@@ -605,7 +605,7 @@ These helpers establish that callback formulas produced during separation have
 junction_depth ≤ 1, enabling the JD-bounded oracle pattern. -/
 
 /-- Junction depth 0 with expanded gives separated (re-export for convenience). -/
-private theorem jd_zero_sep (φ : Formula Atom)
+theorem jd_zero_sep (φ : Formula Atom)
     (hexp : has_no_allpast_allfuture φ = true) (hjd : junction_depth φ = 0) :
     is_separable φ :=
   separated_imp_separable φ (expanded_jd_zero_imp_separated φ hexp hjd)
@@ -615,7 +615,7 @@ private theorem jd_zero_sep (φ : Formula Atom)
     are U-free, hence have junction_depth_S = 0; (2) substituting `.untl A B` (with
     S-free A, B) into U-free formulas gives junction_depth_S ≤ 1; (3) the callback
     `.snce (subst c p (.untl A B)) (subst d p (.untl A B))` has JD = max of these ≤ 1. -/
-private theorem callback_jd_le_one (c d : Formula Atom) (p : Atom) (A B : Formula Atom)
+theorem callback_jd_le_one (c d : Formula Atom) (p : Atom) (A B : Formula Atom)
     (hc_uf : is_U_free c = true) (hd_uf : is_U_free d = true)
     (hA_sf : is_S_free A = true) (hB_sf : is_S_free B = true) :
     junction_depth (.snce (subst_formula c p (.untl A B)) (subst_formula d p (.untl A B))) ≤ 1 := by
@@ -651,7 +651,7 @@ where
       simp [subst_formula, junction_depth_S, ih1 huf.1, ih2 huf.2]
 
 /-- Callback formulas from substitution into separated formulas have has_no_allpast_allfuture. -/
-private theorem callback_has_no_allpast_allfuture (c d : Formula Atom) (p : Atom) (A B : Formula Atom) :
+theorem callback_has_no_allpast_allfuture (c d : Formula Atom) (p : Atom) (A B : Formula Atom) :
     has_no_allpast_allfuture
       (.snce (subst_formula c p (.untl A B)) (subst_formula d p (.untl A B))) = true := by
   exact has_no_allpast_allfuture_true _

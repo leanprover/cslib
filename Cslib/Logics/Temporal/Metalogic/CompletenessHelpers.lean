@@ -37,7 +37,7 @@ attribute [local instance] Classical.propDecidable
 /-! ## MCS Helper Lemmas -/
 
 /-- Apply an axiom in an MCS. -/
-private theorem mcs_mp_axiom
+theorem mcs_mp_axiom
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {φ ψ : Formula Atom} (h_mem : φ ∈ Ω) (h_ax : Axiom (φ.imp ψ)) : ψ ∈ Ω := by
   apply temporal_closed_under_derivation h_mcs (L := [φ]) (fun x hx => by
@@ -48,7 +48,7 @@ private theorem mcs_mp_axiom
     (.assumption [φ] φ (List.mem_cons.mpr (Or.inl rfl)))⟩
 
 /-- ⊤ ∈ every MCS. -/
-private theorem mcs_top_mem
+theorem mcs_top_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
     Formula.top ∈ Ω := by
   apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
@@ -68,14 +68,14 @@ theorem mcs_p_top_mem
   mcs_mp_axiom h_mcs (mcs_top_mem h_mcs) .serial_past
 
 /-- G(⊥) ∉ any MCS. G(⊥) = ¬F(⊤) and F(⊤) ∈ Ω. -/
-private theorem mcs_g_bot_not_mem
+theorem mcs_g_bot_not_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
     Formula.allFuture Formula.bot ∉ Ω := by
   intro h_g_bot
   exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs h_g_bot (mcs_f_top_mem h_mcs))
 
 /-- H(⊥) ∉ any MCS. H(⊥) = ¬P(⊤) and P(⊤) ∈ Ω. -/
-private theorem mcs_h_bot_not_mem
+theorem mcs_h_bot_not_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω) :
     Formula.allPast Formula.bot ∉ Ω := by
   intro h_h_bot
@@ -131,7 +131,7 @@ noncomputable def derive_and_top_intro (φ : Formula Atom) :
   exact deduction_theorem [] φ (Formula.and Formula.top φ) d1
 
 /-- ¬¬X ∈ Ω ↔ X ∈ Ω in MCS. -/
-private theorem mcs_dne
+theorem mcs_dne
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {X : Formula Atom} : Formula.neg (Formula.neg X) ∈ Ω ↔ X ∈ Ω := by
   constructor
@@ -149,7 +149,7 @@ private theorem mcs_dne
     exact mcs_neg_of_not_mem h_mcs h_neg_not
 
 /-- F(F(ψ)) → F(ψ) in MCS (via BX6 + BX3). -/
-private theorem mcs_ff_imp_f
+theorem mcs_ff_imp_f
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {ψ : Formula Atom}
     (h_ff : Formula.someFuture (Formula.someFuture ψ) ∈ Ω) :
@@ -171,7 +171,7 @@ private theorem mcs_ff_imp_f
   exact temporal_implication_property h_mcs h_absorb h_f_and
 
 /-- P(P(ψ)) → P(ψ) in MCS (via BX6' + BX3'). -/
-private theorem mcs_pp_imp_p
+theorem mcs_pp_imp_p
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {ψ : Formula Atom}
     (h_pp : Formula.somePast (Formula.somePast ψ) ∈ Ω) :

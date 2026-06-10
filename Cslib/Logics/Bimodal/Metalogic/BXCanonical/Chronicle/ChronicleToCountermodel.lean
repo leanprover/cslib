@@ -55,7 +55,7 @@ The gap elimination proof (`chronicle_gap_contradiction`) depends on
 -/
 
 /-- Core gap elimination theorem. Depends on WeakCanonical (task 36). -/
-private theorem chronicle_gap_contradiction (fc : FrameClass) (A : Set (Formula Atom))
+theorem chronicle_gap_contradiction (fc : FrameClass) (A : Set (Formula Atom))
     (h_mcs : SetMaximalConsistent fc A)
     (h_discrete : ∀ x ∈ limit_dom fc A h_mcs, next_top ∈ limit_f fc A h_mcs x)
     (a b : LimitDomSubtype fc A h_mcs)
@@ -65,7 +65,7 @@ private theorem chronicle_gap_contradiction (fc : FrameClass) (A : Set (Formula 
   sorry  -- depends on gap_contradicts_prior from GoodStructuresModelSurgery (task 36)
 
 /-- Succ-cofinality from gap elimination. -/
-private theorem succ_cofinal (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc A)
+theorem succ_cofinal (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc A)
     (h_discrete : ∀ x ∈ limit_dom fc A h_mcs, next_top ∈ limit_f fc A h_mcs x)
     (a b : LimitDomSubtype fc A h_mcs) (h_lt : a < b) :
     ∃ k : Nat, (limitDomSubtype_succ fc A h_mcs h_discrete)^[k] a = b := by

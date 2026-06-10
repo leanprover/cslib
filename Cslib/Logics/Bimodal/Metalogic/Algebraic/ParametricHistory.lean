@@ -66,7 +66,7 @@ def ShiftClosedParametricCanonicalOmega (B : BFMCS Atom D fc) :
   { σ | ∃ (fam : FMCS Atom D fc) (_ : fam ∈ B.families) (delta : D),
     σ = WorldHistory.time_shift (parametric_to_history fam) delta }
 
-private theorem time_shift_parametric_to_history_compose
+theorem time_shift_parametric_to_history_compose
     (fam : FMCS Atom D fc)
     (delta delta' : D) :
     WorldHistory.time_shift (WorldHistory.time_shift (parametric_to_history fam) delta) delta' =
@@ -79,7 +79,7 @@ private theorem time_shift_parametric_to_history_compose
   simp only []
   rw [h_time_eq t]
 
-private theorem parametric_to_history_eq_time_shift_zero (fam : FMCS Atom D fc) :
+theorem parametric_to_history_eq_time_shift_zero (fam : FMCS Atom D fc) :
     parametric_to_history fam = WorldHistory.time_shift (parametric_to_history fam) 0 := by
   simp only [WorldHistory.time_shift, parametric_to_history, add_zero]
 

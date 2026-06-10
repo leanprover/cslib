@@ -28,7 +28,7 @@ open Cslib.Logic.Bimodal
 variable {Atom : Type*} [DecidableEq Atom]
 
 /-- has_single_U_type for case1_psi when a, q, A, B are U-free. -/
-private theorem case1_psi_has_single_U_type (a q x y : Formula Atom)
+theorem case1_psi_has_single_U_type (a q x y : Formula Atom)
     (ha : is_U_free a = true) (hq : is_U_free q = true)
     (hx : is_U_free x = true) (hy : is_U_free y = true) :
     has_single_U_type (case1_psi a q x y) x y := by
@@ -46,7 +46,7 @@ private theorem case1_psi_has_single_U_type (a q x y : Formula Atom)
     u_free_has_single_U_type hx, u_free_has_single_U_type hy]
 
 /-- has_single_U_type for case2_psi when a, q, A, B are U-free. -/
-private theorem case2_psi_has_single_U_type (a q x y : Formula Atom)
+theorem case2_psi_has_single_U_type (a q x y : Formula Atom)
     (ha : is_U_free a = true) (hq : is_U_free q = true)
     (hx : is_U_free x = true) (hy : is_U_free y = true) :
     has_single_U_type (case2_psi a q x y) x y := by
@@ -134,7 +134,7 @@ theorem snce_combined_notU_sep_with_U_type
 /-! ### Private helpers for Cases 5-8 -/
 
 /-- Helper: and_left_congr for int_equiv. -/
-private theorem and_left_congr_hier {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
+theorem and_left_congr_hier {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
     int_equiv (Formula.and φ₁ ψ) (Formula.and φ₂ ψ) := by
   intro m t; constructor
   · intro h'; have ⟨hφ, hψ⟩ := int_truth_and_iff.mp h'
@@ -143,7 +143,7 @@ private theorem and_left_congr_hier {φ₁ φ₂ ψ : Formula Atom} (h : int_equ
     exact int_truth_and_iff.mpr ⟨(h m t).mpr hφ, hψ⟩
 
 /-- snce preserves int_equiv (local copy). -/
-private theorem snce_congr_local {φ₁ ψ₁ φ₂ ψ₂ : Formula Atom}
+theorem snce_congr_local {φ₁ ψ₁ φ₂ ψ₂ : Formula Atom}
     (h1 : int_equiv φ₁ φ₂) (h2 : int_equiv ψ₁ ψ₂) :
     int_equiv (.snce φ₁ ψ₁) (.snce φ₂ ψ₂) := by
   intro m t; constructor
@@ -153,7 +153,7 @@ private theorem snce_congr_local {φ₁ ψ₁ φ₂ ψ₂ : Formula Atom}
     exact ⟨s, hst, (h1 m s).mpr hφ, fun r hr1 hr2 => (h2 m r).mpr (hψ r hr1 hr2)⟩
 
 /-- Helper: snce_event_congr for int_equiv (event only). -/
-private theorem snce_event_congr_hier {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
+theorem snce_event_congr_hier {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
     int_equiv (.snce φ₁ ψ) (.snce φ₂ ψ) :=
   snce_congr_local h (int_equiv_refl ψ)
 
@@ -263,7 +263,7 @@ theorem case8_sep_with_U_type_Z_gen (a q x y : Formula Atom)
 
 set_option maxHeartbeats 3200000 in
 /-- S(ev, q∨U(A,B)) is separable_with_U_type A B when ev is U-free. -/
-private theorem snce_Ufree_event_qU_guard_sep_with_U_type (ev q x y : Formula Atom)
+theorem snce_Ufree_event_qU_guard_sep_with_U_type (ev q x y : Formula Atom)
     (hev_uf : is_U_free ev = true) (hq : is_U_free q = true)
     (hx : is_U_free x = true) (hy : is_U_free y = true)
     (hx' : is_S_free x = true) (hy' : is_S_free y = true) :
@@ -468,7 +468,7 @@ theorem case6_sep_with_U_type_Z_gen (a q x y : Formula Atom)
     · exact case5_sep_with_U_type_Z_gen _ q x y hSTUFF_uf hq hx hy hx' hy'
 
 /-- S(ev, q∨¬U) is separable_with_U_type when ev is U-free. -/
-private theorem snce_Ufree_event_qNotU_guard_sep_with_U_type (ev q x y : Formula Atom)
+theorem snce_Ufree_event_qNotU_guard_sep_with_U_type (ev q x y : Formula Atom)
     (hev_uf : is_U_free ev = true) (hq : is_U_free q = true)
     (hx : is_U_free x = true) (hy : is_U_free y = true)
     (hx' : is_S_free x = true) (hy' : is_S_free y = true) :

@@ -514,13 +514,13 @@ theorem subst_formula_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ)
   intro M t; rw [subst_correctness, subst_correctness]; exact h _ t
 
 /-- Helper: `.untl` with S-free args is already separated. -/
-private theorem untl_sf_exp_separated (a b : Formula Atom)
+theorem untl_sf_exp_separated (a b : Formula Atom)
     (ha_sf : is_S_free a = true) (hb_sf : is_S_free b = true) :
     is_separable (.untl a b) :=
   ⟨.untl a b, by simp [is_syntactically_separated, ha_sf, hb_sf], int_equiv_refl _⟩
 
 /-- Helper: `.snce` with U-free args is already separated. -/
-private theorem snce_uf_separated (a b : Formula Atom)
+theorem snce_uf_separated (a b : Formula Atom)
     (ha_uf : is_U_free a = true) (hb_uf : is_U_free b = true) :
     is_separable (.snce a b) :=
   ⟨.snce a b, by simp [is_syntactically_separated, ha_uf, hb_uf], int_equiv_refl _⟩

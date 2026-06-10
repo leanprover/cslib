@@ -54,7 +54,7 @@ attribute [local instance] Classical.propDecidable
 /-! ## Completeness Theorem -/
 
 /-- If φ is not derivable, then {¬φ} is consistent. -/
-private theorem neg_consistent_of_not_derivable
+theorem neg_consistent_of_not_derivable
     {φ : Formula Atom} (h_not : ¬ Temporal.ThDerivable φ) :
     Temporal.SetConsistent ({Formula.neg φ} : Set (Formula Atom)) := by
   intro L hL

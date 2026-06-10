@@ -126,7 +126,7 @@ theorem deductiveClosure_closed_under_derivation (Sig : Set (Formula Atom)) :
 def rDCSExtensions (A Sig : Set (Formula Atom)) : Set (Set (Formula Atom)) :=
   {B | Sig ⊆ B ∧ SetDeductivelyClosed B ∧ rRelation A B}
 
-private theorem chain_finite_subset_in_element {c : Set (Set (Formula Atom))} {T₀ : Set (Formula Atom)}
+theorem chain_finite_subset_in_element {c : Set (Set (Formula Atom))} {T₀ : Set (Formula Atom)}
     (hc_chain : IsChain (· ⊆ ·) c) (hT₀ : T₀ ∈ c)
     (L : List (Formula Atom))
     (hL : ∀ φ ∈ L, φ ∈ ⋃₀ c) :
@@ -469,7 +469,7 @@ theorem snce_left_mono_thm {A : Set (Formula Atom)}
 /-! ## Duality Helpers for Burgess Lemma 2.3 -/
 
 /-- In an MCS, ¬H(¬α) ∈ M implies P(α) ∈ M. -/
-private theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
+theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (α : Formula Atom)
     (h : Formula.neg (Formula.allPast (Formula.neg α)) ∈ M) :
     Formula.somePast α ∈ M := by
@@ -489,7 +489,7 @@ private theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
   exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_P_mono) h_dne_P
 
 /-- In an MCS, ¬G(¬γ) ∈ M implies F(γ) ∈ M. -/
-private theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
+theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (γ : Formula Atom)
     (h : Formula.neg (Formula.allFuture (Formula.neg γ)) ∈ M) :
     Formula.someFuture γ ∈ M := by
@@ -508,7 +508,7 @@ private theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
   exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_F_mono) h_dne_F
 
 /-- F(H(¬α)) and G(P(α)) are contradictory in an MCS. -/
-private theorem someFuture_H_neg_G_P_absurd {M : Set (Formula Atom)}
+theorem someFuture_H_neg_G_P_absurd {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (α : Formula Atom)
     (h_F : Formula.someFuture (Formula.allPast (Formula.neg α)) ∈ M)
     (h_GP : Formula.allFuture (Formula.somePast α) ∈ M) : False := by
@@ -538,7 +538,7 @@ private theorem someFuture_H_neg_G_P_absurd {M : Set (Formula Atom)}
   exact someFuture_allFuture_neg_absurd h_mcs (Formula.allPast (Formula.neg α)) h_F h_G_neg_H
 
 /-- P(G(¬γ)) and H(F(γ)) are contradictory in an MCS. -/
-private theorem somePast_G_neg_H_F_absurd {M : Set (Formula Atom)}
+theorem somePast_G_neg_H_F_absurd {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (γ : Formula Atom)
     (h_P : Formula.somePast (Formula.allFuture (Formula.neg γ)) ∈ M)
     (h_HF : Formula.allPast (Formula.someFuture γ) ∈ M) : False := by

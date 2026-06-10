@@ -51,7 +51,7 @@ attribute [local instance] Classical.propDecidable
 def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
   l.filter (· ≠ a)
 
-private theorem removeAll_sub_of_sub [DecidableEq α] {A : α} {Γ' Δ : List α}
+theorem removeAll_sub_of_sub [DecidableEq α] {A : α} {Γ' Δ : List α}
     (h_sub : Γ' ⊆ A :: Δ) (h_mem : A ∈ Γ') :
     removeAll Γ' A ⊆ Δ := by
   intro x hx
@@ -63,12 +63,12 @@ private theorem removeAll_sub_of_sub [DecidableEq α] {A : α} {Γ' Δ : List α
   · exact absurd rfl hx_ne
   · exact h
 
-private theorem mem_removeAll_of_mem_of_ne [DecidableEq α] {a x : α} {l : List α}
+theorem mem_removeAll_of_mem_of_ne [DecidableEq α] {a x : α} {l : List α}
     (h_mem : x ∈ l) (h_ne : x ≠ a) : x ∈ removeAll l a := by
   simp [removeAll, List.mem_filter]
   exact ⟨h_mem, h_ne⟩
 
-private theorem removeAll_sub_removeAll [DecidableEq α] {a : α} {l₁ l₂ : List α}
+theorem removeAll_sub_removeAll [DecidableEq α] {a : α} {l₁ l₂ : List α}
     (h : l₁ ⊆ l₂) : removeAll l₁ a ⊆ removeAll l₂ a := by
   intro x hx
   simp [removeAll, List.mem_filter] at hx ⊢

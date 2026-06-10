@@ -88,7 +88,7 @@ Helper: If `A ∈ Γ'` and `Γ' ⊆ A :: Γ`, then `removeAll Γ' A ⊆ Γ`.
 
 This shows that removing A from Γ' gives a subset of Γ.
 -/
-private theorem removeAll_subset {A : Formula Atom} {Γ Γ' : Context Atom}
+theorem removeAll_subset {A : Formula Atom} {Γ Γ' : Context Atom}
     (_h_mem : A ∈ Γ')
     (h_sub : Γ' ⊆ A :: Γ) :
     removeAll Γ' A ⊆ Γ := by

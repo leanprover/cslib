@@ -116,7 +116,7 @@ theorem replace_box_preserves_separated (phi : Formula Atom)
 /-! ## no_S_nested_in_U for Box-Free Separated Formulas -/
 
 /-- U-free formulas satisfy no_S_nested_in_U (vacuously: no untl nodes). -/
-private theorem u_free_no_S_nested (phi : Formula Atom) (h : is_U_free phi = true) :
+theorem u_free_no_S_nested (phi : Formula Atom) (h : is_U_free phi = true) :
     no_S_nested_in_U phi := by
   induction phi with
   | atom _ => trivial
@@ -127,7 +127,7 @@ private theorem u_free_no_S_nested (phi : Formula Atom) (h : is_U_free phi = tru
   | snce a b ih1 ih2 => simp [is_U_free] at h; exact ⟨ih1 h.1, ih2 h.2⟩
 
 /-- S-free formulas satisfy no_S_nested_in_U (untl args inherit S-freeness). -/
-private theorem s_free_no_S_nested (phi : Formula Atom) (h : is_S_free phi = true) :
+theorem s_free_no_S_nested (phi : Formula Atom) (h : is_S_free phi = true) :
     no_S_nested_in_U phi := by
   induction phi with
   | atom _ => trivial

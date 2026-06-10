@@ -55,7 +55,7 @@ Bridge: `SetConsistent FrameClass.Base` implies `BimodalSetConsistent`.
 
 Both definitions unfold to `∀ L, (∀ phi ∈ L, phi ∈ Ω) → ¬Nonempty(DerivationTree Base L ⊥)`.
 -/
-private theorem setConsistent_to_bimodalSetConsistent {Ω : Set (Formula Atom)}
+theorem setConsistent_to_bimodalSetConsistent {Ω : Set (Formula Atom)}
     (h : SetConsistent FrameClass.Base Ω) : BimodalSetConsistent Ω := by
   intro L hL_sub
   exact h L hL_sub
@@ -63,7 +63,7 @@ private theorem setConsistent_to_bimodalSetConsistent {Ω : Set (Formula Atom)}
 /--
 Bridge: `BimodalSetMaximalConsistent` implies `SetMaximalConsistent FrameClass.Base`.
 -/
-private theorem bimodalSetMCS_to_setMCS {Ω : Set (Formula Atom)}
+theorem bimodalSetMCS_to_setMCS {Ω : Set (Formula Atom)}
     (h : BimodalSetMaximalConsistent Ω) : SetMaximalConsistent FrameClass.Base Ω := by
   constructor
   · intro L hL_sub

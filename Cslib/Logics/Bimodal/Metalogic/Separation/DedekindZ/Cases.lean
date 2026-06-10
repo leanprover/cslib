@@ -45,7 +45,7 @@ Mathematical justification: GHR94 Lemma 10.3.11 items 5-8 specialized to Z. -/
 /-- case3_alpha(a∧U, q, A, B) implies U(A,B): the alpha event always makes U true.
     alpha = (a∧U) ∨ ((¬q ∧ S(a∧U, q)) ∧ (q∨U))
     First disjunct has U. Second disjunct: ¬q ∧ (q∨U) → ¬q ∧ U → U. -/
-private theorem case3_alpha_aU_implies_U (a q A B : Formula Atom) (M : IntStructure Atom) (t : ℤ)
+theorem case3_alpha_aU_implies_U (a q A B : Formula Atom) (M : IntStructure Atom) (t : ℤ)
     (h : int_truth M t (case3_alpha (Formula.and a (.untl A B)) q A B)) :
     int_truth M t (.untl A B) := by
   simp only [case3_alpha] at h
@@ -229,14 +229,14 @@ theorem snce_event_congr_with_U (C₁ C₂ guard A B : Formula Atom)
     exact ⟨s, hst, (int_truth_and M s _ _).mpr ⟨(h_eq M s hU).mpr hC₂, hU⟩, h_guard⟩
 
 /-- snce congrence on event. -/
-private theorem snce_event_congr {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
+theorem snce_event_congr {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
     int_equiv (.snce φ₁ ψ) (.snce φ₂ ψ) := by
   intro M t; constructor
   · rintro ⟨s, hst, hφ, hψ⟩; exact ⟨s, hst, (h M s).mp hφ, hψ⟩
   · rintro ⟨s, hst, hφ, hψ⟩; exact ⟨s, hst, (h M s).mpr hφ, hψ⟩
 
 /-- and congrence on left. -/
-private theorem and_left_congr {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
+theorem and_left_congr {φ₁ φ₂ ψ : Formula Atom} (h : int_equiv φ₁ φ₂) :
     int_equiv (Formula.and φ₁ ψ) (Formula.and φ₂ ψ) := by
   intro M t; constructor
   · intro h'; have ⟨hφ, hψ⟩ := (int_truth_and M t _ _).mp h'
@@ -363,7 +363,7 @@ theorem snce_event_congr_with_notU (C₁ C₂ guard A B : Formula Atom)
 /-- S(COMBINED ∧ ¬U(A,B), guard) is separable when COMBINED satisfies
     untl_under_bool_only and guard is U-free with S-free A, B.
     Works by replacing U with bot in the event and applying Case 2. -/
-private theorem snce_combined_notU_separable
+theorem snce_combined_notU_separable
     (combined guard : Formula Atom) (A B : Formula Atom)
     (hA : is_U_free A = true) (hB : is_U_free B = true)
     (hA' : is_S_free A = true) (hB' : is_S_free B = true)
@@ -514,7 +514,7 @@ theorem d21_sep_equiv (a q A B : Formula Atom)
 /-- S(COMBINED ∧ U(A,B), guard) is separable when COMBINED satisfies
     untl_under_bool_only and guard is U-free with S-free A, B.
     Works by replacing U with True in the event and applying Case 1. -/
-private theorem snce_combined_U_separable
+theorem snce_combined_U_separable
     (combined guard : Formula Atom) (A B : Formula Atom)
     (hA : is_U_free A = true) (hB : is_U_free B = true)
     (hA' : is_S_free A = true) (hB' : is_S_free B = true)
@@ -645,7 +645,7 @@ equivalent of S(a∧U', q) vanish, leaving only U-free components. -/
     Proof: if U(A,B)(t) gives witness s₁ > t with A(s₁)∧B on (t,s₁), and
     U(¬A∧¬B, ¬A)(t) gives witness s₂ > t with (¬A∧¬B)(s₂)∧(¬A) on (t,s₂), then
     s₁ < s₂ → ¬A(s₁) contradicts A(s₁); s₁ = s₂ → same; s₁ > s₂ → B(s₂) contradicts ¬B(s₂). -/
-private theorem untl_neguntl_contradictory (A B : Formula Atom) (M : IntStructure Atom) (t : ℤ)
+theorem untl_neguntl_contradictory (A B : Formula Atom) (M : IntStructure Atom) (t : ℤ)
     (hU : int_truth M t (.untl A B))
     (hU' : int_truth M t (.untl (Formula.and (Formula.neg A) (Formula.neg B)) (Formula.neg A))) :
     False := by
@@ -664,7 +664,7 @@ private theorem untl_neguntl_contradictory (A B : Formula Atom) (M : IntStructur
     exact hnotB₂ (hB₁ s₂ hts₂ h)
 
 /-- Negation equivalence specialized: ¬U → G(¬A) ∨ U', as an int_equiv on the event. -/
-private theorem neg_untl_event_equiv (a A B : Formula Atom) :
+theorem neg_untl_event_equiv (a A B : Formula Atom) :
     int_equiv (Formula.and a (Formula.neg (.untl A B)))
       (Formula.or (Formula.and a (.allFuture (Formula.neg A)))
         (Formula.and a (.untl (Formula.and (Formula.neg A) (Formula.neg B)) (Formula.neg A)))) := by
@@ -687,7 +687,7 @@ set_option maxHeartbeats 3200000 in
 /-- S(ev, q∨U) is separable when ev is U-free.
     This is the core of Branch A and is like case5_separable_Z_gen but with
     the event already U-free (no U in the event), making it simpler. -/
-private theorem snce_Ufree_event_qU_guard_separable (ev q A B : Formula Atom)
+theorem snce_Ufree_event_qU_guard_separable (ev q A B : Formula Atom)
     (hev_uf : is_U_free ev = true) (hq : is_U_free q = true)
     (hA : is_U_free A = true) (hB : is_U_free B = true)
     (hA' : is_S_free A = true) (hB' : is_S_free B = true) :
@@ -1414,7 +1414,7 @@ theorem case8_separable_Z_gen (a q A B : Formula Atom)
 /-- S(ev, q∨¬U) is separable when ev is U-free.
     Dual of snce_Ufree_event_qU_guard_separable.
     Uses Case 4 pattern: S(a, q∨¬U) ↔ ¬H(¬a) ∧ ¬psi1 via elim_case_1_gen. -/
-private theorem snce_Ufree_event_qNotU_guard_separable (ev q A B : Formula Atom)
+theorem snce_Ufree_event_qNotU_guard_separable (ev q A B : Formula Atom)
     (hev_uf : is_U_free ev = true) (hq : is_U_free q = true)
     (hA : is_U_free A = true) (hB : is_U_free B = true)
     (hA' : is_S_free A = true) (hB' : is_S_free B = true) :

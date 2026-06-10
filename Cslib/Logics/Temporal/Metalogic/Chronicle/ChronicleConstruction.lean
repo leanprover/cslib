@@ -1215,7 +1215,7 @@ By g_sub_f_insert, g_{m-1}(a',b') ⊆ f_m(w). We show g_k(a,b) ⊆ g_{m-1}(a',b'
 by tracking g-value propagation through insertions via g_sub_g_new.
 -/
 
-private theorem adj_g_mem_f_at_stage (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A) :
+theorem adj_g_mem_f_at_stage (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A) :
     ∀ (d : Nat) (n : Nat) (a b : Rat),
       Adjacent (omega_chain_val A h_mcs n).dom a b →
       ∀ φ, φ ∈ (omega_chain_val A h_mcs n).g a b →

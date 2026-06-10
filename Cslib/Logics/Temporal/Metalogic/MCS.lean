@@ -90,7 +90,7 @@ noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
 
 /-! ## Basic MCS Properties -/
 
-private theorem mcs_mp_axiom
+theorem mcs_mp_axiom
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {φ ψ : Formula Atom} (h_mem : φ ∈ Ω) (h_ax : Axiom (φ.imp ψ)) : ψ ∈ Ω := by
   apply temporal_closed_under_derivation h_mcs (L := [φ]) (fun x hx => by
@@ -291,7 +291,7 @@ The proof repeatedly applies mcs_g_mp: from G(l₁→l₂→...→⊥) (via nece
 the iterated deduction theorem result) and G(l₁) ∈ S, derive G(l₂→...→⊥) ∈ S, etc.
 The final step gives G(⊥) ∈ S, i.e., ¬F(⊤) ∈ S. But serial_future gives F(⊤) ∈ S.
 Contradiction. -/
-private theorem derive_g_contradiction
+theorem derive_g_contradiction
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {L : List (Formula Atom)} {φ : Formula Atom}
     (hL : ∀ x ∈ L, Formula.allFuture x ∈ Ω)
@@ -378,7 +378,7 @@ theorem mcs_g_witness
     exact mcs_not_mem_of_neg hT_mcs h_neg
 
 /-- Symmetric version for past: if `H(φ) ∉ S`, exists MCS T with pastSet Ω ⊆ T and φ ∉ T. -/
-private theorem derive_h_contradiction
+theorem derive_h_contradiction
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {L : List (Formula Atom)} {φ : Formula Atom}
     (hL : ∀ x ∈ L, Formula.allPast x ∈ Ω)

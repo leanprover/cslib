@@ -547,7 +547,7 @@ Helper: the tryBranch step function in expandBranchWithFuel preserves the
 invariant that any `.inr` result has `findClosure = none`.
 Updated for proportional fuel allocation (pair : Branch × Nat).
 -/
-private theorem tryBranch_inr
+theorem tryBranch_inr
     (fuelBound : Nat) (newOrd : TimeOrdering) (fc : FrameClass)
     (tracker : EventualityTracker Atom) (applied' : AppliedSet Atom)
     (maxBranches : Nat) (branchesUsed' : Nat)
@@ -595,7 +595,7 @@ private theorem tryBranch_inr
 Helper: `List.foldl` with the tryBranch step preserves the findClosure invariant.
 Updated for proportional fuel allocation (pairs : List (Branch × Nat)).
 -/
-private theorem foldl_preserves_findClosure
+theorem foldl_preserves_findClosure
     (fuelBound : Nat) (newOrd : TimeOrdering) (fc : FrameClass)
     (tracker : EventualityTracker Atom) (applied' : AppliedSet Atom)
     (maxBranches : Nat) (branchesUsed' : Nat)
@@ -637,7 +637,7 @@ Uses strong induction to handle the fuel-divided split case.
 Updated for proportional fuel allocation.
 Generalized over maxBranches/branchesUsed parameters.
 -/
-private theorem expandBranchWithFuel_sound
+theorem expandBranchWithFuel_sound
     (fuel : Nat) :
     ∀ (b : Branch Atom) (timeOrd : TimeOrdering) (fc : FrameClass) (tracker : EventualityTracker Atom)
       (applied : AppliedSet Atom) (maxBranches : Nat) (branchesUsed : Nat)

@@ -79,7 +79,7 @@ We prove this by structural induction on formulas.
     Formula.top = .imp .bot .bot, so we case-split on the guard constructor.
     For non-imp constructors, the auto-derived BEq returns false definitionally.
     For the imp case, we use the hypothesis `guard ≠ Formula.top`. -/
-private theorem Formula.beq_top_false_of_ne (guard : Formula Atom)
+theorem Formula.beq_top_false_of_ne (guard : Formula Atom)
     (hg : guard ≠ Formula.top) : (guard == Formula.top) = false := by
   -- The auto-derived BEq compares constructors first; for different constructors
   -- it returns false. For .imp a b vs .imp .bot .bot, it recurses.
@@ -472,7 +472,7 @@ theorem valuation_reflects_neg (b : Branch Atom) (fc : FrameClass)
 /--
 Helper: `findUnexpanded b = none` implies every formula in `b` is expanded.
 -/
-private theorem findUnexpanded_none_all_expanded (b : Branch Atom) (timeOrd : TimeOrdering)
+theorem findUnexpanded_none_all_expanded (b : Branch Atom) (timeOrd : TimeOrdering)
     (hSat : findUnexpanded b (timeOrd := timeOrd) = none) :
     ∀ sf ∈ b, isExpanded sf b (timeOrd := timeOrd) = true := by
   intro sf hsf
@@ -484,7 +484,7 @@ private theorem findUnexpanded_none_all_expanded (b : Branch Atom) (timeOrd : Ti
 /--
 Helper: if `isExpanded sf b = true`, then `findApplicableRule sf b = none`.
 -/
-private theorem expanded_iff_no_applicable (sf : SignedFormula Atom) (b : Branch Atom) :
+theorem expanded_iff_no_applicable (sf : SignedFormula Atom) (b : Branch Atom) :
     isExpanded sf b = true ↔ (findApplicableRule sf b).isNone = true := by
   unfold isExpanded
   simp
@@ -497,14 +497,14 @@ The `impNeg` rule is a linear (non-branching) rule that adds both.
 Actually, `F(psi -> chi)` cannot exist in a saturated branch at all: the `impNeg`
 rule always applies to it. So this is vacuously true by contradiction.
 -/
-private theorem impNeg_not_expanded (b : Branch Atom) (ψ χ : Formula Atom) (l : Label)
+theorem impNeg_not_expanded (b : Branch Atom) (ψ χ : Formula Atom) (l : Label)
     (timeOrd : TimeOrdering := .empty) : isExpanded ⟨.neg, .imp ψ χ, l⟩ b (timeOrd := timeOrd) = false := by
   unfold isExpanded findApplicableRule
   simp only [allRulesForFC, allRules, denseRules, discreteRules]
   simp only [List.findSome?, isApplicable, asNeg?, asAnd?, asOr?, asDiamond?, applyRule]
   simp
 
-private theorem impPos_not_expanded (b : Branch Atom) (ψ χ : Formula Atom) (l : Label)
+theorem impPos_not_expanded (b : Branch Atom) (ψ χ : Formula Atom) (l : Label)
     (timeOrd : TimeOrdering := .empty) : isExpanded ⟨.pos, .imp ψ χ, l⟩ b (timeOrd := timeOrd) = false := by
   unfold isExpanded findApplicableRule
   simp only [allRulesForFC, allRules, denseRules, discreteRules]
@@ -525,7 +525,7 @@ theorem sat_imp_neg (b : Branch Atom) (timeOrd : TimeOrdering)
 then `T(phi)` at `(w', t)` is in the branch for all known worlds `w'`.
 The `boxPos` rule is persistent and propagates to all known worlds.
 -/
-private theorem contains_iff_mem (b : Branch Atom) (sf : SignedFormula Atom) :
+theorem contains_iff_mem (b : Branch Atom) (sf : SignedFormula Atom) :
     Branch.contains b sf = true ↔ sf ∈ b := by
   simp only [Branch.contains, List.any_eq_true]
   constructor
@@ -568,7 +568,7 @@ theorem sat_box_pos (b : Branch Atom) (timeOrd : TimeOrdering)
 then there exists a world `w'` in `knownWorlds` such that `F(phi)` at `(w', t)`
 is in the branch. The `boxNeg` rule creates a fresh witness world.
 -/
-private theorem boxNeg_not_expanded (b : Branch Atom) (φ : Formula Atom) (l : Label)
+theorem boxNeg_not_expanded (b : Branch Atom) (φ : Formula Atom) (l : Label)
     (timeOrd : TimeOrdering := .empty) : isExpanded ⟨.neg, .box φ, l⟩ b (timeOrd := timeOrd) = false := by
   unfold isExpanded findApplicableRule
   simp only [allRulesForFC, allRules, denseRules, discreteRules]
@@ -590,7 +590,7 @@ Helper: T(U(event, guard)) is never expanded in any branch.
 If guard = top, someFuturePos applies (consumable). If guard != top, untlPos applies (branching).
 Either way, the formula is consumed and removed from the branch during expansion.
 -/
-private theorem untlPos_not_expanded (b : Branch Atom) (event guard : Formula Atom) (l : Label)
+theorem untlPos_not_expanded (b : Branch Atom) (event guard : Formula Atom) (l : Label)
     (timeOrd : TimeOrdering := .empty) : isExpanded ⟨.pos, .untl event guard, l⟩ b (timeOrd := timeOrd) = false := by
   simp only [isExpanded, Bool.eq_false_iff]
   intro h
@@ -622,7 +622,7 @@ set_option maxHeartbeats 800000 in
 /--
 Helper: T(S(event, guard)) is never expanded in any branch (mirror of untlPos).
 -/
-private theorem sncePos_not_expanded (b : Branch Atom) (event guard : Formula Atom) (l : Label)
+theorem sncePos_not_expanded (b : Branch Atom) (event guard : Formula Atom) (l : Label)
     (timeOrd : TimeOrdering := .empty) : isExpanded ⟨.pos, .snce event guard, l⟩ b (timeOrd := timeOrd) = false := by
   simp only [isExpanded, Bool.eq_false_iff]
   intro h
@@ -875,7 +875,7 @@ invariants established above.
 Helper: if T(phi) at (w,t) is in the branch, then branchTruth cm w t phi holds.
 Proved by structural induction on phi.
 -/
-private theorem truthLemma_pos (b : Branch Atom) (timeOrd : TimeOrdering)
+theorem truthLemma_pos (b : Branch Atom) (timeOrd : TimeOrdering)
     (hSat : findUnexpanded b (timeOrd := timeOrd) = none)
     (fc : FrameClass) (hOpen : findClosure b fc = none)
     (cm : SemanticCountermodel Atom)
@@ -914,7 +914,7 @@ private theorem truthLemma_pos (b : Branch Atom) (timeOrd : TimeOrdering)
 Helper: if F(phi) at (w,t) is in the branch, then ¬branchTruth cm w t phi holds.
 Proved by structural induction on phi.
 -/
-private theorem truthLemma_neg (b : Branch Atom) (timeOrd : TimeOrdering)
+theorem truthLemma_neg (b : Branch Atom) (timeOrd : TimeOrdering)
     (hSat : findUnexpanded b (timeOrd := timeOrd) = none)
     (fc : FrameClass) (hOpen : findClosure b fc = none)
     (cm : SemanticCountermodel Atom)

@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Modal.Metalogic.MCS
-import Cslib.Logics.Modal.Metalogic.Soundness
+module
+
+public import Cslib.Logics.Modal.Metalogic.MCS
+public import Cslib.Logics.Modal.Metalogic.Soundness
 
 /-! # Completeness Theorem for S5 Modal Logic
 
@@ -34,6 +36,8 @@ For S5, this relation is reflexive (by axiom T / box_closure), transitive
 
 * Blackburn, de Rijke, Venema - Modal Logic (Ch. 4, Canonical Models)
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Modal
 

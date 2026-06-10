@@ -313,7 +313,7 @@ theorem axiom_swap_valid_general (φ : Formula Atom) (h : Axiom φ) (h_fc : h.mi
   | z1 _ => exact absurd h_fc (by simp [Axiom.minFrameClass, LE.le])
 
 /-- All base axioms are locally valid without DenselyOrdered constraints. -/
-private theorem axiom_locally_valid_general [Nontrivial D] {φ : Formula Atom} (h : Axiom φ)
+theorem axiom_locally_valid_general [Nontrivial D] {φ : Formula Atom} (h : Axiom φ)
     (h_fc : h.minFrameClass ≤ FrameClass.Base) : is_valid D φ := by
   -- All base cases are identical to axiom_locally_valid in DenseValidity
   -- (which never uses DenselyOrdered for base axioms)
@@ -835,7 +835,7 @@ theorem z1_past_is_valid
 
 /-- All axiom swaps are valid on discrete orders. For base-compatible axioms,
 delegates to `axiom_swap_valid_general`. For Prior-UZ/SZ, proves directly. -/
-private theorem axiom_swap_valid_discrete
+theorem axiom_swap_valid_discrete
     [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
     (φ : Formula Atom) (h : Axiom φ) (h_fc : h.minFrameClass ≤ FrameClass.Discrete) :
     is_valid D φ.swapTemporal := by
@@ -858,7 +858,7 @@ private theorem axiom_swap_valid_discrete
 
 /-- All discrete-compatible axioms are locally valid on discrete orders. For base axioms,
 delegates to `axiom_locally_valid_general`. For others, proves directly. -/
-private theorem axiom_locally_valid_discrete
+theorem axiom_locally_valid_discrete
     [SuccOrder D] [PredOrder D] [IsSuccArchimedean D] [IsPredArchimedean D] [Nontrivial D]
     {φ : Formula Atom} (h : Axiom φ) (h_fc : h.minFrameClass ≤ FrameClass.Discrete) :
     is_valid D φ := by
