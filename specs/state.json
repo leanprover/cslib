@@ -35,38 +35,41 @@
     {
       "project_number": 69,
       "project_name": "fix_linter_warnings_foundations",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         68
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-09T20:36:00Z"
+      "last_updated": "2026-06-09T21:00:00Z",
+      "completion_summary": "Replaced 7 flexible simp calls with simp only in BigConj.lean; deleted 2 empty lines and set_option linter.unreachableTactic false from 6 theorem files; longLine suppressions in S5 and TemporalDerived retained (not vestigial)"
     },
     {
       "project_number": 70,
       "project_name": "remove_unused_cslib_init_imports",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         68
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-09T20:36:00Z"
+      "last_updated": "2026-06-09T21:00:00Z",
+      "completion_summary": "Import downgrades reverted — public import Cslib.Init must remain public for transitive access. Redundant Connectives import removal also reverted to maintain build stability."
     },
     {
       "project_number": 71,
       "project_name": "polish_docs_theorems_axioms",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         68
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-09T20:36:00Z"
+      "last_updated": "2026-06-09T21:00:00Z",
+      "completion_summary": "Added Temporal subsection to Theorems.lean docstring; extracted 45 repeated let bindings in Axioms.lean into shared abbreviations (top/neg/conj/disj)"
     },
     {
       "project_number": 66,

@@ -73,7 +73,7 @@ The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for 
 |------|------:|------|
 | `InferenceSystem.lean` | 68 | `InferenceSystem` typeclass + `DerivableIn` |
 | `Connectives.lean` | 98 | Atomic classes `HasBot`, `HasImp`, `HasBox`, `HasUntil`, `HasSince`; bundled classes; `LukasiewiczDerived` |
-| `Axioms.lean` | 322 | Polymorphic axiom `abbrev`s: `ImplyK`, `ImplyS`, `EFQ`, `Peirce`, `DNE`, all modal/temporal axioms |
+| `Axioms.lean` | 297 | Polymorphic axiom `abbrev`s: `ImplyK`, `ImplyS`, `EFQ`, `Peirce`, `DNE`, all modal/temporal axioms; shared `top'`/`neg'`/`conj'`/`disj'` abbreviations |
 | `ProofSystem.lean` | 354 | `ModusPonens`, `Necessitation`, `HasAxiom*` typeclasses; bundled `PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert` |
 | `LogicalEquivalence.lean` | 35 | `LogicalEquivalence` typeclass for context-based congruence |
 | `Theorems/Combinators.lean` | 330 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj` |
@@ -85,8 +85,8 @@ The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for 
 | `Theorems/Temporal/TemporalDerived.lean` | 270 | Temporal operator lemmas |
 | `Theorems/Temporal/FrameConditions.lean` | 84 | Frame condition marker typeclasses |
 | `Metalogic/Consistency.lean` | 273 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
-| `Theorems.lean` | 36 | Barrel aggregator |
-| **Total** | **3,621** | |
+| `Theorems.lean` | 47 | Barrel aggregator (with Propositional, Modal, and Temporal subsection docs) |
+| **Total** | **3,642** | |
 
 ## Dependency Graph
 
@@ -110,16 +110,15 @@ Theorems.lean          (barrel import of all Theorems/* submodules)
 
 ## Verification
 
-- `lake build` exits 0 (2,906 jobs, zero errors)
+- `lake build` for all Foundations/Logic modules exits 0
 - `grep -rn "sorry" Cslib/Foundations/Logic/` returns zero hits
 - All 15 files have correct Apache 2.0 headers
-- `lake shake` identifies unused imports in 5 core module files (cosmetic; can be addressed in follow-up)
+- All 15 files use the `module` keyword and are registered in `Cslib.lean`
 
 ## Known Issues
 
-- **Unused imports**: `lake shake` flags unused `public import Cslib.Init` in Connectives, Axioms, InferenceSystem, and ProofSystem. These are harmless re-exports but could be cleaned up.
-- **Linter warnings**: `BigConj.lean` has flexible `simp` tactic warnings (could use `simp only`). `Connectives.lean` has empty-line-in-command style warnings. These are non-blocking.
-- **Module registration**: Only the 5 core definition files (InferenceSystem, Connectives, Axioms, ProofSystem, LogicalEquivalence) are registered in `Cslib.lean` as `public import` lines. The 10 theorem and metalogic files are non-`module` files and cannot be imported from the `module` root file. They are imported directly by consumers. Future migration to `module` declarations for all files would enable full registration.
+- **Long line suppressions**: `S5.lean` and `TemporalDerived.lean` retain file-scoped `set_option linter.style.longLine false`; removing them produces 12 and 7 warnings respectively. Scoping to individual theorems is deferred.
+- **Public imports**: `public import Cslib.Init` remains in all 4 core definition files. Downgrading to non-public breaks the transitive import chain for downstream theorem files.
 
 ## References
 

@@ -41,9 +41,9 @@ next_project_number: 74
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 68 [COMPLETED] — add_module_keyword_theorem_files
-  └─ 69 [NOT STARTED] — fix_linter_warnings_foundations
-  └─ 70 [NOT STARTED] — remove_unused_cslib_init_imports
-  └─ 71 [NOT STARTED] — polish_docs_theorems_axioms
+  └─ 69 [COMPLETED] — fix_linter_warnings_foundations
+  └─ 70 [COMPLETED] — remove_unused_cslib_init_imports
+  └─ 71 [COMPLETED] — polish_docs_theorems_axioms
 
 ## Tasks
 
@@ -76,6 +76,7 @@ next_project_number: 74
 - **Topic**: Submit PRs
 - specs/071_polish_docs_theorems_axioms/reports/01_polish-docs-research.md: [Research]
 - specs/071_polish_docs_theorems_axioms/plans/01_polish-docs-plan.md: [Plan]
+- specs/071_polish_docs_theorems_axioms/summaries/01_execution-summary.md: [Summary]
 
 **Description**: NICE-TO-HAVE quality audit fixes. (a) Theorems.lean aggregator docstring is missing the Temporal subsection -- add entries for Temporal.TemporalDerived and Temporal.FrameConditions. (b) Axioms.lean temporal section (lines 112-295) has repeated `let top` and `let neg` blocks in nearly every temporal axiom definition -- extract as section-scoped `private abbrev top'` and `private abbrev neg'` to reduce visual noise. Purely cosmetic; verify `lake build` passes after changes.
 
@@ -89,6 +90,7 @@ next_project_number: 74
 - **Topic**: Submit PRs
 - specs/070_remove_unused_cslib_init_imports/reports/01_unused-imports-research.md: [Research]
 - specs/070_remove_unused_cslib_init_imports/plans/01_unused-imports-plan.md: [Plan]
+- specs/070_remove_unused_cslib_init_imports/summaries/01_unused-imports-summary.md: [Summary]
 
 **Description**: `lake shake` flags unused `public import Cslib.Init` in Connectives.lean, Axioms.lean, InferenceSystem.lean, and ProofSystem.lean. Remove the unused imports, then run `lake build` and `lake shake` to confirm clean output. Should be done after task 68 (module keyword addition) since changing import declarations may affect what `lake shake` reports.
 
@@ -102,6 +104,7 @@ next_project_number: 74
 - **Topic**: Submit PRs
 - specs/069_fix_linter_warnings_foundations/reports/01_linter-warnings-research.md: [Research]
 - specs/069_fix_linter_warnings_foundations/plans/01_linter-warnings-plan.md: [Plan]
+- specs/069_fix_linter_warnings_foundations/summaries/01_execution-summary.md: [Summary]
 
 **Description**: SHOULD-FIX quality audit items. Four sub-issues: (a) BigConj.lean has 6 flexible `simp` warnings -- replace bare `simp [bigconj]` with `simp only [...]` using compiler-suggested replacements. (b) Propositional/Connectives.lean has 2 empty-line-in-command style warnings at lines 357 and 368 -- remove blank lines or replace with comment lines. (c) 5 files (Combinators, Core, Prop/Connectives, Modal/Basic, S5) suppress `set_option linter.unreachableTactic false` at file scope -- scope to specific proofs using `set_option ... in theorem ...`. (d) S5.lean and TemporalDerived.lean suppress `set_option linter.style.longLine false` at file scope -- use `let` abbreviations in theorem statements and scope suppression to specific theorems only.
 
