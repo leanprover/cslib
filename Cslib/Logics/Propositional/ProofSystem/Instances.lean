@@ -32,7 +32,6 @@ equal to the concrete formulas used in `PropositionalAxiom`.
 
 @[expose] public section
 
-
 open Cslib.Logic
 
 variable {Atom : Type*} [DecidableEq Atom]
