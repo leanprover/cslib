@@ -6,6 +6,7 @@ Authors: Benjamin Brast-McKie
 
 module
 
+import Cslib.Init
 public import Mathlib.Algebra.Order.Group.Defs
 public import Mathlib.Data.Fintype.Basic
 
