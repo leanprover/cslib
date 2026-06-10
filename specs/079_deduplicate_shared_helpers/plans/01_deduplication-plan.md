@@ -112,24 +112,24 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Replace Temporal PropositionalHelpers with Foundations Delegation [IN PROGRESS]
+### Phase 2: Replace Temporal PropositionalHelpers with Foundations Delegation [COMPLETED]
 
 **Goal**: Replace the 11 re-proved propositional theorems in `Temporal/Metalogic/PropositionalHelpers.lean` with thin delegation wrappers that call the generic Foundations versions, following the pattern already established in `Bimodal/Theorems/Perpetuity/Helpers.lean`.
 
 **Tasks**:
-- [ ] Verify that `Temporal/ProofSystem/Instances.lean` provides `InferenceSystem` and `PropositionalHilbert` instances for `Temporal.HilbertBX`
-- [ ] Add `import Cslib.Foundations.Logic.Theorems.Propositional.Core` and `import Cslib.Foundations.Logic.Theorems.Combinators` to `PropositionalHelpers.lean`
-- [ ] Create `wrap`/`unwrap` bridge functions in PropositionalHelpers.lean (or import from a shared location if Temporal already has them)
-- [ ] Replace `double_negation` (78 lines of direct proof) with 1-line delegation via wrap/unwrap
-- [ ] Replace `efq_axiom` with delegation
-- [ ] Replace `imp_trans` with delegation
-- [ ] Replace `pairing` with delegation
-- [ ] Replace `lce_imp` / `rce_imp` with delegation
-- [ ] Replace `dni` with delegation
-- [ ] Replace `identity` with delegation
-- [ ] Replace `demorgan_disj_neg_backward` with delegation
-- [ ] Verify all 3 consumers still compile: `Metalogic.lean`, `ChronicleTypes.lean`, `WitnessSeed.lean`
-- [ ] Run `lake build` and fix any type mismatches between DerivationTree and Nonempty-based APIs
+- [x] Verify that `Temporal/ProofSystem/Instances.lean` provides `InferenceSystem` and `PropositionalHilbert` instances for `Temporal.HilbertBX`
+- [x] Add `import Cslib.Foundations.Logic.Theorems.Propositional.Core` and `import Cslib.Foundations.Logic.Theorems.Combinators` to `PropositionalHelpers.lean`
+- [x] Create `wrap`/`unwrap` bridge functions in PropositionalHelpers.lean (or import from a shared location if Temporal already has them)
+- [x] Replace `double_negation` (78 lines of direct proof) with 1-line delegation via wrap/unwrap
+- [x] Replace `efq_axiom` with delegation
+- [x] Replace `imp_trans` with delegation
+- [x] Replace `pairing` with delegation
+- [x] Replace `lce_imp` / `rce_imp` with delegation
+- [x] Replace `dni` with delegation
+- [x] Replace `identity` with delegation
+- [x] Replace `demorgan_disj_neg_backward` with delegation
+- [x] Verify all 3 consumers still compile: `Metalogic.lean`, `ChronicleTypes.lean`, `WitnessSeed.lean`
+- [x] Run `lake build` and fix any type mismatches between DerivationTree and Nonempty-based APIs
 
 **Timing**: 1.5 hours
 
