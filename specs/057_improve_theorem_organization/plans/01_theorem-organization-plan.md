@@ -66,7 +66,7 @@ Aligns with the Foundations module organization effort. Moving generic temporal 
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Move Generic Temporal Files to Foundations [NOT STARTED]
+### Phase 1: Move Generic Temporal Files to Foundations [COMPLETED]
 
 **Goal**: Relocate `TemporalDerived.lean` and `FrameConditions.lean` to `Foundations/Logic/Theorems/Temporal/` and update all imports.
 

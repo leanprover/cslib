@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brastmckie
 -/
 import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
-import Cslib.Logics.Temporal.Theorems.TemporalDerived
+import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
 import Cslib.Foundations.Logic.Theorems.Modal.S5
 
 /-! # Perpetuity Principles (P1-P5)

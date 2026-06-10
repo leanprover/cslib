@@ -10,6 +10,8 @@ import Cslib.Foundations.Logic.Theorems.Propositional.Reasoning
 import Cslib.Foundations.Logic.Theorems.BigConj
 import Cslib.Foundations.Logic.Theorems.Modal.Basic
 import Cslib.Foundations.Logic.Theorems.Modal.S5
+import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
+import Cslib.Foundations.Logic.Theorems.Temporal.FrameConditions
 
 /-! # Hilbert-Style Theorems
 
