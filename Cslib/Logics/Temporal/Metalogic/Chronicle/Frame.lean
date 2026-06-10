@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Benjamin Brastmckie. All rights reserved.
+Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Benjamin Brastmckie
+Authors: Benjamin Brast-McKie
 -/
 
 import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
@@ -98,11 +98,6 @@ theorem h_content_set_consistent {Omega : Set (Formula Atom)}
     temporal_implication_property h_mcs
       (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ .serial_past trivial)) h_top
   exact mcs_not_mem_of_neg h_mcs h_H_bot h_p_top
-
-/-! ## Reflexivity (sorry'd -- same issue as bimodal) -/
-
-theorem t_le_refl (w : TPoint Atom) : t_le w w := by
-  sorry
 
 /-! ## Transitivity -/
 

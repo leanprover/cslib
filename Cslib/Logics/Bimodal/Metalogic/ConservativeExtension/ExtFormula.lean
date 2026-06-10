@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Benjamin Brastmckie. All rights reserved.
+Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Benjamin Brastmckie
+Authors: Benjamin Brast-McKie
 -/
 import Cslib.Logics.Bimodal.Syntax.Formula
 import Mathlib.Data.Finset.Basic

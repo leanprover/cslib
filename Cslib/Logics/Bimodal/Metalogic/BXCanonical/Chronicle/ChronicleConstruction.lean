@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Benjamin Brastmckie. All rights reserved.
+Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Benjamin Brastmckie
+Authors: Benjamin Brast-McKie
 -/
 
 import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
@@ -311,7 +311,7 @@ noncomputable def omega_chain_elim_result (fc : FrameClass) (A : Set (Formula At
     (omega_chain fc A h_mcs n).property.1
     (omega_chain fc A h_mcs n).property.2
     (counterexample_enum (Nat.unpair n).2)
-   
+
 
 /--
 The f function at step n+1 is the same as the elimination result's f function.

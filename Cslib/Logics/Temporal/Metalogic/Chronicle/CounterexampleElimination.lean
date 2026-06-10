@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Benjamin Brastmckie. All rights reserved.
+Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Benjamin Brastmckie
+Authors: Benjamin Brast-McKie
 -/
 
 import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
@@ -1818,7 +1818,7 @@ noncomputable def eliminate_potential_counterexample
                   c5_backward_witness := fun h => absurd h (by rw [h_kind] at h; exact absurd h (by decide))
                   c4_forward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
                   c4_backward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
-  
+
                   g_sub_f_insert := r.g_sub_f_insert
                   g_sub_g_new := r.g_sub_g_new
                   dom_new_unique := r.dom_new_unique
@@ -2057,7 +2057,7 @@ noncomputable def eliminate_potential_counterexample
                   c5_backward_witness := fun h => absurd h (by rw [h_kind] at h; exact absurd h (by decide))
                   c4_forward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
                   c4_backward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
-  
+
                   g_sub_f_insert := by
                     intro a b h_adj w hw hw_not haw hwb
                     simp only [χ', Finset.mem_insert] at hw
@@ -2346,7 +2346,7 @@ noncomputable def eliminate_potential_counterexample
                       r.witness_guard, r.domain_guard, Or.inl r.witness_not_old⟩
                   c4_forward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
                   c4_backward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
-  
+
                   g_sub_f_insert := r.g_sub_f_insert
                   g_sub_g_new := r.g_sub_g_new
                   dom_new_unique := r.dom_new_unique
@@ -2571,7 +2571,7 @@ noncomputable def eliminate_potential_counterexample
                     · exact Or.inl hz_notin
                   c4_forward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
                   c4_backward_witness := fun h => by rw [h_kind] at h; exact absurd h (by decide)
-  
+
                   g_sub_f_insert := by
                     intro a b h_adj w hw hw_not haw hwb
                     simp only [χ', Finset.mem_insert] at hw
