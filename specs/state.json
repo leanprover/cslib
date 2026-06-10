@@ -4,10 +4,11 @@
     {
       "project_number": 75,
       "project_name": "propositional_hilbert_proof_system",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T13:55:17Z",
-      "last_updated": "2026-06-10T14:07:52Z"
+      "last_updated": "2026-06-10T14:29:34Z",
+      "completion_summary": "Created propositional Hilbert proof system with 6 new Lean files: axioms (4 constructors), derivation tree (4 constructors, no necessitation), instance registration (unlocking all Foundations theorems), deduction theorem, MCS properties, and ND wrappers (impI/impE/botE/assume plus cut/weakening/substitution)"
     },
     {
       "project_number": 74,
