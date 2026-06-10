@@ -4,22 +4,31 @@
     {
       "project_number": 83,
       "project_name": "update_pr1_description_and_roadmap",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "general",
       "depends_on": [
         81
       ],
       "created": "2026-06-10T18:03:13Z",
-      "last_updated": "2026-06-10T18:03:13Z"
+      "last_updated": "2026-06-10T18:20:00Z",
+      "researched": "2026-06-10T18:20:00Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/083_update_pr1_description_and_roadmap/reports/01_pr-description-update.md",
+          "type": "report",
+          "summary": "Complete diff-ready specification of all changes needed in pr-description.md and ROADMAP.md: file count 15→16, 6 line count corrections, new DeductionHelpers.lean row, CI validation blockers, dependency graph update, and ROADMAP Reasoning.lean removal"
+        }
+      ]
     },
     {
       "project_number": 82,
       "project_name": "systematic_codebase_review_logics_foundations",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-10T17:46:37Z",
-      "last_updated": "2026-06-10T18:11:44Z",
-      "session_id": "sess_1781114746_f6b121",
+      "last_updated": "2026-06-10T18:13:28Z",
+      "session_id": "sess_1781115176_f29440",
       "researched": "2026-06-10T17:59:27Z",
       "next_artifact_number": 2,
       "artifacts": [

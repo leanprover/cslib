@@ -6,7 +6,7 @@ next_project_number: 83
 
 ### 82. Systematic codebase review of Logics/ and Foundations/ for publication quality
 - **Effort**: large
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Research**: [082_systematic_codebase_review_logics_foundations/reports/01_team-research.md]
 - **Plan**: [082_systematic_codebase_review_logics_foundations/plans/01_codebase-review-plan.md]
@@ -57,14 +57,15 @@ next_project_number: 83
 ### Uncategorized
 
 82 [RESEARCHED] — systematic_codebase_review_logics_foundations
-83 [NOT STARTED] — update_pr1_description_and_roadmap
+83 [RESEARCHED] — update_pr1_description_and_roadmap
 
 ## Tasks
 
 ### 83. Review changes since task 74 to update PR 1 description and roadmap
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: general
+- **Research**: [specs/083_update_pr1_description_and_roadmap/reports/01_pr-description-update.md]
 
 **Description**: Review all changes made since completing task 74 (including tasks 75-81) to update and improve specs/059_pr1_foundations_logic/pr-description.md for PR 1 submission, and update specs/ROADMAP.md as appropriate
 
