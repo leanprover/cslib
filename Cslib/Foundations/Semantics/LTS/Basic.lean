@@ -62,6 +62,13 @@ structure LTS (State : Type u) (Label : Type v) where
 
 namespace LTS
 
+/-- Extensional equality for LTS. -/
+theorem ext {lts₁ lts₂ : LTS State Label}
+    (h : ∀ s μ s', lts₁.Tr s μ s' ↔ lts₂.Tr s μ s') : lts₁ = lts₂ := by
+  rcases lts₁ with ⟨Tr₁⟩
+  rcases lts₂ with ⟨Tr₂⟩
+  grind only [mk.injEq]
+
 section MultiStep
 
 /-! ## Multistep transitions and executions with finite traces

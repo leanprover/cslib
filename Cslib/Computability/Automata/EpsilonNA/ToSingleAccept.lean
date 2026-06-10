@@ -19,7 +19,7 @@ variable {State Symbol : Type*}
 /-- Any `εNA.FinAcc` can be converted into an `εNA.FinAcc` with a single accept state `none`.
 The original states are wrapped in `some`, and all original accept states have ε-transitions to
 `none`. -/
-@[scoped grind]
+@[local grind]
 def toSingleAccept (a : εNA.FinAcc State Symbol) : εNA.FinAcc (Option State) Symbol where
   start := some '' a.start
   accept := {none}
@@ -27,6 +27,18 @@ def toSingleAccept (a : εNA.FinAcc State Symbol) : εNA.FinAcc (Option State) S
     | some s, x, some s' => a.Tr s x s'
     | some s, none, none => s ∈ a.accept
     | _, _, _ => False
+
+@[scoped grind =]
+theorem toSingleAccept_accept_def {a : εNA.FinAcc State Symbol} :
+    a.toSingleAccept.accept = {none} := by
+  grind only [toSingleAccept]
+
+open Acceptor in
+@[scoped grind .]
+theorem toSingleAccept_accepts_mTr_iff {a : εNA.FinAcc State Symbol} :
+    Accepts a.toSingleAccept xs ↔
+    ∃ s ∈ a.toSingleAccept.start, a.toSingleAccept.SMTr s (xs.map Option.some) none := by
+  grind [Accepts]
 
 open scoped LTS LTS.MTr LTS.STr LTS.SMTr
 
@@ -44,7 +56,12 @@ theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} :
 
 @[scoped grind →]
 theorem toSingleAccept_tr_none_accept {a : εNA.FinAcc State Symbol}
-    (h : a.toSingleAccept.Tr os x none) : os = none ∨ ∃ s, os = some s ∧ s ∈ a.accept := by
+    (h : a.toSingleAccept.Tr os x none) : ∃ s, os = some s ∧ s ∈ a.accept := by
+  grind
+
+@[scoped grind ←]
+theorem toSingleAccept_not_tr_none {a : εNA.FinAcc State Symbol} :
+    ¬a.toSingleAccept.Tr none x os := by
   grind
 
 @[scoped grind →]
@@ -67,6 +84,15 @@ theorem toSingleAccept_mTr_mTr {a : εNA.FinAcc State Symbol} :
       cases h
       case stepL sb htr hmtr =>
         apply LTS.MTr.stepL (s2 := some sb) <;> grind
+
+@[scoped grind →]
+theorem toSingleAccept_τSTr_antiDerivative_none {a : εNA.FinAcc State Symbol}
+    (h : a.toSingleAccept.τSTr none os) : os = none := by
+  generalize hnone : none = os' at h
+  induction h using Relation.ReflTransGen.head_induction_on
+  case refl => rfl
+  case head _ _ h₁ h₂ ih =>
+    grind only [toSingleAccept_tr_antiDerivative_isSome h₁, = Option.isSome_none]
 
 @[scoped grind →]
 theorem toSingleAccept_τSTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
@@ -114,16 +140,12 @@ theorem toSingleAccept_τSTr_none_accept {a : εNA.FinAcc State Symbol}
   case refl => simp at hos'
   case tail osb os' h₁ h₂ ih =>
     rw [← hos'] at h₂
-    have hosb : osb = none ∨ ∃ sb, osb = some sb ∧ sb ∈ a.accept := by
+    have hosb : ∃ sb, osb = some sb ∧ sb ∈ a.accept := by
       apply toSingleAccept_tr_none_accept h₂
-    cases hosb
-    case inl =>
-      grind only
-    case inr hosb =>
-      rcases hosb with ⟨sb, hosb, hsb⟩
-      exists sb; apply And.intro hsb
-      rw [hosb] at h₁
-      apply toSingleAccept_τSTr_τSTr.mp h₁
+    rcases hosb with ⟨sb, hosb, hsb⟩
+    exists sb; apply And.intro hsb
+    rw [hosb] at h₁
+    apply toSingleAccept_τSTr_τSTr.mp h₁
 
 @[scoped grind →]
 theorem toSingleAccept_sTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
@@ -160,26 +182,23 @@ theorem toSingleAccept_sTr_none_accept {a : εNA.FinAcc State Symbol}
     case none =>
       rw [hosb₂] at h₂
       have h₂' := toSingleAccept_tr_none_accept h₂
-      cases h₂' with
-      | inl h₂' => contradiction
-      | inr h₂' =>
-        rcases h₂' with ⟨s', hs', hs'a⟩
-        exists s'; apply And.intro hs'a
-        rw [hs'] at h₂
-        have hx : x = none := by grind
-        rw [hx]
-        rw [hosb₁, hs'] at h₁
-        cases h₁
-        case refl =>
-          apply LTS.STr.refl
-        case tail osb htrb htr =>
-          have ⟨sb, hosb⟩ : ∃ sb, osb = some sb := by
-            grind only [toSingleAccept_tr_antiDerivative_isSome htr, Option.isSome_iff_exists]
-          rw [hosb] at htr
-          apply toSingleAccept_tr_tr.mp at htr
-          rw [hosb] at htrb
-          apply toSingleAccept_τSTr_τSTr.mp at htrb
-          apply LTS.STr.tr htrb htr LTS.τSTr.refl
+      rcases h₂' with ⟨s', hs', hs'a⟩
+      exists s'; apply And.intro hs'a
+      rw [hs'] at h₂
+      have hx : x = none := by grind
+      rw [hx]
+      rw [hosb₁, hs'] at h₁
+      cases h₁
+      case refl =>
+        apply LTS.STr.refl
+      case tail osb htrb htr =>
+        have ⟨sb, hosb⟩ : ∃ sb, osb = some sb := by
+          grind only [toSingleAccept_tr_antiDerivative_isSome htr, Option.isSome_iff_exists]
+        rw [hosb] at htr
+        apply toSingleAccept_tr_tr.mp at htr
+        rw [hosb] at htrb
+        apply toSingleAccept_τSTr_τSTr.mp at htrb
+        apply LTS.STr.tr htrb htr LTS.τSTr.refl
     case some sb₂ =>
       rw [hosb₁] at h₁
       rw [hosb₂] at h₂ h₃
@@ -256,6 +275,7 @@ theorem toSingleAccept_sMTr_none_accept {a : εNA.FinAcc State Symbol}
         apply LTS.SMTr.stepL (toSingleAccept_sTr_sTr.mp hstr) ih'
 
 open Acceptor in
+/-- `toSingleAccept` preserves the language of the input automaton. -/
 @[scoped grind =]
 theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
     language a.toSingleAccept = language a := by
