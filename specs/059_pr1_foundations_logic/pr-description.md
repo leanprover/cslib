@@ -69,6 +69,12 @@ Because negation, conjunction, and disjunction are `abbrev`s over `{bot, imp}`, 
 
 The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for maximal consistent sets. Lindenbaum's lemma is proved via Zorn's lemma, parameterized over `DerivationSystem F` for any formula type with `[HasBot F] [HasImp F]`. Consistency is defined as non-derivability of `bot`. This module is included in this PR because it is imported by both the modal and temporal metalogic files (PRs 2-4).
 
+## Design: Hilbert Primitive, Natural Deduction Derived
+
+The metalogic is built on Hilbert-style derivation trees, following the standard approach for canonical model completeness proofs. The MCS/Lindenbaum construction needs derivability as a flat relation closed under modus ponens, which Hilbert systems provide directly. This also extends modularly to modal, temporal, and bimodal logics by adding axiom schemas — each corresponding to a frame condition — without changing the proof structure or metatheory.
+
+The pre-existing independent natural deduction system (`NaturalDeduction/Basic.lean`, from PR #91) is preserved. A new `FromHilbert.lean` module provides ND-flavored convenience names (`impI`, `impE`, `botE`) as thin wrappers over the Hilbert derivation tree.
+
 ## Design: Propositional Proof System Architecture
 
 The `Logics/Propositional/` module provides the concrete instantiation of the abstract `Foundations/Logic/` infrastructure for classical propositional logic.
@@ -214,7 +220,9 @@ This was required for Lean 4 module system compliance and ensures that the files
 
 ## References
 
+- Blackburn, P., de Rijke, M. and Venema, Y. (2001). *Modal Logic*. Cambridge University Press.
+- Chellas, B.F. (1980). *Modal Logic: An Introduction*. Cambridge University Press.
 - Church, A. (1956). *Introduction to Mathematical Logic, Vol. I*. Princeton University Press.
 - Curry, H.B. and Feys, R. (1958). *Combinatory Logic, Vol. I*. North-Holland.
-- Howard, W.A. (1969/1980). "The Formulae-as-Types Notion of Construction".
 - Griffin, T.G. (1990). "A Formulae-as-Types Notion of Control". *POPL 1990*.
+- Howard, W.A. (1969/1980). "The Formulae-as-Types Notion of Construction".
