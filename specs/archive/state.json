@@ -1,6 +1,63 @@
 {
   "completed_projects": [
     {
+      "project_number": 54,
+      "project_name": "prepare_temporal_semantics_pr",
+      "status": "abandoned",
+      "task_type": "lean4",
+      "description": "Apply style compliance fixes and prepare Temporal Semantics PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)",
+      "parent_task": 12,
+      "dependencies": [
+        52
+      ],
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs",
+      "abandoned": "2026-06-10T00:22:15Z"
+    },
+    {
+      "project_number": 53,
+      "project_name": "prepare_temporal_infra_pr",
+      "status": "abandoned",
+      "task_type": "lean4",
+      "description": "Apply style compliance fixes and prepare Temporal Infrastructure PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)",
+      "parent_task": 12,
+      "dependencies": [
+        52
+      ],
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs",
+      "abandoned": "2026-06-10T00:22:15Z"
+    },
+    {
+      "project_number": 52,
+      "project_name": "audit_tense_logic_style_compliance",
+      "status": "abandoned",
+      "task_type": "lean4",
+      "description": "Audit tense logic code for compliance with Mathlib style guide (https://leanprover-community.github.io/contribute/style.html) and CSLib standards, documenting all required changes",
+      "parent_task": 12,
+      "dependencies": [
+        51
+      ],
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs",
+      "abandoned": "2026-06-10T00:22:15Z"
+    },
+    {
+      "project_number": 51,
+      "project_name": "review_tense_logic_pr_readiness",
+      "status": "abandoned",
+      "task_type": "general",
+      "description": "Review tense logic progress against ROADMAP and assess PR readiness, identifying which components are complete and what work remains before PR submission",
+      "parent_task": 12,
+      "created": "2026-06-09T23:52:20Z",
+      "last_updated": "2026-06-09T23:52:20Z",
+      "topic": "Submit PRs",
+      "abandoned": "2026-06-10T00:22:15Z"
+    },
+    {
       "project_number": 1,
       "project_name": "integrate_bimodal_logic_results",
       "status": "completed",

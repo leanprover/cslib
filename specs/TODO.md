@@ -1,10 +1,86 @@
 ---
-next_project_number: 58
+next_project_number: 65
 ---
 
 # Tasks
 
 ## Tasks
+
+### 64. PR 6: Submit Temporal completeness theorem
+- **Effort**: Small (2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 63
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR containing the final 3 files: ChronicleToCountermodel.lean, TruthLemma.lean, Completeness.lean (~492 lines). PR title: `feat(Logics/Temporal): BX completeness theorem via Burgess chronicle countermodel`. Run CI checks (lake build, shake, lint, checkInitImports, mk_all). Add `public import` lines to Cslib.lean. See task 56 plan Phase 8 for full details.
+
+---
+
+### 63. PR 5: Submit Temporal chronicle infrastructure
+- **Effort**: Medium (2.5 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 62
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR containing 8 Chronicle construction files: ChronicleTypes, Frame, CanonicalChain, OrderedSeedConsistency, RRelation, PointInsertion, CounterexampleElimination, ChronicleConstruction (~7,117 lines). PR title: `feat(Logics/Temporal): Burgess chronicle construction infrastructure`. If reviewers request split, offer: (5a) types+frame+chain+consistency+RRelation (~1,497 lines), (5b) insertion+elimination+construction (~7,620 lines). Run CI checks. See task 56 plan Phase 7.
+
+---
+
+### 62. PR 4: Submit Temporal metalogic core
+- **Effort**: Medium (2.5 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Tasks 59, 61
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR containing 10 non-Chronicle Temporal Metalogic files: DerivationTree, DeductionTheorem, MCS, TemporalContent, GeneralizedNecessitation, PropositionalHelpers, WitnessSeed, Soundness, CompletenessHelpers, barrel (~2,790 lines). PR title: `feat(Logics/Temporal): temporal metalogic -- deduction theorem, MCS saturation, and soundness`. Run CI checks. See task 56 plan Phase 6.
+
+---
+
+### 61. PR 3: Submit Temporal semantics, proof system, and theorems
+- **Effort**: Small (2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 59
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR containing 11 non-metalogic Temporal files: Semantics (Model, Satisfies, Validity), ProofSystem (Axioms, Derivation, Derivable, Instances, barrel), Theorems (TemporalDerived, FrameConditions, barrel) (~2,358 lines). Can be submitted in parallel with PR 2 (task 60). PR title: `feat(Logics/Temporal): BX temporal logic semantics, proof system, and derived theorems`. Run CI checks. See task 56 plan Phase 5.
+
+---
+
+### 60. PR 2: Submit Modal metalogic (soundness and completeness)
+- **Effort**: Small (2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 59
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR containing 6 Modal Metalogic files: DerivationTree, DeductionTheorem, MCS, Soundness, Completeness, barrel (~1,449 lines). Can be submitted in parallel with PR 3 (task 61). PR title: `feat(Logics/Modal): Kripke semantics deduction theorem, MCS theory, soundness and completeness for S5`. Run CI checks. See task 56 plan Phase 4.
+
+---
+
+### 59. PR 1: Submit Foundations/Logic theorems and MCS foundations
+- **Effort**: Small (2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 58
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR containing 9 Foundations/Logic files: Theorems (Combinators, BigConj), Propositional (Core, Connectives, Reasoning), Modal (Basic, S5), Metalogic/Consistency, barrel (~3,319 lines). This must be the first PR because Temporal and Modal metalogic import Consistency. PR title: `feat(Foundations/Logic): propositional theorems, modal S5 theorems, and MCS consistency foundations`. Run CI checks. See task 56 plan Phase 3.
+
+---
+
+### 58. CI prep: sorry fix and global CI baseline
+- **Effort**: Small (2 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+
+**Description**: Remove unused `t_le_refl` sorry from Chronicle/Frame.lean, then run full CI baseline: lake build (zero errors), grep for sorry (zero in Temporal/Modal/Foundations), lake shake, lake lint, lake exe lint-style, lake exe checkInitImports, verify Apache 2.0 headers on all files to be submitted. Fix any issues found. This establishes the clean baseline before any PR branches are created.
+
+---
 
 ### 57. Improve theorem organization: move misplaced generic theorems to Foundations and eliminate concrete duplicates in Bimodal
 - **Effort**: Large
@@ -33,9 +109,12 @@ next_project_number: 58
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,51,57 | -- | Foundations, Temporal Logic, Bimodal Porting, ... |
-| 2 | 39,40,52 | 36,37,51 | Temporal Logic, Submit PRs |
-| 3 | 41,53,54 | 38,39,40,52 | Foundations, Submit PRs |
+| 1 | 36,37,38,57,58 | -- | Foundations, Temporal Logic, Bimodal Porting, ... |
+| 2 | 39,40,59 | 36,37,58 | Temporal Logic, Submit PRs |
+| 3 | 41,60,61 | 38,39,40,59 | Foundations, Submit PRs |
+| 4 | 62 | 59,61 | Submit PRs |
+| 5 | 63 | 62 | Submit PRs |
+| 6 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -57,10 +136,14 @@ next_project_number: 58
 
 ### Submit PRs
 
-51 [NOT STARTED] — Review tense logic progress against ROADMAP and assess PR readine
-  └─ 52 [NOT STARTED] — Audit tense logic code for compliance with Mathlib style guide (h
-    └─ 53 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Infrastructure 
-    └─ 54 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Semantics PR wi
+58 [NOT STARTED] — ci_prep_sorry_fix_baseline
+  └─ 59 [NOT STARTED] — pr1_foundations_logic
+    └─ 60 [NOT STARTED] — pr2_modal_metalogic
+    └─ 61 [NOT STARTED] — pr3_temporal_proof_system
+      └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
+        └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
+          └─ 64 [NOT STARTED] — pr6_completeness_theorem
+    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
 
 ## Tasks
 
@@ -76,48 +159,6 @@ next_project_number: 58
 
 ---
 
-### 54. Prepare Temporal Semantics PR
-- **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
-- **Task Type**: lean4
-- **Dependencies**: Task 52
-- **Parent**: Task 12
-
-**Description**: Apply style compliance fixes and prepare Temporal Semantics PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)
-
----
-
-### 53. Prepare Temporal Infrastructure PR
-- **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
-- **Task Type**: lean4
-- **Dependencies**: Task 52
-- **Parent**: Task 12
-
-**Description**: Apply style compliance fixes and prepare Temporal Infrastructure PR with CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers)
-
----
-
-### 52. Audit tense logic code for style compliance
-- **Effort**: Medium (4-8 hours)
-- **Status**: [NOT STARTED]
-- **Task Type**: lean4
-- **Dependencies**: Task 51
-- **Parent**: Task 12
-
-**Description**: Audit tense logic code for compliance with Mathlib style guide (https://leanprover-community.github.io/contribute/style.html) and CSLib standards, documenting all required changes
-
----
-
-### 51. Review tense logic PR readiness
-- **Effort**: Small (2-4 hours)
-- **Status**: [NOT STARTED]
-- **Task Type**: general
-- **Parent**: Task 12
-
-**Description**: Review tense logic progress against ROADMAP and assess PR readiness, identifying which components are complete and what work remains before PR submission
-
----
 
 ### 40. Continuous temporal completeness
 - **Effort**: TBD
@@ -193,7 +234,7 @@ next_project_number: 58
 - **Status**: [EXPANDED]
 - **Task Type**: general
 - **Dependencies**: Task 41
-- **Subtasks**: 51, 52, 53, 54
+- **Subtasks**: 51, 52, 53, 54 (abandoned — superseded by tasks 58-64)
 
 **Description**: Coordinate the cslib PR submission process for the modular logic integration (standalone modules + bimodal). This task runs in parallel with porting tasks and handles maintainer communication, namespace decisions, and CI compliance.
 
