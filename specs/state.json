@@ -24,10 +24,10 @@
     {
       "project_number": 82,
       "project_name": "systematic_codebase_review_logics_foundations",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T17:46:37Z",
-      "last_updated": "2026-06-10T18:13:28Z",
+      "last_updated": "2026-06-10T18:46:51Z",
       "session_id": "sess_1781115176_f29440",
       "researched": "2026-06-10T17:59:27Z",
       "next_artifact_number": 2,
@@ -36,8 +36,14 @@
           "path": "specs/082_systematic_codebase_review_logics_foundations/plans/01_codebase-review-plan.md",
           "type": "plan",
           "summary": "6-phase plan covering camelCase renames, docstring gaps, CI validation, ORGANISATION.md rewrite, sorry annotations, section naming, and copyright headers"
+        },
+        {
+          "path": "specs/082_systematic_codebase_review_logics_foundations/summaries/01_codebase-review-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting all 6 phases of codebase review changes"
         }
-      ]
+      ],
+      "completion_summary": "Systematic codebase review: renamed ~385 snake_case defs to camelCase across Foundations/Logics, added ~100 docstrings to 6 worst-gap files, rewrote ORGANISATION.md to reflect actual architecture, annotated ~20 sorry stubs with blocking task references, added copyright headers to 4 barrel files, named 7 bare sections, fixed 3 missing Cslib.Init imports, passed all CI validation tools"
     },
     {
       "project_number": 81,
