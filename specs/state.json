@@ -15,13 +15,20 @@
     {
       "project_number": 82,
       "project_name": "systematic_codebase_review_logics_foundations",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-10T17:46:37Z",
-      "last_updated": "2026-06-10T17:59:27Z",
-      "session_id": "sess_1781113824_a0979d",
+      "last_updated": "2026-06-10T18:11:44Z",
+      "session_id": "sess_1781114746_f6b121",
       "researched": "2026-06-10T17:59:27Z",
-      "next_artifact_number": 2
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/082_systematic_codebase_review_logics_foundations/plans/01_codebase-review-plan.md",
+          "type": "plan",
+          "summary": "6-phase plan covering camelCase renames, docstring gaps, CI validation, ORGANISATION.md rewrite, sorry annotations, section naming, and copyright headers"
+        }
+      ]
     },
     {
       "project_number": 81,

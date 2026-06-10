@@ -1,0 +1,22 @@
+{
+  "status": "planned",
+  "summary": "Created 6-phase implementation plan addressing all 10 research findings for publication-quality codebase review of Logics/ and Foundations/",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/082_systematic_codebase_review_logics_foundations/plans/01_codebase-review-plan.md",
+      "summary": "6-phase plan covering camelCase renames (~395 defs), docstring gaps (6 files), CI validation, ORGANISATION.md rewrite, sorry annotations, section naming, and copyright headers"
+    }
+  ],
+  "next_steps": "Run /implement 82 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1781114746_f6b121",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 10,
+    "dependency_waves": [[1, 2, 3], [4, 5], [6]]
+  },
+  "memory_candidates": []
+}
