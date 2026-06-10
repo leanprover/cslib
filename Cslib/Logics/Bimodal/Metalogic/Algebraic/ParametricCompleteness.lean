@@ -49,9 +49,9 @@ theorem not_provable_implies_neg_set_consistent (φ : Formula Atom)
     have d_single : DerivationTree FrameClass.Base [φ.neg] (Formula.bot : Formula Atom) :=
       DerivationTree.weakening L [φ.neg] (Formula.bot : Formula Atom) d h_weak
     have d_neg_neg : DerivationTree FrameClass.Base [] (φ.neg.neg) :=
-      deduction_theorem [] φ.neg (Formula.bot : Formula Atom) d_single
+      deductionTheorem [] φ.neg (Formula.bot : Formula Atom) d_single
     have h_dne : DerivationTree FrameClass.Base [] (φ.neg.neg.imp φ) :=
-      Theorems.Propositional.double_negation φ
+      Theorems.Propositional.doubleNegation φ
     have d_phi : DerivationTree FrameClass.Base [] φ :=
       DerivationTree.modus_ponens [] φ.neg.neg φ h_dne d_neg_neg
     exact h_not_prov ⟨d_phi⟩
@@ -79,8 +79,8 @@ theorem parametric_canonical_completeness_relative
     (φ : Formula Atom) (_h_not_prov : ¬Nonempty (DerivationTree FrameClass.Base [] φ))
     (fam : FMCS Atom D FrameClass.Base) (hfam : fam ∈ B.families)
     (t : D) (h_neg_in : φ.neg ∈ fam.mcs t) :
-    ¬truth_at ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
-      (parametric_to_history fam) t φ := by
+    ¬truthAt ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
+      (parametricToHistory fam) t φ := by
   intro h_phi_true
   have h_phi_in := (parametric_shifted_truth_lemma B h_tc h_buc h_fuc φ fam hfam t).mpr h_phi_true
   exact set_consistent_not_both (fam.is_mcs t).1 φ h_phi_in h_neg_in
@@ -93,8 +93,8 @@ theorem parametric_completeness_from_neg_membership
     (φ : Formula Atom)
     (fam : FMCS Atom D FrameClass.Base) (hfam : fam ∈ B.families)
     (t : D) (h_neg_in : φ.neg ∈ fam.mcs t) :
-    ¬truth_at ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
-      (parametric_to_history fam) t φ := by
+    ¬truthAt ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
+      (parametricToHistory fam) t φ := by
   intro h_phi_true
   have h_phi_in := (parametric_shifted_truth_lemma B h_tc h_buc h_fuc φ fam hfam t).mpr h_phi_true
   exact set_consistent_not_both (fam.is_mcs t).1 φ h_phi_in h_neg_in
@@ -118,8 +118,8 @@ theorem parametric_canonical_completeness_conditional
          M = fam.mcs t) :
     ∃ (B : BFMCS Atom D FrameClass.Base) (_h_tc : B.temporally_coherent)
       (fam : FMCS Atom D FrameClass.Base) (_hfam : fam ∈ B.families) (t : D),
-      ¬truth_at ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
-        (parametric_to_history fam) t φ := by
+      ¬truthAt ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
+        (parametricToHistory fam) t φ := by
   obtain ⟨M, h_mcs, h_neg_in⟩ := not_provable_implies_neg_extends_to_mcs φ h_not_prov
   obtain ⟨B, h_tc, h_buc, h_fuc, fam, hfam, t, h_eq⟩ := construct_bfmcs M h_mcs
   have h_neg_in_fam : φ.neg ∈ fam.mcs t := h_eq ▸ h_neg_in
@@ -132,8 +132,8 @@ theorem countermodel_implies_not_provable
     (h_fuc : B.forward_until_since_coherent)
     (φ : Formula Atom)
     (fam : FMCS Atom D FrameClass.Base) (hfam : fam ∈ B.families) (t : D)
-    (h_false : ¬truth_at ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
-      (parametric_to_history fam) t φ) :
+    (h_false : ¬truthAt ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
+      (parametricToHistory fam) t φ) :
     ¬Nonempty (DerivationTree FrameClass.Base [] φ) := by
   intro ⟨d⟩
   have h_in : φ ∈ fam.mcs t := by

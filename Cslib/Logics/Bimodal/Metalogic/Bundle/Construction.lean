@@ -69,16 +69,16 @@ lemma lindenbaumMCS_is_mcs (Gamma : List (Formula Atom)) (h_cons : ContextConsis
   let h_set_cons : SetConsistent (FrameClass.Base : FrameClass) (contextAsSet Gamma) := list_consistent_to_set_consistent h_cons
   (Classical.choose_spec (set_lindenbaum_base h_set_cons)).2
 
-noncomputable def lindenbaumMCS_set (Omega : Set (Formula Atom)) (h_cons : SetConsistent (FrameClass.Base : FrameClass) Omega) :
+noncomputable def lindenbaumMCSSet (Omega : Set (Formula Atom)) (h_cons : SetConsistent (FrameClass.Base : FrameClass) Omega) :
     Set (Formula Atom) :=
   Classical.choose (set_lindenbaum_base h_cons)
 
 lemma lindenbaumMCS_set_extends (Omega : Set (Formula Atom)) (h_cons : SetConsistent (FrameClass.Base : FrameClass) Omega) :
-    Omega ⊆ lindenbaumMCS_set Omega h_cons :=
+    Omega ⊆ lindenbaumMCSSet Omega h_cons :=
   (Classical.choose_spec (set_lindenbaum_base h_cons)).1
 
 lemma lindenbaumMCS_set_is_mcs (Omega : Set (Formula Atom)) (h_cons : SetConsistent (FrameClass.Base : FrameClass) Omega) :
-    SetMaximalConsistent (FrameClass.Base : FrameClass) (lindenbaumMCS_set Omega h_cons) :=
+    SetMaximalConsistent (FrameClass.Base : FrameClass) (lindenbaumMCSSet Omega h_cons) :=
   (Classical.choose_spec (set_lindenbaum_base h_cons)).2
 
 /-! ## Context Derivability Utilities -/
@@ -91,9 +91,9 @@ lemma not_derivable_implies_neg_consistent (φ : Formula Atom)
     ContextConsistent [φ.neg] := by
   intro ⟨d_bot⟩
   have d_neg_neg : DerivationTree FrameClass.Base [] (φ.neg.neg) :=
-    deduction_theorem [] φ.neg (Formula.bot : Formula Atom) d_bot
+    deductionTheorem [] φ.neg (Formula.bot : Formula Atom) d_bot
   have h_dne : DerivationTree FrameClass.Base [] (φ.neg.neg.imp φ) :=
-    Theorems.Propositional.double_negation φ
+    Theorems.Propositional.doubleNegation φ
   have d_phi : DerivationTree FrameClass.Base [] φ :=
     DerivationTree.modus_ponens [] φ.neg.neg φ h_dne d_neg_neg
   exact h_not_deriv ⟨d_phi⟩
@@ -109,9 +109,9 @@ lemma context_not_derivable_implies_extended_consistent (Γ : List (Formula Atom
   have d_bot_reordered : DerivationTree FrameClass.Base (φ.neg :: Γ) (Formula.bot : Formula Atom) :=
     DerivationTree.weakening (Γ ++ [φ.neg]) (φ.neg :: Γ) (Formula.bot : Formula Atom) d_bot h_subset
   have d_neg_neg : DerivationTree FrameClass.Base Γ φ.neg.neg :=
-    deduction_theorem Γ φ.neg (Formula.bot : Formula Atom) d_bot_reordered
+    deductionTheorem Γ φ.neg (Formula.bot : Formula Atom) d_bot_reordered
   have h_dne : DerivationTree FrameClass.Base [] (φ.neg.neg.imp φ) :=
-    Theorems.Propositional.double_negation φ
+    Theorems.Propositional.doubleNegation φ
   have h_dne_ctx : DerivationTree FrameClass.Base Γ (φ.neg.neg.imp φ) :=
     DerivationTree.weakening [] Γ (φ.neg.neg.imp φ) h_dne (by intro; simp)
   have d_phi : DerivationTree FrameClass.Base Γ φ :=

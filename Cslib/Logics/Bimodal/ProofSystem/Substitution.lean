@@ -17,13 +17,13 @@ are preserved under atom substitution.
 
 - `Formula.subst`: Substitute atom q with atom r in a formula
 - `Context.subst`: Apply substitution to all formulas in a context
-- `atoms_of_context`: All atoms appearing in a context
+- `atomsOfContext`: All atoms appearing in a context
 
 ## Main Results
 
 - `subst_fresh_eq`: Substituting a fresh atom leaves the formula unchanged
-- `axiom_subst`: Axiom instances are preserved under substitution (42 cases)
-- `derivation_subst`: Derivations are preserved under atom substitution
+- `axiomSubst`: Axiom instances are preserved under substitution (42 cases)
+- `derivationSubst`: Derivations are preserved under atom substitution
 -/
 
 set_option linter.style.emptyLine false
@@ -197,25 +197,25 @@ def Context.subst (q r : Atom) (Gamma : Context Atom) :
   Gamma.map (Formula.subst q r)
 
 /-- All atoms appearing in formulas of a context. -/
-def atoms_of_context (Gamma : Context Atom) : Finset Atom :=
+def atomsOfContext (Gamma : Context Atom) : Finset Atom :=
   Gamma.foldr (fun phi acc => phi.atoms ∪ acc) ∅
 
 @[simp]
 theorem atoms_of_context_nil :
-    atoms_of_context ([] : Context Atom) = ∅ := rfl
+    atomsOfContext ([] : Context Atom) = ∅ := rfl
 
 @[simp]
 theorem atoms_of_context_cons (phi : Formula Atom)
     (Gamma : Context Atom) :
-    atoms_of_context (phi :: Gamma) =
-      phi.atoms ∪ atoms_of_context Gamma := rfl
+    atomsOfContext (phi :: Gamma) =
+      phi.atoms ∪ atomsOfContext Gamma := rfl
 
 theorem mem_atoms_of_context_iff {q : Atom}
     {Gamma : Context Atom} :
-    q ∈ atoms_of_context Gamma ↔
+    q ∈ atomsOfContext Gamma ↔
       ∃ phi ∈ Gamma, q ∈ phi.atoms := by
   induction Gamma with
-  | nil => simp [atoms_of_context]
+  | nil => simp [atomsOfContext]
   | cons hd tl ih =>
     simp only [atoms_of_context_cons, Finset.mem_union,
       ih, List.mem_cons]
@@ -249,7 +249,7 @@ theorem mem_context_subst_iff {q r : Atom}
 /-! ## Axiom substitution -/
 
 /-- Axiom instances are preserved under atom substitution. -/
-def axiom_subst (q r : Atom) {phi : Formula Atom}
+def axiomSubst (q r : Atom) {phi : Formula Atom}
     (h : Axiom phi) : Axiom (phi.subst q r) := by
   cases h with
   | imp_k a b c =>
@@ -459,9 +459,9 @@ theorem swapTemporal_subst (q r : Atom)
 /-- Axiom substitution preserves `minFrameClass`. -/
 theorem axiom_subst_minFrameClass (q r : Atom)
     {phi : Formula Atom} (h : Axiom phi) :
-    (axiom_subst q r h).minFrameClass =
+    (axiomSubst q r h).minFrameClass =
       h.minFrameClass := by
-  cases h <;> simp [axiom_subst, Axiom.minFrameClass]
+  cases h <;> simp [axiomSubst, Axiom.minFrameClass]
 
 /-! ## Main theorem: derivation substitution -/
 
@@ -469,44 +469,44 @@ theorem axiom_subst_minFrameClass (q r : Atom)
 
 If `Gamma |-[fc] phi`, then
 `Gamma.subst q r |-[fc] phi.subst q r`. -/
-def derivation_subst (q r : Atom) {fc : FrameClass} :
+def derivationSubst (q r : Atom) {fc : FrameClass} :
     {Gamma : Context Atom} -> {phi : Formula Atom} ->
     DerivationTree fc Gamma phi ->
     DerivationTree fc (Context.subst q r Gamma)
       (phi.subst q r)
   | Gamma, phi, DerivationTree.axiom _ _ h h_fc =>
     DerivationTree.axiom (Context.subst q r Gamma)
-      (phi.subst q r) (axiom_subst q r h)
+      (phi.subst q r) (axiomSubst q r h)
       (axiom_subst_minFrameClass q r h ▸ h_fc)
   | _, phi, DerivationTree.assumption _ _ h => by
     apply DerivationTree.assumption
     rw [mem_context_subst_iff]
     exact ⟨phi, h, rfl⟩
   | _, _, DerivationTree.modus_ponens _ psi _ d1 d2 => by
-    have d1' := derivation_subst q r d1
-    have d2' := derivation_subst q r d2
+    have d1' := derivationSubst q r d1
+    have d2' := derivationSubst q r d2
     simp only [Formula.subst_imp] at d1'
     exact DerivationTree.modus_ponens _ _ _ d1' d2'
   | _, _, DerivationTree.necessitation psi d => by
-    have d' := derivation_subst q r d
+    have d' := derivationSubst q r d
     simp only [Context.subst, List.map_nil] at d'
     simp only [Formula.subst_box]
     exact DerivationTree.necessitation
       (psi.subst q r) d'
   | _, _, DerivationTree.temporal_necessitation psi d => by
-    have d' := derivation_subst q r d
+    have d' := derivationSubst q r d
     simp only [Context.subst, List.map_nil] at d'
     simp only [Formula.subst_allFuture]
     exact DerivationTree.temporal_necessitation
       (psi.subst q r) d'
   | _, _, DerivationTree.temporal_duality psi d => by
-    have d' := derivation_subst q r d
+    have d' := derivationSubst q r d
     simp only [Context.subst, List.map_nil] at d'
     rw [swapTemporal_subst]
     exact DerivationTree.temporal_duality
       (psi.subst q r) d'
   | Gamma, _, DerivationTree.weakening Gamma' _ _ d h => by
-    have d' := derivation_subst q r d
+    have d' := derivationSubst q r d
     apply DerivationTree.weakening
       (Context.subst q r Gamma') _ _ d'
     intro psi hpsi

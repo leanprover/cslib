@@ -20,14 +20,14 @@ TM bimodal logic system. These are foundational for canonical model construction
 - `MaximalConsistent`: List-based maximal consistency definition
 - Bimodal-specific abbreviations delegating to the generic MCS framework
 - `bimodal_lindenbaum`: Lindenbaum's lemma (delegates to generic)
-- `bimodal_closed_under_derivation`: MCS closure (delegates to generic)
+- `bimodalClosedUnderDerivation`: MCS closure (delegates to generic)
 - List-based MCS closure properties using the deduction theorem directly
 
 ## Design
 
 List-based definitions are retained for backward compatibility and direct proof use.
 Set-based MCS theory delegates to `Cslib.Foundations.Logic.Metalogic.Consistency`
-via `bimodalDerivationSystem` and `bimodal_has_deduction_theorem`.
+via `bimodalDerivationSystem` and `bimodalHasDeductionTheorem`.
 
 ## References
 
@@ -95,32 +95,32 @@ theorem bimodal_lindenbaum (Ω : Set (Formula Atom))
 
 /-- MCS closure under derivation for bimodal logic.
 Delegates to the generic `closed_under_derivation`. -/
-noncomputable def bimodal_closed_under_derivation
+noncomputable def bimodalClosedUnderDerivation
     {Ω : Set (Formula Atom)}
     (h_mcs : BimodalSetMaximalConsistent Ω)
     {L : List (Formula Atom)} (h_sub : ∀ ψ ∈ L, ψ ∈ Ω)
     {φ : Formula Atom} (h_deriv : Bimodal.Deriv L φ) : φ ∈ Ω :=
   Metalogic.SetMaximalConsistent.closed_under_derivation
-    bimodalDerivationSystem bimodal_has_deduction_theorem h_mcs h_sub h_deriv
+    bimodalDerivationSystem bimodalHasDeductionTheorem h_mcs h_sub h_deriv
 
 /-- MCS implication property for bimodal logic.
 Delegates to the generic `implication_property`. -/
-noncomputable def bimodal_implication_property
+noncomputable def bimodalImplicationProperty
     {Ω : Set (Formula Atom)}
     (h_mcs : BimodalSetMaximalConsistent Ω)
     {φ ψ : Formula Atom}
     (h_imp : φ.imp ψ ∈ Ω) (h_phi : φ ∈ Ω) : ψ ∈ Ω :=
   Metalogic.SetMaximalConsistent.implication_property
-    bimodalDerivationSystem bimodal_has_deduction_theorem h_mcs h_imp h_phi
+    bimodalDerivationSystem bimodalHasDeductionTheorem h_mcs h_imp h_phi
 
 /-- MCS negation completeness for bimodal logic.
 Delegates to the generic `negation_complete`. -/
-noncomputable def bimodal_negation_complete
+noncomputable def bimodalNegationComplete
     {Ω : Set (Formula Atom)}
     (h_mcs : BimodalSetMaximalConsistent Ω)
     (φ : Formula Atom) : φ ∈ Ω ∨ Formula.neg φ ∈ Ω :=
   Metalogic.SetMaximalConsistent.negation_complete
-    bimodalDerivationSystem bimodal_has_deduction_theorem h_mcs φ
+    bimodalDerivationSystem bimodalHasDeductionTheorem h_mcs φ
 
 /-!
 ## Helper Lemmas for List-Based MCS
@@ -144,17 +144,17 @@ context derives ¬φ (i.e., φ → ⊥).
 
 Uses the deduction theorem.
 -/
-noncomputable def derives_neg_from_inconsistent_extension {fc : FrameClass}
+noncomputable def derivesNegFromInconsistentExtension {fc : FrameClass}
     {Γ : Context Atom} {φ : Formula Atom}
     (h_incons : ¬Consistent (fc := fc) (φ :: Γ)) :
     Nonempty (DerivationTree fc Γ (Formula.neg φ)) := by
   have ⟨d_bot⟩ := inconsistent_derives_bot h_incons
-  exact ⟨deduction_theorem Γ φ Formula.bot d_bot⟩
+  exact ⟨deductionTheorem Γ φ Formula.bot d_bot⟩
 
 /--
 From Γ ⊢ φ and Γ ⊢ ¬φ (i.e., φ → ⊥), derive Γ ⊢ ⊥.
 -/
-def derives_bot_from_phi_neg_phi {fc : FrameClass} {Γ : Context Atom} {φ : Formula Atom}
+def derivesBotFromPhiNegPhi {fc : FrameClass} {Γ : Context Atom} {φ : Formula Atom}
     (h_phi : DerivationTree fc Γ φ)
     (h_neg : DerivationTree fc Γ (Formula.neg φ)) :
     DerivationTree fc Γ Formula.bot :=
@@ -177,14 +177,14 @@ Maximal consistent sets are deductively closed.
 
 **Statement**: `MaximalConsistent Γ → (Γ ⊢ φ → φ ∈ Γ)`
 -/
-noncomputable def maximal_consistent_closed {fc : FrameClass} (Γ : Context Atom)
+noncomputable def maximalConsistentClosed {fc : FrameClass} (Γ : Context Atom)
     (φ : Formula Atom)
     (h_max : MaximalConsistent (fc := fc) Γ)
     (h_deriv : DerivationTree fc Γ φ) : φ ∈ Γ := by
   by_contra h_not_mem
   have h_incons := maximal_extends_inconsistent h_max h_not_mem
-  have ⟨h_neg_deriv⟩ := derives_neg_from_inconsistent_extension h_incons
-  have h_bot := derives_bot_from_phi_neg_phi h_deriv h_neg_deriv
+  have ⟨h_neg_deriv⟩ := derivesNegFromInconsistentExtension h_incons
+  have h_bot := derivesBotFromPhiNegPhi h_deriv h_neg_deriv
   exact h_max.1 ⟨h_bot⟩
 
 /--
@@ -192,13 +192,13 @@ Maximal consistent sets are negation complete.
 
 **Statement**: `MaximalConsistent Γ → (φ ∉ Γ → ¬φ ∈ Γ)`
 -/
-noncomputable def maximal_negation_complete {fc : FrameClass} (Γ : Context Atom)
+noncomputable def maximalNegationComplete {fc : FrameClass} (Γ : Context Atom)
     (φ : Formula Atom)
     (h_max : MaximalConsistent (fc := fc) Γ) (h_not_mem : φ ∉ Γ) :
     Formula.neg φ ∈ Γ := by
   have h_incons := maximal_extends_inconsistent h_max h_not_mem
-  have ⟨h_neg_deriv⟩ := derives_neg_from_inconsistent_extension h_incons
-  exact maximal_consistent_closed Γ (Formula.neg φ) h_max h_neg_deriv
+  have ⟨h_neg_deriv⟩ := derivesNegFromInconsistentExtension h_incons
+  exact maximalConsistentClosed Γ (Formula.neg φ) h_max h_neg_deriv
 
 /-!
 ## Theorem Membership
@@ -207,12 +207,12 @@ noncomputable def maximal_negation_complete {fc : FrameClass} (Γ : Context Atom
 /--
 Theorems (formulas derivable from empty context) are in every MCS (set-based).
 
-Uses `bimodal_closed_under_derivation` with empty list.
+Uses `bimodalClosedUnderDerivation` with empty list.
 -/
-noncomputable def theorem_in_mcs {Ω : Set (Formula Atom)} {φ : Formula Atom}
+noncomputable def theoremInMcs {Ω : Set (Formula Atom)} {φ : Formula Atom}
     (h_mcs : BimodalSetMaximalConsistent Ω)
     (h_deriv : DerivationTree FrameClass.Base [] φ) : φ ∈ Ω := by
-  exact bimodal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h)
+  exact bimodalClosedUnderDerivation h_mcs (L := []) (fun _ h => by simp at h)
     ⟨DerivationTree.weakening [] [] φ h_deriv (fun _ h => h)⟩
 
 end Cslib.Logic.Bimodal.Metalogic.Core

@@ -61,19 +61,19 @@ def unwrap {φ : Formula Atom}
 /-! ## Propositional Delegations -/
 
 /-- Double negation elimination: ⊢ ¬¬φ → φ. -/
-def double_negation (φ : Formula Atom) :
+def doubleNegation (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.neg.neg.imp φ) :=
   unwrap (@Theorems.Propositional.Core.double_negation
     _ _ _ Temporal.HilbertBX _ _ (φ := φ))
 
 /-- Ex falso quodlibet: ⊢ ⊥ → φ. -/
-def efq_axiom (φ : Formula Atom) :
+def efqAxiom (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (Formula.bot.imp φ) :=
   unwrap (@Theorems.Propositional.Core.efq_axiom
     _ _ _ Temporal.HilbertBX _ _ (φ := φ))
 
 /-- Implication transitivity: from ⊢ A → B and ⊢ B → C derive ⊢ A → C. -/
-def imp_trans {A B C : Formula Atom}
+def impTrans {A B C : Formula Atom}
     (h1 : DerivationTree FrameClass.Base [] (A.imp B))
     (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
     DerivationTree FrameClass.Base [] (A.imp C) :=
@@ -85,13 +85,13 @@ def pairing (φ ψ : Formula Atom) :
   unwrap (@Theorems.Combinators.pairing _ _ _ Temporal.HilbertBX _ _ φ ψ)
 
 /-- Left conjunction elimination: ⊢ (φ ∧ ψ) → φ. -/
-def lce_imp (φ ψ : Formula Atom) :
+def lceImp (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.and φ ψ).imp φ) :=
   unwrap (@Theorems.Propositional.Core.lce_imp
     _ _ _ Temporal.HilbertBX _ _ (φ := φ) (ψ := ψ))
 
 /-- Right conjunction elimination: ⊢ (φ ∧ ψ) → ψ. -/
-def rce_imp (φ ψ : Formula Atom) :
+def rceImp (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.and φ ψ).imp ψ) :=
   unwrap (@Theorems.Propositional.Core.rce_imp
     _ _ _ Temporal.HilbertBX _ _ (φ := φ) (ψ := ψ))
@@ -107,7 +107,7 @@ def identity (A : Formula Atom) :
   unwrap (@Theorems.Combinators.identity _ _ _ Temporal.HilbertBX _ _ A)
 
 /-- De Morgan backward: ⊢ (¬A ∧ ¬B) → ¬(A ∨ B). -/
-def demorgan_disj_neg_backward (A B : Formula Atom) :
+def demorganDisjNegBackward (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.and A.neg B.neg).imp (A.or B).neg) :=
   unwrap (@Theorems.Propositional.Connectives.demorgan_disj_neg_backward
     _ _ _ Temporal.HilbertBX _ _ (φ := A) (ψ := B))

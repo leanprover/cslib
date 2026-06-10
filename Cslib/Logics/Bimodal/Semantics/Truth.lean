@@ -17,7 +17,7 @@ This module defines truth evaluation for TM formulas in task models.
 
 ## Main Definitions
 
-- `truth_at`: Truth of a formula at a model-history-time triple
+- `truthAt`: Truth of a formula at a model-history-time triple
 
 ## Main Results
 
@@ -51,22 +51,22 @@ The evaluation is defined recursively on formula structure:
 - Until U(φ,ψ): ∃ s > t, φ(s) ∧ ∀ r ∈ (t,s), ψ(r)
 - Since S(φ,ψ): ∃ s < t, φ(s) ∧ ∀ r ∈ (s,t), ψ(r)
 -/
-def truth_at (M : TaskModel Atom ℱ) (Omega : Set (WorldHistory ℱ))
+def truthAt (M : TaskModel Atom ℱ) (Omega : Set (WorldHistory ℱ))
     (τ : WorldHistory ℱ) (t : D) : Formula Atom → Prop
   | Formula.atom p =>
     ∃ (ht : τ.domain t), M.valuation (τ.states t ht) p
   | Formula.bot => False
   | Formula.imp φ ψ =>
-    truth_at M Omega τ t φ → truth_at M Omega τ t ψ
+    truthAt M Omega τ t φ → truthAt M Omega τ t ψ
   | Formula.box φ =>
     ∀ (σ : WorldHistory ℱ), σ ∈ Omega →
-      truth_at M Omega σ t φ
+      truthAt M Omega σ t φ
   | Formula.untl φ ψ =>
-    ∃ s : D, t < s ∧ truth_at M Omega τ s φ ∧
-      ∀ r : D, t < r → r < s → truth_at M Omega τ r ψ
+    ∃ s : D, t < s ∧ truthAt M Omega τ s φ ∧
+      ∀ r : D, t < r → r < s → truthAt M Omega τ r ψ
   | Formula.snce φ ψ =>
-    ∃ s : D, s < t ∧ truth_at M Omega τ s φ ∧
-      ∀ r : D, s < r → r < t → truth_at M Omega τ r ψ
+    ∃ s : D, s < t ∧ truthAt M Omega τ s φ ∧
+      ∀ r : D, s < r → r < t → truthAt M Omega τ r ψ
 
 namespace Truth
 
@@ -80,7 +80,7 @@ theorem bot_false
     {τ : WorldHistory ℱ}
     {t : D}
     (Omega : Set (WorldHistory ℱ)) :
-    ¬(truth_at M Omega τ t Formula.bot) := by
+    ¬(truthAt M Omega τ t Formula.bot) := by
   intro h
   exact h
 
@@ -95,9 +95,9 @@ theorem imp_iff
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ ψ : Formula Atom) :
-    (truth_at M Omega τ t (φ.imp ψ)) ↔
-      ((truth_at M Omega τ t φ) →
-        (truth_at M Omega τ t ψ)) := by
+    (truthAt M Omega τ t (φ.imp ψ)) ↔
+      ((truthAt M Omega τ t φ) →
+        (truthAt M Omega τ t ψ)) := by
   rfl
 
 /--
@@ -111,9 +111,9 @@ theorem atom_iff_of_domain
     {t : D} (ht : τ.domain t)
     (Omega : Set (WorldHistory ℱ))
     (p : Atom) :
-    (truth_at M Omega τ t (Formula.atom p)) ↔
+    (truthAt M Omega τ t (Formula.atom p)) ↔
       M.valuation (τ.states t ht) p := by
-  simp only [truth_at]
+  simp only [truthAt]
   constructor
   · intro ⟨_, h⟩
     exact h
@@ -131,8 +131,8 @@ theorem atom_false_of_not_domain
     {t : D} (ht : ¬τ.domain t)
     (Omega : Set (WorldHistory ℱ))
     (p : Atom) :
-    ¬(truth_at M Omega τ t (Formula.atom p)) := by
-  simp only [truth_at]
+    ¬(truthAt M Omega τ t (Formula.atom p)) := by
+  simp only [truthAt]
   intro ⟨ht', _⟩
   exact ht ht'
 
@@ -147,9 +147,9 @@ theorem box_iff
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    (truth_at M Omega τ t φ.box) ↔
+    (truthAt M Omega τ t φ.box) ↔
       ∀ (σ : WorldHistory ℱ), σ ∈ Omega →
-        (truth_at M Omega σ t φ) := by
+        (truthAt M Omega σ t φ) := by
   rfl
 
 /--
@@ -163,9 +163,9 @@ Truth of someFuture: existential future operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t (Formula.someFuture φ) ↔
-      ∃ s, t < s ∧ truth_at M Omega τ s φ := by
-  simp only [truth_at]
+    truthAt M Omega τ t (Formula.someFuture φ) ↔
+      ∃ s, t < s ∧ truthAt M Omega τ s φ := by
+  simp only [truthAt]
   constructor
   · rintro ⟨s, hlt, hevent, _⟩
     exact ⟨s, hlt, hevent⟩
@@ -183,9 +183,9 @@ Truth of somePast: existential past operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t (Formula.somePast φ) ↔
-      ∃ s, s < t ∧ truth_at M Omega τ s φ := by
-  simp only [truth_at]
+    truthAt M Omega τ t (Formula.somePast φ) ↔
+      ∃ s, s < t ∧ truthAt M Omega τ s φ := by
+  simp only [truthAt]
   constructor
   · rintro ⟨s, hlt, hevent, _⟩
     exact ⟨s, hlt, hevent⟩
@@ -203,10 +203,10 @@ Truth of allFuture: universal future operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t φ.allFuture ↔
+    truthAt M Omega τ t φ.allFuture ↔
       ∀ (s : D), t < s →
-        truth_at M Omega τ s φ := by
-  simp only [truth_at]
+        truthAt M Omega τ s φ := by
+  simp only [truthAt]
   constructor
   · intro h s hlt
     by_contra hns
@@ -226,10 +226,10 @@ Truth of allPast: universal past operator.
     {t : D}
     (Omega : Set (WorldHistory ℱ))
     (φ : Formula Atom) :
-    truth_at M Omega τ t φ.allPast ↔
+    truthAt M Omega τ t φ.allPast ↔
       ∀ (s : D), s < t →
-        truth_at M Omega τ s φ := by
-  simp only [truth_at]
+        truthAt M Omega τ s φ := by
+  simp only [truthAt]
   constructor
   · intro h s hlt
     by_contra hns
@@ -246,7 +246,7 @@ any amount keeps it in the set.
 -/
 def ShiftClosed (Omega : Set (WorldHistory ℱ)) : Prop :=
   ∀ σ ∈ Omega, ∀ (Δ : D),
-    WorldHistory.time_shift σ Δ ∈ Omega
+    WorldHistory.timeShift σ Δ ∈ Omega
 
 /--
 The universal set of world histories is trivially shift-closed.
@@ -267,8 +267,8 @@ theorem truth_history_eq (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ))
     (τ₁ τ₂ : WorldHistory ℱ) (t : D)
     (h_eq : τ₁ = τ₂) (φ : Formula Atom) :
-    truth_at M Omega τ₁ t φ ↔
-      truth_at M Omega τ₂ t φ := by
+    truthAt M Omega τ₁ t φ ↔
+      truthAt M Omega τ₂ t φ := by
   cases h_eq
   rfl
 
@@ -280,13 +280,13 @@ theorem truth_double_shift_cancel (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ))
     (σ : WorldHistory ℱ) (Δ : D) (t : D)
     (φ : Formula Atom) :
-    truth_at M Omega
-      (WorldHistory.time_shift
-        (WorldHistory.time_shift σ Δ) (-Δ)) t φ ↔
-    truth_at M Omega σ t φ := by
+    truthAt M Omega
+      (WorldHistory.timeShift
+        (WorldHistory.timeShift σ Δ) (-Δ)) t φ ↔
+    truthAt M Omega σ t φ := by
   induction φ generalizing t with
   | atom p =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro ⟨ht', h⟩
       have ht : σ.domain t :=
@@ -298,8 +298,8 @@ theorem truth_double_shift_cancel (M : TaskModel Atom ℱ)
       exact ⟨ht, by rw [← h_eq]; exact h⟩
     · intro ⟨ht, h⟩
       have ht' :
-        (WorldHistory.time_shift
-          (WorldHistory.time_shift σ Δ) (-Δ)).domain t :=
+        (WorldHistory.timeShift
+          (WorldHistory.timeShift σ Δ) (-Δ)).domain t :=
         (WorldHistory.time_shift_time_shift_neg_domain_iff
           σ Δ t).mpr ht
       have h_eq :=
@@ -307,9 +307,9 @@ theorem truth_double_shift_cancel (M : TaskModel Atom ℱ)
           σ Δ t ht ht'
       exact ⟨ht', by rw [h_eq]; exact h⟩
   | bot =>
-    simp only [truth_at]
+    simp only [truthAt]
   | imp ψ χ ih_ψ ih_χ =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro h h_ψ
       have h_ψ' := (ih_ψ t).mpr h_ψ
@@ -318,9 +318,9 @@ theorem truth_double_shift_cancel (M : TaskModel Atom ℱ)
       have h_ψ := (ih_ψ t).mp h_ψ'
       exact (ih_χ t).mpr (h h_ψ)
   | box ψ ih =>
-    simp only [truth_at]
+    simp only [truthAt]
   | untl φ ψ ih_φ ih_ψ =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro ⟨s, h_le, h_event, h_guard⟩
       exact ⟨s, h_le, (ih_φ s).mp h_event,
@@ -329,7 +329,7 @@ theorem truth_double_shift_cancel (M : TaskModel Atom ℱ)
       exact ⟨s, h_le, (ih_φ s).mpr h_event,
         fun r hr1 hr2 => (ih_ψ r).mpr (h_guard r hr1 hr2)⟩
   | snce φ ψ ih_φ ih_ψ =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro ⟨s, h_le, h_event, h_guard⟩
       exact ⟨s, h_le, (ih_φ s).mp h_event,
@@ -342,18 +342,18 @@ theorem truth_double_shift_cancel (M : TaskModel Atom ℱ)
 Time-shift preserves truth of formulas.
 
 If σ is a history and Δ = y - x, then truth at (σ, y) equals truth
-at (time_shift σ Δ, x).
+at (timeShift σ Δ, x).
 -/
 theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ))
     (h_sc : ShiftClosed Omega) (σ : WorldHistory ℱ)
     (x y : D) (φ : Formula Atom) :
-    truth_at M Omega
-      (WorldHistory.time_shift σ (y - x)) x φ ↔
-      truth_at M Omega σ y φ := by
+    truthAt M Omega
+      (WorldHistory.timeShift σ (y - x)) x φ ↔
+      truthAt M Omega σ y φ := by
   induction φ generalizing x y σ with
   | atom p =>
-    simp only [truth_at, WorldHistory.time_shift]
+    simp only [truthAt, WorldHistory.timeShift]
     have h_eq : x + (y - x) = y := by
       rw [add_sub, add_sub_cancel_left]
     constructor
@@ -371,9 +371,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           (x + (y - x)) y h_eq hx hy
       exact ⟨hx, by rw [h_states]; exact h⟩
   | bot =>
-    simp only [truth_at]
+    simp only [truthAt]
   | imp ψ χ ih_ψ ih_χ =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro h h_psi
       have h_psi' := (ih_ψ σ x y).mpr h_psi
@@ -382,33 +382,33 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
       have h_psi := (ih_ψ σ x y).mp h_psi'
       exact (ih_χ σ x y).mpr (h h_psi)
   | box ψ ih =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro h_box_x ρ h_rho_mem
       have h_shifted_mem :
-        WorldHistory.time_shift ρ (y - x) ∈ Omega :=
+        WorldHistory.timeShift ρ (y - x) ∈ Omega :=
         h_sc ρ h_rho_mem (y - x)
       have h1 := h_box_x
-        (WorldHistory.time_shift ρ (y - x)) h_shifted_mem
+        (WorldHistory.timeShift ρ (y - x)) h_shifted_mem
       exact (ih ρ x y).mp h1
     · intro h_box_y ρ h_rho_mem
       have h_shifted_mem :
-        WorldHistory.time_shift ρ (x - y) ∈ Omega :=
+        WorldHistory.timeShift ρ (x - y) ∈ Omega :=
         h_sc ρ h_rho_mem (x - y)
       have h1 := h_box_y
-        (WorldHistory.time_shift ρ (x - y)) h_shifted_mem
+        (WorldHistory.timeShift ρ (x - y)) h_shifted_mem
       have h2 :=
-        (ih (WorldHistory.time_shift ρ (x - y)) x y).mpr h1
+        (ih (WorldHistory.timeShift ρ (x - y)) x y).mpr h1
       have h_cancel : y - x = -(x - y) :=
         (neg_sub x y).symm
       have h_hist_eq :
-        WorldHistory.time_shift
-          (WorldHistory.time_shift ρ (x - y)) (y - x) =
-        WorldHistory.time_shift
-          (WorldHistory.time_shift ρ (x - y))
+        WorldHistory.timeShift
+          (WorldHistory.timeShift ρ (x - y)) (y - x) =
+        WorldHistory.timeShift
+          (WorldHistory.timeShift ρ (x - y))
           (-(x - y)) := by
         exact WorldHistory.time_shift_congr
-          (WorldHistory.time_shift ρ (x - y))
+          (WorldHistory.timeShift ρ (x - y))
           (y - x) (-(x - y)) h_cancel
       have h2' :=
         (truth_history_eq M Omega _ _ x h_hist_eq ψ).mp h2
@@ -416,7 +416,7 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
         (x - y) x ψ).mp h2'
   | untl φ ψ ih_φ ih_ψ =>
     -- φ is event (at witness s), ψ is guard (between)
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · -- (→) shifted at x → original at y
       intro ⟨s, h_x_lt_s, h_event_s, h_guard⟩
@@ -433,9 +433,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
         have h_shift_eq2 : (s + (y - x)) - s = y - x :=
           add_sub_cancel_left s (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             ((s + (y - x)) - s) =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             ((s + (y - x)) - s) (y - x) h_shift_eq2
         have h_conv :=
@@ -459,9 +459,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
         have h_shift_eq : r - (r - (y - x)) = y - x :=
           sub_sub_cancel r (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             (r - (r - (y - x))) =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             (r - (r - (y - x))) (y - x) h_shift_eq
         have h_conv :=
@@ -481,9 +481,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           s - (s - (y - x)) = y - x :=
           sub_sub_cancel s (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             (s - (s - (y - x))) =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             (s - (s - (y - x))) (y - x) h_shift_eq
         have h_conv :=
@@ -514,9 +514,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           (r' + (y - x)) - r' = y - x :=
           add_sub_cancel_left r' (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             ((r' + (y - x)) - r') =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             ((r' + (y - x)) - r') (y - x) h_shift_eq
         have h_conv :=
@@ -525,7 +525,7 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           h_hist_eq ψ).mp h_conv
   | snce φ ψ ih_φ ih_ψ =>
     -- φ is event (at witness s), ψ is guard (between)
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · -- (→) shifted at x → original at y
       intro ⟨s, h_s_lt_x, h_event_s, h_guard⟩
@@ -543,9 +543,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           (s + (y - x)) - s = y - x :=
           add_sub_cancel_left s (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             ((s + (y - x)) - s) =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             ((s + (y - x)) - s) (y - x) h_shift_eq
         have h_conv :=
@@ -570,9 +570,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           r - (r - (y - x)) = y - x :=
           sub_sub_cancel r (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             (r - (r - (y - x))) =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             (r - (r - (y - x))) (y - x) h_shift_eq
         have h_conv :=
@@ -592,9 +592,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           s - (s - (y - x)) = y - x :=
           sub_sub_cancel s (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             (s - (s - (y - x))) =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             (s - (s - (y - x))) (y - x) h_shift_eq
         have h_conv :=
@@ -622,9 +622,9 @@ theorem time_shift_preserves_truth (M : TaskModel Atom ℱ)
           (r' + (y - x)) - r' = y - x :=
           add_sub_cancel_left r' (y - x)
         have h_hist_eq :
-          WorldHistory.time_shift σ
+          WorldHistory.timeShift σ
             ((r' + (y - x)) - r') =
-          WorldHistory.time_shift σ (y - x) := by
+          WorldHistory.timeShift σ (y - x) := by
           exact WorldHistory.time_shift_congr σ
             ((r' + (y - x)) - r') (y - x) h_shift_eq
         have h_conv :=
@@ -640,9 +640,9 @@ theorem exists_shifted_history (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ))
     (h_sc : ShiftClosed Omega) (σ : WorldHistory ℱ)
     (x y : D) (φ : Formula Atom) :
-    truth_at M Omega σ y φ ↔
-    truth_at M Omega
-      (WorldHistory.time_shift σ (y - x)) x φ := by
+    truthAt M Omega σ y φ ↔
+    truthAt M Omega
+      (WorldHistory.timeShift σ (y - x)) x φ := by
   exact (time_shift_preserves_truth M Omega h_sc σ
     x y φ).symm
 

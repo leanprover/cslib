@@ -63,7 +63,7 @@ theorem exists_mcs_with_negation (phi : Formula Atom)
       ([] : List (Formula Atom)) phi.neg.neg) := by
     intro ⟨d_neg_neg⟩
     have h_dne : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-        (phi.neg.neg.imp phi) := double_negation phi
+        (phi.neg.neg.imp phi) := doubleNegation phi
     have h_phi : DerivationTree FrameClass.Base ([] : List (Formula Atom)) phi :=
       DerivationTree.modus_ponens [] _ _ h_dne d_neg_neg
     exact h_not_provable ⟨h_phi⟩
@@ -107,7 +107,7 @@ theorem exists_mcs_with_negation (phi : Formula Atom)
         DerivationTree.weakening L [phi.neg] _ d_bot h_L_sub_singleton
       have d_neg_neg : DerivationTree FrameClass.Base
           ([] : List (Formula Atom)) phi.neg.neg :=
-        deduction_theorem [] phi.neg Formula.bot d_bot'
+        deductionTheorem [] phi.neg Formula.bot d_bot'
       exact h_neg_cons ⟨d_neg_neg⟩
     · -- phi.neg ∉ L. Then L = []
       have h_L_empty : L = [] := by

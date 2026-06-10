@@ -29,7 +29,7 @@ The proof extraction uses a multi-strategy approach:
 1. **Direct axiom match**: Pattern-match against all 42 axiom schemata
 2. **Derived theorem match**: Known derived theorems (stubbed -- returns none)
 3. **Compositional builder**: Recursively builds proofs for propositional,
-   modal, and temporal formulas using combinators (identity, imp_trans, etc.)
+   modal, and temporal formulas using combinators (identity, impTrans, etc.)
 4. **Enhanced proof search**: Fallback with high depth/visit limits (stubbed)
 
 The compositional builder handles:
@@ -217,7 +217,7 @@ Used when tableau has confirmed validity but direct extraction failed.
 Searches with progressively increasing depth (10, 20, 30, 40, 50)
 and visit limits to find a proof term.
 
-Note: In this port, `bounded_search_with_proof_stub` always returns `none`,
+Note: In this port, `boundedSearchWithProofStub` always returns `none`,
 so this function effectively returns `none`. The full implementation will
 be provided when the Automation module is ported.
 -/
@@ -226,7 +226,7 @@ def enhancedSearch (phi : Formula Atom) :
   -- Try increasing depths with generous visit limits
   let depths : List Nat := [10, 20, 30, 40, 50]
   depths.findSome? fun d =>
-    match bounded_search_with_proof_stub ([] : Context Atom) phi d with
+    match boundedSearchWithProofStub ([] : Context Atom) phi d with
     | (some proof, _, _) => some proof
     | (none, _, _) => none
 
@@ -258,8 +258,8 @@ approach:
 2. **Closure-based extraction**: Check if any closed branch's axiomNeg
    reason directly matches the goal formula
 3. **Compositional builder**: Build proof from formula structure using
-   combinators (identity, imp_trans, etc.)
-4. **Enhanced proof search**: `bounded_search_with_proof_stub` with high limits
+   combinators (identity, impTrans, etc.)
+4. **Enhanced proof search**: `boundedSearchWithProofStub` with high limits
 
 Returns `ProofExtractionResult.success proof` if extraction succeeds,
 or `ProofExtractionResult.incomplete reason` if all strategies fail.
@@ -320,7 +320,7 @@ def findProofCombined (phi : Formula Atom) (searchDepth : Nat := 10)
     (tableauFuel : Nat := 1000) (fc : FrameClass := .Base) :
     Option (DerivationTree .Base ([] : Context Atom) phi) :=
   -- Strategy 1: Direct proof search (fast for axioms)
-  match bounded_search_with_proof_stub ([] : Context Atom) phi searchDepth with
+  match boundedSearchWithProofStub ([] : Context Atom) phi searchDepth with
   | (some proof, _, _) => some proof
   | (none, _, _) =>
   -- Strategy 2: Compositional builder

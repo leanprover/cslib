@@ -87,7 +87,7 @@ Theorems (formulas derivable from empty context) belong to every Temporal MCS.
 This is the key convenience wrapper around `temporal_closed_under_derivation` with an empty
 context list, used throughout the Temporal metalogic modules.
 -/
-noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
+noncomputable def theoremInMcs {M : Set (Formula Atom)} {phi : Formula Atom}
     (h_mcs : Temporal.SetMaximalConsistent M)
     (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
   temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
@@ -138,7 +138,7 @@ theorem mcs_mem_iff_neg_not_mem
 /-! ## G-distribution (key lemma) -/
 
 /-- Build a DerivationTree for the contrapositive: `⊢ (A→B)→(¬B→¬A)`. -/
-noncomputable def derive_contrapositive (A B : Formula Atom) :
+noncomputable def deriveContrapositive (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) := by
   -- Context: [A→B, ¬B, A] ⊢ ⊥
   -- Then DT three times to get ⊢ (A→B)→¬B→¬A = (A→B)→(B→⊥)→(A→⊥).
@@ -152,11 +152,11 @@ noncomputable def derive_contrapositive (A B : Formula Atom) :
       (.assumption ctx (Formula.neg B) (by simp [List.mem_cons, ctx]))
       d_B
   -- DT on A: [¬B, A→B] ⊢ A→⊥ = ¬A
-  have d1 := deduction_theorem [Formula.neg B, A.imp B] A Formula.bot d_bot
+  have d1 := deductionTheorem [Formula.neg B, A.imp B] A Formula.bot d_bot
   -- DT on ¬B: [A→B] ⊢ ¬B→¬A
-  have d2 := deduction_theorem [A.imp B] (Formula.neg B) (Formula.neg A) d1
+  have d2 := deductionTheorem [A.imp B] (Formula.neg B) (Formula.neg A) d1
   -- DT on A→B: [] ⊢ (A→B)→(¬B→¬A)
-  exact deduction_theorem [] (A.imp B) (B.neg.imp A.neg) d2
+  exact deductionTheorem [] (A.imp B) (B.neg.imp A.neg) d2
 
 /-- `G(φ→ψ) ∈ S` and `G(φ) ∈ S` imply `G(ψ) ∈ S`.
 
@@ -173,7 +173,7 @@ theorem mcs_g_mp
   have h_f_neg_psi : Formula.someFuture (Formula.neg ψ) ∈ Ω :=
     (mcs_mem_iff_neg_not_mem h_mcs).mpr h_not_g_psi
   -- Derive ⊢ (φ→ψ) → (¬ψ → ¬φ) (contrapositive)
-  have d_contra := derive_contrapositive φ ψ
+  have d_contra := deriveContrapositive φ ψ
   -- Necessitation: ⊢ G((φ→ψ) → (¬ψ → ¬φ))
   have h_g_contra : Formula.allFuture ((φ.imp ψ).imp (ψ.neg.imp φ.neg)) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
@@ -185,14 +185,14 @@ theorem mcs_g_mp
     let ctx := [φ.imp ψ, (ψ.neg.imp φ.neg).neg]
     have d_contra_w : DerivationTree FrameClass.Base ctx (ψ.neg.imp φ.neg) :=
       .modus_ponens ctx (φ.imp ψ) (ψ.neg.imp φ.neg)
-        (.weakening [] ctx _ (derive_contrapositive φ ψ) (fun _ h => nomatch h))
+        (.weakening [] ctx _ (deriveContrapositive φ ψ) (fun _ h => nomatch h))
         (.assumption ctx (φ.imp ψ) (by simp [List.mem_cons, ctx]))
     have d_bot : DerivationTree FrameClass.Base ctx Formula.bot :=
       .modus_ponens ctx (ψ.neg.imp φ.neg) Formula.bot
         (.assumption ctx (ψ.neg.imp φ.neg).neg (by simp [List.mem_cons, ctx]))
         d_contra_w
-    have d1 := deduction_theorem [(ψ.neg.imp φ.neg).neg] (φ.imp ψ) Formula.bot d_bot
-    exact deduction_theorem [] (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg d1
+    have d1 := deductionTheorem [(ψ.neg.imp φ.neg).neg] (φ.imp ψ) Formula.bot d_bot
+    exact deductionTheorem [] (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg d1
   -- Necessitation: ⊢ G(¬(¬ψ→¬φ) → ¬(φ→ψ))
   have h_g_neg_equiv_S :
       Formula.allFuture ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) ∈ Ω := by
@@ -238,14 +238,14 @@ theorem mcs_h_mp
     let ctx := [φ.imp ψ, (ψ.neg.imp φ.neg).neg]
     have d_contra_w : DerivationTree FrameClass.Base ctx (ψ.neg.imp φ.neg) :=
       .modus_ponens ctx (φ.imp ψ) (ψ.neg.imp φ.neg)
-        (.weakening [] ctx _ (derive_contrapositive φ ψ) (fun _ h => nomatch h))
+        (.weakening [] ctx _ (deriveContrapositive φ ψ) (fun _ h => nomatch h))
         (.assumption ctx (φ.imp ψ) (by simp [List.mem_cons, ctx]))
     have d_bot : DerivationTree FrameClass.Base ctx Formula.bot :=
       .modus_ponens ctx (ψ.neg.imp φ.neg) Formula.bot
         (.assumption ctx (ψ.neg.imp φ.neg).neg (by simp [List.mem_cons, ctx]))
         d_contra_w
-    have d1 := deduction_theorem [(ψ.neg.imp φ.neg).neg] (φ.imp ψ) Formula.bot d_bot
-    exact deduction_theorem [] (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg d1
+    have d1 := deductionTheorem [(ψ.neg.imp φ.neg).neg] (φ.imp ψ) Formula.bot d_bot
+    exact deductionTheorem [] (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg d1
   -- Use double-swap: duality(d_neg_equiv) gives ⊢ swap(X); necessitation gives ⊢ G(swap(X));
   -- duality again gives ⊢ swap(G(swap(X))) = H(swap(swap(X))) = H(X) by involution.
   have h_h_neg_equiv_S :
@@ -307,7 +307,7 @@ theorem derive_g_contradiction
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.temporal_necessitation _ d⟩
   | cons a L' ih =>
-    have dt := deduction_theorem L' a φ d
+    have dt := deductionTheorem L' a φ d
     have h_g_imp := ih (fun x hx => hL x (List.mem_cons.mpr (Or.inr hx))) dt
     exact mcs_g_mp h_mcs h_g_imp (hL a (List.mem_cons.mpr (Or.inl rfl)))
 
@@ -340,7 +340,7 @@ theorem mcs_g_witness
             simp only [L', List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxn⟩))
       have d_reord := DerivationTree.weakening L (Formula.neg φ :: L') Formula.bot
         d_bot h_perm
-      have d_dne := deduction_theorem L' (Formula.neg φ) Formula.bot d_reord
+      have d_dne := deductionTheorem L' (Formula.neg φ) Formula.bot d_reord
       let neg_phi := Formula.neg φ
       have efq : DerivationTree FrameClass.Base L' (Formula.bot.imp φ) :=
         .weakening [] L' _ (.axiom [] _ (.efq φ) trivial) (fun _ h => nomatch h)
@@ -407,7 +407,7 @@ theorem derive_h_contradiction
     rw [Formula.swapTemporal_involution] at h_eq2
     exact ⟨h_eq2 ▸ d_h⟩
   | cons a L' ih =>
-    have dt := deduction_theorem L' a φ d
+    have dt := deductionTheorem L' a φ d
     have h_h_imp := ih (fun x hx => hL x (List.mem_cons.mpr (Or.inr hx))) dt
     have h_h_a := hL a (List.mem_cons.mpr (Or.inl rfl))
     exact mcs_h_mp h_mcs h_h_imp h_h_a
@@ -438,7 +438,7 @@ theorem mcs_h_witness
             simp only [L', List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxn⟩))
       have d_reord := DerivationTree.weakening L (Formula.neg φ :: L') Formula.bot
         d_bot h_perm
-      have d_dne := deduction_theorem L' (Formula.neg φ) Formula.bot d_reord
+      have d_dne := deductionTheorem L' (Formula.neg φ) Formula.bot d_reord
       let neg_phi := Formula.neg φ
       have efq : DerivationTree FrameClass.Base L' (Formula.bot.imp φ) :=
         .weakening [] L' _ (.axiom [] _ (.efq φ) trivial) (fun _ h => nomatch h)

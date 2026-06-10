@@ -36,13 +36,13 @@ open Cslib.Logic.Bimodal.Metalogic.Algebraic.ParametricCanonical
 variable {Atom : Type} {fc : FrameClass} {D : Type*} [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
 
 /-- Convert an FMCS to a WorldHistory in the parametric canonical TaskFrame. -/
-def parametric_to_history (fam : FMCS Atom D fc) : WorldHistory (ParametricCanonicalTaskFrame (Atom := Atom) (fc := fc) (D := D)) where
+def parametricToHistory (fam : FMCS Atom D fc) : WorldHistory (ParametricCanonicalTaskFrame (Atom := Atom) (fc := fc) (D := D)) where
   domain := fun _ => True
   convex := fun _ _ _ _ _ _ _ => True.intro
   states := fun t _ => ⟨fam.mcs t, fam.is_mcs t⟩
   respects_task := fun s t _ _ hst => by
-    show parametric_canonical_task_rel _ _ _
-    unfold parametric_canonical_task_rel
+    show parametricCanonicalTaskRel _ _ _
+    unfold parametricCanonicalTaskRel
     by_cases h_pos : t - s > 0
     · rw [if_pos h_pos]
       intro phi h_G_phi
@@ -56,36 +56,36 @@ def parametric_to_history (fam : FMCS Atom D fc) : WorldHistory (ParametricCanon
       subst h_s_eq_t
       rfl
 
-/-- States of parametric_to_history at time t. -/
+/-- States of parametricToHistory at time t. -/
 theorem parametric_to_history_states (fam : FMCS Atom D fc) (t : D) (ht : True) :
-    (parametric_to_history fam).states t ht = ⟨fam.mcs t, fam.is_mcs t⟩ := rfl
+    (parametricToHistory fam).states t ht = ⟨fam.mcs t, fam.is_mcs t⟩ := rfl
 
 /-- The parametric canonical Omega: the set of world-histories from bundle families. -/
 def ParametricCanonicalOmega (B : BFMCS Atom D fc) : Set (WorldHistory (ParametricCanonicalTaskFrame (Atom := Atom) (fc := fc) (D := D))) :=
-  { tau | ∃ fam ∈ B.families, tau = parametric_to_history fam }
+  { tau | ∃ fam ∈ B.families, tau = parametricToHistory fam }
 
 /-- The shift-closed parametric canonical Omega. -/
 def ShiftClosedParametricCanonicalOmega (B : BFMCS Atom D fc) :
     Set (WorldHistory (ParametricCanonicalTaskFrame (Atom := Atom) (fc := fc) (D := D))) :=
   { σ | ∃ (fam : FMCS Atom D fc) (_ : fam ∈ B.families) (delta : D),
-    σ = WorldHistory.time_shift (parametric_to_history fam) delta }
+    σ = WorldHistory.timeShift (parametricToHistory fam) delta }
 
 theorem time_shift_parametric_to_history_compose
     (fam : FMCS Atom D fc)
     (delta delta' : D) :
-    WorldHistory.time_shift (WorldHistory.time_shift (parametric_to_history fam) delta) delta' =
-    WorldHistory.time_shift (parametric_to_history fam) (delta + delta') := by
+    WorldHistory.timeShift (WorldHistory.timeShift (parametricToHistory fam) delta) delta' =
+    WorldHistory.timeShift (parametricToHistory fam) (delta + delta') := by
   have h_time_eq : ∀ t : D, t + delta' + delta = t + (delta + delta') := fun t => by
     rw [add_assoc, add_comm delta' delta]
-  simp only [WorldHistory.time_shift, parametric_to_history]
+  simp only [WorldHistory.timeShift, parametricToHistory]
   congr 1
   ext t ht
   simp only []
   rw [h_time_eq t]
 
 theorem parametric_to_history_eq_time_shift_zero (fam : FMCS Atom D fc) :
-    parametric_to_history fam = WorldHistory.time_shift (parametric_to_history fam) 0 := by
-  simp only [WorldHistory.time_shift, parametric_to_history, add_zero]
+    parametricToHistory fam = WorldHistory.timeShift (parametricToHistory fam) 0 := by
+  simp only [WorldHistory.timeShift, parametricToHistory, add_zero]
 
 /-- ShiftClosedParametricCanonicalOmega is shift-closed. -/
 theorem shiftClosedParametricCanonicalOmega_is_shift_closed (B : BFMCS Atom D fc) :
@@ -105,12 +105,12 @@ theorem parametricCanonicalOmega_subset_shiftClosed (B : BFMCS Atom D fc) :
   subst h_eq
   exact parametric_to_history_eq_time_shift_zero fam
 
-/-- Domain of parametric_to_history is full. -/
+/-- Domain of parametricToHistory is full. -/
 theorem parametric_to_history_domain_full (fam : FMCS Atom D fc) (t : D) :
-    (parametric_to_history fam).domain t := True.intro
+    (parametricToHistory fam).domain t := True.intro
 
 /-- The underlying MCS of the world state at time t equals fam.mcs t. -/
 theorem parametric_to_history_mcs_eq (fam : FMCS Atom D fc) (t : D) (ht : True) :
-    ((parametric_to_history fam).states t ht).val = fam.mcs t := rfl
+    ((parametricToHistory fam).states t ht).val = fam.mcs t := rfl
 
 end Cslib.Logic.Bimodal.Metalogic.Algebraic.ParametricHistory

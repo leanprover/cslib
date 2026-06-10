@@ -21,7 +21,7 @@ circular import: Frame.lean -> Completeness.lean -> TruthLemma.lean -> ... -> Fr
 - `mcs_h_trans`: H-transitivity in MCS
 - `past_of_future_subset`, `future_of_past_subset`: BX4/BX4' consequences
 - `exists_future_successor`, `exists_past_predecessor`: Seriality witnesses
-- `CanonicalWorld`, `canonical_acc`: Canonical model types
+- `CanonicalWorld`, `canonicalAcc`: Canonical model types
 - G/H truth lemma forward/reverse for canonical model
 -/
 
@@ -75,7 +75,7 @@ theorem mcs_h_bot_not_mem
   exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs h_h_bot (mcs_p_top_mem h_mcs))
 
 /-- Derive double negation elimination: ⊢ ¬¬X → X. -/
-noncomputable def derive_dne (X : Formula Atom) :
+noncomputable def deriveDne (X : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg X)).imp X) := by
   let ctx := [Formula.neg (Formula.neg X)]
   have d_peirce : DerivationTree FrameClass.Base ctx (((X.imp Formula.bot).imp X).imp X) :=
@@ -89,12 +89,12 @@ noncomputable def derive_dne (X : Formula Atom) :
     .modus_ponens ctx2 Formula.bot X
       (.weakening [] ctx2 _ (.axiom [] _ (.efq X) trivial) (fun _ h => nomatch h))
       d_bot
-  have d_imp := deduction_theorem [Formula.neg (Formula.neg X)] (X.imp Formula.bot) X d_efq
-  exact deduction_theorem [] (Formula.neg (Formula.neg X)) X
+  have d_imp := deductionTheorem [Formula.neg (Formula.neg X)] (X.imp Formula.bot) X d_efq
+  exact deductionTheorem [] (Formula.neg (Formula.neg X)) X
     (DerivationTree.modus_ponens ctx _ _ d_peirce d_imp)
 
 /-- H-necessitation: from ⊢ φ derive ⊢ H(φ). -/
-noncomputable def derive_h_nec (φ : Formula Atom)
+noncomputable def deriveHNec (φ : Formula Atom)
     (d : DerivationTree FrameClass.Base [] φ) :
     DerivationTree FrameClass.Base [] (Formula.allPast φ) := by
   have d_swap := DerivationTree.temporal_duality _ d
@@ -108,7 +108,7 @@ noncomputable def derive_h_nec (φ : Formula Atom)
   exact h_eq ▸ d_h
 
 /-- Derive ⊢ φ → ⊤ ∧ φ. -/
-noncomputable def derive_and_top_intro (φ : Formula Atom) :
+noncomputable def deriveAndTopIntro (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp (Formula.and Formula.top φ)) := by
   let ctx := [Formula.imp Formula.top (Formula.neg φ), φ]
   have d_top : DerivationTree FrameClass.Base ctx Formula.top :=
@@ -120,8 +120,8 @@ noncomputable def derive_and_top_intro (φ : Formula Atom) :
   have d_bot : DerivationTree FrameClass.Base ctx Formula.bot :=
     .modus_ponens ctx φ Formula.bot d_neg_phi
       (.assumption ctx φ (by simp [List.mem_cons, ctx]))
-  have d1 := deduction_theorem [φ] (Formula.imp Formula.top (Formula.neg φ)) Formula.bot d_bot
-  exact deduction_theorem [] φ (Formula.and Formula.top φ) d1
+  have d1 := deductionTheorem [φ] (Formula.imp Formula.top (Formula.neg φ)) Formula.bot d_bot
+  exact deductionTheorem [] φ (Formula.and Formula.top φ) d1
 
 /-- ¬¬X ∈ Ω ↔ X ∈ Ω in MCS. -/
 theorem mcs_dne
@@ -134,7 +134,7 @@ theorem mcs_dne
     unfold temporalDerivationSystem Temporal.Deriv
     exact ⟨.modus_ponens [Formula.neg (Formula.neg X)] _ X
       (.weakening [] [Formula.neg (Formula.neg X)] _
-        (derive_dne X) (fun _ h => nomatch h))
+        (deriveDne X) (fun _ h => nomatch h))
       (.assumption _ _ (List.mem_cons.mpr (Or.inl rfl)))⟩
   · intro h
     have h_neg_not : Formula.neg X ∉ Ω :=
@@ -151,7 +151,7 @@ theorem mcs_ff_imp_f
   have h_g_intro : Formula.allFuture (fψ.imp (Formula.and Formula.top fψ)) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
-    exact ⟨.temporal_necessitation _ (derive_and_top_intro fψ)⟩
+    exact ⟨.temporal_necessitation _ (deriveAndTopIntro fψ)⟩
   have h_bx3 : (Formula.someFuture fψ).imp
       (Formula.someFuture (Formula.and Formula.top fψ)) ∈ Ω :=
     mcs_mp_axiom h_mcs h_g_intro
@@ -173,7 +173,7 @@ theorem mcs_pp_imp_p
   have h_h_intro : Formula.allPast (pψ.imp (Formula.and Formula.top pψ)) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
-    exact ⟨derive_h_nec _ (derive_and_top_intro pψ)⟩
+    exact ⟨deriveHNec _ (deriveAndTopIntro pψ)⟩
   have h_bx3 : (Formula.somePast pψ).imp
       (Formula.somePast (Formula.and Formula.top pψ)) ∈ Ω :=
     mcs_mp_axiom h_mcs h_h_intro
@@ -199,7 +199,7 @@ theorem mcs_g_trans
   have h_g_dne : Formula.allFuture ((Formula.neg (Formula.neg X)).imp X) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
-    exact ⟨.temporal_necessitation _ (derive_dne X)⟩
+    exact ⟨.temporal_necessitation _ (deriveDne X)⟩
   have h_bx3 : (Formula.someFuture (Formula.neg (Formula.neg X))).imp
       (Formula.someFuture X) ∈ Ω :=
     mcs_mp_axiom h_mcs h_g_dne
@@ -221,7 +221,7 @@ theorem mcs_h_trans
   have h_h_dne : Formula.allPast ((Formula.neg (Formula.neg X)).imp X) ∈ Ω := by
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
     unfold temporalDerivationSystem Temporal.Deriv
-    exact ⟨derive_h_nec _ (derive_dne X)⟩
+    exact ⟨deriveHNec _ (deriveDne X)⟩
   have h_bx3 : (Formula.somePast (Formula.neg (Formula.neg X))).imp
       (Formula.somePast X) ∈ Ω :=
     mcs_mp_axiom h_mcs h_h_dne
@@ -262,19 +262,19 @@ def CanonicalWorld (Atom : Type*) :=
   { Ω : Set (Formula Atom) // Temporal.SetMaximalConsistent Ω }
 
 /-- Canonical accessibility: futureSet inclusion. -/
-def canonical_acc (W₁ W₂ : CanonicalWorld Atom) : Prop :=
+def canonicalAcc (W₁ W₂ : CanonicalWorld Atom) : Prop :=
   ∀ ψ, Formula.allFuture ψ ∈ W₁.val → ψ ∈ W₂.val
 
 /-- Forward G-direction for truth lemma. -/
 theorem truth_lemma_g_forward (W : CanonicalWorld Atom)
     {ψ : Formula Atom} (h_g : Formula.allFuture ψ ∈ W.val) :
-    ∀ T : CanonicalWorld Atom, canonical_acc W T → ψ ∈ T.val :=
+    ∀ T : CanonicalWorld Atom, canonicalAcc W T → ψ ∈ T.val :=
   fun T hWT => hWT ψ h_g
 
 /-- Reverse G-direction for truth lemma. -/
 theorem truth_lemma_g_reverse (W : CanonicalWorld Atom)
     {ψ : Formula Atom}
-    (h_all : ∀ T : CanonicalWorld Atom, canonical_acc W T → ψ ∈ T.val) :
+    (h_all : ∀ T : CanonicalWorld Atom, canonicalAcc W T → ψ ∈ T.val) :
     Formula.allFuture ψ ∈ W.val := by
   by_contra h_not_g
   obtain ⟨T, hT_mcs, hT_future, hT_not⟩ := mcs_g_witness W.property h_not_g
@@ -301,7 +301,7 @@ theorem exists_past_predecessor
 /-- Reverse H-direction for truth lemma. -/
 theorem truth_lemma_h_reverse (W : CanonicalWorld Atom)
     {ψ : Formula Atom}
-    (h_all : ∀ T : CanonicalWorld Atom, canonical_acc T W → ψ ∈ T.val) :
+    (h_all : ∀ T : CanonicalWorld Atom, canonicalAcc T W → ψ ∈ T.val) :
     Formula.allPast ψ ∈ W.val := by
   by_contra h_not_h
   obtain ⟨T, hT_mcs, hT_past, hT_not⟩ := mcs_h_witness W.property h_not_h

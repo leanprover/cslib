@@ -29,7 +29,7 @@ variable {Atom : Type*}
 /-- not U(A,B) <-> G(not A) v U(not A ^ not B, not A) -/
 theorem neg_until_equiv
     (A B : Cslib.Logic.Bimodal.Formula Atom) :
-    int_equiv
+    intEquiv
       (Cslib.Logic.Bimodal.Formula.neg (.untl A B))
       (Cslib.Logic.Bimodal.Formula.or
         (Cslib.Logic.Bimodal.Formula.allFuture
@@ -42,32 +42,32 @@ theorem neg_until_equiv
   intro M t
   rw [int_truth_neg, int_truth_or,
     int_truth_allFuture]
-  -- Goal: ¬ int_truth M t (untl A B) ↔
-  --   (∀ w > t, ¬int_truth M w A) ∨
-  --   int_truth M t (untl (and (neg A) (neg B))
+  -- Goal: ¬ intTruth M t (untl A B) ↔
+  --   (∀ w > t, ¬intTruth M w A) ∨
+  --   intTruth M t (untl (and (neg A) (neg B))
   --     (neg A))
   constructor
   · intro hnotU
     by_cases hG : ∀ w : ℤ, t < w →
-        ¬ int_truth M w A
+        ¬ intTruth M w A
     · left; exact fun w hw =>
         (int_truth_neg M w A).mpr (hG w hw)
     · right
       push_neg at hG
       obtain ⟨w, hwt, hwA⟩ := hG
       have hexA : ∃ n, t < n ∧
-          int_truth M n A := ⟨w, hwt, hwA⟩
+          intTruth M n A := ⟨w, hwt, hwA⟩
       obtain ⟨u, htu, hAu, hminA⟩ :=
         Int.exists_least_above' hexA
       have hexnotB :
           ∃ r, t < r ∧ r < u ∧
-            ¬ int_truth M r B := by
+            ¬ intTruth M r B := by
         by_contra hall; push_neg at hall
         exact hnotU ⟨u, htu, hAu,
           fun r hr1 hr2 => hall r hr1 hr2⟩
       have hexnotB' :
           ∃ n, t < n ∧
-            ¬ int_truth M n B := by
+            ¬ intTruth M n B := by
         obtain ⟨r, hr1, _, hr3⟩ := hexnotB
         exact ⟨r, hr1, hr3⟩
       obtain ⟨m, htm, hnotBm, hminB⟩ :=
@@ -106,7 +106,7 @@ theorem neg_until_equiv
 /-- not S(A,B) <-> H(not A) v S(not A ^ not B, not A) -/
 theorem neg_since_equiv
     (A B : Cslib.Logic.Bimodal.Formula Atom) :
-    int_equiv
+    intEquiv
       (Cslib.Logic.Bimodal.Formula.neg (.snce A B))
       (Cslib.Logic.Bimodal.Formula.or
         (Cslib.Logic.Bimodal.Formula.allPast
@@ -122,25 +122,25 @@ theorem neg_since_equiv
   constructor
   · intro hnotS
     by_cases hH : ∀ w : ℤ, w < t →
-        ¬ int_truth M w A
+        ¬ intTruth M w A
     · left; exact fun w hw =>
         (int_truth_neg M w A).mpr (hH w hw)
     · right
       push_neg at hH
       obtain ⟨w, hwt, hwA⟩ := hH
       have hexA : ∃ n, n < t ∧
-          int_truth M n A := ⟨w, hwt, hwA⟩
+          intTruth M n A := ⟨w, hwt, hwA⟩
       obtain ⟨u, hut, hAu, hmaxA⟩ :=
         Int.exists_greatest_below' hexA
       have hexnotB :
           ∃ r, u < r ∧ r < t ∧
-            ¬ int_truth M r B := by
+            ¬ intTruth M r B := by
         by_contra hall; push_neg at hall
         exact hnotS ⟨u, hut, hAu,
           fun r hr1 hr2 => hall r hr1 hr2⟩
       have hexnotB' :
           ∃ n, n < t ∧
-            ¬ int_truth M n B := by
+            ¬ intTruth M n B := by
         obtain ⟨r, _, hr2, hr3⟩ := hexnotB
         exact ⟨r, hr2, hr3⟩
       obtain ⟨m, hmt, hnotBm, hmaxB⟩ :=

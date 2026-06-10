@@ -27,80 +27,80 @@ open Formula
 
 variable {Atom : Type*} [DecidableEq Atom]
 
-def f_nesting_depth : Formula Atom → Nat
-  | .untl inner (.imp .bot .bot) => 1 + f_nesting_depth inner
+def fNestingDepth : Formula Atom → Nat
+  | .untl inner (.imp .bot .bot) => 1 + fNestingDepth inner
   | _ => 0
 
-theorem f_nesting_depth_nonneg (phi : Formula Atom) : f_nesting_depth phi ≥ 0 := Nat.zero_le _
+theorem f_nesting_depth_nonneg (phi : Formula Atom) : fNestingDepth phi ≥ 0 := Nat.zero_le _
 
 theorem someFuture_unfold (psi : Formula Atom) :
     Formula.someFuture psi = Formula.untl psi Formula.top := by
   rfl
 
 theorem f_nesting_depth_someFuture (psi : Formula Atom) :
-    f_nesting_depth (Formula.someFuture psi) = 1 + f_nesting_depth psi := by
-  simp only [Formula.someFuture, Formula.top, f_nesting_depth]
+    fNestingDepth (Formula.someFuture psi) = 1 + fNestingDepth psi := by
+  simp only [Formula.someFuture, Formula.top, fNestingDepth]
 
 @[simp]
-theorem f_nesting_depth_atom (a : Atom) : f_nesting_depth (.atom a : Formula Atom) = 0 := rfl
+theorem f_nesting_depth_atom (a : Atom) : fNestingDepth (.atom a : Formula Atom) = 0 := rfl
 
 @[simp]
-theorem f_nesting_depth_bot : f_nesting_depth (.bot : Formula Atom) = 0 := rfl
+theorem f_nesting_depth_bot : fNestingDepth (.bot : Formula Atom) = 0 := rfl
 
 @[simp]
-theorem f_nesting_depth_box (psi : Formula Atom) : f_nesting_depth (.box psi) = 0 := rfl
+theorem f_nesting_depth_box (psi : Formula Atom) : fNestingDepth (.box psi) = 0 := rfl
 
 @[simp]
-theorem f_nesting_depth_allPast (psi : Formula Atom) : f_nesting_depth (Formula.allPast psi) = 0 := by
-  simp only [Formula.allPast, Formula.somePast, Formula.neg, Formula.top, f_nesting_depth]
+theorem f_nesting_depth_allPast (psi : Formula Atom) : fNestingDepth (Formula.allPast psi) = 0 := by
+  simp only [Formula.allPast, Formula.somePast, Formula.neg, Formula.top, fNestingDepth]
 
 @[simp]
-theorem f_nesting_depth_allFuture (psi : Formula Atom) : f_nesting_depth (Formula.allFuture psi) = 0 := by
-  simp only [Formula.allFuture, Formula.someFuture, Formula.neg, Formula.top, f_nesting_depth]
+theorem f_nesting_depth_allFuture (psi : Formula Atom) : fNestingDepth (Formula.allFuture psi) = 0 := by
+  simp only [Formula.allFuture, Formula.someFuture, Formula.neg, Formula.top, fNestingDepth]
 
-def max_F_depth_in_closure (phi : Formula Atom) : Nat :=
-  (closureWithNeg phi).sup f_nesting_depth
+def maxFDepthInClosure (phi : Formula Atom) : Nat :=
+  (closureWithNeg phi).sup fNestingDepth
 
 theorem f_depth_le_max {phi psi : Formula Atom} (h : psi ∈ closureWithNeg phi) :
-    f_nesting_depth psi ≤ max_F_depth_in_closure phi := by
+    fNestingDepth psi ≤ maxFDepthInClosure phi := by
   exact Finset.le_sup h
 
-def p_nesting_depth : Formula Atom → Nat
-  | .snce inner (.imp .bot .bot) => 1 + p_nesting_depth inner
+def pNestingDepth : Formula Atom → Nat
+  | .snce inner (.imp .bot .bot) => 1 + pNestingDepth inner
   | _ => 0
 
-theorem p_nesting_depth_nonneg (phi : Formula Atom) : p_nesting_depth phi ≥ 0 := Nat.zero_le _
+theorem p_nesting_depth_nonneg (phi : Formula Atom) : pNestingDepth phi ≥ 0 := Nat.zero_le _
 
 theorem somePast_unfold (psi : Formula Atom) :
     Formula.somePast psi = Formula.snce psi Formula.top := by
   rfl
 
 theorem p_nesting_depth_somePast (psi : Formula Atom) :
-    p_nesting_depth (Formula.somePast psi) = 1 + p_nesting_depth psi := by
-  simp only [Formula.somePast, Formula.top, p_nesting_depth]
+    pNestingDepth (Formula.somePast psi) = 1 + pNestingDepth psi := by
+  simp only [Formula.somePast, Formula.top, pNestingDepth]
 
 @[simp]
-theorem p_nesting_depth_atom (a : Atom) : p_nesting_depth (.atom a : Formula Atom) = 0 := rfl
+theorem p_nesting_depth_atom (a : Atom) : pNestingDepth (.atom a : Formula Atom) = 0 := rfl
 
 @[simp]
-theorem p_nesting_depth_bot : p_nesting_depth (.bot : Formula Atom) = 0 := rfl
+theorem p_nesting_depth_bot : pNestingDepth (.bot : Formula Atom) = 0 := rfl
 
 @[simp]
-theorem p_nesting_depth_box (psi : Formula Atom) : p_nesting_depth (.box psi) = 0 := rfl
+theorem p_nesting_depth_box (psi : Formula Atom) : pNestingDepth (.box psi) = 0 := rfl
 
 @[simp]
-theorem p_nesting_depth_allFuture (psi : Formula Atom) : p_nesting_depth (Formula.allFuture psi) = 0 := by
-  simp only [Formula.allFuture, Formula.someFuture, Formula.neg, Formula.top, p_nesting_depth]
+theorem p_nesting_depth_allFuture (psi : Formula Atom) : pNestingDepth (Formula.allFuture psi) = 0 := by
+  simp only [Formula.allFuture, Formula.someFuture, Formula.neg, Formula.top, pNestingDepth]
 
 @[simp]
-theorem p_nesting_depth_allPast (psi : Formula Atom) : p_nesting_depth (Formula.allPast psi) = 0 := by
-  simp only [Formula.allPast, Formula.somePast, Formula.neg, Formula.top, p_nesting_depth]
+theorem p_nesting_depth_allPast (psi : Formula Atom) : pNestingDepth (Formula.allPast psi) = 0 := by
+  simp only [Formula.allPast, Formula.somePast, Formula.neg, Formula.top, pNestingDepth]
 
-def max_P_depth_in_closure (phi : Formula Atom) : Nat :=
-  (closureWithNeg phi).sup p_nesting_depth
+def maxPDepthInClosure (phi : Formula Atom) : Nat :=
+  (closureWithNeg phi).sup pNestingDepth
 
 theorem p_depth_le_max {phi psi : Formula Atom} (h : psi ∈ closureWithNeg phi) :
-    p_nesting_depth psi ≤ max_P_depth_in_closure phi := by
+    pNestingDepth psi ≤ maxPDepthInClosure phi := by
   exact Finset.le_sup h
 
 def extractFutureInner : Formula Atom → Option (Formula Atom)

@@ -34,15 +34,15 @@ open Cslib.Logic.Bimodal.Theorems.Combinators
 
 variable {Atom : Type*}
 
-/-- The enriched resolving seed: {psi, alpha} union g_content(M). -/
-def enriched_resolving_seed (M : Set (Formula Atom)) (ψ α : Formula Atom) : Set (Formula Atom) :=
-  {ψ, α} ∪ g_content M
+/-- The enriched resolving seed: {psi, alpha} union gContent(M). -/
+def enrichedResolvingSeed (M : Set (Formula Atom)) (ψ α : Formula Atom) : Set (Formula Atom) :=
+  {ψ, α} ∪ gContent M
 
-/-- If F(psi and alpha) in M for MCS M, then {psi, alpha} union g_content(M) is consistent. -/
+/-- If F(psi and alpha) in M for MCS M, then {psi, alpha} union gContent(M) is consistent. -/
 theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (ψ α : Formula Atom)
     (h_F : Formula.someFuture (Formula.and ψ α) ∈ M) :
-    SetConsistent (fc := FrameClass.Base) (enriched_resolving_seed M ψ α) := by
+    SetConsistent (fc := FrameClass.Base) (enrichedResolvingSeed M ψ α) := by
   have h_seed_cons := forward_temporal_witness_seed_consistent M h_mcs
     (Formula.and ψ α) h_F
   obtain ⟨M', h_sup, h_M'_mcs⟩ := set_lindenbaum_base h_seed_cons
@@ -50,15 +50,15 @@ theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
     h_sup (Set.mem_union_left _ (Set.mem_singleton _))
   have h_ψ_in : ψ ∈ M' :=
     SetMaximalConsistent.implication_property h_M'_mcs
-      (theorem_in_mcs_fc h_M'_mcs (lce_imp ψ α)) h_conj_in
+      (theoremInMcsFc h_M'_mcs (lceImp ψ α)) h_conj_in
   have h_α_in : α ∈ M' :=
     SetMaximalConsistent.implication_property h_M'_mcs
-      (theorem_in_mcs_fc h_M'_mcs (rce_imp ψ α)) h_conj_in
-  have h_g_sub : g_content M ⊆ M' :=
+      (theoremInMcsFc h_M'_mcs (rceImp ψ α)) h_conj_in
+  have h_g_sub : gContent M ⊆ M' :=
     fun χ hχ => h_sup (Set.mem_union_right _ hχ)
-  have h_seed_sub : enriched_resolving_seed M ψ α ⊆ M' := by
+  have h_seed_sub : enrichedResolvingSeed M ψ α ⊆ M' := by
     intro φ hφ
-    simp only [enriched_resolving_seed, Set.mem_union, Set.mem_insert_iff,
+    simp only [enrichedResolvingSeed, Set.mem_union, Set.mem_insert_iff,
                Set.mem_singleton_iff] at hφ
     rcases hφ with (rfl | rfl) | hg
     · exact h_ψ_in
@@ -71,7 +71,7 @@ theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
 theorem ordered_two_defect_seed_consistent {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (ψ₁ ψ₂ : Formula Atom)
     (h_F : Formula.someFuture (Formula.and ψ₁ (Formula.someFuture ψ₂)) ∈ M) :
-    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.someFuture ψ₂} ∪ g_content M) :=
+    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.someFuture ψ₂} ∪ gContent M) :=
   enriched_resolving_seed_consistent h_mcs ψ₁ (Formula.someFuture ψ₂) h_F
 
 /-- BX11 at MCS level. -/
@@ -88,14 +88,14 @@ theorem temp_linearity_mcs {M : Set (Formula Atom)} (h_mcs : SetMaximalConsisten
       pairing (Formula.someFuture A) (Formula.someFuture B)
     exact SetMaximalConsistent.implication_property h_mcs
       (SetMaximalConsistent.implication_property h_mcs
-        (theorem_in_mcs_fc h_mcs h_pair) h_FA) h_FB
+        (theoremInMcsFc h_mcs h_pair) h_FA) h_FB
   have h_ax : DerivationTree FrameClass.Base [] ((Formula.and (Formula.someFuture A) (Formula.someFuture B)).imp
       (Formula.or (Formula.someFuture (Formula.and A B))
         (Formula.or (Formula.someFuture (Formula.and A (Formula.someFuture B)))
           (Formula.someFuture (Formula.and (Formula.someFuture A) B))))) :=
     DerivationTree.axiom [] _ (Axiom.temp_linearity A B) trivial
   have h_disj := SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs_fc h_mcs h_ax) h_conj
+    (theoremInMcsFc h_mcs h_ax) h_conj
   rcases SetMaximalConsistent.negation_complete h_mcs
     (Formula.someFuture (Formula.and A B)) with h_l | h_neg_l
   · exact Or.inl h_l
@@ -114,9 +114,9 @@ theorem two_defect_consistent_seed {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (ψ₁ ψ₂ : Formula Atom)
     (h_F1 : Formula.someFuture ψ₁ ∈ M)
     (h_F2 : Formula.someFuture ψ₂ ∈ M) :
-    SetConsistent (fc := FrameClass.Base) ({ψ₁, ψ₂} ∪ g_content M) ∨
-    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.someFuture ψ₂} ∪ g_content M) ∨
-    SetConsistent (fc := FrameClass.Base) ({ψ₂, Formula.someFuture ψ₁} ∪ g_content M) := by
+    SetConsistent (fc := FrameClass.Base) ({ψ₁, ψ₂} ∪ gContent M) ∨
+    SetConsistent (fc := FrameClass.Base) ({ψ₁, Formula.someFuture ψ₂} ∪ gContent M) ∨
+    SetConsistent (fc := FrameClass.Base) ({ψ₂, Formula.someFuture ψ₁} ∪ gContent M) := by
   rcases temp_linearity_mcs h_mcs ψ₁ ψ₂ h_F1 h_F2 with h_both | h_1first | h_2first
   · exact Or.inl (enriched_resolving_seed_consistent h_mcs ψ₁ ψ₂ h_both)
   · exact Or.inr (Or.inl (enriched_resolving_seed_consistent h_mcs ψ₁
@@ -124,7 +124,7 @@ theorem two_defect_consistent_seed {M : Set (Formula Atom)}
   · have h_seed := enriched_resolving_seed_consistent h_mcs
       (Formula.someFuture ψ₁) ψ₂ h_2first
     exact Or.inr (Or.inr (by
-      unfold enriched_resolving_seed at h_seed
+      unfold enrichedResolvingSeed at h_seed
       have h_eq : ({ψ₂, Formula.someFuture ψ₁} : Set (Formula Atom)) =
           ({Formula.someFuture ψ₁, ψ₂} : Set (Formula Atom)) := Set.pair_comm _ _
       rw [h_eq]; exact h_seed))
@@ -132,7 +132,7 @@ theorem two_defect_consistent_seed {M : Set (Formula Atom)}
 /-- No new F-defects in successor. -/
 theorem no_new_f_defects {M M' : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent (fc := FrameClass.Base) M) (h_mcs' : SetMaximalConsistent (fc := FrameClass.Base) M')
-    (h_g_sub : g_content M ⊆ M')
+    (h_g_sub : gContent M ⊆ M')
     (α : Formula Atom) (h_neg : Formula.allFuture (Formula.neg α) ∈ M) :
     Formula.someFuture α ∉ M' := by
   have h_GG : Formula.allFuture (Formula.allFuture (Formula.neg α)) ∈ M :=
@@ -144,7 +144,7 @@ theorem no_new_f_defects {M M' : Set (Formula Atom)}
 /-- Resolved target is in successor. -/
 theorem resolved_target_in_successor {M M' : Set (Formula Atom)}
     {ψ : Formula Atom}
-    (h_seed_sub : {ψ} ∪ g_content M ⊆ M') : ψ ∈ M' :=
+    (h_seed_sub : {ψ} ∪ gContent M ⊆ M') : ψ ∈ M' :=
   h_seed_sub (Set.mem_union_left _ (Set.mem_singleton ψ))
 
 end Cslib.Logic.Bimodal.Metalogic.BXCanonical

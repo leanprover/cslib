@@ -133,7 +133,7 @@ theorem cud_not_mem_is_sdc {fc : FrameClass} {B : Set (Formula Atom)}
   intro L hL ⟨d⟩
   have h_bot : (Formula.bot : Formula Atom) ∈ B := h_cud L (Formula.bot : Formula Atom) hL d
   have h_efq : DerivationTree fc [] ((Formula.bot : Formula Atom).imp phi) :=
-    Propositional.efq_axiom phi
+    Propositional.efqAxiom phi
   exact h_not_mem (cud_modus_ponens h_cud (cud_contains_theorems h_cud h_efq) h_bot)
 
 /-! ## Adjacency predicate -/

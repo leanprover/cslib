@@ -161,7 +161,7 @@ def decide (φ : Formula Atom) (searchDepth : Nat := 10) (tableauFuel : Nat := 1
     | some proof => .valid proof
     | none =>
     -- Try bounded proof search stub (deferred; returns none)
-    match (bounded_search_with_proof_stub ([] : Context Atom) φ searchDepth).1 with
+    match (boundedSearchWithProofStub ([] : Context Atom) φ searchDepth).1 with
     | some proof => .valid proof
     | none =>
       -- Fall back to tableau method

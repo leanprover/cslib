@@ -61,13 +61,13 @@ variable {Atom : Type*} {D : Type*} [AddCommGroup D]
 /--
 Simple model where all atoms are false everywhere.
 -/
-def all_false : TaskModel Atom ℱ where
+def allFalse : TaskModel Atom ℱ where
   valuation := fun _ _ => False
 
 /--
 Simple model where all atoms are true everywhere.
 -/
-def all_true : TaskModel Atom ℱ where
+def allTrue : TaskModel Atom ℱ where
   valuation := fun _ _ => True
 
 end TaskModel

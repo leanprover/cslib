@@ -19,7 +19,7 @@ the Dense proof system.
 ## Main Results
 
 - `neg_consistent_of_not_derivable`: if φ is not derivable, then {¬φ} is consistent
-- `completeness_dense`: valid_dense φ → Nonempty (DerivationTree FrameClass.Dense [] φ)
+- `completeness_dense`: validDense φ → Nonempty (DerivationTree FrameClass.Dense [] φ)
 
 ## Port Status
 
@@ -66,7 +66,7 @@ theorem neg_consistent_of_not_derivable {fc : FrameClass} (φ : Formula Atom)
   by_cases h_in : Formula.neg φ ∈ L
   · let L_filt := L.filter (fun y => decide (y ≠ Formula.neg φ))
     have d_reord : DerivationTree fc (Formula.neg φ :: L_filt) (Formula.bot : Formula Atom) :=
-      derivation_exchange d (fun x => (cons_filter_neq_perm h_in x).symm)
+      derivationExchange d (fun x => (cons_filter_neq_perm h_in x).symm)
     have h_filt_empty : L_filt = [] := by
       by_contra h_ne
       obtain ⟨a, ha⟩ := List.exists_mem_of_ne_nil _ h_ne
@@ -75,9 +75,9 @@ theorem neg_consistent_of_not_derivable {fc : FrameClass} (φ : Formula Atom)
       exact h_ne_neg (h_all_neg a h_and.1)
     rw [h_filt_empty] at d_reord
     have d_negneg : DerivationTree fc [] (Formula.neg (Formula.neg φ)) :=
-      deduction_theorem [] (Formula.neg φ) (Formula.bot : Formula Atom) d_reord
+      deductionTheorem [] (Formula.neg φ) (Formula.bot : Formula Atom) d_reord
     have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg φ)).imp φ) :=
-      double_negation φ
+      doubleNegation φ
     have d_phi : DerivationTree fc [] φ :=
       DerivationTree.modus_ponens [] _ _ h_dne d_negneg
     exact h_not_deriv ⟨d_phi⟩
@@ -106,27 +106,27 @@ then it is derivable in the Dense proof system.
 - Non-dense case: impossible because Dense-MCS contains □(F'T) via dense_indicator axiom
 -/
 theorem completeness_dense (φ : Formula Atom) :
-    valid_dense φ → Nonempty (DerivationTree FrameClass.Dense [] φ) := by
+    validDense φ → Nonempty (DerivationTree FrameClass.Dense [] φ) := by
   intro h_valid_dense
   by_contra h_not_deriv
   have h_cons := neg_consistent_of_not_derivable (fc := FrameClass.Dense) φ h_not_deriv
   obtain ⟨M, hM_sup, hM_mcs⟩ := set_lindenbaum_fc h_cons
   have h_neg_in : Formula.neg φ ∈ M := hM_sup (Set.mem_singleton _)
   rcases SetMaximalConsistent.negation_complete hM_mcs
-    (Formula.box Chronicle.next_top.neg) with h_box_dense | h_not_box_dense
+    (Formula.box Chronicle.nextTop.neg) with h_box_dense | h_not_box_dense
   · -- Dense case: □(F'T) ∈ M — countermodel on Rat (DenselyOrdered)
     -- Use countermodel_dense which produces a countermodel (sorry for universe mismatch)
-    -- The countermodel contradicts valid_dense
+    -- The countermodel contradicts validDense
     sorry  -- sorry: blocked on task 36 (universe mismatch: countermodel_dense produces
-           -- ∃ (D : Type _) which doesn't match valid_dense's universe)
+           -- ∃ (D : Type _) which doesn't match validDense's universe)
   · -- Non-dense case: ¬□(F'T) ∈ M. But the dense_indicator axiom ¬U(⊤,⊥)
     -- is a Dense theorem, so □(¬U(⊤,⊥)) = □(F'T) is in every Dense-MCS.
     -- Contradiction with h_not_box_dense : ¬□(F'T) ∈ M.
-    have h_ax : DerivationTree FrameClass.Dense [] (Chronicle.next_top (Atom := Atom)).neg :=
+    have h_ax : DerivationTree FrameClass.Dense [] (Chronicle.nextTop (Atom := Atom)).neg :=
       DerivationTree.axiom [] _ Axiom.dense_indicator (by trivial)
-    have h_box : DerivationTree FrameClass.Dense [] (Chronicle.next_top (Atom := Atom)).neg.box :=
+    have h_box : DerivationTree FrameClass.Dense [] (Chronicle.nextTop (Atom := Atom)).neg.box :=
       DerivationTree.necessitation _ h_ax
-    have h_in : (Chronicle.next_top (Atom := Atom)).neg.box ∈ M := theorem_in_mcs_fc hM_mcs h_box
-    exact set_consistent_not_both hM_mcs.1 (Chronicle.next_top (Atom := Atom)).neg.box h_in h_not_box_dense
+    have h_in : (Chronicle.nextTop (Atom := Atom)).neg.box ∈ M := theoremInMcsFc hM_mcs h_box
+    exact set_consistent_not_both hM_mcs.1 (Chronicle.nextTop (Atom := Atom)).neg.box h_in h_not_box_dense
 
 end Cslib.Logic.Bimodal.Metalogic.BXCanonical

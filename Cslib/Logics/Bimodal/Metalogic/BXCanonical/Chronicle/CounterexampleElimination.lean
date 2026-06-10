@@ -27,13 +27,13 @@ by inserting new points into the domain.
 - `C5Counterexample` / `C5'Counterexample`: Structures representing missing
   Until/Since witnesses.
 
-- `eliminate_C5_counterexample`: (Lemma 2.10) Given x in dom with xi U eta in f(x)
+- `eliminateC5Counterexample`: (Lemma 2.10) Given x in dom with xi U eta in f(x)
   but no Until witness, extend the chronicle with a new point y such that
   eta in f'(y).
 
-- `eliminate_C5'_counterexample`: Mirror for Since counterexamples.
+- `eliminateC5'Counterexample`: Mirror for Since counterexamples.
 
-- `PotentialCounterexample` / `eliminate_potential_counterexample`: Uniform
+- `PotentialCounterexample` / `eliminatePotentialCounterexample`: Uniform
   interface for the omega-chain construction.
 
 ## References
@@ -175,8 +175,8 @@ theorem exists_rat_between_not_in_finset (fs : Finset Rat) (x y : Rat) (hxy : x 
 /-! ## BurgessR3Maximal fc Helper Lemmas -/
 
 /--
-**BurgessR3Maximal fc implies g_content subset**: If BurgessR3Maximal(A, B, C) holds with
-A and C both MCS, then g_content(A) ⊆ C.
+**BurgessR3Maximal fc implies gContent subset**: If BurgessR3Maximal(A, B, C) holds with
+A and C both MCS, then gContent(A) ⊆ C.
 
 Proof: Suppose G(φ) ∈ A but φ ∉ C. Then φ.neg ∈ C (MCS). Since B is CUD, ⊤ ∈ B (a
 theorem is in any CUD set). From burgessRSet(A, B, C): untl(⊤, φ.neg) ∈ A. By BX10
@@ -186,7 +186,7 @@ in MCS), contradicting consistency of A.
 theorem BurgessR3Maximal_g_content_sub {fc : FrameClass} {A B C : Set (Formula Atom)}
     (h_r3m : BurgessR3Maximal fc A B C)
     (h_mcs_A : SetMaximalConsistent fc A) (h_mcs_C : SetMaximalConsistent fc C) :
-    g_content A ⊆ C := by
+    gContent A ⊆ C := by
   intro φ hφ
   -- hφ : G(φ) ∈ A, i.e., allFuture(φ) ∈ A
   change Formula.allFuture φ ∈ A at hφ
@@ -220,16 +220,16 @@ theorem BurgessR3Maximal_g_content_sub {fc : FrameClass} {A B C : Set (Formula A
         (DerivationTree.assumption _ φ.neg (by simp))
         (DerivationTree.assumption _ φ (by simp))
     have h2 : DerivationTree fc [φ] φ.neg.neg :=
-      deduction_theorem [φ] φ.neg Formula.bot h1
-    exact deduction_theorem [] φ φ.neg.neg h2
+      deductionTheorem [φ] φ.neg Formula.bot h1
+    exact deductionTheorem [] φ φ.neg.neg h2
   -- G(φ → ¬¬φ) and temp_k_dist give G(φ) → G(¬¬φ)
   have h_G_dni : DerivationTree fc [] (Formula.allFuture (φ.imp φ.neg.neg)) :=
     DerivationTree.temporal_necessitation _ h_dni
   have h_kd : DerivationTree fc [] ((φ.imp φ.neg.neg).allFuture.imp
       (φ.allFuture.imp φ.neg.neg.allFuture)) :=
-    liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived φ φ.neg.neg)
-  have h1 := theorem_in_mcs_fc h_mcs_A h_G_dni
-  have h2 := theorem_in_mcs_fc h_mcs_A h_kd
+    liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.tempKDistDerived φ φ.neg.neg)
+  have h1 := theoremInMcsFc h_mcs_A h_G_dni
+  have h2 := theoremInMcsFc h_mcs_A h_kd
   have h3 := SetMaximalConsistent.implication_property h_mcs_A h2 h1
   have h_G_nn : Formula.allFuture φ.neg.neg ∈ A :=
     SetMaximalConsistent.implication_property h_mcs_A h3 hφ
@@ -287,28 +287,28 @@ theorem c2'_preserved_on_old_adjacent {fc : FrameClass} {χ χ' : Chronicle Atom
   exact h_c2' a b h_adj_old
 
 /--
-**BurgessR3Maximal fc from h_content subset (backward direction)**:
-If h_content(C) ⊆ A (i.e., H(φ) ∈ C → φ ∈ A), then ∃ B, BurgessR3Maximal(A, B, C).
+**BurgessR3Maximal fc from hContent subset (backward direction)**:
+If hContent(C) ⊆ A (i.e., H(φ) ∈ C → φ ∈ A), then ∃ B, BurgessR3Maximal(A, B, C).
 
 This is the backward mirror of `burgessR3Maximal_from_g_content_sub`:
-- Forward: g_content(A) ⊆ C gives BurgessR3Maximal(A, _, C)
-- Backward: h_content(C) ⊆ A gives BurgessR3Maximal(A, _, C)
+- Forward: gContent(A) ⊆ C gives BurgessR3Maximal(A, _, C)
+- Backward: hContent(C) ⊆ A gives BurgessR3Maximal(A, _, C)
 
 Proof: Use η = ⊤ as the seed element.
 - burgessR(A, ⊤, C): F(γ) ∈ A for all γ ∈ C.
-  Proof: By BX4' (connect_past), γ → H(F(γ)), so γ ∈ C → H(F(γ)) ∈ C → F(γ) ∈ h_content(C) ⊆ A.
+  Proof: By BX4' (connect_past), γ → H(F(γ)), so γ ∈ C → H(F(γ)) ∈ C → F(γ) ∈ hContent(C) ⊆ A.
   Then F(γ) → U(⊤, γ) by F_until_equiv.
 - burgessRSince(C, ⊤, A): P(α) ∈ C for all α ∈ A.
-  Proof: If H(α.neg) ∈ C, then α.neg ∈ h_content(C) ⊆ A, contradicting α ∈ A. So P(α) ∈ C.
+  Proof: If H(α.neg) ∈ C, then α.neg ∈ hContent(C) ⊆ A, contradicting α ∈ A. So P(α) ∈ C.
   Then P(α) → S(⊤, α) by P_since_equiv.
 -/
 theorem burgessR3Maximal_from_h_content_sub {fc : FrameClass} {A C : Set (Formula Atom)}
     (h_mcs_A : SetMaximalConsistent fc A) (h_mcs_C : SetMaximalConsistent fc C)
-    (h_hc : h_content C ⊆ A) :
+    (h_hc : hContent C ⊆ A) :
     ∃ B : Set (Formula Atom), BurgessR3Maximal fc A B C := by
   set top := Formula.bot.imp Formula.bot with top_def
   have h_top_A : top ∈ A :=
-    theorem_in_mcs_fc h_mcs_A (Cslib.Logic.Bimodal.Theorems.Combinators.identity Formula.bot)
+    theoremInMcsFc h_mcs_A (Cslib.Logic.Bimodal.Theorems.Combinators.identity Formula.bot)
   -- burgessR(A, ⊤, C): ∀ γ ∈ C, U(⊤, γ) ∈ A
   have h_bR : burgessR A top C := by
     intro γ hγ
@@ -317,18 +317,18 @@ theorem burgessR3Maximal_from_h_content_sub {fc : FrameClass} {A C : Set (Formul
       DerivationTree.axiom [] _ (Axiom.connect_past γ) trivial
     have h_HF : Formula.allPast (Formula.someFuture γ) ∈ C :=
       SetMaximalConsistent.implication_property h_mcs_C
-        (theorem_in_mcs_fc h_mcs_C h_ax_cp) hγ
-    -- H(F(γ)) ∈ C → F(γ) ∈ h_content(C) ⊆ A
+        (theoremInMcsFc h_mcs_C h_ax_cp) hγ
+    -- H(F(γ)) ∈ C → F(γ) ∈ hContent(C) ⊆ A
     have h_F : Formula.someFuture γ ∈ A := h_hc h_HF
     -- F(γ) → U(⊤, γ) by F_until_equiv
     have h_bx12 : DerivationTree fc [] ((Formula.someFuture γ).imp (Formula.untl γ top)) :=
       DerivationTree.axiom [] _ (Axiom.F_until_equiv γ) trivial
     exact SetMaximalConsistent.implication_property h_mcs_A
-      (theorem_in_mcs_fc h_mcs_A h_bx12) h_F
+      (theoremInMcsFc h_mcs_A h_bx12) h_F
   -- burgessRSince(C, ⊤, A): ∀ α ∈ A, S(⊤, α) ∈ C
   have h_bRS : burgessRSince C top A := by
     intro α hα
-    -- If H(α.neg) ∈ C, then α.neg ∈ h_content(C) ⊆ A, contradicting α ∈ A
+    -- If H(α.neg) ∈ C, then α.neg ∈ hContent(C) ⊆ A, contradicting α ∈ A
     have h_P : Formula.somePast α ∈ C := by
       by_contra h_not_P
       have h_neg_P : (Formula.somePast α).neg ∈ C :=
@@ -341,7 +341,7 @@ theorem burgessR3Maximal_from_h_content_sub {fc : FrameClass} {A C : Set (Formul
     have h_bx12' : DerivationTree fc [] ((Formula.somePast α).imp (Formula.snce α top)) :=
       DerivationTree.axiom [] _ (Axiom.P_since_equiv α) trivial
     exact SetMaximalConsistent.implication_property h_mcs_C
-      (theorem_in_mcs_fc h_mcs_C h_bx12') h_P
+      (theoremInMcsFc h_mcs_C h_bx12') h_P
   exact burgessR3Maximal_exists_from_seed fc A C top h_mcs_A h_mcs_C h_bR h_bRS h_top_A
 
 /-! ## Lemma 2.10: C5 Counterexample Elimination -/
@@ -353,11 +353,11 @@ with eta in f'(y).
 
 The construction uses Lemma 2.4 to obtain an MCS C with:
 - eta in C (the Until eventuality is witnessed)
-- g_content(f(x)) subset of C (temporal coherence)
+- gContent(f(x)) subset of C (temporal coherence)
 
 The new point y is placed beyond all current domain points.
 -/
-noncomputable def eliminate_C5_counterexample {fc : FrameClass} {χ : Chronicle Atom}
+noncomputable def eliminateC5Counterexample {fc : FrameClass} {χ : Chronicle Atom}
     (h_c0 : χ.c0 fc)
     (ce : C5Counterexample χ)
     :
@@ -371,7 +371,7 @@ noncomputable def eliminate_C5_counterexample {fc : FrameClass} {χ : Chronicle 
       (∀ a b, χ'.g a b = χ.g a b) := by
   -- Step 1: Get a fresh point y > all domain points
   obtain ⟨y, hy_gt, hy_notin⟩ := exists_rat_gt_finset χ.dom
-  -- Step 2: Use Lemma 2.4 to get an MCS with eta and g_content(f(x)), plus interval DCS B
+  -- Step 2: Use Lemma 2.4 to get an MCS with eta and gContent(f(x)), plus interval DCS B
   have h_mcs_x := h_c0 ce.x ce.x_mem
   obtain ⟨_B, C, h_C_mcs, h_η_C, _, _, _⟩ :=
     lemma_2_4 fc h_mcs_x ce.ξ ce.η ce.until_mem
@@ -402,7 +402,7 @@ noncomputable def eliminate_C5_counterexample {fc : FrameClass} {χ : Chronicle 
 Given a C5' counterexample (x, xi, eta), extend the chronicle by adding a new point
 y < x with eta in f'(y).
 -/
-noncomputable def eliminate_C5'_counterexample {fc : FrameClass} {χ : Chronicle Atom}
+noncomputable def eliminateC5'Counterexample {fc : FrameClass} {χ : Chronicle Atom}
     (h_c0 : χ.c0 fc)
     (ce : C5'Counterexample χ) :
     ∃ χ' : Chronicle Atom,
@@ -421,7 +421,7 @@ noncomputable def eliminate_C5'_counterexample {fc : FrameClass} {χ : Chronicle
     have h_ax : DerivationTree fc [] ((Formula.snce ce.η ce.ξ).imp (Formula.somePast ce.η)) :=
       DerivationTree.axiom [] _ (Axiom.since_P ce.ξ ce.η) trivial
     exact SetMaximalConsistent.implication_property h_mcs_x
-      (theorem_in_mcs_fc h_mcs_x h_ax) ce.since_mem
+      (theoremInMcsFc h_mcs_x h_ax) ce.since_mem
   have h_seed := past_temporal_witness_seed_consistent (χ.f ce.x) h_mcs_x ce.η h_P_η
   obtain ⟨C, h_sup, h_C_mcs⟩ := set_lindenbaum_fc h_seed
   have h_η_C : ce.η ∈ C := h_sup (Set.mem_union_left _ (Set.mem_singleton _))
@@ -445,19 +445,19 @@ noncomputable def eliminate_C5'_counterexample {fc : FrameClass} {χ : Chronicle
 /-! ## G-Propagation Counterexample Elimination
 
 When G(α) ∈ f(x) and α ∉ f(y) for adjacent x < y, insert a new point z between
-x and y with α ∈ f(z) and g_content(f(x)) ⊆ f(z). This breaks the adjacency of
+x and y with α ∈ f(z) and gContent(f(x)) ⊆ f(z). This breaks the adjacency of
 (x, y), ensuring the G-propagation failure cannot persist to the limit.
 
-The seed {α} ∪ g_content(f(x)) is consistent because G(α) → F(α) (by
+The seed {α} ∪ gContent(f(x)) is consistent because G(α) → F(α) (by
 `G_implies_F_mcs`), so `forward_temporal_witness_seed_consistent` applies.
 -/
 
 /--
 **G-propagation counterexample elimination**: Given G(α) ∈ f(x) and α ∉ f(y)
 for adjacent x < y, insert z = (x+y)/2 between x and y with α ∈ f(z) and
-g_content(f(x)) ⊆ f(z).
+gContent(f(x)) ⊆ f(z).
 -/
-noncomputable def eliminate_g_prop_counterexample {fc : FrameClass} {χ : Chronicle Atom}
+noncomputable def eliminateGPropCounterexample {fc : FrameClass} {χ : Chronicle Atom}
     (h_c0 : χ.c0 fc)
     (x y : Rat) (α : Formula Atom)
     (h_x_mem : x ∈ χ.dom) (h_y_mem : y ∈ χ.dom)
@@ -478,8 +478,8 @@ noncomputable def eliminate_g_prop_counterexample {fc : FrameClass} {χ : Chroni
   have hz_notin : z ∉ χ.dom := by
     intro h_mem; exact h_adj.2.2.2 z h_mem ⟨hx_lt_z, hz_lt_y⟩
   have h_mcs_x := h_c0 x h_x_mem
-  -- Use g_propagation_witness to get an MCS D with α ∈ D and g_content(f(x)) ⊆ D
-  obtain ⟨D, h_D_mcs, h_α_D, _h_g_sub⟩ := g_propagation_witness fc h_mcs_x α h_G
+  -- Use gPropagationWitness to get an MCS D with α ∈ D and gContent(f(x)) ⊆ D
+  obtain ⟨D, h_D_mcs, h_α_D, _h_g_sub⟩ := gPropagationWitness fc h_mcs_x α h_G
   refine ⟨⟨fun q => if q = z then D else χ.f q, χ.g, insert z χ.dom⟩,
     Finset.subset_insert z χ.dom, ?_, ?_, Finset.ssubset_insert hz_notin,
     fun _ _ _ _ => rfl, fun _ _ => rfl⟩
@@ -497,7 +497,7 @@ noncomputable def eliminate_g_prop_counterexample {fc : FrameClass} {χ : Chroni
 **H-propagation counterexample elimination**: Mirror for backward direction.
 Given H(α) ∈ f(x) and α ∉ f(y) for adjacent y < x, insert z between y and x.
 -/
-noncomputable def eliminate_h_prop_counterexample {fc : FrameClass} {χ : Chronicle Atom}
+noncomputable def eliminateHPropCounterexample {fc : FrameClass} {χ : Chronicle Atom}
     (h_c0 : χ.c0 fc)
     (x y : Rat) (α : Formula Atom)
     (h_x_mem : x ∈ χ.dom) (h_y_mem : y ∈ χ.dom)
@@ -518,7 +518,7 @@ noncomputable def eliminate_h_prop_counterexample {fc : FrameClass} {χ : Chroni
   have hz_notin : z ∉ χ.dom := by
     intro h_mem; exact h_adj.2.2.2 z h_mem ⟨hy_lt_z, hz_lt_x⟩
   have h_mcs_x := h_c0 x h_x_mem
-  -- P(α) ∈ f(x) by H_implies_P_mcs, then past_temporal_witness_seed gives us D
+  -- P(α) ∈ f(x) by H_implies_P_mcs, then pastTemporalWitnessSeed gives us D
   have h_P := H_implies_P_mcs fc h_mcs_x α h_H
   have h_seed := past_temporal_witness_seed_consistent (χ.f x) h_mcs_x α h_P
   obtain ⟨D, h_sup, h_D_mcs⟩ := set_lindenbaum_fc h_seed
@@ -585,7 +585,7 @@ structure PotentialCounterexample where
   kind : PotentialCounterexampleKind
 
 /--
-Result type for `eliminate_potential_counterexample`, bundling the core
+Result type for `eliminatePotentialCounterexample`, bundling the core
 properties (domain extension, C0, f-agreement) together with the
 C5/C5' witness guarantees needed by the limit construction.
 
@@ -1028,8 +1028,8 @@ noncomputable def c5_forward_walk (fc : FrameClass)
                 · exact absurd h h_conj_not_f
                 · exact h
               exact SetMaximalConsistent.implication_property h_mcs_x'
-                (theorem_in_mcs_fc h_mcs_x'
-                  (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward η
+                (theoremInMcsFc h_mcs_x'
+                  (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward η
                     (Formula.and ξ (Formula.untl η ξ)))))
                 (conj_mcs fc h_mcs_x' η.neg (Formula.and ξ (Formula.untl η ξ)).neg h1 h2)
             obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, hBB', hBB'', _⟩ :=
@@ -1055,8 +1055,8 @@ noncomputable def c5_forward_walk (fc : FrameClass)
                     · exact absurd h h_conj_not_f
                     · exact h
                   exact SetMaximalConsistent.implication_property h_mcs_x'
-                    (theorem_in_mcs_fc h_mcs_x'
-                      (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward η
+                    (theoremInMcsFc h_mcs_x'
+                      (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward η
                         (Formula.and ξ (Formula.untl η ξ)))))
                     (conj_mcs fc h_mcs_x' η.neg (Formula.and ξ (Formula.untl η ξ)).neg h1 h2)
                 obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, hBB', hBB'', _⟩ :=
@@ -1076,7 +1076,7 @@ noncomputable def c5_forward_walk (fc : FrameClass)
               obtain ⟨B', D, B'', hB', hB'', hD_mcs, h_dne_D, h_B_sub_D, hBB', hBB''⟩ := h_sp
               exact ⟨B', D, B'', hB', hB'', hD_mcs,
                 SetMaximalConsistent.implication_property hD_mcs
-                  (theorem_in_mcs_fc hD_mcs (Cslib.Logic.Bimodal.Theorems.Propositional.double_negation η)) h_dne_D,
+                  (theoremInMcsFc hD_mcs (Cslib.Logic.Bimodal.Theorems.Propositional.doubleNegation η)) h_dne_D,
                 h_B_sub_D, hBB', hBB'', hBB' h_xi_g2⟩
             · obtain ⟨B', D, B'', hB', hB'', hD, hη, hBB', h_B_sub_D, hBB'', h_xi_B'⟩ :=
                 lemma_2_7 fc h_mcs_start h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj ξ η h_until_start h_xi_g2
@@ -1281,7 +1281,7 @@ structure C5BackwardWalkResult (fc : FrameClass) (χ : Chronicle Atom) (ξ η : 
 Recursive walk for C5 backward guard (Burgess 2.10' induction, Since direction).
 
 At each step from `start`, find x'' = predecessor in dom:
-- **Base case** (start = min dom): Use `past_temporal_witness_seed` + Lindenbaum to insert witness below.
+- **Base case** (start = min dom): Use `pastTemporalWitnessSeed` + Lindenbaum to insert witness below.
 - **Condition (i)** (conj ∈ f(x'') ∧ ξ ∈ g(x'',start)): Recurse at x'', compose guard.
 - **Not condition (i)**: Split at (x'', start) using lemma_2_7_since/2_8_since/2_6.
 
@@ -1608,8 +1608,8 @@ noncomputable def c5_backward_walk (fc : FrameClass)
                 · exact absurd h h_conj_not_f
                 · exact h
               exact SetMaximalConsistent.implication_property h_mcs_x''
-                (theorem_in_mcs_fc h_mcs_x''
-                  (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward η
+                (theoremInMcsFc h_mcs_x''
+                  (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward η
                     (Formula.and ξ (Formula.snce η ξ)))))
                 (conj_mcs fc h_mcs_x'' η.neg (Formula.and ξ (Formula.snce η ξ)).neg h1 h2)
             obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, hBB', hBB'', _⟩ :=
@@ -1635,8 +1635,8 @@ noncomputable def c5_backward_walk (fc : FrameClass)
                     · exact absurd h h_conj_not_f
                     · exact h
                   exact SetMaximalConsistent.implication_property h_mcs_x''
-                    (theorem_in_mcs_fc h_mcs_x''
-                      (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward η
+                    (theoremInMcsFc h_mcs_x''
+                      (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward η
                         (Formula.and ξ (Formula.snce η ξ)))))
                     (conj_mcs fc h_mcs_x'' η.neg (Formula.and ξ (Formula.snce η ξ)).neg h1 h2)
                 obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, hBB', hBB'', _⟩ :=
@@ -1656,7 +1656,7 @@ noncomputable def c5_backward_walk (fc : FrameClass)
               obtain ⟨B', D, B'', hB', hB'', hD_mcs, h_dne_D, h_B_sub_D, hBB', hBB''⟩ := h_sp
               exact ⟨B', D, B'', hB', hB'', hD_mcs,
                 SetMaximalConsistent.implication_property hD_mcs
-                  (theorem_in_mcs_fc hD_mcs (Cslib.Logic.Bimodal.Theorems.Propositional.double_negation η)) h_dne_D,
+                  (theoremInMcsFc hD_mcs (Cslib.Logic.Bimodal.Theorems.Propositional.doubleNegation η)) h_dne_D,
                 h_B_sub_D, hBB', hBB'', hBB'' h_xi_g2⟩
             · obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, hBB', h_B_sub_D, hBB'', h_xi_B''⟩ :=
                 lemma_2_7_since fc h_mcs_x'' h_mcs_start h_r3m_adj h_r3m_adj.1 h_gc_adj ξ η h_since_start h_xi_g2
@@ -1846,7 +1846,7 @@ Otherwise, a new chronicle with the counterexample eliminated is returned.
 Returns an `EliminationResult` bundling domain extension, C0, f-agreement,
 and C5/C5' witness guarantees.
 -/
-noncomputable def eliminate_potential_counterexample (fc : FrameClass)
+noncomputable def eliminatePotentialCounterexample (fc : FrameClass)
     (χ : Chronicle Atom) (h_c0 : χ.c0 fc) (h_c2' : χ.c2' fc)
     (pc : PotentialCounterexample)
     :
@@ -2106,9 +2106,9 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
                       · exact absurd h h_conj_not_f
                       · exact h
                     exact conj_mcs fc h_mcs_x' pc.η.neg (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)).neg h1 h2
-                  have h_dm := liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward pc.η (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)))
+                  have h_dm := liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward pc.η (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)))
                   exact SetMaximalConsistent.implication_property h_mcs_x'
-                    (theorem_in_mcs_fc h_mcs_x' h_dm) h_neg_conj
+                    (theoremInMcsFc h_mcs_x' h_dm) h_neg_conj
                 obtain ⟨B'2, D2, B''2, h_B'2, h_B''2, h_D2_mcs, h_eta_D2, h_B_sub_D2, h_B_sub_B'2, h_B_sub_B''2, _⟩ :=
                   lemma_2_8 fc h_mcs_x h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj pc.ξ pc.η h_until h_neg_disj
                 exact ⟨B'2, D2, B''2, h_B'2, h_B''2, h_D2_mcs, h_eta_D2, h_B_sub_D2, h_B_sub_B'2, h_B_sub_B''2, h_B_sub_B'2 h_xi_g⟩
@@ -2133,9 +2133,9 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
                           · exact absurd h h_conj_not_f
                           · exact h
                         exact conj_mcs fc h_mcs_x' pc.η.neg (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)).neg h1 h2
-                      have h_dm := liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward pc.η (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)))
+                      have h_dm := liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward pc.η (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)))
                       exact SetMaximalConsistent.implication_property h_mcs_x'
-                        (theorem_in_mcs_fc h_mcs_x' h_dm) h_neg_conj
+                        (theoremInMcsFc h_mcs_x' h_dm) h_neg_conj
                     have h_l28 := lemma_2_8 fc h_mcs_x h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj
                       pc.ξ pc.η h_until h_neg_disj
                     obtain ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_D5, h_B_sub_D5, h_B_sub_B'5, h_B_sub_B''5, _⟩ := h_l28
@@ -2158,9 +2158,9 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
                   obtain ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_neg_neg_D5, h_B_sub_D5, h_B_sub_B'5, h_B_sub_B''5⟩ := h_split5
                   have h_eta_D5 : pc.η ∈ D5 := by
                     have h_dne : DerivationTree fc [] (pc.η.neg.neg.imp pc.η) :=
-                      Cslib.Logic.Bimodal.Theorems.Propositional.double_negation pc.η
+                      Cslib.Logic.Bimodal.Theorems.Propositional.doubleNegation pc.η
                     exact SetMaximalConsistent.implication_property h_D5_mcs
-                      (theorem_in_mcs_fc h_D5_mcs h_dne) h_eta_neg_neg_D5
+                      (theoremInMcsFc h_D5_mcs h_dne) h_eta_neg_neg_D5
                   exact ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_D5, h_B_sub_D5, h_B_sub_B'5, h_B_sub_B''5, h_B_sub_B'5 h_xi_g6⟩
                 · -- xi ∉ g: use lemma_2_7 which returns xi ∈ B' directly
                   obtain ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_D5, h_B_sub_B'5, h_B_sub_D5, h_B_sub_B''5, h_xi_B'5⟩ :=
@@ -2635,8 +2635,8 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
                     exact conj_mcs fc h_mcs_x'' pc.η.neg
                       (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)).neg h_eta_neg_x''_local h2
                   exact SetMaximalConsistent.implication_property h_mcs_x''
-                    (theorem_in_mcs_fc h_mcs_x''
-                      (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward pc.η
+                    (theoremInMcsFc h_mcs_x''
+                      (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward pc.η
                         (Formula.and pc.ξ (Formula.snce pc.η pc.ξ))))) h_neg_conj_x''
                 obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, h_B_sub_B', h_B_sub_B'', _⟩ := lemma_2_8_since fc h_mcs_x'' h_mcs_x h_r3m_adj h_r3m_adj.1 h_gc_adj
                   pc.ξ pc.η h_since h_neg_disj_x''
@@ -2663,8 +2663,8 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
                         exact conj_mcs fc h_mcs_x'' pc.η.neg
                           (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)).neg h_eta_neg_x''_local h2
                       exact SetMaximalConsistent.implication_property h_mcs_x''
-                        (theorem_in_mcs_fc h_mcs_x''
-                          (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorgan_disj_neg_backward pc.η
+                        (theoremInMcsFc h_mcs_x''
+                          (liftBase fc (Cslib.Logic.Bimodal.Theorems.Propositional.demorganDisjNegBackward pc.η
                             (Formula.and pc.ξ (Formula.snce pc.η pc.ξ))))) h_neg_conj_x''
                     obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, h_B_sub_B', h_B_sub_B'', _⟩ := lemma_2_8_since fc h_mcs_x'' h_mcs_x h_r3m_adj h_r3m_adj.1 h_gc_adj
                       pc.ξ pc.η h_since h_neg_disj_x''
@@ -2683,7 +2683,7 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
                   obtain ⟨B', D, B'', h_B', h_B'', h_D_mcs, h_eta_neg_neg_D, h_B_sub_D, h_B_sub_B', h_B_sub_B''⟩ := h_split
                   have h_eta_D : pc.η ∈ D :=
                     SetMaximalConsistent.implication_property h_D_mcs
-                      (theorem_in_mcs_fc h_D_mcs (Cslib.Logic.Bimodal.Theorems.Propositional.double_negation pc.η)) h_eta_neg_neg_D
+                      (theoremInMcsFc h_D_mcs (Cslib.Logic.Bimodal.Theorems.Propositional.doubleNegation pc.η)) h_eta_neg_neg_D
                   exact ⟨B', D, B'', h_B', h_B'', h_D_mcs, h_eta_D, h_B_sub_D, h_B_sub_B', h_B_sub_B'', h_B_sub_B'' h_xi_g2⟩
                 · obtain ⟨B', D, B'', hB', hB'', hD, hη, h_B_sub_B', h_B_sub_D, h_B_sub_B'', h_xi_B''⟩ :=
                     lemma_2_7_since fc h_mcs_x'' h_mcs_x h_r3m_adj h_r3m_adj.1 h_gc_adj
@@ -3017,7 +3017,7 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
             ((Formula.untl (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)) pc.ξ).imp
               (Formula.untl pc.η pc.ξ)) :=
             DerivationTree.axiom [] _ (Axiom.absorb_until pc.ξ pc.η) trivial
-          have h_bx6_in := theorem_in_mcs_fc h_mcs_w h_bx6
+          have h_bx6_in := theoremInMcsFc h_mcs_w h_bx6
           have h_untl_eta := SetMaximalConsistent.implication_property h_mcs_w h_bx6_in h_untl_conj
           -- Now untl(ξ,η) ∈ f(w) contradicts neg(untl(ξ,η)) ∈ f(w)
           exact absurd h_untl_eta
@@ -3321,7 +3321,7 @@ noncomputable def eliminate_potential_counterexample (fc : FrameClass)
             ((Formula.snce (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)) pc.ξ).imp
               (Formula.snce pc.η pc.ξ)) :=
             DerivationTree.axiom [] _ (Axiom.absorb_since pc.ξ pc.η) trivial
-          have h_bx6'_in := theorem_in_mcs_fc h_mcs_w h_bx6'
+          have h_bx6'_in := theoremInMcsFc h_mcs_w h_bx6'
           have h_snce_eta := SetMaximalConsistent.implication_property h_mcs_w h_bx6'_in h_snce_conj
           -- Now snce(ξ,η) ∈ f(w) contradicts neg(snce(ξ,η)) ∈ f(w)
           exact absurd h_snce_eta

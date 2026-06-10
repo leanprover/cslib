@@ -41,10 +41,10 @@ def ParametricCanonicalTaskModel : TaskModel Atom (ParametricCanonicalTaskFrame 
   valuation := fun M p => Formula.atom p ∈ M.val
 
 /-- Classical tautology: neg(psi -> chi) -> psi. -/
-noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
+noncomputable def negImpImpliesAntecedent (ψ χ : Formula Atom) :
     DerivationTree fc [] ((ψ.imp χ).neg.imp ψ) := by
   have h_efq : DerivationTree FrameClass.Base [] (ψ.neg.imp (ψ.imp χ)) :=
-    Theorems.Propositional.efq_neg ψ χ
+    Theorems.Propositional.efqNeg ψ χ
   have h_efq_ctx : DerivationTree FrameClass.Base [ψ.neg, (ψ.imp χ).neg] (ψ.neg.imp (ψ.imp χ)) :=
     DerivationTree.weakening [] [ψ.neg, (ψ.imp χ).neg] _ h_efq (by intro; simp)
   have h_neg_psi : DerivationTree FrameClass.Base [ψ.neg, (ψ.imp χ).neg] ψ.neg :=
@@ -56,13 +56,13 @@ noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
   have h_bot : DerivationTree FrameClass.Base [ψ.neg, (ψ.imp χ).neg] (Formula.bot : Formula Atom) :=
     DerivationTree.modus_ponens _ _ _ h_neg_imp h_imp
   have h_neg_neg_psi : DerivationTree FrameClass.Base [(ψ.imp χ).neg] ψ.neg.neg :=
-    deduction_theorem [(ψ.imp χ).neg] ψ.neg (Formula.bot : Formula Atom) h_bot
+    deductionTheorem [(ψ.imp χ).neg] ψ.neg (Formula.bot : Formula Atom) h_bot
   have h_deduct : DerivationTree FrameClass.Base [] ((ψ.imp χ).neg.imp ψ.neg.neg) :=
-    deduction_theorem [] (ψ.imp χ).neg ψ.neg.neg h_neg_neg_psi
+    deductionTheorem [] (ψ.imp χ).neg ψ.neg.neg h_neg_neg_psi
   have h_dne : DerivationTree FrameClass.Base [] (ψ.neg.neg.imp ψ) :=
-    Theorems.Propositional.double_negation ψ
+    Theorems.Propositional.doubleNegation ψ
   have h_b : DerivationTree FrameClass.Base [] ((ψ.neg.neg.imp ψ).imp (((ψ.imp χ).neg.imp ψ.neg.neg).imp ((ψ.imp χ).neg.imp ψ))) :=
-    Theorems.Combinators.b_combinator
+    Theorems.Combinators.bCombinator
   have h_step1 : DerivationTree FrameClass.Base [] (((ψ.imp χ).neg.imp ψ.neg.neg).imp ((ψ.imp χ).neg.imp ψ)) :=
     DerivationTree.modus_ponens _ _ _ h_b h_dne
   have h_base : DerivationTree FrameClass.Base [] ((ψ.imp χ).neg.imp ψ) :=
@@ -70,7 +70,7 @@ noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
   exact h_base.lift (FrameClass.base_le fc)
 
 /-- Classical tautology: neg(psi -> chi) -> neg(chi) -/
-noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) :
+noncomputable def negImpImpliesNegConsequent (ψ χ : Formula Atom) :
     DerivationTree fc [] ((ψ.imp χ).neg.imp χ.neg) := by
   have h_prop_s : DerivationTree FrameClass.Base [] (χ.imp (ψ.imp χ)) :=
     DerivationTree.axiom [] _ (Axiom.imp_s χ ψ) trivial
@@ -85,15 +85,15 @@ noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) :
   have h_bot : DerivationTree FrameClass.Base [χ, (ψ.imp χ).neg] (Formula.bot : Formula Atom) :=
     DerivationTree.modus_ponens _ _ _ h_neg_imp h_imp
   have h_neg_chi : DerivationTree FrameClass.Base [(ψ.imp χ).neg] χ.neg :=
-    deduction_theorem [(ψ.imp χ).neg] χ (Formula.bot : Formula Atom) h_bot
+    deductionTheorem [(ψ.imp χ).neg] χ (Formula.bot : Formula Atom) h_bot
   have h_base : DerivationTree FrameClass.Base [] ((ψ.imp χ).neg.imp χ.neg) :=
-    deduction_theorem [] (ψ.imp χ).neg χ.neg h_neg_chi
+    deductionTheorem [] (ψ.imp χ).neg χ.neg h_neg_chi
   exact h_base.lift (FrameClass.base_le fc)
 
 /-- Past analog of TF axiom: Box phi -> H(Box phi). -/
-noncomputable def past_tf_deriv (φ : Formula Atom) :
+noncomputable def pastTfDeriv (φ : Formula Atom) :
     DerivationTree fc [] ((Formula.box φ).imp (Formula.box φ).allPast) := by
-  have h_tf_swap : DerivationTree fc [] _ := Theorems.Combinators.temp_future_derived (Formula.swapTemporal φ)
+  have h_tf_swap : DerivationTree fc [] _ := Theorems.Combinators.tempFutureDerived (Formula.swapTemporal φ)
   have h_dual := DerivationTree.temporal_duality _ h_tf_swap
   have h_eq : Formula.swapTemporal ((Formula.box (Formula.swapTemporal φ)).imp
       (Formula.box (Formula.swapTemporal φ)).allFuture) =
@@ -110,11 +110,11 @@ theorem parametric_box_persistent
     (h_box : Formula.box φ ∈ fam.mcs t) :
     Formula.box φ ∈ fam.mcs s := by
   have h_tf : (Formula.box φ).imp (Formula.box φ).allFuture ∈ fam.mcs t :=
-    theorem_in_mcs_fc (fam.is_mcs t) (Theorems.Combinators.temp_future_derived φ)
+    theoremInMcsFc (fam.is_mcs t) (Theorems.Combinators.tempFutureDerived φ)
   have h_G_box : (Formula.box φ).allFuture ∈ fam.mcs t :=
     SetMaximalConsistent.implication_property (fam.is_mcs t) h_tf h_box
   have h_past_tf : (Formula.box φ).imp (Formula.box φ).allPast ∈ fam.mcs t :=
-    theorem_in_mcs_fc (fam.is_mcs t) (past_tf_deriv φ)
+    theoremInMcsFc (fam.is_mcs t) (pastTfDeriv φ)
   have h_H_box : (Formula.box φ).allPast ∈ fam.mcs t :=
     SetMaximalConsistent.implication_property (fam.is_mcs t) h_past_tf h_box
   rcases lt_trichotomy t s with h_lt | h_eq | h_gt
@@ -130,16 +130,16 @@ theorem parametric_canonical_truth_lemma
     (fam : FMCS Atom D fc) (hfam : fam ∈ B.families)
     (t : D) (phi : Formula Atom) :
     phi ∈ fam.mcs t ↔
-      truth_at ParametricCanonicalTaskModel (ParametricCanonicalOmega B)
-        (parametric_to_history fam) t phi := by
+      truthAt ParametricCanonicalTaskModel (ParametricCanonicalOmega B)
+        (parametricToHistory fam) t phi := by
   induction phi generalizing fam t with
   | atom p =>
-    simp only [truth_at, ParametricCanonicalTaskModel, parametric_to_history]
+    simp only [truthAt, ParametricCanonicalTaskModel, parametricToHistory]
     constructor
     · intro h_atom; exact ⟨True.intro, h_atom⟩
     · intro ⟨_, h_val⟩; exact h_val
   | bot =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro h_bot
       have h_cons := (fam.is_mcs t).1
@@ -148,7 +148,7 @@ theorem parametric_canonical_truth_lemma
         ⟨DerivationTree.assumption [(Formula.bot : Formula Atom)] (Formula.bot : Formula Atom) (by simp)⟩
     · intro h_false; exact False.elim h_false
   | imp psi chi ih_psi ih_chi =>
-    simp only [truth_at]
+    simp only [truthAt]
     have h_mcs := fam.is_mcs t
     constructor
     · intro h_imp h_psi_true
@@ -161,16 +161,16 @@ theorem parametric_canonical_truth_lemma
       · exfalso
         have h_psi_mcs : psi ∈ fam.mcs t :=
           SetMaximalConsistent.implication_property h_mcs
-            (theorem_in_mcs_fc h_mcs (neg_imp_implies_antecedent psi chi)) h_neg_imp
+            (theoremInMcsFc h_mcs (negImpImpliesAntecedent psi chi)) h_neg_imp
         have h_neg_chi_mcs : chi.neg ∈ fam.mcs t :=
           SetMaximalConsistent.implication_property h_mcs
-            (theorem_in_mcs_fc h_mcs (neg_imp_implies_neg_consequent psi chi)) h_neg_imp
+            (theoremInMcsFc h_mcs (negImpImpliesNegConsequent psi chi)) h_neg_imp
         have h_psi_true := (ih_psi fam hfam t).mp h_psi_mcs
         have h_chi_true := h_truth_imp h_psi_true
         have h_chi_mcs : chi ∈ fam.mcs t := (ih_chi fam hfam t).mpr h_chi_true
         exact set_consistent_not_both (fam.is_mcs t).1 chi h_chi_mcs h_neg_chi_mcs
   | box psi ih =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro h_box sigma h_sigma_mem
       obtain ⟨fam', hfam', h_eq⟩ := h_sigma_mem
@@ -180,11 +180,11 @@ theorem parametric_canonical_truth_lemma
     · intro h_all
       have h_psi_all_mcs : ∀ fam' ∈ B.families, psi ∈ fam'.mcs t := by
         intro fam' hfam'
-        have h_in_omega : parametric_to_history fam' ∈ ParametricCanonicalOmega B := ⟨fam', hfam', rfl⟩
-        exact (ih fam' hfam' t).mpr (h_all (parametric_to_history fam') h_in_omega)
+        have h_in_omega : parametricToHistory fam' ∈ ParametricCanonicalOmega B := ⟨fam', hfam', rfl⟩
+        exact (ih fam' hfam' t).mpr (h_all (parametricToHistory fam') h_in_omega)
       exact B.modal_backward fam hfam psi t h_psi_all_mcs
   | untl phi psi ih_phi ih_psi =>
-    simp only [truth_at]
+    simp only [truthAt]
     obtain ⟨h_fwd_U, _⟩ := h_fuc fam hfam
     obtain ⟨h_bwd_U, _⟩ := h_buc fam hfam
     constructor
@@ -198,7 +198,7 @@ theorem parametric_canonical_truth_lemma
         (ih_phi fam hfam s).mpr h_truth_event_s,
         fun r h_tr h_rs => (ih_psi fam hfam r).mpr (h_truth_guard r h_tr h_rs)⟩
   | snce phi psi ih_phi ih_psi =>
-    simp only [truth_at]
+    simp only [truthAt]
     obtain ⟨_, h_fwd_S⟩ := h_fuc fam hfam
     obtain ⟨_, h_bwd_S⟩ := h_buc fam hfam
     constructor
@@ -219,16 +219,16 @@ theorem parametric_shifted_truth_lemma (B : BFMCS Atom D fc)
     (h_fuc : B.forward_until_since_coherent) (φ : Formula Atom)
     (fam : FMCS Atom D fc) (hfam : fam ∈ B.families) (t : D) :
     φ ∈ fam.mcs t ↔
-    truth_at ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
-      (parametric_to_history fam) t φ := by
+    truthAt ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
+      (parametricToHistory fam) t φ := by
   induction φ generalizing fam t with
   | atom p =>
-    simp only [truth_at, ParametricCanonicalTaskModel, parametric_to_history]
+    simp only [truthAt, ParametricCanonicalTaskModel, parametricToHistory]
     constructor
     · intro h_mem; exact ⟨True.intro, h_mem⟩
     · intro ⟨_, h_val⟩; exact h_val
   | bot =>
-    simp only [truth_at]
+    simp only [truthAt]
     constructor
     · intro h_mem; exfalso
       exact (fam.is_mcs t).1 [(Formula.bot : Formula Atom)]
@@ -236,7 +236,7 @@ theorem parametric_shifted_truth_lemma (B : BFMCS Atom D fc)
         ⟨DerivationTree.assumption [(Formula.bot : Formula Atom)] (Formula.bot : Formula Atom) (by simp)⟩
     · intro h; exact h.elim
   | imp ψ χ ih_ψ ih_χ =>
-    simp only [truth_at]
+    simp only [truthAt]
     have h_mcs := fam.is_mcs t
     constructor
     · intro h_imp h_ψ_true
@@ -248,10 +248,10 @@ theorem parametric_shifted_truth_lemma (B : BFMCS Atom D fc)
       · exfalso
         have h_ψ_mcs : ψ ∈ fam.mcs t :=
           SetMaximalConsistent.implication_property h_mcs
-            (theorem_in_mcs_fc h_mcs (neg_imp_implies_antecedent ψ χ)) h_neg_imp
+            (theoremInMcsFc h_mcs (negImpImpliesAntecedent ψ χ)) h_neg_imp
         have h_neg_χ_mcs : χ.neg ∈ fam.mcs t :=
           SetMaximalConsistent.implication_property h_mcs
-            (theorem_in_mcs_fc h_mcs (neg_imp_implies_neg_consequent ψ χ)) h_neg_imp
+            (theoremInMcsFc h_mcs (negImpImpliesNegConsequent ψ χ)) h_neg_imp
         have h_ψ_true := (ih_ψ fam hfam t).mp h_ψ_mcs
         have h_χ_true := h_truth_imp h_ψ_true
         have h_χ_mcs : χ ∈ fam.mcs t := (ih_χ fam hfam t).mpr h_χ_true
@@ -267,20 +267,20 @@ theorem parametric_shifted_truth_lemma (B : BFMCS Atom D fc)
       have h_truth_canon := (ih fam' hfam' (t + delta)).mp h_ψ_fam'
       have h_preserve := TimeShift.time_shift_preserves_truth
         ParametricCanonicalTaskModel (ShiftClosedParametricCanonicalOmega B)
-        (shiftClosedParametricCanonicalOmega_is_shift_closed B) (parametric_to_history fam')
+        (shiftClosedParametricCanonicalOmega_is_shift_closed B) (parametricToHistory fam')
         t (t + delta) ψ
       have h_delta : (t + delta) - t = delta := add_sub_cancel_left t delta
       rw [h_σ_eq]
-      rw [WorldHistory.time_shift_congr (parametric_to_history fam') ((t + delta) - t) delta h_delta] at h_preserve
+      rw [WorldHistory.time_shift_congr (parametricToHistory fam') ((t + delta) - t) delta h_delta] at h_preserve
       exact h_preserve.mpr h_truth_canon
     · intro h_all_σ
       have h_all_fam : ∀ fam' ∈ B.families, ψ ∈ fam'.mcs t := by
         intro fam' hfam'
         have h_mem := parametricCanonicalOmega_subset_shiftClosed B ⟨fam', hfam', rfl⟩
-        exact (ih fam' hfam' t).mpr (h_all_σ (parametric_to_history fam') h_mem)
+        exact (ih fam' hfam' t).mpr (h_all_σ (parametricToHistory fam') h_mem)
       exact B.modal_backward fam hfam ψ t h_all_fam
   | untl phi psi ih_phi ih_psi =>
-    simp only [truth_at]
+    simp only [truthAt]
     obtain ⟨h_fwd_U, _⟩ := h_fuc fam hfam
     obtain ⟨h_bwd_U, _⟩ := h_buc fam hfam
     constructor
@@ -294,7 +294,7 @@ theorem parametric_shifted_truth_lemma (B : BFMCS Atom D fc)
         (ih_phi fam hfam s).mpr h_truth_event_s,
         fun r h_tr h_rs => (ih_psi fam hfam r).mpr (h_truth_guard r h_tr h_rs)⟩
   | snce phi psi ih_phi ih_psi =>
-    simp only [truth_at]
+    simp only [truthAt]
     obtain ⟨_, h_fwd_S⟩ := h_fuc fam hfam
     obtain ⟨_, h_bwd_S⟩ := h_buc fam hfam
     constructor

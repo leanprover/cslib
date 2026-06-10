@@ -22,10 +22,10 @@ equivalents via the wrap/unwrap bridge pattern, eliminating redundant proofs.
 ## Main Combinators
 
 ### Propositional Reasoning
-- `imp_trans`: Transitivity of implication (hypothetical syllogism)
+- `impTrans`: Transitivity of implication (hypothetical syllogism)
 - `mp`: Modus ponens wrapper
 - `identity`: Identity combinator (SKK construction)
-- `b_combinator`: B combinator (function composition)
+- `bCombinator`: B combinator (function composition)
 - `flip`: C combinator (argument flip)
 
 ### Application Combinators
@@ -34,8 +34,8 @@ equivalents via the wrap/unwrap bridge pattern, eliminating redundant proofs.
 
 ### Conjunction Introduction
 - `pairing`: Pairing combinator (derived from app2)
-- `combine_imp_conj`: Combine two implications into conjunction
-- `combine_imp_conj_3`: Combine three implications into nested conjunction
+- `combineImpConj`: Combine two implications into conjunction
+- `combineImpConj_3`: Combine three implications into nested conjunction
 
 ### Double Negation
 - `dni`: Double negation introduction (derived from app1)
@@ -74,10 +74,10 @@ noncomputable section
 /--
 Transitivity of implication: if `⊢ A → B` and `⊢ B → C` then `⊢ A → C`.
 -/
-def imp_trans {fc : FrameClass} {A B C : Formula Atom}
+def impTrans {fc : FrameClass} {A B C : Formula Atom}
     (h1 : DerivationTree fc [] (A.imp B))
     (h2 : DerivationTree fc [] (B.imp C)) : DerivationTree fc [] (A.imp C) :=
-  -- b_combinator: ⊢ (B→C) → (A→B) → (A→C) at Base, lifted to fc
+  -- bCombinator: ⊢ (B→C) → (A→B) → (A→C) at Base, lifted to fc
   let curried := DerivationTree.lift (FrameClass.base_le fc)
     (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.b_combinator _ _ _ Bimodal.HilbertTM _ _ A B C))
   DerivationTree.modus_ponens [] _ _
@@ -102,7 +102,7 @@ def identity {fc : FrameClass} (A : Formula Atom) :
 /--
 B combinator (composition): `⊢ (B → C) → (A → B) → (A → C)`.
 -/
-def b_combinator {fc : FrameClass} {A B C : Formula Atom} :
+def bCombinator {fc : FrameClass} {A B C : Formula Atom} :
     DerivationTree fc [] ((B.imp C).imp ((A.imp B).imp (A.imp C))) :=
   DerivationTree.lift (FrameClass.base_le fc)
     (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.b_combinator _ _ _ Bimodal.HilbertTM _ _ A B C))
@@ -152,14 +152,14 @@ Combine two implications into a conjunction implication.
 
 Given `⊢ P → A` and `⊢ P → B`, derive `⊢ P → A ∧ B`.
 -/
-def combine_imp_conj {fc : FrameClass} {R A B : Formula Atom}
+def combineImpConj {fc : FrameClass} {R A B : Formula Atom}
     (hA : DerivationTree fc [] (R.imp A))
     (hB : DerivationTree fc [] (R.imp B)) :
     DerivationTree fc [] (R.imp (A.and B)) :=
   -- pairing: ⊢ A → B → (A ∧ B) at fc
-  -- imp_trans hA (pairing A B): ⊢ R → B → (A ∧ B)
+  -- impTrans hA (pairing A B): ⊢ R → B → (A ∧ B)
   -- Then ImplyS to combine with hB
-  let h1 := imp_trans hA (pairing A B)
+  let h1 := impTrans hA (pairing A B)
   let s := DerivationTree.axiom (fc := fc) [] _ (Axiom.imp_k R B (A.and B)) (FrameClass.base_le fc)
   let h2 := DerivationTree.modus_ponens [] (R.imp (B.imp (A.and B))) ((R.imp B).imp (R.imp (A.and B))) s h1
   DerivationTree.modus_ponens [] (R.imp B) (R.imp (A.and B)) h2 hB
@@ -169,23 +169,23 @@ Combine three implications into a nested conjunction implication.
 
 Given `⊢ P → A`, `⊢ P → B`, and `⊢ P → C`, derive `⊢ P → A ∧ (B ∧ C)`.
 -/
-def combine_imp_conj_3 {fc : FrameClass} {R A B C : Formula Atom}
+def combineImpConj_3 {fc : FrameClass} {R A B C : Formula Atom}
     (hA : DerivationTree fc [] (R.imp A))
     (hB : DerivationTree fc [] (R.imp B))
     (hC : DerivationTree fc [] (R.imp C)) :
     DerivationTree fc [] (R.imp (A.and (B.and C))) :=
-  combine_imp_conj hA (combine_imp_conj hB hC)
+  combineImpConj hA (combineImpConj hB hC)
 
 /--
 Derived TF theorem: `□φ → G(□φ)`.
 -/
-def temp_future_derived {fc : FrameClass} (φ : Formula Atom) :
+def tempFutureDerived {fc : FrameClass} (φ : Formula Atom) :
     DerivationTree fc [] ((Formula.box φ).imp (Formula.allFuture (Formula.box φ))) :=
   let mf_box := DerivationTree.axiom [] _ (Axiom.modal_future (Formula.box φ)) (FrameClass.base_le fc)
   let t_G_box := DerivationTree.axiom [] _ (Axiom.modal_t (Formula.allFuture (Formula.box φ))) (FrameClass.base_le fc)
-  let chain1 := imp_trans mf_box t_G_box
+  let chain1 := impTrans mf_box t_G_box
   let m4 := DerivationTree.axiom [] _ (Axiom.modal_4 φ) (FrameClass.base_le fc)
-  imp_trans m4 chain1
+  impTrans m4 chain1
 
 end -- noncomputable section
 

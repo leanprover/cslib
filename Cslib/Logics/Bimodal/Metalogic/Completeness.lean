@@ -82,13 +82,13 @@ theorem SetMaximalConsistent.disjunction_intro {fc : FrameClass}
         have h_neg_assume : DerivationTree fc (φ.neg :: [φ]) φ.neg :=
           DerivationTree.assumption _ _ (by simp)
         have h_bot : DerivationTree fc (φ.neg :: [φ]) Formula.bot :=
-          derives_bot_from_phi_neg_phi h_phi_assume h_neg_assume
+          derivesBotFromPhiNegPhi h_phi_assume h_neg_assume
         have h_efq_thm : DerivationTree fc [] (Formula.bot.imp ψ) :=
           DerivationTree.axiom [] _ (Axiom.efq ψ) (FrameClass.base_le fc)
         have h_efq : DerivationTree fc (φ.neg :: [φ]) (Formula.bot.imp ψ) :=
           DerivationTree.weakening [] _ _ h_efq_thm (by intro; simp)
         exact DerivationTree.modus_ponens _ _ _ h_efq h_bot
-      exact deduction_theorem [φ] φ.neg ψ h_inner
+      exact deductionTheorem [φ] φ.neg ψ h_inner
     have h_sub : ∀ χ ∈ [φ], χ ∈ Omega := by simp [h_phi]
     exact SetMaximalConsistent.closed_under_derivation h_mcs [φ] h_sub h_deriv
   | inr h_psi =>
@@ -150,7 +150,7 @@ theorem SetMaximalConsistent.conjunction_intro {fc : FrameClass}
         DerivationTree.assumption _ _ (by simp)
       have h_neg_assume : DerivationTree fc [ψ, ψ.neg] ψ.neg :=
         DerivationTree.assumption _ _ (by simp)
-      exact derives_bot_from_phi_neg_phi h_psi_assume h_neg_assume
+      exact derivesBotFromPhiNegPhi h_psi_assume h_neg_assume
     have h_sub : ∀ χ ∈ [ψ, ψ.neg], χ ∈ Omega := by
       intro χ h_mem
       simp only [List.mem_cons, List.mem_nil_iff, or_false] at h_mem
@@ -192,12 +192,12 @@ theorem SetMaximalConsistent.conjunction_elim {fc : FrameClass}
         have h_neg_assume : DerivationTree fc (φ :: [φ.neg]) φ.neg :=
           DerivationTree.assumption _ _ (by simp)
         have h_bot : DerivationTree fc (φ :: [φ.neg]) Formula.bot :=
-          derives_bot_from_phi_neg_phi h_phi_assume h_neg_assume
+          derivesBotFromPhiNegPhi h_phi_assume h_neg_assume
         have h_bot_weak : DerivationTree fc (ψ :: φ :: [φ.neg]) Formula.bot :=
           DerivationTree.weakening (φ :: [φ.neg]) (ψ :: φ :: [φ.neg]) _ h_bot
             (fun x hx => List.mem_cons_of_mem ψ hx)
-        exact deduction_theorem (φ :: [φ.neg]) ψ Formula.bot h_bot_weak
-      exact deduction_theorem [φ.neg] φ ψ.neg h_inner
+        exact deductionTheorem (φ :: [φ.neg]) ψ Formula.bot h_bot_weak
+      exact deductionTheorem [φ.neg] φ ψ.neg h_inner
     have h_sub : ∀ χ ∈ [φ.neg], χ ∈ Omega := by simp [h_neg_phi]
     have h_imp_in : (φ.imp ψ.neg) ∈ Omega :=
       SetMaximalConsistent.closed_under_derivation h_mcs [φ.neg] h_sub h_deriv
@@ -206,7 +206,7 @@ theorem SetMaximalConsistent.conjunction_elim {fc : FrameClass}
         DerivationTree.assumption _ _ (by simp)
       have h2 : DerivationTree fc [(φ.imp ψ.neg), (φ.imp ψ.neg).neg] (φ.imp ψ.neg).neg :=
         DerivationTree.assumption _ _ (by simp)
-      exact derives_bot_from_phi_neg_phi h1 h2
+      exact derivesBotFromPhiNegPhi h1 h2
     have h_sub2 : ∀ χ ∈ [(φ.imp ψ.neg), (φ.imp ψ.neg).neg], χ ∈ Omega := by
       intro χ hχ
       simp only [List.mem_cons, List.mem_nil_iff, or_false] at hχ
@@ -242,7 +242,7 @@ theorem SetMaximalConsistent.conjunction_elim {fc : FrameClass}
         DerivationTree.assumption _ _ (by simp)
       have h2 : DerivationTree fc [(φ.imp ψ.neg), (φ.imp ψ.neg).neg] (φ.imp ψ.neg).neg :=
         DerivationTree.assumption _ _ (by simp)
-      exact derives_bot_from_phi_neg_phi h1 h2
+      exact derivesBotFromPhiNegPhi h1 h2
     have h_sub2 : ∀ χ ∈ [(φ.imp ψ.neg), (φ.imp ψ.neg).neg], χ ∈ Omega := by
       intro χ hχ
       simp only [List.mem_cons, List.mem_nil_iff, or_false] at hχ
@@ -337,7 +337,7 @@ for MCS membership: neg(box phi) iff diamond(neg phi).
 
 noncomputable section
 
-open Cslib.Logic.Bimodal.Theorems.Perpetuity (double_negation dni)
+open Cslib.Logic.Bimodal.Theorems.Perpetuity (doubleNegation dni)
 
 /--
 Set-based MCS: diamond-box duality (forward direction).
@@ -356,7 +356,7 @@ theorem SetMaximalConsistent.neg_box_implies_diamond_neg {fc : FrameClass}
   | inl h_dne_box =>
     exfalso
     have h_dne : DerivationTree FrameClass.Base ([] : List (Formula Atom))
-        (φ.neg.neg.imp φ) := double_negation φ
+        (φ.neg.neg.imp φ) := doubleNegation φ
     have h_nec_dne : DerivationTree FrameClass.Base ([] : List (Formula Atom))
         (φ.neg.neg.imp φ).box :=
       DerivationTree.necessitation _ h_dne
@@ -385,7 +385,7 @@ theorem SetMaximalConsistent.neg_box_implies_diamond_neg {fc : FrameClass}
         DerivationTree.assumption _ _ (by simp)
       have h2 : DerivationTree fc [φ.box, (φ.box).neg] (φ.box).neg :=
         DerivationTree.assumption _ _ (by simp)
-      exact derives_bot_from_phi_neg_phi h1 h2
+      exact derivesBotFromPhiNegPhi h1 h2
     have h_sub2 : ∀ χ ∈ [φ.box, (φ.box).neg], χ ∈ Omega := by
       intro χ hχ
       simp only [List.mem_cons, List.mem_nil_iff, or_false] at hχ
@@ -447,7 +447,7 @@ theorem SetMaximalConsistent.diamond_neg_implies_neg_box {fc : FrameClass}
       have h2 : DerivationTree fc [φ.neg.neg.box, (φ.neg.neg.box).neg]
           (φ.neg.neg.box).neg :=
         DerivationTree.assumption _ _ (by simp)
-      exact derives_bot_from_phi_neg_phi h1 h2
+      exact derivesBotFromPhiNegPhi h1 h2
     have h_sub2 : ∀ χ ∈ [φ.neg.neg.box, (φ.neg.neg.box).neg], χ ∈ Omega := by
       intro χ hχ
       simp only [List.mem_cons, List.mem_nil_iff, or_false] at hχ

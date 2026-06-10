@@ -42,19 +42,19 @@ variable {Atom : Type*}
     U(A v B, C) <-> U(A,C) v U(B,C). -/
 theorem until_distrib_or_left
     (A B C : Formula Atom) :
-    int_equiv (.untl (Formula.or A B) C)
+    intEquiv (.untl (Formula.or A B) C)
       (Formula.or (.untl A C) (.untl B C)) := by
   intro M t
-  simp only [int_truth]
+  simp only [intTruth]
   constructor
   · rintro ⟨s, hts, hAB, hguard⟩ h_not_UA
-    have hnotA : ¬ int_truth M s A :=
+    have hnotA : ¬ intTruth M s A :=
       fun hA => h_not_UA ⟨s, hts, hA, hguard⟩
     exact ⟨s, hts, hAB hnotA, hguard⟩
   · intro h_or
     by_cases hUA :
-        ∃ s, t < s ∧ int_truth M s A ∧
-          ∀ r, t < r → r < s → int_truth M r C
+        ∃ s, t < s ∧ intTruth M s A ∧
+          ∀ r, t < r → r < s → intTruth M r C
     · obtain ⟨s, hts, hA, hC⟩ := hUA
       exact ⟨s, hts, fun hnotA =>
         absurd hA hnotA, hC⟩
@@ -65,19 +65,19 @@ theorem until_distrib_or_left
     S(A v B, C) <-> S(A,C) v S(B,C). -/
 theorem since_distrib_or_left
     (A B C : Formula Atom) :
-    int_equiv (.snce (Formula.or A B) C)
+    intEquiv (.snce (Formula.or A B) C)
       (Formula.or (.snce A C) (.snce B C)) := by
   intro M t
-  simp only [int_truth]
+  simp only [intTruth]
   constructor
   · rintro ⟨s, hst, hAB, hguard⟩ h_not_SA
-    have hnotA : ¬ int_truth M s A :=
+    have hnotA : ¬ intTruth M s A :=
       fun hA => h_not_SA ⟨s, hst, hA, hguard⟩
     exact ⟨s, hst, hAB hnotA, hguard⟩
   · intro h_or
     by_cases hSA :
-        ∃ s, s < t ∧ int_truth M s A ∧
-          ∀ r, s < r → r < t → int_truth M r C
+        ∃ s, s < t ∧ intTruth M s A ∧
+          ∀ r, s < r → r < t → intTruth M r C
     · obtain ⟨s, hst, hA, hC⟩ := hSA
       exact ⟨s, hst, fun hnotA =>
         absurd hA hnotA, hC⟩
@@ -91,10 +91,10 @@ theorem since_distrib_or_left
     Uses linearity of the time order. -/
 theorem until_distrib_and_right
     (A B C : Formula Atom) :
-    int_equiv (.untl A (Formula.and B C))
+    intEquiv (.untl A (Formula.and B C))
       (Formula.and (.untl A B) (.untl A C)) := by
   intro M t
-  simp only [int_truth]
+  simp only [intTruth]
   constructor
   · rintro ⟨s, hts, hA, hBC⟩
     intro h_imp
@@ -133,10 +133,10 @@ theorem until_distrib_and_right
     S(A, B ^ C) <-> S(A,B) ^ S(A,C). -/
 theorem since_distrib_and_right
     (A B C : Formula Atom) :
-    int_equiv (.snce A (Formula.and B C))
+    intEquiv (.snce A (Formula.and B C))
       (Formula.and (.snce A B) (.snce A C)) := by
   intro M t
-  simp only [int_truth]
+  simp only [intTruth]
   constructor
   · rintro ⟨s, hst, hA, hBC⟩
     intro h_imp

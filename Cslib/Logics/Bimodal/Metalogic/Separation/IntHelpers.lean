@@ -132,10 +132,10 @@ theorem Int.exists_greatest_below'
 theorem until_witness_construction
     (M : IntStructure Atom) (t s : Int) (hts : t < s)
     (phi psi : Formula Atom)
-    (hphi : int_truth M s phi)
+    (hphi : intTruth M s phi)
     (hpsi : ∀ r : Int,
-      t < r → r < s → int_truth M r psi) :
-    int_truth M t (.untl phi psi) :=
+      t < r → r < s → intTruth M r psi) :
+    intTruth M t (.untl phi psi) :=
   ⟨s, hts, hphi, hpsi⟩
 
 /-- Dual: if phi holds at s and psi holds on (s,t),
@@ -143,29 +143,29 @@ theorem until_witness_construction
 theorem since_witness_construction
     (M : IntStructure Atom) (t s : Int) (hst : s < t)
     (phi psi : Formula Atom)
-    (hphi : int_truth M s phi)
+    (hphi : intTruth M s phi)
     (hpsi : ∀ r : Int,
-      s < r → r < t → int_truth M r psi) :
-    int_truth M t (.snce phi psi) :=
+      s < r → r < t → intTruth M r psi) :
+    intTruth M t (.snce phi psi) :=
   ⟨s, hst, hphi, hpsi⟩
 
 /-! ## Top/True Equivalences -/
 
-/-- neg bot is always true in int_truth. -/
+/-- neg bot is always true in intTruth. -/
 theorem neg_bot_true
     (M : IntStructure Atom) (t : Int) :
-    int_truth M t (Formula.neg (Atom := Atom) .bot) := by
-  simp [int_truth]
+    intTruth M t (Formula.neg (Atom := Atom) .bot) := by
+  simp [intTruth]
 
 /-- S(a, neg bot) iff somePast a. -/
 theorem since_top_is_past (a : Formula Atom) :
-    int_equiv (.snce a (Formula.neg .bot))
+    intEquiv (.snce a (Formula.neg .bot))
       (Formula.somePast a) :=
   int_equiv_refl _
 
 /-- U(a, neg bot) iff someFuture a. -/
 theorem until_top_is_future (a : Formula Atom) :
-    int_equiv (.untl a (Formula.neg .bot))
+    intEquiv (.untl a (Formula.neg .bot))
       (Formula.someFuture a) :=
   int_equiv_refl _
 

@@ -85,7 +85,7 @@ theorem backward_comp (F : TaskFrame D) (w u v : F.WorldState) (x y : D)
 /--
 Simple unit-based task frame for testing.
 -/
-def trivial_frame {D : Type*} [AddCommGroup D] [LinearOrder D]
+def trivialFrame {D : Type*} [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D] : TaskFrame D where
   WorldState := Unit
   task_rel := fun _ _ _ => True
@@ -96,7 +96,7 @@ def trivial_frame {D : Type*} [AddCommGroup D] [LinearOrder D]
 /--
 Identity task frame: task relation is identity.
 -/
-def identity_frame (W : Type) {D : Type*} [AddCommGroup D]
+def identityFrame (W : Type) {D : Type*} [AddCommGroup D]
     [LinearOrder D] [IsOrderedAddMonoid D] : TaskFrame D where
   WorldState := W
   task_rel := fun w x u => w = u ∧ x = 0
@@ -123,7 +123,7 @@ def identity_frame (W : Type) {D : Type*} [AddCommGroup D]
 /--
 Natural number based task frame.
 -/
-def nat_frame {D : Type*} [AddCommGroup D] [LinearOrder D]
+def natFrame {D : Type*} [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D] : TaskFrame D where
   WorldState := Nat
   task_rel := fun w d u => d ≠ 0 ∨ w = u

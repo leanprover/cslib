@@ -23,7 +23,7 @@ and ProofExtraction.lean.
 - `matchAxiom`: Match a formula against all 42 axiom schemata, returning
   `some ⟨φ, witness⟩` if the formula matches axiom schema `φ` with witness
   `witness : Axiom φ`
-- `matches_axiom`: Boolean check for axiom pattern match
+- `matchesAxiom`: Boolean check for axiom pattern match
 - `matchDerived`: Stub for derived theorem matching (returns `none`)
 - `bounded_search_with_proof`: Stub for proof search (returns `(none, 0, 0)`)
 - `identity`: Identity combinator `A → A` from prop_k + prop_s axioms
@@ -466,7 +466,7 @@ Check if a formula matches any of the 42 TM axiom schemata.
 
 Delegates to `matchAxiom` and returns `true` on match, `false` otherwise.
 -/
-def matches_axiom (φ : Formula Atom) : Bool :=
+def matchesAxiom (φ : Formula Atom) : Bool :=
   (matchAxiom φ).isSome
 
 /-!
@@ -480,7 +480,7 @@ full automation module is ported.
 /--
 Stub for derived theorem matching. Returns `none`.
 
-The full implementation would match patterns like `temp_future_derived`:
+The full implementation would match patterns like `tempFutureDerived`:
 `box phi -> G(box phi)`. This is deferred since the decidability procedure
 does not require derived theorem matching for correctness.
 -/
@@ -495,7 +495,7 @@ The full implementation performs depth-limited DFS to find derivation trees.
 This is deferred since the decidability procedure uses tableau expansion
 rather than forward proof search.
 -/
-def bounded_search_with_proof_stub
+def boundedSearchWithProofStub
     (_ : Context Atom) (φ : Formula Atom) (_ : Nat) :
     Option (DerivationTree FrameClass.Base ([] : Context Atom) φ) × Nat × Nat :=
   (none, 0, 0)

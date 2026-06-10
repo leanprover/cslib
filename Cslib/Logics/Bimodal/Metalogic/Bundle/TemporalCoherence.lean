@@ -42,23 +42,23 @@ variable {Atom : Type*} {fc : FrameClass} {D : Type*} [Preorder D] [Zero D]
 noncomputable def G_dne_theorem (phi : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.allFuture (Formula.neg (Formula.neg phi))).imp (Formula.allFuture phi)) := by
   have h_dne : DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg phi)).imp phi) :=
-    dne_theorem phi
+    dneTheorem phi
   have h_G_dne : DerivationTree FrameClass.Base [] (Formula.allFuture ((Formula.neg (Formula.neg phi)).imp phi)) :=
     DerivationTree.temporal_necessitation _ h_dne
   have h_K : DerivationTree FrameClass.Base [] ((Formula.allFuture ((Formula.neg (Formula.neg phi)).imp phi)).imp
                ((Formula.allFuture (Formula.neg (Formula.neg phi))).imp (Formula.allFuture phi))) :=
-    Theorems.TemporalDerived.temp_k_dist_derived (Formula.neg (Formula.neg phi)) phi
+    Theorems.TemporalDerived.tempKDistDerived (Formula.neg (Formula.neg phi)) phi
   exact DerivationTree.modus_ponens [] _ _ h_K h_G_dne
 
 noncomputable def H_dne_theorem (phi : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.allPast (Formula.neg (Formula.neg phi))).imp (Formula.allPast phi)) := by
   have h_dne : DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg phi)).imp phi) :=
-    dne_theorem phi
+    dneTheorem phi
   have h_H_dne : DerivationTree FrameClass.Base [] (Formula.allPast ((Formula.neg (Formula.neg phi)).imp phi)) :=
-    Theorems.past_necessitation _ h_dne
+    Theorems.pastNecessitation _ h_dne
   have h_K : DerivationTree FrameClass.Base [] ((Formula.allPast ((Formula.neg (Formula.neg phi)).imp phi)).imp
                ((Formula.allPast (Formula.neg (Formula.neg phi))).imp (Formula.allPast phi))) :=
-    Theorems.past_k_dist _ _
+    Theorems.pastKDist _ _
   exact DerivationTree.modus_ponens [] _ _ h_K h_H_dne
 
 lemma neg_allFuture_to_someFuture_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
@@ -69,8 +69,8 @@ lemma neg_allFuture_to_someFuture_neg (M : Set (Formula Atom)) (h_mcs : SetMaxim
   rw [h_eq] at h_neg_G
   have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.someFuture (Formula.neg phi)))).imp
                      (Formula.someFuture (Formula.neg phi))) :=
-    (dne_theorem (Formula.someFuture (Formula.neg phi))).lift (FrameClass.base_le fc)
-  exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc h_mcs h_dne) h_neg_G
+    (dneTheorem (Formula.someFuture (Formula.neg phi))).lift (FrameClass.base_le fc)
+  exact SetMaximalConsistent.implication_property h_mcs (theoremInMcsFc h_mcs h_dne) h_neg_G
 
 lemma neg_allPast_to_somePast_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
     (phi : Formula Atom) (h_neg_H : Formula.neg (Formula.allPast phi) ∈ M) :
@@ -80,14 +80,14 @@ lemma neg_allPast_to_somePast_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalCo
   rw [h_eq] at h_neg_H
   have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.somePast (Formula.neg phi)))).imp
                      (Formula.somePast (Formula.neg phi))) :=
-    (dne_theorem (Formula.somePast (Formula.neg phi))).lift (FrameClass.base_le fc)
-  exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc h_mcs h_dne) h_neg_H
+    (dneTheorem (Formula.somePast (Formula.neg phi))).lift (FrameClass.base_le fc)
+  exact SetMaximalConsistent.implication_property h_mcs (theoremInMcsFc h_mcs h_dne) h_neg_H
 
 lemma SetMaximalConsistent.double_neg_elim {M : Set (Formula Atom)} (h_mcs : SetMaximalConsistent fc M)
     (phi : Formula Atom) (h_neg_neg : Formula.neg (Formula.neg phi) ∈ M) : phi ∈ M := by
   have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg phi)).imp phi) :=
-    (dne_theorem phi).lift (FrameClass.base_le fc)
-  have h_thm_in_M : (Formula.neg (Formula.neg phi)).imp phi ∈ M := theorem_in_mcs_fc h_mcs h_dne
+    (dneTheorem phi).lift (FrameClass.base_le fc)
+  have h_thm_in_M : (Formula.neg (Formula.neg phi)).imp phi ∈ M := theoremInMcsFc h_mcs h_dne
   exact SetMaximalConsistent.implication_property h_mcs h_thm_in_M h_neg_neg
 
 /-! ## TemporalCoherentFamily and Backward Lemmas -/

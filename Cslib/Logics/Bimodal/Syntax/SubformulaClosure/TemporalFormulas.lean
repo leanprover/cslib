@@ -79,17 +79,17 @@ def sinceDeferralSet (phi : Formula Atom) : Finset (Formula Atom) :=
 
 abbrev F_top : Formula Atom := Formula.someFuture (Formula.neg Formula.bot)
 abbrev P_top : Formula Atom := Formula.somePast (Formula.neg Formula.bot)
-abbrev neg_neg_bot : Formula Atom := Formula.neg (Formula.neg Formula.bot)
-abbrev G_neg_neg_bot : Formula Atom := Formula.allFuture (neg_neg_bot : Formula Atom)
-abbrev H_neg_neg_bot : Formula Atom := Formula.allPast (neg_neg_bot : Formula Atom)
-abbrev neg_G_neg_neg_bot : Formula Atom := Formula.neg (G_neg_neg_bot : Formula Atom)
-abbrev neg_H_neg_neg_bot : Formula Atom := Formula.neg (H_neg_neg_bot : Formula Atom)
+abbrev negNegBot : Formula Atom := Formula.neg (Formula.neg Formula.bot)
+abbrev G_neg_neg_bot : Formula Atom := Formula.allFuture (negNegBot : Formula Atom)
+abbrev H_neg_neg_bot : Formula Atom := Formula.allPast (negNegBot : Formula Atom)
+abbrev negGNegNegBot : Formula Atom := Formula.neg (G_neg_neg_bot : Formula Atom)
+abbrev negHNegNegBot : Formula Atom := Formula.neg (H_neg_neg_bot : Formula Atom)
 abbrev F_top_deferral : Formula Atom := Formula.or (Formula.neg Formula.bot) (F_top : Formula Atom)
 abbrev P_top_deferral : Formula Atom := Formula.or (Formula.neg Formula.bot) (P_top : Formula Atom)
 
 def serialityFormulas : Finset (Formula Atom) :=
-  {F_top, P_top, Formula.neg Formula.bot, neg_neg_bot, G_neg_neg_bot, H_neg_neg_bot,
-   neg_G_neg_neg_bot, neg_H_neg_neg_bot, F_top_deferral, P_top_deferral}
+  {F_top, P_top, Formula.neg Formula.bot, negNegBot, G_neg_neg_bot, H_neg_neg_bot,
+   negGNegNegBot, negHNegNegBot, F_top_deferral, P_top_deferral}
 
 def toFutureBlocking (f : Formula Atom) : Formula Atom :=
   match extractFutureInner f with
@@ -194,7 +194,7 @@ theorem neg_bot_mem_serialityFormulas :
   right; right; left; trivial
 
 theorem neg_neg_bot_mem_serialityFormulas :
-    (neg_neg_bot : Formula Atom) ∈ serialityFormulas := by
+    (negNegBot : Formula Atom) ∈ serialityFormulas := by
   simp only [serialityFormulas, Finset.mem_insert, Finset.mem_singleton]
   right; right; right; left; trivial
 
@@ -221,7 +221,7 @@ theorem neg_bot_mem_deferralClosure (phi : Formula Atom) :
   serialityFormulas_subset_deferralClosure phi neg_bot_mem_serialityFormulas
 
 theorem neg_neg_bot_mem_deferralClosure (phi : Formula Atom) :
-    (neg_neg_bot : Formula Atom) ∈ deferralClosure phi :=
+    (negNegBot : Formula Atom) ∈ deferralClosure phi :=
   serialityFormulas_subset_deferralClosure phi neg_neg_bot_mem_serialityFormulas
 
 theorem G_neg_neg_bot_mem_deferralClosure (phi : Formula Atom) :
@@ -282,19 +282,19 @@ theorem deferral_of_P_in_closure (phi chi : Formula Atom)
   · simp only [IsPastFormula, extractPastInner_somePast, Option.isSome_some]
 
 theorem f_nesting_depth_or (chi psi : Formula Atom) :
-    f_nesting_depth (Formula.or chi psi) = 0 := by
-  simp only [Formula.or, Formula.neg, f_nesting_depth]
+    fNestingDepth (Formula.or chi psi) = 0 := by
+  simp only [Formula.or, Formula.neg, fNestingDepth]
 
 theorem p_nesting_depth_or (chi psi : Formula Atom) :
-    p_nesting_depth (Formula.or chi psi) = 0 := by
-  simp only [Formula.or, Formula.neg, p_nesting_depth]
+    pNestingDepth (Formula.or chi psi) = 0 := by
+  simp only [Formula.or, Formula.neg, pNestingDepth]
 
 theorem f_nesting_depth_F_deferral (chi : Formula Atom) :
-    f_nesting_depth (Formula.or chi (Formula.someFuture chi)) = 0 :=
+    fNestingDepth (Formula.or chi (Formula.someFuture chi)) = 0 :=
   f_nesting_depth_or chi (Formula.someFuture chi)
 
 theorem p_nesting_depth_P_deferral (chi : Formula Atom) :
-    p_nesting_depth (Formula.or chi (Formula.somePast chi)) = 0 :=
+    pNestingDepth (Formula.or chi (Formula.somePast chi)) = 0 :=
   p_nesting_depth_or chi (Formula.somePast chi)
 
 -- The remaining structural lemmas (max depth, allFuture/allPast cases, box cases)

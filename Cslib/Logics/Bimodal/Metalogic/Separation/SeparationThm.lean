@@ -47,14 +47,14 @@ open Cslib.Logic.Bimodal
 
 /-! ## Congruence and Separability Helpers -/
 
-theorem allPast_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
-    int_equiv (.allPast φ) (.allPast ψ) := by
+theorem allPast_congr {φ ψ : Formula Atom} (h : intEquiv φ ψ) :
+    intEquiv (.allPast φ) (.allPast ψ) := by
   intro M t; simp only [int_truth_allPast]; constructor
   · intro hall s hst; exact (h M s).mp (hall s hst)
   · intro hall s hst; exact (h M s).mpr (hall s hst)
 
-theorem allFuture_congr {φ ψ : Formula Atom} (h : int_equiv φ ψ) :
-    int_equiv (.allFuture φ) (.allFuture ψ) := by
+theorem allFuture_congr {φ ψ : Formula Atom} (h : intEquiv φ ψ) :
+    intEquiv (.allFuture φ) (.allFuture ψ) := by
   intro M t; simp only [int_truth_allFuture]; constructor
   · intro hall s hts; exact (h M s).mp (hall s hts)
   · intro hall s hts; exact (h M s).mpr (hall s hts)
@@ -75,23 +75,23 @@ the full GHR94 junction-depth induction). -/
     separated. When φ' has U-subterms, the GHR94 substitution bridge
     (Lemmas 10.2.4-10.2.8) is needed, which depends on the axiomatized
     elimination Cases 5-8. -/
-theorem allPast_separable (φ : Formula Atom) (_h : is_separable φ) :
-    is_separable (.allPast φ) :=
+theorem allPast_separable (φ : Formula Atom) (_h : isSeparable φ) :
+    isSeparable (.allPast φ) :=
   all_formulas_separable _
 
 /-- Temporal closure: allFuture of a separable formula is separable. -/
-theorem allFuture_separable (φ : Formula Atom) (_h : is_separable φ) :
-    is_separable (.allFuture φ) :=
+theorem allFuture_separable (φ : Formula Atom) (_h : isSeparable φ) :
+    isSeparable (.allFuture φ) :=
   all_formulas_separable _
 
 /-- Temporal closure: untl of separable formulas is separable. -/
-theorem untl_separable (φ ψ : Formula Atom) (_h1 : is_separable φ) (_h2 : is_separable ψ) :
-    is_separable (.untl φ ψ) :=
+theorem untl_separable (φ ψ : Formula Atom) (_h1 : isSeparable φ) (_h2 : isSeparable ψ) :
+    isSeparable (.untl φ ψ) :=
   all_formulas_separable _
 
 /-- Temporal closure: snce of separable formulas is separable. -/
-theorem snce_separable (φ ψ : Formula Atom) (_h1 : is_separable φ) (_h2 : is_separable ψ) :
-    is_separable (.snce φ ψ) :=
+theorem snce_separable (φ ψ : Formula Atom) (_h1 : isSeparable φ) (_h2 : isSeparable ψ) :
+    isSeparable (.snce φ ψ) :=
   all_formulas_separable _
 
 /-! ## Main Separation Theorem (all formulas are separable)
@@ -102,7 +102,7 @@ substitution bridge. -/
 
 /-- Every {U,S}-formula over integer time is separable (equivalent to a
     syntactically separated formula). GHR94 Theorem 10.2.9. -/
-theorem all_separable (phi : Formula Atom) : is_separable phi :=
+theorem all_separable (phi : Formula Atom) : isSeparable phi :=
   all_formulas_separable phi
 
 /-! ## Lemma 10.2.4: Single S with Top-Level U(A,B) -/
@@ -113,9 +113,9 @@ theorem all_separable (phi : Formula Atom) : is_separable phi :=
 
     This follows directly from `all_separable`. -/
 theorem single_S_with_U (C w A B : Formula Atom)
-    (_hA : is_U_free A = true) (_hB : is_U_free B = true)
-    (_hA' : is_S_free A = true) (_hB' : is_S_free B = true) :
-    is_separable (.snce C w) :=
+    (_hA : isUFree A = true) (_hB : isUFree B = true)
+    (_hA' : isSFree A = true) (_hB' : isSFree B = true) :
+    isSeparable (.snce C w) :=
   all_separable _
 
 /-! ## Lemma 10.2.5: Single U Formula -/
@@ -125,9 +125,9 @@ theorem single_S_with_U (C w A B : Formula Atom)
 
     This follows directly from `all_separable`. -/
 theorem single_U_separable (A B D : Formula Atom)
-    (_hA : is_U_free A = true) (_hB : is_U_free B = true)
-    (_hA' : is_S_free A = true) (_hB' : is_S_free B = true) :
-    is_separable D :=
+    (_hA : isUFree A = true) (_hB : isUFree B = true)
+    (_hA' : isSFree A = true) (_hB' : isSFree B = true) :
+    isSeparable D :=
   all_separable D
 
 /-! ## Lemma 10.2.6: Multiple U Formulas -/
@@ -137,7 +137,7 @@ theorem single_U_separable (A B D : Formula Atom)
 
     This follows directly from `all_separable`. -/
 theorem multi_U_separable (D : Formula Atom) :
-    is_separable D :=
+    isSeparable D :=
   all_separable D
 
 /-! ## Lemma 10.2.7: No S within U -/
@@ -146,8 +146,8 @@ theorem multi_U_separable (D : Formula Atom) :
 
     This follows directly from `all_separable`. -/
 theorem no_S_within_U_separable (D : Formula Atom)
-    (_hD : no_S_nested_in_U D) :
-    is_separable D :=
+    (_hD : noSNestedInU D) :
+    isSeparable D :=
   all_separable D
 
 /-! ## Lemma 10.2.8: General Case (Junction Depth) -/
@@ -157,7 +157,7 @@ theorem no_S_within_U_separable (D : Formula Atom)
 
     This is `all_separable` from Eliminations.lean. -/
 theorem junction_depth_separable (D : Formula Atom) :
-    is_separable D :=
+    isSeparable D :=
   all_separable D
 
 /-! ## Theorem 10.2.9: Separation Theorem -/
@@ -167,64 +167,64 @@ theorem junction_depth_separable (D : Formula Atom) :
 
     This follows directly from junction_depth_separable. -/
 theorem separation_theorem_int (phi : Formula Atom) :
-    is_separable phi :=
+    isSeparable phi :=
   junction_depth_separable phi
 
 /-! ## Proper Separation Theorem
 
 The proper separation theorem states that every formula is properly separable
-(equivalent to a formula satisfying `is_properly_separated`). This is the
+(equivalent to a formula satisfying `isProperlySeparated`). This is the
 version required by Theorem 9.3.1, since the substitution step needs semantic
 purity: past parts must not reference the future, future parts must not
 reference the past.
 
-Since `is_syntactically_separated = is_properly_separated` for all formulas
+Since `isSyntacticallySeparated = isProperlySeparated` for all formulas
 (proved in Defs.lean via `syn_sep_eq_proper_sep`), proper separability follows
 directly from `all_formulas_separable`. The temporal closure lemmas below are
 corollaries, not axioms. -/
 
 /-- Every formula is properly separable, via predicate equivalence with
     syntactic separation (`syn_sep_eq_proper_sep`). -/
-theorem all_formulas_properly_separable (φ : Formula Atom) : is_properly_separable φ :=
+theorem all_formulas_properly_separable (φ : Formula Atom) : isProperlySeparable φ :=
   (separable_iff_properly_separable φ).mp (all_formulas_separable φ)
 
 /-- Temporal closure for proper separability: allPast of a properly separable
     formula is properly separable. -/
-theorem allPast_properly_separable (φ : Formula Atom) (_h : is_properly_separable φ) :
-    is_properly_separable (.allPast φ) :=
+theorem allPast_properly_separable (φ : Formula Atom) (_h : isProperlySeparable φ) :
+    isProperlySeparable (.allPast φ) :=
   all_formulas_properly_separable _
 
 /-- Temporal closure for proper separability: allFuture of a properly separable
     formula is properly separable. -/
-theorem allFuture_properly_separable (φ : Formula Atom) (_h : is_properly_separable φ) :
-    is_properly_separable (.allFuture φ) :=
+theorem allFuture_properly_separable (φ : Formula Atom) (_h : isProperlySeparable φ) :
+    isProperlySeparable (.allFuture φ) :=
   all_formulas_properly_separable _
 
 /-- Temporal closure for proper separability: untl of properly separable
     formulas is properly separable. -/
 theorem untl_properly_separable (φ ψ : Formula Atom)
-    (_h1 : is_properly_separable φ) (_h2 : is_properly_separable ψ) :
-    is_properly_separable (.untl φ ψ) :=
+    (_h1 : isProperlySeparable φ) (_h2 : isProperlySeparable ψ) :
+    isProperlySeparable (.untl φ ψ) :=
   all_formulas_properly_separable _
 
 /-- Temporal closure for proper separability: snce of properly separable
     formulas is properly separable. -/
 theorem snce_properly_separable (φ ψ : Formula Atom)
-    (_h1 : is_properly_separable φ) (_h2 : is_properly_separable ψ) :
-    is_properly_separable (.snce φ ψ) :=
+    (_h1 : isProperlySeparable φ) (_h2 : isProperlySeparable ψ) :
+    isProperlySeparable (.snce φ ψ) :=
   all_formulas_properly_separable _
 
 /-- Every {U,S}-formula over integer time is properly separable (equivalent to a
     properly separated formula). This is the strong version of Theorem 10.2.9
     required by Theorem 9.3.1. -/
-theorem all_properly_separable (phi : Formula Atom) : is_properly_separable phi :=
+theorem all_properly_separable (phi : Formula Atom) : isProperlySeparable phi :=
   all_formulas_properly_separable phi
 
 /-- Theorem 10.2.9 (Strong form): Each wff in the language with {U, S}
     is equivalent, over the integer flow of time, to a properly separated wff.
     This is the version needed by Theorem 9.3.1. -/
 theorem proper_separation_theorem_int (phi : Formula Atom) :
-    is_properly_separable phi :=
+    isProperlySeparable phi :=
   all_properly_separable phi
 
 section AtomRestriction
@@ -232,159 +232,159 @@ open Classical
 
 /-! ## Atom-Preserving Separation via Atom Restriction
 
-The key insight: rather than tracking `formula_atoms` through the entire separation
+The key insight: rather than tracking `formulaAtoms` through the entire separation
 hierarchy, we take any separated witness and restrict its atoms to those of the
-original formula. Atoms outside `formula_atoms φ` cannot affect the truth of φ
+original formula. Atoms outside `formulaAtoms φ` cannot affect the truth of φ
 (by `int_truth_depends_only_on_atoms`), so replacing them with ⊤ preserves the
 equivalence while ensuring atom containment. -/
 
 /-- Replace all atoms NOT in the allowed set with ⊤ (imp bot bot).
     This removes "extra" atoms from a formula while preserving its structure. -/
-noncomputable def restrict_atoms (φ : Formula Atom) (allowed : Set Atom) : Formula Atom :=
+noncomputable def restrictAtoms (φ : Formula Atom) (allowed : Set Atom) : Formula Atom :=
   match φ with
   | .atom b => if b ∈ allowed then .atom b else .imp .bot .bot
   | .bot => .bot
-  | .imp ψ₁ ψ₂ => .imp (restrict_atoms ψ₁ allowed) (restrict_atoms ψ₂ allowed)
-  | .box ψ => .box (restrict_atoms ψ allowed)
-  | .untl ψ₁ ψ₂ => .untl (restrict_atoms ψ₁ allowed) (restrict_atoms ψ₂ allowed)
-  | .snce ψ₁ ψ₂ => .snce (restrict_atoms ψ₁ allowed) (restrict_atoms ψ₂ allowed)
+  | .imp ψ₁ ψ₂ => .imp (restrictAtoms ψ₁ allowed) (restrictAtoms ψ₂ allowed)
+  | .box ψ => .box (restrictAtoms ψ allowed)
+  | .untl ψ₁ ψ₂ => .untl (restrictAtoms ψ₁ allowed) (restrictAtoms ψ₂ allowed)
+  | .snce ψ₁ ψ₂ => .snce (restrictAtoms ψ₁ allowed) (restrictAtoms ψ₂ allowed)
 
-/-- Atoms of `restrict_atoms` are contained in the allowed set. -/
+/-- Atoms of `restrictAtoms` are contained in the allowed set. -/
 theorem formula_atoms_restrict_subset (φ : Formula Atom) (allowed : Set Atom) :
-    formula_atoms (restrict_atoms φ allowed) ⊆ allowed := by
+    formulaAtoms (restrictAtoms φ allowed) ⊆ allowed := by
   induction φ with
   | atom b =>
-    unfold restrict_atoms
+    unfold restrictAtoms
     split
-    · next h => intro x hx; simp only [formula_atoms, Set.mem_singleton_iff] at hx; subst hx; exact h
-    · simp only [formula_atoms]; exact Set.union_subset (Set.empty_subset _) (Set.empty_subset _)
+    · next h => intro x hx; simp only [formulaAtoms, Set.mem_singleton_iff] at hx; subst hx; exact h
+    · simp only [formulaAtoms]; exact Set.union_subset (Set.empty_subset _) (Set.empty_subset _)
   | bot => exact Set.empty_subset _
-  | imp ψ₁ ψ₂ ih1 ih2 => unfold restrict_atoms; simp only [formula_atoms]; exact Set.union_subset ih1 ih2
+  | imp ψ₁ ψ₂ ih1 ih2 => unfold restrictAtoms; simp only [formulaAtoms]; exact Set.union_subset ih1 ih2
   | box ψ ih => exact ih
-  | untl ψ₁ ψ₂ ih1 ih2 => unfold restrict_atoms; simp only [formula_atoms]; exact Set.union_subset ih1 ih2
-  | snce ψ₁ ψ₂ ih1 ih2 => unfold restrict_atoms; simp only [formula_atoms]; exact Set.union_subset ih1 ih2
+  | untl ψ₁ ψ₂ ih1 ih2 => unfold restrictAtoms; simp only [formulaAtoms]; exact Set.union_subset ih1 ih2
+  | snce ψ₁ ψ₂ ih1 ih2 => unfold restrictAtoms; simp only [formulaAtoms]; exact Set.union_subset ih1 ih2
 
 theorem restrict_atoms_S_free (φ : Formula Atom) (allowed : Set Atom)
-    (h : is_S_free φ = true) : is_S_free (restrict_atoms φ allowed) = true := by
+    (h : isSFree φ = true) : isSFree (restrictAtoms φ allowed) = true := by
   induction φ with
   | atom _ =>
-    unfold restrict_atoms; split <;> simp [is_S_free]
+    unfold restrictAtoms; split <;> simp [isSFree]
   | bot => rfl
   | imp ψ₁ ψ₂ ih1 ih2 =>
-    simp [is_S_free] at h; unfold restrict_atoms; simp [is_S_free, ih1 h.1, ih2 h.2]
+    simp [isSFree] at h; unfold restrictAtoms; simp [isSFree, ih1 h.1, ih2 h.2]
   | box ψ ih =>
-    simp [is_S_free] at h; unfold restrict_atoms; simp [is_S_free, ih h]
+    simp [isSFree] at h; unfold restrictAtoms; simp [isSFree, ih h]
   | untl ψ₁ ψ₂ ih1 ih2 =>
-    simp [is_S_free] at h; unfold restrict_atoms; simp [is_S_free, ih1 h.1, ih2 h.2]
-  | snce _ _ => simp [is_S_free] at h
+    simp [isSFree] at h; unfold restrictAtoms; simp [isSFree, ih1 h.1, ih2 h.2]
+  | snce _ _ => simp [isSFree] at h
 
 theorem restrict_atoms_U_free (φ : Formula Atom) (allowed : Set Atom)
-    (h : is_U_free φ = true) : is_U_free (restrict_atoms φ allowed) = true := by
+    (h : isUFree φ = true) : isUFree (restrictAtoms φ allowed) = true := by
   induction φ with
   | atom _ =>
-    unfold restrict_atoms; split <;> simp [is_U_free]
+    unfold restrictAtoms; split <;> simp [isUFree]
   | bot => rfl
   | imp ψ₁ ψ₂ ih1 ih2 =>
-    simp [is_U_free] at h; unfold restrict_atoms; simp [is_U_free, ih1 h.1, ih2 h.2]
+    simp [isUFree] at h; unfold restrictAtoms; simp [isUFree, ih1 h.1, ih2 h.2]
   | box ψ ih =>
-    simp [is_U_free] at h; unfold restrict_atoms; simp [is_U_free, ih h]
-  | untl _ _ => simp [is_U_free] at h
+    simp [isUFree] at h; unfold restrictAtoms; simp [isUFree, ih h]
+  | untl _ _ => simp [isUFree] at h
   | snce ψ₁ ψ₂ ih1 ih2 =>
-    simp [is_U_free] at h; unfold restrict_atoms; simp [is_U_free, ih1 h.1, ih2 h.2]
+    simp [isUFree] at h; unfold restrictAtoms; simp [isUFree, ih1 h.1, ih2 h.2]
 
-/-- `restrict_atoms` preserves `is_properly_separated`. -/
+/-- `restrictAtoms` preserves `isProperlySeparated`. -/
 theorem restrict_atoms_preserves_properly_separated (φ : Formula Atom) (allowed : Set Atom)
-    (h : is_properly_separated φ = true) :
-    is_properly_separated (restrict_atoms φ allowed) = true := by
+    (h : isProperlySeparated φ = true) :
+    isProperlySeparated (restrictAtoms φ allowed) = true := by
   induction φ with
   | atom _ =>
-    unfold restrict_atoms; split <;> simp [is_properly_separated]
+    unfold restrictAtoms; split <;> simp [isProperlySeparated]
   | bot => exact h
   | imp ψ₁ ψ₂ ih1 ih2 =>
-    simp [is_properly_separated] at h
-    unfold restrict_atoms; simp [is_properly_separated, ih1 h.1, ih2 h.2]
-  | box _ => unfold restrict_atoms; simp only [is_properly_separated]
+    simp [isProperlySeparated] at h
+    unfold restrictAtoms; simp [isProperlySeparated, ih1 h.1, ih2 h.2]
+  | box _ => unfold restrictAtoms; simp only [isProperlySeparated]
   | untl ψ₁ ψ₂ _ _ =>
-    simp [is_properly_separated] at h
-    unfold restrict_atoms; simp only [is_properly_separated, Bool.and_eq_true]
+    simp [isProperlySeparated] at h
+    unfold restrictAtoms; simp only [isProperlySeparated, Bool.and_eq_true]
     rw [← s_free_eq_future_only, ← s_free_eq_future_only]
     rw [← s_free_eq_future_only, ← s_free_eq_future_only] at h
     exact ⟨restrict_atoms_S_free ψ₁ allowed h.1, restrict_atoms_S_free ψ₂ allowed h.2⟩
   | snce ψ₁ ψ₂ _ _ =>
-    simp [is_properly_separated] at h
-    unfold restrict_atoms; simp only [is_properly_separated, Bool.and_eq_true]
+    simp [isProperlySeparated] at h
+    unfold restrictAtoms; simp only [isProperlySeparated, Bool.and_eq_true]
     rw [← u_free_eq_past_only, ← u_free_eq_past_only]
     rw [← u_free_eq_past_only, ← u_free_eq_past_only] at h
     exact ⟨restrict_atoms_U_free ψ₁ allowed h.1, restrict_atoms_U_free ψ₂ allowed h.2⟩
 
 /-- In a model where all non-allowed atoms are universally true,
-    `restrict_atoms` agrees semantically with the original formula. -/
+    `restrictAtoms` agrees semantically with the original formula. -/
 theorem restrict_atoms_truth (ψ : Formula Atom) (allowed : Set Atom)
     (M : IntStructure Atom) (t : ℤ) (h_true : ∀ a, a ∉ allowed → M.val a = Set.univ) :
-    int_truth M t (restrict_atoms ψ allowed) ↔ int_truth M t ψ := by
+    intTruth M t (restrictAtoms ψ allowed) ↔ intTruth M t ψ := by
   induction ψ generalizing t with
   | atom b =>
-    unfold restrict_atoms; split
+    unfold restrictAtoms; split
     · rfl
-    · next h => simp [int_truth, h_true b h]
+    · next h => simp [intTruth, h_true b h]
   | bot => rfl
   | imp c d ih1 ih2 =>
-    unfold restrict_atoms; simp only [int_truth]; exact Iff.imp (ih1 t) (ih2 t)
+    unfold restrictAtoms; simp only [intTruth]; exact Iff.imp (ih1 t) (ih2 t)
   | box _ => rfl
   | untl c d ih1 ih2 =>
-    unfold restrict_atoms; simp only [int_truth]; constructor
+    unfold restrictAtoms; simp only [intTruth]; constructor
     · rintro ⟨s, hts, hc, hd⟩
       exact ⟨s, hts, (ih1 s).mp hc, fun r hr1 hr2 => (ih2 r).mp (hd r hr1 hr2)⟩
     · rintro ⟨s, hts, hc, hd⟩
       exact ⟨s, hts, (ih1 s).mpr hc, fun r hr1 hr2 => (ih2 r).mpr (hd r hr1 hr2)⟩
   | snce c d ih1 ih2 =>
-    unfold restrict_atoms; simp only [int_truth]; constructor
+    unfold restrictAtoms; simp only [intTruth]; constructor
     · rintro ⟨s, hst, hc, hd⟩
       exact ⟨s, hst, (ih1 s).mp hc, fun r hr1 hr2 => (ih2 r).mp (hd r hr1 hr2)⟩
     · rintro ⟨s, hst, hc, hd⟩
       exact ⟨s, hst, (ih1 s).mpr hc, fun r hr1 hr2 => (ih2 r).mpr (hd r hr1 hr2)⟩
 
-/-- Restricting atoms of ψ to the allowed set preserves `int_equiv` with φ,
+/-- Restricting atoms of ψ to the allowed set preserves `intEquiv` with φ,
     provided φ's atoms are contained in the allowed set.
 
     The proof constructs a model M' where non-allowed atoms are universally true.
     Since φ's atoms are all allowed, φ has the same truth in M and M'. Since
-    `restrict_atoms ψ` has atoms ⊆ allowed, it also has the same truth in M and M'.
-    In M', `restrict_atoms ψ` agrees with ψ (non-allowed atoms are true in both).
+    `restrictAtoms ψ` has atoms ⊆ allowed, it also has the same truth in M and M'.
+    In M', `restrictAtoms ψ` agrees with ψ (non-allowed atoms are true in both).
     Composing these equivalences gives the result. -/
-theorem int_equiv_restrict_atoms {φ ψ : Formula Atom} (hequiv : int_equiv φ ψ)
-    (allowed : Set Atom) (h_covers : formula_atoms φ ⊆ allowed) :
-    int_equiv φ (restrict_atoms ψ allowed) := by
+theorem int_equiv_restrict_atoms {φ ψ : Formula Atom} (hequiv : intEquiv φ ψ)
+    (allowed : Set Atom) (h_covers : formulaAtoms φ ⊆ allowed) :
+    intEquiv φ (restrictAtoms ψ allowed) := by
   intro M t
   let M' : IntStructure Atom := ⟨fun b => if b ∈ allowed then M.val b else Set.univ⟩
   have h_true : ∀ a, a ∉ allowed → M'.val a = Set.univ := fun a ha => by simp [M', ha]
-  have h_phi : int_truth M t φ ↔ int_truth M' t φ :=
+  have h_phi : intTruth M t φ ↔ intTruth M' t φ :=
     int_truth_depends_only_on_atoms φ M M' t (fun b hb => by simp [M', h_covers hb])
-  have h_restrict_models : int_truth M t (restrict_atoms ψ allowed) ↔
-      int_truth M' t (restrict_atoms ψ allowed) :=
-    int_truth_depends_only_on_atoms (restrict_atoms ψ allowed) M M' t
+  have h_restrict_models : intTruth M t (restrictAtoms ψ allowed) ↔
+      intTruth M' t (restrictAtoms ψ allowed) :=
+    int_truth_depends_only_on_atoms (restrictAtoms ψ allowed) M M' t
       (fun b hb => by simp [M', formula_atoms_restrict_subset ψ allowed hb])
-  have h_restrict : int_truth M' t (restrict_atoms ψ allowed) ↔ int_truth M' t ψ :=
+  have h_restrict : intTruth M' t (restrictAtoms ψ allowed) ↔ intTruth M' t ψ :=
     restrict_atoms_truth ψ allowed M' t h_true
   exact h_phi.trans ((hequiv M' t).trans (h_restrict.symm.trans h_restrict_models.symm))
 
 /-- Atom-preserving proper separation: the separated equivalent uses only atoms
-    from the original formula. This is a strengthening of `is_properly_separable`
+    from the original formula. This is a strengthening of `isProperlySeparable`
     needed for the quantifier elimination step in Theorem 9.3.1.
 
     The proof takes any separated witness from `all_formulas_separable` and
-    restricts its atoms to `formula_atoms φ` via `restrict_atoms`. Since atoms
-    outside `formula_atoms φ` cannot affect φ's truth (by `int_truth_depends_only_on_atoms`),
+    restricts its atoms to `formulaAtoms φ` via `restrictAtoms`. Since atoms
+    outside `formulaAtoms φ` cannot affect φ's truth (by `int_truth_depends_only_on_atoms`),
     replacing them with ⊤ preserves the equivalence. -/
 theorem proper_separation_preserves_atoms (φ : Formula Atom) :
-    ∃ ψ : Formula Atom, is_properly_separated ψ = true ∧ int_equiv φ ψ ∧
-    formula_atoms ψ ⊆ formula_atoms φ := by
+    ∃ ψ : Formula Atom, isProperlySeparated ψ = true ∧ intEquiv φ ψ ∧
+    formulaAtoms ψ ⊆ formulaAtoms φ := by
   obtain ⟨ψ₀, hψ₀_sep, hψ₀_equiv⟩ := all_formulas_separable φ
-  exact ⟨restrict_atoms ψ₀ (formula_atoms φ),
-    restrict_atoms_preserves_properly_separated ψ₀ (formula_atoms φ)
+  exact ⟨restrictAtoms ψ₀ (formulaAtoms φ),
+    restrict_atoms_preserves_properly_separated ψ₀ (formulaAtoms φ)
       ((syn_sep_eq_proper_sep ψ₀) ▸ hψ₀_sep),
-    int_equiv_restrict_atoms hψ₀_equiv (formula_atoms φ) Set.Subset.rfl,
-    formula_atoms_restrict_subset ψ₀ (formula_atoms φ)⟩
+    int_equiv_restrict_atoms hψ₀_equiv (formulaAtoms φ) Set.Subset.rfl,
+    formula_atoms_restrict_subset ψ₀ (formulaAtoms φ)⟩
 
 end AtomRestriction
 

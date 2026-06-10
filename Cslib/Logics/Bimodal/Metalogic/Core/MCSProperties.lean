@@ -22,7 +22,7 @@ framework wrappers in `MaximalConsistent.lean` which are specialized to `FrameCl
 ## Main Results
 
 - `cons_filter_neq_perm`: Helper for context permutation with filter
-- `derivation_exchange`: Derivability preserved under context permutation
+- `derivationExchange`: Derivability preserved under context permutation
 - `SetMaximalConsistent.closed_under_derivation`: Derivable formulas are in MCS
 - `SetMaximalConsistent.implication_property`: Modus ponens reflected in membership
 - `SetMaximalConsistent.negation_complete`: Either phi or neg phi in MCS
@@ -115,7 +115,7 @@ lemma cons_filter_neq_perm {A : Formula Atom} {Gamma' : Context Atom}
 Exchange lemma for derivations: If Gamma and Gamma' have the same elements,
 derivation is preserved.
 -/
-def derivation_exchange {fc : FrameClass} {Gamma Gamma' : Context Atom} {phi : Formula Atom}
+def derivationExchange {fc : FrameClass} {Gamma Gamma' : Context Atom} {phi : Formula Atom}
     (h : DerivationTree fc Gamma phi) (h_perm : ∀ x, x ∈ Gamma ↔ x ∈ Gamma') :
     DerivationTree fc Gamma' phi :=
   DerivationTree.weakening Gamma Gamma' phi h (fun x hx => (h_perm x).mp hx)
@@ -151,10 +151,10 @@ lemma SetMaximalConsistent.closed_under_derivation {fc : FrameClass}
     let L'_filt := L'.filter (fun y => decide (y ≠ phi))
     have h_perm := cons_filter_neq_perm h_phi_in_L'
     have d_bot_reord : DerivationTree fc (phi :: L'_filt) Formula.bot :=
-      derivation_exchange d_bot (fun x => (h_perm x).symm)
+      derivationExchange d_bot (fun x => (h_perm x).symm)
     -- Apply deduction theorem
     have d_neg_phi : DerivationTree fc L'_filt (Formula.neg phi) :=
-      deduction_theorem L'_filt phi Formula.bot d_bot_reord
+      deductionTheorem L'_filt phi Formula.bot d_bot_reord
     -- L'_filt subs Omega
     have h_filt_sub : ∀ psi, psi ∈ L'_filt → psi ∈ Omega := by
       intro psi h_mem
@@ -180,7 +180,7 @@ lemma SetMaximalConsistent.closed_under_derivation {fc : FrameClass}
       DerivationTree.weakening L'_filt Gamma (Formula.neg phi) d_neg_phi
         (List.subset_append_right L _)
     have d_bot_Gamma : DerivationTree fc Gamma Formula.bot :=
-      derives_bot_from_phi_neg_phi d_phi_Gamma d_neg_Gamma
+      derivesBotFromPhiNegPhi d_phi_Gamma d_neg_Gamma
     -- This contradicts Omega being consistent
     exact h_mcs.1 Gamma h_Gamma_sub ⟨d_bot_Gamma⟩
   · -- phi not in L', so L' subs Omega
@@ -202,7 +202,7 @@ This is the key convenience wrapper around `closed_under_derivation` with an emp
 context list, used throughout the metalogic modules. It eliminates the need for
 private local copies of the same pattern.
 -/
-noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
+noncomputable def theoremInMcsFc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
     (h_mcs : SetMaximalConsistent fc M)
     (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
   SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
@@ -258,10 +258,10 @@ theorem SetMaximalConsistent.negation_complete {fc : FrameClass}
       let L'_filt := L'.filter (fun y => decide (y ≠ phi))
       have h_perm := cons_filter_neq_perm h_phi_in_L'
       have d_bot_reord : DerivationTree fc (phi :: L'_filt) Formula.bot :=
-        derivation_exchange d_bot (fun x => (h_perm x).symm)
+        derivationExchange d_bot (fun x => (h_perm x).symm)
       -- Apply deduction theorem
       have d_neg_phi : DerivationTree fc L'_filt (Formula.neg phi) :=
-        deduction_theorem L'_filt phi Formula.bot d_bot_reord
+        deductionTheorem L'_filt phi Formula.bot d_bot_reord
       -- L'_filt subs Omega
       have h_filt_sub : ∀ psi, psi ∈ L'_filt → psi ∈ Omega := by
         intro psi h_mem
@@ -291,7 +291,7 @@ theorem SetMaximalConsistent.negation_complete {fc : FrameClass}
 
 noncomputable section
 
-open Cslib.Logic.Bimodal.Theorems.Perpetuity (contraposition imp_trans double_negation unwrap)
+open Cslib.Logic.Bimodal.Theorems.Perpetuity (contraposition impTrans doubleNegation unwrap)
 
 /--
 Derived temp_4: G phi -> GG phi.
@@ -306,18 +306,18 @@ def temp_4_derived (phi : Formula Atom) :
     DerivationTree FrameClass.Base ([] : List (Formula Atom))
       (phi.allFuture.imp phi.allFuture.allFuture) := by
   -- Step 1: F(not not F(not phi)) -> F(F(not phi)) via DNE under F
-  have dne_lift_F : DerivationTree FrameClass.Base ([] : List (Formula Atom))
+  have dneLiftF : DerivationTree FrameClass.Base ([] : List (Formula Atom))
       ((Formula.someFuture (Formula.someFuture phi.neg).neg.neg).imp
        (Formula.someFuture (Formula.someFuture phi.neg))) :=
     DerivationTree.modus_ponens [] _ _
       (DerivationTree.axiom [] _
         (Axiom.right_mono_until
           (Formula.someFuture phi.neg).neg.neg (Formula.someFuture phi.neg) Formula.top) trivial)
-      (DerivationTree.temporal_necessitation _ (double_negation (Formula.someFuture phi.neg)))
-  -- Step 2: F(F(not phi)) -> F(top and F(not phi)) via top_and_intro under F
-  -- top_and_intro: X -> top and X
+      (DerivationTree.temporal_necessitation _ (doubleNegation (Formula.someFuture phi.neg)))
+  -- Step 2: F(F(not phi)) -> F(top and F(not phi)) via topAndIntro under F
+  -- topAndIntro: X -> top and X
   -- Derived as: mp (pairing top X) (identity bot) where identity bot : |- top
-  have top_and_intro : DerivationTree FrameClass.Base ([] : List (Formula Atom))
+  have topAndIntro : DerivationTree FrameClass.Base ([] : List (Formula Atom))
       ((Formula.someFuture phi.neg).imp
        (Formula.top.and (Formula.someFuture phi.neg))) := by
     -- We need: X -> top and X where top = bot -> bot and and is conjunction
@@ -345,14 +345,14 @@ def temp_4_derived (phi : Formula Atom) :
         (Axiom.right_mono_until
           (Formula.someFuture phi.neg)
           (Formula.top.and (Formula.someFuture phi.neg)) Formula.top) trivial)
-      (DerivationTree.temporal_necessitation _ top_and_intro)
+      (DerivationTree.temporal_necessitation _ topAndIntro)
   -- Step 3: F(top and F(not phi)) -> F(not phi) via BX6 (absorption)
   have f_top_and_absorb : DerivationTree FrameClass.Base ([] : List (Formula Atom))
       ((Formula.someFuture (Formula.top.and (Formula.someFuture phi.neg))).imp
        (Formula.someFuture phi.neg)) :=
     DerivationTree.axiom [] _ (Axiom.absorb_until Formula.top phi.neg) trivial
   -- Compose: F(not not F(not phi)) -> F(not phi)
-  have composed := imp_trans (imp_trans dne_lift_F ff_to_f_top_and) f_top_and_absorb
+  have composed := impTrans (impTrans dneLiftF ff_to_f_top_and) f_top_and_absorb
   -- Contrapose: G phi -> GG phi
   exact contraposition composed
 

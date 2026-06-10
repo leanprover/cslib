@@ -87,32 +87,32 @@ instance : PartialOrder (LindenbaumAlg Atom) where
 
 /-- Top element of the Lindenbaum algebra lattice. -/
 instance instTopLindenbaumAlg : Top (LindenbaumAlg Atom) where
-  top := top_quot
+  top := topQuot
 
 /-- Bottom element of the Lindenbaum algebra lattice. -/
 instance instBotLindenbaumAlg : Bot (LindenbaumAlg Atom) where
-  bot := bot_quot
+  bot := botQuot
 
 /-- Left projection for infimum: `a ∧ b ≤ a`. -/
-theorem inf_le_left_quot (a b : LindenbaumAlg Atom) : and_quot a b ≤ a := by
+theorem inf_le_left_quot (a b : LindenbaumAlg Atom) : andQuot a b ≤ a := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
   show Derives (φ.and ψ) φ
-  exact ⟨Metalogic.Core.deduction_theorem [] (φ.and ψ) φ
+  exact ⟨Metalogic.Core.deductionTheorem [] (φ.and ψ) φ
     (Theorems.Propositional.lce φ ψ)⟩
 
 /-- Right projection for infimum: `a ∧ b ≤ b`. -/
-theorem inf_le_right_quot (a b : LindenbaumAlg Atom) : and_quot a b ≤ b := by
+theorem inf_le_right_quot (a b : LindenbaumAlg Atom) : andQuot a b ≤ b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
   show Derives (φ.and ψ) ψ
-  exact ⟨Metalogic.Core.deduction_theorem [] (φ.and ψ) ψ
+  exact ⟨Metalogic.Core.deductionTheorem [] (φ.and ψ) ψ
     (Theorems.Propositional.rce φ ψ)⟩
 
 /-- Greatest lower bound property: if `a ≤ b` and `a ≤ c`, then `a ≤ b ∧ c`. -/
-theorem le_inf_quot {a b c : LindenbaumAlg Atom} (hab : a ≤ b) (hac : a ≤ c) : a ≤ and_quot b c := by
+theorem le_inf_quot {a b c : LindenbaumAlg Atom} (hab : a ≤ b) (hac : a ≤ c) : a ≤ andQuot b c := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   induction c using Quotient.ind
@@ -122,10 +122,10 @@ theorem le_inf_quot {a b c : LindenbaumAlg Atom} (hab : a ≤ b) (hac : a ≤ c)
   have h_ac : Derives φ χ := hac
   obtain ⟨d_ab⟩ := h_ab
   obtain ⟨d_ac⟩ := h_ac
-  exact ⟨Theorems.Combinators.combine_imp_conj d_ab d_ac⟩
+  exact ⟨Theorems.Combinators.combineImpConj d_ab d_ac⟩
 
 /-- Left injection for supremum: `a ≤ a ∨ b`. -/
-theorem le_sup_left_quot (a b : LindenbaumAlg Atom) : a ≤ or_quot a b := by
+theorem le_sup_left_quot (a b : LindenbaumAlg Atom) : a ≤ orQuot a b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
@@ -135,7 +135,7 @@ theorem le_sup_left_quot (a b : LindenbaumAlg Atom) : a ≤ or_quot a b := by
   exact ⟨Theorems.Propositional.raa φ ψ⟩
 
 /-- Right injection for supremum: `b ≤ a ∨ b`. -/
-theorem le_sup_right_quot (a b : LindenbaumAlg Atom) : b ≤ or_quot a b := by
+theorem le_sup_right_quot (a b : LindenbaumAlg Atom) : b ≤ orQuot a b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
@@ -146,7 +146,7 @@ theorem le_sup_right_quot (a b : LindenbaumAlg Atom) : b ≤ or_quot a b := by
   exact ⟨d_s⟩
 
 /-- Least upper bound property: if `a ≤ c` and `b ≤ c`, then `a ∨ b ≤ c`. -/
-theorem sup_le_quot {a b c : LindenbaumAlg Atom} (hac : a ≤ c) (hbc : b ≤ c) : or_quot a b ≤ c := by
+theorem sup_le_quot {a b c : LindenbaumAlg Atom} (hac : a ≤ c) (hbc : b ≤ c) : orQuot a b ≤ c := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   induction c using Quotient.ind
@@ -158,15 +158,15 @@ theorem sup_le_quot {a b c : LindenbaumAlg Atom} (hac : a ≤ c) (hbc : b ≤ c)
   obtain ⟨d_bc⟩ := h_bc
   unfold Derives Formula.or
   have b1 : DerivationTree FrameClass.Base [] ((ψ.imp χ).imp ((φ.neg.imp ψ).imp (φ.neg.imp χ))) :=
-    Theorems.Combinators.b_combinator
+    Theorems.Combinators.bCombinator
   have neg_phi_to_chi_given_disj : DerivationTree FrameClass.Base [] ((φ.neg.imp ψ).imp (φ.neg.imp χ)) :=
     DerivationTree.modus_ponens [] _ _ b1 d_bc
   have cm : DerivationTree FrameClass.Base [] ((φ.imp χ).imp ((φ.neg.imp χ).imp χ)) :=
-    Theorems.Propositional.classical_merge φ χ
+    Theorems.Propositional.classicalMerge φ χ
   have step1 : DerivationTree FrameClass.Base [] ((φ.neg.imp χ).imp χ) :=
     DerivationTree.modus_ponens [] _ _ cm d_ac
   have b2 : DerivationTree FrameClass.Base [] (((φ.neg.imp χ).imp χ).imp (((φ.neg.imp ψ).imp (φ.neg.imp χ)).imp ((φ.neg.imp ψ).imp χ))) :=
-    Theorems.Combinators.b_combinator
+    Theorems.Combinators.bCombinator
   have step2 : DerivationTree FrameClass.Base [] (((φ.neg.imp ψ).imp (φ.neg.imp χ)).imp ((φ.neg.imp ψ).imp χ)) :=
     DerivationTree.modus_ponens [] _ _ b2 step1
   exact ⟨DerivationTree.modus_ponens [] _ _ step2 neg_phi_to_chi_given_disj⟩
@@ -191,7 +191,7 @@ theorem le_top_quot (a : LindenbaumAlg Atom) : a ≤ ⊤ := by
 
 /-- Distributivity: `(a ∨ b) ∧ (a ∨ c) ≤ a ∨ (b ∧ c)`. -/
 theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
-    and_quot (or_quot a b) (or_quot a c) ≤ or_quot a (and_quot b c) := by
+    andQuot (orQuot a b) (orQuot a c) ≤ orQuot a (andQuot b c) := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   induction c using Quotient.ind
@@ -201,15 +201,15 @@ theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
   -- We inline what was P and Q in the source
   -- P = (φ.or ψ).and (φ.or χ), Q = φ.or (ψ.and χ)
   have di_left : DerivationTree FrameClass.Base [] (φ.imp (φ.or (ψ.and χ))) :=
-    Metalogic.Core.deduction_theorem [] φ (φ.or (ψ.and χ)) (Theorems.Propositional.ldi φ (ψ.and χ))
+    Metalogic.Core.deductionTheorem [] φ (φ.or (ψ.and χ)) (Theorems.Propositional.ldi φ (ψ.and χ))
 
   have di_right_conj : DerivationTree FrameClass.Base [] ((ψ.and χ).imp (φ.or (ψ.and χ))) :=
-    Metalogic.Core.deduction_theorem [] (ψ.and χ) (φ.or (ψ.and χ)) (Theorems.Propositional.rdi φ (ψ.and χ))
+    Metalogic.Core.deductionTheorem [] (ψ.and χ) (φ.or (ψ.and χ)) (Theorems.Propositional.rdi φ (ψ.and χ))
 
   have lce_p : DerivationTree FrameClass.Base [] (((φ.or ψ).and (φ.or χ)).imp (φ.or ψ)) :=
-    Theorems.Propositional.lce_imp (φ.or ψ) (φ.or χ)
+    Theorems.Propositional.lceImp (φ.or ψ) (φ.or χ)
   have rce_p : DerivationTree FrameClass.Base [] (((φ.or ψ).and (φ.or χ)).imp (φ.or χ)) :=
-    Theorems.Propositional.rce_imp (φ.or ψ) (φ.or χ)
+    Theorems.Propositional.rceImp (φ.or ψ) (φ.or χ)
 
   -- lce_p : P → (¬φ → ψ) and rce_p : P → (¬φ → χ) via or definition
   have p_to_neg_phi_psi := lce_p
@@ -241,12 +241,12 @@ theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
     exact DerivationTree.modus_ponens _ _ _ step1 h_chi
 
   have h_ctx2 : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] (φ.neg.imp (ψ.and χ)) :=
-    Metalogic.Core.deduction_theorem [(φ.or ψ).and (φ.or χ)] φ.neg (ψ.and χ) h_ctx
+    Metalogic.Core.deductionTheorem [(φ.or ψ).and (φ.or χ)] φ.neg (ψ.and χ) h_ctx
 
   have di_right_ctx : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] ((ψ.and χ).imp (φ.or (ψ.and χ))) :=
     DerivationTree.weakening [] _ _ di_right_conj (List.nil_subset _)
   have b_inst : DerivationTree FrameClass.Base [] (((ψ.and χ).imp (φ.or (ψ.and χ))).imp ((φ.neg.imp (ψ.and χ)).imp (φ.neg.imp (φ.or (ψ.and χ))))) :=
-    Theorems.Combinators.b_combinator
+    Theorems.Combinators.bCombinator
   have b_ctx : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] (((ψ.and χ).imp (φ.or (ψ.and χ))).imp ((φ.neg.imp (ψ.and χ)).imp (φ.neg.imp (φ.or (ψ.and χ))))) :=
     DerivationTree.weakening [] _ _ b_inst (List.nil_subset _)
   have step2 : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] ((φ.neg.imp (ψ.and χ)).imp (φ.neg.imp (φ.or (ψ.and χ)))) :=
@@ -258,7 +258,7 @@ theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
     DerivationTree.weakening [] _ _ di_left (List.nil_subset _)
 
   have cm : DerivationTree FrameClass.Base [] ((φ.imp (φ.or (ψ.and χ))).imp ((φ.neg.imp (φ.or (ψ.and χ))).imp (φ.or (ψ.and χ)))) :=
-    Theorems.Propositional.classical_merge φ (φ.or (ψ.and χ))
+    Theorems.Propositional.classicalMerge φ (φ.or (ψ.and χ))
   have cm_ctx : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] ((φ.imp (φ.or (ψ.and χ))).imp ((φ.neg.imp (φ.or (ψ.and χ))).imp (φ.or (ψ.and χ)))) :=
     DerivationTree.weakening [] _ _ cm (List.nil_subset _)
   have step3 : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] ((φ.neg.imp (φ.or (ψ.and χ))).imp (φ.or (ψ.and χ))) :=
@@ -266,14 +266,14 @@ theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
   have h_Q : DerivationTree FrameClass.Base [(φ.or ψ).and (φ.or χ)] (φ.or (ψ.and χ)) :=
     DerivationTree.modus_ponens _ _ _ step3 h_neg_phi_Q
 
-  exact ⟨Metalogic.Core.deduction_theorem [] ((φ.or ψ).and (φ.or χ)) (φ.or (ψ.and χ)) h_Q⟩
+  exact ⟨Metalogic.Core.deductionTheorem [] ((φ.or ψ).and (φ.or χ)) (φ.or (ψ.and χ)) h_Q⟩
 
 /-!
 ## Complement and Boolean Algebra
 -/
 
 /-- Complement axiom: `a ∧ ¬a ≤ ⊥`. -/
-theorem inf_compl_le_bot_quot (a : LindenbaumAlg Atom) : and_quot a (neg_quot a) ≤ ⊥ := by
+theorem inf_compl_le_bot_quot (a : LindenbaumAlg Atom) : andQuot a (negQuot a) ≤ ⊥ := by
   induction a using Quotient.ind
   rename_i φ
   show Derives (φ.and φ.neg) Formula.bot
@@ -284,21 +284,21 @@ theorem inf_compl_le_bot_quot (a : LindenbaumAlg Atom) : and_quot a (neg_quot a)
   have h_phi : DerivationTree FrameClass.Base [φ.and φ.neg] φ := by
     apply DerivationTree.modus_ponens [φ.and φ.neg] _ _
     · apply DerivationTree.weakening [] [φ.and φ.neg]
-      · exact Theorems.Propositional.lce_imp φ φ.neg
+      · exact Theorems.Propositional.lceImp φ φ.neg
       · intro; simp
     · exact h_conj_ctx
   have h_neg_phi : DerivationTree FrameClass.Base [φ.and φ.neg] φ.neg := by
     apply DerivationTree.modus_ponens [φ.and φ.neg] _ _
     · apply DerivationTree.weakening [] [φ.and φ.neg]
-      · exact Theorems.Propositional.rce_imp φ φ.neg
+      · exact Theorems.Propositional.rceImp φ φ.neg
       · intro; simp
     · exact h_conj_ctx
   have h_bot : DerivationTree FrameClass.Base [φ.and φ.neg] Formula.bot :=
     DerivationTree.modus_ponens [φ.and φ.neg] φ Formula.bot h_neg_phi h_phi
-  exact ⟨Metalogic.Core.deduction_theorem [] (φ.and φ.neg) Formula.bot h_bot⟩
+  exact ⟨Metalogic.Core.deductionTheorem [] (φ.and φ.neg) Formula.bot h_bot⟩
 
 /-- Complement axiom: `⊤ ≤ a ∨ ¬a` (law of excluded middle). -/
-theorem top_le_sup_compl_quot (a : LindenbaumAlg Atom) : ⊤ ≤ or_quot a (neg_quot a) := by
+theorem top_le_sup_compl_quot (a : LindenbaumAlg Atom) : ⊤ ≤ orQuot a (negQuot a) := by
   induction a using Quotient.ind
   rename_i φ
   show Derives (Formula.bot.imp Formula.bot) (φ.or φ.neg)
@@ -309,7 +309,7 @@ theorem top_le_sup_compl_quot (a : LindenbaumAlg Atom) : ⊤ ≤ or_quot a (neg_
   exact ⟨DerivationTree.modus_ponens [] _ _ h_s h_lem⟩
 
 /-- Commutativity of disjunction in the Lindenbaum algebra. -/
-theorem sup_comm_quot (a b : LindenbaumAlg Atom) : or_quot a b = or_quot b a := by
+theorem sup_comm_quot (a b : LindenbaumAlg Atom) : orQuot a b = orQuot b a := by
   apply le_antisymm
   · apply sup_le_quot
     · exact le_sup_right_quot b a
@@ -319,11 +319,11 @@ theorem sup_comm_quot (a b : LindenbaumAlg Atom) : or_quot a b = or_quot b a := 
     · exact le_sup_left_quot a b
 
 noncomputable instance : BooleanAlgebra (LindenbaumAlg Atom) where
-  sup := or_quot
-  inf := and_quot
-  compl := neg_quot
-  sdiff := fun a b => and_quot a (neg_quot b)
-  himp := fun a b => or_quot (neg_quot a) b
+  sup := orQuot
+  inf := andQuot
+  compl := negQuot
+  sdiff := fun a b => andQuot a (negQuot b)
+  himp := fun a b => orQuot (negQuot a) b
   le_sup_left := le_sup_left_quot
   le_sup_right := le_sup_right_quot
   sup_le := fun _ _ _ => sup_le_quot

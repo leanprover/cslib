@@ -18,7 +18,7 @@ This module defines interior operators on the Lindenbaum algebra.
 ## Main Definitions
 
 - `InteriorOp`: Structure for interior operators (dual of closure operators)
-- `box_interior`: Instance showing Box (□) is an interior operator
+- `boxInterior`: Instance showing Box (□) is an interior operator
 
 ## Key Properties
 
@@ -39,7 +39,7 @@ the modal T-axiom `□φ → φ` is still valid (modal accessibility is reflexiv
 ## References
 
 * Ported from BimodalLogic/Theories/Bimodal/Metalogic/Algebraic/InteriorOperators.lean
-  (1 sorry in G_monotone resolved using temp_k_dist_derived)
+  (1 sorry in G_monotone resolved using tempKDistDerived)
 -/
 
 set_option linter.style.emptyLine false
@@ -93,7 +93,7 @@ theorem G_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : G_quot a ≤ G_quo
   obtain ⟨d⟩ := h'
   have d_temp : DerivationTree FrameClass.Base [] (Formula.allFuture (φ.imp ψ)) :=
     DerivationTree.temporal_necessitation (φ.imp ψ) d
-  have d_k := Theorems.TemporalDerived.temp_k_dist_derived φ ψ
+  have d_k := Theorems.TemporalDerived.tempKDistDerived φ ψ
   exact ⟨DerivationTree.modus_ponens [] _ _ d_k d_temp⟩
 
 /-!
@@ -103,7 +103,7 @@ theorem G_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : G_quot a ≤ G_quo
 /--
 H is monotone: `φ ≤ ψ → Hφ ≤ Hψ`.
 
-Uses `past_mono` from Perpetuity (derived via temporal duality).
+Uses `pastMono` from Perpetuity (derived via temporal duality).
 This property holds under both reflexive and strict semantics.
 -/
 theorem H_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : H_quot a ≤ H_quot b := by
@@ -113,7 +113,7 @@ theorem H_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : H_quot a ≤ H_quo
   show Derives φ.allPast ψ.allPast
   have h' : Derives φ ψ := h
   obtain ⟨d⟩ := h'
-  exact ⟨Theorems.Perpetuity.past_mono d⟩
+  exact ⟨Theorems.Perpetuity.pastMono d⟩
 
 /-!
 ## Box as Interior Operator
@@ -127,7 +127,7 @@ Box is deflationary: `□φ ≤ φ`.
 
 Uses T-axiom `modal_t`: `□φ → φ`.
 -/
-theorem box_le_self (a : LindenbaumAlg Atom) : box_quot a ≤ a := by
+theorem box_le_self (a : LindenbaumAlg Atom) : boxQuot a ≤ a := by
   induction a using Quotient.ind
   rename_i φ
   show Derives φ.box φ
@@ -138,7 +138,7 @@ Box is monotone: `φ ≤ ψ → □φ ≤ □ψ`.
 
 Uses K-distribution and necessitation.
 -/
-theorem box_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : box_quot a ≤ box_quot b := by
+theorem box_monotone (a b : LindenbaumAlg Atom) (h : a ≤ b) : boxQuot a ≤ boxQuot b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   rename_i φ ψ
@@ -156,7 +156,7 @@ Box is idempotent: `□(□φ) = □φ`.
 
 Uses 4-axiom `modal_4`: `□φ → □□φ` and T-axiom for the converse.
 -/
-theorem box_idempotent (a : LindenbaumAlg Atom) : box_quot (box_quot a) = box_quot a := by
+theorem box_idempotent (a : LindenbaumAlg Atom) : boxQuot (boxQuot a) = boxQuot a := by
   induction a using Quotient.ind
   rename_i φ
   apply Quotient.sound
@@ -168,8 +168,8 @@ theorem box_idempotent (a : LindenbaumAlg Atom) : box_quot (box_quot a) = box_qu
 /--
 Box is an interior operator on the Lindenbaum algebra.
 -/
-noncomputable def box_interior : InteriorOp (LindenbaumAlg Atom) where
-  toFun := box_quot
+noncomputable def boxInterior : InteriorOp (LindenbaumAlg Atom) where
+  toFun := boxQuot
   le_self := box_le_self
   monotone := box_monotone
   idempotent := box_idempotent

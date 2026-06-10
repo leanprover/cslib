@@ -186,7 +186,7 @@ theorem restricted_mcs_negation_complete {Omega : Set (Formula Atom)}
       DerivationTree.weakening L (psi :: Γ) Formula.bot d_bot h_L_sub_psiGamma
     -- By deduction theorem, Γ ⊢ psi.neg
     have d_neg : DerivationTree FrameClass.Base Γ psi.neg :=
-      deduction_theorem Γ psi Formula.bot d_bot'
+      deductionTheorem Γ psi Formula.bot d_bot'
     -- Since psi.neg ∉ Omega and psi.neg ∈ closureWithNeg, by maximality
     -- insert psi.neg Omega is inconsistent
     have h_incons_neg := h_mcs.2 psi.neg h_neg_closneg h_neg_not
@@ -224,7 +224,7 @@ theorem restricted_mcs_negation_complete {Omega : Set (Formula Atom)}
       DerivationTree.weakening L' (psi.neg :: Δ) Formula.bot d_bot'' h_L'_sub_psiΔ
     -- By deduction theorem, Δ ⊢ psi.neg.neg
     have d_neg_neg : DerivationTree FrameClass.Base Δ psi.neg.neg :=
-      deduction_theorem Δ psi.neg Formula.bot d_bot'''
+      deductionTheorem Δ psi.neg Formula.bot d_bot'''
     -- Combine Γ and Δ
     let ΓΔ := Γ ++ Δ
     have h_ΓΔ_in_Omega : ∀ χ ∈ ΓΔ, χ ∈ Omega := by
@@ -240,7 +240,7 @@ theorem restricted_mcs_negation_complete {Omega : Set (Formula Atom)}
       DerivationTree.weakening Δ ΓΔ _ d_neg_neg (List.subset_append_right Γ Δ)
     -- Combine to get ⊥ from psi.neg and psi.neg.neg
     have d_bot_final : DerivationTree FrameClass.Base ΓΔ Formula.bot :=
-      derives_bot_from_phi_neg_phi d_neg' d_neg_neg'
+      derivesBotFromPhiNegPhi d_neg' d_neg_neg'
     -- This contradicts consistency of Omega
     exact h_mcs.1.2 ΓΔ h_ΓΔ_in_Omega ⟨d_bot_final⟩
 
@@ -411,7 +411,7 @@ theorem restricted_mcs_from_formula (phi : Formula Atom)
         DerivationTree.weakening L [phi] _ d h_weak
       -- By deduction theorem: ⊢ phi → ⊥ = ⊢ phi.neg
       have d_neg : DerivationTree FrameClass.Base [] phi.neg :=
-        deduction_theorem [] phi Formula.bot d_phi
+        deductionTheorem [] phi Formula.bot d_phi
       exact h_cons ⟨d_neg⟩
     · -- phi ∉ L, so L ⊆ {phi} means L = []
       have h_L_empty : L = [] := by

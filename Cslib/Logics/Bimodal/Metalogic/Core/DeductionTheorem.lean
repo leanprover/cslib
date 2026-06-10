@@ -20,8 +20,8 @@ This module proves the deduction theorem for the bimodal TM logic Hilbert system
 - `bimodalHilbertTree`: `HasHilbertTree` for bimodal logic (fc-parameterized)
 - Generic helpers via `DeductionHelpers`: `deductionAxiom`, `deductionImpSelf`,
   `deductionAssumptionOther`, `deductionMpUnderImp`
-- `deduction_theorem`: If `A :: Γ ⊢ B` then `Γ ⊢ A → B`
-- `bimodal_has_deduction_theorem`: Instance connecting to generic MCS framework
+- `deductionTheorem`: If `A :: Γ ⊢ B` then `Γ ⊢ A → B`
+- `bimodalHasDeductionTheorem`: Instance connecting to generic MCS framework
 
 ## Implementation Notes
 
@@ -79,7 +79,7 @@ This is the key lemma for handling the weakening case where A appears in Γ'
 but not at the front. By recursing on the structure of the derivation (not using
 exchange), all recursive calls have strictly smaller height.
 -/
-def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
+def deductionWithMem {fc : FrameClass} (Γ' : Context Atom)
     (A φ : Formula Atom)
     (h : DerivationTree fc Γ' φ) (hA : A ∈ Γ') :
     DerivationTree fc (removeAll Γ' A) (A.imp φ) := by
@@ -99,8 +99,8 @@ def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
         exact deductionAssumptionOther (removeAll Γ' A) A ψ h_mem'
 
   | DerivationTree.modus_ponens _ ψ χ h1 h2 =>
-      have ih1 := deduction_with_mem Γ' A (ψ.imp χ) h1 hA
-      have ih2 := deduction_with_mem Γ' A ψ h2 hA
+      have ih1 := deductionWithMem Γ' A (ψ.imp χ) h1 hA
+      have ih2 := deductionWithMem Γ' A ψ h2 hA
       exact deductionMpUnderImp (removeAll Γ' A) A ψ χ ih1 ih2
 
   | DerivationTree.necessitation ψ h_deriv =>
@@ -115,7 +115,7 @@ def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
   | DerivationTree.weakening Γ'' _ ψ h1 h2 =>
       haveI : Decidable (A ∈ Γ'') := Classical.propDecidable _
       by_cases hA' : A ∈ Γ''
-      · have ih := deduction_with_mem Γ'' A ψ h1 hA'
+      · have ih := deductionWithMem Γ'' A ψ h1 hA'
         have h_sub : removeAll Γ'' A ⊆ removeAll Γ' A := by
           intro x hx
           simp only [removeAll, List.mem_filter, decide_eq_true_eq] at hx ⊢
@@ -153,11 +153,11 @@ into implicational theorems.
 - Weakening case: Handle three subcases:
   1. `Γ' = A :: Γ`: Apply recursion directly
   2. `A ∉ Γ'`: Use S axiom (A not needed)
-  3. `A ∈ Γ'` but `Γ' ≠ A :: Γ`: Use deduction_with_mem helper
+  3. `A ∈ Γ'` but `Γ' ≠ A :: Γ`: Use deductionWithMem helper
 - Modal/temporal necessitation: Cannot occur (require empty context)
 - Temporal duality: Cannot occur (requires empty context)
 -/
-def deduction_theorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
+def deductionTheorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
     (h : DerivationTree fc (A :: Γ) B) :
     DerivationTree fc Γ (A.imp B) := by
   letI := bimodalHilbertTree (Atom := Atom) fc
@@ -177,16 +177,16 @@ def deduction_theorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
         exact deductionAssumptionOther Γ A φ h_tail
 
   | DerivationTree.modus_ponens _ φ ψ h1 h2 =>
-      have ih1 := deduction_theorem Γ A (φ.imp ψ) h1
-      have ih2 := deduction_theorem Γ A φ h2
+      have ih1 := deductionTheorem Γ A (φ.imp ψ) h1
+      have ih2 := deductionTheorem Γ A φ h2
       exact deductionMpUnderImp Γ A φ ψ ih1 ih2
 
   | DerivationTree.weakening Γ' _ φ h1 h2 =>
       by_cases h_eq : Γ' = A :: Γ
-      · exact deduction_theorem Γ A φ (h_eq ▸ h1)
+      · exact deductionTheorem Γ A φ (h_eq ▸ h1)
       · haveI : Decidable (A ∈ Γ') := Classical.propDecidable _
         by_cases hA : A ∈ Γ'
-        · have ih := deduction_with_mem Γ' A φ h1 hA
+        · have ih := deductionWithMem Γ' A φ h1 hA
           have h_sub : removeAll Γ' A ⊆ Γ :=
             removeAll_sub_of_sub h2 hA
           exact DerivationTree.weakening (removeAll Γ' A) Γ (A.imp φ) ih h_sub
@@ -221,12 +221,12 @@ This witnesses that `bimodalDerivationSystem` satisfies the `HasDeductionTheorem
 property, enabling use of generic MCS closure properties (closed_under_derivation,
 implication_property, negation_complete) from `Consistency.lean`.
 -/
-def bimodal_has_deduction_theorem :
+def bimodalHasDeductionTheorem :
     Metalogic.HasDeductionTheorem (bimodalDerivationSystem (Atom := Atom)) := by
   intro Γ φ ψ h
   show Bimodal.Deriv Γ (φ.imp ψ)
   obtain ⟨d⟩ := (h : Bimodal.Deriv (φ :: Γ) ψ)
-  exact ⟨deduction_theorem Γ φ ψ d⟩
+  exact ⟨deductionTheorem Γ φ ψ d⟩
 
 end -- noncomputable section
 

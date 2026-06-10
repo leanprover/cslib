@@ -25,7 +25,7 @@ variable {Atom : Type*}
 /-- All axioms with `minFrameClass ≤ .Discrete` are valid over discrete temporal orders. -/
 theorem axiom_discrete_valid' {φ : Formula Atom} (h : Axiom φ)
     (h_fc : h.minFrameClass ≤ FrameClass.Discrete) :
-    valid_discrete φ :=
+    validDiscrete φ :=
   axiom_discrete_valid h h_fc
 
 end Cslib.Logic.Bimodal.Metalogic.DiscreteSoundness

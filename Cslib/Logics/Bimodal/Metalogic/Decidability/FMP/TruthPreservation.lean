@@ -372,14 +372,14 @@ theorem mcs_imp_intro {phi : Formula Atom}
         have h_neg_assume : DerivationTree FrameClass.Base (ψ :: [ψ.neg]) ψ.neg :=
           DerivationTree.assumption _ _ (by simp)
         have h_bot : DerivationTree FrameClass.Base (ψ :: [ψ.neg]) Formula.bot :=
-          derives_bot_from_phi_neg_phi h_psi_assume h_neg_assume
+          derivesBotFromPhiNegPhi h_psi_assume h_neg_assume
         have h_efq_thm : DerivationTree FrameClass.Base
             ([] : List (Formula Atom)) (Formula.bot.imp χ) :=
           DerivationTree.axiom [] _ (Axiom.efq χ) trivial
         have h_efq : DerivationTree FrameClass.Base (ψ :: [ψ.neg]) (Formula.bot.imp χ) :=
           DerivationTree.weakening [] _ _ h_efq_thm (by intro; simp)
         exact DerivationTree.modus_ponens _ _ _ h_efq h_bot
-      exact deduction_theorem [ψ.neg] ψ χ h_inner
+      exact deductionTheorem [ψ.neg] ψ χ h_inner
     have h_sub : ∀ x ∈ [ψ.neg], x ∈ Omega.carrier := by simp [h_neg_psi]
     exact closure_mcs_deductively_closed Omega.is_mcs h_sub h_deriv h_imp_clos
 

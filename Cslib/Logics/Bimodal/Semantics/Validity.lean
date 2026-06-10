@@ -19,7 +19,7 @@ This module defines semantic validity and consequence for TM formulas.
 ## Main Definitions
 
 - `valid`: A formula is valid if true in all models
-- `semantic_consequence`: Semantic consequence relation
+- `semanticConsequence`: Semantic consequence relation
 - `satisfiable`: Context satisfiability
 - Notation: `⊨ φ` for validity, `Γ ⊨ φ` for semantic consequence
 
@@ -52,7 +52,7 @@ def valid (φ : Formula Atom) : Prop :=
     (ℱ : TaskFrame D) (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ)) (_ : ShiftClosed Omega)
     (τ : WorldHistory ℱ) (_ : τ ∈ Omega) (t : D),
-    truth_at M Omega τ t φ
+    truthAt M Omega τ t φ
 
 /--
 Notation for validity: `⊨ φ` means `valid φ`.
@@ -65,20 +65,20 @@ all of `Γ` are true, for every temporal type `D`.
 
 Note: Uses `Type` (not `Type*`) to avoid universe level issues.
 -/
-def semantic_consequence (Γ : Context Atom) (φ : Formula Atom) :
+def semanticConsequence (Γ : Context Atom) (φ : Formula Atom) :
     Prop :=
   ∀ (D : Type) [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D] [Nontrivial D]
     (ℱ : TaskFrame D) (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ)) (_ : ShiftClosed Omega)
     (τ : WorldHistory ℱ) (_ : τ ∈ Omega) (t : D),
-    (∀ ψ ∈ Γ, truth_at M Omega τ t ψ) →
-    truth_at M Omega τ t φ
+    (∀ ψ ∈ Γ, truthAt M Omega τ t ψ) →
+    truthAt M Omega τ t φ
 
 /--
 Notation for semantic consequence: `Γ ⊨ φ`.
 -/
-notation:50 Γ:50 " ⊨ " φ:50 => semantic_consequence Γ φ
+notation:50 Γ:50 " ⊨ " φ:50 => semanticConsequence Γ φ
 
 /--
 A context is satisfiable in temporal type `D` if there exists a
@@ -89,13 +89,13 @@ def satisfiable (D : Type*) [AddCommGroup D] [LinearOrder D]
   ∃ (ℱ : TaskFrame D) (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ))
     (τ : WorldHistory ℱ) (_ : τ ∈ Omega) (t : D),
-    ∀ φ ∈ Γ, truth_at M Omega τ t φ
+    ∀ φ ∈ Γ, truthAt M Omega τ t φ
 
 /--
 A context is absolutely satisfiable if it is satisfiable in some
 temporal type.
 -/
-def satisfiable_abs (Γ : Context Atom) : Prop :=
+def satisfiableAbs (Γ : Context Atom) : Prop :=
   ∃ (D : Type) (_ : AddCommGroup D) (_ : LinearOrder D)
     (_ : IsOrderedAddMonoid D), satisfiable D Γ
 
@@ -103,30 +103,30 @@ def satisfiable_abs (Γ : Context Atom) : Prop :=
 A single formula is satisfiable if there exists a model where it is
 true at some point.
 -/
-def formula_satisfiable (φ : Formula Atom) : Prop :=
+def formulaSatisfiable (φ : Formula Atom) : Prop :=
   ∃ (D : Type) (_ : AddCommGroup D) (_ : LinearOrder D)
     (_ : IsOrderedAddMonoid D)
     (ℱ : TaskFrame D) (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ))
     (τ : WorldHistory ℱ) (_ : τ ∈ Omega) (t : D),
-    truth_at M Omega τ t φ
+    truthAt M Omega τ t φ
 
 /--
 A formula is valid over dense temporal orders.
 -/
-def valid_dense (φ : Formula Atom) : Prop :=
+def validDense (φ : Formula Atom) : Prop :=
   ∀ (D : Type) [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D] [DenselyOrdered D]
     [Nontrivial D]
     (ℱ : TaskFrame D) (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ)) (_ : ShiftClosed Omega)
     (τ : WorldHistory ℱ) (_ : τ ∈ Omega) (t : D),
-    truth_at M Omega τ t φ
+    truthAt M Omega τ t φ
 
 /--
 A formula is valid over discrete temporal orders.
 -/
-def valid_discrete (φ : Formula Atom) : Prop :=
+def validDiscrete (φ : Formula Atom) : Prop :=
   ∀ (D : Type) [AddCommGroup D] [LinearOrder D]
     [IsOrderedAddMonoid D] [SuccOrder D] [PredOrder D]
     [IsSuccArchimedean D] [IsPredArchimedean D]
@@ -134,7 +134,7 @@ def valid_discrete (φ : Formula Atom) : Prop :=
     (ℱ : TaskFrame D) (M : TaskModel Atom ℱ)
     (Omega : Set (WorldHistory ℱ)) (_ : ShiftClosed Omega)
     (τ : WorldHistory ℱ) (_ : τ ∈ Omega) (t : D),
-    truth_at M Omega τ t φ
+    truthAt M Omega τ t φ
 
 namespace Validity
 
@@ -144,7 +144,7 @@ variable {Atom : Type*}
 Validity implies validity over dense orders.
 -/
 theorem valid_implies_valid_dense {φ : Formula Atom}
-    (h : valid φ) : valid_dense φ := by
+    (h : valid φ) : validDense φ := by
   intro D _ _ _ _ _ ℱ M Omega h_sc τ h_mem t
   exact h D ℱ M Omega h_sc τ h_mem t
 
@@ -152,7 +152,7 @@ theorem valid_implies_valid_dense {φ : Formula Atom}
 Validity implies validity over discrete orders.
 -/
 theorem valid_implies_valid_discrete {φ : Formula Atom}
-    (h : valid φ) : valid_discrete φ :=
+    (h : valid φ) : validDiscrete φ :=
   fun D _ _ _ _ _ _ _ _ ℱ M Omega h_sc τ h_mem t =>
     h D ℱ M Omega h_sc τ h_mem t
 
@@ -226,8 +226,8 @@ theorem unsatisfiable_implies_all_fixed
         (_ : ShiftClosed Omega)
       (τ : WorldHistory ℱ) (_ : τ ∈ Omega)
       (t : D),
-      (∀ ψ ∈ Γ, truth_at M Omega τ t ψ) →
-        truth_at M Omega τ t φ := by
+      (∀ ψ ∈ Γ, truthAt M Omega τ t ψ) →
+        truthAt M Omega τ t φ := by
   intro h_unsat ℱ M Omega _h_sc τ h_mem t h_all
   exfalso
   apply h_unsat

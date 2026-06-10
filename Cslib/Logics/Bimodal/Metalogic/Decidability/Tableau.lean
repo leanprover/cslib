@@ -108,7 +108,7 @@ inductive TableauRule : Type where
   /-- F(diamond A) -> propagate F(A) to all known worlds (S5 universal, persistent) -/
   | diamondNeg
   /-- T(box A) -> derive T(GA) and T(HA) at the same label (modal-temporal interaction, persistent).
-      Sound by box_to_future (box phi -> G phi) and box_to_past (box phi -> H phi). -/
+      Sound by boxToFuture (box phi -> G phi) and boxToPast (box phi -> H phi). -/
   | boxTemporal
   /-- T(GA) -> propagate T(A) to all known future times (universal, persistent) -/
   | allFuturePos
@@ -506,7 +506,7 @@ def applyRule (rule : TableauRule) (sf : SignedFormula Atom) (branch : Branch At
         else (.persistent newFormulas, timeOrd)
       | none => (.notApplicable, timeOrd)
   -- T(box A) -> derive T(GA) and T(HA) at the same label (modal-temporal interaction)
-  -- Sound by box_to_future (box phi -> G phi) and box_to_past (box phi -> H phi)
+  -- Sound by boxToFuture (box phi -> G phi) and boxToPast (box phi -> H phi)
   | .boxTemporal, .pos, .box ψ =>
       let gFormula := SignedFormula.pos (Formula.allFuture ψ) l
       let hFormula := SignedFormula.pos (Formula.allPast ψ) l

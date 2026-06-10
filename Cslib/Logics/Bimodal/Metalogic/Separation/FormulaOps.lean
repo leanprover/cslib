@@ -19,10 +19,10 @@ needed by the separation proof.
 
 ## Key Definitions
 
-- `subst_formula`: Substitute a formula for an atom
+- `substFormula`: Substitute a formula for an atom
 - `IntStructure.withAtom`: Modify valuation at a single atom
 - `subst_correctness`: Substitution preserves truth under modified valuation
-- `fresh_atom`, `fresh_atoms`: Generate fresh atoms not appearing in a formula
+- `freshAtom`, `freshAtoms`: Generate fresh atoms not appearing in a formula
 
 ## References
 
@@ -41,7 +41,7 @@ variable {Atom : Type*}
 
 /-- Substitute a formula for an atom in a formula.
     Replaces every occurrence of `target` with `replacement`. -/
-def subst_formula [DecidableEq Atom]
+def substFormula [DecidableEq Atom]
     (phi : Formula Atom) (target : Atom)
     (replacement : Formula Atom) : Formula Atom :=
   match phi with
@@ -49,16 +49,16 @@ def subst_formula [DecidableEq Atom]
     if a = target then replacement else .atom a
   | .bot => .bot
   | .imp psi1 psi2 =>
-    .imp (subst_formula psi1 target replacement)
-      (subst_formula psi2 target replacement)
+    .imp (substFormula psi1 target replacement)
+      (substFormula psi2 target replacement)
   | .box psi =>
-    .box (subst_formula psi target replacement)
+    .box (substFormula psi target replacement)
   | .untl psi1 psi2 =>
-    .untl (subst_formula psi1 target replacement)
-      (subst_formula psi2 target replacement)
+    .untl (substFormula psi1 target replacement)
+      (substFormula psi2 target replacement)
   | .snce psi1 psi2 =>
-    .snce (subst_formula psi1 target replacement)
-      (subst_formula psi2 target replacement)
+    .snce (substFormula psi1 target replacement)
+      (substFormula psi2 target replacement)
 
 /-- Modify an IntStructure's valuation at a single atom. -/
 def IntStructure.withAtom [DecidableEq Atom]
@@ -72,19 +72,19 @@ theorem subst_correctness [DecidableEq Atom]
     (phi : Formula Atom) (target : Atom)
     (replacement : Formula Atom)
     (M : IntStructure Atom) (t : Int) :
-    int_truth M t (subst_formula phi target replacement) ↔
-    int_truth
+    intTruth M t (substFormula phi target replacement) ↔
+    intTruth
       (M.withAtom target
-        {s | int_truth M s replacement}) t phi := by
+        {s | intTruth M s replacement}) t phi := by
   induction phi generalizing t with
   | atom a =>
-    simp only [subst_formula]
+    simp only [substFormula]
     split
     · next h =>
       subst h
-      simp [int_truth, IntStructure.withAtom]
+      simp [intTruth, IntStructure.withAtom]
     · next h =>
-      simp [int_truth, IntStructure.withAtom, h]
+      simp [intTruth, IntStructure.withAtom, h]
   | bot => exact Iff.rfl
   | imp p q ihp ihq =>
     constructor
@@ -126,55 +126,55 @@ def Literal.toFormula : Literal Atom -> Formula Atom
 abbrev Clause (Atom : Type*) := List (Literal Atom)
 
 /-- Convert a conjunctive clause to a formula. -/
-def clause_to_conj : Clause Atom -> Formula Atom
+def clauseToConj : Clause Atom -> Formula Atom
   | [] => Formula.neg .bot  -- True
   | [l] => l.toFormula
-  | l :: ls => Formula.and l.toFormula (clause_to_conj ls)
+  | l :: ls => Formula.and l.toFormula (clauseToConj ls)
 
 /-- Convert a disjunctive clause to a formula. -/
-def clause_to_disj : Clause Atom -> Formula Atom
+def clauseToDisj : Clause Atom -> Formula Atom
   | [] => .bot
   | [l] => l.toFormula
   | l :: ls =>
-    Formula.or l.toFormula (clause_to_disj ls)
+    Formula.or l.toFormula (clauseToDisj ls)
 
 /-- Convert a DNF representation to a formula. -/
-def from_DNF : List (Clause Atom) -> Formula Atom
+def fromDNF : List (Clause Atom) -> Formula Atom
   | [] => .bot
-  | [c] => clause_to_conj c
+  | [c] => clauseToConj c
   | c :: cs =>
-    Formula.or (clause_to_conj c) (from_DNF cs)
+    Formula.or (clauseToConj c) (fromDNF cs)
 
 /-- Convert a CNF representation to a formula. -/
-def from_CNF : List (Clause Atom) -> Formula Atom
+def fromCNF : List (Clause Atom) -> Formula Atom
   | [] => Formula.neg .bot  -- True
-  | [c] => clause_to_disj c
+  | [c] => clauseToDisj c
   | c :: cs =>
-    Formula.and (clause_to_disj c) (from_CNF cs)
+    Formula.and (clauseToDisj c) (fromCNF cs)
 
 /-- Trivial DNF embedding. -/
-def to_DNF (phi : Formula Atom) : List (Clause Atom) :=
+def toDNF (phi : Formula Atom) : List (Clause Atom) :=
   [[Literal.pos phi]]
 
 /-- Trivial CNF embedding. -/
-def to_CNF (phi : Formula Atom) : List (Clause Atom) :=
+def toCNF (phi : Formula Atom) : List (Clause Atom) :=
   [[Literal.pos phi]]
 
 /-- DNF conversion preserves integer-time equivalence. -/
 theorem dnf_equiv (phi : Formula Atom) :
-    int_equiv phi (from_DNF (to_DNF phi)) := by
-  -- to_DNF phi = [[Literal.pos phi]]
-  change int_equiv phi (from_DNF [[Literal.pos phi]])
-  simp only [from_DNF, clause_to_conj,
+    intEquiv phi (fromDNF (toDNF phi)) := by
+  -- toDNF phi = [[Literal.pos phi]]
+  change intEquiv phi (fromDNF [[Literal.pos phi]])
+  simp only [fromDNF, clauseToConj,
     Literal.toFormula]
   exact int_equiv_refl phi
 
 /-- CNF conversion preserves integer-time equivalence. -/
 theorem cnf_equiv (phi : Formula Atom) :
-    int_equiv phi (from_CNF (to_CNF phi)) := by
-  -- to_CNF phi = [[Literal.pos phi]]
-  change int_equiv phi (from_CNF [[Literal.pos phi]])
-  simp only [from_CNF, clause_to_disj,
+    intEquiv phi (fromCNF (toCNF phi)) := by
+  -- toCNF phi = [[Literal.pos phi]]
+  change intEquiv phi (fromCNF [[Literal.pos phi]])
+  simp only [fromCNF, clauseToDisj,
     Literal.toFormula]
   exact int_equiv_refl phi
 
@@ -209,25 +209,25 @@ section FreshnessOps
 variable [DecidableEq Atom] [Infinite Atom]
 
 /-- Generate a fresh atom not appearing in a formula. -/
-noncomputable def fresh_atom
+noncomputable def freshAtom
     (phi : Formula Atom) : Atom :=
   (Finset.exists_notMem phi.atoms).choose
 
 /-- The fresh atom does not appear in the formula. -/
 theorem fresh_atom_not_in
     (phi : Formula Atom) :
-    fresh_atom phi ∉ phi.atoms :=
+    freshAtom phi ∉ phi.atoms :=
   (Finset.exists_notMem phi.atoms).choose_spec
 
 /-- Generate n fresh atoms not appearing in a formula. -/
-noncomputable def fresh_atoms
+noncomputable def freshAtoms
     (phi : Formula Atom) (n : Nat) : List Atom :=
   (exists_n_fresh_atoms phi.atoms n).choose
 
-/-- All atoms in fresh_atoms are distinct from atoms in phi. -/
+/-- All atoms in freshAtoms are distinct from atoms in phi. -/
 theorem fresh_atoms_disjoint
     (phi : Formula Atom) (n : Nat) :
-    ∀ a ∈ fresh_atoms phi n, a ∉ phi.atoms :=
+    ∀ a ∈ freshAtoms phi n, a ∉ phi.atoms :=
   (exists_n_fresh_atoms phi.atoms n).choose_spec.2.2
 
 end FreshnessOps
@@ -238,13 +238,13 @@ variable [Infinite Atom]
 /-- Fresh atoms are pairwise distinct. -/
 theorem fresh_atoms_nodup [DecidableEq Atom]
     (phi : Formula Atom) (n : Nat) :
-    (fresh_atoms phi n).Nodup :=
+    (freshAtoms phi n).Nodup :=
   (exists_n_fresh_atoms phi.atoms n).choose_spec.2.1
 
 /-- The number of fresh atoms equals n. -/
 theorem fresh_atoms_length [DecidableEq Atom]
     (phi : Formula Atom) (n : Nat) :
-    (fresh_atoms phi n).length = n :=
+    (freshAtoms phi n).length = n :=
   (exists_n_fresh_atoms phi.atoms n).choose_spec.1
 
 end FreshnessProperties
@@ -252,23 +252,23 @@ end FreshnessProperties
 /-! ## Multi-Substitution -/
 
 /-- Apply a list of substitutions sequentially. -/
-def multi_subst [DecidableEq Atom]
+def multiSubst [DecidableEq Atom]
     (phi : Formula Atom)
     (subs : List (Atom × Formula Atom)) :
     Formula Atom :=
-  subs.foldl (fun acc ⟨a, f⟩ => subst_formula acc a f)
+  subs.foldl (fun acc ⟨a, f⟩ => substFormula acc a f)
     phi
 
 /-- Multi-substitution with empty list is identity. -/
 theorem multi_subst_nil [DecidableEq Atom]
     (phi : Formula Atom) :
-    multi_subst phi [] = phi := rfl
+    multiSubst phi [] = phi := rfl
 
-/-- Multi-substitution with single entry is subst_formula. -/
+/-- Multi-substitution with single entry is substFormula. -/
 theorem multi_subst_singleton [DecidableEq Atom]
     (phi : Formula Atom) (a : Atom)
     (f : Formula Atom) :
-    multi_subst phi [(a, f)] = subst_formula phi a f :=
+    multiSubst phi [(a, f)] = substFormula phi a f :=
   rfl
 
 end Cslib.Logic.Bimodal.Metalogic.Separation

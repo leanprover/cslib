@@ -59,7 +59,7 @@ This provides a convenient way to use the linearity axiom in proofs.
 The `temp_linearity` axiom is a base axiom (valid on all linear
 orders), so it is available at any frame class via `trivial`.
 -/
-noncomputable def temp_linearity_derivation
+noncomputable def tempLinearityDerivation
     (phi psi : Formula Atom) :
     ([] : Context Atom) ⊢
       (Formula.and (Formula.someFuture phi)

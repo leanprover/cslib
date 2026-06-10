@@ -44,27 +44,27 @@ section TaskRel
 variable {fc : FrameClass} {D : Type*} [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
 
 /-- Parametric canonical task relation: forward accessibility with converse for negative durations. -/
-def parametric_canonical_task_rel (M : ParametricCanonicalWorldState Atom fc) (d : D)
+def parametricCanonicalTaskRel (M : ParametricCanonicalWorldState Atom fc) (d : D)
     (N : ParametricCanonicalWorldState Atom fc) : Prop :=
   if d > 0 then ExistsTask M.val N.val
   else if d < 0 then ExistsTask N.val M.val
   else M = N
 
 omit [IsOrderedAddMonoid D] in
-/-- Nullity identity: parametric_canonical_task_rel M 0 N iff M = N. -/
+/-- Nullity identity: parametricCanonicalTaskRel M 0 N iff M = N. -/
 theorem parametric_task_rel_nullity_identity (M N : ParametricCanonicalWorldState Atom fc) :
-    parametric_canonical_task_rel M (0 : D) N ↔ M = N := by
-  unfold parametric_canonical_task_rel
+    parametricCanonicalTaskRel M (0 : D) N ↔ M = N := by
+  unfold parametricCanonicalTaskRel
   simp only [lt_irrefl, ite_false]
 
 /-- Forward compositionality. -/
 theorem parametric_task_rel_forward_comp
     (M W V : ParametricCanonicalWorldState Atom fc) (x y : D)
     (hx : 0 ≤ x) (hy : 0 ≤ y)
-    (h1 : parametric_canonical_task_rel M x W)
-    (h2 : parametric_canonical_task_rel W y V) :
-    parametric_canonical_task_rel M (x + y) V := by
-  unfold parametric_canonical_task_rel at *
+    (h1 : parametricCanonicalTaskRel M x W)
+    (h2 : parametricCanonicalTaskRel W y V) :
+    parametricCanonicalTaskRel M (x + y) V := by
+  unfold parametricCanonicalTaskRel at *
   by_cases hx_pos : x > 0
   · have hx_neg : ¬(x < 0) := not_lt.mpr (le_of_lt hx_pos)
     simp only [hx_pos, ite_true, hx_neg, ite_false] at h1
@@ -73,7 +73,7 @@ theorem parametric_task_rel_forward_comp
       simp only [hy_pos, ite_true, hy_neg, ite_false] at h2
       have hsum_pos : x + y > 0 := add_pos hx_pos hy_pos
       simp only [hsum_pos, ite_true]
-      exact canonicalR_transitive M.val W.val V.val M.property h1 h2
+      exact canonicalRTransitive M.val W.val V.val M.property h1 h2
     · have hy_eq : y = 0 := le_antisymm (not_lt.mp hy_pos) hy
       subst hy_eq
       have hy_neg : ¬((0 : D) < 0) := lt_irrefl 0
@@ -95,8 +95,8 @@ theorem parametric_task_rel_forward_comp
 theorem parametric_task_rel_converse
     (M : ParametricCanonicalWorldState Atom fc) (d : D)
     (N : ParametricCanonicalWorldState Atom fc) :
-    parametric_canonical_task_rel M d N ↔ parametric_canonical_task_rel N (-d) M := by
-  unfold parametric_canonical_task_rel
+    parametricCanonicalTaskRel M d N ↔ parametricCanonicalTaskRel N (-d) M := by
+  unfold parametricCanonicalTaskRel
   by_cases hd_pos : d > 0
   · have hd_neg : ¬(d < 0) := not_lt.mpr (le_of_lt hd_pos)
     have hnd_neg : -d < 0 := neg_neg_of_pos hd_pos
@@ -115,7 +115,7 @@ theorem parametric_task_rel_converse
 /-- The D-parametric canonical task frame. -/
 noncomputable def ParametricCanonicalTaskFrame : TaskFrame D where
   WorldState := ParametricCanonicalWorldState Atom fc
-  task_rel := parametric_canonical_task_rel
+  task_rel := parametricCanonicalTaskRel
   nullity_identity := parametric_task_rel_nullity_identity
   forward_comp := fun M W V x y hx hy h1 h2 =>
     parametric_task_rel_forward_comp M W V x y hx hy h1 h2
@@ -124,29 +124,29 @@ noncomputable def ParametricCanonicalTaskFrame : TaskFrame D where
 omit [IsOrderedAddMonoid D] in
 /-- Nullity theorem: zero-duration task is reflexive. -/
 theorem parametric_task_rel_nullity (M : ParametricCanonicalWorldState Atom fc) :
-    parametric_canonical_task_rel M (0 : D) M :=
+    parametricCanonicalTaskRel M (0 : D) M :=
   (parametric_task_rel_nullity_identity M M).mpr rfl
 
 omit [IsOrderedAddMonoid D] in
 /-- Forward-positive case. -/
 theorem parametric_task_rel_pos {d : D} (hd : d > 0)
     (M N : ParametricCanonicalWorldState Atom fc) :
-    parametric_canonical_task_rel M d N ↔ ExistsTask M.val N.val := by
-  unfold parametric_canonical_task_rel
+    parametricCanonicalTaskRel M d N ↔ ExistsTask M.val N.val := by
+  unfold parametricCanonicalTaskRel
   simp only [hd, ite_true]
 
 omit [IsOrderedAddMonoid D] in
 /-- Zero case. -/
 theorem parametric_task_rel_zero (M N : ParametricCanonicalWorldState Atom fc) :
-    parametric_canonical_task_rel M (0 : D) N ↔ M = N :=
+    parametricCanonicalTaskRel M (0 : D) N ↔ M = N :=
   parametric_task_rel_nullity_identity M N
 
 omit [IsOrderedAddMonoid D] in
 /-- Negative case. -/
 theorem parametric_task_rel_neg {d : D} (hd : d < 0)
     (M N : ParametricCanonicalWorldState Atom fc) :
-    parametric_canonical_task_rel M d N ↔ ExistsTask N.val M.val := by
-  unfold parametric_canonical_task_rel
+    parametricCanonicalTaskRel M d N ↔ ExistsTask N.val M.val := by
+  unfold parametricCanonicalTaskRel
   have hd_npos : ¬(d > 0) := not_lt.mpr (le_of_lt hd)
   simp only [hd_npos, ite_false, hd, ite_true]
 

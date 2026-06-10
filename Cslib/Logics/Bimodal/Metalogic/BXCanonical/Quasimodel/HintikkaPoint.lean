@@ -64,31 +64,31 @@ theorem HintikkaPoint.not_mem_of_neg_mem {Sigma : Finset (Formula Atom)} (h : Hi
 /-! ## Sigma-Signature -/
 
 open Classical in
-noncomputable def sigma_signature_formulas (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
+noncomputable def sigmaSignatureFormulas (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
     Finset (Formula Atom) :=
   Sigma.filter (fun f => f ∈ w.formulas)
 
 open Classical in
 theorem sigma_signature_subset (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
-    sigma_signature_formulas w Sigma ⊆ Sigma :=
+    sigmaSignatureFormulas w Sigma ⊆ Sigma :=
   Finset.filter_subset _ _
 
 open Classical in
 theorem sigma_signature_mem_iff (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) (f : Formula Atom) :
-    f ∈ sigma_signature_formulas w Sigma ↔ f ∈ Sigma ∧ f ∈ w.formulas := by
-  simp [sigma_signature_formulas, Finset.mem_filter]
+    f ∈ sigmaSignatureFormulas w Sigma ↔ f ∈ Sigma ∧ f ∈ w.formulas := by
+  simp [sigmaSignatureFormulas, Finset.mem_filter]
 
 open Classical in
 theorem sigma_signature_consistent (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
-    ∀ f ∈ sigma_signature_formulas w Sigma,
-      Formula.neg f ∉ sigma_signature_formulas w Sigma := by
+    ∀ f ∈ sigmaSignatureFormulas w Sigma,
+      Formula.neg f ∉ sigmaSignatureFormulas w Sigma := by
   intro f hf hfn
   rw [sigma_signature_mem_iff] at hf hfn
   exact set_consistent_not_both w.is_mcs.1 f hf.2 hfn.2
 
 open Classical in
 theorem sigma_signature_bot_free (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
-    (Formula.bot : Formula Atom) ∉ sigma_signature_formulas w Sigma := by
+    (Formula.bot : Formula Atom) ∉ sigmaSignatureFormulas w Sigma := by
   intro h
   rw [sigma_signature_mem_iff] at h
   have : SetConsistent FrameClass.Base w.formulas := w.is_mcs.1
@@ -96,17 +96,17 @@ theorem sigma_signature_bot_free (w : BXPoint Atom) (Sigma : Finset (Formula Ato
     ⟨DerivationTree.assumption [(Formula.bot : Formula Atom)] (Formula.bot : Formula Atom) (by simp)⟩
 
 open Classical in
-noncomputable def sigma_signature (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
+noncomputable def sigmaSignature (w : BXPoint Atom) (Sigma : Finset (Formula Atom)) :
     HintikkaPoint Sigma where
-  formulas := sigma_signature_formulas w Sigma
+  formulas := sigmaSignatureFormulas w Sigma
   subset_sigma := sigma_signature_subset w Sigma
   locally_consistent := sigma_signature_consistent w Sigma
   bot_free := sigma_signature_bot_free w Sigma
 
 open Classical in
 theorem sigma_signature_mem {w : BXPoint Atom} {Sigma : Finset (Formula Atom)} {f : Formula Atom} :
-    f ∈ (sigma_signature w Sigma).formulas ↔ f ∈ Sigma ∧ f ∈ w.formulas := by
-  simp [sigma_signature, sigma_signature_formulas, Finset.mem_filter]
+    f ∈ (sigmaSignature w Sigma).formulas ↔ f ∈ Sigma ∧ f ∈ w.formulas := by
+  simp [sigmaSignature, sigmaSignatureFormulas, Finset.mem_filter]
 
 /-! ## Finiteness -/
 
