@@ -172,7 +172,7 @@ theorem p_content_iff_not_neg_in_h_content {M : Set (Formula Atom)}
           Formula.all_past ((phi.imp phi.neg.neg).swap_temporal.swap_temporal) := by
         simp only [Formula.all_past, Formula.some_past, Formula.neg,
           Formula.top, Formula.swap_temporal]
-      rw [Formula.swap_temporal_involution] at h_eq
+      rw [Formula.swapTemporal_involution] at h_eq
       exact h_eq ▸ d_h
     have h_bx3p : DerivationTree FrameClass.Base [] ((phi.imp phi.neg.neg).all_past.imp
         ((Formula.snce phi Formula.top).imp (Formula.snce phi.neg.neg Formula.top))) :=
@@ -210,7 +210,7 @@ theorem p_content_iff_not_neg_in_h_content {M : Set (Formula Atom)}
           Formula.all_past ((phi.neg.neg.imp phi).swap_temporal.swap_temporal) := by
         simp only [Formula.all_past, Formula.some_past, Formula.neg,
           Formula.top, Formula.swap_temporal]
-      rw [Formula.swap_temporal_involution] at h_eq
+      rw [Formula.swapTemporal_involution] at h_eq
       exact h_eq ▸ d_h
     have h_bx3p : DerivationTree FrameClass.Base [] ((phi.neg.neg.imp phi).all_past.imp
         ((Formula.snce phi.neg.neg Formula.top).imp (Formula.snce phi Formula.top))) :=

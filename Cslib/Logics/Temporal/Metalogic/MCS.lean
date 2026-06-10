@@ -245,7 +245,7 @@ theorem mcs_h_mp
         Formula.all_past (X.swap_temporal.swap_temporal) := by
       simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
         Formula.neg, Formula.top, Formula.swap_temporal]
-    rw [Formula.swap_temporal_involution] at h_eq
+    rw [Formula.swapTemporal_involution] at h_eq
     exact ⟨h_eq ▸ d_h_swap2⟩
   -- BX3' (right_mono_since): H(α→β) → P(α) → P(β)
   have h_bx3_imp : Formula.imp (Formula.some_past (ψ.neg.imp φ.neg).neg)
@@ -389,7 +389,7 @@ private theorem derive_h_contradiction
         Formula.all_past (φ.swap_temporal.swap_temporal) := by
       simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
         Formula.neg, Formula.top, Formula.swap_temporal]
-    rw [Formula.swap_temporal_involution] at h_eq2
+    rw [Formula.swapTemporal_involution] at h_eq2
     exact ⟨h_eq2 ▸ d_h⟩
   | cons a L' ih =>
     have dt := deduction_theorem L' a φ d

@@ -207,7 +207,7 @@ theorem embedFormula_always (φ : Formula Atom) :
     embedFormula (Formula.always φ) = ExtFormula.always (embedFormula φ) := rfl
 
 @[simp]
-theorem embedFormula_swap_temporal (φ : Formula Atom) :
+theorem embedFormula_swapTemporal (φ : Formula Atom) :
     embedFormula (Formula.swap_temporal φ) = ExtFormula.swap_temporal (embedFormula φ) := by
   induction φ with
   | atom _ => rfl

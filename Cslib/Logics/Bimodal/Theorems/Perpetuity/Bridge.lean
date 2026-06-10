@@ -94,7 +94,7 @@ def past_mono {φ₁ φ₂ : Bimodal.Formula Atom} (h : ⊢ φ₁.imp φ₂) : �
   -- Apply temporal duality again to get H(A → B)
   have past_raw := Bimodal.DerivationTree.temporal_duality _ g_swap
   have h_past : ⊢ (φ₁.imp φ₂).all_past := by
-    simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swap_temporal_involution] at past_raw
+    simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at past_raw
     exact past_raw
   have pk := past_k_dist φ₁ φ₂
   exact Bimodal.DerivationTree.modus_ponens [] _ _ pk h_past

@@ -87,7 +87,7 @@ instance :
       simp only [Temporal.Formula.all_past, Temporal.Formula.some_past,
                  Temporal.Formula.neg, Temporal.Formula.top,
                  Temporal.Formula.swap_temporal,
-                 Temporal.Formula.swap_temporal_involution]
+                 Temporal.Formula.swapTemporal_involution]
     exact ⟨InferenceSystem.rwConclusion h_eq d_final⟩
 
 /-! ## Temporal Axiom Instances (22) -/

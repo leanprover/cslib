@@ -111,7 +111,7 @@ private noncomputable def derive_h_nec (φ : Formula Atom)
       Formula.all_past (φ.swap_temporal.swap_temporal) := by
     simp only [Formula.all_future, Formula.all_past, Formula.some_future, Formula.some_past,
       Formula.neg, Formula.top, Formula.swap_temporal]
-  rw [Formula.swap_temporal_involution] at h_eq
+  rw [Formula.swapTemporal_involution] at h_eq
   exact h_eq ▸ d_h
 
 /-- Derive ⊢ φ → ⊤ ∧ φ. -/

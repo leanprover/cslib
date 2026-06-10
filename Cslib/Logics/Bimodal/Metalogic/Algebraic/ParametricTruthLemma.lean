@@ -99,7 +99,7 @@ private noncomputable def past_tf_deriv (φ : Formula Atom) :
   have h_eq : Formula.swap_temporal ((Formula.box (Formula.swap_temporal φ)).imp
       (Formula.box (Formula.swap_temporal φ)).all_future) =
     (Formula.box φ).imp (Formula.box φ).all_past := by
-    simp [Formula.swap_temporal, Formula.swap_temporal_involution]
+    simp [Formula.swap_temporal, Formula.swapTemporal_involution]
   rw [h_eq] at h_dual
   exact h_dual
 

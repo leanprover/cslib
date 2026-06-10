@@ -87,8 +87,8 @@ noncomputable def past_necessitation (φ : Formula Atom)
     DerivationTree.temporal_necessitation _ h_swap
   have final : DerivationTree FrameClass.Base [] φ.swap_temporal.all_future.swap_temporal :=
     DerivationTree.temporal_duality _ g_swap
-  simp only [Formula.swap_temporal_all_future, Formula.swap_temporal,
-    Formula.swap_temporal_involution] at final
+  simp only [Formula.swapTemporal_allFuture, Formula.swap_temporal,
+    Formula.swapTemporal_involution] at final
   exact final
 
 /-! ## K-distribution -/
@@ -123,8 +123,8 @@ noncomputable def past_k_dist (A B : Formula Atom) :
       ((A.swap_temporal.imp B.swap_temporal).all_future.imp
        (A.swap_temporal.all_future.imp B.swap_temporal.all_future)).swap_temporal :=
     DerivationTree.temporal_duality _ fk
-  simp only [Formula.swap_temporal_all_future,
-    Formula.swap_temporal, Formula.swap_temporal_involution] at td
+  simp only [Formula.swapTemporal_allFuture,
+    Formula.swap_temporal, Formula.swapTemporal_involution] at td
   exact td
 
 /-! ## Generalized K -/

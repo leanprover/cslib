@@ -433,7 +433,7 @@ def axiom_subst (q r : Atom) {phi : Formula Atom}
 /-! ## swap_temporal commutes with substitution -/
 
 /-- swap_temporal commutes with substitution. -/
-theorem swap_temporal_subst (q r : Atom)
+theorem swapTemporal_subst (q r : Atom)
     (phi : Formula Atom) :
     (phi.swap_temporal).subst q r =
       (phi.subst q r).swap_temporal := by
@@ -498,7 +498,7 @@ def derivation_subst (q r : Atom) {fc : FrameClass} :
   | _, _, DerivationTree.temporal_duality psi d => by
     have d' := derivation_subst q r d
     simp only [Context.subst, List.map_nil] at d'
-    rw [swap_temporal_subst]
+    rw [swapTemporal_subst]
     exact DerivationTree.temporal_duality
       (psi.subst q r) d'
   | Gamma, _, DerivationTree.weakening Gamma' _ _ d h => by

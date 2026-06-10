@@ -123,7 +123,7 @@ theorem substFormula_always (φ : ExtFormula Atom) :
 ## Swap Temporal Preservation
 -/
 
-theorem substFormula_swap_temporal (φ : ExtFormula Atom) :
+theorem substFormula_swapTemporal (φ : ExtFormula Atom) :
     substFormula φ.swap_temporal = (substFormula φ).swap_temporal := by
   induction φ with
   | atom a =>

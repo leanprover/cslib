@@ -976,7 +976,7 @@ theorem all_formulas_separable_aux (φ : Formula Atom)
         -- Step 7: dual_separable
         have h_untl_sep : is_separable (.untl χa χb) := by
           have h := dual_separable _ h_swap_sep
-          rw [Formula.swap_temporal_involution] at h
+          rw [Formula.swapTemporal_involution] at h
           exact h
         -- Step 8: Build equivalence chain
         have hequiv : int_equiv (.untl a b) (.untl χa χb) :=

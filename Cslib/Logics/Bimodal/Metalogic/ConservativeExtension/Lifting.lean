@@ -169,7 +169,7 @@ noncomputable def substDerivation {fc : FrameClass} :
   | _, _, ExtDerivationTree.temporal_necessitation _phi d =>
     ExtDerivationTree.temporal_necessitation _ (substDerivation d)
   | _, _, ExtDerivationTree.temporal_duality phi d =>
-    substFormula_swap_temporal phi ▸
+    substFormula_swapTemporal phi ▸
       ExtDerivationTree.temporal_duality _ (substDerivation d)
   | _, _, ExtDerivationTree.weakening _Gamma _Delta _phi d h =>
     ExtDerivationTree.weakening _ _ _ (substDerivation d) (map_substFormula_subset h)
@@ -188,7 +188,7 @@ def substFreshWith (a : Atom) : ExtFormula Atom → ExtFormula Atom
   | ExtFormula.untl φ ψ => ExtFormula.untl (substFreshWith a φ) (substFreshWith a ψ)
   | ExtFormula.snce φ ψ => ExtFormula.snce (substFreshWith a φ) (substFreshWith a ψ)
 
-theorem substFreshWith_swap_temporal (a : Atom) (φ : ExtFormula Atom) :
+theorem substFreshWith_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
     substFreshWith a φ.swap_temporal = (substFreshWith a φ).swap_temporal := by
   induction φ with
   | atom x =>
@@ -334,7 +334,7 @@ def unembedAxiom {φ : ExtFormula Atom} (h : ExtAxiom φ) : Axiom (unembedFormul
   | dense_indicator => exact .dense_indicator
 
 /-- unembedFormula commutes with swap_temporal. -/
-theorem unembed_swap_temporal (φ : ExtFormula Atom) :
+theorem unembed_swapTemporal (φ : ExtFormula Atom) :
     unembedFormula φ.swap_temporal = (unembedFormula φ).swap_temporal := by
   induction φ with
   | atom a => cases a with | inl s => rfl | inr u => cases u; rfl
@@ -566,9 +566,9 @@ private theorem liftFormula_imp (a : Atom) (x y : ExtFormula Atom) :
   simp [liftFormula, substFreshWith, unembedFormula]
 
 /-- liftFormula distributes over swap_temporal. -/
-private theorem liftFormula_swap_temporal (a : Atom) (φ : ExtFormula Atom) :
+private theorem liftFormula_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
     liftFormula a φ.swap_temporal = (liftFormula a φ).swap_temporal := by
-  simp [liftFormula, substFreshWith_swap_temporal, unembed_swap_temporal]
+  simp [liftFormula, substFreshWith_swapTemporal, unembed_swapTemporal]
 
 /-- Lift an ExtAxiom to a base Axiom via liftFormula. -/
 private def liftAxiom (a : Atom) {φ : ExtFormula Atom} (h : ExtAxiom φ) :
@@ -656,7 +656,7 @@ private noncomputable def liftDerivationWith {fc : FrameClass} (a : Atom) :
   | _, _, ExtDerivationTree.temporal_duality φ d, h_fr => by
     have h_fr_d : a ∉ collectDerivInl d := by
       intro h; apply h_fr; exact collectDerivInl_sub_tdual h
-    exact liftFormula_swap_temporal a φ ▸
+    exact liftFormula_swapTemporal a φ ▸
       DerivationTree.temporal_duality _ (liftDerivationWith a d h_fr_d)
   | _, _, ExtDerivationTree.weakening Γ Δ φ d h_sub, h_fr => by
     have h_fr_d : a ∉ collectDerivInl d := by

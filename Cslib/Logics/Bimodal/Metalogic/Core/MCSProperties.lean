@@ -362,7 +362,7 @@ def temp_4_past (phi : Formula Atom) :
   have h3 : (psi.all_future.imp psi.all_future.all_future).swap_temporal =
       phi.all_past.imp phi.all_past.all_past := by
     simp only [Formula.swap_temporal]
-    have h_inv : psi.swap_temporal = phi := Formula.swap_temporal_involution phi
+    have h_inv : psi.swap_temporal = phi := Formula.swapTemporal_involution phi
     rw [h_inv]
   rw [h3] at h2
   exact h2

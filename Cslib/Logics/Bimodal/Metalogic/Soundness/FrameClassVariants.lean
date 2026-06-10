@@ -598,7 +598,7 @@ theorem derivable_valid_and_swap_valid_general [Nontrivial D]
     obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_general d'
     constructor
     · exact h_swap
-    · simp only [Formula.swap_temporal_involution]; exact h_valid
+    · simp only [Formula.swapTemporal_involution]; exact h_valid
   | .weakening Γ' _ _ d' h_sub =>
     have h_eq : Γ' = [] := List.eq_nil_of_subset_nil h_sub
     have h_height_eq : (h_eq ▸ d').height = d'.height := by subst h_eq; rfl
@@ -896,7 +896,7 @@ theorem derivable_valid_and_swap_valid_discrete
     obtain ⟨h_valid, h_swap⟩ := derivable_valid_and_swap_valid_discrete d'
     constructor
     · exact h_swap
-    · simp only [Formula.swap_temporal_involution]; exact h_valid
+    · simp only [Formula.swapTemporal_involution]; exact h_valid
   | .weakening Γ' _ _ d' h_sub =>
     have h_eq : Γ' = [] := List.eq_nil_of_subset_nil h_sub
     have h_height_eq : (h_eq ▸ d').height = d'.height := by subst h_eq; rfl

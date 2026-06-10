@@ -57,8 +57,8 @@ noncomputable def past_necessitation {fc : FrameClass} (φ : Formula Atom)
     DerivationTree.temporal_necessitation _ h_swap
   have final : DerivationTree fc [] φ.swap_temporal.all_future.swap_temporal :=
     DerivationTree.temporal_duality _ g_swap
-  simp only [Formula.swap_temporal_all_future, Formula.swap_temporal,
-    Formula.swap_temporal_involution] at final
+  simp only [Formula.swapTemporal_allFuture, Formula.swap_temporal,
+    Formula.swapTemporal_involution] at final
   exact final
 
 noncomputable def past_k_dist {fc : FrameClass} (A B : Formula Atom) :
@@ -72,8 +72,8 @@ noncomputable def past_k_dist {fc : FrameClass} (A B : Formula Atom) :
       ((A.swap_temporal.imp B.swap_temporal).all_future.imp
        (A.swap_temporal.all_future.imp B.swap_temporal.all_future)).swap_temporal :=
     DerivationTree.temporal_duality _ fk_fc
-  simp only [Formula.swap_temporal_all_future,
-    Formula.swap_temporal, Formula.swap_temporal_involution] at td
+  simp only [Formula.swapTemporal_allFuture,
+    Formula.swap_temporal, Formula.swapTemporal_involution] at td
   exact td
 
 noncomputable def generalized_modal_k {fc : FrameClass} :

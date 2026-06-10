@@ -16,7 +16,7 @@ over all serial linear orders (linear orders with `NoMaxOrder` and `NoMinOrder`)
 ## Main Results
 
 - `axiom_sound`: Each of the 26 BX axiom schemata is valid over serial linear orders.
-- `swap_temporal_dual`: swap_temporal φ satisfaction equals φ satisfaction in dual model.
+- `swapTemporal_dual`: swap_temporal φ satisfaction equals φ satisfaction in dual model.
 - `soundness`: If `Γ ⊢ φ`, then `φ` is satisfied wherever all of `Γ` is satisfied.
 - `soundness_thderivable`: If `⊢ φ`, then `φ` is valid over all serial linear orders.
 
@@ -331,7 +331,7 @@ def dualModel {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) :
   valuation := fun t p => M.valuation (OrderDual.ofDual t) p
 
 /-- `swap_temporal φ` in model `M` at time `t` is equivalent to `φ` in the dual model. -/
-theorem swap_temporal_dual {D : Type*} [LinearOrder D]
+theorem swapTemporal_dual {D : Type*} [LinearOrder D]
     (M : TemporalModel D Atom) (t : D) (φ : Formula Atom) :
     Satisfies M t (Formula.swap_temporal φ) ↔
       Satisfies (dualModel M) (OrderDual.toDual t) φ := by
@@ -376,7 +376,7 @@ theorem swap_valid_of_valid
     (D : Type u_dom) [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     (M : TemporalModel D Atom) (t : D) :
     Satisfies M t (Formula.swap_temporal φ) := by
-  rw [swap_temporal_dual]
+  rw [swapTemporal_dual]
   exact h_valid (OrderDual D) (dualModel M) (OrderDual.toDual t)
 
 /-! ## Main Soundness Theorem -/

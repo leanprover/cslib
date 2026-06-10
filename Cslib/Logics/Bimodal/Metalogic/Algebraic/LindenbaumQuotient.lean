@@ -183,7 +183,7 @@ noncomputable def H_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
 def top_quot : LindenbaumAlg Atom := toQuot (Formula.bot.imp Formula.bot)
 def bot_quot : LindenbaumAlg Atom := toQuot Formula.bot
 
-theorem swap_temporal_derives {φ ψ : Formula Atom} (h : Derives φ ψ) :
+theorem swapTemporal_derives {φ ψ : Formula Atom} (h : Derives φ ψ) :
     Derives φ.swap_temporal ψ.swap_temporal := by
   unfold Derives at *
   obtain ⟨d⟩ := h
@@ -191,19 +191,19 @@ theorem swap_temporal_derives {φ ψ : Formula Atom} (h : Derives φ ψ) :
   simp only [Formula.swap_temporal] at d_swap
   exact ⟨d_swap⟩
 
-theorem provEquiv_swap_temporal_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
+theorem provEquiv_swapTemporal_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
     φ.swap_temporal ≈ₚ ψ.swap_temporal :=
-  ⟨swap_temporal_derives h.1, swap_temporal_derives h.2⟩
+  ⟨swapTemporal_derives h.1, swapTemporal_derives h.2⟩
 
 noncomputable def sigma_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift (fun φ => toQuot φ.swap_temporal)
-    (fun _ _ h => Quotient.sound (provEquiv_swap_temporal_congr h))
+    (fun _ _ h => Quotient.sound (provEquiv_swapTemporal_congr h))
 
 theorem sigma_quot_involution (a : LindenbaumAlg Atom) : sigma_quot (sigma_quot a) = a := by
   induction a using Quotient.ind
   rename_i φ
   show toQuot (φ.swap_temporal.swap_temporal) = toQuot φ
-  rw [Formula.swap_temporal_involution]
+  rw [Formula.swapTemporal_involution]
 
 theorem sigma_quot_neg (a : LindenbaumAlg Atom) :
     sigma_quot (neg_quot a) = neg_quot (sigma_quot a) := by
@@ -227,7 +227,7 @@ theorem sigma_quot_G_H (a : LindenbaumAlg Atom) :
   induction a using Quotient.ind
   rename_i φ
   show toQuot (φ.all_future.swap_temporal) = H_quot (toQuot φ.swap_temporal)
-  simp only [Formula.swap_temporal_all_future]
+  simp only [Formula.swapTemporal_allFuture]
   rfl
 
 theorem sigma_quot_H_G (a : LindenbaumAlg Atom) :
@@ -235,7 +235,7 @@ theorem sigma_quot_H_G (a : LindenbaumAlg Atom) :
   induction a using Quotient.ind
   rename_i φ
   show toQuot (φ.all_past.swap_temporal) = G_quot (toQuot φ.swap_temporal)
-  simp only [Formula.swap_temporal_all_past]
+  simp only [Formula.swapTemporal_allPast]
   rfl
 
 theorem sigma_quot_box (a : LindenbaumAlg Atom) :

@@ -159,7 +159,7 @@ instance :
         Bimodal.Formula.neg,
         Bimodal.Formula.top,
         Bimodal.Formula.swap_temporal,
-        Bimodal.Formula.swap_temporal_involution]
+        Bimodal.Formula.swapTemporal_involution]
     exact ⟨InferenceSystem.rwConclusion h_eq d_final⟩
 
 /-! ## Temporal Axiom Instances (22) -/

@@ -120,8 +120,8 @@ noncomputable def H_transitivity (φ : Formula Atom) :
   let ψ := φ.swap_temporal
   have h1 := temp_4_derived ψ
   have h2 := DerivationTree.temporal_duality _ h1
-  simp only [Formula.swap_temporal_all_future, Formula.swap_temporal] at h2
-  have h_inv : ψ.swap_temporal = φ := Formula.swap_temporal_involution φ
+  simp only [Formula.swapTemporal_allFuture, Formula.swap_temporal] at h2
+  have h_inv : ψ.swap_temporal = φ := Formula.swapTemporal_involution φ
   rw [h_inv] at h2
   exact h2
 

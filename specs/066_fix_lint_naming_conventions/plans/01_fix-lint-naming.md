@@ -104,19 +104,19 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Compound Theorem Name Renames (swap_temporal_*) [NOT STARTED]
+### Phase 2: Compound Theorem Name Renames (swap_temporal_*) [COMPLETED]
 
 **Goal**: Rename all compound theorem/lemma names that embed `swap_temporal` combined with other Tier 1 identifiers, before the simple identifier renames in Phase 3. This prevents partial replacements where `swap_temporal` would be renamed inside a compound name before the full compound is processed.
 
 **Tasks**:
-- [ ] Rename compound names that combine `swap_temporal` with other target identifiers (must be done before Phase 3):
-  - `swap_temporal_strong_release` -> `swapTemporal_strongRelease`
+- [x] Rename compound names that combine `swap_temporal` with other target identifiers (must be done before Phase 3):
+  - `swap_temporal_strong_release` -> `swapTemporal_strongRelease` *(deviation: altered — Phase 1 had already renamed strong_release/strong_trigger within these compounds, so actual sed was swap_temporal_strongRelease -> swapTemporal_strongRelease)*
   - `swap_temporal_strong_trigger` -> `swapTemporal_strongTrigger`
   - `swap_temporal_some_future` -> `swapTemporal_someFuture`
   - `swap_temporal_some_past` -> `swapTemporal_somePast`
   - `swap_temporal_all_future` -> `swapTemporal_allFuture`
   - `swap_temporal_all_past` -> `swapTemporal_allPast`
-- [ ] Rename remaining `swap_temporal_*` compound theorem names (these do not contain other target identifiers, so ordering is flexible but must precede the simple `swap_temporal` rename):
+- [x] Rename remaining `swap_temporal_*` compound theorem names (these do not contain other target identifiers, so ordering is flexible but must precede the simple `swap_temporal` rename):
   - `swap_temporal_involution` -> `swapTemporal_involution`
   - `swap_temporal_neg` -> `swapTemporal_neg`
   - `swap_temporal_diamond` -> `swapTemporal_diamond`
@@ -133,8 +133,8 @@ Phases within the same wave can execute in parallel.
   - `substFreshWith_swap_temporal` -> `substFreshWith_swapTemporal`
   - `unembed_swap_temporal` -> `unembed_swapTemporal`
   - `liftFormula_swap_temporal` -> `liftFormula_swapTemporal`
-- [ ] Verify no compound `swap_temporal_*` names remain: `grep -rn 'swap_temporal_' Cslib/ --include="*.lean"`
-- [ ] Do NOT yet rename simple `swap_temporal` -- that happens in Phase 3
+- [x] Verify no compound `swap_temporal_*` names remain: `grep -rn 'swap_temporal_' Cslib/ --include="*.lean"`
+- [x] Do NOT yet rename simple `swap_temporal` -- that happens in Phase 3
 
 **Timing**: 30 minutes
 

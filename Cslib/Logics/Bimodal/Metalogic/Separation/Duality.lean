@@ -18,7 +18,7 @@ cases.
 ## Key Results
 
 - `IntStructure.reverse`: Flip time direction
-- `swap_temporal_int_truth`: Truth preserved under reversal + swap
+- `swapTemporal_int_truth`: Truth preserved under reversal + swap
 - `dual_equiv`: If phi equiv psi then swap(phi) equiv swap(psi)
 - `dual_U_free_iff_S_free`: U-free after swap iff S-free before
 - `dual_separated`: Separation is preserved by swap
@@ -54,7 +54,7 @@ theorem IntStructure.reverse_reverse
 
 /-- The core duality theorem: truth of swap_temporal phi in M
     at t is equivalent to truth of phi in M.reverse at -t. -/
-theorem swap_temporal_int_truth
+theorem swapTemporal_int_truth
     (M : IntStructure Atom) (t : Int)
     (phi : Formula Atom) :
     int_truth M t phi.swap_temporal ↔
@@ -113,13 +113,13 @@ theorem dual_equiv (phi psi : Formula Atom)
   intro M t
   constructor
   · intro h1
-    exact (swap_temporal_int_truth M t psi).mpr
+    exact (swapTemporal_int_truth M t psi).mpr
       ((h M.reverse (-t)).mp
-        ((swap_temporal_int_truth M t phi).mp h1))
+        ((swapTemporal_int_truth M t phi).mp h1))
   · intro h2
-    exact (swap_temporal_int_truth M t phi).mpr
+    exact (swapTemporal_int_truth M t phi).mpr
       ((h M.reverse (-t)).mpr
-        ((swap_temporal_int_truth M t psi).mp h2))
+        ((swapTemporal_int_truth M t psi).mp h2))
 
 /-- U-free after swap is the same as S-free before swap. -/
 theorem dual_U_free_iff_S_free (phi : Formula Atom) :

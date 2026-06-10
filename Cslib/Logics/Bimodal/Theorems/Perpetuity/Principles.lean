@@ -76,7 +76,7 @@ def box_to_box_past (φ : Bimodal.Formula Atom) : ⊢ φ.box.imp (φ.all_past.bo
   have mf : ⊢ φ.swap_temporal.box.imp (φ.swap_temporal.all_future.box) :=
     ax [] _ (Bimodal.Axiom.modal_future φ.swap_temporal)
   have mf_swap := Bimodal.DerivationTree.temporal_duality _ mf
-  simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swap_temporal_involution] at mf_swap
+  simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at mf_swap
   exact mf_swap
 
 /-- Boxed conjunction intro from implications: from `⊢ Q → □A` and `⊢ Q → □B`,
@@ -156,7 +156,7 @@ def persistence (φ : Bimodal.Formula Atom) : ⊢ φ.diamond.imp φ.diamond.alwa
     have tf_swap : ⊢ φ.diamond.swap_temporal.box.imp φ.diamond.swap_temporal.box.all_future :=
       temp_future_derived φ.diamond.swap_temporal
     have td_result := Bimodal.DerivationTree.temporal_duality _ tf_swap
-    simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swap_temporal_involution] at td_result
+    simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at td_result
     exact td_result
 
   -- Step 1: ◇φ → H◇φ
@@ -169,7 +169,7 @@ def persistence (φ : Bimodal.Formula Atom) : ⊢ φ.diamond.imp φ.diamond.alwa
     have future_mt_swap := Bimodal.DerivationTree.temporal_necessitation _ mt_swap
     have past_mt_raw := Bimodal.DerivationTree.temporal_duality _ future_mt_swap
     have past_mt : ⊢ (φ.diamond.box.imp φ.diamond).all_past := by
-      simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swap_temporal_involution] at past_mt_raw
+      simp only [Bimodal.Formula.swap_temporal, Bimodal.Formula.swapTemporal_involution] at past_mt_raw
       exact past_mt_raw
     have pk := past_k_dist φ.diamond.box φ.diamond
     have past_bridge := Bimodal.DerivationTree.modus_ponens [] _ _ pk past_mt

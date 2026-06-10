@@ -297,7 +297,7 @@ noncomputable def embedDerivation {fc : FrameClass} : {Γ : List (Formula Atom)}
   | _, _, DerivationTree.temporal_necessitation _φ d =>
     ExtDerivationTree.temporal_necessitation _ (embedDerivation d)
   | _, _, DerivationTree.temporal_duality φ' d =>
-    embedFormula_swap_temporal φ' ▸
+    embedFormula_swapTemporal φ' ▸
       ExtDerivationTree.temporal_duality _ (embedDerivation d)
   | _, _, DerivationTree.weakening _Γ _Δ _φ d h =>
     ExtDerivationTree.weakening _ _ _ (embedDerivation d) (map_embedFormula_subset h)
