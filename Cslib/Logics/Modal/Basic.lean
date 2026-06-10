@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Marianna Girlando
+Authors: Fabrizio Montesi, Marianna Girlando, Benjamin Brast-McKie
 -/
 
 module

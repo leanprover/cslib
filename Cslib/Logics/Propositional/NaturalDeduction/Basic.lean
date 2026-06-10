@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Waring
+Authors: Thomas Waring, Benjamin Brast-McKie
 -/
 module
 
