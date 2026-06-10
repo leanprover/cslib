@@ -54,7 +54,7 @@ theorem STr.single [HasTau Label] {lts : LTS State Label} :
   apply STr.tr .refl h .refl
 
 lemma tr_le_tr_saturate [HasTau Label] (lts : LTS State Label) : lts.Tr ≤ lts.saturate.Tr :=
-  fun _ _ _ => STr.single lts
+  fun _ _ _ => STr.single
 
 /-- STr transitions labeled by HasTau.τ are exactly the τSTr transitions. -/
 theorem sTr_τSTr_iff [HasTau Label] (lts : LTS State Label) :
