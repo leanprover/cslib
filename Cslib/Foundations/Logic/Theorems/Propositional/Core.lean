@@ -37,6 +37,8 @@ encoding (Lukasiewicz style):
 - `φ ∨ ψ := (φ → ⊥) → ψ`
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Theorems.Propositional.Core
 
 set_option linter.unreachableTactic false

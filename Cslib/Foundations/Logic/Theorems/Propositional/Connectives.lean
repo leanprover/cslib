@@ -35,6 +35,8 @@ All theorems are generic over `[PropositionalHilbert S]`.
 - `φ ↔ ψ = (φ → ψ) ∧ (ψ → φ)`
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Theorems.Propositional.Connectives
 
 set_option linter.unreachableTactic false

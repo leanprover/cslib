@@ -34,6 +34,8 @@ Conjunction uses the Lukasiewicz encoding:
 `φ ∧ ψ := (φ → (ψ → ⊥)) → ⊥`
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Theorems.BigConj
 
 open Cslib.Logic

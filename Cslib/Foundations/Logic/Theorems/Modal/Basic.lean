@@ -38,6 +38,8 @@ carrying `HasBot`, `HasImp`, and `HasBox` instances.
 - `φ ↔ ψ = (φ → ψ) ∧ (ψ → φ)`
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Theorems.Modal.Basic
 
 set_option linter.unreachableTactic false

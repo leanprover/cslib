@@ -19,6 +19,8 @@ Convention (Burgess 1982): `untl φ₁ φ₂` = `φ₁ U φ₂` with `φ₁` as 
 `F(φ) = untl(φ, ⊤)` and `G(φ) = ¬F(¬φ)`. This matches BimodalLogic convention.
 -/
 
+@[expose] public section
+
 set_option linter.style.longLine false
 set_option linter.unreachableTactic false
 
@@ -36,12 +38,12 @@ variable [TemporalBXHilbert S (F := F)]
 section
 
 -- Abbreviations for readability
-private abbrev neg' (φ : F) : F := HasImp.imp φ HasBot.bot
-private abbrev top' : F := HasImp.imp (HasBot.bot : F) HasBot.bot
-private abbrev someFuture (φ : F) : F := HasUntil.untl φ top'
-private abbrev allFuture (φ : F) : F := neg' (someFuture (neg' φ))
-private abbrev somePast (φ : F) : F := HasSince.snce φ top'
-private abbrev allPast (φ : F) : F := neg' (somePast (neg' φ))
+abbrev neg' (φ : F) : F := HasImp.imp φ HasBot.bot
+abbrev top' : F := HasImp.imp (HasBot.bot : F) HasBot.bot
+abbrev someFuture (φ : F) : F := HasUntil.untl φ top'
+abbrev allFuture (φ : F) : F := neg' (someFuture (neg' φ))
+abbrev somePast (φ : F) : F := HasSince.snce φ top'
+abbrev allPast (φ : F) : F := neg' (somePast (neg' φ))
 
 /-! ### Level 0: Direct Axiom Wrappers -/
 

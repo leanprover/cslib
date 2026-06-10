@@ -29,6 +29,8 @@ Downstream modal (task 30) and temporal (task 31) metalogic tasks instantiate
 theorem proofs.
 -/
 
+@[expose] public section
+
 open Cslib.Logic
 
 namespace Cslib.Logic.Metalogic

@@ -36,6 +36,8 @@ BimodalLogic's `Axiom.prop_s` (weakening: φ → (ψ → φ)) maps to cslib's
 `ImplyS`.
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Theorems.Combinators
 
 set_option linter.unreachableTactic false

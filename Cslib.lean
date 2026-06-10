@@ -74,6 +74,16 @@ public import Cslib.Foundations.Logic.Connectives
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.ProofSystem
+public import Cslib.Foundations.Logic.Metalogic.Consistency
+public import Cslib.Foundations.Logic.Theorems
+public import Cslib.Foundations.Logic.Theorems.BigConj
+public import Cslib.Foundations.Logic.Theorems.Combinators
+public import Cslib.Foundations.Logic.Theorems.Modal.Basic
+public import Cslib.Foundations.Logic.Theorems.Modal.S5
+public import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
+public import Cslib.Foundations.Logic.Theorems.Propositional.Core
+public import Cslib.Foundations.Logic.Theorems.Temporal.FrameConditions
+public import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS

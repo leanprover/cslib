@@ -32,6 +32,8 @@ DenseTemporalFrame       DiscreteTemporalFrame
 - `Int` is a `DiscreteTemporalFrame`
 -/
 
+@[expose] public section
+
 namespace Cslib.Logic.Temporal.FrameConditions
 
 /-! ## Base Typeclass: LinearTemporalFrame -/

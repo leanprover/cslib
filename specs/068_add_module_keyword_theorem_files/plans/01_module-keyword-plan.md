@@ -98,7 +98,7 @@ Phases within the same wave can execute in parallel.
 **Transformation pattern** (apply to each file):
 1. After the copyright header closing `-/`, ensure a blank line, then add `module` on its own line, then a blank line
 2. Change every `import X` to `public import X`
-3. Leave everything else unchanged (namespaces, `open`, `set_option`, `private` decls)
+3. Leave everything else unchanged (namespaces, `open`, `set_option`, `private` decls) *(deviation: altered -- `@[expose] public section` was added to 9 of 10 files because `module` makes declarations private by default; without it, downstream importers cannot resolve declarations)*
 
 **Verification**:
 - Each file has `module` on its own line after the copyright header
@@ -107,7 +107,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Regenerate Cslib.lean and verify build [IN PROGRESS]
+### Phase 2: Regenerate Cslib.lean and verify build [COMPLETED]
 
 **Goal**: Update `Cslib.lean` to include the 10 newly visible module files, then verify the full project builds.
 
