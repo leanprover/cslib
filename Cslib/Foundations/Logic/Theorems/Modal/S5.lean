@@ -186,7 +186,7 @@ theorem t_box_to_diamond {φ : F} :
     b_combinator
   -- flip and apply T on ¬φ
   have b_flipped := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
       (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) (HasImp.imp φ HasBot.bot))
       (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot))
@@ -445,7 +445,7 @@ theorem s4_diamond_box_conj {A B : F} :
   have pair := pairing (S := S) A (HasBox.box B)
   -- flip: □B → (A → (A ∧ □B))
   have flipped := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _ A (HasBox.box B)
+    (@flip F _ _ S _ _ A (HasBox.box B)
       (HasImp.imp (HasImp.imp A (HasImp.imp (HasBox.box B) HasBot.bot)) HasBot.bot))
     pair
   -- 4: □B → □□B
@@ -570,7 +570,7 @@ theorem s5_diamond_conj_diamond {A B : F} :
     (HasImp.imp (HasBox.box (HasImp.imp B HasBot.bot)) HasBot.bot)
   -- flip: ◇B → (A → (A ∧ ◇B))
   have flipped := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _ A
+    (@flip F _ _ S _ _ A
       (HasImp.imp (HasBox.box (HasImp.imp B HasBot.bot)) HasBot.bot)
       (HasImp.imp
         (HasImp.imp A

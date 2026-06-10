@@ -161,7 +161,7 @@ Phases are fully sequential because each rename/refactor may affect files touche
 
 ---
 
-### Phase 4: Coordinated rename theorem_flip/app1/app2 and G_imp_trans'/H_imp_trans' (Items 8, 10) [NOT STARTED]
+### Phase 4: Coordinated rename theorem_flip/app1/app2 and G_imp_trans'/H_imp_trans' (Items 8, 10) [COMPLETED]
 
 **Goal**: Rename `theorem_flip` to `flip`, `theorem_app1` to `app1`, `theorem_app2` to `app2` in Foundations and propagate to all downstream references. Also rename `G_imp_trans'` to `G_imp_trans` and `H_imp_trans'` to `H_imp_trans`.
 

@@ -163,7 +163,7 @@ def rcp {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
         (((A.imp Formula.bot).imp (B.imp Formula.bot)).imp
          (((B.imp Formula.bot).imp Formula.bot).imp
           ((A.imp Formula.bot).imp Formula.bot)))) :=
-      @theorem_flip Atom FrameClass.Base ((B.imp Formula.bot).imp Formula.bot)
+      @flip Atom FrameClass.Base ((B.imp Formula.bot).imp Formula.bot)
                     ((A.imp Formula.bot).imp (B.imp Formula.bot))
                     ((A.imp Formula.bot).imp Formula.bot)
     exact DerivationTree.modus_ponens [] _ _ flip' bc
@@ -219,7 +219,7 @@ def lce (A B : Formula Atom) :
         (((A.imp Formula.bot).imp (A.imp (B.imp Formula.bot))).imp
          (((A.imp (B.imp Formula.bot)).imp Formula.bot).imp
           ((A.imp Formula.bot).imp Formula.bot)))) :=
-      @theorem_flip Atom FrameClass.Base ((A.imp (B.imp Formula.bot)).imp Formula.bot)
+      @flip Atom FrameClass.Base ((A.imp (B.imp Formula.bot)).imp Formula.bot)
                     ((A.imp Formula.bot).imp (A.imp (B.imp Formula.bot)))
                     ((A.imp Formula.bot).imp Formula.bot)
     exact DerivationTree.modus_ponens [] _ _ flip' bc
@@ -260,7 +260,7 @@ def rce (A B : Formula Atom) :
         (((B.imp Formula.bot).imp (A.imp (B.imp Formula.bot))).imp
          (((A.imp (B.imp Formula.bot)).imp Formula.bot).imp
           ((B.imp Formula.bot).imp Formula.bot)))) :=
-      @theorem_flip Atom FrameClass.Base ((A.imp (B.imp Formula.bot)).imp Formula.bot)
+      @flip Atom FrameClass.Base ((A.imp (B.imp Formula.bot)).imp Formula.bot)
                     ((B.imp Formula.bot).imp (A.imp (B.imp Formula.bot)))
                     ((B.imp Formula.bot).imp Formula.bot)
     exact DerivationTree.modus_ponens [] _ _ flip' bc

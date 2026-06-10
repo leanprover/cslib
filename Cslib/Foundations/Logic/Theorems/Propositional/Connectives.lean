@@ -64,7 +64,7 @@ theorem contrapose_imp {φ ψ : F} :
     b_combinator
   -- flip: (φ→ψ) → (ψ→⊥) → (φ→⊥)
   exact ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp ψ HasBot.bot)
       (HasImp.imp φ ψ)
       (HasImp.imp φ HasBot.bot))
@@ -120,7 +120,7 @@ theorem classical_merge {φ ψ : F} :
     b_combinator
   -- flip: (¬ψ→¬φ) → ((¬φ→ψ) → ((ψ→⊥)→ψ))
   have flip_bc := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)
       (HasImp.imp (HasImp.imp ψ HasBot.bot)
         (HasImp.imp φ HasBot.bot))
@@ -262,7 +262,7 @@ theorem demorgan_conj_neg_forward {φ ψ : F} :
             (HasImp.imp ψ HasBot.bot)))) :=
     b_combinator
   have flip_bc := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp φ (HasImp.imp ψ HasBot.bot))
       (HasImp.imp
         (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
@@ -325,7 +325,7 @@ theorem demorgan_conj_neg_backward {φ ψ : F} :
             (HasImp.imp ψ HasBot.bot)))) :=
     b_combinator
   have step1 := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp
         (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
         (HasImp.imp ψ HasBot.bot))
@@ -348,7 +348,7 @@ theorem demorgan_conj_neg_backward {φ ψ : F} :
   have rce := @rce_imp F _ _ S _ _ (φ := φ) (ψ := ψ)
   -- Now: from ((φ∧ψ)→¬ψ) and ((φ∧ψ)→ψ), get ((φ∧ψ)→⊥)
   -- i.e., ¬(φ∧ψ)
-  -- app1: ψ → (ψ→⊥) → ⊥  [theorem_app1]
+  -- app1: ψ → (ψ→⊥) → ⊥  [app1]
   -- b: ((ψ→⊥)→⊥) → ((φ∧ψ)→(ψ→⊥)) → ((φ∧ψ)→⊥)
   -- Hmm, the composition is complex. Let me use combine_imp_conj
   -- pattern:

@@ -26,11 +26,11 @@ equivalents via the wrap/unwrap bridge pattern, eliminating redundant proofs.
 - `mp`: Modus ponens wrapper
 - `identity`: Identity combinator (SKK construction)
 - `b_combinator`: B combinator (function composition)
-- `theorem_flip`: C combinator (argument flip)
+- `flip`: C combinator (argument flip)
 
 ### Application Combinators
-- `theorem_app1`: Single application lemma
-- `theorem_app2`: Double application lemma (Vireo combinator)
+- `app1`: Single application lemma
+- `app2`: Double application lemma (Vireo combinator)
 
 ### Conjunction Introduction
 - `pairing`: Pairing combinator (derived from app2)
@@ -110,26 +110,26 @@ def b_combinator {fc : FrameClass} {A B C : Formula Atom} :
 /--
 Flip combinator (C): `⊢ (A → B → C) → (B → A → C)`.
 -/
-def theorem_flip {fc : FrameClass} {A B C : Formula Atom} :
+def flip {fc : FrameClass} {A B C : Formula Atom} :
     DerivationTree fc [] ((A.imp (B.imp C)).imp (B.imp (A.imp C))) :=
   DerivationTree.lift (FrameClass.base_le fc)
-    (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.theorem_flip _ _ _ Bimodal.HilbertTM _ _ A B C))
+    (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.flip _ _ _ Bimodal.HilbertTM _ _ A B C))
 
 /--
 Single application lemma (app1): `⊢ A → (A → B) → B`.
 -/
-def theorem_app1 {fc : FrameClass} {A B : Formula Atom} :
+def app1 {fc : FrameClass} {A B : Formula Atom} :
     DerivationTree fc [] (A.imp ((A.imp B).imp B)) :=
   DerivationTree.lift (FrameClass.base_le fc)
-    (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.theorem_app1 _ _ _ Bimodal.HilbertTM _ _ A B))
+    (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.app1 _ _ _ Bimodal.HilbertTM _ _ A B))
 
 /--
 Double application lemma (app2): `⊢ A → B → (A → B → C) → C`.
 -/
-def theorem_app2 {fc : FrameClass} {A B C : Formula Atom} :
+def app2 {fc : FrameClass} {A B C : Formula Atom} :
     DerivationTree fc [] (A.imp (B.imp ((A.imp (B.imp C)).imp C))) :=
   DerivationTree.lift (FrameClass.base_le fc)
-    (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.theorem_app2 _ _ _ Bimodal.HilbertTM _ _ A B C))
+    (unwrap (@_root_.Cslib.Logic.Theorems.Combinators.app2 _ _ _ Bimodal.HilbertTM _ _ A B C))
 
 /--
 Pairing combinator: `⊢ A → B → A ∧ B`.

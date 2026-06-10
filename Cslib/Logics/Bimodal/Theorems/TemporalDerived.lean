@@ -169,7 +169,7 @@ def since_imp_P (φ ψ : Formula Atom) :
 
 noncomputable def contrapositive_thm (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) :=
-  mp b_combinator (theorem_flip (A := (B.imp Formula.bot)) (B := (A.imp B)) (C := (A.imp Formula.bot)))
+  mp b_combinator (flip (A := (B.imp Formula.bot)) (B := (A.imp B)) (C := (A.imp Formula.bot)))
 
 noncomputable def ctx_mp {Γ : Context Atom} {A B : Formula Atom}
     (h1 : DerivationTree FrameClass.Base Γ (A.imp B))
@@ -272,13 +272,13 @@ noncomputable def H_and_intro (φ ψ : Formula Atom) :
 noncomputable def G_imp_trans (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp ((ψ.imp χ).allFuture.imp (φ.imp χ).allFuture)) :=
-  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_imp_trans'
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_imp_trans
     _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ) (χ := χ))
 
 noncomputable def H_imp_trans (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allPast.imp ((ψ.imp χ).allPast.imp (φ.imp χ).allPast)) :=
-  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_imp_trans'
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_imp_trans
     _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ) (χ := χ))
 
 end DistributionVariants

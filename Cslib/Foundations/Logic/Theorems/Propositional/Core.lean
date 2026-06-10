@@ -155,7 +155,7 @@ theorem efq_neg {φ ψ : F} :
           (HasImp.imp (HasImp.imp φ HasBot.bot) ψ))
         (HasImp.imp (HasImp.imp φ HasBot.bot)
           (HasImp.imp φ ψ))) :=
-    @theorem_flip F _ _ S _ _
+    @flip F _ _ S _ _
       φ (HasImp.imp φ HasBot.bot) ψ
   exact ModusPonens.mp flip_inst raa_inst
 
@@ -184,7 +184,7 @@ theorem rcp {φ ψ : F}
     b_combinator
   -- Flip: (¬φ→¬ψ) → (¬¬ψ → ¬¬φ)
   have flip_bc := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp (HasImp.imp ψ HasBot.bot) HasBot.bot)
       (HasImp.imp (HasImp.imp φ HasBot.bot)
         (HasImp.imp ψ HasBot.bot))
@@ -261,7 +261,7 @@ theorem rce_imp {φ ψ : F} :
     b_combinator
   -- flip: K → ((φ→(ψ→⊥))→ψ) → ((ψ→⊥)→ψ)
   have flip_bc2 := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp
         (HasImp.imp φ (HasImp.imp ψ HasBot.bot)) ψ)
       (HasImp.imp (HasImp.imp ψ HasBot.bot)

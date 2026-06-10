@@ -21,9 +21,9 @@ All theorems are generic over `[PropositionalHilbert S]`.
 - `imp_trans`: Transitivity of implication (hypothetical syllogism)
 - `identity`: Identity combinator (SKK construction)
 - `b_combinator`: B combinator (function composition)
-- `theorem_flip`: C combinator (argument flip)
-- `theorem_app1`: Single application lemma
-- `theorem_app2`: Double application lemma (Vireo combinator)
+- `flip`: C combinator (argument flip)
+- `app1`: Single application lemma
+- `app2`: Double application lemma (Vireo combinator)
 - `pairing`: Conjunction introduction combinator
 - `dni`: Double negation introduction
 - `combine_imp_conj`: Combine implications into conjunction
@@ -86,7 +86,7 @@ theorem b_combinator {φ ψ χ : F} :
 
 /-- C combinator (flip):
     `⊢ (φ → ψ → χ) → (ψ → φ → χ)`. -/
-theorem theorem_flip {φ ψ χ : F} :
+theorem flip {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (HasImp.imp φ (HasImp.imp ψ χ))
         (HasImp.imp ψ (HasImp.imp φ χ))) := by
@@ -125,18 +125,18 @@ theorem theorem_flip {φ ψ χ : F} :
     (ModusPonens.mp k_combine step5) step6
 
 /-- Single application lemma: `⊢ φ → (φ → ψ) → ψ`. -/
-theorem theorem_app1 {φ ψ : F} :
+theorem app1 {φ ψ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp φ
         (HasImp.imp (HasImp.imp φ ψ) ψ)) := by
   have id_ab := identity (S := S) (HasImp.imp φ ψ)
   exact ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (HasImp.imp φ ψ) φ ψ) id_ab
 
 /-- Double application (Vireo):
     `⊢ φ → ψ → (φ → ψ → χ) → χ`. -/
-theorem theorem_app2 {φ ψ χ : F} :
+theorem app2 {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp φ (HasImp.imp ψ
         (HasImp.imp (HasImp.imp φ (HasImp.imp ψ χ))
@@ -146,10 +146,10 @@ theorem theorem_app2 {φ ψ χ : F} :
       (HasImp.imp φ (HasImp.imp
         (HasImp.imp φ (HasImp.imp ψ χ))
         (HasImp.imp ψ χ))) :=
-    theorem_app1
+    app1
   have step_b : InferenceSystem.DerivableIn S
       (HasImp.imp ψ (HasImp.imp (HasImp.imp ψ χ) χ)) :=
-    theorem_app1
+    app1
   -- Stage 2: Weaken and flip to get both under ψ scope
   have a_b_bc_c := ModusPonens.mp
     (HasAxiomImplyK.implyK (S := S)
@@ -164,7 +164,7 @@ theorem theorem_app2 {φ ψ χ : F} :
       (ψ := ψ))
     step_a
   have a_b_abc_bc := ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       ψ φ (HasImp.imp
         (HasImp.imp φ (HasImp.imp ψ χ))
         (HasImp.imp ψ χ)))
@@ -278,7 +278,7 @@ theorem pairing (φ ψ : F) :
         (HasImp.imp
           (HasImp.imp φ (HasImp.imp ψ HasBot.bot))
           HasBot.bot))) :=
-  @theorem_app2 F _ _ S _ _ φ ψ HasBot.bot
+  @app2 F _ _ S _ _ φ ψ HasBot.bot
 
 /-- Double negation introduction: `⊢ φ → ¬¬φ`
     where `¬φ := φ → ⊥`. -/
@@ -287,7 +287,7 @@ theorem dni (φ : F) :
       (HasImp.imp φ
         (HasImp.imp (HasImp.imp φ HasBot.bot)
           HasBot.bot)) :=
-  @theorem_app1 F _ _ S _ _ (φ := φ) (ψ := HasBot.bot)
+  @app1 F _ _ S _ _ (φ := φ) (ψ := HasBot.bot)
 
 /-- Combine two implications into conjunction:
     from `⊢ P → A` and `⊢ P → B`,

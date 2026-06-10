@@ -232,7 +232,7 @@ theorem H_and_intro {φ ψ : F} :
 /-! ### G/H Implication Transitivity -/
 
 /-- `⊢ G(φ→ψ) → G(ψ→χ) → G(φ→χ)`. -/
-theorem G_imp_trans' {φ ψ χ : F} :
+theorem G_imp_trans {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (allFuture (HasImp.imp φ ψ))
         (HasImp.imp (allFuture (HasImp.imp ψ χ))
@@ -243,14 +243,14 @@ theorem G_imp_trans' {φ ψ χ : F} :
   have step2 := imp_trans step1 (G_distribution (S := S))
   -- step2 : G(ψ→χ) → G(φ→ψ) → G(φ→χ). Flip to get the right order.
   exact ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (φ := allFuture (HasImp.imp ψ χ))
       (ψ := allFuture (HasImp.imp φ ψ))
       (χ := allFuture (HasImp.imp φ χ)))
     step2
 
 /-- `⊢ H(φ→ψ) → H(ψ→χ) → H(φ→χ)`. -/
-theorem H_imp_trans' {φ ψ χ : F} :
+theorem H_imp_trans {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp (allPast (HasImp.imp φ ψ))
         (HasImp.imp (allPast (HasImp.imp ψ χ))
@@ -260,7 +260,7 @@ theorem H_imp_trans' {φ ψ χ : F} :
   have step1 := ModusPonens.mp (H_distribution (S := S)) h_b
   have step2 := imp_trans step1 (H_distribution (S := S))
   exact ModusPonens.mp
-    (@theorem_flip F _ _ S _ _
+    (@flip F _ _ S _ _
       (φ := allPast (HasImp.imp ψ χ))
       (ψ := allPast (HasImp.imp φ ψ))
       (χ := allPast (HasImp.imp φ χ)))

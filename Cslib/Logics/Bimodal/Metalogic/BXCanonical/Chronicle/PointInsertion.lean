@@ -737,10 +737,10 @@ theorem xu_lemma_2_3_since_top (fc : FrameClass) {A B C : Set (Formula Atom)}
     -- untl(gamma, beta) ∈ A from R3
     have h_untl := h_r3.1 beta h_beta gamma h_gamma
     -- ⊢ snce(alpha,top) → (beta → beta ∧ snce(alpha,top))
-    -- From pairing + theorem_flip: flip(pairing) gives snce → beta → beta ∧ snce
+    -- From pairing + flip: flip(pairing) gives snce → beta → beta ∧ snce
     have h_flip : DerivationTree fc []
         ((Formula.snce alpha top).imp (beta.imp (Formula.and beta (Formula.snce alpha top)))) :=
-      mp (pairing beta (Formula.snce alpha top)) theorem_flip
+      mp (pairing beta (Formula.snce alpha top)) flip
     -- G(snce → (beta → beta ∧ snce)) via temporal necessitation
     have h_G_flip := theorem_in_mcs_fc h_mcs_A (DerivationTree.temporal_necessitation _ h_flip)
     -- G(snce) → G(beta → beta ∧ snce) via temporal K distribution
@@ -807,7 +807,7 @@ theorem xu_lemma_2_3_until_top (fc : FrameClass) {A B C : Set (Formula Atom)}
     -- ⊢ untl(gamma,top) → (beta → beta ∧ untl(gamma,top))
     have h_flip : DerivationTree fc []
         ((Formula.untl gamma top).imp (beta.imp (Formula.and beta (Formula.untl gamma top)))) :=
-      mp (pairing beta (Formula.untl gamma top)) theorem_flip
+      mp (pairing beta (Formula.untl gamma top)) flip
     -- H(untl(gamma,top) → (beta → beta ∧ untl(gamma,top))) via past necessitation
     have h_H_flip := theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_flip)
     -- H(untl(gamma,top)) → H(beta → beta ∧ untl(gamma,top)) via past K

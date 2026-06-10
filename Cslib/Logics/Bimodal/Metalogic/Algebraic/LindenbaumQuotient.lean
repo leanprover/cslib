@@ -128,7 +128,7 @@ theorem provEquiv_imp_congr {φ₁ φ₂ ψ₁ ψ₂ : Formula Atom}
     have flip2 : DerivationTree FrameClass.Base []
         (((φ₁.imp ψ₁).imp ((φ₂.imp φ₁).imp (φ₂.imp ψ₁))).imp
          ((φ₂.imp φ₁).imp ((φ₁.imp ψ₁).imp (φ₂.imp ψ₁)))) :=
-      Theorems.Combinators.theorem_flip
+      Theorems.Combinators.flip
     have b2 := DerivationTree.modus_ponens [] _ _ flip2 b2_pre
     have h2 := DerivationTree.modus_ponens [] _ _ b2 d_φ_bwd
     exact ⟨Theorems.Combinators.imp_trans h2 h1⟩
@@ -140,7 +140,7 @@ theorem provEquiv_imp_congr {φ₁ φ₂ ψ₁ ψ₂ : Formula Atom}
     have flip2 : DerivationTree FrameClass.Base []
         (((φ₂.imp ψ₂).imp ((φ₁.imp φ₂).imp (φ₁.imp ψ₂))).imp
          ((φ₁.imp φ₂).imp ((φ₂.imp ψ₂).imp (φ₁.imp ψ₂)))) :=
-      Theorems.Combinators.theorem_flip
+      Theorems.Combinators.flip
     have b2 := DerivationTree.modus_ponens [] _ _ flip2 b2_pre
     have h2 := DerivationTree.modus_ponens [] _ _ b2 d_φ_fwd
     exact ⟨Theorems.Combinators.imp_trans h2 h1⟩
