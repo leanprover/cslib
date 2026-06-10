@@ -3,10 +3,13 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Temporal.ProofSystem.Axioms
-import Cslib.Logics.Temporal.ProofSystem.Derivation
-import Cslib.Logics.Temporal.ProofSystem.Derivable
-import Cslib.Logics.Temporal.ProofSystem.Instances
+
+module
+
+public import Cslib.Logics.Temporal.ProofSystem.Axioms
+public import Cslib.Logics.Temporal.ProofSystem.Derivation
+public import Cslib.Logics.Temporal.ProofSystem.Derivable
+public import Cslib.Logics.Temporal.ProofSystem.Instances
 
 /-! # Temporal Proof System
 

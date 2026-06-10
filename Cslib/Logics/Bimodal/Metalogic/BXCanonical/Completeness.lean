@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Completeness.Dense
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Completeness.Dense
 
 /-!
 # BX Completeness

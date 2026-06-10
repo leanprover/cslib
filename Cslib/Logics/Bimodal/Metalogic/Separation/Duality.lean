@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
 
 set_option linter.style.emptyLine false
 
@@ -27,6 +29,8 @@ cases.
 
 - GHR94 Chapter 10.2: duality halves the proof burden
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.MCS
+module
+
+public import Cslib.Logics.Temporal.Metalogic.MCS
 
 /-!
 # Temporal Content Definitions
@@ -19,6 +21,8 @@ for temporal logic. These are the foundational definitions used by all Chronicle
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic
 

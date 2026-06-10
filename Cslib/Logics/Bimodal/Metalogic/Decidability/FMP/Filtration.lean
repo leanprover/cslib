@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.ClosureMCS
-import Cslib.Logics.Bimodal.Semantics.Validity
-import Cslib.Logics.Bimodal.Semantics.Truth
-import Mathlib.Data.Setoid.Basic
-import Mathlib.Data.Fintype.Quotient
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.ClosureMCS
+public import Cslib.Logics.Bimodal.Semantics.Validity
+public import Cslib.Logics.Bimodal.Semantics.Truth
+public import Mathlib.Data.Setoid.Basic
+public import Mathlib.Data.Fintype.Quotient
 
 /-!
 # Filtration Construction for FMP
@@ -36,6 +38,8 @@ Filtration is a technique to construct finite models from infinite ones:
 - Blackburn, de Rijke, Venema: Modal Logic (Ch 2.3 Filtrations)
 - Ported from BimodalLogic/Theories/Bimodal/Metalogic/Decidability/FMP/Filtration.lean
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

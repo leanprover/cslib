@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodelBasic
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodelBasic
 -- WeakCanonical.IntegerModel.GoodStructuresModelSurgery not yet ported (task 36)
 
 /-!
@@ -28,6 +30,8 @@ only on S5 axioms and K-distribution.
 - Burgess 1982: "Axioms for tense logic II: Time periods"
 - Reynolds 1994: "Axiomatising first-order temporal logic: Until and Since over linear time"
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Chronicle
 

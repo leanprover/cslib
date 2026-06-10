@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
+module
+
+public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
 
 /-! # Maximal Consistent Sets for Propositional Logic
 
@@ -31,6 +33,8 @@ completeness results.
 * Cslib/Logics/Modal/Metalogic/MCS.lean -- modal MCS pattern
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean -- generic MCS framework
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.PL
 

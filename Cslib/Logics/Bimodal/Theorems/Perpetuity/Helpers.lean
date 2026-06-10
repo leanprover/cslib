@@ -3,8 +3,11 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.ProofSystem.Instances
-import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
+
+module
+
+public import Cslib.Logics.Bimodal.ProofSystem.Instances
+public import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
 
 /-! # Perpetuity Helper Lemmas
 
@@ -24,6 +27,8 @@ set_option linter.style.longLine false
 
 -- Do not open Cslib.Logic.Bimodal to avoid scoped notation conflicts
 -- (F, G, H, P are prefix notation for temporal operators)
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Theorems.Perpetuity
 

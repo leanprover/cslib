@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
-import Cslib.Logics.Temporal.Metalogic.WitnessSeed
-import Cslib.Logics.Temporal.Metalogic.CompletenessHelpers
+module
+
+public import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
+public import Cslib.Logics.Temporal.Metalogic.WitnessSeed
+public import Cslib.Logics.Temporal.Metalogic.CompletenessHelpers
 
 /-!
 # Temporal Canonical Frame
@@ -22,6 +24,8 @@ witnesses, and eventuality resolution for the temporal chronicle construction.
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
 set_option maxHeartbeats 800000
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

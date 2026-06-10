@@ -3,8 +3,11 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.FrameConditions.Soundness
-import Cslib.Logics.Bimodal.ProofSystem.Axioms
+
+module
+
+public import Cslib.Logics.Bimodal.FrameConditions.Soundness
+public import Cslib.Logics.Bimodal.ProofSystem.Axioms
 
 /-!
 # Axiom Compatibility Typeclasses
@@ -14,6 +17,8 @@ Typeclasses expressing which axioms are valid on which frame classes.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.FrameConditions
 

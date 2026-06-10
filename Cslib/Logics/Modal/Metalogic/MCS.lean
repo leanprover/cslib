@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Modal.Metalogic.DeductionTheorem
+module
+
+public import Cslib.Logics.Modal.Metalogic.DeductionTheorem
 
 /-! # Maximal Consistent Sets for S5 Modal Logic
 
@@ -32,6 +34,8 @@ model construction in the completeness theorem.
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean — generic MCS framework
 * BimodalLogic/Theories/Bimodal/Metalogic/Core/MCSProperties.lean — reference pattern
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Modal
 

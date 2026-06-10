@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.TruthPreservation
-import Cslib.Logics.Bimodal.Semantics.Validity
-import Cslib.Logics.Bimodal.Theorems.Propositional.Core
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.TruthPreservation
+public import Cslib.Logics.Bimodal.Semantics.Validity
+public import Cslib.Logics.Bimodal.Theorems.Propositional.Core
 
 /-!
 # Finite Model Property for TM Bimodal Logic
@@ -31,6 +33,8 @@ satisfiable in a finite model whose size is bounded by 2^|closure(φ)|.
 -/
 
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

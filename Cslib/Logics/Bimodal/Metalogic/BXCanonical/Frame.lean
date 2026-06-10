@@ -4,16 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
-import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalContent
-import Cslib.Logics.Bimodal.Metalogic.Bundle.WitnessSeed
-import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
-import Cslib.Logics.Bimodal.Syntax.Formula
-import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
-import Cslib.Logics.Bimodal.Theorems.Combinators
-import Cslib.Logics.Bimodal.Theorems.Propositional.Core
-import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
+public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalContent
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.WitnessSeed
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
+public import Cslib.Logics.Bimodal.Syntax.Formula
+public import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
+public import Cslib.Logics.Bimodal.Theorems.Combinators
+public import Cslib.Logics.Bimodal.Theorems.Propositional.Core
+public import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
 
 /-!
 # BX Canonical Frame
@@ -27,6 +29,8 @@ Defines the canonical frame for BX completeness.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical
 

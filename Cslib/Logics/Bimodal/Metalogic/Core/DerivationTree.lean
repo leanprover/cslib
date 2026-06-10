@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.ProofSystem.Derivation
-import Cslib.Foundations.Logic.Metalogic.Consistency
+module
+
+public import Cslib.Logics.Bimodal.ProofSystem.Derivation
+public import Cslib.Foundations.Logic.Metalogic.Consistency
 
 /-! # DerivationTree — Deriv and DerivationSystem for Bimodal Logic
 
@@ -28,6 +30,8 @@ framework. Height lemmas are already in `Derivation.lean`.
 * Cslib/Logics/Temporal/Metalogic/DerivationTree.lean — direct template
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean — generic MCS API
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

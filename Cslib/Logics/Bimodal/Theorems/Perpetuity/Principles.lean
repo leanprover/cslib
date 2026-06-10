@@ -3,9 +3,12 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
-import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
-import Cslib.Foundations.Logic.Theorems.Modal.S5
+
+module
+
+public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
+public import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
+public import Cslib.Foundations.Logic.Theorems.Modal.S5
 
 /-! # Perpetuity Principles (P1-P5)
 
@@ -28,6 +31,8 @@ establish fundamental connections between modal necessity (□) and temporal ope
 
 set_option linter.style.longLine false
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Theorems.Perpetuity
 

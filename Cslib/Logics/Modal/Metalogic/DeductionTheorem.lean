@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Modal.Metalogic.DerivationTree
+module
+
+public import Cslib.Logics.Modal.Metalogic.DerivationTree
 
 /-! # Deduction Theorem for S5 Modal Logic
 
@@ -34,6 +36,8 @@ impossible when the context is non-empty.
 * BimodalLogic/Theories/Bimodal/Metalogic/Core/DeductionTheorem.lean
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Modal
 

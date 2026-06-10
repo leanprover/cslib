@@ -4,17 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.SignedFormula
-import Cslib.Logics.Bimodal.Metalogic.Decidability.TraceCertificate
-import Cslib.Logics.Bimodal.Metalogic.Decidability.Tableau
-import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
-import Cslib.Logics.Bimodal.Metalogic.Decidability.Closure
-import Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation
-import Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction
-import Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction
-import Cslib.Logics.Bimodal.Metalogic.Decidability.DecisionProcedure
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP
-import Cslib.Logics.Bimodal.Metalogic.Decidability.Correctness
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.SignedFormula
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.TraceCertificate
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.Tableau
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.Closure
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.DecisionProcedure
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.Correctness
 
 /-!
 # Decidability Module -- Barrel Import

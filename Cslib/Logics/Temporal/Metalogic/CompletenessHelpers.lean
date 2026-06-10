@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.MCS
-import Cslib.Logics.Temporal.Metalogic.Soundness
+module
+
+public import Cslib.Logics.Temporal.Metalogic.MCS
+public import Cslib.Logics.Temporal.Metalogic.Soundness
 
 /-! # Completeness Helpers for Temporal Logic BX
 
@@ -25,6 +27,8 @@ circular import: Frame.lean -> Completeness.lean -> TruthLemma.lean -> ... -> Fr
 
 set_option linter.style.setOption false
 set_option maxHeartbeats 3200000
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

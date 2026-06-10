@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleConstruction
-import Cslib.Logics.Temporal.Semantics.Satisfies
+module
+
+public import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleConstruction
+public import Cslib.Logics.Temporal.Semantics.Satisfies
 
 /-!
 # Chronicle-to-Countermodel Extraction
@@ -34,6 +36,8 @@ and a point function `limit_f`. We define:
 set_option linter.style.setOption false
 set_option linter.flexible false
 set_option maxHeartbeats 1600000
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

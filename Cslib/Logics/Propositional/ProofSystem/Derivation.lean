@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Propositional.ProofSystem.Axioms
-import Cslib.Foundations.Logic.Metalogic.Consistency
+module
+
+public import Cslib.Logics.Propositional.ProofSystem.Axioms
+public import Cslib.Foundations.Logic.Metalogic.Consistency
 
 /-! # DerivationTree -- Syntactic Proof System for Propositional Logic
 
@@ -32,6 +34,8 @@ Unlike the modal `DerivationTree`, the propositional version has only 4 construc
 * Cslib/Logics/Modal/Metalogic/DerivationTree.lean -- modal derivation tree pattern
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean -- generic MCS API
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.PL
 

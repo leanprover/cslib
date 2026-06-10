@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.RRelation
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.PointInsertion
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.CounterexampleElimination
-import Mathlib.Data.Rat.Defs
-import Mathlib.Data.Rat.Denumerable
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.RRelation
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.PointInsertion
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.CounterexampleElimination
+public import Mathlib.Data.Rat.Defs
+public import Mathlib.Data.Rat.Denumerable
 
 /-!
 # Chronicle Construction (Omega-Chain and Claim 2.11)
@@ -49,6 +51,8 @@ an enumeration of `Rat x Formula x Formula x Bool`. Since both `Rat` and
 
 - Burgess 1982: "Axioms for tense logic II: Time periods", Section 2
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Chronicle
 

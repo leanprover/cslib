@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
-import Mathlib.Order.Basic
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
+public import Mathlib.Order.Basic
 
 /-!
 # Dense FMP - Finite Model Property for Dense Time
@@ -28,6 +30,8 @@ frame-independent at the proof-theoretic level.
 - Blackburn, de Rijke, Venema: Modal Logic (Ch 2.3, 10.1)
 - Ported from BimodalLogic/Theories/Bimodal/Metalogic/Decidability/FMP/DenseFMP.lean
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction
-import Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction
-import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.CountermodelExtraction
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.ProofExtraction
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
 
 /-!
 # Decision Procedure for TM Bimodal Logic
@@ -50,6 +52,8 @@ Proof extraction functions (`tryAxiomProof`, `buildCompositionalProof`,
 -/
 
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability
 

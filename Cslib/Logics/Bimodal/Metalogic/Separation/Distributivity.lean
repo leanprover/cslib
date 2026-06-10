@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
 
 set_option linter.style.emptyLine false
 
@@ -25,6 +27,8 @@ linear flows of time (not just integers).
 
 - GHR94, Lemma 10.2.1, p. 571
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

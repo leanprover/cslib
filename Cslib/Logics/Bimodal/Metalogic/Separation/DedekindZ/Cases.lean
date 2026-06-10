@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Separation.DedekindZ.QLemma
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Separation.DedekindZ.QLemma
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
@@ -20,6 +22,8 @@ set_option linter.unusedSectionVars false
 Replace-U infrastructure, congruence lemmas, and Cases 5-8 separability proofs
 for Dedekind-complete integer orders (GHR94 Lemma 10.3.11 items 5-8 on Z).
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

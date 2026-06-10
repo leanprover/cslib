@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Algebraic.LindenbaumQuotient
-import Mathlib.Order.BooleanAlgebra.Defs
-import Mathlib.Order.BooleanAlgebra.Basic
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Algebraic.LindenbaumQuotient
+public import Mathlib.Order.BooleanAlgebra.Defs
+public import Mathlib.Order.BooleanAlgebra.Basic
 
 /-!
 # Boolean Algebra Structure on Lindenbaum Algebra
@@ -27,6 +29,8 @@ This module proves that the Lindenbaum-Tarski algebra is a `BooleanAlgebra`.
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
 set_option maxHeartbeats 400000
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.BooleanStructure
 

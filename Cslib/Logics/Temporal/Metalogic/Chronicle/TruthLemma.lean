@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleToCountermodel
+module
+
+public import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleToCountermodel
 
 /-!
 # Chronicle Truth Lemma
@@ -35,6 +37,8 @@ set_option linter.style.setOption false
 set_option linter.style.longLine false
 set_option linter.flexible false
 set_option maxHeartbeats 3200000
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

@@ -43,22 +43,22 @@ next_project_number: 77
 
 ### Uncategorized
 
-76 [NOT STARTED] — module_keyword_migration
+76 [COMPLETED] — module_keyword_migration
 
 ## Tasks
 
-### 76. Add module keyword to all non-module files in Cslib.lean import tree
-- **Effort**: Large (8-16 hours)
-- **Status**: [NOT STARTED]
+### 76. Systematic module keyword migration across remaining Logics/ files
+- **Effort**: Small (completed)
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
-**Description**: Add module keyword to all non-module files in Cslib.lean import tree. Task 74 phase (d) revealed that Cslib/Logics/Bimodal/FrameConditions/Compatibility.lean cannot be given the module keyword in isolation because Cslib.lean (which has module) imports 150+ non-module files. Fix by adding `module` keyword, `public import`, and `@[expose] public section` to all non-module .lean files imported (directly or transitively) from Cslib.lean, following the same pattern used in the task 68 migration of the 15 Foundations/Logic files. This unblocks top-level `lake build` from the "cannot import non-module from module" error.
+**Description**: Systematically add `module` keyword, `public import`, and `@[expose] public section` to all non-module .lean files across Logics/ (Bimodal, Modal, Temporal, Propositional) that are imported by Cslib.lean. Task 74 phase (d) identified the root cause: Cslib.lean has `module` but 145 of its imported Logics/ files did not, causing "cannot import non-module from module" build failure. Migrated 145 files following the same pattern established by task 68 for Foundations/Logic (15 files). This brings the Logics/ directories into conformance with the module convention used throughout the rest of the codebase.
 
 ---
 
 ### 75. Develop propositional Hilbert proof system and derive natural deduction rules
 - **Effort**: Large (16-24 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: Develop a propositional Hilbert proof system in Logics/Propositional/ and derive natural deduction rules as syntactic sugar. Create a Hilbert-style proof system for propositional logic (ProofSystem/, DeductionTheorem, MCS, etc.) following the same pattern as Modal/, Temporal/, and Bimodal/. Derive the natural deduction rules (→I via deduction theorem, →E via modus ponens, ⊥E via ex falso axiom, assumption via context membership) as lemmas with natural-deduction-flavored names. Derive cut, weakening, and substitution within the Hilbert framework. Refactor NaturalDeduction/Basic.lean so its rules are syntactic sugar over the Hilbert infrastructure rather than a standalone inductive type. Modal/, Temporal/, and Bimodal/ should import from the propositional Hilbert system where appropriate, reusing shared propositional proof infrastructure instead of duplicating it. This extends the Foundations → Propositional → {Modal, Temporal} → Bimodal hierarchy by making Propositional a genuine proof-theoretic foundation, not just a formula-type foundation.
@@ -102,7 +102,7 @@ next_project_number: 77
 
 ### 71. Polish documentation in Theorems.lean and Axioms.lean
 - **Effort**: Small (0.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
@@ -116,7 +116,7 @@ next_project_number: 77
 
 ### 70. Remove unused public import Cslib.Init from 4 core definition files
 - **Effort**: Small (0.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
@@ -130,7 +130,7 @@ next_project_number: 77
 
 ### 69. Fix linter warnings in Foundations/Logic theorem files
 - **Effort**: Medium (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
@@ -144,7 +144,7 @@ next_project_number: 77
 
 ### 68. Add module keyword to 10 Foundations/Logic theorem files
 - **Effort**: Medium (1.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Propositional.ProofSystem.Derivation
+module
+
+public import Cslib.Logics.Propositional.ProofSystem.Derivation
 
 /-! # Deduction Theorem for Propositional Logic
 
@@ -31,6 +33,8 @@ empty-context case entirely.
 * Cslib/Logics/Modal/Metalogic/DeductionTheorem.lean -- modal deduction theorem
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.PL
 

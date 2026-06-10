@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.Saturation
 
 /-!
 # Countermodel Extraction from Open Tableau Branches
@@ -57,6 +59,8 @@ adaptations for universe-polymorphic `Formula Atom`.
 -/
 
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability
 

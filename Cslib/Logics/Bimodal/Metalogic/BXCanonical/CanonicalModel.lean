@@ -4,14 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalChain
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.TruthLemma
-import Cslib.Logics.Bimodal.Metalogic.Bundle.FMCSDef
-import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
-import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
-import Cslib.Logics.Bimodal.Metalogic.Bundle.ModalSaturation
-import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
-import Mathlib.Logic.Denumerable
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalChain
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.TruthLemma
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.FMCSDef
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.ModalSaturation
+public import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
+public import Mathlib.Logic.Denumerable
 
 /-!
 # BXCanonical Canonical Model Construction
@@ -26,6 +28,8 @@ algebraic completeness theorem for the BX completeness proof.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.CanonicalModel
 
