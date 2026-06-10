@@ -1,6 +1,17 @@
 {
-  "next_project_number": 83,
+  "next_project_number": 84,
   "active_projects": [
+    {
+      "project_number": 83,
+      "project_name": "update_pr1_description_and_roadmap",
+      "status": "not_started",
+      "task_type": "general",
+      "depends_on": [
+        81
+      ],
+      "created": "2026-06-10T18:03:13Z",
+      "last_updated": "2026-06-10T18:03:13Z"
+    },
     {
       "project_number": 82,
       "project_name": "systematic_codebase_review_logics_foundations",

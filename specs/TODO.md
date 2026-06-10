@@ -19,7 +19,7 @@ next_project_number: 83
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,76,81,82 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
+| 1 | 36,37,38,60,61,76,82,83 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
@@ -44,7 +44,6 @@ next_project_number: 83
 ### Clean Up
 
 76 [NOT STARTED] — module_keyword_migration
-81 [PLANNED] — pr1_foundations_logic_code_review
 
 ### Submit PRs
 
@@ -56,9 +55,17 @@ next_project_number: 83
 
 ### Uncategorized
 
-82 [NOT STARTED] — systematic_codebase_review_logics_foundations
+82 [RESEARCHED] — systematic_codebase_review_logics_foundations
+83 [NOT STARTED] — update_pr1_description_and_roadmap
 
 ## Tasks
+
+### 83. Review changes since task 74 to update PR 1 description and roadmap
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+
+**Description**: Review all changes made since completing task 74 (including tasks 75-81) to update and improve specs/059_pr1_foundations_logic/pr-description.md for PR 1 submission, and update specs/ROADMAP.md as appropriate
 
 ### 81. Review PR 1 Foundations Logic code quality for infrastructure, organization, naming, and proof improvements
 - **Effort**: large
