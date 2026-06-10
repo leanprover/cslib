@@ -11,6 +11,7 @@ public import Cslib.Logics.Bimodal.Syntax.Formula
 public import Cslib.Logics.Bimodal.Theorems.Combinators
 public import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
 public import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
+public import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
 
 /-!
 # Temporal Derived Theorems from BX Axioms
@@ -31,6 +32,7 @@ open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.Theorems.Combinators
 open Cslib.Logic.Bimodal.Theorems.Propositional
 open Cslib.Logic.Bimodal.Theorems
+open Cslib.Logic.Bimodal.Theorems.Perpetuity (unwrap)
 
 variable {Atom : Type*}
 
@@ -106,12 +108,14 @@ end DerivedAxioms
 noncomputable def G_distribution (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
-  temp_k_dist_derived φ ψ
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_distribution
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
 noncomputable def H_distribution (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allPast.imp (φ.allPast.imp ψ.allPast)) :=
-  past_k_dist φ ψ
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_distribution
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
 noncomputable def G_transitivity (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
@@ -256,40 +260,26 @@ section DistributionVariants
 noncomputable def G_and_intro (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allFuture.imp (ψ.allFuture.imp (φ.and ψ).allFuture)) :=
-  let g_pair := DerivationTree.temporal_necessitation _ (pairing (fc := FrameClass.Base) φ ψ)
-  let step1 := mp g_pair (G_distribution φ (ψ.imp (φ.and ψ)))
-  imp_trans step1 (G_distribution ψ (φ.and ψ))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_and_intro
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
 noncomputable def H_and_intro (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allPast.imp (ψ.allPast.imp (φ.and ψ).allPast)) :=
-  let h_pair := past_necessitation _ (pairing (fc := FrameClass.Base) φ ψ)
-  let step1 := mp h_pair (H_distribution φ (ψ.imp (φ.and ψ)))
-  imp_trans step1 (H_distribution ψ (φ.and ψ))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_and_intro
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
 noncomputable def G_imp_trans (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp ((ψ.imp χ).allFuture.imp (φ.imp χ).allFuture)) :=
-  let g_b := DerivationTree.temporal_necessitation _
-    (@b_combinator Atom .Base (A := φ) (B := ψ) (C := χ))
-  let step1 := mp g_b (G_distribution (ψ.imp χ) ((φ.imp ψ).imp (φ.imp χ)))
-  let step2 := imp_trans step1 (G_distribution (φ.imp ψ) (φ.imp χ))
-  mp step2 (@theorem_flip Atom .Base
-    (A := (ψ.imp χ).allFuture)
-    (B := (φ.imp ψ).allFuture)
-    (C := (φ.imp χ).allFuture))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_imp_trans'
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ) (χ := χ))
 
 noncomputable def H_imp_trans (φ ψ χ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allPast.imp ((ψ.imp χ).allPast.imp (φ.imp χ).allPast)) :=
-  let h_b := past_necessitation _
-    (@b_combinator Atom .Base (A := φ) (B := ψ) (C := χ))
-  let step1 := mp h_b (H_distribution (ψ.imp χ) ((φ.imp ψ).imp (φ.imp χ)))
-  let step2 := imp_trans step1 (H_distribution (φ.imp ψ) (φ.imp χ))
-  mp step2 (@theorem_flip Atom .Base
-    (A := (ψ.imp χ).allPast)
-    (B := (φ.imp ψ).allPast)
-    (C := (φ.imp χ).allPast))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_imp_trans'
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ) (χ := χ))
 
 end DistributionVariants
 
@@ -298,14 +288,14 @@ section TemporalContraposition
 noncomputable def G_contrapose (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp (ψ.neg.imp φ.neg).allFuture) :=
-  let g_cp := DerivationTree.temporal_necessitation _ (contrapose_imp φ ψ)
-  mp g_cp (G_distribution (φ.imp ψ) (ψ.neg.imp φ.neg))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_contrapose
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
 noncomputable def H_contrapose (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allPast.imp (ψ.neg.imp φ.neg).allPast) :=
-  let h_cp := past_necessitation _ (contrapose_imp φ ψ)
-  mp h_cp (H_distribution (φ.imp ψ) (ψ.neg.imp φ.neg))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_contrapose
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
 end TemporalContraposition
 
@@ -314,14 +304,14 @@ section FuturePastChains
 noncomputable def connect_future_G (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allFuture.imp (φ.somePast.allFuture).allFuture) :=
-  let g_cf := DerivationTree.temporal_necessitation _ (connect_future_thm φ)
-  mp g_cf (G_distribution φ (φ.somePast.allFuture))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.connect_future_G
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ))
 
 noncomputable def connect_past_H (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allPast.imp (φ.someFuture.allPast).allPast) :=
-  let h_cp := past_necessitation _ (connect_past_thm φ)
-  mp h_cp (H_distribution φ (φ.someFuture.allPast))
+  unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.connect_past_H
+    _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ))
 
 noncomputable def connect_future_chain (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
