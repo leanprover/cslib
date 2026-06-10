@@ -59,11 +59,12 @@ next_project_number: 82
 
 ### 79. Systematic deduplication audit and consolidation across Logics/
 - **Effort**: Large (8-16 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 78
 - **Research**: [specs/079_deduplicate_shared_helpers/reports/01_deduplication-survey.md]
 - **Plan**: [specs/079_deduplicate_shared_helpers/plans/01_deduplication-plan.md]
+- **Summary**: [specs/079_deduplicate_shared_helpers/summaries/01_deduplication-summary.md]
 
 **Description**: Conduct a systematic survey of all code duplication across the Logics/ directory tree (Propositional, Modal, Temporal, Bimodal) and Foundations/Logic/, then consolidate duplicated definitions into shared locations. Task 78 removed `private` from definitions to enable the `module` keyword migration, but left duplication in place. This task aims for highest code quality by eliminating all unnecessary repetition.
 

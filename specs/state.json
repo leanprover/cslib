@@ -489,13 +489,14 @@
     {
       "project_number": 79,
       "project_name": "deduplicate_shared_helpers",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T16:12:16Z",
-      "last_updated": "2026-06-10T16:43:02Z",
+      "last_updated": "2026-06-10T17:05:02Z",
       "dependencies": [
         78
-      ]
+      ],
+      "completion_summary": "Consolidated duplicated code across Logics/ in 4 phases: extracted removeAll to shared ListHelpers (4→1), consolidated Bimodal wrap/unwrap (3→1), replaced Temporal PropositionalHelpers with Foundations delegations (233→117 lines), delegated 10 Bimodal TemporalDerived theorems. MCSProperties deferred (FrameClass incompatibility). lake build passes (2914 jobs)."
     },
     {
       "project_number": 80,
