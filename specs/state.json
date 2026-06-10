@@ -503,14 +503,14 @@
     {
       "project_number": 80,
       "project_name": "generic_deduction_theorem",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T16:44:52Z",
-      "last_updated": "2026-06-10T17:12:09Z",
+      "last_updated": "2026-06-10T17:33:33Z",
       "dependencies": [
         79
       ],
-      "session_id": "sess_1781111276_85576a",
+      "session_id": "sess_1781111846_3d9236",
       "researched": "2026-06-10T16:59:43Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -523,9 +523,15 @@
           "path": "specs/080_generic_deduction_theorem/plans/01_generic-deduction.md",
           "type": "plan",
           "summary": "5-phase implementation plan for HasHilbertTree typeclass with 4 generic deduction helpers"
+        },
+        {
+          "path": "specs/080_generic_deduction_theorem/summaries/01_generic-deduction-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: HasHilbertTree typeclass + 4 generic deduction helpers"
         }
       ],
-      "topic": "Clean Up"
+      "topic": "Clean Up",
+      "completion_summary": "Created HasHilbertTree typeclass with 4 generic deduction helpers in Foundations/Logic/Metalogic/DeductionHelpers.lean; refactored all 4 logic domains to use shared helpers; 16 duplicated definitions reduced to 4; net 52 lines removed; full lake build passes"
     }
   ],
   "repository_health": {

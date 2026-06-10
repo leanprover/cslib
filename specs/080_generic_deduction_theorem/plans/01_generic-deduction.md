@@ -1,7 +1,7 @@
 # Implementation Plan: Task #80
 
 - **Task**: 80 - Generic DeductionTheorem interface
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: Task 78 (completed), Task 79 (completed)
 - **Research Inputs**: specs/080_generic_deduction_theorem/reports/01_team-research.md
