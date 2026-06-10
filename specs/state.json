@@ -1,5 +1,5 @@
 {
-  "next_project_number": 87,
+  "next_project_number": 88,
   "active_projects": [
     {
       "project_number": 85,
@@ -656,6 +656,14 @@
       "task_type": "lean4",
       "created": "2026-06-10T21:39:57Z",
       "last_updated": "2026-06-10T21:39:57Z"
+    },
+    {
+      "project_number": 87,
+      "project_name": "derive_nd_from_hilbert",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T22:01:46Z",
+      "last_updated": "2026-06-10T22:01:46Z"
     }
   ],
   "repository_health": {

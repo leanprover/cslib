@@ -51,6 +51,24 @@ next_project_number: 86
 
 ## Tasks
 
+### 87. Derive natural deduction from Hilbert system or prove extensional equivalence
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: The two propositional proof systems — the Hilbert-style `DerivationTree` and the independent natural deduction `Derivation` in `NaturalDeduction/Basic.lean` — are currently unconnected. This task aims to formally relate them.
+
+**Primary goal**: Derive the natural deduction rules as theorems from the Hilbert derivation tree, showing that every ND derivation can be translated to a Hilbert derivation (and vice versa). Concretely, construct functions:
+- `Derivation T (Γ ⊢ φ) → DerivationTree Γ.toList φ` (or a suitable context conversion)
+- `DerivationTree Γ φ → Derivation T (Γ.toFinset ⊢ φ)` (with appropriate theory parameter)
+
+**Fallback**: If full structural translation is impractical due to the different context representations (`Finset` vs `List`) or the theory parameter in ND, prove extensional equivalence at the `Prop` level instead — i.e., that the two systems derive the same formulas from the empty context.
+
+**Key challenges**:
+- Context representation mismatch: ND uses `Finset (Proposition Atom)`, Hilbert uses `List (Proposition Atom)`
+- The ND system is parameterized over a `Theory T`, while the Hilbert system bakes axioms into `PropositionalAxiom`
+- The ND system has `imp_intro`/`imp_elim`/`bot_elim` as primitive constructors; the Hilbert system has `ax`/`assumption`/`modus_ponens`/`weakening`
+
 ### 86. Systematic lint and quality audit of all pr1/foundations-logic additions
 - **Effort**: medium
 - **Status**: [NOT STARTED]
