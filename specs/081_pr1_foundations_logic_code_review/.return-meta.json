@@ -1,21 +1,24 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "started_at": "2026-06-10T00:00:00Z",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/081_pr1_foundations_logic_code_review/plans/01_pr1-code-review-plan.md",
-      "summary": "6-phase implementation plan for 13 code quality improvements from PR 1 Foundations Logic review"
+      "path": "specs/081_pr1_foundations_logic_code_review/summaries/01_pr1-code-review-summary.md",
+      "type": "summary"
     }
   ],
-  "next_steps": "Run /implement 81 to execute the plan",
-  "metadata": {
-    "session_id": "sess_1781114400_p81abc",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 6,
-    "estimated_hours": 4,
-    "dependency_waves": [[1], [2], [3], [4], [5], [6]]
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
   },
-  "memory_candidates": []
+  "metadata": {
+    "session_id": "sess_task81_impl",
+    "agent_type": "lean-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed"
+  }
 }
