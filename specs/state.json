@@ -1,6 +1,15 @@
 {
-  "next_project_number": 57,
+  "next_project_number": 58,
   "active_projects": [
+    {
+      "project_number": 57,
+      "project_name": "improve_theorem_organization",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T00:20:38Z",
+      "last_updated": "2026-06-10T00:20:38Z",
+      "topic": "Foundations"
+    },
     {
       "project_number": 56,
       "project_name": "plan_pr_submission_strategy",

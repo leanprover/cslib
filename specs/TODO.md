@@ -1,10 +1,19 @@
 ---
-next_project_number: 57
+next_project_number: 58
 ---
 
 # Tasks
 
 ## Tasks
+
+### 57. Improve theorem organization: move misplaced generic theorems to Foundations and eliminate concrete duplicates in Bimodal
+- **Effort**: Large
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: The theorem files have two organizational issues: (1) `Logics/Temporal/Theorems/TemporalDerived.lean` is generic over `[TemporalBXHilbert S]` typeclasses with no concrete types — it belongs in `Foundations/Logic/Theorems/Temporal/` alongside the Modal and Propositional foundations theorems. `FrameConditions.lean` is similarly generic (borderline). (2) Three files in `Bimodal/Theorems/` (`Combinators.lean`, `Propositional/Core.lean`, `Propositional/Connectives.lean`) re-prove ~600 lines of propositional/combinator theorems over concrete `DerivationTree` that already exist generically in `Foundations/Logic/Theorems/`. The `wrap`/`unwrap` bridge pattern in `Perpetuity/Helpers.lean` already shows how to call Foundations theorems from concrete bimodal context — the redundant files should be refactored to use this pattern. Actions: move misplaced generic files to Foundations, refactor concrete duplicates to use unwrap bridge, update all downstream imports, verify with `lake build`.
+
+---
 
 ### 56. Plan PR submission strategy for systematic repo contributions
 - **Effort**: Medium
@@ -24,7 +33,7 @@ next_project_number: 57
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,51,56 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,51,57 | -- | Foundations, Temporal Logic, Bimodal Porting, ... |
 | 2 | 39,40,52 | 36,37,51 | Temporal Logic, Submit PRs |
 | 3 | 41,53,54 | 38,39,40,52 | Foundations, Submit PRs |
 
@@ -32,6 +41,7 @@ next_project_number: 57
 
 ### Foundations
 
+57 [NOT STARTED] — improve_theorem_organization
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
 
 ### Temporal Logic
@@ -51,10 +61,6 @@ next_project_number: 57
   └─ 52 [NOT STARTED] — Audit tense logic code for compliance with Mathlib style guide (h
     └─ 53 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Infrastructure 
     └─ 54 [NOT STARTED] — Apply style compliance fixes and prepare Temporal Semantics PR wi
-
-### Uncategorized
-
-56 [RESEARCHING] — plan_pr_submission_strategy
 
 ## Tasks
 
