@@ -42,7 +42,6 @@ carrying `HasBot`, `HasImp`, and `HasBox` instances.
 
 namespace Cslib.Logic.Theorems.Modal.Basic
 
-
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core

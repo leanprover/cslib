@@ -40,7 +40,6 @@ BimodalLogic's `Axiom.prop_s` (weakening: φ → (ψ → φ)) maps to cslib's
 
 namespace Cslib.Logic.Theorems.Combinators
 
-
 open Cslib.Logic
 
 variable {F : Type*} [HasBot F] [HasImp F]

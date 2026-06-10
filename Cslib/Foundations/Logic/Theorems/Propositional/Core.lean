@@ -41,7 +41,6 @@ encoding (Lukasiewicz style):
 
 namespace Cslib.Logic.Theorems.Propositional.Core
 
-
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators
 
