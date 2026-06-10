@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Core.RestrictedMCS
-public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-public import Cslib.Logics.Bimodal.Syntax.SubformulaClosure
+import Cslib.Logics.Bimodal.Metalogic.Core.RestrictedMCS
+import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Syntax.SubformulaClosure
 
 /-!
 # Closure MCS Infrastructure for FMP
@@ -36,8 +34,6 @@ closure of the target formula. This ensures:
 -/
 
 set_option linter.style.emptyLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

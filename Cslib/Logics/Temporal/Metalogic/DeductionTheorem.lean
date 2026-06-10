@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.DerivationTree
+import Cslib.Logics.Temporal.Metalogic.DerivationTree
 
 /-! # Deduction Theorem for Temporal Logic BX
 
@@ -38,8 +36,6 @@ set_option linter.flexible false
 set_option linter.style.multiGoal false
 set_option linter.unusedTactic false
 set_option linter.style.setOption false
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

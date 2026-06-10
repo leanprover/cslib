@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.ProofSystem.Derivation
-public import Cslib.Foundations.Logic.Metalogic.Consistency
+import Cslib.Logics.Temporal.ProofSystem.Derivation
+import Cslib.Foundations.Logic.Metalogic.Consistency
 
 /-! # DerivationTree — Height, Deriv, and DerivationSystem for Temporal Logic
 
@@ -32,8 +30,6 @@ framework.
 * Cslib/Logics/Modal/Metalogic/DerivationTree.lean — direct template
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean — generic MCS API
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

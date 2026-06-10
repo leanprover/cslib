@@ -4,16 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.RRelation
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.PointInsertion
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
-public import Mathlib.Data.Rat.Defs
-public import Mathlib.Algebra.Order.Ring.Rat
-public import Mathlib.Data.Finset.Max
-public import Mathlib.Tactic.Linarith
+import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
+import Cslib.Logics.Temporal.Metalogic.Chronicle.RRelation
+import Cslib.Logics.Temporal.Metalogic.Chronicle.PointInsertion
+import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
+import Mathlib.Data.Rat.Defs
+import Mathlib.Algebra.Order.Ring.Rat
+import Mathlib.Data.Finset.Max
+import Mathlib.Tactic.Linarith
 
 /-!
 # Counterexample Elimination (Burgess 2.9-2.10)
@@ -40,8 +38,6 @@ by inserting new points into the domain.
 
 - Burgess 1982: "Axioms for tense logic II: Time periods", Section 2
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

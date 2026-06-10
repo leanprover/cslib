@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
-public import Cslib.Logics.Bimodal.Semantics.Truth
-public import Cslib.Logics.Bimodal.Semantics.Validity
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
+import Cslib.Logics.Bimodal.Semantics.Truth
+import Cslib.Logics.Bimodal.Semantics.Validity
 
 /-!
 # BX Truth Lemma
@@ -46,8 +44,6 @@ The Until/Since forward direction (eventuality resolution) is proved via
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical
 

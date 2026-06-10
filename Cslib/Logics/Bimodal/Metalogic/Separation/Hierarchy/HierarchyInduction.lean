@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyDefs
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyCaseSep
+import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyDefs
+import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyCaseSep
 
 /-!
 # Substitution-Based Induction Engine for the Separation Hierarchy (Steps 1-5b)
@@ -23,8 +21,6 @@ set_option linter.unusedSectionVars false
 set_option linter.flexible false
 set_option linter.unusedDecidableInType false
 set_option linter.style.maxHeartbeats false
-@[expose] public section
-
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 
 variable {Atom : Type*} [DecidableEq Atom]

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
+import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
 
 /-!
 # Canonical Chain Infrastructure
@@ -19,8 +17,6 @@ MCS-level lemmas for BX axioms and delegation bridges.
 -/
 
 set_option linter.style.emptyLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

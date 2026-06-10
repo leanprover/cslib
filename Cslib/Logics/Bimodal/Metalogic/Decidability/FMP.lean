@@ -4,15 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.ClosureMCS
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.Filtration
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FiniteModel
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.TruthPreservation
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DenseFMP
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DiscreteFMP
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.ClosureMCS
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.Filtration
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FiniteModel
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.TruthPreservation
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DenseFMP
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DiscreteFMP
 
 /-!
 # Finite Model Property -- Barrel Import

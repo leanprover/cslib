@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.ProofSystem.Derivation
-public import Cslib.Logics.Bimodal.ProofSystem.Instances
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Cslib.Foundations.Logic.Theorems.Combinators
+import Cslib.Logics.Bimodal.ProofSystem.Derivation
+import Cslib.Logics.Bimodal.ProofSystem.Instances
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Foundations.Logic.Theorems.Combinators
 
 /-!
 # Combinators - Propositional Reasoning Combinators
@@ -54,8 +52,6 @@ Ported from BimodalLogic/Theories/Bimodal/Theorems/Combinators.lean
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Theorems.Combinators
 

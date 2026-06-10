@@ -1,21 +1,18 @@
 -- Barrel import for BXCanonical/ modules including Chronicle/ and Completeness/
-
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.TruthLemma
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.SubformulaClosure
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.HintikkaPoint
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.Construction
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Filtration.DefectChain
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalChain
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.OrderedSeedConsistency
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalModel
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.RRelation
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.PointInsertion
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.CounterexampleElimination
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleConstruction
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodelBasic
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodel
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Completeness
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.TruthLemma
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.SubformulaClosure
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.HintikkaPoint
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.Construction
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Filtration.DefectChain
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalChain
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.OrderedSeedConsistency
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalModel
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.RRelation
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.PointInsertion
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.CounterexampleElimination
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleConstruction
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodelBasic
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodel
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Completeness

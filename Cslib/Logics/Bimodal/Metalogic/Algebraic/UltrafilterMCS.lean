@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Algebraic.InteriorOperators
-public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Metalogic.Algebraic.InteriorOperators
+import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
 
 /-!
 # Ultrafilter-MCS Correspondence
@@ -29,8 +27,6 @@ and maximal consistent sets.
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
 set_option maxHeartbeats 800000
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.UltrafilterMCS
 

@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.DerivationTree
-public import Cslib.Logics.Temporal.Semantics.Validity
-public import Mathlib.Order.Max
+import Cslib.Logics.Temporal.Metalogic.DerivationTree
+import Cslib.Logics.Temporal.Semantics.Validity
+import Mathlib.Order.Max
 
 /-! # Soundness Theorem for Temporal Logic BX
 
@@ -30,8 +28,6 @@ over all serial linear orders (linear orders with `NoMaxOrder` and `NoMinOrder`)
 
 set_option linter.style.setOption false
 set_option maxHeartbeats 1600000
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

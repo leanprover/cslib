@@ -4,21 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Cslib.Logics.Bimodal.Syntax.Subformulas
-public import Mathlib.Data.Finset.Basic
-public import Mathlib.Data.Finset.Lattice.Fold
-public import Mathlib.Data.List.Basic
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Logics.Bimodal.Syntax.Subformulas
+import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Finset.Lattice.Fold
+import Mathlib.Data.List.Basic
 
 /-!
 # Core Subformula Closure: Finset-Based Closure, Negation Closure, and Membership Lemmas
 
 Core subformula closure as Finset, closureWithNeg, and subformula membership lemmas.
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

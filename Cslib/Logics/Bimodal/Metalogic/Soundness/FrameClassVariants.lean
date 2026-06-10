@@ -3,12 +3,9 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Soundness.DenseValidity
-public import Mathlib.Order.SuccPred.Basic
-public import Mathlib.Order.SuccPred.Archimedean
+import Cslib.Logics.Bimodal.Metalogic.Soundness.DenseValidity
+import Mathlib.Order.SuccPred.Basic
+import Mathlib.Order.SuccPred.Archimedean
 
 /-!
 # Soundness Lemmas for General and Discrete Frame Classes
@@ -18,8 +15,6 @@ General (Base) frame class and discrete frame class validity variants.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.SoundnessLemmas
 

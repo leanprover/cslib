@@ -3,11 +3,8 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-
-module
-
-public import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
-public import Cslib.Foundations.Logic.Theorems.Temporal.FrameConditions
+import Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived
+import Cslib.Foundations.Logic.Theorems.Temporal.FrameConditions
 
 /-! # Temporal Theorems
 

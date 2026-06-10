@@ -4,16 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.ModalSaturation
-public import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
-public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-public import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Cslib.Logics.Bimodal.Theorems.Propositional.Core
+import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
+import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
+import Cslib.Logics.Bimodal.Metalogic.Bundle.ModalSaturation
+import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
+import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Logics.Bimodal.Theorems.Propositional.Core
 
 /-!
 # BFMCS Construction Primitives
@@ -27,8 +25,6 @@ Provides primitive building blocks for BFMCS construction.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Bundle
 

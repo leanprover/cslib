@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.TemporalContent
-public import Cslib.Logics.Temporal.Metalogic.GeneralizedNecessitation
-public import Cslib.Logics.Temporal.Metalogic.PropositionalHelpers
+import Cslib.Logics.Temporal.Metalogic.TemporalContent
+import Cslib.Logics.Temporal.Metalogic.GeneralizedNecessitation
+import Cslib.Logics.Temporal.Metalogic.PropositionalHelpers
 
 /-!
 # Witness Seed Definitions and Consistency
@@ -24,8 +22,6 @@ Also contains the g_content/h_content duality theorems.
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
 set_option maxHeartbeats 800000
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic
 

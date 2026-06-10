@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Modal.Basic
-public import Cslib.Foundations.Logic.Metalogic.Consistency
+import Cslib.Logics.Modal.Basic
+import Cslib.Foundations.Logic.Metalogic.Consistency
 
 /-! # DerivationTree — Syntactic Proof System for S5 Modal Logic
 
@@ -32,8 +30,6 @@ height functions. The `Deriv` wrapper provides the `Prop` version for the generi
 * BimodalLogic/Theories/Bimodal/ProofSystem/Derivation.lean — reference pattern
 * Cslib/Foundations/Logic/Metalogic/Consistency.lean — generic MCS API
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Modal
 

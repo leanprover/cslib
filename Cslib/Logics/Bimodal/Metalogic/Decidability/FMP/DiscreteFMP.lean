@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
-public import Mathlib.Order.SuccPred.Basic
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
+import Mathlib.Order.SuccPred.Basic
 
 /-!
 # Discrete FMP - Finite Model Property for Discrete Time
@@ -30,8 +28,6 @@ filtration works regardless of the frame's discreteness property.
 - Blackburn, de Rijke, Venema: Modal Logic (Ch 2.3)
 - Ported from BimodalLogic/Theories/Bimodal/Metalogic/Decidability/FMP/DiscreteFMP.lean
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

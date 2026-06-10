@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
-public import Mathlib.Data.Int.Interval
+import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
+import Mathlib.Data.Int.Interval
 
 set_option linter.style.emptyLine false
 
@@ -24,8 +22,6 @@ Provides integer-arithmetic lemmas needed by the separation proof:
 - GHR94, Chapter 10.2: These lemmas support the key Z-dependent steps
   (particularly Lemma 10.2.2, the negation equivalence)
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

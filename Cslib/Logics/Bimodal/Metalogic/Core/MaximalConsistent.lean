@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
+import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
 
 /-!
 # Maximal Consistent Sets for TM Bimodal Logic
@@ -37,8 +35,6 @@ via `bimodalDerivationSystem` and `bimodal_has_deduction_theorem`.
 
 set_option linter.style.emptyLine false
 set_option linter.flexible false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Core
 

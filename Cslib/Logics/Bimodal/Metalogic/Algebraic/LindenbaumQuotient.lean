@@ -4,14 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.ProofSystem.Derivation
-public import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
-public import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
-public import Cslib.Logics.Bimodal.Theorems.Combinators
-public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Bridge
-public import Cslib.Logics.Bimodal.Theorems.TemporalDerived
+import Cslib.Logics.Bimodal.ProofSystem.Derivation
+import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
+import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
+import Cslib.Logics.Bimodal.Theorems.Combinators
+import Cslib.Logics.Bimodal.Theorems.Perpetuity.Bridge
+import Cslib.Logics.Bimodal.Theorems.TemporalDerived
 
 /-!
 # Lindenbaum Quotient Construction
@@ -24,8 +22,6 @@ Ported from BimodalLogic/Theories/Bimodal/Metalogic/Algebraic/LindenbaumQuotient
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.LindenbaumQuotient
 

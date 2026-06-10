@@ -4,13 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.WitnessSeed
-public import Cslib.Logics.Bimodal.Theorems.TemporalDerived
-public import Cslib.Logics.Bimodal.Theorems.Propositional.Core
-public import Mathlib.Order.Zorn
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
+import Cslib.Logics.Bimodal.Metalogic.Bundle.WitnessSeed
+import Cslib.Logics.Bimodal.Theorems.TemporalDerived
+import Cslib.Logics.Bimodal.Theorems.Propositional.Core
+import Mathlib.Order.Zorn
 
 /-!
 # r-Relation Lemmas (Burgess 1982, Lemmas 2.2-2.3)
@@ -51,8 +49,6 @@ The r-relation lemmas use:
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Chronicle
 

@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-public import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
-public import Cslib.Logics.Bimodal.Theorems.Combinators
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Theorems.GeneralizedNecessitation
+import Cslib.Logics.Bimodal.Theorems.Combinators
 
 /-!
 # Temporal Content Definitions
@@ -23,8 +21,6 @@ Shared definitions for g_content, h_content, f_content, p_content, u_content, s_
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Bundle
 

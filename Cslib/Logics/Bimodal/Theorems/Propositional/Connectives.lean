@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.ProofSystem.Instances
-public import Cslib.Logics.Bimodal.Theorems.Propositional.Core
-public import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
+import Cslib.Logics.Bimodal.ProofSystem.Instances
+import Cslib.Logics.Bimodal.Theorems.Propositional.Core
+import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
 
 /-!
 # Derived Connective Reasoning
@@ -24,8 +22,6 @@ Ported from BimodalLogic/Theories/Bimodal/Theorems/Propositional/Connectives.lea
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Theorems.Propositional
 

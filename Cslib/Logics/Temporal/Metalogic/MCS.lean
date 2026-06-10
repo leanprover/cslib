@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.DeductionTheorem
+import Cslib.Logics.Temporal.Metalogic.DeductionTheorem
 
 /-! # Maximal Consistent Sets for Temporal Logic BX
 
@@ -34,8 +32,6 @@ set_option linter.dupNamespace false
 set_option linter.flexible false
 set_option linter.unusedSimpArgs false
 set_option maxHeartbeats 1600000
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

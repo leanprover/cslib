@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
-public import Mathlib.Data.Set.Finite.Basic
+import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
+import Mathlib.Data.Set.Finite.Basic
 
 set_option linter.style.emptyLine false
 
@@ -28,8 +26,6 @@ needed by the separation proof.
 
 - GHR94, Chapter 10.2: Substitution is used in Lemmas 10.2.5-10.2.8
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

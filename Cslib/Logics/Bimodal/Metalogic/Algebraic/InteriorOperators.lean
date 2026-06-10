@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Algebraic.BooleanStructure
-public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Bridge
+import Cslib.Logics.Bimodal.Metalogic.Algebraic.BooleanStructure
+import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Theorems.Perpetuity.Bridge
 
 /-!
 # Interior Operators for Modal and Temporal Modalities
@@ -44,8 +42,6 @@ the modal T-axiom `□φ → φ` is still valid (modal accessibility is reflexiv
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.InteriorOperators
 

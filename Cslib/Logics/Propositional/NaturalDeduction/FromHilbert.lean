@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
+import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
 
 /-! # Natural Deduction Rules as Hilbert Wrappers
 
@@ -43,8 +41,6 @@ the standalone `NaturalDeduction/Basic.lean`.
 * Cslib/Logics/Propositional/NaturalDeduction/Basic.lean -- standalone ND system
 * Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean -- deduction theorem
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.PL
 

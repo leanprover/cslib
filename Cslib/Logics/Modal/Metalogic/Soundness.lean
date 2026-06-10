@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Modal.Metalogic.DerivationTree
+import Cslib.Logics.Modal.Metalogic.DerivationTree
 
 /-! # Soundness Theorem for S5 Modal Logic
 
@@ -31,8 +29,6 @@ of validity under the inference rules.
 
 * Cslib/Logics/Modal/Basic.lean — semantic definitions and axiom validity proofs
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Modal
 

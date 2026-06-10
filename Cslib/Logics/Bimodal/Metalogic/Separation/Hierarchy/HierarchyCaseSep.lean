@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyDefs
+import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyDefs
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
@@ -22,8 +20,6 @@ Extracted from HierarchyCompletion.lean to break a circular dependency
 
 These theorems do NOT depend on HierarchyInduction.
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

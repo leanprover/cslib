@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
-public import Mathlib.Data.Finset.Basic
-public import Mathlib.Data.Finset.Card
-public import Mathlib.Data.Finset.Image
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
+import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Finset.Image
 
 /-!
 # Defect-Discharge Chain Construction
@@ -23,8 +21,6 @@ Sigma defect count on BXPoints and defect-discharge infrastructure.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Filtration
 

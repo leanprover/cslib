@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Syntax.SubformulaClosure.NestingDepth
+import Cslib.Logics.Bimodal.Syntax.SubformulaClosure.NestingDepth
 
 /-!
 # Temporal Formula Infrastructure
@@ -18,8 +16,6 @@ Ported from BimodalLogic/Theories/Bimodal/Syntax/SubformulaClosure/TemporalFormu
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

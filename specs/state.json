@@ -1,21 +1,21 @@
 {
-  "next_project_number": 78,
+  "next_project_number": 79,
   "active_projects": [
     {
       "project_number": 77,
       "project_name": "audit_noncomputable_usage",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-10T15:20:52Z",
-      "last_updated": "2026-06-10T15:20:52Z"
+      "last_updated": "2026-06-10T15:36:03Z"
     },
     {
       "project_number": 76,
       "project_name": "module_keyword_migration",
-      "status": "completed",
+      "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-10T14:32:33Z",
-      "last_updated": "2026-06-10T14:32:33Z",
+      "last_updated": "2026-06-10T15:36:05Z",
       "completion_summary": "Migrated 145 non-module files across Logics/ (Bimodal, Modal, Temporal, Propositional) to use module keyword, public import, and @[expose] public section. Resolved lake build cannot import non-module error. Pre-existing errors in Bimodal/Theorems/Combinators.lean unrelated."
     },
     {
@@ -460,6 +460,17 @@
       "subtasks": [
         42,
         43
+      ]
+    },
+    {
+      "project_number": 78,
+      "project_name": "module_keyword_and_private_audit",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T15:36:29Z",
+      "last_updated": "2026-06-10T15:36:29Z",
+      "dependencies": [
+        76
       ]
     }
   ],

@@ -4,14 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.OrderedSeedConsistency
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.RRelation
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalModel
-public import Cslib.Logics.Bimodal.Theorems.TemporalDerived
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Frame
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.OrderedSeedConsistency
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleTypes
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.RRelation
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalModel
+import Cslib.Logics.Bimodal.Theorems.TemporalDerived
 
 /-!
 # Point Insertion Lemmas (Burgess 2.4-2.8)
@@ -74,8 +72,6 @@ Local definitions used for point insertion lemmas.
 - Burgess 1982: "Basic tense logic", Section 2, Lemmas 2.4-2.8
 - Task 107 implementation plan, Phase 3
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Chronicle
 

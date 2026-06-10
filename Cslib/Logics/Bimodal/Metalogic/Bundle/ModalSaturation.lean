@@ -4,13 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
-public import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
-public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
+import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
+import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
+import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
 
 /-!
 # Modal Saturation for BFMCS
@@ -25,8 +23,6 @@ is true in some family has a witness family where the inner formula is true.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Bundle
 

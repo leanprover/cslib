@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
+import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
+import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
 
 /-!
 # Ordered Seed Consistency
@@ -20,8 +18,6 @@ Enriched seed consistency, linearity, and two-defect seeds for temporal logic.
 -/
 
 set_option linter.style.emptyLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

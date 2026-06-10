@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.Tableau
-public import Cslib.Logics.Bimodal.ProofSystem.Derivation
+import Cslib.Logics.Bimodal.Metalogic.Decidability.Tableau
+import Cslib.Logics.Bimodal.ProofSystem.Derivation
 
 /-!
 # Axiom Pattern Matcher for Tableau Decision Procedure
@@ -55,8 +53,6 @@ for universe-polymorphic `Formula Atom`.
 -/
 
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability
 

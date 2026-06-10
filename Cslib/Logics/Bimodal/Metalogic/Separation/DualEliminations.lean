@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Eliminations
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Duality
-public import Cslib.Logics.Bimodal.Metalogic.Separation.SeparationThm
+import Cslib.Logics.Bimodal.Metalogic.Separation.Eliminations
+import Cslib.Logics.Bimodal.Metalogic.Separation.Duality
+import Cslib.Logics.Bimodal.Metalogic.Separation.SeparationThm
 
 /-!
 # Dual Elimination Cases (S out of U)
@@ -29,8 +27,6 @@ Each theorem concludes `is_separable`, which follows directly from
 set_option linter.style.emptyLine false
 set_option linter.unusedSectionVars false
 set_option linter.unusedDecidableInType false
-@[expose] public section
-
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 
 variable {Atom : Type*} [DecidableEq Atom] [Infinite Atom]

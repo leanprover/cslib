@@ -4,14 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
-public import Cslib.Logics.Temporal.Metalogic.Chronicle.OrderedSeedConsistency
-public import Cslib.Logics.Temporal.Metalogic.WitnessSeed
-public import Mathlib.Order.Zorn
+import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleTypes
+import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
+import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
+import Cslib.Logics.Temporal.Metalogic.Chronicle.OrderedSeedConsistency
+import Cslib.Logics.Temporal.Metalogic.WitnessSeed
+import Mathlib.Order.Zorn
 
 /-!
 # r-Relation Lemmas (Burgess 1982, Lemmas 2.2-2.5)
@@ -27,8 +25,6 @@ Core r-relation infrastructure for the temporal chronicle construction.
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
 set_option maxHeartbeats 1600000
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.TraceCertificate
+import Cslib.Logics.Bimodal.Metalogic.Decidability.AxiomMatcher
+import Cslib.Logics.Bimodal.Metalogic.Decidability.TraceCertificate
 
 /-!
 # Branch Closure Detection for Tableau Decision Procedure
@@ -53,8 +51,6 @@ adaptations for universe-polymorphic `Formula Atom`.
 -/
 
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability
 

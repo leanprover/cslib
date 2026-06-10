@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalCoherence
-public import Cslib.Logics.Bimodal.Metalogic.Bundle.SuccRelation
-public import Cslib.Logics.Bimodal.Theorems.TemporalDerived
+import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalCoherence
+import Cslib.Logics.Bimodal.Metalogic.Bundle.SuccRelation
+import Cslib.Logics.Bimodal.Theorems.TemporalDerived
 
 /-!
 # Until/Since Coherence: Backward Direction
@@ -22,8 +20,6 @@ Backward Until and backward Since lemmas for FMCS families over Int.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Bundle
 

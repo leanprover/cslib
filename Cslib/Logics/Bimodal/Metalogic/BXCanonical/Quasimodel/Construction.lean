@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.HintikkaPoint
-public import Mathlib.Data.List.Chain
-public import Mathlib.Data.Finset.Card
+import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Quasimodel.HintikkaPoint
+import Mathlib.Data.List.Chain
+import Mathlib.Data.Finset.Card
 
 /-!
 # Quasimodel Construction with Defect-Discharge
@@ -38,8 +36,6 @@ with the defect-discharge property for Until/Since formulas.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Quasimodel
 

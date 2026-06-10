@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Temporal.Metalogic.MCS
+import Cslib.Logics.Temporal.Metalogic.MCS
 
 /-!
 # Generalized Necessitation for Temporal Logic
@@ -21,8 +19,6 @@ temp_k_dist_derived, and past_k_dist at the DerivationTree level.
 
 set_option linter.style.emptyLine false
 set_option maxHeartbeats 400000
-
-@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic
 

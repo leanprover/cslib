@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Cslib.Logics.Bimodal.Syntax.Subformulas
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Cslib.Logics.Bimodal.Syntax.Subformulas
 
 /-!
 # Signed Formula and Branch Types for Tableau Decidability
@@ -49,8 +47,6 @@ These definitions extend `Cslib.Logic.Bimodal.Formula` with `Hashable`,
 They must be in the `Cslib.Logic.Bimodal` namespace so that dot notation
 on `Formula Atom` resolves correctly.
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

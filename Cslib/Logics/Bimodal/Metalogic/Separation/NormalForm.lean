@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Eliminations
-public import Cslib.Logics.Bimodal.Metalogic.Separation.Distributivity
-public import Cslib.Logics.Bimodal.Metalogic.Separation.DedekindZ.Cases
+import Cslib.Logics.Bimodal.Metalogic.Separation.Eliminations
+import Cslib.Logics.Bimodal.Metalogic.Separation.Distributivity
+import Cslib.Logics.Bimodal.Metalogic.Separation.DedekindZ.Cases
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
@@ -23,8 +21,6 @@ U(A,B) (with A, B S-free) at top level only is separable. This uses the 8
 elimination cases (Cases 1-4 proved, Cases 5-8 via DedekindZ) to decompose the
 Since formula into separable components.
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

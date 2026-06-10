@@ -3,11 +3,8 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-
-module
-
-public import Cslib.Logics.Bimodal.FrameConditions.FrameClass
-public import Cslib.Logics.Bimodal.Semantics.Validity
+import Cslib.Logics.Bimodal.FrameConditions.FrameClass
+import Cslib.Logics.Bimodal.Semantics.Validity
 
 /-!
 # Parameterized Validity
@@ -17,8 +14,6 @@ Parameterized validity definitions for TM formulas across different frame classe
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.FrameConditions
 

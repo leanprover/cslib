@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Syntax.Formula
-public import Mathlib.Algebra.Order.Group.Int
+import Cslib.Logics.Bimodal.Syntax.Formula
+import Mathlib.Algebra.Order.Group.Int
 
 set_option linter.style.emptyLine false
 
@@ -31,8 +29,6 @@ Core definitions for the separation theorem over integer time (GHR94 Chapter 10.
 
 - GHR94, Chapter 10, Section 10.2 (pp. 569-592)
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

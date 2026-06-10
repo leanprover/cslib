@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-module
-
-public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.Filtration
-public import Mathlib.Data.Fintype.Card
-public import Mathlib.Data.Fintype.Powerset
-public import Mathlib.Data.Set.Finite.Basic
+import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.Filtration
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Fintype.Powerset
+import Mathlib.Data.Set.Finite.Basic
 
 /-!
 # Finiteness Theorem for Filtered Models
@@ -32,8 +30,6 @@ there are at most 2^|closure| distinct equivalence classes.
 - Blackburn, de Rijke, Venema: Modal Logic (Ch 2.3)
 - Ported from BimodalLogic/Theories/Bimodal/Metalogic/Decidability/FMP/FiniteModel.lean
 -/
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

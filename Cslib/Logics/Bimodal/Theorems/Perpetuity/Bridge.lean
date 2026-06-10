@@ -3,10 +3,7 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-
-module
-
-public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Principles
+import Cslib.Logics.Bimodal.Theorems.Perpetuity.Principles
 
 /-! # Perpetuity Bridge Lemmas and P6
 
@@ -32,8 +29,6 @@ monotonicity lemmas, and the proof of perpetuity principle P6.
 -/
 
 set_option linter.style.longLine false
-
-@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Theorems.Perpetuity
 
