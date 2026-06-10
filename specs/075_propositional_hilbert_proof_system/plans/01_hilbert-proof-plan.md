@@ -141,12 +141,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Deduction Theorem [NOT STARTED]
+### Phase 3: Deduction Theorem [COMPLETED]
 
 **Goal**: Prove the deduction theorem for propositional logic by well-founded recursion on `DerivationTree.height`, following Modal's exact structure minus the necessitation case.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean`
+- [x] Create `Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean`
   - Import `Cslib.Logics.Propositional.ProofSystem.Derivation`
   - Define `removeAll` helper and supporting lemmas (`removeAll_subset_of_subset`, `mem_removeAll_of_mem_of_ne`, `removeAll_subset_removeAll`) -- identical to Modal
   - Define `deduction_axiom`: if phi is an axiom, then `Gamma |- A -> phi`
