@@ -80,22 +80,18 @@ instance {World Atom} (S : Set (Model World Atom)) : IsEquiv (Proposition Atom) 
 
 /-- Logical equivalence is a congruence. -/
 instance {World Atom} (S : Set (Model World Atom)) : Congruence (Proposition Atom) (Proposition.Equiv S) where
-  elim :
-      Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
-      (Proposition.Equiv S) := by
-    intro ctx φ₁ φ₂ heqv m hₘ w
-    specialize heqv m hₘ
+  elim ctx φ₁ φ₂ heqv m hₘ w := by
+    have (Γ : HasContext.Context (Proposition Atom)) (φ) : Γ.fill φ = Γ<[φ] := rfl
     induction ctx generalizing w
     case hole => grind
     case not c ih | andL c ih | andR c ih =>
       specialize ih w
       grind
     case diamond c ih =>
-      simp only [Satisfies.iff_iff_iff]
+      rw [Satisfies.iff_iff_iff]
       apply Iff.intro
       all_goals
-        intro h
-        rcases h with ⟨w', h⟩
+        rintro ⟨w', h⟩
         specialize ih w'
         grind
 
