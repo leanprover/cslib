@@ -40,7 +40,7 @@ next_project_number: 76
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-74 [PLANNED] — polish_pr1_quality_and_description
+74 [PARTIAL] — polish_pr1_quality_and_description
 
 ## Tasks
 
@@ -55,11 +55,13 @@ next_project_number: 76
 
 ### 74. Polish PR1 code quality and update pr-description.md for publication
 - **Effort**: Medium (2-3 hours)
-- **Status**: [PLANNED]
+- **Status**: [PARTIAL]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 68, 69, 71
 - **Topic**: Submit PRs
 - **Research**: [specs/074_polish_pr1_quality_and_description/reports/01_polish-pr1-research.md]
+- **Plan**: [specs/074_polish_pr1_quality_and_description/plans/01_polish-pr1-plan.md]
+- **Summary**: [specs/074_polish_pr1_quality_and_description/summaries/01_implementation-summary.md]
 
 **Description**: Five sub-issues: (a) Fix double blank lines left by sed in Combinators.lean:42-43, Propositional/Core.lean:43-44, and Modal/Basic.lean:44-45. (b) Scope `set_option linter.style.longLine false` in S5.lean and TemporalDerived.lean from file-scoped to per-theorem using `set_option ... in theorem ...` syntax; use `let` abbreviations to shorten long theorem signatures where possible. (c) Deduplicate `top'`/`neg'` abbreviations — TemporalDerived.lean redefines these identically to Axioms.lean; import from Axioms instead. (d) Fix top-level `lake build` by adding `module` keyword to `Cslib/Logics/Bimodal/FrameConditions/Compatibility.lean` (non-module file imported from module Cslib.lean). (e) Update `specs/059_pr1_foundations_logic/pr-description.md`: fix all stale per-file line counts in the File Inventory table, add a new section explaining the Embedding/ relocation (tasks 72-73) — why Propositional/Embedding.lean was moved to Bimodal/Embedding/PropositionalEmbedding.lean and Modal/FromPropositional.lean + Temporal/FromPropositional.lean were created to establish the clean import hierarchy Propositional/ → {Modal/, Temporal/} → Bimodal/, and document the module keyword migration (task 68) where all 15 files now have `module` and `@[expose] public section`.
 
