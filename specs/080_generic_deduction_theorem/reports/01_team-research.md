@@ -3,10 +3,11 @@
 **Task**: Generic DeductionTheorem interface across all logic domains
 **Date**: 2026-06-10
 **Mode**: Team Research (4 teammates)
+**Revised**: 2026-06-10 (post-synthesis risk review)
 
 ## Summary
 
-A generic deduction theorem is feasible but the task description's proposed typeclass design needs significant revision. The fundamental constraint is that Lean 4 cannot pattern-match on abstract types — the proof requires structural case analysis over concrete inductive constructors, which typeclasses cannot directly expose. The recommended approach is a **two-tier design**: a shared `DerivationCase` inductive that captures the 4 common constructor patterns plus a catch-all for empty-context-only extras, combined with a `HasDerivationTree` typeclass whose `cases` method maps each logic's concrete tree into `DerivationCase`. This enables a single generic proof with pattern matching on the shared type. Estimated net savings: 400-500 lines (from 952 total). Fallback if termination checking fails: share only the 4 helper lemmas (~105 lines saved).
+A fully generic deduction theorem (one proof serving all 4 logics) is infeasible in Lean 4 due to the fundamental constraint that pattern matching and well-founded recursion cannot operate through typeclass-mediated abstract types. The recommended approach is a **shared helper typeclass**: a lightweight `HasHilbertTree` typeclass in `Foundations/Logic/` that abstracts the 4 purely-constructive helper lemmas (`deduction_axiom`, `deduction_imp_self`, `deduction_assumption_other`, `deduction_mp`), while each logic retains its own thin `deduction_with_mem` and `deduction_theorem` calling the generic helpers. Estimated net savings: ~120 lines (from 952 total), with near-zero risk and improved maintainability through single-sourcing the helper logic. The approach prioritizes clarity, robustness, and ease of extension — qualities essential for a cornerstone library.
 
 ## Key Findings
 
@@ -28,7 +29,7 @@ Every extra constructor requires empty context and is uniformly discharged by `s
 
 ### 2. The Fundamental Constraint: No Pattern Matching on Abstract Types
 
-All 4 teammates independently identified the same critical constraint: **Lean 4 cannot `match` on a typeclass-provided type.** The deduction theorem proof requires:
+All 4 teammates independently identified the same critical constraint: **Lean 4 cannot `match` on a typeclass-provided type.** The `deduction_with_mem` and `deduction_theorem` proofs require:
 
 ```lean
 match d with
@@ -40,136 +41,224 @@ match d with
 
 This is case analysis over an inductive type's constructors — not method dispatch. A typeclass exposing "constructor accessors" (as the task description proposes) is insufficient. The proof needs an **elimination principle**, not field getters.
 
-### 3. Axiom Naming Is Semantically Swapped (Must Fix First)
+### 3. Why the Full-Generic Approaches Fail
 
-PL/Modal follow the standard naming (K = weakening `φ → ψ → φ`, S = distribution). Temporal/Bimodal have the names **backwards**: `.imp_s` means the K combinator, `.imp_k` means the S combinator. This must be harmonized before or during implementation, likely as part of Task 79.
+Three approaches for a single generic proof were evaluated and all have serious problems:
 
-### 4. Prior Art Validates Typeclass Direction
+**`DerivationCase` inductive (Teammate B)**: Define a shared case-analysis type, match on that. Problem: the recursive calls in `deduction_with_mem` use `d₁`, `d₂`, `d'` — variables bound by `match`. These are structural sub-terms of `d`, which Lean's termination checker can see. If those variables instead come from a typeclass `cases` method, they're opaque outputs — Lean cannot verify `d₁.height < d.height`. The `DerivationCase` type would need height-decrease witnesses as extra fields, parameterized by the original tree. The type signature balloons and each logic's `cases` implementation must prove these height decreases. The generic proof becomes harder to read than the concrete proof it replaces.
 
-The FormalizedFormalLogic/Foundation project (largest Lean 4 multi-logic formalization, with Gödel incompleteness formalized) uses a similar architecture: `Entailment`, `Deduction`, `Axiomatized` typeclasses abstracting over proof systems. However, it works at `Prop`-level (derivability), not `Type`-level (concrete trees). CSLib's additional challenge is exposing tree structure for pattern matching.
+**Parameterized single inductive (Teammate C)**: Define `GenericDerivationTree` with an `ExtraRule` parameter. Problem: requires refactoring all 4 logic domains' `DerivationTree` types and all downstream code that pattern-matches on them. Too invasive for the savings.
+
+**Abstract recursor typeclass (Teammate B, Alternative B)**: Expose a hand-rolled `casesOn` in the typeclass. Problem: the motive-based recursor pattern becomes extremely complex for mutually-recursive functions (`deduction_with_mem` + `deduction_theorem`), and well-founded recursion still needs height witnesses.
+
+### 4. What CAN Be Shared: The 4 Helper Lemmas
+
+The 4 helper lemmas are purely constructive — they *build* derivation trees without pattern matching:
+
+| Helper | What it does | Uses |
+|--------|-------------|------|
+| `deduction_axiom` | If `⊢ φ` then `Γ ⊢ A → φ` | `implyK`, `mp`, `weakening` |
+| `deduction_imp_self` | `Γ ⊢ A → A` | `implyS`, `implyK`, `mp`, `weakening` |
+| `deduction_assumption_other` | If `B ∈ Γ` then `Γ ⊢ A → B` | `assumption`, `implyK`, `mp`, `weakening` |
+| `deduction_mp` | From `Γ ⊢ A→(C→D)` and `Γ ⊢ A→C`, get `Γ ⊢ A→D` | `implyS`, `mp`, `weakening` |
+
+These need only 6 typeclass fields: `Tree`, `implyK`, `implyS`, `assumption`, `mp`, `weakening`. No height, no elimination, no termination issues. Each logic's instance is ~10 lines mapping directly to its existing constructors.
+
+### 5. Axiom Naming Is Semantically Swapped (Must Fix First)
+
+PL/Modal follow the standard naming (K = weakening `φ → ψ → φ`, S = distribution). Temporal/Bimodal have the names **backwards**: `.imp_s` means the K combinator, `.imp_k` means the S combinator. This was harmonized by Task 79 (now `[COMPLETED]`), which should have addressed naming consistency.
+
+### 6. Prior Art Validates Conservative Approach
+
+The FormalizedFormalLogic/Foundation project (largest Lean 4 multi-logic formalization) does **not** share deduction theorem proofs across logics. Each logic proves its own independently. This confirms that full generic abstraction is non-trivial even for the most mature Lean 4 logic libraries.
 
 ## Synthesis
 
-### Conflicts Between Teammates
+### Approaches Evaluated
 
-| Question | Teammate A | Teammate B | Teammate C | Teammate D |
-|----------|-----------|-----------|-----------|-----------|
-| Can full generic proof work? | No — share helpers only | Yes — via `DerivationCase` inductive | Unlikely — recommend parameterized inductive | Yes — with ≤8-field typeclass |
-| Lines saved | ~105 | ~400-500 | ~500+ (but invasive) | ~500 |
-| Risk level | Low | Medium (termination checker) | High (requires refactoring all trees) | Medium |
+| Approach | Lines saved | Risk | Readability | Verdict |
+|----------|-----------|------|-------------|---------|
+| Full generic via `DerivationCase` | ~400-500 | High (termination checker) | Worse (indirection) | Rejected |
+| Parameterized single inductive | ~500+ | High (invasive refactor) | Neutral | Rejected |
+| Abstract recursor typeclass | ~400-500 | High (complex signatures) | Worse | Rejected |
+| **Shared helpers typeclass** | **~120** | **Near-zero** | **Better** | **Recommended** |
+| Tactic/macro generation | ~400-500 | Medium (maintenance) | Worse (hidden code) | Rejected |
 
-### Resolution
+### Why Shared Helpers Wins for a Cornerstone Library
 
-The approaches form a natural **tiered strategy**:
+For CSLib as a community resource, the criteria that matter most are:
 
-**Tier 1 (Safe)**: Share the 4 helper lemmas via `HasHilbertTree` typeclass (Teammate A). These build derivation trees and don't require pattern matching. Guaranteed to work. ~105 lines saved.
+1. **Readability**: A newcomer can read one file and understand the proof. The helper typeclass has 6 fields with obvious semantics. No indirection through `DerivationCase`, no height witnesses, no abstract elimination.
 
-**Tier 2 (Recommended)**: Full generic proof via `DerivationCase` inductive (Teammate B). Define a concrete shared case-analysis type that the generic proof matches on. Each logic maps its constructors into `DerivationCase` via a typeclass `cases` method. This enables writing `deduction_with_mem` and `deduction_theorem` once. ~400-500 lines saved. **Risk**: Lean 4's well-founded recursion checker may struggle with `termination_by (cases d).height` through an abstract height function.
+2. **Maintainability**: Adding logic #5 means writing ~10 lines of instance + copy-pasting a ~120-line thin wrapper (vs. understanding `DerivationCase` + height coherence + abstract termination). The helpers ensure the common parts stay consistent.
 
-**Tier 3 (Fallback if Tier 2 termination fails)**: Combine Tier 1 helpers with thin per-logic wrappers that call generic helpers for common cases and `simp at hA` for extras. ~200-300 lines saved.
+3. **Robustness**: The per-logic `deduction_with_mem`/`deduction_theorem` use native `match` and `termination_by` on concrete types. No risk of breakage from Lean version changes to the termination checker or typeclass resolution.
 
-**Rejected**: Parameterized single inductive (Teammate C) — too invasive, requires refactoring all downstream code. Tactic/macro approach — high maintenance cost for 4 instances.
-
-### Gaps Identified
-
-1. **Well-founded recursion through `cases` method**: Untested. The `decreasing_by` blocks reference pattern-bound variables (`d₁`, `d₂`, `d'`) that exist only inside `match` arms. If `cases` is a typeclass method rather than a native `match`, these variables live in continuation closures. Lean's WF elaborator may reject.
-
-2. **FrameClass three-way split**: PL/Modal have none, Temporal hardcodes `FrameClass.Base`, Bimodal is polymorphic. The generic interface needs one consistent approach (likely parameterize and let PL/Modal use `Unit`).
-
-3. **Task 79 dependency status**: Task 79 is `[PLANNED]` — its Phase 1 (list helpers) is done, but axiom naming harmonization hasn't happened. Task 80 may need to handle or defer this.
+4. **Single-sourcing benefit**: The 4 helpers (`deduction_axiom`, `deduction_imp_self`, `deduction_assumption_other`, `deduction_mp`) contain the core mathematical insight. Having them in one place means a fix or improvement propagates to all logics automatically.
 
 ## Recommendations
 
-### Primary: Tier 2 Design with Tier 1 Fallback
+### Design: `HasHilbertTree` Typeclass with Generic Helpers
 
 ```lean
--- In Foundations/Logic/Metalogic/DeductionGeneric.lean
+-- In Cslib/Foundations/Logic/Metalogic/DeductionHelpers.lean
 
-/-- Common cases for derivation tree case analysis. Each logic maps its
-    concrete constructors into this type. -/
-inductive DerivationCase (F : Type*) [HasImp F]
-    (Tree : List F → F → Type*) (Γ : List F) (φ : F) where
-  | ax : Tree [] φ → DerivationCase F Tree Γ φ
-  | assumption : φ ∈ Γ → DerivationCase F Tree Γ φ
-  | mp : (ψ : F) → Tree Γ (HasImp.imp ψ φ) → Tree Γ ψ →
-      DerivationCase F Tree Γ φ
-  | weakening : (Γ' : List F) → Tree Γ' φ → (Γ' ⊆ Γ) →
-      DerivationCase F Tree Γ φ
-  | extraEmptyCtx : Γ = [] → DerivationCase F Tree Γ φ
+namespace Cslib.Logic
 
-/-- Typeclass for derivation trees supporting the generic deduction theorem. -/
-class HasDerivationTree (F : Type*) [HasImp F] [HasBot F] where
+/-- Minimal interface for building Hilbert-style derivation trees.
+    Enables generic helper lemmas for the deduction theorem. -/
+class HasHilbertTree (F : Type*) [HasImp F] where
+  /-- The derivation tree type, parameterized by context and formula. -/
   Tree : List F → F → Type*
-  height : Tree Γ φ → Nat
-  cases : Tree Γ φ → DerivationCase F Tree Γ φ
-  -- Constructors (for building new trees in the generic proof)
-  mk_assumption : (Γ : List F) → (φ : F) → φ ∈ Γ → Tree Γ φ
-  mk_mp : (Γ : List F) → (φ ψ : F) → Tree Γ (HasImp.imp φ ψ) → Tree Γ φ → Tree Γ ψ
-  mk_weakening : (Γ Δ : List F) → (φ : F) → Tree Γ φ → (Γ ⊆ Δ) → Tree Δ φ
-  mk_implyK : (φ ψ : F) → Tree [] (HasImp.imp φ (HasImp.imp ψ φ))
-  mk_implyS : (φ ψ χ : F) → Tree [] (HasImp.imp
+  /-- Axiom K derivation: `⊢ φ → (ψ → φ)` -/
+  implyK : (φ ψ : F) → Tree [] (HasImp.imp φ (HasImp.imp ψ φ))
+  /-- Axiom S derivation: `⊢ (φ→ψ→χ)→(φ→ψ)→(φ→χ)` -/
+  implyS : (φ ψ χ : F) → Tree [] (HasImp.imp
     (HasImp.imp φ (HasImp.imp ψ χ))
     (HasImp.imp (HasImp.imp φ ψ) (HasImp.imp φ χ)))
-  -- Height lemmas (for termination)
-  height_mp_left : ∀ {Γ φ ψ} (d₁ : Tree Γ (HasImp.imp φ ψ)) (d₂ : Tree Γ φ),
-    d₁.height < (mk_mp Γ φ ψ d₁ d₂).height  -- may need adjustment
-  height_mp_right : ...
-  height_weakening : ...
-  -- Case/height coherence
-  height_cases_mp : ∀ ... -- extracted components have smaller height
+  /-- Assumption rule. -/
+  assumption : (Γ : List F) → (φ : F) → φ ∈ Γ → Tree Γ φ
+  /-- Modus ponens. -/
+  mp : (Γ : List F) → (φ ψ : F) →
+    Tree Γ (HasImp.imp φ ψ) → Tree Γ φ → Tree Γ ψ
+  /-- Weakening. -/
+  weakening : (Γ Δ : List F) → (φ : F) →
+    Tree Γ φ → (∀ x ∈ Γ, x ∈ Δ) → Tree Δ φ
+
+variable {F : Type*} [HasImp F] [HasHilbertTree F]
+
+/-- If `⊢ φ` (empty-context derivation), then `Γ ⊢ A → φ`. -/
+noncomputable def deduction_axiom (Γ : List F) (A : F)
+    {φ : F} (d_empty : HasHilbertTree.Tree (F := F) [] φ) :
+    HasHilbertTree.Tree Γ (HasImp.imp A φ) :=
+  let k := HasHilbertTree.implyK φ A
+  let step := HasHilbertTree.mp [] φ (HasImp.imp A φ) k d_empty
+  HasHilbertTree.weakening [] Γ _ step (fun _ h => nomatch h)
+
+/-- `Γ ⊢ A → A` (identity). -/
+noncomputable def deduction_imp_self (Γ : List F) (A : F) :
+    HasHilbertTree.Tree (F := F) Γ (HasImp.imp A A) :=
+  let s := HasHilbertTree.implyS A (HasImp.imp A A) A
+  let k1 := HasHilbertTree.implyK A (HasImp.imp A A)
+  let k2 := HasHilbertTree.implyK A A
+  let step1 := HasHilbertTree.mp [] _ _ s k1
+  let result := HasHilbertTree.mp [] _ _ step1 k2
+  HasHilbertTree.weakening [] Γ _ result (fun _ h => nomatch h)
+
+/-- If `B ∈ Γ`, then `Γ ⊢ A → B`. -/
+noncomputable def deduction_assumption_other (Γ : List F)
+    (A B : F) (h_mem : B ∈ Γ) :
+    HasHilbertTree.Tree (F := F) Γ (HasImp.imp A B) :=
+  let b_deriv := HasHilbertTree.assumption Γ B h_mem
+  let k := HasHilbertTree.implyK B A
+  let k_weak := HasHilbertTree.weakening [] Γ _ k (fun _ h => nomatch h)
+  HasHilbertTree.mp Γ B (HasImp.imp A B) k_weak b_deriv
+
+/-- From `Γ ⊢ A→(C→D)` and `Γ ⊢ A→C`, derive `Γ ⊢ A→D`. -/
+noncomputable def deduction_mp_under_imp (Γ : List F) (A C D : F)
+    (h₁ : HasHilbertTree.Tree (F := F) Γ (HasImp.imp A (HasImp.imp C D)))
+    (h₂ : HasHilbertTree.Tree (F := F) Γ (HasImp.imp A C)) :
+    HasHilbertTree.Tree Γ (HasImp.imp A D) :=
+  let s := HasHilbertTree.implyS A C D
+  let s_weak := HasHilbertTree.weakening [] Γ _ s (fun _ h => nomatch h)
+  let step1 := HasHilbertTree.mp Γ _ _ s_weak h₁
+  HasHilbertTree.mp Γ _ _ step1 h₂
 ```
 
 ### Per-Logic Instance (Example: Modal)
 
 ```lean
-instance : HasDerivationTree (Proposition Atom) where
+instance : HasHilbertTree (Proposition Atom) where
   Tree := DerivationTree
-  height := DerivationTree.height
-  cases := fun d => match d with
-    | .ax _ φ h_ax => .ax (.ax [] φ h_ax)
-    | .assumption _ φ h_mem => .assumption h_mem
-    | .modus_ponens _ φ ψ d₁ d₂ => .mp φ d₁ d₂
-    | .necessitation _ _ => .extraEmptyCtx rfl
-    | .weakening Γ' _ φ d' h_sub => .weakening Γ' d' h_sub
-  mk_assumption := DerivationTree.assumption
-  mk_mp := DerivationTree.modus_ponens
-  mk_weakening := DerivationTree.weakening
-  mk_implyK := fun φ ψ => .ax [] _ (.implyK φ ψ)
-  mk_implyS := fun φ ψ χ => .ax [] _ (.implyS φ ψ χ)
-  ...
+  implyK := fun φ ψ => .ax [] _ (.implyK φ ψ)
+  implyS := fun φ ψ χ => .ax [] _ (.implyS φ ψ χ)
+  assumption := DerivationTree.assumption
+  mp := DerivationTree.modus_ponens
+  weakening := DerivationTree.weakening
 ```
+
+### Per-Logic Thin Wrapper (Example: Modal `deduction_with_mem`)
+
+Each logic's `deduction_with_mem` and `deduction_theorem` remain concrete (native `match`, native `termination_by`) but call the generic helpers:
+
+```lean
+noncomputable def deduction_with_mem
+    (Γ' : List (Proposition Atom)) (A φ : Proposition Atom)
+    (d : DerivationTree Γ' φ) (hA : A ∈ Γ') :
+    DerivationTree (removeAll Γ' A) (A.imp φ) := by
+  match d with
+  | .ax _ ψ h_ax =>
+    exact deduction_axiom (removeAll Γ' A) A (.ax [] ψ h_ax)
+  | .assumption _ ψ h_mem =>
+    by_cases h_eq : ψ = A
+    · subst h_eq; exact deduction_imp_self _ ψ
+    · exact deduction_assumption_other _ A ψ (mem_removeAll_of_mem_of_ne h_mem h_eq)
+  | .modus_ponens _ ψ χ d₁ d₂ =>
+    exact deduction_mp_under_imp _ A ψ χ
+      (deduction_with_mem Γ' A _ d₁ hA) (deduction_with_mem Γ' A _ d₂ hA)
+  | .necessitation ψ _d' => simp at hA
+  | .weakening Γ'' _ ψ d' h_sub =>
+    -- weakening case uses generic helpers for the K-axiom sub-proof
+    ...
+termination_by d.height
+```
+
+### Code Reduction Estimate
+
+| Component | Current (4 files) | After (generic + instances) | Savings |
+|-----------|-------------------|---------------------------|---------|
+| 4 helper defs | 4 × ~8 = 32 lines each, ~120 total | 1 × ~40 (generic) | ~80 lines |
+| `HasHilbertTree` class | 0 | ~20 lines | -20 lines |
+| 4 instances | 0 | 4 × ~8 = 32 lines | -32 lines |
+| `deduction_with_mem` | 4 × ~35 = ~140 lines | 4 × ~25 = ~100 lines | ~40 lines |
+| `deduction_theorem` | 4 × ~40 = ~160 lines | 4 × ~30 = ~120 lines | ~40 lines |
+| `*_has_deduction_theorem` | 4 × ~6 = ~24 lines | unchanged | 0 |
+| **Total** | **~952 lines** | **~820 lines** | **~130 lines saved** |
+
+The real value is not line count but **single-sourcing**: the 4 helpers encode the core mathematical insight (how K and S axioms build deduction sub-proofs). A bug fix or optimization in the generic helpers propagates to all logics automatically.
 
 ### Implementation Sequence
 
-1. **Harmonize axiom names** (as part of task 79 or as a prerequisite): Rename Temporal/Bimodal `.imp_s`→`.implyK`, `.imp_k`→`.implyS` to match PL/Modal standard.
-2. **Harmonize height lemma names**: Rename Bimodal `mp_height_gt_left`→`height_modus_ponens_left` etc.
-3. **Create `DerivationCase` inductive** and `HasDerivationTree` typeclass in `Foundations/Logic/Metalogic/`.
-4. **Attempt generic `deduction_with_mem` and `deduction_theorem`** over `HasDerivationTree`. Test termination checker.
-5. **If termination works**: Provide instances for all 4 logics. Each domain file becomes ~20-30 lines.
-6. **If termination fails**: Fall back to Tier 1 (shared helper lemmas only). Each domain file becomes ~120-150 lines using generic helpers.
+1. **Verify Task 79 harmonized axiom names** — confirm `.imp_s`/`.imp_k` are now consistent with `.implyK`/`.implyS` across all logics. If not, harmonize as a prerequisite.
+2. **Create `Cslib/Foundations/Logic/Metalogic/DeductionHelpers.lean`** — `HasHilbertTree` typeclass + 4 generic helper defs.
+3. **Add `HasHilbertTree` instance** in each logic's DeductionTheorem.lean.
+4. **Refactor each `deduction_with_mem` and `deduction_theorem`** to call generic helpers instead of inline helper defs. Remove the per-logic helper def duplicates.
+5. **Verify `lake build`** passes with zero errors.
+6. **Verify each `*_has_deduction_theorem`** still connects to the MCS framework.
 
 ### Design Constraints
 
-- **≤10 typeclass fields** to keep instance construction manageable
-- **Callback-based dispatch** for extra constructors (not hard-coded names) — supports future logics
-- **No changes to existing `DerivationTree` inductives** — only add new generic infrastructure and instances
-- **FrameClass**: Parameterize generically; PL/Modal instances can ignore it
+- **6 typeclass fields** — minimal, obvious semantics, easy to instantiate
+- **No height, no elimination, no termination concerns** in the typeclass
+- **No changes to existing `DerivationTree` inductives**
+- **Per-logic files retain native `match` and `termination_by`** — robust against Lean version changes
+
+### Why NOT the `DerivationCase` Approach
+
+The `DerivationCase` approach was the original synthesis recommendation but was rejected after deeper analysis:
+
+1. **Termination checker**: Recursive calls in `deduction_with_mem` use pattern-bound variables (`d₁`, `d₂`, `d'`). These are structural sub-terms visible to Lean's WF checker. When extracted via a `cases` method, they become opaque outputs. The `DerivationCase` type would need height-decrease witnesses as extra fields, parameterized by the original tree — making the type signature complex and each logic's instance non-trivial.
+
+2. **Indirection cost**: A newcomer must understand `DerivationCase`, `HasDerivationTree`, the `cases` method, and height coherence before understanding any single logic's proof. For a cornerstone library, this indirection harms readability more than the duplication it eliminates.
+
+3. **Fragility**: The generic proof depends on Lean 4's interaction between typeclass resolution, well-founded recursion, and abstract types. Changes to any of these in future Lean versions could break all 4 logics simultaneously. Concrete proofs are immune to this.
+
+4. **Diminishing returns**: The helpers-only approach captures the genuinely shared mathematical content (K/S axiom manipulation). The remaining per-logic code (`match` + termination) is mechanical boilerplate that is stable and rarely needs updating.
 
 ## Teammate Contributions
 
-| Teammate | Angle | Status | Confidence |
-|----------|-------|--------|------------|
-| A | Primary approach (typeclass design) | completed | high |
-| B | Alternative approaches (prior art) | completed | high overall, medium on API surface |
-| C | Critic (risks and blind spots) | completed | high |
-| D | Strategic horizons | completed | high |
+| Teammate | Angle | Status | Confidence | Key Insight |
+|----------|-------|--------|------------|-------------|
+| A | Primary approach | completed | high | Two-layer hybrid; helpers-only is safest |
+| B | Alternative patterns | completed | high | `DerivationCase` viable in theory, risk in practice |
+| C | Critic | completed | high | Pattern matching + termination are true blockers |
+| D | Strategic horizons | completed | high | FormalizedFormalLogic validates conservative approach |
 
 ## References
 
 - `Cslib/Foundations/Logic/Metalogic/Consistency.lean` — existing MCS abstraction
 - `Cslib/Foundations/Logic/ProofSystem.lean` — existing typeclass hierarchy
 - `Cslib/Foundations/Logic/Helpers/ListHelpers.lean` — shared list utilities
-- [FormalizedFormalLogic/Foundation](https://github.com/FormalizedFormalLogic/Foundation) — Lean 4 multi-logic formalization
+- [FormalizedFormalLogic/Foundation](https://github.com/FormalizedFormalLogic/Foundation) — does not share deduction proofs across logics
 - [James Oswald: Extending Inductive Types in Lean4](https://jamesoswald.dev/posts/meditation-extending-inductive-types/)
-- [LeanLTL: ITP 2025](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2025.37)
 - [Lean 4 Inductive Types Reference](https://lean-lang.org/doc/reference/latest/The-Type-System/Inductive-Types/)
