@@ -166,7 +166,8 @@ lemma bind_pure_comp (f : α → β) : ∀ x : P.FreeM α, x.bind (pure ∘ f) =
 
 @[simp]
 lemma liftBind_bind (a : P.A) (cont : P.B a → P.FreeM β) (f : β → P.FreeM γ) :
-    (FreeM.liftBind a cont).bind f = FreeM.liftBind a (fun u ↦ (cont u).bind f) := rfl
+    ((FreeM.lift a).bind cont).bind f = (FreeM.lift a).bind (fun u ↦ (cont u).bind f) := by
+  dsimp only [FreeM.lift, FreeM.bind]
 
 @[simp]
 lemma liftObj_bind (x : P.Obj α) (f : α → P.FreeM β) :
@@ -255,8 +256,9 @@ lemma liftM_pure (a : α) : (Pure.pure a : P.FreeM α).liftM interp = Pure.pure 
 
 @[simp]
 lemma liftM_lift_bind (a : P.A) (cont : P.B a → P.FreeM α) :
-    ((FreeM.lift a).bind cont).liftM interp =
+    FreeM.liftM interp (FreeM.lift a >>= cont) =
       (do let u ← interp a; (cont u).liftM interp) := by
+  dsimp only [FreeM.liftM, FreeM.bind, FreeM.lift]
   rfl
 
 /--
@@ -279,7 +281,8 @@ theorem Interprets.eq {handler : (a : P.A) → m (P.B a)} {eval : P.FreeM α →
   induction x with
   | pure a => exact h.apply_pure a
   | lift_bind a cont ih =>
-    rw [h.apply_lift_bind, liftM_lift_bind]
+    rw [h.apply_lift_bind]
+    conv_rhs => simp only [bind_eq_bind, liftM_lift_bind]
     simp only [ih]
 
 theorem Interprets.liftM (handler : (a : P.A) → m (P.B a)) :
@@ -305,10 +308,10 @@ lemma liftM_bind {α β : Type uB} (x : P.FreeM α) (f : α → P.FreeM β) :
   induction x with
   | pure _ => simp only [liftM_pure, LawfulMonad.pure_bind]
   | lift_bind a cont h =>
-    simp_rw [← bind_eq_bind]
-    rw [FreeM.bind_assoc, liftM_lift_bind, liftM_lift_bind]
-    rw [LawfulMonad.bind_assoc]
-    congr
+    simp_rw [bind_eq_bind]
+    rw [LawfulMonad.bind_assoc, liftM_lift_bind]
+    simp_rw [liftM_lift_bind, LawfulMonad.bind_assoc]
+    congr 1
     funext u
     exact h u
 
@@ -343,7 +346,8 @@ lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (a : P.A) :
 @[simp]
 lemma liftM_liftObj (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
     (FreeM.liftObj x).liftM interp = x.2 <$> interp x.1 := by
-  rw [liftObj, liftBind_eq, liftM_lift_bind]
+  rw [liftObj, liftBind_eq]
+  simp_rw [bind_eq_bind, liftM_lift_bind]
   simpa only [Function.comp_apply] using
     (LawfulMonad.bind_pure_comp (f := x.2) (x := interp x.1))
 
