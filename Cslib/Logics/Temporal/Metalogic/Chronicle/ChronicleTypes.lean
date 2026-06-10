@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.TemporalContent
-import Cslib.Logics.Temporal.Metalogic.GeneralizedNecessitation
-import Cslib.Logics.Temporal.Metalogic.PropositionalHelpers
-import Cslib.Logics.Temporal.Metalogic.MCS
+module
+
+public import Cslib.Logics.Temporal.Metalogic.TemporalContent
+public import Cslib.Logics.Temporal.Metalogic.GeneralizedNecessitation
+public import Cslib.Logics.Temporal.Metalogic.PropositionalHelpers
+public import Cslib.Logics.Temporal.Metalogic.MCS
 
 /-!
 # Chronicle Types for Temporal Logic
@@ -22,6 +24,8 @@ definitions for the temporal chronicle construction.
 -/
 
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

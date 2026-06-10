@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Algebraic.UltrafilterMCS
-import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
-import Cslib.Logics.Bimodal.Semantics.TaskFrame
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Algebraic.UltrafilterMCS
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
+public import Cslib.Logics.Bimodal.Semantics.TaskFrame
 
 /-!
 # D-Parametric Canonical TaskFrame
@@ -21,6 +23,8 @@ Lindenbaum-Tarski algebraic completeness theorem.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.ParametricCanonical
 

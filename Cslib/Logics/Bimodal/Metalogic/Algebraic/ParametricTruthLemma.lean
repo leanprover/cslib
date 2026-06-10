@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Algebraic.ParametricHistory
-import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalCoherence
-import Cslib.Logics.Bimodal.Semantics.TaskModel
-import Cslib.Logics.Bimodal.Theorems.Propositional.Core
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Algebraic.ParametricHistory
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalCoherence
+public import Cslib.Logics.Bimodal.Semantics.TaskModel
+public import Cslib.Logics.Bimodal.Theorems.Propositional.Core
 
 /-!
 # D-Parametric Truth Lemma
@@ -21,6 +23,8 @@ Proves the truth lemma for the D-parametric canonical model construction.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.ParametricTruthLemma
 

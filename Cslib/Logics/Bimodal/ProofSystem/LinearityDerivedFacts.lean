@@ -3,7 +3,9 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.ProofSystem.Derivation
+
+module
+public import Cslib.Logics.Bimodal.ProofSystem.Derivation
 
 /-! # Linearity Derived Facts
 
@@ -40,6 +42,8 @@ temporal order. The past version is derivable via temporal duality.
 - Goldblatt 1992, *Logics of Time and Computation*
 - Blackburn, de Rijke, Venema 2001, *Modal Logic*
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

@@ -3,8 +3,10 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Temporal.ProofSystem.Derivable
-import Cslib.Foundations.Logic.ProofSystem
+
+module
+public import Cslib.Logics.Temporal.ProofSystem.Derivable
+public import Cslib.Foundations.Logic.ProofSystem
 
 /-! # Instance Registration for Temporal.HilbertBX
 
@@ -22,6 +24,9 @@ This makes `InferenceSystem.DerivableIn HilbertBX φ = Nonempty (DerivationTree 
 BimodalLogic uses swapped names: `prop_k` = distribution (cslib's `ImplyS`),
 `prop_s` = weakening (cslib's `ImplyK`). The instances below map correctly.
 -/
+
+@[expose] public section
+
 
 -- Do not open Cslib.Logic.Temporal to avoid scoped notation conflicts
 -- (F, G, H, P, S, U are all scoped notation for temporal operators)

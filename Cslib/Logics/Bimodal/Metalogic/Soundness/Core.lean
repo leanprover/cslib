@@ -3,8 +3,10 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.Semantics.Truth
-import Cslib.Logics.Bimodal.ProofSystem.Derivation
+
+module
+public import Cslib.Logics.Bimodal.Semantics.Truth
+public import Cslib.Logics.Bimodal.ProofSystem.Derivation
 
 /-!
 # Core Validity Definitions and Swap Infrastructure for Soundness Proofs
@@ -13,6 +15,8 @@ Core definitions and lemmas shared across all frame-class variants of the soundn
 proof. Contains the local `is_valid` definition and the `truth_at_swap_swap` involution
 lemma.
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.SoundnessLemmas
 

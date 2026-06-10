@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Syntax.Formula
-import Mathlib.Data.List.Basic
+module
+
+public import Cslib.Logics.Bimodal.Syntax.Formula
+public import Mathlib.Data.List.Basic
 
 /-!
 # Subformula Definitions for Bimodal Logic
@@ -25,6 +27,8 @@ decidability procedures.
 - `Formula.subformulas_trans`: Subformula relation is transitive
 - Membership lemmas for each constructor
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

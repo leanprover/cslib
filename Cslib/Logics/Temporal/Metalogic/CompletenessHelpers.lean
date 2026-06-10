@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.MCS
-import Cslib.Logics.Temporal.Metalogic.Soundness
+module
+
+public import Cslib.Logics.Temporal.Metalogic.MCS
+public import Cslib.Logics.Temporal.Metalogic.Soundness
 
 /-! # Completeness Helpers for Temporal Logic BX
 
@@ -26,6 +28,8 @@ circular import: Frame.lean -> Completeness.lean -> TruthLemma.lean -> ... -> Fr
 set_option linter.style.setOption false
 set_option maxHeartbeats 3200000
 
+@[expose] public section
+
 namespace Cslib.Logic.Temporal
 
 open Cslib.Logic
@@ -35,17 +39,6 @@ variable {Atom : Type*}
 attribute [local instance] Classical.propDecidable
 
 /-! ## MCS Helper Lemmas -/
-
-/-- Apply an axiom in an MCS. -/
-theorem mcs_mp_axiom
-    {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ ψ : Formula Atom} (h_mem : φ ∈ Ω) (h_ax : Axiom (φ.imp ψ)) : ψ ∈ Ω := by
-  apply temporal_closed_under_derivation h_mcs (L := [φ]) (fun x hx => by
-    simp [List.mem_cons] at hx; exact hx ▸ h_mem)
-  unfold temporalDerivationSystem Temporal.Deriv
-  exact ⟨.modus_ponens [φ] φ ψ
-    (.weakening [] [φ] (φ.imp ψ) (.axiom [] _ h_ax trivial) (fun _ h => nomatch h))
-    (.assumption [φ] φ (List.mem_cons.mpr (Or.inl rfl)))⟩
 
 /-- ⊤ ∈ every MCS. -/
 theorem mcs_top_mem

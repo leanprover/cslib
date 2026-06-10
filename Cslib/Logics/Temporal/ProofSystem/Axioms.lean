@@ -3,7 +3,9 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Temporal.Syntax.Formula
+
+module
+public import Cslib.Logics.Temporal.Syntax.Formula
 
 /-! # Temporal Axiom Schemata (BX System)
 
@@ -19,6 +21,8 @@ BX temporal proof system.
 -/
 
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

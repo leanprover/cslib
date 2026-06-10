@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.ClosureMCS
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.Filtration
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FiniteModel
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.TruthPreservation
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DenseFMP
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DiscreteFMP
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.ClosureMCS
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.Filtration
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FiniteModel
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.TruthPreservation
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FMP
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DenseFMP
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.DiscreteFMP
 
 /-!
 # Finite Model Property -- Barrel Import
@@ -33,3 +35,6 @@ infrastructure for TM bimodal logic:
 - `FilteredWorld.finite`: The filtered world type is finite
 - `filtration_lemma_membership`: Truth preservation through quotient
 -/
+
+@[expose] public section
+

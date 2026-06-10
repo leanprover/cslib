@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.ProofSystem.Derivation
-import Cslib.Logics.Bimodal.Syntax.Context
-import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
-import Cslib.Logics.Bimodal.ProofSystem.Axioms
-import Cslib.Logics.Bimodal.Theorems.Combinators
-import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
+module
+
+public import Cslib.Logics.Bimodal.ProofSystem.Derivation
+public import Cslib.Logics.Bimodal.Syntax.Context
+public import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
+public import Cslib.Logics.Bimodal.ProofSystem.Axioms
+public import Cslib.Logics.Bimodal.Theorems.Combinators
+public import Cslib.Logics.Bimodal.Theorems.Propositional.Connectives
 
 /-!
 # Generalized Necessitation Rules
@@ -21,6 +23,8 @@ Ported from BimodalLogic/Theories/Bimodal/Theorems/GeneralizedNecessitation.lean
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Theorems
 

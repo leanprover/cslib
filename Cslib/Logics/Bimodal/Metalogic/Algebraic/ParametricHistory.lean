@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Algebraic.ParametricCanonical
-import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
-import Cslib.Logics.Bimodal.Semantics.WorldHistory
-import Cslib.Logics.Bimodal.Semantics.Truth
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Algebraic.ParametricCanonical
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.BFMCS
+public import Cslib.Logics.Bimodal.Semantics.WorldHistory
+public import Cslib.Logics.Bimodal.Semantics.Truth
 
 /-!
 # D-Parametric History Conversion
@@ -21,6 +23,8 @@ Converts FMCS (Family of MCS) to WorldHistory for the D-parametric canonical Tas
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Algebraic.ParametricHistory
 

@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
-import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
-import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
-import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-import Cslib.Logics.Bimodal.Metalogic.Core.RestrictedMCS
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
+public import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
+public import Cslib.Logics.Bimodal.Metalogic.Core.MaximalConsistent
+public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+public import Cslib.Logics.Bimodal.Metalogic.Core.RestrictedMCS
 
 /-!
 # Bimodal Metalogic Core -- Barrel Import
@@ -19,3 +21,6 @@ This module re-exports the core metalogic infrastructure for bimodal logic:
 - MaximalConsistent: List-based and set-based MCS definitions, Lindenbaum's lemma
 - MCSProperties: Set-based MCS closure, temporal 4 properties, consistency lemmas
 -/
+
+@[expose] public section
+

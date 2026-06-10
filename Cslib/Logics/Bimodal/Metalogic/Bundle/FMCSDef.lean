@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
-import Cslib.Logics.Bimodal.Syntax.Formula
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+public import Cslib.Logics.Bimodal.Syntax.Formula
 
 /-!
 # FMCS: Family of Maximal Consistent Sets
@@ -20,6 +22,8 @@ an MCS to each time point, with temporal coherence conditions.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Bundle
 

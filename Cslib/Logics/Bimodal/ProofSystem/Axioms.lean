@@ -3,7 +3,9 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.Syntax.Formula
+
+module
+public import Cslib.Logics.Bimodal.Syntax.Formula
 
 /-! # Bimodal Axiom Schemata (BX System)
 
@@ -19,6 +21,8 @@ Burgess-Xu (BX) axiom system. Each constructor maps directly to an axiom schema.
 -/
 
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal
 

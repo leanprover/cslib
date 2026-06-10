@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyInduction
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Hierarchy.HierarchyInduction
 
 /-!
 # Hierarchy Completion: U-Type-Preserving Separation and Final all_formulas_separable
@@ -21,6 +23,8 @@ set_option linter.unusedSectionVars false
 set_option linter.flexible false
 set_option linter.unusedDecidableInType false
 set_option linter.style.maxHeartbeats false
+@[expose] public section
+
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 
 variable {Atom : Type*} [DecidableEq Atom] [Infinite Atom]

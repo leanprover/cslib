@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodel
-import Cslib.Logics.Bimodal.Semantics.Validity
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleToCountermodel
+public import Cslib.Logics.Bimodal.Semantics.Validity
 
 /-!
 # Dense Completeness
@@ -29,6 +31,8 @@ The dense completeness theorem is fully ported from the source. The
 
 - Burgess 1984, Goldblatt 1992 (completeness for tense logics)
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical
 

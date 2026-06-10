@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FiniteModel
-import Cslib.Logics.Bimodal.Semantics.Truth
-import Cslib.Logics.Bimodal.Semantics.Validity
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Decidability.FMP.FiniteModel
+public import Cslib.Logics.Bimodal.Semantics.Truth
+public import Cslib.Logics.Bimodal.Semantics.Validity
 
 /-!
 # Truth Preservation (Filtration Lemma) - Infrastructure
@@ -39,6 +41,8 @@ For our MCS-based approach:
 -/
 
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Decidability.FMP
 

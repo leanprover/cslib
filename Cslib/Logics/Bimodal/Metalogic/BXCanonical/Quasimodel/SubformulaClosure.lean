@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Syntax.Formula
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Finset.Image
+module
+
+public import Cslib.Logics.Bimodal.Syntax.Formula
+public import Mathlib.Data.Finset.Basic
+public import Mathlib.Data.Finset.Image
 
 /-!
 # Subformula Closure (Sigma-Closure)
@@ -20,6 +22,8 @@ Defines the finite subformula closure for the Hintikka-set quasimodel constructi
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Quasimodel
 

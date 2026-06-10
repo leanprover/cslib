@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalContent
-import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
-import Cslib.Logics.Bimodal.Metalogic.Bundle.WitnessSeed
-import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.TemporalContent
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.CanonicalFrame
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.WitnessSeed
+public import Cslib.Logics.Bimodal.Metalogic.Core.MCSProperties
 
 /-!
 # Succ Relation for Discrete Temporal Frames
@@ -21,6 +23,8 @@ Defines the Succ (immediate successor) relation for discrete temporal frames.
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Bundle
 

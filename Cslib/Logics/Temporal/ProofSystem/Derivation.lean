@@ -3,8 +3,10 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Temporal.ProofSystem.Axioms
-import Cslib.Logics.Temporal.Syntax.Context
+
+module
+public import Cslib.Logics.Temporal.ProofSystem.Axioms
+public import Cslib.Logics.Temporal.Syntax.Context
 
 /-! # Derivation Trees for Temporal Logic
 
@@ -29,6 +31,8 @@ The derivation tree includes 6 inference rules:
 -/
 
 set_option linter.style.emptyLine false
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal
 

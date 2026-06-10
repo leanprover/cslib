@@ -1,15 +1,17 @@
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleConstruction
-import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalModel
-import Cslib.Logics.Bimodal.Metalogic.Bundle.UntilSinceCoherence
-import Cslib.Logics.Bimodal.Metalogic.Algebraic.ParametricCompleteness
-import Cslib.Logics.Bimodal.Metalogic.Algebraic.RestrictedParametricTruthLemma
-import Mathlib.Algebra.Order.Ring.Rat
-import Mathlib.Algebra.Order.Archimedean.Basic
-import Mathlib.Order.CountableDenseLinearOrder
-import Mathlib.Order.SuccPred.LinearLocallyFinite
-import Mathlib.Topology.Instances.Real.Lemmas
-import Mathlib.Topology.Instances.NNReal.Lemmas
-import Mathlib.Data.Rat.Cast.Order
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleConstruction
+public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.CanonicalModel
+public import Cslib.Logics.Bimodal.Metalogic.Bundle.UntilSinceCoherence
+public import Cslib.Logics.Bimodal.Metalogic.Algebraic.ParametricCompleteness
+public import Cslib.Logics.Bimodal.Metalogic.Algebraic.RestrictedParametricTruthLemma
+public import Mathlib.Algebra.Order.Ring.Rat
+public import Mathlib.Algebra.Order.Archimedean.Basic
+public import Mathlib.Order.CountableDenseLinearOrder
+public import Mathlib.Order.SuccPred.LinearLocallyFinite
+public import Mathlib.Topology.Instances.Real.Lemmas
+public import Mathlib.Topology.Instances.NNReal.Lemmas
+public import Mathlib.Data.Rat.Cast.Order
 /-!
 # Chronicle-to-Countermodel Integration
 
@@ -46,6 +48,8 @@ succ chain reaching any target element).
 - Burgess 1982: "Axioms for tense logic II: Time periods"
 - Task 117 plan: specs/117_.../plans/04_case-split-completeness.md
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.BXCanonical.Chronicle
 

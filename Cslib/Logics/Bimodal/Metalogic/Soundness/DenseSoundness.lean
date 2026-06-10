@@ -3,14 +3,18 @@ Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
-import Cslib.Logics.Bimodal.Metalogic.Soundness.Soundness
-import Cslib.Logics.Bimodal.Semantics.Validity
+
+module
+public import Cslib.Logics.Bimodal.Metalogic.Soundness.Soundness
+public import Cslib.Logics.Bimodal.Semantics.Validity
 
 /-!
 # Dense Soundness - Soundness of Dense-Compatible Axioms
 
 Thin wrapper re-exporting dense soundness results.
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.DenseSoundness
 

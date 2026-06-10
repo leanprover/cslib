@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
-import Cslib.Logics.Bimodal.Metalogic.Separation.Duality
-import Cslib.Logics.Bimodal.Metalogic.Separation.IntHelpers
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Duality
+public import Cslib.Logics.Bimodal.Metalogic.Separation.IntHelpers
 
 set_option linter.style.emptyLine false
 
@@ -17,6 +19,8 @@ set_option linter.style.emptyLine false
 
 - GHR94, Lemma 10.2.2, p. 572
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

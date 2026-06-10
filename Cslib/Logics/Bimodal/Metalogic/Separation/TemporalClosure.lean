@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
-import Cslib.Logics.Bimodal.Metalogic.Separation.Duality
+module
+
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Defs
+public import Cslib.Logics.Bimodal.Metalogic.Separation.Duality
 
 set_option linter.style.emptyLine false
 set_option linter.style.longLine false
@@ -27,6 +29,8 @@ operators preserve separability) without axioms.
 - `no_U_nested_in_S`: Dual of `no_S_nested_in_U`
 - `swap_no_U_nested_gives_no_S_nested`: Duality converts between the two predicates
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Bimodal.Metalogic.Separation
 

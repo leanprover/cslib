@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Brast-McKie
 -/
 
-import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
-import Cslib.Logics.Temporal.Metalogic.Chronicle.RRelation
+module
+
+public import Cslib.Logics.Temporal.Metalogic.Chronicle.Frame
+public import Cslib.Logics.Temporal.Metalogic.Chronicle.RRelation
 
 /-!
 # Point Insertion Lemmas (Burgess 2.4-2.8)
@@ -28,6 +30,8 @@ construction, adapted for temporal logic (no FrameClass parameter, no liftBase).
 * Ported from Cslib/Logics/Bimodal/Metalogic/BXCanonical/Chronicle/PointInsertion.lean
 * Burgess 1982: "Axioms for tense logic II: Time periods"
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 
