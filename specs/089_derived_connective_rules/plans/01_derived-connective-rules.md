@@ -90,33 +90,33 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: ND System Derived Rules [NOT STARTED]
+### Phase 2: ND System Derived Rules [COMPLETED]
 
 **Goal**: Create `NaturalDeduction/DerivedRules.lean` with all 13 derived rules for `Theory.Derivation`, providing both type-level and Prop-level (`DerivableIn`) versions.
 
 **Tasks**:
-- [ ] Create file `Cslib/Logics/Propositional/NaturalDeduction/DerivedRules.lean` with module header and imports from `Basic.lean`
-- [ ] Implement negation rules (simplest, direct wrappers):
+- [x] Create file `Cslib/Logics/Propositional/NaturalDeduction/DerivedRules.lean` with module header and imports from `Basic.lean`
+- [x] Implement negation rules (simplest, direct wrappers):
   - `negI : T.Derivation (insert A Gamma) bot -> T.Derivation Gamma (neg A)` -- literally `impI Gamma`
   - `negE : T.Derivation Gamma (neg A) -> T.Derivation Gamma A -> T.Derivation Gamma bot` -- literally `impE`
-- [ ] Implement `topI : T.Derivation Gamma top` -- `impI Gamma (ass mem_insert_self)`
-- [ ] Implement conjunction intro (no classical constraint):
+- [x] Implement `topI : T.Derivation Gamma top` -- `impI Gamma (ass mem_insert_self)`
+- [x] Implement conjunction intro (no classical constraint):
   - `andI : T.Derivation Gamma A -> T.Derivation Gamma B -> T.Derivation Gamma (A.and B)` -- uses `impI`, `ass`, `impE`, `weakCtx`
-- [ ] Implement conjunction elim (requires `[IsClassical T]`):
+- [x] Implement conjunction elim (requires `[IsClassical T]`):
   - `andE1 : [IsClassical T] -> T.Derivation Gamma (A.and B) -> T.Derivation Gamma A` -- uses `negI` to build `neg neg A`, then `dne` via `T.dne`
   - `andE2 : [IsClassical T] -> T.Derivation Gamma (A.and B) -> T.Derivation Gamma B` -- similar pattern for extracting B
-- [ ] Implement disjunction intro (no classical constraint):
+- [x] Implement disjunction intro (no classical constraint):
   - `orI1 : T.Derivation Gamma A -> T.Derivation Gamma (A.or B)` -- uses `impI`, `ass`, `impE`, `botE`, `weakCtx`
   - `orI2 : T.Derivation Gamma B -> T.Derivation Gamma (A.or B)` -- uses `impI`, `weakCtx`
-- [ ] Implement disjunction elim (requires `[IsClassical T]`):
+- [x] Implement disjunction elim (requires `[IsClassical T]`):
   - `orE : [IsClassical T] -> T.Derivation Gamma (A.or B) -> T.Derivation (insert A Gamma) C -> T.Derivation (insert B Gamma) C -> T.Derivation Gamma C` -- uses `impI`, composition, Peirce via `dne`
-- [ ] Implement `dne : [IsClassical T] -> T.Derivation Gamma (neg (neg A)) -> T.Derivation Gamma A` -- uses `T.dne` axiom + `impE`
-- [ ] Implement iff rules:
+- [x] Implement `dne : [IsClassical T] -> T.Derivation Gamma (neg (neg A)) -> T.Derivation Gamma A` -- uses `T.dne` axiom + `impE`
+- [x] Implement iff rules:
   - `iffI : T.Derivation Gamma (A.imp B) -> T.Derivation Gamma (B.imp A) -> T.Derivation Gamma (A.iff B)` -- via `andI`
   - `iffE1 : [IsClassical T] -> T.Derivation Gamma (A.iff B) -> T.Derivation Gamma (A.imp B)` -- via `andE1`
   - `iffE2 : [IsClassical T] -> T.Derivation Gamma (A.iff B) -> T.Derivation Gamma (B.imp A)` -- via `andE2`
-- [ ] Add `DerivableIn`-level wrappers for all 13 rules (following `DerivableIn.cut` pattern in `Basic.lean`)
-- [ ] Verify with `lake build Cslib.Logics.Propositional.NaturalDeduction.DerivedRules`
+- [x] Add `DerivableIn`-level wrappers for all 13 rules (following `DerivableIn.cut` pattern in `Basic.lean`)
+- [x] Verify with `lake build Cslib.Logics.Propositional.NaturalDeduction.DerivedRules`
 
 **Timing**: 2.5 hours
 
