@@ -133,26 +133,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Refactor Temporal DeductionTheorem [NOT STARTED]
+### Phase 3: Refactor Temporal DeductionTheorem [COMPLETED]
 
 **Goal**: Add `HasHilbertTree` instance for Temporal, replace helpers with generic calls. This is separate from Phase 2 because Temporal has different axiom naming (`.imp_s`/`.imp_k` swapped) and uses `FrameClass.Base` hardcoded.
 
 **Tasks**:
-- [ ] In `Cslib/Logics/Temporal/Metalogic/DeductionTheorem.lean`:
+- [x] In `Cslib/Logics/Temporal/Metalogic/DeductionTheorem.lean`: *(completed)*
   - Add import for `DeductionHelpers`
-  - Add `HasHilbertTree (Formula Atom)` instance for Temporal, mapping:
-    - `Tree := fun Gamma phi => DerivationTree FrameClass.Base Gamma phi`
-    - `implyK := fun phi psi => .axiom [] _ (.imp_s phi psi) trivial` (note: `.imp_s` is K in Temporal)
-    - `implyS := fun phi psi chi => .axiom [] _ (.imp_k phi psi chi) trivial` (note: `.imp_k` is S in Temporal)
-    - `assumption := DerivationTree.assumption`
-    - `mp := DerivationTree.modus_ponens`
-    - `weakening := fun Gamma Delta phi d h_sub => DerivationTree.weakening Gamma Delta phi d h_sub`
-  - Handle the `deduction_axiom` Temporal-specific wrinkle: Temporal's `deduction_axiom` takes extra `h_fc` parameter. The generic `deduction_axiom` does not. Solution: the instance's `implyK` field can incorporate the axiom+frame-class construction, so the generic helper works without an `h_fc` parameter.
-  - Replace helper call sites with generic versions
-  - Remove per-logic helper definitions
-  - Adjust `deduction_with_mem` and `deduction_theorem` to use generic helpers
-  - Handle `.axiom _ psi h_ax h_fc =>` case in `deduction_with_mem`/`deduction_theorem`: these call `deduction_axiom` which takes `h_ax` and `h_fc`. The generic `deduction_axiom` instead takes an empty-context derivation. Create a local bridge: `deduction_axiom_temporal` that builds the empty-context derivation from `h_ax` + `h_fc`, then passes it to the generic helper.
-- [ ] Run `lake build Cslib.Logics.Temporal.Metalogic.DeductionTheorem`
+  - Add `HasHilbertTree (Formula Atom)` instance mapping `.imp_s` -> `implyK`, `.imp_k` -> `implyS`
+  - Replace 4 per-logic helpers with generic calls
+  - Axiom case bridges by building `.axiom [] ψ h_ax h_fc` inline as empty-context derivation *(deviation: altered — no separate bridge function needed, inline construction suffices)*
+  - `deduction_with_mem` and `deduction_theorem` retain native match/termination_by
+- [x] Run `lake build Cslib.Logics.Temporal.Metalogic.DeductionTheorem` *(completed, passes)*
 
 **Timing**: 1 hour
 

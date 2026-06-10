@@ -8,6 +8,7 @@ module
 
 public import Cslib.Logics.Temporal.Metalogic.DerivationTree
 public import Cslib.Foundations.Logic.Helpers.ListHelpers
+public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 
 /-! # Deduction Theorem for Temporal Logic BX
 
@@ -51,56 +52,18 @@ variable {Atom : Type*}
 
 attribute [local instance] Classical.propDecidable
 
-/-! ## Deduction Theorem Helper Cases -/
+/-! ## HasHilbertTree Instance -/
 
-/-- If `φ` is an axiom, then `Γ ⊢ A → φ`. -/
-noncomputable def deduction_axiom (Γ : Context Atom) (A φ : Formula Atom)
-    (h_ax : Axiom φ) (h_fc : h_ax.minFrameClass ≤ FrameClass.Base) :
-    DerivationTree FrameClass.Base Γ (A.imp φ) := by
-  have ax_deriv : DerivationTree FrameClass.Base [] φ := .axiom [] φ h_ax h_fc
-  have k_ax : DerivationTree FrameClass.Base [] (φ.imp (A.imp φ)) :=
-    .axiom [] _ (.imp_s φ A) trivial
-  have result : DerivationTree FrameClass.Base [] (A.imp φ) :=
-    .modus_ponens [] φ (A.imp φ) k_ax ax_deriv
-  exact .weakening [] Γ (A.imp φ) result (List.nil_subset _)
-
-/-- `Γ ⊢ A → A` (identity / self-implication). -/
-noncomputable def deduction_imp_self (Γ : Context Atom) (A : Formula Atom) :
-    DerivationTree FrameClass.Base Γ (A.imp A) := by
-  let s := DerivationTree.axiom (Atom := Atom) (fc := FrameClass.Base) [] _
-    (.imp_k A (.imp A A) A) trivial
-  let k1 := DerivationTree.axiom (Atom := Atom) (fc := FrameClass.Base) [] _
-    (.imp_s A (.imp A A)) trivial
-  let k2 := DerivationTree.axiom (Atom := Atom) (fc := FrameClass.Base) [] _
-    (.imp_s A A) trivial
-  let step1 := DerivationTree.modus_ponens [] _ _ s k1
-  let result := DerivationTree.modus_ponens [] _ _ step1 k2
-  exact .weakening [] Γ _ result (List.nil_subset _)
-
-/-- If `B ∈ Γ`, then `Γ ⊢ A → B`. -/
-noncomputable def deduction_assumption_other (Γ : Context Atom)
-    (A B : Formula Atom) (h_mem : B ∈ Γ) :
-    DerivationTree FrameClass.Base Γ (A.imp B) := by
-  have b_deriv : DerivationTree FrameClass.Base Γ B :=
-    DerivationTree.assumption Γ B h_mem
-  have k_ax : DerivationTree FrameClass.Base [] (B.imp (A.imp B)) :=
-    .axiom [] _ (.imp_s B A) trivial
-  have k_weak := DerivationTree.weakening [] Γ _ k_ax (List.nil_subset _)
-  exact .modus_ponens Γ B (A.imp B) k_weak b_deriv
-
-/-- Modus ponens under implication: from `Γ ⊢ A → (C → D)` and `Γ ⊢ A → C`,
-derive `Γ ⊢ A → D`. -/
-noncomputable def deduction_mp (Γ : Context Atom)
-    (A C D : Formula Atom)
-    (h₁ : DerivationTree FrameClass.Base Γ (A.imp (C.imp D)))
-    (h₂ : DerivationTree FrameClass.Base Γ (A.imp C)) :
-    DerivationTree FrameClass.Base Γ (A.imp D) := by
-  have s_ax : DerivationTree FrameClass.Base []
-      ((A.imp (C.imp D)).imp ((A.imp C).imp (A.imp D))) :=
-    .axiom [] _ (.imp_k A C D) trivial
-  have s_weak := DerivationTree.weakening [] Γ _ s_ax (List.nil_subset _)
-  have step1 := DerivationTree.modus_ponens Γ _ _ s_weak h₁
-  exact .modus_ponens Γ _ _ step1 h₂
+/-- `HasHilbertTree` instance for temporal logic at `FrameClass.Base`.
+Note: Temporal uses swapped axiom names -- `.imp_s` is K (weakening) and
+`.imp_k` is S (distribution). -/
+noncomputable instance : HasHilbertTree (Formula Atom) where
+  Tree := fun Γ φ => DerivationTree FrameClass.Base Γ φ
+  implyK := fun φ ψ => .axiom [] _ (.imp_s φ ψ) trivial
+  implyS := fun φ ψ χ => .axiom [] _ (.imp_k φ ψ χ) trivial
+  assumption := fun h => .assumption _ _ h
+  mp := fun d₁ d₂ => .modus_ponens _ _ _ d₁ d₂
+  weakening := fun d h => .weakening _ _ _ d h
 
 /-! ## Core: deduction_with_mem -/
 
@@ -112,7 +75,7 @@ noncomputable def deduction_with_mem
     DerivationTree FrameClass.Base (removeAll Γ' A) (A.imp φ) := by
   match d with
   | .axiom _ ψ h_ax h_fc =>
-    exact deduction_axiom (removeAll Γ' A) A ψ h_ax h_fc
+    exact deduction_axiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
   | .assumption _ ψ h_mem =>
     by_cases h_eq : ψ = A
     · subst h_eq
@@ -122,7 +85,7 @@ noncomputable def deduction_with_mem
   | .modus_ponens _ ψ χ d₁ d₂ =>
     have ih₁ := deduction_with_mem Γ' A (ψ.imp χ) d₁ hA
     have ih₂ := deduction_with_mem Γ' A ψ d₂ hA
-    exact deduction_mp (removeAll Γ' A) A ψ χ ih₁ ih₂
+    exact deduction_mp_under_imp (removeAll Γ' A) A ψ χ ih₁ ih₂
   | .temporal_necessitation ψ _d' =>
     simp at hA
   | .temporal_duality ψ _d' =>
@@ -158,7 +121,7 @@ noncomputable def deduction_theorem (Γ : Context Atom) (A B : Formula Atom)
     DerivationTree FrameClass.Base Γ (A.imp B) := by
   match d with
   | .axiom _ φ h_ax h_fc =>
-    exact deduction_axiom Γ A φ h_ax h_fc
+    exact deduction_axiom Γ A (.axiom [] φ h_ax h_fc)
   | .assumption _ φ h_mem =>
     by_cases h_eq : φ = A
     · subst h_eq
@@ -171,7 +134,7 @@ noncomputable def deduction_theorem (Γ : Context Atom) (A B : Formula Atom)
   | .modus_ponens _ φ ψ d₁ d₂ =>
     have ih₁ := deduction_theorem Γ A (φ.imp ψ) d₁
     have ih₂ := deduction_theorem Γ A φ d₂
-    exact deduction_mp Γ A φ ψ ih₁ ih₂
+    exact deduction_mp_under_imp Γ A φ ψ ih₁ ih₂
   | .weakening Γ' _ φ d' h_sub =>
     by_cases h_eq : Γ' = A :: Γ
     · exact deduction_theorem Γ A φ (h_eq ▸ d')
