@@ -62,10 +62,7 @@ flowchart TB
 
     P1 --> M1 & T1
     M1 --> B2
-    M2 --> B3
-    T2 --> B2
-    T3 --> B3
-    P1 --> B2
+    T1 --> B2
 ```
 
 ## Completed
