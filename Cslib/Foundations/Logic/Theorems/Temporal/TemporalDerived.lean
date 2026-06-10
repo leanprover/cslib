@@ -120,10 +120,12 @@ theorem P_neg_H {φ : F} :
 
 /-! ### Level 1: G-distribution -/
 
-set_option linter.style.longLine false in
+
 /-- Helper: `⊢ ¬(¬ψ→¬φ) → ¬(φ→ψ)`. -/
 private theorem neg_contrapositive_imp_neg {φ ψ : F} :
-    InferenceSystem.DerivableIn S (HasImp.imp (neg' (HasImp.imp (neg' ψ) (neg' φ))) (neg' (HasImp.imp φ ψ))) :=
+    InferenceSystem.DerivableIn S
+      (HasImp.imp (neg' (HasImp.imp (neg' ψ) (neg' φ)))
+        (neg' (HasImp.imp φ ψ))) :=
   ModusPonens.mp
     (contrapose_imp (S := S) (φ := HasImp.imp φ ψ) (ψ := HasImp.imp (neg' ψ) (neg' φ)))
     (contrapose_imp (S := S) (φ := φ) (ψ := ψ))
@@ -206,32 +208,41 @@ theorem H_contrapose {φ ψ : F} :
 
 /-! ### G/H Conjunction Introduction -/
 
-set_option linter.style.longLine false in
+
 /-- `⊢ Gφ → Gψ → G(φ∧ψ)`. -/
 theorem G_and_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp (allFuture φ) (HasImp.imp (allFuture ψ) (allFuture (HasImp.imp (HasImp.imp φ (neg' ψ)) HasBot.bot)))) := by
+      (HasImp.imp (allFuture φ)
+        (HasImp.imp (allFuture ψ)
+          (allFuture (HasImp.imp (HasImp.imp φ (neg' ψ))
+            HasBot.bot)))) := by
   have g_pair := TemporalNecessitation.tempNec (@pairing F _ _ S _ _ φ ψ)
   have step1 := ModusPonens.mp (G_distribution (S := S)) g_pair
   exact imp_trans step1 (G_distribution (S := S))
 
-set_option linter.style.longLine false in
+
 /-- `⊢ Hφ → Hψ → H(φ∧ψ)`. -/
 theorem H_and_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp (allPast φ) (HasImp.imp (allPast ψ) (allPast (HasImp.imp (HasImp.imp φ (neg' ψ)) HasBot.bot)))) := by
+      (HasImp.imp (allPast φ)
+        (HasImp.imp (allPast ψ)
+          (allPast (HasImp.imp (HasImp.imp φ (neg' ψ))
+            HasBot.bot)))) := by
   have h_pair := TemporalNecessitation.tempNecPast (@pairing F _ _ S _ _ φ ψ)
   have step1 := ModusPonens.mp (H_distribution (S := S)) h_pair
   exact imp_trans step1 (H_distribution (S := S))
 
 /-! ### G/H Implication Transitivity -/
 
-set_option linter.style.longLine false in
+
 /-- `⊢ G(φ→ψ) → G(ψ→χ) → G(φ→χ)`. -/
 theorem G_imp_trans' {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp (allFuture (HasImp.imp φ ψ)) (HasImp.imp (allFuture (HasImp.imp ψ χ)) (allFuture (HasImp.imp φ χ)))) := by
-  have g_b := TemporalNecessitation.tempNec (@b_combinator F _ _ S _ _ (φ := φ) (ψ := ψ) (χ := χ))
+      (HasImp.imp (allFuture (HasImp.imp φ ψ))
+        (HasImp.imp (allFuture (HasImp.imp ψ χ))
+          (allFuture (HasImp.imp φ χ)))) := by
+  have g_b := TemporalNecessitation.tempNec
+    (@b_combinator F _ _ S _ _ (φ := φ) (ψ := ψ) (χ := χ))
   have step1 := ModusPonens.mp (G_distribution (S := S)) g_b
   have step2 := imp_trans step1 (G_distribution (S := S))
   -- step2 : G(ψ→χ) → G(φ→ψ) → G(φ→χ). Flip to get the right order.
@@ -242,12 +253,15 @@ theorem G_imp_trans' {φ ψ χ : F} :
       (χ := allFuture (HasImp.imp φ χ)))
     step2
 
-set_option linter.style.longLine false in
+
 /-- `⊢ H(φ→ψ) → H(ψ→χ) → H(φ→χ)`. -/
 theorem H_imp_trans' {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp (allPast (HasImp.imp φ ψ)) (HasImp.imp (allPast (HasImp.imp ψ χ)) (allPast (HasImp.imp φ χ)))) := by
-  have h_b := TemporalNecessitation.tempNecPast (@b_combinator F _ _ S _ _ (φ := φ) (ψ := ψ) (χ := χ))
+      (HasImp.imp (allPast (HasImp.imp φ ψ))
+        (HasImp.imp (allPast (HasImp.imp ψ χ))
+          (allPast (HasImp.imp φ χ)))) := by
+  have h_b := TemporalNecessitation.tempNecPast
+    (@b_combinator F _ _ S _ _ (φ := φ) (ψ := ψ) (χ := χ))
   have step1 := ModusPonens.mp (H_distribution (S := S)) h_b
   have step2 := imp_trans step1 (H_distribution (S := S))
   exact ModusPonens.mp
@@ -259,10 +273,12 @@ theorem H_imp_trans' {φ ψ χ : F} :
 
 /-! ### Level 4: Future-Past Interaction Chains -/
 
-set_option linter.style.longLine false in
+
 /-- `⊢ Gφ → G(G(Pφ))`. -/
 theorem connect_future_G {φ : F} :
-    InferenceSystem.DerivableIn S (HasImp.imp (allFuture φ) (allFuture (allFuture (somePast φ)))) := by
+    InferenceSystem.DerivableIn S
+      (HasImp.imp (allFuture φ)
+        (allFuture (allFuture (somePast φ)))) := by
   have g_conn := TemporalNecessitation.tempNec (@connect_future_thm F _ _ _ _ S _ _ (φ := φ))
   exact ModusPonens.mp (G_distribution (S := S)) g_conn
 

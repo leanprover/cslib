@@ -113,29 +113,25 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Scope `set_option linter.style.longLine false` per-theorem [COMPLETED]
+### Phase 3: Remove long-line suppressions entirely [COMPLETED]
 
-**Goal**: Replace file-scoped `set_option` with per-theorem `set_option ... in` in both S5.lean and TemporalDerived.lean.
+**Goal**: Remove all `set_option linter.style.longLine false` from S5.lean and TemporalDerived.lean by actually shortening long lines using abbreviations and line breaks.
 
 **Tasks**:
 
-**S5.lean** (6 theorems):
-- [x] Remove file-scoped `set_option linter.style.longLine false` at line 58
-- [x] Add `set_option linter.style.longLine false in` before `theorem t_box_to_diamond` *(deviation: altered -- placed before docstring, not between docstring and theorem, since Lean requires set_option before attributes)*
-- [x] Add `set_option linter.style.longLine false in` before `theorem box_disj_intro`
-- [x] Add `set_option linter.style.longLine false in` before `theorem box_conj_iff`
-- [x] Add `set_option linter.style.longLine false in` before `theorem diamond_disj_iff`
-- [x] Add `set_option linter.style.longLine false in` before `theorem s4_diamond_box_conj`
-- [x] Add `set_option linter.style.longLine false in` before `theorem s5_diamond_conj_diamond`
+**S5.lean**: *(deviation: altered -- instead of per-theorem set_option, removed ALL set_option and shortened lines using abbreviations and line breaks)*
+- [x] Remove all `set_option linter.style.longLine false` (file-scoped and per-theorem)
+- [x] Add `open Cslib.Logic.Axioms` for `neg'`, `conj'`, `disj'` abbreviations
+- [x] Add local `abbrev diamond'` and `abbrev iff'` for compound modal formulas
+- [x] Shorten all lines in theorem signatures to under 100 characters via abbreviations and line breaking
+- [x] Verify zero `set_option linter.style.longLine` references remain
+- [x] Verify zero lines exceed 100 characters
 
-**TemporalDerived.lean** (6 theorems):
-- [x] Remove file-scoped `set_option linter.style.longLine false` at line 24
-- [x] Add `set_option linter.style.longLine false in` before `private theorem neg_contrapositive_imp_neg`
-- [x] Add `set_option linter.style.longLine false in` before `theorem G_and_intro`
-- [x] Add `set_option linter.style.longLine false in` before `theorem H_and_intro`
-- [x] Add `set_option linter.style.longLine false in` before `theorem G_imp_trans'`
-- [x] Add `set_option linter.style.longLine false in` before `theorem H_imp_trans'`
-- [x] Add `set_option linter.style.longLine false in` before `theorem connect_future_G`
+**TemporalDerived.lean**: *(deviation: altered -- removed ALL set_option, shortened lines via line breaks)*
+- [x] Remove all `set_option linter.style.longLine false` (file-scoped and per-theorem)
+- [x] Break long theorem signatures across multiple lines
+- [x] Verify zero `set_option linter.style.longLine` references remain
+- [x] Verify zero lines exceed 100 characters
 
 **Timing**: 45 minutes
 

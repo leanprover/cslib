@@ -56,6 +56,7 @@ carrying `HasBot`, `HasImp`, and `HasBox` instances.
 namespace Cslib.Logic.Theorems.Modal.S5
 
 open Cslib.Logic
+open Cslib.Logic.Axioms
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core
 open Cslib.Logic.Theorems.Propositional.Connectives
@@ -65,13 +66,12 @@ variable {F : Type*} [HasBot F] [HasImp F] [HasBox F]
 variable {S : Type*} [InferenceSystem S F]
 variable [ModalS5Hilbert S (F := F)]
 
--- Abbreviations for readability in comments:
--- neg φ     = HasImp.imp φ HasBot.bot
--- box φ     = HasBox.box φ
--- diamond φ = HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot
--- and φ ψ   = HasImp.imp (HasImp.imp φ (HasImp.imp ψ HasBot.bot)) HasBot.bot
--- or φ ψ    = HasImp.imp (HasImp.imp φ HasBot.bot) ψ
--- iff φ ψ   = and (imp φ ψ) (imp ψ φ)
+-- Abbreviations from Axioms: neg' φ = φ → ⊥, conj' φ ψ = ¬(φ → ¬ψ),
+-- disj' φ ψ = ¬φ → ψ. Local: diamond' φ = ¬□¬φ, iff' a b
+abbrev diamond' (φ : F) : F :=
+  HasImp.imp (HasBox.box (neg' φ)) HasBot.bot
+abbrev iff' (a b : F) : F :=
+  conj' (HasImp.imp a b) (HasImp.imp b a)
 
 section
 
@@ -167,7 +167,7 @@ theorem axiom5_collapse_derived {φ : F} :
 
 /-! ## Core S5 Theorems -/
 
-set_option linter.style.longLine false in
+
 /-- T-Box-Diamond: `⊢ □φ → ◇φ` (necessary implies possible). -/
 theorem t_box_to_diamond {φ : F} :
     InferenceSystem.DerivableIn S
@@ -201,10 +201,15 @@ theorem t_box_to_diamond {φ : F} :
   -- b_combinator to compose
   have b_outer : InferenceSystem.DerivableIn S
       (HasImp.imp
-        (HasImp.imp (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot) (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot))
         (HasImp.imp
-          (HasImp.imp (HasBox.box φ) (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot))
-          (HasImp.imp (HasBox.box φ) (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot)))) :=
+          (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
+          (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot))
+        (HasImp.imp
+          (HasImp.imp (HasBox.box φ)
+            (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot))
+          (HasImp.imp (HasBox.box φ)
+            (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot))
+              HasBot.bot)))) :=
     b_combinator
   have step3 := ModusPonens.mp b_outer step2
   exact ModusPonens.mp step3 comp1
@@ -229,7 +234,7 @@ theorem t_box_consistency {φ : F} :
   have conj_to_bot := ModusPonens.mp dni_impl dni_phi
   exact imp_trans mt conj_to_bot
 
-set_option linter.style.longLine false in
+
 /-- Box-Disjunction Introduction: `⊢ (□φ ∨ □ψ) → □(φ ∨ ψ)`. -/
 theorem box_disj_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -247,15 +252,19 @@ theorem box_disj_intro {φ ψ : F} :
   have step1 := ModusPonens.mp cm box_a_case
   have bc : InferenceSystem.DerivableIn S
       (HasImp.imp
-        (HasImp.imp (HasBox.box ψ) (HasBox.box (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)))
+        (HasImp.imp (HasBox.box ψ)
+          (HasBox.box (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)))
         (HasImp.imp
-          (HasImp.imp (HasImp.imp (HasBox.box φ) HasBot.bot) (HasBox.box ψ))
-          (HasImp.imp (HasImp.imp (HasBox.box φ) HasBot.bot) (HasBox.box (HasImp.imp (HasImp.imp φ HasBot.bot) ψ))))) :=
+          (HasImp.imp (HasImp.imp (HasBox.box φ) HasBot.bot)
+            (HasBox.box ψ))
+          (HasImp.imp (HasImp.imp (HasBox.box φ) HasBot.bot)
+            (HasBox.box
+              (HasImp.imp (HasImp.imp φ HasBot.bot) ψ))))) :=
     b_combinator
   have neg_box_case := ModusPonens.mp bc box_b_case
   exact imp_trans neg_box_case step1
 
-set_option linter.style.longLine false in
+
 /-- Box-Conjunction Biconditional: `⊢ □(φ ∧ ψ) ↔ (□φ ∧ □ψ)`. -/
 theorem box_conj_iff {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -290,14 +299,27 @@ theorem box_conj_iff {φ ψ : F} :
   have rce_box := @rce_imp F _ _ S _ _ (φ := HasBox.box φ) (ψ := HasBox.box ψ)
   have b1 : InferenceSystem.DerivableIn S
       (HasImp.imp
-        (HasImp.imp (HasBox.box φ) (HasImp.imp (HasBox.box ψ) (HasBox.box (HasImp.imp (HasImp.imp φ (HasImp.imp ψ HasBot.bot)) HasBot.bot))))
+        (HasImp.imp (HasBox.box φ)
+          (HasImp.imp (HasBox.box ψ)
+            (HasBox.box (HasImp.imp
+              (HasImp.imp φ (HasImp.imp ψ HasBot.bot))
+              HasBot.bot))))
         (HasImp.imp
           (HasImp.imp
-            (HasImp.imp (HasImp.imp (HasBox.box φ) (HasImp.imp (HasBox.box ψ) HasBot.bot)) HasBot.bot)
+            (HasImp.imp
+              (HasImp.imp (HasBox.box φ)
+                (HasImp.imp (HasBox.box ψ) HasBot.bot))
+              HasBot.bot)
             (HasBox.box φ))
           (HasImp.imp
-            (HasImp.imp (HasImp.imp (HasBox.box φ) (HasImp.imp (HasBox.box ψ) HasBot.bot)) HasBot.bot)
-            (HasImp.imp (HasBox.box ψ) (HasBox.box (HasImp.imp (HasImp.imp φ (HasImp.imp ψ HasBot.bot)) HasBot.bot)))))) :=
+            (HasImp.imp
+              (HasImp.imp (HasBox.box φ)
+                (HasImp.imp (HasBox.box ψ) HasBot.bot))
+              HasBot.bot)
+            (HasImp.imp (HasBox.box ψ)
+              (HasBox.box (HasImp.imp
+                (HasImp.imp φ (HasImp.imp ψ HasBot.bot))
+                HasBot.bot)))))) :=
     b_combinator
   have step2 := ModusPonens.mp b1 comp1
   have step3 := ModusPonens.mp step2 lce_box
@@ -309,7 +331,7 @@ theorem box_conj_iff {φ ψ : F} :
   have backward := ModusPonens.mp step4 rce_box
   exact iff_intro forward backward
 
-set_option linter.style.longLine false in
+
 /-- Diamond-Disjunction Biconditional: `⊢ ◇(φ ∨ ψ) ↔ (◇φ ∨ ◇ψ)`. -/
 theorem diamond_disj_iff {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -317,17 +339,37 @@ theorem diamond_disj_iff {φ ψ : F} :
         (HasImp.imp
           (HasImp.imp
             -- forward: ◇(φ∨ψ) → (◇φ ∨ ◇ψ)
-            (HasImp.imp (HasBox.box (HasImp.imp (HasImp.imp (HasImp.imp φ HasBot.bot) ψ) HasBot.bot)) HasBot.bot)
             (HasImp.imp
-              (HasImp.imp (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot) HasBot.bot)
-              (HasImp.imp (HasBox.box (HasImp.imp ψ HasBot.bot)) HasBot.bot)))
+              (HasBox.box (HasImp.imp
+                (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)
+                HasBot.bot))
+              HasBot.bot)
+            (HasImp.imp
+              (HasImp.imp
+                (HasImp.imp
+                  (HasBox.box (HasImp.imp φ HasBot.bot))
+                  HasBot.bot)
+                HasBot.bot)
+              (HasImp.imp
+                (HasBox.box (HasImp.imp ψ HasBot.bot))
+                HasBot.bot)))
           (HasImp.imp
             -- backward: (◇φ ∨ ◇ψ) → ◇(φ∨ψ)
             (HasImp.imp
               (HasImp.imp
-                (HasImp.imp (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot) HasBot.bot)
-                (HasImp.imp (HasBox.box (HasImp.imp ψ HasBot.bot)) HasBot.bot))
-              (HasImp.imp (HasBox.box (HasImp.imp (HasImp.imp (HasImp.imp φ HasBot.bot) ψ) HasBot.bot)) HasBot.bot))
+                (HasImp.imp
+                  (HasImp.imp
+                    (HasBox.box (HasImp.imp φ HasBot.bot))
+                    HasBot.bot)
+                  HasBot.bot)
+                (HasImp.imp
+                  (HasBox.box (HasImp.imp ψ HasBot.bot))
+                  HasBot.bot))
+              (HasImp.imp
+                (HasBox.box (HasImp.imp
+                  (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)
+                  HasBot.bot))
+                HasBot.bot))
             HasBot.bot))
         HasBot.bot) := by
   -- Forward: ◇(φ∨ψ) → (◇φ ∨ ◇ψ)
@@ -398,12 +440,13 @@ theorem s5_diamond_box_to_truth {φ : F} :
 
 /-! ## S4-Level Nested Modality Theorems -/
 
-set_option linter.style.longLine false in
+
 /-- S4-Diamond-Box-Conjunction: `⊢ (◇A ∧ □B) → ◇(A ∧ □B)`. -/
 theorem s4_diamond_box_conj {A B : F} :
     let conjABoxB := HasImp.imp (HasImp.imp A (HasImp.imp (HasBox.box B) HasBot.bot)) HasBot.bot
     let diamondA := HasImp.imp (HasBox.box (HasImp.imp A HasBot.bot)) HasBot.bot
-    let conjDiamondABoxB := HasImp.imp (HasImp.imp diamondA (HasImp.imp (HasBox.box B) HasBot.bot)) HasBot.bot
+    let conjDiamondABoxB :=
+      HasImp.imp (HasImp.imp diamondA (HasImp.imp (HasBox.box B) HasBot.bot)) HasBot.bot
     let diamondConjABoxB := HasImp.imp (HasBox.box (HasImp.imp conjABoxB HasBot.bot)) HasBot.bot
     InferenceSystem.DerivableIn S
       (HasImp.imp conjDiamondABoxB diamondConjABoxB) := by
@@ -498,7 +541,7 @@ theorem s4_diamond_box_diamond {A : F} :
   have backward := imp_trans step1 box_box_to_dia
   exact iff_intro forward backward
 
-set_option linter.style.longLine false in
+
 /-- S5-Diamond-Conjunction-Diamond: `⊢ ◇(A ∧ ◇B) ↔ (◇A ∧ ◇B)`. -/
 theorem s5_diamond_conj_diamond {A B : F} :
     let diamondB := HasImp.imp (HasBox.box (HasImp.imp B HasBot.bot)) HasBot.bot
@@ -580,7 +623,10 @@ theorem s5_diamond_conj_diamond {A B : F} :
         (HasImp.imp
           (HasImp.imp
             (HasImp.imp A
-              (HasImp.imp (HasImp.imp (HasBox.box (HasImp.imp B HasBot.bot)) HasBot.bot) HasBot.bot))
+              (HasImp.imp
+                (HasImp.imp (HasBox.box (HasImp.imp B HasBot.bot))
+                  HasBot.bot)
+                HasBot.bot))
             HasBot.bot)
           HasBot.bot))
       HasBot.bot)

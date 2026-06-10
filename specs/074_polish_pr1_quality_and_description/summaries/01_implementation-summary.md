@@ -17,16 +17,16 @@ Removed extra blank line between `namespace` and `open` in 3 files:
 - Removed local `abbrev neg'` and `abbrev top'` definitions
 - All references resolve correctly from the Axioms namespace
 
-### Phase 3: Scope set_option per-theorem [COMPLETED]
-- S5.lean: Removed file-scoped `set_option`, added 6 per-theorem `set_option linter.style.longLine false in`
-- TemporalDerived.lean: Removed file-scoped `set_option`, added 6 per-theorem `set_option linter.style.longLine false in`
-- Note: `set_option ... in` must come before the docstring, not between docstring and theorem
+### Phase 3: Remove long-line suppressions entirely [COMPLETED]
+- S5.lean: Removed ALL `set_option linter.style.longLine false`. Added `open Cslib.Logic.Axioms` and local `abbrev diamond'`/`iff'`. All lines now under 100 chars.
+- TemporalDerived.lean: Removed ALL `set_option linter.style.longLine false`. Broke long signatures across multiple lines. All lines now under 100 chars.
+- Zero linter suppressions remain in either file.
 
 ### Phase 5: Update PR description [COMPLETED]
-- Updated all line counts in File Inventory table (total: 3,621 -> 3,646)
+- Updated all line counts in File Inventory table (total: 3,621 -> 3,708)
 - Added "Embedding Relocation (Tasks 72-73)" section
 - Added "Module Keyword Migration (Task 68)" section
-- Updated Known Issues: long-line scoping now per-theorem, added abbreviation dedup note
+- Updated Known Issues: long-line issue fully resolved (no suppressions needed)
 
 ## Blocked Phase
 

@@ -4,7 +4,7 @@
 
 ## Summary
 
-Adds the `Cslib/Foundations/Logic/` module hierarchy: 15 files, 3,646 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
+Adds the `Cslib/Foundations/Logic/` module hierarchy: 15 files, 3,708 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
 
 The contribution includes:
 - **Core definitions** (5 files): `InferenceSystem` typeclass, `HasBot`/`HasImp` connective classes, polymorphic axiom `abbrev`s, bundled proof system typeclasses (`PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert`), and `LogicalEquivalence`
@@ -81,12 +81,12 @@ The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for 
 | `Theorems/Propositional/Connectives.lean` | 546 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
 | `Theorems/BigConj.lean` | 141 | `BigConj` syntax and derivability lemmas |
 | `Theorems/Modal/Basic.lean` | 203 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
-| `Theorems/Modal/S5.lean` | 593 | S5-level: Axiom 5 derivation, collapse theorems |
-| `Theorems/Temporal/TemporalDerived.lean` | 277 | Temporal operator lemmas |
+| `Theorems/Modal/S5.lean` | 639 | S5-level: Axiom 5 derivation, collapse theorems |
+| `Theorems/Temporal/TemporalDerived.lean` | 293 | Temporal operator lemmas |
 | `Theorems/Temporal/FrameConditions.lean` | 89 | Frame condition marker typeclasses |
 | `Metalogic/Consistency.lean` | 277 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
 | `Theorems.lean` | 47 | Barrel aggregator (with Propositional, Modal, and Temporal subsection docs) |
-| **Total** | **3,646** | |
+| **Total** | **3,708** | |
 
 ## Dependency Graph
 
@@ -146,7 +146,7 @@ This was required for Lean 4 module system compliance and ensures that the Found
 
 ## Known Issues
 
-- **Long line suppressions**: `S5.lean` and `TemporalDerived.lean` use per-theorem `set_option linter.style.longLine false in` to suppress long-line warnings on 6 theorems each, rather than file-scoped suppression.
+- **Long lines resolved**: `S5.lean` and `TemporalDerived.lean` no longer use any `set_option linter.style.longLine false`. All lines are under 100 characters via `abbrev` abbreviations (`diamond'`, `iff'`, `neg'`, `conj'`, `disj'`) and multi-line formatting.
 - **Public imports**: `public import Cslib.Init` remains in all 4 core definition files. Downgrading to non-public breaks the transitive import chain for downstream theorem files.
 - **Abbreviation deduplication**: `top'/neg'` abbreviations in `TemporalDerived.lean` now import from `Cslib.Logic.Axioms` instead of redefining locally.
 
