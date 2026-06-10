@@ -65,8 +65,10 @@ variable [ModalS5Hilbert S (F := F)]
 
 -- Abbreviations from Axioms: neg' φ = φ → ⊥, conj' φ ψ = ¬(φ → ¬ψ),
 -- disj' φ ψ = ¬φ → ψ. Local: diamond' φ = ¬□¬φ, iff' a b
+/-- Diamond as derived connective: `◇φ := ¬□¬φ`. -/
 abbrev diamond' (φ : F) : F :=
   HasImp.imp (HasBox.box (neg' φ)) HasBot.bot
+/-- Biconditional as derived connective: `φ ↔ ψ := (φ → ψ) ∧ (ψ → φ)`. -/
 abbrev iff' (a b : F) : F :=
   conj' (HasImp.imp a b) (HasImp.imp b a)
 

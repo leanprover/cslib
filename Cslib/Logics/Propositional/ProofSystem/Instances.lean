@@ -32,10 +32,11 @@ equal to the concrete formulas used in `PropositionalAxiom`.
 
 @[expose] public section
 
-
 open Cslib.Logic
 
 variable {Atom : Type*} [DecidableEq Atom]
+
+namespace Cslib.Logic.PL
 
 section PropositionalInstances
 
@@ -84,3 +85,5 @@ instance :
       (F := PL.Proposition Atom) where
 
 end PropositionalInstances
+
+end Cslib.Logic.PL

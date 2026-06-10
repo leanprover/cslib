@@ -1,0 +1,16 @@
+{
+  "status": "planned",
+  "summary": "5-phase plan to fix 34 lint issues across 25 files on pr1/foundations-logic: (1) trivial fixes, (2) simp only replacements, (3) safe import removals, (4) import chain restructuring, (5) final CI verification. Estimated 1.5 hours total.",
+  "artifacts": [
+    {
+      "path": "specs/086_pr1_lint_quality_audit/plans/01_lint-quality-audit.md",
+      "type": "plan",
+      "summary": "5-phase implementation plan for systematic lint and quality audit"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "implement",
+  "phases_completed": 0,
+  "phases_total": 5
+}

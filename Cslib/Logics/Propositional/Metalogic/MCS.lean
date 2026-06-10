@@ -93,8 +93,8 @@ theorem prop_mcs_bot_not_mem
     Proposition.bot ∉ S := by
   intro h_bot
   exact h_mcs.1 [Proposition.bot]
-    (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h_bot)
-    (by simp [propDerivationSystem, Deriv]
+    (fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_bot)
+    (by simp only [propDerivationSystem, Deriv]
         exact ⟨.assumption _ _ (List.mem_cons.mpr (Or.inl rfl))⟩)
 
 /-- If `φ ∉ S` (MCS), then `¬φ ∈ S`. -/
