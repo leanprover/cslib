@@ -6,9 +6,7 @@ Authors: Benjamin Brast-McKie
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Logic.InferenceSystem
-public import Cslib.Foundations.Logic.Connectives
 public import Cslib.Foundations.Logic.Axioms
 
 /-! # Proof System Typeclasses

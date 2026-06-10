@@ -6,7 +6,6 @@ Authors: Benjamin Brast-McKie
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Logic.Connectives
 
 /-! # Polymorphic Axiom Definitions
