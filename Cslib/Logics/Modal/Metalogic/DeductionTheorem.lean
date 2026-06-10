@@ -8,6 +8,7 @@ module
 
 public import Cslib.Logics.Modal.Metalogic.DerivationTree
 public import Cslib.Foundations.Logic.Helpers.ListHelpers
+public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 
 /-! # Deduction Theorem for S5 Modal Logic
 
@@ -49,56 +50,17 @@ variable {Atom : Type*}
 
 attribute [local instance] Classical.propDecidable
 
-/-! ## Deduction Theorem Helper Cases -/
+/-! ## HasHilbertTree Instance -/
 
-/-- If `φ` is an axiom, then `Γ ⊢ A → φ`. Uses the weakening axiom `implyK`. -/
-noncomputable def deduction_axiom (Γ : List (Proposition Atom)) (A φ : Proposition Atom)
-    (h_ax : ModalAxiom φ) : DerivationTree Γ (A.imp φ) := by
-  -- φ is derivable (from empty context via axiom, weakened to Γ)
-  -- Then use implyK: φ → (A → φ) to get A → φ
-  have ax_deriv : DerivationTree [] φ := .ax [] φ h_ax
-  have k_ax : DerivationTree [] (φ.imp (A.imp φ)) := .ax [] _ (.implyK φ A)
-  have result : DerivationTree [] (A.imp φ) := .modus_ponens [] φ (A.imp φ) k_ax ax_deriv
-  exact .weakening [] Γ (A.imp φ) result (fun _ h => nomatch h)
-
-/-- `Γ ⊢ A → A` (identity / self-implication). -/
-noncomputable def deduction_imp_self (Γ : List (Proposition Atom)) (A : Proposition Atom) :
-    DerivationTree Γ (A.imp A) := by
-  -- Proof: Use implyS, implyK, implyK to build A → A
-  -- 1. implyS: (A → (A → A) → A) → ((A → A → A) → (A → A))
-  -- 2. implyK: A → (A → A) → A
-  -- 3. implyK: A → A → A
-  -- MP(1,2): (A → A → A) → (A → A)
-  -- MP(above, 3): A → A
-  let s := DerivationTree.ax (Atom := Atom) [] _ (.implyS A (.imp A A) A)
-  let k1 := DerivationTree.ax (Atom := Atom) [] _ (.implyK A (.imp A A))
-  let k2 := DerivationTree.ax (Atom := Atom) [] _ (.implyK A A)
-  let step1 := DerivationTree.modus_ponens [] _ _ s k1
-  let result := DerivationTree.modus_ponens [] _ _ step1 k2
-  exact .weakening [] Γ _ result (fun _ h => nomatch h)
-
-/-- If `B ∈ Γ`, then `Γ ⊢ A → B`. Uses weakening axiom `implyK`. -/
-noncomputable def deduction_assumption_other (Γ : List (Proposition Atom))
-    (A B : Proposition Atom) (h_mem : B ∈ Γ) : DerivationTree Γ (A.imp B) := by
-  have b_deriv := DerivationTree.assumption Γ B h_mem
-  have k_ax : DerivationTree [] (B.imp (A.imp B)) := .ax [] _ (.implyK B A)
-  have k_weak := DerivationTree.weakening [] Γ _ k_ax (fun _ h => nomatch h)
-  exact .modus_ponens Γ B (A.imp B) k_weak b_deriv
-
-/-- Modus ponens under implication: from `Γ ⊢ A → (C → D)` and `Γ ⊢ A → C`,
-derive `Γ ⊢ A → D`. Uses the `implyS` axiom. -/
-noncomputable def deduction_mp (Γ : List (Proposition Atom))
-    (A C D : Proposition Atom)
-    (h₁ : DerivationTree Γ (A.imp (C.imp D)))
-    (h₂ : DerivationTree Γ (A.imp C)) :
-    DerivationTree Γ (A.imp D) := by
-  -- implyS: (A → C → D) → ((A → C) → (A → D))
-  have s_ax : DerivationTree [] ((A.imp (C.imp D)).imp ((A.imp C).imp (A.imp D))) :=
-    .ax [] _ (.implyS A C D)
-  have s_weak := DerivationTree.weakening [] Γ _ s_ax
-    (fun _ h => nomatch h)
-  have step1 := DerivationTree.modus_ponens Γ _ _ s_weak h₁
-  exact .modus_ponens Γ _ _ step1 h₂
+/-- `HasHilbertTree` instance for modal logic. Maps Modal's `.implyK`/`.implyS`
+axiom constructors to the generic typeclass fields. -/
+noncomputable instance : HasHilbertTree (Proposition Atom) where
+  Tree := fun Γ φ => DerivationTree Γ φ
+  implyK := fun φ ψ => .ax [] _ (.implyK φ ψ)
+  implyS := fun φ ψ χ => .ax [] _ (.implyS φ ψ χ)
+  assumption := fun h => .assumption _ _ h
+  mp := fun d₁ d₂ => .modus_ponens _ _ _ d₁ d₂
+  weakening := fun d h => .weakening _ _ _ d h
 
 /-! ## Core: deduction_with_mem -/
 
@@ -113,7 +75,7 @@ noncomputable def deduction_with_mem
     DerivationTree (removeAll Γ' A) (A.imp φ) := by
   match d with
   | .ax _ ψ h_ax =>
-    exact deduction_axiom (removeAll Γ' A) A ψ h_ax
+    exact deduction_axiom (removeAll Γ' A) A (.ax [] ψ h_ax)
   | .assumption _ ψ h_mem =>
     by_cases h_eq : ψ = A
     · subst h_eq
@@ -123,7 +85,7 @@ noncomputable def deduction_with_mem
   | .modus_ponens _ ψ χ d₁ d₂ =>
     have ih₁ := deduction_with_mem Γ' A (ψ.imp χ) d₁ hA
     have ih₂ := deduction_with_mem Γ' A ψ d₂ hA
-    exact deduction_mp (removeAll Γ' A) A ψ χ ih₁ ih₂
+    exact deduction_mp_under_imp (removeAll Γ' A) A ψ χ ih₁ ih₂
   | .necessitation ψ _d' =>
     -- Γ' = [], but A ∈ Γ' = [] is impossible
     simp at hA
@@ -168,7 +130,7 @@ noncomputable def deduction_theorem (Γ : List (Proposition Atom)) (A B : Propos
     DerivationTree Γ (A.imp B) := by
   match d with
   | .ax _ φ h_ax =>
-    exact deduction_axiom Γ A φ h_ax
+    exact deduction_axiom Γ A (.ax [] φ h_ax)
   | .assumption _ φ h_mem =>
     by_cases h_eq : φ = A
     · subst h_eq
@@ -181,7 +143,7 @@ noncomputable def deduction_theorem (Γ : List (Proposition Atom)) (A B : Propos
   | .modus_ponens _ φ ψ d₁ d₂ =>
     have ih₁ := deduction_theorem Γ A (φ.imp ψ) d₁
     have ih₂ := deduction_theorem Γ A φ d₂
-    exact deduction_mp Γ A φ ψ ih₁ ih₂
+    exact deduction_mp_under_imp Γ A φ ψ ih₁ ih₂
   | .weakening Γ' _ φ d' h_sub =>
     by_cases h_eq : Γ' = A :: Γ
     · exact deduction_theorem Γ A φ (h_eq ▸ d')

@@ -102,25 +102,21 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Refactor PL and Modal DeductionTheorem [NOT STARTED]
+### Phase 2: Refactor PL and Modal DeductionTheorem [COMPLETED]
 
 **Goal**: Add `HasHilbertTree` instances for PL and Modal, replace their per-logic helper defs with calls to generic helpers.
 
 **Tasks**:
-- [ ] In `Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean`:
+- [x] In `Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean`: *(completed)*
   - Add import for `DeductionHelpers`
   - Add `HasHilbertTree (PL.Proposition Atom)` instance mapping `.implyK`/`.implyS` to typeclass fields
-  - Replace `deduction_axiom` call sites with generic `Cslib.Logic.deduction_axiom`
-  - Replace `deduction_imp_self` call sites with generic version
-  - Replace `deduction_assumption_other` call sites with generic version
-  - Replace `deduction_mp` call sites with generic `deduction_mp_under_imp`
-  - Remove the per-logic helper definitions (lines ~52-89)
-  - Verify `deduction_with_mem` and `deduction_theorem` still compile with generic helpers
-- [ ] In `Cslib/Logics/Modal/Metalogic/DeductionTheorem.lean`:
+  - Replace 4 per-logic helper defs with generic calls, remove duplicates
+  - `deduction_with_mem` and `deduction_theorem` retain native match/termination_by
+- [x] In `Cslib/Logics/Modal/Metalogic/DeductionTheorem.lean`: *(completed)*
   - Same refactoring as PL (Modal uses identical naming: `.implyK`, `.implyS`)
   - Add `HasHilbertTree (Proposition Atom)` instance
   - Replace helper defs with generic calls, remove duplicates
-- [ ] Run `lake build Cslib.Logics.Propositional.Metalogic.DeductionTheorem` and `lake build Cslib.Logics.Modal.Metalogic.DeductionTheorem`
+- [x] Run `lake build` for both modules *(completed, both pass)*
 
 **Timing**: 1.5 hours
 
