@@ -44,7 +44,7 @@ next_project_number: 88
 ### Uncategorized
 
 86 [PARTIAL] — pr1_lint_quality_audit
-87 [PLANNED] — derive_nd_from_hilbert
+87 [COMPLETED] — derive_nd_from_hilbert
 
 ## Tasks
 

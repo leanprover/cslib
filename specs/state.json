@@ -226,10 +226,11 @@
     {
       "project_number": 87,
       "project_name": "derive_nd_from_hilbert",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T22:01:46Z",
-      "last_updated": "2026-06-10T22:59:00Z"
+      "last_updated": "2026-06-10T23:20:00Z",
+      "completion_summary": "Proved extensional equivalence between Hilbert and ND proof systems via hilbert_iff_nd theorem in new file Equivalence.lean (168 lines, zero sorries)"
     }
   ],
   "repository_health": {
