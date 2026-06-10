@@ -500,14 +500,23 @@
     {
       "project_number": 80,
       "project_name": "generic_deduction_theorem",
-      "status": "researching",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-10T16:44:52Z",
-      "last_updated": "2026-06-10T16:50:38Z",
+      "last_updated": "2026-06-10T16:59:43Z",
       "dependencies": [
         79
       ],
-      "session_id": "sess_1781110226_a7ba85"
+      "session_id": "sess_1781110226_a7ba85",
+      "researched": "2026-06-10T16:59:43Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/080_generic_deduction_theorem/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research with 4 teammates: typeclass design analysis"
+        }
+      ]
     }
   ],
   "repository_health": {

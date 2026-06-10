@@ -45,7 +45,7 @@ next_project_number: 82
 
 76 [NOT STARTED] — module_keyword_migration
 79 [PLANNED] — deduplicate_shared_helpers
-  └─ 80 [RESEARCHING] — generic_deduction_theorem
+  └─ 80 [RESEARCHED] — generic_deduction_theorem
 81 [NOT STARTED] — pr1_foundations_logic_code_review
 
 ## Tasks
@@ -98,9 +98,10 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 80. Generic DeductionTheorem interface across all logic domains
 - **Effort**: Medium (3-4 hours)
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 79
+- **Research**: [specs/080_generic_deduction_theorem/reports/01_team-research.md]
 
 **Description**: Design and implement a shared `HasDerivationTree` typeclass in Foundations/Logic/ that exposes `height`, constructor accessors (`ax`, `assumption`, `mp`, `weakening`), and height-related lemmas, enabling a single generic deduction theorem proof to serve all 4 logic domains (Propositional, Modal, Temporal, Bimodal). Currently each domain has its own ~200-line deduction theorem proof in its `DeductionTheorem.lean` file, all following identical structure: base cases for axiom and assumption (split into same vs. other), inductive case for modus ponens, weakening reduction, and domain-specific "empty-context-only" constructors (e.g., necessitation, temporal_necessity, temporal_duality) which are all discharged by `simp at hA`. The generic proof should handle the 4 common constructors, with each logic providing a dispatch mechanism for its extra constructors. After implementation, each domain's `DeductionTheorem.lean` should contain only a `HasDerivationTree` instance and a one-line invocation of the generic proof, eliminating ~600 lines of duplicated proof code across the 3 non-canonical domains.
 
