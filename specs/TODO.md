@@ -38,7 +38,7 @@ next_project_number: 66
 
 ### Submit PRs
 
-58 [NOT STARTED] — ci_prep_sorry_fix_baseline
+58 [PLANNED] — ci_prep_sorry_fix_baseline
   └─ 59 [NOT STARTED] — pr1_foundations_logic
     └─ 60 [NOT STARTED] — pr2_modal_metalogic
     └─ 61 [NOT STARTED] — pr3_temporal_proof_system
@@ -120,10 +120,11 @@ next_project_number: 66
 
 ### 59. PR 1: Submit Foundations/Logic theorems and MCS foundations
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 58
 - **Topic**: Submit PRs
+- **Research**: [059_pr1_foundations_logic/reports/01_primitive-connectives-justification.md]
 
 **Description**: Create feature branch and submit PR containing all 16 Foundations/Logic files: core definitions (ProofSystem, InferenceSystem, Connectives, LogicalEquivalence, Axioms), Theorems (Combinators, BigConj, barrel), Propositional (Core, Connectives, Reasoning), Modal (Basic, S5), Temporal (TemporalDerived, FrameConditions), Metalogic/Consistency (~3,666 lines). This must be the first PR because Temporal and Modal metalogic import Consistency. PR title: `feat(Foundations/Logic): propositional theorems, modal S5 theorems, and MCS consistency foundations`. Run CI checks. See task 56 plan Phase 3.
 
@@ -131,11 +132,13 @@ next_project_number: 66
 
 ### 58. CI prep: sorry fix and global CI baseline
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
+- **Research**: [specs/058_ci_prep_sorry_fix_baseline/reports/01_ci-prep-research.md]
+- **Plan**: [specs/058_ci_prep_sorry_fix_baseline/plans/01_ci-prep-plan.md]
 
-**Description**: Remove unused `t_le_refl` sorry from Chronicle/Frame.lean, then run full CI baseline: lake build (zero errors), grep for sorry (zero in Temporal/Modal/Foundations), lake shake, lake lint, lake exe lint-style, lake exe checkInitImports, verify Apache 2.0 headers on all files to be submitted. Fix any issues found. This establishes the clean baseline before any PR branches are created.
+**Description**: Remove unused `t_le_refl` sorry from Chronicle/Frame.lean, then run full CI baseline: lake build (zero errors), grep for sorry (zero in Temporal/Modal/Foundations), lake shake, lake lint, lake exe lint-style, lake exe checkInitImports, verify Apache 2.0 headers on all files to be submitted and that my name appears 'Benjamin Brast-McKie' rather than 'Benjamin Brastmckie' as it does currently (fix this everywhere systematically). Fix any issues found. This establishes the clean baseline before any PR branches are created.
 
 ---
 

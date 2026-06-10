@@ -34,23 +34,38 @@
     {
       "project_number": 58,
       "project_name": "ci_prep_sorry_fix_baseline",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-10T00:22:30Z",
-      "last_updated": "2026-06-10T00:22:30Z",
-      "topic": "Submit PRs"
+      "last_updated": "2026-06-09T00:00:00Z",
+      "topic": "Submit PRs",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/058_ci_prep_sorry_fix_baseline/reports/01_ci-prep-research.md",
+          "type": "research",
+          "summary": "CI prep research: sorry audit, name corrections, lint-style errors, CI tool availability"
+        },
+        {
+          "path": "specs/058_ci_prep_sorry_fix_baseline/plans/01_ci-prep-plan.md",
+          "type": "plan",
+          "summary": "4-phase implementation plan for CI prep baseline"
+        }
+      ],
+      "session_id": "sess_1749512949_a3b2c1"
     },
     {
       "project_number": 59,
       "project_name": "pr1_foundations_logic",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "dependencies": [
         58
       ],
       "created": "2026-06-10T00:22:30Z",
-      "last_updated": "2026-06-10T00:22:30Z",
-      "topic": "Submit PRs"
+      "last_updated": "2026-06-10T02:10:45Z",
+      "topic": "Submit PRs",
+      "session_id": "sess_1781057037_55e0e0"
     },
     {
       "project_number": 60,
