@@ -1,6 +1,15 @@
 {
-  "next_project_number": 65,
+  "next_project_number": 66,
   "active_projects": [
+    {
+      "project_number": 65,
+      "project_name": "pre_pr_cleanup_audit",
+      "status": "not_started",
+      "task_type": "general",
+      "topic": "Submit PRs",
+      "created": "2026-06-10T00:49:48Z",
+      "last_updated": "2026-06-10T00:49:48Z"
+    },
     {
       "project_number": 58,
       "project_name": "ci_prep_sorry_fix_baseline",
