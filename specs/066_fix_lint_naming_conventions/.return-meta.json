@@ -1,17 +1,33 @@
 {
-  "status": "report_written",
-  "started_at": "2026-06-10T03:52:36Z",
+  "status": "planned",
   "artifacts": [
-    "specs/066_fix_lint_naming_conventions/reports/01_lint-naming-research.md"
+    {
+      "path": "specs/066_fix_lint_naming_conventions/plans/01_fix-lint-naming.md",
+      "type": "plan",
+      "summary": "4-phase plan to rename 16 snake_case def/abbrev identifiers to lowerCamelCase across 95 files with ~2,903 references using ordered sed batch replacement"
+    }
   ],
-  "partial_progress": {
-    "stage": "research_complete",
-    "details": "Identified 16 snake_case def/abbrev violations across 6 definition files, mapped 95 affected downstream files with ~2903 references, developed sed-based batch rename strategy with ordering constraints"
+  "plan_metadata": {
+    "phases": 4,
+    "total_effort_hours": 3,
+    "complexity": "medium",
+    "research_integrated": true,
+    "plan_version": 1,
+    "dependency_waves": [[1], [2], [3], [4]],
+    "reports_integrated": [
+      {
+        "path": "reports/01_lint-naming-research.md",
+        "integrated_in_plan_version": 1,
+        "integrated_date": "2026-06-09"
+      }
+    ]
   },
+  "memory_candidates": [],
+  "next_steps": "Run /implement 66 to execute the plan",
   "metadata": {
-    "session_id": "sess_1781063497_2c7653",
-    "agent_type": "lean-research-agent",
+    "session_id": "sess_1781065537_3f6fad",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+    "delegation_path": ["orchestrator", "plan", "planner-agent"]
   }
 }

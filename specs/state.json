@@ -4,19 +4,24 @@
     {
       "project_number": 66,
       "project_name": "fix_lint_naming_conventions",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-09T00:00:00Z",
-      "last_updated": "2026-06-10T04:00:11Z",
+      "last_updated": "2026-06-10T04:30:58Z",
       "topic": "Submit PRs",
       "description": "Rename 19 snake_case identifiers to lowerCamelCase in PR-scope files (Temporal/Propositional). 12 in Temporal/Syntax/Formula.lean (some_future, all_future, some_past, all_past, weak_future, weak_past, weak_until, weak_since, strong_release, strong_trigger, swap_temporal), 1 in Temporal/Syntax/BigConj.lean (neg_bigconj), plus downstream references. Requires lake build verification after each rename.",
-      "session_id": "sess_1781063497_2c7653",
+      "session_id": "sess_1781065537_3f6fad",
       "researched": "2026-06-10T04:00:11Z",
       "artifacts": [
         {
           "path": "specs/066_fix_lint_naming_conventions/reports/01_lint-naming-research.md",
           "type": "report",
           "summary": "Identified 16 snake_case def/abbrev violations across 6 files, mapped 95 affected files with ~2903 references, developed sed-based batch rename strategy"
+        },
+        {
+          "path": "specs/066_fix_lint_naming_conventions/plans/01_fix-lint-naming.md",
+          "type": "plan",
+          "summary": "4-phase plan to rename 16 snake_case def/abbrev identifiers to lowerCamelCase across 95 files with ~2,903 references using ordered sed batch replacement"
         }
       ]
     },
