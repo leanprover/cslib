@@ -92,7 +92,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Remove Commented-Out Code [NOT STARTED]
+### Phase 2: Remove Commented-Out Code [IN PROGRESS]
 
 **Goal**: Remove ~560 lines of commented-out code from 4 PR-scope files to eliminate dead code that would attract reviewer comments.
 

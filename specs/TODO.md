@@ -52,7 +52,7 @@ next_project_number: 66
 
 ### 65. Audit repo for pre-PR cleanup and create refactoring tasks
 - **Effort**: Medium
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Research**: [specs/065_pre_pr_cleanup_audit/reports/01_team-research.md]
