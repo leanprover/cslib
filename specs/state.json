@@ -10,7 +10,8 @@
       "last_updated": "2026-06-10T16:55:54Z",
       "depends_on": [
         79
-      ]
+      ],
+      "topic": "Clean Up"
     },
     {
       "project_number": 77,
@@ -28,7 +29,8 @@
       "task_type": "lean4",
       "created": "2026-06-10T14:32:33Z",
       "last_updated": "2026-06-10T15:36:05Z",
-      "completion_summary": "Migrated 145 non-module files across Logics/ (Bimodal, Modal, Temporal, Propositional) to use module keyword, public import, and @[expose] public section. Resolved lake build cannot import non-module error. Pre-existing errors in Bimodal/Theorems/Combinators.lean unrelated."
+      "completion_summary": "Migrated 145 non-module files across Logics/ (Bimodal, Modal, Temporal, Propositional) to use module keyword, public import, and @[expose] public section. Resolved lake build cannot import non-module error. Pre-existing errors in Bimodal/Theorems/Combinators.lean unrelated.",
+      "topic": "Clean Up"
     },
     {
       "project_number": 75,
@@ -501,14 +503,14 @@
     {
       "project_number": 80,
       "project_name": "generic_deduction_theorem",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-10T16:44:52Z",
-      "last_updated": "2026-06-10T16:59:43Z",
+      "last_updated": "2026-06-10T17:12:09Z",
       "dependencies": [
         79
       ],
-      "session_id": "sess_1781110226_a7ba85",
+      "session_id": "sess_1781111276_85576a",
       "researched": "2026-06-10T16:59:43Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -516,8 +518,14 @@
           "path": "specs/080_generic_deduction_theorem/reports/01_team-research.md",
           "type": "research",
           "summary": "Team research with 4 teammates: typeclass design analysis"
+        },
+        {
+          "path": "specs/080_generic_deduction_theorem/plans/01_generic-deduction.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for HasHilbertTree typeclass with 4 generic deduction helpers"
         }
-      ]
+      ],
+      "topic": "Clean Up"
     }
   ],
   "repository_health": {
