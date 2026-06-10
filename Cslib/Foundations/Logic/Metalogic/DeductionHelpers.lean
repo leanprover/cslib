@@ -6,6 +6,7 @@ Authors: Benjamin Brast-McKie
 
 module
 
+import Cslib.Init
 public import Cslib.Foundations.Logic.Connectives
 
 /-! # Generic Deduction Theorem Helpers

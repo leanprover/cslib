@@ -6,6 +6,7 @@ Authors: Benjamin Brast-McKie
 
 module
 
+import Cslib.Init
 public import Cslib.Foundations.Logic.Theorems.Combinators
 public import Cslib.Foundations.Logic.Theorems.Propositional.Core
 public import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
