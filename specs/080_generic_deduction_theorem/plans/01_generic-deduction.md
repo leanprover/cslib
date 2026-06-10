@@ -160,23 +160,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Refactor Bimodal DeductionTheorem [NOT STARTED]
+### Phase 4: Refactor Bimodal DeductionTheorem [COMPLETED]
 
 **Goal**: Add `HasHilbertTree` instance for Bimodal, replace helpers with generic calls. Bimodal is most complex: uses `{fc : FrameClass}` polymorphism, has `weaken_under_imp`/`weaken_under_imp_ctx` extra helpers, and calls `identity` from Perpetuity/Helpers.
 
 **Tasks**:
-- [ ] In `Cslib/Logics/Bimodal/Metalogic/Core/DeductionTheorem.lean`:
+- [x] In `Cslib/Logics/Bimodal/Metalogic/Core/DeductionTheorem.lean`: *(completed)*
   - Add import for `DeductionHelpers`
-  - Add `HasHilbertTree (Bimodal.Formula Atom)` instance. Decision point: the Bimodal DerivationTree is parameterized by `{fc : FrameClass}`, so the instance needs to fix a FrameClass. Since the deduction theorem is proven for arbitrary `fc`, the instance should either:
-    - (a) Be parameterized: `instance (fc : FrameClass) : HasHilbertTree (Bimodal.Formula Atom)` with `Tree := fun Gamma phi => DerivationTree fc Gamma phi`, or
-    - (b) Fix `FrameClass.Base` and use `DerivationTree.lift` where needed.
-    Option (a) is cleaner since the Bimodal proof is already fc-polymorphic.
-  - Map axiom names: `.imp_s` -> implyK, `.imp_k` -> implyS (same swap as Temporal)
-  - Replace `deduction_axiom`, `deduction_assumption_same`, `deduction_assumption_other`, `deduction_mp` with generic calls
-  - Remove `weaken_under_imp`, `weaken_under_imp_ctx` (subsumed by generic `deduction_axiom`)
-  - For `deduction_assumption_same`: the generic `deduction_imp_self` builds A->A from S/K/K axioms. Bimodal currently uses `identity` from Perpetuity. Replace with generic version.
-  - Adjust `deduction_with_mem` and `deduction_theorem` match arms to call generic helpers
-- [ ] Run `lake build Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem`
+  - Created `@[reducible] def bimodalHilbertTree (fc : FrameClass)` as a function rather than instance (option (a) adapted — uses `letI` in proofs for fc-polymorphic resolution)
+  - Map axiom names: `.imp_s` -> implyK, `.imp_k` -> implyS
+  - Replace 6 per-logic helpers (`weaken_under_imp`, `weaken_under_imp_ctx`, `deduction_axiom`, `deduction_assumption_same`, `deduction_assumption_other`, `deduction_mp`) with generic calls
+  - `deduction_assumption_same` now uses generic `deduction_imp_self` instead of `identity` from Perpetuity *(deviation: altered — `identity` import removed, `deduction_imp_self` builds A->A from S/K/K)*
+- [x] Run `lake build Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem` *(completed, passes)*
 
 **Timing**: 1 hour
 

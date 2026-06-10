@@ -8,6 +8,7 @@ module
 public import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
 public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
 public import Cslib.Foundations.Logic.Helpers.ListHelpers
+public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 
 /-!
 # Deduction Theorem - Hilbert System Deduction Infrastructure
@@ -46,8 +47,8 @@ set_option linter.flexible false
 
 namespace Cslib.Logic.Bimodal.Metalogic.Core
 
+open Cslib.Logic
 open Cslib.Logic.Bimodal
-open Cslib.Logic.Bimodal.Theorems.Perpetuity (identity)
 open Cslib.Logic.Helpers
 
 variable {Atom : Type*}
@@ -56,89 +57,19 @@ attribute [local instance] Classical.propDecidable
 
 noncomputable section
 
-/-! ## Helper Lemmas -/
+/-! ## HasHilbertTree Instance -/
 
-/--
-Helper: Apply implication introduction pattern.
-If `⊢ φ` then `⊢ A → φ` for any A.
-
-This uses the S axiom (weakening): `φ → (A → φ)`.
--/
-def weaken_under_imp {fc : FrameClass} {φ A : Formula Atom}
-    (h : DerivationTree fc [] φ) : DerivationTree fc [] (A.imp φ) := by
-  have s_ax : DerivationTree fc [] (φ.imp (A.imp φ)) :=
-    DerivationTree.axiom [] _ (Axiom.imp_s φ A) trivial
-  exact DerivationTree.modus_ponens [] φ (A.imp φ) s_ax h
-
-/--
-Helper: Lift weakening to contexts.
-If `Γ ⊢ φ` then `Γ ⊢ A → φ` for formulas φ that are axioms.
--/
-def weaken_under_imp_ctx {fc : FrameClass} {Γ : Context Atom} {φ A : Formula Atom}
-    (h : Axiom φ) (h_fc : h.minFrameClass ≤ fc) :
-    DerivationTree fc Γ (A.imp φ) := by
-  have ax_deriv : DerivationTree fc [] φ := DerivationTree.axiom [] φ h h_fc
-  have weakened : DerivationTree fc [] (A.imp φ) := weaken_under_imp ax_deriv
-  exact DerivationTree.weakening [] Γ (A.imp φ) weakened (List.nil_subset Γ)
-
-/-! ## Deduction Theorem Cases -/
-
-/--
-Deduction case for axioms: If φ is an axiom, then `Γ ⊢ A → φ`.
-
-**Strategy**: Use S axiom to weaken φ under implication A.
--/
-def deduction_axiom {fc : FrameClass} (Γ : Context Atom) (A φ : Formula Atom) (h_ax : Axiom φ)
-    (h_fc : h_ax.minFrameClass ≤ fc) :
-    DerivationTree fc Γ (A.imp φ) := by
-  exact weaken_under_imp_ctx h_ax h_fc
-
-/--
-Deduction case for same assumption: `Γ ⊢ A → A`.
-
-**Strategy**: Use identity theorem (already proven in Perpetuity/Helpers.lean).
--/
-def deduction_assumption_same {fc : FrameClass} (Γ : Context Atom)
-    (A : Formula Atom) :
-    DerivationTree fc Γ (A.imp A) := by
-  have id : DerivationTree FrameClass.Base [] (A.imp A) := identity A
-  have id_fc : DerivationTree fc [] (A.imp A) :=
-    DerivationTree.lift (fc₁ := .Base) trivial id
-  exact DerivationTree.weakening [] Γ (A.imp A) id_fc (List.nil_subset Γ)
-
-/--
-Deduction case for other assumptions: If `B ∈ Γ`, then `Γ ⊢ A → B`.
-
-**Strategy**: Use S axiom to weaken assumption B under implication A.
--/
-def deduction_assumption_other {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
-    (h_mem : B ∈ Γ) : DerivationTree fc Γ (A.imp B) := by
-  have b_deriv : DerivationTree fc Γ B := DerivationTree.assumption Γ B h_mem
-  have s_ax : DerivationTree fc [] (B.imp (A.imp B)) :=
-    DerivationTree.axiom [] _ (Axiom.imp_s B A) trivial
-  have s_weak : DerivationTree fc Γ (B.imp (A.imp B)) :=
-    DerivationTree.weakening [] Γ (B.imp (A.imp B)) s_ax (List.nil_subset Γ)
-  exact DerivationTree.modus_ponens Γ B (A.imp B) s_weak b_deriv
-
-/--
-Deduction case for modus ponens:
-If `Γ ⊢ A → (C → D)` and `Γ ⊢ A → C` then `Γ ⊢ A → D`.
-
-**Strategy**: Use K axiom distribution: `(A → C → D) → ((A → C) → (A → D))`.
--/
-def deduction_mp {fc : FrameClass} (Γ : Context Atom) (A C D : Formula Atom)
-    (h1 : DerivationTree fc Γ (A.imp (C.imp D)))
-    (h2 : DerivationTree fc Γ (A.imp C)) :
-    DerivationTree fc Γ (A.imp D) := by
-  -- K axiom: (A → C → D) → ((A → C) → (A → D))
-  have k_ax : DerivationTree fc [] ((A.imp (C.imp D)).imp ((A.imp C).imp (A.imp D))) :=
-    DerivationTree.axiom [] _ (Axiom.imp_k A C D) trivial
-  have k_weak : DerivationTree fc Γ ((A.imp (C.imp D)).imp ((A.imp C).imp (A.imp D))) :=
-    DerivationTree.weakening [] Γ _ k_ax (List.nil_subset Γ)
-  -- Apply modus ponens twice
-  have step1 : DerivationTree fc Γ ((A.imp C).imp (A.imp D)) :=
-    DerivationTree.modus_ponens Γ (A.imp (C.imp D)) ((A.imp C).imp (A.imp D)) k_weak h1
-  exact DerivationTree.modus_ponens Γ (A.imp C) (A.imp D) step1 h2
+/-- `HasHilbertTree` for bimodal logic, parameterized by frame class.
+Since the bimodal deduction theorem is polymorphic in `fc`, this is defined as
+a function rather than an instance. Use `letI` to bring it into scope.
+Note: Bimodal uses swapped axiom names -- `.imp_s` is K and `.imp_k` is S. -/
+@[reducible] def bimodalHilbertTree (fc : FrameClass) : HasHilbertTree (Formula Atom) where
+  Tree := fun Γ φ => DerivationTree fc Γ φ
+  implyK := fun φ ψ => .axiom [] _ (.imp_s φ ψ) trivial
+  implyS := fun φ ψ χ => .axiom [] _ (.imp_k φ ψ χ) trivial
+  assumption := fun h => .assumption _ _ h
+  mp := fun d₁ d₂ => .modus_ponens _ _ _ d₁ d₂
+  weakening := fun d h => .weakening _ _ _ d h
 
 /--
 Deduction theorem for contexts where A appears in the middle.
@@ -153,15 +84,16 @@ def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
     (A φ : Formula Atom)
     (h : DerivationTree fc Γ' φ) (hA : A ∈ Γ') :
     DerivationTree fc (removeAll Γ' A) (A.imp φ) := by
+  letI := bimodalHilbertTree (Atom := Atom) fc
   haveI : Decidable (A ∈ Γ') := Classical.propDecidable _
   match h with
   | DerivationTree.axiom _ ψ h_ax h_fc =>
-      exact deduction_axiom (removeAll Γ' A) A ψ h_ax h_fc
+      exact deduction_axiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
 
   | DerivationTree.assumption _ ψ h_mem =>
       by_cases h_eq : ψ = A
       · rw [← h_eq]
-        exact deduction_assumption_same (removeAll Γ' ψ) ψ
+        exact deduction_imp_self (removeAll Γ' ψ) ψ
       · have h_mem' : ψ ∈ removeAll Γ' A := by
           simp only [removeAll, List.mem_filter, decide_eq_true_eq]
           exact ⟨h_mem, h_eq⟩
@@ -170,7 +102,7 @@ def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
   | DerivationTree.modus_ponens _ ψ χ h1 h2 =>
       have ih1 := deduction_with_mem Γ' A (ψ.imp χ) h1 hA
       have ih2 := deduction_with_mem Γ' A ψ h2 hA
-      exact deduction_mp (removeAll Γ' A) A ψ χ ih1 ih2
+      exact deduction_mp_under_imp (removeAll Γ' A) A ψ χ ih1 ih2
 
   | DerivationTree.necessitation ψ h_deriv =>
       simp at hA
@@ -229,15 +161,16 @@ into implicational theorems.
 def deduction_theorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
     (h : DerivationTree fc (A :: Γ) B) :
     DerivationTree fc Γ (A.imp B) := by
+  letI := bimodalHilbertTree (Atom := Atom) fc
   haveI : Decidable (A ∈ Γ) := Classical.propDecidable _
   match h with
   | DerivationTree.axiom _ φ h_ax h_fc =>
-      exact deduction_axiom Γ A φ h_ax h_fc
+      exact deduction_axiom Γ A (.axiom [] φ h_ax h_fc)
 
   | DerivationTree.assumption _ φ h_mem =>
       by_cases h_eq : φ = A
       · subst h_eq
-        exact deduction_assumption_same Γ φ
+        exact deduction_imp_self Γ φ
       · have h_tail : φ ∈ Γ := by
           cases h_mem with
           | head => exact absurd rfl h_eq
@@ -247,7 +180,7 @@ def deduction_theorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
   | DerivationTree.modus_ponens _ φ ψ h1 h2 =>
       have ih1 := deduction_theorem Γ A (φ.imp ψ) h1
       have ih2 := deduction_theorem Γ A φ h2
-      exact deduction_mp Γ A φ ψ ih1 ih2
+      exact deduction_mp_under_imp Γ A φ ψ ih1 ih2
 
   | DerivationTree.weakening Γ' _ φ h1 h2 =>
       by_cases h_eq : Γ' = A :: Γ
