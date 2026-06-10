@@ -1,5 +1,5 @@
 ---
-next_project_number: 83
+next_project_number: 86
 ---
 
 # Tasks
@@ -50,6 +50,13 @@ next_project_number: 83
 84 [COMPLETED] — resolve_public_import_cslib_init
 
 ## Tasks
+
+### 85. Include Logics/Propositional/ changes in PR 1 feature branch
+- **Effort**: small
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Add the 6 new files and 2 modified files from Cslib/Logics/Propositional/ to the pr1/foundations-logic branch: ProofSystem/Axioms.lean, ProofSystem/Derivation.lean, ProofSystem/Instances.lean, Metalogic/DeductionTheorem.lean, Metalogic/MCS.lean, NaturalDeduction/FromHilbert.lean (new), plus Defs.lean and NaturalDeduction/Basic.lean (modified). Also update Cslib.lean with the corresponding imports. Verify build, linters, and tests pass after adding.
 
 ### 84. Resolve public import Cslib.Init in Foundations/Logic files
 - **Effort**: small

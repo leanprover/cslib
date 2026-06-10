@@ -1,6 +1,14 @@
 {
-  "next_project_number": 85,
+  "next_project_number": 86,
   "active_projects": [
+    {
+      "project_number": 85,
+      "project_name": "include_propositional_in_pr1",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T20:00:45Z",
+      "last_updated": "2026-06-10T20:00:45Z"
+    },
     {
       "project_number": 84,
       "project_name": "resolve_public_import_cslib_init",
