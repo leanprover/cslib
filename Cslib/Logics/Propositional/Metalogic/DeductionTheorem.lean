@@ -144,7 +144,7 @@ noncomputable def deductionTheorem (Γ : List (PL.Proposition Atom)) (A B : PL.P
       · have h_sub' : ∀ x ∈ Γ', x ∈ Γ := by
           intro x hx
           have := h_sub x hx
-          simp [List.mem_cons] at this
+          simp only [List.mem_cons] at this
           rcases this with rfl | h
           · exact absurd hx hA
           · exact h
@@ -158,7 +158,7 @@ decreasing_by
   · exact DerivationTree.height_modus_ponens_left d₁ d₂
   · exact DerivationTree.height_modus_ponens_right d₁ d₂
   · have : (h_eq ▸ d').height = d'.height := by subst h_eq; rfl
-    simp [this]
+    simp only [this]
     exact DerivationTree.height_weakening d' h_sub
 
 /-! ## HasDeductionTheorem Instance -/
@@ -171,7 +171,7 @@ theorem prop_has_deduction_theorem :
     Metalogic.HasDeductionTheorem (@propDerivationSystem Atom) := by
   intro Γ φ ψ h
   unfold propDerivationSystem Deriv at h ⊢
-  simp at h ⊢
+  simp only [] at h ⊢
   obtain ⟨d⟩ := h
   exact ⟨deductionTheorem Γ φ ψ d⟩
 
