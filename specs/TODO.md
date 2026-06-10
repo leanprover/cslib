@@ -1,5 +1,5 @@
 ---
-next_project_number: 89
+next_project_number: 90
 ---
 
 # Tasks
@@ -44,12 +44,31 @@ next_project_number: 89
 ### Uncategorized
 
 88 [NOT STARTED] — refactor_propositional_hilbert_intuitionistic_base
+89 [NOT STARTED] — derived_connective_rules
 
 ## Tasks
 
+### 89. Derived intro/elim rules for defined propositional connectives in ND and Hilbert
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Add derived intro/elim rules for the defined propositional connectives (`∧ₚ`, `∨ₚ`, `¬ₚ`, `↔ₚ`, `⊤ₚ`) in both proof systems so that both are equally versatile. Connectives are already `abbrev` definitions reducing to `→`/`⊥` via Łukasiewicz encodings in `Defs.lean`. Follow the existing pattern used for temporal defined operators: `abbrev` + notation + standalone theorems with definitional unfolding.
+
+**Rules to derive** (in both ND `NaturalDeduction/Basic.lean` and Hilbert `FromHilbert.lean`):
+- `andI`, `andE₁`, `andE₂` — conjunction intro/elim
+- `orI₁`, `orI₂`, `orE` — disjunction intro/elim
+- `negI`, `negE` — negation intro/elim
+- `dne` — double negation elimination
+- `iffI`, `iffE₁`, `iffE₂` — biconditional intro/elim
+- `topI` — top introduction
+- Prop-level (`Deriv`/`DerivableIn`) versions of each
+
+**Approach**: These should be syntactic sugar — thin wrappers that unfold the `abbrev` definitions and compose existing `→`/`⊥` rules. Reference temporal defined operators in `Temporal/` for the uniform pattern. Both systems should end up with matching interfaces.
+
 ### 88. Refactor propositional Hilbert system to intuitionistic base with uniform extension architecture
 - **Effort**: large
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: formal
 
 **Description**: Instead of a single classical propositional Hilbert system, refactor to an intuitionistic propositional Hilbert system with a classical extension. This should follow the same uniform patterns for logic extensions (e.g., where a base modal logic K is extended to D, T, B, 4, KT, KT4, etc., or where the base tense logic is extended to include axioms for discreteness, density, or continuity). Research and implement a design with the best architecture to sustain the elaboration of many extensions of a given logic within a common language.

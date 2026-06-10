@@ -1,13 +1,14 @@
 {
-  "next_project_number": 89,
+  "next_project_number": 90,
   "active_projects": [
     {
       "project_number": 88,
       "project_name": "refactor_propositional_hilbert_intuitionistic_base",
-      "status": "not_started",
+      "status": "researching",
       "task_type": "formal",
       "created": "2026-06-10T23:15:41Z",
-      "last_updated": "2026-06-10T23:15:41Z"
+      "last_updated": "2026-06-10T23:18:14Z",
+      "session_id": "sess_1781133480_6a1b41"
     },
     {
       "project_number": 60,
@@ -239,6 +240,15 @@
       "created": "2026-06-10T22:01:46Z",
       "last_updated": "2026-06-10T23:20:00Z",
       "completion_summary": "Proved extensional equivalence between Hilbert and ND proof systems via hilbert_iff_nd theorem in new file Equivalence.lean (168 lines, zero sorries)"
+    },
+    {
+      "project_number": 89,
+      "project_name": "derived_connective_rules",
+      "status": "not_started",
+      "task_type": "lean4",
+      "description": "Add derived intro/elim rules for defined propositional connectives (∧ₚ, ∨ₚ, ¬ₚ, ↔ₚ, ⊤ₚ) in both the standalone ND system (NaturalDeduction/Basic.lean) and the Hilbert system (FromHilbert.lean wrappers). Connectives are already defined as abbrevs reducing to →/⊥ in Defs.lean (Łukasiewicz encodings). Follow the existing pattern: abbrev + notation + standalone theorems with definitional unfolding. For each connective, provide standard intro/elim rules at both the type level (DerivationTree / Theory.Derivation) and the Prop level (Deriv / DerivableIn). Rules needed: andI, andE₁, andE₂, orI₁, orI₂, orE, negI, negE, dne (double negation elimination), iffI, iffE₁, iffE₂, topI. Both systems should end up equally versatile. Reference temporal defined operators in Temporal/ for the uniform approach.",
+      "created": "2026-06-10T23:30:00Z",
+      "last_updated": "2026-06-10T23:30:00Z"
     }
   ],
   "repository_health": {
