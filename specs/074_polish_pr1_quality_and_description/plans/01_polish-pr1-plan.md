@@ -186,47 +186,40 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Update PR description [NOT STARTED]
+### Phase 5: Update PR description [COMPLETED]
 
 **Goal**: Update pr-description.md with correct line counts, new Embedding relocation section, and module keyword migration documentation.
 
 **Tasks**:
 
 **Line count updates** (recount all files with `wc -l` at this point since phases 1-3 may change counts):
-- [ ] Recount all 15 files with `wc -l` to get post-edit line counts
-- [ ] Update the summary paragraph (line 7): change "3,621 lines total" to the actual total
-- [ ] Update individual line counts in the File Inventory table for each file that changed
+- [x] Recount all 15 files with `wc -l` to get post-edit line counts
+- [x] Update the summary paragraph (line 7): change "3,621 lines total" to "3,646 lines total"
+- [x] Update individual line counts in the File Inventory table for each file that changed
 
-**Expected line count changes from prior tasks** (to be verified):
-| File | Current PR Description | Current Actual | Post-Phase Delta |
-|------|----------------------:|---------------:|-----------------:|
-| `Combinators.lean` | 330 | 334 | -1 (Phase 1) |
-| `Core.lean` | 285 | 289 | -1 (Phase 1) |
-| `Basic.lean` | 200 | 204 | -1 (Phase 1) |
-| `S5.lean` | 585 | 589 | +5 (Phase 3: -1 remove, +6 add) |
-| `TemporalDerived.lean` | 270 | 274 | +3 (Phase 2: -2 remove abbrevs, Phase 3: -1 remove, +6 add) |
-| `Connectives.lean` | 545 | 546 | 0 |
-| `BigConj.lean` | 136 | 141 | 0 |
-| `FrameConditions.lean` | 84 | 89 | 0 |
-| `Consistency.lean` | 273 | 277 | 0 |
+**Verified line count changes**:
+| File | Old PR Count | New Actual | Delta |
+|------|------------:|----------:|------:|
+| `Combinators.lean` | 330 | 333 | +3 |
+| `Core.lean` | 285 | 288 | +3 |
+| `Basic.lean` | 200 | 203 | +3 |
+| `S5.lean` | 585 | 593 | +8 |
+| `TemporalDerived.lean` | 270 | 277 | +7 |
+| `Connectives.lean` | 545 | 546 | +1 |
+| `BigConj.lean` | 136 | 141 | +5 |
+| `FrameConditions.lean` | 84 | 89 | +5 |
+| `Consistency.lean` | 273 | 277 | +4 |
 
-- [ ] Update each changed file's line count in the table
-- [ ] Recalculate and update the total
+- [x] Update each changed file's line count in the table
+- [x] Recalculate and update the total (3,642 -> 3,646)
 
 **New sections to add**:
-- [ ] Add "Embedding Relocation (Tasks 72-73)" section after the Verification section, documenting:
-  - `Propositional/Embedding.lean` merged into `Bimodal/Embedding/PropositionalEmbedding.lean` (task 72)
-  - `Modal/FromPropositional.lean` and `Temporal/FromPropositional.lean` created (task 73)
-  - The clean import hierarchy: Propositional -> {Modal, Temporal} -> Bimodal
-  - Note these files are outside Foundations/Logic/ scope but establish the dependency structure
-- [ ] Add "Module Keyword Migration (Task 68)" section (or integrate into Verification), documenting:
-  - All 15 files now have `module` keyword and `@[expose] public section`
-  - All imports converted to `public import`
-  - This was required for Lean 4 module system compliance
+- [x] Add "Embedding Relocation (Tasks 72-73)" section after the Verification section
+- [x] Add "Module Keyword Migration (Task 68)" section
 
 **Known Issues updates**:
-- [ ] Update the long-line suppressions bullet: change "file-scoped ... Scoping to individual theorems is deferred" to "per-theorem scoped via `set_option ... in`"
-- [ ] Remove or update any other bullets that are now resolved
+- [x] Update the long-line suppressions bullet to "per-theorem scoped"
+- [x] Add abbreviation deduplication note
 
 **Timing**: 45 minutes
 

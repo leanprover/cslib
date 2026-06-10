@@ -4,7 +4,7 @@
 
 ## Summary
 
-Adds the `Cslib/Foundations/Logic/` module hierarchy: 15 files, 3,621 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
+Adds the `Cslib/Foundations/Logic/` module hierarchy: 15 files, 3,646 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
 
 The contribution includes:
 - **Core definitions** (5 files): `InferenceSystem` typeclass, `HasBot`/`HasImp` connective classes, polymorphic axiom `abbrev`s, bundled proof system typeclasses (`PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert`), and `LogicalEquivalence`
@@ -53,7 +53,7 @@ The primitive basis `{bot, imp}` aligns naturally with Lean 4's type theory:
 | `ImplyK` | K combinator |
 | `ImplyS` | S combinator |
 
-The K and S axiom schemas correspond directly to the K and S combinators, as realized in `Theorems/Combinators.lean` (330 lines of combinator infrastructure).
+The K and S axiom schemas correspond directly to the K and S combinators, as realized in `Theorems/Combinators.lean` (333 lines of combinator infrastructure).
 
 ### 4. Polymorphic `abbrev` design avoiding typeclass diamonds
 
@@ -76,17 +76,17 @@ The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for 
 | `Axioms.lean` | 297 | Polymorphic axiom `abbrev`s: `ImplyK`, `ImplyS`, `EFQ`, `Peirce`, `DNE`, all modal/temporal axioms; shared `top'`/`neg'`/`conj'`/`disj'` abbreviations |
 | `ProofSystem.lean` | 354 | `ModusPonens`, `Necessitation`, `HasAxiom*` typeclasses; bundled `PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert` |
 | `LogicalEquivalence.lean` | 35 | `LogicalEquivalence` typeclass for context-based congruence |
-| `Theorems/Combinators.lean` | 330 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj` |
-| `Theorems/Propositional/Core.lean` | 285 | LEM, DNE, RAA, `efq_neg`, `rcp`, `lce_imp`, `rce_imp` |
-| `Theorems/Propositional/Connectives.lean` | 545 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
-| `Theorems/BigConj.lean` | 136 | `BigConj` syntax and derivability lemmas |
-| `Theorems/Modal/Basic.lean` | 200 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
-| `Theorems/Modal/S5.lean` | 585 | S5-level: Axiom 5 derivation, collapse theorems |
-| `Theorems/Temporal/TemporalDerived.lean` | 270 | Temporal operator lemmas |
-| `Theorems/Temporal/FrameConditions.lean` | 84 | Frame condition marker typeclasses |
-| `Metalogic/Consistency.lean` | 273 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
+| `Theorems/Combinators.lean` | 333 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj` |
+| `Theorems/Propositional/Core.lean` | 288 | LEM, DNE, RAA, `efq_neg`, `rcp`, `lce_imp`, `rce_imp` |
+| `Theorems/Propositional/Connectives.lean` | 546 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
+| `Theorems/BigConj.lean` | 141 | `BigConj` syntax and derivability lemmas |
+| `Theorems/Modal/Basic.lean` | 203 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
+| `Theorems/Modal/S5.lean` | 593 | S5-level: Axiom 5 derivation, collapse theorems |
+| `Theorems/Temporal/TemporalDerived.lean` | 277 | Temporal operator lemmas |
+| `Theorems/Temporal/FrameConditions.lean` | 89 | Frame condition marker typeclasses |
+| `Metalogic/Consistency.lean` | 277 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
 | `Theorems.lean` | 47 | Barrel aggregator (with Propositional, Modal, and Temporal subsection docs) |
-| **Total** | **3,642** | |
+| **Total** | **3,646** | |
 
 ## Dependency Graph
 
@@ -115,10 +115,40 @@ Theorems.lean          (barrel import of all Theorems/* submodules)
 - All 15 files have correct Apache 2.0 headers
 - All 15 files use the `module` keyword and are registered in `Cslib.lean`
 
+## Embedding Relocation (Tasks 72-73)
+
+The propositional embedding infrastructure was relocated to establish a clean import hierarchy:
+
+- **Task 72**: `Propositional/Embedding.lean` merged into `Bimodal/Embedding/PropositionalEmbedding.lean`. This fixed a dependency inversion where `Propositional/` imported from `Bimodal/`. After the move, `Propositional/` imports only from `Foundations/`.
+- **Task 73**: Created `Modal/FromPropositional.lean` and `Temporal/FromPropositional.lean` with PL embedding functions, establishing Propositional as a shared sub-logic for both Modal and Temporal.
+
+The resulting import hierarchy is:
+
+```
+Foundations/Logic/  (primitive connectives, axioms, proof systems)
+    +-- Propositional/  (propositional theorems, PL definitions)
+        +-- Modal/  (modal theorems, FromPropositional embedding)
+        +-- Temporal/  (temporal theorems, FromPropositional embedding)
+            +-- Bimodal/  (combined system, PropositionalEmbedding)
+```
+
+These files are outside `Foundations/Logic/` scope but establish the dependency structure that the theorem files rely on.
+
+## Module Keyword Migration (Task 68)
+
+All 15 `Foundations/Logic/` files now use the Lean 4 `module` keyword:
+- Each file begins with `module` after the copyright header
+- All imports converted to `public import` for transitive visibility
+- All files wrapped in `@[expose] public section` for downstream accessibility
+- All files registered in `Cslib.lean` with `public import`
+
+This was required for Lean 4 module system compliance and ensures that the Foundations/Logic files compose correctly with the rest of the library.
+
 ## Known Issues
 
-- **Long line suppressions**: `S5.lean` and `TemporalDerived.lean` retain file-scoped `set_option linter.style.longLine false`; removing them produces 12 and 7 warnings respectively. Scoping to individual theorems is deferred.
+- **Long line suppressions**: `S5.lean` and `TemporalDerived.lean` use per-theorem `set_option linter.style.longLine false in` to suppress long-line warnings on 6 theorems each, rather than file-scoped suppression.
 - **Public imports**: `public import Cslib.Init` remains in all 4 core definition files. Downgrading to non-public breaks the transitive import chain for downstream theorem files.
+- **Abbreviation deduplication**: `top'/neg'` abbreviations in `TemporalDerived.lean` now import from `Cslib.Logic.Axioms` instead of redefining locally.
 
 ## References
 
