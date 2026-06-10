@@ -18,7 +18,6 @@ Propositional combinator derivations needed by Chronicle files.
 -/
 
 set_option linter.style.emptyLine false
-set_option linter.style.longLine false
 
 namespace Cslib.Logic.Temporal.Metalogic
 
@@ -58,7 +57,8 @@ def imp_trans {A B C : Formula Atom}
     (h1 : DerivationTree FrameClass.Base [] (A.imp B))
     (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
     DerivationTree FrameClass.Base [] (A.imp C) := by
-  have s_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_s (B.imp C) A) trivial
+  have s_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _
+      (Axiom.imp_s (B.imp C) A) trivial
   have h3 := DerivationTree.modus_ponens [] (B.imp C) (A.imp (B.imp C)) s_axiom h2
   have k_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_k A B C) trivial
   have h4 := DerivationTree.modus_ponens [] (A.imp (B.imp C)) ((A.imp B).imp (A.imp C)) k_axiom h3
@@ -139,8 +139,10 @@ def rce_imp (φ ψ : Formula Atom) :
   -- Build ⊢ (ψ → ⊥) → (φ → ψ → ⊥)
   -- This is just weakening: from ψ → ⊥, we get φ → (ψ → ⊥) by imp_s
   have d_weak : DerivationTree FrameClass.Base ctx2 (φ.imp (ψ.imp Formula.bot)) := by
-    have d_s : DerivationTree FrameClass.Base ctx2 ((ψ.imp Formula.bot).imp (φ.imp (ψ.imp Formula.bot))) :=
-      .weakening [] ctx2 _ (.axiom [] _ (.imp_s (ψ.imp Formula.bot) φ) trivial) (fun _ h => nomatch h)
+    have d_s : DerivationTree FrameClass.Base ctx2
+        ((ψ.imp Formula.bot).imp (φ.imp (ψ.imp Formula.bot))) :=
+      .weakening [] ctx2 _ (.axiom [] _ (.imp_s (ψ.imp Formula.bot) φ) trivial)
+        (fun _ h => nomatch h)
     have d_psi_bot : DerivationTree FrameClass.Base ctx2 (ψ.imp Formula.bot) :=
       .assumption ctx2 _ (by simp [List.mem_cons, ctx2])
     exact .modus_ponens ctx2 _ _ d_s d_psi_bot

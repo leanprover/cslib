@@ -36,7 +36,6 @@ encoding (Lukasiewicz style):
 
 namespace Cslib.Logic.Theorems.Propositional.Core
 
-set_option linter.style.longLine false
 set_option linter.unreachableTactic false
 
 open Cslib.Logic

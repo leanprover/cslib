@@ -18,7 +18,6 @@ Enriched seed consistency, linearity, and two-defect seeds for temporal logic.
 -/
 
 set_option linter.style.emptyLine false
-set_option linter.style.longLine false
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 
@@ -79,7 +78,8 @@ theorem temp_linearity_mcs {M : Set (Formula Atom)}
         (theorem_in_mcs' h_mcs (pairing (Formula.some_future A) (Formula.some_future B)))
         h_FA)
       h_FB
-  have h_ax : DerivationTree FrameClass.Base [] ((Formula.and (Formula.some_future A) (Formula.some_future B)).imp
+  have h_ax : DerivationTree FrameClass.Base []
+      ((Formula.and (Formula.some_future A) (Formula.some_future B)).imp
       (Formula.or (Formula.some_future (Formula.and A B))
         (Formula.or (Formula.some_future (Formula.and A (Formula.some_future B)))
           (Formula.some_future (Formula.and (Formula.some_future A) B))))) :=

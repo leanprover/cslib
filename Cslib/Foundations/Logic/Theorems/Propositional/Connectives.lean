@@ -34,7 +34,6 @@ All theorems are generic over `[PropositionalHilbert S]`.
 
 namespace Cslib.Logic.Theorems.Propositional.Connectives
 
-set_option linter.style.longLine false
 set_option linter.unreachableTactic false
 
 open Cslib.Logic

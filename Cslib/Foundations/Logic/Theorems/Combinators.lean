@@ -35,8 +35,6 @@ BimodalLogic's `Axiom.prop_s` (weakening: φ → (ψ → φ)) maps to cslib's
 
 namespace Cslib.Logic.Theorems.Combinators
 
--- Long lines are inherent to deeply nested combinator type annotations
-set_option linter.style.longLine false
 set_option linter.unreachableTactic false
 
 open Cslib.Logic

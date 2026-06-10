@@ -16,8 +16,6 @@ Biconditional introduction in implication form.
 
 namespace Cslib.Logic.Theorems.Propositional.Reasoning
 
-set_option linter.style.longLine false
-
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators
 

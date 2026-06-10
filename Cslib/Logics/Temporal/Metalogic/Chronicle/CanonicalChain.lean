@@ -17,7 +17,6 @@ MCS-level lemmas for BX axioms and delegation bridges.
 -/
 
 set_option linter.style.emptyLine false
-set_option linter.style.longLine false
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 

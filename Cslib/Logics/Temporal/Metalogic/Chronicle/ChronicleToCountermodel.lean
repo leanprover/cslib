@@ -32,7 +32,6 @@ and a point function `limit_f`. We define:
 -/
 
 set_option linter.style.setOption false
-set_option linter.style.longLine false
 set_option linter.flexible false
 set_option maxHeartbeats 1600000
 
@@ -51,7 +50,8 @@ abbrev ChronicleSubtype (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
   {x : Rat // x ∈ limit_dom A h_mcs}
 
 /-- The canonical zero point in the limit domain. -/
-noncomputable def chronicle_zero (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A) :
+noncomputable def chronicle_zero
+    (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A) :
     ChronicleSubtype A h_mcs :=
   ⟨0, zero_mem_limit_dom A h_mcs⟩
 
@@ -126,7 +126,8 @@ instance chronicle_no_min_order (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
 
 /-- The chronicle temporal model: valuation maps atoms to their membership in
 the limit point function. -/
-noncomputable def chronicle_model (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A) :
+noncomputable def chronicle_model
+    (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A) :
     TemporalModel (ChronicleSubtype A h_mcs) Atom where
   valuation := fun t p => Formula.atom p ∈ limit_f A h_mcs t.val
 

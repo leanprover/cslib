@@ -22,7 +22,6 @@ definitions for the temporal chronicle construction.
 -/
 
 set_option linter.style.emptyLine false
-set_option linter.style.longLine false
 
 namespace Cslib.Logic.Temporal.Metalogic.Chronicle
 
@@ -85,14 +84,16 @@ theorem dcs_modus_ponens {Omega : Set (Formula Atom)}
 /-- A CUD set is closed under conjunction. -/
 theorem cud_conj_closed {Omega : Set (Formula Atom)}
     (h : ClosedUnderDerivation Omega)
-    {phi psi : Formula Atom} (h_phi : phi ∈ Omega) (h_psi : psi ∈ Omega) : Formula.and phi psi ∈ Omega := by
+    {phi psi : Formula Atom} (h_phi : phi ∈ Omega) (h_psi : psi ∈ Omega) :
+    Formula.and phi psi ∈ Omega := by
   have h_pair := cud_contains_theorems h (pairing phi psi)
   exact cud_modus_ponens h (cud_modus_ponens h h_pair h_phi) h_psi
 
 /-- A DCS is closed under conjunction. -/
 theorem dcs_conj_closed {Omega : Set (Formula Atom)}
     (h : SetDeductivelyClosed Omega)
-    {phi psi : Formula Atom} (h_phi : phi ∈ Omega) (h_psi : psi ∈ Omega) : Formula.and phi psi ∈ Omega :=
+    {phi psi : Formula Atom} (h_phi : phi ∈ Omega) (h_psi : psi ∈ Omega) :
+    Formula.and phi psi ∈ Omega :=
   cud_conj_closed h.2 h_phi h_psi
 
 /-- A CUD set with a non-member is SDC. -/

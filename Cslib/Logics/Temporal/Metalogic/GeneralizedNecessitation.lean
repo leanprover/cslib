@@ -18,7 +18,6 @@ temp_k_dist_derived, and past_k_dist at the DerivationTree level.
 -/
 
 set_option linter.style.emptyLine false
-set_option linter.style.longLine false
 set_option maxHeartbeats 400000
 
 namespace Cslib.Logic.Temporal.Metalogic
@@ -34,7 +33,8 @@ private noncomputable def imp_trans_base {A B C : Formula Atom}
     (h1 : DerivationTree FrameClass.Base [] (A.imp B))
     (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
     DerivationTree FrameClass.Base [] (A.imp C) := by
-  have s_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_s (B.imp C) A) trivial
+  have s_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _
+      (Axiom.imp_s (B.imp C) A) trivial
   have h3 := DerivationTree.modus_ponens [] (B.imp C) (A.imp (B.imp C)) s_axiom h2
   have k_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_k A B C) trivial
   have h4 := DerivationTree.modus_ponens [] (A.imp (B.imp C)) ((A.imp B).imp (A.imp C)) k_axiom h3
@@ -95,7 +95,8 @@ noncomputable def past_necessitation (φ : Formula Atom)
 
 /-- G-distribution at DerivationTree level: ⊢ G(φ→ψ) → (G(φ) → G(ψ)). -/
 noncomputable def temp_k_dist_derived (φ ψ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((φ.imp ψ).all_future.imp (φ.all_future.imp ψ.all_future)) := by
+    DerivationTree FrameClass.Base []
+      ((φ.imp ψ).all_future.imp (φ.all_future.imp ψ.all_future)) := by
   have neg_contra : DerivationTree FrameClass.Base [] ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) :=
     DerivationTree.modus_ponens [] _ _ (contrapose_imp (φ.imp ψ) (ψ.neg.imp φ.neg))
       (contrapose_imp φ ψ)

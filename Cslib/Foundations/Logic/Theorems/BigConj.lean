@@ -33,8 +33,6 @@ Conjunction uses the Lukasiewicz encoding:
 
 namespace Cslib.Logic.Theorems.BigConj
 
-set_option linter.style.longLine false
-
 open Cslib.Logic
 
 variable {F : Type*} [HasBot F] [HasImp F]
