@@ -88,15 +88,15 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Deduplicate `top'/neg'` abbreviations [NOT STARTED]
+### Phase 2: Deduplicate `top'/neg'` abbreviations [COMPLETED]
 
 **Goal**: Remove local `top'/neg'` definitions from TemporalDerived.lean and import them from Axioms.lean instead.
 
 **Tasks**:
-- [ ] Add `open Cslib.Logic.Axioms` to the open block in TemporalDerived.lean (after line 31, before the variable declarations)
-- [ ] Remove the local `abbrev neg'` definition (line 40)
-- [ ] Remove the local `abbrev top'` definition (line 41)
-- [ ] Verify that `someFuture`, `allFuture`, `somePast`, `allPast` still resolve `top'` and `neg'` correctly from the Axioms namespace
+- [x] Add `open Cslib.Logic.Axioms` to the open block in TemporalDerived.lean (after line 31, before the variable declarations)
+- [x] Remove the local `abbrev neg'` definition (line 40)
+- [x] Remove the local `abbrev top'` definition (line 41)
+- [x] Verify that `someFuture`, `allFuture`, `somePast`, `allPast` still resolve `top'` and `neg'` correctly from the Axioms namespace
 
 **Timing**: 15 minutes
 

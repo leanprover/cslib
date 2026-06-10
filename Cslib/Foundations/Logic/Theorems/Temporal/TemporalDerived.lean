@@ -26,6 +26,7 @@ set_option linter.style.longLine false
 namespace Cslib.Logic.Theorems.Temporal.TemporalDerived
 
 open Cslib.Logic
+open Cslib.Logic.Axioms
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core
 open Cslib.Logic.Theorems.Propositional.Connectives
@@ -36,9 +37,7 @@ variable [TemporalBXHilbert S (F := F)]
 
 section
 
--- Abbreviations for readability
-abbrev neg' (φ : F) : F := HasImp.imp φ HasBot.bot
-abbrev top' : F := HasImp.imp (HasBot.bot : F) HasBot.bot
+-- Abbreviations neg'/top' imported from Cslib.Logic.Axioms
 abbrev someFuture (φ : F) : F := HasUntil.untl φ top'
 abbrev allFuture (φ : F) : F := neg' (someFuture (neg' φ))
 abbrev somePast (φ : F) : F := HasSince.snce φ top'
