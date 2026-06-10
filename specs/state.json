@@ -1,6 +1,20 @@
 {
-  "next_project_number": 74,
+  "next_project_number": 75,
   "active_projects": [
+    {
+      "project_number": 74,
+      "project_name": "polish_pr1_quality_and_description",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        68,
+        69,
+        71
+      ],
+      "created": "2026-06-10T13:23:05Z",
+      "last_updated": "2026-06-10T13:23:05Z"
+    },
     {
       "project_number": 73,
       "project_name": "propositional_shared_sublogic",
