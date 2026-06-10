@@ -4,13 +4,13 @@
     {
       "project_number": 83,
       "project_name": "update_pr1_description_and_roadmap",
-      "status": "researched",
+      "status": "planned",
       "task_type": "general",
       "depends_on": [
         81
       ],
       "created": "2026-06-10T18:03:13Z",
-      "last_updated": "2026-06-10T18:20:00Z",
+      "last_updated": "2026-06-10T18:18:38Z",
       "researched": "2026-06-10T18:20:00Z",
       "next_artifact_number": 2,
       "artifacts": [

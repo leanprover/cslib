@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/083_update_pr1_description_and_roadmap/plans/01_pr-description-plan.md",
+      "summary": "2-phase plan to update PR 1 description (15 edits) and ROADMAP.md (2 fixes)"
+    }
+  ],
+  "next_steps": "Run /implement 83 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1749571200_plan83",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 2,
+    "estimated_hours": 1,
+    "dependency_waves": [[1, 2]]
+  },
+  "memory_candidates": []
+}

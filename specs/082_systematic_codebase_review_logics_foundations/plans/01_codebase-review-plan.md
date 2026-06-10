@@ -1,7 +1,7 @@
 # Implementation Plan: Task #82
 
 - **Task**: 82 - Systematic codebase review of Logics/ and Foundations/ for publication quality
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 10 hours
 - **Dependencies**: Task 81 (PR 1 code review, in progress)
 - **Research Inputs**: specs/082_systematic_codebase_review_logics_foundations/reports/01_team-research.md
@@ -79,7 +79,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Sorry annotations, copyright headers, and section naming [NOT STARTED]
+### Phase 1: Sorry annotations, copyright headers, and section naming [IN PROGRESS]
 
 **Goal**: Address the three smallest, lowest-risk findings (findings 3, 5, 7) that require no name changes and have no downstream impact.
 

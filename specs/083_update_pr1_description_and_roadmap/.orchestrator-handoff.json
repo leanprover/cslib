@@ -1,16 +1,10 @@
 {
-  "status": "researched",
-  "summary": "Identified 15 concrete updates needed in pr-description.md (file count 15→16, total lines 3708→3822, 6 line count corrections, new DeductionHelpers.lean entry, CI validation blockers, verification count fixes) and 1 ROADMAP.md fix (remove stale Reasoning.lean entry). Task 82 overlap flagged: DeductionHelpers.lean def names will be renamed in task 82 Phase 4, so the new PR description entry should use high-level prose rather than specific def names. CI validation suite (lake shake, lake lint, lake exe checkInitImports, lake exe lint-style) has not been run and should be treated as a PR merge blocker per CONTRIBUTING.md.",
-  "artifacts": [
-    {
-      "path": "specs/083_update_pr1_description_and_roadmap/reports/01_pr-description-update.md",
-      "type": "report",
-      "summary": "Complete diff-ready specification of all changes needed in pr-description.md and ROADMAP.md: file count update (15→16), 6 line count corrections, new DeductionHelpers.lean table row, CI validation blockers, dependency graph update, and ROADMAP Reasoning.lean removal"
-    }
-  ],
+  "status": "planned",
+  "summary": "Created 2-phase plan to update pr-description.md (15 edits: file/line counts, DeductionHelpers entry, CI blockers, known issues) and ROADMAP.md (remove stale Reasoning.lean, add DeductionHelpers.lean). Both phases are independent and can run in parallel. Total effort: 1 hour.",
+  "artifacts": [{"path": "specs/083_update_pr1_description_and_roadmap/plans/01_pr-description-plan.md", "type": "plan", "summary": "2-phase implementation plan for PR description and ROADMAP updates"}],
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "plan",
+  "next_action_hint": "implement",
   "phases_completed": 0,
-  "phases_total": 0
+  "phases_total": 2
 }
