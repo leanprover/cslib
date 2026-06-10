@@ -248,42 +248,42 @@ theorem single_step_forcing_past
 
 /-! ## Until/Since Step Properties -/
 
--- Sorries from source (TOMBSTONE task 173)
+-- Sorries from source (TOMBSTONE task 173; blocked on task 37)
 
 theorem until_unfold_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
     (φ ψ : Formula Atom) (h_U : Formula.untl ψ φ ∈ M) :
     Formula.untl (Formula.or ψ (Formula.and φ (Formula.untl ψ φ))) (Formula.bot : Formula Atom) ∈ M := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem since_unfold_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
     (φ ψ : Formula Atom) (h_S : Formula.snce ψ φ ∈ M) :
     Formula.snce (Formula.or ψ (Formula.and φ (Formula.snce ψ φ))) (Formula.bot : Formula Atom) ∈ M := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem until_persists_through_succ (u v : Set (Formula Atom))
     (h_mcs_u : SetMaximalConsistent (FrameClass.Base : FrameClass) u) (h_mcs_v : SetMaximalConsistent (FrameClass.Base : FrameClass) v) (h_succ : Succ u v)
     (φ ψ : Formula Atom) (h_U : Formula.untl ψ φ ∈ u) (h_neg_psi : Formula.neg ψ ∈ u) :
     Formula.untl ψ φ ∈ v := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem or_until_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
     (φ ψ : Formula Atom)
     (h : Formula.or ψ (Formula.and φ (Formula.untl ψ φ)) ∈ M) :
     Formula.untl ψ φ ∈ M := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem or_since_in_mcs (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
     (φ ψ : Formula Atom)
     (h : Formula.or ψ (Formula.and φ (Formula.snce ψ φ)) ∈ M) :
     Formula.snce ψ φ ∈ M := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem g_content_subset_mcs (u : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) u) :
     g_content u ⊆ u := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem h_content_subset_mcs (u : Set (Formula Atom)) (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) u) :
     h_content u ⊆ u := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 end Cslib.Logic.Bimodal.Metalogic.Bundle

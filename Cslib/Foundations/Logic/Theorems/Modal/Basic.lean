@@ -50,7 +50,7 @@ variable {F : Type*} [HasBot F] [HasImp F] [HasBox F]
 variable {S : Type*} [InferenceSystem S F]
 variable [ModalHilbert S (F := F)]
 
-section
+section Basic
 
 /-- Box monotonicity (meta-rule): from `⊢ φ → ψ`, derive `⊢ □φ → □ψ`.
 
@@ -197,6 +197,6 @@ theorem box_iff_intro {φ ψ : F}
   -- Combine into biconditional
   exact iff_intro box_ab box_ba
 
-end
+end Basic
 
 end Cslib.Logic.Theorems.Modal.Basic

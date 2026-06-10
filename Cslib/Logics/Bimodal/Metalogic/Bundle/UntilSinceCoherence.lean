@@ -36,11 +36,11 @@ variable {Atom : Type*}
 
 theorem backward_until_reflexive {M : Set (Formula Atom)} (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
     (φ ψ : Formula Atom) (h_psi : ψ ∈ M) : Formula.untl ψ φ ∈ M := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 theorem backward_since_reflexive {M : Set (Formula Atom)} (h_mcs : SetMaximalConsistent (FrameClass.Base : FrameClass) M)
     (φ ψ : Formula Atom) (h_psi : ψ ∈ M) : Formula.snce ψ φ ∈ M := by
-  sorry
+  sorry  -- sorry: blocked on task 37
 
 /-! ## Parameterized Backward Until/Since -/
 

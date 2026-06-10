@@ -151,7 +151,7 @@ theorem h_content_set_consistent {Omega : Set (Formula Atom)} (h_mcs : SetMaxima
 /-! ## Reflexivity (sorry'd under irreflexive semantics) -/
 
 theorem bx_le_refl (w : BXPoint Atom) : bx_le w w := by
-  sorry
+  sorry  -- sorry: blocked on task 36 (requires irreflexive semantics resolution)
 
 /-! ## Transitivity -/
 

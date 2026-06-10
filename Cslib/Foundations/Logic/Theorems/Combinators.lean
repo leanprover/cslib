@@ -46,7 +46,7 @@ variable {F : Type*} [HasBot F] [HasImp F]
 variable {S : Type*} [InferenceSystem S F]
 variable [PropositionalHilbert S (F := F)]
 
-section
+section Combinators
 
 /-- Transitivity of implication: from `⊢ φ → ψ` and `⊢ ψ → χ`,
     derive `⊢ φ → χ`. -/
@@ -333,6 +333,6 @@ theorem combine_imp_conj_3 {P A₁ B₁ C₁ : F}
           HasBot.bot)) :=
   combine_imp_conj hA (combine_imp_conj hB hC)
 
-end
+end Combinators
 
 end Cslib.Logic.Theorems.Combinators

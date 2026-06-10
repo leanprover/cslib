@@ -117,8 +117,8 @@ theorem completeness_dense (φ : Formula Atom) :
   · -- Dense case: □(F'T) ∈ M — countermodel on Rat (DenselyOrdered)
     -- Use countermodel_dense which produces a countermodel (sorry for universe mismatch)
     -- The countermodel contradicts valid_dense
-    sorry  -- Universe mismatch: countermodel_dense produces ∃ (D : Type _) which
-           -- doesn't match valid_dense's universe. Same issue as countermodel_dense itself.
+    sorry  -- sorry: blocked on task 36 (universe mismatch: countermodel_dense produces
+           -- ∃ (D : Type _) which doesn't match valid_dense's universe)
   · -- Non-dense case: ¬□(F'T) ∈ M. But the dense_indicator axiom ¬U(⊤,⊥)
     -- is a Dense theorem, so □(¬U(⊤,⊥)) = □(F'T) is in every Dense-MCS.
     -- Contradiction with h_not_box_dense : ¬□(F'T) ∈ M.

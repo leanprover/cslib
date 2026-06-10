@@ -143,17 +143,17 @@ noncomputable def discrete_fmcs (fc : FrameClass) (A : Set (Formula Atom)) (h_mc
 noncomputable def succ_embed (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc A)
     (h_discrete : ∀ x ∈ limit_dom fc A h_mcs, next_top ∈ limit_f fc A h_mcs x) :
     LimitDomSubtype fc A h_mcs → Int := by
-  sorry
+  sorry  -- sorry: blocked on task 36 (discrete_embed_strictMono)
 
 /-- Rooted succ-discrete FMCS. Sorry-stubbed (task 36). -/
 noncomputable def rooted_succ_discrete_fmcs (fc : FrameClass) (N : Set (Formula Atom)) (h_N : SetMaximalConsistent fc N)
     (h_box_discrete_N : Formula.box next_top ∈ N) (s : Int) : FMCS Atom Int fc := by
-  sorry
+  sorry  -- sorry: blocked on task 36 (discrete FMCS construction)
 
 theorem rooted_succ_discrete_fmcs_at_s (fc : FrameClass) (N : Set (Formula Atom)) (h_N : SetMaximalConsistent fc N)
     (h_box_discrete_N : Formula.box next_top ∈ N) (s : Int) :
     (rooted_succ_discrete_fmcs fc N h_N h_box_discrete_N s).mcs s = N := by
-  sorry
+  sorry  -- sorry: blocked on task 36 (rooted discrete FMCS property)
 
 /-- BFMCS on Int (discrete case). Sorry-stubbed (task 36). -/
 noncomputable def cantor_bfmcs_discrete (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc A)
@@ -163,11 +163,11 @@ noncomputable def cantor_bfmcs_discrete (fc : FrameClass) (A : Set (Formula Atom
     (h_box_N : Formula.box next_top ∈ N) (s : Int),
     (∀ ψ, Formula.box ψ ∈ A ↔ Formula.box ψ ∈ N) ∧
     fam = rooted_succ_discrete_fmcs fc N h_N h_box_N s }
-  nonempty := sorry
-  modal_forward := by sorry
-  modal_backward := by sorry
-  eval_family := sorry
-  eval_family_mem := sorry
+  nonempty := sorry  -- sorry: blocked on task 36
+  modal_forward := by sorry  -- sorry: blocked on task 36
+  modal_backward := by sorry  -- sorry: blocked on task 36
+  eval_family := sorry  -- sorry: blocked on task 36
+  eval_family_mem := sorry  -- sorry: blocked on task 36
 
 /-- Discrete countermodel. Sorry-stubbed (task 36). -/
 theorem dd_countermodel_chronicle_discrete (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc A)

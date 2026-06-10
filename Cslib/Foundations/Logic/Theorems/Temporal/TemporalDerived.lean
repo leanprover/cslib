@@ -33,7 +33,7 @@ variable {F : Type*} [HasBot F] [HasImp F] [HasUntil F] [HasSince F]
 variable {S : Type*} [InferenceSystem S F]
 variable [TemporalBXHilbert S (F := F)]
 
-section
+section TemporalDerived
 
 -- Abbreviations neg'/top' imported from Cslib.Logic.Axioms
 abbrev someFuture (φ : F) : F := HasUntil.untl φ top'
@@ -282,6 +282,6 @@ theorem connect_past_H {φ : F} :
   have h_conn := TemporalNecessitation.tempNecPast (@connect_past_thm F _ _ _ _ S _ _ (φ := φ))
   exact ModusPonens.mp (H_distribution (S := S)) h_conn
 
-end
+end TemporalDerived
 
 end Cslib.Logic.Theorems.Temporal.TemporalDerived

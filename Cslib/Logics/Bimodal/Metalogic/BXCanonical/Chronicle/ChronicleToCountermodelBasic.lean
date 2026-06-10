@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Benjamin Brast-McKie. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Benjamin Brast-McKie
+-/
+
 module
 
 public import Cslib.Logics.Bimodal.Metalogic.BXCanonical.Chronicle.ChronicleConstruction
@@ -813,7 +819,7 @@ theorem countermodel_dense (fc : FrameClass) (A : Set (Formula Atom)) (h_mcs : S
   -- Universe mismatch: ParametricCanonicalTaskFrame requires Atom : Type (not Type*)
   -- when D = Rat : Type. This is a known issue with the polymorphic Formula Atom port.
   -- The proof body is correct modulo universe levels; sorry preserves source sorry count.
-  sorry
+  sorry  -- sorry: blocked on task 36 (universe mismatch with ParametricCanonicalTaskFrame)
 
 /-! ## Discrete Case: Z-Isomorphism from U(⊤,⊥)
 

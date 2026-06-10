@@ -48,7 +48,7 @@ variable {F : Type*} [HasBot F] [HasImp F]
 variable {S : Type*} [InferenceSystem S F]
 variable [PropositionalHilbert S (F := F)]
 
-section
+section Core
 
 -- Abbreviations for readability
 -- neg φ = imp φ bot
@@ -283,6 +283,6 @@ theorem lem {φ : F} :
         (HasImp.imp φ HasBot.bot)) :=
   identity (HasImp.imp φ HasBot.bot)
 
-end
+end Core
 
 end Cslib.Logic.Theorems.Propositional.Core

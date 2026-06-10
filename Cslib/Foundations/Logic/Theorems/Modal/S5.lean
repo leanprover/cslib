@@ -69,7 +69,7 @@ abbrev diamond' (φ : F) : F :=
 abbrev iff' (a b : F) : F :=
   conj' (HasImp.imp a b) (HasImp.imp b a)
 
-section
+section S5
 
 /-! ## Axiom 5 Derivation Block -/
 
@@ -525,6 +525,6 @@ theorem s5_diamond_conj_diamond {φ ψ : F} :
   have backward := ModusPonens.mp step1 lce_conj
   exact iff_intro forward backward
 
-end
+end S5
 
 end Cslib.Logic.Theorems.Modal.S5
