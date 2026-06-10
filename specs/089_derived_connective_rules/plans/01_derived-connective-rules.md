@@ -132,33 +132,33 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Hilbert System Derived Rules [NOT STARTED]
+### Phase 3: Hilbert System Derived Rules [COMPLETED]
 
 **Goal**: Create `NaturalDeduction/HilbertDerivedRules.lean` with all 13 derived rules for `DerivationTree`/`Deriv`, following the `FromHilbert.lean` pattern.
 
 **Tasks**:
-- [ ] Create file `Cslib/Logics/Propositional/NaturalDeduction/HilbertDerivedRules.lean` with module header, importing `FromHilbert.lean`
-- [ ] Implement negation rules (direct wrappers, matching `FromHilbert.lean` style):
+- [x] Create file `Cslib/Logics/Propositional/NaturalDeduction/HilbertDerivedRules.lean` with module header, importing `FromHilbert.lean`
+- [x] Implement negation rules (direct wrappers, matching `FromHilbert.lean` style):
   - `noncomputable def negI : DerivationTree (A :: Gamma) bot -> DerivationTree Gamma (neg A)` -- literally `impI`
   - `def negE : DerivationTree Gamma (neg A) -> DerivationTree Gamma A -> DerivationTree Gamma bot` -- literally `impE`
-- [ ] Implement `def topI : DerivationTree Gamma top` -- EFQ at `bot` gives `bot -> bot`, weaken to `Gamma`
-- [ ] Implement conjunction intro:
+- [x] Implement `def topI : DerivationTree Gamma top` -- EFQ at `bot` gives `bot -> bot`, weaken to `Gamma`
+- [x] Implement conjunction intro:
   - `noncomputable def andI : DerivationTree Gamma A -> DerivationTree Gamma B -> DerivationTree Gamma (A.and B)` -- uses `impI`, `assume`, `impE`, `hilbertWeakening`
-- [ ] Implement conjunction elim (computable, uses Peirce axiom directly):
+- [x] Implement conjunction elim (computable, uses Peirce axiom directly):
   - `def andE1 : DerivationTree Gamma (A.and B) -> DerivationTree Gamma A` -- Peirce(A, B->bot) + efq_neg composition + MP
   - `def andE2 : DerivationTree Gamma (A.and B) -> DerivationTree Gamma B` -- Peirce(B, bot) + ImplyK composition + MP
-- [ ] Implement disjunction intro:
+- [x] Implement disjunction intro:
   - `noncomputable def orI1 : DerivationTree Gamma A -> DerivationTree Gamma (A.or B)` -- uses `impI`, `assume`, `impE`, `botE`
   - `def orI2 : DerivationTree Gamma B -> DerivationTree Gamma (A.or B)` -- ImplyK + MP (computable)
-- [ ] Implement disjunction elim:
+- [x] Implement disjunction elim:
   - `noncomputable def orE : DerivationTree Gamma (A.or B) -> DerivationTree (A :: Gamma) C -> DerivationTree (B :: Gamma) C -> DerivationTree Gamma C` -- uses `impI` twice, composition, `classical_merge` pattern (Peirce)
-- [ ] Implement `def dne : DerivationTree Gamma (neg (neg A)) -> DerivationTree Gamma A` -- Peirce(A,bot) + EFQ + B-combinator + MP (computable)
-- [ ] Implement iff rules:
+- [x] Implement `def dne : DerivationTree Gamma (neg (neg A)) -> DerivationTree Gamma A` -- Peirce(A,bot) + EFQ + B-combinator + MP (computable)
+- [x] Implement iff rules:
   - `noncomputable def iffI` -- via `andI`
   - `def iffE1` -- via `andE1` (computable)
   - `def iffE2` -- via `andE2` (computable)
-- [ ] Add `Deriv`-level wrappers for all 13 rules (following `impIDeriv`/`impEDeriv` pattern)
-- [ ] Verify with `lake build Cslib.Logics.Propositional.NaturalDeduction.HilbertDerivedRules`
+- [x] Add `Deriv`-level wrappers for all 13 rules (following `impIDeriv`/`impEDeriv` pattern)
+- [x] Verify with `lake build Cslib.Logics.Propositional.NaturalDeduction.HilbertDerivedRules`
 
 **Timing**: 2.5 hours
 
