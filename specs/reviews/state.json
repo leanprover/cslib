@@ -1,7 +1,7 @@
 {
   "_schema_version": "1.0.0",
   "_comment": "Review state tracking",
-  "_last_updated": "2026-06-08T23:30:00Z",
+  "_last_updated": "2026-06-10T22:41:47Z",
   "reviews": [
     {
       "review_id": "review-20260608",
@@ -15,7 +15,12 @@
         "medium_issues": 7,
         "low_issues": 5
       },
-      "tasks_created": [15, 16, 17, 18],
+      "tasks_created": [
+        15,
+        16,
+        17,
+        18
+      ],
       "registries_updated": []
     },
     {
@@ -47,12 +52,27 @@
       },
       "tasks_created": [],
       "registries_updated": []
+    },
+    {
+      "review_id": "review-20260610",
+      "date": "2026-06-10",
+      "scope": "all",
+      "report_path": "specs/reviews/review-20260610.md",
+      "summary": {
+        "files_reviewed": 335,
+        "critical_issues": 0,
+        "high_issues": 0,
+        "medium_issues": 3,
+        "low_issues": 3
+      },
+      "tasks_created": [],
+      "registries_updated": []
     }
   ],
   "statistics": {
-    "total_reviews": 3,
-    "last_review": "2026-06-09",
-    "total_issues_found": 25,
+    "total_reviews": 4,
+    "last_review": "2026-06-10",
+    "total_issues_found": 31,
     "total_tasks_created": 4
   }
 }

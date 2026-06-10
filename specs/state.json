@@ -239,10 +239,8 @@
     "status": "healthy"
   },
   "active_topics": [
-    "Foundations",
-    "Modal Logic",
     "Temporal Logic",
     "Bimodal Porting",
-    "Project Management"
+    "Submit PRs"
   ]
 }
