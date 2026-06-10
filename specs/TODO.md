@@ -11,8 +11,8 @@ next_project_number: 82
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,76,79,81 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
-| 2 | 39,40,62,80 | 36,37,61,79 | Temporal Logic, Submit PRs |
+| 1 | 36,37,38,60,61,76,80,81 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
 
@@ -44,8 +44,7 @@ next_project_number: 82
 ### Uncategorized
 
 76 [NOT STARTED] — module_keyword_migration
-79 [PLANNED] — deduplicate_shared_helpers
-  └─ 80 [RESEARCHED] — generic_deduction_theorem
+80 [RESEARCHED] — generic_deduction_theorem
 81 [NOT STARTED] — pr1_foundations_logic_code_review
 
 ## Tasks
