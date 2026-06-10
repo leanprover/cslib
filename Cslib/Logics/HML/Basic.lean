@@ -242,7 +242,7 @@ lemma bisimulation_satisfies {lts : LTS State Label}
     Satisfies lts s2 a := by
   induction a generalizing s1 s2 with
   | diamond => cases hs with | diamond htr _ => grind [hrb.follow_fst hr htr]
-  | _ => grind
+  | _ => grind [IsBisimulation]
 
 lemma bisimulation_TheoryEq {lts : LTS State Label}
     {hrb : lts.IsHomBisimulation r}
