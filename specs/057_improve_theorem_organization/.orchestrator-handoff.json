@@ -1,11 +1,11 @@
 {
-  "status": "researched",
-  "summary": "Complete theorem-by-theorem overlap analysis: 32 of 40 Bimodal theorems have generic Foundations equivalents and can be bridged via wrap/unwrap; 8 genuinely need concrete types; TemporalDerived and FrameConditions confirmed generic and ready to move to Foundations",
+  "status": "planned",
+  "summary": "3-phase plan to move 2 generic temporal files to Foundations and replace 32 redundant Bimodal theorems with wrap/unwrap bridge wrappers",
   "artifacts": [
     {
-      "path": "specs/057_improve_theorem_organization/reports/01_theorem-organization-research.md",
-      "type": "report",
-      "summary": "Full import dependency map, theorem-by-theorem overlap analysis (32/40 redundant), wrap/unwrap bridge pattern documented, FrameClass lifting pattern identified, 8 concrete-only theorems cataloged, namespace conflict analysis (none), 3-phase action plan with risk assessment"
+      "path": "specs/057_improve_theorem_organization/plans/01_theorem-organization-plan.md",
+      "type": "plan",
+      "summary": "Implementation plan with 3 phases: (1) move TemporalDerived.lean and FrameConditions.lean to Foundations/Logic/Theorems/Temporal/, (2) replace 32 redundant concrete theorems in 3 Bimodal files with bridge wrappers preserving API signatures, (3) full build verification. Estimated 4 hours."
     }
   ],
   "blockers": [],

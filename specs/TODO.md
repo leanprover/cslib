@@ -84,7 +84,7 @@ next_project_number: 65
 
 ### 57. Improve theorem organization: move misplaced generic theorems to Foundations and eliminate concrete duplicates in Bimodal
 - **Effort**: Large
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - specs/057_improve_theorem_organization/reports/01_theorem-organization-research.md: [**Plan**]
 

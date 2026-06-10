@@ -1,18 +1,30 @@
 {
-  "status": "researched",
-  "started_at": "2026-06-09T00:00:00Z",
+  "status": "planned",
   "artifacts": [
-    "specs/057_improve_theorem_organization/reports/01_theorem-organization-research.md",
-    "specs/057_improve_theorem_organization/.orchestrator-handoff.json"
+    {
+      "type": "plan",
+      "path": "specs/057_improve_theorem_organization/plans/01_theorem-organization-plan.md",
+      "summary": "3-phase implementation plan: move 2 generic files to Foundations, replace 32 redundant theorems with bridge wrappers, verify build"
+    }
   ],
-  "partial_progress": {
-    "stage": "research_done",
-    "details": "All 7 research tasks completed: import mapping, generic/concrete verification, theorem overlap catalog, wrap/unwrap bridge documentation, namespace conflict check, FrameConditions assessment, concrete-only theorem identification"
-  },
+  "next_steps": "Run /implement 57 to execute the plan",
   "metadata": {
     "session_id": "sess_1781050904_b91db3",
-    "agent_type": "lean-research-agent",
+    "agent_type": "planner-agent",
+    "duration_seconds": 300,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
-  }
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 3,
+    "estimated_hours": 4,
+    "dependency_waves": [[1], [2], [3]]
+  },
+  "memory_candidates": [
+    {
+      "content": "When bridging fc-polymorphic concrete DerivationTree theorems to generic Foundations equivalents via wrap/unwrap, input-taking theorems cannot directly wrap their fc-level inputs to Base-level Nonempty terms (since Base <= fc means we can lift FROM Base TO fc, not reverse). The correct pattern is: derive the curried generic form at Base, lift to fc, then apply modus ponens with the concrete fc-level inputs. No-input theorems use simple unwrap + lift.",
+      "category": "PATTERN",
+      "source_artifact": "specs/057_improve_theorem_organization/plans/01_theorem-organization-plan.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["wrap-unwrap", "bridge-pattern", "DerivationTree", "FrameClass", "fc-polymorphic", "lean4"]
+    }
+  ]
 }

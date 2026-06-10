@@ -86,10 +86,10 @@
     {
       "project_number": 57,
       "project_name": "improve_theorem_organization",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "created": "2026-06-10T00:20:38Z",
-      "last_updated": "2026-06-10T00:27:49Z",
+      "last_updated": "2026-06-10T00:33:16Z",
       "topic": "Foundations",
       "session_id": "sess_1781050904_b91db3",
       "next_artifact_number": 2,
