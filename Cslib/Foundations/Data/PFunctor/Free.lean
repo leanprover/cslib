@@ -35,7 +35,23 @@ Its `liftBind` constructor uses the shape and continuation directly:
 
 When the effect signature is naturally polynomial (a fixed set of operations, each with a
 known return type), `PFunctor.FreeM` avoids the universe bump that the abstract `ι` in
-`Cslib.FreeM` introduces, and records operations using the explicit shape/fiber data of `P`.
+`Cslib.FreeM` introduces.
+Concretely, `PFunctor.FreeM P` is a genuine endofunctor on a single universe: for a ground
+`P`, `P.FreeM α : Type` whenever `α : Type`, whereas `Cslib.FreeM F α : Type 1` for
+`F : Type → Type`, since `liftBind` stores the intermediate type `ι : Type`.
+
+This matters when a program must itself be a first-class value of the same kind, i.e. for
+higher-order effects whose operations consume or return computations of the same monad
+(schedulers, exception handlers, staged interpreters, higher-order oracles).
+Such an effect's response type can be another `P.FreeM` computation, staying in one universe:
+```
+def coin : PFunctor.{0,0} := ⟨Bool, fun b => if b then Bool else Nat⟩
+-- a `coin`-program is itself `Type 0`, so it can be another effect's response type:
+def scheduler : PFunctor.{0,0} := ⟨Unit, fun _ => coin.FreeM Bool⟩  -- `Type 0`
+```
+With the abstract `ι`, the analogous program lives in `Type 1`, so an effect `Type → Type`
+cannot return it; bumping the effect to `Type 1 → Type 1` pushes its programs to `Type 2`,
+and so on without bound.
 
 This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) library.
 
@@ -77,25 +93,11 @@ theorem pure_eq_pure : (FreeM.pure : α → P.FreeM α) = pure := rfl
 /-- Lift a shape of the base polynomial functor into the free monad. -/
 def lift (a : P.A) : P.FreeM (P.B a) := FreeM.liftBind a pure
 
-/-- Lift an object of the base polynomial functor into the free monad. -/
-def liftObj (x : P.Obj α) : P.FreeM α := FreeM.liftBind x.1 (fun y ↦ FreeM.pure (x.2 y))
-
-instance : MonadLift P (P.FreeM) where
-  monadLift x := FreeM.liftObj x
-
 @[simp] lemma lift_ne_pure (a : P.A) (y : P.B a) :
     (lift a : P.FreeM (P.B a)) ≠ pure y := by simp [lift]
 
 @[simp] lemma pure_ne_lift (a : P.A) (y : P.B a) :
     pure y ≠ (lift a : P.FreeM (P.B a)) := by simp [lift]
-
-@[simp] lemma liftObj_ne_pure (x : P.Obj α) (y : α) :
-    (liftObj x : P.FreeM α) ≠ pure y := by simp [liftObj]
-
-@[simp] lemma pure_ne_liftObj (x : P.Obj α) (y : α) :
-    pure y ≠ (liftObj x : P.FreeM α) := by simp [liftObj]
-
-lemma monadLift_eq_liftObj (x : P.Obj α) : (x : P.FreeM α) = FreeM.liftObj x := rfl
 
 /-- Bind operation for the `FreeM` monad.
 
@@ -129,6 +131,24 @@ theorem map_eq_map {α β : Type v} :
 @[simp]
 lemma liftBind_eq (a : P.A) (cont : P.B a → P.FreeM α) :
     FreeM.liftBind a cont = (FreeM.lift a).bind cont := rfl
+
+/-- Lift an object of the base polynomial functor into the free monad.
+
+This lifts the shape `x.1` with `lift` and relabels the responses with `x.2`. We use the
+universe-polymorphic `FreeM.map` rather than `<$>`, since the response type `P.B x.1` and the
+target `α` need not lie in the same universe. -/
+abbrev liftObj (x : P.Obj α) : P.FreeM α := (lift x.1).map x.2
+
+instance : MonadLift P (P.FreeM) where
+  monadLift x := FreeM.liftObj x
+
+@[simp] lemma liftObj_ne_pure (x : P.Obj α) (y : α) :
+    (liftObj x : P.FreeM α) ≠ pure y := by simp [liftObj, lift, map, -liftBind_eq]
+
+@[simp] lemma pure_ne_liftObj (x : P.Obj α) (y : α) :
+    pure y ≠ (liftObj x : P.FreeM α) := by simp [liftObj, lift, map, -liftBind_eq]
+
+lemma monadLift_eq_liftObj (x : P.Obj α) : (x : P.FreeM α) = FreeM.liftObj x := rfl
 
 set_option linter.unusedVariables false in
 /-- An override for the default induction principle that is in simp-normal form.
@@ -348,9 +368,7 @@ lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (a : P.A) :
 @[simp]
 lemma liftM_liftObj (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
     (FreeM.liftObj x).liftM interp = x.2 <$> interp x.1 := by
-  rw [liftObj, liftBind_eq, bind_eq_bind, liftM_lift_bind]
-  simp only [pure_eq_pure, liftM_pure]
-  exact LawfulMonad.bind_pure_comp (f := x.2) (x := interp x.1)
+  simp [liftObj]
 
 end liftM
 
