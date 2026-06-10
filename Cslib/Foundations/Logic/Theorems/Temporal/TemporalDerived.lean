@@ -21,8 +21,6 @@ Convention (Burgess 1982): `untl φ₁ φ₂` = `φ₁ U φ₂` with `φ₁` as 
 
 @[expose] public section
 
-set_option linter.style.longLine false
-
 namespace Cslib.Logic.Theorems.Temporal.TemporalDerived
 
 open Cslib.Logic
@@ -122,6 +120,7 @@ theorem P_neg_H {φ : F} :
 
 /-! ### Level 1: G-distribution -/
 
+set_option linter.style.longLine false in
 /-- Helper: `⊢ ¬(¬ψ→¬φ) → ¬(φ→ψ)`. -/
 private theorem neg_contrapositive_imp_neg {φ ψ : F} :
     InferenceSystem.DerivableIn S (HasImp.imp (neg' (HasImp.imp (neg' ψ) (neg' φ))) (neg' (HasImp.imp φ ψ))) :=
@@ -207,6 +206,7 @@ theorem H_contrapose {φ ψ : F} :
 
 /-! ### G/H Conjunction Introduction -/
 
+set_option linter.style.longLine false in
 /-- `⊢ Gφ → Gψ → G(φ∧ψ)`. -/
 theorem G_and_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -215,6 +215,7 @@ theorem G_and_intro {φ ψ : F} :
   have step1 := ModusPonens.mp (G_distribution (S := S)) g_pair
   exact imp_trans step1 (G_distribution (S := S))
 
+set_option linter.style.longLine false in
 /-- `⊢ Hφ → Hψ → H(φ∧ψ)`. -/
 theorem H_and_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -225,6 +226,7 @@ theorem H_and_intro {φ ψ : F} :
 
 /-! ### G/H Implication Transitivity -/
 
+set_option linter.style.longLine false in
 /-- `⊢ G(φ→ψ) → G(ψ→χ) → G(φ→χ)`. -/
 theorem G_imp_trans' {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
@@ -240,6 +242,7 @@ theorem G_imp_trans' {φ ψ χ : F} :
       (χ := allFuture (HasImp.imp φ χ)))
     step2
 
+set_option linter.style.longLine false in
 /-- `⊢ H(φ→ψ) → H(ψ→χ) → H(φ→χ)`. -/
 theorem H_imp_trans' {φ ψ χ : F} :
     InferenceSystem.DerivableIn S
@@ -256,6 +259,7 @@ theorem H_imp_trans' {φ ψ χ : F} :
 
 /-! ### Level 4: Future-Past Interaction Chains -/
 
+set_option linter.style.longLine false in
 /-- `⊢ Gφ → G(G(Pφ))`. -/
 theorem connect_future_G {φ : F} :
     InferenceSystem.DerivableIn S (HasImp.imp (allFuture φ) (allFuture (allFuture (somePast φ)))) := by

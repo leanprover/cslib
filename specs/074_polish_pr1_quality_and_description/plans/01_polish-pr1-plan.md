@@ -113,29 +113,29 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Scope `set_option linter.style.longLine false` per-theorem [NOT STARTED]
+### Phase 3: Scope `set_option linter.style.longLine false` per-theorem [COMPLETED]
 
 **Goal**: Replace file-scoped `set_option` with per-theorem `set_option ... in` in both S5.lean and TemporalDerived.lean.
 
 **Tasks**:
 
 **S5.lean** (6 theorems):
-- [ ] Remove file-scoped `set_option linter.style.longLine false` at line 58
-- [ ] Add `set_option linter.style.longLine false in` before `theorem t_box_to_diamond` (L173)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem box_disj_intro` (L234)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem box_conj_iff` (L259)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem diamond_disj_iff` (L312)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem s4_diamond_box_conj` (L400)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem s5_diamond_conj_diamond` (L499)
+- [x] Remove file-scoped `set_option linter.style.longLine false` at line 58
+- [x] Add `set_option linter.style.longLine false in` before `theorem t_box_to_diamond` *(deviation: altered -- placed before docstring, not between docstring and theorem, since Lean requires set_option before attributes)*
+- [x] Add `set_option linter.style.longLine false in` before `theorem box_disj_intro`
+- [x] Add `set_option linter.style.longLine false in` before `theorem box_conj_iff`
+- [x] Add `set_option linter.style.longLine false in` before `theorem diamond_disj_iff`
+- [x] Add `set_option linter.style.longLine false in` before `theorem s4_diamond_box_conj`
+- [x] Add `set_option linter.style.longLine false in` before `theorem s5_diamond_conj_diamond`
 
 **TemporalDerived.lean** (6 theorems):
-- [ ] Remove file-scoped `set_option linter.style.longLine false` at line 24
-- [ ] Add `set_option linter.style.longLine false in` before `private theorem neg_contrapositive_imp_neg` (L127)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem G_and_intro` (L212)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem H_and_intro` (L220)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem G_imp_trans'` (L230)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem H_imp_trans'` (L245)
-- [ ] Add `set_option linter.style.longLine false in` before `theorem connect_future_G` (L261)
+- [x] Remove file-scoped `set_option linter.style.longLine false` at line 24
+- [x] Add `set_option linter.style.longLine false in` before `private theorem neg_contrapositive_imp_neg`
+- [x] Add `set_option linter.style.longLine false in` before `theorem G_and_intro`
+- [x] Add `set_option linter.style.longLine false in` before `theorem H_and_intro`
+- [x] Add `set_option linter.style.longLine false in` before `theorem G_imp_trans'`
+- [x] Add `set_option linter.style.longLine false in` before `theorem H_imp_trans'`
+- [x] Add `set_option linter.style.longLine false in` before `theorem connect_future_G`
 
 **Timing**: 45 minutes
 
