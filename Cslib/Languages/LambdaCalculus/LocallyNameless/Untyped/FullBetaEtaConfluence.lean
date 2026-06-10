@@ -92,6 +92,7 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
 
 open Commute in
 /-- βη-reduction is confluent. -/
+@[wikidata Q1308502]
 theorem confluent_beta_eta : Confluent (@FullBetaEta Var) := by
   apply join_confluent
   · exact confluence_beta

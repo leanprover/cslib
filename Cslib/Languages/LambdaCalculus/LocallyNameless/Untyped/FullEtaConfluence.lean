@@ -33,6 +33,7 @@ open Relation
 variable [HasFresh Var] [DecidableEq Var]
 
 open FullEta in
+@[wikidata Q1308502]
 lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
   intro _ y z h₁ h₂
   suffices ∃ w, ReflGen FullEta y w ∧ ReflGen FullEta z w by grind
