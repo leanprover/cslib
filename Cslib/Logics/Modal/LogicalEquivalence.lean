@@ -79,8 +79,7 @@ instance {World Atom} (S : Set (Model World Atom)) : IsEquiv (Proposition Atom) 
   grind [Equivalence]
 
 /-- Logical equivalence is a congruence. -/
-instance (S : Set (Model World Atom)) :
-    Congruence (Proposition Atom) (Proposition.Equiv (Atom := Atom) S) where
+instance {World Atom} (S : Set (Model World Atom)) : Congruence (Proposition Atom) (Proposition.Equiv S) where
   elim :
       Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
       (Proposition.Equiv S) := by
