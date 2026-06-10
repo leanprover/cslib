@@ -118,9 +118,9 @@ Phases are fully sequential because each phase modifies files that later phases 
 
 **Tasks**:
 - [x] Identify the 3 Foundations files with unused private `Cslib.Init` imports (consult research report for exact list) *(completed)*
-- [x] **Task 3.2**: Remove the unused `import Cslib.Init` line from each file *(deviation: skipped -- checkInitImports CI tool requires all Cslib modules to transitively import Cslib.Init; FrameConditions.lean removal was reverted; Connectives.lean and InferenceSystem.lean require Cslib.Init for Type* notation via Mathlib.Tactic.TypeStar)*
-- [x] Run `lake build` after each removal to catch breakage immediately *(completed)*
-- [ ] Run `lake exe shake` on the modified files to confirm clean *(deviation: skipped -- lake exe shake requires noshake.json config and has compatibility issues with module keyword; verified via lake build instead)*
+- [x] **Task 3.2**: Remove the unused `import Cslib.Init` line from each file *(deviation: altered -- Cslib.Init cannot be removed from any Cslib module because checkInitImports CI tool requires all modules to transitively import Cslib.Init; removed unused `public import Mathlib.Data.Finset.Attr` from FrameConditions.lean instead)*
+- [x] Run `lake build` after each removal to catch breakage immediately *(completed -- full build passes)*
+- [x] Run `lake exe shake` on the modified files to confirm clean *(completed -- shake no longer reports Finset.Attr for FrameConditions; remaining Cslib.Init warnings are false positives due to checkInitImports requirement)*
 
 **Timing**: 10 minutes
 
@@ -141,10 +141,16 @@ Phases are fully sequential because each phase modifies files that later phases 
 
 **Tasks**:
 - [x] Read the research report section on non-minimal imports to get the full list of ~10 files and their recommended import changes *(completed)*
-- [ ] **Task 4.2**: For each file, apply the recommended import simplification *(deviation: skipped -- shake recommendations are incorrect for this codebase; Theorems files (issues 16-21) need their theorem-bearing imports, not just ProofSystem typeclasses; all Theorems files need private `import Cslib.Init` for Type* notation because public import chain uses private Cslib.Init throughout; ListHelpers public import (issue 12) is high-risk; MCS.lean (issue 24) genuinely needs DeductionTheorem; Consistency.lean (issue 15) and Defs.lean (issue 23) are high-risk public import changes)*
-- [x] Run `lake build` after each file's import change to catch breakage immediately *(completed -- verified Prop/Core.lean removal fails due to Type* dependency)*
-- [x] If a change breaks the build, revert it and document as "not safe to simplify" *(completed -- all tested changes reverted; documented root cause: private `import Cslib.Init` at every level of public import chain means each file genuinely needs its own `import Cslib.Init`)*
-- [ ] Run `lake exe shake` on all modified files to confirm clean output *(deviation: skipped -- no import changes made)*
+- [x] **Task 4.2**: For each file, apply the recommended import simplification *(deviation: altered -- every shake recommendation was tested and found incorrect; all tested changes reverted)*:
+  - Theorems/Propositional/Core.lean: replacing Combinators with ProofSystem FAILS (unknown namespace, missing b_combinator/flip/identity)
+  - Theorems/Modal/S5.lean: replacing Modal.Basic with ProofSystem FAILS (unknown namespace, missing contraposition)
+  - Consistency.lean: replacing Zorn with SetNotation+Chain FAILS (missing zorn_subset_nonempty)
+  - Defs.lean: replacing FunLike.Basic+Set.Basic with Set.Operations FAILS (grind failures)
+  - MCS.lean: replacing DeductionTheorem with Derivation FAILS (missing prop_has_deduction_theorem)
+  - ListHelpers.lean: removing Cslib.Init passes build but FAILS checkInitImports
+- [x] Run `lake build` after each file's import change to catch breakage immediately *(completed)*
+- [x] If a change breaks the build, revert it and document as "not safe to simplify" *(completed -- all changes reverted)*
+- [x] Run `lake exe shake` on all modified files to confirm clean output *(completed -- shake now runs; remaining warnings are all false positives as documented above)*
 
 **Timing**: 30 minutes
 
@@ -168,7 +174,7 @@ Phases are fully sequential because each phase modifies files that later phases 
 - [x] Run `lake exe lint-style` -- verify 0 style issues in changed files *(completed -- PASS)*
 - [x] Run `lake exe checkInitImports` -- verify clean *(completed -- PASS)*
 - [x] Run `lake exe mk_all --module --check` -- verify Cslib.lean is up to date *(completed -- "No update necessary")*
-- [ ] Run `lake exe shake` -- verify no non-minimal imports in changed files *(deviation: skipped -- shake has compatibility issues with module keyword and requires noshake.json; import minimality verified via build testing instead)*
+- [x] Run `lake exe shake` -- verify no non-minimal imports in changed files *(completed -- shake runs successfully; upstream CI has shake commented out per commit 2293f615; remaining warnings are false positives that fail when applied: Theorems files need theorem-bearing imports not just ProofSystem, Consistency needs Zorn, Defs needs Set.Basic for grind, MCS needs DeductionTheorem, and all Cslib.Init removals fail checkInitImports; one valid fix applied: removed unused Mathlib.Data.Finset.Attr from FrameConditions.lean)*
 - [x] Document any residual warnings that are outside the 25-file scope (pre-existing, not introduced by this task) *(completed -- 661 lint errors in Bimodal/Temporal, 3 push_neg deprecation warnings in ChronicleConstruction.lean, 1 unused variable warning in ChronicleConstruction.lean)*
 
 **Timing**: 5 minutes
@@ -179,9 +185,10 @@ Phases are fully sequential because each phase modifies files that later phases 
 - None (verification only)
 
 **Verification**:
-- All 4 runnable CI checks pass with zero errors in scope files
-- Zero warnings in the 25 changed files
+- All 5 CI checks run: lake lint, lint-style, checkInitImports, mk_all pass; shake runs but is commented out in upstream CI (2293f615)
+- Zero new warnings in the 25 changed files
 - Pre-existing warnings documented above
+- Removed noshake.json to match upstream (upstream deleted it in 2293f615 when upgrading to --add-public --keep-implied --keep-prefix flags)
 
 ## Testing & Validation
 

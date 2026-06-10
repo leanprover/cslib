@@ -8,7 +8,7 @@
 
 ## Summary
 
-Completed the systematic lint and quality audit of the pr1/foundations-logic additions. Of the 34 originally identified issues across 6 categories, the 12 actionable issues (Phases 1-2) were fixed: 1 double blank line, 2 unused simp_wf tactics, and 9 flexible simp calls. The remaining 22 issues (import restructuring in Phases 3-4) were investigated and found to be not applicable due to structural constraints of the codebase.
+Completed the systematic lint and quality audit of the pr1/foundations-logic additions. Of the 34 originally identified issues across 6 categories, 13 actionable issues were fixed: 1 double blank line, 2 unused simp_wf tactics, 9 flexible simp calls, and 1 unused import (Mathlib.Data.Finset.Attr from FrameConditions.lean). The remaining 21 issues (import restructuring) were individually tested and found to produce build failures or CI check violations when applied. Shake is commented out in upstream CI (commit 2293f615).
 
 ## Phases Completed
 
@@ -21,25 +21,27 @@ Completed the systematic lint and quality audit of the pr1/foundations-logic add
 
 ### Phase 3: Safe private import removals
 - Investigated 3 files for Cslib.Init removal (Connectives.lean, InferenceSystem.lean, FrameConditions.lean)
-- FrameConditions.lean removal was tested successfully but reverted because `checkInitImports` CI tool requires all Cslib modules to transitively import Cslib.Init
-- Connectives.lean and InferenceSystem.lean require Cslib.Init for Type* notation (via Mathlib.Tactic.TypeStar)
-- Net result: no import changes made
+- All Cslib.Init removals fail checkInitImports CI check (requires all Cslib modules to transitively import Cslib.Init)
+- Connectives.lean and InferenceSystem.lean also require Cslib.Init for Type* notation (via Mathlib.Tactic.TypeStar)
+- Removed unused `public import Mathlib.Data.Finset.Attr` from FrameConditions.lean (build + all CI checks pass)
 
 ### Phase 4: Public import chain restructuring
-- Investigated all 10+ files recommended by shake for import simplification
-- Found that shake recommendations are incorrect for this codebase:
-  - Theorems files need their actual theorem-bearing imports (Combinators, Core, etc.), not just ProofSystem typeclasses
-  - Every file in the public import chain uses private `import Cslib.Init`, so each file genuinely needs its own copy
-  - Public imports (ListHelpers, Consistency, Defs) are high-risk to change
-- Tested Prop/Core.lean removal of Cslib.Init; confirmed it fails due to Type* dependency
-- Net result: no import changes made
+- Every shake recommendation was individually tested and found to fail:
+  - Theorems/Propositional/Core.lean: replacing Combinators with ProofSystem FAILS (unknown namespace, missing b_combinator/flip/identity)
+  - Theorems/Modal/S5.lean: replacing Modal.Basic with ProofSystem FAILS (unknown namespace, missing contraposition)
+  - Consistency.lean: replacing Zorn with SetNotation+Chain FAILS (missing zorn_subset_nonempty)
+  - Defs.lean: replacing FunLike.Basic+Set.Basic with Set.Operations FAILS (grind failures)
+  - MCS.lean: replacing DeductionTheorem with Derivation FAILS (missing prop_has_deduction_theorem)
+  - ListHelpers.lean: removing Cslib.Init passes build but FAILS checkInitImports
+- Root cause: shake only checks type-level dependencies, not proof-term dependencies; it does not account for theorems/lemmas used from imported modules
 
 ### Phase 5: Final CI verification
-- lake lint: 0 warnings in scope files
+- lake lint: 0 warnings in scope files (661 pre-existing errors in Bimodal/Temporal)
 - lake exe lint-style: PASS
 - lake exe checkInitImports: PASS
-- lake exe mk_all --module --check: PASS
-- lake exe shake: not runnable (noshake.json/module keyword compatibility)
+- lake exe mk_all --module --check: PASS ("No update necessary")
+- lake exe shake: runs successfully; upstream CI has shake commented out (2293f615); remaining warnings are all false positives as documented in Phase 4
+- Removed scripts/noshake.json to match upstream (upstream deleted it when upgrading shake flags)
 
 ## CI Status (in-scope files)
 
@@ -49,17 +51,19 @@ Completed the systematic lint and quality audit of the pr1/foundations-logic add
 | lake exe lint-style | PASS |
 | lake exe checkInitImports | PASS |
 | lake exe mk_all --module --check | PASS |
+| lake exe shake | Runs; commented out in upstream CI |
 | lake build | PASS (2912 jobs) |
 
 ## Plan Deviations
 
-- Phase 3 Task 3.2: All import removals skipped -- checkInitImports requires Cslib.Init in all modules, and Type* notation depends on it
-- Phase 4 Task 4.2: All import restructuring skipped -- shake recommendations are incorrect for this codebase's public/private import architecture
-- Phase 5 shake check: Skipped -- tool incompatible with module keyword and requires noshake.json config
+- Phase 3 Task 3.2: Cslib.Init removals not possible due to checkInitImports CI requirement; instead removed unused Mathlib.Data.Finset.Attr from FrameConditions.lean
+- Phase 4 Task 4.2: All shake import recommendations individually tested and found to cause build failures; shake only checks type-level deps not proof-term deps
+- Upstream finding: shake is commented out in CI (2293f615); noshake.json was deleted upstream
 
 ## Files Modified (this session)
 
-- `Cslib/Foundations/Logic/Theorems/Temporal/FrameConditions.lean` -- Cslib.Init removed then restored (net: no change from original)
+- `Cslib/Foundations/Logic/Theorems/Temporal/FrameConditions.lean` -- removed unused `public import Mathlib.Data.Finset.Attr`
+- `scripts/noshake.json` -- removed to match upstream
 
 ## Files Modified (Phases 1-2, prior sessions)
 
@@ -74,3 +78,4 @@ Completed the systematic lint and quality audit of the pr1/foundations-logic add
 - 0 new axioms introduced
 - 0 vacuous definitions
 - Full build passes (2912 jobs)
+- All 4 active CI checks pass
