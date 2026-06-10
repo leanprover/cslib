@@ -1,7 +1,7 @@
 # Implementation Plan: Fix Lint Naming Conventions
 
 - **Task**: 66 - fix_lint_naming_conventions
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 3 hours
 - **Dependencies**: None
 - **Research Inputs**: reports/01_lint-naming-research.md
@@ -66,13 +66,13 @@ This task is a code quality / lint compliance task. It does not directly advance
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Tier 2 and Tier 3 Renames (Low-Impact Identifiers) [NOT STARTED]
+### Phase 1: Tier 2 and Tier 3 Renames (Low-Impact Identifiers) [COMPLETED]
 
 **Goal**: Rename the 11 low-reference identifiers as a safe first pass to validate the sed approach and catch any unexpected issues before touching the high-impact identifiers.
 
 **Tasks**:
-- [ ] Create a git branch `task-66-lint-naming` from current HEAD
-- [ ] Rename Tier 2 identifiers in definition files and all downstream references using sed:
+- [ ] Create a git branch `task-66-lint-naming` from current HEAD *(deviation: skipped — task instructions specify working on main, no separate branch)*
+- [x] Rename Tier 2 identifiers in definition files and all downstream references using sed:
   - `weak_future_left` -> `weakFutureLeft` (must precede `weak_future`)
   - `weak_future_right` -> `weakFutureRight` (must precede `weak_future`)
   - `weak_past_left` -> `weakPastLeft` (must precede `weak_past`)
@@ -84,8 +84,8 @@ Phases within the same wave can execute in parallel.
   - `weak_until` -> `weakUntil`
   - `weak_since` -> `weakSince`
   - `neg_bigconj` -> `negBigconj` (includes `neg_bigconj_def` -> `negBigconj_def`)
-- [ ] Verify no residual snake_case references for these 11 identifiers: `grep -rn 'weak_future\|weak_past\|weak_until\|weak_since\|strong_release\|strong_trigger\|neg_bigconj' Cslib/ --include="*.lean"`
-- [ ] Run `lake build` and confirm zero new errors
+- [x] Verify no residual snake_case references for these 11 identifiers: `grep -rn 'weak_future\|weak_past\|weak_until\|weak_since\|strong_release\|strong_trigger\|neg_bigconj' Cslib/ --include="*.lean"`
+- [x] Run `lake build` and confirm zero new errors
 
 **Timing**: 45 minutes
 

@@ -370,11 +370,11 @@ def next (φ : Formula Atom) : Formula Atom := .untl φ .bot
 def prev (φ : Formula Atom) : Formula Atom := .snce φ .bot
 
 /-- Derived reflexive future operator: G'φ := φ ∧ Gφ. -/
-def weak_future (φ : Formula Atom) : Formula Atom :=
+def weakFuture (φ : Formula Atom) : Formula Atom :=
   Formula.and φ (Formula.all_future φ)
 
 /-- Derived reflexive past operator: H'φ := φ ∧ Hφ. -/
-def weak_past (φ : Formula Atom) : Formula Atom :=
+def weakPast (φ : Formula Atom) : Formula Atom :=
   Formula.and φ (Formula.all_past φ)
 
 /-- Temporal 'always' operator (△φ): Hφ ∧ φ ∧ Gφ.
@@ -396,19 +396,19 @@ def trigger (φ ψ : Formula Atom) : Formula Atom :=
   Formula.neg (Formula.snce (Formula.neg ψ) (Formula.neg φ))
 
 /-- Weak Until operator W(φ, ψ) := (φ U ψ) ∨ G(φ). Until without the liveness requirement. -/
-def weak_until (φ ψ : Formula Atom) : Formula Atom :=
+def weakUntil (φ ψ : Formula Atom) : Formula Atom :=
   Formula.or (Formula.untl φ ψ) (Formula.all_future φ)
 
 /-- Weak Since operator WS(φ, ψ) := (φ S ψ) ∨ H(φ). Since without the liveness requirement. -/
-def weak_since (φ ψ : Formula Atom) : Formula Atom :=
+def weakSince (φ ψ : Formula Atom) : Formula Atom :=
   Formula.or (Formula.snce φ ψ) (Formula.all_past φ)
 
 /-- Strong Release operator M(φ, ψ) := ψ U (ψ ∧ φ). Dual of weak until. -/
-def strong_release (φ ψ : Formula Atom) : Formula Atom :=
+def strongRelease (φ ψ : Formula Atom) : Formula Atom :=
   Formula.untl (Formula.and ψ φ) ψ
 
 /-- Strong Trigger operator ST(φ, ψ) := ψ S (ψ ∧ φ). Past dual of strong release. -/
-def strong_trigger (φ ψ : Formula Atom) : Formula Atom :=
+def strongTrigger (φ ψ : Formula Atom) : Formula Atom :=
   Formula.snce (Formula.and ψ φ) ψ
 
 /-- Notation for temporal 'always' operator using upward triangle. -/
@@ -481,17 +481,17 @@ theorem swap_temporal_prev (φ : Formula Atom) :
     (prev φ).swap_temporal = next φ.swap_temporal := by
   simp [prev, next, swap_temporal]
 
-/-- swap_temporal distributes over strong_release: swap(M(φ,ψ)) = ST(swap φ, swap ψ). -/
-theorem swap_temporal_strong_release (φ ψ : Formula Atom) :
-    (strong_release φ ψ).swap_temporal =
-      strong_trigger φ.swap_temporal ψ.swap_temporal := by
-  simp [strong_release, strong_trigger, Formula.and, swap_temporal]
+/-- swap_temporal distributes over strongRelease: swap(M(φ,ψ)) = ST(swap φ, swap ψ). -/
+theorem swap_temporal_strongRelease (φ ψ : Formula Atom) :
+    (strongRelease φ ψ).swap_temporal =
+      strongTrigger φ.swap_temporal ψ.swap_temporal := by
+  simp [strongRelease, strongTrigger, Formula.and, swap_temporal]
 
-/-- swap_temporal distributes over strong_trigger: swap(ST(φ,ψ)) = M(swap φ, swap ψ). -/
-theorem swap_temporal_strong_trigger (φ ψ : Formula Atom) :
-    (strong_trigger φ ψ).swap_temporal =
-      strong_release φ.swap_temporal ψ.swap_temporal := by
-  simp [strong_release, strong_trigger, Formula.and, swap_temporal]
+/-- swap_temporal distributes over strongTrigger: swap(ST(φ,ψ)) = M(swap φ, swap ψ). -/
+theorem swap_temporal_strongTrigger (φ ψ : Formula Atom) :
+    (strongTrigger φ ψ).swap_temporal =
+      strongRelease φ.swap_temporal ψ.swap_temporal := by
+  simp [strongRelease, strongTrigger, Formula.and, swap_temporal]
 
 /-! ### Positive Hypothesis Predicate -/
 

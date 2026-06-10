@@ -345,19 +345,19 @@ noncomputable def present_to_sometimes (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp φ.sometimes) := by
   exact imp_trans (dni φ) (contraposition (always_to_present φ.neg))
 
-noncomputable def weak_future_left (φ : Formula Atom) :
+noncomputable def weakFutureLeft (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((φ.and φ.all_future).imp φ) :=
   lce_imp φ φ.all_future
 
-noncomputable def weak_future_right (φ : Formula Atom) :
+noncomputable def weakFutureRight (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((φ.and φ.all_future).imp φ.all_future) :=
   rce_imp φ φ.all_future
 
-noncomputable def weak_past_left (φ : Formula Atom) :
+noncomputable def weakPastLeft (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((φ.and φ.all_past).imp φ) :=
   lce_imp φ φ.all_past
 
-noncomputable def weak_past_right (φ : Formula Atom) :
+noncomputable def weakPastRight (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((φ.and φ.all_past).imp φ.all_past) :=
   rce_imp φ φ.all_past
 

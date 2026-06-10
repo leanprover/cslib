@@ -1,33 +1,15 @@
 {
-  "status": "planned",
-  "artifacts": [
-    {
-      "path": "specs/066_fix_lint_naming_conventions/plans/01_fix-lint-naming.md",
-      "type": "plan",
-      "summary": "4-phase plan to rename 16 snake_case def/abbrev identifiers to lowerCamelCase across 95 files with ~2,903 references using ordered sed batch replacement"
-    }
-  ],
-  "plan_metadata": {
-    "phases": 4,
-    "total_effort_hours": 3,
-    "complexity": "medium",
-    "research_integrated": true,
-    "plan_version": 1,
-    "dependency_waves": [[1], [2], [3], [4]],
-    "reports_integrated": [
-      {
-        "path": "reports/01_lint-naming-research.md",
-        "integrated_in_plan_version": 1,
-        "integrated_date": "2026-06-09"
-      }
-    ]
+  "status": "in_progress",
+  "started_at": "2026-06-09T00:00:00Z",
+  "artifacts": [],
+  "partial_progress": {
+    "stage": "initializing",
+    "details": "Agent started, parsing delegation context"
   },
-  "memory_candidates": [],
-  "next_steps": "Run /implement 66 to execute the plan",
   "metadata": {
-    "session_id": "sess_1781065537_3f6fad",
-    "agent_type": "planner-agent",
+    "session_id": "sess_1781065945_b831e4",
+    "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"]
   }
 }

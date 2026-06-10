@@ -15,7 +15,7 @@ plus derivability lemmas for `[PropositionalHilbert S]`.
 
 - `bigconj`: Big conjunction (`⊤` for empty, identity for singleton,
   nested conjunction for longer lists)
-- `neg_bigconj`: Negation of big conjunction
+- `negBigconj`: Negation of big conjunction
 
 ## Main Results
 
@@ -53,7 +53,7 @@ def bigconj : List F → F
       HasBot.bot
 
 /-- Negated big conjunction. -/
-def neg_bigconj (L : List F) : F :=
+def negBigconj (L : List F) : F :=
   HasImp.imp (bigconj L) HasBot.bot
 
 @[simp] theorem bigconj_nil :
@@ -71,8 +71,8 @@ def neg_bigconj (L : List F) : F :=
           (HasImp.imp (bigconj (ψ :: rest)) HasBot.bot))
         HasBot.bot := rfl
 
-@[simp] theorem neg_bigconj_def (L : List F) :
-    neg_bigconj L = HasImp.imp (bigconj L) HasBot.bot :=
+@[simp] theorem negBigconj_def (L : List F) :
+    negBigconj L = HasImp.imp (bigconj L) HasBot.bot :=
   rfl
 
 /-! ### Derivability Lemmas -/

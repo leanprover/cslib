@@ -13,12 +13,12 @@ public import Cslib.Logics.Temporal.Syntax.Formula
 
 Defines `bigconj : List (Formula Atom) → Formula Atom` folding conjunction over a list,
 with base case `⊤` (represented as `¬⊥`, i.e. `Formula.neg Formula.bot`), plus the derived
-negation `neg_bigconj`.
+negation `negBigconj`.
 
 ## Main Definitions
 
 - `bigconj : List (Formula Atom) → Formula Atom`
-- `neg_bigconj : List (Formula Atom) → Formula Atom`
+- `negBigconj : List (Formula Atom) → Formula Atom`
 -/
 
 @[expose] public section
@@ -35,7 +35,7 @@ def bigconj : List (Formula Atom) → Formula Atom
   | φ :: ψ :: rest => Formula.and φ (bigconj (ψ :: rest))
 
 /-- Negated big conjunction. -/
-def neg_bigconj (L : List (Formula Atom)) : Formula Atom := (bigconj L).neg
+def negBigconj (L : List (Formula Atom)) : Formula Atom := (bigconj L).neg
 
 @[simp] theorem bigconj_nil :
     bigconj (Atom := Atom) [] = Formula.neg Formula.bot := rfl
@@ -46,7 +46,7 @@ def neg_bigconj (L : List (Formula Atom)) : Formula Atom := (bigconj L).neg
 @[simp] theorem bigconj_cons_cons (φ ψ : Formula Atom) (rest : List (Formula Atom)) :
     bigconj (φ :: ψ :: rest) = Formula.and φ (bigconj (ψ :: rest)) := rfl
 
-@[simp] theorem neg_bigconj_def (L : List (Formula Atom)) :
-    neg_bigconj L = (bigconj L).neg := rfl
+@[simp] theorem negBigconj_def (L : List (Formula Atom)) :
+    negBigconj L = (bigconj L).neg := rfl
 
 end Cslib.Logic.Temporal
