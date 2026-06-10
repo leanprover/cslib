@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/081_pr1_foundations_logic_code_review/plans/01_pr1-code-review-plan.md",
+      "summary": "6-phase implementation plan for 13 code quality improvements from PR 1 Foundations Logic review"
+    }
+  ],
+  "next_steps": "Run /implement 81 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1781114400_p81abc",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 4,
+    "dependency_waves": [[1], [2], [3], [4], [5], [6]]
+  },
+  "memory_candidates": []
+}
