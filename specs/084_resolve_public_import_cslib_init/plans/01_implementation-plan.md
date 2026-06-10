@@ -91,14 +91,14 @@ Phases are strictly sequential to ensure build correctness at each step.
 
 ---
 
-### Phase 2: Downgrade public import in 3 target files [NOT STARTED]
+### Phase 2: Downgrade public import in 3 target files [COMPLETED]
 
 **Goal**: Change `public import Cslib.Init` to `import Cslib.Init` in all 3 target files.
 
 **Tasks**:
-- [ ] Change `public import Cslib.Init` to `import Cslib.Init` in `Cslib/Foundations/Logic/Connectives.lean`
-- [ ] Change `public import Cslib.Init` to `import Cslib.Init` in `Cslib/Foundations/Logic/InferenceSystem.lean`
-- [ ] Change `public import Cslib.Init` to `import Cslib.Init` in `Cslib/Foundations/Logic/Theorems/Temporal/FrameConditions.lean`
+- [x] Change `public import Cslib.Init` to `import Cslib.Init` in `Cslib/Foundations/Logic/Connectives.lean`
+- [x] Change `public import Cslib.Init` to `import Cslib.Init` in `Cslib/Foundations/Logic/InferenceSystem.lean`
+- [x] Change `public import Cslib.Init` to `import Cslib.Init` in `Cslib/Foundations/Logic/Theorems/Temporal/FrameConditions.lean`
 
 **Timing**: 5 minutes
 
