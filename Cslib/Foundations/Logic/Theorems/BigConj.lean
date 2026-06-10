@@ -96,15 +96,15 @@ theorem bigconj_mem_derivable {L : List F} {φ : F}
     (hconj : InferenceSystem.DerivableIn S (bigconj L)) :
     InferenceSystem.DerivableIn S φ := by
   induction L with
-  | nil => simp at hmem
+  | nil => simp only [List.not_mem_nil] at hmem
   | cons a rest ih =>
     cases rest with
     | nil =>
-      simp [bigconj] at hconj
-      simp at hmem
+      simp only [bigconj_singleton] at hconj
+      simp only [List.mem_singleton] at hmem
       rw [hmem]; exact hconj
     | cons b tail =>
-      simp [bigconj] at hconj
+      simp only [bigconj_cons_cons] at hconj
       cases hmem with
       | head => exact ModusPonens.mp lce_imp hconj
       | tail _ hmem' =>
@@ -117,15 +117,15 @@ theorem bigconj_derivable_intro {L : List F}
     InferenceSystem.DerivableIn S (bigconj L) := by
   induction L with
   | nil =>
-    simp [bigconj]
+    simp only [bigconj_nil]
     exact identity (S := S) HasBot.bot
   | cons a rest ih =>
     cases rest with
     | nil =>
-      simp [bigconj]
+      simp only [bigconj_singleton]
       exact h a (by simp)
     | cons b tail =>
-      simp [bigconj]
+      simp only [bigconj_cons_cons]
       have ha := h a (by simp)
       have hrest : ∀ φ ∈ (b :: tail),
           InferenceSystem.DerivableIn S φ := by

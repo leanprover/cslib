@@ -39,8 +39,6 @@ All theorems are generic over `[PropositionalHilbert S]`.
 
 namespace Cslib.Logic.Theorems.Propositional.Connectives
 
-set_option linter.unreachableTactic false
-
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core
@@ -359,7 +357,6 @@ theorem demorgan_conj_neg_backward {φ ψ : F} :
 
   -- Also: (φ∧ψ) → ψ  [rce_imp]
   have rce := @rce_imp F _ _ S _ _ (φ := φ) (ψ := ψ)
-
   -- Now: from ((φ∧ψ)→¬ψ) and ((φ∧ψ)→ψ), get ((φ∧ψ)→⊥)
   -- i.e., ¬(φ∧ψ)
   -- app1: ψ → (ψ→⊥) → ⊥  [theorem_app1]
@@ -370,7 +367,6 @@ theorem demorgan_conj_neg_backward {φ ψ : F} :
   -- Wait: ¬ψ = ψ→⊥, so we need:
   -- ((φ∧ψ)→(ψ→⊥)) → (((φ∧ψ)→ψ) → ((φ∧ψ)→⊥))
   -- This is exactly ImplyS!
-
   have s1 := HasAxiomImplyS.implyS (S := S)
     (φ := HasImp.imp
       (HasImp.imp φ (HasImp.imp ψ HasBot.bot))
