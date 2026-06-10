@@ -167,7 +167,6 @@ theorem axiom5_collapse_derived {φ : F} :
 
 /-! ## Core S5 Theorems -/
 
-
 /-- T-Box-Diamond: `⊢ □φ → ◇φ` (necessary implies possible). -/
 theorem t_box_to_diamond {φ : F} :
     InferenceSystem.DerivableIn S
@@ -234,7 +233,6 @@ theorem t_box_consistency {φ : F} :
   have conj_to_bot := ModusPonens.mp dni_impl dni_phi
   exact imp_trans mt conj_to_bot
 
-
 /-- Box-Disjunction Introduction: `⊢ (□φ ∨ □ψ) → □(φ ∨ ψ)`. -/
 theorem box_disj_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -263,7 +261,6 @@ theorem box_disj_intro {φ ψ : F} :
     b_combinator
   have neg_box_case := ModusPonens.mp bc box_b_case
   exact imp_trans neg_box_case step1
-
 
 /-- Box-Conjunction Biconditional: `⊢ □(φ ∧ ψ) ↔ (□φ ∧ □ψ)`. -/
 theorem box_conj_iff {φ ψ : F} :
@@ -330,7 +327,6 @@ theorem box_conj_iff {φ ψ : F} :
   have step4 := ModusPonens.mp s_ax step3
   have backward := ModusPonens.mp step4 rce_box
   exact iff_intro forward backward
-
 
 /-- Diamond-Disjunction Biconditional: `⊢ ◇(φ ∨ ψ) ↔ (◇φ ∨ ◇ψ)`. -/
 theorem diamond_disj_iff {φ ψ : F} :
@@ -440,7 +436,6 @@ theorem s5_diamond_box_to_truth {φ : F} :
 
 /-! ## S4-Level Nested Modality Theorems -/
 
-
 /-- S4-Diamond-Box-Conjunction: `⊢ (◇A ∧ □B) → ◇(A ∧ □B)`. -/
 theorem s4_diamond_box_conj {A B : F} :
     let conjABoxB := HasImp.imp (HasImp.imp A (HasImp.imp (HasBox.box B) HasBot.bot)) HasBot.bot
@@ -541,7 +536,6 @@ theorem s4_diamond_box_diamond {A : F} :
   have backward := imp_trans step1 box_box_to_dia
   exact iff_intro forward backward
 
-
 /-- S5-Diamond-Conjunction-Diamond: `⊢ ◇(A ∧ ◇B) ↔ (◇A ∧ ◇B)`. -/
 theorem s5_diamond_conj_diamond {A B : F} :
     let diamondB := HasImp.imp (HasBox.box (HasImp.imp B HasBot.bot)) HasBot.bot
@@ -634,6 +628,6 @@ theorem s5_diamond_conj_diamond {A B : F} :
   have backward := ModusPonens.mp step1 lce_conj
   exact iff_intro forward backward
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.Modal.S5

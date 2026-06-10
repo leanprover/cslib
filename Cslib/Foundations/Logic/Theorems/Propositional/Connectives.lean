@@ -276,18 +276,7 @@ theorem demorgan_conj_neg_forward {φ ψ : F} :
   -- Compose with dne_inner: ¬¬(φ→¬ψ) → (¬¬φ→¬ψ)
   exact imp_trans dne_inner step1
 
-/-- De Morgan 1 backward: `⊢ (¬φ ∨ ¬ψ) → ¬(φ ∧ ψ)`.
-    i.e., `(¬¬φ → ¬ψ) → ¬(φ → ¬ψ)` -- wait, this does
-    not type-check as stated. Let me reconsider.
-
-    Actually: `(¬φ ∨ ¬ψ) = ((φ→⊥)→⊥) → (ψ→⊥)`.
-    `¬(φ ∧ ψ) = ((φ→(ψ→⊥))→⊥) → ⊥`.
-    So we need: `(¬¬φ → ¬ψ) → ¬¬(φ→¬ψ)`.
-
-    Proof: Assume (¬¬φ → ¬ψ). From (φ ∧ ψ), extract φ and ψ.
-    From φ, get ¬¬φ by DNI. From ¬¬φ and (¬¬φ→¬ψ), get ¬ψ.
-    But we have ψ, contradiction.
-    This uses lce_imp, rce_imp, dni. -/
+/-- De Morgan 1 backward: `⊢ (¬φ ∨ ¬ψ) → ¬(φ ∧ ψ)`. -/
 theorem demorgan_conj_neg_backward {φ ψ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp
@@ -541,6 +530,6 @@ theorem demorgan_disj_neg {φ ψ : F} :
   iff_intro demorgan_disj_neg_forward
     demorgan_disj_neg_backward
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.Propositional.Connectives

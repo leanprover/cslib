@@ -136,6 +136,6 @@ theorem bigconj_derivable_intro {L : List F}
       exact ModusPonens.mp
         (ModusPonens.mp pair ha) ih_result
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.BigConj

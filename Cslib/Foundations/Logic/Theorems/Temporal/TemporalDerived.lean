@@ -120,7 +120,6 @@ theorem P_neg_H {φ : F} :
 
 /-! ### Level 1: G-distribution -/
 
-
 /-- Helper: `⊢ ¬(¬ψ→¬φ) → ¬(φ→ψ)`. -/
 private theorem neg_contrapositive_imp_neg {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -208,7 +207,6 @@ theorem H_contrapose {φ ψ : F} :
 
 /-! ### G/H Conjunction Introduction -/
 
-
 /-- `⊢ Gφ → Gψ → G(φ∧ψ)`. -/
 theorem G_and_intro {φ ψ : F} :
     InferenceSystem.DerivableIn S
@@ -219,7 +217,6 @@ theorem G_and_intro {φ ψ : F} :
   have g_pair := TemporalNecessitation.tempNec (@pairing F _ _ S _ _ φ ψ)
   have step1 := ModusPonens.mp (G_distribution (S := S)) g_pair
   exact imp_trans step1 (G_distribution (S := S))
-
 
 /-- `⊢ Hφ → Hψ → H(φ∧ψ)`. -/
 theorem H_and_intro {φ ψ : F} :
@@ -233,7 +230,6 @@ theorem H_and_intro {φ ψ : F} :
   exact imp_trans step1 (H_distribution (S := S))
 
 /-! ### G/H Implication Transitivity -/
-
 
 /-- `⊢ G(φ→ψ) → G(ψ→χ) → G(φ→χ)`. -/
 theorem G_imp_trans' {φ ψ χ : F} :
@@ -252,7 +248,6 @@ theorem G_imp_trans' {φ ψ χ : F} :
       (ψ := allFuture (HasImp.imp φ ψ))
       (χ := allFuture (HasImp.imp φ χ)))
     step2
-
 
 /-- `⊢ H(φ→ψ) → H(ψ→χ) → H(φ→χ)`. -/
 theorem H_imp_trans' {φ ψ χ : F} :
@@ -273,7 +268,6 @@ theorem H_imp_trans' {φ ψ χ : F} :
 
 /-! ### Level 4: Future-Past Interaction Chains -/
 
-
 /-- `⊢ Gφ → G(G(Pφ))`. -/
 theorem connect_future_G {φ : F} :
     InferenceSystem.DerivableIn S
@@ -288,6 +282,6 @@ theorem connect_past_H {φ : F} :
   have h_conn := TemporalNecessitation.tempNecPast (@connect_past_thm F _ _ _ _ S _ _ (φ := φ))
   exact ModusPonens.mp (H_distribution (S := S)) h_conn
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.Temporal.TemporalDerived

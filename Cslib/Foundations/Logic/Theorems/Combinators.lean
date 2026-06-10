@@ -141,6 +141,7 @@ theorem theorem_app2 {φ ψ χ : F} :
       (HasImp.imp φ (HasImp.imp ψ
         (HasImp.imp (HasImp.imp φ (HasImp.imp ψ χ))
           χ))) := by
+  -- Stage 1: Build the two app1 base lemmas
   have step_a : InferenceSystem.DerivableIn S
       (HasImp.imp φ (HasImp.imp
         (HasImp.imp φ (HasImp.imp ψ χ))
@@ -149,6 +150,7 @@ theorem theorem_app2 {φ ψ χ : F} :
   have step_b : InferenceSystem.DerivableIn S
       (HasImp.imp ψ (HasImp.imp (HasImp.imp ψ χ) χ)) :=
     theorem_app1
+  -- Stage 2: Weaken and flip to get both under ψ scope
   have a_b_bc_c := ModusPonens.mp
     (HasAxiomImplyK.implyK (S := S)
       (φ := HasImp.imp ψ (HasImp.imp (HasImp.imp ψ χ) χ))
@@ -167,6 +169,7 @@ theorem theorem_app2 {φ ψ χ : F} :
         (HasImp.imp φ (HasImp.imp ψ χ))
         (HasImp.imp ψ χ)))
     b_a
+  -- Stage 3: B-combinator composition for (ψ→χ)→χ chain
   have b_comp : InferenceSystem.DerivableIn S
       (HasImp.imp (HasImp.imp (HasImp.imp ψ χ) χ)
         (HasImp.imp
@@ -193,6 +196,7 @@ theorem theorem_app2 {φ ψ χ : F} :
         (HasImp.imp ψ χ))
       (HasImp.imp (HasImp.imp φ (HasImp.imp ψ χ)) χ))
   have step7_b := ModusPonens.mp k_b b_b_comp
+  -- Stage 4: Lift composition under φ scope via S and K
   have weak_step7 := ModusPonens.mp
     (HasAxiomImplyK.implyK (S := S)
       (φ := HasImp.imp
@@ -214,6 +218,7 @@ theorem theorem_app2 {φ ψ χ : F} :
         (HasImp.imp (HasImp.imp φ (HasImp.imp ψ χ)) χ)))
   have step8 := ModusPonens.mp k_a weak_step7
   have step9 := ModusPonens.mp step8 a_b_bc_c
+  -- Stage 5: Final composition — collapse to φ → ψ → (φ→ψ→χ) → χ
   have k_b_final := HasAxiomImplyS.implyS (S := S)
     (φ := ψ)
     (ψ := HasImp.imp
@@ -328,6 +333,6 @@ theorem combine_imp_conj_3 {P A₁ B₁ C₁ : F}
           HasBot.bot)) :=
   combine_imp_conj hA (combine_imp_conj hB hC)
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.Combinators

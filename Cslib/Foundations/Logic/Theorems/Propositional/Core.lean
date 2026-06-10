@@ -283,6 +283,6 @@ theorem lem {φ : F} :
         (HasImp.imp φ HasBot.bot)) :=
   identity (HasImp.imp φ HasBot.bot)
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.Propositional.Core

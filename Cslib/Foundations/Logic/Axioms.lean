@@ -268,7 +268,8 @@ protected abbrev TempLinearityPast (φ ψ : F) : F :=
 
 /-- F-Until equivalence (BX12):
     F(φ) → U(φ, ⊤)
-    where F(α) = ⊤ U α -/
+    where F(α) = ⊤ U α.
+    Note: Under the Burgess 1982 convention, this is trivially F(φ) → F(φ). -/
 protected abbrev FUntilEquiv (φ : F) : F :=
   HasImp.imp (HasUntil.untl φ top') (HasUntil.untl φ top')
 

@@ -198,6 +198,6 @@ theorem box_iff_intro {φ ψ : F}
   -- Combine into biconditional
   exact iff_intro box_ab box_ba
 
-end -- section
+end
 
 end Cslib.Logic.Theorems.Modal.Basic
