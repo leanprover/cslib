@@ -18,9 +18,12 @@ imports Foundations infrastructure directly.
 
 ## Module Dependency Structure
 
-Foundations feeds all three logic modules directly. Modal and Temporal
-are independent peers in the middle layer. Bimodal additionally imports
-from Modal and Temporal for embedding and conservative extension results.
+Foundations provides shared infrastructure to all four logic modules.
+Propositional, Modal, and Temporal are independent peers that each
+import from Foundations. Propositional's Embedding component bridges
+Modal and Temporal into a common propositional interface. Bimodal
+imports from all three peer modules for embedding and conservative
+extension results, and from Foundations directly.
 
 ```mermaid
 flowchart TB
@@ -29,6 +32,12 @@ flowchart TB
         F1["Connectives · ProofSystem"]
         F2["Theorems"]
         F3["Metalogic"]
+    end
+
+    subgraph P ["Logics / Propositional"]
+        direction LR
+        P1["Defs · NaturalDeduction"]
+        P2["Embedding"]
     end
 
     subgraph M ["Logics / Modal"]
@@ -51,14 +60,16 @@ flowchart TB
         B3["Metalogic"]
     end
 
-    F1 --> M1 & T1 & B1
+    F1 --> P1 & M1 & T1 & B1
     F2 --> M2 & T2 & B2
     F3 --> M2 & T3 & B3
 
-    M1 --> B2
-    M2 --> B3
+    M1 --> P2 & B2
+    T1 --> P2
     T2 --> B2
+    M2 --> B3
     T3 --> B3
+    P2 --> B2
 ```
 
 ## Completed
