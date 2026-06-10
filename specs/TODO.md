@@ -51,6 +51,49 @@ next_project_number: 86
 
 ## Tasks
 
+### 86. Systematic lint and quality audit of all pr1/foundations-logic additions
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Run the full CSLib CI lint suite (`lake lint`, `lake shake`, `lake exe lint-style`, `lake exe checkInitImports`, `lake exe mk_all --module --check`) across all 25 files changed on the `pr1/foundations-logic` branch and fix every issue found. Known recurring patterns to check systematically:
+
+1. **`defLemma` lint**: `def` used for Prop-valued results (`Deriv`, `Nonempty`) that should be `theorem` — found and fixed in 6 places in `FromHilbert.lean`, likely recurs in Modal/Temporal/Bimodal analogues
+2. **`topNamespace` lint**: instances declared in `section` without an enclosing `namespace` — found and fixed in `Instances.lean`, likely recurs in other `ProofSystem/Instances.lean` files
+3. **Redundant `noncomputable`**: `noncomputable` on theorems is an error in current Lean — found on 2 `def`→`theorem` conversions
+4. **Non-minimal imports**: `lake shake` found `Set.Image` → `Set.Basic` in `Defs.lean` — check all 25 files for similar
+5. **`flexible` simp warnings**: `simp` used where `simp only [...]` is preferred — multiple instances in `DeductionTheorem.lean` and `MCS.lean`
+6. **`unusedTactic` / `multiGoal` warnings**: tactics that do nothing or operate on wrong goal count — found in `DeductionTheorem.lean`
+
+**Files in scope** (all files changed on `pr1/foundations-logic` vs `upstream/main`):
+- `Cslib/Foundations/Data/ListHelpers.lean`
+- `Cslib/Foundations/Logic/Axioms.lean`
+- `Cslib/Foundations/Logic/Connectives.lean`
+- `Cslib/Foundations/Logic/InferenceSystem.lean`
+- `Cslib/Foundations/Logic/Metalogic/Consistency.lean`
+- `Cslib/Foundations/Logic/Metalogic/DeductionHelpers.lean`
+- `Cslib/Foundations/Logic/ProofSystem.lean`
+- `Cslib/Foundations/Logic/Theorems.lean`
+- `Cslib/Foundations/Logic/Theorems/BigConj.lean`
+- `Cslib/Foundations/Logic/Theorems/Combinators.lean`
+- `Cslib/Foundations/Logic/Theorems/Modal/Basic.lean`
+- `Cslib/Foundations/Logic/Theorems/Modal/S5.lean`
+- `Cslib/Foundations/Logic/Theorems/Propositional/Connectives.lean`
+- `Cslib/Foundations/Logic/Theorems/Propositional/Core.lean`
+- `Cslib/Foundations/Logic/Theorems/Temporal/FrameConditions.lean`
+- `Cslib/Foundations/Logic/Theorems/Temporal/TemporalDerived.lean`
+- `Cslib/Logics/Propositional/Defs.lean`
+- `Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean`
+- `Cslib/Logics/Propositional/Metalogic/MCS.lean`
+- `Cslib/Logics/Propositional/NaturalDeduction/Basic.lean`
+- `Cslib/Logics/Propositional/NaturalDeduction/FromHilbert.lean`
+- `Cslib/Logics/Propositional/ProofSystem/Axioms.lean`
+- `Cslib/Logics/Propositional/ProofSystem/Derivation.lean`
+- `Cslib/Logics/Propositional/ProofSystem/Instances.lean`
+- `Cslib.lean`
+
+All work must be done on the `pr1/foundations-logic` branch. Final verification: all 6 CI checks pass with zero errors and zero warnings in the changed files.
+
 ### 85. Include Logics/Propositional/ changes in PR 1 feature branch
 - **Effort**: small
 - **Status**: [COMPLETED]

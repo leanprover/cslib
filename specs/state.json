@@ -1,5 +1,5 @@
 {
-  "next_project_number": 86,
+  "next_project_number": 87,
   "active_projects": [
     {
       "project_number": 85,
@@ -648,6 +648,14 @@
       ],
       "topic": "Clean Up",
       "completion_summary": "Created HasHilbertTree typeclass with 4 generic deduction helpers in Foundations/Logic/Metalogic/DeductionHelpers.lean; refactored all 4 logic domains to use shared helpers; 16 duplicated definitions reduced to 4; net 52 lines removed; full lake build passes"
+    },
+    {
+      "project_number": 86,
+      "project_name": "pr1_lint_quality_audit",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T21:39:57Z",
+      "last_updated": "2026-06-10T21:39:57Z"
     }
   ],
   "repository_health": {
