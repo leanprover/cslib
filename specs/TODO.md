@@ -43,7 +43,7 @@ next_project_number: 78
 
 ### Uncategorized
 
-77 [RESEARCHED] — audit_noncomputable_usage
+77 [COMPLETED] — audit_noncomputable_usage
 
 ## Tasks
 
@@ -58,9 +58,10 @@ next_project_number: 78
 
 ### 78. Systematic module keyword and private declaration audit across Logics/
 - **Effort**: Large (16-24 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 76
+- **Research**: [specs/078_module_keyword_and_private_audit/reports/01_module-keyword-audit.md]
 
 **Description**: Systematically audit and fix all Logics/ files (Modal, Temporal, Bimodal, Propositional) to properly support the Lean 4 `module` keyword. Task 76 added `module` + `public import` + `@[expose] public section` to 145 files but broke the build because `private` declarations inside `@[expose] public section` in `module` files become invisible to later code in the same file. The fix requires a holistic approach: (1) Inventory all `private` declarations across every `module` file. (2) For each one, determine if `private` is needed for name-collision avoidance (e.g., `theorem_in_mcs_fc` is defined identically in 18+ files) or is merely conventional. (3) Where `private` was only conventional (helpers used within a single proof), rename to unique namespace-qualified names (e.g., `deduction_axiom` → `DeductionTheorem.axiom_case`) and remove `private`. (4) Where `private` prevents genuine name collisions across files that import each other, either deduplicate into a shared utility module or use unique names per file. (5) Verify the full `lake build` passes with zero errors after all changes. (6) Re-apply task 76's `module` + `public import` + `@[expose] public section` migration on top of the cleaned codebase. This supersedes task 76 which has been reverted.
 
