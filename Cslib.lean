@@ -58,6 +58,7 @@ public import Cslib.Foundations.Data.DecidableEqZero
 public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Data.ListHelpers
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
@@ -154,7 +155,13 @@ public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.Cube
 public import Cslib.Logics.Modal.Denotation
 public import Cslib.Logics.Propositional.Defs
+public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
+public import Cslib.Logics.Propositional.Metalogic.MCS
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Logics.Propositional.NaturalDeduction.FromHilbert
+public import Cslib.Logics.Propositional.ProofSystem.Axioms
+public import Cslib.Logics.Propositional.ProofSystem.Derivation
+public import Cslib.Logics.Propositional.ProofSystem.Instances
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
