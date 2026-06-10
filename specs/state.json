@@ -24,7 +24,7 @@
       "project_number": 67,
       "project_name": "fix_simp_linter_warnings",
       "status": "completed",
-      "completion_summary": "Removed @[simp] from 7 lemmas across 2 files (neg_iff, some_future_iff, some_past_iff, all_future_iff, all_past_iff in Satisfies.lean; toModal_neg, toTemporal_neg in Embedding.lean). Full lake build passes with zero errors.",
+      "completion_summary": "Removed @[simp] from 7 lemmas (5 in Satisfies.lean, 2 in Embedding.lean) to fix simpNF linter warnings. Lake build passes clean.",
       "task_type": "lean4",
       "created": "2026-06-09T00:00:00Z",
       "last_updated": "2026-06-10T04:30:00Z",
@@ -51,7 +51,14 @@
         "complexity": "simple",
         "research_integrated": true,
         "plan_version": 1,
-        "dependency_waves": [[1], [2]],
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
         "reports_integrated": [
           {
             "path": "reports/01_simp-linter-research.md",
