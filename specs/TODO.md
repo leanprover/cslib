@@ -1,5 +1,5 @@
 ---
-next_project_number: 73
+next_project_number: 74
 ---
 
 # Tasks
@@ -47,6 +47,15 @@ next_project_number: 73
 
 ## Tasks
 
+### 73. Make Propositional a shared sub-logic for Modal and Temporal
+- **Effort**: Large (8-16 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Make Propositional a shared sub-logic that Modal and Temporal build on. Currently Modal and Temporal each define their own formula types independently from Foundations, with no imports from Logics/Propositional/. Refactor so that Modal/ and Temporal/ import from Propositional/ and reuse its definitions where appropriate (e.g. propositional connectives, natural deduction infrastructure). This would establish Propositional as a genuine intermediate layer: Foundations → Propositional → {Modal, Temporal} → Bimodal. Research what content from Propositional/Defs.lean and Propositional/NaturalDeduction/ could be shared, and what structural changes to Modal and Temporal formula types would be needed to build on Propositional rather than duplicating its primitives.
+
+---
+
 ### 72. Relocate Propositional/Embedding to fix dependency inversion
 - **Effort**: Medium (2-4 hours)
 - **Status**: [COMPLETED]
@@ -64,6 +73,7 @@ next_project_number: 73
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
 - specs/071_polish_docs_theorems_axioms/reports/01_polish-docs-research.md: [Research]
+- specs/071_polish_docs_theorems_axioms/plans/01_polish-docs-plan.md: [Plan]
 
 **Description**: NICE-TO-HAVE quality audit fixes. (a) Theorems.lean aggregator docstring is missing the Temporal subsection -- add entries for Temporal.TemporalDerived and Temporal.FrameConditions. (b) Axioms.lean temporal section (lines 112-295) has repeated `let top` and `let neg` blocks in nearly every temporal axiom definition -- extract as section-scoped `private abbrev top'` and `private abbrev neg'` to reduce visual noise. Purely cosmetic; verify `lake build` passes after changes.
 
@@ -76,6 +86,7 @@ next_project_number: 73
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
 - specs/070_remove_unused_cslib_init_imports/reports/01_unused-imports-research.md: [Research]
+- specs/070_remove_unused_cslib_init_imports/plans/01_unused-imports-plan.md: [Plan]
 
 **Description**: `lake shake` flags unused `public import Cslib.Init` in Connectives.lean, Axioms.lean, InferenceSystem.lean, and ProofSystem.lean. Remove the unused imports, then run `lake build` and `lake shake` to confirm clean output. Should be done after task 68 (module keyword addition) since changing import declarations may affect what `lake shake` reports.
 
@@ -88,6 +99,7 @@ next_project_number: 73
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
 - specs/069_fix_linter_warnings_foundations/reports/01_linter-warnings-research.md: [Research]
+- specs/069_fix_linter_warnings_foundations/plans/01_linter-warnings-plan.md: [Plan]
 
 **Description**: SHOULD-FIX quality audit items. Four sub-issues: (a) BigConj.lean has 6 flexible `simp` warnings -- replace bare `simp [bigconj]` with `simp only [...]` using compiler-suggested replacements. (b) Propositional/Connectives.lean has 2 empty-line-in-command style warnings at lines 357 and 368 -- remove blank lines or replace with comment lines. (c) 5 files (Combinators, Core, Prop/Connectives, Modal/Basic, S5) suppress `set_option linter.unreachableTactic false` at file scope -- scope to specific proofs using `set_option ... in theorem ...`. (d) S5.lean and TemporalDerived.lean suppress `set_option linter.style.longLine false` at file scope -- use `let` abbreviations in theorem statements and scope suppression to specific theorems only.
 
