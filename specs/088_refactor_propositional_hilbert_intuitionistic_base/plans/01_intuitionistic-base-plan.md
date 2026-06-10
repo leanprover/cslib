@@ -75,7 +75,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Define New Typeclasses and Tag Types [NOT STARTED]
+### Phase 1: Define New Typeclasses and Tag Types [COMPLETED]
 
 **Goal**: Introduce the three-level hierarchy in ProofSystem.lean without breaking any existing code.
 
