@@ -1,29 +1,31 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "started_at": "2026-06-10T00:00:00Z",
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 38,
+    "sorry_note": "All 38 sorries are pre-existing, none introduced by this task",
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
+  },
   "artifacts": [
     {
-      "type": "plan",
       "path": "specs/078_module_keyword_and_private_audit/plans/01_module-keyword-audit.md",
-      "summary": "4-phase implementation plan for module keyword migration of 155 Logics/ files with private def removal and build verification"
+      "type": "plan",
+      "summary": "4-phase implementation plan for module keyword migration"
+    },
+    {
+      "path": "specs/078_module_keyword_and_private_audit/summaries/01_module-keyword-audit-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary with verification results"
     }
   ],
-  "next_steps": "Run /implement 78 to execute the plan",
   "metadata": {
     "session_id": "sess_1781105921_9582ac",
-    "agent_type": "planner-agent",
+    "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 4,
-    "estimated_hours": 3,
-    "dependency_waves": [[1], [2], [3], [4]]
-  },
-  "memory_candidates": [
-    {
-      "content": "In Lean 4.31.0-rc1, private theorem works inside @[expose] public section in module files, but private def, private noncomputable def, and private abbrev do NOT. When migrating files to use the module keyword with @[expose] public section, only private def-like declarations need private removed; private theorem declarations are safe to keep. This asymmetry is likely because Prop-typed declarations receive special treatment in the module visibility system.",
-      "category": "INSIGHT",
-      "source_artifact": "specs/078_module_keyword_and_private_audit/plans/01_module-keyword-audit.md",
-      "confidence": 0.9,
-      "suggested_keywords": ["lean4", "module-keyword", "private-def", "expose-public-section", "visibility"]
-    }
-  ]
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed"
+  }
 }
