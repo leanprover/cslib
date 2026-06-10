@@ -11,7 +11,7 @@ next_project_number: 83
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,76,83 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
+| 1 | 36,37,38,60,61,76,84 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
@@ -36,7 +36,6 @@ next_project_number: 83
 ### Clean Up
 
 76 [NOT STARTED] — module_keyword_migration
-83 [PLANNED] — update_pr1_description_and_roadmap
 
 ### Submit PRs
 
@@ -46,7 +45,18 @@ next_project_number: 83
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
+### Uncategorized
+
+84 [NOT STARTED] — resolve_public_import_cslib_init
+
 ## Tasks
+
+### 84. Resolve public import Cslib.Init in Foundations/Logic files
+- **Effort**: small
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Investigate whether public import Cslib.Init can be downgraded to non-public or removed in Connectives.lean, InferenceSystem.lean, and FrameConditions.lean without breaking the transitive import chain for downstream theorem files. If not possible, document the rationale clearly in the affected files
 
 ### 82. Systematic codebase review of Logics/ and Foundations/ for publication quality
 - **Effort**: large

@@ -110,15 +110,7 @@ LogicalEquivalence         (imports InferenceSystem only)
 Theorems.lean              (barrel import of all Theorems/* submodules)
 ```
 
-## Verification
-
-- `lake build` for all Foundations/Logic modules exits 0
-- `grep -rn "sorry" Cslib/Foundations/Logic/` returns zero hits
-- All 16 files have correct Apache 2.0 headers
-- All 16 files use the `module` keyword and are registered in `Cslib.lean`
-- CI validation suite passed: `lake shake`, `lake exe checkInitImports`, `lake lint`, `lake exe lint-style`, `lake exe mk_all --module`
-
-## Embedding Relocation (Tasks 72-73)
+## Embedding Relocation
 
 The propositional embedding infrastructure was relocated to establish a clean import hierarchy:
 
@@ -147,11 +139,17 @@ All 16 `Foundations/Logic/` files now use the Lean 4 `module` keyword:
 
 This was required for Lean 4 module system compliance and ensures that the Foundations/Logic files compose correctly with the rest of the library.
 
+## Verification
+
+- `lake build` for all Foundations/Logic modules exits 0
+- `grep -rn "sorry" Cslib/Foundations/Logic/` returns zero hits
+- All 16 files have correct Apache 2.0 headers
+- All 16 files use the `module` keyword and are registered in `Cslib.lean`
+- CI validation suite passed: `lake shake`, `lake exe checkInitImports`, `lake lint`, `lake exe lint-style`, `lake exe mk_all --module`
+
 ## Known Issues
 
-- **Long lines resolved**: `S5.lean` and `TemporalDerived.lean` no longer use any `set_option linter.style.longLine false`. All lines are under 100 characters via `abbrev` abbreviations (`diamond'`, `iff'`, `neg'`, `conj'`, `disj'`) and multi-line formatting.
-- **Public imports**: `public import Cslib.Init` remains in `Connectives.lean` (the root importer). Task 81 trimmed it from `ProofSystem.lean` and `Axioms.lean` where it was transitively available.
-- **Abbreviation deduplication**: Tasks 79 and 81 completed full deduplication across the module hierarchy. Task 79 extracted shared helpers (`Helpers/` modules) and delegated wrap/unwrap to downstream modules. Task 81 refactored `S5.lean` abbreviations, reducing it from 639 to 530 lines.
+- **Public imports**: `public import Cslib.Init` remains in `Connectives.lean`, `InferenceSystem.lean`, and `FrameConditions.lean`. Downgrading to non-public breaks the transitive import chain for downstream theorem files.
 
 ## References
 

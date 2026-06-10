@@ -1,6 +1,14 @@
 {
-  "next_project_number": 84,
+  "next_project_number": 85,
   "active_projects": [
+    {
+      "project_number": 84,
+      "project_name": "resolve_public_import_cslib_init",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T19:01:09Z",
+      "last_updated": "2026-06-10T19:01:09Z"
+    },
     {
       "project_number": 83,
       "project_name": "update_pr1_description_and_roadmap",
