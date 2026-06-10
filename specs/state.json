@@ -4,10 +4,10 @@
     {
       "project_number": 77,
       "project_name": "audit_noncomputable_usage",
-      "status": "researched",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-10T15:20:52Z",
-      "last_updated": "2026-06-10T15:36:03Z"
+      "last_updated": "2026-06-10T16:02:52Z"
     },
     {
       "project_number": 76,
@@ -465,10 +465,10 @@
     {
       "project_number": 78,
       "project_name": "module_keyword_and_private_audit",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-10T15:36:29Z",
-      "last_updated": "2026-06-10T15:36:29Z",
+      "last_updated": "2026-06-10T16:00:06Z",
       "dependencies": [
         76
       ]
