@@ -74,6 +74,13 @@ Phases are strictly sequential to ensure build correctness at each step.
 - [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/ProofSystem.lean`
 - [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/Combinators.lean`
 - [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems.lean`
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/Propositional/Core.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/Propositional/Connectives.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/Modal/Basic.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/Modal/S5.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/BigConj.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Theorems/Temporal/TemporalDerived.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
+- [x] Add `import Cslib.Init` to `Cslib/Foundations/Logic/Metalogic/Consistency.lean` *(deviation: altered -- research missed this file; uses @[expose] from Cslib.Init)*
 
 **Timing**: 10 minutes
 
@@ -114,13 +121,13 @@ Phases are strictly sequential to ensure build correctness at each step.
 
 ---
 
-### Phase 3: Build verification [NOT STARTED]
+### Phase 3: Build verification [COMPLETED]
 
 **Goal**: Confirm the complete change set builds cleanly with no regressions.
 
 **Tasks**:
-- [ ] Run `lake build` and verify zero errors
-- [ ] Spot-check that downstream files (Axioms.lean, Combinators.lean, etc.) still compile
+- [x] Run `lake build` and verify zero errors
+- [x] Spot-check that downstream files (Axioms.lean, Combinators.lean, etc.) still compile
 
 **Timing**: 5 minutes (build time)
 
