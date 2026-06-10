@@ -37,7 +37,7 @@ def ParametricCanonicalTaskModel : TaskModel Atom (ParametricCanonicalTaskFrame 
   valuation := fun M p => Formula.atom p ∈ M.val
 
 /-- Classical tautology: neg(psi -> chi) -> psi. -/
-private noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
+noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
     DerivationTree fc [] ((ψ.imp χ).neg.imp ψ) := by
   have h_efq : DerivationTree FrameClass.Base [] (ψ.neg.imp (ψ.imp χ)) :=
     Theorems.Propositional.efq_neg ψ χ
@@ -66,7 +66,7 @@ private noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
   exact h_base.lift (FrameClass.base_le fc)
 
 /-- Classical tautology: neg(psi -> chi) -> neg(chi) -/
-private noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) :
+noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) :
     DerivationTree fc [] ((ψ.imp χ).neg.imp χ.neg) := by
   have h_prop_s : DerivationTree FrameClass.Base [] (χ.imp (ψ.imp χ)) :=
     DerivationTree.axiom [] _ (Axiom.imp_s χ ψ) trivial
@@ -87,7 +87,7 @@ private noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) 
   exact h_base.lift (FrameClass.base_le fc)
 
 /-- Past analog of TF axiom: Box phi -> H(Box phi). -/
-private noncomputable def past_tf_deriv (φ : Formula Atom) :
+noncomputable def past_tf_deriv (φ : Formula Atom) :
     DerivationTree fc [] ((Formula.box φ).imp (Formula.box φ).allPast) := by
   have h_tf_swap : DerivationTree fc [] _ := Theorems.Combinators.temp_future_derived (Formula.swapTemporal φ)
   have h_dual := DerivationTree.temporal_duality _ h_tf_swap

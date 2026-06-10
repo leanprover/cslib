@@ -842,7 +842,7 @@ we show `burgessR3(A, Set.univ, C)` using ex-falso propagation through
 -/
 
 /-- Helper: `⊢ φ → (φ.neg → ψ)` for any ψ (ex falso from assumption). -/
-private noncomputable def ex_falso_from_assumption (fc : FrameClass) (φ ψ : Formula Atom) :
+noncomputable def ex_falso_from_assumption (fc : FrameClass) (φ ψ : Formula Atom) :
     DerivationTree fc [] (φ.imp (φ.neg.imp ψ)) := by
   -- [φ.neg, φ] ⊢ ⊥ via modus ponens (φ.neg = φ → ⊥)
   have h1 : DerivationTree fc [φ.neg, φ] Formula.bot :=
@@ -987,7 +987,7 @@ every φ ∈ g_content(A) (i.e., G(φ) ∈ A) must also be in B.
 -/
 
 /-- Helper: ⊢ φ → (β → (β ∧ φ)). Conjunction introduction curried. -/
-private noncomputable def conj_intro_curried (fc : FrameClass) (β φ : Formula Atom) :
+noncomputable def conj_intro_curried (fc : FrameClass) (β φ : Formula Atom) :
     DerivationTree fc [] (φ.imp (β.imp (Formula.and β φ))) := by
   have h1 : DerivationTree fc [β, φ] (Formula.and β φ) :=
     DerivationTree.modus_ponens [β, φ] _ _
@@ -1206,12 +1206,12 @@ private theorem F_mono_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   exact someFuture_allFuture_neg_absurd h_mcs phi h_F h_G_neg_phi
 
 /-- Helper: ⊢ (a ∧ b) → a (left conjunction elimination). -/
-private noncomputable def and_left_impl (fc : FrameClass) (a b : Formula Atom) :
+noncomputable def and_left_impl (fc : FrameClass) (a b : Formula Atom) :
     DerivationTree fc [] ((Formula.and a b).imp a) :=
   lce_imp a b
 
 /-- Helper: ⊢ (a ∧ b) → b (right conjunction elimination). -/
-private noncomputable def and_right_impl (fc : FrameClass) (a b : Formula Atom) :
+noncomputable def and_right_impl (fc : FrameClass) (a b : Formula Atom) :
     DerivationTree fc [] ((Formula.and a b).imp b) :=
   rce_imp a b
 
@@ -1220,7 +1220,7 @@ If Γ ⊢ φ for each φ ∈ L, and L ⊢ ψ, then Γ ⊢ ψ.
 
 This is the substitution principle: we can replace assumptions in L
 with their derivations from Γ. Proved by induction on L. -/
-private noncomputable def derivation_from_implied (fc : FrameClass) (Γ : Context Atom) :
+noncomputable def derivation_from_implied (fc : FrameClass) (Γ : Context Atom) :
     (L : Context Atom) → (ψ : Formula Atom) →
     (∀ φ ∈ L, DerivationTree fc Γ φ) →
     DerivationTree fc L ψ →
@@ -1256,13 +1256,13 @@ subset L of a seed D₀, we compress it into a single conjunction and
 show that conjunction is consistent via the BX chain. -/
 
 /-- Conjunction of a list of formulas. Empty list gives ⊤ (= ⊥→⊥). -/
-private noncomputable def list_conj (fc : FrameClass) : List (Formula Atom) → Formula Atom
+noncomputable def list_conj (fc : FrameClass) : List (Formula Atom) → Formula Atom
   | [] => Formula.bot.imp Formula.bot  -- top
   | [φ] => φ
   | (φ :: rest) => Formula.and φ (list_conj fc rest)
 
 /-- ⊢ list_conj L → φ for each φ ∈ L. -/
-private noncomputable def list_conj_implies_elem (fc : FrameClass) :
+noncomputable def list_conj_implies_elem (fc : FrameClass) :
     (L : List (Formula Atom)) → (φ : Formula Atom) → (h : φ ∈ L) →
     DerivationTree fc [] ((list_conj fc L).imp φ)
   | [ψ], φ, h => by
@@ -1327,7 +1327,7 @@ private theorem inconsistent_singleton_false (fc : FrameClass) {φ : Formula Ato
 
 /-- Derivation-level left_mono for Until: if ⊢ φ→χ then ⊢ untl(φ,ψ) → untl(χ,ψ).
 Uses BX2G (left_mono_until_G): G(φ→χ) → untl(φ,ψ) → untl(χ,ψ). -/
-private noncomputable def untl_left_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
+noncomputable def untl_left_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
     (h_impl : DerivationTree fc [] (φ.imp χ)) :
     DerivationTree fc [] ((Formula.untl ψ φ).imp (Formula.untl ψ χ)) := by
   have h_G := DerivationTree.temporal_necessitation _ h_impl
@@ -1336,7 +1336,7 @@ private noncomputable def untl_left_mono_deriv (fc : FrameClass) (φ ψ χ : For
 
 /-- Derivation-level left_mono for Since: if ⊢ φ→χ then ⊢ snce(φ,ψ) → snce(χ,ψ).
 Uses BX2H (left_mono_since_H): H(φ→χ) → snce(φ,ψ) → snce(χ,ψ). -/
-private noncomputable def snce_left_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
+noncomputable def snce_left_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
     (h_impl : DerivationTree fc [] (φ.imp χ)) :
     DerivationTree fc [] ((Formula.snce ψ φ).imp (Formula.snce ψ χ)) := by
   have h_H := Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_impl
@@ -1345,7 +1345,7 @@ private noncomputable def snce_left_mono_deriv (fc : FrameClass) (φ ψ χ : For
 
 /-- Derivation-level right_mono for Until: if ⊢ φ→ψ then ⊢ untl(χ,φ) → untl(χ,ψ).
 Uses BX3 (right_mono_until): G(φ→ψ) → untl(χ,φ) → untl(χ,ψ). -/
-private noncomputable def untl_right_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
+noncomputable def untl_right_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
     (h_impl : DerivationTree fc [] (φ.imp ψ)) :
     DerivationTree fc [] ((Formula.untl φ χ).imp (Formula.untl ψ χ)) := by
   have h_G := DerivationTree.temporal_necessitation _ h_impl
@@ -1354,7 +1354,7 @@ private noncomputable def untl_right_mono_deriv (fc : FrameClass) (φ ψ χ : Fo
 
 /-- Derivation-level right_mono for Since: if ⊢ φ→ψ then ⊢ snce(χ,φ) → snce(χ,ψ).
 Uses BX3' (right_mono_since): H(φ→ψ) → snce(χ,φ) → snce(χ,ψ). -/
-private noncomputable def snce_right_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
+noncomputable def snce_right_mono_deriv (fc : FrameClass) (φ ψ χ : Formula Atom)
     (h_impl : DerivationTree fc [] (φ.imp ψ)) :
     DerivationTree fc [] ((Formula.snce φ χ).imp (Formula.snce ψ χ)) := by
   have h_H := Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_impl
@@ -1430,7 +1430,7 @@ structure EnrichedEvent (fc : FrameClass) (A : Set (Formula Atom)) (guard event 
 formulas each in A, enrich the event with snce(guard, αⱼ) for each αⱼ.
 
 Result: EnrichedEvent fc containing the new event and proofs. -/
-private noncomputable def iterated_enrichment (fc : FrameClass) {A : Set (Formula Atom)}
+noncomputable def iterated_enrichment (fc : FrameClass) {A : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc A)
     (guard : Formula Atom) :
     (alphas : List (Formula Atom)) →
@@ -1466,7 +1466,7 @@ structure EnrichedEventSince (fc : FrameClass) (C : Set (Formula Atom)) (guard e
 
 /-- Iterated BX13' enrichment (Since direction): given snce(guard, event) ∈ C and
 a list of formulas each in C, enrich the event with untl(guard, γⱼ) for each γⱼ. -/
-private noncomputable def iterated_enrichment_since (fc : FrameClass) {C : Set (Formula Atom)}
+noncomputable def iterated_enrichment_since (fc : FrameClass) {C : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc C)
     (guard : Formula Atom) :
     (gammas : List (Formula Atom)) →
@@ -1851,7 +1851,7 @@ Convention alignment with Burgess:
   The condition is xi ∉ B (guard not in B, matching Burgess η ∉ B).
   The seed contains {eta} (event, Burgess ξ) → eta ∈ D.
   The 3rd component snce(β∧xi, α) (Burgess S(α, β∧η)) → xi ∈ B'. -/
-private def lemma_2_7_seed (fc : FrameClass) (A B _C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
+def lemma_2_7_seed (fc : FrameClass) (A B _C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
   B ∪ {eta} ∪ {φ | ∃ β ∈ B, ∃ α ∈ A, φ = Formula.snce α (Formula.and β xi)}
 
 /-- Extract a B-guard from a single element of the lemma_2_7_seed.
@@ -1859,7 +1859,7 @@ For each of the 3 cases:
 1. φ ∈ B: guard = φ
 2. φ = eta: guard = ⊤ (any theorem)
 3. φ = snce(β'∧xi, α'): guard = β' -/
-private noncomputable def l27_guard (fc : FrameClass) {A B C : Set (Formula Atom)}
+noncomputable def l27_guard (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation fc B)
     (xi eta : Formula Atom) (φ : Formula Atom) (h : φ ∈ lemma_2_7_seed fc A B C xi eta) :
     { g : Formula Atom // g ∈ B } := by
@@ -1873,7 +1873,7 @@ private noncomputable def l27_guard (fc : FrameClass) {A B C : Set (Formula Atom
 
 /-- Recursively extract B-guards from L ⊆ lemma_2_7_seed.
 Includes β₀ (maximality witness guard) to ensure guard→β₀ via conjunction elimination. -/
-private noncomputable def l27_collect_guards (fc : FrameClass) {A B C : Set (Formula Atom)}
+noncomputable def l27_collect_guards (fc : FrameClass) {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation fc B)
     (xi eta : Formula Atom) :
     (L : List (Formula Atom)) →
@@ -1891,7 +1891,7 @@ private noncomputable def l27_collect_guards (fc : FrameClass) {A B C : Set (For
 
 /-- For each element of L ⊆ lemma_2_7_seed, extract the A-event
 (if snce(β'∧xi, α') formula from component 3). -/
-private noncomputable def l27_a_event_list (fc : FrameClass) {A B C : Set (Formula Atom)}
+noncomputable def l27_a_event_list (fc : FrameClass) {A B C : Set (Formula Atom)}
     (xi eta : Formula Atom) (L : List (Formula Atom))
     (_hL : ∀ φ ∈ L, φ ∈ lemma_2_7_seed fc A B C xi eta) : List (Formula Atom) :=
   L.filterMap (fun φ => by
@@ -2597,11 +2597,11 @@ B ∪ {eta} ∪ {untl(γ, β∧xi) | β∈B, γ∈C}.
 The original 5-component seed included {untl(γ,β)} and {snce(α,β)} but these are
 redundant: Xu 3.2.1 proves they are already in B. The 3rd component untl(γ, β∧xi)
 cannot be dropped because xi ∉ B prevents Xu 3.2.1 from applying. -/
-private def lemma_2_7_since_seed (_A B C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
+def lemma_2_7_since_seed (_A B C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
   B ∪ {eta} ∪ {φ | ∃ β ∈ B, ∃ γ ∈ C, φ = Formula.untl γ (Formula.and β xi)}
 
 /-- Extract γ' events from component 3 elements (untl(γ, β∧xi)) of a list. -/
-private noncomputable def l27s_c5_event_list (B C : Set (Formula Atom)) (xi : Formula Atom)
+noncomputable def l27s_c5_event_list (B C : Set (Formula Atom)) (xi : Formula Atom)
     (L : List (Formula Atom)) : List (Formula Atom) :=
   L.filterMap (fun φ => by
     classical
@@ -2621,7 +2621,7 @@ private theorem l27s_c5_event_list_mem {B C : Set (Formula Atom)} {xi : Formula 
   · simp [h] at hγ_eq
 
 /-- Extract β' guards from component 3 elements (untl(γ, β∧xi)) of a list. -/
-private noncomputable def l27s_b5_guard_list (B C : Set (Formula Atom)) (xi : Formula Atom)
+noncomputable def l27s_b5_guard_list (B C : Set (Formula Atom)) (xi : Formula Atom)
     (L : List (Formula Atom)) : List (Formula Atom) :=
   L.filterMap (fun φ => by
     classical

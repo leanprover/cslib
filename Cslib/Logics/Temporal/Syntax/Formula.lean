@@ -127,7 +127,7 @@ namespace Formula
 
 /-- Encode a formula into a natural number using Cantor pairing.
     Used to establish countability of formulas. -/
-private noncomputable def encodeNat [Encodable Atom] : Formula Atom → ℕ
+noncomputable def encodeNat [Encodable Atom] : Formula Atom → ℕ
   | .atom a => Nat.pair 0 (Encodable.encode a)
   | .bot => Nat.pair 1 0
   | .imp φ ψ => Nat.pair 2 (Nat.pair φ.encodeNat ψ.encodeNat)

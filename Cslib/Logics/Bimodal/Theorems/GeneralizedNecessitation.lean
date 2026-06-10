@@ -30,7 +30,7 @@ open Cslib.Logic.Bimodal.Theorems.Propositional
 
 variable {Atom : Type*}
 
-private noncomputable def temp_k_dist_local (φ ψ : Formula Atom) :
+noncomputable def temp_k_dist_local (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   let neg_contra := mp (contrapose_imp φ ψ) (contrapose_imp (φ.imp ψ) (ψ.neg.imp φ.neg))
   let F_step := mp (DerivationTree.temporal_necessitation _ neg_contra)

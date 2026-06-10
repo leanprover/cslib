@@ -34,12 +34,12 @@ variable {Atom : Type*}
 noncomputable section
 
 /-- Convert a derivation tree to a Nonempty (for typeclass functions). -/
-private def wrap' {φ : Formula Atom}
+def wrap' {φ : Formula Atom}
     (d : DerivationTree FrameClass.Base [] φ) :
     InferenceSystem.DerivableIn Bimodal.HilbertTM φ := ⟨d⟩
 
 /-- Extract a derivation tree from Nonempty (from typeclass functions). -/
-private def unwrap' {φ : Formula Atom}
+def unwrap' {φ : Formula Atom}
     (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) :
     DerivationTree FrameClass.Base [] φ := h.some
 

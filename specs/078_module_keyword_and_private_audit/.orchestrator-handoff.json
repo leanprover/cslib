@@ -1,0 +1,16 @@
+{
+  "status": "planned",
+  "summary": "Created 4-phase implementation plan for module keyword migration of 155 Logics/ files. Phase 1 removes private from 105 def/abbrev declarations (mechanical sed). Phases 2-3 add module + public import + @[expose] public section in batches (small dirs first, then Temporal+Bimodal). Phase 4 runs full lake build verification. Estimated 3 hours total.",
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "implement",
+  "phases_completed": 0,
+  "phases_total": 4,
+  "artifacts": [
+    {
+      "path": "specs/078_module_keyword_and_private_audit/plans/01_module-keyword-audit.md",
+      "type": "plan",
+      "summary": "Implementation plan for module keyword audit: 4 phases covering private removal, module migration by directory batch, and build verification"
+    }
+  ]
+}

@@ -29,7 +29,7 @@ variable {Atom : Type*}
 /-! ## Imp Trans helper -/
 
 /-- Transitivity of implication at FrameClass.Base level. -/
-private noncomputable def imp_trans_base {A B C : Formula Atom}
+noncomputable def imp_trans_base {A B C : Formula Atom}
     (h1 : DerivationTree FrameClass.Base [] (A.imp B))
     (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
     DerivationTree FrameClass.Base [] (A.imp C) := by
@@ -41,7 +41,7 @@ private noncomputable def imp_trans_base {A B C : Formula Atom}
   exact DerivationTree.modus_ponens [] (A.imp B) (A.imp C) h4 h1
 
 /-- Reverse deduction: from Γ ⊢ A → B derive A :: Γ ⊢ B. -/
-private noncomputable def reverse_deduction {Γ : Context Atom} {A B : Formula Atom}
+noncomputable def reverse_deduction {Γ : Context Atom} {A B : Formula Atom}
     (h : DerivationTree FrameClass.Base Γ (A.imp B)) :
     DerivationTree FrameClass.Base (A :: Γ) B := by
   have h_weak : DerivationTree FrameClass.Base (A :: Γ) (A.imp B) :=
@@ -54,7 +54,7 @@ private noncomputable def reverse_deduction {Γ : Context Atom} {A B : Formula A
 /-! ## Contrapositive -/
 
 /-- Derive ⊢ (A→B) → (¬B→¬A) (contraposition). -/
-private noncomputable def contrapose_imp (A B : Formula Atom) :
+noncomputable def contrapose_imp (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) := by
   let ctx := [A, Formula.neg B, A.imp B]
   have d_B : DerivationTree FrameClass.Base ctx B :=

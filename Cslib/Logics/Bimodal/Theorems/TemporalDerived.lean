@@ -34,15 +34,15 @@ noncomputable section
 
 section DerivedAxioms
 
-private noncomputable def neg_contrapositive_imp_neg (φ ψ : Formula Atom) :
+noncomputable def neg_contrapositive_imp_neg (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) :=
   mp (contrapose_imp φ ψ) (contrapose_imp (φ.imp ψ) (ψ.neg.imp φ.neg))
 
-private def top_and_intro (X : Formula Atom) :
+def top_and_intro (X : Formula Atom) :
     DerivationTree FrameClass.Base [] (X.imp (Formula.top.and X)) :=
   mp (identity Formula.bot) (pairing Formula.top X)
 
-private noncomputable def F_neg_contra_imp_F_neg (φ ψ : Formula Atom) :
+noncomputable def F_neg_contra_imp_F_neg (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((Formula.someFuture (ψ.neg.imp φ.neg).neg).imp
        (Formula.someFuture (φ.imp ψ).neg)) :=
@@ -50,12 +50,12 @@ private noncomputable def F_neg_contra_imp_F_neg (φ ψ : Formula Atom) :
      (DerivationTree.axiom [] _
        (Axiom.right_mono_until (ψ.neg.imp φ.neg).neg (φ.imp ψ).neg Formula.top) trivial)
 
-private noncomputable def G_imp_to_G_contra (φ ψ : Formula Atom) :
+noncomputable def G_imp_to_G_contra (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp (ψ.neg.imp φ.neg).allFuture) :=
   contraposition (F_neg_contra_imp_F_neg φ ψ)
 
-private noncomputable def G_contra_to_GK (φ ψ : Formula Atom) :
+noncomputable def G_contra_to_GK (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((ψ.neg.imp φ.neg).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   imp_trans
@@ -67,7 +67,7 @@ noncomputable def temp_k_dist_derived (φ ψ : Formula Atom) :
       ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   imp_trans (G_imp_to_G_contra φ ψ) (G_contra_to_GK φ ψ)
 
-private noncomputable def dne_lift_F (φ : Formula Atom) :
+noncomputable def dne_lift_F (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((Formula.someFuture (Formula.someFuture φ.neg).neg.neg).imp
        (Formula.someFuture (Formula.someFuture φ.neg))) :=
@@ -76,7 +76,7 @@ private noncomputable def dne_lift_F (φ : Formula Atom) :
        (Axiom.right_mono_until
          (Formula.someFuture φ.neg).neg.neg (Formula.someFuture φ.neg) Formula.top) trivial)
 
-private noncomputable def FF_to_F_top_and (φ : Formula Atom) :
+noncomputable def FF_to_F_top_and (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((Formula.someFuture (Formula.someFuture φ.neg)).imp
        (Formula.someFuture (Formula.top.and (Formula.someFuture φ.neg)))) :=
@@ -86,7 +86,7 @@ private noncomputable def FF_to_F_top_and (φ : Formula Atom) :
          (Formula.someFuture φ.neg)
          (Formula.top.and (Formula.someFuture φ.neg)) Formula.top) trivial)
 
-private def F_top_and_absorb (φ : Formula Atom) :
+def F_top_and_absorb (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((Formula.someFuture (Formula.top.and (Formula.someFuture φ.neg))).imp
        (Formula.someFuture φ.neg)) :=
@@ -163,13 +163,13 @@ noncomputable def contrapositive_thm (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) :=
   mp b_combinator (theorem_flip (A := (B.imp Formula.bot)) (B := (A.imp B)) (C := (A.imp Formula.bot)))
 
-private noncomputable def ctx_mp {Γ : Context Atom} {A B : Formula Atom}
+noncomputable def ctx_mp {Γ : Context Atom} {A B : Formula Atom}
     (h1 : DerivationTree FrameClass.Base Γ (A.imp B))
     (h2 : DerivationTree FrameClass.Base Γ A) :
     DerivationTree FrameClass.Base Γ B :=
   DerivationTree.modus_ponens Γ A B h1 h2
 
-private noncomputable def ctx_thm {Γ : Context Atom} {A : Formula Atom}
+noncomputable def ctx_thm {Γ : Context Atom} {A : Formula Atom}
     (h : DerivationTree FrameClass.Base [] A) :
     DerivationTree FrameClass.Base Γ A :=
   DerivationTree.weakening [] Γ A h (List.nil_subset Γ)

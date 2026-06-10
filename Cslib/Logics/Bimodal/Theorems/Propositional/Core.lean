@@ -37,7 +37,7 @@ variable {Atom : Type*}
 noncomputable section
 
 /-- Extract a derivation tree from Nonempty (from typeclass functions). -/
-private def unwrap {φ : Formula Atom}
+def unwrap {φ : Formula Atom}
     (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) :
     DerivationTree FrameClass.Base [] φ := h.some
 

@@ -48,7 +48,7 @@ attribute [local instance] Classical.propDecidable
 /-! ## Helper: removeAll -/
 
 /-- Remove all occurrences of `a` from a list. -/
-private def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
+def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
   l.filter (· ≠ a)
 
 private theorem removeAll_sub_of_sub [DecidableEq α] {A : α} {Γ' Δ : List α}
@@ -77,7 +77,7 @@ private theorem removeAll_sub_removeAll [DecidableEq α] {a : α} {l₁ l₂ : L
 /-! ## Deduction Theorem Helper Cases -/
 
 /-- If `φ` is an axiom, then `Γ ⊢ A → φ`. -/
-private noncomputable def deduction_axiom (Γ : Context Atom) (A φ : Formula Atom)
+noncomputable def deduction_axiom (Γ : Context Atom) (A φ : Formula Atom)
     (h_ax : Axiom φ) (h_fc : h_ax.minFrameClass ≤ FrameClass.Base) :
     DerivationTree FrameClass.Base Γ (A.imp φ) := by
   have ax_deriv : DerivationTree FrameClass.Base [] φ := .axiom [] φ h_ax h_fc
@@ -88,7 +88,7 @@ private noncomputable def deduction_axiom (Γ : Context Atom) (A φ : Formula At
   exact .weakening [] Γ (A.imp φ) result (List.nil_subset _)
 
 /-- `Γ ⊢ A → A` (identity / self-implication). -/
-private noncomputable def deduction_imp_self (Γ : Context Atom) (A : Formula Atom) :
+noncomputable def deduction_imp_self (Γ : Context Atom) (A : Formula Atom) :
     DerivationTree FrameClass.Base Γ (A.imp A) := by
   let s := DerivationTree.axiom (Atom := Atom) (fc := FrameClass.Base) [] _
     (.imp_k A (.imp A A) A) trivial
@@ -101,7 +101,7 @@ private noncomputable def deduction_imp_self (Γ : Context Atom) (A : Formula At
   exact .weakening [] Γ _ result (List.nil_subset _)
 
 /-- If `B ∈ Γ`, then `Γ ⊢ A → B`. -/
-private noncomputable def deduction_assumption_other (Γ : Context Atom)
+noncomputable def deduction_assumption_other (Γ : Context Atom)
     (A B : Formula Atom) (h_mem : B ∈ Γ) :
     DerivationTree FrameClass.Base Γ (A.imp B) := by
   have b_deriv : DerivationTree FrameClass.Base Γ B :=
@@ -113,7 +113,7 @@ private noncomputable def deduction_assumption_other (Γ : Context Atom)
 
 /-- Modus ponens under implication: from `Γ ⊢ A → (C → D)` and `Γ ⊢ A → C`,
 derive `Γ ⊢ A → D`. -/
-private noncomputable def deduction_mp (Γ : Context Atom)
+noncomputable def deduction_mp (Γ : Context Atom)
     (A C D : Formula Atom)
     (h₁ : DerivationTree FrameClass.Base Γ (A.imp (C.imp D)))
     (h₂ : DerivationTree FrameClass.Base Γ (A.imp C)) :
@@ -129,7 +129,7 @@ private noncomputable def deduction_mp (Γ : Context Atom)
 
 /-- The key helper for the weakening case: if `Γ' ⊢ φ` and `A ∈ Γ'`, then
 `removeAll Γ' A ⊢ A → φ`. -/
-private noncomputable def deduction_with_mem
+noncomputable def deduction_with_mem
     (Γ' : Context Atom) (A φ : Formula Atom)
     (d : DerivationTree FrameClass.Base Γ' φ) (hA : A ∈ Γ') :
     DerivationTree FrameClass.Base (removeAll Γ' A) (A.imp φ) := by

@@ -134,7 +134,7 @@ theorem mcs_mem_iff_neg_not_mem
 /-! ## G-distribution (key lemma) -/
 
 /-- Build a DerivationTree for the contrapositive: `⊢ (A→B)→(¬B→¬A)`. -/
-private noncomputable def derive_contrapositive (A B : Formula Atom) :
+noncomputable def derive_contrapositive (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) := by
   -- Context: [A→B, ¬B, A] ⊢ ⊥
   -- Then DT three times to get ⊢ (A→B)→¬B→¬A = (A→B)→(B→⊥)→(A→⊥).

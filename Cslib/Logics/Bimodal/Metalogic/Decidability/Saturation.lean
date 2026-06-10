@@ -108,7 +108,7 @@ For each `T(U(event, guard))` or `T(S(event, guard))` on the branch, we register
 an eventuality for the `event` component. The event must eventually be witnessed
 at some reachable time for the branch to be satisfiable.
 -/
-private def registerEventualities (b : Branch Atom) (tracker : EventualityTracker Atom)
+def registerEventualities (b : Branch Atom) (tracker : EventualityTracker Atom)
     : EventualityTracker Atom :=
   b.foldl (fun acc sf =>
     match sf.sign, sf.formula with
@@ -132,7 +132,7 @@ An Until eventuality for formula `event` introduced at label `l` is fulfilled wh
 `T(event)` appears at some future time reachable from `l.time`.
 A Since eventuality is fulfilled when `T(event)` appears at some past time.
 -/
-private def fulfillEventualities (b : Branch Atom) (tracker : EventualityTracker Atom)
+def fulfillEventualities (b : Branch Atom) (tracker : EventualityTracker Atom)
     : EventualityTracker Atom :=
   tracker.pending.foldl (fun acc e =>
     -- Check if the event formula appears positively at any time on the branch
@@ -154,7 +154,7 @@ receive more fuel than purely propositional branches.
 Count temporal operators (Until/Since) in a formula.
 These are the primary source of branching complexity in the tableau.
 -/
-private def temporalCount : Formula Atom → Nat
+def temporalCount : Formula Atom → Nat
   | .atom _ => 0
   | .bot => 0
   | .imp φ ψ => temporalCount φ + temporalCount ψ
@@ -166,7 +166,7 @@ private def temporalCount : Formula Atom → Nat
 Count modal operators (Box) in a formula.
 Box propagates formulas to all accessible worlds.
 -/
-private def modalCount : Formula Atom → Nat
+def modalCount : Formula Atom → Nat
   | .atom _ => 0
   | .bot => 0
   | .imp φ ψ => modalCount φ + modalCount ψ

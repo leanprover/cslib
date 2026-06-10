@@ -40,7 +40,7 @@ local notation:50 "⊢ " phi =>
   Bimodal.DerivationTree Bimodal.FrameClass.Base ([] : List (Bimodal.Formula Atom)) phi
 
 -- Abbreviation for axiom constructor with base frame class
-private abbrev ax (Gamma : List (Bimodal.Formula Atom)) (phi : Bimodal.Formula Atom)
+abbrev ax (Gamma : List (Bimodal.Formula Atom)) (phi : Bimodal.Formula Atom)
     (h : Bimodal.Axiom phi) (h_fc : h.minFrameClass ≤ Bimodal.FrameClass.Base := by trivial) :
     Bimodal.DerivationTree Bimodal.FrameClass.Base Gamma phi :=
   Bimodal.DerivationTree.axiom Gamma phi h h_fc

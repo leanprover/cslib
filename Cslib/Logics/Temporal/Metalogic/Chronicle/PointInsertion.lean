@@ -514,7 +514,7 @@ theorem dc_delta_B_burgessR3 {A B C : Set (Formula Atom)}
 /-! ## g_content(A) ⊆ B from BurgessR3Maximal -/
 
 /-- Helper: ⊢ φ → (β → (β ∧ φ)). Conjunction introduction curried. -/
-private noncomputable def conj_intro_curried (β φ : Formula Atom) :
+noncomputable def conj_intro_curried (β φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp (β.imp (Formula.and β φ))) := by
   have h1 : DerivationTree FrameClass.Base [β, φ] (Formula.and β φ) :=
     DerivationTree.modus_ponens [β, φ] _ _
@@ -526,7 +526,7 @@ private noncomputable def conj_intro_curried (β φ : Formula Atom) :
   exact deduction_theorem [] φ _ (deduction_theorem [φ] β _ h1)
 
 /-- Helper: ⊢ φ → (φ.neg → ψ) for any ψ. -/
-private noncomputable def ex_falso_from_assumption (φ ψ : Formula Atom) :
+noncomputable def ex_falso_from_assumption (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp (φ.neg.imp ψ)) := by
   have h1 : DerivationTree FrameClass.Base [φ.neg, φ] Formula.bot :=
     DerivationTree.modus_ponens [φ.neg, φ] φ Formula.bot
@@ -774,7 +774,7 @@ theorem xu_lemma_2_3_until_top {A B C : Set (Formula Atom)}
 /-! ## Derivation-Level Monotonicity -/
 
 /-- Derivation-level left_mono for Until. -/
-private noncomputable def untl_left_mono_deriv (φ ψ χ : Formula Atom)
+noncomputable def untl_left_mono_deriv (φ ψ χ : Formula Atom)
     (h_impl : DerivationTree FrameClass.Base [] (φ.imp χ)) :
     DerivationTree FrameClass.Base [] ((Formula.untl ψ φ).imp (Formula.untl ψ χ)) := by
   have h_G := DerivationTree.temporal_necessitation _ h_impl
@@ -782,7 +782,7 @@ private noncomputable def untl_left_mono_deriv (φ ψ χ : Formula Atom)
   exact DerivationTree.modus_ponens [] _ _ h_ax h_G
 
 /-- Derivation-level left_mono for Since. -/
-private noncomputable def snce_left_mono_deriv (φ ψ χ : Formula Atom)
+noncomputable def snce_left_mono_deriv (φ ψ χ : Formula Atom)
     (h_impl : DerivationTree FrameClass.Base [] (φ.imp χ)) :
     DerivationTree FrameClass.Base [] ((Formula.snce ψ φ).imp (Formula.snce ψ χ)) := by
   have h_H := past_necessitation _ h_impl
@@ -1082,13 +1082,13 @@ theorem lemma_2_6_splitting {A B C : Set (Formula Atom)}
 /-! ## Propositional Helpers for Burgess Compression -/
 
 /-- Identity derivation: ⊢ φ → φ. -/
-private noncomputable def identity' (φ : Formula Atom) :
+noncomputable def identity' (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp φ) := by
   have h1 : DerivationTree FrameClass.Base [φ] φ := DerivationTree.assumption [φ] φ (by simp)
   exact deduction_theorem [] φ φ h1
 
 /-- From ⊢ R → A and ⊢ R → B, derive ⊢ R → A ∧ B. -/
-private noncomputable def combine_imp_conj {R A B : Formula Atom}
+noncomputable def combine_imp_conj {R A B : Formula Atom}
     (h1 : DerivationTree FrameClass.Base [] (R.imp A))
     (h2 : DerivationTree FrameClass.Base [] (R.imp B)) :
     DerivationTree FrameClass.Base [] (R.imp (Formula.and A B)) := by
@@ -1108,7 +1108,7 @@ private noncomputable def combine_imp_conj {R A B : Formula Atom}
 
 /-- De Morgan for disjunction negation: ⊢ ¬(A ∨ B) → ¬A ∧ ¬B.
     Recall A.or B = A.neg.imp B. -/
-private noncomputable def demorgan_disj_neg_forward (A B : Formula Atom) :
+noncomputable def demorgan_disj_neg_forward (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.or B).neg.imp (Formula.and A.neg B.neg)) := by
   set neg_disj := (A.or B).neg -- = (A.neg.imp B).neg = (A.neg.imp B) → ⊥
   -- Step 1: derive ¬A from neg_disj
@@ -1151,7 +1151,7 @@ private noncomputable def demorgan_disj_neg_forward (A B : Formula Atom) :
 
 /-- List-level cut (derivation from implied context):
 If Γ ⊢ φ for each φ ∈ L, and L ⊢ ψ, then Γ ⊢ ψ. -/
-private noncomputable def derivation_from_implied (Γ : Context Atom) :
+noncomputable def derivation_from_implied (Γ : Context Atom) :
     (L : Context Atom) → (ψ : Formula Atom) →
     (∀ φ ∈ L, DerivationTree FrameClass.Base Γ φ) →
     DerivationTree FrameClass.Base L ψ →
@@ -1167,13 +1167,13 @@ private noncomputable def derivation_from_implied (Γ : Context Atom) :
     exact DerivationTree.modus_ponens Γ l ψ d_impl_Γ d_l
 
 /-- Conjunction of a list of formulas. Empty list gives ⊤ (= ⊥→⊥). -/
-private noncomputable def list_conj : List (Formula Atom) → Formula Atom
+noncomputable def list_conj : List (Formula Atom) → Formula Atom
   | [] => Formula.bot.imp Formula.bot  -- top
   | [φ] => φ
   | (φ :: rest) => Formula.and φ (list_conj rest)
 
 /-- ⊢ list_conj L → φ for each φ ∈ L. -/
-private noncomputable def list_conj_implies_elem :
+noncomputable def list_conj_implies_elem :
     (L : List (Formula Atom)) → (φ : Formula Atom) → (h : φ ∈ L) →
     DerivationTree FrameClass.Base [] ((list_conj L).imp φ)
   | [ψ], φ, h => by
@@ -1348,7 +1348,7 @@ structure EnrichedEvent (A : Set (Formula Atom)) (guard event : Formula Atom) (a
 
 /-- Iterated BX13 enrichment: given untl(guard, event) ∈ A and a list of
 formulas each in A, enrich the event with snce(guard, αⱼ) for each αⱼ. -/
-private noncomputable def iterated_enrichment {A : Set (Formula Atom)}
+noncomputable def iterated_enrichment {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A)
     (guard : Formula Atom) :
     (alphas : List (Formula Atom)) →
@@ -1383,7 +1383,7 @@ structure EnrichedEventSince (C : Set (Formula Atom)) (guard event : Formula Ato
   h_untl : ∀ γ ∈ gammas, DerivationTree FrameClass.Base [] (event'.imp (Formula.untl γ guard))
 
 /-- Iterated BX13' enrichment (Since direction). -/
-private noncomputable def iterated_enrichment_since {C : Set (Formula Atom)}
+noncomputable def iterated_enrichment_since {C : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent C)
     (guard : Formula Atom) :
     (gammas : List (Formula Atom)) →
@@ -1413,11 +1413,11 @@ private noncomputable def iterated_enrichment_since {C : Set (Formula Atom)}
 /-! ## Lemma 2.7: Until-Formula Splitting -/
 
 /-- The D0 seed for Lemma 2.7: B ∪ {eta} ∪ {snce(α, β∧xi) : β ∈ B, α ∈ A}. -/
-private def lemma_2_7_seed (A B _C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
+def lemma_2_7_seed (A B _C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
   B ∪ {eta} ∪ {φ | ∃ β ∈ B, ∃ α ∈ A, φ = Formula.snce α (Formula.and β xi)}
 
 /-- Extract a B-guard from a single element of the lemma_2_7_seed. -/
-private noncomputable def l27_guard {A B C : Set (Formula Atom)}
+noncomputable def l27_guard {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation B)
     (xi eta : Formula Atom) (φ : Formula Atom) (h : φ ∈ lemma_2_7_seed A B C xi eta) :
     { g : Formula Atom // g ∈ B } := by
@@ -1429,7 +1429,7 @@ private noncomputable def l27_guard {A B C : Set (Formula Atom)}
     · exact ⟨Formula.bot.imp Formula.bot, cud_contains_theorems h_dcs (identity' (Formula.bot : Formula Atom))⟩
 
 /-- Recursively extract B-guards from L ⊆ lemma_2_7_seed. -/
-private noncomputable def l27_collect_guards {A B C : Set (Formula Atom)}
+noncomputable def l27_collect_guards {A B C : Set (Formula Atom)}
     (h_dcs : ClosedUnderDerivation B)
     (xi eta : Formula Atom) :
     (L : List (Formula Atom)) →
@@ -1446,7 +1446,7 @@ private noncomputable def l27_collect_guards {A B C : Set (Formula Atom)}
       · exact hgs g' h⟩
 
 /-- For each element of L ⊆ lemma_2_7_seed, extract the A-event. -/
-private noncomputable def l27_a_event_list {A B C : Set (Formula Atom)}
+noncomputable def l27_a_event_list {A B C : Set (Formula Atom)}
     (xi eta : Formula Atom) (L : List (Formula Atom))
     (_hL : ∀ φ ∈ L, φ ∈ lemma_2_7_seed A B C xi eta) : List (Formula Atom) :=
   L.filterMap (fun φ => by
@@ -2076,11 +2076,11 @@ noncomputable def lemma_2_4_with_guard {A : Set (Formula Atom)}
 /-! ## Phase 4: Since-Direction Mirrors -/
 
 /-- Since-direction seed: B ∪ {eta} ∪ {untl(γ, β∧xi) | β∈B, γ∈C}. -/
-private def lemma_2_7_since_seed (_A B C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
+def lemma_2_7_since_seed (_A B C : Set (Formula Atom)) (xi eta : Formula Atom) : Set (Formula Atom) :=
   B ∪ {eta} ∪ {φ | ∃ β ∈ B, ∃ γ ∈ C, φ = Formula.untl γ (Formula.and β xi)}
 
 /-- Extract γ' events from component 3 elements of a list. -/
-private noncomputable def l27s_c5_event_list (B C : Set (Formula Atom)) (xi : Formula Atom)
+noncomputable def l27s_c5_event_list (B C : Set (Formula Atom)) (xi : Formula Atom)
     (L : List (Formula Atom)) : List (Formula Atom) :=
   L.filterMap (fun φ => by
     classical
@@ -2100,7 +2100,7 @@ private theorem l27s_c5_event_list_mem {B C : Set (Formula Atom)} {xi : Formula 
   · simp [h] at hγ_eq
 
 /-- Extract β' guards from component 3 elements. -/
-private noncomputable def l27s_b5_guard_list (B C : Set (Formula Atom)) (xi : Formula Atom)
+noncomputable def l27s_b5_guard_list (B C : Set (Formula Atom)) (xi : Formula Atom)
     (L : List (Formula Atom)) : List (Formula Atom) :=
   L.filterMap (fun φ => by
     classical

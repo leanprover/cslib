@@ -46,7 +46,7 @@ attribute [local instance] Classical.propDecidable
 /-! ## Helper: removeAll -/
 
 /-- Remove all occurrences of `a` from a list. -/
-private def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
+def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
   l.filter (· ≠ a)
 
 private theorem removeAll_subset_of_subset [DecidableEq α] {A : α} {Γ' Δ : List α}
@@ -75,7 +75,7 @@ private theorem removeAll_subset_removeAll [DecidableEq α] {a : α} {l₁ l₂ 
 /-! ## Deduction Theorem Helper Cases -/
 
 /-- If `φ` is an axiom, then `Γ ⊢ A → φ`. Uses the weakening axiom `implyK`. -/
-private noncomputable def deduction_axiom (Γ : List (Proposition Atom)) (A φ : Proposition Atom)
+noncomputable def deduction_axiom (Γ : List (Proposition Atom)) (A φ : Proposition Atom)
     (h_ax : ModalAxiom φ) : DerivationTree Γ (A.imp φ) := by
   -- φ is derivable (from empty context via axiom, weakened to Γ)
   -- Then use implyK: φ → (A → φ) to get A → φ
@@ -85,7 +85,7 @@ private noncomputable def deduction_axiom (Γ : List (Proposition Atom)) (A φ :
   exact .weakening [] Γ (A.imp φ) result (fun _ h => nomatch h)
 
 /-- `Γ ⊢ A → A` (identity / self-implication). -/
-private noncomputable def deduction_imp_self (Γ : List (Proposition Atom)) (A : Proposition Atom) :
+noncomputable def deduction_imp_self (Γ : List (Proposition Atom)) (A : Proposition Atom) :
     DerivationTree Γ (A.imp A) := by
   -- Proof: Use implyS, implyK, implyK to build A → A
   -- 1. implyS: (A → (A → A) → A) → ((A → A → A) → (A → A))
@@ -101,7 +101,7 @@ private noncomputable def deduction_imp_self (Γ : List (Proposition Atom)) (A :
   exact .weakening [] Γ _ result (fun _ h => nomatch h)
 
 /-- If `B ∈ Γ`, then `Γ ⊢ A → B`. Uses weakening axiom `implyK`. -/
-private noncomputable def deduction_assumption_other (Γ : List (Proposition Atom))
+noncomputable def deduction_assumption_other (Γ : List (Proposition Atom))
     (A B : Proposition Atom) (h_mem : B ∈ Γ) : DerivationTree Γ (A.imp B) := by
   have b_deriv := DerivationTree.assumption Γ B h_mem
   have k_ax : DerivationTree [] (B.imp (A.imp B)) := .ax [] _ (.implyK B A)
@@ -110,7 +110,7 @@ private noncomputable def deduction_assumption_other (Γ : List (Proposition Ato
 
 /-- Modus ponens under implication: from `Γ ⊢ A → (C → D)` and `Γ ⊢ A → C`,
 derive `Γ ⊢ A → D`. Uses the `implyS` axiom. -/
-private noncomputable def deduction_mp (Γ : List (Proposition Atom))
+noncomputable def deduction_mp (Γ : List (Proposition Atom))
     (A C D : Proposition Atom)
     (h₁ : DerivationTree Γ (A.imp (C.imp D)))
     (h₂ : DerivationTree Γ (A.imp C)) :
@@ -130,7 +130,7 @@ private noncomputable def deduction_mp (Γ : List (Proposition Atom))
 
 This recurses on the derivation structure. All recursive calls are on derivations
 with strictly smaller height, ensuring termination. -/
-private noncomputable def deduction_with_mem
+noncomputable def deduction_with_mem
     (Γ' : List (Proposition Atom)) (A φ : Proposition Atom)
     (d : DerivationTree Γ' φ) (hA : A ∈ Γ') :
     DerivationTree (removeAll Γ' A) (A.imp φ) := by

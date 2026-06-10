@@ -498,7 +498,7 @@ structure C5BackwardWalkResult (χ : Chronicle Atom) (ξ η : Formula Atom) (sta
 /-! ## Recursive Walks -/
 
 set_option maxHeartbeats 3200000 in
-private noncomputable def c5_forward_walk
+noncomputable def c5_forward_walk
     (χ : Chronicle Atom) (h_c0 : χ.c0) (h_c2' : χ.c2')
     (ξ η : Formula Atom) (pt : Rat)
     (h_start_mem : pt ∈ χ.dom)
@@ -1038,7 +1038,7 @@ decreasing_by
   all_goals simp_all only [gt_iff_lt]
   all_goals exact h_term
 set_option maxHeartbeats 3200000 in
-private noncomputable def c5_backward_walk
+noncomputable def c5_backward_walk
     (χ : Chronicle Atom) (h_c0 : χ.c0) (h_c2' : χ.c2')
     (ξ η : Formula Atom) (pt : Rat)
     (h_start_mem : pt ∈ χ.dom)

@@ -411,7 +411,7 @@ This is the key conservative extension result.
 -/
 
 /-- Collect all Sum.inl atoms from an ExtFormula. -/
-private def collectInl : ExtFormula Atom → Finset Atom
+def collectInl : ExtFormula Atom → Finset Atom
   | ExtFormula.atom (Sum.inl a) => {a}
   | ExtFormula.atom (Sum.inr ()) => ∅
   | ExtFormula.bot => ∅
@@ -442,7 +442,7 @@ private theorem inl_mem_implies_collectInl {a : Atom} {φ : ExtFormula Atom}
     cases h with | inl h => left; exact iha h | inr h => right; exact ihb h
 
 /-- Collect all Sum.inl atoms from all formulas in an ExtDerivationTree. -/
-private noncomputable def collectDerivInl {fc : FrameClass} :
+noncomputable def collectDerivInl {fc : FrameClass} :
     {Γ : ExtContext Atom} → {φ : ExtFormula Atom} →
     ExtDerivationTree fc Γ φ → Finset Atom
   | _, _, ExtDerivationTree.axiom _ φ _ _ => collectInl φ
@@ -552,7 +552,7 @@ fresh for the entire derivation tree (not appearing in collectDerivInl).
 -/
 
 /-- The combined formula transformation: substFreshWith then unembed. -/
-private def liftFormula (a : Atom) (φ : ExtFormula Atom) : Formula Atom :=
+def liftFormula (a : Atom) (φ : ExtFormula Atom) : Formula Atom :=
   unembedFormula (substFreshWith a φ)
 
 /-- liftFormula preserves embedFormula (embedded formulas are q-free). -/
@@ -571,7 +571,7 @@ private theorem liftFormula_swapTemporal (a : Atom) (φ : ExtFormula Atom) :
   simp [liftFormula, substFreshWith_swapTemporal, unembed_swapTemporal]
 
 /-- Lift an ExtAxiom to a base Axiom via liftFormula. -/
-private def liftAxiom (a : Atom) {φ : ExtFormula Atom} (h : ExtAxiom φ) :
+def liftAxiom (a : Atom) {φ : ExtFormula Atom} (h : ExtAxiom φ) :
     Axiom (liftFormula a φ) := by
   cases h with
   | imp_k x y z => exact .imp_k _ _ _
@@ -626,7 +626,7 @@ private theorem liftAxiom_preserves_minFrameClass (a : Atom) {φ : ExtFormula At
 by replacing Sum.inr () with Sum.inl a and unembedding.
 
 Requires a to be fresh for the entire derivation (a ∉ collectDerivInl d). -/
-private noncomputable def liftDerivationWith {fc : FrameClass} (a : Atom) :
+noncomputable def liftDerivationWith {fc : FrameClass} (a : Atom) :
     {Γ : ExtContext Atom} → {φ : ExtFormula Atom} →
     (d : ExtDerivationTree fc Γ φ) →
     (h_fresh : a ∉ collectDerivInl d) →

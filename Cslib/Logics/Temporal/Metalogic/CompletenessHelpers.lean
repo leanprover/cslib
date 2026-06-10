@@ -82,7 +82,7 @@ private theorem mcs_h_bot_not_mem
   exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs h_h_bot (mcs_p_top_mem h_mcs))
 
 /-- Derive double negation elimination: ⊢ ¬¬X → X. -/
-private noncomputable def derive_dne (X : Formula Atom) :
+noncomputable def derive_dne (X : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg X)).imp X) := by
   let ctx := [Formula.neg (Formula.neg X)]
   have d_peirce : DerivationTree FrameClass.Base ctx (((X.imp Formula.bot).imp X).imp X) :=
@@ -101,7 +101,7 @@ private noncomputable def derive_dne (X : Formula Atom) :
     (DerivationTree.modus_ponens ctx _ _ d_peirce d_imp)
 
 /-- H-necessitation: from ⊢ φ derive ⊢ H(φ). -/
-private noncomputable def derive_h_nec (φ : Formula Atom)
+noncomputable def derive_h_nec (φ : Formula Atom)
     (d : DerivationTree FrameClass.Base [] φ) :
     DerivationTree FrameClass.Base [] (Formula.allPast φ) := by
   have d_swap := DerivationTree.temporal_duality _ d
@@ -115,7 +115,7 @@ private noncomputable def derive_h_nec (φ : Formula Atom)
   exact h_eq ▸ d_h
 
 /-- Derive ⊢ φ → ⊤ ∧ φ. -/
-private noncomputable def derive_and_top_intro (φ : Formula Atom) :
+noncomputable def derive_and_top_intro (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp (Formula.and Formula.top φ)) := by
   let ctx := [Formula.imp Formula.top (Formula.neg φ), φ]
   have d_top : DerivationTree FrameClass.Base ctx Formula.top :=

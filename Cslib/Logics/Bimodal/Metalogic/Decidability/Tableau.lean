@@ -338,7 +338,7 @@ Helper: collect T(box A) and F(diamond A) formulas at a specific world and time,
 re-labeled to a fresh time. Used by time-creation rules to propagate
 box persistence (box phi -> G(box phi)) and diamond-neg persistence.
 -/
-private def boxDiamondPersistence (branch : Branch Atom) (w : WorldIndex) (t : TimeIndex)
+def boxDiamondPersistence (branch : Branch Atom) (w : WorldIndex) (t : TimeIndex)
     (freshTime : TimeIndex) : List (SignedFormula Atom) :=
   let boxProps := (branch.boxPosAtWorldTime w t).filterMap fun bsf =>
     let prop := { bsf with label := { bsf.label with time := freshTime } }

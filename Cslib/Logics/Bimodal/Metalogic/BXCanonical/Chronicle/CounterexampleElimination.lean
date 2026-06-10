@@ -699,7 +699,7 @@ At each step from `start`, find x' = successor in dom:
 
 Termination: `(dom.filter (· > start)).card` strictly decreases at each recursive step.
 -/
-private noncomputable def c5_forward_walk (fc : FrameClass)
+noncomputable def c5_forward_walk (fc : FrameClass)
     (χ : Chronicle Atom) (h_c0 : χ.c0 fc) (h_c2' : χ.c2' fc)
     (ξ η : Formula Atom) (pt : Rat)
     (h_start_mem : pt ∈ χ.dom)
@@ -1283,7 +1283,7 @@ At each step from `start`, find x'' = predecessor in dom:
 
 Termination: `(dom.filter (· < start)).card` strictly decreases at each recursive step.
 -/
-private noncomputable def c5_backward_walk (fc : FrameClass)
+noncomputable def c5_backward_walk (fc : FrameClass)
     (χ : Chronicle Atom) (h_c0 : χ.c0 fc) (h_c2' : χ.c2' fc)
     (ξ η : Formula Atom) (pt : Rat)
     (h_start_mem : pt ∈ χ.dom)

@@ -162,7 +162,7 @@ theorem mcs_mem_iff_neg_not_mem
 /-- Iterated deduction theorem: from `L ⊢ φ`, derive `[] ⊢ chain L φ` where
 `chain` builds a right-nested implication. Processes by repeatedly applying
 the deduction theorem to the head element. -/
-private noncomputable def iterated_deduction :
+noncomputable def iterated_deduction :
     (L : List (Proposition Atom)) → (φ : Proposition Atom) →
     DerivationTree L φ → (ψ : Proposition Atom) ×' DerivationTree [] ψ ×'
       (∀ (S : Set (Proposition Atom)),

@@ -58,7 +58,7 @@ If `⊢ φ` then `⊢ A → φ` for any A.
 
 This uses the S axiom (weakening): `φ → (A → φ)`.
 -/
-private def weaken_under_imp {fc : FrameClass} {φ A : Formula Atom}
+def weaken_under_imp {fc : FrameClass} {φ A : Formula Atom}
     (h : DerivationTree fc [] φ) : DerivationTree fc [] (A.imp φ) := by
   have s_ax : DerivationTree fc [] (φ.imp (A.imp φ)) :=
     DerivationTree.axiom [] _ (Axiom.imp_s φ A) trivial
@@ -68,7 +68,7 @@ private def weaken_under_imp {fc : FrameClass} {φ A : Formula Atom}
 Helper: Lift weakening to contexts.
 If `Γ ⊢ φ` then `Γ ⊢ A → φ` for formulas φ that are axioms.
 -/
-private def weaken_under_imp_ctx {fc : FrameClass} {Γ : Context Atom} {φ A : Formula Atom}
+def weaken_under_imp_ctx {fc : FrameClass} {Γ : Context Atom} {φ A : Formula Atom}
     (h : Axiom φ) (h_fc : h.minFrameClass ≤ fc) :
     DerivationTree fc Γ (A.imp φ) := by
   have ax_deriv : DerivationTree fc [] φ := DerivationTree.axiom [] φ h h_fc
@@ -80,7 +80,7 @@ Helper: Remove an element from a list.
 
 Returns the list with all occurrences of `a` removed.
 -/
-private def removeAll {α : Type _} [DecidableEq α] (l : List α) (a : α) : List α :=
+def removeAll {α : Type _} [DecidableEq α] (l : List α) (a : α) : List α :=
   l.filter (· ≠ a)
 
 /--
@@ -171,7 +171,7 @@ This is the key lemma for handling the weakening case where A appears in Γ'
 but not at the front. By recursing on the structure of the derivation (not using
 exchange), all recursive calls have strictly smaller height.
 -/
-private def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
+def deduction_with_mem {fc : FrameClass} (Γ' : Context Atom)
     (A φ : Formula Atom)
     (h : DerivationTree fc Γ' φ) (hA : A ∈ Γ') :
     DerivationTree fc (removeAll Γ' A) (A.imp φ) := by

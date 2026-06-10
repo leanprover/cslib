@@ -34,7 +34,7 @@ open Cslib.Logic.Bimodal
 
 variable {Atom : Type} [DecidableEq Atom] {fc : FrameClass} {D : Type*} [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
 
-private noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
+noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
     DerivationTree fc [] ((ψ.imp χ).neg.imp ψ) := by
   have h_efq : DerivationTree FrameClass.Base [] (ψ.neg.imp (ψ.imp χ)) :=
     Theorems.Propositional.efq_neg ψ χ
@@ -62,7 +62,7 @@ private noncomputable def neg_imp_implies_antecedent (ψ χ : Formula Atom) :
     DerivationTree.modus_ponens _ _ _ h_step1 h_deduct
   exact h_base.lift (FrameClass.base_le fc)
 
-private noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) :
+noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) :
     DerivationTree fc [] ((ψ.imp χ).neg.imp χ.neg) := by
   have h_prop_s : DerivationTree FrameClass.Base [] (χ.imp (ψ.imp χ)) :=
     DerivationTree.axiom [] _ (Axiom.imp_s χ ψ) trivial
