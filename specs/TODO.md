@@ -129,7 +129,7 @@ next_project_number: 68
 - **Effort**: Small (2 hours)
 - **Status**: [PLANNED]
 - **Task Type**: lean4
-- **Dependencies**: Task 58
+- **Dependencies**: Tasks 58, 66, 67
 - **Topic**: Submit PRs
 - **Research**: [059_pr1_foundations_logic/reports/01_primitive-connectives-justification.md]
 - **Plan**: [059_pr1_foundations_logic/plans/01_pr-submission-plan.md]
