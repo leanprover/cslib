@@ -1,5 +1,5 @@
 ---
-next_project_number: 66
+next_project_number: 68
 ---
 
 # Tasks
@@ -11,11 +11,12 @@ next_project_number: 66
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,59 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
-| 2 | 39,40,60,61 | 36,37,59 | Temporal Logic, Submit PRs |
-| 3 | 41,62 | 38,39,40,59,61 | Foundations, Submit PRs |
-| 4 | 63 | 62 | Submit PRs |
-| 5 | 64 | 63 | Submit PRs |
+| 1 | 36,37,38,66,67 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,59 | 36,37,66,67 | Temporal Logic, Submit PRs |
+| 3 | 41,60,61 | 38,39,40,59 | Foundations, Submit PRs |
+| 4 | 62 | 59,61 | Submit PRs |
+| 5 | 63 | 62 | Submit PRs |
+| 6 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -36,15 +37,38 @@ next_project_number: 66
 
 ### Submit PRs
 
-59 [RESEARCHED] — pr1_foundations_logic
-  └─ 60 [NOT STARTED] — pr2_modal_metalogic
-  └─ 61 [NOT STARTED] — pr3_temporal_proof_system
-    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
-      └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
-        └─ 64 [NOT STARTED] — pr6_completeness_theorem
-  └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
+66 [NOT STARTED] — Rename 19 snake_case identifiers to lowerCamelCase in PR-scope fi
+  └─ 59 [PLANNED] — pr1_foundations_logic
+    └─ 60 [NOT STARTED] — pr2_modal_metalogic
+    └─ 61 [NOT STARTED] — pr3_temporal_proof_system
+      └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
+        └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
+          └─ 64 [NOT STARTED] — pr6_completeness_theorem
+    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
+67 [NOT STARTED] — Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Se
+  └─ 59 [PLANNED] — pr1_foundations_logic (see above)
 
 ## Tasks
+
+### 67. Fix simp linter warnings in PR-scope files
+- **Effort**: Small (1 hour)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+
+**Description**: Fix 7 @[simp] linter warnings in PR-scope files. 5 in Temporal/Semantics/Satisfies.lean (neg_iff, some_future_iff, some_past_iff, all_future_iff, all_past_iff - LHS simplifies from / simp can prove). 2 in Propositional/Embedding.lean (toModal_neg, toTemporal_neg - LHS simplifies from). Either remove @[simp] attribute or restructure the lemma so LHS is in canonical simp form.
+
+---
+
+### 66. Fix lint naming conventions in PR-scope files
+- **Effort**: Medium (3 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+
+**Description**: Rename 19 snake_case identifiers to lowerCamelCase in PR-scope files (Temporal/Propositional). 12 in Temporal/Syntax/Formula.lean (some_future, all_future, some_past, all_past, weak_future, weak_past, weak_until, weak_since, strong_release, strong_trigger, swap_temporal), 1 in Temporal/Syntax/BigConj.lean (neg_bigconj), plus downstream references. Requires lake build verification after each rename.
+
+---
 
 ### 64. PR 6: Submit Temporal completeness theorem
 - **Effort**: Small (2 hours)

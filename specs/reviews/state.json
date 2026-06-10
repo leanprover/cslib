@@ -32,12 +32,27 @@
       },
       "tasks_created": [],
       "registries_updated": []
+    },
+    {
+      "review_id": "review-20260609",
+      "date": "2026-06-09",
+      "scope": "all",
+      "report_path": "specs/reviews/review-20260609.md",
+      "summary": {
+        "files_reviewed": 326,
+        "critical_issues": 0,
+        "high_issues": 0,
+        "medium_issues": 3,
+        "low_issues": 2
+      },
+      "tasks_created": [],
+      "registries_updated": []
     }
   ],
   "statistics": {
-    "total_reviews": 2,
-    "last_review": "2026-06-08",
-    "total_issues_found": 20,
+    "total_reviews": 3,
+    "last_review": "2026-06-09",
+    "total_issues_found": 25,
     "total_tasks_created": 4
   }
 }
