@@ -49,15 +49,7 @@ theorem Proposition.equiv_iff (S : Set (Model World Atom)) (φ₁ φ₂ : Propos
 theorem Proposition.equiv_valid (S : Set (Model World Atom))
     (φ₁ φ₂ : Proposition Atom) (h : φ₁ ≡[S] φ₂) :
     (φ₁.valid S ↔ φ₂.valid S) := by
-  apply Iff.intro <;> intro h'
-  · simp_all only [valid]
-    intro m hin w
-    specialize h m hin w
-    grind
-  · simp_all only [valid]
-    intro m hin w
-    specialize h m hin w
-    grind
+  grind
 
 /-- Propositional contexts. -/
 inductive Proposition.Context (Atom : Type u) : Type u where
