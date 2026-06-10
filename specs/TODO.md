@@ -8,8 +8,10 @@ next_project_number: 57
 
 ### 56. Plan PR submission strategy for systematic repo contributions
 - **Effort**: Medium
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: general
+- **Research**: [specs/056_plan_pr_submission_strategy/reports/01_pr-submission-research.md]
+- **Plan**: [specs/056_plan_pr_submission_strategy/plans/01_pr-submission-plan.md]
 
 **Description**: Read all documentation and standards in this repo to plan a PR submission strategy that divides all work into PRs that can be systematically submitted. Cover Temporal/ first, then Modal/, then Propositional/ unless there is good reason to proceed in a different order. Supersedes tasks 51-54.
 

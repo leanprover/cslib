@@ -14,7 +14,9 @@ strictly downward: Foundations â†’ Modal/Temporal (including their Metalogic) â†
 Bimodal. Modal and Temporal metalogic are fully standalone and do not import
 from each other.
 
-## Module Dependency Structure
+## Existing Module Dependency Structure
+
+The dependencies will evolve as progress is made.
 
 ```mermaid
 flowchart TD
