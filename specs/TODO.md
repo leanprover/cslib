@@ -8,7 +8,7 @@ next_project_number: 65
 
 ### 64. PR 6: Submit Temporal completeness theorem
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 63
 - **Topic**: Submit PRs
@@ -19,7 +19,7 @@ next_project_number: 65
 
 ### 63. PR 5: Submit Temporal chronicle infrastructure
 - **Effort**: Medium (2.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 62
 - **Topic**: Submit PRs
@@ -30,7 +30,7 @@ next_project_number: 65
 
 ### 62. PR 4: Submit Temporal metalogic core
 - **Effort**: Medium (2.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 59, 61
 - **Topic**: Submit PRs
@@ -41,7 +41,7 @@ next_project_number: 65
 
 ### 61. PR 3: Submit Temporal semantics, proof system, and theorems
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
@@ -52,7 +52,7 @@ next_project_number: 65
 
 ### 60. PR 2: Submit Modal metalogic (soundness and completeness)
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
@@ -63,7 +63,7 @@ next_project_number: 65
 
 ### 59. PR 1: Submit Foundations/Logic theorems and MCS foundations
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 58
 - **Topic**: Submit PRs
@@ -74,7 +74,7 @@ next_project_number: 65
 
 ### 58. CI prep: sorry fix and global CI baseline
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 
@@ -84,8 +84,9 @@ next_project_number: 65
 
 ### 57. Improve theorem organization: move misplaced generic theorems to Foundations and eliminate concrete duplicates in Bimodal
 - **Effort**: Large
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
+- specs/057_improve_theorem_organization/reports/01_theorem-organization-research.md: [**Plan**]
 
 **Description**: The theorem files have two organizational issues: (1) `Logics/Temporal/Theorems/TemporalDerived.lean` is generic over `[TemporalBXHilbert S]` typeclasses with no concrete types — it belongs in `Foundations/Logic/Theorems/Temporal/` alongside the Modal and Propositional foundations theorems. `FrameConditions.lean` is similarly generic (borderline). (2) Three files in `Bimodal/Theorems/` (`Combinators.lean`, `Propositional/Core.lean`, `Propositional/Connectives.lean`) re-prove ~600 lines of propositional/combinator theorems over concrete `DerivationTree` that already exist generically in `Foundations/Logic/Theorems/`. The `wrap`/`unwrap` bridge pattern in `Perpetuity/Helpers.lean` already shows how to call Foundations theorems from concrete bimodal context — the redundant files should be refactored to use this pattern. Actions: move misplaced generic files to Foundations, refactor concrete duplicates to use unwrap bridge, update all downstream imports, verify with `lake build`.
 
@@ -120,13 +121,13 @@ next_project_number: 65
 
 ### Foundations
 
-57 [NOT STARTED] — improve_theorem_organization
-41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
+57 [RESEARCHED] — improve_theorem_organization
+41 [RESEARCHED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
 
 ### Temporal Logic
 
-38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
-39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
+38 [RESEARCHED] — Dense temporal completeness: prove that every formula valid on al
+39 [RESEARCHED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
 
 ### Bimodal Porting
@@ -136,14 +137,14 @@ next_project_number: 65
 
 ### Submit PRs
 
-58 [NOT STARTED] — ci_prep_sorry_fix_baseline
-  └─ 59 [NOT STARTED] — pr1_foundations_logic
-    └─ 60 [NOT STARTED] — pr2_modal_metalogic
-    └─ 61 [NOT STARTED] — pr3_temporal_proof_system
-      └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
-        └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
-          └─ 64 [NOT STARTED] — pr6_completeness_theorem
-    └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core (see above)
+58 [RESEARCHED] — ci_prep_sorry_fix_baseline
+  └─ 59 [RESEARCHED] — pr1_foundations_logic
+    └─ 60 [RESEARCHED] — pr2_modal_metalogic
+    └─ 61 [RESEARCHED] — pr3_temporal_proof_system
+      └─ 62 [RESEARCHED] — pr4_temporal_metalogic_core
+        └─ 63 [RESEARCHED] — pr5_chronicle_infrastructure
+          └─ 64 [RESEARCHED] — pr6_completeness_theorem
+    └─ 62 [RESEARCHED] — pr4_temporal_metalogic_core (see above)
 
 ## Tasks
 
@@ -174,7 +175,7 @@ next_project_number: 65
 
 ### 39. Discrete temporal completeness
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 31, 36
 
@@ -192,7 +193,7 @@ next_project_number: 65
 
 ### 38. Dense temporal completeness
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 31, 49
 
@@ -210,7 +211,7 @@ next_project_number: 65
 
 ### 41. Abstract shared completeness infrastructure
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 38, 39, 40
 
