@@ -4,11 +4,13 @@
     {
       "project_number": 88,
       "project_name": "refactor_propositional_hilbert_intuitionistic_base",
-      "status": "researching",
+      "status": "researched",
       "task_type": "formal",
       "created": "2026-06-10T23:15:41Z",
-      "last_updated": "2026-06-10T23:18:14Z",
-      "session_id": "sess_1781133480_6a1b41"
+      "last_updated": "2026-06-10T23:26:32Z",
+      "session_id": "sess_1781133480_6a1b41",
+      "researched": "2026-06-10T23:26:32Z",
+      "next_artifact_number": 2
     },
     {
       "project_number": 60,

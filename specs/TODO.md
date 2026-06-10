@@ -68,8 +68,9 @@ next_project_number: 90
 
 ### 88. Refactor propositional Hilbert system to intuitionistic base with uniform extension architecture
 - **Effort**: large
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Task Type**: formal
+- **Research**: [specs/088_refactor_propositional_hilbert_intuitionistic_base/reports/01_team-research.md]
 
 **Description**: Instead of a single classical propositional Hilbert system, refactor to an intuitionistic propositional Hilbert system with a classical extension. This should follow the same uniform patterns for logic extensions (e.g., where a base modal logic K is extended to D, T, B, 4, KT, KT4, etc., or where the base tense logic is extended to include axioms for discreteness, density, or continuity). Research and implement a design with the best architecture to sustain the elaboration of many extensions of a given logic within a common language.
 
