@@ -4,20 +4,61 @@
     {
       "project_number": 84,
       "project_name": "resolve_public_import_cslib_init",
-      "status": "researched",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T19:01:09Z",
-      "last_updated": "2026-06-10T19:45:00Z",
+      "last_updated": "2026-06-10T19:20:00Z",
       "session_id": "sess_1781118126_4901e1",
       "researched": "2026-06-10T19:45:00Z",
+      "planned": "2026-06-10T20:05:00Z",
       "next_artifact_number": 2,
       "artifacts": [
         {
           "path": "specs/084_resolve_public_import_cslib_init/reports/01_public-import-analysis.md",
           "type": "report",
           "summary": "Analysis of public import Cslib.Init in 3 Foundations/Logic files: all 3 can be downgraded to plain import with 5 compensating imports in downstream files"
+        },
+        {
+          "path": "specs/084_resolve_public_import_cslib_init/plans/01_implementation-plan.md",
+          "type": "plan",
+          "summary": "4-phase plan: add 5 compensating imports, downgrade 3 public imports, build verification, lake shake validation"
+        },
+        {
+          "path": "specs/084_resolve_public_import_cslib_init/summaries/01_implementation-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: downgraded 3 public imports, added 12 compensating imports, build and shake verified"
         }
-      ]
+      ],
+      "plan_metadata": {
+        "phases": 4,
+        "total_effort_hours": 0.5,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_public-import-analysis.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-10"
+          }
+        ]
+      },
+      "completion_summary": "Downgraded public import Cslib.Init to plain import in 3 Foundations/Logic files (Connectives, InferenceSystem, FrameConditions) and added compensating import Cslib.Init to 12 downstream files. Build and lake shake verified clean.",
+      "topic": "Clean Up"
     },
     {
       "project_number": 83,

@@ -47,15 +47,18 @@ next_project_number: 83
 
 ### Uncategorized
 
-84 [RESEARCHED] — resolve_public_import_cslib_init
+84 [COMPLETED] — resolve_public_import_cslib_init
 
 ## Tasks
 
 ### 84. Resolve public import Cslib.Init in Foundations/Logic files
 - **Effort**: small
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
+- **Topic**: Clean Up
 - **Research**: [specs/084_resolve_public_import_cslib_init/reports/01_public-import-analysis.md]
+- **Plan**: [specs/084_resolve_public_import_cslib_init/plans/01_implementation-plan.md]
+- **Summary**: [specs/084_resolve_public_import_cslib_init/summaries/01_implementation-summary.md]
 
 **Description**: Investigate whether public import Cslib.Init can be downgraded to non-public or removed in Connectives.lean, InferenceSystem.lean, and FrameConditions.lean without breaking the transitive import chain for downstream theorem files. If not possible, document the rationale clearly in the affected files
 
