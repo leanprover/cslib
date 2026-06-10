@@ -145,16 +145,16 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Delegate Temporal GeneralizedNecessitation Propositional Lemmas [IN PROGRESS]
+### Phase 3: Delegate Temporal GeneralizedNecessitation Propositional Lemmas [COMPLETED]
 
 **Goal**: Replace the re-proved propositional lemmas (`contrapose_imp`, `contraposition`) in `Temporal/Metalogic/GeneralizedNecessitation.lean` with delegations to Foundations, keeping the temporal-specific content.
 
 **Tasks**:
-- [ ] Identify which propositional lemmas in `Temporal/Metalogic/GeneralizedNecessitation.lean` duplicate Foundations
-- [ ] Add imports for Foundations propositional theorems (Connectives.lean)
-- [ ] Use the wrap/unwrap bridge from Phase 2 to delegate `contrapose_imp` and `contraposition`
-- [ ] Keep temporal-specific content (`generalized_temporal_k`, `generalized_past_k`, etc.) unchanged
-- [ ] Run `lake build` and fix any compilation errors
+- [x] Identify which propositional lemmas in `Temporal/Metalogic/GeneralizedNecessitation.lean` duplicate Foundations
+- [x] Add imports for Foundations propositional theorems (Connectives.lean) *(deviation: altered -- imported PropositionalHelpers which provides wrap/unwrap bridge and transitively imports Foundations)*
+- [x] Use the wrap/unwrap bridge from Phase 2 to delegate `contrapose_imp` and `contraposition`
+- [x] Keep temporal-specific content (`generalized_temporal_k`, `generalized_past_k`, etc.) unchanged
+- [x] Run `lake build` and fix any compilation errors
 
 **Timing**: 0.5 hours
 

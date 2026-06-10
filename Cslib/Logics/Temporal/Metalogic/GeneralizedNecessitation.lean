@@ -7,6 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Temporal.Metalogic.MCS
+public import Cslib.Logics.Temporal.Metalogic.PropositionalHelpers
 
 /-!
 # Generalized Necessitation for Temporal Logic
@@ -32,17 +33,13 @@ variable {Atom : Type*}
 
 /-! ## Imp Trans helper -/
 
-/-- Transitivity of implication at FrameClass.Base level. -/
-noncomputable def imp_trans_base {A B C : Formula Atom}
+/-- Transitivity of implication at FrameClass.Base level.
+    Delegates to `Metalogic.imp_trans` from PropositionalHelpers. -/
+noncomputable abbrev imp_trans_base {A B C : Formula Atom}
     (h1 : DerivationTree FrameClass.Base [] (A.imp B))
     (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
-    DerivationTree FrameClass.Base [] (A.imp C) := by
-  have s_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _
-      (Axiom.imp_s (B.imp C) A) trivial
-  have h3 := DerivationTree.modus_ponens [] (B.imp C) (A.imp (B.imp C)) s_axiom h2
-  have k_axiom := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_k A B C) trivial
-  have h4 := DerivationTree.modus_ponens [] (A.imp (B.imp C)) ((A.imp B).imp (A.imp C)) k_axiom h3
-  exact DerivationTree.modus_ponens [] (A.imp B) (A.imp C) h4 h1
+    DerivationTree FrameClass.Base [] (A.imp C) :=
+  imp_trans h1 h2
 
 /-- Reverse deduction: from Γ ⊢ A → B derive A :: Γ ⊢ B. -/
 noncomputable def reverse_deduction {Γ : Context Atom} {A B : Formula Atom}
@@ -57,27 +54,19 @@ noncomputable def reverse_deduction {Γ : Context Atom} {A B : Formula Atom}
 
 /-! ## Contrapositive -/
 
-/-- Derive ⊢ (A→B) → (¬B→¬A) (contraposition). -/
+/-- Derive ⊢ (A→B) → (¬B→¬A) (contraposition).
+    Delegates to Foundations via wrap/unwrap. -/
 noncomputable def contrapose_imp (A B : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) := by
-  let ctx := [A, Formula.neg B, A.imp B]
-  have d_B : DerivationTree FrameClass.Base ctx B :=
-    .modus_ponens ctx A B
-      (.assumption ctx (A.imp B) (by simp [List.mem_cons, ctx]))
-      (.assumption ctx A (by simp [List.mem_cons, ctx]))
-  have d_bot : DerivationTree FrameClass.Base ctx Formula.bot :=
-    .modus_ponens ctx B Formula.bot
-      (.assumption ctx (Formula.neg B) (by simp [List.mem_cons, ctx]))
-      d_B
-  have d1 := deduction_theorem [Formula.neg B, A.imp B] A Formula.bot d_bot
-  have d2 := deduction_theorem [A.imp B] (Formula.neg B) (Formula.neg A) d1
-  exact deduction_theorem [] (A.imp B) (B.neg.imp A.neg) d2
+    DerivationTree FrameClass.Base [] ((A.imp B).imp (B.neg.imp A.neg)) :=
+  unwrap (@Cslib.Logic.Theorems.Propositional.Connectives.contrapose_imp
+    _ _ _ Temporal.HilbertBX _ _ (φ := A) (ψ := B))
 
-/-- From ⊢ A → B derive ⊢ ¬B → ¬A (contraposition of a proof). -/
+/-- From ⊢ A → B derive ⊢ ¬B → ¬A (contraposition of a proof).
+    Delegates to Foundations via wrap/unwrap. -/
 noncomputable def contraposition {A B : Formula Atom}
     (h : DerivationTree FrameClass.Base [] (A.imp B)) :
     DerivationTree FrameClass.Base [] (B.neg.imp A.neg) :=
-  DerivationTree.modus_ponens [] _ _ (contrapose_imp A B) h
+  unwrap (Cslib.Logic.Theorems.Propositional.Connectives.contraposition (wrap h))
 
 /-! ## Past Necessitation -/
 
