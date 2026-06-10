@@ -52,10 +52,11 @@ next_project_number: 66
 
 ### 65. Audit repo for pre-PR cleanup and create refactoring tasks
 - **Effort**: Medium
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Research**: [specs/065_pre_pr_cleanup_audit/reports/01_team-research.md]
+- **Plan**: [065_pre_pr_cleanup_audit/plans/01_cleanup-plan.md]
 
 **Description**: Audit the entire repo for cleanup and refactoring work needed before submitting PRs. Research should cover: dead code, unused imports, sorry instances, misplaced files (e.g. generic theorems in logic-specific directories), duplicate code across modules, naming inconsistencies, missing or incorrect module docstrings, style guide violations, and any structural issues that would cause PR review friction. The plan should produce a prioritized list of concrete cleanup tasks to be created via --expand. This task gates PR submission tasks 58-64.
 
