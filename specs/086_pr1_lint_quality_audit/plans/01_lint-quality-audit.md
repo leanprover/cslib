@@ -112,15 +112,15 @@ Phases are fully sequential because each phase modifies files that later phases 
 
 ---
 
-### Phase 3: Safe private import removals [NOT STARTED]
+### Phase 3: Safe private import removals [COMPLETED]
 
 **Goal**: Remove unused `import Cslib.Init` from 3 Foundations files where it is a private (non-public) import that `lake exe shake` flagged as unnecessary.
 
 **Tasks**:
-- [ ] Identify the 3 Foundations files with unused private `Cslib.Init` imports (consult research report for exact list)
-- [ ] Remove the unused `import Cslib.Init` line from each file
-- [ ] Run `lake build` after each removal to catch breakage immediately
-- [ ] Run `lake exe shake` on the modified files to confirm clean
+- [x] Identify the 3 Foundations files with unused private `Cslib.Init` imports (consult research report for exact list) *(completed)*
+- [x] **Task 3.2**: Remove the unused `import Cslib.Init` line from each file *(deviation: altered -- only FrameConditions.lean was safe to modify; Connectives.lean and InferenceSystem.lean require Cslib.Init for Type* notation via Mathlib.Tactic.TypeStar)*
+- [x] Run `lake build` after each removal to catch breakage immediately *(completed)*
+- [ ] Run `lake exe shake` on the modified files to confirm clean *(deviation: skipped -- lake exe shake requires noshake.json config and has compatibility issues with module keyword; verified via lake build instead)*
 
 **Timing**: 10 minutes
 
