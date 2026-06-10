@@ -4,12 +4,14 @@
 
 ## Summary
 
-Adds the `Cslib/Foundations/Logic/` module hierarchy: 16 files, 3,704 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
+Adds the `Cslib/Foundations/Logic/` module hierarchy and the `Cslib/Logics/Propositional/` proof system: 25 files, 5,120 lines total. This provides the Hilbert-style proof system infrastructure and concrete propositional logic that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
 
 The contribution includes:
-- **Core definitions** (5 files): `InferenceSystem` typeclass, `HasBot`/`HasImp` connective classes, polymorphic axiom `abbrev`s, bundled proof system typeclasses (`PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert`), and `LogicalEquivalence`
-- **Theorem libraries** (9 files): SKI/BCC combinators, propositional core (LEM, DNE, RAA), derived connective theorems (De Morgan, contraposition, iff), big conjunction, K-level modal theorems, S5-level modal theorems, temporal derived theorems, and frame conditions
-- **Metalogic foundations** (2 files): `DerivationSystem` typeclass with Lindenbaum's lemma via Zorn's lemma, maximal consistent set (MCS) construction; `HasHilbertTree` typeclass with generic deduction theorem helpers
+- **Core definitions** (5 files, `Foundations/Logic/`): `InferenceSystem` typeclass, `HasBot`/`HasImp` connective classes, polymorphic axiom `abbrev`s, bundled proof system typeclasses (`PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert`), and `LogicalEquivalence`
+- **Theorem libraries** (9 files, `Foundations/Logic/Theorems/`): SKI/BCC combinators, propositional core (LEM, DNE, RAA), derived connective theorems (De Morgan, contraposition, iff), big conjunction, K-level modal theorems, S5-level modal theorems, temporal derived theorems, and frame conditions
+- **Metalogic foundations** (2 files, `Foundations/Logic/Metalogic/`): `DerivationSystem` typeclass with Lindenbaum's lemma via Zorn's lemma, maximal consistent set (MCS) construction; `HasHilbertTree` typeclass with generic deduction theorem helpers
+- **Propositional logic** (8 files, `Logics/Propositional/`): Concrete `Proposition` inductive type with `{atom, bot, imp}` primitives, Hilbert-style derivation trees, propositional axiom schemas, `InferenceSystem`/`PropositionalHilbert` instance registration, deduction theorem, MCS instantiation, and natural deduction wrappers
+- **Shared utilities** (1 file, `Foundations/Data/`): `ListHelpers` with `removeAll` and supporting lemmas used by deduction theorem files across all logic domains
 
 ## Design: Primitive Connective Choice
 
@@ -67,27 +69,75 @@ Because negation, conjunction, and disjunction are `abbrev`s over `{bot, imp}`, 
 
 The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for maximal consistent sets. Lindenbaum's lemma is proved via Zorn's lemma, parameterized over `DerivationSystem F` for any formula type with `[HasBot F] [HasImp F]`. Consistency is defined as non-derivability of `bot`. This module is included in this PR because it is imported by both the modal and temporal metalogic files (PRs 2-4).
 
+## Design: Propositional Proof System Architecture
+
+The `Logics/Propositional/` module provides the concrete instantiation of the abstract `Foundations/Logic/` infrastructure for classical propositional logic.
+
+### Proposition type
+
+The `Proposition` inductive has three constructors: `atom`, `bot`, and `imp`. All other connectives are derived `abbrev`s following the Lukasiewicz encoding from the Foundations layer. The type registers as a `PropositionalConnectives` instance, gaining the full notation suite (`⊥ ⊤ ∧ ∨ → ¬`).
+
+### Derivation trees
+
+`DerivationTree Γ φ` is a concrete inductive proof witness with four constructors: `ax` (axiom schema), `assumption` (context membership), `modus_ponens`, and `weakening`. The `Deriv Γ φ := Nonempty (DerivationTree Γ φ)` wrapper provides a `Prop`-level interface.
+
+### Instance registration
+
+`ProofSystem/Instances.lean` registers `InferenceSystem`, `ModusPonens`, and all `HasAxiom*` instances for `Propositional.HilbertCl`, connecting the abstract typeclass hierarchy to the concrete derivation tree. This enables all generic theorems from `Foundations/Logic/Theorems/` to apply to propositional logic via typeclass resolution.
+
+### Deduction theorem and MCS
+
+`Metalogic/DeductionTheorem.lean` proves the deduction theorem for propositional derivation trees by structural induction on derivation height. `Metalogic/MCS.lean` instantiates the generic `DerivationSystem` framework from `Foundations/Logic/Metalogic/Consistency.lean` for propositional logic, providing maximal consistent set construction.
+
+### Natural deduction interface
+
+Two complementary modules provide ND-style reasoning:
+- `NaturalDeduction/Basic.lean`: Standalone natural deduction system with its own inductive type
+- `NaturalDeduction/FromHilbert.lean`: ND-flavored wrappers (`impI`, `impE`, `botE`, cut, weakening, substitution) over the Hilbert derivation tree
+
 ## File Inventory
+
+### Foundations/Logic/ (16 files, 3,722 lines)
 
 | File | Lines | Role |
 |------|------:|------|
 | `InferenceSystem.lean` | 68 | `InferenceSystem` typeclass + `DerivableIn` |
 | `Connectives.lean` | 98 | Atomic classes `HasBot`, `HasImp`, `HasBox`, `HasUntil`, `HasSince`; bundled classes; `LukasiewiczDerived` |
-| `Axioms.lean` | 297 | Polymorphic axiom `abbrev`s: `ImplyK`, `ImplyS`, `EFQ`, `Peirce`, `DNE`, all modal/temporal axioms; shared `top'`/`neg'`/`conj'`/`disj'` abbreviations |
-| `ProofSystem.lean` | 352 | `ModusPonens`, `Necessitation`, `HasAxiom*` typeclasses; bundled `PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert` |
+| `Axioms.lean` | 298 | Polymorphic axiom `abbrev`s: `ImplyK`, `ImplyS`, `EFQ`, `Peirce`, `DNE`, all modal/temporal axioms; shared `top'`/`neg'`/`conj'`/`disj'` abbreviations |
+| `ProofSystem.lean` | 353 | `ModusPonens`, `Necessitation`, `HasAxiom*` typeclasses; bundled `PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert` |
 | `LogicalEquivalence.lean` | 35 | `LogicalEquivalence` typeclass for context-based congruence |
-| `Theorems/Combinators.lean` | 338 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj`; `flip`, `app1`, `app2` |
-| `Theorems/Propositional/Core.lean` | 288 | LEM, DNE, RAA, `efq_neg`, `rcp`, `lce_imp`, `rce_imp` |
-| `Theorems/Propositional/Connectives.lean` | 535 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
-| `Theorems/BigConj.lean` | 141 | `BigConj` syntax and derivability lemmas |
-| `Theorems/Modal/Basic.lean` | 202 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
-| `Theorems/Modal/S5.lean` | 530 | S5-level: Axiom 5 derivation, collapse theorems; abbreviation refactoring reduced duplicated `abbrev`s |
-| `Theorems/Temporal/TemporalDerived.lean` | 287 | Temporal operator lemmas |
+| `Theorems/Combinators.lean` | 339 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj`; `flip`, `app1`, `app2` |
+| `Theorems/Propositional/Core.lean` | 289 | LEM, DNE, RAA, `efq_neg`, `rcp`, `lce_imp`, `rce_imp` |
+| `Theorems/Propositional/Connectives.lean` | 536 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
+| `Theorems/BigConj.lean` | 142 | `BigConj` syntax and derivability lemmas |
+| `Theorems/Modal/Basic.lean` | 203 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
+| `Theorems/Modal/S5.lean` | 533 | S5-level: Axiom 5 derivation, collapse theorems; abbreviation refactoring reduced duplicated `abbrev`s |
+| `Theorems/Temporal/TemporalDerived.lean` | 292 | Temporal operator lemmas |
 | `Theorems/Temporal/FrameConditions.lean` | 90 | Frame condition marker typeclasses |
-| `Metalogic/Consistency.lean` | 277 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
-| `Metalogic/DeductionHelpers.lean` | 119 | `HasHilbertTree` typeclass; `deductionAxiom`, `deductionImpSelf`, `deductionAssumptionOther`, `deductionMpUnderImp` generic helpers |
-| `Theorems.lean` | 47 | Barrel aggregator (with Propositional, Modal, and Temporal subsection docs) |
-| **Total** | **3,704** | |
+| `Metalogic/Consistency.lean` | 278 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
+| `Metalogic/DeductionHelpers.lean` | 120 | `HasHilbertTree` typeclass; `deductionAxiom`, `deductionImpSelf`, `deductionAssumptionOther`, `deductionMpUnderImp` generic helpers |
+| `Theorems.lean` | 48 | Barrel aggregator (with Propositional, Modal, and Temporal subsection docs) |
+
+### Logics/Propositional/ (8 files, 1,327 lines)
+
+| File | Lines | Role |
+|------|------:|------|
+| `Defs.lean` | 162 | `Proposition` inductive (`atom`/`bot`/`imp`), derived connectives, `Theory`, `IsIntuitionistic`/`IsClassical`, substitution monad |
+| `ProofSystem/Axioms.lean` | 55 | `PropositionalAxiom` inductive: `implyK`, `implyS`, `efq`, `peirce` |
+| `ProofSystem/Derivation.lean` | 147 | `DerivationTree` inductive proof witness, `Deriv` `Prop`-wrapper, height function |
+| `ProofSystem/Instances.lean` | 90 | `InferenceSystem`, `ModusPonens`, `HasAxiom*`, `PropositionalHilbert` instance registration |
+| `Metalogic/DeductionTheorem.lean` | 180 | Deduction theorem by structural induction on derivation height |
+| `Metalogic/MCS.lean` | 129 | `DerivationSystem` instantiation for propositional logic, MCS construction |
+| `NaturalDeduction/Basic.lean` | 345 | Standalone natural deduction system |
+| `NaturalDeduction/FromHilbert.lean` | 219 | ND wrappers over Hilbert: `impI`/`impE`/`botE`, cut, weakening, substitution |
+
+### Foundations/Data/ (1 file, 71 lines)
+
+| File | Lines | Role |
+|------|------:|------|
+| `ListHelpers.lean` | 71 | `removeAll` definition and supporting lemmas for deduction theorem files |
+
+### Total: 25 files, 5,120 lines
 
 ## Dependency Graph
 
@@ -104,10 +154,21 @@ InferenceSystem
                     |   +-- Theorems/Temporal/TemporalDerived
                     |       +-- Theorems/Temporal/FrameConditions
                     +-- Theorems/BigConj
-Metalogic/Consistency      (imports Connectives only; no ProofSystem dependency)
-Metalogic/DeductionHelpers (imports Connectives only; imported by all DeductionTheorem files)
-LogicalEquivalence         (imports InferenceSystem only)
-Theorems.lean              (barrel import of all Theorems/* submodules)
+Metalogic/Consistency        (imports Connectives only; no ProofSystem dependency)
+Metalogic/DeductionHelpers   (imports Connectives only; imported by all DeductionTheorem files)
+LogicalEquivalence           (imports InferenceSystem only)
+Theorems.lean                (barrel import of all Theorems/* submodules)
+
+Foundations/Data/ListHelpers  (imports Cslib.Init only)
+
+Logics/Propositional/Defs                      (imports Connectives)
+    +-- ProofSystem/Axioms                     (imports Defs)
+        +-- ProofSystem/Derivation             (imports Axioms + Metalogic/Consistency)
+            +-- ProofSystem/Instances          (imports Derivation + ProofSystem)
+    +-- Metalogic/DeductionTheorem             (imports Derivation + ListHelpers + DeductionHelpers)
+        +-- Metalogic/MCS                      (imports DeductionTheorem)
+        +-- NaturalDeduction/FromHilbert       (imports DeductionTheorem)
+    +-- NaturalDeduction/Basic                 (imports Defs)
 ```
 
 ## Embedding Relocation
@@ -131,21 +192,21 @@ These files are outside `Foundations/Logic/` scope but establish the dependency 
 
 ## Module Keyword Migration (Task 68)
 
-All 16 `Foundations/Logic/` files now use the Lean 4 `module` keyword:
+All files now use the Lean 4 `module` keyword:
 - Each file begins with `module` after the copyright header
 - All imports converted to `public import` for transitive visibility
 - All files wrapped in `@[expose] public section` for downstream accessibility
 - All files registered in `Cslib.lean` with `public import`
 
-This was required for Lean 4 module system compliance and ensures that the Foundations/Logic files compose correctly with the rest of the library.
+This was required for Lean 4 module system compliance and ensures that the files compose correctly with the rest of the library.
 
 ## Verification
 
-- `lake build` for all Foundations/Logic modules exits 0
-- `grep -rn "sorry" Cslib/Foundations/Logic/` returns zero hits
-- All 16 files have correct Apache 2.0 headers
-- All 16 files use the `module` keyword and are registered in `Cslib.lean`
-- CI validation suite passed: `lake shake`, `lake exe checkInitImports`, `lake lint`, `lake exe lint-style`, `lake exe mk_all --module`
+- `lake build` for all modules exits 0
+- `grep -rn "sorry"` across all 25 files returns zero hits
+- All 25 files have correct Apache 2.0 headers
+- All 25 files use the `module` keyword and are registered in `Cslib.lean`
+- CI validation suite passed: `lake test`, `lake shake`, `lake exe checkInitImports`, `lake lint`, `lake exe lint-style`, `lake exe mk_all --module`
 
 ## Known Issues
 
