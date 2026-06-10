@@ -99,11 +99,6 @@ theorem h_content_set_consistent {Omega : Set (Formula Atom)}
       (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ .serial_past trivial)) h_top
   exact mcs_not_mem_of_neg h_mcs h_H_bot h_p_top
 
-/-! ## Reflexivity (sorry'd -- same issue as bimodal) -/
-
-theorem t_le_refl (w : TPoint Atom) : t_le w w := by
-  sorry
-
 /-! ## Transitivity -/
 
 theorem t_le_trans {w u v : TPoint Atom} (hwu : t_le w u) (huv : t_le u v) :
