@@ -138,7 +138,7 @@ next_project_number: 66
 
 ### 57. Improve theorem organization: move misplaced generic theorems to Foundations and eliminate concrete duplicates in Bimodal
 - **Effort**: Large
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: The theorem files have two organizational issues: (1) `Logics/Temporal/Theorems/TemporalDerived.lean` is generic over `[TemporalBXHilbert S]` typeclasses with no concrete types — it belongs in `Foundations/Logic/Theorems/Temporal/` alongside the Modal and Propositional foundations theorems. `FrameConditions.lean` is similarly generic (borderline). (2) Three files in `Bimodal/Theorems/` (`Combinators.lean`, `Propositional/Core.lean`, `Propositional/Connectives.lean`) re-prove ~600 lines of propositional/combinator theorems over concrete `DerivationTree` that already exist generically in `Foundations/Logic/Theorems/`. The `wrap`/`unwrap` bridge pattern in `Perpetuity/Helpers.lean` already shows how to call Foundations theorems from concrete bimodal context — the redundant files should be refactored to use this pattern. Actions: move misplaced generic files to Foundations, refactor concrete duplicates to use unwrap bridge, update all downstream imports, verify with `lake build`.
