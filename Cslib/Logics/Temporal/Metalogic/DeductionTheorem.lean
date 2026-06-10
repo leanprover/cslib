@@ -7,7 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Temporal.Metalogic.DerivationTree
-public import Cslib.Foundations.Logic.Helpers.ListHelpers
+public import Cslib.Foundations.Data.ListHelpers
 public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 
 /-! # Deduction Theorem for Temporal Logic BX

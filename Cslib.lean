@@ -58,6 +58,7 @@ public import Cslib.Foundations.Data.DecidableEqZero
 public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Data.ListHelpers
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
@@ -74,6 +75,7 @@ public import Cslib.Foundations.Logic.Connectives
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Metalogic.Consistency
+public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 public import Cslib.Foundations.Logic.ProofSystem
 public import Cslib.Foundations.Logic.Theorems
 public import Cslib.Foundations.Logic.Theorems.BigConj

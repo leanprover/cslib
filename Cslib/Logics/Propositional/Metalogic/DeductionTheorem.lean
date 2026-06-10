@@ -7,7 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Propositional.ProofSystem.Derivation
-public import Cslib.Foundations.Logic.Helpers.ListHelpers
+public import Cslib.Foundations.Data.ListHelpers
 public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 
 /-! # Deduction Theorem for Propositional Logic

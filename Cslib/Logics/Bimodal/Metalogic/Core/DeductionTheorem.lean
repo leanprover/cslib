@@ -7,7 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 public import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
 public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
-public import Cslib.Foundations.Logic.Helpers.ListHelpers
+public import Cslib.Foundations.Data.ListHelpers
 public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 
 /-!
