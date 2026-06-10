@@ -5,6 +5,7 @@ Authors: Benjamin Brast-McKie
 -/
 
 module
+public import Cslib.Init
 
 /-! # Shared List Helper Utilities
 

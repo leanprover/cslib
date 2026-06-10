@@ -5,6 +5,7 @@ Authors: Benjamin Brast-McKie
 -/
 
 module
+public import Cslib.Init
 public import Mathlib.Algebra.Order.Group.Defs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Data.Int.SuccPred
