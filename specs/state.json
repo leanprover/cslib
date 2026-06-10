@@ -4,10 +4,11 @@
     {
       "project_number": 85,
       "project_name": "include_propositional_in_pr1",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T20:00:45Z",
-      "last_updated": "2026-06-10T20:00:45Z"
+      "last_updated": "2026-06-10T20:53:20Z",
+      "completion_summary": "Added 6 new files, updated 2 modified files, and 1 transitive dependency (ListHelpers) from main to pr1/foundations-logic. Updated Cslib.lean with 7 new imports. Build passes (2739 jobs, 0 errors)."
     },
     {
       "project_number": 84,

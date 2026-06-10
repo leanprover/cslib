@@ -53,7 +53,7 @@ next_project_number: 86
 
 ### 85. Include Logics/Propositional/ changes in PR 1 feature branch
 - **Effort**: small
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: Add the 6 new files and 2 modified files from Cslib/Logics/Propositional/ to the pr1/foundations-logic branch: ProofSystem/Axioms.lean, ProofSystem/Derivation.lean, ProofSystem/Instances.lean, Metalogic/DeductionTheorem.lean, Metalogic/MCS.lean, NaturalDeduction/FromHilbert.lean (new), plus Defs.lean and NaturalDeduction/Basic.lean (modified). Also update Cslib.lean with the corresponding imports. Verify build, linters, and tests pass after adding.
