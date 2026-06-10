@@ -42,7 +42,6 @@ carrying `HasBot`, `HasImp`, and `HasBox` instances.
 
 namespace Cslib.Logic.Theorems.Modal.Basic
 
-set_option linter.unreachableTactic false
 
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators

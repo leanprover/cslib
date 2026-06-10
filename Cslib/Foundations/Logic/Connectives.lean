@@ -6,7 +6,7 @@ Authors: Benjamin Brast-McKie
 
 module
 
-import Cslib.Init
+public import Cslib.Init
 
 /-! # Connective Typeclasses for Composable Logics
 

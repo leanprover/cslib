@@ -41,7 +41,6 @@ encoding (Lukasiewicz style):
 
 namespace Cslib.Logic.Theorems.Propositional.Core
 
-set_option linter.unreachableTactic false
 
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators

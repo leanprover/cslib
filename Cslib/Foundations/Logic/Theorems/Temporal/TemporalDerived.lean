@@ -22,7 +22,6 @@ Convention (Burgess 1982): `untl φ₁ φ₂` = `φ₁ U φ₂` with `φ₁` as 
 @[expose] public section
 
 set_option linter.style.longLine false
-set_option linter.unreachableTactic false
 
 namespace Cslib.Logic.Theorems.Temporal.TemporalDerived
 
