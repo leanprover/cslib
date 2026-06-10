@@ -1,5 +1,5 @@
 ---
-next_project_number: 76
+next_project_number: 77
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 76
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,74 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,76 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
@@ -40,9 +40,21 @@ next_project_number: 76
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-74 [COMPLETED] — polish_pr1_quality_and_description
+
+### Uncategorized
+
+76 [NOT STARTED] — module_keyword_migration
 
 ## Tasks
+
+### 76. Add module keyword to all non-module files in Cslib.lean import tree
+- **Effort**: Large (8-16 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Add module keyword to all non-module files in Cslib.lean import tree. Task 74 phase (d) revealed that Cslib/Logics/Bimodal/FrameConditions/Compatibility.lean cannot be given the module keyword in isolation because Cslib.lean (which has module) imports 150+ non-module files. Fix by adding `module` keyword, `public import`, and `@[expose] public section` to all non-module .lean files imported (directly or transitively) from Cslib.lean, following the same pattern used in the task 68 migration of the 15 Foundations/Logic files. This unblocks top-level `lake build` from the "cannot import non-module from module" error.
+
+---
 
 ### 75. Develop propositional Hilbert proof system and derive natural deduction rules
 - **Effort**: Large (16-24 hours)
