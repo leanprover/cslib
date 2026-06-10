@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Proved extensional equivalence between Hilbert and ND proof systems via hilbert_iff_nd theorem",
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "complete",
+  "phases_completed": 4,
+  "phases_total": 4,
+  "artifacts": [
+    {
+      "path": "specs/087_derive_nd_from_hilbert/summaries/01_nd-hilbert-equivalence-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for ND-Hilbert extensional equivalence"
+    }
+  ]
+}
