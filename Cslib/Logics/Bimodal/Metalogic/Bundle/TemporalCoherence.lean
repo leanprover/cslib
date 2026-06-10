@@ -35,11 +35,6 @@ variable {Atom : Type*} {fc : FrameClass} {D : Type*} [Preorder D] [Zero D]
 
 /-! ## Temporal Duality Infrastructure -/
 
-private noncomputable def theorem_in_mcs_fc'' {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 noncomputable def G_dne_theorem (phi : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Formula.allFuture (Formula.neg (Formula.neg phi))).imp (Formula.allFuture phi)) := by
   have h_dne : DerivationTree FrameClass.Base [] ((Formula.neg (Formula.neg phi)).imp phi) :=
@@ -71,7 +66,7 @@ lemma neg_allFuture_to_someFuture_neg (M : Set (Formula Atom)) (h_mcs : SetMaxim
   have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.someFuture (Formula.neg phi)))).imp
                      (Formula.someFuture (Formula.neg phi))) :=
     (dne_theorem (Formula.someFuture (Formula.neg phi))).lift (FrameClass.base_le fc)
-  exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc'' h_mcs h_dne) h_neg_G
+  exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc h_mcs h_dne) h_neg_G
 
 lemma neg_allPast_to_somePast_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalConsistent fc M)
     (phi : Formula Atom) (h_neg_H : Formula.neg (Formula.allPast phi) ∈ M) :
@@ -82,13 +77,13 @@ lemma neg_allPast_to_somePast_neg (M : Set (Formula Atom)) (h_mcs : SetMaximalCo
   have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg (Formula.somePast (Formula.neg phi)))).imp
                      (Formula.somePast (Formula.neg phi))) :=
     (dne_theorem (Formula.somePast (Formula.neg phi))).lift (FrameClass.base_le fc)
-  exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc'' h_mcs h_dne) h_neg_H
+  exact SetMaximalConsistent.implication_property h_mcs (theorem_in_mcs_fc h_mcs h_dne) h_neg_H
 
 lemma SetMaximalConsistent.double_neg_elim {M : Set (Formula Atom)} (h_mcs : SetMaximalConsistent fc M)
     (phi : Formula Atom) (h_neg_neg : Formula.neg (Formula.neg phi) ∈ M) : phi ∈ M := by
   have h_dne : DerivationTree fc [] ((Formula.neg (Formula.neg phi)).imp phi) :=
     (dne_theorem phi).lift (FrameClass.base_le fc)
-  have h_thm_in_M : (Formula.neg (Formula.neg phi)).imp phi ∈ M := theorem_in_mcs_fc'' h_mcs h_dne
+  have h_thm_in_M : (Formula.neg (Formula.neg phi)).imp phi ∈ M := theorem_in_mcs_fc h_mcs h_dne
   exact SetMaximalConsistent.implication_property h_mcs h_thm_in_M h_neg_neg
 
 /-! ## TemporalCoherentFamily and Backward Lemmas -/

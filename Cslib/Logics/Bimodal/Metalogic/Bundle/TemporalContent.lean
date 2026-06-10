@@ -74,12 +74,6 @@ lemma mem_s_content_iff {M : Set (Formula Atom)} {p : Formula Atom × Formula At
 
 /-! ## Duality Lemmas -/
 
-/-- Helper: theorems are in any MCS (fc-parameterized version). -/
-private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Metalogic.Core.SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  Metalogic.Core.SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 open Metalogic.Core in
 /--
 Duality between f_content and g_content for MCS.

@@ -51,12 +51,6 @@ attribute [local instance] Classical.propDecidable
 
 variable {Atom : Type*}
 
-/-- Helper: theorems are in any MCS (fc-parameterized version). -/
-private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## Duality Helpers
 
 Since `someFuture`/`somePast` are no longer definitionally `neg(allFuture/allPast(neg _))`,

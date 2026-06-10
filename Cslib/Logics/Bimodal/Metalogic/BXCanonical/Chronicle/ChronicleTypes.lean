@@ -59,11 +59,6 @@ theorem mcs_to_base {fc : FrameClass} {A : Set (Formula Atom)}
     intro h_cons
     exact set_consistent_not_both h_cons phi (Set.mem_insert phi A) (Set.mem_insert_of_mem phi h_neg)
 
-private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## Deductively Closed Sets (DCS) -/
 
 /-- A set is closed under derivation. -/

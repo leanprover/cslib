@@ -38,13 +38,6 @@ attribute [local instance] Classical.propDecidable
 
 variable {Atom : Type*}
 
-/-! ## Helper -/
-
-private noncomputable def theorem_in_mcs_fc' {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## FC-Parametric Utility Lemmas -/
 
 /-- Lift a Base-level derivation to any frame class. -/
@@ -149,7 +142,7 @@ noncomputable def bx_modal_witness_fc {fc : FrameClass} {A : Set (Formula Atom)}
       have h_ax : DerivationTree fc [] ((Formula.box (Formula.bot : Formula Atom)).imp (Formula.bot : Formula Atom)) :=
         DerivationTree.axiom [] _ (Axiom.modal_t (Formula.bot : Formula Atom)) trivial
       have h_bot := SetMaximalConsistent.implication_property h_mcs
-        (theorem_in_mcs_fc' h_mcs h_ax) h_box_bot_in
+        (theorem_in_mcs_fc h_mcs h_ax) h_box_bot_in
       exact h_mcs.1 [(Formula.bot : Formula Atom)] (fun chi hchi => by simp at hchi; rw [hchi]; exact h_bot)
         ⟨DerivationTree.assumption [(Formula.bot : Formula Atom)] (Formula.bot : Formula Atom) (by simp)⟩
   obtain ⟨v, h_sub, h_v_mcs⟩ := set_lindenbaum_fc h_seed_cons
@@ -162,7 +155,7 @@ noncomputable def bx_modal_witness_fc {fc : FrameClass} {A : Set (Formula Atom)}
       have h_m4 : DerivationTree fc [] ((Formula.box chi).imp (Formula.box (Formula.box chi))) :=
         DerivationTree.axiom [] _ (Axiom.modal_4 chi) trivial
       have h_box_box := SetMaximalConsistent.implication_property h_mcs
-        (theorem_in_mcs_fc' h_mcs h_m4) h_box
+        (theorem_in_mcs_fc h_mcs h_m4) h_box
       exact h_bc_sub h_box_box
     · intro h_box_v
       by_contra h_not_box
@@ -173,7 +166,7 @@ noncomputable def bx_modal_witness_fc {fc : FrameClass} {A : Set (Formula Atom)}
       have h_m5 : DerivationTree fc [] ((Formula.box chi).neg.imp (Formula.box (Formula.box chi).neg)) :=
         liftBase fc (axiom_5_negative_introspection chi)
       have h_box_neg_box := SetMaximalConsistent.implication_property h_mcs
-        (theorem_in_mcs_fc' h_mcs h_m5) h_neg_box
+        (theorem_in_mcs_fc h_mcs h_m5) h_neg_box
       have h_neg_box_v : (Formula.box chi).neg ∈ v := h_bc_sub h_box_neg_box
       exact set_consistent_not_both h_v_mcs.1 (Formula.box chi) h_box_v h_neg_box_v
   exact ⟨v, h_v_mcs, h_box_equiv, h_psi_in⟩
@@ -397,21 +390,21 @@ theorem box_stable_in_int_chain (M0 : Set (Formula Atom)) (h0 : SetMaximalConsis
       · exact h
     have h_box_neg : Formula.box (Formula.box phi).neg ∈ M0 :=
       SetMaximalConsistent.implication_property h0
-        (theorem_in_mcs_fc' h0 (neg_box_to_box_neg_box phi)) h_neg_box_M0
+        (theorem_in_mcs_fc h0 (neg_box_to_box_neg_box phi)) h_neg_box_M0
     have h_box_neg_t : Formula.box (Formula.box phi).neg ∈ int_chain M0 h0 t := by
       rcases lt_trichotomy 0 t with h_pos | rfl | h_neg
       · exact int_chain_forward_G M0 h0 0 t _ h_pos
           (SetMaximalConsistent.implication_property h0
-            (theorem_in_mcs_fc' h0 (temp_future_derived (Formula.box phi).neg)) h_box_neg)
+            (theorem_in_mcs_fc h0 (temp_future_derived (Formula.box phi).neg)) h_box_neg)
       · rw [int_chain_zero]; exact h_box_neg
       · have h_box_box_neg := SetMaximalConsistent.implication_property h0
-            (theorem_in_mcs_fc' h0 (DerivationTree.axiom [] _ (Axiom.modal_4 (Formula.box phi).neg) trivial)) h_box_neg
+            (theorem_in_mcs_fc h0 (DerivationTree.axiom [] _ (Axiom.modal_4 (Formula.box phi).neg) trivial)) h_box_neg
         exact int_chain_backward_H M0 h0 0 t _ h_neg
           (SetMaximalConsistent.implication_property h0
-            (theorem_in_mcs_fc' h0 (Theorems.Perpetuity.box_to_past (Formula.box (Formula.box phi).neg))) h_box_box_neg)
+            (theorem_in_mcs_fc h0 (Theorems.Perpetuity.box_to_past (Formula.box (Formula.box phi).neg))) h_box_box_neg)
     have h_neg_box_t : (Formula.box phi).neg ∈ int_chain M0 h0 t :=
       SetMaximalConsistent.implication_property (int_chain_mcs M0 h0 t)
-        (theorem_in_mcs_fc' (int_chain_mcs M0 h0 t)
+        (theorem_in_mcs_fc (int_chain_mcs M0 h0 t)
           (DerivationTree.axiom [] _ (Axiom.modal_t (Formula.box phi).neg) trivial))
         h_box_neg_t
     exact set_consistent_not_both (int_chain_mcs M0 h0 t).1 (Formula.box phi) h_box_t h_neg_box_t
@@ -419,13 +412,13 @@ theorem box_stable_in_int_chain (M0 : Set (Formula Atom)) (h0 : SetMaximalConsis
     rcases lt_trichotomy 0 t with h_pos | rfl | h_neg
     · exact int_chain_forward_G M0 h0 0 t _ h_pos
         (SetMaximalConsistent.implication_property h0
-          (theorem_in_mcs_fc' h0 (temp_future_derived phi)) h_box_M0)
+          (theorem_in_mcs_fc h0 (temp_future_derived phi)) h_box_M0)
     · rw [int_chain_zero]; exact h_box_M0
     · have h_box_box := SetMaximalConsistent.implication_property h0
-          (theorem_in_mcs_fc' h0 (DerivationTree.axiom [] _ (Axiom.modal_4 phi) trivial)) h_box_M0
+          (theorem_in_mcs_fc h0 (DerivationTree.axiom [] _ (Axiom.modal_4 phi) trivial)) h_box_M0
       exact int_chain_backward_H M0 h0 0 t _ h_neg
         (SetMaximalConsistent.implication_property h0
-          (theorem_in_mcs_fc' h0 (Theorems.Perpetuity.box_to_past (Formula.box phi))) h_box_box)
+          (theorem_in_mcs_fc h0 (Theorems.Perpetuity.box_to_past (Formula.box phi))) h_box_box)
 
 theorem box_stable_in_shifted_fmcs (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent FrameClass.Base M0)
     (phi : Formula Atom) (s t : Int) :
@@ -438,10 +431,10 @@ theorem g_content_fc_consistent {fc : FrameClass} {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc M) :
     SetConsistent fc (g_content M) := by
   have h_top : (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
-    theorem_in_mcs_fc' h_mcs (identity (Formula.bot : Formula Atom))
+    theorem_in_mcs_fc h_mcs (identity (Formula.bot : Formula Atom))
   have h_F_top : Formula.someFuture (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
     SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs_fc' h_mcs (DerivationTree.axiom [] _ Axiom.serial_future trivial)) h_top
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ Axiom.serial_future trivial)) h_top
   have h_seed := forward_temporal_witness_seed_consistent M h_mcs _ h_F_top
   intro L hL ⟨d⟩
   exact h_seed L (fun x hx => g_content_subset_forward_temporal_witness_seed M _ (hL x hx)) ⟨d⟩
@@ -450,10 +443,10 @@ theorem h_content_fc_consistent {fc : FrameClass} {M : Set (Formula Atom)}
     (h_mcs : SetMaximalConsistent fc M) :
     SetConsistent fc (h_content M) := by
   have h_top : (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
-    theorem_in_mcs_fc' h_mcs (identity (Formula.bot : Formula Atom))
+    theorem_in_mcs_fc h_mcs (identity (Formula.bot : Formula Atom))
   have h_P_top : Formula.somePast (Formula.bot.imp (Formula.bot : Formula Atom)) ∈ M :=
     SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs_fc' h_mcs (DerivationTree.axiom [] _ Axiom.serial_past trivial)) h_top
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ Axiom.serial_past trivial)) h_top
   have h_seed := past_temporal_witness_seed_consistent M h_mcs _ h_P_top
   intro L hL ⟨d⟩
   exact h_seed L (fun x hx => h_content_subset_past_temporal_witness_seed M _ (hL x hx)) ⟨d⟩
@@ -686,33 +679,33 @@ theorem box_stable_in_int_chain_fc {fc : FrameClass}
       · exact absurd h h_not
       · exact h
     have h_box_neg := SetMaximalConsistent.implication_property h0
-      (theorem_in_mcs_fc' h0 (liftBase fc (neg_box_to_box_neg_box phi))) h_neg_box
+      (theorem_in_mcs_fc h0 (liftBase fc (neg_box_to_box_neg_box phi))) h_neg_box
     have h_box_neg_t : Formula.box (Formula.box phi).neg ∈ int_chain_fc (fc := fc) M0 h0 t := by
       rcases lt_trichotomy 0 t with h_pos | rfl | h_neg
       · exact int_chain_fc_forward_G M0 h0 0 t _ h_pos
           (SetMaximalConsistent.implication_property h0
-            (theorem_in_mcs_fc' h0 (liftBase fc (temp_future_derived (Formula.box phi).neg))) h_box_neg)
+            (theorem_in_mcs_fc h0 (liftBase fc (temp_future_derived (Formula.box phi).neg))) h_box_neg)
       · rw [int_chain_fc_zero]; exact h_box_neg
       · have h_bb := SetMaximalConsistent.implication_property h0
-            (theorem_in_mcs_fc' h0 (DerivationTree.axiom [] _ (Axiom.modal_4 (Formula.box phi).neg) trivial)) h_box_neg
+            (theorem_in_mcs_fc h0 (DerivationTree.axiom [] _ (Axiom.modal_4 (Formula.box phi).neg) trivial)) h_box_neg
         exact int_chain_fc_backward_H M0 h0 0 t _ h_neg
           (SetMaximalConsistent.implication_property h0
-            (theorem_in_mcs_fc' h0 (liftBase fc (Theorems.Perpetuity.box_to_past (Formula.box (Formula.box phi).neg)))) h_bb)
+            (theorem_in_mcs_fc h0 (liftBase fc (Theorems.Perpetuity.box_to_past (Formula.box (Formula.box phi).neg)))) h_bb)
     have h_neg_box_t := SetMaximalConsistent.implication_property (int_chain_fc_mcs M0 h0 t)
-      (theorem_in_mcs_fc' (int_chain_fc_mcs M0 h0 t)
+      (theorem_in_mcs_fc (int_chain_fc_mcs M0 h0 t)
         (DerivationTree.axiom [] _ (Axiom.modal_t (Formula.box phi).neg) trivial)) h_box_neg_t
     exact set_consistent_not_both (int_chain_fc_mcs (fc := fc) M0 h0 t).1 (Formula.box phi) h_box_t h_neg_box_t
   · intro h_box
     rcases lt_trichotomy 0 t with h_pos | rfl | h_neg
     · exact int_chain_fc_forward_G M0 h0 0 t _ h_pos
         (SetMaximalConsistent.implication_property h0
-          (theorem_in_mcs_fc' h0 (liftBase fc (temp_future_derived phi))) h_box)
+          (theorem_in_mcs_fc h0 (liftBase fc (temp_future_derived phi))) h_box)
     · rw [int_chain_fc_zero]; exact h_box
     · have h_bb := SetMaximalConsistent.implication_property h0
-          (theorem_in_mcs_fc' h0 (DerivationTree.axiom [] _ (Axiom.modal_4 phi) trivial)) h_box
+          (theorem_in_mcs_fc h0 (DerivationTree.axiom [] _ (Axiom.modal_4 phi) trivial)) h_box
       exact int_chain_fc_backward_H M0 h0 0 t _ h_neg
         (SetMaximalConsistent.implication_property h0
-          (theorem_in_mcs_fc' h0 (liftBase fc (Theorems.Perpetuity.box_to_past (Formula.box phi)))) h_bb)
+          (theorem_in_mcs_fc h0 (liftBase fc (Theorems.Perpetuity.box_to_past (Formula.box phi)))) h_bb)
 
 theorem box_stable_in_shifted_fmcs_fc {fc : FrameClass}
     (M0 : Set (Formula Atom)) (h0 : SetMaximalConsistent fc M0)
@@ -740,7 +733,7 @@ noncomputable def henkin_bfmcs (fc : FrameClass) (A : Set (Formula Atom))
     have h_box_t' := (box_stable_in_shifted_fmcs_fc N' h_N' phi s' t).mpr h_box_N'
     exact SetMaximalConsistent.implication_property
       ((shifted_bx_fmcs_fc N' h_N' s').is_mcs t)
-      (theorem_in_mcs_fc' ((shifted_bx_fmcs_fc N' h_N' s').is_mcs t)
+      (theorem_in_mcs_fc ((shifted_bx_fmcs_fc N' h_N' s').is_mcs t)
         (DerivationTree.axiom [] _ (Axiom.modal_t phi) trivial)) h_box_t'
   modal_backward := by
     intro fam hfam phi t h_all

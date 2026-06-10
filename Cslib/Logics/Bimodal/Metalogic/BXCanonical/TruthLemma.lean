@@ -53,11 +53,6 @@ open Cslib.Logic.Bimodal.Metalogic.Bundle
 
 variable {Atom : Type*}
 
-private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent FrameClass.Base M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## MCS Truth Properties
 
 These lemmas establish the truth lemma at the MCS level, independent of

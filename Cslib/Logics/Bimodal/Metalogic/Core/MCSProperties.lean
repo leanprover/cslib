@@ -192,6 +192,18 @@ lemma SetMaximalConsistent.closed_under_derivation {fc : FrameClass}
     exact h_mcs.1 L' h_L'_in_Omega h_L'_incons
 
 /--
+Theorems (formulas derivable from empty context) belong to every MCS.
+
+This is the key convenience wrapper around `closed_under_derivation` with an empty
+context list, used throughout the metalogic modules. It eliminates the need for
+private local copies of the same pattern.
+-/
+noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
+    (h_mcs : SetMaximalConsistent fc M)
+    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
+  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
+
+/--
 Set-based MCS implication property: modus ponens is reflected in membership.
 
 If (phi -> psi) in Omega and phi in Omega for a SetMaximalConsistent Omega, then psi in Omega.

@@ -80,14 +80,6 @@ theorem set_lindenbaum_base {Omega : Set (Formula Atom)} (hOmega : SetConsistent
   obtain ⟨M, hSM, hM_mcs⟩ := bimodal_lindenbaum Omega hBimodal
   exact ⟨M, hSM, bimodalSetMCS_to_setMCS hM_mcs⟩
 
-/-! ## Helper -/
-
-/-- Helper: theorems are in any MCS (fc-parameterized version). -/
-private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-!
 ## Canonical Relations
 -/

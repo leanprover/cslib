@@ -29,13 +29,6 @@ open Cslib.Logic.Bimodal.Metalogic.BXCanonical.Filtration
 
 variable {Atom : Type*}
 
-/-! ## Helper -/
-
-private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent FrameClass.Base M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## BX12 at MCS level: F(ψ) → ⊤ U ψ -/
 
 theorem F_imp_top_until_mcs {w : BXPoint Atom} {ψ : Formula Atom}

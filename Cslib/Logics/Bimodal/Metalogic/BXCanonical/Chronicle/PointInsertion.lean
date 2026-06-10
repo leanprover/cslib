@@ -93,13 +93,6 @@ open Cslib.Logic.Bimodal.Theorems.Propositional
 open Cslib.Logic.Bimodal.Theorems.Combinators
 open Cslib.Logic.Bimodal.Theorems.TemporalDerived
 
-/-! ## Private Helper: theorem_in_mcs for SetMaximalConsistent fc -/
-
-private noncomputable def theorem_in_mcs {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## Helper: F(neg phi) from G(phi) not in A
 
 A common pattern: if G(φ) ∉ MCS A, then F(¬φ) ∈ A.
@@ -126,8 +119,8 @@ theorem F_neg_of_G_not (fc : FrameClass) {A : Set (Formula Atom)}
     have h_kd : DerivationTree fc [] ((φ.neg.neg.imp φ).allFuture.imp
         (φ.neg.neg.allFuture.imp φ.allFuture)) :=
       liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived φ.neg.neg φ)
-    have h1 := theorem_in_mcs h_mcs h_G_dne
-    have h2 := theorem_in_mcs h_mcs h_kd
+    have h1 := theorem_in_mcs_fc h_mcs h_G_dne
+    have h2 := theorem_in_mcs_fc h_mcs h_kd
     have h3 := SetMaximalConsistent.implication_property h_mcs h2 h1
     have h_Gφ := SetMaximalConsistent.implication_property h_mcs h3 h_G_nnφ
     exact absurd h_Gφ h_Gφ_not
@@ -148,8 +141,8 @@ theorem P_neg_of_H_not (fc : FrameClass) {A : Set (Formula Atom)}
     have h_kd : DerivationTree fc [] ((φ.neg.neg.imp φ).allPast.imp
         (φ.neg.neg.allPast.imp φ.allPast)) :=
       Cslib.Logic.Bimodal.Theorems.past_k_dist φ.neg.neg φ
-    have h1 := theorem_in_mcs h_mcs h_H_dne
-    have h2 := theorem_in_mcs h_mcs h_kd
+    have h1 := theorem_in_mcs_fc h_mcs h_H_dne
+    have h2 := theorem_in_mcs_fc h_mcs h_kd
     have h3 := SetMaximalConsistent.implication_property h_mcs h2 h1
     have h_Hφ := SetMaximalConsistent.implication_property h_mcs h3 h_H_nnφ
     exact absurd h_Hφ h_Hφ_not
@@ -166,7 +159,7 @@ theorem until_witness_seed_consistent (fc : FrameClass) {A : Set (Formula Atom)}
     have h_ax : DerivationTree fc [] ((Formula.untl β γ).imp (Formula.someFuture β)) :=
       DerivationTree.axiom [] _ (Axiom.until_F γ β) trivial
     exact SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs h_ax) h_until
+      (theorem_in_mcs_fc h_mcs h_ax) h_until
   exact forward_temporal_witness_seed_consistent A h_mcs β h_F_β
 
 /-- **Lemma 2.4** (adapted for strict semantics): Given MCS A with U(γ, β) ∈ A
@@ -193,7 +186,7 @@ noncomputable def lemma_2_4 (fc : FrameClass) {A : Set (Formula Atom)}
         (Formula.allFuture (Formula.somePast (Formula.untl β γ)))) :=
       DerivationTree.axiom [] _ (Axiom.connect_future (Formula.untl β γ)) trivial
     exact SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs h_ax) h_until
+      (theorem_in_mcs_fc h_mcs h_ax) h_until
   have h_P_until_C : Formula.somePast (Formula.untl β γ) ∈ C :=
     h_g_sub h_GP
   obtain ⟨B, h_B⟩ := burgessR3Maximal_from_g_content_sub fc h_mcs h_C_mcs h_g_sub
@@ -207,7 +200,7 @@ theorem until_F_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   have h_ax : DerivationTree fc [] ((Formula.untl β γ).imp (Formula.someFuture β)) :=
     DerivationTree.axiom [] _ (Axiom.until_F γ β) trivial
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_ax) h_until
+    (theorem_in_mcs_fc h_mcs h_ax) h_until
 
 /-- BX5 at MCS level: U(γ,β) ∈ A implies U(γ∧U(γ,β), β) ∈ A. -/
 theorem self_accum_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
@@ -218,7 +211,7 @@ theorem self_accum_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
       (Formula.untl β (Formula.and γ (Formula.untl β γ)))) :=
     DerivationTree.axiom [] _ (Axiom.self_accum_until γ β) trivial
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_ax) h_until
+    (theorem_in_mcs_fc h_mcs h_ax) h_until
 
 /-- BX5' at set-MCS level: snce(γ, β) ∈ A implies snce(γ ∧ snce(γ, β), β) ∈ A. -/
 theorem self_accum_since_mcs (fc : FrameClass) {A : Set (Formula Atom)}
@@ -229,7 +222,7 @@ theorem self_accum_since_mcs (fc : FrameClass) {A : Set (Formula Atom)}
       (Formula.snce β (Formula.and γ (Formula.snce β γ)))) :=
     DerivationTree.axiom [] _ (Axiom.self_accum_since γ β) trivial
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_ax) h_since
+    (theorem_in_mcs_fc h_mcs h_ax) h_since
 
 /-- BX4 at MCS level: φ ∈ A implies G(P(φ)) ∈ A. -/
 theorem connect_future_mcs (fc : FrameClass) {A : Set (Formula Atom)}
@@ -239,7 +232,7 @@ theorem connect_future_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   have h_ax : DerivationTree fc [] (φ.imp (Formula.allFuture (Formula.somePast φ))) :=
     DerivationTree.axiom [] _ (Axiom.connect_future φ) trivial
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_ax) h_φ
+    (theorem_in_mcs_fc h_mcs h_ax) h_φ
 
 /-- Conjunction introduction at MCS level. -/
 theorem conj_mcs (fc : FrameClass) {A : Set (Formula Atom)}
@@ -275,7 +268,7 @@ theorem linear_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   -- Apply BX7 axiom
   have h_bx7 := DerivationTree.axiom (fc := fc) [] _ (Axiom.linear_until φ ψ χ θ) trivial
   have h_disj := SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_bx7) h_conj
+    (theorem_in_mcs_fc h_mcs h_bx7) h_conj
   -- h_disj : (D1 ∨ D2) ∨ D3 ∈ A
   -- Case split on the outer disjunction
   rcases or_elim_mcs fc h_mcs h_disj with h12 | h3
@@ -298,7 +291,7 @@ theorem linear_since_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   have h_conj := conj_mcs fc h_mcs _ _ h_s1 h_s2
   have h_bx7 := DerivationTree.axiom (fc := fc) [] _ (Axiom.linear_since φ ψ χ θ) trivial
   have h_disj := SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_bx7) h_conj
+    (theorem_in_mcs_fc h_mcs h_bx7) h_conj
   rcases or_elim_mcs fc h_mcs h_disj with h12 | h3
   · rcases or_elim_mcs fc h_mcs h12 with h1 | h2
     · exact Or.inl h1
@@ -377,7 +370,7 @@ theorem conj_left_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     φ ∈ A := by
   have h_ax : DerivationTree fc [] ((Formula.and φ ψ).imp φ) := lce_imp φ ψ
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_ax) h_conj
+    (theorem_in_mcs_fc h_mcs h_ax) h_conj
 
 /-- Conjunction membership gives right component in MCS. -/
 theorem conj_right_mcs (fc : FrameClass) {A : Set (Formula Atom)}
@@ -386,7 +379,7 @@ theorem conj_right_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     ψ ∈ A := by
   have h_ax : DerivationTree fc [] ((Formula.and φ ψ).imp ψ) := rce_imp φ ψ
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_ax) h_conj
+    (theorem_in_mcs_fc h_mcs h_ax) h_conj
 
 /-! ## G/H Implies F/P (Seriality + BX3 + BX10/BX12) -/
 
@@ -399,26 +392,26 @@ theorem G_implies_F_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   have h_weak : DerivationTree fc [] (Formula.imp α (Formula.imp top α)) :=
     DerivationTree.axiom [] _ (Axiom.imp_s α top) trivial
   have h_G_top_α : Formula.allFuture (Formula.imp top α) ∈ A := by
-    have h1 := theorem_in_mcs h_mcs (DerivationTree.temporal_necessitation _ h_weak)
-    have h2 := theorem_in_mcs h_mcs
+    have h1 := theorem_in_mcs_fc h_mcs (DerivationTree.temporal_necessitation _ h_weak)
+    have h2 := theorem_in_mcs_fc h_mcs
       (liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived α (Formula.imp top α)))
     exact SetMaximalConsistent.implication_property h_mcs
       (SetMaximalConsistent.implication_property h_mcs h2 h1) h_G
   have h_top_in : top ∈ A :=
-    theorem_in_mcs h_mcs (Cslib.Logic.Bimodal.Theorems.Combinators.identity (Formula.bot : Formula Atom))
+    theorem_in_mcs_fc h_mcs (Cslib.Logic.Bimodal.Theorems.Combinators.identity (Formula.bot : Formula Atom))
   have h_F_top : Formula.someFuture top ∈ A :=
     SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ Axiom.serial_future trivial)) h_top_in
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ Axiom.serial_future trivial)) h_top_in
   have h_TUT : Formula.untl top top ∈ A :=
     SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.F_until_equiv top) trivial)) h_F_top
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ (Axiom.F_until_equiv top) trivial)) h_F_top
   have h_TUα : Formula.untl α top ∈ A := by
     have h1 := SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.right_mono_until top α top) trivial))
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ (Axiom.right_mono_until top α top) trivial))
       h_G_top_α
     exact SetMaximalConsistent.implication_property h_mcs h1 h_TUT
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.until_F top α) trivial)) h_TUα
+    (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ (Axiom.until_F top α) trivial)) h_TUα
 
 /-- In an MCS, H(α) implies P(α). Mirror of G_implies_F_mcs. -/
 theorem H_implies_P_mcs (fc : FrameClass) {A : Set (Formula Atom)}
@@ -429,25 +422,25 @@ theorem H_implies_P_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   have h_weak : DerivationTree fc [] (Formula.imp α (Formula.imp top α)) :=
     DerivationTree.axiom [] _ (Axiom.imp_s α top) trivial
   have h_H_top_α : Formula.allPast (Formula.imp top α) ∈ A := by
-    have h1 := theorem_in_mcs h_mcs (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_weak)
-    have h2 := theorem_in_mcs h_mcs (Cslib.Logic.Bimodal.Theorems.past_k_dist α (Formula.imp top α))
+    have h1 := theorem_in_mcs_fc h_mcs (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_weak)
+    have h2 := theorem_in_mcs_fc h_mcs (Cslib.Logic.Bimodal.Theorems.past_k_dist α (Formula.imp top α))
     exact SetMaximalConsistent.implication_property h_mcs
       (SetMaximalConsistent.implication_property h_mcs h2 h1) h_H
   have h_top_in : top ∈ A :=
-    theorem_in_mcs h_mcs (Cslib.Logic.Bimodal.Theorems.Combinators.identity (Formula.bot : Formula Atom))
+    theorem_in_mcs_fc h_mcs (Cslib.Logic.Bimodal.Theorems.Combinators.identity (Formula.bot : Formula Atom))
   have h_P_top : Formula.somePast top ∈ A :=
     SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ Axiom.serial_past trivial)) h_top_in
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ Axiom.serial_past trivial)) h_top_in
   have h_TST : Formula.snce top top ∈ A :=
     SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.P_since_equiv top) trivial)) h_P_top
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ (Axiom.P_since_equiv top) trivial)) h_P_top
   have h_TSα : Formula.snce α top ∈ A := by
     have h1 := SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.right_mono_since top α top) trivial))
+      (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ (Axiom.right_mono_since top α top) trivial))
       h_H_top_α
     exact SetMaximalConsistent.implication_property h_mcs h1 h_TST
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.since_P top α) trivial)) h_TSα
+    (theorem_in_mcs_fc h_mcs (DerivationTree.axiom [] _ (Axiom.since_P top α) trivial)) h_TSα
 
 /-- G-propagation seed consistency. -/
 theorem g_propagation_seed_consistent (fc : FrameClass) {A : Set (Formula Atom)}
@@ -717,20 +710,20 @@ theorem xu_lemma_2_3_since_top (fc : FrameClass) {A B C : Set (Formula Atom)}
   have h_bx4 : DerivationTree fc [] (alpha.imp (alpha.somePast.allFuture)) :=
     DerivationTree.axiom [] _ (Axiom.connect_future alpha) trivial
   have h_G_P_alpha : alpha.somePast.allFuture ∈ A :=
-    SetMaximalConsistent.implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_bx4) h_alpha
+    SetMaximalConsistent.implication_property h_mcs_A (theorem_in_mcs_fc h_mcs_A h_bx4) h_alpha
   -- BX12': P(alpha) → snce(alpha, top) (theorem)
   have h_bx12' : DerivationTree fc [] (alpha.somePast.imp (Formula.snce alpha top)) :=
     DerivationTree.axiom [] _ (Axiom.P_since_equiv alpha) trivial
   -- G(P(alpha) → snce(alpha, top)) via temporal necessitation
   have h_G_impl : (alpha.somePast.imp (Formula.snce alpha top)).allFuture ∈ A :=
-    theorem_in_mcs h_mcs_A (DerivationTree.temporal_necessitation _ h_bx12')
+    theorem_in_mcs_fc h_mcs_A (DerivationTree.temporal_necessitation _ h_bx12')
   -- G(P(alpha)) → G(snce(alpha, top)) via temporal K distribution
   have h_temp_k :=
     liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived alpha.somePast (Formula.snce alpha top))
   have h_G_snce : (Formula.snce alpha top).allFuture ∈ A :=
     SetMaximalConsistent.implication_property h_mcs_A
       (SetMaximalConsistent.implication_property h_mcs_A
-        (theorem_in_mcs h_mcs_A h_temp_k) h_G_impl)
+        (theorem_in_mcs_fc h_mcs_A h_temp_k) h_G_impl)
       h_G_P_alpha
   -- Step 3: Show both conditions for dc_delta_B_burgessR3
   -- Until condition: ∀ beta ∈ B, ∀ gamma ∈ C, untl(gamma, beta ∧ snce(alpha, top)) ∈ A
@@ -745,14 +738,14 @@ theorem xu_lemma_2_3_since_top (fc : FrameClass) {A B C : Set (Formula Atom)}
         ((Formula.snce alpha top).imp (beta.imp (Formula.and beta (Formula.snce alpha top)))) :=
       mp (pairing beta (Formula.snce alpha top)) theorem_flip
     -- G(snce → (beta → beta ∧ snce)) via temporal necessitation
-    have h_G_flip := theorem_in_mcs h_mcs_A (DerivationTree.temporal_necessitation _ h_flip)
+    have h_G_flip := theorem_in_mcs_fc h_mcs_A (DerivationTree.temporal_necessitation _ h_flip)
     -- G(snce) → G(beta → beta ∧ snce) via temporal K distribution
     have h_temp_k2 :=
       liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived (Formula.snce alpha top) (beta.imp (Formula.and beta (Formula.snce alpha top))))
     have h_G_guard_str : (beta.imp (Formula.and beta (Formula.snce alpha top))).allFuture ∈ A :=
       SetMaximalConsistent.implication_property h_mcs_A
         (SetMaximalConsistent.implication_property h_mcs_A
-          (theorem_in_mcs h_mcs_A h_temp_k2) h_G_flip)
+          (theorem_in_mcs_fc h_mcs_A h_temp_k2) h_G_flip)
         h_G_snce
     -- left_mono_until_G: G(beta → beta ∧ snce) → untl(gamma, beta) → untl(gamma, beta ∧ snce)
     exact untl_left_mono_G fc h_mcs_A h_G_guard_str h_untl
@@ -788,19 +781,19 @@ theorem xu_lemma_2_3_until_top (fc : FrameClass) {A B C : Set (Formula Atom)}
   have h_bx4' : DerivationTree fc [] (gamma.imp (gamma.someFuture.allPast)) :=
     DerivationTree.axiom [] _ (Axiom.connect_past gamma) trivial
   have h_H_F_gamma : gamma.someFuture.allPast ∈ C :=
-    SetMaximalConsistent.implication_property h_mcs_C (theorem_in_mcs h_mcs_C h_bx4') h_gamma
+    SetMaximalConsistent.implication_property h_mcs_C (theorem_in_mcs_fc h_mcs_C h_bx4') h_gamma
   -- BX12: F(gamma) → untl(gamma, top) (theorem)
   have h_bx12 : DerivationTree fc [] (gamma.someFuture.imp (Formula.untl gamma top)) :=
     DerivationTree.axiom [] _ (Axiom.F_until_equiv gamma) trivial
   -- H(F(gamma) → untl(gamma, top)) via past necessitation
   have h_H_impl : (gamma.someFuture.imp (Formula.untl gamma top)).allPast ∈ C :=
-    theorem_in_mcs h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_bx12)
+    theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_bx12)
   -- H(F(gamma)) → H(untl(gamma, top)) via past K distribution
   have h_past_k : DerivationTree fc [] _ := Cslib.Logic.Bimodal.Theorems.past_k_dist gamma.someFuture (Formula.untl gamma top)
   have h_H_untl : (Formula.untl gamma top).allPast ∈ C :=
     SetMaximalConsistent.implication_property h_mcs_C
       (SetMaximalConsistent.implication_property h_mcs_C
-        (theorem_in_mcs h_mcs_C h_past_k) h_H_impl)
+        (theorem_in_mcs_fc h_mcs_C h_past_k) h_H_impl)
       h_H_F_gamma
   -- Step 3: Since condition: ∀ beta ∈ B, ∀ alpha ∈ A, snce(alpha, beta ∧ untl(gamma, top)) ∈ C
   have h_since_all : ∀ beta ∈ B, ∀ alpha ∈ A,
@@ -812,14 +805,14 @@ theorem xu_lemma_2_3_until_top (fc : FrameClass) {A B C : Set (Formula Atom)}
         ((Formula.untl gamma top).imp (beta.imp (Formula.and beta (Formula.untl gamma top)))) :=
       mp (pairing beta (Formula.untl gamma top)) theorem_flip
     -- H(untl(gamma,top) → (beta → beta ∧ untl(gamma,top))) via past necessitation
-    have h_H_flip := theorem_in_mcs h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_flip)
+    have h_H_flip := theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_flip)
     -- H(untl(gamma,top)) → H(beta → beta ∧ untl(gamma,top)) via past K
     have h_past_k2 : DerivationTree fc [] _ := Cslib.Logic.Bimodal.Theorems.past_k_dist
       (Formula.untl gamma top) (beta.imp (Formula.and beta (Formula.untl gamma top)))
     have h_H_guard_str : (beta.imp (Formula.and beta (Formula.untl gamma top))).allPast ∈ C :=
       SetMaximalConsistent.implication_property h_mcs_C
         (SetMaximalConsistent.implication_property h_mcs_C
-          (theorem_in_mcs h_mcs_C h_past_k2) h_H_flip)
+          (theorem_in_mcs_fc h_mcs_C h_past_k2) h_H_flip)
         h_H_untl
     -- left_mono_since_H: H(beta → beta ∧ untl) → snce(alpha, beta) → snce(alpha, beta ∧ untl)
     exact snce_left_mono_H fc h_mcs_C h_H_guard_str h_snce
@@ -873,8 +866,8 @@ private theorem G_ex_falso_strengthen (fc : FrameClass) {A : Set (Formula Atom)}
   have d_ef := ex_falso_from_assumption fc φ ψ
   exact SetMaximalConsistent.implication_property h_mcs_A
     (SetMaximalConsistent.implication_property h_mcs_A
-      (theorem_in_mcs h_mcs_A (liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived φ (φ.neg.imp ψ))))
-      (theorem_in_mcs h_mcs_A (DerivationTree.temporal_necessitation _ d_ef)))
+      (theorem_in_mcs_fc h_mcs_A (liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived φ (φ.neg.imp ψ))))
+      (theorem_in_mcs_fc h_mcs_A (DerivationTree.temporal_necessitation _ d_ef)))
     h_Gφ
 
 /-- Helper: H(ψ.neg → χ) ∈ C from H(ψ) ∈ C, using ex_falso_from_assumption + past_necessitation + past_k_dist. -/
@@ -885,8 +878,8 @@ private theorem H_ex_falso_strengthen (fc : FrameClass) {C : Set (Formula Atom)}
   have d_ef := ex_falso_from_assumption fc ψ χ
   exact SetMaximalConsistent.implication_property h_mcs_C
     (SetMaximalConsistent.implication_property h_mcs_C
-      (theorem_in_mcs h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_k_dist ψ (ψ.neg.imp χ)))
-      (theorem_in_mcs h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ d_ef)))
+      (theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_k_dist ψ (ψ.neg.imp χ)))
+      (theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _ d_ef)))
     h_Hψ
 
 /-- When {φ} ∪ B is inconsistent with DCS B, we have φ.neg ∈ B.
@@ -1031,7 +1024,7 @@ private theorem h_content_sub_imp_g_content_sub' (fc : FrameClass) {A B : Set (F
     DerivationTree.axiom [] _ (Axiom.connect_past ψ.neg) trivial
   have h_HF : Formula.allPast (Formula.someFuture ψ.neg) ∈ B :=
     SetMaximalConsistent.implication_property h_mcs_B
-      (theorem_in_mcs h_mcs_B h_ax) h_neg_ψ
+      (theorem_in_mcs_fc h_mcs_B h_ax) h_neg_ψ
   have h_F_neg_ψ_A : Formula.someFuture ψ.neg ∈ A := h_hBA h_HF
   -- G(¬¬ψ) ∈ A from G(ψ) via DNI under G
   have h_dni : DerivationTree fc [] (ψ.imp ψ.neg.neg) :=
@@ -1042,8 +1035,8 @@ private theorem h_content_sub_imp_g_content_sub' (fc : FrameClass) {A B : Set (F
       (Formula.allFuture ψ |>.imp (Formula.allFuture ψ.neg.neg))) :=
     liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived ψ ψ.neg.neg)
   have h_G_nn : Formula.allFuture ψ.neg.neg ∈ A := by
-    have h1 := theorem_in_mcs h_mcs_A h_G_dni
-    have h2 := theorem_in_mcs h_mcs_A h_G_dist
+    have h1 := theorem_in_mcs_fc h_mcs_A h_G_dni
+    have h2 := theorem_in_mcs_fc h_mcs_A h_G_dist
     have h3 := SetMaximalConsistent.implication_property h_mcs_A h2 h1
     exact SetMaximalConsistent.implication_property h_mcs_A h3 hψ
   -- F(¬ψ) and G(¬¬ψ) = G(neg(ψ.neg)) are contradictory
@@ -1072,8 +1065,8 @@ private theorem g_content_sub_imp_h_content_sub' (fc : FrameClass) {A B : Set (F
       (Formula.allPast ψ |>.imp (Formula.allPast ψ.neg.neg))) :=
     Cslib.Logic.Bimodal.Theorems.past_k_dist ψ ψ.neg.neg
   have h_H_nn : Formula.allPast ψ.neg.neg ∈ B := by
-    have h1 := theorem_in_mcs h_mcs_B h_H_dni
-    have h2 := theorem_in_mcs h_mcs_B h_H_dist
+    have h1 := theorem_in_mcs_fc h_mcs_B h_H_dni
+    have h2 := theorem_in_mcs_fc h_mcs_B h_H_dist
     have h3 := SetMaximalConsistent.implication_property h_mcs_B h2 h1
     exact SetMaximalConsistent.implication_property h_mcs_B h3 hψ
   exact somePast_allPast_neg_absurd h_mcs_B ψ.neg h_P_neg_ψ_B h_H_nn
@@ -1132,12 +1125,12 @@ private theorem right_mono_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
     Formula.untl χ φ ∈ A := by
   -- G(ψ → χ) ∈ A from temporal necessitation
   have h_G_impl : Formula.allFuture (ψ.imp χ) ∈ A :=
-    theorem_in_mcs h_mcs (DerivationTree.temporal_necessitation _ h_impl)
+    theorem_in_mcs_fc h_mcs (DerivationTree.temporal_necessitation _ h_impl)
   -- BX3: G(ψ → χ) → U(φ, ψ) → U(φ, χ)
   have h_bx3 := DerivationTree.axiom (fc := fc) [] _ (Axiom.right_mono_until ψ χ φ) trivial
   exact SetMaximalConsistent.implication_property h_mcs
     (SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs h_bx3) h_G_impl) h_untl
+      (theorem_in_mcs_fc h_mcs h_bx3) h_G_impl) h_untl
 
 /-- Right monotonicity for Since at MCS level: if ⊢ ψ→χ and S(φ,ψ) ∈ C, then S(φ,χ) ∈ C. -/
 private theorem right_mono_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
@@ -1146,11 +1139,11 @@ private theorem right_mono_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
     (h_snce : Formula.snce ψ φ ∈ C) :
     Formula.snce χ φ ∈ C := by
   have h_H_impl : Formula.allPast (ψ.imp χ) ∈ C :=
-    theorem_in_mcs h_mcs (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_impl)
+    theorem_in_mcs_fc h_mcs (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_impl)
   have h_bx3' := DerivationTree.axiom (fc := fc) [] _ (Axiom.right_mono_since ψ χ φ) trivial
   exact SetMaximalConsistent.implication_property h_mcs
     (SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs h_bx3') h_H_impl) h_snce
+      (theorem_in_mcs_fc h_mcs h_bx3') h_H_impl) h_snce
 
 /-! ## Lemma 2.7 Helpers and Implementation -/
 
@@ -1164,7 +1157,7 @@ private theorem enrichment_until_mcs (fc : FrameClass) {A : Set (Formula Atom)}
   have h_conj := conj_mcs fc h_mcs p (Formula.untl psi phi) h_p h_untl
   have h_bx13 := DerivationTree.axiom (fc := fc) [] _ (Axiom.enrichment_until phi psi p) trivial
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_bx13) h_conj
+    (theorem_in_mcs_fc h_mcs h_bx13) h_conj
 
 /-- BX10 (until_F) at MCS level: If untl(phi, psi) ∈ A, then F(psi) ∈ A.
 Alias for `until_F_mcs` for local use. -/
@@ -1202,9 +1195,9 @@ private theorem F_mono_mcs (fc : FrameClass) {A : Set (Formula Atom)}
         (DerivationTree.assumption _ psi.neg (by simp)) h1
     have h3 := deduction_theorem [psi.neg] phi Formula.bot h2
     exact deduction_theorem [] psi.neg phi.neg h3
-  have h_G_contra := theorem_in_mcs h_mcs
+  have h_G_contra := theorem_in_mcs_fc h_mcs
     (DerivationTree.temporal_necessitation _ h_contra)
-  have h_kd := theorem_in_mcs h_mcs
+  have h_kd := theorem_in_mcs_fc h_mcs
     (liftBase fc (Cslib.Logic.Bimodal.Theorems.TemporalDerived.temp_k_dist_derived psi.neg phi.neg))
   have h_G_neg_phi : Formula.allFuture phi.neg ∈ A :=
     SetMaximalConsistent.implication_property h_mcs
@@ -1306,7 +1299,7 @@ private theorem list_conj_mem_dcs (fc : FrameClass) {B : Set (Formula Atom)} (h_
 /-- If A is MCS and all elements of L are in A, then list_conj L ∈ A. -/
 private theorem list_conj_mem_mcs (fc : FrameClass) {A : Set (Formula Atom)} (h_mcs : SetMaximalConsistent fc A) :
     (L : List (Formula Atom)) → (h : ∀ φ ∈ L, φ ∈ A) → list_conj fc L ∈ A
-  | [], _ => theorem_in_mcs h_mcs (identity (Formula.bot : Formula Atom))
+  | [], _ => theorem_in_mcs_fc h_mcs (identity (Formula.bot : Formula Atom))
   | [φ], h => by simp [list_conj]; exact h φ (List.mem_singleton.mpr rfl)
   | (φ₁ :: φ₂ :: rest), h => by
     simp [list_conj]
@@ -1378,7 +1371,7 @@ private theorem enrichment_since_mcs (fc : FrameClass) {C : Set (Formula Atom)}
   have h_conj := conj_mcs fc h_mcs p (Formula.snce psi phi) h_p h_snce
   have h_bx13 := DerivationTree.axiom (fc := fc) [] _ (Axiom.enrichment_since phi psi p) trivial
   exact SetMaximalConsistent.implication_property h_mcs
-    (theorem_in_mcs h_mcs h_bx13) h_conj
+    (theorem_in_mcs_fc h_mcs h_bx13) h_conj
 
 /-- BX10' (since_P) at MCS level: If snce(phi, psi) ∈ C, then P(psi) ∈ C. -/
 private theorem since_implies_P_mcs (fc : FrameClass) {C : Set (Formula Atom)}
@@ -1417,9 +1410,9 @@ private theorem P_mono_mcs (fc : FrameClass) {C : Set (Formula Atom)}
         (DerivationTree.assumption _ psi.neg (by simp)) h1
     have h3 := deduction_theorem [psi.neg] phi Formula.bot h2
     exact deduction_theorem [] psi.neg phi.neg h3
-  have h_H_contra := theorem_in_mcs h_mcs
+  have h_H_contra := theorem_in_mcs_fc h_mcs
     (Cslib.Logic.Bimodal.Theorems.past_necessitation _ h_contra)
-  have h_kd := theorem_in_mcs h_mcs
+  have h_kd := theorem_in_mcs_fc h_mcs
     (Cslib.Logic.Bimodal.Theorems.past_k_dist psi.neg phi.neg)
   have h_H_neg_phi : Formula.allPast phi.neg ∈ C :=
     SetMaximalConsistent.implication_property h_mcs
@@ -2443,7 +2436,7 @@ private theorem lemma_2_8_seed_consistent (fc : FrameClass) {A B C : Set (Formul
       have h_F_bot := F_mono_mcs fc h_mcs_A h_event_to_bot
         (until_implies_F_mcs fc h_mcs_A h_D1)
       have h_G_top : Formula.allFuture (Formula.bot.imp Formula.bot) ∈ A :=
-        theorem_in_mcs h_mcs_A (DerivationTree.temporal_necessitation _
+        theorem_in_mcs_fc h_mcs_A (DerivationTree.temporal_necessitation _
           (identity (Formula.bot : Formula Atom)))
       exact someFuture_allFuture_neg_absurd h_mcs_A Formula.bot h_F_bot h_G_top
     · exfalso
@@ -2462,7 +2455,7 @@ private theorem lemma_2_8_seed_consistent (fc : FrameClass) {A B C : Set (Formul
       have h_F_bot := F_mono_mcs fc h_mcs_A h_event_to_bot
         (until_implies_F_mcs fc h_mcs_A h_D2)
       have h_G_top : Formula.allFuture (Formula.bot.imp Formula.bot) ∈ A :=
-        theorem_in_mcs h_mcs_A (DerivationTree.temporal_necessitation _
+        theorem_in_mcs_fc h_mcs_A (DerivationTree.temporal_necessitation _
           (identity (Formula.bot : Formula Atom)))
       exact someFuture_allFuture_neg_absurd h_mcs_A Formula.bot h_F_bot h_G_top
     · exact h_D3
@@ -3113,7 +3106,7 @@ private theorem lemma_2_8_since_seed_consistent (fc : FrameClass) {A B C : Set (
       have h_P_bot := P_mono_mcs fc h_mcs_C h_event_to_bot
         (since_implies_P_mcs fc h_mcs_C h_D1)
       have h_H_top : Formula.allPast (Formula.bot.imp Formula.bot) ∈ C :=
-        theorem_in_mcs h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _
+        theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _
           (identity (Formula.bot : Formula Atom)))
       exact somePast_allPast_neg_absurd h_mcs_C Formula.bot h_P_bot h_H_top
     · exfalso
@@ -3132,7 +3125,7 @@ private theorem lemma_2_8_since_seed_consistent (fc : FrameClass) {A B C : Set (
       have h_P_bot := P_mono_mcs fc h_mcs_C h_event_to_bot
         (since_implies_P_mcs fc h_mcs_C h_D2)
       have h_H_top : Formula.allPast (Formula.bot.imp Formula.bot) ∈ C :=
-        theorem_in_mcs h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _
+        theorem_in_mcs_fc h_mcs_C (Cslib.Logic.Bimodal.Theorems.past_necessitation _
           (identity (Formula.bot : Formula Atom)))
       exact somePast_allPast_neg_absurd h_mcs_C Formula.bot h_P_bot h_H_top
     · exact h_D3
@@ -3389,7 +3382,7 @@ noncomputable def lemma_2_4_with_guard (fc : FrameClass) {A : Set (Formula Atom)
         (Formula.allFuture (Formula.somePast (Formula.untl β γ)))) :=
       DerivationTree.axiom [] _ (Axiom.connect_future (Formula.untl β γ)) trivial
     exact SetMaximalConsistent.implication_property h_mcs
-      (theorem_in_mcs h_mcs h_ax) h_until
+      (theorem_in_mcs_fc h_mcs h_ax) h_until
   have h_P_until_C : Formula.somePast (Formula.untl β γ) ∈ C := h_g_sub h_GP
   -- snce(γ, α) ∈ C for all α ∈ A (from Since-obligation part of enriched seed)
   have h_burgessRSince : burgessRSince C γ A := by

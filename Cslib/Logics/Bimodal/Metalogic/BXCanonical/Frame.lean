@@ -86,11 +86,6 @@ noncomputable def h_content_closed_derivation {Omega : Set (Formula Atom)} {φ :
 
 /-! ## g_content / h_content Set Consistent -/
 
-private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent FrameClass.Base M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 theorem g_content_set_consistent {Omega : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Omega) :
     SetConsistent FrameClass.Base (g_content Omega) := by
   intro L hL ⟨d⟩

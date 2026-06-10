@@ -74,12 +74,6 @@ open Cslib.Logic.Bimodal.Metalogic.BXCanonical
 open Cslib.Logic.Bimodal.Metalogic.BXCanonical.CanonicalModel
 open Classical
 
-/-- Local bridge: derive membership in an MCS from a derivation at `fc` level. -/
-private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## Limit Domain Properties
 
 The subtype `{q : Rat // q ∈ limit_dom fc A h_mcs}` inherits `LinearOrder` from `Rat`.

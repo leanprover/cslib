@@ -32,11 +32,6 @@ open Cslib.Logic.Bimodal.Metalogic.Algebraic.ParametricHistory
 
 variable {Atom : Type} {fc : FrameClass} {D : Type*} [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
 
-private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-- The D-parametric canonical task model: valuation is MCS membership. -/
 def ParametricCanonicalTaskModel : TaskModel Atom (ParametricCanonicalTaskFrame (Atom := Atom) (fc := fc) (D := D)) where
   valuation := fun M p => Formula.atom p ∈ M.val

@@ -30,11 +30,6 @@ open Cslib.Logic.Bimodal.Theorems.Combinators
 
 variable {Atom : Type*}
 
-private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent FrameClass.Base M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-- The enriched resolving seed: {psi, alpha} union g_content(M). -/
 def enriched_resolving_seed (M : Set (Formula Atom)) (ψ α : Formula Atom) : Set (Formula Atom) :=
   {ψ, α} ∪ g_content M

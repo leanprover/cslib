@@ -50,11 +50,6 @@ theorem sigma_defect_count_bounded (w : BXPoint Atom) (Sigma : Finset (Formula A
 
 /-! ## Defect Step Properties -/
 
-private noncomputable def theorem_in_mcs_fc {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent FrameClass.Base M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 theorem defect_step_F_psi {w : BXPoint Atom} {φ ψ : Formula Atom}
     (h_until : Formula.untl ψ φ ∈ w.formulas) :
     Formula.someFuture ψ ∈ w.formulas := by

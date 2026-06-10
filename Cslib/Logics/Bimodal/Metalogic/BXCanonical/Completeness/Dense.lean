@@ -47,12 +47,6 @@ open Cslib.Logic.Bimodal.Metalogic.Bundle
 open Cslib.Logic.Bimodal.Metalogic.BXCanonical.CanonicalModel
 open Cslib.Logic.Bimodal.Theorems.Propositional
 
-/-- Local bridge: derive membership in an MCS from a derivation at `fc` level. -/
-private noncomputable def theorem_in_mcs_fc {fc : FrameClass} {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : SetMaximalConsistent fc M)
-    (h_deriv : DerivationTree fc [] phi) : phi ∈ M :=
-  SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) h_deriv
-
 /-! ## Consistency of {¬φ} When φ Is Not Derivable -/
 
 /--
