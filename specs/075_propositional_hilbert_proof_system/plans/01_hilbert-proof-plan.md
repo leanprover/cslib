@@ -110,12 +110,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Instance Registration [NOT STARTED]
+### Phase 2: Instance Registration [COMPLETED]
 
 **Goal**: Register `InferenceSystem`, `ModusPonens`, and all `HasAxiom*` instances for `Propositional.HilbertCl`, enabling all generic Foundations theorems.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Propositional/ProofSystem/Instances.lean`
+- [x] Create `Cslib/Logics/Propositional/ProofSystem/Instances.lean`
   - Import `Cslib.Logics.Propositional.ProofSystem.Derivation` and `Cslib.Foundations.Logic.ProofSystem`
   - Register `InferenceSystem Propositional.HilbertCl (PL.Proposition Atom)` mapping tag to `DerivationTree [] phi`
   - Register `ModusPonens Propositional.HilbertCl` via constructing `DerivationTree` from two derivations using `modus_ponens`
@@ -124,8 +124,8 @@ Phases within the same wave can execute in parallel.
   - Register `HasAxiomEFQ Propositional.HilbertCl` via `DerivationTree.ax [] _ (.efq phi)`
   - Register `HasAxiomPeirce Propositional.HilbertCl` via `DerivationTree.ax [] _ (.peirce phi psi)`
   - Register `PropositionalHilbert Propositional.HilbertCl` (auto-synthesized from above)
-- [ ] Verify that generic theorems from `Foundations/Logic/Theorems/Combinators.lean` and `Foundations/Logic/Theorems/Propositional/Core.lean` are now available for `Propositional.HilbertCl`
-  - Add a brief `#check` or `example` confirming `imp_trans` works at this tag type
+- [x] Verify that generic theorems from `Foundations/Logic/Theorems/Combinators.lean` and `Foundations/Logic/Theorems/Propositional/Core.lean` are now available for `Propositional.HilbertCl`
+  - Add a brief `#check` or `example` confirming `imp_trans` works at this tag type *(deviation: altered -- verified via lean_hover_info that PropositionalHilbert synthesizes; no in-file #check added to avoid non-essential code)*
 
 **Timing**: 1.5 hours
 
