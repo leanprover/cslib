@@ -38,7 +38,7 @@ next_project_number: 66
 
 ### Submit PRs
 
-58 [PLANNED] — ci_prep_sorry_fix_baseline
+58 [COMPLETED] — ci_prep_sorry_fix_baseline
   └─ 59 [NOT STARTED] — pr1_foundations_logic
     └─ 60 [NOT STARTED] — pr2_modal_metalogic
     └─ 61 [NOT STARTED] — pr3_temporal_proof_system
@@ -132,11 +132,12 @@ next_project_number: 66
 
 ### 58. CI prep: sorry fix and global CI baseline
 - **Effort**: Small (2 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Research**: [specs/058_ci_prep_sorry_fix_baseline/reports/01_ci-prep-research.md]
 - **Plan**: [specs/058_ci_prep_sorry_fix_baseline/plans/01_ci-prep-plan.md]
+- **Summary**: [specs/058_ci_prep_sorry_fix_baseline/summaries/01_ci-prep-summary.md]
 
 **Description**: Remove unused `t_le_refl` sorry from Chronicle/Frame.lean, then run full CI baseline: lake build (zero errors), grep for sorry (zero in Temporal/Modal/Foundations), lake shake, lake lint, lake exe lint-style, lake exe checkInitImports, verify Apache 2.0 headers on all files to be submitted and that my name appears 'Benjamin Brast-McKie' rather than 'Benjamin Brastmckie' as it does currently (fix this everywhere systematically). Fix any issues found. This establishes the clean baseline before any PR branches are created.
 
