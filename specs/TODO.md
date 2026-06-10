@@ -17,12 +17,12 @@ next_project_number: 57
 
 ## Task Order
 
-*Updated 2026-06-09. Generated from state.json dependency graph.*
+*Updated 2026-06-10. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,51,55,56 | -- | Temporal Logic, Bimodal Porting, Documentation, ... |
+| 1 | 36,37,38,51,56 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,52 | 36,37,51 | Temporal Logic, Submit PRs |
 | 3 | 41,53,54 | 38,39,40,52 | Foundations, Submit PRs |
 
@@ -43,10 +43,6 @@ next_project_number: 57
 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
 
-### Documentation
-
-55 [COMPLETED] — update_roadmap_completions_and_diagram
-
 ### Submit PRs
 
 51 [NOT STARTED] — Review tense logic progress against ROADMAP and assess PR readine
@@ -56,7 +52,7 @@ next_project_number: 57
 
 ### Uncategorized
 
-56 [NOT STARTED] — plan_pr_submission_strategy
+56 [RESEARCHING] — plan_pr_submission_strategy
 
 ## Tasks
 
