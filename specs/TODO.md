@@ -1,5 +1,5 @@
 ---
-next_project_number: 77
+next_project_number: 78
 ---
 
 # Tasks
@@ -11,7 +11,7 @@ next_project_number: 77
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,76 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,77 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
@@ -43,9 +43,18 @@ next_project_number: 77
 
 ### Uncategorized
 
-76 [COMPLETED] — module_keyword_migration
+77 [NOT STARTED] — audit_noncomputable_usage
 
 ## Tasks
+
+### 77. Audit and clean up noncomputable usage across logic files
+- **Effort**: Medium (2-4 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Review and clean up `noncomputable` usage across Foundations/Logic/ and Logics/ (Modal, Temporal, Bimodal, Propositional). Audit every `noncomputable` annotation to determine whether it is actually required by the Lean compiler or was added unnecessarily. Remove any that are not needed. For those that are needed, verify the reason (e.g., Classical.choice, Decidable instances via classical logic, infinite constructions) and add a brief comment if the reason is non-obvious. Check for cases where making definitions computable would be straightforward (e.g., by providing DecidableEq instances or using pattern matching instead of Classical.em). Ensure consistency with Mathlib conventions for noncomputable usage.
+
+---
 
 ### 76. Systematic module keyword migration across remaining Logics/ files
 - **Effort**: Small (completed)
