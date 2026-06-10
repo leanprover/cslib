@@ -125,7 +125,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Stratify Core.lean and Connectives.lean [NOT STARTED]
+### Phase 3: Stratify Core.lean and Connectives.lean [COMPLETED]
 
 **Goal**: Classify theorems in Core.lean and Connectives.lean to their minimal required strength level (minimal, intuitionistic, or classical).
 
@@ -133,7 +133,7 @@ Phases within the same wave can execute in parallel.
 - [ ] In Core.lean, restructure into three sections:
   - Minimal section (`[MinimalHilbert S]`): `lem` (it is `identity` on negated formula -- purely minimal)
   - Intuitionistic section (`[IntuitionisticHilbert S]`): `efq_axiom`
-  - Classical section (`[ClassicalHilbert S]`): `peirce_axiom`, `double_negation`, `raa`, `efq_neg`, `rcp`, `lce_imp`, `rce_imp`
+  - Classical section (`[ClassicalHilbert S]`): `peirce_axiom`, `double_negation`, `rcp`, `lce_imp`, `rce_imp` *(deviation: altered -- `raa` and `efq_neg` moved to Intuitionistic section since they only require EFQ, not Peirce)*
 - [ ] Update the outer `variable` block and add section-scoped variable declarations for each level
 - [ ] In Connectives.lean, restructure into two sections:
   - Minimal section (`[MinimalHilbert S]`): `contrapose_imp`, `contraposition`, `iff_intro`, `iff_neg_intro`

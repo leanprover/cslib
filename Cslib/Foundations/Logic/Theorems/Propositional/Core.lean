@@ -11,20 +11,20 @@ public import Cslib.Foundations.Logic.Theorems.Combinators
 
 /-! # Core Propositional Theorems
 
-Core propositional theorems for the Hilbert-style proof system, including
-LEM, double negation elimination, reductio ad absurdum, efq for negation,
-reverse contraposition, and conjunction elimination (DT-free proofs).
+Core propositional theorems for the Hilbert-style proof system, stratified
+by logical strength:
 
-All theorems are generic over `[PropositionalHilbert S]`.
-
-## Main Results
-
+### Minimal (`[MinimalHilbert S]`)
 - `lem`: Law of Excluded Middle (identity on ¬φ)
+
+### Intuitionistic (`[IntuitionisticHilbert S]`)
 - `efq_axiom`: EFQ wrapper (⊥ → φ)
-- `peirce_axiom`: Peirce's law wrapper
-- `double_negation`: DNE derived from EFQ + Peirce + B-combinator
 - `raa`: Reductio ad absurdum (φ → (¬φ → ψ))
 - `efq_neg`: Ex falso for negation (¬φ → (φ → ψ))
+
+### Classical (`[ClassicalHilbert S]`)
+- `peirce_axiom`: Peirce's law wrapper
+- `double_negation`: DNE derived from EFQ + Peirce + B-combinator
 - `rcp`: Reverse contraposition ((¬φ → ¬ψ) → (ψ → φ))
 - `lce_imp`: Left conjunction elimination ((φ ∧ ψ) → φ) -- DT-free
 - `rce_imp`: Right conjunction elimination ((φ ∧ ψ) → ψ) -- DT-free
@@ -45,70 +45,42 @@ namespace Cslib.Logic.Theorems.Propositional.Core
 open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators
 
-variable {F : Type*} [HasBot F] [HasImp F]
-variable {S : Type*} [InferenceSystem S F]
-variable [PropositionalHilbert S (F := F)]
-
-section Core
-
 -- Abbreviations for readability
 -- neg φ = imp φ bot
 -- and φ ψ = imp (imp φ (imp ψ bot)) bot
 -- or φ ψ = imp (imp φ bot) ψ
+
+/-! ## Minimal Theorems -/
+
+section Minimal
+
+variable {F : Type*} [HasBot F] [HasImp F]
+variable {S : Type*} [InferenceSystem S F]
+variable [MinimalHilbert S (F := F)]
+
+/-- Law of Excluded Middle: `⊢ φ ∨ ¬φ`
+    where `φ ∨ ¬φ = (φ → ⊥) → (φ → ⊥)`. -/
+theorem lem {φ : F} :
+    InferenceSystem.DerivableIn S
+      (HasImp.imp (HasImp.imp φ HasBot.bot)
+        (HasImp.imp φ HasBot.bot)) :=
+  identity (HasImp.imp φ HasBot.bot)
+
+end Minimal
+
+/-! ## Intuitionistic Theorems -/
+
+section Intuitionistic
+
+variable {F : Type*} [HasBot F] [HasImp F]
+variable {S : Type*} [InferenceSystem S F]
+variable [IntuitionisticHilbert S (F := F)]
 
 /-- EFQ wrapper: `⊢ ⊥ → φ`. -/
 theorem efq_axiom {φ : F} :
     InferenceSystem.DerivableIn S
       (HasImp.imp HasBot.bot φ) :=
   HasAxiomEFQ.efq
-
-/-- Peirce's law wrapper: `⊢ ((φ → ψ) → φ) → φ`. -/
-theorem peirce_axiom {φ ψ : F} :
-    InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp (HasImp.imp φ ψ) φ) φ) :=
-  HasAxiomPeirce.peirce
-
-/-- Double negation elimination (derived):
-    `⊢ ¬¬φ → φ` where `¬φ = φ → ⊥`.
-
-    Proof: Peirce(φ,⊥) gives ((φ→⊥)→φ)→φ.
-    EFQ gives ⊥→φ. B-combinator composes
-    (⊥→φ) with ((φ→⊥)→⊥) to get ((φ→⊥)→φ).
-    Then Peirce gives φ. -/
-theorem double_negation {φ : F} :
-    InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
-        φ) := by
-  -- Peirce with ψ = ⊥: ((φ→⊥)→φ) → φ
-  have peirce_inst := HasAxiomPeirce.peirce (S := S)
-    (φ := φ) (ψ := HasBot.bot)
-  -- EFQ: ⊥ → φ
-  have efq_inst := HasAxiomEFQ.efq (S := S) (φ := φ)
-  -- B-combinator: (⊥→φ) → ((φ→⊥)→⊥) → ((φ→⊥)→φ)
-  have b_inst : InferenceSystem.DerivableIn S
-      (HasImp.imp (HasImp.imp HasBot.bot φ)
-        (HasImp.imp
-          (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
-          (HasImp.imp (HasImp.imp φ HasBot.bot) φ))) :=
-    b_combinator
-  -- MP: ((φ→⊥)→⊥) → ((φ→⊥)→φ)
-  have step1 := ModusPonens.mp b_inst efq_inst
-  -- B-combinator to compose with Peirce
-  have b_final : InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp (HasImp.imp (HasImp.imp φ HasBot.bot) φ) φ)
-        (HasImp.imp
-          (HasImp.imp
-            (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
-            (HasImp.imp (HasImp.imp φ HasBot.bot) φ))
-          (HasImp.imp
-            (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
-            φ))) :=
-    b_combinator
-  have step2 := ModusPonens.mp b_final peirce_inst
-  exact ModusPonens.mp step2 step1
 
 /-- Reductio ad absurdum: `⊢ φ → (¬φ → ψ)`
     where `¬φ = φ → ⊥`. -/
@@ -159,6 +131,64 @@ theorem efq_neg {φ ψ : F} :
     @flip F _ _ S _ _
       φ (HasImp.imp φ HasBot.bot) ψ
   exact ModusPonens.mp flip_inst raa_inst
+
+end Intuitionistic
+
+/-! ## Classical Theorems -/
+
+section Classical
+
+variable {F : Type*} [HasBot F] [HasImp F]
+variable {S : Type*} [InferenceSystem S F]
+variable [ClassicalHilbert S (F := F)]
+
+/-- Peirce's law wrapper: `⊢ ((φ → ψ) → φ) → φ`. -/
+theorem peirce_axiom {φ ψ : F} :
+    InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasImp.imp (HasImp.imp φ ψ) φ) φ) :=
+  HasAxiomPeirce.peirce
+
+/-- Double negation elimination (derived):
+    `⊢ ¬¬φ → φ` where `¬φ = φ → ⊥`.
+
+    Proof: Peirce(φ,⊥) gives ((φ→⊥)→φ)→φ.
+    EFQ gives ⊥→φ. B-combinator composes
+    (⊥→φ) with ((φ→⊥)→⊥) to get ((φ→⊥)→φ).
+    Then Peirce gives φ. -/
+theorem double_negation {φ : F} :
+    InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
+        φ) := by
+  -- Peirce with ψ = ⊥: ((φ→⊥)→φ) → φ
+  have peirce_inst := HasAxiomPeirce.peirce (S := S)
+    (φ := φ) (ψ := HasBot.bot)
+  -- EFQ: ⊥ → φ
+  have efq_inst := HasAxiomEFQ.efq (S := S) (φ := φ)
+  -- B-combinator: (⊥→φ) → ((φ→⊥)→⊥) → ((φ→⊥)→φ)
+  have b_inst : InferenceSystem.DerivableIn S
+      (HasImp.imp (HasImp.imp HasBot.bot φ)
+        (HasImp.imp
+          (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
+          (HasImp.imp (HasImp.imp φ HasBot.bot) φ))) :=
+    b_combinator
+  -- MP: ((φ→⊥)→⊥) → ((φ→⊥)→φ)
+  have step1 := ModusPonens.mp b_inst efq_inst
+  -- B-combinator to compose with Peirce
+  have b_final : InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasImp.imp (HasImp.imp (HasImp.imp φ HasBot.bot) φ) φ)
+        (HasImp.imp
+          (HasImp.imp
+            (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
+            (HasImp.imp (HasImp.imp φ HasBot.bot) φ))
+          (HasImp.imp
+            (HasImp.imp (HasImp.imp φ HasBot.bot) HasBot.bot)
+            φ))) :=
+    b_combinator
+  have step2 := ModusPonens.mp b_final peirce_inst
+  exact ModusPonens.mp step2 step1
 
 /-- Reverse contraposition: from `⊢ ¬φ → ¬ψ`,
     derive `⊢ ψ → φ`.
@@ -276,14 +306,6 @@ theorem rce_imp {φ ψ : F} :
   -- ¬(φ→(ψ→⊥)) → ψ
   exact imp_trans step2 peirce_inst
 
-/-- Law of Excluded Middle: `⊢ φ ∨ ¬φ`
-    where `φ ∨ ¬φ = (φ → ⊥) → (φ → ⊥)`. -/
-theorem lem {φ : F} :
-    InferenceSystem.DerivableIn S
-      (HasImp.imp (HasImp.imp φ HasBot.bot)
-        (HasImp.imp φ HasBot.bot)) :=
-  identity (HasImp.imp φ HasBot.bot)
-
-end Core
+end Classical
 
 end Cslib.Logic.Theorems.Propositional.Core
