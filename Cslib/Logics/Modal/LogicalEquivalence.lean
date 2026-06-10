@@ -117,10 +117,8 @@ instance judgementalContext :
 instance : LogicalEquivalence
     (Proposition Atom) (Judgement World Atom) Satisfies.Bundled where
   eqv := Proposition.Equiv Set.univ
-  eqvFillValid {φ₁ φ₂ : Proposition Atom} (heqv : φ₁ ≡[Set.univ] φ₂)
-      (c : HasHContext.Context (Judgement World Atom) (Proposition Atom))
-      (h : ⇓c<[φ₁]) : ⇓c<[φ₂] := by
-    simp only [HasHContext.fill, Satisfies.Context.fill] at ⊢ h
+  eqvFillValid heqv c h := by
+    have (φ : Proposition Atom) : Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
     specialize heqv c.m
     grind
 
