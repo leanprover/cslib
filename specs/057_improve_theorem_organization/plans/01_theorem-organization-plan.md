@@ -98,7 +98,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Replace Redundant Bimodal Theorems with Bridge Wrappers [NOT STARTED]
+### Phase 2: Replace Redundant Bimodal Theorems with Bridge Wrappers [COMPLETED]
 
 **Goal**: Replace 32 redundant concrete theorem implementations in three Bimodal files with wrap/unwrap bridge wrappers that delegate to Foundations generic equivalents, preserving all API signatures.
 
@@ -116,13 +116,13 @@ Phases within the same wave can execute in parallel.
     ```
   - Keep `temp_future_derived` unchanged (uses concrete modal axioms)
   - Remove imports that are no longer needed (`Cslib.Logics.Bimodal.Syntax.Formula` may still be needed for `Formula Atom` type)
-  - Theorems to replace: `imp_trans`, `mp`, `identity`, `b_combinator`, `theorem_flip`, `theorem_app1`, `theorem_app2`, `pairing`, `dni`, `combine_imp_conj`, `combine_imp_conj_3`
+  - Theorems to replace: `imp_trans`, `mp`, `identity`, `b_combinator`, `theorem_flip`, `theorem_app1`, `theorem_app2`, `pairing`, `dni`, `combine_imp_conj`, `combine_imp_conj_3` *(deviation: altered -- `mp` kept as-is since it is a trivial 1-line wrapper with no Foundations equivalent; `combine_imp_conj` and `combine_imp_conj_3` use bridged primitives internally but retain structural logic for S-axiom application)*
 - [ ] **2b: Refactor `Propositional/Core.lean`** (9 of 14 theorems):
   - Add `import Cslib.Logics.Bimodal.ProofSystem.Instances`
   - Add `import Cslib.Foundations.Logic.Theorems.Propositional.Core`
   - Add local `wrap`/`unwrap` helpers (or import from a shared location)
   - Wrap redundant section in `noncomputable section`
-  - Replace 9 theorems: `lem`, `efq_axiom`, `peirce_axiom`, `double_negation`, `raa`, `efq_neg`, `rcp`, `lce_imp`, `rce_imp`
+  - Replace 9 theorems: `lem`, `efq_axiom`, `peirce_axiom`, `double_negation`, `raa`, `efq_neg`, `rcp`, `lce_imp`, `rce_imp` *(deviation: altered -- `rcp` kept as-is because its signature includes context parameter `Gamma` and fc-polymorphism with a derivation input, which has no direct Foundations equivalent; 8 of 9 were bridged)*
   - Keep 5 concrete theorems unchanged: `ecq`, `ldi`, `rdi`, `lce`, `rce`
   - Note: `rcp` in Bimodal takes explicit `Gamma` parameter but the Foundations version works with empty context -- verify the Bimodal `rcp` is called with `[]` context only, or adapt the bridge accordingly
 - [ ] **2c: Refactor `Propositional/Connectives.lean`** (12 of 14 theorems):

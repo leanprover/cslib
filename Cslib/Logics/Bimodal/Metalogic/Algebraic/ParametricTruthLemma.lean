@@ -92,7 +92,7 @@ private noncomputable def neg_imp_implies_neg_consequent (ψ χ : Formula Atom) 
   exact h_base.lift (FrameClass.base_le fc)
 
 /-- Past analog of TF axiom: Box phi -> H(Box phi). -/
-private def past_tf_deriv (φ : Formula Atom) :
+private noncomputable def past_tf_deriv (φ : Formula Atom) :
     DerivationTree fc [] ((Formula.box φ).imp (Formula.box φ).all_past) := by
   have h_tf_swap : DerivationTree fc [] _ := Theorems.Combinators.temp_future_derived (Formula.swap_temporal φ)
   have h_dual := DerivationTree.temporal_duality _ h_tf_swap

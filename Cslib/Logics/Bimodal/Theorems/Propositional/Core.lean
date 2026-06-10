@@ -5,15 +5,20 @@ Authors: Benjamin Brastmckie
 -/
 
 import Cslib.Logics.Bimodal.ProofSystem.Derivation
+import Cslib.Logics.Bimodal.ProofSystem.Instances
 import Cslib.Logics.Bimodal.Syntax.Formula
 import Cslib.Logics.Bimodal.Theorems.Combinators
 import Cslib.Logics.Bimodal.Metalogic.Core.DeductionTheorem
+import Cslib.Foundations.Logic.Theorems.Propositional.Core
 
 /-!
 # Core Propositional Proof Combinators
 
 Core propositional reasoning combinators for the Hilbert-style proof system.
 Contains LEM, efq, ecq, raa, disjunction intro, conjunction elim, and rcp.
+
+Most theorems delegate to the generic Foundations equivalents via the wrap/unwrap
+bridge pattern.
 
 Ported from BimodalLogic/Theories/Bimodal/Theorems/Propositional/Core.lean
 -/
@@ -23,6 +28,7 @@ set_option linter.style.longLine false
 
 namespace Cslib.Logic.Bimodal.Theorems.Propositional
 
+open Cslib.Logic
 open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.Theorems.Combinators
 
@@ -30,40 +36,56 @@ variable {Atom : Type*}
 
 noncomputable section
 
+/-- Extract a derivation tree from Nonempty (from typeclass functions). -/
+private def unwrap {φ : Formula Atom}
+    (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) :
+    DerivationTree FrameClass.Base [] φ := h.some
+
 def lem (A : Formula Atom) : DerivationTree FrameClass.Base [] (A.or A.neg) :=
-  identity A.neg
+  unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.lem
+    _ _ _ Bimodal.HilbertTM _ _ (φ := A))
 
 def efq_axiom {fc : FrameClass} (φ : Formula Atom) :
     DerivationTree fc [] (Formula.bot.imp φ) :=
-  DerivationTree.axiom [] _ (Axiom.efq φ) (FrameClass.base_le fc)
+  DerivationTree.lift (FrameClass.base_le fc)
+    (unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.efq_axiom
+      _ _ _ Bimodal.HilbertTM _ _ (φ := φ)))
 
 def peirce_axiom {fc : FrameClass} (φ ψ : Formula Atom) :
     DerivationTree fc [] (((φ.imp ψ).imp φ).imp φ) :=
-  DerivationTree.axiom [] _ (Axiom.peirce φ ψ) (FrameClass.base_le fc)
+  DerivationTree.lift (FrameClass.base_le fc)
+    (unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.peirce_axiom
+      _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ)))
 
 def double_negation {fc : FrameClass} (φ : Formula Atom) :
-    DerivationTree fc [] (φ.neg.neg.imp φ) := by
-  have peirce_inst : DerivationTree fc [] (((φ.imp Formula.bot).imp φ).imp φ) :=
-    peirce_axiom φ Formula.bot
-  have efq_inst : DerivationTree fc [] (Formula.bot.imp φ) :=
-    efq_axiom φ
-  have b_inst : DerivationTree fc [] ((Formula.bot.imp φ).imp
-                   (((φ.imp Formula.bot).imp Formula.bot).imp
-                    ((φ.imp Formula.bot).imp φ))) :=
-    b_combinator
-  have step1 : DerivationTree fc [] (((φ.imp Formula.bot).imp Formula.bot).imp
-                  ((φ.imp Formula.bot).imp φ)) :=
-    DerivationTree.modus_ponens [] _ _ b_inst efq_inst
-  have b_final : DerivationTree fc [] ((((φ.imp Formula.bot).imp φ).imp φ).imp
-                    ((((φ.imp Formula.bot).imp Formula.bot).imp
-                      ((φ.imp Formula.bot).imp φ)).imp
-                     (((φ.imp Formula.bot).imp Formula.bot).imp φ))) :=
-    b_combinator
-  have step2 : DerivationTree fc [] ((((φ.imp Formula.bot).imp Formula.bot).imp
-                   ((φ.imp Formula.bot).imp φ)).imp
-                  (((φ.imp Formula.bot).imp Formula.bot).imp φ)) :=
-    DerivationTree.modus_ponens [] _ _ b_final peirce_inst
-  exact DerivationTree.modus_ponens [] _ _ step2 step1
+    DerivationTree fc [] (φ.neg.neg.imp φ) :=
+  DerivationTree.lift (FrameClass.base_le fc)
+    (unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.double_negation
+      _ _ _ Bimodal.HilbertTM _ _ (φ := φ)))
+
+def raa (A B : Formula Atom) :
+    DerivationTree FrameClass.Base [] (A.imp (A.neg.imp B)) :=
+  unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.raa
+    _ _ _ Bimodal.HilbertTM _ _ (φ := A) (ψ := B))
+
+def efq_neg (A B : Formula Atom) :
+    DerivationTree FrameClass.Base [] (A.neg.imp (A.imp B)) :=
+  unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.efq_neg
+    _ _ _ Bimodal.HilbertTM _ _ (φ := A) (ψ := B))
+
+def lce_imp {fc : FrameClass} (A B : Formula Atom) :
+    DerivationTree fc [] ((A.and B).imp A) :=
+  DerivationTree.lift (FrameClass.base_le fc)
+    (unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.lce_imp
+      _ _ _ Bimodal.HilbertTM _ _ (φ := A) (ψ := B)))
+
+def rce_imp {fc : FrameClass} (A B : Formula Atom) :
+    DerivationTree fc [] ((A.and B).imp B) :=
+  DerivationTree.lift (FrameClass.base_le fc)
+    (unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.rce_imp
+      _ _ _ Bimodal.HilbertTM _ _ (φ := A) (ψ := B)))
+
+-- ecq, ldi, rdi, lce, rce use context-based proofs and are kept as-is
 
 def ecq (A B : Formula Atom) :
     DerivationTree FrameClass.Base [A, A.neg] B := by
@@ -85,35 +107,6 @@ def ecq (A B : Formula Atom) :
   have dne_b_ctx : DerivationTree FrameClass.Base [A, A.neg] (B.neg.neg.imp B) :=
     DerivationTree.weakening [] [A, A.neg] _ dne_b (by intro; simp)
   exact DerivationTree.modus_ponens [A, A.neg] B.neg.neg B dne_b_ctx neg_neg_b
-
-def raa (A B : Formula Atom) :
-    DerivationTree FrameClass.Base [] (A.imp (A.neg.imp B)) := by
-  have bot_to_b : DerivationTree FrameClass.Base [] (Formula.bot.imp B) :=
-    efq_axiom B
-  have a_to_neg_a_to_bot : DerivationTree FrameClass.Base [] (A.imp A.neg.neg) :=
-    @theorem_app1 Atom FrameClass.Base A Formula.bot
-  have b_inner : DerivationTree FrameClass.Base []
-      ((Formula.bot.imp B).imp (A.neg.neg.imp (A.neg.imp B))) :=
-    @b_combinator Atom FrameClass.Base A.neg Formula.bot B
-  have step2 : DerivationTree FrameClass.Base [] (A.neg.neg.imp (A.neg.imp B)) :=
-    DerivationTree.modus_ponens [] _ _ b_inner bot_to_b
-  have b_outer : DerivationTree FrameClass.Base []
-      ((A.neg.neg.imp (A.neg.imp B)).imp
-       ((A.imp A.neg.neg).imp (A.imp (A.neg.imp B)))) :=
-    @b_combinator Atom FrameClass.Base A A.neg.neg (A.neg.imp B)
-  have step3 : DerivationTree FrameClass.Base []
-      ((A.imp A.neg.neg).imp (A.imp (A.neg.imp B))) :=
-    DerivationTree.modus_ponens [] _ _ b_outer step2
-  exact DerivationTree.modus_ponens [] _ _ step3 a_to_neg_a_to_bot
-
-def efq_neg (A B : Formula Atom) :
-    DerivationTree FrameClass.Base [] (A.neg.imp (A.imp B)) := by
-  have raa_inst : DerivationTree FrameClass.Base [] (A.imp (A.neg.imp B)) :=
-    raa A B
-  have flip_inst : DerivationTree FrameClass.Base []
-      ((A.imp (A.neg.imp B)).imp (A.neg.imp (A.imp B))) :=
-    @theorem_flip Atom FrameClass.Base A A.neg B
-  exact DerivationTree.modus_ponens [] _ _ flip_inst raa_inst
 
 def ldi (A B : Formula Atom) :
     DerivationTree FrameClass.Base [A] (A.or B) := by
@@ -284,18 +277,6 @@ def rce (A B : Formula Atom) :
   have dne_b_ctx : DerivationTree FrameClass.Base [A.and B] (B.neg.neg.imp B) :=
     DerivationTree.weakening [] [A.and B] _ dne_b (by intro; simp)
   exact DerivationTree.modus_ponens [A.and B] _ _ dne_b_ctx neg_neg_b
-
-def lce_imp {fc : FrameClass} (A B : Formula Atom) :
-    DerivationTree fc [] ((A.and B).imp A) := by
-  have h : DerivationTree FrameClass.Base [A.and B] A := lce A B
-  exact DerivationTree.lift (FrameClass.base_le fc)
-    (Cslib.Logic.Bimodal.Metalogic.Core.deduction_theorem [] (A.and B) A h)
-
-def rce_imp {fc : FrameClass} (A B : Formula Atom) :
-    DerivationTree fc [] ((A.and B).imp B) := by
-  have h : DerivationTree FrameClass.Base [A.and B] B := rce A B
-  exact DerivationTree.lift (FrameClass.base_le fc)
-    (Cslib.Logic.Bimodal.Metalogic.Core.deduction_theorem [] (A.and B) B h)
 
 end -- noncomputable section
 

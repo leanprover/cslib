@@ -30,6 +30,8 @@ open Cslib.Logic.Bimodal.Theorems
 
 variable {Atom : Type*}
 
+noncomputable section
+
 section DerivedAxioms
 
 private noncomputable def neg_contrapositive_imp_neg (φ ψ : Formula Atom) :
@@ -368,5 +370,7 @@ noncomputable def always_imp_all_past (φ : Formula Atom) :
   lce_imp φ.all_past (φ.and φ.all_future)
 
 end ConjunctionElimination
+
+end -- noncomputable section
 
 end Cslib.Logic.Bimodal.Theorems.TemporalDerived
