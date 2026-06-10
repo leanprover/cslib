@@ -45,7 +45,7 @@ next_project_number: 57
 
 ### Documentation
 
-55 [RESEARCHED] — update_roadmap_completions_and_diagram
+55 [COMPLETED] — update_roadmap_completions_and_diagram
 
 ### Submit PRs
 
@@ -63,8 +63,10 @@ next_project_number: 57
 
 ### 55. Review and update ROADMAP.md with completions and mermaid diagram
 - **Effort**: Small (1-2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: markdown
+- **Report**: [specs/055_update_roadmap_completions_and_diagram/reports/01_roadmap-review.md]
+- **Plan**: [specs/055_update_roadmap_completions_and_diagram/plans/01_roadmap-update-plan.md]
 
 **Description**: Review and update the ROADMAP.md given all that has been completed, making sure the mermaid diagram is complete and accurate
 
@@ -127,7 +129,7 @@ next_project_number: 57
 
 ### 39. Discrete temporal completeness
 - **Effort**: Medium (8-12 hours)
-- **Status**: [COMPLETED]
+- **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 31, 36
 
@@ -145,7 +147,7 @@ next_project_number: 57
 
 ### 38. Dense temporal completeness
 - **Effort**: Medium (6-10 hours)
-- **Status**: [COMPLETED]
+- **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Dependencies**: Task 31, 49
 
@@ -163,7 +165,7 @@ next_project_number: 57
 
 ### 41. Abstract shared completeness infrastructure
 - **Effort**: Medium (8-12 hours)
-- **Status**: [COMPLETED]
+- **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 38, 39, 40
 

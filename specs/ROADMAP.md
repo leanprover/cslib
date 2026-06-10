@@ -43,8 +43,10 @@ flowchart TD
 
     FC --> MB
     FC --> BS
+    FC --> TS
     FT --> MM
     FT --> TT
+    FT --> TM
     FT --> BT
     FM --> MM
     FM --> TM
@@ -57,7 +59,7 @@ flowchart TD
     BT --> BM
 ```
 
-Imports flow downward: Foundations at top, Modal and Temporal in the middle (independent of each other), Bimodal at the bottom. The dashed edge from Temporal Theorems to Bimodal Theorems represents the only cross-logic import (`Bimodal.Theorems.Perpetuity.Principles` imports `Temporal.Theorems.TemporalDerived`).
+Imports flow downward: Foundations at top, Modal and Temporal in the middle (independent of each other), Bimodal at the bottom. The dashed edge from Temporal Theorems to Bimodal Theorems represents the only cross-logic import (`Bimodal.Theorems.Perpetuity.Principles` imports `Temporal.Theorems.TemporalDerived`). FC feeds both Bimodal Syntax (FC→BS) and Temporal Syntax (FC→TS); FT feeds both Modal Metalogic (FT→MM) and Temporal Metalogic (FT→TM).
 
 ## Completed
 
@@ -82,6 +84,9 @@ Imports flow downward: Foundations at top, Modal and Temporal in the middle (ind
 | Finite model property | `Logics/Bimodal/Metalogic/Decidability/FMP/` |
 | Dense completeness (Algebraic, Bundle, BXCanonical) | `Logics/Bimodal/Metalogic/` |
 | Temporal metalogic: DeductionTheorem, MCS, Soundness, Completeness | `Logics/Temporal/Metalogic/` |
+| Temporal syntax infrastructure (Context, BigConj, Subformulas) | `Logics/Temporal/Syntax/` |
+| Temporal chronicle completeness pipeline (R-relation, canonical chain, point insertion, chronicle construction, truth lemma) | `Logics/Temporal/Metalogic/Chronicle/` |
+| Bimodal embedding (PropositionalEmbedding, ModalEmbedding, TemporalEmbedding) | `Logics/Bimodal/Embedding/` |
 
 ## Remaining
 
@@ -158,7 +163,23 @@ Cslib/
     │       ├── DeductionTheorem.lean
     │       ├── MCS.lean
     │       ├── Soundness.lean
-    │       └── Completeness.lean
+    │       ├── Completeness.lean
+    │       ├── TemporalContent.lean
+    │       ├── WitnessSeed.lean
+    │       ├── PropositionalHelpers.lean
+    │       ├── GeneralizedNecessitation.lean
+    │       ├── CompletenessHelpers.lean
+    │       └── Chronicle/
+    │           ├── ChronicleTypes.lean
+    │           ├── RRelation.lean
+    │           ├── Frame.lean
+    │           ├── CanonicalChain.lean
+    │           ├── OrderedSeedConsistency.lean
+    │           ├── PointInsertion.lean
+    │           ├── ChronicleConstruction.lean
+    │           ├── CounterexampleElimination.lean
+    │           ├── TruthLemma.lean
+    │           └── ChronicleToCountermodel.lean
     └── Bimodal/
         ├── Syntax/
         │   ├── Formula.lean
@@ -187,6 +208,9 @@ Cslib/
         │   └── Perpetuity/
         ├── FrameConditions/
         ├── Embedding/
+        │   ├── PropositionalEmbedding.lean
+        │   ├── ModalEmbedding.lean
+        │   └── TemporalEmbedding.lean
         └── Metalogic/
             ├── Core.lean
             ├── Core/
