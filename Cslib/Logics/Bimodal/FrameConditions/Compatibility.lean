@@ -27,15 +27,18 @@ variable {Atom : Type*}
 
 /-! ## Axiom Compatibility Typeclasses -/
 
+/-- An axiom is linear-compatible if it is valid on all linear temporal frames. -/
 class AxiomLinearCompatible {φ : Formula Atom} (ax : Axiom φ) : Prop where
   valid : ∀ (D : Type) [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
             [Nontrivial D] [LinearTemporalFrame D], valid_over D φ
 
+/-- An axiom is dense-compatible if it is valid on all dense temporal frames. -/
 class AxiomDenseCompatible {φ : Formula Atom} (ax : Axiom φ) : Prop where
   valid : ∀ (D : Type) [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
             [Nontrivial D] [NoMaxOrder D] [NoMinOrder D] [DenselyOrdered D]
             [DenseTemporalFrame D], valid_over D φ
 
+/-- An axiom is discrete-compatible if it is valid on all discrete temporal frames. -/
 class AxiomDiscreteCompatible {φ : Formula Atom} (ax : Axiom φ) : Prop where
   valid : ∀ (D : Type) [AddCommGroup D] [LinearOrder D] [IsOrderedAddMonoid D]
             [Nontrivial D] [NoMaxOrder D] [NoMinOrder D] [SuccOrder D] [PredOrder D] [IsSuccArchimedean D]
@@ -91,6 +94,7 @@ instance (φ : Formula Atom) : AxiomLinearCompatible (Axiom.modal_future φ) whe
 
 /-! ## Compatibility Theorems -/
 
+/-- Any axiom whose minimum frame class is at most Base is linear-compatible. -/
 theorem axiom_base_implies_linear_compatible {φ : Formula Atom} (ax : Axiom φ)
     (h : ax.minFrameClass ≤ FrameClass.Base) :
     AxiomLinearCompatible ax := by

@@ -74,13 +74,16 @@ theorem BoolAlgUltrafilter.ext {α : Type*} [BooleanAlgebra α] {uf1 uf2 : BoolA
 ## MCS to Ultrafilter Direction
 -/
 
+/-- Image of an MCS under the quotient map: the set of equivalence classes of formulas in `Γ`. -/
 def mcsToSet (Γ : Set (Formula Atom)) : Set (LindenbaumAlg Atom) :=
   { a | ∃ φ ∈ Γ, a = toQuot φ }
 
+/-- A formula in `Γ` has its quotient class in `mcsToSet Γ`. -/
 theorem mem_mcsToSet {Γ : Set (Formula Atom)} {φ : Formula Atom} (h : φ ∈ Γ) :
     toQuot φ ∈ mcsToSet Γ :=
   ⟨φ, h, rfl⟩
 
+/-- The top element of the Lindenbaum algebra belongs to every MCS image. -/
 theorem mcsToSet_top {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Γ) :
     ⊤ ∈ mcsToSet Γ := by
   have d_id : DerivationTree FrameClass.Base [] ((Formula.bot : Formula Atom).imp Formula.bot) :=
@@ -89,6 +92,7 @@ theorem mcsToSet_top {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent Fra
     SetMaximalConsistent.closed_under_derivation h_mcs [] (fun _ h => by simp at h) d_id
   exact ⟨(Formula.bot : Formula Atom).imp Formula.bot, h, rfl⟩
 
+/-- The bottom element of the Lindenbaum algebra is not in any MCS image. -/
 theorem mcsToSet_bot_not_mem {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Γ) :
     ⊥ ∉ mcsToSet Γ := by
   intro ⟨φ, h_mem, h_eq⟩
@@ -104,6 +108,7 @@ theorem mcsToSet_bot_not_mem {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsis
   have h_cons : Consistent (fc := FrameClass.Base) [φ] := h_mcs.1 [φ] (by simp [h_mem])
   exact h_phi_incons h_cons
 
+/-- The MCS image is upward closed: if `a ∈ mcsToSet Γ` and `a ≤ b`, then `b ∈ mcsToSet Γ`. -/
 theorem mcsToSet_mem_of_le {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Γ)
     {a b : LindenbaumAlg Atom} (ha : a ∈ mcsToSet Γ) (h_le : a ≤ b) :
     b ∈ mcsToSet Γ := by
@@ -154,6 +159,7 @@ theorem mcsToSet_mem_of_le {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsiste
       exact h_cons_list ⟨d_bot''⟩
     exact ⟨ψ, h_psi_in, rfl⟩
 
+/-- The MCS image is closed under infimum (conjunction). -/
 theorem mcsToSet_inf_mem {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Γ)
     {a b : LindenbaumAlg Atom} (ha : a ∈ mcsToSet Γ) (hb : b ∈ mcsToSet Γ) :
     a ⊓ b ∈ mcsToSet Γ := by
@@ -212,6 +218,7 @@ theorem mcsToSet_inf_mem {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent
   rw [h_a_eq, h_b_eq]
   rfl
 
+/-- For every element `a`, either `a` or `aᶜ` belongs to the MCS image (ultrafilter dichotomy). -/
 theorem mcsToSet_compl_or {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Γ)
     (a : LindenbaumAlg Atom) : a ∈ mcsToSet Γ ∨ aᶜ ∈ mcsToSet Γ := by
   induction a using Quotient.ind with
@@ -285,6 +292,7 @@ theorem mcsToSet_compl_or {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsisten
       use φ.neg, h_neg_in
       rfl
 
+/-- An element and its complement cannot both belong to the MCS image. -/
 theorem mcsToSet_compl_not {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsistent FrameClass.Base Γ)
     {a : LindenbaumAlg Atom} (ha : a ∈ mcsToSet Γ) : aᶜ ∉ mcsToSet Γ := by
   obtain ⟨φ, h_phi_mem, h_a_eq⟩ := ha
@@ -311,6 +319,7 @@ theorem mcsToSet_compl_not {Γ : Set (Formula Atom)} (h_mcs : SetMaximalConsiste
 ## MCS to Ultrafilter Construction
 -/
 
+/-- Construct a Boolean algebra ultrafilter from an MCS. -/
 def mcsToUltrafilter (Γ : {Omega : Set (Formula Atom) // SetMaximalConsistent FrameClass.Base Omega}) :
     BoolAlgUltrafilter (LindenbaumAlg Atom) where
   carrier := mcsToSet Γ.val
@@ -329,6 +338,7 @@ theorem mcsToUltrafilter_carrier (Γ : {Omega : Set (Formula Atom) // SetMaximal
 ## Fold-Derives Lemma
 -/
 
+/-- If `L ⊢ ψ`, then the infimum of quotients of `L` is below `⟦ψ⟧` in the Lindenbaum algebra. -/
 theorem fold_le_of_derives (L : List (Formula Atom)) (ψ : Formula Atom)
     (h : DerivationTree FrameClass.Base L ψ) :
     List.foldl (fun acc φ => acc ⊓ toQuot φ) ⊤ L ≤ toQuot ψ := by
@@ -389,9 +399,11 @@ theorem fold_le_of_derives (L : List (Formula Atom)) (ψ : Formula Atom)
 ## Ultrafilter to MCS Direction
 -/
 
+/-- Preimage of an ultrafilter under the quotient map: the set of formulas whose class is in `uf`. -/
 def ultrafilterToSet (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) : Set (Formula Atom) :=
   { φ | toQuot φ ∈ uf.carrier }
 
+/-- The preimage of a Boolean algebra ultrafilter under the quotient map is an MCS. -/
 theorem ultrafilterToSet_mcs (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) :
     SetMaximalConsistent FrameClass.Base (ultrafilterToSet uf) := by
   constructor
@@ -555,18 +567,21 @@ theorem BoolAlgUltrafilter.not_mem_iff_compl_mem {α : Type*} [BooleanAlgebra α
   · intro hac ha
     exact uf.compl_not a ha hac
 
+/-- In an ultrafilter, `⟦φ⟧` belongs iff `⟦¬φ⟧` does not. -/
 theorem ultrafilter_neg_iff (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) (φ : Formula Atom) :
     toQuot φ ∈ uf.carrier ↔ toQuot φ.neg ∉ uf.carrier := by
   have h_compl : (toQuot φ)ᶜ = toQuot φ.neg := rfl
   rw [← h_compl]
   exact uf.mem_iff_compl_not_mem (toQuot φ)
 
+/-- Dual of `ultrafilter_neg_iff`: `⟦¬φ⟧` belongs iff `⟦φ⟧` does not. -/
 theorem ultrafilter_neg_iff' (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) (φ : Formula Atom) :
     toQuot φ.neg ∈ uf.carrier ↔ toQuot φ ∉ uf.carrier := by
   have h_compl : (toQuot φ)ᶜ = toQuot φ.neg := rfl
   rw [← h_compl]
   exact uf.not_mem_iff_compl_mem (toQuot φ) |>.symm
 
+/-- Construct an MCS from a Boolean algebra ultrafilter (inverse of `mcsToUltrafilter`). -/
 noncomputable def ultrafilter_to_mcs (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) :
     {Γ : Set (Formula Atom) // SetMaximalConsistent FrameClass.Base Γ} :=
   ⟨ultrafilterToSet uf, ultrafilterToSet_mcs uf⟩
@@ -575,6 +590,7 @@ noncomputable def ultrafilter_to_mcs (uf : BoolAlgUltrafilter (LindenbaumAlg Ato
 theorem ultrafilter_to_mcs_val (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) :
     (ultrafilter_to_mcs uf).val = ultrafilterToSet uf := rfl
 
+/-- Round-trip: converting an MCS to an ultrafilter and back recovers the original MCS. -/
 theorem ultrafilter_mcs_round_trip (Γ : {Omega : Set (Formula Atom) // SetMaximalConsistent FrameClass.Base Omega}) :
     ultrafilter_to_mcs (mcsToUltrafilter Γ) = Γ := by
   apply Subtype.ext
@@ -625,6 +641,7 @@ theorem ultrafilter_mcs_round_trip (Γ : {Omega : Set (Formula Atom) // SetMaxim
   · intro h_mem
     exact mem_mcsToSet h_mem
 
+/-- Round-trip: converting an ultrafilter to an MCS and back recovers the original ultrafilter. -/
 theorem mcs_ultrafilter_round_trip (uf : BoolAlgUltrafilter (LindenbaumAlg Atom)) :
     mcsToUltrafilter (ultrafilter_to_mcs uf) = uf := by
   apply BoolAlgUltrafilter.ext

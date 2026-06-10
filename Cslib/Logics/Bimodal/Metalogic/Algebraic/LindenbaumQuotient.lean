@@ -33,22 +33,28 @@ open Cslib.Logic.Bimodal
 
 variable {Atom : Type*}
 
+/-- `φ` derives `ψ` when there exists a derivation tree for `φ → ψ` from no hypotheses. -/
 def Derives (φ ψ : Formula Atom) : Prop := Nonempty (DerivationTree FrameClass.Base [] (φ.imp ψ))
 
+/-- Two formulas are provably equivalent when each derives the other. -/
 def ProvEquiv (φ ψ : Formula Atom) : Prop := Derives φ ψ ∧ Derives ψ φ
 
 scoped infix:50 " ≈ₚ " => ProvEquiv
 
+/-- Derivability is reflexive: every formula derives itself via the identity combinator. -/
 theorem derives_refl (φ : Formula Atom) : Derives φ φ := by
   unfold Derives
   exact ⟨Theorems.Combinators.identity φ⟩
 
+/-- Provable equivalence is reflexive. -/
 theorem provEquiv_refl (φ : Formula Atom) : φ ≈ₚ φ :=
   ⟨derives_refl φ, derives_refl φ⟩
 
+/-- Provable equivalence is symmetric. -/
 theorem provEquiv_symm {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) : ψ ≈ₚ φ :=
   ⟨h.2, h.1⟩
 
+/-- Derivability is transitive via implication transitivity. -/
 theorem derives_trans {φ ψ χ : Formula Atom} (h1 : Derives φ ψ) (h2 : Derives ψ χ) :
     Derives φ χ := by
   unfold Derives at *
@@ -56,33 +62,41 @@ theorem derives_trans {φ ψ χ : Formula Atom} (h1 : Derives φ ψ) (h2 : Deriv
   obtain ⟨d2⟩ := h2
   exact ⟨Theorems.Combinators.imp_trans d1 d2⟩
 
+/-- Provable equivalence is transitive. -/
 theorem provEquiv_trans {φ ψ χ : Formula Atom} (h1 : φ ≈ₚ ψ) (h2 : ψ ≈ₚ χ) : φ ≈ₚ χ :=
   ⟨derives_trans h1.1 h2.1, derives_trans h2.2 h1.2⟩
 
+/-- Provable equivalence forms an equivalence relation. -/
 theorem provEquiv_equiv : Equivalence (ProvEquiv (Atom := Atom)) where
   refl := provEquiv_refl
   symm := provEquiv_symm
   trans := provEquiv_trans
 
+/-- Setoid instance for formulas under provable equivalence. -/
 instance provEquivSetoid : Setoid (Formula Atom) where
   r := ProvEquiv
   iseqv := provEquiv_equiv
 
+/-- The Lindenbaum-Tarski algebra: formulas quotiented by provable equivalence. -/
 def LindenbaumAlg (Atom : Type*) : Type _ := Quotient (provEquivSetoid (Atom := Atom))
 
+/-- Canonical quotient map sending a formula to its equivalence class. -/
 def toQuot (φ : Formula Atom) : LindenbaumAlg Atom := Quotient.mk provEquivSetoid φ
 
 scoped notation "⟦" φ "⟧" => toQuot φ
 
+/-- Negation is antitone with respect to derivability: if `ψ` derives `φ`, then `¬φ` derives `¬ψ`. -/
 theorem derives_neg_antitone {φ ψ : Formula Atom} (h : Derives ψ φ) : Derives φ.neg ψ.neg := by
   unfold Derives at *
   obtain ⟨d⟩ := h
   exact ⟨Theorems.Propositional.contraposition d⟩
 
+/-- Negation respects provable equivalence. -/
 theorem provEquiv_neg_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) : φ.neg ≈ₚ ψ.neg := by
   unfold ProvEquiv at *
   exact ⟨derives_neg_antitone h.2, derives_neg_antitone h.1⟩
 
+/-- Box modality respects provable equivalence, using necessitation and K axiom. -/
 theorem provEquiv_box_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) : φ.box ≈ₚ ψ.box := by
   unfold ProvEquiv Derives at *
   obtain ⟨⟨d_fwd⟩, ⟨d_bwd⟩⟩ := h
@@ -94,6 +108,7 @@ theorem provEquiv_box_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) : φ.box �
     have d_k := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.modal_k_dist ψ φ) trivial
     exact ⟨DerivationTree.modus_ponens [] _ _ d_k d_box⟩
 
+/-- The G (allFuture) modality respects provable equivalence, using temporal necessitation. -/
 theorem provEquiv_allFuture_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
     φ.allFuture ≈ₚ ψ.allFuture := by
   unfold ProvEquiv Derives at *
@@ -106,6 +121,7 @@ theorem provEquiv_allFuture_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
     have d_k := Theorems.TemporalDerived.temp_k_dist_derived ψ φ
     exact ⟨DerivationTree.modus_ponens [] _ _ d_k d_temp⟩
 
+/-- The H (allPast) modality respects provable equivalence. -/
 theorem provEquiv_allPast_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
     φ.allPast ≈ₚ ψ.allPast := by
   unfold ProvEquiv Derives at *
@@ -114,6 +130,7 @@ theorem provEquiv_allPast_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
   · exact ⟨Theorems.Perpetuity.past_mono d_fwd⟩
   · exact ⟨Theorems.Perpetuity.past_mono d_bwd⟩
 
+/-- Implication respects provable equivalence in both arguments. -/
 theorem provEquiv_imp_congr {φ₁ φ₂ ψ₁ ψ₂ : Formula Atom}
     (hφ : φ₁ ≈ₚ φ₂) (hψ : ψ₁ ≈ₚ ψ₂) : φ₁.imp ψ₁ ≈ₚ φ₂.imp ψ₂ := by
   unfold ProvEquiv Derives at *
@@ -145,48 +162,60 @@ theorem provEquiv_imp_congr {φ₁ φ₂ ψ₁ ψ₂ : Formula Atom}
     have h2 := DerivationTree.modus_ponens [] _ _ b2 d_φ_fwd
     exact ⟨Theorems.Combinators.imp_trans h2 h1⟩
 
+/-- Conjunction respects provable equivalence. -/
 theorem provEquiv_and_congr {φ₁ φ₂ ψ₁ ψ₂ : Formula Atom}
     (hφ : φ₁ ≈ₚ φ₂) (hψ : ψ₁ ≈ₚ ψ₂) : φ₁.and ψ₁ ≈ₚ φ₂.and ψ₂ := by
   have hψ_neg := provEquiv_neg_congr hψ
   have h_imp := provEquiv_imp_congr hφ hψ_neg
   exact provEquiv_neg_congr h_imp
 
+/-- Disjunction respects provable equivalence. -/
 theorem provEquiv_or_congr {φ₁ φ₂ ψ₁ ψ₂ : Formula Atom}
     (hφ : φ₁ ≈ₚ φ₂) (hψ : ψ₁ ≈ₚ ψ₂) : φ₁.or ψ₁ ≈ₚ φ₂.or ψ₂ := by
   have hφ_neg := provEquiv_neg_congr hφ
   exact provEquiv_imp_congr hφ_neg hψ
 
+/-- Negation lifted to the Lindenbaum algebra quotient. -/
 noncomputable def neg_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift (fun φ => toQuot φ.neg)
     (fun _ _ h => Quotient.sound (provEquiv_neg_congr h))
 
+/-- Implication lifted to the Lindenbaum algebra quotient. -/
 noncomputable def imp_quot : LindenbaumAlg Atom → LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift₂ (fun φ ψ => toQuot (φ.imp ψ))
     (fun _ _ _ _ h1 h2 => Quotient.sound (provEquiv_imp_congr h1 h2))
 
+/-- Conjunction lifted to the Lindenbaum algebra quotient. -/
 noncomputable def and_quot : LindenbaumAlg Atom → LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift₂ (fun φ ψ => toQuot (φ.and ψ))
     (fun _ _ _ _ h1 h2 => Quotient.sound (provEquiv_and_congr h1 h2))
 
+/-- Disjunction lifted to the Lindenbaum algebra quotient. -/
 noncomputable def or_quot : LindenbaumAlg Atom → LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift₂ (fun φ ψ => toQuot (φ.or ψ))
     (fun _ _ _ _ h1 h2 => Quotient.sound (provEquiv_or_congr h1 h2))
 
+/-- Box modality lifted to the Lindenbaum algebra quotient. -/
 noncomputable def box_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift (fun φ => toQuot φ.box)
     (fun _ _ h => Quotient.sound (provEquiv_box_congr h))
 
+/-- The G (allFuture) operator lifted to the Lindenbaum algebra quotient. -/
 noncomputable def G_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift (fun φ => toQuot φ.allFuture)
     (fun _ _ h => Quotient.sound (provEquiv_allFuture_congr h))
 
+/-- The H (allPast) operator lifted to the Lindenbaum algebra quotient. -/
 noncomputable def H_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift (fun φ => toQuot φ.allPast)
     (fun _ _ h => Quotient.sound (provEquiv_allPast_congr h))
 
+/-- Top element of the Lindenbaum algebra, represented by `⊥ → ⊥` (i.e., `⊤`). -/
 def top_quot : LindenbaumAlg Atom := toQuot (Formula.bot.imp Formula.bot)
+/-- Bottom element of the Lindenbaum algebra, represented by `⊥`. -/
 def bot_quot : LindenbaumAlg Atom := toQuot Formula.bot
 
+/-- Temporal duality (swapping G/H) preserves derivability. -/
 theorem swapTemporal_derives {φ ψ : Formula Atom} (h : Derives φ ψ) :
     Derives φ.swapTemporal ψ.swapTemporal := by
   unfold Derives at *
@@ -195,20 +224,24 @@ theorem swapTemporal_derives {φ ψ : Formula Atom} (h : Derives φ ψ) :
   simp only [Formula.swapTemporal] at d_swap
   exact ⟨d_swap⟩
 
+/-- Temporal swap respects provable equivalence. -/
 theorem provEquiv_swapTemporal_congr {φ ψ : Formula Atom} (h : φ ≈ₚ ψ) :
     φ.swapTemporal ≈ₚ ψ.swapTemporal :=
   ⟨swapTemporal_derives h.1, swapTemporal_derives h.2⟩
 
+/-- Temporal swap (sigma involution) lifted to the Lindenbaum algebra quotient. -/
 noncomputable def sigma_quot : LindenbaumAlg Atom → LindenbaumAlg Atom :=
   Quotient.lift (fun φ => toQuot φ.swapTemporal)
     (fun _ _ h => Quotient.sound (provEquiv_swapTemporal_congr h))
 
+/-- The sigma quotient operation is an involution: applying it twice is the identity. -/
 theorem sigma_quot_involution (a : LindenbaumAlg Atom) : sigma_quot (sigma_quot a) = a := by
   induction a using Quotient.ind
   rename_i φ
   show toQuot (φ.swapTemporal.swapTemporal) = toQuot φ
   rw [Formula.swapTemporal_involution]
 
+/-- Sigma commutes with negation on the Lindenbaum algebra. -/
 theorem sigma_quot_neg (a : LindenbaumAlg Atom) :
     sigma_quot (neg_quot a) = neg_quot (sigma_quot a) := by
   induction a using Quotient.ind
@@ -217,6 +250,7 @@ theorem sigma_quot_neg (a : LindenbaumAlg Atom) :
   simp only [Formula.neg, Formula.swapTemporal]
   rfl
 
+/-- Sigma distributes over disjunction (supremum) on the Lindenbaum algebra. -/
 theorem sigma_quot_sup (a b : LindenbaumAlg Atom) :
     sigma_quot (or_quot a b) = or_quot (sigma_quot a) (sigma_quot b) := by
   induction a using Quotient.ind
@@ -226,6 +260,7 @@ theorem sigma_quot_sup (a b : LindenbaumAlg Atom) :
   simp only [Formula.or, Formula.neg, Formula.swapTemporal]
   rfl
 
+/-- Sigma maps G to H: `σ(G a) = H(σ a)`. -/
 theorem sigma_quot_G_H (a : LindenbaumAlg Atom) :
     sigma_quot (G_quot a) = H_quot (sigma_quot a) := by
   induction a using Quotient.ind
@@ -234,6 +269,7 @@ theorem sigma_quot_G_H (a : LindenbaumAlg Atom) :
   simp only [Formula.swapTemporal_allFuture]
   rfl
 
+/-- Sigma maps H to G: `σ(H a) = G(σ a)`. -/
 theorem sigma_quot_H_G (a : LindenbaumAlg Atom) :
     sigma_quot (H_quot a) = G_quot (sigma_quot a) := by
   induction a using Quotient.ind
@@ -242,6 +278,7 @@ theorem sigma_quot_H_G (a : LindenbaumAlg Atom) :
   simp only [Formula.swapTemporal_allPast]
   rfl
 
+/-- Sigma commutes with box: `σ(□ a) = □(σ a)`. -/
 theorem sigma_quot_box (a : LindenbaumAlg Atom) :
     sigma_quot (box_quot a) = box_quot (sigma_quot a) := by
   induction a using Quotient.ind

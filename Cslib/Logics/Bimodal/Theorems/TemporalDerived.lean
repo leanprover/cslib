@@ -40,10 +40,12 @@ noncomputable section
 
 section DerivedAxioms
 
+/-- `⊢ ¬(¬ψ → ¬φ) → ¬(φ → ψ)`: negation of contrapositive implies negation of implication. -/
 noncomputable def neg_contrapositive_imp_neg (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base [] ((ψ.neg.imp φ.neg).neg.imp (φ.imp ψ).neg) :=
   mp (contrapose_imp φ ψ) (contrapose_imp (φ.imp ψ) (ψ.neg.imp φ.neg))
 
+/-- `⊢ X → (⊤ ∧ X)`: introduce top conjunction. -/
 def top_and_intro (X : Formula Atom) :
     DerivationTree FrameClass.Base [] (X.imp (Formula.top.and X)) :=
   mp (identity Formula.bot) (pairing Formula.top X)
@@ -68,6 +70,7 @@ noncomputable def G_contra_to_GK (φ ψ : Formula Atom) :
     (DerivationTree.axiom [] _ (Axiom.right_mono_until ψ.neg φ.neg Formula.top) trivial)
     (contrapose_imp (Formula.someFuture ψ.neg) (Formula.someFuture φ.neg))
 
+/-- Temporal K-distribution derived from BX axioms: `⊢ G(φ → ψ) → (Gφ → Gψ)`. -/
 noncomputable def temp_k_dist_derived (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
@@ -98,6 +101,7 @@ def F_top_and_absorb (φ : Formula Atom) :
        (Formula.someFuture φ.neg)) :=
   DerivationTree.axiom [] _ (Axiom.absorb_until Formula.top φ.neg) trivial
 
+/-- Temporal 4-axiom derived from BX axioms: `⊢ Gφ → GGφ`. -/
 noncomputable def temp_4_derived (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allFuture.imp φ.allFuture.allFuture) :=
@@ -105,23 +109,27 @@ noncomputable def temp_4_derived (φ : Formula Atom) :
 
 end DerivedAxioms
 
+/-- G-distribution: `⊢ G(φ → ψ) → (Gφ → Gψ)` (unwrapped from Foundations). -/
 noncomputable def G_distribution (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allFuture.imp (φ.allFuture.imp ψ.allFuture)) :=
   unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.G_distribution
     _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
+/-- H-distribution: `⊢ H(φ → ψ) → (Hφ → Hψ)` (unwrapped from Foundations). -/
 noncomputable def H_distribution (φ ψ : Formula Atom) :
     DerivationTree FrameClass.Base []
       ((φ.imp ψ).allPast.imp (φ.allPast.imp ψ.allPast)) :=
   unwrap (@Cslib.Logic.Theorems.Temporal.TemporalDerived.H_distribution
     _ _ _ _ _ Bimodal.HilbertTM _ _ (φ := φ) (ψ := ψ))
 
+/-- G-transitivity (temporal 4-axiom): `⊢ Gφ → GGφ`. -/
 noncomputable def G_transitivity (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allFuture.imp φ.allFuture.allFuture) :=
   temp_4_derived φ
 
+/-- H-transitivity (temporal 4-axiom for past): `⊢ Hφ → HHφ` (via temporal duality). -/
 noncomputable def H_transitivity (φ : Formula Atom) :
     DerivationTree FrameClass.Base []
       (φ.allPast.imp φ.allPast.allPast) := by
@@ -133,10 +141,12 @@ noncomputable def H_transitivity (φ : Formula Atom) :
   rw [h_inv] at h2
   exact h2
 
+/-- Future connection axiom: `⊢ φ → G(Pφ)`. -/
 def connect_future_thm (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp (φ.somePast.allFuture)) :=
   DerivationTree.axiom [] _ (Axiom.connect_future φ) trivial
 
+/-- Past connection axiom: `⊢ φ → H(Fφ)`. -/
 def connect_past_thm (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp (φ.someFuture.allPast)) :=
   DerivationTree.axiom [] _ (Axiom.connect_past φ) trivial
@@ -331,10 +341,12 @@ end FuturePastChains
 
 section ConjunctionElimination
 
+/-- Always implies present: `⊢ Aφ → φ` where `A = H ∧ (id ∧ G)`. -/
 noncomputable def always_to_present (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.always.imp φ) :=
   imp_trans (rce_imp φ.allPast (φ.and φ.allFuture)) (lce_imp φ φ.allFuture)
 
+/-- Present implies sometimes: `⊢ φ → Sφ` where `S = ¬A¬`. -/
 noncomputable def present_to_sometimes (φ : Formula Atom) :
     DerivationTree FrameClass.Base [] (φ.imp φ.sometimes) := by
   exact imp_trans (dni φ) (contraposition (always_to_present φ.neg))

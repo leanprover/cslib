@@ -45,6 +45,7 @@ variable {Atom : Type*}
 The order on the Lindenbaum algebra is defined by derivability.
 -/
 
+/-- Order on the Lindenbaum algebra: `⟦φ⟧ ≤ ⟦ψ⟧` iff `φ` derives `ψ`. -/
 instance instLELindenbaumAlg : LE (LindenbaumAlg Atom) where
   le := Quotient.lift₂ (fun φ ψ => Derives φ ψ)
     (fun φ₁ φ₂ ψ₁ ψ₂ hφ hψ => by
@@ -55,16 +56,19 @@ instance instLELindenbaumAlg : LE (LindenbaumAlg Atom) where
       · intro h
         exact derives_trans hφ.1 (derives_trans h hψ.2))
 
+/-- Reflexivity of the Lindenbaum order. -/
 theorem le_refl_quot (a : LindenbaumAlg Atom) : a ≤ a := by
   induction a using Quotient.ind
   exact derives_refl _
 
+/-- Transitivity of the Lindenbaum order. -/
 theorem le_trans_quot {a b c : LindenbaumAlg Atom} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
   induction a using Quotient.ind
   induction b using Quotient.ind
   induction c using Quotient.ind
   exact derives_trans hab hbc
 
+/-- Antisymmetry of the Lindenbaum order: mutual derivability implies provable equivalence. -/
 theorem le_antisymm_quot {a b : LindenbaumAlg Atom} (hab : a ≤ b) (hba : b ≤ a) : a = b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -81,12 +85,15 @@ instance : PartialOrder (LindenbaumAlg Atom) where
 ## Lattice Structure
 -/
 
+/-- Top element of the Lindenbaum algebra lattice. -/
 instance instTopLindenbaumAlg : Top (LindenbaumAlg Atom) where
   top := top_quot
 
+/-- Bottom element of the Lindenbaum algebra lattice. -/
 instance instBotLindenbaumAlg : Bot (LindenbaumAlg Atom) where
   bot := bot_quot
 
+/-- Left projection for infimum: `a ∧ b ≤ a`. -/
 theorem inf_le_left_quot (a b : LindenbaumAlg Atom) : and_quot a b ≤ a := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -95,6 +102,7 @@ theorem inf_le_left_quot (a b : LindenbaumAlg Atom) : and_quot a b ≤ a := by
   exact ⟨Metalogic.Core.deduction_theorem [] (φ.and ψ) φ
     (Theorems.Propositional.lce φ ψ)⟩
 
+/-- Right projection for infimum: `a ∧ b ≤ b`. -/
 theorem inf_le_right_quot (a b : LindenbaumAlg Atom) : and_quot a b ≤ b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -103,6 +111,7 @@ theorem inf_le_right_quot (a b : LindenbaumAlg Atom) : and_quot a b ≤ b := by
   exact ⟨Metalogic.Core.deduction_theorem [] (φ.and ψ) ψ
     (Theorems.Propositional.rce φ ψ)⟩
 
+/-- Greatest lower bound property: if `a ≤ b` and `a ≤ c`, then `a ≤ b ∧ c`. -/
 theorem le_inf_quot {a b c : LindenbaumAlg Atom} (hab : a ≤ b) (hac : a ≤ c) : a ≤ and_quot b c := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -115,6 +124,7 @@ theorem le_inf_quot {a b c : LindenbaumAlg Atom} (hab : a ≤ b) (hac : a ≤ c)
   obtain ⟨d_ac⟩ := h_ac
   exact ⟨Theorems.Combinators.combine_imp_conj d_ab d_ac⟩
 
+/-- Left injection for supremum: `a ≤ a ∨ b`. -/
 theorem le_sup_left_quot (a b : LindenbaumAlg Atom) : a ≤ or_quot a b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -124,6 +134,7 @@ theorem le_sup_left_quot (a b : LindenbaumAlg Atom) : a ≤ or_quot a b := by
   unfold Formula.or
   exact ⟨Theorems.Propositional.raa φ ψ⟩
 
+/-- Right injection for supremum: `b ≤ a ∨ b`. -/
 theorem le_sup_right_quot (a b : LindenbaumAlg Atom) : b ≤ or_quot a b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -134,6 +145,7 @@ theorem le_sup_right_quot (a b : LindenbaumAlg Atom) : b ≤ or_quot a b := by
     DerivationTree.axiom [] _ (Axiom.imp_s ψ φ.neg) trivial
   exact ⟨d_s⟩
 
+/-- Least upper bound property: if `a ≤ c` and `b ≤ c`, then `a ∨ b ≤ c`. -/
 theorem sup_le_quot {a b c : LindenbaumAlg Atom} (hac : a ≤ c) (hbc : b ≤ c) : or_quot a b ≤ c := by
   induction a using Quotient.ind
   induction b using Quotient.ind
@@ -159,12 +171,14 @@ theorem sup_le_quot {a b c : LindenbaumAlg Atom} (hac : a ≤ c) (hbc : b ≤ c)
     DerivationTree.modus_ponens [] _ _ b2 step1
   exact ⟨DerivationTree.modus_ponens [] _ _ step2 neg_phi_to_chi_given_disj⟩
 
+/-- Bottom is below everything: `⊥ ≤ a` (via EFQ). -/
 theorem bot_le_quot (a : LindenbaumAlg Atom) : ⊥ ≤ a := by
   induction a using Quotient.ind
   rename_i φ
   show Derives Formula.bot φ
   exact ⟨DerivationTree.axiom [] _ (Axiom.efq φ) trivial⟩
 
+/-- Everything is below top: `a ≤ ⊤`. -/
 theorem le_top_quot (a : LindenbaumAlg Atom) : a ≤ ⊤ := by
   induction a using Quotient.ind
   rename_i φ
@@ -175,6 +189,7 @@ theorem le_top_quot (a : LindenbaumAlg Atom) : a ≤ ⊤ := by
     DerivationTree.axiom [] _ (Axiom.imp_s ((Formula.bot : Formula Atom).imp Formula.bot) φ) trivial
   exact ⟨DerivationTree.modus_ponens [] _ _ d_s d_id⟩
 
+/-- Distributivity: `(a ∨ b) ∧ (a ∨ c) ≤ a ∨ (b ∧ c)`. -/
 theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
     and_quot (or_quot a b) (or_quot a c) ≤ or_quot a (and_quot b c) := by
   induction a using Quotient.ind
@@ -257,6 +272,7 @@ theorem le_sup_inf_quot (a b c : LindenbaumAlg Atom) :
 ## Complement and Boolean Algebra
 -/
 
+/-- Complement axiom: `a ∧ ¬a ≤ ⊥`. -/
 theorem inf_compl_le_bot_quot (a : LindenbaumAlg Atom) : and_quot a (neg_quot a) ≤ ⊥ := by
   induction a using Quotient.ind
   rename_i φ
@@ -281,6 +297,7 @@ theorem inf_compl_le_bot_quot (a : LindenbaumAlg Atom) : and_quot a (neg_quot a)
     DerivationTree.modus_ponens [φ.and φ.neg] φ Formula.bot h_neg_phi h_phi
   exact ⟨Metalogic.Core.deduction_theorem [] (φ.and φ.neg) Formula.bot h_bot⟩
 
+/-- Complement axiom: `⊤ ≤ a ∨ ¬a` (law of excluded middle). -/
 theorem top_le_sup_compl_quot (a : LindenbaumAlg Atom) : ⊤ ≤ or_quot a (neg_quot a) := by
   induction a using Quotient.ind
   rename_i φ
@@ -291,6 +308,7 @@ theorem top_le_sup_compl_quot (a : LindenbaumAlg Atom) : ⊤ ≤ or_quot a (neg_
     DerivationTree.axiom [] _ (Axiom.imp_s (φ.or φ.neg) (Formula.bot.imp Formula.bot)) trivial
   exact ⟨DerivationTree.modus_ponens [] _ _ h_s h_lem⟩
 
+/-- Commutativity of disjunction in the Lindenbaum algebra. -/
 theorem sup_comm_quot (a b : LindenbaumAlg Atom) : or_quot a b = or_quot b a := by
   apply le_antisymm
   · apply sup_le_quot
