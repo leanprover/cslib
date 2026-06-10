@@ -49,8 +49,10 @@ next_project_number: 74
 
 ### 73. Make Propositional a shared sub-logic for Modal and Temporal
 - **Effort**: Large (8-16 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
+- **Research**: [specs/073_propositional_shared_sublogic/reports/01_shared-sublogic-research.md]
+- **Plan**: [specs/073_propositional_shared_sublogic/plans/01_shared-sublogic-plan.md]
 
 **Description**: Make Propositional a shared sub-logic that Modal and Temporal build on. Currently Modal and Temporal each define their own formula types independently from Foundations, with no imports from Logics/Propositional/. Refactor so that Modal/ and Temporal/ import from Propositional/ and reuse its definitions where appropriate (e.g. propositional connectives, natural deduction infrastructure). This would establish Propositional as a genuine intermediate layer: Foundations → Propositional → {Modal, Temporal} → Bimodal. Research what content from Propositional/Defs.lean and Propositional/NaturalDeduction/ could be shared, and what structural changes to Modal and Temporal formula types would be needed to build on Propositional rather than duplicating its primitives.
 

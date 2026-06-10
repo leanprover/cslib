@@ -1,0 +1,29 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/073_propositional_shared_sublogic/plans/01_shared-sublogic-plan.md",
+      "summary": "4-phase plan to establish Propositional as shared sub-logic layer by creating Modal/FromPropositional.lean and Temporal/FromPropositional.lean"
+    }
+  ],
+  "next_steps": "Run /implement 73 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1749616200_orchestrate",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 4,
+    "estimated_hours": 4,
+    "dependency_waves": [[1, 2], [3], [4]]
+  },
+  "memory_candidates": [
+    {
+      "content": "When establishing shared sub-logic layers in Lean 4, place embeddings FROM the simpler logic INTO the target logic's module (e.g., Modal/FromPropositional.lean) rather than in the source logic's module (e.g., Propositional/Embedding/ToModal.lean). This avoids dependency inversion where the simpler logic imports from the more complex one. The pattern is: target module imports source definitions and defines the embedding function, Coe instance, and simp lemmas.",
+      "category": "PATTERN",
+      "source_artifact": "specs/073_propositional_shared_sublogic/plans/01_shared-sublogic-plan.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["lean4", "embedding", "dependency-inversion", "sub-logic", "import-graph", "coercion"]
+    }
+  ]
+}

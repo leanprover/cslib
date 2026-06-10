@@ -1,0 +1,14 @@
+{
+  "status": "planned",
+  "summary": "4-phase plan creates Modal/FromPropositional.lean and Temporal/FromPropositional.lean to establish Propositional as shared sub-logic layer, then refactors Bimodal/Embedding/PropositionalEmbedding.lean to import from the new locations",
+  "blockers": [],
+  "artifacts": [
+    {
+      "path": "specs/073_propositional_shared_sublogic/plans/01_shared-sublogic-plan.md",
+      "type": "plan",
+      "summary": "4-phase implementation plan: create FromPropositional.lean in Modal and Temporal, refactor Bimodal embedding, full build verification"
+    }
+  ],
+  "continuation_context": null,
+  "next_action_hint": "implement"
+}

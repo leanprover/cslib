@@ -11,19 +11,17 @@ Every component lives at the most general level it can compile at. Content is
 distributed across five module levels — Foundations/Logic/, Logics/Propositional/,
 Logics/Modal/, Logics/Temporal/, and Logics/Bimodal/. Foundations provides
 shared infrastructure (connectives, proof systems, propositional theorems, MCS
-theory) that all four logic modules import directly. Propositional, Modal, and
-Temporal are independent peers that import only from Foundations. Bimodal
-imports from all three peer modules for cross-logic results (embedding,
-conservative extension) and also imports Foundations infrastructure directly.
+theory). Propositional defines the base formula type and imports only from
+Foundations. Modal and Temporal each import from both Foundations and
+Propositional, establishing Propositional as a shared sub-logic. Bimodal
+imports from all three peer modules and from Foundations directly.
 
 ## Module Dependency Structure
 
-Foundations provides shared infrastructure to all four logic modules.
-Propositional, Modal, and Temporal are independent peers that each
-import only from Foundations. Bimodal imports from all three peer
-modules and from Foundations directly. All cross-logic embeddings
-(propositional, modal, and temporal into bimodal) live in
-Bimodal/Embedding/.
+Imports flow downward through four layers: Foundations at top,
+Propositional as the shared sub-logic, Modal and Temporal as
+independent peers (both importing from Propositional), and Bimodal
+at the bottom.
 
 ```mermaid
 flowchart TB
@@ -62,11 +60,12 @@ flowchart TB
     F2 --> M2 & T2 & B2
     F3 --> M2 & T3 & B3
 
-    P1 --> B2
+    P1 --> M1 & T1
     M1 --> B2
     M2 --> B3
     T2 --> B2
     T3 --> B3
+    P1 --> B2
 ```
 
 ## Completed

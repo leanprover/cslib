@@ -4,10 +4,11 @@
     {
       "project_number": 73,
       "project_name": "propositional_shared_sublogic",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T06:00:25Z",
-      "last_updated": "2026-06-10T06:00:25Z"
+      "last_updated": "2026-06-10T06:15:17Z",
+      "completion_summary": "Created Modal/FromPropositional.lean and Temporal/FromPropositional.lean with PL embedding functions, establishing Propositional as a shared sub-logic. Refactored Bimodal/Embedding/PropositionalEmbedding.lean to import from the new locations. Updated ROADMAP.md flowchart to show 4-layer hierarchy."
     },
     {
       "project_number": 72,
