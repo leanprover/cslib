@@ -1,0 +1,55 @@
+{
+  "status": "implemented",
+  "started_at": "2026-06-10T12:00:00Z",
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
+  },
+  "artifacts": [
+    {
+      "path": "Cslib/Logics/Propositional/ProofSystem/Axioms.lean",
+      "type": "implementation",
+      "summary": "PropositionalAxiom inductive with 4 constructors"
+    },
+    {
+      "path": "Cslib/Logics/Propositional/ProofSystem/Derivation.lean",
+      "type": "implementation",
+      "summary": "DerivationTree, height, Deriv, propDerivationSystem"
+    },
+    {
+      "path": "Cslib/Logics/Propositional/ProofSystem/Instances.lean",
+      "type": "implementation",
+      "summary": "InferenceSystem + PropositionalHilbert instances for HilbertCl"
+    },
+    {
+      "path": "Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean",
+      "type": "implementation",
+      "summary": "Deduction theorem by WF recursion + HasDeductionTheorem instance"
+    },
+    {
+      "path": "Cslib/Logics/Propositional/Metalogic/MCS.lean",
+      "type": "implementation",
+      "summary": "MCS properties: Lindenbaum, closure, negation completeness"
+    },
+    {
+      "path": "Cslib/Logics/Propositional/NaturalDeduction/FromHilbert.lean",
+      "type": "implementation",
+      "summary": "ND wrappers: impI, impE, botE, cut, weakening, substitution"
+    },
+    {
+      "path": "specs/075_propositional_hilbert_proof_system/summaries/01_hilbert-proof-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary"
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1781099803_31c6ac",
+    "agent_type": "lean-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed"
+  }
+}
