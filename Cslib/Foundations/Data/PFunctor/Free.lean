@@ -167,7 +167,8 @@ lemma bind_pure_comp (f : α → β) : ∀ x : P.FreeM α, x.bind (pure ∘ f) =
 @[simp]
 lemma liftBind_bind (a : P.A) (cont : P.B a → P.FreeM β) (f : β → P.FreeM γ) :
     ((FreeM.lift a).bind cont).bind f = (FreeM.lift a).bind (fun u ↦ (cont u).bind f) := by
-  dsimp only [FreeM.lift, FreeM.bind]
+  simp only [lift]
+  exact FreeM.bind_assoc (FreeM.liftBind a pure) cont f
 
 @[simp]
 lemma liftObj_bind (x : P.Obj α) (f : α → P.FreeM β) :
@@ -341,15 +342,15 @@ lemma liftM_seqRight {α β : Type uB}
 @[simp]
 lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (a : P.A) :
     (FreeM.lift a).liftM interp = interp a := by
-  simp_rw [lift, FreeM.liftM, _root_.bind_pure]
+  simpa [bind_pure] using
+    (liftM_lift_bind (interp := interp) (a := a) (cont := pure))
 
 @[simp]
 lemma liftM_liftObj (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
     (FreeM.liftObj x).liftM interp = x.2 <$> interp x.1 := by
-  rw [liftObj, liftBind_eq]
-  simp_rw [bind_eq_bind, liftM_lift_bind]
-  simpa only [Function.comp_apply] using
-    (LawfulMonad.bind_pure_comp (f := x.2) (x := interp x.1))
+  rw [liftObj, liftBind_eq, bind_eq_bind, liftM_lift_bind]
+  simp only [pure_eq_pure, liftM_pure]
+  exact LawfulMonad.bind_pure_comp (f := x.2) (x := interp x.1)
 
 end liftM
 
