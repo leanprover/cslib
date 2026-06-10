@@ -10,7 +10,7 @@ public import Cslib.Foundations.Logic.ProofSystem
 
 /-! # Instance Registration for Bimodal.HilbertTM
 
-This module registers `InferenceSystem`, `PropositionalHilbert`,
+This module registers `InferenceSystem`, `ClassicalHilbert`,
 `Necessitation`, `ModalS5Hilbert`, `TemporalNecessitation`,
 all 22 `HasAxiom*`, `HasAxiomMF`, and `BimodalTMHilbert` instances
 for the `Bimodal.HilbertTM` tag type, connecting the abstract typeclass
@@ -94,10 +94,10 @@ instance :
   peirce := ⟨Bimodal.DerivationTree.axiom [] _
     (Bimodal.Axiom.peirce _ _) trivial⟩
 
-/-! ## PropositionalHilbert Instance -/
+/-! ## ClassicalHilbert Instance -/
 
 instance :
-    PropositionalHilbert Bimodal.HilbertTM
+    ClassicalHilbert Bimodal.HilbertTM
       (F := Bimodal.Formula Atom) where
 
 /-! ## Modal Axiom Instances -/

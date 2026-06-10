@@ -156,7 +156,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Update Downstream Extensions and BigConj [NOT STARTED]
+### Phase 4: Update Downstream Extensions and BigConj [COMPLETED]
 
 **Goal**: Update all downstream files that reference `PropositionalHilbert` to use the appropriate new class name, and update bundled class extends chains.
 

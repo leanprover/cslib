@@ -10,7 +10,7 @@ public import Cslib.Foundations.Logic.ProofSystem
 
 /-! # Instance Registration for Temporal.HilbertBX
 
-This module registers `InferenceSystem`, `PropositionalHilbert`, `TemporalNecessitation`,
+This module registers `InferenceSystem`, `ClassicalHilbert`, `TemporalNecessitation`,
 all 22 `HasAxiom*`, and `TemporalBXHilbert` instances for the `Temporal.HilbertBX` tag type,
 connecting the abstract typeclass hierarchy to the concrete derivation tree.
 
@@ -69,10 +69,10 @@ instance :
     HasAxiomPeirce Temporal.HilbertBX (F := Temporal.Formula Atom) where
   peirce := ⟨Temporal.DerivationTree.axiom [] _ (Temporal.Axiom.peirce _ _) trivial⟩
 
-/-! ## PropositionalHilbert Instance -/
+/-! ## ClassicalHilbert Instance -/
 
 instance :
-    PropositionalHilbert Temporal.HilbertBX (F := Temporal.Formula Atom) where
+    ClassicalHilbert Temporal.HilbertBX (F := Temporal.Formula Atom) where
 
 /-! ## TemporalNecessitation Instance -/
 

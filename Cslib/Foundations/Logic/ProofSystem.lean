@@ -293,9 +293,6 @@ class ClassicalHilbert (S : Type*) [HasBot F] [HasImp F]
     extends IntuitionisticHilbert S (F := F),
             HasAxiomPeirce S (F := F)
 
-/-- Backward-compatibility alias for `ClassicalHilbert`. -/
-abbrev PropositionalHilbert := @ClassicalHilbert
-
 /-- Modal Hilbert system K. -/
 class ModalHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
     [InferenceSystem S F]

@@ -22,12 +22,23 @@ Module aggregator for all theorems derived in the generic typeclass framework.
 
 ## Submodules
 
-### Propositional (`[PropositionalHilbert S]`)
+### Minimal (`[MinimalHilbert S]`)
 
 - `Combinators`: I/B/C/S combinators, imp_trans, pairing, dni
-- `Propositional.Core`: LEM, DNE, raa, efq_neg, rcp, lce_imp, rce_imp
-- `Propositional.Connectives`: classical_merge, iff ops, contraposition,
-  De Morgan laws
+- `Propositional.Core` (minimal section): LEM
+- `Propositional.Connectives` (minimal section): contrapose_imp,
+  contraposition, iff_intro, iff_neg_intro
+
+### Intuitionistic (`[IntuitionisticHilbert S]`)
+
+- `Propositional.Core` (intuitionistic section): efq_axiom, raa, efq_neg
+
+### Classical (`[ClassicalHilbert S]`)
+
+- `Propositional.Core` (classical section): peirce_axiom, DNE, rcp,
+  lce_imp, rce_imp
+- `Propositional.Connectives` (classical section): classical_merge,
+  contrapose_iff, De Morgan laws
 - `BigConj`: bigconj syntax and derivability lemmas
 
 ### Modal (`[ModalHilbert S]` / `[ModalS5Hilbert S]`)
