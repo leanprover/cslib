@@ -173,14 +173,14 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: MCS Properties [NOT STARTED]
+### Phase 4: MCS Properties [COMPLETED]
 
 **Goal**: Instantiate the generic MCS framework from `Foundations/Logic/Metalogic/Consistency.lean` for propositional logic and prove propositional-specific MCS properties.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Propositional/Metalogic/MCS.lean`
+- [x] Create `Cslib/Logics/Propositional/Metalogic/MCS.lean`
   - Import `Cslib.Logics.Propositional.Metalogic.DeductionTheorem`
-  - Define abbreviations `PL.SetConsistent` and `PL.SetMaximalConsistent` for the propositional derivation system
+  - Define abbreviations `PropSetConsistent` and `PropSetMaximalConsistent` for the propositional derivation system *(deviation: altered -- renamed from `PL.SetConsistent`/`PL.SetMaximalConsistent` to avoid duplicate namespace `PL.PL.*`)*
   - Prove `prop_lindenbaum`: Lindenbaum's lemma for propositional logic (delegate to `Metalogic.set_lindenbaum`)
   - Prove `prop_closed_under_derivation`: derivable formulas are in MCS (delegate to `Metalogic.SetMaximalConsistent.closed_under_derivation`)
   - Prove `prop_implication_property`: MP reflected in membership (delegate to `Metalogic.SetMaximalConsistent.implication_property`)
