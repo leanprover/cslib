@@ -82,18 +82,9 @@ instance : HasContext (Proposition Atom) := ⟨Proposition.Context Atom, Proposi
 open scoped Proposition Proposition.Context
 
 /-- Logical equivalence is an equivalence relation. -/
-instance (S : Set (Model World Atom)) :
-    IsEquiv (Proposition Atom) (Proposition.Equiv (Atom := Atom) S) where
-  refl := by grind
-  symm := by
-    intro φ₁ φ₂ h m hₘ w
-    specialize h m hₘ w
-    grind
-  trans := by
-    intro φ₁ φ₂ φ₃ h₁ h₂ m hₘ w
-    specialize h₁ m hₘ w
-    specialize h₂ m hₘ w
-    grind
+instance {World Atom} (S : Set (Model World Atom)) : IsEquiv (Proposition Atom) (Proposition.Equiv S) := by
+  rw [← equivalence_iff_isEquiv]
+  grind [Equivalence]
 
 /-- Logical equivalence is a congruence. -/
 instance (S : Set (Model World Atom)) :
