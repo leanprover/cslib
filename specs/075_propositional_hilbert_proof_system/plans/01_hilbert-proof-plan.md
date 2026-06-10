@@ -241,16 +241,16 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: Module Registration and Full Build [NOT STARTED]
+### Phase 6: Module Registration and Full Build [COMPLETED]
 
 **Goal**: Register all new modules in the Lean project structure and verify the full project builds cleanly.
 
 **Tasks**:
-- [ ] Check if a `Cslib/Logics/Propositional.lean` root file exists; if not, create it importing all Propositional modules
-- [ ] Ensure `Cslib.lean` or the lakefile imports include the new Propositional submodules
-- [ ] Run `lake build` (full project) and verify zero errors
-- [ ] Run `lake build Cslib.Logics.Propositional.ProofSystem.Axioms Cslib.Logics.Propositional.ProofSystem.Derivation Cslib.Logics.Propositional.ProofSystem.Instances Cslib.Logics.Propositional.Metalogic.DeductionTheorem Cslib.Logics.Propositional.Metalogic.MCS Cslib.Logics.Propositional.NaturalDeduction.FromHilbert` to verify all new modules individually
-- [ ] Verify no import cycles exist (Propositional modules only import from Foundations and Propositional/Defs)
+- [x] Check if a `Cslib/Logics/Propositional.lean` root file exists; if not, create it importing all Propositional modules *(deviation: skipped -- no root file exists; imports added directly to Cslib.lean matching the existing pattern)*
+- [x] Ensure `Cslib.lean` or the lakefile imports include the new Propositional submodules
+- [x] Run `lake build` (full project) and verify zero errors *(deviation: altered -- full `lake build` has a pre-existing error in Bimodal.FrameConditions.Compatibility unrelated to this task; all 6 new modules verified individually)*
+- [x] Run `lake build Cslib.Logics.Propositional.ProofSystem.Axioms Cslib.Logics.Propositional.ProofSystem.Derivation Cslib.Logics.Propositional.ProofSystem.Instances Cslib.Logics.Propositional.Metalogic.DeductionTheorem Cslib.Logics.Propositional.Metalogic.MCS Cslib.Logics.Propositional.NaturalDeduction.FromHilbert` to verify all new modules individually
+- [x] Verify no import cycles exist (Propositional modules only import from Foundations and Propositional/Defs)
 
 **Timing**: 1 hour
 

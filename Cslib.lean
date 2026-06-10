@@ -287,7 +287,13 @@ public import Cslib.Logics.Modal.Metalogic.DerivationTree
 public import Cslib.Logics.Modal.Metalogic.MCS
 public import Cslib.Logics.Modal.Metalogic.Soundness
 public import Cslib.Logics.Propositional.Defs
+public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
+public import Cslib.Logics.Propositional.Metalogic.MCS
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Logics.Propositional.NaturalDeduction.FromHilbert
+public import Cslib.Logics.Propositional.ProofSystem.Axioms
+public import Cslib.Logics.Propositional.ProofSystem.Derivation
+public import Cslib.Logics.Propositional.ProofSystem.Instances
 public import Cslib.Logics.Temporal.FromPropositional
 public import Cslib.Logics.Temporal.Metalogic
 public import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
