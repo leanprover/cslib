@@ -8,7 +8,11 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 
-/-! # Translation of εNA into εNA with a single accept state. -/
+/-! # Translation of εNA into εNA with a single accept state
+
+Defines the transformation `toSingleAccept` for `εNA.FinAcc` and proves correctness
+results in terms of language equivalence and correspondences between the two transition systems.
+-/
 
 @[expose] public section
 
@@ -62,7 +66,7 @@ theorem toSingleAccept_tr_none_accept {a : εNA.FinAcc State Symbol}
 @[scoped grind ←]
 theorem toSingleAccept_not_tr_none {a : εNA.FinAcc State Symbol} :
     ¬a.toSingleAccept.Tr none x os := by
-  grind
+  grind only [toSingleAccept]
 
 @[scoped grind →]
 theorem toSingleAccept_mTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
