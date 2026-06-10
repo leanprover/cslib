@@ -1,21 +1,18 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "agent_type": "general-implementation-agent",
+  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+  "phases_completed": 2,
+  "phases_total": 2,
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/083_update_pr1_description_and_roadmap/plans/01_pr-description-plan.md",
-      "summary": "2-phase plan to update PR 1 description (15 edits) and ROADMAP.md (2 fixes)"
+      "type": "summary",
+      "path": "specs/083_update_pr1_description_and_roadmap/summaries/01_pr-description-summary.md",
+      "summary": "Implementation summary for task 83: PR description and ROADMAP updates reflecting tasks 75-82"
     }
   ],
-  "next_steps": "Run /implement 83 to execute the plan",
-  "metadata": {
-    "session_id": "sess_1749571200_plan83",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 2,
-    "estimated_hours": 1,
-    "dependency_waves": [[1, 2]]
+  "completion_data": {
+    "completion_summary": "Updated specs/059_pr1_foundations_logic/pr-description.md to reflect 16 files and 3,704 total lines (adding DeductionHelpers.lean row with camelCase def names, CI validation compliance, revised Known Issues), and updated specs/ROADMAP.md to remove the stale Reasoning.lean entry and add DeductionHelpers.lean under Metalogic/."
   },
   "memory_candidates": []
 }

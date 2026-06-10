@@ -4,12 +4,12 @@
 
 ## Summary
 
-Adds the `Cslib/Foundations/Logic/` module hierarchy: 15 files, 3,708 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
+Adds the `Cslib/Foundations/Logic/` module hierarchy: 16 files, 3,704 lines total. This provides the Hilbert-style proof system infrastructure that all downstream PRs (modal metalogic, temporal semantics, temporal metalogic, bimodal completeness) depend on.
 
 The contribution includes:
 - **Core definitions** (5 files): `InferenceSystem` typeclass, `HasBot`/`HasImp` connective classes, polymorphic axiom `abbrev`s, bundled proof system typeclasses (`PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert`), and `LogicalEquivalence`
 - **Theorem libraries** (9 files): SKI/BCC combinators, propositional core (LEM, DNE, RAA), derived connective theorems (De Morgan, contraposition, iff), big conjunction, K-level modal theorems, S5-level modal theorems, temporal derived theorems, and frame conditions
-- **Metalogic foundations** (1 file): `DerivationSystem` typeclass with Lindenbaum's lemma via Zorn's lemma, maximal consistent set (MCS) construction
+- **Metalogic foundations** (2 files): `DerivationSystem` typeclass with Lindenbaum's lemma via Zorn's lemma, maximal consistent set (MCS) construction; `HasHilbertTree` typeclass with generic deduction theorem helpers
 
 ## Design: Primitive Connective Choice
 
@@ -53,7 +53,7 @@ The primitive basis `{bot, imp}` aligns naturally with Lean 4's type theory:
 | `ImplyK` | K combinator |
 | `ImplyS` | S combinator |
 
-The K and S axiom schemas correspond directly to the K and S combinators, as realized in `Theorems/Combinators.lean` (333 lines of combinator infrastructure).
+The K and S axiom schemas correspond directly to the K and S combinators, as realized in `Theorems/Combinators.lean` (338 lines of combinator infrastructure).
 
 ### 4. Polymorphic `abbrev` design avoiding typeclass diamonds
 
@@ -74,19 +74,20 @@ The `Metalogic/Consistency.lean` module provides a logic-agnostic framework for 
 | `InferenceSystem.lean` | 68 | `InferenceSystem` typeclass + `DerivableIn` |
 | `Connectives.lean` | 98 | Atomic classes `HasBot`, `HasImp`, `HasBox`, `HasUntil`, `HasSince`; bundled classes; `LukasiewiczDerived` |
 | `Axioms.lean` | 297 | Polymorphic axiom `abbrev`s: `ImplyK`, `ImplyS`, `EFQ`, `Peirce`, `DNE`, all modal/temporal axioms; shared `top'`/`neg'`/`conj'`/`disj'` abbreviations |
-| `ProofSystem.lean` | 354 | `ModusPonens`, `Necessitation`, `HasAxiom*` typeclasses; bundled `PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert` |
+| `ProofSystem.lean` | 352 | `ModusPonens`, `Necessitation`, `HasAxiom*` typeclasses; bundled `PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`, `BimodalTMHilbert` |
 | `LogicalEquivalence.lean` | 35 | `LogicalEquivalence` typeclass for context-based congruence |
-| `Theorems/Combinators.lean` | 333 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj` |
+| `Theorems/Combinators.lean` | 338 | I, B, C combinators; `imp_trans`, `pairing`, `dni`, `combine_imp_conj`; `flip`, `app1`, `app2` |
 | `Theorems/Propositional/Core.lean` | 288 | LEM, DNE, RAA, `efq_neg`, `rcp`, `lce_imp`, `rce_imp` |
-| `Theorems/Propositional/Connectives.lean` | 546 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
+| `Theorems/Propositional/Connectives.lean` | 535 | `classical_merge`, `iff_intro`, `contrapose_imp`, De Morgan laws |
 | `Theorems/BigConj.lean` | 141 | `BigConj` syntax and derivability lemmas |
-| `Theorems/Modal/Basic.lean` | 203 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
-| `Theorems/Modal/S5.lean` | 639 | S5-level: Axiom 5 derivation, collapse theorems |
-| `Theorems/Temporal/TemporalDerived.lean` | 293 | Temporal operator lemmas |
-| `Theorems/Temporal/FrameConditions.lean` | 89 | Frame condition marker typeclasses |
+| `Theorems/Modal/Basic.lean` | 202 | K-level: `box_mono`, `diamond_mono`, `k_dist_diamond`, modal duality |
+| `Theorems/Modal/S5.lean` | 530 | S5-level: Axiom 5 derivation, collapse theorems; abbreviation refactoring reduced duplicated `abbrev`s |
+| `Theorems/Temporal/TemporalDerived.lean` | 287 | Temporal operator lemmas |
+| `Theorems/Temporal/FrameConditions.lean` | 90 | Frame condition marker typeclasses |
 | `Metalogic/Consistency.lean` | 277 | `DerivationSystem`, Lindenbaum's lemma, MCS foundations |
+| `Metalogic/DeductionHelpers.lean` | 119 | `HasHilbertTree` typeclass; `deductionAxiom`, `deductionImpSelf`, `deductionAssumptionOther`, `deductionMpUnderImp` generic helpers |
 | `Theorems.lean` | 47 | Barrel aggregator (with Propositional, Modal, and Temporal subsection docs) |
-| **Total** | **3,708** | |
+| **Total** | **3,704** | |
 
 ## Dependency Graph
 
@@ -103,17 +104,19 @@ InferenceSystem
                     |   +-- Theorems/Temporal/TemporalDerived
                     |       +-- Theorems/Temporal/FrameConditions
                     +-- Theorems/BigConj
-Metalogic/Consistency  (imports Connectives only; no ProofSystem dependency)
-LogicalEquivalence     (imports InferenceSystem only)
-Theorems.lean          (barrel import of all Theorems/* submodules)
+Metalogic/Consistency      (imports Connectives only; no ProofSystem dependency)
+Metalogic/DeductionHelpers (imports Connectives only; imported by all DeductionTheorem files)
+LogicalEquivalence         (imports InferenceSystem only)
+Theorems.lean              (barrel import of all Theorems/* submodules)
 ```
 
 ## Verification
 
 - `lake build` for all Foundations/Logic modules exits 0
 - `grep -rn "sorry" Cslib/Foundations/Logic/` returns zero hits
-- All 15 files have correct Apache 2.0 headers
-- All 15 files use the `module` keyword and are registered in `Cslib.lean`
+- All 16 files have correct Apache 2.0 headers
+- All 16 files use the `module` keyword and are registered in `Cslib.lean`
+- CI validation suite passed: `lake shake`, `lake exe checkInitImports`, `lake lint`, `lake exe lint-style`, `lake exe mk_all --module`
 
 ## Embedding Relocation (Tasks 72-73)
 
@@ -136,7 +139,7 @@ These files are outside `Foundations/Logic/` scope but establish the dependency 
 
 ## Module Keyword Migration (Task 68)
 
-All 15 `Foundations/Logic/` files now use the Lean 4 `module` keyword:
+All 16 `Foundations/Logic/` files now use the Lean 4 `module` keyword:
 - Each file begins with `module` after the copyright header
 - All imports converted to `public import` for transitive visibility
 - All files wrapped in `@[expose] public section` for downstream accessibility
@@ -147,8 +150,8 @@ This was required for Lean 4 module system compliance and ensures that the Found
 ## Known Issues
 
 - **Long lines resolved**: `S5.lean` and `TemporalDerived.lean` no longer use any `set_option linter.style.longLine false`. All lines are under 100 characters via `abbrev` abbreviations (`diamond'`, `iff'`, `neg'`, `conj'`, `disj'`) and multi-line formatting.
-- **Public imports**: `public import Cslib.Init` remains in all 4 core definition files. Downgrading to non-public breaks the transitive import chain for downstream theorem files.
-- **Abbreviation deduplication**: `top'/neg'` abbreviations in `TemporalDerived.lean` now import from `Cslib.Logic.Axioms` instead of redefining locally.
+- **Public imports**: `public import Cslib.Init` remains in `Connectives.lean` (the root importer). Task 81 trimmed it from `ProofSystem.lean` and `Axioms.lean` where it was transitively available.
+- **Abbreviation deduplication**: Tasks 79 and 81 completed full deduplication across the module hierarchy. Task 79 extracted shared helpers (`Helpers/` modules) and delegated wrap/unwrap to downstream modules. Task 81 refactored `S5.lean` abbreviations, reducing it from 639 to 530 lines.
 
 ## References
 

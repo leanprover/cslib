@@ -4,16 +4,6 @@ next_project_number: 83
 
 # Tasks
 
-### 82. Systematic codebase review of Logics/ and Foundations/ for publication quality
-- **Effort**: large
-- **Status**: [COMPLETED]
-- **Task Type**: lean4
-- **Research**: [082_systematic_codebase_review_logics_foundations/reports/01_team-research.md]
-- **Plan**: [082_systematic_codebase_review_logics_foundations/plans/01_codebase-review-plan.md]
-- **Summary**: [082_systematic_codebase_review_logics_foundations/summaries/01_codebase-review-summary.md]
-
-**Description**: Whereas task 81's plan is focused on preparing PR 1, review all files touched in Logics/ and Foundations/ for other systematic improvements to the codebase including infrastructure, organization, quality of the proofs, comments, conventions (matching CSLib norms), camelCase instead of snake_case, imports, sections, etc., in order to produce the highest quality most consistent and uniform result for publication
-
 ## Task Order
 
 *Updated 2026-06-10. Generated from state.json dependency graph.*
@@ -21,7 +11,7 @@ next_project_number: 83
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,76,82,83 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
+| 1 | 36,37,38,60,61,76,83 | -- | Temporal Logic, Bimodal Porting, Clean Up, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
 | 4 | 64 | 63 | Submit PRs |
@@ -46,6 +36,7 @@ next_project_number: 83
 ### Clean Up
 
 76 [NOT STARTED] — module_keyword_migration
+83 [PLANNED] — update_pr1_description_and_roadmap
 
 ### Submit PRs
 
@@ -55,12 +46,17 @@ next_project_number: 83
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
-### Uncategorized
-
-82 [RESEARCHED] — systematic_codebase_review_logics_foundations
-83 [RESEARCHED] — update_pr1_description_and_roadmap
-
 ## Tasks
+
+### 82. Systematic codebase review of Logics/ and Foundations/ for publication quality
+- **Effort**: large
+- **Status**: [COMPLETED]
+- **Task Type**: lean4
+- **Research**: [082_systematic_codebase_review_logics_foundations/reports/01_team-research.md]
+- **Plan**: [082_systematic_codebase_review_logics_foundations/plans/01_codebase-review-plan.md]
+- **Summary**: [082_systematic_codebase_review_logics_foundations/summaries/01_codebase-review-summary.md]
+
+**Description**: Whereas task 81's plan is focused on preparing PR 1, review all files touched in Logics/ and Foundations/ for other systematic improvements to the codebase including infrastructure, organization, quality of the proofs, comments, conventions (matching CSLib norms), camelCase instead of snake_case, imports, sections, etc., in order to produce the highest quality most consistent and uniform result for publication
 
 ### 83. Review changes since task 74 to update PR 1 description and roadmap
 - **Effort**: medium

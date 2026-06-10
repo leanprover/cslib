@@ -1,10 +1,16 @@
 {
-  "status": "planned",
-  "summary": "Created 2-phase plan to update pr-description.md (15 edits: file/line counts, DeductionHelpers entry, CI blockers, known issues) and ROADMAP.md (remove stale Reasoning.lean, add DeductionHelpers.lean). Both phases are independent and can run in parallel. Total effort: 1 hour.",
-  "artifacts": [{"path": "specs/083_update_pr1_description_and_roadmap/plans/01_pr-description-plan.md", "type": "plan", "summary": "2-phase implementation plan for PR description and ROADMAP updates"}],
+  "status": "implemented",
+  "summary": "Updated pr-description.md (16 files, 3,704 lines, new DeductionHelpers.lean row, CI compliance note, revised Known Issues) and ROADMAP.md (removed Reasoning.lean, added DeductionHelpers.lean).",
+  "artifacts": [
+    {
+      "path": "specs/083_update_pr1_description_and_roadmap/summaries/01_pr-description-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for task 83: PR description and ROADMAP updates reflecting tasks 75-82"
+    }
+  ],
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "implement",
-  "phases_completed": 0,
+  "next_action_hint": "complete",
+  "phases_completed": 2,
   "phases_total": 2
 }

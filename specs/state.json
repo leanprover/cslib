@@ -4,13 +4,13 @@
     {
       "project_number": 83,
       "project_name": "update_pr1_description_and_roadmap",
-      "status": "planned",
+      "status": "completed",
       "task_type": "general",
       "depends_on": [
         81
       ],
       "created": "2026-06-10T18:03:13Z",
-      "last_updated": "2026-06-10T18:18:38Z",
+      "last_updated": "2026-06-10T18:54:12Z",
       "researched": "2026-06-10T18:20:00Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -19,7 +19,9 @@
           "type": "report",
           "summary": "Complete diff-ready specification of all changes needed in pr-description.md and ROADMAP.md: file count 15→16, 6 line count corrections, new DeductionHelpers.lean row, CI validation blockers, dependency graph update, and ROADMAP Reasoning.lean removal"
         }
-      ]
+      ],
+      "topic": "Clean Up",
+      "completion_summary": "Updated pr-description.md (16 files, 3,704 lines, new DeductionHelpers.lean entry, CI compliance, revised Known Issues) and ROADMAP.md (removed stale Reasoning.lean, added DeductionHelpers.lean)."
     },
     {
       "project_number": 82,
@@ -43,7 +45,8 @@
           "summary": "Implementation summary documenting all 6 phases of codebase review changes"
         }
       ],
-      "completion_summary": "Systematic codebase review: renamed ~385 snake_case defs to camelCase across Foundations/Logics, added ~100 docstrings to 6 worst-gap files, rewrote ORGANISATION.md to reflect actual architecture, annotated ~20 sorry stubs with blocking task references, added copyright headers to 4 barrel files, named 7 bare sections, fixed 3 missing Cslib.Init imports, passed all CI validation tools"
+      "completion_summary": "Systematic codebase review: renamed ~385 snake_case defs to camelCase across Foundations/Logics, added ~100 docstrings to 6 worst-gap files, rewrote ORGANISATION.md to reflect actual architecture, annotated ~20 sorry stubs with blocking task references, added copyright headers to 4 barrel files, named 7 bare sections, fixed 3 missing Cslib.Init imports, passed all CI validation tools",
+      "topic": "Clean Up"
     },
     {
       "project_number": 81,

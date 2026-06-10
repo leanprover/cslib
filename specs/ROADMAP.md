@@ -120,15 +120,15 @@ Cslib/
 │       ├── Theorems/
 │       │   ├── Propositional/
 │       │   │   ├── Core.lean
-│       │   │   ├── Connectives.lean
-│       │   │   └── Reasoning.lean
+│       │   │   └── Connectives.lean
 │       │   ├── Modal/
 │       │   │   ├── Basic.lean
 │       │   │   └── S5.lean
 │       │   ├── BigConj.lean
 │       │   └── Combinators.lean
 │       └── Metalogic/
-│           └── Consistency.lean
+│           ├── Consistency.lean
+│           └── DeductionHelpers.lean
 └── Logics/
     ├── Modal/
     │   ├── Basic.lean
