@@ -154,16 +154,23 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Add `module` keyword to Compatibility.lean [NOT STARTED]
+### Phase 4: Add `module` keyword to Compatibility.lean [BLOCKED]
 
 **Goal**: Fix the top-level `lake build` error by adding `module` keyword and `@[expose] public section` to Compatibility.lean.
 
+**BLOCKER** (Phase 4):
+- **What failed**: Adding `module` to Compatibility.lean causes `cannot import non-module Soundness from module` because Compatibility imports non-module files (Soundness.lean, Axioms.lean). Removing `module` from Cslib.lean causes Lake error `some modules have bad imports`. Converting all 150 non-module imports in Cslib.lean to `import` (non-public) still fails because Lean 4 v4.31.0-rc1 forbids ANY import of non-module files from module files.
+- **What was tried**: (1) Add module to Compatibility.lean with public/non-public imports. (2) Remove module from Cslib.lean. (3) Convert public imports to plain imports in Cslib.lean. All three approaches fail.
+- **Why it's stuck**: The `lake build` error is NOT specific to Compatibility.lean -- 150 of 327 imports in Cslib.lean are non-module files. The `module` keyword on Cslib.lean (pre-existing before task 68) is incompatible with the majority of the codebase. This is a systemic issue requiring either mass conversion of 150+ files to modules, or removal of the `module` keyword from Cslib.lean (which triggers a different Lake-level "bad imports" error).
+- **What is needed**: A dedicated task to resolve the module/non-module migration for the entire Cslib library. This is out of scope for a polish task.
+- **Prohibited workarounds**: Do NOT use `sorry`, `def X := True`, or any vacuous placeholder
+
 **Tasks**:
-- [ ] Add `module` keyword after the copyright header comment block (between the header and the import lines)
-- [ ] Convert `import Cslib.Logics.Bimodal.FrameConditions.Soundness` to `public import ...`
-- [ ] Convert `import Cslib.Logics.Bimodal.ProofSystem.Axioms` to `public import ...`
-- [ ] Add `@[expose] public section` before the namespace declaration (before line 18)
-- [ ] Add `end` at end of file to close the section (if not already present)
+- [ ] Add `module` keyword after the copyright header comment block *(deviation: skipped -- blocked by systemic module incompatibility, see BLOCKER above)*
+- [ ] Convert `import Cslib.Logics.Bimodal.FrameConditions.Soundness` to `public import ...` *(deviation: skipped -- blocked)*
+- [ ] Convert `import Cslib.Logics.Bimodal.ProofSystem.Axioms` to `public import ...` *(deviation: skipped -- blocked)*
+- [ ] Add `@[expose] public section` before the namespace declaration *(deviation: skipped -- blocked)*
+- [ ] Add `end` at end of file to close the section *(deviation: skipped -- blocked)*
 
 **Timing**: 20 minutes
 
