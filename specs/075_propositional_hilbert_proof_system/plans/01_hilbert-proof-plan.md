@@ -203,12 +203,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Natural Deduction Wrappers [NOT STARTED]
+### Phase 5: Natural Deduction Wrappers [COMPLETED]
 
 **Goal**: Create ND-flavored lemma names as thin wrappers around the Hilbert `DerivationTree` infrastructure, providing the familiar `impI`/`impE`/`botE` interface. Also derive cut, weakening, and substitution.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Propositional/NaturalDeduction/FromHilbert.lean`
+- [x] Create `Cslib/Logics/Propositional/NaturalDeduction/FromHilbert.lean`
   - Import `Cslib.Logics.Propositional.Metalogic.DeductionTheorem`
   - Define `impI` (implication introduction): wrapper around `deduction_theorem`
     - Type: `DerivationTree (A :: Gamma) B -> DerivationTree Gamma (A.imp B)`
