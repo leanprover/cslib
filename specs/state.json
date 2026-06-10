@@ -1,6 +1,14 @@
 {
-  "next_project_number": 88,
+  "next_project_number": 89,
   "active_projects": [
+    {
+      "project_number": 88,
+      "project_name": "refactor_propositional_hilbert_intuitionistic_base",
+      "status": "not_started",
+      "task_type": "formal",
+      "created": "2026-06-10T23:15:41Z",
+      "last_updated": "2026-06-10T23:15:41Z"
+    },
     {
       "project_number": 60,
       "project_name": "pr2_modal_metalogic",

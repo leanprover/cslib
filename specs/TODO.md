@@ -1,5 +1,5 @@
 ---
-next_project_number: 88
+next_project_number: 89
 ---
 
 # Tasks
@@ -11,16 +11,12 @@ next_project_number: 88
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,86,87 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,88 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
-| 3 | 41,63 | 38,39,40,62 | Foundations, Submit PRs |
+| 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Foundations
-
-41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
 
 ### Temporal Logic
 
@@ -41,16 +37,26 @@ next_project_number: 88
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
+### Foundations
+
+41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
+
 ### Uncategorized
 
-86 [PARTIAL] — pr1_lint_quality_audit
-87 [COMPLETED] — derive_nd_from_hilbert
+88 [NOT STARTED] — refactor_propositional_hilbert_intuitionistic_base
 
 ## Tasks
 
+### 88. Refactor propositional Hilbert system to intuitionistic base with uniform extension architecture
+- **Effort**: large
+- **Status**: [NOT STARTED]
+- **Task Type**: formal
+
+**Description**: Instead of a single classical propositional Hilbert system, refactor to an intuitionistic propositional Hilbert system with a classical extension. This should follow the same uniform patterns for logic extensions (e.g., where a base modal logic K is extended to D, T, B, 4, KT, KT4, etc., or where the base tense logic is extended to include axioms for discreteness, density, or continuity). Research and implement a design with the best architecture to sustain the elaboration of many extensions of a given logic within a common language.
+
 ### 87. Derive natural deduction from Hilbert system or prove extensional equivalence
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: The two propositional proof systems — the Hilbert-style `DerivationTree` and the independent natural deduction `Derivation` in `NaturalDeduction/Basic.lean` — are currently unconnected. This task aims to formally relate them.
