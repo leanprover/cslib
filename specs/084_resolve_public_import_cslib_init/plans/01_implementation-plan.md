@@ -141,14 +141,14 @@ Phases are strictly sequential to ensure build correctness at each step.
 
 ---
 
-### Phase 4: Import hygiene verification [NOT STARTED]
+### Phase 4: Import hygiene verification [COMPLETED]
 
 **Goal**: Run `lake shake` to confirm no remaining import hygiene warnings for `Cslib.Init` in the modified files.
 
 **Tasks**:
-- [ ] Run `lake shake` on the project
-- [ ] Verify no warnings for `public import Cslib.Init` in any of the 3 target files
-- [ ] Verify no warnings about missing imports in the 5 compensating files
+- [x] Run `lake shake` on the project
+- [x] Verify no warnings for `public import Cslib.Init` in any of the 3 target files
+- [x] Verify no warnings about missing imports in the 12 compensating files *(deviation: altered -- 12 files not 5)*
 
 **Timing**: 5 minutes
 
@@ -162,10 +162,10 @@ Phases are strictly sequential to ensure build correctness at each step.
 
 ## Testing & Validation
 
-- [ ] `lake build` passes with zero errors after all edits
-- [ ] `lake shake` shows no `public import Cslib.Init` warnings for the 3 target files
-- [ ] `lake shake` shows no missing import warnings for the 5 compensating files
-- [ ] No behavioral or semantic changes to any proofs or definitions
+- [x] `lake build` passes with zero errors after all edits
+- [x] `lake shake` shows no `public import Cslib.Init` warnings for the 3 target files
+- [x] `lake shake` shows no missing import warnings for the 12 compensating files
+- [x] No behavioral or semantic changes to any proofs or definitions
 
 ## Artifacts & Outputs
 
