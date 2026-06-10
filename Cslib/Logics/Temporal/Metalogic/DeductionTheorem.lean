@@ -7,6 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Temporal.Metalogic.DerivationTree
+public import Cslib.Foundations.Logic.Helpers.ListHelpers
 
 /-! # Deduction Theorem for Temporal Logic BX
 
@@ -44,39 +45,11 @@ set_option linter.style.setOption false
 namespace Cslib.Logic.Temporal
 
 open Cslib.Logic
+open Cslib.Logic.Helpers
 
 variable {Atom : Type*}
 
 attribute [local instance] Classical.propDecidable
-
-/-! ## Helper: removeAll -/
-
-/-- Remove all occurrences of `a` from a list. -/
-def removeAll [DecidableEq α] (l : List α) (a : α) : List α :=
-  l.filter (· ≠ a)
-
-theorem removeAll_sub_of_sub [DecidableEq α] {A : α} {Γ' Δ : List α}
-    (h_sub : Γ' ⊆ A :: Δ) (h_mem : A ∈ Γ') :
-    removeAll Γ' A ⊆ Δ := by
-  intro x hx
-  simp [removeAll, List.mem_filter] at hx
-  obtain ⟨hx_in, hx_ne⟩ := hx
-  have := h_sub hx_in
-  simp [List.mem_cons] at this
-  rcases this with rfl | h
-  · exact absurd rfl hx_ne
-  · exact h
-
-theorem mem_removeAll_of_mem_of_ne [DecidableEq α] {a x : α} {l : List α}
-    (h_mem : x ∈ l) (h_ne : x ≠ a) : x ∈ removeAll l a := by
-  simp [removeAll, List.mem_filter]
-  exact ⟨h_mem, h_ne⟩
-
-theorem removeAll_sub_removeAll [DecidableEq α] {a : α} {l₁ l₂ : List α}
-    (h : l₁ ⊆ l₂) : removeAll l₁ a ⊆ removeAll l₂ a := by
-  intro x hx
-  simp [removeAll, List.mem_filter] at hx ⊢
-  exact ⟨h hx.1, hx.2⟩
 
 /-! ## Deduction Theorem Helper Cases -/
 

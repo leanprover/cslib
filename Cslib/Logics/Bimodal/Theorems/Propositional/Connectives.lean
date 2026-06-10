@@ -32,20 +32,20 @@ namespace Cslib.Logic.Bimodal.Theorems.Propositional
 open Cslib.Logic
 open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.Theorems.Combinators
+open Cslib.Logic.Bimodal.Theorems.Perpetuity (wrap unwrap)
 
 variable {Atom : Type*}
 
 noncomputable section
 
-/-- Convert a derivation tree to a Nonempty (for typeclass functions). -/
-def wrap' {φ : Formula Atom}
+-- wrap' and unwrap' are aliases for the canonical wrap/unwrap from Perpetuity.Helpers
+abbrev wrap' {φ : Formula Atom}
     (d : DerivationTree FrameClass.Base [] φ) :
-    InferenceSystem.DerivableIn Bimodal.HilbertTM φ := ⟨d⟩
+    InferenceSystem.DerivableIn Bimodal.HilbertTM φ := wrap d
 
-/-- Extract a derivation tree from Nonempty (from typeclass functions). -/
-def unwrap' {φ : Formula Atom}
+abbrev unwrap' {φ : Formula Atom}
     (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) :
-    DerivationTree FrameClass.Base [] φ := h.some
+    DerivationTree FrameClass.Base [] φ := unwrap h
 
 def classical_merge (Q R : Formula Atom) :
     DerivationTree FrameClass.Base [] ((Q.imp R).imp ((Q.neg.imp R).imp R)) :=

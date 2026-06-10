@@ -35,15 +35,11 @@ namespace Cslib.Logic.Bimodal.Theorems.Propositional
 open Cslib.Logic
 open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.Theorems.Combinators
+open Cslib.Logic.Bimodal.Theorems.Perpetuity (unwrap)
 
 variable {Atom : Type*}
 
 noncomputable section
-
-/-- Extract a derivation tree from Nonempty (from typeclass functions). -/
-def unwrap {φ : Formula Atom}
-    (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) :
-    DerivationTree FrameClass.Base [] φ := h.some
 
 def lem (A : Formula Atom) : DerivationTree FrameClass.Base [] (A.or A.neg) :=
   unwrap (@_root_.Cslib.Logic.Theorems.Propositional.Core.lem

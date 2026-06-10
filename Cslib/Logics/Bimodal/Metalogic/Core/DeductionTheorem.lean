@@ -7,6 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 public import Cslib.Logics.Bimodal.Metalogic.Core.DerivationTree
 public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
+public import Cslib.Foundations.Logic.Helpers.ListHelpers
 
 /-!
 # Deduction Theorem - Hilbert System Deduction Infrastructure
@@ -47,6 +48,7 @@ namespace Cslib.Logic.Bimodal.Metalogic.Core
 
 open Cslib.Logic.Bimodal
 open Cslib.Logic.Bimodal.Theorems.Perpetuity (identity)
+open Cslib.Logic.Helpers
 
 variable {Atom : Type*}
 
@@ -78,34 +80,6 @@ def weaken_under_imp_ctx {fc : FrameClass} {Γ : Context Atom} {φ A : Formula A
   have ax_deriv : DerivationTree fc [] φ := DerivationTree.axiom [] φ h h_fc
   have weakened : DerivationTree fc [] (A.imp φ) := weaken_under_imp ax_deriv
   exact DerivationTree.weakening [] Γ (A.imp φ) weakened (List.nil_subset Γ)
-
-/--
-Helper: Remove an element from a list.
-
-Returns the list with all occurrences of `a` removed.
--/
-def removeAll {α : Type _} [DecidableEq α] (l : List α) (a : α) : List α :=
-  l.filter (· ≠ a)
-
-/--
-Helper: If `A ∈ Γ'` and `Γ' ⊆ A :: Γ`, then `removeAll Γ' A ⊆ Γ`.
-
-This shows that removing A from Γ' gives a subset of Γ.
--/
-theorem removeAll_subset {A : Formula Atom} {Γ Γ' : Context Atom}
-    (_h_mem : A ∈ Γ')
-    (h_sub : Γ' ⊆ A :: Γ) :
-    removeAll Γ' A ⊆ Γ := by
-  intro x hx
-  unfold removeAll at hx
-  simp only [removeAll, List.mem_filter, decide_eq_true_eq] at hx
-  have ⟨h_in, h_ne⟩ := hx
-  have h_mem := h_sub h_in
-  simp only [List.mem_cons] at h_mem
-  cases h_mem with
-  | inl h_eq =>
-    exact absurd h_eq h_ne
-  | inr h_mem => exact h_mem
 
 /-! ## Deduction Theorem Cases -/
 
@@ -282,7 +256,7 @@ def deduction_theorem {fc : FrameClass} (Γ : Context Atom) (A B : Formula Atom)
         by_cases hA : A ∈ Γ'
         · have ih := deduction_with_mem Γ' A φ h1 hA
           have h_sub : removeAll Γ' A ⊆ Γ :=
-            removeAll_subset hA h2
+            removeAll_sub_of_sub h2 hA
           exact DerivationTree.weakening (removeAll Γ' A) Γ (A.imp φ) ih h_sub
         · have h_sub : Γ' ⊆ Γ := by
             intro x hx

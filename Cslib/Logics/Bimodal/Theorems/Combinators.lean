@@ -10,6 +10,7 @@ public import Cslib.Logics.Bimodal.ProofSystem.Derivation
 public import Cslib.Logics.Bimodal.ProofSystem.Instances
 public import Cslib.Logics.Bimodal.Syntax.Formula
 public import Cslib.Foundations.Logic.Theorems.Combinators
+public import Cslib.Logics.Bimodal.Theorems.Perpetuity.Helpers
 
 /-!
 # Combinators - Propositional Reasoning Combinators
@@ -61,6 +62,7 @@ namespace Cslib.Logic.Bimodal.Theorems.Combinators
 
 open Cslib.Logic
 open Cslib.Logic.Bimodal
+open Cslib.Logic.Bimodal.Theorems.Perpetuity (unwrap)
 
 -- Use _root_.Cslib.Logic.Theorems.Combinators to avoid name collision
 -- with definitions in this namespace (both under Cslib.Logic.*.Theorems.Combinators)
@@ -68,11 +70,6 @@ open Cslib.Logic.Bimodal
 variable {Atom : Type*}
 
 noncomputable section
-
-/-- Extract a derivation tree from Nonempty (from typeclass functions). -/
-def unwrap {φ : Formula Atom}
-    (h : InferenceSystem.DerivableIn Bimodal.HilbertTM φ) :
-    DerivationTree FrameClass.Base [] φ := h.some
 
 /--
 Transitivity of implication: if `⊢ A → B` and `⊢ B → C` then `⊢ A → C`.
