@@ -35,11 +35,6 @@ attribute [local instance] Classical.propDecidable
 
 variable {Atom : Type*}
 
-private noncomputable def theorem_in_mcs' {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## BX10/BX5 at MCS Level -/
 
 theorem until_implies_F_in_mcs {A : Set (Formula Atom)}
@@ -47,21 +42,21 @@ theorem until_implies_F_in_mcs {A : Set (Formula Atom)}
     (h_until : Formula.untl δ γ ∈ A) :
     Formula.someFuture δ ∈ A :=
   temporal_implication_property h_mcs
-    (theorem_in_mcs' h_mcs (DerivationTree.axiom [] _ (Axiom.until_F γ δ) trivial)) h_until
+    (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.until_F γ δ) trivial)) h_until
 
 theorem until_self_accum_in_mcs {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A) {γ δ : Formula Atom}
     (h_until : Formula.untl δ γ ∈ A) :
     Formula.untl δ (Formula.and γ (Formula.untl δ γ)) ∈ A :=
   temporal_implication_property h_mcs
-    (theorem_in_mcs' h_mcs (DerivationTree.axiom [] _ (Axiom.self_accum_until γ δ) trivial)) h_until
+    (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.self_accum_until γ δ) trivial)) h_until
 
 theorem since_implies_P_in_mcs {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A) {γ δ : Formula Atom}
     (h_since : Formula.snce δ γ ∈ A) :
     Formula.somePast δ ∈ A :=
   temporal_implication_property h_mcs
-    (theorem_in_mcs' h_mcs (DerivationTree.axiom [] _ (Axiom.since_P γ δ) trivial)) h_since
+    (theorem_in_mcs h_mcs (DerivationTree.axiom [] _ (Axiom.since_P γ δ) trivial)) h_since
 
 /-! ## r-Relation Guard Continues -/
 
@@ -242,7 +237,7 @@ theorem burgessR_absorption {A D C : Set (Formula Atom)}
   have h_bx6 : DerivationTree FrameClass.Base []
       ((Formula.untl (Formula.and β (Formula.untl γ β)) β).imp (Formula.untl γ β)) :=
     DerivationTree.axiom [] _ (Axiom.absorb_until β γ) trivial
-  exact temporal_implication_property h_mcs_A (theorem_in_mcs' h_mcs_A h_bx6) h3
+  exact temporal_implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_bx6) h3
 
 /-- burgessRSince absorption: mirror of burgessR_absorption using BX6'. -/
 theorem burgessRSince_absorption {A D C : Set (Formula Atom)}
@@ -262,7 +257,7 @@ theorem burgessRSince_absorption {A D C : Set (Formula Atom)}
   have h_bx6 : DerivationTree FrameClass.Base []
       ((Formula.snce (Formula.and β (Formula.snce γ β)) β).imp (Formula.snce γ β)) :=
     DerivationTree.axiom [] _ (Axiom.absorb_since β γ) trivial
-  exact temporal_implication_property h_mcs_A (theorem_in_mcs' h_mcs_A h_bx6) h3
+  exact temporal_implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_bx6) h3
 
 /-- burgessRSet absorption (set version). -/
 theorem burgessRSet_absorption {A D C : Set (Formula Atom)} {B : Set (Formula Atom)}
@@ -431,7 +426,7 @@ theorem untl_left_mono_G {A : Set (Formula Atom)}
     (h_G_impl : (β₁.imp β₂).allFuture ∈ A)
     (h_untl : Formula.untl γ β₁ ∈ A) :
     Formula.untl γ β₂ ∈ A := by
-  have h_ax := theorem_in_mcs' h_mcs
+  have h_ax := theorem_in_mcs h_mcs
     (DerivationTree.axiom [] _ (Axiom.left_mono_until_G β₁ β₂ γ) trivial)
   have h_step := temporal_implication_property h_mcs h_ax h_G_impl
   exact temporal_implication_property h_mcs h_step h_untl
@@ -444,7 +439,7 @@ theorem snce_left_mono_H {A : Set (Formula Atom)}
     (h_H_impl : (β₁.imp β₂).allPast ∈ A)
     (h_snce : Formula.snce γ β₁ ∈ A) :
     Formula.snce γ β₂ ∈ A := by
-  have h_ax := theorem_in_mcs' h_mcs
+  have h_ax := theorem_in_mcs h_mcs
     (DerivationTree.axiom [] _ (Axiom.left_mono_since_H β₁ β₂ γ) trivial)
   have h_step := temporal_implication_property h_mcs h_ax h_H_impl
   exact temporal_implication_property h_mcs h_step h_snce
@@ -457,7 +452,7 @@ theorem untl_left_mono_thm {A : Set (Formula Atom)}
     (h_impl : DerivationTree FrameClass.Base [] (β₁.imp β₂))
     (h_untl : Formula.untl γ β₁ ∈ A) :
     Formula.untl γ β₂ ∈ A := by
-  have h_G := theorem_in_mcs' h_mcs (DerivationTree.temporal_necessitation _ h_impl)
+  have h_G := theorem_in_mcs h_mcs (DerivationTree.temporal_necessitation _ h_impl)
   exact untl_left_mono_G h_mcs h_G h_untl
 
 /-- Left monotonicity for Since via theorem (mirror): If ⊢ β₁ → β₂ and snce(β₁, γ) ∈ A,
@@ -468,7 +463,7 @@ theorem snce_left_mono_thm {A : Set (Formula Atom)}
     (h_impl : DerivationTree FrameClass.Base [] (β₁.imp β₂))
     (h_snce : Formula.snce γ β₁ ∈ A) :
     Formula.snce γ β₂ ∈ A := by
-  have h_H := theorem_in_mcs' h_mcs (past_necessitation _ h_impl)
+  have h_H := theorem_in_mcs h_mcs (past_necessitation _ h_impl)
   exact snce_left_mono_H h_mcs h_H h_snce
 
 /-! ## Duality Helpers for Burgess Lemma 2.3 -/
@@ -482,7 +477,7 @@ private theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
   have h_dne_P : Formula.somePast (α.neg.neg) ∈ M := by
     have h_dne : DerivationTree FrameClass.Base [] ((Formula.somePast α.neg.neg).neg.neg.imp (Formula.somePast α.neg.neg)) :=
       double_negation (Formula.somePast α.neg.neg)
-    exact temporal_implication_property h_mcs (theorem_in_mcs' h_mcs h_dne) h
+    exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_dne) h
   have h_dne_ax : DerivationTree FrameClass.Base [] (α.neg.neg.imp α) := double_negation α
   have h_H_dne : DerivationTree FrameClass.Base [] ((α.neg.neg.imp α).allPast) :=
     past_necessitation _ h_dne_ax
@@ -491,7 +486,7 @@ private theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
     DerivationTree.axiom [] _ (Axiom.right_mono_since α.neg.neg α Formula.top) trivial
   have h_P_mono : DerivationTree FrameClass.Base [] ((Formula.somePast α.neg.neg).imp (Formula.somePast α)) :=
     DerivationTree.modus_ponens [] _ _ h_bx3' h_H_dne
-  exact temporal_implication_property h_mcs (theorem_in_mcs' h_mcs h_P_mono) h_dne_P
+  exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_P_mono) h_dne_P
 
 /-- In an MCS, ¬G(¬γ) ∈ M implies F(γ) ∈ M. -/
 private theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
@@ -501,7 +496,7 @@ private theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
   have h_dne_F : Formula.someFuture (γ.neg.neg) ∈ M := by
     have h_dne : DerivationTree FrameClass.Base [] ((Formula.someFuture γ.neg.neg).neg.neg.imp (Formula.someFuture γ.neg.neg)) :=
       double_negation (Formula.someFuture γ.neg.neg)
-    exact temporal_implication_property h_mcs (theorem_in_mcs' h_mcs h_dne) h
+    exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_dne) h
   have h_dne_ax : DerivationTree FrameClass.Base [] (γ.neg.neg.imp γ) := double_negation γ
   have h_G_dne : DerivationTree FrameClass.Base [] ((γ.neg.neg.imp γ).allFuture) :=
     DerivationTree.temporal_necessitation _ h_dne_ax
@@ -510,7 +505,7 @@ private theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
     DerivationTree.axiom [] _ (Axiom.right_mono_until γ.neg.neg γ Formula.top) trivial
   have h_F_mono : DerivationTree FrameClass.Base [] ((Formula.someFuture γ.neg.neg).imp (Formula.someFuture γ)) :=
     DerivationTree.modus_ponens [] _ _ h_bx3 h_G_dne
-  exact temporal_implication_property h_mcs (theorem_in_mcs' h_mcs h_F_mono) h_dne_F
+  exact temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_F_mono) h_dne_F
 
 /-- F(H(¬α)) and G(P(α)) are contradictory in an MCS. -/
 private theorem someFuture_H_neg_G_P_absurd {M : Set (Formula Atom)}
@@ -539,7 +534,7 @@ private theorem someFuture_H_neg_G_P_absurd {M : Set (Formula Atom)}
       (Formula.neg (Formula.allPast (Formula.neg α))).allFuture) :=
     DerivationTree.modus_ponens [] _ _ h_kd h_G_imp
   have h_G_neg_H : (Formula.neg (Formula.allPast (Formula.neg α))).allFuture ∈ M :=
-    temporal_implication_property h_mcs (theorem_in_mcs' h_mcs h_G_P_imp_G_neg_H) h_GP
+    temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_G_P_imp_G_neg_H) h_GP
   exact someFuture_allFuture_neg_absurd h_mcs (Formula.allPast (Formula.neg α)) h_F h_G_neg_H
 
 /-- P(G(¬γ)) and H(F(γ)) are contradictory in an MCS. -/
@@ -568,7 +563,7 @@ private theorem somePast_G_neg_H_F_absurd {M : Set (Formula Atom)}
       (Formula.neg (Formula.allFuture (Formula.neg γ))).allPast) :=
     DerivationTree.modus_ponens [] _ _ h_kd h_H_imp
   have h_H_neg_G : (Formula.neg (Formula.allFuture (Formula.neg γ))).allPast ∈ M :=
-    temporal_implication_property h_mcs (theorem_in_mcs' h_mcs h_H_F_imp_H_neg_G) h_HF
+    temporal_implication_property h_mcs (theorem_in_mcs h_mcs h_H_F_imp_H_neg_G) h_HF
   exact somePast_allPast_neg_absurd h_mcs (Formula.allFuture (Formula.neg γ)) h_P h_H_neg_G
 
 /-! ## Burgess Lemma 2.3: burgessR <-> burgessRSince -/
@@ -586,10 +581,10 @@ theorem burgessR_implies_burgessRSince {A C : Set (Formula Atom)}
       have h_untl : Formula.untl (α.neg.allPast) β ∈ A := h_burgessR _ h_H
       have h_ax10 := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.until_F β α.neg.allPast) trivial
       have h_F : Formula.someFuture (α.neg.allPast) ∈ A :=
-        temporal_implication_property h_mcs_A (theorem_in_mcs' h_mcs_A h_ax10) h_untl
+        temporal_implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_ax10) h_untl
       have h_bx4 := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.connect_future α) trivial
       have h_GP : Formula.allFuture (Formula.somePast α) ∈ A :=
-        temporal_implication_property h_mcs_A (theorem_in_mcs' h_mcs_A h_bx4) hα
+        temporal_implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_bx4) hα
       exact False.elim (someFuture_H_neg_G_P_absurd h_mcs_A α h_F h_GP)
     · exact neg_allPast_neg_to_somePast h_mcs_C α h_notH
   -- Step 2: From P(α) ∈ C, derive snce(β, α) ∈ C by contradiction
@@ -601,7 +596,7 @@ theorem burgessR_implies_burgessRSince {A C : Set (Formula Atom)}
   -- BX13 (enrichment_until): α ∧ untl(β, ¬snce(β,α)) → untl(β, ¬snce(β,α) ∧ snce(β,α))
   have h_a3a := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.enrichment_until β (Formula.snce α β).neg α) trivial
   have h_enriched : Formula.untl ((Formula.snce α β).neg.and (Formula.snce α β)) β ∈ A :=
-    temporal_implication_property h_mcs_A (theorem_in_mcs' h_mcs_A h_a3a) h_conj
+    temporal_implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_a3a) h_conj
   have h_F := until_implies_F_in_mcs h_mcs_A h_enriched
   -- ¬snce(β,α) ∧ snce(β,α) → ⊥ is derivable
   have h_neg_event : DerivationTree FrameClass.Base [] ((Formula.snce α β).neg.and (Formula.snce α β)).neg := by
@@ -609,7 +604,7 @@ theorem burgessR_implies_burgessRSince {A C : Set (Formula Atom)}
     have h2 := rce_imp (Formula.snce α β).neg (Formula.snce α β)
     have h3 := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_k ((Formula.snce α β).neg.and (Formula.snce α β)) (Formula.snce α β) (Formula.bot : Formula Atom)) trivial
     exact DerivationTree.modus_ponens [] _ _ (DerivationTree.modus_ponens [] _ _ h3 h1) h2
-  have h_G_neg := theorem_in_mcs' h_mcs_A (DerivationTree.temporal_necessitation _ h_neg_event)
+  have h_G_neg := theorem_in_mcs h_mcs_A (DerivationTree.temporal_necessitation _ h_neg_event)
   exact someFuture_allFuture_neg_absurd h_mcs_A _ h_F h_G_neg
 
 /-- **Burgess Lemma 2.3 (backward)**: burgessRSince(C, β, A) implies burgessR(A, β, C). -/
@@ -625,10 +620,10 @@ theorem burgessRSince_implies_burgessR {A C : Set (Formula Atom)}
       have h_snce : Formula.snce (γ.neg.allFuture) β ∈ C := h_burgessRSince _ h_G
       have h_ax10' := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.since_P β γ.neg.allFuture) trivial
       have h_P : Formula.somePast (γ.neg.allFuture) ∈ C :=
-        temporal_implication_property h_mcs_C (theorem_in_mcs' h_mcs_C h_ax10') h_snce
+        temporal_implication_property h_mcs_C (theorem_in_mcs h_mcs_C h_ax10') h_snce
       have h_bx4' := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.connect_past γ) trivial
       have h_HF : Formula.allPast (Formula.someFuture γ) ∈ C :=
-        temporal_implication_property h_mcs_C (theorem_in_mcs' h_mcs_C h_bx4') hγ
+        temporal_implication_property h_mcs_C (theorem_in_mcs h_mcs_C h_bx4') hγ
       exact False.elim (somePast_G_neg_H_F_absurd h_mcs_C γ h_P h_HF)
     · exact neg_allFuture_neg_to_someFuture h_mcs_A γ h_notG
   -- Step 2: From F(γ) ∈ A, derive untl(β, γ) ∈ A by contradiction
@@ -640,14 +635,14 @@ theorem burgessRSince_implies_burgessR {A C : Set (Formula Atom)}
   -- BX13' (enrichment_since): γ ∧ snce(β, ¬untl(β,γ)) → snce(β, ¬untl(β,γ) ∧ untl(β,γ))
   have h_a3b := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.enrichment_since β (Formula.untl γ β).neg γ) trivial
   have h_enriched : Formula.snce ((Formula.untl γ β).neg.and (Formula.untl γ β)) β ∈ C :=
-    temporal_implication_property h_mcs_C (theorem_in_mcs' h_mcs_C h_a3b) h_conj
+    temporal_implication_property h_mcs_C (theorem_in_mcs h_mcs_C h_a3b) h_conj
   have h_P' := since_implies_P_in_mcs h_mcs_C h_enriched
   have h_neg_event : DerivationTree FrameClass.Base [] ((Formula.untl γ β).neg.and (Formula.untl γ β)).neg := by
     have h1 := lce_imp (Formula.untl γ β).neg (Formula.untl γ β)
     have h2 := rce_imp (Formula.untl γ β).neg (Formula.untl γ β)
     have h3 := DerivationTree.axiom (fc := FrameClass.Base) [] _ (Axiom.imp_k ((Formula.untl γ β).neg.and (Formula.untl γ β)) (Formula.untl γ β) (Formula.bot : Formula Atom)) trivial
     exact DerivationTree.modus_ponens [] _ _ (DerivationTree.modus_ponens [] _ _ h3 h1) h2
-  have h_H_neg := theorem_in_mcs' h_mcs_C (past_necessitation _ h_neg_event)
+  have h_H_neg := theorem_in_mcs h_mcs_C (past_necessitation _ h_neg_event)
   exact somePast_allPast_neg_absurd h_mcs_C _ h_P' h_H_neg
 
 /-! ## Deductive Closure Singleton Propagation -/

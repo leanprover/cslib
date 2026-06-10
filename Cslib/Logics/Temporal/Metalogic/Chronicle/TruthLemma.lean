@@ -48,12 +48,6 @@ variable [Denumerable (Formula Atom)]
 
 /-! ## Helper: MCS membership implies limit_f membership -/
 
-/-- Local bridge: derive membership in an MCS from a derivation. -/
-private noncomputable def theorem_in_mcs_local {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## Truth Lemma: Individual Cases -/
 
 /-- Atom case: by definition of chronicle_model valuation. -/
@@ -91,7 +85,7 @@ private theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
       have h_ax : DerivationTree FrameClass.Base [] (ψ.imp (φ.imp ψ)) :=
         .axiom [] _ (.imp_s ψ φ) trivial
       exact temporal_implication_property h_mcs_t
-        (theorem_in_mcs_local h_mcs_t h_ax) h_psi
+        (theorem_in_mcs h_mcs_t h_ax) h_psi
     · -- φ ∉ f(t): then ¬φ ∈ f(t), so (φ → ψ) ∈ f(t) by classical logic in MCS
       have h_neg_phi := mcs_neg_of_not_mem h_mcs_t h_phi
       -- ¬φ ∈ f(t) means (φ → ⊥) ∈ f(t)
@@ -111,7 +105,7 @@ private theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
         exact deduction_theorem [] φ.neg (φ.imp ψ)
           (deduction_theorem [φ.neg] φ ψ d_efq)
       exact temporal_implication_property h_mcs_t
-        (theorem_in_mcs_local h_mcs_t h_deriv) h_neg_phi
+        (theorem_in_mcs h_mcs_t h_deriv) h_neg_phi
   · -- Backward: if (φ → ψ) ∈ f(t) then (Sat φ → Sat ψ)
     intro h_imp_mem h_sat_phi
     have h_phi_mem := ih_φ.mp h_sat_phi

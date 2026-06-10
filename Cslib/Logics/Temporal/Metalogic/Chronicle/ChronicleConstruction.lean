@@ -65,12 +65,6 @@ open Cslib.Logic.Temporal
 
 open Cslib.Logic.Temporal.Metalogic
 
-/-- Local bridge: derive membership in an MCS from a derivation at `fc` level. -/
-private noncomputable def theorem_in_mcs' {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## Singleton Chronicle
 
 The initial chronicle with a single point at rational 0, mapping to a given MCS.
@@ -717,7 +711,7 @@ theorem limit_F_resolution (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximal
     DerivationTree.axiom [] _ (Axiom.F_until_equiv φ) trivial
   have h_until : Formula.untl φ (Formula.bot.imp Formula.bot) ∈ limit_f A h_mcs x :=
     temporal_implication_property h_mcs_x
-      (theorem_in_mcs' h_mcs_x h_bx12) h_F
+      (theorem_in_mcs h_mcs_x h_bx12) h_F
   exact limit_satisfies_c5_weak A h_mcs x hx _ φ h_until
 
 /--
@@ -738,7 +732,7 @@ theorem limit_P_resolution (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximal
     DerivationTree.axiom [] _ (Axiom.P_since_equiv φ) trivial
   have h_since : Formula.snce φ (Formula.bot.imp Formula.bot) ∈ limit_f A h_mcs x :=
     temporal_implication_property h_mcs_x
-      (theorem_in_mcs' h_mcs_x h_bx12') h_P
+      (theorem_in_mcs h_mcs_x h_bx12') h_P
   exact limit_satisfies_c5'_weak A h_mcs x hx _ φ h_since
 
 /-! ## C4 Satisfaction in the Limit
@@ -969,8 +963,8 @@ theorem limit_forward_G (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
       (Formula.allFuture φ |>.imp (Formula.allFuture φ.neg.neg))) :=
     temp_k_dist_derived φ φ.neg.neg
   have h_G_nn : Formula.allFuture φ.neg.neg ∈ limit_f A h_mcs x := by
-    have h1 := theorem_in_mcs' h_mcs_x h_G_dni
-    have h2 := theorem_in_mcs' h_mcs_x h_G_dist
+    have h1 := theorem_in_mcs h_mcs_x h_G_dni
+    have h2 := theorem_in_mcs h_mcs_x h_G_dist
     have h3 := temporal_implication_property h_mcs_x h2 h1
     exact temporal_implication_property h_mcs_x h3 h_G
   have h_F_not : Formula.someFuture φ.neg ∉ limit_f A h_mcs x := by
@@ -982,7 +976,7 @@ theorem limit_forward_G (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
   have h_until_not : Formula.untl φ.neg top ∉ limit_f A h_mcs x := by
     intro h_in
     exact h_F_not (temporal_implication_property h_mcs_x
-      (theorem_in_mcs' h_mcs_x h_bx10) h_in)
+      (theorem_in_mcs h_mcs_x h_bx10) h_in)
   have h_neg_until : (Formula.untl φ.neg top).neg ∈ limit_f A h_mcs x := by
     rcases temporal_negation_complete h_mcs_x (Formula.untl φ.neg top) with h | h
     · exact absurd h h_until_not
@@ -991,7 +985,7 @@ theorem limit_forward_G (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
     limit_satisfies_c4 A h_mcs x y hx hy hxy top φ.neg h_neg_until h_neg_phi
   have h_mcs_z := limit_c0 A h_mcs z hz_dom
   have h_top_in : top ∈ limit_f A h_mcs z := by
-    apply theorem_in_mcs' h_mcs_z
+    apply theorem_in_mcs h_mcs_z
     exact DerivationTree.axiom [] _ (Axiom.efq Formula.bot) trivial
   exact absurd h_top_in (mcs_not_mem_of_neg h_mcs_z h_top_neg)
 
@@ -1022,8 +1016,8 @@ theorem limit_backward_H (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCo
       (Formula.allPast φ |>.imp (Formula.allPast φ.neg.neg))) :=
     past_k_dist φ φ.neg.neg
   have h_H_nn : Formula.allPast φ.neg.neg ∈ limit_f A h_mcs x := by
-    have h1 := theorem_in_mcs' h_mcs_x h_H_dni
-    have h2 := theorem_in_mcs' h_mcs_x h_H_dist
+    have h1 := theorem_in_mcs h_mcs_x h_H_dni
+    have h2 := theorem_in_mcs h_mcs_x h_H_dist
     have h3 := temporal_implication_property h_mcs_x h2 h1
     exact temporal_implication_property h_mcs_x h3 h_H
   have h_P_not : Formula.somePast φ.neg ∉ limit_f A h_mcs x := by
@@ -1035,7 +1029,7 @@ theorem limit_backward_H (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCo
   have h_since_not : Formula.snce φ.neg top ∉ limit_f A h_mcs x := by
     intro h_in
     exact h_P_not (temporal_implication_property h_mcs_x
-      (theorem_in_mcs' h_mcs_x h_bx10') h_in)
+      (theorem_in_mcs h_mcs_x h_bx10') h_in)
   have h_neg_since : (Formula.snce φ.neg top).neg ∈ limit_f A h_mcs x := by
     rcases temporal_negation_complete h_mcs_x (Formula.snce φ.neg top) with h | h
     · exact absurd h h_since_not
@@ -1044,7 +1038,7 @@ theorem limit_backward_H (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCo
     limit_satisfies_c4' A h_mcs x y hx hy hyx top φ.neg h_neg_since h_neg_phi
   have h_mcs_z := limit_c0 A h_mcs z hz_dom
   have h_top_in : top ∈ limit_f A h_mcs z := by
-    apply theorem_in_mcs' h_mcs_z
+    apply theorem_in_mcs h_mcs_z
     exact DerivationTree.axiom [] _ (Axiom.efq Formula.bot) trivial
   exact absurd h_top_in (mcs_not_mem_of_neg h_mcs_z h_top_neg)
 

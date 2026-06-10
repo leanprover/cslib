@@ -25,24 +25,19 @@ open Cslib.Logic.Temporal.Metalogic
 
 variable {Atom : Type*}
 
-private noncomputable def theorem_in_mcs' {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## BX12 at MCS level -/
 
 theorem F_imp_top_until_mcs {w : TPoint Atom} {ψ : Formula Atom}
     (h : Formula.someFuture ψ ∈ w.formulas) :
     Formula.untl ψ Formula.top ∈ w.formulas :=
   temporal_implication_property w.is_mcs
-    (theorem_in_mcs' w.is_mcs (DerivationTree.axiom [] _ (Axiom.F_until_equiv ψ) trivial)) h
+    (theorem_in_mcs w.is_mcs (DerivationTree.axiom [] _ (Axiom.F_until_equiv ψ) trivial)) h
 
 theorem P_imp_top_since_mcs {w : TPoint Atom} {ψ : Formula Atom}
     (h : Formula.somePast ψ ∈ w.formulas) :
     Formula.snce ψ Formula.top ∈ w.formulas :=
   temporal_implication_property w.is_mcs
-    (theorem_in_mcs' w.is_mcs (DerivationTree.axiom [] _ (Axiom.P_since_equiv ψ) trivial)) h
+    (theorem_in_mcs w.is_mcs (DerivationTree.axiom [] _ (Axiom.P_since_equiv ψ) trivial)) h
 
 /-! ## BX6 at MCS level -/
 
@@ -50,13 +45,13 @@ theorem absorb_until_mcs {w : TPoint Atom} {φ ψ : Formula Atom}
     (h : Formula.untl (Formula.and φ (Formula.untl ψ φ)) φ ∈ w.formulas) :
     Formula.untl ψ φ ∈ w.formulas :=
   temporal_implication_property w.is_mcs
-    (theorem_in_mcs' w.is_mcs (DerivationTree.axiom [] _ (Axiom.absorb_until φ ψ) trivial)) h
+    (theorem_in_mcs w.is_mcs (DerivationTree.axiom [] _ (Axiom.absorb_until φ ψ) trivial)) h
 
 theorem absorb_since_mcs {w : TPoint Atom} {φ ψ : Formula Atom}
     (h : Formula.snce (Formula.and φ (Formula.snce ψ φ)) φ ∈ w.formulas) :
     Formula.snce ψ φ ∈ w.formulas :=
   temporal_implication_property w.is_mcs
-    (theorem_in_mcs' w.is_mcs (DerivationTree.axiom [] _ (Axiom.absorb_since φ ψ) trivial)) h
+    (theorem_in_mcs w.is_mcs (DerivationTree.axiom [] _ (Axiom.absorb_since φ ψ) trivial)) h
 
 /-! ## Delegation bridges -/
 

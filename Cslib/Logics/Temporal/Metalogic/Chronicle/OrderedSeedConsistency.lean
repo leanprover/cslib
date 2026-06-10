@@ -26,11 +26,6 @@ open Cslib.Logic.Temporal.Metalogic
 
 variable {Atom : Type*}
 
-private noncomputable def theorem_in_mcs' {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-- The enriched resolving seed: {psi, alpha} union g_content(M). -/
 def enriched_resolving_seed (M : Set (Formula Atom)) (ψ α : Formula Atom) : Set (Formula Atom) :=
   {ψ, α} ∪ g_content M
@@ -47,10 +42,10 @@ theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
     h_sup (Set.mem_union_left _ (Set.mem_singleton _))
   have h_ψ_in : ψ ∈ M' :=
     temporal_implication_property h_M'_mcs
-      (theorem_in_mcs' h_M'_mcs (lce_imp ψ α)) h_conj_in
+      (theorem_in_mcs h_M'_mcs (lce_imp ψ α)) h_conj_in
   have h_α_in : α ∈ M' :=
     temporal_implication_property h_M'_mcs
-      (theorem_in_mcs' h_M'_mcs (rce_imp ψ α)) h_conj_in
+      (theorem_in_mcs h_M'_mcs (rce_imp ψ α)) h_conj_in
   have h_g_sub : g_content M ⊆ M' :=
     fun χ hχ => h_sup (Set.mem_union_right _ hχ)
   have h_seed_sub : enriched_resolving_seed M ψ α ⊆ M' := by
@@ -75,7 +70,7 @@ theorem temp_linearity_mcs {M : Set (Formula Atom)}
   have h_conj : Formula.and (Formula.someFuture A) (Formula.someFuture B) ∈ M :=
     temporal_implication_property h_mcs
       (temporal_implication_property h_mcs
-        (theorem_in_mcs' h_mcs (pairing (Formula.someFuture A) (Formula.someFuture B)))
+        (theorem_in_mcs h_mcs (pairing (Formula.someFuture A) (Formula.someFuture B)))
         h_FA)
       h_FB
   have h_ax : DerivationTree FrameClass.Base []
@@ -85,7 +80,7 @@ theorem temp_linearity_mcs {M : Set (Formula Atom)}
           (Formula.someFuture (Formula.and (Formula.someFuture A) B))))) :=
     DerivationTree.axiom [] _ (Axiom.temp_linearity A B) trivial
   have h_disj := temporal_implication_property h_mcs
-    (theorem_in_mcs' h_mcs h_ax) h_conj
+    (theorem_in_mcs h_mcs h_ax) h_conj
   rcases temporal_negation_complete h_mcs
     (Formula.someFuture (Formula.and A B)) with h_l | h_neg_l
   · exact Or.inl h_l

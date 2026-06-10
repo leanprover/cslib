@@ -52,13 +52,6 @@ variable {Atom : Type*}
 open Cslib.Logic.Temporal
 open Cslib.Logic.Temporal.Metalogic
 
-/-! ## Private Helper: theorem_in_mcs for Temporal.SetMaximalConsistent -/
-
-private noncomputable def theorem_in_mcs' {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## C5/C5' Counterexample Structures -/
 
 /--
@@ -192,8 +185,8 @@ theorem BurgessR3Maximal_g_content_sub {A B C : Set (Formula Atom)}
   have h_G_dni : DerivationTree FrameClass.Base [] (Formula.allFuture (φ.imp φ.neg.neg)) :=
     DerivationTree.temporal_necessitation _ h_dni
   have h_kd := temp_k_dist_derived φ φ.neg.neg
-  have h1 := theorem_in_mcs' h_mcs_A h_G_dni
-  have h2 := theorem_in_mcs' h_mcs_A h_kd
+  have h1 := theorem_in_mcs h_mcs_A h_G_dni
+  have h2 := theorem_in_mcs h_mcs_A h_kd
   have h3 := temporal_implication_property h_mcs_A h2 h1
   have h_G_nn : Formula.allFuture φ.neg.neg ∈ A :=
     temporal_implication_property h_mcs_A h3 hφ
@@ -250,7 +243,7 @@ theorem burgessR3Maximal_from_h_content_sub {A C : Set (Formula Atom)}
   -- Construct burgessR3 seed using top = ⊥ → ⊥
   set top := Formula.bot.imp (Formula.bot : Formula Atom) with top_def
   have h_top_A : top ∈ A :=
-    theorem_in_mcs' h_mcs_A (DerivationTree.axiom [] _ (.efq Formula.bot) trivial)
+    theorem_in_mcs h_mcs_A (DerivationTree.axiom [] _ (.efq Formula.bot) trivial)
   have h_bR : burgessR A top C := by
     intro γ hγ
     -- g_content(A) ⊆ C gives F(γ) ∈ A via connect_past + connect_future
@@ -258,12 +251,12 @@ theorem burgessR3Maximal_from_h_content_sub {A C : Set (Formula Atom)}
       DerivationTree.axiom [] _ (Axiom.connect_past γ) trivial
     have h_HF : Formula.allPast (Formula.someFuture γ) ∈ C :=
       temporal_implication_property h_mcs_C
-        (theorem_in_mcs' h_mcs_C h_ax_cp) hγ
+        (theorem_in_mcs h_mcs_C h_ax_cp) hγ
     have h_F : Formula.someFuture γ ∈ A := h_hc h_HF
     have h_bx12 : DerivationTree FrameClass.Base [] ((Formula.someFuture γ).imp (Formula.untl γ top)) :=
       DerivationTree.axiom [] _ (Axiom.F_until_equiv γ) trivial
     exact temporal_implication_property h_mcs_A
-      (theorem_in_mcs' h_mcs_A h_bx12) h_F
+      (theorem_in_mcs h_mcs_A h_bx12) h_F
   have h_bRS : burgessRSince C top A := by
     intro α hα
     have h_P : Formula.somePast α ∈ C := by
@@ -274,13 +267,13 @@ theorem burgessR3Maximal_from_h_content_sub {A C : Set (Formula Atom)}
       have h_ax_cf : DerivationTree FrameClass.Base [] (α.imp (Formula.allFuture (Formula.somePast α))) :=
         DerivationTree.axiom [] _ (Axiom.connect_future α) trivial
       have h_GP : Formula.allFuture (Formula.somePast α) ∈ A :=
-        temporal_implication_property h_mcs_A (theorem_in_mcs' h_mcs_A h_ax_cf) hα
+        temporal_implication_property h_mcs_A (theorem_in_mcs h_mcs_A h_ax_cf) hα
       have h_P_in_C : Formula.somePast α ∈ C := h_gc h_GP
       exact h_not_P h_P_in_C
     have h_bx12' : DerivationTree FrameClass.Base [] ((Formula.somePast α).imp (Formula.snce α top)) :=
       DerivationTree.axiom [] _ (Axiom.P_since_equiv α) trivial
     exact temporal_implication_property h_mcs_C
-      (theorem_in_mcs' h_mcs_C h_bx12') h_P
+      (theorem_in_mcs h_mcs_C h_bx12') h_P
   exact burgessR3Maximal_exists_from_seed A C top h_mcs_A h_mcs_C h_bR h_bRS h_top_A
 
 /-! ## Lemma 2.10: C5 Counterexample Elimination -/
@@ -342,7 +335,7 @@ noncomputable def eliminate_C5'_counterexample {χ : Chronicle Atom}
     have h_ax : DerivationTree FrameClass.Base [] ((Formula.snce ce.η ce.ξ).imp (Formula.somePast ce.η)) :=
       DerivationTree.axiom [] _ (Axiom.since_P ce.ξ ce.η) trivial
     exact temporal_implication_property h_mcs_x
-      (theorem_in_mcs' h_mcs_x h_ax) ce.since_mem
+      (theorem_in_mcs h_mcs_x h_ax) ce.since_mem
   have h_seed := past_temporal_witness_seed_consistent (χ.f ce.x) h_mcs_x ce.η h_P_η
   obtain ⟨C, h_sup, h_C_mcs⟩ := temporal_lindenbaum h_seed
   have h_η_C : ce.η ∈ C := h_sup (Set.mem_union_left _ (Set.mem_singleton _))
@@ -830,7 +823,7 @@ private noncomputable def c5_forward_walk
                 · exact absurd h h_conj_not_f
                 · exact h
               exact temporal_implication_property h_mcs_x'
-                (theorem_in_mcs' h_mcs_x'
+                (theorem_in_mcs h_mcs_x'
                   (demorgan_disj_neg_backward η
                     (Formula.and ξ (Formula.untl η ξ))))
                 (conj_mcs h_mcs_x' η.neg (Formula.and ξ (Formula.untl η ξ)).neg h1 h2)
@@ -857,7 +850,7 @@ private noncomputable def c5_forward_walk
                     · exact absurd h h_conj_not_f
                     · exact h
                   exact temporal_implication_property h_mcs_x'
-                    (theorem_in_mcs' h_mcs_x'
+                    (theorem_in_mcs h_mcs_x'
                       (demorgan_disj_neg_backward η
                         (Formula.and ξ (Formula.untl η ξ))))
                     (conj_mcs h_mcs_x' η.neg (Formula.and ξ (Formula.untl η ξ)).neg h1 h2)
@@ -878,7 +871,7 @@ private noncomputable def c5_forward_walk
               obtain ⟨B', D, B'', hB', hB'', hD_mcs, h_dne_D, h_B_sub_D, hBB', hBB''⟩ := h_sp
               exact ⟨B', D, B'', hB', hB'', hD_mcs,
                 temporal_implication_property hD_mcs
-                  (theorem_in_mcs' hD_mcs (double_negation η)) h_dne_D,
+                  (theorem_in_mcs hD_mcs (double_negation η)) h_dne_D,
                 h_B_sub_D, hBB', hBB'', hBB' h_xi_g2⟩
             · obtain ⟨B', D, B'', hB', hB'', hD, hη, hBB', h_B_sub_D, hBB'', h_xi_B'⟩ :=
                 lemma_2_7 h_mcs_start h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj ξ η h_until_start h_xi_g2
@@ -1366,7 +1359,7 @@ private noncomputable def c5_backward_walk
                 · exact absurd h h_conj_not_f
                 · exact h
               exact temporal_implication_property h_mcs_x''
-                (theorem_in_mcs' h_mcs_x''
+                (theorem_in_mcs h_mcs_x''
                   (demorgan_disj_neg_backward η
                     (Formula.and ξ (Formula.snce η ξ))))
                 (conj_mcs h_mcs_x'' η.neg (Formula.and ξ (Formula.snce η ξ)).neg h1 h2)
@@ -1393,7 +1386,7 @@ private noncomputable def c5_backward_walk
                     · exact absurd h h_conj_not_f
                     · exact h
                   exact temporal_implication_property h_mcs_x''
-                    (theorem_in_mcs' h_mcs_x''
+                    (theorem_in_mcs h_mcs_x''
                       (demorgan_disj_neg_backward η
                         (Formula.and ξ (Formula.snce η ξ))))
                     (conj_mcs h_mcs_x'' η.neg (Formula.and ξ (Formula.snce η ξ)).neg h1 h2)
@@ -1414,7 +1407,7 @@ private noncomputable def c5_backward_walk
               obtain ⟨B', D, B'', hB', hB'', hD_mcs, h_dne_D, h_B_sub_D, hBB', hBB''⟩ := h_sp
               exact ⟨B', D, B'', hB', hB'', hD_mcs,
                 temporal_implication_property hD_mcs
-                  (theorem_in_mcs' hD_mcs (double_negation η)) h_dne_D,
+                  (theorem_in_mcs hD_mcs (double_negation η)) h_dne_D,
                 h_B_sub_D, hBB', hBB'', hBB'' h_xi_g2⟩
             · obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, hBB', h_B_sub_D, hBB'', h_xi_B''⟩ :=
                 lemma_2_7_since h_mcs_x'' h_mcs_start h_r3m_adj h_r3m_adj.1 h_gc_adj ξ η h_since_start h_xi_g2
@@ -1854,7 +1847,7 @@ noncomputable def eliminate_potential_counterexample
                     exact conj_mcs h_mcs_x' pc.η.neg (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)).neg h1 h2
                   have h_dm := demorgan_disj_neg_backward pc.η (Formula.and pc.ξ (Formula.untl pc.η pc.ξ))
                   exact temporal_implication_property h_mcs_x'
-                    (theorem_in_mcs' h_mcs_x' h_dm) h_neg_conj
+                    (theorem_in_mcs h_mcs_x' h_dm) h_neg_conj
                 obtain ⟨B'2, D2, B''2, h_B'2, h_B''2, h_D2_mcs, h_eta_D2, h_B_sub_D2, h_B_sub_B'2, h_B_sub_B''2, _⟩ :=
                   lemma_2_8 h_mcs_x h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj pc.ξ pc.η h_until h_neg_disj
                 exact ⟨B'2, D2, B''2, h_B'2, h_B''2, h_D2_mcs, h_eta_D2, h_B_sub_D2, h_B_sub_B'2, h_B_sub_B''2, h_B_sub_B'2 h_xi_g⟩
@@ -1881,7 +1874,7 @@ noncomputable def eliminate_potential_counterexample
                         exact conj_mcs h_mcs_x' pc.η.neg (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)).neg h1 h2
                       have h_dm := demorgan_disj_neg_backward pc.η (Formula.and pc.ξ (Formula.untl pc.η pc.ξ))
                       exact temporal_implication_property h_mcs_x'
-                        (theorem_in_mcs' h_mcs_x' h_dm) h_neg_conj
+                        (theorem_in_mcs h_mcs_x' h_dm) h_neg_conj
                     have h_l28 := lemma_2_8 h_mcs_x h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj
                       pc.ξ pc.η h_until h_neg_disj
                     obtain ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_D5, h_B_sub_D5, h_B_sub_B'5, h_B_sub_B''5, _⟩ := h_l28
@@ -1906,7 +1899,7 @@ noncomputable def eliminate_potential_counterexample
                     have h_dne : DerivationTree FrameClass.Base [] (pc.η.neg.neg.imp pc.η) :=
                       double_negation pc.η
                     exact temporal_implication_property h_D5_mcs
-                      (theorem_in_mcs' h_D5_mcs h_dne) h_eta_neg_neg_D5
+                      (theorem_in_mcs h_D5_mcs h_dne) h_eta_neg_neg_D5
                   exact ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_D5, h_B_sub_D5, h_B_sub_B'5, h_B_sub_B''5, h_B_sub_B'5 h_xi_g6⟩
                 · -- xi ∉ g: use lemma_2_7 which returns xi ∈ B' directly
                   obtain ⟨B'5, D5, B''5, h_B'5, h_B''5, h_D5_mcs, h_eta_D5, h_B_sub_B'5, h_B_sub_D5, h_B_sub_B''5, h_xi_B'5⟩ :=
@@ -2381,7 +2374,7 @@ noncomputable def eliminate_potential_counterexample
                     exact conj_mcs h_mcs_x'' pc.η.neg
                       (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)).neg h_eta_neg_x''_local h2
                   exact temporal_implication_property h_mcs_x''
-                    (theorem_in_mcs' h_mcs_x''
+                    (theorem_in_mcs h_mcs_x''
                       (demorgan_disj_neg_backward pc.η
                         (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)))) h_neg_conj_x''
                 obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, h_B_sub_B', h_B_sub_B'', _⟩ := lemma_2_8_since h_mcs_x'' h_mcs_x h_r3m_adj h_r3m_adj.1 h_gc_adj
@@ -2409,7 +2402,7 @@ noncomputable def eliminate_potential_counterexample
                         exact conj_mcs h_mcs_x'' pc.η.neg
                           (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)).neg h_eta_neg_x''_local h2
                       exact temporal_implication_property h_mcs_x''
-                        (theorem_in_mcs' h_mcs_x''
+                        (theorem_in_mcs h_mcs_x''
                           (demorgan_disj_neg_backward pc.η
                             (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)))) h_neg_conj_x''
                     obtain ⟨B', D, B'', hB', hB'', hD_mcs, hη_D, h_B_sub_D, h_B_sub_B', h_B_sub_B'', _⟩ := lemma_2_8_since h_mcs_x'' h_mcs_x h_r3m_adj h_r3m_adj.1 h_gc_adj
@@ -2429,7 +2422,7 @@ noncomputable def eliminate_potential_counterexample
                   obtain ⟨B', D, B'', h_B', h_B'', h_D_mcs, h_eta_neg_neg_D, h_B_sub_D, h_B_sub_B', h_B_sub_B''⟩ := h_split
                   have h_eta_D : pc.η ∈ D :=
                     temporal_implication_property h_D_mcs
-                      (theorem_in_mcs' h_D_mcs (double_negation pc.η)) h_eta_neg_neg_D
+                      (theorem_in_mcs h_D_mcs (double_negation pc.η)) h_eta_neg_neg_D
                   exact ⟨B', D, B'', h_B', h_B'', h_D_mcs, h_eta_D, h_B_sub_D, h_B_sub_B', h_B_sub_B'', h_B_sub_B'' h_xi_g2⟩
                 · obtain ⟨B', D, B'', hB', hB'', hD, hη, h_B_sub_B', h_B_sub_D, h_B_sub_B'', h_xi_B''⟩ :=
                     lemma_2_7_since h_mcs_x'' h_mcs_x h_r3m_adj h_r3m_adj.1 h_gc_adj
@@ -2738,7 +2731,7 @@ noncomputable def eliminate_potential_counterexample
             ((Formula.untl (Formula.and pc.ξ (Formula.untl pc.η pc.ξ)) pc.ξ).imp
               (Formula.untl pc.η pc.ξ)) :=
             DerivationTree.axiom [] _ (Axiom.absorb_until pc.ξ pc.η) trivial
-          have h_bx6_in := theorem_in_mcs' h_mcs_w h_bx6
+          have h_bx6_in := theorem_in_mcs h_mcs_w h_bx6
           have h_untl_eta := temporal_implication_property h_mcs_w h_bx6_in h_untl_conj
           -- Now untl(ξ,η) ∈ f(w) contradicts neg(untl(ξ,η)) ∈ f(w)
           exact absurd h_untl_eta
@@ -3030,7 +3023,7 @@ noncomputable def eliminate_potential_counterexample
             ((Formula.snce (Formula.and pc.ξ (Formula.snce pc.η pc.ξ)) pc.ξ).imp
               (Formula.snce pc.η pc.ξ)) :=
             DerivationTree.axiom [] _ (Axiom.absorb_since pc.ξ pc.η) trivial
-          have h_bx6'_in := theorem_in_mcs' h_mcs_w h_bx6'
+          have h_bx6'_in := theorem_in_mcs h_mcs_w h_bx6'
           have h_snce_eta := temporal_implication_property h_mcs_w h_bx6'_in h_snce_conj
           -- Now snce(ξ,η) ∈ f(w) contradicts neg(snce(ξ,η)) ∈ f(w)
           exact absurd h_snce_eta

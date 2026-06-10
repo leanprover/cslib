@@ -114,20 +114,25 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Consolidate Temporal `theorem_in_mcs'` Definitions [NOT STARTED]
+### Phase 2: Consolidate Temporal `theorem_in_mcs'` Definitions [COMPLETED]
 
 **Goal**: Replace 5 private local copies of `theorem_in_mcs'` across Temporal metalogic modules with a shared definition.
 
 **Tasks**:
-- [ ] Examine existing `Temporal/Metalogic/MCS.lean` and determine if `theorem_in_mcs'` should be added there
-- [ ] Create shared `theorem_in_mcs'` definition in `Temporal/Metalogic/MCS.lean` (or appropriate location)
-- [ ] Replace local definitions in 5 Temporal files:
-  - `Temporal/Metalogic/Chronicle/CanonicalChain.lean` -- remove local, use shared
-  - `Temporal/Metalogic/Chronicle/ChronicleConstruction.lean` -- remove local, use shared
-  - `Temporal/Metalogic/Chronicle/CounterexampleElimination.lean` -- remove local, use shared
-  - `Temporal/Metalogic/Chronicle/OrderedSeedConsistency.lean` -- remove local, use shared
-  - `Temporal/Metalogic/Chronicle/RRelation.lean` -- remove local, use shared
-- [ ] Run `lake build Cslib.Logics.Temporal` to verify all Temporal modules compile
+- [x] Examine existing `Temporal/Metalogic/MCS.lean` and determine if `theorem_in_mcs'` should be added there *(deviation: altered -- added as `theorem_in_mcs` (without tick) since the naming convention is more natural)*
+- [x] Create shared `theorem_in_mcs` definition in `Temporal/Metalogic/MCS.lean`
+- [x] Replace local definitions in 10 Temporal files (plan listed 5, actual was 10):
+  - `Temporal/Metalogic/Chronicle/CanonicalChain.lean` -- removed local `theorem_in_mcs'`, renamed calls
+  - `Temporal/Metalogic/Chronicle/ChronicleConstruction.lean` -- removed local `theorem_in_mcs'`, renamed calls
+  - `Temporal/Metalogic/Chronicle/CounterexampleElimination.lean` -- removed local `theorem_in_mcs'`, renamed calls
+  - `Temporal/Metalogic/Chronicle/OrderedSeedConsistency.lean` -- removed local `theorem_in_mcs'`, renamed calls
+  - `Temporal/Metalogic/Chronicle/RRelation.lean` -- removed local `theorem_in_mcs'`, renamed calls
+  - `Temporal/Metalogic/Chronicle/Frame.lean` -- removed local `theorem_in_mcs`
+  - `Temporal/Metalogic/Chronicle/PointInsertion.lean` -- removed local `theorem_in_mcs`
+  - `Temporal/Metalogic/Chronicle/TruthLemma.lean` -- removed local `theorem_in_mcs_local`, renamed calls
+  - `Temporal/Metalogic/TemporalContent.lean` -- removed local `theorem_in_mcs`
+  - `Temporal/Metalogic/WitnessSeed.lean` -- removed local `theorem_in_mcs`
+- [x] Run `lake build Cslib.Logics.Temporal` to verify all Temporal modules compile *(deviation: altered -- verified each modified module individually since no top-level module file exists)*
 
 **Timing**: 45 minutes
 

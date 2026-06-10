@@ -74,12 +74,6 @@ lemma mem_s_content_iff {M : Set (Formula Atom)} {p : Formula Atom × Formula At
 
 /-! ## Duality Lemmas -/
 
-/-- Helper: theorems are in any temporal MCS. -/
-private noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /--
 Duality between f_content and g_content for MCS.
 phi in f_content(M) iff neg phi not in g_content(M).

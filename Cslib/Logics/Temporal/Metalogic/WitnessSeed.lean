@@ -31,11 +31,6 @@ attribute [local instance] Classical.propDecidable
 
 variable {Atom : Type*}
 
-private noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## Duality Helpers -/
 
 lemma someFuture_allFuture_neg_absurd {M : Set (Formula Atom)}

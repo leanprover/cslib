@@ -77,6 +77,17 @@ theorem temporal_negation_complete
   Metalogic.SetMaximalConsistent.negation_complete
     temporalDerivationSystem temporal_has_deduction_theorem h_mcs φ
 
+/--
+Theorems (formulas derivable from empty context) belong to every Temporal MCS.
+
+This is the key convenience wrapper around `temporal_closed_under_derivation` with an empty
+context list, used throughout the Temporal metalogic modules.
+-/
+noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
+    (h_mcs : Temporal.SetMaximalConsistent M)
+    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
+  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
+
 /-! ## Basic MCS Properties -/
 
 private theorem mcs_mp_axiom

@@ -43,13 +43,6 @@ variable {Atom : Type*}
 open Cslib.Logic.Temporal
 open Cslib.Logic.Temporal.Metalogic
 
-/-! ## Private Helper: theorem_in_mcs -/
-
-private noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 /-! ## Helper: F(neg phi) from G(phi) not in A -/
 
 /-- If G(φ) ∉ MCS A, then F(¬φ) ∈ A. -/

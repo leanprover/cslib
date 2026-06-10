@@ -47,11 +47,6 @@ def t_le (w v : TPoint Atom) : Prop :=
 
 /-! ## g/h-content Closed Under Derivation -/
 
-private noncomputable def theorem_in_mcs {M : Set (Formula Atom)} {phi : Formula Atom}
-    (h_mcs : Temporal.SetMaximalConsistent M)
-    (h_deriv : DerivationTree FrameClass.Base [] phi) : phi ∈ M :=
-  temporal_closed_under_derivation h_mcs (L := []) (fun _ h => by simp at h) ⟨h_deriv⟩
-
 noncomputable def g_content_closed_derivation {Omega : Set (Formula Atom)} {φ : Formula Atom}
     (h_mcs : Temporal.SetMaximalConsistent Omega)
     (L : List (Formula Atom)) (h_sub : ∀ ψ ∈ L, ψ ∈ g_content Omega)
