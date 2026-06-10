@@ -17,10 +17,9 @@ This module proves the deduction theorem for the bimodal TM logic Hilbert system
 
 ## Main Results
 
-- `deduction_axiom`: If φ is an axiom, then `Γ ⊢ A → φ`
-- `deduction_assumption_same`: `Γ ⊢ A → A` (identity)
-- `deduction_assumption_other`: If `B ∈ Γ`, then `Γ ⊢ A → B`
-- `deduction_mp`: Modus ponens under implication
+- `bimodalHilbertTree`: `HasHilbertTree` for bimodal logic (fc-parameterized)
+- Generic helpers via `DeductionHelpers`: `deduction_axiom`, `deduction_imp_self`,
+  `deduction_assumption_other`, `deduction_mp_under_imp`
 - `deduction_theorem`: If `A :: Γ ⊢ B` then `Γ ⊢ A → B`
 - `bimodal_has_deduction_theorem`: Instance connecting to generic MCS framework
 

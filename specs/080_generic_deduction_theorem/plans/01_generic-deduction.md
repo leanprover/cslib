@@ -188,21 +188,21 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Full Build Verification and Cleanup [NOT STARTED]
+### Phase 5: Full Build Verification and Cleanup [COMPLETED]
 
 **Goal**: Run full `lake build`, fix any downstream breakage, verify the refactoring is complete and clean.
 
 **Tasks**:
-- [ ] Run `lake build` for the entire project
-- [ ] Fix any downstream compilation errors (other modules that may have imported the removed helpers)
-- [ ] Verify each `*_has_deduction_theorem` instance is still present and functional:
-  - `prop_has_deduction_theorem`
-  - `modal_has_deduction_theorem`
-  - `temporal_has_deduction_theorem`
-  - `bimodal_has_deduction_theorem`
-- [ ] Verify no `sorry` was introduced
-- [ ] Count lines to confirm savings (target: ~130 lines net reduction)
-- [ ] Ensure `DeductionHelpers.lean` is properly listed in any module root files if needed
+- [x] Run `lake build` for the entire project *(completed — 2915 jobs, passes)*
+- [x] Fix any downstream compilation errors *(none needed, all downstream modules compile)*
+- [x] Verify each `*_has_deduction_theorem` instance is still present and functional:
+  - `prop_has_deduction_theorem` *(verified)*
+  - `modal_has_deduction_theorem` *(verified)*
+  - `temporal_has_deduction_theorem` *(verified)*
+  - `bimodal_has_deduction_theorem` *(verified)*
+- [x] Verify no `sorry` was introduced *(0 sorries in modified files)*
+- [x] Count lines to confirm savings *(171 lines removed from 4 existing files, +119 in new shared file = net -52 lines. The 4 helper lemmas are now defined once instead of 4 times.)*
+- [x] Ensure `DeductionHelpers.lean` is properly listed in any module root files if needed *(no separate module root needed — imported directly by each DeductionTheorem file)*
 
 **Timing**: 0.5 hours
 
