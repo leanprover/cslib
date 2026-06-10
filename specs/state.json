@@ -1,10 +1,18 @@
 {
-  "next_project_number": 75,
+  "next_project_number": 76,
   "active_projects": [
+    {
+      "project_number": 75,
+      "project_name": "propositional_hilbert_proof_system",
+      "status": "not_started",
+      "task_type": "lean4",
+      "created": "2026-06-10T13:55:17Z",
+      "last_updated": "2026-06-10T13:55:17Z"
+    },
     {
       "project_number": 74,
       "project_name": "polish_pr1_quality_and_description",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
@@ -13,7 +21,50 @@
         71
       ],
       "created": "2026-06-10T13:23:05Z",
-      "last_updated": "2026-06-10T13:23:05Z"
+      "last_updated": "2026-06-10T13:37:18Z",
+      "session_id": "sess_1781097907_c44586",
+      "researched": "2026-06-10T14:10:00Z",
+      "planned": "2026-06-10T14:20:00Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/074_polish_pr1_quality_and_description/reports/01_polish-pr1-research.md",
+          "type": "report",
+          "summary": "Research findings for all 5 sub-issues: double blank lines, set_option scoping, abbreviation dedup, module keyword, PR description updates"
+        },
+        {
+          "path": "specs/074_polish_pr1_quality_and_description/plans/01_polish-pr1-plan.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for all 5 sub-issues: blank lines, set_option scoping, dedup, module keyword, PR description"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 5,
+        "total_effort_hours": 2.5,
+        "complexity": "medium",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_polish-pr1-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-10"
+          }
+        ]
+      }
     },
     {
       "project_number": 73,

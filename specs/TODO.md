@@ -1,5 +1,5 @@
 ---
-next_project_number: 75
+next_project_number: 76
 ---
 
 # Tasks
@@ -40,16 +40,26 @@ next_project_number: 75
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-74 [NOT STARTED] — polish_pr1_quality_and_description
+74 [PLANNED] — polish_pr1_quality_and_description
 
 ## Tasks
 
+### 75. Develop propositional Hilbert proof system and derive natural deduction rules
+- **Effort**: Large (16-24 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Develop a propositional Hilbert proof system in Logics/Propositional/ and derive natural deduction rules as syntactic sugar. Create a Hilbert-style proof system for propositional logic (ProofSystem/, DeductionTheorem, MCS, etc.) following the same pattern as Modal/, Temporal/, and Bimodal/. Derive the natural deduction rules (→I via deduction theorem, →E via modus ponens, ⊥E via ex falso axiom, assumption via context membership) as lemmas with natural-deduction-flavored names. Derive cut, weakening, and substitution within the Hilbert framework. Refactor NaturalDeduction/Basic.lean so its rules are syntactic sugar over the Hilbert infrastructure rather than a standalone inductive type. Modal/, Temporal/, and Bimodal/ should import from the propositional Hilbert system where appropriate, reusing shared propositional proof infrastructure instead of duplicating it. This extends the Foundations → Propositional → {Modal, Temporal} → Bimodal hierarchy by making Propositional a genuine proof-theoretic foundation, not just a formula-type foundation.
+
+---
+
 ### 74. Polish PR1 code quality and update pr-description.md for publication
 - **Effort**: Medium (2-3 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 68, 69, 71
 - **Topic**: Submit PRs
+- **Research**: [specs/074_polish_pr1_quality_and_description/reports/01_polish-pr1-research.md]
 
 **Description**: Five sub-issues: (a) Fix double blank lines left by sed in Combinators.lean:42-43, Propositional/Core.lean:43-44, and Modal/Basic.lean:44-45. (b) Scope `set_option linter.style.longLine false` in S5.lean and TemporalDerived.lean from file-scoped to per-theorem using `set_option ... in theorem ...` syntax; use `let` abbreviations to shorten long theorem signatures where possible. (c) Deduplicate `top'`/`neg'` abbreviations — TemporalDerived.lean redefines these identically to Axioms.lean; import from Axioms instead. (d) Fix top-level `lake build` by adding `module` keyword to `Cslib/Logics/Bimodal/FrameConditions/Compatibility.lean` (non-module file imported from module Cslib.lean). (e) Update `specs/059_pr1_foundations_logic/pr-description.md`: fix all stale per-file line counts in the File Inventory table, add a new section explaining the Embedding/ relocation (tasks 72-73) — why Propositional/Embedding.lean was moved to Bimodal/Embedding/PropositionalEmbedding.lean and Modal/FromPropositional.lean + Temporal/FromPropositional.lean were created to establish the clean import hierarchy Propositional/ → {Modal/, Temporal/} → Bimodal/, and document the module keyword migration (task 68) where all 15 files now have `module` and `@[expose] public section`.
 
