@@ -40,7 +40,7 @@ next_project_number: 73
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-68 [NOT STARTED] — add_module_keyword_theorem_files
+68 [COMPLETED] — add_module_keyword_theorem_files
   └─ 69 [NOT STARTED] — fix_linter_warnings_foundations
   └─ 70 [NOT STARTED] — remove_unused_cslib_init_imports
   └─ 71 [NOT STARTED] — polish_docs_theorems_axioms
@@ -49,8 +49,9 @@ next_project_number: 73
 
 ### 72. Relocate Propositional/Embedding to fix dependency inversion
 - **Effort**: Medium (2-4 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
+- **Research**: [specs/072_relocate_propositional_embedding/reports/01_embedding-relocation.md]
 
 **Description**: Currently Logics/Propositional/Embedding.lean imports from Modal.Basic and Temporal.Syntax.Formula, creating a backwards dependency where the simpler logic imports from more complex ones. Restructure so that each logic's embedding lives in the appropriate place — either in the target logic (Modal/, Temporal/) or in the consumer (Bimodal/Embedding/) — so that Logics/Propositional/ only imports from Foundations/. This should maintain a consistent pattern across the codebase where imports flow downward: Foundations → {Propositional, Modal, Temporal} → Bimodal. Update the ROADMAP.md flowchart after restructuring.
 
@@ -62,6 +63,7 @@ next_project_number: 73
 - **Task Type**: lean4
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
+- specs/071_polish_docs_theorems_axioms/reports/01_polish-docs-research.md: [Research]
 
 **Description**: NICE-TO-HAVE quality audit fixes. (a) Theorems.lean aggregator docstring is missing the Temporal subsection -- add entries for Temporal.TemporalDerived and Temporal.FrameConditions. (b) Axioms.lean temporal section (lines 112-295) has repeated `let top` and `let neg` blocks in nearly every temporal axiom definition -- extract as section-scoped `private abbrev top'` and `private abbrev neg'` to reduce visual noise. Purely cosmetic; verify `lake build` passes after changes.
 
@@ -73,6 +75,7 @@ next_project_number: 73
 - **Task Type**: lean4
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
+- specs/070_remove_unused_cslib_init_imports/reports/01_unused-imports-research.md: [Research]
 
 **Description**: `lake shake` flags unused `public import Cslib.Init` in Connectives.lean, Axioms.lean, InferenceSystem.lean, and ProofSystem.lean. Remove the unused imports, then run `lake build` and `lake shake` to confirm clean output. Should be done after task 68 (module keyword addition) since changing import declarations may affect what `lake shake` reports.
 
@@ -84,6 +87,7 @@ next_project_number: 73
 - **Task Type**: lean4
 - **Dependencies**: Task 68
 - **Topic**: Submit PRs
+- specs/069_fix_linter_warnings_foundations/reports/01_linter-warnings-research.md: [Research]
 
 **Description**: SHOULD-FIX quality audit items. Four sub-issues: (a) BigConj.lean has 6 flexible `simp` warnings -- replace bare `simp [bigconj]` with `simp only [...]` using compiler-suggested replacements. (b) Propositional/Connectives.lean has 2 empty-line-in-command style warnings at lines 357 and 368 -- remove blank lines or replace with comment lines. (c) 5 files (Combinators, Core, Prop/Connectives, Modal/Basic, S5) suppress `set_option linter.unreachableTactic false` at file scope -- scope to specific proofs using `set_option ... in theorem ...`. (d) S5.lean and TemporalDerived.lean suppress `set_option linter.style.longLine false` at file scope -- use `let` abbreviations in theorem statements and scope suppression to specific theorems only.
 
@@ -97,6 +101,7 @@ next_project_number: 73
 - **Topic**: Submit PRs
 - specs/068_add_module_keyword_theorem_files/reports/01_module-keyword-research.md: [Research]
 - specs/068_add_module_keyword_theorem_files/plans/01_module-keyword-plan.md: [Plan]
+- specs/068_add_module_keyword_theorem_files/summaries/01_execution-summary.md: [Summary]
 
 **Description**: MUST-FIX from quality audit. 10 of 15 files in Cslib/Foundations/Logic/ are missing the `module` keyword, preventing them from being imported from `Cslib.lean` (which is a `module` file). Affected files: Theorems/Combinators.lean, Theorems/Propositional/Core.lean, Theorems/Propositional/Connectives.lean, Theorems/BigConj.lean, Theorems/Modal/Basic.lean, Theorems/Modal/S5.lean, Theorems/Temporal/TemporalDerived.lean, Theorems/Temporal/FrameConditions.lean, Metalogic/Consistency.lean, Theorems.lean. For each file: add `module` after copyright header, change `import` to `public import`, follow the pattern used by the 5 core definition files (InferenceSystem, Connectives, Axioms, ProofSystem, LogicalEquivalence). Run `lake build` and `lake exe mk_all` to update Cslib.lean after all changes.
 

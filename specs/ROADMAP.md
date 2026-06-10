@@ -8,21 +8,22 @@ and **Bimodal**. See `specs/TODO.md` for task tracking.
 ## Approach
 
 Every component lives at the most general level it can compile at. Content is
-distributed across four module levels — Foundations/Logic/, Logics/Modal/,
-Logics/Temporal/, and Logics/Bimodal/. Foundations provides shared
-infrastructure (connectives, proof systems, propositional theorems, MCS theory)
-that all three logic modules import directly. Modal and Temporal are independent
-peers that do not import from each other. Bimodal imports from Modal and
-Temporal for cross-logic results (embedding, conservative extension) and also
-imports Foundations infrastructure directly.
+distributed across five module levels — Foundations/Logic/, Logics/Propositional/,
+Logics/Modal/, Logics/Temporal/, and Logics/Bimodal/. Foundations provides
+shared infrastructure (connectives, proof systems, propositional theorems, MCS
+theory) that all four logic modules import directly. Propositional, Modal, and
+Temporal are independent peers that import only from Foundations. Bimodal
+imports from all three peer modules for cross-logic results (embedding,
+conservative extension) and also imports Foundations infrastructure directly.
 
 ## Module Dependency Structure
 
 Foundations provides shared infrastructure to all four logic modules.
-Propositional, Modal, and Temporal are peers that each import from
-Foundations. Propositional's Embedding component imports from Modal
-and Temporal to define coercions into those logics. Bimodal imports
-from all three peer modules and from Foundations directly.
+Propositional, Modal, and Temporal are independent peers that each
+import only from Foundations. Bimodal imports from all three peer
+modules and from Foundations directly. All cross-logic embeddings
+(propositional, modal, and temporal into bimodal) live in
+Bimodal/Embedding/.
 
 ```mermaid
 flowchart TB
@@ -31,6 +32,10 @@ flowchart TB
         F1["Connectives · ProofSystem"]
         F2["Theorems"]
         F3["Metalogic"]
+    end
+
+    subgraph P ["Logics / Propositional"]
+        P1["Defs · NaturalDeduction"]
     end
 
     subgraph M ["Logics / Modal"]
@@ -46,12 +51,6 @@ flowchart TB
         T3["Metalogic"]
     end
 
-    subgraph P ["Logics / Propositional"]
-        direction LR
-        P1["Defs · NaturalDeduction"]
-        P2["Embedding"]
-    end
-
     subgraph B ["Logics / Bimodal"]
         direction LR
         B1["Syntax · Semantics · ProofSystem"]
@@ -63,12 +62,11 @@ flowchart TB
     F2 --> M2 & T2 & B2
     F3 --> M2 & T3 & B3
 
-    M1 --> P2 & B2
-    T1 --> P2
-    T2 --> B2
+    P1 --> B2
+    M1 --> B2
     M2 --> B3
+    T2 --> B2
     T3 --> B3
-    P2 --> B2
 ```
 
 ## Completed

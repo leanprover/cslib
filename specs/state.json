@@ -4,58 +4,60 @@
     {
       "project_number": 72,
       "project_name": "relocate_propositional_embedding",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "created": "2026-06-10T05:34:10Z",
-      "last_updated": "2026-06-10T05:34:10Z"
+      "last_updated": "2026-06-10T05:44:11Z",
+      "completion_summary": "Merged Propositional/Embedding.lean into Bimodal/Embedding/PropositionalEmbedding.lean, fixing the dependency inversion. Propositional/ now imports only from Foundations/. All cross-logic embeddings live in Bimodal/Embedding/. Updated ROADMAP.md flowchart."
     },
     {
       "project_number": 68,
       "project_name": "add_module_keyword_theorem_files",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         59
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-09T20:11:00Z"
+      "last_updated": "2026-06-09T20:20:00Z",
+      "completion_summary": "Added module keyword, public imports, and @[expose] public section to 10 Foundations/Logic theorem files; updated Cslib.lean; lake build passes"
     },
     {
       "project_number": 69,
       "project_name": "fix_linter_warnings_foundations",
-      "status": "not_started",
+      "status": "planning",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         68
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-10T05:15:39Z"
+      "last_updated": "2026-06-09T20:31:00Z"
     },
     {
       "project_number": 70,
       "project_name": "remove_unused_cslib_init_imports",
-      "status": "not_started",
+      "status": "planning",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         68
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-10T05:15:39Z"
+      "last_updated": "2026-06-09T20:31:00Z"
     },
     {
       "project_number": 71,
       "project_name": "polish_docs_theorems_axioms",
-      "status": "not_started",
+      "status": "planning",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
         68
       ],
       "created": "2026-06-10T05:15:39Z",
-      "last_updated": "2026-06-10T05:15:39Z"
+      "last_updated": "2026-06-09T20:31:00Z"
     },
     {
       "project_number": 66,
