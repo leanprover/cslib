@@ -36,10 +36,10 @@ carrying `HasBot`, `HasImp`, and `HasBox` instances.
 - `s5_diamond_box_to_truth`: `⊢ ◇□φ → φ`
 
 ### S4-Level Nested Modality Theorems
-- `s4_diamond_box_conj`: `⊢ (◇A ∧ □B) → ◇(A ∧ □B)`
-- `s4_box_diamond_box`: `⊢ □A → □(◇□A)`
-- `s4_diamond_box_diamond`: `⊢ ◇(□(◇A)) ↔ ◇A`
-- `s5_diamond_conj_diamond`: `⊢ ◇(A ∧ ◇B) ↔ (◇A ∧ ◇B)`
+- `s4_diamond_box_conj`: `⊢ (◇φ ∧ □ψ) → ◇(φ ∧ □ψ)`
+- `s4_box_diamond_box`: `⊢ □φ → □(◇□φ)`
+- `s4_diamond_box_diamond`: `⊢ ◇(□(◇φ)) ↔ ◇φ`
+- `s5_diamond_conj_diamond`: `⊢ ◇(φ ∧ ◇ψ) ↔ (◇φ ∧ ◇ψ)`
 
 ## Encoding
 - `¬φ = φ → ⊥`; `◇φ = (□(φ → ⊥)) → ⊥`
@@ -78,13 +78,7 @@ section
 Derived from axiom 4 via contraposition and duality. -/
 theorem diamond_4 {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasBox.box (HasImp.imp
-            (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot)
-            HasBot.bot))
-          HasBot.bot)
-        (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot)) := by
+      (HasImp.imp (diamond' (diamond' φ)) (diamond' φ)) := by
   -- M4 for ¬φ: □¬φ → □□¬φ
   have m4_neg := HasAxiom4.four (S := S) (φ := HasImp.imp φ HasBot.bot)
   -- Contrapose: ¬□□¬φ → ¬□¬φ
@@ -120,9 +114,7 @@ theorem diamond_4 {φ : F} :
 3. Compose: ◇φ → □◇φ -/
 theorem axiom5_derived {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot)
-        (HasBox.box (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot))) := by
+      (HasImp.imp (diamond' φ) (HasBox.box (diamond' φ))) := by
   have mb_dia := HasAxiomB.B (S := S)
     (φ := HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot)
   have d4 := @diamond_4 F _ _ _ S _ _ (φ := φ)
@@ -136,11 +128,7 @@ Contrapose: ◇□φ = ¬□¬□φ → ¬¬□φ
 DNE: ¬¬□φ → □φ -/
 theorem axiom5_collapse_derived {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasBox.box (HasImp.imp (HasBox.box φ) HasBot.bot))
-          HasBot.bot)
-        (HasBox.box φ)) := by
+      (HasImp.imp (diamond' (HasBox.box φ)) (HasBox.box φ)) := by
   -- modal_duality_neg_rev: ¬□φ → ◇¬φ
   have duality_rev := @modal_duality_neg_rev F _ _ _ S _ _ (φ := φ)
   -- axiom5 on ¬φ: ◇¬φ → □◇¬φ
@@ -166,8 +154,7 @@ theorem axiom5_collapse_derived {φ : F} :
 /-- T-Box-Diamond: `⊢ □φ → ◇φ` (necessary implies possible). -/
 theorem t_box_to_diamond {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp (HasBox.box φ)
-        (HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot)) := by
+      (HasImp.imp (HasBox.box φ) (diamond' φ)) := by
   -- T: □φ → φ
   have mt_a := HasAxiomT.T (S := S) (φ := φ)
   -- T on ¬φ: □¬φ → ¬φ
@@ -261,21 +248,7 @@ theorem box_disj_intro {φ ψ : F} :
 /-- Box-Conjunction Biconditional: `⊢ □(φ ∧ ψ) ↔ (□φ ∧ □ψ)`. -/
 theorem box_conj_iff {φ ψ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasImp.imp
-            (HasBox.box (HasImp.imp (HasImp.imp φ (HasImp.imp ψ HasBot.bot)) HasBot.bot))
-            (HasImp.imp
-              (HasImp.imp (HasBox.box φ) (HasImp.imp (HasBox.box ψ) HasBot.bot))
-              HasBot.bot))
-          (HasImp.imp
-            (HasImp.imp
-              (HasImp.imp
-                (HasImp.imp (HasBox.box φ) (HasImp.imp (HasBox.box ψ) HasBot.bot))
-                HasBot.bot)
-              (HasBox.box (HasImp.imp (HasImp.imp φ (HasImp.imp ψ HasBot.bot)) HasBot.bot)))
-            HasBot.bot))
-        HasBot.bot) := by
+      (iff' (HasBox.box (conj' φ ψ)) (conj' (HasBox.box φ) (HasBox.box ψ))) := by
   -- Forward: □(φ ∧ ψ) → (□φ ∧ □ψ)
   have lce_a := @lce_imp F _ _ S _ _ (φ := φ) (ψ := ψ)
   have box_a := box_mono lce_a
@@ -327,43 +300,7 @@ theorem box_conj_iff {φ ψ : F} :
 /-- Diamond-Disjunction Biconditional: `⊢ ◇(φ ∨ ψ) ↔ (◇φ ∨ ◇ψ)`. -/
 theorem diamond_disj_iff {φ ψ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasImp.imp
-            -- forward: ◇(φ∨ψ) → (◇φ ∨ ◇ψ)
-            (HasImp.imp
-              (HasBox.box (HasImp.imp
-                (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)
-                HasBot.bot))
-              HasBot.bot)
-            (HasImp.imp
-              (HasImp.imp
-                (HasImp.imp
-                  (HasBox.box (HasImp.imp φ HasBot.bot))
-                  HasBot.bot)
-                HasBot.bot)
-              (HasImp.imp
-                (HasBox.box (HasImp.imp ψ HasBot.bot))
-                HasBot.bot)))
-          (HasImp.imp
-            -- backward: (◇φ ∨ ◇ψ) → ◇(φ∨ψ)
-            (HasImp.imp
-              (HasImp.imp
-                (HasImp.imp
-                  (HasImp.imp
-                    (HasBox.box (HasImp.imp φ HasBot.bot))
-                    HasBot.bot)
-                  HasBot.bot)
-                (HasImp.imp
-                  (HasBox.box (HasImp.imp ψ HasBot.bot))
-                  HasBot.bot))
-              (HasImp.imp
-                (HasBox.box (HasImp.imp
-                  (HasImp.imp (HasImp.imp φ HasBot.bot) ψ)
-                  HasBot.bot))
-                HasBot.bot))
-            HasBot.bot))
-        HasBot.bot) := by
+      (iff' (diamond' (disj' φ ψ)) (disj' (diamond' φ) (diamond' ψ))) := by
   -- Forward: ◇(φ∨ψ) → (◇φ ∨ ◇ψ)
   -- Get De Morgan biconditionals
   have demorgan_disj := @demorgan_disj_neg F _ _ S _ _ (φ := φ) (ψ := ψ)
@@ -404,16 +341,7 @@ theorem diamond_disj_iff {φ ψ : F} :
 /-- S5-Diamond-Box Collapse: `⊢ ◇□φ ↔ □φ`. -/
 theorem s5_diamond_box {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasImp.imp
-            (HasImp.imp (HasBox.box (HasImp.imp (HasBox.box φ) HasBot.bot)) HasBot.bot)
-            (HasBox.box φ))
-          (HasImp.imp
-            (HasImp.imp (HasBox.box φ)
-              (HasImp.imp (HasBox.box (HasImp.imp (HasBox.box φ) HasBot.bot)) HasBot.bot))
-            HasBot.bot))
-        HasBot.bot) := by
+      (iff' (diamond' (HasBox.box φ)) (HasBox.box φ)) := by
   have forward := @axiom5_collapse_derived F _ _ _ S _ _ (φ := φ)
   have m4_a := HasAxiom4.four (S := S) (φ := φ)
   have box_box_to_diamond := @t_box_to_diamond F _ _ _ S _ _ (φ := HasBox.box φ)
@@ -423,9 +351,7 @@ theorem s5_diamond_box {φ : F} :
 /-- S5-Diamond-Box-to-Truth: `⊢ ◇□φ → φ`. -/
 theorem s5_diamond_box_to_truth {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp (HasBox.box (HasImp.imp (HasBox.box φ) HasBot.bot)) HasBot.bot)
-        φ) := by
+      (HasImp.imp (diamond' (HasBox.box φ)) φ) := by
   have h1 := @axiom5_collapse_derived F _ _ _ S _ _ (φ := φ)
   have h2 := HasAxiomT.T (S := S) (φ := φ)
   exact imp_trans h1 h2
@@ -434,13 +360,9 @@ theorem s5_diamond_box_to_truth {φ : F} :
 
 /-- S4-Diamond-Box-Conjunction: `⊢ (◇φ ∧ □ψ) → ◇(φ ∧ □ψ)`. -/
 theorem s4_diamond_box_conj {φ ψ : F} :
-    let conjPhiBoxPsi := HasImp.imp (HasImp.imp φ (HasImp.imp (HasBox.box ψ) HasBot.bot)) HasBot.bot
-    let diamondPhi := HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot
-    let conjDiamondPhiBoxPsi :=
-      HasImp.imp (HasImp.imp diamondPhi (HasImp.imp (HasBox.box ψ) HasBot.bot)) HasBot.bot
-    let diamondConjPhiBoxPsi := HasImp.imp (HasBox.box (HasImp.imp conjPhiBoxPsi HasBot.bot)) HasBot.bot
+    let conjPhiBoxPsi := conj' φ (HasBox.box ψ)
     InferenceSystem.DerivableIn S
-      (HasImp.imp conjDiamondPhiBoxPsi diamondConjPhiBoxPsi) := by
+      (HasImp.imp (conj' (diamond' φ) (HasBox.box ψ)) (diamond' conjPhiBoxPsi)) := by
   -- pairing: φ → □ψ → (φ ∧ □ψ)
   have pair := pairing (S := S) φ (HasBox.box ψ)
   -- flip: □ψ → (φ → (φ ∧ □ψ))
@@ -492,24 +414,13 @@ theorem s4_diamond_box_conj {φ ψ : F} :
 Direct from axiom B applied to □φ. -/
 theorem s4_box_diamond_box {φ : F} :
     InferenceSystem.DerivableIn S
-      (HasImp.imp (HasBox.box φ)
-        (HasBox.box
-          (HasImp.imp
-            (HasBox.box (HasImp.imp (HasBox.box φ) HasBot.bot))
-            HasBot.bot))) :=
+      (HasImp.imp (HasBox.box φ) (HasBox.box (diamond' (HasBox.box φ)))) :=
   HasAxiomB.B (S := S) (φ := HasBox.box φ)
 
 /-- S4-Diamond-Box-Diamond: `⊢ ◇(□(◇φ)) ↔ ◇φ`. -/
 theorem s4_diamond_box_diamond {φ : F} :
-    let diamondPhi := HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot
-    let boxDiamondPhi := HasBox.box diamondPhi
-    let diamondBoxDiamondPhi := HasImp.imp (HasBox.box (HasImp.imp boxDiamondPhi HasBot.bot)) HasBot.bot
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasImp.imp diamondBoxDiamondPhi diamondPhi)
-          (HasImp.imp (HasImp.imp diamondPhi diamondBoxDiamondPhi) HasBot.bot))
-        HasBot.bot) := by
+      (iff' (diamond' (HasBox.box (diamond' φ))) (diamond' φ)) := by
   -- Forward: ◇□◇φ → ◇φ
   -- axiom5_collapse on ◇φ: ◇□◇φ → □◇φ
   have m5c := @axiom5_collapse_derived F _ _ _ S _ _
@@ -533,17 +444,8 @@ theorem s4_diamond_box_diamond {φ : F} :
 
 /-- S5-Diamond-Conjunction-Diamond: `⊢ ◇(φ ∧ ◇ψ) ↔ (◇φ ∧ ◇ψ)`. -/
 theorem s5_diamond_conj_diamond {φ ψ : F} :
-    let diamondPsi := HasImp.imp (HasBox.box (HasImp.imp ψ HasBot.bot)) HasBot.bot
-    let conjPhiDiaPsi := HasImp.imp (HasImp.imp φ (HasImp.imp diamondPsi HasBot.bot)) HasBot.bot
-    let diamondConjPhiDiaPsi := HasImp.imp (HasBox.box (HasImp.imp conjPhiDiaPsi HasBot.bot)) HasBot.bot
-    let diamondPhi := HasImp.imp (HasBox.box (HasImp.imp φ HasBot.bot)) HasBot.bot
-    let conjDiaPhiDiaPsi := HasImp.imp (HasImp.imp diamondPhi (HasImp.imp diamondPsi HasBot.bot)) HasBot.bot
     InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasImp.imp diamondConjPhiDiaPsi conjDiaPhiDiaPsi)
-          (HasImp.imp (HasImp.imp conjDiaPhiDiaPsi diamondConjPhiDiaPsi) HasBot.bot))
-        HasBot.bot) := by
+      (iff' (diamond' (conj' φ (diamond' ψ))) (conj' (diamond' φ) (diamond' ψ))) := by
   -- Forward: ◇(φ ∧ ◇ψ) → (◇φ ∧ ◇ψ)
   -- lce: (φ ∧ ◇ψ) → φ
   have lce := @lce_imp F _ _ S _ _

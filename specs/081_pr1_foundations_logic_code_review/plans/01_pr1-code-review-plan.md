@@ -233,7 +233,7 @@ Phases are fully sequential because each rename/refactor may affect files touche
 
 ---
 
-### Phase 6: Refactor S5.lean to use diamond'/iff' abbreviations (Item 11) [NOT STARTED]
+### Phase 6: Refactor S5.lean to use diamond'/iff' abbreviations (Item 11) [COMPLETED]
 
 **Goal**: Replace expanded `HasImp.imp (HasBox.box (neg' φ)) HasBot.bot` patterns with the existing `diamond'` abbreviation, and `conj' (HasImp.imp a b) (HasImp.imp b a)` patterns with `iff'`, improving readability of theorem type signatures throughout S5.lean.
 
