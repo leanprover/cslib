@@ -1,7 +1,7 @@
 # Implementation Plan: Task #80
 
 - **Task**: 80 - Generic DeductionTheorem interface
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 5 hours
 - **Dependencies**: Task 78 (completed), Task 79 (completed)
 - **Research Inputs**: specs/080_generic_deduction_theorem/reports/01_team-research.md
@@ -74,20 +74,20 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Assess Prerequisites and Create HasHilbertTree Typeclass [NOT STARTED]
+### Phase 1: Assess Prerequisites and Create HasHilbertTree Typeclass [COMPLETED]
 
 **Goal**: Verify axiom naming status, then create the `HasHilbertTree` typeclass and 4 generic helper lemmas in a new file.
 
 **Tasks**:
-- [ ] Audit axiom naming: confirm PL/Modal use `.implyK`/`.implyS` and Temporal/Bimodal use `.imp_s`/`.imp_k` with swapped semantics. Document the mapping for use in instances.
-- [ ] Audit subset notation: confirm PL/Modal use `fun x h => nomatch h` for empty subset and Temporal/Bimodal use `List.nil_subset _`.
-- [ ] Create `Cslib/Foundations/Logic/Metalogic/DeductionHelpers.lean` with:
+- [x] Audit axiom naming: confirm PL/Modal use `.implyK`/`.implyS` and Temporal/Bimodal use `.imp_s`/`.imp_k` with swapped semantics. Document the mapping for use in instances. *(completed)*
+- [x] Audit subset notation: confirm PL/Modal use `fun x h => nomatch h` for empty subset and Temporal/Bimodal use `List.nil_subset _`. *(completed)*
+- [x] Create `Cslib/Foundations/Logic/Metalogic/DeductionHelpers.lean` with:
   - `HasHilbertTree` typeclass: 6 fields (`Tree`, `implyK`, `implyS`, `assumption`, `mp`, `weakening`). The `Tree` field is parameterized by `List F -> F -> Type*`. The `weakening` field uses the forall-style subset proof `(forall x in Gamma, x in Delta)` which is compatible with both PL/Modal and Temporal/Bimodal (the latter use `List.Subset` which unfolds to this).
-  - `deduction_axiom` generic helper
+  - `deduction_axiom` generic helper *(deviation: altered — takes `d_empty : Tree [] φ` instead of `h_ax` parameter, so each logic builds the empty-context derivation before calling)*
   - `deduction_imp_self` generic helper
   - `deduction_assumption_other` generic helper
   - `deduction_mp_under_imp` generic helper
-- [ ] Verify the new file compiles with `lake build Cslib.Foundations.Logic.Metalogic.DeductionHelpers`
+- [x] Verify the new file compiles with `lake build Cslib.Foundations.Logic.Metalogic.DeductionHelpers` *(completed)*
 
 **Timing**: 1.5 hours
 
