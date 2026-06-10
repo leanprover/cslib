@@ -102,7 +102,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Weaken Combinators.lean to MinimalHilbert [NOT STARTED]
+### Phase 2: Weaken Combinators.lean to MinimalHilbert [COMPLETED]
 
 **Goal**: Change all theorems in Combinators.lean from `[PropositionalHilbert S]` to `[MinimalHilbert S]`, proving they need only K, S, and MP.
 

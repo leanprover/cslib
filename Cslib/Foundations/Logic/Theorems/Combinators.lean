@@ -15,7 +15,7 @@ This module defines fundamental propositional reasoning combinators derived from
 the ImplyK and ImplyS axioms. These combinators provide the foundation for all
 propositional theorems in the Hilbert-style proof system.
 
-All theorems are generic over `[PropositionalHilbert S]`.
+All theorems are generic over `[MinimalHilbert S]`.
 
 ## Main Combinators
 
@@ -45,7 +45,7 @@ open Cslib.Logic
 
 variable {F : Type*} [HasBot F] [HasImp F]
 variable {S : Type*} [InferenceSystem S F]
-variable [PropositionalHilbert S (F := F)]
+variable [MinimalHilbert S (F := F)]
 
 section Combinators
 
