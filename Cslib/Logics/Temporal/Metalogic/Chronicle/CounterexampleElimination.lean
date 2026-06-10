@@ -270,21 +270,7 @@ theorem burgessR3Maximal_from_h_content_sub {A C : Set (Formula Atom)}
       by_contra h_not_P
       have h_neg_P : (Formula.some_past α).neg ∈ C :=
         (temporal_negation_complete h_mcs_C _).resolve_left h_not_P
-      -- ¬P(α) ∈ C → H(¬α) ∈ C (via the duality of P and H)
-      -- Actually: P(α) = ¬H(¬α), so ¬P(α) = ¬¬H(¬α) which by DNE gives H(¬α)
-      -- H(α.neg) ∈ C → α.neg ∈ h_content(C) ⊆ A → contradiction with α ∈ A
-      -- Let's use F_neg_of_G_not pattern adapted for P/H
-      -- Actually we need: ¬P(α) → H(¬α). This follows from P = ¬H¬.
-      -- P(α) = some_past α. If ¬P(α) ∈ C, we need to derive H(α.neg) ∈ C.
-      -- some_past α = ¬(all_past (α.neg)) definitionally? No.
-      -- some_past α = Formula.snce α (Formula.bot.imp Formula.bot)
-      -- This doesn't directly give us H(¬α).
-      -- Let's just use: α ∈ A, and show a contradiction.
-      -- From ¬P(α) ∈ C, α.neg ∈ g_content(A) would give α.neg ∈ C... wrong direction.
-      -- Actually: g_content(A) ⊆ C. If G(α) ∈ A, then α ∈ C.
-      -- We need the dual: if something is in A, show P(it) ∈ C.
-      -- From α ∈ A, we want P(α) ∈ C.
-      -- Use connect_future: α → G(P(α)). So α ∈ A → G(P(α)) ∈ A → P(α) ∈ g_content(A) ⊆ C.
+      -- Use connect_future: α → G(P(α)), so α ∈ A → P(α) ∈ g_content(A) ⊆ C.
       have h_ax_cf : DerivationTree FrameClass.Base [] (α.imp (Formula.all_future (Formula.some_past α))) :=
         DerivationTree.axiom [] _ (Axiom.connect_future α) trivial
       have h_GP : Formula.all_future (Formula.some_past α) ∈ A :=
@@ -1528,15 +1514,6 @@ private noncomputable def c5_backward_walk
                   by_contra ha_ne
                   -- z ≤ a and a ≠ z gives z < a
                   have ha_gt : z < a := lt_of_le_of_ne h_le_a (Ne.symm ha_ne)
-                  -- z < a < b = pt, so a is between z and pt. But z ∈ val.dom...
-                  -- Actually, a > z. After subst hb_eq, b = pt. So a < pt (from hab_lt).
-                  -- a ∈ val.dom, z < a < pt. z ∈ val.dom. So h_no_btw z gives contradiction... no, h_no_btw says no points between a and b.
-                  -- Actually adjacency h_no_btw says ¬∃ u, u between a and b.
-                  -- We have z < a and z ∈ val.dom... but z is NOT between a and b since a > z.
-                  -- The right approach: if a ∈ χ.dom, then x'' < a < pt (since a > z > x''), contradicting h_adj_x''s.
-                  -- If a ∉ χ.dom, then a is a new point. But there are no new points in val (this is the split case, not recursion).
-                  -- Actually, this is the split case in c5_backward_walk. val = insert z χ.dom. The only new point is z.
-                  -- So a ∈ val.dom means a = z ∨ a ∈ χ.dom. Since a ≠ z, a ∈ χ.dom.
                   rcases ha_dom with rfl | ha_mem
                   · exact absurd (le_refl z) (not_le.mpr ha_gt)
                   · -- a ∈ χ.dom, z < a, and a < b = pt. So x'' < z < a < pt, contradicts h_adj_x''s.
@@ -2680,18 +2657,6 @@ noncomputable def eliminate_potential_counterexample
         pc.η ∈ χ.f pc.y ∧
         ¬∃ z ∈ χ.dom, pc.x < z ∧ z < pc.y ∧ pc.ξ.neg ∈ χ.f z
     · obtain ⟨h_xm, h_ym, h_lt, h_neg_until, h_event, h_no_wit⟩ := h_actual
-      -- Inline C4 elimination with c2' preservation.
-      -- Strategy: find an adjacent pair (w, w_next) between x and y where
-      -- ξ ∉ g(w, w_next), then split using lemma_2_6_splitting with β = ξ.
-      --
-      -- Key fact: if neg(untl(ξ,η)) ∈ f(w) and η ∈ f(w_next), then ξ ∉ g(w, w_next).
-      -- Proof: if ξ ∈ g, burgessRSet gives U(ξ, η) = untl(ξ,η) ∈ f(w),
-      -- contradicting neg(untl(ξ,η)) ∈ f(w).
-      --
-      -- Find w = rightmost domain point in [x, y) with neg(untl(ξ,η)) ∈ f(w).
-      -- x is always a valid candidate. w_next is the successor of w in dom.
-      -- If w_next = y (or δ ∈ f(w_next)): η ∈ f(w_next), so ξ ∉ g(w, w_next).
-      -- If w_next < y and η ∉ f(w_next): hard case (Burgess 2.9 induction needed).
       have h_mcs_x := h_c0 pc.x h_xm
       have h_mcs_y := h_c0 pc.y h_ym
       -- Find w (rightmost with neg-until) and w_next (its successor)
@@ -2737,18 +2702,8 @@ noncomputable def eliminate_potential_counterexample
       have h_mcs_w := h_c0 w hw_dom
       have h_mcs_wn := h_c0 w_next hw_next_dom
       have h_r3m_w := h_c2' w w_next h_adj_w
-      -- Key lemma: ξ ∉ g(w, w_next) when η ∈ f(w_next)
-      -- (which holds when w_next = y since h_event : η ∈ f(y))
-      -- When w_next ≤ y and neg(untl) ∉ f(w_next): untl ∈ f(w_next).
-      -- If w_next = y: η ∈ f(w_next) from h_event.
-      -- Use this to prove ξ ∉ g(w, w_next).
       have h_xi_not_g : pc.ξ ∉ χ.g w w_next := by
         intro h_xi_g
-        -- Burgess 2.9 case analysis (both sub-cases proved):
-        -- Case 1: η ∈ f(w_next) → direct contradiction via burgessRSet.
-        -- Case 2: η ∉ f(w_next) → use ξ ∈ f(w_next) (from h_no_wit) and
-        --   untl(ξ,η) ∈ f(w_next) (from w rightmost with neg-until) to form
-        --   ξ ∧ untl(ξ,η) ∈ f(w_next), then BX6 absorption gives contradiction.
         by_cases h_eta_wn : pc.η ∈ χ.f w_next
         · -- η ∈ f(w_next): direct contradiction
           have h_untl := h_r3m_w.2.1.1 pc.ξ h_xi_g pc.η h_eta_wn
@@ -2759,13 +2714,10 @@ noncomputable def eliminate_potential_counterexample
             rcases lt_or_eq_of_le hw_next_le_y with h | h
             · exact h
             · exact absurd (h ▸ h_event) h_eta_wn
-          -- untl(ξ,η) ∈ f(w_next) (since neg(untl) ∉ f(w_next) by w rightmost)
           have h_untl_wn : Formula.untl pc.η pc.ξ ∈ χ.f w_next := by
             rcases temporal_negation_complete h_mcs_wn (Formula.untl pc.η pc.ξ) with h | h
             · exact h
             · exact absurd h (hw_rightmost w_next hw_next_dom hw_lt_next hw_next_lt_y)
-          -- Burgess 2.9 case n=m+1: derive contradiction using BX6 absorption.
-          -- Key: ξ ∈ f(w_next) (since no ξ.neg between pc.x and pc.y, and pc.x < w_next < pc.y).
           have hx_le_w : pc.x ≤ w := by
             have : pc.x ∈ S_w := Finset.mem_filter.mpr ⟨h_xm, h_lt, h_neg_until⟩
             exact Finset.le_max' S_w pc.x this
@@ -2997,20 +2949,8 @@ noncomputable def eliminate_potential_counterexample
         pc.η ∈ χ.f pc.y ∧
         ¬∃ z ∈ χ.dom, pc.y < z ∧ z < pc.x ∧ pc.ξ.neg ∈ χ.f z
     · obtain ⟨h_xm, h_ym, h_lt, h_neg_since, h_event, h_no_wit⟩ := h_actual
-      -- Inline C4' elimination with c2' preservation (Since mirror of c4_forward).
-      -- Strategy: find adjacent pair (w_prev, w) between y and x where
-      -- ξ ∉ g(w_prev, w), then split using lemma_2_6_splitting with β = ξ.
-      --
-      -- Key fact: if neg(snce(ξ,η)) ∈ f(w) and η ∈ f(w_prev), then ξ ∉ g(w_prev, w).
-      -- Proof: if ξ ∈ g, burgessRSetSince gives S(ξ, η) = snce(ξ,η) ∈ f(w),
-      -- contradicting neg(snce(ξ,η)) ∈ f(w).
-      --
-      -- Find w = leftmost domain point in (y, x] with neg(snce(ξ,η)) ∈ f(w).
-      -- x is always a valid candidate. w_prev is the predecessor of w in dom.
-      -- If w_prev = y (or η ∈ f(w_prev)): η ∈ f(w_prev), so ξ ∉ g(w_prev, w).
       have h_mcs_x := h_c0 pc.x h_xm
       have h_mcs_y := h_c0 pc.y h_ym
-      -- Find w (leftmost with neg-since in (y, x])
       haveI : DecidablePred (fun w => pc.y < w ∧
           (Formula.snce pc.η pc.ξ).neg ∈ χ.f w) :=
         fun w => Classical.dec _

@@ -92,17 +92,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Remove Commented-Out Code [IN PROGRESS]
+### Phase 2: Remove Commented-Out Code [COMPLETED]
 
 **Goal**: Remove ~560 lines of commented-out code from 4 PR-scope files to eliminate dead code that would attract reviewer comments.
 
 **Tasks**:
-- [ ] Remove ~193 lines of commented-out old proof strategies from `Cslib/Logics/Temporal/Metalogic/MCS.lean`
-- [ ] Remove ~167 lines of commented-out abandoned proof attempts from `Cslib/Logics/Temporal/Metalogic/Chronicle/PointInsertion.lean`
-- [ ] Remove ~144 lines of commented-out legacy code from `Cslib/Logics/Modal/Metalogic/Completeness.lean`
-- [ ] Remove ~57 lines of commented-out abandoned approaches from `Cslib/Logics/Temporal/Metalogic/Chronicle/CounterexampleElimination.lean`
-- [ ] Run `lake build` after each file to verify no regressions
-- [ ] Verify no accidental removal of active code (grep for `-- ` patterns that are documentation, not dead code)
+- [x] Remove ~193 lines of commented-out old proof strategies from `Cslib/Logics/Temporal/Metalogic/MCS.lean` *(completed)*
+- [x] Remove ~167 lines of commented-out abandoned proof attempts from `Cslib/Logics/Temporal/Metalogic/Chronicle/PointInsertion.lean` *(completed)*
+- [x] Remove ~144 lines of commented-out legacy code from `Cslib/Logics/Modal/Metalogic/Completeness.lean` *(completed)*
+- [x] Remove ~57 lines of commented-out abandoned approaches from `Cslib/Logics/Temporal/Metalogic/Chronicle/CounterexampleElimination.lean` *(completed)*
+- [x] Run `lake build` after each file to verify no regressions *(completed)*
+- [x] Verify no accidental removal of active code (grep for `-- ` patterns that are documentation, not dead code) *(completed)*
 
 **Timing**: 1 hour
 

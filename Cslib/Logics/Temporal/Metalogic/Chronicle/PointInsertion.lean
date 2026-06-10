@@ -59,103 +59,8 @@ theorem F_neg_of_G_not {A : Set (Formula Atom)}
     Formula.some_future φ.neg ∈ A := by
   rcases temporal_negation_complete h_mcs (Formula.some_future φ.neg) with h | h
   · exact h
-  · -- ¬F(¬φ) ∈ A: derive G(¬¬φ) ∈ A
-    -- ¬F(¬φ) = G(¬¬φ) via duality
-    -- F(X) = X U ⊤ = ¬G(¬X) ... we need F(¬φ) = ¬G(¬¬φ)
-    -- ¬F(¬φ) ∈ A means G(¬¬φ) ∈ A (by double negation of the duality)
-    -- Then G(¬¬φ) → G(φ) via DNE under G, giving G(φ) ∈ A, contradiction.
-    -- Step: ¬F(¬φ) → G(¬¬φ) via DNE on the F-side
-    -- Actually: some_future (φ.neg) = ¬(all_future (φ.neg.neg))
-    -- = ¬(all_future (¬¬φ))
-    -- So ¬(some_future (φ.neg)) = all_future(¬¬φ).neg.neg
-    -- But we need all_future(¬¬φ) from ¬F(¬φ).
-    -- Let's use: some_future X = ¬G(¬X). So some_future φ.neg = ¬G(¬(φ.neg)) = ¬G(φ.neg.neg).
-    -- ¬(some_future φ.neg) = ¬¬G(φ.neg.neg)
-    -- So (some_future φ.neg).neg ∈ A means ¬¬G(φ.neg.neg) ∈ A.
-    -- We can derive from this that G(φ.neg.neg) ∈ A.
-    -- Actually, let's just use the MCS properties directly.
-    -- h says ¬(F(¬φ)) ∈ A.
-    -- some_future X = neg (all_future (neg X)) doesn't hold definitionally.
-    -- Instead: some_future X = untl X top. G(Y) = neg(untl (neg Y) top).
-    -- We proved neg_some_future_to_all_future_neg in WitnessSeed.lean.
-    -- But that gives: ¬(some_future X) → all_future (neg X). With X = φ.neg:
-    -- ¬F(¬φ) → G(¬¬φ).
-    -- Let's check if this helper exists.
-    -- Use neg_some_future_to_all_future_neg pattern: it converts ¬F(X) to G(¬X)
-    -- We don't have exactly that function but we can replicate the logic.
-    -- Actually let's just use the available pattern.
-
-    -- We have ¬F(φ.neg) ∈ A (i.e., h : (some_future φ.neg).neg ∈ A)
-    -- We want G(φ) ∈ A.
-    -- Step 1: From ¬F(¬φ), derive G(¬¬φ). This requires:
-    --   ⊢ ¬F(¬φ) → G(¬¬φ). But this isn't direct due to definitional mismatch.
-    -- Alternative: use BX3 contrapositive path.
-    -- G(¬¬φ → φ) → F(¬¬φ) → F(φ). Contrapositive: G(¬¬φ → φ) → ¬F(φ) → ¬F(¬¬φ).
-    -- i.e., G(¬¬φ → φ) → G(φ) → G(¬¬φ). Wrong direction again.
-    -- Let's try: from ⊢ φ → ¬¬φ (DNI), get G(φ → ¬¬φ) by TN.
-    -- BX3: G(φ → ¬¬φ) → F(φ) → F(¬¬φ). Contrapositive: ¬F(¬¬φ) → ¬F(φ).
-    -- But we want the opposite direction for G. So G(¬¬φ) → G(φ).
-    -- We need ⊢ ¬¬φ → φ (DNE). Then G(¬¬φ → φ) → F(¬¬φ) → F(φ).
-    -- Contrapositive with G(...) as hypothesis: G(¬¬φ → φ) → ¬F(φ) → ¬F(¬¬φ) = G(¬¬φ → φ) → G(φ) → G(¬¬φ).
-    -- WRONG direction again. BX3 gives F → F, not G → G.
-    -- For G → G we need the K-distribution: G(¬¬φ → φ) and G(¬¬φ) give G(φ) via mcs_g_mp.
-    -- So: G(DNE) ∈ A (from DNE theorem + TN + MCS closure), G(¬¬φ) ∈ A → G(φ) ∈ A.
-    -- Now we just need G(¬¬φ) ∈ A from ¬F(¬φ) ∈ A.
-    -- some_future φ.neg = untl φ.neg top. Its negation is all_future (neg (φ.neg)) when we have duality.
-    -- But definitionally all_future X = neg(untl (neg X) top) = neg(some_future (neg X)).
-    -- So all_future(φ.neg.neg) = neg(some_future(φ.neg.neg.neg)).
-    -- That's not the same as neg(some_future φ.neg).
-    -- φ.neg.neg.neg and φ.neg are NOT definitionally equal.
-    -- OK this is getting complicated. Let me just use the approach from the bimodal version
-    -- which uses mcs_g_mp with the K distribution.
-
-    -- Strategy: derive all_future φ ∈ A from h, causing contradiction with h_Gφ_not.
-    -- We'll skip the duality bridge and use BX3-based reasoning.
-    -- From ¬F(¬φ) ∈ A: suppose G(φ) ∉ A. Then F(¬φ) ∈ A (which we're trying to prove).
-    -- But we have ¬F(¬φ) ∈ A, contradiction. So G(φ) ∈ A.
-    -- Wait, that's circular. h says ¬F(¬φ) ∈ A, and we're in the branch where this holds.
-    -- We need to derive G(φ) ∈ A from ¬F(¬φ) ∈ A to get contradiction with h_Gφ_not.
-
-    -- Actually we need some_future_all_future_neg_absurd pattern.
-    -- We know: (some_future φ.neg).neg ∈ A. This is ¬F(¬φ) ∈ A.
-    -- By DNE on the outside: ¬¬G(¬¬φ) ∈ A, i.e., G(¬¬φ) ∈ A (since ¬F(X) = ¬¬G(¬X) and DNE).
-    -- Hmm, definitionally G(X) = ¬F(¬X). So F(¬φ) = ¬G(¬¬φ). ¬F(¬φ) = ¬¬G(¬¬φ).
-    -- So (some_future φ.neg).neg = G(φ.neg.neg).neg.neg. NOT G(φ.neg.neg) directly.
-    -- Need DNE: ¬¬G(¬¬φ) → G(¬¬φ).
-    -- ¬F(¬φ) ∈ A. If G(φ) ∉ A, then F(¬φ) ∈ A (what we're trying to prove).
-    -- But we're in the branch where ¬F(¬φ) ∈ A. If F(¬φ) were in A, contradiction.
-    -- So either F(¬φ) ∈ A or ¬F(¬φ) ∈ A. We have ¬F(¬φ) ∈ A.
-    -- We need to derive G(φ) ∈ A from ¬F(¬φ) ∈ A.
-    -- Strategy: show ⊢ ¬F(¬φ) → G(φ) via the chain:
-    --   ¬F(¬φ) → ¬F(¬¬¬φ) (from ⊢ ¬¬¬φ → ¬φ via BX3 contrapositive)
-    --   ¬F(¬¬¬φ) = G(¬¬φ)
-    --   G(¬¬φ) → G(φ) via mcs_g_mp + DNE
-    -- Actually, let's use the fact that G(φ) = ¬F(¬φ) up to DNE.
-    -- G(φ) = neg(some_future(neg φ)) = neg(untl (neg φ) top).
-    -- ¬F(¬φ) = neg(some_future(neg φ)) = neg(untl (neg φ) top) = G(φ). Wait...
-    -- Actually, G(φ) IS ¬F(¬φ) by definition!
-    -- all_future φ = neg(some_future(neg φ)) = neg(untl (neg φ) top).
-    -- So h : (some_future φ.neg).neg ∈ A is exactly all_future φ ∈ A!
-    -- Let me check: all_future φ = neg(untl (neg φ) top).
-    -- some_future(neg φ) = untl (neg φ) top.
-    -- So (some_future φ.neg).neg = neg(untl (neg(neg φ)) top) WAIT NO.
-    -- some_future X = untl X top. So some_future (φ.neg) = untl (φ.neg) top.
-    -- (some_future φ.neg).neg = neg(untl φ.neg top) = all_future(φ.neg.neg)?
-    -- NO. all_future Y = neg(some_future(neg Y)) = neg(untl (neg Y) top).
-    -- So all_future(φ.neg.neg) = neg(untl (neg(φ.neg.neg)) top) = neg(untl φ.neg.neg.neg top).
-    -- That's not the same as neg(untl φ.neg top) = (some_future φ.neg).neg.
-    -- So (some_future φ.neg).neg ≠ all_future(φ.neg.neg) definitionally.
-    -- BUT: all_future φ = neg(some_future(neg φ)) = neg(untl φ.neg top)
-    --     = (untl φ.neg top).neg = (some_future φ.neg).neg
-    -- WAIT: neg φ = φ.imp bot. φ.neg = φ.imp bot.
-    -- some_future X = untl X top. some_future (neg φ) = untl (neg φ) top = untl (φ.imp bot) top.
-    -- But some_future (φ.neg) = untl (φ.neg) top = untl (φ.imp bot) top.
-    -- So some_future (neg φ) = some_future (φ.neg). And Formula.neg φ = φ.neg = φ.imp bot.
-    -- all_future φ = neg(some_future(neg φ)) = (some_future(φ.neg)).neg.
-    -- So all_future φ = (some_future φ.neg).neg.
-    -- h says (some_future φ.neg).neg ∈ A.
-    -- This IS all_future φ ∈ A by definition!
-    -- So h : all_future φ ∈ A. But h_Gφ_not says all_future φ ∉ A. Contradiction!
+  · -- h : (some_future φ.neg).neg ∈ A, which is definitionally all_future φ ∈ A.
+    -- Contradiction with h_Gφ_not.
     exact absurd h h_Gφ_not
 
 /-- If H(φ) ∉ MCS A, then P(¬φ) ∈ A. Dual of `F_neg_of_G_not`. -/
@@ -189,37 +94,8 @@ private theorem F_mem_of_g_content_sub {A C : Set (Formula Atom)}
   by_contra h_not_F
   have h_neg_F : (Formula.some_future γ).neg ∈ A :=
     mcs_neg_of_not_mem h_mcs_A h_not_F
-  -- ¬F(γ) ∈ A → G(¬γ) ∈ A (by duality bridge)
-  -- F(γ) = ¬G(¬γ). ¬F(γ) = G(¬γ).neg.neg. Need DNE to get G(¬γ).
-  -- Actually, all_future X = neg(some_future(neg X)).
-  -- So G(¬γ) = neg(F(¬¬γ)). ¬F(γ) = neg(some_future γ).
-  -- G(¬γ) and ¬F(γ) are NOT the same definitionally.
-  -- We need: if ¬F(γ) ∈ A then G(¬γ) ∈ A.
-  -- Since G(¬γ) = ¬F(¬¬γ): we need ¬F(¬¬γ) ∈ A from ¬F(γ) ∈ A.
-  -- BX3 contrapositive: G(γ → ¬¬γ) → ¬F(¬¬γ) → ¬F(γ). So ¬F(γ) → ¬F(¬¬γ) needs the reverse.
-  -- From ⊢ ¬¬γ → γ (DNE): G(¬¬γ → γ) → F(¬¬γ) → F(γ). Contrapositive: ¬F(γ) → ¬F(¬¬γ).
-  -- So ¬F(γ) ∈ A → ¬F(¬¬γ) ∈ A = G(¬γ) ∈ A. YES.
+  -- ¬F(γ) ∈ A → G(¬γ) ∈ A: from ⊢ ¬¬γ → γ (DNE) via BX3 contrapositive: ¬F(γ) → ¬F(¬¬γ) = G(¬γ).
   have h_G_neg : Formula.all_future γ.neg ∈ A := by
-    -- ¬F(γ) ∈ A, and all_future(γ.neg) = neg(some_future(γ.neg.neg)) by definition.
-    -- But ¬F(γ) = neg(some_future γ), and all_future(γ.neg) = neg(some_future(neg(γ.neg)))
-    -- = neg(some_future(γ.neg.neg)). These are NOT the same unless γ.neg.neg = γ.
-    -- We need: ¬F(γ) → G(¬γ), i.e., neg(some_future γ) → neg(some_future(neg(γ.neg)))
-    -- = neg(some_future γ) → neg(some_future(γ.neg.neg)).
-    -- From ⊢ γ → ¬¬γ (DNI): G(γ → ¬¬γ) by TN. BX3: G(γ→¬¬γ) → F(γ)→F(¬¬γ).
-    -- So F(γ) → F(¬¬γ). Contrapositive: ¬F(¬¬γ) → ¬F(γ). But we want ¬F(γ) → ¬F(¬¬γ).
-    -- That's the wrong direction for BX3.
-    -- From ⊢ ¬¬γ → γ (DNE): G(¬¬γ→γ) by TN. BX3: G(¬¬γ→γ) → F(¬¬γ)→F(γ).
-    -- Contrapositive: ¬F(γ) → ¬F(¬¬γ). YES.
-    -- ¬F(¬¬γ) = G(¬γ) = all_future(γ.neg). But definitionally:
-    -- all_future(γ.neg) = neg(some_future(neg(γ.neg))) = neg(some_future(γ.neg.neg)).
-    -- ¬F(¬¬γ) = neg(some_future(γ.neg.neg)). OK these are the same!
-    -- So: ⊢ ¬F(γ) → ¬F(¬¬γ) = ⊢ neg(some_future γ) → neg(some_future(γ.neg.neg))
-    --   = ⊢ neg(some_future γ) → all_future(γ.neg).
-    -- Build: G(DNE(γ)) = G(¬¬γ → γ) by TN.
-    -- BX3: G(¬¬γ→γ) → untl(¬¬γ, ⊤) → untl(γ, ⊤) = G(¬¬γ→γ) → F(¬¬γ) → F(γ).
-    -- This is a derivation tree: ⊢ G(¬¬γ→γ) → F(¬¬γ) → F(γ).
-    -- Contrapositive of F(¬¬γ)→F(γ) given G(¬¬γ→γ): ¬F(γ) → ¬F(¬¬γ).
-    -- Build the derivation tree for this:
     have h_dne := double_negation γ
     have h_G_dne : DerivationTree FrameClass.Base [] ((γ.neg.neg.imp γ).all_future) :=
       DerivationTree.temporal_necessitation _ h_dne
@@ -998,13 +874,6 @@ theorem xu_lemma_3_2_1_until {A B C : Set (Formula Atom)}
   have h_r3 : burgessR3 A B C := h_r3m.2.1
   by_contra h_not_in_B
   have h_fails := BurgessR3Maximal_extension_fails h_r3m h_not_in_B
-  -- Show both conditions of dc_delta_B_burgessR3 hold
-  -- If they held universally, we'd get burgessR3 for the extension, contradiction.
-  -- So some condition must fail, giving us a neg-until witness.
-  -- But by the standard maximality argument, the conditions DO hold when we
-  -- strengthen the guard with BX5 + monotonicity.
-  -- Strategy: show burgessR3(A, DC({untl(gamma,beta)} ∪ B), C) via dc_delta_B_burgessR3.
-  -- Until condition: ∀ beta' ∈ B, ∀ gamma' ∈ C, untl(gamma', beta' ∧ untl(gamma, beta)) ∈ A
   have h_until_all : ∀ beta' ∈ B, ∀ gamma' ∈ C,
       Formula.untl gamma' (Formula.and beta' (Formula.untl gamma beta)) ∈ A := by
     intro beta' h_beta' gamma' h_gamma'
@@ -1015,20 +884,8 @@ theorem xu_lemma_3_2_1_until {A B C : Set (Formula Atom)}
     -- h_untl : untl(γ∧γ', β∧β') ∈ A, i.e., (β∧β') guards until (γ∧γ') happens
     -- BX5: self_accum takes (guard, event): untl(event, guard) → untl(event, guard ∧ untl(event, guard))
     have h_sa := self_accum_until_mcs h_mcs_A (Formula.and beta beta') (Formula.and gamma gamma') h_untl
-    -- Monotonicity: (β∧β') ∧ untl(γ∧γ', β∧β') → β' ∧ untl(γ, β)
-    -- Component 1: (β∧β') → β' via right projection
-    -- Component 2: untl(γ∧γ', β∧β') → untl(γ, β) via right_mono + left_mono
-    --   ⊢ γ∧γ' → γ (left proj), ⊢ β∧β' → β (left proj)
-    --   BX3: G(γ∧γ' → γ) → untl(γ∧γ', β∧β') → untl(γ, β∧β')
-    --   BX2G: G(β∧β' → β) → untl(γ, β∧β') → untl(γ, β)
     have h_guard_r : DerivationTree FrameClass.Base [] (((Formula.and beta beta').and (Formula.untl (Formula.and gamma gamma') (Formula.and beta beta'))).imp
         (Formula.and beta' (Formula.untl gamma beta))) := by
-      -- Build the pairing
-      -- Left: ⊢ (x ∧ y) → β'  where x = β∧β', y = untl(γ∧γ', β∧β')
-      -- Right: ⊢ (x ∧ y) → untl(γ, β)
-      -- For right: ⊢ y → untl(γ, β)
-      --   = ⊢ untl(γ∧γ', β∧β') → untl(γ, β)
-      --   From ⊢ γ∧γ' → γ and ⊢ β∧β' → β via right_mono + left_mono
       have h_event_proj := lce_imp gamma gamma'  -- ⊢ γ∧γ' → γ
       have h_guard_proj := lce_imp beta beta'    -- ⊢ β∧β' → β
       -- ⊢ untl(γ∧γ', β∧β') → untl(γ, β∧β') via right_mono (event)
@@ -1260,16 +1117,6 @@ private noncomputable def combine_imp_conj {R A B : Formula Atom}
     Recall A.or B = A.neg.imp B. -/
 private noncomputable def demorgan_disj_neg_forward (A B : Formula Atom) :
     DerivationTree FrameClass.Base [] ((A.or B).neg.imp (Formula.and A.neg B.neg)) := by
-  -- ¬(A∨B) = ¬(¬A → B). In context [¬(¬A → B)]:
-  -- Derive ¬A: suppose A, then ¬A → B is trivially true (modus ponens gives B,
-  --   but actually ⊢ A → (¬A → B) via ex falso). So ¬A → B ∈ context, contradiction.
-  -- Actually: ¬(¬A → B) means ¬A → B leads to ⊥. So if A held, then ¬A → ⊥ (i.e. ¬¬A),
-  -- and ¬A → B is unprovable from just A. Let me think more carefully.
-  -- ¬(¬A → B) means (¬A → B) → ⊥.
-  -- To get ¬A: suppose A. Then ⊢ A → (¬A → B) via ex_falso_from_assumption.
-  --   So (¬A → B) is derivable, hence ⊥. So ¬A.
-  -- To get ¬B: suppose B. Then ⊢ B → (¬A → B) via weakening (imp_s).
-  --   So (¬A → B) is derivable, hence ⊥. So ¬B.
   set neg_disj := (A.or B).neg -- = (A.neg.imp B).neg = (A.neg.imp B) → ⊥
   -- Step 1: derive ¬A from neg_disj
   -- ⊢ A → (¬A → B): this is ex_falso_from_assumption A B
@@ -2225,22 +2072,7 @@ noncomputable def lemma_2_4_with_guard {A : Set (Formula Atom)}
   -- Check if γ is already in B₀
   by_cases h_γ_B₀ : γ ∈ B₀
   · exact ⟨B₀, C, h_C_mcs, h_β_C, h_g_sub, h_R3M₀, h_γ_B₀⟩
-  · -- γ ∉ B₀: use lemma_2_6_splitting to insert
-    -- Actually, we should use a different approach: strengthen the seed.
-    -- The enriched seed {β} ∪ g_content(A) ∪ {snce(γ, α) : α ∈ A} is consistent.
-    -- From snce(γ, α) ∈ C for all α ∈ A, we get burgessRSince(C, γ, A),
-    -- hence burgessR(A, γ, C). Together with g_content(A) ⊆ C,
-    -- burgessR3Maximal(A, B, C) with γ ∈ B follows.
-    -- But actually the simpler path: from g_content(A) ⊆ C and burgessR3Maximal(A, B₀, C),
-    -- g_content(A) ⊆ B₀ (by g_content_sub). Since γ ∉ B₀, we use xu_lemma_3_2_1.
-    -- Actually, we don't need this complex path. From g_content(A) ⊆ C,
-    -- the R3M gives us the full infrastructure.
-    -- Let's use a simpler approach: from h_R3M₀, B₀ is CUD.
-    -- γ ∉ B₀. Use lemma_2_6_splitting to get D with γ.neg ∈ D and R3M(A, B', D) and R3M(D, B'', C).
-    -- But we want γ ∈ B, not γ.neg.
-    -- Actually the issue is that γ is the guard of untl(β, γ), and we proved β ∈ C.
-    -- From the main lemma_2_7, since untl(β, γ) ∈ A and γ ∉ B₀, we can split.
-    -- But lemma_2_7 gives us B' with γ ∈ B', which is what we want.
+  · -- γ ∉ B₀: use lemma_2_7 to split and get B' with γ ∈ B'.
     obtain ⟨B', D, B'', h_R3M_AB'D, _, h_D_mcs, h_eta_D, h_B₀_sub_B', h_B₀_sub_D, _, h_γ_B'⟩ :=
       lemma_2_7 h_mcs h_C_mcs h_R3M₀ h_R3M₀.1 h_g_sub γ β h_until h_γ_B₀
     have h_g_sub_D : g_content A ⊆ D := by
