@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+import Cslib.Init
 
 /-! -/
 
