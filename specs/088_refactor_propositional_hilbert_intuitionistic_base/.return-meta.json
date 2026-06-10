@@ -1,0 +1,29 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/088_refactor_propositional_hilbert_intuitionistic_base/plans/01_intuitionistic-base-plan.md",
+      "summary": "5-phase implementation plan for three-level Hilbert typeclass hierarchy (MinimalHilbert -> IntuitionisticHilbert -> ClassicalHilbert)"
+    }
+  ],
+  "next_steps": "Run /implement 88 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1781134142_0ad10e",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 5,
+    "estimated_hours": 6,
+    "dependency_waves": [[1], [2, 3], [4], [5]]
+  },
+  "memory_candidates": [
+    {
+      "content": "When refactoring a Lean typeclass hierarchy from a monolithic bundle to a layered chain (e.g., Minimal -> Intuitionistic -> Classical), the safest approach is: (1) add new classes and a backward-compatibility alias in a single file change, (2) weaken theorem files bottom-up starting with the most general, (3) update downstream extends and instances last, (4) remove the alias only after all references are updated. This incremental approach keeps lake build passing at each phase. The key insight is that Lean's typeclass extends chain means anything extending the old bundle automatically satisfies the new intermediate classes, so the alias provides seamless backward compatibility during migration.",
+      "category": "PATTERN",
+      "source_artifact": "specs/088_refactor_propositional_hilbert_intuitionistic_base/plans/01_intuitionistic-base-plan.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["typeclass-hierarchy", "lean4-refactoring", "backward-compatibility", "incremental-migration", "hilbert-system"]
+    }
+  ]
+}

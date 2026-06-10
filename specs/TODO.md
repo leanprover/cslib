@@ -44,13 +44,13 @@ next_project_number: 90
 ### Uncategorized
 
 88 [NOT STARTED] — refactor_propositional_hilbert_intuitionistic_base
-89 [NOT STARTED] — derived_connective_rules
+89 [RESEARCHED] — derived_connective_rules
 
 ## Tasks
 
 ### 89. Derived intro/elim rules for defined propositional connectives in ND and Hilbert
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 
 **Description**: Add derived intro/elim rules for the defined propositional connectives (`∧ₚ`, `∨ₚ`, `¬ₚ`, `↔ₚ`, `⊤ₚ`) in both proof systems so that both are equally versatile. Connectives are already `abbrev` definitions reducing to `→`/`⊥` via Łukasiewicz encodings in `Defs.lean`. Follow the existing pattern used for temporal defined operators: `abbrev` + notation + standalone theorems with definitional unfolding.
@@ -68,9 +68,10 @@ next_project_number: 90
 
 ### 88. Refactor propositional Hilbert system to intuitionistic base with uniform extension architecture
 - **Effort**: large
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: formal
 - **Research**: [specs/088_refactor_propositional_hilbert_intuitionistic_base/reports/01_team-research.md]
+- **Plan**: [088_refactor_propositional_hilbert_intuitionistic_base/plans/01_intuitionistic-base-plan.md]
 
 **Description**: Instead of a single classical propositional Hilbert system, refactor to an intuitionistic propositional Hilbert system with a classical extension. This should follow the same uniform patterns for logic extensions (e.g., where a base modal logic K is extended to D, T, B, 4, KT, KT4, etc., or where the base tense logic is extended to include axioms for discreteness, density, or continuity). Research and implement a design with the best architecture to sustain the elaboration of many extensions of a given logic within a common language.
 
@@ -140,7 +141,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 64. PR 6: Submit Temporal completeness theorem
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 63
 - **Topic**: Submit PRs
@@ -151,7 +152,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 63. PR 5: Submit Temporal chronicle infrastructure
 - **Effort**: Medium (2.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 62
 - **Topic**: Submit PRs
@@ -162,7 +163,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 62. PR 4: Submit Temporal metalogic core
 - **Effort**: Medium (2.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 59, 61
 - **Topic**: Submit PRs
@@ -173,7 +174,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 61. PR 3: Submit Temporal semantics, proof system, and theorems
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
@@ -184,7 +185,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 60. PR 2: Submit Modal metalogic (soundness and completeness)
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
@@ -207,7 +208,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 39. Discrete temporal completeness
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 31, 36
 
@@ -225,7 +226,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 38. Dense temporal completeness
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Task 31, 49
 
@@ -243,7 +244,7 @@ All work must be done on the `pr1/foundations-logic` branch. Final verification:
 
 ### 41. Abstract shared completeness infrastructure
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 38, 39, 40
 
