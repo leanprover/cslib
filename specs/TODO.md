@@ -65,11 +65,12 @@ next_project_number: 68
 
 ### 66. Fix lint naming conventions in PR-scope files
 - **Effort**: Medium (3 hours)
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Research**: [specs/066_fix_lint_naming_conventions/reports/01_lint-naming-research.md]
 - **Plan**: [066_fix_lint_naming_conventions/plans/01_fix-lint-naming.md]
+- **Summary**: [066_fix_lint_naming_conventions/summaries/01_fix-lint-naming-summary.md]
 
 **Description**: Rename 19 snake_case identifiers to lowerCamelCase in PR-scope files (Temporal/Propositional). 12 in Temporal/Syntax/Formula.lean (some_future, all_future, some_past, all_past, weak_future, weak_past, weak_until, weak_since, strong_release, strong_trigger, swap_temporal), 1 in Temporal/Syntax/BigConj.lean (neg_bigconj), plus downstream references. Requires lake build verification after each rename.
 
