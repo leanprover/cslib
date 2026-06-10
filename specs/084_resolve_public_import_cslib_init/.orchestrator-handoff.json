@@ -1,0 +1,16 @@
+{
+  "status": "researched",
+  "summary": "All 3 public import Cslib.Init declarations (Connectives.lean, InferenceSystem.lean, FrameConditions.lean) can be downgraded to plain import. Requires 5 compensating import Cslib.Init additions in downstream Foundations/Logic files (Axioms, DeductionHelpers, ProofSystem, Combinators, Theorems.lean). Task 70 previously attempted this but failed because it omitted the compensating imports. lake shake confirms the exact change set. 8 mechanical edits total, no semantic changes.",
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "plan",
+  "phases_completed": 0,
+  "phases_total": 0,
+  "artifacts": [
+    {
+      "path": "specs/084_resolve_public_import_cslib_init/reports/01_public-import-analysis.md",
+      "type": "report",
+      "summary": "Complete import chain analysis with per-file breakdown, downstream impact assessment, and 8-edit change set specification"
+    }
+  ]
+}
