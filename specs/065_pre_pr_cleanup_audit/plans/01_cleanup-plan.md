@@ -120,17 +120,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Copyright Headers and Barrel Fixes [NOT STARTED]
+### Phase 3: Copyright Headers and Barrel Fixes [COMPLETED]
 
 **Goal**: Add missing Mathlib-style copyright headers to 2 barrel files and complete the incomplete Temporal Metalogic barrel to pass CI lint-style checks.
 
 **Tasks**:
-- [ ] Add Apache 2.0 copyright header to `Cslib/Logics/Modal/Metalogic.lean`
-- [ ] Add Apache 2.0 copyright header to `Cslib/Logics/Temporal/Metalogic.lean`
-- [ ] Add missing `import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleConstruction` to `Cslib/Logics/Temporal/Metalogic.lean`
-- [ ] Add missing `import Cslib.Logics.Temporal.Metalogic.Chronicle.CounterexampleElimination` to `Cslib/Logics/Temporal/Metalogic.lean`
-- [ ] Verify header format matches existing files (copy pattern from a file that already has headers)
-- [ ] Run `lake build` to verify barrel imports compile
+- [x] Add Apache 2.0 copyright header to `Cslib/Logics/Modal/Metalogic.lean` *(completed)*
+- [x] Add Apache 2.0 copyright header to `Cslib/Logics/Temporal/Metalogic.lean` *(completed)*
+- [x] Add missing `import Cslib.Logics.Temporal.Metalogic.Chronicle.ChronicleConstruction` to `Cslib/Logics/Temporal/Metalogic.lean` *(completed)*
+- [x] Add missing `import Cslib.Logics.Temporal.Metalogic.Chronicle.CounterexampleElimination` to `Cslib/Logics/Temporal/Metalogic.lean` *(completed)*
+- [x] Verify header format matches existing files (copy pattern from a file that already has headers) *(completed)*
+- [x] Run `lake build` to verify barrel imports compile *(completed)*
 
 **Timing**: 0.5 hours
 
