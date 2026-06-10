@@ -36,4 +36,12 @@ Module aggregator for all theorems derived in the generic typeclass framework.
 - `Modal.S5`: S5-level theorems (axiom 5 derivation, t_box_to_diamond,
   box_conj_iff, diamond_disj_iff, s5_diamond_box collapse, nested
   modality theorems)
+
+### Temporal (`[TemporalBXHilbert S]`)
+
+- `Temporal.TemporalDerived`: BX-system derived theorems (guard/event monotonicity
+  wrappers, future/past operators, enrichment, self-accumulation, absorption,
+  linearity)
+- `Temporal.FrameConditions`: Frame condition typeclasses (LinearTemporalFrame,
+  SerialFrame, DenseTemporalFrame, DiscreteTemporalFrame)
 -/
