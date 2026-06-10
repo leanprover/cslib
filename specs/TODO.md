@@ -103,11 +103,12 @@ next_project_number: 66
 
 ### 59. PR 1: Submit Foundations/Logic theorems and MCS foundations
 - **Effort**: Small (2 hours)
-- **Status**: [PLANNING]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: Task 58
 - **Topic**: Submit PRs
 - **Research**: [059_pr1_foundations_logic/reports/01_primitive-connectives-justification.md]
+- **Plan**: [059_pr1_foundations_logic/plans/01_pr-submission-plan.md]
 
 **Description**: Create feature branch and submit PR containing all 16 Foundations/Logic files: core definitions (ProofSystem, InferenceSystem, Connectives, LogicalEquivalence, Axioms), Theorems (Combinators, BigConj, barrel), Propositional (Core, Connectives, Reasoning), Modal (Basic, S5), Temporal (TemporalDerived, FrameConditions), Metalogic/Consistency (~3,666 lines). This must be the first PR because Temporal and Modal metalogic import Consistency. PR title: `feat(Foundations/Logic): propositional theorems, modal S5 theorems, and MCS consistency foundations`. Run CI checks. See task 56 plan Phase 3.
 

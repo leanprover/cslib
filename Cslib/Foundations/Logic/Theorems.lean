@@ -6,7 +6,6 @@ Authors: Benjamin Brast-McKie
 import Cslib.Foundations.Logic.Theorems.Combinators
 import Cslib.Foundations.Logic.Theorems.Propositional.Core
 import Cslib.Foundations.Logic.Theorems.Propositional.Connectives
-import Cslib.Foundations.Logic.Theorems.Propositional.Reasoning
 import Cslib.Foundations.Logic.Theorems.BigConj
 import Cslib.Foundations.Logic.Theorems.Modal.Basic
 import Cslib.Foundations.Logic.Theorems.Modal.S5
@@ -25,7 +24,6 @@ Module aggregator for all theorems derived in the generic typeclass framework.
 - `Propositional.Core`: LEM, DNE, raa, efq_neg, rcp, lce_imp, rce_imp
 - `Propositional.Connectives`: classical_merge, iff ops, contraposition,
   De Morgan laws
-- `Propositional.Reasoning`: bi_imp
 - `BigConj`: bigconj syntax and derivability lemmas
 
 ### Modal (`[ModalHilbert S]` / `[ModalS5Hilbert S]`)
