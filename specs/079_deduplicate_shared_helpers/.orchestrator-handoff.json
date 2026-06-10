@@ -1,16 +1,16 @@
 {
-  "status": "planned",
-  "summary": "Implementation plan with 4 phases for deduplication consolidation across Logics/. Phases 1-4 target ~700 lines of recoverable code across 6 duplication categories. DeductionTheorem generalization separated into task 80.",
+  "status": "implemented",
+  "summary": "Consolidated duplicated code across Logics/ in 4 phases: extracted removeAll to shared ListHelpers.lean (4->1 definitions), consolidated Bimodal wrap/unwrap to single canonical location, replaced Temporal PropositionalHelpers with Foundations delegations (233->117 lines), delegated 10 Bimodal TemporalDerived theorems to Foundations. MCSProperties kept as-is due to FrameClass parameterization incompatibility.",
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "implement",
-  "phases_completed": 0,
+  "next_action_hint": "complete",
+  "phases_completed": 4,
   "phases_total": 4,
   "artifacts": [
     {
-      "path": "specs/079_deduplicate_shared_helpers/plans/01_deduplication-plan.md",
-      "type": "plan",
-      "summary": "Implementation plan for deduplication consolidation across Logics/ with 4 core phases and 1 stretch phase"
+      "path": "specs/079_deduplicate_shared_helpers/summaries/01_deduplication-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for deduplication consolidation across Logics/"
     }
   ]
 }
