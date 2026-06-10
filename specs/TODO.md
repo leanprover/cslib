@@ -62,7 +62,7 @@ next_project_number: 83
 
 ### 81. Review PR 1 Foundations Logic code quality for infrastructure, organization, naming, and proof improvements
 - **Effort**: large
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: Review the files covered by specs/059_pr1_foundations_logic/pr-description.md for PR 1, examining code quality across infrastructure, organization, naming conventions (aligned with CSLib norms), comments, and proofs to identify systematic improvements for the highest quality results before submission
@@ -122,7 +122,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 77. Audit and clean up noncomputable usage across logic files
 - **Effort**: Medium (2-4 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: Review and clean up `noncomputable` usage across Foundations/Logic/ and Logics/ (Modal, Temporal, Bimodal, Propositional). Audit every `noncomputable` annotation to determine whether it is actually required by the Lean compiler or was added unnecessarily. Remove any that are not needed. For those that are needed, verify the reason (e.g., Classical.choice, Decidable instances via classical logic, infinite constructions) and add a brief comment if the reason is non-obvious. Check for cases where making definitions computable would be straightforward (e.g., by providing DecidableEq instances or using pattern matching instead of Classical.em). Ensure consistency with Mathlib conventions for noncomputable usage.
@@ -144,7 +144,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 76. Systematic module keyword migration across remaining Logics/ files
 - **Effort**: Small (reverted)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: Systematically add `module` keyword, `public import`, and `@[expose] public section` to all non-module .lean files across Logics/ (Bimodal, Modal, Temporal, Propositional) that are imported by Cslib.lean. Task 74 phase (d) identified the root cause: Cslib.lean has `module` but 145 of its imported Logics/ files did not, causing "cannot import non-module from module" build failure. Migrated 145 files following the same pattern established by task 68 for Foundations/Logic (15 files). This brings the Logics/ directories into conformance with the module convention used throughout the rest of the codebase.
@@ -279,7 +279,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 64. PR 6: Submit Temporal completeness theorem
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 63
 - **Topic**: Submit PRs
@@ -290,7 +290,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 63. PR 5: Submit Temporal chronicle infrastructure
 - **Effort**: Medium (2.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 62
 - **Topic**: Submit PRs
@@ -301,7 +301,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 62. PR 4: Submit Temporal metalogic core
 - **Effort**: Medium (2.5 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 59, 61
 - **Topic**: Submit PRs
@@ -312,7 +312,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 61. PR 3: Submit Temporal semantics, proof system, and theorems
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
@@ -323,7 +323,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 60. PR 2: Submit Modal metalogic (soundness and completeness)
 - **Effort**: Small (2 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
@@ -359,7 +359,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 39. Discrete temporal completeness
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 31, 36
 
@@ -377,7 +377,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 38. Dense temporal completeness
 - **Effort**: Medium (6-10 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Task 31, 49
 
@@ -395,7 +395,7 @@ These are Bimodal-internal and may have different type signatures despite simila
 
 ### 41. Abstract shared completeness infrastructure
 - **Effort**: Medium (8-12 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Dependencies**: Tasks 38, 39, 40
 
