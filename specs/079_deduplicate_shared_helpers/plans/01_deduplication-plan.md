@@ -145,7 +145,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Delegate Temporal GeneralizedNecessitation Propositional Lemmas [NOT STARTED]
+### Phase 3: Delegate Temporal GeneralizedNecessitation Propositional Lemmas [IN PROGRESS]
 
 **Goal**: Replace the re-proved propositional lemmas (`contrapose_imp`, `contraposition`) in `Temporal/Metalogic/GeneralizedNecessitation.lean` with delegations to Foundations, keeping the temporal-specific content.
 

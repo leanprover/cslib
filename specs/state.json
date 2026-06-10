@@ -7,7 +7,10 @@
       "status": "not_started",
       "task_type": "lean4",
       "created": "2026-06-10T16:55:54Z",
-      "last_updated": "2026-06-10T16:55:54Z"
+      "last_updated": "2026-06-10T16:55:54Z",
+      "depends_on": [
+        80
+      ]
     },
     {
       "project_number": 77,
