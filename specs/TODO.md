@@ -80,7 +80,9 @@ next_project_number: 123
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
-- **Research**: [060_pr2_modal_metalogic/reports/01_team-research.md]
+- **Research**:
+  - [060_pr2_modal_metalogic/reports/01_team-research.md]
+  - [060_pr2_modal_metalogic/reports/02_pr2-preparation.md]
 
 ---
 
