@@ -1,7 +1,7 @@
 # Implementation Plan: Task #95 (v2)
 
 - **Task**: 95 - Establish soundness and completeness for modal logics K and T
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: Task 93 (modal S5 preservation + Instances.lean) -- completed
 - **Research Inputs**: specs/095_modal_k_t_soundness_completeness/reports/01_k-t-soundness-completeness.md

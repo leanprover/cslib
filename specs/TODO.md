@@ -11,8 +11,8 @@ next_project_number: 99
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,91,95,96,97 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
-| 2 | 39,40,62,98 | 36,37,61,95,96,97 | Temporal Logic, Submit PRs, Modal Logic |
+| 1 | 36,37,38,60,61,91,98 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
 
@@ -45,12 +45,7 @@ next_project_number: 99
 
 ### Modal Logic
 
-95 [PLANNING] — Phase 4 of modal cube expansion: Establish soundness and complete
-  └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati
-96 [PLANNED] — Phase 5 of modal cube expansion: Establish soundness and complete
-  └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
-97 [PLANNED] — Phase 6 of modal cube expansion: Establish soundness and complete
-  └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
+98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati
 
 ### Foundations
 
@@ -75,7 +70,7 @@ Estimated: ~1.5 hours.
 
 ### 97. Modal s4 soundness completeness
 - **Effort**: medium
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 93
@@ -102,7 +97,7 @@ Estimated: ~3 hours. Parallelizable with phases 4 and 5.
 
 ### 96. Modal d soundness completeness
 - **Effort**: medium
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 93
@@ -130,7 +125,7 @@ Estimated: ~3 hours. Parallelizable with phases 4 and 6.
 
 ### 95. Modal k t soundness completeness
 - **Effort**: large
-- **Status**: [PLANNING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 93

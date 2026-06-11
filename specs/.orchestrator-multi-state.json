@@ -62,9 +62,9 @@
     "92": "completed",
     "93": "completed",
     "94": "completed",
-    "95": "not_started",
-    "96": "not_started",
-    "97": "not_started",
+    "95": "completed",
+    "96": "completed",
+    "97": "completed",
     "98": "not_started"
   },
   "research_agents": {
@@ -85,12 +85,15 @@
     "97": "lean-implementation-agent",
     "98": "lean-implementation-agent"
   },
-  "cycle_count": 6,
+  "cycle_count": 12,
   "max_cycles": 25,
   "failed_tasks": [],
   "completed_tasks": [
     92,
     93,
-    94
+    94,
+    95,
+    96,
+    97
   ]
 }
