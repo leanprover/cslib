@@ -70,7 +70,8 @@ theorem precTrans_def (tf tg cn : SKI) :
   (PrecTransPoly tf tg).toSKI_correct [cn] (by simp)
 
 /-- Unbounded search translation:
-    `λ n. RFindAbove ⬝ (NatUnpairRight ⬝ n) ⬝ (B ⬝ tf ⬝ (NatPair ⬝ (NatUnpairLeft ⬝ n)))` -/
+    `λ n. RFindAbove ⬝ (NatUnpairRight ⬝ n) ⬝ (B ⬝ tf ⬝ (NatPair ⬝ (NatUnpairLeft ⬝ n)))`
+-/
 def RFindTransPoly (tf : SKI) : SKI.Polynomial 1 :=
   RFindAbove ⬝' (NatUnpairRight ⬝' &0)
              ⬝' (B ⬝' tf ⬝' (NatPair ⬝' (NatUnpairLeft ⬝' &0)))
