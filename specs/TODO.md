@@ -6,53 +6,58 @@ next_project_number: 92
 
 ## Task Order
 
-*Updated 2026-06-10. Generated from state.json dependency graph.*
+*Updated 2026-06-11. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,88 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
-| 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
-| 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
-| 4 | 64 | 63 | Submit PRs |
+| 1 | 36,37,38,60,61,91,92 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 2 | 39,40,62,93,94 | 36,37,61,92 | Temporal Logic, Submit PRs, Modal Logic |
+| 3 | 41,63,95,96,97 | 38,39,40,62,93 | Submit PRs, Modal Logic, Foundations |
+| 4 | 64,98 | 63,95,96,97 | Submit PRs, Modal Logic |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Temporal Logic
 
 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
-39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on (dep: 36)
-40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic (dep: 37)
+  └─ 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
+39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
+  └─ 41 [NOT STARTED] — (Foundations: Abstract shared completeness infrastruct) (see above)
+40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
+  └─ 41 [NOT STARTED] — (Foundations: Abstract shared completeness infrastruct) (see above)
 
 ### Bimodal Porting
 
 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
+  └─ 39 [NOT STARTED] — (Temporal Logic: Discrete temporal completeness: prove th) (see above)
 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
+  └─ 40 [BLOCKED] — (Temporal Logic: Continuous temporal completeness: comple) (see above)
 
 ### Submit PRs
 
-60 [NOT STARTED] — pr2_modal_metalogic
+60 [RESEARCHED] — pr2_modal_metalogic
 61 [NOT STARTED] — pr3_temporal_proof_system
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
+91 [PLANNED] — Create feature branch and submit PR 1.5 containing the propositio
 
 ### Modal Logic
 
-90 [NOT STARTED] — Expand modal cube proof systems and metalogic (K, T, D, S4, S5)
+92 [NOT STARTED] — Phase 1 of modal cube expansion: Parameterize DerivationTree over
+  └─ 93 [NOT STARTED] — Phase 2 of modal cube expansion: Create Modal/ProofSystem/Instanc
+    └─ 95 [NOT STARTED] — Phase 4 of modal cube expansion: Establish soundness and complete
+      └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati
+    └─ 96 [NOT STARTED] — Phase 5 of modal cube expansion: Establish soundness and complete
+      └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
+    └─ 97 [NOT STARTED] — Phase 6 of modal cube expansion: Establish soundness and complete
+      └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
+  └─ 94 [NOT STARTED] — Phase 3 of modal cube expansion: Add the untracked HilbertDerived
 
 ### Foundations
 
-41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
-
-### Submit PRs (Propositional)
-
-91 [NOT STARTED] — PR 1.5: Propositional Hilbert submission (dep: 59)
-
-### Uncategorized
-
-88 [COMPLETED] — refactor_propositional_hilbert_intuitionistic_base
-89 [COMPLETED] — derived_connective_rules
+41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
 
@@ -86,10 +91,83 @@ next_project_number: 92
 
 ### 90. Expand modal logic Hilbert proof systems and metalogic across the modal cube (K, T, D, S4, S5)
 - **Effort**: large
+- **Status**: [EXPANDED]
+- **Task Type**: lean4
+- **Research**: [specs/090_expand_modal_cube_proof_systems_metalogic/reports/01_modal-cube-expansion.md]
+- **Plan**: [specs/090_expand_modal_cube_proof_systems_metalogic/plans/01_modal-cube-expansion.md]
+
+**Description**: Drawing on the team research at specs/060_pr2_modal_metalogic/reports/01_team-research.md, research, design, and create multiple implementation tasks covering everything needed to bring the modal logic infrastructure to parity with what exists for Temporal/. Expanded into sub-tasks 92-98.
+
+---
+
+### 98. Modal cube final integration
+- **Effort**: small
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: 95, 96, 97
+
+**Description**: Final integration and verification. Create or update Modal/ProofSystem.lean aggregator to import Instances.lean. Update Modal/Metalogic.lean aggregator to import per-system soundness/completeness files. Verify original S5 Soundness.lean and Completeness.lean compile alongside new per-system files. Verify Bimodal/ProofSystem/Instances.lean still compiles. Full lake build with zero errors.
+
+---
+
+### 97. Modal S4 soundness and completeness
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: 93
+
+**Description**: Establish soundness and completeness for modal logic S4 (reflexive + transitive frames) with sorry-free proofs. S4 soundness combines T soundness (reflexivity) and 4 soundness (transitivity). S4 completeness: canonical model is reflexive (from axiom T) AND transitive (from axiom 4).
+
+---
+
+### 96. Modal D soundness and completeness
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: 93
+
+**Description**: Establish soundness and completeness for modal logic D (serial frames) with sorry-free proofs. D soundness uses Relation.Serial. D completeness: canonical model is serial. Seriality proof: inconsistency implies box(bot) in S, then D gives diamond(bot), yielding contradiction.
+
+---
+
+### 95. Modal K and T soundness and completeness
+- **Effort**: large
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: 93
+
+**Description**: Establish soundness and completeness for modal logics K and T with sorry-free proofs. K soundness (propositional + K distribution axioms, valid on all frames). K completeness (canonical model with no frame property requirements, box witness via K-specific argument). T soundness (reflexive frames). T completeness (simplification of S5 removing transitivity and Euclidean cases).
+
+---
+
+### 94. Integrate HilbertDerivedRules into build
+- **Effort**: small
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: 92
+
+**Description**: Add the untracked HilbertDerivedRules.lean (447 lines, already sorry-free) to the build by importing it into the module graph. Add public import to chosen aggregator. Verify lake build passes.
+
+---
+
+### 93. Modal S5 preservation and Instances.lean
+- **Effort**: medium
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: 92
+
+**Description**: Create Modal/ProofSystem/Instances.lean registering typeclass instances for all modal systems (K, T, D, S4, S5), following the Temporal pattern. Verify Soundness.lean and Completeness.lean still compile with S5 parameterization.
+
+---
+
+### 92. Parameterize DerivationTree and add modal typeclasses
+- **Effort**: large
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 
-**Description**: Drawing on the team research at specs/060_pr2_modal_metalogic/reports/01_team-research.md, research, design, and create multiple implementation tasks covering everything needed to bring the modal logic infrastructure to parity with what exists for Temporal/. This includes: (1) Creating Modal/ProofSystem/Instances.lean to bridge the concrete DerivationTree to the abstract ProofSystem typeclass hierarchy (following the established pattern from Temporal/Bimodal); (2) Parameterizing the modal axiom set so that proof systems can be instantiated for K, T, D, S4, and S5 individually (currently ModalAxiom is hardcoded to S5's full axiom set); (3) Establishing soundness and completeness for each of the main modal systems K, T, D, S4, S5 via canonical model constructions with appropriate frame properties (K: arbitrary frames, T: reflexive, D: serial, S4: preorder, S5: equivalence relations); (4) Integrating the untracked HilbertDerivedRules.lean (447 lines, sorry-free) into the build; (5) Any additional infrastructure, naming alignment, or documentation needed. The output of this meta-task is a set of well-ordered implementation tasks with clear dependencies, covering the full scope without cutting corners.
+**Description**: Infrastructure refactoring: Parameterize DerivationTree over an axiom predicate so it works for any normal modal logic. Define per-system axiom inductive types. Add ModalTHilbert, ModalDHilbert, ModalS4Hilbert bundled classes and tag types to ProofSystem.lean. Generalize DeductionTheorem.lean and MCS.lean. Verify full project builds with zero regressions.
+
+---
 
 ### 89. Derived intro/elim rules for defined propositional connectives in ND and Hilbert
 - **Effort**: medium
