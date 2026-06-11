@@ -6,19 +6,18 @@ Authors: Jesse Alama
 
 module
 
-public import Cslib.Foundations.Data.Part
-public import Cslib.Languages.CombinatoryLogic.Recursion
+public import Cslib.Languages.CombinatoryLogic.Computable
 public import Mathlib.Computability.PartrecCode
 
 /-!
 # Partial Recursive → SKI-computable (Nat.Partrec)
 
-This file defines a notion of computability for SKI terms on natural numbers
-(using Church numerals) and translates `Nat.Partrec.Code` to SKI terms.
+This file translates `Nat.Partrec.Code` to SKI terms and proves the translation
+correct, showing that every partial recursive function is SKI-computable in the
+sense of `SKI.Computes` (from `Cslib.Languages.CombinatoryLogic.Computable`).
 
 ## Main definitions
 
-- `Computes t f`: SKI term `t` computes a partial function `f : ℕ →. ℕ` on Church numerals.
 - `codeToSKINat`: translates `Nat.Partrec.Code` constructors to SKI terms.
 
 ## Main results
@@ -36,16 +35,6 @@ namespace SKI
 
 open Red MRed
 open Nat.Partrec
-
-/-! ### Computability predicate for functions on ℕ -/
-
-/-- An SKI term `t` computes a partial function `f : ℕ →. ℕ` if,
-for every Church numeral input, `t` applied to the input is a Church numeral
-for the output whenever `f` is defined. -/
-def Computes (t : SKI) (f : ℕ →. ℕ) : Prop :=
-  ∀ n : ℕ, ∀ cn : SKI, IsChurch n cn →
-    ∀ m : ℕ, f n = Part.some m →
-      IsChurch m (t ⬝ cn)
 
 /-! ### Helper terms for `Code.prec` and `Code.rfind'` -/
 
@@ -116,55 +105,22 @@ def codeToSKINat : Code → SKI
 
 /-! ### Correctness proofs -/
 
-/-- Helper for total functions: if `c.eval` is total with output `g n`, and `t` reduces
-    to a Church numeral for `g n`, then `t` computes `c.eval`. -/
-private theorem computes_of_total (t : SKI) (c : Code) (g : ℕ → ℕ)
-    (heval : ∀ n, c.eval n = Part.some (g n))
-    (hcorrect : ∀ n cn, IsChurch n cn → IsChurch (g n) (t ⬝ cn)) :
-    Computes t c.eval := by
-  intro n cn hcn m hm; rw [heval] at hm; obtain rfl := Part.some_injective hm
-  exact hcorrect n cn hcn
-
 /-- `Code.zero` computes the constant zero function. -/
-theorem zero_computes : Computes (K ⬝ SKI.Zero) (Code.eval .zero) :=
-  computes_of_total _ .zero (fun _ => 0) (fun _ => rfl)
+private theorem zero_computes : Computes (K ⬝ SKI.Zero) (Code.eval .zero) :=
+  computes_of_total (fun _ => 0) (fun _ => rfl)
     (fun _ _ _ => isChurch_trans 0 (MRed.K SKI.Zero _) zero_correct)
 
 /-- `Code.succ` computes the successor function. -/
-theorem succ_computes : Computes SKI.Succ (Code.eval .succ) :=
-  computes_of_total _ .succ (· + 1) (fun _ => rfl) succ_correct
+private theorem succ_computes : Computes SKI.Succ (Code.eval .succ) :=
+  computes_of_total (· + 1) (fun _ => rfl) succ_correct
 
 /-- `Code.left` computes the left projection of `Nat.unpair`. -/
-theorem left_computes : Computes NatUnpairLeft (Code.eval .left) :=
-  computes_of_total _ .left (fun n => (Nat.unpair n).1) (fun _ => rfl) natUnpairLeft_correct
+private theorem left_computes : Computes NatUnpairLeft (Code.eval .left) :=
+  computes_of_total (fun n => (Nat.unpair n).1) (fun _ => rfl) natUnpairLeft_correct
 
 /-- `Code.right` computes the right projection of `Nat.unpair`. -/
-theorem right_computes : Computes NatUnpairRight (Code.eval .right) :=
-  computes_of_total _ .right (fun n => (Nat.unpair n).2) (fun _ => rfl) natUnpairRight_correct
-
-/-- Composition of computable functions is computable. -/
-theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
-    (hf : Computes tf f) (hg : Computes tg g) :
-    Computes (B ⬝ tf ⬝ tg) (fun n => g n >>= f) := by
-  intro n cn hcn m hm
-  obtain ⟨intermediate, hint_eq, hm_eq⟩ := Part.bind_eq_some_iff.mp hm
-  exact isChurch_trans _ (B_def tf tg cn)
-    (hf intermediate (tg ⬝ cn) (hg n cn hcn intermediate hint_eq) m hm_eq)
-
-/-- Pairing of computable functions is computable. -/
-theorem pair_computes {f g : ℕ →. ℕ} {tf tg : SKI}
-    (hf : Computes tf f) (hg : Computes tg g) :
-    Computes (S ⬝ (B ⬝ NatPair ⬝ tf) ⬝ tg)
-      (fun n => Nat.pair <$> f n <*> g n) := by
-  intro n cn hcn m hm
-  simp only at hm
-  obtain ⟨h, hh_mem, hm_in_h⟩ := Part.mem_bind_iff.mp (hm ▸ Part.mem_some m)
-  obtain ⟨a, ha_mem, rfl⟩ := (Part.mem_map_iff _).mp hh_mem
-  obtain ⟨b, hb_mem, rfl⟩ := (Part.mem_map_iff _).mp hm_in_h
-  have hca := hf n cn hcn a (Part.eq_some_iff.mpr ha_mem)
-  have hcb := hg n cn hcn b (Part.eq_some_iff.mpr hb_mem)
-  exact isChurch_trans _ ((MRed.S _ _ _).trans (MRed.head _ (B_def _ _ _)))
-    (natPair_correct a b _ _ hca hcb)
+private theorem right_computes : Computes NatUnpairRight (Code.eval .right) :=
+  computes_of_total (fun n => (Nat.unpair n).2) (fun _ => rfl) natUnpairRight_correct
 
 /-- Helper: `Rec` correctly implements primitive recursion from `Code.prec`. -/
 private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
@@ -285,7 +241,7 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
 
 /-- Every partial recursive function on `ℕ` is SKI-computable. -/
 theorem natPartrec_skiComputable (f : ℕ →. ℕ) (hf : Nat.Partrec f) :
-    ∃ t : SKI, Computes t f := by
+    SKI.Computable f := by
   obtain ⟨c, hc⟩ := Code.exists_code.mp hf
   exact ⟨codeToSKINat c, hc ▸ codeToSKINat_correct c⟩
 

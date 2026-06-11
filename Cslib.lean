@@ -100,6 +100,7 @@ public import Cslib.Languages.CCS.Basic
 public import Cslib.Languages.CCS.BehaviouralTheory
 public import Cslib.Languages.CCS.Semantics
 public import Cslib.Languages.CombinatoryLogic.Basic
+public import Cslib.Languages.CombinatoryLogic.Computable
 public import Cslib.Languages.CombinatoryLogic.Confluence
 public import Cslib.Languages.CombinatoryLogic.Defs
 public import Cslib.Languages.CombinatoryLogic.Evaluation
