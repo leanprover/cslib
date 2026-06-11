@@ -25,7 +25,7 @@ name = "Cslib"
 
 [[lean_lib]]
 name = "CslibTests"
-moreLeanArgs = ["-Dweak.linter.style.header=false"]
+leanOptions = {weak.linter.style.header = false}
 
 [[lean_exe]]
 name = "checkInitImports"
