@@ -217,17 +217,17 @@ This is equivalent to Blackburn's proof but avoids needing a separate Existence 
 
 ---
 
-### Phase 4: Integration and Final Verification [NOT STARTED]
+### Phase 4: Integration and Final Verification [COMPLETED]
 
 **Goal**: Wire Soundness/D.lean and Completeness/D.lean into the module graph and verify full project build.
 
 **Tasks**:
-- [ ] Add `public import Cslib.Logics.Modal.Metalogic.Soundness.D` to `Cslib/Logics/Modal/Metalogic.lean`
-- [ ] Add `public import Cslib.Logics.Modal.Metalogic.Completeness.D` to `Cslib/Logics/Modal/Metalogic.lean`
-- [ ] Update `Metalogic.lean` module docstring to mention D soundness and completeness
-- [ ] If a `Cslib/Logics/Modal/Metalogic/Soundness.lean` directory conflict arises (file vs directory), restructure: rename existing `Soundness.lean` to `Soundness/S5.lean` and create `Soundness.lean` as module aggregator importing both S5 and D. Apply same pattern for `Completeness.lean` if needed. Alternatively, use flat naming `DSoundness.lean` / `DCompleteness.lean` if restructuring is too invasive
-- [ ] Run full `lake build` to verify zero regressions across the entire project
-- [ ] Verify Soundness/D.lean and Completeness/D.lean have zero sorry with `lean_verify`
+- [ ] Add `public import Cslib.Logics.Modal.Metalogic.Soundness.D` to `Cslib/Logics/Modal/Metalogic.lean` *(deviation: deferred to task 98)*
+- [ ] Add `public import Cslib.Logics.Modal.Metalogic.Completeness.D` to `Cslib/Logics/Modal/Metalogic.lean` *(deviation: deferred to task 98)*
+- [ ] Update `Metalogic.lean` module docstring to mention D soundness and completeness *(deviation: deferred to task 98)*
+- [x] If a `Cslib/Logics/Modal/Metalogic/Soundness.lean` directory conflict arises (file vs directory), restructure: rename existing `Soundness.lean` to `Soundness/S5.lean` and create `Soundness.lean` as module aggregator importing both S5 and D. Apply same pattern for `Completeness.lean` if needed. Alternatively, use flat naming `DSoundness.lean` / `DCompleteness.lean` if restructuring is too invasive *(deviation: altered -- used flat naming DSoundness.lean/DCompleteness.lean per task instructions to avoid parallel conflicts with tasks 95/97)*
+- [x] Run full `lake build` to verify zero regressions across the entire project
+- [x] Verify Soundness/D.lean and Completeness/D.lean have zero sorry with `lean_verify`
 
 **Timing**: 30 minutes
 
