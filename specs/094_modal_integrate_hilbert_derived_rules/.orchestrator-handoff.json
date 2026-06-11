@@ -1,0 +1,10 @@
+{
+  "status": "implemented",
+  "summary": "Added 3 orphaned NaturalDeduction files (DerivedRules, Equivalence, HilbertDerivedRules) to Cslib.lean module graph, lake build passes",
+  "artifacts": [{"path": "specs/094_modal_integrate_hilbert_derived_rules/summaries/01_integrate-hilbert-rules-summary.md", "type": "summary", "summary": "3 imports added, zero errors"}],
+  "blockers": [],
+  "continuation_context": null,
+  "phases_completed": 1,
+  "phases_total": 1,
+  "next_action_hint": "complete"
+}
