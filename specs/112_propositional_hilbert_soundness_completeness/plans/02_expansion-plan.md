@@ -24,6 +24,24 @@ The team research report (Round 2, 4 teammates) established:
 - The deduction theorem uses only K+S axioms, so it is compatible with all three levels without modification.
 - Estimated total: 750-1050 lines across 8-10 new files.
 
+### Literature Sources
+
+| Source | Location | Relevant Content |
+|--------|----------|-----------------|
+| Chagrov & Zakharyaschev, *Modal Logic* (1997) | `specs/literature/modal_logic.md` | Primary reference for all phases |
+| — Chapter 1 (lines 910-1235) | | Classical calculus Cl: axioms, deduction theorem (Thm 1.12), soundness/completeness via tableaux (Thm 1.16) |
+| — Chapter 2, Section 2.2 (lines 1564-1642) | | Intuitionistic Kripke frames, valuations, forcing relation, persistence (Prop 2.1) |
+| — Chapter 2, Section 2.6 (lines 2353-2412) | | Completeness of Int via Hintikka systems / prime theories (Thm 2.43) |
+| — Chapter 5, Section 5.1 (lines 5832-5910) | | Henkin/canonical model construction, Lindenbaum's lemma — the approach the codebase follows for classical and modal completeness |
+| Zakharyaschev-Wolter-Chagrov, *Advanced Modal Logic* | `specs/literature/advanced_modal_logic.md`, `advanced_modal_logic_2.md` | NOT needed for implementation; Section 3 (superintuitionistic logics, Gödel translation) is future work reference only |
+| Blackburn-de Rijke-Venema, *Modal Logic* (2001) | `specs/literature/blackburn_*.md` | Already in use for modal completeness; not directly needed for propositional phases |
+
+**Phase-specific citations**:
+- **Phase 2** (Classical): CZ Chapter 5 canonical model method (NOT Chapter 1 tableaux). Code template: `KCompleteness.lean` lines 168-323.
+- **Phase 3** (Kripke semantics): CZ Section 2.2 — formal definitions of intuitionistic frames, persistent valuations, forcing relation. CZ Proposition 2.1 — persistence lemma.
+- **Phase 4** (Intuitionistic completeness): CZ Section 2.6, Theorem 2.43 — completeness via prime theories / Hintikka systems. CZ Section 5.1 — Lindenbaum pattern to adapt for prime theory extension.
+- **Phase 5** (Minimal completeness): Minimal logic treats ⊥ as a potentially forceable atom with upward-closed valuation (Johansson 1937). Same Kripke frame structure as intuitionistic but with different ⊥ forcing clause.
+
 ### Prior Plan Reference
 
 No prior plan.
@@ -116,6 +134,8 @@ Phases within the same wave can execute in parallel.
 
 **Goal**: Define bivalent truth-value semantics for classical propositional logic and prove soundness and completeness of `HilbertCl` with respect to tautologies. This is a direct simplification of the existing modal K completeness proof.
 
+**Literature**: CZ Chapter 5, Section 5.1 (`specs/literature/modal_logic.md` lines 5832-5910) — Henkin/canonical model construction. Code template: `Cslib/Logics/Modal/Metalogic/KCompleteness.lean` lines 168-323 (truth lemma) and lines 269-323 (completeness theorem).
+
 **Tasks**:
 - [ ] Create `Semantics/Basic.lean` with `Valuation` type (`Atom -> Prop`), `Evaluate` recursive function, `Tautology` definition (`forall v, Evaluate v phi`)
 - [ ] Prove basic evaluation lemmas: `eval_bot`, `eval_imp`, `eval_atom`
@@ -143,6 +163,8 @@ Phases within the same wave can execute in parallel.
 ### Phase 3: Propositional Kripke Semantics [NOT STARTED]
 
 **Goal**: Define propositional Kripke semantics with a parameterized forcing function using `Modal.Model` structure with partial-order and persistence constraints as hypotheses. This provides the semantic foundation for intuitionistic and minimal completeness.
+
+**Literature**: CZ Section 2.2 (`specs/literature/modal_logic.md` lines 1564-1642) — intuitionistic Kripke frames, persistent valuations, forcing relation. CZ Proposition 2.1 (lines 1627-1630) — persistence of forcing under accessibility.
 
 **Tasks**:
 - [ ] Create `Semantics/Kripke.lean` with propositional Kripke model definition reusing `Modal.Model` (World, Atom types with accessibility relation `r` and valuation `v`)
@@ -173,6 +195,8 @@ Phases within the same wave can execute in parallel.
 ### Phase 4: Intuitionistic Soundness and Completeness [NOT STARTED]
 
 **Goal**: Prove soundness and completeness of `HilbertInt` with respect to intuitionistic Kripke semantics. This is the most complex phase, requiring a prime theory Lindenbaum lemma, canonical Kripke model construction, and an intuitionistic Truth Lemma.
+
+**Literature**: CZ Section 2.6, Theorem 2.43 (`specs/literature/modal_logic.md` lines 2353-2412) — completeness of Int. CZ Section 5.1 (lines 5832-5910) — Lindenbaum pattern to adapt for prime theory extension. CZ Definition 2.30 (lines 2049-2070) — Hintikka systems (background; implementation uses prime theories instead).
 
 **Tasks**:
 - [ ] Create `Metalogic/IntSoundness.lean`:
@@ -211,6 +235,8 @@ Phases within the same wave can execute in parallel.
 ### Phase 5: Minimal Soundness and Completeness [NOT STARTED]
 
 **Goal**: Prove soundness and completeness of `HilbertMin` with respect to minimal Kripke semantics. This reuses the intuitionistic infrastructure from Phase 4 with a different `bot_forces` instantiation (upward-closed valuation instead of `fun _ => False`).
+
+**Literature**: Minimal logic (Johansson 1937) treats ⊥ as a propositional atom with upward-closed valuation — it can be forced at some worlds. Same Kripke frame structure as intuitionistic. See research report Section "Minimal Completeness" for the parameterized `bot_forces` design.
 
 **Tasks**:
 - [ ] Create `Metalogic/MinSoundness.lean`:
