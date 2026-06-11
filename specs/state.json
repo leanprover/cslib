@@ -4,13 +4,13 @@
     {
       "project_number": 112,
       "project_name": "propositional_hilbert_soundness_completeness",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Establish soundness and completeness for the propositional Hilbert proof systems. This is a meta-task that should be expanded into the appropriate number of sub-tasks covering: (1) propositional semantics definitions (valuations, evaluation, validity), (2) soundness theorem (axiom validity + induction on derivation trees), and (3) completeness theorem (canonical valuation from MCS, truth lemma, top-level completeness). The MCS/Lindenbaum infrastructure already exists in Metalogic/MCS.lean and Metalogic/DeductionTheorem.lean. Modal logic already has analogous results in Cslib/Logics/Modal/Metalogic/ (Soundness.lean, Completeness.lean, etc.) which can serve as a pattern. New files should go under Cslib/Logics/Propositional/Semantics/ and Cslib/Logics/Propositional/Metalogic/. Task type: lean4.",
       "created": "2026-06-11T05:13:57Z",
-      "last_updated": "2026-06-11T05:53:07Z",
-      "session_id": "sess_1781156597_744ceb",
+      "last_updated": "2026-06-11T06:19:46Z",
+      "session_id": "sess_1781158518_f6ca37",
       "researched": "2026-06-11T05:53:07Z",
       "next_artifact_number": 3,
       "artifacts": [
@@ -23,6 +23,11 @@
           "path": "specs/112_propositional_hilbert_soundness_completeness/reports/02_team-research.md",
           "type": "report",
           "summary": "Team research round 2: exact implementation requirements for classical, intuitionistic, and minimal completeness"
+        },
+        {
+          "path": "specs/112_propositional_hilbert_soundness_completeness/plans/02_expansion-plan.md",
+          "type": "plan",
+          "summary": "6-phase expansion plan for propositional Hilbert soundness/completeness across 3 logic levels"
         }
       ]
     },
