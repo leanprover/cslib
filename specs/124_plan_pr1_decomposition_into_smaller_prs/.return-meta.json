@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md",
+      "type": "plan",
+      "summary": "Implementation plan for decomposing PR 1 into 11 smaller sub-PRs across 4 dependency waves"
+    }
+  ],
+  "next_steps": "Run /implement 124 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1781215659_7922e0",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 11,
+    "estimated_hours": 6,
+    "dependency_waves": [[1], [2, 3, 4, 5], [6, 7, 8, 9], [10, 11]]
+  },
+  "memory_candidates": []
+}

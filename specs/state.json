@@ -4,12 +4,20 @@
     {
       "project_number": 124,
       "project_name": "plan_pr1_decomposition_into_smaller_prs",
-      "status": "researched",
+      "status": "planned",
       "task_type": "general",
       "topic": "Submit PRs",
       "created": "2026-06-11T20:47:26Z",
-      "last_updated": "2026-06-11T21:06:33Z",
-      "session_id": "sess_1749674900_a3c1f2"
+      "last_updated": "2026-06-11T22:11:56Z",
+      "session_id": "sess_1781215659_7922e0",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md",
+          "type": "plan",
+          "summary": "Implementation plan for decomposing PR 1 into 11 smaller sub-PRs across 4 dependency waves"
+        }
+      ]
     },
     {
       "project_number": 123,

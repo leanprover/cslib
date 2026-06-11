@@ -36,7 +36,7 @@ next_project_number: 125
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-124 [RESEARCHED] — plan_pr1_decomposition_into_smaller_prs
+124 [PLANNED] — plan_pr1_decomposition_into_smaller_prs
 
 ### Foundations
 
@@ -45,10 +45,11 @@ next_project_number: 125
 ## Tasks
 
 ### 124. Plan pr1 decomposition into smaller prs
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Dependencies**: None
+- **Plan**: [124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md]
 
 ---
 
