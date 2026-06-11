@@ -119,19 +119,15 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Integration and Final Verification [NOT STARTED]
+### Phase 3: Integration and Final Verification [COMPLETED]
 
 **Goal**: Add K4 imports to the module aggregator and verify the full build.
 
 **Tasks**:
-- [ ] Add to `Cslib/Logics/Modal/Metalogic.lean` (after S4Completeness import):
-  ```
-  public import Cslib.Logics.Modal.Metalogic.K4Soundness
-  public import Cslib.Logics.Modal.Metalogic.K4Completeness
-  ```
-- [ ] Update module docstring to mention K4 alongside K, T, D, S4, S5
-- [ ] Run `lake build` to verify full project builds
-- [ ] Run `lean_verify` on `Cslib.Logic.Modal.k4_soundness`, `Cslib.Logic.Modal.k4_soundness_derivable`, `Cslib.Logic.Modal.k4_completeness` to confirm no sorry/axioms
+- [x] Add K4Soundness and K4Completeness imports to `Cslib/Logics/Modal/Metalogic.lean`
+- [x] Update module docstring to mention K4
+- [x] Run `lake build` to verify full project builds (2936 jobs, zero errors)
+- [x] Run `lean_verify` on all K4 theorems -- no sorry/axioms (only propext, Classical.choice, Quot.sound)
 
 **Timing**: 30 minutes
 
@@ -147,12 +143,12 @@ Phases within the same wave can execute in parallel.
 
 ## Testing & Validation
 
-- [ ] `lake build Cslib.Logics.Modal.ProofSystem.Instances` -- K4 infrastructure compiles
-- [ ] `lake build Cslib.Logics.Modal.Metalogic.K4Soundness` -- K4 soundness compiles
-- [ ] `lake build Cslib.Logics.Modal.Metalogic.K4Completeness` -- K4 completeness compiles
-- [ ] `lake build` -- full project builds without errors
-- [ ] `lean_verify` on `k4_soundness`, `k4_soundness_derivable`, `k4_completeness` -- no sorry/axioms
-- [ ] `grep -rn sorry Cslib/Logics/Modal/Metalogic/K4Soundness.lean Cslib/Logics/Modal/Metalogic/K4Completeness.lean` -- zero matches
+- [x] `lake build Cslib.Logics.Modal.ProofSystem.Instances` -- K4 infrastructure compiles
+- [x] `lake build Cslib.Logics.Modal.Metalogic.K4Soundness` -- K4 soundness compiles
+- [x] `lake build Cslib.Logics.Modal.Metalogic.K4Completeness` -- K4 completeness compiles
+- [x] `lake build` -- full project builds without errors (2936 jobs)
+- [x] `lean_verify` on `k4_soundness`, `k4_soundness_derivable`, `k4_completeness` -- no sorry/axioms
+- [x] `grep -rn sorry` -- zero matches
 
 ## Artifacts & Outputs
 
