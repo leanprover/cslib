@@ -25,13 +25,17 @@ public import Cslib.Logics.Modal.Metalogic.BSoundness
 public import Cslib.Logics.Modal.Metalogic.BCompleteness
 public import Cslib.Logics.Modal.Metalogic.K45Soundness
 public import Cslib.Logics.Modal.Metalogic.K45Completeness
+public import Cslib.Logics.Modal.Metalogic.K5Soundness
+public import Cslib.Logics.Modal.Metalogic.K5Completeness
+public import Cslib.Logics.Modal.Metalogic.D4Soundness
+public import Cslib.Logics.Modal.Metalogic.D4Completeness
 public import Cslib.Logics.Modal.ProofSystem.Instances
 
 /-! # Modal Metalogic Module
 
 Module aggregator for modal metalogic: syntactic proof system,
 deduction theorem, maximal consistent sets, soundness, and completeness
-for K, T, D, B, K4, S4, and S5. Includes typeclass instance registration for all
+for K, T, D, B, K4, K5, K45, D4, S4, and S5. Includes typeclass instance registration for all
 modal systems.
 -/
 
