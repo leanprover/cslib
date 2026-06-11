@@ -1,5 +1,5 @@
 ---
-next_project_number: 136
+next_project_number: 137
 ---
 
 # TODO
@@ -57,6 +57,17 @@ next_project_number: 136
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 136. Pr1 citation conformance
+- **Status**: [COMPLETED]
+- **Task Type**: lean4
+- **Dependencies**: None
+- **Research**: [136_pr1_citation_conformance/reports/01_citation-conformance.md]
+- **Plan**: [136_pr1_citation_conformance/plans/01_citation-conformance-plan.md]
+
+**Description**: Revise citations on the pr1/foundations-logic branch to conform to the canonical citation conventions (standards/citation-conventions.md). Scope: (1) Remove orphaned HughesCresswell1996 entry from references.bib (uncited anywhere). (2) Add SorensenUrzyczyn2006 bib entry and convert the inline Sorensen & Urzyczyn mention in NaturalDeduction/Basic.lean to a proper BibKey citation on its own bullet. (3) Standardize internal cross-reference formatting — some files use backtick-wrapped paths (e.g., `Cslib/...`) while others use bare paths; pick one convention and apply consistently across all PR 1 Propositional and Modal files. (4) Review all 22 Propositional and 4 Modal files on the PR branch for any remaining discrepancies against the citation standard (dash bullets, missing BibKeys, inconsistent formatting). All work targets the pr1/foundations-logic branch. Documentation-only changes — no Lean code modifications.
+
+---
 
 ### 135. Subpr 1 11 nd hilbert equivalence
 - **Status**: [NOT STARTED]
@@ -163,7 +174,9 @@ next_project_number: 136
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
-- **Research**: [125_subpr_1_1_hilbert_hierarchy_refactoring/reports/02_research-report.md]
+- **Research**:
+  - [125_subpr_1_1_hilbert_hierarchy_refactoring/reports/02_research-report.md]
+  - [125_subpr_1_1_hilbert_hierarchy_refactoring/reports/03_feedback-analysis.md]
 
 **Description**: Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs.
 
