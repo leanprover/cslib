@@ -58,10 +58,12 @@ next_project_number: 92
 
 ### 91. PR 1.5: Propositional Hilbert submission
 - **Effort**: Small (2-3 hours)
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Dependencies**: Task 59
 - **Topic**: Submit PRs
+- **Research**: [091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md]
+- **Plan**: [091_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md]
 
 **Description**: Create feature branch and submit PR 1.5 containing the propositional Hilbert system additions developed since PR 1 (tasks 87, 88, 89). This PR adds ~1,200 new lines across 3 new files and updates to 11 existing files in Logics/Propositional/ and Foundations/Logic/.
 
