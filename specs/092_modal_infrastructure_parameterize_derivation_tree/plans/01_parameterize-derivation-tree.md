@@ -196,7 +196,7 @@ Phases are strictly sequential due to import chain dependencies.
 
 ---
 
-### Phase 4: Generalize MCS.lean, Soundness.lean, and Completeness.lean [NOT STARTED]
+### Phase 4: Generalize MCS.lean, Soundness.lean, and Completeness.lean [COMPLETED]
 
 **Goal**: Parameterize all MCS, soundness, and completeness definitions to use the new parameterized types, keeping S5-specific content under explicit axiom assumptions.
 
