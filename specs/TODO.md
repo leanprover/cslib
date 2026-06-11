@@ -64,7 +64,7 @@ next_project_number: 145
 
 ### Modal Logic
 
-137 [RESEARCHING] — Refactor Modal/ directory structure for the modal cube. Systemati
+137 [RESEARCHED] — Refactor Modal/ directory structure for the modal cube. Systemati
 
 ### Foundations
 
@@ -143,10 +143,11 @@ next_project_number: 145
 ---
 
 ### 137. Refactor modal directory structure
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
+- **Research_report**: [137_refactor_modal_directory_structure/reports/01_directory-structure-research.md]
 
 **Description**: Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).
 

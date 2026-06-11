@@ -1,0 +1,18 @@
+{
+  "status": "researched",
+  "session_id": "sess_1781221805_7d8c5d",
+  "task_number": 137,
+  "artifacts": [
+    {
+      "path": "specs/137_refactor_modal_directory_structure/reports/01_directory-structure-research.md",
+      "type": "research_report",
+      "summary": "Comprehensive analysis of Modal/ directory: 41 files (4 upstream, 37 fork-only), import dependency graph, Instances.lean splitting plan (1531 lines -> 15 files), Metalogic/Systems per-system grouping, and PR boundary validation"
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1781221805_7d8c5d",
+    "agent_type": "lean-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+  }
+}
