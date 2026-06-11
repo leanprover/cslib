@@ -71,10 +71,15 @@ def Proposition.Context.fill (c : Context Atom) (φ : Proposition Atom) :=
 
 instance : HasContext (Proposition Atom) := ⟨Proposition.Context Atom, Proposition.Context.fill⟩
 
+@[scoped grind =_]
+lemma Proposition.Context.fill_def {Γ : HasContext.Context (Proposition Atom)} :
+    Γ.fill φ = Γ<[φ] := rfl
+
 open scoped Proposition Proposition.Context
 
 /-- Logical equivalence is an equivalence relation. -/
-instance {World Atom} (S : Set (Model World Atom)) : IsEquiv (Proposition Atom) (Proposition.Equiv S) := by
+instance {World Atom} (S : Set (Model World Atom)) :
+    IsEquiv (Proposition Atom) (Proposition.Equiv S) := by
   rw [← equivalence_iff_isEquiv]
   grind [Equivalence]
 
@@ -82,7 +87,6 @@ instance {World Atom} (S : Set (Model World Atom)) : IsEquiv (Proposition Atom) 
 instance {World Atom} (S : Set (Model World Atom)) :
     Congruence (Proposition Atom) (Proposition.Equiv S) where
   elim ctx φ₁ φ₂ heqv m hₘ w := by
-    have (Γ : HasContext.Context (Proposition Atom)) (φ) : Γ.fill φ = Γ<[φ] := rfl
     induction ctx generalizing w
     case hole => grind
     case not c ih | andL c ih | andR c ih =>
@@ -105,21 +109,23 @@ structure Satisfies.Context (World Atom : Type*) where
 
 /-- Fills a judgemental context with a proposition. -/
 def Satisfies.Context.fill (c : Satisfies.Context World Atom) (φ : Proposition Atom) :
-    Judgement World Atom where
-  m := c.m
-  w := c.w
-  φ := φ
+    Judgement World Atom := Modal[c.m, c.w ⊨ φ]
 
 instance judgementalContext :
     HasHContext (Judgement World Atom) (Proposition Atom) :=
   ⟨Satisfies.Context World Atom, Satisfies.Context.fill⟩
+
+@[scoped grind =_]
+lemma Satisfies.Context.fill_def {c : Satisfies.Context World Atom} :
+    Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
+
+open scoped Satisfies.Context
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
 instance : LogicalEquivalence
     (Proposition Atom) (Judgement World Atom) Satisfies.Bundled where
   eqv := Proposition.Equiv Set.univ
   eqvFillValid heqv c h := by
-    have (φ : Proposition Atom) : Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
     specialize heqv c.m
     grind
 
