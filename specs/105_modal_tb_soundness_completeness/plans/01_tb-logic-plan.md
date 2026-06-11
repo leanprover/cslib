@@ -91,16 +91,16 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: TB Completeness and Integration [NOT STARTED]
+### Phase 2: TB Completeness and Integration [COMPLETED]
 
 **Goal**: Create `TBCompleteness.lean` proving TB completeness via the canonical model method, and update the Metalogic.lean aggregator.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Modal/Metalogic/TBCompleteness.lean` with module header and imports
-- [ ] Implement `tb_canonical_refl`: thin wrapper instantiating `canonical_refl` at `TBAxiom` with constructors `.implyK`, `.implyS`, `.modalT`
-- [ ] Implement `tb_canonical_symm`: thin wrapper instantiating `canonical_symm` at `TBAxiom` with constructors `.implyK`, `.implyS`, `.modalB`, `.modalK`
-- [ ] Implement `tb_truth_lemma`: thin wrapper instantiating `truth_lemma` at `TBAxiom` with constructors `.implyK`, `.implyS`, `.efq`, `.peirce`, `.modalK`, `.modalT`
-- [ ] Implement `tb_completeness`: main completeness theorem by contrapositive
+- [x] Create `Cslib/Logics/Modal/Metalogic/TBCompleteness.lean` with module header and imports *(completed)*
+- [x] Implement `tb_canonical_refl`: thin wrapper instantiating `canonical_refl` at `TBAxiom` with constructors `.implyK`, `.implyS`, `.modalT` *(completed)*
+- [x] Implement `tb_canonical_symm`: thin wrapper instantiating `canonical_symm` at `TBAxiom` with constructors `.implyK`, `.implyS`, `.modalK`, `.modalB` *(deviation: altered -- argument order is h_K before h_B per canonical_symm signature)*
+- [x] Implement `tb_truth_lemma`: thin wrapper instantiating `truth_lemma` at `TBAxiom` with constructors `.implyK`, `.implyS`, `.efq`, `.peirce`, `.modalK`, `.modalT` *(completed)*
+- [x] Implement `tb_completeness`: main completeness theorem by contrapositive *(completed)*
   - Assume `phi` not TB-derivable
   - Show `{neg phi}` is TB-consistent (identical boilerplate to S4Completeness/TCompleteness)
   - Lindenbaum extension to MCS `M`
@@ -108,9 +108,9 @@ Phases within the same wave can execute in parallel.
   - Apply `h_valid` to canonical model with `tb_canonical_refl` and `tb_canonical_symm`
   - Use `tb_truth_lemma` to convert satisfaction to membership
   - Contradiction via `mcs_not_mem_of_neg`
-- [ ] Verify with `lake build Cslib.Logics.Modal.Metalogic.TBCompleteness`
-- [ ] Add imports to `Cslib/Logics/Modal/Metalogic.lean`: `TBSoundness` and `TBCompleteness`
-- [ ] Verify full module build: `lake build Cslib.Logics.Modal.Metalogic`
+- [x] Verify with `lake build Cslib.Logics.Modal.Metalogic.TBCompleteness` *(completed)*
+- [x] Add imports to `Cslib/Logics/Modal/Metalogic.lean`: `TBSoundness` and `TBCompleteness` *(completed)*
+- [x] Verify full module build: `lake build Cslib.Logics.Modal.Metalogic` *(completed)*
 
 **Timing**: 2 hours
 
