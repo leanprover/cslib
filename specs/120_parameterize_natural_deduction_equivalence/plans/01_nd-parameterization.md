@@ -102,7 +102,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Split and Parameterize HilbertDerivedRules.lean [NOT STARTED]
+### Phase 2: Split and Parameterize HilbertDerivedRules.lean [COMPLETED]
 
 **Goal**: Organize rules into intuitionistic and classical sections with appropriate axiom parameters.
 
