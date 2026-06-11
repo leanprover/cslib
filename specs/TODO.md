@@ -1,5 +1,5 @@
 ---
-next_project_number: 90
+next_project_number: 91
 ---
 
 # Tasks
@@ -37,6 +37,10 @@ next_project_number: 90
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
+### Modal Logic
+
+90 [NOT STARTED] — Expand modal cube proof systems and metalogic (K, T, D, S4, S5)
+
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
@@ -47,6 +51,13 @@ next_project_number: 90
 89 [COMPLETED] — derived_connective_rules
 
 ## Tasks
+
+### 90. Expand modal logic Hilbert proof systems and metalogic across the modal cube (K, T, D, S4, S5)
+- **Effort**: large
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+
+**Description**: Drawing on the team research at specs/060_pr2_modal_metalogic/reports/01_team-research.md, research, design, and create multiple implementation tasks covering everything needed to bring the modal logic infrastructure to parity with what exists for Temporal/. This includes: (1) Creating Modal/ProofSystem/Instances.lean to bridge the concrete DerivationTree to the abstract ProofSystem typeclass hierarchy (following the established pattern from Temporal/Bimodal); (2) Parameterizing the modal axiom set so that proof systems can be instantiated for K, T, D, S4, and S5 individually (currently ModalAxiom is hardcoded to S5's full axiom set); (3) Establishing soundness and completeness for each of the main modal systems K, T, D, S4, S5 via canonical model constructions with appropriate frame properties (K: arbitrary frames, T: reflexive, D: serial, S4: preorder, S5: equivalence relations); (4) Integrating the untracked HilbertDerivedRules.lean (447 lines, sorry-free) into the build; (5) Any additional infrastructure, naming alignment, or documentation needed. The output of this meta-task is a set of well-ordered implementation tasks with clear dependencies, covering the full scope without cutting corners.
 
 ### 89. Derived intro/elim rules for defined propositional connectives in ND and Hilbert
 - **Effort**: medium

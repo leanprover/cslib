@@ -3,6 +3,15 @@
   "active_projects": [
     {
       "project_number": 90,
+      "project_name": "expand_modal_cube_proof_systems_metalogic",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "created": "2026-06-11T00:23:04Z",
+      "last_updated": "2026-06-11T00:23:04Z"
+    },
+    {
+      "project_number": 90,
       "project_name": "pr_1_5_propositional_hilbert_submission",
       "status": "not_started",
       "task_type": "lean4",
@@ -297,6 +306,7 @@
     "Temporal Logic",
     "Bimodal Porting",
     "Submit PRs",
-    "Propositional Logic"
+    "Propositional Logic",
+    "Modal Logic"
   ]
 }
