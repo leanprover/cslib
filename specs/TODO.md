@@ -11,9 +11,9 @@ next_project_number: 99
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,91,93,94 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
-| 2 | 39,40,62,95,96,97 | 36,37,61,93 | Temporal Logic, Submit PRs, Modal Logic |
-| 3 | 41,63,98 | 38,39,40,62,95,96,97 | Submit PRs, Modal Logic, Foundations |
+| 1 | 36,37,38,60,61,91,95,96,97 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 2 | 39,40,62,98 | 36,37,61,95,96,97 | Temporal Logic, Submit PRs, Modal Logic |
+| 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -45,14 +45,12 @@ next_project_number: 99
 
 ### Modal Logic
 
-93 [NOT STARTED] — Phase 2 of modal cube expansion: Create Modal/ProofSystem/Instanc
-  └─ 95 [NOT STARTED] — Phase 4 of modal cube expansion: Establish soundness and complete
-    └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati
-  └─ 96 [NOT STARTED] — Phase 5 of modal cube expansion: Establish soundness and complete
-    └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
-  └─ 97 [NOT STARTED] — Phase 6 of modal cube expansion: Establish soundness and complete
-    └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
-94 [NOT STARTED] — Phase 3 of modal cube expansion: Add the untracked HilbertDerived
+95 [NOT STARTED] — Phase 4 of modal cube expansion: Establish soundness and complete
+  └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati
+96 [NOT STARTED] — Phase 5 of modal cube expansion: Establish soundness and complete
+  └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
+97 [NOT STARTED] — Phase 6 of modal cube expansion: Establish soundness and complete
+  └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
 
 ### Foundations
 
@@ -157,7 +155,7 @@ Estimated: ~5 hours. Parallelizable with phases 5 and 6.
 
 ### 94. Modal integrate hilbert derived rules
 - **Effort**: small
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 92
@@ -172,10 +170,11 @@ Estimated: ~30 minutes.
 
 ### 93. Modal s5 preservation instances
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 92
+- **Summary**: [093_modal_s5_preservation_instances/summaries/01_modal-system-instances-summary.md]
 
 **Description**: Phase 2 of modal cube expansion: Create Modal/ProofSystem/Instances.lean registering typeclass instances for all modal systems (K, T, D, S4, S5), following the Temporal pattern. Register InferenceSystem, ModusPonens, Necessitation instances for each tag type. Register propositional axiom instances (HasAxiomImplyK, HasAxiomImplyS, HasAxiomEFQ, HasAxiomPeirce) and modal axiom instances (HasAxiomK, HasAxiomT, HasAxiom4, HasAxiomB, HasAxiomD as appropriate). Register bundled class instances (ModalHilbert for K, ModalTHilbert for T, ModalDHilbert for D, ModalS4Hilbert for S4, ModalS5Hilbert for S5). Verify Soundness.lean and Completeness.lean still compile with S5 parameterization. Update Metalogic.lean aggregator to import Instances.lean.
 

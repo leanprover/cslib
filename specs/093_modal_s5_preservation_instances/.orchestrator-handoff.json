@@ -1,0 +1,16 @@
+{
+  "status": "planned",
+  "summary": "2-phase plan to create Modal/ProofSystem/Instances.lean with 4 axiom inductive types and typeclass instances for K/T/D/S4/S5 modal systems",
+  "artifacts": [
+    {
+      "path": "specs/093_modal_s5_preservation_instances/plans/01_modal-system-instances.md",
+      "type": "plan",
+      "summary": "Implementation plan: 2 phases, 3 hours, define axiom predicates and register instances for all 5 modal systems"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "phases_completed": 0,
+  "phases_total": 2,
+  "next_action_hint": "implement"
+}

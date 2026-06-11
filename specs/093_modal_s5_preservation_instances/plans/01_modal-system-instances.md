@@ -1,7 +1,7 @@
 # Implementation Plan: Task #93
 
 - **Task**: 93 - Register typeclass instances for all modal systems (K, T, D, S4, S5)
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 3 hours
 - **Dependencies**: Task 92 (completed -- parameterized DerivationTree)
 - **Research Inputs**: specs/093_modal_s5_preservation_instances/reports/01_modal-system-instances.md
