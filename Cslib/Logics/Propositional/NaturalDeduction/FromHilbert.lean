@@ -191,7 +191,7 @@ theorem subst_preserves_axiom
 
 If `Γ ⊢ φ` then `Γ.map (·.subst f) ⊢ φ.subst f`. -/
 def hilbertSubstitution
-    {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
+    {Atom : Type u} {Atom' : Type u}
     {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
     (d : DerivationTree Γ φ) (f : Atom → PL.Proposition Atom') :
     DerivationTree (Γ.map (·.subst f)) (φ.subst f) :=
@@ -209,7 +209,7 @@ def hilbertSubstitution
 
 /-- Substitution at the `Deriv` level. -/
 theorem hilbertSubstitutionDeriv
-    {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
+    {Atom : Type u} {Atom' : Type u}
     {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
     (h : Deriv Γ φ) (f : Atom → PL.Proposition Atom') :
     Deriv (Γ.map (·.subst f)) (φ.subst f) := by
