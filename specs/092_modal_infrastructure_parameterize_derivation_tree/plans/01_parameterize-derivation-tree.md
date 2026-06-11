@@ -114,7 +114,7 @@ Phases are strictly sequential due to import chain dependencies.
 
 ---
 
-### Phase 2: Parameterize DerivationTree.lean [NOT STARTED]
+### Phase 2: Parameterize DerivationTree.lean [COMPLETED]
 
 **Goal**: Add `Axioms` parameter to `DerivationTree` and all derived definitions, with backward-compatible aliases.
 
