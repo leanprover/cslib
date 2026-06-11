@@ -153,7 +153,7 @@ Phases are strictly sequential due to import chain dependencies.
 
 ---
 
-### Phase 3: Generalize DeductionTheorem.lean [NOT STARTED]
+### Phase 3: Generalize DeductionTheorem.lean [COMPLETED]
 
 **Goal**: Parameterize the deduction theorem and `HasHilbertTree` instance over `Axioms`, requiring that `Axioms` includes propositional axioms (implyK, implyS).
 
