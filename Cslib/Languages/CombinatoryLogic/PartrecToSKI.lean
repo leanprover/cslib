@@ -10,8 +10,6 @@ public import Cslib.Foundations.Data.Part
 public import Cslib.Languages.CombinatoryLogic.Recursion
 public import Mathlib.Computability.PartrecCode
 
-@[expose] public section
-
 /-!
 # Partial Recursive → SKI-computable (Nat.Partrec)
 
@@ -29,6 +27,8 @@ This file defines a notion of computability for SKI terms on natural numbers
 - `natPartrec_skiComputable`: every `Nat.Partrec` function is SKI-computable.
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 

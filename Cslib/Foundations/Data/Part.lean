@@ -9,15 +9,16 @@ module
 public import Cslib.Init
 public import Mathlib.Data.Part
 
-@[expose] public section
-
 /-!
 # Auxiliary lemmas for `Part`
 
 Convenience lemmas for working with partial values from `Mathlib.Data.Part`.
 
-Note: this file may go away entirely if leanprover-community/mathlib4#37521 gets merged.
+Note: this file can go away once CSLib's Mathlib pin includes leanprover-community/mathlib4#37521
+(merged 2026-06-09), which adds the equivalent `Part.bind_eq_some_iff`.
 -/
+
+@[expose] public section
 
 namespace Part
 
