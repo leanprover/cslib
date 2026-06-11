@@ -51,25 +51,25 @@ instance : Preorder (IntCanonicalWorld Atom) where
   le_trans _ _ _ h₁ h₂ := Set.Subset.trans h₁ h₂
 
 /-- The canonical valuation: atom `p` is true at world `S` iff `atom p ∈ S`. -/
-def int_canonical_val (w : IntCanonicalWorld Atom) (p : Atom) : Prop :=
+def intCanonicalVal (w : IntCanonicalWorld Atom) (p : Atom) : Prop :=
   Proposition.atom p ∈ w.val
 
 /-- The canonical valuation is upward-closed. -/
-theorem int_canonical_val_upward_closed
+theorem intCanonicalVal_upward_closed
     {w w' : IntCanonicalWorld Atom} (p : Atom)
-    (hw : w ≤ w') (hv : int_canonical_val w p) : int_canonical_val w' p :=
+    (hw : w ≤ w') (hv : intCanonicalVal w p) : intCanonicalVal w' p :=
   hw hv
 
 /-! ## Truth Lemma -/
 
 /-- **Truth Lemma**: For any canonical world `S` and formula `φ`,
-`IForces int_canonical_val (fun _ => False) S φ ↔ φ ∈ S.val`.
+`IForces intCanonicalVal (fun _ => False) S φ ↔ φ ∈ S.val`.
 
 Proof by structural induction on `φ` (3 cases: atom, bot, imp). -/
 theorem int_truth_lemma
     (S : IntCanonicalWorld Atom) :
     (φ : PL.Proposition Atom) →
-    (IForces int_canonical_val (fun _ => False) S φ ↔ φ ∈ S.val)
+    (IForces intCanonicalVal (fun _ => False) S φ ↔ φ ∈ S.val)
   | .atom p => Iff.rfl
   | .bot => by
     constructor
@@ -108,11 +108,11 @@ theorem int_completeness {φ : PL.Proposition Atom}
     h_not_deriv
   let W₀ : IntCanonicalWorld Atom :=
     ⟨{ψ | Derivable IntPropAxiom ψ}, h_dccs⟩
-  have h_not_forced : ¬ IForces int_canonical_val (fun _ => False) W₀ φ := by
+  have h_not_forced : ¬ IForces intCanonicalVal (fun _ => False) W₀ φ := by
     intro h; exact h_not_mem ((int_truth_lemma W₀ φ).mp h)
-  have h_forced : IForces int_canonical_val (fun _ => False) W₀ φ :=
-    h_valid (IntCanonicalWorld Atom) int_canonical_val
-      (fun {_ _} p hw hv => int_canonical_val_upward_closed p hw hv) W₀
+  have h_forced : IForces intCanonicalVal (fun _ => False) W₀ φ :=
+    h_valid (IntCanonicalWorld Atom) intCanonicalVal
+      (fun {_ _} p hw hv => intCanonicalVal_upward_closed p hw hv) W₀
   exact h_not_forced h_forced
 
 /-! ## Biconditional Wrapper -/

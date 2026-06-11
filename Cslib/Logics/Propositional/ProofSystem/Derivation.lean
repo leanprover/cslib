@@ -6,7 +6,7 @@ Authors: Benjamin Brast-McKie
 
 module
 
-public import Cslib.Logics.Propositional.ProofSystem.Axioms
+public import Cslib.Logics.Propositional.Defs
 public import Cslib.Foundations.Logic.Metalogic.Consistency
 
 /-! # DerivationTree -- Parameterized Syntactic Proof System for Propositional Logic

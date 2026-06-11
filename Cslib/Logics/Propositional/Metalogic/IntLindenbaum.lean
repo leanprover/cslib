@@ -76,7 +76,7 @@ theorem int_dccs_imp_property {S : Set (PL.Proposition Atom)}
 /-! ## EFQ Composition Derivation -/
 
 /-- `[¬φ] ⊢ φ → ψ` via EFQ composition. -/
-noncomputable def int_neg_phi_imp_psi (φ ψ : PL.Proposition Atom) :
+noncomputable def intNegPhiImpPsi (φ ψ : PL.Proposition Atom) :
     DerivationTree IntPropAxiom [Proposition.neg φ] (φ.imp ψ) :=
   let efq_ax := DerivationTree.ax (Atom := Atom) [] (Proposition.bot.imp ψ) (.efq ψ)
   let ik := DerivationTree.ax (Atom := Atom) []
@@ -94,9 +94,9 @@ noncomputable def int_neg_phi_imp_psi (φ ψ : PL.Proposition Atom) :
     (.assumption _ _ (List.mem_cons.mpr (Or.inl rfl)))
 
 /-- Prop-level EFQ composition. -/
-theorem int_neg_phi_imp_psi_deriv (φ ψ : PL.Proposition Atom) :
+theorem intNegPhiImpPsi_deriv (φ ψ : PL.Proposition Atom) :
     (propDerivationSystem IntPropAxiom).Deriv [Proposition.neg φ] (φ.imp ψ) :=
-  ⟨int_neg_phi_imp_psi φ ψ⟩
+  ⟨intNegPhiImpPsi φ ψ⟩
 
 /-! ## Compiling Derivations from Closure Elements -/
 
@@ -200,41 +200,41 @@ theorem int_deriv_imp_of_union
 /-! ## Deductive Closure -/
 
 /-- The deductive closure of a set `S` w.r.t. IntPropAxiom. -/
-def int_deductive_closure (S : Set (PL.Proposition Atom)) :
+def intDeductiveClosure (S : Set (PL.Proposition Atom)) :
     Set (PL.Proposition Atom) :=
   {φ | ∃ L : List (PL.Proposition Atom),
     (∀ x ∈ L, x ∈ S) ∧ (propDerivationSystem IntPropAxiom).Deriv L φ}
 
-/-- `S ⊆ int_deductive_closure S`. -/
+/-- `S ⊆ intDeductiveClosure S`. -/
 theorem int_subset_deductive_closure (S : Set (PL.Proposition Atom)) :
-    S ⊆ int_deductive_closure S :=
+    S ⊆ intDeductiveClosure S :=
   fun φ hφ => ⟨[φ],
     fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ hφ,
     (propDerivationSystem IntPropAxiom).assumption (List.mem_cons.mpr (Or.inl rfl))⟩
 
 /-- The deductive closure is deductively closed. -/
-theorem int_deductive_closure_dccs_closed (S : Set (PL.Proposition Atom))
+theorem intDeductiveClosure_dccs_closed (S : Set (PL.Proposition Atom))
     (L : List (PL.Proposition Atom)) (φ : PL.Proposition Atom)
-    (hL : ∀ x ∈ L, x ∈ int_deductive_closure S)
+    (hL : ∀ x ∈ L, x ∈ intDeductiveClosure S)
     (hd : (propDerivationSystem IntPropAxiom).Deriv L φ) :
-    φ ∈ int_deductive_closure S :=
+    φ ∈ intDeductiveClosure S :=
   int_deriv_from_closure_to_S L (fun x hx => hL x hx) φ hd
 
 /-- If `S` is consistent, the deductive closure of `S` is consistent. -/
-theorem int_deductive_closure_consistent {S : Set (PL.Proposition Atom)}
+theorem intDeductiveClosure_consistent {S : Set (PL.Proposition Atom)}
     (hS : PropSetConsistent IntPropAxiom S) :
-    PropSetConsistent IntPropAxiom (int_deductive_closure S) := by
+    PropSetConsistent IntPropAxiom (intDeductiveClosure S) := by
   intro L hL hd
   obtain ⟨L', hL'_sub, hL'_deriv⟩ :=
     int_deriv_from_closure_to_S L (fun x hx => hL x hx) _ hd
   exact hS L' hL'_sub hL'_deriv
 
 /-- The deductive closure of a consistent set is a DCCS. -/
-theorem int_deductive_closure_is_dccs {S : Set (PL.Proposition Atom)}
+theorem intDeductiveClosure_is_dccs {S : Set (PL.Proposition Atom)}
     (hS : PropSetConsistent IntPropAxiom S) :
-    IntDCCS (int_deductive_closure S) :=
-  ⟨int_deductive_closure_consistent hS,
-   fun L φ hL hd => int_deductive_closure_dccs_closed S L φ hL hd⟩
+    IntDCCS (intDeductiveClosure S) :=
+  ⟨intDeductiveClosure_consistent hS,
+   fun L φ hL hd => intDeductiveClosure_dccs_closed S L φ hL hd⟩
 
 /-! ## Implication Witness Lemma -/
 
@@ -254,11 +254,11 @@ theorem int_imp_witness {S : Set (PL.Proposition Atom)}
       apply h_dccs.2 [Proposition.neg φ] (φ.imp ψ)
       · intro x hx
         simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_neg_phi
-      · exact int_neg_phi_imp_psi_deriv φ ψ
+      · exact intNegPhiImpPsi_deriv φ ψ
     exact h_not h_imp_psi
-  refine ⟨int_deductive_closure (S ∪ {φ}), ?_, ?_, ?_, ?_⟩
+  refine ⟨intDeductiveClosure (S ∪ {φ}), ?_, ?_, ?_, ?_⟩
   · exact Set.Subset.trans Set.subset_union_left (int_subset_deductive_closure _)
-  · exact int_deductive_closure_is_dccs h_cons_union
+  · exact intDeductiveClosure_is_dccs h_cons_union
   · exact int_subset_deductive_closure _ (Set.mem_union_right S (Set.mem_singleton_iff.mpr rfl))
   · intro ⟨L, hL_sub, hL_deriv⟩
     obtain ⟨L', hL'_sub, hL'_deriv⟩ := int_deriv_imp_of_union hL_sub hL_deriv

@@ -7,6 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Propositional.ProofSystem.Derivation
+public import Cslib.Logics.Propositional.ProofSystem.Axioms
 public import Cslib.Foundations.Data.ListHelpers
 public import Cslib.Foundations.Logic.Metalogic.DeductionHelpers
 

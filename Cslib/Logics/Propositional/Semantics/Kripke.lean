@@ -16,16 +16,16 @@ This module defines Kripke semantics for propositional (intuitionistic and minim
 
 ## Main Definitions
 
-- `KripkeModel`: A Kripke model bundles a preordered set of worlds, a valuation, a `bot_forces`
+- `KripkeModel`: A Kripke model bundles a preordered set of worlds, a valuation, a `botForces`
   predicate, and upward-closure proofs for both.
-- `IForces`: The forcing relation for propositional Kripke semantics, parameterized by `bot_forces`.
-  Recursion on `PL.Proposition` with three cases: atom (valuation lookup), bot (`bot_forces`),
+- `IForces`: The forcing relation for propositional Kripke semantics, parameterized by `botForces`.
+  Recursion on `PL.Proposition` with three cases: atom (valuation lookup), bot (`botForces`),
   imp (universal quantification over successors).
 - `iforces_persistence`: Persistence of forcing under the preorder (CZ Proposition 2.1).
 - `IValid`: Intuitionistic validity -- forced at every world in every intuitionistic Kripke model
-  (where `bot_forces = fun _ => False`).
+  (where `botForces = fun _ => False`).
 - `MValid`: Minimal validity -- forced at every world in every minimal Kripke model
-  (where `bot_forces` is an arbitrary upward-closed predicate).
+  (where `botForces` is an arbitrary upward-closed predicate).
 
 ## Design Notes
 
@@ -53,18 +53,18 @@ variable {Atom : Type u}
 /-- A Kripke model for propositional logic.
 
 Bundles a preordered type of worlds, a valuation `v : World -> Atom -> Prop`,
-a predicate `bot_forces : World -> Prop` controlling whether falsum is forced,
-and upward-closure proofs for both `v` and `bot_forces`. -/
+a predicate `botForces : World -> Prop` controlling whether falsum is forced,
+and upward-closure proofs for both `v` and `botForces`. -/
 structure KripkeModel (World : Type*) (Atom : Type*) [Preorder World] where
   /-- Valuation assigning propositions to atoms at each world. -/
   v : World → Atom → Prop
   /-- Predicate controlling whether falsum is forced at a world.
   Set to `fun _ => False` for intuitionistic semantics. -/
-  bot_forces : World → Prop
+  botForces : World → Prop
   /-- The valuation is upward-closed: if `v w p` and `w ≤ w'`, then `v w' p`. -/
   v_upward_closed : ∀ {w w' : World} (p : Atom), w ≤ w' → v w p → v w' p
-  /-- `bot_forces` is upward-closed: if `bot_forces w` and `w ≤ w'`, then `bot_forces w'`. -/
-  bf_upward_closed : ∀ {w w' : World}, w ≤ w' → bot_forces w → bot_forces w'
+  /-- `botForces` is upward-closed: if `botForces w` and `w ≤ w'`, then `botForces w'`. -/
+  bf_upward_closed : ∀ {w w' : World}, w ≤ w' → botForces w → botForces w'
 
 /-- Forcing relation for propositional Kripke semantics, parameterized by `bot_forces`.
 

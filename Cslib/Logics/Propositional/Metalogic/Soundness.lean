@@ -8,6 +8,7 @@ module
 
 public import Cslib.Logics.Propositional.Semantics.Basic
 public import Cslib.Logics.Propositional.ProofSystem.Derivation
+public import Cslib.Logics.Propositional.ProofSystem.Axioms
 
 /-! # Soundness Theorem for Classical Propositional Logic
 

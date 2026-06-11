@@ -7,7 +7,6 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
-public import Cslib.Logics.Propositional.Metalogic.MCS
 public import Cslib.Logics.Propositional.Metalogic.Soundness
 
 /-! # Deductively Closed Sets for Minimal Propositional Logic
@@ -183,21 +182,21 @@ theorem min_deriv_imp_of_union
 /-! ## Deductive Closure -/
 
 /-- The deductive closure of a set `S` w.r.t. MinPropAxiom. -/
-def min_deductive_closure (S : Set (PL.Proposition Atom)) :
+def minDeductiveClosure (S : Set (PL.Proposition Atom)) :
     Set (PL.Proposition Atom) :=
   {φ | ∃ L : List (PL.Proposition Atom),
     (∀ x ∈ L, x ∈ S) ∧ (propDerivationSystem MinPropAxiom).Deriv L φ}
 
-/-- `S ⊆ min_deductive_closure S`. -/
+/-- `S ⊆ minDeductiveClosure S`. -/
 theorem min_subset_deductive_closure (S : Set (PL.Proposition Atom)) :
-    S ⊆ min_deductive_closure S :=
+    S ⊆ minDeductiveClosure S :=
   fun φ hφ => ⟨[φ],
     fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ hφ,
     (propDerivationSystem MinPropAxiom).assumption (List.mem_cons.mpr (Or.inl rfl))⟩
 
 /-- The deductive closure is a MinTheory (deductively closed). -/
-theorem min_deductive_closure_is_theory (S : Set (PL.Proposition Atom)) :
-    MinTheory (min_deductive_closure S) :=
+theorem minDeductiveClosure_is_theory (S : Set (PL.Proposition Atom)) :
+    MinTheory (minDeductiveClosure S) :=
   fun L φ hL hd => min_deriv_from_closure_to_S L (fun x hx => hL x hx) φ hd
 
 /-! ## Implication Witness Lemma -/
@@ -214,11 +213,11 @@ theorem min_imp_witness {S : Set (PL.Proposition Atom)}
     (h_not : φ.imp ψ ∉ S) :
     ∃ T : Set (PL.Proposition Atom),
       S ⊆ T ∧ MinTheory T ∧ φ ∈ T ∧ ψ ∉ T := by
-  refine ⟨min_deductive_closure (S ∪ {φ}), ?_, ?_, ?_, ?_⟩
+  refine ⟨minDeductiveClosure (S ∪ {φ}), ?_, ?_, ?_, ?_⟩
   · -- S ⊆ T
     exact Set.Subset.trans Set.subset_union_left (min_subset_deductive_closure _)
   · -- MinTheory T
-    exact min_deductive_closure_is_theory _
+    exact minDeductiveClosure_is_theory _
   · -- φ ∈ T
     exact min_subset_deductive_closure _ (Set.mem_union_right S (Set.mem_singleton_iff.mpr rfl))
   · -- ψ ∉ T
@@ -230,16 +229,16 @@ theorem min_imp_witness {S : Set (PL.Proposition Atom)}
 
 /-- Lift a MinPropAxiom derivation tree to a PropositionalAxiom (classical)
 derivation tree via `MinPropAxiom.toIntProp.toProp`. -/
-noncomputable def lift_min_to_cl {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
+noncomputable def liftMinToCl {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
     (d : DerivationTree MinPropAxiom Γ φ) :
     DerivationTree PropositionalAxiom Γ φ := by
   match d with
   | .ax Γ ψ h_ax => exact .ax Γ ψ h_ax.toIntProp.toProp
   | .assumption Γ ψ h_mem => exact .assumption Γ ψ h_mem
   | .modus_ponens Γ ψ χ d₁ d₂ =>
-    exact .modus_ponens Γ ψ χ (lift_min_to_cl d₁) (lift_min_to_cl d₂)
+    exact .modus_ponens Γ ψ χ (liftMinToCl d₁) (liftMinToCl d₂)
   | .weakening Γ' Δ ψ d' h_sub =>
-    exact .weakening Γ' Δ ψ (lift_min_to_cl d') h_sub
+    exact .weakening Γ' Δ ψ (liftMinToCl d') h_sub
 
 /-- MinPropAxiom is consistent: `[] ⊬ ⊥`.
 
@@ -248,7 +247,7 @@ then use `prop_soundness` (classical soundness). -/
 theorem min_consistent :
     ¬ Derivable (Atom := Atom) MinPropAxiom Proposition.bot := by
   intro ⟨d⟩
-  have d_cl := lift_min_to_cl d
+  have d_cl := liftMinToCl d
   exact prop_soundness d_cl (fun _ => True) (fun _ h => nomatch h)
 
 /-! ## Min Theorems Form a MinTheory -/
