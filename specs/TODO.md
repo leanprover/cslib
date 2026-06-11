@@ -11,7 +11,7 @@ next_project_number: 100
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,91,99 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,99 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -41,7 +41,6 @@ next_project_number: 100
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-91 [PLANNED] — Combined PR 1+1.5 submission: close PR #629, update pr1/foundatio
 
 ### Modal Logic
 
@@ -64,7 +63,7 @@ next_project_number: 100
 ---
 
 ### 91. Pr 1 5 propositional hilbert submission
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: Task 59
@@ -72,6 +71,7 @@ next_project_number: 100
 - **Plan**:
   - [091_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md]
   - [091_pr_1_5_propositional_hilbert_submission/plans/02_combined-pr-submission.md]
+- **Summary**: [091_pr_1_5_propositional_hilbert_submission/summaries/02_combined-pr-summary.md]
 
 **Description**: Combined PR 1+1.5 submission: close PR #629, update pr1/foundations-logic with PR 1.5 additions (tasks 86-89), run full CI suite, and resubmit as a single PR covering the complete Foundations/Logic + Propositional Hilbert system.
 

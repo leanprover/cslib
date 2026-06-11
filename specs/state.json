@@ -69,7 +69,7 @@
     {
       "project_number": 91,
       "project_name": "pr_1_5_propositional_hilbert_submission",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "description": "Combined PR 1+1.5 submission: close PR #629, update pr1/foundations-logic with PR 1.5 additions (tasks 86-89), run full CI suite, and resubmit as a single PR covering the complete Foundations/Logic + Propositional Hilbert system.\n\nPhase 1: Apply 16 files from main onto pr1/foundations-logic (git checkout main -- <files> + 3 Cslib.lean imports)\nPhase 2: Code quality review (sorry check, lint, DecidableEq fix, documentation)\nPhase 3: Full CI suite (lake build, test, checkInitImports, lint, lint-style, mk_all, shake)\nPhase 4: Close #629, force-push updated branch, submit new PR",
@@ -77,7 +77,7 @@
         59
       ],
       "created": "2026-06-11T00:19:29Z",
-      "last_updated": "2026-06-11T01:00:00Z",
+      "last_updated": "2026-06-11T05:05:50Z",
       "artifacts": [
         {
           "path": "specs/091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md",
@@ -93,8 +93,15 @@
           "path": "specs/091_pr_1_5_propositional_hilbert_submission/plans/02_combined-pr-submission.md",
           "type": "plan",
           "summary": "4-phase plan: apply PR 1.5 files, code quality review, full CI suite, close #629 and resubmit combined PR"
+        },
+        {
+          "path": "specs/091_pr_1_5_propositional_hilbert_submission/summaries/02_combined-pr-summary.md",
+          "type": "summary",
+          "summary": "Combined PR 1+1.5 submitted as PR #630, all CI checks passed"
         }
-      ]
+      ],
+      "session_id": "sess_1781153904_261d3f",
+      "completion_summary": "Combined PR 1+1.5 submitted as PR #630: closed #629, resubmitted with ND-Hilbert equivalence, intuitionistic hierarchy, and derived connective rules. All CI checks pass (build, test, lint, checkInitImports, lint-style, mk_all, shake reviewed)."
     },
     {
       "project_number": 60,

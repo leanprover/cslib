@@ -1,7 +1,7 @@
 # Implementation Plan: Combined PR 1+1.5 Submission
 
 - **Task**: 91 - Combined PR 1+1.5 propositional Hilbert submission
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 2-3 hours (mostly build/test time)
 - **Dependencies**: Tasks 86-89 (completed), PR #629 (to be closed)
 - **Research Inputs**: specs/091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md
