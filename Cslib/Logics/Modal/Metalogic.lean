@@ -11,6 +11,8 @@ public import Cslib.Logics.Modal.Metalogic.DeductionTheorem
 public import Cslib.Logics.Modal.Metalogic.MCS
 public import Cslib.Logics.Modal.Metalogic.Soundness
 public import Cslib.Logics.Modal.Metalogic.Completeness
+public import Cslib.Logics.Modal.Metalogic.S5Soundness
+public import Cslib.Logics.Modal.Metalogic.S5Completeness
 public import Cslib.Logics.Modal.Metalogic.KSoundness
 public import Cslib.Logics.Modal.Metalogic.KCompleteness
 public import Cslib.Logics.Modal.Metalogic.TSoundness
