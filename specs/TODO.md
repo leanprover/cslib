@@ -1,5 +1,5 @@
 ---
-next_project_number: 113
+next_project_number: 119
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 113
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,108,109,110,111,112 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,108,109,110,111,113,114,115,116,117,118 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -44,13 +44,18 @@ next_project_number: 113
 
 ### Propositional Logic
 
-112 [PLANNED] — Establish soundness and completeness for the propositional Hilber
+113 [NOT STARTED] — Refactor propositional DerivationTree to be parameterized over an
+114 [NOT STARTED] — Define bivalent truth-value semantics and prove soundness and com
+115 [NOT STARTED] — Define propositional Kripke semantics with a parameterized forcin
+116 [NOT STARTED] — Prove soundness and completeness of HilbertInt with respect to in
+117 [NOT STARTED] — Prove soundness and completeness of HilbertMin with respect to mi
+118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo
 
 ### Modal Logic
 
-108 [NOT STARTED] — Prove soundness and completeness for modal logic D5 (K + D + 5) o
-109 [NOT STARTED] — Prove soundness and completeness for modal logic D45 (K + D + 4 +
-110 [NOT STARTED] — Prove soundness and completeness for modal logic DB (K + D + B) o
+108 [IMPLEMENTING] — Prove soundness and completeness for modal logic D5 (K + D + 5) o
+109 [IMPLEMENTING] — Prove soundness and completeness for modal logic D45 (K + D + 4 +
+110 [IMPLEMENTING] — Prove soundness and completeness for modal logic DB (K + D + B) o
 111 [NOT STARTED] — Update Metalogic.lean module aggregator with all 20 new imports. 
 
 ### Foundations
@@ -59,8 +64,68 @@ next_project_number: 113
 
 ## Tasks
 
+### 118. Propositional completeness integration
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Update Cslib.lean imports to include all new propositional metalogic modules (Semantics/Basic, Semantics/Kripke, Soundness, Completeness, IntSoundness, IntLindenbaum, IntCompleteness, MinSoundness, MinCompleteness, IntMinInstances). Prove semantic coherence theorem for FromPropositional.lean connecting propositional tautology to modal validity for propositional formulas (~20-30 lines). Run full lake build and lean_verify on prop_completeness, int_completeness, min_completeness to confirm no sorry and no non-standard axioms. Parent task: 112 (Phase 6). Depends on: tasks 113, 114, 115, 116, 117. Task type: lean4.
+
+---
+
+### 117. Minimal propositional soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness of HilbertMin with respect to minimal Kripke semantics. Reuses intuitionistic infrastructure from task 116 with different bot_forces instantiation: bot_forces w = (Proposition.bot in w) instead of fun _ => False. Create Metalogic/MinSoundness.lean with min_axiom_sound (2 cases: K, S only) and min_soundness. Create Metalogic/MinCompleteness.lean with adapted canonical model where bot can be forced at some worlds (upward-closed), min_truth_lemma, min_completeness. Literature: Minimal logic (Johansson 1937) treats bot as a propositional atom with upward-closed valuation. Parent task: 112 (Phase 5). Depends on: tasks 113, 115, 116. Task type: lean4.
+
+---
+
+### 116. Intuitionistic propositional soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness of HilbertInt with respect to intuitionistic Kripke semantics. Create Metalogic/IntSoundness.lean with int_axiom_sound (3 cases: K, S, EFQ) and int_soundness by induction on DerivationTree. Create Metalogic/IntLindenbaum.lean with prime theory definition (deductively closed, consistent, disjunction property expressed via imp/bot primitives), int_lindenbaum (every consistent set extends to a prime deductively-closed theory, adapting Zorn pattern from Consistency.lean). Create Metalogic/IntCompleteness.lean with canonical Kripke model (worlds = prime theories, accessibility = set inclusion, valuation = atom membership), int_truth_lemma (imp case uses universal quantification over accessible worlds and deduction theorem), int_completeness. Literature: CZ Section 2.6 Theorem 2.43 (specs/literature/modal_logic.md lines 2353-2412) for completeness of Int. CZ Section 5.1 (lines 5832-5910) for Lindenbaum pattern. Parent task: 112 (Phase 4). Depends on: tasks 113, 115. Task type: lean4.
+
+---
+
+### 115. Propositional kripke semantics
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Define propositional Kripke semantics with a parameterized forcing function reusing Modal.Model with partial-order and persistence constraints as hypotheses. Create Semantics/Kripke.lean with IForces parameterized by bot_forces : World -> Prop (intuitionistic instantiates with fun _ => False, minimal with upward-closed valuation). Prove iforces_persistence by structural induction on formulas. Define IValid (validity over all intuitionistic frames) and MValid (validity over all minimal frames). Literature: CZ Section 2.2 (specs/literature/modal_logic.md lines 1564-1642) for intuitionistic Kripke frames, valuations, forcing. CZ Proposition 2.1 (lines 1627-1630) for persistence. Parent task: 112 (Phase 3). Depends on: task 113. Task type: lean4.
+
+---
+
+### 114. Classical propositional soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Define bivalent truth-value semantics and prove soundness and completeness for classical propositional logic (HilbertCl). Create Semantics/Basic.lean with Valuation (Atom -> Prop), Evaluate, and Tautology. Create Metalogic/Soundness.lean with prop_axiom_sound (4 cases: K, S, EFQ, Peirce) and prop_soundness by induction on DerivationTree. Create Metalogic/Completeness.lean with canonicalValuation from MCS, prop_truth_lemma, and prop_completeness. Direct simplification of modal K completeness in KCompleteness.lean lines 168-323. Literature: CZ Chapter 5 Section 5.1 (specs/literature/modal_logic.md lines 5832-5910) for Henkin/canonical model construction. Parent task: 112 (Phase 2). Task type: lean4.
+
+---
+
+### 113. Refactor derivation tree axiom types
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Refactor propositional DerivationTree to be parameterized over an axiom predicate (uniform with Modal/Temporal/Bimodal pattern). Change signature from DerivationTree Gamma phi to DerivationTree (Axioms : PL.Proposition Atom -> Prop) Gamma phi. Update all downstream files: Derivation.lean, DeductionTheorem.lean, MCS.lean, Instances.lean. Create IntPropAxiom (implyK, implyS, efq) and MinPropAxiom (implyK, implyS) inductive types in Axioms.lean. Register IntuitionisticHilbert HilbertInt and MinimalHilbert HilbertMin instances in new IntMinInstances.lean. Literature: CZ Chapter 1 axiom schemata. Parent task: 112 (Phase 1). Task type: lean4.
+
+---
+
 ### 112. Propositional hilbert soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [EXPANDED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None
@@ -84,7 +149,7 @@ next_project_number: 113
 ---
 
 ### 110. Modal db soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -94,7 +159,7 @@ next_project_number: 113
 ---
 
 ### 109. Modal d45 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -104,7 +169,7 @@ next_project_number: 113
 ---
 
 ### 108. Modal d5 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
