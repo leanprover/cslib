@@ -1,78 +1,32 @@
 {
-  "session_id": "sess_1781155129_2e89d0",
-  "task_numbers": [
-    100,
-    101,
-    102,
-    103,
-    104,
-    105,
-    106,
-    107
-  ],
-  "waves": [
-    [
-      100,
-      101,
-      102,
-      103,
-      104,
-      105,
-      106,
-      107
-    ]
-  ],
-  "cycle_count": 3,
+  "session_id": "sess_1781160592_1369a4",
+  "task_numbers": [113, 114, 115, 116, 117, 118],
+  "waves": [[113, 114], [115], [116], [117], [118]],
+  "dependency_graph": {"113": [], "114": [], "115": [113], "116": [113, 115], "117": [113, 115, 116], "118": [113, 114, 115, 116, 117]},
+  "cycle_count": 0,
   "max_cycles": 25,
-  "completed_tasks": [
-    100,
-    101,
-    102,
-    103,
-    104,
-    105,
-    106,
-    107
-  ],
   "failed_tasks": [],
+  "completed_tasks": [],
   "current_statuses": {
-    "100": "completed",
-    "101": "completed",
-    "102": "completed",
-    "103": "completed",
-    "104": "completed",
-    "105": "completed",
-    "106": "completed",
-    "107": "completed"
+    "113": "not_started",
+    "114": "not_started",
+    "115": "not_started",
+    "116": "not_started",
+    "117": "not_started",
+    "118": "not_started"
   },
   "task_types": {
-    "100": "lean4",
-    "101": "lean4",
-    "102": "lean4",
-    "103": "lean4",
-    "104": "lean4",
-    "105": "lean4",
-    "106": "lean4",
-    "107": "lean4"
+    "113": "lean4", "114": "lean4", "115": "lean4",
+    "116": "lean4", "117": "lean4", "118": "lean4"
   },
   "research_agents": {
-    "100": "lean-research-agent",
-    "101": "lean-research-agent",
-    "102": "lean-research-agent",
-    "103": "lean-research-agent",
-    "104": "lean-research-agent",
-    "105": "lean-research-agent",
-    "106": "lean-research-agent",
-    "107": "lean-research-agent"
+    "113": "lean-research-agent", "114": "lean-research-agent",
+    "115": "lean-research-agent", "116": "lean-research-agent",
+    "117": "lean-research-agent", "118": "lean-research-agent"
   },
   "implement_agents": {
-    "100": "lean-implementation-agent",
-    "101": "lean-implementation-agent",
-    "102": "lean-implementation-agent",
-    "103": "lean-implementation-agent",
-    "104": "lean-implementation-agent",
-    "105": "lean-implementation-agent",
-    "106": "lean-implementation-agent",
-    "107": "lean-implementation-agent"
+    "113": "lean-implementation-agent", "114": "lean-implementation-agent",
+    "115": "lean-implementation-agent", "116": "lean-implementation-agent",
+    "117": "lean-implementation-agent", "118": "lean-implementation-agent"
   }
 }

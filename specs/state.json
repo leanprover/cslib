@@ -10,7 +10,14 @@
       "description": "Update Cslib.lean imports to include all new propositional metalogic modules (Semantics/Basic, Semantics/Kripke, Soundness, Completeness, IntSoundness, IntLindenbaum, IntCompleteness, MinSoundness, MinCompleteness, IntMinInstances). Prove semantic coherence theorem for FromPropositional.lean connecting propositional tautology to modal validity for propositional formulas (~20-30 lines). Run full lake build and lean_verify on prop_completeness, int_completeness, min_completeness to confirm no sorry and no non-standard axioms. Parent task: 112 (Phase 6). Depends on: tasks 113, 114, 115, 116, 117. Task type: lean4.",
       "parent_task": 112,
       "created": "2026-06-11T06:36:27Z",
-      "last_updated": "2026-06-11T06:36:27Z"
+      "last_updated": "2026-06-11T06:36:27Z",
+      "dependencies": [
+        113,
+        114,
+        115,
+        116,
+        117
+      ]
     },
     {
       "project_number": 117,
@@ -21,7 +28,12 @@
       "description": "Prove soundness and completeness of HilbertMin with respect to minimal Kripke semantics. Reuses intuitionistic infrastructure from task 116 with different bot_forces instantiation: bot_forces w = (Proposition.bot in w) instead of fun _ => False. Create Metalogic/MinSoundness.lean with min_axiom_sound (2 cases: K, S only) and min_soundness. Create Metalogic/MinCompleteness.lean with adapted canonical model where bot can be forced at some worlds (upward-closed), min_truth_lemma, min_completeness. Literature: Minimal logic (Johansson 1937) treats bot as a propositional atom with upward-closed valuation. Parent task: 112 (Phase 5). Depends on: tasks 113, 115, 116. Task type: lean4.",
       "parent_task": 112,
       "created": "2026-06-11T06:36:19Z",
-      "last_updated": "2026-06-11T06:36:19Z"
+      "last_updated": "2026-06-11T06:36:19Z",
+      "dependencies": [
+        113,
+        115,
+        116
+      ]
     },
     {
       "project_number": 116,
@@ -32,7 +44,11 @@
       "description": "Prove soundness and completeness of HilbertInt with respect to intuitionistic Kripke semantics. Create Metalogic/IntSoundness.lean with int_axiom_sound (3 cases: K, S, EFQ) and int_soundness by induction on DerivationTree. Create Metalogic/IntLindenbaum.lean with prime theory definition (deductively closed, consistent, disjunction property expressed via imp/bot primitives), int_lindenbaum (every consistent set extends to a prime deductively-closed theory, adapting Zorn pattern from Consistency.lean). Create Metalogic/IntCompleteness.lean with canonical Kripke model (worlds = prime theories, accessibility = set inclusion, valuation = atom membership), int_truth_lemma (imp case uses universal quantification over accessible worlds and deduction theorem), int_completeness. Literature: CZ Section 2.6 Theorem 2.43 (specs/literature/modal_logic.md lines 2353-2412) for completeness of Int. CZ Section 5.1 (lines 5832-5910) for Lindenbaum pattern. Parent task: 112 (Phase 4). Depends on: tasks 113, 115. Task type: lean4.",
       "parent_task": 112,
       "created": "2026-06-11T06:36:10Z",
-      "last_updated": "2026-06-11T06:36:10Z"
+      "last_updated": "2026-06-11T06:36:10Z",
+      "dependencies": [
+        113,
+        115
+      ]
     },
     {
       "project_number": 115,
@@ -43,12 +59,15 @@
       "description": "Define propositional Kripke semantics with a parameterized forcing function reusing Modal.Model with partial-order and persistence constraints as hypotheses. Create Semantics/Kripke.lean with IForces parameterized by bot_forces : World -> Prop (intuitionistic instantiates with fun _ => False, minimal with upward-closed valuation). Prove iforces_persistence by structural induction on formulas. Define IValid (validity over all intuitionistic frames) and MValid (validity over all minimal frames). Literature: CZ Section 2.2 (specs/literature/modal_logic.md lines 1564-1642) for intuitionistic Kripke frames, valuations, forcing. CZ Proposition 2.1 (lines 1627-1630) for persistence. Parent task: 112 (Phase 3). Depends on: task 113. Task type: lean4.",
       "parent_task": 112,
       "created": "2026-06-11T06:35:59Z",
-      "last_updated": "2026-06-11T06:35:59Z"
+      "last_updated": "2026-06-11T06:35:59Z",
+      "dependencies": [
+        113
+      ]
     },
     {
       "project_number": 114,
       "project_name": "classical_propositional_soundness_completeness",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Define bivalent truth-value semantics and prove soundness and completeness for classical propositional logic (HilbertCl). Create Semantics/Basic.lean with Valuation (Atom -> Prop), Evaluate, and Tautology. Create Metalogic/Soundness.lean with prop_axiom_sound (4 cases: K, S, EFQ, Peirce) and prop_soundness by induction on DerivationTree. Create Metalogic/Completeness.lean with canonicalValuation from MCS, prop_truth_lemma, and prop_completeness. Direct simplification of modal K completeness in KCompleteness.lean lines 168-323. Literature: CZ Chapter 5 Section 5.1 (specs/literature/modal_logic.md lines 5832-5910) for Henkin/canonical model construction. Parent task: 112 (Phase 2). Task type: lean4.",
@@ -59,7 +78,7 @@
     {
       "project_number": 113,
       "project_name": "refactor_derivation_tree_axiom_types",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Refactor propositional DerivationTree to be parameterized over an axiom predicate (uniform with Modal/Temporal/Bimodal pattern). Change signature from DerivationTree Gamma phi to DerivationTree (Axioms : PL.Proposition Atom -> Prop) Gamma phi. Update all downstream files: Derivation.lean, DeductionTheorem.lean, MCS.lean, Instances.lean. Create IntPropAxiom (implyK, implyS, efq) and MinPropAxiom (implyK, implyS) inductive types in Axioms.lean. Register IntuitionisticHilbert HilbertInt and MinimalHilbert HilbertMin instances in new IntMinInstances.lean. Literature: CZ Chapter 1 axiom schemata. Parent task: 112 (Phase 1). Task type: lean4.",
@@ -114,7 +133,8 @@
       "description": "Prove canonical_symm (symmetry from axiom B alone) and canonical_eucl_from_5 (Euclideanness from axiom 5 alone). Add 10 new tag types and bundled classes to ProofSystem.lean. Define 10 axiom predicates and register all typeclass instances in Instances.lean. This is the critical infrastructure phase that unblocks all other modal cube tasks.",
       "parent_task": 99,
       "created": "2026-06-11T05:12:20Z",
-      "last_updated": "2026-06-11T05:12:20Z"
+      "last_updated": "2026-06-11T05:12:20Z",
+      "completion_summary": "10 bundled classes, 10 tag types, 10 axiom predicates, canonical_symm, canonical_eucl_from_5"
     },
     {
       "project_number": 101,
@@ -196,46 +216,50 @@
     {
       "project_number": 108,
       "project_name": "modal_d5_soundness_completeness",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic D5 (K + D + 5) over serial + Euclidean frames. Soundness via Satisfies.d + Satisfies.five; completeness via truth_lemma_d + canonical_serial + canonical_eucl_from_5. Create D5Soundness.lean and D5Completeness.lean.",
       "parent_task": 99,
       "created": "2026-06-11T05:12:20Z",
-      "last_updated": "2026-06-11T05:12:20Z"
+      "last_updated": "2026-06-11T05:12:20Z",
+      "completion_summary": "Soundness and completeness proved, zero sorries, build passes"
     },
     {
       "project_number": 109,
       "project_name": "modal_d45_soundness_completeness",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic D45 (K + D + 4 + 5) over serial + transitive + Euclidean frames. Soundness via Satisfies.d + Satisfies.four + Satisfies.five; completeness via truth_lemma_d + canonical_serial + canonical_trans + canonical_eucl_from_5. Create D45Soundness.lean and D45Completeness.lean.",
       "parent_task": 99,
       "created": "2026-06-11T05:12:20Z",
-      "last_updated": "2026-06-11T05:12:20Z"
+      "last_updated": "2026-06-11T05:12:20Z",
+      "completion_summary": "Soundness and completeness proved, zero sorries, build passes"
     },
     {
       "project_number": 110,
       "project_name": "modal_db_soundness_completeness",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic DB (K + D + B) over serial + symmetric frames. Soundness via Satisfies.d + Satisfies.b; completeness via truth_lemma_d + canonical_serial + canonical_symm. Create DBSoundness.lean and DBCompleteness.lean.",
       "parent_task": 99,
       "created": "2026-06-11T05:12:20Z",
-      "last_updated": "2026-06-11T05:12:20Z"
+      "last_updated": "2026-06-11T05:12:20Z",
+      "completion_summary": "Soundness and completeness proved, zero sorries, build passes"
     },
     {
       "project_number": 111,
       "project_name": "modal_cube_integration",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Update Metalogic.lean module aggregator with all 20 new imports. Verify lake build passes for the full module and project. Confirm no sorry or axioms in any new theorem via lean_verify.",
       "parent_task": 99,
       "created": "2026-06-11T05:12:20Z",
-      "last_updated": "2026-06-11T05:12:20Z"
+      "last_updated": "2026-06-11T05:12:20Z",
+      "completion_summary": "Soundness and completeness proved, zero sorries, build passes"
     },
     {
       "project_number": 99,
