@@ -324,6 +324,66 @@ class ModalS5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
     extends ModalS4Hilbert S (F := F),
             HasAxiomB S (F := F)
 
+/-- Modal Hilbert system KB (extends K with B / symmetry). -/
+class ModalBHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalHilbert S (F := F),
+            HasAxiomB S (F := F)
+
+/-- Modal Hilbert system K4 (extends K with 4 / transitivity). -/
+class ModalK4Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalHilbert S (F := F),
+            HasAxiom4 S (F := F)
+
+/-- Modal Hilbert system K5 (extends K with 5 / Euclideanness). -/
+class ModalK5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalHilbert S (F := F),
+            HasAxiom5 S (F := F)
+
+/-- Modal Hilbert system K45 (extends K4 with 5 / Euclideanness). -/
+class ModalK45Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalK4Hilbert S (F := F),
+            HasAxiom5 S (F := F)
+
+/-- Modal Hilbert system TB (extends T with B / symmetry). -/
+class ModalTBHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalTHilbert S (F := F),
+            HasAxiomB S (F := F)
+
+/-- Modal Hilbert system KB5 (extends KB with 5 / Euclideanness). -/
+class ModalKB5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalBHilbert S (F := F),
+            HasAxiom5 S (F := F)
+
+/-- Modal Hilbert system D4 (extends D with 4 / transitivity). -/
+class ModalD4Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalDHilbert S (F := F),
+            HasAxiom4 S (F := F)
+
+/-- Modal Hilbert system D5 (extends D with 5 / Euclideanness). -/
+class ModalD5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalDHilbert S (F := F),
+            HasAxiom5 S (F := F)
+
+/-- Modal Hilbert system D45 (extends D4 with 5 / Euclideanness). -/
+class ModalD45Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalD4Hilbert S (F := F),
+            HasAxiom5 S (F := F)
+
+/-- Modal Hilbert system DB (extends D with B / symmetry). -/
+class ModalDBHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalDHilbert S (F := F),
+            HasAxiomB S (F := F)
+
 /-- Temporal Hilbert system BX: extends classical propositional logic with
     temporal necessitation and all 22 BX temporal axiom typeclasses. -/
 class TemporalBXHilbert (S : Type*) [HasBot F] [HasImp F] [HasUntil F]
@@ -386,6 +446,36 @@ opaque Modal.HilbertS4 : Type := Empty
 
 /-- Tag type for modal logic S5. -/
 opaque Modal.HilbertS5 : Type := Empty
+
+/-- Tag type for modal logic KB. -/
+opaque Modal.HilbertB : Type := Empty
+
+/-- Tag type for modal logic K4. -/
+opaque Modal.HilbertK4 : Type := Empty
+
+/-- Tag type for modal logic K5. -/
+opaque Modal.HilbertK5 : Type := Empty
+
+/-- Tag type for modal logic K45. -/
+opaque Modal.HilbertK45 : Type := Empty
+
+/-- Tag type for modal logic TB. -/
+opaque Modal.HilbertTB : Type := Empty
+
+/-- Tag type for modal logic KB5. -/
+opaque Modal.HilbertKB5 : Type := Empty
+
+/-- Tag type for modal logic D4. -/
+opaque Modal.HilbertD4 : Type := Empty
+
+/-- Tag type for modal logic D5. -/
+opaque Modal.HilbertD5 : Type := Empty
+
+/-- Tag type for modal logic D45. -/
+opaque Modal.HilbertD45 : Type := Empty
+
+/-- Tag type for modal logic DB. -/
+opaque Modal.HilbertDB : Type := Empty
 
 /-- Tag type for temporal logic BX. -/
 opaque Temporal.HilbertBX : Type := Empty
