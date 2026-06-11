@@ -31,7 +31,7 @@ next_project_number: 123
 
 ### Submit PRs
 
-60 [RESEARCHED] — pr2_modal_metalogic
+60 [PLANNED] — pr2_modal_metalogic
 61 [NOT STARTED] — pr3_temporal_proof_system
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
@@ -76,13 +76,14 @@ next_project_number: 123
 ---
 
 ### 60. Pr2 modal metalogic
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
 - **Research**:
   - [060_pr2_modal_metalogic/reports/01_team-research.md]
   - [060_pr2_modal_metalogic/reports/02_pr2-preparation.md]
+- **Plan**: [060_pr2_modal_metalogic/plans/02_pr2-preparation.md]
 
 ---
 
