@@ -94,14 +94,14 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: KB5 Completeness + Module Integration [NOT STARTED]
+### Phase 2: KB5 Completeness + Module Integration [COMPLETED]
 
 **Goal**: Create `KB5Completeness.lean` proving completeness for KB5 via the canonical model construction using `k_truth_lemma`, `canonical_symm`, and `canonical_eucl_from_5`. Update the `Metalogic.lean` aggregator.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Modal/Metalogic/KB5Completeness.lean` with module header
-- [ ] Import `KCompleteness` (for `k_truth_lemma`), `Completeness` (for `canonical_symm`, `canonical_eucl_from_5`, `CanonicalModel`, `CanonicalWorld`), and `Instances`
-- [ ] Prove `kb5_completeness`:
+- [x] Create `Cslib/Logics/Modal/Metalogic/KB5Completeness.lean` with module header
+- [x] Import `KCompleteness` (for `k_truth_lemma`), `Completeness` (for `canonical_symm`, `canonical_eucl_from_5`, `CanonicalModel`, `CanonicalWorld`), and `Instances`
+- [x] Prove `kb5_completeness`:
   - Contrapositive setup: `by_contra h_not_deriv`
   - Show `{neg phi}` is KB5-consistent (standard double-negation elimination via implyK, implyS, efq, peirce -- identical pattern to K/S4/D completeness proofs)
   - Lindenbaum extension: `obtain <M, hM_sup, hM_mcs> := modal_lindenbaum h_cons`
@@ -111,13 +111,13 @@ Phases within the same wave can execute in parallel.
     - Symmetry via `canonical_symm` instantiated at KB5Axiom.modalB
     - Euclideanness via `canonical_eucl_from_5` instantiated at KB5Axiom.modalFive
   - Contradiction via `mcs_not_mem_of_neg`
-- [ ] Verify `kb5_completeness` with `lean_goal` at key positions
-- [ ] Update `Cslib/Logics/Modal/Metalogic.lean` to add:
+- [x] Verify `kb5_completeness` with `lean_goal` at key positions
+- [x] Update `Cslib/Logics/Modal/Metalogic.lean` to add:
   - `public import Cslib.Logics.Modal.Metalogic.KB5Soundness`
   - `public import Cslib.Logics.Modal.Metalogic.KB5Completeness`
-- [ ] Run `lake build Cslib.Logics.Modal.Metalogic.KB5Completeness`
-- [ ] Run `lake build Cslib.Logics.Modal.Metalogic` (full module)
-- [ ] `lean_verify` on `kb5_completeness`
+- [x] Run `lake build Cslib.Logics.Modal.Metalogic.KB5Completeness`
+- [x] Run `lake build Cslib.Logics.Modal.Metalogic` (full module)
+- [x] `lean_verify` on `kb5_completeness`
 
 **Timing**: 2 hours
 
