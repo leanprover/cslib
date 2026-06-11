@@ -105,20 +105,20 @@ The `b_soundness` and `b_soundness_derivable` wrappers pass `h_symm` through, fo
 
 ---
 
-### Phase 2: BCompleteness.lean [NOT STARTED]
+### Phase 2: BCompleteness.lean [COMPLETED]
 
 **Goal**: Create completeness theorem for modal logic B over symmetric frames.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Modal/Metalogic/BCompleteness.lean` with module header, imports, and copyright
-- [ ] Implement `b_completeness` theorem:
+- [x] Create `Cslib/Logics/Modal/Metalogic/BCompleteness.lean` with module header, imports, and copyright
+- [x] Implement `b_completeness` theorem:
   - Validity hypothesis: `forall (World : Type u) (m : Model World Atom), (forall w1 w2, m.r w1 w2 -> m.r w2 w1) -> forall w, Satisfies m w phi`
   - Step 1: `by_contra h_not_deriv` + consistency of `{neg phi}` (boilerplate from k_completeness)
   - Step 2: Lindenbaum extension to MCS M
-  - Step 3: Instantiate `canonical_symm` at BAxiom constructors (implyK, implyS, modalB, modalK)
+  - Step 3: Instantiate `canonical_symm` at BAxiom constructors (implyK, implyS, modalK, modalB)
   - Step 4: Apply `k_truth_lemma` instantiated at BAxiom constructors (implyK, implyS, efq, peirce, modalK)
   - Step 5: Contradiction via `mcs_not_mem_of_neg`
-- [ ] Verify with `lake build Cslib.Logics.Modal.Metalogic.BCompleteness`
+- [x] Verify with `lake build Cslib.Logics.Modal.Metalogic.BCompleteness`
 
 **Timing**: 1.5 hours
 
