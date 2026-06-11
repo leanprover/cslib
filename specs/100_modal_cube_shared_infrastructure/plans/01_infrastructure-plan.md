@@ -100,12 +100,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Axiom Predicates and Instance Registrations (Instances.lean) [NOT STARTED]
+### Phase 2: Axiom Predicates and Instance Registrations (Instances.lean) [COMPLETED]
 
 **Goal**: Add 10 axiom predicate inductive types and register all typeclass instances connecting tag types to DerivationTree, following the exact pattern of the existing K/T/D/S4/S5 instance registrations.
 
 **Tasks**:
-- [ ] Add 10 axiom predicate inductive types after S4Axiom (line 155), each with 4 propositional constructors (implyK, implyS, efq, peirce) and the appropriate modal constructors:
+- [x] Add 10 axiom predicate inductive types after S4Axiom (line 155), each with 4 propositional constructors (implyK, implyS, efq, peirce) and the appropriate modal constructors:
   - `BAxiom` (6 constructors: + modalK, modalB)
   - `K4Axiom` (6 constructors: + modalK, modalFour)
   - `K5Axiom` (6 constructors: + modalK, modalFive)
@@ -116,9 +116,9 @@ Phases within the same wave can execute in parallel.
   - `D5Axiom` (7 constructors: + modalK, modalD, modalFive)
   - `D45Axiom` (8 constructors: + modalK, modalD, modalFour, modalFive)
   - `DBAxiom` (7 constructors: + modalK, modalD, modalB)
-- [ ] For the `modalFive` constructor in each axiom predicate that includes axiom 5, encode it as: `((Proposition.box (phi.imp .bot)).imp .bot).imp (Proposition.box ((Proposition.box (phi.imp .bot)).imp .bot))` matching the Axiom5 definition in Axioms.lean
-- [ ] For the `modalB` constructor, encode as: `phi.imp (Proposition.box ((Proposition.box (phi.imp .bot)).imp .bot))` matching AxiomB
-- [ ] For each of the 10 logics, register the full instance chain after the existing S5 instances (line 501):
+- [x] For the `modalFive` constructor in each axiom predicate that includes axiom 5, encode it as: `((Proposition.box (phi.imp .bot)).imp .bot).imp (Proposition.box ((Proposition.box (phi.imp .bot)).imp .bot))` matching the Axiom5 definition in Axioms.lean
+- [x] For the `modalB` constructor, encode as: `phi.imp (Proposition.box ((Proposition.box (phi.imp .bot)).imp .bot))` matching AxiomB
+- [x] For each of the 10 logics, register the full instance chain after the existing S5 instances (line 501):
   1. `InferenceSystem Modal.HilbertX (Modal.Proposition Atom)` with `derivation phi := Modal.DerivationTree (@Modal.XAxiom Atom) [] phi`
   2. `ModusPonens Modal.HilbertX` (same pattern as K)
   3. `Necessitation Modal.HilbertX` (same pattern as K)
@@ -126,7 +126,7 @@ Phases within the same wave can execute in parallel.
   5. `HasAxiomK` (modal K axiom)
   6. Each additional modal axiom: `HasAxiomT`, `HasAxiom4`, `HasAxiomB`, `HasAxiom5`, `HasAxiomD` as appropriate
   7. Bundled class instances bottom-up: `ModalHilbert`, then parent (e.g., `ModalDHilbert`), then specific (e.g., `ModalD4Hilbert`)
-- [ ] Verify `lake build Cslib.Logics.Modal.ProofSystem.Instances` passes
+- [x] Verify `lake build Cslib.Logics.Modal.ProofSystem.Instances` passes
 
 **Timing**: 1.5 hours
 
