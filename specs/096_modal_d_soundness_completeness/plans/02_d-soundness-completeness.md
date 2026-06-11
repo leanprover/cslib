@@ -115,7 +115,7 @@ Phases are strictly sequential since completeness depends on soundness infrastru
 
 ---
 
-### Phase 2: Canonical Seriality and Box Witness for D [NOT STARTED]
+### Phase 2: Canonical Seriality and Box Witness for D [COMPLETED]
 
 **Goal**: Create Completeness/D.lean with `canonical_serial` (Blackburn Theorem 4.28 clause 3) and D-specific box witness (`derive_box_from_inconsistency_d`, `mcs_box_witness_d`).
 
