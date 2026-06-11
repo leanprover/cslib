@@ -95,7 +95,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Metalogic/Soundness.lean [NOT STARTED]
+### Phase 2: Metalogic/Soundness.lean [COMPLETED]
 
 **Goal**: Prove soundness of classical propositional logic: every derivable formula is a tautology.
 
