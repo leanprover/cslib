@@ -258,4 +258,195 @@ theorem canonical_serial
   intro φ h_box
   exact hWT h_box
 
+/-! ## Truth Lemma for D -/
+
+/-- **Truth Lemma for D**: For any canonical world `S` and formula `phi`,
+`Satisfies (CanonicalModel Axioms) S phi <-> phi in S.val`.
+
+This follows Blackburn Lemma 4.21. The only difference from the S5 truth lemma
+is the box case, which uses `mcs_box_witness_d` (axiom D) instead of
+`mcs_box_witness` (axiom T). -/
+theorem truth_lemma_d
+    {Axioms : Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    (h_efq : ∀ (φ : Proposition Atom), Axioms (Proposition.bot.imp φ))
+    (h_peirce : ∀ (φ ψ : Proposition Atom),
+      Axioms (((φ.imp ψ).imp φ).imp φ))
+    (h_K : ∀ (φ ψ : Proposition Atom),
+      Axioms ((Proposition.box (φ.imp ψ)).imp
+        ((Proposition.box φ).imp (Proposition.box ψ))))
+    (h_D : ∀ (φ : Proposition Atom),
+      Axioms ((Proposition.box φ).imp
+        ((Proposition.box (φ.imp .bot)).imp .bot)))
+    (S : CanonicalWorld Axioms) :
+    (φ : Proposition Atom) →
+    (Satisfies (CanonicalModel Axioms) S φ ↔ φ ∈ S.val)
+  | .atom p => by
+    constructor
+    · intro h; exact h
+    · intro h; exact h
+  | .bot => by
+    constructor
+    · intro h; exact absurd h id
+    · intro h; exact absurd h (mcs_bot_not_mem S.property)
+  | .imp φ ψ => by
+    constructor
+    · intro h_sat
+      rcases modal_negation_complete h_implyK h_implyS S.property (φ.imp ψ)
+        with h | h
+      · exact h
+      · exfalso
+        have h_phi_S : φ ∈ S.val := by
+          apply modal_closed_under_derivation h_implyK h_implyS S.property
+            (L := [(φ.imp ψ).imp .bot])
+            (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h)
+          unfold modalDerivationSystem Deriv
+          have d_bot' : DerivationTree Axioms
+              [φ.imp ψ, (φ.imp ψ).imp .bot] Proposition.bot :=
+            .modus_ponens _ (φ.imp ψ) .bot
+              (.assumption _ _ (by simp [List.mem_cons]))
+              (.assumption _ _ (by simp [List.mem_cons]))
+          have d_efq' : DerivationTree Axioms
+              [φ.imp ψ, (φ.imp ψ).imp .bot] φ :=
+            .modus_ponens _ .bot φ
+              (.weakening [] _ _ (.ax [] _ (h_efq φ)) (fun _ h => nomatch h))
+              d_bot'
+          have d_dt := deductionTheorem h_implyK h_implyS
+            [(φ.imp ψ).imp .bot] (φ.imp ψ) φ d_efq'
+          have d_peirce' : DerivationTree Axioms
+              [(φ.imp ψ).imp .bot] (((φ.imp ψ).imp φ).imp φ) :=
+            .weakening [] _ _ (.ax [] _ (h_peirce φ ψ)) (fun _ h => nomatch h)
+          exact ⟨.modus_ponens _ _ _ d_peirce' d_dt⟩
+        have h_sat_phi :=
+          (truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D S φ).mpr h_phi_S
+        have h_psi_S :=
+          (truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D S ψ).mp
+            (h_sat h_sat_phi)
+        have h_neg_psi_S : Proposition.neg ψ ∈ S.val := by
+          apply modal_closed_under_derivation h_implyK h_implyS S.property
+            (L := [(φ.imp ψ).imp .bot])
+            (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h)
+          unfold modalDerivationSystem Deriv
+          have d_imp : DerivationTree Axioms
+              [ψ, (φ.imp ψ).imp .bot] (φ.imp ψ) :=
+            .modus_ponens _ ψ (φ.imp ψ)
+              (.weakening [] _ _ (.ax [] _ (h_implyK ψ φ))
+                (fun _ h => nomatch h))
+              (.assumption _ _ (by simp [List.mem_cons]))
+          have d_bot'' : DerivationTree Axioms
+              [ψ, (φ.imp ψ).imp .bot] Proposition.bot :=
+            .modus_ponens _ (φ.imp ψ) .bot
+              (.assumption _ _ (by simp [List.mem_cons]))
+              d_imp
+          exact ⟨deductionTheorem h_implyK h_implyS
+            [(φ.imp ψ).imp .bot] ψ .bot d_bot''⟩
+        exact mcs_bot_not_mem S.property
+          (modal_implication_property h_implyK h_implyS S.property
+            h_neg_psi_S h_psi_S)
+    · intro h_mem h_sat_phi
+      exact (truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D S ψ).mpr
+        (modal_implication_property h_implyK h_implyS S.property h_mem
+          ((truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D S φ).mp
+            h_sat_phi))
+  | .box φ => by
+    constructor
+    · intro h_sat
+      by_contra h_not_box
+      obtain ⟨T, hT_mcs, hST, h_phi_not_T⟩ :=
+        mcs_box_witness_d h_implyK h_implyS h_efq h_peirce h_K h_D
+          S.property h_not_box
+      exact h_phi_not_T
+        ((truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D
+          ⟨T, hT_mcs⟩ φ).mp (h_sat ⟨T, hT_mcs⟩ hST))
+    · intro h_box T hST
+      exact (truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D T φ).mpr
+        (hST φ h_box)
+
+/-! ## Completeness Theorem for D -/
+
+/-- **Completeness Theorem for Modal Logic D**:
+
+If `phi` is valid over all serial frames, then `phi` is derivable from the empty
+context in the D proof system.
+
+This follows Blackburn Proposition 4.12 + Theorem 4.28 clause 3:
+1. Assume phi is not derivable.
+2. Then {neg phi} is consistent.
+3. By Lindenbaum, extend to MCS M containing neg phi.
+4. The canonical model is serial (canonical_serial, Theorem 4.28 clause 3).
+5. By validity hypothesis, phi is satisfied at M in the canonical model.
+6. By truth lemma, phi in M.
+7. But neg phi in M, contradiction. -/
+theorem d_completeness (φ : Proposition Atom)
+    (h_valid : ∀ (World : Type u) (m : Model World Atom),
+      Relation.Serial m.r →
+      ∀ w, Satisfies m w φ) :
+    Derivable (@DAxiom Atom) φ := by
+  by_contra h_not_deriv
+  have h_cons : Modal.SetConsistent (@DAxiom Atom)
+      ({Proposition.neg φ} : Set (Proposition Atom)) := by
+    intro L hL
+    unfold Metalogic.Consistent
+    intro ⟨d⟩
+    have d_weak : DerivationTree (@DAxiom Atom) [Proposition.neg φ]
+        Proposition.bot :=
+      .weakening L [Proposition.neg φ] .bot d (fun x hx => by
+        have := hL x hx; simp at this
+        exact List.mem_cons.mpr (Or.inl this))
+    have d_dne := deductionTheorem
+      (fun φ ψ => .implyK φ ψ)
+      (fun φ ψ χ => .implyS φ ψ χ)
+      [] (Proposition.neg φ) .bot d_weak
+    let neg_phi := Proposition.neg φ
+    have efq_ax : DerivationTree (@DAxiom Atom) (Atom := Atom) []
+        (Proposition.bot.imp φ) :=
+      .ax [] _ (.efq φ)
+    have ik : DerivationTree (@DAxiom Atom) (Atom := Atom) []
+        ((Proposition.bot.imp φ).imp
+          (neg_phi.imp (Proposition.bot.imp φ))) :=
+      .ax [] _ (.implyK (Proposition.bot.imp φ) neg_phi)
+    have step_k := DerivationTree.modus_ponens [] _ _ ik efq_ax
+    have is_ax : DerivationTree (@DAxiom Atom) (Atom := Atom) []
+        ((neg_phi.imp (Proposition.bot.imp φ)).imp
+         ((neg_phi.imp Proposition.bot).imp (neg_phi.imp φ))) :=
+      .ax [] _ (.implyS neg_phi Proposition.bot φ)
+    have step_s := DerivationTree.modus_ponens [] _ _ is_ax step_k
+    have step3 := DerivationTree.modus_ponens [] _ _ step_s d_dne
+    have peirce_ax : DerivationTree (@DAxiom Atom) (Atom := Atom) []
+        (((φ.imp Proposition.bot).imp φ).imp φ) :=
+      .ax [] _ (.peirce φ Proposition.bot)
+    have d_phi := DerivationTree.modus_ponens [] _ _ peirce_ax step3
+    exact h_not_deriv ⟨d_phi⟩
+  obtain ⟨M, hM_sup, hM_mcs⟩ := modal_lindenbaum h_cons
+  let w : CanonicalWorld (@DAxiom Atom) := ⟨M, hM_mcs⟩
+  -- Show canonical model is serial
+  have h_serial : Relation.Serial (CanonicalModel (@DAxiom Atom)).r := by
+    constructor
+    intro S
+    exact canonical_serial
+      (fun φ ψ => .implyK φ ψ)
+      (fun φ ψ χ => .implyS φ ψ χ)
+      (fun φ => .efq φ)
+      (fun φ ψ => .modalK φ ψ)
+      (fun φ => .modalD φ)
+      S
+  exact mcs_not_mem_of_neg
+    (fun φ ψ => .implyK φ ψ)
+    (fun φ ψ χ => .implyS φ ψ χ)
+    hM_mcs (hM_sup (Set.mem_singleton _))
+    ((truth_lemma_d
+      (fun φ ψ => .implyK φ ψ)
+      (fun φ ψ χ => .implyS φ ψ χ)
+      (fun φ => .efq φ)
+      (fun φ ψ => .peirce φ ψ)
+      (fun φ ψ => .modalK φ ψ)
+      (fun φ => .modalD φ)
+      w φ).mp
+      (h_valid (CanonicalWorld (@DAxiom Atom))
+        (CanonicalModel (@DAxiom Atom))
+        h_serial
+        w))
+
 end Cslib.Logic.Modal

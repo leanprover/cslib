@@ -176,7 +176,7 @@ This is equivalent to Blackburn's proof but avoids needing a separate Existence 
 
 ---
 
-### Phase 3: Truth Lemma and D Completeness [NOT STARTED]
+### Phase 3: Truth Lemma and D Completeness [COMPLETED]
 
 **Goal**: Add `truth_lemma_d` and `d_completeness` to Completeness/D.lean.
 
