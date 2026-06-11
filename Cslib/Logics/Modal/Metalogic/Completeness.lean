@@ -296,7 +296,27 @@ theorem canonical_eucl_from_5
   exact mcs_bot_not_mem T.property
     (modal_implication_property h_implyK h_implyS T.property h_diam_T h_box_dne_T)
 
-/-! ## Truth Lemma -/
+/-! ## Truth Lemma
+
+There are three truth lemma families in the metalogic, each parameterized over
+the axiom set and differing in which box-witness lemma they use:
+
+- **`truth_lemma`** (this file): For logics containing axiom T. Uses
+  `mcs_box_witness` from MCS.lean which relies on axiom T for the box-witness
+  consistency argument. Used by: S5, T, S4, TB.
+
+- **`k_truth_lemma`** (KCompleteness.lean): For logics NOT containing axiom T.
+  Uses a K-specific box witness (`mcs_box_witness_k`) that avoids axiom T.
+  Used by: K, B, K4, K5, K45, KB5.
+
+- **`truth_lemma_d`** (DCompleteness.lean): For logics containing axiom D but
+  NOT axiom T. Uses a D-specific box witness (`mcs_box_witness_d`) that replaces
+  axiom T with axiom D + necessitation for the seriality argument. Used by: D,
+  D4, D5, D45, DB.
+
+All three families share the same canonical model definition (`CanonicalModel`)
+from this file. Logics differ only in which frame properties are provable for
+the canonical accessibility relation. -/
 
 /-- **Truth Lemma**: For any canonical world `S` and formula `phi`,
 `Satisfies (CanonicalModel Axioms) S phi <-> phi in S.val`. -/
