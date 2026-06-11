@@ -36,8 +36,8 @@ next_project_number: 125
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-123 [NOT STARTED] — add_bib_references_pr1
-124 [NOT STARTED] — plan_pr1_decomposition_into_smaller_prs
+123 [IMPLEMENTING] — add_bib_references_pr1
+124 [RESEARCHED] — plan_pr1_decomposition_into_smaller_prs
 
 ### Foundations
 
@@ -46,18 +46,21 @@ next_project_number: 125
 ## Tasks
 
 ### 124. Plan pr1 decomposition into smaller prs
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Dependencies**: None
+- **Research**: [124_plan_pr1_decomposition_into_smaller_prs/reports/01_pr1-decomposition-research.md]
 
 ---
 
 ### 123. Add bib references pr1
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
+- **Research**: [123_add_bib_references_pr1/reports/01_bib-references-research.md]
+- **Plan**: [123_add_bib_references_pr1/plans/01_bib-references-plan.md]
 
 ---
 
