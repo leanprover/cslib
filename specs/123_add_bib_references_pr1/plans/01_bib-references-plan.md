@@ -88,7 +88,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Update Propositional Logic Files [NOT STARTED]
+### Phase 2: Update Propositional Logic Files [COMPLETED]
 
 **Goal**: Replace all informal "CZ" references with proper Mathlib-style citations in the 14 Propositional logic files, and add a `## References` section to `Defs.lean` which currently has none.
 
@@ -149,7 +149,7 @@ With:
 
 ---
 
-### Phase 3: Update Modal Logic and Foundation Files [NOT STARTED]
+### Phase 3: Update Modal Logic and Foundation Files [COMPLETED]
 
 **Goal**: Add missing `## References` sections to Modal files that lack them, and confirm existing correct references are untouched.
 
@@ -173,7 +173,7 @@ With:
 
 ---
 
-### Phase 4: Verification and Consistency Check [NOT STARTED]
+### Phase 4: Verification and Consistency Check [COMPLETED]
 
 **Goal**: Verify all references are properly formatted, all BibKeys resolve, and no regressions exist.
 

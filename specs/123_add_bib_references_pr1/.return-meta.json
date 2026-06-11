@@ -1,21 +1,30 @@
 {
-  "status": "planned",
+  "status": "implemented",
   "artifacts": [
     {
       "type": "plan",
       "path": "specs/123_add_bib_references_pr1/plans/01_bib-references-plan.md",
       "summary": "Implementation plan with 4 phases for adding bibliographic references to PR 1 files"
+    },
+    {
+      "type": "summary",
+      "path": "specs/123_add_bib_references_pr1/summaries/01_bib-references-summary.md",
+      "summary": "Implementation summary for adding bib references to PR 1"
     }
   ],
-  "next_steps": "Run /implement 123 to execute the plan",
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
+  },
   "metadata": {
     "session_id": "sess_1749674900_a3c1f2",
-    "agent_type": "planner-agent",
+    "agent_type": "lean-implementation-agent",
     "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "planner-agent"],
-    "phase_count": 4,
-    "estimated_hours": 2,
-    "dependency_waves": [[1], [2, 3], [4]]
+    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "lean-implementation-agent"],
+    "compliance_check": "passed"
   },
   "memory_candidates": []
 }
