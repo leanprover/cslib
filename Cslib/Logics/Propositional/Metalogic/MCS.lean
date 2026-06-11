@@ -10,23 +10,21 @@ public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
 
 /-! # Maximal Consistent Sets for Propositional Logic
 
-This module instantiates the generic MCS framework (from `Consistency.lean`) for
-propositional logic and proves propositional-specific MCS properties needed for
-completeness results.
+This module instantiates the generic MCS framework (from `Consistency.lean`)
+parameterized over an axiom predicate `Axioms : PL.Proposition Atom -> Prop` and proves
+propositional-specific MCS properties needed for completeness results.
 
-## Main Results
+## Parameterization Design
 
-### Generic MCS properties (instantiated from Consistency.lean)
-- `prop_lindenbaum`: Every consistent set extends to a maximally consistent set.
-- `prop_closed_under_derivation`: Derivable formulas are in MCS.
-- `prop_implication_property`: Modus ponens reflected in membership.
-- `prop_negation_complete`: Either `φ` or `¬φ` is in every MCS.
+- **Generic properties** (lindenbaum, closed_under_derivation, etc.) take `{Axioms}`
+  and, where needed, explicit `h_implyK`/`h_implyS` for the deduction theorem.
+- **Propositional-specific properties** (`prop_mcs_bot_not_mem`, etc.) are parameterized
+  over `{Axioms}` with `h_implyK`/`h_implyS` where the deduction theorem is needed.
 
-### Propositional-specific properties
-- `prop_mcs_bot_not_mem`: `⊥ ∉ S` for any MCS `S`.
-- `prop_mcs_neg_of_not_mem`: If `φ ∉ S`, then `¬φ ∈ S`.
-- `prop_mcs_not_mem_of_neg`: If `¬φ ∈ S`, then `φ ∉ S`.
-- `prop_mcs_mem_iff_neg_not_mem`: `φ ∈ S ↔ ¬φ ∉ S`.
+## Backward Compatibility
+
+All definitions are parameterized. Classical-specific usage passes `PropositionalAxiom`
+and the corresponding constructor proofs.
 
 ## References
 
@@ -44,89 +42,119 @@ variable {Atom : Type*}
 
 /-! ## Abbreviations for readability -/
 
-/-- Set consistency for the classical propositional derivation system. -/
-abbrev PropSetConsistent (S : Set (PL.Proposition Atom)) : Prop :=
-  Metalogic.SetConsistent (propDerivationSystem PropositionalAxiom) S
+/-- Set consistency for a parameterized propositional derivation system. -/
+abbrev PropSetConsistent (Axioms : PL.Proposition Atom → Prop)
+    (S : Set (PL.Proposition Atom)) : Prop :=
+  Metalogic.SetConsistent (propDerivationSystem Axioms) S
 
-/-- Set maximal consistency for the classical propositional derivation system. -/
-abbrev PropSetMaximalConsistent (S : Set (PL.Proposition Atom)) : Prop :=
-  Metalogic.SetMaximalConsistent (propDerivationSystem PropositionalAxiom) S
+/-- Set maximal consistency for a parameterized propositional derivation system. -/
+abbrev PropSetMaximalConsistent (Axioms : PL.Proposition Atom → Prop)
+    (S : Set (PL.Proposition Atom)) : Prop :=
+  Metalogic.SetMaximalConsistent (propDerivationSystem Axioms) S
 
-/-! ## Generic MCS Properties (instantiated) -/
+/-! ## Generic MCS Properties (parameterized) -/
 
 /-- Lindenbaum's lemma for propositional logic: every consistent set extends
 to an MCS. -/
-theorem prop_lindenbaum {S : Set (PL.Proposition Atom)}
-    (hS : PropSetConsistent S) :
-    ∃ M : Set (PL.Proposition Atom), S ⊆ M ∧ PropSetMaximalConsistent M :=
-  Metalogic.set_lindenbaum (propDerivationSystem PropositionalAxiom) hS
+theorem prop_lindenbaum {Axioms : PL.Proposition Atom → Prop}
+    {S : Set (PL.Proposition Atom)}
+    (hS : PropSetConsistent Axioms S) :
+    ∃ M : Set (PL.Proposition Atom), S ⊆ M ∧ PropSetMaximalConsistent Axioms M :=
+  Metalogic.set_lindenbaum (propDerivationSystem Axioms) hS
 
 /-- Derivable formulas are in MCS. -/
 theorem prop_closed_under_derivation
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S)
+    {Axioms : PL.Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : PL.Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     {L : List (PL.Proposition Atom)} (h_sub : ∀ ψ ∈ L, ψ ∈ S)
     {φ : PL.Proposition Atom}
-    (h_deriv : (propDerivationSystem PropositionalAxiom).Deriv L φ) : φ ∈ S :=
+    (h_deriv : (propDerivationSystem Axioms).Deriv L φ) : φ ∈ S :=
   Metalogic.SetMaximalConsistent.closed_under_derivation
-    (propDerivationSystem PropositionalAxiom) cl_prop_has_deduction_theorem
+    (propDerivationSystem Axioms)
+    (prop_has_deduction_theorem h_implyK h_implyS)
     h_mcs h_sub h_deriv
 
 /-- Implication property: if `φ → ψ ∈ S` and `φ ∈ S`, then `ψ ∈ S`. -/
 theorem prop_implication_property
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S)
+    {Axioms : PL.Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : PL.Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     {φ ψ : PL.Proposition Atom}
     (h_imp : Proposition.imp φ ψ ∈ S) (h_phi : φ ∈ S) : ψ ∈ S :=
   Metalogic.SetMaximalConsistent.implication_property
-    (propDerivationSystem PropositionalAxiom) cl_prop_has_deduction_theorem
+    (propDerivationSystem Axioms)
+    (prop_has_deduction_theorem h_implyK h_implyS)
     h_mcs h_imp h_phi
 
 /-- Negation completeness: for any formula `φ`, either `φ ∈ S` or `¬φ ∈ S`. -/
 theorem prop_negation_complete
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S)
+    {Axioms : PL.Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : PL.Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     (φ : PL.Proposition Atom) : φ ∈ S ∨ Proposition.neg φ ∈ S :=
   Metalogic.SetMaximalConsistent.negation_complete
-    (propDerivationSystem PropositionalAxiom) cl_prop_has_deduction_theorem
+    (propDerivationSystem Axioms)
+    (prop_has_deduction_theorem h_implyK h_implyS)
     h_mcs φ
 
 /-! ## Propositional-Specific MCS Properties -/
 
 /-- `⊥ ∉ S` for any MCS `S`. -/
 theorem prop_mcs_bot_not_mem
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S) :
+    {Axioms : PL.Proposition Atom → Prop}
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S) :
     Proposition.bot ∉ S := by
   intro h_bot
   exact h_mcs.1 [Proposition.bot]
     (fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_bot)
     (by simp only [propDerivationSystem, Deriv]
-        exact ⟨.assumption _ _
-          (List.mem_cons.mpr (Or.inl rfl))⟩)
+        exact ⟨.assumption _ _ (List.mem_cons.mpr (Or.inl rfl))⟩)
 
 /-- If `φ ∉ S` (MCS), then `¬φ ∈ S`. -/
 theorem prop_mcs_neg_of_not_mem
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S)
+    {Axioms : PL.Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : PL.Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     {φ : PL.Proposition Atom} (h_not : φ ∉ S) : Proposition.neg φ ∈ S := by
-  rcases prop_negation_complete h_mcs φ with h | h
+  rcases prop_negation_complete h_implyK h_implyS h_mcs φ with h | h
   · exact absurd h h_not
   · exact h
 
 /-- If `¬φ ∈ S` (MCS), then `φ ∉ S`. -/
 theorem prop_mcs_not_mem_of_neg
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S)
+    {Axioms : PL.Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : PL.Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     {φ : PL.Proposition Atom} (h_neg : Proposition.neg φ ∈ S) : φ ∉ S := by
   intro h_phi
   exact prop_mcs_bot_not_mem h_mcs
-    (prop_implication_property h_mcs h_neg h_phi)
+    (prop_implication_property h_implyK h_implyS h_mcs h_neg h_phi)
 
 /-- `φ ∈ S ↔ ¬φ ∉ S` for MCS `S`. -/
 theorem prop_mcs_mem_iff_neg_not_mem
-    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent S)
+    {Axioms : PL.Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : PL.Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     {φ : PL.Proposition Atom} : φ ∈ S ↔ Proposition.neg φ ∉ S := by
   constructor
   · intro h hn
     exact prop_mcs_bot_not_mem h_mcs
-      (prop_implication_property h_mcs hn h)
+      (prop_implication_property h_implyK h_implyS h_mcs hn h)
   · intro h
-    rcases prop_negation_complete h_mcs φ with h' | h'
+    rcases prop_negation_complete h_implyK h_implyS h_mcs φ with h' | h'
     · exact h'
     · exact absurd h' h
 
