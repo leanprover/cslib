@@ -1,6 +1,15 @@
 {
-  "next_project_number": 99,
+  "next_project_number": 100,
   "active_projects": [
+    {
+      "project_number": 99,
+      "project_name": "complete_modal_cube_hilbert_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "created": "2026-06-11T04:39:22Z",
+      "last_updated": "2026-06-11T04:39:22Z"
+    },
     {
       "project_number": 90,
       "project_name": "expand_modal_cube_proof_systems_metalogic",

@@ -1,5 +1,5 @@
 ---
-next_project_number: 99
+next_project_number: 100
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 99
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,91 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,91,99 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -43,11 +43,23 @@ next_project_number: 99
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 91 [PLANNED] — Create feature branch and submit PR 1.5 containing the propositio
 
+### Modal Logic
+
+99 [NOT STARTED] — complete_modal_cube_hilbert_systems
+
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 99. Complete modal cube hilbert systems
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+---
 
 ### 91. Pr 1 5 propositional hilbert submission
 - **Status**: [PLANNED]
