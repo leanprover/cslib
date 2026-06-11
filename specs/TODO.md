@@ -61,7 +61,7 @@ next_project_number: 120
 
 ### Modal Logic
 
-119 [NOT STARTED] — Review and improve the Cslib/Logics/Modal/ directory: audit all 2
+119 [RESEARCHED] — Review and improve the Cslib/Logics/Modal/ directory: audit all 2
 
 ### Foundations
 
@@ -70,10 +70,11 @@ next_project_number: 120
 ## Tasks
 
 ### 119. Modal code quality audit
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
+- **Research**: [119_modal_code_quality_audit/reports/01_team-research.md]
 
 **Description**: Review and improve the Cslib/Logics/Modal/ directory: audit all 20+ new soundness/completeness files (B, K4, K5, K45, KB5, TB, D4, D5, D45, DB) and the modified infrastructure files (ProofSystem.lean, Instances.lean, Completeness.lean) for code quality improvements. Look for: (1) duplicated proof patterns that could be factored into shared lemmas, (2) linter warnings (flexible simp, unused variables) that should be cleaned up, (3) inconsistent naming or style across files, (4) opportunities to simplify proofs using existing Mathlib/cslib automation, (5) missing or incorrect docstrings, (6) any sorry or vacuous definitions that slipped through, (7) whether the Metalogic.lean import ordering follows a consistent convention
 
