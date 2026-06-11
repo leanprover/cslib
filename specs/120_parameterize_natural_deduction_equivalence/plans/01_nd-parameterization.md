@@ -145,7 +145,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Parameterize Equivalence.lean [NOT STARTED]
+### Phase 3: Parameterize Equivalence.lean [COMPLETED]
 
 **Goal**: Generalize the Hilbert-ND equivalence to work for any axiom set containing K, S, and EFQ, with instantiated corollaries for intuitionistic and classical logic.
 
