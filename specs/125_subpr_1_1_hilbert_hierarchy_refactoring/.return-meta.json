@@ -1,0 +1,17 @@
+{
+  "status": "researched",
+  "started_at": "2026-06-11T23:10:00Z",
+  "artifacts": [
+    {
+      "path": "specs/125_subpr_1_1_hilbert_hierarchy_refactoring/reports/02_research-report.md",
+      "type": "report",
+      "summary": "Comprehensive analysis revealing spec-to-reality mismatch: 12/13 files are NEW to upstream (not modifications), 5 additional dependency files needed, NaturalDeduction/Basic.lean must be updated for Defs.lean compatibility, Theorems.lean barrel needs reduction to exclude modal/temporal imports. Recommends using local main as source, expanding scope to ~21 files."
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1781219129_2bbfa8",
+    "agent_type": "lean-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+  }
+}

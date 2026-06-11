@@ -4,13 +4,22 @@
     {
       "project_number": 125,
       "project_name": "subpr_1_1_hilbert_hierarchy_refactoring",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-11T22:30:00Z",
-      "last_updated": "2026-06-11T22:30:00Z",
-      "description": "Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs."
+      "last_updated": "2026-06-11T23:20:32Z",
+      "description": "Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs.",
+      "session_id": "sess_1781219129_2bbfa8",
+      "researched": "2026-06-11T23:20:32Z",
+      "artifacts": [
+        {
+          "path": "specs/125_subpr_1_1_hilbert_hierarchy_refactoring/reports/02_research-report.md",
+          "type": "report",
+          "summary": "Detailed extraction analysis: 12/13 files NEW to upstream (not modifications), 5 additional dependency files needed, NaturalDeduction/Basic.lean update required, Theorems.lean barrel needs reduction. Scope expands from 13 to ~21 files."
+        }
+      ]
     },
     {
       "project_number": 126,

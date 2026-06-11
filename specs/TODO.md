@@ -36,7 +36,7 @@ next_project_number: 136
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-125 [NOT STARTED] — Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 alr
+125 [RESEARCHED] — Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 alr
   └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
     └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
       └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
@@ -159,10 +159,11 @@ next_project_number: 136
 ---
 
 ### 125. Subpr 1 1 hilbert hierarchy refactoring
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
+- **Research**: [125_subpr_1_1_hilbert_hierarchy_refactoring/reports/02_research-report.md]
 
 **Description**: Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs.
 
