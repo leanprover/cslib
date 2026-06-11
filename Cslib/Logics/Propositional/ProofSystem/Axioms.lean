@@ -52,4 +52,55 @@ inductive PropositionalAxiom : PL.Proposition Atom → Prop where
   | peirce (φ ψ : PL.Proposition Atom) :
       PropositionalAxiom (((φ.imp ψ).imp φ).imp φ)
 
+/-- Axiom schemata for intuitionistic propositional logic.
+
+The 3 axiom constructors are:
+- **implyK** (weakening): `φ → (ψ → φ)`
+- **implyS** (distribution): `(φ → (ψ → χ)) → ((φ → ψ) → (φ → χ))`
+- **efq** (ex falso quodlibet): `⊥ → φ`
+
+Together with modus ponens, these axioms characterize intuitionistic propositional logic. -/
+inductive IntPropAxiom : PL.Proposition Atom → Prop where
+  /-- Weakening: `φ → (ψ → φ)` -/
+  | implyK (φ ψ : PL.Proposition Atom) :
+      IntPropAxiom (φ.imp (ψ.imp φ))
+  /-- Distribution: `(φ → (ψ → χ)) → ((φ → ψ) → (φ → χ))` -/
+  | implyS (φ ψ χ : PL.Proposition Atom) :
+      IntPropAxiom ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ)))
+  /-- Ex falso quodlibet: `⊥ → φ` -/
+  | efq (φ : PL.Proposition Atom) :
+      IntPropAxiom (Proposition.bot.imp φ)
+
+/-- Axiom schemata for minimal propositional logic.
+
+The 2 axiom constructors are:
+- **implyK** (weakening): `φ → (ψ → φ)`
+- **implyS** (distribution): `(φ → (ψ → χ)) → ((φ → ψ) → (φ → χ))`
+
+Together with modus ponens, these axioms characterize minimal propositional logic. -/
+inductive MinPropAxiom : PL.Proposition Atom → Prop where
+  /-- Weakening: `φ → (ψ → φ)` -/
+  | implyK (φ ψ : PL.Proposition Atom) :
+      MinPropAxiom (φ.imp (ψ.imp φ))
+  /-- Distribution: `(φ → (ψ → χ)) → ((φ → ψ) → (φ → χ))` -/
+  | implyS (φ ψ χ : PL.Proposition Atom) :
+      MinPropAxiom ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ)))
+
+/-! ## Axiom Subsumption -/
+
+/-- Every minimal propositional axiom is an intuitionistic propositional axiom. -/
+theorem MinPropAxiom.toIntProp {φ : PL.Proposition Atom}
+    (h : MinPropAxiom φ) : IntPropAxiom φ := by
+  cases h with
+  | implyK a b => exact .implyK a b
+  | implyS a b c => exact .implyS a b c
+
+/-- Every intuitionistic propositional axiom is a classical propositional axiom. -/
+theorem IntPropAxiom.toProp {φ : PL.Proposition Atom}
+    (h : IntPropAxiom φ) : PropositionalAxiom φ := by
+  cases h with
+  | implyK a b => exact .implyK a b
+  | implyS a b c => exact .implyS a b c
+  | efq a => exact .efq a
+
 end Cslib.Logic.PL

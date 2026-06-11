@@ -44,7 +44,7 @@ section PropositionalInstances
 
 instance : InferenceSystem Propositional.HilbertCl
     (PL.Proposition Atom) where
-  derivation φ := PL.DerivationTree
+  derivation φ := PL.DerivationTree PropositionalAxiom
     ([] : List (PL.Proposition Atom)) φ
 
 /-! ## ModusPonens Instance -/
