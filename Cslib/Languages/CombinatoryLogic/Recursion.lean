@@ -321,19 +321,15 @@ theorem RFindAbove_correct' (f x : SKI) (n m : Nat) (hx : IsChurch m x)
   induction n generalizing m x
   all_goals apply isChurch_trans _ (RFindAbove_unfold x f)
   case zero =>
-    simp only [Nat.add_zero] at *
-    apply isChurch_trans (a' := x)
-    · exact rfindAboveAux_base _ _ _ (hf_root x hx)
-    · exact hx
+    exact isChurch_trans _ (rfindAboveAux_base _ _ _ (hf_root x hx)) hx
   case succ n ih =>
     apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
     · obtain ⟨k, hk⟩ := hf_below 0 (by omega) x (by simpa using hx)
       exact rfindAboveAux_step _ _ _ hk
-    · rw [show m + (n + 1) = (m + 1) + n from by omega]
-      exact ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
-        (fun y hy => hf_root y (by rw [show m + 1 + n = m + (n + 1) from by omega] at hy; exact hy))
-        (fun i hi y hy => hf_below (i + 1) (by omega) y (by
-          rw [show m + 1 + i = m + (i + 1) from by omega] at hy; exact hy))
+    · have := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
+        (fun y hy => hf_root y (by grind))
+        (fun i hi y hy => hf_below (i + 1) (by omega) y (by grind))
+      grind
 
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y → IsChurch (fNat i) (f ⬝ y))
@@ -341,11 +337,8 @@ theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
   apply RFindAbove_correct' f x n m hx
   · intro y hy; exact hroot ▸ hf (m + n) y hy
-  · intro i hi y hy
-    have hne := hpos i hi
-    refine ⟨(fNat (m + i)) - 1, ?_⟩
-    have : fNat (m + i) - 1 + 1 = fNat (m + i) := by omega
-    rw [this]; exact hf (m + i) y hy
+  · exact fun i hi y hy => ⟨fNat (m + i) - 1,
+      Nat.succ_pred_eq_of_ne_zero (hpos i hi) ▸ hf (m + i) y hy⟩
 
 
 /-- Ordinary root finding is root finding above zero -/

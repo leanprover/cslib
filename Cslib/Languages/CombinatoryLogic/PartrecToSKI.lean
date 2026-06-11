@@ -127,27 +127,20 @@ private theorem computes_of_total (t : SKI) (c : Code) (g : ℕ → ℕ)
 
 /-- `Code.zero` computes the constant zero function. -/
 theorem zero_computes : Computes (K ⬝ SKI.Zero) (Code.eval .zero) :=
-  computes_of_total _ .zero (fun _ => 0)
-    (fun n => by rw [show Code.zero = Code.const 0 from rfl, Code.eval_const])
+  computes_of_total _ .zero (fun _ => 0) (fun _ => rfl)
     (fun _ _ _ => isChurch_trans 0 (MRed.K SKI.Zero _) zero_correct)
 
 /-- `Code.succ` computes the successor function. -/
 theorem succ_computes : Computes SKI.Succ (Code.eval .succ) :=
-  computes_of_total _ .succ (· + 1)
-    (fun _ => by simp only [Code.eval, PFun.coe_val])
-    (fun n cn hcn => succ_correct n cn hcn)
+  computes_of_total _ .succ (· + 1) (fun _ => rfl) succ_correct
 
 /-- `Code.left` computes the left projection of `Nat.unpair`. -/
 theorem left_computes : Computes NatUnpairLeft (Code.eval .left) :=
-  computes_of_total _ .left (fun n => (Nat.unpair n).1)
-    (fun _ => by simp only [Code.eval, PFun.coe_val])
-    (fun n cn hcn => natUnpairLeft_correct n cn hcn)
+  computes_of_total _ .left (fun n => (Nat.unpair n).1) (fun _ => rfl) natUnpairLeft_correct
 
 /-- `Code.right` computes the right projection of `Nat.unpair`. -/
 theorem right_computes : Computes NatUnpairRight (Code.eval .right) :=
-  computes_of_total _ .right (fun n => (Nat.unpair n).2)
-    (fun _ => by simp only [Code.eval, PFun.coe_val])
-    (fun n cn hcn => natUnpairRight_correct n cn hcn)
+  computes_of_total _ .right (fun n => (Nat.unpair n).2) (fun _ => rfl) natUnpairRight_correct
 
 /-- Composition of computable functions is computable. -/
 theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
@@ -238,11 +231,8 @@ private theorem prec_computes {f g : Code} {tf tg : SKI}
   intro n cn hcn m hm
   have hca := natUnpairLeft_correct n cn hcn
   have hcb := natUnpairRight_correct n cn hcn
-  have hred := precTrans_def tf tg cn
-  have hpair : n = Nat.pair (Nat.unpair n).1 (Nat.unpair n).2 :=
-    (Nat.pair_unpair n).symm
-  rw [hpair] at hm
-  exact isChurch_trans _ hred (prec_rec_correct f g _ _ ihf ihg
+  rw [← Nat.pair_unpair n] at hm
+  exact isChurch_trans _ (precTrans_def tf tg cn) (prec_rec_correct f g _ _ ihf ihg
     (Nat.unpair n).1 (NatUnpairLeft ⬝ cn) hca
     (Nat.unpair n).2 m hm (NatUnpairRight ⬝ cn) hcb)
 
@@ -251,16 +241,13 @@ private theorem rfind_computes {f : Code} {tf : SKI}
     (ihf : Computes tf f.eval) :
     Computes (RFindTrans tf) (Code.rfind' f).eval := by
   intro n cn hcn result hresult
-  set a₀ := (Nat.unpair n).1
-  set m₀ := (Nat.unpair n).2
   have hca := natUnpairLeft_correct n cn hcn
   have hcm₀ := natUnpairRight_correct n cn hcn
   -- Extract k from the rfind result
-  have hresult' : result ∈ Code.eval (Code.rfind' f) n := by
-    rw [hresult]; exact Part.mem_some _
-  simp only [Code.eval, Nat.unpaired,
-    show (Nat.unpair n).1 = a₀ from rfl,
-    show (Nat.unpair n).2 = m₀ from rfl] at hresult'
+  have hresult' : result ∈ Code.eval (Code.rfind' f) n := hresult ▸ Part.mem_some _
+  simp only [Code.eval, Nat.unpaired] at hresult'
+  set a₀ := (Nat.unpair n).1
+  set m₀ := (Nat.unpair n).2
   obtain ⟨k, hk_mem, hresult_eq⟩ := (Part.mem_map_iff _).mp hresult'
   subst hresult_eq
   -- Build the callback: the composed SKI term computes f on paired arguments
@@ -274,8 +261,7 @@ private theorem rfind_computes {f : Code} {tf : SKI}
     (fun y hy => hg (m₀ + k) y hy 0 (rfind_eval_root hk_mem))
     (fun i hi y hy => by
       obtain ⟨vi, hvi_ne, hvi_eq⟩ := rfind_eval_pos_below hk_mem i hi
-      exact ⟨vi - 1, by have : vi - 1 + 1 = vi := by omega
-                        rw [this]; exact hg (m₀ + i) y hy vi hvi_eq⟩)
+      exact ⟨vi - 1, Nat.succ_pred_eq_of_ne_zero hvi_ne ▸ hg (m₀ + i) y hy vi hvi_eq⟩)
   rw [Nat.add_comm] at hind
   exact isChurch_trans _ (rfindTrans_def tf cn) hind
 
