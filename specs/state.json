@@ -1,15 +1,16 @@
 {
-  "next_project_number": 138,
+  "next_project_number": 145,
   "active_projects": [
     {
       "project_number": 137,
       "project_name": "refactor_modal_directory_structure",
-      "status": "not_started",
+      "status": "researching",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).",
       "created": "2026-06-11T23:48:36Z",
-      "last_updated": "2026-06-11T23:48:36Z"
+      "last_updated": "2026-06-11T23:50:21Z",
+      "session_id": "sess_1781221805_7d8c5d"
     },
     {
       "project_number": 136,
@@ -36,12 +37,12 @@
     {
       "project_number": 125,
       "project_name": "subpr_1_1_hilbert_hierarchy_refactoring",
-      "status": "planned",
+      "status": "expanded",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-11T22:30:00Z",
-      "last_updated": "2026-06-11T23:46:29Z",
+      "last_updated": "2026-06-12T00:15:00Z",
       "description": "Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs.",
       "session_id": "sess_1781221214_ace4f8",
       "researched": "2026-06-11T23:38:02Z",
@@ -61,7 +62,8 @@
           "type": "plan",
           "summary": "7-phase plan: Zulip topic + 5-6 PRs (each <500 lines) extracting Hilbert hierarchy foundation layer to upstream CSLib. Covers Proposition refactoring, axiom definitions, proof system hierarchy, instances, theorems, and metalogic."
         }
-      ]
+      ],
+      "completion_summary": "Expanded into tasks 138-144 (Sub-PRs 1.1.1 through 1.1.7) based on reviewer feedback requiring <500 diff lines per PR."
     },
     {
       "project_number": 126,
@@ -70,7 +72,7 @@
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
-        125
+        142
       ],
       "created": "2026-06-11T22:30:00Z",
       "last_updated": "2026-06-11T22:30:00Z",
@@ -83,7 +85,7 @@
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
-        125
+        138
       ],
       "created": "2026-06-11T22:30:00Z",
       "last_updated": "2026-06-11T22:30:00Z",
@@ -96,7 +98,7 @@
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
-        125
+        141
       ],
       "created": "2026-06-11T22:30:00Z",
       "last_updated": "2026-06-11T22:30:00Z",
@@ -109,7 +111,7 @@
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [
-        125
+        141
       ],
       "created": "2026-06-11T22:30:00Z",
       "last_updated": "2026-06-11T22:30:00Z",
@@ -420,6 +422,95 @@
       ],
       "description": "Port continuous extension completeness once developed upstream. The continuous case (FrameClass for continuous/real-valued time) has not been started in BimodalLogic. This task is blocked pending upstream development of continuous frame completeness.\n\n**Source**: Not yet developed in BimodalLogic\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Blocker**: Upstream BimodalLogic continuous extension development\n**Parent task**: 8 (expanded)",
       "topic": "Bimodal Porting"
+    },
+    {
+      "project_number": 138,
+      "project_name": "subpr_1_1_1_proposition_refactor",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files."
+    },
+    {
+      "project_number": 139,
+      "project_name": "subpr_1_1_2_axiom_definitions",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        138
+      ],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.2: Polymorphic axiom definitions. Adds Axioms.lean with axiom formulas (ImplyK, ImplyS, EFQ, Peirce, modal K/T/4/B/5/D, temporal BX1-BX13) as polymorphic abbreviations over connective typeclasses. Pure definitions, no proofs. ~300 diff lines."
+    },
+    {
+      "project_number": 140,
+      "project_name": "subpr_1_1_3_proof_system_hierarchy",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        139
+      ],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.3: Hilbert proof system typeclass hierarchy. Adds ProofSystem.lean defining MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-tier propositional hierarchy plus modal extensions (K through S5, D-family) and temporal/bimodal systems. Needs curation to handle extra modal classes from tasks 92/100. ~490 diff lines."
+    },
+    {
+      "project_number": 141,
+      "project_name": "subpr_1_1_4_propositional_instances",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        140
+      ],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.4: Propositional Hilbert instances and derivation trees. Adds PropositionalAxiom inductive, DerivationTree parameterized over axiom type, HilbertCl/HilbertInt/HilbertMin instances, and ListHelpers utilities. 4 new files + Cslib.lean imports. ~430 diff lines."
+    },
+    {
+      "project_number": 142,
+      "project_name": "subpr_1_1_5_core_theorems_barrel",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        141
+      ],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.5: Core theorems and barrel file. Adds Theorems/Propositional/Core.lean (311 lines, stratified by logic strength), Theorems/BigConj.lean (142 lines), and reduced Theorems.lean barrel (~45 lines, excluding modal/temporal imports). ~498 diff lines."
+    },
+    {
+      "project_number": 143,
+      "project_name": "subpr_1_1_6_connective_theorems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        142
+      ],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/Propositional/Connectives.lean (De Morgan, double negation stratified by logic strength), Theorems/Combinators.lean, and Theorems/Temporal/FrameConditions.lean. May need splitting if total exceeds 500 lines (~428-539 diff lines)."
+    },
+    {
+      "project_number": 144,
+      "project_name": "subpr_1_1_7_metalogic",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        143
+      ],
+      "created": "2026-06-12T00:15:00Z",
+      "last_updated": "2026-06-12T00:15:00Z",
+      "description": "Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278), DeductionHelpers.lean (120), DeductionTheorem.lean (217), MCS.lean (161). ~776 diff lines total, will likely need splitting into 2 PRs to stay under 500 lines each."
     }
   ],
   "repository_health": {

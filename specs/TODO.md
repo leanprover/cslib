@@ -1,5 +1,5 @@
 ---
-next_project_number: 138
+next_project_number: 145
 ---
 
 # TODO
@@ -11,10 +11,14 @@ next_project_number: 138
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,125,137 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
-| 2 | 39,40,62,126,127,128,129 | 36,37,61,125 | Temporal Logic, Submit PRs |
-| 3 | 41,63,130,133 | 38,39,40,62,126,127 | Submit PRs, Foundations |
-| 4 | 64,131,132,134,135 | 63,127,128,130,133 | Submit PRs |
+| 1 | 36,37,38,60,61,137,138 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 2 | 39,40,62,127,139 | 36,37,61,138 | Temporal Logic, Submit PRs |
+| 3 | 41,63,140 | 38,39,40,62,139 | Submit PRs, Foundations |
+| 4 | 64,141 | 63,140 | Submit PRs |
+| 5 | 128,129,142 | 141 | Submit PRs |
+| 6 | 126,143 | 142 | Submit PRs |
+| 7 | 130,133,144 | 126,127,143 | Submit PRs |
+| 8 | 131,132,134,135 | 127,128,130,133 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -36,25 +40,31 @@ next_project_number: 138
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-125 [PLANNED] — Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 alr
-  └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
+138 [NOT STARTED] — Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introdu
+  └─ 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
     └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
       └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
       └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models.
-    └─ 133 [NOT STARTED] — Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes Fro
-      └─ 134 [NOT STARTED] — Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived
-      └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d
-  └─ 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
-    └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica (see above)
     └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke  (see above)
     └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models. (see above)
-  └─ 128 [NOT STARTED] — Sub-PR 1.4: ND derived connective rules (standalone). Adds derive
-    └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
-  └─ 129 [NOT STARTED] — Sub-PR 1.5: Modal logical equivalence + Basic update. Adds Logica
+  └─ 139 [NOT STARTED] — Sub-PR 1.1.2: Polymorphic axiom definitions. Adds Axioms.lean wit
+    └─ 140 [NOT STARTED] — Sub-PR 1.1.3: Hilbert proof system typeclass hierarchy. Adds Proo
+      └─ 141 [NOT STARTED] — Sub-PR 1.1.4: Propositional Hilbert instances and derivation tree
+        └─ 128 [NOT STARTED] — Sub-PR 1.4: ND derived connective rules (standalone). Adds derive
+          └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d
+        └─ 129 [NOT STARTED] — Sub-PR 1.5: Modal logical equivalence + Basic update. Adds Logica
+        └─ 142 [NOT STARTED] — Sub-PR 1.1.5: Core theorems and barrel file. Adds Theorems/Propos
+          └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
+            └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica (see above)
+            └─ 133 [NOT STARTED] — Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes Fro
+              └─ 134 [NOT STARTED] — Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived
+              └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
+          └─ 143 [NOT STARTED] — Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/P
+            └─ 144 [NOT STARTED] — Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278),
 
 ### Modal Logic
 
-137 [NOT STARTED] — Refactor Modal/ directory structure for the modal cube. Systemati
+137 [RESEARCHING] — Refactor Modal/ directory structure for the modal cube. Systemati
 
 ### Foundations
 
@@ -62,8 +72,78 @@ next_project_number: 138
 
 ## Tasks
 
-### 137. Refactor modal directory structure
+### 144. Subpr 1 1 7 metalogic
 - **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 143
+
+**Description**: Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278), DeductionHelpers.lean (120), DeductionTheorem.lean (217), MCS.lean (161). ~776 diff lines total, will likely need splitting into 2 PRs to stay under 500 lines each.
+
+---
+
+### 143. Subpr 1 1 6 connective theorems
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 142
+
+**Description**: Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/Propositional/Connectives.lean (De Morgan, double negation stratified by logic strength), Theorems/Combinators.lean, and Theorems/Temporal/FrameConditions.lean. May need splitting if total exceeds 500 lines (~428-539 diff lines).
+
+---
+
+### 142. Subpr 1 1 5 core theorems barrel
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 141
+
+**Description**: Sub-PR 1.1.5: Core theorems and barrel file. Adds Theorems/Propositional/Core.lean (311 lines, stratified by logic strength), Theorems/BigConj.lean (142 lines), and reduced Theorems.lean barrel (~45 lines, excluding modal/temporal imports). ~498 diff lines.
+
+---
+
+### 141. Subpr 1 1 4 propositional instances
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 140
+
+**Description**: Sub-PR 1.1.4: Propositional Hilbert instances and derivation trees. Adds PropositionalAxiom inductive, DerivationTree parameterized over axiom type, HilbertCl/HilbertInt/HilbertMin instances, and ListHelpers utilities. 4 new files + Cslib.lean imports. ~430 diff lines.
+
+---
+
+### 140. Subpr 1 1 3 proof system hierarchy
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 139
+
+**Description**: Sub-PR 1.1.3: Hilbert proof system typeclass hierarchy. Adds ProofSystem.lean defining MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-tier propositional hierarchy plus modal extensions (K through S5, D-family) and temporal/bimodal systems. Needs curation to handle extra modal classes from tasks 92/100. ~490 diff lines.
+
+---
+
+### 139. Subpr 1 1 2 axiom definitions
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 138
+
+**Description**: Sub-PR 1.1.2: Polymorphic axiom definitions. Adds Axioms.lean with axiom formulas (ImplyK, ImplyS, EFQ, Peirce, modal K/T/4/B/5/D, temporal BX1-BX13) as polymorphic abbreviations over connective typeclasses. Pure definitions, no proofs. ~300 diff lines.
+
+---
+
+### 138. Subpr 1 1 1 proposition refactor
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: None
+
+**Description**: Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.
+
+---
+
+### 137. Refactor modal directory structure
+- **Status**: [RESEARCHING]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -147,7 +227,7 @@ next_project_number: 138
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 125
+- **Dependencies**: Task 141
 
 **Description**: Sub-PR 1.5: Modal logical equivalence + Basic update. Adds LogicalEquivalence typeclass instance for modal logic and updates Modal/Basic.lean for MinimalHilbert rename.
 
@@ -157,7 +237,7 @@ next_project_number: 138
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 125
+- **Dependencies**: Task 141
 
 **Description**: Sub-PR 1.4: ND derived connective rules (standalone). Adds derived rules for natural deduction connectives using the standalone NaturalDeduction/Basic.lean already in upstream.
 
@@ -167,7 +247,7 @@ next_project_number: 138
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 125
+- **Dependencies**: Task 138
 
 **Description**: Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduces Valuation/Evaluate/Tautology (bivalent) and KripkeModel/IForces/IValid/MValid (Kripke) for propositional logic.
 
@@ -177,14 +257,14 @@ next_project_number: 138
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 125
+- **Dependencies**: Task 142
 
 **Description**: Sub-PR 1.2: Propositional axiom extensions and IntMin instances. Extends axiom system with IntPropAxiom/MinPropAxiom and adds instance registrations for intuitionistic and minimal Hilbert logics.
 
 ---
 
 ### 125. Subpr 1 1 hilbert hierarchy refactoring
-- **Status**: [PLANNED]
+- **Status**: [EXPANDED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
