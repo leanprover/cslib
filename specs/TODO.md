@@ -45,7 +45,7 @@ next_project_number: 100
 
 ### Modal Logic
 
-99 [NOT STARTED] — complete_modal_cube_hilbert_systems
+99 [RESEARCHED] — complete_modal_cube_hilbert_systems
 
 ### Foundations
 
@@ -54,10 +54,11 @@ next_project_number: 100
 ## Tasks
 
 ### 99. Complete modal cube hilbert systems
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
+- **Research**: [099_complete_modal_cube_hilbert_systems/reports/01_team-research.md]
 
 ---
 
