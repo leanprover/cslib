@@ -134,17 +134,17 @@ Diamond expansion for AxiomD and AxiomB:
 
 ---
 
-### Phase 2: Wire Imports and Verify Full Build [NOT STARTED]
+### Phase 2: Wire Imports and Verify Full Build [COMPLETED]
 
 **Goal**: Add Instances.lean to the module graph and verify zero regressions across the full project.
 
 **Tasks**:
-- [ ] Add `public import Cslib.Logics.Modal.ProofSystem.Instances` to `Cslib/Logics/Modal/Metalogic.lean`
-- [ ] Add `public import Cslib.Logics.Modal.ProofSystem.Instances` to `Cslib.lean`
-- [ ] Run `lake build` to verify full project builds with zero errors
-- [ ] Verify Soundness.lean and Completeness.lean still compile (no regressions)
-- [ ] Verify Bimodal/ProofSystem/Instances.lean still compiles
-- [ ] Grep for `sorry` in new file to confirm zero occurrences
+- [x] Add `public import Cslib.Logics.Modal.ProofSystem.Instances` to `Cslib/Logics/Modal/Metalogic.lean` *(completed)*
+- [x] Add `public import Cslib.Logics.Modal.ProofSystem.Instances` to `Cslib.lean` *(completed)*
+- [x] Run `lake build` to verify full project builds with zero errors *(completed -- 2916 jobs, zero errors)*
+- [x] Verify Soundness.lean and Completeness.lean still compile (no regressions) *(completed -- full build passed)*
+- [x] Verify Bimodal/ProofSystem/Instances.lean still compiles *(completed -- full build passed)*
+- [x] Grep for `sorry` in new file to confirm zero occurrences *(completed -- zero sorries)*
 
 **Timing**: 30 minutes
 
