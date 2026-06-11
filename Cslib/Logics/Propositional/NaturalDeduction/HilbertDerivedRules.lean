@@ -41,9 +41,9 @@ with explicit axiom witnesses, following the pattern from `DeductionTheorem.lean
 
 ## References
 
-* `Cslib/Logics/Propositional/NaturalDeduction/FromHilbert.lean` -- ND wrappers
-* `Cslib/Logics/Propositional/ProofSystem/Derivation.lean` -- Hilbert system
-* `Cslib/Logics/Propositional/ProofSystem/Axioms.lean` -- axiom schemata
+* Cslib/Logics/Propositional/NaturalDeduction/FromHilbert.lean -- ND wrappers
+* Cslib/Logics/Propositional/ProofSystem/Derivation.lean -- Hilbert system
+* Cslib/Logics/Propositional/ProofSystem/Axioms.lean -- axiom schemata
 -/
 
 @[expose] public section

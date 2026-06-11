@@ -52,9 +52,10 @@ the Lukasiewicz definitions of `∧` and `∨` in terms of `→` and `⊥`.
 * [D. Prawitz, *Natural Deduction: A Proof-Theoretical Study*][Prawitz1965]
 * [A. S. Troelstra, D. van Dalen,
   *Constructivism in Mathematics: An Introduction*][TroelstraVanDalen1988],
-  the sequent-style natural deduction presented here is tersely
-  described in Section 10.4, and in Section 2.2 of Sorensen &
-  Urzyczyn's *Lectures on the Curry-Howard Isomorphism*.
+  Section 10.4
+* [M. H. Sorensen, P. Urzyczyn,
+  *Lectures on the Curry-Howard Isomorphism*][SorensenUrzyczyn2006],
+  Section 2.2
 -/
 
 @[expose] public section

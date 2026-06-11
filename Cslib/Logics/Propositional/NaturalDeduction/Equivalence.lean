@@ -39,9 +39,9 @@ which relies on `Classical.propDecidable`.
 
 ## References
 
-* `Cslib/Logics/Propositional/ProofSystem/Derivation.lean` -- Hilbert system
-* `Cslib/Logics/Propositional/NaturalDeduction/Basic.lean` -- ND system
-* `Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean` -- deduction theorem
+* Cslib/Logics/Propositional/ProofSystem/Derivation.lean -- Hilbert system
+* Cslib/Logics/Propositional/NaturalDeduction/Basic.lean -- ND system
+* Cslib/Logics/Propositional/Metalogic/DeductionTheorem.lean -- deduction theorem
 -/
 
 @[expose] public section

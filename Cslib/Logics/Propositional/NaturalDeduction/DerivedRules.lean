@@ -55,8 +55,8 @@ is only classically equivalent to their standard definitions.
 
 ## References
 
-* `Cslib/Logics/Propositional/NaturalDeduction/Basic.lean` -- standalone ND system
-* `Cslib/Logics/Propositional/Defs.lean` -- connective definitions
+* Cslib/Logics/Propositional/NaturalDeduction/Basic.lean -- standalone ND system
+* Cslib/Logics/Propositional/Defs.lean -- connective definitions
 -/
 
 @[expose] public section
