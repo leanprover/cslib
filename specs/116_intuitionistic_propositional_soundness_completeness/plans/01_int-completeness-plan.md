@@ -141,7 +141,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: IntCompleteness.lean [NOT STARTED]
+### Phase 3: IntCompleteness.lean [COMPLETED]
 
 **Goal**: Build the canonical Kripke model, prove the truth lemma, and establish completeness.
 
