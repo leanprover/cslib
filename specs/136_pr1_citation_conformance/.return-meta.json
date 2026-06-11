@@ -1,0 +1,22 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/136_pr1_citation_conformance/plans/01_citation-conformance-plan.md",
+      "summary": "2-phase implementation plan for PR 1 citation conformance (0.5 hours, 6 files)"
+    }
+  ],
+  "next_steps": "Run /implement 136 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1749688800_orchestrate",
+    "agent_type": "planner-agent",
+    "duration_seconds": 60,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 2,
+    "estimated_hours": 0.5,
+    "dependency_waves": [[1], [2]]
+  },
+  "memory_candidates": []
+}

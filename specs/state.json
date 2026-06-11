@@ -21,7 +21,7 @@
       ],
       "last_updated": "2026-06-11T23:40:00Z",
       "session_id": "sess_1749688800_orchestrate",
-      "completion_summary": "Revised citations on pr1/foundations-logic branch: removed orphaned HughesCresswell1996 bib entry, added SorensenUrzyczyn2006 entry, split compound citation in NaturalDeduction/Basic.lean into two proper BibKey bullets, and converted 8 backtick-wrapped internal cross-references to bare paths across 3 files. All 26 PR1 files now conform to citation-conventions.md."
+      "completion_summary": "Revised citations on pr1/foundations-logic to conform to citation-conventions.md: removed orphaned HughesCresswell1996 bib entry, added SorensenUrzyczyn2006 with proper BibKey citation in NaturalDeduction/Basic.lean, converted 8 backtick-wrapped internal cross-refs to bare paths across 3 NaturalDeduction files. All 26 PR 1 files now conform to the canonical citation standard."
     },
     {
       "project_number": 125,
