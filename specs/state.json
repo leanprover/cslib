@@ -4,12 +4,12 @@
     {
       "project_number": 99,
       "project_name": "complete_modal_cube_hilbert_systems",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "created": "2026-06-11T04:39:22Z",
-      "last_updated": "2026-06-11T04:50:03Z",
-      "session_id": "sess_1781152895_0648ac",
+      "last_updated": "2026-06-11T04:58:07Z",
+      "session_id": "sess_1781153519_227931",
       "researched": "2026-06-11T04:50:03Z",
       "next_artifact_number": 2,
       "artifacts": [
@@ -17,6 +17,11 @@
           "path": "specs/099_complete_modal_cube_hilbert_systems/reports/01_team-research.md",
           "type": "research",
           "summary": "Team research (4 teammates): infrastructure analysis, canonical frame property proofs, wave-based task decomposition"
+        },
+        {
+          "path": "specs/099_complete_modal_cube_hilbert_systems/plans/01_modal-cube-completion.md",
+          "type": "plan",
+          "summary": "12-phase plan covering shared infrastructure, 10 soundness/completeness pairs, and integration (16 hours estimated)"
         }
       ]
     },
@@ -67,12 +72,12 @@
       "status": "planned",
       "task_type": "lean4",
       "topic": "Submit PRs",
-      "description": "Create feature branch and submit PR 1.5 containing the propositional Hilbert system additions developed since PR 1 (tasks 87, 88, 89). This PR adds ~1,200 new lines across 3 new files and updates to 11 existing files in Logics/Propositional/ and Foundations/Logic/.\n\n**New files**:\n- NaturalDeduction/Equivalence.lean (168 lines): extensional equivalence between Hilbert and ND proof systems (hilbert_iff_nd theorem)\n- NaturalDeduction/DerivedRules.lean (386 lines): 13 derived intro/elim rules for Łukasiewicz-encoded connectives (and, or, neg, iff, top, dne) in the ND system\n- NaturalDeduction/HilbertDerivedRules.lean (447 lines): matching Hilbert system derived rules\n\n**Modified files** (Foundations/Logic/ typeclass refactor):\n- ProofSystem.lean: three-level Hilbert typeclass hierarchy (MinimalHilbert → IntuitionisticHilbert → ClassicalHilbert)\n- Theorems/Propositional/Core.lean + Connectives.lean: theorems stratified across the hierarchy\n- Theorems/Combinators.lean, Theorems.lean, BigConj.lean: weakened to MinimalHilbert\n- ProofSystem/Instances.lean: updated for new hierarchy\n- Defs.lean: added Proposition.iff\n- Metalogic/DeductionTheorem.lean, MCS.lean: minor updates\n\n**PR title**: `feat(Logics/Propositional): Hilbert-ND equivalence, derived connective rules, and intuitionistic base hierarchy`\n\n**Workflow**: Create branch pr1.5/propositional-hilbert from main, cherry-pick or rebase the relevant commits (tasks 87-89 changes), run CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers), prepare PR description, push and open PR.\n\n**Dependencies**: PR 1 (task 59, Foundations/Logic) should be merged first since PR 1.5 modifies files from PR 1. If PR 1 is still in review, coordinate with maintainers about stacking.",
+      "description": "Combined PR 1+1.5 submission: close PR #629, update pr1/foundations-logic with PR 1.5 additions (tasks 86-89), run full CI suite, and resubmit as a single PR covering the complete Foundations/Logic + Propositional Hilbert system.\n\nPhase 1: Apply 16 files from main onto pr1/foundations-logic (git checkout main -- <files> + 3 Cslib.lean imports)\nPhase 2: Code quality review (sorry check, lint, DecidableEq fix, documentation)\nPhase 3: Full CI suite (lake build, test, checkInitImports, lint, lint-style, mk_all, shake)\nPhase 4: Close #629, force-push updated branch, submit new PR",
       "dependencies": [
         59
       ],
       "created": "2026-06-11T00:19:29Z",
-      "last_updated": "2026-06-11T00:36:27Z",
+      "last_updated": "2026-06-11T01:00:00Z",
       "artifacts": [
         {
           "path": "specs/091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md",
@@ -83,6 +88,11 @@
           "path": "specs/091_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md",
           "type": "plan",
           "summary": "4-phase plan: add imports, fix warning, verify build, submit PR"
+        },
+        {
+          "path": "specs/091_pr_1_5_propositional_hilbert_submission/plans/02_combined-pr-submission.md",
+          "type": "plan",
+          "summary": "4-phase plan: apply PR 1.5 files, code quality review, full CI suite, close #629 and resubmit combined PR"
         }
       ]
     },

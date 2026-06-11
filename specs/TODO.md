@@ -41,11 +41,11 @@ next_project_number: 100
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-91 [PLANNED] — Create feature branch and submit PR 1.5 containing the propositio
+91 [PLANNED] — Combined PR 1+1.5 submission: close PR #629, update pr1/foundatio
 
 ### Modal Logic
 
-99 [RESEARCHED] — complete_modal_cube_hilbert_systems
+99 [PLANNED] — complete_modal_cube_hilbert_systems
 
 ### Foundations
 
@@ -54,11 +54,12 @@ next_project_number: 100
 ## Tasks
 
 ### 99. Complete modal cube hilbert systems
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
 - **Research**: [099_complete_modal_cube_hilbert_systems/reports/01_team-research.md]
+- **Plan**: [099_complete_modal_cube_hilbert_systems/plans/01_modal-cube-completion.md]
 
 ---
 
@@ -68,28 +69,16 @@ next_project_number: 100
 - **Topic**: Submit PRs
 - **Dependencies**: Task 59
 - **Research**: [091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md]
-- **Plan**: [091_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md]
+- **Plan**:
+  - [091_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md]
+  - [091_pr_1_5_propositional_hilbert_submission/plans/02_combined-pr-submission.md]
 
-**Description**: Create feature branch and submit PR 1.5 containing the propositional Hilbert system additions developed since PR 1 (tasks 87, 88, 89). This PR adds ~1,200 new lines across 3 new files and updates to 11 existing files in Logics/Propositional/ and Foundations/Logic/.
+**Description**: Combined PR 1+1.5 submission: close PR #629, update pr1/foundations-logic with PR 1.5 additions (tasks 86-89), run full CI suite, and resubmit as a single PR covering the complete Foundations/Logic + Propositional Hilbert system.
 
-**New files**:
-- NaturalDeduction/Equivalence.lean (168 lines): extensional equivalence between Hilbert and ND proof systems (hilbert_iff_nd theorem)
-- NaturalDeduction/DerivedRules.lean (386 lines): 13 derived intro/elim rules for Łukasiewicz-encoded connectives (and, or, neg, iff, top, dne) in the ND system
-- NaturalDeduction/HilbertDerivedRules.lean (447 lines): matching Hilbert system derived rules
-
-**Modified files** (Foundations/Logic/ typeclass refactor):
-- ProofSystem.lean: three-level Hilbert typeclass hierarchy (MinimalHilbert → IntuitionisticHilbert → ClassicalHilbert)
-- Theorems/Propositional/Core.lean + Connectives.lean: theorems stratified across the hierarchy
-- Theorems/Combinators.lean, Theorems.lean, BigConj.lean: weakened to MinimalHilbert
-- ProofSystem/Instances.lean: updated for new hierarchy
-- Defs.lean: added Proposition.iff
-- Metalogic/DeductionTheorem.lean, MCS.lean: minor updates
-
-**PR title**: `feat(Logics/Propositional): Hilbert-ND equivalence, derived connective rules, and intuitionistic base hierarchy`
-
-**Workflow**: Create branch pr1.5/propositional-hilbert from main, cherry-pick or rebase the relevant commits (tasks 87-89 changes), run CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers), prepare PR description, push and open PR.
-
-**Dependencies**: PR 1 (task 59, Foundations/Logic) should be merged first since PR 1.5 modifies files from PR 1. If PR 1 is still in review, coordinate with maintainers about stacking.
+Phase 1: Apply 16 files from main onto pr1/foundations-logic (git checkout main -- <files> + 3 Cslib.lean imports)
+Phase 2: Code quality review (sorry check, lint, DecidableEq fix, documentation)
+Phase 3: Full CI suite (lake build, test, checkInitImports, lint, lint-style, mk_all, shake)
+Phase 4: Close #629, force-push updated branch, submit new PR
 
 ---
 
