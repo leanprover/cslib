@@ -112,14 +112,14 @@ theorem Satisfies.diamond_iff : Satisfies m w (.diamond φ) ↔ ∃ w', m.r w w'
   constructor
   · intro h
     by_contra hc
-    push_neg at hc
+    push Not at hc
     exact h fun w' hr hs => absurd hs (hc w' hr)
   · intro ⟨w', hr, hs⟩ hbox
     exact hbox w' hr hs
 
 /-- Satisfaction of conjunction. -/
 theorem Satisfies.and_iff : Satisfies m w (.and φ₁ φ₂) ↔ Satisfies m w φ₁ ∧ Satisfies m w φ₂ := by
-  show ((Satisfies m w φ₁ → Satisfies m w φ₂ → False) → False) ↔ _
+  change ((Satisfies m w φ₁ → Satisfies m w φ₂ → False) → False) ↔ _
   constructor
   · intro h
     constructor
@@ -129,7 +129,7 @@ theorem Satisfies.and_iff : Satisfies m w (.and φ₁ φ₂) ↔ Satisfies m w �
 
 /-- Satisfaction of disjunction. -/
 theorem Satisfies.or_iff : Satisfies m w (.or φ₁ φ₂) ↔ Satisfies m w φ₁ ∨ Satisfies m w φ₂ := by
-  show ((Satisfies m w φ₁ → False) → Satisfies m w φ₂) ↔ _
+  change ((Satisfies m w φ₁ → False) → Satisfies m w φ₂) ↔ _
   constructor
   · intro h
     rcases Classical.em (Satisfies m w φ₁) with h1 | h1
@@ -224,21 +224,21 @@ theorem theoryEq_satisfies {m : Model World Atom} (h : TheoryEq m w₁ w₂)
 
 /-- The K axiom, valid for all models. -/
 theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → □φ₂)] := by
-  show Satisfies m w (.imp (.box (.imp φ₁ φ₂)) (.imp (.box φ₁) (.box φ₂)))
+  change Satisfies m w (.imp (.box (.imp φ₁ φ₂)) (.imp (.box φ₁) (.box φ₂)))
   simp only [Satisfies]
   intro h1 h2 w' hr
   exact h1 w' hr (h2 w' hr)
 
 /-- The dual axiom, valid for all models. -/
 theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
-  show Satisfies m w (.iff (.diamond φ) (.neg (.box (.neg φ))))
+  change Satisfies m w (.iff (.diamond φ) (.neg (.box (.neg φ))))
   rw [and_iff]
   exact ⟨id, id⟩
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → ◇φ] := by
-  show Satisfies m w φ → Satisfies m w (.diamond φ)
+  change Satisfies m w φ → Satisfies m w (.diamond φ)
   intro hφ
   rw [diamond_iff]
   exact ⟨w, instRefl.refl w, hφ⟩
@@ -262,7 +262,7 @@ theorem Satisfies.t_refl {r : World → World → Prop} [Nonempty Atom]
 theorem Satisfies.t_box_diamond [Std.Refl m.r] :
     ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ◇φ] := by
   have hrefl := Std.Refl.refl (r := m.r) w
-  show ((∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w φ) ↔
+  change ((∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w φ) ↔
        (Satisfies m w φ → Satisfies m w (.diamond φ))
   constructor
   · intro h hφ
@@ -276,7 +276,7 @@ theorem Satisfies.t_box_diamond [Std.Refl m.r] :
 theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
     (φ : Proposition Atom) :
     ⇓Modal[m,w ⊨ φ → □◇φ] := by
-  show Satisfies m w φ → ∀ w', m.r w w' → Satisfies m w' (.diamond φ)
+  change Satisfies m w φ → ∀ w', m.r w w' → Satisfies m w' (.diamond φ)
   intro hφ w' hr
   rw [diamond_iff]
   exact ⟨w, instSymm.symm w w' hr, hφ⟩
@@ -300,7 +300,7 @@ theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty A
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four {m : Model World Atom} [IsTrans World m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇◇φ → ◇φ] := by
-  show Satisfies m w (.diamond (.diamond φ)) → Satisfies m w (.diamond φ)
+  change Satisfies m w (.diamond (.diamond φ)) → Satisfies m w (.diamond φ)
   rw [diamond_iff, diamond_iff]
   intro ⟨w', hr₁, h'⟩
   rw [diamond_iff] at h'
@@ -330,7 +330,7 @@ theorem Satisfies.five {m : Model World Atom} [Relation.RightEuclidean m.r]
     {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇φ → □◇φ] := by
   have heuc := @Relation.RightEuclidean.rightEuclidean (r := m.r)
-  show Satisfies m w (.diamond φ) → ∀ w', m.r w w' → Satisfies m w' (.diamond φ)
+  change Satisfies m w (.diamond φ) → ∀ w', m.r w w' → Satisfies m w' (.diamond φ)
   intro hdiam w' hr
   rw [diamond_iff] at hdiam ⊢
   obtain ⟨w'', hr', hs⟩ := hdiam
@@ -358,7 +358,7 @@ theorem Satisfies.five_rightEuclidean {r : World → World → Prop} [Nonempty A
 theorem Satisfies.d {m : Model World Atom} [hSer : Relation.Serial m.r] {w}
     (φ : Proposition Atom) :
     ⇓Modal[m,w ⊨ □φ → ◇φ] := by
-  show (∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w (.diamond φ)
+  change (∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w (.diamond φ)
   intro hbox
   rw [diamond_iff]
   obtain ⟨w', hr⟩ := hSer.serial w

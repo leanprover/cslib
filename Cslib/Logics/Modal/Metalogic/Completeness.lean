@@ -9,10 +9,12 @@ module
 public import Cslib.Logics.Modal.Metalogic.MCS
 public import Cslib.Logics.Modal.Metalogic.Soundness
 
-/-! # Completeness Theorem for S5 Modal Logic
+/-! # Completeness Theorem for Normal Modal Logics
 
-This module proves completeness for S5 modal logic via the canonical Kripke model
-construction, parameterized over an axiom predicate `Axioms`.
+This module proves completeness via the canonical Kripke model
+construction, parameterized over an axiom predicate `Axioms`. The
+parameterized infrastructure supports all normal modal logics; an
+S5-specific wrapper instantiates at `ModalAxiom`.
 
 ## Main Results
 
@@ -40,6 +42,9 @@ namespace Cslib.Logic.Modal
 
 open Cslib.Logic
 
+-- Universe constraint: canonical worlds live at the same universe as `Atom`
+-- because `CanonicalWorld Axioms` is a subtype of `Set (Proposition Atom)`.
+-- This means worlds and atoms share universe `u` in the completeness proof.
 universe u
 variable {Atom : Type u}
 
@@ -144,7 +149,7 @@ theorem canonical_eucl
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    (h_T : ∀ (φ : Proposition Atom),
+    (_h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
     (h_4 : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp (Proposition.box (Proposition.box φ))))

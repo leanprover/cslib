@@ -76,7 +76,7 @@ theorem db_axiom_sound {World : Type*} {φ : Proposition Atom}
     intro hφ w' hr h_box_neg
     exact h_box_neg w (h_symm w w' hr) hφ
 
-/-! ## DB Soundness Wrappers -/
+/-! ## DB Soundness Theorems -/
 
 /-- DB soundness: every derivable formula from context is valid over serial,
 symmetric models. -/
@@ -88,7 +88,7 @@ theorem db_soundness {World : Type*}
     (h_symm : ∀ w₁ w₂, m.r w₁ w₂ → m.r w₂ w₁)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => db_axiom_sound h_ax m h_serial h_symm w) w h_ctx
+  soundness d m (fun _ h_ax w => db_axiom_sound h_ax m h_serial h_symm w) w h_ctx
 
 /-- DB soundness for derivable formulas (empty context). -/
 theorem db_soundness_derivable {World : Type*}
@@ -98,6 +98,6 @@ theorem db_soundness_derivable {World : Type*}
     (h_symm : ∀ w₁ w₂, m.r w₁ w₂ → m.r w₂ w₁)
     (w : World) : Satisfies m w φ :=
   soundness_derivable h m
-    (fun ψ h_ax w => db_axiom_sound h_ax m h_serial h_symm w) w
+    (fun _ h_ax w => db_axiom_sound h_ax m h_serial h_symm w) w
 
 end Cslib.Logic.Modal

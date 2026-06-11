@@ -69,7 +69,7 @@ theorem k_soundness {World : Type*}
     (m : Model World Atom)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => k_axiom_sound h_ax m w) w h_ctx
+  soundness d m (fun _ h_ax w => k_axiom_sound h_ax m w) w h_ctx
 
 /-- **K Soundness for derivable formulas**: If `phi` is K-derivable from the empty
 context, then `phi` is satisfied at every world of every model. -/
@@ -77,6 +77,6 @@ theorem k_soundness_derivable {World : Type*}
     {φ : Proposition Atom} (h : Derivable (@KAxiom Atom) φ)
     (m : Model World Atom)
     (w : World) : Satisfies m w φ :=
-  soundness_derivable h m (fun ψ h_ax w => k_axiom_sound h_ax m w) w
+  soundness_derivable h m (fun _ h_ax w => k_axiom_sound h_ax m w) w
 
 end Cslib.Logic.Modal

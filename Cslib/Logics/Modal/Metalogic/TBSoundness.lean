@@ -91,7 +91,7 @@ theorem tb_soundness {World : Type*}
     (h_symm : ∀ w₁ w₂, m.r w₁ w₂ → m.r w₂ w₁)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => tb_axiom_sound h_ax m h_refl h_symm w) w h_ctx
+  soundness d m (fun _ h_ax w => tb_axiom_sound h_ax m h_refl h_symm w) w h_ctx
 
 /-- **TB Soundness for derivable formulas**: If `phi` is TB-derivable from the empty
 context, then `phi` is valid on all reflexive, symmetric frames. -/
@@ -102,6 +102,6 @@ theorem tb_soundness_derivable {World : Type*}
     (h_symm : ∀ w₁ w₂, m.r w₁ w₂ → m.r w₂ w₁)
     (w : World) : Satisfies m w φ :=
   soundness_derivable h m
-    (fun ψ h_ax w => tb_axiom_sound h_ax m h_refl h_symm w) w
+    (fun _ h_ax w => tb_axiom_sound h_ax m h_refl h_symm w) w
 
 end Cslib.Logic.Modal

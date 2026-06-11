@@ -68,7 +68,7 @@ theorem k5_axiom_sound {World : Type*} {φ : Proposition Atom}
     exact h_diam (fun w'' hr' h_phi =>
       h_box_neg_w' w'' (h_eucl w w' w'' hr hr') h_phi)
 
-/-! ## K5 Soundness Wrappers -/
+/-! ## K5 Soundness Theorems -/
 
 /-- K5 soundness: every derivable formula from context is valid over Euclidean models. -/
 theorem k5_soundness {World : Type*}
@@ -78,7 +78,7 @@ theorem k5_soundness {World : Type*}
     (h_eucl : ∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₁ w₃ → m.r w₂ w₃)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => k5_axiom_sound h_ax m h_eucl w) w h_ctx
+  soundness d m (fun _ h_ax w => k5_axiom_sound h_ax m h_eucl w) w h_ctx
 
 /-- K5 soundness for derivable formulas (empty context). -/
 theorem k5_soundness_derivable {World : Type*}
@@ -86,6 +86,6 @@ theorem k5_soundness_derivable {World : Type*}
     (m : Model World Atom)
     (h_eucl : ∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₁ w₃ → m.r w₂ w₃)
     (w : World) : Satisfies m w φ :=
-  soundness_derivable h m (fun ψ h_ax w => k5_axiom_sound h_ax m h_eucl w) w
+  soundness_derivable h m (fun _ h_ax w => k5_axiom_sound h_ax m h_eucl w) w
 
 end Cslib.Logic.Modal

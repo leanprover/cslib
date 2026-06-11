@@ -113,7 +113,6 @@ noncomputable def deductionWithMem
       exact .modus_ponens (removeAll Γ' A) ψ (A.imp ψ) k_weak d_weak
 termination_by d.height
 decreasing_by
-  simp_wf
   · exact DerivationTree.height_modus_ponens_left d₁ d₂
   · exact DerivationTree.height_modus_ponens_right d₁ d₂
   · exact DerivationTree.height_weakening d' h_sub
@@ -180,7 +179,6 @@ noncomputable def deductionTheorem
         exact .modus_ponens Γ φ (A.imp φ) k_weak d_weak
 termination_by d.height
 decreasing_by
-  simp_wf
   · exact DerivationTree.height_modus_ponens_left d₁ d₂
   · exact DerivationTree.height_modus_ponens_right d₁ d₂
   · have : (h_eq ▸ d').height = d'.height := by subst h_eq; rfl

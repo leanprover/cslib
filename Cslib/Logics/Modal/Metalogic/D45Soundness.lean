@@ -86,7 +86,7 @@ theorem d45_axiom_sound {World : Type*} {φ : Proposition Atom}
     intro u hru hsat
     exact hbox_neg_v u (h_eucl w v u hrv hru) hsat
 
-/-! ## D45 Soundness Wrappers -/
+/-! ## D45 Soundness Theorems -/
 
 /-- D45 soundness: every derivable formula from context is valid over serial,
 transitive, Euclidean models. -/
@@ -99,7 +99,7 @@ theorem d45_soundness {World : Type*}
     (h_eucl : ∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₁ w₃ → m.r w₂ w₃)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => d45_axiom_sound h_ax m h_serial h_trans h_eucl w) w h_ctx
+  soundness d m (fun _ h_ax w => d45_axiom_sound h_ax m h_serial h_trans h_eucl w) w h_ctx
 
 /-- D45 soundness for derivable formulas (empty context). -/
 theorem d45_soundness_derivable {World : Type*}
@@ -110,6 +110,6 @@ theorem d45_soundness_derivable {World : Type*}
     (h_eucl : ∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₁ w₃ → m.r w₂ w₃)
     (w : World) : Satisfies m w φ :=
   soundness_derivable h m
-    (fun ψ h_ax w => d45_axiom_sound h_ax m h_serial h_trans h_eucl w) w
+    (fun _ h_ax w => d45_axiom_sound h_ax m h_serial h_trans h_eucl w) w
 
 end Cslib.Logic.Modal

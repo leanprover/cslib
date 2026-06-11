@@ -67,7 +67,7 @@ theorem d_axiom_sound {World : Type*} {φ : Proposition Atom}
     obtain ⟨w', hr⟩ := h_serial.serial w
     exact h_box_neg w' hr (h_box w' hr)
 
-/-! ## D Soundness Wrappers -/
+/-! ## D Soundness Theorems -/
 
 /-- D soundness: every derivable formula from context is valid over serial models. -/
 theorem d_soundness {World : Type*}
@@ -77,7 +77,7 @@ theorem d_soundness {World : Type*}
     (h_serial : Relation.Serial m.r)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => d_axiom_sound h_ax m h_serial w) w h_ctx
+  soundness d m (fun _ h_ax w => d_axiom_sound h_ax m h_serial w) w h_ctx
 
 /-- D soundness for derivable formulas (empty context). -/
 theorem d_soundness_derivable {World : Type*}
@@ -85,6 +85,6 @@ theorem d_soundness_derivable {World : Type*}
     (m : Model World Atom)
     (h_serial : Relation.Serial m.r)
     (w : World) : Satisfies m w φ :=
-  soundness_derivable h m (fun ψ h_ax w => d_axiom_sound h_ax m h_serial w) w
+  soundness_derivable h m (fun _ h_ax w => d_axiom_sound h_ax m h_serial w) w
 
 end Cslib.Logic.Modal

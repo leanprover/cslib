@@ -76,7 +76,7 @@ theorem d4_axiom_sound {World : Type*} {φ : Proposition Atom}
     intro h_box w₁ hr₁ w₂ hr₂
     exact h_box w₂ (h_trans w w₁ w₂ hr₁ hr₂)
 
-/-! ## D4 Soundness Wrappers -/
+/-! ## D4 Soundness Theorems -/
 
 /-- D4 soundness: every derivable formula from context is valid over serial,
 transitive models. -/
@@ -88,7 +88,7 @@ theorem d4_soundness {World : Type*}
     (h_trans : ∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₂ w₃ → m.r w₁ w₃)
     (w : World)
     (h_ctx : ∀ ψ ∈ Γ, Satisfies m w ψ) : Satisfies m w φ :=
-  soundness d m (fun ψ h_ax w => d4_axiom_sound h_ax m h_serial h_trans w) w h_ctx
+  soundness d m (fun _ h_ax w => d4_axiom_sound h_ax m h_serial h_trans w) w h_ctx
 
 /-- D4 soundness for derivable formulas (empty context). -/
 theorem d4_soundness_derivable {World : Type*}
@@ -98,6 +98,6 @@ theorem d4_soundness_derivable {World : Type*}
     (h_trans : ∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₂ w₃ → m.r w₁ w₃)
     (w : World) : Satisfies m w φ :=
   soundness_derivable h m
-    (fun ψ h_ax w => d4_axiom_sound h_ax m h_serial h_trans w) w
+    (fun _ h_ax w => d4_axiom_sound h_ax m h_serial h_trans w) w
 
 end Cslib.Logic.Modal
