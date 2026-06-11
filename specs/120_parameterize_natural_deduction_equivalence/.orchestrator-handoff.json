@@ -1,0 +1,14 @@
+{
+  "status": "implemented",
+  "summary": "Parameterized all three NaturalDeduction files (FromHilbert, HilbertDerivedRules, Equivalence) over generic Axioms with explicit K/S/EFQ parameters. Split HilbertDerivedRules into intuitionistic and classical layers. Added generic hilbert_iff_nd with IntPropAxiom and PropositionalAxiom corollaries. Fixed stale docstring in Derivation.lean. Full build passes, zero sorries, zero new axioms.",
+  "artifacts": [{
+    "path": "specs/120_parameterize_natural_deduction_equivalence/summaries/01_nd-parameterization-summary.md",
+    "type": "summary",
+    "summary": "Implementation summary"
+  }],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "complete",
+  "phases_completed": 4,
+  "phases_total": 4
+}

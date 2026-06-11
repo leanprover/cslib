@@ -23,10 +23,10 @@ and minimal propositional logics.
 - `Derivable Axioms`: Derivability from the empty context.
 - `propDerivationSystem Axioms`: A `DerivationSystem (PL.Proposition Atom)` instance.
 
-## Backward Compatibility
+## Parameterization
 
-Type aliases `ClDerivationTree`, `ClDeriv`, `ClDerivable`, and `clPropDerivationSystem`
-instantiate the parameterized types at `PropositionalAxiom` for backward compatibility.
+The `Deriv`, `Derivable`, and `propDerivationSystem` definitions are parameterized over
+an arbitrary axiom predicate `Axioms`.
 
 ## Design
 
@@ -159,20 +159,5 @@ def propDerivationSystem (Axioms : PL.Proposition Atom → Prop) :
   weakening := fun hd hsub => weakening_deriv hd hsub
   assumption := fun hmem => assumption_deriv hmem
   mp := fun h₁ h₂ => mp_deriv h₁ h₂
-
-/-! ## Backward-Compatible Aliases -/
-
-/-- Classical derivation tree: `DerivationTree` instantiated at `PropositionalAxiom`. -/
-abbrev ClDerivationTree := @DerivationTree Atom PropositionalAxiom
-
-/-- Classical derivability from context: `Deriv` instantiated at `PropositionalAxiom`. -/
-abbrev ClDeriv := @Deriv Atom PropositionalAxiom
-
-/-- Classical derivability from empty context: `Derivable` instantiated at `PropositionalAxiom`. -/
-abbrev ClDerivable := @Derivable Atom PropositionalAxiom
-
-/-- Classical derivation system: `propDerivationSystem` instantiated at `PropositionalAxiom`. -/
-def clPropDerivationSystem : Metalogic.DerivationSystem (PL.Proposition Atom) :=
-  propDerivationSystem (@PropositionalAxiom Atom)
 
 end Cslib.Logic.PL
