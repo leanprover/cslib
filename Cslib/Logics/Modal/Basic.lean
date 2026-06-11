@@ -101,9 +101,9 @@ instance : HasInferenceSystem (Judgement World Atom) := ⟨Satisfies.Bundled⟩
 
 open scoped InferenceSystem Proposition
 
-@[scoped grind =]
+@[scoped grind =_]
 theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom} :
-  ⇓Modal[m,w ⊨ φ] = Satisfies m w φ := rfl
+  Satisfies m w φ = ⇓Modal[m,w ⊨ φ] := rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
@@ -135,7 +135,7 @@ This result proves that the definition is correct. -/
 theorem Satisfies.iff_iff_iff {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
   simp only [Proposition.iff]
-  grind [=_ derivation_def]
+  grind [= derivation_def]
 
 /-- Characterisation of the `□` modality.
 
@@ -178,7 +178,7 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The dual axiom, valid for all models. -/
 theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
   grind only [Satisfies.iff_iff_iff.mpr, → satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl,
-    = derivation_def, = not_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
+    =_ derivation_def, = not_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
