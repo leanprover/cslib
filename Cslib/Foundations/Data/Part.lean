@@ -22,11 +22,10 @@ Note: this file can go away once CSLib's Mathlib pin includes leanprover-communi
 
 namespace Part
 
-/-- Extract witnesses from a bind that equals `Part.some`. -/
-theorem eq_some_of_bind_eq_some {a : Part α} {g : α → Part β} {m : β}
-    (h : (a >>= g) = Part.some m) :
-    ∃ x, a = Part.some x ∧ g x = Part.some m := by
-  have hm := Part.mem_bind_iff.mp (h ▸ Part.mem_some m)
-  exact hm.imp fun x ⟨hx, hm⟩ => ⟨Part.eq_some_iff.mpr hx, Part.eq_some_iff.mpr hm⟩
+/-- `Part.bind` produces `some b` iff the input is `some a` and the continuation maps `a` to
+`some b`. This is the `Part` analogue of `Option.bind_eq_some_iff`. -/
+theorem bind_eq_some_iff {b : β} {x : Part α} {f : α → Part β} :
+    x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b := by
+  simp only [eq_some_iff, mem_bind_iff]
 
 end Part

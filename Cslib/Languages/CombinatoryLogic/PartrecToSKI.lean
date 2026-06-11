@@ -147,7 +147,7 @@ theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
     (hf : Computes tf f) (hg : Computes tg g) :
     Computes (B ⬝ tf ⬝ tg) (fun n => g n >>= f) := by
   intro n cn hcn m hm
-  obtain ⟨intermediate, hint_eq, hm_eq⟩ := Part.eq_some_of_bind_eq_some hm
+  obtain ⟨intermediate, hint_eq, hm_eq⟩ := Part.bind_eq_some_iff.mp hm
   exact isChurch_trans _ (B_def tf tg cn)
     (hf intermediate (tg ⬝ cn) (hg n cn hcn intermediate hint_eq) m hm_eq)
 
@@ -183,7 +183,7 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
   | succ k ih =>
     intro m hm cb hcb
     rw [Code.eval_prec_succ] at hm
-    obtain ⟨ih_val, hih_eq, hm_eq⟩ := Part.eq_some_of_bind_eq_some hm
+    obtain ⟨ih_val, hih_eq, hm_eq⟩ := Part.bind_eq_some_iff.mp hm
     -- By IH, Rec computes the intermediate value on Pred ⬝ cb
     have hpred : IsChurch k (Pred ⬝ cb) := pred_correct (k + 1) cb hcb
     set step := PrecStep tg ⬝ ca
