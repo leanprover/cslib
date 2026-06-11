@@ -11,7 +11,7 @@ next_project_number: 125
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,123,124 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,124 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -36,7 +36,6 @@ next_project_number: 125
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-123 [IMPLEMENTING] — add_bib_references_pr1
 124 [RESEARCHED] — plan_pr1_decomposition_into_smaller_prs
 
 ### Foundations
@@ -50,17 +49,17 @@ next_project_number: 125
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Dependencies**: None
-- **Research**: [124_plan_pr1_decomposition_into_smaller_prs/reports/01_pr1-decomposition-research.md]
 
 ---
 
 ### 123. Add bib references pr1
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
 - **Research**: [123_add_bib_references_pr1/reports/01_bib-references-research.md]
 - **Plan**: [123_add_bib_references_pr1/plans/01_bib-references-plan.md]
+- **Summary**: [123_add_bib_references_pr1/summaries/01_bib-references-summary.md]
 
 ---
 

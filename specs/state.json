@@ -8,38 +8,37 @@
       "task_type": "general",
       "topic": "Submit PRs",
       "created": "2026-06-11T20:47:26Z",
-      "last_updated": "2026-06-11T21:07:28Z",
-      "session_id": "sess_1749674900_a3c1f2",
-      "next_artifact_number": 2,
-      "artifacts": [
-        {
-          "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/reports/01_pr1-decomposition-research.md",
-          "type": "report",
-          "summary": "Research on decomposing PR 1 into 11 smaller sub-PRs under ~500 LOC each"
-        }
-      ]
+      "last_updated": "2026-06-11T21:06:33Z",
+      "session_id": "sess_1749674900_a3c1f2"
     },
     {
       "project_number": 123,
       "project_name": "add_bib_references_pr1",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "created": "2026-06-11T20:29:11Z",
-      "last_updated": "2026-06-11T21:07:47Z",
+      "last_updated": "2026-06-11T21:15:28Z",
       "session_id": "sess_1749674900_a3c1f2",
       "artifacts": [
         {
           "path": "specs/123_add_bib_references_pr1/reports/01_bib-references-research.md",
           "type": "report",
-          "summary": "Bibliographic reference research for PR 1"
+          "summary": "Bibliographic reference research for PR 1: citation conventions, per-file mapping, and recommended bib entries"
         },
         {
           "path": "specs/123_add_bib_references_pr1/plans/01_bib-references-plan.md",
           "type": "plan",
           "summary": "Implementation plan for adding bib references to PR 1"
+        },
+        {
+          "path": "specs/123_add_bib_references_pr1/summaries/01_bib-references-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary for adding bib references to PR 1"
         }
-      ]
+      ],
+      "next_artifact_number": 2,
+      "completion_summary": "Added 4 BibTeX entries (ChagrovZakharyaschev1997, Prawitz1965, TroelstraVanDalen1988, HughesCresswell1996) to references.bib and updated 15 Lean files with Mathlib-style citations on pr1/foundations-logic branch"
     },
     {
       "project_number": 60,
