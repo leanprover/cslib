@@ -29,7 +29,7 @@
     {
       "project_number": 100,
       "project_name": "modal_cube_shared_infrastructure",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove canonical_symm (symmetry from axiom B alone) and canonical_eucl_from_5 (Euclideanness from axiom 5 alone). Add 10 new tag types and bundled classes to ProofSystem.lean. Define 10 axiom predicates and register all typeclass instances in Instances.lean. This is the critical infrastructure phase that unblocks all other modal cube tasks.",
@@ -40,7 +40,7 @@
     {
       "project_number": 101,
       "project_name": "modal_b_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic B (K + axiom B) over symmetric frames. Soundness via Satisfies.b; completeness via k_truth_lemma + canonical_symm. Create BSoundness.lean and BCompleteness.lean.",
@@ -51,7 +51,7 @@
     {
       "project_number": 102,
       "project_name": "modal_k4_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic K4 (K + axiom 4) over transitive frames. Soundness via Satisfies.four; completeness via k_truth_lemma + canonical_trans. Create K4Soundness.lean and K4Completeness.lean.",
@@ -62,7 +62,7 @@
     {
       "project_number": 103,
       "project_name": "modal_k5_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic K5 (K + axiom 5) over Euclidean frames. Soundness via Satisfies.five; completeness via k_truth_lemma + canonical_eucl_from_5. Create K5Soundness.lean and K5Completeness.lean.",
@@ -73,7 +73,7 @@
     {
       "project_number": 104,
       "project_name": "modal_k45_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic K45 (K + 4 + 5) over transitive + Euclidean frames. Soundness via Satisfies.four + Satisfies.five; completeness via k_truth_lemma + canonical_trans + canonical_eucl_from_5. Create K45Soundness.lean and K45Completeness.lean.",
@@ -84,7 +84,7 @@
     {
       "project_number": 105,
       "project_name": "modal_tb_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic TB (K + T + B) over reflexive + symmetric frames. Soundness via Satisfies.t + Satisfies.b; completeness via truth_lemma (T-based) + canonical_refl + canonical_symm. Create TBSoundness.lean and TBCompleteness.lean.",
@@ -95,7 +95,7 @@
     {
       "project_number": 106,
       "project_name": "modal_kb5_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic KB5 (K + B + 5) over symmetric + Euclidean frames. Soundness via Satisfies.b + Satisfies.five; completeness via k_truth_lemma + canonical_symm + canonical_eucl_from_5. Create KB5Soundness.lean and KB5Completeness.lean. First logic using both new canonical lemmas together.",
@@ -106,7 +106,7 @@
     {
       "project_number": 107,
       "project_name": "modal_d4_soundness_completeness",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Prove soundness and completeness for modal logic D4 (K + D + 4) over serial + transitive frames. Soundness via Satisfies.d + Satisfies.four; completeness via truth_lemma_d + canonical_serial + canonical_trans. Create D4Soundness.lean and D4Completeness.lean.",

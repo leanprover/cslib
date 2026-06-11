@@ -11,7 +11,7 @@ next_project_number: 113
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,100,101,102,103,104,105,106,107,108,109,110,111,112 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,108,109,110,111,112 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -48,14 +48,6 @@ next_project_number: 113
 
 ### Modal Logic
 
-100 [IMPLEMENTING] — Prove canonical_symm (symmetry from axiom B alone) and canonical_
-101 [PLANNED] — Prove soundness and completeness for modal logic B (K + axiom B) 
-102 [PLANNED] — Prove soundness and completeness for modal logic K4 (K + axiom 4)
-103 [PLANNED] — Prove soundness and completeness for modal logic K5 (K + axiom 5)
-104 [PLANNED] — Prove soundness and completeness for modal logic K45 (K + 4 + 5) 
-105 [PLANNED] — Prove soundness and completeness for modal logic TB (K + T + B) o
-106 [PLANNED] — Prove soundness and completeness for modal logic KB5 (K + B + 5) 
-107 [PLANNED] — Prove soundness and completeness for modal logic D4 (K + D + 4) o
 108 [NOT STARTED] — Prove soundness and completeness for modal logic D5 (K + D + 5) o
 109 [NOT STARTED] — Prove soundness and completeness for modal logic D45 (K + D + 4 +
 110 [NOT STARTED] — Prove soundness and completeness for modal logic DB (K + D + B) o
@@ -121,7 +113,7 @@ next_project_number: 113
 ---
 
 ### 107. Modal d4 soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -131,7 +123,7 @@ next_project_number: 113
 ---
 
 ### 106. Modal kb5 soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -141,7 +133,7 @@ next_project_number: 113
 ---
 
 ### 105. Modal tb soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -151,7 +143,7 @@ next_project_number: 113
 ---
 
 ### 104. Modal k45 soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -161,7 +153,7 @@ next_project_number: 113
 ---
 
 ### 103. Modal k5 soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -171,7 +163,7 @@ next_project_number: 113
 ---
 
 ### 102. Modal k4 soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -181,7 +173,7 @@ next_project_number: 113
 ---
 
 ### 101. Modal b soundness completeness
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -191,7 +183,7 @@ next_project_number: 113
 ---
 
 ### 100. Modal cube shared infrastructure
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
