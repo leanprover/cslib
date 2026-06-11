@@ -1,5 +1,5 @@
 ---
-next_project_number: 137
+next_project_number: 138
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 137
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,125 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,125,137 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62,126,127,128,129 | 36,37,61,125 | Temporal Logic, Submit PRs |
 | 3 | 41,63,130,133 | 38,39,40,62,126,127 | Submit PRs, Foundations |
 | 4 | 64,131,132,134,135 | 63,127,128,130,133 | Submit PRs |
@@ -52,11 +52,25 @@ next_project_number: 137
     └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
   └─ 129 [NOT STARTED] — Sub-PR 1.5: Modal logical equivalence + Basic update. Adds Logica
 
+### Modal Logic
+
+137 [NOT STARTED] — Refactor Modal/ directory structure for the modal cube. Systemati
+
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 137. Refactor modal directory structure
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).
+
+---
 
 ### 136. Pr1 citation conformance
 - **Status**: [COMPLETED]

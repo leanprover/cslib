@@ -1,6 +1,16 @@
 {
-  "next_project_number": 137,
+  "next_project_number": 138,
   "active_projects": [
+    {
+      "project_number": 137,
+      "project_name": "refactor_modal_directory_structure",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).",
+      "created": "2026-06-11T23:48:36Z",
+      "last_updated": "2026-06-11T23:48:36Z"
+    },
     {
       "project_number": 136,
       "project_name": "pr1_citation_conformance",
