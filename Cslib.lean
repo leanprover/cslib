@@ -288,6 +288,10 @@ public import Cslib.Logics.Modal.Metalogic.DeductionTheorem
 public import Cslib.Logics.Modal.Metalogic.DerivationTree
 public import Cslib.Logics.Modal.Metalogic.MCS
 public import Cslib.Logics.Modal.Metalogic.Soundness
+public import Cslib.Logics.Modal.Metalogic.KSoundness
+public import Cslib.Logics.Modal.Metalogic.KCompleteness
+public import Cslib.Logics.Modal.Metalogic.TSoundness
+public import Cslib.Logics.Modal.Metalogic.TCompleteness
 public import Cslib.Logics.Modal.ProofSystem.Instances
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
