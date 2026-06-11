@@ -121,7 +121,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: T Soundness (BRV Definition 4.9 for T) [NOT STARTED]
+### Phase 2: T Soundness (BRV Definition 4.9 for T) [COMPLETED]
 
 **Goal**: Prove every TAxiom is valid on reflexive frames. This implements BRV Definition 4.9 specialized to the logic T = KT, confirming that the axiom set of T is sound with respect to reflexive frames (BRV Table 4.1).
 
