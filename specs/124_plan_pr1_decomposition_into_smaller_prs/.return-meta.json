@@ -4,18 +4,17 @@
     {
       "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md",
       "type": "plan",
-      "summary": "Implementation plan for decomposing PR 1 into 11 smaller sub-PRs across 4 dependency waves"
+      "summary": "Revised plan: create 11 sub-PR tasks with detailed spec reports, then verify dependencies"
     }
   ],
-  "next_steps": "Run /implement 124 to execute the plan",
+  "memory_candidates": [],
+  "next_steps": "Run /implement 124 to execute the revised plan",
   "metadata": {
-    "session_id": "sess_1781215659_7922e0",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 11,
-    "estimated_hours": 6,
-    "dependency_waves": [[1], [2, 3, 4, 5], [6, 7, 8, 9], [10, 11]]
-  },
-  "memory_candidates": []
+    "session_id": "sess_1781216211_3e9442",
+    "agent_type": "reviser-agent",
+    "delegation_path": ["orchestrator", "revise", "reviser-agent"],
+    "phase_count": 2,
+    "estimated_hours": 3,
+    "reports_integrated": ["01_pr1-decomposition-research.md"]
+  }
 }

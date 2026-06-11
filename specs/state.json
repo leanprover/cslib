@@ -15,7 +15,7 @@
         {
           "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md",
           "type": "plan",
-          "summary": "Implementation plan for decomposing PR 1 into 11 smaller sub-PRs across 4 dependency waves"
+          "summary": "Revised plan: create 11 sub-PR tasks with detailed spec reports, then verify dependencies"
         }
       ]
     },

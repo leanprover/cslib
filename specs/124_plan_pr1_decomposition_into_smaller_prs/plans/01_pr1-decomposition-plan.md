@@ -2,7 +2,7 @@
 
 - **Task**: 124 - Plan PR 1 Decomposition into Smaller PRs
 - **Status**: [NOT STARTED]
-- **Effort**: 6 hours
+- **Effort**: 3 hours
 - **Dependencies**: Task 123 (add bib references) -- completed
 - **Research Inputs**: specs/124_plan_pr1_decomposition_into_smaller_prs/reports/01_pr1-decomposition-research.md
 - **Artifacts**: plans/01_pr1-decomposition-plan.md (this file)
@@ -12,7 +12,7 @@
 
 ## Overview
 
-The `pr1/foundations-logic` branch has 3,729 insertions across 35 Lean files, which the reviewer flagged as too large. This plan decomposes the branch into 11 sub-PRs, each under ~500 lines (with 3 justified exceptions at 514, 555, and 559 lines), submitted in 4 dependency waves. The work is primarily branch extraction and cherry-picking from the existing `pr1/foundations-logic` branch, not writing new code. Each phase corresponds to one sub-PR and covers branch creation, file extraction, CI verification, PR description, and submission.
+The `pr1/foundations-logic` branch has 3,729 insertions across 35 Lean files, which the reviewer flagged as too large. The research report identified 11 sub-PRs, each under ~500 lines (with 3 justified exceptions at 514, 555, and 559 lines), submitted in 4 dependency waves. Rather than executing the cherry-picking directly, this plan creates 11 independent tasks -- one per sub-PR -- each with a detailed report artifact that serves as the complete spec for that sub-PR. Each task can then go through its own `/research` -> `/plan` -> `/implement` lifecycle independently.
 
 ### Research Integration
 
@@ -20,7 +20,7 @@ The research report (01_pr1-decomposition-research.md) provided the complete fil
 
 ### Prior Plan Reference
 
-No prior plan.
+Revised from v1 (same filename). Original plan had 11 phases for direct cherry-pick execution; revised to 2 phases for task creation with report artifacts, enabling independent lifecycle management per sub-PR.
 
 ### Roadmap Alignment
 
@@ -32,28 +32,26 @@ This plan advances the following roadmap components:
 ## Goals & Non-Goals
 
 **Goals**:
-- Decompose the monolithic PR 1 into 11 sub-PRs, each under ~500 lines of git diff insertions
-- Respect the import dependency graph so each sub-PR builds and passes CI independently
-- Submit sub-PRs in 4 waves, maximizing parallel submissions within each wave
-- Produce clear PR descriptions following CSLib CONTRIBUTING.md conventions
-- Include bib references (from task 123) in relevant sub-PRs
+- Create 11 independent tasks (one per sub-PR), each with a detailed report artifact serving as the complete spec
+- Each report artifact specifies: exact file list with paths, branch name, PR description text, estimated LOC, dependencies on prior sub-PRs, bib references needed, and extraction instructions
+- Declare task dependencies in state.json matching the 4-wave submission order
+- Enable each sub-PR task to go through its own `/research` -> `/plan` -> `/implement` lifecycle
+- Preserve all 11 sub-PR definitions from the research report exactly
 
 **Non-Goals**:
+- Actually executing the cherry-picking or branch creation (deferred to per-task implementation)
 - Writing new Lean code or proofs (all content exists on `pr1/foundations-logic`)
-- Modifying the logical structure of any file (pure extraction)
-- Addressing upstream review comments on proof style or naming (handle in future tasks if reviewer requests changes)
-- Submitting PR 2 (modal metalogic) -- that is task 60, independent of this work
+- Submitting any PRs during this plan's execution
+- Addressing upstream review comments on proof style or naming
 
 ## Risks & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| Sub-PR 1.1 modifies 12 already-merged files; reviewer may question a pure-refactoring PR | Medium | Medium | Frame as "prerequisite refactoring needed for Int/Min logic extensions" with clear rationale in PR description |
-| Three sub-PRs slightly exceed 500 lines (1.5: 555, 1.6: 514, 1.8: 559) | Low | High | Justify in each PR description that the unit is semantically indivisible; request exception from reviewer |
-| Cherry-pick conflicts when extracting files from `pr1/foundations-logic` to per-sub-PR branches | Medium | Low | Each sub-PR branch is created from upstream `main` (after prior wave merges), then files are copied/applied from `pr1/foundations-logic`; no actual cherry-pick needed |
-| CI failures on sub-PR branches due to missing cross-file dependencies | High | Medium | Follow the dependency graph strictly; run full `lake build` + `lake test` before each PR submission |
-| Reviewer turnaround delays cause later waves to drift from upstream main | Low | Medium | Rebase sub-PR branches onto latest upstream main before submission; keep branches small to minimize conflict surface |
-| `Cslib.lean` import lines need to be distributed correctly across sub-PRs | Low | Medium | Each sub-PR adds only the import lines for files it introduces; verify with `lake exe mk_all --module --check` |
+| 11 task creation is a large batch; state.json corruption if interrupted | High | Low | Use atomic jq updates; verify state.json validity after each task creation |
+| Report artifacts may drift from actual branch content if upstream main changes | Medium | Medium | Reports reference the `pr1/foundations-logic` branch content as of the research date; implementers should verify file lists against current branch state |
+| Dependency graph complexity across 11 tasks may confuse tooling | Low | Medium | Phase 2 explicitly verifies acyclicity and wave ordering |
+| Task numbers are not contiguous with sub-PR numbers (tasks 125-135 vs sub-PRs 1.1-1.11) | Low | High | Each report artifact maps task number to sub-PR number clearly in its header |
 
 ## Implementation Phases
 
@@ -61,21 +59,84 @@ This plan advances the following roadmap components:
 | Wave | Phases | Blocked by |
 |------|--------|------------|
 | 1 | 1 | -- |
-| 2 | 2, 3, 4, 5 | 1 |
-| 3 | 6, 7, 8, 9 | 2 and/or 3 |
-| 4 | 10, 11 | 9 |
+| 2 | 2 | 1 |
 
-Phases within the same wave can execute in parallel.
+Phases are sequential: Phase 2 verifies the tasks created in Phase 1.
 
 ---
 
-### Phase 1: Sub-PR 1.1 -- 3-Tier Hilbert Hierarchy Refactoring [NOT STARTED]
+### Phase 1: Create All 11 Sub-PR Tasks with Report Artifacts [NOT STARTED]
 
-**Goal**: Submit the foundational refactoring PR that introduces `MinimalHilbert < IntuitionisticHilbert < ClassicalHilbert`, replacing the flat `PropositionalHilbert`. All subsequent sub-PRs depend on this.
+**Goal**: Create 11 tasks in state.json (tasks 125-135), one per sub-PR, each with a detailed report artifact in `specs/{NNN}_{slug}/reports/01_{short-slug}.md` that serves as the complete spec for that sub-PR. Declare inter-task dependencies matching the 4-wave submission plan.
 
 **Tasks**:
-- [ ] Create branch `propositional/hilbert-hierarchy-refactor` from upstream `main`
-- [ ] Extract the following 12 file modifications from `pr1/foundations-logic`:
+- [ ] Create task 125: `subpr_1_1_hilbert_hierarchy_refactoring` (Wave 1, no dependencies)
+- [ ] Create task 126: `subpr_1_2_intmin_instances` (Wave 2, depends on 125)
+- [ ] Create task 127: `subpr_1_3_propositional_semantics` (Wave 2, depends on 125)
+- [ ] Create task 128: `subpr_1_4_nd_derived_rules` (Wave 2, depends on 125)
+- [ ] Create task 129: `subpr_1_5_modal_logical_equivalence` (Wave 2, depends on 125)
+- [ ] Create task 130: `subpr_1_6_classical_soundness_completeness` (Wave 3, depends on 126, 127)
+- [ ] Create task 131: `subpr_1_7_intuitionistic_soundness_completeness` (Wave 3, depends on 127, 130)
+- [ ] Create task 132: `subpr_1_8_minimal_soundness_completeness` (Wave 3, depends on 127, 130)
+- [ ] Create task 133: `subpr_1_9_fromhilbert_parameterization` (Wave 3, depends on 126)
+- [ ] Create task 134: `subpr_1_10_hilbert_derived_rules` (Wave 4, depends on 133)
+- [ ] Create task 135: `subpr_1_11_nd_hilbert_equivalence` (Wave 4, depends on 128, 133)
+- [ ] For each task, create `specs/{NNN}_{slug}/reports/01_{short-slug}.md` with the detailed report artifact (see Report Artifact Template below)
+- [ ] Update state.json with all 11 tasks, dependencies, and `topic: "Submit PRs"`
+- [ ] Regenerate TODO.md via `bash .claude/scripts/generate-todo.sh`
+
+**Report Artifact Template** (each of the 11 reports must contain):
+
+```markdown
+# Sub-PR Spec: {Sub-PR Number} -- {Title}
+
+## Task Mapping
+- **Task**: {task_number} - {task_name}
+- **Sub-PR**: 1.{X} of 11
+- **Wave**: {wave_number}
+- **Parent Task**: 124 (PR 1 Decomposition)
+- **Source Branch**: `pr1/foundations-logic`
+
+## Branch
+- **Name**: `{branch_name}`
+- **Base**: upstream `main` (after dependencies merge)
+
+## Files
+
+| File | Type | Lines | Notes |
+|------|------|------:|-------|
+| {path} | NEW/MOD | {lines} | {description} |
+...
+- **Cslib.lean**: +{N} import lines
+- **Total**: ~{N} insertions
+
+## Dependencies
+- **Requires merged**: {list of sub-PR task numbers that must merge first, or "None"}
+- **Required by**: {list of sub-PR task numbers that depend on this}
+
+## Extraction Instructions
+{How to extract these files from `pr1/foundations-logic` -- copy new files directly, apply diff for modifications}
+
+## PR Description
+
+{Complete PR description text following CSLib CONTRIBUTING.md conventions, ready to use}
+
+## Bib References
+{Which references from task 123 are relevant, or "None"}
+
+## Estimated LOC
+- Insertions: ~{N}
+- Deletions: ~{N}
+
+## Verification
+{CI commands to run before submission}
+```
+
+**Detailed Report Content per Task**:
+
+**Task 125 (Sub-PR 1.1): 3-Tier Hilbert Hierarchy Refactoring**
+- Branch: `propositional/hilbert-hierarchy-refactor`
+- Files: 12 modified files (see research report for full list)
   - `Foundations/Logic/ProofSystem.lean` (+35/-17)
   - `Foundations/Logic/Theorems/Propositional/Core.lean` (+94/-72)
   - `Foundations/Logic/Theorems/Propositional/Connectives.lean` (+63/-60)
@@ -89,312 +150,158 @@ Phases within the same wave can execute in parallel.
   - `Logics/Propositional/ProofSystem/Instances.lean` (+5/-5)
   - `Logics/Propositional/Metalogic/DeductionTheorem.lean` (+73/-36)
   - `Logics/Propositional/Metalogic/MCS.lean` (+74/-42)
-- [ ] Run full CI checks: `lake build`, `lake test`, `lake lint`, `lake exe lint-style`, `lake exe checkInitImports`, `lake exe mk_all --module --check`, `lake exe shake --add-public --keep-implied --keep-prefix`
-- [ ] Verify no `sorry` in modified files
-- [ ] Write PR description following CSLib conventions (title, summary, what/why/how, testing)
-- [ ] Submit PR to `leanprover/cslib` targeting `main`
+- Estimated: ~483 insertions, ~288 deletions
+- Dependencies: none
+- Required by: all other sub-PRs (125 is the foundation)
 
-**Timing**: 1 hour
-
-**Depends on**: none
-
-**Files to modify**: 12 files (modifications only, ~483 insertions, ~288 deletions)
-
-**Verification**:
-- `lake build` exits 0 on the sub-PR branch
-- All CI checks pass
-- `git diff --stat upstream/main..HEAD` shows ~483 insertions
-
----
-
-### Phase 2: Sub-PR 1.2 -- Propositional Axiom Extensions + IntMin Instances [NOT STARTED]
-
-**Goal**: Extend the axiom system with `IntPropAxiom` and `MinPropAxiom`, and register `IntuitionisticHilbert` and `MinimalHilbert` instances for propositional logic.
-
-**Tasks**:
-- [ ] Create branch `propositional/intmin-instances` from upstream `main` (after 1.1 merges)
-- [ ] Extract from `pr1/foundations-logic`:
-  - `Logics/Propositional/ProofSystem/Axioms.lean` (+51/-0)
+**Task 126 (Sub-PR 1.2): IntMin Instances**
+- Branch: `propositional/intmin-instances`
+- Files:
+  - `Logics/Propositional/ProofSystem/Axioms.lean` (+51/-0) -- MOD
   - `Logics/Propositional/ProofSystem/IntMinInstances.lean` (NEW, 109 lines)
-- [ ] Add 1 import line to `Cslib.lean`
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+1 import)
+- Estimated: ~211 insertions
+- Dependencies: 125
+- Required by: 130, 131, 132, 133
 
-**Timing**: 30 minutes
-
-**Depends on**: 1
-
-**Files to modify**: 2 Lean files + `Cslib.lean` (~211 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- `IntPropAxiom` and `MinPropAxiom` are available and instances registered
-
----
-
-### Phase 3: Sub-PR 1.3 -- Propositional Semantics (Bivalent + Kripke) [NOT STARTED]
-
-**Goal**: Introduce bivalent valuation semantics and Kripke model semantics for propositional logic.
-
-**Tasks**:
-- [ ] Create branch `propositional/semantics` from upstream `main` (after 1.1 merges)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 127 (Sub-PR 1.3): Propositional Semantics**
+- Branch: `propositional/semantics`
+- Files:
   - `Logics/Propositional/Semantics/Basic.lean` (NEW, 47 lines)
   - `Logics/Propositional/Semantics/Kripke.lean` (NEW, 134 lines)
-- [ ] Add 2 import lines to `Cslib.lean`
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+2 imports)
+- Estimated: ~181 insertions
+- Dependencies: 125
+- Required by: 130, 131, 132
 
-**Timing**: 30 minutes
-
-**Depends on**: 1
-
-**Files to modify**: 2 new Lean files + `Cslib.lean` (~181 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- `Valuation`, `Evaluate`, `Tautology`, `KripkeModel`, `IForces`, `IValid`, `MValid` are defined
-
----
-
-### Phase 4: Sub-PR 1.9 -- ND Derived Connective Rules (Standalone) [NOT STARTED]
-
-**Goal**: Add derived rules for the standalone natural deduction system. This sub-PR depends only on the already-merged `NaturalDeduction/Basic.lean` plus the hierarchy refactoring from 1.1.
-
-**Tasks**:
-- [ ] Create branch `propositional/nd-derived-rules` from upstream `main` (after 1.1 merges)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 128 (Sub-PR 1.4): ND Derived Rules (Standalone)**
+- Branch: `propositional/nd-derived-rules`
+- Files:
   - `Logics/Propositional/NaturalDeduction/DerivedRules.lean` (NEW, 387 lines)
-- [ ] Add 1 import line to `Cslib.lean`
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+1 import)
+- Estimated: ~387 insertions
+- Dependencies: 125 (uses upstream NaturalDeduction/Basic.lean, needs MinimalHilbert from 1.1)
+- Required by: 135
 
-**Timing**: 30 minutes
-
-**Depends on**: 1
-
-**Files to modify**: 1 new Lean file + `Cslib.lean` (~387 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- All derived rules typecheck without `sorry`
-
----
-
-### Phase 5: Sub-PR 1.11 -- Modal Logical Equivalence + Basic Update [NOT STARTED]
-
-**Goal**: Add the `LogicalEquivalence` typeclass instance for modal logic and update `Modal/Basic.lean` for the `MinimalHilbert` rename.
-
-**Tasks**:
-- [ ] Create branch `modal/logical-equivalence` from upstream `main` (after 1.1 merges)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 129 (Sub-PR 1.5): Modal Logical Equivalence**
+- Branch: `modal/logical-equivalence`
+- Files:
   - `Logics/Modal/LogicalEquivalence.lean` (NEW, 132 lines)
-  - `Logics/Modal/Basic.lean` (+19/-11)
-  - `Logics/Modal/Denotation.lean` (+2/-2)
-- [ ] Add 1 import line to `Cslib.lean`
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Logics/Modal/Basic.lean` (+19/-11) -- MOD
+  - `Logics/Modal/Denotation.lean` (+2/-2) -- MOD
+  - `Cslib.lean` (+1 import)
+- Estimated: ~151 insertions
+- Dependencies: 125
+- Required by: none (independent leaf)
 
-**Timing**: 30 minutes
-
-**Depends on**: 1
-
-**Files to modify**: 3 Lean files (1 new, 2 modified) + `Cslib.lean` (~151 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- `LogicalEquivalence` instance for modal formulas is registered
-
----
-
-### Phase 6: Sub-PR 1.4 -- Classical Soundness + Completeness [NOT STARTED]
-
-**Goal**: Prove classical propositional Hilbert logic is sound and complete with respect to bivalent semantics.
-
-**Tasks**:
-- [ ] Create branch `propositional/classical-soundness-completeness` from upstream `main` (after 1.2 and 1.3 merge)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 130 (Sub-PR 1.6): Classical Soundness + Completeness**
+- Branch: `propositional/classical-soundness-completeness`
+- Files:
   - `Logics/Propositional/Metalogic/Soundness.lean` (NEW, 87 lines)
   - `Logics/Propositional/Metalogic/Completeness.lean` (NEW, 295 lines)
-- [ ] Add 2 import lines to `Cslib.lean`
-- [ ] Verify bib references from task 123 are present in cited files
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+2 imports)
+- Estimated: ~382 insertions
+- Dependencies: 126, 127
+- Required by: 131, 132
+- Bib references: ChagrovZakharyaschev1997
 
-**Timing**: 30 minutes
-
-**Depends on**: 2, 3
-
-**Files to modify**: 2 new Lean files + `Cslib.lean` (~382 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- `Derivable -> Tautology` (soundness) and `Tautology -> Derivable` (completeness) are proven
-
----
-
-### Phase 7: Sub-PR 1.5 -- Intuitionistic Soundness + Completeness [NOT STARTED]
-
-**Goal**: Prove soundness and completeness for intuitionistic propositional logic via Kripke models. Three files form a single logical unit (555 lines, slightly over the 500-line target).
-
-**Tasks**:
-- [ ] Create branch `propositional/intuitionistic-soundness-completeness` from upstream `main` (after 1.3 and 1.4 merge)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 131 (Sub-PR 1.7): Intuitionistic Soundness + Completeness**
+- Branch: `propositional/intuitionistic-soundness-completeness`
+- Files:
   - `Logics/Propositional/Metalogic/IntSoundness.lean` (NEW, 103 lines)
   - `Logics/Propositional/Metalogic/IntLindenbaum.lean` (NEW, 325 lines)
   - `Logics/Propositional/Metalogic/IntCompleteness.lean` (NEW, 127 lines)
-- [ ] Add 3 import lines to `Cslib.lean`
-- [ ] Note in PR description: 555 lines total, semantically indivisible (Lindenbaum extension lemma is required by completeness proof)
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+3 imports)
+- Estimated: ~555 insertions (over 500-line target; semantically indivisible)
+- Dependencies: 127, 130
+- Required by: none (independent leaf)
+- Bib references: ChagrovZakharyaschev1997, TroelstraVanDalen1988
 
-**Timing**: 30 minutes
-
-**Depends on**: 3, 6
-
-**Files to modify**: 3 new Lean files + `Cslib.lean` (~555 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- Intuitionistic soundness and completeness theorems proven without `sorry`
-
----
-
-### Phase 8: Sub-PR 1.6 -- Minimal Logic Soundness + Completeness [NOT STARTED]
-
-**Goal**: Prove soundness and completeness for minimal propositional logic. Structurally mirrors 1.5 (514 lines, slightly over target).
-
-**Tasks**:
-- [ ] Create branch `propositional/minimal-soundness-completeness` from upstream `main` (after 1.3 and 1.4 merge)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 132 (Sub-PR 1.8): Minimal Soundness + Completeness**
+- Branch: `propositional/minimal-soundness-completeness`
+- Files:
   - `Logics/Propositional/Metalogic/MinSoundness.lean` (NEW, 96 lines)
   - `Logics/Propositional/Metalogic/MinLindenbaum.lean` (NEW, 275 lines)
   - `Logics/Propositional/Metalogic/MinCompleteness.lean` (NEW, 143 lines)
-- [ ] Add 3 import lines to `Cslib.lean`
-- [ ] Note in PR description: 514 lines total, semantically indivisible
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+3 imports)
+- Estimated: ~514 insertions (over 500-line target; semantically indivisible)
+- Dependencies: 127, 130
+- Required by: none (independent leaf)
+- Bib references: ChagrovZakharyaschev1997
 
-**Timing**: 30 minutes
+**Task 133 (Sub-PR 1.9): ND-Hilbert Bridge Parameterization**
+- Branch: `propositional/fromhilbert-parameterize`
+- Files:
+  - `Logics/Propositional/NaturalDeduction/FromHilbert.lean` (+146/-63) -- MOD
+- Estimated: ~146 insertions, ~63 deletions
+- Dependencies: 126
+- Required by: 134, 135
 
-**Depends on**: 3, 6
-
-**Files to modify**: 3 new Lean files + `Cslib.lean` (~514 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- Minimal logic soundness and completeness theorems proven without `sorry`
-
----
-
-### Phase 9: Sub-PR 1.7 -- ND-Hilbert Bridge Parameterization [NOT STARTED]
-
-**Goal**: Parameterize the existing `FromHilbert.lean` over axiom sets, enabling the ND-Hilbert bridge to work for classical, intuitionistic, and minimal logic.
-
-**Tasks**:
-- [ ] Create branch `propositional/fromhilbert-parameterize` from upstream `main` (after 1.2 merges)
-- [ ] Extract from `pr1/foundations-logic`:
-  - `Logics/Propositional/NaturalDeduction/FromHilbert.lean` (+146/-63)
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
-
-**Timing**: 30 minutes
-
-**Depends on**: 2
-
-**Files to modify**: 1 Lean file (~146 insertions, ~63 deletions)
-
-**Verification**:
-- `lake build` exits 0
-- `impI_int`, `impI_min` and other parameterized lemmas typecheck
-
----
-
-### Phase 10: Sub-PR 1.8 -- Hilbert-Style Derived Connective Rules [NOT STARTED]
-
-**Goal**: Add derived rules for all connectives at three logic levels (classical, intuitionistic, minimal), built over `FromHilbert`. Single file at 559 lines (slightly over target, indivisible).
-
-**Tasks**:
-- [ ] Create branch `propositional/hilbert-derived-rules` from upstream `main` (after 1.7 merges)
-- [ ] Extract from `pr1/foundations-logic`:
+**Task 134 (Sub-PR 1.10): Hilbert-Style Derived Connective Rules**
+- Branch: `propositional/hilbert-derived-rules`
+- Files:
   - `Logics/Propositional/NaturalDeduction/HilbertDerivedRules.lean` (NEW, 559 lines)
-- [ ] Add 1 import line to `Cslib.lean`
-- [ ] Note in PR description: 559 lines total; covers negation, top, conjunction, disjunction, biconditional at 3 logic levels; splitting by connective would create non-buildable partial files
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+  - `Cslib.lean` (+1 import)
+- Estimated: ~559 insertions (over 500-line target; indivisible -- covers negation, top, conjunction, disjunction, biconditional at 3 logic levels)
+- Dependencies: 133
+- Required by: none (independent leaf)
 
-**Timing**: 30 minutes
+**Task 135 (Sub-PR 1.11): ND-Hilbert Extensional Equivalence**
+- Branch: `propositional/nd-hilbert-equivalence`
+- Files:
+  - `Logics/Propositional/NaturalDeduction/Equivalence.lean` (NEW, 231 lines)
+  - `Cslib.lean` (+1 import)
+- Estimated: ~231 insertions
+- Dependencies: 128, 133
+- Required by: none (independent leaf)
 
-**Depends on**: 9
+**Timing**: 2.5 hours (11 task creations with report artifacts)
 
-**Files to modify**: 1 new Lean file + `Cslib.lean` (~559 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- All derived connective rules typecheck without `sorry`
+**Depends on**: none
 
 ---
 
-### Phase 11: Sub-PR 1.10 -- ND-Hilbert Extensional Equivalence [NOT STARTED]
+### Phase 2: Verify Task Dependencies and Ordering [NOT STARTED]
 
-**Goal**: Prove that Hilbert derivability and ND derivability are extensionally equivalent, with instances for classical, intuitionistic, and minimal logic.
+**Goal**: Verify all 11 sub-PR tasks have correct dependencies declared in state.json, confirm the dependency graph is acyclic, and validate that the wave ordering matches the research findings.
 
 **Tasks**:
-- [ ] Create branch `propositional/nd-hilbert-equivalence` from upstream `main` (after 1.7 and 1.9 merge)
-- [ ] Extract from `pr1/foundations-logic`:
-  - `Logics/Propositional/NaturalDeduction/Equivalence.lean` (NEW, 231 lines)
-- [ ] Add 1 import line to `Cslib.lean`
-- [ ] Run full CI checks
-- [ ] Write and submit PR description
+- [ ] Read state.json and extract dependency graph for tasks 125-135
+- [ ] Verify dependency graph is a DAG (no cycles)
+- [ ] Verify wave assignment matches research report:
+  - Wave 1: 125 (no deps)
+  - Wave 2: 126, 127, 128, 129 (all depend on 125 only)
+  - Wave 3: 130, 131, 132, 133 (depend on Wave 1-2 tasks)
+  - Wave 4: 134, 135 (depend on Wave 2-3 tasks)
+- [ ] Verify each report artifact exists and contains all required sections
+- [ ] Verify total LOC across all 11 reports sums to ~3,729 insertions
+- [ ] Cross-check file lists: every file in the research report appears in exactly one sub-PR report
 
 **Timing**: 30 minutes
 
-**Depends on**: 4, 9
-
-**Files to modify**: 1 new Lean file + `Cslib.lean` (~231 insertions)
-
-**Verification**:
-- `lake build` exits 0
-- Equivalence instances for classical, intuitionistic, and minimal logic are registered
+**Depends on**: 1
 
 ---
-
-## Testing & Validation
-
-- [ ] Each sub-PR branch passes `lake build` independently
-- [ ] Each sub-PR branch passes `lake test`
-- [ ] Each sub-PR branch passes `lake lint` and `lake exe lint-style`
-- [ ] Each sub-PR branch passes `lake exe checkInitImports` and `lake exe mk_all --module --check`
-- [ ] `lake exe shake --add-public --keep-implied --keep-prefix` shows no unused imports per sub-PR
-- [ ] No `sorry` in any submitted file (`grep -rn "sorry" <files>` returns 0 hits per sub-PR)
-- [ ] After all 11 sub-PRs merge, the combined content matches `pr1/foundations-logic` exactly (verify with `git diff`)
-- [ ] Bib references from task 123 are present in all metalogic sub-PRs (1.4, 1.5, 1.6)
-
-## Artifacts & Outputs
-
-- 11 sub-PR branches, each targeting `leanprover/cslib` upstream `main`
-- 11 PR descriptions following CSLib CONTRIBUTING.md conventions
-- This plan file: `specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md`
 
 ## Sub-PR Summary Table
 
-| Phase | Sub-PR | Title | Lines | Branch | Wave |
-|-------|--------|-------|------:|--------|------|
-| 1 | 1.1 | 3-tier Hilbert hierarchy refactoring | ~483 | `propositional/hilbert-hierarchy-refactor` | 1 |
-| 2 | 1.2 | Axiom extensions + IntMin instances | ~211 | `propositional/intmin-instances` | 2 |
-| 3 | 1.3 | Propositional semantics (bivalent + Kripke) | ~181 | `propositional/semantics` | 2 |
-| 4 | 1.9 | ND derived connective rules (standalone) | ~387 | `propositional/nd-derived-rules` | 2 |
-| 5 | 1.11 | Modal logical equivalence + Basic update | ~151 | `modal/logical-equivalence` | 2 |
-| 6 | 1.4 | Classical soundness + completeness | ~382 | `propositional/classical-soundness-completeness` | 3 |
-| 7 | 1.5 | Intuitionistic soundness + completeness | ~555 | `propositional/intuitionistic-soundness-completeness` | 3 |
-| 8 | 1.6 | Minimal logic soundness + completeness | ~514 | `propositional/minimal-soundness-completeness` | 3 |
-| 9 | 1.7 | ND-Hilbert bridge parameterization | ~146 | `propositional/fromhilbert-parameterize` | 3 |
-| 10 | 1.8 | Hilbert-style derived connective rules | ~559 | `propositional/hilbert-derived-rules` | 4 |
-| 11 | 1.10 | ND-Hilbert extensional equivalence | ~231 | `propositional/nd-hilbert-equivalence` | 4 |
+| Task | Sub-PR | Title | ~LOC | Branch | Wave | Dependencies |
+|------|--------|-------|-----:|--------|------|-------------|
+| 125 | 1.1 | 3-tier Hilbert hierarchy refactoring | 483 | `propositional/hilbert-hierarchy-refactor` | 1 | -- |
+| 126 | 1.2 | Axiom extensions + IntMin instances | 211 | `propositional/intmin-instances` | 2 | 125 |
+| 127 | 1.3 | Propositional semantics (bivalent + Kripke) | 181 | `propositional/semantics` | 2 | 125 |
+| 128 | 1.4 | ND derived connective rules (standalone) | 387 | `propositional/nd-derived-rules` | 2 | 125 |
+| 129 | 1.5 | Modal logical equivalence + Basic update | 151 | `modal/logical-equivalence` | 2 | 125 |
+| 130 | 1.6 | Classical soundness + completeness | 382 | `propositional/classical-soundness-completeness` | 3 | 126, 127 |
+| 131 | 1.7 | Intuitionistic soundness + completeness | 555 | `propositional/intuitionistic-soundness-completeness` | 3 | 127, 130 |
+| 132 | 1.8 | Minimal soundness + completeness | 514 | `propositional/minimal-soundness-completeness` | 3 | 127, 130 |
+| 133 | 1.9 | ND-Hilbert bridge parameterization | 146 | `propositional/fromhilbert-parameterize` | 3 | 126 |
+| 134 | 1.10 | Hilbert-style derived connective rules | 559 | `propositional/hilbert-derived-rules` | 4 | 133 |
+| 135 | 1.11 | ND-Hilbert extensional equivalence | 231 | `propositional/nd-hilbert-equivalence` | 4 | 128, 133 |
 
 ## PR Description Template
 
-Each sub-PR description should follow this structure:
+Each sub-PR report artifact should include a PR description following this structure:
 
 ```markdown
 ## Summary
@@ -424,9 +331,37 @@ This is sub-PR {X} of 11 in the PR 1 decomposition (see tracking issue/comment f
 {Relevant citations from references.bib, if applicable}
 ```
 
+## Testing & Validation
+
+- [ ] All 11 tasks exist in state.json with correct project_number, project_name, status, task_type, dependencies, and topic
+- [ ] All 11 report artifacts exist at `specs/{NNN}_{slug}/reports/01_{short-slug}.md`
+- [ ] Each report contains all required sections (Task Mapping, Branch, Files, Dependencies, Extraction Instructions, PR Description, Bib References, Estimated LOC, Verification)
+- [ ] Dependency graph across tasks 125-135 is acyclic
+- [ ] Wave ordering matches research report (Wave 1: 125; Wave 2: 126-129; Wave 3: 130-133; Wave 4: 134-135)
+- [ ] Total insertions across all 11 reports sum to approximately 3,729
+- [ ] Every file from the research report's inventory appears in exactly one sub-PR report
+- [ ] TODO.md correctly reflects all 11 new tasks with status [NOT STARTED]
+
+## Artifacts & Outputs
+
+- This plan file: `specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md`
+- 11 task entries in state.json (tasks 125-135)
+- 11 report artifacts:
+  - `specs/125_subpr_1_1_hilbert_hierarchy_refactoring/reports/01_hilbert-hierarchy-spec.md`
+  - `specs/126_subpr_1_2_intmin_instances/reports/01_intmin-instances-spec.md`
+  - `specs/127_subpr_1_3_propositional_semantics/reports/01_propositional-semantics-spec.md`
+  - `specs/128_subpr_1_4_nd_derived_rules/reports/01_nd-derived-rules-spec.md`
+  - `specs/129_subpr_1_5_modal_logical_equivalence/reports/01_modal-logical-equiv-spec.md`
+  - `specs/130_subpr_1_6_classical_soundness_completeness/reports/01_classical-soundness-spec.md`
+  - `specs/131_subpr_1_7_intuitionistic_soundness_completeness/reports/01_intuitionistic-soundness-spec.md`
+  - `specs/132_subpr_1_8_minimal_soundness_completeness/reports/01_minimal-soundness-spec.md`
+  - `specs/133_subpr_1_9_fromhilbert_parameterization/reports/01_fromhilbert-param-spec.md`
+  - `specs/134_subpr_1_10_hilbert_derived_rules/reports/01_hilbert-derived-rules-spec.md`
+  - `specs/135_subpr_1_11_nd_hilbert_equivalence/reports/01_nd-hilbert-equiv-spec.md`
+
 ## Rollback/Contingency
 
-- Each sub-PR is independent after its dependencies merge; a rejected sub-PR does not block unrelated waves
-- If a sub-PR requires changes after reviewer feedback, amend the branch and force-push (standard GitHub PR workflow)
-- If the overall decomposition strategy is rejected, fall back to the monolithic `pr1/foundations-logic` branch (still intact, not deleted)
+- If task creation is interrupted partway, delete any partially-created tasks from state.json and regenerate TODO.md
+- If the decomposition strategy is rejected by the reviewer, fall back to the monolithic `pr1/foundations-logic` branch (still intact)
+- Individual sub-PR tasks can be abandoned independently without affecting others (except downstream dependencies)
 - The original branch `pr1/foundations-logic` is preserved as a reference throughout the process and should not be deleted until all 11 sub-PRs are merged
