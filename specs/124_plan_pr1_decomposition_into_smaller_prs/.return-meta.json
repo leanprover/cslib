@@ -1,20 +1,23 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "agent_type": "general-implementation-agent",
+  "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+  "session_id": "sess_1781216211_3e9442",
+  "task_number": 124,
   "artifacts": [
     {
-      "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md",
-      "type": "plan",
-      "summary": "Revised plan: create 11 sub-PR tasks with detailed spec reports, then verify dependencies"
+      "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/summaries/01_pr1-decomposition-summary.md",
+      "type": "summary",
+      "summary": "Created 11 sub-PR tasks (125-135) with detailed spec reports for decomposing PR 1 into smaller PRs under 500 LOC each"
     }
   ],
+  "completion_data": {
+    "completion_summary": "Created 11 sub-PR tasks (125-135) with detailed spec reports for decomposing PR 1 into smaller PRs under 500 LOC each; tasks organized in 4 dependency waves with verified acyclic dependency graph",
+    "roadmap_items": []
+  },
   "memory_candidates": [],
-  "next_steps": "Run /implement 124 to execute the revised plan",
   "metadata": {
-    "session_id": "sess_1781216211_3e9442",
-    "agent_type": "reviser-agent",
-    "delegation_path": ["orchestrator", "revise", "reviser-agent"],
-    "phase_count": 2,
-    "estimated_hours": 3,
-    "reports_integrated": ["01_pr1-decomposition-research.md"]
+    "phases_completed": 2,
+    "phases_total": 2
   }
 }

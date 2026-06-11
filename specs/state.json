@@ -1,15 +1,160 @@
 {
-  "next_project_number": 125,
+  "next_project_number": 136,
   "active_projects": [
+    {
+      "project_number": 125,
+      "project_name": "subpr_1_1_hilbert_hierarchy_refactoring",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs."
+    },
+    {
+      "project_number": 126,
+      "project_name": "subpr_1_2_intmin_instances",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        125
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.2: Propositional axiom extensions and IntMin instances. Extends axiom system with IntPropAxiom/MinPropAxiom and adds instance registrations for intuitionistic and minimal Hilbert logics."
+    },
+    {
+      "project_number": 127,
+      "project_name": "subpr_1_3_propositional_semantics",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        125
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduces Valuation/Evaluate/Tautology (bivalent) and KripkeModel/IForces/IValid/MValid (Kripke) for propositional logic."
+    },
+    {
+      "project_number": 128,
+      "project_name": "subpr_1_4_nd_derived_rules",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        125
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.4: ND derived connective rules (standalone). Adds derived rules for natural deduction connectives using the standalone NaturalDeduction/Basic.lean already in upstream."
+    },
+    {
+      "project_number": 129,
+      "project_name": "subpr_1_5_modal_logical_equivalence",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        125
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.5: Modal logical equivalence + Basic update. Adds LogicalEquivalence typeclass instance for modal logic and updates Modal/Basic.lean for MinimalHilbert rename."
+    },
+    {
+      "project_number": 130,
+      "project_name": "subpr_1_6_classical_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        126,
+        127
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.6: Classical soundness and completeness. Proves classical propositional Hilbert logic is sound and complete w.r.t. bivalent semantics. Depends on 1.2 (IntMin instances) and 1.3 (semantics)."
+    },
+    {
+      "project_number": 131,
+      "project_name": "subpr_1_7_intuitionistic_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        127,
+        130
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke models. Slightly over 500-line limit (555 lines) but logically indivisible: IntSoundness + IntLindenbaum (DCCS extension lemma) + IntCompleteness."
+    },
+    {
+      "project_number": 132,
+      "project_name": "subpr_1_8_minimal_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        127,
+        130
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.8: Minimal soundness and completeness via Kripke models. Slightly over 500-line limit (514 lines) but logically indivisible: MinSoundness + MinLindenbaum + MinCompleteness."
+    },
+    {
+      "project_number": 133,
+      "project_name": "subpr_1_9_fromhilbert_parameterization",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        126
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes FromHilbert.lean over axiom sets, enabling the ND-Hilbert bridge to work for classical, intuitionistic, and minimal logic."
+    },
+    {
+      "project_number": 134,
+      "project_name": "subpr_1_10_hilbert_derived_rules",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        133
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived rules for negation/top/conjunction/disjunction/biconditional at 3 logic levels, built over parameterized FromHilbert. Slightly over 500-line limit (559 lines) but indivisible."
+    },
+    {
+      "project_number": 135,
+      "project_name": "subpr_1_11_nd_hilbert_equivalence",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        128,
+        133
+      ],
+      "created": "2026-06-11T22:30:00Z",
+      "last_updated": "2026-06-11T22:30:00Z",
+      "description": "Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert derivability and ND derivability are extensionally equivalent, with instances for classical, intuitionistic, and minimal logic."
+    },
     {
       "project_number": 124,
       "project_name": "plan_pr1_decomposition_into_smaller_prs",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "general",
       "topic": "Submit PRs",
       "created": "2026-06-11T20:47:26Z",
-      "last_updated": "2026-06-11T22:11:56Z",
-      "session_id": "sess_1781215659_7922e0",
+      "last_updated": "2026-06-11T22:23:22Z",
+      "session_id": "sess_1781216211_3e9442",
       "next_artifact_number": 2,
       "artifacts": [
         {

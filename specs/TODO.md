@@ -1,5 +1,5 @@
 ---
-next_project_number: 125
+next_project_number: 136
 ---
 
 # TODO
@@ -11,10 +11,10 @@ next_project_number: 125
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,124 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
-| 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
-| 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
-| 4 | 64 | 63 | Submit PRs |
+| 1 | 36,37,38,60,61,124,125 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,62,126,127,128,129 | 36,37,61,125 | Temporal Logic, Submit PRs |
+| 3 | 41,63,130,133 | 38,39,40,62,126,127 | Submit PRs, Foundations |
+| 4 | 64,131,132,134,135 | 63,127,128,130,133 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -36,7 +36,22 @@ next_project_number: 125
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-124 [PLANNED] — plan_pr1_decomposition_into_smaller_prs
+124 [IMPLEMENTING] — plan_pr1_decomposition_into_smaller_prs
+125 [NOT STARTED] — Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 alr
+  └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
+    └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
+      └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
+      └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models.
+    └─ 133 [NOT STARTED] — Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes Fro
+      └─ 134 [NOT STARTED] — Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived
+      └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d
+  └─ 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
+    └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica (see above)
+    └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke  (see above)
+    └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models. (see above)
+  └─ 128 [NOT STARTED] — Sub-PR 1.4: ND derived connective rules (standalone). Adds derive
+    └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
+  └─ 129 [NOT STARTED] — Sub-PR 1.5: Modal logical equivalence + Basic update. Adds Logica
 
 ### Foundations
 
@@ -44,8 +59,118 @@ next_project_number: 125
 
 ## Tasks
 
+### 135. Subpr 1 11 nd hilbert equivalence
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 128, Task 133
+
+**Description**: Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert derivability and ND derivability are extensionally equivalent, with instances for classical, intuitionistic, and minimal logic.
+
+---
+
+### 134. Subpr 1 10 hilbert derived rules
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 133
+
+**Description**: Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived rules for negation/top/conjunction/disjunction/biconditional at 3 logic levels, built over parameterized FromHilbert. Slightly over 500-line limit (559 lines) but indivisible.
+
+---
+
+### 133. Subpr 1 9 fromhilbert parameterization
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 126
+
+**Description**: Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes FromHilbert.lean over axiom sets, enabling the ND-Hilbert bridge to work for classical, intuitionistic, and minimal logic.
+
+---
+
+### 132. Subpr 1 8 minimal soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 127, Task 130
+
+**Description**: Sub-PR 1.8: Minimal soundness and completeness via Kripke models. Slightly over 500-line limit (514 lines) but logically indivisible: MinSoundness + MinLindenbaum + MinCompleteness.
+
+---
+
+### 131. Subpr 1 7 intuitionistic soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 127, Task 130
+
+**Description**: Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke models. Slightly over 500-line limit (555 lines) but logically indivisible: IntSoundness + IntLindenbaum (DCCS extension lemma) + IntCompleteness.
+
+---
+
+### 130. Subpr 1 6 classical soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 126, Task 127
+
+**Description**: Sub-PR 1.6: Classical soundness and completeness. Proves classical propositional Hilbert logic is sound and complete w.r.t. bivalent semantics. Depends on 1.2 (IntMin instances) and 1.3 (semantics).
+
+---
+
+### 129. Subpr 1 5 modal logical equivalence
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 125
+
+**Description**: Sub-PR 1.5: Modal logical equivalence + Basic update. Adds LogicalEquivalence typeclass instance for modal logic and updates Modal/Basic.lean for MinimalHilbert rename.
+
+---
+
+### 128. Subpr 1 4 nd derived rules
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 125
+
+**Description**: Sub-PR 1.4: ND derived connective rules (standalone). Adds derived rules for natural deduction connectives using the standalone NaturalDeduction/Basic.lean already in upstream.
+
+---
+
+### 127. Subpr 1 3 propositional semantics
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 125
+
+**Description**: Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduces Valuation/Evaluate/Tautology (bivalent) and KripkeModel/IForces/IValid/MValid (Kripke) for propositional logic.
+
+---
+
+### 126. Subpr 1 2 intmin instances
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: Task 125
+
+**Description**: Sub-PR 1.2: Propositional axiom extensions and IntMin instances. Extends axiom system with IntPropAxiom/MinPropAxiom and adds instance registrations for intuitionistic and minimal Hilbert logics.
+
+---
+
+### 125. Subpr 1 1 hilbert hierarchy refactoring
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: None
+
+**Description**: Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 already-merged files to introduce MinimalHilbert/IntuitionisticHilbert/ClassicalHilbert 3-level hierarchy, replacing the flat PropositionalHilbert. Pure refactoring - no new logic. Foundation for all other sub-PRs.
+
+---
+
 ### 124. Plan pr1 decomposition into smaller prs
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Dependencies**: None

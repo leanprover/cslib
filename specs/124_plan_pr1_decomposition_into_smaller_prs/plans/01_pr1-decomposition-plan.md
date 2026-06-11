@@ -1,7 +1,7 @@
 # Implementation Plan: PR 1 Decomposition into Smaller Sub-PRs
 
 - **Task**: 124 - Plan PR 1 Decomposition into Smaller PRs
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 3 hours
 - **Dependencies**: Task 123 (add bib references) -- completed
 - **Research Inputs**: specs/124_plan_pr1_decomposition_into_smaller_prs/reports/01_pr1-decomposition-research.md
@@ -65,7 +65,7 @@ Phases are sequential: Phase 2 verifies the tasks created in Phase 1.
 
 ---
 
-### Phase 1: Create All 11 Sub-PR Tasks with Report Artifacts [NOT STARTED]
+### Phase 1: Create All 11 Sub-PR Tasks with Report Artifacts [COMPLETED]
 
 **Goal**: Create 11 tasks in state.json (tasks 125-135), one per sub-PR, each with a detailed report artifact in `specs/{NNN}_{slug}/reports/01_{short-slug}.md` that serves as the complete spec for that sub-PR. Declare inter-task dependencies matching the 4-wave submission plan.
 
@@ -261,7 +261,7 @@ Phases are sequential: Phase 2 verifies the tasks created in Phase 1.
 
 ---
 
-### Phase 2: Verify Task Dependencies and Ordering [NOT STARTED]
+### Phase 2: Verify Task Dependencies and Ordering [COMPLETED]
 
 **Goal**: Verify all 11 sub-PR tasks have correct dependencies declared in state.json, confirm the dependency graph is acyclic, and validate that the wave ordering matches the research findings.
 
