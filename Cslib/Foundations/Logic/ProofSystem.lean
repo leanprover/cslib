@@ -300,12 +300,28 @@ class ModalHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
             Necessitation S (F := F),
             HasAxiomK S (F := F)
 
-/-- Modal Hilbert system S5 (extends K with T, 4, B). -/
-class ModalS5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+/-- Modal Hilbert system T (extends K with T / reflexivity). -/
+class ModalTHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
     [InferenceSystem S F]
     extends ModalHilbert S (F := F),
-            HasAxiomT S (F := F),
-            HasAxiom4 S (F := F),
+            HasAxiomT S (F := F)
+
+/-- Modal Hilbert system D (extends K with D / seriality). -/
+class ModalDHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalHilbert S (F := F),
+            HasAxiomD S (F := F)
+
+/-- Modal Hilbert system S4 (extends T with 4 / transitivity). -/
+class ModalS4Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalTHilbert S (F := F),
+            HasAxiom4 S (F := F)
+
+/-- Modal Hilbert system S5 (extends S4 with B / symmetry). -/
+class ModalS5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
+    [InferenceSystem S F]
+    extends ModalS4Hilbert S (F := F),
             HasAxiomB S (F := F)
 
 /-- Temporal Hilbert system BX: extends classical propositional logic with
@@ -358,6 +374,15 @@ opaque Propositional.HilbertCl : Type := Empty
 
 /-- Tag type for modal logic K. -/
 opaque Modal.HilbertK : Type := Empty
+
+/-- Tag type for modal logic T. -/
+opaque Modal.HilbertT : Type := Empty
+
+/-- Tag type for modal logic D. -/
+opaque Modal.HilbertD : Type := Empty
+
+/-- Tag type for modal logic S4. -/
+opaque Modal.HilbertS4 : Type := Empty
 
 /-- Tag type for modal logic S5. -/
 opaque Modal.HilbertS5 : Type := Empty
