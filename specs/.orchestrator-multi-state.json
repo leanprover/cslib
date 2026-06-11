@@ -1,0 +1,94 @@
+{
+  "session_id": "sess_1781140623_7b07f0",
+  "task_numbers": [
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98
+  ],
+  "waves": [
+    [
+      92
+    ],
+    [
+      93,
+      94
+    ],
+    [
+      95,
+      96,
+      97
+    ],
+    [
+      98
+    ]
+  ],
+  "dependency_graph": {
+    "92": [],
+    "93": [
+      92
+    ],
+    "94": [
+      92
+    ],
+    "95": [
+      93
+    ],
+    "96": [
+      93
+    ],
+    "97": [
+      93
+    ],
+    "98": [
+      95,
+      96,
+      97
+    ]
+  },
+  "task_types": {
+    "92": "lean4",
+    "93": "lean4",
+    "94": "lean4",
+    "95": "lean4",
+    "96": "lean4",
+    "97": "lean4",
+    "98": "lean4"
+  },
+  "current_statuses": {
+    "92": "completed",
+    "93": "not_started",
+    "94": "not_started",
+    "95": "not_started",
+    "96": "not_started",
+    "97": "not_started",
+    "98": "not_started"
+  },
+  "research_agents": {
+    "92": "lean-research-agent",
+    "93": "lean-research-agent",
+    "94": "lean-research-agent",
+    "95": "lean-research-agent",
+    "96": "lean-research-agent",
+    "97": "lean-research-agent",
+    "98": "lean-research-agent"
+  },
+  "implement_agents": {
+    "92": "lean-implementation-agent",
+    "93": "lean-implementation-agent",
+    "94": "lean-implementation-agent",
+    "95": "lean-implementation-agent",
+    "96": "lean-implementation-agent",
+    "97": "lean-implementation-agent",
+    "98": "lean-implementation-agent"
+  },
+  "cycle_count": 3,
+  "max_cycles": 25,
+  "failed_tasks": [],
+  "completed_tasks": [
+    92
+  ]
+}

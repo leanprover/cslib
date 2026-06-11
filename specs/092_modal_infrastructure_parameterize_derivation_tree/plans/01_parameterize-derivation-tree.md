@@ -1,7 +1,7 @@
 # Implementation Plan: Parameterize DerivationTree and Add Modal Typeclasses
 
 - **Task**: 92 - Parameterize DerivationTree over an axiom predicate for modal cube expansion
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/092_modal_infrastructure_parameterize_derivation_tree/reports/01_parameterize-derivation-tree.md
