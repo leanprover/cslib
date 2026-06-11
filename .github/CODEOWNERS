@@ -12,9 +12,9 @@
 ### Area access
 # Each area maintainer has access to parts that pertain them. They get automatically asked for
 # reviewing new PRs that touch those areas.
-/Cslib/Algorithms/ @sorrachai
-/Cslib/Foundations/Logic/ @arademaker @fmontesi
-/Cslib/Logics/ @arademaker @fmontesi
-/Cslib/Languages/LambdaCalculus/ @chenson2018
+/Cslib/Algorithms/ @fmontesi @sorrachai
+/Cslib/Foundations/Logic/ @arademaker @fmontesi @chenson2018
+/Cslib/Logics/ @arademaker @fmontesi @chenson2018
+/Cslib/Languages/LambdaCalculus/ @chenson2018 @fmontesi
 /.github/workflows @kim-em @fmontesi @chenson2018
 /scripts @kim-em @fmontesi @chenson2018
