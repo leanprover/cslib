@@ -1,5 +1,5 @@
 ---
-next_project_number: 112
+next_project_number: 113
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 112
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,100,101,102,103,104,105,106,107,108,109,110,111 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,100,101,102,103,104,105,106,107,108,109,110,111,112 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -42,6 +42,10 @@ next_project_number: 112
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
+### Propositional Logic
+
+112 [NOT STARTED] — Establish soundness and completeness for the propositional Hilber
+
 ### Modal Logic
 
 100 [NOT STARTED] — Prove canonical_symm (symmetry from axiom B alone) and canonical_
@@ -62,6 +66,16 @@ next_project_number: 112
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 112. Propositional hilbert soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Establish soundness and completeness for the propositional Hilbert proof systems. This is a meta-task that should be expanded into the appropriate number of sub-tasks covering: (1) propositional semantics definitions (valuations, evaluation, validity), (2) soundness theorem (axiom validity + induction on derivation trees), and (3) completeness theorem (canonical valuation from MCS, truth lemma, top-level completeness). The MCS/Lindenbaum infrastructure already exists in Metalogic/MCS.lean and Metalogic/DeductionTheorem.lean. Modal logic already has analogous results in Cslib/Logics/Modal/Metalogic/ (Soundness.lean, Completeness.lean, etc.) which can serve as a pattern. New files should go under Cslib/Logics/Propositional/Semantics/ and Cslib/Logics/Propositional/Metalogic/. Task type: lean4.
+
+---
 
 ### 111. Modal cube integration
 - **Status**: [NOT STARTED]
