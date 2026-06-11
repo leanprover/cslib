@@ -16,6 +16,10 @@ The definitions are parametric on the class of models under consideration.
 
 We also instantiate `LogicalEquivalence` for Modal Logic K, i.e., equivalence
 for the class of all models.
+
+## References
+
+* [P. Blackburn, M. de Rijke, Y. Venema, *Modal Logic*][Blackburn2001]
 -/
 
 @[expose] public section

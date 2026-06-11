@@ -12,6 +12,10 @@ public import Cslib.Logics.Modal.Basic
 
 A denotational semantics for modal logic, inspired by the one for Hennessy-Milner Logic
 (`Cslib.Logic.HML`).
+
+## References
+
+* [P. Blackburn, M. de Rijke, Y. Venema, *Modal Logic*][Blackburn2001]
 -/
 
 @[expose] public section
