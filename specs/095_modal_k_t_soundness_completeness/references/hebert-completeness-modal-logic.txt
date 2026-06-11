@@ -1,0 +1,594 @@
+                   COMPLETENESS IN MODAL LOGIC
+
+
+                                    JORDAN HEBERT
+
+
+        Abstract. In this paper we use canonical models to prove strong complete-
+        ness for several normal modal logics. In particular, we show that a variety of
+        normal modal logics, including S4 and S5, are each strongly complete with
+        respect to a unique class of frames. Such completeness results are possible
+        because the axioms of these normal modal logics, p → ♦p, p → ♦p, and
+        ♦♦p → ♦p, define the classes of reflexive, symmetric, and transitive frames,
+        respectively.
+
+
+
+
+                                        Contents
+  1. Introduction                                                                         1
+  2. Preliminaries                                                                        2
+  3. The Road to Completeness                                                             5
+  4. Completeness Results                                                                10
+  Acknowledgments                                                                        12
+  References                                                                             12
+
+
+
+                                    1. Introduction
+   Modal logic is a type of propositional logic that uses the modal operators  and
+♦ to express information about the internal features of relational structures. A
+certain class of modal logics called normal modal logics has been of great interest
+to philosophers and logicians historically. Normal modal logics are collections of
+well-formed modal formulas that contain the axioms (p → q) → (p → q)
+and p → ¬♦¬p and are closed under modus ponens, uniform substitution, and
+generalization.
+   One of the most important developments in modal logic concerned providing
+these logics with a relational semantics–mathematical structures like models and
+frames, as well as satisfaction and validity of modal formulas [1, p. 41]. Using
+these tools, which were developed around the 1960s, elegant completeness results
+were achieved for a variety of normal modal logics [1, p. 42][2]. Completeness, a
+concept perhaps best known from its usage in first-order logic, guarantees that true
+statements in a logic can also be deduced in that logic, and is thus an important
+means of characterizing the limits of a logic.
+   In this paper we prove a variety of these completeness results using canonical
+models. Canonical models are a special kind of model for which normal modal logics
+are always strongly complete. The lesson is not, however, that any normal modal
+logic has a substantive strong completeness proof. Instead, the normal modal logics
+that we discuss have canonical model completeness proofs because their axioms
+                                              1
+2                                 JORDAN HEBERT
+
+
+define frames with relations specifiable in first-order logic: reflexivity, symmetry,
+and transitivity.
+   This paper assumes knowledge of basic propositional and first-order logic, but no
+prior knowledge of modal logic. For a more detailed and comprehensive exposition
+of modal logic, including completeness, see [1]. For a discussion of normal modal
+logics and completeness only, see [3].
+
+                                 2. Preliminaries
+   In this section, we provide the primary definitions and results we will need to
+develop our completeness theorems. In particular, we aim to characterize the modal
+language, the procedure for generating modal formulas, and the relational struc-
+tures that will allow us to talk about the truth and validity of modal formulas. We
+also introduce the concept of a modal logic, a collection of modal formulas that is
+in some sense self-contained. Next, we offer a more intuitive discussion of modal
+logics. At the end of this section, we discuss a few definitions and proofs common
+in propositional logic that deal with consistent sets of formulas–a key aspect of the
+canonical models that we will introduce later.
+   We begin with several definitions outlining the fundamentals of modal logic.
+Definition 2.1 (Basic Modal Language). The basic modal language contains a
+collection of propositional variables (p, q, r . . . ) as well as several symbols from
+propositional logic: the constant symbol ⊥, or ‘false’, the negation symbol ¬, and
+the logical ‘or’ connective ∨. The distinctive addition to the modal language is the
+unary modal operator ♦ (called ‘diamond’).
+Definition 2.2 (Modal Formulas). A well-formed modal formula (or simply a modal
+formula) is any string of symbols in the basic modal language given by the following
+(recursively defined) rules:
+    (1) Any propositional variable p is a modal formula.
+    (2) The constant ⊥ is a modal formula.
+    (3) If φ is a modal formula, then ¬φ is a modal formula.
+    (4) If φ and ψ are modal formulas, φ ∨ ψ is a modal formula.
+    (5) If φ is a modal formula, ♦φ is a modal formula.
+    (6) Any finite application of the previous rules is a modal formula.
+   From these six requirements we can make a number of abbreviations for common
+formulas. Most of these carry over from propositional logic. Let φ and ψ be modal
+formulas. Then
+
+ (‘and’ connective ∧)           φ ∧ ψ := ¬(¬φ ∨ ¬ψ).
+      (implication →)           φ → ψ := ¬φ ∨ ψ.
+ (bi-implication ←→)            φ ←→ ψ := (φ → ψ) ∧ (ψ → φ).
+     (the constant >)           > := ¬⊥.
+A second modal operator can also be derived from the first.
+   (‘box’ operator )           φ := ¬♦¬φ.
+
+  For the remainder of this paper we will use these substitutions.
+  It is also worth noting that the unary operators  and ♦ have n-ary analogs.
+Many of the results discussed in this paper can be proved using these generalized
+                          COMPLETENESS IN MODAL LOGIC                                  3
+
+
+operators, however, we do not include them since the logics we will discuss feature
+only the single-input operators.
+  We next turn to a couple of important mathematical structures.
+Definition 2.3 (Frames and Models). A frame is a pair F = (W, R) where W is a
+nonempty set and R is a binary relation on W . We call W the universe and any
+element w in W a world (or a state). We call R the accessibility relation. If two
+worlds w and v are related by R, we write Rwv.
+    A model is a pair M = (F, V ) where F is a frame and V is a function that assigns
+propositional variables to subsets of W . We regard V as a valuation function that
+determines whether a propositional variable p is ‘true’ at some world w in W . That
+is, p is true at w if w ∈ V (p).
+    A collection of frames (or models) is called a class of frames (or models). Often
+we talk of the class of frames or models that share a particular relation R.
+  The following definition generalizes the notion of truth (or as it is usually de-
+noted, satisfaction) at a world to arbitrary modal formulas.
+Definition 2.4 (Satisfaction). Let M = (W, R, V ) be a model and let w be a world
+in the universe W . If φ is a formula, then φ is satisfied at w (written M, w φ) in
+the following ways:
+    (1) M, w p if and only if w ∈ V (p).
+    (2) M, w ⊥ never.
+    (3) M, w ¬φ if and only if not M, w φ.
+    (4) M, w φ ∨ ψ if and only if M, w φ or M, w ψ.
+    (5) M, w      ♦φ if and only if for some v ∈ W with Rwv we have M, v            φ.
+         From items (4) and (5) we may derive satisfaction conditions for ∧ and :
+    (6) M, w φ ∧ ψ if and only if M, w φ and M, w ψ.
+    (7) M, w φ if and only if for all v ∈ W with Rwv we have M, v φ.
+If φ is a formula or set of formulas and M is a model, we say that φ is satisfiable
+on M (written M φ) if there exists a world w such that M, w φ.
+   Finally, it is worth noting that satisfaction holds for collections of formulas as
+well. Thus, if Γ is a collection of modal formulas, we say that M, w         Γ if Γ is
+satisfied at w on M.
+Definition 2.5 (Validity). Let φ be a formula, F a frame, and w a state in F. We
+say that φ is valid at w if φ is satisfied at w for all models whose frame is F (written
+F, w φ). If F is a class of frames, then φ is valid on F if φ is valid at w on each
+frame F in F (written F, w φ).
+   This final piece of notation will be useful for defining completeness. Let S be a
+class of models or a class of frames and let Γ∪{φ} be a collection of modal formulas.
+We say that Γ S φ (verbally: Γ semantically entails φ on S) if for all structures
+S ∈ S and all worlds w in S: S, w Γ implies that S, w φ.
+   The following definition allows us to talk about collections of modal formulas
+that have certain logically interesting features.
+Definition 2.6 (Modal Logics). A modal logic Λ is a set of modal formulas that
+contains all propositional tautologies and has the following closure conditions:
+
+        (modus ponens) If φ ∈ Λ and (φ → ψ) ∈ Λ, then ψ ∈ Λ.
+4                                       JORDAN HEBERT
+
+
+    (uniform substitution) If φ ∈ Λ, then any complete substitution of propositional
+                           variables of φ is also a formula in Λ.
+
+  If φ ∈ Λ we may say φ is a theorem of Λ or, equivalently, `Λ φ. Otherwise we
+have that 0Λ φ.
+    Now that we have a basic mathematical perspective on modal logics, it may be
+helpful to understand their role more intuitively. Part of the motivation to find
+useful modal logics arises from issues in ordinary language. Consider, for instance,
+a statement like “it could have rained on Tuesday” (suppose that it did not, in fact,
+rain on Tuesday). Depending on the weather where you live at this time of year,
+this statement may seem plausible. But what does it mean to say that it could have
+rained on Tuesday? Or, a related question: what could the truth conditions of this
+statement possibly be? One answer that has been proposed in philosophy is that a
+statement of this kind refers to a nearby “possible world,” a hypothetical universe
+similar to ours.1 In other words, to say that “it could have rained on Tuesday” is
+simply to suggest that there is a close possible world in which it did, in fact, rain
+on Tuesday.
+    Thus, we can think of one application of modal logic as an attempt to formalize
+this kind of analysis of our ordinary language. In this case, ♦p means “it is possible
+that p,” or “p is true at some accessible, possible world.” Similarly, p means “it
+is necessary that p,” or “p is true at all accessible, possible worlds.” The possibility
+and neccessity interpretation of modal logic has also been deployed to shed light
+on a variety of philosophical issues, including essential (as opposed to accidental)
+properties [6], the character of the laws of nature [7], and proper names and identity
+[8]. Other interpretations of modal logic also arise in philosophy and related fields.
+For example, modal logics can model states of belief and knowledge, past and future
+events, and obligatory and permissible actions [1].
+    Returning to the topic at hand, as mentioned in Definition 2.6, modal logics are
+particular collections of formulas with helpful deductive relationships. Eventually
+we would like to know whether, given a plausible set of axioms in a modal logic,
+every satisfiable formula also ends up being deducible in the logic. This would be
+a proof of completeness, and it would allow us to use the modal logic (and know
+it is well-behaved) in applications, for example, to clarify particular philosophical
+questions. The aim of this paper, as discussed previously, will be to show that a
+certain class of modal logics are in fact complete.
+    Armed with this philosophical perspective on modal logic, we can proceed once
+more with the mathematics.
+Definition 2.7 (Deducibility). Let Γ ∪ {φ} be a set of modal formulas in some
+modal logic Λ. Then φ is Λ-deducible from Γ (written Γ `Λ φ) if `Λ φ or there
+exist formulas ψ1 , . . . ψn ∈ Γ where `Λ (ψ1 ∧ · · · ∧ ψn ) → φ.
+Definition 2.8 (Consistency). Let Γ be a set of modal formulas in some modal logic
+Λ. Then Γ is Λ-consistent if Γ 0Λ ⊥. We say that Γ is Λ-inconsistent otherwise. It
+can be shown that Γ is Λ-inconsistent if and only if any formula of Λ is Λ-deducible
+from Γ. Likewise, Γ is Λ-inconsistent if and only if there exists a formula φ such
+that Γ `Λ φ and Γ `Λ ¬φ.
+    1Some philosophers hold that possible worlds are not hypothetical, but just as real as our world
+[5]. This view, known as “modal realism,” is of course highly controversial.
+                         COMPLETENESS IN MODAL LOGIC                                5
+
+
+   Given that proofs in modal logic are finite, it also follows by a straightforward
+argument, familiar from propositional logic, that Γ is Λ-consistent if and only if
+every finite subset of Γ is Λ-consistent.
+  A special kind of consistency will be useful for our purposes.
+Definition 2.9 (Maximal Consistency). Let Γ be a set of modal formulas in some
+modal logic Λ. We say that Γ is maximal Λ-consistent if Γ is Λ-consistent and any
+proper superset of Γ is Λ-inconsistent.
+   We will also make use of several key features of maximal consistent sets. As the
+next two proofs are familiar from propositional logic and lie outside the scope of
+this paper, we do not provide the complete arguments.
+Proposition 2.10 (Properties of maximal consistent sets). Let Λ be a modal logic
+and let Γ be a maximal Λ-consistent set of modal formulas. Then
+   (1) Γ is closed under modus ponens: if φ ∈ Γ and φ → ψ ∈ Γ, then ψ ∈ Γ.
+   (2) Λ ⊆ Γ.
+   (3) for all formulas φ, either φ ∈ Γ or ¬φ ∈ Γ.
+   (4) if φ, ψ ∈ Γ, then φ ∧ ψ ∈ Γ.
+Proof. These properties are straightforward consequences of maximal consistency.
+                                                                              
+   The following construction is a useful way to extend a consistent set of formulas
+into a maximal consistent set.
+Lemma 2.11 (Lindenbaum’s Lemma). Let Λ be a logic and let Σ be a Λ-consistent
+set of formulas. Then there exists a maximal Λ-consistent set Σ0 such that Σ ⊆ Σ0 .
+Proof. We first enumerate the formulas of our modal language such that each for-
+mula has a natural number index like so: φ1 , φ2 , . . . . Then we denote
+
+                                      Σ0 = Σ,
+                    (
+                     Σn ∪ {φn }       if this set is Λ-consistent
+             Σn+1 =
+                     Σn ∪ {¬φn }      if Σn ∪ {φn } is not Λ-consistent,
+  and                                     [
+                                   Σ0 =         Σn .
+                                          n≥0
+  It can be shown that Σ ⊆ Σ0 and Σ0 is maximal Λ-consistent.                      
+
+                        3. The Road to Completeness
+   In this section, we prove the main results we will need to establish the complete-
+ness of our modal logics of interest. The key concepts are completeness, normal
+modal logics, and the canonical model. Along the way, we also prove a number of
+useful lemmas that will allow us to argue for a strong form of completeness using
+canonical models.
+   We first define soundness and completeness for modal logics.
+Definition 3.1 (Soundness). Let S be a class of frames or a class of models. Let
+Λ be a modal logic. Then Λ is sound with respect to S if for every formula φ and
+structure S ∈ S, if `Λ φ then there is a world w with S, w φ.
+6                                 JORDAN HEBERT
+
+
+   We do not include soundness proofs in our exposition, though it is worth noting
+that they can be proved straightfowardly.
+Definition 3.2 (Completeness). Let S be a class of frames or a class of models.
+Let Λ be a modal logic. Then Λ is strongly complete with respect to S if for any
+set of formulas Γ ∪ {φ}, if Γ S φ then Γ `Λ φ.
+   We may contrast strong completeness with weak completeness: if Λ is a modal
+logic, then Λ is weakly complete on S if S, w φ implies `Λ φ for any formula φ.
+   Notice that weak completeness is an exact converse of our soundness definition,
+while strong completeness applies to whole sets of formulas at once. As it happens,
+all of the normal modal logics investigated in this paper have strong completeness
+proofs. Moreover, strong completeness always implies weak completeness, but the
+converse does not hold. At the end of this paper, we will briefly discuss an example
+of a normal modal logic that is weakly complete, but not strongly complete.
+  This next proposition aligns consistency with completeness, a useful connection
+when one is working with logics. We will use this result directly in our completeness
+proofs.
+Proposition 3.3. Let S be a class of frames or a class of models. Let Λ be a
+modal logic. Then Λ is strongly complete with respect to S if and only if for every
+Λ-consistent set of formulas Γ there is a structure S ∈ S and a world w such that
+S, w Γ.
+Proof. For the right to left direction, we prove the contrapositive. Thus, we assume
+that Λ is not strongly complete with respect to S. Then there exists a set of formulas
+Γ ∪ {φ} where Γ S φ but Γ 0Λ φ. Since Γ 0Λ φ, it follows immediately that Γ
+is Λ-consistent (else every formula would be deducible from Γ). By extension,
+Γ ∪ {¬φ} must also be Λ-consistent, since Γ ∪ {¬φ} `Λ ¬φ but Γ ∪ {¬φ} 0Λ φ.
+However, Γ ∪ {¬φ} cannot be satisfiable on any S ∈ S. For suppose otherwise.
+Then there exists a structure S and a world w with S, w Γ ∪ {¬φ}, and it follows
+that S, w      φ and S, w     ¬φ, which is impossible. Therefore, Γ ∪ {¬φ} is a Λ-
+consistent set that is not satisfiable on any structure S ∈ S, and so we have shown
+the contrapositive.
+   For the left to right direction, we let Γ ∪ {φ} be a Λ-consistent set of formulas
+and assume that there is no structure S ∈ S and world w with S, w Γ ∪ {φ}. It
+follows that Λ is not strongly complete with respect to S. For suppose otherwise.
+Since Γ ∪ {φ} is Λ-consistent, Γ 0Λ ¬φ. By the strong completeness of Λ, Γ 1S ¬φ,
+and so there exists a structure S and world w where S, w Γ but not S, w ¬φ.
+Then S, w φ, and so S, w Γ ∪ {φ}. But this contradicts the fact that Γ ∪ {φ}
+is not satisfiable on any structure S ∈ S. Therefore, Λ is not strongly complete on
+S, and this again proves the contrapositive.                                        
+
+    We now turn to a particular kind of modal logic.
+Definition 3.4 (Normal Modal Logics). A normal modal logic Λ is a modal logic
+that contains
+
+                 (K)        (p → q) → (p → q)
+                         as a formula and the closure condition
+     (Generalization)       If `Λ φ then `Λ φ.
+                           COMPLETENESS IN MODAL LOGIC                                7
+
+
+
+
+   Normal modal logics have a number of nice features which enable them to contain
+plausible modal axioms and have simple completeness proofs. We demonstrate one
+such feature that will be used later on.
+Lemma 3.5. Let Λ be a normal modal logic and let ψ1 , . . . , ψn , φ be a collection of
+modal formulas in Λ where `Λ (ψ1 ∧· · ·∧ψn ) → φ. Then `Λ (ψ1 ∧· · ·∧ψn ) → φ.
+Proof. We proceed by induction. For the base case, we assume `Λ ψ1 → φ. By
+generalization, `Λ (ψ1 → φ), and by the K axiom, `Λ (ψ1 → φ) → (ψ1 → φ).
+By modus ponens, `Λ ψ1 → φ, and this completes the base case.
+  Next, fix n ∈ N and let A1 , . . . , An , B ∈ Λ be modal formulas. For the inductive
+hypothesis, assume that
+          if `Λ (A1 ∧ · · · ∧ An ) → B, then `Λ (A1 ∧ · · · ∧ An ) → B.
+  Now, let ψ1 , . . . , ψn , ψn+1 , φ be any collection of modal formulas in Λ with
+                            `Λ (ψ1 ∧ · · · ∧ ψn ∧ ψn+1 ) → φ.
+By uniform substitution into the propositional tautology
+                            (p ∧ q → r) → (p → (q → r)),
+we have
+          `Λ (ψ1 ∧ · · · ∧ ψn ∧ ψn+1 → φ) → (ψ1 ∧ · · · ∧ ψn ) → (ψn+1 → φ).
+By modus ponens,
+                       `Λ (ψ1 ∧ · · · ∧ ψn ) → (ψn+1 → φ).
+Applying the inductive hypothesis, we have
+                      `Λ (ψ1 ∧ · · · ∧ ψn ) → (ψn+1 → φ).
+Using the K axiom,
+                          `Λ (ψn+1 → φ) → (ψn+1 → φ).
+By propositional logic,
+                      `Λ (ψ1 ∧ · · · ∧ ψn ) → (ψn+1 → φ).
+Finally, by uniform substitution into the propositional tautology
+                             (p → (q → r)) → (p ∧ q → r)
+and modus ponens,
+                       `Λ (ψ1 ∧ · · · ∧ ψn ∧ ψn+1 ) → φ,
+and this completes the induction.                                                     
+   We next introduce the canonical model, a type of model that will be useful for
+several completeness arguments.
+Definition 3.6 (Canonical Models). We associate a canonical model
+                                 MΛ = (W Λ , RΛ , V Λ )
+with a normal modal logic Λ. In particular, we define
+    (1) W Λ as the set of all maximal Λ-consistent sets,
+    (2) RΛ as the relation RΛ wv if for all formulas ψ, if ψ ∈ v then ♦ψ ∈ w, and
+    (3) V Λ as the valuation function V Λ (p) = {w ∈ W Λ | p ∈ w}.
+8                                  JORDAN HEBERT
+
+
+  The frame on which the canonical model is based, FΛ = (W Λ , RΛ ), is called the
+canonical frame.
+   The canonical model is the primary tool that will enable us to generate complete-
+ness proofs for a variety of normal modal logics. However, we first need to show
+that any consistent set of formulas can be satisfied in some world in the canonical
+model. This requires a number of important lemmas. The next lemma allows us
+to use the  operator in the context of the relation RΛ . The two lemmas after
+together show that a maximal consistent world will always exist that can satisfy a
+consistent set of formulas.
+Lemma 3.7. Let Λ be a normal modal logic. Then RΛ wv if and only if for all
+formulas ψ, if ψ ∈ w, then ψ ∈ v.
+Proof. For the forwards direction, suppose that RΛ wv and ψ ∈        / v. Since v is
+maximal Λ-consistent, by Proposition 2.10 ¬ψ ∈ v. Since RΛ wv, ♦¬ψ ∈ w. By
+the Λ-consistency of w, ¬♦¬ψ ∈  / w. By substitution, ψ ∈  / w, and this proves the
+contrapositive.
+   For the backwards direction, suppose that for all formulas ψ, if ψ ∈ w, then ψ ∈
+v. Suppose as well that ♦ψ ∈ / w. Since w is maximal Λ-consistent, by Proposition
+2.10 ¬♦ψ ∈ w. By substitution, ¬¬¬ψ ∈ w, and so ¬ψ ∈ w. Hence by our
+initial assumption ¬ψ ∈ v. Since v is Λ-consistent, ψ ∈    / v, and this proves the
+contrapositive once more.                                                          
+Lemma 3.8 (Existence Lemma). Let Λ be a normal modal logic, let w be a world
+in W Λ , and let φ be an arbitrary modal formula. If ♦φ ∈ w, then there exists a
+world v in W Λ such that RΛ wv and φ ∈ v.
+Proof. Say ♦φ ∈ w. Let v − be a set of modal formulas with
+                             v − = {φ} ∪ {ψ | ψ ∈ w}.
+We first show that v − is Λ-consistent. Suppose, for the sake of contradiction,
+that v − is Λ-inconsistent. Then v − `Λ ¬φ, and so by Definition 2.7 there exist
+ψ1 , . . . , ψn such that
+                            `Λ (ψ1 ∧ · · · ∧ ψn ) → ¬φ.
+By generalization,
+                           `Λ ((ψ1 ∧ · · · ∧ ψn ) → ¬φ).
+Applying the K axiom,
+            `Λ ((ψ1 ∧ · · · ∧ ψn ) → ¬φ) → ((ψ1 ∧ · · · ∧ ψn ) → ¬φ).
+By modus ponens,
+                             `Λ (ψ1 ∧ · · · ∧ ψn ) → ¬φ.
+   Next, note that (ψ1 ∧ · · · ∧ ψn ) → (ψ1 ∧ · · · ∧ ψn ) is a propositional tautology.
+Hence by Lemma 3.5 we have `Λ (ψ1 ∧ · · · ∧ ψn ) → (ψ1 ∧ · · · ∧ ψn ). By
+propositional logic, `Λ (ψ1 ∧ · · · ∧ ψn ) → ¬φ.
+   Now, since ψ1 , . . . ψn ∈ w and w is a maximal Λ-consistent set, by Proposition
+2.10 we have ψ1 ∧ · · · ∧ ψn ∈ w. Once more by Proposition 2.10, ¬φ ∈ w, and
+so by substitution we have ¬♦φ ∈ w. But this contradicts the fact that ♦φ ∈ w
+and w is Λ-consistent. Thus v − must be Λ-consistent.
+   Finally, by Lindenbaum’s Lemma, there exists a maximal Λ-consistent set v such
+that v − ⊆ v ∈ W Λ . By the construction of v, for any formula ψ, if ψ ∈ w, then
+ψ ∈ v. Therefore, by Lemma 3.7, RΛ wv. Moreover, since φ ∈ v − , φ ∈ v.               
+                          COMPLETENESS IN MODAL LOGIC                                9
+
+
+Lemma 3.9 (Truth Lemma). Let Λ be a normal modal logic and let φ be an
+arbitrary modal formula. Then MΛ , w φ if and only if φ ∈ w.
+
+Proof. We proceed by induction on the degree of φ. That is, we prove the bi-
+implication holds for an arbitrary formula φ by proving it holds for a formula that
+contains any number of logical connectives.
+    Hence, for the base case, suppose that φ contains no logical connectives. Then
+φ is either a propositional variable p or the constant ⊥. Suppose that φ is a
+propositional variable p. By the definition of V Λ , MΛ , w p if and only if w ∈ V (p)
+if and only if p ∈ w, the equivalence we wanted. Suppose instead that φ is the
+constant ⊥. Then MΛ , w ⊥ never, and since w is Λ-consistent, ⊥∈      / w. Thus the
+desired bi-implication goes through for the ⊥ constant because neither hypothesis
+may hold.
+    For the inductive hypothesis, we fix n ∈ N, let A be any formula with at most
+n connectives, and suppose that MΛ , w A if and only if A ∈ w. It is also worth
+noting that a formula with at most n + 1 connectives takes the form ¬B, B ∧ C,
+or ♦B (where B and C each have at most n connectives). It remains to show that
+the proof goes through for these formulas.
+    Let φ be an arbitrary formula with at most n connectives and consider ¬φ, a
+formula with at most n + 1 connectives. By our inductive hypothesis, MΛ , w φ
+if and only if φ ∈ w. Thus by the definition of satisfaction, not MΛ , w ¬φ. And
+by Proposition 2.10, since φ ∈ w, ¬φ ∈    / w. Therefore the two directions of the
+implication obtain as desired, because neither antecedent ever holds.
+    Next, take φ ∧ ψ, where ψ also has at most n connectives. By our inductive
+hypothesis, MΛ , w φ if and only if φ ∈ w and MΛ , w ψ if and only if ψ ∈ w.
+Suppose first that MΛ , w φ ∧ ψ. Then MΛ , w φ and MΛ , w ψ, and it follows
+that φ ∈ w and ψ ∈ w. Hence by Proposition 2.10, φ ∧ ψ ∈ w. Suppose instead
+that φ ∧ ψ ∈ w. By Proposition 2.10, φ ∈ w and ψ ∈ w. By assumption, therefore,
+MΛ , w φ and MΛ , w ψ, and it follows that MΛ , w φ ∧ ψ.
+    Finally, take ♦φ. Assume first that MΛ , w ♦φ. Then there exists a world v
+such that RΛ wv and MΛ , v φ. By our inductive hypothesis, then, φ ∈ v. Hence
+by the definition of RΛ , ♦φ ∈ w. Assume next that ♦φ ∈ w. By the Existence
+Lemma, there exists a world v such that RΛ wv and φ ∈ v. By our inductive
+hypothesis, then, MΛ , v φ, and so MΛ , w ♦φ.                                       
+
+
+   Using the previous lemmas, we may easily prove the canonical model theorem, an
+interesting result in its own right that we will adjust later to get our completeness
+proofs.
+
+Theorem 3.10 (Canonical Model Theorem). Let Λ be a normal modal logic. Then
+Λ is strongly complete with respect to its canonical model MΛ .
+
+Proof. Let Σ be an arbitrary Λ-consistent set of formulas. By Lindenbaum’s Lemma
+there exists a maximal Λ-consistent set of formulas Σ0 such that Σ ⊆ Σ0 . Note
+that Σ0 is thus a world in the canonical model MΛ . Hence by the Truth Lemma,
+MΛ , Σ0 Σ. Therefore, by Proposition 3.3, Λ is strongly complete with respect to
+MΛ .                                                                           
+10                                 JORDAN HEBERT
+
+
+   The Canonical Model Theorem only tells us that every normal modal logic is
+strongly complete on a single, contrived structure, its canonical model. The the-
+orem therefore does not immediately yield the interesting strong completeness re-
+sults we are looking for. However, using the implications of the Canonical Model
+Theorem together with Proposition 3.3, we will prove that certain normal modal
+logics are strongly complete on whole classes of frames–in ways that have surprising
+connections to first-order logic.
+
+                            4. Completeness Results
+     We now provide completeness proofs for several normal modal logics.
+Definition 4.1. First, we present a few axioms in the basic modal language.
+    (T) p → ♦p.
+    (B) p → ♦p.
+     (4) ♦♦p → ♦p.
+    These axioms have been used often throughout the development of modal logic.
+Part of the motivation for their use is that they appear plausible under the inter-
+pretation of modal logic according to which ♦p means “possibly p” and p means
+“necessarily p” [1]. Hence the axiom T, for example, simply says “if p is true, then
+it is possible that p,” which seems like a rather reasonable principle. Similarly, B
+says “if p is true, then it is necessarily possible that p” which again seems likely
+to be true about possibility and necessity. The 4 axiom, however, seems somewhat
+harder to translate, and much less evaluate, using this method (“if it is possible that
+p is possible, then p is possible?”). This is partly why the mathematical perspective
+is helpful in parsing these axioms–it enables us to see whether they create logics
+that are clean and useful, without requiring an ordinary language interpretation.
+    That aside, it is also worth noting that if a normal modal logic Γ contains no
+other formulas besides K, we may call Γ the normal modal logic. If a normal modal
+logic Λ contains only K and, for example, the T axiom, we may call Λ the logic
+generated (or axiomatized) by T.
+Definition 4.2. We next define a number of normal modal logics using combina-
+tions of the axioms:
+    (1) K is the normal modal logic.
+    (2) KT is the logic generated by the T axiom.
+    (3) KB is the logic generated by the B axiom.
+    (4) K4 is the logic generated by the 4 axiom.
+    (5) S4 is the logic generated by the T and 4 axioms.
+    (6) S5 is the logic generated by the T, B, and 4 axioms.
+We will show that each of these logics is strongly complete with respect to a unique
+class of frames.
+  The work we have done so far allows us to take care of the logic K fairly easily.
+For clarity, we reinterpret the Canonical Model Theorem as a new lemma.
+Lemma 4.3. Let Λ be a normal modal logic and let Γ be a Λ-consistent set of
+modal formulas. Then there exists a maximal Λ-consistent set of formulas Γ0 such
+that MΛ , Γ0 Γ.
+Proof. Contained in the proof of the Canonical Model Theorem.                        
+                         COMPLETENESS IN MODAL LOGIC                               11
+
+
+Theorem 4.4 (Completeness of K). The normal modal logic K is strongly complete
+with respect to the class of all frames.
+Proof. Let Γ be a K-consistent set of modal formulas. We need only find any model
+that can satisfy Γ. By Lemma 4.3, MK , Γ0      Γ, and so by Proposition 3.3, K is
+strongly complete on the class of all frames.                                  
+   With the strong completeness of K done, we arrive at a crucial lemma. This
+will enable us to reinterpret the axioms named in Definition 4.1 as properties of the
+relations of canonical frames.
+Lemma 4.5. If a normal modal logic ΛT contains the axiom T, then the relation
+RΛT on its canonical frame FΛT must be reflexive. An analogous result holds for
+the B axiom and symmetry, and the 4 axiom and transitivity.
+Proof. Let ΛT be a normal modal logic containing the T axiom. Let w be an
+arbitrary world in the canonical model of ΛT and let φ be a modal formula in w.
+Since w is a maximal ΛT -consistent set, it contains the axioms of the logic ΛT .
+Hence φ → ♦φ ∈ w (the T axiom). By the closure of modus ponens on maximal
+consistent sets, ♦φ ∈ w, and so RΛT ww. That is, RΛT is a reflexive relation.
+   Next, let ΛB be a normal modal logic containing the B axiom. Let w and v
+be arbitrary worlds in the canonical model of ΛB and let φ be a modal formula
+in w. Suppose as well that RΛB wv. Since w is a maximal ΛB -consistent set,
+φ → ♦φ ∈ w (the B axiom), and by modus ponens, ♦φ ∈ w. By Lemma 3.7,
+♦φ ∈ v, and so RΛB vw. Hence RΛB is a symmetric relation.
+   Finally, let Λ4 be a normal modal logic containing the 4 axiom. Let w, v, and z
+be arbitrary worlds in the canonical model of Λ4 where RΛ4 wv and RΛ4 vz. Let φ
+be a modal formula with φ ∈ z. By the fact that RΛ4 vz, ♦φ ∈ v. By the fact that
+RΛ4 wv, ♦♦φ ∈ w. Since w is a maximal Λ4 -consistent set, ♦♦φ → ♦φ ∈ w (the 4
+axiom), and by modus ponens, ♦φ ∈ w. Hence RΛ4 wz, and so RΛ4 is a transitive
+relation.                                                                       
+Theorem 4.6. The normal modal logics KT, KB, K4, S4, and S5 are strongly
+complete with respect to the classes of frames listed below.
+Proof. All of these results can be proved using a similar argument. We prove strong
+completeness for S5 as an example and then include the rest of the results in the
+table below.
+   Let Γ be an S5-consistent set of modal formulas. By Lemma 4.3, there exists a
+maximal S5-consistent set of formulas Γ0 where MS5 , Γ0 Γ. Since S5 contains the
+axioms T , B, and 4, by Lemma 4.5, RS5 is reflexive, symmetric, and transitive–an
+equivalence relation. Therefore, by Proposition 3.3, S5 is strongly complete with
+respect to the class of all frames with an equivalence relation.
+   Parallel arguments will reveal the following completeness results:
+   KT         Strongly complete on the class of reflexive frames
+   KB         Strongly complete on the class of symmetric frames
+   K4         Strongly complete on the class of transitive frames
+    S4        Strongly complete on the class of reflexive and transitive frames
+                                                                                 
+   At this point, one might suspect that any normal modal logic is strongly complete
+with respect to a particular class of frames. However, this is false. The normal
+12                                        JORDAN HEBERT
+
+
+modal logics we have discussed have these completeness proofs because they share
+an attractive feature: their additional axioms ‘define’ classes of frames in a precise
+sense. We explain in the following definition.
+Definition 4.7 (Frame Definability). Let F be a class of frames and let φ be a
+modal formula. Then φ defines F if for any frame F, F is in F if and only if F, w φ.
+     Hence we may show that, for instance, the axiom T defines reflexivity.
+Theorem 4.8. Let F be a frame. Then F, w                   p → ♦p if and only if F |= ∀x Rxx
+(i.e. F is reflexive).
+Proof. For the right to left direction, let F be a reflexive frame. Let p be a propo-
+sitional variable, let V be a valuation, and let w be a world where (F, V ), w p.
+Since the relation on F is reflexive, w is accessible from w. Thus, since p holds
+at w, ♦p holds at w (there exists an accessible world, w, where p holds). Hence
+F, w p → ♦p.
+   For the left to right direction, we prove the contrapositive. Let F be a frame
+whose relation is not reflexive. Then there exists a world w that is not accessible
+from itself. Let p be a propositional variable and let V (p) = {w}. In other words,
+p is only satisfied at w. And since w is not accessible from itself, no world that is
+accessible from w can satisfy p, and so (F, V ), w 1 ♦p. It follows that (F, V ), w 1
+p → ♦p.                                                                             
+   A key observation here is that the axiom T corresponds to a statement in first
+order logic, reflexivity, and the analogous claims can be made about the B and 4
+axioms. This is not the case for every modal formula, however. For example, the
+formula (p → p) → p has no equivalent formula in first-order logic. Hence
+(p → p) → p cannot define any class of frames, and so canonical models
+cannot be used to prove completeness for a normal modal logic augmented with
+(p → p) → p as an axiom. As it turns out, the normal modal logic with the
+aforementioned axiom, which we may call KL, is not strongly complete on any
+class of frames [1, p.211]. For what it’s worth, however, KL is weakly complete on
+the class of finite transitive trees.2
+
+                                      Acknowledgments
+   I would like to thank my mentor, Gabriela Pinto, for permitting me to research an
+area of logic unfamiliar to us both, and for patiently answering my many questions.
+I would also like to thank Professor Denis Hirschfeldt, who reviewed my paper,
+caught many errors, and offered excellent suggestions.
+
+                                           References
+[1] Patrick Blackburn, Maarten de Rijke, and Yde Venema. Modal Logic. Cambridge University
+    Press. 2001.
+[2] Saul Kripke. A Completeness Theorem in Modal Logic. The Journal of Symbolic Logic, vol.
+    24, no. 1, 1959, pp 1-14. https://www.jstor.org/stable/2964568
+[3] Marek Sergot. Normal Modal Logics (Syntactic Characterizations). Lecture Notes, 499 Modal
+    and Temporal Logic. Imperial College, London. 2007. https://www.doc.ic.ac.uk/~mjs/
+    teaching/ModalTemporal499/version2007/Normal_499_v0708.pdf
+
+     2See section 4.8 of [1] for methods involved in this proof.
+                             COMPLETENESS IN MODAL LOGIC                                     13
+
+
+[4] C.C. Chang and H. Jerome Keisler. Model Theory. North-Holland Publishing Company. 1973.
+
+   Further Reading in Philosophy
+
+[5] David Lewis. On the Plurality of Worlds. Blackwell Publishing. 1986.
+[6] Kit Fine. Essence and Modality: The Second Philosophical Perspectives Lecture. Philosophical
+    Perspectives, vol. 8 1994, pp 1-16. https://www.jstor.org/stable/2214160
+[7] Helen Beebee. The Non-Governing Conception of Laws of Nature. Philosophy and Phenomeno-
+    logical Research, vol. 61, no. 3, 2000, pp571-594. https://www.jstor.org/stable/2653613
+[8] Saul Kripke. Naming and Necessity. Harvard University Press. 1980.
+

@@ -45,11 +45,11 @@ next_project_number: 99
 
 ### Modal Logic
 
-95 [NOT STARTED] — Phase 4 of modal cube expansion: Establish soundness and complete
+95 [PLANNING] — Phase 4 of modal cube expansion: Establish soundness and complete
   └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati
-96 [NOT STARTED] — Phase 5 of modal cube expansion: Establish soundness and complete
+96 [PLANNED] — Phase 5 of modal cube expansion: Establish soundness and complete
   └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
-97 [NOT STARTED] — Phase 6 of modal cube expansion: Establish soundness and complete
+97 [PLANNED] — Phase 6 of modal cube expansion: Establish soundness and complete
   └─ 98 [NOT STARTED] — Phase 7 of modal cube expansion: Final integration and verificati (see above)
 
 ### Foundations
@@ -75,10 +75,11 @@ Estimated: ~1.5 hours.
 
 ### 97. Modal s4 soundness completeness
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 93
+- **Plan**: [097_modal_s4_soundness_completeness/plans/02_s4-soundness-completeness.md]
 
 **Description**: Phase 6 of modal cube expansion: Establish soundness and completeness for modal logic S4 (reflexive + transitive frames) with sorry-free proofs.
 
@@ -101,10 +102,12 @@ Estimated: ~3 hours. Parallelizable with phases 4 and 5.
 
 ### 96. Modal d soundness completeness
 - **Effort**: medium
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 93
+- **Research**: [096_modal_d_soundness_completeness/reports/01_d-soundness-completeness.md]
+- **Plan**: [096_modal_d_soundness_completeness/plans/02_d-soundness-completeness.md]
 
 **Description**: Phase 5 of modal cube expansion: Establish soundness and completeness for modal logic D (serial frames) with sorry-free proofs.
 
@@ -127,7 +130,7 @@ Estimated: ~3 hours. Parallelizable with phases 4 and 6.
 
 ### 95. Modal k t soundness completeness
 - **Effort**: large
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNING]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: Task 93

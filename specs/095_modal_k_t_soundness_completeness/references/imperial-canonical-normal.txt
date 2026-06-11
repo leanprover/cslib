@@ -1,0 +1,402 @@
+                           499 Modal and Temporal Logic
+
+              Canonical models for normal logics                                                  Reminder — Normal system
+                            (Completeness via canonicity)
+                                                                                                  The set of formulas Σ is a system of modal logic iff it contains all propositional tautologies
+                                                                                                  (PL) and is closed under modus ponens (MP) and uniform substitution (US).
+                                       Marek Sergot
+                                 Department of Computing                                          A system of modal logic is normal iff it contains the schemas 3A ↔ ¬2¬A (Df3) and K
+                                                                                                  and is closed under RN.
+                                 Imperial College, London
+                                                                                                                                    2(A → B) → (2A → 2B)                                       (K.)
+                                        Autumn 2008
+                                                                                                                                              A
+                                                                                                                                                                                             (RN.)
+                                                                                                                                             2A
+ Further reading:                                                                                 Or equivalently: a system of modal logic is normal iff it contains the schema Df3 and is
+ B.F. Chellas, Modal logic: an introduction. Cambridge University Press, 1980.                    closed under RK.
+ P. Blackburn, M. de Rijke, Y. Venema, Chapter 4, Modal Logic. Cambridge University                                                (A1 ∧ . . . ∧ An ) → A
+                                                                                                                                                              (n ≥ 0)               (RK.)
+ Press, 2002.                                                                                                                   (2A1 ∧ . . . ∧ 2An ) → 2A
+
+
+
+
+  Notation                                                                                        Soundness
+  M |= A — A is valid in model M (A is true at all worlds in M)                                   Definition 1 (Soundness) Let C be a class of models (or frames). A logic Σ is sound
+  F |= A — A is valid in the frame F (valid in all models with frame F )                          with respect to C if, for any formula A, ⊢Σ A implies |=C A.
+    |=C A — A is valid in the class of models C (valid in all models in C)
+     |=F A — A is valid in the class of frames F (valid in all frames in F)                                                               ⊢Σ A ⇒ |=C A
+ The truth set, kAkM , of the formula A in the model M is the set of worlds in M at which
+ A is true. kAkM =def {w in M : M, w |= A}
+                                                                                                  If we define ΣC to be the set of all formulas valid in the class C: ΣC =def {A | |=C A}, then
+                                                                                                  Σ is sound with respect to C if Σ ⊆ ΣC .
+  Reminder                                                                                        It follows that if Σ is sound with respect to C, then every logic Σ′ ⊆ Σ is also sound with
+                                                                                                  respect to C.
+– ⊢Σ A means that A is a theorem of Σ. ⊢Σ A iff A ∈ Σ.
+– Γ ⊢Σ A iff ⊢Σ (A1 ∧ · · · ∧ An ) → A for some set of formulas {A1 , . . . , An } ⊆ Γ (n ≥ 0).
+                                                                                                  Small point of detail For those looking at the book by Chellas: recall (first set of
+– Γ is Σ-inconsistent iff Γ ⊢Σ ⊥, i.e., iff ⊢Σ (A1 ∧ · · · ∧ An ) → ⊥ for some set of formulas    notes) that Chellas’s definition (2.11, p46) of a modal logic does not require closure under
+  {A1 , . . . , An } ⊆ Γ (n ≥ 0). Γ is Σ-consistent iff Γ is not Σ-inconsistent.                  uniform substitution. So according to Chellas, ΣC is a (normal) modal logic for any class of
+  A useful property: Γ is Σ-consistent iff there is no A such that both Γ ⊢Σ A and Γ ⊢Σ ¬A.       (Kripke) models C; according to the definition in Blackburn et al (which requires closure
+– Γ is a Σ-maxi-consistent set iff Γ is Σ-consistent, and for every formula A, if Γ ∪ {A} is      under US, as above), ΣC is only a (normal) modal logic when the class of models C is
+  Σ-consistent, then A ∈ Γ.                                                                       actually a class of frames.
+– The proof set |A|Σ is the set of Σ-maxi-consistent sets that contain A.                         Theorem 2 [Chellas Thm 5.1, p162] Let ξ1 , . . . , ξn be schemas valid respectively in classes
+– Lindenbaum’s lemma: If Γ is Σ-consistent then there exists a Σ-maxi-consistent set ∆            of relational models/frames C1 , . . . , Cn . Then the system of modal logic Kξ1 . . . ξn is sound
+  such that Γ ⊆ ∆.                                                                                with respect to the class C1 ∩ · · · ∩ Cn .
+– Three useful properties of any Σ-maxi-consistent set Γ and formula A:
+                                                                                                  Proof Very easy.
+      • for any formula A, either A ∈ Γ or ¬A ∈ Γ;
+      • if Γ ⊢Σ A then A ∈ Γ (actually, A ∈ Γ ⇔ Γ ⊢Σ A)
+                                                                                                  Corollary The system K is sound with respect to every class of relational (‘Kripke’)
+      • Γ is closed under MP (modus ponens)                                                       models/frames.
+
+                                                1                                                                                                 2
+Completeness                                                                                      Why are we interested?
+                                                                                                  Many reasons (besides the purely technical):
+Definition 3 (Completeness) Let C be a class of models (or frames). A logic Σ is
+complete with respect to C if for any formula A, |=C A implies ⊢Σ A.                              To compare different logic systems We want to know whether two (syntactically
+                                                                                                      presented) logics Σ1 and Σ2 are the same. This is often a non-trivial matter. If
+                                       |=C A ⇒ ⊢Σ A                                                   Σ1 = Σ2 it is usually not so bad: we show that the defining schemas and rules of Σ1
+                                                                                                      can be derived in Σ2 , and vice-versa. If Σ1 ⊂ Σ2 , Σ1 ⊆ Σ2 is usually not so bad (as
+                                                                                                      above), but Σ2 6⊂ Σ1 is not so easy: we can’t just say we tried to derive Σ2 from Σ1
+Notice: Σ is complete with respect to C if ΣC ⊆ Σ.                                                    but couldn’t manage it. (We might not be very good at it.)
+It follows that if Σ is complete with respect to C then every logic Σ′ ⊇ Σ is also complete           Soundness and completeness results allow us to reason about the corresponding se-
+with respect to C.                                                                                    mantical structures which can often be easier.
+                                                                                                  To validate computing systems If we have a specification given semantically (say as
+Determination: soundness and completeness                                                             a transition system/Kripke structure) soundness and completeness results allow us
+                                                                                                      to reason about it using proof-theoretic tools, such as automated theorem provers.
+                                                                                                      Conversely, if we have a syntactical specification of a computing system (a set of
+Thus, if we prove that a logic Σ is both sound and complete with respect to some class
+                                                                                                      formulas describing its intended behaviour, say) soundness and completeness guar-
+of models/frames C, we have established a perfect match between the syntactical and
+                                                                                                      antees that we can reason about its properties using model theoretic tools, such as
+semantical perspectives: Σ = ΣC .
+                                                                                                      model checkers.
+When logic Σ is sound and complete with respect to the class of models (or frames) C, Σ
+is determined by C.
+                                                                                                  Note: the inconsistent logic
+Note: a logic may be determined by more than one class of models. For example, the
+logic S5 (= KT 5 = KT 45 = KT B5 = KT B45) is determined both by the class of                     The inconsistent logic (the set of all formulas) is a normal modal logic. (Trivial – exercise
+equivalence frames and also by the class of universal frames.                                     in earlier set of notes).
+                                                                                                  Trivially, the inconsistent logic is complete for any class of frames/models.
+Given a semantically specified logic ΣC (that is, the logic of some class C of interest) we
+often want to find a simple collection of formulas Γ such that ΣC is the logic generated by       But the inconsistent logic is not sound for any class of frames/models.
+Γ. In such a case, we sometimes say that Γ axiomatizes C.
+
+
+Note For those looking at the book by Blackburn et al: Blackburn et al (p194) call this
+weak completeness. They also define a strong completeness: a logic Σ is strongly complete
+with respect to a class of models (or frames) C if for any set of formulas Γ ∪ {A}, if Γ |=C A
+then Γ ⊢Σ A.
+Here, Γ |=C A means that for every model M in class C, and for every world w in M, if
+M, w |= Γ then M, w |= A.
+Weak completeness is the special case of strong completeness in which Γ is empty. Thus
+strong completeness with respect to some class of structures (models, frames) implies weak
+completeness with respect to that same class. The converse does not hold. Example
+(Blackburn et al, p194): the system KL = K ∪ {2(2A → A) → 2A)} is weakly complete
+with respect to the class of finite transitive trees, but is not strongly complete with respect
+to this class, or indeed with respect to any class of frames whatsoever.
+We won’t bother with strong completeness in these notes.
+
+
+
+
+                                              3                                                                                                4
+                                                                                            Canonical models for normal systems
+Completeness (via canonical models)
+                                                                                            The basic idea, whether we are dealing with normal systems or non-normal ones (not
+Here is one way of establishing completeness. (It does not always work!)                    covered in this course), is this. We want completeness of the system Σ
+
+The basic idea is this. We want to establish completeness of a system Σ with respect to       — with respect to some class C of models, |=C A ⇒ ⊢Σ A;
+some class C of models, i.e. we want to prove that for all formulas A                         — with respect to some class F of frames, |=F A ⇒ ⊢Σ A.
+                                                                                            We can do this (sometimes!) by finding a canonical model MΣ = h F Σ , hΣ i for system Σ,
+                                   |=C A   ⇒ ⊢Σ A                                           which is a model such that
+                                                                                                                              MΣ |= A ⇔ ⊢Σ A.
+We try to find a model MΣ for system Σ with the special property that
+                                                                                            Now if we can show MΣ ∈ C (resp. F Σ ∈ F) then we have completeness, because then
+                                    Σ
+                                 M |= A        ⇒ ⊢Σ A
+                                                                                                 |=C A ⇒ MΣ |= A (MΣ ∈ C),           and MΣ |= A ⇒ ⊢Σ A (canonical model)
+Actually we usually go for the stronger property MΣ |= A     ⇔ ⊢Σ A.
+                                                                                            Or in terms of frames: |=F A ⇒ F Σ |= A, and F Σ |= A ⇒ MΣ |= A ⇒ ⊢Σ A.
+Such a model is called a canonical model for the system Σ.
+                                                                                            Proofs of completeness via canonical models do not always work. See e.g. Blackburn et al,
+Now if we can show that this canonical model belongs to class C, i.e. that model MΣ         Chapter 4, for some other methods for normal modal logics. (Moreover, not every normal
+satisfies the model conditions that characterise the class C, then we have completeness.    logic is the logic of some class of frames. Many temporal logics are like this. See Blackburn
+Because: suppose |=C A. Then since MΣ is in class C, MΣ |= A. And since MΣ |= A             et al for examples.)
+implies ⊢Σ A when MΣ is a canonical model, we have the completeness result |=C A ⇒⊢Σ A
+as required.
+                              |=C A ⇒ MΣ |= A ⇒ ⊢Σ A
+                                                                                            Definition 4 (Canonical model for normal system Σ) Let Σ be a normal system.
+Sometimes, it is easier to go the other way: construct a model M that is clearly in class
+                                                                                            The canonical model for Σ is MΣ = h W Σ , RΣ , hΣ i such that:
+C. Then show that M is a canonical model for the system Σ.
+                                                                                             (1) W Σ is the set of Σ-maxi-consistent sets.
+Now it just remains to figure out how to construct a canonical model for a system Σ.
+                                                                                             (2) For every w, w ′ in MΣ : w RΣ w ′ ⇔ ∀A (2A ∈ w ⇒ A ∈ w ′ ).
+The key construct is maxi-consistent sets for the system Σ.
+                                                                                             (3) For every atom p, hΣ (p) = {w | p ∈ w}, i.e. hΣ (p) = |p|Σ .
+                                                                                            F Σ = h W Σ , RΣ i is the canonical frame for Σ.
+                                                                                            hΣ is called the canonical valuation (or sometimes the ‘natural valuation’).
+
+                                                                                            Note: Chellas calls this the ‘proper canonical model’ for Σ. This is to leave open the
+                                                                                            possibility that there are other models of the form h W Σ , R, hΣ i with a different relation
+                                                                                            R that can also be used as canonical models for Σ. We will follow the more common usage
+                                                                                            and simply say ‘the canonical model’ for the model MΣ = h W Σ , RΣ , hΣ i defined above.
+
+                                                                                            We’ll record the main results in a moment. The key thing to remember is the definition of
+                                                                                            RΣ (the other components are easy to remember):
+
+                                                                                                                       w RΣ w ′ ⇔ ∀A (2A ∈ w ⇒ A ∈ w ′ )
+
+                                                                                            Notice that this can be expressed equivalently as follows:
+
+                                                                                                                         w RΣ w ′ ⇔ { A | 2A ∈ w } ⊆ w ′
+
+                                                                                            Sometimes this form of the definition is easier to manipulate.
+
+
+                                           5                                                                                             6
+Also, the following definition of RΣ is equivalent. You might find it easier to see what it is   Let’s record the main results.
+saying.
+                                                                                                 Theorem 6 (Truth lemma) Let MΣ = h W Σ , RΣ , hΣ i be the canonical model for a
+                           w RΣ w ′ ⇔ ∀A [ A ∈ w ′ ⇒ 3A ∈ w ]                                    normal system Σ. Then for every w in MΣ and every formula A:
+This version can be expressed as follows                                                                                               MΣ , w |= A ⇔ A ∈ w
+                                                                                                                       MΣ
+                             w RΣ w ′ ⇔ { 3A | A ∈ w ′ } ⊆ w                                     In other words, kAk        = |A|Σ .
+                                                                                                 Proof The proof is by induction on the structure of A. The key step is the case where A
+It is worth remembering both 2 and 3 versions. In completeness proofs it is often useful         is of the form 2B. The other cases, where A is of the form ¬A′ , A′ ∧ A′′ , A′ ∨ A′′ , A′ → A′′ ,
+to use one or the other or both.                                                                 are very straightforward. In case you can’t imagine how it goes, here are the details.
+Why are these definitions of RΣ equivalent? Consider:                                            Base case. Suppose A is an atom p. MΣ , w |= p ⇔ w ∈ hΣ (p) ⇔ p ∈ w.
+                                                                                                 Inductive step. Suppose the result holds for formulas A and B. It remains to show that
+   w RΣ w ′ ⇔    ∀A [ 2A ∈ w ⇒ A ∈ w ′ ]                                                         it holds also for ¬A, A ∧ B, A ∨ B, A → B, 2A. (In fact, we don’t need to do all of
+            ⇔    ∀A [ A ∈/ w ′ ⇒ 2A ∈
+                                    / w]                                                         these: any two of the truth-functional connectives will do, since the others can be defined
+            ⇔    ∀A [ ¬A ∈ w ′ ⇒ ¬2A ∈ w ]         (w, w ′ are Σ-maxi-consistent sets)           in terms of them.)
+            ⇔    ∀A [ ¬A ∈ w ′ ⇒ 3¬A ∈ w ]                                                       Case ¬A: MΣ , w |= ¬A ⇔ MΣ , w 6|= A ⇔ (by the inductive hypothesis) A ∈           / w. w is a
+                                                                                                        Σ-maxi-consistent set, so A ∈
+                                                                                                                                    / w ⇔ ¬A ∈ w, as required.
+            ⇔    ∀A′ [ A′ ∈ w ′ ⇒ 3A′ ∈ w ]       (this last step is not entirely obvious !!)                                                                                               Σ
+                                                                                                        Or more succinctly, using the notation of truth sets and proof sets: k¬AkM =
+                                                                                                                  MΣ
+                                                                                                        W − kAk      = (by the inductive hypothesis) W − |A|Σ = |¬A|Σ .
+                                                                                                 Case A ∧ B: MΣ , w |= A ∧ B ⇔ MΣ , w |= A and MΣ , w |= B
+Here is the result that justifies the last step above, the one that isn’t obvious. (It was one
+                                                                                                        ⇔ (by the inductive hypothesis)A ∈ w and B ∈ w ⇔ A ∧ B ∈ w.
+of the exercises on the tutorial sheet for maxi-consistent sets):                                                      Σ          Σ        Σ
+                                                                                                        Or: kA ∧ BkM = kAkM ∩ kBkM = (by the inductive hypothesis) |A|Σ ∩ |B|Σ =
+Theorem 5 [Chellas Thm 4.29, p158] Let Γ and Γ′ be Σ-maxi-consistent sets in a normal                   |A ∧ B|Σ .
+system Σ. Then:                                                                                  Case A ∨ B: Similar to the proof for A ∧ B. Details omitted.
+                                                                                                 Case A → B: Similar to the proofs for A ∧ B and A ∨ B.
+                      { A | 2A ∈ Γ } ⊆ Γ′    ⇔     { 3A | A ∈ Γ′ } ⊆ Γ                           Case 2A: This is the key bit. We need to show that MΣ , w |= 2A ⇔ 2A ∈ w (assuming
+                                                                                                        the inductive hypothesis).
+In other words: ∀ A [ 2A ∈ Γ ⇒ A ∈ Γ′ ]      ⇔     ∀ A [ A ∈ Γ′ ⇒ 3A ∈ Γ ].
+                                                                                                           MΣ , w |= 2A ⇔ ∀w ′ [ w RΣ w ′ ⇒ MΣ , w ′ |= A ]
+                                                      ′
+Proof Left-to-right. Assume LHS. Suppose A ∈ Γ . We need to show 3A ∈ Γ.                                                ⇔ ∀w ′ [ w RΣ w ′ ⇒ A ∈ w ′ ]    by the inductive hypothesis
+
+                          A ∈ Γ′ ⇒       / Γ′
+                                      ¬A ∈     (Γ′ consistent)                                         So we need to show that 2A ∈ w ⇔ ∀w ′ [ w RΣ w ′ ⇒ A ∈ w ′ ].
+                                 ⇒    2¬A ∈/ Γ (assumed LHS)
+                                 ⇒    ¬2¬A ∈ Γ (Γ maxi)                                          Lemma 2A ∈ w ⇔ ∀w ′ [ w RΣ w ′ ⇒ A ∈ w ′ ].
+                                 ⇒    3A ∈ Γ                                                     Left-to-right: suppose 2A ∈ w and w RΣ w ′ . Then A ∈ w ′ follows immediately from the
+                                                                                                 definition of RΣ .
+The other direction is similar: Assume RHS. Suppose 2A ∈ Γ. We need to show A ∈ Γ′ .                                       / w. We need to show that ∃w ′ [w RΣ w ′ and A ∈
+                                                                                                 Right-to-left: suppose 2A ∈                                              / w ′].
+
+                         2A ∈ Γ ⇒     ¬3¬A ∈ Γ                                                   ∃w ′ [w RΣ w ′ and A ∈
+                                                                                                                      / w ′ ] ⇔ ∃w ′ [w RΣ w ′ and ¬A ∈ w ′ ] (w ′ is Σ-maxi-consistent)
+                                ⇒     3¬A ∈/Γ  (Γ consistent)                                                                 ⇔ ∃w [{B | 2B ∈ w} ⊆ w and ¬A ∈ w ′ ]
+                                                                                                                                   ′                    ′
+                                                                                                                                                                          (definition of RΣ )
+                                ⇒        / Γ′
+                                      ¬A ∈     (assumed RHS)                                                                       ′
+                                                                                                                              ⇔ ∃w [{B | 2B ∈ w} ∪ {¬A} ⊆ w ]  ′
+
+                                ⇒     A ∈ Γ′   (Γ′ maxi)
+                                                                                                 By Lindenbaum’s lemma, it is enough to show that {B | 2B ∈ w} ∪ {¬A} is Σ-consistent.
+                                                                                                 Suppose not: suppose {B | 2B ∈ w}∪{¬A} is Σ-inconsistent. Then ⊢Σ (B1 ∧· · ·∧Bn ) → A
+                                                                                                 for some {2B1 , . . . , 2Bn } ⊆ w. But Σ is normal and w is a Σ-maxi-consistent set, so w
+                                                                                                 must contain also (2B1 ∧ · · · ∧ 2Bn ) → 2A. Since all of 2B1 , . . . , 2Bn belong to w, then
+                                                                                                 2A ∈ w. This contradicts the hypothesis that 2A ∈   / w.
+
+                                              7                                                                                                 8
+Theorem 7 Let MΣ be the canonical model for a normal system Σ. Then:                       (Deliberately left blank)
+                                         Σ
+                                    M |= A ⇔ ⊢Σ A
+Proof This follows immediately from previous theorem.
+We know that ⊢Σ A iff A is a member of every Σ-maxi-consistent set, i.e., ⊢Σ A iff A ∈ w
+for every w in MΣ . But by the previous theorem, A ∈ w iff MΣ , w |= A, and A ∈ w for
+every w in MΣ is therefore MΣ |= A.
+
+
+
+Notice that Theorem 6 (truth lemma) provides a stronger condition than we actually
+need. It says that for all formulas A:
+                               ∀w [ MΣ , w |= A ⇔ A ∈ w ]
+For Theorem 7 we need only
+                         ∀w [ MΣ , w |= A ] ⇔ ∀w ∈ MΣ [ A ∈ w ]
+which is obviously a weaker condition.
+This stronger condition means that Theorem 6 (truth lemma) can be used for what Black-
+burn et al call ‘strong completeness’ results (which we are ignoring).
+
+Since we have shown above that there exists a canonical model for any normal modal logic
+Σ, and since this model is obviously a relational (‘Kripke’) model, we immediately have
+the following:
+
+Theorem 8 Every normal modal logic is complete with respect to the class of relational
+(‘Kripke’) models/frames.
+
+Of course, not all normal logics will be sound with respect to all relational (‘Kripke’)
+models. But the smallest normal logic, system K, is sound with respect to all relational
+(‘Kripke) models. And so:
+
+Theorem 9 The smallest normal modal logic, system K, is sound and complete with re-
+spect to the class of relational (‘Kripke’) models/frames.
+
+
+
+
+Note again The inconsistent logic (the set of all formulas) is a normal modal logic.
+(Trivial – exercise in earlier set of notes).
+What is its canonical model? Answer: it doesn’t have one. The worlds of the canoni-
+cal model are the maxi-consistent sets, and there aren’t any maxiconsistent sets for the
+inconsistent logic. A model must have at least one world.
+Trivially, the inconsistent logic is complete for any class of frames/models.
+But the inconsistent logic is not sound for any class of frames/models.
+
+                                             9                                                                         10
+Examples                                                                                             Here is an example to show that the alternative, equivalent definition of RΣ (Theorem 5)
+                                                                                                     is sometimes very convenient.
+Example The normal modal logic S4 (= KT4) is sound and complete with respect to
+the class of reflexive, transitive frames.                                                           Example The normal modal logic B (= KB) is sound and complete with respect to the
+                                                                                                     class of symmetric frames.
+Proof Soundness: As usual, this is easy. We just need to check that schemas T (2A → A)
+                                                                                                     Proof Soundness: Check that schema B (A → 23A) is valid in the class of symmetric
+and 4 (2A → 22A) are valid in the class of reflexive, transitive frames. Exercise.
+                                                                                                     frames. Easy exercise.
+Completeness: We show that the relation RS4 of the canonical model for S4 belongs to the             Completeness: We show that the relation RB of the canonical model for B= KB is sym-
+class in question, i.e. that RS4 defined as                                                          metric.
+                            w RS4 w ′ ⇔ ∀A [ 2A ∈ w ⇒ A ∈ w ′ ]                                      We need to show (for all B-maxi-consistent sets w, w ′) that
+                                                                                                     { A | 2A ∈ w } ⊆ w ′ ⇒ { A | 2A ∈ w ′ } ⊆ w.
+is both reflexive and transitive.                                                                    Equivalently (Theorem 5) we show { A | 2A ∈ w } ⊆ w ′ ⇒ { 3A | A ∈ w } ⊆ w ′ .
+                                                                                                     Or equivalently again, that ∀A [ 2A ∈ w ⇒ A ∈ w ′ ] (w RB w ′ ) implies ∀A [ A ∈ w ⇒
+Reflexive: We need to show (for all formulas A and worlds/S4-maxi-consistent sets w) that
+                                                                                                     3A ∈ w ′ ] (w ′ RB w).
+∀A [ 2A ∈ w ⇒ A ∈ w ].
+Suppose 2A ∈ w. Then since S4 contains the schema T (2A → A) and w is S4-maxi-                       Suppose (1) w RB w ′ , and (2) A ∈ w. Need to show 3A ∈ w ′.
+consistent, it follows that A ∈ w. Done.
+                                                                                                                             A ∈ w ⇒ 23A ∈ w             (B, and w is maxi)
+Here is the first step in full, in case it is not obvious:                                                                 23A ∈ w ⇒ 3A ∈ w ′           (w RB w ′ )
+                                                                                                     Done.
+              2A → A ∈ w                    (4 is in S4, and w is S4-maxi)
+           Suppose 2A ∈ w                                                                            Again, first step in full:
+               Then A ∈ w            (w is S4-maxi, and hence closed under MP)                                  A → 23A ∈ w                       (B, and w is KB-maxi)
+                                                                                                                Suppose A ∈ w
+Transitive: We need to show w RS4 w ′ , w ′ RS4 w ′′ ⇒ w RS4 w ′′ for all w, w ′, w ′′ in the                   Then 23A ∈ w            (w is KB-maxi, and hence closed under MP)
+canonical model.
+Suppose (1) w RS4 w ′ , i.e., { A | 2A ∈ w } ⊆ w ′ and (2) w ′ RS4 w ′′ , i.e., { A | 2A ∈ w ′ } ⊆
+w ′′ . We need to show w RS4 w ′′ , i.e., ∀A [ 2A ∈ w ⇒ A ∈ w ′′ ].
+                                                                                                     Example A different kind of proof . . .
+So: suppose 2A ∈ w. We need to show A ∈ w ′′ .                                                       Show KD is complete with respect to serial frames (for all w, there exists w ′ such that
+                                                                                                     w R w ′ ).
+                   2A ∈ w ⇒ 22A ∈ w      (4 is in S4, and w is maxi)                                 For the canonical frame h W KD , RKD i
+                  22A ∈ w ⇒ 2A ∈ w ′    (w RS4 w ′ )
+                                                                                                                                  w RKD w ′ ⇔ ∀A [ 2A ∈ w ⇒ A ∈ w ′ ]
+                   2A ∈ w ′ ⇒ A ∈ w ′′ (w ′ RS4 w ′′ )
+                                                                                                                                            ⇔ {A | 2A ∈ w} ⊆ w ′
+Done.                                                                                                So we want to show that for every w in W KD
+Again, here is the first step in full, in case it is not obvious:                                                                       ∃w ′ {A | 2A ∈ w} ⊆ w ′
+                                                                                                     By Lindenbaum’s lemma it is sufficient to show that
+                   2A → 22A ∈ w                      (4 is in S4, and w is S4-maxi)
+                  Suppose 2A ∈ w                                                                                                             {A | 2A ∈ Γ}
+                    Then 22A ∈ w              (w is S4-maxi, hence closed under MP)                  is KD-consistent for any KD-maxi-consistent set Γ.
+        Hence 2A ∈ w ⇒ 22A ∈ w                                                                       (Easy exercise.)
+
+
+                                                11                                                                                                12
+Multi-modal normal logics                                                                       Example (the minimal normal temporal logic) (Blackburn et al, p204–206)
+                                                                                                The basic temporal language has two ‘diamonds’ F and P, whose respective duals are G
+You can easily check that the definitions and theorems above can all be generalised straight-   and H. F and G look forwards along the flow of time, and P and H look backwards.
+forwardly to the multi-modal case. (The structural induction is hardly affected. Try it.)       Usually, the language is interpreted on a frame h W, R i with the truth conditions for P and
+                                                                                                H modified to make sure they look backwards along R.
+Example Suppose we have a logic Σ with two ‘box’ operators Ka and Kb , interpreted on           Suppose we interpret such a language on frames of the form h W, RF, RP i. For tempo-
+frames of the form h W, Ra , Rb i where Ra and Rb are the accessibility relations correspond-   ral logics, we are only interested in frames where the relations RF and RP are mutually
+ing to operators Ka and Kb , respectively. The logic of Ka and Kb individually is normal.       converse: w RF w ′ iff w ′ RP w.
+(You can read Ka A and Kb A as ‘a knows that A’ and ‘b knows that A’, respectively.)            It is easy to check that the following schema is valid in all such frames:
+If
+                                                                                                                                  (A → HFA) ∧ (B → GPB)                                 (*)
+                                       ⊢Σ Kb A → Ka A
+then the canonical frame h W Σ , RaΣ , RbΣ i has the property                                   Now we show that if Σ with G and H both normal contains schema (*) then the canonical
+                                                                                                frame h W Σ , RFΣ , RPΣ i is such that:
+                                            RaΣ ⊆ RbΣ
+                                                                                                                                      w RFΣ w ′ ⇔ w ′ RPΣ w
+Suppose w RaΣ w ′ . We need to show w RbΣ w ′,i.e.,
+                                                                                                for all w, w ′ .
+                                   ∀A [ Kb A ∈ w ⇒ A ∈ w ′ ]
+                                                                                                For left-to-right: Suppose w RFΣ w ′, i.e.,
+                                               ′
+Suppose Kb A ∈ w. We need to show A ∈ w .
+                                                                                                            ∀A [ GA ∈ w ⇒ A ∈ w ′ ] or equivalently ∀A [ A ∈ w ′ ⇒ FA ∈ w ]
+                    Kb A ∈ w ⇒ Ka A ∈ w               (axiom, and w is maxi)
+                    Ka A ∈ w ⇒ A ∈ w ′              (w RaΣ w ′ )                                We show w ′ RPΣ w, i.e.,
+
+Done.                                                                                                       ∀A [ HA ∈ w ′ ⇒ A ∈ w ] or equivalently ∀A [ A ∈ w ⇒ PA ∈ w ′ ]
+
+Again, just to clear, here is the first step in full:                                           The second version is easier. Suppose A ∈ w. We show PA ∈ w ′ .
+
+                                                                                                                     A ∈ w ⇒ GPA ∈ w              (schema (*) and w maxi)
+               Kb A → Ka A ∈ w                     (axiom, and w is maxi)                                          GPA ∈ w ⇒ PA ∈ w ′            (w RFΣ w ′ )
+              Suppose Kb A ∈ w                                                                  Done. (The other direction is similar.)
+                Then Ka A ∈ w            (w is maxi, and so closed under MP)
+
+
+
+
+                                                13                                                                                             14
+Sahlqvist theorems
+From Ian Hodkinson’s notes . . .
+
+Theorem (Sahlqvist Correspondence Theorem) Let A be a Sahlqvist formula.
+There is a corresponding first-order frame property that holds of a frame iff A is valid
+in the frame. (This property can be obtained from A by a simple algorithm.)
+
+Here is its completeness twin . . .
+
+
+Definition (Canonical for a Property) Let A be a formula, and P be a property.
+The formula A is canonical for P if
+   • the canonical frame for any normal logic Σ containing A has property P ; and
+   • A is valid in any class of frames with property P .
+(Blackburn et al, p204.)
+
+Example all instances of 4 are canonical for transitivity, because the presence of 4 forces
+canonical frames to be transitive, and 4 is valid in all transitive frames.
+
+
+Theorem (Sahlqvist Completeness Theorem) Every Sahlqvist formula is canonical
+for the property it defines. That is: if A is a Sahlqvist formula defining property P , then
+A is valid in any class of frames with property P , and the canonical frame for any normal
+logic Σ containing A has property P .
+(Proof omitted.)
+So: given a set of Sahlvist formulas ξ, the normal modal logic Kξ is (strongly) complete
+with respect to the first-order class of frames defined by ξ.
+
+
+Other definitions
+The first one is quite often encountered . . .
+
+Definition (Canonical logic) A normal logic Σ is canonical if, for all A ∈ Σ, A is valid
+in the canonical frame for Σ.
+(A normal logic is canonical if all its formulas are valid in its canonical frame.)
+Not all normal logics are canonical.
+Example: KL = K ∪ {2(2A → A) → 2A)} is not canonical. (Blackburn et al, p211.)
+And a definition I can never remember (I wouldn’t bother with it, personally) . . .
+
+Definition (Canonical formula) A formula A is canonical if, for any normal logic Σ,
+A ∈ Σ implies that A is valid in the canonical frame for Σ.
+
+
+                                                 15
+

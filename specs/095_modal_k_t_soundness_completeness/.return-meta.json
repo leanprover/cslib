@@ -1,0 +1,22 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/095_modal_k_t_soundness_completeness/plans/02_k-t-soundness-completeness.md",
+      "summary": "Revised 5-phase implementation plan (v2) with explicit Blackburn Ch.4 cross-references for K and T soundness/completeness"
+    }
+  ],
+  "next_steps": "Run /implement 95 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1749571200_p95rev",
+    "agent_type": "planner-agent",
+    "duration_seconds": 300,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 5,
+    "estimated_hours": 5,
+    "dependency_waves": [[1, 2], [3, 4], [5]]
+  },
+  "memory_candidates": []
+}

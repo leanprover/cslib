@@ -1,0 +1,326 @@
+                 Lecture Notes on
+         Completeness and Canonical Models
+
+                             15-816: Modal Logic
+                                André Platzer
+
+                                   Lecture 20
+                                  April 6, 2010
+
+
+1    Introduction to This Lecture
+In this lecture, we study completeness of (Hilbert-style) proof systems for
+propositional modal logics. The device of canonical models gives a rich
+and systematic framework for understanding completeness questions and
+other advanced properties. Also see [HC96, Sch03].
+
+
+2    Normal Modal Logics
+In this lecture we consider a logic as the set of its tautologies. The following
+definition captures the closure properties that the we expect from this set
+of tautologies:
+Definition 1 (Normal modal logic) A set L of formulas is called a normal
+modal logic if:
+    1. L contains all propositional tautologies
+
+    2. (p → q) → (p → q) ∈ L for all propositional letters p, q
+
+    3. A ∈ L, (A → B) ∈ L implies B ∈ L (closed under modus ponens)
+
+    4. A ∈ L implies A ∈ L (Gödel)
+
+    5. A ∈ L implies A0 ∈ L for all instances A0 of A (closed under instantiation).
+       An instance results by substituting any number of propositional letters by
+       arbitrary propositional modal formulas.
+
+L ECTURE N OTES                                                     A PRIL 6, 2010
+L20.2                                    Completeness and Canonical Models
+
+
+Definition 2 (Normal modal logic proof system) A proof system S of modal
+logic is called a normal modal logic proof system, if
+    1. S can derive all propositional tautologies
+
+    2. (p → q) → (p → q) is an axiom of S
+
+    3. Modus ponens and Gödel generalization are proof rules of S.
+
+The set {A : `S A} of all formulas provable in a normal modal logic proof
+systems is a normal modal logic. The proof systems for K, T and S4 that
+we have seen before are normal.
+   Other properties that we have seen before can also be shown easily to
+hold in normal modal logics.
+Lemma 3 Let L be a normal modal logic. Then for any formulas A, B, C:
+    1. (A ∧ B) ↔ (A ∧ B) ∈ L
+
+    2. (A → B) ∈ L implies (A → B) ∈ L
+
+    3. (A ↔ B) ∈ L implies (C ↔ D) ∈ L where D results from C by replacing
+       subformula A by B
+
+
+3    Consistency
+Definition 4 (Consistency) Let L be a normal modal logic. A set S of formu-
+las of propositional modal logic is called L-consistent iff there are no formulas
+A1 , . . . , An ∈ S with
+
+                           (A1 ∧ · · · ∧ An → false) ∈ L
+
+Otherwise S is called L-inconsistent. A consistent set S of propositional modal
+formulas is called maximallyconsistent iff, for every formula A either A ∈ S or
+¬A ∈ S.
+
+We assume normal modal logics L to be consistent.
+
+Lemma 5 Let L be a normal modal logic and S maximally L-consistent, then
+    1. For every formula A exactly one of the following cases holds, either A ∈ S
+       or ¬A ∈ S.
+
+    2. A ∈ S, (A → B) ∈ S then B ∈ S (closed under modus ponens).
+
+L ECTURE N OTES                                                       A PRIL 6, 2010
+Completeness and Canonical Models                                             L20.3
+
+
+   3. (A ∧ B) ∈ S iff A ∈ S and B ∈ S
+
+   4. (A ∨ B) ∈ S iff A ∈ S or B ∈ S
+
+   5. L ⊆ S
+
+Proof:    1. One of A or ¬A must be in S, which is maximally consistent.
+     If both were in S then S would be inconsistent, because the proposi-
+     tional tautology (A ∧ ¬A → false) ∈ L.
+
+   2. Let A ∈ S, (A → B) ∈ S but B 6∈ S. By maximal consistency,
+      ¬B ∈ S. Consider tautology (A ∧ (A → B) ∧ ¬B → false) ∈ L. This
+      contradicts the consistency of S.
+
+   3. Similar to the next case.
+
+   4. Let us prove the direction from left to right. Let (A ∨ B) ∈ S and
+      A 6∈ S, B 6∈ S. Hence, by maximal consistency, ¬A ∈ S, ¬B ∈ S. Also
+      the tautology (¬A ∧ ¬B ∧ (A ∨ B) → false) ∈ L. That contradicts the
+      consistency of S.
+      Conversely, let A ∈ S, (A ∨ B) 6∈ S. Then maximal consistency shows
+      ¬(A ∨ B) ∈ S. But the tautology (A ∧ (A ∨ B) → false) ∈ L contra-
+      dicts the consistency of F .
+
+   5. Let A ∈ L. Then {¬A} is L-inconsistent. Thus ¬A 6∈ S. By maximal
+      consistency, A ∈ S.
+                                                                    
+
+Lemma 6 For every consistent set S there is a maximally consistent superset M .
+
+Proof: Fix an ordering A0 , A1 , A2 , . . . , An , . . . of all propositional model
+formulas ordered. Define an ascending chain of sets of formulas S0 ⊆ S1 ⊆
+S2 ⊆ · · · ⊆ Sn ⊆ . . . by:
+
+                 S0 := S
+                       (
+                         Sn ∪ {An }       if this set is consistent
+               Sn+1 :=
+                         Sn ∪ {¬An }      otherwise
+
+We prove by induction on n that Sn is consistent. The case n = 0 follows
+from the fact that F was assumed consistent. Suppose Sn+1 was inconsis-
+tent. By construction Sn ∪ {An } and Sn ∪ {¬An } are both inconsistent then.
+
+L ECTURE N OTES                                                       A PRIL 6, 2010
+L20.4                                       Completeness and Canonical Models
+
+
+Hence there are formulas B1 , . . . , Bk , C1 , . . . , Cl ∈ Sn :
+
+                         (B1 ∧ · · · ∧ Bk ∧ An → false) ∈ L
+                         (C1 ∧ · · · ∧ Cl ∧ ¬An → false) ∈ L
+
+Now L contains all propositional tautologies and is closed under modus
+ponens (Lemma 5), thus the above lines imply
+
+                   (B1 ∧ · · · ∧ Bk ∧ C1 ∧ · · · ∧ Cl → false) ∈ L
+
+which contradicts the induction hypothesis that Sn is consistent.
+  Define M := ∞
+                S
+                  n=0 Sn . Then
+
+    • M is consistent: otherwise there is an Fn in which the inconsistency
+      witness lies, but Fn is consistent.
+
+    • M is maximally consistent: because, for each formula Ai , Si contains
+      either Ai or ¬Ai , hence so does the union M .
+
+    • S⊆M
+
+                                                                                 
+
+Lemma 7 Let S be a consistent set of formulas and ¬A ∈ S, then  − S ∪ {¬A}
+is consistent where  − S := {A : A ∈ S}.
+
+Proof: Suppose  − S ∪ {¬A} is inconsistent then there are A1 , . . . , An ∈
+ − S such that
+                   (A1 ∧ · · · ∧ An ∧ ¬A → false) ∈ L
+Note that we can assume ¬A to occur in this inconsistency witness because
+(X → false) ∈ L implies (X ∧ ¬A → false) ∈ L. Now propositional
+reasoning implies
+                       (A1 ∧ · · · ∧ An → A) ∈ L
+Hence the monotonicity property (Lemma 32 of normal modal logics im-
+plies
+                    ((A1 ∧ · · · ∧ An ) → A) ∈ L
+Now the property of conjunctive distributitivity (Lemma 31) with the sub-
+stitution property (Lemma 33) of normal modal logics imply
+
+                           (A1 ∧ · · · ∧ An → A) ∈ L
+
+L ECTURE N OTES                                                      A PRIL 6, 2010
+Completeness and Canonical Models                                           L20.5
+
+
+Propositional reasoning implies the following witness of the inconsistency
+of F :
+                  (A1 ∧ · · · ∧ An ∧ ¬A → false) ∈ L
+                                                                                
+
+Beware that the consistency of S does not imply that  − S is consistent.
+For the trivial Kripke structure with empty accessibility relation and only
+one world s, S := {A : K, s |= A} is maximally K-consistent. Especially
+A, ¬A ∈ S for any formula A. But that means that  − S is inconsistent.
+
+
+4    Canonical Kripke Structure
+Let L be a normal propositional modal logic, considered as the set of its
+tautologies.
+
+Theorem 8 (Canonical Kripke Structure) For a normal propositional modal
+logic L, let KL = (WL , ρL , vL ) be the canonical Kripke structure of L, i.e.:
+
+    • WL is the set of all maximally L-consistent sets of propositional modal for-
+      mulas (built from the vocabulary);
+
+    • SρL T iff  − S ⊆ T where  − S := {A : A ∈ S};
+                    (
+                      1 if q ∈ S
+    • vL (S)(q) :=
+                      0 if q 6∈ S
+
+Then for any world S ∈ WL and any formula A:
+
+                            KL , S |= A   iff A ∈ S
+
+Proof: The proof is by induction on A.
+
+    0. The case where A is a propositional letter is by definition.
+
+    1. If A is of the form A1 ∧ A2 then by Lemma 5 and by induction hypoth-
+       esis we have that
+
+                              KL , S |= A1 ∧ A2
+                           iff KL , S |= A1 and KL , S |= A2
+                           iff A1 ∈ S and A2 ∈ S
+                           iff (A1 ∧ A2 ) ∈ S
+
+
+L ECTURE N OTES                                                    A PRIL 6, 2010
+L20.6                                  Completeness and Canonical Models
+
+
+   2. If A is of the form B then we reason by cases. First assume B ∈ S.
+      Consider any world T ∈ WL with SρL T . That is  − S ⊆ T , hence
+      B ∈ T . Thus, by induction hypothesis, KL , T |= B, which implies
+      KL , S |= B, because T was arbitrary.
+        Now assume B 6∈ S. Thus ¬B ∈ S by maxi-consistency. Hence by
+        Lemma 7 the set  − S ∪ {¬B} is consistent and, by Lemma 6 there is a
+        (maximally consistent extension) world T ∈ WL with T ⊇  − S ∪ {¬B}.
+        Especially, SρL T . By induction hypothesis, ¬B ∈ T yields KL , T |= ¬B,
+        which implies KL , S |= ¬B.
+
+                                                                               
+
+Corollary 9 Let KL be the canonical Kripke structure of normal modal logic L,
+then:
+                           A ∈ L iff KL |= A
+
+Proof: By Lemma 5, L is a subset of every world S ∈ WL . Thus the direc-
+tion from left to right follows from Theorem 8.
+    Conversely let KL |= A, i.e., KL , S |= A for all S ∈ WL . Suppose A 6∈ L.
+But then L ∪ {¬A} would be consistent: otherwise there were A1 , . . . An ∈
+L with (A1 ∧ . . . An ∧ ¬A → false) ∈ L which would imply A ∈ L for the
+logic. Since L ∪ {¬A} is consistent, there, thus, is a (maximally consistent
+extension) world T ∈ WL with T ⊇ L ∪ {¬A}. In particular, ¬A ∈ T , such
+that Theorem 8 implies KL , T |= ¬A, which would contradict KL |= A . 
+
+    This implies a kind of completeness, but is surprising in that it connects
+provability in a system with validity, not in all, but only in one Kripke
+structure.
+
+Corollary 10 Let `S be a provability relation for a normal modal logic proof sys-
+tem and KL the canonical Kripke structure for the logic L := {A : `S A}, then
+
+                              `S A   iff KL |= A
+
+Proof: Consider L := {A : `S A} in the last corollary.                         
+
+This corollary is a starting point for proving full completeness.
+
+Proposition 11 (Completeness for K) For every modal logic formula A
+
+         `K A    iff   K A   iff K |= A    for every Kripke structure K
+
+
+L ECTURE N OTES                                                   A PRIL 6, 2010
+Completeness and Canonical Models                                        L20.7
+
+
+Proof: If K |= A for every Kripke structure K, then also for the canonical
+Kripke structure, thus Corollary 10 implies `K A.
+    The converse direction is soundness that every axiom of K holds in all
+Kripke structures and every proof rule of K preserves validity (see Lecture
+7).                                                                      
+
+Proposition 12 (Completeness for T) For every modal logic formula A
+
+   `K A    iff    T A   iff K |= A   for every reflexive Kripke structure K
+
+Proof: The only new part is the need to show that the T-axiom is true in
+all reflexive Kripke structures (which follows from Lecture 7), and that
+the canonical Kripke structure for T is reflexive. Consider a maximal T-
+consistent set S. We have to show that  − S ⊆ S. Consider any A ∈ S.
+By Lemma 5.5 the T-instance A → A is an element of S, thus A ∈ S by
+Lemma 5.2.                                                            
+
+   In a similar way, completeness can be shown for the modal logics S4
+and S5 [HC96].
+
+Theorem 13 (Strong completeness) Let S be the normal modal logic (Hilbert)
+proof system K or T (or S4 or S5) and let Γ be a set of (propositional) modal
+formulas and A a modal formula. Then the global consequence relation gS of S
+and its provability relation `S coincide:
+
+                            Γ `S A    iff Γ gS A
+
+Proof: The soundness direction is as usual. For the completeness direction,
+it is easy to see that L := {A : Γ `S A} is a normal modal logic. Let KL be
+the canonical Kripke structure for L. Assume Γ gS A. Now the fact that
+Γ ⊆ L implies that KL |= Γ. Thus KL |= A. Now Corollary 9 implies that
+A ∈ L, i.e., Γ `S A.                                                     
+
+
+
+
+L ECTURE N OTES                                                  A PRIL 6, 2010
+L20.8                              Completeness and Canonical Models
+
+
+References
+[HC96] G.E. Hughes and M.J. Cresswell. A New Introduction to Modal Logic.
+       Routledge, 1996.
+
+[Sch03] Peter H. Schmitt. Nichtklassische Logiken. Vorlesungsskriptum
+        Fakultät für Informatik , Universität Karlsruhe, 2003.
+
+
+
+
+L ECTURE N OTES                                             A PRIL 6, 2010
+

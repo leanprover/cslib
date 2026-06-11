@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "summary": "3-phase plan (v2): S4Soundness.lean (7-case axiom soundness + wrappers, Blackburn Def 4.9), S4Completeness.lean (canonical model with refl+trans, Blackburn Thms 4.27/4.28.1/4.29), module integration",
+  "artifacts": [
+    {
+      "path": "specs/097_modal_s4_soundness_completeness/plans/01_s4-soundness-completeness.md",
+      "type": "plan",
+      "summary": "Original 3-phase plan for S4 soundness and completeness (v1)"
+    },
+    {
+      "path": "specs/097_modal_s4_soundness_completeness/plans/02_s4-soundness-completeness.md",
+      "type": "plan",
+      "summary": "Revised 3-phase plan with explicit Blackburn Ch.4 theorem references (v2)"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "phases_completed": 0,
+  "phases_total": 3,
+  "next_action_hint": "implement"
+}
