@@ -159,6 +159,9 @@ public import Cslib.Logics.Propositional.Metalogic.DeductionTheorem
 public import Cslib.Logics.Propositional.Metalogic.MCS
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.Logics.Propositional.NaturalDeduction.FromHilbert
+public import Cslib.Logics.Propositional.NaturalDeduction.DerivedRules
+public import Cslib.Logics.Propositional.NaturalDeduction.Equivalence
+public import Cslib.Logics.Propositional.NaturalDeduction.HilbertDerivedRules
 public import Cslib.Logics.Propositional.ProofSystem.Axioms
 public import Cslib.Logics.Propositional.ProofSystem.Derivation
 public import Cslib.Logics.Propositional.ProofSystem.Instances

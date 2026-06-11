@@ -13,7 +13,7 @@ public import Cslib.Foundations.Logic.Theorems.Propositional.Core
 
 Defines `bigconj : List F → F` as a generic fold using
 `HasBot.bot` and `HasImp.imp` (Lukasiewicz encoding of conjunction),
-plus derivability lemmas for `[PropositionalHilbert S]`.
+plus derivability lemmas for `[ClassicalHilbert S]`.
 
 ## Main Definitions
 
@@ -84,7 +84,7 @@ def negBigconj (L : List F) : F :=
 /-! ### Derivability Lemmas -/
 
 variable {S : Type*} [InferenceSystem S F]
-variable [PropositionalHilbert S (F := F)]
+variable [ClassicalHilbert S (F := F)]
 
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core

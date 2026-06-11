@@ -68,6 +68,10 @@ abbrev Proposition.or (A B : Proposition Atom) : Proposition Atom :=
 abbrev Proposition.and (A B : Proposition Atom) : Proposition Atom :=
   .imp (.imp A (.imp B .bot)) .bot
 
+/-- Biconditional as a derived connective: A ↔ B := (A → B) ∧ (B → A) -/
+abbrev Proposition.iff (A B : Proposition Atom) : Proposition Atom :=
+  (A.imp B).and (B.imp A)
+
 instance : Bot (Proposition Atom) := ⟨.bot⟩
 instance : Top (Proposition Atom) := ⟨.top⟩
 

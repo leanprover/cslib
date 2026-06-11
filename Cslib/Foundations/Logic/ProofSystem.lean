@@ -30,14 +30,20 @@ under the corresponding rule.
 
 ### Layer 3: Bundled Proof System Classes
 
-`PropositionalHilbert`, `ModalHilbert`, `ModalS5Hilbert`, etc. compose
-the individual axiom and rule typeclasses via `extends`.
+Three-level propositional hierarchy:
+- `MinimalHilbert` (K, S, MP) -- minimal logic
+- `IntuitionisticHilbert` (+ EFQ) -- intuitionistic logic
+- `ClassicalHilbert` (+ Peirce) -- classical logic
+
+Extensions: `ModalHilbert`, `ModalS5Hilbert`, `TemporalBXHilbert`,
+`BimodalTMHilbert` all extend `ClassicalHilbert`.
 
 ### Layer 4: Tag Types
 
-Opaque tag types (`Propositional.HilbertCl`, `Modal.HilbertK`, etc.)
-serve as proof system identifiers. Concrete `InferenceSystem` and
-`HasAxiom*` instances will be registered when derivation trees are defined.
+Opaque tag types (`Propositional.HilbertCl`, `Propositional.HilbertMin`,
+`Propositional.HilbertInt`, `Modal.HilbertK`, etc.) serve as proof system
+identifiers. Concrete `InferenceSystem` and `HasAxiom*` instances will be
+registered when derivation trees are defined.
 
 ## Note
 
@@ -113,10 +119,6 @@ class HasAxiomEFQ where
 class HasAxiomPeirce where
   peirce {φ ψ : F} :
     InferenceSystem.DerivableIn S (Axioms.Peirce φ ψ)
-
-/-- The proof system proves DNE: ¬¬φ → φ. -/
-class HasAxiomDNE where
-  dne {φ : F} : InferenceSystem.DerivableIn S (Axioms.DNE φ)
 
 variable [HasBox F]
 
@@ -272,19 +274,29 @@ end TemporalAxiomClasses
 
 /-! ### Bundled Proof System Classes -/
 
-/-- Classical propositional Hilbert system. -/
-class PropositionalHilbert (S : Type*) [HasBot F] [HasImp F]
+/-- Minimal propositional Hilbert system (K, S, MP). -/
+class MinimalHilbert (S : Type*) [HasBot F] [HasImp F]
     [InferenceSystem S F]
     extends ModusPonens S (F := F),
             HasAxiomImplyK S (F := F),
-            HasAxiomImplyS S (F := F),
-            HasAxiomEFQ S (F := F),
+            HasAxiomImplyS S (F := F)
+
+/-- Intuitionistic propositional Hilbert system (K, S, MP, EFQ). -/
+class IntuitionisticHilbert (S : Type*) [HasBot F] [HasImp F]
+    [InferenceSystem S F]
+    extends MinimalHilbert S (F := F),
+            HasAxiomEFQ S (F := F)
+
+/-- Classical propositional Hilbert system (K, S, MP, EFQ, Peirce). -/
+class ClassicalHilbert (S : Type*) [HasBot F] [HasImp F]
+    [InferenceSystem S F]
+    extends IntuitionisticHilbert S (F := F),
             HasAxiomPeirce S (F := F)
 
 /-- Modal Hilbert system K. -/
 class ModalHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
     [InferenceSystem S F]
-    extends PropositionalHilbert S (F := F),
+    extends ClassicalHilbert S (F := F),
             Necessitation S (F := F),
             HasAxiomK S (F := F)
 
@@ -296,11 +308,11 @@ class ModalS5Hilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
             HasAxiom4 S (F := F),
             HasAxiomB S (F := F)
 
-/-- Temporal Hilbert system BX: extends propositional logic with temporal
-    necessitation and all 22 BX temporal axiom typeclasses. -/
+/-- Temporal Hilbert system BX: extends classical propositional logic with
+    temporal necessitation and all 22 BX temporal axiom typeclasses. -/
 class TemporalBXHilbert (S : Type*) [HasBot F] [HasImp F] [HasUntil F]
     [HasSince F] [InferenceSystem S F]
-    extends PropositionalHilbert S (F := F),
+    extends ClassicalHilbert S (F := F),
             TemporalNecessitation S (F := F),
             HasAxiomSerialFuture S (F := F),
             HasAxiomSerialPast S (F := F),
@@ -334,6 +346,12 @@ class BimodalTMHilbert (S : Type*) [HasBot F] [HasImp F] [HasBox F]
             HasAxiomMF S (F := F)
 
 /-! ### Tag Types -/
+
+/-- Tag type for minimal propositional Hilbert system. -/
+opaque Propositional.HilbertMin : Type := Empty
+
+/-- Tag type for intuitionistic propositional Hilbert system. -/
+opaque Propositional.HilbertInt : Type := Empty
 
 /-- Tag type for classical propositional Hilbert system. -/
 opaque Propositional.HilbertCl : Type := Empty

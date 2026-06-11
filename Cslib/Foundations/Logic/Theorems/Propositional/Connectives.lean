@@ -11,22 +11,23 @@ public import Cslib.Foundations.Logic.Theorems.Propositional.Core
 
 /-! # Derived Connective Theorems
 
-Classical merge, iff introduction, contraposition, and De Morgan laws
-for the Hilbert-style proof system.
+Stratified connective theorems for the Hilbert-style proof system.
 
-All theorems are generic over `[PropositionalHilbert S]`.
-
-## Main Results
-
-- `classical_merge`: `(P → Q) → ((¬P → Q) → Q)` (DT-free)
-- `iff_intro`: From `⊢ A → B` and `⊢ B → A`, derive `⊢ A ↔ B`
+### Minimal (`[MinimalHilbert S]`)
 - `contrapose_imp`: `(A → B) → (¬B → ¬A)`
 - `contraposition`: From `⊢ A → B`, derive `⊢ ¬B → ¬A`
+- `iff_intro`: From `⊢ A → B` and `⊢ B → A`, derive `⊢ A ↔ B`
+- `iff_neg_intro`: From `⊢ ¬A → ¬B` and `⊢ ¬B → ¬A`, derive `⊢ ¬A ↔ ¬B`
+
+### Classical (`[ClassicalHilbert S]`)
+- `classical_merge`: `(P → Q) → ((¬P → Q) → Q)` (DT-free)
 - `contrapose_iff`: From `⊢ A ↔ B`, derive `⊢ ¬A ↔ ¬B`
 - `demorgan_conj_neg_forward`: `¬(A ∧ B) → (¬A ∨ ¬B)`
 - `demorgan_conj_neg_backward`: `(¬A ∨ ¬B) → ¬(A ∧ B)`
+- `demorgan_conj_neg`: `¬(A ∧ B) ↔ (¬A ∨ ¬B)`
 - `demorgan_disj_neg_forward`: `¬(A ∨ B) → (¬A ∧ ¬B)`
 - `demorgan_disj_neg_backward`: `(¬A ∧ ¬B) → ¬(A ∨ B)`
+- `demorgan_disj_neg`: `¬(A ∨ B) ↔ (¬A ∧ ¬B)`
 
 ## Encoding
 
@@ -44,11 +45,13 @@ open Cslib.Logic
 open Cslib.Logic.Theorems.Combinators
 open Cslib.Logic.Theorems.Propositional.Core
 
+/-! ## Minimal Connective Theorems -/
+
+section Minimal
+
 variable {F : Type*} [HasBot F] [HasImp F]
 variable {S : Type*} [InferenceSystem S F]
-variable [PropositionalHilbert S (F := F)]
-
-section Connectives
+variable [MinimalHilbert S (F := F)]
 
 /-- Contraposition (implication form):
     `⊢ (φ → ψ) → (¬ψ → ¬φ)`. -/
@@ -80,6 +83,54 @@ theorem contraposition {φ ψ : F}
       (HasImp.imp (HasImp.imp ψ HasBot.bot)
         (HasImp.imp φ HasBot.bot)) :=
   ModusPonens.mp contrapose_imp h
+
+/-- Iff introduction: from `⊢ φ → ψ` and `⊢ ψ → φ`,
+    derive `⊢ (φ → ψ) ∧ (ψ → φ)`.
+    Uses pairing to build the conjunction. -/
+theorem iff_intro {φ ψ : F}
+    (h1 : InferenceSystem.DerivableIn S
+      (HasImp.imp φ ψ))
+    (h2 : InferenceSystem.DerivableIn S
+      (HasImp.imp ψ φ)) :
+    InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasImp.imp (HasImp.imp φ ψ)
+          (HasImp.imp (HasImp.imp ψ φ) HasBot.bot))
+        HasBot.bot) := by
+  have pair_inst := pairing (S := S) (HasImp.imp φ ψ) (HasImp.imp ψ φ)
+  have step1 := ModusPonens.mp pair_inst h1
+  exact ModusPonens.mp step1 h2
+
+/-- Iff neg intro: from `⊢ ¬φ → ¬ψ` and `⊢ ¬ψ → ¬φ`,
+    derive `⊢ ¬φ ↔ ¬ψ`. -/
+theorem iff_neg_intro {φ ψ : F}
+    (h1 : InferenceSystem.DerivableIn S
+      (HasImp.imp (HasImp.imp φ HasBot.bot)
+        (HasImp.imp ψ HasBot.bot)))
+    (h2 : InferenceSystem.DerivableIn S
+      (HasImp.imp (HasImp.imp ψ HasBot.bot)
+        (HasImp.imp φ HasBot.bot))) :
+    InferenceSystem.DerivableIn S
+      (HasImp.imp
+        (HasImp.imp
+          (HasImp.imp (HasImp.imp φ HasBot.bot)
+            (HasImp.imp ψ HasBot.bot))
+          (HasImp.imp
+            (HasImp.imp (HasImp.imp ψ HasBot.bot)
+              (HasImp.imp φ HasBot.bot))
+            HasBot.bot))
+        HasBot.bot) :=
+  iff_intro h1 h2
+
+end Minimal
+
+/-! ## Classical Connective Theorems -/
+
+section Classical
+
+variable {F : Type*} [HasBot F] [HasImp F]
+variable {S : Type*} [InferenceSystem S F]
+variable [ClassicalHilbert S (F := F)]
 
 /-- Classical merge (DT-free):
     `⊢ (P → Q) → ((¬P → Q) → Q)`.
@@ -153,29 +204,10 @@ theorem classical_merge {φ ψ : F} :
   -- step2: ((¬φ→ψ)→((ψ→⊥)→ψ)) → ((¬φ→ψ)→ψ)
 
   -- Compose step1 with step2 at (φ→ψ) level:
-  -- b: ((¬φ→ψ)→((ψ→⊥)→ψ)) → X → ((¬φ→ψ)→ψ)
-  -- But we need to compose step1 and step2 differently:
   -- step1: (φ→ψ) → ((¬φ→ψ) → ((ψ→⊥)→ψ))
   -- step2: ((¬φ→ψ) → ((ψ→⊥)→ψ)) → ((¬φ→ψ)→ψ)
   -- Compose: (φ→ψ) → ((¬φ→ψ)→ψ)
   exact imp_trans step1 step2
-
-/-- Iff introduction: from `⊢ φ → ψ` and `⊢ ψ → φ`,
-    derive `⊢ (φ → ψ) ∧ (ψ → φ)`.
-    Uses pairing to build the conjunction. -/
-theorem iff_intro {φ ψ : F}
-    (h1 : InferenceSystem.DerivableIn S
-      (HasImp.imp φ ψ))
-    (h2 : InferenceSystem.DerivableIn S
-      (HasImp.imp ψ φ)) :
-    InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp (HasImp.imp φ ψ)
-          (HasImp.imp (HasImp.imp ψ φ) HasBot.bot))
-        HasBot.bot) := by
-  have pair_inst := pairing (S := S) (HasImp.imp φ ψ) (HasImp.imp ψ φ)
-  have step1 := ModusPonens.mp pair_inst h1
-  exact ModusPonens.mp step1 h2
 
 /-- Contrapose iff: from `⊢ φ ↔ ψ`, derive `⊢ ¬φ ↔ ¬ψ`.
     Uses lce_imp/rce_imp to extract directions. -/
@@ -204,27 +236,6 @@ theorem contrapose_iff {φ ψ : F}
   have na_nb := contraposition ba
   -- Combine into biconditional
   exact iff_intro na_nb nb_na
-
-/-- Iff neg intro: from `⊢ ¬φ → ¬ψ` and `⊢ ¬ψ → ¬φ`,
-    derive `⊢ ¬φ ↔ ¬ψ`. -/
-theorem iff_neg_intro {φ ψ : F}
-    (h1 : InferenceSystem.DerivableIn S
-      (HasImp.imp (HasImp.imp φ HasBot.bot)
-        (HasImp.imp ψ HasBot.bot)))
-    (h2 : InferenceSystem.DerivableIn S
-      (HasImp.imp (HasImp.imp ψ HasBot.bot)
-        (HasImp.imp φ HasBot.bot))) :
-    InferenceSystem.DerivableIn S
-      (HasImp.imp
-        (HasImp.imp
-          (HasImp.imp (HasImp.imp φ HasBot.bot)
-            (HasImp.imp ψ HasBot.bot))
-          (HasImp.imp
-            (HasImp.imp (HasImp.imp ψ HasBot.bot)
-              (HasImp.imp φ HasBot.bot))
-            HasBot.bot))
-        HasBot.bot) :=
-  iff_intro h1 h2
 
 /-- De Morgan 1 forward: `⊢ ¬(φ ∧ ψ) → (¬φ ∨ ¬ψ)`.
     i.e., `¬¬(φ → ¬ψ) → (¬¬φ → ¬ψ)`.
@@ -349,14 +360,6 @@ theorem demorgan_conj_neg_backward {φ ψ : F} :
   have rce := @rce_imp F _ _ S _ _ (φ := φ) (ψ := ψ)
   -- Now: from ((φ∧ψ)→¬ψ) and ((φ∧ψ)→ψ), get ((φ∧ψ)→⊥)
   -- i.e., ¬(φ∧ψ)
-  -- app1: ψ → (ψ→⊥) → ⊥  [app1]
-  -- b: ((ψ→⊥)→⊥) → ((φ∧ψ)→(ψ→⊥)) → ((φ∧ψ)→⊥)
-  -- Hmm, the composition is complex. Let me use combine_imp_conj
-  -- pattern:
-  -- ImplyS: ((φ∧ψ)→(¬ψ)) → (((φ∧ψ)→ψ)→((φ∧ψ)→⊥))
-  -- Wait: ¬ψ = ψ→⊥, so we need:
-  -- ((φ∧ψ)→(ψ→⊥)) → (((φ∧ψ)→ψ) → ((φ∧ψ)→⊥))
-  -- This is exactly ImplyS!
   have s1 := HasAxiomImplyS.implyS (S := S)
     (φ := HasImp.imp
       (HasImp.imp φ (HasImp.imp ψ HasBot.bot))
@@ -531,6 +534,6 @@ theorem demorgan_disj_neg {φ ψ : F} :
   iff_intro demorgan_disj_neg_forward
     demorgan_disj_neg_backward
 
-end Connectives
+end Classical
 
 end Cslib.Logic.Theorems.Propositional.Connectives

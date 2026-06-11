@@ -12,7 +12,7 @@ public import Cslib.Foundations.Logic.ProofSystem
 /-! # Instance Registration for Propositional.HilbertCl
 
 This module registers `InferenceSystem`, `ModusPonens`, all `HasAxiom*`,
-and `PropositionalHilbert` instances for the `Propositional.HilbertCl` tag type,
+and `ClassicalHilbert` instances for the `Propositional.HilbertCl` tag type,
 connecting the abstract typeclass hierarchy to the concrete derivation tree.
 
 ## Architecture
@@ -31,7 +31,6 @@ equal to the concrete formulas used in `PropositionalAxiom`.
 -/
 
 @[expose] public section
-
 
 open Cslib.Logic
 
@@ -79,10 +78,10 @@ instance :
       (F := PL.Proposition Atom) where
   peirce := ⟨PL.DerivationTree.ax [] _ (.peirce _ _)⟩
 
-/-! ## PropositionalHilbert Instance -/
+/-! ## ClassicalHilbert Instance -/
 
 instance :
-    PropositionalHilbert Propositional.HilbertCl
+    ClassicalHilbert Propositional.HilbertCl
       (F := PL.Proposition Atom) where
 
 end PropositionalInstances
