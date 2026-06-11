@@ -308,6 +308,7 @@ public import Cslib.Logics.Propositional.NaturalDeduction.HilbertDerivedRules
 public import Cslib.Logics.Propositional.ProofSystem.Axioms
 public import Cslib.Logics.Propositional.ProofSystem.Derivation
 public import Cslib.Logics.Propositional.ProofSystem.Instances
+public import Cslib.Logics.Propositional.ProofSystem.IntMinInstances
 public import Cslib.Logics.Temporal.FromPropositional
 public import Cslib.Logics.Temporal.Metalogic
 public import Cslib.Logics.Temporal.Metalogic.Chronicle.CanonicalChain
