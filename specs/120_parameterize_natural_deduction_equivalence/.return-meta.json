@@ -1,0 +1,17 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "path": "specs/120_parameterize_natural_deduction_equivalence/reports/01_nd-parameterization.md",
+      "type": "research_report",
+      "summary": "Research on parameterizing ND-Hilbert equivalence over axiom subsystems"
+    }
+  ],
+  "summary": "Comprehensive analysis of parameterizing FromHilbert.lean, HilbertDerivedRules.lean, and Equivalence.lean over generic axiom predicates with explicit K/S/EFQ parameters, following the established deductionTheorem pattern. HilbertDerivedRules splits into intuitionistic (negI, negE, topI, andI, orI1, orI2, iffI) and classical (dne, andE1, andE2, orE, iffE1, iffE2) layers. Generic equivalence covers both intuitionistic and classical as corollaries.",
+  "metadata": {
+    "session_id": "sess_1781188006_dc2c9d",
+    "agent_type": "lean-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+  }
+}

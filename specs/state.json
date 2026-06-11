@@ -1,5 +1,5 @@
 {
-  "next_project_number": 120,
+  "next_project_number": 121,
   "active_projects": [
     {
       "project_number": 119,
@@ -99,7 +99,7 @@
     {
       "project_number": 116,
       "project_name": "intuitionistic_propositional_soundness_completeness",
-      "status": "not_started",
+      "status": "planning",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Prove soundness and completeness of HilbertInt with respect to intuitionistic Kripke semantics. Create Metalogic/IntSoundness.lean with int_axiom_sound (3 cases: K, S, EFQ) and int_soundness by induction on DerivationTree. Create Metalogic/IntLindenbaum.lean with prime theory definition (deductively closed, consistent, disjunction property expressed via imp/bot primitives), int_lindenbaum (every consistent set extends to a prime deductively-closed theory, adapting Zorn pattern from Consistency.lean). Create Metalogic/IntCompleteness.lean with canonical Kripke model (worlds = prime theories, accessibility = set inclusion, valuation = atom membership), int_truth_lemma (imp case uses universal quantification over accessible worlds and deduction theorem), int_completeness. Literature: CZ Section 2.6 Theorem 2.43 (specs/literature/modal_logic.md lines 2353-2412) for completeness of Int. CZ Section 5.1 (lines 5832-5910) for Lindenbaum pattern. Parent task: 112 (Phase 4). Depends on: tasks 113, 115. Task type: lean4.",
@@ -114,7 +114,7 @@
     {
       "project_number": 115,
       "project_name": "propositional_kripke_semantics",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Define propositional Kripke semantics with a parameterized forcing function reusing Modal.Model with partial-order and persistence constraints as hypotheses. Create Semantics/Kripke.lean with IForces parameterized by bot_forces : World -> Prop (intuitionistic instantiates with fun _ => False, minimal with upward-closed valuation). Prove iforces_persistence by structural induction on formulas. Define IValid (validity over all intuitionistic frames) and MValid (validity over all minimal frames). Literature: CZ Section 2.2 (specs/literature/modal_logic.md lines 1564-1642) for intuitionistic Kripke frames, valuations, forcing. CZ Proposition 2.1 (lines 1627-1630) for persistence. Parent task: 112 (Phase 3). Depends on: task 113. Task type: lean4.",
@@ -123,29 +123,32 @@
       "last_updated": "2026-06-11T06:35:59Z",
       "dependencies": [
         113
-      ]
+      ],
+      "completion_summary": "Created Semantics/Kripke.lean with KripkeModel structure, IForces forcing relation parameterized by bot_forces, iforces_persistence (CZ Prop 2.1), IValid and MValid validity predicates, and mvalid_implies_ivalid."
     },
     {
       "project_number": 114,
       "project_name": "classical_propositional_soundness_completeness",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Define bivalent truth-value semantics and prove soundness and completeness for classical propositional logic (HilbertCl). Create Semantics/Basic.lean with Valuation (Atom -> Prop), Evaluate, and Tautology. Create Metalogic/Soundness.lean with prop_axiom_sound (4 cases: K, S, EFQ, Peirce) and prop_soundness by induction on DerivationTree. Create Metalogic/Completeness.lean with canonicalValuation from MCS, prop_truth_lemma, and prop_completeness. Direct simplification of modal K completeness in KCompleteness.lean lines 168-323. Literature: CZ Chapter 5 Section 5.1 (specs/literature/modal_logic.md lines 5832-5910) for Henkin/canonical model construction. Parent task: 112 (Phase 2). Task type: lean4.",
       "parent_task": 112,
       "created": "2026-06-11T06:35:50Z",
-      "last_updated": "2026-06-11T06:35:50Z"
+      "last_updated": "2026-06-11T06:35:50Z",
+      "completion_summary": "Defined bivalent truth-value semantics (Valuation, Evaluate, Tautology) and proved soundness and completeness for classical propositional logic. Three new files: Semantics/Basic.lean, Metalogic/Soundness.lean, Metalogic/Completeness.lean."
     },
     {
       "project_number": 113,
       "project_name": "refactor_derivation_tree_axiom_types",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Refactor propositional DerivationTree to be parameterized over an axiom predicate (uniform with Modal/Temporal/Bimodal pattern). Change signature from DerivationTree Gamma phi to DerivationTree (Axioms : PL.Proposition Atom -> Prop) Gamma phi. Update all downstream files: Derivation.lean, DeductionTheorem.lean, MCS.lean, Instances.lean. Create IntPropAxiom (implyK, implyS, efq) and MinPropAxiom (implyK, implyS) inductive types in Axioms.lean. Register IntuitionisticHilbert HilbertInt and MinimalHilbert HilbertMin instances in new IntMinInstances.lean. Literature: CZ Chapter 1 axiom schemata. Parent task: 112 (Phase 1). Task type: lean4.",
       "parent_task": 112,
       "created": "2026-06-11T06:35:39Z",
-      "last_updated": "2026-06-11T06:35:39Z"
+      "last_updated": "2026-06-11T06:35:39Z",
+      "completion_summary": "Refactored propositional DerivationTree to be parameterized over axiom predicate. Created IntPropAxiom, MinPropAxiom with subsumption proofs. Registered HilbertInt and HilbertMin instances. All downstream files updated with backward compatibility."
     },
     {
       "project_number": 112,
@@ -660,6 +663,27 @@
       "subtasks": [
         42,
         43
+      ]
+    },
+    {
+      "project_number": 120,
+      "project_name": "parameterize_natural_deduction_equivalence",
+      "status": "researched",
+      "task_type": "lean4",
+      "description": "Refactor NaturalDeduction files to eliminate backward-compat aliases and parameterize the Hilbert-ND equivalence by logic subsystem. Split HilbertDerivedRules.lean into an intuitionistic layer (negI, negE, topI, andI, orI1, orI2, iffI) and a classical layer (dne, andE1, andE2, orE, iffE1, iffE2). Parameterize FromHilbert.lean and Equivalence.lean over any Axioms that include K, S, and EFQ, covering both intuitionistic and classical as special cases. The ND system (Theory.Derivation) has botE as a primitive constructor so it is inherently at least intuitionistic; minimal logic ND equivalence is out of scope. Research report: specs/113_refactor_derivation_tree_axiom_types/reports/02_natded-refactor-research.md. Files to modify: NaturalDeduction/FromHilbert.lean, NaturalDeduction/HilbertDerivedRules.lean, NaturalDeduction/Equivalence.lean. Files already generic (no changes needed): NaturalDeduction/Basic.lean, NaturalDeduction/DerivedRules.lean. Risk: LOW — NaturalDeduction files are leaf modules (nothing imports them).",
+      "dependencies": [
+        113
+      ],
+      "last_updated": "2026-06-11T14:33:40Z",
+      "session_id": "sess_1781188006_dc2c9d",
+      "researched": "2026-06-11T14:33:40Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/120_parameterize_natural_deduction_equivalence/reports/01_nd-parameterization.md",
+          "type": "research_report",
+          "summary": "Research on parameterizing ND-Hilbert equivalence over axiom subsystems"
+        }
       ]
     }
   ],

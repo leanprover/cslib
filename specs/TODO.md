@@ -1,5 +1,5 @@
 ---
-next_project_number: 120
+next_project_number: 121
 ---
 
 # TODO
@@ -11,11 +11,10 @@ next_project_number: 120
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,113,114 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
-| 2 | 39,40,62,115 | 36,37,61,113 | Temporal Logic, Submit PRs, Propositional Logic |
-| 3 | 41,63,116 | 38,39,40,62,113,115 | Submit PRs, Propositional Logic, Foundations |
-| 4 | 64,117 | 63,113,115,116 | Submit PRs, Propositional Logic |
-| 5 | 118 | 113,114,115,116,117 | Propositional Logic |
+| 1 | 36,37,38,60,61,116,120 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 2 | 39,40,62,117 | 36,37,61,116 | Temporal Logic, Submit PRs, Propositional Logic |
+| 3 | 41,63,118 | 38,39,40,62,116,117 | Submit PRs, Propositional Logic, Foundations |
+| 4 | 64 | 63 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -45,25 +44,30 @@ next_project_number: 120
 
 ### Propositional Logic
 
-113 [IMPLEMENTING] — Refactor propositional DerivationTree to be parameterized over an
-  └─ 115 [NOT STARTED] — Define propositional Kripke semantics with a parameterized forcin
-    └─ 116 [NOT STARTED] — Prove soundness and completeness of HilbertInt with respect to in
-      └─ 117 [NOT STARTED] — Prove soundness and completeness of HilbertMin with respect to mi
-        └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo
-      └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo (see above)
-    └─ 117 [NOT STARTED] — Prove soundness and completeness of HilbertMin with respect to mi (see above)
-    └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo (see above)
-  └─ 116 [NOT STARTED] — Prove soundness and completeness of HilbertInt with respect to in (see above)
-  └─ 117 [NOT STARTED] — Prove soundness and completeness of HilbertMin with respect to mi (see above)
-  └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo (see above)
-114 [IMPLEMENTING] — Define bivalent truth-value semantics and prove soundness and com
+116 [PLANNING] — Prove soundness and completeness of HilbertInt with respect to in
+  └─ 117 [NOT STARTED] — Prove soundness and completeness of HilbertMin with respect to mi
+    └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo
   └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo (see above)
 
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
+### Uncategorized
+
+120 [RESEARCHED] — Refactor NaturalDeduction files to eliminate backward-compat alia
+
 ## Tasks
+
+### 120. Parameterize natural deduction equivalence
+- **Status**: [RESEARCHED]
+- **Task Type**: lean4
+- **Dependencies**: Task 113
+- **Research_report**: [120_parameterize_natural_deduction_equivalence/reports/01_nd-parameterization.md]
+
+**Description**: Refactor NaturalDeduction files to eliminate backward-compat aliases and parameterize the Hilbert-ND equivalence by logic subsystem. Split HilbertDerivedRules.lean into an intuitionistic layer (negI, negE, topI, andI, orI1, orI2, iffI) and a classical layer (dne, andE1, andE2, orE, iffE1, iffE2). Parameterize FromHilbert.lean and Equivalence.lean over any Axioms that include K, S, and EFQ, covering both intuitionistic and classical as special cases. The ND system (Theory.Derivation) has botE as a primitive constructor so it is inherently at least intuitionistic; minimal logic ND equivalence is out of scope. Research report: specs/113_refactor_derivation_tree_axiom_types/reports/02_natded-refactor-research.md. Files to modify: NaturalDeduction/FromHilbert.lean, NaturalDeduction/HilbertDerivedRules.lean, NaturalDeduction/Equivalence.lean. Files already generic (no changes needed): NaturalDeduction/Basic.lean, NaturalDeduction/DerivedRules.lean. Risk: LOW — NaturalDeduction files are leaf modules (nothing imports them).
+
+---
 
 ### 119. Modal code quality audit
 - **Status**: [COMPLETED]
@@ -99,7 +103,7 @@ next_project_number: 120
 ---
 
 ### 116. Intuitionistic propositional soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNING]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: Task 113, Task 115
@@ -109,7 +113,7 @@ next_project_number: 120
 ---
 
 ### 115. Propositional kripke semantics
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: Task 113
@@ -119,7 +123,7 @@ next_project_number: 120
 ---
 
 ### 114. Classical propositional soundness completeness
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None
@@ -129,7 +133,7 @@ next_project_number: 120
 ---
 
 ### 113. Refactor derivation tree axiom types
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None
