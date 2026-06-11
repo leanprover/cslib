@@ -1479,6 +1479,235 @@
       "topic": "Clean Up",
       "completion_summary": "Created HasHilbertTree typeclass with 4 generic deduction helpers in Foundations/Logic/Metalogic/DeductionHelpers.lean; refactored all 4 logic domains to use shared helpers; 16 duplicated definitions reduced to 4; net 52 lines removed; full lake build passes",
       "archived": "2026-06-10T22:35:39Z"
+    },
+    {
+      "project_number": 88,
+      "project_name": "refactor_propositional_hilbert_intuitionistic_base",
+      "status": "completed",
+      "task_type": "formal",
+      "created": "2026-06-10T23:15:41Z",
+      "last_updated": "2026-06-10T23:49:05Z",
+      "session_id": "sess_1781134142_0ad10e",
+      "researched": "2026-06-10T23:26:32Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/088_refactor_propositional_hilbert_intuitionistic_base/plans/01_intuitionistic-base-plan.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for three-level Hilbert typeclass hierarchy (MinimalHilbert -> IntuitionisticHilbert -> ClassicalHilbert)"
+        },
+        {
+          "path": "specs/088_refactor_propositional_hilbert_intuitionistic_base/summaries/01_intuitionistic-base-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary with full file list, hierarchy diagram, deviation notes, and verification results"
+        }
+      ],
+      "completion_summary": "Refactored propositional Hilbert system from single PropositionalHilbert class to three-level hierarchy: MinimalHilbert (K, S, MP) -> IntuitionisticHilbert (+ EFQ) -> ClassicalHilbert (+ Peirce). Stratified 19 theorems across Core.lean and Connectives.lean. Updated 9 files with zero regressions.",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 86,
+      "project_name": "pr1_lint_quality_audit",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-10T21:39:57Z",
+      "last_updated": "2026-06-10T22:59:00Z",
+      "completion_summary": "Completed lint audit: fixed 13 issues (1 double blank line, 2 unused simp_wf, 9 flexible simp, 1 unused import); remaining shake recommendations all produce build failures when applied; all 4 active upstream CI checks pass",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 87,
+      "project_name": "derive_nd_from_hilbert",
+      "status": "completed",
+      "task_type": "lean4",
+      "created": "2026-06-10T22:01:46Z",
+      "last_updated": "2026-06-10T23:20:00Z",
+      "completion_summary": "Proved extensional equivalence between Hilbert and ND proof systems via hilbert_iff_nd theorem in new file Equivalence.lean (168 lines, zero sorries)",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 89,
+      "project_name": "derived_connective_rules",
+      "status": "completed",
+      "task_type": "lean4",
+      "description": "Add derived intro/elim rules for defined propositional connectives (∧ₚ, ∨ₚ, ¬ₚ, ↔ₚ, ⊤ₚ) in both the standalone ND system (NaturalDeduction/Basic.lean) and the Hilbert system (FromHilbert.lean wrappers). Connectives are already defined as abbrevs reducing to →/⊥ in Defs.lean (Łukasiewicz encodings). Follow the existing pattern: abbrev + notation + standalone theorems with definitional unfolding. For each connective, provide standard intro/elim rules at both the type level (DerivationTree / Theory.Derivation) and the Prop level (Deriv / DerivableIn). Rules needed: andI, andE₁, andE₂, orI₁, orI₂, orE, negI, negE, dne (double negation elimination), iffI, iffE₁, iffE₂, topI. Both systems should end up equally versatile. Reference temporal defined operators in Temporal/ for the uniform approach.",
+      "created": "2026-06-10T23:30:00Z",
+      "last_updated": "2026-06-11T00:15:00Z",
+      "completion_summary": "Implemented 13 derived intro/elim rules for Lukasiewicz-encoded connectives (and, or, neg, iff, top, dne) in both ND (DerivedRules.lean, 26 defs) and Hilbert (HilbertDerivedRules.lean, 26 defs). Zero sorries, full lake build passes.",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 92,
+      "project_name": "modal_infrastructure_parameterize_derivation_tree",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "large",
+      "description": "Phase 1 of modal cube expansion: Parameterize DerivationTree over an axiom predicate so it works for any normal modal logic. Define per-system axiom inductive types (AxiomK, AxiomT, AxiomD, AxiomS4) alongside existing ModalAxiom. Parameterize DerivationTree, height function, Deriv, Derivable, and modalDerivationSystem over Axioms : Proposition Atom -> Prop. Create type alias so ModalAxiom becomes the S5 axiom set for backward compatibility. Generalize DeductionTheorem.lean (mechanical, DT never inspects axiom payload). Generalize MCS.lean: parameterize modal-specific properties, keep S5-specific lemmas under explicit axiom assumptions. Add ModalTHilbert, ModalDHilbert, ModalS4Hilbert bundled classes and Modal.HilbertT, Modal.HilbertD, Modal.HilbertS4 tag types to ProofSystem.lean. Refactor ModalS5Hilbert to extend ModalS4Hilbert with HasAxiomB. Verify full project builds with zero regressions.\n\nFiles to modify: Metalogic/DerivationTree.lean, Metalogic/DeductionTheorem.lean, Metalogic/MCS.lean, Foundations/Logic/ProofSystem.lean, Bimodal/ProofSystem/Instances.lean (if needed).\n\nEstimated: ~5 hours, highest-risk phase. Fallback: if parameterization proves infeasible, create separate DerivationTree types per system.",
+      "dependencies": [],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T01:40:53Z",
+      "session_id": "sess_1781140623_7b07f0",
+      "completion_summary": "Parameterized DerivationTree and all 6 modal metalogic files over an axiom predicate with backward-compatible S5 aliases, zero regressions across 2915 build jobs",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 93,
+      "project_name": "modal_s5_preservation_instances",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "medium",
+      "description": "Phase 2 of modal cube expansion: Create Modal/ProofSystem/Instances.lean registering typeclass instances for all modal systems (K, T, D, S4, S5), following the Temporal pattern. Register InferenceSystem, ModusPonens, Necessitation instances for each tag type. Register propositional axiom instances (HasAxiomImplyK, HasAxiomImplyS, HasAxiomEFQ, HasAxiomPeirce) and modal axiom instances (HasAxiomK, HasAxiomT, HasAxiom4, HasAxiomB, HasAxiomD as appropriate). Register bundled class instances (ModalHilbert for K, ModalTHilbert for T, ModalDHilbert for D, ModalS4Hilbert for S4, ModalS5Hilbert for S5). Verify Soundness.lean and Completeness.lean still compile with S5 parameterization. Update Metalogic.lean aggregator to import Instances.lean.\n\nFiles: NEW Cslib/Logics/Modal/ProofSystem/Instances.lean (~400 lines), Modal/Metalogic.lean, possibly Soundness.lean and Completeness.lean adaptations.\n\nEstimated: ~3 hours.",
+      "dependencies": [
+        92
+      ],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T01:57:22Z",
+      "session_id": "sess_1781142604_9fbb24",
+      "completion_summary": "Created Modal/ProofSystem/Instances.lean (502 lines) with 4 axiom inductive types and ~40 typeclass instances for K/T/D/S4/S5, zero regressions across 2916 build jobs",
+      "artifacts": [
+        {
+          "path": "specs/093_modal_s5_preservation_instances/summaries/01_modal-system-instances-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
+        }
+      ],
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 94,
+      "project_name": "modal_integrate_hilbert_derived_rules",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "small",
+      "description": "Phase 3 of modal cube expansion: Add the untracked HilbertDerivedRules.lean (447 lines, already sorry-free) to the build by importing it into the module graph. Determine appropriate import point (NaturalDeduction aggregator or Equivalence.lean). Add public import to chosen aggregator. Verify the file compiles in CI context and lake build passes.\n\nFiles: Cslib/Logics/Propositional/NaturalDeduction.lean or equivalent aggregator (add import). HilbertDerivedRules.lean itself needs no changes.\n\nEstimated: ~30 minutes.",
+      "dependencies": [
+        92
+      ],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T01:44:42Z",
+      "session_id": "sess_1781140623_7b07f0",
+      "completion_summary": "Added 3 orphaned NaturalDeduction files (DerivedRules, Equivalence, HilbertDerivedRules) to Cslib.lean module graph, zero regressions",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 95,
+      "project_name": "modal_k_t_soundness_completeness",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "large",
+      "description": "Phase 4 of modal cube expansion: Establish soundness and completeness for modal logics K and T with sorry-free proofs.\n\n**RESEARCH REQUIREMENT — Literature First**: The canonical model completeness proofs for K and T are entirely standard. The research phase MUST:\n1. Search for and download a PDF source containing the full canonical model completeness proofs for K and T (e.g., Blackburn/de Rijke/Venema \"Modal Logic\" Ch. 4, Chellas \"Modal Logic: An Introduction\" Ch. 5-6, Hughes & Cresswell \"A New Introduction to Modal Logic\", or high-quality lecture notes covering Henkin-style completeness for normal modal logics).\n2. Convert the relevant PDF pages to markdown reference files stored in the task directory (specs/095_.../references/).\n3. The research report must include verbatim theorem statements, proof structure, and key lemma dependencies extracted from the source material — not reinvented from scratch.\n\n**Planning and implementation** must draw directly on the converted reference files to ensure proofs follow the standard textbook structure rather than ad-hoc reconstruction.\n\n**Proof targets**:\n- K soundness: propositional + K distribution axioms valid on all frames (~80 lines)\n- K completeness: canonical model with no frame property requirements, box witness via K-specific argument (~250 lines)\n- T soundness: reflexive frames (~60 lines)\n- T completeness: canonical model is reflexive from axiom T / mcs_box_closure (~200 lines)\n\nNew files: Metalogic/Soundness/K.lean, Metalogic/Completeness/K.lean, Metalogic/Soundness/T.lean, Metalogic/Completeness/T.lean.\n\nEstimated: ~5 hours. Parallelizable with phases 5 and 6.",
+      "dependencies": [
+        93
+      ],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T03:27:00Z",
+      "session_id": "sess_1781140623_7b07f0",
+      "completion_summary": "K and T soundness and completeness sorry-free (Blackburn Thms 4.23, 4.28.1): 13 theorems across 4 files including K-specific box witness (k_derive_box_from_inconsistency), k_completeness, t_completeness",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 96,
+      "project_name": "modal_d_soundness_completeness",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "medium",
+      "description": "Phase 5 of modal cube expansion: Establish soundness and completeness for modal logic D (serial frames) with sorry-free proofs.\n\n**RESEARCH REQUIREMENT — Literature First**: The canonical model completeness proof for D is entirely standard. The research phase MUST:\n1. Search for and download a PDF source containing the full canonical model completeness proof for D / serial frames (e.g., Blackburn/de Rijke/Venema \"Modal Logic\" Ch. 4, Chellas \"Modal Logic: An Introduction\", or high-quality lecture notes on completeness for normal modal logics including the seriality condition).\n2. Convert the relevant PDF pages to markdown reference files stored in the task directory (specs/096_.../references/).\n3. The research report must include verbatim theorem statements, proof structure (especially the seriality argument for the canonical model), and key lemma dependencies extracted from the source material.\n\n**Planning and implementation** must draw directly on the converted reference files.\n\n**Proof targets**:\n- D soundness: using Relation.Serial (~60 lines)\n- D completeness: canonical model is serial. Seriality proof: inconsistency of {psi | box psi in S} implies box(bot) in S, then D gives diamond(bot), combined with box(top) in S yields bot in S, contradiction. Box witness uses K-style argument (~250 lines)\n\nNew files: Metalogic/Soundness/D.lean, Metalogic/Completeness/D.lean.\n\nEstimated: ~3 hours. Parallelizable with phases 4 and 6.",
+      "dependencies": [
+        93
+      ],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T03:26:34Z",
+      "session_id": "sess_1781140623_7b07f0",
+      "artifacts": [
+        {
+          "path": "specs/096_modal_d_soundness_completeness/reports/01_d-soundness-completeness.md",
+          "type": "report",
+          "summary": "Codebase analysis and proof structure for D soundness/completeness"
+        },
+        {
+          "path": "specs/096_modal_d_soundness_completeness/plans/02_d-soundness-completeness.md",
+          "type": "plan",
+          "summary": "Revised 4-phase plan with Blackburn Theorem 4.28 cross-references"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 4,
+        "total_effort_hours": 3,
+        "complexity": "medium",
+        "research_integrated": true,
+        "plan_version": 2,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_d-soundness-completeness.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-10"
+          }
+        ]
+      },
+      "completion_summary": "D soundness and completeness sorry-free (Blackburn Thm 4.28.3): d_axiom_sound (6 cases), canonical_serial, derive_box_from_inconsistency_d, mcs_box_witness_d, truth_lemma_d, d_completeness",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 97,
+      "project_name": "modal_s4_soundness_completeness",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "medium",
+      "description": "Phase 6 of modal cube expansion: Establish soundness and completeness for modal logic S4 (reflexive + transitive frames) with sorry-free proofs.\n\n**RESEARCH REQUIREMENT — Literature First**: The canonical model completeness proof for S4 is entirely standard. The research phase MUST:\n1. Search for and download a PDF source containing the full canonical model completeness proof for S4 (e.g., Blackburn/de Rijke/Venema \"Modal Logic\" Ch. 4, Chellas \"Modal Logic: An Introduction\", or high-quality lecture notes covering completeness for S4 via canonical models with reflexive + transitive frame conditions).\n2. Convert the relevant PDF pages to markdown reference files stored in the task directory (specs/097_.../references/).\n3. The research report must include verbatim theorem statements, proof structure (especially the transitivity argument from axiom 4), and key lemma dependencies extracted from the source material.\n\n**Planning and implementation** must draw directly on the converted reference files.\n\n**Proof targets**:\n- S4 soundness: combining T soundness (reflexivity) and 4 soundness (transitivity, ~70 lines)\n- S4 completeness: canonical model is reflexive (from axiom T) AND transitive (from axiom 4). Reuse canonical_refl from T, canonical_trans from S5. Box witness identical to T case (~220 lines)\n\nNew files: Metalogic/Soundness/S4.lean, Metalogic/Completeness/S4.lean.\n\nEstimated: ~3 hours. Parallelizable with phases 4 and 5.",
+      "dependencies": [
+        93
+      ],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T03:24:43Z",
+      "session_id": "sess_1781140623_7b07f0",
+      "artifacts": [
+        {
+          "path": "specs/097_modal_s4_soundness_completeness/plans/02_s4-soundness-completeness.md",
+          "type": "plan",
+          "summary": "Revised 3-phase plan with Blackburn Ch.4 theorem references (v2)"
+        }
+      ],
+      "completion_summary": "S4 soundness and completeness sorry-free (Blackburn Thm 4.29): s4_axiom_sound (7 cases), s4_soundness, s4_soundness_derivable, s4_completeness via canonical_refl + canonical_trans",
+      "archived": "2026-06-11T04:26:26Z"
+    },
+    {
+      "project_number": 98,
+      "project_name": "modal_cube_final_integration",
+      "status": "completed",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "effort": "small",
+      "description": "Phase 7 of modal cube expansion: Final integration and verification. Create or update Modal/ProofSystem.lean aggregator to import Instances.lean. Update Modal/Metalogic.lean aggregator to import per-system soundness/completeness files. Verify original S5 Soundness.lean and Completeness.lean compile alongside new per-system files. Verify Bimodal/ProofSystem/Instances.lean still compiles. Verify Foundations/Logic/Theorems/Modal/S5.lean works with refactored ModalS5Hilbert. Update Metalogic.lean module docstring to reflect multi-system support. Full lake build with zero errors.\n\nFiles to modify: Modal/Metalogic.lean, Modal/ProofSystem.lean, various documentation strings.\n\nEstimated: ~1.5 hours.",
+      "dependencies": [
+        95,
+        96,
+        97
+      ],
+      "created": "2026-06-10T18:30:00Z",
+      "last_updated": "2026-06-11T03:28:36Z",
+      "session_id": "sess_1781140623_7b07f0",
+      "completion_summary": "Final integration: added D and S4 imports to Metalogic.lean and Cslib.lean aggregators. Full lake build passes (2924 jobs), zero sorry across all 8 new files. Modal cube K/T/D/S4/S5 complete.",
+      "archived": "2026-06-11T04:26:26Z"
     }
   ],
   "archived_projects": [
