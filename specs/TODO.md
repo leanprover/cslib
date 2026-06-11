@@ -48,7 +48,7 @@ next_project_number: 122
 ## Tasks
 
 ### 121. Review propositional metalogic cherry pick
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None

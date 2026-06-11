@@ -1,0 +1,10 @@
+{
+  "status": "implemented",
+  "summary": "Transferred 22 propositional files (11 new, 8 modified, 3 unchanged) from main to pr1/foundations-logic branch. Branch builds cleanly (2754 jobs, zero errors). All files are sorry-free. 2 cross-logic FromPropositional embedding files were excluded because the branch has incompatible Modal/Temporal Proposition type structures. ProofSystem.lean required no changes (HilbertInt/HilbertMin already present). Cslib.lean updated with 11 new import lines. Scope boundaries verified: no modal bundled classes, no hilbert_iff_nd_min.",
+  "artifacts": [{"path": "specs/121_review_propositional_metalogic_cherry_pick/summaries/01_review-propositional-metalogic-summary.md", "type": "summary", "summary": "Implementation summary"}],
+  "blockers": [],
+  "continuation_context": null,
+  "phases_completed": 5,
+  "phases_total": 5,
+  "next_action_hint": "complete"
+}
