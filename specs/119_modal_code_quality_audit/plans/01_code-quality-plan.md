@@ -153,17 +153,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Extract neg_consistent_of_not_derivable (H1 Deduplication) [NOT STARTED]
+### Phase 3: Extract neg_consistent_of_not_derivable (H1 Deduplication) [COMPLETED]
 
 **Goal**: Extract the duplicated ~30-line `h_cons` block into a shared lemma `neg_consistent_of_not_derivable` in Completeness.lean, then replace all 10 copy-pasted instances with a single call. This is the highest-impact deduplication, eliminating 300-600 lines.
 
 **Tasks**:
-- [ ] Study the h_cons block in KCompleteness.lean to identify exact proof text and hypotheses needed
-- [ ] Compare h_cons blocks across BCompleteness, K4Completeness, K5Completeness, K45Completeness, TBCompleteness, D4Completeness, D5Completeness, D45Completeness, DBCompleteness to confirm they are identical (modulo naming)
-- [ ] Create `neg_consistent_of_not_derivable` theorem in Completeness.lean, parameterized over axiom predicate with hypotheses for implyK, implyS, efq, peirce (modal K should already be available via the axiom predicate)
-- [ ] Replace h_cons block in KCompleteness.lean with call to `neg_consistent_of_not_derivable`; verify builds
-- [ ] Replace h_cons block in all 9 remaining completeness files (BCompleteness, K4Completeness, K5Completeness, K45Completeness, TBCompleteness, D4Completeness, D5Completeness, D45Completeness, DBCompleteness)
-- [ ] Run `lake build Cslib.Logics.Modal.Metalogic` to verify all completeness theorems pass
+- [x] Study the h_cons block in KCompleteness.lean to identify exact proof text and hypotheses needed
+- [x] Compare h_cons blocks across BCompleteness, K4Completeness, K5Completeness, K45Completeness, TBCompleteness, D4Completeness, D5Completeness, D45Completeness, DBCompleteness to confirm they are identical (modulo naming)
+- [x] Create `neg_consistent_of_not_derivable` theorem in Completeness.lean, parameterized over axiom predicate with hypotheses for implyK, implyS, efq, peirce (modal K should already be available via the axiom predicate)
+- [x] Replace h_cons block in KCompleteness.lean with call to `neg_consistent_of_not_derivable`; verify builds
+- [x] Replace h_cons block in all 9 remaining completeness files (BCompleteness, K4Completeness, K5Completeness, K45Completeness, TBCompleteness, D4Completeness, D5Completeness, D45Completeness, DBCompleteness) *(deviation: altered -- also replaced h_cons in S5 Completeness.lean, TCompleteness, DCompleteness, S4Completeness, KB5Completeness -- 15 files total)*
+- [x] Run `lake build Cslib.Logics.Modal.Metalogic` to verify all completeness theorems pass
 
 **Timing**: 2 hours
 

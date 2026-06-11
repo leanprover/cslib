@@ -74,40 +74,12 @@ theorem k45_completeness (φ : Proposition Atom)
   -- Step 1: Contrapositive setup
   by_contra h_not_deriv
   -- Step 2: Show {neg(phi)} is K45-consistent (prerequisite for Lindenbaum, Lemma 4.17)
-  have h_cons : SetConsistent (@K45Axiom Atom)
-      ({Proposition.neg φ} : Set (Proposition Atom)) := by
-    intro L hL
-    unfold Metalogic.Consistent
-    intro ⟨d⟩
-    have d_weak : DerivationTree (@K45Axiom Atom) [Proposition.neg φ]
-        Proposition.bot :=
-      .weakening L [Proposition.neg φ] .bot d (fun x hx => by
-        have := hL x hx; simp only [Set.mem_singleton_iff] at this
-        exact List.mem_cons.mpr (Or.inl this))
-    have d_dne := deductionTheorem
-      (fun φ ψ => .implyK φ ψ)
-      (fun φ ψ χ => .implyS φ ψ χ)
-      [] (Proposition.neg φ) .bot d_weak
-    let neg_phi := Proposition.neg φ
-    have efq_ax : DerivationTree (@K45Axiom Atom) (Atom := Atom) []
-        (Proposition.bot.imp φ) :=
-      .ax [] _ (.efq φ)
-    have ik : DerivationTree (@K45Axiom Atom) (Atom := Atom) []
-        ((Proposition.bot.imp φ).imp
-          (neg_phi.imp (Proposition.bot.imp φ))) :=
-      .ax [] _ (.implyK (Proposition.bot.imp φ) neg_phi)
-    have step_k := DerivationTree.modus_ponens [] _ _ ik efq_ax
-    have is_ax : DerivationTree (@K45Axiom Atom) (Atom := Atom) []
-        ((neg_phi.imp (Proposition.bot.imp φ)).imp
-         ((neg_phi.imp Proposition.bot).imp (neg_phi.imp φ))) :=
-      .ax [] _ (.implyS neg_phi Proposition.bot φ)
-    have step_s := DerivationTree.modus_ponens [] _ _ is_ax step_k
-    have step3 := DerivationTree.modus_ponens [] _ _ step_s d_dne
-    have peirce_ax : DerivationTree (@K45Axiom Atom) (Atom := Atom) []
-        (((φ.imp Proposition.bot).imp φ).imp φ) :=
-      .ax [] _ (.peirce φ Proposition.bot)
-    have d_phi := DerivationTree.modus_ponens [] _ _ peirce_ax step3
-    exact h_not_deriv ⟨d_phi⟩
+  have h_cons := neg_consistent_of_not_derivable
+    (fun φ ψ => .implyK φ ψ)
+    (fun φ ψ χ => .implyS φ ψ χ)
+    (fun φ => .efq φ)
+    (fun φ ψ => .peirce φ ψ)
+    h_not_deriv
   -- Step 3: Lindenbaum extension (Lemma 4.17)
   obtain ⟨M, hM_sup, hM_mcs⟩ := modal_lindenbaum h_cons
   -- Step 4: Canonical world

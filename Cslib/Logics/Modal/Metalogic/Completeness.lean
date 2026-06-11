@@ -401,6 +401,57 @@ theorem truth_lemma
       exact (truth_lemma h_implyK h_implyS h_efq h_peirce h_K h_T T φ).mpr
         (hST φ h_box)
 
+/-! ## Consistency of Negation -/
+
+/-- If `phi` is not derivable from `Axioms`, then `{neg phi}` is consistent
+with respect to the `Axioms` derivation system. This is the standard
+Peirce-based double-negation elimination argument factored out from all
+completeness theorems.
+
+The proof constructs a derivation `[] |- phi` from any hypothetical
+derivation `L |- bot` where `L` is drawn from `{neg phi}`, contradicting
+the assumption that `phi` is not derivable. -/
+theorem neg_consistent_of_not_derivable
+    {Axioms : Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    (h_efq : ∀ (φ : Proposition Atom), Axioms (Proposition.bot.imp φ))
+    (h_peirce : ∀ (φ ψ : Proposition Atom),
+      Axioms (((φ.imp ψ).imp φ).imp φ))
+    {φ : Proposition Atom} (h_not_deriv : ¬Derivable Axioms φ) :
+    SetConsistent Axioms ({Proposition.neg φ} : Set (Proposition Atom)) := by
+  intro L hL
+  unfold Metalogic.Consistent
+  intro ⟨d⟩
+  have d_weak : DerivationTree Axioms [Proposition.neg φ]
+      Proposition.bot :=
+    .weakening L [Proposition.neg φ] .bot d (fun x hx => by
+      have := hL x hx; simp only [Set.mem_singleton_iff] at this
+      exact List.mem_cons.mpr (Or.inl this))
+  have d_dne := deductionTheorem h_implyK h_implyS
+    [] (Proposition.neg φ) .bot d_weak
+  let neg_phi := Proposition.neg φ
+  have efq_ax : DerivationTree Axioms (Atom := Atom) []
+      (Proposition.bot.imp φ) :=
+    .ax [] _ (h_efq φ)
+  have ik : DerivationTree Axioms (Atom := Atom) []
+      ((Proposition.bot.imp φ).imp
+        (neg_phi.imp (Proposition.bot.imp φ))) :=
+    .ax [] _ (h_implyK (Proposition.bot.imp φ) neg_phi)
+  have step_k := DerivationTree.modus_ponens [] _ _ ik efq_ax
+  have is_ax : DerivationTree Axioms (Atom := Atom) []
+      ((neg_phi.imp (Proposition.bot.imp φ)).imp
+       ((neg_phi.imp Proposition.bot).imp (neg_phi.imp φ))) :=
+    .ax [] _ (h_implyS neg_phi Proposition.bot φ)
+  have step_s := DerivationTree.modus_ponens [] _ _ is_ax step_k
+  have step3 := DerivationTree.modus_ponens [] _ _ step_s d_dne
+  have peirce_ax : DerivationTree Axioms (Atom := Atom) []
+      (((φ.imp Proposition.bot).imp φ).imp φ) :=
+    .ax [] _ (h_peirce φ Proposition.bot)
+  have d_phi := DerivationTree.modus_ponens [] _ _ peirce_ax step3
+  exact h_not_deriv ⟨d_phi⟩
+
 /-! ## Completeness Theorem -/
 
 /-- **Completeness Theorem for S5 Modal Logic**:
@@ -415,40 +466,12 @@ theorem completeness (φ : Proposition Atom)
       ∀ w, Satisfies m w φ) :
     Derivable (@ModalAxiom Atom) φ := by
   by_contra h_not_deriv
-  have h_cons : SetConsistent (@ModalAxiom Atom)
-      ({Proposition.neg φ} : Set (Proposition Atom)) := by
-    intro L hL
-    unfold Metalogic.Consistent
-    intro ⟨d⟩
-    have d_weak : DerivationTree (@ModalAxiom Atom) [Proposition.neg φ]
-        Proposition.bot :=
-      .weakening L [Proposition.neg φ] .bot d (fun x hx => by
-        have := hL x hx; simp only [Set.mem_singleton_iff] at this
-        exact List.mem_cons.mpr (Or.inl this))
-    have d_dne := deductionTheorem
-      (fun φ ψ => .implyK φ ψ)
-      (fun φ ψ χ => .implyS φ ψ χ)
-      [] (Proposition.neg φ) .bot d_weak
-    let neg_phi := Proposition.neg φ
-    have efq_ax : DerivationTree (@ModalAxiom Atom) (Atom := Atom) []
-        (Proposition.bot.imp φ) :=
-      .ax [] _ (.efq φ)
-    have ik : DerivationTree (@ModalAxiom Atom) (Atom := Atom) []
-        ((Proposition.bot.imp φ).imp
-          (neg_phi.imp (Proposition.bot.imp φ))) :=
-      .ax [] _ (.implyK (Proposition.bot.imp φ) neg_phi)
-    have step_k := DerivationTree.modus_ponens [] _ _ ik efq_ax
-    have is_ax : DerivationTree (@ModalAxiom Atom) (Atom := Atom) []
-        ((neg_phi.imp (Proposition.bot.imp φ)).imp
-         ((neg_phi.imp Proposition.bot).imp (neg_phi.imp φ))) :=
-      .ax [] _ (.implyS neg_phi Proposition.bot φ)
-    have step_s := DerivationTree.modus_ponens [] _ _ is_ax step_k
-    have step3 := DerivationTree.modus_ponens [] _ _ step_s d_dne
-    have peirce_ax : DerivationTree (@ModalAxiom Atom) (Atom := Atom) []
-        (((φ.imp Proposition.bot).imp φ).imp φ) :=
-      .ax [] _ (.peirce φ Proposition.bot)
-    have d_phi := DerivationTree.modus_ponens [] _ _ peirce_ax step3
-    exact h_not_deriv ⟨d_phi⟩
+  have h_cons := neg_consistent_of_not_derivable
+    (fun φ ψ => .implyK φ ψ)
+    (fun φ ψ χ => .implyS φ ψ χ)
+    (fun φ => .efq φ)
+    (fun φ ψ => .peirce φ ψ)
+    h_not_deriv
   obtain ⟨M, hM_sup, hM_mcs⟩ := modal_lindenbaum h_cons
   let w : CanonicalWorld (@ModalAxiom Atom) := ⟨M, hM_mcs⟩
   exact mcs_not_mem_of_neg
