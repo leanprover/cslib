@@ -22,11 +22,9 @@ rev = "8589236b8b8cc82492e3306df39c0fb308e0523c"
 
 [[lean_lib]]
 name = "Cslib"
-globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = ["CslibTests.+"]
 moreLeanArgs = ["-Dweak.linter.style.header=false"]
 
 [[lean_exe]]
