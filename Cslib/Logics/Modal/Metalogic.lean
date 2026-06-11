@@ -29,6 +29,8 @@ public import Cslib.Logics.Modal.Metalogic.K5Soundness
 public import Cslib.Logics.Modal.Metalogic.K5Completeness
 public import Cslib.Logics.Modal.Metalogic.D4Soundness
 public import Cslib.Logics.Modal.Metalogic.D4Completeness
+public import Cslib.Logics.Modal.Metalogic.KB5Soundness
+public import Cslib.Logics.Modal.Metalogic.KB5Completeness
 public import Cslib.Logics.Modal.ProofSystem.Instances
 
 /-! # Modal Metalogic Module
