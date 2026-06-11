@@ -22,6 +22,8 @@ public import Mathlib.Logic.Relation
 
 public meta section
 
+namespace Relation
+
 open Lean Elab Meta Command Term
 
 /--
@@ -81,5 +83,7 @@ initialize Lean.registerBuiltinAttribute {
           elabCommand (← `(scoped reduction_notation $(mkIdent decl)))
     | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
+
+end Relation
 
 end

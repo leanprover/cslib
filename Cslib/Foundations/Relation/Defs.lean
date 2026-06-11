@@ -24,6 +24,7 @@ public import Mathlib.Order.Basic
 
 namespace Relation
 
+@[nolint defsWithUnderscore]
 instance (r : α → α → Prop) (s : Set α) : CoeDep (α → α → Prop) r (s → s → Prop) where
   coe a b := r a b
 
