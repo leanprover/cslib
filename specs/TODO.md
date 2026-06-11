@@ -48,7 +48,7 @@ next_project_number: 123
 ## Tasks
 
 ### 122. Fix propositional ci checks
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None

@@ -1,0 +1,10 @@
+{
+  "status": "implemented",
+  "summary": "Fixed all 4 categories of propositional CI failures: renamed 8 snake_case defs to lowerCamelCase, removed redundant @[simp] from mem_hilbertAxiomTheory, fixed 9 import issues per lake shake, removed unused DecidableEq from FromHilbert.lean. All CI checks pass on both main and pr1/foundations-logic (lake build, lake lint, lake shake, lint-style, checkInitImports, mk_all). 16 files modified across both branches.",
+  "artifacts": [{"path": "specs/122_fix_propositional_ci_checks/summaries/01_fix-propositional-ci-summary.md", "type": "summary", "summary": "Implementation summary"}],
+  "blockers": [],
+  "continuation_context": null,
+  "phases_completed": 6,
+  "phases_total": 6,
+  "next_action_hint": "complete"
+}
