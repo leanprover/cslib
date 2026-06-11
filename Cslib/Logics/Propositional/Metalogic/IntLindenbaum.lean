@@ -16,7 +16,7 @@ This module defines DCCS for IntPropAxiom and proves the implication witness lem
 
 ## References
 
-* CZ Section 5.1, Theorem 2.43
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Section 5.1, Theorem 2.43
 -/
 
 @[expose] public section

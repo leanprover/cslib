@@ -20,7 +20,7 @@ This module defines bivalent truth-value semantics for classical propositional l
 
 ## References
 
-* CZ Section 1.2 (truth tables), Definition 1.5 (tautology)
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Section 1.2, Definition 1.5
 -/
 
 @[expose] public section

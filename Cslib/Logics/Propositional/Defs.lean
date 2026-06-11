@@ -34,6 +34,10 @@ theory.
 
 We introduce notation for the logical connectives: `⊥ ⊤ ∧ ∨ → ¬` for, respectively, falsum, verum,
 conjunction, disjunction, implication and negation.
+
+## References
+
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Chapter 1
 -/
 
 @[expose] public section

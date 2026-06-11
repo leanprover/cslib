@@ -24,8 +24,7 @@ every derivable formula is intuitionistically valid (IValid).
 
 ## References
 
-* CZ Theorem 2.43 (soundness direction)
-* CZ Proposition 2.1 (persistence lemma)
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Theorem 2.43 (soundness direction), Proposition 2.1 (persistence lemma)
 -/
 
 @[expose] public section

@@ -25,7 +25,7 @@ every derivable formula is a tautology.
 
 ## References
 
-* CZ Theorem 1.16 (soundness direction)
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Theorem 1.16 (soundness direction)
 * Cslib/Logics/Modal/Metalogic/Soundness.lean -- modal soundness pattern
 -/
 

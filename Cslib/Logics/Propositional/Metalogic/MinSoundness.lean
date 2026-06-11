@@ -25,8 +25,7 @@ every derivable formula is minimally valid (MValid).
 
 ## References
 
-* CZ Theorem 2.43 (soundness direction, adapted for minimal logic)
-* CZ Proposition 2.1 (persistence lemma)
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Theorem 2.43 (soundness direction, adapted for minimal logic), Proposition 2.1 (persistence lemma)
 -/
 
 @[expose] public section
