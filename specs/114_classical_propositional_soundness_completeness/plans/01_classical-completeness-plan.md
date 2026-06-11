@@ -130,7 +130,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Metalogic/Completeness.lean [IN PROGRESS]
+### Phase 3: Metalogic/Completeness.lean [COMPLETED]
 
 **Goal**: Prove completeness of classical propositional logic: every tautology is derivable.
 
