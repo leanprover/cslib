@@ -85,7 +85,7 @@ Each constructor maps to its ND counterpart:
 - `modus_ponens`: -> ND implication elimination
 - `weakening`: -> ND context weakening (via `Finset` subset from `List` subset) -/
 def hilbertToND {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom} :
-    DerivationTree Γ φ →
+    DerivationTree PropositionalAxiom Γ φ →
     @Theory.Derivation Atom _ (HilbertAxiomTheory : Theory Atom) Γ.toFinset φ
   | .ax _ _ h_ax =>
     Theory.Derivation.ax (mem_hilbertAxiomTheory.mpr h_ax)
@@ -101,7 +101,7 @@ def hilbertToND {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom} :
 /-- Prop-level wrapper: if `Γ ⊢ φ` in the Hilbert system, then `φ` is derivable
 in ND under `HilbertAxiomTheory` with context `Γ.toFinset`. -/
 theorem hilbert_to_nd_deriv {Γ : List (PL.Proposition Atom)} {φ : PL.Proposition Atom}
-    (h : Deriv Γ φ) :
+    (h : Deriv PropositionalAxiom Γ φ) :
     DerivableIn (HilbertAxiomTheory : Theory Atom)
       ((Γ.toFinset : Ctx Atom) ⊢ φ) := by
   obtain ⟨d⟩ := h
@@ -119,7 +119,7 @@ Each constructor maps to its Hilbert counterpart:
 - `impI`: -> deduction theorem (the key case, uses context bridge lemmas) -/
 noncomputable def ndToHilbert {Γ : Ctx Atom} {φ : PL.Proposition Atom} :
     @Theory.Derivation Atom _ (HilbertAxiomTheory : Theory Atom) Γ φ →
-    DerivationTree Γ.toList φ
+    DerivationTree PropositionalAxiom Γ.toList φ
   | .ax h_mem =>
     .ax Γ.toList φ (mem_hilbertAxiomTheory.mp h_mem)
   | .ass h_mem =>
@@ -135,13 +135,15 @@ noncomputable def ndToHilbert {Γ : Ctx Atom} {φ : PL.Proposition Atom} :
     have ih' := DerivationTree.weakening _ (A :: Γ'.toList) B ih
       (fun x hx => finset_insert_toList_mem_cons A Γ' hx)
     -- Apply deduction theorem to get Γ'.toList ⊢ A → B
-    exact deductionTheorem Γ'.toList A B ih'
+    exact deductionTheorem
+      (fun φ ψ => .implyK φ ψ) (fun φ ψ χ => .implyS φ ψ χ)
+      Γ'.toList A B ih'
 
 /-- Prop-level wrapper: if `φ` is derivable in ND under `HilbertAxiomTheory` with
 context `Γ`, then `Γ.toList ⊢ φ` in the Hilbert system. -/
 theorem nd_to_hilbert_deriv {Γ : Ctx Atom} {φ : PL.Proposition Atom}
     (h : DerivableIn (HilbertAxiomTheory : Theory Atom) ((Γ : Ctx Atom) ⊢ φ)) :
-    Deriv Γ.toList φ := by
+    Deriv PropositionalAxiom Γ.toList φ := by
   obtain ⟨d⟩ := h
   exact ⟨ndToHilbert d⟩
 
@@ -154,7 +156,7 @@ under `HilbertAxiomTheory` (from the empty context).
 This bridges the two proof systems in the codebase, showing they have the
 same deductive power for closed derivability. -/
 theorem hilbert_iff_nd {φ : PL.Proposition Atom} :
-    Derivable φ ↔
+    Derivable PropositionalAxiom φ ↔
     DerivableIn (HilbertAxiomTheory : Theory Atom)
       ((∅ : Ctx Atom) ⊢ φ) := by
   constructor

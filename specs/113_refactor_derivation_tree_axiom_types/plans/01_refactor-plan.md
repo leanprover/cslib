@@ -182,7 +182,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: NaturalDeduction Backward Compatibility [NOT STARTED]
+### Phase 5: NaturalDeduction Backward Compatibility [COMPLETED]
 
 **Goal**: Update NaturalDeduction files to compile with the parameterized `DerivationTree`, fixing all uses at `PropositionalAxiom`.
 
