@@ -154,7 +154,6 @@ public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.Cube
 public import Cslib.Logics.Modal.Denotation
-public import Cslib.Logics.Modal.FromPropositional
 public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.Metalogic.Completeness
@@ -178,7 +177,6 @@ public import Cslib.Logics.Propositional.ProofSystem.Instances
 public import Cslib.Logics.Propositional.ProofSystem.IntMinInstances
 public import Cslib.Logics.Propositional.Semantics.Basic
 public import Cslib.Logics.Propositional.Semantics.Kripke
-public import Cslib.Logics.Temporal.FromPropositional
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
