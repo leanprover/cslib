@@ -28,7 +28,9 @@ for MinPropAxiom and proves the implication witness lemma needed for completenes
 
 ## References
 
-* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Section 5.1, adapted for minimal logic
+* [A. Chagrov, M. Zakharyaschev,
+  *Modal Logic*][ChagrovZakharyaschev1997],
+  Section 5.1, adapted for minimal logic
 -/
 
 @[expose] public section

@@ -20,7 +20,9 @@ This module defines bivalent truth-value semantics for classical propositional l
 
 ## References
 
-* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Section 1.2, Definition 1.5
+* [A. Chagrov, M. Zakharyaschev,
+  *Modal Logic*][ChagrovZakharyaschev1997],
+  Section 1.2, Definition 1.5
 -/
 
 @[expose] public section

@@ -25,7 +25,9 @@ Henkin (canonical model / MCS) construction: every tautology is derivable.
 
 ## References
 
-* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Theorem 1.16 (completeness direction), Section 5.1
+* [A. Chagrov, M. Zakharyaschev,
+  *Modal Logic*][ChagrovZakharyaschev1997],
+  Theorem 1.16 (completeness direction), Section 5.1
 * Cslib/Logics/Modal/Metalogic/KCompleteness.lean -- modal K completeness
 -/
 

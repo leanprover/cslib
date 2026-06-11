@@ -21,7 +21,8 @@ This module defines Kripke semantics for propositional (intuitionistic and minim
 - `IForces`: The forcing relation for propositional Kripke semantics, parameterized by `botForces`.
   Recursion on `PL.Proposition` with three cases: atom (valuation lookup), bot (`botForces`),
   imp (universal quantification over successors).
-- `iforces_persistence`: Persistence of forcing under the preorder ([ChagrovZakharyaschev1997] Proposition 2.1).
+- `iforces_persistence`: Persistence of forcing under the preorder
+  ([ChagrovZakharyaschev1997] Proposition 2.1).
 - `IValid`: Intuitionistic validity -- forced at every world in every intuitionistic Kripke model
   (where `botForces = fun _ => False`).
 - `MValid`: Minimal validity -- forced at every world in every minimal Kripke model
@@ -39,7 +40,9 @@ This module defines Kripke semantics for propositional (intuitionistic and minim
 
 ## References
 
-* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Section 2.2, Proposition 2.1
+* [A. Chagrov, M. Zakharyaschev,
+  *Modal Logic*][ChagrovZakharyaschev1997],
+  Section 2.2, Proposition 2.1
 -/
 
 @[expose] public section
