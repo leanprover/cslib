@@ -144,7 +144,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Instance Updates and IntMinInstances [NOT STARTED]
+### Phase 4: Instance Updates and IntMinInstances [IN PROGRESS]
 
 **Goal**: Update `HilbertCl` instances and create new `HilbertInt`/`HilbertMin` instances.
 
