@@ -1,0 +1,11 @@
+{
+  "status": "planned",
+  "summary": "Created 4-phase implementation plan for PR 1.5 propositional Hilbert submission. Phase 1: add 3 missing Cslib.lean imports (DerivedRules, Equivalence, HilbertDerivedRules). Phase 2: fix unused DecidableEq warning in FromHilbert.lean. Phase 3: verify clean lake build. Phase 4: create feature branch and submit PR via gh pr create.",
+  "artifacts": [
+    {
+      "path": "specs/090_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md",
+      "type": "plan",
+      "summary": "4-phase plan: fix imports, fix lint, verify build, submit PR 1.5"
+    }
+  ]
+}

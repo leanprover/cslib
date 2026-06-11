@@ -4,22 +4,36 @@
     {
       "project_number": 90,
       "project_name": "expand_modal_cube_proof_systems_metalogic",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "created": "2026-06-11T00:23:04Z",
-      "last_updated": "2026-06-11T00:29:30Z"
+      "last_updated": "2026-06-11T00:32:25Z"
     },
     {
       "project_number": 91,
       "project_name": "pr_1_5_propositional_hilbert_submission",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "description": "Create feature branch and submit PR 1.5 containing the propositional Hilbert system additions developed since PR 1 (tasks 87, 88, 89). This PR adds ~1,200 new lines across 3 new files and updates to 11 existing files in Logics/Propositional/ and Foundations/Logic/.\n\n**New files**:\n- NaturalDeduction/Equivalence.lean (168 lines): extensional equivalence between Hilbert and ND proof systems (hilbert_iff_nd theorem)\n- NaturalDeduction/DerivedRules.lean (386 lines): 13 derived intro/elim rules for Łukasiewicz-encoded connectives (and, or, neg, iff, top, dne) in the ND system\n- NaturalDeduction/HilbertDerivedRules.lean (447 lines): matching Hilbert system derived rules\n\n**Modified files** (Foundations/Logic/ typeclass refactor):\n- ProofSystem.lean: three-level Hilbert typeclass hierarchy (MinimalHilbert → IntuitionisticHilbert → ClassicalHilbert)\n- Theorems/Propositional/Core.lean + Connectives.lean: theorems stratified across the hierarchy\n- Theorems/Combinators.lean, Theorems.lean, BigConj.lean: weakened to MinimalHilbert\n- ProofSystem/Instances.lean: updated for new hierarchy\n- Defs.lean: added Proposition.iff\n- Metalogic/DeductionTheorem.lean, MCS.lean: minor updates\n\n**PR title**: `feat(Logics/Propositional): Hilbert-ND equivalence, derived connective rules, and intuitionistic base hierarchy`\n\n**Workflow**: Create branch pr1.5/propositional-hilbert from main, cherry-pick or rebase the relevant commits (tasks 87-89 changes), run CI checks (lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers), prepare PR description, push and open PR.\n\n**Dependencies**: PR 1 (task 59, Foundations/Logic) should be merged first since PR 1.5 modifies files from PR 1. If PR 1 is still in review, coordinate with maintainers about stacking.",
-      "dependencies": [59],
+      "dependencies": [
+        59
+      ],
       "created": "2026-06-11T00:19:29Z",
-      "last_updated": "2026-06-11T00:19:29Z"
+      "last_updated": "2026-06-11T00:36:27Z",
+      "artifacts": [
+        {
+          "path": "specs/091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md",
+          "type": "report",
+          "summary": "PR 1.5 scope review: 3 new + 13 modified files, zero sorries, 1 must-fix (missing imports), 1 should-fix (unused DecidableEq)"
+        },
+        {
+          "path": "specs/091_pr_1_5_propositional_hilbert_submission/plans/01_pr-submission-plan.md",
+          "type": "plan",
+          "summary": "4-phase plan: add imports, fix warning, verify build, submit PR"
+        }
+      ]
     },
     {
       "project_number": 88,
