@@ -1,6 +1,15 @@
 {
-  "next_project_number": 124,
+  "next_project_number": 125,
   "active_projects": [
+    {
+      "project_number": 124,
+      "project_name": "plan_pr1_decomposition_into_smaller_prs",
+      "status": "not_started",
+      "task_type": "general",
+      "topic": "Submit PRs",
+      "created": "2026-06-11T20:47:26Z",
+      "last_updated": "2026-06-11T20:47:26Z"
+    },
     {
       "project_number": 123,
       "project_name": "add_bib_references_pr1",
