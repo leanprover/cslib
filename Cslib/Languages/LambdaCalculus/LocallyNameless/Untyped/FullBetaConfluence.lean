@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+public import Cslib.Foundations.Relation.Confluence
 
 /-! # β-confluence for the λ-calculus -/
 
