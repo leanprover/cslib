@@ -84,7 +84,7 @@ theorem t_completeness (φ : Proposition Atom)
       ∀ w, Satisfies m w φ) :
     Derivable (@TAxiom Atom) φ := by
   by_contra h_not_deriv
-  have h_cons : Modal.SetConsistent (@TAxiom Atom)
+  have h_cons : SetConsistent (@TAxiom Atom)
       ({Proposition.neg φ} : Set (Proposition Atom)) := by
     intro L hL
     unfold Metalogic.Consistent
@@ -92,7 +92,7 @@ theorem t_completeness (φ : Proposition Atom)
     have d_weak : DerivationTree (@TAxiom Atom) [Proposition.neg φ]
         Proposition.bot :=
       .weakening L [Proposition.neg φ] .bot d (fun x hx => by
-        have := hL x hx; simp at this
+        have := hL x hx; simp only [Set.mem_singleton_iff] at this
         exact List.mem_cons.mpr (Or.inl this))
     have d_dne := deductionTheorem
       (fun φ ψ => .implyK φ ψ)

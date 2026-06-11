@@ -53,7 +53,7 @@ variable {Atom : Type u}
 /-- A canonical world is a maximally consistent set of the parameterized
 modal derivation system. -/
 def CanonicalWorld (Axioms : Proposition Atom → Prop) :=
-  { S : Set (Proposition Atom) // Modal.SetMaximalConsistent Axioms S }
+  { S : Set (Proposition Atom) // SetMaximalConsistent Axioms S }
 
 /-- The canonical model parameterized over an axiom predicate.
 
@@ -334,7 +334,9 @@ theorem truth_lemma
         have h_phi_S : φ ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
-            (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h)
+            (fun x hx => by
+              simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
+              exact hx ▸ h)
           unfold modalDerivationSystem Deriv
           have d_bot' : DerivationTree Axioms
               [φ.imp ψ, (φ.imp ψ).imp .bot] Proposition.bot :=
@@ -360,7 +362,9 @@ theorem truth_lemma
         have h_neg_psi_S : Proposition.neg ψ ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
-            (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h)
+            (fun x hx => by
+              simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
+              exact hx ▸ h)
           unfold modalDerivationSystem Deriv
           have d_imp : DerivationTree Axioms
               [ψ, (φ.imp ψ).imp .bot] (φ.imp ψ) :=
@@ -411,7 +415,7 @@ theorem completeness (φ : Proposition Atom)
       ∀ w, Satisfies m w φ) :
     Derivable (@ModalAxiom Atom) φ := by
   by_contra h_not_deriv
-  have h_cons : Modal.SetConsistent (@ModalAxiom Atom)
+  have h_cons : SetConsistent (@ModalAxiom Atom)
       ({Proposition.neg φ} : Set (Proposition Atom)) := by
     intro L hL
     unfold Metalogic.Consistent
@@ -419,7 +423,7 @@ theorem completeness (φ : Proposition Atom)
     have d_weak : DerivationTree (@ModalAxiom Atom) [Proposition.neg φ]
         Proposition.bot :=
       .weakening L [Proposition.neg φ] .bot d (fun x hx => by
-        have := hL x hx; simp at this
+        have := hL x hx; simp only [Set.mem_singleton_iff] at this
         exact List.mem_cons.mpr (Or.inl this))
     have d_dne := deductionTheorem
       (fun φ ψ => .implyK φ ψ)

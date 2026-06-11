@@ -44,12 +44,12 @@ variable {Atom : Type*}
 /-! ## Abbreviations for readability -/
 
 /-- Set consistency for a parameterized modal derivation system. -/
-abbrev Modal.SetConsistent (Axioms : Proposition Atom → Prop)
+abbrev SetConsistent (Axioms : Proposition Atom → Prop)
     (S : Set (Proposition Atom)) : Prop :=
   Metalogic.SetConsistent (modalDerivationSystem Axioms) S
 
 /-- Set maximal consistency for a parameterized modal derivation system. -/
-abbrev Modal.SetMaximalConsistent (Axioms : Proposition Atom → Prop)
+abbrev SetMaximalConsistent (Axioms : Proposition Atom → Prop)
     (S : Set (Proposition Atom)) : Prop :=
   Metalogic.SetMaximalConsistent (modalDerivationSystem Axioms) S
 
@@ -58,9 +58,9 @@ abbrev Modal.SetMaximalConsistent (Axioms : Proposition Atom → Prop)
 /-- Lindenbaum's lemma: every consistent set extends to an MCS. -/
 theorem modal_lindenbaum {Axioms : Proposition Atom → Prop}
     {S : Set (Proposition Atom)}
-    (hS : Modal.SetConsistent Axioms S) :
+    (hS : SetConsistent Axioms S) :
     ∃ M : Set (Proposition Atom),
-      S ⊆ M ∧ Modal.SetMaximalConsistent Axioms M :=
+      S ⊆ M ∧ SetMaximalConsistent Axioms M :=
   Metalogic.set_lindenbaum (modalDerivationSystem Axioms) hS
 
 /-- Derivable formulas are in MCS. -/
@@ -69,7 +69,7 @@ theorem modal_closed_under_derivation
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {L : List (Proposition Atom)} (h_sub : ∀ ψ ∈ L, ψ ∈ S)
     {φ : Proposition Atom}
     (h_deriv : (modalDerivationSystem Axioms).Deriv L φ) : φ ∈ S :=
@@ -84,7 +84,7 @@ theorem modal_implication_property
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ ψ : Proposition Atom} (h_imp : Proposition.imp φ ψ ∈ S) (h_phi : φ ∈ S) :
     ψ ∈ S :=
   Metalogic.SetMaximalConsistent.implication_property
@@ -98,7 +98,7 @@ theorem modal_negation_complete
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     (φ : Proposition Atom) : φ ∈ S ∨ Proposition.neg φ ∈ S :=
   Metalogic.SetMaximalConsistent.negation_complete
     (modalDerivationSystem Axioms)
@@ -113,12 +113,12 @@ theorem mcs_mp_axiom
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ ψ : Proposition Atom} (h_mem : φ ∈ S) (h_ax : Axioms (φ.imp ψ)) :
     ψ ∈ S := by
   apply modal_closed_under_derivation h_implyK h_implyS h_mcs
     (L := [φ]) (fun x hx => by
-      simp [List.mem_cons] at hx; exact hx ▸ h_mem)
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_mem)
   unfold modalDerivationSystem Deriv
   exact ⟨.modus_ponens [φ] φ ψ
     (.weakening [] [φ] (φ.imp ψ) (.ax [] _ h_ax) (fun _ h => nomatch h))
@@ -127,12 +127,12 @@ theorem mcs_mp_axiom
 /-- `bot not in S` for any MCS `S`. -/
 theorem mcs_bot_not_mem
     {Axioms : Proposition Atom → Prop}
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S) :
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S) :
     Proposition.bot ∉ S := by
   intro h_bot
   exact h_mcs.1 [Proposition.bot]
-    (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h_bot)
-    (by simp [modalDerivationSystem, Deriv]
+    (fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_bot)
+    (by simp only [modalDerivationSystem, Deriv]
         exact ⟨.assumption _ _ (List.mem_cons.mpr (Or.inl rfl))⟩)
 
 /-- If `box phi in S` and `S` is MCS, then `phi in S` (using axiom T). -/
@@ -143,7 +143,7 @@ theorem mcs_box_closure
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     (h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_box : Proposition.box φ ∈ S) : φ ∈ S :=
   mcs_mp_axiom h_implyK h_implyS h_mcs h_box (h_T φ)
 
@@ -155,7 +155,7 @@ theorem mcs_box_box
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     (h_4 : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp (Proposition.box (Proposition.box φ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_box : Proposition.box φ ∈ S) :
     Proposition.box (Proposition.box φ) ∈ S :=
   mcs_mp_axiom h_implyK h_implyS h_mcs h_box (h_4 φ)
@@ -168,7 +168,7 @@ theorem mcs_box_diamond
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     (h_B : ∀ (φ : Proposition Atom),
       Axioms (φ.imp (Proposition.box (Proposition.diamond φ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_phi : φ ∈ S) :
     Proposition.box (Proposition.diamond φ) ∈ S :=
   mcs_mp_axiom h_implyK h_implyS h_mcs h_phi (h_B φ)
@@ -182,7 +182,7 @@ theorem mcs_box_mp
     (h_K : ∀ (φ ψ : Proposition Atom),
       Axioms ((Proposition.box (φ.imp ψ)).imp
         ((Proposition.box φ).imp (Proposition.box ψ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ ψ : Proposition Atom} (h_box_imp : Proposition.box (φ.imp ψ) ∈ S)
     (h_box_phi : Proposition.box φ ∈ S) : Proposition.box ψ ∈ S := by
   have h_k := mcs_mp_axiom h_implyK h_implyS h_mcs h_box_imp (h_K φ ψ)
@@ -196,7 +196,7 @@ theorem mcs_neg_of_not_mem
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_not : φ ∉ S) : Proposition.neg φ ∈ S := by
   rcases modal_negation_complete h_implyK h_implyS h_mcs φ with h | h
   · exact absurd h h_not
@@ -208,7 +208,7 @@ theorem mcs_not_mem_of_neg
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_neg : Proposition.neg φ ∈ S) : φ ∉ S := by
   intro h_phi
   exact mcs_bot_not_mem h_mcs
@@ -220,7 +220,7 @@ theorem mcs_mem_iff_neg_not_mem
     (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} : φ ∈ S ↔ Proposition.neg φ ∉ S := by
   constructor
   · intro h hn; exact mcs_bot_not_mem h_mcs
@@ -245,7 +245,7 @@ noncomputable def iteratedDeduction
     DerivationTree Axioms L φ → (ψ : Proposition Atom) ×'
       DerivationTree Axioms [] ψ ×'
       (∀ (S : Set (Proposition Atom)),
-        Modal.SetMaximalConsistent Axioms S →
+        SetMaximalConsistent Axioms S →
         Proposition.box ψ ∈ S →
         (∀ x ∈ L, Proposition.box x ∈ S) →
         Proposition.box φ ∈ S)
@@ -270,7 +270,7 @@ theorem derive_box_from_box_context
     (h_K : ∀ (φ ψ : Proposition Atom),
       Axioms ((Proposition.box (φ.imp ψ)).imp
         ((Proposition.box φ).imp (Proposition.box ψ))))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {L : List (Proposition Atom)} {φ : Proposition Atom}
     (d : DerivationTree Axioms L φ)
     (h_all_box : ∀ ψ ∈ L, Proposition.box ψ ∈ S) :
@@ -300,7 +300,7 @@ theorem derive_box_from_inconsistency
         ((Proposition.box φ).imp (Proposition.box ψ))))
     (h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S)
     {L : List (Proposition Atom)}
     (hL : ∀ x ∈ L, x ∈ {ψ | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ})
@@ -370,12 +370,12 @@ theorem mcs_box_witness
         ((Proposition.box φ).imp (Proposition.box ψ))))
     (h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S) :
-    ∃ T : Set (Proposition Atom), Modal.SetMaximalConsistent Axioms T ∧
+    ∃ T : Set (Proposition Atom), SetMaximalConsistent Axioms T ∧
       (∀ ψ, Proposition.box ψ ∈ S → ψ ∈ T) ∧ φ ∉ T := by
   let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ}
-  have hW : Modal.SetConsistent Axioms W := by
+  have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
     intro ⟨d_bot⟩

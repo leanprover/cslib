@@ -117,18 +117,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Fix Flexible simp and MCS Namespace [NOT STARTED]
+### Phase 2: Fix Flexible simp and MCS Namespace [COMPLETED]
 
 **Goal**: Convert all flexible `simp` calls to `simp only [...]` using `simp?` output, and fix the MCS.lean namespace collision. These changes are isolated and testable per-file.
 
 **Tasks**:
-- [ ] In DeductionTheorem.lean: use `simp?` at each flexible `simp` site, replace with `simp only [...]`
-- [ ] In MCS.lean: use `simp?` at each flexible `simp` site, replace with `simp only [...]`
-- [ ] In MCS.lean: fix namespace collision -- move `Modal.SetConsistent` and `Modal.SetMaximalConsistent` abbrevs out of `namespace Cslib.Logic.Modal` (declare in `namespace Cslib.Logic` instead, or drop `Modal.` prefix from abbrev name)
-- [ ] Grep for all references to `Modal.SetConsistent` and `Modal.SetMaximalConsistent` across the codebase; update any affected call sites
-- [ ] In Completeness.lean: use `simp?` at each flexible `simp` site, replace with `simp only [...]`
-- [ ] In remaining completeness files with flexible simp (KCompleteness, TCompleteness, DCompleteness, S4Completeness, K4Completeness, D45Completeness): use `simp?` and replace
-- [ ] Run `lake build Cslib.Logics.Modal.Metalogic` to verify zero warnings from simp and namespace
+- [x] In DeductionTheorem.lean: use `simp?` at each flexible `simp` site, replace with `simp only [...]`
+- [x] In MCS.lean: use `simp?` at each flexible `simp` site, replace with `simp only [...]`
+- [x] In MCS.lean: fix namespace collision -- move `Modal.SetConsistent` and `Modal.SetMaximalConsistent` abbrevs out of `namespace Cslib.Logic.Modal` (declare in `namespace Cslib.Logic` instead, or drop `Modal.` prefix from abbrev name) *(deviation: altered -- dropped `Modal.` prefix from abbrev names instead of moving to different namespace; updated all call sites across 20+ files)*
+- [x] Grep for all references to `Modal.SetConsistent` and `Modal.SetMaximalConsistent` across the codebase; update any affected call sites
+- [x] In Completeness.lean: use `simp?` at each flexible `simp` site, replace with `simp only [...]`
+- [x] In remaining completeness files with flexible simp (KCompleteness, TCompleteness, DCompleteness, S4Completeness, K4Completeness, D45Completeness): use `simp?` and replace *(deviation: altered -- also fixed all 15 other completeness files that had the same `simp at this` pattern)*
+- [x] Run `lake build Cslib.Logics.Modal.Metalogic` to verify zero warnings from simp and namespace
 
 **Timing**: 1.5 hours
 

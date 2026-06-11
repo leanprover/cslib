@@ -74,7 +74,7 @@ theorem k45_completeness (φ : Proposition Atom)
   -- Step 1: Contrapositive setup
   by_contra h_not_deriv
   -- Step 2: Show {neg(phi)} is K45-consistent (prerequisite for Lindenbaum, Lemma 4.17)
-  have h_cons : Modal.SetConsistent (@K45Axiom Atom)
+  have h_cons : SetConsistent (@K45Axiom Atom)
       ({Proposition.neg φ} : Set (Proposition Atom)) := by
     intro L hL
     unfold Metalogic.Consistent
@@ -82,7 +82,7 @@ theorem k45_completeness (φ : Proposition Atom)
     have d_weak : DerivationTree (@K45Axiom Atom) [Proposition.neg φ]
         Proposition.bot :=
       .weakening L [Proposition.neg φ] .bot d (fun x hx => by
-        have := hL x hx; simp at this
+        have := hL x hx; simp only [Set.mem_singleton_iff] at this
         exact List.mem_cons.mpr (Or.inl this))
     have d_dne := deductionTheorem
       (fun φ ψ => .implyK φ ψ)

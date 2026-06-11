@@ -66,7 +66,7 @@ theorem derive_box_from_inconsistency_d
     (h_D : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp
         ((Proposition.box (φ.imp .bot)).imp .bot)))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S)
     {L : List (Proposition Atom)}
     (hL : ∀ x ∈ L, x ∈ {ψ | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ})
@@ -177,12 +177,12 @@ theorem mcs_box_witness_d
     (h_D : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp
         ((Proposition.box (φ.imp .bot)).imp .bot)))
-    {S : Set (Proposition Atom)} (h_mcs : Modal.SetMaximalConsistent Axioms S)
+    {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S) :
-    ∃ T : Set (Proposition Atom), Modal.SetMaximalConsistent Axioms T ∧
+    ∃ T : Set (Proposition Atom), SetMaximalConsistent Axioms T ∧
       (∀ ψ, Proposition.box ψ ∈ S → ψ ∈ T) ∧ φ ∉ T := by
   let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ}
-  have hW : Modal.SetConsistent Axioms W := by
+  have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
     intro ⟨d_bot⟩
@@ -223,7 +223,7 @@ theorem canonical_serial
   -- Let W = {psi | box psi in S.val}
   let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S.val}
   -- Show W is consistent
-  have hW : Modal.SetConsistent Axioms W := by
+  have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
     intro ⟨d_bot⟩
@@ -301,7 +301,9 @@ theorem truth_lemma_d
         have h_phi_S : φ ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
-            (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h)
+            (fun x hx => by
+              simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
+              exact hx ▸ h)
           unfold modalDerivationSystem Deriv
           have d_bot' : DerivationTree Axioms
               [φ.imp ψ, (φ.imp ψ).imp .bot] Proposition.bot :=
@@ -327,7 +329,9 @@ theorem truth_lemma_d
         have h_neg_psi_S : Proposition.neg ψ ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
-            (fun x hx => by simp [List.mem_cons] at hx; exact hx ▸ h)
+            (fun x hx => by
+              simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
+              exact hx ▸ h)
           unfold modalDerivationSystem Deriv
           have d_imp : DerivationTree Axioms
               [ψ, (φ.imp ψ).imp .bot] (φ.imp ψ) :=
@@ -385,7 +389,7 @@ theorem d_completeness (φ : Proposition Atom)
       ∀ w, Satisfies m w φ) :
     Derivable (@DAxiom Atom) φ := by
   by_contra h_not_deriv
-  have h_cons : Modal.SetConsistent (@DAxiom Atom)
+  have h_cons : SetConsistent (@DAxiom Atom)
       ({Proposition.neg φ} : Set (Proposition Atom)) := by
     intro L hL
     unfold Metalogic.Consistent
@@ -393,7 +397,7 @@ theorem d_completeness (φ : Proposition Atom)
     have d_weak : DerivationTree (@DAxiom Atom) [Proposition.neg φ]
         Proposition.bot :=
       .weakening L [Proposition.neg φ] .bot d (fun x hx => by
-        have := hL x hx; simp at this
+        have := hL x hx; simp only [Set.mem_singleton_iff] at this
         exact List.mem_cons.mpr (Or.inl this))
     have d_dne := deductionTheorem
       (fun φ ψ => .implyK φ ψ)
