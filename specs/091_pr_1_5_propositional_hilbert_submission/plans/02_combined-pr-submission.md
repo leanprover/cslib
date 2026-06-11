@@ -1,7 +1,7 @@
 # Implementation Plan: Combined PR 1+1.5 Submission
 
 - **Task**: 91 - Combined PR 1+1.5 propositional Hilbert submission
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2-3 hours (mostly build/test time)
 - **Dependencies**: Tasks 86-89 (completed), PR #629 (to be closed)
 - **Research Inputs**: specs/091_pr_1_5_propositional_hilbert_submission/reports/01_pr-scope-review.md
@@ -68,7 +68,7 @@ This plan advances:
 | 3 | 3 | 2 |
 | 4 | 4 | 3 |
 
-### Phase 1: Apply PR 1.5 Changes to Feature Branch [NOT STARTED]
+### Phase 1: Apply PR 1.5 Changes to Feature Branch [COMPLETED]
 
 **Goal**: Update `pr1/foundations-logic` with all PR 1.5 content from tasks 86-89, without including modal cube (task 92+) or out-of-scope changes.
 
@@ -121,7 +121,7 @@ This plan advances:
 
 ---
 
-### Phase 2: Code Quality Review [NOT STARTED]
+### Phase 2: Code Quality Review [COMPLETED]
 
 **Goal**: Review the complete PR branch for code quality issues worth fixing before submission.
 
@@ -156,7 +156,7 @@ This plan advances:
 
 ---
 
-### Phase 3: Run Full CI Test Suite [NOT STARTED]
+### Phase 3: Run Full CI Test Suite [COMPLETED]
 
 **Goal**: Run all CI checks from CONTRIBUTING.md on the feature branch to ensure the combined PR passes upstream CI.
 
@@ -187,7 +187,7 @@ This plan advances:
 
 ---
 
-### Phase 4: Close #629 and Submit Combined PR [NOT STARTED]
+### Phase 4: Close #629 and Submit Combined PR [COMPLETED]
 
 **Goal**: Close the old PR and submit the combined PR 1+1.5.
 
