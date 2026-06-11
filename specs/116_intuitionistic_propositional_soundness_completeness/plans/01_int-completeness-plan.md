@@ -96,7 +96,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: IntLindenbaum.lean [NOT STARTED]
+### Phase 2: IntLindenbaum.lean [COMPLETED]
 
 **Goal**: Define DCCS (deductively closed consistent sets) and prove the implication witness lemma.
 
