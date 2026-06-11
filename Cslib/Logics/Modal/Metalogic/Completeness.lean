@@ -91,6 +91,53 @@ theorem canonical_trans
   have h_box_T := hST (Proposition.box φ) h_box_box
   exact hTU φ h_box_T
 
+/-- The canonical accessibility relation is symmetric (from axiom B).
+
+This is the canonicity of axiom B (BRV Theorem 4.28 clause 2):
+if `R S T` and `□φ ∈ T`, then `φ ∈ S` by contradiction using axiom B
+and the double-negation introduction derivation. -/
+theorem canonical_symm
+    {Axioms : Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    (h_K : ∀ (φ ψ : Proposition Atom),
+      Axioms ((Proposition.box (φ.imp ψ)).imp
+        ((Proposition.box φ).imp (Proposition.box ψ))))
+    (h_B : ∀ (φ : Proposition Atom),
+      Axioms (φ.imp (Proposition.box (Proposition.diamond φ))))
+    (S T : CanonicalWorld Axioms) :
+    (CanonicalModel Axioms).r S T →
+    (CanonicalModel Axioms).r T S := by
+  intro hST φ h_box_T
+  by_contra h_phi_not_S
+  have h_neg_S := mcs_neg_of_not_mem h_implyK h_implyS S.property h_phi_not_S
+  have h_bd_S := mcs_box_diamond h_implyK h_implyS h_B S.property h_neg_S
+  have h_diam_T := hST _ h_bd_S
+  -- h_diam_T : (Proposition.box ((φ.imp .bot).imp .bot)).imp .bot ∈ T.val
+  -- Need: box((φ.imp .bot).imp .bot) ∈ T.val to get contradiction
+  -- Build derivation: φ → ((φ.imp .bot).imp .bot)  (double negation introduction)
+  let bp := φ
+  have d_bot : DerivationTree Axioms [bp.imp .bot, bp] Proposition.bot :=
+    .modus_ponens [bp.imp .bot, bp] bp .bot
+      (.assumption _ (bp.imp .bot) (by simp [List.mem_cons]))
+      (.assumption _ bp (by simp [List.mem_cons]))
+  have d_dne := deductionTheorem h_implyK h_implyS [bp] (bp.imp .bot) .bot d_bot
+  have d_dni := deductionTheorem h_implyK h_implyS [] bp
+    ((bp.imp .bot).imp .bot) d_dne
+  have d_nec := DerivationTree.necessitation _ d_dni
+  have h_box_dni_T :
+      Proposition.box (bp.imp ((bp.imp .bot).imp .bot)) ∈ T.val :=
+    modal_closed_under_derivation h_implyK h_implyS T.property
+      (L := []) (fun _ h => nomatch h) ⟨d_nec⟩
+  have h_box_dne_T := mcs_box_mp h_implyK h_implyS h_K T.property
+    h_box_dni_T h_box_T
+  -- h_box_dne_T : box((φ.imp .bot).imp .bot) ∈ T.val
+  -- h_diam_T : (box((φ.imp .bot).imp .bot)).imp .bot ∈ T.val
+  -- Together: bot ∈ T.val — contradiction
+  exact mcs_bot_not_mem T.property
+    (modal_implication_property h_implyK h_implyS T.property h_diam_T h_box_dne_T)
+
 /-- The canonical accessibility relation is Euclidean (from axioms B, T, 4). -/
 theorem canonical_eucl
     {Axioms : Proposition Atom → Prop}
@@ -139,6 +186,110 @@ theorem canonical_eucl
   have h_box_dne_T := mcs_box_mp h_implyK h_implyS h_K T.property
     h_box_dni_T h_bb_T
   exact h_box_dne_not_T h_box_dne_T
+
+/-- The canonical accessibility relation is Euclidean (from axiom 5 alone).
+
+If a normal logic contains axiom 5 (`◇φ → □◇φ`), then its canonical frame
+is Euclidean. This is stronger than `canonical_eucl` which requires B + T + 4. -/
+theorem canonical_eucl_from_5
+    {Axioms : Proposition Atom → Prop}
+    (h_implyK : ∀ (φ ψ : Proposition Atom), Axioms (φ.imp (ψ.imp φ)))
+    (h_implyS : ∀ (φ ψ χ : Proposition Atom),
+      Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
+    (h_K : ∀ (φ ψ : Proposition Atom),
+      Axioms ((Proposition.box (φ.imp ψ)).imp
+        ((Proposition.box φ).imp (Proposition.box ψ))))
+    (h_5 : ∀ (φ : Proposition Atom),
+      Axioms ((Proposition.diamond φ).imp
+        (Proposition.box (Proposition.diamond φ))))
+    (S T U : CanonicalWorld Axioms) :
+    (CanonicalModel Axioms).r S T →
+    (CanonicalModel Axioms).r S U →
+    (CanonicalModel Axioms).r T U := by
+  intro hST hSU φ h_box_T
+  -- Goal: φ ∈ U.val
+  by_contra h_phi_not_U
+  -- Step 1: neg φ ∈ U.val
+  have h_neg_U := mcs_neg_of_not_mem h_implyK h_implyS U.property h_phi_not_U
+  -- Step 2: diamond(neg φ) ∈ S.val (by sub-contradiction)
+  have h_diam_S : Proposition.diamond (Proposition.neg φ) ∈ S.val := by
+    -- diamond(neg φ) = (box(neg(neg φ))).imp .bot = (box((φ.imp .bot).imp .bot)).imp .bot
+    by_contra h_diam_not_S
+    -- If diamond(neg φ) not in S, then neg(diamond(neg φ)) in S
+    -- i.e. box(neg(neg φ)) = box((φ.imp .bot).imp .bot) in S
+    have h_neg_diam := mcs_neg_of_not_mem h_implyK h_implyS S.property h_diam_not_S
+    -- neg(diamond(neg φ)) = (diamond(neg φ)).imp .bot
+    -- diamond(neg φ) = (box((φ.imp .bot).imp .bot)).imp .bot
+    -- So neg(diamond(neg φ)) = ((box((φ.imp .bot).imp .bot)).imp .bot).imp .bot
+    -- This is neg(neg(box(neg neg φ))) = neg neg (box(neg neg φ))
+    -- We need box(neg neg φ) ∈ S to derive neg neg φ ∈ U via hSU
+    -- Actually, neg(diamond(neg φ)) = box(neg neg φ) definitionally
+    -- diamond(neg φ) = neg(box(neg(neg φ))) = (box(neg neg φ)).imp .bot
+    -- neg(diamond(neg φ)) = ((box(neg neg φ)).imp .bot).imp .bot
+    -- But that's neg neg (box(neg neg φ)), not box(neg neg φ) itself.
+    -- We need a different approach: use mcs_mem_iff_neg_not_mem
+    -- Actually: diamond(x) = neg(box(neg x)) by definition
+    -- So not(diamond(neg φ)) means diamond(neg φ) not in S
+    -- which means neg(diamond(neg φ)) in S
+    -- neg(diamond(neg φ)) = neg(neg(box(neg(neg φ)))) = neg neg (box((φ.imp .bot).imp .bot))
+    -- We have neg neg (box(neg neg φ)) ∈ S.val
+    -- This is ((box((φ.imp .bot).imp .bot)).imp .bot).imp .bot ∈ S.val
+    -- We need to derive: (φ.imp .bot).imp .bot ∈ U.val from box((φ.imp .bot).imp .bot) ∈ S.val
+    -- But we don't have box((φ.imp .bot).imp .bot) ∈ S.val directly
+    -- We have neg neg (box(neg neg φ)) ∈ S.val
+    -- Hmm, let me reconsider. The straightforward approach:
+    -- h_diam_not_S : diamond(neg φ) ∉ S.val
+    -- By definition, diamond(neg φ) = (box(neg(neg φ))).imp .bot
+    -- So (box((φ.imp .bot).imp .bot)).imp .bot ∉ S.val
+    -- By mcs_mem_iff_neg_not_mem (reverse): box((φ.imp .bot).imp .bot) ∈ S.val
+    -- (because neg X ∉ S ↔ X ∈ S, and diamond(neg φ) IS neg(box(neg neg φ)))
+    -- Wait: diamond(neg φ) = neg(box(neg(neg φ)))
+    -- So diamond(neg φ) = (box((φ.imp .bot).imp .bot)).imp .bot
+    -- This is the negation of box((φ.imp .bot).imp .bot)
+    -- So if diamond(neg φ) ∉ S, i.e. neg(box(neg neg φ)) ∉ S
+    -- then by negation_complete: box(neg neg φ) ∈ S  OR  neg(box(neg neg φ)) ∈ S
+    -- Since neg(box(neg neg φ)) = diamond(neg φ) ∉ S, we get box(neg neg φ) ∈ S
+    -- That gives us what we need!
+    have h_box_dne_S : Proposition.box ((φ.imp .bot).imp .bot) ∈ S.val := by
+      rcases modal_negation_complete h_implyK h_implyS S.property
+        (Proposition.box ((φ.imp .bot).imp .bot)) with h | h
+      · exact h
+      · -- h : neg(box((φ.imp .bot).imp .bot)) ∈ S.val
+        -- neg(box((φ.imp .bot).imp .bot)) = (box((φ.imp .bot).imp .bot)).imp .bot
+        -- = diamond(neg φ) by definition
+        -- But h_diam_not_S says diamond(neg φ) ∉ S.val
+        exact absurd h h_diam_not_S
+    -- By hSU: (φ.imp .bot).imp .bot ∈ U.val, i.e. neg neg φ ∈ U.val
+    have h_dne_U := hSU _ h_box_dne_S
+    -- h_dne_U : (φ.imp .bot).imp .bot ∈ U.val
+    -- h_neg_U : φ.imp .bot ∈ U.val
+    -- MP gives bot ∈ U.val — contradiction
+    exact mcs_bot_not_mem U.property
+      (modal_implication_property h_implyK h_implyS U.property h_dne_U h_neg_U)
+  -- Step 3: axiom 5 gives box(diamond(neg φ)) ∈ S.val
+  have h_box_diam_S := mcs_mp_axiom h_implyK h_implyS S.property h_diam_S
+    (h_5 (Proposition.neg φ))
+  -- Step 4: by hST, diamond(neg φ) ∈ T.val
+  have h_diam_T := hST _ h_box_diam_S
+  -- Step 5: from box φ ∈ T.val, derive box(neg neg φ) ∈ T.val
+  let bp := φ
+  have d_bot : DerivationTree Axioms [bp.imp .bot, bp] Proposition.bot :=
+    .modus_ponens [bp.imp .bot, bp] bp .bot
+      (.assumption _ (bp.imp .bot) (by simp [List.mem_cons]))
+      (.assumption _ bp (by simp [List.mem_cons]))
+  have d_dne := deductionTheorem h_implyK h_implyS [bp] (bp.imp .bot) .bot d_bot
+  have d_dni := deductionTheorem h_implyK h_implyS [] bp
+    ((bp.imp .bot).imp .bot) d_dne
+  have d_nec := DerivationTree.necessitation _ d_dni
+  have h_box_dni_T :
+      Proposition.box (bp.imp ((bp.imp .bot).imp .bot)) ∈ T.val :=
+    modal_closed_under_derivation h_implyK h_implyS T.property
+      (L := []) (fun _ h => nomatch h) ⟨d_nec⟩
+  have h_box_dne_T := mcs_box_mp h_implyK h_implyS h_K T.property
+    h_box_dni_T h_box_T
+  -- Step 6: diamond(neg φ) and box(neg neg φ) in T.val → bot ∈ T.val
+  exact mcs_bot_not_mem T.property
+    (modal_implication_property h_implyK h_implyS T.property h_diam_T h_box_dne_T)
 
 /-! ## Truth Lemma -/
 

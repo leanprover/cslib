@@ -142,12 +142,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Canonical Frame Property Lemmas (Completeness.lean) [NOT STARTED]
+### Phase 3: Canonical Frame Property Lemmas (Completeness.lean) [COMPLETED]
 
 **Goal**: Prove canonical_symm (the canonical frame of any logic containing axiom B is symmetric) and canonical_eucl_from_5 (the canonical frame of any logic containing axiom 5 is Euclidean). Both follow BRV Chapter 4 canonicity framework.
 
 **Tasks**:
-- [ ] Add `canonical_symm` after `canonical_trans` (before `canonical_eucl`, around line 94) with signature:
+- [x] Add `canonical_symm` after `canonical_trans` (before `canonical_eucl`, around line 94) with signature:
   ```
   theorem canonical_symm
       {Axioms : Proposition Atom -> Prop}
@@ -166,7 +166,7 @@ Phases within the same wave can execute in parallel.
   6. From `box phi in T.val`, derive `box(neg neg phi) in T.val` using the d_dni double-negation introduction pattern from canonical_eucl
   7. Contradiction: `diamond(neg phi)` and `box(neg neg phi)` in T.val gives `bot in T.val` via `modal_implication_property`; contradicts `mcs_bot_not_mem`
 
-- [ ] Add `canonical_eucl_from_5` after `canonical_eucl` (around line 142) with signature:
+- [x] Add `canonical_eucl_from_5` after `canonical_eucl` (around line 142) with signature:
   ```
   theorem canonical_eucl_from_5
       {Axioms : Proposition Atom -> Prop}
@@ -190,8 +190,8 @@ Phases within the same wave can execute in parallel.
   7. From `box phi in T.val`, derive `box(neg neg phi) in T.val` (same d_dni pattern)
   8. Contradiction: `diamond(neg phi)` and `box(neg neg phi)` in T.val gives `bot in T.val`
 
-- [ ] Use `lean_goal` at key proof positions to verify intermediate goal states match expectations
-- [ ] Verify `lake build Cslib.Logics.Modal.Metalogic.Completeness` passes
+- [x] Use `lean_goal` at key proof positions to verify intermediate goal states match expectations
+- [x] Verify `lake build Cslib.Logics.Modal.Metalogic.Completeness` passes
 
 **Timing**: 1.5 hours
 
