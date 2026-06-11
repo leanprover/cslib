@@ -10,7 +10,8 @@
       "description": "Review all propositional Hilbert system metalogic and parameterized ND equivalence work for quality and consistency, following CONTRIBUTING.md closely. Then cherry-pick these changes to the pr1/foundations-logic branch so that the branch contents form a coherent package ready for PR submission. Minimal logic has no ND equivalent and is excluded from the ND equivalence. The task should not submit the PR itself — only prepare the branch",
       "created": "2026-06-11T15:37:00Z",
       "last_updated": "2026-06-11T16:03:26Z",
-      "session_id": "sess_1781192410_b56b66"
+      "session_id": "sess_1781192410_b56b66",
+      "completion_summary": "Transferred 22 propositional metalogic and ND equivalence files from main to pr1/foundations-logic branch. All files sorry-free, branch builds cleanly (2754 jobs). 2 FromPropositional embedding files deferred due to incompatible Modal/Temporal type structures on the branch."
     },
     {
       "project_number": 112,
