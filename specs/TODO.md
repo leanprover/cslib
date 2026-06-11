@@ -44,7 +44,7 @@ next_project_number: 90
 ### Uncategorized
 
 88 [COMPLETED] — refactor_propositional_hilbert_intuitionistic_base
-89 [PLANNED] — derived_connective_rules
+89 [COMPLETED] — derived_connective_rules
 
 ## Tasks
 
