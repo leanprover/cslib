@@ -1,7 +1,7 @@
 # Implementation Plan: Task #95 (v2)
 
 - **Task**: 95 - Establish soundness and completeness for modal logics K and T
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 5 hours
 - **Dependencies**: Task 93 (modal S5 preservation + Instances.lean) -- completed
 - **Research Inputs**: specs/095_modal_k_t_soundness_completeness/reports/01_k-t-soundness-completeness.md
@@ -89,7 +89,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: K Soundness (BRV Definition 4.9 for K) [NOT STARTED]
+### Phase 1: K Soundness (BRV Definition 4.9 for K) [COMPLETED]
 
 **Goal**: Prove every KAxiom is valid on arbitrary frames (no frame conditions needed). This implements BRV Definition 4.9 specialized to the logic K, confirming that the axiom set of K is sound with respect to the class of all frames (BRV Table 4.1).
 
