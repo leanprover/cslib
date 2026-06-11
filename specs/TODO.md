@@ -1,5 +1,5 @@
 ---
-next_project_number: 123
+next_project_number: 124
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 123
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,123 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -36,12 +36,21 @@ next_project_number: 123
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
+123 [NOT STARTED] — add_bib_references_pr1
 
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 123. Add bib references pr1
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Submit PRs
+- **Dependencies**: None
+
+---
 
 ### 64. Pr6 completeness theorem
 - **Status**: [NOT STARTED]

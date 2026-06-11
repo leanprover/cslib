@@ -1,6 +1,15 @@
 {
-  "next_project_number": 123,
+  "next_project_number": 124,
   "active_projects": [
+    {
+      "project_number": 123,
+      "project_name": "add_bib_references_pr1",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "created": "2026-06-11T20:29:11Z",
+      "last_updated": "2026-06-11T20:29:11Z"
+    },
     {
       "project_number": 60,
       "project_name": "pr2_modal_metalogic",
