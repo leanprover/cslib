@@ -21,18 +21,13 @@ next_project_number: 122
 ### Temporal Logic
 
 38 [NOT STARTED] — Dense temporal completeness: prove that every formula valid on al
-  └─ 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
-  └─ 41 [NOT STARTED] — (Foundations: Abstract shared completeness infrastruct) (see above)
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
-  └─ 41 [NOT STARTED] — (Foundations: Abstract shared completeness infrastruct) (see above)
 
 ### Bimodal Porting
 
 36 [BLOCKED] — Port discrete completeness (completeness_discrete theorem) and We
-  └─ 39 [NOT STARTED] — (Temporal Logic: Discrete temporal completeness: prove th) (see above)
 37 [BLOCKED] — Port continuous extension completeness once developed upstream. T
-  └─ 40 [BLOCKED] — (Temporal Logic: Continuous temporal completeness: comple) (see above)
 
 ### Submit PRs
 
@@ -53,7 +48,7 @@ next_project_number: 122
 ## Tasks
 
 ### 121. Review propositional metalogic cherry pick
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None
