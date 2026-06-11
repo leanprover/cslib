@@ -48,14 +48,14 @@ next_project_number: 113
 
 ### Modal Logic
 
-100 [NOT STARTED] — Prove canonical_symm (symmetry from axiom B alone) and canonical_
-101 [NOT STARTED] — Prove soundness and completeness for modal logic B (K + axiom B) 
-102 [NOT STARTED] — Prove soundness and completeness for modal logic K4 (K + axiom 4)
-103 [NOT STARTED] — Prove soundness and completeness for modal logic K5 (K + axiom 5)
-104 [NOT STARTED] — Prove soundness and completeness for modal logic K45 (K + 4 + 5) 
-105 [NOT STARTED] — Prove soundness and completeness for modal logic TB (K + T + B) o
-106 [NOT STARTED] — Prove soundness and completeness for modal logic KB5 (K + B + 5) 
-107 [NOT STARTED] — Prove soundness and completeness for modal logic D4 (K + D + 4) o
+100 [IMPLEMENTING] — Prove canonical_symm (symmetry from axiom B alone) and canonical_
+101 [PLANNED] — Prove soundness and completeness for modal logic B (K + axiom B) 
+102 [PLANNED] — Prove soundness and completeness for modal logic K4 (K + axiom 4)
+103 [PLANNED] — Prove soundness and completeness for modal logic K5 (K + axiom 5)
+104 [PLANNED] — Prove soundness and completeness for modal logic K45 (K + 4 + 5) 
+105 [PLANNED] — Prove soundness and completeness for modal logic TB (K + T + B) o
+106 [PLANNED] — Prove soundness and completeness for modal logic KB5 (K + B + 5) 
+107 [PLANNED] — Prove soundness and completeness for modal logic D4 (K + D + 4) o
 108 [NOT STARTED] — Prove soundness and completeness for modal logic D5 (K + D + 5) o
 109 [NOT STARTED] — Prove soundness and completeness for modal logic D45 (K + D + 4 +
 110 [NOT STARTED] — Prove soundness and completeness for modal logic DB (K + D + B) o
@@ -72,7 +72,9 @@ next_project_number: 113
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: None
-- **Research**: [112_propositional_hilbert_soundness_completeness/reports/01_team-research.md]
+- **Research**:
+  - [112_propositional_hilbert_soundness_completeness/reports/01_team-research.md]
+  - [112_propositional_hilbert_soundness_completeness/reports/02_team-research.md]
 
 **Description**: Establish soundness and completeness for the propositional Hilbert proof systems. This is a meta-task that should be expanded into the appropriate number of sub-tasks covering: (1) propositional semantics definitions (valuations, evaluation, validity), (2) soundness theorem (axiom validity + induction on derivation trees), and (3) completeness theorem (canonical valuation from MCS, truth lemma, top-level completeness). The MCS/Lindenbaum infrastructure already exists in Metalogic/MCS.lean and Metalogic/DeductionTheorem.lean. Modal logic already has analogous results in Cslib/Logics/Modal/Metalogic/ (Soundness.lean, Completeness.lean, etc.) which can serve as a pattern. New files should go under Cslib/Logics/Propositional/Semantics/ and Cslib/Logics/Propositional/Metalogic/. Task type: lean4.
 
@@ -119,7 +121,7 @@ next_project_number: 113
 ---
 
 ### 107. Modal d4 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -129,7 +131,7 @@ next_project_number: 113
 ---
 
 ### 106. Modal kb5 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -139,7 +141,7 @@ next_project_number: 113
 ---
 
 ### 105. Modal tb soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -149,7 +151,7 @@ next_project_number: 113
 ---
 
 ### 104. Modal k45 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -159,7 +161,7 @@ next_project_number: 113
 ---
 
 ### 103. Modal k5 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -169,7 +171,7 @@ next_project_number: 113
 ---
 
 ### 102. Modal k4 soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -179,7 +181,7 @@ next_project_number: 113
 ---
 
 ### 101. Modal b soundness completeness
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
@@ -189,7 +191,7 @@ next_project_number: 113
 ---
 
 ### 100. Modal cube shared infrastructure
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
