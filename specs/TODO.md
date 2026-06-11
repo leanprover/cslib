@@ -1,5 +1,5 @@
 ---
-next_project_number: 91
+next_project_number: 92
 ---
 
 # Tasks
@@ -45,12 +45,42 @@ next_project_number: 91
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and  (dep: 38, 39, 40)
 
+### Submit PRs (Propositional)
+
+91 [NOT STARTED] — PR 1.5: Propositional Hilbert submission (dep: 59)
+
 ### Uncategorized
 
 88 [COMPLETED] — refactor_propositional_hilbert_intuitionistic_base
 89 [COMPLETED] — derived_connective_rules
 
 ## Tasks
+
+### 91. PR 1.5: Propositional Hilbert submission
+- **Effort**: Small (2-3 hours)
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Dependencies**: Task 59
+- **Topic**: Submit PRs
+
+**Description**: Create feature branch and submit PR 1.5 containing the propositional Hilbert system additions developed since PR 1 (tasks 87, 88, 89). This PR adds ~1,200 new lines across 3 new files and updates to 11 existing files in Logics/Propositional/ and Foundations/Logic/.
+
+**New files**:
+- NaturalDeduction/Equivalence.lean (168 lines): extensional equivalence between Hilbert and ND proof systems (hilbert_iff_nd theorem)
+- NaturalDeduction/DerivedRules.lean (386 lines): 13 derived intro/elim rules for Łukasiewicz-encoded connectives (and, or, neg, iff, top, dne) in the ND system
+- NaturalDeduction/HilbertDerivedRules.lean (447 lines): matching Hilbert system derived rules
+
+**Modified files** (Foundations/Logic/ typeclass refactor):
+- ProofSystem.lean: three-level Hilbert typeclass hierarchy (MinimalHilbert → IntuitionisticHilbert → ClassicalHilbert)
+- Theorems/Propositional/Core.lean + Connectives.lean: theorems stratified across the hierarchy
+- Theorems/Combinators.lean, Theorems.lean, BigConj.lean: weakened to MinimalHilbert
+- ProofSystem/Instances.lean: updated for new hierarchy
+- Defs.lean: added Proposition.iff
+- Metalogic/DeductionTheorem.lean, MCS.lean: minor updates
+
+**PR title**: `feat(Logics/Propositional): Hilbert-ND equivalence, derived connective rules, and intuitionistic base hierarchy`
+
+---
 
 ### 90. Expand modal logic Hilbert proof systems and metalogic across the modal cube (K, T, D, S4, S5)
 - **Effort**: large
