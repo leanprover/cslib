@@ -50,7 +50,7 @@ next_project_number: 90
 
 ### 89. Derived intro/elim rules for defined propositional connectives in ND and Hilbert
 - **Effort**: medium
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 
 **Description**: Add derived intro/elim rules for the defined propositional connectives (`∧ₚ`, `∨ₚ`, `¬ₚ`, `↔ₚ`, `⊤ₚ`) in both proof systems so that both are equally versatile. Connectives are already `abbrev` definitions reducing to `→`/`⊥` via Łukasiewicz encodings in `Defs.lean`. Follow the existing pattern used for temporal defined operators: `abbrev` + notation + standalone theorems with definitional unfolding.
