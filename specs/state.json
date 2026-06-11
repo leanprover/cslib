@@ -149,11 +149,11 @@
     {
       "project_number": 124,
       "project_name": "plan_pr1_decomposition_into_smaller_prs",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "general",
       "topic": "Submit PRs",
       "created": "2026-06-11T20:47:26Z",
-      "last_updated": "2026-06-11T22:23:22Z",
+      "last_updated": "2026-06-11T22:31:46Z",
       "session_id": "sess_1781216211_3e9442",
       "next_artifact_number": 2,
       "artifacts": [
@@ -161,8 +161,14 @@
           "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md",
           "type": "plan",
           "summary": "Revised plan: create 11 sub-PR tasks with detailed spec reports, then verify dependencies"
+        },
+        {
+          "path": "specs/124_plan_pr1_decomposition_into_smaller_prs/summaries/01_pr1-decomposition-summary.md",
+          "type": "summary",
+          "summary": "Created 11 sub-PR tasks (125-135) with detailed spec reports"
         }
-      ]
+      ],
+      "completion_summary": "Created 11 sub-PR tasks (125-135) with detailed spec reports for decomposing PR 1 into smaller PRs under 500 LOC each; tasks organized in 4 dependency waves with verified acyclic dependency graph"
     },
     {
       "project_number": 123,

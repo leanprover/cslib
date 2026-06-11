@@ -11,7 +11,7 @@ next_project_number: 136
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,124,125 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,125 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62,126,127,128,129 | 36,37,61,125 | Temporal Logic, Submit PRs |
 | 3 | 41,63,130,133 | 38,39,40,62,126,127 | Submit PRs, Foundations |
 | 4 | 64,131,132,134,135 | 63,127,128,130,133 | Submit PRs |
@@ -36,7 +36,6 @@ next_project_number: 136
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-124 [IMPLEMENTING] — plan_pr1_decomposition_into_smaller_prs
 125 [NOT STARTED] — Sub-PR 1.1: 3-tier Hilbert hierarchy refactoring. Modifies 12 alr
   └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
     └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
@@ -170,11 +169,12 @@ next_project_number: 136
 ---
 
 ### 124. Plan pr1 decomposition into smaller prs
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Topic**: Submit PRs
 - **Dependencies**: None
 - **Plan**: [124_plan_pr1_decomposition_into_smaller_prs/plans/01_pr1-decomposition-plan.md]
+- **Summary**: [124_plan_pr1_decomposition_into_smaller_prs/summaries/01_pr1-decomposition-summary.md]
 
 ---
 
