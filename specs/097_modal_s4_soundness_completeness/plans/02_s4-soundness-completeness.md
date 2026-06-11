@@ -174,17 +174,17 @@ The proof proceeds by the Canonical Model Theorem (Thm 4.22): given a consistent
 
 ---
 
-### Phase 3: Module Integration [NOT STARTED]
+### Phase 3: Module Integration [COMPLETED]
 
 **Goal**: Wire the new S4 files into the module aggregator and root imports, verify clean full build.
 
 **Tasks**:
-- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Soundness` to `Cslib/Logics/Modal/Metalogic.lean`
-- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Completeness` to `Cslib/Logics/Modal/Metalogic.lean`
-- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Soundness` to `Cslib.lean`
-- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Completeness` to `Cslib.lean`
-- [ ] Run full `lake build` and confirm zero errors, zero sorries
-- [ ] Run `lean_verify` on all new theorems: `Cslib.Logic.Modal.s4_axiom_sound`, `Cslib.Logic.Modal.s4_soundness`, `Cslib.Logic.Modal.s4_soundness_derivable`, `Cslib.Logic.Modal.s4_completeness`
+- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Soundness` to `Cslib/Logics/Modal/Metalogic.lean` *(deviation: deferred to task 98 — aggregator imports handled by integration task to avoid parallel conflicts)*
+- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Completeness` to `Cslib/Logics/Modal/Metalogic.lean` *(deviation: deferred to task 98)*
+- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Soundness` to `Cslib.lean` *(deviation: deferred to task 98)*
+- [ ] Add `public import Cslib.Logics.Modal.Metalogic.S4Completeness` to `Cslib.lean` *(deviation: deferred to task 98)*
+- [x] Run full `lake build` and confirm zero errors, zero sorries *(deviation: altered — verified individual module builds instead of full build since aggregator imports deferred)*
+- [x] Run `lean_verify` on all new theorems: `Cslib.Logic.Modal.s4_axiom_sound`, `Cslib.Logic.Modal.s4_soundness`, `Cslib.Logic.Modal.s4_soundness_derivable`, `Cslib.Logic.Modal.s4_completeness`
 
 **Timing**: 0.75 hours
 
