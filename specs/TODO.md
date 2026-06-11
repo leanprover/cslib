@@ -1,5 +1,5 @@
 ---
-next_project_number: 121
+next_project_number: 122
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 121
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,121 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -42,11 +42,25 @@ next_project_number: 121
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
+### Propositional Logic
+
+121 [NOT STARTED] — Review all propositional Hilbert system metalogic and parameteriz
+
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 121. Review propositional metalogic cherry pick
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Review all propositional Hilbert system metalogic and parameterized ND equivalence work for quality and consistency, following CONTRIBUTING.md closely. Then cherry-pick these changes to the pr1/foundations-logic branch so that the branch contents form a coherent package ready for PR submission. Minimal logic has no ND equivalent and is excluded from the ND equivalence. The task should not submit the PR itself — only prepare the branch
+
+---
 
 ### 120. Parameterize natural deduction equivalence
 - **Status**: [COMPLETED]

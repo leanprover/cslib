@@ -1,6 +1,16 @@
 {
-  "next_project_number": 121,
+  "next_project_number": 122,
   "active_projects": [
+    {
+      "project_number": 121,
+      "project_name": "review_propositional_metalogic_cherry_pick",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Propositional Logic",
+      "description": "Review all propositional Hilbert system metalogic and parameterized ND equivalence work for quality and consistency, following CONTRIBUTING.md closely. Then cherry-pick these changes to the pr1/foundations-logic branch so that the branch contents form a coherent package ready for PR submission. Minimal logic has no ND equivalent and is excluded from the ND equivalence. The task should not submit the PR itself — only prepare the branch",
+      "created": "2026-06-11T15:37:00Z",
+      "last_updated": "2026-06-11T15:37:00Z"
+    },
     {
       "project_number": 119,
       "project_name": "modal_code_quality_audit",
