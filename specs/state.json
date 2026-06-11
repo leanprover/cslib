@@ -1,6 +1,15 @@
 {
-  "next_project_number": 90,
+  "next_project_number": 91,
   "active_projects": [
+    {
+      "project_number": 90,
+      "project_name": "pr_1_5_propositional_hilbert_submission",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Propositional Logic",
+      "created": "2026-06-11T00:19:29Z",
+      "last_updated": "2026-06-11T00:19:29Z"
+    },
     {
       "project_number": 88,
       "project_name": "refactor_propositional_hilbert_intuitionistic_base",
@@ -287,6 +296,7 @@
   "active_topics": [
     "Temporal Logic",
     "Bimodal Porting",
-    "Submit PRs"
+    "Submit PRs",
+    "Propositional Logic"
   ]
 }
