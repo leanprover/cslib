@@ -1,6 +1,169 @@
 {
   "completed_projects": [
     {
+      "project_number": 112,
+      "project_name": "propositional_hilbert_soundness_completeness",
+      "status": "expanded",
+      "task_type": "lean4",
+      "topic": "Propositional Logic",
+      "description": "Establish soundness and completeness for the propositional Hilbert proof systems. This is a meta-task that should be expanded into the appropriate number of sub-tasks covering: (1) propositional semantics definitions (valuations, evaluation, validity), (2) soundness theorem (axiom validity + induction on derivation trees), and (3) completeness theorem (canonical valuation from MCS, truth lemma, top-level completeness). The MCS/Lindenbaum infrastructure already exists in Metalogic/MCS.lean and Metalogic/DeductionTheorem.lean. Modal logic already has analogous results in Cslib/Logics/Modal/Metalogic/ (Soundness.lean, Completeness.lean, etc.) which can serve as a pattern. New files should go under Cslib/Logics/Propositional/Semantics/ and Cslib/Logics/Propositional/Metalogic/. Task type: lean4.",
+      "created": "2026-06-11T05:13:57Z",
+      "last_updated": "2026-06-11T06:36:32Z",
+      "session_id": "sess_1781158518_f6ca37",
+      "researched": "2026-06-11T05:53:07Z",
+      "next_artifact_number": 3,
+      "artifacts": [
+        {
+          "path": "specs/112_propositional_hilbert_soundness_completeness/reports/01_team-research.md",
+          "type": "report",
+          "summary": "Team research: CZ Ch.1 as reference, 3-level scope (classical + intuitionistic + minimal), MCS infrastructure complete"
+        },
+        {
+          "path": "specs/112_propositional_hilbert_soundness_completeness/reports/02_team-research.md",
+          "type": "report",
+          "summary": "Team research round 2: exact implementation requirements for classical, intuitionistic, and minimal completeness"
+        },
+        {
+          "path": "specs/112_propositional_hilbert_soundness_completeness/plans/02_expansion-plan.md",
+          "type": "plan",
+          "summary": "6-phase expansion plan for propositional Hilbert soundness/completeness across 3 logic levels"
+        }
+      ],
+      "subtasks": [
+        113,
+        114,
+        115,
+        116,
+        117,
+        118
+      ],
+      "archived": "2026-06-11T19:01:18Z"
+    },
+    {
+      "project_number": 99,
+      "project_name": "complete_modal_cube_hilbert_systems",
+      "status": "expanded",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "created": "2026-06-11T04:39:22Z",
+      "last_updated": "2026-06-11T05:12:27Z",
+      "session_id": "sess_1781153519_227931",
+      "researched": "2026-06-11T04:50:03Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/099_complete_modal_cube_hilbert_systems/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research (4 teammates): infrastructure analysis, canonical frame property proofs, wave-based task decomposition"
+        },
+        {
+          "path": "specs/099_complete_modal_cube_hilbert_systems/plans/01_modal-cube-completion.md",
+          "type": "plan",
+          "summary": "12-phase plan covering shared infrastructure, 10 soundness/completeness pairs, and integration (16 hours estimated)"
+        }
+      ],
+      "subtasks": [
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111
+      ],
+      "completion_summary": "Expanded into 12 sub-tasks (100-111) covering shared infrastructure, 10 soundness/completeness pairs, and integration",
+      "archived": "2026-06-11T19:01:18Z"
+    },
+    {
+      "project_number": 90,
+      "project_name": "expand_modal_cube_proof_systems_metalogic",
+      "status": "expanded",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "created": "2026-06-11T00:23:04Z",
+      "last_updated": "2026-06-10T18:30:00Z",
+      "artifacts": [
+        {
+          "path": "specs/090_expand_modal_cube_proof_systems_metalogic/reports/01_modal-cube-expansion.md",
+          "type": "report",
+          "summary": "Architecture analysis, per-system completeness scope, dependency ordering for K/T/D/S4/S5 expansion"
+        },
+        {
+          "path": "specs/090_expand_modal_cube_proof_systems_metalogic/plans/01_modal-cube-expansion.md",
+          "type": "plan",
+          "summary": "7-phase plan: infrastructure refactoring, S5 preservation, HilbertDerivedRules, per-system K/T/D/S4 soundness+completeness, integration"
+        },
+        {
+          "path": "specs/090_expand_modal_cube_proof_systems_metalogic/plans/01_modal-cube-expansion.md",
+          "type": "plan",
+          "summary": "7-phase plan for modal cube expansion"
+        },
+        {
+          "path": "specs/090_expand_modal_cube_proof_systems_metalogic/summaries/01_modal-cube-expansion-summary.md",
+          "type": "summary",
+          "summary": "Expansion summary with sub-task table"
+        }
+      ],
+      "completion_summary": "Expanded into 7 sub-tasks (92-98): infrastructure refactoring, S5 preservation + Instances.lean, HilbertDerivedRules integration, K+T/D/S4 soundness+completeness, final integration. 4 dependency waves, ~2200 new lines estimated.",
+      "subtasks": [
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98
+      ],
+      "archived": "2026-06-11T19:01:18Z"
+    },
+    {
+      "project_number": 31,
+      "project_name": "temporal_metalogic",
+      "status": "expanded",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:00:00Z",
+      "last_updated": "2026-06-09T13:30:00Z",
+      "description": "Expanded into tasks 46 (R-relation), 47 (point insertion), 48 (chronicle construction), 49 (truth lemma + completeness). Phases 1-5 completed: DeductionTheorem, MCS, Soundness, helper lemmas. Phase 6 (Completeness) requires Burgess point-insertion method (~4K-7K lines), too large for a single task.",
+      "topic": "Temporal Logic",
+      "subtasks": [
+        46,
+        47,
+        48,
+        49
+      ],
+      "archived": "2026-06-11T19:01:18Z"
+    },
+    {
+      "project_number": 9,
+      "project_name": "port_decidability_tableau_bimodal",
+      "status": "expanded",
+      "task_type": "lean4",
+      "created": "2026-06-08T00:30:00Z",
+      "last_updated": "2026-06-09T12:45:30Z",
+      "description": "Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Closure, Saturation, ProofExtraction, Correctness, DecisionProcedure, CountermodelExtraction, FMP/* to Cslib/Logics/Bimodal/Metalogic/Decidability/. This is the largest PR (~10k lines) covering the full tableau-based decision procedure for TM logic.\n\n**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/Decidability/):\n- SignedFormula.lean (~400 lines): signed formula type for tableau\n- Tableau.lean (~1,800 lines): main tableau expansion rules (28 rules), termination proof\n- Closure.lean (~600 lines): closure conditions, saturation definition\n- Saturation.lean (~800 lines): saturation lemmas, model extraction framework\n- ProofExtraction.lean (~600 lines): extract DerivationTree from closed tableau branch\n- Correctness.lean (~400 lines): tableau soundness (closed = provable) and completeness (non-closed = satisfiable)\n- DecisionProcedure.lean (~500 lines): decide function, decidability instance\n- CountermodelExtraction.lean (~600 lines): extract countermodel from open saturated tableau\n- FMP/*.lean (~4 files, ~3,000 lines): finite model property (closure MCS construction, bounded model size)\n\n**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/\n\n**Estimated scope**: ~10,000 lines across 18+ files\n\n**PR title**: feat(Logics/Bimodal): add Metalogic/Decidability module (Tableau, FMP, DecisionProcedure)\n\n**Note**: This PR may benefit from splitting into two sub-tasks: (9a) Core tableau/decision procedure (~5k lines) and (9b) FMP (~4k lines). Consider splitting if review burden is too high.\n\n**Dependencies**: Tasks 4 (ProofSystem) and 7 (MCS/Deduction) must be merged first.\n\n**Porting Checklist (apply to every file in this PR)**:\n- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal\n- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal\n- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)\n- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)\n- [ ] Run lake shake to identify unused imports\n- [ ] Run Mathlib linter: set_option linter.all true\n- [ ] Verify lake build passes with zero errors\n- [ ] Confirm zero sorry occurrences (grep -r sorry src/)",
+      "topic": "Bimodal Porting",
+      "session_id": "sess_1781008307_e3b17b",
+      "researched": "2026-06-09T12:38:51Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/009_port_decidability_tableau_bimodal/reports/01_team-research.md",
+          "type": "research",
+          "summary": "Team research with 4 teammates"
+        }
+      ],
+      "subtasks": [
+        42,
+        43
+      ],
+      "archived": "2026-06-11T19:01:18Z"
+    },
+    {
       "project_number": 122,
       "project_name": "fix_propositional_ci_checks",
       "status": "completed",

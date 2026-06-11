@@ -43,43 +43,6 @@ next_project_number: 123
 
 ## Tasks
 
-### 112. Propositional hilbert soundness completeness
-- **Status**: [EXPANDED]
-- **Task Type**: lean4
-- **Topic**: Propositional Logic
-- **Dependencies**: None
-- **Research**:
-  - [112_propositional_hilbert_soundness_completeness/reports/01_team-research.md]
-  - [112_propositional_hilbert_soundness_completeness/reports/02_team-research.md]
-- **Plan**: [112_propositional_hilbert_soundness_completeness/plans/02_expansion-plan.md]
-
-**Description**: Establish soundness and completeness for the propositional Hilbert proof systems. This is a meta-task that should be expanded into the appropriate number of sub-tasks covering: (1) propositional semantics definitions (valuations, evaluation, validity), (2) soundness theorem (axiom validity + induction on derivation trees), and (3) completeness theorem (canonical valuation from MCS, truth lemma, top-level completeness). The MCS/Lindenbaum infrastructure already exists in Metalogic/MCS.lean and Metalogic/DeductionTheorem.lean. Modal logic already has analogous results in Cslib/Logics/Modal/Metalogic/ (Soundness.lean, Completeness.lean, etc.) which can serve as a pattern. New files should go under Cslib/Logics/Propositional/Semantics/ and Cslib/Logics/Propositional/Metalogic/. Task type: lean4.
-
----
-
-### 99. Complete modal cube hilbert systems
-- **Status**: [EXPANDED]
-- **Task Type**: lean4
-- **Topic**: Modal Logic
-- **Dependencies**: None
-- **Research**: [099_complete_modal_cube_hilbert_systems/reports/01_team-research.md]
-- **Plan**: [099_complete_modal_cube_hilbert_systems/plans/01_modal-cube-completion.md]
-
----
-
-### 90. Expand modal cube proof systems metalogic
-- **Status**: [EXPANDED]
-- **Task Type**: lean4
-- **Topic**: Modal Logic
-- **Dependencies**: None
-- **Research**: [090_expand_modal_cube_proof_systems_metalogic/reports/01_modal-cube-expansion.md]
-- **Plan**:
-  - [090_expand_modal_cube_proof_systems_metalogic/plans/01_modal-cube-expansion.md]
-  - [090_expand_modal_cube_proof_systems_metalogic/plans/01_modal-cube-expansion.md]
-- **Summary**: [090_expand_modal_cube_proof_systems_metalogic/summaries/01_modal-cube-expansion-summary.md]
-
----
-
 ### 64. Pr6 completeness theorem
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
@@ -100,7 +63,7 @@ next_project_number: 123
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 59, Task 61
+- **Dependencies**: Task 61
 
 ---
 
@@ -108,7 +71,7 @@ next_project_number: 123
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 59
+- **Dependencies**: None
 
 ---
 
@@ -116,7 +79,7 @@ next_project_number: 123
 - **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
-- **Dependencies**: Task 59
+- **Dependencies**: None
 - **Research**: [060_pr2_modal_metalogic/reports/01_team-research.md]
 
 ---
@@ -149,7 +112,7 @@ Depends on: Tasks 35 (dense bimodal), 38 (dense temporal), 39 (discrete temporal
 - **Status**: [BLOCKED]
 - **Task Type**: lean4
 - **Topic**: Temporal Logic
-- **Dependencies**: Task 31, Task 37
+- **Dependencies**: Task 37
 
 **Description**: Continuous temporal completeness: completeness for temporal logic over Dedekind-complete (continuous) linear orders, e.g. the reals.
 
@@ -166,7 +129,7 @@ Blocker: Research needed on whether continuous frames require additional axioms 
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Temporal Logic
-- **Dependencies**: Task 31, Task 36
+- **Dependencies**: Task 36
 
 **Description**: Discrete temporal completeness: prove that every formula valid on all discrete serial linear orders is derivable in the Discrete temporal proof system.
 
@@ -186,7 +149,7 @@ Estimated scope: ~500-700 lines (new axioms + discrete soundness + discrete comp
 - **Status**: [NOT STARTED]
 - **Task Type**: lean4
 - **Topic**: Temporal Logic
-- **Dependencies**: Task 31, Task 49
+- **Dependencies**: None
 
 **Description**: Dense temporal completeness: prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system.
 
@@ -206,7 +169,7 @@ Estimated scope: ~400-600 lines (new axioms + dense soundness + dense completene
 - **Status**: [BLOCKED]
 - **Task Type**: lean4
 - **Topic**: Bimodal Porting
-- **Dependencies**: Task 35, Task BimodalLogic:continuous_extension
+- **Dependencies**: Task BimodalLogic:continuous_extension
 
 **Description**: Port continuous extension completeness once developed upstream. The continuous case (FrameClass for continuous/real-valued time) has not been started in BimodalLogic. This task is blocked pending upstream development of continuous frame completeness.
 
@@ -221,7 +184,7 @@ Estimated scope: ~400-600 lines (new axioms + dense soundness + dense completene
 - **Status**: [BLOCKED]
 - **Task Type**: lean4
 - **Topic**: Bimodal Porting
-- **Dependencies**: Task 35, Task BimodalLogic:discrete_sorry_elimination
+- **Dependencies**: Task BimodalLogic:discrete_sorry_elimination
 
 **Description**: Port discrete completeness (completeness_discrete theorem) and WeakCanonical/IntegerModel/ infrastructure (~6 files). The discrete branch constructs countermodels on Int via the Reynolds pipeline. Currently blocked: upstream BimodalLogic has sorryAx tracing through chronicle_gap_contradiction → succ_cofinal → limitDomSubtype_isSuccArchimedean → succ_embed_surjective. Port after upstream sorry elimination completes.
 
@@ -229,16 +192,6 @@ Estimated scope: ~400-600 lines (new axioms + dense soundness + dense completene
 **Target**: Cslib/Logics/Bimodal/Metalogic/
 **Blocker**: Upstream BimodalLogic discrete completeness sorry elimination (36 sorries across IntegerModel/)
 **Parent task**: 8 (expanded)
-
----
-
-### 31. Temporal metalogic
-- **Status**: [EXPANDED]
-- **Task Type**: lean4
-- **Topic**: Temporal Logic
-- **Dependencies**: Task 49
-
-**Description**: Expanded into tasks 46 (R-relation), 47 (point insertion), 48 (chronicle construction), 49 (truth lemma + completeness). Phases 1-5 completed: DeductionTheorem, MCS, Soundness, helper lemmas. Phase 6 (Completeness) requires Burgess point-insertion method (~4K-7K lines), too large for a single task.
 
 ---
 
@@ -273,45 +226,3 @@ Estimated scope: ~400-600 lines (new axioms + dense soundness + dense completene
 2. **Namespace Decision**: confirm before starting task 2
 3. **CI Checks** (before each PR): lake build, lake shake, linter.all, zero sorry, Apache 2.0 headers
 4. **Review Cycle**: keep PRs small (max ~3,500 lines); address feedback within 48 hours
-
----
-
-### 9. Port decidability tableau bimodal
-- **Status**: [EXPANDED]
-- **Task Type**: lean4
-- **Topic**: Bimodal Porting
-- **Dependencies**: Task 4, Task 7
-- **Research**: [009_port_decidability_tableau_bimodal/reports/01_team-research.md]
-
-**Description**: Port Decidability and Tableau (PR 8): SignedFormula, Tableau, Closure, Saturation, ProofExtraction, Correctness, DecisionProcedure, CountermodelExtraction, FMP/* to Cslib/Logics/Bimodal/Metalogic/Decidability/. This is the largest PR (~10k lines) covering the full tableau-based decision procedure for TM logic.
-
-**Source files** (from BimodalLogic Theories/Bimodal/Metalogic/Decidability/):
-- SignedFormula.lean (~400 lines): signed formula type for tableau
-- Tableau.lean (~1,800 lines): main tableau expansion rules (28 rules), termination proof
-- Closure.lean (~600 lines): closure conditions, saturation definition
-- Saturation.lean (~800 lines): saturation lemmas, model extraction framework
-- ProofExtraction.lean (~600 lines): extract DerivationTree from closed tableau branch
-- Correctness.lean (~400 lines): tableau soundness (closed = provable) and completeness (non-closed = satisfiable)
-- DecisionProcedure.lean (~500 lines): decide function, decidability instance
-- CountermodelExtraction.lean (~600 lines): extract countermodel from open saturated tableau
-- FMP/*.lean (~4 files, ~3,000 lines): finite model property (closure MCS construction, bounded model size)
-
-**Target path**: Cslib/Logics/Bimodal/Metalogic/Decidability/
-
-**Estimated scope**: ~10,000 lines across 18+ files
-
-**PR title**: feat(Logics/Bimodal): add Metalogic/Decidability module (Tableau, FMP, DecisionProcedure)
-
-**Note**: This PR may benefit from splitting into two sub-tasks: (9a) Core tableau/decision procedure (~5k lines) and (9b) FMP (~4k lines). Consider splitting if review burden is too high.
-
-**Dependencies**: Tasks 4 (ProofSystem) and 7 (MCS/Deduction) must be merged first.
-
-**Porting Checklist (apply to every file in this PR)**:
-- [ ] Rename namespace: Bimodal/Theories -> Cslib.Logics.Bimodal
-- [ ] Add module declaration at top: namespace Cslib.Logics.Bimodal
-- [ ] Replace import Mathlib.* with import Cslib.Init (and specific Mathlib)
-- [ ] Add Apache 2.0 copyright header (see cslib CONTRIBUTING.md for format)
-- [ ] Run lake shake to identify unused imports
-- [ ] Run Mathlib linter: set_option linter.all true
-- [ ] Verify lake build passes with zero errors
-- [ ] Confirm zero sorry occurrences (grep -r sorry src/)
