@@ -1,5 +1,5 @@
 ---
-next_project_number: 100
+next_project_number: 112
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 100
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,99 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,100,101,102,103,104,105,106,107,108,109,110,111 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -44,7 +44,18 @@ next_project_number: 100
 
 ### Modal Logic
 
-99 [PLANNED] — complete_modal_cube_hilbert_systems
+100 [NOT STARTED] — Prove canonical_symm (symmetry from axiom B alone) and canonical_
+101 [NOT STARTED] — Prove soundness and completeness for modal logic B (K + axiom B) 
+102 [NOT STARTED] — Prove soundness and completeness for modal logic K4 (K + axiom 4)
+103 [NOT STARTED] — Prove soundness and completeness for modal logic K5 (K + axiom 5)
+104 [NOT STARTED] — Prove soundness and completeness for modal logic K45 (K + 4 + 5) 
+105 [NOT STARTED] — Prove soundness and completeness for modal logic TB (K + T + B) o
+106 [NOT STARTED] — Prove soundness and completeness for modal logic KB5 (K + B + 5) 
+107 [NOT STARTED] — Prove soundness and completeness for modal logic D4 (K + D + 4) o
+108 [NOT STARTED] — Prove soundness and completeness for modal logic D5 (K + D + 5) o
+109 [NOT STARTED] — Prove soundness and completeness for modal logic D45 (K + D + 4 +
+110 [NOT STARTED] — Prove soundness and completeness for modal logic DB (K + D + B) o
+111 [NOT STARTED] — Update Metalogic.lean module aggregator with all 20 new imports. 
 
 ### Foundations
 
@@ -52,8 +63,128 @@ next_project_number: 100
 
 ## Tasks
 
+### 111. Modal cube integration
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Update Metalogic.lean module aggregator with all 20 new imports. Verify lake build passes for the full module and project. Confirm no sorry or axioms in any new theorem via lean_verify.
+
+---
+
+### 110. Modal db soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic DB (K + D + B) over serial + symmetric frames. Soundness via Satisfies.d + Satisfies.b; completeness via truth_lemma_d + canonical_serial + canonical_symm. Create DBSoundness.lean and DBCompleteness.lean.
+
+---
+
+### 109. Modal d45 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic D45 (K + D + 4 + 5) over serial + transitive + Euclidean frames. Soundness via Satisfies.d + Satisfies.four + Satisfies.five; completeness via truth_lemma_d + canonical_serial + canonical_trans + canonical_eucl_from_5. Create D45Soundness.lean and D45Completeness.lean.
+
+---
+
+### 108. Modal d5 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic D5 (K + D + 5) over serial + Euclidean frames. Soundness via Satisfies.d + Satisfies.five; completeness via truth_lemma_d + canonical_serial + canonical_eucl_from_5. Create D5Soundness.lean and D5Completeness.lean.
+
+---
+
+### 107. Modal d4 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic D4 (K + D + 4) over serial + transitive frames. Soundness via Satisfies.d + Satisfies.four; completeness via truth_lemma_d + canonical_serial + canonical_trans. Create D4Soundness.lean and D4Completeness.lean.
+
+---
+
+### 106. Modal kb5 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic KB5 (K + B + 5) over symmetric + Euclidean frames. Soundness via Satisfies.b + Satisfies.five; completeness via k_truth_lemma + canonical_symm + canonical_eucl_from_5. Create KB5Soundness.lean and KB5Completeness.lean. First logic using both new canonical lemmas together.
+
+---
+
+### 105. Modal tb soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic TB (K + T + B) over reflexive + symmetric frames. Soundness via Satisfies.t + Satisfies.b; completeness via truth_lemma (T-based) + canonical_refl + canonical_symm. Create TBSoundness.lean and TBCompleteness.lean.
+
+---
+
+### 104. Modal k45 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic K45 (K + 4 + 5) over transitive + Euclidean frames. Soundness via Satisfies.four + Satisfies.five; completeness via k_truth_lemma + canonical_trans + canonical_eucl_from_5. Create K45Soundness.lean and K45Completeness.lean.
+
+---
+
+### 103. Modal k5 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic K5 (K + axiom 5) over Euclidean frames. Soundness via Satisfies.five; completeness via k_truth_lemma + canonical_eucl_from_5. Create K5Soundness.lean and K5Completeness.lean.
+
+---
+
+### 102. Modal k4 soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic K4 (K + axiom 4) over transitive frames. Soundness via Satisfies.four; completeness via k_truth_lemma + canonical_trans. Create K4Soundness.lean and K4Completeness.lean.
+
+---
+
+### 101. Modal b soundness completeness
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove soundness and completeness for modal logic B (K + axiom B) over symmetric frames. Soundness via Satisfies.b; completeness via k_truth_lemma + canonical_symm. Create BSoundness.lean and BCompleteness.lean.
+
+---
+
+### 100. Modal cube shared infrastructure
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Modal Logic
+- **Dependencies**: None
+
+**Description**: Prove canonical_symm (symmetry from axiom B alone) and canonical_eucl_from_5 (Euclideanness from axiom 5 alone). Add 10 new tag types and bundled classes to ProofSystem.lean. Define 10 axiom predicates and register all typeclass instances in Instances.lean. This is the critical infrastructure phase that unblocks all other modal cube tasks.
+
+---
+
 ### 99. Complete modal cube hilbert systems
-- **Status**: [PLANNED]
+- **Status**: [EXPANDED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None

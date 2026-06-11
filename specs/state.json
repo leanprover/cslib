@@ -1,14 +1,146 @@
 {
-  "next_project_number": 100,
+  "next_project_number": 112,
   "active_projects": [
+    {
+      "project_number": 100,
+      "project_name": "modal_cube_shared_infrastructure",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove canonical_symm (symmetry from axiom B alone) and canonical_eucl_from_5 (Euclideanness from axiom 5 alone). Add 10 new tag types and bundled classes to ProofSystem.lean. Define 10 axiom predicates and register all typeclass instances in Instances.lean. This is the critical infrastructure phase that unblocks all other modal cube tasks.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 101,
+      "project_name": "modal_b_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic B (K + axiom B) over symmetric frames. Soundness via Satisfies.b; completeness via k_truth_lemma + canonical_symm. Create BSoundness.lean and BCompleteness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 102,
+      "project_name": "modal_k4_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic K4 (K + axiom 4) over transitive frames. Soundness via Satisfies.four; completeness via k_truth_lemma + canonical_trans. Create K4Soundness.lean and K4Completeness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 103,
+      "project_name": "modal_k5_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic K5 (K + axiom 5) over Euclidean frames. Soundness via Satisfies.five; completeness via k_truth_lemma + canonical_eucl_from_5. Create K5Soundness.lean and K5Completeness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 104,
+      "project_name": "modal_k45_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic K45 (K + 4 + 5) over transitive + Euclidean frames. Soundness via Satisfies.four + Satisfies.five; completeness via k_truth_lemma + canonical_trans + canonical_eucl_from_5. Create K45Soundness.lean and K45Completeness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 105,
+      "project_name": "modal_tb_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic TB (K + T + B) over reflexive + symmetric frames. Soundness via Satisfies.t + Satisfies.b; completeness via truth_lemma (T-based) + canonical_refl + canonical_symm. Create TBSoundness.lean and TBCompleteness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 106,
+      "project_name": "modal_kb5_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic KB5 (K + B + 5) over symmetric + Euclidean frames. Soundness via Satisfies.b + Satisfies.five; completeness via k_truth_lemma + canonical_symm + canonical_eucl_from_5. Create KB5Soundness.lean and KB5Completeness.lean. First logic using both new canonical lemmas together.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 107,
+      "project_name": "modal_d4_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic D4 (K + D + 4) over serial + transitive frames. Soundness via Satisfies.d + Satisfies.four; completeness via truth_lemma_d + canonical_serial + canonical_trans. Create D4Soundness.lean and D4Completeness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 108,
+      "project_name": "modal_d5_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic D5 (K + D + 5) over serial + Euclidean frames. Soundness via Satisfies.d + Satisfies.five; completeness via truth_lemma_d + canonical_serial + canonical_eucl_from_5. Create D5Soundness.lean and D5Completeness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 109,
+      "project_name": "modal_d45_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic D45 (K + D + 4 + 5) over serial + transitive + Euclidean frames. Soundness via Satisfies.d + Satisfies.four + Satisfies.five; completeness via truth_lemma_d + canonical_serial + canonical_trans + canonical_eucl_from_5. Create D45Soundness.lean and D45Completeness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 110,
+      "project_name": "modal_db_soundness_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Prove soundness and completeness for modal logic DB (K + D + B) over serial + symmetric frames. Soundness via Satisfies.d + Satisfies.b; completeness via truth_lemma_d + canonical_serial + canonical_symm. Create DBSoundness.lean and DBCompleteness.lean.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
+    {
+      "project_number": 111,
+      "project_name": "modal_cube_integration",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Modal Logic",
+      "description": "Update Metalogic.lean module aggregator with all 20 new imports. Verify lake build passes for the full module and project. Confirm no sorry or axioms in any new theorem via lean_verify.",
+      "parent_task": 99,
+      "created": "2026-06-11T05:12:20Z",
+      "last_updated": "2026-06-11T05:12:20Z"
+    },
     {
       "project_number": 99,
       "project_name": "complete_modal_cube_hilbert_systems",
-      "status": "planned",
+      "status": "expanded",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "created": "2026-06-11T04:39:22Z",
-      "last_updated": "2026-06-11T04:58:07Z",
+      "last_updated": "2026-06-11T05:12:27Z",
       "session_id": "sess_1781153519_227931",
       "researched": "2026-06-11T04:50:03Z",
       "next_artifact_number": 2,
@@ -23,7 +155,22 @@
           "type": "plan",
           "summary": "12-phase plan covering shared infrastructure, 10 soundness/completeness pairs, and integration (16 hours estimated)"
         }
-      ]
+      ],
+      "subtasks": [
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111
+      ],
+      "completion_summary": "Expanded into 12 sub-tasks (100-111) covering shared infrastructure, 10 soundness/completeness pairs, and integration"
     },
     {
       "project_number": 90,
