@@ -58,36 +58,36 @@ instance : Preorder (MinCanonicalWorld Atom) where
   le_trans _ _ _ h₁ h₂ := Set.Subset.trans h₁ h₂
 
 /-- The canonical valuation: atom `p` is true at world `S` iff `atom p ∈ S`. -/
-def min_canonical_val (w : MinCanonicalWorld Atom) (p : Atom) : Prop :=
+def minCanonicalVal (w : MinCanonicalWorld Atom) (p : Atom) : Prop :=
   Proposition.atom p ∈ w.val
 
 /-- The canonical valuation is upward-closed. -/
-theorem min_canonical_val_upward_closed
+theorem minCanonicalVal_upward_closed
     {w w' : MinCanonicalWorld Atom} (p : Atom)
-    (hw : w ≤ w') (hv : min_canonical_val w p) : min_canonical_val w' p :=
+    (hw : w ≤ w') (hv : minCanonicalVal w p) : minCanonicalVal w' p :=
   hw hv
 
 /-- The canonical `bot_forces`: `⊥` is forced at world `S` iff `⊥ ∈ S`. -/
-def min_bot_forces (w : MinCanonicalWorld Atom) : Prop :=
+def minBotForces (w : MinCanonicalWorld Atom) : Prop :=
   Proposition.bot ∈ w.val
 
 /-- `bot_forces` is upward-closed: if `⊥ ∈ S` and `S ⊆ T`, then `⊥ ∈ T`. -/
-theorem min_bot_forces_upward_closed
+theorem minBotForces_upward_closed
     {w w' : MinCanonicalWorld Atom}
-    (hw : w ≤ w') (hbf : min_bot_forces w) : min_bot_forces w' :=
+    (hw : w ≤ w') (hbf : minBotForces w) : minBotForces w' :=
   hw hbf
 
 /-! ## Truth Lemma -/
 
 /-- **Truth Lemma**: For any canonical world `S` and formula `φ`,
-`IForces min_canonical_val min_bot_forces S φ ↔ φ ∈ S.val`.
+`IForces minCanonicalVal minBotForces S φ ↔ φ ∈ S.val`.
 
 Proof by structural induction on `φ` (3 cases: atom, bot, imp).
 The bot case is `Iff.rfl` -- the key simplification vs intuitionistic. -/
 theorem min_truth_lemma
     (S : MinCanonicalWorld Atom) :
     (φ : PL.Proposition Atom) →
-    (IForces min_canonical_val min_bot_forces S φ ↔ φ ∈ S.val)
+    (IForces minCanonicalVal minBotForces S φ ↔ φ ∈ S.val)
   | .atom p => Iff.rfl
   | .bot => Iff.rfl
   | .imp φ ψ => by
@@ -122,12 +122,12 @@ theorem min_completeness {φ : PL.Proposition Atom}
     h_not_deriv
   let W₀ : MinCanonicalWorld Atom :=
     ⟨{ψ | Derivable MinPropAxiom ψ}, min_theorems_theory⟩
-  have h_not_forced : ¬ IForces min_canonical_val min_bot_forces W₀ φ := by
+  have h_not_forced : ¬ IForces minCanonicalVal minBotForces W₀ φ := by
     intro h; exact h_not_mem ((min_truth_lemma W₀ φ).mp h)
-  have h_forced : IForces min_canonical_val min_bot_forces W₀ φ :=
-    h_valid (MinCanonicalWorld Atom) min_canonical_val min_bot_forces
-      (fun {_ _} p hw hv => min_canonical_val_upward_closed p hw hv)
-      (fun {_ _} hw hbf => min_bot_forces_upward_closed hw hbf)
+  have h_forced : IForces minCanonicalVal minBotForces W₀ φ :=
+    h_valid (MinCanonicalWorld Atom) minCanonicalVal minBotForces
+      (fun {_ _} p hw hv => minCanonicalVal_upward_closed p hw hv)
+      (fun {_ _} hw hbf => minBotForces_upward_closed hw hbf)
       W₀
   exact h_not_forced h_forced
 

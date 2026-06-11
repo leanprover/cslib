@@ -71,7 +71,6 @@ abbrev HilbertAxiomTheory {Atom : Type*} : Theory Atom :=
   AxiomTheory (@PropositionalAxiom Atom)
 
 /-- Membership in `HilbertAxiomTheory` is equivalent to being a propositional axiom. -/
-@[simp]
 theorem mem_hilbertAxiomTheory {Atom : Type*} {φ : PL.Proposition Atom} :
     φ ∈ (HilbertAxiomTheory : Theory Atom) ↔ PropositionalAxiom φ :=
   mem_axiomTheory

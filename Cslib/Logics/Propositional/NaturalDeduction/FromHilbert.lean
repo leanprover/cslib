@@ -266,7 +266,7 @@ theorem subst_preserves_minAxiom
 If `Γ ⊢ φ` then `Γ.map (·.subst f) ⊢ φ.subst f`.
 Parameterized over `Axioms` with a substitution-closure witness. -/
 def hilbertSubstitution
-    {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
+    {Atom : Type u} {Atom' : Type u}
     {Axioms : PL.Proposition Atom → Prop}
     {Axioms' : PL.Proposition Atom' → Prop}
     (h_subst : ∀ {φ : PL.Proposition Atom}, Axioms φ →
@@ -288,7 +288,7 @@ def hilbertSubstitution
 
 /-- Substitution at the `Deriv` level. -/
 theorem hilbertSubstitutionDeriv
-    {Atom : Type u} {Atom' : Type u} [DecidableEq Atom']
+    {Atom : Type u} {Atom' : Type u}
     {Axioms : PL.Proposition Atom → Prop}
     {Axioms' : PL.Proposition Atom' → Prop}
     (h_subst : ∀ {φ : PL.Proposition Atom}, Axioms φ →

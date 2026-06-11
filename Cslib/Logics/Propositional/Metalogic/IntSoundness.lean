@@ -8,6 +8,7 @@ module
 
 public import Cslib.Logics.Propositional.Semantics.Kripke
 public import Cslib.Logics.Propositional.ProofSystem.Derivation
+public import Cslib.Logics.Propositional.ProofSystem.Axioms
 
 /-! # Soundness Theorem for Intuitionistic Propositional Logic
 

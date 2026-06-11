@@ -7,6 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Std.Tactic.BVDecide.Normalize
 
 /-! # Derived Rules for Natural Deduction
 
