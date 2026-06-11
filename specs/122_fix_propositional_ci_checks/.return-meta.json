@@ -1,25 +1,7 @@
 {
   "status": "implemented",
-  "started_at": "2026-06-11T16:24:58Z",
-  "artifacts": [
-    {
-      "type": "summary",
-      "path": "specs/122_fix_propositional_ci_checks/summaries/01_fix-propositional-ci-summary.md",
-      "summary": "Implementation summary for propositional CI fix"
-    }
-  ],
-  "verification": {
-    "verification_passed": true,
-    "sorry_count": 0,
-    "vacuous_count": 0,
-    "axiom_count": 0,
-    "build_passed": true
-  },
   "metadata": {
-    "session_id": "sess_1781194255_b2a0c0",
-    "agent_type": "lean-implementation-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
-    "compliance_check": "passed"
+    "cycles_used": 3,
+    "final_state": "completed"
   }
 }
