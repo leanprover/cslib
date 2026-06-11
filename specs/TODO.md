@@ -11,8 +11,8 @@ next_project_number: 121
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,117 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
-| 2 | 39,40,62,118 | 36,37,61,117 | Temporal Logic, Submit PRs, Propositional Logic |
+| 1 | 36,37,38,60,61 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
 
@@ -41,11 +41,6 @@ next_project_number: 121
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-
-### Propositional Logic
-
-117 [IMPLEMENTING] — Prove soundness and completeness of HilbertMin with respect to mi
-  └─ 118 [NOT STARTED] — Update Cslib.lean imports to include all new propositional metalo
 
 ### Foundations
 
@@ -79,7 +74,7 @@ next_project_number: 121
 ---
 
 ### 118. Propositional completeness integration
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: Task 113, Task 114, Task 115, Task 116, Task 117
@@ -89,7 +84,7 @@ next_project_number: 121
 ---
 
 ### 117. Minimal propositional soundness completeness
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Propositional Logic
 - **Dependencies**: Task 113, Task 115, Task 116

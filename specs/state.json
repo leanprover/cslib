@@ -65,7 +65,7 @@
     {
       "project_number": 118,
       "project_name": "propositional_completeness_integration",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Update Cslib.lean imports to include all new propositional metalogic modules (Semantics/Basic, Semantics/Kripke, Soundness, Completeness, IntSoundness, IntLindenbaum, IntCompleteness, MinSoundness, MinCompleteness, IntMinInstances). Prove semantic coherence theorem for FromPropositional.lean connecting propositional tautology to modal validity for propositional formulas (~20-30 lines). Run full lake build and lean_verify on prop_completeness, int_completeness, min_completeness to confirm no sorry and no non-standard axioms. Parent task: 112 (Phase 6). Depends on: tasks 113, 114, 115, 116, 117. Task type: lean4.",
@@ -78,12 +78,13 @@
         115,
         116,
         117
-      ]
+      ],
+      "completion_summary": "Added 10 imports to Cslib.lean. Added 4 semantic coherence theorems to FromPropositional.lean connecting propositional tautology to modal validity (all axiom-free). Full lake build clean, all completeness theorems verified sorry-free."
     },
     {
       "project_number": 117,
       "project_name": "minimal_propositional_soundness_completeness",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Prove soundness and completeness of HilbertMin with respect to minimal Kripke semantics. Reuses intuitionistic infrastructure from task 116 with different bot_forces instantiation: bot_forces w = (Proposition.bot in w) instead of fun _ => False. Create Metalogic/MinSoundness.lean with min_axiom_sound (2 cases: K, S only) and min_soundness. Create Metalogic/MinCompleteness.lean with adapted canonical model where bot can be forced at some worlds (upward-closed), min_truth_lemma, min_completeness. Literature: Minimal logic (Johansson 1937) treats bot as a propositional atom with upward-closed valuation. Parent task: 112 (Phase 5). Depends on: tasks 113, 115, 116. Task type: lean4.",
@@ -94,7 +95,8 @@
         113,
         115,
         116
-      ]
+      ],
+      "completion_summary": "Proved minimal soundness and completeness using MinTheory (deductively closed sets without consistency). Three files: MinSoundness.lean (2 axiom cases), MinLindenbaum.lean (MinTheory + imp witness without EFQ), MinCompleteness.lean (canonical model with bot_forces w = bot ∈ w.val, min_soundness_completeness biconditional)."
     },
     {
       "project_number": 116,
