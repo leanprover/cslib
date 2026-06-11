@@ -1,5 +1,5 @@
 ---
-next_project_number: 122
+next_project_number: 123
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 122
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,38,60,61,122 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
 | 2 | 39,40,62 | 36,37,61 | Temporal Logic, Submit PRs |
 | 3 | 41,63 | 38,39,40,62 | Submit PRs, Foundations |
 | 4 | 64 | 63 | Submit PRs |
@@ -37,11 +37,25 @@ next_project_number: 122
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
 
+### Propositional Logic
+
+122 [NOT STARTED] — Fix all CONTRIBUTING.md CI check failures in propositional metalo
+
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 122. Fix propositional ci checks
+- **Status**: [NOT STARTED]
+- **Task Type**: lean4
+- **Topic**: Propositional Logic
+- **Dependencies**: None
+
+**Description**: Fix all CONTRIBUTING.md CI check failures in propositional metalogic files on both main and pr1/foundations-logic. Issues: (1) lake lint: 8 defsWithUnderscore violations — rename int_canonical_val, int_neg_phi_imp_psi, int_deductive_closure, min_canonical_val, min_bot_forces, min_deductive_closure, lift_min_to_cl, bot_forces to lowerCamelCase in IntCompleteness.lean, IntLindenbaum.lean, MinCompleteness.lean, MinLindenbaum.lean, Kripke.lean and all call sites; (2) lake lint: 1 simpNF violation — mem_hilbertAxiomTheory in Equivalence.lean (simp can already prove it via mem_axiomTheory, so either remove the @[simp] tag or deduplicate); (3) lake shake: propositional import fixes — Derivation.lean remove Axioms/add Defs, DeductionTheorem.lean add Axioms, Soundness.lean add Axioms, IntSoundness.lean add Axioms, MinSoundness.lean add Axioms, MinLindenbaum.lean remove MCS, DerivedRules.lean add BVDecide.Normalize, Instances.lean add Axioms, IntMinInstances.lean add Axioms; (4) lake build warning: hilbertSubstitutionDeriv unused DecidableEq hypothesis in FromHilbert.lean:289. Fix all on main first, then update pr1/foundations-logic branch to match. Run full CI checks (lake build, lake test, lake lint, lake exe lint-style, lake exe checkInitImports, lake exe mk_all --module, lake shake) to verify
+
+---
 
 ### 121. Review propositional metalogic cherry pick
 - **Status**: [COMPLETED]
