@@ -83,7 +83,7 @@
     {
       "project_number": 117,
       "project_name": "minimal_propositional_soundness_completeness",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Prove soundness and completeness of HilbertMin with respect to minimal Kripke semantics. Reuses intuitionistic infrastructure from task 116 with different bot_forces instantiation: bot_forces w = (Proposition.bot in w) instead of fun _ => False. Create Metalogic/MinSoundness.lean with min_axiom_sound (2 cases: K, S only) and min_soundness. Create Metalogic/MinCompleteness.lean with adapted canonical model where bot can be forced at some worlds (upward-closed), min_truth_lemma, min_completeness. Literature: Minimal logic (Johansson 1937) treats bot as a propositional atom with upward-closed valuation. Parent task: 112 (Phase 5). Depends on: tasks 113, 115, 116. Task type: lean4.",
@@ -99,7 +99,7 @@
     {
       "project_number": 116,
       "project_name": "intuitionistic_propositional_soundness_completeness",
-      "status": "planning",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Propositional Logic",
       "description": "Prove soundness and completeness of HilbertInt with respect to intuitionistic Kripke semantics. Create Metalogic/IntSoundness.lean with int_axiom_sound (3 cases: K, S, EFQ) and int_soundness by induction on DerivationTree. Create Metalogic/IntLindenbaum.lean with prime theory definition (deductively closed, consistent, disjunction property expressed via imp/bot primitives), int_lindenbaum (every consistent set extends to a prime deductively-closed theory, adapting Zorn pattern from Consistency.lean). Create Metalogic/IntCompleteness.lean with canonical Kripke model (worlds = prime theories, accessibility = set inclusion, valuation = atom membership), int_truth_lemma (imp case uses universal quantification over accessible worlds and deduction theorem), int_completeness. Literature: CZ Section 2.6 Theorem 2.43 (specs/literature/modal_logic.md lines 2353-2412) for completeness of Int. CZ Section 5.1 (lines 5832-5910) for Lindenbaum pattern. Parent task: 112 (Phase 4). Depends on: tasks 113, 115. Task type: lean4.",
@@ -109,7 +109,8 @@
       "dependencies": [
         113,
         115
-      ]
+      ],
+      "completion_summary": "Proved intuitionistic soundness and completeness using DCCS (not MCS). Three files: IntSoundness.lean (3 axiom cases), IntLindenbaum.lean (IntDCCS + implication witness lemma), IntCompleteness.lean (canonical model with DCCS worlds, truth lemma, int_soundness_completeness biconditional)."
     },
     {
       "project_number": 115,
@@ -668,13 +669,13 @@
     {
       "project_number": 120,
       "project_name": "parameterize_natural_deduction_equivalence",
-      "status": "researched",
+      "status": "completed",
       "task_type": "lean4",
       "description": "Refactor NaturalDeduction files to eliminate backward-compat aliases and parameterize the Hilbert-ND equivalence by logic subsystem. Split HilbertDerivedRules.lean into an intuitionistic layer (negI, negE, topI, andI, orI1, orI2, iffI) and a classical layer (dne, andE1, andE2, orE, iffE1, iffE2). Parameterize FromHilbert.lean and Equivalence.lean over any Axioms that include K, S, and EFQ, covering both intuitionistic and classical as special cases. The ND system (Theory.Derivation) has botE as a primitive constructor so it is inherently at least intuitionistic; minimal logic ND equivalence is out of scope. Research report: specs/113_refactor_derivation_tree_axiom_types/reports/02_natded-refactor-research.md. Files to modify: NaturalDeduction/FromHilbert.lean, NaturalDeduction/HilbertDerivedRules.lean, NaturalDeduction/Equivalence.lean. Files already generic (no changes needed): NaturalDeduction/Basic.lean, NaturalDeduction/DerivedRules.lean. Risk: LOW — NaturalDeduction files are leaf modules (nothing imports them).",
       "dependencies": [
         113
       ],
-      "last_updated": "2026-06-11T14:33:40Z",
+      "last_updated": "2026-06-11T15:14:42Z",
       "session_id": "sess_1781188006_dc2c9d",
       "researched": "2026-06-11T14:33:40Z",
       "next_artifact_number": 2,
@@ -683,8 +684,21 @@
           "path": "specs/120_parameterize_natural_deduction_equivalence/reports/01_nd-parameterization.md",
           "type": "research_report",
           "summary": "Research on parameterizing ND-Hilbert equivalence over axiom subsystems"
+        },
+        {
+          "path": "specs/120_parameterize_natural_deduction_equivalence/plans/01_nd-parameterization.md",
+          "type": "plan",
+          "summary": "Implementation plan for parameterizing ND-Hilbert equivalence"
+        },
+        {
+          "path": "specs/120_parameterize_natural_deduction_equivalence/summaries/01_nd-parameterization-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary"
         }
-      ]
+      ],
+      "planned": "2026-06-11T14:56:11Z",
+      "completed": "2026-06-11T15:14:42Z",
+      "completion_summary": "Parameterized NaturalDeduction files (FromHilbert, HilbertDerivedRules, Equivalence) over generic Axioms with explicit K/S/EFQ parameters. Split HilbertDerivedRules into intuitionistic/classical layers. Added generic hilbert_iff_nd with IntPropAxiom and PropositionalAxiom corollaries. Full build passes, zero sorries, zero new axioms."
     }
   ],
   "repository_health": {
