@@ -94,22 +94,22 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: D4 Completeness + Module Integration [NOT STARTED]
+### Phase 2: D4 Completeness + Module Integration [COMPLETED]
 
 **Goal**: Prove completeness for D4 over serial + transitive frames using D-specific truth lemma and canonical frame properties; update module aggregator.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Modal/Metalogic/D4Completeness.lean` importing `Completeness` and `DCompleteness`
-- [ ] Prove `d4_completeness` following the d_completeness pattern (DCompleteness.lean:382-451) with these key differences:
+- [x] **Task 2.1**: Create `Cslib/Logics/Modal/Metalogic/D4Completeness.lean` importing `Completeness` and `DCompleteness`
+- [x] **Task 2.2**: Prove `d4_completeness` following the d_completeness pattern (DCompleteness.lean:382-451) with these key differences:
   - Consistency argument: identical boilerplate using D4Axiom constructors (~30 lines, adapt from d_completeness)
   - Canonical seriality: instantiate `canonical_serial` at D4Axiom constructors (.implyK, .implyS, .efq, .modalK, .modalD)
   - Canonical transitivity: instantiate `canonical_trans` at D4Axiom constructors (.implyK, .implyS, .modalFour)
   - Truth lemma: instantiate `truth_lemma_d` at D4Axiom constructors (.implyK, .implyS, .efq, .peirce, .modalK, .modalD)
   - Validity hypothesis takes both Relation.Serial and transitivity
   - Final contradiction via `mcs_not_mem_of_neg`
-- [ ] Update `Cslib/Logics/Modal/Metalogic.lean` to add imports for D4Soundness and D4Completeness
-- [ ] Run `lake build Cslib.Logics.Modal.Metalogic` to verify full module builds
-- [ ] Verify no sorries: `grep -r sorry Cslib/Logics/Modal/Metalogic/D4Completeness.lean`
+- [x] **Task 2.3**: Update `Cslib/Logics/Modal/Metalogic.lean` to add imports for D4Soundness and D4Completeness
+- [x] **Task 2.4**: Run `lake build Cslib.Logics.Modal.Metalogic` to verify full module builds
+- [x] **Task 2.5**: Verify no sorries: `grep -r sorry Cslib/Logics/Modal/Metalogic/D4Completeness.lean`
 
 **Timing**: 1 hour 15 minutes
 
