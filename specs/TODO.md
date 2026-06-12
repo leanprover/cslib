@@ -96,6 +96,7 @@ next_project_number: 166
 - **Dependencies**: None
 - **Research**: [165_syntactic_sugar_survey_and_refactor/reports/01_team-research.md]
 - **Plan**: [165_syntactic_sugar_survey_and_refactor/plans/01_syntactic-sugar-refactor.md]
+- **Summary**: [165_syntactic_sugar_survey_and_refactor/summaries/01_syntactic-sugar-refactor-summary.md]
 
 **Description**: Survey Foundations/, Propositional/, Modal/, and Tense/ (Temporal/) for opportunities to introduce elegant and ergonomic syntactic sugar, refactoring everything that is better expressed in notation. Motivated by PR #633 review comment (r3403944952) indicating raw constructors like φ.imp (ψ.imp φ) should use the scoped notation defined in Cslib/Logics/Propositional/Defs.lean (e.g. φ → ψ → φ).
 

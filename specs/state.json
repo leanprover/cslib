@@ -4,7 +4,7 @@
     {
       "project_number": 165,
       "project_name": "syntactic_sugar_survey_and_refactor",
-      "description": "Survey Foundations/, Propositional/, Modal/, and Tense/ (Temporal/) for opportunities to introduce elegant and ergonomic syntactic sugar, refactoring everything that is better expressed in notation. Motivated by PR #633 review comment (r3403944952) indicating raw constructors like \u03c6.imp (\u03c8.imp \u03c6) should use the scoped notation defined in Cslib/Logics/Propositional/Defs.lean (e.g. \u03c6 \u2192 \u03c8 \u2192 \u03c6).",
+      "description": "Survey Foundations/, Propositional/, Modal/, and Tense/ (Temporal/) for opportunities to introduce elegant and ergonomic syntactic sugar, refactoring everything that is better expressed in notation. Motivated by PR #633 review comment (r3403944952) indicating raw constructors like φ.imp (ψ.imp φ) should use the scoped notation defined in Cslib/Logics/Propositional/Defs.lean (e.g. φ → ψ → φ).",
       "status": "completed",
       "task_type": "cslib",
       "topic": "Syntactic Sugar",
@@ -30,7 +30,7 @@
           "summary": "Implementation summary: all 9 phases complete, ~115 Lean files refactored, full CI passes"
         }
       ],
-      "completion_summary": "Added missing PL \u2194 notation and replaced raw constructors (.imp, .bot, .neg, .and, .or, .box, .diamond, temporal operators) with scoped notation across ~115 Lean files in Propositional/, Modal/, and Temporal/. Full CI passes: lake build, lake test, checkInitImports, lint-style."
+      "completion_summary": "All 9 phases complete. Added missing PL biconditional notation and replaced raw constructors (.imp, .bot, .neg, .and, .or, .box, .diamond, .untl, .snce, .someFuture, .allFuture, .somePast, .allPast) with scoped notation across ~115 Lean files in Propositional/, Modal/, and Temporal/. Full CI passes."
     },
     {
       "project_number": 164,
@@ -41,7 +41,7 @@
       "dependencies": [
         159
       ],
-      "description": "Fix 7 PR quality issues in Formula.lean (pr3/temporal-formula branch) identified during review: (1) HIGH: doc/code argument order mismatch for U/S derived operators \u2014 docs say \u22a4 U \u03c6 but code computes \u03c6 U \u22a4, will cause semantic bugs; (2) MEDIUM: missing ## References section (both Propositional and Modal peer files cite foundational works); (3) LOW-MEDIUM: missing iff derived connective listed in task 159 description; (4) MEDIUM: bare-letter notation F/G/P/H risks variable shadowing (peer files use Unicode); (5) LOW: missing Bot/Top Mathlib instances (Propositional/Defs.lean has them); (6) LOW: second half of file outside @[expose] public section; (7) COSMETIC: redundant open before namespace. All changes to single file on pr3/temporal-formula branch.",
+      "description": "Fix 7 PR quality issues in Formula.lean (pr3/temporal-formula branch) identified during review: (1) HIGH: doc/code argument order mismatch for U/S derived operators — docs say ⊤ U φ but code computes φ U ⊤, will cause semantic bugs; (2) MEDIUM: missing ## References section (both Propositional and Modal peer files cite foundational works); (3) LOW-MEDIUM: missing iff derived connective listed in task 159 description; (4) MEDIUM: bare-letter notation F/G/P/H risks variable shadowing (peer files use Unicode); (5) LOW: missing Bot/Top Mathlib instances (Propositional/Defs.lean has them); (6) LOW: second half of file outside @[expose] public section; (7) COSMETIC: redundant open before namespace. All changes to single file on pr3/temporal-formula branch.",
       "created": "2026-06-12T08:55:00Z",
       "last_updated": "2026-06-12T10:26:30Z",
       "session_id": "sess_1781258395_440da0",
@@ -199,7 +199,7 @@
       "project_name": "pr1_citation_conformance",
       "status": "completed",
       "task_type": "lean4",
-      "description": "Revise citations on the pr1/foundations-logic branch to conform to the canonical citation conventions (standards/citation-conventions.md). Scope: (1) Remove orphaned HughesCresswell1996 entry from references.bib (uncited anywhere). (2) Add SorensenUrzyczyn2006 bib entry and convert the inline Sorensen & Urzyczyn mention in NaturalDeduction/Basic.lean to a proper BibKey citation on its own bullet. (3) Standardize internal cross-reference formatting \u2014 some files use backtick-wrapped paths (e.g., `Cslib/...`) while others use bare paths; pick one convention and apply consistently across all PR 1 Propositional and Modal files. (4) Review all 22 Propositional and 4 Modal files on the PR branch for any remaining discrepancies against the citation standard (dash bullets, missing BibKeys, inconsistent formatting). All work targets the pr1/foundations-logic branch. Documentation-only changes \u2014 no Lean code modifications.",
+      "description": "Revise citations on the pr1/foundations-logic branch to conform to the canonical citation conventions (standards/citation-conventions.md). Scope: (1) Remove orphaned HughesCresswell1996 entry from references.bib (uncited anywhere). (2) Add SorensenUrzyczyn2006 bib entry and convert the inline Sorensen & Urzyczyn mention in NaturalDeduction/Basic.lean to a proper BibKey citation on its own bullet. (3) Standardize internal cross-reference formatting — some files use backtick-wrapped paths (e.g., `Cslib/...`) while others use bare paths; pick one convention and apply consistently across all PR 1 Propositional and Modal files. (4) Review all 22 Propositional and 4 Modal files on the PR branch for any remaining discrepancies against the citation standard (dash bullets, missing BibKeys, inconsistent formatting). All work targets the pr1/foundations-logic branch. Documentation-only changes — no Lean code modifications.",
       "artifacts": [
         {
           "path": "specs/136_pr1_citation_conformance/reports/01_citation-conformance.md",
@@ -538,7 +538,7 @@
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
       "last_updated": "2026-06-12T01:33:24Z",
-      "description": "Dense temporal completeness: prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system.\n\nScope:\n1. Add dense-specific axioms to Temporal.Axiom: `density` (G(G \u03c6) \u2192 G \u03c6) and `dense_indicator` (\u00acU(\u22a4,\u22a5)), gated to FrameClass.Dense via minFrameClass.\n2. Prove dense soundness: density axiom valid on DenselyOrdered, dense_indicator valid on DenselyOrdered (no immediate successor).\n3. Prove dense completeness via contrapositive + MCS + canonical model on Rat. The dense case eliminates the non-dense branch by deriving \u00acU(\u22a4,\u22a5) as a Dense theorem, so \u25a1(\u00acU(\u22a4,\u22a5)) is in every Dense-MCS.\n\nNew development (not a port), following the pattern established by bimodal completeness_dense. The canonical model construction reuses the base temporal canonical order from task 31, specialized to Rat (DenselyOrdered).\n\nTarget: Cslib/Logics/Temporal/Metalogic/DenseCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~400-600 lines (new axioms + dense soundness + dense completeness)",
+      "description": "Dense temporal completeness: prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system.\n\nScope:\n1. Add dense-specific axioms to Temporal.Axiom: `density` (G(G φ) → G φ) and `dense_indicator` (¬U(⊤,⊥)), gated to FrameClass.Dense via minFrameClass.\n2. Prove dense soundness: density axiom valid on DenselyOrdered, dense_indicator valid on DenselyOrdered (no immediate successor).\n3. Prove dense completeness via contrapositive + MCS + canonical model on Rat. The dense case eliminates the non-dense branch by deriving ¬U(⊤,⊥) as a Dense theorem, so □(¬U(⊤,⊥)) is in every Dense-MCS.\n\nNew development (not a port), following the pattern established by bimodal completeness_dense. The canonical model construction reuses the base temporal canonical order from task 31, specialized to Rat (DenselyOrdered).\n\nTarget: Cslib/Logics/Temporal/Metalogic/DenseCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~400-600 lines (new axioms + dense soundness + dense completeness)",
       "topic": "Temporal Logic",
       "session_id": "sess_1749647400_a3b2c1",
       "completion_summary": "Proved dense temporal completeness: ValidDense phi -> ThDerivableFc .Dense phi. Added density and dense_indicator axioms, built FC-parameterized MCS infrastructure, proved dense soundness, showed DenselyOrdered for chronicle subtype via C4 + truth lemma propagation, assembled completeness theorem. Zero sorry, full build passes."
@@ -553,7 +553,7 @@
       "dependencies": [
         36
       ],
-      "description": "Discrete temporal completeness: prove that every formula valid on all discrete serial linear orders is derivable in the Discrete temporal proof system.\n\nScope:\n1. Add discrete-specific axioms to Temporal.Axiom: `prior_UZ` (F(\u03c6) \u2192 U(\u03c6,\u00ac\u03c6)), `prior_SZ` (P(\u03c6) \u2192 S(\u03c6,\u00ac\u03c6)), `z1` (G(G\u03c6\u2192\u03c6) \u2192 (F(G\u03c6)\u2192G\u03c6)), and discrete uniformity axioms (discrete_symm_fwd/bwd, discrete_propagate_fwd/bwd), gated to FrameClass.Discrete via minFrameClass.\n2. Prove discrete soundness: each discrete axiom valid on SuccOrder+PredOrder+IsSuccArchimedean.\n3. Prove discrete completeness via contrapositive + MCS + canonical model on Int. The non-discrete branch is eliminated by deriving U(\u22a4,\u22a5) as a Discrete theorem.\n\nNew development (not a port). The canonical model specializes the base temporal canonical order to Int. The discrete uniformity axioms (minus discrete_box_necessity which is bimodal-only) ensure U(\u22a4,\u22a5) propagates uniformly.\n\nTarget: Cslib/Logics/Temporal/Metalogic/DiscreteCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~500-700 lines (new axioms + discrete soundness + discrete completeness)",
+      "description": "Discrete temporal completeness: prove that every formula valid on all discrete serial linear orders is derivable in the Discrete temporal proof system.\n\nScope:\n1. Add discrete-specific axioms to Temporal.Axiom: `prior_UZ` (F(φ) → U(φ,¬φ)), `prior_SZ` (P(φ) → S(φ,¬φ)), `z1` (G(Gφ→φ) → (F(Gφ)→Gφ)), and discrete uniformity axioms (discrete_symm_fwd/bwd, discrete_propagate_fwd/bwd), gated to FrameClass.Discrete via minFrameClass.\n2. Prove discrete soundness: each discrete axiom valid on SuccOrder+PredOrder+IsSuccArchimedean.\n3. Prove discrete completeness via contrapositive + MCS + canonical model on Int. The non-discrete branch is eliminated by deriving U(⊤,⊥) as a Discrete theorem.\n\nNew development (not a port). The canonical model specializes the base temporal canonical order to Int. The discrete uniformity axioms (minus discrete_box_necessity which is bimodal-only) ensure U(⊤,⊥) propagates uniformly.\n\nTarget: Cslib/Logics/Temporal/Metalogic/DiscreteCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~500-700 lines (new axioms + discrete soundness + discrete completeness)",
       "topic": "Temporal Logic"
     },
     {
@@ -566,7 +566,7 @@
       "dependencies": [
         37
       ],
-      "description": "Continuous temporal completeness: completeness for temporal logic over Dedekind-complete (continuous) linear orders, e.g. the reals.\n\nScope: Define a Continuous frame class extending Dense, add any required axioms (e.g., Dedekind completeness schema or equivalent), prove soundness over conditionally complete linear orders, prove completeness via canonical model on Real or equivalent.\n\nBlocked: The continuous case has not been developed for either the temporal or bimodal logic upstream. Requires foundational research into which additional axioms (if any) are needed beyond density to characterize continuous time. The standard result (Burgess 1982) is that the Until/Since temporal logic over the reals has the same theorems as over the rationals (density suffices), which would make this task trivial \u2014 but this equivalence itself needs to be formalized.\n\nTarget: Cslib/Logics/Temporal/Metalogic/ContinuousCompleteness.lean\nBlocker: Research needed on whether continuous frames require additional axioms beyond density",
+      "description": "Continuous temporal completeness: completeness for temporal logic over Dedekind-complete (continuous) linear orders, e.g. the reals.\n\nScope: Define a Continuous frame class extending Dense, add any required axioms (e.g., Dedekind completeness schema or equivalent), prove soundness over conditionally complete linear orders, prove completeness via canonical model on Real or equivalent.\n\nBlocked: The continuous case has not been developed for either the temporal or bimodal logic upstream. Requires foundational research into which additional axioms (if any) are needed beyond density to characterize continuous time. The standard result (Burgess 1982) is that the Until/Since temporal logic over the reals has the same theorems as over the rationals (density suffices), which would make this task trivial — but this equivalence itself needs to be formalized.\n\nTarget: Cslib/Logics/Temporal/Metalogic/ContinuousCompleteness.lean\nBlocker: Research needed on whether continuous frames require additional axioms beyond density",
       "topic": "Temporal Logic"
     },
     {
@@ -581,7 +581,7 @@
         39,
         40
       ],
-      "description": "Abstract shared completeness infrastructure between temporal and bimodal logic once concrete completeness proofs are finished for both.\n\nThe temporal (tasks 31, 38, 39) and bimodal (tasks 34, 35) completeness proofs share structural patterns that can be factored into a generic completeness scaffold in Cslib/Foundations/Logic/Metalogic/, extending the existing generic MCS framework (Task 29).\n\nCandidate abstractions (to be confirmed once concrete implementations exist):\n1. Generic neg_consistent_of_not_derivable: if \u03c6 is not derivable then {\u00ac\u03c6} is consistent \u2014 identical structure in both logics, parameterized over DerivationSystem\n2. Generic completeness contrapositive skeleton: not derivable \u2192 consistent \u2192 Lindenbaum \u2192 MCS \u2192 canonical model \u2192 countermodel \u2014 the overall proof shape is shared\n3. Dense/discrete case split pattern: the three-way case split on \u25a1(F'T) / \u25a1(U(T,\u22a5)) / mixed is structurally similar (temporal uses G/H instead of \u25a1)\n4. Canonical order construction patterns: both define canonical_lt via G-sets (temporal) or box-sets (bimodal); the linearity/irreflexivity/transitivity proofs follow parallel structures\n5. Dense indicator elimination: both dense completeness proofs eliminate the non-dense branch by showing the dense indicator axiom is a theorem \u2014 identical pattern\n\nScope: Identify which abstractions yield genuine code savings vs. premature generalization, implement those that do, and refactor both temporal and bimodal completeness to use the shared infrastructure.\n\nTarget: Cslib/Foundations/Logic/Metalogic/Completeness.lean (or similar)\nDepends on: Tasks 35 (dense bimodal), 38 (dense temporal), 39 (discrete temporal) \u2014 transitively includes 31 (base temporal) and 34 (base bimodal MCS)",
+      "description": "Abstract shared completeness infrastructure between temporal and bimodal logic once concrete completeness proofs are finished for both.\n\nThe temporal (tasks 31, 38, 39) and bimodal (tasks 34, 35) completeness proofs share structural patterns that can be factored into a generic completeness scaffold in Cslib/Foundations/Logic/Metalogic/, extending the existing generic MCS framework (Task 29).\n\nCandidate abstractions (to be confirmed once concrete implementations exist):\n1. Generic neg_consistent_of_not_derivable: if φ is not derivable then {¬φ} is consistent — identical structure in both logics, parameterized over DerivationSystem\n2. Generic completeness contrapositive skeleton: not derivable → consistent → Lindenbaum → MCS → canonical model → countermodel — the overall proof shape is shared\n3. Dense/discrete case split pattern: the three-way case split on □(F'T) / □(U(T,⊥)) / mixed is structurally similar (temporal uses G/H instead of □)\n4. Canonical order construction patterns: both define canonical_lt via G-sets (temporal) or box-sets (bimodal); the linearity/irreflexivity/transitivity proofs follow parallel structures\n5. Dense indicator elimination: both dense completeness proofs eliminate the non-dense branch by showing the dense indicator axiom is a theorem — identical pattern\n\nScope: Identify which abstractions yield genuine code savings vs. premature generalization, implement those that do, and refactor both temporal and bimodal completeness to use the shared infrastructure.\n\nTarget: Cslib/Foundations/Logic/Metalogic/Completeness.lean (or similar)\nDepends on: Tasks 35 (dense bimodal), 38 (dense temporal), 39 (discrete temporal) — transitively includes 31 (base temporal) and 34 (base bimodal MCS)",
       "topic": "Foundations"
     },
     {
@@ -614,7 +614,7 @@
       "dependencies": [
         "BimodalLogic:discrete_sorry_elimination"
       ],
-      "description": "Port discrete completeness (completeness_discrete theorem) and WeakCanonical/IntegerModel/ infrastructure (~6 files). The discrete branch constructs countermodels on Int via the Reynolds pipeline. Currently blocked: upstream BimodalLogic has sorryAx tracing through chronicle_gap_contradiction \u2192 succ_cofinal \u2192 limitDomSubtype_isSuccArchimedean \u2192 succ_embed_surjective. Port after upstream sorry elimination completes.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/WeakCanonical/IntegerModel/ (~6 files), discrete branch of BXCanonical/Completeness.lean\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Blocker**: Upstream BimodalLogic discrete completeness sorry elimination (36 sorries across IntegerModel/)\n**Parent task**: 8 (expanded)",
+      "description": "Port discrete completeness (completeness_discrete theorem) and WeakCanonical/IntegerModel/ infrastructure (~6 files). The discrete branch constructs countermodels on Int via the Reynolds pipeline. Currently blocked: upstream BimodalLogic has sorryAx tracing through chronicle_gap_contradiction → succ_cofinal → limitDomSubtype_isSuccArchimedean → succ_embed_surjective. Port after upstream sorry elimination completes.\n\n**Source**: BimodalLogic/Theories/Bimodal/Metalogic/WeakCanonical/IntegerModel/ (~6 files), discrete branch of BXCanonical/Completeness.lean\n**Target**: Cslib/Logics/Bimodal/Metalogic/\n**Blocker**: Upstream BimodalLogic discrete completeness sorry elimination (36 sorries across IntegerModel/)\n**Parent task**: 8 (expanded)",
       "topic": "Bimodal Porting"
     },
     {
@@ -773,7 +773,7 @@
       "dependencies": [],
       "created": "2026-06-12T02:00:00Z",
       "last_updated": "2026-06-11",
-      "description": "Sub-PR 2.1: Lukasiewicz primitive refactoring. Refactors Modal/Basic.lean from {atom, not, and, diamond} to {atom, bot, imp, box} primitives with derived connectives as abbrevs. Updates Modal/Denotation.lean for new primitives. Deletes LogicalEquivalence.lean (incompatible with new primitives). Replaces all grind-based proofs with explicit term-mode proofs for axiom validity theorems. This is the gateway PR \u2014 clear, focused, and establishes the Lukasiewicz convention for all subsequent PRs. ~440 diff lines across 3 files.",
+      "description": "Sub-PR 2.1: Lukasiewicz primitive refactoring. Refactors Modal/Basic.lean from {atom, not, and, diamond} to {atom, bot, imp, box} primitives with derived connectives as abbrevs. Updates Modal/Denotation.lean for new primitives. Deletes LogicalEquivalence.lean (incompatible with new primitives). Replaces all grind-based proofs with explicit term-mode proofs for axiom validity theorems. This is the gateway PR — clear, focused, and establishes the Lukasiewicz convention for all subsequent PRs. ~440 diff lines across 3 files.",
       "session_id": "sess_1781205592_c62b5b",
       "researched": "2026-06-12T06:35:00Z",
       "next_artifact_number": 2,
@@ -887,7 +887,7 @@
       ],
       "created": "2026-06-12T02:00:00Z",
       "last_updated": "2026-06-12T02:00:00Z",
-      "description": "Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Completeness.lean (475 lines) providing the canonical model construction for modal completeness via Zorn's lemma. Mathematical centerpiece of PR 2 \u2014 the generic completeness infrastructure that all 15 system-specific completeness proofs instantiate. ~475 new lines in 1 file.",
+      "description": "Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Completeness.lean (475 lines) providing the canonical model construction for modal completeness via Zorn's lemma. Mathematical centerpiece of PR 2 — the generic completeness infrastructure that all 15 system-specific completeness proofs instantiate. ~475 new lines in 1 file.",
       "session_id": "sess_1781205592_c62b5b",
       "next_artifact_number": 1,
       "artifacts": []
@@ -904,7 +904,7 @@
       ],
       "created": "2026-06-12T02:00:00Z",
       "last_updated": "2026-06-12T02:00:00Z",
-      "description": "Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instances/K.lean (112 lines) defining KAxiom inductive and HilbertK InferenceSystem instance. Adds Systems/K/Soundness.lean (82 lines) and Systems/K/Completeness.lean (301 lines). Base modal system K \u2014 establishes the pattern for all subsequent system PRs. ~495 new lines across 3 files.",
+      "description": "Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instances/K.lean (112 lines) defining KAxiom inductive and HilbertK InferenceSystem instance. Adds Systems/K/Soundness.lean (82 lines) and Systems/K/Completeness.lean (301 lines). Base modal system K — establishes the pattern for all subsequent system PRs. ~495 new lines across 3 files.",
       "session_id": "sess_1781205592_c62b5b",
       "next_artifact_number": 1,
       "artifacts": []
@@ -936,7 +936,7 @@
       ],
       "created": "2026-06-12T02:00:00Z",
       "last_updated": "2026-06-12T02:00:00Z",
-      "description": "Sub-PR 2.8: D soundness and completeness. Adds Instances/D.lean (125), Systems/D/Soundness.lean (90), Systems/D/Completeness.lean (428). Serial frames \u2014 the D completeness proof is the largest individual completeness proof. Over 500-line limit (~643 lines) but logically indivisible. ~643 new lines across 3 files.",
+      "description": "Sub-PR 2.8: D soundness and completeness. Adds Instances/D.lean (125), Systems/D/Soundness.lean (90), Systems/D/Completeness.lean (428). Serial frames — the D completeness proof is the largest individual completeness proof. Over 500-line limit (~643 lines) but logically indivisible. ~643 new lines across 3 files.",
       "session_id": "sess_1781205592_c62b5b",
       "next_artifact_number": 1,
       "artifacts": []
@@ -952,7 +952,7 @@
       ],
       "created": "2026-06-12T02:00:00Z",
       "last_updated": "2026-06-12T02:00:00Z",
-      "description": "Sub-PR 2.9: S4 and S5 soundness and completeness. S4 (reflexive+transitive): Instances/S4.lean (137), Systems/S4/Soundness.lean (106), Systems/S4/Completeness.lean (115). S5 (equivalence relations): Instances/S5.lean (111), Systems/S5/Soundness.lean (103), Systems/S5/Completeness.lean (94). S5 extends S4 \u2014 natural dependency chain. Over 500-line limit (~666 lines) but logically grouped. ~666 new lines across 6 files.",
+      "description": "Sub-PR 2.9: S4 and S5 soundness and completeness. S4 (reflexive+transitive): Instances/S4.lean (137), Systems/S4/Soundness.lean (106), Systems/S4/Completeness.lean (115). S5 (equivalence relations): Instances/S5.lean (111), Systems/S5/Soundness.lean (103), Systems/S5/Completeness.lean (94). S5 extends S4 — natural dependency chain. Over 500-line limit (~666 lines) but logically grouped. ~666 new lines across 6 files.",
       "session_id": "sess_1781205592_c62b5b",
       "next_artifact_number": 1,
       "artifacts": []
