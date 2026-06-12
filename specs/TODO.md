@@ -1,5 +1,5 @@
 ---
-next_project_number: 159
+next_project_number: 164
 ---
 
 # TODO
@@ -11,11 +11,11 @@ next_project_number: 159
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,61,127,139,146,147 | -- | Bimodal Porting, Submit PRs |
-| 2 | 39,40,62,140,148 | 36,37,61,139,147 | Temporal Logic, Submit PRs |
-| 3 | 41,63,141,149 | 39,40,62,140,148 | Submit PRs, Foundations |
-| 4 | 64,128,129,142,150 | 63,141,146,149 | Submit PRs |
-| 5 | 126,143,151,152,154 | 142,150 | Submit PRs |
+| 1 | 36,37,62,127,139,146,147,159 | -- | Bimodal Porting, Submit PRs |
+| 2 | 39,40,63,140,148,160 | 36,37,62,139,147,159 | Temporal Logic, Submit PRs |
+| 3 | 41,64,141,149,161 | 39,40,63,140,148,160 | Submit PRs, Foundations |
+| 4 | 128,129,142,150,162 | 140,141,146,149,161 | Submit PRs |
+| 5 | 126,143,151,152,154,163 | 142,150,160 | Submit PRs |
 | 6 | 130,133,144,153,155,156 | 126,127,143,151,152,154 | Submit PRs |
 | 7 | 131,132,134,135,157 | 127,128,130,133,152,156 | Submit PRs |
 | 8 | 158 | 151,153,155,157 | Submit PRs |
@@ -34,10 +34,9 @@ next_project_number: 159
 
 ### Submit PRs
 
-61 [RESEARCHED] — pr3_temporal_proof_system
-  └─ 62 [RESEARCHED] — pr4_temporal_metalogic_core
-    └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
-      └─ 64 [NOT STARTED] — pr6_completeness_theorem
+62 [RESEARCHED] — pr4_temporal_metalogic_core
+  └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
+    └─ 64 [NOT STARTED] — pr6_completeness_theorem
 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
   └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
     └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
@@ -58,6 +57,8 @@ next_project_number: 159
             └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
         └─ 143 [NOT STARTED] — Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/P
           └─ 144 [NOT STARTED] — Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278),
+        └─ 163 [NOT STARTED] — Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean 
+    └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean 
 146 [NOT STARTED] — Sub-PR 2.2: Proof system hierarchy + PL embedding. Adds 13 bundle
   └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan
     └─ 151 [NOT STARTED] — Sub-PR 2.7: T and B soundness and completeness. T (reflexive fram
@@ -77,12 +78,67 @@ next_project_number: 159
   └─ 148 [NOT STARTED] — Sub-PR 2.4: Maximal consistent sets + generic soundness framework
     └─ 149 [NOT STARTED] — Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Comple
       └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan (see above)
+159 [NOT STARTED] — Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean
+  └─ 160 [NOT STARTED] — Sub-PR 3.2: Temporal syntax utilities. Adds Context.lean (131 lin
+    └─ 161 [NOT STARTED] — Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lea
+      └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean  (see above)
+    └─ 163 [NOT STARTED] — Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean  (see above)
 
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 163. Subpr 3 5 semantics embedding
+- **Status**: [NOT STARTED]
+- **Task Type**: cslib
+- **Topic**: Submit PRs
+- **Dependencies**: Task 160, Task 142
+
+**Description**: Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean (60 lines, TemporalModel structure on LinearOrder), Satisfies.lean (177 lines, recursive satisfaction relation with Burgess convention), Validity.lean (198 lines, validity hierarchy: Valid/ValidSerial/ValidDense/ValidDiscrete), FromPropositional.lean (56 lines, structural PL -> Temporal embedding with coercion), and Theorems.lean barrel (19 lines, re-exports Foundation temporal derived theorems). ~510 diff lines across 5 files. External dependencies: Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived and FrameConditions (PR1 sub-PRs 1.1.5/1.1.6, tasks 142-143).
+
+---
+
+### 162. Subpr 3 4 proof system instances
+- **Status**: [NOT STARTED]
+- **Task Type**: cslib
+- **Topic**: Submit PRs
+- **Dependencies**: Task 161, Task 140
+
+**Description**: Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean (214 lines, registers InferenceSystem, ModusPonens, ClassicalHilbert, TemporalNecessitation, 22 HasAxiom* instances, and TemporalBXHilbert for HilbertBX tag type) and ProofSystem.lean barrel (23 lines). Bridges abstract Foundation typeclass hierarchy to concrete derivation tree. ~237 diff lines across 2 files. External dependency: Cslib.Foundations.Logic.ProofSystem (PR1 sub-PR 1.1.3, task 140).
+
+---
+
+### 161. Subpr 3 3 axioms derivation
+- **Status**: [NOT STARTED]
+- **Task Type**: cslib
+- **Topic**: Submit PRs
+- **Dependencies**: Task 160
+
+**Description**: Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lean (235 lines, 26 BX axiom constructors with FrameClass classification: Base/Dense/Discrete), Derivation.lean (98 lines, Type-valued DerivationTree with 6 inference rules: axiom, assumption, modus_ponens, temporal_necessitation, temporal_duality, weakening), and Derivable.lean (99 lines, Prop-valued Nonempty wrapper with constructor-mirroring lemmas). ~432 diff lines across 3 files.
+
+---
+
+### 160. Subpr 3 2 syntax utilities
+- **Status**: [NOT STARTED]
+- **Task Type**: cslib
+- **Topic**: Submit PRs
+- **Dependencies**: Task 159
+
+**Description**: Sub-PR 3.2: Temporal syntax utilities. Adds Context.lean (131 lines, Context = List (Formula Atom) with map/membership lemmas), BigConj.lean (52 lines, big conjunction over formula lists), and Subformulas.lean (218 lines, subformula closure with membership and transitivity lemmas). ~401 diff lines across 3 files.
+
+---
+
+### 159. Subpr 3 1 temporal formula
+- **Status**: [NOT STARTED]
+- **Task Type**: cslib
+- **Topic**: Submit PRs
+- **Dependencies**: Task 138
+
+**Description**: Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean (549 lines) defining the temporal logic Formula inductive with primitives {atom, bot, imp, untl, snce}, all derived connectives (neg, top, or, and, iff, allFuture/G, someFuture/F, allPast/H, somePast/P), the swapTemporal involution, Encodable/Denumerable instances, and connective typeclass registrations (HasBot, HasImp, HasUntil, HasSince, TemporalConnectives). Gateway PR for all temporal logic. ~549 diff lines. External dependency: Cslib.Foundations.Logic.Connectives (PR1 sub-PR 1.1.1, task 138).
+
+---
 
 ### 158. Subpr 2 14 tb barrels
 - **Status**: [NOT STARTED]
@@ -487,11 +543,12 @@ next_project_number: 159
 ---
 
 ### 61. Pr3 temporal proof system
-- **Status**: [RESEARCHED]
+- **Status**: [EXPANDED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
 - **Research_report**: [061_pr3_temporal_proof_system/reports/01_temporal-proof-pr-division.md]
+- **Plan**: [061_pr3_temporal_proof_system/plans/01_temporal-proof-pr-division.md]
 
 ---
 

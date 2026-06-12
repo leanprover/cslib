@@ -1,6 +1,88 @@
 {
-  "next_project_number": 159,
+  "next_project_number": 164,
   "active_projects": [
+    {
+      "project_number": 159,
+      "project_name": "subpr_3_1_temporal_formula",
+      "status": "not_started",
+      "task_type": "cslib",
+      "topic": "Submit PRs",
+      "dependencies": [
+        138
+      ],
+      "description": "Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean (549 lines) defining the temporal logic Formula inductive with primitives {atom, bot, imp, untl, snce}, all derived connectives (neg, top, or, and, iff, allFuture/G, someFuture/F, allPast/H, somePast/P), the swapTemporal involution, Encodable/Denumerable instances, and connective typeclass registrations (HasBot, HasImp, HasUntil, HasSince, TemporalConnectives). Gateway PR for all temporal logic. ~549 diff lines. External dependency: Cslib.Foundations.Logic.Connectives (PR1 sub-PR 1.1.1, task 138).",
+      "created": "2026-06-12T06:33:54Z",
+      "last_updated": "2026-06-12T06:33:54Z",
+      "session_id": "sess_1781245722_780d58",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 160,
+      "project_name": "subpr_3_2_syntax_utilities",
+      "status": "not_started",
+      "task_type": "cslib",
+      "topic": "Submit PRs",
+      "dependencies": [
+        159
+      ],
+      "description": "Sub-PR 3.2: Temporal syntax utilities. Adds Context.lean (131 lines, Context = List (Formula Atom) with map/membership lemmas), BigConj.lean (52 lines, big conjunction over formula lists), and Subformulas.lean (218 lines, subformula closure with membership and transitivity lemmas). ~401 diff lines across 3 files.",
+      "created": "2026-06-12T06:33:54Z",
+      "last_updated": "2026-06-12T06:33:54Z",
+      "session_id": "sess_1781245722_780d58",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 161,
+      "project_name": "subpr_3_3_axioms_derivation",
+      "status": "not_started",
+      "task_type": "cslib",
+      "topic": "Submit PRs",
+      "dependencies": [
+        160
+      ],
+      "description": "Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lean (235 lines, 26 BX axiom constructors with FrameClass classification: Base/Dense/Discrete), Derivation.lean (98 lines, Type-valued DerivationTree with 6 inference rules: axiom, assumption, modus_ponens, temporal_necessitation, temporal_duality, weakening), and Derivable.lean (99 lines, Prop-valued Nonempty wrapper with constructor-mirroring lemmas). ~432 diff lines across 3 files.",
+      "created": "2026-06-12T06:33:54Z",
+      "last_updated": "2026-06-12T06:33:54Z",
+      "session_id": "sess_1781245722_780d58",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 162,
+      "project_name": "subpr_3_4_proof_system_instances",
+      "status": "not_started",
+      "task_type": "cslib",
+      "topic": "Submit PRs",
+      "dependencies": [
+        161,
+        140
+      ],
+      "description": "Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean (214 lines, registers InferenceSystem, ModusPonens, ClassicalHilbert, TemporalNecessitation, 22 HasAxiom* instances, and TemporalBXHilbert for HilbertBX tag type) and ProofSystem.lean barrel (23 lines). Bridges abstract Foundation typeclass hierarchy to concrete derivation tree. ~237 diff lines across 2 files. External dependency: Cslib.Foundations.Logic.ProofSystem (PR1 sub-PR 1.1.3, task 140).",
+      "created": "2026-06-12T06:33:54Z",
+      "last_updated": "2026-06-12T06:33:54Z",
+      "session_id": "sess_1781245722_780d58",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 163,
+      "project_name": "subpr_3_5_semantics_embedding",
+      "status": "not_started",
+      "task_type": "cslib",
+      "topic": "Submit PRs",
+      "dependencies": [
+        160,
+        142
+      ],
+      "description": "Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean (60 lines, TemporalModel structure on LinearOrder), Satisfies.lean (177 lines, recursive satisfaction relation with Burgess convention), Validity.lean (198 lines, validity hierarchy: Valid/ValidSerial/ValidDense/ValidDiscrete), FromPropositional.lean (56 lines, structural PL -> Temporal embedding with coercion), and Theorems.lean barrel (19 lines, re-exports Foundation temporal derived theorems). ~510 diff lines across 5 files. External dependencies: Cslib.Foundations.Logic.Theorems.Temporal.TemporalDerived and FrameConditions (PR1 sub-PRs 1.1.5/1.1.6, tasks 142-143).",
+      "created": "2026-06-12T06:33:54Z",
+      "last_updated": "2026-06-12T06:33:54Z",
+      "session_id": "sess_1781245722_780d58",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
     {
       "project_number": 137,
       "project_name": "refactor_modal_directory_structure",
@@ -309,19 +391,25 @@
     {
       "project_number": 61,
       "project_name": "pr3_temporal_proof_system",
-      "status": "researched",
+      "status": "expanded",
       "task_type": "lean4",
       "created": "2026-06-10T00:22:30Z",
-      "last_updated": "2026-06-12T06:19:27Z",
+      "last_updated": "2026-06-12T06:34:14Z",
       "topic": "Submit PRs",
-      "session_id": "sess_1781244674_55e8cd",
+      "session_id": "sess_1781245722_780d58",
       "artifacts": [
         {
           "path": "specs/061_pr3_temporal_proof_system/reports/01_temporal-proof-pr-division.md",
           "type": "research_report",
           "summary": "PR3 temporal proof system subdivision: 5 sub-PRs (549/401/432/237/510 LOC) covering 14 files (2,129 lines) across Formula, Syntax, Axioms, ProofSystem, and Semantics layers"
+        },
+        {
+          "path": "specs/061_pr3_temporal_proof_system/plans/01_temporal-proof-pr-division.md",
+          "type": "plan",
+          "summary": "Plan for creating 5 sub-PR tasks (159-163) for temporal proof system"
         }
-      ]
+      ],
+      "completion_summary": "Expanded into 5 sub-PRs (tasks 159-163) for temporal proof system incremental submission: 3.1 Formula (549 LOC), 3.2 Syntax utilities (401 LOC), 3.3 Axioms/derivation (432 LOC), 3.4 ProofSystem instances (237 LOC), 3.5 Semantics/embedding (510 LOC). Total: 2,129 lines across 14 files."
     },
     {
       "project_number": 62,
