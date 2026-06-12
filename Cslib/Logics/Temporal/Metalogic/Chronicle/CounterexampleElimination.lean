@@ -67,9 +67,9 @@ structure C5Counterexample (χ : Chronicle Atom) where
   x_mem : x ∈ χ.dom
   ξ : Formula Atom
   η : Formula Atom
-  until_mem : Formula.untl η ξ ∈ χ.f x
+  until_mem : (η U ξ) ∈ χ.f x
   no_witness : ¬∃ y ∈ χ.dom, x < y ∧ η ∈ χ.f y ∧
-    ∀ z ∈ χ.dom, x < z → z < y → ξ ∈ χ.f z ∧ Formula.untl η ξ ∈ χ.f z
+    ∀ z ∈ χ.dom, x < z → z < y → ξ ∈ χ.f z ∧ (η U ξ) ∈ χ.f z
 
 /--
 A **C5' counterexample** (Since direction): a point x and formulas xi, eta such that
@@ -80,9 +80,9 @@ structure C5'Counterexample (χ : Chronicle Atom) where
   x_mem : x ∈ χ.dom
   ξ : Formula Atom
   η : Formula Atom
-  since_mem : Formula.snce η ξ ∈ χ.f x
+  since_mem : (η S ξ) ∈ χ.f x
   no_witness : ¬∃ y ∈ χ.dom, y < x ∧ η ∈ χ.f y ∧
-    ∀ z ∈ χ.dom, y < z → z < x → ξ ∈ χ.f z ∧ Formula.snce η ξ ∈ χ.f z
+    ∀ z ∈ χ.dom, y < z → z < x → ξ ∈ χ.f z ∧ (η S ξ) ∈ χ.f z
 
 /-! ## Helper: Finding Fresh Rationals -/
 
@@ -167,7 +167,7 @@ theorem BurgessR3Maximal_g_content_sub {A B C : Set (Formula Atom)}
   intro φ hφ
   change Formula.allFuture φ ∈ A at hφ
   by_contra h_not_C
-  have h_neg_C : φ.neg ∈ C := by
+  have h_neg_C : (¬φ) ∈ C := by
     rcases temporal_negation_complete h_mcs_C φ with h | h
     · exact absurd h h_not_C
     · exact h
@@ -176,7 +176,7 @@ theorem BurgessR3Maximal_g_content_sub {A B C : Set (Formula Atom)}
     cud_contains_theorems h_r3m.1 (identity Formula.bot)
   have h_untl : Formula.untl φ.neg top ∈ A :=
     h_r3m.2.1.1 top h_top_B φ.neg h_neg_C
-  have h_F_neg : Formula.someFuture φ.neg ∈ A :=
+  have h_F_neg : (𝐅(¬φ)) ∈ A :=
     until_implies_F_in_mcs h_mcs_A h_untl
   have h_dni : DerivationTree FrameClass.Base [] (φ.imp φ.neg.neg) := by
     have h1 : DerivationTree FrameClass.Base [φ.neg, φ] Formula.bot :=
@@ -256,14 +256,14 @@ theorem burgessR3Maximal_from_h_content_sub {A C : Set (Formula Atom)}
     have h_HF : Formula.allPast (Formula.someFuture γ) ∈ C :=
       temporal_implication_property h_mcs_C
         (theoremInMcs h_mcs_C h_ax_cp) hγ
-    have h_F : Formula.someFuture γ ∈ A := h_hc h_HF
+    have h_F : (𝐅γ) ∈ A := h_hc h_HF
     have h_bx12 : DerivationTree FrameClass.Base [] ((Formula.someFuture γ).imp (Formula.untl γ top)) :=
       DerivationTree.axiom [] _ (Axiom.F_until_equiv γ) trivial
     exact temporal_implication_property h_mcs_A
       (theoremInMcs h_mcs_A h_bx12) h_F
   have h_bRS : burgessRSince C top A := by
     intro α hα
-    have h_P : Formula.somePast α ∈ C := by
+    have h_P : (𝐏α) ∈ C := by
       by_contra h_not_P
       have h_neg_P : (Formula.somePast α).neg ∈ C :=
         (temporal_negation_complete h_mcs_C _).resolve_left h_not_P
@@ -272,7 +272,7 @@ theorem burgessR3Maximal_from_h_content_sub {A C : Set (Formula Atom)}
         DerivationTree.axiom [] _ (Axiom.connect_future α) trivial
       have h_GP : Formula.allFuture (Formula.somePast α) ∈ A :=
         temporal_implication_property h_mcs_A (theoremInMcs h_mcs_A h_ax_cf) hα
-      have h_P_in_C : Formula.somePast α ∈ C := h_gc h_GP
+      have h_P_in_C : (𝐏α) ∈ C := h_gc h_GP
       exact h_not_P h_P_in_C
     have h_bx12' : DerivationTree FrameClass.Base [] ((Formula.somePast α).imp (Formula.snce α top)) :=
       DerivationTree.axiom [] _ (Axiom.P_since_equiv α) trivial
@@ -506,7 +506,7 @@ noncomputable def c5_forward_walk
     (χ : Chronicle Atom) (h_c0 : χ.c0) (h_c2' : χ.c2')
     (ξ η : Formula Atom) (pt : Rat)
     (h_start_mem : pt ∈ χ.dom)
-    (h_until_start : Formula.untl η ξ ∈ χ.f pt)
+    (h_until_start : (η U ξ) ∈ χ.f pt)
     (h_no_wit : ¬∃ y ∈ χ.dom, pt < y ∧ η ∈ χ.f y ∧
       (∀ a b, Adjacent χ.dom a b → pt ≤ a → b ≤ y → ξ ∈ χ.g a b) ∧
       (∀ w ∈ χ.dom, pt < w → w < y → ξ ∈ χ.f w)) :
@@ -694,7 +694,7 @@ noncomputable def c5_forward_walk
     -- Check condition (i): conj ∈ f(x') AND ξ ∈ g(pt, x')
     by_cases h_cond_i : Formula.and ξ (Formula.untl η ξ) ∈ χ.f x' ∧ ξ ∈ χ.g pt x'
     · -- **Condition (i)**: recurse at x'
-      have h_untl_x' : Formula.untl η ξ ∈ χ.f x' :=
+      have h_untl_x' : (η U ξ) ∈ χ.f x' :=
         conj_right_mcs h_mcs_x' ξ (Formula.untl η ξ) h_cond_i.1
       -- Derive: h_no_wit at x'
       have h_no_wit_x' : ¬∃ y ∈ χ.dom, x' < y ∧ η ∈ χ.f y ∧
@@ -817,7 +817,7 @@ noncomputable def c5_forward_walk
             have h_conj_not_f : Formula.and ξ (Formula.untl η ξ) ∉ χ.f x' :=
               fun h => h_cond_i ⟨h, h_xi_g⟩
             have h_neg_disj : (Formula.or η (Formula.and ξ (Formula.untl η ξ))).neg ∈ χ.f x' := by
-              have h1 : η.neg ∈ χ.f x' := by
+              have h1 : (¬η) ∈ χ.f x' := by
                 rcases temporal_negation_complete h_mcs_x' η with h | h
                 · exact absurd h (h_guard_implies_no_event h_xi_g)
                 · exact h
@@ -837,14 +837,14 @@ noncomputable def c5_forward_walk
           · obtain ⟨B', D, B'', hB', hB'', hD, hη, hBB', h_B_sub_D, hBB'', h_xi_B'⟩ :=
               lemma_2_7 h_mcs_start h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj ξ η h_until_start h_xi_g
             exact ⟨B', D, B'', hB', hB'', hD, hη, h_B_sub_D, hBB', hBB'', h_xi_B'⟩
-        · by_cases h_eta_neg_g : η.neg ∈ χ.g pt x'
+        · by_cases h_eta_neg_g : (¬η) ∈ χ.g pt x'
           · by_cases h_xi_g : ξ ∈ χ.g pt x'
             · by_cases h_conj_g : Formula.and ξ (Formula.untl η ξ) ∈ χ.g pt x'
               · -- conj in g but not-condition(i): conj not in f(x')
                 have h_conj_not_f : Formula.and ξ (Formula.untl η ξ) ∉ χ.f x' :=
                   fun h => h_cond_i ⟨h, h_xi_g⟩
                 have h_neg_disj : (Formula.or η (Formula.and ξ (Formula.untl η ξ))).neg ∈ χ.f x' := by
-                  have h1 : η.neg ∈ χ.f x' := by
+                  have h1 : (¬η) ∈ χ.f x' := by
                     rcases temporal_negation_complete h_mcs_x' η with h | h
                     · exact absurd h (h_guard_implies_no_event h_xi_g)
                     · exact h
@@ -1046,7 +1046,7 @@ noncomputable def c5_backward_walk
     (χ : Chronicle Atom) (h_c0 : χ.c0) (h_c2' : χ.c2')
     (ξ η : Formula Atom) (pt : Rat)
     (h_start_mem : pt ∈ χ.dom)
-    (h_since_start : Formula.snce η ξ ∈ χ.f pt)
+    (h_since_start : (η S ξ) ∈ χ.f pt)
     (h_no_wit : ¬∃ y ∈ χ.dom, y < pt ∧ η ∈ χ.f y ∧
       (∀ a b, Adjacent χ.dom a b → y ≤ a → b ≤ pt → ξ ∈ χ.g a b) ∧
       (∀ w ∈ χ.dom, y < w → w < pt → ξ ∈ χ.f w)) :
@@ -1229,7 +1229,7 @@ noncomputable def c5_backward_walk
     -- Check condition (i): conj ∈ f(x'') AND ξ ∈ g(x'', pt)
     by_cases h_cond_i : Formula.and ξ (Formula.snce η ξ) ∈ χ.f x'' ∧ ξ ∈ χ.g x'' pt
     · -- **Condition (i)**: recurse at x''
-      have h_snce_x'' : Formula.snce η ξ ∈ χ.f x'' :=
+      have h_snce_x'' : (η S ξ) ∈ χ.f x'' :=
         conj_right_mcs h_mcs_x'' ξ (Formula.snce η ξ) h_cond_i.1
       -- Derive: h_no_wit at x''
       have h_no_wit_x'' : ¬∃ y ∈ χ.dom, y < x'' ∧ η ∈ χ.f y ∧
@@ -1353,7 +1353,7 @@ noncomputable def c5_backward_walk
             have h_conj_not_f : Formula.and ξ (Formula.snce η ξ) ∉ χ.f x'' :=
               fun h => h_cond_i ⟨h, h_xi_g⟩
             have h_neg_disj : (Formula.or η (Formula.and ξ (Formula.snce η ξ))).neg ∈ χ.f x'' := by
-              have h1 : η.neg ∈ χ.f x'' := by
+              have h1 : (¬η) ∈ χ.f x'' := by
                 rcases temporal_negation_complete h_mcs_x'' η with h | h
                 · exact absurd h (h_guard_implies_no_event h_xi_g)
                 · exact h
@@ -1373,14 +1373,14 @@ noncomputable def c5_backward_walk
           · obtain ⟨B', D, B'', hB', hB'', hD, hη, hBB', h_B_sub_D, hBB'', h_xi_B''⟩ :=
               lemma_2_7_since h_mcs_x'' h_mcs_start h_r3m_adj h_r3m_adj.1 h_gc_adj ξ η h_since_start h_xi_g
             exact ⟨B', D, B'', hB', hB'', hD, hη, h_B_sub_D, hBB', hBB'', h_xi_B''⟩
-        · by_cases h_eta_neg_g : η.neg ∈ χ.g x'' pt
+        · by_cases h_eta_neg_g : (¬η) ∈ χ.g x'' pt
           · by_cases h_xi_g : ξ ∈ χ.g x'' pt
             · by_cases h_conj_g : Formula.and ξ (Formula.snce η ξ) ∈ χ.g x'' pt
               · -- conj in g but not-condition(i): conj not in f(x'')
                 have h_conj_not_f : Formula.and ξ (Formula.snce η ξ) ∉ χ.f x'' :=
                   fun h => h_cond_i ⟨h, h_xi_g⟩
                 have h_neg_disj : (Formula.or η (Formula.and ξ (Formula.snce η ξ))).neg ∈ χ.f x'' := by
-                  have h1 : η.neg ∈ χ.f x'' := by
+                  have h1 : (¬η) ∈ χ.f x'' := by
                     rcases temporal_negation_complete h_mcs_x'' η with h | h
                     · exact absurd h (h_guard_implies_no_event h_xi_g)
                     · exact h
@@ -1893,7 +1893,7 @@ noncomputable def eliminatePotentialCounterexample
                     lemma_2_7 h_mcs_x h_mcs_x' h_r3m_adj h_r3m_adj.1 h_gc_adj
                       pc.ξ pc.η h_until h_xi_g
                   exact ⟨B'4, D4, B''4, h_B'4, h_B''4, h_D4_mcs, h_eta_D4, h_B_sub_D4, h_B_sub_B'4, h_B_sub_B''4, h_xi_B'4⟩
-              · -- eta ∉ g, eta.neg ∉ g. Case split on xi ∈ g for the guard.
+              · -- eta ∉ g, (¬eta) ∉ g. Case split on xi ∈ g for the guard.
                 by_cases h_xi_g6 : pc.ξ ∈ χ.g pc.x x'
                 · -- xi ∈ g: use lemma_2_6 and derive xi ∈ B' from g ⊆ B'
                   have h_split5 := lemma_2_6_splitting h_mcs_x h_mcs_x' h_r3m_adj
@@ -2722,7 +2722,7 @@ noncomputable def eliminatePotentialCounterexample
           have h_xi_wn : pc.ξ ∈ χ.f w_next := by
             rcases temporal_negation_complete h_mcs_wn pc.ξ with h | h
             · exact h
-            · -- ξ.neg ∈ f(w_next), but w_next is between pc.x and pc.y, contradicting h_no_wit
+            · -- (¬ξ) ∈ f(w_next), but w_next is between pc.x and pc.y, contradicting h_no_wit
               exact absurd ⟨w_next, hw_next_dom, hx_lt_wn, hw_next_lt_y, h⟩ h_no_wit
           -- Form ξ ∧ untl(ξ,η) ∈ f(w_next) by conjunction closure in MCS
           have h_conj_wn : Formula.and pc.ξ (Formula.untl pc.η pc.ξ) ∈ χ.f w_next :=

@@ -1,7 +1,7 @@
 # Implementation Plan: Syntactic Sugar Survey and Refactor
 
 - **Task**: 165 - Syntactic sugar survey and refactor
-- **Status**: [IN PROGRESS]
+- **Status**: [COMPLETED]
 - **Effort**: 11 hours
 - **Dependencies**: None (can proceed on current branch; coordinate PL fixes with PR #633 if desired)
 - **Research Inputs**: specs/165_syntactic_sugar_survey_and_refactor/reports/01_team-research.md
@@ -375,7 +375,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: Refactor Temporal/Metalogic and Full Temporal CI [IN PROGRESS]
+### Phase 9: Refactor Temporal/Metalogic and Full Temporal CI [COMPLETED]
 
 **Goal**: Replace raw constructors in all Temporal metalogic files (the largest single concentration of occurrences, including the Chronicle pipeline with PointInsertion at 664 occurrences) and run full CI.
 

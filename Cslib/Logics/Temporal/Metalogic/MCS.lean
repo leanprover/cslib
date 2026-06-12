@@ -77,7 +77,7 @@ theorem temporal_implication_property
 
 theorem temporal_negation_complete
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    (φ : Formula Atom) : φ ∈ Ω ∨ Formula.neg φ ∈ Ω :=
+    (φ : Formula Atom) : φ ∈ Ω ∨ (¬φ) ∈ Ω :=
   Metalogic.SetMaximalConsistent.negation_complete
     temporalDerivationSystem temporal_has_deduction_theorem h_mcs φ
 
@@ -116,20 +116,20 @@ theorem mcs_bot_not_mem
 
 theorem mcs_neg_of_not_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} (h_not : φ ∉ Ω) : Formula.neg φ ∈ Ω := by
+    {φ : Formula Atom} (h_not : φ ∉ Ω) : (¬φ) ∈ Ω := by
   rcases temporal_negation_complete h_mcs φ with h | h
   · exact absurd h h_not
   · exact h
 
 theorem mcs_not_mem_of_neg
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} (h_neg : Formula.neg φ ∈ Ω) : φ ∉ Ω := by
+    {φ : Formula Atom} (h_neg : (¬φ) ∈ Ω) : φ ∉ Ω := by
   intro h_phi
   exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs h_neg h_phi)
 
 theorem mcs_mem_iff_neg_not_mem
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} : φ ∈ Ω ↔ Formula.neg φ ∉ Ω := by
+    {φ : Formula Atom} : φ ∈ Ω ↔ (¬φ) ∉ Ω := by
   constructor
   · intro h hn; exact mcs_bot_not_mem h_mcs (temporal_implication_property h_mcs hn h)
   · intro h; rcases temporal_negation_complete h_mcs φ with h' | h'
@@ -168,7 +168,7 @@ theorem mcs_g_mp
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {φ ψ : Formula Atom}
     (h_g_imp : Formula.allFuture (φ.imp ψ) ∈ Ω)
-    (h_g_phi : Formula.allFuture φ ∈ Ω) : Formula.allFuture ψ ∈ Ω := by
+    (h_g_phi : (𝐆φ) ∈ Ω) : (𝐆ψ) ∈ Ω := by
   -- Assume G(ψ) ∉ Ω, giving F(¬ψ) ∈ Ω
   by_contra h_not_g_psi
   have h_f_neg_psi : Formula.someFuture (Formula.neg ψ) ∈ Ω :=
@@ -228,7 +228,7 @@ theorem mcs_h_mp
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {φ ψ : Formula Atom}
     (h_h_imp : Formula.allPast (φ.imp ψ) ∈ Ω)
-    (h_h_phi : Formula.allPast φ ∈ Ω) : Formula.allPast ψ ∈ Ω := by
+    (h_h_phi : (𝐇φ) ∈ Ω) : (𝐇ψ) ∈ Ω := by
   -- Same structure as mcs_g_mp but using BX3' (right_mono_since) and temporal_duality.
   by_contra h_not_h_psi
   have h_p_neg_psi : Formula.somePast (Formula.neg ψ) ∈ Ω :=
@@ -283,11 +283,11 @@ theorem mcs_h_mp
 
 /-- The "future set" of an MCS: all formulas whose G-closure is in Ω. -/
 def futureSet (Ω : Set (Formula Atom)) : Set (Formula Atom) :=
-  {φ | Formula.allFuture φ ∈ Ω}
+  {φ | (𝐆φ) ∈ Ω}
 
 /-- The "past set" of an MCS: all formulas whose H-closure is in Ω. -/
 def pastSet (Ω : Set (Formula Atom)) : Set (Formula Atom) :=
-  {φ | Formula.allPast φ ∈ Ω}
+  {φ | (𝐇φ) ∈ Ω}
 
 /-- Derive ⊥ from G-context: if all G(lᵢ) ∈ S and L ⊢ ⊥, then S is inconsistent
 via iterated G-distribution.
@@ -299,8 +299,8 @@ Contradiction. -/
 theorem derive_g_contradiction
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {L : List (Formula Atom)} {φ : Formula Atom}
-    (hL : ∀ x ∈ L, Formula.allFuture x ∈ Ω)
-    (d : DerivationTree FrameClass.Base L φ) : Formula.allFuture φ ∈ Ω := by
+    (hL : ∀ x ∈ L, (𝐆x) ∈ Ω)
+    (d : DerivationTree FrameClass.Base L φ) : (𝐆φ) ∈ Ω := by
   induction L generalizing φ with
   | nil =>
     -- L = [], d : [] ⊢ φ. Necessitation: ⊢ G(φ). So G(φ) ∈ S.
@@ -315,9 +315,9 @@ theorem derive_g_contradiction
 /-- If `G(φ) ∉ S`, then there exists an MCS `T` with `futureSet Ω ⊆ T` and `φ ∉ T`. -/
 theorem mcs_g_witness
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} (h_not_g : Formula.allFuture φ ∉ Ω) :
+    {φ : Formula Atom} (h_not_g : (𝐆φ) ∉ Ω) :
     ∃ T : Set (Formula Atom), Temporal.SetMaximalConsistent T ∧
-      (∀ ψ, Formula.allFuture ψ ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
+      (∀ ψ, (𝐆ψ) ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
   let W := futureSet Ω ∪ {Formula.neg φ}
   have hW : Temporal.SetConsistent W := by
     intro L hL
@@ -325,13 +325,13 @@ theorem mcs_g_witness
     intro ⟨d_bot⟩
     -- Separate L into elements with G-versions in Ω and possibly ¬φ.
     let L' := L.filter (· ≠ Formula.neg φ)
-    have h_L'_g : ∀ x ∈ L', Formula.allFuture x ∈ Ω := by
+    have h_L'_g : ∀ x ∈ L', (𝐆x) ∈ Ω := by
       intro x hx
       simp only [L', List.mem_filter, decide_eq_true_eq] at hx
       rcases hL x hx.1 with h | h
       · exact h
       · exact absurd h hx.2
-    by_cases h_neg_in : Formula.neg φ ∈ L
+    by_cases h_neg_in : (¬φ) ∈ L
     · -- ¬φ ∈ L. Weaken, DT, then Peirce+EFQ derive φ; derive_g_contradiction gives G(φ) ∈ S.
       have h_perm : ∀ x, x ∈ L → x ∈ Formula.neg φ :: L' := by
         intro x hx
@@ -364,7 +364,7 @@ theorem mcs_g_witness
       exact h_not_g (derive_g_contradiction h_mcs h_L'_g
         (DerivationTree.modus_ponens L' _ _ peirce_ax step3))
     · -- ¬φ ∉ L. All elements have G-versions in Ω; derive_g_contradiction gives G(⊥) ∈ S.
-      have h_all_g : ∀ x ∈ L, Formula.allFuture x ∈ Ω := by
+      have h_all_g : ∀ x ∈ L, (𝐆x) ∈ Ω := by
         intro x hx
         rcases hL x hx with h | h
         · exact h
@@ -379,15 +379,15 @@ theorem mcs_g_witness
   obtain ⟨T, hWT, hT_mcs⟩ := temporal_lindenbaum hW
   refine ⟨T, hT_mcs, ?_, ?_⟩
   · intro ψ h_g; exact hWT (Set.mem_union_left _ h_g)
-  · have h_neg : Formula.neg φ ∈ T := hWT (Set.mem_union_right _ (Set.mem_singleton _))
+  · have h_neg : (¬φ) ∈ T := hWT (Set.mem_union_right _ (Set.mem_singleton _))
     exact mcs_not_mem_of_neg hT_mcs h_neg
 
 /-- Symmetric version for past: if `H(φ) ∉ S`, exists MCS T with pastSet Ω ⊆ T and φ ∉ T. -/
 theorem derive_h_contradiction
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
     {L : List (Formula Atom)} {φ : Formula Atom}
-    (hL : ∀ x ∈ L, Formula.allPast x ∈ Ω)
-    (d : DerivationTree FrameClass.Base L φ) : Formula.allPast φ ∈ Ω := by
+    (hL : ∀ x ∈ L, (𝐇x) ∈ Ω)
+    (d : DerivationTree FrameClass.Base L φ) : (𝐇φ) ∈ Ω := by
   induction L generalizing φ with
   | nil =>
     apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
@@ -415,22 +415,22 @@ theorem derive_h_contradiction
 
 theorem mcs_h_witness
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ : Formula Atom} (h_not_h : Formula.allPast φ ∉ Ω) :
+    {φ : Formula Atom} (h_not_h : (𝐇φ) ∉ Ω) :
     ∃ T : Set (Formula Atom), Temporal.SetMaximalConsistent T ∧
-      (∀ ψ, Formula.allPast ψ ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
+      (∀ ψ, (𝐇ψ) ∈ Ω → ψ ∈ T) ∧ φ ∉ T := by
   let W := pastSet Ω ∪ {Formula.neg φ}
   have hW : Temporal.SetConsistent W := by
     intro L hL
     unfold Metalogic.Consistent
     intro ⟨d_bot⟩
     let L' := L.filter (· ≠ Formula.neg φ)
-    have h_L'_h : ∀ x ∈ L', Formula.allPast x ∈ Ω := by
+    have h_L'_h : ∀ x ∈ L', (𝐇x) ∈ Ω := by
       intro x hx
       simp only [L', List.mem_filter, decide_eq_true_eq] at hx
       rcases hL x hx.1 with h | h
       · exact h
       · exact absurd h hx.2
-    by_cases h_neg_in : Formula.neg φ ∈ L
+    by_cases h_neg_in : (¬φ) ∈ L
     · have h_perm : ∀ x, x ∈ L → x ∈ Formula.neg φ :: L' := by
         intro x hx
         by_cases hxn : x = Formula.neg φ
@@ -461,7 +461,7 @@ theorem mcs_h_witness
           (fun _ h => nomatch h)
       have d_phi := DerivationTree.modus_ponens L' _ _ peirce_ax step3
       exact h_not_h (derive_h_contradiction h_mcs h_L'_h d_phi)
-    · have h_all_h : ∀ x ∈ L, Formula.allPast x ∈ Ω := by
+    · have h_all_h : ∀ x ∈ L, (𝐇x) ∈ Ω := by
         intro x hx
         rcases hL x hx with h | h
         · exact h
@@ -477,7 +477,7 @@ theorem mcs_h_witness
   obtain ⟨T, hWT, hT_mcs⟩ := temporal_lindenbaum hW
   refine ⟨T, hT_mcs, ?_, ?_⟩
   · intro ψ h_h; exact hWT (Set.mem_union_left _ h_h)
-  · have h_neg : Formula.neg φ ∈ T := hWT (Set.mem_union_right _ (Set.mem_singleton _))
+  · have h_neg : (¬φ) ∈ T := hWT (Set.mem_union_right _ (Set.mem_singleton _))
     exact mcs_not_mem_of_neg hT_mcs h_neg
 
 end Cslib.Logic.Temporal

@@ -252,7 +252,7 @@ theorem completeness_dense {φ : Formula Atom}
   by_contra h_not_deriv
   have h_cons := neg_consistent_of_not_derivable_dense h_not_deriv
   obtain ⟨M, hM_sup, hM_mcs⟩ := temporal_lindenbaum_fc h_cons
-  have h_neg_in_M : Formula.neg φ ∈ M := hM_sup (Set.mem_singleton _)
+  have h_neg_in_M : (¬φ) ∈ M := hM_sup (Set.mem_singleton _)
   have h_phi_not_M : φ ∉ M := mcs_not_mem_of_neg_fc hM_mcs h_neg_in_M
   have h_base_mcs := dense_mcs_implies_base_mcs hM_mcs
   let D := ChronicleSubtype M h_base_mcs

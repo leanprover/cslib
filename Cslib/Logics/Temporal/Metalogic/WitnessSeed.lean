@@ -39,7 +39,7 @@ variable {Atom : Type*}
 
 lemma someFuture_allFuture_neg_absurd {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (psi : Formula Atom)
-    (h_F : Formula.someFuture psi ∈ M)
+    (h_F : (𝐅psi) ∈ M)
     (h_G_neg : Formula.allFuture (Formula.neg psi) ∈ M) : False := by
   have h_bx3 : DerivationTree FrameClass.Base [] ((psi.imp psi.neg.neg).allFuture.imp
       ((Formula.untl psi Formula.top).imp (Formula.untl psi.neg.neg Formula.top))) :=
@@ -51,7 +51,7 @@ lemma someFuture_allFuture_neg_absurd {M : Set (Formula Atom)}
 
 lemma somePast_allPast_neg_absurd {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (psi : Formula Atom)
-    (h_P : Formula.somePast psi ∈ M)
+    (h_P : (𝐏psi) ∈ M)
     (h_H_neg : Formula.allPast (Formula.neg psi) ∈ M) : False := by
   have h_bx3 : DerivationTree FrameClass.Base [] ((psi.imp psi.neg.neg).allPast.imp
       ((Formula.snce psi Formula.top).imp (Formula.snce psi.neg.neg Formula.top))) :=
@@ -80,7 +80,7 @@ theorem extract_g_neg_from_seed {M : Set (Formula Atom)}
       · exact List.mem_cons.mpr (Or.inr (by simp [List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxX⟩))
     have d_reord := DerivationTree.weakening L _ Formula.bot d h_sub_reord
     have d_neg := deductionTheorem _ X Formula.bot d_reord
-    have h_G_filt : ∀ chi ∈ L.filter (fun y => decide (y ≠ X)), Formula.allFuture chi ∈ M := by
+    have h_G_filt : ∀ chi ∈ L.filter (fun y => decide (y ≠ X)), (𝐆chi) ∈ M := by
       intro chi h_mem
       have h_and := List.mem_filter.mp h_mem
       have h_ne : chi ≠ X := by simp only [decide_eq_true_eq] at h_and; exact h_and.2
@@ -95,7 +95,7 @@ theorem extract_g_neg_from_seed {M : Set (Formula Atom)}
       obtain ⟨chi, hc, he⟩ := hf; rw [← he]; exact h_G_filt chi hc
     exact temporal_closed_under_derivation h_mcs h_ctx ⟨d_G_neg⟩
   · -- X ∉ L, all of L ⊆ gContent M
-    have h_G_all : ∀ chi ∈ L, Formula.allFuture chi ∈ M := by
+    have h_G_all : ∀ chi ∈ L, (𝐆chi) ∈ M := by
       intro chi h_mem
       have h_in := hL_sub chi h_mem
       simp only [Set.mem_union, Set.mem_singleton_iff] at h_in
@@ -129,7 +129,7 @@ theorem extract_h_neg_from_seed {M : Set (Formula Atom)}
       · exact List.mem_cons.mpr (Or.inr (by simp [List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxX⟩))
     have d_reord := DerivationTree.weakening L _ Formula.bot d h_sub_reord
     have d_neg := deductionTheorem _ X Formula.bot d_reord
-    have h_H_filt : ∀ chi ∈ L.filter (fun y => decide (y ≠ X)), Formula.allPast chi ∈ M := by
+    have h_H_filt : ∀ chi ∈ L.filter (fun y => decide (y ≠ X)), (𝐇chi) ∈ M := by
       intro chi h_mem
       have h_and := List.mem_filter.mp h_mem
       have h_ne : chi ≠ X := by simp only [decide_eq_true_eq] at h_and; exact h_and.2
@@ -143,7 +143,7 @@ theorem extract_h_neg_from_seed {M : Set (Formula Atom)}
       intro f hf; rw [Context.mem_map_iff] at hf
       obtain ⟨chi, hc, he⟩ := hf; rw [← he]; exact h_H_filt chi hc
     exact temporal_closed_under_derivation h_mcs h_ctx ⟨d_H_neg⟩
-  · have h_H_all : ∀ chi ∈ L, Formula.allPast chi ∈ M := by
+  · have h_H_all : ∀ chi ∈ L, (𝐇chi) ∈ M := by
       intro chi h_mem
       have h_in := hL_sub chi h_mem
       simp only [Set.mem_union, Set.mem_singleton_iff] at h_in
@@ -168,7 +168,7 @@ def forwardTemporalWitnessSeed (M : Set (Formula Atom)) (psi : Formula Atom) : S
 
 theorem forward_temporal_witness_seed_consistent (M : Set (Formula Atom))
     (h_mcs : Temporal.SetMaximalConsistent M)
-    (psi : Formula Atom) (h_F : Formula.someFuture psi ∈ M) :
+    (psi : Formula Atom) (h_F : (𝐅psi) ∈ M) :
     Temporal.SetConsistent (forwardTemporalWitnessSeed M psi) := by
   intro L hL_sub ⟨d⟩
   exact someFuture_allFuture_neg_absurd h_mcs psi h_F
@@ -181,7 +181,7 @@ def pastTemporalWitnessSeed (M : Set (Formula Atom)) (psi : Formula Atom) : Set 
 
 theorem past_temporal_witness_seed_consistent (M : Set (Formula Atom))
     (h_mcs : Temporal.SetMaximalConsistent M)
-    (psi : Formula Atom) (h_P : Formula.somePast psi ∈ M) :
+    (psi : Formula Atom) (h_P : (𝐏psi) ∈ M) :
     Temporal.SetConsistent (pastTemporalWitnessSeed M psi) := by
   intro L hL_sub ⟨d⟩
   exact somePast_allPast_neg_absurd h_mcs psi h_P
@@ -191,7 +191,7 @@ theorem past_temporal_witness_seed_consistent (M : Set (Formula Atom))
 
 theorem until_witness_seed_consistent (M : Set (Formula Atom))
     (h_mcs : Temporal.SetMaximalConsistent M)
-    (φ ψ : Formula Atom) (h_U : Formula.untl ψ φ ∈ M) :
+    (φ ψ : Formula Atom) (h_U : (ψ U φ) ∈ M) :
     Temporal.SetConsistent (forwardTemporalWitnessSeed M ψ) := by
   intro L hL_sub ⟨d⟩
   have h_G_neg := extract_g_neg_from_seed h_mcs ψ hL_sub d
@@ -202,7 +202,7 @@ theorem until_witness_seed_consistent (M : Set (Formula Atom))
 
 theorem since_witness_seed_consistent (M : Set (Formula Atom))
     (h_mcs : Temporal.SetMaximalConsistent M)
-    (φ ψ : Formula Atom) (h_S : Formula.snce ψ φ ∈ M) :
+    (φ ψ : Formula Atom) (h_S : (ψ S φ) ∈ M) :
     Temporal.SetConsistent (pastTemporalWitnessSeed M ψ) := by
   intro L hL_sub ⟨d⟩
   have h_H_neg := extract_h_neg_from_seed h_mcs ψ hL_sub d
@@ -224,7 +224,7 @@ theorem g_content_subset_implies_h_content_reverse
   have h_ta : DerivationTree FrameClass.Base [] ((Formula.neg phi).imp (Formula.allFuture (Formula.neg phi).somePast)) :=
     DerivationTree.axiom [] _ (Axiom.connect_future (Formula.neg phi)) trivial
   have h_G_P_neg := temporal_implication_property h_mcs (theoremInMcs h_mcs h_ta) h_neg_phi
-  have h_P_neg_M' : (Formula.neg phi).somePast ∈ M' := h_GC h_G_P_neg
+  have h_P_neg_M' : (𝐏(¬phi)) ∈ M' := h_GC h_G_P_neg
   have h_H_dni := pastNecessitation _ (dni phi)
   have h_pk := pastKDist phi phi.neg.neg
   have h_H_imp := DerivationTree.modus_ponens [] _ _ h_pk h_H_dni
@@ -242,7 +242,7 @@ theorem h_content_subset_implies_g_content_reverse
   have h_pta : DerivationTree FrameClass.Base [] ((Formula.neg phi).imp (Formula.neg phi).someFuture.allPast) :=
     DerivationTree.axiom [] _ (Axiom.connect_past (Formula.neg phi)) trivial
   have h_H_F_neg := temporal_implication_property h_mcs (theoremInMcs h_mcs h_pta) h_neg_phi
-  have h_F_neg_M' : (Formula.neg phi).someFuture ∈ M' := h_HC h_H_F_neg
+  have h_F_neg_M' : (𝐅(¬phi)) ∈ M' := h_HC h_H_F_neg
   have h_G_dni := DerivationTree.temporal_necessitation _ (dni phi)
   have h_fk := tempKDistDerived phi phi.neg.neg
   have h_G_imp := DerivationTree.modus_ponens [] _ _ h_fk h_G_dni

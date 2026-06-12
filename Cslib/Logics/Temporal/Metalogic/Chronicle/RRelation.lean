@@ -43,22 +43,22 @@ variable {Atom : Type*}
 
 theorem until_implies_F_in_mcs {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A) {γ δ : Formula Atom}
-    (h_until : Formula.untl δ γ ∈ A) :
-    Formula.someFuture δ ∈ A :=
+    (h_until : (δ U γ) ∈ A) :
+    (𝐅δ) ∈ A :=
   temporal_implication_property h_mcs
     (theoremInMcs h_mcs (DerivationTree.axiom [] _ (Axiom.until_F γ δ) trivial)) h_until
 
 theorem until_self_accum_in_mcs {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A) {γ δ : Formula Atom}
-    (h_until : Formula.untl δ γ ∈ A) :
+    (h_until : (δ U γ) ∈ A) :
     Formula.untl δ (Formula.and γ (Formula.untl δ γ)) ∈ A :=
   temporal_implication_property h_mcs
     (theoremInMcs h_mcs (DerivationTree.axiom [] _ (Axiom.self_accum_until γ δ) trivial)) h_until
 
 theorem since_implies_P_in_mcs {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A) {γ δ : Formula Atom}
-    (h_since : Formula.snce δ γ ∈ A) :
-    Formula.somePast δ ∈ A :=
+    (h_since : (δ S γ) ∈ A) :
+    (𝐏δ) ∈ A :=
   temporal_implication_property h_mcs
     (theoremInMcs h_mcs (DerivationTree.axiom [] _ (Axiom.since_P γ δ) trivial)) h_since
 
@@ -66,8 +66,8 @@ theorem since_implies_P_in_mcs {A : Set (Formula Atom)}
 
 theorem rRelation_guard_continues' {A B : Set (Formula Atom)}
     (h_r : rRelation A B) {γ δ : Formula Atom}
-    (h_until : Formula.untl δ γ ∈ A) (h_not_delta : δ ∉ B) :
-    γ ∈ B ∧ Formula.untl δ γ ∈ B := by
+    (h_until : (δ U γ) ∈ A) (h_not_delta : δ ∉ B) :
+    γ ∈ B ∧ (δ U γ) ∈ B := by
   rcases h_r γ δ h_until with h_delta | h_guard
   · exact absurd h_delta h_not_delta
   · exact h_guard
@@ -230,7 +230,7 @@ theorem burgessR_absorption {A D C : Set (Formula Atom)}
     burgessR A β C := by
   intro γ h_γ_C
   -- Step 1: γ U β ∈ D (from h_rDC)
-  have h1 : Formula.untl γ β ∈ D := h_rDC γ h_γ_C
+  have h1 : (γ U β) ∈ D := h_rDC γ h_γ_C
   -- Step 2: β ∧ (γ U β) ∈ D (conjunction in MCS)
   have h2 : Formula.and β (Formula.untl γ β) ∈ D :=
     dcs_conj_closed (mcs_is_dcs h_mcs_D) h_β_D h1
@@ -253,7 +253,7 @@ theorem burgessRSince_absorption {A D C : Set (Formula Atom)}
     (h_rDC : burgessRSince D β C) :
     burgessRSince A β C := by
   intro γ h_γ_C
-  have h1 : Formula.snce γ β ∈ D := h_rDC γ h_γ_C
+  have h1 : (γ S β) ∈ D := h_rDC γ h_γ_C
   have h2 : Formula.and β (Formula.snce γ β) ∈ D :=
     dcs_conj_closed (mcs_is_dcs h_mcs_D) h_β_D h1
   have h3 : Formula.snce (Formula.and β (Formula.snce γ β)) β ∈ A :=
@@ -327,7 +327,7 @@ theorem dcs_neg_insert_consistent {B : Set (Formula Atom)}
     {φ : Formula Atom} (h_not_mem : φ ∉ B) :
     Temporal.SetConsistent ({Formula.neg φ} ∪ B) := by
   intro L hL ⟨d⟩
-  by_cases h_neg_in : Formula.neg φ ∈ L
+  by_cases h_neg_in : (¬φ) ∈ L
   · have h_sub_reord : ∀ x, x ∈ L → x ∈ Formula.neg φ :: L.filter (fun y => decide (y ≠ Formula.neg φ)) := by
       intro x hx
       by_cases hxn : x = Formula.neg φ
@@ -364,8 +364,8 @@ theorem dcs_neg_insert_consistent {B : Set (Formula Atom)}
 theorem mcs_contrapositive_mem {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M)
     {φ ψ : Formula Atom}
-    (h_imp : φ.imp ψ ∈ M) (h_neg_psi : Formula.neg ψ ∈ M) :
-    Formula.neg φ ∈ M := by
+    (h_imp : (φ → ψ) ∈ M) (h_neg_psi : (¬ψ) ∈ M) :
+    (¬φ) ∈ M := by
   by_contra h_not_neg
   have h_phi := (mcs_mem_iff_neg_not_mem h_mcs).mpr h_not_neg
   have h_psi := temporal_implication_property h_mcs h_imp h_phi
@@ -428,8 +428,8 @@ theorem untl_left_mono_G {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A)
     {β₁ β₂ γ : Formula Atom}
     (h_G_impl : (β₁.imp β₂).allFuture ∈ A)
-    (h_untl : Formula.untl γ β₁ ∈ A) :
-    Formula.untl γ β₂ ∈ A := by
+    (h_untl : (γ U β₁) ∈ A) :
+    (γ U β₂) ∈ A := by
   have h_ax := theoremInMcs h_mcs
     (DerivationTree.axiom [] _ (Axiom.left_mono_until_G β₁ β₂ γ) trivial)
   have h_step := temporal_implication_property h_mcs h_ax h_G_impl
@@ -441,8 +441,8 @@ theorem snce_left_mono_H {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A)
     {β₁ β₂ γ : Formula Atom}
     (h_H_impl : (β₁.imp β₂).allPast ∈ A)
-    (h_snce : Formula.snce γ β₁ ∈ A) :
-    Formula.snce γ β₂ ∈ A := by
+    (h_snce : (γ S β₁) ∈ A) :
+    (γ S β₂) ∈ A := by
   have h_ax := theoremInMcs h_mcs
     (DerivationTree.axiom [] _ (Axiom.left_mono_since_H β₁ β₂ γ) trivial)
   have h_step := temporal_implication_property h_mcs h_ax h_H_impl
@@ -454,8 +454,8 @@ theorem untl_left_mono_thm {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A)
     {β₁ β₂ γ : Formula Atom}
     (h_impl : DerivationTree FrameClass.Base [] (β₁.imp β₂))
-    (h_untl : Formula.untl γ β₁ ∈ A) :
-    Formula.untl γ β₂ ∈ A := by
+    (h_untl : (γ U β₁) ∈ A) :
+    (γ U β₂) ∈ A := by
   have h_G := theoremInMcs h_mcs (DerivationTree.temporal_necessitation _ h_impl)
   exact untl_left_mono_G h_mcs h_G h_untl
 
@@ -465,8 +465,8 @@ theorem snce_left_mono_thm {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent A)
     {β₁ β₂ γ : Formula Atom}
     (h_impl : DerivationTree FrameClass.Base [] (β₁.imp β₂))
-    (h_snce : Formula.snce γ β₁ ∈ A) :
-    Formula.snce γ β₂ ∈ A := by
+    (h_snce : (γ S β₁) ∈ A) :
+    (γ S β₂) ∈ A := by
   have h_H := theoremInMcs h_mcs (pastNecessitation _ h_impl)
   exact snce_left_mono_H h_mcs h_H h_snce
 
@@ -476,7 +476,7 @@ theorem snce_left_mono_thm {A : Set (Formula Atom)}
 theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (α : Formula Atom)
     (h : Formula.neg (Formula.allPast (Formula.neg α)) ∈ M) :
-    Formula.somePast α ∈ M := by
+    (𝐏α) ∈ M := by
   -- ¬H(¬α) gives P(¬¬α) by DNE, then BX3' converts to P(α)
   have h_dne_P : Formula.somePast (α.neg.neg) ∈ M := by
     have h_dne : DerivationTree FrameClass.Base [] ((Formula.somePast α.neg.neg).neg.neg.imp (Formula.somePast α.neg.neg)) :=
@@ -496,7 +496,7 @@ theorem neg_allPast_neg_to_somePast {M : Set (Formula Atom)}
 theorem neg_allFuture_neg_to_someFuture {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (γ : Formula Atom)
     (h : Formula.neg (Formula.allFuture (Formula.neg γ)) ∈ M) :
-    Formula.someFuture γ ∈ M := by
+    (𝐅γ) ∈ M := by
   have h_dne_F : Formula.someFuture (γ.neg.neg) ∈ M := by
     have h_dne : DerivationTree FrameClass.Base [] ((Formula.someFuture γ.neg.neg).neg.neg.imp (Formula.someFuture γ.neg.neg)) :=
       doubleNegation (Formula.someFuture γ.neg.neg)
@@ -579,7 +579,7 @@ theorem burgessR_implies_burgessRSince {A C : Set (Formula Atom)}
     burgessRSince C β A := by
   intro α hα
   -- Step 1: Show P(α) ∈ C
-  have h_P : Formula.somePast α ∈ C := by
+  have h_P : (𝐏α) ∈ C := by
     rcases temporal_negation_complete h_mcs_C (α.neg.allPast) with h_H | h_notH
     · -- H(¬α) ∈ C: derive contradiction via F(H(¬α)) ∈ A and G(P(α)) ∈ A
       have h_untl : Formula.untl (α.neg.allPast) β ∈ A := h_burgessR _ h_H
@@ -618,7 +618,7 @@ theorem burgessRSince_implies_burgessR {A C : Set (Formula Atom)}
     burgessR A β C := by
   intro γ hγ
   -- Step 1: Show F(γ) ∈ A
-  have h_F : Formula.someFuture γ ∈ A := by
+  have h_F : (𝐅γ) ∈ A := by
     rcases temporal_negation_complete h_mcs_A (γ.neg.allFuture) with h_G | h_notG
     · -- G(¬γ) ∈ A: derive contradiction
       have h_snce : Formula.snce (γ.neg.allFuture) β ∈ C := h_burgessRSince _ h_G

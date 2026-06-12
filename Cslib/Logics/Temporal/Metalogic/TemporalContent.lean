@@ -33,16 +33,16 @@ variable {Atom : Type*}
 /-! ## Content Definitions -/
 
 def gContent (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.allFuture phi ∈ M}
+  {phi | (𝐆phi) ∈ M}
 
 def hContent (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.allPast phi ∈ M}
+  {phi | (𝐇phi) ∈ M}
 
 def fContent (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.someFuture phi ∈ M}
+  {phi | (𝐅phi) ∈ M}
 
 def pContent (M : Set (Formula Atom)) : Set (Formula Atom) :=
-  {phi | Formula.somePast phi ∈ M}
+  {phi | (𝐏phi) ∈ M}
 
 def uContent (M : Set (Formula Atom)) : Set (Formula Atom × Formula Atom) :=
   { p | Formula.untl p.1 p.2 ∈ M }
@@ -54,19 +54,19 @@ def sContent (M : Set (Formula Atom)) : Set (Formula Atom × Formula Atom) :=
 
 @[simp]
 lemma mem_g_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ gContent M ↔ Formula.allFuture phi ∈ M := Iff.rfl
+    phi ∈ gContent M ↔ (𝐆phi) ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_h_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ hContent M ↔ Formula.allPast phi ∈ M := Iff.rfl
+    phi ∈ hContent M ↔ (𝐇phi) ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_f_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ fContent M ↔ Formula.someFuture phi ∈ M := Iff.rfl
+    phi ∈ fContent M ↔ (𝐅phi) ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_p_content_iff {M : Set (Formula Atom)} {phi : Formula Atom} :
-    phi ∈ pContent M ↔ Formula.somePast phi ∈ M := Iff.rfl
+    phi ∈ pContent M ↔ (𝐏phi) ∈ M := Iff.rfl
 
 @[simp]
 lemma mem_u_content_iff {M : Set (Formula Atom)} {p : Formula Atom × Formula Atom} :
@@ -84,7 +84,7 @@ phi in fContent(M) iff neg phi not in gContent(M).
 -/
 theorem f_content_iff_not_neg_in_g_content {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (phi : Formula Atom) :
-    phi ∈ fContent M ↔ phi.neg ∉ gContent M := by
+    phi ∈ fContent M ↔ (¬phi) ∉ gContent M := by
   simp only [mem_f_content_iff, mem_g_content_iff]
   constructor
   · intro h_sf_in h_af_in
@@ -147,7 +147,7 @@ phi in pContent(M) iff neg phi not in hContent(M).
 -/
 theorem p_content_iff_not_neg_in_h_content {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (phi : Formula Atom) :
-    phi ∈ pContent M ↔ phi.neg ∉ hContent M := by
+    phi ∈ pContent M ↔ (¬phi) ∉ hContent M := by
   simp only [mem_p_content_iff, mem_h_content_iff]
   constructor
   · intro h_sp_in h_ap_in
