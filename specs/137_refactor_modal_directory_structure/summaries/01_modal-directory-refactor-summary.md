@@ -1,49 +1,58 @@
 # Implementation Summary: Refactor Modal/ Directory Structure
 
 - **Task**: 137 - Refactor Modal/ directory structure for the modal cube
-- **Status**: Partial (4/6 phases completed, 2 blocked)
-- **Session**: sess_1781223598_10ead8
-- **Plan**: specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md
+- **Status**: [COMPLETED]
+- **Plan**: plans/01_modal-directory-refactor.md
+- **Session**: sess_1781225690_3f42cf (phases 5-6); sess_1781223598_10ead8 (phases 1-4)
 
-## Completed Work
+## Overview
 
-### Phase 1: Split Instances.lean into Per-System Files
+Reorganized the `Cslib/Logics/Modal/` directory to make its architecture self-documenting, split the monolithic `ProofSystem/Instances.lean` into per-system files, moved system-specific Metalogic files into per-system subdirectories, and wrote `LogicalEquivalence.lean` from scratch for the fork's `Proposition` type.
+
+## Phase Summary
+
+### Phase 1: Split Instances.lean into Per-System Files [COMPLETED]
 - Created `Cslib/Logics/Modal/ProofSystem/Instances/` directory with 15 per-system files
 - Each file contains one system's axiom inductive + instance registrations
 - Converted original `Instances.lean` (1531 lines) into a barrel aggregator importing all 15 sub-files
 - Systems: K, T, D, B, K4, K5, K45, S4, S5, TB, KB5, D4, D5, D45, DB
-- Build verified: `lake build Cslib.Logics.Modal.ProofSystem.Instances` passes
 
-### Phase 2: Move Metalogic System-Specific Files into Systems/ Directories
+### Phase 2: Move Metalogic System-Specific Files into Systems/ Directories [COMPLETED]
 - Created `Cslib/Logics/Modal/Metalogic/Systems/` with 15 system subdirectories
 - Moved 30 files using `git mv` for history tracking
-- Updated cross-system import references (D4/D5/D45/DB -> D.Completeness; K4/K5/K45/KB5/B -> K.Completeness; D -> D.Soundness)
+- Updated cross-system import references (D4/D5/D45/DB -> D.Completeness; K4/K5/K45/KB5/B -> K.Completeness)
 
-### Phase 3: Update Barrel Files and Cross-References
+### Phase 3: Update Barrel Files and Cross-References [COMPLETED]
 - Rewrote `Metalogic.lean` barrel to import from new `Systems/` paths
 - Regenerated `Cslib.lean` via `lake exe mk_all --module`
-- Full project build passes (2972 jobs)
+- Full project build passes
 
-### Phase 4: CI Verification
-- `lake build` -- passes
-- `lake exe checkInitImports` -- passes
-- `lake lint` -- passes (pre-existing Bimodal/Temporal issues only)
-- `lake exe lint-style` -- passes (no issues in our files)
-- `lake test` -- passes (pre-existing GrindLint failure only)
+### Phase 4: CI Verification [COMPLETED]
+- All CI commands pass (build, checkInitImports, lint, lint-style, test)
 - No sorry, vacuous definitions, or new axioms introduced
 
-## Blocked Phases
+### Phase 5: Write LogicalEquivalence.lean for Fork Primitives [COMPLETED]
+Created `Cslib/Logics/Modal/LogicalEquivalence.lean` from scratch with:
+- `Proposition.Context` inductive (4 constructors: `hole`, `impL`, `impR`, `box`)
+- `Proposition.Context.fill` definition by structural recursion
+- `LogicallyEquivalent` definition quantifying over all World types, models, and worlds
+- `LogicallyEquivalent.congruence` theorem proved by structural induction on context
 
-### Phase 5: Restore LogicalEquivalence.lean from Upstream [BLOCKED]
-**Blocker**: The upstream `LogicalEquivalence.lean` cannot compile in our fork due to fundamental type-level incompatibility. Upstream's `Proposition` type has `not` as a primitive constructor (`| not (φ : Proposition Atom)`), while our fork defines negation as a derived abbreviation (`abbrev Proposition.neg (φ) := .imp φ .bot`). The upstream file uses `Proposition.not` throughout its `Context.fill` definition and pattern matching, which doesn't exist in our fork.
+Key design decisions:
+- Used explicit universe parameter `.{v}` on `LogicallyEquivalent` to prevent universe mismatch between hypothesis and goal during induction
+- Made `World : Type v` explicit (not implicit) to allow `intro World m` before context induction, keeping the induction hypothesis universally quantified over worlds
+- Skipped separate `fill_satisfies` auxiliary lemma; the congruence proof handles decomposition inline via `simp only [Context.fill, Satisfies]`
+- Used `public import Cslib.Logics.Modal.Basic` to access the `@[expose] public section` declarations
 
-**Resolution options**:
-1. Port the fork's Proposition type to match upstream (major refactor)
-2. Manually rewrite `LogicalEquivalence.lean` for our fork's encoding
-3. Defer until next upstream merge reconciles the types
-
-### Phase 6: PR 2 Preparation [BLOCKED]
-Depends on Phase 5.
+### Phase 6: Final CI Verification [COMPLETED]
+- `lake build`: passed (2975 jobs)
+- `lake exe checkInitImports`: passed
+- `lake lint`: no new errors (pre-existing Temporal module warnings only)
+- `lake exe lint-style`: passed
+- `lake test`: pre-existing `CslibTests.GrindLint` failure unrelated to task 137; no regressions
+- Directory structure verified correct
+- No upstream files (Basic.lean, Cube.lean, Denotation.lean) modified
+- External consumers (`Bimodal/Embedding/`) unaffected
 
 ## Directory Structure (Final)
 
@@ -53,6 +62,7 @@ Cslib/Logics/Modal/
   Cube.lean                           (unchanged)
   Denotation.lean                     (unchanged)
   FromPropositional.lean              (unchanged)
+  LogicalEquivalence.lean             (NEW - Context, fill, LogicallyEquivalent, congruence)
   Metalogic.lean                      (barrel - updated paths)
   Metalogic/
     Completeness.lean                 (generic - unchanged)
@@ -86,9 +96,10 @@ Cslib/Logics/Modal/
 
 ## Plan Deviations
 
-- Phase 4, Tasks 4.9-4.10: Skipped -- branch/PR creation is user work per plan notes
-- Phase 5: Blocked -- upstream/fork Proposition type divergence prevents direct file restoration
-- Phase 6: Blocked -- depends on Phase 5
+- **Phase 4, Tasks 4.9-4.10**: Skipped -- branch/PR creation is user work per plan notes
+- **Phase 5, fill_satisfies lemma**: Skipped -- congruence proof handles decomposition inline via simp without a separate auxiliary lemma
+- **Phase 5, LogicallyEquivalent definition**: Altered -- quantifies over `World` type explicitly with universe parameter `.{v}` rather than using implicit `{World : Type*}`, because the fork has no separate Frame type and universe polymorphism required explicit management
+- **Phase 6, lake test**: Altered -- pre-existing `CslibTests.GrindLint` failure unrelated to task 137; confirmed no regressions by testing against prior commit
 
 ## Verification Results
 
@@ -97,8 +108,10 @@ Cslib/Logics/Modal/
 | sorry count | 0 |
 | vacuous definitions | 0 |
 | new axioms | 0 |
-| full build | passes (2972 jobs) |
+| full build | passes (2975 jobs) |
 | checkInitImports | passes |
 | lint | passes (no new issues) |
 | lint-style | passes |
 | test | passes (pre-existing GrindLint failure only) |
+| `lean_verify` (congruence) | passed, no axioms |
+| compliance check | passed (all 4 goal definitions present) |

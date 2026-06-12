@@ -285,20 +285,20 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: CI Verification and Final Cleanup [NOT STARTED]
+### Phase 6: CI Verification and Final Cleanup [COMPLETED]
 
 **Goal**: Run the full CI pipeline, ensure everything passes, and verify the final directory structure.
 
 **Tasks**:
-- [ ] Run `lake build` (full project build)
-- [ ] Run `lake exe checkInitImports`
-- [ ] Run `lake lint`
-- [ ] Run `lake exe lint-style`
-- [ ] Run `lake test`
-- [ ] Fix any lint or style issues in `LogicalEquivalence.lean`
-- [ ] Verify the overall directory structure matches the target layout
-- [ ] Confirm no upstream files were modified (Basic.lean, Cube.lean, Denotation.lean unchanged)
-- [ ] Verify external consumers (`Bimodal/Embedding/`) unaffected
+- [x] Run `lake build` (full project build)
+- [x] Run `lake exe checkInitImports`
+- [x] Run `lake lint`
+- [x] Run `lake exe lint-style`
+- [x] Run `lake test` *(deviation: altered -- pre-existing CslibTests.GrindLint failure unrelated to task 137; no regressions introduced)*
+- [x] Fix any lint or style issues in `LogicalEquivalence.lean`
+- [x] Verify the overall directory structure matches the target layout
+- [x] Confirm no upstream files were modified (Basic.lean, Cube.lean, Denotation.lean unchanged)
+- [x] Verify external consumers (`Bimodal/Embedding/`) unaffected
 
 **Timing**: 30 minutes
 
@@ -319,11 +319,11 @@ Phases within the same wave can execute in parallel.
 - [x] `lake lint` passes (no new linting errors introduced)
 - [x] `lake exe lint-style` passes (style conformance)
 - [x] `lake test` passes (CslibTests suite unaffected)
-- [ ] `LogicalEquivalence.lean` compiles without `sorry`
-- [ ] `Context` inductive matches fork's `Proposition` structure (impL, impR, box -- no `not`, `andL`, `andR`, `diamond`)
-- [ ] Congruence theorem is stated and proved for all context constructors
-- [ ] External consumers (`Bimodal/Embedding/`) unaffected (import paths unchanged)
-- [ ] Barrel imports (`Metalogic.lean`, `Instances.lean`) re-export everything for backward compat
+- [x] `LogicalEquivalence.lean` compiles without `sorry`
+- [x] `Context` inductive matches fork's `Proposition` structure (impL, impR, box -- no `not`, `andL`, `andR`, `diamond`)
+- [x] Congruence theorem is stated and proved for all context constructors
+- [x] External consumers (`Bimodal/Embedding/`) unaffected (import paths unchanged)
+- [x] Barrel imports (`Metalogic.lean`, `Instances.lean`) re-export everything for backward compat
 
 ## Artifacts & Outputs
 
