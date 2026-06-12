@@ -1,0 +1,25 @@
+{
+  "status": "partial",
+  "started_at": "2026-06-11T18:00:00Z",
+  "artifacts": [
+    {
+      "path": "specs/038_temporal_dense_completeness/reports/01_dense-completeness-research.md",
+      "type": "report",
+      "summary": "Dense temporal completeness research report"
+    },
+    {
+      "path": "specs/038_temporal_dense_completeness/.orchestrator-handoff.json",
+      "type": "handoff",
+      "summary": "Orchestrator handoff with status and next action"
+    }
+  ],
+  "partial_progress": {
+    "stage": "research_written",
+    "details": "Research report and handoff file written; ready for planning phase"
+  },
+  "metadata": {
+    "agent_type": "lean-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+  }
+}
