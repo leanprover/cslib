@@ -11,15 +11,14 @@ next_project_number: 159
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,61,127,139,145 | -- | Bimodal Porting, Submit PRs |
-| 2 | 39,40,62,140,146,147 | 36,37,61,139,145 | Temporal Logic, Submit PRs |
-| 3 | 41,63,141,148 | 39,40,62,140,147 | Submit PRs, Foundations |
-| 4 | 64,128,129,142,149 | 63,141,148 | Submit PRs |
-| 5 | 126,143,150 | 142,146,149 | Submit PRs |
-| 6 | 130,133,144,151,152,154 | 126,127,143,150 | Submit PRs |
-| 7 | 131,132,134,135,153,155,156 | 127,128,130,133,151,152,154 | Submit PRs |
-| 8 | 157 | 152,156 | Submit PRs |
-| 9 | 158 | 151,153,155,157 | Submit PRs |
+| 1 | 36,37,61,127,139,146,147 | -- | Bimodal Porting, Submit PRs |
+| 2 | 39,40,62,140,148 | 36,37,61,139,147 | Temporal Logic, Submit PRs |
+| 3 | 41,63,141,149 | 39,40,62,140,148 | Submit PRs, Foundations |
+| 4 | 64,128,129,142,150 | 63,141,146,149 | Submit PRs |
+| 5 | 126,143,151,152,154 | 142,150 | Submit PRs |
+| 6 | 130,133,144,153,155,156 | 126,127,143,151,152,154 | Submit PRs |
+| 7 | 131,132,134,135,157 | 127,128,130,133,152,156 | Submit PRs |
+| 8 | 158 | 151,153,155,157 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -35,7 +34,7 @@ next_project_number: 159
 
 ### Submit PRs
 
-61 [NOT STARTED] — pr3_temporal_proof_system
+61 [RESEARCHED] — pr3_temporal_proof_system
   └─ 62 [RESEARCHED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
@@ -59,26 +58,25 @@ next_project_number: 159
             └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
         └─ 143 [NOT STARTED] — Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/P
           └─ 144 [NOT STARTED] — Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278),
-145 [RESEARCHED] — Sub-PR 2.1: Lukasiewicz primitive refactoring. Refactors Modal/Ba
-  └─ 146 [NOT STARTED] — Sub-PR 2.2: Proof system hierarchy + PL embedding. Adds 13 bundle
-    └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan
-      └─ 151 [NOT STARTED] — Sub-PR 2.7: T and B soundness and completeness. T (reflexive fram
-        └─ 153 [NOT STARTED] — Sub-PR 2.9: S4 and S5 soundness and completeness. S4 (reflexive+t
-          └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric): 
-        └─ 155 [NOT STARTED] — Sub-PR 2.11: K45 and KB5 soundness and completeness. K45 (transit
-          └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric):  (see above)
+146 [NOT STARTED] — Sub-PR 2.2: Proof system hierarchy + PL embedding. Adds 13 bundle
+  └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan
+    └─ 151 [NOT STARTED] — Sub-PR 2.7: T and B soundness and completeness. T (reflexive fram
+      └─ 153 [NOT STARTED] — Sub-PR 2.9: S4 and S5 soundness and completeness. S4 (reflexive+t
+        └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric): 
+      └─ 155 [NOT STARTED] — Sub-PR 2.11: K45 and KB5 soundness and completeness. K45 (transit
         └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric):  (see above)
-      └─ 152 [NOT STARTED] — Sub-PR 2.8: D soundness and completeness. Adds Instances/D.lean (
-        └─ 156 [NOT STARTED] — Sub-PR 2.12: D4 and D5 soundness and completeness. D4 (serial+tra
-          └─ 157 [NOT STARTED] — Sub-PR 2.13: D45 and DB soundness and completeness. D45 (serial+t
-            └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric):  (see above)
-        └─ 157 [NOT STARTED] — Sub-PR 2.13: D45 and DB soundness and completeness. D45 (serial+t (see above)
-      └─ 154 [NOT STARTED] — Sub-PR 2.10: K4 and K5 soundness and completeness. K4 (transitive
-        └─ 155 [NOT STARTED] — Sub-PR 2.11: K45 and KB5 soundness and completeness. K45 (transit (see above)
-  └─ 147 [NOT STARTED] — Sub-PR 2.3: Derivation trees and deduction theorem. Adds Metalogi
-    └─ 148 [NOT STARTED] — Sub-PR 2.4: Maximal consistent sets + generic soundness framework
-      └─ 149 [NOT STARTED] — Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Comple
-        └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan (see above)
+      └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric):  (see above)
+    └─ 152 [NOT STARTED] — Sub-PR 2.8: D soundness and completeness. Adds Instances/D.lean (
+      └─ 156 [NOT STARTED] — Sub-PR 2.12: D4 and D5 soundness and completeness. D4 (serial+tra
+        └─ 157 [NOT STARTED] — Sub-PR 2.13: D45 and DB soundness and completeness. D45 (serial+t
+          └─ 158 [NOT STARTED] — Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric):  (see above)
+      └─ 157 [NOT STARTED] — Sub-PR 2.13: D45 and DB soundness and completeness. D45 (serial+t (see above)
+    └─ 154 [NOT STARTED] — Sub-PR 2.10: K4 and K5 soundness and completeness. K4 (transitive
+      └─ 155 [NOT STARTED] — Sub-PR 2.11: K45 and KB5 soundness and completeness. K45 (transit (see above)
+147 [NOT STARTED] — Sub-PR 2.3: Derivation trees and deduction theorem. Adds Metalogi
+  └─ 148 [NOT STARTED] — Sub-PR 2.4: Maximal consistent sets + generic soundness framework
+    └─ 149 [NOT STARTED] — Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Comple
+      └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan (see above)
 
 ### Foundations
 
@@ -217,11 +215,13 @@ next_project_number: 159
 ---
 
 ### 145. Subpr 2 1 lukasiewicz primitives
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
 - **Research**: [145_subpr_2_1_lukasiewicz_primitives/reports/01_lukasiewicz-primitives.md]
+- **Plan**: [145_subpr_2_1_lukasiewicz_primitives/plans/01_lukasiewicz-primitives.md]
+- **Summary**: [145_subpr_2_1_lukasiewicz_primitives/summaries/01_lukasiewicz-primitives-summary.md]
 
 **Description**: Sub-PR 2.1: Lukasiewicz primitive refactoring. Refactors Modal/Basic.lean from {atom, not, and, diamond} to {atom, bot, imp, box} primitives with derived connectives as abbrevs. Updates Modal/Denotation.lean for new primitives. Deletes LogicalEquivalence.lean (incompatible with new primitives). Replaces all grind-based proofs with explicit term-mode proofs for axiom validity theorems. This is the gateway PR — clear, focused, and establishes the Lukasiewicz convention for all subsequent PRs. ~440 diff lines across 3 files.
 
@@ -487,10 +487,11 @@ next_project_number: 159
 ---
 
 ### 61. Pr3 temporal proof system
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
+- **Research_report**: [061_pr3_temporal_proof_system/reports/01_temporal-proof-pr-division.md]
 
 ---
 

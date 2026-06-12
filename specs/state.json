@@ -309,11 +309,19 @@
     {
       "project_number": 61,
       "project_name": "pr3_temporal_proof_system",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "created": "2026-06-10T00:22:30Z",
-      "last_updated": "2026-06-10T00:22:30Z",
-      "topic": "Submit PRs"
+      "last_updated": "2026-06-12T06:19:27Z",
+      "topic": "Submit PRs",
+      "session_id": "sess_1781244674_55e8cd",
+      "artifacts": [
+        {
+          "path": "specs/061_pr3_temporal_proof_system/reports/01_temporal-proof-pr-division.md",
+          "type": "research_report",
+          "summary": "PR3 temporal proof system subdivision: 5 sub-PRs (549/401/432/237/510 LOC) covering 14 files (2,129 lines) across Formula, Syntax, Axioms, ProofSystem, and Semantics layers"
+        }
+      ]
     },
     {
       "project_number": 62,
@@ -595,12 +603,12 @@
     {
       "project_number": 145,
       "project_name": "subpr_2_1_lukasiewicz_primitives",
-      "status": "researched",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-12T02:00:00Z",
-      "last_updated": "2026-06-12T06:35:00Z",
+      "last_updated": "2026-06-11",
       "description": "Sub-PR 2.1: Lukasiewicz primitive refactoring. Refactors Modal/Basic.lean from {atom, not, and, diamond} to {atom, bot, imp, box} primitives with derived connectives as abbrevs. Updates Modal/Denotation.lean for new primitives. Deletes LogicalEquivalence.lean (incompatible with new primitives). Replaces all grind-based proofs with explicit term-mode proofs for axiom validity theorems. This is the gateway PR — clear, focused, and establishes the Lukasiewicz convention for all subsequent PRs. ~440 diff lines across 3 files.",
       "session_id": "sess_1781205592_c62b5b",
       "researched": "2026-06-12T06:35:00Z",
@@ -610,8 +618,51 @@
           "path": "specs/145_subpr_2_1_lukasiewicz_primitives/reports/01_lukasiewicz-primitives.md",
           "type": "report",
           "summary": "Research report: upstream/fork diff analysis, grind inventory, import dependencies, risk assessment, implementation strategy for Lukasiewicz primitive refactoring"
+        },
+        {
+          "path": "specs/145_subpr_2_1_lukasiewicz_primitives/plans/01_lukasiewicz-primitives.md",
+          "type": "plan",
+          "summary": "Implementation plan: 6-phase Lukasiewicz primitive refactoring with branch setup, Basic.lean/Denotation.lean/LogicalEquivalence.lean changes, and CI verification"
+        },
+        {
+          "type": "summary",
+          "path": "specs/145_subpr_2_1_lukasiewicz_primitives/summaries/01_lukasiewicz-primitives-summary.md",
+          "summary": "Implementation summary for Lukasiewicz primitive refactoring"
         }
-      ]
+      ],
+      "plan_metadata": {
+        "phases": 6,
+        "total_effort_hours": 3,
+        "complexity": "medium",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_lukasiewicz-primitives.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-11"
+          }
+        ]
+      },
+      "completion_summary": "Replaced 3 remaining tactic-level grind proofs in Modal/Basic.lean with explicit term-mode proofs (Set.ext_iff, direct hypothesis, push Not/rcases). Added grind_lint skip entries for 3 Modal theorems. All CI checks pass."
     },
     {
       "project_number": 146,
