@@ -1,6 +1,15 @@
 {
-  "next_project_number": 165,
+  "next_project_number": 166,
   "active_projects": [
+    {
+      "project_number": 165,
+      "project_name": "syntactic_sugar_survey_and_refactor",
+      "status": "not_started",
+      "task_type": "cslib",
+      "topic": "Syntactic Sugar",
+      "created": "2026-06-12T16:15:09Z",
+      "last_updated": "2026-06-12T16:15:09Z"
+    },
     {
       "project_number": 164,
       "project_name": "fix_formula_pr_quality",
@@ -1024,6 +1033,7 @@
     "Bimodal Porting",
     "Submit PRs",
     "Propositional Logic",
-    "Modal Logic"
+    "Modal Logic",
+    "Syntactic Sugar"
   ]
 }
