@@ -36,14 +36,14 @@ variable {Atom : Type*}
 /-- Transitivity of implication at FrameClass.Base level.
     Delegates to `Metalogic.impTrans` from PropositionalHelpers. -/
 noncomputable abbrev impTransBase {A B C : Formula Atom}
-    (h1 : DerivationTree FrameClass.Base [] (A.imp B))
-    (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
-    DerivationTree FrameClass.Base [] (A.imp C) :=
+    (h1 : DerivationTree FrameClass.Base [] (A → B))
+    (h2 : DerivationTree FrameClass.Base [] (B → C)) :
+    DerivationTree FrameClass.Base [] (A → C) :=
   impTrans h1 h2
 
 /-- Reverse deduction: from Γ ⊢ A → B derive A :: Γ ⊢ B. -/
 noncomputable def reverseDeduction {Γ : Context Atom} {A B : Formula Atom}
-    (h : DerivationTree FrameClass.Base Γ (A.imp B)) :
+    (h : DerivationTree FrameClass.Base Γ (A → B)) :
     DerivationTree FrameClass.Base (A :: Γ) B := by
   have h_weak : DerivationTree FrameClass.Base (A :: Γ) (A.imp B) :=
     DerivationTree.weakening _ _ _ h
@@ -130,7 +130,7 @@ noncomputable def generalizedTemporalK :
   | [], φ, h => DerivationTree.temporal_necessitation φ h
   | A :: Γ', φ, h =>
     let h_deduction := deductionTheorem Γ' A φ h
-    let ih_res := generalizedTemporalK Γ' (A.imp φ) h_deduction
+    let ih_res := generalizedTemporalK Γ' (A → φ) h_deduction
     let k_dist := tempKDistDerived A φ
     let k_dist_weak :=
       DerivationTree.weakening [] (Context.map Formula.allFuture Γ') _ k_dist (List.nil_subset _)
@@ -146,7 +146,7 @@ noncomputable def generalizedPastK :
   | [], φ, h => pastNecessitation φ h
   | A :: Γ', φ, h =>
     let h_deduction := deductionTheorem Γ' A φ h
-    let ih_res := generalizedPastK Γ' (A.imp φ) h_deduction
+    let ih_res := generalizedPastK Γ' (A → φ) h_deduction
     let k_dist := pastKDist A φ
     let k_dist_weak :=
       DerivationTree.weakening [] (Context.map Formula.allPast Γ') _ k_dist (List.nil_subset _)

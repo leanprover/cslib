@@ -1,5 +1,5 @@
 {
   "status": "in_progress",
-  "partial_progress": {"stage": "phase-8", "details": "Temporal Syntax/Semantics/ProofSystem/Theorems refactor"},
-  "metadata": {"session_id": "sess_1749810000_165ph8", "agent_type": "cslib-implementation-agent"}
+  "partial_progress": {"stage": "phase-9a", "details": "Temporal Metalogic smaller files"},
+  "metadata": {"session_id": "sess_1749815000_165ph9a", "agent_type": "cslib-implementation-agent"}
 }

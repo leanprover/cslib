@@ -68,7 +68,7 @@ instance chronicle_nontrivial (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaxi
   have h0 := zero_mem_limit_dom A h_mcs
   have h_mcs_0 := limit_c0 A h_mcs 0 h0
   have h_f_zero : limitF A h_mcs 0 = A := limit_f_zero A h_mcs
-  have h_f_top : Formula.someFuture Formula.top ∈ limitF A h_mcs 0 := by
+  have h_f_top : (𝐅⊤) ∈ limitF A h_mcs 0 := by
     rw [h_f_zero]
     have h_top : Formula.top ∈ A := by
       apply temporal_closed_under_derivation h_mcs (L := []) (fun _ h => nomatch h)
@@ -92,7 +92,7 @@ instance chronicle_no_max_order (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
   constructor
   intro ⟨t, ht⟩
   have h_mcs_t := limit_c0 A h_mcs t ht
-  have h_f_top : Formula.someFuture Formula.top ∈ limitF A h_mcs t := by
+  have h_f_top : (𝐅⊤) ∈ limitF A h_mcs t := by
     have h_top : Formula.top ∈ limitF A h_mcs t := by
       apply temporal_closed_under_derivation h_mcs_t (L := []) (fun _ h => nomatch h)
       unfold temporalDerivationSystem Temporal.Deriv
@@ -115,7 +115,7 @@ instance chronicle_no_min_order (A : Set (Formula Atom)) (h_mcs : Temporal.SetMa
   constructor
   intro ⟨t, ht⟩
   have h_mcs_t := limit_c0 A h_mcs t ht
-  have h_p_top : Formula.somePast Formula.top ∈ limitF A h_mcs t := by
+  have h_p_top : (𝐏⊤) ∈ limitF A h_mcs t := by
     have h_top : Formula.top ∈ limitF A h_mcs t := by
       apply temporal_closed_under_derivation h_mcs_t (L := []) (fun _ h => nomatch h)
       unfold temporalDerivationSystem Temporal.Deriv

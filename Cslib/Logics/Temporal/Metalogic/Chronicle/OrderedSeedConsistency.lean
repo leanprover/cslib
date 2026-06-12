@@ -37,7 +37,7 @@ def enrichedResolvingSeed (M : Set (Formula Atom)) (ψ α : Formula Atom) : Set 
 /-- If F(psi and alpha) in MCS M, then {psi, alpha} union gContent(M) is consistent. -/
 theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (ψ α : Formula Atom)
-    (h_F : Formula.someFuture (Formula.and ψ α) ∈ M) :
+    (h_F : (𝐅(ψ ∧ α)) ∈ M) :
     Temporal.SetConsistent (enrichedResolvingSeed M ψ α) := by
   have h_seed_cons := forward_temporal_witness_seed_consistent M h_mcs
     (Formula.and ψ α) h_F
@@ -67,14 +67,14 @@ theorem enriched_resolving_seed_consistent {M : Set (Formula Atom)}
 theorem temp_linearity_mcs {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M)
     (A B : Formula Atom)
-    (h_FA : Formula.someFuture A ∈ M) (h_FB : Formula.someFuture B ∈ M) :
-    Formula.someFuture (Formula.and A B) ∈ M ∨
-    Formula.someFuture (Formula.and A (Formula.someFuture B)) ∈ M ∨
-    Formula.someFuture (Formula.and (Formula.someFuture A) B) ∈ M := by
-  have h_conj : Formula.and (Formula.someFuture A) (Formula.someFuture B) ∈ M :=
+    (h_FA : (𝐅A) ∈ M) (h_FB : (𝐅B) ∈ M) :
+    (𝐅(A ∧ B)) ∈ M ∨
+    (𝐅(A ∧ 𝐅B)) ∈ M ∨
+    (𝐅(𝐅A ∧ B)) ∈ M := by
+  have h_conj : (𝐅A ∧ 𝐅B) ∈ M :=
     temporal_implication_property h_mcs
       (temporal_implication_property h_mcs
-        (theoremInMcs h_mcs (pairing (Formula.someFuture A) (Formula.someFuture B)))
+        (theoremInMcs h_mcs (pairing (𝐅A) (𝐅B)))
         h_FA)
       h_FB
   have h_ax : DerivationTree FrameClass.Base []
@@ -86,43 +86,43 @@ theorem temp_linearity_mcs {M : Set (Formula Atom)}
   have h_disj := temporal_implication_property h_mcs
     (theoremInMcs h_mcs h_ax) h_conj
   rcases temporal_negation_complete h_mcs
-    (Formula.someFuture (Formula.and A B)) with h_l | h_neg_l
+    (𝐅(A ∧ B)) with h_l | h_neg_l
   · exact Or.inl h_l
   · right
     have h_right := temporal_implication_property h_mcs h_disj h_neg_l
     rcases temporal_negation_complete h_mcs
-      (Formula.someFuture (Formula.and A (Formula.someFuture B))) with h_m | h_neg_m
+      (𝐅(A ∧ 𝐅B)) with h_m | h_neg_m
     · exact Or.inl h_m
     · exact Or.inr (temporal_implication_property h_mcs h_right h_neg_m)
 
 /-- Two defect consistent seed. -/
 theorem two_defect_consistent_seed {M : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (ψ₁ ψ₂ : Formula Atom)
-    (h_F1 : Formula.someFuture ψ₁ ∈ M)
-    (h_F2 : Formula.someFuture ψ₂ ∈ M) :
+    (h_F1 : (𝐅ψ₁) ∈ M)
+    (h_F2 : (𝐅ψ₂) ∈ M) :
     Temporal.SetConsistent ({ψ₁, ψ₂} ∪ gContent M) ∨
-    Temporal.SetConsistent ({ψ₁, Formula.someFuture ψ₂} ∪ gContent M) ∨
-    Temporal.SetConsistent ({ψ₂, Formula.someFuture ψ₁} ∪ gContent M) := by
+    Temporal.SetConsistent ({ψ₁, 𝐅ψ₂} ∪ gContent M) ∨
+    Temporal.SetConsistent ({ψ₂, 𝐅ψ₁} ∪ gContent M) := by
   rcases temp_linearity_mcs h_mcs ψ₁ ψ₂ h_F1 h_F2 with h_both | h_1first | h_2first
   · exact Or.inl (enriched_resolving_seed_consistent h_mcs ψ₁ ψ₂ h_both)
   · exact Or.inr (Or.inl (enriched_resolving_seed_consistent h_mcs ψ₁
-      (Formula.someFuture ψ₂) h_1first))
+      (𝐅ψ₂) h_1first))
   · have h_seed := enriched_resolving_seed_consistent h_mcs
-      (Formula.someFuture ψ₁) ψ₂ h_2first
+      (𝐅ψ₁) ψ₂ h_2first
     exact Or.inr (Or.inr (by
       unfold enrichedResolvingSeed at h_seed
-      have h_eq : ({ψ₂, Formula.someFuture ψ₁} : Set (Formula Atom)) =
-          ({Formula.someFuture ψ₁, ψ₂} : Set (Formula Atom)) := Set.pair_comm _ _
+      have h_eq : ({ψ₂, 𝐅ψ₁} : Set (Formula Atom)) =
+          ({𝐅ψ₁, ψ₂} : Set (Formula Atom)) := Set.pair_comm _ _
       rw [h_eq]; exact h_seed))
 
 /-- No new F-defects in successor. -/
 theorem no_new_f_defects {M M' : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistent M) (h_mcs' : Temporal.SetMaximalConsistent M')
     (h_g_sub : gContent M ⊆ M')
-    (α : Formula Atom) (h_neg : Formula.allFuture (Formula.neg α) ∈ M) :
-    Formula.someFuture α ∉ M' := by
+    (α : Formula Atom) (h_neg : (𝐆¬α) ∈ M) :
+    (𝐅α) ∉ M' := by
   have h_GG := mcs_g_trans h_mcs h_neg
-  have h_G_neg_in' : Formula.allFuture (Formula.neg α) ∈ M' := h_g_sub h_GG
+  have h_G_neg_in' : (𝐆¬α) ∈ M' := h_g_sub h_GG
   intro h_F
   exact someFuture_allFuture_neg_absurd h_mcs' α h_F h_G_neg_in'
 

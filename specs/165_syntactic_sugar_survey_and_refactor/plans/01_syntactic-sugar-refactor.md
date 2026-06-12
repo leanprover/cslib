@@ -375,7 +375,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 9: Refactor Temporal/Metalogic and Full Temporal CI [NOT STARTED]
+### Phase 9: Refactor Temporal/Metalogic and Full Temporal CI [IN PROGRESS]
 
 **Goal**: Replace raw constructors in all Temporal metalogic files (the largest single concentration of occurrences, including the Chronicle pipeline with PointInsertion at 664 occurrences) and run full CI.
 

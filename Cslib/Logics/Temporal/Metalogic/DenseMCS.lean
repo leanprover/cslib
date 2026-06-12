@@ -67,7 +67,7 @@ def Temporal.ThDerivableFc (fc : FrameClass) (phi : Formula Atom) : Prop :=
 
 theorem mp_deriv_fc {fc : FrameClass} {Γ : List (Formula Atom)}
     {φ ψ : Formula Atom}
-    (h₁ : Temporal.DerivFc fc Γ (φ.imp ψ))
+    (h₁ : Temporal.DerivFc fc Γ (φ → ψ))
     (h₂ : Temporal.DerivFc fc Γ φ) :
     Temporal.DerivFc fc Γ ψ := by
   obtain ⟨d₁⟩ := h₁; obtain ⟨d₂⟩ := h₂

@@ -59,12 +59,12 @@ def height : DerivationTree fc Γ φ → Nat
 /-! ## Height Properties -/
 
 theorem height_modus_ponens_left {Γ : Context Atom} {φ ψ : Formula Atom}
-    (d₁ : DerivationTree fc Γ (φ.imp ψ)) (d₂ : DerivationTree fc Γ φ) :
+    (d₁ : DerivationTree fc Γ (φ → ψ)) (d₂ : DerivationTree fc Γ φ) :
     d₁.height < (modus_ponens Γ φ ψ d₁ d₂).height := by
   simp [height]; omega
 
 theorem height_modus_ponens_right {Γ : Context Atom} {φ ψ : Formula Atom}
-    (d₁ : DerivationTree fc Γ (φ.imp ψ)) (d₂ : DerivationTree fc Γ φ) :
+    (d₁ : DerivationTree fc Γ (φ → ψ)) (d₂ : DerivationTree fc Γ φ) :
     d₂.height < (modus_ponens Γ φ ψ d₁ d₂).height := by
   simp [height]; omega
 
@@ -103,7 +103,7 @@ def Temporal.ThDerivable (φ : Formula Atom) : Prop :=
 /-! ## Basic Combinators -/
 
 theorem mp_deriv {Γ : List (Formula Atom)} {φ ψ : Formula Atom}
-    (h₁ : Temporal.Deriv Γ (φ.imp ψ)) (h₂ : Temporal.Deriv Γ φ) :
+    (h₁ : Temporal.Deriv Γ (φ → ψ)) (h₂ : Temporal.Deriv Γ φ) :
     Temporal.Deriv Γ ψ := by
   obtain ⟨d₁⟩ := h₁; obtain ⟨d₂⟩ := h₂
   exact ⟨.modus_ponens Γ φ ψ d₁ d₂⟩

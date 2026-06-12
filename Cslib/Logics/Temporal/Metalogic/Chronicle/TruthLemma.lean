@@ -64,8 +64,8 @@ theorem truth_lemma_atom (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCo
 /-- Bot case: bot is never satisfied and never in an MCS. -/
 theorem truth_lemma_bot (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalConsistent A)
     (t : ChronicleSubtype A h_mcs) :
-    Satisfies (chronicleModel A h_mcs) t Formula.bot ↔
-      Formula.bot ∈ limitF A h_mcs t.val := by
+    Satisfies (chronicleModel A h_mcs) t ⊥ ↔
+      (⊥ : Formula Atom) ∈ limitF A h_mcs t.val := by
   constructor
   · intro h; exact absurd h id
   · intro h; exact absurd h (mcs_bot_not_mem (limit_c0 A h_mcs t.val t.property))
@@ -75,8 +75,8 @@ theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
     (t : ChronicleSubtype A h_mcs) (φ ψ : Formula Atom)
     (ih_φ : Satisfies (chronicleModel A h_mcs) t φ ↔ φ ∈ limitF A h_mcs t.val)
     (ih_ψ : Satisfies (chronicleModel A h_mcs) t ψ ↔ ψ ∈ limitF A h_mcs t.val) :
-    Satisfies (chronicleModel A h_mcs) t (Formula.imp φ ψ) ↔
-      Formula.imp φ ψ ∈ limitF A h_mcs t.val := by
+    Satisfies (chronicleModel A h_mcs) t (φ → ψ) ↔
+      (φ → ψ) ∈ limitF A h_mcs t.val := by
   have h_mcs_t := limit_c0 A h_mcs t.val t.property
   simp only [Satisfies]
   constructor
@@ -98,12 +98,12 @@ theorem truth_lemma_imp (A : Set (Formula Atom)) (h_mcs : Temporal.SetMaximalCon
       -- Proof: ⊢ (φ → ⊥) → (φ → ψ) using efq
       have h_deriv : DerivationTree FrameClass.Base [] (φ.neg.imp (φ.imp ψ)) := by
         let ctx := [φ, φ.neg]
-        have d_bot : DerivationTree FrameClass.Base ctx Formula.bot :=
-          .modus_ponens ctx φ Formula.bot
+        have d_bot : DerivationTree FrameClass.Base ctx ⊥ :=
+          .modus_ponens ctx φ ⊥
             (.assumption ctx φ.neg (by simp [List.mem_cons, ctx]))
             (.assumption ctx φ (by simp [List.mem_cons, ctx]))
         have d_efq : DerivationTree FrameClass.Base ctx ψ :=
-          .modus_ponens ctx Formula.bot ψ
+          .modus_ponens ctx ⊥ ψ
             (.weakening [] ctx _ (.axiom [] _ (.efq ψ) trivial) (fun _ h => nomatch h))
             d_bot
         exact deductionTheorem [] φ.neg (φ.imp ψ)
@@ -122,8 +122,8 @@ theorem truth_lemma_untl_forward (A : Set (Formula Atom)) (h_mcs : Temporal.SetM
       Satisfies (chronicleModel A h_mcs) s φ ↔ φ ∈ limitF A h_mcs s.val)
     (ih_ψ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicleModel A h_mcs) s ψ ↔ ψ ∈ limitF A h_mcs s.val)
-    (h_mem : Formula.untl φ ψ ∈ limitF A h_mcs t.val) :
-    Satisfies (chronicleModel A h_mcs) t (Formula.untl φ ψ) := by
+    (h_mem : (φ U ψ) ∈ limitF A h_mcs t.val) :
+    Satisfies (chronicleModel A h_mcs) t (φ U ψ) := by
   -- untl φ ψ ∈ f(t.val). By limit_satisfies_c5_strong, get witness y > t.val
   -- with φ ∈ f(y) and ψ ∈ limitG(t.val, y) (i.e., ψ ∈ f(w) for all w between t and y).
   obtain ⟨y, hy_dom, hty, hy_phi, hy_guard⟩ :=
@@ -143,8 +143,8 @@ theorem truth_lemma_untl_backward (A : Set (Formula Atom)) (h_mcs : Temporal.Set
       Satisfies (chronicleModel A h_mcs) s φ ↔ φ ∈ limitF A h_mcs s.val)
     (ih_ψ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicleModel A h_mcs) s ψ ↔ ψ ∈ limitF A h_mcs s.val)
-    (h_sat : Satisfies (chronicleModel A h_mcs) t (Formula.untl φ ψ)) :
-    Formula.untl φ ψ ∈ limitF A h_mcs t.val := by
+    (h_sat : Satisfies (chronicleModel A h_mcs) t (φ U ψ)) :
+    (φ U ψ) ∈ limitF A h_mcs t.val := by
   -- By contradiction: assume (φ U ψ) ∉ f(t).
   by_contra h_not_mem
   have h_mcs_t := limit_c0 A h_mcs t.val t.property
@@ -174,8 +174,8 @@ theorem truth_lemma_snce_forward (A : Set (Formula Atom)) (h_mcs : Temporal.SetM
       Satisfies (chronicleModel A h_mcs) s φ ↔ φ ∈ limitF A h_mcs s.val)
     (ih_ψ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicleModel A h_mcs) s ψ ↔ ψ ∈ limitF A h_mcs s.val)
-    (h_mem : Formula.snce φ ψ ∈ limitF A h_mcs t.val) :
-    Satisfies (chronicleModel A h_mcs) t (Formula.snce φ ψ) := by
+    (h_mem : (φ S ψ) ∈ limitF A h_mcs t.val) :
+    Satisfies (chronicleModel A h_mcs) t (φ S ψ) := by
   obtain ⟨y, hy_dom, hyt, hy_phi, hy_guard⟩ :=
     limit_satisfies_c5'_strong A h_mcs t.val t.property ψ φ h_mem
   let s : ChronicleSubtype A h_mcs := ⟨y, hy_dom⟩
@@ -191,8 +191,8 @@ theorem truth_lemma_snce_backward (A : Set (Formula Atom)) (h_mcs : Temporal.Set
       Satisfies (chronicleModel A h_mcs) s φ ↔ φ ∈ limitF A h_mcs s.val)
     (ih_ψ : ∀ s : ChronicleSubtype A h_mcs,
       Satisfies (chronicleModel A h_mcs) s ψ ↔ ψ ∈ limitF A h_mcs s.val)
-    (h_sat : Satisfies (chronicleModel A h_mcs) t (Formula.snce φ ψ)) :
-    Formula.snce φ ψ ∈ limitF A h_mcs t.val := by
+    (h_sat : Satisfies (chronicleModel A h_mcs) t (φ S ψ)) :
+    (φ S ψ) ∈ limitF A h_mcs t.val := by
   by_contra h_not_mem
   have h_mcs_t := limit_c0 A h_mcs t.val t.property
   have h_neg := mcs_neg_of_not_mem h_mcs_t h_not_mem

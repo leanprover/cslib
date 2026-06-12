@@ -60,15 +60,15 @@ attribute [local instance] Classical.propDecidable
 /-- If φ is not derivable, then {¬φ} is consistent. -/
 theorem neg_consistent_of_not_derivable
     {φ : Formula Atom} (h_not : ¬ Temporal.ThDerivable φ) :
-    Temporal.SetConsistent ({Formula.neg φ} : Set (Formula Atom)) := by
+    Temporal.SetConsistent ({¬φ} : Set (Formula Atom)) := by
   intro L hL
   unfold Metalogic.Consistent
   intro ⟨d⟩
-  have d_weak : DerivationTree FrameClass.Base [Formula.neg φ] Formula.bot :=
-    .weakening L [Formula.neg φ] .bot d (fun x hx => by
+  have d_weak : DerivationTree FrameClass.Base [¬φ] ⊥ :=
+    .weakening L [¬φ] .bot d (fun x hx => by
       have := hL x hx; simp only [Set.mem_singleton_iff] at this
       exact List.mem_cons.mpr (Or.inl this))
-  have d_dne := deductionTheorem [] (Formula.neg φ) .bot d_weak
+  have d_dne := deductionTheorem [] (¬φ) .bot d_weak
   let neg_phi := Formula.neg φ
   have efq : DerivationTree (Atom := Atom) FrameClass.Base []
       (Formula.bot.imp φ) := .axiom [] _ (.efq φ) trivial
@@ -106,7 +106,7 @@ theorem completeness [Denumerable (Formula Atom)] {φ : Formula Atom}
   by_contra h_not_deriv
   have h_cons := neg_consistent_of_not_derivable h_not_deriv
   obtain ⟨M, hM_sup, hM_mcs⟩ := temporal_lindenbaum h_cons
-  have h_neg_in_M : Formula.neg φ ∈ M := hM_sup (Set.mem_singleton _)
+  have h_neg_in_M : (¬φ) ∈ M := hM_sup (Set.mem_singleton _)
   have h_phi_not_M : φ ∉ M := mcs_not_mem_of_neg hM_mcs h_neg_in_M
   -- Build the chronicle countermodel from the MCS M.
   -- The chronicle construction produces limitDom and limitF with:

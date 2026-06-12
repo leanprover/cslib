@@ -62,21 +62,21 @@ def unwrap {φ : Formula Atom}
 
 /-- Double negation elimination: ⊢ ¬¬φ → φ. -/
 def doubleNegation (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (φ.neg.neg.imp φ) :=
+    DerivationTree FrameClass.Base [] (¬¬φ → φ) :=
   unwrap (@Theorems.Propositional.Core.double_negation
     _ _ _ Temporal.HilbertBX _ _ (φ := φ))
 
 /-- Ex falso quodlibet: ⊢ ⊥ → φ. -/
 def efqAxiom (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (Formula.bot.imp φ) :=
+    DerivationTree FrameClass.Base [] (⊥ → φ) :=
   unwrap (@Theorems.Propositional.Core.efq_axiom
     _ _ _ Temporal.HilbertBX _ _ (φ := φ))
 
 /-- Implication transitivity: from ⊢ A → B and ⊢ B → C derive ⊢ A → C. -/
 def impTrans {A B C : Formula Atom}
-    (h1 : DerivationTree FrameClass.Base [] (A.imp B))
-    (h2 : DerivationTree FrameClass.Base [] (B.imp C)) :
-    DerivationTree FrameClass.Base [] (A.imp C) :=
+    (h1 : DerivationTree FrameClass.Base [] (A → B))
+    (h2 : DerivationTree FrameClass.Base [] (B → C)) :
+    DerivationTree FrameClass.Base [] (A → C) :=
   unwrap (Theorems.Combinators.imp_trans (wrap h1) (wrap h2))
 
 /-- Pairing: ⊢ φ → ψ → (φ ∧ ψ). -/
@@ -86,29 +86,29 @@ def pairing (φ ψ : Formula Atom) :
 
 /-- Left conjunction elimination: ⊢ (φ ∧ ψ) → φ. -/
 def lceImp (φ ψ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((Formula.and φ ψ).imp φ) :=
+    DerivationTree FrameClass.Base [] (φ ∧ ψ → φ) :=
   unwrap (@Theorems.Propositional.Core.lce_imp
     _ _ _ Temporal.HilbertBX _ _ (φ := φ) (ψ := ψ))
 
 /-- Right conjunction elimination: ⊢ (φ ∧ ψ) → ψ. -/
 def rceImp (φ ψ : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((Formula.and φ ψ).imp ψ) :=
+    DerivationTree FrameClass.Base [] (φ ∧ ψ → ψ) :=
   unwrap (@Theorems.Propositional.Core.rce_imp
     _ _ _ Temporal.HilbertBX _ _ (φ := φ) (ψ := ψ))
 
 /-- Double negation introduction: ⊢ φ → ¬¬φ. -/
 def dni (φ : Formula Atom) :
-    DerivationTree FrameClass.Base [] (φ.imp φ.neg.neg) :=
+    DerivationTree FrameClass.Base [] (φ → ¬¬φ) :=
   unwrap (@Theorems.Combinators.dni _ _ _ Temporal.HilbertBX _ _ φ)
 
 /-- Identity combinator: ⊢ A → A. -/
 def identity (A : Formula Atom) :
-    DerivationTree FrameClass.Base [] (A.imp A) :=
+    DerivationTree FrameClass.Base [] (A → A) :=
   unwrap (@Theorems.Combinators.identity _ _ _ Temporal.HilbertBX _ _ A)
 
 /-- De Morgan backward: ⊢ (¬A ∧ ¬B) → ¬(A ∨ B). -/
 def demorganDisjNegBackward (A B : Formula Atom) :
-    DerivationTree FrameClass.Base [] ((Formula.and A.neg B.neg).imp (A.or B).neg) :=
+    DerivationTree FrameClass.Base [] (¬A ∧ ¬B → ¬(A ∨ B)) :=
   unwrap (@Theorems.Propositional.Connectives.demorgan_disj_neg_backward
     _ _ _ Temporal.HilbertBX _ _ (φ := A) (ψ := B))
 

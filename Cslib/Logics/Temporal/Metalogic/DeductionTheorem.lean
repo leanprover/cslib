@@ -72,7 +72,7 @@ noncomputable instance : HasHilbertTree (Formula Atom) where
 noncomputable def deductionWithMem
     (Γ' : Context Atom) (A φ : Formula Atom)
     (d : DerivationTree FrameClass.Base Γ' φ) (hA : A ∈ Γ') :
-    DerivationTree FrameClass.Base (removeAll Γ' A) (A.imp φ) := by
+    DerivationTree FrameClass.Base (removeAll Γ' A) (A → φ) := by
   match d with
   | .axiom _ ψ h_ax h_fc =>
     exact deductionAxiom (removeAll Γ' A) A (.axiom [] ψ h_ax h_fc)
@@ -83,7 +83,7 @@ noncomputable def deductionWithMem
     · have h_mem' : ψ ∈ removeAll Γ' A := mem_removeAll_of_mem_of_ne h_mem h_eq
       exact deductionAssumptionOther (removeAll Γ' A) A ψ h_mem'
   | .modus_ponens _ ψ χ d₁ d₂ =>
-    have ih₁ := deductionWithMem Γ' A (ψ.imp χ) d₁ hA
+    have ih₁ := deductionWithMem Γ' A (ψ → χ) d₁ hA
     have ih₂ := deductionWithMem Γ' A ψ d₂ hA
     exact deductionMpUnderImp (removeAll Γ' A) A ψ χ ih₁ ih₂
   | .temporal_necessitation ψ _d' =>
@@ -93,7 +93,7 @@ noncomputable def deductionWithMem
   | .weakening Γ'' _ ψ d' h_sub =>
     by_cases hA' : A ∈ Γ''
     · have ih := deductionWithMem Γ'' A ψ d' hA'
-      exact .weakening (removeAll Γ'' A) (removeAll Γ' A) (A.imp ψ) ih
+      exact .weakening (removeAll Γ'' A) (removeAll Γ' A) (A → ψ) ih
         (removeAll_sub_removeAll h_sub)
     · have h_sub' : Γ'' ⊆ removeAll Γ' A := by
         intro x hx
@@ -118,7 +118,7 @@ decreasing_by
 Proof by well-founded recursion on derivation tree height. Handles all 6 constructors. -/
 noncomputable def deductionTheorem (Γ : Context Atom) (A B : Formula Atom)
     (d : DerivationTree FrameClass.Base (A :: Γ) B) :
-    DerivationTree FrameClass.Base Γ (A.imp B) := by
+    DerivationTree FrameClass.Base Γ (A → B) := by
   match d with
   | .axiom _ φ h_ax h_fc =>
     exact deductionAxiom Γ A (.axiom [] φ h_ax h_fc)
@@ -132,7 +132,7 @@ noncomputable def deductionTheorem (Γ : Context Atom) (A B : Formula Atom)
         | tail _ h => exact h
       exact deductionAssumptionOther Γ A φ h_tail
   | .modus_ponens _ φ ψ d₁ d₂ =>
-    have ih₁ := deductionTheorem Γ A (φ.imp ψ) d₁
+    have ih₁ := deductionTheorem Γ A (φ → ψ) d₁
     have ih₂ := deductionTheorem Γ A φ d₂
     exact deductionMpUnderImp Γ A φ ψ ih₁ ih₂
   | .weakening Γ' _ φ d' h_sub =>
@@ -140,7 +140,7 @@ noncomputable def deductionTheorem (Γ : Context Atom) (A B : Formula Atom)
     · exact deductionTheorem Γ A φ (h_eq ▸ d')
     · by_cases hA : A ∈ Γ'
       · have ih := deductionWithMem Γ' A φ d' hA
-        exact .weakening (removeAll Γ' A) Γ (A.imp φ) ih
+        exact .weakening (removeAll Γ' A) Γ (A → φ) ih
           (removeAll_sub_of_sub h_sub hA)
       · have h_sub' : Γ' ⊆ Γ := by
           intro x hx

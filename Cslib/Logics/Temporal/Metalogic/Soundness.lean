@@ -43,7 +43,7 @@ variable {Atom : Type*}
 
 theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
     (φ ψ : Formula Atom) :
-    Satisfies M t (Formula.and φ ψ) ↔ (Satisfies M t φ ∧ Satisfies M t ψ) := by
+    Satisfies M t (φ ∧ ψ) ↔ (Satisfies M t φ ∧ Satisfies M t ψ) := by
   simp only [Satisfies]
   constructor
   · intro h
@@ -54,7 +54,7 @@ theorem sat_and_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : 
 
 theorem sat_or_iff {D : Type*} [LinearOrder D] (M : TemporalModel D Atom) (t : D)
     (φ ψ : Formula Atom) :
-    Satisfies M t (Formula.or φ ψ) ↔ (Satisfies M t φ ∨ Satisfies M t ψ) := by
+    Satisfies M t (φ ∨ ψ) ↔ (Satisfies M t φ ∨ Satisfies M t ψ) := by
   simp only [Satisfies]
   constructor
   · intro h
@@ -83,13 +83,13 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
   | peirce φ ψ => intro h; by_contra hn; exact hn (h (fun hφ => absurd hφ hn))
   | serial_future =>
     intro _
-    have : Satisfies M t (Formula.someFuture Formula.top) := by
+    have : Satisfies M t (𝐅⊤) := by
       simp only [Satisfies.someFuture_iff]
       obtain ⟨s, hs⟩ := exists_gt t; exact ⟨s, hs, Satisfies.top_true M s⟩
     exact this
   | serial_past =>
     intro _
-    have : Satisfies M t (Formula.somePast Formula.top) := by
+    have : Satisfies M t (𝐏⊤) := by
       simp only [Satisfies.somePast_iff]
       obtain ⟨s, hs⟩ := exists_lt t; exact ⟨s, hs, Satisfies.top_true M s⟩
     exact this
@@ -148,20 +148,20 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     -- untl ψ φ: EVENT=ψ at s, GUARD=φ between t and s.
     -- Goal: untl (and ψ (snce p φ)) φ: EVENT=(ψ∧(pSφ)) at s, GUARD=φ between.
     intro hconj
-    have ⟨hp, huntl⟩ := (sat_and_iff M t p (Formula.untl ψ φ)).mp hconj
+    have ⟨hp, huntl⟩ := (sat_and_iff M t p (ψ U φ)).mp hconj
     obtain ⟨s, hts, hψs, hguard⟩ := huntl
     -- EVENT at s: need ψ(s) ∧ (p S φ)(s). ψ(s) = hψs.
     -- (p S φ)(s) = ∃ s' < s, p(s') ∧ ∀ r, s' < r → r < s → φ(r). Witness: t.
     exact ⟨s, hts,
-      (sat_and_iff M s ψ (Formula.snce p φ)).mpr
+      (sat_and_iff M s ψ (p S φ)).mpr
         ⟨hψs, t, hts, hp, fun r' hr1' hr2' => hguard r' hr1' hr2'⟩,
       hguard⟩
   | enrichment_since φ ψ p =>
     intro hconj
-    have ⟨hp, hsnce⟩ := (sat_and_iff M t p (Formula.snce ψ φ)).mp hconj
+    have ⟨hp, hsnce⟩ := (sat_and_iff M t p (ψ S φ)).mp hconj
     obtain ⟨s, hst, hψs, hguard⟩ := hsnce
     exact ⟨s, hst,
-      (sat_and_iff M s ψ (Formula.untl p φ)).mpr
+      (sat_and_iff M s ψ (p U φ)).mpr
         ⟨hψs, t, hst, hp, fun r' hr1' hr2' => hguard r' hr1' hr2'⟩,
       hguard⟩
   | self_accum_until φ ψ =>
@@ -169,14 +169,14 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     intro huntl
     obtain ⟨s, hts, hψs, hguard⟩ := huntl
     exact ⟨s, hts, hψs, fun r hr1 hr2 =>
-      (sat_and_iff M r φ (Formula.untl ψ φ)).mpr
+      (sat_and_iff M r φ (ψ U φ)).mpr
         ⟨hguard r hr1 hr2,
          s, hr2, hψs, fun r' hr1' hr2' => hguard r' (lt_trans hr1 hr1') hr2'⟩⟩
   | self_accum_since φ ψ =>
     intro hsnce
     obtain ⟨s, hst, hψs, hguard⟩ := hsnce
     exact ⟨s, hst, hψs, fun r hr1 hr2 =>
-      (sat_and_iff M r φ (Formula.snce ψ φ)).mpr
+      (sat_and_iff M r φ (ψ S φ)).mpr
         ⟨hguard r hr1 hr2,
          s, hr1, hψs, fun r' hr1' hr2' => hguard r' hr1' (lt_trans hr2' hr2)⟩⟩
   | absorb_until φ ψ =>
@@ -184,7 +184,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     intro huntl
     obtain ⟨s, hts, hevent, hguard⟩ := huntl
     have ⟨hφs, s', hss', hψs', hguard'⟩ :=
-      (sat_and_iff M s φ (Formula.untl ψ φ)).mp hevent
+      (sat_and_iff M s φ (ψ U φ)).mp hevent
     -- hψs' is the event at s', hguard' gives φ between s and s'
     exact ⟨s', lt_trans hts hss', hψs', fun r hr1 hr2 => by
       rcases lt_or_ge r s with h | h
@@ -196,7 +196,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     intro hsnce
     obtain ⟨s, hst, hevent, hguard⟩ := hsnce
     have ⟨hφs, s', hs's, hψs', hguard'⟩ :=
-      (sat_and_iff M s φ (Formula.snce ψ φ)).mp hevent
+      (sat_and_iff M s φ (ψ S φ)).mp hevent
     exact ⟨s', lt_trans hs's hst, hψs', fun r hr1 hr2 => by
       rcases le_or_gt s r with h | h
       · rcases eq_or_lt_of_le h with rfl | h'
@@ -206,7 +206,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
   | linear_until φ ψ χ θ =>
     -- U(ψ,φ) ∧ U(θ,χ) → U(ψ∧θ, φ∧χ) ∨ U(ψ∧χ, φ∧χ) ∨ U(φ∧θ, φ∧χ)
     intro hconj
-    have ⟨h1, h2⟩ := (sat_and_iff M t (Formula.untl ψ φ) (Formula.untl θ χ)).mp hconj
+    have ⟨h1, h2⟩ := (sat_and_iff M t (ψ U φ) (θ U χ)).mp hconj
     obtain ⟨s₁, ht1, hψ1, hg1⟩ := h1
     obtain ⟨s₂, ht2, hθ2, hg2⟩ := h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
@@ -233,7 +233,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
   | linear_since φ ψ χ θ =>
     -- S(ψ,φ) ∧ S(θ,χ) → S(ψ∧θ, φ∧χ) ∨ S(ψ∧χ, φ∧χ) ∨ S(φ∧θ, φ∧χ)
     intro hconj
-    have ⟨h1, h2⟩ := (sat_and_iff M t (Formula.snce ψ φ) (Formula.snce θ χ)).mp hconj
+    have ⟨h1, h2⟩ := (sat_and_iff M t (ψ S φ) (θ S χ)).mp hconj
     obtain ⟨s₁, h1t, hψ1, hg1⟩ := h1
     obtain ⟨s₂, h2t, hθ2, hg2⟩ := h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
@@ -270,7 +270,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
   | temp_linearity φ ψ =>
     -- F(φ) ∧ F(ψ) → F(φ∧ψ) ∨ F(φ∧F(ψ)) ∨ F(F(φ)∧ψ)
     intro hconj
-    have ⟨h1, h2⟩ := (sat_and_iff M t (Formula.someFuture φ) (Formula.someFuture ψ)).mp hconj
+    have ⟨h1, h2⟩ := (sat_and_iff M t (𝐅φ) (𝐅ψ)).mp hconj
     obtain ⟨s₁, ht1, hφ1⟩ := (Satisfies.someFuture_iff M t φ).mp h1
     obtain ⟨s₂, ht2, hψ2⟩ := (Satisfies.someFuture_iff M t ψ).mp h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
@@ -278,7 +278,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
       exact (sat_or_iff M t _ _).mpr (Or.inr
         ((sat_or_iff M t _ _).mpr (Or.inl
           ((Satisfies.someFuture_iff M t _).mpr
-            ⟨s₁, ht1, (sat_and_iff M s₁ φ (Formula.someFuture ψ)).mpr
+            ⟨s₁, ht1, (sat_and_iff M s₁ φ (𝐅ψ)).mpr
               ⟨hφ1, (Satisfies.someFuture_iff M s₁ ψ).mpr ⟨s₂, h, hψ2⟩⟩⟩))))
     · subst h
       -- s₁ = s₂: first disjunct F(φ∧ψ), witness s₁
@@ -289,12 +289,12 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
       exact (sat_or_iff M t _ _).mpr (Or.inr
         ((sat_or_iff M t _ _).mpr (Or.inr
           ((Satisfies.someFuture_iff M t _).mpr
-            ⟨s₂, ht2, (sat_and_iff M s₂ (Formula.someFuture φ) ψ).mpr
+            ⟨s₂, ht2, (sat_and_iff M s₂ (𝐅φ) ψ).mpr
               ⟨(Satisfies.someFuture_iff M s₂ φ).mpr ⟨s₁, h, hφ1⟩, hψ2⟩⟩))))
   | temp_linearity_past φ ψ =>
     -- P(φ) ∧ P(ψ) → P(φ∧ψ) ∨ P(φ∧P(ψ)) ∨ P(P(φ)∧ψ)
     intro hconj
-    have ⟨h1, h2⟩ := (sat_and_iff M t (Formula.somePast φ) (Formula.somePast ψ)).mp hconj
+    have ⟨h1, h2⟩ := (sat_and_iff M t (𝐏φ) (𝐏ψ)).mp hconj
     obtain ⟨s₁, h1t, hφ1⟩ := (Satisfies.somePast_iff M t φ).mp h1
     obtain ⟨s₂, h2t, hψ2⟩ := (Satisfies.somePast_iff M t ψ).mp h2
     rcases lt_trichotomy s₁ s₂ with h | h | h
@@ -302,7 +302,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
       exact (sat_or_iff M t _ _).mpr (Or.inr
         ((sat_or_iff M t _ _).mpr (Or.inr
           ((Satisfies.somePast_iff M t _).mpr
-            ⟨s₂, h2t, (sat_and_iff M s₂ (Formula.somePast φ) ψ).mpr
+            ⟨s₂, h2t, (sat_and_iff M s₂ (𝐏φ) ψ).mpr
               ⟨(Satisfies.somePast_iff M s₂ φ).mpr ⟨s₁, h, hφ1⟩, hψ2⟩⟩))))
     · subst h
       -- s₁ = s₂: first disjunct P(φ∧ψ), witness s₁
@@ -313,7 +313,7 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
       exact (sat_or_iff M t _ _).mpr (Or.inr
         ((sat_or_iff M t _ _).mpr (Or.inl
           ((Satisfies.somePast_iff M t _).mpr
-            ⟨s₁, h1t, (sat_and_iff M s₁ φ (Formula.somePast ψ)).mpr
+            ⟨s₁, h1t, (sat_and_iff M s₁ φ (𝐏ψ)).mpr
               ⟨hφ1, (Satisfies.somePast_iff M s₁ ψ).mpr ⟨s₂, h, hψ2⟩⟩⟩))))
   | F_until_equiv φ =>
     -- F(φ) → U(φ, ⊤)

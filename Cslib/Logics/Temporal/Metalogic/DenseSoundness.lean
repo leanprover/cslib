@@ -51,7 +51,7 @@ theorem density_axiom_sound {D : Type*} [LinearOrder D] [DenselyOrdered D]
     [NoMaxOrder D] [NoMinOrder D]
     {φ : Formula Atom}
     (M : TemporalModel D Atom) (t : D) :
-    Satisfies M t (φ.allFuture.allFuture.imp φ.allFuture) := by
+    Satisfies M t (𝐆𝐆φ → 𝐆φ) := by
   intro h_gg
   rw [Satisfies.allFuture_iff] at h_gg ⊢
   intro s hts

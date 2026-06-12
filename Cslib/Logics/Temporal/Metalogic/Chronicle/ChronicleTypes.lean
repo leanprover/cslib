@@ -68,7 +68,7 @@ theorem dcs_contains_theorems {Omega : Set (Formula Atom)}
 /-- Modus ponens in a CUD set. -/
 theorem cud_modus_ponens {Omega : Set (Formula Atom)}
     (h : ClosedUnderDerivation Omega)
-    {phi psi : Formula Atom} (h_imp : phi.imp psi ∈ Omega) (h_phi : phi ∈ Omega) : psi ∈ Omega := by
+    {phi psi : Formula Atom} (h_imp : (phi → psi) ∈ Omega) (h_phi : phi ∈ Omega) : psi ∈ Omega := by
   apply h [phi, phi.imp psi] psi
   · intro chi h_mem
     simp only [List.mem_cons, List.mem_nil_iff, or_false] at h_mem
@@ -82,14 +82,14 @@ theorem cud_modus_ponens {Omega : Set (Formula Atom)}
 /-- Modus ponens in a DCS. -/
 theorem dcs_modus_ponens {Omega : Set (Formula Atom)}
     (h : SetDeductivelyClosed Omega)
-    {phi psi : Formula Atom} (h_imp : phi.imp psi ∈ Omega) (h_phi : phi ∈ Omega) : psi ∈ Omega :=
+    {phi psi : Formula Atom} (h_imp : (phi → psi) ∈ Omega) (h_phi : phi ∈ Omega) : psi ∈ Omega :=
   cud_modus_ponens h.2 h_imp h_phi
 
 /-- A CUD set is closed under conjunction. -/
 theorem cud_conj_closed {Omega : Set (Formula Atom)}
     (h : ClosedUnderDerivation Omega)
     {phi psi : Formula Atom} (h_phi : phi ∈ Omega) (h_psi : psi ∈ Omega) :
-    Formula.and phi psi ∈ Omega := by
+    (phi ∧ psi) ∈ Omega := by
   have h_pair := cud_contains_theorems h (pairing phi psi)
   exact cud_modus_ponens h (cud_modus_ponens h h_pair h_phi) h_psi
 
@@ -97,7 +97,7 @@ theorem cud_conj_closed {Omega : Set (Formula Atom)}
 theorem dcs_conj_closed {Omega : Set (Formula Atom)}
     (h : SetDeductivelyClosed Omega)
     {phi psi : Formula Atom} (h_phi : phi ∈ Omega) (h_psi : psi ∈ Omega) :
-    Formula.and phi psi ∈ Omega :=
+    (phi ∧ psi) ∈ Omega :=
   cud_conj_closed h.2 h_phi h_psi
 
 /-- A CUD set with a non-member is SDC. -/
@@ -106,8 +106,8 @@ theorem cud_not_mem_is_sdc {B : Set (Formula Atom)}
     {phi : Formula Atom} (h_not_mem : phi ∉ B) : SetDeductivelyClosed B := by
   refine ⟨?_, h_cud⟩
   intro L hL ⟨d⟩
-  have h_bot : (Formula.bot : Formula Atom) ∈ B := h_cud L (Formula.bot : Formula Atom) hL d
-  have h_efq : DerivationTree FrameClass.Base [] ((Formula.bot : Formula Atom).imp phi) :=
+  have h_bot : (⊥ : Formula Atom) ∈ B := h_cud L (⊥ : Formula Atom) hL d
+  have h_efq : DerivationTree FrameClass.Base [] ((⊥ : Formula Atom).imp phi) :=
     efqAxiom phi
   exact h_not_mem (cud_modus_ponens h_cud (cud_contains_theorems h_cud h_efq) h_bot)
 
@@ -115,13 +115,13 @@ theorem cud_not_mem_is_sdc {B : Set (Formula Atom)}
 
 def rRelation (A B : Set (Formula Atom)) : Prop :=
   ∀ (gamma delta : Formula Atom),
-    Formula.untl delta gamma ∈ A →
-    delta ∈ B ∨ (gamma ∈ B ∧ Formula.untl delta gamma ∈ B)
+    (delta U gamma) ∈ A →
+    delta ∈ B ∨ (gamma ∈ B ∧ (delta U gamma) ∈ B)
 
 def rRelationSince (A B : Set (Formula Atom)) : Prop :=
   ∀ (gamma delta : Formula Atom),
-    Formula.snce delta gamma ∈ A →
-    delta ∈ B ∨ (gamma ∈ B ∧ Formula.snce delta gamma ∈ B)
+    (delta S gamma) ∈ A →
+    delta ∈ B ∨ (gamma ∈ B ∧ (delta S gamma) ∈ B)
 
 def r3Relation (A B C : Set (Formula Atom)) : Prop :=
   rRelation A B ∧ rRelationSince C B
@@ -166,13 +166,13 @@ def R3MaximalSince (A B C : Set (Formula Atom)) : Prop :=
 /-! ## Burgess r-Relation (Content-Based) -/
 
 def burgessR (A : Set (Formula Atom)) (beta : Formula Atom) (C : Set (Formula Atom)) : Prop :=
-  ∀ gamma ∈ C, Formula.untl gamma beta ∈ A
+  ∀ gamma ∈ C, (gamma U beta) ∈ A
 
 def burgessRSet (A B C : Set (Formula Atom)) : Prop :=
   ∀ beta ∈ B, burgessR A beta C
 
 def burgessRSince (A : Set (Formula Atom)) (beta : Formula Atom) (C : Set (Formula Atom)) : Prop :=
-  ∀ gamma ∈ C, Formula.snce gamma beta ∈ A
+  ∀ gamma ∈ C, (gamma S beta) ∈ A
 
 def burgessRSetSince (A B C : Set (Formula Atom)) : Prop :=
   ∀ beta ∈ B, burgessRSince A beta C
@@ -219,32 +219,32 @@ def Chronicle.c3 (chi : Chronicle Atom) : Prop :=
 def Chronicle.c4 (chi : Chronicle Atom) : Prop :=
   ∀ x y : Rat, x ∈ chi.dom → y ∈ chi.dom → x < y →
     ∀ (gamma delta : Formula Atom),
-      (Formula.untl delta gamma).neg ∈ chi.f x →
+      (delta U gamma).neg ∈ chi.f x →
       delta ∈ chi.f y →
       ∃ z ∈ chi.dom, x < z ∧ z < y ∧ gamma.neg ∈ chi.f z
 
 def Chronicle.c4' (chi : Chronicle Atom) : Prop :=
   ∀ x y : Rat, x ∈ chi.dom → y ∈ chi.dom → y < x →
     ∀ (gamma delta : Formula Atom),
-      (Formula.snce delta gamma).neg ∈ chi.f x →
+      (delta S gamma).neg ∈ chi.f x →
       delta ∈ chi.f y →
       ∃ z ∈ chi.dom, y < z ∧ z < x ∧ gamma.neg ∈ chi.f z
 
 def Chronicle.c5 (chi : Chronicle Atom) : Prop :=
   ∀ x ∈ chi.dom,
     ∀ (gamma delta : Formula Atom),
-      Formula.untl delta gamma ∈ chi.f x →
+      (delta U gamma) ∈ chi.f x →
       ∃ y ∈ chi.dom, x < y ∧ delta ∈ chi.f y ∧
         ∀ z ∈ chi.dom, x < z → z < y →
-          gamma ∈ chi.f z ∧ Formula.untl delta gamma ∈ chi.f z
+          gamma ∈ chi.f z ∧ (delta U gamma) ∈ chi.f z
 
 def Chronicle.c5' (chi : Chronicle Atom) : Prop :=
   ∀ x ∈ chi.dom,
     ∀ (gamma delta : Formula Atom),
-      Formula.snce delta gamma ∈ chi.f x →
+      (delta S gamma) ∈ chi.f x →
       ∃ y ∈ chi.dom, y < x ∧ delta ∈ chi.f y ∧
         ∀ z ∈ chi.dom, y < z → z < x →
-          gamma ∈ chi.f z ∧ Formula.snce delta gamma ∈ chi.f z
+          gamma ∈ chi.f z ∧ (delta S gamma) ∈ chi.f z
 
 /-! ## Valid Chronicle -/
 
