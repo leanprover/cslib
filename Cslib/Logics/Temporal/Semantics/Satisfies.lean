@@ -24,8 +24,8 @@ argument is the EVENT (holds at the witness point) and the second is the GUARD
 - `snce φ ψ` at `t`: there exists `s < t` such that `φ` holds at `s` (event)
   and `ψ` holds at all `r` strictly between `s` and `t` (guard).
 
-This matches the bimodal `truth_at` convention and the `Formula.someFuture`
-definition (`someFuture φ = untl φ top`).
+This matches the abstract typeclass expansion in `Axioms.lean` and the `Formula.someFuture`
+definition (`someFuture φ = untl φ top`, where φ is the event and ⊤ is the trivial guard).
 
 ## Main Definitions
 

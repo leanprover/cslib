@@ -21,10 +21,21 @@ are the basic temporal modalities from which all other temporal operators
 
 ## Derived Temporal Operators
 
-- `someFuture φ` (F φ): `⊤ U φ` — eventually in the future
-- `allFuture φ` (G φ): `¬F ¬φ` — always in the future
-- `somePast φ` (P φ): `⊤ S φ` — at some point in the past
-- `allPast φ` (H φ): `¬P ¬φ` — always in the past
+The derived operators use the Burgess convention: in `untl event guard` and `snce event guard`,
+the first argument is the **event** (holds at the witness point) and the second is the **guard**
+(holds at all intermediate points). This matches the abstract typeclass expansion in `Axioms.lean`.
+
+- `someFuture φ` (F φ): `φ U ⊤` — φ holds at some future point (Burgess: `untl φ ⊤`)
+- `allFuture φ` (G φ): `¬F ¬φ` — φ holds at all future points
+- `somePast φ` (P φ): `φ S ⊤` — φ held at some past point (Burgess: `snce φ ⊤`)
+- `allPast φ` (H φ): `¬P ¬φ` — φ held at all past points
+
+## References
+
+- Kamp, H. (1968). *Tense Logic and the Theory of Linear Order*. PhD thesis, UCLA.
+- Gabbay, D., Pnueli, A., Shelah, S., and Stavi, J. (1980). On the temporal analysis of fairness.
+  In *Proceedings of the 7th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages*,
+  pp. 163–173. ACM.
 -/
 
 @[expose] public section
@@ -59,7 +70,13 @@ abbrev Formula.or (φ₁ φ₂ : Formula Atom) : Formula Atom :=
 abbrev Formula.and (φ₁ φ₂ : Formula Atom) : Formula Atom :=
   .imp (.imp φ₁ (.imp φ₂ .bot)) .bot
 
-/-- Some future (eventually): F φ := ⊤ U φ -/
+/-- Biconditional: φ₁ ↔ φ₂ := (φ₁ → φ₂) ∧ (φ₂ → φ₁) -/
+abbrev Formula.iff (φ₁ φ₂ : Formula Atom) : Formula Atom :=
+  (φ₁.imp φ₂).and (φ₂.imp φ₁)
+
+/-- Some future (eventually): F φ := φ U ⊤.
+    Note: uses Burgess convention where `untl event guard` — φ is the event (holds at witness),
+    ⊤ is the trivial guard. Equivalent to standard LTL `F φ = ⊤ U φ` semantically. -/
 abbrev Formula.someFuture (φ : Formula Atom) : Formula Atom :=
   .untl φ .top
 
@@ -67,7 +84,9 @@ abbrev Formula.someFuture (φ : Formula Atom) : Formula Atom :=
 abbrev Formula.allFuture (φ : Formula Atom) : Formula Atom :=
   .neg (.someFuture (.neg φ))
 
-/-- Some past: P φ := ⊤ S φ -/
+/-- Some past: P φ := φ S ⊤.
+    Note: uses Burgess convention where `snce event guard` — φ is the event (holds at witness),
+    ⊤ is the trivial guard. Equivalent to standard LTL `P φ = ⊤ S φ` semantically. -/
 abbrev Formula.somePast (φ : Formula Atom) : Formula Atom :=
   .snce φ .top
 
@@ -79,12 +98,13 @@ abbrev Formula.allPast (φ : Formula Atom) : Formula Atom :=
 @[inherit_doc] scoped infix:36 " ∧ " => Formula.and
 @[inherit_doc] scoped infix:35 " ∨ " => Formula.or
 @[inherit_doc] scoped infix:30 " → " => Formula.imp
+@[inherit_doc] scoped infix:30 " ↔ " => Formula.iff
 @[inherit_doc] scoped infix:40 " U " => Formula.untl
 @[inherit_doc] scoped infix:40 " S " => Formula.snce
-@[inherit_doc] scoped prefix:40 "F" => Formula.someFuture
-@[inherit_doc] scoped prefix:40 "G" => Formula.allFuture
-@[inherit_doc] scoped prefix:40 "P" => Formula.somePast
-@[inherit_doc] scoped prefix:40 "H" => Formula.allPast
+@[inherit_doc] scoped prefix:40 "𝐅" => Formula.someFuture
+@[inherit_doc] scoped prefix:40 "𝐆" => Formula.allFuture
+@[inherit_doc] scoped prefix:40 "𝐏" => Formula.somePast
+@[inherit_doc] scoped prefix:40 "𝐇" => Formula.allPast
 
 /-- Register `Temporal.Formula` as an instance of `TemporalConnectives`. -/
 instance : TemporalConnectives (Formula Atom) where
@@ -93,7 +113,12 @@ instance : TemporalConnectives (Formula Atom) where
   untl := .untl
   snce := .snce
 
+instance : Bot (Formula Atom) := ⟨.bot⟩
+instance : Top (Formula Atom) := ⟨.top⟩
+
 end Cslib.Logic.Temporal
+
+@[expose] public section
 
 /-! ## Structural Properties and Derived Operators
 
@@ -107,8 +132,6 @@ Extensions to `Temporal.Formula` providing:
 - Atom collection function
 - Positive hypothesis predicate
 -/
-
-open Cslib.Logic.Temporal
 
 namespace Cslib.Logic.Temporal
 
@@ -295,40 +318,40 @@ variable {Atom : Type*}
 /--
 Structural complexity of a formula (number of connectives + 1).
 
-Pattern-aware cases for derived temporal operators:
-- `F(φ) = ⊤ U φ` → treated as overhead 1, not 4
-- `P(φ) = ⊤ S φ` → treated as overhead 1, not 4
+Pattern-aware cases for derived temporal operators (Burgess convention: `untl event guard`):
+- `F(φ) = φ U ⊤` → treated as overhead 1, not 4
+- `P(φ) = φ S ⊤` → treated as overhead 1, not 4
 - `G(φ) = ¬F(¬φ)` → treated as overhead 1, not 8
 - `H(φ) = ¬P(¬φ)` → treated as overhead 1, not 8
 - `next(φ) = ⊥ U φ` → treated as overhead 1
 - `prev(φ) = ⊥ S φ` → treated as overhead 1
-- `R(φ, ψ) = ¬(¬φ U ¬ψ)` → treated as overhead 1
-- `T(φ, ψ) = ¬(¬φ S ¬ψ)` → treated as overhead 1
+- `R(φ, ψ) = ¬(¬ψ U ¬φ)` → treated as overhead 1
+- `T(φ, ψ) = ¬(¬ψ S ¬φ)` → treated as overhead 1
 -/
 def complexity : Formula Atom → Nat
   | .atom _ => 1
   | .bot => 1
-  -- G(φ) = imp (untl (imp φ bot) (imp bot bot)) bot
+  -- G(φ) = imp (untl (imp φ bot) (imp bot bot)) bot  [¬(¬φ U ⊤) in Burgess]
   | .imp (.untl (.imp φ .bot) (.imp .bot .bot)) .bot => 1 + complexity φ
-  -- H(φ) = imp (snce (imp φ bot) (imp bot bot)) bot
+  -- H(φ) = imp (snce (imp φ bot) (imp bot bot)) bot  [¬(¬φ S ⊤) in Burgess]
   | .imp (.snce (.imp φ .bot) (.imp .bot .bot)) .bot => 1 + complexity φ
-  -- R(φ, ψ) = release = imp (untl (imp ψ bot) (imp φ bot)) bot
+  -- R(φ, ψ) = release = imp (untl (imp ψ bot) (imp φ bot)) bot  [¬(¬ψ_event U ¬φ_guard)]
   | .imp (.untl (.imp ψ .bot) (.imp φ .bot)) .bot =>
     1 + complexity φ + complexity ψ
-  -- T(φ, ψ) = trigger = imp (snce (imp ψ bot) (imp φ bot)) bot
+  -- T(φ, ψ) = trigger = imp (snce (imp ψ bot) (imp φ bot)) bot  [¬(¬ψ_event S ¬φ_guard)]
   | .imp (.snce (.imp ψ .bot) (.imp φ .bot)) .bot =>
     1 + complexity φ + complexity ψ
   -- generic imp
   | .imp φ ψ => 1 + complexity φ + complexity ψ
-  -- F(φ) = untl φ (imp bot bot)
+  -- F(φ) = untl φ (imp bot bot)  [φ U ⊤ in Burgess]
   | .untl φ (.imp .bot .bot) => 1 + complexity φ
-  -- next(φ) = untl φ bot
+  -- next(φ) = untl φ bot  [φ U ⊥ in Burgess: guard ⊥ impossible, forces immediate step]
   | .untl φ .bot => 1 + complexity φ
   -- generic untl
   | .untl φ ψ => 1 + complexity φ + complexity ψ
-  -- P(φ) = snce φ (imp bot bot)
+  -- P(φ) = snce φ (imp bot bot)  [φ S ⊤ in Burgess]
   | .snce φ (.imp .bot .bot) => 1 + complexity φ
-  -- prev(φ) = snce φ bot
+  -- prev(φ) = snce φ bot  [φ S ⊥ in Burgess: guard ⊥ impossible, forces immediate step]
   | .snce φ .bot => 1 + complexity φ
   -- generic snce
   | .snce φ ψ => 1 + complexity φ + complexity ψ
@@ -361,12 +384,14 @@ def countImplications : Formula Atom → Nat
 
 /-! ### Additional Derived Temporal Operators -/
 
-/-- Next-step operator: X(φ) = ⊥ U φ.
-    X(φ) at t means φ holds at t+1. -/
+/-- Next-step operator: X(φ) = φ U ⊥.
+    X(φ) at t means φ holds at t+1. Uses Burgess convention: φ is the event,
+    ⊥ is the guard (impossible), forcing the witness to be immediately next. -/
 def next (φ : Formula Atom) : Formula Atom := .untl φ .bot
 
-/-- Previous-step operator: Y(φ) = ⊥ S φ.
-    Y(φ) at t means φ holds at t-1. -/
+/-- Previous-step operator: Y(φ) = φ S ⊥.
+    Y(φ) at t means φ holds at t-1. Uses Burgess convention: φ is the event,
+    ⊥ is the guard (impossible), forcing the witness to be immediately previous. -/
 def prev (φ : Formula Atom) : Formula Atom := .snce φ .bot
 
 /-- Derived reflexive future operator: G'φ := φ ∧ Gφ. -/
@@ -387,11 +412,15 @@ def always (φ : Formula Atom) : Formula Atom :=
 def sometimes (φ : Formula Atom) : Formula Atom :=
   Formula.neg (always (Formula.neg φ))
 
-/-- Release operator R(φ, ψ) := ¬(¬φ U ¬ψ). Dual of Until. -/
+/-- Release operator R(φ, ψ) := ¬(¬φ U ¬ψ). Dual of Until.
+    In Burgess convention: `untl (neg ψ) (neg φ)` where ¬ψ is the event and ¬φ is the guard,
+    corresponding to `¬φ U ¬ψ` in standard LTL notation. -/
 def release (φ ψ : Formula Atom) : Formula Atom :=
   Formula.neg (Formula.untl (Formula.neg ψ) (Formula.neg φ))
 
-/-- Trigger operator T(φ, ψ) := ¬(¬φ S ¬ψ). Dual of Since (past analog of Release). -/
+/-- Trigger operator T(φ, ψ) := ¬(¬φ S ¬ψ). Dual of Since (past analog of Release).
+    In Burgess convention: `snce (neg ψ) (neg φ)` where ¬ψ is the event and ¬φ is the guard,
+    corresponding to `¬φ S ¬ψ` in standard LTL notation. -/
 def trigger (φ ψ : Formula Atom) : Formula Atom :=
   Formula.neg (Formula.snce (Formula.neg ψ) (Formula.neg φ))
 
@@ -403,11 +432,13 @@ def weakUntil (φ ψ : Formula Atom) : Formula Atom :=
 def weakSince (φ ψ : Formula Atom) : Formula Atom :=
   Formula.or (Formula.snce φ ψ) (Formula.allPast φ)
 
-/-- Strong Release operator M(φ, ψ) := ψ U (ψ ∧ φ). Dual of weak until. -/
+/-- Strong Release operator M(φ, ψ) := ψ U (ψ ∧ φ). Dual of weak until.
+    In Burgess convention: `untl (and ψ φ) ψ` where ψ∧φ is the event and ψ is the guard. -/
 def strongRelease (φ ψ : Formula Atom) : Formula Atom :=
   Formula.untl (Formula.and ψ φ) ψ
 
-/-- Strong Trigger operator ST(φ, ψ) := ψ S (ψ ∧ φ). Past dual of strong release. -/
+/-- Strong Trigger operator ST(φ, ψ) := ψ S (ψ ∧ φ). Past dual of strong release.
+    In Burgess convention: `snce (and ψ φ) ψ` where ψ∧φ is the event and ψ is the guard. -/
 def strongTrigger (φ ψ : Formula Atom) : Formula Atom :=
   Formula.snce (Formula.and ψ φ) ψ
 
@@ -547,3 +578,5 @@ end Atoms
 end Formula
 
 end Cslib.Logic.Temporal
+
+end
