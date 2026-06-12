@@ -71,7 +71,7 @@ This is Sub-PR 1.1.1 extracted from the larger PR #633. It isolates the foundati
 ## AI Disclosure
 
 This PR was prepared with the assistance of Claude Code (Anthropic). The AI tool was used for:
-- Extracting files from a development branch to create a clean PR branch
+- Drafting and extracting files from a development branch to create a clean PR branch
 - Running CI verification commands
 - Drafting this PR description
 
