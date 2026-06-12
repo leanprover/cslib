@@ -1,23 +1,17 @@
 {
-  "status": "planned",
-  "session_id": "sess_1781222732_dd2465",
+  "status": "in_progress",
+  "started_at": "2026-06-11T12:00:00Z",
+  "session_id": "sess_1781223598_10ead8",
   "task_number": 137,
-  "artifacts": [
-    {
-      "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
-      "type": "plan",
-      "summary": "6-phase implementation plan splitting Instances.lean into 15 per-system files, reorganizing Metalogic/ into Systems/ subdirectories, and restoring LogicalEquivalence.lean across two PRs"
-    }
-  ],
-  "next_steps": "Run /implement 137 to execute the plan",
-  "metadata": {
-    "session_id": "sess_1781222732_dd2465",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 6,
-    "estimated_hours": 6,
-    "dependency_waves": [[1], [2], [3], [4], [5], [6]]
+  "artifacts": [],
+  "partial_progress": {
+    "stage": "phase_1",
+    "details": "Starting Phase 1: Split Instances.lean into per-system files"
   },
-  "memory_candidates": []
+  "metadata": {
+    "session_id": "sess_1781223598_10ead8",
+    "agent_type": "lean-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"]
+  }
 }

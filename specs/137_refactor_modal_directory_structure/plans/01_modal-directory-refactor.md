@@ -1,7 +1,7 @@
 # Implementation Plan: Refactor Modal/ Directory Structure
 
 - **Task**: 137 - Refactor Modal/ directory structure for the modal cube
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 6 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/137_refactor_modal_directory_structure/reports/01_directory-structure-research.md
@@ -74,7 +74,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Split Instances.lean into Per-System Files [NOT STARTED]
+### Phase 1: Split Instances.lean into Per-System Files [COMPLETED]
 
 **Goal**: Break the 1531-line monolith into 15 focused files plus a barrel aggregator.
 
