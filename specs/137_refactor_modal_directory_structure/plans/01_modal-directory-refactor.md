@@ -241,27 +241,27 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Write LogicalEquivalence.lean for Fork Primitives [NOT STARTED]
+### Phase 5: Write LogicalEquivalence.lean for Fork Primitives [COMPLETED]
 
 **Goal**: Create `LogicalEquivalence.lean` from scratch, defining a one-hole `Context` inductive matching the fork's `Proposition` constructors (atom, bot, imp, box), a `fill` operation, logical equivalence, and a congruence theorem proving that equivalent propositions remain equivalent in any context.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Modal/LogicalEquivalence.lean`
-- [ ] Add required imports: `import Cslib.Logics.Modal.Basic` (for `Proposition`, `Satisfies`, `Frame`, `Model`)
-- [ ] Define `Proposition.Context` inductive with constructors:
+- [x] Create `Cslib/Logics/Modal/LogicalEquivalence.lean`
+- [x] Add required imports: `import Cslib.Logics.Modal.Basic` (for `Proposition`, `Satisfies`, `Frame`, `Model`)
+- [x] Define `Proposition.Context` inductive with constructors:
   - `hole` -- the position to substitute
   - `impL (c : Context Atom) (phi : Proposition Atom)` -- context in left argument of `imp`
   - `impR (phi : Proposition Atom) (c : Context Atom)` -- context in right argument of `imp`
   - `box (c : Context Atom)` -- context under `box`
-- [ ] Define `Context.fill (c : Context Atom) (phi : Proposition Atom) : Proposition Atom` by structural recursion on `c`
-- [ ] Define `LogicallyEquivalent (phi psi : Proposition Atom) : Prop` as: for all frames F, models M, and worlds w, `Satisfies F M w phi <-> Satisfies F M w psi`
-- [ ] Prove `fill_satisfies` lemma: `Satisfies F M w (c.fill phi) <-> ...` decomposing by context structure (auxiliary lemma for congruence)
-- [ ] Prove `congruence` theorem: `LogicallyEquivalent phi psi -> LogicallyEquivalent (c.fill phi) (c.fill psi)` for all contexts `c`
+- [x] Define `Context.fill (c : Context Atom) (phi : Proposition Atom) : Proposition Atom` by structural recursion on `c`
+- [x] Define `LogicallyEquivalent (phi psi : Proposition Atom) : Prop` as: for all frames F, models M, and worlds w, `Satisfies F M w phi <-> Satisfies F M w psi` *(deviation: altered -- quantifies over World type explicitly rather than using implicit Frame/Model split since this fork has no separate Frame type)*
+- [ ] Prove `fill_satisfies` lemma: `Satisfies F M w (c.fill phi) <-> ...` decomposing by context structure (auxiliary lemma for congruence) *(deviation: skipped -- congruence proof handles decomposition inline via simp without a separate auxiliary lemma)*
+- [x] Prove `congruence` theorem: `LogicallyEquivalent phi psi -> LogicallyEquivalent (c.fill phi) (c.fill psi)` for all contexts `c`
   - Proof strategy: structural induction on `c`; `hole` case is trivial; `impL`/`impR` cases use iff-congruence on implication; `box` case uses universal quantification over accessible worlds
-- [ ] Ensure the file uses `import Cslib.Init` (CSLib convention)
-- [ ] Verify no `sorry` or vacuous placeholders
-- [ ] Run `lake exe mk_all --module` to add file to `Cslib.lean` barrel
-- [ ] Run `lake build Cslib.Logics.Modal.LogicalEquivalence` to verify compilation
+- [x] Ensure the file uses `import Cslib.Init` (CSLib convention)
+- [x] Verify no `sorry` or vacuous placeholders
+- [x] Run `lake exe mk_all --module` to add file to `Cslib.lean` barrel
+- [x] Run `lake build Cslib.Logics.Modal.LogicalEquivalence` to verify compilation
 
 **Timing**: 3 hours
 
