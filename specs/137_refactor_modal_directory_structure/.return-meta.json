@@ -1,18 +1,23 @@
 {
-  "status": "researched",
-  "session_id": "sess_1781221805_7d8c5d",
+  "status": "planned",
+  "session_id": "sess_1781222732_dd2465",
   "task_number": 137,
   "artifacts": [
     {
-      "path": "specs/137_refactor_modal_directory_structure/reports/01_directory-structure-research.md",
-      "type": "research_report",
-      "summary": "Comprehensive analysis of Modal/ directory: 41 files (4 upstream, 37 fork-only), import dependency graph, Instances.lean splitting plan (1531 lines -> 15 files), Metalogic/Systems per-system grouping, and PR boundary validation"
+      "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
+      "type": "plan",
+      "summary": "6-phase implementation plan splitting Instances.lean into 15 per-system files, reorganizing Metalogic/ into Systems/ subdirectories, and restoring LogicalEquivalence.lean across two PRs"
     }
   ],
+  "next_steps": "Run /implement 137 to execute the plan",
   "metadata": {
-    "session_id": "sess_1781221805_7d8c5d",
-    "agent_type": "lean-research-agent",
+    "session_id": "sess_1781222732_dd2465",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
-  }
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 6,
+    "dependency_waves": [[1], [2], [3], [4], [5], [6]]
+  },
+  "memory_candidates": []
 }

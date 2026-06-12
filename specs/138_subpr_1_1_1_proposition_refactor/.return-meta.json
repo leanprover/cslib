@@ -1,0 +1,17 @@
+{
+  "status": "researched",
+  "summary": "Research complete for Sub-PR 1.1.1. All 4 Lean files exist on local main and type-check. Upstream has Defs.lean with old and/or/impl constructors and NaturalDeduction/Basic.lean with 10 rules; local main has refactored bot/imp constructors and 5 rules. ChagrovZakharyaschev1997 exists in local references.bib but not upstream. Total diff estimate is ~292 lines across 6 files, well under 500-line limit. No downstream breakage risk since dependent files do not exist upstream. Implementation approach is straightforward file extraction from local main to a new branch off upstream/main.",
+  "artifacts": [
+    {
+      "path": "specs/138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md",
+      "type": "report",
+      "summary": "Research report for Sub-PR 1.1.1 proposition refactor to Lukasiewicz convention"
+    }
+  ],
+  "session_id": "sess_1781222669_77774c",
+  "metadata": {
+    "agent_type": "lean-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+  }
+}

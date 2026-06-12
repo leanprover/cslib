@@ -4,19 +4,24 @@
     {
       "project_number": 137,
       "project_name": "refactor_modal_directory_structure",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).",
       "created": "2026-06-11T23:48:36Z",
-      "last_updated": "2026-06-11T23:56:48Z",
-      "session_id": "sess_1781221805_7d8c5d",
+      "last_updated": "2026-06-12T00:10:04Z",
+      "session_id": "sess_1781222732_dd2465",
       "researched": "2026-06-11T23:56:48Z",
       "artifacts": [
         {
           "path": "specs/137_refactor_modal_directory_structure/reports/01_directory-structure-research.md",
           "type": "research_report",
           "summary": "Comprehensive analysis of Modal/ directory: 41 files (4 upstream, 37 fork-only), import dependency graph, Instances.lean splitting plan, and PR boundary validation"
+        },
+        {
+          "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
+          "type": "plan",
+          "summary": "6-phase implementation plan splitting Instances.lean into 15 per-system files, reorganizing Metalogic/ into Systems/ subdirectories, and restoring LogicalEquivalence.lean across two PRs"
         }
       ]
     },
@@ -434,13 +439,14 @@
     {
       "project_number": 138,
       "project_name": "subpr_1_1_1_proposition_refactor",
-      "status": "not_started",
+      "status": "researching",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-12T00:15:00Z",
-      "last_updated": "2026-06-12T00:15:00Z",
-      "description": "Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files."
+      "last_updated": "2026-06-12T00:04:40Z",
+      "description": "Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.",
+      "session_id": "sess_1781222669_77774c"
     },
     {
       "project_number": 139,

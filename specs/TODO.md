@@ -6,7 +6,7 @@ next_project_number: 145
 
 ## Task Order
 
-*Updated 2026-06-11. Generated from state.json dependency graph.*
+*Updated 2026-06-12. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
@@ -40,7 +40,7 @@ next_project_number: 145
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-138 [NOT STARTED] — Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introdu
+138 [RESEARCHING] — Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introdu
   └─ 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
     └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
       └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
@@ -64,7 +64,7 @@ next_project_number: 145
 
 ### Modal Logic
 
-137 [RESEARCHED] — Refactor Modal/ directory structure for the modal cube. Systemati
+137 [PLANNED] — Refactor Modal/ directory structure for the modal cube. Systemati
 
 ### Foundations
 
@@ -133,7 +133,7 @@ next_project_number: 145
 ---
 
 ### 138. Subpr 1 1 1 proposition refactor
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
@@ -143,11 +143,12 @@ next_project_number: 145
 ---
 
 ### 137. Refactor modal directory structure
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
 - **Research_report**: [137_refactor_modal_directory_structure/reports/01_directory-structure-research.md]
+- **Plan**: [137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md]
 
 **Description**: Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).
 
