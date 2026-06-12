@@ -128,7 +128,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Move Metalogic System-Specific Files into Systems/ Directories [NOT STARTED]
+### Phase 2: Move Metalogic System-Specific Files into Systems/ Directories [COMPLETED]
 
 **Goal**: Reorganize the 28 system-specific soundness/completeness files into per-system subdirectories.
 
@@ -183,7 +183,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Update Barrel Files and Cross-References [NOT STARTED]
+### Phase 3: Update Barrel Files and Cross-References [COMPLETED]
 
 **Goal**: Update `Metalogic.lean` barrel, internal cross-references between system files, and `Cslib.lean`.
 

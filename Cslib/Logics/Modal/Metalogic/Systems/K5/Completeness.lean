@@ -7,7 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Modal.Metalogic.Completeness
-public import Cslib.Logics.Modal.Metalogic.KCompleteness
+public import Cslib.Logics.Modal.Metalogic.Systems.K.Completeness
 
 /-! # Completeness Theorem for Modal Logic K5
 

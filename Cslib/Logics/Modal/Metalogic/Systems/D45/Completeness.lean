@@ -7,29 +7,33 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Modal.Metalogic.Completeness
-public import Cslib.Logics.Modal.Metalogic.DCompleteness
+public import Cslib.Logics.Modal.Metalogic.Systems.D.Completeness
 
-/-! # Completeness Theorem for Modal Logic D4 (KD4)
+/-! # Completeness Theorem for Modal Logic D45 (KD45)
 
-This module proves completeness for modal logic D4 over serial + transitive
-Kripke frames via the canonical model construction (completeness-via-canonicity).
+This module proves completeness for modal logic D45 over serial + transitive +
+Euclidean Kripke frames via the canonical model construction
+(completeness-via-canonicity).
 
-D4 = K + D + 4 contains axiom D (seriality) and axiom 4 (transitivity) but
-NOT axiom T (reflexivity). Therefore this proof uses:
+D45 = K + D + 4 + 5 contains axiom D (seriality), axiom 4 (transitivity), and
+axiom 5 (Euclideanness) but NOT axiom T (reflexivity). Therefore this proof uses:
 - `truth_lemma_d` (D-specific truth lemma, NOT `truth_lemma` which requires T)
 - `canonical_serial` (from DCompleteness.lean, using axiom D)
 - `canonical_trans` (from Completeness.lean, using axiom 4)
+- `canonical_eucl_from_5` (from Completeness.lean, using axiom 5)
 
 ## Main Results
 
-- `d4_completeness`: If `phi` is valid over all serial + transitive frames,
-  then `phi` is D4-derivable (Blackburn Theorem 4.29 pattern applied to D+4).
+- `d45_completeness`: If `phi` is valid over all serial + transitive + Euclidean
+  frames, then `phi` is D45-derivable (Blackburn Theorem 4.29 pattern applied to
+  D+4+5).
 
 ## References
 
 * Blackburn, de Rijke, Venema, "Modal Logic" (2002), Chapter 4
   - Theorem 4.27 (axiom 4 canonical for transitivity)
   - Theorem 4.28 clause 3 (axiom D canonical for seriality)
+  - Axiom 5 canonical for Euclideanness (via `canonical_eucl_from_5`)
   - Theorem 4.29 pattern (combining canonical properties)
   - Lemma 4.21 (Truth Lemma)
   - Proposition 4.12 (Completeness criterion)
@@ -44,30 +48,32 @@ open Cslib.Logic
 universe u
 variable {Atom : Type u}
 
-/-! ## D4 Completeness (Blackburn Theorem 4.29 pattern for D+4) -/
+/-! ## D45 Completeness (Blackburn Theorem 4.29 pattern for D+4+5) -/
 
-/-- **Completeness Theorem for Modal Logic D4** (Blackburn Theorem 4.29 pattern):
+/-- **Completeness Theorem for Modal Logic D45** (Blackburn Theorem 4.29 pattern):
 
-If `phi` is valid over all serial + transitive frames, then `phi` is derivable
-from the D4 axiom set.
+If `phi` is valid over all serial + transitive + Euclidean frames, then `phi` is
+derivable from the D45 axiom set.
 
 The proof is by contrapositive (Canonical Model Theorem, Blackburn Theorem 4.22):
-assume `phi` is not D4-derivable, then `{neg phi}` is D4-consistent, extend it to
-an MCS via Lindenbaum's Lemma (Lemma 4.17), and show `neg phi` is satisfied in the
-canonical model. The canonical frame is serial (Theorem 4.28, clause 3, from
-axiom D) and transitive (Theorem 4.27, from axiom 4), so `h_valid` applies and
-gives satisfaction of `phi` at the same world -- contradiction.
+assume `phi` is not D45-derivable, then `{neg phi}` is D45-consistent, extend it
+to an MCS via Lindenbaum's Lemma (Lemma 4.17), and show `neg phi` is satisfied in
+the canonical model. The canonical frame is serial (Theorem 4.28, clause 3, from
+axiom D), transitive (Theorem 4.27, from axiom 4), and Euclidean (from axiom 5 via
+`canonical_eucl_from_5`), so `h_valid` applies and gives satisfaction of `phi` at
+the same world -- contradiction.
 
-CRITICAL: Uses `truth_lemma_d` (D-specific) because D4 lacks axiom T. -/
-theorem d4_completeness (φ : Proposition Atom)
+CRITICAL: Uses `truth_lemma_d` (D-specific) because D45 lacks axiom T. -/
+theorem d45_completeness (φ : Proposition Atom)
     (h_valid : ∀ (World : Type u) (m : Model World Atom),
       Relation.Serial m.r →
       (∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₂ w₃ → m.r w₁ w₃) →
+      (∀ w₁ w₂ w₃, m.r w₁ w₂ → m.r w₁ w₃ → m.r w₂ w₃) →
       ∀ w, Satisfies m w φ) :
-    Derivable (@D4Axiom Atom) φ := by
+    Derivable (@D45Axiom Atom) φ := by
   -- Step 1: Contrapositive setup
   by_contra h_not_deriv
-  -- Step 2: Show {neg(phi)} is D4-consistent (prerequisite for Lindenbaum, Lemma 4.17)
+  -- Step 2: Show {neg(phi)} is D45-consistent (prerequisite for Lindenbaum, Lemma 4.17)
   have h_cons := neg_consistent_of_not_derivable
     (fun φ ψ => .implyK φ ψ)
     (fun φ ψ χ => .implyS φ ψ χ)
@@ -77,14 +83,15 @@ theorem d4_completeness (φ : Proposition Atom)
   -- Step 3: Lindenbaum extension (Lemma 4.17)
   obtain ⟨M, hM_sup, hM_mcs⟩ := modal_lindenbaum h_cons
   -- Step 4: Canonical world
-  let w : CanonicalWorld (@D4Axiom Atom) := ⟨M, hM_mcs⟩
+  let w : CanonicalWorld (@D45Axiom Atom) := ⟨M, hM_mcs⟩
   -- Steps 5-7: Truth Lemma + frame properties + contradiction
-  -- Step 5: truth_lemma_d (D-specific, Lemma 4.21) instantiated at D4Axiom constructors
-  -- Step 6: Frame properties via Theorems 4.27 + 4.28.3 (D+4 combination):
+  -- Step 5: truth_lemma_d (D-specific, Lemma 4.21) instantiated at D45Axiom constructors
+  -- Step 6: Frame properties via Theorems 4.27 + 4.28.3 + axiom 5 (D+4+5 combination):
   --   canonical_serial from axiom D (Thm 4.28, clause 3)
   --   canonical_trans from axiom 4 (Thm 4.27)
+  --   canonical_eucl_from_5 from axiom 5
   -- Step 7: Contradiction via mcs_not_mem_of_neg
-  have h_serial : Relation.Serial (CanonicalModel (@D4Axiom Atom)).r := by
+  have h_serial : Relation.Serial (CanonicalModel (@D45Axiom Atom)).r := by
     constructor
     intro S
     exact canonical_serial
@@ -106,13 +113,18 @@ theorem d4_completeness (φ : Proposition Atom)
       (fun φ ψ => .modalK φ ψ)
       (fun φ => .modalD φ)
       w φ).mp
-      (h_valid (CanonicalWorld (@D4Axiom Atom))
-        (CanonicalModel (@D4Axiom Atom))
+      (h_valid (CanonicalWorld (@D45Axiom Atom))
+        (CanonicalModel (@D45Axiom Atom))
         h_serial
         (canonical_trans
           (fun φ ψ => .implyK φ ψ)
           (fun φ ψ χ => .implyS φ ψ χ)
           (fun φ => .modalFour φ))
+        (canonical_eucl_from_5
+          (fun φ ψ => .implyK φ ψ)
+          (fun φ ψ χ => .implyS φ ψ χ)
+          (fun φ ψ => .modalK φ ψ)
+          (fun φ => .modalFive φ))
         w))
 
 end Cslib.Logic.Modal

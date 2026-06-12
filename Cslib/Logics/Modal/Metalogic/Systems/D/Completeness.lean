@@ -7,7 +7,7 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.Modal.Metalogic.Completeness
-public import Cslib.Logics.Modal.Metalogic.DSoundness
+public import Cslib.Logics.Modal.Metalogic.Systems.D.Soundness
 
 /-! # Completeness Theorem for Modal Logic D (KD)
 
