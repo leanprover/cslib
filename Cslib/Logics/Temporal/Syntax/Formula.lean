@@ -33,7 +33,7 @@ the first argument is the **event** (holds at the witness point) and the second 
 ## References
 
 * [H. Kamp, *Tense Logic and the Theory of Linear Order*][Kamp1968]
-* [D. Gabbay, A. Pnueli, S. Shelah, J. Stavi, *On the Temporal Analysis of Fairness*][GabbayPnueliShelahStavi1980]
+* [D. Gabbay et al., *On the Temporal Analysis of Fairness*][GabbayPnueliShelahStavi1980]
 -/
 
 @[expose] public section
