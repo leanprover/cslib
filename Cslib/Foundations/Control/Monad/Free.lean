@@ -39,6 +39,8 @@ This unique interpreter is `FreeM.liftM f`
 - `FreeM.liftM_unique`: Proof of the universal property
 
 For elimination and interpretation theory, see `Free/Fold.lean`.
+For polynomial effect signatures with explicit operation shapes and positions, see
+`Cslib.Foundations.Data.PFunctor.Free`.
 
 See the Haskell [freer-simple](https://hackage.haskell.org/package/freer-simple) library for the
 Haskell implementation that inspired this approach.

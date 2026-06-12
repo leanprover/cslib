@@ -18,16 +18,14 @@ weak.linter.unicodeLinter = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "d90090f647cae4f4ad4da99c0ac8bab2ca8c34ab"
+rev = "8589236b8b8cc82492e3306df39c0fb308e0523c"
 
 [[lean_lib]]
 name = "Cslib"
-globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = ["CslibTests.+"]
-moreLeanArgs = ["-Dweak.linter.style.header=false"]
+leanOptions = {weak.linter.style.header = false}
 
 [[lean_exe]]
 name = "checkInitImports"
