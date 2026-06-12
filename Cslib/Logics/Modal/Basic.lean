@@ -161,9 +161,9 @@ instance : HasInferenceSystem (Judgement World Atom) := ⟨Satisfies.Bundled⟩
 
 open scoped InferenceSystem Proposition
 
-@[scoped grind =_]
+@[scoped grind =]
 theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom} :
-  Satisfies m w φ = ⇓Modal[m,w ⊨ φ] := rfl
+  ⇓Modal[m,w ⊨ φ] = Satisfies m w φ := rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
@@ -180,20 +180,7 @@ theorem Satisfies.impl_iff_impl {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) :=
   Iff.rfl
 
-/-- Characterisation of the `↔` connective.
-
-Bi-implication is defined in terms of the more primitive connectives given in `Proposition`.
-This result proves that the definition is correct. -/
-@[scoped grind =]
-theorem Satisfies.iff_iff_iff {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
-  simp only [Proposition.iff]
-  grind [= derivation_def]
-
-/-- Characterisation of the `□` modality.
-
-Necessity is defined in terms of the more primitive connectives given in `Proposition`.
-This result proves that the definition is correct. -/
+/-- Characterisation of the `□` modality. -/
 @[scoped grind =]
 theorem Satisfies.box_iff_forall {m : Model World Atom} :
     ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] :=
