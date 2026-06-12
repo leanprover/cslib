@@ -23,9 +23,14 @@
           "path": "specs/165_syntactic_sugar_survey_and_refactor/plans/01_syntactic-sugar-refactor.md",
           "type": "plan",
           "summary": "9-phase plan: syntactic sugar refactor across Propositional, Modal, Temporal (~2,600 replacements, ~113 files)"
+        },
+        {
+          "path": "specs/165_syntactic_sugar_survey_and_refactor/summaries/01_syntactic-sugar-refactor-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: all 9 phases complete, ~115 Lean files refactored, full CI passes"
         }
       ],
-      "completion_summary": "Replaced ~650+ raw constructor calls with scoped notation across Propositional (~15 files), Modal (~8 files), and Temporal (~28 files) logic modules. Added missing PL biconditional notation. All phases 1-9 complete. lake test passes (8976 jobs)."
+      "completion_summary": "Added missing PL \u2194 notation and replaced raw constructors (.imp, .bot, .neg, .and, .or, .box, .diamond, temporal operators) with scoped notation across ~115 Lean files in Propositional/, Modal/, and Temporal/. Full CI passes: lake build, lake test, checkInitImports, lint-style."
     },
     {
       "project_number": 164,
