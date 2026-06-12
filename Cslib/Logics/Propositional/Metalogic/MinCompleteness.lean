@@ -69,7 +69,7 @@ theorem minCanonicalVal_upward_closed
 
 /-- The canonical `bot_forces`: `⊥` is forced at world `S` iff `⊥ ∈ S`. -/
 def minBotForces (w : MinCanonicalWorld Atom) : Prop :=
-  Proposition.bot ∈ w.val
+  ⊥ ∈ w.val
 
 /-- `bot_forces` is upward-closed: if `⊥ ∈ S` and `S ⊆ T`, then `⊥ ∈ T`. -/
 theorem minBotForces_upward_closed
@@ -104,7 +104,7 @@ theorem min_truth_lemma
       exact hψT ((min_truth_lemma T ψ).mp hf_ψ)
     · -- Backward: (φ → ψ) ∈ S.val → IForces S (φ → ψ)
       intro h_mem T hle hf_φ
-      have h_imp_T : φ.imp ψ ∈ T.val := hle h_mem
+      have h_imp_T : (φ → ψ) ∈ T.val := hle h_mem
       have h_φ_T : φ ∈ T.val := (min_truth_lemma T φ).mp hf_φ
       have h_ψ_T : ψ ∈ T.val := min_theory_imp_property T.property h_imp_T h_φ_T
       exact (min_truth_lemma T ψ).mpr h_ψ_T

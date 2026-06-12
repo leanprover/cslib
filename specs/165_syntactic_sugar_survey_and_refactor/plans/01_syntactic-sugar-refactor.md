@@ -1,7 +1,7 @@
 # Implementation Plan: Syntactic Sugar Survey and Refactor
 
 - **Task**: 165 - Syntactic sugar survey and refactor
-- **Status**: [NOT STARTED]
+- **Status**: [IN PROGRESS]
 - **Effort**: 11 hours
 - **Dependencies**: None (can proceed on current branch; coordinate PL fixes with PR #633 if desired)
 - **Research Inputs**: specs/165_syntactic_sugar_survey_and_refactor/reports/01_team-research.md
@@ -81,7 +81,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Add Missing PL Biconditional Notation [NOT STARTED]
+### Phase 1: Add Missing PL Biconditional Notation [COMPLETED]
 
 **Goal**: Add scoped `↔` infix notation for `Proposition.iff` in PL `Defs.lean`, aligning PL with Modal and Temporal which already have it.
 
@@ -103,7 +103,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Refactor Propositional/Defs and ProofSystem [NOT STARTED]
+### Phase 2: Refactor Propositional/Defs and ProofSystem [COMPLETED]
 
 **Goal**: Replace raw constructors with notation in PL definition and proof system files (highest readability impact, foundational files).
 
@@ -132,7 +132,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Refactor Propositional/Semantics and NaturalDeduction [NOT STARTED]
+### Phase 3: Refactor Propositional/Semantics and NaturalDeduction [COMPLETED]
 
 **Goal**: Replace raw constructors in PL semantics and natural deduction files.
 
@@ -165,7 +165,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Refactor Propositional/Metalogic and Full PL CI [NOT STARTED]
+### Phase 4: Refactor Propositional/Metalogic and Full PL CI [COMPLETED]
 
 **Goal**: Replace raw constructors in all PL metalogic files and run full CI for the Propositional directory.
 
