@@ -20,7 +20,7 @@ This is Sub-PR 1.1.1 extracted from the larger PR #633. It isolates the foundati
 
 **Zulip topic**: [https://leanprover.zulipchat.com/#narrow/channel/513188-CSLib/topic/Propositional.20Logic/with/602336739]
 
-**Literature reference**: Chagrov, A. & Zakharyaschev, M. (1997). *Modal Logic*. Oxford Logic Guides, vol. 35. Oxford University Press. Chapter 1 follows the classical convention, originating with Church (1956) and the Tarski-Bernays-Wajsberg system, of taking falsum and implication as primitive connectives with other connectives derived.
+**Literature reference**: Chagrov, A. & Zakharyaschev, M. (1997). *Modal Logic*. Oxford Logic Guides, vol. 35. Oxford University Press. Chapter 1 follows the convention of taking falsum and implication as primitive connectives with other connectives derived — a standard approach traceable to Heyting (1930) and Gentzen (1935), later codified in Church (1956) and the Tarski-Bernays-Wajsberg system.
 
 ## File-by-file change summary
 
@@ -30,14 +30,14 @@ This is Sub-PR 1.1.1 extracted from the larger PR #633. It isolates the foundati
  Cslib/Foundations/Logic/InferenceSystem.lean       |  4 +-
  Cslib/Logics/Propositional/Defs.lean               | 80 ++++++++++--------
  .../Propositional/NaturalDeduction/Basic.lean      | 98 +++++++---------------
- references.bib                                     | 11 +++
- 6 files changed, 188 insertions(+), 104 deletions(-)
+ references.bib                                     | 43 +++
+ 6 files changed, 220 insertions(+), 104 deletions(-)
 ```
 
 ### Cslib.lean (+1)
 - Adds `public import Cslib.Foundations.Logic.Connectives` in alphabetical position
 
-### Cslib/Foundations/Logic/Connectives.lean (+98, NEW)
+### Cslib/Foundations/Logic/Connectives.lean (+104, NEW)
 - New file defining typeclasses for derived logical connectives
 - `HasNeg`: negation typeclass (neg := imp a bot)
 - `HasConj`: conjunction typeclass
@@ -45,12 +45,13 @@ This is Sub-PR 1.1.1 extracted from the larger PR #633. It isolates the foundati
 - `HasTop`: verum typeclass (top := neg bot)
 - `HasBiimpl`: biconditional typeclass
 - Provides `Notation` instances for standard logical symbols
+- References: Church1956, Heyting1930, Gentzen1935, ChagrovZakharyaschev1997
 
 ### Cslib/Foundations/Logic/InferenceSystem.lean (+2, -2)
 - Changes `public import Cslib.Init` to `import Cslib.Init` (visibility adjustment)
 - Adds docstring `/-! # Inference System Typeclass -/` replacing empty `/-! -/`
 
-### Cslib/Logics/Propositional/Defs.lean (+44, -36)
+### Cslib/Logics/Propositional/Defs.lean (+48, -36)
 - Replaces `and`/`or`/`impl` constructors with `bot`/`imp` primitives
 - Adds `public import Cslib.Foundations.Logic.Connectives`
 - Derives connectives (`neg`, `and`, `or`, `top`, `biimpl`) via Connectives typeclasses
@@ -62,9 +63,10 @@ This is Sub-PR 1.1.1 extracted from the larger PR #633. It isolates the foundati
 - Simplifies inference rules from 10 to 5 (modus ponens, explosion, deduction theorem, conjunction intro/elim, necessitation)
 - Removes primitive rules for disjunction and adds them as derivable
 - Updates proof structure to use `bot`/`imp` representation
+- Converts informal references to canonical CSLib citation format (Prawitz1965, TroelstraVanDalen1988, Gentzen1935)
 
-### references.bib (+11)
-- Adds `ChagrovZakharyaschev1997` BibTeX entry
+### references.bib (+43)
+- Adds `ChagrovZakharyaschev1997`, `Church1956`, `Gentzen1935`, `Heyting1930` BibTeX entries
 
 ## AI Disclosure
 

@@ -96,12 +96,13 @@ noncomputable def theoremInMcs {M : Set (Formula Atom)} {phi : Formula Atom}
 
 theorem mcs_mp_axiom
     {Ω : Set (Formula Atom)} (h_mcs : Temporal.SetMaximalConsistent Ω)
-    {φ ψ : Formula Atom} (h_mem : φ ∈ Ω) (h_ax : Axiom (φ.imp ψ)) : ψ ∈ Ω := by
+    {φ ψ : Formula Atom} (h_mem : φ ∈ Ω) (h_ax : Axiom (φ.imp ψ))
+    (h_fc : h_ax.minFrameClass ≤ .Base := by trivial) : ψ ∈ Ω := by
   apply temporal_closed_under_derivation h_mcs (L := [φ]) (fun x hx => by
     simp [List.mem_cons] at hx; exact hx ▸ h_mem)
   unfold temporalDerivationSystem Temporal.Deriv
   exact ⟨.modus_ponens [φ] φ ψ
-    (.weakening [] [φ] (φ.imp ψ) (.axiom [] _ h_ax trivial) (fun _ h => nomatch h))
+    (.weakening [] [φ] (φ.imp ψ) (.axiom [] _ h_ax h_fc) (fun _ h => nomatch h))
     (.assumption [φ] φ (List.mem_cons.mpr (Or.inl rfl)))⟩
 
 theorem mcs_bot_not_mem

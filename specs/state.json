@@ -4,13 +4,13 @@
     {
       "project_number": 137,
       "project_name": "refactor_modal_directory_structure",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).",
       "created": "2026-06-11T23:48:36Z",
-      "last_updated": "2026-06-12T00:52:35Z",
-      "session_id": "sess_1781225320_b0c69a",
+      "last_updated": "2026-06-12T01:09:26Z",
+      "session_id": "sess_1781225690_3f42cf",
       "researched": "2026-06-11T23:56:48Z",
       "artifacts": [
         {
@@ -27,8 +27,14 @@
           "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
           "type": "plan",
           "summary": "Revised plan (v2): marks phases 1-4 COMPLETED, replaces blocked phases 5-6 with fork-native LogicalEquivalence.lean implementation and CI verification"
+        },
+        {
+          "path": "specs/137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md",
+          "type": "summary",
+          "summary": "Full implementation summary covering all 6 phases of Modal directory refactor"
         }
-      ]
+      ],
+      "completion_summary": "Refactored Modal/ directory: split Instances.lean into 15 per-system files, moved 30 Metalogic files into Systems/ subdirectories, wrote LogicalEquivalence.lean from scratch with Context inductive and congruence theorem. Full CI passes."
     },
     {
       "project_number": 136,

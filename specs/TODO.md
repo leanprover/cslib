@@ -11,7 +11,7 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,127,137,139 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 1 | 36,37,38,60,61,127,139 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
 | 2 | 39,40,62,140 | 36,37,61,139 | Temporal Logic, Submit PRs |
 | 3 | 41,63,141 | 38,39,40,62,140 | Submit PRs, Foundations |
 | 4 | 64,128,129,142 | 63,141 | Submit PRs |
@@ -59,10 +59,6 @@ next_project_number: 145
             └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
         └─ 143 [NOT STARTED] — Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/P
           └─ 144 [NOT STARTED] — Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278),
-
-### Modal Logic
-
-137 [PLANNED] — Refactor Modal/ directory structure for the modal cube. Systemati
 
 ### Foundations
 
@@ -144,12 +140,14 @@ next_project_number: 145
 ---
 
 ### 137. Refactor modal directory structure
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
 - **Research_report**: [137_refactor_modal_directory_structure/reports/01_directory-structure-research.md]
-- **Summary**: [137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md]
+- **Summary**:
+  - [137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md]
+  - [137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md]
 - **Plan**: [137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md]
 
 **Description**: Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).

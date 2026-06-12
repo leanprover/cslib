@@ -97,7 +97,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: FC-Parameterized MCS Infrastructure [IN PROGRESS]
+### Phase 2: FC-Parameterized MCS Infrastructure [COMPLETED]
 
 **Goal**: Create FC-parameterized derivability, consistency, MCS, and Lindenbaum infrastructure mirroring the Base versions but parameterized by `fc : FrameClass`.
 
@@ -126,7 +126,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Dense Soundness [NOT STARTED]
+### Phase 3: Dense Soundness [COMPLETED]
 
 **Goal**: Prove that both dense axioms are semantically valid on `DenselyOrdered` frames, and build a unified `axiom_sound_dense` theorem.
 
@@ -149,7 +149,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: DenselyOrdered Instance for Chronicle Subtype [NOT STARTED]
+### Phase 4: DenselyOrdered Instance for Chronicle Subtype [IN PROGRESS]
 
 **Goal**: Prove that when the starting MCS `A` is a Dense-MCS, the chronicle subtype `{x : Rat // x in limitDom}` is `DenselyOrdered`.
 

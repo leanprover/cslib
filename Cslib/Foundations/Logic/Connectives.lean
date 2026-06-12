@@ -25,6 +25,13 @@ The hierarchy follows the Foundation pattern (FormalizedFormalLogic/Foundation):
 
 Each concrete formula type duplicates its constructors (Lean 4 cannot extend inductives)
 and registers as an instance of the appropriate bundled class.
+
+## References
+
+* [A. Church, *Introduction to Mathematical Logic*][Church1956]
+* [A. Heyting, *Die formalen Regeln der intuitionistischen Logik*][Heyting1930]
+* [G. Gentzen, *Untersuchungen über das logische Schließen*][Gentzen1935]
+* [A. Chagrov, M. Zakharyaschev, *Modal Logic*][ChagrovZakharyaschev1997], Chapter 1
 -/
 
 @[expose] public section
