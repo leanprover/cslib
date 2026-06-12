@@ -1,17 +1,34 @@
 {
-  "status": "researched",
-  "summary": "Research complete for Sub-PR 1.1.1. All 4 Lean files exist on local main and type-check. Upstream has Defs.lean with old and/or/impl constructors and NaturalDeduction/Basic.lean with 10 rules; local main has refactored bot/imp constructors and 5 rules. ChagrovZakharyaschev1997 exists in local references.bib but not upstream. Total diff estimate is ~292 lines across 6 files, well under 500-line limit. No downstream breakage risk since dependent files do not exist upstream. Implementation approach is straightforward file extraction from local main to a new branch off upstream/main.",
+  "status": "planned",
+  "summary": "Created 3-phase implementation plan for Sub-PR 1.1.1 (Proposition type to Lukasiewicz convention). Phase 1: branch creation and file extraction from local main (30 min). Phase 2: full CI verification pipeline (40 min). Phase 3: PR submission with proper metadata (20 min). Total effort: 1.5 hours, ~292 diff lines across 6 files.",
   "artifacts": [
     {
-      "path": "specs/138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md",
-      "type": "report",
-      "summary": "Research report for Sub-PR 1.1.1 proposition refactor to Lukasiewicz convention"
+      "type": "plan",
+      "path": "specs/138_subpr_1_1_1_proposition_refactor/plans/01_proposition-refactor.md",
+      "summary": "Implementation plan for Sub-PR 1.1.1: branch creation, file extraction, CI verification, and PR submission"
     }
   ],
-  "session_id": "sess_1781222669_77774c",
+  "next_steps": "Run /implement 138 to execute the plan",
   "metadata": {
-    "agent_type": "lean-research-agent",
+    "session_id": "sess_1781223563_834cbf",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
-  }
+    "delegation_path": ["orchestrator", "plan", "planner-agent"]
+  },
+  "plan_metadata": {
+    "phases": 3,
+    "total_effort_hours": 1.5,
+    "complexity": "simple",
+    "research_integrated": true,
+    "plan_version": 1,
+    "dependency_waves": [[1], [2], [3]],
+    "reports_integrated": [
+      {
+        "path": "reports/01_proposition-refactor.md",
+        "integrated_in_plan_version": 1,
+        "integrated_date": "2026-06-11"
+      }
+    ]
+  },
+  "memory_candidates": []
 }

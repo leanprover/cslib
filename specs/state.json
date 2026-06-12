@@ -4,13 +4,13 @@
     {
       "project_number": 137,
       "project_name": "refactor_modal_directory_structure",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).",
       "created": "2026-06-11T23:48:36Z",
-      "last_updated": "2026-06-12T00:10:04Z",
-      "session_id": "sess_1781222732_dd2465",
+      "last_updated": "2026-06-12T00:20:20Z",
+      "session_id": "sess_1781223598_10ead8",
       "researched": "2026-06-11T23:56:48Z",
       "artifacts": [
         {
@@ -439,22 +439,52 @@
     {
       "project_number": 138,
       "project_name": "subpr_1_1_1_proposition_refactor",
-      "status": "researched",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-12T00:15:00Z",
-      "last_updated": "2026-06-12T00:10:52Z",
+      "last_updated": "2026-06-12T00:22:42Z",
       "description": "Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.",
-      "session_id": "sess_1781222669_77774c",
+      "session_id": "sess_1781223563_834cbf",
       "researched": "2026-06-12T00:10:52Z",
       "artifacts": [
         {
           "path": "specs/138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md",
           "type": "report",
           "summary": "Research report for Sub-PR 1.1.1 proposition refactor to Lukasiewicz convention"
+        },
+        {
+          "path": "specs/138_subpr_1_1_1_proposition_refactor/plans/01_proposition-refactor.md",
+          "type": "plan",
+          "summary": "Implementation plan for Sub-PR 1.1.1: branch creation, file extraction, CI verification, and PR submission"
         }
-      ]
+      ],
+      "plan_metadata": {
+        "phases": 3,
+        "total_effort_hours": 1.5,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_proposition-refactor.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-06-11"
+          }
+        ]
+      }
     },
     {
       "project_number": 139,
