@@ -4,7 +4,7 @@
     {
       "project_number": 159,
       "project_name": "subpr_3_1_temporal_formula",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "cslib",
       "topic": "Submit PRs",
       "dependencies": [
@@ -12,10 +12,16 @@
       ],
       "description": "Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean (549 lines) defining the temporal logic Formula inductive with primitives {atom, bot, imp, untl, snce}, all derived connectives (neg, top, or, and, iff, allFuture/G, someFuture/F, allPast/H, somePast/P), the swapTemporal involution, Encodable/Denumerable instances, and connective typeclass registrations (HasBot, HasImp, HasUntil, HasSince, TemporalConnectives). Gateway PR for all temporal logic. ~549 diff lines. External dependency: Cslib.Foundations.Logic.Connectives (PR1 sub-PR 1.1.1, task 138).",
       "created": "2026-06-12T06:33:54Z",
-      "last_updated": "2026-06-12T06:33:54Z",
-      "session_id": "sess_1781245722_780d58",
+      "last_updated": "2026-06-12T09:14:30Z",
+      "session_id": "sess_1781252799_3ed79e",
       "next_artifact_number": 1,
-      "artifacts": []
+      "artifacts": [
+        {
+          "path": "specs/159_subpr_3_1_temporal_formula/plans/01_temporal-formula-plan.md",
+          "type": "plan",
+          "summary": "3-phase implementation plan for temporal Formula.lean PR submission"
+        }
+      ]
     },
     {
       "project_number": 160,

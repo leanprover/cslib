@@ -78,7 +78,7 @@ next_project_number: 164
   └─ 148 [NOT STARTED] — Sub-PR 2.4: Maximal consistent sets + generic soundness framework
     └─ 149 [NOT STARTED] — Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Comple
       └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan (see above)
-159 [NOT STARTED] — Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean
+159 [PLANNED] — Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean
   └─ 160 [NOT STARTED] — Sub-PR 3.2: Temporal syntax utilities. Adds Context.lean (131 lin
     └─ 161 [NOT STARTED] — Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lea
       └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean  (see above)
@@ -131,10 +131,11 @@ next_project_number: 164
 ---
 
 ### 159. Subpr 3 1 temporal formula
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: cslib
 - **Topic**: Submit PRs
 - **Dependencies**: Task 138
+- **Plan**: [159_subpr_3_1_temporal_formula/plans/01_temporal-formula-plan.md]
 
 **Description**: Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean (549 lines) defining the temporal logic Formula inductive with primitives {atom, bot, imp, untl, snce}, all derived connectives (neg, top, or, and, iff, allFuture/G, someFuture/F, allPast/H, somePast/P), the swapTemporal involution, Encodable/Denumerable instances, and connective typeclass registrations (HasBot, HasImp, HasUntil, HasSince, TemporalConnectives). Gateway PR for all temporal logic. ~549 diff lines. External dependency: Cslib.Foundations.Logic.Connectives (PR1 sub-PR 1.1.1, task 138).
 

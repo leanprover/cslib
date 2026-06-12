@@ -1,0 +1,36 @@
+{
+  "status": "implemented",
+  "started_at": "2026-06-12T00:00:00Z",
+  "artifacts": [
+    {
+      "path": "specs/159_subpr_3_1_temporal_formula/summaries/01_temporal-formula-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for Sub-PR 3.1 temporal formula type"
+    },
+    {
+      "path": "Cslib/Logics/Temporal/Syntax/Formula.lean",
+      "type": "lean_file",
+      "summary": "Temporal logic Formula inductive type (549 lines, on pr3/temporal-formula branch)"
+    }
+  ],
+  "partial_progress": null,
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true,
+    "ci_pipeline_passed": true
+  },
+  "metadata": {
+    "session_id": "sess_1781252799_3ed79e",
+    "agent_type": "cslib-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-cslib-implementation"],
+    "compliance_check": "passed",
+    "branch": "pr3/temporal-formula",
+    "base_branch": "pr1/foundations-logic",
+    "pr_submitted": false,
+    "pr_submission_skipped_reason": "User explicitly asked to prepare but not submit"
+  }
+}

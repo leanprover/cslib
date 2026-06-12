@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Branch pr3/temporal-formula created from pr1/foundations-logic. Formula.lean (549 lines, 0 sorrys) added to Cslib/Logics/Temporal/Syntax/. Barrel import updated. All CI checks passed (build, checkInitImports, lint, lint-style, shake, mk_all). Branch pushed to origin (benbrastmckie/cslib). PR was prepared but NOT submitted per user instruction.",
+  "artifacts": [
+    {
+      "path": "specs/159_subpr_3_1_temporal_formula/summaries/01_temporal-formula-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary covering branch creation, CI verification results, and next steps for PR submission"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "submit_pr",
+  "phases_completed": 2,
+  "phases_total": 3
+}
