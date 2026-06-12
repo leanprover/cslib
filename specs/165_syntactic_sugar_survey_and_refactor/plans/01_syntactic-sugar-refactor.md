@@ -235,7 +235,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: Refactor Modal/ProofSystem Instances [NOT STARTED]
+### Phase 6: Refactor Modal/ProofSystem Instances [COMPLETED]
 
 **Goal**: Replace raw constructors in the 15 ProofSystem/Instances files -- the highest-value Modal targets where axiom schemas become dramatically more readable (e.g., `KAxiom (Proposition.imp (Proposition.box (Proposition.imp φ ψ)) (Proposition.imp (Proposition.box φ) (Proposition.box ψ)))` becomes `KAxiom (□(φ → ψ) → □φ → □ψ)`).
 
