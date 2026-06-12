@@ -1,5 +1,5 @@
 ---
-next_project_number: 164
+next_project_number: 165
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 164
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,62,127,139,146,147,160 | -- | Bimodal Porting, Submit PRs |
+| 1 | 36,37,62,127,139,146,147,160,164 | -- | Bimodal Porting, Submit PRs |
 | 2 | 39,40,63,140,148,161 | 36,37,62,139,147,160 | Temporal Logic, Submit PRs |
 | 3 | 41,64,141,149,162 | 39,40,63,140,148,161 | Submit PRs, Foundations |
 | 4 | 128,129,142,150 | 141,146,149 | Submit PRs |
@@ -82,12 +82,24 @@ next_project_number: 164
   └─ 161 [NOT STARTED] — Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lea
     └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean  (see above)
   └─ 163 [NOT STARTED] — Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean  (see above)
+164 [RESEARCHED] — Fix 7 PR quality issues in Formula.lean (pr3/temporal-formula bra
 
 ### Foundations
 
 41 [NOT STARTED] — Abstract shared completeness infrastructure between temporal and 
 
 ## Tasks
+
+### 164. Fix formula pr quality
+- **Status**: [RESEARCHED]
+- **Task Type**: cslib
+- **Topic**: Submit PRs
+- **Dependencies**: Task 159
+- **Research**: [164_fix_formula_pr_quality/reports/01_formula-pr-review.md]
+
+**Description**: Fix 7 PR quality issues in Formula.lean (pr3/temporal-formula branch) identified during review: (1) HIGH: doc/code argument order mismatch for U/S derived operators — docs say ⊤ U φ but code computes φ U ⊤, will cause semantic bugs; (2) MEDIUM: missing ## References section (both Propositional and Modal peer files cite foundational works); (3) LOW-MEDIUM: missing iff derived connective listed in task 159 description; (4) MEDIUM: bare-letter notation F/G/P/H risks variable shadowing (peer files use Unicode); (5) LOW: missing Bot/Top Mathlib instances (Propositional/Defs.lean has them); (6) LOW: second half of file outside @[expose] public section; (7) COSMETIC: redundant open before namespace. All changes to single file on pr3/temporal-formula branch.
+
+---
 
 ### 163. Subpr 3 5 semantics embedding
 - **Status**: [NOT STARTED]
