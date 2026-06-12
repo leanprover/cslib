@@ -21,10 +21,18 @@ The hierarchy follows the Foundation pattern (FormalizedFormalLogic/Foundation):
 - **Atomic classes**: `HasBot`, `HasImp`, `HasBox`, `HasUntil`, `HasSince`
 - **Bundled classes**: `PropositionalConnectives`, `ModalConnectives`,
   `TemporalConnectives`, `BimodalConnectives`
-- **Derived connectives**: `LukasiewiczDerived` for `neg`, `top`, `or`, `and` from `bot`/`imp`
+- **Derived connectives**: `ImpBotDerived` for `neg`, `top`, `or`, `and` from `bot`/`imp`
 
 Each concrete formula type duplicates its constructors (Lean 4 cannot extend inductives)
 and registers as an instance of the appropriate bundled class.
+
+Falsum and implication are taken as the only propositional primitives because `{imp, bot}`
+is functionally complete for classical logic: every other connective is definable, so it can
+be a derived `abbrev` rather than a constructor. This keeps the inductive formula types as
+small as possible -- minimising the case count in every recursion and induction over formulas
+-- and lets the derived connectives unfold to `imp`/`bot` definitionally, so reasoning about
+`¬`, `∧`, `∨`, and `↔` needs no separate axioms or bridging lemmas.
+
 
 ## References
 
@@ -77,11 +85,13 @@ class TemporalConnectives (F : Type*) extends PropositionalConnectives F, HasUnt
     rather than extending `TemporalConnectives`, to avoid a typeclass diamond. -/
 class BimodalConnectives (F : Type*) extends ModalConnectives F, HasUntil F, HasSince F
 
-/-- Lukasiewicz-style derived connectives from `bot` and `imp`.
+/-- Derived connectives definable from `bot` and `imp` alone.
 
-Provides `neg`, `top`, `or`, `and` as abbreviations following the standard Lukasiewicz
-encoding: negation is implication to falsum, verum is `bot → bot`, disjunction is
-`¬φ → ψ`, and conjunction is `¬(φ → ¬ψ)`.
+Provides `neg`, `top`, `or`, `and` as abbreviations: negation is implication to falsum
+(`neg φ := imp φ bot`), verum is `imp bot bot`, disjunction is `imp (neg φ) ψ`, and conjunction
+is `neg (imp φ (neg ψ))`. These are forced once `{imp, bot}` is fixed as the primitive basis --
+each is the truth-functional definition of the connective in terms of implication and falsum --
+so the choice carries no information beyond the basis itself.
 
 **Status**: This class is intentionally uninstantiated. Each concrete formula type
 (PL.Proposition, Modal.Proposition, Temporal.Formula, Bimodal.Formula) defines its
@@ -91,7 +101,7 @@ resolution overhead at every use site with no benefit, since the `abbrev` defini
 already compute. The class is retained as a specification artifact and for potential
 future use in polymorphic proof-system abstractions that need to quantify over derived
 connectives generically. -/
-class LukasiewiczDerived (F : Type*) [HasBot F] [HasImp F] where
+class ImpBotDerived (F : Type*) [HasBot F] [HasImp F] where
   /-- Negation: `neg φ := imp φ bot` -/
   neg : F → F := fun φ => HasImp.imp φ HasBot.bot
   /-- Top/verum: `top := imp bot bot` -/

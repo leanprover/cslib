@@ -17,8 +17,9 @@ public import Mathlib.Order.TypeTags
 ## Main definitions
 
 - `Proposition` : the type of propositions over a given type of atom. Primitives are `atom`,
-  `bot` (falsum), and `imp` (implication). Conjunction, disjunction, negation, and verum are
-  derived connectives following the Lukasiewicz convention.
+  `bot` (falsum), and `imp` (implication); since `{imp, bot}` is functionally complete for
+  classical logic, conjunction, disjunction, negation, and verum are derived connectives
+  (`abbrev`s) rather than constructors, keeping the inductive minimal.
 - `Theory` : set of `Proposition`.
 - `IsIntuitionistic` : a theory is intuitionistic if it contains the principle of explosion.
 - `IsClassical` : an intuitionistic theory is classical if it further contains double negation

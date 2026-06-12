@@ -45,7 +45,7 @@ abbreviates a derivation of `A` in the empty context: `T⇓(∅ ⊢ A)`.
 The primitive inference rules are: axiom (from theory), assumption (from context),
 implication introduction and elimination, and ex falso quodlibet (bottom elimination).
 Conjunction and disjunction rules are derivable from these primitives together with
-the Lukasiewicz definitions of `∧` and `∨` in terms of `→` and `⊥`.
+the definitions of `∧` and `∨` in terms of `→` and `⊥`, so they need not be postulated.
 
 ## References
 
