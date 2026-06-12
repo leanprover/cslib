@@ -11,7 +11,13 @@ public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 
-/-! # Relations
+/-! # Relations: Confluence and Termination
+
+This module proves some properties regarding confluence and termination that are used for both
+lambda calculi and combinatory logic. Some notable theorems:
+
+* `Diamond.toConfluent`: the diamond property implies confluence
+* `LocallyConfluent.Terminating_toConfluent`: Newman's lemma
 
 ## References
 
