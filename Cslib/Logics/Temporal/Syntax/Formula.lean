@@ -32,10 +32,8 @@ the first argument is the **event** (holds at the witness point) and the second 
 
 ## References
 
-- Kamp, H. (1968). *Tense Logic and the Theory of Linear Order*. PhD thesis, UCLA.
-- Gabbay, D., Pnueli, A., Shelah, S., and Stavi, J. (1980). On the temporal analysis of fairness.
-  In *Proceedings of the 7th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages*,
-  pp. 163–173. ACM.
+* [H. Kamp, *Tense Logic and the Theory of Linear Order*][Kamp1968]
+* [D. Gabbay, A. Pnueli, S. Shelah, J. Stavi, *On the Temporal Analysis of Fairness*][GabbayPnueliShelahStavi1980]
 -/
 
 @[expose] public section
