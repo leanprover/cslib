@@ -1,17 +1,38 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-06-11T12:00:00Z",
+  "status": "partial",
   "session_id": "sess_1781223598_10ead8",
   "task_number": 137,
-  "artifacts": [],
+  "requires_user_review": true,
+  "blocked_phase": 5,
+  "review_reason": "Phases 1-4 complete (core refactoring done, build passes). Phase 5 blocked: upstream LogicalEquivalence.lean incompatible with fork's Proposition type (upstream uses primitive `not` constructor, fork uses derived `neg` abbreviation). Phase 6 blocked (depends on 5).",
+  "artifacts": [
+    {
+      "path": "specs/137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary for Modal directory refactoring (4/6 phases completed)"
+    }
+  ],
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 0,
+    "build_passed": true
+  },
   "partial_progress": {
-    "stage": "phase_1",
-    "details": "Starting Phase 1: Split Instances.lean into per-system files"
+    "stage": "phase_5_blocked",
+    "details": "Phases 1-4 completed successfully. Phase 5 blocked due to upstream/fork Proposition type divergence. Phase 6 blocked (depends on 5).",
+    "phases_completed": 4,
+    "phases_total": 6
   },
   "metadata": {
     "session_id": "sess_1781223598_10ead8",
     "agent_type": "lean-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"]
+    "delegation_path": ["orchestrator", "implement", "skill-lean-implementation"],
+    "compliance_check": "passed"
+  },
+  "completion_data": {
+    "completion_summary": "Refactored Modal/ directory: split Instances.lean (1531 lines) into 15 per-system files, reorganized 30 Metalogic files into Systems/ subdirectories. Full build passes. Phases 5-6 blocked (upstream LogicalEquivalence.lean incompatible with fork's Proposition type)."
   }
 }
