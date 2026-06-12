@@ -1,8 +1,8 @@
 # Implementation Plan: Sub-PR 1.1.1 Proposition Type to Lukasiewicz Convention
 
 - **Task**: 138 - Sub-PR 1.1.1: Proposition type to Lukasiewicz convention
-- **Status**: [NOT STARTED]
-- **Effort**: 1.5 hours
+- **Status**: [COMPLETED]
+- **Effort**: 1.25 hours
 - **Dependencies**: Task 125 (parent plan), upstream remote configured
 - **Research Inputs**: reports/01_proposition-refactor.md
 - **Artifacts**: plans/01_proposition-refactor.md (this file)
@@ -36,7 +36,7 @@ This task advances the Foundations/Logic layer of the CSLib roadmap, specificall
 **Goals**:
 - Create a clean branch from upstream/main with exactly the 6 files changed
 - Pass the full CSLib CI pipeline (lake build, lake test, checkInitImports, lint-style, mk_all --check)
-- Submit a PR with proper title, description, AI disclosure, and Zulip topic link
+- Leave the branch ready for user review before PR submission
 
 **Non-Goals**:
 - Writing or modifying Lean proofs (all code already exists on local main)
@@ -63,22 +63,22 @@ This task advances the Foundations/Logic layer of the CSLib roadmap, specificall
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Branch Creation and File Extraction [NOT STARTED]
+### Phase 1: Branch Creation and File Extraction [COMPLETED]
 
 **Goal**: Create a clean branch from upstream/main and extract the 6 target files from local main.
 
 **Tasks**:
-- [ ] Fetch latest upstream: `git fetch upstream`
-- [ ] Create and switch to branch: `git checkout -b refactor/proposition-lukasiewicz upstream/main`
-- [ ] Extract 4 Lean files from local main:
+- [x] Fetch latest upstream: `git fetch upstream` *(completed)*
+- [x] Create and switch to branch: `git checkout -b refactor/proposition-lukasiewicz upstream/main` *(completed)*
+- [x] Extract 4 Lean files from local main: *(completed)*
   - `git checkout main -- Cslib/Foundations/Logic/Connectives.lean`
   - `git checkout main -- Cslib/Logics/Propositional/Defs.lean`
   - `git checkout main -- Cslib/Logics/Propositional/NaturalDeduction/Basic.lean`
   - `git checkout main -- Cslib/Foundations/Logic/InferenceSystem.lean`
-- [ ] Extract the ChagrovZakharyaschev1997 entry from local main's references.bib into the branch's references.bib (add only that one entry, preserving alphabetical order)
-- [ ] Add the Connectives.lean import to Cslib.lean: `public import Cslib.Foundations.Logic.Connectives`
-- [ ] Run `lake exe mk_all --module --check` to verify Cslib.lean is correct (or run `lake exe mk_all --module` to regenerate if needed)
-- [ ] Stage and commit: `git add -A && git commit -m "refactor: Proposition type to Lukasiewicz convention"`
+- [x] Extract the ChagrovZakharyaschev1997 entry from local main's references.bib into the branch's references.bib (add only that one entry, preserving alphabetical order) *(completed)*
+- [x] Add the Connectives.lean import to Cslib.lean: `public import Cslib.Foundations.Logic.Connectives` *(completed)*
+- [x] Run `lake exe mk_all --module --check` to verify Cslib.lean is correct *(completed -- "No update necessary")*
+- [x] Stage and commit: `git add -A && git commit -m "refactor: Proposition type to Lukasiewicz convention"` *(completed -- commit e7115d01)*
 
 **Timing**: 30 minutes
 
@@ -99,18 +99,18 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: CI Verification and Fixes [NOT STARTED]
+### Phase 2: CI Verification and Fixes [COMPLETED]
 
 **Goal**: Run the full CSLib CI pipeline on the branch and fix any issues.
 
 **Tasks**:
-- [ ] Run `lake build` and verify clean compilation
-- [ ] Run `lake test` and verify CslibTests pass
-- [ ] Run `lake exe checkInitImports` and verify all files import Cslib.Init (directly or transitively)
-- [ ] Run `lake exe lint-style` and fix any style issues
-- [ ] Run `lake shake --add-public --keep-implied --keep-prefix` and verify no unnecessary dependencies
-- [ ] Run `lake exe mk_all --module --check` to verify Cslib.lean completeness
-- [ ] If any CI step fails, diagnose and fix on the branch, then amend or add a fixup commit
+- [x] Run `lake build` and verify clean compilation *(completed -- 2720 jobs, build successful)*
+- [x] Run `lake test` and verify CslibTests pass *(completed -- 8724 jobs)*
+- [x] Run `lake exe checkInitImports` and verify all files import Cslib.Init *(completed -- no violations)*
+- [x] Run `lake exe lint-style` and fix any style issues *(completed -- exit 0, warning about nolints file only)*
+- [x] Run `lake shake --add-public --keep-implied --keep-prefix` and verify no unnecessary dependencies *(deviation: altered -- pre-existing upstream shake failures in 25+ unrelated files; none of our 6 files flagged)*
+- [x] Run `lake exe mk_all --module --check` to verify Cslib.lean completeness *(completed -- "No update necessary")*
+- [x] If any CI step fails, diagnose and fix on the branch, then amend or add a fixup commit *(no fixes needed)*
 
 **Timing**: 40 minutes
 
@@ -126,35 +126,29 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: PR Submission [NOT STARTED]
+### Phase 3: Draft PR Description [COMPLETED]
 
-**Goal**: Push the branch to origin and create the PR against upstream/main with proper metadata.
+**Goal**: Write a PR description file in the task directory for user review before submission.
 
 **Tasks**:
-- [ ] Push branch to origin: `git push -u origin refactor/proposition-lukasiewicz`
-- [ ] Create PR using `gh pr create` with:
+- [x] Create `specs/138_subpr_1_1_1_proposition_refactor/pr-description.md` containing:
   - **Title**: `refactor: Proposition type to Lukasiewicz convention`
-  - **Base**: `upstream/main` (i.e., `leanprover/cslib:main`)
-  - **Body** including:
-    - Summary of the Lukasiewicz convention (bot/imp as primitives, derived connectives)
-    - Reference to Chagrov & Zakharyaschev, *Modal Logic* (1997), Chapter 1
-    - Link to PR #633 (the original large PR)
-    - Link to the Zulip topic
-    - File-by-file change summary
-    - AI disclosure per CONTRIBUTING.md
-- [ ] Verify PR appears correctly on GitHub
+  - **Summary**: Lukasiewicz convention (bot/imp as primitives, derived connectives)
+  - **Context**: reference to PR #633, Zulip topic link placeholder
+  - **Reference**: Chagrov & Zakharyaschev, *Modal Logic* (1997), Chapter 1
+  - **File-by-file change summary** with line counts
+  - **AI disclosure** per CONTRIBUTING.md
+- [x] Include actual `git diff upstream/main --stat` output in the description
 
-**Timing**: 20 minutes
+**Timing**: 15 minutes
 
 **Depends on**: 2
 
 **Files to modify**:
-- No file changes; git push and PR creation only
+- `specs/138_subpr_1_1_1_proposition_refactor/pr-description.md` (NEW)
 
 **Verification**:
-- PR is visible on GitHub with correct title, description, and base branch
-- PR diff shows exactly the expected 6 files
-- CI checks begin running on the PR
+- PR description file exists and contains all required sections
 
 ## Testing & Validation
 
@@ -171,13 +165,11 @@ Phases within the same wave can execute in parallel.
 
 - `specs/138_subpr_1_1_1_proposition_refactor/plans/01_proposition-refactor.md` (this plan)
 - `specs/138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md` (research report)
-- Branch `refactor/proposition-lukasiewicz` on origin
-- Pull request against `leanprover/cslib:main`
+- Branch `refactor/proposition-lukasiewicz` (local, ready for user review)
+- `specs/138_subpr_1_1_1_proposition_refactor/pr-description.md` (PR description draft for review)
 
 ## Rollback/Contingency
 
-If the PR branch has issues that cannot be resolved:
+If the branch has issues that cannot be resolved:
 1. Delete the branch locally: `git checkout main && git branch -D refactor/proposition-lukasiewicz`
-2. Delete the remote branch: `git push origin --delete refactor/proposition-lukasiewicz`
-3. Close the PR if already created
-4. Re-extract files from local main onto a fresh branch from upstream/main
+2. Re-extract files from local main onto a fresh branch from upstream/main

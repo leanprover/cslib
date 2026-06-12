@@ -1,25 +1,15 @@
 {
-  "status": "partial",
-  "started_at": "2026-06-11T18:00:00Z",
-  "artifacts": [
-    {
-      "path": "specs/038_temporal_dense_completeness/reports/01_dense-completeness-research.md",
-      "type": "report",
-      "summary": "Dense temporal completeness research report"
-    },
-    {
-      "path": "specs/038_temporal_dense_completeness/.orchestrator-handoff.json",
-      "type": "handoff",
-      "summary": "Orchestrator handoff with status and next action"
-    }
-  ],
+  "status": "in_progress",
+  "started_at": "2026-06-11T00:00:00Z",
+  "artifacts": [],
   "partial_progress": {
-    "stage": "research_written",
-    "details": "Research report and handoff file written; ready for planning phase"
+    "stage": "initializing",
+    "details": "Planner agent started, parsing delegation context and loading research"
   },
   "metadata": {
-    "agent_type": "lean-research-agent",
+    "session_id": "sess_manual_plan_38",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "lean-research-agent"]
+    "delegation_path": ["orchestrator", "plan", "planner-agent"]
   }
 }

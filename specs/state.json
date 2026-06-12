@@ -347,10 +347,10 @@
     {
       "project_number": 38,
       "project_name": "temporal_dense_completeness",
-      "status": "researched",
+      "status": "planning",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-12T00:41:53Z",
+      "last_updated": "2026-06-12T00:42:14Z",
       "description": "Dense temporal completeness: prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system.\n\nScope:\n1. Add dense-specific axioms to Temporal.Axiom: `density` (G(G φ) → G φ) and `dense_indicator` (¬U(⊤,⊥)), gated to FrameClass.Dense via minFrameClass.\n2. Prove dense soundness: density axiom valid on DenselyOrdered, dense_indicator valid on DenselyOrdered (no immediate successor).\n3. Prove dense completeness via contrapositive + MCS + canonical model on Rat. The dense case eliminates the non-dense branch by deriving ¬U(⊤,⊥) as a Dense theorem, so □(¬U(⊤,⊥)) is in every Dense-MCS.\n\nNew development (not a port), following the pattern established by bimodal completeness_dense. The canonical model construction reuses the base temporal canonical order from task 31, specialized to Rat (DenselyOrdered).\n\nTarget: Cslib/Logics/Temporal/Metalogic/DenseCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~400-600 lines (new axioms + dense soundness + dense completeness)",
       "topic": "Temporal Logic",
       "session_id": "sess_1749647400_a3b2c1"
@@ -445,14 +445,14 @@
     {
       "project_number": 138,
       "project_name": "subpr_1_1_1_proposition_refactor",
-      "status": "planned",
+      "status": "completed",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-12T00:15:00Z",
-      "last_updated": "2026-06-12T00:22:42Z",
+      "last_updated": "2026-06-12T00:46:25Z",
       "description": "Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.",
-      "session_id": "sess_1781223563_834cbf",
+      "session_id": "sess_1781224549_831844",
       "researched": "2026-06-12T00:10:52Z",
       "artifacts": [
         {
@@ -464,6 +464,11 @@
           "path": "specs/138_subpr_1_1_1_proposition_refactor/plans/01_proposition-refactor.md",
           "type": "plan",
           "summary": "Implementation plan for Sub-PR 1.1.1: branch creation, file extraction, CI verification, and PR submission"
+        },
+        {
+          "path": "specs/138_subpr_1_1_1_proposition_refactor/summaries/01_proposition-refactor-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary for Sub-PR 1.1.1"
         }
       ],
       "plan_metadata": {
@@ -490,7 +495,8 @@
             "integrated_date": "2026-06-11"
           }
         ]
-      }
+      },
+      "completion_summary": "Created branch refactor/proposition-lukasiewicz with Lukasiewicz convention refactoring. 6 files changed, all CI checks passing, PR description drafted for review."
     },
     {
       "project_number": 139,

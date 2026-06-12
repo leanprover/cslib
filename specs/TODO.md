@@ -11,20 +11,19 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,137,138 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
-| 2 | 39,40,62,127,139 | 36,37,61,138 | Temporal Logic, Submit PRs |
-| 3 | 41,63,140 | 38,39,40,62,139 | Submit PRs, Foundations |
-| 4 | 64,141 | 63,140 | Submit PRs |
-| 5 | 128,129,142 | 141 | Submit PRs |
-| 6 | 126,143 | 142 | Submit PRs |
-| 7 | 130,133,144 | 126,127,143 | Submit PRs |
-| 8 | 131,132,134,135 | 127,128,130,133 | Submit PRs |
+| 1 | 36,37,38,60,61,127,137,139 | -- | Temporal Logic, Bimodal Porting, Submit PRs, ... |
+| 2 | 39,40,62,140 | 36,37,61,139 | Temporal Logic, Submit PRs |
+| 3 | 41,63,141 | 38,39,40,62,140 | Submit PRs, Foundations |
+| 4 | 64,128,129,142 | 63,141 | Submit PRs |
+| 5 | 126,143 | 142 | Submit PRs |
+| 6 | 130,133,144 | 126,127,143 | Submit PRs |
+| 7 | 131,132,134,135 | 127,128,130,133 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Temporal Logic
 
-38 [RESEARCHED] — Dense temporal completeness: prove that every formula valid on al
+38 [PLANNING] — Dense temporal completeness: prove that every formula valid on al
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
 
@@ -40,27 +39,26 @@ next_project_number: 145
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-138 [PLANNED] — Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introdu
-  └─ 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
-    └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
-      └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
-      └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models.
-    └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke  (see above)
-    └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models. (see above)
-  └─ 139 [NOT STARTED] — Sub-PR 1.1.2: Polymorphic axiom definitions. Adds Axioms.lean wit
-    └─ 140 [NOT STARTED] — Sub-PR 1.1.3: Hilbert proof system typeclass hierarchy. Adds Proo
-      └─ 141 [NOT STARTED] — Sub-PR 1.1.4: Propositional Hilbert instances and derivation tree
-        └─ 128 [NOT STARTED] — Sub-PR 1.4: ND derived connective rules (standalone). Adds derive
-          └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d
-        └─ 129 [NOT STARTED] — Sub-PR 1.5: Modal logical equivalence + Basic update. Adds Logica
-        └─ 142 [NOT STARTED] — Sub-PR 1.1.5: Core theorems and barrel file. Adds Theorems/Propos
-          └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
-            └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica (see above)
-            └─ 133 [NOT STARTED] — Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes Fro
-              └─ 134 [NOT STARTED] — Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived
-              └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
-          └─ 143 [NOT STARTED] — Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/P
-            └─ 144 [NOT STARTED] — Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278),
+127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
+  └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
+    └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
+    └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models.
+  └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke  (see above)
+  └─ 132 [NOT STARTED] — Sub-PR 1.8: Minimal soundness and completeness via Kripke models. (see above)
+139 [NOT STARTED] — Sub-PR 1.1.2: Polymorphic axiom definitions. Adds Axioms.lean wit
+  └─ 140 [NOT STARTED] — Sub-PR 1.1.3: Hilbert proof system typeclass hierarchy. Adds Proo
+    └─ 141 [NOT STARTED] — Sub-PR 1.1.4: Propositional Hilbert instances and derivation tree
+      └─ 128 [NOT STARTED] — Sub-PR 1.4: ND derived connective rules (standalone). Adds derive
+        └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d
+      └─ 129 [NOT STARTED] — Sub-PR 1.5: Modal logical equivalence + Basic update. Adds Logica
+      └─ 142 [NOT STARTED] — Sub-PR 1.1.5: Core theorems and barrel file. Adds Theorems/Propos
+        └─ 126 [NOT STARTED] — Sub-PR 1.2: Propositional axiom extensions and IntMin instances. 
+          └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica (see above)
+          └─ 133 [NOT STARTED] — Sub-PR 1.9: ND-Hilbert bridge parameterization. Parameterizes Fro
+            └─ 134 [NOT STARTED] — Sub-PR 1.10: Hilbert-style derived connective rules. Adds derived
+            └─ 135 [NOT STARTED] — Sub-PR 1.11: ND-Hilbert extensional equivalence. Proves Hilbert d (see above)
+        └─ 143 [NOT STARTED] — Sub-PR 1.1.6: Connective and combinator theorems. Adds Theorems/P
+          └─ 144 [NOT STARTED] — Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278),
 
 ### Modal Logic
 
@@ -133,12 +131,13 @@ next_project_number: 145
 ---
 
 ### 138. Subpr 1 1 1 proposition refactor
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
 - **Research**: [138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md]
 - **Plan**: [138_subpr_1_1_1_proposition_refactor/plans/01_proposition-refactor.md]
+- **Summary**: [138_subpr_1_1_1_proposition_refactor/summaries/01_proposition-refactor-summary.md]
 
 **Description**: Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.
 
@@ -409,7 +408,7 @@ Estimated scope: ~500-700 lines (new axioms + discrete soundness + discrete comp
 ---
 
 ### 38. Temporal dense completeness
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNING]
 - **Task Type**: lean4
 - **Topic**: Temporal Logic
 - **Dependencies**: None
