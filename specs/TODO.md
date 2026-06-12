@@ -11,10 +11,10 @@ next_project_number: 164
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,62,127,139,146,147,159 | -- | Bimodal Porting, Submit PRs |
-| 2 | 39,40,63,140,148,160 | 36,37,62,139,147,159 | Temporal Logic, Submit PRs |
-| 3 | 41,64,141,149,161 | 39,40,63,140,148,160 | Submit PRs, Foundations |
-| 4 | 128,129,142,150,162 | 140,141,146,149,161 | Submit PRs |
+| 1 | 36,37,62,127,139,146,147,160 | -- | Bimodal Porting, Submit PRs |
+| 2 | 39,40,63,140,148,161 | 36,37,62,139,147,160 | Temporal Logic, Submit PRs |
+| 3 | 41,64,141,149,162 | 39,40,63,140,148,161 | Submit PRs, Foundations |
+| 4 | 128,129,142,150 | 141,146,149 | Submit PRs |
 | 5 | 126,143,151,152,154,163 | 142,150,160 | Submit PRs |
 | 6 | 130,133,144,153,155,156 | 126,127,143,151,152,154 | Submit PRs |
 | 7 | 131,132,134,135,157 | 127,128,130,133,152,156 | Submit PRs |
@@ -78,11 +78,10 @@ next_project_number: 164
   └─ 148 [NOT STARTED] — Sub-PR 2.4: Maximal consistent sets + generic soundness framework
     └─ 149 [NOT STARTED] — Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Comple
       └─ 150 [NOT STARTED] — Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instan (see above)
-159 [PLANNED] — Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean
-  └─ 160 [NOT STARTED] — Sub-PR 3.2: Temporal syntax utilities. Adds Context.lean (131 lin
-    └─ 161 [NOT STARTED] — Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lea
-      └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean  (see above)
-    └─ 163 [NOT STARTED] — Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean  (see above)
+160 [NOT STARTED] — Sub-PR 3.2: Temporal syntax utilities. Adds Context.lean (131 lin
+  └─ 161 [NOT STARTED] — Sub-PR 3.3: Temporal axioms and derivation trees. Adds Axioms.lea
+    └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean  (see above)
+  └─ 163 [NOT STARTED] — Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean  (see above)
 
 ### Foundations
 
@@ -136,6 +135,7 @@ next_project_number: 164
 - **Topic**: Submit PRs
 - **Dependencies**: Task 138
 - **Plan**: [159_subpr_3_1_temporal_formula/plans/01_temporal-formula-plan.md]
+- **Summary**: [159_subpr_3_1_temporal_formula/summaries/01_temporal-formula-summary.md]
 
 **Description**: Sub-PR 3.1: Temporal formula type. Introduces Syntax/Formula.lean (549 lines) defining the temporal logic Formula inductive with primitives {atom, bot, imp, untl, snce}, all derived connectives (neg, top, or, and, iff, allFuture/G, someFuture/F, allPast/H, somePast/P), the swapTemporal involution, Encodable/Denumerable instances, and connective typeclass registrations (HasBot, HasImp, HasUntil, HasSince, TemporalConnectives). Gateway PR for all temporal logic. ~549 diff lines. External dependency: Cslib.Foundations.Logic.Connectives (PR1 sub-PR 1.1.1, task 138).
 
