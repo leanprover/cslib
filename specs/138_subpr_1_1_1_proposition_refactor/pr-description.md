@@ -20,7 +20,7 @@ This is Sub-PR 1.1.1 extracted from the larger PR #633. It isolates the foundati
 
 **Zulip topic**: [https://leanprover.zulipchat.com/#narrow/channel/513188-CSLib/topic/Propositional.20Logic/with/602336739]
 
-**Literature reference**: Chagrov, A. & Zakharyaschev, M. (1997). *Modal Logic*. Oxford Logic Guides, vol. 35. Oxford University Press. Chapter 1 establishes the standard convention of taking falsum and implication as primitive connectives with other connectives derived.
+**Literature reference**: Chagrov, A. & Zakharyaschev, M. (1997). *Modal Logic*. Oxford Logic Guides, vol. 35. Oxford University Press. Chapter 1 follows the classical convention, originating with Church (1956) and the Tarski-Bernays-Wajsberg system, of taking falsum and implication as primitive connectives with other connectives derived.
 
 ## File-by-file change summary
 

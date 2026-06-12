@@ -4,13 +4,13 @@
     {
       "project_number": 137,
       "project_name": "refactor_modal_directory_structure",
-      "status": "implementing",
+      "status": "planned",
       "task_type": "lean4",
       "topic": "Modal Logic",
       "description": "Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).",
       "created": "2026-06-11T23:48:36Z",
-      "last_updated": "2026-06-12T00:20:20Z",
-      "session_id": "sess_1781223598_10ead8",
+      "last_updated": "2026-06-12T00:52:35Z",
+      "session_id": "sess_1781225320_b0c69a",
       "researched": "2026-06-11T23:56:48Z",
       "artifacts": [
         {
@@ -19,14 +19,14 @@
           "summary": "Comprehensive analysis of Modal/ directory: 41 files (4 upstream, 37 fork-only), import dependency graph, Instances.lean splitting plan, and PR boundary validation"
         },
         {
-          "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
-          "type": "plan",
-          "summary": "6-phase implementation plan splitting Instances.lean into 15 per-system files, reorganizing Metalogic/ into Systems/ subdirectories, and restoring LogicalEquivalence.lean across two PRs"
-        },
-        {
           "path": "specs/137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md",
           "type": "summary",
           "summary": "Implementation summary for Modal directory refactoring (4/6 phases completed)"
+        },
+        {
+          "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
+          "type": "plan",
+          "summary": "Revised plan (v2): marks phases 1-4 COMPLETED, replaces blocked phases 5-6 with fork-native LogicalEquivalence.lean implementation and CI verification"
         }
       ]
     },
@@ -347,10 +347,10 @@
     {
       "project_number": 38,
       "project_name": "temporal_dense_completeness",
-      "status": "planning",
+      "status": "implementing",
       "task_type": "lean4",
       "created": "2026-06-08T00:00:00Z",
-      "last_updated": "2026-06-12T00:42:14Z",
+      "last_updated": "2026-06-12T00:48:59Z",
       "description": "Dense temporal completeness: prove that every formula valid on all dense serial linear orders is derivable in the Dense temporal proof system.\n\nScope:\n1. Add dense-specific axioms to Temporal.Axiom: `density` (G(G φ) → G φ) and `dense_indicator` (¬U(⊤,⊥)), gated to FrameClass.Dense via minFrameClass.\n2. Prove dense soundness: density axiom valid on DenselyOrdered, dense_indicator valid on DenselyOrdered (no immediate successor).\n3. Prove dense completeness via contrapositive + MCS + canonical model on Rat. The dense case eliminates the non-dense branch by deriving ¬U(⊤,⊥) as a Dense theorem, so □(¬U(⊤,⊥)) is in every Dense-MCS.\n\nNew development (not a port), following the pattern established by bimodal completeness_dense. The canonical model construction reuses the base temporal canonical order from task 31, specialized to Rat (DenselyOrdered).\n\nTarget: Cslib/Logics/Temporal/Metalogic/DenseCompleteness.lean + axiom additions to Axioms.lean\nEstimated scope: ~400-600 lines (new axioms + dense soundness + dense completeness)",
       "topic": "Temporal Logic",
       "session_id": "sess_1749647400_a3b2c1"

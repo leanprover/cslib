@@ -66,9 +66,10 @@ theorem FrameClass.base_le (fc : FrameClass) : FrameClass.Base ≤ fc := by
 /--
 Axiom schemata for temporal logic under the Burgess-Xu (BX) system.
 
-26 constructors organized into two layers:
+28 constructors organized into three layers:
 - **Propositional** (4): Classical propositional tautologies
 - **BX Temporal** (22): Burgess-Xu axioms for Until/Since on linear orders
+- **Density** (2): Axioms valid on dense linear orders
 -/
 inductive Axiom : Formula Atom → Type u where
   -- Layer 1: Propositional (4)
@@ -210,11 +211,25 @@ inductive Axiom : Formula Atom → Type u where
   | P_since_equiv (φ : Formula Atom) :
       Axiom ((Formula.somePast φ).imp (Formula.snce φ Formula.top))
 
+  -- Layer 3: Density (2)
+
+  /-- Density axiom: G(G(φ)) → G(φ). Valid on densely ordered frames. -/
+  | density (φ : Formula Atom) :
+      Axiom (φ.allFuture.allFuture.imp φ.allFuture)
+
+  /-- Dense indicator: ¬U(⊤, ⊥). Asserts no immediate successor exists.
+      Valid on densely ordered frames. -/
+  | dense_indicator :
+      Axiom (Formula.untl Formula.top Formula.bot).neg
+
 set_option linter.dupNamespace false in
-/-- Minimum frame class for each axiom constructor. All base BX axioms
-    are valid on all linear temporal orders. -/
+/-- Minimum frame class for each axiom constructor. Base BX axioms
+    are valid on all linear temporal orders. Density axioms require
+    densely ordered frames. -/
 def Axiom.minFrameClass {φ : Formula Atom} :
     Cslib.Logic.Temporal.Axiom φ → FrameClass
+  | .density _ => .Dense
+  | .dense_indicator => .Dense
   | _ => .Base
 
 end Cslib.Logic.Temporal

@@ -23,7 +23,7 @@ next_project_number: 145
 
 ### Temporal Logic
 
-38 [PLANNING] — Dense temporal completeness: prove that every formula valid on al
+38 [IMPLEMENTING] — Dense temporal completeness: prove that every formula valid on al
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
 
@@ -62,7 +62,7 @@ next_project_number: 145
 
 ### Modal Logic
 
-137 [IMPLEMENTING] — Refactor Modal/ directory structure for the modal cube. Systemati
+137 [PLANNED] — Refactor Modal/ directory structure for the modal cube. Systemati
 
 ### Foundations
 
@@ -144,13 +144,13 @@ next_project_number: 145
 ---
 
 ### 137. Refactor modal directory structure
-- **Status**: [IMPLEMENTING]
+- **Status**: [PLANNED]
 - **Task Type**: lean4
 - **Topic**: Modal Logic
 - **Dependencies**: None
 - **Research_report**: [137_refactor_modal_directory_structure/reports/01_directory-structure-research.md]
-- **Plan**: [137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md]
 - **Summary**: [137_refactor_modal_directory_structure/summaries/01_modal-directory-refactor-summary.md]
+- **Plan**: [137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md]
 
 **Description**: Refactor Modal/ directory structure for the modal cube. Systematically reorganize Cslib/Logics/Modal/ to make the architecture self-documenting through clear directory names and small files, while respecting the upstream/fork boundary for clean PRs. PR 1 restructures fork-only files (Hilbert/, Metalogic/Systems/, split Instances.lean). PR 2 restructures upstream-originating files (Syntax.lean, Semantics/).
 
@@ -408,7 +408,7 @@ Estimated scope: ~500-700 lines (new axioms + discrete soundness + discrete comp
 ---
 
 ### 38. Temporal dense completeness
-- **Status**: [PLANNING]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: lean4
 - **Topic**: Temporal Logic
 - **Dependencies**: None

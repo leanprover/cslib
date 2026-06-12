@@ -325,6 +325,8 @@ theorem axiom_sound {D : Type*} [LinearOrder D] [NoMaxOrder D] [NoMinOrder D]
     intro hP
     obtain ⟨s, hlt, hφ⟩ := (Satisfies.somePast_iff M t φ).mp hP
     exact ⟨s, hlt, hφ, fun _ _ _ => Satisfies.top_true M _⟩
+  | density _ => exact absurd _h_fc (by simp [Axiom.minFrameClass, LE.le])
+  | dense_indicator => exact absurd _h_fc (by simp [Axiom.minFrameClass, LE.le])
 
 /-! ## Swap Temporal Duality -/
 

@@ -1,0 +1,20 @@
+{
+  "status": "planned",
+  "session_id": "sess_1781225320_b0c69a",
+  "task_number": 137,
+  "artifacts": [
+    {
+      "path": "specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md",
+      "type": "plan",
+      "summary": "Revised plan (v2): marks phases 1-4 COMPLETED, replaces blocked phases 5-6 with fork-native LogicalEquivalence.lean implementation and CI verification"
+    }
+  ],
+  "metadata": {
+    "plan_version": 2,
+    "phase_count": 6,
+    "total_effort_hours": 8,
+    "agent_type": "reviser-agent",
+    "delegation_path": ["orchestrator", "revise", "reviser-agent"],
+    "reports_integrated": []
+  }
+}

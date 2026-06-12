@@ -1,14 +1,16 @@
 {
-  "status": "researched",
-  "summary": "Dense temporal completeness requires: (1) two new Dense axioms (density GGphi->Gphi, dense_indicator neg-U(top,bot)), (2) FC-parameterized MCS infrastructure, (3) dense soundness proofs, (4) chronicle FC re-parameterization for DenselyOrdered, (5) the completeness theorem via contrapositive. Key insight: Dense-MCS implies Base-MCS, enabling reuse of existing chronicle. DenselyOrdered for chronicle subtype follows from C4 + neg-U(top,bot) at every Dense-MCS point.",
+  "status": "planned",
+  "summary": "5-phase plan for dense temporal completeness: (1) add density + dense_indicator axioms to Axioms.lean, (2) build FC-parameterized MCS infrastructure with dense_mcs_implies_base_mcs, (3) prove dense soundness using exists_between, (4) FC-parameterize chronicle construction for DenselyOrdered instance, (5) assemble completeness_dense theorem via contrapositive + MCS + chronicle",
   "artifacts": [
     {
-      "path": "specs/038_temporal_dense_completeness/reports/01_dense-completeness-research.md",
-      "type": "report",
-      "summary": "Comprehensive research report covering axiom additions, FC-parameterized MCS infrastructure, dense soundness, chronicle re-parameterization for DenselyOrdered instance, and dense completeness theorem architecture"
+      "path": "specs/038_temporal_dense_completeness/plans/01_dense-completeness-plan.md",
+      "type": "plan",
+      "summary": "Implementation plan with 5 phases across 4 dependency waves, estimated 8 hours, covering axiom additions, FC-MCS infrastructure, dense soundness, chronicle FC-parameterization, and the completeness theorem"
     }
   ],
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "plan"
+  "next_action_hint": "implement",
+  "phases_completed": 0,
+  "phases_total": 5
 }

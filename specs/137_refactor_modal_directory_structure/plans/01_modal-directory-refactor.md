@@ -2,7 +2,7 @@
 
 - **Task**: 137 - Refactor Modal/ directory structure for the modal cube
 - **Status**: [IMPLEMENTING]
-- **Effort**: 6 hours
+- **Effort**: 8 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/137_refactor_modal_directory_structure/reports/01_directory-structure-research.md
 - **Artifacts**: plans/01_modal-directory-refactor.md (this file)
@@ -12,7 +12,7 @@
 
 ## Overview
 
-Reorganize `Cslib/Logics/Modal/` to make its architecture self-documenting while respecting the upstream/fork boundary. The monolithic `ProofSystem/Instances.lean` (1531 lines) is split into 15 per-system files. The flat `Metalogic/` directory (30 files) is reorganized into `Metalogic/Systems/{K,T,D,...}/` subdirectories. Work is divided into two PRs: PR 1 touches only fork-created files (no upstream merge conflict risk), PR 2 restores a missing upstream file. Definition of done: `lake build` passes after each phase, `lake exe mk_all --module` regenerates the barrel, and the final tree matches the proposed structure.
+Reorganize `Cslib/Logics/Modal/` to make its architecture self-documenting while respecting the upstream/fork boundary. The monolithic `ProofSystem/Instances.lean` (1531 lines) is split into 15 per-system files. The flat `Metalogic/` directory (30 files) is reorganized into `Metalogic/Systems/{K,T,D,...}/` subdirectories. Additionally, `LogicalEquivalence.lean` is written from scratch for the fork's `Proposition` type (which uses `atom, bot, imp, box` as primitive constructors), defining a one-hole `Context` inductive and proving that logical equivalence is a congruence. Definition of done: `lake build` passes after each phase, and the final tree matches the proposed structure with full CI green.
 
 ### Research Integration
 
@@ -22,11 +22,11 @@ Key findings from the research report:
 - All 28 system-specific Metalogic files import `Cslib.Logics.Modal.ProofSystem.Instances`
 - Import graph is strictly hierarchical (no cycles) -- safe to restructure
 - `Metalogic.lean` barrel file already aggregates all imports (simplifies migration)
-- External consumers: only `Bimodal/Embedding/` imports `Modal/Basic.lean` and `Modal/FromPropositional.lean` (unaffected by PR 1)
+- External consumers: only `Bimodal/Embedding/` imports `Modal/Basic.lean` and `Modal/FromPropositional.lean` (unaffected)
 
-### Prior Plan Reference
+### Revision Notes (v2)
 
-No prior plan.
+Phases 1-4 completed successfully. Phases 5-6 were blocked because upstream `LogicalEquivalence.lean` uses `Proposition.not` as a primitive constructor, while the fork uses `bot+imp` primitives with `neg` defined as `.imp phi .bot`. The revised plan replaces the blocked phases with new phases that write `LogicalEquivalence.lean` from scratch for the fork's `Proposition` type and run final CI verification.
 
 ### Roadmap Alignment
 
@@ -38,8 +38,10 @@ This task advances the "Logics / Modal" module organization described in the pro
 - Split `ProofSystem/Instances.lean` (1531 lines) into 15 per-system files with a barrel aggregator
 - Group 28 system-specific Metalogic files into `Metalogic/Systems/{System}/` directories
 - Maintain backward-compatible imports via barrel files
+- Write `LogicalEquivalence.lean` from scratch for the fork's `Proposition` primitives (atom, bot, imp, box)
+- Define `Proposition.Context` with constructors `hole`, `impL`, `impR`, `box`
+- Prove logical equivalence is a congruence over all contexts
 - Pass full CI after each structural change
-- Produce two separate PRs (fork-only vs upstream-touching)
 
 **Non-Goals**:
 - Refactor or reduce boilerplate within the axiom predicates (future task)
@@ -47,15 +49,16 @@ This task advances the "Logics / Modal" module organization described in the pro
 - Change namespace structure (`Cslib.Logics.Modal` stays as-is)
 - Resolve the B/KB naming inconsistency (future task)
 - Extract S5-specific code from `DerivationTree.lean` (future task)
+- Port upstream's `not`-based `Context` (incompatible with fork primitives)
 
 ## Risks & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
 | Import path changes break downstream files | H | M | Use barrel files for backward compat; run `lake build` after each move batch |
-| `lake exe mk_all --module` produces unexpected ordering | L | L | Run it once and verify diff manually |
+| Fork's `Context.fill` congruence proof is non-trivial | M | M | Use structural induction on `Context`; each case reduces to `Iff.intro` on `imp`/`box` |
+| `Satisfies` definition incompatible with congruence proof | M | L | Verify `Satisfies` supports `iff` reasoning via existing lemmas in `Basic.lean` |
 | Lean module caching confused by moves | M | L | Run `lake clean` if incremental build fails |
-| Namespace collisions from `Systems/K/Soundness.lean` vs `Metalogic/Soundness.lean` | M | L | New files use same namespaces as originals (just different file paths) |
 | Git history lost on file moves | L | M | Use `git mv` for trackable moves; verify with `git log --follow` |
 
 ## Implementation Phases
@@ -79,25 +82,25 @@ Phases within the same wave can execute in parallel.
 **Goal**: Break the 1531-line monolith into 15 focused files plus a barrel aggregator.
 
 **Tasks**:
-- [ ] Create directory `Cslib/Logics/Modal/ProofSystem/Instances/`
-- [ ] Extract `KAxiom` inductive + K instance registrations into `Instances/K.lean`
-- [ ] Extract `TAxiom` inductive + T instance registrations into `Instances/T.lean`
-- [ ] Extract `DAxiom` inductive + D instance registrations into `Instances/D.lean`
-- [ ] Extract `BAxiom` inductive + KB instance registrations into `Instances/B.lean`
-- [ ] Extract `K4Axiom` inductive + K4 instances into `Instances/K4.lean`
-- [ ] Extract `K5Axiom` inductive + K5 instances into `Instances/K5.lean`
-- [ ] Extract `K45Axiom` inductive + K45 instances into `Instances/K45.lean`
-- [ ] Extract `S4Axiom` inductive + S4 instances into `Instances/S4.lean`
-- [ ] Extract `S5Axiom` (= `ModalAxiom`) + S5 instances into `Instances/S5.lean`
-- [ ] Extract `TBAxiom` inductive + TB instances into `Instances/TB.lean`
-- [ ] Extract `KB5Axiom` inductive + KB5 instances into `Instances/KB5.lean`
-- [ ] Extract `D4Axiom` inductive + D4 instances into `Instances/D4.lean`
-- [ ] Extract `D5Axiom` inductive + D5 instances into `Instances/D5.lean`
-- [ ] Extract `D45Axiom` inductive + D45 instances into `Instances/D45.lean`
-- [ ] Extract `DBAxiom` inductive + DB instances into `Instances/DB.lean`
-- [ ] Convert original `Instances.lean` into barrel file importing all 15 sub-files
-- [ ] Each sub-file imports `Cslib.Logics.Modal.Metalogic.DerivationTree` and `Cslib.Foundations.Logic.ProofSystem`
-- [ ] Verify `lake build Cslib.Logics.Modal.ProofSystem.Instances` passes
+- [x] Create directory `Cslib/Logics/Modal/ProofSystem/Instances/`
+- [x] Extract `KAxiom` inductive + K instance registrations into `Instances/K.lean`
+- [x] Extract `TAxiom` inductive + T instance registrations into `Instances/T.lean`
+- [x] Extract `DAxiom` inductive + D instance registrations into `Instances/D.lean`
+- [x] Extract `BAxiom` inductive + KB instance registrations into `Instances/B.lean`
+- [x] Extract `K4Axiom` inductive + K4 instances into `Instances/K4.lean`
+- [x] Extract `K5Axiom` inductive + K5 instances into `Instances/K5.lean`
+- [x] Extract `K45Axiom` inductive + K45 instances into `Instances/K45.lean`
+- [x] Extract `S4Axiom` inductive + S4 instances into `Instances/S4.lean`
+- [x] Extract `S5Axiom` (= `ModalAxiom`) + S5 instances into `Instances/S5.lean`
+- [x] Extract `TBAxiom` inductive + TB instances into `Instances/TB.lean`
+- [x] Extract `KB5Axiom` inductive + KB5 instances into `Instances/KB5.lean`
+- [x] Extract `D4Axiom` inductive + D4 instances into `Instances/D4.lean`
+- [x] Extract `D5Axiom` inductive + D5 instances into `Instances/D5.lean`
+- [x] Extract `D45Axiom` inductive + D45 instances into `Instances/D45.lean`
+- [x] Extract `DBAxiom` inductive + DB instances into `Instances/DB.lean`
+- [x] Convert original `Instances.lean` into barrel file importing all 15 sub-files
+- [x] Each sub-file imports `Cslib.Logics.Modal.Metalogic.DerivationTree` and `Cslib.Foundations.Logic.ProofSystem`
+- [x] Verify `lake build Cslib.Logics.Modal.ProofSystem.Instances` passes
 
 **Timing**: 2 hours
 
@@ -133,41 +136,41 @@ Phases within the same wave can execute in parallel.
 **Goal**: Reorganize the 28 system-specific soundness/completeness files into per-system subdirectories.
 
 **Tasks**:
-- [ ] Create `Cslib/Logics/Modal/Metalogic/Systems/` directory
-- [ ] Create subdirectories: `K/`, `T/`, `D/`, `B/`, `K4/`, `K5/`, `K45/`, `S4/`, `S5/`, `TB/`, `KB5/`, `D4/`, `D5/`, `D45/`, `DB/`
-- [ ] Move `KSoundness.lean` to `Systems/K/Soundness.lean` (update module header and imports)
-- [ ] Move `KCompleteness.lean` to `Systems/K/Completeness.lean`
-- [ ] Move `TSoundness.lean` to `Systems/T/Soundness.lean`
-- [ ] Move `TCompleteness.lean` to `Systems/T/Completeness.lean`
-- [ ] Move `DSoundness.lean` to `Systems/D/Soundness.lean`
-- [ ] Move `DCompleteness.lean` to `Systems/D/Completeness.lean`
-- [ ] Move `BSoundness.lean` to `Systems/B/Soundness.lean`
-- [ ] Move `BCompleteness.lean` to `Systems/B/Completeness.lean`
-- [ ] Move `K4Soundness.lean` to `Systems/K4/Soundness.lean`
-- [ ] Move `K4Completeness.lean` to `Systems/K4/Completeness.lean`
-- [ ] Move `K5Soundness.lean` to `Systems/K5/Soundness.lean`
-- [ ] Move `K5Completeness.lean` to `Systems/K5/Completeness.lean`
-- [ ] Move `K45Soundness.lean` to `Systems/K45/Soundness.lean`
-- [ ] Move `K45Completeness.lean` to `Systems/K45/Completeness.lean`
-- [ ] Move `S4Soundness.lean` to `Systems/S4/Soundness.lean`
-- [ ] Move `S4Completeness.lean` to `Systems/S4/Completeness.lean`
-- [ ] Move `S5Soundness.lean` to `Systems/S5/Soundness.lean`
-- [ ] Move `S5Completeness.lean` to `Systems/S5/Completeness.lean`
-- [ ] Move `TBSoundness.lean` to `Systems/TB/Soundness.lean`
-- [ ] Move `TBCompleteness.lean` to `Systems/TB/Completeness.lean`
-- [ ] Move `KB5Soundness.lean` to `Systems/KB5/Soundness.lean`
-- [ ] Move `KB5Completeness.lean` to `Systems/KB5/Completeness.lean`
-- [ ] Move `D4Soundness.lean` to `Systems/D4/Soundness.lean`
-- [ ] Move `D4Completeness.lean` to `Systems/D4/Completeness.lean`
-- [ ] Move `D5Soundness.lean` to `Systems/D5/Soundness.lean`
-- [ ] Move `D5Completeness.lean` to `Systems/D5/Completeness.lean`
-- [ ] Move `D45Soundness.lean` to `Systems/D45/Soundness.lean`
-- [ ] Move `D45Completeness.lean` to `Systems/D45/Completeness.lean`
-- [ ] Move `DBSoundness.lean` to `Systems/DB/Soundness.lean`
-- [ ] Move `DBCompleteness.lean` to `Systems/DB/Completeness.lean`
-- [ ] Update `module` declaration in each moved file to match new path
-- [ ] Update internal cross-references (e.g., `DCompleteness` imports `DSoundness` -- now `Systems.D.Soundness`)
-- [ ] Verify `lake build Cslib.Logics.Modal.Metalogic.Systems.K.Soundness` passes (spot check)
+- [x] Create `Cslib/Logics/Modal/Metalogic/Systems/` directory
+- [x] Create subdirectories: `K/`, `T/`, `D/`, `B/`, `K4/`, `K5/`, `K45/`, `S4/`, `S5/`, `TB/`, `KB5/`, `D4/`, `D5/`, `D45/`, `DB/`
+- [x] Move `KSoundness.lean` to `Systems/K/Soundness.lean` (update module header and imports)
+- [x] Move `KCompleteness.lean` to `Systems/K/Completeness.lean`
+- [x] Move `TSoundness.lean` to `Systems/T/Soundness.lean`
+- [x] Move `TCompleteness.lean` to `Systems/T/Completeness.lean`
+- [x] Move `DSoundness.lean` to `Systems/D/Soundness.lean`
+- [x] Move `DCompleteness.lean` to `Systems/D/Completeness.lean`
+- [x] Move `BSoundness.lean` to `Systems/B/Soundness.lean`
+- [x] Move `BCompleteness.lean` to `Systems/B/Completeness.lean`
+- [x] Move `K4Soundness.lean` to `Systems/K4/Soundness.lean`
+- [x] Move `K4Completeness.lean` to `Systems/K4/Completeness.lean`
+- [x] Move `K5Soundness.lean` to `Systems/K5/Soundness.lean`
+- [x] Move `K5Completeness.lean` to `Systems/K5/Completeness.lean`
+- [x] Move `K45Soundness.lean` to `Systems/K45/Soundness.lean`
+- [x] Move `K45Completeness.lean` to `Systems/K45/Completeness.lean`
+- [x] Move `S4Soundness.lean` to `Systems/S4/Soundness.lean`
+- [x] Move `S4Completeness.lean` to `Systems/S4/Completeness.lean`
+- [x] Move `S5Soundness.lean` to `Systems/S5/Soundness.lean`
+- [x] Move `S5Completeness.lean` to `Systems/S5/Completeness.lean`
+- [x] Move `TBSoundness.lean` to `Systems/TB/Soundness.lean`
+- [x] Move `TBCompleteness.lean` to `Systems/TB/Completeness.lean`
+- [x] Move `KB5Soundness.lean` to `Systems/KB5/Soundness.lean`
+- [x] Move `KB5Completeness.lean` to `Systems/KB5/Completeness.lean`
+- [x] Move `D4Soundness.lean` to `Systems/D4/Soundness.lean`
+- [x] Move `D4Completeness.lean` to `Systems/D4/Completeness.lean`
+- [x] Move `D5Soundness.lean` to `Systems/D5/Soundness.lean`
+- [x] Move `D5Completeness.lean` to `Systems/D5/Completeness.lean`
+- [x] Move `D45Soundness.lean` to `Systems/D45/Soundness.lean`
+- [x] Move `D45Completeness.lean` to `Systems/D45/Completeness.lean`
+- [x] Move `DBSoundness.lean` to `Systems/DB/Soundness.lean`
+- [x] Move `DBCompleteness.lean` to `Systems/DB/Completeness.lean`
+- [x] Update `module` declaration in each moved file to match new path
+- [x] Update internal cross-references (e.g., `DCompleteness` imports `DSoundness` -- now `Systems.D.Soundness`)
+- [x] Verify `lake build Cslib.Logics.Modal.Metalogic.Systems.K.Soundness` passes (spot check)
 
 **Timing**: 2 hours
 
@@ -188,11 +191,11 @@ Phases within the same wave can execute in parallel.
 **Goal**: Update `Metalogic.lean` barrel, internal cross-references between system files, and `Cslib.lean`.
 
 **Tasks**:
-- [ ] Rewrite `Metalogic.lean` barrel to import from new `Systems/` paths (30 import lines change)
-- [ ] Update any system file that imports another system file (e.g., `D4Completeness` imports `DCompleteness` -- now `Systems.D.Completeness`)
-- [ ] Update system-specific Instances imports: each `Systems/{X}/Soundness.lean` imports `Cslib.Logics.Modal.ProofSystem.Instances` (this path is unchanged due to Phase 1 barrel -- verify no change needed)
-- [ ] Run `lake exe mk_all --module` to regenerate `Cslib.lean`
-- [ ] Run `lake build` to verify full project compiles
+- [x] Rewrite `Metalogic.lean` barrel to import from new `Systems/` paths (30 import lines change)
+- [x] Update any system file that imports another system file (e.g., `D4Completeness` imports `DCompleteness` -- now `Systems.D.Completeness`)
+- [x] Update system-specific Instances imports: each `Systems/{X}/Soundness.lean` imports `Cslib.Logics.Modal.ProofSystem.Instances` (this path is unchanged due to Phase 1 barrel -- verify no change needed)
+- [x] Run `lake exe mk_all --module` to regenerate `Cslib.lean`
+- [x] Run `lake build` to verify full project compiles
 
 **Timing**: 1 hour
 
@@ -215,16 +218,14 @@ Phases within the same wave can execute in parallel.
 **Goal**: Run the full CSLib CI pipeline and prepare the fork-only PR.
 
 **Tasks**:
-- [ ] Run `lake build` (full project build)
-- [ ] Run `lake exe checkInitImports`
-- [ ] Run `lake lint`
-- [ ] Run `lake exe lint-style`
-- [ ] Run `lake test`
-- [ ] Run `lake shake --add-public --keep-implied --keep-prefix` (import minimization check)
-- [ ] Fix any lint or style issues introduced by the refactoring
-- [ ] Verify no `sorry` or vacuous definitions were introduced
-- [ ] **Task 4.9**: Create feature branch `refactor/modal-directory-pr1` *(deviation: skipped -- branch/PR creation is user work per plan notes)*
-- [ ] **Task 4.10**: Commit with message: `refactor(Modal): split Instances.lean and organize Metalogic/Systems/` *(deviation: skipped -- PR commit is user work; phase commits made instead)*
+- [x] Run `lake build` (full project build)
+- [x] Run `lake exe checkInitImports`
+- [x] Run `lake lint`
+- [x] Run `lake exe lint-style`
+- [x] Run `lake test`
+- [x] Run `lake shake --add-public --keep-implied --keep-prefix` (import minimization check)
+- [x] Fix any lint or style issues introduced by the refactoring
+- [x] Verify no `sorry` or vacuous definitions were introduced
 
 **Timing**: 30 minutes
 
@@ -234,93 +235,108 @@ Phases within the same wave can execute in parallel.
 - Any files flagged by linters (style fixes only)
 
 **Verification**:
-- All 6 CI commands pass without errors
+- All CI commands pass without errors
 - Git status shows only the intended file moves and barrel updates
 - No upstream files (Basic.lean, Cube.lean, Denotation.lean) appear in the diff
 
 ---
 
-### Phase 5: Restore LogicalEquivalence.lean from Upstream [BLOCKED]
+### Phase 5: Write LogicalEquivalence.lean for Fork Primitives [NOT STARTED]
 
-**BLOCKER** (Phase 5):
-- **What failed**: Upstream `LogicalEquivalence.lean` cannot compile in our fork
-- **What was tried**: Fetched file from `upstream/main`, added missing `Satisfies.iff_iff_iff` lemma to `Basic.lean`, attempted to fix `diamond` case proof
-- **Why it's stuck**: The upstream `Proposition` type has `not` as a primitive constructor (`| not (φ : Proposition Atom)`), while our fork defines negation as a derived abbreviation (`abbrev Proposition.neg (φ) := .imp φ .bot`). The upstream `LogicalEquivalence.lean` uses `Proposition.not` throughout (in `Context.fill`, constructor patterns, etc.), which doesn't exist in our fork. This is a fundamental type-level incompatibility, not a simple import fix.
-- **What is needed**: Either (a) port the fork's Proposition type to match upstream (major refactor affecting all Modal files), or (b) manually rewrite `LogicalEquivalence.lean` to use our fork's `Proposition.neg`/`.imp` encoding, or (c) defer until the next upstream merge reconciles the types.
-- **Prohibited workarounds**: Do NOT use `sorry`, `def X := True`, or any vacuous placeholder
-
-**Goal**: Bring back the missing upstream file `LogicalEquivalence.lean` to the fork's main branch.
+**Goal**: Create `LogicalEquivalence.lean` from scratch, defining a one-hole `Context` inductive matching the fork's `Proposition` constructors (atom, bot, imp, box), a `fill` operation, logical equivalence, and a congruence theorem proving that equivalent propositions remain equivalent in any context.
 
 **Tasks**:
-- [ ] Fetch latest upstream: `git fetch upstream`
-- [ ] Identify the commit/file for `LogicalEquivalence.lean` on `upstream/main`
-- [ ] Cherry-pick or copy the file to `Cslib/Logics/Modal/LogicalEquivalence.lean`
-- [ ] Ensure the file has `import Cslib.Init` as required
-- [ ] Verify imports within the file resolve correctly
-- [ ] Run `lake exe mk_all --module` to add to `Cslib.lean` barrel
-- [ ] Run `lake build Cslib.Logics.Modal.LogicalEquivalence` to verify it compiles
+- [ ] Create `Cslib/Logics/Modal/LogicalEquivalence.lean`
+- [ ] Add required imports: `import Cslib.Logics.Modal.Basic` (for `Proposition`, `Satisfies`, `Frame`, `Model`)
+- [ ] Define `Proposition.Context` inductive with constructors:
+  - `hole` -- the position to substitute
+  - `impL (c : Context Atom) (phi : Proposition Atom)` -- context in left argument of `imp`
+  - `impR (phi : Proposition Atom) (c : Context Atom)` -- context in right argument of `imp`
+  - `box (c : Context Atom)` -- context under `box`
+- [ ] Define `Context.fill (c : Context Atom) (phi : Proposition Atom) : Proposition Atom` by structural recursion on `c`
+- [ ] Define `LogicallyEquivalent (phi psi : Proposition Atom) : Prop` as: for all frames F, models M, and worlds w, `Satisfies F M w phi <-> Satisfies F M w psi`
+- [ ] Prove `fill_satisfies` lemma: `Satisfies F M w (c.fill phi) <-> ...` decomposing by context structure (auxiliary lemma for congruence)
+- [ ] Prove `congruence` theorem: `LogicallyEquivalent phi psi -> LogicallyEquivalent (c.fill phi) (c.fill psi)` for all contexts `c`
+  - Proof strategy: structural induction on `c`; `hole` case is trivial; `impL`/`impR` cases use iff-congruence on implication; `box` case uses universal quantification over accessible worlds
+- [ ] Ensure the file uses `import Cslib.Init` (CSLib convention)
+- [ ] Verify no `sorry` or vacuous placeholders
+- [ ] Run `lake exe mk_all --module` to add file to `Cslib.lean` barrel
+- [ ] Run `lake build Cslib.Logics.Modal.LogicalEquivalence` to verify compilation
 
-**Timing**: 30 minutes
+**Timing**: 3 hours
 
 **Depends on**: 4
 
 **Files to modify**:
-- `Cslib/Logics/Modal/LogicalEquivalence.lean` - New file (restored from upstream)
+- `Cslib/Logics/Modal/LogicalEquivalence.lean` - New file (written from scratch)
 - `Cslib.lean` - Regenerated to include new file
 
 **Verification**:
 - `lake build Cslib.Logics.Modal.LogicalEquivalence` passes
-- File contents match upstream/main version
+- No `sorry` in file: `grep -c "sorry" Cslib/Logics/Modal/LogicalEquivalence.lean` returns 0
 - `lake exe checkInitImports` passes
+- `Context` has exactly 4 constructors matching fork's `Proposition` structure
+
+**Design Notes**:
+- The `Context` constructors deliberately mirror the fork's `Proposition` constructors (minus `atom` and `bot`, which are leaves and cannot contain sub-propositions)
+- `atom` and `bot` are excluded from `Context` because they have no sub-proposition positions (they are ground terms)
+- The congruence proof does NOT need derived connectives (`neg`, `and`, `or`, `diamond`) because those are abbreviations over `imp`, `bot`, and `box` -- congruence for them follows automatically
+- The `bot+imp` convention is maintained universally: negation is `.imp phi .bot`, never a primitive constructor
 
 ---
 
-### Phase 6: PR 2 Preparation and Final Verification [BLOCKED]
+### Phase 6: CI Verification and Final Cleanup [NOT STARTED]
 
-**Goal**: Prepare the upstream-coordination PR and run final verification.
+**Goal**: Run the full CI pipeline, ensure everything passes, and verify the final directory structure.
 
 **Tasks**:
-- [ ] Create feature branch `refactor/modal-directory-pr2` (from PR 1 branch or main after PR 1 merge)
-- [ ] Run full CI pipeline: `lake build`, `lake exe checkInitImports`, `lake lint`, `lake exe lint-style`, `lake test`
-- [ ] Commit with message: `feat(Modal): restore LogicalEquivalence.lean from upstream`
+- [ ] Run `lake build` (full project build)
+- [ ] Run `lake exe checkInitImports`
+- [ ] Run `lake lint`
+- [ ] Run `lake exe lint-style`
+- [ ] Run `lake test`
+- [ ] Fix any lint or style issues in `LogicalEquivalence.lean`
 - [ ] Verify the overall directory structure matches the target layout
-- [ ] Document in PR description that this restores upstream parity
+- [ ] Confirm no upstream files were modified (Basic.lean, Cube.lean, Denotation.lean unchanged)
+- [ ] Verify external consumers (`Bimodal/Embedding/`) unaffected
 
 **Timing**: 30 minutes
 
 **Depends on**: 5
 
 **Files to modify**:
-- None beyond Phase 5 artifacts (this phase is verification and git operations)
+- Any files flagged by linters (style fixes only in `LogicalEquivalence.lean`)
 
 **Verification**:
-- Full CI passes
-- `find Cslib/Logics/Modal -name "*.lean" | wc -l` shows 42 files (41 original + 15 new Instance files - 1 original Instances.lean removed + 1 LogicalEquivalence restored = ~56 files)
-- Directory tree matches proposed structure from research report
+- Full CI passes (build, checkInitImports, lint, lint-style, test)
+- `LogicalEquivalence.lean` exists and compiles without `sorry`
+- Directory tree shows reorganized structure with per-system Instances and Metalogic/Systems
 
 ## Testing & Validation
 
-- [ ] `lake build` passes after each phase (incremental verification)
-- [ ] `lake exe checkInitImports` passes (all files import `Cslib.Init`)
-- [ ] `lake lint` passes (no new linting errors introduced)
-- [ ] `lake exe lint-style` passes (style conformance)
-- [ ] `lake test` passes (CslibTests suite unaffected)
-- [ ] `lake shake --add-public --keep-implied --keep-prefix` passes (import minimization)
-- [ ] No upstream files modified in PR 1 (verified by diff inspection)
+- [x] `lake build` passes after each phase (incremental verification)
+- [x] `lake exe checkInitImports` passes (all files import `Cslib.Init`)
+- [x] `lake lint` passes (no new linting errors introduced)
+- [x] `lake exe lint-style` passes (style conformance)
+- [x] `lake test` passes (CslibTests suite unaffected)
+- [ ] `LogicalEquivalence.lean` compiles without `sorry`
+- [ ] `Context` inductive matches fork's `Proposition` structure (impL, impR, box -- no `not`, `andL`, `andR`, `diamond`)
+- [ ] Congruence theorem is stated and proved for all context constructors
 - [ ] External consumers (`Bimodal/Embedding/`) unaffected (import paths unchanged)
 - [ ] Barrel imports (`Metalogic.lean`, `Instances.lean`) re-export everything for backward compat
 
 ## Artifacts & Outputs
 
 - `specs/137_refactor_modal_directory_structure/plans/01_modal-directory-refactor.md` (this plan)
-- PR 1: Feature branch `refactor/modal-directory-pr1` with Instances split + Metalogic/Systems reorganization
-- PR 2: Feature branch `refactor/modal-directory-pr2` with LogicalEquivalence.lean restoration
+- Reorganized `Cslib/Logics/Modal/ProofSystem/Instances/` directory (15 per-system files + barrel)
+- Reorganized `Cslib/Logics/Modal/Metalogic/Systems/` directory (per-system subdirectories)
+- `Cslib/Logics/Modal/LogicalEquivalence.lean` (new file, fork-native implementation)
 - Updated `Cslib.lean` barrel (auto-generated)
 - Updated `Metalogic.lean` barrel (manual)
 
 ## Rollback/Contingency
 
-- **Phase 1-3 rollback**: `git checkout main -- Cslib/Logics/Modal/` restores original structure. The barrel file approach means no downstream code needs reverting.
-- **Build failure during moves**: If `lake build` fails mid-phase, the barrel files still point to old paths until updated. Partially moved files can be moved back without cascading failures.
-- **lake clean**: If Lean module caching causes stale errors after moves, run `lake clean && lake build` to rebuild from scratch.
-- **PR rejection**: Since PR 1 is fork-only, it can be reverted without affecting upstream merge-ability. PR 2 is a single file addition, trivially revertible.
+- **Phase 1-4 rollback**: Already completed and committed; would require `git revert` of those commits.
+- **Phase 5 rollback**: If the congruence proof is intractable, remove `LogicalEquivalence.lean` and regenerate `Cslib.lean`. The file is self-contained with no downstream dependents, so removal has zero cascading impact.
+- **Build failure during Phase 5**: The file is additive (new file only). Deleting it restores the pre-phase-5 state immediately.
+- **lake clean**: If Lean module caching causes stale errors, run `lake clean && lake build` to rebuild from scratch.
