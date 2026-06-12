@@ -102,11 +102,11 @@ def Satisfies (m : Model World Atom) (w : World) : Proposition Atom → Prop
   | .box φ => ∀ w', m.r w w' → Satisfies m w' φ
 
 /-- Satisfaction of negation. -/
-theorem Satisfies.neg_iff : Satisfies m w (.neg φ) ↔ ¬Satisfies m w φ :=
+theorem Satisfies.neg_iff : Satisfies m w (¬φ) ↔ ¬Satisfies m w φ :=
   ⟨fun h hs => h hs, fun h hs => absurd hs h⟩
 
 /-- Satisfaction of diamond. -/
-theorem Satisfies.diamond_iff : Satisfies m w (.diamond φ) ↔ ∃ w', m.r w w' ∧ Satisfies m w' φ := by
+theorem Satisfies.diamond_iff : Satisfies m w (◇φ) ↔ ∃ w', m.r w w' ∧ Satisfies m w' φ := by
   unfold Proposition.diamond Proposition.neg
   simp only [Satisfies]
   constructor
@@ -118,7 +118,7 @@ theorem Satisfies.diamond_iff : Satisfies m w (.diamond φ) ↔ ∃ w', m.r w w'
     exact hbox w' hr hs
 
 /-- Satisfaction of conjunction. -/
-theorem Satisfies.and_iff : Satisfies m w (.and φ₁ φ₂) ↔ Satisfies m w φ₁ ∧ Satisfies m w φ₂ := by
+theorem Satisfies.and_iff : Satisfies m w (φ₁ ∧ φ₂) ↔ Satisfies m w φ₁ ∧ Satisfies m w φ₂ := by
   change ((Satisfies m w φ₁ → Satisfies m w φ₂ → False) → False) ↔ _
   constructor
   · intro h
@@ -128,7 +128,7 @@ theorem Satisfies.and_iff : Satisfies m w (.and φ₁ φ₂) ↔ Satisfies m w �
   · intro ⟨h1, h2⟩ hf; exact hf h1 h2
 
 /-- Satisfaction of disjunction. -/
-theorem Satisfies.or_iff : Satisfies m w (.or φ₁ φ₂) ↔ Satisfies m w φ₁ ∨ Satisfies m w φ₂ := by
+theorem Satisfies.or_iff : Satisfies m w (φ₁ ∨ φ₂) ↔ Satisfies m w φ₁ ∨ Satisfies m w φ₂ := by
   change ((Satisfies m w φ₁ → False) → Satisfies m w φ₂) ↔ _
   constructor
   · intro h
@@ -244,7 +244,7 @@ theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ φ → ◇φ] := by
-  change Satisfies m w φ → Satisfies m w (.diamond φ)
+  change Satisfies m w φ → Satisfies m w (◇φ)
   intro hφ
   rw [diamond_iff]
   exact ⟨w, instRefl.refl w, hφ⟩
@@ -269,7 +269,7 @@ theorem Satisfies.t_box_diamond [Std.Refl m.r] :
     ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ◇φ] := by
   have hrefl := Std.Refl.refl (r := m.r) w
   change ((∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w φ) ↔
-       (Satisfies m w φ → Satisfies m w (.diamond φ))
+       (Satisfies m w φ → Satisfies m w (◇φ))
   constructor
   · intro h hφ
     rw [diamond_iff]
@@ -282,7 +282,7 @@ theorem Satisfies.t_box_diamond [Std.Refl m.r] :
 theorem Satisfies.b {m : Model World Atom} [instSymm : Std.Symm m.r] {w : World}
     (φ : Proposition Atom) :
     ⇓Modal[m,w ⊨ φ → □◇φ] := by
-  change Satisfies m w φ → ∀ w', m.r w w' → Satisfies m w' (.diamond φ)
+  change Satisfies m w φ → ∀ w', m.r w w' → Satisfies m w' (◇φ)
   intro hφ w' hr
   rw [diamond_iff]
   exact ⟨w, instSymm.symm w w' hr, hφ⟩
@@ -294,7 +294,7 @@ theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty A
     have a := Classical.arbitrary Atom
     let v₁ := fun (w' : World) (_ : Atom) => w' = w₁
     have h₁ : Satisfies ⟨r, v₁⟩ w₁ (.atom a) →
-               ∀ w', r w₁ w' → Satisfies ⟨r, v₁⟩ w' (.diamond (.atom a)) :=
+               ∀ w', r w₁ w' → Satisfies ⟨r, v₁⟩ w' (◇(.atom a)) :=
       h (v := v₁) (w := w₁) (φ := .atom a)
     have hsat : Satisfies ⟨r, v₁⟩ w₁ (.atom a) := rfl
     have h₂ := h₁ hsat w₂ hr
@@ -306,7 +306,7 @@ theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty A
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four {m : Model World Atom} [IsTrans World m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇◇φ → ◇φ] := by
-  change Satisfies m w (.diamond (.diamond φ)) → Satisfies m w (.diamond φ)
+  change Satisfies m w (◇◇φ) → Satisfies m w (◇φ)
   rw [diamond_iff, diamond_iff]
   intro ⟨w', hr₁, h'⟩
   rw [diamond_iff] at h'
@@ -319,10 +319,10 @@ theorem Satisfies.four_trans {r : World → World → Prop} [Nonempty Atom]
   trans w₁ w₂ w₃ h₁ h₂ := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (_ : Atom) => w' = w₃
-    have h' : Satisfies ⟨r, v⟩ w₁ (.diamond (.diamond (.atom a))) →
-              Satisfies ⟨r, v⟩ w₁ (.diamond (.atom a)) :=
+    have h' : Satisfies ⟨r, v⟩ w₁ (◇◇(.atom a)) →
+              Satisfies ⟨r, v⟩ w₁ (◇(.atom a)) :=
       h (v := v) (w := w₁) (φ := .atom a)
-    have hdd : Satisfies ⟨r, v⟩ w₁ (.diamond (.diamond (.atom a))) := by
+    have hdd : Satisfies ⟨r, v⟩ w₁ (◇◇(.atom a)) := by
       rw [diamond_iff]
       exact ⟨w₂, h₁, by rw [diamond_iff]; exact ⟨w₃, h₂, rfl⟩⟩
     have h₃ := h' hdd
@@ -336,7 +336,7 @@ theorem Satisfies.five {m : Model World Atom} [Relation.RightEuclidean m.r]
     {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇φ → □◇φ] := by
   have heuc := @Relation.RightEuclidean.rightEuclidean (r := m.r)
-  change Satisfies m w (.diamond φ) → ∀ w', m.r w w' → Satisfies m w' (.diamond φ)
+  change Satisfies m w (◇φ) → ∀ w', m.r w w' → Satisfies m w' (◇φ)
   intro hdiam w' hr
   rw [diamond_iff] at hdiam ⊢
   obtain ⟨w'', hr', hs⟩ := hdiam
@@ -349,10 +349,10 @@ theorem Satisfies.five_rightEuclidean {r : World → World → Prop} [Nonempty A
   rightEuclidean {w₁ w₂ w₃} h₁ h₂ := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (_ : Atom) => w' = w₃
-    have h' : Satisfies ⟨r, v⟩ w₁ (.diamond (.atom a)) →
-              ∀ w', r w₁ w' → Satisfies ⟨r, v⟩ w' (.diamond (.atom a)) :=
+    have h' : Satisfies ⟨r, v⟩ w₁ (◇(.atom a)) →
+              ∀ w', r w₁ w' → Satisfies ⟨r, v⟩ w' (◇(.atom a)) :=
       h (v := v) (w := w₁) (φ := .atom a)
-    have hdiam : Satisfies ⟨r, v⟩ w₁ (.diamond (.atom a)) := by
+    have hdiam : Satisfies ⟨r, v⟩ w₁ (◇(.atom a)) := by
       rw [diamond_iff]; exact ⟨w₃, h₂, rfl⟩
     have h₂' := h' hdiam w₂ h₁
     rw [diamond_iff] at h₂'
@@ -364,7 +364,7 @@ theorem Satisfies.five_rightEuclidean {r : World → World → Prop} [Nonempty A
 theorem Satisfies.d {m : Model World Atom} [hSer : Relation.Serial m.r] {w}
     (φ : Proposition Atom) :
     ⇓Modal[m,w ⊨ □φ → ◇φ] := by
-  change (∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w (.diamond φ)
+  change (∀ w', m.r w w' → Satisfies m w' φ) → Satisfies m w (◇φ)
   intro hbox
   rw [diamond_iff]
   obtain ⟨w', hr⟩ := hSer.serial w
@@ -377,7 +377,7 @@ theorem Satisfies.d_serial {r : World → World → Prop} [Nonempty Atom]
     have a := Classical.arbitrary Atom
     let v := fun (_ : World) (_ : Atom) => True
     have h' : (∀ w', r w₁ w' → Satisfies ⟨r, v⟩ w' (.atom a)) →
-              Satisfies ⟨r, v⟩ w₁ (.diamond (.atom a)) :=
+              Satisfies ⟨r, v⟩ w₁ (◇(.atom a)) :=
       h (v := v) (w := w₁) (φ := .atom a)
     have hbox : ∀ w', r w₁ w' → Satisfies ⟨r, v⟩ w' (.atom a) :=
       fun _ _ => trivial

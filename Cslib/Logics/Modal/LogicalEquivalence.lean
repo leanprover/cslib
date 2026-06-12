@@ -50,9 +50,9 @@ inductive Proposition.Context (Atom : Type u) : Type u where
 /-- Fill the hole in a context with a proposition. -/
 def Proposition.Context.fill : Proposition.Context Atom → Proposition Atom → Proposition Atom
   | .hole, φ => φ
-  | .impL c ψ, φ => .imp (c.fill φ) ψ
-  | .impR ψ c, φ => .imp ψ (c.fill φ)
-  | .box c, φ => .box (c.fill φ)
+  | .impL c ψ, φ => c.fill φ → ψ
+  | .impR ψ c, φ => ψ → c.fill φ
+  | .box c, φ => □(c.fill φ)
 
 /-- Two propositions are logically equivalent when they agree on satisfaction across all models
 and worlds. -/
