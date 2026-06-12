@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Fixed 6 of 7 PR quality issues in Formula.lean on pr3/temporal-formula and synced to main. Issue 1 (argument order swap) was handled via documentation update rather than code swap because someFuture/somePast/allFuture/allPast are transparent abbrevs and the swaps would break downstream proof system files. Issues 2-7 fully applied: References section, Formula.iff with unicode iff notation, Unicode bold temporal notation, Bot/Top instances, @[expose] public section, removed redundant open. Full CI pipeline passes on main.",
+  "artifacts": [
+    {
+      "path": "specs/164_fix_formula_pr_quality/summaries/01_formula-fixes-summary.md",
+      "type": "summary",
+      "summary": "Detailed summary of all fixes, deviations, and CI results"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "none",
+  "phases_completed": 3,
+  "phases_total": 3
+}

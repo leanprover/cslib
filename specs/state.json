@@ -4,7 +4,7 @@
     {
       "project_number": 164,
       "project_name": "fix_formula_pr_quality",
-      "status": "researched",
+      "status": "planned",
       "task_type": "cslib",
       "topic": "Submit PRs",
       "dependencies": [
@@ -12,14 +12,19 @@
       ],
       "description": "Fix 7 PR quality issues in Formula.lean (pr3/temporal-formula branch) identified during review: (1) HIGH: doc/code argument order mismatch for U/S derived operators — docs say ⊤ U φ but code computes φ U ⊤, will cause semantic bugs; (2) MEDIUM: missing ## References section (both Propositional and Modal peer files cite foundational works); (3) LOW-MEDIUM: missing iff derived connective listed in task 159 description; (4) MEDIUM: bare-letter notation F/G/P/H risks variable shadowing (peer files use Unicode); (5) LOW: missing Bot/Top Mathlib instances (Propositional/Defs.lean has them); (6) LOW: second half of file outside @[expose] public section; (7) COSMETIC: redundant open before namespace. All changes to single file on pr3/temporal-formula branch.",
       "created": "2026-06-12T08:55:00Z",
-      "last_updated": "2026-06-12T08:55:00Z",
-      "session_id": "sess_1781252799_3ed79e",
+      "last_updated": "2026-06-12T10:03:15Z",
+      "session_id": "sess_1781258395_440da0",
       "next_artifact_number": 2,
       "artifacts": [
         {
           "path": "specs/164_fix_formula_pr_quality/reports/01_formula-pr-review.md",
           "type": "report",
           "summary": "Detailed review of 7 PR quality issues with comparison to Propositional/Defs.lean and Modal/Basic.lean"
+        },
+        {
+          "path": "specs/164_fix_formula_pr_quality/plans/01_formula-fixes-plan.md",
+          "type": "plan",
+          "summary": "3-phase plan for Formula.lean PR quality fixes with CI verification and merge"
         }
       ]
     },
