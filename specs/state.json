@@ -1,5 +1,5 @@
 {
-  "next_project_number": 145,
+  "next_project_number": 159,
   "active_projects": [
     {
       "project_number": 137,
@@ -279,10 +279,10 @@
     {
       "project_number": 60,
       "project_name": "pr2_modal_metalogic",
-      "status": "planned",
+      "status": "expanded",
       "task_type": "lean4",
       "created": "2026-06-10T00:22:30Z",
-      "last_updated": "2026-06-11T19:24:15Z",
+      "last_updated": "2026-06-12T02:00:00Z",
       "topic": "Submit PRs",
       "session_id": "sess_1781205592_c62b5b",
       "researched": "2026-06-11T19:19:05Z",
@@ -303,7 +303,8 @@
           "type": "plan",
           "summary": "Implementation plan with 6 phases for PR2 branch creation, file checkout, import updates, build verification, cleanup, and PR submission"
         }
-      ]
+      ],
+      "completion_summary": "Expanded into 14 sub-PRs (tasks 145-158) for incremental submission under 500 LOC each"
     },
     {
       "project_number": 61,
@@ -317,14 +318,22 @@
     {
       "project_number": 62,
       "project_name": "pr4_temporal_metalogic_core",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "lean4",
       "dependencies": [
         61
       ],
       "created": "2026-06-10T00:22:30Z",
-      "last_updated": "2026-06-10T00:22:30Z",
-      "topic": "Submit PRs"
+      "last_updated": "2026-06-12T06:08:04Z",
+      "topic": "Submit PRs",
+      "session_id": "sess_1749681600_a3c7f2",
+      "artifacts": [
+        {
+          "path": "specs/062_pr4_temporal_metalogic_core/reports/01_pr4-subdivision.md",
+          "type": "research_report",
+          "summary": "PR4 subdivision analysis: 9 core Metalogic files (2,269 lines) divided into 6 sub-PRs following PR 1 gateway pattern"
+        }
+      ]
     },
     {
       "project_number": 63,
@@ -582,6 +591,241 @@
       "created": "2026-06-12T00:15:00Z",
       "last_updated": "2026-06-12T00:15:00Z",
       "description": "Sub-PR 1.1.7: Metalogic foundations. Adds Consistency.lean (278), DeductionHelpers.lean (120), DeductionTheorem.lean (217), MCS.lean (161). ~776 diff lines total, will likely need splitting into 2 PRs to stay under 500 lines each."
+    },
+    {
+      "project_number": 145,
+      "project_name": "subpr_2_1_lukasiewicz_primitives",
+      "status": "researched",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T06:35:00Z",
+      "description": "Sub-PR 2.1: Lukasiewicz primitive refactoring. Refactors Modal/Basic.lean from {atom, not, and, diamond} to {atom, bot, imp, box} primitives with derived connectives as abbrevs. Updates Modal/Denotation.lean for new primitives. Deletes LogicalEquivalence.lean (incompatible with new primitives). Replaces all grind-based proofs with explicit term-mode proofs for axiom validity theorems. This is the gateway PR — clear, focused, and establishes the Lukasiewicz convention for all subsequent PRs. ~440 diff lines across 3 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "researched": "2026-06-12T06:35:00Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/145_subpr_2_1_lukasiewicz_primitives/reports/01_lukasiewicz-primitives.md",
+          "type": "report",
+          "summary": "Research report: upstream/fork diff analysis, grind inventory, import dependencies, risk assessment, implementation strategy for Lukasiewicz primitive refactoring"
+        }
+      ]
+    },
+    {
+      "project_number": 146,
+      "project_name": "subpr_2_2_proof_system_hierarchy",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        145
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.2: Proof system hierarchy + PL embedding. Adds 13 bundled typeclasses (ModalTHilbert through ModalDBHilbert) and 14 opaque tag types to Foundations/Logic/ProofSystem.lean. Adds FromPropositional.lean (103 lines) providing structural embedding from PL into modal logic with semantic coherence theorem. Adds ProofSystem/Instances.lean barrel file (56 lines). Pure definitions, no proofs beyond the embedding. ~280 diff lines across 3 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 147,
+      "project_name": "subpr_2_3_derivation_deduction",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        145
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.3: Derivation trees and deduction theorem. Adds Metalogic/DerivationTree.lean (218 lines) defining Hilbert-style derivation trees parameterized over axiom predicates. Adds Metalogic/DeductionTheorem.lean (215 lines) proving the deduction theorem for modal Hilbert systems. Core proof infrastructure that all system-specific files depend on. ~433 new lines across 2 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 148,
+      "project_name": "subpr_2_4_mcs_soundness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        147
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.4: Maximal consistent sets + generic soundness framework. Adds Metalogic/MCS.lean (392 lines) constructing maximal consistent sets via Zorn's lemma with iterated deduction. Adds Metalogic/Soundness.lean (84 lines) providing the generic soundness framework for all modal systems. ~476 new lines across 2 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 149,
+      "project_name": "subpr_2_5_completeness",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        148
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.5: Generic completeness framework. Adds Metalogic/Completeness.lean (475 lines) providing the canonical model construction for modal completeness via Zorn's lemma. Mathematical centerpiece of PR 2 — the generic completeness infrastructure that all 15 system-specific completeness proofs instantiate. ~475 new lines in 1 file.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 150,
+      "project_name": "subpr_2_6_k_system",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        146,
+        149
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.6: K soundness and completeness. Adds ProofSystem/Instances/K.lean (112 lines) defining KAxiom inductive and HilbertK InferenceSystem instance. Adds Systems/K/Soundness.lean (82 lines) and Systems/K/Completeness.lean (301 lines). Base modal system K — establishes the pattern for all subsequent system PRs. ~495 new lines across 3 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 151,
+      "project_name": "subpr_2_7_t_b_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        150
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.7: T and B soundness and completeness. T (reflexive frames): Instances/T.lean (124), Systems/T/Soundness.lean (89), Systems/T/Completeness.lean (105). B (symmetric frames): Instances/B.lean (124), Systems/B/Soundness.lean (90), Systems/B/Completeness.lean (98). Both are simple single-axiom extensions of K. Slightly over 500-line limit (~630 lines) but closely related systems. ~630 new lines across 6 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 152,
+      "project_name": "subpr_2_8_d_system",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        150
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.8: D soundness and completeness. Adds Instances/D.lean (125), Systems/D/Soundness.lean (90), Systems/D/Completeness.lean (428). Serial frames — the D completeness proof is the largest individual completeness proof. Over 500-line limit (~643 lines) but logically indivisible. ~643 new lines across 3 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 153,
+      "project_name": "subpr_2_9_s4_s5_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        151
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.9: S4 and S5 soundness and completeness. S4 (reflexive+transitive): Instances/S4.lean (137), Systems/S4/Soundness.lean (106), Systems/S4/Completeness.lean (115). S5 (equivalence relations): Instances/S5.lean (111), Systems/S5/Soundness.lean (103), Systems/S5/Completeness.lean (94). S5 extends S4 — natural dependency chain. Over 500-line limit (~666 lines) but logically grouped. ~666 new lines across 6 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 154,
+      "project_name": "subpr_2_10_k4_k5_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        150
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.10: K4 and K5 soundness and completeness. K4 (transitive): Instances/K4.lean (124), Systems/K4/Soundness.lean (97), Systems/K4/Completeness.lean (107). K5 (Euclidean): Instances/K5.lean (125), Systems/K5/Soundness.lean (91), Systems/K5/Completeness.lean (93). Both are single-axiom extensions of K with related frame properties. Over 500-line limit (~637 lines) but logically grouped. ~637 new lines across 6 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 155,
+      "project_name": "subpr_2_11_k45_kb5_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        151,
+        154
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.11: K45 and KB5 soundness and completeness. K45 (transitive+Euclidean): Instances/K45.lean (139), Systems/K45/Soundness.lean (109), Systems/K45/Completeness.lean (117). KB5 (symmetric+Euclidean): Instances/KB5.lean (139), Systems/KB5/Soundness.lean (116), Systems/KB5/Completeness.lean (121). Both involve axiom 5; K45 extends K4 and KB5 extends B. Over 500-line limit (~741 lines) but mathematically related. ~741 new lines across 6 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 156,
+      "project_name": "subpr_2_12_d4_d5_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        152
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.12: D4 and D5 soundness and completeness. D4 (serial+transitive): Instances/D4.lean (139), Systems/D4/Soundness.lean (103), Systems/D4/Completeness.lean (118). D5 (serial+Euclidean): Instances/D5.lean (140), Systems/D5/Soundness.lean (104), Systems/D5/Completeness.lean (119). Both are serial + single-axiom extensions. Over 500-line limit (~723 lines) but logically grouped. ~723 new lines across 6 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 157,
+      "project_name": "subpr_2_13_d45_db_systems",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        152,
+        156
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.13: D45 and DB soundness and completeness. D45 (serial+transitive+Euclidean): Instances/D45.lean (153), Systems/D45/Soundness.lean (115), Systems/D45/Completeness.lean (130). DB (serial+symmetric): Instances/DB.lean (139), Systems/DB/Soundness.lean (103), Systems/DB/Completeness.lean (119). Both are serial double-axiom extensions. D45 extends D4. Over 500-line limit (~759 lines) but logically grouped. ~759 new lines across 6 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
+    },
+    {
+      "project_number": 158,
+      "project_name": "subpr_2_14_tb_barrels",
+      "status": "not_started",
+      "task_type": "lean4",
+      "topic": "Submit PRs",
+      "dependencies": [
+        151,
+        153,
+        155,
+        157
+      ],
+      "created": "2026-06-12T02:00:00Z",
+      "last_updated": "2026-06-12T02:00:00Z",
+      "description": "Sub-PR 2.14: TB system + barrel files. TB (reflexive+symmetric): Instances/TB.lean (138), Systems/TB/Soundness.lean (107), Systems/TB/Completeness.lean (129). Also adds Metalogic.lean barrel (55 lines) aggregating all core metalogic + system imports. Includes final Cslib.lean import updates. Last sub-PR in the chain. ~485 new lines across 4 files.",
+      "session_id": "sess_1781205592_c62b5b",
+      "next_artifact_number": 1,
+      "artifacts": []
     }
   ],
   "repository_health": {
