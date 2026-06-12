@@ -439,14 +439,22 @@
     {
       "project_number": 138,
       "project_name": "subpr_1_1_1_proposition_refactor",
-      "status": "researching",
+      "status": "researched",
       "task_type": "lean4",
       "topic": "Submit PRs",
       "dependencies": [],
       "created": "2026-06-12T00:15:00Z",
-      "last_updated": "2026-06-12T00:04:40Z",
+      "last_updated": "2026-06-12T00:10:52Z",
       "description": "Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.",
-      "session_id": "sess_1781222669_77774c"
+      "session_id": "sess_1781222669_77774c",
+      "researched": "2026-06-12T00:10:52Z",
+      "artifacts": [
+        {
+          "path": "specs/138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md",
+          "type": "report",
+          "summary": "Research report for Sub-PR 1.1.1 proposition refactor to Lukasiewicz convention"
+        }
+      ]
     },
     {
       "project_number": 139,

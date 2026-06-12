@@ -40,7 +40,7 @@ next_project_number: 145
   └─ 62 [NOT STARTED] — pr4_temporal_metalogic_core
     └─ 63 [NOT STARTED] — pr5_chronicle_infrastructure
       └─ 64 [NOT STARTED] — pr6_completeness_theorem
-138 [RESEARCHING] — Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introdu
+138 [RESEARCHED] — Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introdu
   └─ 127 [NOT STARTED] — Sub-PR 1.3: Propositional semantics (bivalent + Kripke). Introduc
     └─ 130 [NOT STARTED] — Sub-PR 1.6: Classical soundness and completeness. Proves classica
       └─ 131 [NOT STARTED] — Sub-PR 1.7: Intuitionistic soundness and completeness via Kripke 
@@ -133,10 +133,11 @@ next_project_number: 145
 ---
 
 ### 138. Subpr 1 1 1 proposition refactor
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Task Type**: lean4
 - **Topic**: Submit PRs
 - **Dependencies**: None
+- **Research**: [138_subpr_1_1_1_proposition_refactor/reports/01_proposition-refactor.md]
 
 **Description**: Sub-PR 1.1.1: Proposition type to Lukasiewicz convention. Introduces Connectives.lean (98 lines), refactors Defs.lean to bot/imp primitives with derived connectives, updates NaturalDeduction/Basic.lean (3 rules replacing 8). Includes Zulip topic creation before PR submission. Adds ChagrovZakharyaschev1997 to references.bib. ~302 diff lines across 6 files.
 
