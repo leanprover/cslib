@@ -11,7 +11,7 @@ next_project_number: 166
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,62,127,139,146,147,160,165 | -- | Bimodal Porting, Submit PRs, Syntactic Sugar |
+| 1 | 36,37,62,127,139,146,147,160 | -- | Bimodal Porting, Submit PRs |
 | 2 | 39,40,63,140,148,161 | 36,37,62,139,147,160 | Submit PRs, Temporal Logic |
 | 3 | 41,64,141,149,162 | 39,40,63,140,148,161 | Submit PRs, Foundations |
 | 4 | 128,129,142,150 | 141,146,149 | Submit PRs |
@@ -78,10 +78,6 @@ next_project_number: 166
     └─ 162 [NOT STARTED] — Sub-PR 3.4: Temporal proof system instances. Adds Instances.lean  (see above)
   └─ 163 [NOT STARTED] — Sub-PR 3.5: Temporal semantics and PL embedding. Adds Model.lean  (see above)
 
-### Syntactic Sugar
-
-165 [PLANNED] — Survey Foundations/, Propositional/, Modal/, and Tense/ (Temporal
-
 ### Temporal Logic
 
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
@@ -94,7 +90,7 @@ next_project_number: 166
 ## Tasks
 
 ### 165. Syntactic sugar survey and refactor
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: cslib
 - **Topic**: Syntactic Sugar
 - **Dependencies**: None

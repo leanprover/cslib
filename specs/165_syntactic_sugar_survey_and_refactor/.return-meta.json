@@ -1,5 +1,27 @@
 {
-  "status": "in_progress",
-  "partial_progress": {"stage": "phase-9b", "details": "Temporal Metalogic large files"},
-  "metadata": {"session_id": "sess_1749820000_165ph9b", "agent_type": "cslib-implementation-agent"}
+  "status": "implemented",
+  "started_at": "2026-06-12T00:00:00Z",
+  "completed_at": "2026-06-12T12:00:00Z",
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/165_syntactic_sugar_survey_and_refactor/summaries/01_syntactic-sugar-refactor-summary.md"
+    }
+  ],
+  "verification": {
+    "verification_passed": true,
+    "sorry_count": 0,
+    "vacuous_count": 0,
+    "axiom_count": 18,
+    "build_passed": true,
+    "ci_pipeline_passed": true,
+    "notes": "lake test passes (8976 jobs). lake build, checkInitImports, lint-style all pass. Pre-existing lint errors in PointInsertion.lean unrelated to task."
+  },
+  "metadata": {
+    "session_id": "sess_1749820000_165final",
+    "agent_type": "cslib-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "skill-cslib-implementation"],
+    "compliance_check": "passed"
+  }
 }
