@@ -46,55 +46,58 @@ Please review/merge #635 first. Until #635 lands, this PR's branch carries #635'
 the diff below shows those foundation files as well; once #635 is merged the diff reduces to
 the two files listed under "File-by-file".
 
-## What the file provides
-
-### Core formula type (lines 1–119)
-- `Formula` inductive with `{atom, bot, imp, untl, snce}`, deriving `DecidableEq` and `BEq`.
-- Derived propositional connectives: `neg`, `top`, `or`, `and`, `iff` (Łukasiewicz encoding).
-- Derived temporal operators: `someFuture`, `allFuture`, `somePast`, `allPast`.
-- Scoped notation: `¬ ∧ ∨ → ↔ U S 𝐅 𝐆 𝐏 𝐇`.
-- `TemporalConnectives`, `Bot`, `Top` instances.
-
-### Countability (lines 138–234)
-- `encodeNat`: Cantor-pairing encoding of formulas into `ℕ`.
-- `encodeNat_injective`: the encoding is injective (explicit induction, no `decide` oracle).
-- `Countable`, `Infinite`, `Denumerable` instances.
-
-### BEq laws (lines 236–310)
-- `ReflBEq` and `LawfulBEq` instances for `Formula`.
-
-### Structural measures (lines 312–383)
-- `complexity`: pattern-aware structural complexity that recognises derived operators
-  (F, G, P, H, next, prev, release, trigger) and assigns them overhead 1.
-- `temporalDepth`: maximum nesting depth of `untl`/`snce`.
-- `countImplications`: implication count for proof-search heuristics.
-
-### Additional derived operators (lines 385–449)
-- `next`/`prev` (X/Y), `weakFuture`/`weakPast` (G'/H'), `always`/`sometimes` (△/▽),
-  `release`/`trigger` (R/T), `weakUntil`/`weakSince` (W/WS),
-  `strongRelease`/`strongTrigger` (M/ST).
-
-### Swap temporal duality (lines 451–525)
-- `swapTemporal`: exchanges `untl ↔ snce` recursively.
-- `swapTemporal_involution`: applying twice gives identity.
-- Exchange theorems for all derived operators (someFuture↔somePast, allFuture↔allPast,
-  next↔prev, strongRelease↔strongTrigger).
-- `swapTemporal_neg`: distributes over negation.
-
-### Predicates and atom collection (lines 527–582)
-- `needsPositiveHypotheses`: classifies formulas for proof-system propagation.
-- `atoms`: collects propositional atoms as a `Finset`.
-- `atoms_swapTemporal`: swapping preserves the atom set.
-
 ## File-by-file change summary
 
 ### Cslib.lean
 - Adds `public import Cslib.Logics.Temporal.Syntax.Formula` (alphabetical position).
 
 ### Cslib/Logics/Temporal/Syntax/Formula.lean (new, 582 lines)
-- Full temporal formula type with primitives, derived connectives, countability/BEq instances,
-  structural measures, derived operators, swap-temporal duality, and atom collection.
-  See "What the file provides" above for section breakdown.
+
+**Inductive and derived connectives.** The `Formula` inductive has five constructors (`atom`,
+`bot`, `imp`, `untl`, `snce`), deriving `DecidableEq` and `BEq`. All other connectives are
+`abbrev`s that unfold by `rfl`:
+
+| Connective | Definition | Notation |
+|------------|------------|----------|
+| `neg φ` | `imp φ bot` | `¬` |
+| `top` | `imp bot bot` | (via `Top` instance) |
+| `or φ ψ` | `imp (neg φ) ψ` | `∨` |
+| `and φ ψ` | `neg (imp φ (neg ψ))` | `∧` |
+| `iff φ ψ` | `(imp φ ψ).and (imp ψ φ)` | `↔` |
+| `someFuture φ` | `untl φ top` | `𝐅` |
+| `allFuture φ` | `neg (someFuture (neg φ))` | `𝐆` |
+| `somePast φ` | `snce φ top` | `𝐏` |
+| `allPast φ` | `neg (somePast (neg φ))` | `𝐇` |
+
+Registers `TemporalConnectives`, `Bot`, and `Top` instances.
+
+**Countability.** `Countable`, `Infinite`, and `Denumerable` instances for `Formula Atom`,
+established via a Cantor-pairing encoding (`encodeNat`) with an explicit injectivity proof
+(`encodeNat_injective`).
+
+**BEq laws.** `ReflBEq` and `LawfulBEq` instances, proved by structural induction on the
+five constructors.
+
+**Structural measures.** Three recursive functions for proof-search and complexity analysis:
+- `complexity`: connective count, pattern-aware for derived operators (e.g. `𝐅 φ` counts as
+  1 rather than 4).
+- `temporalDepth`: maximum nesting of `untl`/`snce`.
+- `countImplications`: heuristic for proof search.
+
+**Extended derived operators.** The full temporal operator vocabulary beyond the four core
+derived operators: `next`/`prev` (X/Y), `release`/`trigger` (R/T, duals of until/since),
+`weakUntil`/`weakSince` (W/WS), `strongRelease`/`strongTrigger` (M/ST),
+`weakFuture`/`weakPast` (G'/H'), `always`/`sometimes` (△/▽).
+
+**Swap temporal duality.** `swapTemporal` exchanges `untl ↔ snce` recursively, giving the
+temporal duality rule. Key results:
+- `swapTemporal_involution`: applying twice gives identity.
+- Exchange theorems: `someFuture ↔ somePast`, `allFuture ↔ allPast`, `next ↔ prev`,
+  `strongRelease ↔ strongTrigger`.
+- `atoms_swapTemporal`: swapping preserves the atom set.
+
+**Proof-system support.** `needsPositiveHypotheses` classifies formulas for propagation rules,
+and `atoms` collects propositional atoms as a `Finset`.
 
 ## AI Disclosure
 
