@@ -85,7 +85,7 @@ next_project_number: 166
 
 ### Syntactic Sugar
 
-165 [NOT STARTED] — syntactic_sugar_survey_and_refactor
+165 [RESEARCHED] — syntactic_sugar_survey_and_refactor
 
 ### Foundations
 
@@ -94,10 +94,11 @@ next_project_number: 166
 ## Tasks
 
 ### 165. Syntactic sugar survey and refactor
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: cslib
 - **Topic**: Syntactic Sugar
 - **Dependencies**: None
+- **Research**: [165_syntactic_sugar_survey_and_refactor/reports/01_team-research.md]
 
 ---
 
