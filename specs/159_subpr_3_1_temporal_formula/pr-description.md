@@ -1,3 +1,5 @@
+# feat(Logics/Temporal): temporal logic formula type with primitives and derived operators
+
 ## Summary
 
 Introduces the temporal logic formula type `Temporal.Formula` with primitives
