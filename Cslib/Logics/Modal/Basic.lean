@@ -204,16 +204,22 @@ abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=
 abbrev TheoryEq (m : Model World Atom) (w₁ w₂ : World) :=
   theory m w₁ = theory m w₂
 
-theorem TheoryEq.ext_iff : TheoryEq m w₁ w₂ ↔ (∀ φ, φ ∈ theory m w₁ ↔ φ ∈ theory m w₂) := by
-  grind
+theorem TheoryEq.ext_iff : TheoryEq m w₁ w₂ ↔ (∀ φ, φ ∈ theory m w₁ ↔ φ ∈ theory m w₂) :=
+  Set.ext_iff
 
 /-- Any proposition satisfied by a world is in the theory of that world. -/
 @[scoped grind →]
-theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := by grind
+theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := h
 
 /-- If two worlds are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
-    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ neg_satisfies]
+    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by
+  rw [TheoryEq.ext_iff] at h
+  push Not at h
+  obtain ⟨φ, h⟩ := h
+  rcases h with ⟨h1, h2⟩ | ⟨h1, h2⟩
+  · exact ⟨φ, h1, h2⟩
+  · exact ⟨¬φ, neg_satisfies.mpr h1, fun h3 => neg_satisfies.mp h3 h2⟩
 
 /-- If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
 well. -/
