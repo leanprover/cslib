@@ -76,7 +76,7 @@ theorem imp_right_mem_subformulas (ψ χ : Formula Atom) :
 
 /-- Subformulas of allPast include the inner formula. -/
 theorem allPast_inner_mem_subformulas (ψ : Formula Atom) :
-    ψ ∈ subformulas (Formula.allPast ψ) := by
+    ψ ∈ subformulas (𝐇ψ) := by
   -- allPast ψ = imp (snce (imp ψ bot) (imp bot bot)) bot  [¬P(¬ψ) = ¬(¬ψ S ⊤) in Burgess]
   simp only [subformulas, List.mem_cons, List.mem_append]
   right; left; right; left; right; left
@@ -84,7 +84,7 @@ theorem allPast_inner_mem_subformulas (ψ : Formula Atom) :
 
 /-- Subformulas of allFuture include the inner formula. -/
 theorem allFuture_inner_mem_subformulas (ψ : Formula Atom) :
-    ψ ∈ subformulas (Formula.allFuture ψ) := by
+    ψ ∈ subformulas (𝐆ψ) := by
   -- allFuture ψ = imp (untl (imp ψ bot) (imp bot bot)) bot  [¬F(¬ψ) = ¬(¬ψ U ⊤) in Burgess]
   simp only [subformulas, List.mem_cons, List.mem_append]
   right; left; right; left; right; left
@@ -141,27 +141,27 @@ theorem subformulas_trans {chi psi phi : Formula Atom}
 
 /-- Left side of implication is in subformulas of the implication. -/
 theorem mem_subformulas_of_imp_left {ψ χ phi : Formula Atom}
-    (h : Formula.imp ψ χ ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_left : ψ ∈ subformulas (Formula.imp ψ χ) := imp_left_mem_subformulas ψ χ
+    (h : (ψ → χ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_left : ψ ∈ subformulas (ψ → χ) := imp_left_mem_subformulas ψ χ
   exact subformulas_trans h_left h
 
 /-- Right side of implication is in subformulas of the implication. -/
 theorem mem_subformulas_of_imp_right {ψ χ phi : Formula Atom}
-    (h : Formula.imp ψ χ ∈ subformulas phi) : χ ∈ subformulas phi := by
-  have h_right : χ ∈ subformulas (Formula.imp ψ χ) := imp_right_mem_subformulas ψ χ
+    (h : (ψ → χ) ∈ subformulas phi) : χ ∈ subformulas phi := by
+  have h_right : χ ∈ subformulas (ψ → χ) := imp_right_mem_subformulas ψ χ
   exact subformulas_trans h_right h
 
 /-- Inner formula of allPast is in subformulas. -/
 theorem mem_subformulas_of_allPast {ψ phi : Formula Atom}
-    (h : (Formula.allPast ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_inner : ψ ∈ subformulas (Formula.allPast ψ) :=
+    (h : (𝐇ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_inner : ψ ∈ subformulas (𝐇ψ) :=
     allPast_inner_mem_subformulas ψ
   exact subformulas_trans h_inner h
 
 /-- Inner formula of allFuture is in subformulas. -/
 theorem mem_subformulas_of_allFuture {ψ phi : Formula Atom}
-    (h : (Formula.allFuture ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
-  have h_inner : ψ ∈ subformulas (Formula.allFuture ψ) :=
+    (h : (𝐆ψ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
+  have h_inner : ψ ∈ subformulas (𝐆ψ) :=
     allFuture_inner_mem_subformulas ψ
   exact subformulas_trans h_inner h
 
@@ -195,22 +195,22 @@ theorem snce_right_mem_subformulas (ψ χ : Formula Atom) :
 
 /-- Left of untl is in subformulas. -/
 theorem mem_subformulas_of_untl_left {ψ χ phi : Formula Atom}
-    (h : Formula.untl ψ χ ∈ subformulas phi) : ψ ∈ subformulas phi := by
+    (h : (ψ U χ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
   exact subformulas_trans (untl_left_mem_subformulas ψ χ) h
 
 /-- Right of untl is in subformulas. -/
 theorem mem_subformulas_of_untl_right {ψ χ phi : Formula Atom}
-    (h : Formula.untl ψ χ ∈ subformulas phi) : χ ∈ subformulas phi := by
+    (h : (ψ U χ) ∈ subformulas phi) : χ ∈ subformulas phi := by
   exact subformulas_trans (untl_right_mem_subformulas ψ χ) h
 
 /-- Left of snce is in subformulas. -/
 theorem mem_subformulas_of_snce_left {ψ χ phi : Formula Atom}
-    (h : Formula.snce ψ χ ∈ subformulas phi) : ψ ∈ subformulas phi := by
+    (h : (ψ S χ) ∈ subformulas phi) : ψ ∈ subformulas phi := by
   exact subformulas_trans (snce_left_mem_subformulas ψ χ) h
 
 /-- Right of snce is in subformulas. -/
 theorem mem_subformulas_of_snce_right {ψ χ phi : Formula Atom}
-    (h : Formula.snce ψ χ ∈ subformulas phi) : χ ∈ subformulas phi := by
+    (h : (ψ S χ) ∈ subformulas phi) : χ ∈ subformulas phi := by
   exact subformulas_trans (snce_right_mem_subformulas ψ χ) h
 
 end Formula

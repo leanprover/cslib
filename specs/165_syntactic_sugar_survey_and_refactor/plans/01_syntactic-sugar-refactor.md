@@ -323,28 +323,28 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 8: Refactor Temporal/Syntax, Semantics, ProofSystem, Theorems [NOT STARTED]
+### Phase 8: Refactor Temporal/Syntax, Semantics, ProofSystem, Theorems [COMPLETED]
 
 **Goal**: Replace raw constructors in Temporal definition, syntax, semantics, proof system, and theorem files with `→ ∧ ∨ ¬ ⊥ □ ◇ U S` and temporal operator notation (`F G P H`).
 
 **Tasks**:
-- [ ] Refactor `Cslib/Logics/Temporal/Syntax/Formula.lean` -- core definitions (~30 occurrences); preserve abbrev sites, pattern-match arms, and deep structural matches in `complexity`/`encodeNat`
-- [ ] Refactor `Cslib/Logics/Temporal/Syntax/Context.lean` (~15 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Syntax/BigConj.lean` (~20 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Syntax/Subformulas.lean` (~25 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Semantics/Model.lean` (~10 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Semantics/Satisfies.lean` (~20 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Semantics/Validity.lean` (~10 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/ProofSystem.lean` -- umbrella (~5 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/ProofSystem/Axioms.lean` -- 26 axiom schemas (~50 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/ProofSystem/Derivation.lean` (~15 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/ProofSystem/Derivable.lean` (~15 occurrences)
-- [ ] **Skip** `Cslib/Logics/Temporal/ProofSystem/Instances.lean` -- namespace conflict with single-letter temporal operators
-- [ ] Refactor `Cslib/Logics/Temporal/Theorems.lean` -- umbrella (~5 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Theorems/TemporalDerived.lean` (~30 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/Theorems/FrameConditions.lean` (~20 occurrences)
-- [ ] Refactor `Cslib/Logics/Temporal/FromPropositional.lean` -- only if namespace allows; skip if cross-namespace conflict (~10 occurrences)
-- [ ] Run `lake build` after each file
+- [x] Refactor `Cslib/Logics/Temporal/Syntax/Formula.lean` -- replaced def bodies for weakFuture/weakPast/always/sometimes/release/trigger/weakUntil/weakSince/strongRelease/strongTrigger; skipped abbrev bodies, pattern match arms, simp tactic args, congrArg₂ calls
+- [x] Refactor `Cslib/Logics/Temporal/Syntax/Context.lean` *(deviation: skipped -- 0 occurrences)*
+- [x] Refactor `Cslib/Logics/Temporal/Syntax/BigConj.lean` -- all occurrences are in pattern match arms or `rfl` theorem statements; no safe replacements
+- [x] Refactor `Cslib/Logics/Temporal/Syntax/Subformulas.lean` -- replaced in theorem type positions: allPast/allFuture/imp/untl/snce in set membership hypotheses
+- [x] Refactor `Cslib/Logics/Temporal/Semantics/Model.lean` *(deviation: skipped -- 0 occurrences)*
+- [x] Refactor `Cslib/Logics/Temporal/Semantics/Satisfies.lean` -- replaced Formula.neg/someFuture/somePast/allFuture/allPast in theorem type positions
+- [x] Refactor `Cslib/Logics/Temporal/Semantics/Validity.lean` -- replaced 1 Formula.neg in theorem type position
+- [x] Refactor `Cslib/Logics/Temporal/ProofSystem.lean` *(deviation: skipped -- 0 occurrences)*
+- [x] Refactor `Cslib/Logics/Temporal/ProofSystem/Axioms.lean` *(deviation: skipped -- all occurrences are in inductive constructor return types)*
+- [x] Refactor `Cslib/Logics/Temporal/ProofSystem/Derivation.lean` *(deviation: skipped -- 0 occurrences)*
+- [x] Refactor `Cslib/Logics/Temporal/ProofSystem/Derivable.lean` *(deviation: skipped -- 0 occurrences)*
+- [x] **Skip** `Cslib/Logics/Temporal/ProofSystem/Instances.lean` -- namespace conflict with single-letter temporal operators
+- [x] Refactor `Cslib/Logics/Temporal/Theorems.lean` *(deviation: skipped -- 0 occurrences)*
+- [x] Refactor `Cslib/Logics/Temporal/Theorems/TemporalDerived.lean` *(deviation: skipped -- directory does not exist; Theorems.lean is a single file)*
+- [x] Refactor `Cslib/Logics/Temporal/Theorems/FrameConditions.lean` *(deviation: skipped -- directory does not exist)*
+- [x] Refactor `Cslib/Logics/Temporal/FromPropositional.lean` *(deviation: skipped -- cross-namespace conflict: in Cslib.Logic not Cslib.Logic.Temporal, scoped notations not active)*
+- [x] Run `lake build` after each file
 
 **Timing**: 1.5 hours
 

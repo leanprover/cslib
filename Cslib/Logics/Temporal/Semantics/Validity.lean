@@ -187,7 +187,7 @@ theorem valid_modus_ponens {φ ψ : Formula Atom}
 
 /-- A satisfiable formula's negation is not valid. -/
 theorem satisfiable_not_valid_neg {φ : Formula Atom}
-    (h : Satisfiable φ) : ¬ Valid (Formula.neg φ) := by
+    (h : Satisfiable φ) : ¬ Valid (¬φ) := by
   intro h_valid
   obtain ⟨D, hord, hnt, M, t, h_sat⟩ := h
   have h_neg := @h_valid D hord hnt M t

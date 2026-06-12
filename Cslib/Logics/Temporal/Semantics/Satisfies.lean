@@ -111,7 +111,7 @@ theorem snce_iff (M : TemporalModel D Atom) (t : D)
 /-- Negation: ¬φ holds iff φ does not hold. -/
 theorem neg_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.neg φ) ↔ ¬ Satisfies M t φ := by
+    Satisfies M t (¬φ) ↔ ¬ Satisfies M t φ := by
   simp only [Satisfies]
 
 /-- Top (⊤) is true everywhere. -/
@@ -125,7 +125,7 @@ theorem top_true (M : TemporalModel D Atom) (t : D) :
 /-- Some future (F φ): there exists a future time where φ holds. -/
 theorem someFuture_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.someFuture φ) ↔
+    Satisfies M t (𝐅φ) ↔
       ∃ s, t < s ∧ Satisfies M s φ := by
   simp only [Satisfies]
   constructor
@@ -137,7 +137,7 @@ theorem someFuture_iff (M : TemporalModel D Atom) (t : D)
 /-- Some past (P φ): there exists a past time where φ holds. -/
 theorem somePast_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.somePast φ) ↔
+    Satisfies M t (𝐏φ) ↔
       ∃ s, s < t ∧ Satisfies M s φ := by
   simp only [Satisfies]
   constructor
@@ -149,7 +149,7 @@ theorem somePast_iff (M : TemporalModel D Atom) (t : D)
 /-- All future (G φ): φ holds at all future times. -/
 theorem allFuture_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.allFuture φ) ↔
+    Satisfies M t (𝐆φ) ↔
       ∀ s, t < s → Satisfies M s φ := by
   simp only [Satisfies]
   constructor
@@ -162,7 +162,7 @@ theorem allFuture_iff (M : TemporalModel D Atom) (t : D)
 /-- All past (H φ): φ holds at all past times. -/
 theorem allPast_iff (M : TemporalModel D Atom) (t : D)
     (φ : Formula Atom) :
-    Satisfies M t (Formula.allPast φ) ↔
+    Satisfies M t (𝐇φ) ↔
       ∀ s, s < t → Satisfies M s φ := by
   simp only [Satisfies]
   constructor
