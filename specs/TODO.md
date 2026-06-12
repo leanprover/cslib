@@ -11,9 +11,9 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 36,37,38,60,61,127,139 | -- | Temporal Logic, Bimodal Porting, Submit PRs |
+| 1 | 36,37,60,61,127,139 | -- | Bimodal Porting, Submit PRs |
 | 2 | 39,40,62,140 | 36,37,61,139 | Temporal Logic, Submit PRs |
-| 3 | 41,63,141 | 38,39,40,62,140 | Submit PRs, Foundations |
+| 3 | 41,63,141 | 39,40,62,140 | Submit PRs, Foundations |
 | 4 | 64,128,129,142 | 63,141 | Submit PRs |
 | 5 | 126,143 | 142 | Submit PRs |
 | 6 | 130,133,144 | 126,127,143 | Submit PRs |
@@ -23,7 +23,6 @@ next_project_number: 145
 
 ### Temporal Logic
 
-38 [IMPLEMENTING] — Dense temporal completeness: prove that every formula valid on al
 39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
 40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
 
@@ -406,7 +405,7 @@ Estimated scope: ~500-700 lines (new axioms + discrete soundness + discrete comp
 ---
 
 ### 38. Temporal dense completeness
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: lean4
 - **Topic**: Temporal Logic
 - **Dependencies**: None

@@ -11,36 +11,22 @@ public import Cslib.Logics.Temporal.Metalogic.Completeness
 
 /-! # Dense Completeness for Temporal Logic
 
-This module proves completeness of the Dense temporal proof system: every formula
-valid on all dense serial linear orders is derivable in the Dense BX system.
+This module proves completeness of the Dense temporal proof system.
 
 ## Strategy
 
-The proof proceeds by contrapositive, building on the existing Base chronicle
-construction. The key insight is that the Dense-MCS starting point A ensures
-`¬U(⊤, ⊥)` propagates to ALL limit points via C4/C4' arguments, giving
-`DenselyOrdered` for the chronicle subtype WITHOUT FC-parameterization.
-
-### Propagation of ¬U(⊤, ⊥)
-
-1. `limitF(0) = A` is Dense-MCS, so `¬U(⊤, ⊥) ∈ A`.
-2. For `x > 0`: `G(¬U(⊤, ⊥)) ∈ A = limitF(0)`, equivalently
-   `¬U(U(⊤, ⊥), ⊤) ∈ limitF(0)`. If `U(⊤, ⊥) ∈ limitF(x)`, C4 at (0, x)
-   gives `z` with `0 < z < x` and `⊥ ∈ limitF(z)`, contradicting Base-MCS.
-3. For `x < 0`: `H(¬U(⊤, ⊥)) ∈ A`, equivalently `¬S(U(⊤, ⊥), ⊤) ∈ limitF(0)`.
-   If `U(⊤, ⊥) ∈ limitF(x)`, C4' at (0, x) gives `z` with `x < z < 0` and
-   `⊥ ∈ limitF(z)`, contradicting Base-MCS.
+Uses the existing Base chronicle construction with a Dense-MCS starting point.
+The key is showing `neg U(top, bot)` belongs to ALL limit points, enabling
+DenselyOrdered via C4. For forward points (x > 0), a direct C4 argument at
+(0, x) works. For backward points (x < 0), the truth lemma provides the bridge:
+`H(neg U(top, bot))` in the starting MCS implies satisfaction at all past points,
+which by the truth lemma gives membership.
 
 ## Main Results
 
-- `dense_indicator_in_all_limit_points`: `¬U(⊤, ⊥) ∈ limitF(x)` for all x.
-- `chronicle_densely_ordered_dense`: DenselyOrdered for ChronicleSubtype from Dense-MCS.
-- `completeness_dense`: ValidDense φ → ThDerivableFc .Dense φ.
-
-## References
-
-- Burgess (1982): BX axiom system
-- Xu (1988): Temporal completeness proofs
+- `dense_indicator_in_all_limit_points`: neg U(top, bot) in limitF(x) for all x.
+- `chronicle_densely_ordered_dense`: DenselyOrdered for chronicle from Dense-MCS.
+- `completeness_dense`: ValidDense phi -> ThDerivableFc .Dense phi.
 -/
 
 set_option linter.style.setOption false
@@ -52,6 +38,7 @@ set_option maxHeartbeats 3200000
 namespace Cslib.Logic.Temporal
 
 open Cslib.Logic
+open Cslib.Logic.Temporal.Metalogic
 open Cslib.Logic.Temporal.Metalogic.Chronicle
 
 variable {Atom : Type*}
@@ -60,142 +47,135 @@ attribute [local instance] Classical.propDecidable
 
 /-! ## Dense Axiom Membership in Dense-MCS -/
 
-/-- The dense indicator ¬U(⊤, ⊥) belongs to every Dense-MCS. -/
+/-- neg U(top, bot) belongs to every Dense-MCS. -/
 theorem dense_indicator_in_dense_mcs
     {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A) :
     (Formula.untl Formula.top Formula.bot).neg ∈ A :=
-  theoremInMcsFc h_mcs
-    (.axiom [] _ .dense_indicator (le_refl _))
+  theoremInMcsFc h_mcs (.axiom [] _ .dense_indicator (le_refl _))
 
-/-- G(¬U(⊤, ⊥)) belongs to every Dense-MCS (by temporal necessitation). -/
+/-- G(neg U(top, bot)) belongs to every Dense-MCS (temporal necessitation). -/
 theorem g_dense_indicator_in_dense_mcs
     {A : Set (Formula Atom)}
     (h_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A) :
-    Formula.allFuture (Formula.untl Formula.top Formula.bot).neg ∈ A :=
+    (Formula.untl Formula.top Formula.bot).neg.allFuture ∈ A :=
   theoremInMcsFc h_mcs
-    (.temporal_necessitation _
-      (.axiom [] _ .dense_indicator (le_refl _)))
+    (.temporal_necessitation _ (.axiom [] _ .dense_indicator (le_refl _)))
 
-/-- ¬U(U(⊤, ⊥), ⊤) belongs to every Dense-MCS.
-This is the syntactic form of G(¬U(⊤, ⊥)). -/
-theorem neg_until_until_in_dense_mcs
-    {A : Set (Formula Atom)}
-    (h_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A) :
-    (Formula.untl (Formula.untl Formula.top Formula.bot) Formula.top).neg ∈ A := by
-  -- G(phi) = neg(F(neg phi)) = neg(U(neg phi, top))
-  -- G(neg U(top, bot)) = neg(U(neg(neg U(top, bot)), top)) = neg(U(U(top, bot), top))
-  exact g_dense_indicator_in_dense_mcs h_mcs
-
-/-- H(¬U(⊤, ⊥)) belongs to every Dense-MCS.
-Derived via temporal duality: swap(¬U(⊤, ⊥)) = ¬S(⊤, ⊥),
-then G(¬S(⊤, ⊥)) by necessitation, then swap gives H(¬U(⊤, ⊥)). -/
-theorem h_dense_indicator_in_dense_mcs
-    {A : Set (Formula Atom)}
-    (h_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A) :
-    Formula.allPast (Formula.untl Formula.top Formula.bot).neg ∈ A := by
-  -- We need H(neg U(top, bot)).
-  -- Step 1: ⊢[Dense] neg U(top, bot) (dense_indicator)
-  -- Step 2: ⊢[Dense] swap(neg U(top, bot)) = neg S(top, bot) (temporal_duality)
-  -- Step 3: ⊢[Dense] G(neg S(top, bot)) (temporal_necessitation)
-  -- Step 4: ⊢[Dense] swap(G(neg S(top, bot))) = H(swap(neg S(top, bot)))
-  --       = H(neg U(top, bot)) (temporal_duality, swap involution)
-  have d1 : DerivationTree FrameClass.Dense ([] : Context Atom)
-      (Formula.untl Formula.top Formula.bot).neg :=
-    .axiom [] _ .dense_indicator (le_refl _)
-  have d2 := DerivationTree.temporal_duality _ d1
-  have d3 := DerivationTree.temporal_necessitation _ d2
-  have d4 := DerivationTree.temporal_duality _ d3
-  -- d4 : swap(G(swap(neg U(top, bot))))
-  -- swap(neg U(top, bot)) = neg S(top, bot)
-  -- G(neg S(top, bot)) = neg F(S(top, bot)) = neg U(S(top, bot), top)
-  -- swap(neg U(S(top, bot), top)) = neg S(U(top, bot), top) = H(neg U(top, bot))
-  -- which is allPast(neg U(top, bot)).
-  -- Need to show the type matches.
-  have h_eq : ((Formula.untl Formula.top Formula.bot).neg.swapTemporal.allFuture).swapTemporal
-      = Formula.allPast (Formula.untl Formula.top Formula.bot).neg := by
-    simp only [Formula.allFuture, Formula.allPast, Formula.someFuture, Formula.somePast,
-      Formula.neg, Formula.top, Formula.swapTemporal, Formula.swapTemporal_involution]
-  exact theoremInMcsFc h_mcs (h_eq ▸ d4)
-
-/-- ¬S(U(⊤, ⊥), ⊤) belongs to every Dense-MCS.
-This is the syntactic form of H(¬U(⊤, ⊥)). -/
-theorem neg_since_until_in_dense_mcs
-    {A : Set (Formula Atom)}
-    (h_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A) :
-    (Formula.snce (Formula.untl Formula.top Formula.bot) Formula.top).neg ∈ A := by
-  exact h_dense_indicator_in_dense_mcs h_mcs
-
-/-! ## Propagation of ¬U(⊤, ⊥) to All Limit Points -/
+/-! ## Propagation of neg U(top, bot) to All Limit Points -/
 
 variable [Denumerable (Formula Atom)]
 
-/-- ¬U(⊤, ⊥) belongs to limitF(x) for all x in the limit domain.
+/-- neg U(top, bot) in limitF(x) for all x in the limit domain.
 
-For x = 0: limitF(0) = A which is Dense-MCS.
-For x > 0: G(¬U(⊤, ⊥)) ∈ limitF(0) gives ¬U(U(⊤,⊥), ⊤) ∈ limitF(0).
-  If U(⊤,⊥) ∈ limitF(x), C4 at (0,x) gives z with ⊥ ∈ limitF(z), contradiction.
-For x < 0: H(¬U(⊤, ⊥)) ∈ limitF(0) gives ¬S(U(⊤,⊥), ⊤) ∈ limitF(0).
-  If U(⊤,⊥) ∈ limitF(x), C4' at (0,x) gives z with ⊥ ∈ limitF(z), contradiction.
--/
+For x = 0: limitF(0) = A is Dense-MCS containing neg U(top, bot).
+For x > 0: G(neg U(top, bot)) in limitF(0). If U(top, bot) in limitF(x),
+  derive neg neg U(top, bot) in limitF(x) by DNI. Then C4 at (0, x) with
+  neg U(neg neg U(top, bot), top) in limitF(0) and neg neg U(top, bot) in limitF(x)
+  gives z with top.neg in limitF(z), contradicting Base-MCS (since top.neg = neg top
+  and top in every MCS, giving bot in MCS).
+For x < 0: Use the truth lemma. G(neg U(top, bot)) in A = limitF(0)
+  implies neg U(top, bot) satisfied at all future times in the chronicle model.
+  But for PAST times, we use H(neg U(top, bot)) in A, which is Dense-derivable
+  (via temporal duality and necessitation). By the truth lemma:
+  H(neg U(top, bot)) satisfied at t0 implies neg U(top, bot) satisfied at all
+  t < t0, which by truth lemma gives neg U(top, bot) in limitF(x) for x < 0. -/
 theorem dense_indicator_in_all_limit_points
     {A : Set (Formula Atom)}
     (h_dense_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A)
     (h_base_mcs : Temporal.SetMaximalConsistent A)
     (x : Rat) (hx : x ∈ limitDom A h_base_mcs) :
     (Formula.untl Formula.top Formula.bot).neg ∈ limitF A h_base_mcs x := by
-  -- Get the Base-MCS at x
   have h_mcs_x := limit_c0 A h_base_mcs x hx
-  -- Case split on x
   rcases lt_trichotomy x 0 with hx_neg | hx_zero | hx_pos
-  · -- Case x < 0: Use C4' from 0 to show U(top, bot) ∉ limitF(x)
-    by_contra h_not_neg
-    -- If neg U(top, bot) ∉ limitF(x), then U(top, bot) ∈ limitF(x) by negation completeness
-    have h_until : Formula.untl Formula.top Formula.bot ∈ limitF A h_base_mcs x :=
-      (mcs_mem_iff_neg_not_mem h_mcs_x).mpr h_not_neg
-    -- H(neg U(top, bot)) ∈ A = limitF(0), equivalently neg S(U(top, bot), top) ∈ limitF(0)
-    have h0 := zero_mem_limit_dom A h_base_mcs
-    have h_f_zero : limitF A h_base_mcs 0 = A := limit_f_zero A h_base_mcs
-    have h_neg_since : (Formula.snce (Formula.untl Formula.top Formula.bot) Formula.top).neg
-        ∈ limitF A h_base_mcs 0 := by
-      rw [h_f_zero]; exact neg_since_until_in_dense_mcs h_dense_mcs
-    -- Apply C4' at (0, x) with hyx : x < 0
-    -- C4' takes (x y : Rat) with hx, hy ∈ limitDom, hyx : y < x
-    -- neg S(eta, xi) ∈ limitF(x) and eta ∈ limitF(y) => exists z between
-    -- Here: x_c4 = 0, y_c4 = x, so y_c4 < x_c4 = 0 (i.e., x < 0)
-    -- neg S(U(top, bot), top) ∈ limitF(0) and U(top, bot) ∈ limitF(x)
-    obtain ⟨z, hz_dom, hxz, hz0, h_neg_top_z⟩ :=
-      limit_satisfies_c4' A h_base_mcs 0 x h0 hx hx_neg
-        Formula.top (Formula.untl Formula.top Formula.bot)
-        h_neg_since h_until
-    -- h_neg_top_z : (neg top) ∈ limitF(z), i.e., (top → bot) ∈ limitF(z)
-    -- With top ∈ limitF(z) (all MCS contain top), modus ponens gives bot ∈ limitF(z)
-    have h_mcs_z := limit_c0 A h_base_mcs z hz_dom
-    have h_top_z : Formula.top ∈ limitF A h_base_mcs z := by
-      apply temporal_closed_under_derivation h_mcs_z (L := []) (fun _ h => nomatch h)
-      unfold temporalDerivationSystem Temporal.Deriv
-      exact ⟨.axiom [] _ (.efq Formula.bot) trivial⟩
-    exact mcs_bot_not_mem h_mcs_z
-      (temporal_implication_property h_mcs_z h_neg_top_z h_top_z)
-  · -- Case x = 0: limitF(0) = A is Dense-MCS
+  · -- Case x < 0: Use truth lemma with H(neg U(top, bot)) in A.
+    -- Step 1: H(neg U(top, bot)) is Dense-derivable.
+    -- Derivation: dense_indicator -> swap -> G -> swap = H by swap-G-swap = H identity.
+    -- But syntactically this gives H(neg U(top,bot)) = neg S(neg neg U(top,bot), top).
+    -- By truth lemma at t0: Satisfies model t0 (H(neg U(top, bot))).
+    -- Since x < 0 = t0.val, we get Satisfies model (x, hx) (neg U(top, bot)).
+    -- By truth lemma: neg U(top, bot) in limitF(x).
+    let nub := (Formula.untl (Atom := Atom) Formula.top Formula.bot).neg
+    let model := chronicleModel A h_base_mcs
+    let t₀ : ChronicleSubtype A h_base_mcs := chronicleZero A h_base_mcs
+    -- H(neg U(top, bot)) in A
+    -- Build derivation: swap -> G -> swap starting from dense_indicator
+    have d_ind : DerivationTree FrameClass.Dense ([] : Context Atom) nub :=
+      .axiom [] _ .dense_indicator (le_refl _)
+    have d_swap := DerivationTree.temporal_duality _ d_ind  -- swap(nub)
+    have d_g := DerivationTree.temporal_necessitation _ d_swap  -- G(swap(nub))
+    have d_h := DerivationTree.temporal_duality _ d_g  -- swap(G(swap(nub))) = H(nub)
+    -- Put H(nub) in A (as Dense-MCS member)
+    have h_h_nub_in_A := theoremInMcsFc h_dense_mcs d_h
+    -- The type of d_h is: swap(G(swap(nub))).
+    -- By truth lemma at t0: this formula is satisfied at t0 in the chronicle model.
+    -- Since limitF(0) = A and h_h_nub_in_A is membership in A = limitF(0):
+    have h_zero_mem : nub.swapTemporal.allFuture.swapTemporal ∈ limitF A h_base_mcs 0 := by
+      rw [limit_f_zero]; exact h_h_nub_in_A
+    have h_sat_h := (chronicle_truth_lemma A h_base_mcs t₀
+        nub.swapTemporal.allFuture.swapTemporal).mpr h_zero_mem
+    -- Now I need to convert this satisfaction to satisfaction of H(nub).
+    -- swap(G(swap(nub))) is satisfied iff H(nub) is satisfied (semantically).
+    -- Actually, by swapTemporal_dual, swap(phi) satisfaction = phi in dual model.
+    -- Let me instead use the allPast_iff characterization.
+    -- H(nub) = neg P(neg nub) = allPast(nub).
+    -- Satisfaction of allPast(nub) means: for all s < t0, nub satisfied at s.
+    -- But d_h has syntactic type swap(G(swap(nub))), not allPast(nub).
+    -- These are propositionally equal formulas. Let me show:
+    -- swap(G(swap(nub))) = allPast(nub) = H(nub) as Formula.
+    -- allPast(phi) = neg(snce(neg phi, top))
+    -- swap(G(swap(phi))):
+    --   swap(phi) = swap_phi
+    --   G(swap_phi) = neg(untl(neg swap_phi, top))
+    --   swap(neg(untl(neg swap_phi, top))) = neg(snce(swap(neg swap_phi), top))
+    --     = neg(snce(neg(swap(swap_phi)), top)) = neg(snce(neg phi, top)) [by involution]
+    --     = allPast(phi).
+    -- So swap(G(swap(phi))) = allPast(phi). But this requires swap involution to fire.
+    -- In Lean, swap(swap(phi)) reduces to phi by Formula.swapTemporal_involution.
+    have h_eq_form : nub.swapTemporal.allFuture.swapTemporal = nub.allPast := by
+      -- Need: swap(G(swap(nub))) = allPast(nub) = neg(snce(neg nub, top))
+      -- G(swap(nub)) = neg(untl(neg(swap(nub)), top))
+      -- swap(neg(untl(neg(swap(nub)), top))) = neg(snce(swap(neg(swap(nub))), top))
+      --   = neg(snce(neg(swap(swap(nub))), top))
+      -- Now swap(swap(nub)) = nub by involution.
+      -- So = neg(snce(neg nub, top)) = allPast(nub).
+      simp only [Formula.allFuture, Formula.allPast, Formula.somePast,
+        Formula.neg, Formula.top, Formula.swapTemporal, Formula.swapTemporal_involution]
+    -- Rewrite h_sat_h to use allPast
+    rw [h_eq_form] at h_zero_mem
+    have h_sat_hp := (chronicle_truth_lemma A h_base_mcs t₀ nub.allPast).mpr h_zero_mem
+    -- allPast satisfaction: for all s < t0, nub satisfied at s.
+    rw [Satisfies.allPast_iff] at h_sat_hp
+    -- Apply at the point x: ⟨x, hx⟩ < t₀ = ⟨0, _⟩ since x < 0
+    have h_sat_x := h_sat_hp ⟨x, hx⟩ hx_neg
+    -- By truth lemma backward: nub in limitF(x).
+    exact (chronicle_truth_lemma A h_base_mcs ⟨x, hx⟩ nub).mp h_sat_x
+  · -- Case x = 0: limitF(0) = A
     subst hx_zero
     rw [limit_f_zero]
     exact dense_indicator_in_dense_mcs h_dense_mcs
-  · -- Case x > 0: Use C4 from 0 to show U(top, bot) ∉ limitF(x)
+  · -- Case x > 0: C4 argument.
     by_contra h_not_neg
-    have h_until : Formula.untl Formula.top Formula.bot ∈ limitF A h_base_mcs x :=
-      (mcs_mem_iff_neg_not_mem h_mcs_x).mpr h_not_neg
-    -- G(neg U(top, bot)) ∈ A = limitF(0), equivalently neg U(U(top, bot), top) ∈ limitF(0)
+    have h_until := (mcs_mem_iff_neg_not_mem h_mcs_x).mpr h_not_neg
+    -- U(top, bot) in limitF(x). Derive neg neg U(top, bot) by DNI.
+    let utb := Formula.untl (Atom := Atom) Formula.top Formula.bot
+    have h_dblneg_until : utb.neg.neg ∈ limitF A h_base_mcs x := by
+      have d_dni := deductionTheorem [] utb utb.neg.neg
+        (deductionTheorem [utb] utb.neg Formula.bot
+          (.modus_ponens [utb.neg, utb] utb Formula.bot
+            (.assumption _ utb.neg (by simp))
+            (.assumption _ utb (by simp))))
+      exact temporal_implication_property h_mcs_x
+        (theoremInMcs h_mcs_x d_dni) h_until
     have h0 := zero_mem_limit_dom A h_base_mcs
-    have h_f_zero : limitF A h_base_mcs 0 = A := limit_f_zero A h_base_mcs
-    have h_neg_until : (Formula.untl (Formula.untl Formula.top Formula.bot) Formula.top).neg
-        ∈ limitF A h_base_mcs 0 := by
-      rw [h_f_zero]; exact neg_until_until_in_dense_mcs h_dense_mcs
-    obtain ⟨z, hz_dom, h0z, hzx, h_neg_top_z⟩ :=
+    -- G(neg U(top, bot)) = neg U(neg neg U(top, bot), top) in limitF(0)
+    have h_g := g_dense_indicator_in_dense_mcs h_dense_mcs
+    have h_neg_until_g : utb.neg.allFuture ∈ limitF A h_base_mcs 0 := by
+      rw [limit_f_zero]; exact h_g
+    -- C4 at (0, x) with eta = neg neg utb, xi = top
+    obtain ⟨z, hz_dom, _, _, h_neg_top_z⟩ :=
       limit_satisfies_c4 A h_base_mcs 0 x h0 hx hx_pos
-        Formula.top (Formula.untl Formula.top Formula.bot)
-        h_neg_until h_until
-    -- h_neg_top_z : (neg top) ∈ limitF(z)
+        Formula.top utb.neg.neg h_neg_until_g h_dblneg_until
     have h_mcs_z := limit_c0 A h_base_mcs z hz_dom
     have h_top_z : Formula.top ∈ limitF A h_base_mcs z := by
       apply temporal_closed_under_derivation h_mcs_z (L := []) (fun _ h => nomatch h)
@@ -208,9 +188,9 @@ theorem dense_indicator_in_all_limit_points
 
 /-- The chronicle subtype built from a Dense-MCS is DenselyOrdered.
 
-For any x < y in the chronicle subtype, `¬U(⊤, ⊥) ∈ limitF(x)` and
-`⊤ ∈ limitF(y)`. By limit_satisfies_c4, there exists z with x < z < y
-and `⊥.neg = ⊤ ∈ limitF(z)`, providing the intermediate point. -/
+For any x < y, neg U(top, bot) in limitF(x) and top in limitF(y).
+By limit_satisfies_c4, there exists z with x < z < y. -/
+@[reducible]
 def chronicle_densely_ordered_dense
     {A : Set (Formula Atom)}
     (h_dense_mcs : Temporal.SetMaximalConsistentFc FrameClass.Dense A)
@@ -218,18 +198,13 @@ def chronicle_densely_ordered_dense
     DenselyOrdered (ChronicleSubtype A h_base_mcs) where
   dense := by
     intro ⟨x, hx⟩ ⟨y, hy⟩ hxy
-    -- hxy : x < y (as elements of the subtype)
     have hxy_val : x < y := hxy
-    -- neg U(top, bot) ∈ limitF(x)
     have h_neg_until := dense_indicator_in_all_limit_points h_dense_mcs h_base_mcs x hx
-    -- top ∈ limitF(y)
     have h_mcs_y := limit_c0 A h_base_mcs y hy
     have h_top_y : Formula.top ∈ limitF A h_base_mcs y := by
       apply temporal_closed_under_derivation h_mcs_y (L := []) (fun _ h => nomatch h)
       unfold temporalDerivationSystem Temporal.Deriv
       exact ⟨.axiom [] _ (.efq Formula.bot) trivial⟩
-    -- Apply C4: neg U(top, bot) ∈ limitF(x), top ∈ limitF(y), x < y
-    -- => exists z with x < z < y and bot.neg = top ∈ limitF(z)
     obtain ⟨z, hz_dom, hxz, hzy, _⟩ :=
       limit_satisfies_c4 A h_base_mcs x y hx hy hxy_val
         Formula.bot Formula.top h_neg_until h_top_y
@@ -237,8 +212,7 @@ def chronicle_densely_ordered_dense
 
 /-! ## Dense Completeness Theorem -/
 
-omit [Denumerable (Formula Atom)] in
-/-- If φ is not Dense-derivable, then {¬φ} is Dense-consistent. -/
+/-- If phi is not Dense-derivable, then {neg phi} is Dense-consistent. -/
 theorem neg_consistent_of_not_derivable_dense
     {φ : Formula Atom} (h_not : ¬ Temporal.ThDerivableFc FrameClass.Dense φ) :
     Temporal.SetConsistentFc FrameClass.Dense ({Formula.neg φ} : Set (Formula Atom)) := by
@@ -270,19 +244,9 @@ theorem neg_consistent_of_not_derivable_dense
 
 /-- **Dense Completeness Theorem for Temporal Logic**:
 
-If `φ` is valid over all dense serial linear temporal orders (linear orders with
-`NoMaxOrder`, `NoMinOrder`, and `DenselyOrdered`), then `φ` is Dense-derivable.
-
-The proof proceeds by contrapositive:
-1. If φ is not Dense-derivable, then {¬φ} is Dense-consistent.
-2. Extend to Dense-MCS M via temporal_lindenbaum_fc.
-3. M is also Base-MCS by dense_mcs_implies_base_mcs.
-4. Build chronicle from Base-MCS M using existing construction.
-5. Chronicle subtype has LinearOrder, Nontrivial, NoMaxOrder, NoMinOrder.
-6. Chronicle subtype has DenselyOrdered via ¬U(⊤,⊥) propagation + C4.
-7. Apply ValidDense to get φ ∈ limitF(0) = M, contradicting ¬φ ∈ M. -/
-omit [Denumerable (Formula Atom)] in
-theorem completeness_dense [Denumerable (Formula Atom)] {φ : Formula Atom}
+If phi is valid over all dense serial linear temporal orders, then phi is
+Dense-derivable in the BX+Dense proof system. -/
+theorem completeness_dense {φ : Formula Atom}
     (h_valid : ValidDense φ) :
     Temporal.ThDerivableFc FrameClass.Dense φ := by
   by_contra h_not_deriv
@@ -290,22 +254,15 @@ theorem completeness_dense [Denumerable (Formula Atom)] {φ : Formula Atom}
   obtain ⟨M, hM_sup, hM_mcs⟩ := temporal_lindenbaum_fc h_cons
   have h_neg_in_M : Formula.neg φ ∈ M := hM_sup (Set.mem_singleton _)
   have h_phi_not_M : φ ∉ M := mcs_not_mem_of_neg_fc hM_mcs h_neg_in_M
-  -- M is Dense-MCS, hence also Base-MCS
   have h_base_mcs := dense_mcs_implies_base_mcs hM_mcs
-  -- Build the chronicle countermodel from the Base-MCS M.
   let D := ChronicleSubtype M h_base_mcs
   let model := chronicleModel M h_base_mcs
   let t₀ : D := chronicleZero M h_base_mcs
-  -- D has DenselyOrdered from Dense-MCS + C4 propagation
   have : DenselyOrdered D := chronicle_densely_ordered_dense hM_mcs h_base_mcs
-  -- Apply validity: φ is true at t₀ in the chronicle model.
   have h_sat := h_valid D model t₀
-  -- By the truth lemma: Satisfies model t₀ φ ↔ φ ∈ limitF M h_base_mcs t₀.val
   have h_mem := (chronicle_truth_lemma M h_base_mcs t₀ φ).mp h_sat
-  -- t₀.val = 0 and limitF(0) = M, so φ ∈ M.
   have h_zero : t₀.val = 0 := rfl
   rw [h_zero, limit_f_zero] at h_mem
-  -- Contradiction: φ ∈ M but φ ∉ M.
   exact h_phi_not_M h_mem
 
 end Cslib.Logic.Temporal

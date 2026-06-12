@@ -372,7 +372,9 @@ public import Cslib.Logics.Temporal.Metalogic.Chronicle.TruthLemma
 public import Cslib.Logics.Temporal.Metalogic.Completeness
 public import Cslib.Logics.Temporal.Metalogic.CompletenessHelpers
 public import Cslib.Logics.Temporal.Metalogic.DeductionTheorem
+public import Cslib.Logics.Temporal.Metalogic.DenseCompleteness
 public import Cslib.Logics.Temporal.Metalogic.DenseMCS
+public import Cslib.Logics.Temporal.Metalogic.DenseSoundness
 public import Cslib.Logics.Temporal.Metalogic.DerivationTree
 public import Cslib.Logics.Temporal.Metalogic.GeneralizedNecessitation
 public import Cslib.Logics.Temporal.Metalogic.MCS

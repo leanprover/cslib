@@ -1,7 +1,7 @@
 # Implementation Plan: Dense Temporal Completeness
 
 - **Task**: 38 - Dense temporal completeness
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 8 hours
 - **Dependencies**: None (independent of bimodal dense completeness task 36)
 - **Research Inputs**: specs/038_temporal_dense_completeness/reports/01_dense-completeness-research.md
@@ -149,7 +149,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: DenselyOrdered Instance for Chronicle Subtype [IN PROGRESS]
+### Phase 4: DenselyOrdered Instance for Chronicle Subtype [COMPLETED]
 
 **Goal**: Prove that when the starting MCS `A` is a Dense-MCS, the chronicle subtype `{x : Rat // x in limitDom}` is `DenselyOrdered`.
 
@@ -311,7 +311,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Dense Completeness Theorem [NOT STARTED]
+### Phase 5: Dense Completeness Theorem [COMPLETED]
 
 **Goal**: Assemble the dense completeness theorem: `ValidDense phi -> ThDerivableFc .Dense phi`.
 
