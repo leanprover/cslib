@@ -11,7 +11,7 @@ public import Mathlib.Data.Set.CoeSort
 public import Mathlib.Logic.Relation
 public import Mathlib.Order.Basic
 
-/-! # Relations
+/-! # Relations: Definitions
 
 ## References
 

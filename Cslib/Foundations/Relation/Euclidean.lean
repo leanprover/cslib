@@ -10,11 +10,15 @@ public import Cslib.Foundations.Relation.Domain
 public import Mathlib.Data.Fintype.EquivFin
 public import Mathlib.Tactic.TFAE
 
-/-! # Relations
+/-! # Relations: Euclidean Relations
+
+This module proves basic properties about left and right Euclidean relations, which are use
+in modal logic.
+
+TODO: develop an attribute to dualize theorems to the converse of a relation
 
 ## References
 
-* [*Term Rewriting and All That*][Baader1998]
 * [*Simple Laws about Nonprominent Properties of Binary Relations*][Burghardt2018]
 
 -/

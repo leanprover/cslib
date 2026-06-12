@@ -11,12 +11,9 @@ public import Lean.Elab.Command
 public import Mathlib.Util.Notation3
 public import Mathlib.Logic.Relation
 
-/-! # Relations
+/-! # Relations: Attributes
 
-## References
-
-* [*Term Rewriting and All That*][Baader1998]
-* [*Simple Laws about Nonprominent Properties of Binary Relations*][Burghardt2018]
+This module defines the `reduction_sys` attribute used for creating relation notations.
 
 -/
 

@@ -9,11 +9,12 @@ module
 public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Basic
 
-/-! # Relations
+/-! # Relations: Domain and Codomain
+
+This module proves basic properties of the domain and codomain of relations.
 
 ## References
 
-* [*Term Rewriting and All That*][Baader1998]
 * [*Simple Laws about Nonprominent Properties of Binary Relations*][Burghardt2018]
 
 -/
