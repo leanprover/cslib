@@ -210,7 +210,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: CI Verification and PR 1 Preparation [NOT STARTED]
+### Phase 4: CI Verification and PR 1 Preparation [COMPLETED]
 
 **Goal**: Run the full CSLib CI pipeline and prepare the fork-only PR.
 
@@ -223,8 +223,8 @@ Phases within the same wave can execute in parallel.
 - [ ] Run `lake shake --add-public --keep-implied --keep-prefix` (import minimization check)
 - [ ] Fix any lint or style issues introduced by the refactoring
 - [ ] Verify no `sorry` or vacuous definitions were introduced
-- [ ] Create feature branch `refactor/modal-directory-pr1`
-- [ ] Commit with message: `refactor(Modal): split Instances.lean and organize Metalogic/Systems/`
+- [ ] **Task 4.9**: Create feature branch `refactor/modal-directory-pr1` *(deviation: skipped -- branch/PR creation is user work per plan notes)*
+- [ ] **Task 4.10**: Commit with message: `refactor(Modal): split Instances.lean and organize Metalogic/Systems/` *(deviation: skipped -- PR commit is user work; phase commits made instead)*
 
 **Timing**: 30 minutes
 
@@ -240,7 +240,14 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Restore LogicalEquivalence.lean from Upstream [NOT STARTED]
+### Phase 5: Restore LogicalEquivalence.lean from Upstream [BLOCKED]
+
+**BLOCKER** (Phase 5):
+- **What failed**: Upstream `LogicalEquivalence.lean` cannot compile in our fork
+- **What was tried**: Fetched file from `upstream/main`, added missing `Satisfies.iff_iff_iff` lemma to `Basic.lean`, attempted to fix `diamond` case proof
+- **Why it's stuck**: The upstream `Proposition` type has `not` as a primitive constructor (`| not (φ : Proposition Atom)`), while our fork defines negation as a derived abbreviation (`abbrev Proposition.neg (φ) := .imp φ .bot`). The upstream `LogicalEquivalence.lean` uses `Proposition.not` throughout (in `Context.fill`, constructor patterns, etc.), which doesn't exist in our fork. This is a fundamental type-level incompatibility, not a simple import fix.
+- **What is needed**: Either (a) port the fork's Proposition type to match upstream (major refactor affecting all Modal files), or (b) manually rewrite `LogicalEquivalence.lean` to use our fork's `Proposition.neg`/`.imp` encoding, or (c) defer until the next upstream merge reconciles the types.
+- **Prohibited workarounds**: Do NOT use `sorry`, `def X := True`, or any vacuous placeholder
 
 **Goal**: Bring back the missing upstream file `LogicalEquivalence.lean` to the fork's main branch.
 
@@ -268,7 +275,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 6: PR 2 Preparation and Final Verification [NOT STARTED]
+### Phase 6: PR 2 Preparation and Final Verification [BLOCKED]
 
 **Goal**: Prepare the upstream-coordination PR and run final verification.
 
