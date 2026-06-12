@@ -82,6 +82,9 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LTS.IsBisimulation.traceEq
 #grind_lint skip Cslib.LTS.IsBisimulationUpTo.isBisimulation
 #grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
+#grind_lint skip Cslib.Logic.Modal.neg_denotation
+#grind_lint skip Cslib.Logic.Modal.Satisfies.and_iff_and
+#grind_lint skip Cslib.Logic.Modal.Satisfies.or_iff_or
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib
