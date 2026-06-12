@@ -53,17 +53,17 @@ def IntDCCS (S : Set (PL.Proposition Atom)) : Prop :=
 
 /-- `⊥ ∉ S` for any IntDCCS `S`. -/
 theorem int_dccs_bot_not_mem {S : Set (PL.Proposition Atom)}
-    (h : IntDCCS S) : Proposition.bot ∉ S := by
+    (h : IntDCCS S) : (⊥ : PL.Proposition Atom) ∉ S := by
   intro h_bot
-  exact h.1 [Proposition.bot]
+  exact h.1 [⊥]
     (fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_bot)
     ((propDerivationSystem IntPropAxiom).assumption (List.mem_cons.mpr (Or.inl rfl)))
 
 /-- Modus ponens closure: if `φ → ψ ∈ S` and `φ ∈ S`, then `ψ ∈ S`. -/
 theorem int_dccs_imp_property {S : Set (PL.Proposition Atom)}
     (h : IntDCCS S) {φ ψ : PL.Proposition Atom}
-    (h_imp : φ.imp ψ ∈ S) (h_phi : φ ∈ S) : ψ ∈ S := by
-  apply h.2 [φ.imp ψ, φ] ψ
+    (h_imp : (φ → ψ) ∈ S) (h_phi : φ ∈ S) : ψ ∈ S := by
+  apply h.2 [(φ → ψ), φ] ψ
   · intro x hx
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
     rcases hx with rfl | rfl <;> assumption
@@ -121,7 +121,7 @@ theorem int_deriv_from_closure_to_S {S : Set (PL.Proposition Atom)}
     have hd_dt := prop_has_deduction_theorem int_h_implyK int_h_implyS hd
     -- IH on L' with formula (a → φ): get L_imp ⊆ S with L_imp ⊢ a → φ
     obtain ⟨L_imp, hL_imp_sub, hL_imp_deriv⟩ :=
-      ih (fun x hx => hL x (List.mem_cons.mpr (Or.inr hx))) (a.imp φ) hd_dt
+      ih (fun x hx => hL x (List.mem_cons.mpr (Or.inr hx))) (a → φ) hd_dt
     -- Witness for a: La ⊆ S with La ⊢ a
     obtain ⟨La, hLa_sub, hLa_deriv⟩ := hL a (List.mem_cons.mpr (Or.inl rfl))
     -- Combine: La ++ L_imp ⊆ S, La ++ L_imp ⊢ φ (by MP)
@@ -148,7 +148,7 @@ theorem int_deriv_imp_of_union
     (hd : (propDerivationSystem IntPropAxiom).Deriv L ψ) :
     ∃ L' : List (PL.Proposition Atom),
       (∀ x ∈ L', x ∈ S) ∧
-      (propDerivationSystem IntPropAxiom).Deriv L' (φ.imp ψ) := by
+      (propDerivationSystem IntPropAxiom).Deriv L' (φ → ψ) := by
   obtain ⟨d⟩ := hd
   -- Weaken to φ :: L, then DT gives L ⊢ φ → ψ
   have d_ext := DerivationTree.weakening L (φ :: L) ψ d
@@ -156,7 +156,7 @@ theorem int_deriv_imp_of_union
   have d_dt := deductionTheorem int_h_implyK int_h_implyS L φ ψ d_ext
   by_cases hφL : φ ∈ L
   · -- φ ∈ L: use deductionWithMem to remove ALL occurrences of φ
-    have d_mem := deductionWithMem int_h_implyK int_h_implyS L φ (φ.imp ψ) d_dt hφL
+    have d_mem := deductionWithMem int_h_implyK int_h_implyS L φ (φ → ψ) d_dt hφL
     -- d_mem : DerivationTree (removeAll L φ) (φ → (φ → ψ))
     -- removeAll L φ ⊆ S
     have h_rem_sub : ∀ x ∈ removeAll L φ, x ∈ S := by
@@ -243,15 +243,15 @@ then the deductive closure of `S ∪ {φ}` is a DCCS `T ⊇ S` with
 `φ ∈ T` and `ψ ∉ T`. -/
 theorem int_imp_witness {S : Set (PL.Proposition Atom)}
     (h_dccs : IntDCCS S) {φ ψ : PL.Proposition Atom}
-    (h_not : φ.imp ψ ∉ S) :
+    (h_not : (φ → ψ) ∉ S) :
     ∃ T : Set (PL.Proposition Atom),
       S ⊆ T ∧ IntDCCS T ∧ φ ∈ T ∧ ψ ∉ T := by
   have h_cons_union : PropSetConsistent IntPropAxiom (S ∪ {φ}) := by
     intro L hL hd
     obtain ⟨L', hL'_sub, hL'_deriv⟩ := int_deriv_imp_of_union hL hd
-    have h_neg_phi : Proposition.neg φ ∈ S := h_dccs.2 L' _ hL'_sub hL'_deriv
-    have h_imp_psi : φ.imp ψ ∈ S := by
-      apply h_dccs.2 [Proposition.neg φ] (φ.imp ψ)
+    have h_neg_phi : (¬φ) ∈ S := h_dccs.2 L' _ hL'_sub hL'_deriv
+    have h_imp_psi : (φ → ψ) ∈ S := by
+      apply h_dccs.2 [(¬φ)] (φ → ψ)
       · intro x hx
         simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_neg_phi
       · exact intNegPhiImpPsi_deriv φ ψ

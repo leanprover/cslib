@@ -72,8 +72,8 @@ def MinTheory (S : Set (PL.Proposition Atom)) : Prop :=
 /-- Modus ponens closure: if `φ → ψ ∈ S` and `φ ∈ S`, then `ψ ∈ S`. -/
 theorem min_theory_imp_property {S : Set (PL.Proposition Atom)}
     (h : MinTheory S) {φ ψ : PL.Proposition Atom}
-    (h_imp : φ.imp ψ ∈ S) (h_phi : φ ∈ S) : ψ ∈ S := by
-  apply h [φ.imp ψ, φ] ψ
+    (h_imp : (φ → ψ) ∈ S) (h_phi : φ ∈ S) : ψ ∈ S := by
+  apply h [(φ → ψ), φ] ψ
   · intro x hx
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
     rcases hx with rfl | rfl <;> assumption
@@ -106,7 +106,7 @@ theorem min_deriv_from_closure_to_S {S : Set (PL.Proposition Atom)}
     have hd_dt := prop_has_deduction_theorem min_h_implyK min_h_implyS hd
     -- IH on L' with formula (a → φ): get L_imp ⊆ S with L_imp ⊢ a → φ
     obtain ⟨L_imp, hL_imp_sub, hL_imp_deriv⟩ :=
-      ih (fun x hx => hL x (List.mem_cons.mpr (Or.inr hx))) (a.imp φ) hd_dt
+      ih (fun x hx => hL x (List.mem_cons.mpr (Or.inr hx))) (a → φ) hd_dt
     -- Witness for a: La ⊆ S with La ⊢ a
     obtain ⟨La, hLa_sub, hLa_deriv⟩ := hL a (List.mem_cons.mpr (Or.inl rfl))
     -- Combine: La ++ L_imp ⊆ S, La ++ L_imp ⊢ φ (by MP)
@@ -133,7 +133,7 @@ theorem min_deriv_imp_of_union
     (hd : (propDerivationSystem MinPropAxiom).Deriv L ψ) :
     ∃ L' : List (PL.Proposition Atom),
       (∀ x ∈ L', x ∈ S) ∧
-      (propDerivationSystem MinPropAxiom).Deriv L' (φ.imp ψ) := by
+      (propDerivationSystem MinPropAxiom).Deriv L' (φ → ψ) := by
   obtain ⟨d⟩ := hd
   -- Weaken to φ :: L, then DT gives L ⊢ φ → ψ
   have d_ext := DerivationTree.weakening L (φ :: L) ψ d
@@ -141,7 +141,7 @@ theorem min_deriv_imp_of_union
   have d_dt := deductionTheorem min_h_implyK min_h_implyS L φ ψ d_ext
   by_cases hφL : φ ∈ L
   · -- φ ∈ L: use deductionWithMem to remove ALL occurrences of φ
-    have d_mem := deductionWithMem min_h_implyK min_h_implyS L φ (φ.imp ψ) d_dt hφL
+    have d_mem := deductionWithMem min_h_implyK min_h_implyS L φ (φ → ψ) d_dt hφL
     -- d_mem : DerivationTree (removeAll L φ) (φ → (φ → ψ))
     -- removeAll L φ ⊆ S
     have h_rem_sub : ∀ x ∈ removeAll L φ, x ∈ S := by
@@ -212,7 +212,7 @@ sub-proof is needed. The deductive closure of `S ∪ {φ}` is always a valid
 MinTheory regardless of consistency. -/
 theorem min_imp_witness {S : Set (PL.Proposition Atom)}
     (h_theory : MinTheory S) {φ ψ : PL.Proposition Atom}
-    (h_not : φ.imp ψ ∉ S) :
+    (h_not : (φ → ψ) ∉ S) :
     ∃ T : Set (PL.Proposition Atom),
       S ⊆ T ∧ MinTheory T ∧ φ ∈ T ∧ ψ ∉ T := by
   refine ⟨minDeductiveClosure (S ∪ {φ}), ?_, ?_, ?_, ?_⟩

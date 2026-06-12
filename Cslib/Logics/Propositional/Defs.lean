@@ -83,6 +83,7 @@ instance : Top (Proposition Atom) := ⟨.top⟩
 @[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
 @[inherit_doc] scoped infix:30 " → " => Proposition.imp
 @[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
+@[inherit_doc] scoped infix:20 " ↔ " => Proposition.iff
 
 /-- Register `Proposition` as an instance of `PropositionalConnectives`. -/
 instance : PropositionalConnectives (Proposition Atom) where

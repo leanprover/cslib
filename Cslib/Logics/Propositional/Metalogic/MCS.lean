@@ -85,7 +85,7 @@ theorem prop_implication_property
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
     {φ ψ : PL.Proposition Atom}
-    (h_imp : Proposition.imp φ ψ ∈ S) (h_phi : φ ∈ S) : ψ ∈ S :=
+    (h_imp : (φ → ψ) ∈ S) (h_phi : φ ∈ S) : ψ ∈ S :=
   Metalogic.SetMaximalConsistent.implication_property
     (propDerivationSystem Axioms)
     (prop_has_deduction_theorem h_implyK h_implyS)
@@ -98,7 +98,7 @@ theorem prop_negation_complete
     (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
-    (φ : PL.Proposition Atom) : φ ∈ S ∨ Proposition.neg φ ∈ S :=
+    (φ : PL.Proposition Atom) : φ ∈ S ∨ (¬φ) ∈ S :=
   Metalogic.SetMaximalConsistent.negation_complete
     (propDerivationSystem Axioms)
     (prop_has_deduction_theorem h_implyK h_implyS)
@@ -110,9 +110,9 @@ theorem prop_negation_complete
 theorem prop_mcs_bot_not_mem
     {Axioms : PL.Proposition Atom → Prop}
     {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S) :
-    Proposition.bot ∉ S := by
+    (⊥ : PL.Proposition Atom) ∉ S := by
   intro h_bot
-  exact h_mcs.1 [Proposition.bot]
+  exact h_mcs.1 [(⊥ : PL.Proposition Atom)]
     (fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_bot)
     (by simp only [propDerivationSystem, Deriv]
         exact ⟨.assumption _ _ (List.mem_cons.mpr (Or.inl rfl))⟩)
@@ -124,7 +124,7 @@ theorem prop_mcs_neg_of_not_mem
     (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
-    {φ : PL.Proposition Atom} (h_not : φ ∉ S) : Proposition.neg φ ∈ S := by
+    {φ : PL.Proposition Atom} (h_not : φ ∉ S) : (¬φ) ∈ S := by
   rcases prop_negation_complete h_implyK h_implyS h_mcs φ with h | h
   · exact absurd h h_not
   · exact h
@@ -136,7 +136,7 @@ theorem prop_mcs_not_mem_of_neg
     (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
-    {φ : PL.Proposition Atom} (h_neg : Proposition.neg φ ∈ S) : φ ∉ S := by
+    {φ : PL.Proposition Atom} (h_neg : (¬φ) ∈ S) : φ ∉ S := by
   intro h_phi
   exact prop_mcs_bot_not_mem h_mcs
     (prop_implication_property h_implyK h_implyS h_mcs h_neg h_phi)
@@ -148,7 +148,7 @@ theorem prop_mcs_mem_iff_neg_not_mem
     (h_implyS : ∀ (φ ψ χ : PL.Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (PL.Proposition Atom)} (h_mcs : PropSetMaximalConsistent Axioms S)
-    {φ : PL.Proposition Atom} : φ ∈ S ↔ Proposition.neg φ ∉ S := by
+    {φ : PL.Proposition Atom} : φ ∈ S ↔ (¬φ) ∉ S := by
   constructor
   · intro h hn
     exact prop_mcs_bot_not_mem h_mcs

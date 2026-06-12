@@ -41,6 +41,7 @@ variable {Atom : Type*}
 
 /-! ## Axiom hypotheses for PropositionalAxiom -/
 
+-- NB: `.imp` is needed here because `→` is parsed as the function arrow inside `∀`
 private def h_implyK :
     ∀ (φ ψ : PL.Proposition Atom),
     PropositionalAxiom (φ.imp (ψ.imp φ)) :=
@@ -89,8 +90,8 @@ theorem prop_truth_lemma
         h_mcs (φ.imp ψ) with h | h
       · exact h
       · exfalso
-        -- h : neg (φ.imp ψ) ∈ S
-        -- Derive φ ∈ S from neg (φ.imp ψ) ∈ S
+        -- h : ¬(φ → ψ) ∈ S
+        -- Derive φ ∈ S from ¬(φ → ψ) ∈ S
         have h_phi_S : φ ∈ S := by
           apply prop_closed_under_derivation
             h_implyK h_implyS h_mcs
@@ -144,9 +145,9 @@ theorem prop_truth_lemma
         have h_psi_S :=
           (prop_truth_lemma h_mcs ψ).mp
             (h_sat h_sat_phi)
-        -- Derive neg ψ ∈ S from neg (φ.imp ψ) ∈ S
+        -- Derive ¬ψ ∈ S from ¬(φ → ψ) ∈ S
         have h_neg_psi_S :
-            Proposition.neg ψ ∈ S := by
+            (¬ψ) ∈ S := by
           apply prop_closed_under_derivation
             h_implyK h_implyS h_mcs
             (L := [(φ.imp ψ).imp .bot])
@@ -206,7 +207,7 @@ theorem prop_completeness (φ : PL.Proposition Atom)
   by_contra h_not_deriv
   -- Show {¬φ} is consistent
   have h_cons : PropSetConsistent PropositionalAxiom
-      ({Proposition.neg φ} :
+      ({(¬φ)} :
         Set (PL.Proposition Atom)) := by
     intro L hL
     unfold Metalogic.Consistent
@@ -214,15 +215,15 @@ theorem prop_completeness (φ : PL.Proposition Atom)
     -- Weaken to [¬φ] ⊢ ⊥
     have d_weak :
         DerivationTree PropositionalAxiom
-        [Proposition.neg φ] Proposition.bot :=
-      .weakening L [Proposition.neg φ] .bot d
+        [(¬φ)] Proposition.bot :=
+      .weakening L [(¬φ)] .bot d
         (fun x hx => by
           have := Set.mem_singleton_iff.mp (hL x hx)
           exact List.mem_cons.mpr (Or.inl this))
     -- Deduction theorem: [] ⊢ ¬φ → ⊥
     have d_dne := deductionTheorem
       h_implyK h_implyS
-      [] (Proposition.neg φ) .bot d_weak
+      [] (¬φ) .bot d_weak
     -- Build [] ⊢ φ from [] ⊢ ¬φ → ⊥
     let neg_phi := Proposition.neg φ
     -- EFQ: [] ⊢ ⊥ → φ
@@ -275,12 +276,11 @@ theorem prop_completeness (φ : PL.Proposition Atom)
   obtain ⟨M, hM_sup, hM_mcs⟩ :=
     prop_lindenbaum h_cons
   -- ¬φ ∈ M
-  have h_neg : Proposition.neg φ ∈ M :=
+  have h_neg : (¬φ) ∈ M :=
     hM_sup (Set.mem_singleton _)
   -- By truth lemma (backward), Evaluate v (¬φ)
   have h_eval_neg :=
-    (prop_truth_lemma hM_mcs
-      (Proposition.neg φ)).mpr h_neg
+    (prop_truth_lemma hM_mcs (¬φ)).mpr h_neg
   -- h_taut gives Evaluate v φ -- contradiction
   exact h_eval_neg
     (h_taut (canonicalValuation M))
