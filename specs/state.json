@@ -1045,11 +1045,11 @@
     "status": "healthy"
   },
   "active_topics": [
-    "Temporal Logic",
     "Bimodal Porting",
-    "Submit PRs",
-    "Propositional Logic",
     "Modal Logic",
-    "Syntactic Sugar"
+    "Propositional Logic",
+    "Submit PRs",
+    "Syntactic Sugar",
+    "Temporal Logic"
   ]
 }

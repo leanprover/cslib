@@ -60,31 +60,31 @@ theorem k_derive_box_from_inconsistency
       Axioms ((Proposition.box (φ.imp ψ)).imp
         ((Proposition.box φ).imp (Proposition.box ψ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S)
+    {φ : Proposition Atom} (h_not_box : (□φ) ∉ S)
     {L : List (Proposition Atom)}
-    (hL : ∀ x ∈ L, x ∈ {ψ | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ})
-    (d_bot : DerivationTree Axioms L Proposition.bot) : False := by
+    (hL : ∀ x ∈ L, x ∈ {ψ | (□ψ) ∈ S} ∪ {(¬φ)})
+    (d_bot : DerivationTree Axioms L ⊥) : False := by
   classical
-  let L' := L.filter (· ≠ Proposition.neg φ)
-  have h_L'_box : ∀ ψ ∈ L', Proposition.box ψ ∈ S := by
+  let L' := L.filter (· ≠ (¬φ))
+  have h_L'_box : ∀ ψ ∈ L', (□ψ) ∈ S := by
     intro ψ hψ
     simp only [L', List.mem_filter, decide_eq_true_eq] at hψ
     rcases hL ψ hψ.1 with h | h
     · exact h
     · exact absurd h hψ.2
-  by_cases h_neg_in_L : Proposition.neg φ ∈ L
+  by_cases h_neg_in_L : (¬φ) ∈ L
   · -- Case: neg phi in L -- identical to existing code (does not use h_T)
-    have h_perm : ∀ x, x ∈ L → x ∈ Proposition.neg φ :: L' := by
+    have h_perm : ∀ x, x ∈ L → x ∈ (¬φ) :: L' := by
       intro x hx
-      by_cases hxn : x = Proposition.neg φ
+      by_cases hxn : x = (¬φ)
       · exact List.mem_cons.mpr (Or.inl hxn)
       · exact List.mem_cons.mpr (Or.inr (by
           simp only [L', List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxn⟩))
-    have d_reord := DerivationTree.weakening L (Proposition.neg φ :: L')
-      Proposition.bot d_bot h_perm
-    have d_dne := deductionTheorem h_implyK h_implyS L' (Proposition.neg φ)
-      Proposition.bot d_reord
-    let neg_phi := Proposition.neg φ
+    have d_reord := DerivationTree.weakening L ((¬φ) :: L')
+      ⊥ d_bot h_perm
+    have d_dne := deductionTheorem h_implyK h_implyS L' (¬φ)
+      ⊥ d_reord
+    let neg_phi := (¬φ)
     have efq_ax : DerivationTree Axioms L' (Proposition.bot.imp φ) :=
       .weakening [] L' _ (.ax [] _ (h_efq φ)) (fun _ h => nomatch h)
     have ik : DerivationTree Axioms L'
@@ -109,7 +109,7 @@ theorem k_derive_box_from_inconsistency
   · -- Case: neg phi NOT in L -- K-SPECIFIC FIX (BRV Lemma 4.20)
     -- All elements of L have box-versions in S.
     -- From L |- bot, derive L |- phi via EFQ, then box-lift to get box phi in S.
-    have h_all_box : ∀ x ∈ L, Proposition.box x ∈ S := by
+    have h_all_box : ∀ x ∈ L, (□x) ∈ S := by
       intro x hx
       rcases hL x hx with h | h
       · exact h
@@ -141,10 +141,10 @@ theorem k_mcs_box_witness
       Axioms ((Proposition.box (φ.imp ψ)).imp
         ((Proposition.box φ).imp (Proposition.box ψ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S) :
+    {φ : Proposition Atom} (h_not_box : (□φ) ∉ S) :
     ∃ T : Set (Proposition Atom), SetMaximalConsistent Axioms T ∧
-      (∀ ψ, Proposition.box ψ ∈ S → ψ ∈ T) ∧ φ ∉ T := by
-  let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ}
+      (∀ ψ, (□ψ) ∈ S → ψ ∈ T) ∧ φ ∉ T := by
+  let W := {ψ : Proposition Atom | (□ψ) ∈ S} ∪ {(¬φ)}
   have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
@@ -155,7 +155,7 @@ theorem k_mcs_box_witness
   refine ⟨T, hT_mcs, ?_, ?_⟩
   · intro ψ h_box
     exact hWT (Set.mem_union_left _ h_box)
-  · have h_neg : Proposition.neg φ ∈ T :=
+  · have h_neg : (¬φ) ∈ T :=
       hWT (Set.mem_union_right _ (Set.mem_singleton _))
     exact mcs_not_mem_of_neg h_implyK h_implyS hT_mcs h_neg
 
@@ -222,7 +222,7 @@ theorem k_truth_lemma
         have h_psi_S :=
           (k_truth_lemma h_implyK h_implyS h_efq h_peirce h_K S ψ).mp
             (h_sat h_sat_phi)
-        have h_neg_psi_S : Proposition.neg ψ ∈ S.val := by
+        have h_neg_psi_S : (¬ψ) ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
             (fun x hx => by

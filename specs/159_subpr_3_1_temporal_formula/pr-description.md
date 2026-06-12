@@ -101,7 +101,7 @@ and `atoms` collects propositional atoms as a `Finset`.
 
 ## AI Disclosure
 
-This PR was prepared with the assistance of Claude Code (Anthropic), used for extracting
+This PR was prepared with the assistance of Claude Code (Anthropic), used for drafting/extracting
 files from a development branch, running CI verification commands, and drafting this description.
 All Lean code was written by the author (Benjamin Brast-McKie) and verified to compile on the
 PR branch.

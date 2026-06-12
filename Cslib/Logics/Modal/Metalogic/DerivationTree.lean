@@ -137,12 +137,12 @@ def height : DerivationTree Axioms Γ φ → Nat
 /-! ## Height Properties -/
 
 theorem height_modus_ponens_left {Γ : List (Proposition Atom)} {φ ψ : Proposition Atom}
-    (d₁ : DerivationTree Axioms Γ (φ.imp ψ)) (d₂ : DerivationTree Axioms Γ φ) :
+    (d₁ : DerivationTree Axioms Γ (φ → ψ)) (d₂ : DerivationTree Axioms Γ φ) :
     d₁.height < (modus_ponens Γ φ ψ d₁ d₂).height := by
   simp [height]; omega
 
 theorem height_modus_ponens_right {Γ : List (Proposition Atom)} {φ ψ : Proposition Atom}
-    (d₁ : DerivationTree Axioms Γ (φ.imp ψ)) (d₂ : DerivationTree Axioms Γ φ) :
+    (d₁ : DerivationTree Axioms Γ (φ → ψ)) (d₂ : DerivationTree Axioms Γ φ) :
     d₂.height < (modus_ponens Γ φ ψ d₁ d₂).height := by
   simp [height]; omega
 
@@ -171,7 +171,7 @@ def Derivable (Axioms : Proposition Atom → Prop) (φ : Proposition Atom) : Pro
 
 theorem mp_deriv {Axioms : Proposition Atom → Prop}
     {Γ : List (Proposition Atom)} {φ ψ : Proposition Atom}
-    (h₁ : Deriv Axioms Γ (φ.imp ψ)) (h₂ : Deriv Axioms Γ φ) : Deriv Axioms Γ ψ := by
+    (h₁ : Deriv Axioms Γ (φ → ψ)) (h₂ : Deriv Axioms Γ φ) : Deriv Axioms Γ ψ := by
   obtain ⟨d₁⟩ := h₁; obtain ⟨d₂⟩ := h₂
   exact ⟨.modus_ponens Γ φ ψ d₁ d₂⟩
 

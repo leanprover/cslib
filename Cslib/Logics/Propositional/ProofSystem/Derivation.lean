@@ -74,7 +74,7 @@ inductive DerivationTree (Axioms : PL.Proposition Atom → Prop) :
       (h : φ ∈ Γ) : DerivationTree Axioms Γ φ
   /-- Modus ponens: from `Γ ⊢ φ → ψ` and `Γ ⊢ φ`, derive `Γ ⊢ ψ`. -/
   | modus_ponens (Γ : List (PL.Proposition Atom)) (φ ψ : PL.Proposition Atom)
-      (d₁ : DerivationTree Axioms Γ (φ.imp ψ))
+      (d₁ : DerivationTree Axioms Γ (φ → ψ))
       (d₂ : DerivationTree Axioms Γ φ) : DerivationTree Axioms Γ ψ
   /-- Weakening: from `Γ ⊢ φ` and `Γ ⊆ Δ`, derive `Δ ⊢ φ`. -/
   | weakening (Γ Δ : List (PL.Proposition Atom)) (φ : PL.Proposition Atom)
@@ -97,12 +97,12 @@ def height : DerivationTree Axioms Γ φ → Nat
 /-! ## Height Properties -/
 
 theorem height_modus_ponens_left {Γ : List (PL.Proposition Atom)} {φ ψ : PL.Proposition Atom}
-    (d₁ : DerivationTree Axioms Γ (φ.imp ψ)) (d₂ : DerivationTree Axioms Γ φ) :
+    (d₁ : DerivationTree Axioms Γ (φ → ψ)) (d₂ : DerivationTree Axioms Γ φ) :
     d₁.height < (modus_ponens Γ φ ψ d₁ d₂).height := by
   simp [height]; omega
 
 theorem height_modus_ponens_right {Γ : List (PL.Proposition Atom)} {φ ψ : PL.Proposition Atom}
-    (d₁ : DerivationTree Axioms Γ (φ.imp ψ)) (d₂ : DerivationTree Axioms Γ φ) :
+    (d₁ : DerivationTree Axioms Γ (φ → ψ)) (d₂ : DerivationTree Axioms Γ φ) :
     d₂.height < (modus_ponens Γ φ ψ d₁ d₂).height := by
   simp [height]; omega
 
@@ -131,7 +131,7 @@ def Derivable (Axioms : PL.Proposition Atom → Prop) (φ : PL.Proposition Atom)
 
 theorem mp_deriv {Axioms : PL.Proposition Atom → Prop}
     {Γ : List (PL.Proposition Atom)} {φ ψ : PL.Proposition Atom}
-    (h₁ : Deriv Axioms Γ (φ.imp ψ)) (h₂ : Deriv Axioms Γ φ) : Deriv Axioms Γ ψ := by
+    (h₁ : Deriv Axioms Γ (φ → ψ)) (h₂ : Deriv Axioms Γ φ) : Deriv Axioms Γ ψ := by
   obtain ⟨d₁⟩ := h₁; obtain ⟨d₂⟩ := h₂
   exact ⟨.modus_ponens Γ φ ψ d₁ d₂⟩
 

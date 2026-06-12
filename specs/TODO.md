@@ -12,7 +12,7 @@ next_project_number: 166
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
 | 1 | 36,37,62,127,139,146,147,160,165 | -- | Bimodal Porting, Submit PRs, Syntactic Sugar |
-| 2 | 39,40,63,140,148,161 | 36,37,62,139,147,160 | Temporal Logic, Submit PRs |
+| 2 | 39,40,63,140,148,161 | 36,37,62,139,147,160 | Submit PRs, Temporal Logic |
 | 3 | 41,64,141,149,162 | 39,40,63,140,148,161 | Submit PRs, Foundations |
 | 4 | 128,129,142,150 | 141,146,149 | Submit PRs |
 | 5 | 126,143,151,152,154,163 | 142,150,160 | Submit PRs |
@@ -21,11 +21,6 @@ next_project_number: 166
 | 8 | 158 | 151,153,155,157 | Submit PRs |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Temporal Logic
-
-39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
-40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
 
 ### Bimodal Porting
 
@@ -86,6 +81,11 @@ next_project_number: 166
 ### Syntactic Sugar
 
 165 [PLANNED] — Survey Foundations/, Propositional/, Modal/, and Tense/ (Temporal
+
+### Temporal Logic
+
+39 [NOT STARTED] — Discrete temporal completeness: prove that every formula valid on
+40 [BLOCKED] — Continuous temporal completeness: completeness for temporal logic
 
 ### Foundations
 

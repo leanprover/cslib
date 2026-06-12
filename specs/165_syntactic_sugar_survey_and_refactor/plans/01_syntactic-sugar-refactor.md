@@ -286,7 +286,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 7: Refactor Modal/Metalogic and Systems, Full Modal CI [NOT STARTED]
+### Phase 7: Refactor Modal/Metalogic and Systems, Full Modal CI [COMPLETED]
 
 **Goal**: Replace raw constructors in all Modal metalogic files (core + per-system Soundness/Completeness) and run full CI for Modal.
 

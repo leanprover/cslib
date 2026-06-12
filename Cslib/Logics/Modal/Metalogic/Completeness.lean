@@ -61,7 +61,7 @@ def CanonicalWorld (Axioms : Proposition Atom → Prop) :=
 - Valuation: `v S p <-> atom p in S`. -/
 noncomputable def CanonicalModel (Axioms : Proposition Atom → Prop) :
     Model (CanonicalWorld Axioms) Atom where
-  r := fun S T => ∀ φ, Proposition.box φ ∈ S.val → φ ∈ T.val
+  r := fun S T => ∀ φ, (□φ) ∈ S.val → φ ∈ T.val
   v := fun S p => Proposition.atom p ∈ S.val
 
 /-! ## Canonical Frame Properties -/
@@ -93,7 +93,7 @@ theorem canonical_trans
     (CanonicalModel Axioms).r S U := by
   intro hST hTU φ h_box
   have h_box_box := mcs_box_box h_implyK h_implyS h_4 S.property h_box
-  have h_box_T := hST (Proposition.box φ) h_box_box
+  have h_box_T := hST (□φ) h_box_box
   exact hTU φ h_box_T
 
 /-- The canonical accessibility relation is symmetric (from axiom B).
@@ -172,7 +172,7 @@ theorem canonical_eucl
   have h_bd := mcs_box_diamond h_implyK h_implyS h_B S.property h_neg_box
   have h_diam_T := hST _ h_bd
   have h_box_dne_not_T :
-      Proposition.box (Proposition.neg (Proposition.neg (Proposition.box φ)))
+      (□¬¬□φ)
         ∉ T.val :=
     mcs_not_mem_of_neg h_implyK h_implyS T.property h_diam_T
   let bp := Proposition.box φ
@@ -217,7 +217,7 @@ theorem canonical_eucl_from_5
   -- Step 1: neg φ ∈ U.val
   have h_neg_U := mcs_neg_of_not_mem h_implyK h_implyS U.property h_phi_not_U
   -- Step 2: diamond(neg φ) ∈ S.val (by sub-contradiction)
-  have h_diam_S : Proposition.diamond (Proposition.neg φ) ∈ S.val := by
+  have h_diam_S : (◇¬φ) ∈ S.val := by
     -- diamond(neg φ) = (box(neg(neg φ))).imp .bot = (box((φ.imp .bot).imp .bot)).imp .bot
     by_contra h_diam_not_S
     -- If diamond(neg φ) not in S, then neg(diamond(neg φ)) in S
@@ -255,9 +255,9 @@ theorem canonical_eucl_from_5
     -- then by negation_complete: box(neg neg φ) ∈ S  OR  neg(box(neg neg φ)) ∈ S
     -- Since neg(box(neg neg φ)) = diamond(neg φ) ∉ S, we get box(neg neg φ) ∈ S
     -- That gives us what we need!
-    have h_box_dne_S : Proposition.box ((φ.imp .bot).imp .bot) ∈ S.val := by
+    have h_box_dne_S : (□¬¬φ) ∈ S.val := by
       rcases modal_negation_complete h_implyK h_implyS S.property
-        (Proposition.box ((φ.imp .bot).imp .bot)) with h | h
+        (□¬¬φ) with h | h
       · exact h
       · -- h : neg(box((φ.imp .bot).imp .bot)) ∈ S.val
         -- neg(box((φ.imp .bot).imp .bot)) = (box((φ.imp .bot).imp .bot)).imp .bot
@@ -273,7 +273,7 @@ theorem canonical_eucl_from_5
       (modal_implication_property h_implyK h_implyS U.property h_dne_U h_neg_U)
   -- Step 3: axiom 5 gives box(diamond(neg φ)) ∈ S.val
   have h_box_diam_S := mcs_mp_axiom h_implyK h_implyS S.property h_diam_S
-    (h_5 (Proposition.neg φ))
+    (h_5 (¬φ))
   -- Step 4: by hST, diamond(neg φ) ∈ T.val
   have h_diam_T := hST _ h_box_diam_S
   -- Step 5: from box φ ∈ T.val, derive box(neg neg φ) ∈ T.val
@@ -379,7 +379,7 @@ theorem truth_lemma
         have h_psi_S :=
           (truth_lemma h_implyK h_implyS h_efq h_peirce h_K h_T S ψ).mp
             (h_sat h_sat_phi)
-        have h_neg_psi_S : Proposition.neg ψ ∈ S.val := by
+        have h_neg_psi_S : (¬ψ) ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
             (fun x hx => by
@@ -440,18 +440,18 @@ theorem neg_consistent_of_not_derivable
     (h_peirce : ∀ (φ ψ : Proposition Atom),
       Axioms (((φ.imp ψ).imp φ).imp φ))
     {φ : Proposition Atom} (h_not_deriv : ¬Derivable Axioms φ) :
-    SetConsistent Axioms ({Proposition.neg φ} : Set (Proposition Atom)) := by
+    SetConsistent Axioms ({(¬φ)} : Set (Proposition Atom)) := by
   intro L hL
   unfold Metalogic.Consistent
   intro ⟨d⟩
-  have d_weak : DerivationTree Axioms [Proposition.neg φ]
-      Proposition.bot :=
-    .weakening L [Proposition.neg φ] .bot d (fun x hx => by
+  have d_weak : DerivationTree Axioms [(¬φ)]
+      ⊥ :=
+    .weakening L [(¬φ)] ⊥ d (fun x hx => by
       have := hL x hx; simp only [Set.mem_singleton_iff] at this
       exact List.mem_cons.mpr (Or.inl this))
   have d_dne := deductionTheorem h_implyK h_implyS
-    [] (Proposition.neg φ) .bot d_weak
-  let neg_phi := Proposition.neg φ
+    [] (¬φ) ⊥ d_weak
+  let neg_phi := (¬φ)
   have efq_ax : DerivationTree Axioms (Atom := Atom) []
       (Proposition.bot.imp φ) :=
     .ax [] _ (h_efq φ)

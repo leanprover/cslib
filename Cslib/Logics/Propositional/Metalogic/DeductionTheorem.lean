@@ -75,7 +75,7 @@ noncomputable def deductionWithMem
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     (Γ' : List (PL.Proposition Atom)) (A φ : PL.Proposition Atom)
     (d : DerivationTree Axioms Γ' φ) (hA : A ∈ Γ') :
-    DerivationTree Axioms (removeAll Γ' A) (A.imp φ) := by
+    DerivationTree Axioms (removeAll Γ' A) (A → φ) := by
   -- Build the HasHilbertTree instance for Axioms to use generic helpers
   letI : HasHilbertTree (PL.Proposition Atom) := {
     Tree := fun Γ φ => DerivationTree Axioms Γ φ
@@ -95,7 +95,7 @@ noncomputable def deductionWithMem
     · have h_mem' : ψ ∈ removeAll Γ' A := mem_removeAll_of_mem_of_ne h_mem h_eq
       exact deductionAssumptionOther (removeAll Γ' A) A ψ h_mem'
   | .modus_ponens _ ψ χ d₁ d₂ =>
-    have ih₁ := deductionWithMem h_implyK h_implyS Γ' A (ψ.imp χ) d₁ hA
+    have ih₁ := deductionWithMem h_implyK h_implyS Γ' A (ψ → χ) d₁ hA
     have ih₂ := deductionWithMem h_implyK h_implyS Γ' A ψ d₂ hA
     exact deductionMpUnderImp (removeAll Γ' A) A ψ χ ih₁ ih₂
   | .weakening Γ'' _ ψ d' h_sub =>
@@ -103,7 +103,7 @@ noncomputable def deductionWithMem
     · have ih := deductionWithMem h_implyK h_implyS Γ'' A ψ d' hA'
       have h_sub' : ∀ x ∈ removeAll Γ'' A, x ∈ removeAll Γ' A :=
         removeAll_subset_removeAll h_sub
-      exact .weakening (removeAll Γ'' A) (removeAll Γ' A) (A.imp ψ) ih h_sub'
+      exact .weakening (removeAll Γ'' A) (removeAll Γ' A) (A → ψ) ih h_sub'
     · have h_sub' : ∀ x ∈ Γ'', x ∈ removeAll Γ' A := by
         intro x hx
         exact mem_removeAll_of_mem_of_ne (h_sub x hx) (fun h_eq => hA' (h_eq ▸ hx))
@@ -112,7 +112,7 @@ noncomputable def deductionWithMem
         .ax [] _ (h_implyK ψ A)
       have k_weak := DerivationTree.weakening [] (removeAll Γ' A) _ k_ax
         (fun _ h => nomatch h)
-      exact .modus_ponens (removeAll Γ' A) ψ (A.imp ψ) k_weak d_weak
+      exact .modus_ponens (removeAll Γ' A) ψ (A → ψ) k_weak d_weak
 termination_by d.height
 decreasing_by
   · exact DerivationTree.height_modus_ponens_left d₁ d₂
@@ -132,7 +132,7 @@ noncomputable def deductionTheorem
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     (Γ : List (PL.Proposition Atom)) (A B : PL.Proposition Atom)
     (d : DerivationTree Axioms (A :: Γ) B) :
-    DerivationTree Axioms Γ (A.imp B) := by
+    DerivationTree Axioms Γ (A → B) := by
   -- Build the HasHilbertTree instance for Axioms to use generic helpers
   letI : HasHilbertTree (PL.Proposition Atom) := {
     Tree := fun Γ φ => DerivationTree Axioms Γ φ
@@ -155,7 +155,7 @@ noncomputable def deductionTheorem
         | tail _ h => exact h
       exact deductionAssumptionOther Γ A φ h_tail
   | .modus_ponens _ φ ψ d₁ d₂ =>
-    have ih₁ := deductionTheorem h_implyK h_implyS Γ A (φ.imp ψ) d₁
+    have ih₁ := deductionTheorem h_implyK h_implyS Γ A (φ → ψ) d₁
     have ih₂ := deductionTheorem h_implyK h_implyS Γ A φ d₂
     exact deductionMpUnderImp Γ A φ ψ ih₁ ih₂
   | .weakening Γ' _ φ d' h_sub =>
@@ -165,7 +165,7 @@ noncomputable def deductionTheorem
       · have ih := deductionWithMem h_implyK h_implyS Γ' A φ d' hA
         have h_sub' : ∀ x ∈ removeAll Γ' A, x ∈ Γ :=
           removeAll_subset_of_subset h_sub hA
-        exact .weakening (removeAll Γ' A) Γ (A.imp φ) ih h_sub'
+        exact .weakening (removeAll Γ' A) Γ (A → φ) ih h_sub'
       · have h_sub' : ∀ x ∈ Γ', x ∈ Γ := by
           intro x hx
           have := h_sub x hx
@@ -178,7 +178,7 @@ noncomputable def deductionTheorem
           .ax [] _ (h_implyK φ A)
         have k_weak := DerivationTree.weakening [] Γ _ k_ax
           (fun _ h => nomatch h)
-        exact .modus_ponens Γ φ (A.imp φ) k_weak d_weak
+        exact .modus_ponens Γ φ (A → φ) k_weak d_weak
 termination_by d.height
 decreasing_by
   · exact DerivationTree.height_modus_ponens_left d₁ d₂

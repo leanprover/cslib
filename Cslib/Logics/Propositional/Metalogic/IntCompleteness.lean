@@ -89,7 +89,7 @@ theorem int_truth_lemma
       exact hψT ((int_truth_lemma T ψ).mp hf_ψ)
     · -- Backward: (φ → ψ) ∈ S.val → IForces S (φ → ψ)
       intro h_mem T hle hf_φ
-      have h_imp_T : φ.imp ψ ∈ T.val := hle h_mem
+      have h_imp_T : (φ → ψ) ∈ T.val := hle h_mem
       have h_φ_T : φ ∈ T.val := (int_truth_lemma T φ).mp hf_φ
       have h_ψ_T : ψ ∈ T.val := int_dccs_imp_property T.property h_imp_T h_φ_T
       exact (int_truth_lemma T ψ).mpr h_ψ_T

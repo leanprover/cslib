@@ -85,7 +85,7 @@ theorem modal_implication_property
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ ψ : Proposition Atom} (h_imp : Proposition.imp φ ψ ∈ S) (h_phi : φ ∈ S) :
+    {φ ψ : Proposition Atom} (h_imp : (φ → ψ) ∈ S) (h_phi : φ ∈ S) :
     ψ ∈ S :=
   Metalogic.SetMaximalConsistent.implication_property
     (modalDerivationSystem Axioms)
@@ -99,7 +99,7 @@ theorem modal_negation_complete
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    (φ : Proposition Atom) : φ ∈ S ∨ Proposition.neg φ ∈ S :=
+    (φ : Proposition Atom) : φ ∈ S ∨ (¬φ) ∈ S :=
   Metalogic.SetMaximalConsistent.negation_complete
     (modalDerivationSystem Axioms)
     (modal_has_deduction_theorem h_implyK h_implyS)
@@ -114,23 +114,23 @@ theorem mcs_mp_axiom
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ ψ : Proposition Atom} (h_mem : φ ∈ S) (h_ax : Axioms (φ.imp ψ)) :
+    {φ ψ : Proposition Atom} (h_mem : φ ∈ S) (h_ax : Axioms (φ → ψ)) :
     ψ ∈ S := by
   apply modal_closed_under_derivation h_implyK h_implyS h_mcs
     (L := [φ]) (fun x hx => by
       simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_mem)
   unfold modalDerivationSystem Deriv
   exact ⟨.modus_ponens [φ] φ ψ
-    (.weakening [] [φ] (φ.imp ψ) (.ax [] _ h_ax) (fun _ h => nomatch h))
+    (.weakening [] [φ] (φ → ψ) (.ax [] _ h_ax) (fun _ h => nomatch h))
     (.assumption [φ] φ (List.mem_cons.mpr (Or.inl rfl)))⟩
 
 /-- `bot not in S` for any MCS `S`. -/
 theorem mcs_bot_not_mem
     {Axioms : Proposition Atom → Prop}
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S) :
-    Proposition.bot ∉ S := by
+    ⊥ ∉ S := by
   intro h_bot
-  exact h_mcs.1 [Proposition.bot]
+  exact h_mcs.1 [⊥]
     (fun x hx => by simp only [List.mem_cons, List.not_mem_nil, or_false] at hx; exact hx ▸ h_bot)
     (by simp only [modalDerivationSystem, Deriv]
         exact ⟨.assumption _ _ (List.mem_cons.mpr (Or.inl rfl))⟩)
@@ -144,7 +144,7 @@ theorem mcs_box_closure
     (h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_box : Proposition.box φ ∈ S) : φ ∈ S :=
+    {φ : Proposition Atom} (h_box : (□φ) ∈ S) : φ ∈ S :=
   mcs_mp_axiom h_implyK h_implyS h_mcs h_box (h_T φ)
 
 /-- If `box phi in S` and `S` is MCS, then `box box phi in S` (using axiom 4). -/
@@ -156,8 +156,8 @@ theorem mcs_box_box
     (h_4 : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp (Proposition.box (Proposition.box φ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_box : Proposition.box φ ∈ S) :
-    Proposition.box (Proposition.box φ) ∈ S :=
+    {φ : Proposition Atom} (h_box : (□φ) ∈ S) :
+    (□□φ) ∈ S :=
   mcs_mp_axiom h_implyK h_implyS h_mcs h_box (h_4 φ)
 
 /-- If `phi in S` and `S` is MCS, then `box diamond phi in S` (using axiom B). -/
@@ -170,7 +170,7 @@ theorem mcs_box_diamond
       Axioms (φ.imp (Proposition.box (Proposition.diamond φ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {φ : Proposition Atom} (h_phi : φ ∈ S) :
-    Proposition.box (Proposition.diamond φ) ∈ S :=
+    (□◇φ) ∈ S :=
   mcs_mp_axiom h_implyK h_implyS h_mcs h_phi (h_B φ)
 
 /-- If `box(phi -> psi) in S` and `box phi in S`, then `box psi in S` (using axiom K). -/
@@ -183,8 +183,8 @@ theorem mcs_box_mp
       Axioms ((Proposition.box (φ.imp ψ)).imp
         ((Proposition.box φ).imp (Proposition.box ψ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ ψ : Proposition Atom} (h_box_imp : Proposition.box (φ.imp ψ) ∈ S)
-    (h_box_phi : Proposition.box φ ∈ S) : Proposition.box ψ ∈ S := by
+    {φ ψ : Proposition Atom} (h_box_imp : (□(φ → ψ)) ∈ S)
+    (h_box_phi : (□φ) ∈ S) : (□ψ) ∈ S := by
   have h_k := mcs_mp_axiom h_implyK h_implyS h_mcs h_box_imp (h_K φ ψ)
   exact modal_implication_property h_implyK h_implyS h_mcs h_k h_box_phi
 
@@ -197,7 +197,7 @@ theorem mcs_neg_of_not_mem
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not : φ ∉ S) : Proposition.neg φ ∈ S := by
+    {φ : Proposition Atom} (h_not : φ ∉ S) : (¬φ) ∈ S := by
   rcases modal_negation_complete h_implyK h_implyS h_mcs φ with h | h
   · exact absurd h h_not
   · exact h
@@ -209,7 +209,7 @@ theorem mcs_not_mem_of_neg
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_neg : Proposition.neg φ ∈ S) : φ ∉ S := by
+    {φ : Proposition Atom} (h_neg : (¬φ) ∈ S) : φ ∉ S := by
   intro h_phi
   exact mcs_bot_not_mem h_mcs
     (modal_implication_property h_implyK h_implyS h_mcs h_neg h_phi)
@@ -221,7 +221,7 @@ theorem mcs_mem_iff_neg_not_mem
     (h_implyS : ∀ (φ ψ χ : Proposition Atom),
       Axioms ((φ.imp (ψ.imp χ)).imp ((φ.imp ψ).imp (φ.imp χ))))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} : φ ∈ S ↔ Proposition.neg φ ∉ S := by
+    {φ : Proposition Atom} : φ ∈ S ↔ (¬φ) ∉ S := by
   constructor
   · intro h hn; exact mcs_bot_not_mem h_mcs
       (modal_implication_property h_implyK h_implyS h_mcs hn h)
@@ -246,14 +246,14 @@ noncomputable def iteratedDeduction
       DerivationTree Axioms [] ψ ×'
       (∀ (S : Set (Proposition Atom)),
         SetMaximalConsistent Axioms S →
-        Proposition.box ψ ∈ S →
-        (∀ x ∈ L, Proposition.box x ∈ S) →
-        Proposition.box φ ∈ S)
+        (□ψ) ∈ S →
+        (∀ x ∈ L, (□x) ∈ S) →
+        (□φ) ∈ S)
   | [], φ, d => ⟨φ, d, fun _S _h_mcs h_box _ => h_box⟩
   | A :: L', φ, d => by
     have dt := deductionTheorem h_implyK h_implyS L' A φ d
     have ⟨ψ, d_empty, h_prop⟩ :=
-      iteratedDeduction h_implyK h_implyS h_K L' (A.imp φ) dt
+      iteratedDeduction h_implyK h_implyS h_K L' (A → φ) dt
     exact ⟨ψ, d_empty, fun S h_mcs h_box_psi h_all_box => by
       have h_box_imp := h_prop S h_mcs h_box_psi
         (fun x hx => h_all_box x (List.mem_cons.mpr (Or.inr hx)))
@@ -273,12 +273,12 @@ theorem derive_box_from_box_context
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
     {L : List (Proposition Atom)} {φ : Proposition Atom}
     (d : DerivationTree Axioms L φ)
-    (h_all_box : ∀ ψ ∈ L, Proposition.box ψ ∈ S) :
-    Proposition.box φ ∈ S := by
+    (h_all_box : ∀ ψ ∈ L, (□ψ) ∈ S) :
+    (□φ) ∈ S := by
   have ⟨ψ, d_empty, h_prop⟩ :=
     iteratedDeduction h_implyK h_implyS h_K L φ d
   have d_box := DerivationTree.necessitation ψ d_empty
-  have h_box_psi : Proposition.box ψ ∈ S :=
+  have h_box_psi : (□ψ) ∈ S :=
     modal_closed_under_derivation h_implyK h_implyS h_mcs
       (L := []) (fun _ h => nomatch h) ⟨d_box⟩
   exact h_prop S h_mcs h_box_psi h_all_box
@@ -301,30 +301,30 @@ theorem derive_box_from_inconsistency
     (h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S)
+    {φ : Proposition Atom} (h_not_box : (□φ) ∉ S)
     {L : List (Proposition Atom)}
-    (hL : ∀ x ∈ L, x ∈ {ψ | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ})
-    (d_bot : DerivationTree Axioms L Proposition.bot) : False := by
+    (hL : ∀ x ∈ L, x ∈ {ψ | (□ψ) ∈ S} ∪ {(¬φ)})
+    (d_bot : DerivationTree Axioms L ⊥) : False := by
   classical
-  let L' := L.filter (· ≠ Proposition.neg φ)
-  have h_L'_box : ∀ ψ ∈ L', Proposition.box ψ ∈ S := by
+  let L' := L.filter (· ≠ (¬φ))
+  have h_L'_box : ∀ ψ ∈ L', (□ψ) ∈ S := by
     intro ψ hψ
     simp only [L', List.mem_filter, decide_eq_true_eq] at hψ
     rcases hL ψ hψ.1 with h | h
     · exact h
     · exact absurd h hψ.2
-  by_cases h_neg_in_L : Proposition.neg φ ∈ L
-  · have h_perm : ∀ x, x ∈ L → x ∈ Proposition.neg φ :: L' := by
+  by_cases h_neg_in_L : (¬φ) ∈ L
+  · have h_perm : ∀ x, x ∈ L → x ∈ (¬φ) :: L' := by
       intro x hx
-      by_cases hxn : x = Proposition.neg φ
+      by_cases hxn : x = (¬φ)
       · exact List.mem_cons.mpr (Or.inl hxn)
       · exact List.mem_cons.mpr (Or.inr (by
           simp only [L', List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxn⟩))
-    have d_reord := DerivationTree.weakening L (Proposition.neg φ :: L')
-      Proposition.bot d_bot h_perm
-    have d_dne := deductionTheorem h_implyK h_implyS L' (Proposition.neg φ)
-      Proposition.bot d_reord
-    let neg_phi := Proposition.neg φ
+    have d_reord := DerivationTree.weakening L ((¬φ) :: L')
+      ⊥ d_bot h_perm
+    have d_dne := deductionTheorem h_implyK h_implyS L' (¬φ)
+      ⊥ d_reord
+    let neg_phi := (¬φ)
     have efq_ax : DerivationTree Axioms L' (Proposition.bot.imp φ) :=
       .weakening [] L' _ (.ax [] _ (h_efq φ)) (fun _ h => nomatch h)
     have ik : DerivationTree Axioms L'
@@ -371,10 +371,10 @@ theorem mcs_box_witness
     (h_T : ∀ (φ : Proposition Atom),
       Axioms ((Proposition.box φ).imp φ))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S) :
+    {φ : Proposition Atom} (h_not_box : (□φ) ∉ S) :
     ∃ T : Set (Proposition Atom), SetMaximalConsistent Axioms T ∧
-      (∀ ψ, Proposition.box ψ ∈ S → ψ ∈ T) ∧ φ ∉ T := by
-  let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ}
+      (∀ ψ, (□ψ) ∈ S → ψ ∈ T) ∧ φ ∉ T := by
+  let W := {ψ : Proposition Atom | (□ψ) ∈ S} ∪ {(¬φ)}
   have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
@@ -385,7 +385,7 @@ theorem mcs_box_witness
   refine ⟨T, hT_mcs, ?_, ?_⟩
   · intro ψ h_box
     exact hWT (Set.mem_union_left _ h_box)
-  · have h_neg : Proposition.neg φ ∈ T :=
+  · have h_neg : (¬φ) ∈ T :=
       hWT (Set.mem_union_right _ (Set.mem_singleton _))
     exact mcs_not_mem_of_neg h_implyK h_implyS hT_mcs h_neg
 

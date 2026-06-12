@@ -67,31 +67,31 @@ theorem derive_box_from_inconsistency_d
       Axioms ((Proposition.box φ).imp
         ((Proposition.box (φ.imp .bot)).imp .bot)))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S)
+    {φ : Proposition Atom} (h_not_box : (□φ) ∉ S)
     {L : List (Proposition Atom)}
-    (hL : ∀ x ∈ L, x ∈ {ψ | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ})
-    (d_bot : DerivationTree Axioms L Proposition.bot) : False := by
+    (hL : ∀ x ∈ L, x ∈ {ψ | (□ψ) ∈ S} ∪ {(¬φ)})
+    (d_bot : DerivationTree Axioms L ⊥) : False := by
   classical
-  let L' := L.filter (· ≠ Proposition.neg φ)
-  have h_L'_box : ∀ ψ ∈ L', Proposition.box ψ ∈ S := by
+  let L' := L.filter (· ≠ (¬φ))
+  have h_L'_box : ∀ ψ ∈ L', (□ψ) ∈ S := by
     intro ψ hψ
     simp only [L', List.mem_filter, decide_eq_true_eq] at hψ
     rcases hL ψ hψ.1 with h | h
     · exact h
     · exact absurd h hψ.2
-  by_cases h_neg_in_L : Proposition.neg φ ∈ L
+  by_cases h_neg_in_L : (¬φ) ∈ L
   · -- Case 1: neg phi in L -- identical to S5 version
-    have h_perm : ∀ x, x ∈ L → x ∈ Proposition.neg φ :: L' := by
+    have h_perm : ∀ x, x ∈ L → x ∈ (¬φ) :: L' := by
       intro x hx
-      by_cases hxn : x = Proposition.neg φ
+      by_cases hxn : x = (¬φ)
       · exact List.mem_cons.mpr (Or.inl hxn)
       · exact List.mem_cons.mpr (Or.inr (by
           simp only [L', List.mem_filter, decide_eq_true_eq]; exact ⟨hx, hxn⟩))
-    have d_reord := DerivationTree.weakening L (Proposition.neg φ :: L')
-      Proposition.bot d_bot h_perm
-    have d_dne := deductionTheorem h_implyK h_implyS L' (Proposition.neg φ)
-      Proposition.bot d_reord
-    let neg_phi := Proposition.neg φ
+    have d_reord := DerivationTree.weakening L ((¬φ) :: L')
+      ⊥ d_bot h_perm
+    have d_dne := deductionTheorem h_implyK h_implyS L' (¬φ)
+      ⊥ d_reord
+    let neg_phi := (¬φ)
     have efq_ax : DerivationTree Axioms L' (Proposition.bot.imp φ) :=
       .weakening [] L' _ (.ax [] _ (h_efq φ)) (fun _ h => nomatch h)
     have ik : DerivationTree Axioms L'
@@ -115,18 +115,18 @@ theorem derive_box_from_inconsistency_d
       d_phi h_L'_box)
   · -- Case 2: neg phi not in L -- D-specific argument (replaces T fallback)
     -- All elements of L have box versions in S
-    have h_all_box : ∀ x ∈ L, Proposition.box x ∈ S := by
+    have h_all_box : ∀ x ∈ L, (□x) ∈ S := by
       intro x hx
       rcases hL x hx with h | h
       · exact h
       · exact absurd (h ▸ hx) h_neg_in_L
     -- From L |- bot and all box x in S, derive box bot in S
-    have h_box_bot : Proposition.box Proposition.bot ∈ S :=
+    have h_box_bot : (□⊥) ∈ S :=
       derive_box_from_box_context h_implyK h_implyS h_K h_mcs d_bot h_all_box
     -- Axiom D at bot: box bot -> diamond bot = box bot -> (box top) -> bot
     -- where top = bot -> bot and diamond bot = (box (bot -> bot)) -> bot
-    have h_diamond_bot : Proposition.diamond Proposition.bot ∈ S :=
-      mcs_mp_axiom h_implyK h_implyS h_mcs h_box_bot (h_D Proposition.bot)
+    have h_diamond_bot : (◇⊥) ∈ S :=
+      mcs_mp_axiom h_implyK h_implyS h_mcs h_box_bot (h_D ⊥)
     -- top = bot -> bot is derivable: from implyK bot bot we get bot -> (bot -> bot)
     -- which gives us bot -> bot after simplification. Actually, let's build it directly.
     -- We need: [] |- bot -> bot
@@ -145,14 +145,14 @@ theorem derive_box_from_inconsistency_d
     have d_box_top : DerivationTree Axioms [] (Proposition.box (Proposition.imp .bot .bot)) :=
       .necessitation _ d_top
     -- box top in S (derivable formula in MCS)
-    have h_box_top : Proposition.box (Proposition.imp .bot .bot) ∈ S :=
+    have h_box_top : (□(⊥ → ⊥)) ∈ S :=
       modal_closed_under_derivation h_implyK h_implyS h_mcs
         (L := []) (fun _ h => nomatch h) ⟨d_box_top⟩
     -- diamond bot = (box(bot -> bot)) -> bot = (box top) -> bot
     -- h_diamond_bot : (box(bot -> bot)).imp bot ∈ S
     -- h_box_top : box(bot -> bot) ∈ S
     -- By MP: bot in S
-    have h_bot : Proposition.bot ∈ S :=
+    have h_bot : ⊥ ∈ S :=
       modal_implication_property h_implyK h_implyS h_mcs h_diamond_bot h_box_top
     -- Contradiction: bot not in MCS
     exact mcs_bot_not_mem h_mcs h_bot
@@ -178,10 +178,10 @@ theorem mcs_box_witness_d
       Axioms ((Proposition.box φ).imp
         ((Proposition.box (φ.imp .bot)).imp .bot)))
     {S : Set (Proposition Atom)} (h_mcs : SetMaximalConsistent Axioms S)
-    {φ : Proposition Atom} (h_not_box : Proposition.box φ ∉ S) :
+    {φ : Proposition Atom} (h_not_box : (□φ) ∉ S) :
     ∃ T : Set (Proposition Atom), SetMaximalConsistent Axioms T ∧
-      (∀ ψ, Proposition.box ψ ∈ S → ψ ∈ T) ∧ φ ∉ T := by
-  let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S} ∪ {Proposition.neg φ}
+      (∀ ψ, (□ψ) ∈ S → ψ ∈ T) ∧ φ ∉ T := by
+  let W := {ψ : Proposition Atom | (□ψ) ∈ S} ∪ {(¬φ)}
   have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
@@ -192,7 +192,7 @@ theorem mcs_box_witness_d
   refine ⟨T, hT_mcs, ?_, ?_⟩
   · intro ψ h_box
     exact hWT (Set.mem_union_left _ h_box)
-  · have h_neg : Proposition.neg φ ∈ T :=
+  · have h_neg : (¬φ) ∈ T :=
       hWT (Set.mem_union_right _ (Set.mem_singleton _))
     exact mcs_not_mem_of_neg h_implyK h_implyS hT_mcs h_neg
 
@@ -221,31 +221,31 @@ theorem canonical_serial
     (S : CanonicalWorld Axioms) :
     ∃ T : CanonicalWorld Axioms, (CanonicalModel Axioms).r S T := by
   -- Let W = {psi | box psi in S.val}
-  let W := {ψ : Proposition Atom | Proposition.box ψ ∈ S.val}
+  let W := {ψ : Proposition Atom | (□ψ) ∈ S.val}
   -- Show W is consistent
   have hW : SetConsistent Axioms W := by
     intro L hL
     unfold Metalogic.Consistent
     intro ⟨d_bot⟩
     -- All elements of L have box versions in S
-    have h_all_box : ∀ x ∈ L, Proposition.box x ∈ S.val := fun x hx => hL x hx
+    have h_all_box : ∀ x ∈ L, (□x) ∈ S.val := fun x hx => hL x hx
     -- From L |- bot, derive box bot in S
-    have h_box_bot : Proposition.box Proposition.bot ∈ S.val :=
+    have h_box_bot : (□⊥) ∈ S.val :=
       derive_box_from_box_context h_implyK h_implyS h_K S.property d_bot h_all_box
     -- Axiom D at bot: box bot -> diamond bot
-    have h_diamond_bot : Proposition.diamond Proposition.bot ∈ S.val :=
-      mcs_mp_axiom h_implyK h_implyS S.property h_box_bot (h_D Proposition.bot)
+    have h_diamond_bot : (◇⊥) ∈ S.val :=
+      mcs_mp_axiom h_implyK h_implyS S.property h_box_bot (h_D ⊥)
     -- top = bot -> bot is derivable via efq
     have d_top : DerivationTree Axioms [] (Proposition.imp .bot .bot) :=
       .ax [] _ (h_efq Proposition.bot)
     have d_box_top : DerivationTree Axioms []
         (Proposition.box (Proposition.imp .bot .bot)) :=
       .necessitation _ d_top
-    have h_box_top : Proposition.box (Proposition.imp .bot .bot) ∈ S.val :=
+    have h_box_top : (□(⊥ → ⊥)) ∈ S.val :=
       modal_closed_under_derivation h_implyK h_implyS S.property
         (L := []) (fun _ h => nomatch h) ⟨d_box_top⟩
     -- diamond bot = (box top) -> bot; MP with box top gives bot in S
-    have h_bot : Proposition.bot ∈ S.val :=
+    have h_bot : ⊥ ∈ S.val :=
       modal_implication_property h_implyK h_implyS S.property
         h_diamond_bot h_box_top
     exact mcs_bot_not_mem S.property h_bot
@@ -326,7 +326,7 @@ theorem truth_lemma_d
         have h_psi_S :=
           (truth_lemma_d h_implyK h_implyS h_efq h_peirce h_K h_D S ψ).mp
             (h_sat h_sat_phi)
-        have h_neg_psi_S : Proposition.neg ψ ∈ S.val := by
+        have h_neg_psi_S : (¬ψ) ∈ S.val := by
           apply modal_closed_under_derivation h_implyK h_implyS S.property
             (L := [(φ.imp ψ).imp .bot])
             (fun x hx => by
