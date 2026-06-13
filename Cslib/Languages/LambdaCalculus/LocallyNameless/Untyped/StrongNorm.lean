@@ -9,6 +9,7 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
+public import Cslib.Foundations.Relation.Confluence
 
 /-! Strong normalization (termination) for full beta-reduction of untyped lambda calculus. -/
 
