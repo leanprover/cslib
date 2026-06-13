@@ -40,6 +40,7 @@ set_option linter.checkUnivs false in
 The definition of labelled transition system (with the type of states and the
 type of labels as part of the structure).
 -/
+@[nolint checkUnivs]
 structure LTSCat : Type (max u v + 1) where
   /-- Type of states of an LTS -/
   State : Type u
