@@ -22,28 +22,23 @@ namespace Relation
 
 variable (r : α → α → Prop) (s : Set α)
 
-@[simp]
+@[simp, grind .]
 theorem refl_iff_reflOn : Std.Refl (α := s) r ↔ ReflOn r s := by
   constructor
-  · exact fun ⟨h⟩ a ha => h ⟨a, ha⟩
+  · exact fun ⟨h⟩ a ha ↦ h ⟨a, ha⟩
   · exact fun h ↦ ⟨fun ⟨a, ha⟩ ↦ h a ha⟩
 
-@[simp]
+@[simp, grind .]
 theorem symm_iff_symmOn : Std.Symm (α := s) r ↔ SymmOn r s := by
   constructor
-  · intro ⟨h⟩ a ha b hb ab
-    exact h ⟨a, ha⟩ ⟨b, hb⟩ ab
-  · intro h
-    constructor
-    intro ⟨a, ha⟩ ⟨b, hb⟩ ab
-    exact h a ha b hb ab
+  · exact fun ⟨h⟩ a ha b hb ab ↦ h ⟨a, ha⟩ ⟨b, hb⟩ ab
+  · exact fun h ↦ ⟨fun ⟨a, ha⟩ ⟨b, hb⟩ ab ↦ h a ha b hb ab⟩
 
-@[simp]
+@[simp, grind .]
 theorem rightEuclidean_iff_rightEuclideanOn (s : Set α) :
     RightEuclidean (α := s) r ↔ RightEuclideanOn r s := by
   constructor
-  · intro ⟨h⟩ a ha b hb c hc ab ac
-    exact @h ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac
+  · exact fun ⟨h⟩ a ha b hb c hc ab ac ↦ @h ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac
   · intro h
     constructor
     intro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac

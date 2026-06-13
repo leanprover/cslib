@@ -55,7 +55,7 @@ instance [Std.Refl r] : Std.Symm r where
   symm a _ ab := rightEuclidean ab (refl a)
 
 theorem symmOn_cod : SymmOn r (cod r) := by
-  have : Std.Refl (α := cod r) r := by simpa using reflOn_cod
+  have : Std.Refl (α := cod r) r := by simp [reflOn_cod]
   rw [← symm_iff_symmOn]
   infer_instance
 

@@ -79,4 +79,23 @@ theorem _root_.Std.Trichotomous.subsingleton_dom (r : α → α → Prop) [Std.T
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a₁ a₂
   grind
 
+variable (r : α → α → Prop)
+
+@[simp, grind =]
+theorem refl_cod_univ [Std.Refl r] : cod r = Set.univ := by
+  ext a
+  grind [refl a]
+
+@[simp, grind =]
+theorem refl_dom_univ [Std.Refl r] : dom r = Set.univ := by
+  ext a
+  grind [refl a]
+
+theorem refl_dom_cod_eq [Std.Refl r] : dom r = cod r := by
+  simp
+
+theorem symm_dom_cod_eq [Std.Symm r] : dom r = cod r := by
+  ext a
+  constructor <;> exact fun ⟨b, ab⟩ ↦ ⟨b, symm ab⟩
+
 end Relation
