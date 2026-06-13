@@ -66,12 +66,16 @@ public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.PFunctor.Free
 public import Cslib.Foundations.Data.RelatesInSteps
-public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
+public import Cslib.Foundations.Relation.Attr
+public import Cslib.Foundations.Relation.Confluence
+public import Cslib.Foundations.Relation.Defs
+public import Cslib.Foundations.Relation.Domain
+public import Cslib.Foundations.Relation.Euclidean
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
