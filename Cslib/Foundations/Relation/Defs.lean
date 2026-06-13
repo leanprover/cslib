@@ -138,7 +138,7 @@ def ReflOn (r : α → α → Prop) (s : Set α) : Prop :=
 def SymmOn (r : α → α → Prop) (s : Set α) : Prop :=
   ∀ a ∈ s, ∀ b ∈ s, r a b → r b a
 
-def RightEuclideanOn (r : α → α → Prop) (s : Set α) :=
-  ∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, r a b → r a c → r b c
+--def RightEuclideanOn (r : α → α → Prop) (s : Set α) :=
+--  ∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, r a b → r a c → r b c
 
 end Relation

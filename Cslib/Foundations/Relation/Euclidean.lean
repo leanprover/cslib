@@ -61,10 +61,11 @@ theorem symmOn_cod : SymmOn r (cod r) := by
 
 theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
   trans a b c ab bc := by
-    have := Std.Trichotomous.trichotomous (r := r) a c
-    have cc := refl_cod bc
-    have (ca : r c a) := rightEuclidean ca cc
-    grind
+    rcases @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c with ac | eq | ca
+    · exact ac
+    · subst eq
+      exact reflOn_cod a ⟨b, bc⟩
+    · exact symmOn_cod c ⟨b, bc⟩ a ⟨c, ca⟩ ca
 
 theorem antisymm_rightUnique [Std.Antisymm r] : Relator.RightUnique r := by
   intros a b c ab ac

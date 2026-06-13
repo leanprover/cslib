@@ -34,15 +34,15 @@ theorem symm_iff_symmOn : Std.Symm (α := s) r ↔ SymmOn r s := by
   · exact fun ⟨h⟩ a ha b hb ab ↦ h ⟨a, ha⟩ ⟨b, hb⟩ ab
   · exact fun h ↦ ⟨fun ⟨a, ha⟩ ⟨b, hb⟩ ab ↦ h a ha b hb ab⟩
 
-@[simp, grind .]
-theorem rightEuclidean_iff_rightEuclideanOn (s : Set α) :
-    RightEuclidean (α := s) r ↔ RightEuclideanOn r s := by
-  constructor
-  · exact fun ⟨h⟩ a ha b hb c hc ab ac ↦ @h ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac
-  · intro h
-    constructor
-    intro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac
-    exact h a ha b hb c hc ab ac
+--@[simp, grind .]
+--theorem rightEuclidean_iff_rightEuclideanOn (s : Set α) :
+--    RightEuclidean (α := s) r ↔ RightEuclideanOn r s := by
+--  constructor
+--  · exact fun ⟨h⟩ a ha b hb c hc ab ac ↦ @h ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac
+--  · intro h
+--    constructor
+--    intro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ ab ac
+--    exact h a ha b hb c hc ab ac
 
 instance [RightEuclidean r] (s : Set α) : RightEuclidean (α := s) r :=
   ⟨RightEuclidean.rightEuclidean⟩
