@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.TraceEq
+public import Mathlib.Tactic.TFAE
 
 /-! # Bisimulation and Bisimilarity
 
@@ -183,6 +184,10 @@ instance : IsEquiv State (HomBisimilarity lts) where
   symm _ _ := Bisimilarity.symm
   trans _ _ _ := Bisimilarity.trans
 
+/-- Bisimulation implies simulation equivalence. -/
+theorem IsBisimulation.simulationEquiv (h : IsBisimulation lts₁ lts₂ r) (hrel : r s₁ s₂) :
+    s₁ ≤≥[lts₁,lts₂] s₂ := ⟨⟨r, hrel, h.isSimulation⟩, flip r, hrel, h.inv.isSimulation⟩
+
 /-- The union of two bisimulations is a bisimulation. -/
 @[scoped grind .]
 theorem IsBisimulation.sup (hrb : IsBisimulation lts₁ lts₂ r) (hsb : IsBisimulation lts₁ lts₂ s) :
@@ -302,8 +307,7 @@ theorem IsBisimulationUpTo.isBisimulation (h : IsBisimulationUpTo lts₁ lts₂ 
 
 /-- If two states are related by a bisimulation, they can mimic each other's multi-step
 transitions. -/
-theorem IsBisimulation.bisim_trace
-    (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) :
+theorem IsBisimulation.bisim_trace (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) :
     ∀ μs s₁', lts₁.MTr s₁ μs s₁' → ∃ s₂', lts₂.MTr s₂ μs s₂' ∧ r s₁' s₂' :=
   hb.isSimulation.sim_trace hr
 
@@ -311,21 +315,8 @@ theorem IsBisimulation.bisim_trace
 
 /-- Any bisimulation implies trace equivalence. -/
 @[scoped grind =>]
-theorem IsBisimulation.traceEq
-    (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) :
-    s₁ ~tr[lts₁,lts₂] s₂ := by
-  ext μs
-  constructor
-  case mp =>
-    intro h
-    obtain ⟨s₁', h⟩ := h
-    obtain ⟨s₂', hmtr⟩ := IsBisimulation.bisim_trace hb hr μs s₁' h
-    use s₂', hmtr.1
-  case mpr =>
-    intro h
-    obtain ⟨s₂', h⟩ := h
-    obtain ⟨s₁', hmtr⟩ := IsBisimulation.bisim_trace hb.inv hr μs s₂' h
-    use s₁', hmtr.1
+theorem IsBisimulation.traceEq (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) :
+    s₁ ~tr[lts₁,lts₂] s₂ := (hb.simulationEquiv hr).traceEq
 
 /-- Bisimilarity is included in trace equivalence. -/
 @[scoped grind .]
@@ -412,30 +403,30 @@ theorem IsBisimulation.deterministic_traceEq_isBisimulation
     [lts₁.Deterministic] [lts₂.Deterministic] :
     (IsBisimulation lts₁ lts₂ (TraceEq lts₁ lts₂)) := by
   rw [IsBisimulation.isSimulation_iff, TraceEq.flip_eq]
-  exact ⟨TraceEq.deterministic_isSimulation, TraceEq.deterministic_isSimulation⟩
+  exact ⟨Deterministic.isSimulation_traceEq, Deterministic.isSimulation_traceEq⟩
 
 /-- In deterministic LTSs, trace equivalence implies bisimilarity. -/
 theorem Bisimilarity.deterministic_traceEq_bisim {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     [lts₁.Deterministic] [lts₂.Deterministic] (h : s₁ ~tr[lts₁,lts₂] s₂) :
     (s₁ ~[lts₁,lts₂] s₂) := by
-  exists TraceEq lts₁ lts₂
-  constructor
-  case left =>
-    exact h
-  case right =>
-    apply IsBisimulation.deterministic_traceEq_isBisimulation
+  use TraceEq lts₁ lts₂, h, IsBisimulation.deterministic_traceEq_isBisimulation
+
+/-- In a deterministic lts, bisimilarity, trace equivalence, and simulation equivalence are
+equivalent to one-another. -/
+theorem Deterministic.bisim_tfae {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    [lts₁.Deterministic] [lts₂.Deterministic] (s₁ : State₁) (s₂ : State₂) :
+    [s₁ ~[lts₁,lts₂] s₂, s₁ ~tr[lts₁,lts₂] s₂, s₁ ≤≥[lts₁,lts₂] s₂].TFAE := by
+  tfae_have 2 ↔ 3 := Deterministic.traceEq_iff_simulationEquiv s₁ s₂
+  tfae_have 1 → 2 := Bisimilarity.le_traceEq s₁ s₂
+  tfae_have 2 → 1 := Bisimilarity.deterministic_traceEq_bisim
+  tfae_finish
 
 /-- In deterministic LTSs, bisimilarity and trace equivalence coincide. -/
 theorem Bisimilarity.deterministic_bisim_eq_traceEq
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     [lts₁.Deterministic] [lts₂.Deterministic] : Bisimilarity lts₁ lts₂ = TraceEq lts₁ lts₂ := by
-  funext s₁ s₂
-  simp only [eq_iff_iff]
-  constructor
-  case mp =>
-    apply Bisimilarity.le_traceEq
-  case mpr =>
-    apply Bisimilarity.deterministic_traceEq_bisim
+  ext s₁ s₂
+  exact (Deterministic.bisim_tfae s₁ s₂).out 0 1
 
 /-- Homogeneous bisimilarity can also be characterized through symmetric simulations. -/
 theorem HomBisimilarity.symm_simulation :

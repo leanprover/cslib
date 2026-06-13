@@ -131,11 +131,4 @@ theorem Execution.split
   simp [Execution]
   grind
 
-/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
-theorem MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
-    (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
-  obtain ⟨ss, h_ss⟩ := Execution.of_mTr h
-  have := Execution.split h_ss μs1.length
-  grind
-
 end Cslib.LTS
