@@ -132,4 +132,13 @@ def transLeft (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans s 
 def transRight (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans r s r where
   trans hab hbc := _root_.trans hab (h _ _ hbc)
 
+def ReflOn (r : α → α → Prop) (s : Set α) : Prop :=
+  ∀ a ∈ s, r a a
+
+def SymmOn (r : α → α → Prop) (s : Set α) : Prop :=
+  ∀ a ∈ s, ∀ b ∈ s, r a b → r b a
+
+def RightEuclideanOn (r : α → α → Prop) (s : Set α) :=
+  ∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, r a b → r a c → r b c
+
 end Relation

@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Foundations.Relation.Domain
+public import Cslib.Foundations.Relation.Restriction
 public import Mathlib.Data.Fintype.EquivFin
 public import Mathlib.Tactic.TFAE
 
@@ -41,10 +42,10 @@ namespace RightEuclidean
 
 variable [RightEuclidean r]
 
-/-- A `RightEuclidean` relation is reflexive on its range -/
+/-- A `RightEuclidean` relation is reflexive on its codomain -/
 theorem refl_cod (ab : r a b) : r b b := rightEuclidean ab ab
 
-theorem refl_cod' : b ∈ cod r → r b b := fun ⟨_, ab⟩ ↦ refl_cod ab
+theorem reflOn_cod : ReflOn r (cod r) := fun _ ⟨_, ab⟩ ↦ refl_cod ab
 
 /-- The converse of a `RightEuclidean` relation is `LeftEuclidean` -/
 theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
@@ -52,6 +53,11 @@ theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
 
 instance [Std.Refl r] : Std.Symm r where
   symm a _ ab := rightEuclidean ab (refl a)
+
+theorem symmOn_cod : SymmOn r (cod r) := by
+  have : Std.Refl (α := cod r) r := by simpa using reflOn_cod
+  rw [← symm_iff_symmOn]
+  infer_instance
 
 theorem trichotomous_trans [Std.Trichotomous r] : IsTrans α r where
   trans a b c ab bc := by
