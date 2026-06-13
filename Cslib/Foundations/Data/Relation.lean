@@ -138,8 +138,6 @@ abbrev MJoin (r : α → α → Prop) := Join (ReflTransGen r)
 theorem MJoin.refl (a : α) : MJoin r a a := by
   use a
 
-theorem MJoin.symm : Symmetric (MJoin r) := Relation.symmetric_join
-
 theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
   use b
 
@@ -420,7 +418,7 @@ theorem Confluent.toChurchRosser (h : Confluent r) : ChurchRosser r := by
   induction h_eqv with
   | rel _ b => exists b; grind [ReflTransGen.single]
   | refl a => exists a
-  | symm a b _ ih => exact symmetric_join ih
+  | symm a b _ ih => exact symm ih
   | trans _ _ _ _ _ ih1 ih2 =>
       obtain ⟨u, _, hbu⟩ := ih1
       obtain ⟨v, hbv, _⟩ := ih2
@@ -681,10 +679,8 @@ abbrev StronglyConfluent (r : α → α → Prop) :=
 def Commute (r₁ r₂ : α → α → Prop) := ∀ {x y₁ y₂},
   ReflTransGen r₁ x y₁ → ReflTransGen r₂ x y₂ → ∃ z, ReflTransGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
 
-theorem Commute.symmetric : Symmetric (@Commute α) := by
-  intro r₁ r₂ h x y₁ y₂ x_y₁ x_y₂
-  obtain ⟨_, _, _⟩ := h x_y₂ x_y₁
-  grind
+instance : Std.Symm (@Commute α) where
+  symm r₁ r₂ h x y₁ y₂ x_y₁ x_y₂ := by grind [h x_y₂ x_y₁]
 
 theorem Commute.toConfluent : Commute r r = Confluent r := rfl
 
@@ -760,7 +756,7 @@ theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (
   induction ab generalizing c with
   | refl => exists c
   | @tail x y ax xy ih =>
-    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [join_left, symmetric]
+    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [join_left, symm]
     obtain ⟨z, xz, cz⟩ := ih ac
     obtain ⟨w, yw, zw⟩ := h_comm (.single xy) xz
     exact ⟨w, yw, cz.trans zw⟩

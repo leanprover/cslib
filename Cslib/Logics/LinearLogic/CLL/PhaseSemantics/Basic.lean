@@ -152,7 +152,7 @@ structure Fact (P : Type*) [PhaseSpace P] where
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
-  coe_injective' _ _ _ := by grind only [cases Fact]
+  coe_injective _ _ _ := by grind only [cases Fact]
 
 instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
 

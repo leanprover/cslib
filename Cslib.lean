@@ -64,6 +64,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
+public import Cslib.Foundations.Data.PFunctor.Free
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.Set.Saturation
@@ -139,6 +140,7 @@ public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.Cube
 public import Cslib.Logics.Modal.Denotation
+public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.MachineLearning.PACLearning.Defs
