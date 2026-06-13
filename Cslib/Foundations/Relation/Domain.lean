@@ -98,4 +98,13 @@ theorem symm_dom_cod_eq [Std.Symm r] : dom r = cod r := by
   ext a
   constructor <;> exact fun ⟨b, ab⟩ ↦ ⟨b, symm ab⟩
 
+-- TODO: maybe these should just be the definition??
+
+theorem leftQuasiRefl_iff_reflOn_dom : LeftQuasiRefl r ↔ ReflOn r (dom r) := by
+  simp [LeftQuasiRefl, ReflOn]
+
+theorem rightQuasiRefl_iff_reflOn_cod : RightQuasiRefl r ↔ ReflOn r (cod r) := by
+  simp [RightQuasiRefl, ReflOn]
+  grind
+
 end Relation
