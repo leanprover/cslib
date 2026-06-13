@@ -51,7 +51,7 @@ theorem canReach {ps : Set P} {s s' : State P M S}
 theorem refl (ps : Set P) (s : State P M S) :
     a.CanReachVia ps s s := by
   use []
-  simp [LTS.MTr.refl]
+  simp
 
 /-- Extending `CanReachVia` on the left by one step. -/
 theorem stepL {ps : Set P} {x : Action P M} {s1 s2 s3 : State P M S}
