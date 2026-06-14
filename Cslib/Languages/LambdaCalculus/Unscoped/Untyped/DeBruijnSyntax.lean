@@ -236,12 +236,13 @@ private lemma incre_sub_var {i l n k s} :
 @[simp] theorem incre_sub {i l n t s} :
     ((incre i (l + n + 1) t).sub n (incre i (l + n) s)) =
     (incre i (l + n) (t.sub n s)) := by
-  induction t generalizing l n s with
+  induction t generalizing n s with
   | var k => exact incre_sub_var
   | abs t' ih =>
-      simpa only [sub, ← incre_comm, incre, subst, 
-        Nat.add_zero, ← incre_comm_zero, decre, abs.injEq] 
-        using ih
+      simp_all only [sub, ← incre_comm, incre, subst, 
+        ← incre_comm_zero, decre, abs.injEq]
+      simpa only [Nat.add_assoc] 
+        using (ih (n := n + 1) (s := incre 1 0 s))
   | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, incre, subst, decre]
 
 private lemma subst_zero_incre {n t u} :
@@ -304,8 +305,9 @@ private lemma sub_incre_same {u r m} :
                 Nat.add_one_sub_one, var.injEq]
               exact by omega
   | abs t ih =>
-      simpa only [sub, incre, subst, 
-        ← incre_comm_zero, decre, abs.injEq] 
+      simp_all only [sub, incre, subst, 
+        ← incre_comm_zero, decre, abs.injEq]
+      simpa only [Nat.add_assoc]
         using (ih (i := i + 1) (n := n) (u := incre 1 0 u))
   | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, incre, subst, decre]
 
@@ -367,8 +369,9 @@ theorem sub_comm {t : Term} {n m s u} :
         simpa only [sub, Nat.add_zero] 
           using (sub_lift_zero (t := s) (n := k) (u := u) 
                   (i := 0)).symm
-      simpa only [sub, subst, ← incre_comm_zero, 
-        decre, this, abs.injEq] 
+      simp_all only [sub, subst, ← incre_comm_zero, 
+        decre, abs.injEq] 
+      simpa only [Nat.add_assoc]
         using (ih (n := n) 
           (m := m + 1) (u := incre 1 0 u) (s := incre 1 0 s))
   | app t₁ t₂ ih₁ ih₂ => simp_all only [sub, subst, decre]
