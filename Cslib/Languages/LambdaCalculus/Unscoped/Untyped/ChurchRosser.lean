@@ -49,7 +49,7 @@ theorem churchRosser_beta : Confluent Beta := by
   -- Identify BetaStar and ParStar via sandwich
   have hEq {a b : Term} : a ↠β b ↔ a ↠∥ b := by
     have hRel : ReflTransGen Beta = ReflTransGen Par :=
-      ReflTransGen.sandwich_to_eq (r := Beta) (p := Par)
+      reflTransGen_mono_closed (r₁ := Beta) (r₂ := Par)
         (by intro a b h; exact beta_subset_par h)
         (by intro a b h; exact par_subset_betaStar h)
     simp only [hRel]
