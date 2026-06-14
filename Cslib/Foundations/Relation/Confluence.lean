@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi and Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Thomas Waring, Chris Henson, Zayn Wang
+Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 -/
 
 module
