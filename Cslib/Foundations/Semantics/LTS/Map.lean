@@ -23,11 +23,13 @@ section MapLabel
 def mapLabel (lts : LTS State Label₁) (f : Label₂ → Label₁) : LTS State Label₂ where
   Tr s μ s' := lts.Tr s (f μ) s'
 
-@[scoped grind =]
-theorem mapLabel_tr {lts : LTS State Label₁} {f : Label₂ → Label₁} :
+@[simp]
+theorem mapLabel_tr {lts : LTS State Label₁} :
     (lts.mapLabel f).Tr s μ s' ↔ lts.Tr s (f μ) s' := by rfl
 
-@[scoped grind =]
+scoped grind_pattern mapLabel_tr => (lts.mapLabel f).Tr s μ s'
+
+@[simp, scoped grind =]
 theorem mapLabel_mTr {lts : LTS State Label₁} {f : Label₂ → Label₁} :
     (lts.mapLabel f).MTr s μs s' ↔ lts.MTr s (μs.map f) s' := by
   induction μs generalizing s with

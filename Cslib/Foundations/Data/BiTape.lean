@@ -127,10 +127,9 @@ def write (t : BiTape Symbol) (a : Option Symbol) : BiTape Symbol := { t with he
 The space used by a `BiTape` is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
 -/
-@[scoped grind]
 def spaceUsed (t : BiTape Symbol) : ℕ := 1 + t.left.length + t.right.length
 
-@[simp, grind =]
+@[simp]
 lemma spaceUsed_write (t : BiTape Symbol) (a : Option Symbol) :
     (t.write a).spaceUsed = t.spaceUsed := by rfl
 

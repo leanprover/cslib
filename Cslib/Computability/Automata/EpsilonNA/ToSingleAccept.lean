@@ -53,17 +53,18 @@ theorem toSingleAccept_tr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
   | none => simp only [toSingleAccept] at h
   | some _ => simp
 
-@[scoped grind =]
 theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} :
     a.toSingleAccept.Tr (some s) x (some s') ↔ a.Tr s x s' := by
   simp [toSingleAccept]
+
+scoped grind_pattern toSingleAccept_tr_tr => a.toSingleAccept.Tr (some s) x (some s')
 
 @[scoped grind →]
 theorem toSingleAccept_tr_none_accept {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.Tr os x none) : ∃ s, os = some s ∧ s ∈ a.accept := by
   grind
 
-@[scoped grind ←]
+@[scoped grind ⇒]
 theorem toSingleAccept_not_tr_none {a : εNA.FinAcc State Symbol} :
     ¬a.toSingleAccept.Tr none x os := by
   grind only [toSingleAccept]
