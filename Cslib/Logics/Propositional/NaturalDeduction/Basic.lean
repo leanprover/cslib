@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2025 Thomas Waring. All rights reserved.
+Copyright (c) 2025 Thomas Waring, 2026 Benjamin Brast-McKie. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Waring
+Authors: Thomas Waring, Benjamin Brast-McKie
 -/
 module
 
@@ -42,21 +42,25 @@ abbreviates a derivation of `A` in the empty context: `T⇓(∅ ⊢ A)`.
 
 ## Implementation notes
 
-We formalise here a single type of derivations, meaning there is a single collection of inference
-rules (those for minimal logic). The extension to intuitionistic and classical logic are modelled
-by adding *axioms* --- for instance, intuitionistic derivations are allowed to appeal to axioms of
-the form `⊥ → A` for any proposition `A`. This differs from many on-paper presentations, which add
-that principle as a deduction rule: from `Γ ⊢ ⊥` derive `Γ ⊢ A`. Discussion on proper way to
-capture such developments in cslib is ongoing, see the following
-[zulip discussion](https://leanprover.zulipchat.com/#narrow/channel/513188-CSLib/topic/Logic/with/585843520).
+The primitive inference rules are: axiom (from theory), assumption (from context),
+conjunction introduction and elimination (×2), disjunction introduction (×2) and elimination,
+and implication introduction and elimination — 10 constructors in total. Ex falso quodlibet
+(bottom elimination) is a derived rule requiring `[IsIntuitionistic T]`.
+
+Logic strength is controlled by the theory parameter:
+- `MPL` (minimal propositional logic, Johansson 1937 [Johansson1937]): no axioms beyond the
+  10 primitive rules; bottom has no special status.
+- `IPL` (intuitionistic propositional logic): adds the principle of explosion `⊥ → A`.
+- `CPL` (classical propositional logic): adds double negation elimination `¬¬A → A`.
 
 ## References
 
-- Dag Prawitz, *Natural Deduction: a proof-theoretical study*.
-- The sequent-style natural deduction I present here doesn't seem to be common, but it is tersely
-presented in §10.4 of Troelstra & van Dalen's *Constructivism in Mathematics: an introduction*, and
-in §2.2 of Sorensen & Urzyczyn's *Lectures on the Curry-Howard Isomorphism*. (Suggestions of better
-references welcome!)
+* [I. Johansson, *Der Minimalkalkül, ein reduzierter intuitionistischer Formalismus*][Johansson1937]
+* [D. Prawitz, *Natural Deduction: A Proof-Theoretical Study*][Prawitz1965]
+* [A. S. Troelstra, D. van Dalen,
+  *Constructivism in Mathematics: An Introduction*][TroelstraVanDalen1988], Section 10.4
+* [G. Gentzen,
+  *Untersuchungen über das logische Schließen*][Gentzen1935]
 -/
 
 @[expose] public section
@@ -83,7 +87,9 @@ abbrev Sequent {Atom} := Ctx Atom × Proposition Atom
 scoped notation Γ:60 " ⊢ " A => (⟨Γ, A⟩ : Sequent)
 
 /-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
-possibly appealing to axioms from `T`. -/
+possibly appealing to axioms from `T`. Primitives: axiom, assumption, conjunction intro/elim,
+disjunction intro/elim, and implication intro/elim.
+Ex falso quodlibet (bottom elimination) is a derived rule requiring `[IsIntuitionistic T]`. -/
 inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom → Type u where
   /-- Axiom -/
   | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation Γ A
@@ -93,21 +99,21 @@ inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom �
   | andI {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation Γ A → Derivation Γ B → Derivation Γ (A ∧ B)
   /-- Conjunction elimination left -/
-  | andE₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ A
+  | andE1 {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ A
   /-- Conjunction elimination right -/
-  | andE₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ B
+  | andE2 {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ (A ∧ B) → Derivation Γ B
   /-- Disjunction introduction left -/
-  | orI₁ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ A → Derivation Γ (A ∨ B)
+  | orI1 {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ A → Derivation Γ (A ∨ B)
   /-- Disjunction introduction right -/
-  | orI₂ {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ B → Derivation Γ (A ∨ B)
+  | orI2 {Γ : Ctx Atom} {A B : Proposition Atom} : Derivation Γ B → Derivation Γ (A ∨ B)
   /-- Disjunction elimination -/
   | orE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation Γ (A ∨ B) →
       Derivation (insert A Γ) C → Derivation (insert B Γ) C → Derivation Γ C
   /-- Implication introduction -/
-  | implI {A B : Proposition Atom} (Γ : Ctx Atom) :
+  | impI {A B : Proposition Atom} (Γ : Ctx Atom) :
       Derivation (insert A Γ) B → Derivation Γ (A → B)
-  /-- Implication elimination -/
-  | implE {Γ : Ctx Atom} {A B : Proposition Atom} :
+  /-- Implication elimination (modus ponens) -/
+  | impE {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation Γ (A → B) → Derivation Γ A → Derivation Γ B
 
 /-- Inference system for derivations under the theory `T`. -/
@@ -171,16 +177,16 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
   | ax hA => ax <| hTheory hA
   | ass hA => ass <| hCtx hA
   | andI D D' => andI (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
-  | andE₁ D => andE₁ <| D.weak hTheory hCtx
-  | andE₂ D => andE₂ <| D.weak hTheory hCtx
-  | orI₁ D => orI₁ <| D.weak hTheory hCtx
-  | orI₂ D => orI₂ <| D.weak hTheory hCtx
+  | andE1 D => andE1 <| D.weak hTheory hCtx
+  | andE2 D => andE2 <| D.weak hTheory hCtx
+  | orI1 D => orI1 <| D.weak hTheory hCtx
+  | orI2 D => orI2 <| D.weak hTheory hCtx
   | orE D D' D'' =>
     orE (D.weak hTheory hCtx)
       (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
       (D''.weak hTheory <| Finset.insert_subset_insert _ hCtx)
-  | @implI _ _ _ A B Γ D => implI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
-  | implE D D' => implE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
+  | @impI _ _ _ A B Γ D => impI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
+  | impE D D' => impE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
 
 /-- Weakening the theory only. -/
 def Theory.Derivation.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
@@ -213,9 +219,9 @@ substitution, which would replace appeals to `A` in `E` by the whole derivation 
 -/
 def Theory.Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : T⇓(Γ ⊢ A)) (E : T⇓(insert A Δ ⊢ B)) : T⇓((Γ ∪ Δ) ⊢ B) := by
-  refine implE (A := A) ?_ (D.weakCtx Finset.subset_union_left)
+  refine impE (A := A) ?_ (D.weakCtx Finset.subset_union_left)
   have : insert A Δ ⊆ insert A (Γ ∪ Δ) := by grind
-  exact implI (Γ ∪ Δ) <| E.weakCtx this
+  exact impI (Γ ∪ Δ) <| E.weakCtx this
 
 /-- Proof irrelevant cut rule. -/
 theorem DerivableIn.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom} :
@@ -250,21 +256,21 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
     case neg h =>
       exact ass <| by grind
   | andI E E' => andI (E.subs Ds) (E'.subs Ds)
-  | andE₁ E => andE₁ <| E.subs Ds
-  | andE₂ E => andE₂ <| E.subs Ds
-  | orI₁ E => orI₁ <| E.subs Ds
-  | orI₂ E => orI₂ <| E.subs Ds
+  | andE1 E => andE1 <| E.subs Ds
+  | andE2 E => andE2 <| E.subs Ds
+  | orI1 E => orI1 <| E.subs Ds
+  | orI2 E => orI2 <| E.subs Ds
   | @orE _ _ _ _ C C' _ E E' E'' .. => by
     apply orE (E.subs Ds)
     · rw [show insert C (Γ \ Γ' ∪ Δ) = (insert C Γ \ Γ') ∪ insert C Δ by grind]
       exact E'.subs Ds |>.weakCtx (by grind)
     · rw [show insert C' (Γ \ Γ' ∪ Δ) = (insert C' Γ \ Γ') ∪ insert C' Δ by grind]
       exact E''.subs Ds |>.weakCtx (by grind)
-  | @implI _ _ _ A' _ _ E .. => by
-    apply implI
+  | @impI _ _ _ A' _ _ E .. => by
+    apply impI
     rw [show insert A' (Γ \ Γ' ∪ Δ) = (insert A' Γ \ Γ') ∪ insert A' Δ by grind]
     exact E.subs Ds |>.weakCtx (by grind)
-  | implE E E' => implE (E.subs Ds) (E'.subs Ds)
+  | impE E E' => impE (E.subs Ds) (E'.subs Ds)
 
 /-- Transport a derivation along a substitution of atoms. -/
 def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
@@ -273,15 +279,15 @@ def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [Decida
   | ax h => ax <| Set.mem_image_of_mem (· >>= f) h
   | ass h => ass <| Finset.mem_image_of_mem (· >>= f) h
   | andI D E => andI (D.substAtom f) (E.substAtom f)
-  | andE₁ D => andE₁ (D.substAtom f)
-  | andE₂ D => andE₂ (D.substAtom f)
-  | orI₁ D => orI₁ (D.substAtom f)
-  | orI₂ D => orI₂ (D.substAtom f)
+  | andE1 D => andE1 (D.substAtom f)
+  | andE2 D => andE2 (D.substAtom f)
+  | orI1 D => orI1 (D.substAtom f)
+  | orI2 D => orI2 (D.substAtom f)
   | orE D E E' => orE (D.substAtom f)
     ((Finset.image_insert (· >>= f) _ _) ▸ E.substAtom f)
     ((Finset.image_insert (· >>= f) _ _) ▸ E'.substAtom f)
-  | implI _ D => implI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
-  | implE D E => implE (D.substAtom f) (E.substAtom f)
+  | impI _ D => impI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
+  | impE D E => impE (D.substAtom f) (E.substAtom f)
 
 theorem DerivableIn.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
     {T : Theory Atom}
@@ -291,13 +297,14 @@ theorem DerivableIn.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [Decidabl
 
 /-! ### Properties of equivalence -/
 
-/-- A derivation of the canonical tautology. -/
-def Theory.derivationTop [Inhabited Atom] : T⇓(⊤ : Proposition Atom) :=
-  implI ∅ <| ass <| by grind
+/-- A derivation of the canonical tautology. With primitive `bot`, `⊤ := ⊥ → ⊥` is derivable
+in minimal logic without any typeclass constraint on the atom type. -/
+def Theory.derivationTop : T⇓(⊤ : Proposition Atom) :=
+  impI ∅ <| ass <| by grind
 
-theorem derivableIn_top [Inhabited Atom] : DerivableIn T (⊤ : Proposition Atom) := ⟨derivationTop⟩
+theorem derivableIn_top : DerivableIn T (⊤ : Proposition Atom) := ⟨derivationTop⟩
 
-theorem derivable_iff_equiv_top [Inhabited Atom] (A : Proposition Atom) :
+theorem derivable_iff_equiv_top (A : Proposition Atom) :
     DerivableIn T A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
   · refine ⟨derivationTop.weakCtx <| by grind, ?_⟩
