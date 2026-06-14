@@ -5,7 +5,7 @@ Authors: Zayn Wang
 -/
 module
 
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Confluence
 public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ParallelReduction
 
 /-!
