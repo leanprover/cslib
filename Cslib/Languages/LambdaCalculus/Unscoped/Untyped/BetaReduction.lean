@@ -6,7 +6,7 @@ Authors: Zayn Wang
 module
 
 public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.DeBruijnSyntax
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Attr
 
 /-!
 # One-step β-reduction and its reflexive-transitive closure (Star)

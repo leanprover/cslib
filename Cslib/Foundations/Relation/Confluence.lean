@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi and Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
+Authors: Fabrizio Montesi, Thomas Waring, Chris Henson, Zayn Wang
 -/
 
 module
@@ -52,7 +52,7 @@ theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
 theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b := by
   induction h <;> grind
 
-/-- Sandwich: if `r ⊆ p ⊆ r*` then `r* = p*`. -/
+/-- Sandwich: `r ⊆ p ⊆ r*` implies `r* = p*`. -/
 theorem ReflTransGen.sandwich_to_eq {α} {r p : α → α → Prop}
     (h₁ : r ≤ p)
     (h₂ : p ≤ ReflTransGen r) :
