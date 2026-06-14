@@ -52,6 +52,8 @@ inductive Par : Term → Term → Prop
       Par (app t u) (app t' u')
   | red {t t' s s'} : Par t t' → Par s s' →
       Par (app (abs t) s) (t'.sub 0 s')
+
+/-- ParStar the RTC for the parallel reduction -/
 abbrev ParStar := Relation.ReflTransGen Par
 
 /-- reflexivity of Par. -/
@@ -82,6 +84,8 @@ theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
       exact .trans (BetaStar.appL (BetaStar.abs iht))
         (.tail (BetaStar.appR ihs) (Beta.red _ _))
 
+/-- The increment of the term under de Bruijn does not change 
+  the property for parallel reduction. -/
 @[simp] theorem incre_par {a b i l} (h : a ⭢∥ b) :
     (incre i l a) ⭢∥ (incre i l b) := by
   induction h generalizing l with
