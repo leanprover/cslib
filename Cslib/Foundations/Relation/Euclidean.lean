@@ -139,7 +139,7 @@ variable [LeftEuclidean r]
 /-- A `LeftEuclidean` relation is reflexive on its domain -/
 theorem refl_dom (ab : r a b) : r a a := leftEuclidean ab ab
 
-theorem refl_dom' : a ∈ dom r → r a a := fun ⟨_, ab⟩ ↦ refl_dom ab
+theorem reflOn_dom : ReflOn r (dom r) := fun _ ⟨_, ab⟩ ↦ refl_dom ab
 
 /-- The converse of a `LeftEuclidean` relation is `RightEuclidean` -/
 theorem rightEuclidean_swap : RightEuclidean (fun a b => r b a) where

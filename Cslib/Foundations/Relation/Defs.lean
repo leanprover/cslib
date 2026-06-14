@@ -132,14 +132,17 @@ def transLeft (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans s 
 def transRight (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans r s r where
   trans hab hbc := _root_.trans hab (h _ _ hbc)
 
-def Corefl (r : α → α → Prop) := ∀ a b, r a b → a = b
-
-def LeftQuasiRefl (r : α → α → Prop) := ∀ a b, r a b → r a a
-
-def RightQuasiRefl (r : α → α → Prop) := ∀ a b, r a b → r b b
+def Corefl (r : α → α → Prop) := ∀ {a b}, r a b → a = b
 
 def ReflOn (r : α → α → Prop) (s : Set α) : Prop :=
   ∀ a ∈ s, r a a
+
+abbrev LeftQuasiRefl (r : α → α → Prop) := ReflOn r (dom r)
+
+abbrev RightQuasiRefl (r : α → α → Prop) := ReflOn r (cod r)
+
+-- Do I really want this??
+abbrev QuasiRefl (r : α → α → Prop) := LeftQuasiRefl r ∧ RightQuasiRefl r
 
 def SymmOn (r : α → α → Prop) (s : Set α) : Prop :=
   ∀ a ∈ s, ∀ b ∈ s, r a b → r b a
