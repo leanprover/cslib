@@ -48,7 +48,7 @@ open Term
 inductive Par : Term → Term → Prop
   | var (n) : Par (var  n) (var  n)
   | abs {t t'} : Par t t' → Par (abs t) (abs t')
-  | app {t t' u u'} : Par t t' → Par u u' → 
+  | app {t t' u u'} : Par t t' → Par u u' →
       Par (app t u) (app t' u')
   | red {t t' s s'} : Par t t' → Par s s' →
       Par (app (abs t) s) (t'.sub 0 s')
@@ -84,7 +84,7 @@ theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
       exact .trans (BetaStar.appL (BetaStar.abs iht))
         (.tail (BetaStar.appR ihs) (Beta.red _ _))
 
-/-- The increment of the term under de Bruijn does not change 
+/-- The increment of the term under de Bruijn does not change
   the property for parallel reduction. -/
 @[simp] theorem incre_par {a b i l} (h : a ⭢∥ b) :
     (incre i l a) ⭢∥ (incre i l b) := by
@@ -96,8 +96,8 @@ theorem par_subset_betaStar {a b} (h : a ⭢∥ b) :
       have hsub {t s : Term} :
           (incre i (l + 1) t).sub 0 (incre i l s) =
           incre i l (t.sub 0 s) := by
-        simpa only [sub, Nat.add_zero] 
-          using (incre_sub (i := i) (l := l) (n := 0) 
+        simpa only [sub, Nat.add_zero]
+          using (incre_sub (i := i) (l := l) (n := 0)
             (t := t) (s := s))
       rw [← hsub]
       exact Par.red iht ihs
@@ -112,13 +112,13 @@ private lemma par_subst {t t' u u'} (ht : t ⭢∥ t') (hu : u ⭢∥ u')
       | Par.var t =>
           obtain h | h | h := lt_trichotomy t n
           · simp_all only [var_lt_sub, par_refl]
-          · simp_all only [var_sub_elim, incre_par] 
+          · simp_all only [var_sub_elim, incre_par]
           · simp_all only [gt_iff_lt, var_gt_sub, par_refl]
   | abs t, abs t' => match ht with
       | Par.abs ht' =>
           have hp := Par.abs
             (par_subst ht' hu (1 + k) (n + 1))
-          simp_all only [sub, subst, ← incre_comm_zero, 
+          simp_all only [sub, subst, ← incre_comm_zero,
             incre_same_bound_elim, decre.eq_2]
   | app t₁ t₂, t' => match t₁ with
       | abs t₁ => match ht with
@@ -130,7 +130,7 @@ private lemma par_subst {t t' u u'} (ht : t ⭢∥ t') (hu : u ⭢∥ u')
                 (par_subst ht₁ hu (1 + k) (n + 1))
                 (par_subst ht₂ hu k n)
               rw [sub_sub_incre] at hp
-              simp_all only [sub, subst, ← incre_comm_zero, 
+              simp_all only [sub, subst, ← incre_comm_zero,
                 incre_same_bound_elim, decre.eq_3, decre]
       | var t₁ => match ht with
           | Par.app ht₁ ht₂ =>

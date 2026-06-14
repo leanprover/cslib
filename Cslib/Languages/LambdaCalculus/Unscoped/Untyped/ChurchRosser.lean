@@ -52,7 +52,7 @@ theorem churchRosser_beta : Confluent Beta := by
       ReflTransGen.sandwich_to_eq (r := Beta) (p := Par)
         (by intro a b h; exact beta_subset_par h)
         (by intro a b h; exact par_subset_betaStar h)
-    simp only [hRel] 
+    simp only [hRel]
   -- Transport confluence
   intro a b c hab hac
   have hab' : a ↠∥ b := (hEq).1 hab
