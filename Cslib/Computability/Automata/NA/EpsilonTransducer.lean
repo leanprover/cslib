@@ -10,6 +10,11 @@ public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Foundations.Semantics.LTS.HasTau
 
+/-! # Nondeterministic finite ε-transducers
+
+Transducers based on `NA` with an invisible symbol in their input and output alphabets.
+-/
+
 @[expose] public section
 
 namespace Cslib.Automata.NA
@@ -36,7 +41,7 @@ def projectVisible [DecidableEqTau InSymbol] [DecidableEqTau OutSymbol]
     (μs : List (InSymbol × OutSymbol)) : List InSymbol × List OutSymbol :=
   (μs.map Prod.fst |>.removeAllTau, μs.map Prod.snd |>.removeAllTau)
 
-/-- A `FinTransducer` translates `xs` into `ys` from state `s` to state `s'` if there is a
+/-- A `FinεTransducer` translates `xs` into `ys` from state `s` to state `s'` if there is a
 multistep transition from `s` to `s'` whose visible projection is `(xs, ys)`.
 `MTransl` is short for Multistep Translation relation.
 -/
