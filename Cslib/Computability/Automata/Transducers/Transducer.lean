@@ -14,10 +14,10 @@ public import Cslib.Init
 
 namespace Cslib.Automata
 
-/-- A `Transducer` is a machine that translates strings (lists of symbols in an alphabet) into
+/-- A `Transducer` is an automaton that translates strings (lists of symbols in an alphabet) into
 strings. -/
 class Transducer (A : Type u) (InSymbol OutSymbol : outParam (Type v)) where
-  /-- Predicate that establishes whether a string `xs` can be translates into `ys`. -/
+  /-- Predicate that establishes whether a string `xs` can be translated into `ys`. -/
   Translates (a : A) (xs : List InSymbol) (ys : List OutSymbol) : Prop
 
 scoped notation xs "[" a "]" ys => Transducer.Translates a xs ys
