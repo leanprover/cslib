@@ -30,7 +30,7 @@ def incr : FreeState Nat Unit := do
   MonadStateOf.set (n + 1)
 
 example : wp incr = wp (FreeState.toStateM incr) :=
-  StateF.wp_FreeState_eq_wp_toStateM incr
+  StateF.wp_freeState_eq_wp_toStateM incr
 
 /-- Starting in state `n`, `incr` ends in state `n + 1`. `mvcgen` picks up the `@[spec]` lemmas
 for `MonadStateOf.get`/`set` on `FreeState` and discharges the resulting arithmetic VC. -/
@@ -108,7 +108,7 @@ inductive FailF : Type → Type where
 /-- Logical handler for `FailF`: `fail` has precondition `⌜False⌝`, so it is only provable in
 unreachable branches. -/
 def FailF.handler {ps : PostShape} : {ι : Type} → FailF ι → PredTrans ps ι :=
-  fun op => match op with
+  fun
     | .fail => PredTrans.const spred(⌜False⌝)
 
 /-- A combined state + failure signature, sequencing `StateF Nat` with `FailF`. -/
@@ -117,7 +117,7 @@ abbrev StateFail := fun α => StateF Nat α ⊕ FailF α
 /-- Handler for the combined signature: the sum of the component handlers — the paper's
 `H₁ ⊕ H₂` composition. -/
 instance : FreeM.WP StateFail (.arg Nat .pure) where
-  handler := fun op => Sum.elim StateF.handler FailF.handler op
+  handler := fun op => Sum.elim FreeM.WP.handler FailF.handler op
 
 /-- Smart constructor for state-read in the combined signature. -/
 abbrev sfGet : FreeM StateFail Nat := lift (Sum.inl StateF.get)
@@ -187,7 +187,7 @@ inductive DemonicF : Type → Type 1 where
 quantification over `α`. Conjunctivity of `∀` (i.e. `∀ a, P a ∧ Q a ⊣⊢ (∀ a, P a) ∧ (∀ a, Q a)`)
 is what makes this admissible in `PredTrans`. -/
 def DemonicF.handler {ps : PostShape} : {ι : Type} → DemonicF ι → PredTrans ps ι :=
-  fun op => match op with
+  fun
     | .choice _ =>
       { trans := fun Q => SPred.forall (fun a => Q.1 a)
         conjunctiveRaw := by
