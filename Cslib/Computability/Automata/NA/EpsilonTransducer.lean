@@ -15,7 +15,7 @@ public import Cslib.Foundations.Semantics.LTS.HasTau
 namespace Cslib.Automata.NA
 
 /-- A nondeterministic ε-transducer of finite strings where the input and output alphabets include
-an invisibile symbol, modelled as `HasTau.τ` (typically called `ε`). -/
+an invisible symbol, modelled as `HasTau.τ` (typically called `ε`). -/
 structure FinεTransducer (State InSymbol OutSymbol : Type*)
     extends NA State (InSymbol × OutSymbol) where
   /-- The set of accepting states. -/
