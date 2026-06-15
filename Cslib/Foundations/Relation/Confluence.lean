@@ -6,13 +6,18 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
-public import Mathlib.Order.BooleanAlgebra.Basic
 
-/-! # Relations
+/-! # Relations: Confluence and Termination
+
+This module proves some properties regarding confluence and termination that are used for both
+lambda calculi and combinatory logic. Some notable theorems:
+
+* `Diamond.toConfluent`: the diamond property implies confluence
+* `LocallyConfluent.Terminating_toConfluent`: Newman's lemma
 
 ## References
 
@@ -22,7 +27,7 @@ public import Mathlib.Order.BooleanAlgebra.Basic
 
 @[expose] public section
 
-variable {α : Type*} {r : α → α → Prop}
+variable {α : Type*} {r r₁ r₂ : α → α → Prop}
 
 theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
   grind [WellFounded.wellFounded_iff_has_min, Relation.TransGen]
@@ -32,10 +37,6 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
   ⟨ofTransGen, transGen⟩
 
 namespace Relation
-
-/-- The empty (heterogeneous) relation, which always returns `False`. -/
-@[nolint unusedArguments]
-def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
 
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
 
@@ -54,38 +55,11 @@ theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b := by
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
 
-/-- The join of the reflexive transitive closure. This is not named in Mathlib, but see
-  `#loogle Relation.Join (Relation.ReflTransGen ?r)` -/
-abbrev MJoin (r : α → α → Prop) := Join (ReflTransGen r)
-
 theorem MJoin.refl (a : α) : MJoin r a a := by
   use a
 
-theorem MJoin.symm : Symmetric (MJoin r) := Relation.symmetric_join
-
 theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
   use b
-
-/-- The relation `r` 'up to' the relation `s`. -/
-def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
-
-/-- A relation `r` is (right) Euclidean if `r a b` and `r a c` guarantee `r b c`. -/
-class RightEuclidean (r : α → α → Prop) where
-  rightEuclidean : r a b → r a c → r b c
-
-/-- A relation has the diamond property when all reductions with a common origin are joinable -/
-abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
-
-/-- A relation is confluent when its reflexive transitive closure has the diamond property. -/
-abbrev Confluent (r : α → α → Prop) := Diamond (ReflTransGen r)
-
-/-- A relation is semi-confluent when single and multiple steps with common origin
-  are multi-joinable. -/
-abbrev SemiConfluent (r : α → α → Prop) :=
-  ∀ {x y₁ y₂}, ReflTransGen r x y₂ → r x y₁ → Join (ReflTransGen r) y₁ y₂
-
-/-- A relation has the Church Rosser property when equivalence implies multi-joinability. -/
-abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join (ReflTransGen r) x y
 
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
 lemma Diamond.extend (h : Diamond r) :
@@ -113,7 +87,7 @@ theorem Confluent.toChurchRosser (h : Confluent r) : ChurchRosser r := by
   induction h_eqv with
   | rel _ b => exists b; grind [ReflTransGen.single]
   | refl a => exists a
-  | symm a b _ ih => exact symmetric_join ih
+  | symm a b _ ih => exact symm ih
   | trans _ _ _ _ _ ih1 ih2 =>
       obtain ⟨u, _, hbu⟩ := ih1
       obtain ⟨v, hbv, _⟩ := ih2
@@ -149,32 +123,8 @@ theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
   intro a b c hab hac
   exact ⟨x, h b, h c⟩
 
-/-- An element is reducible with respect to a relation if there is a value it is related to. -/
-abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
-
-/-- A relation `r` is serial if every element is `Reducible`. -/
-class Serial (r : α → α → Prop) where
-  serial a : Reducible r a
-
-@[scoped grind →]
-lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Relation.Serial r where
-  serial a := ⟨a, h.refl a⟩
-
-instance [instRefl : Std.Refl r] : Relation.Serial r := refl_serial r instRefl
-
-/-- An element is normal if it is not reducible. -/
-abbrev Normal (r : α → α → Prop) (x : α) : Prop := ¬ Reducible r x
-
 theorem Normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ r x y := by
   rw [Normal, not_exists]
-
-/-- An element is normalizable if it is related to a normal element. -/
-abbrev Normalizable (r : α → α → Prop) (x : α) : Prop :=
-  ∃ n, ReflTransGen r x n ∧ Normal r n
-
-/-- A relation is normalizing when every element is normalizable. -/
-abbrev Normalizing (r : α → α → Prop) : Prop :=
-  ∀ x, Normalizable r x
 
 /-- A multi-step from a normal form must be reflexive. -/
 @[grind =>]
@@ -190,26 +140,8 @@ theorem ChurchRosser.normal_eqvGen_reflTransGen (cr : ChurchRosser r) (norm : No
 /-- For a Church-Rosser relation there is one normal form in each equivalence class. -/
 theorem ChurchRosser.normal_eq (cr : ChurchRosser r) (nx : Normal r x) (ny : Normal r y)
     (xy : EqvGen r x y) : x = y := by
-  have ⟨_, _, _⟩ := cr xy
+  have ⟨z, _, _⟩ := cr xy
   grind
-
-/-- A pair of subrelations lifts to transitivity on the relation. -/
-@[implicit_reducible]
-def trans_of_subrelation (s s' r : α → α → Prop) (hr : IsTrans α r)
-    (h : Subrelation s r) (h' : Subrelation s' r) : Trans s s' r where
-  trans hab hbc := hr.trans _ _ _ (h hab) (h' hbc)
-
-/-- A subrelation lifts to transitivity on the left of the relation. -/
-@[implicit_reducible]
-def trans_of_subrelation_left (s r : α → α → Prop) (hr : IsTrans α r)
-    (h : Subrelation s r) : Trans s r r where
-  trans hab hbc := hr.trans _ _ _ (h hab) hbc
-
-/-- A subrelation lifts to transitivity on the right of the relation. -/
-@[implicit_reducible]
-def trans_of_subrelation_right (s r : α → α → Prop) (hr : IsTrans α r)
-    (h : Subrelation s r) : Trans r s r where
-  trans hab hbc := hr.trans _ _ _ hab (h hbc)
 
 /-- Confluence implies that multi-step joinability is an equivalence. -/
 theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
@@ -217,11 +149,8 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   apply equivalence_join
   grind
 
-/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accesible under
-the inverse of `r`. -/
-abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
-
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
+set_option linter.tacticAnalysis.verifyGrindOnly false in
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc]
 
 lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
 
@@ -257,10 +186,6 @@ lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x
     SN (Function.onFun r f) x := InvImage.accessible f hx
 
 lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
-
-/-- A relation is terminating when the inverse of its transitive closure is well-founded.
-  Note that this is also called Noetherian or strongly normalizing in the literature. -/
-abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
 
@@ -326,9 +251,6 @@ theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     rw [hnanc] at hcnc
     exact ⟨hbnb, hcnc⟩
 
-/-- A relation is convergent when it is both confluent and terminating. -/
-abbrev Convergent (r : α → α → Prop) := Confluent r ∧ Terminating r
-
 theorem Convergent.isTerminating (h : Convergent r) : Terminating r := h.right
 
 theorem Convergent.isConfluent (h : Convergent r) : Confluent r := h.left
@@ -338,10 +260,6 @@ theorem Convergent.isNormalizing (h : Convergent r) : Normalizing r := h.isTermi
 theorem Convergent.unique_Normal (h : Convergent r) :
     ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n :=
   h.isTerminating.isConfluent_iff_all_unique_Normal.mp h.isConfluent
-
-/-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
-abbrev LocallyConfluent (r : α → α → Prop) :=
-  ∀ {a b c : α}, r a b → r a c → Join (ReflTransGen r) b c
 
 theorem Confluent.toLocallyConfluent (h : Confluent r) : LocallyConfluent r := by
   intro _ _ _ ab ac
@@ -367,30 +285,12 @@ theorem LocallyConfluent.Terminating_toConfluent (hlc : LocallyConfluent r) (ht 
         have ⟨w, vw, zw⟩ : Join (ReflTransGen r) v z := by grind [ReflTransGen.trans]
         exact ⟨w, .trans yv vw, zw⟩
 
-/-- A relation is strongly confluent when single steps are reflexive- and multi-joinable. -/
-abbrev StronglyConfluent (r : α → α → Prop) :=
-  ∀ {x y₁ y₂}, r x y₁ → r x y₂ → ∃ z, ReflGen r y₁ z ∧ ReflTransGen r y₂ z
-
-/-- Generalization of `Confluent` to two relations. -/
-def Commute (r₁ r₂ : α → α → Prop) := ∀ {x y₁ y₂},
-  ReflTransGen r₁ x y₁ → ReflTransGen r₂ x y₂ → ∃ z, ReflTransGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
-
-theorem Commute.symmetric : Symmetric (@Commute α) := by
-  intro r₁ r₂ h x y₁ y₂ x_y₁ x_y₂
-  obtain ⟨_, _, _⟩ := h x_y₂ x_y₁
-  grind
+instance : Std.Symm (@Commute α) where
+  symm r₁ r₂ h x y₁ y₂ x_y₁ x_y₂ := by grind [h x_y₂ x_y₁]
 
 theorem Commute.toConfluent : Commute r r = Confluent r := rfl
 
-/-- Generalization of `StronglyConfluent` to two relations. -/
-def StronglyCommute (r₁ r₂ : α → α → Prop) :=
-  ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, ReflGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
-
 theorem StronglyCommute.toStronglyConfluent : StronglyCommute r r = StronglyConfluent r := rfl
-
-/-- Generalization of `Diamond` to two relations. -/
-def DiamondCommute (r₁ r₂ : α → α → Prop) :=
-  ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, r₂ y₁ z ∧ r₁ y₂ z
 
 theorem DiamondCommute.toDiamond : DiamondCommute r r = Diamond r := by rfl
 
@@ -454,13 +354,13 @@ theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (
   induction ab generalizing c with
   | refl => exists c
   | @tail x y ax xy ih =>
-    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [join_left, symmetric]
+    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [join_left, symm]
     obtain ⟨z, xz, cz⟩ := ih ac
     obtain ⟨w, yw, zw⟩ := h_comm (.single xy) xz
     exact ⟨w, yw, cz.trans zw⟩
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
-theorem reflTransGen_mono_closed (h₁ : Subrelation r₁ r₂) (h₂ : Subrelation r₂ (ReflTransGen r₁)) :
+theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTransGen r₁) :
     ReflTransGen r₁ = ReflTransGen r₂ := by
   ext
   exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
@@ -498,69 +398,5 @@ theorem RightUnique.toConfluent (hr : Relator.RightUnique r) : Confluent r := by
   obtain (h | h) := ReflTransGen.total_of_right_unique hr ab ac
   · use c
   · use b
-
-public meta section
-
-open Lean Elab Meta Command Term
-
-/--
-  This command adds notations for relations. This should not usually be called directly, but from
-  the `reduction_sys` attribute.
-
-  As an example `reduction_notation foo "β"` will add the notations "⭢β" and "↠β".
-
-  Note that the string used will afterwards be registered as a notation. This means that if you have
-  also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
-  in the above example.
--/
-syntax attrKind "reduction_notation" ident (str)? : command
-macro_rules
-  | `($kind:attrKind reduction_notation $rel $sym) =>
-    `(
-      @[nolint docBlame]
-      $kind:attrKind notation3 t:39 " ⭢" $sym:str t':39 => $rel t t'
-      @[nolint docBlame]
-      $kind:attrKind notation3 t:39 " ↠" $sym:str t':39 => Relation.ReflTransGen $rel t t'
-     )
-  | `($kind:attrKind reduction_notation $rel) =>
-    `(
-      @[nolint docBlame]
-      $kind:attrKind notation3 t:39 " ⭢ " t':39 => $rel t t'
-      @[nolint docBlame]
-      $kind:attrKind notation3 t:39 " ↠ " t':39 => Relation.ReflTransGen $rel t t'
-     )
-
-
-/--
-  This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
-
-  ```
-  @[reduction_sys "ₙ", simp]
-  def PredReduction (a b : ℕ) : Prop := a = b + 1
-  ```
--/
-syntax (name := reduction_sys) "reduction_sys" (ppSpace str)? : attr
-
-initialize Lean.registerBuiltinAttribute {
-  name := `reduction_sys
-  descr := "Register notation for a relation and its closures."
-  add := fun decl stx _ => MetaM.run' do
-    let currNamespace ← getCurrNamespace
-    match stx with
-    | `(attr | reduction_sys $sym) =>
-        let mut sym := sym
-        unless sym.getString.endsWith " " do
-          sym := Syntax.mkStrLit (sym.getString ++ " ")
-        liftCommandElabM <| do
-          modifyScope ({ · with currNamespace })
-          elabCommand (← `(scoped reduction_notation $(mkIdent decl) $sym))
-    | `(attr | reduction_sys) =>
-        liftCommandElabM <| do
-          modifyScope ({ · with currNamespace })
-          elabCommand (← `(scoped reduction_notation $(mkIdent decl)))
-    | _ => throwError "invalid syntax for 'reduction_sys' attribute"
-}
-
-end
 
 end Relation

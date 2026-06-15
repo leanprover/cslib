@@ -87,7 +87,7 @@ def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
   | _, _ => false
 
 theorem isCo_iff [DecidableEq Name] {μ μ' : Act Name} : isCo μ μ' ↔ Co μ μ' := by
-  grind [cases Act]
+  cases μ <;> cases μ' <;> grind
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/
 instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') :=

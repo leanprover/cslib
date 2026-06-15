@@ -32,12 +32,12 @@ variable {M K C : Type u}
 theorem jointDist_eq (scheme : EncScheme M K C) (msgDist : PMF M)
     (m : M) (c : C) :
     scheme.jointDist msgDist (m, c) = msgDist m * scheme.ciphertextDist m c :=
-  PMFUtilities.bind_pair_apply msgDist scheme.ciphertextDist m c
+  Cslib.Probability.PMF.bind_pair_apply msgDist scheme.ciphertextDist m c
 
 /-- Summing the joint distribution over messages gives the marginal ciphertext distribution. -/
 theorem jointDist_tsum_fst (scheme : EncScheme M K C) (msgDist : PMF M) (c : C) :
     ∑' m, scheme.jointDist msgDist (m, c) = scheme.marginalCiphertextDist msgDist c :=
-  PMFUtilities.bind_pair_tsum_fst msgDist scheme.ciphertextDist c
+  Cslib.Probability.PMF.bind_pair_tsum_fst msgDist scheme.ciphertextDist c
 
 /-- Perfect secrecy is equivalent to message-ciphertext independence.
 The two formulations are related by multiplying/dividing by `marginal(c)`. -/

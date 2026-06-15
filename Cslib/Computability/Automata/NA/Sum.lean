@@ -25,6 +25,7 @@ def iSum (na : (i : I) → NA (State i) Symbol) : NA (Σ i, State i) Symbol wher
   start := ⋃ i, Sigma.mk i '' (na i).start
   Tr s x t := ∃ i s_i t_i, (na i).Tr s_i x t_i ∧ ⟨i, s_i⟩ = s ∧ ⟨i, t_i⟩ = t
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- An infinite run of the sum automaton is an infinite run of one of its component automata. -/
 @[simp, scoped grind =]
 theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
@@ -50,9 +51,9 @@ theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
   · rintro ⟨i, ss, h_run, rfl⟩
     constructor
     · simp only [iSum, get_map, mem_iUnion]
-      grind [NA.Run]
+      grind only [NA.Run, = mem_image]
     · simp only [LTS.OmegaExecution]
-      grind [NA.Run]
+      grind only [NA.Run, = get_map, iSum, LTS.OmegaExecution]
 
 namespace Buchi
 
@@ -76,7 +77,9 @@ theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) �
   · rintro ⟨i, ss_i, _⟩
     use ss_i.map (Sigma.mk i)
     simp only [mem_iUnion]
-    grind
+    constructor
+    · grind
+    · grind
 
 end Buchi
 

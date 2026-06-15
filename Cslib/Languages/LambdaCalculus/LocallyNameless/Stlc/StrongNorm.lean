@@ -7,7 +7,6 @@ Authors: David Wegmann
 module
 
 public import Cslib.Foundations.Data.HasFresh
-public import Cslib.Foundations.Data.Relation
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
@@ -59,44 +58,47 @@ def semanticMap : Ty Base → Set (Term Var)
   | .base _ => { t | SN FullBeta t ∧ LC t }
   | .arrow τ₁ τ₂ => { t | ∀ s, s ∈ semanticMap τ₁ → app t s ∈ semanticMap τ₂ }
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The sets constructed by semanticMap are saturated -/
 lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := by
   induction τ with
   | base => grind [sn_abs_app_multiApp, sn_neutral, open_abs_lc]
   | arrow τ₁ τ₂ ih₁ ih₂ =>
     constructor
-    · grind [ih₁.neutal_lc (fvar <| fresh {}) (.fvar <| fresh {}) (.fvar <| fresh {}), cases LC]
+    · let x : Var := fresh {}
+      have := ih₁.neutal_lc (fvar x) (.fvar x) (.fvar x)
+      grind only [semanticMap, usr Set.mem_setOf_eq, cases LC]
     · grind [sn_app_left (Var := Var) (N := fvar <| fresh {})]
     · grind
     · intro M N P _ _ _ s _
       grind [ih₂.multiApp M N (s :: P)]
 
-/-- The `entails_context` predicate ensures that each variable in the context
+/-- The `entailsContext` predicate ensures that each variable in the context
     is mapped to a term in the corresponding semantic map. -/
-abbrev entails_context (E : Term.Env Var) (Γ : Context Var (Ty Base)) :=
+abbrev entailsContext (E : Term.Env Var) (Γ : Context Var (Ty Base)) :=
   ∀ {x τ}, ⟨x, τ⟩ ∈ Γ → (multiSubst E (fvar x)) ∈ semanticMap τ
 
 /-- The empty context is entailed by any environment. -/
-lemma entails_context_empty {Γ : Context Var (Ty Base)} : entails_context [] Γ := by
+lemma entailsContext_empty {Γ : Context Var (Ty Base)} : entailsContext [] Γ := by
   have := semanticMap_saturated (Var := Var) (Base := Base)
   grind
 
 open scoped Context in
 omit [HasFresh Var] in
-/-- The `entails_context` predicate is preserved when extending the context
+/-- The `entailsContext` predicate is preserved when extending the context
     with a new variable, provided the new variable is fresh and its
     substitution is in the corresponding semantic map. -/
-lemma entails_context_cons (E : Term.Env Var) (Γ : Context Var (Ty Base))
+lemma entailsContext_cons (E : Term.Env Var) (Γ : Context Var (Ty Base))
     (x : Var) (τ : Ty Base) (sub : Term Var)
     (h_fresh : x ∉ E.dom ∪ E.fv ∪ Γ.dom)
     (h_mem : sub ∈ semanticMap τ) :
-    entails_context E Γ → entails_context (⟨ x, sub ⟩ :: E) (⟨ x, τ ⟩ :: Γ) := by
+    entailsContext E Γ → entailsContext (⟨ x, sub ⟩ :: E) (⟨ x, τ ⟩ :: Γ) := by
   grind [multiSubst_fvar_fresh, subst_fresh, multiSubst_preserves_not_fvar]
 
 /-- The `entails` predicate states that a term `t` is
     semantically valid with respect to a context `Γ` and a type `τ` -/
 abbrev entails (Γ : Context Var (Ty Base)) (t : Term Var) (τ : Ty Base) :=
-    ∀ E, env_LC E → (entails_context E Γ) → (multiSubst E t) ∈ semanticMap τ
+    ∀ E, envLC E → entailsContext E Γ → multiSubst E t ∈ semanticMap τ
 
 /-- The `soundness` lemma states that if a term `t` has type `τ` in context `Γ`,
     then `t` is semantically valid with respect to `Γ` and `τ` -/
@@ -111,7 +113,7 @@ lemma soundness {Γ : Context Var (Ty Base)} (derivation_t : Γ ⊢ t ∶ τ) : 
     let := multiSubst E t
     have ⟨x, _⟩ := fresh_exists <| E.dom ∪ free_union [fv, Context.dom, Env.fv] Var
     have := IH (x := x) (E := ⟨x,s⟩ :: E)
-    grind [multiSubst_abs, entails_context_cons, multiSubst_open_var]
+    grind [multiSubst_abs, entailsContext_cons, multiSubst_open_var]
   | app => grind [multiSubst_app]
 
 /-- Using soundness and the fact that the empty context
@@ -119,7 +121,7 @@ lemma soundness {Γ : Context Var (Ty Base)} (derivation_t : Γ ⊢ t ∶ τ) : 
     a well-typed term is strongly normalizing. -/
 theorem strong_norm {t : Term Var} {τ : Ty Base} (der : Γ ⊢ t ∶ τ) : SN FullBeta t := by
   apply (semanticMap_saturated τ).sn
-  apply (soundness der [] (by grind) entails_context_empty)
+  apply (soundness der [] (by grind) entailsContext_empty)
 
 end LambdaCalculus.LocallyNameless.Stlc
 

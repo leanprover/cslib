@@ -25,6 +25,7 @@ def iProd (na : (i : I) → NA (State i) Symbol) : NA (Π i, State i) Symbol whe
   Tr s x t := ∀ i, (na i).Tr (s i) x (t i)
   start := ⋂ i, (· i) ⁻¹' (na i).start
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Every run of the product automaton projects onto runs of its component automata,
 and vice versa. -/
 @[simp, scoped grind =]
@@ -39,7 +40,7 @@ theorem iProd_run_iff {na : (i : I) → NA (State i) Symbol}
   · intro h
     constructor
     · simp only [mem_iInter]
-      grind [Run]
+      grind only [Run, = mem_preimage, Run.mk, = ωSequence.head_map]
     · intro n i
       exact (h i).trans n
 

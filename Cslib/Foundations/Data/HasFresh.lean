@@ -8,15 +8,16 @@ module -- shake: keep-downstream
 
 public import Cslib.Init
 public import Mathlib.Analysis.Normed.Field.Lemmas
+meta import Lean.Elab.ConfigEval
 import Qq
 
 /-! Computable chacterization of infinite types. -/
 
+namespace Cslib
+
 @[expose] public section
 
 universe u
-
-namespace Cslib
 
 /-- A type `α` has a computable `fresh` function if it is always possible, for any finite set
 of `α`, to compute a fresh element not in the set. -/
@@ -33,97 +34,6 @@ in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
-public meta section
-
-open Lean Elab Term Meta Parser Tactic
-
-/-- Configuration for the `free_union` term elaborator. -/
-structure FreeUnionConfig where
-  /-- For `free_union Var`, include all `x : Var`. Defaults to true. -/
-  singleton : Bool := true
-  /-- For `free_union Var`, include all `xs : Finset Var`. Defaults to true. -/
-  finset : Bool := true
-
-/-- Elaborate a FreeUnionConfig. -/
-declare_config_elab elabFreeUnionConfig FreeUnionConfig
-
-/--
-  Given a `DecidableEq Var` instance, this elaborator automatically constructs
-  the union of any variables, finite sets of variables, and optionally the
-  results of provided functions mapping to variables. This is configurable with
-  optional boolean boolean arguments `singleton` and `finset`.
-
-  As an example, consider the following:
-
-  ```
-  variable (x : ℕ) (xs : Finset ℕ) (var : String)
-
-  def f (_ : String) : Finset ℕ := {1, 2, 3}
-  def g (_ : String) : Finset ℕ := {4, 5, 6}
-
-  -- info: ∅ ∪ {x} ∪ xs : Finset ℕ
-  #check free_union ℕ
-
-  -- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ
-  #check free_union [f, g] ℕ
-
-  info: ∅ ∪ xs : Finset ℕ
-  #check free_union (singleton := false) ℕ
-
-  -- info: ∅ ∪ {x} : Finset ℕ
-  #check free_union (finset := false) ℕ
-
-  -- info: ∅ : Finset ℕ
-  #check free_union (singleton := false) (finset := false) ℕ
-  ```
--/
-syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
-
-open Qq
-
-set_option linter.style.emptyLine false in
-/-- Elaborator for `free_union`. -/
-@[term_elab freeUnion]
-def HasFresh.freeUnion : TermElab := fun stx _ => do
-  match stx with
-  | `(free_union $cfg $[[$maps,*]]? $var:term) =>
-    let cfg ← elabFreeUnionConfig cfg |>.run { elaborator := .anonymous } |>.run' { goals := [] }
-
-    -- the type of our variables
-    let var ← elabType var
-    let dl ← getDecLevel var
-    have α : Q(Type dl) := var
-
-    -- maps to variables
-    let maps := maps.map (·.getElems) |>.getD #[]
-    let mut maps ← maps.mapM (elabTerm · none)
-
-    -- singleton variables
-    if cfg.singleton then
-      maps := maps.push q(Singleton.singleton : $α → Finset $α)
-
-    -- any finite sets
-    if cfg.finset then
-      maps := maps.push q((·) : Finset $α → Finset $α)
-
-    let mut finsets : Array Q(Finset $α) := #[]
-
-    for ldecl in ← getLCtx do
-      if !ldecl.isImplementationDetail then
-        let local_type ← ldecl.toExpr |> inferType >=> whnf
-        for map in maps do
-          if let Expr.forallE _ dom _ _ := ← inferType map then
-            if ← isDefEq local_type dom then
-              finsets := finsets.push (map.betaRev #[ldecl.toExpr])
-
-    let _dec : Q(DecidableEq $α) ← synthInstanceQ q(DecidableEq $α)
-    let union := finsets.foldl (fun a b : Q(Finset $α) => q($a ∪ $b)) q(∅)
-
-    return union
-  | _ => throwUnsupportedSyntax
-
-end
-
 export HasFresh (fresh fresh_notMem fresh_exists)
 
 /-- `HasFresh α` implies a computably infinite type. -/
@@ -134,7 +44,7 @@ instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
 
 /-- All infinite types have an associated (at least noncomputable) fresh function.
 This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
-noncomputable instance HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
+noncomputable instance (α : Type u) [Infinite α] : HasFresh α where
   fresh s := Infinite.exists_notMem_finset s |>.choose
   fresh_notMem s := by grind
 
@@ -178,5 +88,98 @@ instance {α : Type u} [DecidableEq α] [Inhabited α] : HasFresh (Multiset α) 
 /-- `ℕ → ℕ` has a computable fresh function. -/
 instance : HasFresh (ℕ → ℕ) :=
   .ofSucc (fun f x ↦ f x + 1) fun _ ↦ Pi.lt_def.2 ⟨fun _ ↦ Nat.le_succ _, 0, Nat.lt_succ_self _⟩
+
+end
+
+public meta section
+
+open Lean Elab Term Meta Parser Tactic
+
+/-- Configuration for the `free_union` term elaborator. -/
+structure FreeUnionConfig where
+  /-- For `free_union Var`, include all `x : Var`. Defaults to true. -/
+  singleton : Bool := true
+  /-- For `free_union Var`, include all `xs : Finset Var`. Defaults to true. -/
+  finset : Bool := true
+
+/-- Elaborate a FreeUnionConfig. -/
+declare_term_config_elab elabFreeUnionConfig FreeUnionConfig
+
+/--
+  Given a `DecidableEq Var` instance, this elaborator automatically constructs
+  the union of any variables, finite sets of variables, and optionally the
+  results of provided functions mapping to variables. This is configurable with
+  optional boolean boolean arguments `singleton` and `finset`.
+
+  As an example, consider the following:
+
+  ```
+  variable (x : ℕ) (xs : Finset ℕ) (var : String)
+
+  def f (_ : String) : Finset ℕ := {1, 2, 3}
+  def g (_ : String) : Finset ℕ := {4, 5, 6}
+
+  -- info: ∅ ∪ {x} ∪ xs : Finset ℕ
+  #check free_union ℕ
+
+  -- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ
+  #check free_union [f, g] ℕ
+
+  info: ∅ ∪ xs : Finset ℕ
+  #check free_union -singleton ℕ
+
+  -- info: ∅ ∪ {x} : Finset ℕ
+  #check free_union -finset ℕ
+
+  -- info: ∅ : Finset ℕ
+  #check free_union -singleton -finset ℕ
+  ```
+-/
+syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
+
+open Qq
+
+set_option linter.style.emptyLine false in
+/-- Elaborator for `free_union`. -/
+@[term_elab freeUnion]
+def HasFresh.freeUnion : TermElab := fun stx _ => do
+  match stx with
+  | `(free_union $cfg $[[$maps,*]]? $var:term) =>
+    let cfg ← elabFreeUnionConfig cfg
+
+    -- the type of our variables
+    let var ← elabType var
+    let dl ← getDecLevel var
+    have α : Q(Type dl) := var
+
+    -- maps to variables
+    let maps := maps.map (·.getElems) |>.getD #[]
+    let mut maps ← maps.mapM (elabTerm · none)
+
+    -- singleton variables
+    if cfg.singleton then
+      maps := maps.push q(Singleton.singleton : $α → Finset $α)
+
+    -- any finite sets
+    if cfg.finset then
+      maps := maps.push q((·) : Finset $α → Finset $α)
+
+    let mut finsets : Array Q(Finset $α) := #[]
+
+    for ldecl in ← getLCtx do
+      if !ldecl.isImplementationDetail then
+        let local_type ← ldecl.toExpr |> inferType >=> whnf
+        for map in maps do
+          if let Expr.forallE _ dom _ _ := ← inferType map then
+            if ← isDefEq local_type dom then
+              finsets := finsets.push (map.betaRev #[ldecl.toExpr])
+
+    let _dec : Q(DecidableEq $α) ← synthInstanceQ q(DecidableEq $α)
+    let union := finsets.foldl (fun a b : Q(Finset $α) => q($a ∪ $b)) q(∅)
+
+    return union
+  | _ => throwUnsupportedSyntax
+
+end
 
 end Cslib

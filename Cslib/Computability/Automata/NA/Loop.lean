@@ -92,6 +92,7 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
     exact neq.imp (congrArg List.length)
   · grind [loop_run_from_left]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 open List in
 /-- For any finite word in `language na`, there is a corresponding finite run of `na.loop`. -/
 theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
@@ -127,7 +128,8 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
     ∃ ss, na.loop.Run xls.flatten ss ∧ ∀ k, ss (xls.cumLen k) = inl () := by
   let ts := ωSequence.const (inl () : Unit ⊕ State)
   have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
-  have h_pos (k : ℕ) : (xls k).length > 0 := by grind
+  have (k : ℕ) : xls k ≠ [] := by grind
+  have h_pos (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
   obtain ⟨ss, _, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
   use ss
   grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]
@@ -158,7 +160,10 @@ theorem loop_language_eq [Inhabited Symbol] :
     use ss, h_run
     apply frequently_iff_strictMono.mpr
     use xls.cumLen, ?_, by grind
-    grind [cumLen_strictMono, List.eq_nil_iff_length_eq_zero]
+    apply cumLen_strictMono
+    intro k
+    apply List.length_pos_iff.mpr
+    grind
 
 end Buchi
 
@@ -167,14 +172,14 @@ namespace FinAcc
 open scoped Computability
 
 /-- `finLoop na` is the loop construction applied to the "totalized" version of `na`. -/
-def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ (State ⊕ Unit)) Symbol :=
-  FinAcc.loop ⟨na.totalize, inl '' na.accept⟩
+def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ Option State) Symbol :=
+  FinAcc.loop ⟨na.totalize, some '' na.accept⟩
 
 /-- `finLoop na` is total, assuming that `na` has at least one start state. -/
 instance [h : Nonempty na.start] : na.finLoop.Total where
   total s x := match s with
-    | inl _ => ⟨inr (inr ()), by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
-    | inr _ => ⟨inr (inr ()), by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
+    | inl _ => ⟨inr none, by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
+    | inr _ => ⟨inr none, by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
 
 /-- `finLoop na` accepts the Kleene star of the language of `na`, assuming that
 the latter is nonempty. -/

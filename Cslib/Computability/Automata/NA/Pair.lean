@@ -99,6 +99,7 @@ namespace Automata.NA.Buchi
 
 open Set Filter ωSequence ωLanguage ωAcceptor
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The ω-language accepted by a finite-state Büchi automaton is the finite union of ω-languages
 of the form `L * M^ω`, where all `L`s and `M`s are regular languages. -/
 theorem language_eq_fin_iSup_hmul_omegaPow
@@ -110,11 +111,11 @@ theorem language_eq_fin_iSup_hmul_omegaPow
   constructor
   · rintro ⟨ss, h_run, h_inf⟩
     obtain ⟨t, h_acc, h_t⟩ := frequently_in_finite_type.mp h_inf
-    use ss 0, by grind [NA.Run], t, h_acc
+    use ss 0, by grind only [NA.Run], t, h_acc
     obtain ⟨f, h_mono, h_f⟩ := frequently_iff_strictMono.mp h_t
     refine ⟨xs.take (f 0), ?_, xs.drop (f 0), ?_, by grind⟩
     · have : na.MTr (ss 0) (xs.extract 0 (f 0)) (ss (f 0)) := by
-        grind [LTS.OmegaExecution.extract_mTr, NA.Run]
+        grind only [LTS.OmegaExecution.extract_mTr, NA.Run]
       grind [extract_eq_drop_take]
     · simp only [omegaPow_seq_prop, LTS.mem_pairLang]
       use (f · - f 0)
@@ -131,7 +132,7 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     have h_mtr (n : ℕ) : na.MTr (ts n) (zls n) (ts (n + 1)) := by
       grind [Language.mem_sub_one, LTS.mem_pairLang]
     have h_pos (n : ℕ) : (zls n).length > 0 := by
-      grind [Language.mem_sub_one, List.eq_nil_iff_length_eq_zero]
+      grind only [Language.mem_sub_one, List.eq_nil_iff_length_eq_zero]
     obtain ⟨zss, h_zss, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
     have (n : ℕ) : zss (zls.cumLen n) = t := by grind
     obtain ⟨xss, _, _, _, _⟩ := LTS.OmegaExecution.append h_yl h_zss

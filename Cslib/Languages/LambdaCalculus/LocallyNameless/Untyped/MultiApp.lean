@@ -72,6 +72,7 @@ lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns �
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- If a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
     Q must be one of the following forms:
 
@@ -86,7 +87,7 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     (∃ Ps', Ps ⭢lβᶠ Ps' ∧ Q = multiApp (M.abs.app N) Ps') ∨
     (Q = multiApp (M ^ N) Ps) := by
   induction Ps generalizing M N Q with
-  | nil => grind [cases Xi]
+  | nil => grind only [cases Xi, multiApp]
   | cons P Ps ih =>
     generalize Heq : (M.abs.app N).multiApp Ps = Q'
     have : ∀ P', Q'.app P' = (M.abs.app N).multiApp (P' :: Ps) := by grind

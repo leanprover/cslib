@@ -119,15 +119,15 @@ example (h : (a : P) ≡ b) : b ≡ a := Proposition.Equiv.symm h
 example (hab : (a : P) ≡ b) (hbc : b ≡ c) : a ≡ c := Proposition.Equiv.trans hab hbc
 
 -- Coercion from proof-relevant to proof-irrelevant (via .toProp)
-example : (!⊤ : P) ≡ 1 := Proposition.bang_top_eqv_one.toProp
-example : (ʔ0 : P) ≡ ⊥ := Proposition.quest_zero_eqv_bot.toProp
-example : (a ⊗ 0 : P) ≡ 0 := (Proposition.tensor_zero_eqv_zero a).toProp
-example : (a ⅋ ⊤ : P) ≡ ⊤ := (Proposition.parr_top_eqv_top a).toProp
-example : (a ⊗ b : P) ≡ b ⊗ a := Proposition.tensor_symm.toProp
-example : (a ⊗ (b ⊗ c) : P) ≡ (a ⊗ b) ⊗ c := Proposition.tensor_assoc.toProp
-example : (a ⊗ (b ⊕ c) : P) ≡ (a ⊗ b) ⊕ (a ⊗ c) := (Proposition.tensor_distrib_oplus a b c).toProp
-example : (a ⊕ a : P) ≡ a := Proposition.oplus_idem.toProp
-example : (a & a : P) ≡ a := Proposition.with_idem.toProp
+example : (!⊤ : P) ≡ 1 := Proposition.bangTopEqvOne.toProp
+example : (ʔ0 : P) ≡ ⊥ := Proposition.questZeroEqvBot.toProp
+example : (a ⊗ 0 : P) ≡ 0 := (Proposition.tensorZeroEqvZero a).toProp
+example : (a ⅋ ⊤ : P) ≡ ⊤ := (Proposition.parrTopEqvTop a).toProp
+example : (a ⊗ b : P) ≡ b ⊗ a := Proposition.tensorSymm.toProp
+example : (a ⊗ (b ⊗ c) : P) ≡ (a ⊗ b) ⊗ c := Proposition.tensorAssoc.toProp
+example : (a ⊗ (b ⊕ c) : P) ≡ (a ⊗ b) ⊕ (a ⊗ c) := (Proposition.tensorDistribOplus a b c).toProp
+example : (a ⊕ a : P) ≡ a := Proposition.oplusIdem.toProp
+example : (a & a : P) ≡ a := Proposition.withIdem.toProp
 
 
 /-! ## Proof-relevant equivalence tests -/
@@ -142,25 +142,25 @@ example (h : (a : P) ≡⇓ b) : b ≡⇓ a := Proposition.equiv.symm a h
 example (hab : (a : P) ≡⇓ b) (hbc : (b : P) ≡⇓ c) : a ≡⇓ c := Proposition.equiv.trans hab hbc
 
 -- Proof-relevant versions of logical equivalences
-example : (!⊤ : P) ≡⇓ 1 := Proposition.bang_top_eqv_one
-example : (ʔ0 : P) ≡⇓ ⊥ := Proposition.quest_zero_eqv_bot
-example : (a ⊗ b : P) ≡⇓ b ⊗ a := Proposition.tensor_symm
-example : (a ⊗ (b ⊗ c) : P) ≡⇓ (a ⊗ b) ⊗ c := Proposition.tensor_assoc
-example : (a ⊕ a : P) ≡⇓ a := Proposition.oplus_idem
-example : (a & a : P) ≡⇓ a := Proposition.with_idem
+example : (!⊤ : P) ≡⇓ 1 := Proposition.bangTopEqvOne
+example : (ʔ0 : P) ≡⇓ ⊥ := Proposition.questZeroEqvBot
+example : (a ⊗ b : P) ≡⇓ b ⊗ a := Proposition.tensorSymm
+example : (a ⊗ (b ⊗ c) : P) ≡⇓ (a ⊗ b) ⊗ c := Proposition.tensorAssoc
+example : (a ⊕ a : P) ≡⇓ a := Proposition.oplusIdem
+example : (a & a : P) ≡⇓ a := Proposition.withIdem
 
 
 /-! ## Inversion tests -/
 
--- parr_inversion
-example (h : ⇓({a ⅋ b} : Sequent Nat)) : ⇓({a, b} : Sequent Nat) := Proof.parr_inversion h
+-- parrInversion
+example (h : ⇓({a ⅋ b} : Sequent Nat)) : ⇓({a, b} : Sequent Nat) := Proof.parrInversion h
 
--- bot_inversion
-example (h : ⇓({⊥, 1} : Sequent Nat)) : ⇓({1} : Sequent Nat) := Proof.bot_inversion h
+-- botInversion
+example (h : ⇓({⊥, 1} : Sequent Nat)) : ⇓({1} : Sequent Nat) := Proof.botInversion h
 
 -- with_inversion
-example (h : ⇓({a & b} : Sequent Nat)) : ⇓({a} : Sequent Nat) := Proof.with_inversion₁ h
-example (h : ⇓({a & b} : Sequent Nat)) : ⇓({b} : Sequent Nat) := Proof.with_inversion₂ h
+example (h : ⇓({a & b} : Sequent Nat)) : ⇓({a} : Sequent Nat) := Proof.withInversion₁ h
+example (h : ⇓({a & b} : Sequent Nat)) : ⇓({b} : Sequent Nat) := Proof.withInversion₂ h
 
 
 /-! ## Positive/Negative classification tests -/

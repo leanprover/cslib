@@ -33,8 +33,8 @@ theorem toFLTS_mem_tr {lts : LTS State Label} {S : Set State} {s' : State} {μ :
 original `LTS`. -/
 @[scoped grind =]
 theorem toFLTS_mem_mtr {lts : LTS State Label} {S : Set State} {s' : State} {μs : List Label} :
-  s' ∈ lts.toFLTS.mtr S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
-  grind [LTS.toFLTS, FLTS.mtr]
+    s' ∈ lts.toFLTS.mtr S μs ↔ ∃ s ∈ S, lts.MTr s μs s' :=
+  ⟨by grind [FLTS.mtr], by grind [FLTS.mtr]⟩
 
 /-- Characterisation of multistep transitions in `LTS.toFLTS` as image transitions in `LTS`. -/
 @[scoped grind =]

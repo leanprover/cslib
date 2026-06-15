@@ -49,6 +49,7 @@ def makeHist (start' : State → Hist) (tr' : State × Hist → Symbol → State
   | 0 => start' (ss 0)
   | n + 1 => tr' (ss n, makeHist start' tr' xs ss n) (xs n) (ss (n + 1))
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- For every run `ss` of the original automaton, there exists a run `ss'` of the history automaton
 which projects back onto `ss`. -/
 theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
@@ -56,7 +57,7 @@ theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
   use ⟨fun n ↦ (ss n, makeHist start' tr' xs ss n)⟩
   constructor
   · simp only [addHist]
-    grind [Run]
+    grind only [Run, usr Set.mem_setOf_eq, = get_fun, = LTS.OmegaExecution, makeHist]
   · grind
 
 end Cslib.Automata.NA

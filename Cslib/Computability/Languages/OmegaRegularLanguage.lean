@@ -12,7 +12,7 @@ public import Cslib.Computability.Automata.NA.BuchiInter
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
-public import Mathlib.Data.Finite.Card
+public import Mathlib.SetTheory.Cardinal.NatCard
 public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Logic.Equiv.Fin.Basic
 
@@ -61,11 +61,11 @@ where the automaton is not even required to be finite-state. -/
 theorem IsRegular.not_da_buchi :
   ∃ (Symbol : Type) (p : ωLanguage Symbol), p.IsRegular ∧
     ¬ ∃ (State : Type) (da : DA.Buchi State Symbol), language da = p := by
-  refine ⟨Fin 2, Example.eventually_zero, ?_, ?_⟩
-  · use Fin 2, inferInstance, Example.eventually_zero_na,
-      Example.eventually_zero_accepted_by_na_buchi
+  refine ⟨Fin 2, Example.eventuallyZero, ?_, ?_⟩
+  · use Fin 2, inferInstance, Example.eventuallyZeroNa,
+      Example.eventuallyZero_accepted_by_na_buchi
   · rintro ⟨State, ⟨da, acc⟩, _⟩
-    have := Example.eventually_zero_not_omegaLim
+    have := Example.eventuallyZero_not_omegaLim
     grind [DA.buchi_eq_finAcc_omegaLim]
 
 /-- The ω-limit of a regular language is ω-regular. -/

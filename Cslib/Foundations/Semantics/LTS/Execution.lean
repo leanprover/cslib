@@ -119,7 +119,7 @@ theorem Execution.comp
     · grind only [Execution, = List.getElem_append]
     · have := Execution.comp_helper h1 h2 (k - μs1.length)
       have := Execution.comp_helper h1 h2 (k - μs1.length + 1)
-      grind
+      grind only [Execution, = List.getElem_append]
 
 /-- An execution can be split at any intermediate state into two executions. -/
 theorem Execution.split
@@ -129,13 +129,6 @@ theorem Execution.split
     lts.Execution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
   have : n + (ss.length - n - 1) = ss.length - 1 := by grind
   simp [Execution]
-  grind
-
-/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
-theorem MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
-    (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
-  obtain ⟨ss, h_ss⟩ := Execution.of_mTr h
-  have := Execution.split h_ss μs1.length
   grind
 
 end Cslib.LTS

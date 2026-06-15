@@ -105,7 +105,7 @@ instance judgementalContext :
 instance : LogicalEquivalence
     (Proposition Label) (Satisfies.Judgement State Label) (Satisfies.Bundled) where
   eqv := Proposition.Equiv
-  eqv_fill_valid {a b : Proposition Label} (heqv : a.Equiv (State := State) b)
+  eqvFillValid {a b : Proposition Label} (heqv : a.Equiv (State := State) b)
       (c : HasHContext.Context (Satisfies.Judgement State Label) (Proposition Label))
       (h : Satisfies.Bundled c<[a]) : Satisfies.Bundled c<[b] := by
     simp only [Satisfies.bundled_char, HasHContext.fill, Satisfies.Context.fill]
