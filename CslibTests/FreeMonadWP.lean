@@ -19,10 +19,10 @@ namespace CslibTests.FreeMonadWP
 
 open Cslib Cslib.FreeM Std.Do
 
-example : WP (FreeState Nat) (.arg Nat .pure) := inferInstance
+example : Std.Do.WP (FreeState Nat) (.arg Nat .pure) := inferInstance
 example : WPMonad (FreeState Nat) (.arg Nat .pure) := inferInstance
-example : WP (FreeReader Nat) (.arg Nat .pure) := inferInstance
-example : HasHandler (StateF Nat) (.arg Nat .pure) := inferInstance
+example : Std.Do.WP (FreeReader Nat) (.arg Nat .pure) := inferInstance
+example : FreeM.WP (StateF Nat) (.arg Nat .pure) := inferInstance
 
 /-- Increment the natural-number state by 1. -/
 def incr : FreeState Nat Unit := do
@@ -61,10 +61,10 @@ def interp : ∀ ι : Type, CounterF ι → StateM Nat ι
 
 /-- Logical handler for `CounterF` induced by `interp` and `Std.Do`'s `WP (StateM Nat)`
 instance. -/
-def handler : LHandler CounterF (.arg Nat .pure) :=
-  LHandler.ofInterp CounterF.interp
+def handler : {ι : Type} → CounterF ι → PredTrans (.arg Nat .pure) ι :=
+  fun {ι} op => wp (CounterF.interp ι op)
 
-instance : HasHandler CounterF (.arg Nat .pure) where
+instance : FreeM.WP CounterF (.arg Nat .pure) where
   handler := CounterF.handler
 
 /-- Interpret counter programs as `StateM Nat` programs. -/
@@ -74,7 +74,7 @@ abbrev toStateM {α : Type} (comp : FreeCounter α) : StateM Nat α :=
 /-- Adequacy theorem specialized to `CounterF`. -/
 theorem wp_FreeCounter_eq_wp_toStateM {α : Type} (comp : FreeCounter α) :
     wp comp = wp (CounterF.toStateM comp) :=
-  wpH_ofInterp_eq_wp_liftM (m := StateM Nat) CounterF.interp comp
+  liftM_wp_eq_wp_liftM (m := StateM Nat) CounterF.interp comp
 
 end CounterF
 
@@ -107,7 +107,7 @@ inductive FailF : Type → Type where
 
 /-- Logical handler for `FailF`: `fail` has precondition `⌜False⌝`, so it is only provable in
 unreachable branches. -/
-def FailF.handler {ps : PostShape} : LHandler FailF ps :=
+def FailF.handler {ps : PostShape} : {ι : Type} → FailF ι → PredTrans ps ι :=
   fun op => match op with
     | .fail => PredTrans.const spred(⌜False⌝)
 
@@ -116,8 +116,8 @@ abbrev StateFail := fun α => StateF Nat α ⊕ FailF α
 
 /-- Handler for the combined signature: the sum of the component handlers — the paper's
 `H₁ ⊕ H₂` composition. -/
-instance : HasHandler StateFail (.arg Nat .pure) where
-  handler := StateF.handler.sum FailF.handler
+instance : FreeM.WP StateFail (.arg Nat .pure) where
+  handler := fun op => Sum.elim StateF.handler FailF.handler op
 
 /-- Smart constructor for state-read in the combined signature. -/
 abbrev sfGet : FreeM StateFail Nat := lift (Sum.inl StateF.get)
@@ -186,7 +186,7 @@ inductive DemonicF : Type → Type 1 where
 /-- Logical handler for `DemonicF`: the predicate transformer for `choice α` is universal
 quantification over `α`. Conjunctivity of `∀` (i.e. `∀ a, P a ∧ Q a ⊣⊢ (∀ a, P a) ∧ (∀ a, Q a)`)
 is what makes this admissible in `PredTrans`. -/
-def DemonicF.handler {ps : PostShape} : LHandler DemonicF ps :=
+def DemonicF.handler {ps : PostShape} : {ι : Type} → DemonicF ι → PredTrans ps ι :=
   fun op => match op with
     | .choice _ =>
       { trans := fun Q => SPred.forall (fun a => Q.1 a)
@@ -207,7 +207,7 @@ def DemonicF.handler {ps : PostShape} : LHandler DemonicF ps :=
             · exact SPred.and_elim_l.trans (SPred.forall_elim a)
             · exact SPred.and_elim_r.trans (SPred.forall_elim a) }
 
-instance : HasHandler DemonicF .pure where
+instance : FreeM.WP DemonicF .pure where
   handler := DemonicF.handler
 
 /-- Smart constructor for demonic choice over `α`. -/

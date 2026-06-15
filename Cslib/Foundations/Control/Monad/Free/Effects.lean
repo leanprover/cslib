@@ -163,17 +163,18 @@ lemma run'_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
 end FreeState
 
 /-- Logical handler for the state effect, induced by `Std.Do`'s `WP (StateM σ)`. -/
-def StateF.handler {σ : Type u} : LHandler (StateF σ) (.arg σ .pure) :=
-  LHandler.ofInterp (m := StateM σ) (fun _ op => FreeState.stateInterp op)
+def StateF.handler {σ : Type u} :
+    {ι : Type u} → StateF σ ι → PredTrans (.arg σ .pure) ι :=
+  fun {ι} op => wp (FreeState.stateInterp (σ := σ) (α := ι) op)
 
-instance StateF.instHasHandler {σ : Type u} :
-    HasHandler (StateF σ) (.arg σ .pure) where
+instance StateF.instWP {σ : Type u} :
+    FreeM.WP (StateF σ) (.arg σ .pure) where
   handler := StateF.handler
 
 /-- WP of a `FreeState` program matches WP of its `StateM` interpretation. -/
 theorem StateF.wp_FreeState_eq_wp_toStateM {σ α : Type u} (comp : FreeState σ α) :
     wp comp = wp (FreeState.toStateM comp) :=
-  wpH_ofInterp_eq_wp_liftM (m := StateM σ)
+  liftM_wp_eq_wp_liftM (m := StateM σ)
     (fun _ op => FreeState.stateInterp op) comp
 
 /-- Hoare spec for `get` on `FreeState`. -/
@@ -485,17 +486,18 @@ instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
 end FreeReader
 
 /-- Logical handler for the reader effect, induced by `Std.Do`'s `WP (ReaderM σ)`. -/
-def ReaderF.handler {σ : Type u} : LHandler (ReaderF σ) (.arg σ .pure) :=
-  LHandler.ofInterp (m := ReaderM σ) (fun _ op => FreeReader.readInterp op)
+def ReaderF.handler {σ : Type u} :
+    {ι : Type u} → ReaderF σ ι → PredTrans (.arg σ .pure) ι :=
+  fun {ι} op => wp (FreeReader.readInterp (σ := σ) (α := ι) op)
 
-instance ReaderF.instHasHandler {σ : Type u} :
-    HasHandler (ReaderF σ) (.arg σ .pure) where
+instance ReaderF.instWP {σ : Type u} :
+    FreeM.WP (ReaderF σ) (.arg σ .pure) where
   handler := ReaderF.handler
 
 /-- WP of a `FreeReader` program matches WP of its `ReaderM` interpretation. -/
 theorem ReaderF.wp_FreeReader_eq_wp_toReaderM {σ α : Type u} (comp : FreeReader σ α) :
     wp comp = wp (FreeReader.toReaderM comp) :=
-  wpH_ofInterp_eq_wp_liftM (m := ReaderM σ)
+  liftM_wp_eq_wp_liftM (m := ReaderM σ)
     (fun _ op => FreeReader.readInterp op) comp
 
 /-- Hoare spec for `read` on `FreeReader`. -/
