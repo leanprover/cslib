@@ -78,12 +78,21 @@ Definition of a multistep transition.
 rule. This makes working with lists of labels more convenient, because we follow the same
 construction. It is also similar to what is done in the `SimpleGraph` library in mathlib.)
 -/
-@[scoped grind]
+@[scoped grind, mk_iff]
 inductive MTr (lts : LTS State Label) : State → List Label → State → Prop where
   | refl {s : State} : lts.MTr s [] s
   | stepL {s1 : State} {μ : Label} {s2 : State} {μs : List Label} {s3 : State} :
     lts.Tr s1 μ s2 → lts.MTr s2 μs s3 →
     lts.MTr s1 (μ :: μs) s3
+
+/-- In any zero-steps multistep transition, the origin and the derivative are the same. -/
+@[scoped grind .]
+theorem MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
+  cases h
+  rfl
+
+@[simp] theorem MTr.nil_iff (s1 s2 : State) : lts.MTr s1 [] s2 ↔ s1 = s2 :=
+  ⟨nil_eq lts, fun h => h ▸ MTr.refl⟩
 
 /-- Any transition is also a multistep transition. -/
 @[scoped grind →]
@@ -93,6 +102,16 @@ theorem MTr.single {s1 : State} {μ : Label} {s2 : State} :
   apply MTr.stepL
   · exact h
   · apply MTr.refl
+
+/-- A multistep transition along `μ :: μs` is a transition labelled by `μ` plus a multistep
+transition labelled by `μs`. -/
+theorem MTr.cons_iff {lts : LTS State Label} :
+    lts.MTr s1 (μ :: μs) s2 ↔ ∃ s, lts.Tr s1 μ s ∧ lts.MTr s μs s2 := by
+  constructor
+  · rintro (_ | ⟨htr, hmtr⟩)
+    exact ⟨_, htr, hmtr⟩
+  · intro ⟨s, htr, hmtr⟩
+    exact .stepL htr hmtr
 
 /-- Any multistep transition can be extended by adding a transition. -/
 theorem MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
@@ -128,11 +147,28 @@ theorem MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- In any zero-steps multistep transition, the origin and the derivative are the same. -/
-@[scoped grind .]
-theorem MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
-  cases h
-  rfl
+/-- A 1-sized multistep transition is exactly a single transision with the given label. -/
+@[simp] theorem MTr.singleton_iff (s1 : State) (μ : Label) (s2 : State) :
+  lts.MTr s1 [μ] s2 ↔ lts.Tr s1 μ s2 := ⟨MTr.single_invert lts s1 μ s2, MTr.single lts⟩
+
+/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
+theorem MTr.split {lts : LTS State Label} (h : lts.MTr s1 (μs ++ μs') s2) :
+    ∃ s, lts.MTr s1 μs s ∧ lts.MTr s μs' s2 := by
+  induction μs generalizing s1 s2 with
+  | nil => use s1, .refl, h
+  | cons μ μs ih =>
+    rw [List.cons_append] at h
+    cases h
+    case stepL s htr hmtr =>
+      obtain ⟨s', hmtr', hmtr''⟩ := ih hmtr
+      use s', .stepL htr hmtr', hmtr''
+
+/-- Multistep-transitions over `μs ++ μs'` are exactly multistep transitions over `μs` and `μs'`
+with a common end & start state (respectively). -/
+theorem MTr.append_iff : lts.MTr s1 (μs ++ μs') s2 ↔ ∃ s, lts.MTr s1 μs s ∧ lts.MTr s μs' s2 := by
+  refine ⟨MTr.split, ?_⟩
+  intro ⟨_, h, h'⟩
+  exact h.comp lts h'
 
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
@@ -166,6 +202,21 @@ label. -/
 class Deterministic (lts : LTS State Label) where
   deterministic (s1 : State) (μ : Label) (s2 s3 : State) :
     lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
+
+theorem Deterministic.eq_of_tr {lts : LTS State Label} [lts.Deterministic]
+    (htr : lts.Tr s1 μ s2) (htr' : lts.Tr s1 μ s2') : s2 = s2' :=
+  Deterministic.deterministic s1 μ s2 s2' htr htr'
+
+/-- In a deterministic lts, multistep transitions with a given start state and trace reach a unique
+end state. -/
+theorem Deterministic.eq_of_mTr {lts : LTS State Label} [lts.Deterministic]
+    (hmtr : lts.MTr s1 μs s2) (hmtr' : lts.MTr s1 μs s2') : s2 = s2' := by
+  induction μs generalizing s1 s2 s2' with
+  | nil => grind
+  | cons μ μs ih =>
+    rcases hmtr with (_ | ⟨htr, hmtr⟩); rcases hmtr' with (_ | ⟨htr', hmtr'⟩)
+    rw [eq_of_tr htr htr'] at hmtr
+    exact ih hmtr hmtr'
 
 /-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
 @[scoped grind =]
