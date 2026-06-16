@@ -71,7 +71,6 @@ public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
-<<<<<<< HEAD
 public import Cslib.Foundations.Logic.Operators.And
 public import Cslib.Foundations.Logic.Operators.Box
 public import Cslib.Foundations.Logic.Operators.Diamond
@@ -80,13 +79,11 @@ public import Cslib.Foundations.Logic.Operators.Impl
 public import Cslib.Foundations.Logic.Operators.Not
 public import Cslib.Foundations.Logic.Operators.Or
 public import Cslib.Foundations.Logic.Operators.Tensor
-=======
 public import Cslib.Foundations.Relation.Attr
 public import Cslib.Foundations.Relation.Confluence
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Relation.Euclidean
->>>>>>> main
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
