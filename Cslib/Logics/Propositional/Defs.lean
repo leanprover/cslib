@@ -78,6 +78,10 @@ instance : HasOr (Proposition Atom) := {or := Proposition.or}
 instance : HasImpl (Proposition Atom) := {impl := Proposition.impl}
 instance [Bot Atom] : HasNot (Proposition Atom) := {not := Proposition.neg}
 
+omit [DecidableEq Atom] in
+@[grind =]
+lemma not_eq [Bot Atom] (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
+
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
 def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
