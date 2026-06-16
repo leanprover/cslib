@@ -9,7 +9,7 @@ module
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Algebra.Order.Sub.Basic
-public import Mathlib.Data.Nat.Lattice
+public import Mathlib.Order.Lattice.Nat
 
 /-!
 # ω-sequences a.k.a. infinite sequences

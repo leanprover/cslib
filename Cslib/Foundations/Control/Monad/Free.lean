@@ -39,6 +39,8 @@ This unique interpreter is `FreeM.liftM f`
 - `FreeM.liftM_unique`: Proof of the universal property
 
 For elimination and interpretation theory, see `Free/Fold.lean`.
+For polynomial effect signatures with explicit operation shapes and positions, see
+`Cslib.Foundations.Data.PFunctor.Free`.
 
 See the Haskell [freer-simple](https://hackage.haskell.org/package/freer-simple) library for the
 Haskell implementation that inspired this approach.
@@ -230,7 +232,8 @@ lemma liftM_lift_bind (interp : {ι : Type u} → F ι → m ι) (op : F β) (co
 @[simp]
 lemma liftM_lift [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) (op : F β) :
     (lift op).liftM interp = interp op := by
-  simp_rw [lift, FreeM.liftM, _root_.bind_pure]
+  rw [lift, FreeM.liftM]
+  simp
 
 @[simp]
 lemma liftM_bind [LawfulMonad m]

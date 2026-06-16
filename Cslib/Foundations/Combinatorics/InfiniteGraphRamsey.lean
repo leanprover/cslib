@@ -69,8 +69,8 @@ private lemma goodSelection_exists (ivs : InfVSet Vertex) :
   obtain ⟨v, h_v⟩ := Set.Infinite.nonempty ivs.inf
   let f u := color {v, u}
   obtain ⟨c, vs, h_inf, h_vs, h_col⟩ := infinite_pigeonhole_principle f <|
-    Set.Infinite.diff ivs.inf (finite_singleton v)
-  simp only [subset_diff] at h_vs
+    Set.Infinite.sdiff ivs.inf (finite_singleton v)
+  simp only [subset_sdiff] at h_vs
   let ivs' := InfVSet.mk vs h_inf
   use {vs := ivs', v := v, c := c}
   grind [GoodSelection]

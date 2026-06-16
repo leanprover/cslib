@@ -264,7 +264,7 @@ theorem runEff_bind_ok {α β}
     (h : runEff p env tr = .ok (v, env', tr')) :
     runEff (p >>= k) env tr = runEff (k v) env' tr' := by
   revert h
-  induction p generalizing env env' tr tr' v <;> simp only [runEff, bind, foldFreeM] <;> intro h
+  induction p generalizing env env' tr tr' v <;> simp only [runEff, bind] <;> intro h
   · case pure => cases h; rfl
   · case lift_bind _ op _ ih =>
     cases op
@@ -285,7 +285,7 @@ theorem runEff_bind_err {α β}
     {env : Env} {tr : Trace} {msg : String} :
     runEff p env tr = .error msg →
     runEff (p >>= k) env tr = .error msg := by
-  induction p generalizing env tr msg <;> simp only [runEff, bind, foldFreeM] <;> intro h
+  induction p generalizing env tr msg <;> simp only [runEff, bind] <;> intro h
   · case pure => simp [effPure] at h
   · case lift_bind _ op _ ih =>
     cases op

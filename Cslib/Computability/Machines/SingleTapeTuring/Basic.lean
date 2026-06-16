@@ -384,8 +384,6 @@ This section defines the notion of time-bounded Turing Machines
 
 section TimeComputable
 
-variable [Inhabited Symbol] [Fintype Symbol]
-
 /-- A Turing machine + a time function +
 a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure TimeComputable (f : List Symbol → List Symbol) where
@@ -469,8 +467,6 @@ and proves that:
 section PolyTimeComputable
 
 open Polynomial
-
-variable [Inhabited Symbol] [Fintype Symbol]
 
 /-- A Turing machine + a polynomial time function +
 a proof it outputs `f` in at most `time(input.length)` steps. -/
