@@ -10,7 +10,6 @@ public import Cslib.Foundations.Control.Monad.Free
 public import Std.Do.PredTrans
 public import Std.Do.WP.Basic
 public import Std.Do.WP.Monad
-public import Std.Do.WP.Adequate
 public import Std.Do.Triple
 
 /-!
@@ -25,9 +24,7 @@ infrastructure.
 
 The WP's structural rules are immediate from `liftM` being a monad morphism. The
 coherence lemma `liftM_wp_eq_wp_liftM` states that WP-via-handler agrees with `Std.Do`'s WP of the
-`liftM` interpretation, i.e. uniqueness of the lifted monad morphism. From it we derive
-`ensures_liftM_of_wp`: a `wp`-provable postcondition holds for the program's interpretation into
-any `WPAdequate` monad.
+`liftM` interpretation, i.e. uniqueness of the lifted monad morphism.
 
 The design follows [VistrupSammlerJung2025], adapted from coinductive ITrees to inductive `FreeM`
 and from Iris to `Std.Do`.
@@ -36,8 +33,6 @@ and from Iris to `Std.Do`.
 
 - `liftM_wp_eq_wp_liftM`: WP-via-handler coincides with `Std.Do`'s WP of the `liftM`
   interpretation (uniqueness/coherence of the lifted monad morphism).
-- `ensures_liftM_of_wp`: a `wp`-provable postcondition holds (as `Internal.Ensures`) for the
-  program's interpretation into a `WPAdequate` monad.
 - `wp_lift`: `wp` of a single lifted operation is the handler applied to it.
 
 ## References
@@ -61,8 +56,7 @@ variable {F : Type u → Type v} {ps : PostShape.{u}} {α β : Type u}
 
 /-- Coherence/uniqueness lemma: WP via `FreeM` against a WP-derived handler agrees with
 `Std.Do`'s WP of the `liftM` interpretation. Equivalently, two monad morphisms
-`FreeM F → PredTrans ps` extending the same handler are equal. This is the bridge from which the
-entails-style adequacy lemma `ensures_liftM_of_wp` is derived. -/
+`FreeM F → PredTrans ps` extending the same handler are equal. -/
 theorem liftM_wp_eq_wp_liftM
     {m : Type u → Type w} [Monad m] [WPMonad m ps]
     (interp : ∀ ι : Type u, F ι → m ι) (x : FreeM F α) :
@@ -91,16 +85,6 @@ instance [FreeM.WP F ps] : WPMonad (FreeM F) ps where
 theorem wp_lift [FreeM.WP F ps] (op : F α) :
     wp (lift op : FreeM F α) = FreeM.WP.handler op :=
   liftM_lift (m := PredTrans ps) FreeM.WP.handler op
-
-/-- If `wp⟦x⟧` proves postcondition `P`, then `x` interpreted into any `WPAdequate` monad `m`
-via `interp` satisfies `Internal.Ensures P`. Follows from `liftM_wp_eq_wp_liftM` and `m`'s
-adequacy. -/
-theorem ensures_liftM_of_wp
-    {m : Type u → Type w} [Monad m] [WPMonad m ps] [WPAdequate m ps]
-    (interp : ∀ ι : Type u, F ι → m ι) (x : FreeM F α) {P : α → Prop}
-    (hwp : ⊢ₛ (x.liftM (fun {ι} op => wp (interp ι op))).apply (⇓? a => ⌜P a⌝)) :
-    Internal.Ensures P (x.liftM (fun {_} => interp _)) :=
-  WPAdequate.ensures_of_wp (liftM_wp_eq_wp_liftM interp x ▸ hwp)
 
 end FreeM
 

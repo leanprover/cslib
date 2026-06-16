@@ -59,13 +59,8 @@ def interp : ∀ ι : Type, CounterF ι → StateM Nat ι
   | _, .tick => modify (· + 1)
   | _, .read => MonadStateOf.get
 
-/-- Logical handler for `CounterF` induced by `interp` and `Std.Do`'s `WP (StateM Nat)`
-instance. -/
-def handler : {ι : Type} → CounterF ι → PredTrans (.arg Nat .pure) ι :=
-  fun {ι} op => wp (CounterF.interp ι op)
-
 instance : FreeM.WP CounterF (.arg Nat .pure) where
-  handler := CounterF.handler
+  handler := fun {ι} op => wp (CounterF.interp ι op)
 
 /-- Interpret counter programs as `StateM Nat` programs. -/
 abbrev toStateM {α : Type} (comp : FreeCounter α) : StateM Nat α :=
@@ -186,26 +181,25 @@ inductive DemonicF : Type → Type 1 where
 /-- Logical handler for `DemonicF`: the predicate transformer for `choice α` is universal
 quantification over `α`. Conjunctivity of `∀` (i.e. `∀ a, P a ∧ Q a ⊣⊢ (∀ a, P a) ∧ (∀ a, Q a)`)
 is what makes this admissible in `PredTrans`. -/
-def DemonicF.handler {ps : PostShape} : {ι : Type} → DemonicF ι → PredTrans ps ι :=
-  fun
-    | .choice _ =>
-      { trans := fun Q => SPred.forall (fun a => Q.1 a)
-        conjunctiveRaw := by
-          intro Q₁ Q₂
-          apply SPred.bientails.iff.mpr
-          refine ⟨?_, ?_⟩
-          · apply SPred.and_intro
-            · apply SPred.forall_intro
-              intro a
-              exact (SPred.forall_elim a).trans SPred.and_elim_l
-            · apply SPred.forall_intro
-              intro a
-              exact (SPred.forall_elim a).trans SPred.and_elim_r
+def DemonicF.handler {ps : PostShape} : {ι : Type} → DemonicF ι → PredTrans ps ι
+  | _, .choice _ =>
+    { trans := fun Q => SPred.forall (fun a => Q.1 a)
+      conjunctiveRaw := by
+        intro Q₁ Q₂
+        apply SPred.bientails.iff.mpr
+        refine ⟨?_, ?_⟩
+        · apply SPred.and_intro
           · apply SPred.forall_intro
             intro a
-            apply SPred.and_intro
-            · exact SPred.and_elim_l.trans (SPred.forall_elim a)
-            · exact SPred.and_elim_r.trans (SPred.forall_elim a) }
+            exact (SPred.forall_elim a).trans SPred.and_elim_l
+          · apply SPred.forall_intro
+            intro a
+            exact (SPred.forall_elim a).trans SPred.and_elim_r
+        · apply SPred.forall_intro
+          intro a
+          apply SPred.and_intro
+          · exact SPred.and_elim_l.trans (SPred.forall_elim a)
+          · exact SPred.and_elim_r.trans (SPred.forall_elim a) }
 
 instance : FreeM.WP DemonicF .pure where
   handler := DemonicF.handler
