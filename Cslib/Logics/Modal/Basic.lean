@@ -57,13 +57,13 @@ instance : HasNot (Proposition Atom) := {not := Proposition.not}
 instance : HasAnd (Proposition Atom) := {and := Proposition.and}
 instance : HasDiamond (Proposition Atom) := {diamond := Proposition.diamond}
 
-@[simp, scoped grind =_]
+@[simp, scoped grind =]
 lemma Proposition.not_def (φ : Proposition Atom) : φ.not = ¬φ := rfl
 
-@[simp, scoped grind =_]
+@[simp, scoped grind =]
 lemma Proposition.and_def (φ₁ φ₂ : Proposition Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
 
-@[simp, scoped grind =_]
+@[simp, scoped grind =]
 lemma Proposition.diamond_def (φ : Proposition Atom) : φ.diamond = (◇φ) := rfl
 
 /-- Disjunction. -/

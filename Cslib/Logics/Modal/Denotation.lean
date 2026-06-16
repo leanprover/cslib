@@ -18,7 +18,7 @@ A denotational semantics for modal logic, inspired by the one for Hennessy-Milne
 
 namespace Cslib.Logic.Modal
 
-open scoped Proposition InferenceSystem
+open scoped Proposition InferenceSystem Satisfies
 
 /-- Denotation of a proposition. -/
 @[simp, scoped grind =]
