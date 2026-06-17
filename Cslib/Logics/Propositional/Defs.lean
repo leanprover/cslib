@@ -142,7 +142,9 @@ abbrev CPL : Theory Atom :=
 omit [DecidableEq Atom] in
 lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL (Atom := Atom) := ⟨A, rfl⟩
 
-/-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
+/-- Extend a theory `T` to an intuitionistic theory over a larger atom type by adding the principle
+of explosion. The atom type is extended with `WithBot` to ensure the result is over a strictly
+larger language. -/
 @[reducible]
 def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
   (WithBot.some <$> T) ∪ IPL
