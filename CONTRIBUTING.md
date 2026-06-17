@@ -126,7 +126,7 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 ## Imports
 
 There is a also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
-running `lake exe mk_all --module` locally, which will make the required changes.
+running `lake exe mk_all` locally, which will make the required changes.
 
 CSLib tests for minimized imports using `lake shake --add-public --keep-implied --keep-prefix`, which also comes with a `--fix` option.
 See `lake shake --help` for the special comment syntax used to preserve imports required for tactics or typeclasses.

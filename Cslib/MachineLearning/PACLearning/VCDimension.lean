@@ -59,12 +59,12 @@ theorem SetShatters.subset {C : ConceptClass α Bool} {W V : Set α}
     (hW : SetShatters C W) (hVW : V ⊆ W) : SetShatters C V := by
   intro V' hV'V
   obtain ⟨c, hc, hc_eq⟩ := hW (V' ∪ (W \ V))
-    (union_subset (hV'V.trans hVW) diff_subset)
+    (union_subset (hV'V.trans hVW) sdiff_subset)
   refine ⟨c, hc, ?_⟩
   rw [show V = W ∩ V from (inter_eq_self_of_subset_right hVW).symm,
     ← inter_assoc, hc_eq]
   ext x
-  simp only [mem_inter_iff, mem_union, mem_diff]
+  simp only [mem_inter_iff, mem_union, mem_sdiff]
   refine ⟨?_, fun h => ⟨Or.inl h, hV'V h⟩⟩
   rintro ⟨h1 | ⟨_, h2⟩, h3⟩
   · exact h1
