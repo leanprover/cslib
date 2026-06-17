@@ -20,13 +20,18 @@ namespace Cslib.Foundations.Data.Lens.Examples
 
 open Cslib Lens
 
+/-- A minimal interpreter-style machine state. -/
 structure MachineState where
+  /-- Program counter. -/
   pc : Nat
+  /-- Main memory as a list of natural numbers. -/
   memory : List Nat
+  /-- Whether execution has halted. -/
   halted : Bool
 
 namespace MachineState
 
+/-- Lawful lens focusing on the program counter. -/
 def pcLens : LawfulLens MachineState Nat :=
   mkLawful
     (get := MachineState.pc)
@@ -39,14 +44,17 @@ def pcLens : LawfulLens MachineState Nat :=
 def step (s : MachineState) : MachineState :=
   if s.halted then s else over pcLens (· + 1) s
 
+/-- `step` leaves memory unchanged. -/
 theorem step_preserves_memory (s : MachineState) : (step s).memory = s.memory := by
   rcases s with ⟨pc, memory, hal⟩
   cases hal <;> dsimp [step, pcLens, over, mkLawful]
 
+/-- `step` leaves the halt flag unchanged. -/
 theorem step_preserves_halted (s : MachineState) : (step s).halted = s.halted := by
   rcases s with ⟨pc, memory, hal⟩
   cases hal <;> dsimp [step, pcLens, over, mkLawful]
 
+/-- When not halted, `step` increments the program counter by one. -/
 theorem step_increments_pc (s : MachineState) (h : ¬ s.halted) : (step s).pc = s.pc + 1 := by
   rcases s with ⟨pc, memory, hal⟩
   cases hal with

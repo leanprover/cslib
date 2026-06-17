@@ -21,7 +21,7 @@ Minimal lens API for verified access and update of record-shaped state.
 
 ## Main results
 
-- `Lens.comp_lawful`: composition of lawful lenses is lawful
+- `Lens.compLawful`: composition of lawful lenses is lawful
 -/
 
 @[expose] public section
@@ -58,6 +58,7 @@ def over (l : Lens S A) (f : A → A) : S → S :=
 def comp (l₁ : Lens S A) (l₂ : Lens A B) : Lens S B :=
   ⟨l₂.get ∘ l₁.get, fun s b => l₁.set s (l₂.set (l₁.get s) b)⟩
 
+@[inherit_doc comp]
 infixl:80 " ∘ₗ " => comp
 
 instance : Coe (LawfulLens S A) (Lens S A) := ⟨LawfulLens.toLens⟩
@@ -81,8 +82,8 @@ def mkLawful (get : S → A) (set : S → A → S)
     l.set (l.set s a) b = l.set s b :=
   l.set_set s a b
 
-/-- Composition preserves lawfulness. -/
-def comp_lawful (l₁ : LawfulLens S A) (l₂ : LawfulLens A B) : LawfulLens S B where
+/-- Composition of lawful lenses is lawful. -/
+def compLawful (l₁ : LawfulLens S A) (l₂ : LawfulLens A B) : LawfulLens S B where
   get := l₂.get ∘ l₁.get
   set := fun s b => l₁.set s (l₂.set (l₁.get s) b)
   get_set := by
