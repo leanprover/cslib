@@ -46,8 +46,7 @@ namespace FinAcc
 that trace from the start state. -/
 @[scoped grind =]
 instance : Acceptor (FinAcc State Symbol) Symbol where
-    Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
-  ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.SMTr s (xs.map Option.some) s'
+  Accepts a xs := ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.SMTr s (xs.map some) s'
 
 end FinAcc
 
