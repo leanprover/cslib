@@ -16,7 +16,7 @@ axiom definitions and notation that work uniformly across different formula type
 
 ## Design
 
-The hierarchy adopts a hybrid five-primitive propositional signature `{atom, bot, imp, and, or}`,
+The hierarchy adopts five constructors `{atom, bot, imp, and, or}`,
 following the operator-typeclass direction of fmontesi's PR #607 (one class per operator):
 - **Atomic classes**: `HasBot`, `HasImp`, `HasAnd`, `HasOr`
 - **Bundled class**: `PropositionalConnectives` (extends `HasBot` and `HasImp`)
