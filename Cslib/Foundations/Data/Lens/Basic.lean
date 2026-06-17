@@ -48,6 +48,8 @@ structure LawfulLens (S A : Type u) extends Lens S A where
 
 namespace Lens
 
+variable {S A B : Type u}
+
 /-- Update the focused component with a function. -/
 def over (l : Lens S A) (f : A → A) : S → S :=
   fun s => l.set s (f (l.get s))
@@ -80,20 +82,18 @@ def mkLawful (get : S → A) (set : S → A → S)
   l.set_set s a b
 
 /-- Composition preserves lawfulness. -/
-theorem comp_lawful (l₁ : LawfulLens S A) (l₂ : LawfulLens A B) :
-    LawfulLens (comp l₁ l₂) where
+def comp_lawful (l₁ : LawfulLens S A) (l₂ : LawfulLens A B) : LawfulLens S B where
+  get := l₂.get ∘ l₁.get
+  set := fun s b => l₁.set s (l₂.set (l₁.get s) b)
   get_set := by
     intro s b
-    dsimp [comp]
-    rw [l₁.get_set, l₂.get_set]
+    simp [l₁.get_set, l₂.get_set]
   set_get := by
     intro s
-    dsimp [comp]
-    rw [l₂.set_get, l₁.set_get]
+    simp [l₁.set_get, l₂.set_get]
   set_set := by
     intro s a b
-    dsimp [comp]
-    rw [l₁.get_set, l₂.set_set, l₁.set_set]
+    simp [l₁.get_set, l₁.set_set, l₂.set_set]
 
 end Lens
 
