@@ -31,30 +31,14 @@ open scoped NA.FinAcc LTS LTS.MTr LTS.STr LTS.SMTr in
 theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol} :
     language a.toNAFinAcc = language a := by
   ext xs
-  apply Iff.intro <;> rintro ⟨s, hs, s', hs', h⟩
-  case mp =>
-    have h_start : ∃ sStart ∈ a.start, a.τSTr sStart s := by
-      simp only [toNAFinAcc, εClosure, LTS.τClosure, LTS.setImage, Set.mem_iUnion,
-        exists_prop] at hs
-      rcases hs with ⟨sStart, h_sStart, hs⟩
-      exists sStart
-      apply And.intro h_sStart
-      simp only [LTS.image, LTS.saturate, Set.mem_setOf_eq] at hs
-      grind only [LTS.sTr_τSTr_iff]
-    rcases h_start with ⟨sStart, h_sStart, h_start⟩
-    exists sStart
-    apply And.intro (by grind)
-    exists s'
-    apply And.intro (by grind)
-    apply LTS.SMTr.comp (μs₁ := []) (s₂ := s) <;> grind
-  case mpr =>
-    cases xs with
-    | nil =>
-      exists s'
-      simp only [toNAFinAcc, LTS.saturate, LTS.τClosure]
-      grind [cases LTS.SMTr]
-    | cons x xs =>
-      exists s
-      grind
+  constructor <;> intro ⟨s, hs, s', hs', h⟩
+  · have ⟨sStart, h_sStart, hs⟩ : ∃ i ∈ a.start, s ∈ a.saturate.image i HasTau.τ := by
+      simpa [toNAFinAcc, LTS.τClosure, LTS.setImage] using hs
+    use sStart, h_sStart, s', hs'
+    have h_start := (LTS.sTr_τSTr_iff a.toLTS).mp hs
+    exact LTS.SMTr.comp (LTS.sMTr_τSTr_iff.mp h_start) (by grind)
+  · cases xs with
+    | nil => cases h with | τ tau => exact ⟨s', LTS.tr_setImage hs tau, by grind⟩
+    | cons x xs => exact ⟨s, by grind [Set.mem_of_mem_of_subset]⟩
 
 end Cslib.Automata.εNA.FinAcc
