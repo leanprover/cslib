@@ -252,28 +252,21 @@ theorem toSingleAccept_sMTr_none_accept {a : εNA.FinAcc State Symbol}
   case nil =>
     rcases h with ⟨h⟩
     have ⟨s', hs', h'⟩ := toSingleAccept_sTr_none_accept h
-    exists s'; apply And.intro hs'
-    apply LTS.SMTr.τ h'
+    exact ⟨s', hs', LTS.SMTr.τ h'⟩
   case cons x xs ih =>
     cases h
     case stepL osb hstr hsmtr =>
       cases hosb : osb
       case none =>
-        rw [hosb] at hstr hsmtr
+        subst hosb
         have ⟨s', hs', hstr'⟩ := toSingleAccept_sTr_none_accept hstr
-        exists s'; apply And.intro hs'
-        have hxs : xs = [] := by
-          cases xs
-          case nil => rfl
-          case cons x' xs =>
-            cases hsmtr
-            grind
-        apply LTS.SMTr.stepL hstr' (by grind)
+        refine ⟨s', hs', LTS.SMTr.stepL hstr' ?_⟩
+        have hxs : xs = [] := by cases xs with grind [cases LTS.SMTr]
+        grind
       case some sb =>
-        rw [hosb] at hstr hsmtr
+        subst hosb
         have ⟨s', hs', ih'⟩ := ih hsmtr
-        exists s'; apply And.intro hs'
-        apply LTS.SMTr.stepL (toSingleAccept_sTr_sTr.mp hstr) ih'
+        exact ⟨s', hs', LTS.SMTr.stepL (toSingleAccept_sTr_sTr.mp hstr) ih'⟩
 
 open Acceptor in
 /-- `toSingleAccept` preserves the language of the input automaton. -/
