@@ -67,7 +67,7 @@ theorem toSingleAccept_tr_none_accept {a : εNA.FinAcc State Symbol}
 @[scoped grind ⇒]
 theorem toSingleAccept_not_tr_none {a : εNA.FinAcc State Symbol} :
     ¬a.toSingleAccept.Tr none x os := by
-  grind only [toSingleAccept]
+  grind
 
 @[scoped grind →]
 theorem toSingleAccept_mTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
