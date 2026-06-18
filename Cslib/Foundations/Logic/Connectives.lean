@@ -18,11 +18,10 @@ axiom definitions and notation that work uniformly across different formula type
 
 The hierarchy adopts a hybrid five-primitive propositional signature `{atom, bot, imp, and, or}`,
 following the operator-typeclass direction of fmontesi's PR #607 (one class per operator):
-- **Atomic classes**: `HasBot`, `HasImp`, `HasAnd`, `HasOr`, `HasUntil`, `HasSince`, `HasNext`
+- **Atomic classes**: `HasBot`, `HasImp`, `HasAnd`, `HasOr`, `HasUntil`, `HasNext`
 - **Bundled classes**: `PropositionalConnectives` (extends `HasBot` and `HasImp`),
   `FutureTemporalConnectives` (extends `PropositionalConnectives` and `HasUntil`),
-  `LTLConnectives` (extends `FutureTemporalConnectives` and `HasNext`),
-  `TemporalConnectives` (extends `FutureTemporalConnectives` and `HasSince`)
+  `LTLConnectives` (extends `FutureTemporalConnectives` and `HasNext`)
 
 Conjunction (`HasAnd`) and disjunction (`HasOr`) are treated as independent primitives rather
 than Łukasiewicz-derived connectives. The classical encodings `φ ∧ ψ := ¬(φ → ¬ψ)` and
@@ -68,11 +67,6 @@ class HasUntil (F : Type*) where
   /-- The until temporal operator. -/
   untl : F → F → F
 
-/-- A type has a since temporal operator. -/
-class HasSince (F : Type*) where
-  /-- The since temporal operator. -/
-  snce : F → F → F
-
 /-- A type has a next-step temporal operator. -/
 class HasNext (F : Type*) where
   /-- The next-step temporal operator. -/
@@ -109,11 +103,5 @@ Linear Temporal Logic uses `next` as a primitive rather than deriving it from `u
 (the encoding `next φ = φ U ⊥` does not hold in all models). `FutureTemporalConnectives`
 provides `bot`, `imp`, and `untl`; this bundle adds `next`. -/
 class LTLConnectives (F : Type*) extends FutureTemporalConnectives F, HasNext F
-
-/-- Temporal connectives: propositional connectives plus until and since.
-
-Extends `FutureTemporalConnectives` with the `since` operator, forming the standard
-two-sorted temporal signature (future + past). -/
-class TemporalConnectives (F : Type*) extends FutureTemporalConnectives F, HasSince F
 
 end Cslib.Logic

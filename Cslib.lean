@@ -137,6 +137,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.HML.LogicalEquivalence
+public import Cslib.Logics.LTL.Semantics.Satisfies
 public import Cslib.Logics.LTL.Syntax.Formula
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
@@ -150,7 +151,6 @@ public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.Logics.Propositional.NaturalDeduction.Theory
-public import Cslib.Logics.Temporal.Syntax.Formula
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
