@@ -289,17 +289,8 @@ theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
     grind
   case mpr =>
     rcases h with ⟨s, hs, s', hs', hsmtr⟩
-    exists s
-    apply And.intro (by grind)
-    exists none
-    apply And.intro (by grind)
-    have h' : a.toSingleAccept.SMTr (some s) (List.map some xs) (some s') := by grind
-    have hcomp := LTS.SMTr.comp (lts := a.toSingleAccept.toLTS) (s₁ := some s) (s₂ := some s')
-      (s₃ := none) (μs₁ := List.map some xs) (μs₂ := []) h'
-    simp only [List.append_nil] at hcomp
-    apply hcomp
-    constructor
-    apply LTS.STr.single
-    grind [toSingleAccept]
+    refine ⟨s, by grind, none, by grind, ?_⟩
+    rw [show xs.map some = xs.map some ++ [] by simp]
+    exact LTS.SMTr.comp (toSingleAccept_sMTr_sMTr.mpr hsmtr) <| LTS.SMTr.τ (LTS.STr.single hs')
 
 end Cslib.Automata.εNA.FinAcc
