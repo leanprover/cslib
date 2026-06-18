@@ -226,8 +226,7 @@ theorem toSingleAccept_sTr_none_none {a : εNA.FinAcc State Symbol}
 theorem toSingleAccept_sMTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.SMTr os xs (some s')) : os.isSome := by
   generalize hos' : some s' = os' at h
-  induction h <;> grind only [= Option.isSome_iff_exists,
-    → toSingleAccept_sTr_antiDerivative_isSome]
+  induction h <;> grind [= Option.isSome_iff_exists]
 
 @[scoped grind =]
 theorem toSingleAccept_sMTr_sMTr {a : εNA.FinAcc State Symbol}
