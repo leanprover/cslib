@@ -12,6 +12,9 @@ public import Cslib.Computability.Automata.EpsilonNA.Basic
 
 Defines the transformation `toSingleAccept` for `εNA.FinAcc` and proves correctness
 results in terms of language equivalence and correspondences between the two transition systems.
+
+Note for future work: we could formulate a stronger transformation, whereby also the set of accept
+states becomes a singleton.
 -/
 
 @[expose] public section

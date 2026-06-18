@@ -132,16 +132,8 @@ theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label
 
 /-- In a saturated LTS, every state is in its τ-image. -/
 @[scoped grind .]
-theorem mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
+lemma mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
   s ∈ lts.saturate.image s HasTau.τ := STr.refl
-
-/-- `setImage` on `HasTau.τ` preserves membership. -/
-@[scoped grind .]
-lemma mem_saturate_setImage_τ [HasTau Label] (lts : LTS State Label) (h : s ∈ S) :
-    s ∈ lts.saturate.setImage S HasTau.τ := by
-  simp only [setImage, Set.mem_iUnion, exists_prop]
-  exists s
-  grind
 
 /-- Monotonicity of `setImage` on `HasTau.τ`. -/
 @[scoped grind .]
@@ -154,22 +146,17 @@ lemma subset_saturate_setImage_τ [HasTau Label] (lts : LTS State Label) :
 /-- `setImage` preserves (non-)emptyness. -/
 @[scoped grind =]
 lemma empty_saturate_setImage_τ [HasTau Label] (lts : LTS State Label) :
-    lts.saturate.setImage S HasTau.τ = ∅ ↔ S = ∅:= by grind
+    lts.saturate.setImage S HasTau.τ = ∅ ↔ S = ∅:= by grind [Set.mem_of_mem_of_subset]
 
 /-- The `τ`-closure of a set of states `S` is the set of states reachable by any state in `S`
 by performing only `τ`-transitions. -/
 def τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
   lts.saturate.setImage S HasTau.τ
 
-/-- `τClosure` preserves membership. -/
-@[scoped grind .]
-lemma τClosure_mem [HasTau Label] (lts : LTS State Label) (h : s ∈ S) :
-    s ∈ lts.τClosure S := by grind [= τClosure]
-
 /-- Monotonicity of `setImage` on `HasTau.τ`. -/
 @[scoped grind .]
 lemma τClosure_subset [HasTau Label] (lts : LTS State Label) :
-    S ⊆ lts.τClosure S := by grind
+    S ⊆ lts.τClosure S := by grind [Set.mem_of_mem_of_subset, = τClosure]
 
 /-- Saturated multistep transition relation. -/
 inductive SMTr [HasTau Label] (lts : LTS State Label) : State → List Label → State → Prop where
