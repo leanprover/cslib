@@ -51,9 +51,7 @@ open scoped LTS LTS.MTr LTS.STr LTS.SMTr
 @[scoped grind →]
 theorem toSingleAccept_tr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.Tr os x os') : os.isSome := by
-  cases os with
-  | none => simp only [toSingleAccept] at h
-  | some _ => simp
+  cases os with grind
 
 theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} :
     a.toSingleAccept.Tr (some s) x (some s') ↔ a.Tr s x s' := by
