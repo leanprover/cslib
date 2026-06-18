@@ -34,8 +34,7 @@ def toSingleAccept (a : εNA.FinAcc State Symbol) : εNA.FinAcc (Option State) S
 
 @[scoped grind =]
 theorem toSingleAccept_accept_def {a : εNA.FinAcc State Symbol} :
-    a.toSingleAccept.accept = {none} := by
-  grind only [toSingleAccept]
+    a.toSingleAccept.accept = {none} := rfl
 
 open Acceptor in
 @[scoped grind .]
