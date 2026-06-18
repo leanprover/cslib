@@ -53,14 +53,16 @@ def LTSVec.toSynchronousVecLTS {Entity} {State Label : Entity → Type*}
     (l : LTSVec Entity State Label) : SynchronousVecLTS Entity State Label  where
   Tr s μ s' := ∀ e, (l e).Tr (s e) (μ e) (s' e)
 
+def AsynchronousVecLTS (Entity : Type u) (State Label : Entity → Type*) :=
+  LTS ((e : Entity) → State e) (Σ (e : Entity), Label e)
 /--
 A model of an asynchronously advancing collection of LTSes. This abstracts
 the behaviour of asynchronous distributed systems.
 -/
-abbrev AsynchronousVecLTS (Entity : Type u)
+abbrev LTSVec.toAsynchronousVecLTS (Entity : Type u)
     (State Label : Entity → Type*)
     (l : LTSVec Entity State Label) :
-    LTS ((e : Entity) → State e) (Σ (e : Entity), Label e) where
+    AsynchronousVecLTS Entity State Label where
   Tr := fun s ⟨e, μe⟩ s' =>
     (l e).Tr (s e) μe (s' e) ∧ ∀ e' ≠ e, s e = s' e
 
