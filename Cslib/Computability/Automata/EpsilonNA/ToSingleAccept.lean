@@ -96,8 +96,7 @@ theorem toSingleAccept_τSTr_antiDerivative_none {a : εNA.FinAcc State Symbol}
   generalize hnone : none = os' at h
   induction h using Relation.ReflTransGen.head_induction_on
   case refl => rfl
-  case head _ _ h₁ h₂ ih =>
-    grind only [toSingleAccept_tr_antiDerivative_isSome h₁, = Option.isSome_none]
+  case head _ _ h₁ h₂ ih => grind [toSingleAccept_tr_antiDerivative_isSome h₁]
 
 @[scoped grind →]
 theorem toSingleAccept_τSTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
