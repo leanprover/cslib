@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
-public import Cslib.Foundations.Semantics.LTS.Map
+public import Cslib.Foundations.Semantics.LTS.MapLabel
 
 /-! # Translation of εNA into NA -/
 
@@ -31,7 +31,7 @@ open scoped NA.FinAcc LTS LTS.MTr LTS.STr LTS.SMTr in
 theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol} :
     language a.toNAFinAcc = language a := by
   ext xs
-  apply Iff.intro <;> intro h <;> rcases h with ⟨s, hs, s', hs', h⟩
+  apply Iff.intro <;> rintro ⟨s, hs, s', hs', h⟩
   case mp =>
     have h_start : ∃ sStart ∈ a.start, a.τSTr sStart s := by
       simp only [toNAFinAcc, εClosure, LTS.τClosure, LTS.setImage, Set.mem_iUnion,

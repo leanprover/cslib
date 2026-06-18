@@ -10,7 +10,7 @@ public import Cslib.Foundations.Semantics.LTS.Basic
 
 
 /-!
-# Map operation for LTS.
+# Label map operation for LTS.
 -/
 
 @[expose] public section
