@@ -242,8 +242,7 @@ theorem toSingleAccept_sMTr_sMTr {a : εNA.FinAcc State Symbol}
   case mpr =>
     induction h generalizing os
     case τ => grind [LTS.SMTr.τ]
-    case stepL s x sb xs s' h₁ h₂ ih =>
-      grind [LTS.SMTr.stepL (s2 := some sb)]
+    case stepL s x sb xs s' h₁ h₂ ih => grind [LTS.SMTr.stepL (s2 := some sb)]
 
 @[scoped grind →]
 theorem toSingleAccept_sMTr_none_accept {a : εNA.FinAcc State Symbol}
