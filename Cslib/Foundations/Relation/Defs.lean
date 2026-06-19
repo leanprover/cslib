@@ -150,7 +150,7 @@ abbrev LeftQuasiRefl (r : α → α → Prop) := (dom r).ReflOn r
 /-- `RightQuasiRefl r` is true when a relation `r` is reflexive on its codomain. -/
 abbrev RightQuasiRefl (r : α → α → Prop) := (cod r).ReflOn r
 
-/-- `SymmOn s r` ts true when a relation `r` is symmetric on its restriction to a set `s`. -/
+/-- `SymmOn s r` is true when a relation `r` is symmetric on its restriction to a set `s`. -/
 def SymmOn (s : Set α) (r : α → α → Prop) : Prop :=
   ∀ a ∈ s, ∀ b ∈ s, r a b → r b a
 
