@@ -38,15 +38,15 @@ theorem symm_iff_symmOn : Std.Symm (α := s) r ↔ SymmOn r s := by
 -- for special cases of (co)domain, we provide constructive shortcut lemmas
 
 theorem ReflOn.of_dom {r} : ReflOn r (dom r) → r a b → r a a
-| h, hab => h a (dom_of hab)
+| h, hab => h a (Relation.of_dom hab)
 
 theorem ReflOn.of_cod {r} : ReflOn r (cod r) → r a b → r b b
-| h, hab => h b (cod_of hab)
+| h, hab => h b (Relation.of_cod hab)
 
 theorem SymmOn.of_dom {r} : SymmOn r (dom r) → r a b → r b c → r b a
-| h, hab, hbc => h a (dom_of hab) b (dom_of hbc) hab
+| h, hab, hbc => h a (Relation.of_dom hab) b (Relation.of_dom hbc) hab
 
 theorem SymmOn.of_cod {r} : SymmOn r (cod r) → r a b → r c a → r b a
-| h, hab, hca => h a (cod_of hca) b (cod_of hab) hab
+| h, hab, hca => h a (Relation.of_cod hca) b (Relation.of_cod hab) hab
 
 end Relation

@@ -115,10 +115,10 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
 
-theorem cod_subset_dom : cod r ⊆ dom r := fun _ ⟨_, ab⟩ ↦ cod_of (reflOn_cod.of_cod ab)
+theorem cod_subset_dom : cod r ⊆ dom r := fun _ ⟨_, ab⟩ ↦ of_cod (reflOn_cod.of_cod ab)
 
 theorem rightTotal_cod : Relator.RightTotal (α := cod r) (β := cod r) r :=
-  fun ⟨_, _, h⟩ => cod_of (reflOn_cod.of_cod h)
+  fun ⟨_, _, h⟩ => of_cod (reflOn_cod.of_cod h)
 
 theorem equiv_cod : IsEquiv (cod r) r := rightTotal_equiv rightTotal_cod
 
@@ -196,10 +196,10 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
   use a, b, c
 
-theorem dom_subset_cod : dom r ⊆ cod r := fun _ ⟨_, ab⟩ ↦ dom_of (reflOn_dom.of_dom ab)
+theorem dom_subset_cod : dom r ⊆ cod r := fun _ ⟨_, ab⟩ ↦ of_dom (reflOn_dom.of_dom ab)
 
 theorem leftTotal_dom : Relator.LeftTotal (α := dom r) (β := dom r) r :=
-  fun ⟨a, _, h⟩ => ⟨⟨a, dom_of h⟩, reflOn_dom.of_dom h⟩
+  fun ⟨a, _, h⟩ => ⟨⟨a, of_dom h⟩, reflOn_dom.of_dom h⟩
 
 theorem equiv_dom : IsEquiv (dom r) r := leftTotal_equiv leftTotal_dom
 

@@ -34,8 +34,8 @@ variable {β : Type*} {r : α → β → Prop}
 @[simp, grind =] lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
 @[simp, grind =] lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
 
-theorem dom_of (hab : r a b) : a ∈ dom r := by grind
-theorem cod_of (hab : r a b) : b ∈ cod r := by grind
+theorem of_dom (hab : r a b) : a ∈ dom r := by grind
+theorem of_cod (hab : r a b) : b ∈ cod r := by grind
 
 @[gcongr] lemma dom_mono (h : r₁ ≤ r₂) : dom r₁ ⊆ dom r₂ := fun a ⟨b, hab⟩ => ⟨b, h a b hab⟩
 @[gcongr] lemma cod_mono (h : r₁ ≤ r₂) : cod r₁ ⊆ cod r₂ := fun b ⟨a, hab⟩ => ⟨a, h a b hab⟩
