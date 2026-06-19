@@ -55,7 +55,7 @@ The LTS that represents the global execution state machine of a
 collection of processes when events arrive in parallel, and
 each process updates its state simultaneously
 -/
-def LTSVec.toSynchronousVecLTS {Entity} {State Label : Entity → Type*}
+def LTSVec.toSynchronousVecLTS (Entity) {State Label : Entity → Type*}
     (l : LTSVec Entity State Label) : SynchronousVecLTS Entity State Label  where
   Tr s μ s' := ∀ e, (l e).Tr (s e) (μ e) (s' e)
 
@@ -64,7 +64,7 @@ The LTS representing the global execution state machine of a collection
 of an asynchronous collection of machines. Here each label arrives
 one at a time at some LTS in the collection of LTSes
 -/
-def AsynchronousVecLTS (Entity : Type*) (State Label : Entity → Type*) :=
+def AsynchronousVecLTS (Entity) (State Label : Entity → Type*) :=
   LTS ((e : Entity) → State e) (Σ (e : Entity), Label e)
 
 /--
