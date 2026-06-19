@@ -37,7 +37,7 @@ namespace Cslib
 An indexed collection of LTSes. Each component LTS represents
 the local view of an entity.
 -/
-abbrev LTSVec (Entity : Type u) (State Label : Entity → Type*) :=
+def LTSVec (Entity : Type u) (State Label : Entity → Type*) :=
   (e : Entity) → LTS (State e) (Label e)
 
 /--
@@ -46,7 +46,7 @@ which represents the global view of a collection of LTSes, collectively
 transition for each input vector label to their next states. This
 matches how synchronous distributed systems behave
 -/
-abbrev SynchronousVecLTS (Entity : Type*) (State Label : Entity → Type*) :=
+def SynchronousVecLTS (Entity : Type*) (State Label : Entity → Type*) :=
   LTS ((e : Entity) → State e) ((e : Entity) → Label e)
 
 
@@ -71,7 +71,7 @@ def AsynchronousVecLTS (Entity) (State Label : Entity → Type*) :=
 A model of an asynchronously advancing collection of LTSes. This abstracts
 the behaviour of asynchronous distributed systems.
 -/
-abbrev LTSVec.toAsynchronousVecLTS {Entity}
+def LTSVec.toAsynchronousVecLTS {Entity}
     (State Label : Entity → Type*)
     (l : LTSVec Entity State Label) :
     AsynchronousVecLTS Entity State Label where
