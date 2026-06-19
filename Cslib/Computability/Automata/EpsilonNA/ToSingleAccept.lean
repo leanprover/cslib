@@ -158,7 +158,10 @@ theorem toSingleAccept_sTr_sTr {a : εNA.FinAcc State Symbol}
     induction h
     case refl => grind only [LTS.STr.refl]
     case tr sb₁ x sb₂ s' h₁ h₂ h₃ =>
-      grind [LTS.STr.tr (s2 := some sb₁) (s3 := some sb₂)]
+      apply LTS.STr.tr (s2 := some sb₁) (s3 := some sb₂)
+        (toSingleAccept_τSTr_τSTr.mpr h₁)
+        (toSingleAccept_tr_tr.mpr h₂)
+        (hos' ▸ toSingleAccept_τSTr_τSTr.mpr h₃)
 
 @[scoped grind →]
 theorem toSingleAccept_sTr_none_accept {a : εNA.FinAcc State Symbol}
