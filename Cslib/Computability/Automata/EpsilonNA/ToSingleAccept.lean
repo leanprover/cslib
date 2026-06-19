@@ -131,13 +131,10 @@ theorem toSingleAccept_τSTr_none_accept {a : εNA.FinAcc State Symbol}
   induction h
   case refl => simp at hos'
   case tail osb os' h₁ h₂ ih =>
-    rw [← hos'] at h₂
-    have hosb : ∃ sb, osb = some sb ∧ sb ∈ a.accept := by
-      apply toSingleAccept_tr_none_accept h₂
-    rcases hosb with ⟨sb, hosb, hsb⟩
-    exists sb; apply And.intro hsb
-    rw [hosb] at h₁
-    apply toSingleAccept_τSTr_τSTr.mp h₁
+    subst hos'
+    have ⟨sb, hosb, hsb⟩ := toSingleAccept_tr_none_accept h₂
+    subst hosb
+    exact ⟨sb, hsb, toSingleAccept_τSTr_τSTr.mp h₁⟩
 
 @[scoped grind →]
 theorem toSingleAccept_sTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
