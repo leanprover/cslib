@@ -48,7 +48,7 @@ namespace RightEuclidean
 variable [RightEuclidean r]
 
 /-- A `RightEuclidean` relation is reflexive on its codomain -/
-theorem reflOn_cod : ReflOn r (cod r) := fun _ ⟨_, ab⟩ ↦ rightEuclidean ab ab
+theorem reflOn_cod : (cod r).ReflOn r := fun _ ⟨_, ab⟩ ↦ rightEuclidean ab ab
 
 /-- The converse of a `RightEuclidean` relation is `LeftEuclidean` -/
 theorem leftEuclidean_swap : LeftEuclidean (fun a b => r b a) where
@@ -97,7 +97,7 @@ private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
   have := antisymm_rightUnique (r := r)
   have := @reflOn_cod (r := r)
-  simp [ReflOn] at this
+  simp [Set.ReflOn] at this
   grind [Relator.RightUnique]
 
 theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by
@@ -129,7 +129,7 @@ namespace LeftEuclidean
 variable [LeftEuclidean r]
 
 /-- A `LeftEuclidean` relation is reflexive on its domain -/
-theorem reflOn_dom : ReflOn r (dom r) := fun _ ⟨_, ab⟩ ↦ leftEuclidean ab ab
+theorem reflOn_dom : (dom r).ReflOn r := fun _ ⟨_, ab⟩ ↦ leftEuclidean ab ab
 
 /-- The converse of a `LeftEuclidean` relation is `RightEuclidean` -/
 theorem rightEuclidean_swap : RightEuclidean (fun a b => r b a) where
@@ -178,7 +178,7 @@ private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
   have := antisymm_leftUnique (r := r)
   have := @reflOn_dom (r := r)
-  simp [ReflOn] at this
+  simp [Set.ReflOn] at this
   grind [Relator.LeftUnique]
 
 theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by

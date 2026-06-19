@@ -132,16 +132,22 @@ def transLeft (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans s 
 def transRight (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans r s r where
   trans hab hbc := _root_.trans hab (h _ _ hbc)
 
-def ReflOn (r : α → α → Prop) (s : Set α) : Prop :=
+end Relation
+
+namespace Set
+
+open Relation
+
+def ReflOn (s : Set α) (r : α → α → Prop) : Prop :=
   ∀ a ∈ s, r a a
 
 -- these names are used in the literature, so we provide them as `abbrev`
 
-abbrev LeftQuasiRefl (r : α → α → Prop) := ReflOn r (dom r)
+abbrev LeftQuasiRefl (r : α → α → Prop) := (dom r).ReflOn r
 
-abbrev RightQuasiRefl (r : α → α → Prop) := ReflOn r (cod r)
+abbrev RightQuasiRefl (r : α → α → Prop) := (cod r).ReflOn r
 
-def SymmOn (r : α → α → Prop) (s : Set α) : Prop :=
+def SymmOn (s : Set α) (r : α → α → Prop) : Prop :=
   ∀ a ∈ s, ∀ b ∈ s, r a b → r b a
 
-end Relation
+end Set
