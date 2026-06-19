@@ -139,9 +139,7 @@ lemma mem_saturate_image_τ [HasTau Label] (lts : LTS State Label) :
 @[scoped grind .]
 lemma subset_saturate_setImage_τ [HasTau Label] (lts : LTS State Label) :
     S ⊆ lts.saturate.setImage S HasTau.τ := by
-  simp only [Subset, LE.le, Set.Subset, setImage, Set.mem_iUnion, exists_prop]
-  intro s h
-  grind
+  grind [setImage, Set.mem_iUnion]
 
 /-- `setImage` preserves (non-)emptyness. -/
 @[scoped grind =]
