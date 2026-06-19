@@ -9,7 +9,7 @@ module
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 
-/-! # Relations: Properties on sestrictions
+/-! # Relations: Properties on set restrictions
 
 ## References
 
