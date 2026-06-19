@@ -22,7 +22,7 @@ An independent primitive `next` avoids this coupling.
 
 - `Formula` : Inductive type for LTL formulas with constructors
   `atom`, `bot`, `imp`, `next`, `untl`
-- `Formula.someFuture` (◇): `φ U ⊤` — φ holds at some future point
+- `Formula.someFuture` (◇): `⊤ U φ` — φ holds at some future point
 - `Formula.allFuture` (□): `¬◇¬φ` — φ holds at all future points
 - `Formula.leadsto` (⇝): `□(p → ◇q)` — liveness: every p-state is eventually followed by q
 

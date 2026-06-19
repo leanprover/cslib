@@ -7,21 +7,26 @@ Authors: Benjamin Brast-McKie
 module
 
 public import Cslib.Logics.LTL.Syntax.Formula
+public import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-! # LTL Satisfaction over Omega-Words
 
-This module defines a basic satisfaction relation for LTL formulas over omega-words.
-An omega-word is represented as a valuation `v : ℕ → (Atom → Prop)`, assigning to
-each time point `i : ℕ` the set of atoms that hold at that point.
+This module defines a basic satisfaction relation for LTL formulas over omega-words
+of states. A `State` type is equipped with a valuation `v : Atom → State → Prop`
+that determines which atomic propositions hold at each state. An omega-word is an
+`ωSequence State`, and satisfaction is evaluated at the first state of the sequence,
+with temporal operators moving along the sequence via `head` and `tail`.
 
 The semantics follow the standard Kripke/Pnueli definition of LTL over ω-sequences.
 Connection to `OmegaExecution` from the LTS library is deferred to future work.
 
 ## Main definitions
 
-- `Satisfies v i φ` : formula `φ` holds at time `i` in valuation `v`
-- `Valid v φ` : `φ` holds at all time points in `v`
-- `Satisfiable φ` : `φ` holds at some time point in some valuation
+- `Satisfies v w φ` : formula `φ` holds at the first state of omega-word `w`
+  under valuation `v`
+- `Valid v φ` : `φ` holds at the first state of every omega-word under `v`
+- `Satisfiable φ` : `φ` holds at the first state of some omega-word under some
+  valuation
 
 ## References
 
@@ -34,30 +39,31 @@ Connection to `OmegaExecution` from the LTS library is deferred to future work.
 
 namespace Cslib.Logic.LTL
 
-variable {Atom : Type*}
+variable {Atom State : Type*}
 
-/-- Satisfaction relation for LTL over omega-words.
+/-- Satisfaction relation for LTL over omega-words of states.
 
-`Satisfies v i φ` means formula `φ` holds at time point `i` in the omega-word `v`,
-where `v : ℕ → (Atom → Prop)` assigns a set of true atoms to each time point.
+`Satisfies v w φ` means formula `φ` holds at the first state of the omega-word `w`,
+where `v : Atom → State → Prop` determines which atoms hold at each state.
 
-The `untl` case: `φ U ψ` holds at `i` when there exists a future time `j ≥ i`
-where ψ holds (the event), and φ holds at all intermediate points `i ≤ k < j`
-(the guard). -/
-def Satisfies (v : ℕ → (Atom → Prop)) (i : ℕ) : Formula Atom → Prop
-  | .atom p => v i p
+The `untl` case: `φ U ψ` holds at the current state when there exists a future
+position `j` where ψ holds (the event), and φ holds at all intermediate positions
+`k < j` (the guard). -/
+def Satisfies (v : Atom → State → Prop) (w : ωSequence State) : Formula Atom → Prop
+  | .atom p => v p w.head
   | .bot => False
-  | .imp φ ψ => Satisfies v i φ → Satisfies v i ψ
-  | .next φ => Satisfies v (i + 1) φ
-  | .untl φ ψ => ∃ j ≥ i, Satisfies v j ψ ∧ ∀ k, i ≤ k → k < j → Satisfies v k φ
+  | .imp φ ψ => Satisfies v w φ → Satisfies v w ψ
+  | .next φ => Satisfies v w.tail φ
+  | .untl φ ψ => ∃ j, Satisfies v (w.drop j) ψ ∧ ∀ k < j, Satisfies v (w.drop k) φ
 
-/-- A formula holds at all time points in a given omega-word. -/
-def Valid (v : ℕ → (Atom → Prop)) (φ : Formula Atom) : Prop :=
-  ∀ i, Satisfies v i φ
+/-- A formula holds at the first state of every omega-word under the given valuation. -/
+def Valid (v : Atom → State → Prop) (φ : Formula Atom) : Prop :=
+  ∀ (w : ωSequence State), Satisfies v w φ
 
-/-- A formula is satisfiable: it holds at some time point in some omega-word. -/
+/-- A formula is satisfiable: it holds at the first state of some omega-word
+  under some valuation. -/
 def Satisfiable (φ : Formula Atom) : Prop :=
-  ∃ (v : ℕ → (Atom → Prop)) (i : ℕ), Satisfies v i φ
+  ∃ (v : Atom → State → Prop) (w : ωSequence State), Satisfies v w φ
 
 end Cslib.Logic.LTL
 

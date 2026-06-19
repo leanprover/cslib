@@ -91,9 +91,8 @@ class PropositionalConnectives (F : Type*) extends HasBot F, HasImp F
 
 /-- Future temporal connectives: propositional connectives plus until (no since, no next).
 
-This bundle is shared by both `LTLConnectives` (which adds `HasNext`) and
-`TemporalConnectives` (which adds `HasSince`). Factoring out the future fragment
-allows code generic over future-only temporal logics without committing to past or
+`LTLConnectives` extends this with `HasNext`. Factoring out the future fragment
+allows code generic over future-only temporal logics without committing to
 next-step operators. -/
 class FutureTemporalConnectives (F : Type*) extends PropositionalConnectives F, HasUntil F
 
