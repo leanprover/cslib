@@ -176,11 +176,7 @@ theorem SMTr.comp [HasTau Label] {lts : LTS State Label}
   case τ s₁ s₂ htr =>
     cases h₂
     case τ htr' => grind [SMTr]
-    case stepL _ _ _ μ s₂' μs hstr hmstr =>
-      have hstr' : lts.STr s₁ μ s₂' := by
-        apply STr.comp htr hstr STr.refl
-      simp only [List.nil_append]
-      apply stepL hstr' hmstr
+    case stepL _ _ _ μ s₂' μs hstr hmstr => exact stepL (htr.comp hstr STr.refl) hmstr
   case stepL s₁ μ s₁' μs s₂ hstr hmstr ih =>
     apply stepL hstr (ih h₂)
 
