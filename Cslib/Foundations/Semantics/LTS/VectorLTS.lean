@@ -46,7 +46,7 @@ which represents the global view of a collection of LTSes, collectively
 transition for each input vector label to their next states. This
 matches how synchronous distributed systems behave
 -/
-abbrev SynchronousVecLTS (Entity : Type u) (State Label : Entity → Type*) :=
+abbrev SynchronousVecLTS (Entity : Type*) (State Label : Entity → Type*) :=
   LTS ((e : Entity) → State e) ((e : Entity) → Label e)
 
 
@@ -64,14 +64,14 @@ The LTS representing the global execution state machine of a collection
 of an asynchronous collection of machines. Here each label arrives
 one at a time at some LTS in the collection of LTSes
 -/
-def AsynchronousVecLTS (Entity : Type u) (State Label : Entity → Type*) :=
+def AsynchronousVecLTS (Entity : Type*) (State Label : Entity → Type*) :=
   LTS ((e : Entity) → State e) (Σ (e : Entity), Label e)
 
 /--
 A model of an asynchronously advancing collection of LTSes. This abstracts
 the behaviour of asynchronous distributed systems.
 -/
-abbrev LTSVec.toAsynchronousVecLTS (Entity : Type u)
+abbrev LTSVec.toAsynchronousVecLTS {Entity}
     (State Label : Entity → Type*)
     (l : LTSVec Entity State Label) :
     AsynchronousVecLTS Entity State Label where
