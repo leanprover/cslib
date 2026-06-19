@@ -108,32 +108,21 @@ theorem toSingleAccept_τSTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol
 @[scoped grind =]
 theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
     : a.toSingleAccept.τSTr (some s) (some s') ↔ a.τSTr s s' := by
-  generalize hos' : some s' = os'
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h generalizing s'
-    case refl =>
+  apply Iff.intro
+  · generalize hos' : some s' = os'
+    intro h
+    induction h generalizing s' with
+    | refl =>
       cases hos'
-      constructor
-    case tail osb os' hτstr htr ih =>
-      have hosb := toSingleAccept_tr_antiDerivative_isSome (os := osb) (os' := os') htr
-      apply Option.isSome_iff_exists.mp at hosb
-      rcases hosb with ⟨sb, hosb⟩
-      apply Relation.ReflTransGen.trans (b := sb) (ih hosb.symm)
-      apply Relation.ReflTransGen.single
-      rw [hosb, ← hos'] at htr
-      apply htr
-  case mpr =>
-    induction h generalizing os'
-    case refl =>
-      cases hos'
-      constructor
-    case tail sb s' hτstr htr ih =>
-      specialize ih (os' := some sb) rfl
-      apply Relation.ReflTransGen.trans (b := some sb) ih
-      apply Relation.ReflTransGen.single
-      rw [← hos']
-      apply toSingleAccept_tr_tr.mpr htr
+      exact LTS.τSTr.refl
+    | tail hτstr htr ih =>
+      subst hos'
+      obtain ⟨_, rfl⟩ := Option.isSome_iff_exists.mp <| toSingleAccept_tr_antiDerivative_isSome htr
+      refine .trans (ih rfl) (.single htr)
+  · intro h
+    cases h with
+    | refl => exact LTS.τSTr.refl
+    | tail hτstr htr => exact .trans (.lift some (fun _ _ => id) hτstr) (.single htr)
 
 @[scoped grind →]
 theorem toSingleAccept_τSTr_none_accept {a : εNA.FinAcc State Symbol}
