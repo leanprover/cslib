@@ -41,12 +41,15 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
 #grind_lint skip Cslib.ωSequence.map_id
 #grind_lint skip Cslib.Automata.DA.buchi_eq_finAcc_omegaLim
+#grind_lint skip Cslib.LTS.mapLabel_tr
 #grind_lint skip Cslib.LTS.MTr.stepL
 #grind_lint skip Cslib.LTS.STr.trans_τ
 #grind_lint skip Cslib.Automata.DA.FinAcc.toNAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
+#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_tr_tr
+#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_not_tr_none
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
