@@ -100,6 +100,21 @@ def Algorithm.Consensus [Fintype P] (a : Algorithm P M S) (f : ℕ) : Prop :=
 
 variable {a : Algorithm P M S} {inp : P → Bool}
 
+/-- Specialize the definition of `Algorithm.AdmissibleRun` to the case of zero fault. -/
+theorem AdmissibleRun.fault_zero [Fintype P]
+    {xs : ωSequence (Action P M)} {ss : ωSequence (State P M S)} :
+    a.AdmissibleRun inp 0 ss xs ↔
+    ss 0 = a.start inp ∧ a.lts.OmegaExecution ss xs ∧ ∀ p, ProcFair p ss xs := by
+  constructor
+  · rintro ⟨_, _, _, hf⟩
+    suffices ∀ p, ¬ ProcFaulty p ss xs by grind [FairRun, not_procFaulty_and_procFair]
+    simp (disch := toFinite_tac) [numProcFaulty, ncard_eq_zero, Set.ext_iff] at hf
+    assumption
+  · rintro ⟨hi, hr, _⟩
+    use hi, hr, by grind [FairRun]
+    have : ∀ p, ¬ ProcFaulty p ss xs := by grind [not_procFaulty_and_procFair]
+    simpa (disch := toFinite_tac) [numProcFaulty, ncard_eq_zero, Set.ext_iff]
+
 /-- If an infinite execution is admissible with up tp `f` faulty processes,
 then it is also admissible with with up tp `f' ≥ f` faulty processes. -/
 theorem AdmissibleRun.fault_mono [Fintype P] {f f' : ℕ}
