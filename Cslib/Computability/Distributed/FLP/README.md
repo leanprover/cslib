@@ -1,8 +1,8 @@
-# Impossibility of distributed consensus
+# Impossibility of asynchronous distributed consensus
 
 This directory contains a formalization of Völzer's proof [Volzer2004] of the famous result in
-distributed computing, first proved by Fischer, Lynch and Paterson [FLP1985], that distributed
-consensus is impossible in the presence of even a single crash fault.
+distributed computing, first proved by Fischer, Lynch and Paterson [FLP1985], that asynchronous
+distributed consensus is impossible in the presence of even a single crash fault.
 
 ## Lean files
 
@@ -32,11 +32,16 @@ consensus is impossible in the presence of even a single crash fault.
    which doesn't contain any fault but never reaches a consensus, which then implies that there cannot
    be a consensus algorithm that can tolerate even a single fault.
 
+8. `ZeroConsensus.lean` presents a simple distributed consensus algorithm and proves that it achieves
+   consensus if there is no fault.  This file is not needed for proving the impossibility result, but is
+   included to show that the notion of an algorithm defined in `Algorithm.lean` is not vacuous, in the
+   sense that it allows a working consensus algorithm when there is no fault.
+
 Files #1 and #2 contains materials common to both [FLP1985] and [Volzer2004].
 File #3 provides proof details that are either completely omitted (in the case of
 `PseudoConsensus.of_consensus`) or only hinted at (in the case of
 `OnePseudoConsensus.fair_nonUniform`) in [Volzer2004].
-The remaining files follow the development in [Volzer2004] fairly closely,
+The remaining files (except #8) follow the development in [Volzer2004] fairly closely,
 as is explained further in each file.
 
 ## References

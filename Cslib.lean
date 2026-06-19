@@ -11,6 +11,7 @@ public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
@@ -26,6 +27,7 @@ public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
 public import Cslib.Computability.Distributed.FLP.FairScheduler
+public import Cslib.Computability.Distributed.FLP.ZeroConsensus
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
@@ -34,7 +36,7 @@ public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
-public import Cslib.Computability.Machines.SingleTapeTuring.Basic
+public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
 public import Cslib.Computability.URM.Basic
 public import Cslib.Computability.URM.Computable
 public import Cslib.Computability.URM.Defs
@@ -88,6 +90,7 @@ public import Cslib.Foundations.Semantics.LTS.Divergence
 public import Cslib.Foundations.Semantics.LTS.Execution
 public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.LTSCat.Basic
+public import Cslib.Foundations.Semantics.LTS.MapLabel
 public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
@@ -149,6 +152,7 @@ public import Cslib.Logics.Modal.Denotation
 public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Logics.Propositional.NaturalDeduction.Theory
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
