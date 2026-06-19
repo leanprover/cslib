@@ -26,8 +26,8 @@ The WP's structural rules are immediate from `liftM` being a monad morphism. The
 coherence lemma `liftM_wp_eq_wp_liftM` states that WP-via-handler agrees with `Std.Do`'s WP of the
 `liftM` interpretation, i.e. uniqueness of the lifted monad morphism.
 
-The design follows [VistrupSammlerJung2025], adapted from coinductive ITrees to inductive `FreeM`
-and from Iris to `Std.Do`.
+The design follows [Program Logics à la Carte][VistrupSammlerJung2025], adapted from coinductive
+ITrees to inductive `FreeM` and from Iris to `Std.Do`.
 
 ## Main results
 
@@ -37,12 +37,11 @@ and from Iris to `Std.Do`.
 
 ## References
 
-See [VistrupSammlerJung2025] for the original account on ITree program logics.
+See [Program Logics à la Carte][VistrupSammlerJung2025] for the original account on ITree
+program logics.
 -/
 
 @[expose] public section
-
-set_option mvcgen.warning false
 
 namespace Cslib
 
