@@ -179,7 +179,7 @@ lemma IsSimulation.follow_internal [HasTau Label] {lts₁ : LTS State₁ Label}
   case tail sb hrsb htrsb ih1 ih2 =>
     obtain ⟨sb2, htrsb2, hrb⟩ := ih2
     have ⟨sb2', htrsb2', hrb'⟩ := h _ _ hrb HasTau.τ _ ih1
-    use sb2', htrsb2.trans (lts₂.sTr_τSTr.mp htrsb2')
+    use sb2', htrsb2.trans (lts₂.sTr_τSTr_iff.mp htrsb2')
 
 /-- If the right-hand lts is saturated, a simulation lifts along saturating the left-hand lts. -/
 theorem IsSimulation.isSimulation_saturate_left [HasTau Label] {lts₁ : LTS State₁ Label}
@@ -193,8 +193,8 @@ theorem IsSimulation.isSimulation_saturate_left [HasTau Label] {lts₁ : LTS Sta
     obtain ⟨sb1, hstr1b, hrb⟩ := IsSimulation.follow_internal h hr hstr1
     obtain ⟨sb2', hstr1b', hrb'⟩ := h _ _ hrb μ _ htr
     obtain ⟨s₁', hstr1', hrb2⟩ := IsSimulation.follow_internal h hrb' hstr2
-    rw [←sTr_τSTr] at hstr1' hstr1b
-    use s₁', STr.comp lts₂ hstr1b hstr1b' hstr1', hrb2
+    rw [←sTr_τSTr_iff] at hstr1' hstr1b
+    use s₁', STr.comp hstr1b hstr1b' hstr1', hrb2
 
 /-- Simulation is preserved by removing transitions on the left, and adding transitions on the
 right. -/

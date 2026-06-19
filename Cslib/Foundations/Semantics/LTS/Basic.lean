@@ -56,6 +56,7 @@ universe u v
 A Labelled Transition System (LTS) for a type of states (`State`) and a type of transition
 labels (`Label`) consists of a labelled transition relation (`Tr`).
 -/
+@[ext]
 structure LTS (State : Type u) (Label : Type v) where
   /-- The transition relation. -/
   Tr : State → Label → State → Prop
