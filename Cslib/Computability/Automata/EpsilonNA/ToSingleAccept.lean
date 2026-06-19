@@ -102,9 +102,8 @@ theorem toSingleAccept_τSTr_antiDerivative_none {a : εNA.FinAcc State Symbol}
 theorem toSingleAccept_τSTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.τSTr os (some s')) : os.isSome := by
   induction h using Relation.ReflTransGen.head_induction_on
-  case refl => grind only [= Option.isSome_some]
-  case head _ _ h₁ h₂ ih =>
-    exact toSingleAccept_tr_antiDerivative_isSome h₁
+  case refl => exact Option.isSome_some
+  case head _ _ h₁ h₂ ih => exact toSingleAccept_tr_antiDerivative_isSome h₁
 
 @[scoped grind =]
 theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
