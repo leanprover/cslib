@@ -81,17 +81,24 @@ lemma step_not_fv (step : M ⭢ηᶠ M') : M.fv = M'.fv := by
     grind [open_preserve_not_fvar]
   | _ => grind
 
-/-- Substitution of a fresh variable preserves an η-reduction step. -/
-@[scoped grind ←]
-lemma eta_subst_fvar {x y : Var} (step : M ⭢ηᶠ M') : M [ x := fvar y ] ⭢ηᶠ M' [ x := fvar y ] := by
-  induction step with
-  | abs => apply Xi.abs <| free_union Var; grind
-  | @base M N => grind
-  | _ => grind
+/- `s ⭢ηᶠ s'` implies `s [ x := N ] ⭢ηᶠ s' [ x := N ]`. -/
+lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc_N : LC N) :
+    s [ x := N ] ⭢ηᶠ s' [ x := N ] := by
+  induction step
+  case base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
+  case abs => grind [Xi.abs <| free_union Var, subst_open_var]
+  all_goals grind
+
+/- `steps_subst_cong_l` can be generalized to multiple reductions `s ↠ηᶠ s'`. -/
+lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (lc_N : LC N) :
+    s [ x := N ] ↠ηᶠ s' [ x := N ] := by
+  induction steps with
+  | refl => rfl
+  | tail _ step ih => grind [step_subst_cong_l]
 
 /-- Abstracting then closing preserves a single η-reduction step. -/
 lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢ηᶠ (M' ^* x).abs := by
-  grind [Xi.abs ∅]
+  grind [step_subst_cong_l, Xi.abs ∅]
 
 /-- Abstracting then closing preserves multiple reductions. -/
 lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
@@ -155,22 +162,7 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
   cases st_M with
   | refl => rw [←open_close_var x M hx_M]
   | single st =>
-    exact .single (Xi.abs {x} (by grind))
-
-/- `s ⭢ηᶠ s'` implies `s [ x := N ] ⭢ηᶠ s' [ x := N ]`. -/
-lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc_N : LC N) :
-    s [ x := N ] ⭢ηᶠ s' [ x := N ] := by
-  induction step
-  case base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
-  case abs => grind [Xi.abs <| free_union Var, subst_open_var]
-  all_goals grind
-
-/- `steps_subst_cong_l` can be generalized to multiple reductions `s ↠ηᶠ s'`. -/
-lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (lc_N : LC N) :
-    s [ x := N ] ↠ηᶠ s' [ x := N ] := by
-  induction steps with
-  | refl => rfl
-  | tail _ step ih => grind [step_subst_cong_l]
+    exact .single (Xi.abs {x} (by grind [step_subst_cong_l]))
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullEta
 
