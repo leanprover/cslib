@@ -74,6 +74,16 @@ lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
 lemma subst_refl (m : Term Var) (x : Var) : m[x := fvar x] = m := by
   induction m <;> grind
 
+lemma subst_intro_openRec {x} {t e : Term Var} (mem : x ∉ e.fv) {k : ℕ} :
+    e ⟦k ↝ t⟧ = (e ⟦ k ↝ fvar x⟧)[ x := t ] := by
+  induction e generalizing k with grind
+
+/-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
+lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) :
+    e ^ t = (e ^ fvar x) [ x := t ] := subst_intro_openRec mem
+
+scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
+
 variable [HasFresh Var]
 
 omit [DecidableEq Var] in
@@ -114,12 +124,6 @@ theorem subst_lc {x : Var} {e u : Term Var} (e_lc : LC e) (u_lc : LC u) : LC (e 
   induction e_lc
   case' abs => apply LC.abs (free_union Var)
   all_goals grind
-
-/-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
-lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) :
-    e ^ t = (e ^ fvar x) [ x := t ] := by grind [subst_fresh]
-
-scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
 
 set_option linter.unusedDecidableInType false in
 /-- Opening of locally closed terms is locally closed. -/
