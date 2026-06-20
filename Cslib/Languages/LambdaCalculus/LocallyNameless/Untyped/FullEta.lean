@@ -86,7 +86,7 @@ lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc
     s [ x := N ] ⭢ηᶠ s' [ x := N ] := by
   induction step
   case base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
-  case abs => grind [Xi.abs <| free_union Var, subst_open_var]
+  case abs => apply Xi.abs <| free_union Var; grind
   all_goals grind
 
 /- `steps_subst_cong_l` can be generalized to multiple reductions `s ↠ηᶠ s'`. -/
