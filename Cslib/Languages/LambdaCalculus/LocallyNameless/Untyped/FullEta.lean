@@ -98,7 +98,8 @@ lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (
 
 /-- Abstracting then closing preserves a single η-reduction step. -/
 lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢ηᶠ (M' ^* x).abs := by
-  grind [step_subst_cong_l, Xi.abs ∅]
+  apply Xi.abs ∅
+  grind [step_subst_cong_l]
 
 /-- Abstracting then closing preserves multiple reductions. -/
 lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
