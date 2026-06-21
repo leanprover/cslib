@@ -78,6 +78,7 @@ public import Cslib.Foundations.Relation.Confluence
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Relation.Euclidean
+public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
