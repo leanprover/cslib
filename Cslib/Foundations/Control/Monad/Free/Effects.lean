@@ -7,6 +7,7 @@ Authors: Tanner Duve
 module
 
 public import Cslib.Foundations.Control.Monad.Free
+public import Cslib.Foundations.Control.Monad.Free.WP
 public import Mathlib.Control.Monad.Cont
 
 /-!
@@ -39,9 +40,13 @@ Free monad, state monad, writer monad, continuation monad
 
 @[expose] public section
 
+set_option mvcgen.warning false
+
 namespace Cslib
 
 namespace FreeM
+
+open Std.Do
 
 universe u v w w' w''
 
@@ -156,6 +161,29 @@ lemma run'_bind (x : FreeState σ α) (f : α → FreeState σ β) (s₀ : σ) :
   congr_arg Prod.fst <| run_bind _ _ _
 
 end FreeState
+
+/-- Logical handler for the state effect, induced by `Std.Do`'s `WP (StateM σ)`. -/
+instance StateF.instWP {σ : Type u} :
+    FreeM.WP (StateF σ) (.arg σ .pure) where
+  handler op := wp (FreeState.stateInterp op)
+
+/-- WP of a `FreeState` program matches WP of its `StateM` interpretation. -/
+theorem StateF.wp_freeState_eq_wp_toStateM {σ α : Type u} (comp : FreeState σ α) :
+    wp comp = wp (FreeState.toStateM comp) :=
+  liftM_wp_eq_wp_liftM (m := StateM σ)
+    (fun _ op => FreeState.stateInterp op) comp
+
+/-- Hoare spec for `get` on `FreeState`. -/
+@[spec]
+theorem Spec.get_FreeState {σ : Type u} {Q : PostCond σ (.arg σ .pure)} :
+    Triple (MonadStateOf.get : FreeState σ σ) (spred(fun s => Q.1 s s)) Q := by
+  mvcgen
+
+/-- Hoare spec for `set` on `FreeState`. -/
+@[spec]
+theorem Spec.set_FreeState {σ : Type u} (s : σ) {Q : PostCond PUnit (.arg σ .pure)} :
+    Triple (MonadStateOf.set s : FreeState σ PUnit) (spred(fun _ => Q.1 ⟨⟩ s)) Q := by
+  mvcgen
 
 /-! ### Writer Monad via `FreeM` -/
 
@@ -452,6 +480,23 @@ instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
     simpa [withTheReader, instMonadWithReaderOf, run] using! (ih (f s) s)
 
 end FreeReader
+
+/-- Logical handler for the reader effect, induced by `Std.Do`'s `WP (ReaderM σ)`. -/
+instance ReaderF.instWP {σ : Type u} :
+    FreeM.WP (ReaderF σ) (.arg σ .pure) where
+  handler op := wp (FreeReader.readInterp op)
+
+/-- WP of a `FreeReader` program matches WP of its `ReaderM` interpretation. -/
+theorem ReaderF.wp_freeReader_eq_wp_toReaderM {σ α : Type u} (comp : FreeReader σ α) :
+    wp comp = wp (FreeReader.toReaderM comp) :=
+  liftM_wp_eq_wp_liftM (m := ReaderM σ)
+    (fun _ op => FreeReader.readInterp op) comp
+
+/-- Hoare spec for `read` on `FreeReader`. -/
+@[spec]
+theorem Spec.read_FreeReader {ρ : Type u} {Q : PostCond ρ (.arg ρ .pure)} :
+    Triple (MonadReaderOf.read : FreeReader ρ ρ) (spred(fun r => Q.1 r r)) Q := by
+  mvcgen
 
 end FreeM
 
