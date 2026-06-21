@@ -134,7 +134,7 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) :=
 
 /-- Closing then opening is equivalent to substitution. -/
 @[scoped grind =]
-lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
+lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
     m ⟦k ↜ x⟧⟦k ↝ n⟧ = m [x := n] := by
   induction m_lc generalizing k with
   | abs xs t =>
@@ -145,6 +145,10 @@ lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_
     · grind [subst_preserve_not_fvar]
     · grind [open_preserve_not_fvar]
   | _ => grind
+
+@[scoped grind =]
+lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) (n_lc : LC n) :
+    (m ^* x) ^ n = m [x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
 
 /-- Closing and opening are inverses. -/
 lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by
