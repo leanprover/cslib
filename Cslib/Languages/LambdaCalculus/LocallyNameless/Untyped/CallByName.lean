@@ -34,13 +34,13 @@ inductive CBN : Term Var → Term Var → Prop
 variable {M N : Term Var}
 
 /-- The left side of a CBN reduction step is locally closed. -/
-lemma cbn_lc_l (step : M ⭢ₙ N) : LC M := by
+lemma CBN.lc_l (step : M ⭢ₙ N) : LC M := by
   induction step with grind
 
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a CBN reduction step is locally closed. -/
-lemma cbn_lc_r (step : M ⭢ₙ N) : LC N := by
+lemma CBN.lc_r (step : M ⭢ₙ N) : LC N := by
   induction step with grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
