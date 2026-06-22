@@ -37,7 +37,7 @@ variable {M N : Term Var}
 lemma cbn_lc_l (step : M ⭢ₙ N) : LC M := by
   induction step
   all_goals grind
-
+  induction step with grind
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a CBN reduction step is locally closed. -/
