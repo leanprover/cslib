@@ -42,7 +42,7 @@ inductive Standard : Term Var → Term Var → Prop
 variable {M N : Term Var}
 
 /-- The left side of a standard reduction is locally closed. -/
-lemma stand_lc_l (step : M ⭢ₛ N) : LC M := by
+lemma Standard.lc_l (step : M ⭢ₛ N) : LC M := by
   induction step
   case abs xs _ ih => exact LC.abs xs _ ih
   all_goals grind
@@ -53,7 +53,7 @@ lemma Standard.lc_refl (M : Term Var) (lc : LC M) : M ⭢ₛ M := by
   all_goals constructor <;> assumption
 
 /-- The right side of a standard reduction is locally closed. -/
-lemma stand_lc_r (step : M ⭢ₛ N) : LC N := by
+lemma Standard.lc_r (step : M ⭢ₛ N) : LC N := by
   induction step
   case abs xs _ ih => exact LC.abs xs _ ih
   all_goals grind
