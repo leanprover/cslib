@@ -6,6 +6,7 @@ import CslibTests.FreeMonad
 import CslibTests.GrindLint
 import CslibTests.HML
 import CslibTests.HasFresh
+import CslibTests.HasWellFormed
 import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
