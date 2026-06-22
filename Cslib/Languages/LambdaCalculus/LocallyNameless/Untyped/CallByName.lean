@@ -42,11 +42,7 @@ variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a CBN reduction step is locally closed. -/
 lemma cbn_lc_r (step : M ⭢ₙ N) : LC N := by
-  induction step
-  case base beta_step =>
-    cases beta_step
-    apply beta_lc <;> assumption
-  case app lc_z _ lc_n => exact LC.app lc_n lc_z
+  induction step with grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
