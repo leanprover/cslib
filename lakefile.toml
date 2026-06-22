@@ -18,7 +18,7 @@ weak.linter.unicodeLinter = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "360da6fa66c1273b76b6b2d8c5666fd5ac2e3b56"
+rev = "29af5245bafea7d69fdca69591450f60b916ed71"
 
 [[lean_lib]]
 name = "Cslib"
