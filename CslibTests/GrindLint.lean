@@ -41,12 +41,15 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
 #grind_lint skip Cslib.ωSequence.map_id
 #grind_lint skip Cslib.Automata.DA.buchi_eq_finAcc_omegaLim
+#grind_lint skip Cslib.LTS.mapLabel_tr
 #grind_lint skip Cslib.LTS.MTr.stepL
 #grind_lint skip Cslib.LTS.STr.trans_τ
 #grind_lint skip Cslib.Automata.DA.FinAcc.toNAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
+#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_tr_tr
+#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_not_tr_none
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
@@ -73,14 +76,14 @@ open_scoped_all Cslib
 /-- (changes from lean#13166) -/
 #grind_lint skip Cslib.ωLanguage.map_id
 #grind_lint skip Cslib.LTS.Bisimilarity.gfp
-#grind_lint skip Cslib.LTS.Bisimilarity.is_bisimulation
-#grind_lint skip Cslib.LTS.Bisimilarity.largest_bisimulation
+#grind_lint skip Cslib.LTS.Bisimilarity.isBisimulation
+#grind_lint skip Cslib.LTS.IsBisimulation.le_bisimilarity
 #grind_lint skip Cslib.LTS.IsBisimulation.bot
 #grind_lint skip Cslib.LTS.IsBisimulation.comp
 #grind_lint skip Cslib.LTS.IsBisimulation.inv
 #grind_lint skip Cslib.LTS.IsBisimulation.sup
 #grind_lint skip Cslib.LTS.IsBisimulation.traceEq
-#grind_lint skip Cslib.LTS.IsBisimulationUpTo.is_bisimulation
+#grind_lint skip Cslib.LTS.IsBisimulationUpTo.isBisimulation
 #grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
 
 #guard_msgs in

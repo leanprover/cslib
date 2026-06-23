@@ -10,7 +10,7 @@ public import Cslib.Init
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Euclidean
 public import Mathlib.Logic.Nonempty
 
 /-! # Modal Logic
@@ -41,13 +41,13 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Atomic proposition. -/
   | atom (p : Atom)
   /-- Negation. -/
-  | neg (φ : Proposition Atom)
+  | not (φ : Proposition Atom)
   /-- Conjunction. -/
   | and (φ₁ φ₂ : Proposition Atom)
   /-- Possibility. -/
   | diamond (φ : Proposition Atom)
 
-@[inherit_doc] scoped prefix:40 "¬" => Proposition.neg
+@[inherit_doc] scoped prefix:40 "¬" => Proposition.not
 @[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
 @[inherit_doc] scoped prefix:40 "◇" => Proposition.diamond
 
@@ -76,7 +76,7 @@ the proposition `φ`. -/
 @[scoped grind]
 def Satisfies (m : Model World Atom) (w : World) : Proposition Atom → Prop
   | .atom p => m.v w p
-  | .neg φ => ¬Satisfies m w φ
+  | .not φ => ¬Satisfies m w φ
   | .and φ₁ φ₂ => Satisfies m w φ₁ ∧ Satisfies m w φ₂
   | .diamond φ => ∃ w', m.r w w' ∧ Satisfies m w' φ
 
@@ -101,13 +101,13 @@ instance : HasInferenceSystem (Judgement World Atom) := ⟨Satisfies.Bundled⟩
 
 open scoped InferenceSystem Proposition
 
-@[scoped grind =]
+@[scoped grind =_]
 theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom} :
-  ⇓Modal[m,w ⊨ φ] = Satisfies m w φ := rfl
+  Satisfies m w φ = ⇓Modal[m,w ⊨ φ] := rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
-theorem neg_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
+theorem not_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
   induction φ generalizing w <;> grind
 
 /-- Characterisation of the `∨` connective.
@@ -126,6 +126,16 @@ This result proves that the definition is correct.
 @[scoped grind =]
 theorem Satisfies.impl_iff_impl {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
+
+/-- Characterisation of the `↔` connective.
+
+Bi-implication is defined in terms of the more primitive connectives given in `Proposition`.
+This result proves that the definition is correct. -/
+@[scoped grind =]
+theorem Satisfies.iff_iff_iff {m : Model World Atom} :
+    ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
+  simp only [Proposition.iff]
+  grind [= derivation_def]
 
 /-- Characterisation of the `□` modality.
 
@@ -152,7 +162,7 @@ theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := by grind
 
 /-- If two worlds are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
-    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ neg_satisfies]
+    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ not_satisfies]
 
 /-- If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
 well. -/
@@ -167,10 +177,8 @@ theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → �
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The dual axiom, valid for all models. -/
 theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
-  constructor
-  · grind
-  · grind only [→ satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl, = derivation_def,
-    = neg_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
+  grind only [Satisfies.iff_iff_iff.mpr, → satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl,
+    =_ derivation_def, = not_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}

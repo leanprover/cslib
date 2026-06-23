@@ -38,7 +38,7 @@ advantages and disadvantages.
 
 @[expose] public section
 
-namespace Turing
+namespace Cslib.Turing
 
 /--
 An infinite tape representation using a list of `Option` values,
@@ -46,7 +46,7 @@ where the list is eventually `none`.
 
 Represented as a `List (Option Symbol)` that does not end with `none`.
 -/
-structure StackTape (Symbol : Type) where
+structure StackTape (Symbol : Type*) where
   /-- The underlying list representation -/
   toList : List (Option Symbol)
   /--
@@ -59,10 +59,9 @@ attribute [scoped grind! .] StackTape.toList_getLast?_ne_some_none
 
 namespace StackTape
 
-variable {Symbol : Type}
+variable {Symbol : Type*}
 
 /-- The empty `StackTape` -/
-@[scoped grind]
 def nil : StackTape Symbol := ⟨[], by grind⟩
 
 instance : Inhabited (StackTape Symbol) where
@@ -78,7 +77,6 @@ lemma empty_eq_nil : (∅ : StackTape Symbol) = nil := rfl
 lemma nil_toList : (nil : StackTape Symbol).toList = [] := rfl
 
 /-- Prepend an `Option` to the `StackTape` -/
-@[scoped grind]
 def cons (x : Option Symbol) (xs : StackTape Symbol) : StackTape Symbol :=
   match x, xs with
   | none, ⟨[], _⟩ => ⟨[], by grind⟩
@@ -86,9 +84,10 @@ def cons (x : Option Symbol) (xs : StackTape Symbol) : StackTape Symbol :=
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
 @[simp, scoped grind =]
-lemma cons_none_nil_toList : (cons none (nil : StackTape Symbol)).toList = [] := by grind
+lemma cons_none_nil_toList : (cons none (nil : StackTape Symbol)).toList = [] := by
+  grind only [nil, cons]
 
-@[simp, scoped grind =]
+@[simp]
 lemma cons_some_toList (a : Symbol) (l : StackTape Symbol) :
     (cons (some a) l).toList = some a :: l.toList := by simp only [cons]
 
@@ -113,22 +112,22 @@ lemma eq_iff (l1 l2 : StackTape Symbol) :
   · intro ⟨hhead, htail⟩
     cases l1 with | mk as1 h1 =>
     cases l2 with | mk as2 h2 =>
-    cases as1 <;> cases as2 <;> grind
+    cases as1 <;> cases as2 <;> grind [nil]
 
 @[simp]
 lemma head_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).head = o := by
   cases o with
   | none =>
     cases l with | mk toList hl =>
-    cases toList <;> grind
-  | some a => grind
+    cases toList <;> grind [cons]
+  | some a => grind [cons_some_toList]
 
 @[simp]
 lemma tail_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).tail = l := by
   cases o with
   | none =>
     cases l with | mk toList h =>
-    cases toList <;> grind
+    cases toList <;> grind [nil, cons]
   | some a =>
     simp only [cons, tail]
 
@@ -157,16 +156,15 @@ grind_pattern length_tail_le => l.tail.length
 lemma length_cons_none (l : StackTape Symbol) :
     (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
   cases l with | mk toList h =>
-  cases toList <;> grind
+  cases toList <;> grind [cons]
 
-@[scoped grind =]
 lemma length_cons_some (a : Symbol) (l : StackTape Symbol) :
     (cons (some a) l).length = l.length + 1 := by
-  grind
+  grind [cons_some_toList]
 
 lemma length_cons_le (o : Option Symbol) (l : StackTape Symbol) :
     (cons o l).length ≤ l.length + 1 := by
-  cases o <;> grind
+  cases o <;> grind [cons_some_toList]
 
 @[simp, scoped grind =]
 lemma length_mapSome (l : List Symbol) : (mapSome l).length = l.length := by grind
@@ -178,4 +176,4 @@ end Length
 
 end StackTape
 
-end Turing
+end Cslib.Turing
