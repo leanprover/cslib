@@ -40,6 +40,7 @@ jobs:
         uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
 
       - name: Open or update PR
+        id: open-pr
         if: steps.bump.outputs.updated == 'true'
         uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
         with:
@@ -49,6 +50,20 @@ jobs:
           token:          ${{ steps.app-token.outputs.token }}
           git-user-name:  mathlib-nightly-testing[bot]
           git-user-email: mathlib-nightly-testing[bot]@users.noreply.github.com
+
+      - name: Enable auto-merge for bump PR
+        if: steps.open-pr.outputs.pr-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.open-pr.outputs.pr-number }}
+        run: |
+          set -euo pipefail
+          if gh pr view "$PR_NUMBER" --json autoMergeRequest --jq '.autoMergeRequest != null' | grep -q true; then
+            echo "Auto-merge is already enabled for PR #${PR_NUMBER}."
+          else
+            gh pr merge "$PR_NUMBER" --auto
+          fi
 
   open-issue:
     runs-on: ubuntu-latest
