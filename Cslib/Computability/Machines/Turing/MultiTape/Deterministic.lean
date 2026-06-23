@@ -67,8 +67,9 @@ We define a number of structures and concepts related to multi-tape Turing machi
 
 * `MultiTapeTM`: the TM itself
 * `Cfg`: the configuration of a TM, including internal state, the tapes and the output so far
-* `spaceUsed`: the number of work tape cells touched by the head until a certain step
+* `spaceUsed`: the number of work tape cells touched by the heads until a certain step
 * `TransitionRelation`: the transition relation from one configuration to the next
+* `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
 * `ComputesInTimeAndSpace`: a proof that a TM computes an output from an input in a certain number
     of steps and using a certain number of tape cells
 * `ComputesFunInTimeAndSpace`: a proof that a TM computes a function (on strings) respecting a
@@ -87,7 +88,7 @@ proven to be equivalent.
 
 * [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
 * [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
-* [M. Sipser, *Introduction to the Theory of Computation*][Sipser09]
+* [M. Sipser, *Introduction to the Theory of Computation*][Sipser13]
 
 -/
 
@@ -134,14 +135,14 @@ is the blank `BiTape` symbol).
 -/
 structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
   /-- type of state labels -/
-  State : Type
+  State : Type*
   /-- finiteness of the state type -/
   [stateFintype : Fintype State]
   /-- initial state -/
   q₀ : State
-  /-- transition function, mapping a state, the current input symbol and a tuple of head symbols
-  to a movement for the input head, actions on the work tape, optionally a symbol to output and
-  the successor state -/
+  /-- transition function, mapping a state, the current input symbol and a tuple of work head
+  symbols to a movement for the input head, actions on the work tape, optionally a symbol to output
+  and the successor state -/
   tr (q : State) (input : Option Symbol) (work : Fin k → Option Symbol) :
       TransitionOut k Symbol State
 
@@ -154,7 +155,7 @@ section Cfg
 
 This section defines the configurations of a Turing machine,
 the step function that lets the machine transition from one configuration to the next,
-and the intended initial and final configurations.
+the resulting sequence of configurations and the initial configuration.
 -/
 
 variable [Inhabited Symbol] [Fintype Symbol] (tm : MultiTapeTM k Symbol)
@@ -311,7 +312,7 @@ variable [Inhabited Symbol] [Fintype Symbol]
 /--
 The `TransitionRelation` corresponding to a `MultiTapeTM k Symbol`
 is defined by the `step` function,
-which maps a configuration to its next configuration, if it exists.
+which maps a configuration to its next configuration.
 -/
 @[scoped grind =]
 def TransitionRelation (tm : MultiTapeTM k Symbol) (c₁ c₂ : tm.Cfg) : Prop := tm.step c₁ = c₂
