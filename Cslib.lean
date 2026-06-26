@@ -1,6 +1,8 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
+public import Cslib.Algorithms.Lean.BubbleSort.BubbleSort
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.Lean.Sorting
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
