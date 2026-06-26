@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 
@@ -51,14 +52,58 @@ theorem red_tr {m : SingleTapeNTM State Symbol} :
 /-- Multistep execution of an NTM, defined as the reflexive and transitive closure of one-step
 execution.
 -/
-@[scoped grind =]
 def MRed (m : SingleTapeNTM State Symbol) := Relation.ReflTransGen m.Red
 
+open scoped LTS LTS.MTr TrLabel
+
+/-- Characterisation of executions in terms of multistep transitions. -/
+@[scoped grind =]
+theorem mRed_mTr {m : SingleTapeNTM State Symbol} :
+    m.MRed c c' ↔ ∃ μs, m.MTr c.state μs c'.state ∧
+    μs.foldl TrLabel.applyToTape (some c.tape) = c'.tape := by
+  apply Iff.intro <;> intro h
+  case mp =>
+    induction h using Relation.ReflTransGen.head_induction_on
+    case refl =>
+      exists []
+      grind
+    case head _ c cb hred hmred ih =>
+      rcases ih with ⟨μs, hmtr, ih⟩
+      have ⟨μ, _⟩ := red_tr.mp hred
+      exists μ :: μs
+      grind
+  case mpr =>
+    rcases h with ⟨μs, hmtr, h⟩
+    induction μs generalizing c
+    case nil =>
+      rw [show c = c' by grind [Cfg.ext]]
+      apply Relation.ReflTransGen.refl
+    case cons μ μs ih =>
+      cases hmtr
+      case stepL sb htr hmtr =>
+        have hat : ∀ (μ : TrLabel Symbol) t, (μ.applyToTape t).isSome → t.isSome := by grind
+        have ⟨tb, htb⟩ : ∃ tb, μ.applyToTape c.tape = some tb := by grind [Option.isSome_iff_exists]
+        let cb := {state := sb, tape := tb : Cfg State Symbol}
+        have hmred : m.MRed cb c' := by grind
+        apply Relation.ReflTransGen.head (b := cb) (by grind)
+        simp only [MRed] at hmred
+        grind
+
 /-- An NTM is an acceptor of finite lists of symbols. -/
-@[simp, scoped grind =]
 instance : Acceptor (SingleTapeNTM State Symbol) Symbol where
     Accepts (m : SingleTapeNTM State Symbol) (xs : List Symbol) :=
   ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ m.MRed (Cfg.mk₁ s xs) c'
+
+/-- An NTM is a transducer of finite lists of symbols. -/
+instance : Transducer (SingleTapeNTM State Symbol) Symbol Symbol where
+    Translates (m : SingleTapeNTM State Symbol) (xs ys : List Symbol) :=
+  ∃ s ∈ m.start, ∃ c',
+    c'.state ∈ m.accept ∧
+    m.MRed (Cfg.mk₁ s xs) c' ∧
+    /- The following condition on output deviates from textbooks, in order to have the same
+    criterion as for deterministic TMs. We might want to revisit this in the future.
+    -/
+    c'.tape = Turing.BiTape.mk₁ ys
 
 end SingleTapeNTM
 

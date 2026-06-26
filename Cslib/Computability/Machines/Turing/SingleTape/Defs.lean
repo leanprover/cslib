@@ -25,16 +25,32 @@ inductive TrLabel (Symbol : Type*)
   /-- Do nothing. -/
   | skip
 
-/-- Applies a transition label to a tape, returning `none` if it is not possible. -/
-def TrLabel.applyToTape [DecidableEq Symbol] (μ : TrLabel Symbol) (tape : Turing.BiTape Symbol) :
+/-- Applies a transition label to a tape, returning `none` if it is not possible.
+The input is taken as an `Option` to make the function composable. -/
+def TrLabel.applyToTape [DecidableEq Symbol]
+    (otape : Option (Turing.BiTape Symbol)) (μ : TrLabel Symbol) :
     Option (Turing.BiTape Symbol) :=
-  match μ with
-  | read x => if x = tape.head then some tape else none
-  | write x => some (tape.write x)
-  | move d => some (tape.move d)
-  | skip => some tape
+  match μ, otape with
+  | read x, some tape => if x = tape.head then some tape else none
+  | write x, some tape => some (tape.write x)
+  | move d, some tape => some (tape.move d)
+  | skip, some tape => some tape
+  | _, _ => none
+
+@[scoped grind →]
+theorem TrLabel.applyToTape_isSome [DecidableEq Symbol] {μ : TrLabel Symbol}
+    {ot : Option (Turing.BiTape Symbol)} (h : (μ.applyToTape ot).isSome) : ot.isSome := by
+  have ⟨t', ht'⟩ := Option.isSome_iff_exists.mp h
+  simp only [applyToTape] at ht'
+  grind [applyToTape]
+
+@[scoped grind →]
+theorem TrLabel.applyToTape_foldl_isSome [DecidableEq Symbol] {μs : List (TrLabel Symbol)}
+    {ot : Option (Turing.BiTape Symbol)} (h : (μs.foldl applyToTape ot).isSome) : ot.isSome := by
+  induction μs generalizing ot <;> grind
 
 /-- Configuration of a single-tape Turing machine. -/
+@[ext]
 structure Cfg (State Symbol : Type*) where
   /-- The state that the machine is in. -/
   state : State
