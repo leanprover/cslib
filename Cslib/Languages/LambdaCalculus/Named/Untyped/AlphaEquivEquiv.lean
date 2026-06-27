@@ -6,17 +6,40 @@ Authors: Chris Anto Fröschl
 
 module
 
-import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
-import Cslib.Languages.LambdaCalculus.Named.Untyped.SwapProperties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.SwapProperties
 
 /-! # Equivalence of α-equivalence definitions
 
-Theorems showing equivalence of multiple α-equivalence.
+Theorems showing equivalence of the five definitions of α-equivalence from [Crole2012]:
+
+* `∼p`  (Definition 3.1): permutation with non-occurrence side condition (`AlphaEquiv`)
+* `∼p#` (Definition 3.2): permutation with freshness side condition (`AlphaEquivPFresh`)
+* `∼¹p` (Definition 3.3): permutation with non-occurrence on bodies only (`AlphaEquivP1`)
+* `∼r`  (Definition 3.4): traditional renaming axiom with non-occurrence (`AlphaEquivR`)
+* `∼r#` (Definition 3.5): renaming axiom with freshness (`AlphaEquivRFresh`)
+
+The main results are:
+
+* **Theorem 4.1** [Crole2012]: `∼p = ∼p#` (`alphaEquiv_iff_alphaEquivPFresh`)
+* **Theorem 4.2** [Crole2012]: `∼p = ∼¹p` (`alphaEquiv_iff_alphaEquivP1`)
+* **Theorem 4.4** [Crole2012]: `∼p = ∼r`  (`alphaEquiv_iff_alphaEquivR`)
+* **Theorem 4.5** [Crole2012]: `∼p = ∼r#` (`alphaEquiv_iff_alphaEquivRFresh`)
+* **Theorem 4.6** [Crole2012]: `∼r = ∼r#` (`alphaEquivR_iff_alphaEquivRFresh`)
+
+The proofs make essential use of:
+
+* **Lemma 6.1** [Crole2012]: Swap preserves α-equivalence (`AlphaEquiv.swap_preserve`)
+* **Lemma 6.2** [Crole2012]: Agreement on free variables implies α-equivalence
+  (`swap_comp_alphaEquiv_of_not_mem_fv`)
+* **Agreement sets** (`agreementSet`): used in the Lemma 6.2 arguments
 
 ## References
 
 * [Roy L. Crole, *Alpha equivalence equalities*][Crole2012]
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -26,11 +49,16 @@ variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
-/-
-  Non-occurrence implies freshness.
+/-! ## Direction ∼p → ∼p#
+
+Non-occurrence (`y ∉ vars(m)`) obviously implies freshness (`y ∉ fv(m)`), and the `swap`
+operation coincides with `rename` when the target variable does not occur in the term.
+
+See [Crole2012] proof of Theorem 4.1, first sentence: "It is trivial that ∼p is contained in ∼p#."
 -/
 omit [HasFresh Var] in
-lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} : AlphaEquiv m n → AlphaEquivPFresh m n := by
+lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} :
+    AlphaEquiv m n → AlphaEquivPFresh m n := by
   intro h
   induction h with
   | var => constructor
@@ -45,62 +73,75 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} : AlphaEquiv m n → Alpha
     apply AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
-lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} : AlphaEquivPFresh m n → AlphaEquiv m n := by
+/-! ## Direction ∼p# → ∼p (the interesting direction of Theorem 4.1) -/
+lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} :
+    AlphaEquivPFresh m n → AlphaEquiv m n := by
   intro h
   induction h with
   | var => constructor
-  | abs hy h ih =>
+  | abs hy _h ih =>
     rename_i u a b E E'
-    have h1 : u ∉ E.fv := by aesop
-    have h2 : u ∉ E'.fv := by aesop
-    -- TODO do this whole proof via Lemma 6.2 using the agreement set (AS) argumentation
-
-    -- TODO how to formalize the "pick any z ≠ u"
-
-    obtain ⟨m1', hm1', hm1''⟩ := exists_alphaEquiv_not_mem_vars h1
-    obtain ⟨m2', hm2', hm2''⟩ := exists_alphaEquiv_not_mem_vars h2
-
-    have h_swap_preserve :
-      (E.swap a u).AlphaEquiv (m1'.swap a u) ∧ (E'.swap b u).AlphaEquiv (m2'.swap b u) := by
-      exact ⟨AlphaEquiv.swap_preserve hm1', AlphaEquiv.swap_preserve hm2'⟩;
-
-    have h_trans : (m1'.rename a u).AlphaEquiv (m2'.rename b u) := by
-      rw [← swap_eq_rename_of_not_mem_vars hm1'']
-      rw [← swap_eq_rename_of_not_mem_vars hm2'']
-      exact AlphaEquiv.trans
-        ( AlphaEquiv.symm h_swap_preserve.1 ) ( AlphaEquiv.trans ih h_swap_preserve.2 );
-
-    have h_abs1 : (abs a m1').AlphaEquiv (abs b m2') := by
-      apply_rules [ AlphaEquiv.abs ];
-      grind [AlphaEquiv.trans];
-    have h_abs2 : (abs a E).AlphaEquiv (abs a m1') ∧ (abs b m2').AlphaEquiv (abs b E') := by
-      exact ⟨
-        AlphaEquiv.context ( c := Context.abs a Context.hole ) hm1',
-        AlphaEquiv.context ( c := Context.abs b Context.hole ) hm2'.symm
-      ⟩;
-    exact AlphaEquiv.trans h_abs2.1 ( AlphaEquiv.trans h_abs1 h_abs2.2 );
+    -- We have: (u a) · E ∼p (u b) · E' (by induction: ih) and u # a, b, E, E' (by hy).
+    -- Extract freshness conditions from hy.
+    have hu_a : u ≠ a := by aesop
+    have hu_b : u ≠ b := by aesop
+    have hu_E : u ∉ E.fv := by aesop
+    have hu_E' : u ∉ E'.fv := by aesop
+    -- Pick z ≠ u with z ∉ vars(E) ∪ vars(E') ∪ {a, b} (stronger than freshness).
+    obtain ⟨z, hz⟩ : ∃ z : Var, z ∉ E.vars ∪ E'.vars ∪ {a, b, u} := by
+      exact Infinite.exists_notMem_finset (E.vars ∪ E'.vars ∪ {a, b, u})
+    have hz_a : z ≠ a := by aesop
+    have hz_b : z ≠ b := by aesop
+    have hz_u : z ≠ u := by aesop
+    have hz_E : z ∉ E.vars := by aesop
+    have hz_E' : z ∉ E'.vars := by aesop
+    have hz_fv_E : z ∉ E.fv := by
+      have : E.vars = E.fv ∪ E.bv := vars_either_fv_or_bv
+      aesop
+    have hz_fv_E' : z ∉ E'.fv := by
+      have : E'.vars = E'.fv ∪ E'.bv := vars_either_fv_or_bv
+      aesop
+    -- Using Lemma 6.1 we get
+    have h_swap : ((E.swap u a).swap z u) =α ((E'.swap u b).swap z u) := by
+      rw [@swap_comm (x := u) (y := a), swap_comm (x := u) (y := b)]
+      exact AlphaEquiv.swap_preserve ih
+    -- From Lemma 6.2 part 2 via agreement sets
+    have h_agree_E : ((E.swap u a).swap z u) =α (E.swap z a) :=
+      swap_comp_alphaEquiv_of_not_mem_fv hu_E hz_fv_E
+    have h_agree_E' : ((E'.swap u b).swap z u) =α (E'.swap z b) :=
+      swap_comp_alphaEquiv_of_not_mem_fv hu_E' hz_fv_E'
+    -- Chain by symmetry and transitivity of ∼p
+    -- (z a) · E ∼p (z u)·(u a)·E ∼p (z u)·(u b)·E' ∼p (z b) · E'
+    have h_chain : (E.swap z a) =α (E'.swap z b) :=
+      AlphaEquiv.trans (AlphaEquiv.symm h_agree_E) (AlphaEquiv.trans h_swap h_agree_E')
+    -- Convert swap to rename (since z ∉ vars) and apply the pi rule.
+    -- Since z ∉ vars(E), swap z a = rename a z (by swap_comm + swap_eq_rename).
+    rw [swap_comm, swap_eq_rename_of_not_mem_vars hz_E] at h_chain
+    rw [swap_comm, swap_eq_rename_of_not_mem_vars hz_E'] at h_chain
+    exact AlphaEquiv.abs (by aesop) h_chain
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
-/-! See [Crole2012] Theorem 4.1 -/
-theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : AlphaEquiv m n ↔ AlphaEquivPFresh m n :=
+/-! ## Theorem 4.1 [Crole2012] -/
+theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) :
+    AlphaEquiv m n ↔ AlphaEquivPFresh m n :=
   ⟨alphaEquiv_of_alphaEquivPFresh, alphaEquivPFresh_of_alphaEquiv⟩
 
-/-! See [Crole2012] Theorem 4.2 -/
+/-! ## Theorem 4.2 [Crole2012] -/
 theorem alphaEquiv_iff_alphaEquivP1 (m n : Term Var) :
     AlphaEquiv m n ↔ AlphaEquivP1 m n := by
   sorry
 
-/-! See [Crole2012] Theorem 4.4 -/
+/-! ## Theorem 4.4 [Crole2012] -/
 theorem alphaEquiv_iff_alphaEquivR (m n : Term Var) :
     AlphaEquiv m n ↔ AlphaEquivR m n := by
   sorry
 
-/-! See [Crole2012] Theorem 4.5 -/
+/-! ## Theorem 4.5 [Crole2012] -/
 theorem alphaEquiv_iff_alphaEquivRFresh (m n : Term Var) :
     AlphaEquiv m n ↔ AlphaEquivRFresh m n := by
   sorry
 
-/-! See [Crole2012] Theorem 4.6 -/
+/-! ## Theorem 4.6 [Crole2012] -/
 theorem alphaEquivR_iff_alphaEquivRFresh (m n : Term Var) :
     AlphaEquivR m n ↔ AlphaEquivRFresh m n := by
   sorry

@@ -8,6 +8,20 @@ module
 
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 
+/-! # Properties of λ-calculus terms and α-equivalence
+
+Basic properties of renaming, variable sets, and α-equivalence.
+
+The reflexivity, symmetry, and transitivity of `AlphaEquiv` (`∼p`, Definition 3.1)
+follow from Theorem 4.4 in [Crole2012], which establishes that `∼p` coincides with
+`∼r` (Definition 3.4), the latter being defined as an equivalence relation.
+Here they are proved directly for `∼p` by structural/well-founded induction.
+
+## References
+
+* [Roy L. Crole, *Alpha equivalence equalities*][Crole2012]
+-/
+
 public section
 
 namespace Cslib
@@ -103,7 +117,10 @@ theorem AlphaEquiv.eq_sizeOf {m n : Term Var} : m =α n → sizeOf m = sizeOf n 
   | @app m1 n1 m2 n2 _ hm hn =>
     grind
 
-/-- α-equivalent terms have the same free variables. -/
+/-- α-equivalent terms have the same free variables.
+
+Related to [Crole2012], Proposition 2.1 part 2, which shows that `free(E)` is the
+support of `[E]α`. -/
 theorem AlphaEquiv.same_fv {m n : Term Var} : m =α n → m.fv = n.fv := by
   intro h
   induction h with
@@ -119,7 +136,10 @@ theorem AlphaEquiv.same_fv {m n : Term Var} : m =α n → m.fv = n.fv := by
 
 variable [HasFresh Var]
 
-/-- Reflexivity of α-equivalence. -/
+/-- Reflexivity of α-equivalence.
+
+This follows from Theorem 4.4 [Crole2012] (which shows `∼p = ∼r`, and `∼r` is
+reflexive by definition), but is proved here directly by well-founded induction. -/
 theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
   refine WellFounded.induction (C := fun m => m =α m) sizeOfWFRel.wf m ?_
   simp only; intro m ih
@@ -135,7 +155,10 @@ theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
     apply AlphaEquiv.app <;> apply ih <;> grind
 
 omit [HasFresh Var] in
-/-- Symmetry of α-equivalence. -/
+/-- Symmetry of α-equivalence.
+
+This follows from Theorem 4.4 [Crole2012] (which shows `∼p = ∼r`, and `∼r`
+includes an explicit symmetry rule), but is proved here directly. -/
 theorem AlphaEquiv.symm {m n : Term Var} : m =α n → n =α m := by
   intro h
   induction h with
@@ -189,7 +212,11 @@ theorem AlphaEquiv.abs_elim {m1 m2 : Term Var} {x1 x2 y : Var} :
         apply AlphaEquiv.rename_preserve <;> grind [AlphaEquiv.rename_preserve, rename_vars]
       grind [rename_concat, rename_vars]
 
-/-- Transitivity of α-equivalence. -/
+/-- Transitivity of α-equivalence.
+
+This follows from Theorem 4.4 [Crole2012] (which shows `∼p = ∼r`, and `∼r`
+includes an explicit transitivity rule), but is proved here directly
+by well-founded induction. -/
 theorem AlphaEquiv.trans {m n p : Term Var} :
     m =α n → n =α p → m =α p := by
   refine (WellFounded.induction sizeOfWFRel.wf m
