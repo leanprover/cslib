@@ -39,8 +39,11 @@ universe u
 
 namespace Raw
 
+/-- raw two-list representation: front list (for dequeue) and back list (for enqueue) -/
 structure FunctionalQueue (α : Type u) where
+  /-- list of elements ready to dequeue -/
   front : List α
+  /-- list of recently enqueued elements (stored reversed) -/
   back : List α
 
 /-- Well-formedness: if front is empty, back must be empty too. -/
@@ -157,6 +160,7 @@ end Raw
 
 namespace Complexity
 
+/-- size of the back list, used as credit invariant for amortized analysis -/
 def potential {α : Type u} (q : Raw.FunctionalQueue α) : ℤ :=
   q.back.length
 
@@ -164,10 +168,14 @@ instance functionalQueuePotential {α : Type u}
     : Amortized.Potential ℤ (Raw.FunctionalQueue α) :=
   ⟨ potential ⟩
 
+/-- a queue operation: push a value or pop the front -/
 inductive queueOp (α : Type u) where
+  /-- enqueue a value -/
   | push : α → queueOp α
+  /-- dequeue the front (no-op if empty) -/
   | pop
 
+/-- apply a `queueOp` to a raw queue, returning the updated queue -/
 def applyOp {α : Type u} (q : Raw.FunctionalQueue α) (op : queueOp α)
     : TimeM ℕ (Raw.FunctionalQueue α) :=
   match op with
@@ -219,16 +227,20 @@ end Complexity
 /-- A functional queue with invariant. -/
 @[ext]
 structure FunctionalQueue (α : Type u) where
+  /-- the underlying raw queue with no invariant guarantee -/
   raw : Raw.FunctionalQueue α
   inv : Raw.Invariant raw
 
+/-- the empty queue -/
 def empty {α : Type u} : FunctionalQueue α := ⟨ @Raw.empty α, Raw.Invariant.empty ⟩
 
+/-- enqueue `x`, amortized O(1) -/
 def push {α : Type u} (x : α) (q : FunctionalQueue α)
     : TimeM ℕ (FunctionalQueue α) :=
   let r := Raw.push x q.raw
   ⟨ ⟨ r.ret, Raw.Invariant.push x q.raw q.inv ⟩, r.time ⟩
 
+/-- dequeue the front element, returning `none` if empty -/
 def pop {α : Type u} (q : FunctionalQueue α)
     : TimeM ℕ (Option (α × FunctionalQueue α)) :=
   let r := Raw.pop q.raw
