@@ -177,38 +177,42 @@ def applyOp {α : Type u} (q : Raw.FunctionalQueue α) (op : queueOp α)
     | none => pure q
     | some (_, q2) => pure q2
 
-instance functionalQueueApplyOp {α : Type u}
-    : Amortized.Op (Raw.FunctionalQueue α) (queueOp α) :=
-  ⟨ applyOp ⟩
-
 theorem potentialEmptyIsZero {α : Type u}
     : potential (@Raw.empty α) = 0 := by
   simp [potential, Raw.empty]
 
 theorem amortizedCostQueueOp {α : Type u} (q : Raw.FunctionalQueue α) (op : queueOp α)
-    : Amortized.amortizedCost q op ≤ (2 : ℤ) := by
+    : Amortized.amortizedCost q (fun q => applyOp q op) ≤ (2 : ℤ) := by
   simp only [Amortized.amortizedCost, Amortized.Potential.potential, tsub_le_iff_right]
   cases op with
   | push x =>
-    simp only [Amortized.Op.applyOp, applyOp, potential]
+    simp only [applyOp, potential]
     cases h_front : q.front <;> (rw [Raw.push, Raw.rebalance, h_front] at ⊢; grind)
   | pop =>
-    simp only [Amortized.Op.applyOp, applyOp, potential]
+    simp only [applyOp, potential]
     cases h_front : q.front <;> (rw [Raw.pop, h_front] at ⊢; grind [Raw.rebalance])
 
 /-- cost of applying operations to a queue -/
 theorem costQueueOps {α : Type u}
     (q : Raw.FunctionalQueue α) (ops : List (queueOp α))
-    : (Amortized.applyOps q ops).time
-        + potential (Amortized.applyOps q ops).ret
+    : (List.foldlM (fun q op => applyOp q op) q ops).time
+        + potential (List.foldlM (fun q op => applyOp q op) q ops).ret
         - potential q
       ≤ (2 : ℤ) * ops.length
     := by
-  have useful
-    := Amortized.constantAmortizedCostL 2 amortizedCostQueueOp q ops
-  simp only [Amortized.Potential.potential]
-    at useful
-  grind only
+  have h_bound (x : Raw.FunctionalQueue α) (op : queueOp α)
+      : (applyOp x op).time + potential (applyOp x op).ret - potential x ≤ (2 : ℤ) :=
+    amortizedCostQueueOp x op
+  revert q
+  induction ops with
+  | nil => intro q; simp
+  | cons op ops2 ih =>
+    intro q
+    simp only [List.foldlM, TimeM.time_bind, Nat.cast_add, TimeM.ret_bind,
+      List.length_cons, Nat.cast_one]
+    have step := h_bound q op
+    have rest := ih (applyOp q op).ret
+    linarith
 
 end Complexity
 
