@@ -8,8 +8,6 @@ module
 
 public import Cslib.Init
 
-@[expose] public section
-
 /-! # Functional Labelled Transition System (FLTS)
 
 A Functional Labelled Transition System is a special case of an `LTS` where transitions are
@@ -22,6 +20,8 @@ This is a generalisation of deterministic finite-state machines.
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman,
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
+
+@[expose] public section
 
 namespace Cslib
 

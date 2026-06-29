@@ -7,10 +7,11 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Basic
-
-@[expose] public section
+public import Cslib.Foundations.Semantics.LTS.HasTau
 
 /-! # Nondeterministic automata with ε-transitions. -/
+
+@[expose] public section
 
 namespace Cslib.Automata
 
@@ -45,9 +46,7 @@ namespace FinAcc
 that trace from the start state. -/
 @[scoped grind =]
 instance : Acceptor (FinAcc State Symbol) Symbol where
-  Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
-    ∃ s ∈ a.εClosure a.start, ∃ s' ∈ a.accept,
-    a.saturate.MTr s (xs.map (some ·)) s'
+  Accepts a xs := ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.SMTr s (xs.map some) s'
 
 end FinAcc
 

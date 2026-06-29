@@ -7,12 +7,13 @@ Authors: Chris Henson
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+public import Cslib.Foundations.Relation.Confluence
+
+/-! # β-confluence for the λ-calculus -/
 
 @[expose] public section
 
 set_option linter.unusedDecidableInType false
-
-/-! # β-confluence for the λ-calculus -/
 
 namespace Cslib
 
@@ -74,10 +75,13 @@ lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
-  induction step
-  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => apply Parallel.beta xs <;> grind
-  case abs xs _ _ => apply Parallel.abs xs; grind
-  all_goals grind
+  induction step with
+  | base h =>
+    cases h with | beta abs_lc _ =>
+    cases abs_lc with | abs xs _ =>
+    apply Parallel.beta xs <;> grind
+  | abs xs _ _ => apply Parallel.abs xs; grind
+  | _ => grind
 
 open FullBeta in
 /-- A single parallel reduction implies a multiple β-reduction. -/
@@ -99,7 +103,7 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
       m'.abs.app n :=
         redex_app_l_cong (redex_abs_cong xs (fun _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
       _           ↠βᶠ m'.abs.app n' := by grind
-      _           ⭢βᶠ m' ^ n'       := beta m'_abs_lc (by grind)
+      _           ⭢βᶠ m' ^ n'       := by grind
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
@@ -199,6 +203,7 @@ theorem para_confluence : Confluent (@Parallel Var) :=
   para_diamond.toConfluent
 
 /-- β-reduction is confluent. -/
+@[wikidata Q1308502]
 theorem confluence_beta : Confluent (@FullBeta Var) := by
   have eq : ReflTransGen (@Parallel Var) = ReflTransGen (@FullBeta Var) := by
     ext

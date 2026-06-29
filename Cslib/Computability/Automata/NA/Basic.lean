@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Ching-Tsun Chou, Chris Henson.
+Authors: Fabrizio Montesi, Ching-Tsun Chou, Chris Henson
 -/
 
 module
@@ -9,9 +9,7 @@ module
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
-public import Cslib.Foundations.Semantics.LTS.Basic
-
-@[expose] public section
+public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
 /-! # Nondeterministic Automaton
 
@@ -31,6 +29,8 @@ type `State → Symbol → Set State`; it gets automatically expanded to the for
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
+@[expose] public section
+
 open Filter
 
 namespace Cslib.Automata
@@ -47,7 +47,7 @@ variable {State Symbol : Type*}
 /-- Infinite run. -/
 structure Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) where
   start : ss 0 ∈ na.start
-  trans : na.ωTr ss xs
+  trans : na.OmegaExecution ss xs
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where

@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasSubstitution
 
-@[expose] public section
-
 /-! # λ-calculus
 
 The untyped λ-calculus, with a locally nameless representation of syntax.
@@ -22,6 +20,8 @@ The untyped λ-calculus, with a locally nameless representation of syntax.
   this is partially adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -110,18 +110,6 @@ def fv : Term Var → Finset Var
 | fvar x => {x}
 | abs e1 => e1.fv
 | app l r => l.fv ∪ r.fv
-
-/-- Locally closed terms. -/
-inductive LC : Term Var → Prop
-| fvar (x)  : LC (fvar x)
-| abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
-| app {l r} : l.LC → r.LC → LC (app l r)
-
-attribute [scoped grind .] LC.fvar LC.app
-
-/-- Values are irreducible terms. -/
-inductive Value : Term Var → Prop
-| abs (e : Term Var) : e.abs.LC → e.abs.Value
 
 section
 

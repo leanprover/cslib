@@ -10,20 +10,20 @@ public import Cslib.Init
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Logic.Function.Iterate
 
-@[expose] public section
-
 /-!
 # Definition of `ωSequence` and functions on infinite sequences
 
 An `ωSequence α` is an infinite sequence of elements of `α`.  It is basically
 a wrapper around the type `ℕ → α` which supports the dot-notation and
 the analogues of many familiar API functions of `List α`.  In particular,
-the element at postion `n : ℕ` of `s : ωSequence α` is obtained using the
+the element at position `n : ℕ` of `s : ωSequence α` is obtained using the
 function application notation `s n`.
 
 In this file we define `ωSequence` and its API functions.
 Most code below is adapted from Mathlib.Data.Stream.Defs.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -35,9 +35,10 @@ structure ωSequence (α : Type u) where
   /-- The function that defines this infinite sequence. -/
   get : ℕ → α
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : FunLike (ωSequence α) ℕ α where
   coe := ωSequence.get
-  coe_injective' := by grind [ωSequence, Function.Injective]
+  coe_injective := by grind only [ωSequence, Function.Injective]
 
 instance : Coe (ℕ → α) (ωSequence α) where
   coe f := ⟨f⟩

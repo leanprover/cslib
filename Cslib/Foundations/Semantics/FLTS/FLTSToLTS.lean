@@ -6,7 +6,10 @@ Authors: Fabrizio Montesi
 
 module
 
+public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
+
+/-! Converting from `FLTS` to `LTS` -/
 
 @[expose] public section
 

@@ -10,10 +10,10 @@ import Cslib.Languages.CCS.Semantics
 namespace CslibTests
 
 open Cslib
-open CCS Logic.HML
+open CCS Logic.HML LTS
 
 example [∀ p μ, Finite ((CCS.lts (defs := defs)).image p μ)] :
-    TheoryEq (CCS.lts (defs := defs)) = Bisimilarity (CCS.lts (defs := defs)) :=
+    TheoryEq (CCS.lts (defs := defs)) = HomBisimilarity (CCS.lts (defs := defs)) :=
   theoryEq_eq_bisimilarity ..
 
 end CslibTests

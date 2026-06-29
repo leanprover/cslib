@@ -12,8 +12,6 @@ public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Mathlib.Data.Multiset.Fold
 
-@[expose] public section
-
 /-! # Classical Linear Logic
 
 ## TODO
@@ -26,13 +24,9 @@ public import Mathlib.Data.Multiset.Fold
 
 -/
 
-namespace Cslib
+@[expose] public section
 
-universe u
-
-variable {Atom : Type u}
-
-namespace CLL
+namespace Cslib.Logic.CLL
 
 /-- Propositions. -/
 inductive Proposition (Atom : Type u) : Type u where
@@ -87,7 +81,7 @@ inductive Proposition.Context (Atom : Type u) : Type u where
 deriving DecidableEq, BEq
 
 /-- Replaces the hole in a propositional context with a propositions. -/
-@[scoped grind =]
+@[simp]
 def Proposition.Context.fill (c : Context Atom) (a : Proposition Atom) : Proposition Atom :=
   match c with
   | hole => a
@@ -111,30 +105,20 @@ theorem Proposition.context_fill_def (c : Context Atom) (a : Proposition Atom) :
 
 /-- Positive propositions. -/
 def Proposition.positive : Proposition Atom → Bool
-  | atom _ => true
-  | one => true
-  | zero => true
-  | tensor _ _ => true
-  | oplus _ _ => true
-  | bang _ => true
+  | atom _ | one | zero | tensor _ _ | oplus _ _ | bang _ => true
   | _ => false
 
 /-- Negative propositions. -/
 def Proposition.negative : Proposition Atom → Bool
-  | atomDual _ => true
-  | bot => true
-  | top => true
-  | parr _ _ => true
-  | .with _ _ => true
-  | quest _ => true
+  | atomDual _ | bot | top | parr _ _ | .with _ _ | quest _ => true
   | _ => false
 
 /-- Whether a `Proposition` is positive is decidable. -/
-instance Proposition.positive_decidable (a : Proposition Atom) : Decidable a.positive :=
+instance Proposition.positiveDecidable (a : Proposition Atom) : Decidable a.positive :=
   a.positive.decEq true
 
 /-- Whether a `Proposition` is negative is decidable. -/
-instance Proposition.negative_decidable (a : Proposition Atom) : Decidable a.negative :=
+instance Proposition.negativeDecidable (a : Proposition Atom) : Decidable a.negative :=
   a.negative.decEq true
 
 /-- Propositional duality. -/
@@ -159,8 +143,8 @@ def Proposition.dual : Proposition Atom → Proposition Atom
 theorem Proposition.top_eq_zero_dual : ⊤ = (0⫠ : Proposition Atom) := rfl
 
 /-- Duality preserves size. -/
-@[scoped grind _=_]
-theorem Proposition.dual_sizeOf (a : Proposition Atom) : sizeOf a = sizeOf a⫠ := by
+@[scoped grind =, simp]
+theorem Proposition.dual_sizeOf (a : Proposition Atom) : sizeOf a⫠ = sizeOf a := by
   induction a <;> simp [dual] <;> grind
 
 /-- No proposition is equal to its dual. -/
@@ -169,7 +153,7 @@ theorem Proposition.dual_neq (a : Proposition Atom) : a ≠ a⫠ := by
   cases a <;> simp [Proposition.dual]
 
 /-- Two propositions are equal iff their respective duals are equal. -/
-@[scoped grind =, simp]
+@[simp]
 theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b := by
   refine ⟨fun h ↦ ?_, congrArg dual⟩
   induction a generalizing b <;> cases b <;> grind
@@ -221,11 +205,9 @@ inductive Proof : Sequent Atom → Type u where
   | bang {Γ : Sequent Atom} {a} : Γ.allQuest → Proof (a ::ₘ Γ) → Proof ((!a) ::ₘ Γ)
   -- No rule for zero.
 
-open Logic
+open Logic InferenceSystem
 
-instance : InferenceSystem (Sequent Atom) := ⟨Proof⟩
-
-open InferenceSystem
+instance : HasInferenceSystem (Sequent Atom) := ⟨Proof⟩
 
 /-- Convenience definition for rewriting conclusions in proofs. -/
 @[scoped grind =]
@@ -243,25 +225,21 @@ def Proof.cut' (p : ⇓(a⫠ ::ₘ Γ)) (q : ⇓(a ::ₘ Δ)) : ⇓(Γ + Δ) :=
   p.cut r
 
 /-- Inversion of the ⅋ rule. -/
-@[scoped grind =]
-def Proof.parr_inversion {Γ : Sequent Atom} (h : ⇓((a ⅋ b) ::ₘ Γ)) : ⇓(a ::ₘ b ::ₘ Γ) :=
+def Proof.parrInversion {Γ : Sequent Atom} (h : ⇓((a ⅋ b) ::ₘ Γ)) : ⇓(a ::ₘ b ::ₘ Γ) :=
   show a ::ₘ b ::ₘ Γ = {a, b} + Γ by simp ▸
     cut' (show ({a, b} : Sequent Atom) = {a} + {b} by simp ▸ tensor ax' ax') h
 
 /-- Inversion of the ⊥ rule. -/
-@[scoped grind =]
-def Proof.bot_inversion {Γ : Sequent Atom} (h : ⇓(⊥ ::ₘ Γ)) : ⇓Γ := by
+def Proof.botInversion {Γ : Sequent Atom} (h : ⇓(⊥ ::ₘ Γ)) : ⇓Γ := by
   convert Proof.cut' (a := ⊥) (Γ := {}) (Δ := Γ) Proof.one h
   simp
 
 /-- Inversion of the & rule, first component. -/
-@[scoped grind =]
-def Proof.with_inversion₁ {Γ : Sequent Atom} (h : ⇓((a & b) ::ₘ Γ)) : ⇓(a ::ₘ Γ) :=
+def Proof.withInversion₁ {Γ : Sequent Atom} (h : ⇓((a & b) ::ₘ Γ)) : ⇓(a ::ₘ Γ) :=
   cut' (a := a & b) (oplus₁ ax') h
 
 /-- Inversion of the & rule, second component. -/
-@[scoped grind =]
-def Proof.with_inversion₂ {Γ : Sequent Atom} (h : ⇓((a & b) ::ₘ Γ)) : ⇓(b ::ₘ Γ) :=
+def Proof.withInversion₂ {Γ : Sequent Atom} (h : ⇓((a & b) ::ₘ Γ)) : ⇓(b ::ₘ Γ) :=
   cut' (a := a & b) (oplus₂ ax') h
 
 section LogicalEquiv
@@ -299,31 +277,31 @@ namespace Proposition
 open Sequent
 
 /-- Proof-relevant equivalence is reflexive. -/
-@[scoped grind =]
+@[refl]
 def equiv.refl (a : Proposition Atom) : a ≡⇓ a := ⟨Proof.ax', Proof.ax'⟩
 
 /-- Proof-relevant equivalence is symmetric. -/
-@[scoped grind =]
+@[symm]
 def equiv.symm (a : Proposition Atom) (h : a ≡⇓ b) : b ≡⇓ a := ⟨h.2, h.1⟩
 
 /-- Proof-relevant equivalence is transitive. -/
-@[scoped grind =]
 def equiv.trans {a b c : Proposition Atom} (hab : a ≡⇓ b) (hbc : b ≡⇓ c) : a ≡⇓ c :=
   ⟨(Multiset.pair_comm b (a⫠) ▸ hab.fst).cut hbc.fst,
    (Multiset.pair_comm b (c⫠) ▸ hbc.snd).cut hab.snd⟩
 
 /-- Proof-irrelevant equivalence is reflexive. -/
-@[refl, scoped grind .]
+@[refl]
 theorem Equiv.refl (a : Proposition Atom) : a ≡ a := equiv.refl a
 
 /-- Proof-irrelevant equivalence is symmetric. -/
-@[symm, scoped grind →]
+@[symm]
 theorem Equiv.symm {a b : Proposition Atom} (h : a ≡ b) : b ≡ a := ⟨h.2, h.1⟩
 
 /-- Proof-irrelevant equivalence is transitive. -/
-@[scoped grind →]
 theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) : a ≡ c :=
   equiv.trans (chooseEquiv hab) (chooseEquiv hbc)
+
+scoped grind_pattern Equiv.trans => a ≡ b, b ≡ c
 
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
@@ -336,23 +314,23 @@ instance : IsEquiv (Proposition Atom) Proposition.Equiv where
 
 /-- !⊤ ≡⇓ 1 -/
 @[scoped grind =]
-def bang_top_eqv_one : (!⊤ : Proposition Atom) ≡⇓ 1 :=
+def bangTopEqvOne : (!⊤ : Proposition Atom) ≡⇓ 1 :=
   ⟨.weaken .one, .bot (.bang rfl .top)⟩
 
 /-- ʔ0 ≡⇓ ⊥ -/
 @[scoped grind =]
-def quest_zero_eqv_bot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
+def questZeroEqvBot : (ʔ0 : Proposition Atom) ≡⇓ ⊥ :=
   ⟨rwConclusion (Multiset.pair_comm ..) <| .bot (.bang rfl .top),
    rwConclusion (Multiset.pair_comm ..) <| .weaken .one⟩
 
 /-- a ⊗ 0 ≡⇓ 0 -/
 @[scoped grind =]
-def tensor_zero_eqv_zero (a : Proposition Atom) : a ⊗ 0 ≡⇓ 0 :=
+def tensorZeroEqvZero (a : Proposition Atom) : a ⊗ 0 ≡⇓ 0 :=
   ⟨.parr <| .rwConclusion (Multiset.cons_swap ..) .top, .top⟩
 
 /-- a ⅋ ⊤ ≡⇓ ⊤ -/
 @[scoped grind =]
-def parr_top_eqv_top (a : Proposition Atom) : a ⅋ ⊤ ≡⇓ ⊤ :=
+def parrTopEqvTop (a : Proposition Atom) : a ⅋ ⊤ ≡⇓ ⊤ :=
   ⟨.rwConclusion (Multiset.cons_swap ..) .top,
    .rwConclusion (Multiset.cons_swap ..) <| .parr <| .rwConclusion (Multiset.cons_swap ..) .top⟩
 
@@ -364,9 +342,8 @@ attribute [local grind =] Multiset.add_assoc
 attribute [local grind =] Multiset.insert_eq_cons
 
 open scoped Multiset in
-/-- ⊗ distributed over ⊕. -/
-@[scoped grind =]
-def tensor_distrib_oplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a ⊗ b) ⊕ (a ⊗ c) :=
+/-- ⊗ distributes over ⊕. -/
+def tensorDistribOplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a ⊗ b) ⊕ (a ⊗ c) :=
   ⟨.parr <|
     .rwConclusion (Multiset.cons_swap ..) <|
     .with
@@ -385,7 +362,7 @@ def tensor_distrib_oplus (a b c : Proposition Atom) : a ⊗ (b ⊕ c) ≡⇓ (a 
 /-- The proposition at the head of a proof can be substituted by an equivalent
   proposition. -/
 @[scoped grind =]
-def subst_eqv_head {Γ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(a ::ₘ Γ)) : ⇓(b ::ₘ Γ) :=
+def substEqvHead {Γ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(a ::ₘ Γ)) : ⇓(b ::ₘ Γ) :=
   show b ::ₘ Γ = Γ + {b} by grind ▸ p.cut heqv.1
 
 theorem add_middle_eq_cons {a : Proposition Atom} : Γ + {a} + Δ = a ::ₘ (Γ + Δ) := by
@@ -395,8 +372,8 @@ open scoped Multiset in
 /-- Any proposition in a proof (regardless of its position) can be substituted by
   an equivalent proposition. -/
 @[scoped grind =]
-def subst_eqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
-  add_middle_eq_cons ▸ subst_eqv_head heqv (add_middle_eq_cons ▸ p)
+def substEqv {Γ Δ : Sequent Atom} (heqv : a ≡⇓ b) (p : ⇓(Γ + {a} + Δ)) : ⇓(Γ + {b} + Δ) :=
+  add_middle_eq_cons ▸ substEqvHead heqv (add_middle_eq_cons ▸ p)
 
 open scoped Context
 
@@ -671,26 +648,26 @@ instance : Congruence (Proposition Atom) Proposition.Equiv where
       Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
       Proposition.Equiv := by
     intro ctx a b hab
-    induction ctx <;> grind
+    induction ctx <;> grind [= Context.fill]
 
 noncomputable instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
   eqv := Proposition.Equiv
-  eqv_fill_valid {a b : Proposition Atom} (heqv : a.Equiv b)
+  eqvFillValid {a b : Proposition Atom} (heqv : a.Equiv b)
       (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
       (h : ⇓c<[a]) : ⇓c<[b] := by
-    apply subst_eqv_head (chooseEquiv heqv) h
+    apply substEqvHead (chooseEquiv heqv) h
 
 /-- Tensor is commutative. -/
-@[scoped grind =]
-def tensor_symm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
+@[scoped grind ←]
+def tensorSymm {a b : Proposition Atom} : a ⊗ b ≡⇓ b ⊗ a :=
   ⟨.parr <| show a⫠ ::ₘ b⫠ ::ₘ {b ⊗ a} = (b ⊗ a) ::ₘ {b⫠} + {a⫠} by grind ▸ .tensor .ax .ax,
    .parr <| show b⫠ ::ₘ a⫠ ::ₘ {a ⊗ b} = (a ⊗ b) ::ₘ {a⫠} + {b⫠} by grind ▸ .tensor .ax .ax⟩
 
 -- TODO: the precedence on ⊗ notation is wrong
 open scoped Multiset in
 /-- ⊗ is associative. -/
-@[scoped grind =]
-def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) ⊗ c :=
+@[scoped grind ←]
+def tensorAssoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) ⊗ c :=
   ⟨.parr <|
      Multiset.cons_swap .. ▸
      (.parr <|
@@ -702,17 +679,17 @@ def tensor_assoc {a b c : Proposition Atom} : a ⊗ (b ⊗ c) ≡⇓ (a ⊗ b) �
      (.tensor .ax <| .tensor .ax .ax)⟩
 
 instance {Γ : Sequent Atom} : Std.Symm (fun a b => Derivable ((a ⊗ b) ::ₘ Γ)) where
-  symm _ _ h := Derivable.fromDerivation (subst_eqv_head tensor_symm (Derivable.toDerivation h))
+  symm _ _ h := DerivableIn.fromDerivation (substEqvHead tensorSymm (DerivableIn.toDerivation h))
 
 /-- ⊕ is idempotent. -/
-@[scoped grind =]
-def oplus_idem {a : Proposition Atom} : a ⊕ a ≡⇓ a :=
+@[scoped grind ←]
+def oplusIdem {a : Proposition Atom} : a ⊕ a ≡⇓ a :=
   ⟨.with .ax' .ax',
    show ({a⫠, a ⊕ a} : Sequent Atom) = {a ⊕ a, a⫠} by grind ▸ .oplus₁ .ax⟩
 
 /-- & is idempotent. -/
-@[scoped grind =]
-def with_idem {a : Proposition Atom} : a & a ≡⇓ a :=
+@[scoped grind ←]
+def withIdem {a : Proposition Atom} : a & a ≡⇓ a :=
   ⟨.oplus₁ .ax',
    show ({a⫠, a & a} : Sequent Atom) = {a & a, a⫠} by grind ▸ .with .ax .ax⟩
 
@@ -720,6 +697,12 @@ end Proposition
 
 end LogicalEquiv
 
-end CLL
+/-- A proof is cut-free if it does not contain any applications of rule cut. -/
+def Proof.cutFree {Γ : Sequent Atom} : ⇓Γ → Bool
+  | ax | one | top => true
+  | bot p | parr p | oplus₁ p | oplus₂ p
+    | quest p | weaken p | contract p | bang _ p => p.cutFree
+  | tensor p q | .with p q => p.cutFree && q.cutFree
+  | cut _ _ => false
 
-end Cslib
+end Cslib.Logic.CLL

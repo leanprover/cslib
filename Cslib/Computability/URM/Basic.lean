@@ -7,6 +7,7 @@ module
 
 public import Cslib.Computability.URM.Defs
 public import Mathlib.Data.List.MinMax
+--public import Mathlib.Data.List.Fold
 
 /-! # URM Basic Lemmas
 
@@ -175,7 +176,7 @@ namespace Program
 theorem mem_maxRegister {p : Program} {instr : Instr} (h : instr ∈ p) :
     instr.maxRegister ≤ p.maxRegister := by
   unfold maxRegister
-  rw [List.foldl_map.symm, List.foldl_eq_foldr]
+  rw [List.foldl_map.symm, ←List.foldr_eq_foldl]
   exact List.le_max_of_le' 0 (List.mem_map.mpr ⟨instr, h, rfl⟩) (le_refl _)
 
 end Program

@@ -7,32 +7,13 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
-
-@[expose] public section
+public import Cslib.Foundations.Semantics.LTS.MapLabel
 
 /-! # Translation of εNA into NA -/
 
-namespace Cslib
+@[expose] public section
 
-/-- Converts an `LTS` with Option labels into an `LTS` on the carried label type, by removing all
-ε-transitions. -/
-@[local grind =]
-def LTS.noε (lts : LTS State (Option Label)) : LTS State Label where
-  Tr s μ s' := lts.Tr s (some μ) s'
-
-@[local grind .]
-private lemma LTS.noε_saturate_tr
-  {lts : LTS State (Option Label)} {h : μ = some μ'} :
-  lts.saturate.Tr s μ s' ↔ lts.saturate.noε.Tr s μ' s' := by
-  grind
-
-@[scoped grind =]
-lemma LTS.noε_saturate_mTr {lts : LTS State (Option Label)} :
-  lts.saturate.MTr s (μs.map some) = lts.saturate.noε.MTr s μs := by
-  ext s'
-  induction μs generalizing s <;> grind [<= LTS.MTr.stepL]
-
-namespace Automata.εNA.FinAcc
+namespace Cslib.Automata.εNA.FinAcc
 
 variable {State Symbol : Type*}
 
@@ -41,19 +22,23 @@ variable {State Symbol : Type*}
 def toNAFinAcc (a : εNA.FinAcc State Symbol) : NA.FinAcc State Symbol where
   start := a.εClosure a.start
   accept := a.accept
-  Tr := a.saturate.noε.Tr
+  toLTS := a.saturate.mapLabel Option.some
 
 open Acceptor in
-open scoped NA.FinAcc in
+open scoped NA.FinAcc LTS LTS.MTr LTS.STr LTS.SMTr in
 /-- Correctness of `toNAFinAcc`. -/
-@[scoped grind _=_]
-theorem toNAFinAcc_language_eq {ena : εNA.FinAcc State Symbol} :
-    language ena.toNAFinAcc = language ena := by
+@[scoped grind =]
+theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol} :
+    language a.toNAFinAcc = language a := by
   ext xs
-  have : ∀ s s', ena.saturate.MTr s (xs.map some) s' = ena.saturate.noε.MTr s xs s' := by
-    simp [LTS.noε_saturate_mTr]
-  grind
+  constructor <;> intro ⟨s, hs, s', hs', h⟩
+  · have ⟨sStart, h_sStart, hs⟩ : ∃ i ∈ a.start, s ∈ a.saturate.image i HasTau.τ := by
+      simpa [toNAFinAcc, LTS.τClosure, LTS.setImage] using hs
+    use sStart, h_sStart, s', hs'
+    have h_start := (LTS.sTr_τSTr_iff a.toLTS).mp hs
+    exact LTS.SMTr.comp (LTS.sMTr_τSTr_iff.mp h_start) (by grind)
+  · cases xs with
+    | nil => cases h with | τ tau => exact ⟨s', LTS.tr_setImage hs tau, by grind⟩
+    | cons x xs => exact ⟨s, by grind [Set.mem_of_mem_of_subset]⟩
 
-end Automata.εNA.FinAcc
-
-end Cslib
+end Cslib.Automata.εNA.FinAcc

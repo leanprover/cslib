@@ -9,6 +9,8 @@ module
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.Congruence
 
+/-! Typeclass and notation for logical equivalence. -/
+
 @[expose] public section
 
 namespace Cslib.Logic
@@ -24,7 +26,7 @@ class LogicalEquivalence
   /-- Proof that `eqv` is a congruence. -/
   [congruence : Congruence Proposition eqv]
   /-- Validity is preserved for any judgemental context. -/
-  eqv_fill_valid (heqv : eqv a b) (c : HasHContext.Context Judgement Proposition)
+  eqvFillValid (heqv : eqv a b) (c : HasHContext.Context Judgement Proposition)
     (h : Valid (c<[a])) : Valid (c<[b])
 
 @[inherit_doc]

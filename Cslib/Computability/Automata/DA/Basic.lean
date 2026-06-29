@@ -11,8 +11,6 @@ public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Semantics.FLTS.Basic
 
-@[expose] public section
-
 /-! # Deterministic Automata
 
 A Deterministic Automaton (`DA`) is an automaton defined by a transition function equipped with an
@@ -27,6 +25,8 @@ finiteness assumptions), deterministic Buchi automata, and deterministic Muller 
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman,
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
+
+@[expose] public section
 
 open List Filter Cslib.ωSequence
 open scoped Cslib.FLTS

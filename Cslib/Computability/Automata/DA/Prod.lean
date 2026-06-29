@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ching-Tsun Chou
+Authors: Fabrizio Montesi, Ching-Tsun Chou
 -/
 
 module
@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Foundations.Semantics.FLTS.Prod
 
-@[expose] public section
-
 /-! # Product of deterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata
 
