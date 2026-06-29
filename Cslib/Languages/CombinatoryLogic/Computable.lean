@@ -6,7 +6,6 @@ Authors: Jesse Alama
 
 module
 
-public import Cslib.Foundations.Data.Part
 public import Cslib.Languages.CombinatoryLogic.Recursion
 public import Mathlib.Data.PFun
 
