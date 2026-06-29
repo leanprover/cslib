@@ -13,7 +13,7 @@ public import Mathlib.Data.Finset.Image
 
 /-! # Natural deduction for propositional logic
 
-We define, for minimal logic, deduction trees (a `Type`) and derivability (a `Prop`) relative to a
+We define deduction trees (a `Type`) and derivability (a `Prop`) relative to a
 `Theory` (set of propositions).
 
 ## Main definitions
@@ -44,18 +44,25 @@ abbreviates a derivation of `A` in the empty context: `T⇓(∅ ⊢ A)`.
 
 The primitive inference rules are: axiom (from theory), assumption (from context),
 conjunction introduction and elimination (×2), disjunction introduction (×2) and elimination,
-and implication introduction and elimination — 10 constructors in total. Ex falso quodlibet
-(bottom elimination) is a derived rule requiring `[IsIntuitionistic T]`.
+implication introduction and elimination, and ex falso quodlibet (⊥-elimination) — 11 constructors
+in total. IPL is the base logic; ex falso is primitive so no extra axioms are needed for explosion.
+Taking ex falso quodlibet as a primitive rule gives `⊥` an elimination rule rather than leaving it
+a constructor with no inference behaviour, following the natural-deduction tradition
+[Avigad2022], [TroelstraVanDalen1988], [Prawitz1965], [Gentzen1935].
 
 Logic strength is controlled by the theory parameter:
-- `MPL` (minimal propositional logic, see [Avigad2022] §3): no axioms beyond the
-  10 primitive rules; bottom has no special status.
-- `IPL` (intuitionistic propositional logic): adds the principle of explosion `⊥ → A`.
+- `IPL` (intuitionistic propositional logic): the base theory (empty); ex falso is a primitive rule.
 - `CPL` (classical propositional logic): adds double negation elimination `¬¬A → A`.
+
+The design of this module was discussed on the
+[CSLib Zulip thread on Propositional Logic](https://leanprover.zulipchat.com/#narrow/channel/513188-CSLib/topic/Propositional.20Logic).
 
 ## References
 
 * [J. Avigad, *Mathematical Logic and Computation*][Avigad2022]
+* [A. S. Troelstra, D. van Dalen, *Constructivism in Mathematics*][TroelstraVanDalen1988]
+* [D. Prawitz, *Natural Deduction: A Proof-Theoretical Study*][Prawitz1965]
+* [G. Gentzen, *Investigations into Logical Deduction*][Gentzen1935]
 -/
 
 @[expose] public section
@@ -83,8 +90,7 @@ scoped notation Γ:60 " ⊢ " A => (⟨Γ, A⟩ : Sequent)
 
 /-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
 possibly appealing to axioms from `T`. Primitives: axiom, assumption, conjunction intro/elim,
-disjunction intro/elim, and implication intro/elim.
-Ex falso quodlibet (bottom elimination) is a derived rule requiring `[IsIntuitionistic T]`. -/
+disjunction intro/elim, implication intro/elim, and ex falso quodlibet (⊥-elimination). -/
 inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom → Type u where
   /-- Axiom -/
   | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation Γ A
@@ -115,6 +121,9 @@ inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom �
   /-- Implication elimination (modus ponens) -/
   | impE {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation Γ (A → B) → Derivation Γ A → Derivation Γ B
+  /-- Ex falso quodlibet (⊥-elimination). Makes IPL the base logic: from a derivation of
+  `⊥`, derive any proposition. -/
+  | efq {Γ : Ctx Atom} {A : Proposition Atom} : Derivation Γ ⊥ → Derivation Γ A
 
 /-- Inference system for derivations under the theory `T`. -/
 instance (T : Theory Atom) : InferenceSystem T (Sequent (Atom := Atom)) where
@@ -161,8 +170,8 @@ theorem Theory.equiv_iff {A B : Proposition Atom} :
   · intro ⟨⟨D⟩, ⟨E⟩⟩
     exact ⟨D, E⟩
 
-/-- Minimally equivalent propositions. -/
-abbrev Equiv : Proposition Atom → Proposition Atom → Prop := MPL.Equiv
+/-- Equivalent propositions (over the base theory IPL). -/
+abbrev Equiv : Proposition Atom → Proposition Atom → Prop := IPL.Equiv
 
 @[inherit_doc]
 scoped infix:29 " ≡ " => Equiv
@@ -187,6 +196,7 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
       (DB.weak hTheory (Finset.insert_subset_insert _ hCtx))
   | @impI _ _ _ A B Γ D => impI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
   | impE D D' => impE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
+  | efq D => efq (D.weak hTheory hCtx)
 
 /-- Weakening the theory only. -/
 def Theory.Derivation.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
@@ -271,6 +281,7 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
     rw [show insert A' (Γ \ Γ' ∪ Δ) = (insert A' Γ \ Γ') ∪ insert A' Δ by grind]
     exact E.subs Ds |>.weakCtx (by grind)
   | impE E E' => impE (E.subs Ds) (E'.subs Ds)
+  | efq E => efq (E.subs Ds)
 
 /-- Transport a derivation along a substitution of atoms. -/
 def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
@@ -289,6 +300,7 @@ def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [Decida
       ((Finset.image_insert (· >>= f) _ _) ▸ (DB.substAtom f))
   | impI _ D => impI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
   | impE D E => impE (D.substAtom f) (E.substAtom f)
+  | efq D => efq (D.substAtom f)
 
 theorem DerivableIn.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
     {T : Theory Atom}
