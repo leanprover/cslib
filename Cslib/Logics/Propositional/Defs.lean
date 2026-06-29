@@ -7,7 +7,6 @@ Authors: Thomas Waring, Benjamin Brast-McKie
 module
 
 import Cslib.Init
-public import Cslib.Foundations.Logic.Connectives
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Data.Set.Basic
@@ -23,16 +22,12 @@ public import Mathlib.Order.TypeTags
   follows the natural deduction tradition ([Avigad2022]) in which `neg A` abbreviates `A → ⊥`
   rather than being taken as primitive.
 - `Theory` : set of `Proposition`.
-- `IsIntuitionistic` : an inference system is intuitionistic if it derives the principle of
-  explosion.
 - `IsClassical` : an inference system is classical if it further derives double negation
   elimination.
 - `Proposition.subst` : replace `atom x` in a `A : Proposition Atom` with `f x`, for a function
   `f : Atom → Proposition Atom'`. This induces a monad structure on `Proposition`, with
   `pure := Proposition.atom`. `Theory` is a functor, by mapping each proposition `A ∈ T` to
   `f <$> A`.
-- `Theory.intuitionisticCompletion` : the freely generated intuitionistic theory extending a given
-  theory.
 
 ## Notation
 
@@ -85,19 +80,6 @@ instance : Top (Proposition Atom) := ⟨.top⟩
 @[inherit_doc] scoped infix:20 " ↔ " => Proposition.iff
 @[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
 
-/-- Register `Proposition` as an instance of `PropositionalConnectives`. -/
-instance : PropositionalConnectives (Proposition Atom) where
-  bot := .bot
-  imp := .imp
-
-/-- Register `HasAnd` instance for `Proposition`. -/
-instance : HasAnd (Proposition Atom) where
-  and := .and
-
-/-- Register `HasOr` instance for `Proposition`. -/
-instance : HasOr (Proposition Atom) where
-  or := .or
-
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
 def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
@@ -125,15 +107,9 @@ protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Propos
 instance : Functor Theory where
   map f := Set.image (f <$> ·)
 
-/-- The empty theory corresponds to minimal propositional logic. -/
-abbrev MPL : Theory (Atom) := ∅
-
-/-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
-abbrev IPL : Theory Atom :=
-  Set.range (Proposition.imp ⊥ ·)
-
-omit [DecidableEq Atom] in
-lemma efq_mem_ipl (A : Proposition Atom) : (⊥ → A) ∈ IPL (Atom := Atom) := ⟨A, rfl⟩
+/-- Intuitionistic propositional logic: the base theory. Ex falso quodlibet is a primitive
+inference rule (see `Derivation.efq`), so no explosion axioms are needed. -/
+abbrev IPL : Theory Atom := ∅
 
 /-- Classical logic further adds double negation elimination. -/
 abbrev CPL : Theory Atom :=
@@ -142,23 +118,7 @@ abbrev CPL : Theory Atom :=
 omit [DecidableEq Atom] in
 lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL (Atom := Atom) := ⟨A, rfl⟩
 
-/-- Extend a theory `T` to an intuitionistic theory over a larger atom type by adding the principle
-of explosion. The atom type is extended with `WithBot` to ensure the result is over a strictly
-larger language. -/
-@[reducible]
-def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
-  (WithBot.some <$> T) ∪ IPL
-
 open InferenceSystem
-
-/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
-generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
-implication connective. -/
-@[scoped grind]
-class IsIntuitionistic (Atom : Type u) (S : Type*)
-    [InferenceSystem S (Proposition Atom)] where
-  /-- The principle of explosion (ex falso quodlibet). -/
-  efq (A : Proposition Atom) : S⇓(⊥ → A)
 
 /-- An inference system is classical if it validates double-negation elimination. TODO: this should
 be generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
