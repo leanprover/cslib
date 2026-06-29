@@ -74,6 +74,16 @@ lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
 lemma subst_refl (m : Term Var) (x : Var) : m[x := fvar x] = m := by
   induction m <;> grind
 
+lemma subst_intro_openRec {x} {t e : Term Var} (mem : x ∉ e.fv) {k : ℕ} :
+    e ⟦k ↝ t⟧ = (e ⟦ k ↝ fvar x⟧)[ x := t ] := by
+  induction e generalizing k with grind
+
+/-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
+lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) :
+    e ^ t = (e ^ fvar x) [ x := t ] := subst_intro_openRec mem
+
+scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
+
 variable [HasFresh Var]
 
 omit [DecidableEq Var] in
@@ -115,12 +125,6 @@ theorem subst_lc {x : Var} {e u : Term Var} (e_lc : LC e) (u_lc : LC u) : LC (e 
   case' abs => apply LC.abs (free_union Var)
   all_goals grind
 
-/-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
-lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) (t_lc : LC t) :
-    e ^ t = (e ^ fvar x) [ x := t ] := by grind [subst_fresh]
-
-scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
-
 set_option linter.unusedDecidableInType false in
 /-- Opening of locally closed terms is locally closed. -/
 @[scoped grind ←]
@@ -130,7 +134,7 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) :=
 
 /-- Closing then opening is equivalent to substitution. -/
 @[scoped grind =]
-lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
+lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
     m ⟦k ↜ x⟧⟦k ↝ n⟧ = m [x := n] := by
   induction m_lc generalizing k with
   | abs xs t =>
@@ -141,6 +145,10 @@ lemma close_open_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_
     · grind [subst_preserve_not_fvar]
     · grind [open_preserve_not_fvar]
   | _ => grind
+
+@[scoped grind =]
+lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) (n_lc : LC n) :
+    (m ^* x) ^ n = m [x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
 
 /-- Closing and opening are inverses. -/
 lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by

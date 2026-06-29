@@ -517,7 +517,7 @@ theorem error_map_eq_hypothesisError (P : Measure α) (h c : Set α)
   rw [Measure.map_apply_of_aemeasurable hf.aemeasurable]
   · congr 1; ext x
     simp only [Set.mem_preimage, Set.mem_setOf_eq, symmDiff_def, sup_eq_union,
-      Set.mem_union, Set.mem_diff]
+      Set.mem_union, Set.mem_sdiff]
     by_cases hx : x ∈ h <;> by_cases hcx : x ∈ c <;> simp_all
   · convert (hh.prod (measurableSet_singleton false)).union
       (hh.compl.prod (measurableSet_singleton true)) using 1
