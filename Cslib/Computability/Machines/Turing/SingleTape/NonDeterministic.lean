@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Relation.Defs
+public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Foundations.Data.BiTape
@@ -16,6 +17,10 @@ public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 
 Nondeterministic Turing Machines (NTMs), defined as nondeterministic automata (`NA`) that act on a
 bidirectional tape (`BiTape`).
+
+## References
+
+* [M. Sipser, *Introduction to Theory of Computation*][Sipser2013]
 -/
 
 @[expose] public section
@@ -40,26 +45,26 @@ namespace SingleTapeNTM
 variable [DecidableEq Symbol]
 
 /-- An NTM yields a small-step operational semantics on configurations, which codifies an execution
-step. -/
-def Red (m : SingleTapeNTM State Symbol)
+step. This formalises the 'yields' relation from [Sipser2013]. -/
+def Yields (m : SingleTapeNTM State Symbol)
     (c c' : Cfg State Symbol) : Prop :=
   ∃ μ, m.Tr c.state μ c'.state ∧ μ.applyToTape c.tape = c'.tape
 
 @[scoped grind =]
-theorem red_tr {m : SingleTapeNTM State Symbol} :
-    m.Red c c' ↔ ∃ μ, m.Tr c.state μ c'.state ∧ μ.applyToTape c.tape = c'.tape := by rfl
+theorem yields_tr {m : SingleTapeNTM State Symbol} :
+    m.Yields c c' ↔ ∃ μ, m.Tr c.state μ c'.state ∧ μ.applyToTape c.tape = c'.tape := by rfl
 
 /-- Multistep execution of an NTM, defined as the reflexive and transitive closure of one-step
 execution.
 -/
-def MRed (m : SingleTapeNTM State Symbol) := Relation.ReflTransGen m.Red
+def MYields (m : SingleTapeNTM State Symbol) := Relation.ReflTransGen m.Yields
 
 open scoped LTS LTS.MTr TrLabel
 
 /-- Characterisation of executions in terms of multistep transitions. -/
 @[scoped grind =]
-theorem mRed_mTr {m : SingleTapeNTM State Symbol} :
-    m.MRed c c' ↔ ∃ μs, m.MTr c.state μs c'.state ∧
+theorem mYields_mTr {m : SingleTapeNTM State Symbol} :
+    m.MYields c c' ↔ ∃ μs, m.MTr c.state μs c'.state ∧
     μs.foldl TrLabel.applyToTape (some c.tape) = c'.tape := by
   apply Iff.intro <;> intro h
   case mp =>
@@ -69,7 +74,7 @@ theorem mRed_mTr {m : SingleTapeNTM State Symbol} :
       grind
     case head _ c cb hred hmred ih =>
       rcases ih with ⟨μs, hmtr, ih⟩
-      have ⟨μ, _⟩ := red_tr.mp hred
+      have ⟨μ, _⟩ := yields_tr.mp hred
       exists μ :: μs
       grind
   case mpr =>
@@ -84,22 +89,26 @@ theorem mRed_mTr {m : SingleTapeNTM State Symbol} :
         have hat : ∀ (μ : TrLabel Symbol) t, (μ.applyToTape t).isSome → t.isSome := by grind
         have ⟨tb, htb⟩ : ∃ tb, μ.applyToTape c.tape = some tb := by grind [Option.isSome_iff_exists]
         let cb := {state := sb, tape := tb : Cfg State Symbol}
-        have hmred : m.MRed cb c' := by grind
+        have hmyields : m.MYields cb c' := by grind
         apply Relation.ReflTransGen.head (b := cb) (by grind)
-        simp only [MRed] at hmred
+        simp only [MYields] at hmyields
         grind
 
 /-- An NTM is an acceptor of finite lists of symbols. -/
 instance : Acceptor (SingleTapeNTM State Symbol) Symbol where
     Accepts (m : SingleTapeNTM State Symbol) (xs : List Symbol) :=
-  ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ m.MRed (Cfg.mk₁ s xs) c'
+  ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ m.MYields (Cfg.mk₁ s xs) c'
+
+/-- The NTM `m` accepts `xs` in `n` execution steps. -/
+def AcceptsInSteps (m : SingleTapeNTM State Symbol) (n : ℕ) (xs : List Symbol) : Prop :=
+  ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ Relation.RelatesInSteps m.Yields (Cfg.mk₁ s xs) c' n
 
 /-- An NTM is a transducer of finite lists of symbols. -/
 instance : Transducer (SingleTapeNTM State Symbol) Symbol Symbol where
     Translates (m : SingleTapeNTM State Symbol) (xs ys : List Symbol) :=
   ∃ s ∈ m.start, ∃ c',
     c'.state ∈ m.accept ∧
-    m.MRed (Cfg.mk₁ s xs) c' ∧
+    m.MYields (Cfg.mk₁ s xs) c' ∧
     /- The following condition on output deviates from textbooks, in order to have the same
     criterion as for deterministic TMs. We might want to revisit this in the future.
     -/
