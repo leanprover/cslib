@@ -64,7 +64,7 @@ lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Bool) :
     simp [insertOrd, sortModel]
   | cons head tail ih =>
     by_cases h_head : le x head
-    · simp [h_head]
+    · simp [insertOrd, h_head]
     · simp [insertOrd, h_head, ih]
 
 -- TODO : to upstream

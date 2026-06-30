@@ -176,9 +176,15 @@ theorem mergeSort_complexity (xs : List α) (le : α → α → Bool) :
     (mergeSort xs).time (sortModelNat le) ≤ T (xs.length) := by
   fun_induction mergeSort with
   | case1 => simp [T]
-  | case2 x =>
-  simp only [FreeM.bind_eq_bind, Prog.time_bind]
-  grind [some_algebra (x.length - 2), mergeSort_eval, merge_timeComplexity, mergeSortNaive_length]
+  | case2 x _ _ left right ih2 ih1 =>
+    calc
+      _ ≤ T left.length + T right.length + (left.length + right.length) := by
+        simp only [Prog.time_bind']
+        grw [ih2, ih1, merge_timeComplexity ((mergeSort left).eval (sortModelNat le))
+          ((mergeSort right).eval (sortModelNat le)) le]
+        simp [mergeSort_eval, mergeSortNaive_length, Nat.add_assoc]
+      _ ≤ T x.length := by
+        grind [some_algebra (x.length - 2)]
 
 end TimeComplexity
 

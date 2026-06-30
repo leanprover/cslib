@@ -81,17 +81,36 @@ theorem Prog.eval_pure (a : α) (M : Model Q Cost) :
     Prog.eval (FreeM.pure a) M = a :=
   rfl
 
+@[simp]
+theorem Prog.eval_pure' (a : α) (M : Model Q Cost) :
+    Prog.eval (pure a : Prog Q α) M = a :=
+  rfl
+
 @[simp, grind =]
 theorem Prog.eval_bind
     (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M := by
   simp [Prog.eval]
 
+@[simp]
+theorem Prog.eval_bind' {α β : Type u}
+    (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+    Prog.eval (x >>= f) M = Prog.eval (f (x.eval M)) M := by
+  change Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M
+  exact Prog.eval_bind x f M
+
 @[simp, grind =]
 theorem Prog.eval_liftBind
     (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.liftBind x f) M = Prog.eval (f <| M.evalQuery x) M := by
   simp [Prog.eval]
+
+@[simp]
+theorem Prog.eval_lift
+    (x : Q α) (M : Model Q Cost) :
+    Prog.eval (FreeM.lift x) M = M.evalQuery x := by
+  rw [FreeM.lift, Prog.eval_liftBind]
+  exact Prog.eval_pure (M.evalQuery x) M
 
 /--
 The cost function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`.
@@ -108,11 +127,25 @@ lemma Prog.time_pure [AddZero Cost] (a : α) (M : Model Q Cost) :
     Prog.time (FreeM.pure a) M = 0 := by
   simp [time]
 
+@[simp]
+lemma Prog.time_pure' [AddZero Cost] (a : α) (M : Model Q Cost) :
+    Prog.time (pure a : Prog Q α) M = 0 := by
+  change Prog.time (FreeM.pure a) M = 0
+  exact Prog.time_pure a M
+
 @[simp, grind =]
 theorem Prog.time_liftBind [AddZero Cost]
     (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.time (FreeM.liftBind x f) M = M.cost x + Prog.time (f <| M.evalQuery x) M := by
   simp [Prog.time]
+
+@[simp]
+theorem Prog.time_lift [AddZeroClass Cost]
+    (x : Q α) (M : Model Q Cost) :
+    Prog.time (FreeM.lift x) M = M.cost x := by
+  rw [FreeM.lift, Prog.time_liftBind]
+  change M.cost x + Prog.time (FreeM.pure (M.evalQuery x)) M = M.cost x
+  rw [Prog.time_pure, add_zero]
 
 @[simp, grind =]
 lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
@@ -126,6 +159,37 @@ lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
   | liftBind op cont' ih =>
     specialize ih (M.evalQuery op)
     simp_all [add_assoc]
+
+@[simp]
+lemma Prog.time_bind' {α β : Type u} [AddCommMonoid Cost]
+    (M : Model Q Cost) (op : Prog Q α) (cont : α → Prog Q β) :
+    Prog.time (op >>= cont) M =
+      Prog.time op M + Prog.time (cont (Prog.eval op M)) M := by
+  change Prog.time (FreeM.bind op cont) M =
+    Prog.time op M + Prog.time (cont (Prog.eval op M)) M
+  exact Prog.time_bind M op cont
+
+@[simp]
+theorem Prog.eval_map (f : α → β) (x : Prog Q α) (M : Model Q Cost) :
+    Prog.eval (f <$> x) M = f (Prog.eval x M) := by
+  induction x with
+  | pure a =>
+      rfl
+  | liftBind op cont ih =>
+      change Prog.eval (FreeM.liftBind op (fun z => f <$> cont z)) M =
+        f (Prog.eval (FreeM.liftBind op cont) M)
+      simp only [Prog.eval_liftBind, ih (M.evalQuery op)]
+
+@[simp]
+theorem Prog.time_map [AddZero Cost] (f : α → β) (x : Prog Q α) (M : Model Q Cost) :
+    Prog.time (f <$> x) M = Prog.time x M := by
+  induction x with
+  | pure a =>
+      rfl
+  | liftBind op cont ih =>
+      change Prog.time (FreeM.liftBind op (fun z => f <$> cont z)) M =
+        Prog.time (FreeM.liftBind op cont) M
+      simp only [Prog.time_liftBind, ih (M.evalQuery op)]
 
 section Reduction
 
