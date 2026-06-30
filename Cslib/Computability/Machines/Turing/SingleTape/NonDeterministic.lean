@@ -100,8 +100,12 @@ instance : Acceptor (SingleTapeNTM State Symbol) Symbol where
   ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ m.MYields (Cfg.mk₁ s xs) c'
 
 /-- The NTM `m` accepts `xs` in `n` execution steps. -/
-def AcceptsInSteps (m : SingleTapeNTM State Symbol) (n : ℕ) (xs : List Symbol) : Prop :=
+def AcceptsInSteps (m : SingleTapeNTM State Symbol) (xs : List Symbol) (n : ℕ) : Prop :=
   ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ Relation.RelatesInSteps m.Yields (Cfg.mk₁ s xs) c' n
+
+/-- The NTM `m` accepts `xs` in at most `n` execution steps. -/
+def AcceptsInAtMostSteps (m : SingleTapeNTM State Symbol) (xs : List Symbol) (n : ℕ) : Prop :=
+  ∃ k ≤ n, m.AcceptsInSteps xs k
 
 /-- An NTM is a transducer of finite lists of symbols. -/
 instance : Transducer (SingleTapeNTM State Symbol) Symbol Symbol where
