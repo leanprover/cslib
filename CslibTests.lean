@@ -10,4 +10,6 @@ import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL
+import CslibTests.QueryModel.ProgExamples
+import CslibTests.QueryModel.QueryExamples
 import CslibTests.Reduction
