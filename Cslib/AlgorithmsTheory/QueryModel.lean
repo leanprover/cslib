@@ -76,7 +76,7 @@ def Prog.eval
     (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
-@[simp, grind =]
+@[grind =]
 theorem Prog.eval_pure (a : α) (M : Model Q Cost) :
     Prog.eval (FreeM.pure a) M = a :=
   rfl
@@ -86,7 +86,7 @@ theorem Prog.eval_pure' (a : α) (M : Model Q Cost) :
     Prog.eval (pure a : Prog Q α) M = a :=
   rfl
 
-@[simp, grind =]
+@[grind =]
 theorem Prog.eval_bind
     (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M := by
@@ -99,7 +99,7 @@ theorem Prog.eval_bind' {α β : Type u}
   change Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M
   exact Prog.eval_bind x f M
 
-@[simp, grind =]
+@[grind =]
 theorem Prog.eval_liftBind
     (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.liftBind x f) M = Prog.eval (f <| M.evalQuery x) M := by
@@ -122,7 +122,7 @@ def Prog.time [AddZero Cost]
     (P : Prog Q α) (M : Model Q Cost) : Cost :=
   (P.liftM M.timeQuery).time
 
-@[simp, grind =]
+@[grind =]
 lemma Prog.time_pure [AddZero Cost] (a : α) (M : Model Q Cost) :
     Prog.time (FreeM.pure a) M = 0 := by
   simp [time]
@@ -133,7 +133,7 @@ lemma Prog.time_pure' [AddZero Cost] (a : α) (M : Model Q Cost) :
   change Prog.time (FreeM.pure a) M = 0
   exact Prog.time_pure a M
 
-@[simp, grind =]
+@[grind =]
 theorem Prog.time_liftBind [AddZero Cost]
     (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.time (FreeM.liftBind x f) M = M.cost x + Prog.time (f <| M.evalQuery x) M := by
@@ -147,7 +147,7 @@ theorem Prog.time_lift [AddZeroClass Cost]
   change M.cost x + Prog.time (FreeM.pure (M.evalQuery x)) M = M.cost x
   rw [Prog.time_pure, add_zero]
 
-@[simp, grind =]
+@[grind =]
 lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
     (op : Prog Q ι) (cont : ι → Prog Q α) :
     Prog.time (op.bind cont) M =
