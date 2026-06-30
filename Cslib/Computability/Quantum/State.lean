@@ -116,6 +116,7 @@ theorem ket_injective : Function.Injective (ket (R := R)) := by
   rw [ket_apply, ket_apply, if_pos rfl, if_neg hne] at h
   exact one_ne_zero h
 
+@[simp, nolint simpNF]
 theorem norm_ket (x : R.Index) : ‖(ket x : StateVector R)‖ = 1 :=
   (ket x).norm_eq_one
 

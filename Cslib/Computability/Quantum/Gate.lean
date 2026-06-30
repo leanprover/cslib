@@ -98,6 +98,7 @@ theorem mul_applyVec (A B : HilbertOperator R) (psi : StateVector R) :
     Matrix.mulVec_mulVec]
 
 /-- A Hilbert operator sends a basis ket to its corresponding column. -/
+@[simp, nolint simpNF]
 theorem applyVec_ket (A : HilbertOperator R) (x : R.Index) (i : R.Index) :
     applyVec A (PureState.ket x : StateVector R) i = A i x := by
   rw [applyVec_apply]
@@ -333,6 +334,7 @@ theorem apply_coe (G : Gate R) (psi : PureState R) :
 theorem applyVec_apply (G : Gate R) (psi : StateVector R) (i : R.Index) :
     G.applyVec psi i = ∑ j, G i j * psi j := rfl
 
+@[simp, nolint simpNF]
 theorem apply_apply (G : Gate R) (psi : PureState R) (i : R.Index) :
     G.apply psi i = ∑ j, G i j * psi j := by
   change G.applyVec (psi : StateVector R) i = ∑ j, G i j * psi j
@@ -430,6 +432,7 @@ theorem mul_apply (G K : Gate R) (psi : PureState R) :
   rw [mul_applyVec]
 
 /-- A gate sends the basis ket `|x>` to its `x`-th column. -/
+@[simp, nolint simpNF]
 theorem apply_ket (G : Gate R) (x : R.Index) (i : R.Index) :
     G.apply (PureState.ket x) i = G i x := by
   rw [apply_apply]
@@ -445,6 +448,7 @@ def ofPerm (sigma : Equiv.Perm R.Index) : Gate R :=
       Matrix.conjTranspose_permMatrix, ← Matrix.permMatrix_mul,
       inv_mul_cancel, Matrix.permMatrix_one])
 
+@[simp, nolint simpNF]
 theorem ofPerm_apply (sigma : Equiv.Perm R.Index) (psi : PureState R)
     (i : R.Index) : (ofPerm sigma).apply psi i = psi (sigma i) := by
   change HilbertOperator.applyVec (sigma.permMatrix ℂ) (psi : StateVector R) i =
