@@ -8,8 +8,6 @@ module
 
 public import Cslib.AlgorithmsTheory.QueryModel
 
-@[expose] public section
-
 /-!
 # Query Type for Comparison Search in Lists
 
@@ -25,9 +23,10 @@ further defines a model `ListSearch.natCost` for this query.
 
 -/
 
-namespace Cslib
 
-namespace Algorithms
+@[expose] public section
+
+namespace Cslib.Algorithms
 
 open Prog
 

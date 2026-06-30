@@ -12,7 +12,6 @@ public import Mathlib.Algebra.Group.Prod
 public import Mathlib.Data.Nat.Basic
 public import Mathlib.Order.Basic
 public import Mathlib.Tactic.FastInstance
-@[expose] public section
 
 /-!
 # Query Type for Comparison Search in Lists
@@ -32,9 +31,9 @@ which defines a `ℕ` based cost structure.
    comparisons
 
 -/
-namespace Cslib
+@[expose] public section
 
-namespace Algorithms
+namespace Cslib.Algorithms
 
 open Prog
 

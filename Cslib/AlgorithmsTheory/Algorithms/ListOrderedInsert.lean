@@ -13,8 +13,6 @@ public import Mathlib.Data.Int.ConditionallyCompleteOrder
 public import Mathlib.Data.List.Sort
 public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
-@[expose] public section
-
 /-!
 # Ordered insertion in a list
 
@@ -36,8 +34,9 @@ in upstream libraries for the pure lean code versions of these declarations.
 - `insertOrd_sorted` : Applying `insertOrd` to a sorted list yields a sorted list.
 -/
 
-namespace Cslib
-namespace Algorithms
+@[expose] public section
+
+namespace Cslib.Algorithms
 
 open Prog
 
@@ -65,7 +64,7 @@ lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Bool) :
     simp [insertOrd, sortModel]
   | cons head tail ih =>
     by_cases h_head : le x head
-    · simp [insertOrd, h_head]
+    · simp [h_head]
     · simp [insertOrd, h_head, ih]
 
 -- TODO : to upstream

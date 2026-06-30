@@ -8,8 +8,6 @@ module
 public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
 public import Mathlib.Tactic.NormNum
 
-@[expose] public section
-
 /-!
 # Insertion sort in a list
 
@@ -30,6 +28,8 @@ the `SortOpsInsertHead` model. This insertionSort evaluates identically to the u
 - `insertionSort_complexity` : `insertionSort` takes at most n * (n + 1) comparisons and
   (n + 1) * (n + 2) list head-insertions.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

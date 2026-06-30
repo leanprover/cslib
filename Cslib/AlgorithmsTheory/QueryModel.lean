@@ -9,9 +9,7 @@ module
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.AlgorithmsTheory.Lean.TimeM
 
-@[expose] public section
-
-/-
+/-!
 # Query model
 
 This file defines a simple query language modeled as a free monad over a
@@ -42,9 +40,9 @@ and complexity of algorithms in lean. To specify an algorithm, one must:
 query model, free monad, time complexity, Prog
 -/
 
-namespace Cslib
+@[expose] public section
 
-namespace Algorithms
+namespace Cslib.Algorithms
 
 /--
 A model type for a query type `QType` and cost type `Cost`. It consists of
@@ -145,5 +143,16 @@ abbrev Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q�
   P.liftM red.reduce
 
 end Reduction
+
+section FreeMExtras
+/-!
+## Extras
+
+This section contain extras needed for this repo to work until FreeM is fixed upstream
+-/
+instance instCoeOutFreeM {Q α} : CoeOut (Q α) (FreeM Q α) where
+  coe := FreeM.lift
+
+end FreeMExtras
 
 end Cslib.Algorithms

@@ -10,7 +10,6 @@ public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
 public import Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
 import all Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
 import all Init.Data.List.Sort.Basic
-@[expose] public section
 
 /-!
 # Merge sort in a list
@@ -30,6 +29,9 @@ the `SortOps` model.
 - `mergeSort_perm` : The output of `mergeSort` is a permutation of the input list
 - `mergeSort_complexity` : `mergeSort` takes at most n * ⌈log n⌉ comparisons.
 -/
+
+@[expose] public section
+
 namespace Cslib.Algorithms
 
 open SortOps

@@ -11,10 +11,16 @@ public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Algebra.Ring.Nat
 public import Mathlib.Data.Fintype.BigOperators
 public import Mathlib.Data.Fintype.Perm
-public import Mathlib.Data.Nat.Lattice
+public import Mathlib.Order.Lattice.Nat
 public import Mathlib.Data.Nat.Log
 import all Init.Data.List.Sort.Basic
 
+/-!
+# The Comparison Sort Lower Bound
+
+This file proves the comparison sort lower bound.
+
+-/
 @[expose] public section
 
 namespace Cslib
