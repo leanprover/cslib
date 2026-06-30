@@ -274,6 +274,25 @@ theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n + 1) a) :
       apply cond_correct
       exact isZero_correct (n+1) a ha
 
+/-- Generalized primitive recursion. Given a sequence `r : ℕ → ℕ`, if `base` computes the base
+value `r 0` and `step` computes the recursion step pointwise — taking the Church numeral of the
+current index `k + 1` and the previous result `r k` to `r (k + 1)` — then `Rec ⬝ base ⬝ step`
+computes `r` on every input. This is the primitive-recursion counterpart of `RFindAbove_correct'`
+for μ-recursion: it isolates the behaviour of `Rec` from any particular client (such as the
+translation of `Nat.Partrec.Code.prec`). -/
+theorem rec_correct' (base step : SKI) (r : ℕ → ℕ)
+    (hbase : IsChurch (r 0) base)
+    (hstep : ∀ k : Nat, ∀ cb cp : SKI, IsChurch (k + 1) cb → IsChurch (r k) cp →
+      IsChurch (r (k + 1)) (step ⬝ cb ⬝ cp)) :
+    ∀ n : Nat, ∀ cn : SKI, IsChurch n cn → IsChurch (r n) (Rec ⬝ base ⬝ step ⬝ cn) := by
+  intro n
+  induction n with
+  | zero => exact fun cn hcn => isChurch_trans _ (rec_zero _ _ cn hcn) hbase
+  | succ k ih =>
+    intro cn hcn
+    exact isChurch_trans _ (rec_succ k base step cn hcn)
+      (hstep k cn (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cn)) hcn (ih (Pred ⬝ cn) (pred_correct _ cn hcn)))
+
 
 /-! ### Root-finding (μ-recursion) -/
 

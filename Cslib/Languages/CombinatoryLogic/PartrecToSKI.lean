@@ -128,7 +128,7 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
     (ihf : Computes tf f.eval) (ihg : Computes tg g.eval)
     (a₀ : ℕ) (ca : SKI) (hca : IsChurch a₀ ca) :
     ∀ b₀ : ℕ, ∀ m : ℕ,
-    Code.eval (f.prec g) (Nat.pair a₀ b₀) = Part.some m →
+    m ∈ Code.eval (f.prec g) (Nat.pair a₀ b₀) →
     ∀ cb : SKI, IsChurch b₀ cb →
     IsChurch m (Rec ⬝ (tf ⬝ ca) ⬝ (PrecStep tg ⬝ ca) ⬝ cb) := by
   intro b₀
@@ -140,7 +140,7 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
   | succ k ih =>
     intro m hm cb hcb
     rw [Code.eval_prec_succ] at hm
-    obtain ⟨ih_val, hih_eq, hm_eq⟩ := Part.bind_eq_some_iff.mp hm
+    obtain ⟨ih_val, hih_eq, hm_eq⟩ := Part.mem_bind_iff.mp hm
     -- By IH, Rec computes the intermediate value on Pred ⬝ cb
     have hpred : IsChurch k (Pred ⬝ cb) := pred_correct (k + 1) cb hcb
     set step := PrecStep tg ⬝ ca
@@ -158,28 +158,33 @@ private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
       (precStep_def tg ca cb (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cb)))
     exact isChurch_trans _ hred hcm
 
+/-- Shared extraction step for the `rfind` predicate: from membership of a boolean `b` in
+`decide (· = 0) <$> f.eval (a₀, j + m₀)` recover the underlying value `v`, together with the
+fact that `decide (v = 0) = b`. Used by both the root and below-root analyses. -/
+private theorem rfind_eval_aux {f : Code} {a₀ m₀ j : ℕ} {b : Bool}
+    (h : b ∈ (fun m => decide (m = 0)) <$> f.eval (Nat.pair a₀ (j + m₀))) :
+    ∃ v, decide (v = 0) = b ∧ v ∈ f.eval (Nat.pair a₀ (m₀ + j)) := by
+  obtain ⟨v, hv_mem, hv_eq⟩ := (Part.mem_map_iff _).mp h
+  rw [Nat.add_comm] at hv_mem
+  exact ⟨v, hv_eq, hv_mem⟩
+
 /-- If `k ∈ Nat.rfind …`, then `f` evaluates to 0 at the root. -/
 private theorem rfind_eval_root {f : Code} {a₀ m₀ k : ℕ}
     (hk : k ∈ Nat.rfind (fun n =>
       (fun m => decide (m = 0)) <$> f.eval (Nat.pair a₀ (n + m₀)))) :
-    f.eval (Nat.pair a₀ (m₀ + k)) = Part.some 0 := by
-  have hspec := Nat.rfind_spec hk
-  obtain ⟨val, hval_mem, hval_eq⟩ := (Part.mem_map_iff _).mp hspec
-  have : val = 0 := by simpa using hval_eq
-  subst this; rw [Nat.add_comm] at hval_mem
-  exact Part.eq_some_iff.mpr hval_mem
+    (0 : ℕ) ∈ f.eval (Nat.pair a₀ (m₀ + k)) := by
+  obtain ⟨v, hv_eq, hv_mem⟩ := rfind_eval_aux (Nat.rfind_spec hk)
+  obtain rfl : v = 0 := by simpa using hv_eq
+  exact hv_mem
 
 /-- If `k ∈ Nat.rfind …`, then `f` evaluates to a nonzero value below `k`. -/
 private theorem rfind_eval_pos_below {f : Code} {a₀ m₀ k : ℕ}
     (hk : k ∈ Nat.rfind (fun n =>
       (fun m => decide (m = 0)) <$> f.eval (Nat.pair a₀ (n + m₀)))) :
-    ∀ i < k, ∃ vi, vi ≠ 0 ∧ f.eval (Nat.pair a₀ (m₀ + i)) = Part.some vi := by
+    ∀ i < k, ∃ vi, vi ≠ 0 ∧ vi ∈ f.eval (Nat.pair a₀ (m₀ + i)) := by
   intro i hi
-  have hmin := Nat.rfind_min hk hi
-  obtain ⟨val, hval_mem, hval_eq⟩ := (Part.mem_map_iff _).mp hmin
-  have hval_ne : val ≠ 0 := by simpa using hval_eq
-  rw [Nat.add_comm] at hval_mem
-  exact ⟨val, hval_ne, Part.eq_some_iff.mpr hval_mem⟩
+  obtain ⟨v, hv_eq, hv_mem⟩ := rfind_eval_aux (Nat.rfind_min hk hi)
+  exact ⟨v, by simpa using hv_eq, hv_mem⟩
 
 /-- Primitive recursion of computable functions is computable. -/
 private theorem prec_computes {f g : Code} {tf tg : SKI}
@@ -201,15 +206,14 @@ private theorem rfind_computes {f : Code} {tf : SKI}
   have hca := natUnpairLeft_correct n cn hcn
   have hcm₀ := natUnpairRight_correct n cn hcn
   -- Extract k from the rfind result
-  have hresult' : result ∈ Code.eval (Code.rfind' f) n := hresult ▸ Part.mem_some _
-  simp only [Code.eval, Nat.unpaired] at hresult'
+  simp only [Code.eval, Nat.unpaired] at hresult
   set a₀ := (Nat.unpair n).1
   set m₀ := (Nat.unpair n).2
-  obtain ⟨k, hk_mem, hresult_eq⟩ := (Part.mem_map_iff _).mp hresult'
+  obtain ⟨k, hk_mem, hresult_eq⟩ := (Part.mem_map_iff _).mp hresult
   subst hresult_eq
   -- Build the callback: the composed SKI term computes f on paired arguments
   set g := B ⬝ tf ⬝ (NatPair ⬝ (NatUnpairLeft ⬝ cn))
-  have hg : ∀ i y, IsChurch i y → ∀ v, f.eval (Nat.pair a₀ i) = Part.some v →
+  have hg : ∀ i y, IsChurch i y → ∀ v, v ∈ f.eval (Nat.pair a₀ i) →
       IsChurch v (g ⬝ y) := fun i y hy v hv =>
     isChurch_trans _ (B_def tf (NatPair ⬝ (NatUnpairLeft ⬝ cn)) y)
       (ihf _ _ (natPair_correct a₀ i (NatUnpairLeft ⬝ cn) y hca hy) v hv)
@@ -217,8 +221,8 @@ private theorem rfind_computes {f : Code} {tf : SKI}
   have hind := RFindAbove_correct' g (NatUnpairRight ⬝ cn) k m₀ hcm₀
     (fun y hy => hg (m₀ + k) y hy 0 (rfind_eval_root hk_mem))
     (fun i hi y hy => by
-      obtain ⟨vi, hvi_ne, hvi_eq⟩ := rfind_eval_pos_below hk_mem i hi
-      exact ⟨vi - 1, Nat.succ_pred_eq_of_ne_zero hvi_ne ▸ hg (m₀ + i) y hy vi hvi_eq⟩)
+      obtain ⟨vi, hvi_ne, hvi_mem⟩ := rfind_eval_pos_below hk_mem i hi
+      exact ⟨vi - 1, Nat.succ_pred_eq_of_ne_zero hvi_ne ▸ hg (m₀ + i) y hy vi hvi_mem⟩)
   rw [Nat.add_comm] at hind
   exact isChurch_trans _ (rfindTrans_def tf cn) hind
 
