@@ -144,7 +144,7 @@ lemma subst_ty (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) (sub :
   induction der generalizing Γ X
   case var σ _ X' _ mem =>
     have := map_subst_nmem Δ X δ
-    have := @mapVal_mem Var (f := ((·[X:=δ]) : Binding Var → Binding Var))
+    have := @mapVal_mem Var (f := ((·[X := δ]) : Binding Var → Binding Var))
     grind [Env.Wf.map_subst, → notMem_keys_of_nodupKeys_cons]
   case abs => grind [abs (free_union [Ty.fv] Var), Ty.subst_fresh, openTm_substTy_var]
   case tabs => grind [tabs (free_union Var), openTy_substTy_var, open_subst_var]

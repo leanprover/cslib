@@ -117,7 +117,7 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
 
 /-- Substitution for a context weakened by a single type. -/
 lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
-    Γ ⊢ (t [x := s]) ∶ τ := by
+    Γ ⊢ (t[x := s]) ∶ τ := by
   grind [subst_aux]
 
 /-- Typing preservation for opening. -/
