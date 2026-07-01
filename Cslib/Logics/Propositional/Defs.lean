@@ -138,4 +138,22 @@ class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
   /-- Double-negation elimination. -/
   dne (A : Proposition Atom) : S⇓(¬¬A → A)
 
+-- should this be proof-relevant?
+/-- A theory is inconsistent if it derives every proposition. -/
+@[mk_iff]
+class IsInconsistent (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition Atom)] where
+  /-- Every proposition is derivable. -/
+  forall_derivableIn (A : Proposition Atom) : DerivableIn S A
+
+/-- A theory is consistent is there is a non-derivable proposition. -/
+@[mk_iff]
+class IsConsistent (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition Atom)] where
+  /-- Some proposition is not derivable. -/
+  exists_not_derivableIn : ∃ A : Proposition Atom, ¬ DerivableIn S A
+
+omit [DecidableEq Atom] in
+lemma isInconsistent_iff_not_isConsistent {S : Type*} [InferenceSystem S (Proposition Atom)] :
+    IsInconsistent Atom S ↔ ¬ IsConsistent Atom S := by
+  simp [isInconsistent_iff, isConsistent_iff]
+
 end Cslib.Logic.PL.Theory
