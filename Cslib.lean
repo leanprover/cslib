@@ -2,6 +2,10 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.Algorithms.Lean.UnionFind.Basic
+public import Cslib.Algorithms.Lean.UnionFind.Cost
+public import Cslib.Algorithms.Lean.UnionFind.Operations
+public import Cslib.Algorithms.Lean.UnionFind.RankBound
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
