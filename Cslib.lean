@@ -100,6 +100,7 @@ public import Cslib.Foundations.Semantics.LTS.Termination
 public import Cslib.Foundations.Semantics.LTS.Total
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Cslib.Foundations.Semantics.LTS.Union
+public import Cslib.Foundations.Semantics.LTS.VectorLTS
 public import Cslib.Foundations.Syntax.Congruence
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.HasAlphaEquiv
