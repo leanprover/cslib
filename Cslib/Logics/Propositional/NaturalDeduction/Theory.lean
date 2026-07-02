@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2025 Thomas Waring, 2026 Benjamin Brast-McKie. All rights reserved.
+Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring, Benjamin Brast-McKie
 -/
@@ -29,7 +29,7 @@ variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
 namespace Theory
 
 /-- `CPL` is classical: it contains `¬¬A → A` for all `A`. -/
-instance instIsClassicalCPL : IsClassical Atom (CPL (Atom := Atom)) where
+instance instIsClassicalCPL : IsClassical Atom (CPL Atom) where
   dne A := ax (dne_mem_cpl A)
 
 /-- Proof by contradiction as a derived rule. -/
@@ -41,10 +41,10 @@ def IsClassical.byContra [IsClassical Atom T] {Γ : Ctx Atom} {A : Proposition A
 def IsClassical.lem [IsClassical Atom T] (A : Proposition Atom) : T⇓(A ∨ ¬ A) := by
   apply byContra
   apply impE (ass <| Finset.mem_insert_self ..)
-  apply orI2
+  apply orI₂
   apply impI
   apply impE (A := A ∨ ¬ A) (ass <| by grind)
-  apply orI1
+  apply orI₁
   exact ass <| Finset.mem_insert_self ..
 
 /-- Pierce's law in a classical theory. -/
@@ -52,24 +52,23 @@ def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A 
   apply impI; apply byContra
   apply impE (ass <| Finset.mem_insert_self ..)
   apply impE (A := A → B) (ass <| by grind); apply impI
-  exact efq (impE (ass <| Finset.mem_insert.mpr (Or.inr (Finset.mem_insert_self _ _)))
-                  (ass <| Finset.mem_insert_self _ _))
+  apply contra A B <;> grind
 
 /-- The axiom system consisting of instances of LEM. -/
-def LEM : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
+def LEM (Atom : Type u) : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM (Atom := Atom) := ⟨A, rfl⟩
+lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
 
 /-- The axiom system consisting of instances of Pierce's law. -/
-def Pierce : Theory Atom :=
+def Pierce (Atom : Type u) : Theory Atom :=
   {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
 
 omit [DecidableEq Atom] in
 lemma pierce_mem_pierce (A B : Proposition Atom) :
-    (((A → B) → A) → A) ∈ Pierce (Atom := Atom) := ⟨A, B, rfl⟩
+    (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
 
-instance instIsClassicalLEM : IsClassical Atom (LEM : Theory Atom) where
+instance instIsClassicalLEM : IsClassical Atom (LEM Atom) where
   dne A := by
     apply impI
     apply orE
@@ -80,7 +79,7 @@ instance instIsClassicalLEM : IsClassical Atom (LEM : Theory Atom) where
       · exact ass (Finset.mem_insert.mpr (Or.inr (Finset.mem_insert_self _ _)))
       · exact ass (Finset.mem_insert_self _ _)
 
-instance instIsClassicalPierce : IsClassical Atom (Pierce : Theory Atom) where
+instance instIsClassicalPierce : IsClassical Atom (Pierce Atom) where
   dne A := by
     apply impI
     apply impE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)

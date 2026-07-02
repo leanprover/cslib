@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2025 Thomas Waring, 2026 Benjamin Brast-McKie. All rights reserved.
+Copyright (c) 2025 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Waring, Benjamin Brast-McKie
 -/
@@ -112,11 +112,10 @@ inference rule (see `Derivation.efq`), so no explosion axioms are needed. -/
 abbrev IPL : Theory Atom := ∅
 
 /-- Classical logic further adds double negation elimination. -/
-abbrev CPL : Theory Atom :=
-  Set.range (fun (A : Proposition Atom) ↦ ¬¬A → A)
+abbrev CPL (Atom : Type u) : Theory Atom := {¬¬A → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL (Atom := Atom) := ⟨A, rfl⟩
+lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
 
 open InferenceSystem
 
