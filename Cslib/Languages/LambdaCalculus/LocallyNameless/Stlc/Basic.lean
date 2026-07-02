@@ -125,7 +125,7 @@ theorem preservation_open {xs : Finset Var}
     (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) :
     Γ ⊢ m ^ n ∶ τ := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
-  grind [subst_intro fresh _ _ ?_ der.lc, typing_subst_head]
+  grind [subst_intro fresh _ _ ?_, typing_subst_head]
 
 end LambdaCalculus.LocallyNameless.Stlc.Typing
 

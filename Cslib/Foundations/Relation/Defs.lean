@@ -133,3 +133,25 @@ def transRight (s r : α → α → Prop) [IsTrans α r] (h : s ≤ r) : Trans r
   trans hab hbc := _root_.trans hab (h _ _ hbc)
 
 end Relation
+
+namespace Set
+
+open Relation
+
+/-- `ReflOn s r` is true when a relation `r` is reflexive on its restriction to a set `s`. -/
+def ReflOn (s : Set α) (r : α → α → Prop) : Prop :=
+  ∀ a ∈ s, r a a
+
+-- these names are used in the literature, so we provide them as `abbrev`
+
+/-- `LeftQuasiRefl r` is true when a relation `r` is reflexive on its domain. -/
+abbrev LeftQuasiRefl (r : α → α → Prop) := (dom r).ReflOn r
+
+/-- `RightQuasiRefl r` is true when a relation `r` is reflexive on its codomain. -/
+abbrev RightQuasiRefl (r : α → α → Prop) := (cod r).ReflOn r
+
+/-- `SymmOn s r` is true when a relation `r` is symmetric on its restriction to a set `s`. -/
+def SymmOn (s : Set α) (r : α → α → Prop) : Prop :=
+  ∀ a ∈ s, ∀ b ∈ s, r a b → r b a
+
+end Set

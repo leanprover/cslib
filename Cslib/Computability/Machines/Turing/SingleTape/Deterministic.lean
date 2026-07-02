@@ -62,11 +62,12 @@ We also provide ways of constructing polynomial-runtime TMs
 
 @[expose] public section
 
-open Cslib Relation
+open Relation
 
-namespace Turing
+namespace Cslib.Turing
 
 open BiTape StackTape
+open _root_.Turing
 
 variable {Symbol : Type}
 
@@ -503,4 +504,4 @@ end PolyTimeComputable
 
 end SingleTapeTM
 
-end Turing
+end Cslib.Turing
