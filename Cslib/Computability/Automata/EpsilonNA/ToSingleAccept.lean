@@ -122,7 +122,7 @@ theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
   · intro h
     cases h with
     | refl => exact LTS.τSTr.refl
-    | tail hτstr htr => exact .trans (.lift some (fun _ _ => id) hτstr) (.single htr)
+    | tail hτstr htr => exact .trans (.lift some (by rfl) _ _ hτstr) (.single htr)
 
 @[scoped grind →]
 theorem toSingleAccept_τSTr_none_accept {a : εNA.FinAcc State Symbol}

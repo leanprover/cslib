@@ -93,9 +93,10 @@ theorem reflTransGen_parallelReduction_mRed :
     ReflTransGen ParallelReduction = ReflTransGen Red := by
   ext a b
   constructor
-  · apply Relation.reflTransGen_of_isTrans_reflexive
+  · apply reflTransGen_le_of_le
+    -- TODO: restate `parallelReduction_of_red` and others using `≤`?
     exact @mRed_of_parallelReduction
-  · apply Relation.reflTransGen_of_isTrans_reflexive
+  · apply Relation.reflTransGen_le_of_le
     exact fun a a' h => Relation.ReflTransGen.single (parallelReduction_of_red h)
 
 /-!
