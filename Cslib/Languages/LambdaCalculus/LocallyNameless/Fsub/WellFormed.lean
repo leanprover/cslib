@@ -121,7 +121,7 @@ lemma strengthen (wf : σ.Wf (Γ ++ ⟨X, Binding.ty τ⟩ :: Δ)) : σ.Wf (Γ +
 variable [HasFresh Var] in
 /-- A type remains well-formed under context substitution (of a well-formed type). -/
 lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ)
-    (ok : (Γ.mapVal (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.mapVal (·[X:=τ']) ++ Δ := by
+    (ok : (Γ.mapVal (·[X := τ']) ++ Δ)✓) : σ[X := τ'].Wf <| Γ.mapVal (·[X := τ']) ++ Δ := by
   have := @mapVal_mem Var (Binding Var)
   generalize eq : Γ ++ ⟨X, Binding.sub τ⟩ :: Δ = Θ at wf_σ
   induction wf_σ generalizing Γ τ' with
@@ -133,7 +133,7 @@ variable [HasFresh Var] in
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
   cases wf_all with | all =>
     let ⟨X, _⟩ := fresh_exists <| free_union [fv, Context.dom] Var
-    have : Γ = Context.mapVal (·[X:=δ]) [] ++ Γ := by grind
+    have : Γ = Context.mapVal (·[X := δ]) [] ++ Γ := by grind
     grind [open_subst_intro, map_subst]
 
 /-- A type bound in a context is well formed. -/
@@ -177,7 +177,7 @@ lemma strengthen (wf : Env.Wf <| Γ ++ ⟨X, Binding.ty τ⟩ :: Δ) : Env.Wf <|
 variable [HasFresh Var] in
 /-- A context remains well-formed under substitution (of a well-formed type). -/
 lemma map_subst (wf_env : Env.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : τ'.Wf Δ) :
-    Env.Wf <| Γ.mapVal (·[X:=τ']) ++ Δ := by
+    Env.Wf <| Γ.mapVal (·[X := τ']) ++ Δ := by
   induction Γ generalizing wf_τ' Δ τ' <;> cases wf_env
   case nil => grind
   case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.map_subst]
@@ -186,7 +186,7 @@ variable [HasFresh Var]
 
 /-- A well-formed context is unchanged by substituting for a free key. -/
 lemma map_subst_nmem (Γ : Env Var) (X : Var) (σ : Ty Var) (wf : Γ.Wf) (nmem : X ∉ Γ.dom) :
-    Γ = Γ.mapVal (·[X:=σ]) := by
+    Γ = Γ.mapVal (·[X := σ]) := by
   induction wf <;> grind [Ty.Wf.nmem_fv, Binding.subst_fresh]
 
 end Env.Wf
