@@ -274,6 +274,25 @@ theorem rec_succ (n : Nat) (x g a : SKI) (ha : IsChurch (n + 1) a) :
       apply cond_correct
       exact isZero_correct (n+1) a ha
 
+/-- Generalized primitive recursion. Given a sequence `r : ℕ → ℕ`, if `base` computes the base
+value `r 0` and `step` computes the recursion step pointwise — taking the Church numeral of the
+current index `k + 1` and the previous result `r k` to `r (k + 1)` — then `Rec ⬝ base ⬝ step`
+computes `r` on every input. This is the primitive-recursion counterpart of `RFindAbove_correct'`
+for μ-recursion: it isolates the behaviour of `Rec` from any particular client (such as the
+translation of `Nat.Partrec.Code.prec`). -/
+theorem rec_correct' (base step : SKI) (r : ℕ → ℕ)
+    (hbase : IsChurch (r 0) base)
+    (hstep : ∀ k : Nat, ∀ cb cp : SKI, IsChurch (k + 1) cb → IsChurch (r k) cp →
+      IsChurch (r (k + 1)) (step ⬝ cb ⬝ cp)) :
+    ∀ n : Nat, ∀ cn : SKI, IsChurch n cn → IsChurch (r n) (Rec ⬝ base ⬝ step ⬝ cn) := by
+  intro n
+  induction n with
+  | zero => exact fun cn hcn => isChurch_trans _ (rec_zero _ _ cn hcn) hbase
+  | succ k ih =>
+    intro cn hcn
+    exact isChurch_trans _ (rec_succ k base step cn hcn)
+      (hstep k cn (Rec ⬝ base ⬝ step ⬝ (Pred ⬝ cn)) hcn (ih (Pred ⬝ cn) (pred_correct _ cn hcn)))
+
 
 /-! ### Root-finding (μ-recursion) -/
 
@@ -305,27 +324,40 @@ theorem rfindAboveAux_step (R₀ f a : SKI) {m : Nat} (hfa : IsChurch (m + 1) (f
 
 /-- Find the minimal root of `fNat` above a number n -/
 def RFindAbove : SKI := RFindAboveAux.fixedPoint
+
+/-- One unfolding of `RFindAbove`: apply the fixed-point combinator once. -/
+theorem RFindAbove_unfold (x g : SKI) :
+    (RFindAbove ⬝ x ⬝ g) ↠ RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ g := by
+  apply MRed.head; apply MRed.head; exact fixedPoint_correct _
+
+/-- Generalized root-finding that works with pointwise properties rather than a total
+    function. At the root `m + n`, `f` yields Church 0; below, a nonzero Church numeral. -/
+theorem RFindAbove_correct' (f x : SKI) (n m : Nat) (hx : IsChurch m x)
+    (hf_root : ∀ y, IsChurch (m + n) y → IsChurch 0 (f ⬝ y))
+    (hf_below : ∀ i < n, ∀ y, IsChurch (m + i) y →
+      ∃ k, IsChurch (k + 1) (f ⬝ y)) :
+    IsChurch (m + n) (RFindAbove ⬝ x ⬝ f) := by
+  induction n generalizing m x
+  all_goals apply isChurch_trans _ (RFindAbove_unfold x f)
+  case zero =>
+    exact isChurch_trans _ (rfindAboveAux_base _ _ _ (hf_root x hx)) hx
+  case succ n ih =>
+    apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
+    · obtain ⟨k, hk⟩ := hf_below 0 (by omega) x (by simpa using hx)
+      exact rfindAboveAux_step _ _ _ hk
+    · have := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
+        (fun y hy => hf_root y (by grind))
+        (fun i hi y hy => hf_below (i + 1) (by omega) y (by grind))
+      grind
+
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
-    (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y →  IsChurch (fNat i) (f ⬝ y))
+    (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y → IsChurch (fNat i) (f ⬝ y))
     (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
     IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
-  induction n generalizing m x
-  all_goals apply isChurch_trans (a' := RFindAboveAux ⬝ RFindAbove ⬝ x ⬝ f)
-  case zero.a =>
-    apply isChurch_trans (a' := x) <;>
-      grind [rfindAboveAux_base]
-  case succ.a n ih =>
-    apply isChurch_trans (a' := RFindAbove ⬝ (SKI.Succ ⬝ x) ⬝ f)
-    · let y := (fNat m).pred
-      have : IsChurch (y + 1) (f ⬝ x) := by
-        subst y
-        exact Nat.succ_pred_eq_of_ne_zero (hpos 0 (by simp)) ▸ hf m x hx
-      apply rfindAboveAux_step
-      assumption
-    · replace ih := ih (SKI.Succ ⬝ x) (m + 1) (succ_correct _ x hx)
-      grind
-  -- close the `h` goals of the above `apply isChurch_trans`
-  all_goals {apply MRed.head; apply MRed.head; exact fixedPoint_correct _}
+  apply RFindAbove_correct' f x n m hx
+  · intro y hy; exact hroot ▸ hf (m + n) y hy
+  · exact fun i hi y hy => ⟨fNat (m + i) - 1,
+      Nat.succ_pred_eq_of_ne_zero (hpos i hi) ▸ hf (m + i) y hy⟩
 
 
 /-- Ordinary root finding is root finding above zero -/
