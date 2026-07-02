@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Marianna Girlando
 module
 
 public import Cslib.Logics.Modal.Basic
+public import Cslib.Foundations.Relation.Euclidean
 
 /-! # Modal Logic Cube
 
