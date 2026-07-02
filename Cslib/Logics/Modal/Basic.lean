@@ -6,7 +6,13 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Logic.Operators.And
+public import Cslib.Foundations.Logic.Operators.Or
+public import Cslib.Foundations.Logic.Operators.Impl
+public import Cslib.Foundations.Logic.Operators.Not
+public import Cslib.Foundations.Logic.Operators.Box
+public import Cslib.Foundations.Logic.Operators.Diamond
+public import Cslib.Foundations.Logic.Operators.Iff
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
@@ -47,29 +53,51 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Possibility. -/
   | diamond (φ : Proposition Atom)
 
-@[inherit_doc] scoped prefix:40 "¬" => Proposition.not
-@[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
-@[inherit_doc] scoped prefix:40 "◇" => Proposition.diamond
+instance : HasNot (Proposition Atom) := {not := Proposition.not}
+instance : HasAnd (Proposition Atom) := {and := Proposition.and}
+instance : HasDiamond (Proposition Atom) := {diamond := Proposition.diamond}
+
+@[scoped grind =]
+lemma Proposition.not_def (φ : Proposition Atom) : φ.not = ¬φ := rfl
+
+@[scoped grind =]
+lemma Proposition.and_def (φ₁ φ₂ : Proposition Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
+
+@[scoped grind =]
+lemma Proposition.diamond_def (φ : Proposition Atom) : φ.diamond = (◇φ) := rfl
 
 /-- Disjunction. -/
 def Proposition.or (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬(¬φ₁ ∧ ¬φ₂)
 
-@[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
+instance : HasOr (Proposition Atom) := {or := Proposition.or}
+
+@[scoped grind =]
+lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : φ₁.or φ₂ = (φ₁ ∨ φ₂) := rfl
 
 /-- Implication. -/
 def Proposition.impl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ₁ ∨ φ₂
 
-@[inherit_doc] scoped infix:30 " → " => Proposition.impl
+instance : HasImpl (Proposition Atom) := {impl := Proposition.impl}
+
+@[scoped grind =]
+lemma Proposition.impl_def (φ₁ φ₂ : Proposition Atom) : φ₁.impl φ₂ = (φ₁ → φ₂) := rfl
 
 /-- Bi-implication. -/
 def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
 
-@[inherit_doc] scoped infix:30 " ↔ " => Proposition.iff
+instance : HasIff (Proposition Atom) := {iff := Proposition.iff}
+
+@[scoped grind =]
+lemma Proposition.iff_def (φ₁ φ₂ : Proposition Atom) :
+    φ₁.iff φ₂ = (φ₁ ↔ φ₂) := rfl
 
 /-- Necessity. -/
 def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬◇¬φ
 
-@[inherit_doc] scoped prefix:40 "□" => Proposition.box
+instance : HasBox (Proposition Atom) := {box := Proposition.box}
+
+@[scoped grind =]
+lemma Proposition.box_def (φ : Proposition Atom) : φ.box = (□φ) := rfl
 
 /-- Satisfaction relation. `Satisfies m w φ` means that, in the model `m`, the world `w` satisfies
 the proposition `φ`. -/
@@ -107,8 +135,15 @@ theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
-theorem not_satisfies : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by
-  induction φ generalizing w <;> grind
+theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
+
+@[scoped grind =]
+theorem Satisfies.and_iff_and {m : Model World Atom} :
+    ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∧ ⇓Modal[m,w ⊨ φ₂] := by rfl
+
+@[scoped grind =]
+theorem Satisfies.diamond_iff_exists {m : Model World Atom} :
+    ⇓Modal[m,w ⊨ ◇φ] ↔ ∃ w', m.r w w' ∧ ⇓Modal[m,w' ⊨ φ] := by rfl
 
 /-- Characterisation of the `∨` connective.
 
@@ -116,7 +151,8 @@ Disjunction is defined in terms of the more primitive connectives given in `Prop
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.or_iff_or {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by grind [Proposition.or]
+    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by
+  grind [=_ Proposition.or_def, Proposition.or]
 
 /-- Characterisation of the `→` connective.
 
@@ -125,7 +161,8 @@ This result proves that the definition is correct.
 -/
 @[scoped grind =]
 theorem Satisfies.impl_iff_impl {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by grind [Proposition.impl]
+    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by
+  grind [=_ Proposition.impl_def, Proposition.impl]
 
 /-- Characterisation of the `↔` connective.
 
@@ -134,7 +171,7 @@ This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.iff_iff_iff {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
-  simp only [Proposition.iff]
+  simp only [HasIff.iff, Proposition.iff]
   grind [= derivation_def]
 
 /-- Characterisation of the `□` modality.
@@ -143,7 +180,8 @@ Necessity is defined in terms of the more primitive connectives given in `Propos
 This result proves that the definition is correct. -/
 @[scoped grind =]
 theorem Satisfies.box_iff_forall {m : Model World Atom} :
-    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind [Proposition.box]
+    ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by
+  grind [=_ Proposition.box_def, Proposition.box]
 
 /-- The theory of a world in a model is the set of all propositions that it satifies. -/
 abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=
@@ -162,7 +200,7 @@ theorem satisfies_theory (h : Satisfies m w φ) : φ ∈ theory m w := by grind
 
 /-- If two worlds are not theory equivalent, there exists a distinguishing proposition. -/
 lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
-    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ not_satisfies]
+    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ Satisfies.not_iff_not]
 
 /-- If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
 well. -/
@@ -174,11 +212,13 @@ theorem theoryEq_satisfies {m : Model World Atom} (h : TheoryEq m w₁ w₂)
 /-- The K axiom, valid for all models. -/
 theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → □φ₂)] := by grind
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The dual axiom, valid for all models. -/
 theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
-  grind only [Satisfies.iff_iff_iff.mpr, → satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl,
-    =_ derivation_def, = not_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
+  constructor
+  · grind
+  · grind
+    --  only [→ satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl, = derivation_def,
+    -- = not_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}
