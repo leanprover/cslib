@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2026 Samuel Schlesinger. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Samuel Schlesinger
+Authors: Samuel Schlesinger, Devon Tuma
 -/
 
 module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
+public import Cslib.Probability.HasUniform
 public import Mathlib.Probability.Distributions.Uniform
 
 /-!
@@ -26,26 +27,26 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 open PMF ENNReal
 
 universe u
-variable {M K C : Type u}
+variable {n : Type → Type*} [MonadLiftT n PMF] {M K C : Type}
 
 /-- The joint distribution at `(m, c)` equals `msgDist m * ciphertextDist m c`. -/
-theorem jointDist_eq (scheme : EncScheme M K C) (msgDist : PMF M)
+theorem jointDist_eq (scheme : EncScheme n M K C) (msgDist : n M)
     (m : M) (c : C) :
-    scheme.jointDist msgDist (m, c) = msgDist m * scheme.ciphertextDist m c :=
+    scheme.jointDist msgDist (m, c) = (msgDist : PMF M) m * scheme.ciphertextDist m c :=
   Cslib.Probability.PMF.bind_pair_apply msgDist scheme.ciphertextDist m c
 
 /-- Summing the joint distribution over messages gives the marginal ciphertext distribution. -/
-theorem jointDist_tsum_fst (scheme : EncScheme M K C) (msgDist : PMF M) (c : C) :
+theorem jointDist_tsum_fst (scheme : EncScheme n M K C) (msgDist : n M) (c : C) :
     ∑' m, scheme.jointDist msgDist (m, c) = scheme.marginalCiphertextDist msgDist c :=
   Cslib.Probability.PMF.bind_pair_tsum_fst msgDist scheme.ciphertextDist c
 
 /-- Perfect secrecy is equivalent to message-ciphertext independence.
 The two formulations are related by multiplying/dividing by `marginal(c)`. -/
-theorem perfectlySecret_iff_indep (scheme : EncScheme M K C) :
+theorem perfectlySecret_iff_indep (scheme : EncScheme n M K C) :
     scheme.PerfectlySecret ↔
-    ∀ (msgDist : PMF M) (m : M) (c : C),
+    ∀ (msgDist : n M) (m : M) (c : C),
       scheme.jointDist msgDist (m, c) =
-        msgDist m * scheme.marginalCiphertextDist msgDist c := by
+        (msgDist : PMF M) m * scheme.marginalCiphertextDist msgDist c := by
   constructor
   · intro h msgDist m c
     by_cases hc : (scheme.marginalCiphertextDist msgDist) c = 0
@@ -64,11 +65,11 @@ theorem perfectlySecret_iff_indep (scheme : EncScheme M K C) :
       (ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one _ c))]
 
 /-- Ciphertext indistinguishability implies message-ciphertext independence. -/
-theorem indep_of_ciphertextIndist (scheme : EncScheme M K C)
+theorem indep_of_ciphertextIndist (scheme : EncScheme n M K C)
     (h : scheme.CiphertextIndist)
-    (msgDist : PMF M) (m : M) (c : C) :
+    (msgDist : n M) (m : M) (c : C) :
     scheme.jointDist msgDist (m, c) =
-      msgDist m * scheme.marginalCiphertextDist msgDist c := by
+      (msgDist : PMF M) m * scheme.marginalCiphertextDist msgDist c := by
   rw [jointDist_eq]; congr 1
   change scheme.ciphertextDist m c =
     PMF.bind msgDist (fun m' => scheme.ciphertextDist m') c
@@ -77,50 +78,57 @@ theorem indep_of_ciphertextIndist (scheme : EncScheme M K C)
   rw [ENNReal.tsum_mul_right, PMF.tsum_coe, one_mul]
 
 /-- Ciphertext indistinguishability implies perfect secrecy. -/
-theorem perfectlySecret_of_ciphertextIndist (scheme : EncScheme M K C)
+theorem perfectlySecret_of_ciphertextIndist (scheme : EncScheme n M K C)
     (h : scheme.CiphertextIndist) :
     scheme.PerfectlySecret :=
   (perfectlySecret_iff_indep scheme).mpr (fun msgDist m c =>
     indep_of_ciphertextIndist scheme h msgDist m c)
 
-/-- Perfect secrecy implies ciphertext indistinguishability. -/
-theorem ciphertextIndist_of_perfectlySecret (scheme : EncScheme M K C)
-    (h : scheme.PerfectlySecret) :
+/-- Perfect secrecy implies ciphertext indistinguishability.
+Note we need `n` to support uniform selection for the proof to work -/
+theorem ciphertextIndist_of_perfectlySecret [Monad n] [LawfulMonadLiftT n PMF]
+    [Probability.HasUniformBitVec n] [Probability.LawfulUniformBitVec n]
+    (scheme : EncScheme n M K C) (h : scheme.PerfectlySecret) :
     scheme.CiphertextIndist := by
   classical
   rw [perfectlySecret_iff_indep] at h
   intro m₀ m₁; ext c
   have hs : ({m₀, m₁} : Finset M).Nonempty := ⟨m₀, Finset.mem_insert_self ..⟩
-  set μ := PMF.uniformOfFinset _ hs
+  let μ : n M := do return bif (← Probability.uniformBool) then m₀ else m₁
+  have hμ : (μ : PMF M) = PMF.uniformOfFinset _ hs := by
+    simp only [μ, liftM_bind, liftM_pure, Cslib.Probability.liftM_uniformBool]
+    exact Cslib.Probability.PMF.uniformOfFintype_bool_bind_ite m₀ m₁
   suffices key : ∀ m ∈ ({m₀, m₁} : Finset M),
       scheme.ciphertextDist m c = scheme.marginalCiphertextDist μ c by
     exact (key m₀ (by simp)).trans (key m₁ (by simp)).symm
   intro m hm
   have hne := (PMF.mem_support_uniformOfFinset_iff hs m).mpr hm
   have hne_top := ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one μ m)
-  exact (ENNReal.mul_right_inj hne hne_top).mp (by rw [← jointDist_eq]; exact h μ m c)
+  refine (ENNReal.mul_right_inj hne (hμ ▸ hne_top)).mp ?_
+  exact (hμ ▸ jointDist_eq scheme _ m c).symm.trans (hμ ▸ h μ m c)
 
 /-- If each message maps to a key that encrypts it to a common ciphertext,
 then the key assignment is injective (by correctness of decryption). -/
-lemma encrypt_key_injective (scheme : EncScheme M K C)
+lemma encrypt_key_injective (scheme : EncScheme n M K C) [scheme.Correct]
     (f : M → K) (c₀ : C)
-    (hf_mem : ∀ m, f m ∈ scheme.gen.support)
-    (hf_enc : ∀ m, c₀ ∈ (scheme.enc (f m) m).support) :
+    (hf_mem : ∀ m, f m ∈ PMF.support scheme.gen)
+    (hf_enc : ∀ m, c₀ ∈ PMF.support (scheme.enc (f m) m)) :
     Function.Injective f :=
   fun m₁ m₂ heq =>
-    (scheme.correct _ (hf_mem m₁) m₁ c₀ (hf_enc m₁)).symm.trans
-      (heq ▸ scheme.correct _ (hf_mem m₂) m₂ c₀ (hf_enc m₂))
+    (EncScheme.Correct.dec_enc _ (hf_mem m₁) m₁ c₀ (hf_enc m₁)).symm.trans
+      (heq ▸ EncScheme.Correct.dec_enc _ (hf_mem m₂) m₂ c₀ (hf_enc m₂))
 
 /-- Perfect secrecy requires `|K| ≥ |M|` (Shannon's theorem). -/
-theorem shannonKeySpace [Finite K]
-    (scheme : EncScheme M K C) (h : scheme.PerfectlySecret) :
+theorem shannonKeySpace [Finite K] [Monad n] [LawfulMonadLiftT n PMF]
+    [Probability.HasUniformBitVec n] [Probability.LawfulUniformBitVec n]
+    (scheme : EncScheme n M K C) [scheme.Correct] (h : scheme.PerfectlySecret) :
     Nat.card K ≥ Nat.card M := by
   classical
   have hci := ciphertextIndist_of_perfectlySecret scheme h
   by_cases hM : IsEmpty M; · simp
   obtain ⟨m₀⟩ := not_isEmpty_iff.mp hM
   obtain ⟨c₀, hc₀⟩ := (scheme.ciphertextDist m₀).support_nonempty
-  have key_exists : ∀ m, ∃ k ∈ scheme.gen.support, c₀ ∈ (scheme.enc k m).support := by
+  have key_exists : ∀ m, ∃ k ∈ PMF.support scheme.gen, c₀ ∈ PMF.support (scheme.enc k m) := by
     intro m
     exact (PMF.mem_support_bind_iff _ _ _).mp
       (show c₀ ∈ (scheme.ciphertextDist m).support by rw [hci m m₀]; exact hc₀)
