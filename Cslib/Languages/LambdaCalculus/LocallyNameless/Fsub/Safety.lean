@@ -50,7 +50,7 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing
       have ⟨_, _, ⟨_, _⟩⟩ := der.tabs_inv sub
       have ⟨X, mem⟩ := fresh_exists <| free_union [Ty.fv, fvTy] Var
       simp at mem
-      have : Γ = (Context.mapVal (·[X:=σ']) []) ++ Γ := by grind
+      have : Γ = (Context.mapVal (·[X := σ']) []) ++ Γ := by grind
       rw [openTy_substTy_intro (X := X), open_subst_intro (X := X)] <;> grind [subst_ty]
     case tapp => grind
   case let' Γ _ _ _ _ L der _ ih₁ _ =>
