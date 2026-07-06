@@ -6,13 +6,7 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Foundations.Logic.Operators.And
-public import Cslib.Foundations.Logic.Operators.Or
-public import Cslib.Foundations.Logic.Operators.Impl
-public import Cslib.Foundations.Logic.Operators.Not
-public import Cslib.Foundations.Logic.Operators.Box
-public import Cslib.Foundations.Logic.Operators.Diamond
-public import Cslib.Foundations.Logic.Operators.Iff
+public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
@@ -75,12 +69,12 @@ instance : HasOr (Proposition Atom) := {or := Proposition.or}
 lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : φ₁.or φ₂ = (φ₁ ∨ φ₂) := rfl
 
 /-- Implication. -/
-def Proposition.impl (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ₁ ∨ φ₂
+def Proposition.imp (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ₁ ∨ φ₂
 
-instance : HasImpl (Proposition Atom) := {impl := Proposition.impl}
+instance : HasImp (Proposition Atom) := {imp := Proposition.imp}
 
 @[scoped grind =]
-lemma Proposition.impl_def (φ₁ φ₂ : Proposition Atom) : φ₁.impl φ₂ = (φ₁ → φ₂) := rfl
+lemma Proposition.imp_def (φ₁ φ₂ : Proposition Atom) : φ₁.imp φ₂ = (φ₁ → φ₂) := rfl
 
 /-- Bi-implication. -/
 def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
@@ -160,9 +154,9 @@ Implication is defined in terms of the more primitive connectives given in `Prop
 This result proves that the definition is correct.
 -/
 @[scoped grind =]
-theorem Satisfies.impl_iff_impl {m : Model World Atom} :
+theorem Satisfies.imp_iff_imp {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by
-  grind [=_ Proposition.impl_def, Proposition.impl]
+  grind [=_ Proposition.imp_def, Proposition.imp]
 
 /-- Characterisation of the `↔` connective.
 
@@ -251,13 +245,13 @@ theorem Satisfies.b_symm {World Atom} {r : World → World → Prop} [Nonempty A
     have a := Classical.arbitrary Atom
     let v₁ := fun (w' : World) (a : Atom) => w' = w₁
     let h₁ := h (v := v₁) (w := w₁) (φ := .atom a)
-    simp [impl_iff_impl] at h₁
+    simp [imp_iff_imp] at h₁
     grind
 
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four {m : Model World Atom} [IsTrans World m.r] {w : World}
     (φ : Proposition Atom) : ⇓Modal[m,w ⊨ ◇◇φ → ◇φ] := by
-  simp only [impl_iff_impl]
+  simp only [imp_iff_imp]
   intro h
   rcases h with ⟨w', h₁, w'', h₂, hs⟩
   exact ⟨w'', IsTrans.trans _ _ _ h₁ h₂, hs⟩
