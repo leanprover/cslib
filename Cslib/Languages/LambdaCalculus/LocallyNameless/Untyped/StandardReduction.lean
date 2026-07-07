@@ -95,7 +95,7 @@ variable [DecidableEq Var] [HasFresh Var]
 
 /-- Standard reduction is preserved by substitution. -/
 lemma Standard.subst (hM : M ⭢ₛ M') (hN : N ⭢ₛ N') (x : Var) (lc_N : LC N) (lc_N' : LC N') :
-    (M [ x := N ]) ⭢ₛ (M' [ x := N' ]) := by
+    (M[x := N]) ⭢ₛ (M'[x := N']) := by
   induction hM generalizing N N'
   case fvar =>
     simp only [Term.subst_fvar]
