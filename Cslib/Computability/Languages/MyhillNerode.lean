@@ -74,7 +74,7 @@ variable {l : Language α}
 theorem nerodeCongruenceDA_language_eq (l : Language α) :
     language (l.NerodeCongruenceDA) = l := by
   ext x
-  simp only [NerodeCongruenceDA, language, Acceptor.Accepts, congr_mtr_eq, Set.mem_image]
+  simp only [NerodeCongruenceDA, language, Acceptor.Accepts, congr_mtr_eq]
   constructor
   · rintro ⟨y, hy, heq⟩
     have h1 := Quotient.eq.mp heq []
