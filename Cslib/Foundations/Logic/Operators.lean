@@ -21,7 +21,7 @@ namespace Cslib.Logic
 
 section Propositional
 
--- ## Propositional connectives
+/-! ## Propositional connectives -/
 
 /-- The type `α` has an and connective (`∧`). -/
 class HasAnd (α : Type*) where
@@ -62,7 +62,7 @@ end Propositional
 
 section Modal
 
--- ## Modalities
+/-! ## Modalities -/
 
 /-- The type `α` has a box modality (`□`). -/
 class HasBox (α : Type*) where
@@ -82,7 +82,7 @@ end Modal
 
 section Linear
 
--- ## Linear connectives
+/-! ## Linear connectives -/
 
 /-- The type `α` has a tensor connective (⊗). -/
 class HasTensor (α : Type*) where
