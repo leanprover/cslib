@@ -81,6 +81,8 @@ structure Satisfies.Judgement (State : Type u) (Label : Type v) where
 /-- `Satisfies` variant using bundled judgements. -/
 def Satisfies.Bundled (j : Satisfies.Judgement State Label) := Satisfies j.lts j.state j.φ
 
+instance : HasInferenceSystem (Satisfies.Judgement World Atom) := ⟨Satisfies.Bundled⟩
+
 @[scoped grind =]
 theorem Satisfies.bundled_char : Satisfies.Bundled j ↔ Satisfies j.lts j.state j.φ := by rfl
 
