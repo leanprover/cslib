@@ -25,7 +25,7 @@ attribute [grind =] Finset.union_singleton
 variable [DecidableEq Var]
 
 /-- Substitution of a free variable not present in a term leaves it unchanged. -/
-theorem subst_fresh (x : Var) (t sub : Term Var) (nmem : x ∉ t.fv) : t [x := sub] = t := by
+theorem subst_fresh (x : Var) (t sub : Term Var) (nmem : x ∉ t.fv) : t[x := sub] = t := by
   induction t <;> grind
 
 /- Opening and closing are inverses. -/
@@ -66,7 +66,7 @@ theorem open_preserve_not_fvar (k) (m n : Term Var) :
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Substitution preserves free variables. -/
 lemma subst_preserve_not_fvar {y : Var} (m n : Term Var) :
-    m [y := n].fv = m.fv.erase y ∨ m [y := n].fv = m.fv.erase y ∪ n.fv:= by
+    m[y := n].fv = m.fv.erase y ∨ m[y := n].fv = m.fv.erase y ∪ n.fv:= by
   induction m with
   | app => grind only [fv, = subst_app, = Finset.mem_union, = Finset.mem_erase]
   | _ => grind
@@ -80,7 +80,7 @@ lemma subst_intro_openRec {x} {t e : Term Var} (mem : x ∉ e.fv) {k : ℕ} :
 
 /-- Opening to a term `t` is equivalent to opening to a free variable and substituting for `t`. -/
 lemma subst_intro (x : Var) (t e : Term Var) (mem : x ∉ e.fv) :
-    e ^ t = (e ^ fvar x) [ x := t ] := subst_intro_openRec mem
+    e ^ t = (e ^ fvar x)[x := t] := subst_intro_openRec mem
 
 scoped grind_pattern subst_intro => open' e t, open' e (fvar x)
 
@@ -107,12 +107,12 @@ lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m
 /-- Substitution of a locally closed term distributes with opening. -/
 @[scoped grind =]
 lemma subst_openRec (x : Var) (t : Term Var) (k : ℕ) (u e : Term Var) (lc : LC t) :
-    (e⟦ k ↝ u ⟧)[x := t] = e[x := t]⟦k ↝ u [ x := t ]⟧ := by
+    (e⟦ k ↝ u ⟧)[x := t] = e[x := t]⟦k ↝ u[x := t]⟧ := by
   induction e generalizing k with grind
 
 /-- Specialize `subst_openRec` to the first opening. -/
 lemma subst_open (x : Var) (t : Term Var) (u e : Term Var) (lc : LC t) :
-    (e ^ u)[x := t] = e[x := t] ^ u [ x := t ] := by grind
+    (e ^ u)[x := t] = e[x := t] ^ u[x := t] := by grind
 
 /-- Specialize `subst_open` to the free variables. -/
 theorem subst_open_var (x y : Var) (u e : Term Var) (neq : y ≠ x) (u_lc : LC u) :
@@ -120,7 +120,7 @@ theorem subst_open_var (x y : Var) (u e : Term Var) (neq : y ≠ x) (u_lc : LC u
 
 /-- Substitution of locally closed terms is locally closed. -/
 @[scoped grind ←]
-theorem subst_lc {x : Var} {e u : Term Var} (e_lc : LC e) (u_lc : LC u) : LC (e [x := u]) := by
+theorem subst_lc {x : Var} {e u : Term Var} (e_lc : LC e) (u_lc : LC u) : LC (e[x := u]) := by
   induction e_lc
   case' abs => apply LC.abs (free_union Var)
   all_goals grind
@@ -135,7 +135,7 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) :=
 /-- Closing then opening is equivalent to substitution. -/
 @[scoped grind =]
 lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
-    m ⟦k ↜ x⟧⟦k ↝ n⟧ = m [x := n] := by
+    m ⟦k ↜ x⟧⟦k ↝ n⟧ = m[x := n] := by
   induction m_lc generalizing k with
   | abs xs t =>
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
@@ -148,7 +148,7 @@ lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) 
 
 @[scoped grind =]
 lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) (n_lc : LC n) :
-    (m ^* x) ^ n = m [x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
+    (m ^* x) ^ n = m[x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
 
 /-- Closing and opening are inverses. -/
 lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by

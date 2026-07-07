@@ -175,7 +175,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
       have ⟨q1, q2, _⟩ := qx
       have ⟨t', _⟩ := ih2 s2pu2'
       have ⟨t'', _⟩ := @ih1 x q1 _ (mem' _ q2)
-      refine ⟨t'' [x := t'], ?_⟩
+      refine ⟨t''[x := t'], ?_⟩
       grind
   case app s1 s1' s2 s2' s1ps1' _ ih1 ih2  =>
     cases tpt2
