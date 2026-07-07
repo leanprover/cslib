@@ -35,6 +35,7 @@ class Potential (φ α : Type*) [CommRing φ] [LinearOrder φ] [IsStrictOrderedR
       by "using" potential previously accumulated in cheaper operations. -/
   potential : α → φ
 
+/-- An operation on a data structure that takes a state and returns a new state with its execution time. -/
 abbrev Op α := α → TimeM ℕ α
 
 @[simp] def applyOps {α : Type*} (x : α) (ops : List (Op α))
