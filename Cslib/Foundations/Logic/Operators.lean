@@ -80,6 +80,7 @@ class HasDiamond (α : Type*) where
 
 end Modal
 
+/-
 section Dynamic
 
 /-! ## Dynamic modalities  -/
@@ -99,6 +100,7 @@ class HasDynamicDiamond (α β : Type*) where
 @[inherit_doc] scoped notation "⟨" a "⟩" φ => HasDynamicDiamond.dynDiamond a φ
 
 end Dynamic
+-/
 
 section Linear
 
