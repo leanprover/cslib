@@ -78,8 +78,7 @@ lemma Standard.cbn_step_trans (step : M ⭢ₙ P) (std : P ⭢ₛ N) : M ⭢ₛ 
   case app step_M ih =>
     cases std with
     | app std_L' std_M => exact app (ih std_L') std_M
-    | rdx _ lc_Z cbn_m std_body =>
-      exact rdx (CBN.lc_l step_M) lc_Z (.head step_M cbn_m) std_body
+    | rdx _ lc_Z cbn_m std_body => exact rdx (CBN.lc_l step_M) lc_Z (.head step_M cbn_m) std_body
 
 /-- A Call-by-Name reduction followed by a standard reduction is a standard reduction. -/
 lemma Standard.cbn_trans (h1 : M ↠ₙ P) (h2 : P ⭢ₛ N) : M ⭢ₛ N := by
