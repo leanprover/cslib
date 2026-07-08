@@ -125,11 +125,12 @@ lemma Standard.of_beta_step (step : M ⭢βᶠ N) (lc_M : LC M) : M ⭢ₛ N := 
     cases h_beta
     exact rdx (by assumption) (by assumption) .refl
       (lc_refl _ (Term.beta_lc (by assumption) (by assumption)))
-  case appL A B _ _ _ =>
-    apply Standard.app <;> grind [cases LC, lc_refl]
-  case appR A _ _ _ _ =>
-    have : LC A := by cases lc_M; assumption
-    apply Standard.app <;> grind [lc_refl]
+  case appL Z A B lc_Z _ ih =>
+    cases lc_M
+    exact Standard.app (lc_refl Z lc_Z) (ih (by assumption))
+  case appR Z A B lc_Z _ ih =>
+    cases lc_M
+    exact Standard.app (ih (by assumption)) (lc_refl Z lc_Z)
   case abs ih =>
     apply Standard.abs <| free_union [fv] Var
     intro x hx
@@ -157,12 +158,11 @@ lemma Standard.abs_inv (h : M ⭢ₛ N) (M' : Term Var) (eq : N = Term.abs M') :
   case app => trivial
   case abs m_body m_target xs h_body ih =>
     cases eq
-    exact ⟨m_body, .refl, Standard.abs xs h_body⟩
+    exact ⟨m_body, .refl, .abs xs h_body⟩
   case rdx m1 n1 m1' p1 lc_m1 lc_n1 cbn_m1 _ ih =>
     have ⟨p'', cbn_body, std_p''⟩ := ih M' eq
-    have step1 : Term.app m1 n1 ↠ₙ Term.app (Term.abs m1') n1 := CBN.steps_app_l_cong cbn_m1 lc_n1
-    have step2 : Term.app (Term.abs m1') n1 ⭢ₙ (m1' ^ n1) :=
-      CBN.base (Beta.beta (CBN.steps_lc_r lc_m1 cbn_m1) lc_n1)
+    have step1 : m1.app n1 ↠ₙ m1'.abs.app n1 := CBN.steps_app_l_cong cbn_m1 lc_n1
+    have step2 : m1'.abs.app n1 ⭢ₙ m1' ^ n1 := .base (.beta (CBN.steps_lc_r lc_m1 cbn_m1) lc_n1)
     exact ⟨p'', .trans step1 (.head step2 cbn_body), std_p''⟩
 
 /-- Standard reduction of abstractions is preserved by opening. -/
@@ -180,7 +180,7 @@ lemma Standard.abs_subst
 lemma Standard.trans_step (h1 : M ⭢ₛ P) (h2 : P ⭢βᶠ N) : M ⭢ₛ N := by
   induction h1 generalizing N
   case fvar => contradiction
-  case rdx lc_L lc_M cbn _ ih => exact Standard.rdx lc_L lc_M cbn (ih h2)
+  case rdx lc_L lc_M cbn _ ih => exact .rdx lc_L lc_M cbn (ih h2)
   case abs p_body ih =>
     cases h2
     case abs ih_beta =>
@@ -190,16 +190,15 @@ lemma Standard.trans_step (h1 : M ⭢ₛ P) (h2 : P ⭢βᶠ N) : M ⭢ₛ N := 
     · grind
   case app L1 _ M1 _ std_L std_M ih_L ih_M =>
     cases h2
-    case appL step_M => exact Standard.app std_L (ih_M step_M)
-    case appR step_L _ => exact Standard.app (ih_L step_L) std_M
+    case appL step_M => exact .app std_L (ih_M step_M)
+    case appR step_L _ => exact .app (ih_L step_L) std_M
     case base h_beta =>
       cases h_beta
       have ⟨L1', cbn_L1, std_abs⟩ := Standard.abs_inv std_L _ rfl
       have std_subst := Standard.abs_subst std_abs std_M (Standard.lc_l std_M) (Standard.lc_r std_M)
-      have step1 : Term.app L1 M1 ↠ₙ Term.app (Term.abs L1') M1 :=
-        CBN.steps_app_l_cong cbn_L1 (Standard.lc_l std_M)
-      have step2 : Term.app (Term.abs L1') M1 ⭢ₙ (L1' ^ M1) :=
-        CBN.base (Beta.beta (CBN.steps_lc_r (Standard.lc_l std_L) cbn_L1) (Standard.lc_l std_M))
+      have step1 : L1.app M1 ↠ₙ L1'.abs.app M1 := CBN.steps_app_l_cong cbn_L1 (Standard.lc_l std_M)
+      have step2 : L1'.abs.app M1 ⭢ₙ L1' ^ M1 :=
+        .base (.beta (CBN.steps_lc_r (Standard.lc_l std_L) cbn_L1) (Standard.lc_l std_M))
       exact Standard.cbn_trans (.trans step1 (.single step2)) std_subst
 
 /-- A standard reduction followed by a full β-reduction is a standard reduction. -/
