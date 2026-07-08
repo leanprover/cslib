@@ -16,6 +16,7 @@ public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
 public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.EpsilonTransducer
 public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Pair
@@ -23,6 +24,7 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
+public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.Consensus
 public import Cslib.Computability.Distributed.FLP.ZeroConsensus
@@ -35,7 +37,9 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
+public import Cslib.Computability.Machines.Turing.SingleTape.NonDeterministic
 public import Cslib.Computability.URM.Basic
 public import Cslib.Computability.URM.Computable
 public import Cslib.Computability.URM.Defs

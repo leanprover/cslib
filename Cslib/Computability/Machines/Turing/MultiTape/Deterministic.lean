@@ -88,7 +88,7 @@ proven to be equivalent.
 
 * [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
 * [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
-* [M. Sipser, *Introduction to the Theory of Computation*][Sipser13]
+* [M. Sipser, *Introduction to the Theory of Computation*][Sipser2013]
 
 -/
 
@@ -98,7 +98,7 @@ open Cslib Relation
 
 namespace Turing
 
-variable {Symbol : Type*}
+variable {Symbol : Type}
 
 variable {k : ℕ}
 
@@ -133,9 +133,9 @@ structure TransitionOut (k : ℕ) (Symbol State : Type*) where
 A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
 is the blank `BiTape` symbol).
 -/
-structure MultiTapeTM k Symbol [Inhabited Symbol] [Fintype Symbol] where
+structure MultiTapeTM (k : ℕ) (Symbol : Type) [Inhabited Symbol] [Fintype Symbol] where
   /-- type of state labels -/
-  State : Type*
+  State : Type
   /-- finiteness of the state type -/
   [stateFintype : Fintype State]
   /-- initial state -/
@@ -348,7 +348,7 @@ noncomputable def indicator (L : Language Symbol) : List Symbol → List Symbol
 
 /-- A proof that a Turing machine `tm` decides a language `L` with time and space bounds. -/
 def DecidesLanguageInTimeAndSpace
-    {IOSymbol : Type*} [Inhabited IOSymbol]
+    {IOSymbol : Type} [Inhabited IOSymbol]
     (tm : MultiTapeTM k Symbol)
     (L : Language IOSymbol)
     (toMachineSymbol : IOSymbol ↪ Symbol)
