@@ -211,6 +211,15 @@ lemma Standard.trans_redex (h1 : M ⭢ₛ P) (h2 : P ↠βᶠ N) : M ⭢ₛ N :=
 lemma Standard.trans (h1 : M ⭢ₛ P) (h2 : P ⭢ₛ N) : M ⭢ₛ N :=
   trans_redex h1 (to_redex h2)
 
+instance : Trans (· ⭢ₛ · : Term Var → Term Var → Prop) (· ⭢βᶠ ·) (· ⭢ₛ ·) where
+  trans := Standard.trans_step
+
+instance : Trans (· ⭢ₛ · : Term Var → Term Var → Prop) (· ↠βᶠ ·) (· ⭢ₛ ·) where
+  trans := Standard.trans_redex
+
+instance : Trans (· ⭢ₛ · : Term Var → Term Var → Prop) (· ⭢ₛ ·) (· ⭢ₛ ·) where
+  trans := Standard.trans
+
 /-- The standardization theorem: every full β-reduction is a standard reduction. -/
 theorem Standard.standardization (lc_M : LC M) (step : M ↠βᶠ N) : M ⭢ₛ N := by
   induction step with
