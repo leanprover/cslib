@@ -109,9 +109,9 @@ lemma Standard.subst (hM : M ⭢ₛ M') (hN : N ⭢ₛ N') (x : Var) (lc_N : LC 
     simp only [Term.subst_abs]
     apply abs <| free_union [fv] Var
     intro y hy
-    have h_neq : x ≠ y := by aesop
+    have h_neq : x ≠ y := by grind
     rw [← Term.subst_open_var y x N m h_neq lc_N, ← Term.subst_open_var y x N' m' h_neq lc_N']
-    exact ih y (by aesop) hN lc_N lc_N'
+    exact ih y (by grind) hN lc_N lc_N'
   case rdx n m' _ lc_m lc_n cbn_m std_p ih =>
     rw [Term.subst_app]
     have std_p_subst := ih hN lc_N lc_N'
