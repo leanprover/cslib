@@ -127,8 +127,7 @@ lemma Standard.of_beta_step (step : M ⭢βᶠ N) (lc_M : LC M) : M ⭢ₛ N := 
     exact rdx (by assumption) (by assumption) .refl
       (lc_refl _ (Term.beta_lc (by assumption) (by assumption)))
   case appL A B _ _ _ =>
-    have : LC A := by cases lc_M; assumption
-    apply Standard.app <;> grind [lc_refl]
+    apply Standard.app <;> grind [cases LC, lc_refl]
   case appR A _ _ _ _ =>
     have : LC A := by cases lc_M; assumption
     apply Standard.app <;> grind [lc_refl]
