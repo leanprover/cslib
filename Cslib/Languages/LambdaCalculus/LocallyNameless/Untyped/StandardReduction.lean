@@ -174,8 +174,8 @@ lemma Standard.abs_subst
   cases h_abs
   case abs h_body =>
     have ⟨y, _⟩ := fresh_exists <| free_union [fv] Var
-    have h_subst := Standard.subst (h_body y (by aesop)) hN y lc_N lc_N'
-    rw [← Term.subst_intro y N M (by aesop), ← Term.subst_intro y N' M' (by aesop)] at h_subst
+    have h_subst := Standard.subst (h_body y (by grind)) hN y lc_N lc_N'
+    rw [← Term.subst_intro y N M (by grind), ← Term.subst_intro y N' M' (by grind)] at h_subst
     exact h_subst
 
 /-- A standard reduction followed by a full β-step is a standard reduction. -/
