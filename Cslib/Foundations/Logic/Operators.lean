@@ -80,27 +80,29 @@ class HasDiamond (α : Type*) where
 
 end Modal
 
-/-
 section Dynamic
 
-/-! ## Dynamic modalities  -/
+/-! ## Dynamic modalities
+
+Here we need to use the prefix `d` to distinguish our notation from the normal `[·]` and `⟨·⟩`.
+A refactoring that makes this unnecessary would be welcome.
+-/
 
 /-- The type `α` has a dynamic box modality with action type `β` (`[a]φ`). -/
 class HasDynamicBox (α β : Type*) where
   /-- `b` is necessarily valid after `a`. -/
   dynBox (a : β) (b : α) : α
 
-@[inherit_doc] scoped notation "[" a "]" φ => HasDynamicBox.dynBox a φ
+@[inherit_doc] scoped notation "d[" a "]" φ => HasDynamicBox.dynBox a φ
 
 /-- The type `α` has a dynamic diamond modality with action type `β` (`[a]φ`). -/
 class HasDynamicDiamond (α β : Type*) where
   /-- `b` is possibly valid after `a`. -/
   dynDiamond (a : β) (b : α) : α
 
-@[inherit_doc] scoped notation "⟨" a "⟩" φ => HasDynamicDiamond.dynDiamond a φ
+@[inherit_doc] scoped notation "d⟨" a "⟩" φ => HasDynamicDiamond.dynDiamond a φ
 
 end Dynamic
--/
 
 section Linear
 
