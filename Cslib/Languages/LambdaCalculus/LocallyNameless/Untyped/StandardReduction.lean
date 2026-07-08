@@ -67,7 +67,8 @@ lemma Standard.of_cbn_step (step : M ⭢ₙ N) (lc_N : LC N) : M ⭢ₛ N := by
     cases h_beta
     exact rdx (by assumption) (by assumption) .refl (lc_refl _ lc_N)
   case app L _ _ lc_L _ ih =>
-    exact app (ih (by cases lc_N; assumption)) (lc_refl L lc_L)
+    cases lc_N
+    exact app (ih (by assumption)) (lc_refl L lc_L)
 
 /-- A Call-by-Name step followed by a standard reduction is a standard reduction. -/
 lemma Standard.cbn_step_trans (step : M ⭢ₙ P) (std : P ⭢ₛ N) : M ⭢ₛ N := by
