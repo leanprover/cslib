@@ -188,7 +188,7 @@ lemma Standard.trans_step (h1 : M ⭢ₛ P) (h2 : P ⭢βᶠ N) : M ⭢ₛ N := 
     case abs ih_beta =>
       apply Standard.abs <| free_union [fv] Var
       intro y hy
-      exact ih y (by aesop) (ih_beta y (by aesop))
+      exact ih y (by grind) (ih_beta y (by grind))
     · grind
   case app L1 _ M1 _ std_L std_M ih_L ih_M =>
     cases h2
