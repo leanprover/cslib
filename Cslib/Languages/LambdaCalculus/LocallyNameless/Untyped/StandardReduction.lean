@@ -145,8 +145,7 @@ lemma Standard.to_redex (step : M ⭢ₛ N) : M ↠βᶠ N := by
   case abs xs _ ih => exact FullBeta.redex_abs_cong xs ih
   case rdx n m' _ lc_m lc_n cbn_m std_p ih =>
     have step1 := FullBeta.redex_app_l_cong (CBN.to_redex cbn_m) lc_n
-    have step2 : Term.app (Term.abs m') n ↠βᶠ (m' ^ n) :=
-      .single (Xi.base (Beta.beta (CBN.steps_lc_r lc_m cbn_m) lc_n))
+    have step2 : m'.abs.app n ↠βᶠ m' ^ n := .single (.base (.beta (CBN.steps_lc_r lc_m cbn_m) lc_n))
     exact .trans step1 (.trans step2 ih)
 
 /-- If a standard reduction reaches an abstraction, then its leading Call-by-Name
