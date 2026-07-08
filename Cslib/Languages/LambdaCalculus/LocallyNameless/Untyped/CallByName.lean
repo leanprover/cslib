@@ -39,7 +39,9 @@ lemma CBN.lc_l (step : M ⭢ₙ N) : LC M := by
 
 /-- A single Call-by-Name step is a full β-reduction. -/
 lemma CBN.step_to_redex (step : M ⭢ₙ N) : M ↠βᶠ N := by
-  induction step <;> grind [FullBeta.redex_app_l_cong, Relation.ReflTransGen.single]
+  induction step with
+  · grind [Relation.ReflTransGen.single]
+  · grind [FullBeta.redex_app_l_cong]
 
 /-- Call-by-Name reduction is contained in full β-reduction. -/
 lemma CBN.to_redex (step : M ↠ₙ N) : M ↠βᶠ N := by
