@@ -134,7 +134,7 @@ lemma Standard.of_beta_step (step : M ⭢βᶠ N) (lc_M : LC M) : M ⭢ₛ N := 
   case abs ih =>
     apply Standard.abs <| free_union [fv] Var
     intro x hx
-    exact ih x (by aesop) (Term.beta_lc lc_M (by constructor))
+    exact ih x (by grind) (Term.beta_lc lc_M (by constructor))
 
 /-- Standard reduction is contained in full β-reduction. -/
 lemma Standard.to_redex (step : M ⭢ₛ N) : M ↠βᶠ N := by
