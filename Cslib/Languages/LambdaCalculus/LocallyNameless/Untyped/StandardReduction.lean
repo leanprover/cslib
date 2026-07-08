@@ -115,8 +115,7 @@ lemma Standard.subst (hM : M ⭢ₛ M') (hN : N ⭢ₛ N') (x : Var) (lc_N : LC 
     rw [Term.subst_app]
     have std_p_subst := ih hN lc_N lc_N'
     rw [Term.subst_open x N n m' lc_N] at std_p_subst
-    exact rdx (Term.subst_lc (x := x) lc_m lc_N) (Term.subst_lc (x := x) lc_n lc_N)
-      (CBN.steps_subst x cbn_m lc_N) std_p_subst
+    exact rdx (subst_lc lc_m lc_N) (subst_lc lc_n lc_N) (CBN.steps_subst x cbn_m lc_N) std_p_subst
 
 /-- A single full β-step is a standard reduction. -/
 lemma Standard.of_beta_step (step : M ⭢βᶠ N) (lc_M : LC M) : M ⭢ₛ N := by
