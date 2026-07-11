@@ -102,26 +102,13 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
   | append_singleton Ps P ih =>
     rw [multiApp_tail] at h_red
     cases h_red with
-    | @appL _ _ P' =>
-        right
-        right
-        left
-        refine ⟨Ps ++ [P'], listFullBeta_cons_r ?_ ?_, ?_⟩
-        all_goals grind [multiApp_tail]
-    | @appR _ _ _ _ h =>
-        specialize ih h
-        rcases ih with (_|_| ⟨Ps', h, _⟩ | _)
-        · grind [multiApp_tail]
-        · grind [multiApp_tail]
-        · right
-          right
-          left
-          refine ⟨Ps' ++ [P], listFullBeta_cons_l h ?_, ?_⟩
-          all_goals grind [multiApp_tail]
-        · grind [multiApp_tail]
-    | base =>
-        exfalso
-        induction Ps using List.reverseRecOn generalizing M N with grind [multiApp_tail]
+    | @appL _ _ P' _ P_P' =>
+      have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_cons_r (.step P_P' ?_) <;> grind
+      grind [multiApp_tail]
+    | appR _ h =>
+      have {Ps'} (h : Ps ⭢lβᶠ Ps') : (Ps ++ [P]) ⭢lβᶠ Ps' ++ [P] := listFullBeta_cons_l h (by grind)
+      grind [multiApp_tail]
+    | base => induction Ps using List.reverseRecOn with grind [multiApp_tail]
 
 
 /-- If a term (λ M) N P₁ ... Pₙ reduces in multiple steps to Q, then either Q if of the form
