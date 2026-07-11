@@ -141,8 +141,7 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
     · intro Q' P' hstep1 hstep2
       have ⟨M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases⟩ := invert_abs_multiApp_mst hstep1
       rcases h_cases with h_P | ⟨h_st1, h_st2⟩
-      · exfalso
-        induction Ps' using List.reverseRecOn generalizing M' N' with grind [multiApp_tail]
+      · induction Ps' using List.reverseRecOn with grind [multiApp_tail]
       · have innerSteps : (M ^ N).multiApp Ps ↠βᶠ (M' ^ N').multiApp Ps' := by
           trans
           · exact steps_multiApp_r h_Ps_red (by grind)
