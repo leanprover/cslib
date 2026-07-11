@@ -45,7 +45,7 @@ inductive ListFullBeta : List (Term Var) → List (Term Var) → Prop where
 
 variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
 
-lemma multiApp_tail {N} : (M.multiApp (Ns ++ [N])) = Term.app (M.multiApp Ns) N:= by
+lemma multiApp_tail {N} : (M.multiApp (Ns ++ [N])) = (M.multiApp Ns).app  N:= by
   induction Ns generalizing M with
   | nil => grind
   | cons head tail ih => rw [List.cons_append]; apply ih
