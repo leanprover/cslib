@@ -39,7 +39,7 @@ the Mathlib module instead.
 
 namespace Cslib.Probability.PMF
 
-open PMF ENNReal
+open ENNReal
 
 universe u v
 variable {α : Type u} {β : Type v}
