@@ -679,7 +679,7 @@ lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid :=
 
 end Fact
 
-open Fact
+open PhaseSpace.Fact
 
 /-! ## Interpretation of propositions -/
 
