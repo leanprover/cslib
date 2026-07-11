@@ -133,11 +133,8 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
   | append_singleton Ps P ih =>
     rw [multiApp_tail]
     apply sn_app
-    · rw [multiApp_tail] at *
-      cases lc_MNPs
-      grind [sn_app_left]
-    · rw [multiApp_tail] at sn_MNPs
-      grind [sn_app_right]
+    · grind [cases LC, multiApp_tail, sn_app_left]
+    · grind [multiApp_tail, sn_app_right]
     · intro Q' P' hstep1 hstep2
       have ⟨M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases⟩ := invert_abs_multiApp_mst hstep1
       rcases h_cases with h_P | ⟨h_st1, h_st2⟩
