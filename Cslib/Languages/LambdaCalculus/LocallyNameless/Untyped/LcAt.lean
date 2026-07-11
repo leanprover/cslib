@@ -125,4 +125,7 @@ lemma lcAt_openRec_above_lcAt (M N : Term Var) (i j : ℕ) (h : i ≤ j) (lc : L
     M⟦j ↝ N⟧ = M := by
   induction M generalizing i j <;> grind
 
+lemma lcAt_le (M : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) : LcAt j M := by
+  induction M generalizing i j <;> grind
+
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term
