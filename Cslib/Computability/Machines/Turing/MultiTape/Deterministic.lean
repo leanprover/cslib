@@ -187,7 +187,6 @@ lemma inputSymbolInner {cfg : tm.Cfg} (p : ℕ)
     (h₁ : cfg.inputPos.val = 1 + p)
     (h₂ : p < cfg.input.length) :
     tm.inputSymbol cfg = some cfg.input[p] := by
-  simp [inputSymbol, h₁]
   grind
 
 /-- The symbol read by work tape `i`. -/
@@ -343,7 +342,7 @@ lemma relatesInSteps_iff_configs_eq
     (tm : MultiTapeTM k Symbol)
     (cfg₁ cfg₂ : tm.Cfg)
     (t : ℕ) :
-  RelatesInSteps tm.TransitionRelation cfg₁ cfg₂ t ↔ tm.configs cfg₁ t = cfg₂ := by
+    RelatesInSteps tm.TransitionRelation cfg₁ cfg₂ t ↔ tm.configs cfg₁ t = cfg₂ := by
   unfold configs
   induction t generalizing cfg₁ cfg₂ with
   | zero => simp
