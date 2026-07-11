@@ -80,8 +80,8 @@ lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns 
 lemma listFullBeta_cons_r {l} (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) : (l ++ Ns) ⭢lβᶠ (l ++ Ns') := by
   induction l using List.reverseRecOn generalizing Ns Ns' with grind
 
-lemma listFullBeta_cons_l {l} (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) : (Ns ++ l) ⭢lβᶠ (Ns' ++ l)
-  := by induction h with grind
+lemma listFullBeta_cons_l {l} (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) : (Ns ++ l) ⭢lβᶠ (Ns' ++ l) := by
+  induction h with grind
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- If a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
