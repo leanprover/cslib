@@ -12,6 +12,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Computability.Language
+public import Mathlib.Data.Sign.Defs
 public import Cslib.Foundations.Data.RelatesInSteps
 
 /-!
@@ -98,32 +99,16 @@ open Cslib Relation
 
 namespace Turing
 
-variable {Symbol : Type}
+variable {Symbol : Type} [Inhabited Symbol] [Fintype Symbol]
 
 variable {k : ℕ}
-
-/-- Possible moves of tape heads. -/
-inductive Move
-  | left
-  | stay
-  | right
-
-/-- Translate moves to integer offsets for tape head positions. -/
-def Move.toInt : Move → ℤ
-  | left => -1
-  | stay => 0
-  | right => 1
-
-@[scoped grind .]
-lemma Move.toInt_bound (m : Move) : -1 ≤ m.toInt ∧ m.toInt ≤ 1 := by
-  rcases m with _ | d <;> decide
 
 /-- The output of the transition function. -/
 structure TransitionOut (k : ℕ) (Symbol State : Type*) where
   /-- The movement (attempt) of the input head. -/
-  inputMove : Move
+  inputMove : SignType
   /-- Actions on the work tapes: optionally a symbol to write and the head movement. -/
-  workActions : Fin k → (Option (Option Symbol)) × Move
+  workActions : Fin k → (Option (Option Symbol)) × SignType
   /-- An optional symbol to output. -/
   outS : Option Symbol
   /-- The successor state or none to halt. -/
@@ -158,7 +143,7 @@ the step function that lets the machine transition from one configuration to the
 the resulting sequence of configurations and the initial configuration.
 -/
 
-variable [Inhabited Symbol] [Fintype Symbol] (tm : MultiTapeTM k Symbol)
+variable (tm : MultiTapeTM k Symbol)
 
 /--
 The configurations of a Turing machine consist of:
@@ -186,8 +171,8 @@ deriving Inhabited
 The machine can only read one empty cell outside of the input,
 any attempted movement beyond that results in no movement. -/
 @[scoped grind =]
-def moveInputPos {n : ℕ} (pos : Fin (n + 2)) (m : Move) : Fin (n + 2) :=
-  let p := (pos + m.toInt).toNat
+def moveInputPos {n : ℕ} (pos : Fin (n + 2)) (m : SignType) : Fin (n + 2) :=
+  let p := (pos + ↑m).toNat
   if h : p < n + 2 then ⟨p, h⟩ else ⟨n + 1, by omega⟩
 
 /-- The symbol currently under the input tape head. -/
@@ -223,7 +208,7 @@ def step (cfg : tm.Cfg) : tm.Cfg :=
       workTapes i := match (workActions i).1 with
         | none => cfg.workTapes i
         | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
-      workTapePos i := (cfg.workTapePos i) + (workActions i).2.toInt
+      workTapePos i := (cfg.workTapePos i) + (workActions i).2
       output := match outS with
       | none => cfg.output
       | some s => cfg.output ++ [s]
@@ -253,17 +238,15 @@ lemma workTapePos_step_le (c : tm.Cfg) (i : Fin k) :
   cases hstate : c.state with
   | none => simp
   | some q =>
-    have := (tm.tr q (tm.inputSymbol c) (tm.workTapeSymbols c)).workActions i |>.2 |>.toInt_bound
-    simp only [add_sub_cancel_left]
-    rw [abs_le]
-    omega
+    simp only [add_sub_cancel_left, abs_le, SignType.cast]
+    grind
 
 end Cfg
 
 section Space
 /-! Now we define space usage and add some helper lemmas. -/
 
-variable [Inhabited Symbol] [Fintype Symbol] (tm : MultiTapeTM k Symbol)
+variable (tm : MultiTapeTM k Symbol)
 
 /--
 The number of work tape cells touched by the head of tape `i` in the computation starting from
@@ -306,8 +289,6 @@ lemma spaceUsed_linear (cfg : tm.Cfg) (t : ℕ) : tm.spaceUsed cfg t ≤ k * t +
 end Space
 
 open Cfg
-
-variable [Inhabited Symbol] [Fintype Symbol]
 
 /--
 The `TransitionRelation` corresponding to a `MultiTapeTM k Symbol`
