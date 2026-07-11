@@ -28,7 +28,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 @[simp, scoped grind =]
 def multiApp (f : Term Var) : List (Term Var) → Term Var
 | []      => f
-| a :: as => multiApp (Term.app f a) as
+| a :: as => multiApp (app f a) as
 
 /-- A list of arguments performs a single reduction step
 
