@@ -81,9 +81,9 @@ lemma step_not_fv (step : M ⭢ηᶠ M') : M.fv = M'.fv := by
     grind [open_preserve_not_fvar]
   | _ => grind
 
-/- `s ⭢ηᶠ s'` implies `s [ x := N ] ⭢ηᶠ s' [ x := N ]`. -/
+/- `s ⭢ηᶠ s'` implies `s[x := N] ⭢ηᶠ s'[x := N]`. -/
 lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc_N : LC N) :
-    s [ x := N ] ⭢ηᶠ s' [ x := N ] := by
+    s[x := N] ⭢ηᶠ s'[x := N] := by
   induction step
   case base h => cases h with | eta lc => exact Xi.base (.eta (subst_lc lc lc_N))
   case abs => apply Xi.abs <| free_union Var; grind
@@ -91,7 +91,7 @@ lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc
 
 /- `steps_subst_cong_l` can be generalized to multiple reductions `s ↠ηᶠ s'`. -/
 lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (lc_N : LC N) :
-    s [ x := N ] ↠ηᶠ s' [ x := N ] := by
+    s[x := N] ↠ηᶠ s'[x := N] := by
   induction steps with
   | refl => rfl
   | tail _ step ih => grind [step_subst_cong_l]
@@ -117,9 +117,9 @@ theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
     rw [open_close x M 0, open_close x M' 0]
     all_goals grind [redex_abs_close (x := x) (cofin x ?_) (hL x ?_)]
 
-/- `t ⭢ηᶠ t'` implies `s [ x := t ] ↠ηᶠ s [ x := t' ]`. -/
+/- `t ⭢ηᶠ t'` implies `s[x := t] ↠ηᶠ s[x := t']`. -/
 lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
-    s [ x := t ] ↠ηᶠ s [ x := t' ] := by
+    s[x := t] ↠ηᶠ s[x := t'] := by
   induction lc_s generalizing t t' with
   | fvar => grind
   | app hl hr ih_l ih_r =>
@@ -136,7 +136,7 @@ lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s
 
 /- `steps_subst_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
-    s [ x := t ] ↠ηᶠ s [ x := t' ] := by
+    s[x := t] ↠ηᶠ s[x := t'] := by
   induction st using Relation.ReflTransGen.head_induction_on
   case refl => rfl
   case head _ _ st _ ih => exact .trans (step_subst_cong_r s _ _ st lc_s lc_t) (ih (step_lc_r st))
