@@ -8,7 +8,7 @@ Each file in CSLib includes a copyright header that lists the authors who contri
 
 To see more people who have contributed to CSLib and own copyright to parts of the codebase, please refer to its Git history (on a web browser, this can be accessed at <https://github.com/leanprover/cslib/commits/main>).
 
-**Note**: Git history may not always be fully comprehensive. In cases where code is co-written, only the person who commits the changes may appear in the Git history, even if multiple people contributed to the work.
+**Note**: Git history may not always be fully comprehensive. In cases where code is co-written, commit messages and copyright headers in files may attribute additional authors beyond the single commit author.
 
 ## Co-Authorship
 
