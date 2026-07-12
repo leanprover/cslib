@@ -1,3 +1,9 @@
+<pre>
+Copyright (c) 2026 Ching-Tsun Chou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ching-Tsun Chou
+</pre>
+
 # Impossibility of asynchronous distributed consensus
 
 This directory contains a formalization of Völzer's proof [Volzer2004] of the famous result in
