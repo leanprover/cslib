@@ -47,8 +47,9 @@ def t2 : W → Bool
   | a | c => true
   | b | d => false
 
-/-- Test classes (singletons, written as comprehensions). -/
+/-- Test class `T₁`: the singleton `{ t₁ }`, written as a comprehension. -/
 def T1 : Set (W → Bool) := { f | f = t1 }
+/-- Test class `T₂`: the singleton `{ t₂ }`, written as a comprehension. -/
 def T2 : Set (W → Bool) := { f | f = t2 }
 
 /-- a,b are `T₁`-equivalent but `T₂`-distinct. -/
