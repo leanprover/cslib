@@ -99,6 +99,7 @@ public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Spectrum.Antichain
+public import Cslib.Foundations.Semantics.LTS.Spectrum.BisimPoint
 public import Cslib.Foundations.Semantics.LTS.Spectrum.Galois
 public import Cslib.Foundations.Semantics.LTS.Spectrum.TracePoint
 public import Cslib.Foundations.Semantics.LTS.Termination

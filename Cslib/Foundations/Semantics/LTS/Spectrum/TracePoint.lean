@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 TODO. All rights reserved.
+Copyright (c) 2026 patchwright. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: TODO
+Authors: patchwright
 -/
 
 module
@@ -24,8 +24,10 @@ testing-semantics refinement — one `Bool` test per trace — gives a finer wit
 for the SAME closed element but requires decidability of trace membership; it
 does not change the closed-element verdict.
 
-The Hennessy–Milner theorem (bisim ↔ same HML formulas) is not used; CSLib does
-not yet mechanise it.
+The Hennessy–Milner theorem IS mechanised in CSLib as
+`Cslib.Logic.HML.theoryEq_eq_bisimilarity`; the bisim point built on it is in
+`Spectrum.BisimPoint`. This file (the trace point, kernel-trivial bottom) does
+not use HM — bisimilarity (HM-mediated top) is the companion point there.
 -/
 
 @[expose] public section
