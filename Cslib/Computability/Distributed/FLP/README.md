@@ -1,8 +1,14 @@
-# Impossibility of distributed consensus
+<pre>
+Copyright (c) 2026 Ching-Tsun Chou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ching-Tsun Chou
+</pre>
+
+# Impossibility of asynchronous distributed consensus
 
 This directory contains a formalization of Völzer's proof [Volzer2004] of the famous result in
-distributed computing, first proved by Fischer, Lynch and Paterson [FLP1985], that distributed
-consensus is impossible in the presence of even a single crash fault.
+distributed computing, first proved by Fischer, Lynch and Paterson [FLP1985], that asynchronous
+distributed consensus is impossible in the presence of even a single crash fault.
 
 ## Lean files
 
@@ -12,14 +18,14 @@ consensus is impossible in the presence of even a single crash fault.
 2. `Consensus.lean` defines what it means for a distributed algorithm to solve the consensus problem
    in a fault-tolerant way and proves some basic properties.
 
-*The following files will appear in future PRs:*
-
 3. `FairScheduler.lean` contains a technical machinery for constructing "fair executions", which is used
     in the proof of `PseudoConsensus.of_consensus` in `PseudoConsensus.lean` and in the proof of
     `OnePseudoConsensus.fair_nonUniform` in `Impossibility.lean`.
 
 4. `CanReachVia.lean` defines the notion of reachability via a subset of processes and proves some of
    its properties.
+
+*The following files will appear in future PRs:*
 
 5. `PseudoConsensus.lean` defines the notion of a fault-tolerant "pseudo-consensus" algorithm, which
    is central to Völzer's proof, and proves that every `f`-tolerant consensus algorithm is also a
