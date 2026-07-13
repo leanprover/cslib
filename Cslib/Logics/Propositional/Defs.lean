@@ -107,8 +107,7 @@ protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Propos
 instance : Functor Theory where
   map f := Set.image (f <$> ·)
 
-/-- Intuitionistic propositional logic: the base theory. Ex falso quodlibet is a primitive
-inference rule (see `Derivation.efq`), so no explosion axioms are needed. -/
+/-- Intuitionistic propositional logic: the base theory. -/
 abbrev IPL : Theory Atom := ∅
 
 /-- Classical logic further adds double negation elimination. -/

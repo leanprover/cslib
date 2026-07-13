@@ -46,7 +46,7 @@ abbreviates a derivation of `A` in the empty context: `T⇓(∅ ⊢ A)`.
 The primitive inference rules are: axiom (from theory), assumption (from context),
 conjunction introduction and elimination (×2), disjunction introduction (×2) and elimination,
 implication introduction and elimination, and ex falso quodlibet (⊥-elimination) — 11 constructors
-in total. IPL is the base logic; ex falso is primitive so no extra axioms are needed for explosion.
+in total. IPL is the base logic.
 Taking ex falso quodlibet as a primitive rule gives `⊥` an elimination rule rather than leaving it
 a constructor with no inference behaviour, following the natural-deduction tradition
 [Avigad2022], [TroelstraVanDalen1988], [Prawitz1965], [Gentzen1935].
@@ -90,8 +90,7 @@ abbrev Sequent {Atom} := Ctx Atom × Proposition Atom
 scoped notation Γ:60 " ⊢ " A => (⟨Γ, A⟩ : Sequent)
 
 /-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
-possibly appealing to axioms from `T`. Primitives: axiom, assumption, conjunction intro/elim,
-disjunction intro/elim, implication intro/elim, and ex falso quodlibet (⊥-elimination). -/
+possibly appealing to axioms from `T`. -/
 inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom → Type u where
   /-- Axiom -/
   | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation Γ A
@@ -266,11 +265,11 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
       exact (Ds B h).weakCtx <| by grind
     case neg h =>
       exact ass <| by grind
-  | @andI _ _ _ Γ A' B' E₁ E₂ => andI (E₁.subs Ds) (E₂.subs Ds)
-  | @andE₁ _ _ _ Γ A' B' E => andE₁ (E.subs Ds)
-  | @andE₂ _ _ _ Γ A' B' E => andE₂ (E.subs Ds)
-  | @orI₁ _ _ _ Γ A' B' E => orI₁ (E.subs Ds)
-  | @orI₂ _ _ _ Γ A' B' E => orI₂ (E.subs Ds)
+  | andI E₁ E₂ => andI (E₁.subs Ds) (E₂.subs Ds)
+  | andE₁ E => andE₁ (E.subs Ds)
+  | andE₂ E => andE₂ (E.subs Ds)
+  | orI₁ E => orI₁ (E.subs Ds)
+  | orI₂ E => orI₂ (E.subs Ds)
   | @orE _ _ _ Γ A' B' C' E EA EB => by
     apply orE (E.subs Ds)
     · rw [show insert A' (Γ \ Γ' ∪ Δ) = (insert A' Γ \ Γ') ∪ insert A' Δ by grind]
