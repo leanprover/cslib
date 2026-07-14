@@ -202,7 +202,7 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
     · induction xs using List.reverseRec <;> grind
     · simp_all [flts, List.append_eq_cons_iff]
 
-/- Languages matching regular expressions are regular. -/
+/-- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex [Inhabited Symbol] {l : Language Symbol}
     (h : ∃ r : RegularExpression Symbol, r.matches' = l) : l.IsRegular := by
   obtain ⟨r, hr⟩ := h
