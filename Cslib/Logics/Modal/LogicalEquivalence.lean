@@ -54,7 +54,7 @@ theorem Proposition.equiv_valid (S : Set (Model World Atom))
 /-- Propositional contexts. -/
 inductive Proposition.Context (Atom : Type u) : Type u where
   | hole
-  | not (c : Context Atom)
+  | neg (c : Context Atom)
   | andL (c : Context Atom) (φ : Proposition Atom)
   | andR (φ : Proposition Atom) (c : Context Atom)
   | diamond (c : Context Atom)
@@ -64,7 +64,7 @@ inductive Proposition.Context (Atom : Type u) : Type u where
 def Proposition.Context.fill (c : Context Atom) (φ : Proposition Atom) :=
   match c with
   | hole => φ
-  | not c => .not (c.fill φ)
+  | neg c => Proposition.neg (c.fill φ)
   | andL c φ' => (c.fill φ).and φ'
   | andR φ' c => φ'.and (c.fill φ)
   | diamond c => .diamond (c.fill φ)
@@ -89,7 +89,7 @@ instance {World Atom} (S : Set (Model World Atom)) :
   elim ctx φ₁ φ₂ heqv m hₘ w := by
     induction ctx generalizing w
     case hole => grind
-    case not c ih | andL c ih | andR c ih =>
+    case neg c ih | andL c ih | andR c ih =>
       specialize ih w
       grind
     case diamond c ih =>
