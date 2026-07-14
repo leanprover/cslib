@@ -193,15 +193,14 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
   let flts := FLTS.mk (fun (s : Fin 3) (x : Symbol) ↦ if (s = 0 ∧ x = a) then 1 else 2)
   use Fin 3, inferInstance, ⟨DA.mk flts 0, {1}⟩
   ext xs
+  change _ ↔ xs ∈ ({[a]} : Set (List Symbol))
   induction xs using List.reverseRec with
-  | nil =>
-    simp only [Fin.isValue, mem_language, Accepts, FLTS.mtr, foldl_nil, mem_singleton_iff,
-      zero_ne_one, false_iff, flts]
-    change [] ∉ ( { [a] } : Set (List Symbol) )
-    simp
+  | nil => grind [Accepts]
   | append_singleton xs x ih =>
     simp only [Fin.isValue, mem_language, Accepts, mem_singleton_iff, FLTS.mtr_concat_eq] at ih ⊢
-    sorry
+    constructor
+    · induction xs using List.reverseRec <;> grind
+    · simp_all [flts, List.append_eq_cons_iff]
 
 /- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex [Inhabited Symbol] {l : Language Symbol}
