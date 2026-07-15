@@ -193,25 +193,24 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
   let flts := FLTS.mk (fun (s : Fin 3) (x : Symbol) ↦ if (s = 0 ∧ x = a) then 1 else 2)
   use Fin 3, inferInstance, ⟨DA.mk flts 0, {1}⟩
   ext xs
-  change _ ↔ xs ∈ ({[a]} : Set (List Symbol))
   induction xs using List.reverseRec with
-  | nil => grind [Accepts]
+  | nil => grind [Accepts, Language.mem_singleton]
   | append_singleton xs x ih =>
-    simp only [Fin.isValue, mem_language, Accepts, mem_singleton_iff, FLTS.mtr_concat_eq] at ih ⊢
+    simp only [mem_language, Accepts, Language.mem_singleton, FLTS.mtr_concat_eq] at ih ⊢
     constructor
     · induction xs using List.reverseRec <;> grind
     · simp_all [flts, List.append_eq_cons_iff]
 
 /-- Languages matching regular expressions are regular. -/
-theorem IsRegular.regex [Inhabited Symbol] {l : Language Symbol}
-    (h : ∃ r : RegularExpression Symbol, r.matches' = l) : l.IsRegular := by
-  obtain ⟨r, hr⟩ := h
-  induction r generalizing l with
-  | zero => simp [← hr]
-  | epsilon => simp [← hr]
-  | char a => simp [← hr, IsRegular.char a]
-  | plus P Q hP hQ => simpa [← hr] using IsRegular.add (hP rfl) (hQ rfl)
-  | comp P Q hP hQ => simpa [← hr] using IsRegular.mul (hP rfl) (hQ rfl)
-  | star P hP => simpa [← hr] using IsRegular.kstar (hP rfl)
+theorem IsRegular.regex [Inhabited Symbol] {r : RegularExpression Symbol} :
+    r.matches'.IsRegular := by
+  -- obtain ⟨r, hr⟩ := h
+  induction r with
+  | zero => simp
+  | epsilon => simp
+  | char a => simp [IsRegular.char a]
+  | plus P Q hP hQ => grind [RegularExpression.matches', IsRegular.add]
+  | comp P Q hP hQ => grind [RegularExpression.matches', IsRegular.mul]
+  | star P hP => grind [RegularExpression.matches', IsRegular.kstar]
 
 end Cslib.Language
