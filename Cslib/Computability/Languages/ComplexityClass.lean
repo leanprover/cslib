@@ -1,7 +1,8 @@
 
-import Cslib.Foundations.Data.Encoding
-import Cslib.Computability.Automata.Acceptor
-import Mathlib.Computability.TMComputable
+import Cslib.Foundations.Data.BitstringEncoding
+-- import Cslib.Computability.Automata.Acceptor
+import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
+import Cslib.Computability.Languages.PolyTimeComputable
 
 /-!
 # Complexity Classes
@@ -29,12 +30,6 @@ implicitly assuming the usual encodings.
 TODO: An Decision Problem type over arbitrary types.
 -/
 abbrev BitstringDecisionProblem : Type := List Bool → Bool
-
-/--
-A simple definition to abstract the notion of a poly-time Turing machine into a predicate.
--/
-def IsComputableInPolyTime {α β : Type} (ea : FinEncoding α) (eb : FinEncoding β) (f : α → β) :=
-  Nonempty (TM2ComputableInPolyTime ea eb f)
 
 /--
 The list of all bitstrings of exactly length `n`, in lexicographic order.
@@ -69,7 +64,7 @@ def BitstringDecisionProblem.universallyQuantifyOverPolynomial
     BitstringDecisionProblem :=
   fun x ↦
     List.all (bitstringsUpToLength (p.eval x.length)) fun w ↦
-      L (encode_list_bool_prod_list_bool (x, w))
+      L (BitstringEncoding.encode (x, w))
 
 /--
 Given a polynomial `p` and a bitstring decision problem `L` that operates on pairs of bitstrings,
@@ -83,7 +78,7 @@ def BitstringDecisionProblem.existentiallyQuantifyOverPolynomial
     (p : Polynomial ℕ) (L : BitstringDecisionProblem) :
     BitstringDecisionProblem :=
   fun x ↦ List.any (bitstringsUpToLength (p.eval x.length)) fun w ↦
-    L (encode_list_bool_prod_list_bool (x, w))
+    L (BitstringEncoding.encode (x, w))
 
 @[simp]
 lemma BitstringDecisionProblem.universallyQuantifyOverPolynomial_complement
@@ -120,7 +115,7 @@ The class P is the set of decision problems
 decidable in polynomial time by a deterministic Turing machine.
 -/
 def P : ComplexityClass :=
-  { L | IsComputableInPolyTime finEncodingListBool finEncodingBoolBool L }
+  { L | IsComputableInPolyTime L }
 
 /--
 The complement of a complexity class `C` is the set of decision problems
@@ -141,21 +136,25 @@ lemma complement_complement (C : ComplexityClass) :
 @[simp]
 lemma P_complement : P.complement = P := by
   ext L
-  -- TODO requires showing that Bool.not is poly time,
-  -- and composition of poly-time functions is poly-time
-  sorry
+  simp_rw [complement, P, Set.mem_setOf_eq, compl]
+  constructor
+  · intro h
+    rw [show (fun i => !L i) = Bool.not ∘ L by grind] at h
+    rw [show L = Bool.not ∘ (Bool.not ∘ L) by grind]
+    exact IsComputableInPolyTime.comp h (IsComputableInPolyTime.finite not)
+  · intro h
+    rw [show (fun i => !L i) = Bool.not ∘ L by grind]
+    exact IsComputableInPolyTime.comp h (IsComputableInPolyTime.finite not)
 
 def polyUniversallyQuantify (C : ComplexityClass) :
     ComplexityClass :=
-  { L | ∃ p : Polynomial ℕ, ∃ L' ∈ C,
-      L = BitstringDecisionProblem.universallyQuantifyOverPolynomial p L' }
+  { BitstringDecisionProblem.universallyQuantifyOverPolynomial p L | (p : Polynomial ℕ) (L ∈ C) }
 
 notation "∀ᴾ " C => polyUniversallyQuantify C
 
 def polyExistentiallyQuantify (C : ComplexityClass) :
     ComplexityClass :=
-  { L | ∃ p : Polynomial ℕ, ∃ L' ∈ C,
-      L = BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L' }
+  { BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L | (p : Polynomial ℕ) (L ∈ C) }
 
 notation "∃ᴾ " C => polyExistentiallyQuantify C
 
@@ -186,16 +185,16 @@ lemma polyUniversallyQuantify_complement
   intro p
   constructor
   · intro ⟨L', hL', h_eq⟩
-    replace h_eq : Lᶜᶜ = BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L'ᶜ := by
-      rw [h_eq]
-      simp
+    replace h_eq : BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L'ᶜ = Lᶜᶜ := by
+      rw [← h_eq]
+      simp only [BitstringDecisionProblem.universallyQuantifyOverPolynomial_complement]
     use L'ᶜ
     simp only [compl_compl] at *
     exact And.symm ⟨h_eq, hL'⟩
   · intro ⟨L', hL', h_eq⟩
-    replace h_eq : Lᶜ = BitstringDecisionProblem.universallyQuantifyOverPolynomial p L'ᶜ := by
-      rw [h_eq]
-      simp
+    replace h_eq : BitstringDecisionProblem.universallyQuantifyOverPolynomial p L'ᶜ = Lᶜ := by
+      rw [← h_eq]
+      simp only [BitstringDecisionProblem.existentiallyQuantifyOverPolynomial_complement]
     use L'ᶜ
 
 @[simp]
@@ -209,16 +208,16 @@ lemma polyExistentiallyQuantify_complement
   intro p
   constructor
   · intro ⟨L', hL', h_eq⟩
-    replace h_eq : Lᶜᶜ = BitstringDecisionProblem.universallyQuantifyOverPolynomial p L'ᶜ := by
-      rw [h_eq]
-      simp
+    replace h_eq : BitstringDecisionProblem.universallyQuantifyOverPolynomial p L'ᶜ = Lᶜᶜ := by
+      rw [← h_eq]
+      simp only [BitstringDecisionProblem.existentiallyQuantifyOverPolynomial_complement]
     use L'ᶜ
     simp only [compl_compl] at *
     exact And.symm ⟨h_eq, hL'⟩
   · intro ⟨L', hL', h_eq⟩
-    replace h_eq : Lᶜ = BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L'ᶜ := by
-      rw [h_eq]
-      simp
+    replace h_eq : BitstringDecisionProblem.existentiallyQuantifyOverPolynomial p L'ᶜ = Lᶜ := by
+      rw [← h_eq]
+      simp only [BitstringDecisionProblem.universallyQuantifyOverPolynomial_complement]
     use L'ᶜ
 
 lemma complement_mono
@@ -247,9 +246,7 @@ lemma polyUniversallyQuantify_mono
   simp only [Set.subset_def]
   intro L hL
   rcases hL with ⟨p, L', hL', h_eq⟩
-  use p
-  use L'
-  exact ⟨h hL', h_eq⟩
+  exact ⟨p, L', h hL', h_eq⟩
 
 lemma polyExistentiallyQuantify_mono
     {C D : ComplexityClass} (h : C ⊆ D) :
@@ -258,19 +255,41 @@ lemma polyExistentiallyQuantify_mono
   simp only [Set.subset_def]
   intro L hL
   rcases hL with ⟨p, L', hL', h_eq⟩
-  use p
-  use L'
-  exact ⟨h hL', h_eq⟩
+  exact ⟨p, L', h hL', h_eq⟩
 
+def extract_statement (input : List Bool) : Option (List Bool) :=
+  match BitstringEncoding.decode (α := List Bool × List Bool) input with
+    | none => none
+    | some (x', w) => some x'
+
+/--
+The bitstring decision problem that decodes the input as a pair of lists,
+then tests if the first list satisfies L.
+Returns false if decoding failure.
+-/
+def ignore_witness (L : BitstringDecisionProblem) : BitstringDecisionProblem :=
+  (fun x ↦ x |>.map (fun x' ↦ L x') |>.getD false) ∘ extract_statement
 
 lemma P_subset_NP : P ⊆ NP := by
   unfold NP
   unfold polyExistentiallyQuantify
+  simp_rw [P, Set.mem_setOf_eq]
   intro L hL
-  simp only [Set.mem_setOf_eq]
   use 0
-  -- TODO requires proving that pairing operations are poly-time
-  sorry
+  -- TODO requires proving that pairing decoding is poly-time
+  simp_all only [Set.mem_setOf_eq]
+  use ignore_witness L
+  constructor
+  · simp only [ignore_witness]
+    apply IsComputableInPolyTime.comp
+    · sorry
+    · exact IsComputableInPolyTime.comp hL.optionMap
+        (IsComputableInPolyTime.finite fun o : Option Bool => o.getD false)
+  · ext x
+    simp [BitstringDecisionProblem.existentiallyQuantifyOverPolynomial, ignore_witness,
+      extract_statement]
+
+
 
 lemma P_subset_coNP : P ⊆ coNP := by
   unfold coNP
