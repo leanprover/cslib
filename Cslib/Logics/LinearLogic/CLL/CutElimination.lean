@@ -4,33 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Logics.LinearLogic.CLL.Basic
+module
 
-namespace Cslib
+public import Cslib.Logics.LinearLogic.CLL.Basic
 
-namespace CLL
+/-! -/
 
-universe u
+@[expose] public section
 
-variable {Atom : Type u}
+namespace Cslib.Logic.CLL
 
-/-- A proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree (p : ⇓Γ) : Bool :=
-  match p with
-  | ax => true
-  | one => true
-  | bot p => p.cutFree
-  | parr p => p.cutFree
-  | tensor p q => p.cutFree && q.cutFree
-  | oplus₁ p => p.cutFree
-  | oplus₂ p => p.cutFree
-  | .with p q => p.cutFree && q.cutFree
-  | top => true
-  | quest p => p.cutFree
-  | weaken p => p.cutFree
-  | contract p => p.cutFree
-  | bang _ p => p.cutFree
-  | cut _ _ => false
+open Cslib.Logic.InferenceSystem
 
 /-- A `CutFreeProof` is a `Proof` without cuts (applications of `Proof.cut`). -/
 abbrev CutFreeProof (Γ : Sequent Atom) := { q : ⇓Γ // q.cutFree }
@@ -47,6 +31,4 @@ cut. -/
 -/
 -- def Proof.cut_elim (p : ⇓Γ) : CutFreeProof Γ
 
-end CLL
-
-end Cslib
+end Cslib.Logic.CLL

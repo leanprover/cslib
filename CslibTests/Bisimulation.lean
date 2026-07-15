@@ -8,7 +8,7 @@ import Cslib.Foundations.Semantics.LTS.Bisimulation
 
 namespace CslibTests
 
-open Cslib
+open Cslib LTS
 
 /- An LTS with two bisimilar states. -/
 private inductive tr1 : ℕ → Char → ℕ → Prop where

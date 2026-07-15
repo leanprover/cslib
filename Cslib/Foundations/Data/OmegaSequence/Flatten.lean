@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou
 -/
 
-import Cslib.Foundations.Data.Nat.Segment
-import Cslib.Foundations.Data.OmegaSequence.Init
+module
+
+public import Cslib.Foundations.Data.Nat.Segment
+public import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Flattening an infinite sequence of lists
@@ -15,6 +17,8 @@ concatenating all members of `ls`.  For this definition to make proper sense,
 we will consistently assume that all lists in `ls` are nonempty.  Furthermore,
 in order to simplify the definition, we will also assume [Inhabited α].
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -121,8 +125,8 @@ theorem append_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k,
 
 /-- The length of `(ls.take n).flatten` is `ls.cumLen n`. -/
 @[simp, nolint simpNF, scoped grind =]
-theorem length_flatten_take {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
-    (n : ℕ) : (ls.take n).flatten.length = ls.cumLen n := by
+theorem length_flatten_take {ls : ωSequence (List α)} (n : ℕ) :
+    (ls.take n).flatten.length = ls.cumLen n := by
   induction n <;> grind [take_succ']
 
 /-- `In fact, (ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
@@ -133,7 +137,7 @@ theorem flatten_take_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) := by
   apply append_left_right_injective
   · rw [append_flatten h_ls n, append_take_drop (ls.cumLen n) ls.flatten]
-  · rw [length_flatten_take h_ls, length_take]
+  · rw [length_flatten_take, length_take]
 
 theorem flatten_take [Inhabited α]
     {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0) (n : ℕ) :
@@ -145,8 +149,8 @@ theorem flatten_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) :=
   (flatten_take_drop h_ls n).2
 
-/-- `ls n` is the segement from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
-of ls.flatten` -/
+/-- `ls n` is the segment from position `ls.cumLen n` to position `ls.cumLen (n + 1) - 1`
+of `ls.flatten` -/
 @[simp, scoped grind =]
 theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (n : ℕ) : ls.flatten.extract (ls.cumLen n) (ls.cumLen (n + 1)) = ls n := by
@@ -154,6 +158,15 @@ theorem extract_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k
   have h_drop := flatten_drop h_ls n
   have h_take := flatten_take h_ls' 1
   grind [extract_eq_drop_take]
+
+/-- Distributivity of "forall" over `flatten`. -/
+theorem forall_flatten_iff [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
+    (p : α → Prop) : (∀ n, p (ls.flatten n)) ↔ ∀ k, (ls k).Forall p := by
+  constructor
+  · simp only [List.forall_iff_forall_mem, List.forall_mem_iff_getElem, ← extract_flatten h_ls]
+    grind
+  · have := segment_upper_bound (cumLen_strictMono h_ls)
+    grind [List.forall_iff_forall_mem, flatten_def]
 
 /-- Given an ω-sequence `s` and a function `f : ℕ → ℕ`, `s.toSegs f` is the ω-sequence
 whose `n`-th element is the list `s.extract (f n) (f (n + 1))`.  In all its uses, the

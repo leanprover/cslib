@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+module
+
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+public import Cslib.Foundations.Relation.Confluence
 
 /-! # λ-calculus
 
@@ -20,6 +22,8 @@ Theorems in this file are namespaced by their respective reductions.
   this is partially adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -46,7 +50,7 @@ theorem redex_preservesTyping :
 open _root_.Relation in
 /-- Confluence preserves type preservation. -/
 theorem confluence_preservesTyping {τ : Ty Base}
-    (con : Confluence R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
+    (con : Confluent R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
     (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) :
     ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
   have ⟨d, bd, cd⟩ := con ab ac
@@ -58,14 +62,15 @@ namespace FullBeta
 
 open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
+set_option linter.unusedDecidableInType false in
 /-- Typing preservation for full beta reduction. -/
 @[scoped grind →]
 theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by
   induction der generalizing t' <;> cases step
   case abs.abs xs _ _ _ xs' _ => apply Typing.abs (free_union Var); grind
-  case app.beta der _ _ _ der_l _ _ =>
-    -- TODO: this is a regression from aesop, where `preservation_open` was a forward rule
-    cases der_l with | abs _ cofin => simp [preservation_open cofin der]
+  case app.base h der _ _ der_l =>
+    cases der_l
+    cases h with | abs _ cofin => exact preservation_open cofin der
   all_goals grind
 
 open scoped Term in
@@ -84,15 +89,14 @@ theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ) : t.Value 
   case app Γ M σ τ N der_l der_r ih_l ih_r =>
     simp only [eq, forall_const] at *
     right
-    cases ih_l
+    cases ih_l with
     -- if the lhs is a value, beta reduce the application
-    next val =>
-      cases val
-      next M M_abs_lc => exact ⟨M ^ N, Term.FullBeta.beta M_abs_lc der_r.lc⟩
-    -- otherwise, propogate the step to the lhs of the application
-    next step =>
-      obtain ⟨M', stepM⟩ := step
-      exact ⟨M'.app N, Term.FullBeta.appR der_r.lc stepM⟩
+    | inl val => cases val with | abs M _ => use M ^ N, by grind
+    -- otherwise, propagate the step to the lhs of the application
+    | inr step =>
+      obtain ⟨M', _⟩ := step
+      use M'.app N
+      grind
 
 end FullBeta
 

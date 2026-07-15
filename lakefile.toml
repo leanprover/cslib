@@ -1,7 +1,7 @@
 name = "cslib"
 version = "0.1.0"
 defaultTargets = ["Cslib"]
-testDriver = "runTests"
+testDriver = "CslibTests"
 lintDriver = "batteries/runLinter"
 
 [leanOptions]
@@ -12,26 +12,22 @@ weak.linter.flexible = true
 weak.linter.pythonStyle = false
 weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false
+# this is currently not extensible for unicode not used in Mathlib
+weak.linter.unicodeLinter = false
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.26.0-rc2"
+rev = "81a5d257c8e410db227a6665ed08f64fea08e997"
 
 [[lean_lib]]
 name = "Cslib"
-globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = ["CslibTests.+"]
+leanOptions = {weak.linter.style.header = false}
 
 [[lean_exe]]
 name = "checkInitImports"
 srcDir = "scripts"
 root = "CheckInitImports"
-
-[[lean_exe]]
-name = "runTests"
-srcDir = "scripts"
-root = "RunTests"

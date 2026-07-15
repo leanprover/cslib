@@ -4,16 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ching-Tsun Chou, Fabrizio Montesi
 -/
 
-import Cslib.Foundations.Data.OmegaSequence.Defs
-import Mathlib.Algebra.Order.Ring.Nat
-import Mathlib.Algebra.Order.Sub.Basic
-import Mathlib.Data.Nat.Lattice
+module
+
+public import Cslib.Foundations.Data.OmegaSequence.Defs
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Algebra.Order.Sub.Basic
+public import Mathlib.Order.Lattice.Nat
 
 /-!
 # ω-sequences a.k.a. infinite sequences
 
 Most code below is adapted from Mathlib.Data.Stream.Init.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -36,7 +40,7 @@ protected theorem eta (s : ωSequence α) : head s ::ω tail s = s := by
 /-- Alias for `ωSequence.eta` to match `List` API. -/
 alias cons_head_tail := ωSequence.eta
 
-@[ext]
+@[ext, grind ext]
 protected theorem ext {s₁ s₂ : ωSequence α} : (∀ n, s₁ n = s₂ n) → s₁ = s₂ := by
   apply DFunLike.ext
 
@@ -443,7 +447,7 @@ theorem append_extract_drop {xs : ωSequence α} {n : ℕ} :
     (xs.extract 0 n) ++ω (xs.drop n) = xs := by
   simp [extract_eq_take, append_take_drop]
 
-theorem extract_apppend_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
+theorem extract_append_right_right {xl : List α} {xs : ωSequence α} {m n : ℕ} (h : xl.length ≤ m) :
     (xl ++ω xs).extract m n = xs.extract (m - xl.length) (n - xl.length) := by
   grind [extract_eq_drop_take, drop_append_of_ge_length]
 
@@ -482,6 +486,7 @@ theorem append_extract_extract {xs : ωSequence α} {k m n : ℕ} (h_km : k ≤ 
   have : n - k = (m - k) + (n - m) := by grind
   grind [extract_eq_drop_take, take_add]
 
+@[scoped grind =]
 theorem extract_succ_right {xs : ωSequence α} {m n : ℕ} (h_mn : m ≤ n) :
     xs.extract m (n + 1) = xs.extract m n ++ [xs n] := by
   rw [← append_extract_extract h_mn] <;>
@@ -502,6 +507,19 @@ theorem extract_0u_extract_lu {xs : ωSequence α} {n i j : ℕ} (h : j ≤ n) :
 theorem extract_0u_extract_l {xs : ωSequence α} {n i : ℕ} :
     (xs.extract 0 n).extract i = xs.extract i n := by
   grind
+
+@[simp, scoped grind =]
+theorem take_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
+    (xs.extract m n).take k = xs.extract m (m + k) := by
+  grind [extract_lu_extract_lu (xs := xs) (i := 0) h]
+
+@[simp, scoped grind =]
+theorem drop_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
+    (xs.extract m n).drop k = xs.extract (m + k) n := by
+  by_cases m ≤ n
+  · grind only [extract_lu_extract_lu, length_extract, List.length_drop, List.take_length]
+  · have : k = 0 := by grind only
+    grind only [List.drop_zero]
 
 end ωSequence
 

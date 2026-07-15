@@ -1,0 +1,70 @@
+/-
+Copyright (c) 2025 Ching-Tsun Chou. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ching-Tsun Chou
+-/
+
+module
+
+public import Cslib.Computability.Automata.NA.Basic
+
+/-! # Equivalence of nondeterministic Buchi automata (NBAs). -/
+
+@[expose] public section
+
+universe u v w
+
+namespace Cslib.Automata.NA.Buchi
+
+open Set Function Filter ωSequence ωLanguage ωAcceptor
+open scoped LTS
+
+variable {Symbol : Type u} {State : Type v} {State' : Type w}
+
+/-- Lifts an equivalence on states to an equivalence on NBAs. -/
+@[scoped grind =]
+def reindex (f : State ≃ State') : Buchi State Symbol ≃ Buchi State' Symbol where
+  toFun nba := {
+    Tr s x t := nba.Tr (f.symm s) x (f.symm t)
+    start := f '' nba.start
+    accept := f.symm ⁻¹' nba.accept
+  }
+  invFun nba' := {
+    Tr s x t := nba'.Tr (f s) x (f t)
+    start := f.symm '' nba'.start
+    accept := f ⁻¹' nba'.accept
+  }
+  left_inv nba := by simp
+  right_inv nba' := by simp
+
+theorem reindex_run_iff {f : State ≃ State'} {nba : Buchi State Symbol}
+    {xs : ωSequence Symbol} {ss' : ωSequence State'} :
+    (nba.reindex f).Run xs ss' ↔ nba.Run xs (ss'.map f.symm) := by
+  constructor
+  · rintro ⟨h_init, h_next⟩
+    exact ⟨mem_image_equiv.mp  h_init, fun n ↦ h_next n⟩
+  · rintro ⟨h_init, h_next⟩
+    exact ⟨mem_image_equiv.mpr h_init, fun n ↦ h_next n⟩
+
+@[simp]
+theorem reindex_run_iff' {f : State ≃ State'} {nba : Buchi State Symbol}
+    {xs : ωSequence Symbol} {ss : ωSequence State} :
+    (nba.reindex f).Run xs (ss.map f) ↔ nba.Run xs ss := by
+  simp [reindex_run_iff]
+
+@[simp, scoped grind =]
+theorem reindex_language_eq {f : State ≃ State'} {nba : Buchi State Symbol} :
+    language (nba.reindex f) = language nba := by
+  apply mem_ext
+  intro xs
+  constructor
+  · rintro ⟨ss', h_run', h_acc'⟩
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    simp only [mem_language, Accepts]
+    exact frequently_principal.mp (· (reindex_run_iff.mp h_run') h_acc')
+  · rintro ⟨ss, h_run, h_acc⟩
+    use ss.map f
+    constructor <;> grind [reindex_run_iff']
+
+end Cslib.Automata.NA.Buchi

@@ -4,10 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Foundations.Data.Relation
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+module
+
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+public import Cslib.Foundations.Relation.Confluence
 
 /-! # β-confluence for the λ-calculus -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -17,8 +23,10 @@ variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
+open Relation
+
 /-- A parallel β-reduction step. -/
-@[reduction_sys paraRs "ₚ"]
+@[reduction_sys "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
@@ -39,12 +47,6 @@ attribute [scoped grind .] Parallel.fvar Parallel.app
 attribute [scoped grind cases] Parallel
 
 variable {M M' N N' : Term Var}
-
---- TODO: I think this could be generated along with the ReductionSystem
-@[scoped grind _=_]
-private lemma para_rs_Red_eq : M ⭢ₚ N ↔ Parallel M N := by
-  have : (@paraRs Var).Red = Parallel := by rfl
-  simp_all
 
 /-- The left side of a parallel reduction is locally closed. -/
 @[scoped grind →]
@@ -73,10 +75,13 @@ lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
 omit [HasFresh Var] [DecidableEq Var] in
 /-- A single β-reduction implies a single parallel reduction. -/
 lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
-  induction step
-  case beta _ abs_lc _ => cases abs_lc with | abs xs _ => apply Parallel.beta xs <;> grind
-  case abs xs _ _ => apply Parallel.abs xs; grind
-  all_goals grind
+  induction step with
+  | base h =>
+    cases h with | beta abs_lc _ =>
+    cases abs_lc with | abs xs _ =>
+    apply Parallel.beta xs <;> grind
+  | abs xs _ _ => apply Parallel.abs xs; grind
+  | _ => grind
 
 open FullBeta in
 /-- A single parallel reduction implies a multiple β-reduction. -/
@@ -84,7 +89,8 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
   induction para
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
-    refine .trans (?_ : L.app R ↠βᶠ L'.app R) (?_ : L'.app R ↠βᶠ L'.app R') <;> grind
+    have : L.app R ↠βᶠ L'.app R := by grind
+    grind [ReflTransGen.trans]
   case abs t t' xs _ ih =>
     apply redex_abs_cong xs
     grind
@@ -97,26 +103,24 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
       m'.abs.app n :=
         redex_app_l_cong (redex_abs_cong xs (fun _ mem ↦ redex_ih _ mem)) (para_lc_l para_n)
       _           ↠βᶠ m'.abs.app n' := by grind
-      _           ⭢βᶠ m' ^ n'       := beta m'_abs_lc (by grind)
+      _           ⭢βᶠ m' ^ n'       := by grind
 
 /-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
 theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
   refine Iff.intro ?chain_redex ?redex_chain <;> intros h <;> induction h <;> try rfl
-  case redex_chain.tail redex chain => exact Relation.ReflTransGen.tail chain (step_to_para redex)
-  case chain_redex.tail para  redex => exact Relation.ReflTransGen.trans redex (para_to_redex para)
+  case redex_chain redex chain => exact ReflTransGen.tail chain (step_to_para redex)
+  case chain_redex para  redex => exact ReflTransGen.trans redex (para_to_redex para)
 
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
 lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢ₚ M'[x := N'] := by
-  induction pm
-  case fvar => grind
-  case beta =>
+  induction pm with
+  | beta =>
     rw [subst_open _ _ _ _ (by grind)]
     refine Parallel.beta (free_union Var) ?_ ?_ <;> grind
-  case app => constructor <;> assumption
-  case abs u u' xs mem ih =>
-    apply Parallel.abs (free_union Var)
-    grind
+  | app => constructor <;> assumption
+  | abs => grind [Parallel.abs (free_union Var)]
+  | _ => grind
 
 /-- Parallel substitution respects closing and opening. -/
 lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar y⟧ ⭢ₚ M'⟦z ↜ x⟧⟦z ↝ fvar y⟧ :=
@@ -125,8 +129,7 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar
 /-- Parallel substitution respects fresh opening. -/
 lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
     (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
-  let ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
-  grind
+  grind [fresh_exists <| free_union [fv] Var]
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
 -- writing it for locally nameless terms.
@@ -172,7 +175,7 @@ theorem para_diamond : Diamond (@Parallel Var) := by
       have ⟨q1, q2, _⟩ := qx
       have ⟨t', _⟩ := ih2 s2pu2'
       have ⟨t'', _⟩ := @ih1 x q1 _ (mem' _ q2)
-      refine ⟨t'' [x := t'], ?_⟩
+      refine ⟨t''[x := t'], ?_⟩
       grind
   case app s1 s1' s2 s2' s1ps1' _ ih1 ih2  =>
     cases tpt2
@@ -196,17 +199,17 @@ theorem para_diamond : Diamond (@Parallel Var) := by
           apply Parallel.beta (free_union Var) <;> grind
 
 /-- Parallel reduction is confluent. -/
-theorem para_confluence : Confluence (@Parallel Var) :=
-  Relation.ReflTransGen.diamond_confluence para_diamond
+theorem para_confluence : Confluent (@Parallel Var) :=
+  para_diamond.toConfluent
 
 /-- β-reduction is confluent. -/
-theorem confluence_beta : Confluence (@FullBeta Var) := by
-  simp only [Confluence]
-  have eq : Relation.ReflTransGen (@Parallel Var) = Relation.ReflTransGen (@FullBeta Var) := by
+@[wikidata Q1308502]
+theorem confluence_beta : Confluent (@FullBeta Var) := by
+  have eq : ReflTransGen (@Parallel Var) = ReflTransGen (@FullBeta Var) := by
     ext
     exact parachain_iff_redex
-  rw [←eq]
-  exact @para_confluence Var _ _
+  rw [Confluent, ←eq]
+  exact para_confluence
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

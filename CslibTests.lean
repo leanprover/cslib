@@ -1,10 +1,15 @@
 import CslibTests.Bisimulation
 import CslibTests.CCS
+import CslibTests.CLL
 import CslibTests.DFA
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
+import CslibTests.HML
 import CslibTests.HasFresh
+import CslibTests.HasSubstitution
+import CslibTests.HasWellFormed
 import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
-import CslibTests.ReductionSystem
+import CslibTests.MLL
+import CslibTests.Reduction
