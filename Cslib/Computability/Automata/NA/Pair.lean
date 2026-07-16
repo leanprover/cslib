@@ -15,7 +15,7 @@ public import Cslib.Computability.Languages.RegularLanguage
 
 namespace Cslib
 
-open Language Automata Acceptor
+open Cslib.Language Automata Acceptor
 
 variable {Symbol : Type*} {State : Type}
 
@@ -50,7 +50,7 @@ theorem LTS.mem_pairViaLang {lts : LTS State Symbol} {via : Set State}
 
 /-- `LTS.pairViaLang via s t` is a regular language if there are only finitely many states. -/
 @[simp]
-theorem LTS.pairViaLang_regular [Inhabited Symbol] [Finite State] {lts : LTS State Symbol}
+theorem LTS.pairViaLang_regular [Finite State] {lts : LTS State Symbol}
     {via : Set State} {s t : State} : (lts.pairViaLang via s t).IsRegular := by
   apply IsRegular.iSup
   grind [Language.IsRegular.mul, LTS.pairLang_regular]

@@ -318,8 +318,7 @@ private theorem map_toCompCfg_right_step :
   cases cfg2 with
   | mk state BiTape =>
     cases state with
-    | none =>
-      simp only [step, toCompCfg_right, Option.map_none, compComputer]
+    | none => rfl
     | some q =>
       generalize hM : tm2.tr q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result

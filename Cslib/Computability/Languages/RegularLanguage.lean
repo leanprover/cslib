@@ -13,6 +13,7 @@ public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
+public import Mathlib.Computability.RegularExpressions
 public import Mathlib.Data.Finite.Sum
 public import Mathlib.Data.Set.Card
 
@@ -153,27 +154,34 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
 open NA.FinAcc Sum in
 /-- The concatenation of two regular languages is regular. -/
 @[simp]
-theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
+theorem IsRegular.mul {l1 l2 : Language Symbol}
     (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 * l2).IsRegular := by
-  rw [IsRegular.iff_nfa] at h1 h2 ⊢
-  obtain ⟨State1, h_fin1, nfa1, rfl⟩ := h1
-  obtain ⟨State2, h_fin1, nfa2, rfl⟩ := h2
-  use Option State1 ⊕ Option State2, inferInstance,
-    ⟨finConcat nfa1 nfa2, inr '' (some '' nfa2.accept)⟩
-  exact finConcat_language_eq
+  obtain (he | hne) := isEmpty_or_nonempty Symbol
+  · obtain (rfl | rfl) := Language.eq_zero_or_one_ofIsEmpty l1 <;>
+    obtain (rfl | rfl) := Language.eq_zero_or_one_ofIsEmpty l2 <;> simp
+  · have := Classical.inhabited_of_nonempty hne
+    rw [IsRegular.iff_nfa] at h1 h2 ⊢
+    obtain ⟨State1, h_fin1, nfa1, rfl⟩ := h1
+    obtain ⟨State2, h_fin1, nfa2, rfl⟩ := h2
+    use Option State1 ⊕ Option State2, inferInstance,
+      ⟨finConcat nfa1 nfa2, inr '' (some '' nfa2.accept)⟩
+    exact finConcat_language_eq
 
 -- TODO: fix proof to work with backward.isDefEq.respectTransparency
 set_option backward.isDefEq.respectTransparency false in
 open NA.FinAcc Sum in
 /-- The Kleene star of a regular language is regular. -/
 @[simp]
-theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
+theorem IsRegular.kstar {l : Language Symbol}
     (h : l.IsRegular) : (l∗).IsRegular := by
-  by_cases h_l : l = 0
-  · simp [h_l]
-  · rw [IsRegular.iff_nfa] at h ⊢
-    obtain ⟨State, h_fin, nfa, rfl⟩ := h
-    use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
+  obtain (he | hne) := isEmpty_or_nonempty Symbol
+  · obtain (rfl | rfl) := Language.eq_zero_or_one_ofIsEmpty l <;> simp
+  · have := Classical.inhabited_of_nonempty hne
+    by_cases h_l : l = 0
+    · simp [h_l]
+    · rw [IsRegular.iff_nfa] at h ⊢
+      obtain ⟨State, h_fin, nfa, rfl⟩ := h
+      use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
@@ -183,5 +191,32 @@ theorem IsRegular.congr_fin_index {Symbol : Type}
   rw [IsRegular.iff_dfa]
   use Quotient c.eq, inferInstance, ⟨c.toDA, {a}⟩
   exact DA.FinAcc.congr_language_eq
+
+/-- The language containing only the one character string `a` is regular. -/
+@[simp]
+theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
+  rw [IsRegular.iff_dfa]
+  classical
+  let flts := FLTS.mk (fun (s : Fin 3) (x : Symbol) ↦ if (s = 0 ∧ x = a) then 1 else 2)
+  use Fin 3, inferInstance, ⟨DA.mk flts 0, {1}⟩
+  ext xs
+  induction xs using List.reverseRec with
+  | nil => grind [Accepts, Language.mem_singleton]
+  | append_singleton xs x ih =>
+    simp only [mem_language, Accepts, Language.mem_singleton, FLTS.mtr_concat_eq] at ih ⊢
+    constructor
+    · induction xs using List.reverseRec <;> grind
+    · simp_all [flts, List.append_eq_cons_iff]
+
+/-- Languages matching regular expressions are regular. -/
+theorem IsRegular.regex {r : RegularExpression Symbol} :
+    r.matches'.IsRegular := by
+  induction r with
+  | zero => simp
+  | epsilon => simp
+  | char a => simp [IsRegular.char a]
+  | plus P Q hP hQ => grind [RegularExpression.matches', IsRegular.add]
+  | comp P Q hP hQ => grind [RegularExpression.matches', IsRegular.mul]
+  | star P hP => grind [RegularExpression.matches', IsRegular.kstar]
 
 end Cslib.Language

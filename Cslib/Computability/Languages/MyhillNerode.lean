@@ -74,7 +74,7 @@ variable {l : Language α}
 theorem nerodeCongruenceDA_language_eq (l : Language α) :
     language (l.NerodeCongruenceDA) = l := by
   ext x
-  simp only [NerodeCongruenceDA, language, Acceptor.Accepts, congr_mtr_eq, Set.mem_image]
+  simp only [NerodeCongruenceDA, language, Acceptor.Accepts, congr_mtr_eq]
   constructor
   · rintro ⟨y, hy, heq⟩
     have h1 := Quotient.eq.mp heq []
@@ -161,7 +161,7 @@ end Language
 
 namespace Cslib.Automata.DA.FinAcc
 
-open Cslib Language Automata DA FinAcc Acceptor
+open Cslib Cslib.Language Automata DA FinAcc Acceptor
 open scoped RightCongruence
 
 /-- The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
