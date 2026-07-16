@@ -15,7 +15,7 @@ public import Cslib.Computability.Languages.RegularLanguage
 
 namespace Cslib
 
-open Language Automata Acceptor
+open Cslib.Language Automata Acceptor
 
 variable {Symbol : Type*} {State : Type}
 
