@@ -5,7 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 # Foundations
 
-This directory covers **common foundations** for the rest of CSLib and downstream developments. As such, it acts as its fulcrum of integration through common concepts and APIs.
+This directory covers **common foundations** for the rest of CSLib and downstream developments. As such, it acts as its fulcrum of integration through common concepts and APIs. This directory includes also additional results about foundational data objects defined in Mathlib, such as `Nat` and `Set`.
 
 Please browse the subdirectories for details.
 
