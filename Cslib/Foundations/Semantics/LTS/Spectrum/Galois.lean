@@ -39,6 +39,15 @@ recover `Ω` from it.
 * `induced_testable`: every induced equivalence is a fixed point of `cl`.
 * `cl_extensive`, `cl_monotone`, `cl_idempotent`: `cl` is a closure operator.
 * `spectrum_eq_closed_elements`: testable ↔ in the image of `induced`.
+
+## References
+
+* [R.J. van Glabbeek, *The Linear Time – Branching Time Spectrum*][Glabbeek1990]
+  (extended to silent moves in *Spectrum II* [Glabbeek1993]) — the spectrum of
+  behavioural equivalences ordered by refinement.
+* [H. Beohar, *Hennessy-Milner Theorems via Galois Connections*][Beohar2022] —
+  the reading of those equivalences as the fixed points of an antitone Galois
+  connection (polarity) between tests and equivalences.
 -/
 
 @[expose] public section
