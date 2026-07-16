@@ -15,12 +15,12 @@ open Cslib.Automata
 inductive Floor where
 | one
 | two
-deriving DecidableEq, Fintype
+deriving DecidableEq
 
 inductive Direction where
 | up
 | down
-deriving DecidableEq, Fintype
+deriving DecidableEq
 
 def elevator : DA Floor Direction where
   tr
