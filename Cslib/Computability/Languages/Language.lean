@@ -42,6 +42,10 @@ theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq
 
 @[simp, scoped grind =]
+theorem mem_singleton (x y : List α) : x ∈ ({y} : Language α) ↔ x = y :=
+  Iff.rfl
+
+@[simp, scoped grind =]
 theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
   Iff.rfl
 
