@@ -204,7 +204,6 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
 /-- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex [Inhabited Symbol] {r : RegularExpression Symbol} :
     r.matches'.IsRegular := by
-  -- obtain ⟨r, hr⟩ := h
   induction r with
   | zero => simp
   | epsilon => simp
