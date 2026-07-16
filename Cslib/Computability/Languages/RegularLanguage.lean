@@ -209,7 +209,7 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
     · simp_all [flts, List.append_eq_cons_iff]
 
 /-- Languages matching regular expressions are regular. -/
-theorem IsRegular.regex [Inhabited Symbol] {r : RegularExpression Symbol} :
+theorem IsRegular.regex {r : RegularExpression Symbol} :
     r.matches'.IsRegular := by
   induction r with
   | zero => simp
