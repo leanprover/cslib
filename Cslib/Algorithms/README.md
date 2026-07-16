@@ -9,6 +9,7 @@ Authors: Clark Barrett, Swarat Chaudhuri, Jim Grundy, Fabrizio Montesi, Leonardo
 This directory hosts **algorithms and their properties**. These properties concern functional correctness, complexity, and other relevant results. The directory also includes dedicated facilities for reasoning about algorithms written in Lean.
 
 The broader aim is to develop a library of verified algorithms, both in Lean and in other languages formalised in CSLib. Accordingly, it is in scope to study algorithms implemented as Lean programs as well as algorithms expressed inside one of CSLib's [Languages](../Languages), depending on the purpose of the development.
+All algorithms sit in a language-specific subdirectory depending on the language they are written in, like `Boole`, `Lean`, etc.
 
 ## Principles
 
