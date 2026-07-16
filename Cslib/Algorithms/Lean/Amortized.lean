@@ -38,6 +38,7 @@ class Potential (φ α : Type*) [CommRing φ] [LinearOrder φ] [IsStrictOrderedR
 /-- An operation that takes a state and returns a new state with its execution time. -/
 abbrev Op α := α → TimeM ℕ α
 
+/-- Apply a list of operations sequentially, threading the state through. -/
 @[simp] def applyOps {α : Type*} (x : α) (ops : List (Op α))
     : TimeM ℕ α :=
   List.foldlM (fun x op => op x) x ops
