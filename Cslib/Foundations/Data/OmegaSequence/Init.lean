@@ -32,6 +32,9 @@ variable (m n : ℕ) (x y : List α) (a b : ωSequence α)
 instance [Inhabited α] : Inhabited (ωSequence α) :=
   ⟨ωSequence.const default⟩
 
+instance [h : IsEmpty α] : IsEmpty (ωSequence α) where
+  false xs := IsEmpty.false (xs 0)
+
 @[simp, scoped grind =]
 protected theorem eta (s : ωSequence α) : head s ::ω tail s = s := by
   apply DFunLike.ext

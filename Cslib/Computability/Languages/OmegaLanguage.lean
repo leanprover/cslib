@@ -98,6 +98,12 @@ def equiv : ωLanguage α ≃ Set (ωSequence α) where
 instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
   equiv.completeAtomicBooleanAlgebra
 
+/-- `⊥` is the only possible ω-language over an empty type. -/
+theorem eq_bot_ofIsEmpty [IsEmpty α] (p : ωLanguage α) : p = ⊥ := by
+  ext xs
+  exfalso
+  exact IsEmpty.false xs
+
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (ωLanguage α) (ωSequence α) where
   coe := ωLanguage.toSet
