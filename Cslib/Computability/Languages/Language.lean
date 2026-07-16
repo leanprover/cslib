@@ -25,7 +25,7 @@ variable {α : Type*}
 /-- `[]` is the only list over an empty type. -/
 theorem eq_nil_ofIsEmpty [IsEmpty α] (xl : List α) : xl = [] := by
   have hu := List.uniqueOfIsEmpty (α := α)
-  grind [Unique.eq_default xl, Unique.eq_default ([] : List α)]
+  simp [Unique.eq_default]
 
 end List
 

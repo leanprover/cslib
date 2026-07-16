@@ -101,7 +101,8 @@ instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
 /-- `⊥` is the only possible ω-language over an empty type. -/
 theorem eq_bot_ofIsEmpty [IsEmpty α] (p : ωLanguage α) : p = ⊥ := by
   ext xs
-  grind [IsEmpty.false xs]
+  exfalso
+  exact IsEmpty.false xs
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (ωLanguage α) (ωSequence α) where
