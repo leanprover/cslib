@@ -5,6 +5,7 @@ Authors: Fabrizio Montesi
 -/
 
 module
+public import Cslib.Init
 
 
 /-! Notation typeclass for α-equivalence. -/

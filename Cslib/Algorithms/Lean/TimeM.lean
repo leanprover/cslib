@@ -6,6 +6,7 @@ Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser
 
 module
 
+public import Cslib.Init
 public import Mathlib.Algebra.Group.Defs
 
 /-!

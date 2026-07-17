@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
+public import Cslib.Init
 public import Mathlib.Data.Set.CoeSort
 public import Mathlib.Logic.Relation
 

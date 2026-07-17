@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
+public import Cslib.Init
 public import Mathlib.Probability.Distributions.Uniform
 
 /-!
