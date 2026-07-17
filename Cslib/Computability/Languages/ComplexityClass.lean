@@ -7,12 +7,45 @@ import Cslib.Computability.Languages.PolyTimeComputable
 /-!
 # Complexity Classes
 
-This file contains the definition of `ComplexityClass`es over bitstring decision problems,
+This file contains the definition of `ComplexityClass`es over bitstring decision problems.
+
+## Main Definitions
+
+We define
+
+- `BitstringDecisionProblem` as a type alias for `List Bool → Bool`,
+  the type of decision problems over bitstrings.
+- `ComplexityClass` as a type alias for `Set BitstringDecisionProblem`,
+  the type of complexity classes over bitstring decision problems.
+
+And from these we define the following complexity classes:
+
+- `P` as the set of decision problems decidable in polynomial time by a deterministic
+  Turing machine.
+- `∃ᴾ C`, the set of decision problems that can be decided using polynomially long
+  membership witnesses over `C`.
+- `∀ᴾ C`, the set of decision problems that can be decided using polynomially long
+  non-membership witnesses over `C`.
+- `NP` as `∃ᴾ P`, the set of decision problems decidable in polynomial time by a
+  nondeterministic Turing machine.
+- `coNP` as `∀ᴾ P`, the set of decision problems whose complements are in `NP`.
+- `Σᴾ n` and `Πᴾ n` as the `n`th levels of the polynomial time hierarchy, defined inductively as
+  `Σᴾ 0 = P`, `Σᴾ (n + 1) = ∃ᴾ (Πᴾ n)`, and `Πᴾ n = (Σᴾ n).complement`.
+- `PH` as the union of all levels of the polynomial time hierarchy.
+
+
 as well as several standard complexity classes such as P, NP, and the polynomial time hierarchy.
 
 ## TODO
 
-- Define other complexity classes such as BPP, RP, coRP, ZPP, PSPACE.
+- Define other complexity classes such as
+  - Easy
+    - BPP, RP, coRP, ZPP, Δ n
+  - PSPACE.
+
+- Make every complexity class have a long name under the `ComplexityClass` namespace,
+  as well as a short notation?
+
 - Prove basic inclusions between these classes.
 -/
 
@@ -64,7 +97,7 @@ def BitstringDecisionProblem.universallyQuantifyOverPolynomial
     BitstringDecisionProblem :=
   fun x ↦
     List.all (bitstringsUpToLength (p.eval x.length)) fun w ↦
-      L (BitstringEncoding.encode (x, w))
+      L (BitstringEncoding.encode (α := Bitstring × Bitstring) (x, w))
 
 /--
 Given a polynomial `p` and a bitstring decision problem `L` that operates on pairs of bitstrings,
@@ -78,7 +111,7 @@ def BitstringDecisionProblem.existentiallyQuantifyOverPolynomial
     (p : Polynomial ℕ) (L : BitstringDecisionProblem) :
     BitstringDecisionProblem :=
   fun x ↦ List.any (bitstringsUpToLength (p.eval x.length)) fun w ↦
-    L (BitstringEncoding.encode (x, w))
+    L (BitstringEncoding.encode (α := Bitstring × Bitstring) (x, w))
 
 @[simp]
 lemma BitstringDecisionProblem.universallyQuantifyOverPolynomial_complement
@@ -113,9 +146,11 @@ namespace ComplexityClass
 /--
 The class P is the set of decision problems
 decidable in polynomial time by a deterministic Turing machine.
+
+The input is treated as a raw bitstring (the identity encoding on `Bitstring`).
 -/
 def P : ComplexityClass :=
-  { L | IsComputableInPolyTime L }
+  { L | IsComputableInPolyTime (α := Bitstring) L }
 
 /--
 The complement of a complexity class `C` is the set of decision problems
@@ -257,10 +292,10 @@ lemma polyExistentiallyQuantify_mono
   rcases hL with ⟨p, L', hL', h_eq⟩
   exact ⟨p, L', h hL', h_eq⟩
 
-def extract_statement (input : List Bool) : Option (List Bool) :=
-  match BitstringEncoding.decode (α := List Bool × List Bool) input with
+def extract_statement (input : List Bool) : Option Bitstring :=
+  match BitstringEncoding.decode (α := Bitstring × Bitstring) input with
     | none => none
-    | some (x', w) => some x'
+    | some (x', _) => some x'
 
 /--
 The bitstring decision problem that decodes the input as a pair of lists,
@@ -276,18 +311,30 @@ lemma P_subset_NP : P ⊆ NP := by
   simp_rw [P, Set.mem_setOf_eq]
   intro L hL
   use 0
-  -- TODO requires proving that pairing decoding is poly-time
   simp_all only [Set.mem_setOf_eq]
   use ignore_witness L
   constructor
   · simp only [ignore_witness]
     apply IsComputableInPolyTime.comp
-    · sorry
+    · -- `extract_statement = Option.map Prod.fst ∘ decode`
+      have h : extract_statement
+          = Option.map Prod.fst
+            ∘ (BitstringEncoding.decode : Bitstring → Option (Bitstring × Bitstring)) := by
+        funext input
+        change extract_statement input = Option.map Prod.fst (BitstringEncoding.decode input)
+        unfold extract_statement
+        cases BitstringEncoding.decode (α := Bitstring × Bitstring) input with
+        | none => rfl
+        | some p => rfl
+      rw [h]
+      exact IsComputableInPolyTime.comp IsComputableInPolyTime_decode
+        IsComputableInPolyTime_fst.optionMap
     · exact IsComputableInPolyTime.comp hL.optionMap
         (IsComputableInPolyTime.finite fun o : Option Bool => o.getD false)
   · ext x
     simp [BitstringDecisionProblem.existentiallyQuantifyOverPolynomial, ignore_witness,
       extract_statement]
+    rfl
 
 
 
@@ -319,7 +366,7 @@ def PiPolyTimeHierarchy (n : ℕ) : ComplexityClass :=
 scoped notation "Σᴾ" => SigmaPolyTimeHierarchy
 scoped notation "Πᴾ" => PiPolyTimeHierarchy
 
-def PolyTimeHierarchy : ComplexityClass :=
+def PH : ComplexityClass :=
   { L | ∃ n : ℕ, L ∈ Σᴾ n }
 
 @[simp]
@@ -388,10 +435,10 @@ lemma SigmaPolyTimeHierarchy_subset_SigmaPolyTimeHierarchy_succ
     (n : ℕ) : (Σᴾ n) ⊆ Σᴾ (n + 1) := by
   exact (PolyTimeHierarchy_subset_aux n).2
 
-lemma PolyTimeHierarchy_eq_union_sigma :
-  PolyTimeHierarchy = ⋃ n : ℕ, Σᴾ n := by
+lemma PH_eq_union_sigma :
+  PH = ⋃ n : ℕ, Σᴾ n := by
   ext L
-  simp [PolyTimeHierarchy]
+  simp [PH]
 
 end ComplexityClass
 

@@ -199,18 +199,26 @@ instance [BitstringEncoding α] : BitstringEncoding (Option α) where
     | none => rfl
     | some a => by simp
 
+/-- Decode a bitstring as a pair: parse one self-delimiting block off the front for the first
+component, and decode the remainder as the second. This is the `decode` of the `α × β` instance,
+given as a standalone definition so that it can be unfolded and reasoned about by name. -/
+def decodePair [BitstringEncoding α] [BitstringEncoding β] (input : List Bool) : Option (α × β) :=
+  match undelimit input with
+  | none => none
+  | some (block, rest) =>
+    match decode block, decode rest with
+    | some a, some b => some (a, b)
+    | _, _ => none
+
 /-- A pair is encoded as a self-delimiting block for the first component followed by the
 encoding of the second. -/
 instance [BitstringEncoding α] [BitstringEncoding β] : BitstringEncoding (α × β) where
   encode p := delimit (encode p.1) ++ encode p.2
-  decode input :=
-    match undelimit input with
-    | none => none
-    | some (block, rest) =>
-      match decode block, decode rest with
-      | some a, some b => some (a, b)
-      | _, _ => none
-  decode_encode p := by simp
+  decode := decodePair
+  decode_encode p := by simp [decodePair]
+
+theorem decode_prod_eq_decodePair [BitstringEncoding α] [BitstringEncoding β] :
+    (decode : List Bool → Option (α × β)) = decodePair := rfl
 
 /-- A list is encoded as the concatenation of self-delimiting blocks for its elements. -/
 instance [BitstringEncoding α] : BitstringEncoding (List α) where
@@ -222,6 +230,37 @@ instance [BitstringEncoding α] : BitstringEncoding (List α) where
   decode_encode l := by
     rw [undelimitBlocks_flatten_delimit (l.map encode)]
     exact decodeAll_map_encode l
+
+/-- A bitstring: definitionally `List Bool`, but kept as a distinct (semireducible) type-level
+name so that it can carry the identity `BitstringEncoding` without overlapping the generic
+`List α` instance.
+
+Data that is conceptually a raw bitstring should be typed as `Bitstring`, and is encoded as
+itself; a `List Bool` that is conceptually a list which happens to contain booleans keeps the
+generic self-delimiting list encoding (three bits per element). Because `Bitstring` is not
+reducible, instance search never sees through it, so the two encodings cannot be confused: a
+lemma about the generic `List α` encoding instantiated at `α := Bool` and a lemma about
+`Bitstring` can never silently disagree about which encoding is meant. -/
+def _root_.Bitstring : Type := List Bool
+
+/-- A bitstring is encoded as itself. -/
+instance : BitstringEncoding Bitstring where
+  encode := id
+  decode := some
+  decode_encode _ := rfl
+
+/-- Convert a `List Bool` to a `Bitstring`. Definitionally the identity; useful for stating
+lemmas that mix the two types without relying on definitional unfolding. -/
+def _root_.Bitstring.ofList (l : List Bool) : Bitstring := l
+
+/-- Convert a `Bitstring` to a `List Bool`. Definitionally the identity. -/
+def _root_.Bitstring.toList (l : Bitstring) : List Bool := l
+
+@[simp]
+theorem encode_ofList (l : List Bool) : encode (Bitstring.ofList l) = l := rfl
+
+theorem decode_bitstring (l : List Bool) :
+    (decode l : Option Bitstring) = some (Bitstring.ofList l) := rfl
 
 /-- A subtype inherits the encoding of the ambient type; decoding additionally checks the
 defining predicate. This yields encodings for `ℕ+` and friends for free. -/
