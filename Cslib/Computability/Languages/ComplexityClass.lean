@@ -2,7 +2,7 @@
 import Cslib.Foundations.Data.BitstringEncoding
 -- import Cslib.Computability.Automata.Acceptor
 import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
-import Cslib.Computability.Languages.PolyTimeComputable
+import Cslib.Computability.Machines.Turing.SingleTape.PolyTime
 
 /-!
 # Complexity Classes

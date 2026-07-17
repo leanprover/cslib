@@ -125,6 +125,22 @@ theorem delimit_length (l : List Bool) : (delimit l).length = 2 * l.length + 1 :
   | nil => rfl
   | cons b l ih => simp [delimit, ih]; omega
 
+/-- Strip the framing of a single self-delimiting block, returning its payload. On `delimit P`
+this returns `P`. Unlike `undelimit`, this is total: it ignores any data trailing the first block
+and maps malformed input to `[]`. -/
+def undelimitBlock : List Bool → List Bool
+  | [] => []
+  | false :: _ => []
+  | true :: b :: rest => b :: undelimitBlock rest
+  | [true] => []
+
+@[simp]
+theorem undelimitBlock_delimit (P : List Bool) :
+    undelimitBlock (delimit P) = P := by
+  induction P with
+  | nil => rfl
+  | cons b P ih => simp only [delimit, undelimitBlock, ih]
+
 /-- Parse a sequence of self-delimiting blocks, using `fuel` to bound the number of blocks.
 
 This is the auxiliary, fuel-carrying implementation of `undelimitBlocks`; since every block
