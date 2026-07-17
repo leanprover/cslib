@@ -6,7 +6,6 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Init
 public import Mathlib.Computability.Language
 
 /-!

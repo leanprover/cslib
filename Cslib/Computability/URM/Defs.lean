@@ -5,7 +5,6 @@ Authors: Jesse Alama
 -/
 module
 
-public import Cslib.Init
 public import Mathlib.Data.Finset.Insert
 
 /-! # URM Core Definitions

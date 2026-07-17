@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
+public import Mathlib.Algebra.Order.Sub.Basic
 public import Mathlib.Order.Filter.AtTopBot.Defs
 
 /-!

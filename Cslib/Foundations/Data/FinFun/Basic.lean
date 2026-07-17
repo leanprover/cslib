@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi, Xueying Qin
 
 module
 
-public import Cslib.Init
 public import Mathlib.Data.Finset.Filter
 public import Mathlib.Data.Finset.Lattice.Basic
 

@@ -6,8 +6,6 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Init
-public import Mathlib.Algebra.Order.Sub.Basic
 public import Mathlib.Data.Nat.Nth
 
 /-!

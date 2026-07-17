@@ -6,8 +6,8 @@ Authors: David Wegmann
 
 module
 
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
 public import Cslib.Foundations.Relation.Confluence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
 
 /-! Strong normalization (termination) for full beta-reduction of untyped lambda calculus. -/
 

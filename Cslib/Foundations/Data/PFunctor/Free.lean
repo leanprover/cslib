@@ -6,7 +6,6 @@ Authors: Quang Dao
 
 module
 
-public import Cslib.Init
 public import Mathlib.Data.PFunctor.Univariate.Basic
 
 /-!

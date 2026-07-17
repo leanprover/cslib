@@ -7,6 +7,7 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Languages.CombinatoryLogic.Defs
+public import Mathlib.Tactic.SplitIfs
 
 /-!
 # Basic results for the SKI calculus

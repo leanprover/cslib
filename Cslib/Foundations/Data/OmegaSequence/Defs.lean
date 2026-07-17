@@ -6,7 +6,6 @@ Authors: Ching-Tsun Chou, Fabrizio Montesi
 
 module
 
-public import Cslib.Init
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Logic.Function.Iterate
 

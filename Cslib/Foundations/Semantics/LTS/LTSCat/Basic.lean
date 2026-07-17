@@ -6,9 +6,8 @@ Authors: Ayberk Tosun
 
 module
 
-public import Mathlib.CategoryTheory.Category.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
-public import Mathlib.Control.Basic
+public import Mathlib.CategoryTheory.Category.Basic
 
 /-! # Category of Labelled Transition Systems
 

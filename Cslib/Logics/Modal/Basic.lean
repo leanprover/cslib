@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Relation.Euclidean
 

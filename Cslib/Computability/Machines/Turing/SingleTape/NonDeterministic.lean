@@ -6,11 +6,10 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Relation.Defs
-public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
+public import Cslib.Foundations.Data.RelatesInSteps
 
 /-! # Single-Tape Nondeterministic Turing Machines (NTMs)
 

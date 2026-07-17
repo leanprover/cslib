@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.HasTau
 public meta import Cslib.Foundations.Semantics.LTS.Notation
+public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Languages.CCS.Basic
 
 /-! # Semantics of CCS
