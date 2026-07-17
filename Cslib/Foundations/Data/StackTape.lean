@@ -141,6 +141,35 @@ lemma cons_head_tail (l : StackTape Symbol) :
 @[scoped grind]
 def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
 
+@[simp]
+lemma mapSome_head (l : List Symbol) : (mapSome l).head = l.head? := by
+  cases l <;> rfl
+
+@[simp]
+lemma mapSome_tail (l : List Symbol) : (mapSome l).tail = mapSome l.tail := by
+  cases l <;> rfl
+
+@[simp]
+lemma cons_some_mapSome (a : Symbol) (l : List Symbol) :
+    cons (some a) (mapSome l) = mapSome (a :: l) := rfl
+
+@[simp]
+lemma cons_head?_mapSome (l : List Symbol) :
+    cons l.head? (mapSome l.tail) = mapSome l := by
+  cases l <;> rfl
+
+@[simp]
+lemma cons_none_empty : cons none (∅ : StackTape Symbol) = ∅ := rfl
+
+@[simp]
+lemma mapSome_nil : mapSome ([] : List Symbol) = ∅ := rfl
+
+@[simp]
+lemma empty_head : (∅ : StackTape Symbol).head = none := rfl
+
+@[simp]
+lemma empty_tail : (∅ : StackTape Symbol).tail = ∅ := rfl
+
 section Length
 
 /-- The length of the `StackTape` is the number of elements up to the last non-`none` element -/
