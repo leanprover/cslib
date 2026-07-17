@@ -15,5 +15,3 @@
 /docs/Std-manifest.json.trace
 .DS_Store
 .claude
-__pycache__
-/scripts/.minimize-state.json
