@@ -499,7 +499,507 @@ noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
     · exact hf.bounds n
     · exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (hg.bounds _)
 
+/-- Evaluation of a polynomial with natural-number coefficients is monotone in its argument. -/
+lemma monotone_poly_eval (p : Polynomial ℕ) : Monotone fun n => p.eval n := by
+  intro a b hab
+  induction p using Polynomial.induction_on' with
+  | add p q hp hq => simpa only [eval_add] using Nat.add_le_add hp hq
+  | monomial n c =>
+    simpa only [eval_monomial] using Nat.mul_le_mul le_rfl (Nat.pow_le_pow_left hab n)
+
+/-- Renormalize a polynomial-time machine so that its time bound is the (automatically monotone)
+evaluation of its bounding polynomial. This drops the monotonicity side-condition from `comp`. -/
+noncomputable def PolyTimeComputable.normalize {f : List Symbol → List Symbol}
+    (h : PolyTimeComputable f) : PolyTimeComputable f where
+  toTimeComputable :=
+    { tm := h.tm
+      timeBound := fun n => h.poly.eval n
+      outputsFunInTime := fun a =>
+        RelatesWithinSteps.of_le (h.outputsFunInTime a) (h.bounds a.length) }
+  poly := h.poly
+  bounds _ := le_rfl
+
+lemma PolyTimeComputable.monotone_normalize {f : List Symbol → List Symbol}
+    (h : PolyTimeComputable f) : Monotone h.normalize.timeBound :=
+  monotone_poly_eval h.poly
+
+/-- The composition of two polynomial-time computable functions is polynomial-time computable,
+with no monotonicity side-condition (unlike `comp`, which this specializes via `normalize`). -/
+noncomputable def PolyTimeComputable.comp' {f g : List Symbol → List Symbol}
+    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g) :
+    PolyTimeComputable (g ∘ f) :=
+  hf.comp hg.normalize hg.monotone_normalize
+
 end PolyTimeComputable
+
+/-!
+## Functions with finite domain of interest
+
+Given a target function `g : List Symbol → List Symbol` and a finite set `S` of "inputs of
+interest", we construct a `SingleTapeTM` computing a function that agrees with `g` on every
+element of `S` (and outputs `[]` elsewhere), and show it runs in linear (hence polynomial) time.
+
+The machine works in two phases:
+
+* **Read phase.** It scans the input left to right, erasing each symbol as it goes and tracking,
+  in its (finite) state, the prefix read so far — as long as that prefix is still a prefix of some
+  element of `S`; otherwise it enters a "dead" state. Writing a blank before every rightward move
+  keeps the left half of the tape normalized to the empty tape.
+* **Write phase.** On reaching the end of the input it knows exactly which element of `S` (if any)
+  was the input, hence which fixed output string to produce. It writes that string onto the (now
+  blank) tape in reverse, moving left after each symbol, landing exactly on the halting
+  configuration.
+
+Since the read phase takes `input.length` steps and the write phase is bounded by a constant
+(the longest possible output), the runtime is linear.
+-/
+
+section FinsetDomain
+
+open Polynomial
+
+variable [DecidableEq Symbol]
+
+/-- The finite set of all prefixes of elements of `S`. -/
+def prefixesFinset (S : Finset (List Symbol)) : Finset (List Symbol) :=
+  S.biUnion fun s => s.inits.toFinset
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+@[simp]
+lemma mem_prefixesFinset {S : Finset (List Symbol)} {p : List Symbol} :
+    p ∈ prefixesFinset S ↔ ∃ s ∈ S, p <+: s := by
+  simp [prefixesFinset, List.mem_inits]
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma mem_prefixesFinset_self {S : Finset (List Symbol)} {s : List Symbol} (hs : s ∈ S) :
+    s ∈ prefixesFinset S :=
+  mem_prefixesFinset.2 ⟨s, hs, List.prefix_rfl⟩
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma prefixesFinset_closed {S : Finset (List Symbol)} {p : List Symbol} {a : Symbol}
+    (h : p ++ [a] ∈ prefixesFinset S) : p ∈ prefixesFinset S := by
+  rw [mem_prefixesFinset] at *
+  obtain ⟨s, hs, hp⟩ := h
+  exact ⟨s, hs, (List.prefix_append p [a]).trans hp⟩
+
+/-- The possible output strings: `g s` for `s ∈ S`, together with `[]`. -/
+def outputsFinset (g : List Symbol → List Symbol) (S : Finset (List Symbol)) :
+    Finset (List Symbol) :=
+  insert [] (S.image g)
+
+/-- The reachable "remaining to write" states: suffixes of the reverses of possible outputs. -/
+def writeStatesFinset (g : List Symbol → List Symbol) (S : Finset (List Symbol)) :
+    Finset (List Symbol) :=
+  (outputsFinset g S).biUnion fun c => c.reverse.tails.toFinset
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma mem_writeStatesFinset {g : List Symbol → List Symbol} {S : Finset (List Symbol)}
+    {w : List Symbol} :
+    w ∈ writeStatesFinset g S ↔ ∃ c ∈ outputsFinset g S, w <:+ c.reverse := by
+  simp [writeStatesFinset, List.mem_tails]
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma nil_mem_writeStatesFinset {g : List Symbol → List Symbol} {S : Finset (List Symbol)} :
+    ([] : List Symbol) ∈ writeStatesFinset g S :=
+  mem_writeStatesFinset.2 ⟨[], Finset.mem_insert_self _ _, List.nil_suffix⟩
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma writeStatesFinset_closed {g : List Symbol → List Symbol} {S : Finset (List Symbol)}
+    {a : Symbol} {w : List Symbol} (h : a :: w ∈ writeStatesFinset g S) :
+    w ∈ writeStatesFinset g S := by
+  rw [mem_writeStatesFinset] at *
+  obtain ⟨c, hc, hw⟩ := h
+  exact ⟨c, hc, (List.suffix_cons a w).trans hw⟩
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma reverse_output_mem_writeStatesFinset {g : List Symbol → List Symbol}
+    {S : Finset (List Symbol)} {input : List Symbol} :
+    (if input ∈ S then g input else ([] : List Symbol)).reverse ∈ writeStatesFinset g S := by
+  rw [mem_writeStatesFinset]
+  refine ⟨_, ?_, List.suffix_rfl⟩
+  unfold outputsFinset
+  split
+  · exact Finset.mem_insert_of_mem (Finset.mem_image_of_mem g ‹_›)
+  · exact Finset.mem_insert_self _ _
+
+/-- States of the lookup machine: either a read-phase state (an optional prefix, `none` being the
+"dead" state after diverging from every element of `S`), or a write-phase state (the reversed
+suffix of the output still to be written). -/
+abbrev LookupState (g : List Symbol → List Symbol) (S : Finset (List Symbol)) : Type :=
+  Option {p : List Symbol // p ∈ prefixesFinset S} ⊕ {w : List Symbol // w ∈ writeStatesFinset g S}
+
+variable (g : List Symbol → List Symbol) (S : Finset (List Symbol))
+
+/-- The read-phase state after having consumed prefix `p` of the input: the viable prefix `p`
+itself if it is still a prefix of some element of `S`, otherwise the dead state. -/
+def readState (p : List Symbol) : LookupState g S :=
+  Sum.inl (if h : p ∈ prefixesFinset S then some ⟨p, h⟩ else none)
+
+/-- The lookup machine for `g` and `S`. See the module docstring above for the construction. -/
+def lookupTM : SingleTapeTM Symbol where
+  State := LookupState g S
+  q₀ := readState g S []
+  tr q sym :=
+    match q with
+    | Sum.inl (some ⟨p, _⟩) =>
+      match sym with
+      | some a => (⟨none, some .right⟩, some (readState g S (p ++ [a])))
+      | none =>
+        (⟨none, none⟩,
+          some (Sum.inr ⟨(if p ∈ S then g p else []).reverse,
+            reverse_output_mem_writeStatesFinset⟩))
+    | Sum.inl none =>
+      match sym with
+      | some _ => (⟨none, some .right⟩, some (Sum.inl none))
+      | none => (⟨none, none⟩, some (Sum.inr ⟨[], nil_mem_writeStatesFinset⟩))
+    | Sum.inr ⟨w, hw⟩ =>
+      match w, hw with
+      | [], _ => (⟨none, none⟩, none)
+      | [a], _ => (⟨some a, none⟩, none)
+      | a :: b :: rest, hw =>
+        (⟨some a, some .left⟩, some (Sum.inr ⟨b :: rest, writeStatesFinset_closed hw⟩))
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+/-- Erasing the head of a nonempty tape and moving right yields the tape of the remaining input.
+This is the tape action performed on each step of the read phase; writing a blank before the move
+keeps the left half of the tape empty. -/
+private lemma mk₁_erase_moveRight (a : Symbol) (s : List Symbol) :
+    ((BiTape.mk₁ (a :: s)).write none).optionMove (some .right) = BiTape.mk₁ s := by
+  cases s <;> rfl
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+private lemma mk₁_cons_head (a : Symbol) (s : List Symbol) :
+    (BiTape.mk₁ (a :: s)).head = some a := rfl
+
+/-- The tape configuration during the write phase: blank head, empty left half, and the
+already-written suffix `r` of the output in the right half. -/
+private def writeTape (r : List Symbol) : BiTape Symbol := ⟨none, ∅, StackTape.mapSome r⟩
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+private lemma writeTape_nil : writeTape ([] : List Symbol) = (∅ : BiTape Symbol) := rfl
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+/-- Writing the final output symbol on the blank head (without moving) completes the output tape. -/
+private lemma writeTape_lastWrite (a : Symbol) (r : List Symbol) :
+    ((writeTape r).write (some a)).optionMove none = BiTape.mk₁ (a :: r) := rfl
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+/-- Writing a symbol on the blank head and moving left prepends it to the written suffix. -/
+private lemma writeTape_step (a : Symbol) (r : List Symbol) :
+    ((writeTape r).write (some a)).optionMove (some .left) = writeTape (a :: r) := rfl
+
+/-- A single step of the read phase: reading a symbol advances the tracked prefix and erases the
+symbol from the tape. -/
+private lemma readState_step (p : List Symbol) (a : Symbol) (s : List Symbol) :
+    (lookupTM g S).TransitionRelation
+      ⟨some (readState g S p), BiTape.mk₁ (a :: s)⟩
+      ⟨some (readState g S (p ++ [a])), BiTape.mk₁ s⟩ := by
+  simp only [TransitionRelation]
+  by_cases hp : p ∈ prefixesFinset S
+  · simp only [readState, dif_pos hp, SingleTapeTM.step, lookupTM, mk₁_cons_head,
+      mk₁_erase_moveRight]
+  · have hp' : p ++ [a] ∉ prefixesFinset S := fun h => hp (prefixesFinset_closed h)
+    simp only [readState, dif_neg hp, dif_neg hp', SingleTapeTM.step, lookupTM, mk₁_cons_head,
+      mk₁_erase_moveRight]
+
+/-- The full read phase: starting from a tracked prefix `p` and the input on the tape, the machine
+consumes the whole input (erasing it), advancing the prefix to `p ++ input`, in `input.length`
+steps. -/
+private lemma read_phase (input p : List Symbol) :
+    RelatesInSteps (lookupTM g S).TransitionRelation
+      ⟨some (readState g S p), BiTape.mk₁ input⟩
+      ⟨some (readState g S (p ++ input)), BiTape.mk₁ []⟩
+      input.length := by
+  induction input generalizing p with
+  | nil => simp only [List.append_nil, List.length_nil]; exact RelatesInSteps.refl _
+  | cons a rest ih =>
+    have hstep := readState_step g S p a rest
+    have hrest := ih (p ++ [a])
+    rw [List.append_assoc] at hrest
+    simp only [List.singleton_append] at hrest
+    exact RelatesInSteps.head _ _ _ _ hstep hrest
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+private lemma mk₁_nil_head : (BiTape.mk₁ ([] : List Symbol)).head = none := rfl
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+private lemma mk₁_nil_noop :
+    ((BiTape.mk₁ ([] : List Symbol)).write none).optionMove none = BiTape.mk₁ [] := rfl
+
+omit [Inhabited Symbol] [Fintype Symbol] [DecidableEq Symbol] in
+private lemma nil_noop : ((∅ : BiTape Symbol).write none).optionMove none = ∅ := rfl
+
+/-- The write-phase state entered on reaching the end of the input: it carries the reversed output
+string `(if input ∈ S then g input else []).reverse` still to be written. -/
+def writeStartState (input : List Symbol) : LookupState g S :=
+  Sum.inr ⟨(if input ∈ S then g input else []).reverse, reverse_output_mem_writeStatesFinset⟩
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+lemma writeStartState_of_not_mem (input : List Symbol) (h : input ∉ S) :
+    writeStartState g S input = Sum.inr ⟨[], nil_mem_writeStatesFinset⟩ := by
+  unfold writeStartState
+  congr 1
+  exact Subtype.ext (by simp [if_neg h])
+
+/-- The handoff step from the read phase to the write phase: on reaching the end of the input, the
+machine switches to the write-phase state without moving. -/
+private lemma handoff (input : List Symbol) :
+    (lookupTM g S).TransitionRelation
+      ⟨some (readState g S input), BiTape.mk₁ []⟩
+      ⟨some (writeStartState g S input), BiTape.mk₁ []⟩ := by
+  simp only [TransitionRelation]
+  by_cases hp : input ∈ prefixesFinset S
+  · simp only [readState, dif_pos hp, writeStartState, SingleTapeTM.step, lookupTM, mk₁_nil_head,
+      mk₁_nil_noop]
+  · have hs : input ∉ S := fun h => hp (mem_prefixesFinset_self h)
+    have hstep : (lookupTM g S).step ⟨some (readState g S input), BiTape.mk₁ []⟩
+        = some ⟨some (Sum.inr ⟨[], nil_mem_writeStatesFinset⟩), BiTape.mk₁ []⟩ := by
+      simp only [readState, dif_neg hp, SingleTapeTM.step, lookupTM, mk₁_nil_head, mk₁_nil_noop]
+    rw [hstep, writeStartState_of_not_mem g S input hs]
+
+/-- A single non-terminal step of the write phase: write the head symbol and move left, prepending
+it to the already-written output suffix. -/
+private lemma write_step (a b : Symbol) (rest r : List Symbol)
+    (hw : a :: b :: rest ∈ writeStatesFinset g S) :
+    (lookupTM g S).TransitionRelation
+      ⟨some (Sum.inr ⟨a :: b :: rest, hw⟩), writeTape r⟩
+      ⟨some (Sum.inr ⟨b :: rest, writeStatesFinset_closed hw⟩), writeTape (a :: r)⟩ := by
+  simp only [TransitionRelation, SingleTapeTM.step, lookupTM, writeTape_step]
+
+/-- The terminal step of the write phase: write the last (leftmost) output symbol and halt. -/
+private lemma write_step_last (a : Symbol) (r : List Symbol)
+    (hw : [a] ∈ writeStatesFinset g S) :
+    (lookupTM g S).TransitionRelation
+      ⟨some (Sum.inr ⟨[a], hw⟩), writeTape r⟩
+      ⟨none, BiTape.mk₁ (a :: r)⟩ := by
+  simp only [TransitionRelation, SingleTapeTM.step, lookupTM, writeTape_lastWrite]
+
+/-- The degenerate write phase for the empty output: halt immediately, leaving the tape blank. -/
+private lemma write_step_nil (hw : ([] : List Symbol) ∈ writeStatesFinset g S) :
+    (lookupTM g S).TransitionRelation
+      ⟨some (Sum.inr ⟨[], hw⟩), (∅ : BiTape Symbol)⟩
+      ⟨none, (∅ : BiTape Symbol)⟩ := by
+  simp only [TransitionRelation, SingleTapeTM.step, lookupTM, nil_noop]
+
+/-- The full write phase for a nonempty reversed output `w`: writes the output into the right half
+of the tape, landing on the halting configuration, in `w.length` steps. -/
+private lemma write_phase (w r : List Symbol) (hw : w ∈ writeStatesFinset g S) (hne : w ≠ []) :
+    RelatesInSteps (lookupTM g S).TransitionRelation
+      ⟨some (Sum.inr ⟨w, hw⟩), writeTape r⟩
+      ⟨none, BiTape.mk₁ (w.reverse ++ r)⟩
+      w.length := by
+  induction w generalizing r with
+  | nil => exact absurd rfl hne
+  | cons a tl ih =>
+    cases tl with
+    | nil => simpa using RelatesInSteps.single (write_step_last g S a r hw)
+    | cons b rest =>
+      have hstep := write_step g S a b rest r hw
+      have hrest := ih (a :: r) (writeStatesFinset_closed hw) (by simp)
+      rw [show (a :: b :: rest).reverse ++ r = (b :: rest).reverse ++ (a :: r) by simp]
+      exact RelatesInSteps.head _ _ _ _ hstep hrest
+
+/-- The complete write phase (from a blank tape): writes output `c` and halts, within `c.length + 1`
+steps. -/
+private lemma write_run (c : List Symbol) (hw : c.reverse ∈ writeStatesFinset g S) :
+    RelatesWithinSteps (lookupTM g S).TransitionRelation
+      ⟨some (Sum.inr ⟨c.reverse, hw⟩), (∅ : BiTape Symbol)⟩
+      ⟨none, BiTape.mk₁ c⟩
+      (c.length + 1) := by
+  cases c with
+  | nil => exact RelatesWithinSteps.single (write_step_nil g S hw)
+  | cons a tl =>
+    have hwp := write_phase g S (a :: tl).reverse [] hw (by simp)
+    rw [writeTape_nil, List.reverse_reverse, List.append_nil, List.length_reverse] at hwp
+    exact (RelatesWithinSteps.of_relatesInSteps hwp).of_le (Nat.le_succ _)
+
+/-- A uniform bound on the length of any output the machine can produce. -/
+def maxOutputLen (g : List Symbol → List Symbol) (S : Finset (List Symbol)) : ℕ :=
+  S.sup fun s => (g s).length
+
+open Polynomial in
+/-- The lookup machine runs in linear (hence polynomial) time and agrees with `g` on `S`:
+any function of the form `fun s => if s ∈ S then g s else []` is polynomial-time computable. -/
+noncomputable def PolyTimeComputable.ofFinsetDomain :
+    PolyTimeComputable (fun s => if s ∈ S then g s else []) where
+  tm := lookupTM g S
+  timeBound n := n + maxOutputLen g S + 2
+  poly := X + C (maxOutputLen g S + 2)
+  bounds n := by simp only [eval_add, eval_X, eval_C]; omega
+  outputsFunInTime a := by
+    simp only [OutputsWithinTime]
+    set c := (if a ∈ S then g a else []) with hc
+    have hc_len : c.length ≤ maxOutputLen g S := by
+      rw [hc]
+      unfold maxOutputLen
+      split
+      · exact Finset.le_sup (f := fun s => (g s).length) ‹a ∈ S›
+      · exact Nat.zero_le _
+    have hread := read_phase g S a []
+    rw [List.nil_append] at hread
+    have hchain :
+        RelatesWithinSteps (lookupTM g S).TransitionRelation
+          (initCfg (lookupTM g S) a)
+          (haltCfg (lookupTM g S) c)
+          (a.length + (1 + (c.length + 1))) :=
+      (RelatesWithinSteps.of_relatesInSteps hread).trans
+        ((RelatesWithinSteps.single (handoff g S a)).trans
+          (write_run g S c reverse_output_mem_writeStatesFinset))
+    exact hchain.of_le (by omega)
+
+end FinsetDomain
+
+/-!
+## Running a machine on the tail of the input
+
+Given a machine for `f`, we build a machine computing
+`fun input => match input with | [] => [] | b :: rest => b :: f rest`,
+i.e. one that preserves the leading symbol and applies `f` to the remaining input. This is the
+key ingredient for lifting polynomial-time computability along `Option.map` (the leading symbol
+being the `some`/`none` tag of the `Option` encoding).
+
+The machine erases the head (remembering it in its finite state), runs the underlying machine on
+the tail — the erased cell reads as blank, so the simulation is faithful — and finally re-inserts
+the remembered symbol to the left of the produced output.
+-/
+
+section OnTail
+
+open Polynomial
+
+/-- The function computed by `onTailComputer tm`: preserve the head symbol and apply the underlying
+function to the tail (the empty input maps to the empty output). -/
+def onTailFun (f : List Symbol → List Symbol) : List Symbol → List Symbol
+  | [] => []
+  | b :: rest => b :: f rest
+
+/-- A Turing machine that runs `tm` on the tail of the input while preserving the leading symbol.
+Its states are: a start state, the states of `tm` paired with the remembered leading symbol, and
+two finishing states (also carrying the remembered symbol). -/
+def onTailComputer (tm : SingleTapeTM Symbol) : SingleTapeTM Symbol where
+  State := Unit ⊕ (tm.State × Symbol) ⊕ Symbol ⊕ Symbol
+  q₀ := Sum.inl ()
+  tr q sym :=
+    match q with
+    | Sum.inl () =>
+      match sym with
+      -- empty input: halt immediately with empty output
+      | none => (⟨none, none⟩, none)
+      -- erase the head, remember it, and start the underlying machine
+      | some b => (⟨none, some .right⟩, some (Sum.inr (Sum.inl (tm.q₀, b))))
+    | Sum.inr (Sum.inl (q, b)) =>
+      match tm.tr q sym with
+      | (stmt, some q') => (stmt, some (Sum.inr (Sum.inl (q', b))))
+      -- underlying machine halts: move to the finishing phase
+      | (stmt, none) => (stmt, some (Sum.inr (Sum.inr (Sum.inl b))))
+    -- finish (read): write the head back unchanged and step left onto the blank cell
+    | Sum.inr (Sum.inr (Sum.inl b)) => (⟨sym, some .left⟩, some (Sum.inr (Sum.inr (Sum.inr b))))
+    -- finish (write): write the remembered symbol and halt
+    | Sum.inr (Sum.inr (Sum.inr b)) => (⟨some b, none⟩, none)
+
+omit [Inhabited Symbol] [Fintype Symbol] in
+/-- Writing the head symbol back unchanged and moving left turns `mk₁ out` into `writeTape out`,
+placing a blank under the head ready to receive the preserved symbol. -/
+private lemma mk₁_writeHead_moveLeft (out : List Symbol) :
+    ((BiTape.mk₁ out).write (BiTape.mk₁ out).head).optionMove (some .left) = writeTape out := by
+  cases out <;> rfl
+
+variable (tm : SingleTapeTM Symbol)
+
+/-- Embedding of a `tm`-configuration into an `onTailComputer tm`-configuration during the run
+phase, carrying the preserved leading symbol `b`. -/
+private def toRunCfg (b : Symbol) (cfg : tm.Cfg) : (onTailComputer tm).Cfg :=
+  match cfg.state with
+  | some q => ⟨some (Sum.inr (Sum.inl (q, b))), cfg.BiTape⟩
+  | none => ⟨some (Sum.inr (Sum.inr (Sum.inl b))), cfg.BiTape⟩
+
+/-- The embedding commutes with a step of the underlying machine. -/
+private theorem map_toRunCfg_step (b : Symbol) (cfg : tm.Cfg) (hcfg : cfg.state.isSome) :
+    Option.map (toRunCfg tm b) (tm.step cfg) = (onTailComputer tm).step (toRunCfg tm b cfg) := by
+  cases cfg with | mk state BiTape => cases state with
+    | none => simp at hcfg
+    | some q =>
+      simp only [step, toRunCfg, onTailComputer]
+      generalize hM : tm.tr q BiTape.head = result
+      obtain ⟨⟨wr, dir⟩, nextState⟩ := result
+      cases nextState <;> (simp_all; rfl)
+
+/-- The run phase: while `tm` runs from its initial to its halting configuration, the composed
+machine runs from the (remembered-symbol) run state to the finishing state, in the same time. -/
+private theorem run_relatesWithinSteps (b : Symbol) (rest out : List Symbol) (t : ℕ)
+    (h : RelatesWithinSteps tm.TransitionRelation (tm.initCfg rest) (tm.haltCfg out) t) :
+    RelatesWithinSteps (onTailComputer tm).TransitionRelation
+      ⟨some (Sum.inr (Sum.inl (tm.q₀, b))), BiTape.mk₁ rest⟩
+      ⟨some (Sum.inr (Sum.inr (Sum.inl b))), BiTape.mk₁ out⟩
+      t := by
+  have hhom : ∀ x y : tm.Cfg, tm.TransitionRelation x y →
+      (onTailComputer tm).TransitionRelation (toRunCfg tm b x) (toRunCfg tm b y) := by
+    intro x y hxy
+    have hx : x.state.isSome := by
+      simp only [TransitionRelation, step] at hxy
+      cases x with | mk st _ => cases st <;> simp_all
+    have h1 := map_toRunCfg_step tm b x hx
+    rw [hxy, Option.map_some] at h1
+    exact h1.symm
+  have hmap := RelatesWithinSteps.map (toRunCfg tm b) hhom h
+  simpa only [toRunCfg, initCfg, haltCfg] using hmap
+
+/-- The start step on a nonempty input: erase and remember the head, positioning to run `tm`. -/
+private lemma onTail_start (b : Symbol) (rest : List Symbol) :
+    (onTailComputer tm).TransitionRelation
+      (initCfg (onTailComputer tm) (b :: rest))
+      ⟨some (Sum.inr (Sum.inl (tm.q₀, b))), BiTape.mk₁ rest⟩ := by
+  simp only [TransitionRelation, initCfg, onTailComputer, SingleTapeTM.step, mk₁_cons_head,
+    mk₁_erase_moveRight]
+
+/-- The start step on the empty input: halt immediately with empty output. -/
+private lemma onTail_start_nil :
+    (onTailComputer tm).TransitionRelation
+      (initCfg (onTailComputer tm) [])
+      (haltCfg (onTailComputer tm) []) := by
+  simp only [TransitionRelation, initCfg, haltCfg, onTailComputer, SingleTapeTM.step, mk₁_nil_head,
+    mk₁_nil_noop]
+
+/-- The first finishing step: rewrite the head and move left onto the blank cell. -/
+private lemma onTail_finishRead (b : Symbol) (out : List Symbol) :
+    (onTailComputer tm).TransitionRelation
+      ⟨some (Sum.inr (Sum.inr (Sum.inl b))), BiTape.mk₁ out⟩
+      ⟨some (Sum.inr (Sum.inr (Sum.inr b))), writeTape out⟩ := by
+  simp only [TransitionRelation, onTailComputer, SingleTapeTM.step, mk₁_writeHead_moveLeft]
+
+/-- The second finishing step: write the remembered symbol and halt, prepending it to the output. -/
+private lemma onTail_finishWrite (b : Symbol) (out : List Symbol) :
+    (onTailComputer tm).TransitionRelation
+      ⟨some (Sum.inr (Sum.inr (Sum.inr b))), writeTape out⟩
+      (haltCfg (onTailComputer tm) (b :: out)) := by
+  simp only [TransitionRelation, haltCfg, onTailComputer, SingleTapeTM.step, writeTape_lastWrite]
+
+/-- Running a polynomial-time machine on the tail of the input is polynomial-time. -/
+noncomputable def PolyTimeComputable.onTail {f : List Symbol → List Symbol}
+    (h : PolyTimeComputable f) : PolyTimeComputable (onTailFun f) where
+  tm := onTailComputer h.normalize.tm
+  timeBound n := h.normalize.timeBound n + 3
+  poly := h.normalize.poly + C 3
+  bounds n := by
+    simp only [eval_add, eval_C]
+    exact Nat.add_le_add_right (h.normalize.bounds n) 3
+  outputsFunInTime a := by
+    simp only [OutputsWithinTime]
+    cases a with
+    | nil =>
+      exact (RelatesWithinSteps.single (onTail_start_nil h.normalize.tm)).of_le (by omega)
+    | cons b rest =>
+      have hrun := run_relatesWithinSteps h.normalize.tm b rest (f rest) _
+        (h.normalize.outputsFunInTime rest)
+      have hchain := (RelatesWithinSteps.single (onTail_start h.normalize.tm b rest)).trans
+        (hrun.trans ((RelatesWithinSteps.single (onTail_finishRead h.normalize.tm b (f rest))).trans
+          (RelatesWithinSteps.single (onTail_finishWrite h.normalize.tm b (f rest)))))
+      refine hchain.of_le ?_
+      have hmono := h.monotone_normalize (Nat.le_succ rest.length)
+      simp only [List.length_cons, Nat.succ_eq_add_one] at *
+      omega
+
+end OnTail
 
 end SingleTapeTM
 
