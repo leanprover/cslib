@@ -6,7 +6,6 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.PerfectSecrecy
 
 /-!

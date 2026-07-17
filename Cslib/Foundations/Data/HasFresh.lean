@@ -9,7 +9,6 @@ module -- shake: keep-downstream
 public import Cslib.Init
 public import Mathlib.Analysis.Normed.Field.Lemmas
 meta import Lean.Elab.ConfigEval
-import Qq
 
 /-! Computable chacterization of infinite types. -/
 

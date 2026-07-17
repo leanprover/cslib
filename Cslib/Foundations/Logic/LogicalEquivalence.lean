@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.Congruence
 
 /-! Typeclass and notation for logical equivalence. -/

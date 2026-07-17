@@ -7,7 +7,6 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Init
-public import Lean.Elab.Command
 public import Mathlib.Util.Notation3
 public import Mathlib.Logic.Relation
 

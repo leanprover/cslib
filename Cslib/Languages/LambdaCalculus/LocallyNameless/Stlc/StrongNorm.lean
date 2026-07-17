@@ -7,10 +7,7 @@ Authors: David Wegmann
 module
 
 public import Cslib.Foundations.Data.HasFresh
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
 
 /-! Strong normalization (termination) for full beta-reduction of simply typed lambda calculus. -/

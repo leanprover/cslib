@@ -7,7 +7,6 @@ Authors: Maximiliano Onofre Martínez
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # Call-by-Name Evaluation -/
 
