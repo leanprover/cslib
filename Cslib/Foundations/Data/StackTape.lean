@@ -151,7 +151,6 @@ lemma mapSome_head (l : List Symbol) : (mapSome l).head = l.head? := by
 lemma mapSome_tail (l : List Symbol) : (mapSome l).tail = mapSome l.tail := by
   cases l <;> rfl
 
-@[simp]
 lemma cons_some_mapSome (a : Symbol) (l : List Symbol) :
     cons (some a) (mapSome l) = mapSome (a :: l) := rfl
 
