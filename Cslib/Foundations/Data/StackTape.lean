@@ -137,6 +137,8 @@ lemma cons_head_tail (l : StackTape Symbol) :
   rw [eq_iff]
   simp
 
+section mapSome
+
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
 def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
@@ -159,16 +161,9 @@ lemma cons_head?_mapSome (l : List Symbol) :
   cases l <;> rfl
 
 @[simp]
-lemma cons_none_empty : cons none (∅ : StackTape Symbol) = ∅ := rfl
-
-@[simp]
 lemma mapSome_nil : mapSome ([] : List Symbol) = ∅ := rfl
 
-@[simp]
-lemma empty_head : (∅ : StackTape Symbol).head = none := rfl
-
-@[simp]
-lemma empty_tail : (∅ : StackTape Symbol).tail = ∅ := rfl
+end mapSome
 
 section Length
 
