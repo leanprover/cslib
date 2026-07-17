@@ -83,6 +83,15 @@ instance : BitstringEncoding Bool where
     | _ => none
   decode_encode _ := rfl
 
+/-- `Unit` is encoded as the empty bitstring. This is the tensor unit for the pair encoding:
+`encode ((), x) = false :: encode x` and `encode (x, ()) = delimit (encode x)`. -/
+instance : BitstringEncoding Unit where
+  encode _ := []
+  decode l := match l with
+    | [] => some ()
+    | _ => none
+  decode_encode _ := rfl
+
 /- ## Self-delimiting blocks
 
 To concatenate encodings of multipartite data structures,
