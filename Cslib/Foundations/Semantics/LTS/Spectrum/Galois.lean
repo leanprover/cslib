@@ -104,7 +104,7 @@ theorem polarity (Ω : Type*) :
       (fun T => induced Ω (ofDual T)) := by
   intro E T
   rw [OrderDual.toDual_le]
-  simp only [Set.le_eq_subset, Pi.le_def, le_Prop_eq]
+  simp only [Pi.le_def, le_Prop_eq]
   exact (polarity_iff Ω (ofDual T) E).symm
 
 /-- Every test in `T` respects the equivalence `T` induces — the counit

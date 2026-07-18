@@ -50,13 +50,12 @@ def traceTestClass : Set (State → Set (List Label)) :=
     equivalence (pointwise iff). -/
 theorem induced_traceSet_iff (p q : State) :
     induced (Set (List Label)) (traceTestClass lts) p q ↔ HomTraceEq lts p q := by
-  unfold induced traceTestClass
-  simp only [Set.mem_setOf_eq]
   constructor
   · intro h
     exact h _ rfl
   · intro h t ht
-    rw [ht]
+    have ht : t = traceSetTest lts := ht
+    subst ht
     exact h
 
 /-- Function-equality form (via `propext`). -/
