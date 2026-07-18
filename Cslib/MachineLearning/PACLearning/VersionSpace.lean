@@ -153,31 +153,8 @@ theorem mem_versionSpace_iff_empiricalError_zero
   unfold empiricalError empiricalMeasure error
   rcases Nat.eq_zero_or_pos m with hm | hm
   · subst hm
-    rw [dif_pos rfl]
-    simp only [Measure.coe_zero, Pi.zero_apply]
-    exact iff_of_true (fun i => i.elim0) trivial
-  · have hm_ne : m ≠ 0 := Nat.pos_iff_ne_zero.mp hm
-    have hm_inv_ne : (m : ℝ≥0∞)⁻¹ ≠ 0 :=
-      ENNReal.inv_ne_zero.mpr (ENNReal.natCast_ne_top m)
-    rw [dif_neg hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
-    simp only [Measure.dirac_apply, Set.indicator, Set.mem_setOf_eq, Pi.one_apply,
-               smul_eq_mul]
-    rw [mul_eq_zero]
-    constructor
-    · intro hh
-      right
-      apply Finset.sum_eq_zero
-      intro i _
-      rw [if_neg]
-      intro hne
-      exact hne (hh i)
-    · rintro (h1 | h2)
-      · exact absurd h1 hm_inv_ne
-      · intro i
-        have hi := (Finset.sum_eq_zero_iff.mp h2) i (Finset.mem_univ i)
-        by_contra hne
-        rw [if_pos hne] at hi
-        exact one_ne_zero hi
+    simp_all
+  · simp_all [Nat.pos_iff_ne_zero]
 
 /-- The empirical 0-1 error equals the empirical miscount divided by the
 sample size. -/
@@ -189,8 +166,7 @@ theorem empiricalError_eq_div [DecidableEq β]
   have hm_ne : m ≠ 0 := hm.ne'
   unfold empiricalError empiricalMeasure error empiricalMiscount
   rw [dif_neg hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
-  simp only [Measure.dirac_apply, Set.indicator, Set.mem_setOf_eq, Pi.one_apply,
-             smul_eq_mul]
+  simp only [Measure.dirac_apply, Set.indicator, Set.mem_ofPred_eq, Pi.one_apply, smul_eq_mul]
   rw [Finset.sum_boole, ← ENNReal.div_eq_inv_mul]
 
 /-! ### Consistent Learners -/
@@ -299,8 +275,7 @@ theorem ae_mem_versionSpace_of_realizable
   have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆
       (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ := by
     intro S hS hcontra
-    simp only [Set.mem_pi, Set.mem_univ, true_implies, Set.mem_setOf_eq] at hcontra
-    exact hS ⟨hc, fun i => (hcontra i).symm⟩
+    exact hS ⟨hc, by simp_all⟩
   have hcompl : (Measure.pi (fun _ : Fin m => P.map (fun x : α => (x, c x))))
       ((Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ) = 0 := by
     rw [prob_compl_eq_one_sub (MeasurableSet.univ_pi fun _ => hG),

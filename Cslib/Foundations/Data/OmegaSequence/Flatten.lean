@@ -88,7 +88,7 @@ theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k)
   symm
   apply Set.BijOn.finsetCard_eq (fun n ↦ n + (ls 0).length)
   refine ⟨?_, by grind [injOn_of_injective, Injective], ?_⟩ <;>
-  ( intro k; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_setOf_eq,
+  ( intro k; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq,
       le_add_iff_nonneg_left, _root_.zero_le, and_true] )
   · rintro ⟨h_k, i, rfl⟩
     refine ⟨?_, 1 + i, ?_⟩ <;> grind [cumLen_one_add_drop]
