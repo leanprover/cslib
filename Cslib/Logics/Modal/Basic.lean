@@ -177,8 +177,8 @@ theorem Satisfies.k : ⇓Modal[m,w ⊨ □(φ₁ → φ₂) → (□φ₁ → �
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The dual axiom, valid for all models. -/
 theorem Satisfies.dual : ⇓Modal[m,w ⊨ ◇φ ↔ ¬□¬φ] := by
-  grind only [Satisfies.iff_iff_iff.mpr, → satisfies_theory, usr Set.mem_setOf_eq, = impl_iff_impl,
-    =_ derivation_def, = not_satisfies, Satisfies, = box_iff_forall, = Set.setOf_true]
+  grind only [Satisfies.iff_iff_iff.mpr, → satisfies_theory, usr Set.mem_ofPred_eq, = impl_iff_impl,
+    =_ derivation_def, = not_satisfies, Satisfies, = box_iff_forall]
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t {m : Model World Atom} [instRefl : Std.Refl m.r] {w : World}

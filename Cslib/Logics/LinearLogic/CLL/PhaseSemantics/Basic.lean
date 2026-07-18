@@ -196,14 +196,8 @@ lemma coe_mk {X : Set P} {h : isFact X} : ((⟨X, h⟩ : Fact P) : Set P) = X :=
 @[simp] lemma closed (F : Fact P) : isFact (F : Set P) := F.property
 
 /-- In any phase space, `{1}⫠ = ⊥`. -/
-lemma orth_one_eq_bot :
-    ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
-  ext m; constructor
-  · intro hm
-    simpa [orthogonal, mem_setOf, mul_one] using hm 1 (by simp)
-  · intro hm x hx
-    rcases hx with rfl
-    simpa [orthogonal, mem_setOf, mul_one] using hm
+lemma orth_one_eq_bot : ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
+  simp_all
 
 /-- The fact given by the dual of G. -/
 @[simps!] def dualFact (G : Set P) : Fact P := Fact.mkDual (G⫠) G rfl
@@ -638,14 +632,9 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
 
 @[simp] lemma top_par : (⊤ ⅋ G : Fact P) = ⊤ := by
   refine SetLike.coe_injective ?_
-  rw [coe_top]
-  rw [Set.eq_univ_iff_forall]
-  intro x
-  simp only [parr, dualFact, mkDual, mkSubset, coe_mk, coe_top]
-  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq]
-  intro w hw
+  rw [coe_top, Set.eq_univ_iff_forall]
+  intro x w hw
   rcases Set.mem_mul.mp hw with ⟨y, hy, z, hz, rfl⟩
-  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq] at hy
   rw [mul_left_comm]
   exact hy (x * z) (Set.mem_univ _)
 
