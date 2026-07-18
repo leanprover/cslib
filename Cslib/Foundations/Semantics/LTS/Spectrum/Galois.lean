@@ -7,7 +7,7 @@ Authors: patchwright
 module
 
 public import Cslib.Init
-public import Mathlib.Order.GaloisConnection.Defs
+public import Mathlib.Order.GaloisConnection.Basic
 public import Mathlib.Order.Closure
 
 /-!
@@ -54,6 +54,8 @@ recover `Ω` from it.
 * `cl_extensive`, `cl_monotone`, `cl_idempotent`: inherited from
   `ClosureOperator`.
 * `spectrum_eq_closed_elements`: testable ↔ in the image of `induced`.
+* `spectrumCompleteLattice`: the testable equivalences form a complete lattice
+  under refinement (via `GaloisInsertion.liftCompleteLattice`).
 
 ## References
 
@@ -168,5 +170,16 @@ theorem spectrum_eq_closed_elements (Ω : Type*) (E : Proc → Proc → Prop) :
     exact ⟨respects Ω E, (cl Ω).isClosed_iff.1 hE⟩
   · rintro ⟨T, rfl⟩
     exact induced_testable Ω T
+
+/-- **The spectrum is a complete lattice.** The closed elements of `cl Ω` — the
+    testable equivalences — form a complete lattice under refinement, lifted
+    through the Galois insertion `(cl Ω).gi` from the complete lattice of all
+    equivalences (Mathlib's `GaloisInsertion.liftCompleteLattice`). Arbitrary
+    meets and joins of testable equivalences exist; and the lattice is not a
+    chain (`Spectrum.Antichain`), which is the structural form of "the
+    linear-time/branching-time spectrum is a lattice, not a linear scale". -/
+instance spectrumCompleteLattice {Ω : Type*} :
+    CompleteLattice ((cl (Proc := Proc) Ω).Closeds) :=
+  (cl Ω).gi.liftCompleteLattice
 
 end Cslib.LTS.Spectrum
