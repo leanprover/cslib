@@ -64,7 +64,7 @@ theorem cylinder_def (xs : ωSequence α) (n : ℕ) :
 theorem cylinder_eq_prepend_range (xs : ωSequence α) (n : ℕ) :
     xs.cylinder n = range (xs.take n ++ω ·) := by
   ext ys
-  simp only [cylinder_def, mem_setOf_eq, mem_range]
+  simp only [cylinder_def, mem_ofPred_eq, mem_range]
   constructor
   · intro h
     use ys.drop n
@@ -102,7 +102,7 @@ extensions are also in the set. -/
 theorem isOpen_iff (s : Set (ωSequence α)) :
     IsOpen s ↔ ∀ xs, xs ∈ s → ∃ n, ∀ ys, (xs.take n) ++ω ys ∈ s := by
   simp only [IsTopologicalBasis.isOpen_iff isTopologicalBasis_cylinders,
-    cylinder_eq_prepend_range, mem_setOf_eq, ↓existsAndEq, mem_range, true_and]
+    cylinder_eq_prepend_range, mem_ofPred_eq, ↓existsAndEq, mem_range, true_and]
   constructor <;> intro h xs hxs
   · obtain ⟨_, n, ⟨_, rfl⟩, _⟩ := h xs hxs
     use n
@@ -114,7 +114,7 @@ theorem isOpen_iff (s : Set (ωSequence α)) :
 theorem Dense_iff (s : Set (ωSequence α)) :
     Dense s ↔ ∀ (xs : ωSequence α) (n : ℕ), ∃ ys, (xs.take n) ++ω ys ∈ s := by
   simp only [IsTopologicalBasis.dense_iff isTopologicalBasis_cylinders, cylinder_eq_prepend_range,
-    mem_setOf_eq, forall_exists_index]
+    mem_ofPred_eq, forall_exists_index]
   constructor
   · intro h xs n
     obtain ⟨ys, h1, _⟩ := h (xs.cylinder n) xs n
