@@ -22,9 +22,11 @@ Hence the closed-element lattice contains an antichain → it is a lattice, not 
 chain (scale). This is the structural form of the "linear-time/branching-time
 spectrum is a lattice, not a linear scale" claim.
 
-(The *named* van Glabbeek antichain — simulation vs failures equivalence —
-requires failures semantics, not yet in CSLib; that named instance is separate
-from the structural result here.)
+This file proves the structural fact only, over a small explicit witness. The
+classical spectrum also contains *named* incomparable pairs — e.g. simulation
+equivalence vs failures equivalence [Glabbeek1990] — but mechanising such a
+pair requires failures semantics, which CSLib does not yet define, so no named
+instance is attempted here.
 -/
 
 @[expose] public section
