@@ -11,60 +11,54 @@ public import Mathlib.Order.GaloisConnection.Basic
 public import Mathlib.Order.Closure
 
 /-!
-# Van Glabbeek's spectrum as a Galois connection — the polarity framework
+# The van Glabbeek spectrum as a Galois connection
 
-Behavioural equivalences are organised as the closed elements of an antitone
-Galois connection ("polarity") between sets of tests (ordered by `⊆`) and
-equivalences (ordered by refinement). Following the standard Mathlib idiom, the
-antitone connection is stated as a `GaloisConnection` into the order dual:
+The linear time–branching time spectrum of behavioural equivalences is the set
+of *testable* equivalences on a process type: those an observer recovers exactly
+as indistinguishability under the tests that respect them. This set is the
+collection of closed elements of an antitone Galois connection — a *polarity* —
+between equivalences and tests.
+
+The two preorders of the connection are:
+
+* equivalences `E : Proc → Proc → Prop`, ordered by pointwise implication
+  `E ≤ E' ↔ ∀ p q, E p q → E' p q` (graph inclusion);
+* test classes `T : Set (Proc → Ω)`, ordered by `(⊆)`.
+
+The antitone connection is packaged as a monotone `GaloisConnection` into the
+order dual on the test side:
 
   `polarity : GaloisConnection (toDual ∘ respects Ω) (induced Ω ∘ ofDual)`
 
-The closure operator on equivalences is then *derived* — it is
-`(polarity Ω).closureOperator`, an instance of Mathlib's `ClosureOperator`
-(the same pattern as `PhaseSemantics.biorthogonalClosure`), so extensivity,
-monotonicity and idempotence are inherited rather than proved by hand. The
-Galois-closed equivalences — the "testable" ones — are exactly the image of
-`induced`; they form a lattice, not a chain (see `Spectrum.Antichain`).
+Its closure operator is `cl Ω = induced Ω ∘ respects Ω`, and the spectrum is the
+set of its closed elements. A named spectrum point (`HomTraceEq`) is shown closed
+in `Spectrum.TracePoint`; the spectrum is a lattice rather than a chain
+(`Spectrum.Antichain`).
 
-This module is the Mathlib/`Cslib.Init`-only framework. A concrete named
-spectrum point (CSLib's `HomTraceEq`) is shown Galois-closed in
-`Spectrum.TracePoint`.
-
-The construction is parameterised by the pair `(Proc, Ω)`: `Proc` is the process
-type and `Ω` the observation type (a test is `Proc → Ω`). `Ω` is carried
-explicitly because the closure-operator theorems mention only `E` and cannot
-recover `Ω` from it.
+The construction is parameterised by `Proc` (the process type) and `Ω` (the
+observation type; a test is `Proc → Ω`). `Ω` is carried explicitly because the
+closure operator itself mentions only `E`.
 
 ## Main definitions
 
-* `induced Ω T`: the equivalence a test class `T` induces.
-* `respects Ω E`: the tests that respect an equivalence `E`.
-* `cl Ω`: the closure operator `induced Ω ∘ respects Ω`, as a Mathlib
-  `ClosureOperator`, obtained from `polarity` via
-  `GaloisConnection.closureOperator`.
-* `Testable Ω E`: `E` is a closed element of `cl Ω` (`(cl Ω).IsClosed E`).
+* `induced Ω T`: the equivalence a test class induces.
+* `respects Ω E`: the tests constant on every `E`-pair.
+* `polarity Ω`: the Galois connection above.
+* `cl Ω`: the closure operator `induced Ω ∘ respects Ω`.
+* `Testable Ω E`: the proposition that `E` is `cl Ω`-closed.
+* `spectrum Ω`: the set of testable equivalences.
 
 ## Main statements
 
-* `polarity`: the antitone Galois connection, as a Mathlib `GaloisConnection`
-  into the order dual.
-* `induced_testable`: every induced equivalence is closed (from
-  `GaloisConnection.u_l_u_eq_u`).
-* `cl_extensive`, `cl_monotone`, `cl_idempotent`: inherited from
-  `ClosureOperator`.
-* `spectrum_eq_closed_elements`: testable ↔ in the image of `induced`.
-* `spectrumCompleteLattice`: the testable equivalences form a complete lattice
-  under refinement (via `GaloisInsertion.liftCompleteLattice`).
+* `spectrum_eq_closed_elements`: the testable equivalences are exactly the image
+  of `induced`.
+* `spectrumCompleteLattice`: the spectrum is a complete lattice under refinement.
 
 ## References
 
-* [R.J. van Glabbeek, *The Linear Time – Branching Time Spectrum*][Glabbeek1990]
-  (extended to silent moves in *Spectrum II* [Glabbeek1993]) — the spectrum of
-  behavioural equivalences ordered by refinement.
-* [H. Beohar, *Hennessy-Milner Theorems via Galois Connections*][Beohar2022] —
-  the reading of those equivalences as the fixed points of an antitone Galois
-  connection (polarity) between tests and equivalences.
+* [R.J. van Glabbeek, *The Linear Time – Branching Time Spectrum*][Glabbeek1990],
+  extended to silent moves in *Spectrum II* [Glabbeek1993].
+* [H. Beohar, *Hennessy-Milner Theorems via Galois Connections*][Beohar2022].
 -/
 
 @[expose] public section
@@ -75,18 +69,16 @@ open OrderDual (toDual ofDual)
 
 variable {Proc : Type*}
 
-/-- The equivalence a test class induces: agreement on every test in `T`.
-    Antitone in `T` — more tests ⇒ finer (smaller) equivalence. -/
+/-- Equivalence induced by a test class `T`: two processes agree on every test
+    in `T`. -/
 def induced (Ω : Type*) (T : Set (Proc → Ω)) (p q : Proc) : Prop :=
   ∀ t ∈ T, t p = t q
 
-/-- The tests that respect an equivalence `E`: tests constant on every E-pair.
-    Antitone in `E` — coarser `E` ⇒ fewer respecting tests. -/
+/-- Tests that respect an equivalence `E`: constant on every `E`-pair. -/
 def respects (Ω : Type*) (E : Proc → Proc → Prop) : Set (Proc → Ω) :=
   { t | ∀ p q, E p q → t p = t q }
 
-/-- Pointwise form of the polarity: `E` refines `induced Ω T` iff
-    `T ⊆ respects Ω E`. The order-theoretic packaging is `polarity` below. -/
+/-- `E` refines `induced Ω T` iff every test in `T` respects `E`. -/
 theorem polarity_iff (Ω : Type*) (T : Set (Proc → Ω)) (E : Proc → Proc → Prop) :
     (∀ p q, E p q → induced Ω T p q) ↔ T ⊆ respects Ω E := by
   constructor
@@ -95,10 +87,9 @@ theorem polarity_iff (Ω : Type*) (T : Set (Proc → Ω)) (E : Proc → Proc →
   · intro h p q hpq t ht
     exact h ht p q hpq
 
-/-- **Polarity.** `respects Ω` and `induced Ω` form an antitone Galois
-    connection between equivalences under refinement and test classes under
-    `⊆`. Stated, as is standard in Mathlib, as a (monotone) `GaloisConnection`
-    into the order dual `(Set (Proc → Ω))ᵒᵈ`. -/
+/-- The polarity: `respects Ω` and `induced Ω` form an antitone Galois connection
+    between equivalences (pointwise implication) and test classes (`(⊆)`, into
+    the order dual). -/
 theorem polarity (Ω : Type*) :
     GaloisConnection (fun E : Proc → Proc → Prop => toDual (respects Ω E))
       (fun T => induced Ω (ofDual T)) := by
@@ -107,41 +98,30 @@ theorem polarity (Ω : Type*) :
   simp only [Pi.le_def, le_Prop_eq]
   exact (polarity_iff Ω (ofDual T) E).symm
 
-/-- Every test in `T` respects the equivalence `T` induces — the counit
-    `l (u b) ≤ b` of `polarity`, read back through the dual. -/
+/-- Every test in `T` respects the equivalence `T` induces. -/
 theorem test_subset_respects_induced (Ω : Type*) (T : Set (Proc → Ω)) :
     T ⊆ respects Ω (induced Ω T) :=
   (polarity Ω).l_u_le (toDual T)
 
-/-- Closure operator on equivalences: `induced Ω ∘ respects Ω`, obtained from
-    `polarity` via Mathlib's `GaloisConnection.closureOperator`. -/
+/-- Closure operator `induced Ω ∘ respects Ω`, obtained from `polarity` as a
+    `ClosureOperator`. -/
 def cl (Ω : Type*) : ClosureOperator (Proc → Proc → Prop) :=
   (polarity (Proc := Proc) Ω).closureOperator
 
-/-- `cl Ω` acts as `induced Ω ∘ respects Ω`. -/
+/-- `cl Ω E = induced Ω (respects Ω E)`. -/
 theorem cl_apply (Ω : Type*) (E : Proc → Proc → Prop) :
     cl Ω E = induced Ω (respects Ω E) :=
   rfl
 
-/-- `cl Ω` is extensive: `E ≤ cl Ω E` — inherited from `ClosureOperator`. -/
-theorem cl_extensive (Ω : Type*) (E : Proc → Proc → Prop) : E ≤ cl Ω E :=
-  (cl Ω).le_closure E
-
-/-- `cl Ω` is monotone — inherited from `ClosureOperator`. -/
-theorem cl_monotone (Ω : Type*) : Monotone (cl (Proc := Proc) Ω) :=
-  (cl Ω).monotone
-
-/-- `cl Ω` is idempotent — inherited from `ClosureOperator`. -/
-theorem cl_idempotent (Ω : Type*) (E : Proc → Proc → Prop) :
-    cl Ω (cl Ω E) = cl Ω E :=
-  (cl Ω).idempotent E
-
-/-- An equivalence is TESTABLE iff it is exactly "indistinguishability under
-    the tests that respect it" — i.e. a closed element of `cl Ω`. -/
+/-- An equivalence is *testable* iff it is a closed element of `cl Ω`. -/
 def Testable (Ω : Type*) (E : Proc → Proc → Prop) : Prop :=
   (cl Ω).IsClosed E
 
-/-- Pointwise reading of `Testable`: `cl Ω E` and `E` agree on every pair. -/
+/-- The **van Glabbeek spectrum**: the set of testable equivalences on `Proc`. -/
+def spectrum (Ω : Type*) : Set (Proc → Proc → Prop) :=
+  { E | Testable Ω E }
+
+/-- `Testable Ω E` iff `cl Ω E` and `E` agree pointwise. -/
 theorem testable_iff (Ω : Type*) (E : Proc → Proc → Prop) :
     Testable Ω E ↔ ∀ p q, cl Ω E p q ↔ E p q := by
   rw [Testable, ClosureOperator.isClosed_iff]
@@ -152,17 +132,12 @@ theorem testable_iff (Ω : Type*) (E : Proc → Proc → Prop) :
     funext p q
     exact propext (h p q)
 
-/-- Every induced equivalence is testable (the image of `induced Ω` is
-    contained in the closed elements) — this is `u ∘ l ∘ u = u` for `polarity`
-    (`GaloisConnection.u_l_u_eq_u`). -/
+/-- Every induced equivalence is testable. -/
 theorem induced_testable (Ω : Type*) (T : Set (Proc → Ω)) :
     Testable Ω (induced Ω T) :=
   (cl Ω).isClosed_iff.2 ((polarity Ω).u_l_u_eq_u (toDual T))
 
-/-- **Spectrum = image of `induced` = closed elements.** An equivalence is
-    testable (a closed element of `cl Ω`) iff it is exactly the equivalence
-    induced by some test class. Forward direction witnessed by
-    `T = respects Ω E`. -/
+/-- An equivalence is testable iff it is induced by some test class. -/
 theorem spectrum_eq_closed_elements (Ω : Type*) (E : Proc → Proc → Prop) :
     Testable Ω E ↔ ∃ T : Set (Proc → Ω), induced Ω T = E := by
   constructor
@@ -171,13 +146,8 @@ theorem spectrum_eq_closed_elements (Ω : Type*) (E : Proc → Proc → Prop) :
   · rintro ⟨T, rfl⟩
     exact induced_testable Ω T
 
-/-- **The spectrum is a complete lattice.** The closed elements of `cl Ω` — the
-    testable equivalences — form a complete lattice under refinement, lifted
-    through the Galois insertion `(cl Ω).gi` from the complete lattice of all
-    equivalences (Mathlib's `GaloisInsertion.liftCompleteLattice`). Arbitrary
-    meets and joins of testable equivalences exist; and the lattice is not a
-    chain (`Spectrum.Antichain`), which is the structural form of "the
-    linear-time/branching-time spectrum is a lattice, not a linear scale". -/
+/-- The spectrum is a complete lattice under refinement; it is not a chain
+    (see `Spectrum.Antichain`). -/
 instance spectrumCompleteLattice {Ω : Type*} :
     CompleteLattice ((cl (Proc := Proc) Ω).Closeds) :=
   (cl Ω).gi.liftCompleteLattice

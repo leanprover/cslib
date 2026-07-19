@@ -12,21 +12,14 @@ public import Cslib.Foundations.Semantics.LTS.Spectrum.Galois
 /-!
 # Spectrum antichain — the closed-element lattice is not a chain
 
-The closed-element lattice is NOT totally ordered by refinement: two
-incomparable Galois-closed (testable) equivalences exist over a 4-state witness
-space. Two test classes `T₁`, `T₂` (Ω = Bool) induce closed equivalences such
-that neither refines the other:
+The lattice of testable equivalences is not totally ordered by refinement. Over
+a 4-state witness, two test classes `T₁`, `T₂` (Ω = `Bool`) induce closed
+equivalences that are incomparable:
   - states a,b are `T₁`-equivalent but `T₂`-distinct;
   - states a,c are `T₂`-equivalent but `T₁`-distinct.
-Hence the closed-element lattice contains an antichain → it is a lattice, not a
-chain (scale). This is the structural form of the "linear-time/branching-time
-spectrum is a lattice, not a linear scale" claim.
 
-This file proves the structural fact only, over a small explicit witness. The
-classical spectrum also contains *named* incomparable pairs — e.g. simulation
-equivalence vs failures equivalence [Glabbeek1990] — but mechanising such a
-pair requires failures semantics, which CSLib does not yet define, so no named
-instance is attempted here.
+So the spectrum contains an antichain — it is a lattice, not a linear scale
+(cf. [Glabbeek1990]).
 -/
 
 @[expose] public section
@@ -49,9 +42,9 @@ def t2 : W → Bool
   | a | c => true
   | b | d => false
 
-/-- Test class `T₁`: the singleton `{ t₁ }`, written as a comprehension. -/
+/-- Test class `T₁`: the singleton `{ t₁ }`. -/
 def T1 : Set (W → Bool) := { f | f = t1 }
-/-- Test class `T₂`: the singleton `{ t₂ }`, written as a comprehension. -/
+/-- Test class `T₂`: the singleton `{ t₂ }`. -/
 def T2 : Set (W → Bool) := { f | f = t2 }
 
 /-- a,b are `T₁`-equivalent but `T₂`-distinct. -/

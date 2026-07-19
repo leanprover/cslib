@@ -14,17 +14,13 @@ public import Cslib.Logics.HML.Basic
 # Spectrum bisim point — bisimilarity is Galois-closed (via Hennessy–Milner)
 
 The non-trivial spectrum point. Unlike trace equivalence (`Spectrum.TracePoint`),
-bisimilarity is NOT the kernel of its test map by definition — it is the
-Hennessy–Milner theorem that makes it one. CSLib mechanises HM as
+bisimilarity is not the kernel of its test map by definition; the
+Hennessy–Milner theorem makes it one. CSLib mechanises HM as
 `Cslib.Logic.HML.theoryEq_eq_bisimilarity` (`TheoryEq lts = HomBisimilarity lts`
-for image-finite LTS), so composing that with the (kernel-trivial) fact that
-`TheoryEq` is the equivalence induced by the HML-theory test class yields:
+for image-finite LTS), and `TheoryEq` is the equivalence induced by the
+HML-theory test class, so:
 
   `Testable (Set (Proposition Label)) (HomBisimilarity lts)`.
-
-This is the load-bearing step that earns the contribution the word "spectrum":
-two genuinely different behavioural equivalences — trace (kernel-trivial bottom)
-and bisimilarity (HM-mediated top) — are closed elements of the SAME polarity.
 -/
 
 @[expose] public section
@@ -56,16 +52,14 @@ theorem induced_hml_iff (p q : State) :
     subst ht
     exact h
 
-/-- Function-equality form (via `propext`). -/
+/-- Function-equality form of `induced_hml_iff`. -/
 theorem induced_hml :
     induced (Set (Proposition Label)) (hmlTestClass lts) = TheoryEq lts := by
   funext p q
   exact propext (induced_hml_iff lts p q)
 
-/-- **Bisim point.** CSLib's homogeneous bisimilarity is a Galois-closed
-    (testable) equivalence — for image-finite LTS, via the Hennessy–Milner
-    theorem (`theoryEq_eq_bisimilarity`). This is the non-trivial spectrum point:
-    bisimilarity is not a kernel by definition; HM makes it one. -/
+/-- **Bisim point.** `HomBisimilarity lts` is testable for image-finite LTS, via
+    the Hennessy–Milner theorem (`theoryEq_eq_bisimilarity`). -/
 theorem HomBisimilarity_testable [image_finite : ∀ s μ, Finite (lts.image s μ)] :
     Testable (Set (Proposition Label)) (HomBisimilarity lts) := by
   rw [← theoryEq_eq_bisimilarity lts, ← induced_hml lts]

@@ -13,21 +13,13 @@ public import Cslib.Foundations.Semantics.LTS.Spectrum.Galois
 /-!
 # Spectrum trace point — trace equivalence is Galois-closed
 
-A concrete named spectrum point: CSLib's homogeneous trace equivalence
-(`Cslib.LTS.HomTraceEq`) is a Galois-closed (testable) equivalence, via the
-trace-set observer test class (`fun s => lts.traces s`, `Ω = Set (List Label)`).
-`HomTraceEq` lies in the image of `induced`, hence is a fixed point of the
-closure operator `cl`.
+CSLib's homogeneous trace equivalence (`HomTraceEq`) is a Galois-closed
+(testable) equivalence: it is the equivalence induced by the trace-set observer
+test class (`Ω = Set (List Label)`), hence a fixed point of the closure operator
+`cl`.
 
-This proves the structural result (TraceEq ∈ closed elements). The standard
-testing-semantics refinement — one `Bool` test per trace — gives a finer witness
-for the SAME closed element but requires decidability of trace membership; it
-does not change the closed-element verdict.
-
-The Hennessy–Milner theorem IS mechanised in CSLib as
-`Cslib.Logic.HML.theoryEq_eq_bisimilarity`; the bisim point built on it is in
-`Spectrum.BisimPoint`. This file (the trace point, kernel-trivial bottom) does
-not use HM — bisimilarity (HM-mediated top) is the companion point there.
+The companion bisimilarity point (which uses the Hennessy–Milner theorem) is in
+`Spectrum.BisimPoint`.
 -/
 
 @[expose] public section
@@ -58,7 +50,7 @@ theorem induced_traceSet_iff (p q : State) :
     subst ht
     exact h
 
-/-- Function-equality form (via `propext`). -/
+/-- Function-equality form of `induced_traceSet_iff`. -/
 theorem induced_traceSet :
     induced (Set (List Label)) (traceTestClass lts) = HomTraceEq lts := by
   funext p q
