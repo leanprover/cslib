@@ -52,80 +52,74 @@ lemma swap_comm {m : Term Var} {x y : Var} : m.swap x y = m.swap y x := by
   induction m <;> simp [swap] <;> grind
 
 @[simp]
-lemma swap_involutive {m : Term Var} {x y : Var} :
-    (m.swap x y).swap x y = m := by
-  induction m <;> simp [swap] <;> grind
+lemma swap_involutive {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
+    induction m <;> simp [swap] <;> grind
 
 @[simp]
-lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} :
-    sizeOf (m.swap x y) = sizeOf m := by
-  induction m <;> simp [swap] <;> grind
+lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = sizeOf m := by
+    induction m <;> simp [swap] <;> grind
 
 @[simp]
-lemma swap_unused {m : Term Var} {x y : Var} :
-    x ∉ m.vars → y ∉ m.vars → m.swap x y = m := by
-  induction m <;> grind [swap, vars]
+lemma swap_unused {m : Term Var} {x y : Var} : x ∉ m.vars → y ∉ m.vars → m.swap x y = m := by
+    induction m <;> grind [swap, vars]
 
 /-- When `y ∉ m.vars`, `swap x y` and `rename x y` coincide.
 
 This is because `rename x y` only changes `x` to `y` (not `y` to `x`), and when `y` does
 not occur in `m`, swapping and renaming produce the same result. -/
 lemma swap_eq_rename_of_not_mem_vars {m : Term Var} {x y : Var}
-    (hy : y ∉ m.vars) : m.swap x y = m.rename x y := by
-  induction m with
-  | var z =>
-    unfold swap rename
-    grind [Term.vars]
-  | abs z m ih =>
-    simp_all +decide [Term.swap, Term.rename, Term.vars]
-    grind
-  | app n1 n2 ih1 ih2 =>
-    simp_all +decide [Term.swap, Term.rename, Term.vars]
+  (hy : y ∉ m.vars) : m.swap x y = m.rename x y := by
+    induction m with
+    | var z =>
+      unfold swap rename
+      grind [Term.vars]
+    | abs z m ih =>
+      simp_all +decide [Term.swap, Term.rename, Term.vars]
+      grind
+    | app n1 n2 ih1 ih2 =>
+      simp_all +decide [Term.swap, Term.rename, Term.vars]
 
 /-- The set of free variables after a swap. -/
 lemma swap_fv {m : Term Var} {x y : Var} :
-      (m.swap x y).fv = m.fv.image fun z => if z = x then y else if z = y then x else z := by
-    induction m with
-    | var z => aesop
-    | abs z m ih =>
-      simp_all +decide [Term.swap, Term.fv, Finset.ext_iff, Finset.mem_image, Finset.mem_sdiff]
-      grind
-    | app m n ih1 ih2 =>
-      simp_all +decide only [Term.swap, Term.fv]
-      rw [Finset.image_union]
+    (m.swap x y).fv = m.fv.image fun z => if z = x then y else if z = y then x else z := by
+      induction m with
+      | var z => aesop
+      | abs z m ih =>
+        simp_all +decide [Term.swap, Term.fv, Finset.ext_iff, Finset.mem_image, Finset.mem_sdiff]
+        grind
+      | app m n ih1 ih2 =>
+        simp_all +decide only [Term.swap, Term.fv]
+        rw [Finset.image_union]
 
 /-- Swapping preserves non-membership in `fv`. -/
 lemma fresh_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
-    z ∉ (m.swap x y).fv := by
-  rw [swap_fv]
-  grind
+  z ∉ (m.swap x y).fv := by
+    rw [swap_fv]
+    grind
 
 /-- The set of vars after a swap. -/
 lemma swap_vars {m : Term Var} {x y z : Var} (hzm : z ∉ m.vars) :
-    (m.swap x y).vars = m.vars.image fun z => if z = x then y else if z = y then x else z := by
-  induction m with
-  | var w => aesop
-  | abs w m ih => simp_all +decide [Term.swap, Term.vars]
-  | app m n ih1 ih2 =>
-    simp_all +decide only [Term.swap, Term.vars, Finset.image_union]
-    grind
+  (m.swap x y).vars = m.vars.image fun z => if z = x then y else if z = y then x else z := by
+    induction m with
+    | var w => aesop
+    | abs w m ih => simp_all +decide [Term.swap, Term.vars]
+    | app m n ih1 ih2 =>
+      simp_all +decide only [Term.swap, Term.vars, Finset.image_union]
+      grind
 
 /-- Swapping preserves non-membership in `vars`. -/
 lemma not_mem_vars_swap {m : Term Var} {x y z : Var}
-    (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.vars) :
-    z ∉ (m.swap x y).vars := by
-  rw [swap_vars hzm]
-  grind
+  (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.vars) : z ∉ (m.swap x y).vars := by
+    rw [swap_vars hzm]
+    grind
 
 /-- Helper function: the action of the transposition `(u v)` on a single variable `z`. -/
 @[simp]
-def swapVar (u v z : Var) : Var :=
-  if z = u then v else if z = v then u else z
+def swapVar (u v z : Var) : Var := if z = u then v else if z = v then u else z
 
 /-- `swapVar` is a fixed point for variables outside `{u, v}`. -/
 @[simp]
-lemma swapVar_fixed {u v z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
-    swapVar u v z = z := by simp_all
+lemma swapVar_fixed {u v z : Var} (hzu : z ≠ u) (hzv : z ≠ v) : swapVar u v z = z := by simp_all
 
 /-- `swapVar` is injective (permutations are bijections). -/
 lemma swapVar_injective (u v : Var) : Function.Injective (swapVar u v) := by
@@ -134,54 +128,53 @@ lemma swapVar_injective (u v : Var) : Function.Injective (swapVar u v) := by
 
 /-- `swap` and `rename` commute (modulo the permutation action on the variable arguments). -/
 lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
-    (m.swap u v).rename (swapVar u v x) (swapVar u v y) = (m.rename x y).swap u v := by
-  induction m with
-  | var z =>
-    simp_all +decide [Term.swap, Term.rename, swapVar]
-    grind
-  | abs z m ih =>
-    simp_all +decide [Term.swap, Term.rename, swapVar]
-    grind
-  | app m n ih1 ih2 =>
-    simp_all +decide [Term.swap, Term.rename, swapVar]
+  (m.swap u v).rename (swapVar u v x) (swapVar u v y) = (m.rename x y).swap u v := by
+    induction m with
+    | var z =>
+      simp_all +decide [Term.swap, Term.rename, swapVar]
+      grind
+    | abs z m ih =>
+      simp_all +decide [Term.swap, Term.rename, swapVar]
+      grind
+    | app m n ih1 ih2 =>
+      simp_all +decide [Term.swap, Term.rename, swapVar]
 
 lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
-    (m.swap u v).rename (swapVar u v x) z = (m.rename x z).swap u v := by
-  rw [← @swap_rename_comm _ _ m u v x z]
-  simp_all
+  (m.swap u v).rename (swapVar u v x) z = (m.rename x z).swap u v := by
+    rw [← @swap_rename_comm _ _ m u v x z]
+    simp_all
 
 lemma swap_comp_eq_of_not_mem_vars {m : Term Var} {a u z : Var}
-    (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
-    (m.swap u a).swap z u = m.swap z a := by
-  induction m
-  · simp_all +decide [Term.swap, Term.vars]
-    grind
-  · simp_all +decide [Term.swap, Term.vars]
-    grind
-  · simp_all +decide [Term.swap, Term.vars]
+  (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
+  (m.swap u a).swap z u = m.swap z a := by
+    induction m
+    · simp_all +decide [Term.swap, Term.vars]
+      grind
+    · simp_all +decide [Term.swap, Term.vars]
+      grind
+    · simp_all +decide [Term.swap, Term.vars]
 
 /-- Pointwise version of the transposition-conjugation identity
 `(u v) ∘ (u a) = (v a) ∘ (u v)` for `a ∉ {u, v}` -/
 lemma swapVar_conj {a u v w : Var} (huv : u ≠ v) (hau : a ≠ u) (hav : a ≠ v) :
-    swapVar v a (swapVar u v w) = swapVar u v (swapVar u a w) := by
-  unfold swapVar
-  grind
+  swapVar v a (swapVar u v w) = swapVar u v (swapVar u a w) := by
+    unfold swapVar
+    grind
 
 /-- Term-level conjugation identity: `(m.swap u v).swap v a = (m.swap u a).swap u v`
 when `a ∉ {u, v}`.
 
 Unlike `swap_comp_eq_of_not_mem_vars`, this holds unconditionally (no freshness needed). -/
 lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a ≠ v) :
-    (m.swap u v).swap v a = (m.swap u a).swap u v := by
-  induction m with
-  | var x => simp_all +decide [Term.swap]; grind
-  | app m n ihm ihn => simp [Term.swap, ihm, ihn]
-  | abs x m ih => simp [Term.swap, ih]; grind
+  (m.swap u v).swap v a = (m.swap u a).swap u v := by
+    induction m with
+    | var x => simp_all +decide [Term.swap]; grind
+    | app m n ihm ihn => simp [Term.swap, ihm, ihn]
+    | abs x m ih => simp [Term.swap, ih]; grind
 
 /-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
 (the only way `v` could show up is as the image of `u`). -/
-lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) :
-    v ∉ (m.swap u v).vars := by
+lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
   rw [swap_vars hu]
   grind
 
@@ -245,28 +238,28 @@ lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var
 
 -- example 3
 lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
-    (hm : v ∉ E.vars ∪ E'.vars ∪ {a})
-    (hbody : ((E.rename a v).swap u v) =α ((E'.rename u v).swap u v))
-    (hau : a ≠ u) (hav : a ≠ v) (huv : u ≠ v) :
-    ((Term.abs a E).swap u v) =α ((Term.abs u E').swap u v) := by
-  have hvE : v ∉ E.vars := by simp_all
-  have hvE' : v ∉ E'.vars := by simp_all
-  have huE : u ∉ (E.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE
-  have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE'
-  have hL : (E.swap u v).rename a u = (E.rename a v).swap u v := by
-    have h := @swap_rename_comm _ _ E u v a v
-    simpa [swapVar, hau, hav, huv, huv.symm] using h
-  have hR : (E'.swap u v).rename v u = (E'.rename u v).swap u v := by
-    have h := @swap_rename_comm _ _ E' u v u v
-    simpa [swapVar, huv, huv.symm] using h
-  have hbody' : ((E.swap u v).rename a u) =α ((E'.swap u v).rename v u) := by
-    rw [hL, hR]; exact hbody
-  apply AlphaEquiv.abs (y := u)
-  · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
-    grind
-  · simp_all +decide only [Finset.union_singleton, Finset.mem_insert, Finset.mem_union,
-      or_self, or_false, ne_eq, reduceIte]
-    exact hbody
+  (hm : v ∉ E.vars ∪ E'.vars ∪ {a})
+  (hbody : ((E.rename a v).swap u v) =α ((E'.rename u v).swap u v))
+  (hau : a ≠ u) (hav : a ≠ v) (huv : u ≠ v) :
+  ((Term.abs a E).swap u v) =α ((Term.abs u E').swap u v) := by
+    have hvE : v ∉ E.vars := by simp_all
+    have hvE' : v ∉ E'.vars := by simp_all
+    have huE : u ∉ (E.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE
+    have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE'
+    have hL : (E.swap u v).rename a u = (E.rename a v).swap u v := by
+      have h := @swap_rename_comm _ _ E u v a v
+      simpa [swapVar, hau, hav, huv, huv.symm] using h
+    have hR : (E'.swap u v).rename v u = (E'.rename u v).swap u v := by
+      have h := @swap_rename_comm _ _ E' u v u v
+      simpa [swapVar, huv, huv.symm] using h
+    have hbody' : ((E.swap u v).rename a u) =α ((E'.swap u v).rename v u) := by
+      rw [hL, hR]; exact hbody
+    apply AlphaEquiv.abs (y := u)
+    · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
+      grind
+    · simp_all +decide only [Finset.union_singleton, Finset.mem_insert, Finset.mem_union,
+        or_self, or_false, ne_eq, reduceIte]
+      exact hbody
 
 -- example 4
 lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
@@ -296,12 +289,12 @@ lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
 variable [HasFresh Var]
 
 lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
-    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
-  intro h
-  obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
-  apply AlphaEquiv.abs (y := y)
-  · grind
-  · apply AlphaEquiv.rename_preserve <;> grind
+  m =α m' → (Term.abs x m) =α (Term.abs x m') := by
+    intro h
+    obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
+    apply AlphaEquiv.abs (y := y)
+    · grind
+    · apply AlphaEquiv.rename_preserve <;> grind
 
 /-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
 lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
@@ -413,20 +406,6 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
             · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
       | app hm1 hm2 ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
-/-- The action `π · E` of a permutation on a term, as used in [Crole2012].
-
-`swap` is is one special case of a permutation: the transposition that exchanges exactly two atoms
-a and b and fixes everything else.
-
-Since some lemmas in section 6 are proven for general permutations, we have to introduce
-this notion here aswell and derive the special case using `swap` accordingly.
--/
-def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
-  match m with
-  | var x => var (π x)
-  | abs x m => abs (π x) (m.permute π)
-  | app m n => app (m.permute π) (n.permute π)
-
 omit [HasFresh Var] in
 /-- Permuting a term transports its free variables pointwise. -/
 lemma permute_fv (m : Term Var) (π : Equiv.Perm Var) :
@@ -448,11 +427,10 @@ lemma permute_trans (m : Term Var) (π π' : Equiv.Perm Var) :
 omit [HasFresh Var] in
 /-- A transposition acts on terms in the same way as `Term.swap`. -/
 lemma permute_swap (m : Term Var) (x y : Var) : m.permute (Equiv.swap x y) = m.swap x y := by
-    induction m <;> simp_all [permute, swap, Equiv.swap_apply_def]
+  induction m <;> simp_all [permute, swap, Equiv.swap_apply_def]
 
 omit [HasFresh Var] in
-/-- **Lemma 6.2 part 1** [Crole2012]. For any expression `E` and permutations `π, π'`,
-if `occ(E) ⊆ AS(π, π')`, then `π · E = π' · E`. -/
+/-- **Lemma 6.2 part 1** [Crole2012]. -/
 lemma permute_eq_of_vars_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
   (h : (m.vars : Set Var) ⊆ agreementSet π π') :
   m.permute π = m.permute π' := by
@@ -473,25 +451,36 @@ lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equi
   (m.permute π) =α (m.permute π') := by
     induction m generalizing π π' with
     | var x =>
-        have hx : π x = π' x := by apply h (by simp [fv])
-        simpa [permute, hx] using (AlphaEquiv.var (x := π x))
+      unfold permute
+      have hx : π x = π' x := by
+        unfold agreementSet at h
+        apply h
+        unfold fv
+        simp
+      rw [hx]
+      exact AlphaEquiv.var
     | app m n ihm ihn =>
-        apply AlphaEquiv.app
-        · apply ihm
-          intro x hx
-          exact h (by simp [fv, hx])
-        · apply ihn
-          intro x hx
-          exact h (by simp [fv, hx])
+      have hm : (m.permute π).AlphaEquiv (m.permute π') := by
+        apply ihm
+        intro x hx
+        apply h
+        unfold fv
+        simp_all
+      have hn : (n.permute π).AlphaEquiv (n.permute π') := by
+        apply ihn
+        intro x hx
+        apply h
+        unfold fv
+        simp_all
+      apply AlphaEquiv.app hm hn
     | abs a m ih =>
-        let z := HasFresh.fresh ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
-        have hz := HasFresh.fresh_notMem
-          ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
-        have hzπ : z ∉ (m.permute π).vars := by simp_all [z]
-        have hzπ' : z ∉ (m.permute π').vars := by simp_all [z]
-        have hbody :
-            (m.permute (π.trans (Equiv.swap (π a) z))) =α
-              (m.permute (π'.trans (Equiv.swap (π' a) z))) := by
+      let z := HasFresh.fresh ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
+      have hz := HasFresh.fresh_notMem ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
+      have hzπ : z ∉ (m.permute π).vars := by simp_all [z]
+      have hzπ' : z ∉ (m.permute π').vars := by simp_all [z]
+      have hbody :
+        (m.permute (π.trans (Equiv.swap (π a) z))) =α (m.permute (π'.trans (Equiv.swap (π' a) z)))
+        := by
           apply ih
           intro x hx
           simp only [agreementSet, Set.mem_setOf_eq, Equiv.trans_apply]
@@ -511,13 +500,10 @@ lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equi
               exact Finset.mem_image.mpr ⟨x, hx, rfl⟩
             have hπ'xz : π' x ≠ z := by simpa [hagree] using hπxz
             simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
-        rw [← permute_trans, ← permute_trans] at hbody
-        rw [permute_swap, permute_swap,
-          swap_eq_rename_of_not_mem_vars hzπ, swap_eq_rename_of_not_mem_vars hzπ'] at hbody
-        simp only [permute]
-        apply AlphaEquiv.abs (y := z)
-        · simpa [z] using hz
-        · exact hbody
+      rw [← permute_trans, ← permute_trans, permute_swap, permute_swap] at hbody
+      rw [swap_eq_rename_of_not_mem_vars hzπ, swap_eq_rename_of_not_mem_vars hzπ'] at hbody
+      unfold permute
+      apply AlphaEquiv.abs (y := z) (by simp_all [z]) hbody
 
 /-- **Lemma 6.2 part 2** [Crole2012] (specialized). -/
 lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
@@ -526,11 +512,10 @@ lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
     let π := (Equiv.swap u a).trans (Equiv.swap z u)
     let π' := Equiv.swap z a
     have h : (m.fv : Set Var) ⊆ agreementSet π π' := by
-        intro x hx
-        simp only [agreementSet, Set.mem_setOf_eq]
-        have hxu : x ≠ u := by intro hxu; subst x; exact hu hx
-        have hxz : x ≠ z := by intro hxz; subst x; exact hz hx
-        grind
+      intro x hx
+      unfold agreementSet
+      rw [Set.mem_setOf_eq]
+      grind
     have h' := permute_alphaEquiv_of_fv_subset_agreementSet m π π' h
     rw [← permute_trans, permute_swap, permute_swap, permute_swap] at h'
     exact h'

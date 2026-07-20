@@ -50,8 +50,7 @@ operation coincides with `rename` when the target variable does not occur in the
 See [Crole2012] proof of Theorem 4.1, first sentence: "It is trivial that ∼p is contained in ∼p#."
 -/
 omit [HasFresh Var] in
-lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} :
-   AlphaEquiv m n → AlphaEquivPFresh m n := by
+lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} : AlphaEquiv m n → AlphaEquivPFresh m n := by
   intro h
   induction h with
   | var => constructor
@@ -67,8 +66,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} :
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
 /-! ## Direction ∼p# → ∼p (the interesting direction of Theorem 4.1) -/
-lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} :
-    AlphaEquivPFresh m n → AlphaEquiv m n := by
+lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} : AlphaEquivPFresh m n → AlphaEquiv m n := by
   intro h
   induction h with
   | var => constructor
@@ -115,8 +113,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} :
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 /-! ## Theorem 4.1 [Crole2012] -/
-theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) :
-    AlphaEquiv m n ↔ AlphaEquivPFresh m n :=
+theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : AlphaEquiv m n ↔ AlphaEquivPFresh m n :=
   ⟨alphaEquiv_of_alphaEquivPFresh, alphaEquivPFresh_of_alphaEquiv⟩
 
 /-

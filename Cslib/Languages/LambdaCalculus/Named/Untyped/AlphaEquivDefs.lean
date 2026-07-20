@@ -43,6 +43,7 @@ abstract syntax and the λ-calculus terms:
 | `B([a]E)`     | `Term.abs x m`      |
 | `(z a) · E`   | `m.swap x z`        |
 | `E{a'/a}`     | `m.subst a (var a')`|
+| `π · E`       | `m.permute π`       |
 
 -/
 
@@ -64,6 +65,20 @@ def swap (m : Term Var) (x y : Var) : Term Var :=
   | var z => var (if z = x then y else if z = y then x else z)
   | abs z m' => abs (if z = x then y else if z = y then x else z) (m'.swap x y)
   | app n1 n2 => app (n1.swap x y) (n2.swap x y)
+
+/-- The action `π · E` of a permutation on a term, as used in [Crole2012].
+
+`swap` is is one special case of a permutation: the transposition that exchanges exactly two atoms
+a and b and fixes everything else.
+
+Since some lemmas in section 6 are proven for general permutations, we have to introduce
+this notion here aswell and derive the special case using `swap` accordingly.
+-/
+def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
+  match m with
+  | var x => var (π x)
+  | abs x m => abs (π x) (m.permute π)
+  | app m n => app (m.permute π) (n.permute π)
 
 /-- **Definition 3.2** [Crole2012]: `∼p#` - α-equivalence via permutation with freshness
 side condition.
