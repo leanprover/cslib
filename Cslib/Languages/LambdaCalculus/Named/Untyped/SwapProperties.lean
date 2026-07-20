@@ -41,7 +41,6 @@ variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
--- TODO explicit usage?
 def agreementSet (f g : Var → Var) : Set Var := { x | f x = g x }
 def disagreementSet (f g : Var → Var) : Set Var := { x | f x ≠ g x }
 
@@ -186,7 +185,7 @@ lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) :
   rw [swap_vars hu]
   grind
 
--- First 4 case examination
+-- First 4 case examination of example 1
 lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
   (hm1 : z ∉ E.vars ∪ E'.vars ∪ {a, b})
   (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
@@ -320,6 +319,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
         have h3 : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
         have h4 : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
         have h5 : z = u ∨ z = v ∨ (z ≠ u ∧ z ≠ v) := by grind
+        -- we've got 27 cases to consider
         rcases h3 with ha | ha | ⟨hau, hav⟩
         · rcases h4 with hb | hb | ⟨hbu, hbv⟩
           · rcases h5 with hz | hz | ⟨hzu, hzv⟩
@@ -413,82 +413,127 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
             · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
       | app hm1 hm2 ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
--- TODO part 1
-/-! ### Lemma 6.2 part 2 (α-equivalence version) -/
+/-- The action `π · E` of a permutation on a term, as used in [Crole2012].
 
-/-- Helper: if `y1 ∉ fv(m)` and `y2 ∉ fv(m)`, there exists `m'` α-equivalent to `m`
-with both `y1 ∉ vars(m')` and `y2 ∉ vars(m')`. -/
-lemma exists_alphaEquiv_not_mem_vars_pair {m : Term Var} {y1 y2 : Var}
-    (h1 : y1 ∉ m.fv) (h2 : y2 ∉ m.fv) :
-    ∃ m', m =α m' ∧ y1 ∉ m'.vars ∧ y2 ∉ m'.vars := by
-  -- Step 1: Rename y1 to a fresh variable, avoiding both y1 and y2.
-  let f1 := HasFresh.fresh (m.vars ∪ {y1, y2})
-  have hf1 : f1 ∉ m.vars ∪ {y1, y2} := HasFresh.fresh_notMem _
-  let m1 := m.rename y1 f1
-  have hf1_ne_y1 : f1 ≠ y1 := by intro h; exact hf1 (by simp [h])
-  have hf1_ne_y2 : f1 ≠ y2 := by intro h; exact hf1 (by simp [h])
-  have hf1_vars : f1 ∉ m.vars := by intro h; exact hf1 (Finset.mem_union_left _ h)
-  have hm1_alpha : m =α m1 := AlphaEquiv.rename_non_fv h1 hf1_vars
-  have hy1_m1 : y1 ∉ m1.vars := rename_remove hf1_ne_y1.symm
-  -- y2 ∉ fv(m1) since fv is preserved by α-equivalence.
-  have hy2_fv_m1 : y2 ∉ m1.fv :=
-    AlphaEquiv.same_fv hm1_alpha ▸ h2
-  -- Step 2: Rename y2 to a fresh variable, avoiding both y1 and y2.
-  let f2 := HasFresh.fresh (m1.vars ∪ {y1, y2})
-  have hf2 : f2 ∉ m1.vars ∪ {y1, y2} := HasFresh.fresh_notMem _
-  let m2 := m1.rename y2 f2
-  have hf2_ne_y1 : f2 ≠ y1 := by intro h; exact hf2 (by simp [h])
-  have hf2_ne_y2 : f2 ≠ y2 := by intro h; exact hf2 (by simp [h])
-  have hf2_vars : f2 ∉ m1.vars := by intro h; exact hf2 (Finset.mem_union_left _ h)
-  have hm2_alpha : m1 =α m2 := AlphaEquiv.rename_non_fv hy2_fv_m1 hf2_vars
-  have hy2_m2 : y2 ∉ m2.vars := rename_remove hf2_ne_y2.symm
-  -- y1 ∉ vars(m2): by rename_vars, vars(m2) ⊆ (vars(m1) \ {y2}) ∪ {f2}.
-  -- Since y1 ∉ vars(m1) and f2 ≠ y1, we conclude y1 ∉ vars(m2).
-  have hy1_m2 : y1 ∉ m2.vars := by
-    simp only [m2, rename_vars, Finset.mem_union, Finset.mem_sdiff,
-      Finset.mem_singleton]
-    intro h
-    cases h with
-    | inl h => exact hy1_m1 h.1
-    | inr h => split_ifs at h <;> simp_all [Ne.symm hf2_ne_y1]
-  exact ⟨m2, AlphaEquiv.trans hm1_alpha hm2_alpha, hy1_m2, hy2_m2⟩
+`swap` is is one special case of a permutation: the transposition that exchanges exactly two atoms
+a and b and fixes everything else.
 
-/-- **Lemma 6.2 part 2** [Crole2012] (specialized): If two composed transpositions
-agree on all free variables, their actions are α-equivalent.
+Since some lemmas in section 6 are proven for general permutations, we have to introduce
+this notion here aswell and derive the special case using `swap` accordingly.
+-/
+def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
+  match m with
+  | var x => var (π x)
+  | abs x m => abs (π x) (m.permute π)
+  | app m n => app (m.permute π) (n.permute π)
 
-Specialized form: if `u, z ∉ fv(m)`, then `(m.swap u a).swap z u =α m.swap z a`.
+omit [HasFresh Var] in
+/-- Permuting a term transports its free variables pointwise. -/
+lemma permute_fv (m : Term Var) (π : Equiv.Perm Var) :
+  (m.permute π).fv = m.fv.image π := by
+    induction m with
+    | var x => simp [permute, fv]
+    | app m n ihm ihn => simp [permute, fv, ihm, ihn, Finset.image_union]
+    | abs x m ih =>
+      simp only [permute, fv, ih]
+      rw [Finset.image_sdiff _ _ π.injective]
+      simp
 
-This follows from the general statement of Lemma 6.2 part 2: since `u, z # E` (i.e.,
-`u, z ∉ free(E)`), we have `free(E) ⊆ AS((z u) ∘ (u a), (z a))`, and therefore
-`(z u) · (u a) · E ∼p (z a) · E`.
+omit [DecidableEq Var] [HasFresh Var] in
+/-- Permuting successively by `π` and `π'` is permutation by their composition. -/
+lemma permute_trans (m : Term Var) (π π' : Equiv.Perm Var) :
+  (m.permute π).permute π' = m.permute (π.trans π') := by
+    induction m <;> simp_all [permute]
 
-The agreement set computation is: for any `x ∈ free(E)`, since `x ≠ u` and `x ≠ z`,
-we have `swapVar z u (swapVar u a x) = swapVar z a x`
-(by `swap_comp_eq_swap_of_not_eq`).
+omit [HasFresh Var] in
+/-- A transposition acts on terms in the same way as `Term.swap`. -/
+lemma permute_swap (m : Term Var) (x y : Var) : m.permute (Equiv.swap x y) = m.swap x y := by
+    induction m <;> simp_all [permute, swap, Equiv.swap_apply_def]
 
-The proof reduces to Lemma 6.2 part 1 via `exists_alphaEquiv_not_mem_vars_pair`
-and `AlphaEquiv.swap_preserve`. -/
+omit [HasFresh Var] in
+/-- **Lemma 6.2 part 1** [Crole2012]. For any expression `E` and permutations `π, π'`,
+if `occ(E) ⊆ AS(π, π')`, then `π · E = π' · E`. -/
+lemma permute_eq_of_vars_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
+  (h : (m.vars : Set Var) ⊆ agreementSet π π') :
+  m.permute π = m.permute π' := by
+    induction m with
+    | var x => simpa [permute, vars, agreementSet] using h (by simp [vars])
+    | abs x m ih =>
+        have hx : π x = π' x := h (by simp [vars])
+        have hm : m.permute π = m.permute π' := ih fun y hy => h (by simp [vars, hy])
+        simp [permute, hx, hm]
+    | app m n ihm ihn =>
+        have hm : m.permute π = m.permute π' := ihm fun y hy => h (by simp [vars, hy])
+        have hn : n.permute π = n.permute π' := ihn fun y hy => h (by simp [vars, hy])
+        simp [permute, hm, hn]
+
+/-- **Lemma 6.2 part 2** [Crole2012]. -/
+lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
+  (h : (m.fv : Set Var) ⊆ agreementSet π π') :
+  (m.permute π) =α (m.permute π') := by
+    induction m generalizing π π' with
+    | var x =>
+        have hx : π x = π' x := by apply h (by simp [fv])
+        simpa [permute, hx] using (AlphaEquiv.var (x := π x))
+    | app m n ihm ihn =>
+        apply AlphaEquiv.app
+        · apply ihm
+          intro x hx
+          exact h (by simp [fv, hx])
+        · apply ihn
+          intro x hx
+          exact h (by simp [fv, hx])
+    | abs a m ih =>
+        let z := HasFresh.fresh ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
+        have hz := HasFresh.fresh_notMem
+          ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
+        have hzπ : z ∉ (m.permute π).vars := by simp_all [z]
+        have hzπ' : z ∉ (m.permute π').vars := by simp_all [z]
+        have hbody :
+            (m.permute (π.trans (Equiv.swap (π a) z))) =α
+              (m.permute (π'.trans (Equiv.swap (π' a) z))) := by
+          apply ih
+          intro x hx
+          simp only [agreementSet, Set.mem_setOf_eq, Equiv.trans_apply]
+          by_cases hxa : x = a
+          · subst x
+            simp
+          · have hagree : π x = π' x := h (by simp [fv, hx, hxa])
+            have hπxa : π x ≠ π a := fun he => hxa (π.injective he)
+            have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
+            have hπ'xπa : π' x ≠ π a := by simpa [hagree] using hπxa
+            have hπxz : π x ≠ z := by
+              intro he
+              apply hzπ
+              rw [← he, vars_either_fv_or_bv]
+              apply Finset.mem_union_left
+              rw [permute_fv]
+              exact Finset.mem_image.mpr ⟨x, hx, rfl⟩
+            have hπ'xz : π' x ≠ z := by simpa [hagree] using hπxz
+            simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
+        rw [← permute_trans, ← permute_trans] at hbody
+        rw [permute_swap, permute_swap,
+          swap_eq_rename_of_not_mem_vars hzπ, swap_eq_rename_of_not_mem_vars hzπ'] at hbody
+        simp only [permute]
+        apply AlphaEquiv.abs (y := z)
+        · simpa [z] using hz
+        · exact hbody
+
+/-- **Lemma 6.2 part 2** [Crole2012] (specialized). -/
 lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
-    (hu : u ∉ m.fv) (hz : z ∉ m.fv) :
-    ((m.swap u a).swap z u) =α (m.swap z a) := by
-  -- By exists_alphaEquiv_not_mem_vars_pair, get m' with m =α m' and
-  -- u, z ∉ vars(m').
-  obtain ⟨m', hm', hm'u, hm'z⟩ := exists_alphaEquiv_not_mem_vars_pair hu hz
-  -- By Lemma 6.2 part 1 (swap_comp_eq_of_not_mem_vars):
-  -- (m'.swap u a).swap z u = m'.swap z a (syntactic equality!)
-  have h_eq : (m'.swap u a).swap z u = m'.swap z a :=
-    swap_comp_eq_of_not_mem_vars hm'u hm'z
-  -- By Lemma 6.1 (swap_preserve) applied twice to m =α m':
-  have h1 : ((m.swap u a).swap z u) =α ((m'.swap u a).swap z u) :=
-    AlphaEquiv.swap_preserve (AlphaEquiv.swap_preserve hm')
-  -- Rewrite using the syntactic equality:
-  rw [h_eq] at h1
-  -- By Lemma 6.1 (swap_preserve) applied to the symmetric direction:
-  have h2 : (m'.swap z a) =α (m.swap z a) :=
-    AlphaEquiv.swap_preserve (AlphaEquiv.symm hm')
-  -- Chain: (m.swap u a).swap z u =α (m'.swap u a).swap z u
-  --         = m'.swap z a =α m.swap z a
-  exact AlphaEquiv.trans h1 h2
+  (hu : u ∉ m.fv) (hz : z ∉ m.fv) :
+  ((m.swap u a).swap z u) =α (m.swap z a) := by
+    let π := (Equiv.swap u a).trans (Equiv.swap z u)
+    let π' := Equiv.swap z a
+    have h : (m.fv : Set Var) ⊆ agreementSet π π' := by
+        intro x hx
+        simp only [agreementSet, Set.mem_setOf_eq]
+        have hxu : x ≠ u := by intro hxu; subst x; exact hu hx
+        have hxz : x ≠ z := by intro hxz; subst x; exact hz hx
+        grind
+    have h' := permute_alphaEquiv_of_fv_subset_agreementSet m π π' h
+    rw [← permute_trans, permute_swap, permute_swap, permute_swap] at h'
+    exact h'
 
 end LambdaCalculus.Named.Untyped.Term
 
