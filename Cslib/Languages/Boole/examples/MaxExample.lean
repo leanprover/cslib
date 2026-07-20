@@ -1,10 +1,10 @@
 -- This imports the necessary Strata modules for working with Boole programs and verification.
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 import Smt
 
 open Strata
 
-def maxExample : Strata.Program :=
+def maxExample : StrataDDM.Program :=
 #strata
 program Boole; // Specify that this is a Boole program.
 
@@ -24,9 +24,18 @@ spec {
 #end
 
 -- Approach 1: Using an SMT solver to verify the VCs.
-#eval Strata.Boole.verify "cvc5" maxExample
+/-- info:
+Obligation: max_ensures_0_312
+Property: assert
+Result: ✅ pass
+
+Obligation: max_ensures_1_340
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" maxExample (options := .quiet)
 
 -- Approach 2: Using Lean tactics to verify the VCs.
-theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrect maxExample := by
-  gen_smt_vcs
-  all_goals smt
+theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrectBoole maxExample := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)

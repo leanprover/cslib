@@ -1,4 +1,5 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 namespace Strata
 
 -- CLRS Chapter 4: FIND-MAXIMUM-SUBARRAY
@@ -125,8 +126,37 @@ spec
 
 #end
 
-#eval Strata.Boole.verify "cvc5" findMaxSubArray
+/-- info:
+Obligation: assert_5_2385
+Property: assert
+Result: ✅ pass
 
-example : Strata.smtVCsCorrect findMaxSubArray := by
-  gen_smt_vcs
-  all_goals grind
+Obligation: assert_6_2412
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_FIND_MAXIMUM_SUBARRAY_requires_2_1741_26
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_FIND_MAXIMUM_SUBARRAY_requires_2_1741_17
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_FIND_MAX_CROSSING_SUBARRAY_requires_7_3595_7
+Property: assert
+Result: ✅ pass
+
+Obligation: FIND_MAXIMUM_SUBARRAY_ensures_3_1847
+Property: assert
+Result: ✅ pass
+
+Obligation: FIND_MAXIMUM_SUBARRAY_ensures_4_1914
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" findMaxSubArray (options := .quiet)
+
+theorem findMaxSubArray_smtVCsCorrect : Strata.smtVCsCorrectBoole findMaxSubArray := by
+  gen_smt_vcs_boole
+  all_goals (first | omega | trivial | grind)

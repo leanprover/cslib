@@ -1,13 +1,20 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 import Smt
 
 namespace Strata
+
+/-
+Verification example for `const` declarations, global variables, and
+if/else branching (loop and arithmetic reasoning are covered by
+`ineq.lean`).
+-/
 
 private def constants :=
 #strata
 program Boole;
 
-// verifies simple control flow, arithmetic, and loop reasoning
+// verifies const declarations plus simple branching control flow
+// (loop and arithmetic reasoning are covered by ineq.lean)
 
 var GlobalFlag : bool;
 
@@ -42,39 +49,23 @@ spec
 
 };
 
-
-procedure Loop () returns ()
-{
-
-  var c: int;
-  var i: int;
-
-  c := 0;
-  i := 0;
-
-  while (i < 10)
-    invariant 0 <= i
-    invariant i <= 10
-  {
-    i := i + 1;
-  }
-};
-
-procedure Evaluate () returns ()
-{
- var i: int;
-
-  i := 5;
-  i := 3 * i + 1;
-  i := 3 * (i + 1);
-  i := 1 + 3 * i;
-  i := (i + 1) * 3;
-};
-
 #end
 
-#eval Strata.Boole.verify "cvc5" constants
+/-- info:
+Obligation: assert_0_687
+Property: assert
+Result: ✅ pass
 
-example : Strata.smtVCsCorrect constants := by
-  gen_smt_vcs
-  all_goals smt
+Obligation: assert_1_704
+Property: assert
+Result: ✅ pass
+
+Obligation: assert_2_721
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" constants (options := .quiet)
+
+theorem constants_smtVCsCorrect : Strata.smtVCsCorrectBoole constants := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)

@@ -1,8 +1,19 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
-namespace Strata
+open Strata
 
-private def verificationCov :=
+/-
+Verification example illustrating reachability/coverage patterns in Boole
+proof obligations: contradictory `requires`/`assume`s make later statements
+vacuously verified ("not covered" in the inline annotations below), a
+callee's `free`-independent `ensures` clauses are separately discharged at
+each call site, and postconditions can go unconstrained when not tied to a
+`ensures` clause. The `{:id "..."} covered`/`not covered` comments are
+inert documentation, not live Boole syntax.
+-/
+
+private def verification_coverage :=
 #strata
 program Boole;
 
@@ -27,19 +38,16 @@ spec
   ensures s == (n * (n + 1)) div 2; // {:id "spost"} covered
 }
 {
-  var i: int;
   var foo: int;
 
-  i := 0;
   s := 0;
   foo := 27;
-  while (i < n)
-    invariant 0 <= i && i <= n
-    invariant s == (i * (i + 1)) div 2
-    invariant n >= 0
+  for i: int := 0 to (n - 1)
+    invariant (0 <= i && i <= n)
+    invariant (s == (i * (i + 1)) div 2)
+    invariant (n >= 0)
   {
-    i := i + 1;
-    s := s + i;
+    s := s + (i + 1);
     foo := foo * 2; // {:id "update_foo"} not covered
   }
 };
@@ -158,8 +166,114 @@ spec
 
 #end
 
-#eval Strata.Boole.verify "cvc5" verificationCov
+/-- info:
+Obligation: assert_2_829
+Property: assert
+Result: ✅ pass
 
-example : Strata.smtVCsCorrect verificationCov := by
-  gen_smt_vcs
-  all_goals grind
+Obligation: assert_3_932
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: sum_ensures_5_1075
+Property: assert
+Result: ✅ pass
+
+Obligation: assert_10_1608
+Property: assert
+Result: ✅ pass
+
+Obligation: assert_12_1842
+Property: assert
+Result: ✅ pass
+
+Obligation: assert_16_2107
+Property: assert
+Result: ✅ pass
+
+Obligation: assert_18_2243
+Property: assert
+Result: ✅ pass
+
+Obligation: testEnsuresCallee_ensures_20_2406
+Property: assert
+Result: ✅ pass
+
+Obligation: testEnsuresCallee_ensures_21_2448
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_testEnsuresCallee_requires_19_2364_7
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_testEnsuresCallee_requires_19_2364_2
+Property: assert
+Result: ✅ pass
+
+Obligation: assert_24_2881
+Property: assert
+Result: ✅ pass
+
+Obligation: testEnsuresCaller_ensures_23_2642
+Property: assert
+Result: ✅ pass
+
+Obligation: obviouslyUnconstrainedCode_ensures_27_3146
+Property: assert
+Result: ✅ pass
+
+Obligation: contradictoryEnsuresClause_ensures_29_3472
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_contradictoryEnsuresClause_requires_28_3402_12
+Property: assert
+Result: ✅ pass
+
+Obligation: usesSomeInteger_ensures_32_4134
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" verification_coverage (options := .quiet)
+
+theorem verification_coverage_smtVCsCorrect : Strata.smtVCsCorrectBoole verification_coverage := by
+  gen_smt_vcs_boole
+  all_goals
+    (intros
+     first
+     | smt +mono
+     | smt
+     | omega
+     | trivial
+     | (have hstep : ∀ x : Int, (x + 1) * (x + 1 - 1) = x * (x - 1) + 2 * x := fun x => by
+          have e1 : x + 1 - 1 = x := by omega
+          rw [e1, Int.add_mul, Int.one_mul, Int.mul_sub, Int.mul_one]
+          omega
+        simp only [hstep] at *
+        omega)
+     | grind)

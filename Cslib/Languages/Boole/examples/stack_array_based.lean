@@ -1,4 +1,4 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 import Smt
 
 ------------------------------------------------------------
@@ -107,9 +107,45 @@ spec
 
 #end
 
--- will verify once pr in Strata is merged
--- #eval Strata.Boole.verify "cvc5" stackArrayPgm
+/-- info:
+Obligation: StackInit_ensures_1_997
+Property: assert
+Result: ✅ pass
 
--- example : Strata.smtVCsCorrect stackArrayPgm := by
---   gen_smt_vcs
---   all_goals smt
+Obligation: StackInit_ensures_2_1017
+Property: assert
+Result: ✅ pass
+
+Obligation: StackEmpty_ensures_3_1136
+Property: assert
+Result: ✅ pass
+
+Obligation: StackEmpty_ensures_4_1164
+Property: assert
+Result: ✅ pass
+
+Obligation: Push_ensures_6_1425
+Property: assert
+Result: ✅ pass
+
+Obligation: Push_ensures_7_1456
+Property: assert
+Result: ✅ pass
+
+Obligation: Push_ensures_8_1514
+Property: assert
+Result: ✅ pass
+
+Obligation: Pop_ensures_10_1771
+Property: assert
+Result: ✅ pass
+
+Obligation: Pop_ensures_11_1802
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" stackArrayPgm (options := .quiet)
+
+theorem stackArrayPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole stackArrayPgm := by
+  gen_smt_vcs_boole
+  all_goals (first | smt +mono | omega | trivial | grind)

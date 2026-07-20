@@ -1,7 +1,14 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 import Smt
 
-namespace Strata
+open Strata
+
+/-
+Verification example for determinism via a `free ensures` clause: since
+`Foo`'s result is unconditionally tied to the uninterpreted function `f`,
+calling it twice with equal inputs is proved to yield equal outputs, without
+reasoning about `Foo`'s recursive implementation at the call site.
+-/
 
 private def deterministic :=
 #strata
@@ -39,8 +46,13 @@ procedure Check(x1:int, x2:int) returns ()
 
 #end
 
-#eval Strata.Boole.verify "cvc5" deterministic
+/-- info:
+Obligation: assert_1_785
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" deterministic (options := .quiet)
 
-example : Strata.smtVCsCorrect deterministic := by
-  gen_smt_vcs
-  all_goals smt
+theorem deterministic_smtVCsCorrect : Strata.smtVCsCorrectBoole deterministic := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)

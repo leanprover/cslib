@@ -1,7 +1,13 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 import Smt
 
 namespace Strata
+
+/-
+Verification example for loop-bound inequalities: a fixed literal bound
+(`SimpleLoop`) versus a parameterized bound (`VariableBoundLoop`). Both
+establish the loop's negated guard as a post-loop fact via `assume`.
+-/
 
 private def ineq :=
 #strata
@@ -23,7 +29,6 @@ procedure SimpleLoop () returns ()
   assume !(i < 10);
 };
 
-
 procedure VariableBoundLoop (n : int) returns ()
 spec {
   requires 0 <= n;
@@ -43,44 +48,43 @@ spec {
   assume !(i < n);
 };
 
-procedure Foo () returns ()
-{
- var i: int;
-
-  // note: original code used uninitialized i
-  // so we keep it that way for semantic equivalence
-  i := 3 * i + 1;
-  i := 3 * (i + 1);
-  i := 1 + 3 * i;
-  i := (i + 1) * 3;
-};
-
-procedure FooToo () returns ()
-{
- var i: int;
-
-  i := 5;
-  i := 3 * i + 1;
-  i := 3 * (i + 1);
-  i := 1 + 3 * i;
-  i := (i + 1) * 3;
-};
-
-procedure FooTooStepByStep () returns ()
-{
- var i: int;
-
-  i := 5;
-  i := 3 * i + 1;
-  i := 3 * (i + 1);
-  i := 1 + 3 * i;
-  i := (i + 1) * 3;
-};
-
 #end
 
-#eval Strata.Boole.verify "cvc5" ineq
+/-- info:
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
 
-example : Strata.smtVCsCorrect ineq := by
-  gen_smt_vcs
-  all_goals smt
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" ineq (options := .quiet)
+
+theorem ineq_smtVCsCorrect : Strata.smtVCsCorrectBoole ineq := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)
