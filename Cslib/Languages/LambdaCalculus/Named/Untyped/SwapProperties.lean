@@ -296,6 +296,14 @@ lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
 
 variable [HasFresh Var]
 
+lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
+    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
+  intro h
+  obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
+  apply AlphaEquiv.abs (y := y)
+  · grind
+  · apply AlphaEquiv.rename_preserve <;> grind
+
 /-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
 lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
   m =α m' → (m.swap u v) =α (m'.swap u v) := by
@@ -408,42 +416,42 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
 -- TODO part 1
 /-! ### Lemma 6.2 part 2 (α-equivalence version) -/
 
-/-- Helper: if `y₁ ∉ fv(m)` and `y₂ ∉ fv(m)`, there exists `m'` α-equivalent to `m`
-with both `y₁ ∉ vars(m')` and `y₂ ∉ vars(m')`. -/
-lemma exists_alphaEquiv_not_mem_vars_pair {m : Term Var} {y₁ y₂ : Var}
-    (h₁ : y₁ ∉ m.fv) (h₂ : y₂ ∉ m.fv) :
-    ∃ m', m =α m' ∧ y₁ ∉ m'.vars ∧ y₂ ∉ m'.vars := by
-  -- Step 1: Rename y₁ to a fresh variable, avoiding both y₁ and y₂.
-  let f₁ := HasFresh.fresh (m.vars ∪ {y₁, y₂})
-  have hf₁ : f₁ ∉ m.vars ∪ {y₁, y₂} := HasFresh.fresh_notMem _
-  let m₁ := m.rename y₁ f₁
-  have hf₁_ne_y₁ : f₁ ≠ y₁ := by intro h; exact hf₁ (by simp [h])
-  have hf₁_ne_y₂ : f₁ ≠ y₂ := by intro h; exact hf₁ (by simp [h])
-  have hf₁_vars : f₁ ∉ m.vars := by intro h; exact hf₁ (Finset.mem_union_left _ h)
-  have hm₁_alpha : m =α m₁ := AlphaEquiv.rename_non_fv h₁ hf₁_vars
-  have hy₁_m₁ : y₁ ∉ m₁.vars := rename_remove hf₁_ne_y₁.symm
-  -- y₂ ∉ fv(m₁) since fv is preserved by α-equivalence.
-  have hy₂_fv_m₁ : y₂ ∉ m₁.fv :=
-    AlphaEquiv.same_fv hm₁_alpha ▸ h₂
-  -- Step 2: Rename y₂ to a fresh variable, avoiding both y₁ and y₂.
-  let f₂ := HasFresh.fresh (m₁.vars ∪ {y₁, y₂})
-  have hf₂ : f₂ ∉ m₁.vars ∪ {y₁, y₂} := HasFresh.fresh_notMem _
-  let m₂ := m₁.rename y₂ f₂
-  have hf₂_ne_y₁ : f₂ ≠ y₁ := by intro h; exact hf₂ (by simp [h])
-  have hf₂_ne_y₂ : f₂ ≠ y₂ := by intro h; exact hf₂ (by simp [h])
-  have hf₂_vars : f₂ ∉ m₁.vars := by intro h; exact hf₂ (Finset.mem_union_left _ h)
-  have hm₂_alpha : m₁ =α m₂ := AlphaEquiv.rename_non_fv hy₂_fv_m₁ hf₂_vars
-  have hy₂_m₂ : y₂ ∉ m₂.vars := rename_remove hf₂_ne_y₂.symm
-  -- y₁ ∉ vars(m₂): by rename_vars, vars(m₂) ⊆ (vars(m₁) \ {y₂}) ∪ {f₂}.
-  -- Since y₁ ∉ vars(m₁) and f₂ ≠ y₁, we conclude y₁ ∉ vars(m₂).
-  have hy₁_m₂ : y₁ ∉ m₂.vars := by
-    simp only [m₂, rename_vars, Finset.mem_union, Finset.mem_sdiff,
+/-- Helper: if `y1 ∉ fv(m)` and `y2 ∉ fv(m)`, there exists `m'` α-equivalent to `m`
+with both `y1 ∉ vars(m')` and `y2 ∉ vars(m')`. -/
+lemma exists_alphaEquiv_not_mem_vars_pair {m : Term Var} {y1 y2 : Var}
+    (h1 : y1 ∉ m.fv) (h2 : y2 ∉ m.fv) :
+    ∃ m', m =α m' ∧ y1 ∉ m'.vars ∧ y2 ∉ m'.vars := by
+  -- Step 1: Rename y1 to a fresh variable, avoiding both y1 and y2.
+  let f1 := HasFresh.fresh (m.vars ∪ {y1, y2})
+  have hf1 : f1 ∉ m.vars ∪ {y1, y2} := HasFresh.fresh_notMem _
+  let m1 := m.rename y1 f1
+  have hf1_ne_y1 : f1 ≠ y1 := by intro h; exact hf1 (by simp [h])
+  have hf1_ne_y2 : f1 ≠ y2 := by intro h; exact hf1 (by simp [h])
+  have hf1_vars : f1 ∉ m.vars := by intro h; exact hf1 (Finset.mem_union_left _ h)
+  have hm1_alpha : m =α m1 := AlphaEquiv.rename_non_fv h1 hf1_vars
+  have hy1_m1 : y1 ∉ m1.vars := rename_remove hf1_ne_y1.symm
+  -- y2 ∉ fv(m1) since fv is preserved by α-equivalence.
+  have hy2_fv_m1 : y2 ∉ m1.fv :=
+    AlphaEquiv.same_fv hm1_alpha ▸ h2
+  -- Step 2: Rename y2 to a fresh variable, avoiding both y1 and y2.
+  let f2 := HasFresh.fresh (m1.vars ∪ {y1, y2})
+  have hf2 : f2 ∉ m1.vars ∪ {y1, y2} := HasFresh.fresh_notMem _
+  let m2 := m1.rename y2 f2
+  have hf2_ne_y1 : f2 ≠ y1 := by intro h; exact hf2 (by simp [h])
+  have hf2_ne_y2 : f2 ≠ y2 := by intro h; exact hf2 (by simp [h])
+  have hf2_vars : f2 ∉ m1.vars := by intro h; exact hf2 (Finset.mem_union_left _ h)
+  have hm2_alpha : m1 =α m2 := AlphaEquiv.rename_non_fv hy2_fv_m1 hf2_vars
+  have hy2_m2 : y2 ∉ m2.vars := rename_remove hf2_ne_y2.symm
+  -- y1 ∉ vars(m2): by rename_vars, vars(m2) ⊆ (vars(m1) \ {y2}) ∪ {f2}.
+  -- Since y1 ∉ vars(m1) and f2 ≠ y1, we conclude y1 ∉ vars(m2).
+  have hy1_m2 : y1 ∉ m2.vars := by
+    simp only [m2, rename_vars, Finset.mem_union, Finset.mem_sdiff,
       Finset.mem_singleton]
     intro h
     cases h with
-    | inl h => exact hy₁_m₁ h.1
-    | inr h => split_ifs at h <;> simp_all [Ne.symm hf₂_ne_y₁]
-  exact ⟨m₂, AlphaEquiv.trans hm₁_alpha hm₂_alpha, hy₁_m₂, hy₂_m₂⟩
+    | inl h => exact hy1_m1 h.1
+    | inr h => split_ifs at h <;> simp_all [Ne.symm hf2_ne_y1]
+  exact ⟨m2, AlphaEquiv.trans hm1_alpha hm2_alpha, hy1_m2, hy2_m2⟩
 
 /-- **Lemma 6.2 part 2** [Crole2012] (specialized): If two composed transpositions
 agree on all free variables, their actions are α-equivalent.
@@ -481,85 +489,6 @@ lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
   -- Chain: (m.swap u a).swap z u =α (m'.swap u a).swap z u
   --         = m'.swap z a =α m.swap z a
   exact AlphaEquiv.trans h1 h2
-
-/-- Congruence of α-equivalence under abstraction: α-equivalent bodies under the same
-binder yield α-equivalent abstractions. This is the syntax-directed congruence rule used
-in the inductive proof of Lemma 6.6 (corresponding to rule `bcg` of `∼r` in [Crole2012]). -/
-theorem AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
-    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
-  intro h
-  obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
-  apply AlphaEquiv.abs (y := y)
-  · grind
-  · apply AlphaEquiv.rename_preserve <;> grind
-
-/-- **Lemma 6.6** [Crole2012] (Barendregt variable convention):
-For any term `m` and variable `y` with `y ∉ fv(m)`,
-there exists `m'` α-equivalent to `m` with `y ∉ vars(m')`.
-
-Informally, we can always rename bound atoms so that a particular atom does not occur. -/
-lemma exists_alphaEquiv_not_mem_vars {m : Term Var} {y : Var}
-    (hy : y ∉ m.fv) : ∃ m', m =α m' ∧ y ∉ m'.vars := by
-  by_contra h
-  convert Classical.byContradiction fun h' => ?_;
-  convert h'
-  convert Classical.not_not
-  simp_all only [not_exists, not_and, Decidable.not_not, not_false_eq_true, not_true_eq_false]
-  convert h ( m.rename y ( HasFresh.fresh ( m.vars ∪ { y } ) ) ) ( by grind +suggestions ) using 1
-  simp +decide [rename_vars]
-  grind
-
-/-- **Lemma 6.6** [Crole2012] (Barendregt variable convention):
-For any term `m` and variable `y` with `y ∉ fv(m)`,
-there exists `m'` α-equivalent to `m` with `y ∉ vars(m')`.
-
-Informally, we can always rename bound atoms so that a particular atom does not occur.
-
-The proof follows [Crole2012] (Lemma 6.6): we induct over the size of expressions.
-* For a variable `var z`, freshness `y ∉ fv(var z)` gives `y ≠ z`, so `var z` itself works.
-* For an application `app m₁ m₂`, `y` is free in neither `m₁` nor `m₂`, so the inductive
-  hypothesis applied to each subterm yields the result by congruence.
-* For an abstraction `abs b m₀` we have `y ∉ fv(abs b m₀) = fv(m₀) \ {b}`, so either
-  `y ∉ fv(m₀)` or `y = b`.
-  - If `y ≠ b` (hence `y ∉ fv(m₀)`), the inductive hypothesis on `m₀` gives `m₀'` with
-    `m₀ =α m₀'` and `y ∉ vars(m₀')`; then `abs b m₀'` works (using `abs_congr`).
-  - If `y = b`, pick `z ∉ vars(m₀) ∪ {y}`; then `abs y m₀ =α abs z (m₀.rename y z)`
-    (`abs_rename`), and since `y ∉ fv(m₀.rename y z)`, the inductive hypothesis applied to
-    `m₀.rename y z` (which has the same size as `m₀`) gives `m₀'` with
-    `m₀.rename y z =α m₀'` and `y ∉ vars(m₀')`; then `abs z m₀'` works, by `abs_congr`
-    and transitivity. -/
-lemma exists_alphaEquiv_not_mem_vars' {m : Term Var} {y : Var}
-    (hy : y ∉ m.fv) : ∃ m', m =α m' ∧ y ∉ m'.vars := by
-  refine WellFounded.induction
-    (C := fun m => ∀ y : Var, y ∉ m.fv → ∃ m', m =α m' ∧ y ∉ m'.vars)
-    sizeOfWFRel.wf m ?_ y hy
-  clear hy y m
-  intro m ih y hy
-  cases m with
-  | var z =>
-    exact ⟨var z, AlphaEquiv.refl _, by grind [vars, fv]⟩
-  | app m1 m2 =>
-    obtain ⟨m1', hm1', hym1'⟩ := ih m1 (by grind) y (by grind [fv])
-    obtain ⟨m2', hm2', hym2'⟩ := ih m2 (by grind) y (by grind [fv])
-    exact ⟨app m1' m2', AlphaEquiv.app hm1' hm2', by grind [vars]⟩
-  | abs b m0 =>
-    by_cases hyb : y = b
-    · -- Latter case `y = b`: rename the bound atom to a fresh `z` and recurse.
-      subst hyb
-      obtain ⟨z, hz⟩ := HasFresh.fresh_exists (m0.vars ∪ {y})
-      have hzvars : z ∉ m0.vars := by grind
-      have hzy : z ≠ y := by grind
-      have h1 : (Term.abs y m0) =α (Term.abs z (m0.rename y z)) :=
-        AlphaEquiv.abs_rename (by grind)
-      have hyfv : y ∉ (m0.rename y z).fv := by grind [rename_fv]
-      obtain ⟨m0', hm0', hym0'⟩ :=
-        ih (m0.rename y z) (by grind [rename_eq_sizeOf]) y hyfv
-      refine ⟨Term.abs z m0', AlphaEquiv.trans h1 (AlphaEquiv.abs_congr hm0'), ?_⟩
-      grind [vars]
-    · -- Former case `y ∉ fv(m₀)`: recurse on the body directly.
-      have hyfv : y ∉ m0.fv := by grind [fv]
-      obtain ⟨m0', hm0', hym0'⟩ := ih m0 (by grind) y hyfv
-      exact ⟨Term.abs b m0', AlphaEquiv.abs_congr hm0', by grind [vars]⟩
 
 end LambdaCalculus.Named.Untyped.Term
 
