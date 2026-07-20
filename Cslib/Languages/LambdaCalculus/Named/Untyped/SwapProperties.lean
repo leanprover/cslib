@@ -20,6 +20,10 @@ Binding*][Gabbay2002] (Section 2, page 3). The key observation is that α-equiva
 be defined using the notion of atom swapping in lieu of the traditional
 renaming/substitution approach.
 
+The swap (transposition) operation `m.swap x y` implements the permutation action
+`(x y) · E` from [Crole2012] (Section 2). It simultaneously replaces all occurrences
+of `x` with `y` and vice versa throughout a term.
+
 ## References
 
 * [Roy L. Crole, *Alpha equivalence equalities*][Crole2012], Sections 2 and 6
@@ -37,16 +41,9 @@ variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
-/-! ### Basic properties of swap
-
-The swap (transposition) operation `m.swap x y` implements the permutation action
-`(x y) · E` from [Crole2012] (Section 2). It simultaneously replaces all occurrences
-of `x` with `y` and vice versa throughout a term.
-
-The idea of using atom swapping as a primitive operation for reasoning about variable
-binding was introduced in [Gabbay2002] (Section 2, page 3), and is central to the nominal
-approach to abstract syntax.
--/
+-- TODO explicit usage?
+def agreementSet (f g : Var → Var) : Set Var := { x | f x = g x }
+def disagreementSet (f g : Var → Var) : Set Var := { x | f x ≠ g x }
 
 @[simp]
 lemma swap_self {m : Term Var} {x : Var} : m.swap x x = m := by
@@ -81,46 +78,38 @@ lemma swap_eq_rename_of_not_mem_vars {m : Term Var} {x y : Var}
     unfold swap rename
     grind [Term.vars]
   | abs z m ih =>
-    simp_all +decide [Term.swap, Term.rename, Term.vars];
+    simp_all +decide [Term.swap, Term.rename, Term.vars]
     grind
   | app n1 n2 ih1 ih2 =>
     simp_all +decide [Term.swap, Term.rename, Term.vars]
 
-/-- The set of free variables after a swap. Corresponds to the fact that
-`free(π · E) = π · free(E)` noted in the proof of Lemma 6.2 in [Crole2012]. -/
+/-- The set of free variables after a swap. -/
 lemma swap_fv {m : Term Var} {x y : Var} :
-  (m.swap x y).fv = m.fv.image fun z => if z = x then y else if z = y then x else z := by
+      (m.swap x y).fv = m.fv.image fun z => if z = x then y else if z = y then x else z := by
     induction m with
-    | var z =>
-      unfold fv
-      aesop
+    | var z => aesop
     | abs z m ih =>
-      simp_all +decide only [Term.swap, Term.fv]
-      simp [Finset.ext_iff, Finset.mem_image, Finset.mem_sdiff]
+      simp_all +decide [Term.swap, Term.fv, Finset.ext_iff, Finset.mem_image, Finset.mem_sdiff]
       grind
     | app m n ih1 ih2 =>
       simp_all +decide only [Term.swap, Term.fv]
       rw [Finset.image_union]
 
 /-- Swapping preserves non-membership in `fv`. -/
-lemma fresh_swap {m : Term Var} {x y z : Var}
-    (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
+lemma fresh_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
     z ∉ (m.swap x y).fv := by
   rw [swap_fv]
   grind
 
 /-- The set of vars after a swap. -/
 lemma swap_vars {m : Term Var} {x y z : Var} (hzm : z ∉ m.vars) :
-  (m.swap x y).vars =
-    m.vars.image fun z => if z = x then y else if z = y then x else z := by
-    induction m with
-    | var w =>
-      simp +decide [Term.swap, Term.vars]
-    | abs w m ih => simp_all +decide [Term.swap, Term.vars]
-    | app m n ih1 ih2 =>
-      simp_all +decide only [Term.swap, Term.vars]
-      rw [Finset.image_union]
-      grind
+    (m.swap x y).vars = m.vars.image fun z => if z = x then y else if z = y then x else z := by
+  induction m with
+  | var w => aesop
+  | abs w m ih => simp_all +decide [Term.swap, Term.vars]
+  | app m n ih1 ih2 =>
+    simp_all +decide only [Term.swap, Term.vars, Finset.image_union]
+    grind
 
 /-- Swapping preserves non-membership in `vars`. -/
 lemma not_mem_vars_swap {m : Term Var} {x y z : Var}
@@ -129,11 +118,7 @@ lemma not_mem_vars_swap {m : Term Var} {x y z : Var}
   rw [swap_vars hzm]
   grind
 
-/-! ### Swap-rename commutation -/
-
-/-- Helper function: the action of the transposition `(u v)` on a single variable.
-Corresponds to the permutation `(u v)` applied to an atom, as used throughout
-[Crole2012]. -/
+/-- Helper function: the action of the transposition `(u v)` on a single variable `z`. -/
 @[simp]
 def swapVar (u v z : Var) : Var :=
   if z = u then v else if z = v then u else z
@@ -146,18 +131,11 @@ lemma swapVar_fixed {u v z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
 /-- `swapVar` is injective (permutations are bijections). -/
 lemma swapVar_injective (u v : Var) : Function.Injective (swapVar u v) := by
   unfold Function.Injective
-  intro a b
-  unfold swapVar
   aesop
 
-/-- `swap` and `rename` commute (modulo the permutation action on the variable
-arguments).
-
-This is used in the proof of Lemma 6.1 [Crole2012] to handle the case analysis on
-variable equalities in the `abs` case. -/
+/-- `swap` and `rename` commute (modulo the permutation action on the variable arguments). -/
 lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
-    (m.swap u v).rename (swapVar u v x) (swapVar u v y) =
-      (m.rename x y).swap u v := by
+    (m.swap u v).rename (swapVar u v x) (swapVar u v y) = (m.rename x y).swap u v := by
   induction m with
   | var z =>
     simp_all +decide [Term.swap, Term.rename, swapVar]
@@ -168,161 +146,266 @@ lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
   | app m n ih1 ih2 =>
     simp_all +decide [Term.swap, Term.rename, swapVar]
 
-lemma swap_rename_comm' {m : Term Var} {u v x z : Var}
-    (hzu : z ≠ u) (hzv : z ≠ v) :
-    (m.swap u v).rename (swapVar u v x) z =
-      (m.rename x z).swap u v := by
+lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
+    (m.swap u v).rename (swapVar u v x) z = (m.rename x z).swap u v := by
   rw [← @swap_rename_comm _ _ m u v x z]
   simp_all
 
-def agreementSet (f g : Var → Var) : Set Var := { x | f x = g x }
-
-def disagreementSet (f g : Var → Var) : Set Var := { x | f x ≠ g x }
-
-/-- The composition `(z u) ∘ (u a)` agrees with `(z a)` on all variables outside
-`{u, z}`.
-
-This is the key agreement set computation used in the proof of Theorem 4.1 in
-[Crole2012]: when `u, z ∉ free(E)`, we have
-`free(E) ⊆ A − {u, z} = AS((z u) ∘ (u a), (z a))`. -/
-lemma agreementSet_swap_comp {a u z : Var} (huz : u ≠ z) :
-    {x : Var | x ≠ u ∧ x ≠ z} ⊆
-      agreementSet (swapVar z u ∘ swapVar u a) (swapVar z a) := by
-  intro x ⟨hxu, hxz⟩
-  simp [agreementSet, Function.comp, swapVar]
-  aesop
-
-/-! ### Lemma 6.2: Agreement on free/occurring variables implies equivalence
-
-**Lemma 6.2** [Crole2012]:
-
-1. For any expression `E` and permutations `π`, `π'`:
-   `occ(E) ⊆ AS(π, π')` implies `π · E = π' · E` (syntactic equality).
-
-2. For any expression `E` and permutations `π`, `π'`:
-   `free(E) ⊆ AS(π, π')` implies `π · E ∼p π' · E` (α-equivalence).
-
-Part 1 says that permutations agreeing on all occurring variables produce syntactically
-identical results. Part 2 weakens this to free variables, at the cost of getting only
-α-equivalence instead of syntactic equality.
-
-These lemmas are the workhorses behind the proofs of equivalence of α-equivalence
-definitions in [Crole2012] (Section 4), particularly Theorems 4.1 and 4.2.
--/
-
-/-- Helper: the composition `(z u) ∘ (u a)` agrees with `(z a)` on variables
-outside `{u, z}`.
-
-This is used in the agreement set arguments of Theorem 4.1 [Crole2012]:
-`free(E) ⊆ A − {u, z} = AS((z u) ∘ (u a), (z a))`. -/
-lemma swap_comp_eq_swap_of_not_eq {x a u z : Var}
-    (hxu : x ≠ u) (hxz : x ≠ z) :
-    swapVar z u (swapVar u a x) = swapVar z a x := by
-  unfold swapVar; aesop;
-
-/-- **Lemma 6.2 part 1** [Crole2012] (specialized): If two composed transpositions
-agree on all occurring variables, their actions are syntactically equal.
-
-Specialized form: if `u, z ∉ vars(m)`, then `(m.swap u a).swap z u = m.swap z a`.
-
-This follows from the general statement of Lemma 6.2 part 1: since
-`u, z ∉ occ(E)`, we have `occ(E) ⊆ AS((z u) ∘ (u a), (z a))`, and therefore
-`(z u) · (u a) · E = (z a) · E`.
-
-The general statement is: for any expression `E` and permutations `π`, `π'`,
-`occ(E) ⊆ AS(π, π')` implies `π · E = π' · E`. -/
 lemma swap_comp_eq_of_not_mem_vars {m : Term Var} {a u z : Var}
     (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
     (m.swap u a).swap z u = m.swap z a := by
-  induction m;
-  · simp_all +decide [ Term.swap, Term.vars ];
-    grind;
-  · simp_all +decide [ Term.swap, Term.vars ];
-    split_ifs <;> simp_all +decide [ eq_comm ];
-  · simp_all +decide [ Term.swap, Term.vars ]
+  induction m
+  · simp_all +decide [Term.swap, Term.vars]
+    grind
+  · simp_all +decide [Term.swap, Term.vars]
+    grind
+  · simp_all +decide [Term.swap, Term.vars]
+
+/-- Pointwise version of the transposition-conjugation identity
+`(u v) ∘ (u a) = (v a) ∘ (u v)` for `a ∉ {u, v}` -/
+lemma swapVar_conj {a u v w : Var} (huv : u ≠ v) (hau : a ≠ u) (hav : a ≠ v) :
+    swapVar v a (swapVar u v w) = swapVar u v (swapVar u a w) := by
+  unfold swapVar
+  grind
+
+/-- Term-level conjugation identity: `(m.swap u v).swap v a = (m.swap u a).swap u v`
+when `a ∉ {u, v}`.
+
+Unlike `swap_comp_eq_of_not_mem_vars`, this holds unconditionally (no freshness needed). -/
+lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a ≠ v) :
+    (m.swap u v).swap v a = (m.swap u a).swap u v := by
+  induction m with
+  | var x => simp_all +decide [Term.swap]; grind
+  | app m n ihm ihn => simp [Term.swap, ihm, ihn]
+  | abs x m ih => simp [Term.swap, ih]; grind
+
+/-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
+(the only way `v` could show up is as the image of `u`). -/
+lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) :
+    v ∉ (m.swap u v).vars := by
+  rw [swap_vars hu]
+  grind
+
+-- First 4 case examination
+lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
+  (hm1 : z ∉ E.vars ∪ E'.vars ∪ {a, b})
+  (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
+  (hzu : z ≠ u)
+  (hzv : z ≠ v)
+  : ((E.swap u v).swap (swapVar u v a) z) =α ((E'.swap u v).swap (swapVar u v b) z) := by
+    have hzb : z ≠ b := by simp_all
+    have hza : z ≠ a := by simp_all
+    have z_h1 : z ∉ (E.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
+    have z_h2 : z ∉ (E'.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
+    rw [swap_eq_rename_of_not_mem_vars z_h1]
+    rw [swap_eq_rename_of_not_mem_vars z_h2]
+    rw [← swap_rename_comm' (by grind) (by grind)] at h2
+    rw [← swap_rename_comm' (by grind) (by grind)] at h2
+    unfold swapVar at h2
+    have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
+    have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
+    rcases ha with h' | h' | ⟨hau, hav⟩
+    · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all +decide
+    · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all +decide
+    · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all +decide
+
+-- example 1: use z as witness
+lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
+  (hm : z ∉ E.vars ∪ E'.vars ∪ {a, b})
+  (hbody : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
+  (hzu : z ≠ u) (hzv : z ≠ v) :
+  ((Term.abs a E).swap u v) =α ((Term.abs b E').swap u v) := by
+    have hzE : z ∉ (E.swap u v).vars := not_mem_vars_swap hzu hzv (by simp_all)
+    have hzE' : z ∉ (E'.swap u v).vars := not_mem_vars_swap hzu hzv (by simp_all)
+    have hren := desired_condition_cases_z_ne_u_or_v hm hbody hzu hzv
+    rw [swap_eq_rename_of_not_mem_vars hzE, swap_eq_rename_of_not_mem_vars hzE'] at hren
+    simp only [Term.swap]
+    apply AlphaEquiv.abs (y := z)
+    · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
+      grind
+    · simpa [swapVar] using hren
+
+-- example 2: use v as witness
+lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var}
+  (hm : u ∉ E.vars ∪ E'.vars ∪ {a, b})
+  (hbody : ((E.rename a u).swap u v) =α ((E'.rename b u).swap u v))
+  (hau : a ≠ u) (hav : a ≠ v) (hbu : b ≠ u) (hbv : b ≠ v) :
+  ((Term.abs a E).swap u v) =α ((Term.abs b E').swap u v) := by
+    have huE : u ∉ E.vars := by simp_all
+    have huE' : u ∉ E'.vars := by simp_all
+    rw [← swap_eq_rename_of_not_mem_vars huE, ← swap_eq_rename_of_not_mem_vars huE'] at hbody
+    rw [swap_comm (m := E) (x := a) (y := u), swap_comm (m := E') (x := b) (y := u)] at hbody
+    rw [← swap_comp_eq_of_ne hau hav, ← swap_comp_eq_of_ne hbu hbv] at hbody
+    rw [swap_comm (m := E.swap u v) (x := v) (y := a),
+        swap_comm (m := E'.swap u v) (x := v) (y := b)] at hbody
+    have hvE : v ∉ (E.swap u v).vars := not_mem_swap_target huE
+    have hvE' : v ∉ (E'.swap u v).vars := not_mem_swap_target huE'
+    rw [swap_eq_rename_of_not_mem_vars hvE, swap_eq_rename_of_not_mem_vars hvE'] at hbody
+    simp only [Term.swap]
+    apply AlphaEquiv.abs (y := v) <;> (simp_all +decide; grind)
+
+-- example 3
+lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
+    (hm : v ∉ E.vars ∪ E'.vars ∪ {a})
+    (hbody : ((E.rename a v).swap u v) =α ((E'.rename u v).swap u v))
+    (hau : a ≠ u) (hav : a ≠ v) (huv : u ≠ v) :
+    ((Term.abs a E).swap u v) =α ((Term.abs u E').swap u v) := by
+  have hvE : v ∉ E.vars := by simp_all
+  have hvE' : v ∉ E'.vars := by simp_all
+  have huE : u ∉ (E.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE
+  have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE'
+  have hL : (E.swap u v).rename a u = (E.rename a v).swap u v := by
+    have h := @swap_rename_comm _ _ E u v a v
+    simpa [swapVar, hau, hav, huv, huv.symm] using h
+  have hR : (E'.swap u v).rename v u = (E'.rename u v).swap u v := by
+    have h := @swap_rename_comm _ _ E' u v u v
+    simpa [swapVar, huv, huv.symm] using h
+  have hbody' : ((E.swap u v).rename a u) =α ((E'.swap u v).rename v u) := by
+    rw [hL, hR]; exact hbody
+  apply AlphaEquiv.abs (y := u)
+  · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
+    grind
+  · simp_all +decide only [Finset.union_singleton, Finset.mem_insert, Finset.mem_union,
+      or_self, or_false, ne_eq, reduceIte]
+    exact hbody
+
+-- example 4
+lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
+  (hm : v ∉ E.vars ∪ E'.vars ∪ {u})
+  (ih : ((E.rename u v).swap u v) =α ((E'.rename u v).swap u v)) (huv : u ≠ v) :
+  ((Term.abs u E).swap u v) =α ((Term.abs u E').swap u v) := by
+    have hvE : v ∉ E.vars := by simp_all
+    have hvE' : v ∉ E'.vars := by simp_all
+    rw [← swap_eq_rename_of_not_mem_vars hvE, ← swap_eq_rename_of_not_mem_vars hvE'] at ih
+    rw [swap_involutive, swap_involutive] at ih
+    -- now have ih : E =α E'
+    have huE : u ∉ (E.swap u v).vars := by
+      have h := not_mem_swap_target (u := v) (v := u) hvE
+      rwa [swap_comm] at h
+    have huE' : u ∉ (E'.swap u v).vars := by
+      have h := not_mem_swap_target (u := v) (v := u) hvE'
+      rw [swap_comm] at h
+      exact h
+    apply AlphaEquiv.abs (y := u)
+    · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
+      grind
+    · rw [← swap_eq_rename_of_not_mem_vars huE, ← swap_eq_rename_of_not_mem_vars huE']
+      simp_all +decide only [Finset.union_singleton, Finset.mem_insert, Finset.mem_union, or_self,
+        reduceIte, swap_comm, swap_involutive]
+      exact ih
 
 variable [HasFresh Var]
 
-/-! ### Lemma 6.1: Swap preserves α-equivalence
-
-**Lemma 6.1** [Crole2012]: For any atoms `u` and `v` and expressions `E` and `E'`,
-`E ∼p E'` implies `(u v) · E ∼p (u v) · E'`.
-
-The proof uses well-founded induction on the size of expressions, with a case analysis
-on the possible equalities between atoms in the `abs` case. The key difficulty is that
-for the abstraction case `B([a]E) ∼p B([b]E')`, one must handle 17 non-trivial
-combinations of equalities between `a`, `b`, the witness `z`, and the swap atoms `u`,
-`v`.
-
-This approach via case analysis on atom equalities follows [Crole2012] (Section 6.1,
-Lemma 6.1).
--/
-
-/-- **Lemma 6.1** [Crole2012]: Swap (transposition) preserves α-equivalence.
-
-This is the key equivariance property of the swapping action: α-equivalence is
-preserved under atom transpositions.
--/
+/-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
 lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
   m =α m' → (m.swap u v) =α (m'.swap u v) := by
-    by_contra h
-    obtain ⟨m, m', h_eq, h_neq⟩ :
-        ∃ m m' : Term Var, m =α m' ∧ ¬(m.swap u v) =α (m'.swap u v) := by grind
-    obtain ⟨m, m', h_eq, h_neq, h_min⟩ :
-        ∃ m m' : Term Var, m =α m' ∧
-          ¬(m.swap u v) =α (m'.swap u v) ∧
-          ∀ n n' : Term Var, n =α n' → sizeOf n < sizeOf m →
-            (n.swap u v) =α (n'.swap u v) := by
-      have h_wf : WellFounded (fun m n : ℕ => m < n) := by
-        exact wellFounded_lt;
-      have := h_wf.has_min
-        { n : ℕ | ∃ m m' : Term Var, m =α m' ∧
-          ¬ ( m.swap u v ) =α ( m'.swap u v ) ∧
-          n = sizeOf m }
-        ⟨ _, ⟨ m, m', h_eq, h_neq, rfl ⟩ ⟩;
-      obtain ⟨ a, ⟨ m, m', h_eq, h_neq, rfl ⟩, ha ⟩ := this;
-      exact ⟨ m, m', h_eq, h_neq, fun n n' h_eq' h_lt =>
-        Classical.not_not.1 fun h_neq' =>
-          ha _ ⟨ n, n', h_eq', h_neq', rfl ⟩ h_lt ⟩ ;
-    obtain ⟨x1, x2, m1, m2, h_eq⟩ :
-        ∃ x1 x2 : Var, ∃ m1 m2 : Term Var,
-          m = Term.abs x1 m1 ∧
-          m' = Term.abs x2 m2 ∧ ∃ y : Var,
-            y ∉ m1.vars ∪ m2.vars ∪ {x1, x2} ∧
-            (m1.rename x1 y) =α (m2.rename x2 y) := by
-      all_goals rcases h_eq with ⟨ ⟩;
-      · exact False.elim <| h_neq <| AlphaEquiv.refl _;
-      · grind;
-      · exact False.elim <| h_neq <| AlphaEquiv.app
-          ( h_min _ _ ‹_› <| by simp +arith +decide )
-          ( h_min _ _ ‹_› <| by simp +arith +decide );
-    obtain ⟨y, hy₁, hy₂⟩ := h_eq.2.2;
-    -- Pick z fresh for m1.vars ∪ m2.vars ∪ {x1, x2, u, v}.
-    obtain ⟨z, hz⟩ :
-        ∃ z : Var, z ∉ m1.vars ∪ m2.vars ∪ {x1, x2, u, v} := by
-      exact Infinite.exists_notMem_finset (m1.vars ∪ m2.vars ∪ {x1, x2, u, v})
-    have hz_eq : (m1.rename x1 z) =α (m2.rename x2 z) := by
-      apply AlphaEquiv.abs_elim; all_goals grind;
-    have hz_swap :
-        ((m1.swap u v).rename (swapVar u v x1) z) =α
-        ((m2.swap u v).rename (swapVar u v x2) z) := by
-      have hz_swap :
-          ((m1.swap u v).rename (swapVar u v x1) z) =
-            ((m1.rename x1 z).swap u v) ∧
-          ((m2.swap u v).rename (swapVar u v x2) z) =
-            ((m2.rename x2 z).swap u v) := by
-        exact ⟨swap_rename_comm' (by grind) (by grind),
-              swap_rename_comm' (by grind) (by grind)⟩
-      grind +suggestions;
-    have hz_abs :
-        (Term.abs (swapVar u v x1) (m1.swap u v)) =α
-        (Term.abs (swapVar u v x2) (m2.swap u v)) := by
-      apply AlphaEquiv.abs;
-      any_goals assumption;
-      simp_all +decide [ Finset.mem_union ];
-      grind +suggestions;
-    exact h_neq ( by simpa [ h_eq ] using hz_abs )
+    intro h1
+    by_cases h2 : u = v
+    · simp_all
+    · change u ≠ v at h2
+      induction h1 with
+      | var => simp_all +decide [AlphaEquiv.refl]
+      | abs hm1 hm2 ih =>
+        rename_i z a b E E'
+        have z_h1 : z ≠ a := by simp_all
+        have z_h2 : z ≠ b := by simp_all
+        have h3 : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
+        have h4 : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
+        have h5 : z = u ∨ z = v ∨ (z ≠ u ∧ z ≠ v) := by grind
+        rcases h3 with ha | ha | ⟨hau, hav⟩
+        · rcases h4 with hb | hb | ⟨hbu, hbv⟩
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            · simp_all
+            -- representative example 4 case of: a = u; b = u; z = v
+            · subst ha; subst hb; subst hz
+              exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih h2
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            · simp_all
+            · simp_all
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            · simp_all
+            -- example 3 reuse
+            · subst ha; subst hz
+              apply AlphaEquiv.symm
+              exact (alphaEquiv_swap_preserve_abs_b_eq_u (by grind) (AlphaEquiv.symm ih) hbu hbv h2)
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+        · rcases h4 with hb | hb | ⟨hbu, hbv⟩
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            · simp_all
+            · simp_all
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            -- example 4 reuse
+            · subst ha; subst hb; subst hz
+              nth_rw 1 [swap_comm]
+              nth_rw 2 [swap_comm]
+              symm at z_h2
+              nth_rw 1 [swap_comm] at ih
+              nth_rw 2 [swap_comm] at ih
+              apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih z_h2
+            · simp_all
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            -- example 3 reuse
+            · subst ha; subst hz
+              nth_rw 1 [swap_comm]
+              nth_rw 2 [swap_comm]
+              apply AlphaEquiv.symm
+              symm at h2
+              apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hbv hbu h2
+              apply AlphaEquiv.symm
+              nth_rw 1 [swap_comm]
+              nth_rw 2 [swap_comm]
+              exact ih
+            · simp_all
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+        · rcases h4 with hb | hb | ⟨hbu, hbv⟩
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            · simp_all
+            -- representative example 3 case of: a ≠ u, v; b = u; z = v
+            · subst hb; subst hz
+              exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hau hav h2
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            -- example 3 reuse
+            · subst hb; subst hz
+              nth_rw 1 [swap_comm]
+              nth_rw 2 [swap_comm]
+              symm at h2
+              apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hav hau h2
+              nth_rw 1 [swap_comm]
+              nth_rw 2 [swap_comm]
+              exact ih
+            · simp_all
+            -- example 1 reuse
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+          · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+            -- representative example 2 case of: a ≠ u, v; b ≠ u, v; z = u
+            -- use z' = v
+            · subst hz
+              exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm1 ih hau hav hbu hbv
+            -- example 2 reuse after adjusting via swap commutativity and choosing z' = u
+            · rw [swap_comm (m := Term.abs a E) (x := u) (y := v),
+                  swap_comm (m := Term.abs b E') (x := u) (y := v)]
+              subst hz
+              nth_rw 1 [swap_comm] at ih
+              nth_rw 2 [swap_comm] at ih
+              exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm1 ih hav hau hbv hbu
+            -- representative example 1 case of: z ≠ u, v
+            -- use z' = z
+            · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
+      | app hm1 hm2 ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
+-- TODO part 1
 /-! ### Lemma 6.2 part 2 (α-equivalence version) -/
 
 /-- Helper: if `y₁ ∉ fv(m)` and `y₂ ∉ fv(m)`, there exists `m'` α-equivalent to `m`
@@ -399,24 +482,84 @@ lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
   --         = m'.swap z a =α m.swap z a
   exact AlphaEquiv.trans h1 h2
 
+/-- Congruence of α-equivalence under abstraction: α-equivalent bodies under the same
+binder yield α-equivalent abstractions. This is the syntax-directed congruence rule used
+in the inductive proof of Lemma 6.6 (corresponding to rule `bcg` of `∼r` in [Crole2012]). -/
+theorem AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
+    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
+  intro h
+  obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
+  apply AlphaEquiv.abs (y := y)
+  · grind
+  · apply AlphaEquiv.rename_preserve <;> grind
+
 /-- **Lemma 6.6** [Crole2012] (Barendregt variable convention):
 For any term `m` and variable `y` with `y ∉ fv(m)`,
 there exists `m'` α-equivalent to `m` with `y ∉ vars(m')`.
 
-Informally, we can always rename bound atoms so that a particular atom does not
-occur. -/
+Informally, we can always rename bound atoms so that a particular atom does not occur. -/
 lemma exists_alphaEquiv_not_mem_vars {m : Term Var} {y : Var}
     (hy : y ∉ m.fv) : ∃ m', m =α m' ∧ y ∉ m'.vars := by
-  by_contra h;
+  by_contra h
   convert Classical.byContradiction fun h' => ?_;
-  convert h';
-  convert Classical.not_not;
-  simp_all only [not_exists, not_and, Decidable.not_not,
-    not_false_eq_true, not_true_eq_false]
-  convert h ( m.rename y ( HasFresh.fresh ( m.vars ∪ { y } ) ) ) ( by
-    grind +suggestions ) using 1
+  convert h'
+  convert Classical.not_not
+  simp_all only [not_exists, not_and, Decidable.not_not, not_false_eq_true, not_true_eq_false]
+  convert h ( m.rename y ( HasFresh.fresh ( m.vars ∪ { y } ) ) ) ( by grind +suggestions ) using 1
   simp +decide [rename_vars]
   grind
+
+/-- **Lemma 6.6** [Crole2012] (Barendregt variable convention):
+For any term `m` and variable `y` with `y ∉ fv(m)`,
+there exists `m'` α-equivalent to `m` with `y ∉ vars(m')`.
+
+Informally, we can always rename bound atoms so that a particular atom does not occur.
+
+The proof follows [Crole2012] (Lemma 6.6): we induct over the size of expressions.
+* For a variable `var z`, freshness `y ∉ fv(var z)` gives `y ≠ z`, so `var z` itself works.
+* For an application `app m₁ m₂`, `y` is free in neither `m₁` nor `m₂`, so the inductive
+  hypothesis applied to each subterm yields the result by congruence.
+* For an abstraction `abs b m₀` we have `y ∉ fv(abs b m₀) = fv(m₀) \ {b}`, so either
+  `y ∉ fv(m₀)` or `y = b`.
+  - If `y ≠ b` (hence `y ∉ fv(m₀)`), the inductive hypothesis on `m₀` gives `m₀'` with
+    `m₀ =α m₀'` and `y ∉ vars(m₀')`; then `abs b m₀'` works (using `abs_congr`).
+  - If `y = b`, pick `z ∉ vars(m₀) ∪ {y}`; then `abs y m₀ =α abs z (m₀.rename y z)`
+    (`abs_rename`), and since `y ∉ fv(m₀.rename y z)`, the inductive hypothesis applied to
+    `m₀.rename y z` (which has the same size as `m₀`) gives `m₀'` with
+    `m₀.rename y z =α m₀'` and `y ∉ vars(m₀')`; then `abs z m₀'` works, by `abs_congr`
+    and transitivity. -/
+lemma exists_alphaEquiv_not_mem_vars' {m : Term Var} {y : Var}
+    (hy : y ∉ m.fv) : ∃ m', m =α m' ∧ y ∉ m'.vars := by
+  refine WellFounded.induction
+    (C := fun m => ∀ y : Var, y ∉ m.fv → ∃ m', m =α m' ∧ y ∉ m'.vars)
+    sizeOfWFRel.wf m ?_ y hy
+  clear hy y m
+  intro m ih y hy
+  cases m with
+  | var z =>
+    exact ⟨var z, AlphaEquiv.refl _, by grind [vars, fv]⟩
+  | app m1 m2 =>
+    obtain ⟨m1', hm1', hym1'⟩ := ih m1 (by grind) y (by grind [fv])
+    obtain ⟨m2', hm2', hym2'⟩ := ih m2 (by grind) y (by grind [fv])
+    exact ⟨app m1' m2', AlphaEquiv.app hm1' hm2', by grind [vars]⟩
+  | abs b m0 =>
+    by_cases hyb : y = b
+    · -- Latter case `y = b`: rename the bound atom to a fresh `z` and recurse.
+      subst hyb
+      obtain ⟨z, hz⟩ := HasFresh.fresh_exists (m0.vars ∪ {y})
+      have hzvars : z ∉ m0.vars := by grind
+      have hzy : z ≠ y := by grind
+      have h1 : (Term.abs y m0) =α (Term.abs z (m0.rename y z)) :=
+        AlphaEquiv.abs_rename (by grind)
+      have hyfv : y ∉ (m0.rename y z).fv := by grind [rename_fv]
+      obtain ⟨m0', hm0', hym0'⟩ :=
+        ih (m0.rename y z) (by grind [rename_eq_sizeOf]) y hyfv
+      refine ⟨Term.abs z m0', AlphaEquiv.trans h1 (AlphaEquiv.abs_congr hm0'), ?_⟩
+      grind [vars]
+    · -- Former case `y ∉ fv(m₀)`: recurse on the body directly.
+      have hyfv : y ∉ m0.fv := by grind [fv]
+      obtain ⟨m0', hm0', hym0'⟩ := ih m0 (by grind) y hyfv
+      exact ⟨Term.abs b m0', AlphaEquiv.abs_congr hm0', by grind [vars]⟩
 
 end LambdaCalculus.Named.Untyped.Term
 

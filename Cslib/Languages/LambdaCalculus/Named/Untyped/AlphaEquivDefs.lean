@@ -29,8 +29,7 @@ The last two definitions use the traditional capture-avoiding substitution (rena
 ## References
 
 * [Roy L. Crole, *Alpha equivalence equalities*][Crole2012]
-* [M. Gabbay and A. Pitts, *A New Approach to Abstract Syntax with Variable
-  Binding*][Gabbay2002]
+* [M. Gabbay and A. Pitts, *A New Approach to Abstract Syntax with Variable Binding*][Gabbay2002]
 
 ## Notation
 
@@ -66,12 +65,12 @@ def swap (m : Term Var) (x y : Var) : Term Var :=
   | abs z m' => abs (if z = x then y else if z = y then x else z) (m'.swap x y)
   | app n1 n2 => app (n1.swap x y) (n2.swap x y)
 
-/-- **Definition 3.2** [Crole2012]: `∼p#` — α-equivalence via permutation with freshness
+/-- **Definition 3.2** [Crole2012]: `∼p#` - α-equivalence via permutation with freshness
 side condition.
 
-The rule `pi#` uses the freshness condition `z # a, b, E, E'` (i.e., `z ∉ fv(E) ∪ fv(E') ∪
-{a, b}`) instead of the non-occurrence condition `z ∉ vars(E) ∪ vars(E') ∪ {a, b}` used in
-Definition 3.1 (`AlphaEquiv`).
+The rule `pi#` uses the freshness condition `z # a, b, E, E'`
+(i.e., `z ∉ fv(E) ∪ fv(E') ∪ {a, b}`) instead of the non-occurrence condition
+`z ∉ vars(E) ∪ vars(E') ∪ {a, b}` used in Definition 3.1 (`AlphaEquiv`).
 -/
 inductive AlphaEquivPFresh : Term Var → Term Var → Prop where
   | var {x : Var} : AlphaEquivPFresh (var x) (var x)
@@ -83,7 +82,7 @@ inductive AlphaEquivPFresh : Term Var → Term Var → Prop where
     AlphaEquivPFresh m1 n1 → AlphaEquivPFresh m2 n2 →
     AlphaEquivPFresh (app m1 m2) (app n1 n2)
 
-/-- **Definition 3.3** [Crole2012]: `∼¹p` — α-equivalence via permutation with non-occurrence
+/-- **Definition 3.3** [Crole2012]: `∼¹p` - α-equivalence via permutation with non-occurrence
 restricted to the bodies only.
 
 This definition is analogous to the definition of α-equivalence for λ-expressions in
@@ -100,19 +99,17 @@ inductive AlphaEquivP1 : Term Var → Term Var → Prop where
     AlphaEquivP1 m1 n1 → AlphaEquivP1 m2 n2 →
     AlphaEquivP1 (app m1 m2) (app n1 n2)
 
-/-- **Definition 3.4** [Crole2012]: `∼r` — α-equivalence via the traditional renaming axiom
+/-- **Definition 3.4** [Crole2012]: `∼r` - α-equivalence via the traditional renaming axiom
 with non-occurrence side condition.
 
 This definition is analogous to the definition of α-equivalence for λ-expressions most commonly
-found in the literature, and certainly in most standard textbooks. One of the first formal
-presentations is in [Church1941] and the same, though rather less formal approach is taken by
-[Barendregt1985] (Definition 2.1.11, page 26).
+found in the literature. One of the first formal presentations is in [Church1941] and the same,
+though rather less formal approach is taken by [Barendregt1985] (Definition 2.1.11).
 -/
 inductive AlphaEquivR : Term Var → Term Var → Prop where
   | refl {m : Term Var} : AlphaEquivR m m
   | symm {m1 m2 : Term Var} : AlphaEquivR m1 m2 → AlphaEquivR m2 m1
-  | trans {m1 m2 m3 : Term Var} :
-    AlphaEquivR m1 m2 → AlphaEquivR m2 m3 → AlphaEquivR m1 m3
+  | trans {m1 m2 m3 : Term Var} : AlphaEquivR m1 m2 → AlphaEquivR m2 m3 → AlphaEquivR m1 m3
   | app {m1 n1 m2 n2 : Term Var} :
     AlphaEquivR m1 n1 → AlphaEquivR m2 n2 →
     AlphaEquivR (app m1 m2) (app n1 n2)
@@ -123,7 +120,7 @@ inductive AlphaEquivR : Term Var → Term Var → Prop where
     x' ∉ ({x} : Finset Var) ∪ m.vars →
     AlphaEquivR (abs x m) (abs x' (m.subst x (var x')))
 
-/-- **Definition 3.5** [Crole2012]: `∼r#` — α-equivalence via the renaming axiom with
+/-- **Definition 3.5** [Crole2012]: `∼r#` - α-equivalence via the renaming axiom with
 freshness side condition.
 
 Same as `∼r` (Definition 3.4), but the renaming axiom uses a freshness side condition

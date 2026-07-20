@@ -27,13 +27,6 @@ The main results are:
 * **Theorem 4.5** [Crole2012]: `∼p = ∼r#` (`alphaEquiv_iff_alphaEquivRFresh`)
 * **Theorem 4.6** [Crole2012]: `∼r = ∼r#` (`alphaEquivR_iff_alphaEquivRFresh`)
 
-The proofs make essential use of:
-
-* **Lemma 6.1** [Crole2012]: Swap preserves α-equivalence (`AlphaEquiv.swap_preserve`)
-* **Lemma 6.2** [Crole2012]: Agreement on free variables implies α-equivalence
-  (`swap_comp_alphaEquiv_of_not_mem_fv`)
-* **Agreement sets** (`agreementSet`): used in the Lemma 6.2 arguments
-
 ## References
 
 * [Roy L. Crole, *Alpha equivalence equalities*][Crole2012]
@@ -58,7 +51,7 @@ See [Crole2012] proof of Theorem 4.1, first sentence: "It is trivial that ∼p i
 -/
 omit [HasFresh Var] in
 lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} :
-    AlphaEquiv m n → AlphaEquivPFresh m n := by
+   AlphaEquiv m n → AlphaEquivPFresh m n := by
   intro h
   induction h with
   | var => constructor
@@ -126,6 +119,7 @@ theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) :
     AlphaEquiv m n ↔ AlphaEquivPFresh m n :=
   ⟨alphaEquiv_of_alphaEquivPFresh, alphaEquivPFresh_of_alphaEquiv⟩
 
+/-
 /-! ## Theorem 4.2 [Crole2012] -/
 theorem alphaEquiv_iff_alphaEquivP1 (m n : Term Var) :
     AlphaEquiv m n ↔ AlphaEquivP1 m n := by
@@ -145,6 +139,7 @@ theorem alphaEquiv_iff_alphaEquivRFresh (m n : Term Var) :
 theorem alphaEquivR_iff_alphaEquivRFresh (m n : Term Var) :
     AlphaEquivR m n ↔ AlphaEquivRFresh m n := by
   sorry
+-/
 
 end LambdaCalculus.Named.Untyped.Term
 
