@@ -190,8 +190,6 @@ theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
   use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
   exact NA.Buchi.loop_language_eq
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 /-- An ω-language is regular iff it is the finite union of ω-languages of the form `L * M^ω`,
 where all `L`s and `M`s are regular languages. -/
 theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage Symbol) :
@@ -214,8 +212,8 @@ theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage S
     refine ⟨?_, by grind⟩
     rintro ⟨s, h_s, t, h_t, h_mem⟩
     use eq.invFun (⟨s, h_s⟩, ⟨t, h_t⟩)
-    -- The following `simp` is where the `set_option` above is needed.
-    simpa [mem_def]
+    have := Equiv.apply_symm_apply eq
+    simp_all
   · rintro ⟨n, l, m, _, rfl⟩
     rw [← iSup_univ]
     apply IsRegular.iSup

@@ -18,12 +18,34 @@ as defined and developed in `Mathlib.Computability.Language`.
 
 @[expose] public section
 
+namespace List
+
+variable {α : Type*}
+
+/-- `[]` is the only list over an empty type. -/
+theorem eq_nil_ofIsEmpty [IsEmpty α] (xl : List α) : xl = [] := by
+  have hu := List.uniqueOfIsEmpty (α := α)
+  simp [Unique.eq_default]
+
+end List
+
 namespace Language
 
 open Set List
 open scoped Computability
 
 variable {α : Type*} {l m : Language α}
+
+/-- `0` and `1` are the only possible languages over an empty type. -/
+theorem eq_zero_or_one_ofIsEmpty [IsEmpty α] (l : Language α) : l = 0 ∨ l = 1 := by
+  by_cases h : l = 0
+  · simp [h]
+  · right
+    ext xl
+    obtain ⟨yl, _⟩ := nonempty_iff_ne_empty.mpr h
+    obtain ⟨rfl⟩ := eq_nil_ofIsEmpty xl
+    obtain ⟨rfl⟩ := eq_nil_ofIsEmpty yl
+    simpa
 
 @[simp]
 theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
@@ -40,6 +62,10 @@ theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) 
 
 theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
   subset_singleton_iff_eq
+
+@[simp, scoped grind =]
+theorem mem_singleton (x y : List α) : x ∈ ({y} : Language α) ↔ x = y :=
+  Iff.rfl
 
 @[simp, scoped grind =]
 theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
