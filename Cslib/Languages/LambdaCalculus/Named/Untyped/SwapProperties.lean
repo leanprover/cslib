@@ -8,6 +8,8 @@ module
 
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivDefs
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
+public import Mathlib.Logic.Equiv.Basic
+
 
 /-! # Properties of the swap (transposition) operation on lambda terms
 
@@ -46,22 +48,23 @@ def disagreementSet (f g : Var → Var) : Set Var := { x | f x ≠ g x }
 
 @[simp]
 lemma swap_self {m : Term Var} {x : Var} : m.swap x x = m := by
-  induction m <;> simp [swap] <;> grind
+  induction m <;> simp_all [swap, permute]
 
 lemma swap_comm {m : Term Var} {x y : Var} : m.swap x y = m.swap y x := by
-  induction m <;> simp [swap] <;> grind
+  unfold swap
+  rw [Equiv.swap_comm]
 
 @[simp]
 lemma swap_involutive {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
-    induction m <;> simp [swap] <;> grind
+  induction m <;> simp_all [swap, permute]
 
 @[simp]
 lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = sizeOf m := by
-    induction m <;> simp [swap] <;> grind
+  induction m <;> simp_all [swap, permute]
 
 @[simp]
 lemma swap_unused {m : Term Var} {x y : Var} : x ∉ m.vars → y ∉ m.vars → m.swap x y = m := by
-    induction m <;> grind [swap, vars]
+  induction m <;> grind [swap, permute, vars]
 
 /-- When `y ∉ m.vars`, `swap x y` and `rename x y` coincide.
 
@@ -72,12 +75,12 @@ lemma swap_eq_rename_of_not_mem_vars {m : Term Var} {x y : Var}
     induction m with
     | var z =>
       unfold swap rename
-      grind [Term.vars]
+      grind [Term.vars, permute]
     | abs z m ih =>
-      simp_all +decide [Term.swap, Term.rename, Term.vars]
+      simp_all +decide [Term.swap, Term.rename, Term.vars, permute]
       grind
     | app n1 n2 ih1 ih2 =>
-      simp_all +decide [Term.swap, Term.rename, Term.vars]
+      simp_all +decide [Term.swap, Term.rename, Term.vars, permute]
 
 /-- The set of free variables after a swap. -/
 lemma swap_fv {m : Term Var} {x y : Var} :
@@ -85,10 +88,11 @@ lemma swap_fv {m : Term Var} {x y : Var} :
       induction m with
       | var z => aesop
       | abs z m ih =>
-        simp_all +decide [Term.swap, Term.fv, Finset.ext_iff, Finset.mem_image, Finset.mem_sdiff]
+        simp_all +decide
+          [Term.swap, Term.fv, Finset.ext_iff, Finset.mem_image, Finset.mem_sdiff, permute]
         grind
       | app m n ih1 ih2 =>
-        simp_all +decide only [Term.swap, Term.fv]
+        simp_all +decide only [Term.swap, Term.fv, permute]
         rw [Finset.image_union]
 
 /-- Swapping preserves non-membership in `fv`. -/
@@ -102,9 +106,9 @@ lemma swap_vars {m : Term Var} {x y z : Var} (hzm : z ∉ m.vars) :
   (m.swap x y).vars = m.vars.image fun z => if z = x then y else if z = y then x else z := by
     induction m with
     | var w => aesop
-    | abs w m ih => simp_all +decide [Term.swap, Term.vars]
+    | abs w m ih => simp_all +decide [Term.swap, Term.vars, permute]; grind
     | app m n ih1 ih2 =>
-      simp_all +decide only [Term.swap, Term.vars, Finset.image_union]
+      simp_all +decide only [Term.swap, Term.vars, Finset.image_union, permute]
       grind
 
 /-- Swapping preserves non-membership in `vars`. -/
@@ -113,53 +117,34 @@ lemma not_mem_vars_swap {m : Term Var} {x y z : Var}
     rw [swap_vars hzm]
     grind
 
-/-- Helper function: the action of the transposition `(u v)` on a single variable `z`. -/
-@[simp]
-def swapVar (u v z : Var) : Var := if z = u then v else if z = v then u else z
-
-/-- `swapVar` is a fixed point for variables outside `{u, v}`. -/
-@[simp]
-lemma swapVar_fixed {u v z : Var} (hzu : z ≠ u) (hzv : z ≠ v) : swapVar u v z = z := by simp_all
-
-/-- `swapVar` is injective (permutations are bijections). -/
-lemma swapVar_injective (u v : Var) : Function.Injective (swapVar u v) := by
-  unfold Function.Injective
-  aesop
-
 /-- `swap` and `rename` commute (modulo the permutation action on the variable arguments). -/
 lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
-  (m.swap u v).rename (swapVar u v x) (swapVar u v y) = (m.rename x y).swap u v := by
+  (m.swap u v).rename (Equiv.swap u v x) (Equiv.swap u v y) = (m.rename x y).swap u v := by
     induction m with
     | var z =>
-      simp_all +decide [Term.swap, Term.rename, swapVar]
+      simp_all +decide [Term.swap, Term.rename, permute]
       grind
     | abs z m ih =>
-      simp_all +decide [Term.swap, Term.rename, swapVar]
+      simp_all +decide [Term.swap, Term.rename, permute]
       grind
     | app m n ih1 ih2 =>
-      simp_all +decide [Term.swap, Term.rename, swapVar]
+      simp_all +decide [Term.swap, Term.rename, permute]
 
 lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
-  (m.swap u v).rename (swapVar u v x) z = (m.rename x z).swap u v := by
+  (m.swap u v).rename (Equiv.swap u v x) z = (m.rename x z).swap u v := by
     rw [← @swap_rename_comm _ _ m u v x z]
     simp_all
+    grind
 
 lemma swap_comp_eq_of_not_mem_vars {m : Term Var} {a u z : Var}
   (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
   (m.swap u a).swap z u = m.swap z a := by
     induction m
-    · simp_all +decide [Term.swap, Term.vars]
+    · simp_all +decide [Term.swap, Term.vars, permute]
       grind
-    · simp_all +decide [Term.swap, Term.vars]
+    · simp_all +decide [Term.swap, Term.vars, permute]
       grind
-    · simp_all +decide [Term.swap, Term.vars]
-
-/-- Pointwise version of the transposition-conjugation identity
-`(u v) ∘ (u a) = (v a) ∘ (u v)` for `a ∉ {u, v}` -/
-lemma swapVar_conj {a u v w : Var} (huv : u ≠ v) (hau : a ≠ u) (hav : a ≠ v) :
-  swapVar v a (swapVar u v w) = swapVar u v (swapVar u a w) := by
-    unfold swapVar
-    grind
+    · simp_all +decide [Term.swap, Term.vars, permute]
 
 /-- Term-level conjugation identity: `(m.swap u v).swap v a = (m.swap u a).swap u v`
 when `a ∉ {u, v}`.
@@ -168,9 +153,9 @@ Unlike `swap_comp_eq_of_not_mem_vars`, this holds unconditionally (no freshness 
 lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a ≠ v) :
   (m.swap u v).swap v a = (m.swap u a).swap u v := by
     induction m with
-    | var x => simp_all +decide [Term.swap]; grind
-    | app m n ihm ihn => simp [Term.swap, ihm, ihn]
-    | abs x m ih => simp [Term.swap, ih]; grind
+    | var x => simp_all [Term.swap, permute]; grind
+    | app m n ihm ihn => simp_all [Term.swap, permute]
+    | abs x m ih => simp_all [Term.swap, permute]; grind
 
 /-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
 (the only way `v` could show up is as the image of `u`). -/
@@ -184,7 +169,7 @@ lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
   (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
   (hzu : z ≠ u)
   (hzv : z ≠ v)
-  : ((E.swap u v).swap (swapVar u v a) z) =α ((E'.swap u v).swap (swapVar u v b) z) := by
+  : ((E.swap u v).swap (Equiv.swap u v a) z) =α ((E'.swap u v).swap (Equiv.swap u v b) z) := by
     have hzb : z ≠ b := by simp_all
     have hza : z ≠ a := by simp_all
     have z_h1 : z ∉ (E.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
@@ -193,7 +178,6 @@ lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
     rw [swap_eq_rename_of_not_mem_vars z_h2]
     rw [← swap_rename_comm' (by grind) (by grind)] at h2
     rw [← swap_rename_comm' (by grind) (by grind)] at h2
-    unfold swapVar at h2
     have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
     have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
     rcases ha with h' | h' | ⟨hau, hav⟩
@@ -213,9 +197,9 @@ lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
     rw [swap_eq_rename_of_not_mem_vars hzE, swap_eq_rename_of_not_mem_vars hzE'] at hren
     simp only [Term.swap]
     apply AlphaEquiv.abs (y := z)
-    · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
+    · simp_all +decide [Finset.mem_union, Finset.mem_insert, swap]
       grind
-    · simpa [swapVar] using hren
+    · simpa using hren
 
 -- example 2: use v as witness
 lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var}
@@ -234,7 +218,7 @@ lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var
     have hvE' : v ∉ (E'.swap u v).vars := not_mem_swap_target huE'
     rw [swap_eq_rename_of_not_mem_vars hvE, swap_eq_rename_of_not_mem_vars hvE'] at hbody
     simp only [Term.swap]
-    apply AlphaEquiv.abs (y := v) <;> (simp_all +decide; grind)
+    apply AlphaEquiv.abs (y := v) <;> (simp_all +decide [swap]; grind)
 
 -- example 3
 lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
@@ -248,18 +232,18 @@ lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
     have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE'
     have hL : (E.swap u v).rename a u = (E.rename a v).swap u v := by
       have h := @swap_rename_comm _ _ E u v a v
-      simpa [swapVar, hau, hav, huv, huv.symm] using h
+      simp_all +decide
+      grind
     have hR : (E'.swap u v).rename v u = (E'.rename u v).swap u v := by
       have h := @swap_rename_comm _ _ E' u v u v
-      simpa [swapVar, huv, huv.symm] using h
+      simpa [huv, huv.symm] using h
     have hbody' : ((E.swap u v).rename a u) =α ((E'.swap u v).rename v u) := by
       rw [hL, hR]; exact hbody
     apply AlphaEquiv.abs (y := u)
-    · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
+    · simp_all [Finset.mem_union, Finset.mem_insert, swap]
       grind
-    · simp_all +decide only [Finset.union_singleton, Finset.mem_insert, Finset.mem_union,
-        or_self, or_false, ne_eq, reduceIte]
-      exact hbody
+    · simp_all +decide [swap]
+      grind
 
 -- example 4
 lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
@@ -279,11 +263,14 @@ lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
       rw [swap_comm] at h
       exact h
     apply AlphaEquiv.abs (y := u)
-    · simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton]
-      grind
-    · rw [← swap_eq_rename_of_not_mem_vars huE, ← swap_eq_rename_of_not_mem_vars huE']
-      simp_all +decide only [Finset.union_singleton, Finset.mem_insert, Finset.mem_union, or_self,
-        reduceIte, swap_comm, swap_involutive]
+    · simp_all +decide [swap]
+    · simp only [Equiv.swap_apply_left]
+      change ((E.swap u v).rename v u) =α ((E'.swap u v).rename v u)
+      rw [← swap_eq_rename_of_not_mem_vars (m := E.swap u v) (x := v) (y := u) huE]
+      rw [← swap_eq_rename_of_not_mem_vars (m := E'.swap u v) (x := v) (y := u) huE']
+      nth_rw 2 [swap_comm]
+      nth_rw 4 [swap_comm]
+      rw [swap_involutive, swap_involutive]
       exact ih
 
 variable [HasFresh Var]
