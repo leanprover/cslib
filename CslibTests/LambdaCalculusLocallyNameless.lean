@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Alex Korbonits. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alex Korbonits
+-/
+
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # Tests for locally nameless capture-avoiding substitution
@@ -143,16 +149,17 @@ def cpred : T :=
       (abs (bvar 1)))
     (abs (bvar 0)))))
 
-set_option maxRecDepth 10000 in
+section
+set_option maxRecDepth 10000
+
 example : nf 20 (app (app cadd (church 2)) (church 2)) = church 4 := by rfl
 
-set_option maxRecDepth 10000 in
 example : nf 20 (app (app cmul (church 2)) (church 3)) = church 6 := by rfl
 
-set_option maxRecDepth 10000 in
 example : nf 20 (app cpred (church 3)) = church 2 := by rfl
 
-set_option maxRecDepth 10000 in
 example : nf 20 (app cpred (church 0)) = church 0 := by rfl
+
+end
 
 end CslibTests.LambdaCalculusLocallyNameless
