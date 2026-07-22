@@ -57,7 +57,6 @@ variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
-
 /-- The action `π · E` of a permutation on a term, as used in [Crole2012].
 
 Since some lemmas in section 6 are proven for general permutations, we have to introduce

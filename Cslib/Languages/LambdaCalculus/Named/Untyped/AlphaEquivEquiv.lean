@@ -42,14 +42,10 @@ variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
-/-! ## Direction ∼p → ∼p#
-
-Non-occurrence (`y ∉ vars(m)`) obviously implies freshness (`y ∉ fv(m)`), and the `swap`
-operation coincides with `rename` when the target variable does not occur in the term.
-
-See [Crole2012] proof of Theorem 4.1, first sentence: "It is trivial that ∼p is contained in ∼p#."
--/
 omit [HasFresh Var] in
+/-- Non-occurrence obviously implies freshness, and the `swap` operation coincides with
+`rename` when the target variable does not occur in the term.
+-/
 lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} : AlphaEquiv m n → AlphaEquivPFresh m n := by
   intro h
   induction h with
@@ -57,14 +53,12 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} : AlphaEquiv m n → Alpha
   | abs z_h1 ih1 ih2 =>
     rename_i x z x1 x2 m1 m2
     have h1 : z ∉ ({x1, x2} : Finset Var) ∪ m1.fv ∪ m2.fv := by
-      repeat rw [vars_either_fv_or_bv] at z_h1
-      simp_all
+      simp_all [vars_either_fv_or_bv]
     have h2 : AlphaEquivPFresh (m1.swap x1 z) (m2.swap x2 z) := by
       grind [swap_eq_rename_of_not_mem_vars]
     apply AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
-/-! ## Direction ∼p# → ∼p (the interesting direction of Theorem 4.1) -/
 lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} : AlphaEquivPFresh m n → AlphaEquiv m n := by
   intro h
   induction h with
@@ -73,27 +67,19 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} : AlphaEquivPFresh m n →
     rename_i u a b E E'
     -- We have: (u a) · E ∼p (u b) · E' (by induction: ih) and u # a, b, E, E' (by hy).
     -- Extract freshness conditions from hy.
-    have hu_a : u ≠ a := by aesop
-    have hu_b : u ≠ b := by aesop
     have hu_E : u ∉ E.fv := by aesop
     have hu_E' : u ∉ E'.fv := by aesop
     -- Pick z ≠ u with z ∉ vars(E) ∪ vars(E') ∪ {a, b} (stronger than freshness).
     obtain ⟨z, hz⟩ : ∃ z : Var, z ∉ E.vars ∪ E'.vars ∪ {a, b, u} := by
       exact Infinite.exists_notMem_finset (E.vars ∪ E'.vars ∪ {a, b, u})
-    have hz_a : z ≠ a := by aesop
-    have hz_b : z ≠ b := by aesop
-    have hz_u : z ≠ u := by aesop
     have hz_E : z ∉ E.vars := by aesop
     have hz_E' : z ∉ E'.vars := by aesop
-    have hz_fv_E : z ∉ E.fv := by
-      have : E.vars = E.fv ∪ E.bv := vars_either_fv_or_bv
-      aesop
-    have hz_fv_E' : z ∉ E'.fv := by
-      have : E'.vars = E'.fv ∪ E'.bv := vars_either_fv_or_bv
-      aesop
+    have hz_fv_E : z ∉ E.fv := by simp_all [vars_either_fv_or_bv]
+    have hz_fv_E' : z ∉ E'.fv := by simp_all [vars_either_fv_or_bv]
     -- Using Lemma 6.1 we get
     have h_swap : ((E.swap u a).swap z u) =α ((E'.swap u b).swap z u) := by
-      rw [@swap_comm (x := u) (y := a), swap_comm (x := u) (y := b)]
+      nth_rw 2 [swap_comm]
+      nth_rw 4 [swap_comm]
       exact AlphaEquiv.swap_preserve ih
     -- From Lemma 6.2 part 2 via agreement sets
     have h_agree_E : ((E.swap u a).swap z u) =α (E.swap z a) :=
