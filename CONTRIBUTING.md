@@ -101,7 +101,7 @@ instructions on how to run these locally.
 
 ## Pull Request Titles
 
-It is required that pull request titles begun with one of the following categories followed by a
+It is required that pull request titles begin with one of the following categories followed by a
 colon: `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. These may optionally be followed by a
 parenthetical containing what area of the library the PR is working on.
 
@@ -125,7 +125,7 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 
 ## Imports
 
-There is a also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
+There is also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
 running `lake exe mk_all` locally, which will make the required changes.
 
 CSLib tests for minimized imports using `lake shake --add-public --keep-implied --keep-prefix`, which also comes with a `--fix` option.
