@@ -47,9 +47,9 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Possibility. -/
   | diamond (φ : Proposition Atom)
 
-instance : HasNot (Proposition Atom) := {not := Proposition.not}
-instance : HasAnd (Proposition Atom) := {and := Proposition.and}
-instance : HasDiamond (Proposition Atom) := {diamond := Proposition.diamond}
+instance : HasNot (Proposition Atom) := ⟨.not⟩
+instance : HasAnd (Proposition Atom) := ⟨.and⟩
+instance : HasDiamond (Proposition Atom) := ⟨.diamond⟩
 
 @[scoped grind =]
 lemma Proposition.not_def (φ : Proposition Atom) : φ.not = ¬φ := rfl
@@ -63,7 +63,7 @@ lemma Proposition.diamond_def (φ : Proposition Atom) : φ.diamond = (◇φ) := 
 /-- Disjunction. -/
 def Proposition.or (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬(¬φ₁ ∧ ¬φ₂)
 
-instance : HasOr (Proposition Atom) := {or := Proposition.or}
+instance : HasOr (Proposition Atom) := ⟨Proposition.or⟩
 
 @[scoped grind =]
 lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : φ₁.or φ₂ = (φ₁ ∨ φ₂) := rfl
@@ -71,7 +71,7 @@ lemma Proposition.or_def (φ₁ φ₂ : Proposition Atom) : φ₁.or φ₂ = (φ
 /-- Implication. -/
 def Proposition.imp (φ₁ φ₂ : Proposition Atom) : Proposition Atom := ¬φ₁ ∨ φ₂
 
-instance : HasImp (Proposition Atom) := {imp := Proposition.imp}
+instance : HasImp (Proposition Atom) := ⟨.imp⟩
 
 @[scoped grind =]
 lemma Proposition.imp_def (φ₁ φ₂ : Proposition Atom) : φ₁.imp φ₂ = (φ₁ → φ₂) := rfl
@@ -79,7 +79,7 @@ lemma Proposition.imp_def (φ₁ φ₂ : Proposition Atom) : φ₁.imp φ₂ = (
 /-- Bi-implication. -/
 def Proposition.iff (φ₁ φ₂ : Proposition Atom) : Proposition Atom := (φ₁ → φ₂) ∧ (φ₂ → φ₁)
 
-instance : HasIff (Proposition Atom) := {iff := Proposition.iff}
+instance : HasIff (Proposition Atom) := ⟨.iff⟩
 
 @[scoped grind =]
 lemma Proposition.iff_def (φ₁ φ₂ : Proposition Atom) :
@@ -88,7 +88,7 @@ lemma Proposition.iff_def (φ₁ φ₂ : Proposition Atom) :
 /-- Necessity. -/
 def Proposition.box (φ : Proposition Atom) : Proposition Atom := ¬◇¬φ
 
-instance : HasBox (Proposition Atom) := {box := Proposition.box}
+instance : HasBox (Proposition Atom) := ⟨.box⟩
 
 @[scoped grind =]
 lemma Proposition.box_def (φ : Proposition Atom) : φ.box = (□φ) := rfl

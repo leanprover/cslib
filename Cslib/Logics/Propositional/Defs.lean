@@ -70,10 +70,10 @@ instance instTopProposition [Inhabited Atom] : Top (Proposition Atom) := ⟨.top
 
 example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.imp ⊥ ⊥ := rfl
 
-instance : HasAnd (Proposition Atom) := {and := Proposition.and}
-instance : HasOr (Proposition Atom) := {or := Proposition.or}
-instance : HasImp (Proposition Atom) := {imp := Proposition.imp}
-instance [Bot Atom] : HasNot (Proposition Atom) := {not := Proposition.neg}
+instance : HasAnd (Proposition Atom) := ⟨.and⟩
+instance : HasOr (Proposition Atom) := ⟨.or⟩
+instance : HasImp (Proposition Atom) := ⟨.imp⟩
+instance [Bot Atom] : HasNot (Proposition Atom) := ⟨.neg⟩
 
 omit [DecidableEq Atom] in
 @[grind =]
