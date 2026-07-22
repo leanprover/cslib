@@ -8,27 +8,33 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
+set_option linter.style.longLine false in
 /-!
 # Stateful Processes
 
 The language of Stateful Processes (SP for short), a process calculus
 where processes communicate via message passing [Montesi2023]. Stateful processes or similar
-languages are typically used to model implementations of choreographic programs, but they can also
-be used as abstract representations that can be later compiled to executable mainstream languages.
+languages are typically used to model implementations of choreographic programs (concurrent and/or
+distributed protocols), but they are also designed to be used as abstract representations that can
+be later compiled to executable mainstream languages.
 
 ## Limitations
 
 The current formalisation does not cover process polymorphism (procedures do not take process
-parameters) nor general recursion (this is the tail-recursive fragment of Stateful Processes)
+parameters) nor general recursion (this is the tail-recursive fragment of Stateful Processes).
+For recursion, only the syntax is currently implemented. Its semantics will follow a similar
+approach to that for `CCS`.
 
 ## Implementation notes
 
-This development faithfully follows the presentation in [Montesi2023] but for a minor difference:
-we adopt a more structural approach to the operational semantics of the calculus, by defining
-a semantics of observable actions for processes.
+This development follows the presentation in [Montesi2023], with one difference: we adopt a modular
+approach to the definition of operational semantics, by first defining a symbolic semantics from
+which a concrete semantics is then derived by adding stores (process memory). This approach is
+described in [Acclavio2026].
 
 ## References
 
+* [M. Acclavio, G. Manara, F. Montesi, X. Qin, *Choreographic Programming: a Semantic Approach*][Acclavio2026]
 * [F. Montesi, *Introduction to Choreographies*][Montesi2023]
 -/
 
@@ -40,55 +46,77 @@ section Syntax
 
 /-! ## Syntax of process terms -/
 
+/-- Expressions for local computation. -/
+inductive Expr (Var Val FunId : Type*) where
+  /-- Read variable `x`. -/
+  | var (x : Var)
+  /-- Value `v`. -/
+  | val (v : Val)
+  /-- Call function `f` with arguments `args`. -/
+  | call (f : FunId) (args : List (Expr Var Val FunId))
+
+/-- Utility instance to write variables directly as expressions. -/
+instance : Coe Var (Expr Var Val FunId) where
+  coe x := .var x
+
+/-- Utility instance to write values directly as expressions. -/
+instance : Coe Val (Expr Var Val FunId) where
+  coe v := .val v
+
 /-- Prefixes. -/
-inductive Process.Prefix (Pid Var Expr SelLabel : Type*) where
+inductive Prefix (Pid Var Val FunId SelLabel : Type*) where
   /-- Assign to `x` the result of evaluating `e`. -/
-  | assign (x : Var) (e : Expr)
+  | assign (x : Var) (e : Expr Var Val FunId)
   /-- Send to `p` the result of evaluating `e`. -/
-  | sendValue (p : Pid) (e : Expr)
+  | sendValue (p : Pid) (e : Expr Var Val FunId)
   /-- Receive a value from `p` and store it in `x`. -/
   | recvValue (p : Pid) (x : Var)
   /-- Send to `p` the label `l`. -/
   | sendLabel (p : Pid) (l : SelLabel)
-deriving DecidableEq
 
 /-- Processes. -/
-inductive Process (Pid Var Expr SelLabel ProcName : Type*) where
+inductive Process (Pid Var Val FunId SelLabel ProcName : Type*) where
   /-- The terminated process. -/
   | nil
   /-- Execute the prefix `prf` and proceed as the continuation `pr`. -/
-  | pre (prf : Process.Prefix Pid Var Expr SelLabel) (pr : Process Pid Var Expr SelLabel ProcName)
+  | pre (prf : Prefix Pid Var Val FunId SelLabel) (pr : Process Pid Var Val FunId SelLabel ProcName)
   /-- Branching process: receives a selection label and continues accordingly. -/
-  | recvLabel (p : Pid) (branches : List (SelLabel × Process Pid Var Expr SelLabel ProcName))
+  | recvLabel (p : Pid) (branches : List (SelLabel × Process Pid Var Val FunId SelLabel ProcName))
   /-- Conditional: evaluate `e` to choose between `pr₁` and `pr₂`. -/
-  | cond (e : Expr) (pr₁ pr₂ : Process Pid Var Expr SelLabel ProcName)
+  | cond (e : Expr Var Val FunId) (pr₁ pr₂ : Process Pid Var Val FunId SelLabel ProcName)
   /-- Call the procedure `proc`. -/
   | call (proc : ProcName) (ps : List Pid)
 
-instance : Zero (Process Pid Var Expr SelLabel ProcName) := ⟨.nil⟩
+instance : Zero (Process Pid Var Val FunId SelLabel ProcName) := ⟨.nil⟩
 
-declare_syntax_cat pre
-scoped syntax term "≔" term : pre
-scoped syntax term "!" term : pre
-scoped syntax term "?" term : pre
-scoped syntax term "⊕" term : pre
-scoped syntax "[SPpre|" pre "]" : term
-scoped macro "[SPpre|" x:term "≔" e:term "]" : term => `(Process.Prefix.assign $x $e)
-scoped macro "[SPpre|" p:term "!" e:term "]" : term => `(Process.Prefix.sendValue $p $e)
-scoped macro "[SPpre|" p:term "?" x:term "]" : term => `(Process.Prefix.recvValue $p $x)
-scoped macro "[SPpre|" p:term "⊕" l:term "]" : term => `(Process.Prefix.sendLabel $p $l)
+declare_syntax_cat sp_pre
+scoped syntax term:max "≔" term : sp_pre
+scoped syntax term:max "!" term : sp_pre
+scoped syntax term:max "?" term : sp_pre
+scoped syntax term:max "⊕" term : sp_pre
+scoped syntax "`(SPpre|" sp_pre ")" : term
 
-declare_syntax_cat proc
-scoped syntax num : proc
-scoped syntax pre : proc
-scoped syntax pre "; " proc : proc
-scoped syntax "if" term "then" proc "else" proc : proc
-scoped syntax "[SP|" proc "]" : term
 scoped macro_rules
-  | `([SP|0]) => `(0)
-  | `([SP|$prf:pre; $pr:proc]) => `(Process.pre `([SPpre|$prf]) `([SP|$pr]))
-  | `([SP|$prf:pre]) => `(Process.pre `([SPpre|$prf]) 0)
-  | `([SP|if $e then $p₁:proc else $p₂:proc]) => `(Process.cond $e `([SP|$p₁]) `([SP|$p₂]))
+  | `(`(SPpre| $x:term ≔ $e:term )) => `(Prefix.assign $x $e)
+  | `(`(SPpre| $p:term ! $e:term )) => `(Prefix.sendValue $p $e)
+  | `(`(SPpre| $p:term ? $x:term )) => `(Prefix.recvValue $p $x)
+  | `(`(SPpre| $p:term ⊕ $l:term )) => `(Prefix.sendLabel $p $l)
+
+declare_syntax_cat sp_proc
+scoped syntax num : sp_proc
+scoped syntax sp_pre "; " sp_proc : sp_proc
+scoped syntax term:max "&" term : sp_proc
+scoped syntax "if" term "then" sp_proc "else" sp_proc : sp_proc
+-- The next syntax would be nice to have to avoid having trailing 0s in examples.
+-- scoped syntax:min "`(SP| " sp_pre ")" : term
+scoped syntax "`(SP| " sp_proc ")" : term
+scoped macro_rules
+  | `(`(SP| 0)) => `(0)
+  | `(`(SP| $prf:sp_pre; $pr:sp_proc)) => `(Process.pre `(SPpre| $prf) `(SP| $pr))
+  -- | `(`(SP| $prf:sp_pre)) => `(Process.pre `(SPpre| $prf) 0)
+  | `(`(SP| $p:term & $l:term)) => `(Process.recvLabel $p $l)
+  | `(`(SP| if $e:term then $p₁:sp_proc else $p₂:sp_proc)) =>
+    `(Process.cond $e `(SP| $p₁) `(SP| $p₂))
 
 end Syntax
 
@@ -97,11 +125,11 @@ section Semantics
 /-! ## Semantics -/
 
 /-- Actions. -/
-inductive Act (Pid Var Expr SelLabel : Type*) where
+inductive Act (Pid Var Val FunId SelLabel : Type*) where
   /-- Assign to `x` the result of evaluating `e`. -/
-  | assign (x : Var) (e : Expr)
+  | assign (x : Var) (e : Expr Var Val FunId)
   /-- Send to `p` the result of evaluating `e`. -/
-  | sendValue (p : Pid) (e : Expr)
+  | sendValue (p : Pid) (e : Expr Var Val FunId)
   /-- Receive a value from `p` and store it in variable `x`. -/
   | recvValue (p : Pid) (x : Var)
   /-- Send to `p` the selection label `l`. -/
@@ -109,29 +137,36 @@ inductive Act (Pid Var Expr SelLabel : Type*) where
   /-- Receive from `p` the selection label `l`. -/
   | recvLabel (p : Pid) (l : SelLabel)
   /-- Choose the then-branch of a conditional guarded by `e`. -/
-  | condThen (e : Expr)
+  | condThen (e : Expr Var Val FunId)
   /-- Choose the else-branch of a conditional guarded by `e`. -/
-  | condElse (e : Expr)
-deriving DecidableEq
+  | condElse (e : Expr Var Val FunId)
 
-abbrev Process.Prefix.toAct : Process.Prefix Pid Var Expr SelLabel → Act Pid Var Expr SelLabel
+/-- An action is internal if it is not meant to interact with another process. -/
+def Act.isInternal : Act Pid Var Val FunId SelLabel → Bool
+  | assign _ _ | condThen _ | condElse _ => true
+  | _ => false
+
+/-- Transforms a `Prefix` into an `Act`. -/
+abbrev Prefix.toAct : Prefix Pid Var Val FunId SelLabel → Act Pid Var Val FunId SelLabel
   | assign x e => .assign x e
   | sendValue p e => .sendValue p e
   | recvValue p x => .recvValue p x
   | sendLabel p l => .sendLabel p l
 
-/-- Transition relation for processes.
+/-- Symbolic transition relation for processes.
 Do not use this directly, use `Process.lts` instead. -/
 inductive Process.Tr :
-    Process Pid Var Expr SelLabel ProcName → Act Pid Var Expr SelLabel →
-    Process Pid Var Expr SelLabel ProcName → Prop
+    Process Pid Var Val FunId SelLabel ProcName → Act Pid Var Val FunId SelLabel →
+    Process Pid Var Val FunId SelLabel ProcName → Prop
   | pre : Tr (pre prf pr) prf.toAct (pr)
   | condThen : Tr (cond e pr₁ pr₂) (.condThen e) pr₁
   | condElse : Tr (cond e pr₁ pr₂) (.condElse e) pr₂
   | recvLabel (h : (l, pr) ∈ branches): Tr (recvLabel p branches) (.recvLabel p l) pr
 
+/-- Symbolic LTS of processes. -/
 def Process.lts :
-    LTS (Process Pid Var Expr SelLabel ProcName) (Act Pid Var Expr SelLabel) := ⟨Process.Tr⟩
+    LTS (Process Pid Var Val FunId SelLabel ProcName) (Act Pid Var Val FunId SelLabel) :=
+  ⟨Process.Tr⟩
 
 end Semantics
 
