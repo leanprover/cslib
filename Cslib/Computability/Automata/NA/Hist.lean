@@ -57,7 +57,7 @@ theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
   use ⟨fun n ↦ (ss n, makeHist start' tr' xs ss n)⟩
   constructor
   · simp only [addHist]
-    grind only [Run, usr Set.mem_setOf_eq, = get_fun, = LTS.OmegaExecution, makeHist]
+    grind only [Run, usr Set.mem_ofPred_eq, = get_fun, = LTS.OmegaExecution, makeHist]
   · grind
 
 end Cslib.Automata.NA

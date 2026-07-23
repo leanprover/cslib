@@ -97,16 +97,16 @@ open scoped Proposition
 open Set
 
 theorem k_subset_d : K World Atom ⊆ D World Atom := by
-  grind only [subset_def, D, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, D, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 theorem k_subset_b : K World Atom ⊆ B World Atom := by
-  grind only [subset_def, B, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, B, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 theorem k_subset_four : K World Atom ⊆ Four World Atom := by
-  grind only [subset_def, Four, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, Four, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 theorem k_subset_five : K World Atom ⊆ Five World Atom := by
-  grind only [subset_def, Five, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, Five, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 open scoped Relation in
 theorem d_subset_t : D World Atom ⊆ T World Atom := by

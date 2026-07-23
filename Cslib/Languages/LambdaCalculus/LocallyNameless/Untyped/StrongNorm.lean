@@ -124,20 +124,21 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
     (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (multiApp (M ^ N) Ps))
     (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
     SN FullBeta (multiApp (M.abs.app N) Ps) := by
-  induction Ps with
+  induction Ps using List.reverseRecOn with
   | nil =>
     apply sn_app
     · grind [sn_abs]
     · exact sn_N
     · grind [→ steps_open_cong_abs, open_abs_lc, sn_steps]
-  | cons P Ps ih =>
+  | append_singleton Ps P ih =>
+    rw [multiApp_tail]
     apply sn_app
-    · cases lc_MNPs with grind [sn_app_left]
-    · grind [sn_app_right]
+    · grind [cases LC, multiApp_tail, sn_app_left]
+    · grind [multiApp_tail, sn_app_right]
     · intro Q' P' hstep1 hstep2
       have ⟨M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases⟩ := invert_abs_multiApp_mst hstep1
       rcases h_cases with h_P | ⟨h_st1, h_st2⟩
-      · cases Ps' with grind
+      · induction Ps' using List.reverseRecOn with grind [multiApp_tail]
       · have innerSteps : (M ^ N).multiApp Ps ↠βᶠ (M' ^ N').multiApp Ps' := by
           trans
           · exact steps_multiApp_r h_Ps_red (by grind)
@@ -145,15 +146,15 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
             · apply steps_open_cong_abs M M' N N' <;> grind [open_abs_lc]
             · grind [multiApp_steps_lc]
         refine sn_steps ?_ sn_MNPs
+        rw [multiApp_tail]
         · calc ((M ^ N).multiApp Ps).app P
             _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
             _ ↠βᶠ Q' ^ P' := by
               rw [Relation.reflTransGen_iff_eq_or_transGen] at ⊢ innerSteps h_st2
               right
-              cases lc_MNPs
               refine Relation.TransGen.single (Xi.base (Beta.beta ?_ ?_))
-              all_goals grind only [→ step_lc_r]
+              all_goals grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
