@@ -165,11 +165,54 @@ deriving Inhabited
 
 /-- Attempt to move the input tape head.
 The machine can only read one empty cell outside of the input,
-any attempted movement beyond that results in no movement. -/
+any attempted movement beyond that results in no movement.
+
+The addition is performed in `ℤ` before clamping. Performing it in `Fin (n + 2)` would wrap an
+outward boundary move to the opposite end of the input. -/
 @[scoped grind =]
 def moveInputPos {n : ℕ} (pos : Fin (n + 2)) (m : SignType) : Fin (n + 2) :=
-  let p := (pos + m.cast).toNat
+  let p := ((pos.val : ℤ) + (m.cast : ℤ)).toNat
   if h : p < n + 2 then ⟨p, h⟩ else ⟨n + 1, by omega⟩
+
+@[simp]
+lemma moveInputPos_zero {n : ℕ} (pos : Fin (n + 2)) :
+    moveInputPos pos 0 = pos := by
+  apply Fin.ext
+  simp [moveInputPos, pos.isLt]
+
+@[simp]
+lemma moveInputPos_leftBoundary {n : ℕ} :
+    moveInputPos (0 : Fin (n + 2)) (-1) = 0 := by
+  apply Fin.ext
+  simp [moveInputPos]
+
+@[simp]
+lemma moveInputPos_rightBoundary {n : ℕ} :
+    moveInputPos (⟨n + 1, by omega⟩ : Fin (n + 2)) 1 = ⟨n + 1, by omega⟩ := by
+  unfold moveInputPos
+  rw [dif_neg (by simp; omega)]
+
+/-- A left move away from the left input boundary decrements the native input position. -/
+lemma moveInputPos_neg_of_ne_left {n : ℕ} (p : Fin (n + 2)) (h : p ≠ 0) :
+    moveInputPos p .neg = ⟨p.val - 1, by have := p.isLt; omega⟩ := by
+  have hp : 0 < p.val := Nat.pos_of_ne_zero (fun hz => h (Fin.ext hz))
+  unfold moveInputPos
+  rw [dif_pos]
+  · apply Fin.ext
+    simp
+    omega
+  · simp
+    omega
+
+/-- A right move away from the right input boundary increments the native input position. -/
+lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n + 1) :
+    moveInputPos p .pos = ⟨p.val + 1, by have := p.isLt; omega⟩ := by
+  unfold moveInputPos
+  rw [dif_pos]
+  · apply Fin.ext
+    simp
+  · simp
+    omega
 
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
