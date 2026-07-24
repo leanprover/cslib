@@ -18,31 +18,24 @@ namespace Cslib.Logic
 
 open scoped InferenceSystem
 
-/-- A logical equivalence for a given type of `Judgement`s is a congruence on propositions that
-preserves validity of judgements under any judgemental context. -/
-class LogicalEquivalence S
-    (Proposition : Type u) [HasContext Proposition]
-    (Judgement : Type v) [HasHContext Judgement Proposition]
+/-- A logical equivalence `eqv` for an inference system `S` is a congruence on propositions (of type
+`α`) that preserves validity of judgements under any judgemental context. -/
+class LogicalEquivalence S (eqv : α → α → Prop)
+    [Congruence eqv] [HasContext α] [HasHContext Judgement α]
     [InferenceSystem S Judgement] where
-  /-- `a ≡[S] b` means that `a` and `b` are logically equivalent in the inference system `S`. -/
-  eqv (a b : Proposition) : Prop
-  /-- Proof that `eqv` is a congruence. -/
-  [congruence : Congruence Proposition eqv]
   /-- Validity is preserved for any judgemental context. -/
-  eqvFillValid (heqv : eqv a b) (c : HasHContext.Context Judgement Proposition)
+  eqvFillValid (heqv : eqv a b) (c : HasHContext.Context Judgement α)
     (h : S⇓(c<[a])) : S⇓(c<[b])
 
-@[inherit_doc]
-scoped notation a " ≡[" S "]" b => LogicalEquivalence.eqv S a b
+-- @[inherit_doc]
+-- scoped notation a " ≡[" S "]" b => LogicalEquivalence.eqv S a b
 
-/-- Class for types (`α`) that have a canonical logical equivalence (under a canonical, default
-inference system). -/
-abbrev HasLogicalEquivalence (Proposition : Type u) [HasContext Proposition]
-    (Judgement : Type v) [HasHContext Judgement Proposition]
-    [HasInferenceSystem Judgement] :=
-  LogicalEquivalence InferenceSystem.Default Proposition Judgement
-
-/-- `a ≡ b` means that `a` and `b` are logically equivalent. -/
-scoped infix:29 " ≡ " => LogicalEquivalence.eqv InferenceSystem.Default
+-- /-- Class for types (`α`) that have a canonical logical equivalence (under a canonical, default
+-- inference system). -/
+-- abbrev HasLogicalEquivalence Proposition
+--     [DefaultCongruence Proposition]
+--     [HasContext Proposition] [HasHContext Judgement Proposition]
+--     [HasInferenceSystem Judgement] :=
+--   LogicalEquivalence InferenceSystem.Default (DefaultCongruence.r) Judgement
 
 end Cslib.Logic
