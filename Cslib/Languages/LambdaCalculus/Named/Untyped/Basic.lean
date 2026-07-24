@@ -75,6 +75,21 @@ def Term.rename [DecidableEq Var] (m : Term Var) (x y : Var) : Term Var :=
       abs z (m'.rename x y)
   | app n1 n2 => app (n1.rename x y) (n2.rename x y)
 
+/-- Structurally swap the variable names `x` and `y`, including abstraction binders. Unlike
+`Term.rename`, swapping preserves the binding structure even when one of the names already occurs
+bound in the term. -/
+def Term.swap [DecidableEq Var] (m : Term Var) (x y : Var) : Term Var :=
+  match m with
+  | var z => var (Equiv.swap x y z)
+  | abs z m' => abs (Equiv.swap x y z) (m'.swap x y)
+  | app n₁ n₂ => app (n₁.swap x y) (n₂.swap x y)
+
+/-- Swapping the same two variable names twice leaves a term unchanged. -/
+@[simp]
+theorem Term.swap_swap [DecidableEq Var] (m : Term Var) (x y : Var) :
+    (m.swap x y).swap x y = m := by
+  induction m <;> simp [Term.swap, *]
+
 /-- Renaming preserves size. -/
 @[simp]
 theorem Term.rename.eq_sizeOf {m : Term Var} {x y : Var} [DecidableEq Var] :
@@ -148,10 +163,9 @@ open Term
 
 /-- α-equivalence. -/
 inductive Term.AlphaEquiv [DecidableEq Var] : Term Var → Term Var → Prop where
--- The α-axiom. Freshness for every variable name prevents `rename` from capturing an occurrence
--- beneath an inner abstraction.
+-- The α-axiom, using nominal swapping to preserve binding structure.
 | ax {m : Term Var} {x y : Var} :
-  y ∉ m.vars → AlphaEquiv (abs x m) (abs y (m.rename x y))
+  y ∉ m.fv → AlphaEquiv (abs x m) (abs y (m.swap x y))
 -- Equivalence relation rules
 | refl : AlphaEquiv m m
 | symm : AlphaEquiv m n → AlphaEquiv n m

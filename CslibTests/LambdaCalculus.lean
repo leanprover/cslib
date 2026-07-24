@@ -18,19 +18,36 @@ def lambdaId := abs 0 (var 0)
 
 example : (abs 0 (var 0)) =α (abs 1 (var 1)) := by
   constructor
-  simp [Term.vars, Term.fv, Term.bv]
+  simp [Term.fv]
 
--- The new binder must also be fresh for bound variable names in the body. Otherwise
--- renaming `0` to `1` below the inner abstraction would capture the renamed occurrence.
+-- Swapping also renames the colliding inner binder, preserving which abstraction binds each
+-- variable occurrence.
+example :
+    (abs 0 (abs 1 (var 0)) : NatTerm) =α (abs 1 (abs 0 (var 1))) := by
+  apply AlphaEquiv.ax
+  simp [Term.fv]
+
+-- The old one-way renaming axiom instead produced this captured term.
 example : True := by
   fail_if_success
     exact (AlphaEquiv.ax
       (m := abs 1 (var 0))
       (x := 0)
       (y := 1)
-      (by simp [Term.vars, Term.fv, Term.bv]) :
+      (by simp [Term.fv]) :
       (abs 0 (abs 1 (var 0)) : NatTerm) =α (abs 1 (abs 1 (var 1))))
   trivial
+
+-- Unlike requiring freshness for every variable name, nominal swapping permits a new binder name
+-- that already occurs bound in the body.
+example :
+    (abs 0 (abs 1 (var 1)) : NatTerm) =α (abs 1 (abs 1 (var 1))) := by
+  apply AlphaEquiv.trans (m2 := abs 1 (abs 0 (var 0)))
+  · apply AlphaEquiv.ax
+    simp [Term.fv]
+  · apply AlphaEquiv.ctx (c := Context.abs 1 Context.hole)
+    apply AlphaEquiv.ax
+    simp [Term.fv]
 
 example : (abs 1 (var 0)).subst 0 (app (var 1) (var 2)) = (abs 3 (app (var 1) (var 2))) := by
   simp +instances [subst, fv, bv, vars, rename, instHasFreshNat, HasFresh.ofSucc]
