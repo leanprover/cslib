@@ -225,7 +225,7 @@ lemma iter_step_eq_of_halt {cfg : Cfg k Symbol State input} {n : ℕ} (h_halt : 
   | succ n ih => rw [Function.iterate_succ_apply', ih, step, h_halt]
 
 @[simp]
-lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} {n : ℕ} (h_halt : cfg.state = none) :
+lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
     tm.outputSymbol cfg = none := by
   simp [outputSymbol, h_halt]
 
@@ -296,13 +296,21 @@ which maps a configuration to its next configuration.
 def TransitionRelation (c₁ c₂ : Cfg k Symbol State input) : Prop := tm.step c₁ = c₂
 
 /-- The string output by the Turing machine `tm` starting in configuration `cfg₀`, executing for
-`t` steps. -/
+`t` steps. It is the concatenation of the symbols (optionally) emitted at each of the first `t`
+steps. -/
 def outputString
     (tm : MultiTapeTM k Symbol State)
-    (cfg₀ : Cfg k Symbol State input) : (t : ℕ) → List Symbol
-  -- TODO use Range instead?
-  | 0 => []
-  | t + 1 => outputString tm cfg₀ t ++ (tm.outputSymbol (tm.configs cfg₀ t)).toList
+    (cfg₀ : Cfg k Symbol State input) (t : ℕ) : List Symbol :=
+  (List.range t).flatMap fun t' => (tm.outputSymbol (tm.configs cfg₀ t')).toList
+
+/-- The output produced in `t + 1` steps is the output produced in `t` steps followed by the symbol
+(optionally) emitted at step `t`. -/
+lemma outputString_succ
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.outputString cfg (t + 1) =
+      tm.outputString cfg t ++ (tm.outputSymbol (tm.configs cfg t)).toList := by
+  simp [outputString, List.range_succ, List.flatMap_append]
 
 /-- From a halting configuration, a TM does not output anything. -/
 lemma outputString_halt
@@ -316,13 +324,8 @@ lemma outputString_halt
   | succ t ih =>
     have : tm.configs cfg t = cfg := by
       simp [configs, iter_step_eq_of_halt, h_halt]
-    simp [outputString, ih, outputSymbol, h_halt, this]
-
-lemma outputString_succ
-    (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.outputString cfg (t + 1) =
-      tm.outputString cfg t ++ (tm.outputSymbol (tm.configs cfg t)).toList := by rfl
+    rw [outputString_succ, ih, this]
+    simp [outputSymbol, h_halt]
 
 lemma outputString_add_eq_append
     (tm : MultiTapeTM k Symbol State)
