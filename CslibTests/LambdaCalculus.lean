@@ -18,7 +18,19 @@ def lambdaId := abs 0 (var 0)
 
 example : (abs 0 (var 0)) =α (abs 1 (var 1)) := by
   constructor
-  simp [Term.fv]
+  simp [Term.vars, Term.fv, Term.bv]
+
+-- The new binder must also be fresh for bound variable names in the body. Otherwise
+-- renaming `0` to `1` below the inner abstraction would capture the renamed occurrence.
+example : True := by
+  fail_if_success
+    exact (AlphaEquiv.ax
+      (m := abs 1 (var 0))
+      (x := 0)
+      (y := 1)
+      (by simp [Term.vars, Term.fv, Term.bv]) :
+      (abs 0 (abs 1 (var 0)) : NatTerm) =α (abs 1 (abs 1 (var 1))))
+  trivial
 
 example : (abs 1 (var 0)).subst 0 (app (var 1) (var 2)) = (abs 3 (app (var 1) (var 2))) := by
   simp +instances [subst, fv, bv, vars, rename, instHasFreshNat, HasFresh.ofSucc]

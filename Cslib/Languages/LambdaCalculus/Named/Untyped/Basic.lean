@@ -61,7 +61,9 @@ inductive Term.Subst [DecidableEq Var] : Term Var → Var → Term Var → Term 
   | absIn : x ≠ y → y ∉ r.fv → m.Subst x r m' → (abs y m).Subst x r (abs y m')
   | app : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
 
-/-- Renaming, or variable substitution. `m.rename x y` renames `x` into `y` in `m`. -/
+/-- Renaming, or variable substitution. `m.rename x y` renames the free occurrences of `x` into
+`y` in `m`. This operation is not capture-avoiding, so callers must ensure that `y` is fresh when
+capture matters. -/
 def Term.rename [DecidableEq Var] (m : Term Var) (x y : Var) : Term Var :=
   match m with
   | var z => if z = x then (var y) else (var z)
@@ -146,9 +148,10 @@ open Term
 
 /-- α-equivalence. -/
 inductive Term.AlphaEquiv [DecidableEq Var] : Term Var → Term Var → Prop where
--- The α-axiom
+-- The α-axiom. Freshness for every variable name prevents `rename` from capturing an occurrence
+-- beneath an inner abstraction.
 | ax {m : Term Var} {x y : Var} :
-  y ∉ m.fv → AlphaEquiv (abs x m) (abs y (m.rename x y))
+  y ∉ m.vars → AlphaEquiv (abs x m) (abs y (m.rename x y))
 -- Equivalence relation rules
 | refl : AlphaEquiv m m
 | symm : AlphaEquiv m n → AlphaEquiv n m
