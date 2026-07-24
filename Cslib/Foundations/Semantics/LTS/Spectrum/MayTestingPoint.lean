@@ -43,10 +43,11 @@ variable
   {Constant : Type v}
 
 /-- `p` *may pass* test `T`: some computation of `p ∥ T` performs `success`
-    (a weak `success` transition of the parallel composition). -/
+    (it appears among the labels of a multistep computation of the parallel
+    composition). Strong, matching `MustTestingPoint.mustPass`. -/
 def mayPass (defs : Constant → CCS.Process Name Constant → Prop)
     (success : CCS.Act Name) (p T : CCS.Process Name Constant) : Prop :=
-  ∃ s', STr (CCS.lts (defs := defs)) (Process.par p T) success s'
+  ∃ μs s', (CCS.lts (defs := defs)).MTr (Process.par p T) μs s' ∧ success ∈ μs
 
 /-- May-testing equivalence: `p` and `q` may-pass exactly the same tests. -/
 def MayEquiv (defs : Constant → CCS.Process Name Constant → Prop)
