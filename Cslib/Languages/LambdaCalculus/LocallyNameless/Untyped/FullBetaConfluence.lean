@@ -73,8 +73,10 @@ lemma para_lc_r (step : M ⭢ₚ N) : LC N := by
   all_goals grind
 
 omit [HasFresh Var] [DecidableEq Var] in
-/-- A single β-reduction implies a single parallel reduction. -/
-lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
+/-- The inclusion `(· ⭢βᶠ ·) ≤ (· ⭢ₚ ·)`. -/
+lemma FullBeta.le_parallel :
+    ((· ⭢βᶠ ·) : Term Var → Term Var → Prop) ≤ (· ⭢ₚ ·) := by
+  intro M N step
   induction step with
   | base h =>
     cases h with | beta abs_lc _ =>
@@ -84,8 +86,10 @@ lemma step_to_para (step : M ⭢βᶠ N) : M ⭢ₚ N := by
   | _ => grind
 
 open FullBeta in
-/-- A single parallel reduction implies a multiple β-reduction. -/
-lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
+/-- The inclusion `(· ⭢ₚ ·) ≤ (· ↠βᶠ ·)`. -/
+lemma Parallel.le_reflTransGen_fullBeta :
+    ((· ⭢ₚ ·) : Term Var → Term Var → Prop) ≤ (· ↠βᶠ ·) := by
+  intro M N para
   induction para
   case fvar => constructor
   case app L L' R R' l_para m_para redex_l redex_m =>
@@ -105,11 +109,12 @@ lemma para_to_redex (para : M ⭢ₚ N) : M ↠βᶠ N := by
       _           ↠βᶠ m'.abs.app n' := by grind
       _           ⭢βᶠ m' ^ n'       := by grind
 
-/-- Multiple parallel reduction is equivalent to multiple β-reduction. -/
-theorem parachain_iff_redex : M ↠ₚ N ↔ M ↠βᶠ N := by
-  refine Iff.intro ?chain_redex ?redex_chain <;> intros h <;> induction h <;> try rfl
-  case redex_chain redex chain => exact ReflTransGen.tail chain (step_to_para redex)
-  case chain_redex para  redex => exact ReflTransGen.trans redex (para_to_redex para)
+/-- Multiple parallel reduction is equal to multiple β-reduction. -/
+theorem reflTransGen_parallel_fullBeta :
+    ((· ↠ₚ ·) : Term Var → Term Var → Prop) = (· ↠βᶠ ·) := by
+  apply le_antisymm
+  · exact reflTransGen_le_of_le Parallel.le_reflTransGen_fullBeta
+  · exact ReflTransGen.mono FullBeta.le_parallel
 
 /-- Parallel reduction respects substitution. -/
 @[scoped grind .]
@@ -136,7 +141,7 @@ lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢�
 
 -- adapted from https://github.com/ElifUskuplu/Stlc_deBruijn/blob/main/Stlc/confluence.lean
 /-- Parallel reduction has the diamond property. -/
-theorem para_diamond : Diamond (@Parallel Var) := by
+theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → Prop) := by
   intros t t1 t2 tpt1
   revert t2
   induction tpt1 <;> intros t2 tpt2
@@ -199,17 +204,15 @@ theorem para_diamond : Diamond (@Parallel Var) := by
           apply Parallel.beta (free_union Var) <;> grind
 
 /-- Parallel reduction is confluent. -/
-theorem para_confluence : Confluent (@Parallel Var) :=
-  para_diamond.toConfluent
+theorem confluent_parallel : Confluent ((· ⭢ₚ ·) : Term Var → Term Var → Prop) :=
+  parallel_diamond.toConfluent
 
 /-- β-reduction is confluent. -/
 @[wikidata Q1308502]
-theorem confluence_beta : Confluent (@FullBeta Var) := by
-  have eq : ReflTransGen (@Parallel Var) = ReflTransGen (@FullBeta Var) := by
-    ext
-    exact parachain_iff_redex
-  rw [Confluent, ←eq]
-  exact para_confluence
+theorem confluent_fullBeta : Confluent ((· ⭢βᶠ ·) : Term Var → Term Var → Prop) := by
+  change Diamond ((· ↠βᶠ ·) : Term Var → Term Var → Prop)
+  rw [← reflTransGen_parallel_fullBeta]
+  exact confluent_parallel
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
