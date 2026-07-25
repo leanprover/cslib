@@ -141,7 +141,7 @@ lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢�
 
 -- adapted from https://github.com/ElifUskuplu/Stlc_deBruijn/blob/main/Stlc/confluence.lean
 /-- Parallel reduction has the diamond property. -/
-theorem para_diamond : Diamond (@Parallel Var) := by
+theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → Prop) := by
   intros t t1 t2 tpt1
   revert t2
   induction tpt1 <;> intros t2 tpt2
@@ -204,16 +204,15 @@ theorem para_diamond : Diamond (@Parallel Var) := by
           apply Parallel.beta (free_union Var) <;> grind
 
 /-- Parallel reduction is confluent. -/
-theorem para_confluence : Confluent (@Parallel Var) :=
-  para_diamond.toConfluent
+theorem confluent_parallel : Confluent ((· ⭢ₚ ·) : Term Var → Term Var → Prop) :=
+  parallel_diamond.toConfluent
 
 /-- β-reduction is confluent. -/
 @[wikidata Q1308502]
-theorem confluence_beta : Confluent (@FullBeta Var) := by
-  rw [Confluent]
+theorem confluent_fullBeta : Confluent ((· ⭢βᶠ ·) : Term Var → Term Var → Prop) := by
   change Diamond ((· ↠βᶠ ·) : Term Var → Term Var → Prop)
-  rw [←reflTransGen_parallel_fullBeta]
-  exact para_confluence
+  rw [← reflTransGen_parallel_fullBeta]
+  exact confluent_parallel
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
