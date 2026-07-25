@@ -77,9 +77,7 @@ variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
-  refine Xi.step_lc_r ?_ step
-  grind
+lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := Xi.step_lc_r (by grind) step
 
 lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M') ∨ M = M' := by
   grind
