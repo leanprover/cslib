@@ -12,4 +12,5 @@ import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL
+import CslibTests.PACLearning
 import CslibTests.Reduction
