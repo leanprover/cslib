@@ -67,7 +67,7 @@ the sub-linear space modifications from chapter 2.5 with the following changes:
 We define a number of structures and concepts related to multi-tape Turing machine computation:
 
 * `MultiTapeTM`: the TM itself
-* `Cfg`: the configuration of a TM, including internal state, the tapes and the output so far
+* `Cfg`: the configuration of a TM: the internal state, the work tape contents and head positions
 * `spaceUsed`: the number of work tape cells touched by the heads until a certain step
 * `TransitionRelation`: the transition relation from one configuration to the next
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
@@ -146,8 +146,7 @@ The configurations of a Turing machine is relative to the input of the machine a
 - an `Option`al state (or none for the halting state),
 - the position of the input head (shifted by one),
 - the contents of the work tape,
-- the positions of the work tape heads,
-- the output so far.
+- the positions of the work tape heads.
 -/
 @[ext]
 structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
@@ -159,17 +158,54 @@ structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
   workTapes : Fin k → ℤ → Option Symbol
   /-- the positions of the heads on the work tapes -/
   workTapePos : Fin k → ℤ
-  /-- the output so far -/
-  output : List Symbol
 deriving Inhabited
 
 /-- Attempt to move the input tape head.
 The machine can only read one empty cell outside of the input,
-any attempted movement beyond that results in no movement. -/
+any attempted movement beyond that results in no movement.
+
+The addition is performed in `ℤ` before clamping. Performing it in `Fin (n + 2)` would wrap an
+outward boundary move to the opposite end of the input. -/
 @[scoped grind =]
 def moveInputPos {n : ℕ} (pos : Fin (n + 2)) (m : SignType) : Fin (n + 2) :=
-  let p := (pos + m.cast).toNat
+  let p := ((pos.val : ℤ) + (m.cast : ℤ)).toNat
   if h : p < n + 2 then ⟨p, h⟩ else ⟨n + 1, by omega⟩
+
+@[simp]
+lemma moveInputPos_zero {n : ℕ} (pos : Fin (n + 2)) :
+    moveInputPos pos 0 = pos := by
+  apply Fin.ext
+  simp [moveInputPos, pos.isLt]
+
+@[simp]
+lemma moveInputPos_leftBoundary {n : ℕ} :
+    moveInputPos (0 : Fin (n + 2)) (-1) = 0 := by
+  apply Fin.ext
+  simp [moveInputPos]
+
+@[simp]
+lemma moveInputPos_rightBoundary {n : ℕ} :
+    moveInputPos (⟨n + 1, by omega⟩ : Fin (n + 2)) 1 = ⟨n + 1, by omega⟩ := by
+  unfold moveInputPos
+  rw [dif_neg (by simp; omega)]
+
+/-- A left move away from the left input boundary decrements the native input position. -/
+lemma moveInputPos_neg_of_ne_left {n : ℕ} (p : Fin (n + 2)) (h : p ≠ 0) :
+    moveInputPos p .neg = ⟨p.val - 1, by have := p.isLt; omega⟩ := by
+  have hp : 0 < p.val := Nat.pos_of_ne_zero (fun hz => h (Fin.ext hz))
+  unfold moveInputPos
+  apply Fin.ext
+  rw [dif_pos] <;> simp <;> omega
+
+/-- A right move away from the right input boundary increments the native input position. -/
+lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n + 1) :
+    moveInputPos p .pos = ⟨p.val + 1, by have := p.isLt; omega⟩ := by
+  unfold moveInputPos
+  rw [dif_pos]
+  · apply Fin.ext
+    simp
+  · simp
+    omega
 
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
@@ -194,7 +230,7 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   -- in the halting state, we stay at the configuration
   | none => cfg
   | some q =>
-    let {inputMove, workActions, outS, q'} := tm.tr q cfg.inputSymbol cfg.workTapeSymbols
+    let {inputMove, workActions, q', ..} := tm.tr q cfg.inputSymbol cfg.workTapeSymbols
     {
       state := q',
       inputPos := moveInputPos cfg.inputPos inputMove,
@@ -202,15 +238,18 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
         | none => cfg.workTapes i
         | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
       workTapePos i := (cfg.workTapePos i) + (workActions i).2
-      output := match outS with
-      | none => cfg.output
-      | some s => cfg.output ++ [s]
     }
+
+/-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
+def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
+  match cfg.state with
+  | none => none
+  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).outS
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
 def initCfg (input : List Symbol) : Cfg k Symbol State input :=
-  ⟨some tm.q₀, 1, fun _ _ => none, fun _ => 0, []⟩
+  ⟨some tm.q₀, 1, fun _ _ => none, fun _ => 0⟩
 
 /-- The sequence of configurations of the Turing machine starting from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
@@ -223,6 +262,11 @@ lemma iter_step_eq_of_halt {cfg : Cfg k Symbol State input} {n : ℕ} (h_halt : 
   induction n with
   | zero => rfl
   | succ n ih => rw [Function.iterate_succ_apply', ih, step, h_halt]
+
+@[simp]
+lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
+    tm.outputSymbol cfg = none := by
+  simp [outputSymbol, h_halt]
 
 /-- The work-tape head moves by at most one cell in a single step. -/
 lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
@@ -290,6 +334,49 @@ which maps a configuration to its next configuration.
 @[scoped grind =]
 def TransitionRelation (c₁ c₂ : Cfg k Symbol State input) : Prop := tm.step c₁ = c₂
 
+/-- The string output by the Turing machine `tm` starting in configuration `cfg₀`, executing for
+`t` steps. It is the concatenation of the symbols (optionally) emitted at each of the first `t`
+steps. -/
+def outputString
+    (tm : MultiTapeTM k Symbol State)
+    (cfg₀ : Cfg k Symbol State input) (t : ℕ) : List Symbol :=
+  (List.range t).flatMap fun t' => (tm.outputSymbol (tm.configs cfg₀ t')).toList
+
+/-- The output produced in `t + 1` steps is the output produced in `t` steps followed by the symbol
+(optionally) emitted at step `t`. -/
+lemma outputString_succ
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.outputString cfg (t + 1) =
+      tm.outputString cfg t ++ (tm.outputSymbol (tm.configs cfg t)).toList := by
+  simp [outputString, List.range_succ, List.flatMap_append]
+
+/-- From a halting configuration, a TM does not output anything. -/
+lemma outputString_halt
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input)
+    (h_halt : cfg.state = none)
+    (t : ℕ) :
+    tm.outputString cfg t = [] := by
+  induction t with
+  | zero => simp [outputString]
+  | succ t ih =>
+    have : tm.configs cfg t = cfg := by
+      simp [configs, iter_step_eq_of_halt, h_halt]
+    rw [outputString_succ, ih, this]
+    simp [outputSymbol, h_halt]
+
+lemma outputString_add_eq_append
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t₁ t₂ : ℕ) :
+    tm.outputString cfg (t₁ + t₂) =
+      tm.outputString cfg t₁ ++ tm.outputString (tm.configs cfg t₁) t₂ := by
+  induction t₂ with
+  | zero => simp [outputString]
+  | succ t ih =>
+    rw [show (t₁ + (t + 1)) = (t₁ + t) + 1 by omega]
+    simp [outputString_succ, ih, configs, ← Function.iterate_add_apply, Nat.add_comm]
+
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
 Note that this does not require the alphabet or state set to be finite. -/
@@ -297,10 +384,8 @@ def ComputesInTimeAndSpace
     (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol)
     (t s : ℕ) : Prop :=
-  ∃ cfg,
-  cfg.state = none ∧
-  cfg.output = output ∧
-  RelatesInSteps tm.TransitionRelation (tm.initCfg input) cfg t ∧
+  (tm.configs (tm.initCfg input) t).state = none ∧
+  tm.outputString (tm.initCfg input) t = output ∧
   tm.spaceUsed (tm.initCfg input) t = s
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
