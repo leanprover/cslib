@@ -356,9 +356,13 @@ attribute [instance] FinitelyBranching.image_finite FinitelyBranching.finite_sta
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
 instance FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
-/-- An LTS is acyclic if there are no infinite multistep transitions. -/
+/-- An LTS is acyclic if it admits no infinite execution.
+
+This is well-foundedness of the converse of the unlabelled transition relation. Unlike a global
+bound on execution length, it allows terminating systems whose finite executions are arbitrarily
+long. -/
 class Acyclic (lts : LTS State Label) where
-  acyclic : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+  acyclic : WellFounded fun s2 s1 => ∃ μ, lts.Tr s1 μ s2
 
 /-- An LTS is finite if it is finite-state and acyclic.
 

@@ -8,6 +8,7 @@ import Cslib.Foundations.Semantics.LTS.Divergence
 import Cslib.Foundations.Semantics.LTS.Bisimulation
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
+import Mathlib.Order.WellFounded
 import Cslib.Foundations.Semantics.LTS.Notation
 
 namespace CslibTests
@@ -82,6 +83,46 @@ example : natDivLTS.Divergent n := by
     simp only [ωSequence.get_drop]
     constructor
   · simp [natInfiniteExecution]
+
+-- A terminating LTS can have finite executions of unbounded length.
+
+def countdownLTS : LTS ℕ Unit where
+  Tr n _ m := n = m + 1
+
+instance : countdownLTS.Acyclic where
+  acyclic := by
+    apply Subrelation.wf _ Nat.lt_wfRel.wf
+    rintro s2 s1 ⟨μ, h⟩
+    change s2 < s1
+    simp only [countdownLTS] at h
+    omega
+
+private theorem countdownLTS_mTr (n : ℕ) :
+    countdownLTS.MTr n (List.replicate n ()) 0 := by
+  induction n with
+  | zero => exact .refl
+  | succ n ih =>
+      rw [List.replicate_succ]
+      exact .stepL (by simp [countdownLTS]) ih
+
+theorem countdownLTS_has_no_uniform_bound :
+    ¬ ∃ bound, ∀ s1 μs s2, countdownLTS.MTr s1 μs s2 → μs.length < bound := by
+  rintro ⟨bound, hbound⟩
+  have := hbound bound (List.replicate bound ()) 0 (countdownLTS_mTr bound)
+  simp at this
+
+-- An LTS with an infinite execution is not acyclic.
+
+def successorLTS : LTS ℕ Unit where
+  Tr n _ m := m = n + 1
+
+theorem successorLTS_not_acyclic : ¬ successorLTS.Acyclic := by
+  intro h
+  have hacyclic := h.acyclic
+  rw [wellFounded_iff_isEmpty_descending_chain] at hacyclic
+  exact hacyclic.false ⟨fun n => n, by
+    intro n
+    exact ⟨(), by simp [successorLTS]⟩⟩
 
 -- Examples on decidable LTSs
 def natTrF (n : ℕ) (μ : ℕ) (m : ℕ) : Bool :=
