@@ -13,6 +13,7 @@ public import Cslib.Languages.CCS.Basic
 public import Cslib.Languages.CCS.Semantics
 public import Cslib.Foundations.Semantics.LTS.Execution
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
+public import Cslib.Foundations.Semantics.LTS.Termination
 
 /-!
 # Spectrum must-testing point — must-testing equivalence is Galois-closed
@@ -43,21 +44,21 @@ variable
   {Name : Type u}
   {Constant : Type v}
 
-/-- A state is *stuck* if it has no outgoing transition: a finite execution
-    ending in a stuck state is maximal (cannot be extended). -/
-def Stuck (lts : LTS State Label) (s : State) : Prop :=
-  ¬ ∃ μ s', lts.Tr s μ s'
-
 /-- `p` *must pass* test `T`: every maximal computation of `p ∥ T` performs
     `success`. A maximal computation is either a finite execution ending in a
     stuck state, or an infinite `OmegaExecution`; in both, success must appear
     among the labels. Divergence-without-success and deadlock-without-success
-    both fail must. -/
+    both fail must.
+
+    "Stuck" reuses `Cslib.LTS.Stuck`, instantiated with the trivial
+    `Terminated := fun _ => False`: testing has no independent notion of a
+    designated terminal state, so a state counts as a testing endpoint exactly
+    when it has no outgoing transition (`¬False ∧ ¬∃ … ↔ ¬∃ …`). -/
 def mustPass (defs : Constant → CCS.Process Name Constant → Prop)
     (success : CCS.Act Name) (p T : CCS.Process Name Constant) : Prop :=
   (∀ μs s₂ ss,
       (CCS.lts (defs := defs)).Execution (Process.par p T) μs s₂ ss →
-      Stuck (CCS.lts (defs := defs)) s₂ →
+      Cslib.LTS.Stuck (CCS.lts (defs := defs)) (fun _ => False) s₂ →
       success ∈ μs) ∧
   (∀ ss μs,
       (CCS.lts (defs := defs)).OmegaExecution ss μs →
