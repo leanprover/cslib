@@ -101,6 +101,8 @@ public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Spectrum.Antichain
 public import Cslib.Foundations.Semantics.LTS.Spectrum.BisimPoint
 public import Cslib.Foundations.Semantics.LTS.Spectrum.Galois
+public import Cslib.Foundations.Semantics.LTS.Spectrum.MayTestingPoint
+public import Cslib.Foundations.Semantics.LTS.Spectrum.MustTestingPoint
 public import Cslib.Foundations.Semantics.LTS.Spectrum.TracePoint
 public import Cslib.Foundations.Semantics.LTS.Termination
 public import Cslib.Foundations.Semantics.LTS.Total
