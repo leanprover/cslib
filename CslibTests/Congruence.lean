@@ -12,8 +12,7 @@ open Cslib
 
 def myRel (n m : ℕ) := n = m
 
-@[default_congruence]
-instance : Congruence myRel := ⟨⟩
+instance : DefaultCongruence ℕ myRel := ⟨⟩
 
 example : (2 : ℕ) ≡ (2 : ℕ) := by rfl
 example : (2 : ℕ) ≡[myRel] (2 : ℕ) := by rfl
