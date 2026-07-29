@@ -97,7 +97,9 @@ abbrev GlobalStore Pid Var Val := (p : Pid) → LocalStore Var Val
 
 /-- Configurations, consisting of a network and a global store. -/
 structure Cfg (Pid Var Val FunId SelLabel ProcName : Type*) where
+  /-- The network of the configuration. -/
   net : Network Pid Var Val FunId SelLabel ProcName
+  /-- The global store of the configuration. -/
   store : GlobalStore Pid Var Val
 
 /-- Transition labels for network configurations.

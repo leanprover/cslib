@@ -90,12 +90,22 @@ inductive Process (Pid Var Val FunId SelLabel ProcName : Type*) where
 
 instance : Zero (Process Pid Var Val FunId SelLabel ProcName) := ⟨.nil⟩
 
-declare_syntax_cat sp_pre
-scoped syntax term:max "≔" term : sp_pre
-scoped syntax term:max "!" term : sp_pre
-scoped syntax term:max "?" term : sp_pre
-scoped syntax term:max "⊕" term : sp_pre
-scoped syntax "`(SPpre|" sp_pre ")" : term
+declare_syntax_cat spPre
+
+@[inherit_doc Prefix.assign]
+scoped syntax term:max "≔" term : spPre
+
+@[inherit_doc Prefix.sendValue]
+scoped syntax term:max "!" term : spPre
+
+@[inherit_doc Prefix.recvValue]
+scoped syntax term:max "?" term : spPre
+
+@[inherit_doc Prefix.sendLabel]
+scoped syntax term:max "⊕" term : spPre
+
+@[inherit_doc Prefix]
+scoped syntax "`(SPpre|" spPre ")" : term
 
 scoped macro_rules
   | `(`(SPpre| $x:term ≔ $e:term )) => `(Prefix.assign $x $e)
@@ -103,20 +113,32 @@ scoped macro_rules
   | `(`(SPpre| $p:term ? $x:term )) => `(Prefix.recvValue $p $x)
   | `(`(SPpre| $p:term ⊕ $l:term )) => `(Prefix.sendLabel $p $l)
 
-declare_syntax_cat sp_proc
-scoped syntax num : sp_proc
-scoped syntax sp_pre "; " sp_proc : sp_proc
-scoped syntax term:max "&" term : sp_proc
-scoped syntax "if" term "then" sp_proc "else" sp_proc : sp_proc
+declare_syntax_cat spProc
+
+@[inherit_doc Process.nil]
+scoped syntax num : spProc
+
+@[inherit_doc Process.pre]
+scoped syntax spPre "; " spProc : spProc
+
+@[inherit_doc Process.recvLabel]
+scoped syntax term:max "&" term : spProc
+
+@[inherit_doc Process.cond]
+scoped syntax "if" term "then" spProc "else" spProc : spProc
+
 -- The next syntax would be nice to have to avoid having trailing 0s in examples.
--- scoped syntax:min "`(SP| " sp_pre ")" : term
-scoped syntax "`(SP| " sp_proc ")" : term
+-- scoped syntax:min "`(SP| " spPre ")" : term
+
+@[inherit_doc Process]
+scoped syntax "`(SP| " spProc ")" : term
+
 scoped macro_rules
   | `(`(SP| 0)) => `(0)
-  | `(`(SP| $prf:sp_pre; $pr:sp_proc)) => `(Process.pre `(SPpre| $prf) `(SP| $pr))
-  -- | `(`(SP| $prf:sp_pre)) => `(Process.pre `(SPpre| $prf) 0)
+  | `(`(SP| $prf:spPre; $pr:spProc)) => `(Process.pre `(SPpre| $prf) `(SP| $pr))
+  -- | `(`(SP| $prf:spPre)) => `(Process.pre `(SPpre| $prf) 0)
   | `(`(SP| $p:term & $l:term)) => `(Process.recvLabel $p $l)
-  | `(`(SP| if $e:term then $p₁:sp_proc else $p₂:sp_proc)) =>
+  | `(`(SP| if $e:term then $p₁:spProc else $p₂:spProc)) =>
     `(Process.cond $e `(SP| $p₁) `(SP| $p₂))
 
 end Syntax
