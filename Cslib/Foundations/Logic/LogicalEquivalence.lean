@@ -27,15 +27,4 @@ class LogicalEquivalence S (eqv : α → α → Prop)
   eqvFillValid (heqv : a ≡[eqv] b) (c : HasHContext.Context Judgement α)
     (h : S⇓(c<[a])) : S⇓(c<[b])
 
--- /-- Class for types (`α`) that have a canonical logical equivalence (under a canonical, default
--- inference system). -/
--- abbrev HasLogicalEquivalence α
---     [HasContext α]
---     [inst : DefaultCongruence α]
---     [Congruence inst.r]
---     [LawfulCongruence inst.r]
---     [HasHContext Judgement α]
---     [HasInferenceSystem Judgement] :=
---   LogicalEquivalence InferenceSystem.Default (inst.r)
-
 end Cslib.Logic
