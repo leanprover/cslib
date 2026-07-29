@@ -15,7 +15,7 @@ A central idea of [Volzer2004] is the notion of pseudo-consensus, which weakens 
 consensus by replacing the requirement of termination, which is stated in terms of infinite
 executions, by that of pseudo-termination, which is stated in terms of finite executions.
 This makes the notion of pseudo-consensus easier to work with than consensus.  This file
-defines pseudo-consensus and proves that it is implied by consensus.  This resilt is intuitively
+defines pseudo-consensus and proves that it is implied by consensus.  This result is intuitively
 obvious and is stated without proof in [Volzer2004], but it turns out to require quite a bit
 of formal machinery to prove.
 -/
