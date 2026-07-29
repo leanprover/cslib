@@ -90,6 +90,7 @@ inductive Process (Pid Var Val FunId SelLabel ProcName : Type*) where
 
 instance : Zero (Process Pid Var Val FunId SelLabel ProcName) := ⟨.nil⟩
 
+/-- Syntactic category for prefixes. -/
 declare_syntax_cat spPre
 
 @[inherit_doc Prefix.assign]
@@ -113,6 +114,7 @@ scoped macro_rules
   | `(`(SPpre| $p:term ? $x:term )) => `(Prefix.recvValue $p $x)
   | `(`(SPpre| $p:term ⊕ $l:term )) => `(Prefix.sendLabel $p $l)
 
+/-- Syntactic category for processes. -/
 declare_syntax_cat spProc
 
 @[inherit_doc Process.nil]
