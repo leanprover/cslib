@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
+set_option linter.style.header false in
 set_option linter.style.longLine false in
 /-!
 # Stateful Processes
