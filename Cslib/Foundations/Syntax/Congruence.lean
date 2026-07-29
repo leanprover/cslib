@@ -26,47 +26,19 @@ class Congruence (r : α → α → Prop)
 def Congruence.r (r : α → α → Prop) [Congruence r] := r
 
 @[inherit_doc]
-scoped notation:50 a " ≡[" r "] " b => Congruence.r r a b
+scoped notation:29 a " ≡[" r "] " b => Congruence.r r a b
 
 /-- The type `α` has a canonical congruence relation. This gives access to the `≡` notation. -/
-class DefaultCongruence (α : Type*) where
-  /-- `a ≡ b` means that `a` and `b` are related by the canonical congruence relation for their
-  type. -/
-  r : α → α → Prop
+class DefaultCongruence (α : Type*) (r : outParam (α → α → Prop))
+
+/-- `a ≡ b` means that `a` and `b` are related by the canonical congruence relation for their
+type. -/
+def DefaultCongruence.r {α : Type*} {r : α → α → Prop} [DefaultCongruence α r] := r
 
 @[inherit_doc]
-scoped notation:50 a " ≡ " b => DefaultCongruence.r a b
+scoped infix:29 " ≡ " => DefaultCongruence.r
 
-open Lean Meta in
-initialize registerBuiltinAttribute {
-  name := `default_congruence
-  descr := "Registers a Congruence relation as the default, giving access to the ≡ notation."
-  applicationTime := .afterCompilation
-  add := fun declName stx kind => do
-    let constInfo ← getConstInfo declName
-    let type := constInfo.type
-    MetaM.run' do
-      forallTelescopeReducing type fun binders target => do
-        match target.getAppFnArgs with
-        | (``Congruence, #[αExpr, rel]) => do
-            let α ← instantiateMVars αExpr
-            let defaultCongruenceType' ← mkAppM ``DefaultCongruence #[α]
-            let defaultCongruenceType ← mkForallFVars binders defaultCongruenceType'
-            let value' ← mkAppM ``DefaultCongruence.mk #[rel]
-            let value ← mkLambdaFVars binders value'
-            let instName := declName.appendAfter "_canonical"
-            addAndCompile <| .defnDecl {
-              name        := instName
-              levelParams := constInfo.levelParams
-              type        := defaultCongruenceType
-              value       := value
-              safety      := .safe
-              hints       := Lean.ReducibilityHints.regular 0
-            }
-            setReducibilityStatus instName .instanceReducible
-            addInstance instName kind (prio := eval_prio default)
-        | _ => throwError "@[default_congruence] can only be attached to `Congruence` instances."
-}
+instance (α : Type*) (r : α → α → Prop) [DefaultCongruence α r] : Congruence r := ⟨⟩
 
 /-- An equivalence relation on `α` preserved by all contexts. -/
 class LawfulCongruence (r : α → α → Prop) [Congruence r] [HasContext α] extends

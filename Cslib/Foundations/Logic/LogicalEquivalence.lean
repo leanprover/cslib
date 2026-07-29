@@ -21,21 +21,21 @@ open scoped InferenceSystem
 /-- A logical equivalence `eqv` for an inference system `S` is a congruence on propositions (of type
 `α`) that preserves validity of judgements under any judgemental context. -/
 class LogicalEquivalence S (eqv : α → α → Prop)
-    [Congruence eqv] [HasContext α] [HasHContext Judgement α]
-    [InferenceSystem S Judgement] where
+    [HasContext α] [Congruence eqv] [HasHContext Judgement α] [InferenceSystem S Judgement]
+    extends LawfulCongruence eqv where
   /-- Validity is preserved for any judgemental context. -/
-  eqvFillValid (heqv : eqv a b) (c : HasHContext.Context Judgement α)
+  eqvFillValid (heqv : a ≡[eqv] b) (c : HasHContext.Context Judgement α)
     (h : S⇓(c<[a])) : S⇓(c<[b])
-
--- @[inherit_doc]
--- scoped notation a " ≡[" S "]" b => LogicalEquivalence.eqv S a b
 
 -- /-- Class for types (`α`) that have a canonical logical equivalence (under a canonical, default
 -- inference system). -/
--- abbrev HasLogicalEquivalence Proposition
---     [DefaultCongruence Proposition]
---     [HasContext Proposition] [HasHContext Judgement Proposition]
+-- abbrev HasLogicalEquivalence α
+--     [HasContext α]
+--     [inst : DefaultCongruence α]
+--     [Congruence inst.r]
+--     [LawfulCongruence inst.r]
+--     [HasHContext Judgement α]
 --     [HasInferenceSystem Judgement] :=
---   LogicalEquivalence InferenceSystem.Default (DefaultCongruence.r) Judgement
+--   LogicalEquivalence InferenceSystem.Default (inst.r)
 
 end Cslib.Logic

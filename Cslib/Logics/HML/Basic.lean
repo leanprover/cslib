@@ -164,7 +164,7 @@ instance : HasInferenceSystem (Judgement State Label) := ⟨Satisfies.Bundled⟩
 
 open scoped InferenceSystem Proposition
 
-@[scoped grind =_]
+@[scoped grind =]
 theorem derivation_def : Satisfies lts s φ = ⇓HML[lts,s ⊨ φ] := rfl
 
 @[scoped grind =]
@@ -173,7 +173,7 @@ theorem Satisfies.not_iff_not : ⇓HML[lts,s ⊨ ¬φ] ↔ ¬⇓HML[lts,s ⊨ φ
 @[scoped grind .]
 theorem Satisfies.top : ⇓HML[lts,s ⊨ ⊤] := by
   dsimp [Top.top]
-  grind
+  grind [=_ derivation_def]
 
 @[scoped grind .]
 theorem Satisfies.bot : ¬⇓HML[lts,s ⊨ ⊥] := by
@@ -211,7 +211,7 @@ This result proves that the definition is correct. -/
 theorem Satisfies.iff_iff_iff :
     ⇓HML[lts,s ⊨ φ₁ ↔ φ₂] ↔ (⇓HML[lts,s ⊨ φ₁] ↔ ⇓HML[lts,s ⊨ φ₂]) := by
   simp only [HasIff.iff, Proposition.iff]
-  grind [= derivation_def]
+  grind
 
 @[scoped grind =]
 theorem Satisfies.box_iff_forall :
@@ -253,7 +253,7 @@ open Proposition LTS
 @[scoped grind =]
 theorem mem_denotation_iff_satisfies {φ : Proposition Label} :
     s ∈ φ.denotation lts ↔ ⇓HML[lts,s ⊨ φ] := by
-  induction φ generalizing s <;> grind
+  induction φ generalizing s <;> grind [=_ derivation_def]
 
 @[scoped grind .]
 theorem mem_theory_iff_satisfies : φ ∈ theory lts s ↔ ⇓HML[lts,s ⊨ φ] := by
