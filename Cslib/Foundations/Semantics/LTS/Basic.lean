@@ -148,7 +148,7 @@ theorem MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- A 1-sized multistep transition is exactly a single transision with the given label. -/
+/-- A 1-sized multistep transition is exactly a single transition with the given label. -/
 @[simp] theorem MTr.singleton_iff (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 ↔ lts.Tr s1 μ s2 := ⟨MTr.single_invert lts s1 μ s2, MTr.single lts⟩
 

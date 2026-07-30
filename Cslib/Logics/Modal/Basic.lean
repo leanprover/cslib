@@ -145,7 +145,7 @@ This result proves that the definition is correct. -/
 theorem Satisfies.box_iff_forall {m : Model World Atom} :
     ⇓Modal[m,w ⊨ □φ] ↔ ∀ w', m.r w w' → ⇓Modal[m,w' ⊨ φ] := by grind [Proposition.box]
 
-/-- The theory of a world in a model is the set of all propositions that it satifies. -/
+/-- The theory of a world in a model is the set of all propositions that it satisfies. -/
 abbrev theory (m : Model World Atom) (w : World) : Set (Proposition Atom) :=
   {φ | ⇓Modal[m,w ⊨ φ]}
 
