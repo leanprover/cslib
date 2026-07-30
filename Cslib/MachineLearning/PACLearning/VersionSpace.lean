@@ -82,7 +82,7 @@ theorem versionSpace_empty_sample (C : ConceptClass α β)
     (S : LabeledSample α β 0) :
     VersionSpace C S = C := by
   ext h
-  refine ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
+  exact ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
 
 /-- *Version space reindexing.* For any reindexing `f : Fin m → Fin n`, the
 version space on `S` is contained in the version space on the reindexed sample
