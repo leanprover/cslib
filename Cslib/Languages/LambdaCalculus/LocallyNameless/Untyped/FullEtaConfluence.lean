@@ -19,8 +19,6 @@ public import Cslib.Foundations.Relation.Confluence
 
 @[expose] public section
 
-set_option linter.unusedDecidableInType false
-
 namespace Cslib
 
 universe u
@@ -31,11 +29,12 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 open Relation
 
-variable [HasFresh Var] [DecidableEq Var]
+variable [HasFresh Var]
 
 open FullEta in
 @[wikidata Q1308502]
 lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
+  classical
   intro _ y z h₁ h₂
   suffices ∃ w, ReflGen FullEta y w ∧ ReflGen FullEta z w by grind
   induction h₁ generalizing z
