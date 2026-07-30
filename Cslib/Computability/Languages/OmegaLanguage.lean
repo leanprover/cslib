@@ -311,7 +311,7 @@ theorem le_hmul_congr {l1 l2 : Language α} {p1 p2 : ωLanguage α} (hl : l1 ≤
     l1 * p1 ≤ l2 * p2 := by
   simp only [le_def]
   intros _
-  simp_all only [hmul_def, mem_image2]
+  simp only [hmul_def, mem_image2]
   tauto
 
 theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) : l1^ω ≤ l2^ω := by

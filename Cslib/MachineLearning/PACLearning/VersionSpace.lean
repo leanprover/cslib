@@ -153,7 +153,7 @@ theorem mem_versionSpace_iff_empiricalError_zero
   unfold empiricalError empiricalMeasure error
   rcases Nat.eq_zero_or_pos m with hm | hm
   · subst hm
-    simp_all
+    simp
   · simp_all [Nat.pos_iff_ne_zero]
 
 /-- The empirical 0-1 error equals the empirical miscount divided by the
