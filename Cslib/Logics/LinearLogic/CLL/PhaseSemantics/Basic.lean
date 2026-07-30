@@ -197,7 +197,7 @@ lemma coe_mk {X : Set P} {h : isFact X} : ((⟨X, h⟩ : Fact P) : Set P) = X :=
 
 /-- In any phase space, `{1}⫠ = ⊥`. -/
 lemma orth_one_eq_bot : ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
-  simp
+  simp_all
 
 /-- The fact given by the dual of G. -/
 @[simps!] def dualFact (G : Set P) : Fact P := Fact.mkDual (G⫠) G rfl
