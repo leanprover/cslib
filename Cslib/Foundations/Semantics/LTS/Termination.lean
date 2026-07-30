@@ -95,7 +95,7 @@ theorem acyclic_iff_no_nonempty_mTr :
     exact h.acyclic.irrefl s (hmtr.toTransGen lts (List.ne_nil_of_length_pos hlength))
   · intro h
     refine { acyclic := ⟨fun s hcycle => ?_⟩ }
-    obtain ⟨μs, hne, hmtr⟩ := exists_mTr_of_transGen lts hcycle
+    obtain ⟨μs, hne, hmtr⟩ := (transGen_toRelation_iff lts).mp hcycle
     exact h ⟨s, μs, hmtr, List.length_pos_of_ne_nil hne⟩
 
 /-- Finite LTSs are bounded. -/
