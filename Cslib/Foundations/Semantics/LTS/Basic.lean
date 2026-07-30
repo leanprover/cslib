@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Order.SetNotation
 
@@ -24,6 +24,9 @@ relation `Tr` between states. We follow the style and conventions in [Sangiorgi2
 
 - `LTS.MTr` extends the transition relation of any LTS to a multistep transition relation,
 formalising the inference system and admissible rules for such relations in [Montesi2023].
+
+- `LTS.Bounded`, `LTS.Terminating`, and `LTS.Acyclic` distinguish globally bounded execution
+length, absence of infinite executions, and absence of nonempty cycles.
 
 - Definitions for all the common classes of LTSs: image-finite, finitely branching, finite-state,
 finite, and deterministic.
@@ -62,6 +65,10 @@ structure LTS (State : Type u) (Label : Type v) where
   Tr : State → Label → State → Prop
 
 namespace LTS
+
+/-- The unlabelled transition relation underlying an LTS. -/
+def toRelation (lts : LTS State Label) : State → State → Prop :=
+  fun s1 s2 => ∃ μ, lts.Tr s1 μ s2
 
 section MultiStep
 
@@ -356,13 +363,21 @@ attribute [instance] FinitelyBranching.image_finite FinitelyBranching.finite_sta
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
 instance FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
-/-- An LTS is acyclic if it admits no infinite execution.
+/-- An LTS is bounded if there is a global bound on the length of all of its finite executions. -/
+class Bounded (lts : LTS State Label) where
+  bounded : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
 
-This is well-foundedness of the converse of the unlabelled transition relation. Unlike a global
-bound on execution length, it allows terminating systems whose finite executions are arbitrarily
-long. -/
+/-- An LTS is terminating if its underlying unlabelled transition relation is terminating,
+equivalently if it admits no infinite execution. -/
+class Terminating (lts : LTS State Label) where
+  terminating : Relation.Terminating lts.toRelation
+
+/-- An LTS is acyclic if its underlying unlabelled transition relation contains no nonempty
+cycle. -/
 class Acyclic (lts : LTS State Label) where
-  acyclic : WellFounded fun s2 s1 => ∃ μ, lts.Tr s1 μ s2
+  [acyclic : Relation.Acyclic lts.toRelation]
+
+attribute [instance] Acyclic.acyclic
 
 /-- An LTS is finite if it is finite-state and acyclic.
 

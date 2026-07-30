@@ -32,6 +32,41 @@ labels `μs`. -/
 def MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
   fun s1 s2 => lts.MTr s1 μs s2
 
+section Paths
+
+variable (lts : LTS State Label)
+
+/-- A multistep transition induces a reflexive-transitive path in the underlying unlabelled
+transition relation. -/
+theorem MTr.toReflTransGen (h : lts.MTr s1 μs s2) :
+    Relation.ReflTransGen lts.toRelation s1 s2 := by
+  induction h with
+  | refl => exact .refl
+  | stepL htr _ ih => exact ih.head ⟨_, htr⟩
+
+/-- A nonempty multistep transition induces a nonempty path in the underlying unlabelled
+transition relation. -/
+theorem MTr.toTransGen (h : lts.MTr s1 μs s2) (hne : μs ≠ []) :
+    Relation.TransGen lts.toRelation s1 s2 := by
+  cases h with
+  | refl => contradiction
+  | stepL htr hmtr => exact Relation.TransGen.head' ⟨_, htr⟩ (hmtr.toReflTransGen lts)
+
+/-- A nonempty path in the underlying unlabelled transition relation can be labelled to obtain a
+multistep transition. -/
+theorem exists_mTr_of_transGen (h : Relation.TransGen lts.toRelation s1 s2) :
+    ∃ μs, μs ≠ [] ∧ lts.MTr s1 μs s2 := by
+  induction h with
+  | single htr =>
+      obtain ⟨μ, htr⟩ := htr
+      exact ⟨[μ], by simp, MTr.single lts htr⟩
+  | tail _ htr ih =>
+      obtain ⟨μs, hne, hmtr⟩ := ih
+      obtain ⟨μ, htr⟩ := htr
+      exact ⟨μs ++ [μ], by simp, hmtr.stepR lts htr⟩
+
+end Paths
+
 /-! ### Calc tactic support for MTr -/
 
 /-- Transitions can be chained. -/

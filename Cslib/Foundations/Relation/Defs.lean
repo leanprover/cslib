@@ -89,6 +89,10 @@ abbrev Normalizing (r : α → α → Prop) : Prop :=
 the inverse of `r`. -/
 abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
 
+/-- A relation is acyclic if its transitive closure is irreflexive, equivalently if it admits no
+nonempty cycle. -/
+abbrev Acyclic (r : α → α → Prop) := Std.Irrefl (TransGen r)
+
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/
 abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
