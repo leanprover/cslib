@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jesse Alama, Chris Henson
 -/
 
-import Lean
-import Mathlib.Lean.CoreM
 import Batteries.Data.List.Basic
-import ImportGraph
+import Mathlib.Lean.CoreM
 
 open Lean Core Elab Command
 

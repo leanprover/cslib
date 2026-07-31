@@ -7,8 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Foundations.Logic.InferenceSystem
-public import Mathlib.Data.FunLike.Basic
-public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
 
 /-! # Propositions and theories

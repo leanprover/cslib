@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.Modal.Basic
 public import Cslib.Foundations.Logic.LogicalEquivalence
+public import Cslib.Logics.Modal.Basic
 
 /-! # Logical Equivalence in Modal Logic
 

@@ -8,7 +8,6 @@ module
 
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Algebra.Order.Group.Nat
-public import Mathlib.Algebra.Order.Sub.Basic
 public import Mathlib.Order.Lattice.Nat
 
 /-!

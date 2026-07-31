@@ -6,10 +6,10 @@ Authors: Tanner Duve, Bhavik Mehta
 
 module
 
-public import Mathlib.Algebra.Group.Pointwise.Set.Basic
-public import Mathlib.Algebra.Group.Idempotent
-public import Mathlib.Order.Closure
 public import Cslib.Logics.LinearLogic.CLL.Basic
+public import Mathlib.Algebra.Group.Idempotent
+public import Mathlib.Algebra.Group.Pointwise.Set.Basic
+public import Mathlib.Order.Closure
 
 /-!
 # Phase semantics for Classical Linear Logic

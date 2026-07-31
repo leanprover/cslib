@@ -8,7 +8,6 @@ module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.OneTimePad
-public import Mathlib.Probability.Distributions.Uniform
 
 /-!
 # One-Time Pad

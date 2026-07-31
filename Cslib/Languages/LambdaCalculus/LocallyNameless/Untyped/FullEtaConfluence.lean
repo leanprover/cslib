@@ -6,8 +6,8 @@ Authors: Maximiliano Onofre Martínez
 
 module
 
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEta
 public import Cslib.Foundations.Relation.Confluence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEta
 
 /-! # η-confluence for the λ-calculus
 

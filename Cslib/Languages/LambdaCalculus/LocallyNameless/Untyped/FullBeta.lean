@@ -7,7 +7,6 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.Relation.Attr
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
 
 /-! # β-reduction for the λ-calculus

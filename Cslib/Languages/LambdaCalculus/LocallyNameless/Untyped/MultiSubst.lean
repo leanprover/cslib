@@ -7,10 +7,7 @@ Authors: David Wegmann
 
 module
 
-public import Cslib.Foundations.Data.HasFresh
-public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
 /-! Multiple substitution for untyped lambda calculus. -/
 

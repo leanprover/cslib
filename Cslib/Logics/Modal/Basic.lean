@@ -6,12 +6,8 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Logic.InferenceSystem
-public import Mathlib.Data.Set.Basic
-public import Mathlib.Order.Defs.Unbundled
 public import Cslib.Foundations.Relation.Euclidean
-public import Mathlib.Logic.Nonempty
 
 /-! # Modal Logic
 

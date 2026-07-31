@@ -6,9 +6,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Logics.Propositional.Defs
-public import Cslib.Foundations.Logic.InferenceSystem
-public import Mathlib.Data.Finset.Insert
-public import Mathlib.Data.Finset.SDiff
 public import Mathlib.Data.Finset.Image
 
 /-! # Natural deduction for propositional logic

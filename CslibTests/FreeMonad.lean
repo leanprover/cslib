@@ -3,8 +3,6 @@ Copyright (c) 2025 Tanner Duve. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tanner Duve
 -/
-import Cslib.Foundations.Control.Monad.Free
-import Mathlib.Tactic.Cases
 import Cslib.Foundations.Control.Monad.Free.Fold
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 

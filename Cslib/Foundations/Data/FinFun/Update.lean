@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.DecidableEqZero
+public import Cslib.Foundations.Data.FinFun.Basic
 public import Mathlib.Data.Finset.SDiff
 
 /-! # Update for finite functions

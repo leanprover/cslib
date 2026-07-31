@@ -9,7 +9,6 @@ module
 public import Cslib.Init
 public import Mathlib.Data.Set.CoeSort
 public import Mathlib.Logic.Relation
-public import Mathlib.Order.Basic
 
 /-! # Relations: Definitions
 

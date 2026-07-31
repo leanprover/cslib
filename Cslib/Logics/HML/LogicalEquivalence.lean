@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.HML.Basic
 public import Cslib.Foundations.Logic.LogicalEquivalence
+public import Cslib.Logics.HML.Basic
 
 /-! # Logical Equivalence in HML
 

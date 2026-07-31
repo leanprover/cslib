@@ -6,8 +6,8 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Probability.PMF
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
+public import Cslib.Probability.PMF
 
 /-!
 # Secret Sharing: Definitions

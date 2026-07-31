@@ -6,8 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
-public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Mathlib.Data.Multiset.Fold

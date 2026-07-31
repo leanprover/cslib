@@ -7,8 +7,9 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
-public import Mathlib.Probability.Distributions.Uniform
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
+public import Mathlib.Probability.Distributions.Uniform
+
 import Cslib.Probability.PMF
 
 /-!
