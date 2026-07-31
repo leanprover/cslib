@@ -85,7 +85,7 @@ abbrev Normalizable (r : α → α → Prop) (x : α) : Prop :=
 abbrev Normalizing (r : α → α → Prop) : Prop :=
   ∀ x, Normalizable r x
 
-/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accesible under
+/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accessible under
 the inverse of `r`. -/
 abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
 
