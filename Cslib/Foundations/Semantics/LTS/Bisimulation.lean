@@ -95,6 +95,38 @@ theorem IsBisimulation.follow_snd
     ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂' :=
   (hb hr μ).2 _ htr
 
+/-- If the unique transition of a state is matched by a related state in a bisimulation,
+then the derivatives are still in the bisimulation. -/
+theorem IsBisimulation.match_deterministic
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₁.DeterministicStateLabel s₁ μ)
+    (htr₁ : lts₁.Tr s₁ μ s₁')
+    (htr₂ : lts₂.Tr s₂ μ s₂') : r s₁' s₂' := by
+  grind [follow_snd hb hr]
+
+/-- If a state is deterministic for `μ`, then any transition made by a related state in a
+bisimulation is matched by a unique transition (left variant). -/
+theorem IsBisimulation.follow_fst_deterministic
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₂.DeterministicStateLabel s₂ μ)
+    (htr : lts₁.Tr s₁ μ s₁') : ∃! s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂' := by
+  obtain ⟨s₂', htr₂, hr₂⟩ := follow_fst hb hr htr
+  exists s₂'
+  grind
+
+/-- If a state is deterministic for `μ`, then any transition made by a related state in a
+bisimulation is matched by a unique transition (right variant). -/
+theorem IsBisimulation.follow_snd_deterministic
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₁.DeterministicStateLabel s₁ μ)
+    (htr : lts₂.Tr s₂ μ s₂') : ∃! s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂' := by
+  obtain ⟨s₁', htr₁, hr₁⟩ := follow_snd hb hr htr
+  exists s₁'
+  grind
+
 /-! ## Relation to simulation -/
 
 /-- Any bisimulation is also a simulation. -/
