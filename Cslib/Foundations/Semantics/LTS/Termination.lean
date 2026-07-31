@@ -7,9 +7,10 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Relation.Confluence
-public import Cslib.Foundations.Semantics.LTS.Relation
+public import Cslib.Foundations.Semantics.LTS.Execution
 public import Mathlib.Data.Fintype.Card
 public import Mathlib.Data.List.Chain
+public import Mathlib.SetTheory.Cardinal.Finite
 
 /-!
 # Termination of LTS
@@ -25,22 +26,10 @@ universe u v
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label) (Terminated : State → Prop)
 
-/-- A multistep transition admits a chain of its visited states. -/
-private theorem exists_state_chain (h : lts.MTr s1 μs s2) :
-    ∃ states : List State,
-      (s1 :: states).length = μs.length + 1 ∧
-        (s1 :: states).IsChain lts.toRelation := by
-  induction h with
-  | refl => exact ⟨[], by simp⟩
-  | @stepL s1 μ s2 μs s3 htr hmtr ih =>
-      obtain ⟨states, hlength, hchain⟩ := ih
-      exact ⟨s2 :: states, by simp [hlength], .cons_cons ⟨μ, htr⟩ hchain⟩
-
 /-- Bounded LTSs are terminating. -/
 theorem Bounded.toTerminating (h : lts.Bounded) : lts.Terminating := by
   constructor
-  change WellFounded (fun a b => lts.toRelation b a)
-  rw [wellFounded_iff_isEmpty_descending_chain]
+  rw [Relation.Terminating.iff_isEmpty_chain]
   constructor
   rintro ⟨f, hf⟩
   change ∀ n, lts.toRelation (f n) (f (n + 1)) at hf
@@ -69,38 +58,28 @@ theorem Terminating.toAcyclic (h : lts.Terminating) : lts.Acyclic where
 instance terminating_acyclic [lts.Terminating] : lts.Acyclic :=
   (inferInstance : lts.Terminating).toAcyclic
 
-/-- On a finite state space, acyclic LTSs are bounded. -/
-theorem Acyclic.toBounded [Finite State] (h : lts.Acyclic) : lts.Bounded := by
+/-- On a finite state space, an acyclic LTS has execution length strictly less than the number of
+states. -/
+theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
+    lts.BoundedUpTo (Nat.card State) := by
   classical
   letI := Fintype.ofFinite State
-  refine ⟨Fintype.card State, ?_⟩
+  rw [Nat.card_eq_fintype_card]
   intro s1 μs s2 hmtr
-  obtain ⟨states, hlength, hchain⟩ := exists_state_chain lts hmtr
-  have htransChain : (s1 :: states).IsChain (Relation.TransGen lts.toRelation) :=
-    hchain.imp_of_mem_imp fun _ _ _ _ htr => .single htr
+  obtain ⟨states, hexec⟩ := Execution.of_mTr hmtr
+  have hchain : states.IsChain (Relation.TransGen lts.toRelation) :=
+    hexec.isChain.imp_of_mem_imp fun _ _ _ _ htr => .single htr
   letI : Std.Irrefl (Relation.TransGen lts.toRelation) := h.acyclic
-  have hnodup : (s1 :: states).Nodup := htransChain.pairwise.nodup
-  have hcard := hnodup.length_le_card
-  omega
+  have hcard := hchain.pairwise.nodup.length_le_card
+  grind [Execution]
+
+/-- On a finite state space, acyclic LTSs are bounded. -/
+theorem Acyclic.toBounded [Finite State] (h : lts.Acyclic) : lts.Bounded :=
+  ⟨Nat.card State, h.toBoundedUpTo⟩
 
 /-- On a finite state space, acyclic LTSs are terminating. -/
 theorem Acyclic.toTerminating [Finite State] (h : lts.Acyclic) : lts.Terminating :=
   h.toBounded.toTerminating
-
-/-- An LTS is acyclic exactly when it has no nonempty multistep cycle. -/
-theorem acyclic_iff_no_nonempty_mTr :
-    lts.Acyclic ↔ ¬ ∃ s μs, lts.MTr s μs s ∧ 0 < μs.length := by
-  constructor
-  · rintro h ⟨s, μs, hmtr, hlength⟩
-    exact h.acyclic.irrefl s (hmtr.toTransGen lts (List.ne_nil_of_length_pos hlength))
-  · intro h
-    refine { acyclic := ⟨fun s hcycle => ?_⟩ }
-    obtain ⟨μs, hne, hmtr⟩ := (transGen_toRelation_iff lts).mp hcycle
-    exact h ⟨s, μs, hmtr, List.length_pos_of_ne_nil hne⟩
-
-/-- Finite LTSs are bounded. -/
-instance finiteLTS_bounded [Finite State] [lts.FiniteLTS] : lts.Bounded :=
-  (inferInstance : lts.Acyclic).toBounded
 
 /-- A state 'may terminate' if it can reach a terminated state. The definition of `Terminated`
 is a parameter. -/

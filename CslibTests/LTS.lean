@@ -6,10 +6,8 @@ Authors: Fabrizio Montesi
 
 import Cslib.Foundations.Semantics.LTS.Divergence
 import Cslib.Foundations.Semantics.LTS.Bisimulation
-import Cslib.Foundations.Semantics.LTS.Termination
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
-import Mathlib.Order.WellFounded
 import Cslib.Foundations.Semantics.LTS.Notation
 
 namespace CslibTests
@@ -84,65 +82,6 @@ example : natDivLTS.Divergent n := by
     simp only [ωSequence.get_drop]
     constructor
   · simp [natInfiniteExecution]
-
--- The three execution properties are distinct on infinite-state LTSs.
-
-def countdownLTS : LTS ℕ Unit where
-  Tr n _ m := n = m + 1
-
-instance : countdownLTS.Terminating where
-  terminating := by
-    apply Subrelation.wf _ Nat.lt_wfRel.wf
-    rintro s2 s1 ⟨μ, h⟩
-    change s2 < s1
-    simp only [countdownLTS] at h
-    omega
-
-example : countdownLTS.Acyclic := inferInstance
-example : Relation.Acyclic countdownLTS.toRelation := inferInstance
-
-private theorem countdownLTS_mTr (n : ℕ) :
-    countdownLTS.MTr n (List.replicate n ()) 0 := by
-  induction n with
-  | zero => exact .refl
-  | succ n ih =>
-      rw [List.replicate_succ]
-      exact .stepL (by simp [countdownLTS]) ih
-
-theorem countdownLTS_not_bounded : ¬ countdownLTS.Bounded := by
-  rintro ⟨bound, hbound⟩
-  have := hbound bound (List.replicate bound ()) 0 (countdownLTS_mTr bound)
-  simp at this
-
-def successorLTS : LTS ℕ Unit where
-  Tr n _ m := m = n + 1
-
-private theorem successorLTS_transGen_lt {n m : ℕ}
-    (h : Relation.TransGen successorLTS.toRelation n m) : n < m := by
-  apply Relation.transGen_minimal (r' := (· < ·)) at h
-  · exact h
-  · rintro n m ⟨μ, htr⟩
-    simp only [successorLTS] at htr
-    omega
-
-instance : successorLTS.Acyclic where
-  acyclic := ⟨fun n h => (Nat.lt_irrefl n) (successorLTS_transGen_lt h)⟩
-
-theorem successorLTS_not_terminating : ¬ successorLTS.Terminating := by
-  intro h
-  have hterminating := h.terminating
-  change WellFounded (fun a b => successorLTS.toRelation b a) at hterminating
-  rw [wellFounded_iff_isEmpty_descending_chain] at hterminating
-  exact hterminating.false ⟨fun n => n, by
-    intro n
-    exact ⟨(), by simp [successorLTS]⟩⟩
-
-def selfLoopLTS : LTS Unit Unit where
-  Tr _ _ _ := True
-
-theorem selfLoopLTS_not_acyclic : ¬ selfLoopLTS.Acyclic := by
-  intro h
-  exact h.acyclic.irrefl () (.single ⟨(), trivial⟩)
 
 -- Examples on decidable LTSs
 def natTrF (n : ℕ) (μ : ℕ) (m : ℕ) : Bool :=
