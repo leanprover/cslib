@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Languages.CCS.Semantics
-import Cslib.Foundations.Semantics.LTS.Bisimulation
-import Cslib.Foundations.Semantics.LTS.TraceEq
-import Mathlib.Tactic.FinCases
+module
+
+public import Cslib.Languages.CCS.Semantics
+public import Cslib.Foundations.Semantics.LTS.Bisimulation
+public import Cslib.Foundations.Semantics.LTS.TraceEq
+public import Mathlib.Tactic.FinCases
 
 /-! # Milner's Vending Machine
 
@@ -22,6 +24,8 @@ We then prove the classical example that the two are not bisimilar.
 Future work on proving that the two vending machines are trace equivalent would be
 welcome.
 -/
+
+@[expose] public section
 
 namespace Cslib.Algorithms.CCS.VendingMachine
 
