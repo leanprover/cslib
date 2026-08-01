@@ -255,6 +255,14 @@ def initCfg (input : List Symbol) : Cfg k Symbol State input :=
 If the Turing machine halts, it will stay at the halting configuration. -/
 def configs (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
 
+lemma configs_succ_eq_step {cfg : Cfg k Symbol State input} {t : ℕ} :
+    tm.configs cfg (t + 1) = tm.configs (tm.step cfg) t := by
+  simp [configs, Function.iterate_succ_apply]
+
+lemma configs_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
+    tm.configs cfg (t + 1) = tm.step (tm.configs cfg t) := by
+  simp [configs, Function.iterate_succ_apply']
+
 /-- Any number of steps run from a halting configuration results in the same configuration. -/
 @[simp, scoped grind =]
 lemma iter_step_eq_of_halt {cfg : Cfg k Symbol State input} {n : ℕ} (h_halt : cfg.state = none) :
@@ -278,17 +286,35 @@ lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
     simp only [add_sub_cancel_left, abs_le, SignType.cast]
     grind
 
+/-- A step changes the contents of a work tape at most at the current head position. -/
+lemma step_workTapes_eq_of_ne
+    (cfg : Cfg k Symbol State input)
+    (j : Fin k)
+    (z : ℤ)
+    (hz : z ≠ cfg.workTapePos j) :
+    (tm.step cfg).workTapes j z = cfg.workTapes j z := by
+  unfold step
+  cases hst : cfg.state with
+  | none => simp_all
+  | some q =>
+    rcases hw : ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workActions j).1 <;> simp_all
+
 end Cfg
 
 section Space
 /-! Now we define space usage and add some helper lemmas. -/
+
+/-- The set of positions visited by the head of work tape `i` in the computation starting from
+configuration `cfg` up to step `t`. -/
+def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
+  (Finset.range (t + 1)).image fun t' => (tm.configs cfg t').workTapePos i
 
 /--
 The number of work tape cells touched by the head of tape `i` in the computation starting from
 configuration `cfg` up to step `t`.
 -/
 def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
-  ((List.range (t + 1)).map fun t' => (tm.configs cfg t').workTapePos i).toFinset.card
+  (tm.visitedByTapeHead cfg t i).card
 
 /--
 The number of work tape cells touched by a computation starting from configuration
@@ -304,23 +330,10 @@ lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h
   subst h_zero
   simp
 
-/-- The number of cells touched by a single work tape grows by at most one each step. -/
-lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    tm.spaceUsedByTape cfg t i ≤ t + 1 := by
-  calc
-    tm.spaceUsedByTape cfg t i
-    _ ≤ ((List.range (t + 1)).map _).length := List.toFinset_card_le _
-    _ = t + 1 := by simp
-
-/--
-The space used by a computation is bounded linearly by the number of steps.
--/
-lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t ≤ k * t + k := by
-  calc tm.spaceUsed cfg t
-      = ∑ i, (tm.spaceUsedByTape cfg t i) := by rfl
-    _ ≤ ∑ i, (t + 1) := Finset.sum_le_sum (fun i _ => tm.spaceUsedByTape_le cfg t i)
-    _ = k * t + k := by simp [Nat.mul_succ]
+/-- Each tape's space usage is bounded by the total space used. -/
+lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
+    tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
+  Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
 
 end Space
 
@@ -376,6 +389,16 @@ lemma outputString_add_eq_append
   | succ t ih =>
     rw [show (t₁ + (t + 1)) = (t₁ + t) + 1 by omega]
     simp [outputString_succ, ih, configs, ← Function.iterate_add_apply, Nat.add_comm]
+
+/-- The output does not change after the machine has halted. -/
+lemma outputString_eq_of_halt
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
+    (hhalt : (tm.configs cfg τ).state = none) :
+    tm.outputString cfg t = tm.outputString cfg τ := by
+  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
+  rw [outputString_add_eq_append, outputString_halt _ _ hhalt]
+  simp
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -474,6 +497,80 @@ lemma halting_step_unique
     refine absurd ?_ halts₂
     rw [Function.iterate_add_apply, tm.iter_step_eq_of_halt halts₁]
     exact halts₁
+
+/-- Running `a + d` steps equals running `a` steps from the configuration reached after `d`. -/
+lemma configs_add (cfg : Cfg k Symbol State input) (a d : ℕ) :
+    tm.configs cfg (a + d) = tm.step^[a] (tm.configs cfg d) := by
+  unfold configs; rw [Function.iterate_add_apply]
+
+/-- Once a machine has halted at step `m`, its configuration is unchanged at any later step `n`. -/
+lemma halt_mono (cfg : Cfg k Symbol State input) {m n : ℕ} (h : m ≤ n)
+    (hm : (tm.configs cfg m).state = none) :
+    tm.configs cfg n = tm.configs cfg m := by
+  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+  rw [Nat.add_comm, tm.configs_add, tm.iter_step_eq_of_halt hm]
+
+/-- If a deterministic machine revisits a non-halting configuration, it never halts: revisiting a
+configuration makes the run periodic, so if some step were halting, the frozen halting
+configuration would still be around at the next return to the repeated (non-halting)
+configuration. -/
+lemma not_halts_of_repeat_nonhalt (cfg : Cfg k Symbol State input)
+    {t₁ t₂ : ℕ} (hne : t₁ ≠ t₂)
+    (heq : tm.configs cfg t₁ = tm.configs cfg t₂)
+    (hnh : (tm.configs cfg t₂).state ≠ none) :
+    ∀ t, (tm.configs cfg t).state ≠ none := by
+  wlog hlt : t₁ < t₂ generalizing t₁ t₂
+  · exact this hne.symm heq.symm (heq ▸ hnh) (by omega)
+  intro t ht
+  -- The run returns to `configs t₁` every `t₂ - t₁` steps.
+  have hperiod : ∀ n, tm.configs cfg (t₁ + n * (t₂ - t₁)) = tm.configs cfg t₁ := by
+    intro n
+    induction n with
+    | zero => simp
+    | succ n ih =>
+      rw [show t₁ + (n + 1) * (t₂ - t₁) = (t₂ - t₁) + (t₁ + n * (t₂ - t₁)) by grind,
+        tm.configs_add, ih, ← tm.configs_add, show t₂ - t₁ + t₁ = t₂ by omega, ← heq]
+  -- A halting step `t` freezes the run, so the return to `configs t₁` after step `t`
+  -- would make `configs t₁` halting as well — contradiction.
+  have hle : t ≤ t₁ + t * (t₂ - t₁) :=
+    (Nat.le_mul_of_pos_right t (by omega)).trans (Nat.le_add_left _ _)
+  have h₁ : (tm.configs cfg t₁).state = none := by
+    rw [← hperiod t, tm.halt_mono cfg hle ht]
+    exact ht
+  rw [heq] at h₁
+  exact hnh h₁
+
+open scoped Classical in
+/-- A deterministic machine that halts does so within a number of steps bounded by the number of
+distinct configurations it visits. If it is halted by step `T₀`, then it is already halted at some
+step `τ` no larger than the count of distinct configurations reached within `T₀` steps: otherwise
+the first `card + 1` configurations would be non-halting and, being more numerous than the distinct
+configurations available, two would coincide, making the machine loop forever by
+`not_halts_of_repeat_nonhalt`. Together with `card_configs_le` this turns a space bound into a
+time bound. -/
+lemma exists_halt_le_card_image (tm : MultiTapeTM k Symbol State) (input : List Symbol) {T₀ : ℕ}
+    (h : (tm.configs (tm.initCfg input) T₀).state = none) :
+    ∃ τ ≤ ((Finset.range (T₀ + 1)).image (tm.configs (tm.initCfg input))).card,
+      τ ≤ T₀ ∧ (tm.configs (tm.initCfg input) τ).state = none := by
+  classical
+  set f := tm.configs (tm.initCfg input) with hf
+  have hex : ∃ m, (f m).state = none := ⟨T₀, h⟩
+  have hm0h : (f (Nat.find hex)).state = none := Nat.find_spec hex
+  have hfind : Nat.find hex ≤ T₀ := Nat.find_le h
+  refine ⟨Nat.find hex, ?_, hfind, hm0h⟩
+  have hnh : ∀ x ∈ Finset.range (Nat.find hex), (f x).state ≠ none := fun x hx =>
+    Nat.find_min hex (Finset.mem_range.1 hx)
+  have hinj : Set.InjOn f (Finset.range (Nat.find hex)) := by
+    intro x _ y hy hxy
+    by_contra hne
+    exact tm.not_halts_of_repeat_nonhalt (tm.initCfg input) hne hxy (hnh y (Finset.mem_coe.1 hy))
+      (Nat.find hex) hm0h
+  have hsub : (Finset.range (Nat.find hex)).image f ⊆ (Finset.range (T₀ + 1)).image f :=
+    Finset.image_subset_image (by
+      intro x hx; simp only [Finset.mem_range] at hx ⊢; omega)
+  calc Nat.find hex = ((Finset.range (Nat.find hex)).image f).card := by
+        rw [Finset.card_image_of_injOn hinj, Finset.card_range]
+    _ ≤ ((Finset.range (T₀ + 1)).image f).card := Finset.card_le_card hsub
 
 end MultiTapeTM
 
