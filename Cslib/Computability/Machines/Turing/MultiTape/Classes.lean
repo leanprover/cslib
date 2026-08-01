@@ -19,12 +19,14 @@ machines on top of `DecidableInTimeAndSpace`.
 
 ## Design
 
-The primitives `DTIME` and `DSPACE` are defined using a single bound function `ℕ → ℕ` but allow
-for `O`-fuzzyness. Using this fuzzyness is justified by the space and time compression / speedup
-results which are not proven here. Once we have better machinery, we can prove them and potentially
-move to exact bounds.
+The general classes `DTIME` and `DSPACE` are defined using a single bound function `ℕ → ℕ` but allow
+for `O`-fuzzyness. Some textbooks use exact bounds ([Papadimitriou94]), while others use a
+definition similar to this one ([AroraBarak09], [Sipser2013]). The fuzzy definition is justified by
+the space and time compression / speedup theorems (which are not proven here) and allow for
+easier proofs and simpler theorem statements. Once we have better machinery, we can prove the
+compression / speedup theorems and potentially move to exact bounds.
 
-The classes are always relative to a `Symbol` alphabet.
+The classes are always relative to an alphabet `Symbol`.
 
 ## Important Declarations
 
@@ -35,6 +37,13 @@ Some named complexity classes are defined in the `Classes` namespace:
 
 * `P`, `E`, `EXP`
 * `L`, `PSPACE`, `ESPACE`, `EXPSPACE`
+
+## References
+
+* [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
+* [M. Sipser, *Introduction to the Theory of Computation*][Sipser2013]
+
 -/
 
 @[expose] public section
