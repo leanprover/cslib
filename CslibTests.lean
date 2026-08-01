@@ -2,6 +2,7 @@ import CslibTests.Bisimulation
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
+import CslibTests.Commitment
 import CslibTests.Congruence
 import CslibTests.DFA
 import CslibTests.FreeMonad
