@@ -39,4 +39,12 @@ theorem revealingScheme_perfectlyBinding (Message : Type*) [DecidableEq Message]
     (revealingScheme Message).PerfectlyBinding := by
   simp [Scheme.PerfectlyBinding, Scheme.Accepts, revealingScheme, Scheme.ofPure]
 
+/-- The hiding–binding trade-off: no scheme with two distinct messages is both
+statistically hiding with error below one and perfectly binding. -/
+example {ε : ℝ≥0} (hε : ε < 1) (scheme : Scheme Bool Bool Unit)
+    (hhide : scheme.StatisticallyHiding ε) (hbind : scheme.PerfectlyBinding) :
+    False := by
+  have h := scheme.subsingleton_of_statisticallyHiding_of_perfectlyBinding hε hhide hbind
+  exact absurd (h.allEq true false) (by decide)
+
 end CslibTests.Commitment
