@@ -33,6 +33,8 @@ deterministic case.
 
 - `statisticalDistance_bind_le`: randomized postprocessing cannot increase
   statistical distance
+- `statisticalDistance_eq_one_of_disjoint_support`: PMFs with disjoint
+  supports are at the maximum statistical distance
 - `StatisticallyClose.trans`: closeness bounds chain through an intermediate
   distribution, adding the errors
 - `statisticallyClose_zero_iff`: zero error is equality
@@ -116,6 +118,23 @@ theorem statisticalDistance_eq_zero_iff [Fintype α] (p q : PMF α) :
   apply (ENNReal.toReal_eq_toReal_iff' (p.apply_ne_top a) (q.apply_ne_top a)).mp
   simpa [sub_eq_zero] using congr_fun
     ((Fintype.sum_eq_zero_iff_of_nonneg fun _ => abs_nonneg _).mp hsum) a
+
+/-- PMFs with disjoint supports are at the maximum statistical distance. -/
+theorem statisticalDistance_eq_one_of_disjoint_support [Fintype α] {p q : PMF α}
+    (h : Disjoint p.support q.support) : statisticalDistance p q = 1 := by
+  have key : ∀ a, |(p a).toReal - (q a).toReal| = (p a).toReal + (q a).toReal := by
+    intro a
+    by_cases hp : p a = 0
+    · rw [hp]
+      simp [abs_of_nonneg ENNReal.toReal_nonneg]
+    · have hq : q a = 0 := by
+        by_contra hq
+        exact Set.disjoint_left.mp h ((p.mem_support_iff a).mpr hp)
+          ((q.mem_support_iff a).mpr hq)
+      rw [hq]
+      simp [abs_of_nonneg ENNReal.toReal_nonneg]
+  simp only [statisticalDistance, key, Finset.sum_add_distrib, sum_toReal]
+  norm_num
 
 /-- Applying the same randomized kernel to two PMFs cannot increase their
 statistical distance. -/
