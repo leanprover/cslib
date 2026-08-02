@@ -82,7 +82,7 @@ theorem versionSpace_empty_sample (C : ConceptClass α β)
     (S : LabeledSample α β 0) :
     VersionSpace C S = C := by
   ext h
-  refine ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
+  exact ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
 
 /-- *Version space reindexing.* For any reindexing `f : Fin m → Fin n`, the
 version space on `S` is contained in the version space on the reindexed sample
@@ -153,7 +153,7 @@ theorem mem_versionSpace_iff_empiricalError_zero
   unfold empiricalError empiricalMeasure error
   rcases Nat.eq_zero_or_pos m with hm | hm
   · subst hm
-    simp_all
+    simp
   · simp_all [Nat.pos_iff_ne_zero]
 
 /-- The empirical 0-1 error equals the empirical miscount divided by the

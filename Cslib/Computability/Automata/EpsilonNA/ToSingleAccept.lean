@@ -118,7 +118,7 @@ theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
     | tail hτstr htr ih =>
       subst hos'
       obtain ⟨_, rfl⟩ := Option.isSome_iff_exists.mp <| toSingleAccept_tr_antiDerivative_isSome htr
-      refine .trans (ih rfl) (.single htr)
+      exact .trans (ih rfl) (.single htr)
   · intro h
     cases h with
     | refl => exact LTS.τSTr.refl
