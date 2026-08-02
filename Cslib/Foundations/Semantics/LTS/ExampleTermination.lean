@@ -32,7 +32,7 @@ instance countdownLTS_terminating : countdownLTS.Terminating where
     exact Nat.lt_succ_self s2
 
 example : countdownLTS.Acyclic := inferInstance
-example : Relation.Acyclic countdownLTS.toRelation := inferInstance
+example : Relation.Acyclic countdownLTS.UnlabelledTr := inferInstance
 
 private theorem countdownLTS_mTr (n : ℕ) :
     countdownLTS.MTr n (List.replicate n ()) 0 := by
@@ -51,7 +51,7 @@ def successorLTS : LTS ℕ Unit where
   Tr n _ m := m = n + 1
 
 private theorem successorLTS_transGen_lt {n m : ℕ}
-    (h : Relation.TransGen successorLTS.toRelation n m) : n < m := by
+    (h : Relation.TransGen successorLTS.UnlabelledTr n m) : n < m := by
   apply Relation.transGen_minimal (r' := (· < ·)) at h
   · exact h
   · rintro n m ⟨μ, htr⟩

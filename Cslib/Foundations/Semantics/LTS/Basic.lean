@@ -68,7 +68,7 @@ structure LTS (State : Type u) (Label : Type v) where
 namespace LTS
 
 /-- The unlabelled transition relation underlying an LTS. -/
-def toRelation (lts : LTS State Label) : State → State → Prop :=
+def UnlabelledTr (lts : LTS State Label) : State → State → Prop :=
   fun s1 s2 => ∃ μ, lts.Tr s1 μ s2
 
 section MultiStep
@@ -375,12 +375,12 @@ class Bounded (lts : LTS State Label) where
 /-- An LTS is terminating if its underlying unlabelled transition relation is terminating,
 equivalently if it admits no infinite execution. -/
 class Terminating (lts : LTS State Label) where
-  terminating : Relation.Terminating lts.toRelation
+  terminating : Relation.Terminating lts.UnlabelledTr
 
 /-- An LTS is acyclic if its underlying unlabelled transition relation contains no nonempty
 cycle. -/
 class Acyclic (lts : LTS State Label) where
-  [acyclic : Relation.Acyclic lts.toRelation]
+  [acyclic : Relation.Acyclic lts.UnlabelledTr]
 
 attribute [instance] Acyclic.acyclic
 

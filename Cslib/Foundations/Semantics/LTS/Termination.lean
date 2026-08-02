@@ -32,7 +32,7 @@ theorem Bounded.toTerminating (h : lts.Bounded) : lts.Terminating := by
   rw [Relation.Terminating.iff_isEmpty_chain]
   constructor
   rintro ⟨f, hf⟩
-  change ∀ n, lts.toRelation (f n) (f (n + 1)) at hf
+  change ∀ n, lts.UnlabelledTr (f n) (f (n + 1)) at hf
   obtain ⟨bound, hbound⟩ := h.bounded
   have hpaths : ∀ n, ∃ μs, μs.length = n ∧ lts.MTr (f 0) μs (f n) := by
     intro n
@@ -67,9 +67,9 @@ theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
   rw [Nat.card_eq_fintype_card]
   intro s1 μs s2 hmtr
   obtain ⟨states, hexec⟩ := Execution.of_mTr hmtr
-  have hchain : states.IsChain (Relation.TransGen lts.toRelation) :=
+  have hchain : states.IsChain (Relation.TransGen lts.UnlabelledTr) :=
     hexec.isChain.imp_of_mem_imp fun _ _ _ _ htr => .single htr
-  letI : Std.Irrefl (Relation.TransGen lts.toRelation) := h.acyclic
+  letI : Std.Irrefl (Relation.TransGen lts.UnlabelledTr) := h.acyclic
   have hcard := hchain.pairwise.nodup.length_le_card
   grind [Execution]
 
