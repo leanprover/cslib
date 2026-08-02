@@ -167,6 +167,10 @@ lemma cons_head?_mapSome (l : List Symbol) :
 @[scoped grind =]
 lemma mapSome_nil : mapSome ([] : List Symbol) = nil := rfl
 
+@[simp, scoped grind =]
+lemma mapSome_eq_nil_iff (l : List Symbol) : mapSome l = nil ↔ l = [] := by
+  cases l <;> simp [mapSome, nil]
+
 end MapSome
 
 section Length
